@@ -1,0 +1,437 @@
+#!/usr/bin/perl -w
+#Periodic process
+
+use vars  qw(%RAD %conf $db $DATE $GZIP $MYSQLDUMP);
+#use strict;
+use FindBin '$Bin';
+
+require $Bin . '/config.pl';
+unshift(@INC, $Bin . '/../', $Bin . "/../Abills/$conf{dbtype}");
+
+require "Abills/defs.conf";
+require "Abills/templates.pl";
+
+require Abills::Base;
+Abills::Base->import();
+require Abills::SQL;
+Abills::SQL->import();
+require Users;
+Users->import();
+require Admins;
+Admins->import();
+require Abills::HTML;
+Abills::HTML->import();
+
+my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
+my $db = $sql->{db};
+my $admin = Admins->new($db);
+$admin->info($conf->{SYSTEM_ADMIN_ID}, { IP => '127.0.0.1' });
+my $users = Users->new($db, $admin, \%conf); 
+
+require "../language/$conf{default_language}.pl";
+use POSIX qw(mktime strftime);
+my $YESTERDAY = (strftime "%Y-%m-%d", localtime(time - 86400));
+
+my %ADMIN_REPORT = ();
+my $args = parse_arguments(\@ARGV);
+
+my($y, $m, $d)=split(/-/, $DATE, 3);
+ 
+if (defined($args->{monthly})) {
+  monthly_report();
+  backup();
+  logrotate();
+  sendmail("$conf{ADMIN_MAIL}", "$conf{ADMIN_MAIL}", "Monthly billing report", 
+              "$message", "$conf{MAIL_CHARSET}", "2 (High)");
+ }
+elsif (defined($args->{daily})) {
+   if(defined($args->{DATE})) {
+   	 $YESTERDAY=$args->{DATE};
+    }
+  sheduler();
+  daily_fees();
+  monthly_fees();
+  users_warning_messages();
+  admin_report_daily();
+  my $message = Abills::HTML->tpl_show(templates('admin_report_day'), \%ADMIN_REPORT, { notprint => 'yes' });
+  sendmail("$conf{ADMIN_MAIL}", "$conf{ADMIN_MAIL}", "Daily billing report ($YESTERDAY)", 
+             "$message", "$conf{MAIL_CHARSET}", "2 (High)");
+} 
+elsif (defined($args->{backup})) {
+  backup();	
+ }
+else {
+ print "Arguments (daily|monthly|backup)
+   Optional arguments
+   DATE=2005-10-01\n";
+
+ exit;
+}
+
+
+#**********************************************************
+# sheduler()
+#**********************************************************
+sub sheduler {
+	
+	
+my %shedule_type = ('tp' => $_VARIANT, 
+                 'fees' => $_FEES,
+                 'message' => $_MESSAGES
+ );
+
+#Change variant
+ require Shedule;
+ Shedule->import();
+ my $shedule = Shedule->new($db, $admin);
+
+ require Fees;
+ Fees->import();
+ my $fees = Fees->new($db, $admin);
+
+
+ my $list = $shedule->list({ Y => $y,
+ 	                           M => $m,
+ 	                           D => $d});
+
+ $ADMIN_REPORT{SHEDULE}=sprintf("%-14s| %-8s| %-14s|\n", $_LOGIN, $_TYPE, $_VALUE);  
+ $ADMIN_REPORT{SHEDULE}.= "---------------------------------------------------------\n";
+ foreach my $line (@$list) {
+    #s.h, s.d, s.m, s.y, s.counts, u.id, s.type, s.action, a.id, s.date, a.aid, s.uid, s.id  
+	  #print "$line->[5] $line->[6] $line->[7]\n";
+	  if($line->[6] eq 'tp') {
+       $users->change($line->[11], { TARIF_PLAN => $line->[7] } );
+       $shedule->del($line->[12]);
+     }
+    elsif ($line->[6] eq 'fees') {
+    	 my $user = $users->info( $line->[11] );
+    	 my ($sum, $descr) = split(/:/, $line->[7], 2);
+    	 $fees->get($user, $sum, { DESCRIBE => "$_SHEDULE: $descr" } );  
+    	 $shedule->del($line->[12]);
+     }
+
+	  $ADMIN_REPORT{SHEDULE}.=sprintf("%-14s| %-8s| %-14s|\n", $line->[5], $line->[6], $line->[7]);  
+  } 
+
+}
+
+
+#**********************************************************
+# monthly_fees
+#**********************************************************
+sub monthly_fees {
+ require Tariffs;
+ Tariffs->import();
+ my $tariffs = Tariffs->new($db);
+
+ require Fees;
+ Fees->import();
+ my $fees = Fees->new($db, $admin);
+
+ my $list = $tariffs->list({ %LIST_PARAMS });
+
+ #print "$y, $m, $d\n";
+
+ $m--;
+ 
+my $date_unixtime =  mktime(0, 0, 0, $d, $m, $y - 1900, 0, 0, 0);
+ 
+ foreach my $line (@$list) {
+ 	 if ($line->[7] > 0) {
+# 	   print "$line->[0] $line->[7]\n";
+ 	   $LIST_PARAMS{TP}=$line->[0];
+
+ 	   my $ulist = $users->list({ 
+         ACTIVATE => "<=$DATE",
+         EXPIRE => ">$DATE",
+         DISABLE => '0',
+         TP => $line->[0]
+ 	   	 });
+#u.id, u.fio, if(acct.id IS NULL, u.deposit, acct.deposit), u.credit, tp.name, u.disable, 
+#      u.uid, u.account_id, u.email, u.tp_id, u.activate, u.expire
+
+
+     foreach my $u (@$ulist) {
+          my %user = (
+            ACCOUNT_ID => $u->[7],
+            UID => $u->[6] 
+           );
+
+        if ($u->[10] eq '0000-00-00' and $d == 1) {
+#          print " $u->[0] $line->[6] $u->[2] $u->[3] $u->[10] - $u->[11]\n"; 	
+          if($conf{negative_deposit} eq 'yes') {
+            $fees->get(\%user, $line->[7], { DESCRIBE => "$_MONTH_FEE" } );  
+           }
+          elsif ($u->[2] + $u->[3] > 0) {
+            $fees->get(\%user, $line->[7], { DESCRIBE => "$_MONTH_FEE" } );  
+           }
+         }
+        elsif($u->[10] ne '0000-00-00') {
+          my ($activate_y, $activate_m, $activate_d)=split(/-/, $u->[10], 3);
+          $activate_m--;
+          my $active_unixtime =  mktime(0, 0, 0, $activate_d, $activate_m, $activate_y - 1900, 0, 0, 0);
+
+          if ($date_unixtime - $active_unixtime > 30 * 86400) {
+            #my $aa = (strftime "%Y-%m-%d", localtime($active_unixtime));
+            $fees->get(\%user, $line->[7], { DESCRIBE => "$_MONTH_FEE" } );
+            $users->change($u->[6], { ACTIVATE => $DATE } );
+           }
+#          print "   $u->[0] $line->[6] $u->[2] $u->[3] $u->[10] - $u->[11]\n"; 	
+         }
+
+      }
+
+ 	  }
+  }
+}
+
+
+#**********************************************************
+# daily_fees
+#**********************************************************
+sub daily_fees {
+ require Tariffs;
+ Tariffs->import();
+ my $tariffs = Tariffs->new($db);
+
+ require Fees;
+ Fees->import();
+ my $fees = Fees->new($db, $admin);
+
+
+ my $list = $tariffs->list({ %LIST_PARAMS });
+
+
+ foreach my $line (@$list) {
+ 	 if ($line->[6] > 0) {
+# 	   print "$line->[0] $line->[6]\n";
+ 	   $LIST_PARAMS{TP}=$line->[0];
+
+ 	   my $ulist = $users->list({ 
+         ACTIVATE => "<=$DATE",
+         EXPIRE => ">$DATE",
+         DISABLE => '0',
+         TP => $line->[0]
+ 	   	 });
+#     .id, u.fio, if(acct.id IS NULL, u.deposit, acct.deposit), u.credit, tp.name, u.disable, 
+#      u.uid, u.account_id, u.email, u.tp_id
+     foreach my $u (@$ulist) {
+        my %user = (
+            ACCOUNT_ID => $u->[7],
+            UID => $u->[6] 
+           );
+#          print " $u->[0] $line->[6] $u->[2] $u->[3]\n"; 	
+
+        if($conf{negative_deposit} eq 'yes') {
+          $fees->get(\%user, $line->[6], { DESCRIBE => "$_DAY_FEE" } );  
+         }
+        elsif ($u->[2] + $u->[3] > 0) {
+          $fees->get(\%user, $line->[6], { DESCRIBE => "$_DAY_FEE" } );  
+         }
+      }
+
+ 	  }
+  }
+}
+
+
+#**********************************************************
+# admin_report_daily
+#**********************************************************
+sub admin_report_daily {
+
+#closed users account
+$ADMIN_REPORT{CLOSED} = sprintf ("%-14s| %4s|%-20s| %9s| %8s| %19s|\n", $_LOGIN, 'V', 
+     $_NAME, $_DEPOSIT, $_CREDIT, $_LAST_LOGIN);
+$ADMIN_REPORT{CLOSED}.= "---------------------------------------------------------\n";
+my %LIST_PARAMS = ( CLOSED => 'y' ) ;
+$LIST_PARAMS{PAGE_ROWS}=10000;
+
+my $list = $users->list( { %LIST_PARAMS } );
+foreach my $line (@$list) {
+   $ADMIN_REPORT{CLOSED} .= sprintf ("%-14s| %4d|%-20s| %9.4f| %8.2f| %19s|\n", 
+     $line->[0], 
+     $line->[9], 
+     $line->[4], 
+     $line->[2], 
+     $line->[3], 
+     $line->[10]);
+}
+$ADMIN_REPORT{CLOSED} .= "---------------------------------------------------------\n$_TOTAL: $users->{TOTAL}\n";
+
+
+#Payments
+require Finance;
+Finance->import();
+my $payments = Finance->new($db, $admin, \%conf); 
+
+$ADMIN_REPORT{PAYMENTS}  =  sprintf("%-14s| %8s| %20s| %8s| %15s| %19s|\n", $_LOGIN, $_SUM, 
+    $_DESCRIBE, $_ADMINS, 'IP', $_DATE);
+$ADMIN_REPORT{PAYMENTS} .= "---------------------------------------------------------\n";
+
+$LIST_PARAMS{DATE}=$YESTERDAY;
+
+$list = $payments->list( { %LIST_PARAMS } );
+
+foreach my $line (@$list) {
+   $ADMIN_REPORT{PAYMENTS} .= sprintf ("%-14s| %8.4f| %20s| %8s| %15s| %19s|\n", 
+    "$line->[1]", 
+    "$line->[3]", 
+    "$line->[4]", 
+    "$line->[5]", 
+    "$line->[6]", 
+    "$line->[2]");
+}
+
+$ADMIN_REPORT{PAYMENTS} .= "---------------------------------------------------------
+$_TOTAL: $payments->{TOTAL} $_SUM: $payments->{SUM}\n";
+
+#Fees
+my $fees = Finance->fees($db, $admin);
+
+# Daily fees
+$ADMIN_REPORT{FEES} .= sprintf ("%-14s| %8s| %20s| %8s| %15s| %8s\n", $_LOGIN, $_SUM, $_DESCRIBE, $_ADMINS, 'IP', $_DEPOSIT);
+$ADMIN_REPORT{FEES} .= "---------------------------------------------------------\n";
+
+
+$list = $fees->list( { %LIST_PARAMS } );
+foreach my $line (@$list) {
+#SELECT f.id, u.id, f.date, f.sum, f.dsc, a.name, INET_NTOA(f.ip), f.last_deposit, f.uid 
+  $ADMIN_REPORT{FEES} .= sprintf ("%-14s| %8.4f| %20s| %8s| %15s| %8.4f\n", 
+    $line->[1], 
+    $line->[3], 
+    $line->[4], 
+    $line->[5], 
+    $line->[6],
+    $line->[7]);
+}
+
+$ADMIN_REPORT{FEES} .= "---------------------------------------------------------
+$_TOTAL: $fees->{TOTAL} $_SUM: $fees->{SUM}\n";
+
+
+#USED traffic nd time
+require Sessions;
+Sessions->import();
+my $sessions = Sessions->new($db, $admin, \%conf); 
+
+$ADMIN_REPORT{SESSIONS} .= sprintf ("%-14s| %5s| %9s| %9s| %10s| %9s|\n", $_LOGIN, $_SESSIONS, 
+    $_TRAFFIC, "$_TRAFFIC 2", $_DURATION, $_SUM);
+$ADMIN_REPORT{SESSIONS} .= "---------------------------------------------------------\n";
+
+$list = $sessions->sumary_report( { %LIST_PARAMS } );
+foreach my $line (@$list) {
+  
+#   u.id, count(l.id), sum(l.sent + l.recv), sum(l.sent2 + l.recv2), sec_to_time(sum(l.duration)), sum(l.sum), l.id
+
+ 
+   $ADMIN_REPORT{SESSIONS} .= sprintf ("%-14s| %5d| %9s| %9s| %8s| %9.4f|\n", 
+    $line->[0], 
+    $line->[1], 
+    int2byte($line->[2]), 
+    int2byte($line->[3]), 
+    $line->[4], 
+    $line->[5]);
+}
+
+$ADMIN_REPORT{SESSIONS} .= "---------------------------------------------------------
+$_TOTAL: $sessions->{TOTAL} $_SUM: $payments->{TOTAL}\n";
+
+
+
+
+#my $total_sum = 0;
+#my $total_dur_sec = 0;
+#my $total_trafic = 0;
+#my $total_sessions = 0;
+#my $unique_users= 0;
+#while(my($login, $sessions, $trafic, $duration, $sum, $dur_sec) = $q -> fetchrow_array()) {
+#  $total_sum += $sum;
+#  $total_dur_sec += $dur_sec;
+#  $total_trafic += $trafic;
+#  $total_sessions += $sessions;
+#  $unique_users++;
+#  $message .= sprintf ("%-14s| %4d| %12s| %10s| %8s\n", $login, $sessions, 
+#    int2byte($trafic), $duration, $sum);
+#}
+#
+#
+##print $stats;
+#my ($s,$m,$h,$days) = sec2time($total_dur_sec);
+#
+#$message .= "=========================================================\n";
+#$message .= sprintf ("%s:%4d/%4d| %9s| %s+%02.d:%02.d:%02.d| %-8.2f\n", $_TOTAL, 
+#    $unique_users, $total_sessions,  int2byte($total_trafic), $days, $h,$m,$s,  $total_sum);
+
+
+
+
+
+
+
+
+
+}
+
+
+#**********************************************************
+# admin_report_monthly
+#**********************************************************
+sub admin_report_monthly {
+  
+
+}
+
+
+
+#**********************************************************
+# user_warnings
+#**********************************************************
+sub users_warning_messages {
+
+my %LIST_PARAMS = (USERS_WARNINGS => 'y' ) ;
+my $list = $users->list( { %LIST_PARAMS } );
+$ADMIN_REPORT{DATE} = $YESTERDAY;
+
+$ADMIN_REPORT{USERS_WARNINGS} = sprintf("%-14s| %4s|%-20s| %9s| %8s|\n", $_LOGIN, 'TP', $_VARIANT, $_DEPOSIT, $_CREDIT).
+   "---------------------------------------------------------------\n";
+
+return 0 if ($users->{TOTAL} < 1);
+my %USER_INFO = ();
+
+foreach my $line (@$list) {
+  #u.id, u.email, u.tp_id, u.credit, u.deposit, tp.name, tp.uplimit
+
+  $USER_INFO{LOGIN}=$line->[0];
+  $USER_INFO{TP_NAME}=$line->[5];
+  $USER_INFO{TP_ID}=$line->[2];
+  $USER_INFO{DEPOSIT}=$line->[4];
+  $USER_INFO{CREDIT}=$line->[3];
+  
+  my $email = ($line->[1] eq '') ? "$line->[1]\@$conf{USERS_MAIL_DOMAIN}" : $line->[1];
+  $ADMIN_REPORT{USERS_WARNINGS} .= sprintf ("%-14s| %4d|%-20s| %9.4f| %8.2f|\n", 
+    $USER_INFO{LOGIN}, $USER_INFO{TP_ID}, $USER_INFO{TP_NAME},  $USER_INFO{DEPOSIT}, $USER_INFO{CREDIT});
+  
+  my $message = Abills::HTML->tpl_show(templates('users_warning_messages'), \%USER_INFO, { notprint => 'yes' });
+
+  #sendmail("$conf{ADMIN_MAIL}", "$email", "Попередження сервера статистики.", 
+  #            "$message", "$conf{MAIL_CHARSET}", "2 (High)");
+}
+
+$ADMIN_REPORT{USERS_WARNINGS} .= "---------------------------------------------------------------
+$_TOTAL: $users->{TOTAL}\n";
+
+
+
+}
+
+
+
+#*******************************************************************
+# Make backup
+# backup()
+#*******************************************************************
+sub backup {
+ my $res = `$MYSQLDUMP --host=$conf{dbhost} --user="$conf{dbuser}" --password="$conf{dbpasswd}" $conf{dbname} | $GZIP > $conf{BACKUP_DIR}/stats-$DATE.sql.gz`;
+ $message .= "Backup created: $res ($conf{BACKUP_DIR}/stats-$DATE.sql.gz)";
+}

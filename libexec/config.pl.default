@@ -1,0 +1,143 @@
+#!/usr/bin/perl -w
+# Abills configuretion file
+
+$PROGRAM='~AsmodeuS~ Billing System';
+
+#DB configuration
+$conf{dbhost}='localhost';
+$conf{dbname}='abills';
+$conf{dbuser}='abills';
+$conf{dbpasswd}='sqlpassword';
+$conf{dbtype}='mysql';
+
+#Mail configuration
+$conf{ADMIN_MAIL}='admin@yourhost.com';
+$conf{USERS_MAIL_DOMAIN}='yourhost.com';
+$conf{MAIL_CHARSET}='windows-1251';
+$conf{default_language}='english';
+$conf{default_charset}='windows-1251';
+
+#Periodic functions
+$conf{p_admin_mails}=1;  # Send periodic admin reports
+$conf{p_users_mails}=1;  # Send user warning  messages
+
+# chap encryption decription key
+$conf{secretkey}="test12345678901234567890";
+$conf{s_detalization}='yes'; #make session detalization recomended for vpn leathed lines
+$conf{version}='0.30b'; #26.06.2005
+
+#Minimum session costs
+$conf{MINIMUM_SESSION_TIME}=10; # minimum session time for push session to db
+$conf{MINIMUM_SESSION_TRAF}=200; # minimum session trafic for push session to db
+# Minimum pushed session cost.
+# If MINIMUM_SESSION_COST > 0 session sum up to MINIMUM_SESSION_COST value.
+$conf{MINIMUM_SESSION_COST}=0.01; 
+#Take month and day fees from users with negative deposit too
+$conf{negative_deposit}='no';
+
+#System admin id
+#ID for system operation, periodic procces
+$conf->{SYSTEM_ADMIN_ID}=13;
+
+#Web interface
+$conf{passwd_length}=6;
+$conf{username_length}=15;
+$conf{list_max_recs}=25;
+$conf{web_session_timeout} = 1800;
+
+
+# Exppp options
+$conf{netsfilespath}='/home/asmodeus/abills/cgi-bin/admin/nets/';
+#Auto assigning MAC in first connect
+$conf{MAC_AUTO_ASSIGN}=1;
+$conf{KBYTE_SIZE} = 1024;
+# Check script rannig time
+$conf{time_check}=1;
+
+# Debug mod 
+$conf{debug}=10;
+$conf{foreground}=0;
+$conf{debugmods}='LOG_DEBUG LOG_ALERT LOG_WARNING LOG_ERR LOG_INFO';
+#show auth and accounting time need Time::HiRes module (available from CPAN)
+# Log levels
+%log_levels = ('LOG_EMERG' => 0,
+'LOG_ALERT' => 0,
+'LOG_CRIT' => 0,
+'LOG_ERR' => 1,
+'LOG_WARNING' => 0, 
+'LOG_NOTICE' => 0,
+'LOG_INFO' => 1,
+'LOG_DEBUG' => 7,
+'LOG_SQL' => 6);
+
+
+
+
+# Backup SQL data
+$conf{BACKUP_DIR}='/usr/abills/backup';
+
+
+
+# Folders and files
+$base_dir='/home/asmodeus/abills2/';
+$lang_path=$base_dir . 'language/';
+$lib_path=$base_dir .'libexec/';
+$var_dir=$base_dir .'var/';
+$spool_dir=$base_dir.'var/q';
+
+$conf{TPL_DIR}   = $base_dir . 'cgi-bin/admin/tpls/';
+$conf{LOG_DEBUG} = $base_dir . 'var/log/abills.debug';
+$conf{LOGFILE}   = $base_dir . 'var/log/abills.log';
+$conf{LOG_ACCT}  = $base_dir . 'var/log/acct.log';
+
+#For file auth type allow file
+$conf{extern_acct_dir}=$base_dir.'libexec/ext_acct/';
+#$start_dir=$base_dir.'libexec/start/';
+#$stop_dir=$base_dir.'libexec/start/';
+
+$MAILBOX_PATH='/var/mail/';
+# Low bounds
+
+use POSIX qw(strftime);
+$DATE = strftime "%Y-%m-%d", localtime(time);
+$TIME = strftime "%H:%M:%S", localtime(time);
+$curtime = strftime("%F %H.%M.%S", localtime(time));
+$year = strftime("%Y", localtime(time));
+
+
+
+
+
+
+
+
+
+
+
+#*******************************************************************
+# log_print ($level, $text)
+# 
+#*******************************************************************
+sub log_print  {
+ my ($level, $text) = @_;
+
+ if ($conf{debugmods} =~ /$level/) {
+   if (defined($conf{foreground}) && $conf{foreground} == 1) {
+     print "$DATE $TIME $level: $text\n";
+    }
+   else {
+     open(FILE, ">>$conf{LOGFILE}") || die "Can't open file '$conf{LOGFILE}' $!\n";
+      print FILE "$DATE $TIME $level: $text\n";
+     close(FILE);
+    }
+  }
+
+#elsif($conf{debug} < $log_levels{$level}) {
+#  print "level \n";
+#  return 0;	
+# }
+
+#   write_log("$logfile", "$level", $text);
+
+
+}

@@ -1,0 +1,125 @@
+#!/usr/bin/perl -w
+
+use vars  qw(%RAD %conf $db);
+use strict;
+
+use FindBin '$Bin';
+require $Bin . '/config.pl';
+#use lib '../', "../Abills/$conf{dbtype}";
+#my $path = "/home/asmodeus/abills2/";
+
+unshift(@INC, $Bin . '/../', $Bin . "/../Abills/$conf{dbtype}");
+
+require Abills::Base;
+Abills::Base->import();
+my $begin_time = check_time();
+
+# Max session tarffic limit  (Mb)
+$conf{MAX_SESSION_TRAFFIC} = 2048; 
+
+
+
+
+####################################################################
+my $RAD = get_radius_params();
+test_radius_returns($RAD);
+####################################################################
+
+require Abills::SQL;
+
+my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
+my $db = $sql->{db};
+
+
+if (defined($ARGV[0]) && $ARGV[0] eq 'pre_auth') {
+  require Auth;
+  Auth->import();
+  my $Auth = Auth->new($db, \%conf);
+
+  $Auth->pre_auth("$RAD{USER_NAME}", $RAD, { SECRETKEY => $conf{secretkey} });
+  exit 0;
+}
+
+
+require Nas;
+my $nas = Nas->new($db);	
+$nas->info({IP => $RAD->{NAS_IP_ADDRESS},
+            SECRETKEY => $conf{secretkey}});
+
+if ($nas->{errno} || $nas->{TOTAL} < 1) {
+  access_deny("$RAD->{USER_NAME}", "Unknow server '$RAD->{NAS_IP_ADDRESS}'", 0);
+  exit 1;
+}
+
+
+$nas->{at} = 0 if (defined($RAD->{CHAP_PASSWORD}) && defined($RAD->{CHAP_CHALLENGE}));
+auth($RAD);
+$db->disconnect();
+
+
+
+#*******************************************************************
+# auth();
+#*******************************************************************
+sub auth {
+ my $GT = '';
+ my $rr='';
+ 
+ require Auth;
+ Auth->import();
+ my $Auth = Auth->new($db, \%conf);
+ my ($r, $RAD_PAIRS) = $Auth->authentication($RAD, $nas, { SECRETKEY => $conf{secretkey},
+ 	                                                   MAX_SESSION_TRAFFIC => $conf{MAX_SESSION_TRAFFIC},
+ 	                                                   NETS_FILES_PATH => $conf{netsfilespath} } );
+
+#If Access deny
+ if($r == 1) {
+    print "Reply-Message = \"$RAD_PAIRS->{'Reply-Message'}\"\n";
+    access_deny("$RAD->{USER_NAME}", "$RAD_PAIRS->{'Reply-Message'}", $nas->{NID});
+  }
+ else {
+   #Show pairs
+   while(my($rs, $ls)=each %$RAD_PAIRS) {
+     $rr .= "$rs = $ls,\n";
+    }
+   print $rr;
+   log_print('LOG_DEBUG', "AUTH [$RAD->{USER_NAME}] $rr");
+   print $nas->{NAS_RAD_PAIRS};
+  }
+
+ if ($begin_time > 0)  {
+   Time::HiRes->import(qw(gettimeofday));
+   my $end_time = gettimeofday();
+   my $gen_time = $end_time - $begin_time;
+   $GT = sprintf(" GT: %2.5f", $gen_time);
+  }
+
+ log_print('LOG_INFO', "AUTH [$RAD->{USER_NAME}] NAS: $nas->{NID} ($RAD->{NAS_IP_ADDRESS})$GT");
+ exit $r;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#*******************************************************************
+# access_deny($user, $message);
+#*******************************************************************
+sub access_deny {
+my ($user, $message, $nas_num) = @_;
+
+ log_print('LOG_WARNING', "AUTH [$user] NAS: $nas_num $message");
+
+exit 1;
+}

@@ -1,0 +1,145 @@
+#!/usr/bin/perl -w
+# Radius Accounting
+
+use vars  qw(%RAD %conf $db);
+use strict;
+
+use FindBin '$Bin';
+require $Bin . '/config.pl';
+#use lib '../', "../Abills/$conf{dbtype}";
+unshift(@INC, $Bin . '/../', $Bin ."/../Abills/$conf{dbtype}");
+
+
+
+require Abills::Base;
+Abills::Base->import();
+my $begin_time = check_time();
+
+# Max session tarffic limit  (Mb)
+$conf{MAX_SESSION_TRAFFIC} = 2048; 
+
+
+############################################################
+# Accounting status types
+my %ACCT_TYPES = ('Start', 1,
+               'Stop', 2,
+               'Alive', 3,
+               'Accounting-On', 7,
+               'Accounting-Off', 8);
+
+
+my %USER_TYPES = ('Login-User', 1,
+               'Framed-User', 2,       
+               'Callback-Login-User', 3, 
+               'Callback-Framed-User', 4,
+               'Outbound-User', 5,
+               'Administrative-User', 6,
+               'NAS-Prompt-User', 7,
+               'Authenticate-Only', 8,
+               'Call-Check',  10);
+
+
+
+####################################################################
+my $RAD = get_radius_params();
+test_radius_returns($RAD);
+#####################################################################
+if (! defined($RAD->{NAS_IP_ADDRESS})) {
+  access_deny("$RAD->{USER_NAME}", "Not specified NAS server", 0);
+  exit 1;
+}
+
+require Abills::SQL;
+my $sql = Abills::SQL->connect($conf{dbtype}, "$conf{dbhost}", $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
+my $db = $sql->{db};
+require Nas;
+my $nas = Nas->new($db);	
+$nas->info({IP => $RAD->{NAS_IP_ADDRESS},
+            SECRETKEY => $conf{secretkey}});
+
+if ($nas->{errno} || $nas->{TOTAL} < 1) {
+  access_deny("$RAD->{USER_NAME}", "Unknow server '$RAD->{NAS_IP_ADDRESS}'", 0);
+  exit 1;
+}
+
+
+acct($RAD);
+
+$db->disconnect();
+
+
+#*******************************************************************
+# acct();
+#*******************************************************************
+sub acct {
+ my ($RAD) = @_;
+ my $GT = '';
+
+ if ($USER_TYPES{$RAD->{SERVICE_TYPE}} == 6) {
+   log_print('LOG_DEBUG', "ACCT [$RAD->{USER_NAME}] $RAD->{SERVICE_TYPE}");
+   exit 0;	
+  }
+
+  my $acct_status_type = $ACCT_TYPES{$RAD->{ACCT_STATUS_TYPE}};
+
+  $RAD->{INBYTE} = $RAD->{ACCT_OUTPUT_OCTETS} || 0;   # FROM client
+  $RAD->{OUTBYTE} =  $RAD->{ACCT_INPUT_OCTETS} || 0; # TO client
+  $RAD->{LOGOUT} = time;
+  $RAD->{SESSIOB_START} = (defined($RAD->{ACCT_SESSION_TIME})) ?  time - $RAD->{ACCT_SESSION_TIME} : 0;
+  $RAD->{NAS_PORT} = 0 if  (! defined($RAD->{NAS_PORT}));
+  $RAD->{CONNECT_INFO} = '' if  (! defined($RAD->{CONNECT_INFO}));
+
+# Exppp VENDOR params           
+if ($nas->{NAS_TYPE} eq 'exppp') {
+  #reverse byte parameters
+  $RAD->{INBYTE} = $RAD->{ACCT_INPUT_OCTETS} || 0;   # FROM client
+  $RAD->{OUTBYTE} = $RAD->{ACCT_OUTPUT_OCTETS} || 0; # TO client
+
+  
+  $RAD->{INBYTE2} = $RAD->{EXPPP_ACCT_LOCALINPUT_OCTETS} || 0;             # From client
+  $RAD->{OUTBYTE2} =  $RAD->{EXPPP_ACCT_LOCALOUTPUT_OCTETS} || 0;            # To client
+
+  $RAD->{INTERIUM_INBYTE} = $RAD->{EXPPP_ACCT_ITERIUMIN_OCTETS} || 0;
+  $RAD->{INTERIUM_OUTBYTE} = $RAD->{EXPPP_ACCT_ITERIUMOUT_OCTETS} || 0;
+  $RAD->{INTERIUM_INBYTE2} = $RAD->{EXPPP_ACCT_LOCALITERIUMIN_OCTETS} || 0;
+  $RAD->{INTERIUM_OUTBYTE2} =  $RAD->{EXPPP_ACCT_LOCALITERIUMOUT_OCTETS} || 0;
+}
+else {
+ $RAD->{INBYTE2}  = 0;
+ $RAD->{OUTBYTE2} = 0;
+}
+
+ 
+ # Make accounting with external programs
+ opendir DIR, $conf{extern_acct_dir} or die "Can't open dir '$conf{extern_acct_dir}' $!\n";
+   my @contents = grep  !/^\.\.?$/  , readdir DIR;
+ closedir DIR;
+
+ if ($#contents > 0) {
+   my $res = "";
+   foreach my $file (@contents) {
+     if (-x "$conf{extern_acct_dir}/$file") {
+       $res = `$conf{extern_acct_dir}/$file $acct_status_type $RAD->{NAS_IP_ADDRESS} $RAD->{NAS_PORT}`;
+       log_print('LOG_DEBUG', "External accounting program '$conf{extern_acct_dir}' / '$file' pairs '$res'");
+      }
+    }
+
+   if (defined($res)) {
+     my @pairs = split(/ /, $res);
+     foreach my $pair (@pairs) {
+       my ($side, $value) = split(/=/, $pair);
+       $RAD->{$side} = "$value";
+      }
+    }
+  }
+
+
+ require Acct;
+ Acct->import();
+ my $Acct = Acct->new($db);
+ my $r = $Acct->accounting($RAD, $nas, \%conf);
+
+
+
+
+}
