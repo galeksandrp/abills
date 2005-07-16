@@ -1,0 +1,203 @@
+package Acct;
+# Accounting functions
+#
+
+use strict;
+use vars qw(@ISA @EXPORT @EXPORT_OK %EXPORT_TAGS $VERSION
+);
+
+use Exporter;
+$VERSION = 2.00;
+@ISA = ('Exporter');
+@EXPORT = qw();
+@EXPORT_OK = ();
+%EXPORT_TAGS = ();
+
+# User name expration
+use main;
+use Billing;
+
+@ISA  = ("main");
+my $db;
+
+
+
+
+
+my %ACCT_TYPES = ('Start', 1,
+               'Stop', 2,
+               'Alive', 3,
+               'Accounting-On', 7,
+               'Accounting-Off', 8);
+
+
+
+#**********************************************************
+# Init 
+#**********************************************************
+sub new {
+  my $class = shift;
+  ($db) = @_;
+  my $self = { };
+  bless($self, $class);
+  #$self->{debug}=1;
+  return $self;
+}
+
+
+#**********************************************************
+# Accounting Work_
+#**********************************************************
+sub accounting {
+ my $self = shift;
+ my ($RAD, $NAS, $conf)=@_;
+ 
+
+ my $acct_status_type = $ACCT_TYPES{$RAD->{ACCT_STATUS_TYPE}};
+ my $SESSION_START = (defined($RAD->{SESSION_START})) ?  $RAD->{SESSION_START} : 'now()';
+
+#   print "aaa $acct_status_type '$RAD->{ACCT_STATUS_TYPE}' //"; 
+
+my $a=`echo "test $acct_status_type = $ACCT_TYPES{$RAD->{ACCT_STATUS_TYPE}}"  >> /tmp/12211 `;
+ 
+
+#Start
+if ($acct_status_type == 1) { 
+  $self->query($db, "INSERT INTO calls 
+   (status, user_name, started, lupdated, nas_ip_address, nas_port_id, acct_session_id, acct_session_time,
+    acct_input_octets, acct_output_octets, framed_ip_address, CID, CONNECT_INFO)
+    values ('$acct_status_type', \"$RAD->{USER_NAME}\", $SESSION_START, UNIX_TIMESTAMP(), INET_ATON('$RAD->{NAS_IP_ADDRESS}'), 
+     '$RAD->{NAS_PORT}', \"$RAD->{ACCT_SESSION_ID}\", 0, 0, 0, INET_ATON('$RAD->{FRAMED_IP_ADDRESS}'), 
+      '$RAD->{CALLING_STATION_ID}', '$RAD->{CONNECT_INFO}');", 'do');
+ }
+# Stop status
+elsif ($acct_status_type == 2) {
+
+
+
+
+  my $Billing = Billing->new($db);	
+
+  my ($uid, $sum, $account_id, $tarif_plan, $time_t, $traf_t) = $Billing->session_sum("$RAD->{USER_NAME}", $RAD->{SESSION_START}, $RAD->{ACCT_SESSION_TIME}, $RAD, $conf);
+
+  print "$sum, $account_id, $tarif_plan, $time_t, $traf_t\n";
+  if ($sum == -2) {
+    $self->{errno}=1;   
+    $self->{errstr} = "ACCT [$RAD->{USER_NAME}] Not exist";
+   }
+  elsif ($sum < 0) {
+    $self->{LOG_DEBUG} =  "ACCT [$RAD->{USER_NAME}] small session ($RAD->{ACCT_SESSION_TIME}, $RAD->{INBYTE}, $RAD->{OUTBYTE})";
+   }
+  else {
+
+    $self->query($db, "INSERT INTO log (uid, start, tp_id, duration, sent, recv, minp, kb,  sum, nas_id, port_id,
+        ip, CID, sent2, recv2, acct_session_id, account_id) 
+        VALUES ('$uid', FROM_UNIXTIME($RAD->{SESSION_START}), '$tarif_plan', '$RAD->{ACCT_SESSION_TIME}', 
+        '$RAD->{OUTBYTE}', '$RAD->{INBYTE}', '$time_t', '$traf_t', '$sum', '$NAS->{NID}',
+        '$RAD->{NAS_PORT}', INET_ATON('$RAD->{FRAMED_IP_ADDRESS}'), '$RAD->{CALLING_STATION_ID}',
+        '$RAD->{OUTBYTE2}', '$RAD->{INBYTE2}',  \"$RAD->{ACCT_SESSION_ID}\", '$account_id');", 'do');
+
+    if ($self->{errno}) {
+      my $filename = "$RAD->{USER_NAME}.$RAD->{ACCT_SESSION_ID}";
+      $self->{LOG_WARNING}="ACCT [$RAD->{USER_NAME}] Making accounting file '$filename'";
+      mk_session_log($RAD, $conf);
+     }
+# If SQL query filed
+    else {
+      if ($sum > 0) {
+        if ($account_id > 0) {
+         	$self->query($db, "UPDATE accounts SET deposit=deposit-$sum WHERE id='$account_id';", 'do');
+         }
+        else {
+          $self->query($db, "UPDATE users SET deposit=deposit-$sum WHERE id='$RAD->{USER_NAME}';", 'do');
+         }
+       }
+     }
+   }
+
+  # Delete from session wtmp
+  $self->query($db, "DELETE FROM  calls WHERE acct_session_id=\"$RAD->{ACCT_SESSION_ID}\" and 
+     user_name=\"$RAD->{USER_NAME}\" and nas_ip_address=INET_ATON('$RAD->{NAS_IP_ADDRESS}');", 'do');
+}
+#Alive status 3
+elsif($acct_status_type eq 3) {
+
+## Experemental Linux alive hangup
+## Author: Wanger
+#if ($conf{experimentsl} eq 'yes') {
+#  my ($sum, $variant, $time_t, $traf_t) = session_sum("$RAD{USER_NAME}", $ACCT_INFO{SESSION_START}, $ACCT_INFO{ACCT_SESSION_TIME}, \%ACCT_INFO);
+#  if ($sum > 0) {
+#     $sql = "SELECT deposit, credit FROM users WHERE id=\"$RAD{USER_NAME}\";";
+#     log_print('LOG_SQL', "ACCT [$RAD{USER_NAME}] SQL: $sql");
+#     $q = $db->prepare("$sql") || die $db->errstr;
+#     $q -> execute();
+#     my ($deposit, $credir) = $q -> fetchrow();
+#      if (($deposit + $credir) - $sum) < 0) {
+#        log_print('LOG_WARNING', "ACCT [$RAD{USER_NAME}] Negative balance ($d - $sum) - kill session($RAD{ACCT_SESSION_ID})");
+#        system ($Bin ."/modules/hangup.pl $RAD{ACCT_SESSION_ID}");
+#       }
+#  }
+#}
+###
+
+  $self->query($db, "UPDATE calls SET
+    status='$acct_status_type',
+    nas_port_id='$RAD->{NAS_PORT}',
+    acct_session_time=UNIX_TIMESTAMP()-UNIX_TIMESTAMP(started),
+    acct_input_octets='$RAD->{INBYTE}',
+    acct_output_octets='$RAD->{OUTBYTE}',
+    ex_input_octets='$RAD->{INBYTE2}',
+    ex_output_octets='$RAD->{OUTBYTE2}',
+    framed_ip_address=INET_ATON('$RAD->{FRAMED_IP_ADDRESS}'),
+    lupdated=UNIX_TIMESTAMP()
+   WHERE
+    acct_session_id=\"$RAD->{ACCT_SESSION_ID}\" and 
+    user_name=\"$RAD->{USER_NAME}\" and
+    nas_ip_address=INET_ATON('$RAD->{NAS_IP_ADDRESS}');", 'do');
+}
+else {
+  $self->{errno}=1;
+  $self->{errstr}="ACCT [$RAD->{USER_NAME}] Unknown accounting status: $RAD->{ACCT_STATUS_TYPE} ($RAD->{ACCT_SESSION_ID})";
+}
+
+  if ($self->{errno}) {
+  	$self->{errno}=1;
+  	$self->{errstr}="ACCT $RAD->{ACCT_STATUS_TYPE} SQL Error";
+  	return $self;
+   }
+
+
+
+
+}
+
+
+#**********************************************************
+# start
+#**********************************************************
+sub start {
+	my ($RAD, $NAS)=@_;
+	
+}
+
+
+#**********************************************************
+# start
+#**********************************************************
+sub stop {
+	my ($RAD, $NAS)=@_;
+	
+}
+
+#**********************************************************
+# start
+#**********************************************************
+sub alive {
+	my ($RAD, $NAS)=@_;
+	
+}
+
+
+
+
+1

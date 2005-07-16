@@ -1,0 +1,587 @@
+package Sessions;
+# Stats functions
+#
+
+use strict;
+use vars qw(@ISA @EXPORT @EXPORT_OK %EXPORT_TAGS $VERSION
+);
+
+use Exporter;
+$VERSION = 2.00;
+@ISA = ('Exporter');
+
+@EXPORT = qw(
+);
+
+@EXPORT_OK = ();
+%EXPORT_TAGS = ();
+
+use main;
+@ISA  = ("main");
+
+my $db;
+my $admin;
+my $conf;
+
+#**********************************************************
+# Init 
+#**********************************************************
+sub new {
+  my $class = shift;
+  ($db, $admin, $conf) = @_;
+  my $self = { };
+  bless($self, $class);
+  #$self->{debug}=1;
+  return $self;
+}
+
+#**********************************************************
+# Add
+#**********************************************************
+sub add {
+  my $self = shift;
+  my ($attr) = @_;
+
+  my $name = (defined($attr->{ACCOUNT_NAME})) ? $attr->{ACCOUNT_NAME} : '';
+  
+  if ($name eq '') {
+    $self->{errno} = 8;
+    $self->{errstr} = 'ERROR_ENTER_NAME';
+    return $self;
+   }
+
+  my %DATA = $self->get_data($attr); 
+  $self->query($db, "INSERT INTO accounts (name, tax_number, bank_account, bank_name, cor_bank_account, bank_bic) 
+     VALUES ('$DATA{ACCOUNT_NAME}', '$DATA{TAX_NUMBER}', '$DATA{BANK_ACCOUNT}', '$DATA{BANK_NAME}', '$DATA{COR_BANK_ACCOUNT}', 
+      '$DATA{BANK_BIC}');", 'do');
+
+  return $self;
+}
+
+
+#**********************************************************
+# del
+#**********************************************************
+sub del {
+  my $self = shift;
+  my ($uid, $session_id, $nas_id, $session_start, $attr) = @_;
+
+
+  $self->query($db, "DELETE FROM log 
+   WHERE uid='$uid' and start='$session_start' and nas_id='$nas_id' and acct_session_id='$session_id';", 'do');
+  return $self;
+}
+
+#**********************************************************
+# online()
+#********************************************************** 
+sub online {
+	my $self = shift;
+	my ($attr) = @_;
+
+ my $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+ my $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+ 
+ my $WHERE;
+ 
+ if (defined($attr->{ZAPED})) {
+ 	 $WHERE = "c.status=2";
+  }
+ else {
+   $WHERE = "c.status=1 or c.status>=3";
+ } 
+ 
+ 
+
+# Nas Server
+
+# User
+
+# Ip
+
+# Port
+	
+$self->query($db, "SELECT c.user_name, 
+                          u.fio, 
+                          c.nas_port_id, 
+                          c.framed_ip_address,
+                          SEC_TO_TIME(UNIX_TIMESTAMP() - UNIX_TIMESTAMP(c.started)),
+                          c.acct_input_octets, c.acct_output_octets, c.ex_input_octets, c.ex_output_octets,
+                          INET_NTOA(c.framed_ip_address),
+                          c.status,
+                          u.uid,
+  INET_NTOA(c.nas_ip_address),
+  c.acct_session_id, 
+  u.phone, 
+  u.tp_id, 
+  u.deposit, 
+  u.credit, 
+  u.speed,  
+  c.CID, 
+  c.CONNECT_INFO,
+  if(date_format(c.started, '%Y-%m-%d')=curdate(), date_format(c.started, '%H:%i:%s'), c.started)
+ FROM calls c
+ LEFT JOIN users u ON u.id=user_name
+ WHERE $WHERE
+ ORDER BY $SORT $DESC;");
+ 
+ if ($self->{TOTAL} < 1) {
+ 	 return $self;
+  }
+
+
+ my $list = $self->{list};
+ my %dub_logins = ();
+ my %dub_ports = ();
+ my %nas_sorted = ();
+ 
+ 
+ foreach my $line (@$list) {
+ 	  $dub_logins{$line->[0]}++;
+ 	  $dub_ports{$line->[3]}{$line->[3]}++;
+    push( @{ $nas_sorted{"$line->[12]"} }, [ $line->[0], $line->[1], $line->[2], $line->[9], $line->[4], $line->[5], $line->[6], $line->[7], $line->[8], $line->[10], $line->[11], 
+      $line->[13], $line->[14], $line->[15], $line->[16], $line->[17], $line->[18], $line->[19], $line->[20], ]);
+  }
+ 
+ 
+
+
+ $self->{dub_ports} = \%dub_ports;
+ $self->{dub_logins}=\%dub_logins;
+ $self->{nas_sorted}=\%nas_sorted;
+ # $self->{list};
+
+ return $self->{list};	
+}
+
+
+#**********************************************************
+# online_del()
+#********************************************************** 
+sub online_del {
+	my $self = shift;
+	my ($attr) = @_;
+
+  my $NAS_IP_ADDRESS  = (defined($attr->{NAS_IP_ADDRESS})) ? $attr->{NAS_IP_ADDRESS} : '';
+  my $NAS_PORT        = (defined($attr->{NAS_PORT})) ? $attr->{NAS_PORT} : '';
+  my $ACCT_SESSION_ID = (defined($attr->{ACCT_SESSION_ID})) ? $attr->{ACCT_SESSION_ID} : '';
+
+
+  $self->query($db, "DELETE FROM calls WHERE nas_ip_address=INET_ATON('$NAS_IP_ADDRESS')
+            and nas_port_id='$NAS_PORT' 
+            and acct_session_id='$ACCT_SESSION_ID';", 'do');
+
+  return $self;
+}
+
+
+#**********************************************************
+# Add online session to log
+# online2log()
+#
+#********************************************************** 
+sub online2log {
+	my $self = shift;
+	my ($attr) = @_;
+
+
+ $self->query($db, "SELECT c.user_name, ", 'do');
+
+}
+
+
+#**********************************************************
+# Add online session to log
+# online2log()
+#********************************************************** 
+sub online_info {
+	my $self = shift;
+	my ($attr) = @_;
+
+  
+  my $NAS_IP_ADDRESS  = (defined($attr->{NAS_IP_ADDRESS})) ? $attr->{NAS_IP_ADDRESS} : '';
+  my $NAS_PORT        = (defined($attr->{NAS_PORT})) ? $attr->{NAS_PORT} : '';
+  my $ACCT_SESSION_ID = (defined($attr->{ACCT_SESSION_ID})) ? $attr->{ACCT_SESSION_ID} : '';
+  
+  $self->query($db, "SELECT user_name, UNIX_TIMESTAMP(started), acct_session_time, 
+   acct_input_octets,
+   acct_output_octets,
+   ex_input_octets,
+   ex_output_octets,
+   connect_term_reason,
+   INET_NTOA(framed_ip_address),
+   lupdated,
+   nas_port_id,
+   INET_NTOA(nas_ip_address),
+      CID,
+      CONNECT_INFO,
+      acct_session_id
+      FROM calls 
+    WHERE nas_ip_address=INET_ATON('$NAS_IP_ADDRESS')
+       and nas_port_id='$NAS_PORT' and acct_session_id='$ACCT_SESSION_ID'");
+
+
+  if ($self->{TOTAL} < 1) {
+     $self->{errno} = 2;
+     $self->{errstr} = 'ERROR_NOT_EXIST';
+     return $self;
+   }
+
+  my $ar = $self->{list}->[0];
+
+  ($self->{USER_NAME}, 
+   $self->{SESSION_START}, 
+   $self->{ACCT_SESSION_TIME}, 
+   $self->{ACCT_INPUT_OCTETS}, 
+   $self->{ACCT_OUTPUT_OCTETS}, 
+   $self->{ACCT_EX_INPUT_OCTETS}, 
+   $self->{ACCT_EX_INPUT_OCTETS}, 
+   $self->{CONNECT_TERM_REASON}, 
+   $self->{FRAMED_IP_ADDRESS}, 
+   $self->{LAST_UPDATE}, 
+   $self->{NAS_PORT}, 
+   $self->{NAS_IP_ADDRESS}, 
+   $self->{CALLING_STATION_ID},
+   $self->{CONNECT_INFO},
+   $self->{ACCT_SESSION_ID}
+    )= @$ar;
+
+
+  return $self;
+}
+
+
+
+
+#**********************************************************
+# Session zap
+#**********************************************************
+sub zap {
+  my $self=shift;
+  my ($nas_ip_address, $nas_port_id, $acct_session_id)=@_;
+
+  $self->query($db, "UPDATE calls SET status=2 WHERE nas_ip_address=INET_ATON('$nas_ip_address')
+       and nas_port_id='$nas_port_id' and acct_session_id='$acct_session_id';", 'do');
+
+  return $self;
+}
+
+#**********************************************************
+# Session detail
+#**********************************************************
+sub session_detail {
+ my $self = shift;	
+ my ($attr) = @_;
+ 
+	
+ $self->query($db, "SELECT 
+  l.start,
+  l.duration,
+  l.tp,
+  tp.name,
+  l.sent,
+  l.recv,
+  l.minp,
+  l.sent2,
+  l.recv2,
+  l.ip,
+  l.CID,
+  l.nas_id,
+  n.name,
+  n.ip
+  l.port_id,
+  
+  l.minp,
+  l.kb,
+  l.sum,
+
+  l.account_id,
+  u.id,
+  
+  l.uid
+  l.acct_session_id,
+ FROM log l, users u, tarif_plans tp, nas
+ WHERE l.uid=u.uid and l.tp=tp.id and l.nas_id=nas.id
+ and 
+ uid='$attr->{UID}' and acct_session_id='$attr->{SESSION_ID}';");
+
+  if ($self->{TOTAL} < 1) {
+     $self->{errno} = 2;
+     $self->{errstr} = 'ERROR_NOT_EXIST';
+     return $self;
+   }
+
+  my $ar = $self->{list}->[0];
+
+  ($self->{START}, 
+   $self->{STOP}, 
+   $self->{DURATION}, 
+   $self->{TP}, 
+   $self->{TP_NAME}, 
+   $self->{SENT}, 
+   $self->{RECV}, 
+   $self->{SENT2}, 
+   $self->{RECV2}, 
+   $self->{IP}, 
+   $self->{CID}, 
+   $self->{NAS_ID}, 
+   $self->{NAS_NAME},
+   $self->{NAS_IP},
+   $self->{NAS_PORT}, 
+
+   $self->{TIME_TARIFF},
+   $self->{TRAF_TARIFF},
+   $self->{SUM}, 
+
+   $self->{ACCOUNT_ID}, 
+   $self->{LOGIN}, 
+
+   $self->{UID}, 
+   $self->{SESSION_ID}
+    )= @$ar;
+
+#   $self->{UID} = $attr->{UID};
+#   $self->{SESSION_ID} = $attr->{SESSION_ID};
+
+
+ return $self;
+}
+
+
+#**********************************************************
+# Periods totals
+# periods_totals($self, $attr);
+#**********************************************************
+sub periods_totals {
+ my $self = shift;
+ my ($attr) = @_;
+ my $WHERE = '';
+ 
+ if($attr->{UID})  {
+   $WHERE .= ($WHERE ne '') ?  " and uid='$attr->{UID}' " : "WHERE uid='$attr->{UID}' ";
+  }
+
+ $self->query($db, "SELECT  
+   sum(if(date_format(start, '%Y-%m-%d')=curdate(), sent, 0)), 
+   sum(if(date_format(start, '%Y-%m-%d')=curdate(), recv, 0)), 
+   SEC_TO_TIME(sum(if(date_format(start, '%Y-%m-%d')=curdate(), duration, 0))), 
+
+   sum(if(TO_DAYS(curdate()) - TO_DAYS(start) = 1, sent, 0)),
+   sum(if(TO_DAYS(curdate()) - TO_DAYS(start) = 1, recv, 0)),
+   SEC_TO_TIME(sum(if(TO_DAYS(curdate()) - TO_DAYS(start) = 1, duration, 0))),
+
+   sum(if((YEAR(curdate())=YEAR(start)) and (WEEK(curdate()) = WEEK(start)), sent, 0)),
+   sum(if((YEAR(curdate())=YEAR(start)) and  WEEK(curdate()) = WEEK(start), recv, 0)),
+   SEC_TO_TIME(sum(if((YEAR(curdate())=YEAR(start)) and WEEK(curdate()) = WEEK(start), duration, 0))),
+
+   sum(if(date_format(start, '%Y-%m')=date_format(curdate(), '%Y-%m'), sent, 0)), 
+   sum(if(date_format(start, '%Y-%m')=date_format(curdate(), '%Y-%m'), recv, 0)), 
+   SEC_TO_TIME(sum(if(date_format(start, '%Y-%m')=date_format(curdate(), '%Y-%m'), duration, 0))),
+  
+   sum(sent), sum(recv), SEC_TO_TIME(sum(duration))
+   FROM log $WHERE;");
+
+  my $ar = $self->{list}->[0];
+  ($self->{sent_0}, 
+      $self->{recv_0}, 
+      $self->{duration_0}, 
+      $self->{sent_1}, 
+      $self->{recv_1}, 
+      $self->{duration_1},
+      $self->{sent_2}, 
+      $self->{recv_2}, 
+      $self->{duration_2}, 
+      $self->{sent_3}, 
+      $self->{recv_3}, 
+      $self->{duration_3}, 
+      $self->{sent_4}, 
+      $self->{recv_4}, 
+      $self->{duration_4}) =  @$ar;
+  
+  for(my $i=0; $i<5; $i++) {
+    $self->{'sum_'. $i } = $self->{'sent_' . $i } + $self->{'recv_' . $i};
+  }
+
+	
+  return $self;	
+}
+
+#**********************************************************
+# List
+#**********************************************************
+sub list {
+ my $self = shift;
+ my ($attr) = @_;
+
+ my $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+ my $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+ my $PG = ($attr->{PG}) ? $attr->{PG} : 0;
+ my $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
+
+ 
+ my $WHERE = '';
+ 
+#UID
+ if ($attr->{UID}) {
+   $WHERE .= ($WHERE ne '') ?  " and l.uid='$attr->{UID}' " : "WHERE l.uid='$attr->{UID}' ";
+  }
+
+
+ if ($attr->{LIST_UIDS}) {
+   $WHERE .= ($WHERE ne '') ?  " and l.uid IN ($attr->{LIST_UIDS}) " : "WHERE l.uid IN ($attr->{LIST_UIDS}) ";
+  }
+
+
+#IP
+ if ($attr->{IP}) {
+   $WHERE .= ($WHERE ne '') ?  " and l.ip='$attr->{IP}' " : "WHERE l.ip='$attr->{IP}' ";
+  }
+
+#NAS ID
+ if ($attr->{NAS_ID}) {
+   $WHERE .= ($WHERE ne '') ?  " and l.nas_id='$attr->{NAS_ID}' " : "WHERE l.nas_id='$attr->{NAS_ID}' ";
+  }
+
+#NAS PORT
+ if ($attr->{NAS_PORT}) {
+   $WHERE .= ($WHERE ne '') ?  " and l.port_id='$attr->{NAS_PORT}' " : "WHERE l.port_id='$attr->{NAS_PORT}' ";
+  }
+
+#TARIF_PLAN
+ if ($attr->{TARIF_PLAN}) {
+   $WHERE .= ($WHERE ne '') ?  " and l.tp_id='$attr->{TARIF_PLAN}' " : "WHERE l.tp_id='$attr->{TARIF_PLAN}' ";
+  }
+
+#Session ID
+if ($attr->{ACCT_SESSION_ID}) {
+   $WHERE .= ($WHERE ne '') ?  " and l.acct_session_id='$attr->{ACCT_SESSION_ID}' " : "WHERE l.acct_session_id='$attr->{ACCT_SESSION_ID}' ";
+  }
+
+
+#Interval from date to date
+if ($attr->{INTERVAL}) {
+ 	 my ($from, $to)=split(/\//, $attr->{INTERVAL}, 2);
+   $WHERE .= ($WHERE ne '') ?  " and date_format(start, '%Y-%m-%d')>='$from' and date_format(start, '%Y-%m-%d')<='$to'" : "WHERE date_format(start, '%Y-%m-%d')>='$from' and date_format(start, '%Y-%m-%d')<='$to'";
+  }
+#Period
+elsif ($attr->{PERIOD}) {
+   my $period = $attr->{PERIOD};   
+   if ($period == 4) { $WHERE .= ''; }
+   else {
+     $WHERE .= ($WHERE ne '') ? ' and ' : 'WHERE ';
+     if($period == 0) { $WHERE .= "date_format(start, '%Y-%m-%d')=curdate() "; }
+     elsif($period == 1) { $WHERE .= "TO_DAYS(curdate()) - TO_DAYS(start) = 1 ";  }
+     elsif($period == 2) { $WHERE .= "YEAR(curdate()) = YEAR(start) and (WEEK(curdate()) = WEEK(start)) ";  }
+     elsif($period == 3) { $WHERE .= "date_format(start, '%Y-%m')=date_format(curdate(), '%Y-%m') "; }
+     elsif($period == 5) { $WHERE .= "date_format(start, '%Y-%m-%d')='$attr->{DATE}' "; }
+     else {$WHERE .= "date_format(start, '%Y-%m-%d')=curdate() "; }
+    }
+ }
+elsif($attr->{DATE}) {
+	$WHERE .= ($WHERE ne '') ? " and date_format(start, '%Y-%m-%d')='$attr->{DATE}' " : "WHERE date_format(start, '%Y-%m-%d')='$attr->{DATE}";
+}
+#else {
+#	$WHERE .= ($WHERE ne '') ? ' and ' : 'WHERE ';
+#	$WHERE .= "date_format(start, '%Y-%m-%d')=curdate() ";
+#}
+#From To
+
+
+ #jOINT 2 TABLES
+ my $WHERE_LIST .= ($WHERE ne '') ?  $WHERE  . "and u.uid=l.uid " : "WHERE u.uid=l.uid ";
+
+
+ $self->query($db, "SELECT u.id, l.start, SEC_TO_TIME(l.duration), l.tp_id,
+  l.sent, l.recv, l.CID, l.nas_id, l.ip, l.sum, INET_NTOA(l.ip), l.acct_session_id, l.uid
+  FROM log l, users u
+  $WHERE_LIST
+  ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");
+
+ my $list = $self->{list};
+
+ if ($self->{TOTAL} > 0) {
+    $self->query($db, "SELECT count(*), SEC_TO_TIME(sum(l.duration)), sum(l.sent + l.recv), sum(sum)  FROM log l $WHERE;");
+    my $a_ref = $self->{list}->[0];
+    ($self->{TOTAL},
+     $self->{DURATION},
+     $self->{TRAFFIC},
+     $self->{SUM}) = @$a_ref;
+  }
+
+#  $self->{list}=$list;
+
+return $list;
+}
+
+
+#**********************************************************
+# session calculation
+# min max average
+#**********************************************************
+sub calculation {
+	my ($self) = shift;
+	my ($attr) = @_;
+
+  my $WHERE;
+
+#Login
+  if ($attr->{UID}) {
+    $WHERE .= ($WHERE ne '') ?  " and l.uid='$attr->{UID}' " : "WHERE l.uid='$attr->{LOGIN}' ";
+   }
+
+  $self->query($db, "SELECT SEC_TO_TIME(min(l.duration)), SEC_TO_TIME(max(l.duration)), SEC_TO_TIME(avg(l.duration)),
+  min(l.sent), max(l.sent), avg(l.sent),
+  min(l.recv), max(l.recv), avg(l.recv),
+  min(l.recv+l.sent), max(l.recv+l.sent), avg(l.recv+l.sent)
+  FROM log l $WHERE");
+
+  my $ar = $self->{list}->[0];
+
+  ($self->{min_dur}, 
+   $self->{max_dur}, 
+   $self->{avg_dur}, 
+   $self->{min_sent}, 
+   $self->{max_sent}, 
+   $self->{avg_sent},
+   $self->{min_recv}, 
+   $self->{max_recv}, 
+   $self->{avg_recv}, 
+   $self->{min_sum}, 
+   $self->{max_sum}, 
+   $self->{avg_sum}) =  @$ar;
+
+	return $self;
+}
+
+
+#**********************************************************
+# sumary_report($self, $attr)
+#**********************************************************
+sub sumary_report {
+	my ($self) = shift;
+	my ($attr) = @_;
+
+ my $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+ my $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+ my $PG = ($attr->{PG}) ? $attr->{PG} : 0;
+ my $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
+	
+ my $WHERE = '';
+
+#Login
+if ($attr->{DATE}) {
+  $WHERE .= ($WHERE ne '') ?  " and date_format(start, '%Y-%m-%d')='$attr->{DATE}' " : "WHERE date_format(start, '%Y-%m-%d')='$attr->{DATE}' ";
+ }
+
+
+  $self->query($db, "select u.id, count(l.uid), sum(l.sent + l.recv), sum(l.sent2 + l.recv2), sec_to_time(sum(l.duration)), sum(l.sum), l.uid
+    FROM log l
+    LEFT JOIN users u ON (u.uid=l.uid)
+    $WHERE
+    GROUP BY l.uid 
+    ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS");
+
+	return $self->{list};
+}
+
+1
