@@ -264,3 +264,7 @@ $_COMPANY='Компании';
 $_OCTETS_DIRECTION='Направление трафика';
 $_PAYMENT_METHOD='Вид оплаты';
 $_TEST='Тест';
+$_ZAPED='Zaped';
+$_CLOSED='Закрытые';
+$_USED='Использовано';
+$_MAX_SESSION_DURATION='Мак время сесии';
