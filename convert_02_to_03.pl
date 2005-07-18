@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-
+# Convert from version 0.2 to 0.3
 
 
 require "libexec/config.pl";

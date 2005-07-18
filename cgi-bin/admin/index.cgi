@@ -2019,6 +2019,10 @@ elsif ($FORM{period}) {
 	$LIST_PARAMS{PERIOD} = $FORM{period}; 
 	$pages_qs .= "&period=$FORM{period}";
 }
+elsif($FORM{DATE}) {
+	$LIST_PARAMS{DATE} = $FORM{DATE}; 
+	$pages_qs .= "&DATE=$FORM{DATE}";
+}
 
 if (! defined($FORM{sort})) {
   $LIST_PARAMS{SORT}=2;
@@ -2051,18 +2055,18 @@ sub form_use {
 my ($y, $m, $d);
 print "<a href='$SELF_URL?index=$index&allmonthes=y'>$_MONTH</a>::<br>";
 
-my $type='d';
-if ($FORM{m}) {
-  $LIST_PARAMS{MONTH}=$FORM{m};
-	$pages_qs="&m=$LIST_PARAMS{MONTH}";
+my $type='DATE';
+if ($FORM{MONTH}) {
+  $LIST_PARAMS{MONTH}=$FORM{MONTH};
+	$pages_qs="&MONTH=$LIST_PARAMS{MONTH}";
 }
 elsif($FORM{allmonthes}) {
-	$type='m';
+	$type='MONTH';
 	$pages_qs="&allmonthes=y";
 }
-elsif (defined($FORM{d})) {
+elsif (defined($FORM{DATE})) {
 
-  ($y, $m, $d)=split(/-/, $FORM{d}, 3);	
+  ($y, $m, $d)=split(/-/, $FORM{DATE}, 3);	
   my $days = '';
   for ($i=1; $i<=31; $i++) {
      $days .= ($d == $i) ? "<b>$i </b>" : sprintf("<a href='$SELF_URL?index=$index&d=%d-%02.f-%02.f'>%d</a> ", $y, $m, $i, $i);
@@ -2077,8 +2081,8 @@ elsif (defined($FORM{d})) {
                                } );
 
   print $table->show();
-  $LIST_PARAMS{DATE}="$FORM{d}";
-  $pages_qs="&d=$LIST_PARAMS{DATE}";
+  $LIST_PARAMS{DATE}="$FORM{DATE}";
+  $pages_qs="&DATE=$LIST_PARAMS{DATE}";
 
 
   #Used Fraffic
@@ -2091,16 +2095,17 @@ elsif (defined($FORM{d})) {
 
   my $list = $sessions->report({ %LIST_PARAMS });
   foreach my $line (@$list) {
-    $table->addrow("<a href='$SELF_URL?index=$index&$type=$line->[0]'>$line->[0]</a>", 
-      "<a href='$SELF_URL?index=11&UID=$line->[7]'>$line->[1]</a>", $line->[2], int2byte($line->[3]),  int2byte($line->[4]),  $line->[5], "<b>$line->[6]</b>" );
+    $table->addrow("<b>$line->[0]</b>", 
+      "<a href='$SELF_URL?index=11&subf=22&UID=$line->[7]&DATE=$line->[0]'>$line->[1]</a>", $line->[2], int2byte($line->[3]),  int2byte($line->[4]),  $line->[5], "<b>$line->[6]</b>" );
    }
 
   print $table->show();
+  return 0;
 }
 else {
 	($y, $m, $d)=split(/-/, $DATE, 3);
 	$LIST_PARAMS{MONTH}="$y-$m";
-	$pages_qs="&m=$LIST_PARAMS{MONTH}";
+	$pages_qs="&MONTH=$LIST_PARAMS{MONTH}";
 }
 
 
@@ -2112,7 +2117,6 @@ $table = Abills::HTML->table( { width => '100%',
                                 qs => $pages_qs             
                                } );
 
-print "<a href='$SELF_URL?index=$index&allmonthes=y'>$_MONTH</a>::<br>";
 
 my $list = $sessions->report({ %LIST_PARAMS });
 foreach my $line (@$list) {

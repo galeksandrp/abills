@@ -574,7 +574,8 @@ sub report {
    $date = "date_format(l.start, '%Y-%m-%d')";
   } 
  elsif(defined($attr->{DATE})) {
-   $self->query($db, "select date_format(l.start, '%Y-%m-%d'), u.id, count(l.uid), sum(l.sent + l.recv), sum(l.sent2 + l.recv2), sec_to_time(sum(l.duration)), sum(l.sum), l.uid
+   $self->query($db, "select date_format(l.start, '%Y-%m-%d'), if(u.id is NULL, CONCAT('> ', l.uid, ' <'), u.id), count(l.uid), 
+    sum(l.sent + l.recv), sum(l.sent2 + l.recv2), sec_to_time(sum(l.duration)), sum(l.sum), l.uid
       FROM log l
       LEFT JOIN users u ON (u.uid=l.uid)
       WHERE date_format(l.start, '%Y-%m-%d')='$attr->{DATE}'
