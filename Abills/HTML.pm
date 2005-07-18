@@ -435,8 +435,20 @@ sub table {
      }
   }
 
- $self->{table} = "<TABLE $width cellspacing=0 cellpadding=0 border=0><TR><TD bgcolor=$_COLORS[4]>
+ if (defined($attr->{caption})) {
+ 	 $self->{table} = "<b>$attr->{caption}</b><br>". $self->{table}; 
+  }
+
+
+ $self->{table} = "<TABLE $width cellspacing=0 cellpadding=0 border=0>";
+ 
+ if (defined($attr->{caption})) {
+   $self->{table} .= "<TR><TD bgcolor=$_COLORS[1] align=right><b>$attr->{caption}</b></td></tr>\n";
+  }
+
+ $self->{table} .= "<TR><TD bgcolor=$_COLORS[4]>
                <TABLE width=100% cellspacing=1 cellpadding=0 border=0>\n";
+
 
  if (defined($attr->{title})) {
  	 $self->{table} .= $self->table_title($SORT, $DESC, $PG, $OP, $attr->{title}, $attr->{qs});

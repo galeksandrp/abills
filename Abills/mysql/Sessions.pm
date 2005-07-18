@@ -35,29 +35,6 @@ sub new {
   return $self;
 }
 
-#**********************************************************
-# Add
-#**********************************************************
-sub add {
-  my $self = shift;
-  my ($attr) = @_;
-
-  my $name = (defined($attr->{ACCOUNT_NAME})) ? $attr->{ACCOUNT_NAME} : '';
-  
-  if ($name eq '') {
-    $self->{errno} = 8;
-    $self->{errstr} = 'ERROR_ENTER_NAME';
-    return $self;
-   }
-
-  my %DATA = $self->get_data($attr); 
-  $self->query($db, "INSERT INTO accounts (name, tax_number, bank_account, bank_name, cor_bank_account, bank_bic) 
-     VALUES ('$DATA{ACCOUNT_NAME}', '$DATA{TAX_NUMBER}', '$DATA{BANK_ACCOUNT}', '$DATA{BANK_NAME}', '$DATA{COR_BANK_ACCOUNT}', 
-      '$DATA{BANK_BIC}');", 'do');
-
-  return $self;
-}
-
 
 #**********************************************************
 # del
@@ -91,16 +68,7 @@ sub online {
    $WHERE = "c.status=1 or c.status>=3";
  } 
  
- 
 
-# Nas Server
-
-# User
-
-# Ip
-
-# Port
-	
 $self->query($db, "SELECT c.user_name, 
                           u.fio, 
                           c.nas_port_id, 
@@ -149,7 +117,6 @@ $self->query($db, "SELECT c.user_name,
  $self->{dub_ports} = \%dub_ports;
  $self->{dub_logins}=\%dub_logins;
  $self->{nas_sorted}=\%nas_sorted;
- # $self->{list};
 
  return $self->{list};	
 }
@@ -186,7 +153,6 @@ sub online2log {
 
 
  $self->query($db, "SELECT c.user_name, ", 'do');
-
 }
 
 
@@ -343,7 +309,6 @@ sub session_detail {
 #   $self->{UID} = $attr->{UID};
 #   $self->{SESSION_ID} = $attr->{SESSION_ID};
 
-
  return $self;
 }
 
@@ -402,7 +367,6 @@ sub periods_totals {
     $self->{'sum_'. $i } = $self->{'sent_' . $i } + $self->{'recv_' . $i};
   }
 
-	
   return $self;	
 }
 
@@ -424,6 +388,10 @@ sub list {
 #UID
  if ($attr->{UID}) {
    $WHERE .= ($WHERE ne '') ?  " and l.uid='$attr->{UID}' " : "WHERE l.uid='$attr->{UID}' ";
+  }
+ elsif ($attr->{LOGIN_EXPR}) {
+    $attr->{LOGIN_EXPR} =~ s/\*/\%/ig;
+    $WHERE .= ($WHERE ne '') ?  " and u.id LIKE '$attr->{LOGIN_EXPR}' " : "WHERE u.id LIKE '$attr->{LOGIN_EXPR}' ";
   }
 
 
@@ -500,7 +468,10 @@ elsif($attr->{DATE}) {
  my $list = $self->{list};
 
  if ($self->{TOTAL} > 0) {
-    $self->query($db, "SELECT count(*), SEC_TO_TIME(sum(l.duration)), sum(l.sent + l.recv), sum(sum)  FROM log l $WHERE;");
+    $self->query($db, "SELECT count(*), SEC_TO_TIME(sum(l.duration)), sum(l.sent + l.recv), sum(sum)  
+      FROM log l, users u
+     $WHERE_LIST;");
+
     my $a_ref = $self->{list}->[0];
     ($self->{TOTAL},
      $self->{DURATION},
@@ -583,5 +554,52 @@ if ($attr->{DATE}) {
 
 	return $self->{list};
 }
+
+#**********************************************************
+# Use
+#**********************************************************
+sub report {
+	my ($self) = shift;
+	my ($attr) = @_;
+
+ my $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+ my $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+ my $WHERE = '';
+ my $date = '';
+
+ $self->{debug}=1;
+ 
+ if (defined($attr->{MONTH})) {
+ 	 $WHERE = ($WHERE ne '') ? "and date_format(l.start, '%Y-%m')='$attr->{MONTH}'" : "WhERE date_format(l.start, '%Y-%m')='$attr->{MONTH}'" ;
+   $date = "date_format(l.start, '%Y-%m-%d')";
+  } 
+ elsif(defined($attr->{DATE})) {
+   $self->query($db, "select date_format(l.start, '%Y-%m-%d'), u.id, count(l.uid), sum(l.sent + l.recv), sum(l.sent2 + l.recv2), sec_to_time(sum(l.duration)), sum(l.sum), l.uid
+      FROM log l
+      LEFT JOIN users u ON (u.uid=l.uid)
+      WHERE date_format(l.start, '%Y-%m-%d')='$attr->{DATE}'
+      GROUP BY l.uid 
+      ORDER BY $SORT $DESC");
+   return $self->{list};
+  }
+ else {
+ 	 $date = "date_format(l.start, '%Y-%m')";
+  }
+
+
+ $self->query($db, "select $date, count(DISTINCT l.uid), 
+      count(l.uid),
+      sum(l.sent + l.recv), 
+      sum(l.sent2 + l.recv2),
+      sec_to_time(sum(l.duration)), 
+      sum(l.sum)
+       FROM log l
+       $WHERE    
+       GROUP BY 1 
+       ORDER BY $SORT $DESC;");
+
+	return $self->{list};
+}
+
 
 1
