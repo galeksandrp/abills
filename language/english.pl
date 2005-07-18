@@ -1,4 +1,4 @@
-# 0.24
+# 0.3
 $CHARSET = 'windows1251';
 
 @PERIODS=('Today', 'Yesterday', 'Week', 'Month', 'All sessions', 'From activization');
@@ -271,3 +271,4 @@ $_ZAPED='Zaped';
 $_CLOSED='Closed';
 $_USED='Use';
 $_MAX_SESSION_DURATION='Max. session time';
+$_START='Start';
