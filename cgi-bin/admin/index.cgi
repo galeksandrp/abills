@@ -1,5 +1,6 @@
 #!/usr/bin/perl
 
+# http://www.maani.us/charts/index.php
 #use vars qw($begin_time);
 BEGIN {
  my $libpath = '../../';
@@ -2093,7 +2094,7 @@ elsif (defined($FORM{DATE})) {
                                 qs => $pages_qs             
                                } );
 
-  my $list = $sessions->report({ %LIST_PARAMS });
+  my $list = $sessions->report({ %LIST_PARAMS :});
   foreach my $line (@$list) {
     $table->addrow("<b>$line->[0]</b>", 
       "<a href='$SELF_URL?index=11&subf=22&UID=$line->[7]&DATE=$line->[0]'>$line->[1]</a>", $line->[2], int2byte($line->[3]),  int2byte($line->[4]),  $line->[5], "<b>$line->[6]</b>" );

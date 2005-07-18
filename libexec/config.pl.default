@@ -24,7 +24,7 @@ $conf{p_users_mails}=1;  # Send user warning  messages
 # chap encryption decription key
 $conf{secretkey}="test12345678901234567890";
 $conf{s_detalization}='yes'; #make session detalization recomended for vpn leathed lines
-$conf{version}='0.30b'; #26.06.2005
+$conf{version}='0.30b'; #16.07.2005
 
 #Minimum session costs
 $conf{MINIMUM_SESSION_TIME}=10; # minimum session time for push session to db
@@ -77,7 +77,6 @@ $conf{debugmods}='LOG_DEBUG LOG_ALERT LOG_WARNING LOG_ERR LOG_INFO';
 $conf{BACKUP_DIR}='/usr/abills/backup';
 
 
-
 # Folders and files
 $base_dir='/home/asmodeus/abills2/';
 $lang_path=$base_dir . 'language/';
@@ -85,6 +84,7 @@ $lib_path=$base_dir .'libexec/';
 $var_dir=$base_dir .'var/';
 $spool_dir=$base_dir.'var/q';
 
+# Template folder
 $conf{TPL_DIR}   = $base_dir . 'cgi-bin/admin/tpls/';
 $conf{LOG_DEBUG} = $base_dir . 'var/log/abills.debug';
 $conf{LOGFILE}   = $base_dir . 'var/log/abills.log';
@@ -95,7 +95,7 @@ $conf{extern_acct_dir}=$base_dir.'libexec/ext_acct/';
 #$start_dir=$base_dir.'libexec/start/';
 #$stop_dir=$base_dir.'libexec/start/';
 
-$MAILBOX_PATH='/var/mail/';
+$conf{MAILBOX_PATH}='/var/mail/';
 # Low bounds
 
 use POSIX qw(strftime);
