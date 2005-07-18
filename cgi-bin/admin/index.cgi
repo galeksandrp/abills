@@ -206,28 +206,7 @@ if ($begin_time > 0) {
 print '<hr>'. $conf{version};
 
 
-#DEBUG#####################################
-print "<table border=1>
-<tr><td>index</td><td>$index</td></td></tr>
-<tr bgcolor=$_COLORS[2]><td>OP</td><td>$OP</td></tr>\n";	
-
-  while(my($k, $v)=each %FORM) {
-    print "<tr><td>$k</td><td>$v</td></tr>\n";	
-   }
-print "</table>\n";
-
-
-print "<br><table border=1>
-<tr><td>index</td><td>$index</td></td></tr>
-<tr bgcolor=$_COLORS[2]><td>OP</td><td>$OP</td></tr>\n";	
-
-  while(my($k, $v)=each %COOKIES) {
-    print "<tr><td>$k</td><td>$v</td></tr>\n";	
-   }
-print "</table>\n";
-
-#DEBUG#####################################
-
+test();
 
 
 
@@ -2221,8 +2200,6 @@ my $table = Abills::HTML->table( { width => '100%',
                                 recs_on_page => $LIST_PARAMS{PAGE_ROWS}
                                } );
 
-print $sessions->{TOTAL} ;
-
 my $delete = '';
 foreach my $line (@$list) {
   if ($permissions{3}{1}) {
@@ -3458,7 +3435,6 @@ print $table->show();
 # sql()
 #**********************************************************
 sub sql {
-
 print << "[END]";
 <a href='$SELF_URL?index=81'>SQL Commander</a> :: 
 <a href='$SELF_URL?index=82'>SQL Backup</a>
@@ -3472,11 +3448,9 @@ print << "[END]";
 # sql_cmd()
 #**********************************************************
 sub sql_cmd {
-
 print << "[END]";
+
 [END]
-
-
 }
 
 
@@ -3486,20 +3460,43 @@ print << "[END]";
 sub sql_backup {
 
 print << "[END]";
+
 [END]
-
-
 }
 
 
 
 #**********************************************************
-# test
+# test function
+#  %FORM     - Form
+#  %COOKIES  - Cookies
+#  %ENV      - Enviropment
+# 
 #**********************************************************
 sub test {
-  while(my($k, $v)=each %ENV) {
-    print "$k - $v<br>\n";	
+print "<table border=1>
+<tr><td>index</td><td>$index</td></td></tr>
+<tr bgcolor=$_COLORS[2]><td>OP</td><td>$OP</td></tr>\n";	
+  while(my($k, $v)=each %FORM) {
+    print "<tr><td>$k</td><td>$v</td></tr>\n";	
    }
+print "</table>\n";
+
+print "<br><table border=1>
+<tr><td>index</td><td>$index</td></td></tr>
+<tr bgcolor=$_COLORS[2]><td>OP</td><td>$OP</td></tr>\n";	
+  while(my($k, $v)=each %COOKIES) {
+    print "<tr><td>$k</td><td>$v</td></tr>\n";	
+   }
+print "</table>\n";
+
+
+#print "<br><table border=1>\n";
+#  while(my($k, $v)=each %ENV) {
+#    print "<tr><td>$k</td><td>$v</td></tr>\n";	
+#   }
+#print "</table>\n";
+
 }
 
 
