@@ -2049,6 +2049,7 @@ sub form_use {
 
 
 my ($y, $m, $d);
+print "<a href='$SELF_URL?index=$index&allmonthes=y'>$_MONTH</a>::<br>";
 
 my $type='d';
 if ($FORM{m}) {
@@ -2064,7 +2065,7 @@ elsif (defined($FORM{d})) {
   ($y, $m, $d)=split(/-/, $FORM{d}, 3);	
   my $days = '';
   for ($i=1; $i<=31; $i++) {
-    $days .= ($d == $i) ? "<b>$i </b>" : sprintf("<a href='$SELF_URL?index=$index&d=%d-%02.f-%02.f'>%d</a> ", $y, $m, $i, $i);
+     $days .= ($d == $i) ? "<b>$i </b>" : sprintf("<a href='$SELF_URL?index=$index&d=%d-%02.f-%02.f'>%d</a> ", $y, $m, $i, $i);
    }
 
   $table = Abills::HTML->table( { width => '100%',
@@ -2078,12 +2079,30 @@ elsif (defined($FORM{d})) {
   print $table->show();
   $LIST_PARAMS{DATE}="$FORM{d}";
   $pages_qs="&d=$LIST_PARAMS{DATE}";
+
+
+  #Used Fraffic
+  $table = Abills::HTML->table( { width => '100%',
+	                              caption => "$_SESSIONS", 
+                                title =>["$_DATE", "$_USERS", "$_SESSIONS", "$_TRAFFIC ", "$_TRAFFIC 2", $_DURATION, $_SUM],
+                                cols_align => ['right', 'right', 'right', 'right', 'right', 'right', 'right'],
+                                qs => $pages_qs             
+                               } );
+
+  my $list = $sessions->report({ %LIST_PARAMS });
+  foreach my $line (@$list) {
+    $table->addrow("<a href='$SELF_URL?index=$index&$type=$line->[0]'>$line->[0]</a>", 
+      "<a href='$SELF_URL?index=11&UID=$line->[7]'>$line->[1]</a>", $line->[2], int2byte($line->[3]),  int2byte($line->[4]),  $line->[5], "<b>$line->[6]</b>" );
+   }
+
+  print $table->show();
 }
 else {
 	($y, $m, $d)=split(/-/, $DATE, 3);
 	$LIST_PARAMS{MONTH}="$y-$m";
 	$pages_qs="&m=$LIST_PARAMS{MONTH}";
 }
+
 
 #Used Fraffic
 $table = Abills::HTML->table( { width => '100%',
@@ -2101,13 +2120,6 @@ foreach my $line (@$list) {
      $line->[1], $line->[2], int2byte($line->[3]),  int2byte($line->[4]),  $line->[5], "<b>$line->[6]</b>" );
  }
 
-
-##                                rows => [ [ $sessions->{TOTAL}, $sessions->{DURATION}, int2byte($sessions->{TRAFFIC}), $sessions->{SUM} ] ],
-##date_format(l.start, '%Y-%m-%d'), count(DISTINCT l.uid), sum(l.sent + l.recv), sum(l.sent2 + l.recv2),
-##      sec_to_time(sum(l.duration)), sum(l.sum), DAYOFMONTH(l.start), count(l.uid)
-#
-#
-#
 print $table->show();
 
 
