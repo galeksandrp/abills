@@ -2099,7 +2099,6 @@ elsif (defined($FORM{DATE})) {
     $table->addrow("<b>$line->[0]</b>", 
       "<a href='$SELF_URL?index=11&subf=22&UID=$line->[7]&DATE=$line->[0]'>$line->[1]</a>", $line->[2], int2byte($line->[3]),  int2byte($line->[4]),  $line->[5], "<b>$line->[6]</b>" );
    }
-
   print $table->show();
   return 0;
 }
@@ -2108,7 +2107,6 @@ else {
 	$LIST_PARAMS{MONTH}="$y-$m";
 	$pages_qs="&MONTH=$LIST_PARAMS{MONTH}";
 }
-
 
 #Used Fraffic
 $table = Abills::HTML->table( { width => '100%',
