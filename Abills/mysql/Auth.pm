@@ -55,7 +55,7 @@ sub authentication {
   $self->query($db, "select
   u.uid,
   if (u.logins=0, tp.logins, u.logins) AS logins,
-  u.filter_id,
+  if(u.filter_id != '', u.filter_id, tp.filter.id),
   if(u.ip>0, INET_NTOA(u.ip), 0),
   INET_NTOA(u.netmask),
   u.tp_id,

@@ -43,7 +43,8 @@ my %FIELDS = ( TP_ID => 'id',
                CREDIT_TRESSHOLD => 'credit_tresshold',
                ALERT => 'uplimit',
                OCTETS_DIRECTION => 'octets_direction',
-               MAX_SESSION_DURATION => 'max_session_duration'
+               MAX_SESSION_DURATION => 'max_session_duration',
+               FILTER_ID => ''
              );
 
 #**********************************************************
@@ -167,13 +168,13 @@ sub add {
      day_time_limit, week_time_limit,  month_time_limit, 
      day_traf_limit, week_traf_limit,  month_traf_limit,
      activate_price, change_price, credit_tresshold, age, octets_direction,
-     max_session_duration)
+     max_session_duration, filter_id)
     values ('$DATA{TP_ID}', '$DATA{TIME_TARIF}', '$DATA{ALERT}', \"$DATA{NAME}\", '$DATA{END}', '$DATA{BEGIN}', 
      '$DATA{MONTH_FEE}', '$DATA{DAY_FEE}', '$DATA{SIMULTANEONSLY}', 
      '$DATA{DAY_TIME_LIMIT}', '$DATA{WEEK_TIME_LIMIT}',  '$DATA{MONTH_TIME_LIMIT}', 
      '$DATA{DAY_TRAF_LIMIT}', '$DATA{WEEK_TRAF_LIMIT}',  '$DATA{MONTH_TRAF_LIMIT}',
      '$DATA{ACTIV_PRICE}', '$DATA{CHANGE_PRICE}', '$DATA{CREDIT_TRESSHOLD}', '$DATA{AGE}', '$DATA{OCTETS_DIRECTION}',
-     '$DATA{MAX_SESSION_DURATION}');", 'do' );
+     '$DATA{MAX_SESSION_DURATION}', '$DATA{FILTER_ID}');", 'do' );
 
   return $self;
 }
@@ -281,7 +282,8 @@ sub info {
    $self->{CREDIT_TRESSHOLD},
    $self->{ALERT},
    $self->{OCTETS_DIRECTION},
-   $self->{MAX_SESSION_DURATION}
+   $self->{MAX_SESSION_DURATION},
+   $self->{FILTER_ID}
   ) = @$ar;
 
 

@@ -212,8 +212,32 @@ sub list {
   return $list;
 }
 
+#**********************************************************
+# report
+#**********************************************************
+sub report {
+  my $self = shift;
+  my ($attr) = @_;
 
+ my $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+ my $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+ my $WHERE = '' ;
+ 
+	
+ $self->query($db, "SELECT count(*), sum(f.sum) FROM fees f 
+ LEFT JOIN users u ON (u.uid=f.uid) 
+ LEFT JOIN admins a ON (a.aid=f.aid)
+ $WHERE");
+ my $list = $self->{list};
 
+ my $a_ref = $self->{list}->[0];
+
+ ($self->{TOTAL}, 
+  $self->{SUM}) = @$a_ref;
+
+	
+	return $list;
+}
 
 
 

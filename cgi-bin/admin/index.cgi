@@ -2125,6 +2125,15 @@ foreach my $line (@$list) {
 
 print $table->show();
 
+#Users 
+#Sessions
+#Traffic 
+#Time
+#Money
+
+
+
+
 
 #Fees
 $table = Abills::HTML->table( { width => '100%',
@@ -2132,10 +2141,21 @@ $table = Abills::HTML->table( { width => '100%',
                                 title =>["$_DATE", "$_COUNT", $_SUM],
                                 cols_align => ['right', 'right', 'right'],
                                } );
+
+use Fees;
+my $fees = Fees->new($db);
+
+$list = $fees->report({ %LIST_PARAMS });
+foreach my $line (@$fees) {
+  $table->addrow("<a href='$SELF_URL?index=$index&$type=$line->[0]'>$line->[0]</a>", 
+     $line->[1], $line->[2], int2byte($line->[3]),  int2byte($line->[4]),  $line->[5], "<b>$line->[6]</b>" );
+ }
+
+
+
 print $table->show();
 
 #Payments
-	
 }
 
 #**********************************************************

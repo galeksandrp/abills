@@ -520,38 +520,6 @@ CREATE TABLE shedule (
 ) TYPE=MyISAM;
 
 --
--- Table structure for table `tarif_plans`
---
-
-CREATE TABLE tarif_plans (
-  id smallint(5) unsigned NOT NULL default '0',
-  hourp float(10,5) default '0.00000',
-  abon float(10,2) default '0.00',
-  uplimit float(10,2) default '0.00',
-  name varchar(40) NOT NULL default 'ÂÅÚ¦ÍÅÎÎÉÊ',
-  df float(10,2) default NULL,
-  ut time NOT NULL default '24:00:00',
-  dt time NOT NULL default '00:00:00',
-  logins tinyint(4) NOT NULL default '0',
-  day_time_limit int(10) unsigned NOT NULL default '0',
-  week_time_limit int(10) unsigned NOT NULL default '0',
-  month_time_limit int(10) unsigned NOT NULL default '0',
-  day_traf_limit int(10) unsigned NOT NULL default '0',
-  week_traf_limit int(10) unsigned NOT NULL default '0',
-  month_traf_limit int(10) unsigned NOT NULL default '0',
-  prepaid_trafic int(10) unsigned NOT NULL default '0',
-  change_price float(8,2) unsigned NOT NULL default '0.00',
-  activate_price float(8,2) unsigned NOT NULL default '0.00',
-  credit_tresshold double(6,2) NOT NULL default '0.00',
-  age smallint(6) unsigned NOT NULL default '0',
-  octets_direction tinyint(2) unsigned NOT NULL default '0',
-  max_session_time smallint(6) unsigned NOT NULL default '0',
-  PRIMARY KEY  (id),
-  UNIQUE KEY id (id),
-  UNIQUE KEY name (name)
-) TYPE=MyISAM;
-
---
 -- Table structure for table `tp_nas`
 --
 
@@ -665,4 +633,38 @@ INSERT INTO admin_permits VALUES (13,4,1);
 INSERT INTO admin_permits VALUES (13,2,3);
 INSERT INTO admin_permits VALUES (13,2,2);
 INSERT INTO admin_permits VALUES (13,5,0);
+
+
+--
+-- Table structure for table `tarif_plans`
+--
+
+CREATE TABLE tarif_plans (
+  id smallint(5) unsigned NOT NULL default '0',
+  hourp float(10,5) unsigned NOT NULL default '0.00000',
+  abon float(10,2) unsigned NOT NULL default '0.00',
+  uplimit float(10,2) default '0.00',
+  name varchar(40) NOT NULL default 'ÂÅÚ¦ÍÅÎÎÉÊ',
+  df float(10,2) unsigned NOT NULL default '0.00',
+  ut time NOT NULL default '24:00:00',
+  dt time NOT NULL default '00:00:00',
+  logins tinyint(4) NOT NULL default '0',
+  day_time_limit int(10) unsigned NOT NULL default '0',
+  week_time_limit int(10) unsigned NOT NULL default '0',
+  month_time_limit int(10) unsigned NOT NULL default '0',
+  day_traf_limit int(10) unsigned NOT NULL default '0',
+  week_traf_limit int(10) unsigned NOT NULL default '0',
+  month_traf_limit int(10) unsigned NOT NULL default '0',
+  prepaid_trafic int(10) unsigned NOT NULL default '0',
+  change_price float(8,2) unsigned NOT NULL default '0.00',
+  activate_price float(8,2) unsigned NOT NULL default '0.00',
+  credit_tresshold double(6,2) unsigned NOT NULL default '0.00',
+  age smallint(6) unsigned NOT NULL default '0',
+  octets_direction tinyint(2) unsigned NOT NULL default '0',
+  max_session_duration smallint(6) unsigned NOT NULL default '0',
+  filter_id varchar(15) NOT NULL default '',
+  PRIMARY KEY  (id),
+  UNIQUE KEY id (id),
+  UNIQUE KEY name (name)
+) TYPE=MyISAM;
 
