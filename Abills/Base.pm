@@ -216,10 +216,18 @@ sub sec2time {
 # int2byte($val)
 #********************************************************************
 sub int2byte {
- my $val = shift;
- if($val > 1073741824){ $val = sprintf("%.2f GB", $val / 1073741824);}  # 1024 * 1024 * 1024
- elsif($val > 1048576){ $val = sprintf("%.2f MB", $val / 1048576);   }  # 1024 * 1024
- elsif($val > 1024)   { $val = sprintf("%.2f Kb", $val / 1024);      }
+ my ($val, $attr) = @_;
+ 
+ my $KBYTE_SIZE = 1024;
+ $attr->{KBYTE_SIZE} if (defined($attr->{KBYTE_SIZE}));
+ my $MEGABYTE = $KBYTE_SIZE * $KBYTE_SIZE;
+ my $GIGABYTE = $KBYTE_SIZE * $KBYTE_SIZE * $KBYTE_SIZE;
+
+
+
+ if($val > $GIGABYTE){ $val = sprintf("%.2f GB", $val / $GIGABYTE);}  # 1024 * 1024 * 1024
+ elsif($val > $MEGABYTE){ $val = sprintf("%.2f MB", $val / $MEGABYTE);   }  # 1024 * 1024
+ elsif($val > $KBYTE_SIZE)   { $val = sprintf("%.2f Kb", $val / $KBYTE_SIZE);      }
  else { $val .= " Bt"; }
  return $val;
 }
