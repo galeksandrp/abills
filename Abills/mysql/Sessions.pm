@@ -537,7 +537,6 @@ sub reports {
  my $WHERE = '';
  my $date = '';
 
- $self->{debug}=1;
  
  if (defined($attr->{MONTH})) {
  	 $WHERE = ($WHERE ne '') ? "and date_format(l.start, '%Y-%m')='$attr->{MONTH}'" : "WhERE date_format(l.start, '%Y-%m')='$attr->{MONTH}'" ;

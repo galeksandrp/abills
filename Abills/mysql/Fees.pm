@@ -244,7 +244,6 @@ sub reports {
  	 $date = "date_format(f.date, '%Y-%m')";
   }
 
- $self->{debug}=1;
  
  
  $self->query($db, "SELECT $date, count(*), sum(f.sum) 
