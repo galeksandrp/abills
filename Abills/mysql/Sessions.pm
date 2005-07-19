@@ -526,39 +526,9 @@ sub calculation {
 
 
 #**********************************************************
-# sumary_report($self, $attr)
-#**********************************************************
-sub sumary_report {
-	my ($self) = shift;
-	my ($attr) = @_;
-
- my $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
- my $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
- my $PG = ($attr->{PG}) ? $attr->{PG} : 0;
- my $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
-	
- my $WHERE = '';
-
-#Login
-if ($attr->{DATE}) {
-  $WHERE .= ($WHERE ne '') ?  " and date_format(start, '%Y-%m-%d')='$attr->{DATE}' " : "WHERE date_format(start, '%Y-%m-%d')='$attr->{DATE}' ";
- }
-
-
-  $self->query($db, "select u.id, count(l.uid), sum(l.sent + l.recv), sum(l.sent2 + l.recv2), sec_to_time(sum(l.duration)), sum(l.sum), l.uid
-    FROM log l
-    LEFT JOIN users u ON (u.uid=l.uid)
-    $WHERE
-    GROUP BY l.uid 
-    ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS");
-
-	return $self->{list};
-}
-
-#**********************************************************
 # Use
 #**********************************************************
-sub report {
+sub reports {
 	my ($self) = shift;
 	my ($attr) = @_;
 
@@ -573,7 +543,12 @@ sub report {
  	 $WHERE = ($WHERE ne '') ? "and date_format(l.start, '%Y-%m')='$attr->{MONTH}'" : "WhERE date_format(l.start, '%Y-%m')='$attr->{MONTH}'" ;
    $date = "date_format(l.start, '%Y-%m-%d')";
   } 
- elsif(defined($attr->{DATE})) {
+ else {
+ 	 $date = "date_format(l.start, '%Y-%m')";
+  }
+
+
+ if(defined($attr->{DATE})) {
    $self->query($db, "select date_format(l.start, '%Y-%m-%d'), if(u.id is NULL, CONCAT('> ', l.uid, ' <'), u.id), count(l.uid), 
     sum(l.sent + l.recv), sum(l.sent2 + l.recv2), sec_to_time(sum(l.duration)), sum(l.sum), l.uid
       FROM log l
@@ -581,14 +556,9 @@ sub report {
       WHERE date_format(l.start, '%Y-%m-%d')='$attr->{DATE}'
       GROUP BY l.uid 
       ORDER BY $SORT $DESC");
-   return $self->{list};
   }
  else {
- 	 $date = "date_format(l.start, '%Y-%m')";
-  }
-
-
- $self->query($db, "select $date, count(DISTINCT l.uid), 
+  $self->query($db, "select $date, count(DISTINCT l.uid), 
       count(l.uid),
       sum(l.sent + l.recv), 
       sum(l.sent2 + l.recv2),
@@ -598,8 +568,39 @@ sub report {
        $WHERE    
        GROUP BY 1 
        ORDER BY $SORT $DESC;");
+  }
 
-	return $self->{list};
+  my $list = $self->{list}; 
+
+  $self->{USERS}=0; 
+  $self->{SESSIONS}=0; 
+  $self->{TRAFFIC}=0; 
+  $self->{TRAFFIC_2}=0; 
+  $self->{DURATION}=0; 
+  $self->{SUM}=0;
+  
+  return $list if ($self->{TOTAL} < 1);
+
+  $self->query($db, "select count(DISTINCT l.uid), 
+      count(l.uid),
+      sum(l.sent + l.recv), 
+      sum(l.sent2 + l.recv2),
+      sec_to_time(sum(l.duration)), 
+      sum(l.sum)
+       FROM log l
+       $WHERE;");
+   my $a_ref = $self->{list}->[0];
+ 
+  ($self->{USERS}, 
+   $self->{SESSIONS}, 
+   $self->{TRAFFIC}, 
+   $self->{TRAFFIC_2}, 
+   $self->{DURATION}, 
+   $self->{SUM}) = @$a_ref;
+
+
+
+	return $list;
 }
 
 

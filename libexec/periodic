@@ -319,24 +319,24 @@ $ADMIN_REPORT{SESSIONS} .= sprintf ("%-14s| %5s| %9s| %9s| %10s| %9s|\n", $_LOGI
     $_TRAFFIC, "$_TRAFFIC 2", $_DURATION, $_SUM);
 $ADMIN_REPORT{SESSIONS} .= "---------------------------------------------------------\n";
 
-$list = $sessions->sumary_report( { %LIST_PARAMS } );
+$list = $sessions->reports( { %LIST_PARAMS } );
 foreach my $line (@$list) {
   
 #   u.id, count(l.id), sum(l.sent + l.recv), sum(l.sent2 + l.recv2), sec_to_time(sum(l.duration)), sum(l.sum), l.id
 
  
    $ADMIN_REPORT{SESSIONS} .= sprintf ("%-14s| %5d| %9s| %9s| %8s| %9.4f|\n", 
-    $line->[0], 
     $line->[1], 
-    int2byte($line->[2]), 
+    $line->[2], 
     int2byte($line->[3]), 
-    $line->[4], 
-    $line->[5]);
+    int2byte($line->[4]), 
+    $line->[5], 
+    $line->[6]);
 }
 
 $ADMIN_REPORT{SESSIONS} .= "---------------------------------------------------------
-$_TOTAL: $sessions->{TOTAL} $_SUM: $payments->{TOTAL}\n";
-
+$_USERS: $sessions->{USERS}, $_SESSIONS: $sessions->{SESSIONS}, $_TRAFFIC: ". int2byte($sessions->{TRAFFIC}) 
+.", $_TRAFFIC 2: ". int2byte($sessions->{TRAFFIC_2}) .", $_DURATION: $sessions->{DURATION}, $_SUM: $sessions->{SUM}\n";
 
 
 

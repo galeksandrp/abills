@@ -215,21 +215,49 @@ sub list {
 #**********************************************************
 # report
 #**********************************************************
-sub report {
+sub reports {
   my $self = shift;
   my ($attr) = @_;
 
  my $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
  my $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
  my $WHERE = '' ;
+ my $date = '';
  
-	
- $self->query($db, "SELECT count(*), sum(f.sum) FROM fees f 
- LEFT JOIN users u ON (u.uid=f.uid) 
- LEFT JOIN admins a ON (a.aid=f.aid)
- $WHERE");
- my $list = $self->{list};
+ print $attr->{DATE};
+ 
+ if(defined($attr->{DATE})) {
+   $self->query($db, "select date_format(l.start, '%Y-%m-%d'), if(u.id is NULL, CONCAT('> ', l.uid, ' <'), u.id), count(l.uid), 
+    sum(l.sent + l.recv), sum(l.sent2 + l.recv2), sec_to_time(sum(l.duration)), sum(l.sum), l.uid
+      FROM log l
+      LEFT JOIN users u ON (u.uid=l.uid)
+      WHERE date_format(l.start, '%Y-%m-%d')='$attr->{DATE}'
+      GROUP BY l.uid 
+      ORDER BY $SORT $DESC");
+   return $self->{list};
+  }
+ elsif (defined($attr->{MONTH})) {
+ 	 $WHERE = ($WHERE ne '') ? "and date_format(f.date, '%Y-%m')='$attr->{MONTH}'" : "WhERE date_format(f.date, '%Y-%m')='$attr->{MONTH}'" ;
+   $date = "date_format(f.date, '%Y-%m-%d')";
+  } 
+ else {
+ 	 $date = "date_format(f.date, '%Y-%m')";
+  }
 
+ $self->{debug}=1;
+ 
+ 
+ $self->query($db, "SELECT $date, count(*), sum(f.sum) 
+      FROM fees f
+      $WHERE 
+      GROUP BY 1
+      ORDER BY $SORT $DESC;");
+
+ my $list = $self->{list}; 
+	
+ $self->query($db, "SELECT count(*), sum(f.sum) 
+      FROM fees f
+      $WHERE;");
  my $a_ref = $self->{list}->[0];
 
  ($self->{TOTAL}, 

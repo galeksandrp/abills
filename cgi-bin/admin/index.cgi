@@ -2051,26 +2051,37 @@ show_sessions($list, $sessions);
 sub form_use {
 	use Sessions;
   my $sessions = Sessions->new($db);
+  use Fees;
+  my $fees = Fees->new($db);
 
 
 my ($y, $m, $d);
 print "<a href='$SELF_URL?index=$index&allmonthes=y'>$_MONTH</a>::<br>";
 
 my $type='DATE';
+
 if ($FORM{MONTH}) {
   $LIST_PARAMS{MONTH}=$FORM{MONTH};
 	$pages_qs="&MONTH=$LIST_PARAMS{MONTH}";
-}
+ }
 elsif($FORM{allmonthes}) {
 	$type='MONTH';
 	$pages_qs="&allmonthes=y";
+ }
+else {
+	($y, $m, $d)=split(/-/, $DATE, 3);
+	$LIST_PARAMS{MONTH}="$y-$m";
+	$pages_qs="&MONTH=$LIST_PARAMS{MONTH}";
 }
-elsif (defined($FORM{DATE})) {
 
+my ($tables_sessions, $table_fees);
+
+#Day reposrt
+if (defined($FORM{DATE})) {
   ($y, $m, $d)=split(/-/, $FORM{DATE}, 3);	
   my $days = '';
   for ($i=1; $i<=31; $i++) {
-     $days .= ($d == $i) ? "<b>$i </b>" : sprintf("<a href='$SELF_URL?index=$index&d=%d-%02.f-%02.f'>%d</a> ", $y, $m, $i, $i);
+     $days .= ($d == $i) ? "<b>$i </b>" : sprintf("<a href='$SELF_URL?index=$index&DATE=%d-%02.f-%02.f'>%d</a> ", $y, $m, $i, $i);
    }
 
   $table = Abills::HTML->table( { width => '100%',
@@ -2085,31 +2096,36 @@ elsif (defined($FORM{DATE})) {
   $LIST_PARAMS{DATE}="$FORM{DATE}";
   $pages_qs="&DATE=$LIST_PARAMS{DATE}";
 
-
   #Used Fraffic
-  $table = Abills::HTML->table( { width => '100%',
+  $table_sessions = Abills::HTML->table( { width => '100%',
 	                              caption => "$_SESSIONS", 
                                 title =>["$_DATE", "$_USERS", "$_SESSIONS", "$_TRAFFIC ", "$_TRAFFIC 2", $_DURATION, $_SUM],
                                 cols_align => ['right', 'right', 'right', 'right', 'right', 'right', 'right'],
                                 qs => $pages_qs             
                                } );
 
-  my $list = $sessions->report({ %LIST_PARAMS });
+  my $list = $sessions->reports({ %LIST_PARAMS });
   foreach my $line (@$list) {
-    $table->addrow("<b>$line->[0]</b>", 
+    $table_sessions->addrow("<b>$line->[0]</b>", 
       "<a href='$SELF_URL?index=11&subf=22&UID=$line->[7]&DATE=$line->[0]'>$line->[1]</a>", $line->[2], int2byte($line->[3]),  int2byte($line->[4]),  $line->[5], "<b>$line->[6]</b>" );
    }
-  print $table->show();
-  return 0;
-}
-else {
-	($y, $m, $d)=split(/-/, $DATE, 3);
-	$LIST_PARAMS{MONTH}="$y-$m";
-	$pages_qs="&MONTH=$LIST_PARAMS{MONTH}";
-}
 
-#Used Fraffic
-$table = Abills::HTML->table( { width => '100%',
+  $list = $fees->list( { %LIST_PARAMS } );
+  $table_fees = Abills::HTML->table( { width      => '100%',
+  	                                   caption    => "$_FEES", 
+                                       title      => ['ID', $_LOGIN, $_SUM, $_DESCRIBE, $_ADMINS, 'IP', $_DEPOSIT],
+                                       cols_align => ['right', 'left', 'right', 'right', 'left', 'left', 'right', 'right'],
+                                  } );
+
+  foreach my $line (@$list) {
+   $table_fees->addrow("<b>$line->[0]</b>", "<a href='$SELF_URL?index=11&subf=3&DATE=$line->[0]&UID=$line->[8]'>$line->[1]</a>",  
+      $line->[3], $line->[4],  "$line->[5]", "$line->[6]", "$line->[7]");
+    }
+
+ }
+else {
+  #Used Traffic
+  $table_sessions = Abills::HTML->table( { width => '100%',
 	                              caption => "$_SESSIONS", 
                                 title =>["$_DATE", "$_USERS", "$_SESSIONS", "$_TRAFFIC ", "$_TRAFFIC 2", $_DURATION, $_SUM],
                                 cols_align => ['right', 'right', 'right', 'right', 'right', 'right', 'right'],
@@ -2117,13 +2133,49 @@ $table = Abills::HTML->table( { width => '100%',
                                } );
 
 
-my $list = $sessions->report({ %LIST_PARAMS });
-foreach my $line (@$list) {
-  $table->addrow("<a href='$SELF_URL?index=$index&$type=$line->[0]'>$line->[0]</a>", 
-     $line->[1], $line->[2], int2byte($line->[3]),  int2byte($line->[4]),  $line->[5], "<b>$line->[6]</b>" );
- }
+  my $list = $sessions->reports({ %LIST_PARAMS });
+  foreach my $line (@$list) {
+    $table_sessions->addrow("<a href='$SELF_URL?index=$index&$type=$line->[0]'>$line->[0]</a>", 
+       $line->[1], $line->[2], int2byte($line->[3]),  int2byte($line->[4]),  $line->[5], "<b>$line->[6]</b>" );
+   }
 
-print $table->show();
+  #Fees###################################################
+  $table_fees = Abills::HTML->table( { width => '100%',
+	                              caption => $_FEES, 
+                                title =>["$_DATE", "$_COUNT", $_SUM],
+                                cols_align => ['right', 'right', 'right'],
+                               } );
+
+
+  $list = $fees->reports({ %LIST_PARAMS });
+  foreach my $line (@$list) {
+    $table_fees->addrow("<a href='$SELF_URL?index=$index&$type=$line->[0]'>$line->[0]</a>", $line->[1], "<b>$line->[2]</b>" );
+   }
+}
+
+
+
+$table = Abills::HTML->table( { width => '100%',
+                                cols_align => ['right', 'right', 'right', 'right', 'right', 'right'],
+                                rows => [ [ "$_USERS: <b>$sessions->{USERS}</b>",
+                                            "$_SESSIONS: <b>$sessions->{SESSIONS}</b>", 
+                                            "$_TRAFFIC: <b>". int2byte($sessions->{TRAFFIC}) ."</b>", 
+                                            "$_TRAFFIC 2: <b>". int2byte($sessions->{TRAFFIC_2}) ."</b>", 
+                                            "$_DURATION: <b>$sessions->{DURATION}</b>", 
+                                            "$_SUM: <b>$sessions->{SUM}</b>" ] ],
+                                rowcolor => $_COLORS[2]
+                               } );
+
+
+print $table_sessions->show() . $table->show();
+
+$table = Abills::HTML->table( { width      => '100%',
+                                cols_align => ['right', 'right', 'right', 'right'],
+                                rows       => [ [ "$_TOTAL:", "<b>$fees->{TOTAL}</b>", "$_SUM", "<b>$fees->{SUM}</b>" ] ],
+                                rowcolor   => $_COLORS[2]
+                               } );
+print $table_fees->show() . $table->show();
+
 
 #Users 
 #Sessions
@@ -2134,26 +2186,6 @@ print $table->show();
 
 
 
-
-#Fees
-$table = Abills::HTML->table( { width => '100%',
-	                              caption => $_FEES, 
-                                title =>["$_DATE", "$_COUNT", $_SUM],
-                                cols_align => ['right', 'right', 'right'],
-                               } );
-
-use Fees;
-my $fees = Fees->new($db);
-
-$list = $fees->report({ %LIST_PARAMS });
-foreach my $line (@$fees) {
-  $table->addrow("<a href='$SELF_URL?index=$index&$type=$line->[0]'>$line->[0]</a>", 
-     $line->[1], $line->[2], int2byte($line->[3]),  int2byte($line->[4]),  $line->[5], "<b>$line->[6]</b>" );
- }
-
-
-
-print $table->show();
 
 #Payments
 }
@@ -2658,6 +2690,7 @@ my @m = ("1:0:$_CUSTOMERS:null:0:customers:",
  "41:4:$_LAST:show_sessions:1::",
  "42:4:ON LINE:online:1::",
  "43:4:$_USED:form_use:1::",
+ "44:43:$_MONTH:form_use:1::",
 
  "5:0:$_SYSTEM:null:1:system:",
  "50:5:$_ADMINS:form_admins:1::",
@@ -3198,7 +3231,7 @@ if (! defined($FORM{sort})) {
   $LIST_PARAMS{DESC}=DESC;
  }
 
-my ($list) = $fees->list( { %LIST_PARAMS } );
+my $list = $fees->list( { %LIST_PARAMS } );
 my $table = Abills::HTML->table( { width => '100%',
                                    border => 1,
                                    title => ['ID', $_LOGIN, $_DATE, $_SUM, $_DESCRIBE, $_ADMINS, 'IP',  $_DEPOSIT, '-'],
