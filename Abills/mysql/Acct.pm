@@ -78,24 +78,30 @@ elsif ($acct_status_type == 2) {
 
   my $Billing = Billing->new($db);	
 
-  my ($uid, $sum, $account_id, $tarif_plan, $time_t, $traf_t) = $Billing->session_sum("$RAD->{USER_NAME}", $RAD->{SESSION_START}, $RAD->{ACCT_SESSION_TIME}, $RAD, $conf);
-
-  print "$sum, $account_id, $tarif_plan, $time_t, $traf_t\n";
-  if ($sum == -2) {
+  #my ($uid, $sum, $account_id, $tarif_plan, $time_t, $traf_t) = $Billing->session_sum("$RAD->{USER_NAME}", $RAD->{SESSION_START}, $RAD->{ACCT_SESSION_TIME}, $RAD, $conf);
+  
+  ($self->{UID}, 
+  $self->{SUM}, 
+  $self->{ACCOUNT_ID}, 
+  $self->{TARIF_PLAN}, 
+  $self->{TIME_TARIF}, 
+  $self->{TRAF_TARIF}) = $Billing->session_sum("$RAD->{USER_NAME}", $RAD->{SESSION_START}, $RAD->{ACCT_SESSION_TIME}, $RAD, $conf);
+  #print "$sum, $account_id, $tarif_plan, $time_t, $traf_t\n";
+  if ($self->{SUM} == -2) {
     $self->{errno}=1;   
     $self->{errstr} = "ACCT [$RAD->{USER_NAME}] Not exist";
    }
-  elsif ($sum < 0) {
+  elsif ($self->{SUM} < 0) {
     $self->{LOG_DEBUG} =  "ACCT [$RAD->{USER_NAME}] small session ($RAD->{ACCT_SESSION_TIME}, $RAD->{INBYTE}, $RAD->{OUTBYTE})";
    }
   else {
 
     $self->query($db, "INSERT INTO log (uid, start, tp_id, duration, sent, recv, minp, kb,  sum, nas_id, port_id,
         ip, CID, sent2, recv2, acct_session_id, account_id) 
-        VALUES ('$uid', FROM_UNIXTIME($RAD->{SESSION_START}), '$tarif_plan', '$RAD->{ACCT_SESSION_TIME}', 
-        '$RAD->{OUTBYTE}', '$RAD->{INBYTE}', '$time_t', '$traf_t', '$sum', '$NAS->{NID}',
+        VALUES ('$self->{UID}', FROM_UNIXTIME($RAD->{SESSION_START}), '$self->{TARIF_PLAN}', '$RAD->{ACCT_SESSION_TIME}', 
+        '$RAD->{OUTBYTE}', '$RAD->{INBYTE}', '$self->{TIME_TARIF}', '$self->{TRAF_TARIF}', '$self->{SUM}', '$NAS->{NID}',
         '$RAD->{NAS_PORT}', INET_ATON('$RAD->{FRAMED_IP_ADDRESS}'), '$RAD->{CALLING_STATION_ID}',
-        '$RAD->{OUTBYTE2}', '$RAD->{INBYTE2}',  \"$RAD->{ACCT_SESSION_ID}\", '$account_id');", 'do');
+        '$RAD->{OUTBYTE2}', '$RAD->{INBYTE2}',  \"$RAD->{ACCT_SESSION_ID}\", '$self->{ACCOUNT_ID}');", 'do');
 
     if ($self->{errno}) {
       my $filename = "$RAD->{USER_NAME}.$RAD->{ACCT_SESSION_ID}";
@@ -104,19 +110,19 @@ elsif ($acct_status_type == 2) {
      }
 # If SQL query filed
     else {
-      if ($sum > 0) {
-        if ($account_id > 0) {
-         	$self->query($db, "UPDATE accounts SET deposit=deposit-$sum WHERE id='$account_id';", 'do');
+      if ($self->{SUM} > 0) {
+        if ($self->{ACCOUNT_ID} > 0) {
+         	$self->query($db, "UPDATE accounts SET deposit=deposit-$self->{SUM} WHERE id='$self->{ACCOUNT_ID}';", 'do');
          }
         else {
-          $self->query($db, "UPDATE users SET deposit=deposit-$sum WHERE id='$RAD->{USER_NAME}';", 'do');
+          $self->query($db, "UPDATE users SET deposit=deposit-$self->{SUM} WHERE id='$RAD->{USER_NAME}';", 'do');
          }
        }
      }
    }
 
   # Delete from session wtmp
-  $self->query($db, "DELETE FROM  calls WHERE acct_session_id=\"$RAD->{ACCT_SESSION_ID}\" and 
+  $self->query($db, "DELETE FROM calls WHERE acct_session_id=\"$RAD->{ACCT_SESSION_ID}\" and 
      user_name=\"$RAD->{USER_NAME}\" and nas_ip_address=INET_ATON('$RAD->{NAS_IP_ADDRESS}');", 'do');
 }
 #Alive status 3
@@ -168,7 +174,7 @@ else {
 
 
 
-
+ return $self;
 }
 
 

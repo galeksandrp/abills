@@ -1047,7 +1047,12 @@ if ($FORM{del} && $FORM{is_js_confirmed}) {
 
 
 #u.id, aa.datetime, aa.actions, a.name, INET_NTOA(aa.ip),  aa.UID, aa.aid, aa.id
- 	
+
+if (! defined($FORM{sort})) {
+  $LIST_PARAMS{SORT}=1;
+  $LIST_PARAMS{DESC}=DESC;
+ }
+
 my $list = $admin->action_list( { %LIST_PARAMS } );
 my $table = Abills::HTML->table( { width => '100%',
                                    border => 1,
@@ -2385,35 +2390,52 @@ elsif($FORM{tolog}) {
   $ACCT_INFO->{OUTBYTE2} = $ACCT_INFO->{ACCT_EX_INPUT_OCTETS};
   $ACCT_INFO->{ACCT_STATUS_TYPE} = 'Stop';
   
-  require Nas;
   my $nas = Nas->new($db);	
-  $nas->info({IP =>  $ACCT_INFO->{NAS_IP_ADDRESS},
+  $nas->info({IP        => $ACCT_INFO->{NAS_IP_ADDRESS},
               SECRETKEY => $conf{secretkey}});
 
   # Exppp VENDOR params           
   Acct->import();
   my $Acct = Acct->new($db);
-
   my $r = $Acct->accounting($ACCT_INFO, $nas, \%conf);
+  
 
   if ($Acct->{errno}) {
     message('err', $_ERRNO, "$Acct->{errno} $Acct->{errstr}");	
    }
   else {
-  	message('info', $_INFO, "$_ADDED");	
+  	my $table = Abills::HTML->table( { width => '100%'} );
+  	while(my($k, $v)=each %$ACCT_INFO) {
+ 		    $table->addrow($k, $v);
+  	  }
+  	while(my($k, $v)=each %$Acct) {
+ 		    $table->addrow($k, $v);
+  	  }
+  	message('info', $_ADDED, $table->show());	
    }
   
   $sessions->online_del({ NAS_IP_ADDRESS  => $ACCT_INFO->{NAS_IP_ADDRESS},
                           NAS_PORT        => $ACCT_INFO->{NAS_PORT},
                           ACCT_SESSION_ID => $ACCT_INFO->{ACCT_SESSION_ID}
-                            });
+                        });
  }
 elsif($FORM{del}) {
   $sessions->online_del({ 
-   	            NAS_IP_ADDRESS =>  $FORM{nas_ip_address},
+   	            NAS_IP_ADDRESS  => $FORM{nas_ip_address},
                 NAS_PORT        => $FORM{nas_port_id},
                 ACCT_SESSION_ID => $FORM{del}
                            });
+
+  if (! $sessions->{errno}) {
+    my $table = Abills::HTML->table( { width => '100%',
+                                rows => [ [ "NAS_IP_ADDRESS",  $FORM{nas_ip_address}],
+                                          [ "NAS_PORT",        $FORM{nas_port_id}   ],
+                                          [ "ACCT_SESSION_ID", $FORM{del} ] ]
+                               } );
+    
+    message('info', $_DELETED, $table->show());	
+   }
+
 }
 
 
@@ -2555,10 +2577,9 @@ sub null {
 #**********************************************************
 sub form_error {
 	my ($attr) = @_;
-  my $rows = 100;
-  #my $logfile = "/usr/abills/var/log/abills.log";
+  my $PAGE_ROWS = 100;
+  $conf{LOGFILE} = "/usr/abills/var/log/abills.log";
   my $login  = ''; 
-  my $log_type = $FORM{log_type} || '';
 
 if ($attr->{USER}) {
   my $user = $attr->{USER};
@@ -2569,7 +2590,10 @@ elsif($FORM{UID}) {
   return 0;
 }
 
-my ($list, $types, $totals) = show_log("$login", $log_type, "$conf{LOGFILE}", $rows);
+my ($list, $types, $totals) = show_log("$login", "$conf{LOGFILE}", { DATE      => $FORM{DATE},
+	                                                                   LOG_TYPE  => $FORM{LOG_TYPE},
+	                                                                   PG        => $PG,
+	                                                                   PAGE_ROWS => $PAGE_ROWS });
 my $table = Abills::HTML->table( { width => '100%' } );
 foreach my $line (@$list) {
   if ($line =~ m/LOG_WARNING/i) {
@@ -2581,22 +2605,12 @@ foreach my $line (@$list) {
 print $table->show();
 
 
-my $table = Abills::HTML->table( { width => '100%' } );
-foreach my $line (@$list) {
-  if ($line =~ m/LOG_WARNING/i) {
-    $line = "<font color=red>$line</font>";
-   }
-  $table->addrow($line);
-}
-print $table->show(). "<p>\n";
-
-
 $table = Abills::HTML->table( { width => '100%',
 	                              cols_align => ['right', 'right'] } );
 
 $table->addrow("<a href='$SELF_URL?index=40&$pages_qs'>$_TOTAL:</a>", $totals);
 while(my($k,$v)=each %$types) {
-  $table->addrow("<a href='$SELF_URL?index=40&log_type=$k&$pages_qs'>$k</a>", $v);
+  $table->addrow("<a href='$SELF_URL?index=40&LOG_TYPE=$k&$pages_qs'>$k</a>", $v);
 }
 print $table->show();
 

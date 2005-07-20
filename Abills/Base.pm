@@ -97,24 +97,40 @@ sub sendmail {
 }
 #*******************************************************************
 # show log
-# show_log($uid, $type, $logfile, $records)
+# show_log($uid, $type, $attr)
+#  Attributes
+#   PAGE_ROWS
+#   PG
+#   DATE
+#   LOG_TYPE
 #*******************************************************************
 sub show_log {
-  my ($login, $type, $logfile, $records, $pg) = @_;
+  my ($login, $logfile, $attr) = @_;
+
   my $output = ''; 
   my @err_recs = ();
   my %types = ();
+
+  my $PAGE_ROWS = (defined($attr->{PAGE_ROWS}))? $attr->{PAGE_ROWS} : 100;
+  my $PG = (defined($attr->{PG}))? $attr->{PG} : 1;
 
   open(FILE, "$logfile") || die "Can't open log file '$logfile' $!\n";
    while(<FILE>) {
 
       my ($date, $time, $log_type, $action, $user, $message)=split(/ /, $_, 6);
 
-      if ($type ne '' && $log_type ne $type) {
+      if (defined($attr->{LOG_TYPE}) && $log_type ne $attr->{LOG_TYPE}) {
       	#print "0";
       	next;
        }
 
+      if (defined($attr->{DATE}) && $date ne $attr->{DATE}) {
+      	#print "0";
+      	next;
+       }
+      
+      
+      
       $user =~ s/\[|\]//g;
       if ($login ne "") {
       	if($login eq $user) {
@@ -132,16 +148,19 @@ sub show_log {
  my $total  = 0;
  $total = $#err_recs;
  my @list;
- 
+
  return (\@list, \%types, $total) if ($total < 1);
- 
+
+  
+# my $output;
  my $i = 0;
- for ($i = $total; $i>=$total - $records; $i--) {
+ for ($i = $total; $i>=$total - $PAGE_ROWS && $i >= 0; $i--) {
     push @list, "$err_recs[$i]";
+#    $output .= "$i / $err_recs[$i]<br>";
    }
  
- #print "$output";
-
+# print "$output";
+ $total++;
  return (\@list, \%types, $total);
 } 
 
