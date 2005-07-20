@@ -2,7 +2,16 @@
 # Convert from version 0.2 to 0.3
 
 
+if($#ARGV < 0) {
+  print "NOt work \n";
+  exit;
+}
+
+
+
+
 require "libexec/config.pl";
+
 
 use DBI;
 

@@ -1,5 +1,5 @@
 package Auth;
-# Administrators manage functions
+# Auth functions
 #
 
 use strict;
@@ -40,7 +40,7 @@ sub new {
 
 #**********************************************************
 # User authentication
-# authentication($RAD_HASH_REF, $NAS_HASH_REF)
+# authentication($RAD_HASH_REF, $NAS_HASH_REF, $attr)
 #
 # return ($r, $RAD_PAIRS_REF);
 #**********************************************************
@@ -87,7 +87,14 @@ sub authentication {
   u.credit,
   tp.credit_tresshold,
   if(tp.hourp + tp.df + tp.abon=0 and (sum(tt.in_price + tt.out_price)=0 or sum(tt.in_price + tt.out_price)IS NULL), 0, 1),
-  tp.max_session_duration
+  tp.max_session_duration,
+  if(v.dt < v.ut,
+    if(v.dt < CURTIME() and v.ut > CURTIME(), 1, 0),
+      if((v.dt < CURTIME() or (CURTIME() > '0:00:00' and CURTIME() < v.ut ))
+       and
+       (CURTIME() < '23:00:00' or v.ut > CURTIME()  ),
+     1, 0 ))
+
      FROM users u, tarif_plans tp
      LEFT JOIN  trafic_tarifs tt ON (tt.tp_id=u.tp_id)
      LEFT JOIN users_nas un ON (un.uid = u.uid)
@@ -138,9 +145,22 @@ sub authentication {
      $self->{CREDIT},
      $self->{CREDIT_TRESSHOLD},
      $self->{TP_PAYMENT},
-     $self->{MAX_SESSION_DURATION}
+     $self->{MAX_SESSION_DURATION},
+     $self->{ALLOW_TIME}
     ) = @$a_ref;
 
+
+#Allow time
+if ($self->{ALLOW_TIME}) {
+  $RAD_PAIRS{'Reply-Message'}="Not Allow time";
+  return 1, \%RAD_PAIRS;
+}
+
+#DIsable
+if ($self->{DISABLE}) {
+  $RAD_PAIRS{'Reply-Message'}="Account Disable";
+  return 1, \%RAD_PAIRS;
+}
 
 
 #Chack Company account if ACCOUNT_ID > 0
@@ -164,12 +184,6 @@ if ($self->{ACCOUNT_ID} > 0) {
 }
 
 $self->{DEPOSIT}=$self->{DEPOSIT}+$self->{CREDIT}-$self->{CREDIT_TRESSHOLD};
-
-
-if ($self->{DISABLE}) {
-  $RAD_PAIRS{'Reply-Message'}="Account Disable";
-  return 1, \%RAD_PAIRS;
-}
 
 #Check allow nas server
 # $nas 1 - See user nas
