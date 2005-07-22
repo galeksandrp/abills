@@ -65,10 +65,12 @@ sub authentication {
   tp.day_time_limit,
   tp.week_time_limit,
   tp.month_time_limit,
-  if(tp.day_time_limit=0 and tp.dt='0:00:00' AND tp.ut='24:00:00',
+  if(v.day_time_limit=0 and v.dt='0:00:00' AND v.ut='24:00:00',
    UNIX_TIMESTAMP(DATE_FORMAT(DATE_ADD(curdate(), INTERVAL 1 MONTH), '%Y-%m-01')) - UNIX_TIMESTAMP(),
-  TIME_TO_SEC(tp.ut)-TIME_TO_SEC(curtime())) as today_limit,
+  if(curtime() < v.ut, TIME_TO_SEC(v.ut)-TIME_TO_SEC(curtime()), TIME_TO_SEC('23:00:00')-TIME_TO_SEC(curtime())) 
+    ) as today_limit,
   day_traf_limit,
+
   week_traf_limit,
   month_traf_limit,
  
@@ -86,7 +88,7 @@ sub authentication {
   u.deposit,
   u.credit,
   tp.credit_tresshold,
-  if(tp.hourp + tp.df + tp.abon=0 and (sum(tt.in_price + tt.out_price)=0 or sum(tt.in_price + tt.out_price)IS NULL), 0, 1),
+  if(tp.hourp + tp.day_fee + tp.month_fee=0 and (sum(tt.in_price + tt.out_price)=0 or sum(tt.in_price + tt.out_price)IS NULL), 0, 1),
   tp.max_session_duration,
   if(v.dt < v.ut,
     if(v.dt < CURTIME() and v.ut > CURTIME(), 1, 0),

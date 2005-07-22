@@ -28,8 +28,8 @@ my %FIELDS = ( TP_ID => 'id',
                BEGIN => 'ut',
                END  => 'dt',  
                TIME_TARIF  => 'hourp',
-               DAY_FEE => 'df',
-               MONTH_FEE => 'abon',
+               DAY_FEE => 'day_fee',
+               MONTH_FEE => 'month_fee',
                SIMULTANEOUSLY => 'logins',
                AGE => 'age',
                DAY_TIME_LIMIT => 'day_time_limit',
@@ -164,7 +164,7 @@ sub add {
 
   %DATA = $self->get_data($attr, { default => \%DATA }); 
 
-  $self->query($db, "INSERT INTO tarif_plans (id, hourp, uplimit, name, ut, dt, abon, df, logins, 
+  $self->query($db, "INSERT INTO tarif_plans (id, hourp, uplimit, name, ut, dt, month_fee, day_fee, logins, 
      day_time_limit, week_time_limit,  month_time_limit, 
      day_traf_limit, week_traf_limit,  month_traf_limit,
      activate_price, change_price, credit_tresshold, age, octets_direction,
@@ -247,7 +247,7 @@ sub info {
   my $self = shift;
   my ($id) = @_;
 
-  $self->query($db, "SELECT id, name, dt, ut, hourp, df, abon, logins, age,
+  $self->query($db, "SELECT id, name, dt, ut, hourp, day_fee, month_fee, logins, age,
       day_time_limit, week_time_limit,  month_time_limit, 
       day_traf_limit, week_traf_limit,  month_traf_limit,
       activate_price, change_price, credit_tresshold, uplimit, octets_direction, max_session_duration
@@ -304,7 +304,7 @@ sub list {
  my $WHERE = '';
 
  $self->query($db, "SELECT tp.id, tp.name, tp.dt, tp.ut, tp.hourp, if(sum(tt.in_price + tt.out_price)> 0, 1, 0), 
-    tp.df, tp.abon, tp.logins, tp.age
+    tp.day_fee, tp.month_fee, tp.logins, tp.age
     FROM tarif_plans tp
     LEFT JOIN trafic_tarifs tt ON (tt.tp_id=tp.id)
     $WHERE
