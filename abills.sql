@@ -77,7 +77,8 @@ CREATE TABLE admin_actions (
 CREATE TABLE admin_permits (
   aid smallint(6) unsigned NOT NULL default '0',
   section smallint(6) unsigned NOT NULL default '0',
-  actions smallint(6) unsigned NOT NULL default '0'
+  actions smallint(6) unsigned NOT NULL default '0',
+  KEY aid (aid)
 ) TYPE=MyISAM;
 
 --
@@ -91,21 +92,11 @@ CREATE TABLE admins (
   password varchar(16) NOT NULL default '',
   gid tinyint(4) unsigned NOT NULL default '0',
   aid smallint(6) unsigned NOT NULL auto_increment,
-  permissions varchar(60) NOT NULL default '',
   disable tinyint(1) unsigned NOT NULL default '0',
   phone varchar(16) NOT NULL default '',
   PRIMARY KEY  (aid),
   UNIQUE KEY aid (aid),
   UNIQUE KEY id (id)
-) TYPE=MyISAM;
-
---
--- Table structure for table `bill`
---
-
-CREATE TABLE bill (
-  id varchar(20) default NULL,
-  sum float(10,2) default NULL
 ) TYPE=MyISAM;
 
 --
@@ -455,6 +446,7 @@ CREATE TABLE networks (
   mac varchar(18) NOT NULL default '',
   id int(11) unsigned NOT NULL auto_increment,
   status tinyint(2) unsigned NOT NULL default '0',
+  web_control varchar(21) NOT NULL default '',
   PRIMARY KEY  (ip,netmask),
   UNIQUE KEY id (id)
 ) TYPE=MyISAM;
@@ -520,6 +512,39 @@ CREATE TABLE shedule (
 ) TYPE=MyISAM;
 
 --
+-- Table structure for table `tarif_plans`
+--
+
+CREATE TABLE tarif_plans (
+  id smallint(5) unsigned NOT NULL default '0',
+  hourp float(10,5) unsigned NOT NULL default '0.00000',
+  month_fee float(10,2) unsigned NOT NULL default '0.00',
+  uplimit float(10,2) default '0.00',
+  name varchar(40) NOT NULL default 'без╕менний',
+  day_fee float(10,2) unsigned NOT NULL default '0.00',
+  ut time NOT NULL default '24:00:00',
+  dt time NOT NULL default '00:00:00',
+  logins tinyint(4) NOT NULL default '0',
+  day_time_limit int(10) unsigned NOT NULL default '0',
+  week_time_limit int(10) unsigned NOT NULL default '0',
+  month_time_limit int(10) unsigned NOT NULL default '0',
+  day_traf_limit int(10) unsigned NOT NULL default '0',
+  week_traf_limit int(10) unsigned NOT NULL default '0',
+  month_traf_limit int(10) unsigned NOT NULL default '0',
+  prepaid_trafic int(10) unsigned NOT NULL default '0',
+  change_price float(8,2) unsigned NOT NULL default '0.00',
+  activate_price float(8,2) unsigned NOT NULL default '0.00',
+  credit_tresshold double(6,2) unsigned NOT NULL default '0.00',
+  age smallint(6) unsigned NOT NULL default '0',
+  octets_direction tinyint(2) unsigned NOT NULL default '0',
+  max_session_duration smallint(6) unsigned NOT NULL default '0',
+  filter_id varchar(15) NOT NULL default '',
+  PRIMARY KEY  (id),
+  UNIQUE KEY id (id),
+  UNIQUE KEY name (name)
+) TYPE=MyISAM;
+
+--
 -- Table structure for table `tp_nas`
 --
 
@@ -537,11 +562,10 @@ CREATE TABLE trafic_tarifs (
   id tinyint(4) NOT NULL default '0',
   descr varchar(30) default NULL,
   nets text,
-  price float(8,5) NOT NULL default '0.00000',
   tp_id smallint(5) unsigned NOT NULL default '0',
   prepaid int(11) unsigned default '0',
-  in_price float(8,5) default '0.00000',
-  out_price float(8,5) default '0.00000',
+  in_price float(8,5) unsigned NOT NULL default '0.00000',
+  out_price float(8,5) unsigned NOT NULL default '0.00000',
   speed int(10) unsigned NOT NULL default '0',
   UNIQUE KEY tpid (tp_id,id),
   KEY tp_id (tp_id)
@@ -605,66 +629,5 @@ CREATE TABLE web_online (
   admin varchar(15) NOT NULL default '',
   ip varchar(15) NOT NULL default '',
   logtime int(11) unsigned NOT NULL default '0'
-) TYPE=MyISAM;
-
-
-INSERT INTO admins VALUES ('abills','abills','2005-06-16','сF ╤',0,1,'',0,'');
-
-
-INSERT INTO admin_permits VALUES (13,2,0);
-INSERT INTO admin_permits VALUES (13,2,1);
-INSERT INTO admin_permits VALUES (13,3,0);
-INSERT INTO admin_permits VALUES (13,3,1);
-INSERT INTO admin_permits VALUES (13,0,5);
-INSERT INTO admin_permits VALUES (13,0,2);
-INSERT INTO admin_permits VALUES (13,0,3);
-INSERT INTO admin_permits VALUES (13,0,0);
-INSERT INTO admin_permits VALUES (13,0,1);
-INSERT INTO admin_permits VALUES (13,0,4);
-INSERT INTO admin_permits VALUES (13,0,6);
-INSERT INTO admin_permits VALUES (13,1,2);
-INSERT INTO admin_permits VALUES (13,1,3);
-INSERT INTO admin_permits VALUES (13,1,0);
-INSERT INTO admin_permits VALUES (13,1,1);
-INSERT INTO admin_permits VALUES (13,4,2);
-INSERT INTO admin_permits VALUES (13,4,3);
-INSERT INTO admin_permits VALUES (13,4,0);
-INSERT INTO admin_permits VALUES (13,4,1);
-INSERT INTO admin_permits VALUES (13,2,3);
-INSERT INTO admin_permits VALUES (13,2,2);
-INSERT INTO admin_permits VALUES (13,5,0);
-
-
---
--- Table structure for table `tarif_plans`
---
-
-CREATE TABLE tarif_plans (
-  id smallint(5) unsigned NOT NULL default '0',
-  hourp float(10,5) unsigned NOT NULL default '0.00000',
-  abon float(10,2) unsigned NOT NULL default '0.00',
-  uplimit float(10,2) default '0.00',
-  name varchar(40) NOT NULL default 'без╕менний',
-  df float(10,2) unsigned NOT NULL default '0.00',
-  ut time NOT NULL default '24:00:00',
-  dt time NOT NULL default '00:00:00',
-  logins tinyint(4) NOT NULL default '0',
-  day_time_limit int(10) unsigned NOT NULL default '0',
-  week_time_limit int(10) unsigned NOT NULL default '0',
-  month_time_limit int(10) unsigned NOT NULL default '0',
-  day_traf_limit int(10) unsigned NOT NULL default '0',
-  week_traf_limit int(10) unsigned NOT NULL default '0',
-  month_traf_limit int(10) unsigned NOT NULL default '0',
-  prepaid_trafic int(10) unsigned NOT NULL default '0',
-  change_price float(8,2) unsigned NOT NULL default '0.00',
-  activate_price float(8,2) unsigned NOT NULL default '0.00',
-  credit_tresshold double(6,2) unsigned NOT NULL default '0.00',
-  age smallint(6) unsigned NOT NULL default '0',
-  octets_direction tinyint(2) unsigned NOT NULL default '0',
-  max_session_duration smallint(6) unsigned NOT NULL default '0',
-  filter_id varchar(15) NOT NULL default '',
-  PRIMARY KEY  (id),
-  UNIQUE KEY id (id),
-  UNIQUE KEY name (name)
 ) TYPE=MyISAM;
 

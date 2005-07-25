@@ -19,65 +19,14 @@ my $db = DBI -> connect("DBI:mysql:database=$conf{dbname};host=$conf{dbhost}", "
   or die "Unable connect to server '$conf{dbhost}'\n" . $DBI::errstr;
 my $not_found = "";
 
-other_convert();
+#other_convert();
 #users_convert();
-#fees_convert();
-#log_convert();
+log_convert();
 
 
 
 sub other_convert {
-	my  @sql_array = ("ALTER TABLE `fees` DROP COLUMN `ww`;",
-	 "ALTER TABLE `s_detail` DROP COLUMN `uid`;",
-	 "ALTER TABLE `exchange_rate` ADD column `id` smallint(6) unsigned NOT NULL auto_increment;",
-	 "ALTER TABLE `exchange_rate` ADD UNIQUE KEY `id` (`id`);",
-	 "ALTER TABLE `ippools` ADD UNIQUE KEY `nas` (`nas`, `ip`);",
-	 "ALTER TABLE `shedule` ADD UNIQUE KEY `uniq_action` (`h`, `d`, `m`, `y`, `type`, `uid`);",
-	 "ALTER TABLE `nas` ADD COLUMN `alive` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '0';",
-	 "ALTER TABLE `networks` MODIFY COLUMN `web_control` VARCHAR(21);",
-	 "ALTER TABLE `actions` ADD COLUMN `disable` TINYINT(1) UNSIGNED NOT NULL DEFAULT '0';",
-"ALTER TABLE `admins` ADD COLUMN `disable` TINYINT(1) UNSIGNED NOT NULL DEFAULT '0';",
-"ALTER TABLE `admins` ADD COLUMN `phone` VARCHAR(16) NOT NULL;",
-"ALTER TABLE `calls` ADD COLUMN `tp_id` SMALLINT(5) UNSIGNED NOT NULL DEFAULT '0';",
-"ALTER TABLE `exchange_rate` ADD COLUMN `id` SMALLINT(6) UNSIGNED NOT NULL AUTO_INCREMENT UNIQUE;",
-
-"ALTER TABLE `intervals` DROP INDEX `vid`;",
-"ALTER TABLE `intervals` change COLUMN vid `tp_id` TINYINT(4) UNSIGNED NOT NULL DEFAULT '0';",
-"ALTER TABLE `intervals` ADD COLUMN `id` SMALLINT(6) UNSIGNED NOT NULL AUTO_INCREMENT UNIQUE PRIMARY KEY;",
-"ALTER TABLE `intervals` ADD PRIMARY KEY (`id`);",
-"ALTER TABLE `intervals` ADD UNIQUE KEY `id` (`id`);",
-"ALTER TABLE `intervals` ADD UNIQUE KEY `tp_id` (`tp_id`, `begin`, `day`);",
-"ALTER TABLE `trafic_tarifs` DROP INDEX `vid_id`;",
-"ALTER TABLE `trafic_tarifs` DROP INDEX `vid`;",
-"ALTER TABLE `trafic_tarifs` DROP COLUMN `price`;",
-"ALTER TABLE `trafic_tarifs` ADD change vid `tp_id` SMALLINT(5) UNSIGNED NOT NULL DEFAULT '0' PRIMARY KEY;",
-"ALTER TABLE `trafic_tarifs` ADD UNIQUE KEY `tpid` (`tp_id`, `id`);",
-"ALTER TABLE `trafic_tarifs` ADD KEY `tp_id` (`tp_id`);",
-
- "RENAME TABLE payment payments;",
- "ALTER TABLE payments DROP COLUMN ww;",
- "ALTER TABLE payments ADD COLUMN   `method` tinyint(4) unsigned NOT NULL default '0' ;",
- 
-"RENAME TABLE userlog  admin_actions;",
-"ALTER TABLE admin_actions change log actions varchar(100) NOT NULL default '';",
-"ALTER TABLE admin_actions change date `datetime` datetime NOT NULL default '0000-00-00 00:00:00';",
-
-"RENAME TABLE variant tarif_plans;",
-"ALTER TABLE tarif_plans DROP column `kb`;",
-"ALTER TABLE tarif_plans CHANGE column vrnt id` smallint(5) unsigned NOT NULL default '0';",
-"ALTER TABLE tarif_plans CHANGE df day_fee float(10,2) unsigned NOT NULL default '0.00';",
-"ALTER TABLE tarif_plans CHANGE abon month_fee float(10,2) unsigned NOT NULL default '0.00';",
-"ALTER TABLE tarif_plans ADD column  `age` smallint(6) unsigned NOT NULL default '0';",
-"ALTER TABLE tarif_plans ADD column  `octets_direction` tinyint(2) unsigned NOT NULL default '0';",
-"ALTER TABLE tarif_plans ADD column  `max_session_duration` smallint(6) unsigned NOT NULL default '0';",
-"ALTER TABLE tarif_plans ADD column  `filter_id` varchar(15) NOT NULL default '';",
-
-"RENAME TABLE  vid_nas tp_nas;",
-"ALTER TABLE tp_nas change vid tp_id smallint(5) unsigned NOT NULL default '0'"
-
- 
-
-);
+	my  @sql_array = ();
   
   foreach my $l (@sql_array) {
     $q2 = $db->do($l) || die $db->errstr;
@@ -99,7 +48,7 @@ sub users_convert {
     "ALTER TABLE `users` ADD KEY `tp_id` (`tp_id`);");
   
   foreach my $l (@sql_array) {
-    $q2 = $db->do($l);
+    $q2 = $db->do($l) || die $db->errstr;
     print "$l\n";
    }
 
@@ -114,9 +63,7 @@ sub log_convert {
    "ALTER TABLE log change login start datetime NOT NULL default '0000-00-00 00:00:00';",
    "ALTER TABLE log change variant tp_id smallint(5) unsigned NOT NULL default '0'",
    "ALTER TABLE log drop index id;",  
-   "ALTER TABLE log drop index login;",
-   "ALTER TABLE log add index uid;",
-   "ALTER TABLE log add index (uid, start);");
+   "ALTER TABLE log drop index login;");
   
   my $user_ids = get_user_ids();
 
@@ -131,13 +78,17 @@ sub log_convert {
      }
    }
 
+  push @sql_array, "ALTER TABLE log add index (uid);";
+  push @sql_array, "ALTER TABLE log add index (uid, start);";
+
   push @sql_array,  "ALTER TABLE log drop column id";
-  push @sql_array,  "ALTER TABLE log drop column login";
 
   foreach my $l (@sql_array) {
     $q2 = $db->do($l);
     print "$l\n";
    }
+
+
 
   print "\n\n$not_found";
  

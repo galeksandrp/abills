@@ -437,7 +437,7 @@ sub list {
  if ($attr->{DISABLE}) {
    $WHERE .= ($WHERE ne '') ?  " AND u.disable='$attr->{DISABLE}' " : "WHERE u.disable='$attr->{DISABLE} "; 
  }
-
+ 
  
  $self->query($db, "SELECT u.id, u.fio, if(acct.id IS NULL, u.deposit, acct.deposit), u.credit, tp.name, u.disable, 
       u.uid, u.account_id, u.email, u.tp_id, u.activate, u.expire
@@ -445,6 +445,10 @@ sub list {
      LEFT JOIN  tarif_plans tp ON  (tp.id=u.tp_id) 
      LEFT JOIN  accounts acct ON  (u.account_id=acct.id) 
      $WHERE ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");
+
+ return $self if($self->{errno});
+
+
 
  my $list = $self->{list};
 

@@ -64,14 +64,23 @@ else {
   #print $query;
   $q = $db->prepare($query) || die $db->errstr;;
   if($db->err) {
-     $self->{errno} = 7;
+     $self->{errno} = 3;
+     $self->{sql_errno}=$db->err;
+     $self->{sql_errstr}=$db->errstr;
+     $self->{errstr}=$db->errstr;
 #     print "-----------------------111";
+     
      return $self->{errno};
    }
 
   $q ->execute(); 
   if($db->err) {
-     $self->{errno} = 7;
+     $self->{errno} = 3;
+
+     $self->{sql_errno}=$db->err;
+     $self->{sql_errstr}=$db->errstr;
+     $self->{errstr}=$db->errstr;
+
 #     print "-----------------------111-". $db->err . "-\n";
      return $self->{errno};
    }

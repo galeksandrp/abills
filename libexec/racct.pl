@@ -119,6 +119,7 @@ else {
    my $res = "";
    foreach my $file (@contents) {
      if (-x "$conf{extern_acct_dir}/$file") {
+       # ACCT_STATUS IP_ADDRESS NAS_PORT
        $res = `$conf{extern_acct_dir}/$file $acct_status_type $RAD->{NAS_IP_ADDRESS} $RAD->{NAS_PORT}`;
        log_print('LOG_DEBUG', "External accounting program '$conf{extern_acct_dir}' / '$file' pairs '$res'");
       }

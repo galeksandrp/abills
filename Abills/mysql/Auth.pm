@@ -73,6 +73,7 @@ sub authentication {
 
   week_traf_limit,
   month_traf_limit,
+  tp.octets_direction,
  
   if (count(un.uid) + count(tp_nas.tp_id) = 0, 0,
     if (count(un.uid)>0, 1, 2)),
@@ -131,7 +132,7 @@ sub authentication {
      $self->{CID},
      $self->{DAY_TIME_LIMIT},  $self->{WEEK_TIME_LIMIT},   $self->{MONTH_TIME_LIMIT},
      $self->{TODAY_LIMIT},
-     $self->{DAY_TRAF_LIMIT},  $self->{WEEK_TRAF_LIMIT},   $self->{MONTH_TRAF_LIMIT},
+     $self->{DAY_TRAF_LIMIT},  $self->{WEEK_TRAF_LIMIT},   $self->{MONTH_TRAF_LIMIT}, $self->{OCTETS_DIRECTION},
      $self->{NAS}, 
      $self->{COUNT_TRAF_TARIFS},
      $self->{TIME_TARIF},
@@ -882,7 +883,7 @@ sub remaining_time {
           elsif($int_prepaid <= $int_duration) {
             $deposit =  0;          	
             $session_start += $int_prepaid;
-            $remaining_time += $int_duration;
+            $remaining_time += $int_prepaid;
             #print "DL '$deposit' ($int_prepaid <= $int_duration) $session_start\n";
            }
          

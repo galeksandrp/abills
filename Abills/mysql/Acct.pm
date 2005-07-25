@@ -58,7 +58,7 @@ sub accounting {
 
 #   print "aaa $acct_status_type '$RAD->{ACCT_STATUS_TYPE}' //"; 
 
-my $a=`echo "test $acct_status_type = $ACCT_TYPES{$RAD->{ACCT_STATUS_TYPE}}"  >> /tmp/12211 `;
+#my $a=`echo "test $acct_status_type = $ACCT_TYPES{$RAD->{ACCT_STATUS_TYPE}}"  >> /tmp/12211 `;
  
 
 #Start

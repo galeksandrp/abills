@@ -37,7 +37,7 @@ $conf{negative_deposit}='no';
 
 #System admin id
 #ID for system operation, periodic procces
-$conf->{SYSTEM_ADMIN_ID}=13;
+$conf->{SYSTEM_ADMIN_ID}=1;
 
 #Web interface
 $conf{passwd_length}=6;

@@ -214,12 +214,14 @@ sub add {
 
 
 #**********************************************************
-# add()
+# delete()
 #**********************************************************
 sub del {
   my $self = shift;
   my ($id) = @_;
+
   $self->query($db, "DELETE FROM admins WHERE aid='$id';", 'do');
+  $self->query($db, "DELETE FROM admin_permits WHERE aid='$id';", 'do');
   return $self;
 }
 

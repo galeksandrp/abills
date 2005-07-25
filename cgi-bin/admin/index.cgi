@@ -60,6 +60,7 @@ my $admin = Admins->new($db);
 require "../../language/$html->{language}.pl";
 my %permissions = ();
 
+
 #**********************************************************
 #IF Mod rewrite enabled
 #
@@ -644,28 +645,7 @@ print "<li><a href='$SELF?op=users&del_user=y&UID=$UID' onclick=\"return confirm
   return 0;
 }
 elsif ($FORM{add}) {
-  my $user_info = $users->add({ LOGIN => $FORM{LOGIN},
-                 EMAIL => $FORM{EMAIL},
-                 FIO => $FORM{FIO},
-                 PHONE => $FORM{PHONE},
-                 ADDRESS => $FORM{ADDRESS},
-                 ACTIVATE => $FORM{ACTIVATE},
-                 EXPIRE => $FORM{EXPIRE},
-                 CREDIT => $FORM{CREDIT},
-                 REDUCTION  => $FORM{REDUCTION},
-                 SIMULTANEONSLY => $FORM{SIMULTANEONSLY},
-                 COMMENTS => $FORM{COMMENTS},
-                 ACCOUNT_ID => $FORM{ACCOUNT_ID}, 
-                 DISABLE => $FORM{DISABLE},
-                 
-                 TARIF_PLAN => $FORM{TARIF_PLAN},
-                 IP => $FORM{IP},
-                 NETMASK => $FORM{NETMASK},
-                 SPEED => $FORM{SPEED},
-                 FILTER_ID => $FORM{FILTER_ID},
-                 CID => $FORM{CID}
-               }
-              );  
+  my $user_info = $users->add({ %FORM  });  
 
   if ($users->{errno}) {
     message('err', $_ERROR, "[$users->{errno}] $err_strs{$users->{errno}}");	
@@ -720,7 +700,11 @@ for (my $i=97; $i<123; $i++) {
 
 my $list = $users->list( { %LIST_PARAMS } );
 
-if ($users->{TOTAL} == 1) {
+if ($users->{errno}) {
+  message('err', $_ERROR, "[$users->{errno}] $err_strs{$users->{errno}}");	
+  return 0;
+ }
+elsif ($users->{TOTAL} == 1) {
 	$FORM{UID}=$list->[0]->[6];
 	form_users();
 	return 0;
@@ -2483,7 +2467,7 @@ foreach my $nas_row (@$nas_list) {
   foreach my $line (@$l) {
     undef($table->{rowcolor});
     undef($table->{extra});
-    #print "$line->[0]---<br>";
+    #print "$line->[0]<br>";
     if (defined($dub_logins->{$line->[0]}))                  { $bg='#FFFF00';    }
     elsif (defined($dub_ports->{$nas_row->[4]}{$line->[2]})) { $bg='#00FF40';    }
     elsif ($line->[9] == 3)                                  { $bg='#FF0000';    }
@@ -3578,6 +3562,13 @@ print "</table>\n";
 #    print "<tr><td>$k</td><td>$v</td></tr>\n";	
 #   }
 #print "</table>\n";
+
+#print "<br><table border=1>\n";
+#  while(my($k, $v)=each %conf) {
+#    print "<tr><td>$k</td><td>$v</td></tr>\n";	
+#   }
+#print "</table>\n";
+#
 
 }
 
