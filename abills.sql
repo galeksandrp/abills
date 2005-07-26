@@ -631,3 +631,51 @@ CREATE TABLE web_online (
   logtime int(11) unsigned NOT NULL default '0'
 ) TYPE=MyISAM;
 
+
+
+REPLACE INTO `admins` VALUES ('abills', 'ABillS System user', '2003-03-12', ENCODE('abills', 'test12345678901234567890'), 0, 1, 0, '');
+
+
+INSERT INTO `admin_permits` VALUES (1, 2, 2);
+INSERT INTO `admin_permits` VALUES (1, 2, 3);
+INSERT INTO `admin_permits` VALUES (1, 2, 0);
+INSERT INTO `admin_permits` VALUES (1, 2, 1);
+INSERT INTO `admin_permits` VALUES (1, 3, 0);
+INSERT INTO `admin_permits` VALUES (1, 3, 1);
+INSERT INTO `admin_permits` VALUES (1, 0, 5);
+INSERT INTO `admin_permits` VALUES (1, 0, 2);
+INSERT INTO `admin_permits` VALUES (1, 0, 3);
+INSERT INTO `admin_permits` VALUES (1, 0, 0);
+INSERT INTO `admin_permits` VALUES (1, 0, 1);
+INSERT INTO `admin_permits` VALUES (1, 0, 4);
+INSERT INTO `admin_permits` VALUES (1, 0, 6);
+INSERT INTO `admin_permits` VALUES (1, 1, 2);
+INSERT INTO `admin_permits` VALUES (1, 1, 0);
+INSERT INTO `admin_permits` VALUES (1, 1, 1);
+INSERT INTO `admin_permits` VALUES (1, 4, 2);
+INSERT INTO `admin_permits` VALUES (1, 4, 3);
+INSERT INTO `admin_permits` VALUES (1, 4, 0);
+INSERT INTO `admin_permits` VALUES (1, 4, 1);
+INSERT INTO `admin_permits` VALUES (1, 5, 0);
+
+INSERT INTO `admin_permits` VALUES (1, 2, 2);
+INSERT INTO `admin_permits` VALUES (1, 2, 3);
+INSERT INTO `admin_permits` VALUES (1, 2, 0);
+INSERT INTO `admin_permits` VALUES (1, 2, 1);
+INSERT INTO `admin_permits` VALUES (1, 3, 0);
+INSERT INTO `admin_permits` VALUES (1, 3, 1);
+INSERT INTO `admin_permits` VALUES (1, 0, 5);
+INSERT INTO `admin_permits` VALUES (1, 0, 2);
+INSERT INTO `admin_permits` VALUES (1, 0, 3);
+INSERT INTO `admin_permits` VALUES (1, 0, 0);
+INSERT INTO `admin_permits` VALUES (1, 0, 1);
+INSERT INTO `admin_permits` VALUES (1, 0, 4);
+INSERT INTO `admin_permits` VALUES (1, 0, 6);
+INSERT INTO `admin_permits` VALUES (1, 1, 2);
+INSERT INTO `admin_permits` VALUES (1, 1, 0);
+INSERT INTO `admin_permits` VALUES (1, 1, 1);
+INSERT INTO `admin_permits` VALUES (1, 4, 2);
+INSERT INTO `admin_permits` VALUES (1, 4, 3);
+INSERT INTO `admin_permits` VALUES (1, 4, 0);
+INSERT INTO `admin_permits` VALUES (1, 4, 1);
+INSERT INTO `admin_permits` VALUES (1, 5, 0);
