@@ -47,7 +47,7 @@ $conf{web_session_timeout} = 1800;
 
 
 # Exppp options
-$conf{netsfilespath}='/home/asmodeus/abills/cgi-bin/admin/nets/';
+$conf{netsfilespath}='/usr/abills/cgi-bin/admin/nets/';
 #Auto assigning MAC in first connect
 $conf{MAC_AUTO_ASSIGN}=1;
 $conf{KBYTE_SIZE} = 1024;
@@ -78,7 +78,7 @@ $conf{BACKUP_DIR}='/usr/abills/backup';
 
 
 # Folders and files
-$base_dir='/home/asmodeus/abills2/';
+$base_dir='/usr/abills/';
 $lang_path=$base_dir . 'language/';
 $lib_path=$base_dir .'libexec/';
 $var_dir=$base_dir .'var/';
