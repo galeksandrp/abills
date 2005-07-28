@@ -210,11 +210,11 @@ sub getCookies {
 # $ex_params - extended params
 # $mp_name - Menu parameter name
 # $params - hash of menu items
-# menu($type, $params);
+# menu($type, $mp_name, $ex_params, $menu, $sub_menu, $attr);
 #*******************************************************************
 sub menu {
  my $self = shift;
- my ($type, $mp_name, $ex_params, $menu, $sub_menu)=@_;
+ my ($type, $mp_name, $ex_params, $menu, $sub_menu, $attr)=@_;
  my @menu_captions = sort keys %$menu;
 
  $self->{menu} = "<table width=100%>\n";
@@ -228,7 +228,8 @@ if ($type == 1) {
     $link .= "$mp_name=$k&" if ($k ne '');
 
 
-    if ((defined($FORM{$mp_name}) && $FORM{$mp_name} eq $k) && $file eq '') {
+#    if ((defined($FORM{$mp_name}) && $FORM{$mp_name} eq $k) && $file eq '') {
+     if ((defined($FORM{root_index}) && $FORM{root_index} eq $k) && $file eq '') {
       $self->{menu} .= "<tr><td bgcolor=$_COLORS[3]><a href='$link$ex_params'><b>". $menu->{"$line"} ."</b></a></td></tr>\n";
       while(my($k, $v)=each %$sub_menu) {
       	 $self->{menu} .= "<tr><td bgcolor=$_COLORS[1]>&nbsp;&nbsp;&nbsp;<a href='$SELF_URL?index=$k'>$v</a></td></tr>\n";

@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-
+# 701082
 # http://www.maani.us/charts/index.php
 #use vars qw($begin_time);
 BEGIN {
@@ -110,11 +110,12 @@ $html->setCookie('qm', "$FORM{qm_item}", "Fri, 1-Jan-2038 00:00:01", $web_path, 
 print $html->header();
 
 my @actions = ([$_SA_ONLY, $_ADD, $_LIST, $_PASSWD, $_CHANGE, $_DEL, $_ALL],  # Users
-               [$_LIST, $_ADD, $_DEL, $_ALL],                # Payments
+               [$_LIST, $_ADD, $_DEL, $_ALL],                                 # Payments
                [$_LIST, $_ADD, $_DEL, $_ALL],                                 # Fees
                [$_LIST, $_DEL],                                               # reports view
-               [$_LIST, $_ADD, $_CHANGE, $_DEL],                                                       # system magment
-               [$_ALL]                                                        # Modules managments
+               [$_LIST, $_ADD, $_CHANGE, $_DEL],                              # system magment
+               [$_ALL],                                                       # Modules managments
+               [$_SEARCH]                                                     # Search
                );
 
 my @action = ('add', $_ADD);
@@ -128,6 +129,7 @@ my $root_index = 0;
 
 my ($main_menu, $sub_menu, $navigat_menu) = mk_navigator();
 my ($online_users, $online_count) = $admin->online();
+
 my %SEARCH_TYPES = (11 => $_USERS,
                     2 => $_PAYMENTS,
                     3 => $_FEES,
@@ -153,7 +155,7 @@ print "<table width=100%>
 <table width=100% border=0>
 <form action=$SELF_URL>
   <tr><th align=left>$_DATE: $DATE $TIME Admin: <a href='$SELF_URL?index=53'>$admin->{A_LOGIN}</a> / Online: <abbr title=\"$online_users\"><a href='$SELF_URL?index=50' title='$online_users'>Online: $online_count</a></abbr></th>
-  <th align=right><input type=hidden name=index value=100>
+  <th align=right><input type=hidden name=index value=7>
   Search: $SEL_TYPE <input type=text name=LOGIN_EXPR value='$FORM{LOGIN_EXPR}'></th></tr>
 </form>
 </table>
@@ -177,13 +179,12 @@ if (defined($COOKIES{qm}) && $COOKIES{qm} ne '') {
 
 
 print "<tr><td valign=top width=18% bgcolor=$_COLORS[2] rowspan=2><p>\n";
-print $html->menu(1, 'op', "", $main_menu, $sub_menu);
+print $html->menu(1, 'index', "", $main_menu, $sub_menu);
 my $sub_menus = sub_menu($index);
 print "</td><td bgcolor=$_COLORS[0] height=50>$navigat_menu</td></tr>\n";
 print "<tr><td valign=top align=center>";
 
 if ($functions{$index}) {
-  #$OP = $op_names{$index};
   my $m;
   while(my($k, $v) = each %$sub_menus ) {
   	 $m .= "<a  href='$SELF_URL?index=$k'>$v</a> :: ";
@@ -2713,7 +2714,7 @@ my @m = ("1:0:$_CUSTOMERS:null:0:customers:",
  "85:5:$_SHEDULE:form_shedule:1::",
  "90:5:$_TEMPLATES:form_templates:1::",
  "99:5:$_FUNCTIONS_LIST:flist:1::",
- "100:5:$_SEARCH:form_search:1::",
+ "7:0:$_SEARCH:form_search:1::",
  
  "6:0:$_MODULES:null:1:modules:",
  "999:6:$_TEST:test:1:test:",
@@ -2731,9 +2732,9 @@ foreach my $line (@m) {
   $menu_names{$ID}=$NAME;
   $functions{$ID}=\&$FUNTION_NAME if ($FUNTION_NAME  ne '');
   $show_submenu{$ID}='y' if ($SHOW_SUBMENU == 1);
-  $op_names{$ID}=$OP if ($OP ne '');
 }
-my $root_index = 0;
+#my $root_index = 0;
+
 if ($index == 0 && $OP ne '') {
    my %functions_index = reverse(%op_names);
    $index = $functions_index{$OP};
@@ -2754,10 +2755,11 @@ if ($index > 0) {
   }
 }
 
-if (defined($FORM{op}) && $FORM{op} eq '') {
-   $OP = $op_names{$root_index};
-  }
-$FORM{op} = $op_names{$root_index};
+#if (defined($FORM{op}) && $FORM{op} eq '') {
+#   $OP = $op_names{$root_index};
+#  }
+
+$FORM{root_index} = $root_index;
 
 if ($root_index > 0) {
   my $ri = $root_index-1;
@@ -2767,12 +2769,14 @@ if ($root_index > 0) {
    }
 }
 
+
+
 my %main_menu = ();
 my %submenu = ();
 
 while(my($section, $v)=each %permissions) {
   $section++;
-  $main_menu{$section.'::'. $op_names{$section} .':'.$section} = $menu_items{$section}{0};
+  $main_menu{$section.'::'. $section .':'.$section} = $menu_items{$section}{0};
 
   if ($root_index == $section) {
     while(my($id, $v)=each %menu_items) {
@@ -2782,7 +2786,7 @@ while(my($section, $v)=each %permissions) {
 	 	     }
 	    }
      }
-    $main_menu{$section.'::'. $op_names{$section} .':'.$section}{sm}=\%submenu;
+    $main_menu{$section.'::'. $section .':'.$section}{sm}=\%submenu;
    }
 }
 
@@ -3542,6 +3546,7 @@ print << "[END]";
 sub test {
 print "<table border=1>
 <tr><td>index</td><td>$index</td></td></tr>
+<tr><td>root_index</td><td>$root_index</td></td></tr>
 <tr bgcolor=$_COLORS[2]><td>OP</td><td>$OP</td></tr>\n";	
   while(my($k, $v)=each %FORM) {
     print "<tr><td>$k</td><td>$v</td></tr>\n";	
