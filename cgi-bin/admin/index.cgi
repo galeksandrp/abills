@@ -330,7 +330,7 @@ else {
                                   } );
 
   foreach my $line (@$list) {
-    $table->addrow($line->[0],  $line->[1], $line->[2], "<a href='$SELF_URL?op=users&ACCOUNT_ID=$line->[5]'>$line->[3]</a>", "$status[$line->[4]]",
+    $table->addrow($line->[0],  $line->[1], $line->[2], "<a href='$SELF_URL?index=$index&ACCOUNT_ID=$line->[5]'>$line->[3]</a>", "$status[$line->[4]]",
       "<a href='$SELF_URL?index=$index&ACCOUNT_ID=$line->[5]'>$_INFO</a>", $html->button($_DEL, "index=$index&del=$line->[5]", "$_DEL ?"));
    }
   print $table->show();
@@ -564,7 +564,7 @@ if($UID > 0) {
    }
 
   print  "<table width=100% bgcolor=$_COLORS[2]><tr><td>$_USER:</td>
-  <td><a href='$SELF_URL?op=users&UID=$users->{UID}'><b>$users->{LOGIN}</b></td></tr></table>\n";
+  <td><a href='$SELF_URL?index=$index&UID=$users->{UID}'><b>$users->{LOGIN}</b></td></tr></table>\n";
   
   $LIST_PARAMS{UID}=$user_info->{UID};
   $pages_qs =  "&UID=$user_info->{UID}";
@@ -593,6 +593,11 @@ if($UID > 0) {
     $functions{$FORM{subf}}->( { USER => $user_info } );
     print "</td></table>\n";
     return 0;
+   }
+  elsif($index != 11) {
+     $functions{$index}->( { USER => $user_info } );
+     print "</td></table>\n";
+     return 0;
    }
   elsif ($FORM{del_user} && $FORM{is_js_confirmed} && $index == 11) {
     $users->del();
@@ -639,7 +644,7 @@ while(my($k, $v)=each (%menus) ) {
   print "$a </a>\n";
 }
 
-print "<li><a href='$SELF?op=users&del_user=y&UID=$UID' onclick=\"return confirmLink(this, '$_USER: $user_info->{LOGIN} / $user_info->{UID} ')\">$_DEL</a>
+print "<li><a href='$SELF?index=$index&users&del_user=y&UID=$UID' onclick=\"return confirmLink(this, '$_USER: $user_info->{LOGIN} / $user_info->{UID} ')\">$_DEL</a>
 </td></tr>
 </table>
 </td></tr></table>\n";
@@ -682,7 +687,7 @@ if ($FORM{debs}) {
 #  $LIST_PARAMS{TP} = $FORM{TP_ID};
 # }
 
-my $letters = "<a href='$SELF?op=users'>All</a> ::";
+my $letters = "<a href='$SELF?index=$index'>All</a> ::";
 for (my $i=97; $i<123; $i++) {
   my $l = chr($i);
   if ($FORM{letter} eq $l) {
@@ -690,7 +695,7 @@ for (my $i=97; $i<123; $i++) {
     }
   else {
      #$pages_qs = '';
-     $letters .= "<a href='$SELF?op=users&letter=$l$pages_qs'>$l</a> ";
+     $letters .= "<a href='$SELF?index=$index&letter=$l$pages_qs'>$l</a> ";
    }
  }
 
@@ -723,9 +728,9 @@ my $table = Abills::HTML->table( { width => '100%',
                                   } );
 
 foreach my $line (@$list) {
-  my $payments = ($permissions{1}) ?  "<a href='$SELF_URL?op=payments&UID=$line->[6]'>$_PAYMENTS</a>" : ''; 
+  my $payments = ($permissions{1}) ?  "<a href='$SELF_URL?index=2&UID=$line->[6]'>$_PAYMENTS</a>" : ''; 
 
-  $table->addrow("<a href='$SELF_URL?op=users&UID=$line->[6]'>$line->[0]</a>", "$line->[1]",
+  $table->addrow("<a href='$SELF_URL?index=$index&UID=$line->[6]'>$line->[0]</a>", "$line->[1]",
    "$line->[2]", "$line->[3]", "$line->[4]", "$status[$line->[5]]", $payments, "<a href='$SELF_URL?index=22&UID=$line->[6]'>$_STATS</a>");
 }
 print $table->show();
@@ -1005,7 +1010,7 @@ my $result = "<form action=$SELF_URL>
 <input type=hidden name=subf value=$FORM{subf}>
 <input type=hidden name=index value=$index>
 <table width=400 border=0>
-<tr><td>$_FROM:</td><td bgcolor=$_BG2>$user->{TARIF_PLAN} $user->{TP_NAME} [<a href='$SELF?op=tp&chg=$user->{TARIF_PLAN}' title='$_VARIANTS'>$_VARIANTS</a>]</td></tr>
+<tr><td>$_FROM:</td><td bgcolor=$_BG2>$user->{TARIF_PLAN} $user->{TP_NAME} [<a href='$SELF?index=70&chg=$user->{TARIF_PLAN}' title='$_VARIANTS'>$_VARIANTS</a>]</td></tr>
 $params
 </form>\n";
 
@@ -3012,7 +3017,6 @@ if (defined($attr->{USER})) {
    }
 
 #exchange rate sel
-
 my ($er, $total) = $payments->exchange_list();
 $payments->{SEL_ER} = "<select name=ER>\n";
 foreach my $line (@$er) {
@@ -3063,7 +3067,7 @@ $pages_qs .= "&subf=2" if (! $FORM{subf});
 
 foreach my $line (@$list) {
   my $delete = ($permissions{1}{2}) ?  $html->button($_DEL, "index=$index&del=$line->[0]&UID=$line->[9]$pages_qs", "$_DEL ?") : ''; 
-  $table->addrow("<b>$line->[0]</b>", "<a href='$SELF_URL?op=users&UID=$line->[9]'>$line->[1]</a>", $line->[2], 
+  $table->addrow("<b>$line->[0]</b>", "<a href='$SELF_URL?index=11&UID=$line->[9]'>$line->[1]</a>", $line->[2], 
    $line->[3], $line->[4],  "$line->[5]", "$line->[6]", "$line->[7]", $PAYMENT_METHODS[$line->[8]], $delete);
 }
 
@@ -3151,8 +3155,8 @@ my $table = Abills::HTML->table( { width => '640',
 
 my ($list, $total) = $finance->exchange_list( {%LIST_PARAMS} );
 foreach my $line (@$list) {
-  $table->addrow($line->[0], $line->[1], $line->[2], $line->[3], "<a href='$SELF_URL?op=er&chg=$line->[4]'>$_CHANGE</a>", 
-     $html->button($_DEL, "op=er&del=$line->[4]", "$_DEL ?"));
+  $table->addrow($line->[0], $line->[1], $line->[2], $line->[3], "<a href='$SELF_URL?index=65&chg=$line->[4]'>$_CHANGE</a>", 
+     $html->button($_DEL, "index=65&del=$line->[4]", "$_DEL ?"));
 }
 print $table->show();
 }
