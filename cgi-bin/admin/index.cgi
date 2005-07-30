@@ -365,7 +365,7 @@ print "<tr bgcolor=$_COLORS[3]><td>\n";
 my $menu;
 while(my($name, $v)=each %$items) {
   my ($subf, $ext_url)=split(/:/, $v, 2);
-  $menu .= (defined($FORM{subf})  && $FORM{subf} eq $subf) ? ":: <b>$name</b>": ":: <a href='$SELF_URL?index=$index&$ext_url&subf=$subf'>$name</a>\n";
+  $menu .= (defined($FORM{subf})  && $FORM{subf} eq $subf) ? ":: <a href='$SELF_URL?index=$index&$ext_url&subf=$subf'><b>$name</b></a>": ":: <a href='$SELF_URL?index=$index&$ext_url&subf=$subf'>$name</a>\n";
 }
 print "$menu</td></tr>
 </table>\n";
@@ -594,7 +594,7 @@ if($UID > 0) {
     print "</td></table>\n";
     return 0;
    }
-  elsif($index != 11) {
+  elsif($index != 11 && $index != 7) {
      $functions{$index}->( { USER => $user_info } );
      print "</td></table>\n";
      return 0;
@@ -1070,28 +1070,45 @@ print $table->show();
 
 #**********************************************************
 # Time intervals
-# form_time_intervals()
+# form_periods()
 #**********************************************************
-sub form_time_intervals {
+sub form_periods {
   my ($attr) = @_;
 
   @DAY_NAMES = ("$_ALL", 'Mon', 'Tue', 'Wen', 'The', 'Fri', 'Sat', 'Sun', "$_HOLIDAYS");
   my $tarif_plan;
 
+
 if($attr->{TP}) {
   $tarif_plan = $attr->{TP};
+ 	$tarif_plan->{ACTION}='add';
+ 	$tarif_plan->{LNG_ACTION}=$_ADD;
 
-  if ($FORM{add}) {
-    $tarif_plan->ti_add( { VID => $FORM{TP_ID},
-    	                     TI_DAY => $FORM{TI_DAY},
-    	                     TI_BEGIN => $FORM{TI_BEGIN},
-    	                     TI_END => $FORM{TI_END},
-    	                     TI_TARIF => $FORM{TI_TARIF}
-   	 });
+  if($FORM{tt}) {
+
+   }
+  elsif ($FORM{add}) {
+    $tarif_plan->ti_add( { %FORM });
+    if (! $tarif_plan->{errno}) {
+      message('info', $_INFO, "$_INTERVALS $_ADDED");
+     }
+   }
+  elsif($FORM{change}) {
+
+    $tarif_plan->ti_change( $FORM{TI_ID}, { %FORM } );
 
     if (! $tarif_plan->{errno}) {
-      message('info', $_INFO, "$_INTERVALS");
+      message('info', $_INFO, "$_INTERVALS $_CHANGED [$tarif_plan->{TI_ID}]");
      }
+   }
+  elsif($FORM{chg}) {
+  	$tarif_plan->ti_info( $FORM{chg}  );
+    if (! $tarif_plan->{errno}) {
+      message('info', $_INFO, "$_INTERVALS $_CHANGE [$FORM{chg}]");
+     }
+
+ 	 	$tarif_plan->{ACTION}='change';
+ 	 	$tarif_plan->{LNG_ACTION}=$_CHANGE;
    }
   elsif($FORM{del} && $FORM{is_js_confirmed}) {
     $tarif_plan->ti_del($FORM{del});
@@ -1099,21 +1116,36 @@ if($attr->{TP}) {
       message('info', $_DELETED, "$_DELETED $FORM{del}");
      }
    }
+  else {
+ 	 	$tarif_plan->ti_defaults();
+   }
 
- 	$tarif_plan->ti_defaults();
 
-  my $list = $tarif_plan->ti_list($FORM{ti});
+  my $list = $tarif_plan->ti_list({ %LIST_PARAMS });
   my $table = Abills::HTML->table( { width => '100%',
                                    border => 1,
-                                   title => ['#', $_DAYS, $_BEGIN, $_END, $_HOUR_TARIF, '-',  '-'],
-                                   cols_align => ['right', 'left', 'right', 'right', 'right', 'center', 'center'],
+                                   title => ['#', $_DAYS, $_BEGIN, $_END, $_HOUR_TARIF, $_TRAFFIC, '-', '-',  '-'],
+                                   cols_align => ['right', 'left', 'right', 'right', 'right', 'center', 'center', 'center', 'center'],
                                    qs => $pages_qs,
+                                   caption => $_INTERVALS
                                   } );
 
   foreach my $line (@$list) {
     my $delete = $html->button($_DEL, "index=73$pages_qs&del=$line->[5]", "$line->[5]  $_DEL ?"); 
+    
+    if (($FORM{tt} eq $line->[5]) || ($FORM{chg} eq $line->[5])) {
+       $table->{rowcolor}=$_COLORS[0];      
+     }
+    else {
+    	 undef($table->{rowcolor});
+     }
+    
     $table->addrow("$line->[0]", $DAY_NAMES[$line->[1]], $line->[2], $line->[3], 
-     $line->[4], '', $delete);
+     $line->[4], 
+     "<a href='$SELF_URL?index=$index$pages_qs&tt=$line->[5]'>$_TRAFFIC</a>",
+     '', 
+     "<a href='$SELF_URL?index=$index$pages_qs&chg=$line->[5]'>$_CHANGE</a>",
+     $delete);
    };
   print $table->show();
   
@@ -1128,16 +1160,21 @@ if ($tarif_plan->{errno}) {
  }
 
 
-
-my $i=0;
-foreach $line (@DAY_NAMES) {
-  $tarif_plan->{SEL_DAYS} .= "<option value=$i";
-  $tarif_plan->{SEL_DAYS} .= " selected" if ($FORM{day} == $i);
-  $tarif_plan->{SEL_DAYS} .= ">$line\n";
-  $i++;
+if ($FORM{tt}) {
+	form_traf_tarifs({ TP => $tarif_plan });
+}
+else {
+  my $i=0;
+  foreach $line (@DAY_NAMES) {
+    $tarif_plan->{SEL_DAYS} .= "<option value=$i";
+    $tarif_plan->{SEL_DAYS} .= " selected" if ($FORM{day} == $i || $tarif_plan->{TI_DAY} == $i);
+    $tarif_plan->{SEL_DAYS} .= ">$line\n";
+    $i++;
+  }
+  
+  Abills::HTML->tpl_show(templates('ti'), $tarif_plan);
 }
 
-Abills::HTML->tpl_show(templates('ti'), $tarif_plan);
 }
 
 
@@ -1149,7 +1186,49 @@ sub form_traf_tarifs {
   my $tarif_plan;
 
   
-if($attr->{TP}) {
+if ($FORM{tt}) {
+  $tarif_plan = $attr->{TP};
+  $tarif_plan->tt_defaults();
+  $tarif_plan->{TI_ID} = $FORM{tt};
+  
+  
+  if ($FORM{change}) {
+    $tarif_plan->tt_change( { 
+      TI_ID          => $tarif_plan->{TI_ID},
+      	
+    	TT_DESCRIBE_0  => $FORM{TT_DESCRIBE_0},
+      TT_PRICE_IN_0  => $FORM{TT_PRICE_IN_0},
+      TT_PRICE_OUT_0 => $FORM{TT_PRICE_OUT_0},
+      TT_NETS_0      => $FORM{TT_NETS_0},
+      TT_PREPAID_0   => $FORM{TT_PREPAID_0},
+      TT_SPEED_0     => $FORM{TT_SPEED_0},
+      
+      TT_DESCRIBE_1  => $FORM{'TT_DESCRIBE_1'},
+      TT_PRICE_IN_1  => $FORM{TT_PRICE_IN_1},
+      TT_PRICE_OUT_1 => $FORM{TT_PRICE_OUT_1},
+      TT_NETS_1      => $FORM{TT_NETS_1},
+      TT_PREPAID_1   => $FORM{TT_PREPAID_1},
+      TT_SPEED_1     => $FORM{TT_SPEED_1},
+
+      TT_DESCRIBE_2 => $FORM{TT_DESCRIBE_2},
+      TT_NETS_2 => $FORM{TT_NETS_2},
+      TT_SPEED_2 => $FORM{TT_SPEED_2},
+      EX_FILE_PATH => "$conf{netsfilespath}"
+    });
+
+
+    if ($tarif_plan->{errno}) {
+      message('err', $_ERROR, "[$tarif_plan->{errno}] $err_strs{$tarif_plan->{errno}}");	
+     }
+    else {
+      message('info', $_INFO, "$_INTERVALS");
+     }
+   }
+
+   my $list = $tarif_plan->tt_list({ TI_ID => $FORM{tt} });
+   
+ }
+elsif($attr->{TP}) {
   $tarif_plan = $attr->{TP};
   $tarif_plan->tt_defaults();
 
@@ -1175,6 +1254,7 @@ if($attr->{TP}) {
       EX_FILE_PATH => "$conf{netsfilespath}"
     });
 
+
     if ($tarif_plan->{errno}) {
       message('err', $_ERROR, "[$tarif_plan->{errno}] $err_strs{$tarif_plan->{errno}}");	
      }
@@ -1189,8 +1269,7 @@ elsif ($FORM{TP_ID}) {
   form_tp();
   return 0;
  }
-
-
+  
   Abills::HTML->tpl_show(templates('tt'), $tarif_plan);
 }
 
@@ -1207,10 +1286,11 @@ sub form_tp {
  
  $tarif_info = $tariffs->defaults();
  $tarif_info->{LNG_ACTION}=$_ADD;
- $tarif_info->{ACTION}='add';
+ $tarif_info->{ACTION}='ADD_TP';
 
- 
-if($FORM{add}) {
+
+
+if($FORM{ADD_TP}) {
   $tariffs->add( { %FORM });
   if (! $tariffs->{errno}) {
     message('info', $_ADDED, "$_ADDED $tariffs->{VID}");
@@ -1289,8 +1369,8 @@ my $list = $tariffs->list({ %LIST_PARAMS });
 my $table = Abills::HTML->table( { width => '100%',
                                    border => 1,
                                    title => ['#', $_NAME,  $_BEGIN,  $_END, $_HOUR_TARIF, $_TRAFIC_TARIFS, $_DAY_FEE, $_MONTH_FEE, $_SIMULTANEOUSLY, $_AGE,
-                                     '-', '-', '-', '-'],
-                                   cols_align => ['right', 'left', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'center', 'center', 'center', 'center'],
+                                     '-', '-', '-'],
+                                   cols_align => ['right', 'left', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'center', 'center', 'center'],
                                   } );
                                   
                                   
@@ -1303,7 +1383,6 @@ foreach my $line (@$list) {
 
   $table->addrow("<b>$line->[0]</b>", "<a href='$SELF_URL?index=70&TP_ID=$line->[0]'>$line->[1]</a>", $line->[2], $line->[3], 
    $line->[4], $line->[5], $line->[6], $line->[7], $line->[8], $line->[9], 
-   "<a href='$SELF_URL?index=70&subf=74&TP_ID=$line->[0]'>$_TRAFIC_TARIFS</a>",
    "<a href='$SELF_URL?index=70&subf=73&TP_ID=$line->[0]'>$_INTERVALS</a>",
    $change,
    $delete);
@@ -2711,7 +2790,7 @@ my @m = ("1:0:$_CUSTOMERS:null:0:customers:",
  "70:5:$_TARIF_PLANS:form_tp:1::",
  "71:70:$_ADD:form_tp:1::",
  "72:70:$_NASS:allow_nass:0::",
- "73:70:$_INTERVALS:form_time_intervals:0::",
+ "73:70:$_INTERVALS:form_periods:0::",
  "74:70:$_TRAFIC_TARIFS:form_traf_tarifs:0::",
  "75:5:$_HOLIDAYS:form_holidays:0::",
 

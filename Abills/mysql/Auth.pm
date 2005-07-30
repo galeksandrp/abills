@@ -55,7 +55,7 @@ sub authentication {
   $self->query($db, "select
   u.uid,
   if (u.logins=0, tp.logins, u.logins) AS logins,
-  if(u.filter_id != '', u.filter_id, tp.filter.id),
+  if(u.filter_id != '', u.filter_id, tp.filter_id),
   if(u.ip>0, INET_NTOA(u.ip), 0),
   INET_NTOA(u.netmask),
   u.tp_id,
@@ -65,9 +65,9 @@ sub authentication {
   tp.day_time_limit,
   tp.week_time_limit,
   tp.month_time_limit,
-  if(v.day_time_limit=0 and v.dt='0:00:00' AND v.ut='24:00:00',
+  if(tp.day_time_limit=0 and tp.dt='0:00:00' AND tp.ut='24:00:00',
    UNIX_TIMESTAMP(DATE_FORMAT(DATE_ADD(curdate(), INTERVAL 1 MONTH), '%Y-%m-01')) - UNIX_TIMESTAMP(),
-  if(curtime() < v.ut, TIME_TO_SEC(v.ut)-TIME_TO_SEC(curtime()), TIME_TO_SEC('23:00:00')-TIME_TO_SEC(curtime())) 
+  if(curtime() < tp.ut, TIME_TO_SEC(tp.ut)-TIME_TO_SEC(curtime()), TIME_TO_SEC('23:00:00')-TIME_TO_SEC(curtime())) 
     ) as today_limit,
   day_traf_limit,
 
@@ -109,6 +109,8 @@ sub authentication {
         AND tp.dt < CURTIME()
         AND CURTIME() < tp.ut
        GROUP BY u.id;");
+
+
 
   if($self->{errno}) {
   	$RAD_PAIRS{'Reply-Message'}='SQL error';

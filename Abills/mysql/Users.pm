@@ -1,5 +1,5 @@
 package Users;
-# Administrators manage functions
+# Users manage functions
 #
 
 use strict;

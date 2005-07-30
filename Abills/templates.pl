@@ -138,8 +138,9 @@ return qq{
   <tr><th>#</th><td><input type=text name=TP_ID value='%TP_ID%'></td></tr>
   <tr><td>$_NAME:</td><td><input type=text name=NAME value='%NAME%'></td></tr>
   <tr><td>$_UPLIMIT:</td><td><input type=text name=ALERT value='%ALERT%'></td></tr>
-  <tr><td>$_BEGIN:</td><td><input type=text name=BEGIN value='%BEGIN%'></td></tr>
+<!--  <tr><td>$_BEGIN:</td><td><input type=text name=BEGIN value='%BEGIN%'></td></tr>
   <tr><td>$_END:</td><td><input type=text name=END value='%END%'></td></tr>
+-->
   <tr><td>$_DAY_FEE:</td><td><input type=text name=DAY_FEE value='%DAY_FEE%'></td></tr>
   <tr><td>$_MONTH_FEE:</td><td><input type=text name=MONTH_FEE value='%MONTH_FEE%'></td></tr>
   <tr><td>$_SIMULTANEOUSLY:</td><td><input type=text name=SIMULTANEOUSLY value='%SIMULTANEOUSLY%'></td></tr>
@@ -168,24 +169,27 @@ return qq{
 elsif($tpl_name eq 'tt') {
 
 return qq{ <form action=$SELF_URL method=POST>
-<input type=hidden name=index value='74'>
-<input type=hidden name=subf value='74'>
+<input type=hidden name=index value='70'>
+<input type=hidden name=subf value='73'>
 <input type=hidden name=TP_ID value='%TP_ID%'>
+<input type=hidden name=tt value='%TI_ID%'>
+
 <table BORDER=0 CELLSPACING=1 CELLPADDING=0>
+<tr bgcolor=$_COLORS[1]><th colspan=7 align=right>$_TRAFIC_TARIFS</th></tr>
 <tr bgcolor=$_COLORS[0]><th>#</th><th>$_BYTE_TARIF IN (1 Mb)</th><th>$_BYTE_TARIF OUT (1 Mb)</th><th>$_PREPAID (Mb)</th><th>$_SPEED (Kbits)</th><th>$_DESCRIBE</th><th>NETS</th></tr>
 <tr><td bgcolor=$_COLORS[0]>0</td>
 <td valign=top><input type=text name='TT_PRICE_IN_0' value='%TT_PRICE_IN_0%'></td>
 <td valign=top><input type=text name='TT_PRICE_OUT_0' value='%TT_PRICE_OUT_0%'></td>
-<td valign=top><input type=text name='TT_PREPAID_0' value='%TT_PREPAID_0%'></td>
-<td valign=top><input type=text name='TT_SPEED_0' value='%TT_SPEED_0%'></td>
+<td valign=top><input type=text size=12 name='TT_PREPAID_0' value='%TT_PREPAID_0%'></td>
+<td valign=top><input type=text size=12 name='TT_SPEED_0' value='%TT_SPEED_0%'></td>
 <td valign=top><input type=text name='TT_DESCRIBE_0' value='%TT_DESCRIBE_0%'></td>
 <td><textarea cols=20 rows=4 name='TT_NETS_0'>%TT_NETS_0%</textarea></td></tr>
 
 <tr><td bgcolor=$_COLORS[0]>1</td>
 <td valign=top><input type=text name='TT_PRICE_IN_1' value='%TT_PRICE_IN_1%'></td>
 <td valign=top><input type=text name='TT_PRICE_OUT_1' value='%TT_PRICE_OUT_1%'></td>
-<td valign=top><input type=text name='TT_PREPAID_1' value='%TT_PREPAID_1%'></td>
-<td valign=top><input type=text name='TT_SPEED_1' value='%TT_SPEED_1%'></td>
+<td valign=top><input type=text size=12 name='TT_PREPAID_1' value='%TT_PREPAID_1%'></td>
+<td valign=top><input type=text size=12 name='TT_SPEED_1' value='%TT_SPEED_1%'></td>
 <td valign=top><input type=text name='TT_DESCRIBE_1' value='%TT_DESCRIBE_1%'></td>
 <td><textarea cols=20 rows=4 name='TT_NETS_1'>%TT_NETS_1%</textarea></td></tr>
 
@@ -193,7 +197,7 @@ return qq{ <form action=$SELF_URL method=POST>
 <td valign=top>&nbsp;</td>
 <td valign=top>&nbsp;</td>
 <td valign=top>&nbsp;</td>
-<td valign=top><input type=text name='TT_SPEED_2' value='%TT_SPEED_2%'></td>
+<td valign=top><input type=text size=12 name='TT_SPEED_2' value='%TT_SPEED_2%'></td>
 <td valign=top><input type=text name='TT_DESCRIBE_2' value='%TT_DESCRIBE_2%'></td>
 <td><textarea cols=20 rows=4 name='TT_NETS_2'>%TT_NETS_2%</textarea></td></tr>
 
@@ -206,13 +210,14 @@ return qq{<form action=$SELF_URL>
 <input type=hidden name=index value=73>
 <input type=hidden name=subf value=73>
 <input type=hidden name=TP_ID value='%TP_ID%'>
+<input type=hidden name=TI_ID value='%TI_ID%'>
  <TABLE width=400 cellspacing=1 cellpadding=0 border=0>
  <tr><td>$_DAY:</td><td><select name=TI_DAY>%SEL_DAYS%</select></td></tr>
  <tr><td>$_BEGIN:</td><td><input type=text name=TI_BEGIN value='%TI_BEGIN%'></td></tr>
  <tr><td>$_END:</td><td><input type=text name=TI_END value='%TI_END%'></td></tr>
  <tr><td>$_HOUR_TARIF<br>(0.00 / 0%):</td><td><input type=text name=TI_TARIF value='%TI_TARIF%'></td></tr>
 </table>
-<input type=submit name=add value='$_ADD'>
+<input type=submit name=%ACTION% value='%LNG_ACTION%'>
 </form>
 };
  }

@@ -93,11 +93,99 @@ sub ti_list {
 	my $self = shift;
 	my ($attr) = @_;
 
-  $self->query($db, "SELECT tp_id, day, begin, end, tarif, id
-    FROM intervals WHERE tp_id='$self->{TP_ID}'");
+  my $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+  my $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
 
+
+  $self->query($db, "SELECT tp_id, day, begin, end, tarif, id
+    FROM intervals 
+    WHERE tp_id='$self->{TP_ID}'
+    ORDER BY $SORT $DESC");
+ 
 	return $self->{list};
 }
+
+#**********************************************************
+# Time intervals change
+#**********************************************************
+sub ti_change {
+  my $self = shift;
+  my ($ti_id, $attr) = @_;
+  
+  %DATA = $self->get_data($attr); 
+
+ 
+  my %FIELDS = (
+    TI_DAY   => 'day', 
+    TI_BEGIN => 'begin', 
+    TI_END   => 'end', 
+    TI_TARIF => 'tarif' 
+   );
+  
+  my $CHANGES_QUERY = "";
+  my $CHANGES_LOG = "Intervals:";
+  my $OLD = $self->ti_info($ti_id);
+
+
+  while(my($k, $v)=each(%DATA)) {
+    if ($OLD->{$k} ne $DATA{$k}){
+      if ($FIELDS{$k}) {
+         $CHANGES_LOG .= "$k $OLD->{$k}->$DATA{$k};";
+         $CHANGES_QUERY .= "$FIELDS{$k}='$DATA{$k}',";
+       }
+     }
+   }
+
+if ($CHANGES_QUERY eq '') {
+  return $self->{result};	
+}
+
+# print $CHANGES_LOG;
+  chop($CHANGES_QUERY);
+  $self->query($db, "UPDATE intervals SET $CHANGES_QUERY
+    WHERE id='$ti_id'", 'do');
+  
+  if ($ti_id == $DATA{TI_ID}) {
+  	$self->ti_info($ti_id);
+   }
+  else {
+  	$self->info($DATA{TI_ID});
+   }
+  
+#  $admin->action_add(0, "$CHANGES_LOG");
+	return $self;
+}
+
+
+#**********************************************************
+# Time_intervals  info
+# ti_info();
+#**********************************************************
+sub ti_info {
+	my $self = shift;
+	my ($iid, $attr) = @_;
+
+  $self->query($db, "SELECT day, begin, end, tarif, id
+    FROM intervals 
+    WHERE id='$iid';");
+
+  if ($self->{TOTAL} < 1) {
+     $self->{errno} = 2;
+     $self->{errstr} = 'ERROR_NOT_EXIST';
+     return $self;
+   }
+
+  my $ar = $self->{list}->[0];
+  $self->{TI_ID}=$iid;
+  ($self->{TI_DAY}, 
+   $self->{TI_BEGIN}, 
+   $self->{TI_END}, 
+   $self->{TI_TARIF}
+  ) = @$ar;
+
+  return $self;
+}
+
 
 #**********************************************************
 # tt_defaults
@@ -396,10 +484,19 @@ sub  tt_defaults {
 #**********************************************************
 sub  tt_list {
 	my $self = shift;
+	my ($attr) = @_;
 	
+	  $self->{debug}=1;
 	
-	$self->query($db, "SELECT id, in_price, out_price, descr, prepaid, nets, speed
-  FROM trafic_tarifs WHERE tp_id='$self->{TP_ID}';");
+	if (defined( $attr->{TI_ID} )) {
+		print "---- $attr->{TI_ID} --";
+	  $self->query($db, "SELECT id, in_price, out_price, descr, prepaid, nets, speed
+     FROM trafic_tarifs WHERE interval_id='$attr->{TI_ID}';");
+   }	
+	else {
+	  $self->query($db, "SELECT id, in_price, out_price, descr, prepaid, nets, speed
+     FROM trafic_tarifs WHERE tp_id='$self->{TP_ID}';");
+   }
 
   my $a_ref = $self->{list};
 
@@ -433,6 +530,8 @@ my $body = "";
 my @n = ();
 $/ = chr(0x0d);
 
+$self->{debug}=1;
+
 my $i=0;
 for($i=0; $i<=2; $i++) {
   $self->query($db, "REPLACE trafic_tarifs SET 
@@ -443,8 +542,11 @@ for($i=0; $i<=2; $i++) {
     nets='". $DATA{'TT_NETS_'. $i} ."',
     prepaid='". $DATA{'TT_PREPAID_'. $i} ."',
     speed='". $DATA{'TT_SPEED_'. $i} ."',
-    tp_id='$self->{TP_ID}';", 'do');
+    interval_id='$attr->{TI_ID}'
+    ;", 'do');
 
+
+    #tp_id='$self->{TP_ID}',
 
   if ($DATA{'TT_NETS_'. $i} ne '') {
      @n = split(/\n|;/, $DATA{'TT_NETS_'. $i});
@@ -457,7 +559,7 @@ for($i=0; $i<=2; $i++) {
 
 }
 
- $self->create_tt_file("$file_path", "$self->{TP_ID}.nets", "$body");
+ $self->create_tt_file("$file_path", "$attr->{TI_ID}.nets", "$body");
 		
 }
 

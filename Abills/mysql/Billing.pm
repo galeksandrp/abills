@@ -341,28 +341,31 @@ sub session_sum {
 
 #********************************************************************
 # Get Time intervals
-# time intervals($TP_ID)
+# time intervals($TP_ID, $attr)
 #********************************************************************
 sub time_intervals {
  my $self = shift;
- my ($TP_ID) = @_;
+ my ($TP_ID, $attr) = @_;
 
- $self->query($db, "SELECT day, TIME_TO_SEC(begin), TIME_TO_SEC(end), tarif  FROM intervals WHERE TP_ID='$TP_ID' ORDER BY 1;");
+ $self->query($db, "SELECT day, TIME_TO_SEC(begin), TIME_TO_SEC(end), tarif  FROM intervals WHERE tp_id='$TP_ID' ORDER BY 1;");
  if ($self->{TOTAL} < 1) {
      return 0;	
    }
 
- my %time_intervals = ();
- my %interval_tarifs = ();
+ my %time_periods = ();
+ my %periods_time_tarif = (); 
+ my %periods_traf_tarif = ();
+ 
  my $list = $self->{list};
 
  foreach my $line (@$list) {
-   $time_intervals{$line->[0]}{$line->[1]} = $line->[2];
-   $interval_tarifs{$line->[0]}{$line->[1]} = $line->[3];
+   $time_periods{$line->[0]}{$line->[1]} = $line->[2];
+   $periods_time_tarif{$line->[0]}{$line->[1]} = $line->[3];
+   $periods_traf_tarif{$line->[0]}{$line->[1]} = $line->[4];
   }
 
 
- return (\%time_intervals, \%interval_tarifs); 
+ return (\%time_periods, \%periods_time_tarif, \%periods_traf_tarif); 
 }
 
 
