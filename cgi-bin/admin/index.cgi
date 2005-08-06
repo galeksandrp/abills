@@ -119,6 +119,7 @@ my @actions = ([$_SA_ONLY, $_ADD, $_LIST, $_PASSWD, $_CHANGE, $_DEL, $_ALL],  # 
                );
 
 my @action = ('add', $_ADD);
+my @bool_vals = ($_NO, $_YES);
 my @PAYMENT_METHODS = ('Cashe', 'Bank', 'Credit Card', 'Internet Card');
 
 my %op_names = ();
@@ -151,7 +152,6 @@ $SEL_TYPE .= "</select>\n";
 
 print "<table width=100%>
 <tr bgcolor=$_COLORS[3]><td colspan=2>
-
 <table width=100% border=0>
 <form action=$SELF_URL>
   <tr><th align=left>$_DATE: $DATE $TIME Admin: <a href='$SELF_URL?index=53'>$admin->{A_LOGIN}</a> / Online: <abbr title=\"$online_users\"><a href='$SELF_URL?index=50' title='$online_users'>Online: $online_count</a></abbr></th>
@@ -160,6 +160,11 @@ print "<table width=100%>
 </form>
 </table>
 </td></tr>\n";
+
+
+if(defined($conf{tech_works})) {
+  print "<tr><th bgcolor=red colspan=2>$conf{tech_works}</th></tr>";
+}
 
 if (defined($COOKIES{qm}) && $COOKIES{qm} ne '') {
   print "<tr><td colspan=2><table width=100% border=0>";
@@ -564,7 +569,7 @@ if($UID > 0) {
    }
 
   print  "<table width=100% bgcolor=$_COLORS[2]><tr><td>$_USER:</td>
-  <td><a href='$SELF_URL?index=$index&UID=$users->{UID}'><b>$users->{LOGIN}</b></td></tr></table>\n";
+  <td><a href='$SELF_URL?index=11&UID=$users->{UID}'><b>$users->{LOGIN}</b></td></tr></table>\n";
   
   $LIST_PARAMS{UID}=$user_info->{UID};
   $pages_qs =  "&UID=$user_info->{UID}";
@@ -1010,7 +1015,7 @@ my $result = "<form action=$SELF_URL>
 <input type=hidden name=subf value=$FORM{subf}>
 <input type=hidden name=index value=$index>
 <table width=400 border=0>
-<tr><td>$_FROM:</td><td bgcolor=$_BG2>$user->{TARIF_PLAN} $user->{TP_NAME} [<a href='$SELF?index=70&chg=$user->{TARIF_PLAN}' title='$_VARIANTS'>$_VARIANTS</a>]</td></tr>
+<tr><td>$_FROM:</td><td bgcolor=$_BG2>$user->{TARIF_PLAN} $user->{TP_NAME} [<a href='$SELF?index=70&TP_ID=$user->{TARIF_PLAN}' title='$_VARIANTS'>$_VARIANTS</a>]</td></tr>
 $params
 </form>\n";
 
@@ -1075,9 +1080,11 @@ print $table->show();
 sub form_periods {
   my ($attr) = @_;
 
-  @DAY_NAMES = ("$_ALL", 'Mon', 'Tue', 'Wen', 'The', 'Fri', 'Sat', 'Sun', "$_HOLIDAYS");
-  my $tarif_plan;
+  @DAY_NAMES = ("$_ALL", 'Sun', 'Mon', 'Tue', 'Wen', 'The', 'Fri', 'Sat', "$_HOLIDAYS");
 
+  my %visual_view = ();
+  my $tarif_plan;
+  
 
 if($attr->{TP}) {
   $tarif_plan = $attr->{TP};
@@ -1124,15 +1131,25 @@ if($attr->{TP}) {
   my $list = $tarif_plan->ti_list({ %LIST_PARAMS });
   my $table = Abills::HTML->table( { width => '100%',
                                    border => 1,
-                                   title => ['#', $_DAYS, $_BEGIN, $_END, $_HOUR_TARIF, $_TRAFFIC, '-', '-',  '-'],
-                                   cols_align => ['right', 'left', 'right', 'right', 'right', 'center', 'center', 'center', 'center'],
+                                   title => [$_DAYS, $_BEGIN, $_END, $_HOUR_TARIF, $_TRAFFIC, '-', '-',  '-'],
+                                   cols_align => ['left', 'right', 'right', 'right', 'right', 'center', 'center', 'center', 'center'],
                                    qs => $pages_qs,
                                    caption => $_INTERVALS
                                   } );
 
+  my $color="AAA000";
   foreach my $line (@$list) {
     my $delete = $html->button($_DEL, "index=73$pages_qs&del=$line->[5]", "$line->[5]  $_DEL ?"); 
-    
+     $color = sprintf("%06x", hex('0x'. $color) + 7000);
+     
+     #day, $hour|$end = color
+     my ($h_b, $m_b, $s_b)=split(/:/, $line->[1], 3);
+     my ($h_e, $m_e, $s_e)=split(/:/, $line->[2], 3);
+
+     push ( @{$visual_view{$line->[0]}}, "$h_b|$h_e|$color|$line->[5]")  ;
+
+#print "$line->[0] -- $visual_view{$line->[0]}<br>";
+
     if (($FORM{tt} eq $line->[5]) || ($FORM{chg} eq $line->[5])) {
        $table->{rowcolor}=$_COLORS[0];      
      }
@@ -1140,12 +1157,33 @@ if($attr->{TP}) {
     	 undef($table->{rowcolor});
      }
     
-    $table->addrow("$line->[0]", $DAY_NAMES[$line->[1]], $line->[2], $line->[3], 
-     $line->[4], 
-     "<a href='$SELF_URL?index=$index$pages_qs&tt=$line->[5]'>$_TRAFFIC</a>",
-     '', 
-     "<a href='$SELF_URL?index=$index$pages_qs&chg=$line->[5]'>$_CHANGE</a>",
-     $delete);
+    $table->addtd($table->td("<b>$DAY_NAMES[$line->[0]]</b>"), 
+                  $table->td($line->[1]), 
+                  $table->td($line->[2]), 
+                  $table->td($line->[3]), 
+                  $table->td("<a href='$SELF_URL?index=$index$pages_qs&tt=$line->[5]'>$_TRAFFIC</a>"),
+                  $table->td("<a href='$SELF_URL?index=$index$pages_qs&chg=$line->[5]'>$_CHANGE</a>"),
+                  $table->td($delete),
+                  $table->td("&nbsp;", { bgcolor => $color, rowspan => ($line->[4] > 0) ? 2 : 1 })
+      );
+
+     if($line->[4] > 0) {
+     	 #Traffic tariff IN (1 Mb) Traffic tariff OUT (1 Mb) Prepaid (Mb) Speed (Kbits) Describe NETS 
+
+       my $table2 = Abills::HTML->table( { width => '100%',
+                                   title_plain => ["#", "$_TRAFFIC_TARIFF In ", "$_TRAFFIC_TARIFF Out ", "$_PREPAID", "$_SPEED", "DESCRIBE", "NETS"],
+                                   cols_align => ['center', 'right', 'right', 'right', 'right', 'right', 'right', 'center', 'center'],
+                                   caption => "$_BYTE_TARIF"
+                                  } );
+       my $list_tt = $tarif_plan->tt_list({ TI_ID => $line->[5] });
+       foreach my $line (@$list_tt) {
+         $table2->addrow($line->[0], $line->[1], $line->[2], $line->[3], $line->[4], $line->[5], convert($line->[6], { text2html => yes  }));
+        }
+       my $table_traf = $table2->show();
+  
+       $table->addtd("<td>&nbsp;</td>", $table->td("$table_traf", { color => 'red', colspan => 6}));
+     }
+     
    };
   print $table->show();
   
@@ -1158,6 +1196,70 @@ elsif ($FORM{TP_ID}) {
 if ($tarif_plan->{errno}) {
    message('err', $_ERROR, "[$tarif_plan->{errno}] $err_strs{$tarif_plan->{errno}}");	
  }
+
+
+#visualization
+#                               title_plain => ["#", "$_TRAFFIC_TARIFF In ", "$_TRAFFIC_TARIFF Out ", "$_PREPAID", "$_SPEED", "DESCRIBE", "NETS"],
+#                               cols_align => ['center', 'right', 'right', 'right', 'right', 'right', 'right', 'center', 'center'],
+
+
+$table = Abills::HTML->table( { width => '100%',
+	                              title_plain => [$_DAYS, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,14,15,16,17,18, 19, 20, 21, 22, 23],
+                                caption => "$_INTERVALS",
+                                rowcolor => $_COLORS[1]
+                               } );
+
+
+
+for(my $i=0; $i<9; $i++) {
+  my @hours = ();
+
+  my ($h_b, $h_e, $color, $p);
+
+#  if(defined($visual_view{$i})) {
+#     ($h_b, $h_e, $color, $p)=split(/\|/, $visual_view{$i}, 4);
+#     
+#    # print "$i ()() $h_b, $h_e, $color-  $visual_view{$i} --<br>\n";
+#   }
+
+  my $link = "&nbsp;";
+  for(my $h=0; $h<24; $h++) {
+
+  	 if(defined($visual_view{$i})) {
+  	   $day_periods = $visual_view{$i};
+       #print "<br>";
+       foreach my $line (@$day_periods) {
+     	   #print "$i -- $line    <br>\n";
+     	   ($h_b, $h_e, $color, $p)=split(/\|/, $line, 4);
+     	   if (($h >= $h_b) && ($h < $h_e)) {
+#     	   	 print "$i // $h => $h_b && $h <= $h_e // $color <br> \n";
+  	   	   $tdcolor = $color;
+  	 	     $link = "<a href='$SELF_URL?index=$index&TP_ID=$FORM{TP_ID}&subf=$FORM{subf}&chg=$p'>#</a>";
+  	 	     last;
+  	 	    }
+  	     else {
+  	 	     $link = "&nbsp;";
+  	 	     $tdcolor = $_COLORS[1];
+  	      }
+       }
+     }
+  	 else {
+  	 	 $link = "&nbsp;";
+  	 	 $tdcolor = $_COLORS[1];
+  	  }
+     
+     
+  	 push(@hours, $table->td("$link", { align=>'center', bgcolor => $tdcolor }) );
+    }
+  
+  
+  $table->addtd("<td>$DAY_NAMES[$i]</td>", @hours);
+}
+
+
+print $table->show();
+
+
 
 
 if ($FORM{tt}) {
@@ -1225,7 +1327,7 @@ if ($FORM{tt}) {
      }
    }
 
-   my $list = $tarif_plan->tt_list({ TI_ID => $FORM{tt} });
+   my $list = $tarif_plan->tt_list({ TI_ID => $FORM{tt}, form => 'yes' });
    
  }
 elsif($attr->{TP}) {
@@ -1315,7 +1417,6 @@ elsif ($FORM{TP_ID}) {
   	{ 
   	 $_INFO          => ":TP_ID=$tariffs->{TP_ID}",
      $_USERS         => "11:TP_ID=$tariffs->{TP_ID}",
-     $_TRAFIC_TARIFS => "74:TP_ID=$tariffs->{TP_ID}",
      $_INTERVALS     => "73:TP_ID=$tariffs->{TP_ID}",
      $_NAS           => "72:TP_ID=$tariffs->{TP_ID}"
   	 },
@@ -1368,9 +1469,11 @@ my $list = $tariffs->list({ %LIST_PARAMS });
 # Time tariff Name Begin END Day fee Month fee Simultaneously - - - 
 my $table = Abills::HTML->table( { width => '100%',
                                    border => 1,
-                                   title => ['#', $_NAME,  $_BEGIN,  $_END, $_HOUR_TARIF, $_TRAFIC_TARIFS, $_DAY_FEE, $_MONTH_FEE, $_SIMULTANEOUSLY, $_AGE,
+                                   title => ['#', $_NAME,  $_HOUR_TARIF, $_TRAFIC_TARIFS, $_DAY_FEE, $_MONTH_FEE, $_SIMULTANEOUSLY, $_AGE,
                                      '-', '-', '-'],
-                                   cols_align => ['right', 'left', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'center', 'center', 'center'],
+                                   cols_align => ['right', 'left', 'center', 'center', 'right', 'right', 'right', 'right', 'right', 'right', 'center', 'center', 'center'],
+                                   
+                                   
                                   } );
                                   
                                   
@@ -1381,8 +1484,8 @@ foreach my $line (@$list) {
     $change = "<a href='$SELF_URL?index=70&TP_ID=$line->[0]'>$_INFO</a>";
    }
 
-  $table->addrow("<b>$line->[0]</b>", "<a href='$SELF_URL?index=70&TP_ID=$line->[0]'>$line->[1]</a>", $line->[2], $line->[3], 
-   $line->[4], $line->[5], $line->[6], $line->[7], $line->[8], $line->[9], 
+  $table->addrow("<b>$line->[0]</b>", "<a href='$SELF_URL?index=70&TP_ID=$line->[0]'>$line->[1]</a>", 
+   $bool_vals[$line->[2]], $bool_vals[$line->[3]], $line->[4], $line->[5], $line->[6], $line->[7], 
    "<a href='$SELF_URL?index=70&subf=73&TP_ID=$line->[0]'>$_INTERVALS</a>",
    $change,
    $delete);
@@ -3136,8 +3239,8 @@ if (! defined($FORM{sort})) {
 my $list = $payments->list( { %LIST_PARAMS } );
 my $table = Abills::HTML->table( { width => '100%',
                                    border => 1,
-                                   title => ['ID', $_LOGIN, $_DATE, $_SUM, $_DESCRIBE, $_ADMINS, 'IP',  $_DEPOSIT, $_PAYMENT_METHOD, '-'],
-                                   cols_align => ['right', 'left', 'right', 'right', 'left', 'left', 'right', 'right', 'left', 'center'],
+                                   title => ['ID', $_LOGIN, $_DATE, $_SUM, $_DESCRIBE, $_ADMINS, 'IP',  $_DEPOSIT, $_PAYMENT_METHOD, 'ID', '-'],
+                                   cols_align => ['right', 'left', 'right', 'right', 'left', 'left', 'right', 'right', 'left', 'left', 'center'],
                                    qs => $pages_qs,
                                    pages => $payments->{TOTAL}
                                   } );
@@ -3145,9 +3248,9 @@ my $table = Abills::HTML->table( { width => '100%',
 $pages_qs .= "&subf=2" if (! $FORM{subf});
 
 foreach my $line (@$list) {
-  my $delete = ($permissions{1}{2}) ?  $html->button($_DEL, "index=$index&del=$line->[0]&UID=$line->[9]$pages_qs", "$_DEL ?") : ''; 
+  my $delete = ($permissions{1}{2}) ?  $html->button($_DEL, "index=$index&del=$line->[0]&UID=$line->[10]$pages_qs", "$_DEL ?") : ''; 
   $table->addrow("<b>$line->[0]</b>", "<a href='$SELF_URL?index=11&UID=$line->[9]'>$line->[1]</a>", $line->[2], 
-   $line->[3], $line->[4],  "$line->[5]", "$line->[6]", "$line->[7]", $PAYMENT_METHODS[$line->[8]], $delete);
+   $line->[3], $line->[4],  "$line->[5]", "$line->[6]", "$line->[7]", $PAYMENT_METHODS[$line->[8]], "$line->[9]", $delete);
 }
 
 print $table->show();

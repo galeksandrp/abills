@@ -23,28 +23,26 @@ my $db;
 my %DATA;
 
 
-my %FIELDS = ( TP_ID => 'id', 
-               NAME => 'name',  
-               BEGIN => 'ut',
-               END  => 'dt',  
-               TIME_TARIF  => 'hourp',
-               DAY_FEE => 'day_fee',
-               MONTH_FEE => 'month_fee',
-               SIMULTANEOUSLY => 'logins',
-               AGE => 'age',
-               DAY_TIME_LIMIT => 'day_time_limit',
-               WEEK_TIME_LIMIT => 'week_time_limit',
+my %FIELDS = ( TP_ID        => 'id', 
+               NAME         => 'name',  
+               TIME_TARIF   => 'hourp',
+               DAY_FEE      => 'day_fee',
+               MONTH_FEE    => 'month_fee',
+               SIMULTANEOUSLY   => 'logins',
+               AGE              => 'age',
+               DAY_TIME_LIMIT   => 'day_time_limit',
+               WEEK_TIME_LIMIT  => 'week_time_limit',
                MONTH_TIME_LIMIT => 'month_time_limit',
-               DAY_TRAF_LIMIT => 'day_traf_limit',  
-               WEEK_TRAF_LIMIT => 'week_traf_limit',
+               DAY_TRAF_LIMIT   => 'day_traf_limit',  
+               WEEK_TRAF_LIMIT  => 'week_traf_limit',
                MONTH_TRAF_LIMIT => 'month_traf_limit',
-               ACTIV_PRICE => 'activate_price',
-               CHANGE_PRICE => 'change_price', 
+               ACTIV_PRICE      => 'activate_price',
+               CHANGE_PRICE     => 'change_price', 
                CREDIT_TRESSHOLD => 'credit_tresshold',
-               ALERT => 'uplimit',
+               ALERT            => 'uplimit',
                OCTETS_DIRECTION => 'octets_direction',
                MAX_SESSION_DURATION => 'max_session_duration',
-               FILTER_ID => ''
+               FILTER_ID        => ''
              );
 
 #**********************************************************
@@ -69,6 +67,7 @@ sub ti_del {
 	my $self = shift;
 	my ($id) = @_;
 	$self->query($db, "DELETE FROM intervals WHERE id='$id';", 'do');
+	$self->query($db, "DELETE FROM trafic_tarifs WHERE interval_id='$id';", 'do');
 	return $self;
 }
 
@@ -93,14 +92,26 @@ sub ti_list {
 	my $self = shift;
 	my ($attr) = @_;
 
-  my $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+  my $SORT = ($attr->{SORT}) ? $attr->{SORT} : "1, 2";
+  if ($SORT == 1) { $SORT = "1, 2"; }  
   my $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+  my $begin_end = "i.begin, i.end,";   
+  my $TP_ID = $self->{TP_ID};  
+    
+  if ($attr->{TP_ID}) {
+    $begin_end =  "TIME_TO_SEC(i.begin), TIME_TO_SEC(i.end), "; 
+    $TP_ID = $attr->{TP_ID};
+   }
 
-
-  $self->query($db, "SELECT tp_id, day, begin, end, tarif, id
-    FROM intervals 
-    WHERE tp_id='$self->{TP_ID}'
-    ORDER BY $SORT $DESC");
+  $self->query($db, "SELECT i.day, $begin_end
+   i.tarif,
+   if(sum(tt.in_price+tt.out_price) IS NULL || sum(tt.in_price+tt.out_price)=0, 0, sum(tt.in_price+tt.out_price)),
+   i.id
+   FROM intervals i
+   LEFT JOIN  trafic_tarifs tt ON (tt.interval_id=i.id)
+   WHERE i.tp_id='$TP_ID'
+   GROUP BY i.id
+   ORDER BY $SORT $DESC");
  
 	return $self->{list};
 }
@@ -252,12 +263,12 @@ sub add {
 
   %DATA = $self->get_data($attr, { default => \%DATA }); 
 
-  $self->query($db, "INSERT INTO tarif_plans (id, hourp, uplimit, name, ut, dt, month_fee, day_fee, logins, 
+  $self->query($db, "INSERT INTO tarif_plans (id, hourp, uplimit, name, month_fee, day_fee, logins, 
      day_time_limit, week_time_limit,  month_time_limit, 
      day_traf_limit, week_traf_limit,  month_traf_limit,
      activate_price, change_price, credit_tresshold, age, octets_direction,
      max_session_duration, filter_id)
-    values ('$DATA{TP_ID}', '$DATA{TIME_TARIF}', '$DATA{ALERT}', \"$DATA{NAME}\", '$DATA{END}', '$DATA{BEGIN}', 
+    values ('$DATA{TP_ID}', '$DATA{TIME_TARIF}', '$DATA{ALERT}', \"$DATA{NAME}\", 
      '$DATA{MONTH_FEE}', '$DATA{DAY_FEE}', '$DATA{SIMULTANEONSLY}', 
      '$DATA{DAY_TIME_LIMIT}', '$DATA{WEEK_TIME_LIMIT}',  '$DATA{MONTH_TIME_LIMIT}', 
      '$DATA{DAY_TRAF_LIMIT}', '$DATA{WEEK_TRAF_LIMIT}',  '$DATA{MONTH_TRAF_LIMIT}',
@@ -335,7 +346,7 @@ sub info {
   my $self = shift;
   my ($id) = @_;
 
-  $self->query($db, "SELECT id, name, dt, ut, hourp, day_fee, month_fee, logins, age,
+  $self->query($db, "SELECT id, name, hourp, day_fee, month_fee, logins, age,
       day_time_limit, week_time_limit,  month_time_limit, 
       day_traf_limit, week_traf_limit,  month_traf_limit,
       activate_price, change_price, credit_tresshold, uplimit, octets_direction, max_session_duration
@@ -352,8 +363,6 @@ sub info {
   
   ($self->{TP_ID}, 
    $self->{NAME}, 
-   $self->{BEGIN}, 
-   $self->{END}, 
    $self->{TIME_TARIF}, 
    $self->{DAY_FEE}, 
    $self->{MONTH_FEE}, 
@@ -390,11 +399,13 @@ sub list {
  my $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
 
  my $WHERE = '';
-
- $self->query($db, "SELECT tp.id, tp.name, tp.dt, tp.ut, tp.hourp, if(sum(tt.in_price + tt.out_price)> 0, 1, 0), 
+ $self->{debug}=1;
+ $self->query($db, "SELECT tp.id, tp.name, if(sum(i.tarif) is NULL or sum(i.tarif)=0, 0, 1), 
+    if(sum(tt.in_price + tt.out_price)> 0, 1, 0), 
     tp.day_fee, tp.month_fee, tp.logins, tp.age
     FROM tarif_plans tp
-    LEFT JOIN trafic_tarifs tt ON (tt.tp_id=tp.id)
+    LEFT JOIN intervals i ON (i.tp_id=tp.id)
+    LEFT JOIN trafic_tarifs tt ON (tt.interval_id=i.id)
     $WHERE
     GROUP BY tp.id
     ORDER BY $SORT $DESC;");
@@ -486,23 +497,22 @@ sub  tt_list {
 	my $self = shift;
 	my ($attr) = @_;
 	
-	  $self->{debug}=1;
 	
 	if (defined( $attr->{TI_ID} )) {
-		print "---- $attr->{TI_ID} --";
-	  $self->query($db, "SELECT id, in_price, out_price, descr, prepaid, nets, speed
+	  $self->query($db, "SELECT id, in_price, out_price, prepaid, speed, descr, nets
      FROM trafic_tarifs WHERE interval_id='$attr->{TI_ID}';");
    }	
 	else {
-	  $self->query($db, "SELECT id, in_price, out_price, descr, prepaid, nets, speed
+	  $self->query($db, "SELECT id, in_price, out_price, prepaid, speed, descr, nets
      FROM trafic_tarifs WHERE tp_id='$self->{TP_ID}';");
    }
 
+
+if (defined($attr->{form})) {
   my $a_ref = $self->{list};
 
-
   foreach my $row (@$a_ref) {
-      my ($id, $tarif_in, $tarif_out, $describe, $prepaid, $nets, $speed) = @$row;
+      my ($id, $tarif_in, $tarif_out, $prepaid, $speed, $describe, $nets) = @$row;
       $self->{'TT_DESCRIBE_'. $id} = $describe;
       $self->{'TT_PRICE_IN_' . $id} = $tarif_in;
       $self->{'TT_PRICE_OUT_' . $id} = $tarif_out;
@@ -510,8 +520,12 @@ sub  tt_list {
       $self->{'TT_PREPAID_' .$id} = $prepaid;
       $self->{'TT_SPEED_' .$id} = $speed;
    }
+
+  return $self;
+}
+
 	
-	return $self;
+	return $self->{list};
 }
 
 
@@ -530,7 +544,6 @@ my $body = "";
 my @n = ();
 $/ = chr(0x0d);
 
-$self->{debug}=1;
 
 my $i=0;
 for($i=0; $i<=2; $i++) {
@@ -569,11 +582,13 @@ for($i=0; $i<=2; $i++) {
 sub create_tt_file {
  my ($self, $path, $file_name, $body) = @_;
  
- print "<pre>$body</pre>";
- 
+
  open(FILE, ">$path/$file_name") || die "Can't create file '$path/$file_name' $!\n";
    print FILE "$body";
  close(FILE);
+
+ print "Created '$path/$file_name'
+ <pre>$body</pre>";
  
  return $self;
 }

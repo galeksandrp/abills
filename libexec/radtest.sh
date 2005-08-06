@@ -54,7 +54,7 @@ elif [ t$1 = 'tacct' ]; then
         ACCT_OUTPUT_OCTETS=0 \
         ACCT_OUTPUT_GIGAWORDS=0 \
         ACCT_OUTPUT_PACKETS=0 \
-        ACCT_SESSION_TIME=175 \
+        ACCT_SESSION_TIME=3975 \
 
 
 

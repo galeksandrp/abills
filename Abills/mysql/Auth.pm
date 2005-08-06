@@ -52,6 +52,66 @@ sub authentication {
   my $SECRETKEY = (defined($attr->{SECRETKEY})) ? $attr->{SECRETKEY} : '';
   my %RAD_PAIRS = ();
   
+#  $self->query($db, "select
+#  u.uid,
+#  if (u.logins=0, tp.logins, u.logins) AS logins,
+#  if(u.filter_id != '', u.filter_id, tp.filter_id),
+#  if(u.ip>0, INET_NTOA(u.ip), 0),
+#  INET_NTOA(u.netmask),
+#  u.tp_id,
+#  DECODE(password, '$SECRETKEY'),
+#  u.speed,
+#  u.cid,
+#  tp.day_time_limit,
+#  tp.week_time_limit,
+#  tp.month_time_limit,
+#  if(tp.day_time_limit=0 and tp.dt='0:00:00' AND tp.ut='24:00:00',
+#   UNIX_TIMESTAMP(DATE_FORMAT(DATE_ADD(curdate(), INTERVAL 1 MONTH), '%Y-%m-01')) - UNIX_TIMESTAMP(),
+#  if(curtime() < tp.ut, TIME_TO_SEC(tp.ut)-TIME_TO_SEC(curtime()), TIME_TO_SEC('23:00:00')-TIME_TO_SEC(curtime())) 
+#    ) as today_limit,
+#  day_traf_limit,
+#
+#  week_traf_limit,
+#  month_traf_limit,
+#  tp.octets_direction,
+# 
+#  if (count(un.uid) + count(tp_nas.tp_id) = 0, 0,
+#    if (count(un.uid)>0, 1, 2)),
+#  count(tt.id),
+#  tp.hourp,
+#  UNIX_TIMESTAMP(),
+#  UNIX_TIMESTAMP(DATE_FORMAT(FROM_UNIXTIME(UNIX_TIMESTAMP()), '%Y-%m-%d')),
+#  DAYOFWEEK(FROM_UNIXTIME(UNIX_TIMESTAMP())),
+#  DAYOFYEAR(FROM_UNIXTIME(UNIX_TIMESTAMP())),
+#  u.account_id,
+#  u.disable,
+#  
+#  u.deposit,
+#  u.credit,
+#  tp.credit_tresshold,
+#  if(tp.hourp + tp.day_fee + tp.month_fee=0 and (sum(tt.in_price + tt.out_price)=0 or sum(tt.in_price + tt.out_price)IS NULL), 0, 1),
+#  tp.max_session_duration,
+#  if(v.dt < v.ut,
+#    if(v.dt < CURTIME() and v.ut > CURTIME(), 1, 0),
+#      if((v.dt < CURTIME() or (CURTIME() > '0:00:00' and CURTIME() < v.ut ))
+#       and
+#       (CURTIME() < '23:00:00' or v.ut > CURTIME()  ),
+#     1, 0 ))
+#
+#     FROM users u, tarif_plans tp
+#     LEFT JOIN  trafic_tarifs tt ON (tt.tp_id=u.tp_id)
+#     LEFT JOIN users_nas un ON (un.uid = u.uid)
+#     LEFT JOIN tp_nas ON (tp_nas.tp_id = tp.id)
+#     WHERE u.tp_id=tp.id
+#        AND u.id='$RAD->{USER_NAME}'
+#        AND (u.expire='0000-00-00' or u.expire > CURDATE())
+#        AND (u.activate='0000-00-00' or u.activate <= CURDATE())
+#        AND tp.dt < CURTIME()
+#        AND CURTIME() < tp.ut
+#       GROUP BY u.id;");
+
+
+
   $self->query($db, "select
   u.uid,
   if (u.logins=0, tp.logins, u.logins) AS logins,
@@ -65,19 +125,19 @@ sub authentication {
   tp.day_time_limit,
   tp.week_time_limit,
   tp.month_time_limit,
+
   if(tp.day_time_limit=0 and tp.dt='0:00:00' AND tp.ut='24:00:00',
    UNIX_TIMESTAMP(DATE_FORMAT(DATE_ADD(curdate(), INTERVAL 1 MONTH), '%Y-%m-01')) - UNIX_TIMESTAMP(),
-  if(curtime() < tp.ut, TIME_TO_SEC(tp.ut)-TIME_TO_SEC(curtime()), TIME_TO_SEC('23:00:00')-TIME_TO_SEC(curtime())) 
+  if(curtime() < tp.ut, TIME_TO_SEC(tp.ut)-TIME_TO_SEC(curtime()), TIME_TO_SEC('23:00:00')-TIME_TO_SEC(curtime()))
     ) as today_limit,
   day_traf_limit,
 
   week_traf_limit,
   month_traf_limit,
   tp.octets_direction,
- 
+
   if (count(un.uid) + count(tp_nas.tp_id) = 0, 0,
     if (count(un.uid)>0, 1, 2)),
-  count(tt.id),
   tp.hourp,
   UNIX_TIMESTAMP(),
   UNIX_TIMESTAMP(DATE_FORMAT(FROM_UNIXTIME(UNIX_TIMESTAMP()), '%Y-%m-%d')),
@@ -85,21 +145,15 @@ sub authentication {
   DAYOFYEAR(FROM_UNIXTIME(UNIX_TIMESTAMP())),
   u.account_id,
   u.disable,
-  
+
   u.deposit,
   u.credit,
   tp.credit_tresshold,
   if(tp.hourp + tp.day_fee + tp.month_fee=0 and (sum(tt.in_price + tt.out_price)=0 or sum(tt.in_price + tt.out_price)IS NULL), 0, 1),
   tp.max_session_duration,
-  if(v.dt < v.ut,
-    if(v.dt < CURTIME() and v.ut > CURTIME(), 1, 0),
-      if((v.dt < CURTIME() or (CURTIME() > '0:00:00' and CURTIME() < v.ut ))
-       and
-       (CURTIME() < '23:00:00' or v.ut > CURTIME()  ),
-     1, 0 ))
-
+  UNIX_TIMESTAMP(DATE_FORMAT(DATE_ADD(curdate(), INTERVAL 1 MONTH), '%Y-%m-01')) - UNIX_TIMESTAMP()
      FROM users u, tarif_plans tp
-     LEFT JOIN  trafic_tarifs tt ON (tt.tp_id=u.tp_id)
+     LEFT JOIN trafic_tarifs tt ON (tt.tp_id=u.tp_id)
      LEFT JOIN users_nas un ON (un.uid = u.uid)
      LEFT JOIN tp_nas ON (tp_nas.tp_id = tp.id)
      WHERE u.tp_id=tp.id
@@ -108,8 +162,9 @@ sub authentication {
         AND (u.activate='0000-00-00' or u.activate <= CURDATE())
         AND tp.dt < CURTIME()
         AND CURTIME() < tp.ut
-       GROUP BY u.id;");
+       GROUP BY u.id;
 
+");
 
 
   if($self->{errno}) {
@@ -133,7 +188,6 @@ sub authentication {
      $self->{USER_SPEED}, 
      $self->{CID},
      $self->{DAY_TIME_LIMIT},  $self->{WEEK_TIME_LIMIT},   $self->{MONTH_TIME_LIMIT},
-     $self->{TODAY_LIMIT},
      $self->{DAY_TRAF_LIMIT},  $self->{WEEK_TRAF_LIMIT},   $self->{MONTH_TRAF_LIMIT}, $self->{OCTETS_DIRECTION},
      $self->{NAS}, 
      $self->{COUNT_TRAF_TARIFS},
@@ -151,17 +205,16 @@ sub authentication {
      $self->{CREDIT_TRESSHOLD},
      $self->{TP_PAYMENT},
      $self->{MAX_SESSION_DURATION},
-     $self->{ALLOW_TIME}
+     $self->{TIME_LIMIT},
     ) = @$a_ref;
 
 
-#Allow time
-if ($self->{ALLOW_TIME}) {
-  $RAD_PAIRS{'Reply-Message'}="Not Allow time";
-  return 1, \%RAD_PAIRS;
-}
+
+
+#return 0, \%RAD_PAIRS;
 
 #DIsable
+print $self->{DISABLE};
 if ($self->{DISABLE}) {
   $RAD_PAIRS{'Reply-Message'}="Account Disable";
   return 1, \%RAD_PAIRS;
@@ -339,15 +392,47 @@ if ($self->{LOGINS} > 0) {
 }
 
 
+
+
+
+my @time_limits = ();
+my ($remaining_time, $ATTR) = remaining_time2($self->{TP_ID}, $self->{DEPOSIT}, 
+                                      $self->{SESSION_START}, 
+                                      $self->{DAY_BEGIN}, 
+                                      $self->{DAY_OF_WEEK}, 
+                                      $self->{DAY_OF_YEAR},
+                                      { mainh_tarif => $self->{TIME_TARIF},
+                                        time_limit  => $self->{TODAY_LIMIT}  } 
+                                      );
+
+if (defined($ATTR->{TT})) {
+  $self->{TT_INTERVAL} = $ATTR->{TT};
+}
+else {
+  $self->{TT_INTERVAL} = 0;
+}
+
+#check allow period and time out
+ if ($remaining_time == -1) {
+ 	  $RAD_PAIRS{'Reply-Message'}="Not Allow day";
+    return 1, \%RAD_PAIRS;
+  }
+ elsif ($remaining_time == -2) {
+    $RAD_PAIRS{'Reply-Message'}="Not Allow time";
+    return 1, \%RAD_PAIRS;
+  }
+ elsif($remaining_time > 0) {
+    push (@time_limits, $remaining_time);
+  }
+
 #Periods Time and traf limits
 # 0 - Total limit
 # 1 - Day limit
 # 2 - Week limit
 # 3 - Month limit
-my @time_limits=();
-my @traf_limits= ();
-my $time_limit = 0; 
-my $traf_limit = $attr->{MAX_SESSION_TRAFFIC};
+my @traf_limits = ();
+my $time_limit  = $self->{TIME_LIMIT}; 
+my $traf_limit  = $attr->{MAX_SESSION_TRAFFIC};
 
 push @time_limits, $self->{MAX_SESSION_DURATION} if ($self->{MAX_SESSION_DURATION} > 0);
 
@@ -367,15 +452,16 @@ foreach my $line (@periods) {
          } 
         else {
         	$a_ref = $self->{list}->[0];
-          ($time_limit, $traf_limit) = @$a_ref;
+          my ($time_limit, $traf_limit) = @$a_ref;
           push (@time_limits, $time_limit) if ($self->{$line . '_TIME_LIMIT'} > 0);
           push (@traf_limits, $traf_limit) if ($self->{$line . '_TRAF_LIMIT'} > 0);
          }
        }
 }
 
+
 #set traffic limit
-     #push (@traf_limits, $prepaid_traff) if ($prepaid_traff > 0);
+#push (@traf_limits, $prepaid_traff) if ($prepaid_traff > 0);
 
  for(my $i=0; $i<=$#traf_limits; $i++) {
  	 #print $traf_limits[$i]. "------\n";
@@ -391,22 +477,7 @@ foreach my $line (@periods) {
 
 
 
-
- if ($self->{TIME_TARIF} > 0) {
-   #push (@time_limits, int(($deposit / $time_tarif) *  60 * 60))  if ($time_tarif > 0);
-   push (@time_limits, remaining_time($self->{TP_ID}, $self->{DEPOSIT}, 
-                                      $self->{SESSION_START}, 
-                                      $self->{DAY_BEGIN}, 
-                                      $self->{DAY_OF_WEEK}, 
-                                      $self->{DAY_OF_YEAR},
-                                      { mainh_tarif => $self->{TIME_TARIF},
-                                        time_limit  => $self->{TODAY_LIMIT}  } 
-                                      )
-            );
-  }
-
 #set time limit
- $time_limit = $self->{TODAY_LIMIT};
  for(my $i=0; $i<=$#time_limits; $i++) {
    if ($time_limit > $time_limits[$i]) {
      $time_limit = $time_limits[$i];
@@ -426,12 +497,16 @@ foreach my $line (@periods) {
    $RAD_PAIRS{'Framed-IP-Address'} = "$self->{IP}";
   }
  else {
-   my $ip = get_ip($NAS->{NID}, "$RAD->{NAS_IP_ADDRESS}");
-   if ($ip == -1) {
+   my $ip = $self->get_ip($NAS->{NID}, "$RAD->{NAS_IP_ADDRESS}");
+   if ($ip eq '-1') {
      $RAD_PAIRS{'Reply-Message'}="Rejected! There is no free IPs in address pools ($NAS->{NID})";
      return 1, \%RAD_PAIRS;
     }
-   elsif($ip > 0) {
+   elsif($ip eq '0') {
+     $RAD_PAIRS{'Reply-Message'}="$self->{errstr} ($NAS->{NID})";
+     return 1, \%RAD_PAIRS;
+    }
+   else {
      $RAD_PAIRS{'Framed-IP-Address'} = "$ip";
     }
   }
@@ -464,7 +539,7 @@ if ($NAS->{NAS_TYPE} eq 'exppp') {
        
   #Local ip tables
   if (defined($EX_PARAMS->{nets})) {
-    $RAD_PAIRS{'Exppp-Local-IP-Table'} = "\"$attr->{NETS_FILES_PATH}$self->{TP_ID}.nets\"";
+    $RAD_PAIRS{'Exppp-Local-IP-Table'} = "\"$attr->{NETS_FILES_PATH}$self->{TT_INTERVAL}.nets\"";
    }
 
   #Shaper
@@ -566,8 +641,9 @@ sub ex_traffic_params {
  #get traffic limits
 # if ($traf_tarif > 0) {
    my $nets = 0;
+#$self->{debug}=1;
    $self->query($db, "SELECT id, in_price, out_price, prepaid, speed, LENGTH(nets) FROM trafic_tarifs
-             WHERE tp_id='$self->{TP_ID}';");
+             WHERE interval_id='$self->{TT_INTERVAL}';");
 
    if ($self->{TOTAL} < 1) {
      return \%EX_PARAMS;	
@@ -670,14 +746,16 @@ if ($trafic_limits{1} > 0) {
 #    0 - No address pool using nas servers ip address
 #   192.168.101.1 - assign ip address
 #
-# get_ip($nas_num, $nas_ip)
+# get_ip($self, $nas_num, $nas_ip)
 #*******************************************************************
 sub get_ip {
- my ($self, $nas_num, $nas_ip) = @_;
+ my $self = shift;
+ my ($nas_num, $nas_ip) = @_;
+
  use IO::Socket;
  
 #get ip pool
- $self->('db', "SELECT ippools.ip, ippools.counts 
+ $self->query($db, "SELECT ippools.ip, ippools.counts 
   FROM ippools
   WHERE ippools.nas='$nas_num';");
 
@@ -689,7 +767,10 @@ sub get_ip {
 
  my %pools = ();
  my $list = $self->{list};
- while(my($sip, $count) = each %$list) {
+ foreach my $line (@$list) {
+    my $sip   = $line->[0]; 
+    my $count = $line->[1];
+
     for(my $i=$sip; $i<=$sip+$count; $i++) {
        $pools{$i}=undef;
      }
@@ -697,7 +778,7 @@ sub get_ip {
 
 #get active address and delete from pool
 
- $self->('db', "SELECT framed_ip_address
+ $self->query($db, "SELECT framed_ip_address
   FROM calls 
   WHERE nas_ip_address=INET_ATON('$nas_ip') and (status=1 or status>=3);");
 
@@ -788,13 +869,21 @@ my ($given_password,$want_password,$given_chap_challenge,$debug) = @_;
 }
 
 
+
 #********************************************************************
 # remaining_time
+#  returns
+#    -1 = access deny not allow day
+#    -2 = access deny not allow hour
 #********************************************************************
-sub remaining_time {
+sub remaining_time2 {
   my ($tp_id, $deposit, $session_start, 
   $day_begin, $day_of_week, $day_of_year,
   $attr) = @_;
+  
+  my %ATTR = ();
+
+  my $debug = 0;
  
   my $time_limit = (defined($attr->{time_limit})) ? $attr->{time_limit} : 0;
   my $mainh_tarif = (defined($attr->{mainh_tarif})) ? $attr->{mainh_tarif} : 0;
@@ -802,16 +891,21 @@ sub remaining_time {
 
   use Billing;
   my $Billing = Billing->new($db);
-  my ($time_intervals, $interval_tarifs) = $Billing->time_intervals($tp_id);
+  my ($time_intervals, $periods_time_tarif, $periods_traf_tarif) = $Billing->time_intervals($tp_id);
 
  if ($time_intervals == 0) {
     return 0;
     #return $deposit / $mainh_tarif * 60 * 60;	
   }
  
- my $holidays;
+ my %holidays = ();
  if (defined($time_intervals->{8})) {
-   $holidays = holidays_show({ format => 'daysofyear' });
+   use Tariffs;
+   my $tariffs = Tariffs->new($db);
+   my $list = $tariffs->holidays_list({ format => 'daysofyear' });
+   foreach my $line (@$list) {
+     $holidays{$line->[0]} = 1;
+    }
   }
 
 
@@ -819,26 +913,41 @@ sub remaining_time {
  my $count = 0;
  $session_start = $session_start - $day_begin;
 
- while(($deposit > 0 && $count < 50)) {
+# print "$session_start 
+#  $day_of_week, 
+#  $day_of_year,\n";
 
-  if ($time_limit != 0 && $time_limit < $remaining_time) {
+ while(($deposit > 0 && $count < 50)) {
+  
+   if ($time_limit != 0 && $time_limit < $remaining_time) {
      $remaining_time = $time_limit;
      last;
-   }
+    }
 
-    if (defined($time_intervals->{$day_of_week})) {
-    	#print "Day tarif";
-    	$tarif_day = $day_of_week;
-     }
-    elsif(defined($holidays->{$day_of_year}) && defined($time_intervals->{8})) {
+   if(defined($holidays{$day_of_year}) && defined($time_intervals->{8})) {
     	#print "Holliday tarif '$day_of_year' ";
     	$tarif_day = 8;
-     }
-    else {
-        #print "Normal tarif";
-        $tarif_day = 0;
-     }
+    }
+   elsif (defined($time_intervals->{$day_of_week})) {
+    	#print "Day tarif '$day_of_week'";
+    	$tarif_day = $day_of_week;
+    }
+   elsif(defined($time_intervals->{0})) {
+      #print "Global tarif";
+      $tarif_day = 0;
+    }
+   elsif($count > 0) {
+      last;
+    }
+   else {
+   	  return -1;
+    }
 
+
+  print "Count:  $count Remain Time: $remaining_time\n" if ($debug == 1);
+
+  # Time check
+  # $session_start
 
      $count++;
      #print "$count) Tariff day: $tarif_day ($day_of_week / $day_of_year)\n";
@@ -846,27 +955,46 @@ sub remaining_time {
      #print "Deposit: $deposit\n--------------\n";
 
      my $cur_int = $time_intervals->{$tarif_day};
-     my $i = 0;
-     while(my($int_begin, $int_end)=each %$cur_int) {
+     my $i;
+     
+     TIME_INTERVALS:
+
+     my @intervals = sort keys %$cur_int; 
+     $i = -1;
+
+     #while(my($int_begin, $int_end)=each ) {
+     foreach my $int_begin (@intervals) {
+       my ($int_id, $int_end) = split(/:/, $cur_int->{$int_begin}, 2);
+       $i++;
+
        my $price = 0;
        my $int_prepaid = 0;
        my $int_duration = 0;
-       #$i++;
-       #print "!! $int_begin, $int_end\n";
-       #print "   $i) ";
-       if ($int_begin <= $session_start && $session_start <= $int_end) {
-          $int_duration = $int_end-$session_start;
 
-          if ($interval_tarifs->{$tarif_day}{$int_begin} =~ /%$/) {
-             my $tp = $interval_tarifs->{$tarif_day}{$int_begin};
+       print "Day: $tarif_day Session_start: $session_start => Int Begin: $int_begin End: $int_end Int ID: $int_id\n" if ($debug == 1);
+
+       if ($int_begin <= $session_start && $session_start < $int_end) {
+          $int_duration = $int_end-$session_start;
+          
+          if ($periods_time_tarif->{$int_id} =~ /%$/) {
+             my $tp = $periods_time_tarif->{$int_id};
              $tp =~ s/\%//;
              $price = $mainh_tarif  * ($tp / 100);
            }
           else {
-             $price = $interval_tarifs->{$tarif_day}{$int_begin};
+             $price = $periods_time_tarif->{$int_id};
            }
 
-          if ($price > 0) {
+          if($periods_traf_tarif->{$int_id} > 0 && $remaining_time == 0) {
+            print "This tarif with traffic counts\n" if ($debug == 1);
+            $ATTR{TT}=$int_id;
+            return int($int_duration), \%ATTR;
+           }
+          elsif($periods_traf_tarif->{$int_id} > 0) {
+            print "Next tarif with traffic counts  $int_end {$tarif_day} {$int_begin}\n" if ($debug == 1);
+            return int($remaining_time), \%ATTR;
+           }
+          elsif ($price > 0) {
             $int_prepaid = $deposit / $price * 3600;
            }
           else {
@@ -883,26 +1011,50 @@ sub remaining_time {
             #print "DP $deposit ($int_prepaid > $int_duration) $session_start\n";
            }
           elsif($int_prepaid <= $int_duration) {
-            $deposit =  0;          	
+            $deposit =  0;    	
             $session_start += $int_prepaid;
             $remaining_time += $int_prepaid;
             #print "DL '$deposit' ($int_prepaid <= $int_duration) $session_start\n";
            }
-         
         }
-
+       elsif($i == $#intervals) {
+       	  print "!! LAST@@@@ $i == $#intervals\n" if ($debug == 1);
+       	  if (defined($time_intervals->{0}) && $tarif_day != 0) {
+       	    $tarif_day = 0;
+       	    $cur_int = $time_intervals->{$tarif_day};
+       	    print "Go to\n" if ($debug == 1);
+       	    goto TIME_INTERVALS;
+       	   }
+       	  elsif($session_start < 86400) {
+      	  	 if ($remaining_time > 0) {
+      	  	   return int($remaining_time);
+      	  	  }
+             else {
+             	 # Not allow hour
+             	 # return -2;
+              }
+      	   }
+       	  #return $remaining_time;
+       	  next;
+        }
       }
 
+  return -2 if ($remaining_time == 0);
+  
   if ($session_start >= 86400) {
     $session_start=0;
     $day_of_week = ($day_of_week + 1 > 7) ? 1 : $day_of_week+1;
     $day_of_year = ($day_of_year + 1 > 365) ? 1 : $day_of_year + 1;
-  }
+   }
+#  else {
+#  	return int($remaining_time), \%ATTR;
+#   }
  
  }
 
-return int($remaining_time);
+return int($remaining_time), \%ATTR;
 }
+
 
 
 #***********************************************************

@@ -522,8 +522,6 @@ CREATE TABLE tarif_plans (
   uplimit float(10,2) default '0.00',
   name varchar(40) NOT NULL default 'без╕менний',
   day_fee float(10,2) unsigned NOT NULL default '0.00',
-  ut time NOT NULL default '24:00:00',
-  dt time NOT NULL default '00:00:00',
   logins tinyint(4) NOT NULL default '0',
   day_time_limit int(10) unsigned NOT NULL default '0',
   week_time_limit int(10) unsigned NOT NULL default '0',
@@ -567,6 +565,7 @@ CREATE TABLE trafic_tarifs (
   in_price float(8,5) unsigned NOT NULL default '0.00000',
   out_price float(8,5) unsigned NOT NULL default '0.00000',
   speed int(10) unsigned NOT NULL default '0',
+  interval_id smallint(6) unsigned NOT NULL default '0',
   UNIQUE KEY tpid (tp_id,id),
   KEY tp_id (tp_id)
 ) TYPE=MyISAM;

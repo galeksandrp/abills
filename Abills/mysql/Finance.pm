@@ -34,7 +34,8 @@ my %FIELDS = (UID  => 'uid',
               IP   => 'ip',
               LAST_DEPOSIT => 'last_deposit', 
               AID  => 'aid',
-              METHOD => 'method'
+              METHOD => 'method',
+              EXT_ID => 'ext_id'
              );
 my %DATA;
 
@@ -93,7 +94,8 @@ sub defaults {
            LAST_DEPOSIT => '0.00', 
            AID  => 0,
            METHOD => 0,
-           ER => 1
+           ER => 1,
+           EXT_ID => ''
           );
 
   $self = \%DATA;
@@ -144,8 +146,8 @@ sub add {
     	$self->query($db, "UPDATE users SET deposit=deposit+$DATA{SUM} WHERE uid='$user->{UID}';", 'do');
       }
 
-    $self->query($db, "INSERT INTO payments (uid, date, sum, dsc, ip, last_deposit, aid, method) 
-           values ('$user->{UID}', now(), $DATA{SUM}, '$DATA{DESCRIBE}', INET_ATON('$admin->{SESSION_IP}'), '$deposit', '$admin->{AID}', '$DATA{METHOD}');", 'do');
+    $self->query($db, "INSERT INTO payments (uid, date, sum, dsc, ip, last_deposit, aid, method, ext_id) 
+           values ('$user->{UID}', now(), $DATA{SUM}, '$DATA{DESCRIBE}', INET_ATON('$admin->{SESSION_IP}'), '$deposit', '$admin->{AID}', '$DATA{METHOD}', '$DATA{EXT_ID}');", 'do');
   }
 
   return $self if ($self->{errno});
@@ -262,7 +264,8 @@ sub list {
   }
    
  
- $self->query($db, "SELECT p.id, u.id, p.date, p.sum, p.dsc, if(a.name is null, 'Unknown', a.name),  INET_NTOA(p.ip), p.last_deposit, p.method, p.uid 
+ $self->query($db, "SELECT p.id, u.id, p.date, p.sum, p.dsc, if(a.name is null, 'Unknown', a.name),  
+      INET_NTOA(p.ip), p.last_deposit, p.method, p.ext_id, p.uid 
     FROM payments p
     LEFT JOIN users u ON (u.uid=p.uid)
     LEFT JOIN admins a ON (a.aid=p.aid)

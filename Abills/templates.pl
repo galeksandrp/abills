@@ -106,8 +106,10 @@ return qq{
 <table>
 <tr><td>$_SUM:</td><td><input type=text name=SUM></td></tr>
 <tr><td>$_DESCRIBE:</td><td><input type=text name=DESCRIBE></td></tr>
-<tr><td>$_PAYMENT_METHOD:</td><td>%SEL_METHOD%</td></tr>
 <tr><td>$_EXCHANGE_RATE:</td><td>%SEL_ER%</td></tr>
+<tr><td colspan=2><hr size=1></td></tr>
+<tr><td>$_PAYMENT_METHOD:</td><td>%SEL_METHOD%</td></tr>
+<tr><td>ID:</td><td><input type=text name=EXT_ID value='%EXT_ID%'></td></tr>
 </table>
 <input type=submit name=add value='$_ADD'>
 </form>
@@ -138,9 +140,12 @@ return qq{
   <tr><th>#</th><td><input type=text name=TP_ID value='%TP_ID%'></td></tr>
   <tr><td>$_NAME:</td><td><input type=text name=NAME value='%NAME%'></td></tr>
   <tr><td>$_UPLIMIT:</td><td><input type=text name=ALERT value='%ALERT%'></td></tr>
-<!--  <tr><td>$_BEGIN:</td><td><input type=text name=BEGIN value='%BEGIN%'></td></tr>
+
+<!--
+  <tr><td>$_BEGIN:</td><td><input type=text name=BEGIN value='%BEGIN%'></td></tr>
   <tr><td>$_END:</td><td><input type=text name=END value='%END%'></td></tr>
 -->
+
   <tr><td>$_DAY_FEE:</td><td><input type=text name=DAY_FEE value='%DAY_FEE%'></td></tr>
   <tr><td>$_MONTH_FEE:</td><td><input type=text name=MONTH_FEE value='%MONTH_FEE%'></td></tr>
   <tr><td>$_SIMULTANEOUSLY:</td><td><input type=text name=SIMULTANEOUSLY value='%SIMULTANEOUSLY%'></td></tr>

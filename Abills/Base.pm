@@ -15,6 +15,7 @@ $VERSION = 2.00;
 @ISA = ('Exporter');
 
 @EXPORT = qw( &radius_log
+  &convert
   &parse_arguments
   &session_spliter
   &int2ip
@@ -37,8 +38,24 @@ $VERSION = 2.00;
 @EXPORT_OK = ();
 %EXPORT_TAGS = ();
 
-my $dif = 79200;
 
+#**********************************************************
+# Converter
+#   Attributes
+#     text2html - convert text to HTML
+#
+#
+# convert
+#**********************************************************
+sub convert {
+	my ($text, $attr)=@_;
+	
+	if(defined($attr->{text2html})) {
+		 $text =~ s/\n/<br>/gi;
+   }
+	
+	return $text;
+}
 
 
 #*******************************************************************
@@ -221,13 +238,20 @@ sub ip2int($){
 # return $sec,$minute,$hour,$day
 #********************************************************************
 sub sec2time {
+   my ($value, $attr) = @_;
    my($a,$b,$c,$d);
 
-    $a=int($_[0] % 60);
-    $b=int(($_[0] % 3600) / 60);
-    $c=int(($_[0] % (24*3600)) / 3600);
-    $d=int($_[0] / (24 * 3600));
+    $a=int($value % 60);
+    $b=int(($value % 3600) / 60);
+    $c=int(($value % (24*3600)) / 3600);
+    $d=int($value / (24 * 3600));
+
+ if($attr->{str}) {
+   return "+$d $c:$b:$a";
+  }
+ else {
     return($a,$b,$c,$d);
+  }
 }
 
 #********************************************************************

@@ -56,8 +56,7 @@ sub accounting {
  my $acct_status_type = $ACCT_TYPES{$RAD->{ACCT_STATUS_TYPE}};
  my $SESSION_START = (defined($RAD->{SESSION_START})) ?  $RAD->{SESSION_START} : 'now()';
 
-#   print "aaa $acct_status_type '$RAD->{ACCT_STATUS_TYPE}' //"; 
-
+#   print "aaa $acct_status_type '$RAD->{ACCT_STATUS_TYPE}'  /$RAD->{SESSION_START}/"; 
 #my $a=`echo "test $acct_status_type = $ACCT_TYPES{$RAD->{ACCT_STATUS_TYPE}}"  >> /tmp/12211 `;
  
 
@@ -78,15 +77,24 @@ elsif ($acct_status_type == 2) {
 
   my $Billing = Billing->new($db);	
 
-  #my ($uid, $sum, $account_id, $tarif_plan, $time_t, $traf_t) = $Billing->session_sum("$RAD->{USER_NAME}", $RAD->{SESSION_START}, $RAD->{ACCT_SESSION_TIME}, $RAD, $conf);
-  
+  #my ($uid, $sum, $account_id, $tarif_plan, $time_t, $traf_t) = $Billing->session_sum2("$RAD->{USER_NAME}", $RAD->{SESSION_START}, $RAD->{ACCT_SESSION_TIME}, $RAD, $conf);
+
   ($self->{UID}, 
   $self->{SUM}, 
   $self->{ACCOUNT_ID}, 
   $self->{TARIF_PLAN}, 
   $self->{TIME_TARIF}, 
-  $self->{TRAF_TARIF}) = $Billing->session_sum("$RAD->{USER_NAME}", $RAD->{SESSION_START}, $RAD->{ACCT_SESSION_TIME}, $RAD, $conf);
-  #print "$sum, $account_id, $tarif_plan, $time_t, $traf_t\n";
+
+  $self->{TRAF_TARIF}) = $Billing->session_sum2("$RAD->{USER_NAME}", $RAD->{SESSION_START}, $RAD->{ACCT_SESSION_TIME}, $RAD, $conf);
+
+  print "$self->{UID}, 
+  $self->{SUM}, 
+  $self->{ACCOUNT_ID}, 
+  $self->{TARIF_PLAN}, 
+  $self->{TIME_TARIF}, 
+  $self->{TRAF_TARIF}\n";
+  
+  return $self;
   if ($self->{SUM} == -2) {
     $self->{errno}=1;   
     $self->{errstr} = "ACCT [$RAD->{USER_NAME}] Not exist";
@@ -106,7 +114,7 @@ elsif ($acct_status_type == 2) {
     if ($self->{errno}) {
       my $filename = "$RAD->{USER_NAME}.$RAD->{ACCT_SESSION_ID}";
       $self->{LOG_WARNING}="ACCT [$RAD->{USER_NAME}] Making accounting file '$filename'";
-      mk_session_log($RAD, $conf);
+      $Billing->mk_session_log($RAD, $conf);
      }
 # If SQL query filed
     else {

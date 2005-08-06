@@ -272,3 +272,5 @@ $_CLOSED='Closed';
 $_USED='Use';
 $_MAX_SESSION_DURATION='Max. session time';
 $_START='Start';
+$_YES='Yes';
+$_NO='No';

@@ -65,6 +65,11 @@ sub auth {
  my $GT = '';
  my $rr='';
  
+ if(defined($conf{tech_works})) {
+ 	 print "Reply-Message = \"$conf{tech_works}\"\n";
+ 	 exit 1;
+  }
+ 
  require Auth;
  Auth->import();
  my $Auth = Auth->new($db, \%conf);
@@ -73,6 +78,7 @@ sub auth {
  	                                                   NETS_FILES_PATH => $conf{netsfilespath} } );
 
 #If Access deny
+ 
  if($r == 1) {
     print "Reply-Message = \"$RAD_PAIRS->{'Reply-Message'}\"\n";
     access_deny("$RAD->{USER_NAME}", "$RAD_PAIRS->{'Reply-Message'}", $nas->{NID});

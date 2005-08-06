@@ -511,6 +511,52 @@ sub addrow {
   return $self->{rows};
 }
 
+#*******************************************************************
+# addrows()
+#*******************************************************************
+sub addtd {
+  my $self = shift;
+  my (@row) = @_;
+
+  if (defined($self->{rowcolor})) {
+    $bg = $self->{rowcolor};
+   }  
+  else {
+  	$bg = ($bg eq $_COLORS[1]) ? $_COLORS[2] : $_COLORS[1];
+   }
+  
+  my $extra=(defined($self->{extra})) ? $self->{extra} : '';
+
+
+  $self->{rows} .= "<tr bgcolor=$bg>";
+  foreach my $val (@row) {
+     $self->{rows} .= "$val";
+   }
+
+  $self->{rows} .= "</tr>\n";
+  return $self->{rows};
+}
+
+
+#*******************************************************************
+# Extendet add rows
+# td()
+#
+#*******************************************************************
+sub td {
+  my $self = shift;
+  my ($value, $attr) = @_;
+  my $extra='';
+  
+  while(my($k, $v)=each %$attr ) {
+    $extra.=" $k=$v";
+   }
+
+  my $td = "<td $extra>$value</td>";
+
+  return $td;
+}
+
 
 #*******************************************************************
 # title_plain($caption)
@@ -806,9 +852,6 @@ sub tpl_show {
 	 print $tpl;
 	}
 }
-
-
-
 
 
 
