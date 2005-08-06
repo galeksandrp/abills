@@ -125,20 +125,16 @@ sub authentication {
   tp.day_time_limit,
   tp.week_time_limit,
   tp.month_time_limit,
+  UNIX_TIMESTAMP(DATE_FORMAT(DATE_ADD(curdate(), INTERVAL 1 MONTH), '%Y-%m-01')) - UNIX_TIMESTAMP(),
 
-  if(tp.day_time_limit=0 and tp.dt='0:00:00' AND tp.ut='24:00:00',
-   UNIX_TIMESTAMP(DATE_FORMAT(DATE_ADD(curdate(), INTERVAL 1 MONTH), '%Y-%m-01')) - UNIX_TIMESTAMP(),
-  if(curtime() < tp.ut, TIME_TO_SEC(tp.ut)-TIME_TO_SEC(curtime()), TIME_TO_SEC('23:00:00')-TIME_TO_SEC(curtime()))
-    ) as today_limit,
   day_traf_limit,
-
   week_traf_limit,
   month_traf_limit,
   tp.octets_direction,
 
   if (count(un.uid) + count(tp_nas.tp_id) = 0, 0,
     if (count(un.uid)>0, 1, 2)),
-  tp.hourp,
+
   UNIX_TIMESTAMP(),
   UNIX_TIMESTAMP(DATE_FORMAT(FROM_UNIXTIME(UNIX_TIMESTAMP()), '%Y-%m-%d')),
   DAYOFWEEK(FROM_UNIXTIME(UNIX_TIMESTAMP())),
@@ -150,8 +146,9 @@ sub authentication {
   u.credit,
   tp.credit_tresshold,
   if(tp.hourp + tp.day_fee + tp.month_fee=0 and (sum(tt.in_price + tt.out_price)=0 or sum(tt.in_price + tt.out_price)IS NULL), 0, 1),
-  tp.max_session_duration,
-  UNIX_TIMESTAMP(DATE_FORMAT(DATE_ADD(curdate(), INTERVAL 1 MONTH), '%Y-%m-01')) - UNIX_TIMESTAMP()
+  tp.max_session_duration
+
+
      FROM users u, tarif_plans tp
      LEFT JOIN trafic_tarifs tt ON (tt.tp_id=u.tp_id)
      LEFT JOIN users_nas un ON (un.uid = u.uid)
@@ -160,8 +157,6 @@ sub authentication {
         AND u.id='$RAD->{USER_NAME}'
         AND (u.expire='0000-00-00' or u.expire > CURDATE())
         AND (u.activate='0000-00-00' or u.activate <= CURDATE())
-        AND tp.dt < CURTIME()
-        AND CURTIME() < tp.ut
        GROUP BY u.id;
 
 ");
@@ -187,11 +182,9 @@ sub authentication {
      $self->{PASSWD}, 
      $self->{USER_SPEED}, 
      $self->{CID},
-     $self->{DAY_TIME_LIMIT},  $self->{WEEK_TIME_LIMIT},   $self->{MONTH_TIME_LIMIT},
+     $self->{DAY_TIME_LIMIT},  $self->{WEEK_TIME_LIMIT},   $self->{MONTH_TIME_LIMIT}, $self->{TIME_LIMIT},
      $self->{DAY_TRAF_LIMIT},  $self->{WEEK_TRAF_LIMIT},   $self->{MONTH_TRAF_LIMIT}, $self->{OCTETS_DIRECTION},
      $self->{NAS}, 
-     $self->{COUNT_TRAF_TARIFS},
-     $self->{TIME_TARIF},
      $self->{SESSION_START}, 
      $self->{DAY_BEGIN}, 
      $self->{DAY_OF_WEEK}, 
@@ -204,10 +197,8 @@ sub authentication {
      $self->{CREDIT},
      $self->{CREDIT_TRESSHOLD},
      $self->{TP_PAYMENT},
-     $self->{MAX_SESSION_DURATION},
-     $self->{TIME_LIMIT},
+     $self->{MAX_SESSION_DURATION}
     ) = @$a_ref;
-
 
 
 
