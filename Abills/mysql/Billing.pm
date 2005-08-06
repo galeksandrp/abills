@@ -16,7 +16,7 @@ $VERSION = 2.00;
 use main;
 @ISA  = ("main");
 my $db;
-
+my ($time_intervals, $periods_time_tarif, $periods_traf_tarif);
 
 
 #**********************************************************
@@ -102,9 +102,6 @@ sub session_sum2 {
   ) = @$ar;
 
 
-
-
-
  $self->session_splitter2($SESSION_START,
                    $SESSION_DURATION,
                    $self->{DAY_BEGIN},
@@ -112,14 +109,21 @@ sub session_sum2 {
                    $self->{DAY_OF_YEAR},
                    { TP_ID => $self->{TP_ID} }
                   );
-
+ 
+ #session devisions
  my $sd = $self->{TIME_DIVISIONS};
-
  while(my($k, $v)=each(%$sd)) {
  	 print "> $k, $v\n";
+   if(defined($periods_time_tarif->{$k})) {
+   	   $sum += ($v * $periods_time_tarif->{$k}) /60 / 60;
+     }
+
+#$time_intervals, $periods_time_tarif, $periods_traf_tarif
+   
   }
 
- return 0, 0, 0, 0, 0, 0;
+print "-/ $sum /\n";
+return 0, 0, 0, 0, 0, 0;
 
  my $time_tarif   = 0;
  my $trafic_tarif = 0;
@@ -393,9 +397,9 @@ sub session_sum {
  my $recv2 = $RAD->{INBYTE2} || 0;
 
 
+#minimal session time or traff
  if ((defined($conf->{MINIMUM_SESSION_TIME}) && $SESSION_DURATION < $conf->{MINIMUM_SESSION_TIME}) || 
     (defined($conf->{MINIMUM_SESSION_TRAF}) && $sent + $recv < $conf->{MINIMUM_SESSION_TRAF})) {
-    
     return -1, 0, 0, 0, 0, 0;
   }
 
@@ -423,12 +427,13 @@ sub session_sum {
  WHERE u.tp_id=tp.id and u.id='$USER_NAME';");
 
  if($self->{errno}) {
-
    return -3;
   }
  elsif ($self->{TOTAL} < 1) {
    return -2;	
   }
+
+
 
 
  my $time_tarif = 0;
@@ -733,7 +738,7 @@ sub session_splitter2 {
  my $debug = 1;
 
 
- my ($time_intervals, $periods_time_tarif, $periods_traf_tarif) = $self->time_intervals($attr->{TP_ID});
+ ($time_intervals, $periods_time_tarif, $periods_traf_tarif) = $self->time_intervals($attr->{TP_ID});
 
  my %division_time = (); #return division time
  my %holidays = ();
@@ -753,7 +758,7 @@ $start = $start - $day_begin;
 require Abills::Base;
 Abills::Base->import(); 
  
- print "$day_of_week / $day_of_year\n";
+ print "$day_of_week / $day_of_year\n" if ($debug == 1);
  
  while($duration > 0 && $count < 200) {
 
