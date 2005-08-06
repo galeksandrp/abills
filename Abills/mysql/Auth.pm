@@ -205,7 +205,6 @@ sub authentication {
 #return 0, \%RAD_PAIRS;
 
 #DIsable
-print $self->{DISABLE};
 if ($self->{DISABLE}) {
   $RAD_PAIRS{'Reply-Message'}="Account Disable";
   return 1, \%RAD_PAIRS;
@@ -941,19 +940,16 @@ sub remaining_time2 {
   # $session_start
 
      $count++;
-     #print "$count) Tariff day: $tarif_day ($day_of_week / $day_of_year)\n";
-     #print "Session start: $session_start\n";
-     #print "Deposit: $deposit\n--------------\n";
 
      my $cur_int = $time_intervals->{$tarif_day};
      my $i;
+     my $prev_tarif = '';
      
      TIME_INTERVALS:
 
      my @intervals = sort keys %$cur_int; 
      $i = -1;
 
-     #while(my($int_begin, $int_end)=each ) {
      foreach my $int_begin (@intervals) {
        my ($int_id, $int_end) = split(/:/, $cur_int->{$int_begin}, 2);
        $i++;
@@ -966,6 +962,16 @@ sub remaining_time2 {
 
        if ($int_begin <= $session_start && $session_start < $int_end) {
           $int_duration = $int_end-$session_start;
+          
+          print " <<=\n" if ($debug == 1);    
+          # if defined prev_tarif
+          if ($prev_tarif ne '') {
+            	my ($p_day, $p_begin)=split(/:/, $prev_tarif, 2);
+            	$int_end=$p_begin;
+            	print "Prev tarif $prev_tarif / INT end: $int_end \n" if ($debug == 1);
+           }
+
+          
           
           if ($periods_time_tarif->{$int_id} =~ /%$/) {
              my $tp = $periods_time_tarif->{$int_id};
@@ -1010,6 +1016,8 @@ sub remaining_time2 {
         }
        elsif($i == $#intervals) {
        	  print "!! LAST@@@@ $i == $#intervals\n" if ($debug == 1);
+       	  $prev_tarif = "$tarif_day:$int_begin";
+
        	  if (defined($time_intervals->{0}) && $tarif_day != 0) {
        	    $tarif_day = 0;
        	    $cur_int = $time_intervals->{$tarif_day};
