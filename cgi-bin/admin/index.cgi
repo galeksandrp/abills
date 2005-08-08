@@ -156,7 +156,8 @@ print "<table width=100%>
 <form action=$SELF_URL>
   <tr><th align=left>$_DATE: $DATE $TIME Admin: <a href='$SELF_URL?index=53'>$admin->{A_LOGIN}</a> / Online: <abbr title=\"$online_users\"><a href='$SELF_URL?index=50' title='$online_users'>Online: $online_count</a></abbr></th>
   <th align=right><input type=hidden name=index value=7>
-  Search: $SEL_TYPE <input type=text name=LOGIN_EXPR value='$FORM{LOGIN_EXPR}'></th></tr>
+  Search: $SEL_TYPE <input type=text name=LOGIN_EXPR value='$FORM{LOGIN_EXPR}'> (<b><a href='#' onclick=\"window.open('help.cgi?index=$index','help',
+'height=550,width=450,resizable=0,scrollbars=yes,menubar=no, status=yes');\">?</a></b>)</th></tr>
 </form>
 </table>
 </td></tr>\n";
@@ -1131,43 +1132,46 @@ if($attr->{TP}) {
   my $list = $tarif_plan->ti_list({ %LIST_PARAMS });
   my $table = Abills::HTML->table( { width => '100%',
                                    border => 1,
-                                   title => [$_DAYS, $_BEGIN, $_END, $_HOUR_TARIF, $_TRAFFIC, '-', '-',  '-'],
-                                   cols_align => ['left', 'right', 'right', 'right', 'right', 'center', 'center', 'center', 'center'],
+                                   title => ['#', $_DAYS, $_BEGIN, $_END, $_HOUR_TARIF, $_TRAFFIC, '-', '-',  '-'],
+                                   cols_align => ['left', 'left', 'right', 'right', 'right', 'right', 'center', 'center', 'center', 'center'],
                                    qs => $pages_qs,
                                    caption => $_INTERVALS
                                   } );
 
   my $color="AAA000";
   foreach my $line (@$list) {
-    my $delete = $html->button($_DEL, "index=73$pages_qs&del=$line->[5]", "$line->[5]  $_DEL ?"); 
-     $color = sprintf("%06x", hex('0x'. $color) + 7000);
-     
-     #day, $hour|$end = color
-     my ($h_b, $m_b, $s_b)=split(/:/, $line->[1], 3);
-     my ($h_e, $m_e, $s_e)=split(/:/, $line->[2], 3);
 
-     push ( @{$visual_view{$line->[0]}}, "$h_b|$h_e|$color|$line->[5]")  ;
+    my $delete = $html->button($_DEL, "index=73$pages_qs&del=$line->[0]", "$_DEL [$line->[0]] ?"); 
+    $color = sprintf("%06x", hex('0x'. $color) + 7000);
+     
+    #day, $hour|$end = color
+    my ($h_b, $m_b, $s_b)=split(/:/, $line->[2], 3);
+    my ($h_e, $m_e, $s_e)=split(/:/, $line->[3], 3);
+
+     push ( @{$visual_view{$line->[1]}}, "$h_b|$h_e|$color|$line->[0]")  ;
 
 #print "$line->[0] -- $visual_view{$line->[0]}<br>";
 
-    if (($FORM{tt} eq $line->[5]) || ($FORM{chg} eq $line->[5])) {
+    if (($FORM{tt} eq $line->[0]) || ($FORM{chg} eq $line->[0])) {
        $table->{rowcolor}=$_COLORS[0];      
      }
     else {
     	 undef($table->{rowcolor});
      }
     
-    $table->addtd($table->td("<b>$DAY_NAMES[$line->[0]]</b>"), 
-                  $table->td($line->[1]), 
+    $table->addtd(
+                  $table->td($line->[0], { rowspan => ($line->[5] > 0) ? 2 : 1 } ), 
+                  $table->td("<b>$DAY_NAMES[$line->[1]]</b>"), 
                   $table->td($line->[2]), 
                   $table->td($line->[3]), 
-                  $table->td("<a href='$SELF_URL?index=$index$pages_qs&tt=$line->[5]'>$_TRAFFIC</a>"),
-                  $table->td("<a href='$SELF_URL?index=$index$pages_qs&chg=$line->[5]'>$_CHANGE</a>"),
+                  $table->td($line->[4]), 
+                  $table->td("<a href='$SELF_URL?index=$index$pages_qs&tt=$line->[0]'>$_TRAFFIC</a>"),
+                  $table->td("<a href='$SELF_URL?index=$index$pages_qs&chg=$line->[0]'>$_CHANGE</a>"),
                   $table->td($delete),
-                  $table->td("&nbsp;", { bgcolor => $color, rowspan => ($line->[4] > 0) ? 2 : 1 })
+                  $table->td("&nbsp;", { bgcolor => $color, rowspan => ($line->[5] > 0) ? 2 : 1 })
       );
 
-     if($line->[4] > 0) {
+     if($line->[5] > 0) {
      	 #Traffic tariff IN (1 Mb) Traffic tariff OUT (1 Mb) Prepaid (Mb) Speed (Kbits) Describe NETS 
 
        my $table2 = Abills::HTML->table( { width => '100%',
@@ -1175,13 +1179,13 @@ if($attr->{TP}) {
                                    cols_align => ['center', 'right', 'right', 'right', 'right', 'right', 'right', 'center', 'center'],
                                    caption => "$_BYTE_TARIF"
                                   } );
-       my $list_tt = $tarif_plan->tt_list({ TI_ID => $line->[5] });
+       my $list_tt = $tarif_plan->tt_list({ TI_ID => $line->[0] });
        foreach my $line (@$list_tt) {
-         $table2->addrow($line->[0], $line->[1], $line->[2], $line->[3], $line->[4], $line->[5], convert($line->[6], { text2html => yes  }));
+          $table2->addrow($line->[0], $line->[1], $line->[2], $line->[3], $line->[4], $line->[5], convert($line->[6], { text2html => yes  }));
         }
        my $table_traf = $table2->show();
   
-       $table->addtd("<td>&nbsp;</td>", $table->td("$table_traf", { color => 'red', colspan => 6}));
+       $table->addtd($table->td("$table_traf", { color => 'red', colspan => 7}));
      }
      
    };
@@ -1957,13 +1961,15 @@ if ($nas->{errno}) {
      $i++;
    }
 
+$nas->{NAS_DISABLE} = ($nas->{NAS_DISABLE} > 0) ? ' checked' : '';
+
 Abills::HTML->tpl_show(templates('form_nas'), $nas);
 
     
 my $table = Abills::HTML->table( { width => '100%',
                                    border => 1,
-                                   title => ["ID", "$_NAME", "NAS-Identifier", "IP", "$_TYPE", "$_AUTH", '-', '-', '-'],
-                                   cols_align => ['center', 'left', 'left', 'right', 'left', 'left'],
+                                   title => ["ID", "$_NAME", "NAS-Identifier", "IP", "$_TYPE", "$_AUTH", '-', '-', '-', '-'],
+                                   cols_align => ['center', 'left', 'left', 'right', 'left', 'left', 'center', 'center', 'center', 'center'],
                                   } );
 
 my $list = $nas->list({ %LIST_PARAMS });
@@ -1972,6 +1978,7 @@ foreach my $line (@$list) {
   my $delete = $html->button($_DEL, "index=60&del=$line->[0]", "$_DEL NAS $line->[2]?"); 
   $table->addrow($line->[0], $line->[1], $line->[2], 
     $line->[4], $line->[5], $auth_types[$line->[6]], 
+    $status[$line->[7]],
     "<a href='$SELF_URL?index=61&nid=$line->[0]'>IP POOLs</a>",
     "<a href='$SELF_URL?index=60&nid=$line->[0]'>$_CHANGE</a>",
     $delete);
@@ -3793,7 +3800,6 @@ sub form_period () {
 
  return $form_period;	
 }
-
 
 
 

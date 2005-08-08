@@ -92,8 +92,8 @@ sub ti_list {
 	my $self = shift;
 	my ($attr) = @_;
 
-  my $SORT = ($attr->{SORT}) ? $attr->{SORT} : "1, 2";
-  if ($SORT == 1) { $SORT = "1, 2"; }  
+  my $SORT = ($attr->{SORT}) ? $attr->{SORT} : "2, 3";
+  if ($SORT == 1) { $SORT = "2, 3"; }  
   my $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
   my $begin_end = "i.begin, i.end,";   
   my $TP_ID = $self->{TP_ID};  
@@ -103,7 +103,7 @@ sub ti_list {
     $TP_ID = $attr->{TP_ID};
    }
 
-  $self->query($db, "SELECT i.day, $begin_end
+  $self->query($db, "SELECT i.id, i.day, $begin_end
    i.tarif,
    if(sum(tt.in_price+tt.out_price) IS NULL || sum(tt.in_price+tt.out_price)=0, 0, sum(tt.in_price+tt.out_price)),
    i.id

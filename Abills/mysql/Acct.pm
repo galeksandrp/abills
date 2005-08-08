@@ -95,15 +95,21 @@ elsif ($acct_status_type == 2) {
   $self->{TRAF_TARIF}\n";
   
   return $self;
-  if ($self->{SUM} == -2) {
+  if ($self->{UID} == -2) {
     $self->{errno}=1;   
     $self->{errstr} = "ACCT [$RAD->{USER_NAME}] Not exist";
+   }
+  elsif($self->{UID} == -3) {
+    my $filename = "$RAD->{USER_NAME}.$RAD->{ACCT_SESSION_ID}";
+    $self->{errno}=1;
+    $self->{errstr}="ACCT [$RAD->{USER_NAME}] Not allow start period '$filename'";
+    print $self->{errstr};
+    $Billing->mk_session_log($RAD, $conf);
    }
   elsif ($self->{SUM} < 0) {
     $self->{LOG_DEBUG} =  "ACCT [$RAD->{USER_NAME}] small session ($RAD->{ACCT_SESSION_TIME}, $RAD->{INBYTE}, $RAD->{OUTBYTE})";
    }
   else {
-
     $self->query($db, "INSERT INTO log (uid, start, tp_id, duration, sent, recv, minp, kb,  sum, nas_id, port_id,
         ip, CID, sent2, recv2, acct_session_id, account_id) 
         VALUES ('$self->{UID}', FROM_UNIXTIME($RAD->{SESSION_START}), '$self->{TARIF_PLAN}', '$RAD->{ACCT_SESSION_TIME}', 

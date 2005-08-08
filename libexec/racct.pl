@@ -63,7 +63,11 @@ if ($nas->{errno} || $nas->{TOTAL} < 1) {
 }
 
 
-acct($RAD);
+my $acct = acct($RAD);
+if($acct->{errno}) {
+	log_print('LOG_ERROR', "ACCT [$RAD->{USER_NAME}] $acct->{errstr}");
+}
+
 
 $db->disconnect();
 

@@ -13,6 +13,7 @@ ALTER TABLE `exchange_rate` ADD COLUMN `id` SMALLINT(6) UNSIGNED NOT NULL AUTO_I
 ALTER TABLE `ippools` ADD UNIQUE KEY `nas` (`nas`, `ip`);
 ALTER TABLE `shedule` ADD UNIQUE KEY `uniq_action` (`h`, `d`, `m`, `y`, `type`, `uid`);
 ALTER TABLE `nas` ADD COLUMN `alive` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '0';
+ALTER TABLE `nas` ADD COLUMN `disable` TINYINT(6) UNSIGNED NOT NULL DEFAULT '0';
 ALTER TABLE `networks` MODIFY COLUMN `web_control` VARCHAR(21);
 ALTER TABLE `actions` ADD COLUMN `disable` TINYINT(1) UNSIGNED NOT NULL DEFAULT '0';
 ALTER TABLE `admins` DROP column `permissions`;

@@ -63,14 +63,14 @@ my $page_qs;
 
 
 print << "[END]";
-<table width=100% border=1>
+<table width=100% border=0>
 <tr bgcolor=$_COLORS[0]><td align=right>
 <h3>ABillS</h3>
 </td>
 </tr>
 </table>
 <center>
-<table width=90%>
+<table width=99%>
 <tr><td align=center>
 [END]
 
@@ -83,6 +83,15 @@ my $user=Users->new($db, undef, \%conf);
 
 if ($uid > 0) {
   mk_navigator();
+  
+  my $table = Abills::HTML->table( { width => '100%',
+                                     cols_align => ['right'],
+                                     rowcolor => $_COLORS[2],
+                                     rows => [ [ "$_DATE: $DATE $_TIME: $TIME <" ] ]
+                                  } );
+  print $table->show();
+  
+
   $pages_qs="&UID=$user->{UID}&sid=$sid";
   if ($index != 0 && defined($functions{$index})) {
 #    my $m;

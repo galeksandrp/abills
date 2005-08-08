@@ -50,7 +50,10 @@ if ($nas->{errno} || $nas->{TOTAL} < 1) {
   access_deny("$RAD->{USER_NAME}", "Unknow server '$RAD->{NAS_IP_ADDRESS}'", 0);
   exit 1;
 }
-
+elsif($nas->{NAS_DISABLE} > 0) {
+  access_deny("$RAD->{USER_NAME}", "Disabled NAS server '$RAD->{NAS_IP_ADDRESS}'", 0);
+  exit 1;
+}
 
 $nas->{at} = 0 if (defined($RAD->{CHAP_PASSWORD}) && defined($RAD->{CHAP_CHALLENGE}));
 auth($RAD);

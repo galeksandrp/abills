@@ -255,6 +255,7 @@ return qq{
 <tr><td>$_TYPE:</td><td><select name=NAS_TYPE>%SEL_TYPE%</select></td></tr>
 <tr><td>$_AUTH:</td><td><select name=NAS_AUTH_TYPE>%SEL_AUTH_TYPE%</select></td></tr>
 <tr><td>Alive:</td><td><input type=text name=NAS_ALIVE value='%NAS_ALIVE%'></td></tr>
+<tr><td>$_DISABLE:</td><td><input type=checkbox name=NAS_DISABLE value=1 %NAS_DISABLE%></td></tr>
 <tr><th colspan=2>:$_MANAGE:</th></tr>
 <tr><td>IP:PORT:</td><td><input type=text name=NAS_MNG_IP_PORT value="%NAS_MNG_IP_PORT%"></td></tr>
 <tr><td>$_USER:</td><td><input type=text name=NAS_MNG_USER value="%NAS_MNG_USER%"></td></tr>
