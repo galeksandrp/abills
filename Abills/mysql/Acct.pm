@@ -18,7 +18,7 @@ use main;
 use Billing;
 
 @ISA  = ("main");
-my $db;
+my ($db, $conf);
 
 
 
@@ -37,7 +37,7 @@ my %ACCT_TYPES = ('Start', 1,
 #**********************************************************
 sub new {
   my $class = shift;
-  ($db) = @_;
+  ($db, $conf) = @_;
   my $self = { };
   bless($self, $class);
   #$self->{debug}=1;
@@ -50,7 +50,7 @@ sub new {
 #**********************************************************
 sub accounting {
  my $self = shift;
- my ($RAD, $NAS, $conf)=@_;
+ my ($RAD, $NAS)=@_;
  
 
  my $acct_status_type = $ACCT_TYPES{$RAD->{ACCT_STATUS_TYPE}};
@@ -77,22 +77,18 @@ elsif ($acct_status_type == 2) {
 
   my $Billing = Billing->new($db);	
 
-  #my ($uid, $sum, $account_id, $tarif_plan, $time_t, $traf_t) = $Billing->session_sum2("$RAD->{USER_NAME}", $RAD->{SESSION_START}, $RAD->{ACCT_SESSION_TIME}, $RAD, $conf);
 
   ($self->{UID}, 
   $self->{SUM}, 
   $self->{ACCOUNT_ID}, 
   $self->{TARIF_PLAN}, 
   $self->{TIME_TARIF}, 
-  $self->{TRAF_TARIF}) = $Billing->session_sum2("$RAD->{USER_NAME}", $RAD->{SESSION_START}, $RAD->{ACCT_SESSION_TIME}, $RAD, $conf);
+  $self->{TRAF_TARIF}) = $Billing->session_sum2("$RAD->{USER_NAME}", 
+                                                 $RAD->{SESSION_START}, 
+                                                 $RAD->{ACCT_SESSION_TIME}, 
+                                                 $RAD, 
+                                                 $conf);
 
-  print "$self->{UID}, 
-  $self->{SUM}, 
-  $self->{ACCOUNT_ID}, 
-  $self->{TARIF_PLAN}, 
-  $self->{TIME_TARIF}, 
-  $self->{TRAF_TARIF}\n";
-  
 #  return $self;
   if ($self->{UID} == -2) {
     $self->{errno}=1;   

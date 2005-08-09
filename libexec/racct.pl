@@ -143,8 +143,8 @@ else {
 
  require Acct;
  Acct->import();
- my $Acct = Acct->new($db);
- my $r = $Acct->accounting($RAD, $nas, \%conf);
+ my $Acct = Acct->new($db, \%conf);
+ my $r = $Acct->accounting($RAD, $nas);
 
 
 
