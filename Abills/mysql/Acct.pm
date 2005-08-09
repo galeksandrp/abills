@@ -84,7 +84,6 @@ elsif ($acct_status_type == 2) {
   $self->{ACCOUNT_ID}, 
   $self->{TARIF_PLAN}, 
   $self->{TIME_TARIF}, 
-
   $self->{TRAF_TARIF}) = $Billing->session_sum2("$RAD->{USER_NAME}", $RAD->{SESSION_START}, $RAD->{ACCT_SESSION_TIME}, $RAD, $conf);
 
   print "$self->{UID}, 
@@ -94,7 +93,7 @@ elsif ($acct_status_type == 2) {
   $self->{TIME_TARIF}, 
   $self->{TRAF_TARIF}\n";
   
-  return $self;
+#  return $self;
   if ($self->{UID} == -2) {
     $self->{errno}=1;   
     $self->{errstr} = "ACCT [$RAD->{USER_NAME}] Not exist";

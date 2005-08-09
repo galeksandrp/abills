@@ -952,18 +952,17 @@ sub err {
 
 #*******************************************************************
 # Make session log file
-# mk_session_log(\$acct_info)
+# mk_session_log(\$acct_info, $conf)
 #*******************************************************************
 sub mk_session_log  {
  my ($acct_info, $conf) = @_;
- my $filename="$acct_info->{USER_NAME}.$acct_info->{ACCT_SESSION_ID}";
- my %acct_hash = %$acct_info;
+ #my $filename="1"; # "$acct_info->{USER_NAME}.$acct_info->{ACCT_SESSION_ID}";
 
- open(FILE, ">$conf->{SPOOL_DIR}/$filename") || die "Can't open file '$conf->{SPOOL_DIR}/$filename' $!";
-  while(my($k, $v)=each(%acct_hash)) {
+# open(FILE, ">$conf->{SPOOL_DIR}/$filename") || die "Can't open file '$conf->{SPOOL_DIR}/$filename' $!";
+  while(my($k, $v)=each(%$acct_info)) {
      print FILE "$k:$v\n";
    }
- close(FILE);
+# close(FILE);
 }
 
 

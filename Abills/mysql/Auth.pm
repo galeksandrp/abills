@@ -52,66 +52,6 @@ sub authentication {
   my $SECRETKEY = (defined($attr->{SECRETKEY})) ? $attr->{SECRETKEY} : '';
   my %RAD_PAIRS = ();
   
-#  $self->query($db, "select
-#  u.uid,
-#  if (u.logins=0, tp.logins, u.logins) AS logins,
-#  if(u.filter_id != '', u.filter_id, tp.filter_id),
-#  if(u.ip>0, INET_NTOA(u.ip), 0),
-#  INET_NTOA(u.netmask),
-#  u.tp_id,
-#  DECODE(password, '$SECRETKEY'),
-#  u.speed,
-#  u.cid,
-#  tp.day_time_limit,
-#  tp.week_time_limit,
-#  tp.month_time_limit,
-#  if(tp.day_time_limit=0 and tp.dt='0:00:00' AND tp.ut='24:00:00',
-#   UNIX_TIMESTAMP(DATE_FORMAT(DATE_ADD(curdate(), INTERVAL 1 MONTH), '%Y-%m-01')) - UNIX_TIMESTAMP(),
-#  if(curtime() < tp.ut, TIME_TO_SEC(tp.ut)-TIME_TO_SEC(curtime()), TIME_TO_SEC('23:00:00')-TIME_TO_SEC(curtime())) 
-#    ) as today_limit,
-#  day_traf_limit,
-#
-#  week_traf_limit,
-#  month_traf_limit,
-#  tp.octets_direction,
-# 
-#  if (count(un.uid) + count(tp_nas.tp_id) = 0, 0,
-#    if (count(un.uid)>0, 1, 2)),
-#  count(tt.id),
-#  tp.hourp,
-#  UNIX_TIMESTAMP(),
-#  UNIX_TIMESTAMP(DATE_FORMAT(FROM_UNIXTIME(UNIX_TIMESTAMP()), '%Y-%m-%d')),
-#  DAYOFWEEK(FROM_UNIXTIME(UNIX_TIMESTAMP())),
-#  DAYOFYEAR(FROM_UNIXTIME(UNIX_TIMESTAMP())),
-#  u.account_id,
-#  u.disable,
-#  
-#  u.deposit,
-#  u.credit,
-#  tp.credit_tresshold,
-#  if(tp.hourp + tp.day_fee + tp.month_fee=0 and (sum(tt.in_price + tt.out_price)=0 or sum(tt.in_price + tt.out_price)IS NULL), 0, 1),
-#  tp.max_session_duration,
-#  if(v.dt < v.ut,
-#    if(v.dt < CURTIME() and v.ut > CURTIME(), 1, 0),
-#      if((v.dt < CURTIME() or (CURTIME() > '0:00:00' and CURTIME() < v.ut ))
-#       and
-#       (CURTIME() < '23:00:00' or v.ut > CURTIME()  ),
-#     1, 0 ))
-#
-#     FROM users u, tarif_plans tp
-#     LEFT JOIN  trafic_tarifs tt ON (tt.tp_id=u.tp_id)
-#     LEFT JOIN users_nas un ON (un.uid = u.uid)
-#     LEFT JOIN tp_nas ON (tp_nas.tp_id = tp.id)
-#     WHERE u.tp_id=tp.id
-#        AND u.id='$RAD->{USER_NAME}'
-#        AND (u.expire='0000-00-00' or u.expire > CURDATE())
-#        AND (u.activate='0000-00-00' or u.activate <= CURDATE())
-#        AND tp.dt < CURTIME()
-#        AND CURTIME() < tp.ut
-#       GROUP BY u.id;");
-
-
-
   $self->query($db, "select
   u.uid,
   if (u.logins=0, tp.logins, u.logins) AS logins,
