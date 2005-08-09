@@ -40,7 +40,7 @@ $conf{negative_deposit}='no';
 
 #System admin id
 #ID for system operation, periodic procces
-$conf->{SYSTEM_ADMIN_ID}=1;
+$conf{SYSTEM_ADMIN_ID}=1;
 
 #Web interface
 $conf{passwd_length}=6;
@@ -85,7 +85,7 @@ $base_dir='/usr/abills/';
 $lang_path=$base_dir . 'language/';
 $lib_path=$base_dir .'libexec/';
 $var_dir=$base_dir .'var/';
-$spool_dir=$base_dir.'var/q';
+$conf{SPOOL_DIR}=$base_dir.'var/q';
 
 # Template folder
 $conf{TPL_DIR}   = $base_dir . 'cgi-bin/admin/tpls/';

@@ -1,0 +1,152 @@
+#!/usr/bin/perl -w
+# ppp
+# external script for traffic shapping
+#
+# /etc/ppp/ppp.linkup
+#-------------------------------------------------------------
+# MYADDR:
+# !bg /usr/abills/libexec/linkupdown up INTERFACE USER HISADDR
+#
+# /etc/ppp/ppp.linkdown
+#
+# MYADDR:
+# !bg /usr/abills/libexec/linkupdown down INTERFACE USER HISADDR
+#
+#
+#-------------------------------------------------------------
+# /usr/local/etc/mpd/mpd.conf
+# set iface up-script "/usr/abills/libexec/linkupdown mpd up"
+# set iface down-script "/usr/abills/libexec/linkupdown mpd down"
+
+
+my $debug=1;
+
+
+use vars  qw(%RAD %conf $db);
+use strict;
+
+use FindBin '$Bin';
+require $Bin . '/config.pl';
+#use lib '../', "../Abills/$conf{dbtype}";
+unshift(@INC, $Bin . '/../', $Bin ."/../Abills/$conf{dbtype}");
+require Abills::Base;
+Abills::Base->import();
+my $begin_time = check_time();
+
+require Abills::SQL;
+my $sql = Abills::SQL->connect($conf{dbtype}, "$conf{dbhost}", $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
+my $db = $sql->{db};
+
+
+
+
+
+
+
+
+
+my $IPFW='/sbin/ipfw';
+my @START_FW = (3000, 2000, 1000);
+# Arguments
+my ($ACTION, $INTERFACE, $USER, $HISADDR, $inum);
+
+#MPD
+if ($ARGV[0] eq 'mpd') {
+ $ACTION=$ARGV[1];
+ $INTERFACE=$ARGV[2];
+ $USER=$ARGV[6];
+ $HISADDR=$ARGV[5];
+ $inum = $INTERFACE;
+ $inum =~ s/ng//;
+}
+# PPP
+else {
+ $ACTION=$ARGV[0];
+ $INTERFACE=$ARGV[1];
+ $USER=$ARGV[2];
+ $HISADDR=$ARGV[3];
+ $inum = $INTERFACE;
+ $inum =~ s/tun//;
+} 
+
+
+require Admins;
+Admins->import();
+require Users;
+Users->import();
+
+
+my $admin = Admins->new($db);
+$admin->info($conf{SYSTEM_ADMIN_ID}, { IP => '127.0.0.1' });
+my $users = Users->new($db, $admin, \%conf); 
+
+
+
+
+my @FW_ACTIONS = ();
+
+# Flush rules
+  my($fw_num, $pipe_num, $fw_nums, $pipe_nums);
+  
+  foreach my $num (@START_FW) {
+    $fw_num = $num + $inum;
+    $pipe_num = $num + $inum;
+    $fw_nums .= "$fw_num ";
+    $pipe_nums .= "$pipe_num ";
+  }
+  push @FW_ACTIONS, "$IPFW delete $fw_nums";
+  push @FW_ACTIONS, "$IPFW pipe delete $pipe_nums";
+
+
+# Up fw shaper rules
+if ($ACTION eq 'up') {
+  my %speeds = ();
+  my %nets = ();
+  
+  my $user = $users->info(0, { LOGIN => "$USER" });
+
+  if ($user->{SPEED} > 0) {
+    $speeds{0}=int($user->{SPEED});
+   }
+  else {
+    require Tariffs;
+    Tariffs->import();
+    my $tariffs = Tariffs->new($db);
+
+#    $q = $db->prepare("SELECT id, speed, nets FROM trafic_tarifs WHERE vid='$vid';") || die $db->errstr;
+#    $q -> execute ();
+#    while(my($tt_id, $speed, $nets_list) = $q -> fetchrow()) {
+#       $speeds{$tt_id}=$speed;
+#       $nets{$tt_id}=$nets_list;
+#     }
+   }
+
+ # speed apply
+  my $fw_num=0;
+  my $pipe_num=0;
+  while(my ($traf_type, $speed)=each %speeds) {
+    $fw_num = $START_FW[$traf_type] + $inum;
+    $pipe_num = $START_FW[$traf_type] + $inum;
+    if ($speed > 0) {
+       if ($traf_type == 0) {
+         push @FW_ACTIONS, "$IPFW add $fw_num pipe $pipe_num ip from any to any via $INTERFACE";
+         push @FW_ACTIONS, "$IPFW pipe $pipe_num config bw ". $speed ."Kbit/s queue 10Kbytes";
+        }
+       else {
+         push @FW_ACTIONS, "$IPFW add $fw_num pipe $pipe_num ip from $nets{$traf_type} to any via $INTERFACE";
+         push @FW_ACTIONS, "$IPFW pipe $pipe_num config bw ". $speed ."Kbit/s queue 10Kbytes";
+        }
+    }
+  }
+
+ }
+
+#make firewall actions
+foreach my $line (@FW_ACTIONS) {
+  if ($debug == 1) {
+    print "$line\n";	
+   }	
+  else {
+    system("$line");
+   }
+}
