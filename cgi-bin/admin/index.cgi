@@ -2445,21 +2445,52 @@ my $table = Abills::HTML->table( { width => '100%',
                                 border => 1,
                                 title => ["$_USER", "$_START", "$_DURATION", "$_TARIF_PLAN", "$_SENT", "$_RECV", 
                                 "CID", "NAS", "IP", "$_SUM", "-", "-"],
-                                cols_align => ['left', 'right', 'right', 'left', 'right', 'right', 'right', 'right', 'right', 'right', 'center'],
+                                cols_align => ['left', 'right', 'right', 'RIGHT', 'right', 'right', 'right', 'right', 'right', 'right', 'center'],
                                 qs => $pages_qs,
                                 pages => $sessions->{TOTAL},
                                 recs_on_page => $LIST_PARAMS{PAGE_ROWS}
                                } );
 
 my $delete = '';
+
+use Billing;
+my $Billing = Billing->new($db);	
+
+
+
 foreach my $line (@$list) {
   if ($permissions{3}{1}) {
     $delete = $html->button($_DEL, "index=22$pages_qs&del=$line->[12]+$line->[11]+$line->[7]+$line->[1]+$line->[9]+$line->[0]", "$_DEL Session SESSION_ID $line->[11]?");
    }
 
+  my ($UID, 
+      $SUM, 
+      $ACCOUNT_ID, 
+      $TARIF_PLAN, 
+      $TIME_TARIF, 
+      $TRAF_TARIF) = $Billing->session_sum2("$line->[0]", 
+                                            $line->[13], 
+                                            $line->[14], 
+                                            {  OUTBYTE  =>  $line->[4],
+                                               INBYTE   =>  $line->[5],
+                                               OUTBYTE2 =>  0,
+                                               INBYTE2  =>  0
+                                             }, 
+                                            \%conf);
+  
+  my $test = "$UID, 
+      <b>$SUM</b>, 
+      $ACCOUNT_ID, 
+      $TARIF_PLAN, 
+      $TIME_TARIF, 
+      $TRAF_TARIF";
+
   $table->addrow("<a href='$SELF_URL?index=11&UID=$line->[12]'>$line->[0]</a>", 
-     $line->[1], $line->[2],  $line->[3],  int2byte($line->[4]), int2byte($line->[5]), $line->[6],
-     $line->[7], $line->[10], $line->[9], 
+     $line->[1], $line->[2],  $line->[3],  
+     int2byte($line->[4]), 
+     int2byte($line->[5]), $line->[6],
+     $line->[7], $line->[10], 
+     "$line->[9] $test", 
      "(<a href='$SELF_URL?index=23&UID=$user->{UID}&detail=$line->[11]' title='Session Detail'>D</a>)", $delete);
 }
 

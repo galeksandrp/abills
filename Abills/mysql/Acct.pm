@@ -22,8 +22,6 @@ my ($db, $conf);
 
 
 
-
-
 my %ACCT_TYPES = ('Start', 1,
                'Stop', 2,
                'Alive', 3,
@@ -73,8 +71,6 @@ if ($acct_status_type == 1) {
 elsif ($acct_status_type == 2) {
 
 
-
-
   my $Billing = Billing->new($db);	
 
 
@@ -98,7 +94,6 @@ elsif ($acct_status_type == 2) {
     my $filename = "$RAD->{USER_NAME}.$RAD->{ACCT_SESSION_ID}";
     $self->{errno}=1;
     $self->{errstr}="ACCT [$RAD->{USER_NAME}] Not allow start period '$filename'";
-    print $self->{errstr};
     $Billing->mk_session_log($RAD, $conf);
    }
   elsif ($self->{SUM} < 0) {

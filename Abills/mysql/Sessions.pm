@@ -460,7 +460,11 @@ elsif($attr->{DATE}) {
 
 
  $self->query($db, "SELECT u.id, l.start, SEC_TO_TIME(l.duration), l.tp_id,
-  l.sent, l.recv, l.CID, l.nas_id, l.ip, l.sum, INET_NTOA(l.ip), l.acct_session_id, l.uid
+  l.sent, l.recv, l.CID, l.nas_id, l.ip, l.sum, INET_NTOA(l.ip), 
+  l.acct_session_id, 
+  l.uid, 
+  UNIX_TIMESTAMP(l.start),
+  l.duration
   FROM log l, users u
   $WHERE_LIST
   ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");

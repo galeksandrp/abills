@@ -45,6 +45,9 @@ sub traffic_calculations {
   my $sent2 = $RAD->{OUTBYTE2} || 0; 
   my $recv2 = $RAD->{INBYTE2} || 0;
 
+# print "---------------------------- OUT: $RAD->{OUTBYTE}<br> 
+#         IN: $RAD->{INBYTE}<br>\n";
+
 	
 =comments
 #local Prepaid Traffic
@@ -151,7 +154,9 @@ my %prepaid = ();
 my %used_traffic=( 0 => 0, 
                    1 => 0);
 
-my $list = $tariffs->tt_list(TP_ID => $self->{TP_ID});
+
+my $list = $tariffs->tt_list( { TI_ID => $self->{TI_ID} });
+
 #id, in_price, out_price, prepaid, speed, descr, nets
 foreach my $line (@$list) {
    $traf_price{in}{$line->[0]}  =	$line->[1];
@@ -208,8 +213,9 @@ if ($prepaid{0} + $prepaid{1} > 0) {
  my $lo_out = $sent2 / 1024 / 1024 * $traf_price{out}{1};
  $traf_sum  = $lo_in + $lo_out + $gl_in + $gl_out;
 
- return $traf_sum;
 
+
+ return $traf_sum;
 }
 
 #**********************************************************
@@ -299,7 +305,7 @@ sub session_sum2 {
  	#print "NOt allow start period";
  	return -3, 0, 0, 0, 0, 0;	
  }
-
+#$self->{debug}=1;
  while(my($k, $v)=each(%$sd)) {
  	 print "> $k, $v\n" if ($self->{debug});
    if(defined($periods_time_tarif->{$k})) {
@@ -307,7 +313,8 @@ sub session_sum2 {
      }
 
    if($periods_traf_tarif->{$k} > 0) {
-   	  $sum  += $self->traffic_calculations($k, $RAD, $conf);
+   	  $self->{TI_ID}=$k;
+   	  $sum  += $self->traffic_calculations($RAD, $conf);
     }
   }
 
@@ -364,7 +371,7 @@ sub time_intervals {
  foreach my $line (@$list) {
    $time_periods{$line->[0]}{$line->[1]} = "$line->[5]:$line->[2]";
    $periods_time_tarif{$line->[5]} = $line->[3];
-   $periods_traf_tarif{$line->[5]} = int($line->[4]);
+   $periods_traf_tarif{$line->[5]} = $line->[4];
   }
 
 
@@ -383,12 +390,20 @@ sub session_splitter2 {
  my $self = shift;
  my ($start, $duration, $day_begin, $day_of_week, $day_of_year, $attr) = @_;
  my $debug = 0;
+ my %division_time = (); #return division time
 
 
  ($time_intervals, $periods_time_tarif, $periods_traf_tarif) = $self->time_intervals($attr->{TP_ID});
 
- my %division_time = (); #return division time
+ if($time_intervals == 0)  {
+   $self->{TIME_DIVISIONS} = \%division_time;
+   $self->{SUM}=0;
+   return $self;
+  }
+ 
+
  my %holidays = ();
+
  if (defined($time_intervals->{8})) {
    my $list = $tariffs->holidays_list({ format => 'daysofyear' });
    foreach my $line (@$list) {
@@ -417,7 +432,7 @@ Abills::Base->import();
       $tarif_day = 0;
     }
    else {
-   	  err();
+#   	  err();
    	  return -1;
     }
 
@@ -480,7 +495,7 @@ Abills::Base->import();
             	 }
              }
 
-            print "$int_id $division_time{$int_id}" . "\n";
+            print "$int_id $division_time{$int_id}" . "\n" if($debug==1);
 
             next;
           }
@@ -512,7 +527,7 @@ Abills::Base->import();
 #              }
       	   }
 
-        print "\n";    
+        print "\n" if($debug == 1);    
       }
   }
  
@@ -541,11 +556,6 @@ sub mk_session_log  {
  my $self = shift;
  my ($acct_info, $conf) = @_;
  my $filename="$acct_info->{USER_NAME}.$acct_info->{ACCT_SESSION_ID}";
-
-
-     print "$conf->{SPOOL_DIR}\n";
-
-
 
  open(FILE, ">$conf->{SPOOL_DIR}/$filename") || die "Can't open file '$conf->{SPOOL_DIR}/$filename' $!";
   while(my($k, $v)=each(%$acct_info)) {
