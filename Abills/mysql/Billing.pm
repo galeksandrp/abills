@@ -258,7 +258,8 @@ sub session_sum2 {
    u.reduction,
    u.account_id,
    u.activate,
-   tp.day_fee
+   tp.day_fee,
+   tp.min_session_cost
  FROM users u, tarif_plans tp
  WHERE u.tp_id=tp.id and u.id='$USER_NAME';");
 
@@ -281,7 +282,8 @@ sub session_sum2 {
    $self->{REDUCTION},
    $self->{ACCOUNT_ID}, 
    $self->{ACTIVATE},
-   $self->{DAY_FEE}
+   $self->{DAY_FEE},
+   $self->{MIN_SESSION_COST}
   ) = @$ar;
 
   use Tariffs;
@@ -324,11 +326,9 @@ sub session_sum2 {
 
 
 $sum = $sum * (100 - $self->{REDUCTION}) / 100 if ($self->{REDUCTION} > 0);
-#$sum = $conf->{MINIMUM_SESSION_COST} if ($sum < $conf->{MINIMUM_SESSION_COST} && $time_tarif + $traf_price{in}{1} + $traf_price{out}{1} + $traf_price{out}{0} + $traf_price{in}{0} > 0);
+$sum = $self->{MIN_SESSION_COST} if ($sum < $self->{MIN_SESSION_COST} && $self->{MIN_SESSION_COST} > 0);
 
 return $self->{UID}, $sum, $self->{ACCOUNT_ID}, $self->{TP_ID}, 0, 0;
-
-
 
 
 #  return $uid, $sum, $account_id, $TP_ID, $time_tarif, 0;

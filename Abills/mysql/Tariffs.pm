@@ -42,7 +42,9 @@ my %FIELDS = ( TP_ID        => 'id',
                ALERT            => 'uplimit',
                OCTETS_DIRECTION => 'octets_direction',
                MAX_SESSION_DURATION => 'max_session_duration',
-               FILTER_ID        => ''
+               FILTER_ID        => '',
+               PAYMENT_TYPE     => 'payment_type',
+               MIN_SESSION_COST => 'min_session_cost'
              );
 
 #**********************************************************
@@ -228,8 +230,6 @@ sub defaults {
 
   %DATA = ( TP_ID => 0, 
             NAME => '',  
-            BEGIN => '00:00:00',
-            END  => '24:00:00',    
             TIME_TARIF => '0.00000',
             DAY_FEE => '0,00',
             MONTH_FEE => '0.00',
@@ -246,7 +246,11 @@ sub defaults {
             CREDIT_TRESSHOLD => '0.00',
             ALERT => 0,
             OCTETS_DIRECTION => 0,
-            MAX_SESSION_DURATION => 0
+            MAX_SESSION_DURATION => 0,
+            FILTER_ID            => '',
+            PAYMENT_TYPE         => 0,
+            MIN_SESSION_COST     => '0.00000'
+
          );   
  
   $self = \%DATA;
@@ -262,18 +266,21 @@ sub add {
   my ($attr) = @_;
 
   %DATA = $self->get_data($attr, { default => \%DATA }); 
+  
+  $self->{debug}=1;
 
   $self->query($db, "INSERT INTO tarif_plans (id, hourp, uplimit, name, month_fee, day_fee, logins, 
      day_time_limit, week_time_limit,  month_time_limit, 
      day_traf_limit, week_traf_limit,  month_traf_limit,
      activate_price, change_price, credit_tresshold, age, octets_direction,
-     max_session_duration, filter_id)
+     max_session_duration, filter_id, payment_type, min_session_cost)
     values ('$DATA{TP_ID}', '$DATA{TIME_TARIF}', '$DATA{ALERT}', \"$DATA{NAME}\", 
      '$DATA{MONTH_FEE}', '$DATA{DAY_FEE}', '$DATA{SIMULTANEONSLY}', 
      '$DATA{DAY_TIME_LIMIT}', '$DATA{WEEK_TIME_LIMIT}',  '$DATA{MONTH_TIME_LIMIT}', 
      '$DATA{DAY_TRAF_LIMIT}', '$DATA{WEEK_TRAF_LIMIT}',  '$DATA{MONTH_TRAF_LIMIT}',
      '$DATA{ACTIV_PRICE}', '$DATA{CHANGE_PRICE}', '$DATA{CREDIT_TRESSHOLD}', '$DATA{AGE}', '$DATA{OCTETS_DIRECTION}',
-     '$DATA{MAX_SESSION_DURATION}', '$DATA{FILTER_ID}');", 'do' );
+     '$DATA{MAX_SESSION_DURATION}', '$DATA{FILTER_ID}',
+     '$DATA{payment_type}', '$DATA{min_session_cost}');", 'do' );
 
   return $self;
 }
@@ -349,7 +356,11 @@ sub info {
   $self->query($db, "SELECT id, name, hourp, day_fee, month_fee, logins, age,
       day_time_limit, week_time_limit,  month_time_limit, 
       day_traf_limit, week_traf_limit,  month_traf_limit,
-      activate_price, change_price, credit_tresshold, uplimit, octets_direction, max_session_duration
+      activate_price, change_price, credit_tresshold, uplimit, octets_direction, 
+      max_session_duration,
+      filter_id,
+      payment_type,
+      min_session_cost
     FROM tarif_plans
     WHERE id='$id';");
 
@@ -380,7 +391,9 @@ sub info {
    $self->{ALERT},
    $self->{OCTETS_DIRECTION},
    $self->{MAX_SESSION_DURATION},
-   $self->{FILTER_ID}
+   $self->{FILTER_ID},
+   $self->{PAYMENT_TYPE},
+   $self->{MIN_SESSION_COST}
   ) = @$ar;
 
 
@@ -401,6 +414,7 @@ sub list {
  my $WHERE = '';
  $self->query($db, "SELECT tp.id, tp.name, if(sum(i.tarif) is NULL or sum(i.tarif)=0, 0, 1), 
     if(sum(tt.in_price + tt.out_price)> 0, 1, 0), 
+    tp.payment_type,
     tp.day_fee, tp.month_fee, tp.logins, tp.age
     FROM tarif_plans tp
     LEFT JOIN intervals i ON (i.tp_id=tp.id)

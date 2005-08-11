@@ -271,3 +271,7 @@ $_MAX_SESSION_DURATION='Мак время сесии';
 $_START='Начало';
 $_YES='Да';
 $_NO='Нет';
+$_PAYMENT_TYPE='Вид оплаты';
+$_PREPAID='Предоплата';
+$_POSTPAID='Послеоплата';
+$_MIN_SESSION_COST='Минимальная цена сесии';

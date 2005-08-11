@@ -21,6 +21,31 @@
 
 my $debug=1;
 
+#If not anought arguments
+if ( $#ARGV < 3 ) {
+print qq{Not anought argumets:
+ Example:
+
+ /etc/ppp/ppp.linkup
+----------------------------------------------------------------
+ MYADDR:
+ !bg /usr/abills/libexec/linkupdown up INTERFACE USER HISADDR
+
+ /etc/ppp/ppp.linkdown
+
+ MYADDR:
+ !bg /usr/abills/libexec/linkupdown down INTERFACE USER HISADDR
+
+
+----------------------------------------------------------------
+ /usr/local/etc/mpd/mpd.conf
+ set iface up-script "/usr/abills/libexec/linkupdown mpd up"
+ set iface down-script "/usr/abills/libexec/linkupdown mpd down"
+----------------------------------------------------------------
+};
+exit 0;
+}
+
 
 use vars  qw(%RAD %conf $db);
 use strict;
@@ -109,9 +134,25 @@ if ($ACTION eq 'up') {
     $speeds{0}=int($user->{SPEED});
    }
   else {
-    require Tariffs;
-    Tariffs->import();
-    my $tariffs = Tariffs->new($db);
+#    require Tariffs;
+#    Tariffs->import();
+#    my $tariffs = Tariffs->new($db);
+
+   require Auth;
+   Auth->import();
+   my $auth = Auth->new($db);
+
+=comments
+  $auth->remaining_time( );
+  my ($tp_id, 
+      $deposit, 
+      $session_start, 
+      $day_begin, 
+      $day_of_week, 
+      $day_of_year,
+      $attr) = @_;
+=cut
+
 
 #    $q = $db->prepare("SELECT id, speed, nets FROM trafic_tarifs WHERE vid='$vid';") || die $db->errstr;
 #    $q -> execute ();

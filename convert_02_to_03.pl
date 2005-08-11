@@ -21,16 +21,34 @@ my $not_found = "";
 
 #other_convert();
 #users_convert();
-log_convert();
+#log_convert();
+
+tariffs();
 
 
 
-sub other_convert {
-	my  @sql_array = ();
+sub tariffs {
+	my $q, $q2, $q3;
+
+
   
-  foreach my $l (@sql_array) {
-    $q2 = $db->do($l) || die $db->errstr;
-    print "$l\n";
+  
+  $q = $db -> prepare("SELECT id,  dt, ut, hourp from tarif_plans GROUP BY id;") || die $db->strerr;
+  $q->execute ();
+  while(my($id, $begin, $end, $traf_price)=$q->fetchrow()) {
+     print "$id, $begin, $end, $traf_price\n";
+     if($tarf_price > 0) {
+       $q2 = $db->do("INSERT INTO  intervals (tp_id, begin, end, tarif, day) 
+           VALUES ('$id', '$begin', '$end', '0', '0');");
+       my $insert_id = $db->{'mysql_insertid'};
+       $q3 = $db->do("UPDATE trafic_tarifs SET interval_id='$insert_id' WHERE TP_ID='$id'") || die $db->strerr;
+      }
+     else {
+       my $sql = "INSERT INTO  intervals (tp_id, begin, end, tarif, day) 
+           VALUES ('$id', '$begin', '$end', '0', '0');";
+       print "-- $sql\n";
+       $q2 = $db->do($sql);
+      }
    }
 
   print "\n\n$not_found";

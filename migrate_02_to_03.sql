@@ -26,10 +26,12 @@ ALTER TABLE `intervals` DROP INDEX `vid`;
 ALTER TABLE `intervals` change COLUMN vid `tp_id` TINYINT(4) UNSIGNED NOT NULL DEFAULT '0';
 ALTER TABLE `intervals` ADD COLUMN `id` SMALLINT(6) UNSIGNED NOT NULL AUTO_INCREMENT UNIQUE PRIMARY KEY;
 ALTER TABLE `intervals` ADD UNIQUE KEY `tp_id` (`tp_id`, `begin`, `day`);
+
 ALTER TABLE `trafic_tarifs` DROP INDEX `vid_id`;
 ALTER TABLE `trafic_tarifs` DROP INDEX `vid`;
 ALTER TABLE `trafic_tarifs` DROP COLUMN `price`;
 ALTER TABLE `trafic_tarifs` change COLUMN vid `tp_id` SMALLINT(5) UNSIGNED NOT NULL DEFAULT '0';
+ALTER TABLE `trafic_tarifs` add  column interval_id smallint(6) unsigned NOT NULL default '0';
 ALTER TABLE `trafic_tarifs` ADD UNIQUE KEY `tpid` (`tp_id`, `id`);
 ALTER TABLE `trafic_tarifs` ADD KEY `tp_id` (`tp_id`);
 
@@ -41,6 +43,7 @@ RENAME TABLE userlog to admin_actions;
 ALTER TABLE admin_actions change log actions varchar(100) NOT NULL default '';
 ALTER TABLE admin_actions change date `datetime` datetime NOT NULL default '0000-00-00 00:00:00';
 
+
 RENAME TABLE variant to tarif_plans;
 ALTER TABLE tarif_plans DROP column `kb`;
 ALTER TABLE tarif_plans CHANGE column vrnt id smallint(5) unsigned NOT NULL default '0';
@@ -50,6 +53,9 @@ ALTER TABLE tarif_plans ADD column  `age` smallint(6) unsigned NOT NULL default 
 ALTER TABLE tarif_plans ADD column  `octets_direction` tinyint(2) unsigned NOT NULL default '0';
 ALTER TABLE tarif_plans ADD column  `max_session_duration` smallint(6) unsigned NOT NULL default '0';
 ALTER TABLE tarif_plans ADD column  `filter_id` varchar(15) NOT NULL default '';
+ALTER TABLE tarif_plans ADD column  `payment_type` tinyint(1) NOT NULL default 0;
+ALTER TABLE tarif_plans ADD column  `min_session_cost` float(10,5) unsigned NOT NULL default '0.00000';
+
 
 RENAME TABLE  vid_nas to tp_nas;
 ALTER TABLE tp_nas change vid tp_id smallint(5) unsigned NOT NULL default '0';

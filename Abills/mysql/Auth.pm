@@ -86,8 +86,8 @@ sub authentication {
   u.credit,
   tp.credit_tresshold,
   if(tp.hourp + tp.day_fee + tp.month_fee=0 and (sum(tt.in_price + tt.out_price)=0 or sum(tt.in_price + tt.out_price)IS NULL), 0, 1),
-  tp.max_session_duration
-
+  tp.max_session_duration,
+  tp.payment_type
 
      FROM users u, tarif_plans tp
      LEFT JOIN trafic_tarifs tt ON (tt.tp_id=u.tp_id)
@@ -137,7 +137,8 @@ sub authentication {
      $self->{CREDIT},
      $self->{CREDIT_TRESSHOLD},
      $self->{TP_PAYMENT},
-     $self->{MAX_SESSION_DURATION}
+     $self->{MAX_SESSION_DURATION},
+     $self->{PAYMENT_TYPE}
     ) = @$a_ref;
 
 
@@ -151,27 +152,7 @@ if ($self->{DISABLE}) {
 }
 
 
-#Chack Company account if ACCOUNT_ID > 0
-if ($self->{ACCOUNT_ID} > 0) {
-  $self->query($db, "SELECT deposit + credit, disable FROM accounts WHERE id='$self->{ACCOUNT_ID}';");
-  if($self->{errno}) {
-  	$RAD_PAIRS{'Reply-Message'}="SQL error";
-  	return 1, \%RAD_PAIRS;
-   }
-  elsif ($self->{TOTAL} < 1) {
-    $RAD_PAIRS{'Reply-Message'}="Company Not Exist";
-    return 1, \%RAD_PAIRS;
-   }
 
-  my $a_ref = $self->{list}->[0];
-
-  ($self->{DEPOSIT},
-   $self->{DISABLE},
-    ) = @$a_ref;
-
-}
-
-$self->{DEPOSIT}=$self->{DEPOSIT}+$self->{CREDIT}-$self->{CREDIT_TRESSHOLD};
 
 #Check allow nas server
 # $nas 1 - See user nas
@@ -303,12 +284,6 @@ else {
    }
 }
 
-#Check deposit
-if($self->{TP_PAYMENT} > 0 && $self->{DEPOSIT}  <= 0) {
-  $RAD_PAIRS{'Reply-Message'}="Negativ deposit '$self->{DEPOSIT}'. Rejected!";
-  return 1, \%RAD_PAIRS;
- }
-
 #Check  simultaneously logins if needs
 if ($self->{LOGINS} > 0) {
   $self->query($db, "SELECT count(*) FROM calls WHERE user_name='$RAD->{USER_NAME}' and status <> 2;");
@@ -326,7 +301,37 @@ if ($self->{LOGINS} > 0) {
 
 
 my @time_limits = ();
-my ($remaining_time, $ATTR) = remaining_time2($self->{TP_ID}, $self->{DEPOSIT}, 
+my $remaining_time=0;
+my $ATTR;
+
+#Chack Company account if ACCOUNT_ID > 0
+if ($self->{PAYMENT_TYPE} == 0) {
+  if ($self->{ACCOUNT_ID} > 0) {
+    $self->query($db, "SELECT deposit + credit, disable FROM accounts WHERE id='$self->{ACCOUNT_ID}';");
+    if($self->{errno}) {
+  	  $RAD_PAIRS{'Reply-Message'}="SQL error";
+  	  return 1, \%RAD_PAIRS;
+     }
+    elsif ($self->{TOTAL} < 1) {
+      $RAD_PAIRS{'Reply-Message'}="Company Not Exist";
+      return 1, \%RAD_PAIRS;
+     }
+
+    my $a_ref = $self->{list}->[0];
+
+    ($self->{DEPOSIT},
+     $self->{DISABLE},
+     ) = @$a_ref;
+   }
+  $self->{DEPOSIT}=$self->{DEPOSIT}+$self->{CREDIT}-$self->{CREDIT_TRESSHOLD};
+
+  #Check deposit
+  if($self->{TP_PAYMENT} > 0 && $self->{DEPOSIT}  <= 0) {
+    $RAD_PAIRS{'Reply-Message'}="Negativ deposit '$self->{DEPOSIT}'. Rejected!";
+    return 1, \%RAD_PAIRS;
+   }
+  
+  ($remaining_time, $ATTR) = $self->remaining_time($self->{TP_ID}, $self->{DEPOSIT}, 
                                       $self->{SESSION_START}, 
                                       $self->{DAY_BEGIN}, 
                                       $self->{DAY_OF_WEEK}, 
@@ -334,6 +339,9 @@ my ($remaining_time, $ATTR) = remaining_time2($self->{TP_ID}, $self->{DEPOSIT},
                                       { mainh_tarif => $self->{TIME_TARIF},
                                         time_limit  => $self->{TODAY_LIMIT}  } 
                                       );
+
+}
+
 
 if (defined($ATTR->{TT})) {
   $self->{TT_INTERVAL} = $ATTR->{TT};
@@ -808,7 +816,8 @@ my ($given_password,$want_password,$given_chap_challenge,$debug) = @_;
 #    -1 = access deny not allow day
 #    -2 = access deny not allow hour
 #********************************************************************
-sub remaining_time2 {
+sub remaining_time {
+  my ($self)=shift;
   my ($tp_id, $deposit, $session_start, 
   $day_begin, $day_of_week, $day_of_year,
   $attr) = @_;

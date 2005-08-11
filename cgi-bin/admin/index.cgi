@@ -1388,8 +1388,10 @@ sub form_tp {
  use Tariffs;
  my $tariffs = Tariffs->new($db);
  my $tarif_info;
+
  my @Octets_Direction = ("$_RECV + $_SEND", $_RECV, $_SEND);
- 
+ my @Payment_Types = ($_PREPAID, $_POSTPAID); 
+
  $tarif_info = $tariffs->defaults();
  $tarif_info->{LNG_ACTION}=$_ADD;
  $tarif_info->{ACTION}='ADD_TP';
@@ -1466,6 +1468,21 @@ foreach my $line (@Octets_Direction) {
 }
 $tarif_info->{SEL_OCTETS_DIRECTION} .= "</select>\n";
 
+
+
+
+$i=0;
+
+$tarif_info->{PAYMENT_TYPE_SEL} = "<select name=PAYMENT_TYPE>\n";
+foreach my $line (@Payment_Types) {
+  $tarif_info->{PAYMENT_TYPE_SEL} .= "<option value=$i";
+  $tarif_info->{PAYMENT_TYPE_SEL} .= ' selected' if ($tarif_info->{PAYMENT_TYPE} eq $i);
+  $tarif_info->{PAYMENT_TYPE_SEL} .= ">$Payment_Types[$i]\n";
+  $i++;
+}
+$tarif_info->{SEL_OCTETS_DIRECTION} .= "</select>\n";
+
+
 Abills::HTML->tpl_show(templates('tp'), $tarif_info);
 
 
@@ -1473,9 +1490,9 @@ my $list = $tariffs->list({ %LIST_PARAMS });
 # Time tariff Name Begin END Day fee Month fee Simultaneously - - - 
 my $table = Abills::HTML->table( { width => '100%',
                                    border => 1,
-                                   title => ['#', $_NAME,  $_HOUR_TARIF, $_TRAFIC_TARIFS, $_DAY_FEE, $_MONTH_FEE, $_SIMULTANEOUSLY, $_AGE,
+                                   title => ['#', $_NAME,  $_HOUR_TARIF, $_TRAFIC_TARIFS, $_PAYMENT_TYPE, $_DAY_FEE, $_MONTH_FEE, $_SIMULTANEOUSLY, $_AGE,
                                      '-', '-', '-'],
-                                   cols_align => ['right', 'left', 'center', 'center', 'right', 'right', 'right', 'right', 'right', 'right', 'center', 'center', 'center'],
+                                   cols_align => ['right', 'left', 'center', 'center', 'center', 'right', 'right', 'right', 'right', 'right', 'right', 'center', 'center', 'center'],
                                    
                                    
                                   } );
@@ -1489,7 +1506,7 @@ foreach my $line (@$list) {
    }
 
   $table->addrow("<b>$line->[0]</b>", "<a href='$SELF_URL?index=70&TP_ID=$line->[0]'>$line->[1]</a>", 
-   $bool_vals[$line->[2]], $bool_vals[$line->[3]], $line->[4], $line->[5], $line->[6], $line->[7], 
+   $bool_vals[$line->[2]], $bool_vals[$line->[3]], $Payment_Types[$line->[4]], $line->[5], $line->[6], $line->[7], $line->[8],
    "<a href='$SELF_URL?index=70&subf=73&TP_ID=$line->[0]'>$_INTERVALS</a>",
    $change,
    $delete);

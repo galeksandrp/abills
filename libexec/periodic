@@ -137,7 +137,7 @@ sub monthly_fees {
 my $date_unixtime =  mktime(0, 0, 0, $d, $m, $y - 1900, 0, 0, 0);
  
  foreach my $line (@$list) {
- 	 if ($line->[7] > 0) {
+ 	 if ($line->[6] > 0) {
 # 	   print "$line->[0] $line->[7]\n";
  	   $LIST_PARAMS{TP}=$line->[0];
 
@@ -159,11 +159,10 @@ my $date_unixtime =  mktime(0, 0, 0, $d, $m, $y - 1900, 0, 0, 0);
 
         if ($u->[10] eq '0000-00-00' and $d == 1) {
 #          print " $u->[0] $line->[6] $u->[2] $u->[3] $u->[10] - $u->[11]\n"; 	
-          if($conf{negative_deposit} eq 'yes') {
-            $fees->get(\%user, $line->[7], { DESCRIBE => "$_MONTH_FEE" } );  
-           }
-          elsif ($u->[2] + $u->[3] > 0) {
-            $fees->get(\%user, $line->[7], { DESCRIBE => "$_MONTH_FEE" } );  
+          if($line->[4] > 0 
+              || $conf{negative_deposit} eq 'yes'
+              || $u->[2] + $u->[3] > 0 ) {
+            $fees->get(\%user, $line->[6], { DESCRIBE => "$_MONTH_FEE" } );  
            }
          }
         elsif($u->[10] ne '0000-00-00') {
@@ -203,7 +202,7 @@ sub daily_fees {
 
 
  foreach my $line (@$list) {
- 	 if ($line->[6] > 0) {
+ 	 if ($line->[5] > 0) {
 # 	   print "$line->[0] $line->[6]\n";
  	   $LIST_PARAMS{TP}=$line->[0];
 
@@ -213,20 +212,20 @@ sub daily_fees {
          DISABLE => '0',
          TP => $line->[0]
  	   	 });
+
 #     .id, u.fio, if(acct.id IS NULL, u.deposit, acct.deposit), u.credit, tp.name, u.disable, 
 #      u.uid, u.account_id, u.email, u.tp_id
      foreach my $u (@$ulist) {
         my %user = (
             ACCOUNT_ID => $u->[7],
             UID => $u->[6] 
-           );
+         );
 #          print " $u->[0] $line->[6] $u->[2] $u->[3]\n"; 	
 
-        if($conf{negative_deposit} eq 'yes') {
-          $fees->get(\%user, $line->[6], { DESCRIBE => "$_DAY_FEE" } );  
-         }
-        elsif ($u->[2] + $u->[3] > 0) {
-          $fees->get(\%user, $line->[6], { DESCRIBE => "$_DAY_FEE" } );  
+        if($line->[5] > 0
+            || $conf{negative_deposit} eq 'yes'
+            || $u->[2] + $u->[3] > 0 ) {
+          $fees->get(\%user, $line->[5], { DESCRIBE => "$_DAY_FEE" } );  
          }
       }
 

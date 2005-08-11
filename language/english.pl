@@ -274,3 +274,7 @@ $_MAX_SESSION_DURATION='Max. session time';
 $_START='Start';
 $_YES='Yes';
 $_NO='No';
+$_PAYMENT_TYPE='Payment type';
+$_PREPAID='Prepaid';
+$_POSTPAID='Postpaid';
+$_MIN_SESSION_COST='Min. session cost';
