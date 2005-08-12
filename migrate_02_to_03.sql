@@ -14,7 +14,7 @@ ALTER TABLE `ippools` ADD UNIQUE KEY `nas` (`nas`, `ip`);
 ALTER TABLE `shedule` ADD UNIQUE KEY `uniq_action` (`h`, `d`, `m`, `y`, `type`, `uid`);
 ALTER TABLE `nas` ADD COLUMN `alive` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '0';
 ALTER TABLE `nas` ADD COLUMN `disable` TINYINT(6) UNSIGNED NOT NULL DEFAULT '0';
-ALTER TABLE `networks` MODIFY COLUMN `web_control` VARCHAR(21);
+ALTER TABLE `networks` MODIFY COLUMN `web_control` VARCHAR(21) NOT null default '';
 ALTER TABLE `actions` ADD COLUMN `disable` TINYINT(1) UNSIGNED NOT NULL DEFAULT '0';
 ALTER TABLE `admins` DROP column `permissions`;
 ALTER TABLE `admins` ADD COLUMN `disable` TINYINT(1) UNSIGNED NOT NULL DEFAULT '0';
@@ -36,16 +36,20 @@ ALTER TABLE `trafic_tarifs` ADD UNIQUE KEY `tpid` (`tp_id`, `id`);
 ALTER TABLE `trafic_tarifs` ADD KEY `tp_id` (`tp_id`);
 
 RENAME TABLE payment to payments;
-ALTER TABLE payments DROP COLUMN ww;
-ALTER TABLE payments ADD COLUMN   `method` tinyint(4) unsigned NOT NULL default '0' ;
+ALTER TABLE  payments DROP COLUMN ww;
+ALTER TABLE  payments ADD COLUMN   `method` tinyint(4) unsigned NOT NULL default '0' ;
+ALTER TABLE `payments` ADD COLUMN `ext_id` VARCHAR(16) NOT NULL;
  
 RENAME TABLE userlog to admin_actions;
+ALTER TABLE `admin_actions` DROP COLUMN `ww`;
 ALTER TABLE admin_actions change log actions varchar(100) NOT NULL default '';
 ALTER TABLE admin_actions change date `datetime` datetime NOT NULL default '0000-00-00 00:00:00';
 
 
+
 RENAME TABLE variant to tarif_plans;
 ALTER TABLE tarif_plans DROP column `kb`;
+ALTER TABLE tarif_plans DROP INDEX `vrnt`;
 ALTER TABLE tarif_plans CHANGE column vrnt id smallint(5) unsigned NOT NULL default '0';
 ALTER TABLE tarif_plans CHANGE df day_fee float(10,2) unsigned NOT NULL default '0.00';
 ALTER TABLE tarif_plans CHANGE abon month_fee float(10,2) unsigned NOT NULL default '0.00';
@@ -55,6 +59,7 @@ ALTER TABLE tarif_plans ADD column  `max_session_duration` smallint(6) unsigned 
 ALTER TABLE tarif_plans ADD column  `filter_id` varchar(15) NOT NULL default '';
 ALTER TABLE tarif_plans ADD column  `payment_type` tinyint(1) NOT NULL default 0;
 ALTER TABLE tarif_plans ADD column  `min_session_cost` float(10,5) unsigned NOT NULL default '0.00000';
+
 
 
 RENAME TABLE  vid_nas to tp_nas;

@@ -8,6 +8,10 @@
 -- Table structure for table `accounts`
 --
 
+DROP DATABASE abills3;
+CREATE DATABASE abills3;
+use abills3;
+
 CREATE TABLE accounts (
   id int(11) unsigned NOT NULL auto_increment,
   name varchar(100) NOT NULL default '',
@@ -428,6 +432,7 @@ CREATE TABLE nas (
   mng_password varchar(16) default NULL,
   rad_pairs text NOT NULL,
   alive smallint(6) unsigned NOT NULL default '0',
+  disable tinyint(6) unsigned NOT NULL default '0',
   PRIMARY KEY  (id)
 ) TYPE=MyISAM;
 
@@ -465,6 +470,7 @@ CREATE TABLE payments (
   aid smallint(6) unsigned NOT NULL default '0',
   id int(11) unsigned NOT NULL auto_increment,
   method tinyint(4) unsigned NOT NULL default '0',
+  ext_id VARCHAR(16) NOT NULL,
   PRIMARY KEY  (id),
   UNIQUE KEY id (id),
   KEY date (date),
@@ -511,35 +517,34 @@ CREATE TABLE shedule (
   KEY date_type_uid (date,type,uid)
 ) TYPE=MyISAM;
 
---
--- Table structure for table `tarif_plans`
---
 
-CREATE TABLE tarif_plans (
-  id smallint(5) unsigned NOT NULL default '0',
-  hourp float(10,5) unsigned NOT NULL default '0.00000',
-  month_fee float(10,2) unsigned NOT NULL default '0.00',
-  uplimit float(10,2) default '0.00',
-  name varchar(40) NOT NULL default 'без╕менний',
-  day_fee float(10,2) unsigned NOT NULL default '0.00',
-  logins tinyint(4) NOT NULL default '0',
-  day_time_limit int(10) unsigned NOT NULL default '0',
-  week_time_limit int(10) unsigned NOT NULL default '0',
-  month_time_limit int(10) unsigned NOT NULL default '0',
-  day_traf_limit int(10) unsigned NOT NULL default '0',
-  week_traf_limit int(10) unsigned NOT NULL default '0',
-  month_traf_limit int(10) unsigned NOT NULL default '0',
-  prepaid_trafic int(10) unsigned NOT NULL default '0',
-  change_price float(8,2) unsigned NOT NULL default '0.00',
-  activate_price float(8,2) unsigned NOT NULL default '0.00',
-  credit_tresshold double(6,2) unsigned NOT NULL default '0.00',
-  age smallint(6) unsigned NOT NULL default '0',
-  octets_direction tinyint(2) unsigned NOT NULL default '0',
-  max_session_duration smallint(6) unsigned NOT NULL default '0',
-  filter_id varchar(15) NOT NULL default '',
-  PRIMARY KEY  (id),
-  UNIQUE KEY id (id),
-  UNIQUE KEY name (name)
+CREATE TABLE `tarif_plans` (
+  `id` smallint(5) unsigned NOT NULL default '0',
+  `hourp` float(10,5) unsigned NOT NULL default '0.00000',
+  `month_fee` float(10,2) unsigned NOT NULL default '0.00',
+  `uplimit` float(10,2) default '0.00',
+  `name` varchar(40) NOT NULL default '',
+  `day_fee` float(10,2) unsigned NOT NULL default '0.00',
+  `logins` tinyint(4) NOT NULL default '0',
+  `day_time_limit` int(10) unsigned NOT NULL default '0',
+  `week_time_limit` int(10) unsigned NOT NULL default '0',
+  `month_time_limit` int(10) unsigned NOT NULL default '0',
+  `day_traf_limit` int(10) unsigned NOT NULL default '0',
+  `week_traf_limit` int(10) unsigned NOT NULL default '0',
+  `month_traf_limit` int(10) unsigned NOT NULL default '0',
+  `prepaid_trafic` int(10) unsigned NOT NULL default '0',
+  `change_price` float(8,2) unsigned NOT NULL default '0.00',
+  `activate_price` float(8,2) unsigned NOT NULL default '0.00',
+  `credit_tresshold` double(6,2) unsigned NOT NULL default '0.00',
+  `age` smallint(6) unsigned NOT NULL default '0',
+  `octets_direction` tinyint(2) unsigned NOT NULL default '0',
+  `max_session_duration` smallint(6) unsigned NOT NULL default '0',
+  `filter_id` varchar(15) NOT NULL default '',
+  `payment_type` tinyint(1) NOT NULL default '0',
+  `min_session_cost` float(10,5) unsigned NOT NULL default '0.00000',
+  PRIMARY KEY  (`id`),
+  UNIQUE KEY `id` (`id`),
+  UNIQUE KEY `name` (`name`)
 ) TYPE=MyISAM;
 
 --
@@ -556,18 +561,17 @@ CREATE TABLE tp_nas (
 -- Table structure for table `trafic_tarifs`
 --
 
-CREATE TABLE trafic_tarifs (
-  id tinyint(4) NOT NULL default '0',
-  descr varchar(30) default NULL,
-  nets text,
-  tp_id smallint(5) unsigned NOT NULL default '0',
-  prepaid int(11) unsigned default '0',
-  in_price float(8,5) unsigned NOT NULL default '0.00000',
-  out_price float(8,5) unsigned NOT NULL default '0.00000',
-  speed int(10) unsigned NOT NULL default '0',
-  interval_id smallint(6) unsigned NOT NULL default '0',
-  UNIQUE KEY tpid (tp_id,id),
-  KEY tp_id (tp_id)
+CREATE TABLE `trafic_tarifs` (
+  `id` tinyint(4) NOT NULL default '0',
+  `descr` varchar(30) default NULL,
+  `nets` text,
+  `tp_id` smallint(5) unsigned NOT NULL default '0',
+  `prepaid` int(11) unsigned default '0',
+  `in_price` float(8,5) unsigned NOT NULL default '0.00000',
+  `out_price` float(8,5) unsigned NOT NULL default '0.00000',
+  `speed` int(10) unsigned NOT NULL default '0',
+  `interval_id` smallint(6) unsigned NOT NULL default '0',
+  UNIQUE KEY `id` (`id`,`interval_id`)
 ) TYPE=MyISAM;
 
 --

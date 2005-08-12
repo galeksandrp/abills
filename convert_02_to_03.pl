@@ -51,27 +51,19 @@ sub tariffs {
       }
    }
 
-  print "\n\n$not_found";
-}
-
-
-
-
-sub users_convert {
-	my  @sql_array = (
-    "ALTER TABLE `users` DROP INDEX `variant`;",
-    "ALTER TABLE `users` change COLUMN variant `tp_id` TINYINT(4) UNSIGNED NOT NULL DEFAULT '0';",
-    "ALTER TABLE `users` ADD COLUMN `disable` TINYINT(1) UNSIGNED NOT NULL DEFAULT '0';",
-    "ALTER TABLE `users` ADD COLUMN `account_id` INTEGER(11) UNSIGNED NOT NULL DEFAULT '0';",
-    "ALTER TABLE `users` ADD KEY `tp_id` (`tp_id`);");
+ my  @sql_array = ("DELETE FROM  trafic_tarifs WHERE interval_id='0';",
+  "ALTER TABLE `trafic_tarifs` ADD UNIQUE KEY `id` (`id`, `interval_id`);",
+	"ALTER TABLE `tarif_plans` DROP COLUMN `ut`;",
+	"ALTER TABLE `tarif_plans` DROP COLUMN `dt`;");
   
   foreach my $l (@sql_array) {
     $q2 = $db->do($l) || die $db->errstr;
     print "$l\n";
    }
 
-  print "\n\n$not_found";
 }
+
+
 
 
 

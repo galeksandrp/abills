@@ -600,7 +600,7 @@ if($UID > 0) {
     print "</td></table>\n";
     return 0;
    }
-  elsif($index != 11 && $index != 7) {
+  elsif($index != 11 && $index != 7 && $index != 70) {
      $functions{$index}->( { USER => $user_info } );
      print "</td></table>\n";
      return 0;
