@@ -736,7 +736,7 @@ my $table = Abills::HTML->table( { width => '100%',
 foreach my $line (@$list) {
   my $payments = ($permissions{1}) ?  "<a href='$SELF_URL?index=2&UID=$line->[6]'>$_PAYMENTS</a>" : ''; 
 
-  $table->addrow("<a href='$SELF_URL?index=$index&UID=$line->[6]'>$line->[0]</a>", "$line->[1]",
+  $table->addrow("<a href='$SELF_URL?index=11&UID=$line->[6]'>$line->[0]</a>", "$line->[1]",
    "$line->[2]", "$line->[3]", "$line->[4]", "$status[$line->[5]]", $payments, "<a href='$SELF_URL?index=22&UID=$line->[6]'>$_STATS</a>");
 }
 print $table->show();
@@ -3829,7 +3829,7 @@ sub form_period () {
  my ($period) = @_;
 
 
- my @periods = ("$PERIODS[0]", "$_OTHER");
+ my @periods = ("$_NOW", "$_DATE");
  my $date_fld = $html->date_fld('date_', { MONTHES => \@MONTHES });
  my $form_period='';
 
@@ -3843,7 +3843,7 @@ sub form_period () {
    $form_period .= "> $t\n";	
    $i++;
  }
- $form_period .= "$_DATE: $date_fld</td></tr>\n";
+ $form_period .= "$date_fld</td></tr>\n";
 
 
  return $form_period;	

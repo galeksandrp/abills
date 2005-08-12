@@ -858,6 +858,18 @@ sub remaining_time {
 #  $day_of_week, 
 #  $day_of_year,\n";
 
+#for($i = 0; $i< 100;$i++)
+#    {
+#   printf("%d\n", $i) ;
+#        }
+#   while ($i > 0)
+#    {
+#       printf("%d\n", $i-);
+#    }
+#   do {
+#   printf("%d\n", $i++);
+#      } while ($i < 0);
+
  while(($deposit > 0 && $count < 50)) {
   
    if ($time_limit != 0 && $time_limit < $remaining_time) {

@@ -278,3 +278,4 @@ $_PAYMENT_TYPE='Payment type';
 $_PREPAID='Prepaid';
 $_POSTPAID='Postpaid';
 $_MIN_SESSION_COST='Min. session cost';
+$_NOW='Now';
