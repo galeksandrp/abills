@@ -50,7 +50,7 @@ ALTER TABLE admin_actions change date `datetime` datetime NOT NULL default '0000
 RENAME TABLE variant to tarif_plans;
 ALTER TABLE tarif_plans DROP column `kb`;
 ALTER TABLE tarif_plans DROP INDEX `vrnt`;
-ALTER TABLE tarif_plans CHANGE column vrnt id smallint(5) unsigned NOT NULL default '0';
+ALTER TABLE tarif_plans CHANGE column vrnt id smallint(5) unsigned NOT NULL default '0' PRIMARY KEY;
 ALTER TABLE tarif_plans CHANGE df day_fee float(10,2) unsigned NOT NULL default '0.00';
 ALTER TABLE tarif_plans CHANGE abon month_fee float(10,2) unsigned NOT NULL default '0.00';
 ALTER TABLE tarif_plans ADD column  `age` smallint(6) unsigned NOT NULL default '0';

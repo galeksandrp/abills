@@ -21,9 +21,8 @@ my $not_found = "";
 
 #other_convert();
 #users_convert();
-#log_convert();
-
 tariffs();
+log_convert();
 
 
 
@@ -92,6 +91,7 @@ sub log_convert {
   push @sql_array, "ALTER TABLE log add index (uid, start);";
 
   push @sql_array,  "ALTER TABLE log drop column id";
+  push @sql_array,  "ALTER TABLE `log` ADD COLUMN `account_id` INTEGER(11) UNSIGNED NOT NULL DEFAULT '0';";
 
   foreach my $l (@sql_array) {
     $q2 = $db->do($l);

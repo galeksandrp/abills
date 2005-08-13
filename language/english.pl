@@ -279,3 +279,6 @@ $_PREPAID='Prepaid';
 $_POSTPAID='Postpaid';
 $_MIN_SESSION_COST='Min. session cost';
 $_NOW='Now';
+$_MONITORING='Monitoring';
+
+

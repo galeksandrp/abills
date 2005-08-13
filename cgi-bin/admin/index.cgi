@@ -115,7 +115,9 @@ my @actions = ([$_SA_ONLY, $_ADD, $_LIST, $_PASSWD, $_CHANGE, $_DEL, $_ALL],  # 
                [$_LIST, $_DEL],                                               # reports view
                [$_LIST, $_ADD, $_CHANGE, $_DEL],                              # system magment
                [$_ALL],                                                       # Modules managments
-               [$_SEARCH]                                                     # Search
+               [$_SEARCH],                                                    # Search
+               [$_MONITORING],
+               [$_PROFILE],
                );
 
 my @action = ('add', $_ADD);
@@ -2508,7 +2510,8 @@ foreach my $line (@$list) {
      int2byte($line->[5]), $line->[6],
      $line->[7], $line->[10], 
      "$line->[9] $test", 
-     "(<a href='$SELF_URL?index=23&UID=$user->{UID}&detail=$line->[11]' title='Session Detail'>D</a>)", $delete);
+     "(<a href='$SELF_URL?index=23&UID=$line->[12]&SESSION_ID=$line->[11]' title='Session Detail'>D</a>)", 
+     $delete);
 }
 
 print $table->show();
@@ -2772,16 +2775,57 @@ print $table->show();
 sub session_detail {
 	my ($attr) = @_;
 	my $pages_qs;
+  my $user;
+
+  use Sessions;
+  my $sessions = Sessions->new($db);
+
  
 if (defined($attr->{USER}))	{
-	my $user = $attr->{USER};
-
+	$user = $attr->{USER};
 	
 }
 elsif($FORM{UID}) {
 	form_users();
 	return 0;
 }	
+
+
+
+$sessions->session_detail({ %FORM });
+
+$sessions->{_SENT}=int2byte($sessions->{SENT}); 
+$sessions->{_RECV}=int2byte($sessions->{RECV}); 
+$sessions->{_SENT2}=int2byte($sessions->{SENT2});
+$sessions->{_RECV2}=int2byte($sessions->{RECV2});
+
+
+Abills::HTML->tpl_show(templates('session_detail'), $sessions);
+
+
+my $list = $sessions->detail_list({ %FORM });
+
+  my $table = Abills::HTML->table( { width => '100%',
+                                   border => 1,
+                                   title => ["LAST_UPDATE", "$_SESSION_ID", "NAS_ID", "SENT", "RECV", "SENT2", "RECV2"],
+                                   cols_align => ['right', 'right', 'right', 'right', 'right', 'right', 'right'],
+                                   pages => $sessions->{TOTAL},
+                                   qs => $pages_qs
+                                  } );
+
+print "aaa $sessions->{TOTAL}";
+
+ foreach my $line (@$list) {
+    $table->addrow($line->[0],  $line->[1], $line->[2], $line->[3],  $line->[4], $line->[5], $line->[6]);
+  }
+ print $table->show();
+
+
+
+
+
+
+
 
 	
 }
@@ -2929,7 +2973,6 @@ my @m = ("1:0:$_CUSTOMERS:null:0:customers:",
  "4:0:$_REPORTS:null:1:reports:",
  "40:4:$_ERROR:form_error:1::",
  "41:4:$_LAST:show_sessions:1::",
- "42:4:ON LINE:online:1::",
  "43:4:$_USED:form_use:1::",
  "44:43:$_MONTH:form_use:1::",
 
@@ -2937,7 +2980,6 @@ my @m = ("1:0:$_CUSTOMERS:null:0:customers:",
  "50:5:$_ADMINS:form_admins:1::",
  "51:5:$_LOG:form_changes:1::",
  "52:50:$_PERMISSION:admin_permissions:0::",
- "53:5:$_PROFILE:admin_profile:1::",
  "54:50:$_PASSWD:form_passwd:0::",
  
  "60:5:$_NAS:form_nas:1::",
@@ -2955,15 +2997,20 @@ my @m = ("1:0:$_CUSTOMERS:null:0:customers:",
  
  "85:5:$_SHEDULE:form_shedule:1::",
  "90:5:$_TEMPLATES:form_templates:1::",
- "99:5:$_FUNCTIONS_LIST:flist:1::",
- "7:0:$_SEARCH:form_search:1::",
  
  "6:0:$_MODULES:null:1:modules:",
  "999:6:$_TEST:test:1:test:",
- "1000:6:$_DOCS ::1:test:",
+ "1000:6:$_DOCS::1:test:",
  "1001:6:Postfix::1:test:",
  "1002:6:SQL_COMMANDER::1:test:",
- "8:0:Profile::1:test:"
+ 
+ "7:0:$_SEARCH:form_search:1::",
+ 
+ "8:0:$_MONITORING:null:1::",
+ "81:8:Dialup & VPN:online:1::",
+ "9:0:$_PROFILE:null:1::",
+ "53:9:$_PROFILE:admin_profile:1::",
+ "99:9:$_FUNCTIONS_LIST:flist:1::"
  
  );
 
@@ -3058,7 +3105,7 @@ return  \%main_menu, \%submenu, "/".$menu_navigator;
 
 
 #**********************************************************
-#
+# Functions list
 #**********************************************************
 sub flist {
 
@@ -3080,9 +3127,7 @@ my @menu_sorted = sort {
    $a cmp $b
 } keys %$h;
 
-my $out;
 my %qm = ();
-
 if (defined($COOKIES{qm})) {
 	my @a = split(/, /, $COOKIES{qm});
 	foreach $line (@a) {
@@ -3090,13 +3135,17 @@ if (defined($COOKIES{qm})) {
 	 }
 }
 
+my $table = Abills::HTML->table( { width => '100%',
+                                   border => 1,
+                                   cols_align => ['right', 'left', 'right', 'right', 'left', 'left', 'right', 'right', 'left', 'left', 'center']
+                                  } );
+
+
 foreach my $parent (@menu_sorted) { 
   my $val = $h->{$parent};
   my $level = 0;
   my $prefix = '';
-
-  $val = ($index eq $parent) ?  "<b>$val</b>" : $val;
-  $out .= "$level: <a href='$SELF?index=$parent'>$val</a><br>\n";
+  $table->addrow("$level:", ">> <a href='$SELF?index=$parent'>$val</a> <<");
 
   if (defined($new_hash{$parent})) {
     $level++;
@@ -3105,10 +3154,16 @@ foreach my $parent (@menu_sorted) {
       my $mi = $new_hash{$parent};
 
       while(my($k, $val)=each %$mi) {
-      	$val = ($index eq $k) ?  "<b>$val</b>" : $val;
-        $out .= "<input type=checkbox name=qm_item value=$k";
-        $out .= " checked" if (defined($qm{$k}));
-        $out .= "> $prefix $level: <a href='$SELF_URL?index=$k'>$val</a><br>\n";
+       
+        my $checked = '';
+        if (defined($qm{$k})) { 
+        	$checked = " checked";  
+        	$val = "<b>$val</b>";
+         }
+
+        
+        $table->addrow("$k <input type=checkbox name=qm_item value=$k $checked>", "$prefix <a href='$SELF_URL?index=$k'>$val</a>");
+
         if (defined($new_hash{$k})) {
       	   $mi = $new_hash{$k};
       	   $level++;
@@ -3132,17 +3187,19 @@ foreach my $parent (@menu_sorted) {
 }
 print "
 <form action=$SELF_URL >
-<input type=hidden name=index value=$index>
-<table width=100% border=1><tr><td>
+<input type=hidden name=index value=$index>\n";
 
-$out
 
-</td></tr></table>
-<input type=submit name=quick_set value='Quick Menu'>
+print $table->show();
+
+
+print "<input type=submit name=quick_set value='Quick Menu'>
 </form>\n";
-
-
 }
+
+
+
+
 
 
 #**********************************************************

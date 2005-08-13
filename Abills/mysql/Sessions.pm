@@ -239,22 +239,28 @@ sub session_detail {
  my $self = shift;	
  my ($attr) = @_;
  
-	
+ my $WHERE = '';
+ 
+ $WHERE = " and l.uid='$attr->{UID}'" if ($attr->{UID});
+ 
+
  $self->query($db, "SELECT 
   l.start,
+  l.start + INTERVAL l.duration SECOND,
   l.duration,
-  l.tp,
+  l.tp_id,
   tp.name,
+
   l.sent,
   l.recv,
-  l.minp,
   l.sent2,
   l.recv2,
-  l.ip,
+
+  INET_NTOA(l.ip),
   l.CID,
   l.nas_id,
   n.name,
-  n.ip
+  n.ip,
   l.port_id,
   
   l.minp,
@@ -264,12 +270,14 @@ sub session_detail {
   l.account_id,
   u.id,
   
-  l.uid
-  l.acct_session_id,
- FROM log l, users u, tarif_plans tp, nas
- WHERE l.uid=u.uid and l.tp=tp.id and l.nas_id=nas.id
- and 
- uid='$attr->{UID}' and acct_session_id='$attr->{SESSION_ID}';");
+  l.uid,
+  l.acct_session_id
+ FROM log l, users u
+ LEFT JOIN tarif_plans tp ON (l.tp_id=tp.id) 
+ LEFT JOIN nas n ON (l.nas_id=n.id) 
+ WHERE l.uid=u.uid 
+ $WHERE
+ and acct_session_id='$attr->{SESSION_ID}';");
 
   if ($self->{TOTAL} < 1) {
      $self->{errno} = 2;
@@ -282,7 +290,7 @@ sub session_detail {
   ($self->{START}, 
    $self->{STOP}, 
    $self->{DURATION}, 
-   $self->{TP}, 
+   $self->{TP_ID}, 
    $self->{TP_NAME}, 
    $self->{SENT}, 
    $self->{RECV}, 
@@ -306,10 +314,64 @@ sub session_detail {
    $self->{SESSION_ID}
     )= @$ar;
 
+
+
+
 #   $self->{UID} = $attr->{UID};
 #   $self->{SESSION_ID} = $attr->{SESSION_ID};
 
  return $self;
+}
+
+#**********************************************************
+# detail_list()
+#**********************************************************
+sub detail_list {
+	my $self = shift;
+	my ($attr) = @_;
+
+ my $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+ my $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+ my $PG = ($attr->{PG}) ? $attr->{PG} : 0;
+ my $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
+
+	
+	my $lupdate;
+	
+if ($attr->{PERIOD} eq 'days') {
+  $lupdate = "DATE_FORMAT(FROM_UNIXTIME(last_update), '%Y-%m-%d')";	
+}
+elsif($attr->{PERIOD} eq 'hours') {
+  $lupdate = "DATE_FORMAT(FROM_UNIXTIME(last_update), '%Y-%m-%d %H')";	
+}
+else {
+  $lupdate = "FROM_UNIXTIME(last_update)";
+}
+
+my $WHERE = ($attr->{SESSION_ID}) ? "and session_id='$attr->{SESSION_ID}'" : '';
+
+ $self->query($db, "SELECT $lupdate, acct_session_id, nas_id, 
+   sum(sent1), sum(recv1), sum(sent2), sum(recv2) 
+  FROM s_detail 
+  WHERE uid='$attr->{UID}' $WHERE
+  GROUP BY 1 
+  ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;" );
+
+ my $list = $self->{list};
+
+ if ($self->{TOTAL} > 0) {
+    $self->query($db, "SELECT '111', count(*)
+      FROM s_detail 
+     WHERE uid='$attr->{UID}' $WHERE;");
+    
+    my $a_ref = $self->{list}->[0];
+    ($self->{TOTAL}) = @$a_ref;
+    
+        print "$self->{TOTAL} --";
+  }
+	
+	
+return $list;
 }
 
 
