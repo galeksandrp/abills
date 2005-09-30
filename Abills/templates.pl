@@ -1,4 +1,29 @@
 
+#**********************************************************
+# templates
+#**********************************************************
+sub _include {
+  my ($tpl, $module) = @_;
+  my $result = '';
+  
+  if (defined($module)) {
+    $tpl	= "modules/$module/templates/$tpl";
+   }
+
+  foreach $prefix (@INC) {
+     my $realfilename = "$prefix/Abills/$tpl.tpl";
+     if (-f $realfilename) {
+        open(FILE, "$realfilename") || die "Can't open file '$realfilename' $!";
+        while(<FILE>) {
+  	      $tpl_content .= eval "\"$_\"";
+         }
+        close(FILE);
+        last;
+      }
+  }
+  return $tpl_content;
+}
+
 
 #**********************************************************
 # templates
@@ -6,40 +31,45 @@
 sub templates {
   my ($tpl_name) = @_;
 
-if ($tpl_name eq 'form_user') {
+if ($tpl_name eq 'form_pi') {
 return qq{
 <form action=$SELF_URL method=post>
-<input type=hidden name=index value=11>
-<input type=hidden name=ACCOUNT_ID value='%ACCOUNT_ID%'>
+<input type=hidden name=index value=30>
 <input type=hidden name=UID value="%UID%">
 <table width=420 cellspacing=0 cellpadding=3>
-
-%EXDATA%
-
 <tr><td>$_FIO:*</td><td><input type=text name=FIO value="%FIO%"></td></tr>
 <tr><td>$_PHONE:</td><td><input type=text name=PHONE value="%PHONE%"></td></tr>
-<tr><td>$_ADDRESS:</td><td><input type=text name=ADDRESS value="%ADDRESS%"></td></tr>
+<tr><td>$_ADDRESS_STREET:</td><td><input type=text name=ADDRESS_STREET value="%ADDRESS_STREET%"></td></tr>
+<tr><td>$_ADDRESS_BUILD:</td><td><input type=text name=ADDRESS_BUILD value="%ADDRESS_BUILD%"></td></tr>
+<tr><td>$_ADDRESS_FLAT:</td><td><input type=text name=ADDRESS_FLAT value="%ADDRESS_FLAT%"></td></tr>
 <tr><td>E-mail:</td><td><input type=text name=EMAIL value="%EMAIL%"></td></tr>
-<tr><td colspan=2>&nbsp;</td></tr>
-<tr><td>$_TARIF_PLAN:</td><td valign=center>%TP_NAME%</td></tr>
-<tr><td>$_CREDIT:</td><td><input type=text name=CREDIT value='%CREDIT%'></td></tr>
-<tr><td>$_GROUPS:</td><td>%GID%:%G_NAME%</td></tr>
-<tr><td>$_SIMULTANEOUSLY:</td><td><input type=text name=SIMULTANEONSLY value='%SIMULTANEONSLY%'></td></tr>
-<tr><td>$_ACTIVATE:</td><td><input type=text name=ACTIVATE value='%ACTIVATE%'></td></tr>
-<tr><td>$_EXPIRE:</td><td><input type=text name=EXPIRE value='%EXPIRE%'></td></tr>
-<tr><td>$_REDUCTION (%):</td><td><input type=text name=REDUCTION value='%REDUCTION%'></td></tr>
-<tr><td>IP:</td><td><input type=text name=IP value='%IP%'></td></tr>
-<tr><td>Netmask:</td><td><input type=text name=NETMASK value='%NETMASK%'></td></tr>
-<tr><td>$_SPEED (kb):</td><td><input type=text name=SPEED value='%SPEED%'></td></tr>
-<tr><td>$_FILTERS:</td><td><input type=text name=FILTER_ID value='%FILTER_ID%'></td></tr>
-<tr><td><b>CID:</b><br></td><td><input title='MAC: [00:40:f4:85:76:f0]
-IP: [10.0.1.1]
-PHONE: [805057395959]' type=text name=CID value='%CID%'></td></tr>
-<tr><td>$_DISABLE:</td><td><input type=checkbox name=DISABLE value='1' %DISABLE%></td></tr>
+<tr><td>$_CONTRACT_ID:</td><td><input type=text name=CONTRACT_ID value="%CONTRACT_ID%"></td></tr>
 <tr><th colspan=2>:$_COMMENTS:</th></tr>
 <tr><th colspan=2><textarea name=COMMENTS rows=5 cols=45>%COMMENTS%</textarea></th></tr>
 </table>
-<p>
+<input type=submit name='%ACTION%' value='%LNG_ACTION%'>
+</form>
+};
+
+ }
+elsif ($tpl_name eq 'form_user') {
+return qq{
+<form action=$SELF_URL method=post METHOD=POST>
+<input type=hidden name=index value=11>
+<input type=hidden name=COMPANY_ID value='%COMPANY_ID%'>
+<input type=hidden name=UID value="%UID%">
+<table width=420 cellspacing=0 cellpadding=3>
+%EXDATA%
+<tr><td>BILL_ID:<td>%BILL_ID%</td></tr>
+<tr><td colspan=2>&nbsp;</td></tr>
+
+<tr><td>$_CREDIT:</td><td><input type=text name=CREDIT value='%CREDIT%'></td></tr>
+<tr><td>$_GROUPS:</td><td>%GID%:%G_NAME%</td></tr>
+<tr><td>$_ACTIVATE:</td><td><input type=text name=ACTIVATE value='%ACTIVATE%'></td></tr>
+<tr><td>$_EXPIRE:</td><td><input type=text name=EXPIRE value='%EXPIRE%'></td></tr>
+<tr><td>$_REDUCTION (%):</td><td><input type=text name=REDUCTION value='%REDUCTION%'></td></tr>
+<tr><td>$_DISABLE:</td><td><input type=checkbox name=DISABLE value='1' %DISABLE%></td></tr>
+</table>
 <input type=submit name='%ACTION%' value='%LNG_ACTION%'>
 </form>
 };
@@ -98,7 +128,7 @@ elsif($tpl_name eq 'session_detail') {
 <tr bgcolor=#FFFFFF><td>$_TRAF_TARIF:</td><td>%TRAF_TARIFF%</td></tr>
 <tr bgcolor=#FFFFFF><td>$_SUM:</td><td>%SUM%</td></tr>
 
-<tr bgcolor=#FFFFFF><td>$_ACCOUNT_ID:</td><td>%ACCOUNT_ID%</td></tr>
+<tr bgcolor=#FFFFFF><td>$_COMPANY_ID:</td><td>%COMPANY_ID%</td></tr>
 
 </td></tr></table>
 </table>
@@ -159,7 +189,7 @@ return qq{
 <tr><td>$_DESCRIBE:</td><td><input type=text name=DESCR></td></tr>
 %PERIOD_FORM%
 </table>
-<input type=submit name=get value='$_GET'>
+<input type=submit name=take value='$_TAKE'>
 </form>
 }
 
@@ -206,6 +236,45 @@ return qq{
 </form>
 };
  }
+#elsif($tpl_name eq 'tt') {
+#
+#return qq{ <form action=$SELF_URL method=POST>
+#<input type=hidden name=index value='70'>
+#<input type=hidden name=subf value='73'>
+#<input type=hidden name=TP_ID value='%TP_ID%'>
+#<input type=hidden name=tt value='%TI_ID%'>
+#
+#<table BORDER=0 CELLSPACING=1 CELLPADDING=0>
+#<tr bgcolor=$_COLORS[1]><th colspan=7 align=right>$_TRAFIC_TARIFS</th></tr>
+#<tr bgcolor=$_COLORS[0]><th>#</th><th>$_BYTE_TARIF IN (1 Mb)</th><th>$_BYTE_TARIF OUT (1 Mb)</th><th>$_PREPAID (Mb)</th><th>$_SPEED (Kbits)</th><th>$_DESCRIBE</th><th>NETS</th></tr>
+#<tr><td bgcolor=$_COLORS[0]>0</td>
+#<td valign=top><input type=text name='TT_PRICE_IN_0' value='%TT_PRICE_IN_0%'></td>
+#<td valign=top><input type=text name='TT_PRICE_OUT_0' value='%TT_PRICE_OUT_0%'></td>
+#<td valign=top><input type=text size=12 name='TT_PREPAID_0' value='%TT_PREPAID_0%'></td>
+#<td valign=top><input type=text size=12 name='TT_SPEED_0' value='%TT_SPEED_0%'></td>
+#<td valign=top><input type=text name='TT_DESCRIBE_0' value='%TT_DESCRIBE_0%'></td>
+#<td><textarea cols=20 rows=4 name='TT_NETS_0'>%TT_NETS_0%</textarea></td></tr>
+#
+#<tr><td bgcolor=$_COLORS[0]>1</td>
+#<td valign=top><input type=text name='TT_PRICE_IN_1' value='%TT_PRICE_IN_1%'></td>
+#<td valign=top><input type=text name='TT_PRICE_OUT_1' value='%TT_PRICE_OUT_1%'></td>
+#<td valign=top><input type=text size=12 name='TT_PREPAID_1' value='%TT_PREPAID_1%'></td>
+#<td valign=top><input type=text size=12 name='TT_SPEED_1' value='%TT_SPEED_1%'></td>
+#<td valign=top><input type=text name='TT_DESCRIBE_1' value='%TT_DESCRIBE_1%'></td>
+#<td><textarea cols=20 rows=4 name='TT_NETS_1'>%TT_NETS_1%</textarea></td></tr>
+#
+#<tr><td bgcolor=$_COLORS[0]>2</td>
+#<td valign=top>&nbsp;</td>
+#<td valign=top>&nbsp;</td>
+#<td valign=top>&nbsp;</td>
+#<td valign=top><input type=text size=12 name='TT_SPEED_2' value='%TT_SPEED_2%'></td>
+#<td valign=top><input type=text name='TT_DESCRIBE_2' value='%TT_DESCRIBE_2%'></td>
+#<td><textarea cols=20 rows=4 name='TT_NETS_2'>%TT_NETS_2%</textarea></td></tr>
+#
+#</table>
+#<input type=submit name='change' value='$_CHANGE'>
+#</form>\n};
+# }
 elsif($tpl_name eq 'tt') {
 
 return qq{ <form action=$SELF_URL method=POST>
@@ -213,38 +282,22 @@ return qq{ <form action=$SELF_URL method=POST>
 <input type=hidden name=subf value='73'>
 <input type=hidden name=TP_ID value='%TP_ID%'>
 <input type=hidden name=tt value='%TI_ID%'>
-
 <table BORDER=0 CELLSPACING=1 CELLPADDING=0>
 <tr bgcolor=$_COLORS[1]><th colspan=7 align=right>$_TRAFIC_TARIFS</th></tr>
-<tr bgcolor=$_COLORS[0]><th>#</th><th>$_BYTE_TARIF IN (1 Mb)</th><th>$_BYTE_TARIF OUT (1 Mb)</th><th>$_PREPAID (Mb)</th><th>$_SPEED (Kbits)</th><th>$_DESCRIBE</th><th>NETS</th></tr>
-<tr><td bgcolor=$_COLORS[0]>0</td>
-<td valign=top><input type=text name='TT_PRICE_IN_0' value='%TT_PRICE_IN_0%'></td>
-<td valign=top><input type=text name='TT_PRICE_OUT_0' value='%TT_PRICE_OUT_0%'></td>
-<td valign=top><input type=text size=12 name='TT_PREPAID_0' value='%TT_PREPAID_0%'></td>
-<td valign=top><input type=text size=12 name='TT_SPEED_0' value='%TT_SPEED_0%'></td>
-<td valign=top><input type=text name='TT_DESCRIBE_0' value='%TT_DESCRIBE_0%'></td>
-<td><textarea cols=20 rows=4 name='TT_NETS_0'>%TT_NETS_0%</textarea></td></tr>
-
-<tr><td bgcolor=$_COLORS[0]>1</td>
-<td valign=top><input type=text name='TT_PRICE_IN_1' value='%TT_PRICE_IN_1%'></td>
-<td valign=top><input type=text name='TT_PRICE_OUT_1' value='%TT_PRICE_OUT_1%'></td>
-<td valign=top><input type=text size=12 name='TT_PREPAID_1' value='%TT_PREPAID_1%'></td>
-<td valign=top><input type=text size=12 name='TT_SPEED_1' value='%TT_SPEED_1%'></td>
-<td valign=top><input type=text name='TT_DESCRIBE_1' value='%TT_DESCRIBE_1%'></td>
-<td><textarea cols=20 rows=4 name='TT_NETS_1'>%TT_NETS_1%</textarea></td></tr>
-
-<tr><td bgcolor=$_COLORS[0]>2</td>
-<td valign=top>&nbsp;</td>
-<td valign=top>&nbsp;</td>
-<td valign=top>&nbsp;</td>
-<td valign=top><input type=text size=12 name='TT_SPEED_2' value='%TT_SPEED_2%'></td>
-<td valign=top><input type=text name='TT_DESCRIBE_2' value='%TT_DESCRIBE_2%'></td>
-<td><textarea cols=20 rows=4 name='TT_NETS_2'>%TT_NETS_2%</textarea></td></tr>
-
+<tr><td>ID</td><td bgcolor=$_COLORS[0]>0</td></tr>
+<tr><td>$_BYTE_TARIF IN (1 Mb)</td><td><input type=text name='TT_PRICE_IN' value='%TT_PRICE_IN%'></td></tr>
+<tr><td>$_BYTE_TARIF OUT (1 Mb)</td><td><input type=text name='TT_PRICE_OUT' value='%TT_PRICE_OUT%'></td></tr>
+<tr><td>$_PREPAID (Mb)</td><td><input type=text size=12 name='TT_PREPAID' value='%TT_PREPAID%'></td></tr>
+<tr><td>$_SPEED (Kbits)</td><td><input type=text size=12 name='TT_SPEED' value='%TT_SPEED%'></td></tr>
+<tr><td>$_DESCRIBE</td><td><input type=text name='TT_DESCRIBE' value='%TT_DESCRIBE%'></td></tr>
+<tr><th colspan=2>NETS</th></tr>
+<tr><td colspan=2><textarea cols=20 rows=4 name='TT_NETS'>%TT_NETS_0%</textarea></th></tr>
 </table>
 <input type=submit name='change' value='$_CHANGE'>
-</form>\n};
+</form>
+};
  }
+
 elsif ($tpl_name eq 'ti') {
 return qq{<form action=$SELF_URL>
 <input type=hidden name=index value=73>
@@ -303,13 +356,14 @@ return qq{
 };
 
 }
-elsif ($tpl_name eq 'form_account') {
+elsif ($tpl_name eq 'form_company') {
 return qq{	
 <form action=$SELF_URL METHOD=POST>
 <input type=hidden name=index value='13'>
-<input type=hidden name=ACCOUNT_ID value='%ACCOUNT_ID%'>
+<input type=hidden name=COMPANY_ID value='%COMPANY_ID%'>
 <Table>
-<tr><td>$_NAME:</td><td><input type=text name=ACCOUNT_NAME value="%ACCOUNT_NAME%"></td></tr>
+<tr><td>$_NAME:</td><td><input type=text name=COMPANY_NAME value="%COMPANY_NAME%"></td></tr>
+<tr bgcolor=$_BG1><td>$_BILL:</td><td>%BILL_ID%</td></tr>
 <tr bgcolor=$_BG1><td>$_DEPOSIT:</td><td>%DEPOSIT%</td></tr>
 <tr bgcolor=$_BG1><td>$_CREDIT:</td><td><input type=text name=CREDIT value='%CREDIT%'></td></tr>
 <tr bgcolor=$_BG1><td>$_TAX_NUMBER:</td><td><input type=text name=TAX_NUMBER value='%TAX_NUMBER%' size=60></td></tr>
@@ -323,15 +377,15 @@ return qq{
 </form>
 }
 }
-elsif ($tpl_name eq 'chg_account') {
+elsif ($tpl_name eq 'chg_company') {
 return qq{
 <form action=$SELF_URL>
 <input type=hidden name=index value=11>
 <input type=hidden name=UID value=%UID%>
-<input type=hidden name=user_f value=chg_account>
+<input type=hidden name=user_f value=chg_company>
 <Table>
-<tr><td>$_COMPANY:</td><td>%ACCOUNT_NAME%</td></tr>
-<tr><td>$_TO:</td><td>%SEL_ACCOUNTS%</td></tr>
+<tr><td>$_COMPANY:</td><td>%COMPANY_NAME%</td></tr>
+<tr><td>$_TO:</td><td>%SEL_COMPANIES%</td></tr>
 </table>
 <input type=submit name=change value=$_CHANGE>
 </form>
@@ -397,6 +451,22 @@ return qq{
 <input type=submit name=%ACTION% value="%LNG_ACTION%">
 </form>
 };
+}
+elsif ($tpl_name eq 'chg_bill') {
+return qq{
+<form action=$SELF_URL>
+<input type=hidden name=index value=$index>
+<input type=hidden name=UID value=%UID%>
+<input type=hidden name=COMPANY_ID value=$FORM{COMPANY_ID}>
+<Table width=300>
+<tr><td>$_BILL:</td><td>%BILL_ID%:%LOGIN%</td></tr>
+<tr><td>$_CREATE:</td><td><input type=checkbox name=create value=1></td></tr>
+<tr><td>$_TO:</td><td>%SEL_BILLS%</td></tr>
+</table>
+%CREATE_BTN%
+<input type=submit name=change value=$_CHANGE>
+</form>
+}
 }
 elsif($tpl_name eq 'users_warning_messages') {
 return qq{

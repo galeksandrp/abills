@@ -69,7 +69,7 @@ sub online {
  } 
  
 
-$self->query($db, "SELECT c.user_name, 
+ $self->query($db, "SELECT c.user_name, 
                           u.fio, 
                           c.nas_port_id, 
                           c.framed_ip_address,
@@ -151,8 +151,7 @@ sub online2log {
 	my $self = shift;
 	my ($attr) = @_;
 
-
- $self->query($db, "SELECT c.user_name, ", 'do');
+  $self->query($db, "SELECT c.user_name, ", 'do');
 }
 
 
@@ -294,8 +293,8 @@ sub session_detail {
    $self->{TP_NAME}, 
    $self->{SENT}, 
    $self->{RECV}, 
-   $self->{SENT2}, 
-   $self->{RECV2}, 
+   $self->{SENT2},   #?
+   $self->{RECV2},   #?
    $self->{IP}, 
    $self->{CID}, 
    $self->{NAS_ID}, 
@@ -314,11 +313,17 @@ sub session_detail {
    $self->{SESSION_ID}
     )= @$ar;
 
-
-
-
 #   $self->{UID} = $attr->{UID};
 #   $self->{SESSION_ID} = $attr->{SESSION_ID};
+
+#Ext traffic detail
+ $self->query($db, "SELECT 
+  acct_session_id
+  traffic_id,
+  in,
+  out
+ FROM traffic_details
+ WHERE acct_session_id='$attr->{SESSION_ID}';");
 
  return $self;
 }
@@ -367,7 +372,7 @@ my $WHERE = ($attr->{SESSION_ID}) ? "and session_id='$attr->{SESSION_ID}'" : '';
     my $a_ref = $self->{list}->[0];
     ($self->{TOTAL}) = @$a_ref;
     
-        print "$self->{TOTAL} --";
+      print "$self->{TOTAL} --";
   }
 	
 	

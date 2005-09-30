@@ -55,7 +55,7 @@ use Admins;
 my $html = Abills::HTML->new();
 my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
 
-my $db = $sql->{db};
+$db = $sql->{db};
 my $admin = Admins->new($db);
 require "../../language/$html->{language}.pl";
 my %permissions = ();
@@ -73,7 +73,7 @@ my %permissions = ();
 #    Options Indexes ExecCGI FollowSymLinks
 #
 #**********************************************************
-#print "Content-type: test/html\n\n";
+#print "Content-type: text/html\n\n";
 if (defined($ENV{HTTP_CGI_AUTHORIZATION})) {
   use Abills::Base;
   $ENV{HTTP_CGI_AUTHORIZATION} =~ s/basic\s+//i;
@@ -89,7 +89,7 @@ else {
 }
 
 if ($admin->{errno}) {
-  print "Content-type: test/html\n\n";
+  print "Content-type: text/html\n\n";
   message('err', $_ERROR, "Access Deny"); #$err_strs{$admin->{errno}}");
   exit;
 }
@@ -108,7 +108,6 @@ $html->setCookie('qm', "$FORM{qm_item}", "Fri, 1-Jan-2038 00:00:01", $web_path, 
 
 
 print $html->header();
-
 my @actions = ([$_SA_ONLY, $_ADD, $_LIST, $_PASSWD, $_CHANGE, $_DEL, $_ALL],  # Users
                [$_LIST, $_ADD, $_DEL, $_ALL],                                 # Payments
                [$_LIST, $_ADD, $_DEL, $_ALL],                                 # Fees
@@ -120,22 +119,19 @@ my @actions = ([$_SA_ONLY, $_ADD, $_LIST, $_PASSWD, $_CHANGE, $_DEL, $_ALL],  # 
                [$_PROFILE],
                );
 
-my @action = ('add', $_ADD);
-my @bool_vals = ($_NO, $_YES);
-my @PAYMENT_METHODS = ('Cashe', 'Bank', 'Credit Card', 'Internet Card');
+@action = ('add', $_ADD);
+@bool_vals = ($_NO, $_YES);
 
-my %op_names = ();
+my @PAYMENT_METHODS = ('Cashe', 'Bank', 'Credit Card', 'Internet Card');
 my %menu_items = ();
 my %menu_names = ();
-my %sub_show = ();
 my $root_index = 0;
-
-my ($main_menu, $sub_menu, $navigat_menu) = mk_navigator();
-my ($online_users, $online_count) = $admin->online();
+my $maxnumber = 0;
+my %uf_menus = (); #User form menu list
 
 my %SEARCH_TYPES = (11 => $_USERS,
-                    2 => $_PAYMENTS,
-                    3 => $_FEES,
+                    2 =>  $_PAYMENTS,
+                    3 =>  $_FEES,
                     41 => $_LAST_LOGIN,
                     13 => $_COMPANY
 );
@@ -150,6 +146,43 @@ while(my($k, $v)=each %SEARCH_TYPES) {
 }
 $SEL_TYPE .= "</select>\n";
 
+
+fl();
+#Add modules
+foreach my $m (@MODULES) {
+	require "Abills/modules/$m/config";
+  my %module_fl=();
+
+  my @sordet_module_menu = sort keys %FUNCTIONS_LIST;
+  foreach $line (@sordet_module_menu) {
+   
+    $maxnumber++;
+    my($ID, $SUB, $NAME, $FUNTION_NAME, $ARGS)=split(/:/, $line, 5);
+    my $v = $FUNCTIONS_LIST{$line};
+
+    $module_fl{"$ID"}=$maxnumber;
+    $menu_args{$maxnumber}=$ARGS if ($ARGS ne '');
+    #print "$line -- $ID, $SUB, $NAME, $FUNTION_NAME  // $module_fl{$SUB}<br>";
+    
+    if($SUB > 0) {
+      $menu_items{$maxnumber}{$module_fl{$SUB}}=$NAME;
+     } 
+    else {
+      $menu_items{$maxnumber}{$v}=$NAME;
+      if ($SUB == -1) {
+        $uf_menus{$maxnumber}=$NAME;
+      }
+    }
+
+    $menu_names{$maxnumber}=$NAME;
+    $functions{$maxnumber}=\&$FUNTION_NAME if ($FUNTION_NAME  ne '');
+    $module{$maxnumber}=$m;
+  }
+}
+
+
+my ($menu_text, $navigat_menu) = mk_navigator();
+my ($online_users, $online_count) = $admin->online();
 
 
 print "<table width=100%>
@@ -185,23 +218,29 @@ if (defined($COOKIES{qm}) && $COOKIES{qm} ne '') {
   print "</table></td></tr>\n";
 }
 
+print "<tr><td valign=top width=18% bgcolor=$_COLORS[2] rowspan=2>
+<p>$menu_text</p>
+</td><td bgcolor=$_COLORS[0] height=50>$navigat_menu</td></tr>
+<tr><td valign=top align=center>";
 
-print "<tr><td valign=top width=18% bgcolor=$_COLORS[2] rowspan=2><p>\n";
-print $html->menu(1, 'index', "", $main_menu, $sub_menu);
-my $sub_menus = sub_menu($index);
-print "</td><td bgcolor=$_COLORS[0] height=50>$navigat_menu</td></tr>\n";
-print "<tr><td valign=top align=center>";
 
 if ($functions{$index}) {
-  my $m;
-  while(my($k, $v) = each %$sub_menus ) {
-  	 $m .= "<a  href='$SELF_URL?index=$k'>$v</a> :: ";
+  if(defined($module{$index})) {
+ 	 	require "Abills/modules/$module{$index}/webinterface";
    }
-  if ($m ne '') {
-    print "<Table width=100% border=0><tr><td align=right>$m</td></tr></table>\n";
+  
+  if(defined($FORM{UID}) && $FORM{UID} > 0) {
+  	my $ui = user_info($FORM{UID});
+  	if($ui->{errno}==2) {
+  		message('err', $_ERROR, "[$FORM{UID}] $_USER_NOT_EXIST")
+  	}
+  	else {
+  	 $functions{$index}->({ USER => $ui });
+  	}
    }
-
-  $functions{$index}->();
+  else {
+    $functions{$index}->();
+   }
 }
 else {
   message('err', $_ERROR,  "Function not exist ($index / $root_index)");	
@@ -277,81 +316,87 @@ sub check_permissions {
 #**********************************************************
 # form_customers
 #**********************************************************
-sub form_accounts {
+sub form_companies {
   use Customers;	
   my $customer = Customers->new($db);
-  my $account = $customer->account();
+  my $company = $customer->company();
 
 if ($FORM{add}) {
-  $account->add({ %FORM });
+  $company->add({ %FORM });
  
-  if (! $account->{errno}) {
+  if (! $company->{errno}) {
     message('info', $_ADDED, "$_ADDED");
    }
  }
 elsif($FORM{change}) {
-  $account->change($FORM{ACCOUNT_ID} , { %FORM } );
 
-  if (! $account->{errno}) {
-    message('info', $_INFO, $_CHANGED. " # $account->{ACCOUNT_NAME}");
+  $company->change({ %FORM });
+
+  if (! $company->{errno}) {
+    message('info', $_INFO, $_CHANGED. " # $company->{ACCOUNT_NAME}");
+    goto INFO;  	 
    }
 
  }
-elsif($FORM{ACCOUNT_ID}) {
-  $account->info($FORM{ACCOUNT_ID});
+elsif($FORM{COMPANY_ID}) {
+
+  INFO:
+
+  $company->info($FORM{COMPANY_ID});
 
   func_menu({ 
-  	         'ID' => $account->{ACCOUNT_ID}, 
-  	         $_NAME =>$account->{ACCOUNT_NAME}
+  	         'ID' => $company->{COMPANY_ID}, 
+  	         $_NAME =>$company->{COMPANY_NAME}
   	       }, 
   	{ 
-  	 $_INFO     => ":ACCOUNT_ID=$account->{ACCOUNT_ID}",
-     $_USERS    => "11:ACCOUNT_ID=$account->{ACCOUNT_ID}",
-     $_STATS    => "22:ACCOUNT_ID=$account->{ACCOUNT_ID}",
-     $_PAYMENTS => "2:ACCOUNT_ID=$account->{ACCOUNT_ID}",
-     $_FEES     => "3:ACCOUNT_ID=$account->{ACCOUNT_ID}",
-     $_ADD_USER => "12:ACCOUNT_ID=$FORM{ACCOUNT_ID}"
+  	 $_INFO     => ":COMPANY_ID=$company->{COMPANY_ID}",
+     $_USERS    => "11:COMPANY_ID=$company->{COMPANY_ID}",
+     $_STATS    => "22:COMPANY_ID=$company->{COMPANY_ID}",
+     $_PAYMENTS => "2:COMPANY_ID=$company->{COMPANY_ID}",
+     $_FEES     => "3:COMPANY_ID=$company->{COMPANY_ID}",
+     $_ADD_USER => "12:COMPANY_ID=$FORM{COMPANY_ID}",
+     $_BILL     => "19:COMPANY_ID=$FORM{COMPANY_ID}"
   	 });
  
 
   #Sub functions
   if (! $FORM{subf}) {
-    $account->{ACTION}='change';
-    $account->{LNG_ACTION}=$_CHANGE;
-    $account->{DISABLE} = ($account->{DISABLE} > 0) ? 'checked' : '';
-    Abills::HTML->tpl_show(templates('form_account'), $account);
+    $company->{ACTION}='change';
+    $company->{LNG_ACTION}=$_CHANGE;
+    $company->{DISABLE} = ($company->{DISABLE} > 0) ? 'checked' : '';
+    Abills::HTML->tpl_show(templates('form_company'), $company);
   }
 
  }
 elsif($FORM{del}) {
-   $account->del( $FORM{del} );
+   $company->del( $FORM{del} );
    message('info', $_INFO, "$_DELETED # $FORM{del}");
  }
 else {
-  my $list = $account->list( { %LIST_PARAMS } );
+  my $list = $company->list( { %LIST_PARAMS } );
   my $table = Abills::HTML->table( { width => '100%',
                                    border => 1,
                                    title => [$_NAME, $_DEPOSIT, $_REGISTRATION, $_USERS, $_STATUS, '-', '-'],
-                                   cols_align => ['left', 'right', 'right', 'center', 'center'],
-                                   pages => $account->{TOTAL},
+                                   cols_align => ['left', 'right', 'right', 'right', 'center', 'center'],
+                                   pages => $company->{TOTAL},
                                    qs => $pages_qs
                                   } );
 
   foreach my $line (@$list) {
-    $table->addrow($line->[0],  $line->[1], $line->[2], "<a href='$SELF_URL?index=$index&ACCOUNT_ID=$line->[5]'>$line->[3]</a>", "$status[$line->[4]]",
-      "<a href='$SELF_URL?index=$index&ACCOUNT_ID=$line->[5]'>$_INFO</a>", $html->button($_DEL, "index=$index&del=$line->[5]", "$_DEL ?"));
+    $table->addrow($line->[0],  $line->[1], $line->[2], "<a href='$SELF_URL?index=$index&COMPANY_ID=$line->[5]'>$line->[3]</a>", "$status[$line->[4]]",
+      "<a href='$SELF_URL?index=$index&COMPANY_ID=$line->[5]'>$_INFO</a>", $html->button($_DEL, "index=$index&del=$line->[5]", "$_DEL ?"));
    }
   print $table->show();
 
   $table = Abills::HTML->table( { width => '100%',
                                 cols_align => ['right', 'right'],
-                                rows => [ [ "$_TOTAL:", "<b>$account->{TOTAL}</b>" ] ]
+                                rows => [ [ "$_TOTAL:", "<b>$company->{TOTAL}</b>" ] ]
                                } );
   print $table->show();
 }
 
-  if ($account->{errno}) {
-    message('info', $_ERROR, "[$account->{errno}] $err_strs{$account->{errno}}");
+  if ($company->{errno}) {
+    message('info', $_ERROR, "[$company->{errno}] $err_strs{$company->{errno}}");
    }
 
 }
@@ -381,6 +426,9 @@ print "$menu</td></tr>
 
 if ($FORM{subf}) {
   if ($functions{$FORM{subf}}) {
+ 	  if(defined($module{$index})) {
+  	 	require "Abills/modules/$module{$index}/webinterface";
+     }
     $functions{$FORM{subf}}->($f_args->{f_args});
    }
   else {
@@ -393,13 +441,13 @@ if ($FORM{subf}) {
 }
 
 #**********************************************************
-# add_account()
+# add_company()
 #**********************************************************
-sub add_account {
-  my $account;
-  $account->{ACTION}='add';
-  $account->{LNG_ACTION}=$_ADD;
-  Abills::HTML->tpl_show(templates('form_account'), $account);
+sub add_company {
+  my $company;
+  $company->{ACTION}='add';
+  $company->{LNG_ACTION}=$_ADD;
+  Abills::HTML->tpl_show(templates('form_company'), $company);
 }
 
 
@@ -416,12 +464,12 @@ sub user_form {
    my $user = Users->new($db, $admin); 
    $user_info = $user->defaults();
 
-   if ($FORM{ACCOUNT_ID}) {
+   if ($FORM{COMPANY_ID}) {
      use Customers;	
      my $customers = Customers->new($db);
-     my $account = $customers->account->info($FORM{ACCOUNT_ID});
- 	   $user_info->{ACCOUNT_ID}=$FORM{ACCOUNT_ID};
-     $user_info->{EXDATA} =  "<tr><td>$_COMPANY:</td><td><a href='$SELF_URL?index=13&ACCOUNT_ID=$account->{ACCOUNT_ID}'>$account->{ACCOUNT_NAME}</a></td></tr>\n";
+     my $company = $customers->company->info($FORM{COMPANY_ID});
+ 	   $user_info->{COMPANY_ID}=$FORM{COMPANY_ID};
+     $user_info->{EXDATA} =  "<tr><td>$_COMPANY:</td><td><a href='$SELF_URL?index=13&COMPANY_ID=$company->{COMPANY_ID}'>$company->{COMPANY_NAME}</a></td></tr>\n";
     }
 
    $user_info->{EXDATA} .= "<tr><td>$_USER:*</td><td><input type=text name=LOGIN value=''></td></tr>\n";
@@ -441,13 +489,14 @@ sub user_form {
   }
  else {
    $user_info->{EXDATA} = "<tr><td>$_DEPOSIT:</td><td>$user_info->{DEPOSIT}</td></tr>\n".
-           "<tr><td>$_COMPANY:</td><td><a href='$SELF_URL?index=13&ACCOUNT_ID=$user_info->{ACCOUNT_ID}'>$user_info->{ACCOUNT_NAME}</a></td></tr>\n";
+           "<tr><td>$_COMPANY:</td><td><a href='$SELF_URL?index=13&COMPANY_ID=$user_info->{COMPANY_ID}'>$user_info->{COMPANY_NAME}</a></td></tr>\n";
    $user_info->{DISABLE} = ($user_info->{DISABLE} > 0) ? 'checked' : '';
    $user_info->{ACTION}='change';
    $user_info->{LNG_ACTION}=$_CHANGE;
   } 
 
 Abills::HTML->tpl_show(templates('form_user'), $user_info);
+
 }
 
 
@@ -517,14 +566,14 @@ my $list = $users->groups_list({ %LIST_PARAMS });
 my $table = Abills::HTML->table( { width => '100%',
                                    border => 1,
                                    title => [$_ID, $_NAME, $_DESCRIBE, $_USERS, '-', '-', '-', '-'],
-                                   cols_align => ['left', 'left', 'left', 'right', 'center', 'center', 'center', 'center'],
+                                   cols_align => ['right', 'left', 'left', 'right', 'center', 'center', 'center', 'center'],
                                    qs => $pages_qs,
                                    pages => $users->{TOTAL}
                                   } );
 
 foreach my $line (@$list) {
   my $delete = $html->button($_DEL, "index=27$pages_qs&del=$line->[0]", "$_DEL ?"); 
-  $table->addrow("$line->[0]", "$line->[1]", "$line->[2]", 
+  $table->addrow("<b>$line->[0]</b>", "$line->[1]", "$line->[2]", 
    "<a href='$SELF_URL?index=27&GID=$line->[0]&subf=11'>$line->[3]</a>", 
    "<a href='$SELF_URL?index=27&GID=$line->[0]'>$_STATS</a>",
    "<a href='$SELF_URL?index=27&GID=$line->[0]'>$_STATS</a>",
@@ -556,39 +605,86 @@ sub add_groups {
 }
 
 #**********************************************************
+# user_info
+#**********************************************************
+sub user_info {
+  my ($UID)=@_;
+  use Users;
+  my $users = Users->new($db, $admin, \%conf); 
+	my $user_info = $users->info( $UID );
+  
+  print  "<table width=100% bgcolor=$_COLORS[2]><tr><td>$_USER:</td>
+   <td><a href='$SELF_URL?index=11&UID=$user_info->{UID}'><b>$user_info->{LOGIN}</b></td></tr></table>\n";
+  
+  $LIST_PARAMS{UID}=$user_info->{UID};
+  $pages_qs =  "&UID=$user_info->{UID}";
+  $pages_qs .= "&subf=$FORM{subf}" if (defined($FORM{subf}));
+
+  
+  return 	$user_info;
+}
+
+
+#**********************************************************
+#
+#**********************************************************
+sub user_pi {
+  my ($attr) = @_;
+
+  my $user = $attr->{USER};
+
+ if($FORM{add}) {
+ 	 my $user_pi = $user->pi_add({ %FORM });
+   if (! $user_pi->{errno}) {
+    message('info', $_ADDED, "$_ADDED");	
+   }
+  }
+ elsif($FORM{change}) {
+ 	 my $user_pi = $user->pi_change({ %FORM });
+   if (! $user_pi->{errno}) {
+    message('info', $_CHAGED, "$_CHANGED");	
+   }
+ }
+
+  if ($user_pi->{errno}) {
+    message('err', $_ERROR, "[$user_pi->{errno}] $err_strs{$user_pi->{errno}}");	
+   }
+
+
+  my $user_pi = $user->pi();
+  if($user_pi->{TOTAL} < 1) {
+  	$user_pi->{ACTION}='add';
+   	$user_pi->{LNG_ACTION}=$_ADD;
+    }
+  else {
+ 	  $user_pi->{ACTION}='change';
+	  $user_pi->{LNG_ACTION}=$_CHANGE;
+   }
+   
+  Abills::HTML->tpl_show(templates('form_pi'), $user_pi);      
+	
+}
+
+#**********************************************************
 # form_users()
 #**********************************************************
 sub form_users {
-  my $UID = $FORM{UID};
-  use Users;
- 
-  my $users = Users->new($db, $admin, \%conf); 
+  my ($attr)=@_;
 
-if($UID > 0) {
-  my $user_info = $users->info( $UID );
+if(defined($attr->{USER})) {
+
+  my $user_info = $attr->{USER};
   if ($users->{errno}) {
     message('err', $_ERROR, "[$users->{errno}] $err_strs{$users->{errno}}");	
     return 0;
    }
 
-  print  "<table width=100% bgcolor=$_COLORS[2]><tr><td>$_USER:</td>
-  <td><a href='$SELF_URL?index=11&UID=$users->{UID}'><b>$users->{LOGIN}</b></td></tr></table>\n";
-  
-  $LIST_PARAMS{UID}=$user_info->{UID};
-  $pages_qs =  "&UID=$user_info->{UID}";
-  $pages_qs .= "&subf=$FORM{subf}" if (defined($FORM{subf}));
-  
-
-  
   print "<table width=100% border=2 cellspacing=1 cellpadding=2><tr><td valign=top align=center>\n";
   
-  if($FORM{subf} eq 18){
-  	$functions{$FORM{subf}}->( { USER => $user_info } );
-   }
-  elsif ($FORM{change}) {
+  if ($FORM{change}) {
     $user_info->change($user_info->{UID}, { %FORM } );
-    if ($users->{errno}) {
-      message('err', $_ERROR, "[$users->{errno}] $err_strs{$users->{errno}}");	
+    if ($user_info->{errno}) {
+      message('err', $_ERROR, "[$user_info->{errno}] $err_strs{$user_info->{errno}}");	
       user_form();    
       print "</td></table>\n";
       return 0;	
@@ -597,18 +693,21 @@ if($UID > 0) {
       message('info', $_CHANGED, "$_CHANGED $users->{info}");
      }
    }
-  elsif ($FORM{subf}) {
-    $functions{$FORM{subf}}->( { USER => $user_info } );
-    print "</td></table>\n";
-    return 0;
-   }
-  elsif($index != 11 && $index != 7 && $index != 70) {
-     $functions{$index}->( { USER => $user_info } );
-     print "</td></table>\n";
-     return 0;
-   }
+#  elsif ($FORM{subf}) {
+# 	  if(defined($module{$FORM{subf}})) {
+#  	 	require "Abills/modules/$module{$FORM{subf}}/webinterface";
+#     }
+#    $functions{$FORM{subf}}->( { USER => $user_info } );
+#    print "</td></table>\n";
+#    return 0;
+#   }
+#  elsif($index != 11 && $index != 7 && $index != 70) {
+#     $functions{$index}->( { USER => $user_info } );
+#     print "</td></table>\n";
+#     return 0;
+#   }
   elsif ($FORM{del_user} && $FORM{is_js_confirmed} && $index == 11) {
-    $users->del();
+    $user_info->del();
     if ($users->{errno}) {
       message('err', $_ERROR, "[$users->{errno}] $err_strs{$users->{errno}}");	
      }
@@ -620,46 +719,58 @@ if($UID > 0) {
   else {
     @action = ('change', $_CHANGE);
     user_form('test', $user_info);
+    
+    user_pi({ USER => $user_info });
+
    }
 
 
-print "</td><td bgcolor=$_COLORS[3] valign=top width=180>
+print "
+</td><td bgcolor=$_COLORS[3] valign=top width=180>
 <table width=100% border=0><tr><td>
-      <li><a href='$SELF_URL?index=$index&UID=$UID&subf=22'>$_STATS</a>
-      <li><a href='$SELF_URL?index=$index&UID=$UID&subf=2'>$_PAYMENTS</a>
-      <li><a href='$SELF_URL?index=$index&UID=$UID&subf=3'>$_FEES</a>
-      <li><a href='$SELF_URL?index=$index&UID=$UID&subf=40'>$_ERROR_LOG</a>
-      <li><a href='$SELF_URL?op=sendmsg&UID=$UID&subf='>$_SEND_MAIL</a>
-      <li><a href='$SELF_URL?op=messages&UID=$UID&subf='>$_MESSAGES</a>
-      <li><a href='docs.cgi?docs=accts&UID=$UID&subf='>$_ACCOUNTS</a>
+      <li><a href='$SELF_URL?UID=$user_info->{UID}&index=22'>$_STATS</a>
+      <li><a href='$SELF_URL?UID=$user_info->{UID}&index=2'>$_PAYMENTS</a>
+      <li><a href='$SELF_URL?UID=$user_info->{UID}&index=3'>$_FEES</a>
+      <li><a href='$SELF_URL?UID=$user_info->{UID}&index=40'>$_ERROR_LOG</a>
+      <li><a href='$SELF_URL?UID=$user_info->{UID}&index='>$_SEND_MAIL</a>
+      <li><a href='$SELF_URL?UID=$user_info->{UID}&index='>$_MESSAGES</a>
+      <li><a href='docs.cgi?docs=accts&UID=$user_info->{UID}&index='>$_ACCOUNTS</a>
 </td></tr>
 <tr><td> 
-      <br><b>$_CHANGE</b>
-      <li><a href='$SELF_URL?index=$index&subf=15&UID=$UID&wide=y'>$_LOG</a>\n";
+  <br><b>$_CHANGE</b>\n";
 
-my %menus = (17 =>  $_PASSWD,
-             16 =>  $_TARIF_PLAN,
+my %userform_menus = (
+             15 =>  $_LOG,
+             17 =>  $_PASSWD,
              21 =>  $_COMPANY,
              24 =>  $_GROUP,
              18 =>  $_NAS,
-             20 =>  $_SERVICES
+             20 =>  $_SERVICES,
+             19	=>  $_BILL
  );
+
+while(my($k, $v)=each %uf_menus) {
+	$userform_menus{$k}=$v;
+}
+
  
 
-while(my($k, $v)=each (%menus) ) {
-  print "<li><a href='$SELF_URL?index=$index&UID=$UID&subf=$k'>";
+while(my($k, $v)=each (%userform_menus) ) {
+  print "<li><a href='$SELF_URL?index=$k&UID=$user_info->{UID}'>";
   my $a = (defined($FORM{$k})) ? "<b>$v</b>" : $v;
   print "$a </a>\n";
 }
 
-print "<li><a href='$SELF?index=$index&users&del_user=y&UID=$UID' onclick=\"return confirmLink(this, '$_USER: $user_info->{LOGIN} / $user_info->{UID} ')\">$_DEL</a>
+print "<li><a href='$SELF?index=$index&del_user=y&UID=$user_info->{UID}' onclick=\"return confirmLink(this, '$_USER: $user_info->{LOGIN} / $user_info->{UID} ')\">$_DEL</a>
 </td></tr>
 </table>
 </td></tr></table>\n";
   return 0;
 }
 elsif ($FORM{add}) {
-  my $user_info = $users->add({ %FORM  });  
+  use Users;
+  my $users = Users->new($db, $admin, \%conf); 
+  my $user_info = $users->add({ %FORM });  
 
   if ($users->{errno}) {
     message('err', $_ERROR, "[$users->{errno}] $err_strs{$users->{errno}}");	
@@ -670,17 +781,20 @@ elsif ($FORM{add}) {
     message('info', $_ADDED, "$_ADDED '$user_info->{LOGIN}' / [$user_info->{UID}]");
     $user_info = $users->info( $user_info->{UID} );
     Abills::HTML->tpl_show(templates('user_info'), $user_info);
+
+   
     $LIST_PARAMS{UID}=$user_info->{UID};
-    form_payments({ USER => $user_info });
+    form_bills({ USER => $user_info });
+    #form_payments({ USER => $user_info });
     return 0;
    }
 }
 
 
-if ($FORM{ACCOUNT_ID}) {
-  print "<p><b>$_ACCOUNT:</b> $FORM{ACCOUNT_ID}</p>\n";
-  $pages_qs .= "&ACCOUNT_ID=$FORM{ACCOUNT_ID}";
-  $LIST_PARAMS{ACCOUNT_ID} = $FORM{ACCOUNT_ID};
+if ($FORM{COMPANY_ID}) {
+  print "<p><b>$_COMPANY:</b> $FORM{COMPANY_ID}</p>\n";
+  $pages_qs .= "&COMPANY_ID=$FORM{COMPANY_ID}";
+  $LIST_PARAMS{COMPANY_ID} = $FORM{COMPANY_ID};
  }  
 
 if ($FORM{debs}) {
@@ -712,6 +826,9 @@ for (my $i=97; $i<123; $i++) {
    $pages_qs .= "&letter=$FORM{letter}";
   } 
 
+use Users;
+my $users = Users->new($db, $admin, \%conf); 
+
 my $list = $users->list( { %LIST_PARAMS } );
 
 if ($users->{errno}) {
@@ -719,8 +836,7 @@ if ($users->{errno}) {
   return 0;
  }
 elsif ($users->{TOTAL} == 1) {
-	$FORM{UID}=$list->[0]->[6];
-	form_users();
+	form_users({  USER => user_info($list->[0]->[6]) });
 	return 0;
 }
 
@@ -779,16 +895,16 @@ sub user_company {
  use Customers;
  my $customer = Customers->new($db);
 
-$user_info->{SEL_ACCOUNTS} = "<select name=ACCOUNT_ID>\n";
-$user_info->{SEL_ACCOUNTS} .= "<option value='0'>-N/S-\n";
-my $list = $customer->account->list();
+$user_info->{SEL_COMPANIES} = "<select name=COMPANY_ID>\n";
+$user_info->{SEL_COMPANIES} .= "<option value='0'>-N/S-\n";
+my $list = $customer->company->list();
 foreach my $line (@$list) {
-   $user_info->{SEL_ACCOUNTS} .= "<option value='$line->[5]'>$line->[0]\n";
+   $user_info->{SEL_COMPANIES} .= "<option value='$line->[5]'>$line->[0]\n";
  }
 
-$user_info->{SEL_ACCOUNTS} .= "</select>\n";
+$user_info->{SEL_COMPANIES} .= "</select>\n";
 
-Abills::HTML->tpl_show(templates('chg_account'), $user_info);
+Abills::HTML->tpl_show(templates('chg_company'), $user_info);
 }
 
 #**********************************************************
@@ -848,9 +964,9 @@ print $table->show();
 
 #*******************************************************************
 # Users and Variant NAS Servers
-# allow_nass()
+# form_nas_allow()
 #*******************************************************************
-sub allow_nass {
+sub form_nas_allow {
  my ($attr) = @_;
  my @allow = split(/, /, $FORM{ids});
  my %allow_nas = (); 
@@ -883,6 +999,7 @@ if ($attr->{USER}) {
  }
 elsif($attr->{TP}) {
   my $tarif_plan = $attr->{TP};
+
   if ($FORM{change}) {
     $tarif_plan->nas_add(\@allow);
     if ($tarif_plan->{errno}) {
@@ -902,6 +1019,7 @@ elsif($attr->{TP}) {
 }
 elsif ($FORM{TP_ID}) {
   $FORM{chg}=$FORM{TP_ID};
+  $FORM{subf}=72;
   form_tp();
   return 0;
  }
@@ -935,96 +1053,40 @@ print $out;
 }
 
 
-#*******************************************************************
-# Change user variant form
-# form_chg_vid()
-#*******************************************************************
-sub form_chg_tp {
- my ($attr) = @_;
 
- my $user = $attr->{USER};
- 
- my $TARIF_PLAN = $FORM{tarif_plan} || $_DEFAULT_VARIANT;
- my $period = $FORM{period} || 0;
 
- use Shedule;
- $shedule = Shedule->new($db, $admin);
+#**********************************************************
+# form_bills();
+#**********************************************************
+sub form_bills {
+  my ($attr) = @_;
+  my $user = $attr->{USER};
 
-if ($FORM{set}) {
-  if ($period == 1) {
-    $FORM{date_m}++;
-    $shedule->add( {UID => $user->{UID},
-                   TYPE => 'tp',
-                   ACTION => $TARIF_PLAN,
-    	             D => $FORM{date_d},
-                   M => $FORM{date_m},
-                   Y => $FORM{date_y},
-                   DEWCRIBE => "$message<br>
-                   $_FROM: '$FORM{date_y}-$FORM{date_m}-$FORM{date_d}'"
-                    });
 
-    if ($shedule->{errno}) {
-      message('err', $_ERROR, "[$shedule->{errno}] $err_strs{$shedule->{errno}}");	
+  if($FORM{UID} && $FORM{change}) {
+  	form_users({ USER => $user } ); 
+  	return 0;
+  }
+  
+  use Bills;
+  my  $bills = Bills->new($db);
+
+  $user->{SEL_BILLS} =  "<select name=BILL_ID>\n";
+  $user->{SEL_BILLS} .= "<option value='0'>-N/S-\n";
+  my $list = $bills->list({  COMPANY_ONLY => 'y',
+  	                         UID   => $user->{UID} });
+  foreach my $line (@$list) {
+    if($line->[3] ne '') {
+      $user->{SEL_BILLS} .= "<option value='$line->[0]'>$line->[0] : <font color='EE44EE'>$line->[3]</font> :$line->[1]\n";
      }
-    else {
-      message('info', $_CHANGED, "$_CHANGED");
-      $user->info($user->{UID});
-    }
+    elsif($line->[2] ne '') {
+    	$user->{SEL_BILLS} .= "<option value='$line->[0]'> >> $line->[0] : Personal :$line->[1]\n";
+     }
    }
-  else {
-    $user->change($user->{UID}, {
-                 TARIF_PLAN => $TARIF_PLAN
-                    }
-               );
-    if ($users->{errno}) {
-      message('err', $_ERROR, "[$users->{errno}] $err_strs{$users->{errno}}");	
-     }
-    else {
-      message('info', $_CHANGED, "$_CHANGED");
-      $user->info($user->{UID});
-    }
 
-  }
+  $user->{SEL_BILLS} .= "</select>\n";
+  Abills::HTML->tpl_show(templates('chg_bill'), $user);
 }
-elsif($FORM{del}) {
-  shedule('del', { UID => $user->{UID},
-   	           id  => $FORM{del}  } );
-# $q = $db->do("DELETE FROM shedule WHERE id='$FORM{del}' and UID='$UID';") || die $db->strerr;
-}
-
-use Tariffs;
-my $tariffs = Tariffs->new($db);
-my $variant_out = '';
- 
- my $tariffs_list = $tariffs->list();
- foreach my $line (@$tariffs_list) {
-   $variant_out .= "<option value=$line->[0]";
-   $variant_out .= ' selected' if ($line->[0] == $user->{TARIF_PLAN});
-   $variant_out .=  ">$line->[0]:$line->[1]\n";
-  }
-
-
- my $params='';
- $q = $db->prepare("SELECT id, CONCAT(y, '-', m, '-', d), action FROM shedule WHERE type='tp' and UID='$UID';") || die $db->strerr;
- $q ->execute();
- 
- $params .= "<tr><td>$_TO:</td><td><select name=tarif_plan>$variant_out</select></td></tr>";
- $params .= form_period($period);
- $params .= "</table><input type=submit name=set value=\"$_CHANGE\">\n";
-
-
-my $result = "<form action=$SELF_URL>
-<input type=hidden name=UID value='$user->{UID}'>
-<input type=hidden name=subf value=$FORM{subf}>
-<input type=hidden name=index value=$index>
-<table width=400 border=0>
-<tr><td>$_FROM:</td><td bgcolor=$_BG2>$user->{TARIF_PLAN} $user->{TP_NAME} [<a href='$SELF?index=70&TP_ID=$user->{TARIF_PLAN}' title='$_VARIANTS'>$_VARIANTS</a>]</td></tr>
-$params
-</form>\n";
-
- print $result;
-}
-
 
 
 #**********************************************************
@@ -1078,9 +1140,9 @@ print $table->show();
 
 #**********************************************************
 # Time intervals
-# form_periods()
+# form_intervals()
 #**********************************************************
-sub form_periods {
+sub form_intervals {
   my ($attr) = @_;
 
   @DAY_NAMES = ("$_ALL", 'Sun', 'Mon', 'Tue', 'Wen', 'The', 'Fri', 'Sat', "$_HOLIDAYS");
@@ -1112,7 +1174,7 @@ if($attr->{TP}) {
      }
    }
   elsif($FORM{chg}) {
-  	$tarif_plan->ti_info( $FORM{chg}  );
+  	$tarif_plan->ti_info( $FORM{chg} );
     if (! $tarif_plan->{errno}) {
       message('info', $_INFO, "$_INTERVALS $_CHANGE [$FORM{chg}]");
      }
@@ -1151,8 +1213,6 @@ if($attr->{TP}) {
     my ($h_e, $m_e, $s_e)=split(/:/, $line->[3], 3);
 
      push ( @{$visual_view{$line->[1]}}, "$h_b|$h_e|$color|$line->[0]")  ;
-
-#print "$line->[0] -- $visual_view{$line->[0]}<br>";
 
     if (($FORM{tt} eq $line->[0]) || ($FORM{chg} eq $line->[0])) {
        $table->{rowcolor}=$_COLORS[0];      
@@ -1195,6 +1255,7 @@ if($attr->{TP}) {
   
  }
 elsif ($FORM{TP_ID}) {
+  $FORM{subf}=73;
   form_tp();
   return 0;
  }
@@ -1770,6 +1831,12 @@ sub admin_permissions {
  my ($attr) = @_;
  my %permits = ();
 
+ if(! defined($attr->{ADMIN})) {
+    $FORM{subf}=52;
+    form_admins();
+    return 0;	
+  }
+
  my $admin = $attr->{ADMIN};
 
  if (defined($FORM{set})) {
@@ -2115,29 +2182,15 @@ if (defined($attr->{USER}))	{
   if (defined($FORM{OP_SID}) and $FORM{OP_SID} eq $COOKIES{OP_SID}) {
  	  message('err', $_ERROR, "$_EXIST $FORM{OP_SID} eq $COOKIES{OP_SID}");
     }
-  elsif ($FORM{bm} && $user->{ACCOUNT_ID} > 0) {
-     use Customers;	
-     my $customer = Customers->new($db);
-     my $Account = $customer->account();
-     
-
-     $Account->{ACCOUNT_ID}=$user->{ACCOUNT_ID};
-     $Account->add2deposit($FORM{sum});
-
-     if($Account->{errno}) {
-       message('err', $_ERROR, "[$Account->{errno}] $err_strs{$Account->{errno}}");
-      }
-     else {
-       message('info', $_INFO, "SUM added $FORM{sum}");  	
-      }
-   }
   elsif ($FORM{bm}) {
-    $user->add2deposit($FORM{sum});
-    if($user->{errno}) {
-      message('err', $_ERROR, "[$account->{errno}] $err_strs{$account->{errno}}");
+    use Bills;
+    my $Bill = Bills->new($db);
+    $Bill->action('add', "$FORM{BILL_ID}", $FORM{sum});
+    if($bill->{errno}) {
+      message('err', $_ERROR, "[$bill->{errno}] $err_strs{$bill->{errno}}");
      }
     else {
-      message('info', $_INFO, "SUM added $FORM{sum}");  	
+      message('info', $_INFO, "$_ADDED: SUM $FORM{sum}, BILL_ID: $FORM{BILL_ID}");  	
      }
    }
   elsif($FORM{detail}) {
@@ -2169,7 +2222,7 @@ if ($FORM{del} && $FORM{is_js_confirmed}) {
 }
 
 if ($sessions->{errno})	 {
-	message('err', $_ERROR, "[$account->{errno}] $err_strs{$account->{errno}}");
+	message('err', $_ERROR, "[$sessions->{errno}] $err_strs{$sessions->{errno}}");
  }
 
 
@@ -2405,8 +2458,9 @@ if ($type eq 'log') {
 		 use Users;
      my $users = Users->new($db, $admin);
      my $list = $users->list( { LOGIN => $attr->{LOGIN} } );
+
      if($users->{TOTAL} < 1) {
-     	 message('err', $_USER, "[$account->{errno}] $err_strs{$account->{errno}}");
+     	 message('err', $_USER, "[$users->{errno}] $err_strs{$users->{errno}}");
      	 return 0;
       }
 	   $UID = $list->[0]->[6];
@@ -2484,10 +2538,10 @@ foreach my $line (@$list) {
 
   my ($UID, 
       $SUM, 
-      $ACCOUNT_ID, 
+      $COMPANY_ID, 
       $TARIF_PLAN, 
       $TIME_TARIF, 
-      $TRAF_TARIF) = $Billing->session_sum2("$line->[0]", 
+      $TRAF_TARIF) = $Billing->session_sum("$line->[0]", 
                                             $line->[13], 
                                             $line->[14], 
                                             {  OUTBYTE  =>  $line->[4],
@@ -2495,11 +2549,12 @@ foreach my $line (@$list) {
                                                OUTBYTE2 =>  0,
                                                INBYTE2  =>  0
                                              }, 
-                                            \%conf);
+                                            \%conf,
+                                            { TP_ID => $line->[3] });
   
   my $test = "$UID, 
       <b>$SUM</b>, 
-      $ACCOUNT_ID, 
+      $COMPANY_ID, 
       $TARIF_PLAN, 
       $TIME_TARIF, 
       $TRAF_TARIF";
@@ -2568,7 +2623,7 @@ elsif($FORM{zap}) {
   $sessions->zap($nas_ip_address, $nas_port_id, $acct_session_id);
 
   if ($sessions->{errno}) {
-  	 message('err', $_ERROR, "[$account->{errno}] $err_strs{$account->{errno}}");
+  	 message('err', $_ERROR, "[$sessions->{errno}] $err_strs{$sessions->{errno}}");
   	 return 0;
    }
 
@@ -2813,7 +2868,7 @@ my $list = $sessions->detail_list({ %FORM });
                                    qs => $pages_qs
                                   } );
 
-print "aaa $sessions->{TOTAL}";
+print "$sessions->{TOTAL}";
 
  foreach my $line (@$list) {
     $table->addrow($line->[0],  $line->[1], $line->[2], $line->[3],  $line->[4], $line->[5], $line->[6]);
@@ -2836,7 +2891,7 @@ print "aaa $sessions->{TOTAL}";
 #
 #**********************************************************
 sub null {
-	
+  return 0;	
 }
 
 
@@ -2939,104 +2994,121 @@ $hidden_inputs
 }
 
 
+#**********************************************************
+#
+#**********************************************************
+sub fl {
+	
+	# ID:PARENT:NAME:FUNCTION:SHOW SUBMENU:module:
+my @m = ("1:0:$_CUSTOMERS:null:::",
+ "11:1:$_USERS:form_users:::",
+ "12:11:$_ADD:user_form:::",
+ "13:1:$_COMPANY:form_companies:::",
+ "14:13:$_ADD:add_company:::",
+ "15:11:$_LOG:form_changes:UID::",
+ "17:11:$_PASSWD:form_passwd:UID::",
+ "18:11:$_NAS:form_nas_allow:UID::",
+ "19:11:$_BILL:form_bills:UID::",
+ "20:11:$_SERVICES:user_services:UID::",
+ "21:11:$_COMPANY:user_company:UID::",
+ "22:11:$_STATS:form_stats:UID::",
+ "101:11:$_PAYMENTS:form_payments:UID::",
+ "102:11:$_FEES:form_fees:UID::",
+
+ "25:22:$_STATS:form_back_money:UID::",
+ "23:22:_DETAIL:session_detail:UID::",
+ "24:11:$_GROUP:user_group:UID::",
+ "27:1:$_GROUPS:form_groups:::",
+ "28:27:$_ADD:add_groups:::",
+ "29:27:$_LIST:form_groups:::",
+ "30:11:$_USER_INFO:user_pi:UID::",
+
+ "2:0:$_PAYMENTS:form_payments:::",
+ "3:0:$_FEES:form_fees:::",
+ "4:0:$_REPORTS:null:::",
+ "40:4:$_ERROR:form_error:::",
+ "41:4:$_LAST:show_sessions:::",
+ "43:4:$_USED:form_use:::",
+ "44:43:$_MONTH:form_use:::",
+
+ "5:0:$_SYSTEM:null:::",
+ "50:5:$_ADMINS:form_admins:::",
+ "51:5:$_LOG:form_changes:AID::",
+ "52:50:$_PERMISSION:admin_permissions:AID::",
+ "54:50:$_PASSWD:form_passwd:AID::",
+ 
+ "60:5:$_NAS:form_nas:::",
+ "61:60:IP POOLs:form_ip_pools:::",
+ "62:60:$_NAS_STATISTIC:form_nas_stats:NID::",
+
+ "65:5:$_EXCHANGE_RATE:exchange_rate:::",
+ "75:5:$_HOLIDAYS:form_holidays:::",
+
+ 
+ "85:5:$_SHEDULE:form_shedule:::",
+ "90:5:$_TEMPLATES:form_templates:::",
+ 
+ "6:0:$_MODULES:null:::",
+ "999:6:$_TEST:test:::",
+ "1000:6:$_DOCS::::",
+ "1001:6:Postfix::::",
+ "1002:6:SQL_COMMANDER::::",
+ 
+ "7:0:$_SEARCH:form_search:::",
+ 
+ "8:0:$_MONITORING:null:::",
+ "81:8:Dialup & VPN:online:::",
+ "9:0:$_PROFILE:null:::",
+ "53:9:$_PROFILE:admin_profile:::",
+ "99:9:$_FUNCTIONS_LIST:flist:::",
+
+ "70:5:$_TARIF_PLANS:form_tp:::",
+ "71:70:$_ADD:form_tp:::",
+ "72:70:$_NASS:form_nas_allow:::",
+ "73:70:$_INTERVALS:form_intervals:::",
+ "74:70:$_TRAFIC_TARIFS:form_traf_tarifs:::"
+ 
+ 
+ );
+
+
+
+#
+
+#"2000:5:DV:flist:1::",
+# "2001:2000:$_TARIF_PLANS:flist:1::",
+# "2002:2000:$_INTERVALS:flist:1::",
+
+
+foreach my $line (@m) {
+	my ($ID, $PARENT, $NAME, $FUNTION_NAME, $ARGS, $OP)=split(/:/, $line);
+  $menu_items{$ID}{$PARENT}=$NAME;
+  $menu_names{$ID}=$NAME;
+  $functions{$ID}=\&$FUNTION_NAME if ($FUNTION_NAME  ne '');
+  $menu_args{$ID}=$ARGS if ($ARGS ne '');
+  $maxnumber=$ID if ($maxnumber < $ID);
+}
+
+	
+}
+
 
 #**********************************************************
 # mk_navigator()
 #**********************************************************
 sub mk_navigator {
+
  my $menu_navigator = "";
+ my %tree = ();
 
-
-# ID:PARENT:NAME:FUNCTION:SHOW SUBMENU:OP:
-my @m = ("1:0:$_CUSTOMERS:null:0:customers:",
- "11:1:$_USERS:form_users:1:users:",
- "12:11:$_ADD:user_form:1::",
- "13:1:$_COMPANY:form_accounts:1::",
- "14:13:$_ADD:add_account:1::",
- 
- "15:11:$_LOG:form_changes:0:changes:",
- "16:11:$_TARIF_PLAN:form_chg_tp:0::",
- "17:11:$_PASSWD:form_passwd:0:password:",
- "18:11:$_NAS:allow_nass:0::",
- "20:11:$_SEVICES:user_services:0::",
- "21:11:$_COMPANY:user_company:0::",
- "22:11:$_STATS:form_stats:1::",
- "25:22:$_STATS:form_back_money:1::",
- "23:11:$_DEATAIL:session_detail:0::",
- "24:11:$_GROUP:user_group:0::",
- "27:1:$_GROUPS:form_groups:1::",
- "28:27:$_ADD:add_groups:1::",
- "29:27:$_LIST:form_groups:1::",
-
- "2:0:$_PAYMENTS:form_payments:1:payments:",
- "3:0:$_FEES:form_fees:1:fees:",
- "4:0:$_REPORTS:null:1:reports:",
- "40:4:$_ERROR:form_error:1::",
- "41:4:$_LAST:show_sessions:1::",
- "43:4:$_USED:form_use:1::",
- "44:43:$_MONTH:form_use:1::",
-
- "5:0:$_SYSTEM:null:1:system:",
- "50:5:$_ADMINS:form_admins:1::",
- "51:5:$_LOG:form_changes:1::",
- "52:50:$_PERMISSION:admin_permissions:0::",
- "54:50:$_PASSWD:form_passwd:0::",
- 
- "60:5:$_NAS:form_nas:1::",
- "61:60:IP POOLs:form_ip_pools:1::",
- "62:60:$_NAS_STATISTIC:form_nas_stats:1::",
-
- "65:5:$_EXCHANGE_RATE:exchange_rate:1::",
- "70:5:$_TARIF_PLANS:form_tp:1::",
- "71:70:$_ADD:form_tp:1::",
- "72:70:$_NASS:allow_nass:0::",
- "73:70:$_INTERVALS:form_periods:0::",
- "74:70:$_TRAFIC_TARIFS:form_traf_tarifs:0::",
- "75:5:$_HOLIDAYS:form_holidays:0::",
-
- 
- "85:5:$_SHEDULE:form_shedule:1::",
- "90:5:$_TEMPLATES:form_templates:1::",
- 
- "6:0:$_MODULES:null:1:modules:",
- "999:6:$_TEST:test:1:test:",
- "1000:6:$_DOCS::1:test:",
- "1001:6:Postfix::1:test:",
- "1002:6:SQL_COMMANDER::1:test:",
- 
- "7:0:$_SEARCH:form_search:1::",
- 
- "8:0:$_MONITORING:null:1::",
- "81:8:Dialup & VPN:online:1::",
- "9:0:$_PROFILE:null:1::",
- "53:9:$_PROFILE:admin_profile:1::",
- "99:9:$_FUNCTIONS_LIST:flist:1::"
- 
- );
-
-
-foreach my $line (@m) {
-	my ($ID, $PARENT, $NAME, $FUNTION_NAME, $SHOW_SUBMENU, $OP)=split(/:/, $line);
-  $menu_items{$ID}{$PARENT}=$NAME;
-  $menu_names{$ID}=$NAME;
-  $functions{$ID}=\&$FUNTION_NAME if ($FUNTION_NAME  ne '');
-  $show_submenu{$ID}='y' if ($SHOW_SUBMENU == 1);
-}
-#my $root_index = 0;
-
-if ($index == 0 && $OP ne '') {
-   my %functions_index = reverse(%op_names);
-   $index = $functions_index{$OP};
- }	
-
-# make navigate line 
-if ($index > 0) {
-  my $h;
+ # make navigate line 
+ if ($index > 0) {
   $root_index = $index;	
+  my $h = $menu_items{$root_index};
 
-  $h = $menu_items{$root_index};
   while(my ($par_key, $name) = each ( %$h )) {
     $menu_navigator =  " <a href='$SELF_URL?index=$root_index'>$name</a> /" . $menu_navigator;
+    $tree{$root_index}='y';
     if ($par_key > 0) {
       $root_index = $par_key;
       $h = $menu_items{$par_key};
@@ -3044,12 +3116,7 @@ if ($index > 0) {
   }
 }
 
-#if (defined($FORM{op}) && $FORM{op} eq '') {
-#   $OP = $op_names{$root_index};
-#  }
-
 $FORM{root_index} = $root_index;
-
 if ($root_index > 0) {
   my $ri = $root_index-1;
   if (! defined($permissions{$ri})) {
@@ -3059,44 +3126,81 @@ if ($root_index > 0) {
 }
 
 
-
-my %main_menu = ();
-my %submenu = ();
-
-while(my($section, $v)=each %permissions) {
-  $section++;
-  $main_menu{$section.'::'. $section .':'.$section} = $menu_items{$section}{0};
-
-  if ($root_index == $section) {
-    while(my($id, $v)=each %menu_items) {
-	    while(my($k, $v)=each %$v) {
-	 	    if ($k == $root_index) {
-	 	      $submenu{$id}=$v ;
-	 	     }
-	    }
-     }
-    $main_menu{$section.'::'. $section .':'.$section}{sm}=\%submenu;
+my %menu = ();
+while(my($ID, $VALUE_HASH)=each %menu_items) {
+ 	foreach my $parent (keys %$VALUE_HASH) {
+    push( @{$menu{$parent}},  "$ID:$VALUE_HASH->{$parent}" );
    }
 }
+ 
+ 
+ my @sorted_menu = sort keys %menu;
+ my @last_array = ();
 
-return  \%main_menu, \%submenu, "/".$menu_navigator;
+ my $menu_text = "<table border=0 width=100%>\n";
+ 
+ foreach $parent (@sorted_menu) {
+
+    next if ($parent > 0);
+ 	  my $level  = 0;
+ 	  my $prefix = '';
+
+ 	  label:
+ 	  $sub_menu_array = \@{$menu{$parent}};
+ 	  while( $sm_item = pop @$sub_menu_array) {
+ 	     my($ID, $name)=split(/:/, $sm_item, 2);
+
+ 	     next if((! $permissions{$ID-1}) && $parent == 0);
+	      	      	     
+ 	     $name = (defined($tree{$ID})) ? "> <b>$name</b>": "$name";
+ 	     #print "$prefix$level / $parent /$ID ";
+
+
+        if(! defined($menu_args{$ID}) || (defined($menu_args{$ID}) && defined($FORM{$menu_args{$ID}})) ) {
+       	   my $ext_args = "&$menu_args{$ID}=$FORM{$menu_args{$ID}}";
+       	   $link = "<a href='$SELF_URL?index=$ID$ext_args'>$name</a>";   
+
+    	     if($parent == 0) {
+ 	        	 $menu_text .= "<tr><td bgcolor=$_COLORS[3] align=left>$prefix$link</td></tr>\n";
+ 	          }
+ 	         elsif(defined($tree{$ID})) {
+ 	           $menu_text .= "<tr><td bgcolor=$_COLORS[2] align=left>$prefix>$link</td></tr>\n";
+ 	          }
+ 	         else {
+ 	           $menu_text  .= "<tr><td bgcolor=$_COLORS[1]>$prefix$link</td></tr>\n";
+ 	          }
+         }
+        else {
+          #next;
+          #$link = "<a href='$SELF_URL?index=$ID&$menu_args{$ID}'>$name</a>";	
+         }
+
+ 	      	     
+
+ 	     if(defined($tree{$ID})) {
+ 	     	 $level++;
+ 	     	 $prefix .= "&nbsp;&nbsp;&nbsp;";
+         push @last_array, $parent;
+         $parent = $ID;
+ 	     	 $sub_menu_array = \@{$menu{$parent}};
+ 	      }
+ 	   }
+ 	  
+    if ($#last_array > -1) {
+      $parent = pop @last_array;	
+      #print "POP/$#last_array/$parent/<br>\n";
+      $level--;
+      $prefix = substr($prefix, 0, $level * 6 * 3);
+      goto label;
+     }
+ 	  
+  }
+ 
+ 
+ $menu_text .= "</table>\n";
+
+return  $menu_text, "/".$menu_navigator;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -3200,62 +3304,6 @@ print "<input type=submit name=quick_set value='Quick Menu'>
 
 
 
-
-
-#**********************************************************
-# sub_menu($root_index)
-#
-#**********************************************************
-sub sub_menu {
-  my $root_index = shift;
-  
-  return 0 if ($root_index < 1);
-  
-print "<br>\n";
-my %new_hash = ();
-my %sub_menus = ();
-while((my($findex, $hash)=sort each(%menu_items))) {
-  while(my($k, $val)=each %$hash) {
-    $new_hash{$k}{$findex}=$val;
-   }
-}
-
-  if (defined($new_hash{$root_index})) {
-    $level++;
-    $prefix .= "&nbsp;&nbsp;&nbsp;";
-    label:
-      my $mi = $new_hash{$root_index};
-
-      while(my($k, $val)=each %$mi) {
-      	$val = ($index eq $k) ?  "<b>$val</b>" : $val;
-        #print "$prefix $level: <a href='$SELF_URL?index=$k'>$val</a><br>\n";
-        
-        $sub_menus{$k}="$val" if (defined($show_submenu{$k}) && $level  == 1);
-
-        if (defined($new_hash{$k})) {
-      	   $mi = $new_hash{$k};
-      	   $level++;
-           $prefix .= "&nbsp;&nbsp;&nbsp;";
-           push @last_array, $parent;
-           $parent = $k;
-         }
-        delete($new_hash{$parent}{$k});
-      }
-    
-    if ($#last_array > -1) {
-      $parent = pop @last_array;	
-#      print "POP/$#last_array/$parent/<br>\n";
-      $level--;
-      
-      $prefix = substr($prefix, 0, $level * 6 * 3);
-      goto label;
-    }
-    delete($new_hash{0}{$parent});
-   }
-
-
-	return \%sub_menus;
-}
 
 #**********************************************************
 # check_access
@@ -3361,7 +3409,7 @@ $pages_qs .= "&subf=2" if (! $FORM{subf});
 
 foreach my $line (@$list) {
   my $delete = ($permissions{1}{2}) ?  $html->button($_DEL, "index=$index&del=$line->[0]&UID=$line->[10]$pages_qs", "$_DEL ?") : ''; 
-  $table->addrow("<b>$line->[0]</b>", "<a href='$SELF_URL?index=11&UID=$line->[9]'>$line->[1]</a>", $line->[2], 
+  $table->addrow("<b>$line->[0]</b>", "<a href='$SELF_URL?index=11&UID=$line->[10]'>$line->[1]</a>", $line->[2], 
    $line->[3], $line->[4],  "$line->[5]", "$line->[6]", "$line->[7]", $PAYMENT_METHODS[$line->[8]], "$line->[9]", $delete);
 }
 
@@ -3472,7 +3520,7 @@ sub form_fees  {
 if (defined($attr->{USER})) {
   my $user = $attr->{USER};
   $fees->{UID} = $user->{UID};
-  if ($FORM{get} && $FORM{SUM}) {
+  if ($FORM{take} && $FORM{SUM}) {
     # add to shedule
     if ($period == 1) {
       use Shedule;
@@ -3489,7 +3537,7 @@ if (defined($attr->{USER})) {
      }
     #Add now
     else {
-      $fees->get($user, $FORM{SUM}, { DESCRIBE => $FORM{DESCR} } );  
+      $fees->take($user, $FORM{SUM}, { DESCRIBE => $FORM{DESCR} } );  
       if ($fees->{errno}) {
         message('err', $_ERROR, "[$fees->{errno}] $err_strs{$fees->{errno}}");	
        }
@@ -3842,18 +3890,20 @@ print << "[END]";
 # 
 #**********************************************************
 sub test {
+
+
+#flist();
+
 print "<table border=1>
 <tr><td>index</td><td>$index</td></td></tr>
-<tr><td>root_index</td><td>$root_index</td></td></tr>
-<tr bgcolor=$_COLORS[2]><td>OP</td><td>$OP</td></tr>\n";	
+<tr><td>root_index</td><td>$root_index</td></td></tr>\n";	
   while(my($k, $v)=each %FORM) {
     print "<tr><td>$k</td><td>$v</td></tr>\n";	
    }
 print "</table>\n";
 
 print "<br><table border=1>
-<tr><td>index</td><td>$index</td></td></tr>
-<tr bgcolor=$_COLORS[2]><td>OP</td><td>$OP</td></tr>\n";	
+<tr><td>index</td><td>$index</td></td></tr>\n";	
   while(my($k, $v)=each %COOKIES) {
     print "<tr><td>$k</td><td>$v</td></tr>\n";	
    }
@@ -3882,7 +3932,7 @@ print "</table>\n";
 #*******************************************************************
 # form_period
 #*******************************************************************
-sub form_period () {
+sub form_period  {
  my ($period) = @_;
 
 

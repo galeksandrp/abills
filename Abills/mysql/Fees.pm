@@ -16,30 +16,31 @@ $VERSION = 2.00;
 @EXPORT_OK = ();
 %EXPORT_TAGS = ();
 
-my $db;
-my $uid;
-my $admin;
-#my %DATA = ();
 use main;
+use Bills;
 @ISA  = ("main");
-
+my $Bill;
 
 #**********************************************************
 # Init 
 #**********************************************************
 sub new {
   my $class = shift;
-  ($db, $admin) = @_;
+  ($db, $admin, $CONF) = @_;
   my $self = { };
   bless($self, $class);
+  
+  $Bill=Bills->new($db, $admin, $CONF); 
+  
   return $self;
 }
 
 
 #**********************************************************
-# add()
+# Take sum from bill account
+# take()
 #**********************************************************
-sub get {
+sub take {
   my $self = shift;
   my ($user, $sum, $attr) = @_;
   
@@ -51,44 +52,29 @@ sub get {
      return $self;
    }
   
-  my $sql;
+  if ($user->{BILL_ID} > 0) {
 
-  if ($user->{ACCOUNT_ID} > 0) {
-  	$sql = "SELECT deposit FROM accounts WHERE id='$user->{ACCOUNT_ID}';";
-   }
-  else {
-    $sql = "SELECT deposit FROM users WHERE uid='$user->{UID}';";
-   }
-  my $q = $db -> prepare($sql)|| die $db->errstr;
-  $q -> execute();
-
-  if ($q->rows == 1) {
-    my ($deposit)=$q -> fetchrow();
-
-    if ($user->{ACCOUNT_ID} > 0) {
-      $self->query($db, "UPDATE accounts SET deposit=deposit-$sum WHERE id='$user->{ACCOUNT_ID}';", 'do');
-      }   
-    else {
-    	$self->query($db, "UPDATE users SET deposit=deposit-$sum WHERE uid='$user->{UID}';", 'do');
-      }
-
-    if($self->{errno}) {
+    $Bill->info( { BILL_ID => $user->{BILL_ID} } );
+    $Bill->action('take', $user->{BILL_ID}, $sum);
+    if($Bill->{errno}) {
+       $self->{errno}  = $Bill->{errno};
+       $self->{errstr} =  $Bill->{errstr};
        return $self;
       }
 
 
-    $self->query($db, "INSERT INTO fees (uid, date, sum, dsc, ip, last_deposit, aid) 
-           values ('$user->{UID}', now(), $sum, '$DESCRIBE', INET_ATON('$admin->{SESSION_IP}'), '$deposit', '$admin->{AID}');", 'do');
+    $self->query($db, "INSERT INTO fees (uid, bill_id, date, sum, dsc, ip, last_deposit, aid) 
+           values ('$user->{UID}', '$user->{BILL_ID}', now(), '$sum', '$DESCRIBE', INET_ATON('$admin->{SESSION_IP}'), '$Bill->{DEPOSIT}', '$admin->{AID}');", 'do');
 
     if($self->{errno}) {
        return $self;
       }
   }
+  else {
+    $self->{errno}=14;
+    $self->{errstr}='No Bill';
+  }
 
-
-  if($self->{errno}) {
-     return $self;
-   }
 
   return $self;
 }
@@ -100,7 +86,7 @@ sub del {
   my $self = shift;
   my ($user, $id) = @_;
 
-  $self->query($db, "SELECT sum from fees WHERE id='$id';");
+  $self->query($db, "SELECT sum, bill_id from fees WHERE id='$id';");
 
   if ($self->{TOTAL} < 1) {
      $self->{errno} = 2;
@@ -112,20 +98,11 @@ sub del {
    }
 
   my $a_ref = $self->{list}->[0];
-  my($sum) = @$a_ref;
+  my($sum, $bill_id) = @$a_ref;
 
-  my $sql;
-  if ($user->{ACCOUNT_ID} > 0) {
-    $sql = "UPDATE accounts SET deposit=deposit+$sum WHERE id='$user->{ACCOUNT_ID}';";	
-   }
-  else {
-    $sql = "UPDATE users SET deposit=deposit+$sum WHERE uid='$user->{UID}';";	
-   }
-
-  $self->query($db, "$sql", 'do');
+  $Bill->action('add', $bill_id, $sum); 
 
   $self->query($db, "DELETE FROM fees WHERE id='$id';", 'do');
-
   $admin->action_add($user->{UID}, "DELETE FEES SUM: $sum");
   return $self->{result};
 }

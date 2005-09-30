@@ -76,10 +76,10 @@ elsif ($acct_status_type == 2) {
 
   ($self->{UID}, 
   $self->{SUM}, 
-  $self->{ACCOUNT_ID}, 
+  $self->{BILL_ID}, 
   $self->{TARIF_PLAN}, 
   $self->{TIME_TARIF}, 
-  $self->{TRAF_TARIF}) = $Billing->session_sum2("$RAD->{USER_NAME}", 
+  $self->{TRAF_TARIF}) = $Billing->session_sum("$RAD->{USER_NAME}", 
                                                  $RAD->{SESSION_START}, 
                                                  $RAD->{ACCT_SESSION_TIME}, 
                                                  $RAD, 
@@ -101,11 +101,11 @@ elsif ($acct_status_type == 2) {
    }
   else {
     $self->query($db, "INSERT INTO log (uid, start, tp_id, duration, sent, recv, minp, kb,  sum, nas_id, port_id,
-        ip, CID, sent2, recv2, acct_session_id, account_id) 
+        ip, CID, sent2, recv2, acct_session_id, bill_id) 
         VALUES ('$self->{UID}', FROM_UNIXTIME($RAD->{SESSION_START}), '$self->{TARIF_PLAN}', '$RAD->{ACCT_SESSION_TIME}', 
         '$RAD->{OUTBYTE}', '$RAD->{INBYTE}', '$self->{TIME_TARIF}', '$self->{TRAF_TARIF}', '$self->{SUM}', '$NAS->{NID}',
         '$RAD->{NAS_PORT}', INET_ATON('$RAD->{FRAMED_IP_ADDRESS}'), '$RAD->{CALLING_STATION_ID}',
-        '$RAD->{OUTBYTE2}', '$RAD->{INBYTE2}',  \"$RAD->{ACCT_SESSION_ID}\", '$self->{ACCOUNT_ID}');", 'do');
+        '$RAD->{OUTBYTE2}', '$RAD->{INBYTE2}',  \"$RAD->{ACCT_SESSION_ID}\", '$self->{BILL_ID}');", 'do');
 
     if ($self->{errno}) {
       my $filename = "$RAD->{USER_NAME}.$RAD->{ACCT_SESSION_ID}";
@@ -115,12 +115,7 @@ elsif ($acct_status_type == 2) {
 # If SQL query filed
     else {
       if ($self->{SUM} > 0) {
-        if ($self->{ACCOUNT_ID} > 0) {
-         	$self->query($db, "UPDATE accounts SET deposit=deposit-$self->{SUM} WHERE id='$self->{ACCOUNT_ID}';", 'do');
-         }
-        else {
-          $self->query($db, "UPDATE users SET deposit=deposit-$self->{SUM} WHERE id='$RAD->{USER_NAME}';", 'do');
-         }
+         $self->query($db, "UPDATE bills SET deposit=deposit-$self->{SUM} WHERE id='$self->{BILL_ID}';", 'do');
        }
      }
    }

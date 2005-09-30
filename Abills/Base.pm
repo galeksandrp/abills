@@ -6,7 +6,6 @@ use vars qw(@ISA @EXPORT @EXPORT_OK %EXPORT_TAGS $VERSION
  %int
  %variants
  %conf
- %trafic
 );
 
 use Exporter;

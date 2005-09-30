@@ -17,7 +17,7 @@ $VERSION = 2.00;
 %EXPORT_TAGS = ();
 
 
-use Accounts;
+use Companies;
 
 my $db;
 # Customer id
@@ -39,11 +39,11 @@ sub new {
 #**********************************************************
 # Account
 #**********************************************************
-sub account {
+sub company {
   my $self = shift;
-  my $account = Accounts->new($db);
+  my $Companies = Companies->new($db);
   
-  return $account;
+  return $Companies;
 }
 
 

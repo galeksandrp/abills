@@ -55,7 +55,6 @@ foreach my $line (@$a_ref) {
   $permissions{$section}{$action} = 'y';
  }
 
-
   $self->{permissions} = \%permissions;
   return $self->{permissions};
 }
@@ -98,8 +97,7 @@ sub auth {
 #**********************************************************
 sub info {
   my ($self) = shift;
-  ($aid) = shift;
-  my ($attr) = @_;
+  my ($aid, $attr) = @_;
 
   my $WHERE;
   my $PASSWORD = '0'; 
@@ -158,10 +156,6 @@ sub change {
  my $self = shift;
  my ($attr) = @_;
  
- %DATA = $self->get_data($attr); 
- 
- my $CHANGES_QUERY = "";
- my $CHANGES_LOG = "Tarif plan:";
 
  my %FIELDS = (AID =>   'aid',
            A_LOGIN => 'id',
@@ -170,27 +164,40 @@ sub change {
            A_PHONE => 'phone',
            DISABLE => 'disable'
    );
- my $OLD = $self->info($self->{AID});
 
- while(my($k, $v)=each(%DATA)) {
-    if ($OLD->{$k} ne $DATA{$k}){
-      if ($FIELDS{$k}) {
-         $CHANGES_LOG .= "$k $OLD->{$k}->$DATA{$k};";
-         $CHANGES_QUERY .= "$FIELDS{$k}='$DATA{$k}',";
-       }
-     }
-  }
+ $self->changes( { CHANGE_PARAM => 'GID',
+		               TABLE        => 'groups',
+		               FIELDS       => \%FIELDS,
+		               OLD_INFO     => $self->pi(),
+		               DATA         => $attr
+		              } );
 
 
-if ($CHANGES_QUERY eq '') {
-  return $self->{result};	
-}
-
-# print $CHANGES_LOG;
-  chop($CHANGES_QUERY);
-  $self->query($db, "UPDATE admins SET $CHANGES_QUERY
-    WHERE aid='$self->{AID}'", 'do');
-#  $admin->action_add(0, "$CHANGES_LOG");
+# %DATA = $self->get_data($attr); 
+# my $CHANGES_QUERY = "";
+# my $CHANGES_LOG = "Tarif plan:";
+#
+# my $OLD = $self->info($self->{AID});
+#
+# while(my($k, $v)=each(%DATA)) {
+#    if ($OLD->{$k} ne $DATA{$k}){
+#      if ($FIELDS{$k}) {
+#         $CHANGES_LOG .= "$k $OLD->{$k}->$DATA{$k};";
+#         $CHANGES_QUERY .= "$FIELDS{$k}='$DATA{$k}',";
+#       }
+#     }
+#  }
+#
+#
+#if ($CHANGES_QUERY eq '') {
+#  return $self->{result};	
+#}
+#
+## print $CHANGES_LOG;
+#  chop($CHANGES_QUERY);
+#  $self->query($db, "UPDATE admins SET $CHANGES_QUERY
+#    WHERE aid='$self->{AID}'", 'do');
+##  $admin->action_add(0, "$CHANGES_LOG");
 
   $self->info($self->{AID});
   
@@ -231,8 +238,9 @@ sub del {
 #**********************************************************
 sub action_add {
   my $self = shift;
-  my ($uid, $actions) = @_;
-  $self->query($db, "INSERT INTO admin_actions (aid, ip, datetime, actions, uid) VALUES ('$self->{AID}', INET_ATON('$IP'), now(), '$actions', '$uid')", 'do');
+  my ($uid, $actions, $attr) = @_;
+  $self->query($db, "INSERT INTO admin_actions (aid, ip, datetime, actions, uid) 
+    VALUES ('$self->{AID}', INET_ATON('$IP'), now(), '$actions', '$uid')", 'do');
   return $self;
 }
 

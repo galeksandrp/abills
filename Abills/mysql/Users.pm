@@ -18,31 +18,26 @@ $VERSION = 2.00;
 # User name expration
 my $usernameregexp = "^[a-z0-9_][a-z0-9_-]*\$"; # configurable;
 
-my %conf = ();
-$conf{max_username_length} = 10;
-
-
 use main;
 @ISA  = ("main");
 
 
-my $db;
 my $uid;
-my $admin;
-my $CONF;
-my %DATA = ();
-
 #**********************************************************
 # Init 
 #**********************************************************
 sub new {
   my $class = shift;
   ($db, $admin, $CONF) = @_;
+  $CONF->{max_username_length} = 10;
   my $self = { };
   bless($self, $class);
-#  $self->{debug}=1;
+  #$self->{debug}=1;
   return $self;
 }
+
+
+
 
 
 #**********************************************************
@@ -51,11 +46,9 @@ sub new {
 #**********************************************************
 sub info {
   my $self = shift;
-  my ($uid) = shift;
-  my ($attr) = @_;
+  my ($uid, $attr) = @_;
 
   my $WHERE;
-  #my $PASSWORD = '0'; 
   
   if (defined($attr->{LOGIN}) && defined($attr->{PASSWORD})) {
     $WHERE = "WHERE u.id='$attr->{LOGIN}' and DECODE(u.password, '$CONF->{secretkey}')='$attr->{PASSWORD}'";
@@ -69,15 +62,23 @@ sub info {
    }
 
 
+  $self->query($db, "SELECT u.uid,
+   u.gid, 
+   g.name,
+   u.id, u.activate, u.expire, u.credit, u.reduction, 
+   u.registration, 
+   u.disable,
+   u.bill_id,
+   if(c.name IS NULL, b.deposit, cb.deposit),
+   u.company_id,
+   if(c.name IS NULL, 'N/A', c.name), 
+   if(c.name IS NULL, u.bill_id, c.bill_id)
 
-  $self->query($db, "SELECT u.id, u.fio, u.phone, u.address, u.email, u.activate, u.expire, u.credit, u.reduction, 
-            u.tp_id, tp.name, u.logins, u.registration, u.disable,
-            INET_NTOA(u.ip), INET_NTOA(u.netmask), u.speed, u.filter_id, u.cid, u.comments, u.account_id,
-            if(acct.name IS NULL, 'N/A', acct.name), if(acct.name IS NULL, u.deposit, acct.deposit), tp.name, u.gid, g.name, u.uid
      FROM users u
-     LEFT JOIN accounts acct ON (u.account_id=acct.id)
-     LEFT JOIN tarif_plans tp ON (u.tp_id=tp.id)
+     LEFT JOIN bills b ON (u.bill_id=b.id)
      LEFT JOIN groups g ON (u.gid=g.gid)
+     LEFT JOIN companies c ON (u.company_id=c.id)
+     LEFT JOIN bills cb ON (c.bill_id=cb.id)
      $WHERE;");
 
   if ($self->{TOTAL} < 1) {
@@ -88,48 +89,139 @@ sub info {
 
   my $ar = $self->{list}->[0];
 
-  ($self->{LOGIN}, 
-   $self->{FIO}, 
-   $self->{PHONE}, 
-   $self->{ADDRESS}, 
-   $self->{EMAIL}, 
-   $self->{ACTIVATE}, $self->{EXPIRE}, 
-   $self->{CREDIT}, 
-   $self->{REDUCTION}, 
-   $self->{TARIF_PLAN}, 
-   $self->{TARIF_PLAN_NAME}, 
-   $self->{SIMULTANEONSLY}, 
-   $self->{REGISTRATION}, 
-   $self->{DISABLE}, 
-   $self->{IP}, 
-   $self->{NETMASK}, 
-   $self->{SPEED}, 
-   $self->{FILTER_ID}, 
-   $self->{CID}, 
-   $self->{COMMENTS}, 
-   $self->{ACCOUNT_ID},
-   $self->{ACCOUNT_NAME},
-   $self->{DEPOSIT},
-   $self->{TP_NAME},
+  ($self->{UID},
    $self->{GID},
    $self->{G_NAME},
-   $self->{UID} )= @$ar;
+   $self->{LOGIN}, 
+   $self->{ACTIVATE}, 
+   $self->{EXPIRE}, 
+   $self->{CREDIT}, 
+   $self->{REDUCTION}, 
+   $self->{REGISTRATION}, 
+   $self->{DISABLE}, 
+   $self->{BILL_ID}, 
+   $self->{DEPOSIT}, 
+   $self->{COMPANY_ID},
+   $self->{COMPANY_NAME},
+ )= @$ar;
   
   
   return $self;
 }
 
+
 #**********************************************************
+# pi_add()
+#**********************************************************
+sub pi_add {
+  my $self = shift;
+  my ($attr) = @_;
+  
+  defaults();  
+  %DATA = $self->get_data($attr, { default => $self }); 
+  
+  if($DATA{EMAIL} ne '') {
+    if ($DATA{EMAIL} !~ /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/) {
+      $self->{errno} = 11;
+      $self->{errstr} = 'ERROR_WRONG_EMAIL';
+      return $self;
+     }
+   }
+    
+  $self->query($db,  "INSERT INTO users_pi (uid, fio, phone, address_street, address_build, address_flat, 
+          email, contract_id, comments)
+           VALUES ('$DATA{UID}', '$DATA{FIO}', '$DATA{PHONE}', \"$DATA{ADDRESS_STREET}\", 
+            \"$DATA{ADDRESS_BUILD}\", \"$DATA{ADDRESS_FLAT}\",
+            '$DATA{EMAIL}', '$DATA{CONTRACT_ID}',
+            '$self->{COMMENTS}' );", 'do');
+  
+  return $self if ($self->{errno});
+  
+  $admin->action_add($uid, "ADD");
+  return $self;
+}
+
+
+
+#**********************************************************
+# Personal inforamtion
+# personal_info()
+#**********************************************************
+sub pi {
+	my $self = shift;
+
+  $self->query($db, "SELECT pi.fio, 
+  pi.phone, 
+  pi.address_street, 
+  pi.address_build,
+  pi.address_flat,
+  pi.email,  
+  pi.contract_id,
+  pi.comments
+    FROM users_pi pi
+    WHERE pi.uid='$self->{UID}';");
+
+  if ($self->{TOTAL} < 1) {
+     $self->{errno} = 2;
+     $self->{errstr} = 'ERROR_NOT_EXIST';
+     return $self;
+   }
+
+  my $ar = $self->{list}->[0];
+
+  ($self->{FIO}, 
+   $self->{PHONE}, 
+   $self->{ADDRESS_STREET}, 
+   $self->{ADDRESS_BUILD}, 
+   $self->{ADDRESS_FLAT}, 
+   $self->{EMAIL}, 
+   $self->{CONTRACT_ID},
+   $self->{COMMENTS}
+  )= @$ar;
+	
+	
+	return $self;
+}
+
+#**********************************************************
+# Personal Info change
 #
+#**********************************************************
+sub pi_change {
+	my $self   = shift;
+  my ($attr) = @_;
+
+
+my %FIELDS = (EMAIL => 'email',
+              FIO => 'fio',
+              PHONE => 'phone',
+              ADDRESS_BUILD  => 'address_build',
+              ADDRESS_STREET => 'address_street',
+              ADDRESS_FLAT   => 'address_flat',
+              COMMENTS       => 'comments',
+              UID            => 'uid',
+              CONTRACT_ID    => 'contract_id'
+             );
+
+	$self->changes($admin, { CHANGE_PARAM => 'UID',
+		                TABLE        => 'users_pi',
+		                FIELDS       => \%FIELDS,
+		                OLD_INFO     => $self->pi($attr->{UID}),
+		                DATA         => $attr
+		              } );
+
+	
+	return $self;
+}
+
+
+#**********************************************************
+# defauls user settings
 #**********************************************************
 sub defaults {
   my $self = shift;
 
   %DATA = ( LOGIN => '', 
-   FIO => '', 
-   PHONE => '', 
-   ADDRESS => '', 
-   EMAIL => '', 
    ACTIVATE => '0000-00-00', 
    EXPIRE => '0000-00-00', 
    CREDIT => 0, 
@@ -137,16 +229,8 @@ sub defaults {
    TARIF_PLAN => 0, 
    SIMULTANEONSLY => 0, 
    DISABLE => 0, 
-   IP => '0.0.0.0', 
-   NETMASK => '255.255.255.255', 
-   SPEED => 0, 
-   FILTER_ID => '', 
-   CID => '', 
-   COMMENTS => '', 
-   ACCOUNT_ID => 0,
-   DEPOSIT => 0,
+   COMPANY_ID => 0,
    GID => 0 );
-
  
   $self = \%DATA;
   return $self;
@@ -209,42 +293,18 @@ sub group_change {
  my $self = shift;
  my ($gid, $attr) = @_;
  
- %DATA = $self->get_data($attr); 
+
  my %FIELDS = (GID => 'gid',
                G_NAME => 'name',
                G_DESCRIBE => 'descr');
- 
- my $CHANGES_QUERY = "";
- my $CHANGES_LOG = "";
-  
- my $OLD = $self->group_info($gid);
 
- if($OLD->{errno}) {
-   $self->{errno} = $OLD->{errno};
-   $self->{errstr} = $OLD->{errstr};
-   return $self;
-  }
+ $self->changes($admin, { CHANGE_PARAM => 'GID',
+		               TABLE        => 'groups',
+		               FIELDS       => \%FIELDS,
+		               OLD_INFO     => $self->group_info($attr->{GID}),
+		               DATA         => $attr
+		              } );
 
- while(my($k, $v)=each(%DATA)) {
-   if (defined($FIELDS{$k}) && $OLD->{$k} ne $DATA{$k}){
-     $CHANGES_LOG .= "$k $OLD->{$k}->$DATA{$k};";
-     $CHANGES_QUERY .= "$FIELDS{$k}='$DATA{$k}',";
-    }
-  }
-
-
-if ($CHANGES_QUERY eq '') {
-  return $self->{result};	
-}
-
-chop($CHANGES_QUERY);
-$self->query($db, "UPDATE groups SET $CHANGES_QUERY WHERE gid='$gid'", 'do');
-
-  if($self->{errno}) {
-     $self->{errno} = $OLD->{errno};
-     $self->{errstr} = $OLD->{errstr};
-     return $self;
-   }
 
  return $self;
 }
@@ -287,34 +347,38 @@ sub list {
  my ($attr) = @_;
  my @list = ();
 
- my $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
- my $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
- my $PG = ($attr->{PG}) ? $attr->{PG} : 0;
- my $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
+ $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+ $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+ $PG = ($attr->{PG}) ? $attr->{PG} : 0;
+ $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
 
-
- my $WHERE  = '';
  my $search_fields = '';
 
- #
  
  if ($attr->{USERS_WARNINGS}) {
-   $self->query($db, " SELECT u.id, u.email, u.tp_id, u.credit, u.deposit, tp.name, tp.uplimit
-         FROM users u
-         LEFT JOIN tarif_plans tp ON u.tp_id = tp.id
-         WHERE u.deposit<tp.uplimit AND tp.uplimit > 0 AND u.deposit+u.credit>0
+   $self->query($db, " SELECT u.id, pi.email, dv.tp_id, u.credit, b.deposit, tp.name, tp.uplimit
+         FROM users u, dv_main dv, bills b
+         LEFT JOIN tarif_plans tp ON dv.tp_id = tp.id
+         LEFT JOIN users_pi pi ON u.uid = dv.id
+         WHERE u.bill_id=b.id
+           and b.deposit<tp.uplimit AND tp.uplimit > 0 AND b.deposit+u.credit>0
          ORDER BY u.id;");
+
    my $list = $self->{list};
    return $list;
   }
  elsif($attr->{CLOSED}) {
-   $self->query($db, "SELECT u.id, u.fio, if(acct.id IS NULL, u.deposit, acct.deposit), u.credit, tp.name, u.disable, 
-      u.uid, u.account_id, u.email, u.tp_id, if(l.start is NULL, '-', l.start)
-     FROM users u
-     LEFT JOIN  tarif_plans tp ON  (tp.id=u.tp_id) 
-     LEFT JOIN  accounts acct ON  (u.account_id=acct.id) 
-     LEFT JOIN  log l ON  (l.uid=u.uid) 
-     WHERE  (u.deposit+u.credit-tp.credit_tresshold<=0
+   $self->query($db, "SELECT u.id, pi.fio, if(company.id IS NULL, b.deposit, b.deposit), 
+      u.credit, tp.name, u.disable, 
+      u.uid, u.company_id, u.email, u.tp_id, if(l.start is NULL, '-', l.start)
+     FROM users u, bills b
+     LEFT JOIN users_pi pi ON u.uid = dv.id
+     LEFT JOIN tarif_plans tp ON  (tp.id=u.tp_id) 
+     LEFT JOIN companies company ON  (u.company_id=company.id) 
+     LEFT JOIN log l ON  (l.uid=u.uid) 
+     WHERE  
+        u.bill_id=b.id
+        and (b.deposit+u.credit-tp.credit_tresshold<=0
         and tp.hourp+tp.df+tp.abon>=0)
         or (
         (u.expire<>'0000-00-00' and u.expire < CURDATE())
@@ -323,6 +387,7 @@ sub list {
         or u.disable=1
      GROUP BY u.uid
      ORDER BY $SORT $DESC;");
+
    my $list = $self->{list};
    return $list;
   }
@@ -412,8 +477,8 @@ sub list {
   }
 
  # Show debeters
- if ($attr->{ACCOUNT_ID}) {
-    $WHERE .= ($WHERE ne '') ?  " and u.account_id='$attr->{ACCOUNT_ID}' " : "WHERE u.account_id='$attr->{ACCOUNT_ID}' ";
+ if ($attr->{COMPANY_ID}) {
+    $WHERE .= ($WHERE ne '') ?  " and u.company_id='$attr->{COMPANY_ID}' " : "WHERE u.company_id='$attr->{COMPANY_ID}' ";
   }
 
  # Show groups
@@ -439,11 +504,15 @@ sub list {
  }
  
  
- $self->query($db, "SELECT u.id, u.fio, if(acct.id IS NULL, u.deposit, acct.deposit), u.credit, tp.name, u.disable, 
-      u.uid, u.account_id, u.email, u.tp_id, u.activate, u.expire
+ $self->query($db, "SELECT u.id, 
+      pi.fio, if(company.id IS NULL, b.deposit, b.deposit), u.credit, tp.name, u.disable, 
+      u.uid, u.company_id, pi.email, dv.tp_id, u.activate, u.expire
      FROM users u
-     LEFT JOIN  tarif_plans tp ON  (tp.id=u.tp_id) 
-     LEFT JOIN  accounts acct ON  (u.account_id=acct.id) 
+     LEFT JOIN users_pi pi ON (u.uid = pi.uid)
+     LEFT JOIN dv_main dv ON  (u.uid = dv.uid)
+     LEFT JOIN bills b ON u.bill_id = b.id
+     LEFT JOIN tarif_plans tp ON (tp.id=dv.tp_id) 
+     LEFT JOIN companies company ON  (u.company_id=company.id) 
      $WHERE ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");
 
  return $self if($self->{errno});
@@ -452,7 +521,7 @@ sub list {
 
  my $list = $self->{list};
 
- if ($self->{TOTAL} > 0) {
+ if ($self->{TOTAL} >= $attr->{PAGE_ROWS}) {
     $self->query($db, "SELECT count(u.id) FROM users u $WHERE");
     my $a_ref = $self->{list}->[0];
     ($self->{TOTAL}) = @$a_ref;
@@ -481,63 +550,45 @@ sub add {
   my $self = shift;
   my ($attr) = @_;
   
-  my $LOGIN = (defined($attr->{LOGIN})) ? $attr->{LOGIN} : '';
-  my $EMAIL = (defined($attr->{EMAIL})) ? $attr->{EMAIL} : '';
-  my $FIO = (defined($attr->{FIO})) ? $attr->{FIO} : '';
-  my $PHONE = (defined($attr->{PHONE})) ? $attr->{PHONE} : '';
-  my $ADDRESS = (defined($attr->{ADDRESS})) ? $attr->{ADDRESS} : '';
-  my $ACTIVATE = (defined($attr->{ACTIVATE})) ? $attr->{ACTIVATE} : '0000-00-00';
-  my $EXPIRE = (defined($attr->{EXPIRE})) ? $attr->{EXPIRE} : '0000-00-00';
-  my $CREDIT = (defined($attr->{CREDIT})) ? $attr->{CREDIT} : 0;
-  my $REDUCTION  = (defined($attr->{REDUCTION})) ? $attr->{REDUCTION} : 0.00;
-  my $SIMULTANEONSLY = (defined($attr->{SIMULTANEONSLY})) ? $attr->{SIMULTANEONSLY} : 0;
-  my $COMMENTS = (defined($attr->{COMMENTS})) ? $attr->{COMMENTS} : '';
-  my $ACCOUNT_ID = (defined($attr->{ACCOUNT_ID})) ? $attr->{ACCOUNT_ID} : 0;
-  my $DISABLE = (defined($attr->{DISABLE})) ? $attr->{DISABLE} : 0;
-  my $GID = (defined($attr->{GID})) ? $attr->{GID} : 65535;
+  defaults();  
+  %DATA = $self->get_data($attr, { default => $self }); 
   
-  my $TARIF_PLAN = (defined($attr->{TARIF_PLAN})) ? $attr->{TARIF_PLAN} : '';
-  my $IP = (defined($attr->{IP})) ? $attr->{IP} : '0.0.0.0';
-  my $NETMASK  = (defined($attr->{NETMASK})) ? $attr->{NETMASK} : '255.255.255.255';
-  my $SPEED = (defined($attr->{SPEED})) ? $attr->{SPEED} : 0;
-  my $FILTER_ID = (defined($attr->{FILTER_ID})) ? $attr->{FILTER_ID} : '';
-  my $CID = (defined($attr->{CID})) ? $attr->{CID} : '';
 
-
-  if ($LOGIN eq '') {
+  if ($DATA{LOGIN} eq '') {
      $self->{errno} = 8;
      $self->{errstr} = 'ERROR_ENTER_NAME';
      return $self;
    }
-  elsif (length($LOGIN) > $conf{max_username_length}) {
+  elsif (length($DATA{LOGIN}) > $CONF->{max_username_length}) {
      $self->{errno} = 9;
      $self->{errstr} = 'ERROR_SHORT_PASSWORD';
      return $self;
    }
-  elsif($LOGIN !~ /$usernameregexp/) {
+  elsif($DATA{LOGIN} !~ /$usernameregexp/) {
      $self->{errno} = 10;
      $self->{errstr} = 'ERROR_WRONG_NAME';
      return $self; 	
    }
-  elsif($EMAIL ne '') {
-    if ($EMAIL !~ /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/) {
+  elsif($DATA{EMAIL} ne '') {
+    if ($DATA{EMAIL} !~ /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/) {
       $self->{errno} = 11;
       $self->{errstr} = 'ERROR_WRONG_EMAIL';
       return $self;
      }
    }
     
-  $self->query($db,  "INSERT INTO users (id, fio, phone, address, email, activate, expire, credit, reduction, 
-            tp_id, logins, registration, disable, ip, netmask, speed, filter_id, cid, comments, account_id, gid)
-           VALUES ('$LOGIN', '$FIO', '$PHONE', \"$ADDRESS\", '$EMAIL', '$ACTIVATE', '$EXPIRE', '$CREDIT', '$REDUCTION', 
-            '$TARIF_PLAN', '$SIMULTANEONSLY', now(),  '$DISABLE', INET_ATON('$IP'), INET_ATON('$NETMASK'), '$SPEED', '$FILTER_ID', LOWER('$CID'), '$COMMENTS', '$ACCOUNT_ID', '$GID');", 'do');
+  $self->query($db,  "INSERT INTO users (id, activate, expire, credit, reduction, 
+           registration, disable, company_id, gid)
+           VALUES ('$DATA{LOGIN}', '$DATA{ACTIVATE}', '$DATA{EXPIRE}', '$DATA{CREDIT}', '$DATA{REDUCTION}', 
+           now(),  '$DATA{DISABLE}', 
+           '$DATA{COMPANY_ID}', '$DATA{GID}');", 'do');
   
   return $self if ($self->{errno});
   
   $self->{UID} = $self->{INSERT_ID};
-  $self->{LOGIN} = $LOGIN;
+  $self->{LOGIN} = $DATA{LOGIN};
 
-  $admin->action_add($uid, "ADD $LOGIN");
+  $admin->action_add($self->{UID}, "ADD $DATA{LOGIN}");
 
   return $self;
 }
@@ -556,80 +607,42 @@ sub change {
   $DATA{DISABLE} = (defined($attr->{DISABLE})) ? 1 : 0;
   my $secretkey = (defined($attr->{secretkey}))? $attr->{secretkey} : '';  
 
-my %FIELDS = (LOGIN => 'id',
-              EMAIL => 'email',
-              FIO => 'fio',
-              PHONE => 'phone',
-              ADDRESS => 'address',
-              ACTIVATE => 'activate',
-              EXPIRE => 'expire',
-              CREDIT => 'credit',
-              REDUCTION => 'reduction',
+  my %FIELDS = (UID         => 'uid',
+              LOGIN       => 'id',
+              ACTIVATE    => 'activate',
+              EXPIRE      => 'expire',
+              CREDIT      => 'credit',
+              REDUCTION   => 'reduction',
               SIMULTANEONSLY => 'logins',
-              COMMENTS => 'comments',
-              ACCOUNT_ID => 'account_id',
-              DISABLE => 'disable',
-              GID => 'gid',
-              PASSWORD => 'password',
-
-              IP => 'ip',
-              NETMASK => 'netmask',
-              TARIF_PLAN=> 'tp_id',
-              SPEED=> 'speed',
-              CID=> 'cid'
+              COMMENTS    => 'comments',
+              COMPANY_ID  => 'company_id',
+              DISABLE     => 'disable',
+              GID         => 'gid',
+              PASSWORD    => 'password',
+              BILL_ID     => 'bill_id'
              );
-
-  if(defined($DATA{EMAIL}) && $DATA{EMAIL} ne '') {
-    if ($DATA{EMAIL} !~ /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/) {
-      $self->{errno} = 11;
-      $self->{errstr} = 'ERROR_WRONG_EMAIL';
-      return $self;
-     }
+ 
+  if($attr->{create}) {
+  	 use Bills;
+  	 my $Bill = Bills->new($db, $admin);
+  	 $Bill->create({ UID => $self->{UID} });
+     if($Bill->{errno}) {
+       $self->{errno}  = $Bill->{errno};
+       $self->{errstr} =  $Bill->{errstr};
+       return $self;
+      }
+     #$DATA{BILL_ID}=$Bill->{BILL_ID};
+     $attr->{BILL_ID}=$Bill->{BILL_ID};
    }
-
-  my $CHANGES_QUERY = "";
-  my $CHANGES_LOG = "";
-  
-  my $OLD = $self->info($uid);
-  if($OLD->{errno}) {
-     $self->{errno} = $OLD->{errno};
-     $self->{errstr} = $OLD->{errstr};
-     return $self;
-   }
-
-  while(my($k, $v)=each(%DATA)) {
-    if (defined($FIELDS{$k}) && $OLD->{$k} ne $DATA{$k}){
-        if ($k eq 'PASSWORD') {
-          $CHANGES_LOG .= "$k *->*;";
-          $CHANGES_QUERY .= "$FIELDS{$k}=ENCODE('$DATA{$k}', '$secretkey'),";
-         }
-        elsif($k eq 'IP' || $k eq 'NETMASK') {
-          $CHANGES_LOG .= "$k $OLD->{$k}->$DATA{$k};";
-          $CHANGES_QUERY .= "$FIELDS{$k}=INET_ATON('$DATA{$k}'),";
-         }
-        else {
-          $CHANGES_LOG .= "$k $OLD->{$k}->$DATA{$k};";
-          $CHANGES_QUERY .= "$FIELDS{$k}='$DATA{$k}',";
-         }
-     }
-   }
+   
+	$self->changes($admin, { CHANGE_PARAM => 'UID',
+		                TABLE        => 'users',
+		                FIELDS       => \%FIELDS,
+		                OLD_INFO     => $self->info($attr->{UID}),
+		                DATA         => $attr
+		              } );
 
 
-if ($CHANGES_QUERY eq '') {
-  return $self->{result};	
-}
-
-# print $CHANGES_LOG;
-  chop($CHANGES_QUERY);
-  $self->query($db, "UPDATE users SET $CHANGES_QUERY WHERE uid='$uid'", 'do');
-
-  if($self->{errno}) {
-     $self->{errno} = $OLD->{errno};
-     $self->{errstr} = $OLD->{errstr};
-     return $self;
-   }
-
-  $admin->action_add($uid, "$CHANGES_LOG");
   return $self->{result};
 }
 
@@ -650,8 +663,9 @@ sub del {
                   'users_nas', 
                   'messages',
                   'docs_acct',
+                  'log',
                   'users',
-                  'log');
+                  'users_pi');
 
   foreach my $table (@clear_db) {
      $self->query($db, "DELETE from $table WHERE uid='$self->{UID}';", 'do');
@@ -725,11 +739,35 @@ sub nas_del {
   return $self;
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 sub test {
  my  $self = shift;	
 
  print "test";
 }
+
+
+
+
 
 
 1

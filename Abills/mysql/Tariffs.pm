@@ -132,31 +132,41 @@ sub ti_change {
     TI_DAY   => 'day', 
     TI_BEGIN => 'begin', 
     TI_END   => 'end', 
-    TI_TARIF => 'tarif' 
+    TI_TARIF => 'tarif',
+    TI_ID    => 'id'
    );
-  
-  my $CHANGES_QUERY = "";
-  my $CHANGES_LOG = "Intervals:";
-  my $OLD = $self->ti_info($ti_id);
+
+	$self->changes( { CHANGE_PARAM => 'TI_ID',
+		               TABLE        => 'intervals',
+		               FIELDS       => \%FIELDS,
+		               OLD_INFO     => $self->ti_info($ti_id),
+		               DATA         => $attr
+		              } );
 
 
-  while(my($k, $v)=each(%DATA)) {
-    if ($OLD->{$k} ne $DATA{$k}){
-      if ($FIELDS{$k}) {
-         $CHANGES_LOG .= "$k $OLD->{$k}->$DATA{$k};";
-         $CHANGES_QUERY .= "$FIELDS{$k}='$DATA{$k}',";
-       }
-     }
-   }
-
-if ($CHANGES_QUERY eq '') {
-  return $self->{result};	
-}
-
-# print $CHANGES_LOG;
-  chop($CHANGES_QUERY);
-  $self->query($db, "UPDATE intervals SET $CHANGES_QUERY
-    WHERE id='$ti_id'", 'do');
+#  
+#  my $CHANGES_QUERY = "";
+#  my $CHANGES_LOG = "Intervals:";
+#  my $OLD = $self->ti_info($ti_id);
+#
+#
+#  while(my($k, $v)=each(%DATA)) {
+#    if ($OLD->{$k} ne $DATA{$k}){
+#      if ($FIELDS{$k}) {
+#         $CHANGES_LOG .= "$k $OLD->{$k}->$DATA{$k};";
+#         $CHANGES_QUERY .= "$FIELDS{$k}='$DATA{$k}',";
+#       }
+#     }
+#   }
+#
+#if ($CHANGES_QUERY eq '') {
+#  return $self->{result};	
+#}
+#
+## print $CHANGES_LOG;
+#  chop($CHANGES_QUERY);
+#  $self->query($db, "UPDATE intervals SET $CHANGES_QUERY
+#    WHERE id='$ti_id'", 'do');
   
   if ($ti_id == $DATA{TI_ID}) {
   	$self->ti_info($ti_id);
@@ -176,11 +186,11 @@ if ($CHANGES_QUERY eq '') {
 #**********************************************************
 sub ti_info {
 	my $self = shift;
-	my ($iid, $attr) = @_;
+	my ($ti_id, $attr) = @_;
 
   $self->query($db, "SELECT day, begin, end, tarif, id
     FROM intervals 
-    WHERE id='$iid';");
+    WHERE id='$ti_id';");
 
   if ($self->{TOTAL} < 1) {
      $self->{errno} = 2;
@@ -189,7 +199,7 @@ sub ti_info {
    }
 
   my $ar = $self->{list}->[0];
-  $self->{TI_ID}=$iid;
+  $self->{TI_ID}=$ti_id;
   ($self->{TI_DAY}, 
    $self->{TI_BEGIN}, 
    $self->{TI_END}, 
@@ -201,7 +211,7 @@ sub ti_info {
 
 
 #**********************************************************
-# tt_defaults
+# ti_defaults
 #**********************************************************
 sub  ti_defaults {
 	my $self = shift;
@@ -217,7 +227,6 @@ sub  ti_defaults {
     $self->{$k}=$v;
    }	
 	
-  #$self = \%DATA;
 	return $self;
 }
 
@@ -266,8 +275,6 @@ sub add {
   my ($attr) = @_;
 
   %DATA = $self->get_data($attr, { default => \%DATA }); 
-  
-  $self->{debug}=1;
 
   $self->query($db, "INSERT INTO tarif_plans (id, hourp, uplimit, name, month_fee, day_fee, logins, 
      day_time_limit, week_time_limit,  month_time_limit, 
@@ -293,44 +300,15 @@ sub add {
 sub change {
   my $self = shift;
   my ($tp_id, $attr) = @_;
-  
-  %DATA = $self->get_data($attr); 
- 
-#  while(my($k, $v)=each(%DATA)) {
-#  	 print "$k, $v<br>";
-#   }
-  
-  my $CHANGES_QUERY = "";
-  my $CHANGES_LOG = "Tarif plan:";
-  
-  my $OLD = $self->info($tp_id);
+	$self->changes(0, { CHANGE_PARAM => 'TP_ID',
+		                TABLE        => 'tarif_plans',
+		                FIELDS       => \%FIELDS,
+		                OLD_INFO     => $self->info($tp_id),
+		                DATA         => $attr
+		              } );
 
-  while(my($k, $v)=each(%DATA)) {
-    if ($OLD->{$k} ne $DATA{$k}){
-      if ($FIELDS{$k}) {
-         $CHANGES_LOG .= "$k $OLD->{$k}->$DATA{$k};";
-         $CHANGES_QUERY .= "$FIELDS{$k}='$DATA{$k}',";
-       }
-     }
-   }
-
-if ($CHANGES_QUERY eq '') {
-  return $self->{result};	
-}
-
-# print $CHANGES_LOG;
-  chop($CHANGES_QUERY);
-  $self->query($db, "UPDATE tarif_plans SET $CHANGES_QUERY
-    WHERE id='$tp_id'", 'do');
-  
-  if ($tp_id == $DATA{TP_ID}) {
-  	$self->info($tp_id);
-   }
-  else {
-  	$self->info($DATA{TP_ID});
-   }
-  
-#  $admin->action_add(0, "$CHANGES_LOG");
+  $self->info($tp_id);
+	
 	return $self;
 }
 
@@ -471,27 +449,27 @@ sub  tt_defaults {
 	my $self = shift;
 	
 	my %TT_DEFAULTS = (
-      TT_DESCRIBE_0 => '',
-      TT_PRICE_IN_0 => '0.00000',
-      TT_PRICE_OUT_0 => '0.00000',
-      TT_NETS_0 => '0.0.0.0/0',
-      TT_PREPAID_0 => 0,
-      TT_SPEED_0 => 0,
+      TT_DESCRIBE => '',
+      TT_PRICE_IN => '0.00000',
+      TT_PRICE_OUT => '0.00000',
+      TT_NETS => '0.0.0.0/0',
+      TT_PREPAID => 0,
+      TT_SPEED => 0 );
 
-      TT_DESCRIBE_1 => '',
-      TT_PRICE_IN_1 => '0.00000',
-      TT_PRICE_OUT_1 => '0.00000',
-      TT_PRICE_NETS_1 => '',
-      TT_PREPAID_1 => 0,
-      TT_SPEED_1 => 0,
-
-      TT_DESCRIBE_2 => '',
-      TT_PRICE_IN_2 => 0,
-      TT_PRICE_OUT_2 => 0,
-      TT_NETS_2 => '',
-      TT_PREPAID_2 => 0,
-      TT_SPEED_2 => 0
-     );
+#      TT_DESCRIBE_1 => '',
+#      TT_PRICE_IN_1 => '0.00000',
+#      TT_PRICE_OUT_1 => '0.00000',
+#      TT_PRICE_NETS_1 => '',
+#      TT_PREPAID_1 => 0,
+#      TT_SPEED_1 => 0,
+#
+#      TT_DESCRIBE_2 => '',
+#      TT_PRICE_IN_2 => 0,
+#      TT_PRICE_OUT_2 => 0,
+#      TT_NETS_2 => '',
+#      TT_PREPAID_2 => 0,
+#      TT_SPEED_2 => 0
+#     );
 	
   while(my($k, $v) = each %TT_DEFAULTS) {
     $self->{$k}=$v;
@@ -542,51 +520,77 @@ if (defined($attr->{form})) {
 }
 
 
+
 #**********************************************************
-# tt_info
+# tt_add
+#**********************************************************
+sub  tt_add {
+  my $self = shift;
+	my ($attr) = @_; 
+  
+  %DATA = $self->get_data($attr, {default => $self->tt_defaults() }); 
+
+  $self->query($db, "INSERT INTO trafic_tarifs  
+    (interval_id, id, descr,  in_price,  out_price,  nets,  prepaid,  speed)
+    VALUES 
+    ('$DATA{TI_ID}', '$DATA{TT_ID}',   '$DATA{TT_DESCRIBE}, $DATA{TT_PRICE_IN},  $DATA{TT_PRICE_OUT},
+     '$DATA{TT_NETS}', '$DATA{TT_PREPAID}', '$DATA{TT_SPEED}')", 'do');
+
+  return $self;
+}
+
+#**********************************************************
+# tt_change
 #**********************************************************
 sub  tt_change {
   my $self = shift;
 	my ($attr) = @_; 
   
-  %DATA = $self->get_data($attr, {default => $self->tt_defaults() }); 
-  my $file_path = (defined($attr->{EX_FILE_PATH})) ? $attr->{EX_FILE_PATH} : '';
+  my %DATA = $self->get_data($attr, { default => $self->tt_defaults() }); 
 
+  $self->query($db, "UPDATE trafic_tarifs SET 
+    descr='". $DATA{TT_DESCRIBE} ."', 
+    in_price='". $DATA{TT_PRICE_IN}  ."',
+    out_price='". $DATA{TT_PRICE_OUT} ."',
+    nets='". $DATA{TT_NETS} ."',
+    prepaid='". $DATA{TT_PREPAID} ."',
+    speed='". $DATA{TT_SPEED} ."'
+    WHERE 
+    interval_id='$attr->{TI_ID}' and id='$DATA{TT_ID}';", 'do');
 
-my $body = "";
-my @n = ();
-$/ = chr(0x0d);
-
-
-my $i=0;
-for($i=0; $i<=2; $i++) {
-  $self->query($db, "REPLACE trafic_tarifs SET 
-    id='$i',
-    descr='". $DATA{'TT_DESCRIBE_' . $i } ."', 
-    in_price='". $DATA{'TT_PRICE_IN_'. $i}  ."',
-    out_price='". $DATA{'TT_PRICE_OUT_'. $i} ."',
-    nets='". $DATA{'TT_NETS_'. $i} ."',
-    prepaid='". $DATA{'TT_PREPAID_'. $i} ."',
-    speed='". $DATA{'TT_SPEED_'. $i} ."',
-    interval_id='$attr->{TI_ID}'
-    ;", 'do');
-
-
-    #tp_id='$self->{TP_ID}',
-
-  if ($DATA{'TT_NETS_'. $i} ne '') {
-     @n = split(/\n|;/, $DATA{'TT_NETS_'. $i});
-     foreach my $line (@n) {
-       chomp($line);
-       next if ($line eq "");
-       $body .= "$line $i\n";
-     }
-   }
-
-}
-
- $self->create_tt_file("$file_path", "$attr->{TI_ID}.nets", "$body");
-		
+# my $file_path = (defined($attr->{EX_FILE_PATH})) ? $attr->{EX_FILE_PATH} : '';
+#
+#my $body = "";
+#my @n = ();
+#$/ = chr(0x0d);
+#my $i=0;
+#for($i=0; $i<=2; $i++) {
+#  $self->query($db, "REPLACE trafic_tarifs SET 
+#    id='$i',
+#    descr='". $DATA{'TT_DESCRIBE_' . $i } ."', 
+#    in_price='". $DATA{'TT_PRICE_IN_'. $i}  ."',
+#    out_price='". $DATA{'TT_PRICE_OUT_'. $i} ."',
+#    nets='". $DATA{'TT_NETS_'. $i} ."',
+#    prepaid='". $DATA{'TT_PREPAID_'. $i} ."',
+#    speed='". $DATA{'TT_SPEED_'. $i} ."',
+#    interval_id='$attr->{TI_ID}'
+#    ;", 'do');
+#
+#
+#    #tp_id='$self->{TP_ID}',
+#
+#  if ($DATA{'TT_NETS_'. $i} ne '') {
+#     @n = split(/\n|;/, $DATA{'TT_NETS_'. $i});
+#     foreach my $line (@n) {
+#       chomp($line);
+#       next if ($line eq "");
+#       $body .= "$line $i\n";
+#     }
+#   }
+#
+#}
+#
+# $self->create_tt_file("$file_path", "$attr->{TI_ID}.nets", "$body");
 }
 
 #**********************************************************

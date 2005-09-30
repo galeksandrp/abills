@@ -16,6 +16,7 @@ $VERSION = 2.00;
 use main;
 @ISA  = ("main");
 my $db;
+my $conf;
 
 my ($tariffs, $time_intervals, $periods_time_tarif, $periods_traf_tarif);
 
@@ -25,10 +26,10 @@ my ($tariffs, $time_intervals, $periods_time_tarif, $periods_traf_tarif);
 #**********************************************************
 sub new {
   my $class = shift;
-  ($db) = @_;
+  ($db, $conf) = @_;
   my $self = { };
   bless($self, $class);
-#  $self->{debug}=1;
+  #$self->{debug}=1;
   return $self;
 }
 
@@ -79,13 +80,13 @@ sub traffic_calculations {
        if (($used_traffic   / 1024 / 1024) * $prepaid_price{'gl'} + ($used_traffic2  / 1024 / 1024) * $prepaid_price{'lo'} 
          + (($sent + $recv) / 1024 / 1024) * $prepaid_price{'gl'} + (($sent2 + $recv2) / 1024 / 1024) * $prepaid_price{'lo'} 
           < $month_abon) {
-           return $uid, 0, $account_id, $TP_ID, 0, 0;
+           return $uid, 0, $bill_id, $TP_ID, 0, 0;
         }
 
      }
     elsif((($sent + $recv) / 1024 / 1024) * $prepaid_price{'lg'} + (($sent2 + $recv2) / 1024 / 1024) * $prepaid_price{'lo'} 
           < $month_abon) {
-       return $uid, 0, $account_id, $TP_ID, 0, 0;
+       return $uid, 0, $bill_id, $TP_ID, 0, 0;
      }
     elsif((($sent + $recv) / 1024 / 1024) * $prepaid_price{'lg'} + (($sent2 + $recv2) / 1024 / 1024) * $prepaid_price{'lo'} 
           > $month_abon) {
@@ -114,7 +115,7 @@ sub traffic_calculations {
     if ($q->rows() > 1) {
        my($used_traffic, $used_traffic2)=$q->fetchrow();
        if ($prepaid_traffic > ($used_traffic + $sent + $recv) / 1024 / 1024 ) {
-          return $uid, 0, $account_id, $TP_ID, 0, 0;
+          return $uid, 0, $bill_id, $TP_ID, 0, 0;
           # $sent = 0;
           # $recv = 0;
          }
@@ -128,7 +129,7 @@ sub traffic_calculations {
          }
      }
     elsif (($sent + $recv) / 1024 / 1024 < $prepaid_traffic) {
-       	  return $uid, 0, $account_id, $TP_ID, 0, 0;
+       	  return $uid, 0, $bill_id, $TP_ID, 0, 0;
        	  #$sent = 0;
           #$recv = 0;
      }
@@ -225,12 +226,13 @@ if ($prepaid{0} + $prepaid{1} > 0) {
 # -1 Less than minimun session trafic and time
 # -2 Not found user in users db
 # -3 Not allow start period
+# -4 Company not found
 #
 # session_sum($USER_NAME, $SESSION_START, $SESSION_DURATION, $RAD_HASH_REF);
 #**********************************************************
-sub session_sum2 {
+sub session_sum {
  my $self = shift;
- my ($USER_NAME, $SESSION_START, $SESSION_DURATION, $RAD, $conf) = @_;
+ my ($USER_NAME, $SESSION_START, $SESSION_DURATION, $RAD, $conf, $attr) = @_;
 
  my $sum = 0;
  my ($TP_ID);
@@ -256,12 +258,17 @@ sub session_sum2 {
    DAYOFWEEK(FROM_UNIXTIME($SESSION_START)),
    DAYOFYEAR(FROM_UNIXTIME($SESSION_START)),
    u.reduction,
-   u.account_id,
+   u.bill_id,
    u.activate,
    tp.day_fee,
-   tp.min_session_cost
- FROM users u, tarif_plans tp
- WHERE u.tp_id=tp.id and u.id='$USER_NAME';");
+   tp.min_session_cost,
+   u.company_id
+ FROM users u, 
+      dv_main dv, 
+      tarif_plans tp
+ WHERE dv.tp_id=tp.id 
+   and dv.uid=u.uid
+   and u.id='$USER_NAME';");
 
  if($self->{errno}) {
    return -3, 0, 0, 0, 0, 0;
@@ -280,17 +287,20 @@ sub session_sum2 {
    $self->{DAY_OF_WEEK}, 
    $self->{DAY_OF_YEAR}, 
    $self->{REDUCTION},
-   $self->{ACCOUNT_ID}, 
+   $self->{BILL_ID}, 
    $self->{ACTIVATE},
    $self->{DAY_FEE},
-   $self->{MIN_SESSION_COST}
+   $self->{MIN_SESSION_COST},
+   $self->{BILL_ID}
   ) = @$ar;
+
+  $self->{TP_ID}=$attr->{TP_ID} if (defined($attr->{TP_ID}));
 
   use Tariffs;
   $tariffs = Tariffs->new($db);
 
 
- $self->session_splitter2($SESSION_START,
+ $self->session_splitter($SESSION_START,
                    $SESSION_DURATION,
                    $self->{DAY_BEGIN},
                    $self->{DAY_OF_WEEK}, 
@@ -302,15 +312,16 @@ sub session_sum2 {
  
  my $sd = $self->{TIME_DIVISIONS};
  my $interval_count =  keys %$sd;
- 
- if($interval_count < 1) {
- 	#print "NOt allow start period";
- 	return -3, 0, 0, 0, 0, 0;	
- }
-#$self->{debug}=1;
- while(my($k, $v)=each(%$sd)) {
- 	 print "> $k, $v\n" if ($self->{debug});
-   if(defined($periods_time_tarif->{$k})) {
+
+if(! defined($self->{NO_TPINTERVALS})) {
+  if($interval_count < 1) {
+   	print "NOt allow start period";
+ 	  return -3, 0, 0, 0, 0, 0;	
+   }
+  #$self->{debug}=1;
+  while(my($k, $v)=each(%$sd)) {
+ 	  print "> $k, $v\n" if ($self->{debug});
+    if(defined($periods_time_tarif->{$k})) {
    	   $sum += ($v * $periods_time_tarif->{$k}) / 60 / 60;
      }
 
@@ -318,20 +329,27 @@ sub session_sum2 {
    	  $self->{TI_ID}=$k;
    	  $sum  += $self->traffic_calculations($RAD, $conf);
     }
-  }
-
-
-
-
-
+   }
+}
 
 $sum = $sum * (100 - $self->{REDUCTION}) / 100 if ($self->{REDUCTION} > 0);
 $sum = $self->{MIN_SESSION_COST} if ($sum < $self->{MIN_SESSION_COST} && $self->{MIN_SESSION_COST} > 0);
 
-return $self->{UID}, $sum, $self->{ACCOUNT_ID}, $self->{TP_ID}, 0, 0;
+if ($self->{COMPANY_ID} > 0) {
+  $self->query($db, "SELECT bill_id
+    FROM companies
+    WHERE id='$self->{COMPANY_ID}';");
+
+  if ($self->{TOTAL} < 1) {
+ 	  return -4, 0, 0, 0, 0, 0;	
+ 	 }
+  $ar = $self->{list}->[0];
+  ($self->{BILL_ID})= @$ar;
+}
+
+return $self->{UID}, $sum, $self->{BILL_ID}, $self->{TP_ID}, 0, 0;
 
 
-#  return $uid, $sum, $account_id, $TP_ID, $time_tarif, 0;
 }
 
 
@@ -386,7 +404,7 @@ sub time_intervals {
 # session_splitter($start, $duration, $day_begin, $day_of_week, 
 #                  $day_or_year, $intervals)
 #********************************************************************
-sub session_splitter2 {
+sub session_splitter {
  my $self = shift;
  my ($start, $duration, $day_begin, $day_of_week, $day_of_year, $attr) = @_;
  my $debug = 0;
@@ -395,8 +413,10 @@ sub session_splitter2 {
 
  ($time_intervals, $periods_time_tarif, $periods_traf_tarif) = $self->time_intervals($attr->{TP_ID});
 
+
  if($time_intervals == 0)  {
    $self->{TIME_DIVISIONS} = \%division_time;
+   $self->{NO_TPINTERVALS} = 'y';
    $self->{SUM}=0;
    return $self;
   }
@@ -410,6 +430,8 @@ sub session_splitter2 {
      $holidays{$line->[0]} = 1;
     }
   }
+
+
 
 my $tarif_day = 0;
 my $count = 0;

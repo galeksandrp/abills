@@ -280,5 +280,10 @@ $_POSTPAID='Postpaid';
 $_MIN_SESSION_COST='Min. session cost';
 $_NOW='Now';
 $_MONITORING='Monitoring';
-
-
+$_BILLS='Money accounts';
+$_BILL='Money account';
+$_TAKE='Take';
+$_ADDRESS_STREET='Street';
+$_ADDRESS_BUILD='Build';
+$_ADDRESS_FLAT='Flat';
+$_CONTRACT_ID='Contract Number'
