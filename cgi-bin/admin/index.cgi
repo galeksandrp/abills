@@ -158,6 +158,7 @@ foreach my $m (@MODULES) {
    
     $maxnumber++;
     my($ID, $SUB, $NAME, $FUNTION_NAME, $ARGS)=split(/:/, $line, 5);
+    $ID = int($ID);
     my $v = $FUNCTIONS_LIST{$line};
 
     $module_fl{"$ID"}=$maxnumber;
@@ -3026,10 +3027,6 @@ my @m = ("1:0:$_CUSTOMERS:null:::",
  "2:0:$_PAYMENTS:form_payments:::",
  "3:0:$_FEES:form_fees:::",
  "4:0:$_REPORTS:null:::",
- "40:4:$_ERROR:form_error:::",
- "41:4:$_LAST:show_sessions:::",
- "43:4:$_USED:form_use:::",
- "44:43:$_MONTH:form_use:::",
 
  "5:0:$_SYSTEM:null:::",
  "50:5:$_ADMINS:form_admins:::",
@@ -3071,9 +3068,13 @@ my @m = ("1:0:$_CUSTOMERS:null:::",
  
  );
 
-
-
 #
+# "40:4:$_ERROR:form_error:::",
+# "41:4:$_LAST:show_sessions:::",
+# "43:4:$_USED:form_use:::",
+# "44:43:$_MONTH:form_use:::",
+#
+
 
 #"2000:5:DV:flist:1::",
 # "2001:2000:$_TARIF_PLANS:flist:1::",

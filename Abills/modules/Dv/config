@@ -3,15 +3,25 @@ $web_interface    = 1;
 @useraccount_menu = ('Dialup_VPN');
 
 #Iner_ID : Main or Sub or if -1 user menu func list
-%FUNCTIONS_LIST = ("1:-1:Dialup_VPN:dv_user:UID"         => 11,
-                   "3:1:$_TARIF_PLANS:dv_chg_tp:UID"     => 11,
-                   "2:0:Dialup & VPN:null:"              => 5,
-                   "3:2:$_TARIF_PLANS:dv_tp:"            => 5,
-                   "4:3:$_ADD:dv_tp:"                    => 5,
-                   "5:3:$_INTERVALS:form_intervals:TP_ID" => 5,
-                   "6:3:$_NASS:form_nas_allow:TP_ID"      => 5,
-                   "7:3:$_USERS:form_users:TP_ID"         => 5
+%FUNCTIONS_LIST = ("01:-1:Dialup_VPN:dv_user:UID"         => 11,
+                   "03:1:$_TARIF_PLANS:dv_chg_tp:UID"     => 11,
+                   "02:0:Dialup & VPN:null:"              => 5,
+                   "03:2:$_TARIF_PLANS:dv_tp:"            => 5,
+                   "04:3:$_ADD:dv_tp:"                    => 5,
+                   "05:3:$_INTERVALS:form_intervals:TP_ID" => 5,
+                   "06:3:$_NASS:form_nas_allow:TP_ID"      => 5,
+                   "07:3:$_USERS:form_users:TP_ID"         => 5,
+                   "08:0:Dialup & VPN:null:"              => 4,
+                   "09:8:$_ERROR:form_error:"             => 4,
+                   "10:8:$_LAST:show_sessions:"          => 4,
+                   "11:8:$_USED:form_use:"               => 4,
+                   "12:11:$_MONTH:form_use:"              => 4
                    );
+
+
+# "40:4:$_ERROR:form_error:::",
+# "41:4:$_LAST:show_sessions:::",
+# "43:4:$_USED:form_use:::",
 
 
 # "72:70:$_NASS:allow_nass:::",
