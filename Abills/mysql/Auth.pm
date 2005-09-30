@@ -79,7 +79,8 @@ sub dv_auth {
   dv.disable,
   if(tp.hourp + tp.day_fee + tp.month_fee=0 and (sum(tt.in_price + tt.out_price)=0 or sum(tt.in_price + tt.out_price)IS NULL), 0, 1),
   tp.max_session_duration,
-  tp.payment_type
+  tp.payment_type,
+  tp.credit_tresshold
      FROM dv_main dv, tarif_plans tp
      LEFT JOIN trafic_tarifs tt ON (tt.tp_id=dv.tp_id)
      LEFT JOIN users_nas un ON (un.uid = dv.uid)
@@ -117,7 +118,8 @@ sub dv_auth {
      $self->{DISABLE},
      $self->{TP_PAYMENT},
      $self->{MAX_SESSION_DURATION},
-     $self->{PAYMENT_TYPE}
+     $self->{PAYMENT_TYPE},
+     $self->{CREDIT_TRESSHOLD}
     ) = @$a_ref;
 
 

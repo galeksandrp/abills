@@ -291,7 +291,7 @@ sub session_sum {
    $self->{ACTIVATE},
    $self->{DAY_FEE},
    $self->{MIN_SESSION_COST},
-   $self->{BILL_ID}
+   $self->{COMPANY_ID}
   ) = @$ar;
 
   $self->{TP_ID}=$attr->{TP_ID} if (defined($attr->{TP_ID}));
