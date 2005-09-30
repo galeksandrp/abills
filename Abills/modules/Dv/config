@@ -1,0 +1,22 @@
+
+$web_interface    = 1;
+@useraccount_menu = ('Dialup_VPN');
+
+#Iner_ID : Main or Sub or if -1 user menu func list
+%FUNCTIONS_LIST = ("1:-1:Dialup_VPN:dv_user:UID"         => 11,
+                   "3:1:$_TARIF_PLANS:dv_chg_tp:UID"     => 11,
+                   "2:0:Dialup & VPN:null:"              => 5,
+                   "3:2:$_TARIF_PLANS:dv_tp:"            => 5,
+                   "4:3:$_ADD:dv_tp:"                    => 5,
+                   "5:3:$_INTERVALS:form_intervals:TP_ID" => 5,
+                   "6:3:$_NASS:form_nas_allow:TP_ID"      => 5,
+                   "7:3:$_USERS:form_users:TP_ID"         => 5
+                   );
+
+
+# "72:70:$_NASS:allow_nass:::",
+# "73:70:$_INTERVALS:form_periods:::",
+# "74:70:$_TRAFIC_TARIFS:form_traf_tarifs:::",
+
+
+1

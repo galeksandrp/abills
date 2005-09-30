@@ -1,0 +1,302 @@
+#/usr/bin/perl
+# Dialup vpn web functions
+
+
+require "Dv.pm";
+Dv->import();
+my $Dv = Dv->new($db, $admin, $conf);
+
+
+
+#*******************************************************************
+# Change user variant form
+# form_chg_vid()
+#*******************************************************************
+sub dv_chg_tp {
+ my ($attr) = @_;
+
+ my $user;
+
+ if(defined($attr->{USER})) {
+   $user = $attr->{USER};
+   $user = $Dv->info($user->{UID});
+  }
+ else {
+ 	 message('err', $_ERROR, "$_USER_NOT_EXIST");
+ 	 return 0;
+  }
+
+ my $TARIF_PLAN = $FORM{tarif_plan} || $_DEFAULT_VARIANT;
+ my $period = $FORM{period} || 0;
+
+ use Shedule;
+ $shedule = Shedule->new($db, $admin);
+
+if ($FORM{set}) {
+  if ($period == 1) {
+    $FORM{date_m}++;
+    $shedule->add( {UID => $user->{UID},
+                   TYPE => 'tp',
+                   ACTION => $TARIF_PLAN,
+    	             D => $FORM{date_d},
+                   M => $FORM{date_m},
+                   Y => $FORM{date_y},
+                   DEWCRIBE => "$message<br>
+                   $_FROM: '$FORM{date_y}-$FORM{date_m}-$FORM{date_d}'"
+                    });
+
+    if ($shedule->{errno}) {
+      message('err', $_ERROR, "[$shedule->{errno}] $err_strs{$shedule->{errno}}");	
+     }
+    else {
+      message('info', $_CHANGED, "$_CHANGED");
+      $user->info($user->{UID});
+    }
+   }
+  else {
+
+    $user->change({ %FORM });
+
+    if ($users->{errno}) {
+      message('err', $_ERROR, "[$users->{errno}] $err_strs{$users->{errno}}");	
+     }
+    else {
+      message('info', $_CHANGED, "$_CHANGED");
+      $user->info($user->{UID});
+    }
+
+  }
+}
+elsif($FORM{del}) {
+  shedule('del', { UID => $user->{UID},
+   	           id  => $FORM{del}  } 
+   	     );
+}
+
+use Tariffs;
+my $tariffs = Tariffs->new($db);
+my $variant_out = '';
+ 
+ my $tariffs_list = $tariffs->list();
+ foreach my $line (@$tariffs_list) {
+   $variant_out .= "<option value=$line->[0]";
+   $variant_out .= ' selected' if ($line->[0] == $user->{TP_ID});
+   $variant_out .=  ">$line->[0]:$line->[1]\n";
+  }
+
+
+ my $params='';
+ $q = $db->prepare("SELECT id, CONCAT(y, '-', m, '-', d), action FROM shedule WHERE type='tp' and UID='$UID';") || die $db->strerr;
+ $q ->execute();
+ 
+ $params .= "<tr><td>$_TO:</td><td><select name=TARIF_PLAN>$variant_out</select></td></tr>";
+ $params .= form_period($period);
+ $params .= "</table><input type=submit name=set value=\"$_CHANGE\">\n";
+
+
+my $result = "<form action=$SELF_URL>
+<input type=hidden name=UID value='$attr->{USER}->{UID}'>
+<input type=hidden name=subf value=$FORM{subf}>
+<input type=hidden name=m value=$m>
+<input type=hidden name=index value=$index>
+<table width=400 border=0>
+<tr><td>$_FROM:</td><td bgcolor=$_BG2>$user->{TP_ID} $user->{TP_NAME} [<a href='$SELF?index=70&TP_ID=$user->{TARIF_PLAN}' title='$_VARIANTS'>$_VARIANTS</a>]</td></tr>
+$params
+</form>\n";
+
+ print $result;
+}
+
+
+
+#**********************************************************
+# user_dv
+#**********************************************************
+sub dv_user {
+ 	$Dv->{UID}=$FORM{UID};	  
+  
+  if ($FORM{add}) {
+    $Dv->add({ %FORM });
+    if (! $Dv->{errno}) {
+      message('info', $_INFO, "$_ADDED");	
+     }
+   }
+	elsif($FORM{set}) {
+    $Dv->change({ %FORM });
+    if (! $Dv->{errno}) {
+      message('info', $_INFO, "$_CHANGED");	
+     }
+   }
+	elsif($FORM{del}) {
+    $Dv->del();
+    if (! $Dv->{errno}) {
+      message('info', $_INFO, "$_CHANGED");	
+     }
+	 }
+
+  my $user = $Dv->info($FORM{UID});
+  if($user->{TOTAL} < 1) {
+	  $Dv->defaults();
+	  $Dv->{ACTION}='add';
+	  $Dv->{LNG_ACTION}=$_ADD;
+	 }
+	else {
+	  $Dv->{ACTION}='set';
+	  $Dv->{LNG_ACTION}=$_CHANGE;
+	} 
+
+  $user->{DISABLE}=' checked' if($user->{DISABLE} == 1);
+  Abills::HTML->tpl_show(_include('dv_user', 'Dv'), $Dv);
+  #Abills::HTML->tpl_show(_include('dv_tp', 'Dv'), $tarif_info);
+}
+
+
+
+#**********************************************************
+# Tarif plans
+# form_tp
+#**********************************************************
+sub dv_tp {
+ 
+ use Tariffs;
+ 
+ my $tariffs = Tariffs->new($db);
+ my $tarif_info;
+
+ my @Octets_Direction = ("$_RECV + $_SEND", $_RECV, $_SEND);
+ my @Payment_Types    = ($_PREPAID, $_POSTPAID); 
+
+ $tarif_info = $tariffs->defaults();
+ $tarif_info->{LNG_ACTION}=$_ADD;
+ $tarif_info->{ACTION}='ADD_TP';
+
+
+if($FORM{ADD_TP}) {
+  $tariffs->add( { %FORM });
+  if (! $tariffs->{errno}) {
+    message('info', $_ADDED, "$_ADDED $tariffs->{VID}");
+   }
+ }
+elsif ($FORM{TP_ID}) {
+  $tarif_info = $tariffs->info( $FORM{TP_ID} );
+
+  if ($tariffs->{errno}) {
+    message('err', $_ERROR, "[$tariffs->{errno}] $err_strs{$tariffs->{errno}}");	
+    return 0;
+   }
+
+  $pages_qs .= "&TP_ID=$FORM{TP_ID}&subf=$FORM{subf}";
+  $LIST_PARAMS{TP} = $FORM{TP_ID};
+  %F_ARGS = ( TP => $tariffs );
+  
+  func_menu({ 
+  	         'ID' =>   $tariffs->{TP_ID}, 
+  	         $_NAME => $tariffs->{NAME}
+  	       }, 
+  	{ 
+  	 $_INFO          => ":TP_ID=$tariffs->{TP_ID}",
+     $_USERS         => "11:TP_ID=$tariffs->{TP_ID}",
+     $_INTERVALS     => "73:TP_ID=$tariffs->{TP_ID}",
+     $_NAS           => "72:TP_ID=$tariffs->{TP_ID}"
+  	 },
+  	{
+  		f_args => { %F_ARGS }
+  	 });
+
+  if ($FORM{subf}) {
+
+  	return 0;
+   }
+  elsif($FORM{change}) {
+    $tariffs->change( $FORM{chg}, { %FORM  } );  
+     
+    if (! $tariffs->{errno}) {
+       message('info', $_CHANGED, "$_CHANGED $tariffs->{TP_ID}");
+     }
+   }
+
+  $tarif_info->{LNG_ACTION}=$_CHANGE;
+  $tarif_info->{ACTION}='change';
+
+ }
+elsif($FORM{del} && $FORM{is_js_confirmed}) {
+  $tariffs->del($FORM{del});
+
+  if (! $tariffs->{errno}) {
+    message('info', $_DELETE, "$_DELETED $FORM{del}");
+   }
+}
+
+
+if ($tariffs->{errno}) {
+    message('err', $_ERROR, "[$tariffs->{errno}] $err_strs{$tariffs->{errno}}");	
+ }
+
+my $i=0;
+$tarif_info->{SEL_OCTETS_DIRECTION} = "<select name=OCTETS_DIRECTION>\n";
+foreach my $line (@Octets_Direction) {
+  $tarif_info->{SEL_OCTETS_DIRECTION} .= "<option value=$i";
+  $tarif_info->{SEL_OCTETS_DIRECTION} .= ' selected' if ($tarif_info->{OCTETS_DIRECTION} eq $i);
+  $tarif_info->{SEL_OCTETS_DIRECTION} .= ">$Octets_Direction[$i]\n";
+  $i++;
+}
+$tarif_info->{SEL_OCTETS_DIRECTION} .= "</select>\n";
+
+
+
+
+$i=0;
+
+$tarif_info->{PAYMENT_TYPE_SEL} = "<select name=PAYMENT_TYPE>\n";
+foreach my $line (@Payment_Types) {
+  $tarif_info->{PAYMENT_TYPE_SEL} .= "<option value=$i";
+  $tarif_info->{PAYMENT_TYPE_SEL} .= ' selected' if ($tarif_info->{PAYMENT_TYPE} eq $i);
+  $tarif_info->{PAYMENT_TYPE_SEL} .= ">$Payment_Types[$i]\n";
+  $i++;
+}
+$tarif_info->{SEL_OCTETS_DIRECTION} .= "</select>\n";
+
+
+
+Abills::HTML->tpl_show(_include('dv_tp', 'Dv'), $tarif_info);
+
+
+
+my $list = $tariffs->list({ %LIST_PARAMS });	
+# Time tariff Name Begin END Day fee Month fee Simultaneously - - - 
+my $table = Abills::HTML->table( { width      => '100%',
+                                   border     => 1,
+                                   title      => ['#', $_NAME,  $_HOUR_TARIF, $_TRAFIC_TARIFS, $_PAYMENT_TYPE, $_DAY_FEE, $_MONTH_FEE, $_SIMULTANEOUSLY, $_AGE,
+                                     '-', '-', '-'],
+                                   cols_align => ['right', 'left', 'center', 'center', 'center', 'right', 'right', 'right', 'right', 'right', 'right', 'center', 'center', 'center'],
+                                   
+                                   
+                                  } );
+
+my ($delete, $change);
+foreach my $line (@$list) {
+  if ($permissions{4}{1}) {
+    $delete = $html->button($_DEL, "index=70&del=$line->[0]", "$_DEL ?"); 
+    $change = "<a href='$SELF_URL?index=70&TP_ID=$line->[0]'>$_INFO</a>";
+   }
+
+  $table->addrow("<b>$line->[0]</b>", "<a href='$SELF_URL?index=$index&TP_ID=$line->[0]'>$line->[1]</a>", 
+   $bool_vals[$line->[2]], $bool_vals[$line->[3]], $Payment_Types[$line->[4]], $line->[5], $line->[6], $line->[7], $line->[8],
+   "<a href='$SELF_URL?index=70&subf=73&TP_ID=$line->[0]'>$_INTERVALS</a>",
+   $change,
+   $delete);
+}
+
+print $table->show();
+
+$table = Abills::HTML->table( { width => '100%',
+                                cols_align => ['right', 'right'],
+                                rows => [ [ "$_TOTAL:", "<b>$tariffs->{TOTAL}</b>" ] ]
+                               } );
+print $table->show();
+
+	
+}
+
+
+1
