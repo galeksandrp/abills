@@ -86,7 +86,7 @@ sub dv_auth {
      LEFT JOIN tp_nas ON (tp_nas.tp_id = tp.id)
      WHERE dv.tp_id=tp.id
         AND dv.uid='$self->{UID}'
-     GROUP BY dv.id;");
+     GROUP BY dv.uid;");
 
 
   if($self->{errno}) {
