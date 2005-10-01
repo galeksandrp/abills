@@ -3,7 +3,7 @@ $web_interface    = 1;
 @useraccount_menu = ('Dialup_VPN');
 
 #Iner_ID : Main or Sub or if -1 user menu func list
-%FUNCTIONS_LIST = ("01:0:Dialup & VPN:dv_user:"            => 11,
+%FUNCTIONS_LIST = ("01:0:Dialup & VPN List:dv_user:"            => 11,
                    "02:-1:Dialup & VPN:dv_user:UID"        => 11,
                    "03:1:$_TARIF_PLANS:dv_chg_tp:UID"      => 11,
                    "04:0:Dialup & VPN:null:"               => 5,
@@ -13,10 +13,11 @@ $web_interface    = 1;
                    "08:5:$_NASS:form_nas_allow:TP_ID"      => 5,
                    "09:5:$_USERS:form_users:TP_ID"         => 5,
                    "10:0:Dialup & VPN:null:"               => 4,
-                   "11:10:$_ERROR:form_error:"             => 4,
-                   "12:10:$_LAST:show_sessions:"           => 4,
-                   "13:10:$_USED:form_use:"                => 4,
-                   "14:13:$_MONTH:form_use:"               => 4
+                   "11:10:$_ERROR:dv_error:"             => 4,
+                   "12:10:$_LAST:dv_sessions:"           => 4,
+                   "13:10:$_USED:dv_use:"                => 4,
+                   "14:13:$_MONTH:dv_use:"               => 4,
+                   "15:0:Dialup & VPN:dv_online:"          => 8
                    );
 
 
