@@ -192,4 +192,197 @@ sub del {
 
 
 
+
+#**********************************************************
+# list()
+#**********************************************************
+sub list {
+ my $self = shift;
+ my ($attr) = @_;
+ my @list = ();
+
+ $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+ $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+ $PG = ($attr->{PG}) ? $attr->{PG} : 0;
+ $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
+
+ my $search_fields = '';
+
+ 
+ if ($attr->{USERS_WARNINGS}) {
+   $self->query($db, " SELECT u.id, pi.email, dv.tp_id, u.credit, b.deposit, tp.name, tp.uplimit
+         FROM users u, dv_main dv, bills b
+         LEFT JOIN tarif_plans tp ON dv.tp_id = tp.id
+         LEFT JOIN users_pi pi ON u.uid = dv.id
+         WHERE u.bill_id=b.id
+           and b.deposit<tp.uplimit AND tp.uplimit > 0 AND b.deposit+u.credit>0
+         ORDER BY u.id;");
+
+   my $list = $self->{list};
+   return $list;
+  }
+ elsif($attr->{CLOSED}) {
+   $self->query($db, "SELECT u.id, pi.fio, if(company.id IS NULL, b.deposit, b.deposit), 
+      u.credit, tp.name, u.disable, 
+      u.uid, u.company_id, u.email, u.tp_id, if(l.start is NULL, '-', l.start)
+     FROM users u, bills b
+     LEFT JOIN users_pi pi ON u.uid = dv.id
+     LEFT JOIN tarif_plans tp ON  (tp.id=u.tp_id) 
+     LEFT JOIN companies company ON  (u.company_id=company.id) 
+     LEFT JOIN log l ON  (l.uid=u.uid) 
+     WHERE  
+        u.bill_id=b.id
+        and (b.deposit+u.credit-tp.credit_tresshold<=0
+        and tp.hourp+tp.df+tp.abon>=0)
+        or (
+        (u.expire<>'0000-00-00' and u.expire < CURDATE())
+        AND (u.activate<>'0000-00-00' and u.activate > CURDATE())
+        )
+        or u.disable=1
+     GROUP BY u.uid
+     ORDER BY $SORT $DESC;");
+
+   my $list = $self->{list};
+   return $list;
+  }
+
+ # Start letter 
+ if ($attr->{FIRST_LETTER}) {
+    $WHERE .= ($WHERE ne '') ?  " and u.id LIKE '$attr->{FIRST_LETTER}%' " : "WHERE u.id LIKE '$attr->{FIRST_LETTER}%' ";
+  }
+ elsif ($attr->{LOGIN}) {
+    $attr->{LOGIN_EXPR} =~ s/\*/\%/ig;
+    $WHERE .= ($WHERE ne '') ?  " and u.id='$attr->{LOGIN}' " : "WHERE u.id='$attr->{LOGIN}' ";
+  }
+ # Login expresion
+ elsif ($attr->{LOGIN_EXPR}) {
+    $attr->{LOGIN_EXPR} =~ s/\*/\%/ig;
+    $WHERE .= ($WHERE ne '') ?  " and u.id LIKE '$attr->{LOGIN_EXPR}' " : "WHERE u.id LIKE '$attr->{LOGIN_EXPR}' ";
+  }
+ 
+
+ if ($attr->{IP}) {
+    if ($attr->{IP} =~ m/\*/g) {
+      my ($i, $first_ip, $last_ip);
+      my @p = split(/\./, $attr->{IP});
+      for ($i=0; $i<4; $i++) {
+
+         if ($p[$i] eq '*') {
+         	 $first_ip .= '0';
+         	 $last_ip .= '255';
+          }
+         else {
+         	 $first_ip .= $p[$i];
+         	 $last_ip .= $p[$i];
+          }
+         if ($i != 3) {
+         	 $first_ip .= '.';
+         	 $last_ip .= '.';
+          }
+       }
+      $WHERE .= ($WHERE ne '') ?  " and (u.ip>=INET_ATON('$first_ip') and u.ip<=INET_ATON('$last_ip'))" : "WHERE (u.ip>=INET_ATON('$first_ip') and u.ip<=INET_ATON('$last_ip')) ";
+     }
+    else {
+      my $value = $self->search_expr($attr->{IP}, 'IP');
+      $WHERE .= ($WHERE ne '') ?  " and u.ip$value " : "WHERE u.ip$value ";
+    }
+  }
+
+ if ($attr->{PHONE}) {
+    my $value = $self->search_expr($attr->{PHONE}, 'INT');
+    $WHERE .= ($WHERE ne '') ?  " and u.phone$value " : "WHERE u.phone$value ";
+  }
+
+
+ if ($attr->{DEPOSIT}) {
+    my $value = $self->search_expr($attr->{DEPOSIT}, 'INT');
+    $WHERE .= ($WHERE ne '') ?  " and u.deposit$value " : "WHERE u.deposit$value ";
+  }
+
+ if ($attr->{SPEED}) {
+    my $value = $self->search_expr($attr->{SPEED}, 'INT');
+    $WHERE .= ($WHERE ne '') ?  " and u.speed$value " : "WHERE u.speed$value ";
+  }
+
+ if ($attr->{CID}) {
+    $attr->{CID} =~ s/\*/\%/ig;
+    $WHERE .= ($WHERE ne '') ?  " and u.cid LIKE '$attr->{CID}' " : "WHERE u.cid LIKE '$attr->{CID}' ";
+  }
+
+ if ($attr->{COMMENTS}) {
+ 	$attr->{COMMENTS} =~ s/\*/\%/ig;
+ 	$WHERE .= ($WHERE ne '') ?  " and u.comments LIKE '$attr->{COMMENTS}' " : "WHERE u.comments LIKE '$attr->{COMMENTS}' ";
+  }
+
+
+ if ($attr->{FIO}) {
+    $attr->{FIO} =~ s/\*/\%/ig;
+    $WHERE .= ($WHERE ne '') ?  " and u.fio LIKE '$attr->{FIO}' " : "WHERE u.fio LIKE '$attr->{FIO}' ";
+  }
+
+ # Show users for spec tarifplan 
+ if ($attr->{TP}) {
+    $WHERE .= ($WHERE ne '') ?  " and u.tp_id='$attr->{TP}' " : "WHERE u.tp_id='$attr->{TP}' ";
+  }
+
+ # Show debeters
+ if ($attr->{DEBETERS}) {
+    $WHERE .= ($WHERE ne '') ?  " and u.id LIKE '$attr->{FIRST_LETTER}%' " : "WHERE u.id LIKE '$attr->{FIRST_LETTER}%' ";
+  }
+
+ # Show debeters
+ if ($attr->{COMPANY_ID}) {
+    $WHERE .= ($WHERE ne '') ?  " and u.company_id='$attr->{COMPANY_ID}' " : "WHERE u.company_id='$attr->{COMPANY_ID}' ";
+  }
+
+ # Show groups
+ if ($attr->{GID}) {
+    $WHERE .= ($WHERE ne '') ?  " and u.gid='$attr->{GID}' " : "WHERE u.gid='$attr->{GID}' ";
+  }
+
+#Activate
+ if ($attr->{ACTIVATE}) {
+   my $value = $self->search_expr("'$attr->{ACTIVATE}'", 'INT');
+   $WHERE .= ($WHERE ne '') ?  " AND (u.activate='0000-00-00' or u.activate$value) " : "WHERE (u.activate='0000-00-00' or u.activate$value) "; 
+ }
+
+#Expire
+ if ($attr->{EXPIRE}) {
+   my $value = $self->search_expr("'$attr->{EXPIRE}'", 'INT');
+   $WHERE .= ($WHERE ne '') ?  " AND (u.expire='0000-00-00' or u.expire$value) " : "WHERE (u.expire='0000-00-00' or u.expire$value) "; 
+ }
+
+#DIsable
+ if ($attr->{DISABLE}) {
+   $WHERE .= ($WHERE ne '') ?  " AND u.disable='$attr->{DISABLE}' " : "WHERE u.disable='$attr->{DISABLE} "; 
+ }
+ 
+ 
+ $self->query($db, "SELECT u.id, 
+      pi.fio, if(company.id IS NULL, b.deposit, b.deposit), u.credit, tp.name, u.disable, 
+      u.uid, u.company_id, pi.email, dv.tp_id, u.activate, u.expire
+     FROM users u
+     LEFT JOIN users_pi pi ON (u.uid = pi.uid)
+     LEFT JOIN dv_main dv ON  (u.uid = dv.uid)
+     LEFT JOIN bills b ON u.bill_id = b.id
+     LEFT JOIN tarif_plans tp ON (tp.id=dv.tp_id) 
+     LEFT JOIN companies company ON  (u.company_id=company.id) 
+     $WHERE ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");
+
+ return $self if($self->{errno});
+
+
+
+ my $list = $self->{list};
+
+ if ($self->{TOTAL} >= $attr->{PAGE_ROWS}) {
+    $self->query($db, "SELECT count(u.id) FROM users u $WHERE");
+    my $a_ref = $self->{list}->[0];
+    ($self->{TOTAL}) = @$a_ref;
+   }
+
+  return $list;
+}
+
+
 1
