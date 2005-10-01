@@ -1,4 +1,4 @@
-package Sessions;
+package Dv_Sessions;
 # Stats functions
 #
 
@@ -70,7 +70,7 @@ sub online {
  
 
  $self->query($db, "SELECT c.user_name, 
-                          u.fio, 
+                          pi.fio, 
                           c.nas_port_id, 
                           c.framed_ip_address,
                           SEC_TO_TIME(UNIX_TIMESTAMP() - UNIX_TIMESTAMP(c.started)),
@@ -80,16 +80,18 @@ sub online {
                           u.uid,
   INET_NTOA(c.nas_ip_address),
   c.acct_session_id, 
-  u.phone, 
-  u.tp_id, 
-  u.deposit, 
+  pi.phone, 
+  dv.tp_id, 
+  0, 
   u.credit, 
-  u.speed,  
+  dv.speed,  
   c.CID, 
   c.CONNECT_INFO,
   if(date_format(c.started, '%Y-%m-%d')=curdate(), date_format(c.started, '%H:%i:%s'), c.started)
  FROM calls c
- LEFT JOIN users u ON u.id=user_name
+ LEFT JOIN users u     ON u.id=user_name
+ LEFT JOIN dv_main dv  ON dv.uid=u.uid
+ LEFT JOIN users_pi pi ON pi.uid=u.uid
  WHERE $WHERE
  ORDER BY $SORT $DESC;");
  
@@ -672,6 +674,8 @@ sub reports {
 
 	return $list;
 }
+
+
 
 
 1
