@@ -108,6 +108,69 @@ $params
 }
 
 
+#**********************************************************
+# user_dv
+#**********************************************************
+sub dv_user_list {
+my $letters = "<a href='$SELF?index=$index'>All</a> ::";
+for (my $i=97; $i<123; $i++) {
+  my $l = chr($i);
+  if ($FORM{letter} eq $l) {
+     $letters .= "<b>$l </b>";
+    }
+  else {
+     #$pages_qs = '';
+     $letters .= "<a href='$SELF?index=$index&letter=$l$pages_qs'>$l</a> ";
+   }
+ }
+
+ if ($FORM{letter}) {
+   $LIST_PARAMS{FIRST_LETTER} = $FORM{letter};
+   $pages_qs .= "&letter=$FORM{letter}";
+  } 
+
+#use Users;
+#my $users = Users->new($db, $admin, \%conf); 
+
+my $list = $Dv->list( { %LIST_PARAMS } );
+
+if ($users->{errno}) {
+  message('err', $_ERROR, "[$users->{errno}] $err_strs{$users->{errno}}");	
+  return 0;
+ }
+elsif ($users->{TOTAL} == 1) {
+	form_users({  USER => user_info($list->[0]->[6]) });
+	return 0;
+}
+
+print $letters;
+
+
+my $table = Abills::HTML->table( { width => '100%',
+                                   border => 1,
+                                   title => [$_LOGIN, $_FIO, $_DEPOSIT, $_CREDIT, $_TARIF_PLANS, $_STATUS, '-', '-'],
+                                   cols_align => ['left', 'left', 'right', 'right', 'left', 'center', 'center', 'center', 'center'],
+                                   qs => $pages_qs,
+                                   pages => $Dv->{TOTAL}
+                                  } );
+
+foreach my $line (@$list) {
+  my $payments = ($permissions{1}) ?  "<a href='$SELF_URL?index=2&UID=$line->[6]'>$_PAYMENTS</a>" : ''; 
+
+  $table->addrow("<a href='$SELF_URL?index=11&UID=$line->[6]'>$line->[0]</a>", "$line->[1]",
+   "$line->[2]", "$line->[3]", "$line->[4]", "$status[$line->[5]]", $payments, "<a href='$SELF_URL?index=22&UID=$line->[6]'>$_STATS</a>");
+}
+print $table->show();
+
+$table = Abills::HTML->table( { width => '100%',
+                                cols_align => ['right', 'right'],
+                                rows => [ [ "$_TOTAL:", "<b>$Dv->{TOTAL}</b>" ] ]
+                               } );
+print $table->show();
+
+  return 0;
+}
+
 
 #**********************************************************
 # user_dv

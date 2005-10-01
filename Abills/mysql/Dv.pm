@@ -208,6 +208,7 @@ sub list {
 
  my $search_fields = '';
 
+ $WHERE = "WHERE u.uid = dv.uid ";
  
  if ($attr->{USERS_WARNINGS}) {
    $self->query($db, " SELECT u.id, pi.email, dv.tp_id, u.credit, b.deposit, tp.name, tp.uplimit
@@ -361,9 +362,8 @@ sub list {
  $self->query($db, "SELECT u.id, 
       pi.fio, if(company.id IS NULL, b.deposit, b.deposit), u.credit, tp.name, u.disable, 
       u.uid, u.company_id, pi.email, dv.tp_id, u.activate, u.expire
-     FROM users u
+     FROM users u, dv_main dv
      LEFT JOIN users_pi pi ON (u.uid = pi.uid)
-     LEFT JOIN dv_main dv ON  (u.uid = dv.uid)
      LEFT JOIN bills b ON u.bill_id = b.id
      LEFT JOIN tarif_plans tp ON (tp.id=dv.tp_id) 
      LEFT JOIN companies company ON  (u.company_id=company.id) 
