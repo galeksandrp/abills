@@ -1020,8 +1020,8 @@ elsif($attr->{TP}) {
 }
 elsif ($FORM{TP_ID}) {
   $FORM{chg}=$FORM{TP_ID};
-  $FORM{subf}=72;
-  form_tp();
+  $FORM{subf}=$index;;
+  dv_tp();
   return 0;
  }
 
@@ -1206,7 +1206,7 @@ if($attr->{TP}) {
   my $color="AAA000";
   foreach my $line (@$list) {
 
-    my $delete = $html->button($_DEL, "index=73$pages_qs&del=$line->[0]", "$_DEL [$line->[0]] ?"); 
+    my $delete = $html->button($_DEL, "index=$index$pages_qs&del=$line->[0]", "$_DEL [$line->[0]] ?"); 
     $color = sprintf("%06x", hex('0x'. $color) + 7000);
      
     #day, $hour|$end = color
@@ -1256,8 +1256,8 @@ if($attr->{TP}) {
   
  }
 elsif ($FORM{TP_ID}) {
-  $FORM{subf}=73;
-  form_tp();
+  $FORM{subf}=$index;
+  dv_tp();
   return 0;
  }
 
@@ -2421,14 +2421,17 @@ my @m = ("1:0:$_CUSTOMERS:null:::",
  "53:9:$_PROFILE:admin_profile:::",
  "99:9:$_FUNCTIONS_LIST:flist:::",
 
- "70:5:$_TARIF_PLANS:form_tp:::",
- "71:70:$_ADD:form_tp:::",
- "72:70:$_NASS:form_nas_allow:::",
- "73:70:$_INTERVALS:form_intervals:::",
- "74:70:$_TRAFIC_TARIFS:form_traf_tarifs:::"
  
  
  );
+
+
+# "70:5:$_TARIF_PLANS:form_tp:::",
+# "71:70:$_ADD:form_tp:::",
+# "72:70:$_NASS:form_nas_allow:::",
+# "73:70:$_INTERVALS:form_intervals:::",
+# "74:70:$_TRAFIC_TARIFS:form_traf_tarifs:::"
+
 
 #
 # "40:4:$_ERROR:form_error:::",
@@ -3319,7 +3322,17 @@ sub form_period  {
  return $form_period;	
 }
 
+#*******************************************************************
+#
+#*******************************************************************
+sub weblog {
+	my ($action, $value) = @_;
 
+  open(FILE, ">>$conf{WEB_LOGFILE}") || die "Can't open file '$conf{WEB_LOGFILE}' $!\n";
+    print FILE "$DATE $TIME $admin->{A_LOGIN} $admin->{SESSION_IP} $action:$value\n";
+  close(FILE);
+	
+}
 
 
 

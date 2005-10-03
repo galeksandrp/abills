@@ -300,8 +300,7 @@ return qq{ <form action=$SELF_URL method=POST>
 
 elsif ($tpl_name eq 'ti') {
 return qq{<form action=$SELF_URL>
-<input type=hidden name=index value=73>
-<input type=hidden name=subf value=73>
+<input type=hidden name=index value=$index>
 <input type=hidden name=TP_ID value='%TP_ID%'>
 <input type=hidden name=TI_ID value='%TI_ID%'>
  <TABLE width=400 cellspacing=1 cellpadding=0 border=0>

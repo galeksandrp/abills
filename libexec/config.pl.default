@@ -87,6 +87,7 @@ $conf{SPOOL_DIR}=$base_dir.'var/q';
 # Template folder
 $conf{TPL_DIR}   = $base_dir . 'cgi-bin/admin/tpls/';
 $conf{LOG_DEBUG} = $base_dir . 'var/log/abills.debug';
+$conf{WEB_LOGFILE} = 'weblog.log';
 $conf{LOGFILE}   = $base_dir . 'var/log/abills.log';
 $conf{LOG_ACCT}  = $base_dir . 'var/log/acct.log';
 
