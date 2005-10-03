@@ -515,6 +515,7 @@ CREATE TABLE shedule (
   m char(2) NOT NULL default '*',
   y varchar(4) NOT NULL default '*',
   h char(2) NOT NULL default '*',
+  module varchar(12) NOT NULL default '',
   PRIMARY KEY  (id),
   UNIQUE KEY id (id),
   UNIQUE KEY uniq_action (h,d,m,y,type,uid),
