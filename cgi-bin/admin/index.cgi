@@ -1020,7 +1020,7 @@ elsif($attr->{TP}) {
 }
 elsif ($FORM{TP_ID}) {
   $FORM{chg}=$FORM{TP_ID};
-  $FORM{subf}=$index;;
+  $FORM{subf}=$index;
   dv_tp();
   return 0;
  }
@@ -1104,6 +1104,11 @@ if ($FORM{del} && $FORM{is_js_confirmed}) {
   else {
     message('info', $_DELETED, "$_DELETED [$FORM{del}]");
    }
+ }
+elsif($FORM{AID} && ! defined($LIST_PARAMS{AID})) {
+	$FORM{subf}=$index;
+	form_admins();
+	return 0;
  }
 
 
@@ -2393,10 +2398,15 @@ my @m = ("1:0:$_CUSTOMERS:null:::",
 
  "5:0:$_SYSTEM:null:::",
  "50:5:$_ADMINS:form_admins:::",
- "51:5:$_LOG:form_changes:AID::",
+ "51:50:$_LOG:form_changes:AID::",
  "52:50:$_PERMISSION:admin_permissions:AID::",
  "54:50:$_PASSWD:form_passwd:AID::",
+ "55:50:$_FEES:form_fees:AID::",
+ "56:50:$_PAYMENTS:form_payments:AID::",
+ "57:50:$_CHANGE:form_admins:AID::",
  
+ "59:5:$_LOG:form_changes:::",
+  
  "60:5:$_NAS:form_nas:::",
  "61:60:IP POOLs:form_ip_pools:::",
  "62:60:$_NAS_STATISTIC:form_nas_stats:NID::",
@@ -2749,6 +2759,11 @@ if (defined ($permissions{1}{1})) {
    Abills::HTML->tpl_show(templates('form_payments'), $payments);
  }
 }
+elsif($FORM{AID} && ! defined($LIST_PARAMS{AID})) {
+	$FORM{subf}=$index;
+	form_admins();
+	return 0;
+ }
 elsif($FORM{UID}) {
 	form_users();
 	return 0;
@@ -2934,6 +2949,11 @@ if (defined ($permissions{2}{1})) {
   Abills::HTML->tpl_show(templates('form_fees'), $fees);
  }	
 }
+elsif($FORM{AID} && ! defined($LIST_PARAMS{AID})) {
+	$FORM{subf}=$index;
+	form_admins();
+	return 0;
+ }
 elsif($FORM{UID}) {
 	form_users();
 	return 0;

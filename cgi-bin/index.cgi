@@ -66,8 +66,7 @@ print << "[END]";
 <table width=100% border=0>
 <tr bgcolor=$_COLORS[0]><td align=right>
 <h3>ABillS</h3>
-</td>
-</tr>
+</td></tr>
 </table>
 <center>
 <table width=99%>
@@ -162,8 +161,8 @@ sub form_stats {
 
 
  
-use Sessions;
-my $sessions = Sessions->new($db);
+use Dv_Sessions;
+my $sessions = Dv_Sessions->new($db);
 
 if ($FORM{del} && $FORM{is_js_confirmed}) {
 	if(! defined($permissions{3}{1})) {
@@ -274,8 +273,8 @@ if (! $list) {
 	  $LIST_PARAMS{SORT} = 2;
 	  $LIST_PARAMS{DESC} = 'DESC';
   }
-  use Sessions;
-  $sessions = Sessions->new($db);
+  use Dv_Sessions;
+  $sessions = Dv_Sessions->new($db);
   $list = $sessions->list({ %LIST_PARAMS });	
 }
 

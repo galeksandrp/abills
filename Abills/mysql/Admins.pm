@@ -165,39 +165,14 @@ sub change {
            DISABLE => 'disable'
    );
 
- $self->changes( { CHANGE_PARAM => 'GID',
-		               TABLE        => 'groups',
+ $self->changes($admin, { CHANGE_PARAM => 'AID',
+		               TABLE        => 'admins',
 		               FIELDS       => \%FIELDS,
-		               OLD_INFO     => $self->pi(),
+		               OLD_INFO     => $self->info($self->{AID}),
 		               DATA         => $attr
 		              } );
 
 
-# %DATA = $self->get_data($attr); 
-# my $CHANGES_QUERY = "";
-# my $CHANGES_LOG = "Tarif plan:";
-#
-# my $OLD = $self->info($self->{AID});
-#
-# while(my($k, $v)=each(%DATA)) {
-#    if ($OLD->{$k} ne $DATA{$k}){
-#      if ($FIELDS{$k}) {
-#         $CHANGES_LOG .= "$k $OLD->{$k}->$DATA{$k};";
-#         $CHANGES_QUERY .= "$FIELDS{$k}='$DATA{$k}',";
-#       }
-#     }
-#  }
-#
-#
-#if ($CHANGES_QUERY eq '') {
-#  return $self->{result};	
-#}
-#
-## print $CHANGES_LOG;
-#  chop($CHANGES_QUERY);
-#  $self->query($db, "UPDATE admins SET $CHANGES_QUERY
-#    WHERE aid='$self->{AID}'", 'do');
-##  $admin->action_add(0, "$CHANGES_LOG");
 
   $self->info($self->{AID});
   
