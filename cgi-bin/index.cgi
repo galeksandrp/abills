@@ -69,7 +69,7 @@ print << "[END]";
 </td></tr>
 </table>
 <center>
-<table width=99%>
+<table width=100%>
 <tr><td align=center>
 [END]
 
@@ -81,7 +81,7 @@ my $user=Users->new($db, undef, \%conf);
 ($uid, $sid, $login) = auth("$login", "$passwd", "$sid");
 
 if ($uid > 0) {
-  mk_navigator();
+  my($menu_text, $menu_navigator)=mk_navigator();
   
   my $table = Abills::HTML->table({ width => '100%',
                                      cols_align => ['right'],
@@ -90,7 +90,8 @@ if ($uid > 0) {
                                   } );
   print $table->show();
   
-
+print "<table border=0 width=100%>
+<tr><td width=200 valign=top bgcolor=$_COLORS[2]>$menu_text</td><td align=center>\n"; 
   $pages_qs="&UID=$user->{UID}&sid=$sid";
   if ($index != 0 && defined($functions{$index})) {
 #    my $m;
@@ -105,6 +106,7 @@ if ($uid > 0) {
   else {
     $functions{22}->();
    }
+  print "</td></tr></table>\n";
 }
 else {
   form_login();
@@ -163,8 +165,6 @@ sub form_stats {
 	  $LIST_PARAMS{DESC}=DESC;
    }
 
-
- 
 use Dv_Sessions;
 my $sessions = Dv_Sessions->new($db);
 
@@ -257,8 +257,6 @@ $table = Abills::HTML->table( { width => '640',
 print "<p>" . $table->show() . "</p>\n";	
 
 show_sessions($list, $sessions);
-
-
 }
 
 
@@ -343,10 +341,9 @@ sub mk_navigator {
 
 # ID:PARENT:NAME:FUNCTION:SHOW SUBMENU:OP:
 my @m = ( 
- "16:11:$_TARIF_PLAN:form_chg_tp:0::",
- "17:11:$_PASSWD:form_passwd:0:password:",
- "20:11:$_SEVICES:user_services:0::",
- "22:11:$_STATS:form_stats:1::"
+ "16:0:$_INFO:form_chg_tp:::",
+ "17:0:$_PASSWD:form_passwd:::",
+ "22:0:$_STATS:form_stats:::"
  );
 
 foreach my $line (@m) {
@@ -355,8 +352,111 @@ foreach my $line (@m) {
   $menu_names{$ID}=$NAME;
   $functions{$ID}=\&$FUNTION_NAME if ($FUNTION_NAME  ne '');
   $show_submenu{$ID}='y' if ($SHOW_SUBMENU == 1);
-  $op_names{$ID}=$OP if ($OP ne '');
+ }
+
+
+ my $menu_navigator = "";
+ my %tree = ();
+
+ # make navigate line 
+if ($index > 0) {
+  $root_index = $index;	
+  my $h = $menu_items{$root_index};
+
+  while(my ($par_key, $name) = each ( %$h )) {
+    $menu_navigator =  " <a href='$SELF_URL?index=$root_index'>$name</a> /" . $menu_navigator;
+    $tree{$root_index}='y';
+    if ($par_key > 0) {
+      $root_index = $par_key;
+      $h = $menu_items{$par_key};
+     }
+  }
 }
+
+$FORM{root_index} = $root_index;
+#if ($root_index > 0) {
+#  my $ri = $root_index-1;
+#3  if (! defined($permissions{$ri})) {
+#	  message('err', $_ERROR, "Access deny");
+##	  exit 0;
+#   }
+#}
+
+
+my %menu = ();
+while(my($ID, $VALUE_HASH)=each %menu_items) {
+ 	foreach my $parent (keys %$VALUE_HASH) {
+    push( @{$menu{$parent}},  "$ID:$VALUE_HASH->{$parent}" );
+   }
+}
+ 
+ 
+ my @sorted_menu = sort keys %menu;
+ my @last_array = ();
+
+ my $menu_text = "<table border=0 width=100%>\n";
+ 
+ foreach $parent (@sorted_menu) {
+
+    next if ($parent > 0);
+ 	  my $level  = 0;
+ 	  my $prefix = '';
+
+ 	  label:
+ 	  $sub_menu_array = \@{$menu{$parent}};
+ 	  while( $sm_item = pop @$sub_menu_array) {
+ 	     my($ID, $name)=split(/:/, $sm_item, 2);
+
+# 	     next if((! $permissions{$ID-1}) && $parent == 0);
+	      	      	     
+ 	     $name = (defined($tree{$ID})) ? "> <b>$name</b>": "$name";
+ 	     #print "$prefix$level / $parent /$ID ";
+
+
+        if(! defined($menu_args{$ID}) || (defined($menu_args{$ID}) && defined($FORM{$menu_args{$ID}})) ) {
+       	   my $ext_args = "&$menu_args{$ID}=$FORM{$menu_args{$ID}}";
+       	   $link = "<a href='$SELF_URL?index=$ID$ext_args'>$name</a>";   
+
+    	     if($parent == 0) {
+ 	        	 $menu_text .= "<tr><td bgcolor=$_COLORS[3] align=left>$prefix$link</td></tr>\n";
+ 	          }
+ 	         elsif(defined($tree{$ID})) {
+ 	           $menu_text .= "<tr><td bgcolor=$_COLORS[2] align=left>$prefix>$link</td></tr>\n";
+ 	          }
+ 	         else {
+ 	           $menu_text  .= "<tr><td bgcolor=$_COLORS[1]>$prefix$link</td></tr>\n";
+ 	          }
+         }
+        else {
+          #next;
+          #$link = "<a href='$SELF_URL?index=$ID&$menu_args{$ID}'>$name</a>";	
+         }
+
+ 	      	     
+
+ 	     if(defined($tree{$ID})) {
+ 	     	 $level++;
+ 	     	 $prefix .= "&nbsp;&nbsp;&nbsp;";
+         push @last_array, $parent;
+         $parent = $ID;
+ 	     	 $sub_menu_array = \@{$menu{$parent}};
+ 	      }
+ 	   }
+ 	  
+    if ($#last_array > -1) {
+      $parent = pop @last_array;	
+      #print "POP/$#last_array/$parent/<br>\n";
+      $level--;
+      $prefix = substr($prefix, 0, $level * 6 * 3);
+      goto label;
+     }
+ 	  
+  }
+ 
+ 
+ $menu_text .= "</table>\n";
+
+return  $menu_text, "/".$menu_navigator;
 
 }
 
