@@ -34,9 +34,12 @@ my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $con
 my $db = $sql->{db};
 
 require "../language/$html->{language}.pl";
-my $sid = $FORM{sid} || 0; # Session ID
+my $sid = $FORM{sid} || ''; # Session ID
 if ((length($COOKIES{sid})>1) && (! $FORM{passwd})) {
- $sid = $COOKIES{sid};
+  $sid = $COOKIES{sid};
+}
+elsif((length($COOKIES{sid})>1) && (defined($FORM{passwd}))){
+	$html->setCookie('sid', "", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure);
 }
 
 #Cookie section ============================================
@@ -60,8 +63,6 @@ my $sessions='sessions.db';
 my $uid = 0;
 my $page_qs;
 
-print "------------- $sid";
-
 print << "[END]";
 <table width=100% border=0>
 <tr bgcolor=$_COLORS[0]><td align=right>
@@ -73,7 +74,7 @@ print << "[END]";
 <tr><td align=center>
 [END]
 
-my $login = $FORM{user};
+my $login = $FORM{user} || '';
 my $passwd = $FORM{passwd} || '';
 
 
@@ -113,8 +114,6 @@ else {
 }
 
 print "</td></tr></table><hr>\n";
-
-
 
 
 
@@ -343,7 +342,8 @@ sub mk_navigator {
 my @m = ( 
  "16:0:$_INFO:form_chg_tp:::",
  "17:0:$_PASSWD:form_passwd:::",
- "22:0:$_STATS:form_stats:::"
+ "22:0:$_STATS:form_stats:::",
+ "30:0:$_LOGOUT:logout:::"
  );
 
 foreach my $line (@m) {
@@ -414,7 +414,9 @@ while(my($ID, $VALUE_HASH)=each %menu_items) {
 
 
         if(! defined($menu_args{$ID}) || (defined($menu_args{$ID}) && defined($FORM{$menu_args{$ID}})) ) {
-       	   my $ext_args = "&$menu_args{$ID}=$FORM{$menu_args{$ID}}";
+       	   my $ext_args = "&sid=$sid";
+       	   $ext_args .= "&$menu_args{$ID}=$FORM{$menu_args{$ID}}" if (defined($menu_args{$ID}) && defined($FORM{$menu_args{$ID}}));
+
        	   $link = "<a href='$SELF_URL?index=$ID$ext_args'>$name</a>";   
 
     	     if($parent == 0) {
@@ -507,6 +509,8 @@ sub auth {
  use DB_File; 
  tie %h, "DB_File",  "$sessions", O_RDWR|O_CREAT, 0640, $DB_HASH
          or die "Cannot open file '$sessions': $!\n";
+ 
+
 
 if ($FORM{op} eq 'logout') {
   delete $h{$sid} ;
@@ -518,7 +522,9 @@ elsif (length($sid) > 1) {
     ($uid, $time, $login, $ip)=split(/:/, $h{$sid});
     my $cur_time = time;
     
-    if ($cur_time - $time > $session_timeout) {
+    if ($cur_time - $time > $conf{web_session_timeout}) {
+      #print "$cur_time - $time > '$conf{web_session_timeout}'";
+      #web_session_timeout
       delete $h{$sid};
       message('info', "$_INFO", 'timeout');	
       return 0; 
@@ -535,7 +541,7 @@ elsif (length($sid) > 1) {
     return ($uid, $sid, $login);
    }
   else { 
-    message('err', "$_ERROR", $_NOT_LOGINED);	
+    message('err', "$_ERROR", "$_NOT_LOGINED");	
     return 0; 
    }
  }
@@ -626,4 +632,11 @@ else {
 }
 
 
+
+sub logout {
+	$FORM{op}='logout';
+	auth('', '', $sid);
+	message('info', $_INFO, $_LOGOUT);
+	return 0;
+}
 
