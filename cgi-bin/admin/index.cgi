@@ -174,7 +174,6 @@ foreach my $m (@MODULES) {
         $uf_menus{$maxnumber}=$NAME;
       }
     }
-
     $menu_names{$maxnumber}=$NAME;
     $functions{$maxnumber}=\&$FUNTION_NAME if ($FUNTION_NAME  ne '');
     $module{$maxnumber}=$m;
@@ -2294,13 +2293,6 @@ print "$sessions->{TOTAL}";
 }
 
 
-#**********************************************************
-# Null function
-#
-#**********************************************************
-sub null {
-  return 0;	
-}
 
 
 
@@ -2341,9 +2333,10 @@ use Abills::Base;
 my $gen_password=mk_unique_value(8);
 
 
-print "<h3>$_CHANGE_PASSWD</h3>\n";
+
 print << "[END]";
-<form action=$SELF_URL >
+<h3>$_CHANGE_PASSWD</h3>
+<form action=$SELF_URL  METHOD=POST>
 <input type=hidden name=index value=$index>
 $hidden_inputs
 <table>
@@ -2363,7 +2356,6 @@ $hidden_inputs
 #
 #**********************************************************
 sub fl {
-	
 	# ID:PARENT:NAME:FUNCTION:SHOW SUBMENU:module:
 my @m = ("1:0:$_CUSTOMERS:null:::",
  "11:1:$_USERS:form_users:::",
@@ -2425,9 +2417,6 @@ my @m = ("1:0:$_CUSTOMERS:null:::",
  "9:0:$_PROFILE:null:::",
  "53:9:$_PROFILE:admin_profile:::",
  "99:9:$_FUNCTIONS_LIST:flist:::",
-
- 
- 
  );
 
 

@@ -22,15 +22,11 @@ $web_interface    = 1;
 
                    );
 
+%USER_FUNCTION_LIST = ("01:0:Dialup & VPN:dv_user_info:"   => 0,
+                       "02:1:$_INFO:dv_user_info:"         => 0,
+                       "02:1:$_STATS:dv_user_stats:"       => 0
+                      );
 
-# "40:4:$_ERROR:form_error:::",
-# "41:4:$_LAST:show_sessions:::",
-# "43:4:$_USED:form_use:::",
-
-
-# "72:70:$_NASS:allow_nass:::",
-# "73:70:$_INTERVALS:form_periods:::",
-# "74:70:$_TRAFIC_TARIFS:form_traf_tarifs:::",
 
 
 1

@@ -1001,4 +1001,103 @@ print "<p>" . $table->show() . "</p>\n";
 dv_sessions($list, $sessions);
 }
 
+
+
+#**********************************************************
+# form_stats
+#**********************************************************
+sub dv_user_stats {
+	#my ($user) = @_;
+	#$UID = $user->{UID};
+	#$LIST_PARAMS{UID} = $user->{UID};
+	if (! defined($FORM{sort})) {
+	  $LIST_PARAMS{SORT}=2;
+	  $LIST_PARAMS{DESC}=DESC;
+   }
+
+use Dv_Sessions;
+my $sessions = Dv_Sessions->new($db);
+
+if ($sessions->{errno})	 {
+	message('err', $_ERROR, "[$account->{errno}] $err_strs{$account->{errno}}");
+ }
+
+
+if ($FORM{rows}) {
+  $LIST_PARAMS{PAGE_ROWS}=$FORM{rows};
+  $conf{list_max_recs}=$FORM{rows};
+  $pages_qs .= "&rows=$conf{list_max_recs}";
+ }
+
+
+#PEriods totals
+my $list = $sessions->periods_totals({ %LIST_PARAMS });
+my $table = Abills::HTML->table( { width => '100%',
+                                   title_plain => ["$_PERIOD", "$_DURATION", "$_SEND", "$_RECV", "$_SUM"],
+                                   cols_align => ['left', 'right', 'right', 'right', 'right'],
+                                   rowcolor => $_COLORS[1]
+                                  } );
+for(my $i = 0; $i < 5; $i++) {
+	  $table->addrow("<a href='$SELF_URL?index=$index&period=$i$pages_qs'>$PERIODS[$i]</a>", "$sessions->{'duration_'. $i}",
+	  int2byte($sessions->{'sent_'. $i}), int2byte($sessions->{'recv_'. $i}), int2byte($sessions->{'sum_'. $i}));
+ }
+print $table->show();
+
+
+print "<form action=$SELF_URL>
+<input type=hidden name=sid value='$sid'>
+<input type=hidden name=index value='$index'>
+<input type=hidden name=UID value='$UID'>\n";
+
+my $table = Abills::HTML->table( { width => '640',
+	                                 rowcolor => $_COLORS[0],
+                                   title_plain => [ "$_FROM: ", Abills::HTML->date_fld('from', { MONTHES => \@MONTHES} ),
+                                   "$_TO: ", Abills::HTML->date_fld('to', { MONTHES => \@MONTHES } ),
+                                   "$_ROWS: ",  "<input type=text name=rows value='$conf{list_max_recs}' size=4>",
+                                   "<input type=submit name=show value=$_SHOW>"
+                                    ],                                   
+                                  } );
+print $table->show();
+print "</form>\n";
+
+stats_calculation($sessions);
+
+if (defined($FORM{show})) {
+  $pages_qs .= "&show=y&fromd=$FORM{fromd}&fromm=$FORM{fromm}&fromy=$FORM{fromy}&tod=$FORM{tod}&tom=$FORM{tom}&toy=$FORM{toy}";
+  $FORM{fromm}++;
+  $FORM{tom}++;
+  $FORM{fromm} = sprintf("%.2d", $FORM{fromm}++);
+  $FORM{tom} = sprintf("%.2d", $FORM{tom}++);
+  $LIST_PARAMS{INTERVAL} = "$FORM{fromy}-$FORM{fromm}-$FORM{fromd}/$FORM{toy}-$FORM{tom}-$FORM{tod}";
+ }
+elsif ($FORM{period}) {
+	$LIST_PARAMS{PERIOD} = $FORM{period}; 
+	$pages_qs .= "&period=$FORM{period}";
+}
+
+if (! defined($FORM{sort})) {
+  $LIST_PARAMS{SORT}=2;
+  $LIST_PARAMS{DESC}=DESC;
+ }
+
+#Session List
+my $list = $sessions->list({ %LIST_PARAMS });	
+
+$table = Abills::HTML->table( { width => '640',
+	                              rowcolor => $_COLORS[1],
+                                title_plain => ["$_SESSIONS", "$_DURATION", "$_TRAFFIC", "$_SUM"],
+                                cols_align => ['right', 'right', 'right', 'right'],
+                                rows => [ [ $sessions->{TOTAL}, $sessions->{DURATION}, int2byte($sessions->{TRAFFIC}), $sessions->{SUM} ] ],
+                               } );
+print "<p>" . $table->show() . "</p>\n";	
+
+show_sessions($list, $sessions);
+}
+
+
+sub dv_user_info {
+  my $user = $Dv->info($LIST_PARAMS{UID});
+  Abills::HTML->tpl_show(_include('dv_user_info', 'Dv'), $Dv);
+}
+
 1

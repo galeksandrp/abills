@@ -14,6 +14,7 @@ $VERSION = 2.00;
 @ISA = ('Exporter');
 
 @EXPORT = qw( &radius_log
+  &null
   &convert
   &parse_arguments
   &session_spliter
@@ -36,6 +37,14 @@ $VERSION = 2.00;
 
 @EXPORT_OK = ();
 %EXPORT_TAGS = ();
+
+#**********************************************************
+# Null function
+#
+#**********************************************************
+sub null {
+  return 0;	
+}
 
 
 #**********************************************************

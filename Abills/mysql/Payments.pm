@@ -49,7 +49,7 @@ sub new {
   
   $Bill=Bills->new($db, $admin, $CONF); 
   
-  $self->{debug}=1;
+  #$self->{debug}=1;
   return $self;
 }
 

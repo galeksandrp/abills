@@ -44,6 +44,7 @@ $conf{passwd_length}=6;
 $conf{username_length}=15;
 $conf{list_max_recs}=25;
 $conf{web_session_timeout} = 1800;
+$conf{user_chg_passwd}='no';
 
 
 # Exppp options

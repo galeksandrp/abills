@@ -60,8 +60,10 @@ if (defined($FORM{sid})) {
 
 print $html->header();
 my $sessions='sessions.db';
+my $maxnumber = 0;
 my $uid = 0;
 my $page_qs;
+my $admin;
 
 print << "[END]";
 <table width=100% border=0>
@@ -77,13 +79,58 @@ print << "[END]";
 my $login = $FORM{user} || '';
 my $passwd = $FORM{passwd} || '';
 
+  # ID:PARENT:NAME:FUNCTION:SHOW SUBMENU:OP:
+  my @m = ( 
+   "16:0:$_INFO:form_info:::",
+   "30:0:$_LOGOUT:logout:::"
+   );
+
 
 my $user=Users->new($db, undef, \%conf); 
 ($uid, $sid, $login) = auth("$login", "$passwd", "$sid");
 
 if ($uid > 0) {
+  push @m, "17:0:$_PASSWD:form_passwd:::"   if($conf{user_chg_passwd}eq 'yes');
+  foreach my $line (@m) {
+	  my ($ID, $PARENT, $NAME, $FUNTION_NAME, $SHOW_SUBMENU, $OP)=split(/:/, $line);
+    $menu_items{$ID}{$PARENT}=$NAME;
+    $menu_names{$ID}=$NAME;
+    $functions{$ID}=\&$FUNTION_NAME if ($FUNTION_NAME  ne '');
+    $maxnumber=$ID if ($maxnumber < $ID);
+   }
+
+  foreach my $m (@MODULES) {
+  	require "Abills/modules/$m/config";
+    my %module_fl=();
+
+    my @sordet_module_menu = sort keys %USER_FUNCTION_LIST;
+    foreach $line (@sordet_module_menu) {
+   
+      $maxnumber++;
+      my($ID, $SUB, $NAME, $FUNTION_NAME, $ARGS)=split(/:/, $line, 5);
+      $ID = int($ID);
+      my $v = $FUNCTIONS_LIST{$line};
+
+      $module_fl{"$ID"}=$maxnumber;
+      $menu_args{$maxnumber}=$ARGS if ($ARGS ne '');
+      #print "$line -- $ID, $SUB, $NAME, $FUNTION_NAME  // $module_fl{$SUB}<br>";
+     
+      if($SUB > 0) {
+        $menu_items{$maxnumber}{$module_fl{$SUB}}=$NAME;
+       } 
+      else {
+        $menu_items{$maxnumber}{$v}=$NAME;
+        if ($SUB == -1) {
+          $uf_menus{$maxnumber}=$NAME;
+         }
+      }
+      $menu_names{$maxnumber}=$NAME;
+      $functions{$maxnumber}=\&$FUNTION_NAME if ($FUNTION_NAME  ne '');
+      $module{$maxnumber}=$m;
+    }
+  }
+
   my($menu_text, $menu_navigator)=mk_navigator();
-  
   my $table = Abills::HTML->table({ width => '100%',
                                      cols_align => ['right'],
                                      rowcolor => $_COLORS[2],
@@ -94,18 +141,17 @@ if ($uid > 0) {
 print "<table border=0 width=100%>
 <tr><td width=200 valign=top bgcolor=$_COLORS[2]>$menu_text</td><td align=center>\n"; 
   $pages_qs="&UID=$user->{UID}&sid=$sid";
+  $LIST_PARAMS{UID}=$user->{UID};
+
+  if(defined($module{$index})) {
+ 	 	require "Abills/modules/$module{$index}/webinterface";
+   }
+
   if ($index != 0 && defined($functions{$index})) {
-#    my $m;
-#    while(my($k, $v) = each %$sub_menus ) {
-#  	  $m .= "<a  href='$SELF_URL?index=$k'>$v</a> :: ";
-#     }
-#    if ($m ne '') {
-#      print "<Table width=100% border=0><tr><td align=right>$m</td></tr></table>\n";
-#     }
     $functions{$index}->();
    }
   else {
-    $functions{22}->();
+    $functions{16}->();
    }
   print "</td></tr></table>\n";
 }
@@ -116,147 +162,28 @@ else {
 print "</td></tr></table><hr>\n";
 
 
-
-
-##DEBUG#####################################
-#print "<table border=1>
-#<tr><td>index</td><td>$index</td></td></tr>
-#<tr bgcolor=$_COLORS[2]><td>OP</td><td>$OP</td></tr>\n";	
-#
-#  while(my($k, $v)=each %FORM) {
-#    print "<tr><td>$k</td><td>$v</td></tr>\n";	
-#   }
-#print "</table>\n";
-#
-#
-#print "<br><table border=1>
-#<tr><td>index</td><td>$index</td></td></tr>
-#<tr bgcolor=$_COLORS[2]><td>OP</td><td>$OP</td></tr>\n";	
-#
-#  while(my($k, $v)=each %COOKIES) {
-#    print "<tr><td>$k</td><td>$v</td></tr>\n";	
-#   }
-#print "</table>\n";
-#
-##DEBUG#####################################
-
-
 $html->test();
-
-
-
 #==========================================================
+
+
 
 #**********************************************************
 # form_stats
 #**********************************************************
-sub form_stats {
- Abills::HTML->tpl_show(templates('client_info'), $user);
-
-
-
-	#my $user = $attr->{USER};
-
-	$UID = $user->{UID};
-	$LIST_PARAMS{UID} = $user->{UID};
-	if (! defined($FORM{sort})) {
-	  $LIST_PARAMS{SORT}=2;
-	  $LIST_PARAMS{DESC}=DESC;
-   }
-
-use Dv_Sessions;
-my $sessions = Dv_Sessions->new($db);
-
-if ($FORM{del} && $FORM{is_js_confirmed}) {
-	if(! defined($permissions{3}{1})) {
-     message('err', $_ERROR, 'ACCESS DENY');
-     return 0;
-	 } 
-
-	my ($UID, $session_id, $nas_id, $session_start_date, $session_start_time, $sum, $login)=split(/ /, $FORM{del}, 7);
-	$sessions->del($UID, $session_id, $nas_id, "$session_start_date $session_start_time");
-  if (! $sessions->{errno})	 {
-  	message('info', $_DELETED, "$_LOGIN: $login<br> SESSION_ID: $session_id<br> NAS_ID: $nas_id<br> SESSION_START: $session_start_date $session_start_time<br> $_SUM: $sum");
-    form_back_money('log', $sum, { UID => $UID }); #
-    return 0;
-   }
+sub form_info {
+  $user->pi();
+  
+  use Finance;
+  my $payments = Finance->payments($db, $admin);
+  $LIST_PARAMS{PAGE_ROWS}=1;
+  my $list = $payments->list( { %LIST_PARAMS } );
+  
+  $user->{PAYMENT_DATE}=$list->[0]->[2];
+  $user->{PAYMENT_SUM}=$list->[0]->[3];
+  Abills::HTML->tpl_show(templates('client_info'), $user);
 }
 
-if ($sessions->{errno})	 {
-	message('err', $_ERROR, "[$account->{errno}] $err_strs{$account->{errno}}");
- }
 
-
-if ($FORM{rows}) {
-  $LIST_PARAMS{PAGE_ROWS}=$FORM{rows};
-  $conf{list_max_recs}=$FORM{rows};
-  $pages_qs .= "&rows=$conf{list_max_recs}";
- }
-
-
-#PEriods totals
-my $list = $sessions->periods_totals({ %LIST_PARAMS });
-my $table = Abills::HTML->table( { width => '100%',
-                                   title_plain => ["$_PERIOD", "$_DURATION", "$_SEND", "$_RECV", "$_SUM"],
-                                   cols_align => ['left', 'right', 'right', 'right', 'right'],
-                                   rowcolor => $_COLORS[1]
-                                  } );
-for(my $i = 0; $i < 5; $i++) {
-	  $table->addrow("<a href='$SELF_URL?index=$index&period=$i$pages_qs'>$PERIODS[$i]</a>", "$sessions->{'duration_'. $i}",
-	  int2byte($sessions->{'sent_'. $i}), int2byte($sessions->{'recv_'. $i}), int2byte($sessions->{'sum_'. $i}));
- }
-print $table->show();
-
-
-print "<form action=$SELF_URL>
-<input type=hidden name=sid value='$sid'>
-<input type=hidden name=index value='$index'>
-<input type=hidden name=UID value='$UID'>\n";
-
-my $table = Abills::HTML->table( { width => '640',
-	                                 rowcolor => $_COLORS[0],
-                                   title_plain => [ "$_FROM: ", Abills::HTML->date_fld('from', { MONTHES => \@MONTHES} ),
-                                   "$_TO: ", Abills::HTML->date_fld('to', { MONTHES => \@MONTHES } ),
-                                   "$_ROWS: ",  "<input type=text name=rows value='$conf{list_max_recs}' size=4>",
-                                   "<input type=submit name=show value=$_SHOW>"
-                                    ],                                   
-                                  } );
-print $table->show();
-print "</form>\n";
-
-stats_calculation($sessions);
-
-if (defined($FORM{show})) {
-  $pages_qs .= "&show=y&fromd=$FORM{fromd}&fromm=$FORM{fromm}&fromy=$FORM{fromy}&tod=$FORM{tod}&tom=$FORM{tom}&toy=$FORM{toy}";
-  $FORM{fromm}++;
-  $FORM{tom}++;
-  $FORM{fromm} = sprintf("%.2d", $FORM{fromm}++);
-  $FORM{tom} = sprintf("%.2d", $FORM{tom}++);
-  $LIST_PARAMS{INTERVAL} = "$FORM{fromy}-$FORM{fromm}-$FORM{fromd}/$FORM{toy}-$FORM{tom}-$FORM{tod}";
- }
-elsif ($FORM{period}) {
-	$LIST_PARAMS{PERIOD} = $FORM{period}; 
-	$pages_qs .= "&period=$FORM{period}";
-}
-
-if (! defined($FORM{sort})) {
-  $LIST_PARAMS{SORT}=2;
-  $LIST_PARAMS{DESC}=DESC;
- }
-
-#Session List
-my $list = $sessions->list({ %LIST_PARAMS });	
-
-$table = Abills::HTML->table( { width => '640',
-	                              rowcolor => $_COLORS[1],
-                                title_plain => ["$_SESSIONS", "$_DURATION", "$_TRAFFIC", "$_SUM"],
-                                cols_align => ['right', 'right', 'right', 'right'],
-                                rows => [ [ $sessions->{TOTAL}, $sessions->{DURATION}, int2byte($sessions->{TRAFFIC}), $sessions->{SUM} ] ],
-                               } );
-print "<p>" . $table->show() . "</p>\n";	
-
-show_sessions($list, $sessions);
-}
 
 
 
@@ -338,21 +265,6 @@ print $table->show();
 sub mk_navigator {
  my $menu_navigator = "";
 
-# ID:PARENT:NAME:FUNCTION:SHOW SUBMENU:OP:
-my @m = ( 
- "16:0:$_INFO:form_chg_tp:::",
- "17:0:$_PASSWD:form_passwd:::",
- "22:0:$_STATS:form_stats:::",
- "30:0:$_LOGOUT:logout:::"
- );
-
-foreach my $line (@m) {
-	my ($ID, $PARENT, $NAME, $FUNTION_NAME, $SHOW_SUBMENU, $OP)=split(/:/, $line);
-  $menu_items{$ID}{$PARENT}=$NAME;
-  $menu_names{$ID}=$NAME;
-  $functions{$ID}=\&$FUNTION_NAME if ($FUNTION_NAME  ne '');
-  $show_submenu{$ID}='y' if ($SHOW_SUBMENU == 1);
- }
 
 
  my $menu_navigator = "";
@@ -486,7 +398,6 @@ while(my($k, $v) = each %LANG) {
 print "</seelct></td></tr>
 <tr><th colspan=2><input type=submit name=logined value=$_ENTER></th></tr>
 </table>
-
 </td></tr></table>
 </td></tr></table>
 </form>\n";
@@ -632,6 +543,58 @@ else {
 }
 
 
+#**********************************************************
+# form_passwd($attr)
+#**********************************************************
+sub form_passwd {
+ my ($attr)=@_;
+ my $hidden_inputs;
+
+ 
+if ($FORM{newpassword} eq '') {
+
+}
+elsif (length($FORM{newpassword}) < $conf{passwd_length}) {
+  message('err', $_ERROR, $err_strs{6});
+}
+elsif ($FORM{newpassword} eq $FORM{confirm}) {
+  %INFO = ( PASSWORD => $FORM{newpassword},
+            UID      => $user->{UID}
+            );
+
+  $user->change($user->{UID}, { %INFO });
+
+  if(!$user->{errno}) {
+  	 message('info', $_INFO, "$_CHANGED");	
+   }
+  else {
+  	 message('err', $_ERROR, "[$user->{errno}] $err_strs{$user->{errno}}");	
+   }
+  return 0;
+}
+elsif($FORM{newpassword} ne $FORM{confirm}) {
+  message('err', $_ERROR, $err_strs{5});
+}
+
+
+
+
+
+print "<h3>$_CHANGE_PASSWD</h3>\n";
+print << "[END]";
+<form action=$SELF_URL METHOD=POST>
+<input type=hidden name=index value=$index>
+$hidden_inputs
+<table>
+<tr><td>$_PASSWD:</td><td><input type=password name=newpassword value=''></td></tr>
+<tr><td>$_CONFIRM_PASSWD:</td><td><input type=password name=confirm value=''></td></tr>
+</table>
+<input type=submit name=change value="$_CHANGE">
+</form>
+[END]
+
+ return 0;
+}
 
 sub logout {
 	$FORM{op}='logout';

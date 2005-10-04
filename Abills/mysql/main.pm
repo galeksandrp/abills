@@ -298,7 +298,7 @@ if ($CHANGES_QUERY eq '') {
      return $self;
    }
 
-  if (defined($DATA{UID}) && $DATA{UID} > 0) { 
+  if (defined($DATA{UID}) && $DATA{UID} > 0 && $admin != undef) { 
      $admin->action_add($DATA{UID}, "$CHANGES_LOG");
    }
 

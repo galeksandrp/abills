@@ -3,13 +3,13 @@
 <input type=hidden name=subf value=$FORM{subf}>
 <input type=hidden name=UID value='%UID%'>
 <table width=420 cellspacing=0 cellpadding=3>
-<tr><td>$_TARIF_PLAN:</td><td valign=center>%TP_NAME%:%TP_NAME%</td></tr>
+<tr><td>$_TARIF_PLAN:</td><td valign=center>[%TP_NAME%]<b> %TP_NAME%</b></td></tr>
 <tr><td>$_SIMULTANEOUSLY:</td><td><input type=text name=SIMULTANEONSLY value='%SIMULTANEONSLY%'></td></tr>
 <tr><td>IP:</td><td><input type=text name=IP value='%IP%'></td></tr>
 <tr><td>Netmask:</td><td><input type=text name=NETMASK value='%NETMASK%'></td></tr>
 <tr><td>$_SPEED (kb):</td><td><input type=text name=SPEED value='%SPEED%'></td></tr>
 <tr><td>$_FILTERS:</td><td><input type=text name=FILTER_ID value='%FILTER_ID%'></td></tr>
-<tr><td><b>CID:</b><br></td><td><input type=text name=CID value='%CID%'>
+<tr><td>CID:</td><td><input type=text name=CID value='%CID%'>
 <tr><td>$_DISABLE:</td><td><input type=checkbox name=DISABLE value='1' %DISABLE%></td></tr>
 </table>
 <input type=submit name='%ACTION%' value='%LNG_ACTION%'>
