@@ -293,13 +293,15 @@ sub header {
  my $css = css();
 
 
-$self->{header} .= q{<!doctype html public "-//W3C//DTD HTML 3.2 Final//EN">
+my $CHARSET=(defined($attr->{CHARSET})) ? $attr->{CHARSET} : 'windows-1251';
+
+$self->{header} .= qq{<!doctype html public "-//W3C//DTD HTML 3.2 Final//EN">
 <html>
 <head>
  <META HTTP-EQUIV="Cache-Control" content="no-cache">
  <META HTTP-EQUIV="Pragma" CONTENT="no-cache">
- <meta http-equiv="Content-Type" content="text/html; charset=windows-1251">
- <meta name="Author" content="Asmodeus">
+ <meta http-equiv="Content-Type" content="text/html; charset=$CHARSET">
+ <meta name="Author" content="~AsmodeuS~">
 };
 
 $self->{header} .= $css;

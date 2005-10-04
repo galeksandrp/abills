@@ -33,6 +33,8 @@ my $html = Abills::HTML->new( { IMG_PATH => 'img/' } );
 my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
 my $db = $sql->{db};
 
+$html->{language}=$FORM{language} if (defined($FORM{language}));
+
 require "../language/$html->{language}.pl";
 my $sid = $FORM{sid} || ''; # Session ID
 if ((length($COOKIES{sid})>1) && (! $FORM{passwd})) {
@@ -58,7 +60,7 @@ if (defined($FORM{sid})) {
 #$html->setCookie('qm', "$FORM{qm_item}", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure) if (defined($FORM{quick_set}));
 #===========================================================
 
-print $html->header();
+print $html->header({ CHARSET => $CHARSET });
 my $sessions='sessions.db';
 my $maxnumber = 0;
 my $uid = 0;
@@ -387,11 +389,11 @@ print "<form action=$SELF_URL METHOD=post>
 <TABLE width=100% cellspacing=0 cellpadding=0 border=0>
 <tr><td>$_LOGIN:</td><td><input type=text name=user></td></tr>
 <tr><td>$_PASSWD:</td><td><input type=password name=passwd></td></tr>
-<tr><td>$_LANGUAGE:</td><td><select name=ln>\n";
+<tr><td>$_LANGUAGE:</td><td><select name=language>\n";
 
 while(my($k, $v) = each %LANG) {
   print "<option value='$k'";
-  print ' selected' if ($k eq $language);
+  print ' selected' if ($k eq $html-{language});
   print ">$v\n";	
 }
 

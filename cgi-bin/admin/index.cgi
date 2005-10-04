@@ -107,7 +107,8 @@ $html->setCookie('qm', "$FORM{qm_item}", "Fri, 1-Jan-2038 00:00:01", $web_path, 
 #===========================================================
 
 
-print $html->header();
+print $html->header({ CHARSET => $CHARSET });
+
 my @actions = ([$_SA_ONLY, $_ADD, $_LIST, $_PASSWD, $_CHANGE, $_DEL, $_ALL],  # Users
                [$_LIST, $_ADD, $_DEL, $_ALL],                                 # Payments
                [$_LIST, $_ADD, $_DEL, $_ALL],                                 # Fees
