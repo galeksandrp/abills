@@ -853,7 +853,47 @@ sub tpl_show {
 	}
 }
 
+#**********************************************************
+# test function
+#  %FORM     - Form
+#  %COOKIES  - Cookies
+#  %ENV      - Enviropment
+# 
+#**********************************************************
+sub test {
 
+print "<table border=1>
+<tr><td colspan=2>FORM</td></tr>
+<tr><td>index</td><td>$index</td></td></tr>
+<tr><td>root_index</td><td>root_index</td></td></tr>\n";	
+  while(my($k, $v)=each %FORM) {
+    print "<tr><td>$k</td><td>$v</td></tr>\n";	
+   }
+print "</table>\n";
+
+print "<br><table border=1>
+<tr><td colspan=2>COOKIES</td></tr>
+<tr><td>index</td><td>$index</td></td></tr>\n";	
+  while(my($k, $v)=each %COOKIES) {
+    print "<tr><td>$k</td><td>$v</td></tr>\n";	
+   }
+print "</table>\n";
+
+
+#print "<br><table border=1>\n";
+#  while(my($k, $v)=each %ENV) {
+#    print "<tr><td>$k</td><td>$v</td></tr>\n";	
+#   }
+#print "</table>\n";
+
+#print "<br><table border=1>\n";
+#  while(my($k, $v)=each %conf) {
+#    print "<tr><td>$k</td><td>$v</td></tr>\n";	
+#   }
+#print "</table>\n";
+#
+
+}
 
 
 1

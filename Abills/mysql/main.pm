@@ -108,7 +108,7 @@ sub query {
 my $q;
 
 if (defined($type) && $type eq 'do') {
-  
+  #print $query;
   $q = $db->do($query);
   $self->{TOTAL} = 0;
   if (defined($db->{'mysql_insertid'})) {

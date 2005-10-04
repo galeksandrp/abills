@@ -39,7 +39,6 @@ if ((length($COOKIES{sid})>1) && (! $FORM{passwd})) {
  $sid = $COOKIES{sid};
 }
 
-
 #Cookie section ============================================
 if (defined($FORM{colors})) {
   my $cook_colors = (defined($FORM{default})) ?  '' : $FORM{colors};
@@ -61,6 +60,7 @@ my $sessions='sessions.db';
 my $uid = 0;
 my $page_qs;
 
+print "------------- $sid";
 
 print << "[END]";
 <table width=100% border=0>
@@ -83,7 +83,7 @@ my $user=Users->new($db, undef, \%conf);
 if ($uid > 0) {
   mk_navigator();
   
-  my $table = Abills::HTML->table( { width => '100%',
+  my $table = Abills::HTML->table({ width => '100%',
                                      cols_align => ['right'],
                                      rowcolor => $_COLORS[2],
                                      rows => [ [ "$_DATE: $DATE $_TIME: $TIME <" ] ]
@@ -113,30 +113,34 @@ else {
 print "</td></tr></table><hr>\n";
 
 
-#DEBUG#####################################
-print "<table border=1>
-<tr><td>index</td><td>$index</td></td></tr>
-<tr bgcolor=$_COLORS[2]><td>OP</td><td>$OP</td></tr>\n";	
-
-  while(my($k, $v)=each %FORM) {
-    print "<tr><td>$k</td><td>$v</td></tr>\n";	
-   }
-print "</table>\n";
-
-
-print "<br><table border=1>
-<tr><td>index</td><td>$index</td></td></tr>
-<tr bgcolor=$_COLORS[2]><td>OP</td><td>$OP</td></tr>\n";	
-
-  while(my($k, $v)=each %COOKIES) {
-    print "<tr><td>$k</td><td>$v</td></tr>\n";	
-   }
-print "</table>\n";
-
-#DEBUG#####################################
 
 
 
+
+##DEBUG#####################################
+#print "<table border=1>
+#<tr><td>index</td><td>$index</td></td></tr>
+#<tr bgcolor=$_COLORS[2]><td>OP</td><td>$OP</td></tr>\n";	
+#
+#  while(my($k, $v)=each %FORM) {
+#    print "<tr><td>$k</td><td>$v</td></tr>\n";	
+#   }
+#print "</table>\n";
+#
+#
+#print "<br><table border=1>
+#<tr><td>index</td><td>$index</td></td></tr>
+#<tr bgcolor=$_COLORS[2]><td>OP</td><td>$OP</td></tr>\n";	
+#
+#  while(my($k, $v)=each %COOKIES) {
+#    print "<tr><td>$k</td><td>$v</td></tr>\n";	
+#   }
+#print "</table>\n";
+#
+##DEBUG#####################################
+
+
+$html->test();
 
 
 

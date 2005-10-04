@@ -257,7 +257,7 @@ if ($begin_time > 0) {
 print '<hr>'. $conf{version};
 
 
-test();
+$html->test();
 
 
 
@@ -682,6 +682,9 @@ if(defined($attr->{USER})) {
 
   print "<table width=100% border=2 cellspacing=1 cellpadding=2><tr><td valign=top align=center>\n";
   
+  
+  form_passwd({ USER => $user_info}) if (defined($FORM{newpassword}));
+
   if ($FORM{change}) {
     $user_info->change($user_info->{UID}, { %FORM } );
     if ($user_info->{errno}) {
@@ -694,19 +697,6 @@ if(defined($attr->{USER})) {
       message('info', $_CHANGED, "$_CHANGED $users->{info}");
      }
    }
-#  elsif ($FORM{subf}) {
-# 	  if(defined($module{$FORM{subf}})) {
-#  	 	require "Abills/modules/$module{$FORM{subf}}/webinterface";
-#     }
-#    $functions{$FORM{subf}}->( { USER => $user_info } );
-#    print "</td></table>\n";
-#    return 0;
-#   }
-#  elsif($index != 11 && $index != 7 && $index != 70) {
-#     $functions{$index}->( { USER => $user_info } );
-#     print "</td></table>\n";
-#     return 0;
-#   }
   elsif ($FORM{del_user} && $FORM{is_js_confirmed} && $index == 11) {
     $user_info->del();
     if ($users->{errno}) {
@@ -1748,17 +1738,19 @@ if ($FORM{AID}) {
   		f_args => { ADMIN => $admin_form }
   	 });
 
-  if ($FORM{newpassword}) {
-    my $password = form_passwd( { ADMIN => $admin_form  });
-    if ($password ne '0') {
-      $admin_form->password($password, { secretkey => $conf{secretkey} } ); 
-      if (! $admin_form->{errno}) {
-        message('info', $_INFO, "$_ADMINS: $admin_form->{NAME}<br>$_PASSWD $_CHANGED");
-      }
-     }
-    return 0;
-   }
-  elsif ($FORM{subf}) {
+#  if ($FORM{newpassword}) {
+#    my $password = form_passwd( { ADMIN => $admin_form  });
+#    if ($password ne '0') {
+#      $admin_form->password($password, { secretkey => $conf{secretkey} } ); 
+#      if (! $admin_form->{errno}) {
+#        message('info', $_INFO, "$_ADMINS: $admin_form->{NAME}<br>$_PASSWD $_CHANGED");
+#      }
+#     }
+#    return 0;
+#   }
+  form_passwd({ ADMIN => $admin_form}) if (defined($FORM{newpassword}));
+
+  if ($FORM{subf}) {
    	return 0;
    }
   elsif($FORM{change}) {
@@ -2316,15 +2308,19 @@ sub null {
 
 
 #**********************************************************
-# form_passwd($op, $id)
+# form_passwd($attr)
 #**********************************************************
 sub form_passwd {
  my ($attr)=@_;
  my $hidden_inputs;
  
- $hidden_inputs = (defined($attr->{ADMIN})) ? "<input type=hidden name=AID value='$attr->{ADMIN}->{AID}'>" : '';
- if (defined($attr->{USER})) {
+ if (defined($FORM{AID})) {
+ 	 $hidden_inputs = "<input type=hidden name=AID value='$FORM{AID}'>";
+ 	 $index=50;
+ 	}
+ elsif (defined($attr->{USER})) {
 	 $hidden_inputs = "<input type=hidden name=UID value='$attr->{USER}->{UID}'>";
+	 $index=11;
  }
 
 
@@ -2335,7 +2331,7 @@ elsif (length($FORM{newpassword}) < $conf{passwd_length}) {
   message('err', $_ERROR, $err_strs{6});
 }
 elsif ($FORM{newpassword} eq $FORM{confirm}) {
-  return $FORM{newpassword};
+  $FORM{PASSWORD} = $FORM{newpassword};
 }
 elsif($FORM{newpassword} ne $FORM{confirm}) {
   message('err', $_ERROR, $err_strs{5});
@@ -2349,7 +2345,6 @@ print "<h3>$_CHANGE_PASSWD</h3>\n";
 print << "[END]";
 <form action=$SELF_URL >
 <input type=hidden name=index value=$index>
-<input type=hidden name=subf value=$FORM{subf}>
 $hidden_inputs
 <table>
 <tr><td>$_GENERED_PARRWORD:</td><td>$gen_password</td></tr>
@@ -3268,48 +3263,6 @@ print << "[END]";
 
 
 
-#**********************************************************
-# test function
-#  %FORM     - Form
-#  %COOKIES  - Cookies
-#  %ENV      - Enviropment
-# 
-#**********************************************************
-sub test {
-
-
-#flist();
-
-print "<table border=1>
-<tr><td>index</td><td>$index</td></td></tr>
-<tr><td>root_index</td><td>$root_index</td></td></tr>\n";	
-  while(my($k, $v)=each %FORM) {
-    print "<tr><td>$k</td><td>$v</td></tr>\n";	
-   }
-print "</table>\n";
-
-print "<br><table border=1>
-<tr><td>index</td><td>$index</td></td></tr>\n";	
-  while(my($k, $v)=each %COOKIES) {
-    print "<tr><td>$k</td><td>$v</td></tr>\n";	
-   }
-print "</table>\n";
-
-
-#print "<br><table border=1>\n";
-#  while(my($k, $v)=each %ENV) {
-#    print "<tr><td>$k</td><td>$v</td></tr>\n";	
-#   }
-#print "</table>\n";
-
-#print "<br><table border=1>\n";
-#  while(my($k, $v)=each %conf) {
-#    print "<tr><td>$k</td><td>$v</td></tr>\n";	
-#   }
-#print "</table>\n";
-#
-
-}
 
 
 
