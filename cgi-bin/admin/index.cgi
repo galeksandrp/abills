@@ -1153,7 +1153,7 @@ if($attr->{TP}) {
  	$tarif_plan->{LNG_ACTION}=$_ADD;
 
   if($FORM{tt}) {
-
+    form_traf_tarifs({ TP => $tarif_plan });
    }
   elsif ($FORM{add}) {
     $tarif_plan->ti_add( { %FORM });
@@ -1187,7 +1187,6 @@ if($attr->{TP}) {
   else {
  	 	$tarif_plan->ti_defaults();
    }
-
 
   my $list = $tarif_plan->ti_list({ %LIST_PARAMS });
   my $table = Abills::HTML->table( { width => '100%',
@@ -1230,17 +1229,28 @@ if($attr->{TP}) {
       );
 
      if($line->[5] > 0) {
+     	 my $TI_ID = $line->[0];
      	 #Traffic tariff IN (1 Mb) Traffic tariff OUT (1 Mb) Prepaid (Mb) Speed (Kbits) Describe NETS 
 
        my $table2 = Abills::HTML->table( { width => '100%',
-                                   title_plain => ["#", "$_TRAFFIC_TARIFF In ", "$_TRAFFIC_TARIFF Out ", "$_PREPAID", "$_SPEED", "DESCRIBE", "NETS"],
-                                   cols_align => ['center', 'right', 'right', 'right', 'right', 'right', 'right', 'center', 'center'],
+                                   title_plain => ["#", "$_TRAFFIC_TARIFF In ", "$_TRAFFIC_TARIFF Out ", "$_PREPAID", "$_SPEED", "DESCRIBE", "NETS", "-", "-"],
+                                   cols_align => ['center', 'right', 'right', 'right', 'right', 'right', 'right', 'center', 'center', 'center', 'center'],
                                    caption => "$_BYTE_TARIF"
                                   } );
+
        my $list_tt = $tarif_plan->tt_list({ TI_ID => $line->[0] });
        foreach my $line (@$list_tt) {
-          $table2->addrow($line->[0], $line->[1], $line->[2], $line->[3], $line->[4], $line->[5], convert($line->[6], { text2html => yes  }));
+          $table2->addrow($line->[0], 
+           $line->[1], 
+           $line->[2], 
+           $line->[3], 
+           $line->[4], 
+           $line->[5], 
+           convert($line->[6], { text2html => yes  }),
+           "<a href=$SELF_URL?index=$index$pages_qs&tt=$TI_ID&chg=$line->[0]>$_CHANGE</a>",
+           $html->button($_DEL, "index=$index$pages_qs&tt=$TI_ID&del=$line->[0]", "$_DEL ?"));
         }
+
        my $table_traf = $table2->show();
   
        $table->addtd($table->td("$table_traf", { color => 'red', colspan => 7}));
@@ -1257,7 +1267,7 @@ elsif ($FORM{TP_ID}) {
  }
 
 if ($tarif_plan->{errno}) {
-   message('err', $_ERROR, "[$tarif_plan->{errno}] $err_strs{$tarif_plan->{errno}}");	
+   message('err', $_ERROR, "[$tarif_plan->{errno}] $err_strs{$tarif_plan->{errno}} $tarif_plan->{errstr}");	
  }
 
 
@@ -1326,7 +1336,8 @@ print $table->show();
 
 
 if ($FORM{tt}) {
-	form_traf_tarifs({ TP => $tarif_plan });
+	
+  Abills::HTML->tpl_show(templates('tt'), $tarif_plan);
 }
 else {
   my $i=0;
@@ -1355,42 +1366,75 @@ if ($FORM{tt}) {
   $tarif_plan = $attr->{TP};
   $tarif_plan->tt_defaults();
   $tarif_plan->{TI_ID} = $FORM{tt};
-  
-  
-  if ($FORM{change}) {
-    $tarif_plan->tt_change( { 
-      TI_ID          => $tarif_plan->{TI_ID},
-      	
-    	TT_DESCRIBE_0  => $FORM{TT_DESCRIBE_0},
-      TT_PRICE_IN_0  => $FORM{TT_PRICE_IN_0},
-      TT_PRICE_OUT_0 => $FORM{TT_PRICE_OUT_0},
-      TT_NETS_0      => $FORM{TT_NETS_0},
-      TT_PREPAID_0   => $FORM{TT_PREPAID_0},
-      TT_SPEED_0     => $FORM{TT_SPEED_0},
-      
-      TT_DESCRIBE_1  => $FORM{'TT_DESCRIBE_1'},
-      TT_PRICE_IN_1  => $FORM{TT_PRICE_IN_1},
-      TT_PRICE_OUT_1 => $FORM{TT_PRICE_OUT_1},
-      TT_NETS_1      => $FORM{TT_NETS_1},
-      TT_PREPAID_1   => $FORM{TT_PREPAID_1},
-      TT_SPEED_1     => $FORM{TT_SPEED_1},
 
-      TT_DESCRIBE_2 => $FORM{TT_DESCRIBE_2},
-      TT_NETS_2 => $FORM{TT_NETS_2},
-      TT_SPEED_2 => $FORM{TT_SPEED_2},
-      EX_FILE_PATH => "$conf{netsfilespath}"
-    });
-
-
-    if ($tarif_plan->{errno}) {
-      message('err', $_ERROR, "[$tarif_plan->{errno}] $err_strs{$tarif_plan->{errno}}");	
+  if($FORM{add}) {
+    $tarif_plan->tt_add({ %FORM });
+    if(! $tarif_plan->{errno}) {
+      message('info', $_INFO, "$_ADDED");
      }
-    else {
-      message('info', $_INFO, "$_INTERVALS");
+  }
+  elsif($FORM{change}) {
+    $FORM{TI_ID}=$FORM{tt};
+    $tarif_plan->tt_change({ %FORM });
+
+    if(! $tarif_plan->{errno}) {
+      message('info', $_INFO, "$_CHANGED"); 
      }
-   }
+  }
+ 	elsif($FORM{chg}) {
+    $tarif_plan->tt_info({ TI_ID => $FORM{tt}, TT_ID => $FORM{chg} });
+    if(! $tarif_plan->{errno}) {
+      message('info', $_INFO, "$_CHANGING");  	
+     }
+    $tarif_plan->{ACTION}='change';
+    $tarif_plan->{LNG_ACTION}=$_CHANGE;
+  }
+  elsif($FORM{del} && $FORM{is_js_confirmed}) {
+    $tarif_plan->tt_del({ TI_ID => $FORM{tt}, TT_ID => $FORM{del} });
+    if(! $tarif_plan->{errno}) {
+    	message('info', $_INFO, "$_DELETED"); 
+     }
+  }
+#  else {
+    #$tarif_plan->tt_list( { TI_ID => $FORM{tt} });
+#    $tarif_plan->{TT_ID}=$tarif_plan->{TOTAL};
+#  }
+
+#  if ($FORM{change}) {
+#    $tarif_plan->tt_change( { 
+#      TI_ID          => $tarif_plan->{TI_ID},
+#      	
+#    	TT_DESCRIBE_0  => $FORM{TT_DESCRIBE_0},
+#      TT_PRICE_IN_0  => $FORM{TT_PRICE_IN_0},
+#      TT_PRICE_OUT_0 => $FORM{TT_PRICE_OUT_0},
+#      TT_NETS_0      => $FORM{TT_NETS_0},
+#      TT_PREPAID_0   => $FORM{TT_PREPAID_0},
+#      TT_SPEED_0     => $FORM{TT_SPEED_0},
+#      
+#      TT_DESCRIBE_1  => $FORM{'TT_DESCRIBE_1'},
+#      TT_PRICE_IN_1  => $FORM{TT_PRICE_IN_1},
+#      TT_PRICE_OUT_1 => $FORM{TT_PRICE_OUT_1},
+#      TT_NETS_1      => $FORM{TT_NETS_1},
+#      TT_PREPAID_1   => $FORM{TT_PREPAID_1},
+#      TT_SPEED_1     => $FORM{TT_SPEED_1},
+#
+#      TT_DESCRIBE_2 => $FORM{TT_DESCRIBE_2},
+#      TT_NETS_2 => $FORM{TT_NETS_2},
+#      TT_SPEED_2 => $FORM{TT_SPEED_2},
+#      EX_FILE_PATH => "$conf{netsfilespath}"
+#    });
+#
+#
+#    if ($tarif_plan->{errno}) {
+#      message('err', $_ERROR, "[$tarif_plan->{errno}] $err_strs{$tarif_plan->{errno}}");	
+#     }
+#    else {
+#      message('info', $_INFO, "$_INTERVALS");
+#     }
+#   }
 
    my $list = $tarif_plan->tt_list({ TI_ID => $FORM{tt}, form => 'yes' });
+   $tarif_plan->{TT_ID}=$tarif_plan->{TOTAL} if (! $FORM{chg});
    
  }
 elsif($attr->{TP}) {
@@ -1421,7 +1465,8 @@ elsif($attr->{TP}) {
 
 
     if ($tarif_plan->{errno}) {
-      message('err', $_ERROR, "[$tarif_plan->{errno}] $err_strs{$tarif_plan->{errno}}");	
+      my $messages = "($tarif_plan->{errstr})" if($tarif_plan->{errstr});
+      message('err', $_ERROR, "[$tarif_plan->{errno}] $err_strs{$tarif_plan->{errno}} $message");	
      }
     else {
       message('info', $_INFO, "$_INTERVALS");
@@ -1430,12 +1475,9 @@ elsif($attr->{TP}) {
 
    my $list = $tarif_plan->tt_list($FORM{ti});
  }
-elsif ($FORM{TP_ID}) {
-  form_tp();
-  return 0;
- }
   
-  Abills::HTML->tpl_show(templates('tt'), $tarif_plan);
+
+
 }
 
 
@@ -2020,16 +2062,17 @@ if ($nas->{errno}) {
 
  my @nas_types = ('other', 'usr', 'pm25', 'ppp', 'exppp', 'radpppd', 'expppd', 'pppd', 'dslmax', 'mpd');
  my %nas_descr = ('usr' => "USR Netserver 8/16",
-  'pm25' => 'LIVINGSTON portmaster 25',
-  'ppp' => 'FreeBSD ppp demon',
-  'exppp' => 'FreeBSD ppp demon with extended futures',
-  'dslmax' => 'ASCEND DSLMax',
-  'expppd' => 'pppd deamon with extended futures',
-  'radpppd' => 'pppd version 2.3 patch level 5.radius.cbcp',
-  'mpd' => 'MPD ',
-  'ipcad' => 'IP accounting daemon with Cisco-like ip accounting export',
-  'pppd' => 'pppd + RADIUS plugin (Linux)',
-  'other' => 'Other nas server');
+  'pm25'      => 'LIVINGSTON portmaster 25',
+  'ppp'       => 'FreeBSD ppp demon',
+  'exppp'     => 'FreeBSD ppp demon with extended futures',
+  'dslmax'    => 'ASCEND DSLMax',
+  'expppd'    => 'pppd deamon with extended futures',
+  'radpppd'   => 'pppd version 2.3 patch level 5.radius.cbcp',
+  'mpd'       => 'MPD ',
+  'ipcad'     => 'IP accounting daemon with Cisco-like ip accounting export',
+  'pppd'      => 'pppd + RADIUS plugin (Linux)',
+  'MAC auth'  => 'Simple MAC Authentification',
+  'other'     => 'Other nas server');
 
   foreach my $nt (@nas_types) {
      $nas->{SEL_TYPE} .= "<option value=$nt";

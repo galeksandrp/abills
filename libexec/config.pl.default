@@ -17,6 +17,8 @@ $conf{MAIL_CHARSET}='windows-1251';
 $conf{default_language}='english';
 $conf{default_charset}='windows-1251';
 
+@MODULES = ('Dv', 'Mail');
+
 #Technical works
 #$conf{tech_works}='Technical works';
 

@@ -104,10 +104,10 @@ sub ti_list {
     $begin_end =  "TIME_TO_SEC(i.begin), TIME_TO_SEC(i.end), "; 
     $TP_ID = $attr->{TP_ID};
    }
-
+#   if(sum(tt.in_price+tt.out_price) IS NULL || sum(tt.in_price+tt.out_price)=0, 0, sum(tt.in_price+tt.out_price)),
   $self->query($db, "SELECT i.id, i.day, $begin_end
    i.tarif,
-   if(sum(tt.in_price+tt.out_price) IS NULL || sum(tt.in_price+tt.out_price)=0, 0, sum(tt.in_price+tt.out_price)),
+   count(tt.id),
    i.id
    FROM intervals i
    LEFT JOIN  trafic_tarifs tt ON (tt.interval_id=i.id)
@@ -522,6 +522,39 @@ if (defined($attr->{form})) {
 
 
 #**********************************************************
+# tt_info
+#**********************************************************
+sub  tt_info {
+	my $self = shift;
+	my ($attr) = @_;
+	
+	
+	  $self->query($db, "SELECT id, interval_id, in_price, out_price, prepaid, speed, descr, nets
+     FROM trafic_tarifs 
+     WHERE 
+     interval_id='$attr->{TI_ID}'
+     and id='$attr->{TT_ID}';");
+
+  my $ar = $self->{list}->[0];
+
+  ($self->{TT_ID},
+   $self->{Ti_ID},
+   $self->{TT_PRICE_IN},
+   $self->{TT_PRICE_OUT},
+   $self->{TT_PREPAID},
+   $self->{TT_SPEED},
+   $self->{TT_DESCRIBE},
+   $self->{TT_NETS}
+  ) = @$ar;
+
+
+
+	
+	return $self;
+}
+
+
+#**********************************************************
 # tt_add
 #**********************************************************
 sub  tt_add {
@@ -530,14 +563,22 @@ sub  tt_add {
   
   %DATA = $self->get_data($attr, {default => $self->tt_defaults() }); 
 
+  if($DATA{TI_ID} > 2) {
+  	 $self->{errno}='1';
+  	 $self->{errstr}='Max 3 network group';
+  	 return $self;
+   }
+  
   $self->query($db, "INSERT INTO trafic_tarifs  
     (interval_id, id, descr,  in_price,  out_price,  nets,  prepaid,  speed)
     VALUES 
-    ('$DATA{TI_ID}', '$DATA{TT_ID}',   '$DATA{TT_DESCRIBE}, $DATA{TT_PRICE_IN},  $DATA{TT_PRICE_OUT},
+    ('$DATA{TI_ID}', '$DATA{TT_ID}',   '$DATA{TT_DESCRIBE}', '$DATA{TT_PRICE_IN}',  '$DATA{TT_PRICE_OUT}',
      '$DATA{TT_NETS}', '$DATA{TT_PREPAID}', '$DATA{TT_SPEED}')", 'do');
 
   return $self;
 }
+
+
 
 #**********************************************************
 # tt_change
@@ -591,7 +632,27 @@ sub  tt_change {
 #}
 #
 # $self->create_tt_file("$file_path", "$attr->{TI_ID}.nets", "$body");
+
+  return $self;
 }
+
+
+#**********************************************************
+# Time_intervals
+# ti_add
+#**********************************************************
+sub tt_del {
+	my $self = shift;
+  my ($attr) = @_;
+
+  my %DATA = $self->get_data($attr, { default => $self->tt_defaults() }); 
+
+	$self->query($db, "DELETE FROM trafic_tarifs 
+	 WHERE  interval_id='$attr->{TI_ID}'  and id='$attr->{TT_ID}' ;", 'do');
+
+	return $self;
+}
+
 
 #**********************************************************
 # create_tt_file()
