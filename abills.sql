@@ -314,30 +314,33 @@ CREATE TABLE log (
 -- Table structure for table `mail_access`
 --
 
-CREATE TABLE mail_access (
-  pattern varchar(30) NOT NULL default '',
-  action varchar(255) NOT NULL default '',
-  id int(11) unsigned NOT NULL auto_increment,
-  PRIMARY KEY  (pattern),
-  UNIQUE KEY id (id)
+CREATE TABLE `mail_access` (
+  `pattern` varchar(30) NOT NULL default '',
+  `action` varchar(255) NOT NULL default '',
+  `id` int(11) unsigned NOT NULL auto_increment,
+  `comments` varchar(255) NOT NULL default '',
+  `change_date` datetime NOT NULL default '0000-00-00 00:00:00',
+  `status` tinyint(1) unsigned NOT NULL default '0',
+  PRIMARY KEY  (`pattern`),
+  UNIQUE KEY `id` (`id`)
 ) TYPE=MyISAM;
 
 --
 -- Table structure for table `mail_aliases`
 --
 
-CREATE TABLE mail_aliases (
-  address varchar(255) NOT NULL default '',
-  goto text NOT NULL,
-  domain varchar(255) NOT NULL default '',
-  create_date datetime NOT NULL default '0000-00-00 00:00:00',
-  change_date datetime NOT NULL default '0000-00-00 00:00:00',
-  status tinyint(2) unsigned NOT NULL default '1',
-  id int(11) unsigned NOT NULL auto_increment,
-  PRIMARY KEY  (address),
-  UNIQUE KEY id (id)
+CREATE TABLE `mail_aliases` (
+  `address` varchar(255) NOT NULL default '',
+  `goto` text NOT NULL,
+  `domain` varchar(255) NOT NULL default '',
+  `create_date` datetime NOT NULL default '0000-00-00 00:00:00',
+  `change_date` datetime NOT NULL default '0000-00-00 00:00:00',
+  `status` tinyint(2) unsigned NOT NULL default '1',
+  `id` int(11) unsigned NOT NULL auto_increment,
+  `comments` varchar(255) NOT NULL default '',
+  PRIMARY KEY  (`address`),
+  UNIQUE KEY `id` (`id`)
 ) TYPE=MyISAM;
-
 --
 -- Table structure for table `mail_boxes`
 --
@@ -367,31 +370,33 @@ CREATE TABLE mail_boxes (
 -- Table structure for table `mail_domains`
 --
 
-CREATE TABLE mail_domains (
-  domain varchar(255) NOT NULL default '',
-  descr varchar(255) NOT NULL default '',
-  create_date datetime NOT NULL default '0000-00-00 00:00:00',
-  change_date datetime NOT NULL default '0000-00-00 00:00:00',
-  status tinyint(2) unsigned NOT NULL default '0',
-  id int(11) unsigned NOT NULL auto_increment,
-  PRIMARY KEY  (domain),
-  UNIQUE KEY id (id)
+CREATE TABLE `mail_domains` (
+  `domain` varchar(255) NOT NULL default '',
+  `create_date` datetime NOT NULL default '0000-00-00 00:00:00',
+  `change_date` datetime NOT NULL default '0000-00-00 00:00:00',
+  `status` tinyint(2) unsigned NOT NULL default '0',
+  `id` int(11) unsigned NOT NULL auto_increment,
+  `comments` varchar(255) NOT NULL default '',
+  PRIMARY KEY  (`domain`),
+  UNIQUE KEY `id` (`id`)
 ) TYPE=MyISAM;
-
 --
 -- Table structure for table `mail_transport`
 --
 
-CREATE TABLE mail_transport (
-  domain varchar(128) NOT NULL default '',
-  transport varchar(128) NOT NULL default '',
-  UNIQUE KEY domain (domain)
+CREATE TABLE `mail_transport` (
+  `domain` varchar(128) NOT NULL default '',
+  `transport` varchar(128) NOT NULL default '',
+  `comments` varchar(255) NOT NULL default '',
+  `change_date` datetime NOT NULL default '0000-00-00 00:00:00',
+  `id` int(11) unsigned NOT NULL auto_increment,
+  UNIQUE KEY `domain` (`domain`),
+  UNIQUE KEY `id` (`id`)
 ) TYPE=MyISAM;
 
 --
 -- Table structure for table `message_types`
 --
-
 CREATE TABLE message_types (
   id int(11) NOT NULL auto_increment,
   name varchar(20) default NULL,
