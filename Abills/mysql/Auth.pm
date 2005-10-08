@@ -154,28 +154,8 @@ if ($self->{DISABLE}) {
 
 #Check CID (MAC) 
 if ($self->{CID} ne '') {
-   if ($self->{CID} =~ /:/ && $self->{CID} !~ /\//) {
-      my @MAC_DIGITS_NEED=split(/:/, $self->{CID});
-      my @MAC_DIGITS_GET=split(/:/, $RAD->{CALLING_STATION_ID});
-      for(my $i=0; $i<=5; $i++) {
-        if(hex($MAC_DIGITS_NEED[$i]) != hex($MAC_DIGITS_GET[$i])) {
-          $RAD_PAIRS->{'Reply-Message'}="Wrong MAC '$RAD->{CALLING_STATION_ID}'";
-          return 1, $RAD_PAIRS, "Wrong MAC '$RAD->{CALLING_STATION_ID}'";
-         }
-       }
-    }
-   elsif($self->{CID} =~ /\//) {
-     $RAD->{CALLING_STATION_ID} =~ s/ //g;
-     my ($cid_ip, $cid_mac, $trash) = split(/\//, $RAD->{CALLING_STATION_ID}, 3);
-     if ("$cid_ip/$cid_mac" ne $self->{CID}) {
-       $RAD_PAIRS->{'Reply-Message'}="Wrong CID '$cid_ip/$cid_mac'";
-       return 1, $RAD_PAIRS;
-      }
-    }
-   elsif($self->{CID} ne $RAD->{CALLING_STATION_ID}) {
-     $RAD_PAIRS->{'Reply-Message'}="Wrong CID '$RAD->{CALLING_STATION_ID}'";
-     return 1, $RAD_PAIRS;
-    }
+  ($ret, $RAD_PAIRS) = $self->Auth_CID($RAD);
+  return $ret, $RAD_PAIRS if ($ret == 1);
 }
 
 
@@ -430,6 +410,47 @@ if( defined($CONF->{MAC_AUTO_ASSIGN}) &&
 }
 	
 
+#*********************************************************
+# Auth_mac
+# Mac auth function
+#*********************************************************
+sub Auth_CID {
+  my $self = shift;
+  my ($RAD, $attr) = @_;
+  
+  my $RAD_PAIRS;
+  
+  my @MAC_DIGITS_GET = ();
+
+   if (($self->{CID} =~ /:/ || $self->{CID} =~ /-/)
+       && $self->{CID} !~ /\//) {
+
+      @MAC_DIGITS_GET=split(/:/, $self->{CID}) if($self->{CID} =~ /:/);
+      @MAC_DIGITS_GET=split(/:/, $self->{CID}) if($self->{CID} =~ /-/);
+      my @MAC_DIGITS_NEED=split(/:/, $RAD->{CALLING_STATION_ID});
+      for(my $i=0; $i<=5; $i++) {
+        if(hex($MAC_DIGITS_NEED[$i]) != hex($MAC_DIGITS_GET[$i])) {
+          $RAD_PAIRS->{'Reply-Message'}="Wrong MAC '$RAD->{CALLING_STATION_ID}'";
+          return 1, $RAD_PAIRS, "Wrong MAC '$RAD->{CALLING_STATION_ID}'";
+         }
+       }
+    }
+   # If like MPD CID
+   # 192.168.101.2 / 00:0e:0c:4a:63:56 
+   elsif($self->{CID} =~ /\//) {
+     $RAD->{CALLING_STATION_ID} =~ s/ //g;
+     my ($cid_ip, $cid_mac, $trash) = split(/\//, $RAD->{CALLING_STATION_ID}, 3);
+     if ("$cid_ip/$cid_mac" ne $self->{CID}) {
+       $RAD_PAIRS->{'Reply-Message'}="Wrong CID '$cid_ip/$cid_mac'";
+       return 1, $RAD_PAIRS;
+      }
+    }
+   elsif($self->{CID} ne $RAD->{CALLING_STATION_ID}) {
+     $RAD_PAIRS->{'Reply-Message'}="Wrong CID '$RAD->{CALLING_STATION_ID}'";
+     return 1, $RAD_PAIRS;
+    }
+
+}
 
 #**********************************************************
 # User authentication

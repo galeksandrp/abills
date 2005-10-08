@@ -52,7 +52,7 @@ use Abills::HTML;
 use Nas;
 use Admins;
 
-my $html = Abills::HTML->new();
+$html = Abills::HTML->new();
 my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
 
 $db = $sql->{db};

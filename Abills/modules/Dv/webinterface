@@ -112,17 +112,10 @@ $params
 # user_dv
 #**********************************************************
 sub dv_users_list {
-my $letters = "<a href='$SELF?index=$index'>All</a> ::";
-for (my $i=97; $i<123; $i++) {
-  my $l = chr($i);
-  if ($FORM{letter} eq $l) {
-     $letters .= "<b>$l </b>";
-    }
-  else {
-     #$pages_qs = '';
-     $letters .= "<a href='$SELF?index=$index&letter=$l$pages_qs'>$l</a> ";
-   }
- }
+
+
+
+print Abills::HTML->letters_list(); 
 
  if ($FORM{letter}) {
    $LIST_PARAMS{FIRST_LETTER} = $FORM{letter};
@@ -134,16 +127,16 @@ for (my $i=97; $i<123; $i++) {
 
 my $list = $Dv->list( { %LIST_PARAMS } );
 
-if ($users->{errno}) {
-  message('err', $_ERROR, "[$users->{errno}] $err_strs{$users->{errno}}");	
+if ($Dv->{errno}) {
+  message('err', $_ERROR, "[$Dv->{errno}] $err_strs{$Dv->{errno}}");	
   return 0;
  }
-elsif ($users->{TOTAL} == 1) {
+elsif ($Dv->{TOTAL} == 1) {
 	form_users({  USER => user_info($list->[0]->[6]) });
 	return 0;
 }
 
-print $letters;
+
 
 
 my $table = Abills::HTML->table( { width => '100%',
