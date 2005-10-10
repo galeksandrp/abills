@@ -1,7 +1,6 @@
 <form action=$SELF_URL method=post>
 <input type=hidden name=index value=$index>
-<input type=hidden name=subf value=$FORM{subf}>
-<input type=hidden name=UID value='%UID%'>
+<input type=hidden name=UID value='$FORM{UID}'>
 <table width=420 cellspacing=0 cellpadding=3>
 <tr><td>$_TARIF_PLAN:</td><td valign=center>[%TP_NAME%]<b> %TP_NAME%</b></td></tr>
 <tr><td>$_SIMULTANEOUSLY:</td><td><input type=text name=SIMULTANEONSLY value='%SIMULTANEONSLY%'></td></tr>

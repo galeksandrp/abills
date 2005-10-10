@@ -15,8 +15,15 @@ my $Mail = Mail->new($db, $admin, $conf);
 # user_dv
 #**********************************************************
 sub mail_users_list {
+ 
+ if (! $FORM{UID}) {
+   print Abills::HTML->letters_list();
+  }
 
- print Abills::HTML->letters_list();
+
+ if($FORM{UID}) {
+ 	 mail_user_boxes();
+  }
 
  if ($FORM{letter}) {
    $LIST_PARAMS{FIRST_LETTER} = $FORM{letter};
@@ -30,8 +37,8 @@ if ($Mail->{errno}) {
   return 0;
  }
 elsif ($Mail->{TOTAL} == 1) {
-	form_users({  USER => user_info($list->[0]->[6]) });
-	return 0;
+	#mail_user_boxes();
+	#return 0;
 }
 
 #mb.username, md.domain, mb.descr, mb.quota, mb.antivirus, 
@@ -44,8 +51,8 @@ elsif ($Mail->{TOTAL} == 1) {
 
   my $table = Abills::HTML->table( { width => '100%',
                                    border => 1,
-                                   title => ["$_LOGIN", "$_DOMAIN", "$_COMMENTS", "$_LIMIT", "$_ANTIVIRUS", "$_ANTISPAM", "$_STATUS", '-', '-'],
-                                   cols_align => ['left', 'left', 'right', 'right', 'left', 'center', 'center', 'center', 'center', 'center'],
+                                   title => ["$_LOGIN", "$_DOMAIN", "$_USER", "$_COMMENTS", "$_LIMIT", "$_ANTIVIRUS", "$_ANTISPAM", "$_STATUS", '-', '-'],
+                                   cols_align => ['left', 'left', 'left', 'right', 'right', 'center', 'center', 'center', 'center', 'center', 'center'],
                                    qs => $pages_qs,
                                    pages => $Mail->{TOTAL}
                                   } );
@@ -57,10 +64,11 @@ elsif ($Mail->{TOTAL} == 1) {
 
 
   foreach my $line (@$list) {
-    $delete = $html->button($_DEL, "index=$index&del=$line->[13]", "$_DEL ?"); 
-    $table->addrow("<a href='$SELF_URL?index=11&UID=$line->[6]'>$line->[0]</a>", "$line->[1]",
-     "$line->[2]", "$line->[3]", "$line->[4]", "$line->[5]", "$status[$line->[6]]", 
-     "<a href='$SELF_URL?index=$index&MBOX_ID=$line->[13]'>$_CHANGE</a>",
+    $delete = $html->button($_DEL, "index=$index&del=$line->[13]&UID=$line->[12]", "$_DEL ?"); 
+    $table->addrow("<a href='$SELF_URL?index=$index&MBOX_ID=$line->[13]&UID=$line->[12]'>$line->[0]</a>", "$line->[1]",
+     "<a href='$SELF_URL?index=11&UID=$line->[12]'>$line->[2]</a>",
+     "$line->[3]", "$line->[4]", "$status[$line->[5]]", "$status[$line->[6]]", "$status[$line->[7]]", 
+     "<a href='$SELF_URL?index=$index&MBOX_ID=$line->[13]&UID=$line->[12]'>$_CHANGE</a>",
      $delete);
    }
   print $table->show();
@@ -81,13 +89,13 @@ elsif ($Mail->{TOTAL} == 1) {
 sub mail_user_boxes {
  	$Mail->{UID}=$FORM{UID};	  
 
-  if($user->{TOTAL} < 1) {
+  if($Mail->{TOTAL} < 1) {
 	  $Mail->defaults();
 	  $Mail->{ACTION}='add';
 	  $Mail->{LNG_ACTION}=$_ADD;
 	 }
-	else {
-	} 
+#	else {
+#	} 
 
   
   if ($FORM{add}) {
@@ -105,20 +113,27 @@ sub mail_user_boxes {
 	elsif($FORM{MBOX_ID}) {
     $Mail->mbox_info({ %FORM });
     if (! $Mail->{errno}) {
-      message('info', $_INFO, "$_CHANGED");	
+      message('info', $_INFO, "$_CHANGING");	
      }
+    $FORM{UID}=$Mail->{UID};
 	  $Mail->{ACTION}='set';
 	  $Mail->{LNG_ACTION}=$_CHANGE;
    }
 	elsif($FORM{del}) {
-    $Mail->mbox_del();
-    if (! $Mail->{errno}) {
+    $Mail->mbox_del($FORM{del});
+    if (! $Mail->{errno}){
       message('info', $_INFO, "$_CHANGED");	
      }
 	 }
 
 
-  mail_users_list();
+  if ($Mail->{errno}) {
+    message('err', $_ERROR, "[$Mail->{errno}] $err_strs{$Mail->{errno}}");	
+    return 0;
+   }
+  #elsif(! $FORM{MBOX_ID}) {
+  #  mail_users_list();
+  # }
 
   $Mail->{DISABLE}=' checked' if($Mail->{DISABLE} == 1);
   

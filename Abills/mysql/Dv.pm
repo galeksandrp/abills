@@ -136,7 +136,8 @@ sub add {
   
   return $self if ($self->{errno});
   
-  $admin->action_add($uid, "ADDED");
+ 
+  $admin->action_add($DATA{UID}, "ADDED");
   return $self;
 }
 
@@ -161,7 +162,6 @@ sub change {
               FILTER_ID        => 'filter_id'
              );
 
-print "$attr->{TARIF_PLAN} ---";
 
 	$self->changes($admin,  { CHANGE_PARAM => 'UID',
 		               TABLE        => 'dv_main',

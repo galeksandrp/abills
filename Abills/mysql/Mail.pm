@@ -38,7 +38,7 @@ sub new {
   ($db, $admin, $CONF) = @_;
   my $self = { };
   bless($self, $class);
-#  $self->{debug}=1;
+  $self->{debug}=1;
   return $self;
 }
 
@@ -56,7 +56,7 @@ sub mbox_add {
     (username,  domain_id, descr, maildir, create_date, change_date, quota, status, 
      uid, 
      antivirus, antispam, expire) values
-    ('$DATA{USERNAME}', '$DATA{DOMAIN_ID}', '$DATA{DESCR}', '$DATA{MAILDIR}', now(), now(), '$DATA{MAINLS_LIMIT}". "C,$DATA{BOX_SIZE}". "S', '$DATA{STATUS}', 
+    ('$DATA{USERNAME}', '$DATA{DOMAIN_ID}', '$DATA{COMMENTS}', '$DATA{MAILDIR}', now(), now(), '$DATA{MAINLS_LIMIT}". "C,$DATA{BOX_SIZE}". "S', '$DATA{DISABLE}', 
     '$DATA{UID}', 
     '$DATA{ANTIVIRUS}', '$DATA{ANTISPAM}', '$DATA{EXPIRE}');", 'do');
 	
@@ -68,10 +68,10 @@ sub mbox_add {
 #**********************************************************
 sub mbox_del {
 	my $self = shift;
-	my ($attr) = @_;
+	my ($id, $attr) = @_;
 
 	$self->query($db, "DELETE FROM mail_boxes 
-    WHERE id='$attr->{MBOX_ID}';", 'do');
+    WHERE id='$id';", 'do');
 	
 	return $self;
 }
@@ -85,32 +85,41 @@ sub mbox_change {
 	my ($attr) = @_;
 
 
-	my %FIELDS = (MBOX_ID      => 'ID',
+	my %FIELDS = (MBOX_ID      => 'id',
 	              USERNAME     => 'username',  
 	              DOMAIN_ID    => 'domain_id',
-	              DESCR        => 'descr', 
+	              COMMENTS     => 'descr', 
 	              MAILDIR      => 'maildir', 
 	              CREATE_DATE  => 'create_date', 
 	              CHANGE_DATE  => 'change_date', 
 	              QUOTA        => 'quota',
-	              STATUS       => 'status', 
+	              DISABLE      => 'status', 
 	              UID          => 'uid', 
 	              ANTIVIRUS    => 'antivirus', 
 	              ANTISPAM     => 'antispam',
 	              EXPIRE       => 'expire'
 	              );
 	
- 	$self->changes($admin, { CHANGE_PARAM => 'MBOX_ID',
+
+	
+ 	$self->changes($admin, 
+ 	              { CHANGE_PARAM => 'MBOX_ID',
 	                TABLE        => 'mail_boxes',
 	                FIELDS       => \%FIELDS,
-	                OLD_INFO     => $self->mbox_info($attr->{MBOX_ID}),
+	                OLD_INFO     => $self->mbox_info($attr),
 	                DATA         => $attr
 		              } );
 
+
 	
-	
+
 	return $self;
 }
+
+
+
+
+
 
 #**********************************************************
 #
@@ -136,10 +145,11 @@ sub mbox_info {
    mb.uid,
    mb.antivirus, 
    mb.antispam,
-   mb.expire
+   mb.expire,
+   mb.id
    FROM mail_boxes mb
    LEFT JOIN mail_domains md ON  (md.id=mb.domain_id) 
-   WHERE id='$attr->{MBOX_ID}';");
+   WHERE mb.id='$attr->{MBOX_ID}';");
 
   if ($self->{TOTAL} < 1) {
      $self->{errno} = 2;
@@ -152,16 +162,17 @@ sub mbox_info {
   ($self->{USERNAME}, 
    $self->{DOMAIN_ID}, 
    $self->{DOMAIN}, 
-   $self->{DESCR}, 
+   $self->{COMMENTS}, 
    $self->{MAILDIR}, 
    $self->{CREATE_DATE}, 
    $self->{CHANGE_DATE}, 
    $self->{QUOTA}, 
-   $self->{STATUS}, 
+   $self->{DISABLE}, 
    $self->{UID}, 
    $self->{ANTIVIRUS}, 
    $self->{ANTISPAM},
-   $self->{EXPIRE}
+   $self->{EXPIRE},
+   $self->{MBOX_ID}
   )= @$ar;
 	
   $self->{QUOTA} =~ s/C|S//g;
@@ -183,13 +194,22 @@ sub mbox_list {
  $PG = ($attr->{PG}) ? $attr->{PG} : 0;
  $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
 
+ if (defined($attr->{UID})) {
+ 	  $WHERE .= ($WHERE ne '') ?  " and mb.uid='$attr->{UID}' " : "WHERE mb.uid='$attr->{UID}' ";
+  }
+ 
+ if ($attr->{FIRST_LETTER}) {
+    $WHERE .= ($WHERE ne '') ?  " and mb.username LIKE '$attr->{FIRST_LETTER}%' " : "WHERE mb.username LIKE '$attr->{FIRST_LETTER}%' ";
+  }
 	
-	$self->query($db, "SELECT mb.username, md.domain, mb.descr, mb.quota, mb.antivirus, 
+	
+	$self->query($db, "SELECT mb.username, md.domain, u.id, mb.descr, mb.quota, mb.antivirus, 
 	      mb.antispam, mb.status, 
 	      mb.create_date, mb.change_date, mb.expire, mb.maildir, 
 	      mb.uid, mb.id
         FROM mail_boxes mb
-        LEFT JOIN mail_domains md ON  (md.id=mb.domain_id) 
+        LEFT JOIN mail_domains md ON  (md.id=mb.domain_id)
+        LEFT JOIN users u ON  (mb.uid=u.uid) 
         $WHERE
         ORDER BY $SORT $DESC
         LIMIT $PG, $PAGE_ROWS;");
@@ -199,7 +219,7 @@ sub mbox_list {
   my $list = $self->{list};
 
   if ($self->{TOTAL} >= $attr->{PAGE_ROWS}) {
-    $self->query($db, "SELECT count(*) FROM mail_boxes $WHERE");
+    $self->query($db, "SELECT count(*) FROM mail_boxes mb $WHERE");
     my $a_ref = $self->{list}->[0];
     ($self->{TOTAL}) = @$a_ref;
    }
@@ -301,6 +321,13 @@ sub domain_info {
 sub domain_list {
 	my $self = shift;
 	my ($attr) = @_;
+
+ $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+ $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+ $PG = ($attr->{PG}) ? $attr->{PG} : 0;
+ $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
+ 	
+	my $WHERE;
 	
 	$self->query($db, "SELECT md.domain, md.comments, md.status, md.create_date, 
 	    md.change_date, count(*) as mboxes, md.id
@@ -315,8 +342,8 @@ sub domain_list {
 
   my $list = $self->{list};
 
-  if ($self->{TOTAL} >= $attr->{PAGE_ROWS}) {
-    $self->query($db, "SELECT count(*) FROM mail_domains $WHERE");
+  if ($self->{TOTAL} >= $PAGE_ROWS) {
+    $self->query($db, "SELECT count(*) FROM mail_domains md $WHERE");
     my $a_ref = $self->{list}->[0];
     ($self->{TOTAL}) = @$a_ref;
    }

@@ -191,8 +191,9 @@ sub dv_user {
 	 }
 
   my $user = $Dv->info($FORM{UID});
+
   if($user->{TOTAL} < 1) {
-	  $Dv->defaults();
+	  $Dv = $Dv->defaults();
 	  $Dv->{ACTION}='add';
 	  $Dv->{LNG_ACTION}=$_ADD;
 	 }

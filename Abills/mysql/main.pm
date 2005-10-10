@@ -240,6 +240,7 @@ sub changes {
   my $self = shift;
   my ($admin, $attr) = @_;
 
+  
   my $TABLE        = $attr->{TABLE};
   my $CHANGE_PARAM = $attr->{CHANGE_PARAM};
   my $FIELDS       = $attr->{FIELDS};
@@ -254,6 +255,8 @@ sub changes {
       return $self;
      }
    }
+
+
 
   $OLD_DATA = $attr->{OLD_INFO}; #  $self->info($uid);
 
