@@ -23,7 +23,7 @@ my $debug=1;
 
 #If not anought arguments
 if ( $#ARGV < 3 ) {
-print qq{Not anought argumets:
+ print qq{Not anought argumets:
  Example:
 
  /etc/ppp/ppp.linkup
@@ -72,6 +72,7 @@ my $db = $sql->{db};
 
 my $IPFW='/sbin/ipfw';
 my @START_FW = (3000, 2000, 1000);
+
 # Arguments
 my ($ACTION, $INTERFACE, $USER, $HISADDR, $inum);
 
@@ -106,10 +107,7 @@ $admin->info($conf{SYSTEM_ADMIN_ID}, { IP => '127.0.0.1' });
 my $users = Users->new($db, $admin, \%conf); 
 
 
-
-
 my @FW_ACTIONS = ();
-
 # Flush rules
   my($fw_num, $pipe_num, $fw_nums, $pipe_nums);
   
