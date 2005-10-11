@@ -52,11 +52,13 @@ sub mbox_add {
 	my ($attr) = @_;
   %DATA = $self->get_data($attr); 
 	
+	
 	$self->query($db, "INSERT INTO mail_boxes 
-    (username,  domain_id, descr, maildir, create_date, change_date, quota, status, 
+    (username,  domain_id, descr, maildir, create_date, change_date, mails_limit, box_size, status, 
      uid, 
      antivirus, antispam, expire) values
-    ('$DATA{USERNAME}', '$DATA{DOMAIN_ID}', '$DATA{COMMENTS}', '$DATA{MAILDIR}', now(), now(), '$DATA{MAINLS_LIMIT}". "C,$DATA{BOX_SIZE}". "S', '$DATA{DISABLE}', 
+    ('$DATA{USERNAME}', '$DATA{DOMAIN_ID}', '$DATA{COMMENTS}', '$DATA{MAILDIR}', now(), now(), 
+     '$DATA{MAILS_LIMIT}', '$DATA{BOX_SIZE}', '$DATA{DISABLE}', 
     '$DATA{UID}', 
     '$DATA{ANTIVIRUS}', '$DATA{ANTISPAM}', '$DATA{EXPIRE}');", 'do');
 	
@@ -92,7 +94,8 @@ sub mbox_change {
 	              MAILDIR      => 'maildir', 
 	              CREATE_DATE  => 'create_date', 
 	              CHANGE_DATE  => 'change_date', 
-	              QUOTA        => 'quota',
+	              BOX_SIZE     => 'box_size',
+	              MAILS_LIMIT  => 'mails_limit',
 	              DISABLE      => 'status', 
 	              UID          => 'uid', 
 	              ANTIVIRUS    => 'antivirus', 
@@ -100,7 +103,8 @@ sub mbox_change {
 	              EXPIRE       => 'expire'
 	              );
 	
-
+  $attr->{ANTIVIRUS} = (defined($attr->{ANTIVIRUS})) ? 1 : 0;
+  $attr->{ANTISPAM} = (defined($attr->{ANTISPAM})) ? 1 : 0;
 	
  	$self->changes($admin, 
  	              { CHANGE_PARAM => 'MBOX_ID',
@@ -140,7 +144,8 @@ sub mbox_info {
 	
   $self->query($db, "SELECT mb.username,  mb.domain_id, md.domain, mb.descr, mb.maildir, mb.create_date, 
    mb.change_date, 
-   mb.quota, 
+   mb.mails_limit, 
+   mb.box_size, 
    mb.status, 
    mb.uid,
    mb.antivirus, 
@@ -166,7 +171,8 @@ sub mbox_info {
    $self->{MAILDIR}, 
    $self->{CREATE_DATE}, 
    $self->{CHANGE_DATE}, 
-   $self->{QUOTA}, 
+   $self->{MAILS_LIMIT},    
+   $self->{BOX_SIZE}, 
    $self->{DISABLE}, 
    $self->{UID}, 
    $self->{ANTIVIRUS}, 
@@ -175,8 +181,8 @@ sub mbox_info {
    $self->{MBOX_ID}
   )= @$ar;
 	
-  $self->{QUOTA} =~ s/C|S//g;
-  ($self->{MAILS_LIMIT}, $self->{BOX_SIZE}) = split(/,/, $self->{QUOTA});
+  #$self->{QUOTA} =~ s/C|S//g;
+  #($self->{MAILS_LIMIT}, $self->{BOX_SIZE}) = split(/,/, $self->{QUOTA});
 
 	
 	return $self;
@@ -203,7 +209,9 @@ sub mbox_list {
   }
 	
 	
-	$self->query($db, "SELECT mb.username, md.domain, u.id, mb.descr, mb.quota, mb.antivirus, 
+	$self->query($db, "SELECT mb.username, md.domain, u.id, mb.descr, mb.mails_limit, 
+	      mb.box_size,
+	      mb.antivirus, 
 	      mb.antispam, mb.status, 
 	      mb.create_date, mb.change_date, mb.expire, mb.maildir, 
 	      mb.uid, mb.id
@@ -560,7 +568,7 @@ sub access_info {
    $self->{FACTION},
    $self->{DISABLE},
    $self->{COMMENTS},
-   $self->{CHANGED},
+   $self->{CHANGE_DATE},
    $self->{MAIL_ACCESS_ID}
   )= @$ar;
 	
@@ -670,7 +678,7 @@ sub transport_info {
   ($self->{DOMAIN}, 
    $self->{TRANSPORT},
    $self->{COMMENTS},
-   $self->{CHANGED},
+   $self->{CHANGE_DATE},
    $self->{MAIL_TRANSPORT_ID}
   )= @$ar;
 	

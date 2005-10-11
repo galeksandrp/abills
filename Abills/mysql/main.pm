@@ -262,7 +262,7 @@ sub changes {
 
 
   if($OLD_DATA->{errno}) {
-     $self->{errno} = $OLD_DATA->{errno};
+     $self->{errno}  = $OLD_DATA->{errno};
      $self->{errstr} = $OLD_DATA->{errstr};
      return $self;
    }

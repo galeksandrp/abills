@@ -345,25 +345,28 @@ CREATE TABLE `mail_aliases` (
 -- Table structure for table `mail_boxes`
 --
 
-CREATE TABLE mail_boxes (
-  username varchar(255) NOT NULL default '',
-  password varchar(255) NOT NULL default '',
-  descr varchar(255) NOT NULL default '',
-  maildir varchar(255) NOT NULL default '',
-  create_date datetime NOT NULL default '0000-00-00 00:00:00',
-  change_date datetime NOT NULL default '0000-00-00 00:00:00',
-  quota tinytext NOT NULL,
-  status tinyint(2) unsigned NOT NULL default '0',
-  bill_id int(11) unsigned NOT NULL default '0',
-  antivirus tinyint(1) unsigned NOT NULL default '1',
-  antispam tinyint(1) unsigned NOT NULL default '1',
-  expire date NOT NULL default '0000-00-00',
-  id int(11) unsigned NOT NULL auto_increment,
-  domain varchar(60) NOT NULL default '',
-  PRIMARY KEY  (username,domain),
-  UNIQUE KEY id (id),
-  KEY username_antivirus (username,antivirus),
-  KEY username_antispam (username,antispam)
+
+CREATE TABLE `mail_boxes` (
+  `username` varchar(255) NOT NULL default '',
+  `password` varchar(255) NOT NULL default '',
+  `descr` varchar(255) NOT NULL default '',
+  `maildir` varchar(255) NOT NULL default '',
+  `create_date` datetime NOT NULL default '0000-00-00 00:00:00',
+  `change_date` datetime NOT NULL default '0000-00-00 00:00:00',
+  `mails_limit` int(11) unsigned NOT NULL default '0',
+  `status` tinyint(2) unsigned NOT NULL default '0',
+  `bill_id` int(11) unsigned NOT NULL default '0',
+  `antivirus` tinyint(1) unsigned NOT NULL default '1',
+  `antispam` tinyint(1) unsigned NOT NULL default '1',
+  `expire` date NOT NULL default '0000-00-00',
+  `id` int(11) unsigned NOT NULL auto_increment,
+  `domain_id` smallint(6) unsigned NOT NULL default '0',
+  `uid` int(11) unsigned NOT NULL default '0',
+  `box_size` int(11) unsigned NOT NULL default '0',
+  PRIMARY KEY  (`username`,`domain_id`),
+  UNIQUE KEY `id` (`id`),
+  KEY `username_antivirus` (`username`,`antivirus`),
+  KEY `username_antispam` (`username`,`antispam`)
 ) TYPE=MyISAM;
 
 --
