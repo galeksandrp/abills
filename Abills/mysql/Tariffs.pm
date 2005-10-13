@@ -563,7 +563,7 @@ sub  tt_add {
   
   %DATA = $self->get_data($attr, {default => $self->tt_defaults() }); 
 
-  if($DATA{TI_ID} > 2) {
+  if($DATA{TT_ID} > 2) {
   	 $self->{errno}='1';
   	 $self->{errstr}='Max 3 network group';
   	 return $self;

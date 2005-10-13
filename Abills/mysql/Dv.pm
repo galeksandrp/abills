@@ -53,7 +53,18 @@ sub info {
   my $self = shift;
   my ($uid, $attr) = @_;
 
-  my $WHERE;
+  if(defined($attr->{LOGIN})) {
+  	use Users;
+    my $users = Users->new($db, $admin, $CONF); 	
+    $users->info(0, {LOGIN => "$attr->{LOGIN}"});
+  	$uid             = $users->{UID};
+  	$self->{DEPOSIT} = $users->{DEPOSIT}; 
+  	$WHERE =  "WHERE dv.uid='$uid'";
+   }
+  
+  #else {
+    $WHERE =  "WHERE dv.uid='$uid'";
+  # }
   #my $PASSWORD = '0'; 
   
   $self->query($db, "SELECT dv.uid, dv.tp_id, 
@@ -67,7 +78,7 @@ sub info {
    dv.disable
      FROM dv_main dv
      LEFT JOIN tarif_plans tp ON (dv.tp_id=tp.id)
-     WHERE dv.uid='$uid';");
+   $WHERE;");
 
   if ($self->{TOTAL} < 1) {
      $self->{errno} = 2;

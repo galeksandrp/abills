@@ -1367,6 +1367,8 @@ if ($FORM{tt}) {
   $tarif_plan->tt_defaults();
   $tarif_plan->{TI_ID} = $FORM{tt};
 
+
+
   if($FORM{add}) {
     $tarif_plan->tt_add({ %FORM });
     if(! $tarif_plan->{errno}) {
@@ -1389,12 +1391,13 @@ if ($FORM{tt}) {
     $tarif_plan->{ACTION}='change';
     $tarif_plan->{LNG_ACTION}=$_CHANGE;
   }
-  elsif($FORM{del} && $FORM{is_js_confirmed}) {
+  elsif(defined($FORM{del}) && defined($FORM{is_js_confirmed}) ) {
     $tarif_plan->tt_del({ TI_ID => $FORM{tt}, TT_ID => $FORM{del} });
     if(! $tarif_plan->{errno}) {
     	message('info', $_INFO, "$_DELETED"); 
      }
   }
+
 #  else {
     #$tarif_plan->tt_list( { TI_ID => $FORM{tt} });
 #    $tarif_plan->{TT_ID}=$tarif_plan->{TOTAL};

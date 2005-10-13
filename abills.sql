@@ -345,7 +345,6 @@ CREATE TABLE `mail_aliases` (
 -- Table structure for table `mail_boxes`
 --
 
-
 CREATE TABLE `mail_boxes` (
   `username` varchar(255) NOT NULL default '',
   `password` varchar(255) NOT NULL default '',

@@ -96,11 +96,10 @@ my $variant_out = '';
 
 my $result = "<form action=$SELF_URL>
 <input type=hidden name=UID value='$attr->{USER}->{UID}'>
-<input type=hidden name=subf value=$FORM{subf}>
 <input type=hidden name=m value=$m>
 <input type=hidden name=index value=$index>
 <table width=400 border=0>
-<tr><td>$_FROM:</td><td bgcolor=$_BG2>$user->{TP_ID} $user->{TP_NAME} [<a href='$SELF?index=70&TP_ID=$user->{TARIF_PLAN}' title='$_VARIANTS'>$_VARIANTS</a>]</td></tr>
+<tr><td>$_FROM:</td><td bgcolor=$_BG2>$user->{TP_ID} $user->{TP_NAME} [<a href='$SELF?index=$index&TP_ID=$user->{TP_ID}' title='$_VARIANTS'>$_VARIANTS</a>]</td></tr>
 $params
 </form>\n";
 
