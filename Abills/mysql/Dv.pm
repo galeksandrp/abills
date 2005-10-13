@@ -57,6 +57,12 @@ sub info {
   	use Users;
     my $users = Users->new($db, $admin, $CONF); 	
     $users->info(0, {LOGIN => "$attr->{LOGIN}"});
+    if ($users->{errno}) {
+       $self->{errno} = 2;
+       $self->{errstr} = 'ERROR_NOT_EXIST';
+       return $self; 
+     }
+
   	$uid             = $users->{UID};
   	$self->{DEPOSIT} = $users->{DEPOSIT}; 
   	$WHERE =  "WHERE dv.uid='$uid'";
