@@ -111,6 +111,8 @@ if (defined($type) && $type eq 'do') {
   #print $query;
   $q = $db->do($query);
   $self->{TOTAL} = 0;
+
+
   if (defined($db->{'mysql_insertid'})) {
   	 $self->{INSERT_ID} = $db->{'mysql_insertid'};
    }
@@ -139,9 +141,12 @@ else {
 #     print "-----------------------111-". $db->err . "-\n";
      return $self->{errno};
    }
-
+  $self->{Q}=$q;
+  $self->{TEST}='aaaaa';
   $self->{TOTAL} = $q->rows;
 }
+
+
 
 if($db->err) {
 

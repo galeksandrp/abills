@@ -105,9 +105,9 @@ if ($uid > 0) {
   	require "Abills/modules/$m/config";
     my %module_fl=();
 
+    #next if (keys %USER_FUNCTION_LIST < 1);
     my @sordet_module_menu = sort keys %USER_FUNCTION_LIST;
-    foreach $line (@sordet_module_menu) {
-   
+    foreach my $line (@sordet_module_menu) {
       $maxnumber++;
       my($ID, $SUB, $NAME, $FUNTION_NAME, $ARGS)=split(/:/, $line, 5);
       $ID = int($ID);
