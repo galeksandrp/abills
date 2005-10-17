@@ -242,6 +242,8 @@ sub session_detail {
  
  my $WHERE = '';
  
+ $self->{debug}=1;
+ 
  $WHERE = " and l.uid='$attr->{UID}'" if ($attr->{UID});
  
 
@@ -268,7 +270,7 @@ sub session_detail {
   l.kb,
   l.sum,
 
-  l.account_id,
+  l.bill_id,
   u.id,
   
   l.uid,
@@ -308,7 +310,7 @@ sub session_detail {
    $self->{TRAF_TARIFF},
    $self->{SUM}, 
 
-   $self->{ACCOUNT_ID}, 
+   $self->{BILL_ID}, 
    $self->{LOGIN}, 
 
    $self->{UID}, 
@@ -319,13 +321,13 @@ sub session_detail {
 #   $self->{SESSION_ID} = $attr->{SESSION_ID};
 
 #Ext traffic detail
- $self->query($db, "SELECT 
-  acct_session_id
-  traffic_id,
-  in,
-  out
- FROM traffic_details
- WHERE acct_session_id='$attr->{SESSION_ID}';");
+# $self->query($db, "SELECT 
+#  acct_session_id
+#  traffic_id,
+#  in,
+#  out
+# FROM traffic_details
+# WHERE acct_session_id='$attr->{SESSION_ID}';");
 
  return $self;
 }
@@ -355,26 +357,25 @@ else {
   $lupdate = "FROM_UNIXTIME(last_update)";
 }
 
-my $WHERE = ($attr->{SESSION_ID}) ? "and session_id='$attr->{SESSION_ID}'" : '';
+my $WHERE = ($attr->{SESSION_ID}) ? "and acct_session_id='$attr->{SESSION_ID}'" : '';
 
  $self->query($db, "SELECT $lupdate, acct_session_id, nas_id, 
    sum(sent1), sum(recv1), sum(sent2), sum(recv2) 
   FROM s_detail 
-  WHERE uid='$attr->{UID}' $WHERE
+  WHERE id='$attr->{LOGIN}' $WHERE
   GROUP BY 1 
   ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;" );
 
  my $list = $self->{list};
 
  if ($self->{TOTAL} > 0) {
-    $self->query($db, "SELECT '111', count(*)
+    $self->query($db, "SELECT count(*)
       FROM s_detail 
-     WHERE uid='$attr->{UID}' $WHERE;");
+     WHERE id='$attr->{LOGIN}' $WHERE;");
     
     my $a_ref = $self->{list}->[0];
     ($self->{TOTAL}) = @$a_ref;
-    
-      print "$self->{TOTAL} --";
+   
   }
 	
 	
@@ -517,10 +518,10 @@ elsif ($attr->{PERIOD}) {
 elsif($attr->{DATE}) {
 	$WHERE .= ($WHERE ne '') ? " and date_format(start, '%Y-%m-%d')='$attr->{DATE}' " : "WHERE date_format(start, '%Y-%m-%d')='$attr->{DATE}";
 }
-#else {
-#	$WHERE .= ($WHERE ne '') ? ' and ' : 'WHERE ';
-#	$WHERE .= "date_format(start, '%Y-%m-%d')=curdate() ";
-#}
+else {
+	$WHERE .= ($WHERE ne '') ? ' and ' : 'WHERE ';
+	$WHERE .= "date_format(start, '%Y-%m-%d')=curdate() ";
+}
 #From To
 
 
@@ -570,7 +571,7 @@ sub calculation {
 
 #Login
   if ($attr->{UID}) {
-    $WHERE .= ($WHERE ne '') ?  " and l.uid='$attr->{UID}' " : "WHERE l.uid='$attr->{LOGIN}' ";
+    $WHERE .= ($WHERE ne '') ?  " and l.uid='$attr->{UID}' " : "WHERE l.uid='$attr->{UID}' ";
    }
 
   $self->query($db, "SELECT SEC_TO_TIME(min(l.duration)), SEC_TO_TIME(max(l.duration)), SEC_TO_TIME(avg(l.duration)),

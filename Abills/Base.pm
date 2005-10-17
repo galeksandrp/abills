@@ -123,7 +123,7 @@ sub parse_arguments {
     foreach my $line (@$argv) {
     	if($line =~ /=/) {
     	   my($k, $v)=split(/=/, $line, 2);
-    	   $args{"$k"}=$v;
+    	   $args{"$k"}=(defined($v)) ? $v : '';
     	 }
     	else {
     		$args{"$line"}='y';
@@ -617,7 +617,8 @@ sub get_radius_params {
  if ($#ARGV > 1) {
     foreach my $pair (@ARGV) {
         my ($side, $value) = split(/=/, $pair);
-        $RAD{"$side"} = clearquotes("$value");
+        $value = clearquotes("$value");
+        $RAD{"$side"} = "$value";
      }
   }
  else {

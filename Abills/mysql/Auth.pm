@@ -425,8 +425,8 @@ sub Auth_CID {
    if (($self->{CID} =~ /:/ || $self->{CID} =~ /-/)
        && $self->{CID} !~ /\//) {
 
-      @MAC_DIGITS_GET=split(/:/, $self->{CID}) if($self->{CID} =~ /:/);
-      @MAC_DIGITS_GET=split(/:/, $self->{CID}) if($self->{CID} =~ /-/);
+      #@MAC_DIGITS_GET=split(/:/, $self->{CID}) if($self->{CID} =~ /:/);
+      @MAC_DIGITS_GET=split(/:|-/, $self->{CID});
       my @MAC_DIGITS_NEED=split(/:/, $RAD->{CALLING_STATION_ID});
       for(my $i=0; $i<=5; $i++) {
         if(hex($MAC_DIGITS_NEED[$i]) != hex($MAC_DIGITS_GET[$i])) {

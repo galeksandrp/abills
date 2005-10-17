@@ -87,6 +87,8 @@ elsif ($acct_status_type == 2) {
                                                  $RAD, 
                                                  $conf);
 
+
+ 
 #  return $self;
   if ($self->{UID} == -2) {
     $self->{errno}=1;   
@@ -123,8 +125,11 @@ elsif ($acct_status_type == 2) {
    }
 
   # Delete from session wtmp
+#  $self->{debug}=1;
   $self->query($db, "DELETE FROM calls WHERE acct_session_id=\"$RAD->{ACCT_SESSION_ID}\" and 
      user_name=\"$RAD->{USER_NAME}\" and nas_ip_address=INET_ATON('$RAD->{NAS_IP_ADDRESS}');", 'do');
+     
+     
 }
 #Alive status 3
 elsif($acct_status_type eq 3) {

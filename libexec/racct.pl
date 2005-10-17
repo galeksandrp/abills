@@ -79,7 +79,7 @@ sub acct {
  my ($RAD) = @_;
  my $GT = '';
 
- if ($USER_TYPES{$RAD->{SERVICE_TYPE}} == 6) {
+ if (defined($USER_TYPES{$RAD->{SERVICE_TYPE}}) && $USER_TYPES{$RAD->{SERVICE_TYPE}} == 6) {
    log_print('LOG_DEBUG', "ACCT [$RAD->{USER_NAME}] $RAD->{SERVICE_TYPE}");
    exit 0;	
   }

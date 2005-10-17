@@ -234,9 +234,10 @@ if ($functions{$index}) {
   	my $ui = user_info($FORM{UID});
   	if($ui->{errno}==2) {
   		message('err', $_ERROR, "[$FORM{UID}] $_USER_NOT_EXIST")
-  	}
+  	 }
   	else {
-  	 $functions{$index}->({ USER => $ui });
+  	  $functions{$index}->({ USER => $ui });
+  	  $LIST_PARAMS{LOGIN} = '11111';
   	}
    }
   else {
@@ -2257,87 +2258,9 @@ print << "[END]";
 
 
 
-#*******************************************************************
-# WHERE period
-# base_state($where, $period);
-#*******************************************************************
-sub stats_calculation  {
- my ($sessions) = @_;
-
-$sessions->calculation({ %LIST_PARAMS }); 
-my $table = Abills::HTML->table( { width => '640',
-	                              rowcolor => $_COLORS[1],
-                                title_plain => ["-", "$_MIN", "$_MAX", "$_AVG"],
-                                cols_align => ['left', 'right', 'right', 'right'],
-                                rows => [ [ $_DURATION,  $sessions->{min_dur}, $sessions->{max_dur}, $sessions->{avg_dur} ],
-                                          [ "$_TRAFFIC $_RECV", int2byte($sessions->{min_recv}), int2byte($sessions->{max_recv}), int2byte($sessions->{avg_recv}) ],
-                                          [ "$_TRAFFIC $_SENT", int2byte($sessions->{min_sent}), int2byte($sessions->{max_sent}), int2byte($sessions->{avg_sent}) ],
-                                          [ "$_TRAFFIC $_SUM",  int2byte($sessions->{min_sum}),  int2byte($sessions->{max_sum}),  int2byte($sessions->{avg_sum}) ]
-                                        ]
-                               } );
-print $table->show();
-}
-
-#**********************************************************
-# session_detail
-#**********************************************************
-sub session_detail {
-	my ($attr) = @_;
-	my $pages_qs;
-  my $user;
-
-  use Dv_Sessions;
-  my $sessions = Dv_Sessions->new($db);
-
- 
-if (defined($attr->{USER}))	{
-	$user = $attr->{USER};
-	
-}
-elsif($FORM{UID}) {
-	dv_users();
-	return 0;
-}	
 
 
 
-$sessions->session_detail({ %FORM });
-
-$sessions->{_SENT}=int2byte($sessions->{SENT}); 
-$sessions->{_RECV}=int2byte($sessions->{RECV}); 
-$sessions->{_SENT2}=int2byte($sessions->{SENT2});
-$sessions->{_RECV2}=int2byte($sessions->{RECV2});
-
-
-Abills::HTML->tpl_show(templates('session_detail'), $sessions);
-
-
-my $list = $sessions->detail_list({ %FORM });
-
-  my $table = Abills::HTML->table( { width => '100%',
-                                   border => 1,
-                                   title => ["LAST_UPDATE", "$_SESSION_ID", "NAS_ID", "SENT", "RECV", "SENT2", "RECV2"],
-                                   cols_align => ['right', 'right', 'right', 'right', 'right', 'right', 'right'],
-                                   pages => $sessions->{TOTAL},
-                                   qs => $pages_qs
-                                  } );
-
-print "$sessions->{TOTAL}";
-
- foreach my $line (@$list) {
-    $table->addrow($line->[0],  $line->[1], $line->[2], $line->[3],  $line->[4], $line->[5], $line->[6]);
-  }
- print $table->show();
-
-
-
-
-
-
-
-
-	
-}
 
 
 

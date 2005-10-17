@@ -595,10 +595,12 @@ if (! $list) {
 	  $LIST_PARAMS{SORT} = 2;
 	  $LIST_PARAMS{DESC} = 'DESC';
   }
+
   use Dv_Sessions;
   $sessions = Dv_Sessions->new($db);
   $list = $sessions->list({ %LIST_PARAMS });	
 }
+
 
 
 return 0 if ($sessions->{TOTAL} < 1);
@@ -656,7 +658,7 @@ foreach my $line (@$list) {
      int2byte($line->[5]), $line->[6],
      $line->[7], $line->[10], 
      "$line->[9] $test", 
-     "(<a href='$SELF_URL?index=23&UID=$line->[12]&SESSION_ID=$line->[11]' title='Session Detail'>D</a>)", 
+     "(<a href='$SELF_URL?index=$index&UID=$line->[12]&SESSION_ID=$line->[11]' title='Session Detail'>D</a>)", 
      $delete);
 }
 
@@ -867,7 +869,7 @@ if (defined($attr->{USER}))	{
 	my $user = $attr->{USER};
 
 	$UID = $user->{UID};
-	$LIST_PARAMS{UID} = $user->{UID};
+	$LIST_PARAMS{UID} = $UID;
 	if (! defined($FORM{sort})) {
 	  $LIST_PARAMS{SORT}=2;
 	  $LIST_PARAMS{DESC}=DESC;
@@ -875,7 +877,7 @@ if (defined($attr->{USER}))	{
 
   if (defined($FORM{OP_SID}) and $FORM{OP_SID} eq $COOKIES{OP_SID}) {
  	  message('err', $_ERROR, "$_EXIST $FORM{OP_SID} eq $COOKIES{OP_SID}");
-    }
+   }
   elsif ($FORM{bm}) {
     use Bills;
     my $Bill = Bills->new($db);
@@ -887,15 +889,18 @@ if (defined($attr->{USER}))	{
       message('info', $_INFO, "$_ADDED: SUM $FORM{sum}, BILL_ID: $FORM{BILL_ID}");  	
      }
    }
-  elsif($FORM{detail}) {
-  	session_detail();
+  elsif($FORM{SESSION_ID}) {
+  	$pages_qs .= "&SESSION_ID=$FORM{SESSION_ID}";
+  	dv_session_detail({ USER => $attr->{USER} });
+  	
+  	return 0;
   }
 
 }
-elsif($FORM{UID}) {
-	form_users();
-	return 0;
-}	
+#elsif($FORM{UID}) {
+#	form_users();
+#	return 0;
+#}	
 
 use Dv_Sessions;
 my $sessions = Dv_Sessions->new($db);
@@ -956,7 +961,7 @@ my $table = Abills::HTML->table( { width => '640',
 print $table->show();
 print "</form>\n";
 
-stats_calculation($sessions);
+dv_stats_calculation($sessions);
 
 if (defined($FORM{show})) {
   $pages_qs .= "&show=y&fromd=$FORM{fromd}&fromm=$FORM{fromm}&fromy=$FORM{fromy}&tod=$FORM{tod}&tom=$FORM{tom}&toy=$FORM{toy}";
@@ -995,6 +1000,28 @@ dv_sessions($list, $sessions);
 }
 
 
+#*******************************************************************
+# WHERE period
+# base_state($where, $period);
+#*******************************************************************
+sub dv_stats_calculation  {
+ my ($sessions) = @_;
+
+$sessions->calculation({ %LIST_PARAMS }); 
+
+
+my $table = Abills::HTML->table( { width => '640',
+	                              rowcolor => $_COLORS[1],
+                                title_plain => ["-", "$_MIN", "$_MAX", "$_AVG"],
+                                cols_align => ['left', 'right', 'right', 'right'],
+                                rows => [ [ $_DURATION,  $sessions->{min_dur}, $sessions->{max_dur}, $sessions->{avg_dur} ],
+                                          [ "$_TRAFFIC $_RECV", int2byte($sessions->{min_recv}), int2byte($sessions->{max_recv}), int2byte($sessions->{avg_recv}) ],
+                                          [ "$_TRAFFIC $_SENT", int2byte($sessions->{min_sent}), int2byte($sessions->{max_sent}), int2byte($sessions->{avg_sent}) ],
+                                          [ "$_TRAFFIC $_SUM",  int2byte($sessions->{min_sum}),  int2byte($sessions->{max_sum}),  int2byte($sessions->{avg_sum}) ]
+                                        ]
+                               } );
+print $table->show();
+}
 
 #**********************************************************
 # form_stats
@@ -1053,7 +1080,7 @@ my $table = Abills::HTML->table( { width => '640',
 print $table->show();
 print "</form>\n";
 
-stats_calculation($sessions);
+dv_stats_calculation($sessions);
 
 if (defined($FORM{show})) {
   $pages_qs .= "&show=y&fromd=$FORM{fromd}&fromm=$FORM{fromm}&fromy=$FORM{fromy}&tod=$FORM{tod}&tom=$FORM{tom}&toy=$FORM{toy}";
@@ -1068,10 +1095,10 @@ elsif ($FORM{period}) {
 	$pages_qs .= "&period=$FORM{period}";
 }
 
-if (! defined($FORM{sort})) {
-  $LIST_PARAMS{SORT}=2;
-  $LIST_PARAMS{DESC}=DESC;
- }
+#if (! defined($FORM{sort})) {
+#  $LIST_PARAMS{SORT}=2;
+#  $LIST_PARAMS{DESC}=DESC;
+# }
 
 #Session List
 my $list = $sessions->list({ %LIST_PARAMS });	
@@ -1086,6 +1113,70 @@ print "<p>" . $table->show() . "</p>\n";
 
 show_sessions($list, $sessions);
 }
+
+
+
+#**********************************************************
+# dv_session_detail
+#**********************************************************
+sub dv_session_detail {
+	my ($attr) = @_;
+  my $user;
+
+  use Dv_Sessions;
+  my $sessions = Dv_Sessions->new($db);
+
+ 
+if (defined($attr->{USER}))	{
+	$user = $attr->{USER};
+	$LIST_PARAMS{LOGIN}=$user->{LOGIN};
+}
+elsif($FORM{UID}) {
+	dv_user();
+	return 0;
+}	
+
+
+
+$sessions->session_detail({ %FORM });
+
+$sessions->{_SENT}=int2byte($sessions->{SENT}); 
+$sessions->{_RECV}=int2byte($sessions->{RECV}); 
+$sessions->{_SENT2}=int2byte($sessions->{SENT2});
+$sessions->{_RECV2}=int2byte($sessions->{RECV2});
+
+Abills::HTML->tpl_show(_include('dv_session_detail', 'Dv'), $sessions);
+
+
+my $list = $sessions->detail_list({ %LIST_PARAMS });
+
+  my $table = Abills::HTML->table({ width => '100%',
+                                   border => 1,
+                                   title => ["LAST_UPDATE", "$_SESSION_ID", "NAS_ID", "SENT", "RECV", "SENT2", "RECV2"],
+                                   cols_align => ['right', 'right', 'right', 'right', 'right', 'right', 'right'],
+                                   pages => $sessions->{TOTAL},
+                                   qs => $pages_qs
+                                  } );
+
+ foreach my $line (@$list) {
+    $table->addrow($line->[0],  $line->[1], $line->[2], $line->[3],  $line->[4], $line->[5], $line->[6]);
+  }
+ print $table->show();
+
+
+$table = Abills::HTML->table( { width => '100%',
+                                cols_align => ['right', 'right'],
+                                rows => [ ["$_TOTAL:", "<b>$sessions->{TOTAL}</b>" ] ]
+                               } );
+print $table->show();
+
+
+
+}
+
+
+
+
 
 
 sub dv_user_info {
