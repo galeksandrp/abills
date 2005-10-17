@@ -1039,7 +1039,7 @@ use Dv_Sessions;
 my $sessions = Dv_Sessions->new($db);
 
 if ($sessions->{errno})	 {
-	message('err', $_ERROR, "[$account->{errno}] $err_strs{$account->{errno}}");
+	message('err', $_ERROR, "[$sessions->{errno}] $err_strs{$sessions->{errno}}");
  }
 
 
@@ -1111,7 +1111,8 @@ $table = Abills::HTML->table( { width => '640',
                                } );
 print "<p>" . $table->show() . "</p>\n";	
 
-show_sessions($list, $sessions);
+dv_sessions($list, $sessions);
+#dv_show_sessions($list, $sessions);
 }
 
 
