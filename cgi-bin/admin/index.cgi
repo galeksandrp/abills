@@ -341,10 +341,14 @@ elsif($FORM{change}) {
 
  }
 elsif($FORM{COMPANY_ID}) {
+  
 
+  
   INFO:
 
   $company->info($FORM{COMPANY_ID});
+  $LIST_PARAMS{COMPANY_ID}=$FORM{COMPANY_ID};
+  $pages_qs .= "&COMPANY_ID=$FORM{COMPANY_ID}";
 
   func_menu({ 
   	         'ID' => $company->{COMPANY_ID}, 
@@ -353,7 +357,6 @@ elsif($FORM{COMPANY_ID}) {
   	{ 
   	 $_INFO     => ":COMPANY_ID=$company->{COMPANY_ID}",
      $_USERS    => "11:COMPANY_ID=$company->{COMPANY_ID}",
-     $_STATS    => "22:COMPANY_ID=$company->{COMPANY_ID}",
      $_PAYMENTS => "2:COMPANY_ID=$company->{COMPANY_ID}",
      $_FEES     => "3:COMPANY_ID=$company->{COMPANY_ID}",
      $_ADD_USER => "12:COMPANY_ID=$FORM{COMPANY_ID}",
@@ -522,10 +525,10 @@ elsif($FORM{change}){
    }
 }
 elsif($FORM{GID}){
-
   $users->group_info( $FORM{GID} );
 
   $LIST_PARAMS{GID}=$users->{GID};
+  $pages_qs="&GID=$users->{GID}&subf=$FORM{subf}";
 
   func_menu({ 
   	         'ID' => $users->{GID}, 
@@ -534,7 +537,6 @@ elsif($FORM{GID}){
   	{ 
      $_CHANGE     => ":GID=$users->{GID}",
      $_USERS    => "11:GID=$users->{GID}",
-     $_STATS    => "22:GID=$users->{GID}",
      $_PAYMENTS => "2:GID=$users->{GID}",
      $_FEES     => "3:GID=$users->{GID}",
   	 });
@@ -567,8 +569,8 @@ if ($users->{errno}) {
 my $list = $users->groups_list({ %LIST_PARAMS });
 my $table = Abills::HTML->table( { width => '100%',
                                    border => 1,
-                                   title => [$_ID, $_NAME, $_DESCRIBE, $_USERS, '-', '-', '-', '-'],
-                                   cols_align => ['right', 'left', 'left', 'right', 'center', 'center', 'center', 'center'],
+                                   title => [$_ID, $_NAME, $_DESCRIBE, $_USERS, '-', '-'],
+                                   cols_align => ['right', 'left', 'left', 'right', 'center', 'center'],
                                    qs => $pages_qs,
                                    pages => $users->{TOTAL}
                                   } );
@@ -577,8 +579,6 @@ foreach my $line (@$list) {
   my $delete = $html->button($_DEL, "index=27$pages_qs&del=$line->[0]", "$_DEL ?"); 
   $table->addrow("<b>$line->[0]</b>", "$line->[1]", "$line->[2]", 
    "<a href='$SELF_URL?index=27&GID=$line->[0]&subf=11'>$line->[3]</a>", 
-   "<a href='$SELF_URL?index=27&GID=$line->[0]'>$_STATS</a>",
-   "<a href='$SELF_URL?index=27&GID=$line->[0]'>$_STATS</a>",
    "<a href='$SELF_URL?index=27&GID=$line->[0]'>$_INFO</a>",
    $delete);
 }
@@ -720,7 +720,6 @@ if(defined($attr->{USER})) {
 print "
 </td><td bgcolor=$_COLORS[3] valign=top width=180>
 <table width=100% border=0><tr><td>
-      <li><a href='$SELF_URL?UID=$user_info->{UID}&index=22'>$_STATS</a>
       <li><a href='$SELF_URL?UID=$user_info->{UID}&index=2'>$_PAYMENTS</a>
       <li><a href='$SELF_URL?UID=$user_info->{UID}&index=3'>$_FEES</a>
       <li><a href='$SELF_URL?UID=$user_info->{UID}&index=40'>$_ERROR_LOG</a>
@@ -2332,6 +2331,7 @@ my @m = ("1:0:$_CUSTOMERS:null:::",
  "12:11:$_ADD:user_form:::",
  "13:1:$_COMPANY:form_companies:::",
  "14:13:$_ADD:add_company:::",
+ "22:13:$_LIST:form_companies:::",
  "15:11:$_LOG:form_changes:UID::",
  "17:11:$_PASSWD:form_passwd:UID::",
  "18:11:$_NAS:form_nas_allow:UID::",

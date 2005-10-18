@@ -9,6 +9,7 @@ use vars qw(@ISA @EXPORT @EXPORT_OK %EXPORT_TAGS $VERSION
   $CONF
   %DATA
   $OLD_DATA
+  @WHERE_RULES
   $WHERE
   
   $SORT
@@ -26,6 +27,7 @@ $VERSION = 2.00;
   $db
   $admin
   $CONF
+  @WHERE_RULES
   $WHERE
   %DATA
   %OLD_DATA
@@ -45,6 +47,7 @@ $VERSION = 2.00;
 $db   = undef;
 $admin = undef;
 $CONF  = undef;
+@WHERE_RULES = ();
 $WHERE = '';
 %DATA  = ();
 $OLD_DATA   = (); #all data

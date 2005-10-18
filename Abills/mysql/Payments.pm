@@ -158,50 +158,56 @@ sub list {
  my $self = shift;
  my ($attr) = @_;
 
- my $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
- my $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
- my $PG = ($attr->{PG}) ? $attr->{PG} : 0;
- my $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
-
- my $WHERE  = '';
-
+ $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+ $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+ $PG = ($attr->{PG}) ? $attr->{PG} : 0;
+ $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
+ 
  if ($attr->{UID}) {
-    $WHERE .= ($WHERE ne '') ?  " and p.uid='$attr->{UID}' " : "WHERE p.uid='$attr->{UID}' ";
+    push @WHERE_RULES, "p.uid='$attr->{UID}' ";
   }
  elsif ($attr->{LOGIN_EXPR}) {
     $attr->{LOGIN_EXPR} =~ s/\*/\%/ig;
-    $WHERE .= ($WHERE ne '') ?  " and u.id LIKE '$attr->{LOGIN_EXPR}' " : "WHERE u.id LIKE '$attr->{LOGIN_EXPR}' ";
+    push @WHERE_RULES, "u.id LIKE '$attr->{LOGIN_EXPR}' ";
   }
  
  if ($attr->{AID}) {
-    $WHERE .= ($WHERE ne '') ?  " and p.aid='$attr->{AID}' " : "WHERE p.aid='$attr->{AID}' ";
+    push @WHERE_RULES, " p.aid='$attr->{AID}' ";
   }
 
  if ($attr->{A_LOGIN}) {
  	 $attr->{A_LOGIN} =~ s/\*/\%/ig;
- 	 $WHERE .= ($WHERE ne '') ?  " and a.id LIKE '$attr->{A_LOGIN}' " : "WHERE a.id LIKE '$attr->{A_LOGIN}' ";
+ 	 push @WHERE_RULES,  "a.id LIKE '$attr->{A_LOGIN}' ";
  }
 
  # Show debeters
  if ($attr->{DESCRIBE}) {
     $attr->{DESCRIBE} =~ s/\*/\%/g;
-    $WHERE .= ($WHERE ne '') ?  " and p.dsc LIKE '$attr->{DESCRIBE}' " : "WHERE p.dsc LIKE '$attr->{DESCRIBE}' ";
+    push @WHERE_RULES, " p.dsc LIKE '$attr->{DESCRIBE}' ";
   }
 
  if ($attr->{SUM}) {
     my $value = $self->search_expr($attr->{SUM}, 'INT');
-    $WHERE .= ($WHERE ne '') ?  " and p.sum$value " : "WHERE p.sum$value ";
+    push @WHERE_RULES, " p.sum$value ";
   }
-
  if ($attr->{METHOD}) {
-    $WHERE .= ($WHERE ne '') ?  " and p.method='$attr->{METHOD}' " : "WHERE p.method='$attr->{METHOD}' ";
+    push @WHERE_RULES, " p.method='$attr->{METHOD}' ";
   }
-
  if ($attr->{DATE}) {
     my $value = $self->search_expr("'$attr->{DATE}'", 'INT');
-    $WHERE .= ($WHERE ne '') ?  " and date_format(p.date, '%Y-%m-%d')$value " : "WHERE date_format(p.date, '%Y-%m-%d')$value ";
+    push @WHERE_RULES,  " date_format(p.date, '%Y-%m-%d')$value ";
   }
-   
+ if ($attr->{COMPANY_ID}) {
+ 	 push @WHERE_RULES, "u.company_id='$attr->{COMPANY_ID}'";
+  }
+
+ # Show groups
+ if ($attr->{GID}) {
+    push @WHERE_RULES, "u.gid='$attr->{GID}'";
+  }
+
+ $WHERE = "WHERE " . join(' and ', @WHERE_RULES) if($#WHERE_RULES > -1);
+ $self->{debug}=1;
  
  $self->query($db, "SELECT p.id, u.id, p.date, p.sum, p.dsc, if(a.name is null, 'Unknown', a.name),  
       INET_NTOA(p.ip), p.last_deposit, p.method, p.ext_id, p.uid 
