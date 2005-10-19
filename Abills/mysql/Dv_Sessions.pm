@@ -447,55 +447,57 @@ sub list {
  my $self = shift;
  my ($attr) = @_;
 
- my $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
- my $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
- my $PG = ($attr->{PG}) ? $attr->{PG} : 0;
- my $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
+ $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+ $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+ $PG = ($attr->{PG}) ? $attr->{PG} : 0;
+ $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
 
  
  my $WHERE = '';
  
 #UID
  if ($attr->{UID}) {
-   $WHERE .= ($WHERE ne '') ?  " and l.uid='$attr->{UID}' " : "WHERE l.uid='$attr->{UID}' ";
+    push @WHERE_RULES, "l.uid='$attr->{UID}'";
   }
  elsif ($attr->{LOGIN_EXPR}) {
     $attr->{LOGIN_EXPR} =~ s/\*/\%/ig;
-    $WHERE .= ($WHERE ne '') ?  " and u.id LIKE '$attr->{LOGIN_EXPR}' " : "WHERE u.id LIKE '$attr->{LOGIN_EXPR}' ";
+    push @WHERE_RULES, "u.id LIKE '$attr->{LOGIN_EXPR}'";
   }
 
 
  if ($attr->{LIST_UIDS}) {
-   $WHERE .= ($WHERE ne '') ?  " and l.uid IN ($attr->{LIST_UIDS}) " : "WHERE l.uid IN ($attr->{LIST_UIDS}) ";
+   push @WHERE_RULES, "l.uid IN ($attr->{LIST_UIDS})";
   }
 
 
 #IP
  if ($attr->{IP}) {
-   $WHERE .= ($WHERE ne '') ?  " and l.ip='$attr->{IP}' " : "WHERE l.ip='$attr->{IP}' ";
+   push @WHERE_RULES, "l.ip='$attr->{IP}'";
   }
 
 #NAS ID
  if ($attr->{NAS_ID}) {
-   $WHERE .= ($WHERE ne '') ?  " and l.nas_id='$attr->{NAS_ID}' " : "WHERE l.nas_id='$attr->{NAS_ID}' ";
+   push @WHERE_RULES, "and l.nas_id='$attr->{NAS_ID}'";
   }
 
 #NAS PORT
  if ($attr->{NAS_PORT}) {
-   $WHERE .= ($WHERE ne '') ?  " and l.port_id='$attr->{NAS_PORT}' " : "WHERE l.port_id='$attr->{NAS_PORT}' ";
+   push @WHERE_RULES, "l.port_id='$attr->{NAS_PORT}'";
   }
 
 #TARIF_PLAN
  if ($attr->{TARIF_PLAN}) {
-   $WHERE .= ($WHERE ne '') ?  " and l.tp_id='$attr->{TARIF_PLAN}' " : "WHERE l.tp_id='$attr->{TARIF_PLAN}' ";
+   push @WHERE_RULES, "and l.tp_id='$attr->{TARIF_PLAN}'";
   }
 
 #Session ID
 if ($attr->{ACCT_SESSION_ID}) {
-   $WHERE .= ($WHERE ne '') ?  " and l.acct_session_id='$attr->{ACCT_SESSION_ID}' " : "WHERE l.acct_session_id='$attr->{ACCT_SESSION_ID}' ";
+   push @WHERE_RULES, "l.acct_session_id='$attr->{ACCT_SESSION_ID}'";
   }
 
 
+ $WHERE = "WHERE " . join(' and ', @WHERE_RULES) if($#WHERE_RULES > -1);
+ 
 #Interval from date to date
 if ($attr->{INTERVAL}) {
  	 my ($from, $to)=split(/\//, $attr->{INTERVAL}, 2);

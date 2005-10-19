@@ -231,7 +231,7 @@ sub list {
    $self->query($db, " SELECT u.id, pi.email, dv.tp_id, u.credit, b.deposit, tp.name, tp.uplimit
          FROM users u, dv_main dv, bills b
          LEFT JOIN tarif_plans tp ON dv.tp_id = tp.id
-         LEFT JOIN users_pi pi ON u.uid = dv.id
+         LEFT JOIN users_pi pi ON u.uid = dv.uid
          WHERE u.bill_id=b.id
            and b.deposit<tp.uplimit AND tp.uplimit > 0 AND b.deposit+u.credit>0
          ORDER BY u.id;");
@@ -244,7 +244,7 @@ sub list {
       u.credit, tp.name, u.disable, 
       u.uid, u.company_id, u.email, u.tp_id, if(l.start is NULL, '-', l.start)
      FROM users u, bills b
-     LEFT JOIN users_pi pi ON u.uid = dv.id
+     LEFT JOIN users_pi pi ON u.uid = dv.uid
      LEFT JOIN tarif_plans tp ON  (tp.id=u.tp_id) 
      LEFT JOIN companies company ON  (u.company_id=company.id) 
      LEFT JOIN log l ON  (l.uid=u.uid) 
@@ -400,6 +400,23 @@ sub list {
 
   return $list;
 }
+
+
+#**********************************************************
+# Periodic
+#**********************************************************
+sub periodic {
+	my $self = shift;
+	my ($period) = @_;
+	
+	if($period eq 'daily') {
+		$self->daily_fees();
+	}
+	
+	return $self;
+}
+
+
 
 
 1

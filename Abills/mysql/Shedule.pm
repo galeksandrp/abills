@@ -81,39 +81,37 @@ sub list {
  my $self = shift;
  my ($attr) = @_;
 
- my $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
- my $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
- my $PG = ($attr->{PG}) ? $attr->{PG} : 0;
- my $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
-
- my $WHERE  = '';
+ $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+ $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+ $PG = ($attr->{PG}) ? $attr->{PG} : 0;
+ $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
 
  if ($attr->{UID}) {
-    $WHERE .= ($WHERE ne '') ?  " and s.uid='$attr->{UID}' " : "WHERE s.uid='$attr->{UID}' ";
+    push @WHERE_RULES, "and s.uid='$attr->{UID}'";
   }
  
  if ($attr->{AID}) {
-    $WHERE .= ($WHERE ne '') ?  " and s.aid='$attr->{AID}' " : "WHERE s.aid='$attr->{AID}' ";
+    push @WHERE_RULES, "and s.aid='$attr->{AID}'";
   }
 
  if ($attr->{TYPE}) {
-    $WHERE .= ($WHERE ne '') ?  " and s.type='$attr->{TYPE}' " : "WHERE s.type='$attr->{TYPE}' ";
+    push @WHERE_RULES, "and s.type='$attr->{TYPE}'";
   }
 
  if ($attr->{Y}) {
-    $WHERE .= ($WHERE ne '') ?  " and s.y='$attr->{Y}' " : "WHERE s.y='$attr->{Y}' ";
+    push @WHERE_RULES, "and s.y='$attr->{Y}'";
   }
 
  if ($attr->{M}) {
-    $WHERE .= ($WHERE ne '') ?  " and s.m='$attr->{M}' " : "WHERE s.m='$attr->{M}' ";
+    push @WHERE_RULES, "and s.m='$attr->{M}'";
   }
 
  if ($attr->{D}) {
-    $WHERE .= ($WHERE ne '') ?  " and s.d='$attr->{D}' " : "WHERE s.d='$attr->{D}' ";
+    push @WHERE_RULES, "and s.d='$attr->{D}'";
   }
 
-
- $self->query($db, "SELECT s.h, s.d, s.m, s.y, s.counts, u.id, s.type, s.action, a.id, s.date, a.aid, s.uid, s.id  
+ $WHERE = "WHERE " . join(' and ', @WHERE_RULES) if($#WHERE_RULES > -1);
+ $self->query($db, "SELECT s.h, s.d, s.m, s.y, s.counts, u.id, s.type, s.action, s.module, a.id, s.date, a.aid, s.uid, s.id  
     FROM shedule s
     LEFT JOIN users u ON (u.uid=s.uid)
     LEFT JOIN admins a ON (a.aid=s.aid) 

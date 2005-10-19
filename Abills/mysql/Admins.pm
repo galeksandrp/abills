@@ -99,7 +99,6 @@ sub info {
   my ($self) = shift;
   my ($aid, $attr) = @_;
 
-  my $WHERE;
   my $PASSWORD = '0'; 
   
   

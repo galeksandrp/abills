@@ -355,19 +355,21 @@ sub list {
  my $search_fields = '';
 
  
- if ($attr->{USERS_WARNINGS}) {
-   $self->query($db, " SELECT u.id, pi.email, dv.tp_id, u.credit, b.deposit, tp.name, tp.uplimit
-         FROM users u, dv_main dv, bills b
-         LEFT JOIN tarif_plans tp ON dv.tp_id = tp.id
-         LEFT JOIN users_pi pi ON u.uid = dv.id
-         WHERE u.bill_id=b.id
-           and b.deposit<tp.uplimit AND tp.uplimit > 0 AND b.deposit+u.credit>0
-         ORDER BY u.id;");
-
-   my $list = $self->{list};
-   return $list;
-  }
- elsif($attr->{CLOSED}) {
+# if ($attr->{USERS_WARNINGS}) {
+#   $self->query($db, " SELECT u.id, pi.email, dv.tp_id, u.credit, b.deposit, tp.name, tp.uplimit
+#         FROM users u, dv_main dv, bills b
+#         LEFT JOIN tarif_plans tp ON dv.tp_id = tp.id
+#         LEFT JOIN users_pi pi ON u.uid = dv.id
+#         WHERE u.bill_id=b.id
+#           and b.deposit<tp.uplimit AND tp.uplimit > 0 AND b.deposit+u.credit>0
+#         ORDER BY u.id;");
+#
+#   my $list = $self->{list};
+#   return $list;
+#  }
+# els
+ 
+ if($attr->{CLOSED}) {
    $self->query($db, "SELECT u.id, pi.fio, if(company.id IS NULL, b.deposit, b.deposit), 
       u.credit, tp.name, u.disable, 
       u.uid, u.company_id, u.email, u.tp_id, if(l.start is NULL, '-', l.start)
