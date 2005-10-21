@@ -31,7 +31,7 @@ my $IP;
 #**********************************************************
 sub new {
   my $class = shift;
-  $db = shift;
+  ($db, $CONF) = @_;
   my $self = { };
   bless($self, $class);
   return $self;
@@ -101,6 +101,7 @@ sub info {
 
   my $PASSWORD = '0'; 
   
+  my $WHERE;
   
   if (defined($attr->{LOGIN}) && defined($attr->{PASSWORD})) {
     my $SECRETKEY = (defined($attr->{SECRETKEY}))? $attr->{SECRETKEY} : '';
@@ -155,13 +156,16 @@ sub change {
  my $self = shift;
  my ($attr) = @_;
  
+ 
+ #$self->{debug}=1;
 
- my %FIELDS = (AID =>   'aid',
-           A_LOGIN => 'id',
-           A_FIO => 'name',
+ my %FIELDS = (AID    =>   'aid',
+           A_LOGIN    => 'id',
+           A_FIO      => 'name',
            A_REGISTRATION => 'regdate',
-           A_PHONE => 'phone',
-           DISABLE => 'disable'
+           A_PHONE    => 'phone',
+           DISABLE    => 'disable',
+           PASSWORD   => 'password'
    );
 
  $self->changes($admin, { CHANGE_PARAM => 'AID',

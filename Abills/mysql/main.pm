@@ -102,7 +102,7 @@ sub query {
 	my $self = shift;
   my ($db, $query, $type, $attr)	= @_;
 
-  print "<p>$query</p>\n" if ($self->{debug});
+  #print "<p>$query</p>\n" if ($self->{debug});
 
   if (defined($attr->{test})) {
   	 return $self;
@@ -112,7 +112,9 @@ my $q;
 #print $query;
 
 if (defined($type) && $type eq 'do') {
-  #print $query;
+  
+#  print $query;
+
   $q = $db->do($query);
   $self->{TOTAL} = 0;
 

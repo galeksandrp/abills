@@ -648,14 +648,6 @@ CREATE TABLE web_online (
 ) TYPE=MyISAM;
 
 -- MySQL dump 9.11
---
--- Host: localhost    Database: abills
--- ------------------------------------------------------
--- Server version	4.0.24
-
---
--- Table structure for table `admins`
---
 
 CREATE TABLE admins (
   id varchar(12) default NULL,

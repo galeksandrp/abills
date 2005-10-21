@@ -163,6 +163,8 @@ sub list {
  $PG = ($attr->{PG}) ? $attr->{PG} : 0;
  $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
  
+ @WHERE_RULES = ();
+ 
  if ($attr->{UID}) {
     push @WHERE_RULES, "p.uid='$attr->{UID}' ";
   }
@@ -209,6 +211,7 @@ sub list {
  $WHERE = "WHERE " . join(' and ', @WHERE_RULES) if($#WHERE_RULES > -1);
  $self->{debug}=1;
  
+
  $self->query($db, "SELECT p.id, u.id, p.date, p.sum, p.dsc, if(a.name is null, 'Unknown', a.name),  
       INET_NTOA(p.ip), p.last_deposit, p.method, p.ext_id, p.uid 
     FROM payments p

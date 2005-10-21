@@ -56,7 +56,7 @@ $html = Abills::HTML->new();
 my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
 
 $db = $sql->{db};
-my $admin = Admins->new($db);
+my $admin = Admins->new($db, \%conf);
 require "../../language/$html->{language}.pl";
 my %permissions = ();
 
@@ -510,7 +510,7 @@ Abills::HTML->tpl_show(templates('form_user'), $user_info);
 #**********************************************************
 sub form_groups {
 	use Users;
-  my $users = Users->new($db, $admin); 
+  my $users = Users->new($db, $admin, \%conf); 
 
 if ($FORM{add}) {
   $users->group_add( { %FORM });
@@ -1758,7 +1758,7 @@ print "</table>\n</td></tr></table>\n";
 #**********************************************************
 sub form_admins {
 
-my $admin_form = Admins->new($db);
+my $admin_form = Admins->new($db, \%conf);
 $admin_form->{ACTION}='add';
 $admin_form->{LNG_ACTION}=$_ADD;
 
