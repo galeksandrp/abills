@@ -827,7 +827,7 @@ if ($users->{errno}) {
   return 0;
  }
 elsif ($users->{TOTAL} == 1) {
-	form_users({  USER => user_info($list->[0]->[6]) });
+	form_users({  USER => user_info($list->[0]->[5]) });
 	return 0;
 }
 
@@ -836,17 +836,18 @@ print $letters;
 
 my $table = Abills::HTML->table( { width => '100%',
                                    border => 1,
-                                   title => [$_LOGIN, $_FIO, $_DEPOSIT, $_CREDIT, $_TARIF_PLANS, $_STATUS, '-', '-'],
-                                   cols_align => ['left', 'left', 'right', 'right', 'left', 'center', 'center', 'center', 'center'],
+                                   title => [$_LOGIN, $_FIO, $_DEPOSIT, $_CREDIT, $_STATUS, '-', '-'],
+                                   cols_align => ['left', 'left', 'right', 'right', 'center', 'center', 'center', 'center'],
                                    qs => $pages_qs,
                                    pages => $users->{TOTAL}
                                   } );
 
 foreach my $line (@$list) {
-  my $payments = ($permissions{1}) ?  "<a href='$SELF_URL?index=2&UID=$line->[6]'>$_PAYMENTS</a>" : ''; 
+  my $payments = ($permissions{1}) ? "<a href='$SELF_URL?index=2&UID=$line->[5]'>$_PAYMENTS</a>" : ''; 
+  my $fees     = ($permissions{2}) ? "<a href='$SELF_URL?index=3&UID=$line->[5]'>$_FEES</a>" : '';
 
-  $table->addrow("<a href='$SELF_URL?index=11&UID=$line->[6]'>$line->[0]</a>", "$line->[1]",
-   "$line->[2]", "$line->[3]", "$line->[4]", "$status[$line->[5]]", $payments, "<a href='$SELF_URL?index=22&UID=$line->[6]'>$_STATS</a>");
+  $table->addrow("<a href='$SELF_URL?index=11&UID=$line->[5]'>$line->[0]</a>", "$line->[1]",
+   "$line->[2]", "$line->[3]", "$status[$line->[4]]", $payments, $fees);
 }
 print $table->show();
 
@@ -2649,7 +2650,7 @@ sub check_access {
 sub form_payments () {
  my ($attr) = @_; 
  use Finance;
- my $payments = Finance->payments($db, $admin);
+ my $payments = Finance->payments($db, $admin, \%conf);
 
  return 0 if (! defined ($permissions{1}));
 

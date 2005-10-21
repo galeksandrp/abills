@@ -1187,7 +1187,7 @@ sub dv_user_info {
 #**********************************************************
 # daily_fees
 #**********************************************************
-sub daily_fees {
+sub dv_daily_fees {
  
  require Tariffs;
  Tariffs->import();
@@ -1204,7 +1204,7 @@ sub daily_fees {
 # 	   print "$line->[0] $line->[6]\n";
  	   $LIST_PARAMS{TP}=$line->[0];
 
- 	   my $ulist = $users->list({ 
+ 	   my $ulist = $Dv->list({ 
          ACTIVATE => "<=$DATE",
          EXPIRE => ">$DATE",
          DISABLE => '0',
@@ -1216,14 +1216,15 @@ sub daily_fees {
      foreach my $u (@$ulist) {
         my %user = (
             ACCOUNT_ID => $u->[7],
-            UID => $u->[6] 
+            UID => $u->[6],
+            BILL_ID => $u->[12]  
          );
 #          print " $u->[0] $line->[6] $u->[2] $u->[3]\n"; 	
 
         if($line->[5] > 0
             || $conf{negative_deposit} eq 'yes'
             || $u->[2] + $u->[3] > 0 ) {
-          $fees->get(\%user, $line->[5], { DESCRIBE => "$_DAY_FEE" } );  
+          $fees->take(\%user, $line->[5], { DESCRIBE => "$_DAY_FEE" } );  
          }
       }
 
@@ -1238,7 +1239,7 @@ sub daily_fees {
 #**********************************************************
 # monthly_fees
 #**********************************************************
-sub monthly_fees {
+sub dv_monthly_fees {
  require Tariffs;
  Tariffs->import();
  my $tariffs = Tariffs->new($db);
@@ -1273,7 +1274,8 @@ my $date_unixtime =  mktime(0, 0, 0, $d, $m, $y - 1900, 0, 0, 0);
      foreach my $u (@$ulist) {
           my %user = (
             ACCOUNT_ID => $u->[7],
-            UID => $u->[6] 
+            UID => $u->[6],
+            BILL_ID => $u->[12]   
            );
 
         if ($u->[10] eq '0000-00-00' and $d == 1) {
@@ -1281,7 +1283,7 @@ my $date_unixtime =  mktime(0, 0, 0, $d, $m, $y - 1900, 0, 0, 0);
           if($line->[4] > 0 
               || $conf{negative_deposit} eq 'yes'
               || $u->[2] + $u->[3] > 0 ) {
-            $fees->get(\%user, $line->[6], { DESCRIBE => "$_MONTH_FEE" } );  
+            $fees->take(\%user, $line->[6], { DESCRIBE => "$_MONTH_FEE" } );  
            }
          }
         elsif($u->[10] ne '0000-00-00') {
@@ -1291,7 +1293,7 @@ my $date_unixtime =  mktime(0, 0, 0, $d, $m, $y - 1900, 0, 0, 0);
 
           if ($date_unixtime - $active_unixtime > 30 * 86400) {
             #my $aa = (strftime "%Y-%m-%d", localtime($active_unixtime));
-            $fees->get(\%user, $line->[7], { DESCRIBE => "$_MONTH_FEE" } );
+            $fees->take(\%user, $line->[7], { DESCRIBE => "$_MONTH_FEE" } );
             $users->change($u->[6], { ACTIVATE => $DATE } );
            }
 #          print "   $u->[0] $line->[6] $u->[2] $u->[3] $u->[10] - $u->[11]\n"; 	
@@ -1301,6 +1303,46 @@ my $date_unixtime =  mktime(0, 0, 0, $d, $m, $y - 1900, 0, 0, 0);
 
  	  }
   }
+}
+
+
+#**********************************************************
+# user_warnings
+#**********************************************************
+sub dv_users_warning_messages {
+
+my %LIST_PARAMS = (USERS_WARNINGS => 'y' ) ;
+my $list = $Dv->list( { %LIST_PARAMS } );
+$ADMIN_REPORT{DATE} = $YESTERDAY;
+
+$ADMIN_REPORT{USERS_WARNINGS} = sprintf("%-14s| %4s|%-20s| %9s| %8s|\n", $_LOGIN, 'TP', $_VARIANT, $_DEPOSIT, $_CREDIT).
+   "---------------------------------------------------------------\n";
+
+return 0 if ($Dv->{TOTAL} < 1);
+my %USER_INFO = ();
+
+foreach my $line (@$list) {
+  #u.id, u.email, u.tp_id, u.credit, u.deposit, tp.name, tp.uplimit
+
+  $USER_INFO{LOGIN}=$line->[0];
+  $USER_INFO{TP_NAME}=$line->[5];
+  $USER_INFO{TP_ID}=$line->[2];
+  $USER_INFO{DEPOSIT}=$line->[4];
+  $USER_INFO{CREDIT}=$line->[3];
+  
+  my $email = ($line->[1] eq '') ? "$line->[1]\@$conf{USERS_MAIL_DOMAIN}" : $line->[1];
+  $ADMIN_REPORT{USERS_WARNINGS} .= sprintf ("%-14s| %4d|%-20s| %9.4f| %8.2f|\n", 
+  $USER_INFO{LOGIN}, $USER_INFO{TP_ID}, $USER_INFO{TP_NAME},  $USER_INFO{DEPOSIT}, $USER_INFO{CREDIT});
+  
+  my $message = Abills::HTML->tpl_show(templates('users_warning_messages'), \%USER_INFO, { notprint => 'yes' });
+
+  #sendmail("$conf{ADMIN_MAIL}", "$email", "Попередження сервера статистики.", 
+  #            "$message", "$conf{MAIL_CHARSET}", "2 (High)");
+}
+
+$ADMIN_REPORT{USERS_WARNINGS} .= "---------------------------------------------------------------
+$_TOTAL: $users->{TOTAL}\n";
+
 }
 
 1

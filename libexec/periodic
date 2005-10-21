@@ -38,7 +38,7 @@ my $args = parse_arguments(\@ARGV);
 my($y, $m, $d)=split(/-/, $DATE, 3);
 
 my @daily_functions=('sheduler',
-                     'users_warning_messages',
+                     'dv_users_warning_messages',
                      'admin_report_daily');
 
 my @monthly_functions = ('monthly_report',
@@ -136,7 +136,7 @@ my %shedule_type = ('tp' => $_VARIANT,
     	 my $user = $users->info( $line->[11] );
     	 my ($sum, $descr) = split(/:/, $line->[7], 2);
     	 #my $module = $line->[8];
-    	 $fees->get($user, $sum, { DESCRIBE => "$_SHEDULE: $descr" } );  
+    	 $fees->take($user, $sum, { DESCRIBE => "$_SHEDULE: $descr" } );  
     	 $shedule->del($line->[12]);
      }
 
@@ -157,30 +157,31 @@ my %shedule_type = ('tp' => $_VARIANT,
 #**********************************************************
 sub admin_report_daily {
 
-#closed users account
-$ADMIN_REPORT{CLOSED} = sprintf ("%-14s| %4s|%-20s| %9s| %8s| %19s|\n", $_LOGIN, 'V', 
-     $_NAME, $_DEPOSIT, $_CREDIT, $_LAST_LOGIN);
-$ADMIN_REPORT{CLOSED}.= "---------------------------------------------------------\n";
-my %LIST_PARAMS = ( CLOSED => 'y' ) ;
-$LIST_PARAMS{PAGE_ROWS}=10000;
 
-my $list = $users->list( { %LIST_PARAMS } );
-foreach my $line (@$list) {
-   $ADMIN_REPORT{CLOSED} .= sprintf ("%-14s| %4d|%-20s| %9.4f| %8.2f| %19s|\n", 
-     $line->[0], 
-     $line->[9], 
-     $line->[4], 
-     $line->[2], 
-     $line->[3], 
-     $line->[10]);
-}
-$ADMIN_REPORT{CLOSED} .= "---------------------------------------------------------\n$_TOTAL: $users->{TOTAL}\n";
+##closed users account
+#$ADMIN_REPORT{CLOSED} = sprintf ("%-14s| %4s|%-20s| %9s| %8s| %19s|\n", $_LOGIN, 'V', 
+#     $_NAME, $_DEPOSIT, $_CREDIT, $_LAST_LOGIN);
+#$ADMIN_REPORT{CLOSED}.= "---------------------------------------------------------\n";
+#my %LIST_PARAMS = ( DISABLE => 'y' ) ;
+#$LIST_PARAMS{PAGE_ROWS}=10000;
+#
+#my $list = $users->list( { %LIST_PARAMS } );
+#foreach my $line (@$list) {
+#   $ADMIN_REPORT{CLOSED} .= sprintf ("%-14s| %4d|%-20s| %9.4f| %8.2f| %19s|\n", 
+#     $line->[0], 
+#     $line->[9], 
+#     $line->[4], 
+#     $line->[2], 
+#     $line->[3], 
+#     $line->[10]);
+#}
+#$ADMIN_REPORT{CLOSED} .= "---------------------------------------------------------\n$_TOTAL: $users->{TOTAL}\n";
 
 
 #Payments
 require Finance;
 Finance->import();
-my $payments = Finance->new($db, $admin, \%conf); 
+my $payments = Finance->payments($db, $admin, \%conf); 
 
 $ADMIN_REPORT{PAYMENTS}  =  sprintf("%-14s| %8s| %20s| %8s| %15s| %19s|\n", $_LOGIN, $_SUM, 
     $_DESCRIBE, $_ADMINS, 'IP', $_DATE);
@@ -228,9 +229,9 @@ $_TOTAL: $fees->{TOTAL} $_SUM: $fees->{SUM}\n";
 
 
 #USED traffic nd time
-require Sessions;
-Sessions->import();
-my $sessions = Sessions->new($db, $admin, \%conf); 
+require Dv_Sessions;
+Dv_Sessions->import();
+my $sessions = Dv_Sessions->new($db, $admin, \%conf); 
 
 $ADMIN_REPORT{SESSIONS} .= sprintf ("%-14s| %5s| %9s| %9s| %10s| %9s|\n", $_LOGIN, $_SESSIONS, 
     $_TRAFFIC, "$_TRAFFIC 2", $_DURATION, $_SUM);
@@ -301,46 +302,6 @@ sub admin_report_monthly {
 
 
 
-#**********************************************************
-# user_warnings
-#**********************************************************
-sub users_warning_messages {
-
-my %LIST_PARAMS = (USERS_WARNINGS => 'y' ) ;
-my $list = $users->list( { %LIST_PARAMS } );
-$ADMIN_REPORT{DATE} = $YESTERDAY;
-
-$ADMIN_REPORT{USERS_WARNINGS} = sprintf("%-14s| %4s|%-20s| %9s| %8s|\n", $_LOGIN, 'TP', $_VARIANT, $_DEPOSIT, $_CREDIT).
-   "---------------------------------------------------------------\n";
-
-return 0 if ($users->{TOTAL} < 1);
-my %USER_INFO = ();
-
-foreach my $line (@$list) {
-  #u.id, u.email, u.tp_id, u.credit, u.deposit, tp.name, tp.uplimit
-
-  $USER_INFO{LOGIN}=$line->[0];
-  $USER_INFO{TP_NAME}=$line->[5];
-  $USER_INFO{TP_ID}=$line->[2];
-  $USER_INFO{DEPOSIT}=$line->[4];
-  $USER_INFO{CREDIT}=$line->[3];
-  
-  my $email = ($line->[1] eq '') ? "$line->[1]\@$conf{USERS_MAIL_DOMAIN}" : $line->[1];
-  $ADMIN_REPORT{USERS_WARNINGS} .= sprintf ("%-14s| %4d|%-20s| %9.4f| %8.2f|\n", 
-    $USER_INFO{LOGIN}, $USER_INFO{TP_ID}, $USER_INFO{TP_NAME},  $USER_INFO{DEPOSIT}, $USER_INFO{CREDIT});
-  
-  my $message = Abills::HTML->tpl_show(templates('users_warning_messages'), \%USER_INFO, { notprint => 'yes' });
-
-  #sendmail("$conf{ADMIN_MAIL}", "$email", "Попередження сервера статистики.", 
-  #            "$message", "$conf{MAIL_CHARSET}", "2 (High)");
-}
-
-$ADMIN_REPORT{USERS_WARNINGS} .= "---------------------------------------------------------------
-$_TOTAL: $users->{TOTAL}\n";
-
-
-
-}
 
 
 

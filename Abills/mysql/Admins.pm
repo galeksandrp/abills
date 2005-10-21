@@ -100,7 +100,6 @@ sub info {
   my ($aid, $attr) = @_;
 
   my $PASSWORD = '0'; 
-  
   my $WHERE;
   
   if (defined($attr->{LOGIN}) && defined($attr->{PASSWORD})) {
@@ -145,7 +144,18 @@ sub info {
 #**********************************************************
 sub list {
  my $self = shift;
- $self->query($db, "select aid, id, name, regdate, disable, gid FROM admins;");
+ my ($attr) = @_;
+
+ $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+ $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+ $PG = ($attr->{PG}) ? $attr->{PG} : 0;
+ $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
+ 
+ 
+ $self->query($db, "select aid, id, name, regdate, disable, gid 
+ FROM admins
+ ORDER BY $SORT $DESC;");
+
  return $self->{list};
 }
 
@@ -191,6 +201,7 @@ sub add {
   my $self = shift;
   my ($attr) = @_;
   %DATA = $self->get_data($attr); 
+
   $self->query($db, "INSERT INTO admins (id, name, regdate, phone, disable) 
    VALUES ('$DATA{A_LOGIN}', '$DATA{A_FIO}', now(),  '$DATA{A_PHONE}', '$DATA{DISABLE}');", 'do');
 
@@ -239,27 +250,28 @@ sub action_list {
   my $self = shift;
   my ($attr) = @_;
   
-  my $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
-  my $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
-  my $PG = ($attr->{PG}) ? $attr->{PG} : 0;
-  my $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
+  $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+  $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+  $PG = ($attr->{PG}) ? $attr->{PG} : 0;
+  $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
 
   my $WHERE = '';
   my @list = ();
+
   # UID
   if ($attr->{UID}) {
-    $WHERE .= ($WHERE ne '') ?  " and aa.uid='$attr->{UID}' " : "WHERE aa.uid='$attr->{UID}' ";
+    push @WHERE_RULES, "aa.uid='$attr->{UID}'";
    }
-
   if ($attr->{AID}) {
-    $WHERE .= ($WHERE ne '') ?  " and aa.aid='$attr->{AID}' " : "WHERE aa.aid='$attr->{AID}' ";
+    push @WHERE_RULES, "aa.aid='$attr->{AID}'";
    }
 
+  $WHERE = "WHERE " . join(' and ', @WHERE_RULES) if($#WHERE_RULES > -1);
   $self->query($db, "select aa.id, u.id, aa.datetime, aa.actions, a.id, INET_NTOA(aa.ip), aa.uid, aa.aid, aa.id
       FROM admin_actions aa
       LEFT JOIN admins a ON (aa.aid=a.aid)
       LEFT JOIN users u ON (aa.uid=u.uid)
-       $WHERE ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");
+      $WHERE ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");
   
   
   my $list = $self->{list};

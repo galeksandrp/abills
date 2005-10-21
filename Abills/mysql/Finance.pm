@@ -89,7 +89,7 @@ sub exchange_add {
 	my $self = shift;
   my ($money, $short_name, $rate) = @_;
   
-  my $self->query($db, "INSERT INTO exchange_rate (money, short_name, rate, changed) 
+  $self->query($db, "INSERT INTO exchange_rate (money, short_name, rate, changed) 
    values ('$money', '$short_name', '$rate', now());", 'do');
 
 	return $self;
@@ -102,7 +102,7 @@ sub exchange_add {
 sub exchange_del {
 	my $self = shift;
   my ($id) = @_;
-  my $self->query($db, "DELETE FROM exchange_rate WHERE id='$id';", 'do');
+  $self->query($db, "DELETE FROM exchange_rate WHERE id='$id';", 'do');
 
 	return $self;
 }

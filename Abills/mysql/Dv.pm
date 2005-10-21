@@ -54,8 +54,8 @@ sub info {
   my ($uid, $attr) = @_;
 
   if(defined($attr->{LOGIN})) {
-  	use Users;
-    my $users = Users->new($db, $admin, $CONF); 	
+    use Users;
+    my $users = Users->new($db, $admin, $CONF);   
     $users->info(0, {LOGIN => "$attr->{LOGIN}"});
     if ($users->{errno}) {
        $self->{errno} = 2;
@@ -63,9 +63,9 @@ sub info {
        return $self; 
      }
 
-  	$uid             = $users->{UID};
-  	$self->{DEPOSIT} = $users->{DEPOSIT}; 
-  	$WHERE =  "WHERE dv.uid='$uid'";
+    $uid             = $users->{UID};
+    $self->{DEPOSIT} = $users->{DEPOSIT}; 
+    $WHERE =  "WHERE dv.uid='$uid'";
    }
   
   #else {
@@ -104,7 +104,7 @@ sub info {
    $self->{FILTER_ID}, 
    $self->{CID},
    $self->{DISABLE},
-   $self->{REGISTRATION}
+   $self->{REGISTRATION},
   )= @$ar;
   
   
@@ -180,12 +180,12 @@ sub change {
              );
 
 
-	$self->changes($admin,  { CHANGE_PARAM => 'UID',
-		               TABLE        => 'dv_main',
-		               FIELDS       => \%FIELDS,
-		               OLD_INFO     => $self->info($attr->{UID}),
-		               DATA         => $attr
-		              } );
+  $self->changes($admin,  { CHANGE_PARAM => 'UID',
+                   TABLE        => 'dv_main',
+                   FIELDS       => \%FIELDS,
+                   OLD_INFO     => $self->info($attr->{UID}),
+                   DATA         => $attr
+                  } );
 
   return $self->{result};
 }
@@ -224,8 +224,8 @@ sub list {
  $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
 
  my $search_fields = '';
-
- $WHERE = "WHERE u.uid = dv.uid ";
+ undef @WHERE_RULES;
+ push @WHERE_RULES, "u.uid = dv.uid";
  
  if ($attr->{USERS_WARNINGS}) {
    $self->query($db, " SELECT u.id, pi.email, dv.tp_id, u.credit, b.deposit, tp.name, tp.uplimit
@@ -266,16 +266,16 @@ sub list {
 
  # Start letter 
  if ($attr->{FIRST_LETTER}) {
-    $WHERE .= ($WHERE ne '') ?  " and u.id LIKE '$attr->{FIRST_LETTER}%' " : "WHERE u.id LIKE '$attr->{FIRST_LETTER}%' ";
+    push @WHERE_RULES, "u.id LIKE '$attr->{FIRST_LETTER}%'";
   }
  elsif ($attr->{LOGIN}) {
     $attr->{LOGIN_EXPR} =~ s/\*/\%/ig;
-    $WHERE .= ($WHERE ne '') ?  " and u.id='$attr->{LOGIN}' " : "WHERE u.id='$attr->{LOGIN}' ";
+    push @WHERE_RULES, "u.id='$attr->{LOGIN}'";
   }
  # Login expresion
  elsif ($attr->{LOGIN_EXPR}) {
     $attr->{LOGIN_EXPR} =~ s/\*/\%/ig;
-    $WHERE .= ($WHERE ne '') ?  " and u.id LIKE '$attr->{LOGIN_EXPR}' " : "WHERE u.id LIKE '$attr->{LOGIN_EXPR}' ";
+    push @WHERE_RULES, "u.id LIKE '$attr->{LOGIN_EXPR}'";
   }
  
 
@@ -286,105 +286,110 @@ sub list {
       for ($i=0; $i<4; $i++) {
 
          if ($p[$i] eq '*') {
-         	 $first_ip .= '0';
-         	 $last_ip .= '255';
+           $first_ip .= '0';
+           $last_ip .= '255';
           }
          else {
-         	 $first_ip .= $p[$i];
-         	 $last_ip .= $p[$i];
+           $first_ip .= $p[$i];
+           $last_ip .= $p[$i];
           }
          if ($i != 3) {
-         	 $first_ip .= '.';
-         	 $last_ip .= '.';
+           $first_ip .= '.';
+           $last_ip .= '.';
           }
        }
-      $WHERE .= ($WHERE ne '') ?  " and (u.ip>=INET_ATON('$first_ip') and u.ip<=INET_ATON('$last_ip'))" : "WHERE (u.ip>=INET_ATON('$first_ip') and u.ip<=INET_ATON('$last_ip')) ";
+      push @WHERE_RULES, "(u.ip>=INET_ATON('$first_ip') and u.ip<=INET_ATON('$last_ip'))";
      }
     else {
       my $value = $self->search_expr($attr->{IP}, 'IP');
-      $WHERE .= ($WHERE ne '') ?  " and u.ip$value " : "WHERE u.ip$value ";
+      push @WHERE_RULES, "u.ip$value";
     }
   }
 
  if ($attr->{PHONE}) {
     my $value = $self->search_expr($attr->{PHONE}, 'INT');
-    $WHERE .= ($WHERE ne '') ?  " and u.phone$value " : "WHERE u.phone$value ";
+    push @WHERE_RULES, "u.phone$value";
   }
 
 
  if ($attr->{DEPOSIT}) {
     my $value = $self->search_expr($attr->{DEPOSIT}, 'INT');
-    $WHERE .= ($WHERE ne '') ?  " and u.deposit$value " : "WHERE u.deposit$value ";
+    push @WHERE_RULES, "u.deposit$value";
   }
 
  if ($attr->{SPEED}) {
     my $value = $self->search_expr($attr->{SPEED}, 'INT');
-    $WHERE .= ($WHERE ne '') ?  " and u.speed$value " : "WHERE u.speed$value ";
+    push @WHERE_RULES, "u.speed$value";
   }
 
  if ($attr->{CID}) {
     $attr->{CID} =~ s/\*/\%/ig;
-    $WHERE .= ($WHERE ne '') ?  " and u.cid LIKE '$attr->{CID}' " : "WHERE u.cid LIKE '$attr->{CID}' ";
+    push @WHERE_RULES, "u.cid LIKE '$attr->{CID}'";
   }
 
  if ($attr->{COMMENTS}) {
- 	$attr->{COMMENTS} =~ s/\*/\%/ig;
- 	$WHERE .= ($WHERE ne '') ?  " and u.comments LIKE '$attr->{COMMENTS}' " : "WHERE u.comments LIKE '$attr->{COMMENTS}' ";
+   $attr->{COMMENTS} =~ s/\*/\%/ig;
+   push @WHERE_RULES, "u.comments LIKE '$attr->{COMMENTS}'";
   }
 
 
  if ($attr->{FIO}) {
     $attr->{FIO} =~ s/\*/\%/ig;
-    $WHERE .= ($WHERE ne '') ?  " and u.fio LIKE '$attr->{FIO}' " : "WHERE u.fio LIKE '$attr->{FIO}' ";
+    push @WHERE_RULES, "u.fio LIKE '$attr->{FIO}'";
   }
 
  # Show users for spec tarifplan 
  if ($attr->{TP}) {
-    $WHERE .= ($WHERE ne '') ?  " and u.tp_id='$attr->{TP}' " : "WHERE u.tp_id='$attr->{TP}' ";
+    push @WHERE_RULES, "dv.tp_id='$attr->{TP}'";
   }
 
  # Show debeters
  if ($attr->{DEBETERS}) {
-    $WHERE .= ($WHERE ne '') ?  " and u.id LIKE '$attr->{FIRST_LETTER}%' " : "WHERE u.id LIKE '$attr->{FIRST_LETTER}%' ";
+    push @WHERE_RULES, "u.id LIKE '$attr->{FIRST_LETTER}%'";
   }
 
  # Show debeters
  if ($attr->{COMPANY_ID}) {
-    $WHERE .= ($WHERE ne '') ?  " and u.company_id='$attr->{COMPANY_ID}' " : "WHERE u.company_id='$attr->{COMPANY_ID}' ";
+    push @WHERE_RULES, "u.company_id='$attr->{COMPANY_ID}'";
   }
 
  # Show groups
  if ($attr->{GID}) {
-    $WHERE .= ($WHERE ne '') ?  " and u.gid='$attr->{GID}' " : "WHERE u.gid='$attr->{GID}' ";
+    push @WHERE_RULES, "u.gid='$attr->{GID}'";
   }
 
 #Activate
  if ($attr->{ACTIVATE}) {
    my $value = $self->search_expr("'$attr->{ACTIVATE}'", 'INT');
-   $WHERE .= ($WHERE ne '') ?  " AND (u.activate='0000-00-00' or u.activate$value) " : "WHERE (u.activate='0000-00-00' or u.activate$value) "; 
+   push @WHERE_RULES, "(u.activate='0000-00-00' or u.activate$value)"; 
  }
 
 #Expire
  if ($attr->{EXPIRE}) {
    my $value = $self->search_expr("'$attr->{EXPIRE}'", 'INT');
-   $WHERE .= ($WHERE ne '') ?  " AND (u.expire='0000-00-00' or u.expire$value) " : "WHERE (u.expire='0000-00-00' or u.expire$value) "; 
+   push @WHERE_RULES, "(u.expire='0000-00-00' or u.expire$value)"; 
  }
 
 #DIsable
  if ($attr->{DISABLE}) {
-   $WHERE .= ($WHERE ne '') ?  " AND u.disable='$attr->{DISABLE}' " : "WHERE u.disable='$attr->{DISABLE} "; 
+   push @WHERE_RULES, "u.disable='$attr->{DISABLE}'"; 
  }
  
+ $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
+ 
+
  
  $self->query($db, "SELECT u.id, 
       pi.fio, if(company.id IS NULL, b.deposit, b.deposit), u.credit, tp.name, u.disable, 
-      u.uid, u.company_id, pi.email, dv.tp_id, u.activate, u.expire
+      u.uid, u.company_id, pi.email, dv.tp_id, u.activate, u.expire, u.bill_id
      FROM users u, dv_main dv
      LEFT JOIN users_pi pi ON (u.uid = pi.uid)
      LEFT JOIN bills b ON u.bill_id = b.id
      LEFT JOIN tarif_plans tp ON (tp.id=dv.tp_id) 
      LEFT JOIN companies company ON  (u.company_id=company.id) 
-     $WHERE ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");
+     $WHERE 
+     GROUP BY u.uid
+     ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");
 
  return $self if($self->{errno});
 
@@ -392,8 +397,8 @@ sub list {
 
  my $list = $self->{list};
 
- if ($self->{TOTAL} >= $attr->{PAGE_ROWS}) {
-    $self->query($db, "SELECT count(u.id) FROM users u $WHERE");
+ if ($self->{TOTAL} >= 0) {
+    $self->query($db, "SELECT count(u.id) FROM users u, dv_main dv $WHERE");
     my $a_ref = $self->{list}->[0];
     ($self->{TOTAL}) = @$a_ref;
    }
@@ -406,14 +411,14 @@ sub list {
 # Periodic
 #**********************************************************
 sub periodic {
-	my $self = shift;
-	my ($period) = @_;
-	
-	if($period eq 'daily') {
-		$self->daily_fees();
-	}
-	
-	return $self;
+  my $self = shift;
+  my ($period) = @_;
+  
+  if($period eq 'daily') {
+    $self->daily_fees();
+  }
+  
+  return $self;
 }
 
 

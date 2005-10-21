@@ -38,6 +38,7 @@ my %FIELDS = (UID      => 'uid',
              );
 
 
+
 #**********************************************************
 # Init 
 #**********************************************************
@@ -163,7 +164,7 @@ sub list {
  $PG = ($attr->{PG}) ? $attr->{PG} : 0;
  $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
  
- @WHERE_RULES = ();
+ undef @WHERE_RULES;
  
  if ($attr->{UID}) {
     push @WHERE_RULES, "p.uid='$attr->{UID}' ";
@@ -208,8 +209,7 @@ sub list {
     push @WHERE_RULES, "u.gid='$attr->{GID}'";
   }
 
- $WHERE = "WHERE " . join(' and ', @WHERE_RULES) if($#WHERE_RULES > -1);
- $self->{debug}=1;
+ $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
  
 
  $self->query($db, "SELECT p.id, u.id, p.date, p.sum, p.dsc, if(a.name is null, 'Unknown', a.name),  

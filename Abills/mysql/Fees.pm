@@ -53,7 +53,6 @@ sub take {
    }
   
   if ($user->{BILL_ID} > 0) {
-
     $Bill->info( { BILL_ID => $user->{BILL_ID} } );
     $Bill->action('take', $user->{BILL_ID}, $sum);
     if($Bill->{errno}) {
@@ -122,7 +121,7 @@ sub list {
  $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
 
  my @list = (); 
-
+ undef @WHERE_RULES;
 
  if ($attr->{UID}) {
     push @WHERE_RULES, "f.uid='$attr->{UID}'";
@@ -171,8 +170,7 @@ sub list {
   }
 
 
- $WHERE = "WHERE " . join(' and ', @WHERE_RULES) if($#WHERE_RULES > -1);
- $self->{debug}=1;
+ $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
  
  $self->query($db, "SELECT f.id, u.id, f.date, f.sum, f.dsc, if(a.name is NULL, 'Unknown', a.name),  INET_NTOA(f.ip), f.last_deposit, f.uid 
     FROM fees f

@@ -64,9 +64,9 @@ elsif ($Mail->{TOTAL} == 1) {
 
 
   foreach my $line (@$list) {
-    $delete = $html->button($_DEL, "index=$index&del=$line->[14]&UID=$line->[12]", "$_DEL ?"); 
+    $delete = $html->button($_DEL, "index=$index&del=$line->[14]&UID=$line->[13]", "$_DEL ?"); 
     $table->addrow("<a href='$SELF_URL?index=$index&MBOX_ID=$line->[14]&UID=$line->[13]'>$line->[0]</a>", "$line->[1]",
-     "<a href='$SELF_URL?index=11&UID=$line->[12]'>$line->[2]</a>",
+     "<a href='$SELF_URL?index=11&UID=$line->[13]'>$line->[2]</a>",
      "$line->[3]", "$line->[4]", "$line->[5]", "$status[$line->[6]]", "$status[$line->[7]]", "$status[$line->[8]]", 
      "<a href='$SELF_URL?index=$index&MBOX_ID=$line->[14]&UID=$line->[13]'>$_CHANGE</a>",
      $delete);

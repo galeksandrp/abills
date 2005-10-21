@@ -86,31 +86,35 @@ sub list {
  $PG = ($attr->{PG}) ? $attr->{PG} : 0;
  $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
 
+ @WHERE_RULES =();
+ 
  if ($attr->{UID}) {
-    push @WHERE_RULES, "and s.uid='$attr->{UID}'";
+    push @WHERE_RULES, "s.uid='$attr->{UID}'";
   }
  
  if ($attr->{AID}) {
-    push @WHERE_RULES, "and s.aid='$attr->{AID}'";
+    push @WHERE_RULES, "s.aid='$attr->{AID}'";
   }
 
  if ($attr->{TYPE}) {
-    push @WHERE_RULES, "and s.type='$attr->{TYPE}'";
+    push @WHERE_RULES, "s.type='$attr->{TYPE}'";
   }
 
  if ($attr->{Y}) {
-    push @WHERE_RULES, "and s.y='$attr->{Y}'";
+    push @WHERE_RULES, "s.y='$attr->{Y}'";
   }
 
  if ($attr->{M}) {
-    push @WHERE_RULES, "and s.m='$attr->{M}'";
+    push @WHERE_RULES, "s.m='$attr->{M}'";
   }
 
  if ($attr->{D}) {
-    push @WHERE_RULES, "and s.d='$attr->{D}'";
+    push @WHERE_RULES, "s.d='$attr->{D}'";
   }
+ 
 
  $WHERE = "WHERE " . join(' and ', @WHERE_RULES) if($#WHERE_RULES > -1);
+  
  $self->query($db, "SELECT s.h, s.d, s.m, s.y, s.counts, u.id, s.type, s.action, s.module, a.id, s.date, a.aid, s.uid, s.id  
     FROM shedule s
     LEFT JOIN users u ON (u.uid=s.uid)

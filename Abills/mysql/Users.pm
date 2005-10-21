@@ -29,10 +29,9 @@ my $uid;
 sub new {
   my $class = shift;
   ($db, $admin, $CONF) = @_;
-  $CONF->{max_username_length} = 10;
+ $WHERE = "WHERE " . join(' and ', @WHERE_RULES) if($#WHERE_RULES > -1);$CONF->{max_username_length} = 10;
   my $self = { };
   bless($self, $class);
-  #$self->{debug}=1;
   return $self;
 }
 
@@ -351,7 +350,7 @@ sub list {
  $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
  $PG = ($attr->{PG}) ? $attr->{PG} : 0;
  $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
-
+ undef @WHERE_RULES;
  my $search_fields = '';
 
  
@@ -369,30 +368,30 @@ sub list {
 #  }
 # els
  
-# if($attr->{DISABL}) {
-#   $self->query($db, "SELECT u.id, pi.fio, if(company.id IS NULL, b.deposit, b.deposit), 
-#      u.credit, tp.name, u.disable, 
-#      u.uid, u.company_id, u.email, u.tp_id, if(l.start is NULL, '-', l.start)
-#     FROM users u, bills b
-#     LEFT JOIN users_pi pi ON u.uid = dv.id
-#     LEFT JOIN tarif_plans tp ON  (tp.id=u.tp_id) 
-#     LEFT JOIN companies company ON  (u.company_id=company.id) 
-#     LEFT JOIN log l ON  (l.uid=u.uid) 
-#     WHERE  
-#        u.bill_id=b.id
-#        and (b.deposit+u.credit-tp.credit_tresshold<=0
-#        and tp.hourp+tp.df+tp.abon>=0)
-#        or (
-#        (u.expire<>'0000-00-00' and u.expire < CURDATE())
-#        AND (u.activate<>'0000-00-00' and u.activate > CURDATE())
-#        )
-#        or u.disable=1
-#     GROUP BY u.uid
-#     ORDER BY $SORT $DESC;");
-#
-#   my $list = $self->{list};
-#   return $list;
-#  }
+ if($attr->{DISABLE}) {
+   $self->query($db, "SELECT u.id, pi.fio, if(company.id IS NULL, b.deposit, b.deposit), 
+      u.credit, tp.name, u.disable, 
+      u.uid, u.company_id, u.email, u.tp_id, if(l.start is NULL, '-', l.start)
+     FROM users u, bills b
+     LEFT JOIN users_pi pi ON u.uid = dv.id
+     LEFT JOIN tarif_plans tp ON  (tp.id=u.tp_id) 
+     LEFT JOIN companies company ON  (u.company_id=company.id) 
+     LEFT JOIN log l ON  (l.uid=u.uid) 
+     WHERE  
+        u.bill_id=b.id
+        and (b.deposit+u.credit-tp.credit_tresshold<=0
+        and tp.hourp+tp.df+tp.abon>=0)
+        or (
+        (u.expire<>'0000-00-00' and u.expire < CURDATE())
+        AND (u.activate<>'0000-00-00' and u.activate > CURDATE())
+        )
+        or u.disable=1
+     GROUP BY u.uid
+     ORDER BY $SORT $DESC;");
+
+   my $list = $self->{list};
+   return $list;
+  }
 
  # Start letter 
  if ($attr->{FIRST_LETTER}) {
@@ -451,11 +450,12 @@ sub list {
  if ($attr->{COMMENTS}) {
  	$attr->{COMMENTS} =~ s/\*/\%/ig;
  	push @WHERE_RULES, "u.comments LIKE '$attr->{COMMENTS}'";
-  }
+  }    
+
 
  if ($attr->{FIO}) {
     $attr->{FIO} =~ s/\*/\%/ig;
-    push @WHERE_RULES, "u.fio LIKE '$attr->{FIO}'";
+    push @WHERE_RULES, "pi.fio LIKE '$attr->{FIO}'";
   }
 
  # Show debeters
@@ -490,18 +490,21 @@ sub list {
    push @WHERE_RULES, "u.disable='$attr->{DISABLE}'"; 
  }
  
- $WHERE = "WHERE " . join(' and ', @WHERE_RULES) if($#WHERE_RULES > -1);
+ 
+ foreach my $line(@WHERE_RULES) {
+   print " --- $line \n"; 	
+}
+ 
+ $WHERE = ($#WHERE_RULES > -1) ?  "WHERE " . join(' and ', @WHERE_RULES) : '';
  
  $self->{debug}=1;
  
  $self->query($db, "SELECT u.id, 
-      pi.fio, if(company.id IS NULL, b.deposit, b.deposit), u.credit, tp.name, u.disable, 
-      u.uid, u.company_id, pi.email, dv.tp_id, u.activate, u.expire
+      pi.fio, if(company.id IS NULL, b.deposit, b.deposit), u.credit, u.disable, 
+      u.uid, u.company_id, pi.email, u.activate, u.expire
      FROM users u
      LEFT JOIN users_pi pi ON (u.uid = pi.uid)
-     LEFT JOIN dv_main dv ON  (u.uid = dv.uid)
      LEFT JOIN bills b ON u.bill_id = b.id
-     LEFT JOIN tarif_plans tp ON (tp.id=dv.tp_id) 
      LEFT JOIN companies company ON  (u.company_id=company.id) 
      $WHERE ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");
 
@@ -511,7 +514,7 @@ sub list {
 
  my $list = $self->{list};
 
- if ($self->{TOTAL} >= $attr->{PAGE_ROWS}) {
+ if ($self->{TOTAL} > 0) {
     $self->query($db, "SELECT count(u.id) FROM users u $WHERE");
     my $a_ref = $self->{list}->[0];
     ($self->{TOTAL}) = @$a_ref;
