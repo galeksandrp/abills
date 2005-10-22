@@ -83,8 +83,8 @@ elsif (defined($args->{daily})) {
    }
 
   my $message = Abills::HTML->tpl_show(templates('admin_report_day'), \%ADMIN_REPORT, { notprint => 'yes' });
-  #sendmail("$conf{ADMIN_MAIL}", "$conf{ADMIN_MAIL}", "Daily billing report ($YESTERDAY)", 
-  #           "$message", "$conf{MAIL_CHARSET}", "2 (High)");
+  sendmail("$conf{ADMIN_MAIL}", "$conf{ADMIN_MAIL}", "Daily billing report ($YESTERDAY)", 
+             "$message", "$conf{MAIL_CHARSET}", "2 (High)");
 } 
 elsif (defined($args->{backup})) {
   backup();	

@@ -666,6 +666,15 @@ print $table->show();
 }
 
 
+#**********************************************************
+# dv_use_all_monthes();
+#**********************************************************
+sub dv_use_allmonthes {
+
+  $FORM{allmonthes}='y';
+  dv_use();
+}
+
 
 #**********************************************************
 # dv_use();
@@ -678,7 +687,6 @@ sub dv_use {
 
 
 my ($y, $m, $d);
-print "<a href='$SELF_URL?index=$index&allmonthes=y'>$_MONTH</a>::<br>";
 
 my $type='DATE';
 
@@ -722,7 +730,7 @@ if (defined($FORM{DATE})) {
   $table_sessions = Abills::HTML->table( { width => '100%',
 	                              caption => "$_SESSIONS", 
                                 title =>["$_DATE", "$_USERS", "$_SESSIONS", "$_TRAFFIC ", "$_TRAFFIC 2", $_DURATION, $_SUM],
-                                cols_align => ['right', 'right', 'right', 'right', 'right', 'right', 'right'],
+                                cols_align => ['right', 'left', 'right', 'right', 'right', 'right', 'right'],
                                 qs => $pages_qs             
                                } );
 
@@ -971,8 +979,8 @@ if (defined($FORM{show})) {
   $FORM{tom} = sprintf("%.2d", $FORM{tom}++);
   $LIST_PARAMS{INTERVAL} = "$FORM{fromy}-$FORM{fromm}-$FORM{fromd}/$FORM{toy}-$FORM{tom}-$FORM{tod}";
  }
-elsif ($FORM{period}) {
-	$LIST_PARAMS{PERIOD} = $FORM{period}; 
+elsif (defined($FORM{period})) {
+	$LIST_PARAMS{PERIOD} = $FORM{period}+0; 
 	$pages_qs .= "&period=$FORM{period}";
 }
 elsif($FORM{DATE}) {

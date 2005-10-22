@@ -240,10 +240,7 @@ sub session_detail {
  my $self = shift;	
  my ($attr) = @_;
  
- my $WHERE = '';
- 
- $self->{debug}=1;
- 
+
  $WHERE = " and l.uid='$attr->{UID}'" if ($attr->{UID});
  
 
@@ -452,8 +449,8 @@ sub list {
  $PG = ($attr->{PG}) ? $attr->{PG} : 0;
  $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
 
- 
- my $WHERE = '';
+ undef @WHERE_RULES; 
+
  
 #UID
  if ($attr->{UID}) {
@@ -496,39 +493,40 @@ if ($attr->{ACCT_SESSION_ID}) {
   }
 
 
- $WHERE = "WHERE " . join(' and ', @WHERE_RULES) if($#WHERE_RULES > -1);
+
  
 #Interval from date to date
 if ($attr->{INTERVAL}) {
  	 my ($from, $to)=split(/\//, $attr->{INTERVAL}, 2);
-   $WHERE .= ($WHERE ne '') ?  " and date_format(start, '%Y-%m-%d')>='$from' and date_format(start, '%Y-%m-%d')<='$to'" : "WHERE date_format(start, '%Y-%m-%d')>='$from' and date_format(start, '%Y-%m-%d')<='$to'";
+   push @WHERE_RULES, "date_format(start, '%Y-%m-%d')>='$from' and date_format(start, '%Y-%m-%d')<='$to'";
   }
 #Period
-elsif ($attr->{PERIOD}) {
+elsif (defined($attr->{PERIOD})) {
    my $period = $attr->{PERIOD};   
    if ($period == 4) { $WHERE .= ''; }
    else {
      $WHERE .= ($WHERE ne '') ? ' and ' : 'WHERE ';
-     if($period == 0) { $WHERE .= "date_format(start, '%Y-%m-%d')=curdate() "; }
-     elsif($period == 1) { $WHERE .= "TO_DAYS(curdate()) - TO_DAYS(start) = 1 ";  }
-     elsif($period == 2) { $WHERE .= "YEAR(curdate()) = YEAR(start) and (WEEK(curdate()) = WEEK(start)) ";  }
-     elsif($period == 3) { $WHERE .= "date_format(start, '%Y-%m')=date_format(curdate(), '%Y-%m') "; }
-     elsif($period == 5) { $WHERE .= "date_format(start, '%Y-%m-%d')='$attr->{DATE}' "; }
+     if($period == 0)    {  push @WHERE_RULES, "date_format(start, '%Y-%m-%d')=curdate()"; }
+     elsif($period == 1) {  push @WHERE_RULES, "TO_DAYS(curdate()) - TO_DAYS(start) = 1 ";  }
+     elsif($period == 2) {  push @WHERE_RULES, "YEAR(curdate()) = YEAR(start) and (WEEK(curdate()) = WEEK(start)) ";  }
+     elsif($period == 3) {  push @WHERE_RULES, "date_format(start, '%Y-%m')=date_format(curdate(), '%Y-%m') "; }
+     elsif($period == 5) {  push @WHERE_RULES, "date_format(start, '%Y-%m-%d')='$attr->{DATE}' "; }
      else {$WHERE .= "date_format(start, '%Y-%m-%d')=curdate() "; }
     }
  }
 elsif($attr->{DATE}) {
-	$WHERE .= ($WHERE ne '') ? " and date_format(start, '%Y-%m-%d')='$attr->{DATE}' " : "WHERE date_format(start, '%Y-%m-%d')='$attr->{DATE}";
+	 push @WHERE_RULES, "date_format(start, '%Y-%m-%d')='$attr->{DATE}'";
 }
-else {
-	$WHERE .= ($WHERE ne '') ? ' and ' : 'WHERE ';
-	$WHERE .= "date_format(start, '%Y-%m-%d')=curdate() ";
-}
+#else {
+#	 push @WHERE_RULES, "date_format(start, '%Y-%m-%d')=curdate()";
+#}
 #From To
 
 
- #jOINT 2 TABLES
- my $WHERE_LIST .= ($WHERE ne '') ?  $WHERE  . "and u.uid=l.uid " : "WHERE u.uid=l.uid ";
+ push @WHERE_RULES, "u.uid=l.uid";
+ $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
+
+
 
 
  $self->query($db, "SELECT u.id, l.start, SEC_TO_TIME(l.duration), l.tp_id,
@@ -538,15 +536,16 @@ else {
   UNIX_TIMESTAMP(l.start),
   l.duration
   FROM log l, users u
-  $WHERE_LIST
+  $WHERE
   ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");
 
  my $list = $self->{list};
 
+
  if ($self->{TOTAL} > 0) {
     $self->query($db, "SELECT count(*), SEC_TO_TIME(sum(l.duration)), sum(l.sent + l.recv), sum(sum)  
       FROM log l, users u
-     $WHERE_LIST;");
+     $WHERE;");
 
     my $a_ref = $self->{list}->[0];
     ($self->{TOTAL},
