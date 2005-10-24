@@ -704,6 +704,20 @@ else {
 	$pages_qs="&MONTH=$LIST_PARAMS{MONTH}";
 }
 
+
+if ($FORM{GID}) {
+	$LIST_PARAMS{GID}=$FORM{GID};
+  $pages_qs.="&GID=$FORM{GID}";
+}
+
+
+
+
+$sessions->{GROUPS_SEL} = sel_groups();
+Abills::HTML->tpl_show(templates('groups_sel'), $sessions);
+
+
+
 my ($tables_sessions, $table_fees);
 
 #Day reposrt
@@ -711,7 +725,7 @@ if (defined($FORM{DATE})) {
   ($y, $m, $d)=split(/-/, $FORM{DATE}, 3);	
   my $days = '';
   for ($i=1; $i<=31; $i++) {
-     $days .= ($d == $i) ? "<b>$i </b>" : sprintf("<a href='$SELF_URL?index=$index&DATE=%d-%02.f-%02.f'>%d</a> ", $y, $m, $i, $i);
+     $days .= ($d == $i) ? "<b>$i </b>" : sprintf("<a href='$SELF_URL?index=$index&DATE=%d-%02.f-%02.f$pages_qs'>%d</a> ", $y, $m, $i, $i);
    }
 
   $table = Abills::HTML->table( { width => '100%',
@@ -724,7 +738,7 @@ if (defined($FORM{DATE})) {
 
   print $table->show();
   $LIST_PARAMS{DATE}="$FORM{DATE}";
-  $pages_qs="&DATE=$LIST_PARAMS{DATE}";
+  $pages_qs.="&DATE=$LIST_PARAMS{DATE}";
 
   #Used Fraffic
   $table_sessions = Abills::HTML->table( { width => '100%',
@@ -765,7 +779,7 @@ else {
 
   my $list = $sessions->reports({ %LIST_PARAMS });
   foreach my $line (@$list) {
-    $table_sessions->addrow("<a href='$SELF_URL?index=$index&$type=$line->[0]'>$line->[0]</a>", 
+    $table_sessions->addrow("<a href='$SELF_URL?index=$index&$type=$line->[0]$pages_qs'>$line->[0]</a>", 
        $line->[1], $line->[2], int2byte($line->[3]),  int2byte($line->[4]),  $line->[5], "<b>$line->[6]</b>" );
    }
 
@@ -779,7 +793,7 @@ else {
 
   $list = $fees->reports({ %LIST_PARAMS });
   foreach my $line (@$list) {
-    $table_fees->addrow("<a href='$SELF_URL?index=$index&$type=$line->[0]'>$line->[0]</a>", $line->[1], "<b>$line->[2]</b>" );
+    $table_fees->addrow("<a href='$SELF_URL?index=$index&$type=$line->[0]$pages_qs'>$line->[0]</a>", $line->[1], "<b>$line->[2]</b>" );
    }
 }
 
@@ -817,7 +831,6 @@ print $table_fees->show() . $table->show();
 
 
 
-#Payments
 }
 
 

@@ -492,6 +492,9 @@ if ($attr->{ACCT_SESSION_ID}) {
    push @WHERE_RULES, "l.acct_session_id='$attr->{ACCT_SESSION_ID}'";
   }
 
+if ($attr->{GID}) {
+   push @WHERE_RULES, "u.gid='$attr->{GID}'";
+  }
 
 
  
@@ -525,7 +528,6 @@ elsif($attr->{DATE}) {
 
  push @WHERE_RULES, "u.uid=l.uid";
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
-
 
 
 
@@ -607,20 +609,28 @@ sub reports {
 	my ($self) = shift;
 	my ($attr) = @_;
 
- my $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
- my $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
- my $WHERE = '';
+ $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+ $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+ undef @WHERE_RULES;
  my $date = '';
+
+
+
 
  
  if (defined($attr->{MONTH})) {
- 	 $WHERE = ($WHERE ne '') ? "and date_format(l.start, '%Y-%m')='$attr->{MONTH}'" : "WhERE date_format(l.start, '%Y-%m')='$attr->{MONTH}'" ;
+ 	 push @WHERE_RULES, "date_format(l.start, '%Y-%m')='$attr->{MONTH}'";
    $date = "date_format(l.start, '%Y-%m-%d')";
   } 
  else {
  	 $date = "date_format(l.start, '%Y-%m')";
   }
 
+ if ($attr->{GID}) {
+   push @WHERE_RULES, "u.gid='$attr->{GID}'";
+  }
+
+ my $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
 
  if(defined($attr->{DATE})) {
    $self->query($db, "select date_format(l.start, '%Y-%m-%d'), if(u.id is NULL, CONCAT('> ', l.uid, ' <'), u.id), count(l.uid), 
@@ -639,6 +649,7 @@ sub reports {
       sec_to_time(sum(l.duration)), 
       sum(l.sum)
        FROM log l
+       LEFT JOIN users u ON (u.uid=l.uid)
        $WHERE    
        GROUP BY 1 
        ORDER BY $SORT $DESC;");
@@ -662,7 +673,9 @@ sub reports {
       sec_to_time(sum(l.duration)), 
       sum(l.sum)
        FROM log l
+       LEFT JOIN users u ON (u.uid=l.uid)
        $WHERE;");
+
    my $a_ref = $self->{list}->[0];
  
   ($self->{USERS}, 

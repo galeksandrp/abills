@@ -199,6 +199,10 @@ print "<table width=100%>
 </td></tr>\n";
 
 
+use Users;
+my $users = Users->new($db, $admin, \%conf); 
+
+
 if(defined($conf{tech_works})) {
   print "<tr><th bgcolor=red colspan=2>$conf{tech_works}</th></tr>";
 }
@@ -509,8 +513,6 @@ Abills::HTML->tpl_show(templates('form_user'), $user_info);
 # form_groups()
 #**********************************************************
 sub form_groups {
-	use Users;
-  my $users = Users->new($db, $admin, \%conf); 
 
 if ($FORM{add}) {
   $users->group_add( { %FORM });
@@ -611,8 +613,6 @@ sub add_groups {
 #**********************************************************
 sub user_info {
   my ($UID)=@_;
-  use Users;
-  my $users = Users->new($db, $admin, \%conf); 
 	my $user_info = $users->info( $UID );
   
   print  "<table width=100% bgcolor=$_COLORS[2]><tr><td>$_USER:</td>
@@ -759,8 +759,6 @@ print "<li><a href='$SELF?index=$index&del_user=y&UID=$user_info->{UID}' onclick
   return 0;
 }
 elsif ($FORM{add}) {
-  use Users;
-  my $users = Users->new($db, $admin, \%conf); 
   my $user_info = $users->add({ %FORM });  
 
   if ($users->{errno}) {
@@ -817,8 +815,6 @@ for (my $i=97; $i<123; $i++) {
    $pages_qs .= "&letter=$FORM{letter}";
   } 
 
-use Users;
-my $users = Users->new($db, $admin, \%conf); 
 
 my $list = $users->list( { %LIST_PARAMS } );
 
@@ -2220,8 +2216,6 @@ sub form_back_money {
 
 if ($type eq 'log') {
 	if(defined($attr->{LOGIN})) {
-		 use Users;
-     my $users = Users->new($db, $admin);
      my $list = $users->list( { LOGIN => $attr->{LOGIN} } );
 
      if($users->{TOTAL} < 1) {
@@ -3255,6 +3249,25 @@ sub form_period  {
  return $form_period;	
 }
 
+
+#*******************************************************************
+# sel_groups();
+#*******************************************************************
+sub sel_groups {
+	
+my $list = $users->groups_list({ %LIST_PARAMS });
+
+my $GROUPS_SEL = "<select name=GID>\n";
+foreach my $line (@$list) {
+ $GROUPS_SEL .= "<option value=$line->[0]";
+ $GROUPS_SEL .= ' selected' if ($line->[0] eq $FORM{GID});
+ $GROUPS_SEL .= ">$line->[1]\n";
+}
+$GROUPS_SEL .= "</select>\n";
+
+ return $GROUPS_SEL;	
+}
+
 #*******************************************************************
 #
 #*******************************************************************
@@ -3266,6 +3279,7 @@ sub weblog {
   close(FILE);
 	
 }
+
 
 
 

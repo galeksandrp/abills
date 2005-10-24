@@ -206,12 +206,16 @@ sub reports {
 
  $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
  $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
- $WHERE = '' ;
  my $date = '';
+ undef @WHERE_RULES;
  
- print $attr->{DATE};
+ 
+ if ($attr->{GID}) {
+   push @WHERE_RULES, "u.gid='$attr->{GID}'";
+  }
  
  if(defined($attr->{DATE})) {
+   my $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
    $self->query($db, "select date_format(l.start, '%Y-%m-%d'), if(u.id is NULL, CONCAT('> ', l.uid, ' <'), u.id), count(l.uid), 
     sum(l.sent + l.recv), sum(l.sent2 + l.recv2), sec_to_time(sum(l.duration)), sum(l.sum), l.uid
       FROM log l
@@ -222,17 +226,20 @@ sub reports {
    return $self->{list};
   }
  elsif (defined($attr->{MONTH})) {
- 	 $WHERE = ($WHERE ne '') ? "and date_format(f.date, '%Y-%m')='$attr->{MONTH}'" : "WhERE date_format(f.date, '%Y-%m')='$attr->{MONTH}'" ;
+ 	 push @WHERE_RULES, "date_format(f.date, '%Y-%m')='$attr->{MONTH}'";
    $date = "date_format(f.date, '%Y-%m-%d')";
   } 
  else {
  	 $date = "date_format(f.date, '%Y-%m')";
   }
 
+
+
+  my $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
  
- 
- $self->query($db, "SELECT $date, count(*), sum(f.sum) 
+  $self->query($db, "SELECT $date, count(*), sum(f.sum) 
       FROM fees f
+      LEFT JOIN users u ON (u.uid=f.uid)
       $WHERE 
       GROUP BY 1
       ORDER BY $SORT $DESC;");
@@ -241,6 +248,7 @@ sub reports {
 	
  $self->query($db, "SELECT count(*), sum(f.sum) 
       FROM fees f
+      LEFT JOIN users u ON (u.uid=f.uid)
       $WHERE;");
  my $a_ref = $self->{list}->[0];
 

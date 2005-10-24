@@ -415,6 +415,19 @@ return qq{
 </form>
 };
 }
+elsif ($tpl_name eq 'groups_sel') {
+return qq{
+<form action=$SELF_URL METHOD=POST>
+<input type=hidden name=index value=$index>
+<TABLE width=100% cellspacing=0 cellpadding=0 border=0>
+<TR><TD bgcolor=$_BG4>
+<TABLE width=100% cellspacing=1 cellpadding=0 border=0>
+<tr><td>$_GROUP:</td><td>%GROUPS_SEL% <input type=submit name=SHOW value='$_SHOW'></td></tr>
+</table>
+</td></tr></table>
+</form>
+};
+}
 elsif ($tpl_name eq 'chg_bill') {
 return qq{
 <form action=$SELF_URL>
