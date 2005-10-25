@@ -36,7 +36,7 @@ if (defined($ARGV[0]) && $ARGV[0] eq 'pre_auth') {
   Auth->import();
   my $Auth = Auth->new($db, \%conf);
 
-  $Auth->pre_auth("$RAD{USER_NAME}", $RAD, { SECRETKEY => $conf{secretkey} });
+  $Auth->pre_auth($RAD, { SECRETKEY => $conf{secretkey} });
   exit 0;
 }
 

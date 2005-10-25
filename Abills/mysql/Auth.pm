@@ -99,6 +99,8 @@ sub dv_auth {
     return 1, $RAD_PAIRS;
    }
 
+#  print $RAD_PAIRS->{'MS-CHAP-MPPE-Keys'};
+
   my $a_ref = $self->{list}->[0];
 
   ($self->{LOGINS}, 
@@ -154,8 +156,8 @@ if ($self->{DISABLE}) {
 
 #Check CID (MAC) 
 if ($self->{CID} ne '') {
-  ($ret, $RAD_PAIRS) = $self->Auth_CID($RAD);
-  return $ret, $RAD_PAIRS if ($ret == 1);
+  my ($ret, $ERR_RAD_PAIRS) = $self->Auth_CID($RAD);
+  return $ret, $ERR_RAD_PAIRS if ($ret == 1);
 }
 
 
@@ -397,7 +399,7 @@ elsif ($NAS->{NAS_TYPE} eq 'pppd') {
 if( defined($CONF->{MAC_AUTO_ASSIGN}) && 
        $CONF->{MAC_AUTO_ASSIGN}==1 && 
        $self->{CID} eq '' && 
-       ( $RAD->{CALLING_STATION_ID} =~ /:/ && $RAD->{CALLING_STATION_ID} !~ /\// )
+       (defined($RAD->{CALLING_STATION_ID}) && $RAD->{CALLING_STATION_ID} =~ /:/ && $RAD->{CALLING_STATION_ID} !~ /\// )
       ) {
 #  print "ADD MAC___\n";
   $self->query($db, "UPDATE dv_main SET cid='$RAD->{CALLING_STATION_ID}'
@@ -423,7 +425,7 @@ sub Auth_CID {
   my @MAC_DIGITS_GET = ();
 
    if (($self->{CID} =~ /:/ || $self->{CID} =~ /-/)
-       && $self->{CID} !~ /\//) {
+       && $self->{CID} !~ /./) {
 
       #@MAC_DIGITS_GET=split(/:/, $self->{CID}) if($self->{CID} =~ /:/);
       @MAC_DIGITS_GET=split(/:|-/, $self->{CID});
@@ -566,6 +568,7 @@ elsif(defined($RAD->{MS_CHAP_CHALLENGE})) {
         }
        else {
          my $message;
+  
          if (check_mschap("$self->{PASSWD}", "$RAD->{MS_CHAP_CHALLENGE}", "$RAD->{MS_CHAP_RESPONSE}", 
 	           \$usersessionkey, \$lanmansessionkey, \$message) == 0) {
            $message = "Wrong MS-CHAP password";
@@ -582,6 +585,9 @@ elsif(defined($RAD->{MS_CHAP_CHALLENGE})) {
        # 2      Encryption-Required 
        $RAD_PAIRS{'MS-MPPE-Encryption-Policy'} = '0x00000001';
        $RAD_PAIRS{'MS-MPPE-Encryption-Types'} = '0x00000006';      
+    
+
+
  }
 #End MSchap auth
 elsif($NAS->{NAS_AUTH_TYPE} == 1) {
@@ -592,7 +598,7 @@ elsif($NAS->{NAS_AUTH_TYPE} == 1) {
  } 
 #If don't athorize any above methods auth PAP password
 else {
-  if($self->{PASSWD} ne "$RAD->{USER_PASSWORD}") {
+  if(defined($RAD->{USER_PASSWORD}) && $self->{PASSWD} ne $RAD->{USER_PASSWORD}) {
     $RAD_PAIRS{'Reply-Message'}="Wrong password '$RAD->{USER_PASSWORD}'";
     return 1, \%RAD_PAIRS;
    }
@@ -1163,14 +1169,16 @@ sub bin2hex ($) {
 # pre_auth()
 #*******************************************************************
 sub pre_auth {
-  my ($self, $login, $RAD, $attr)=@_;
+  my ($self, $RAD, $attr)=@_;
 
 if (! $RAD->{MS_CHAP_CHALLENGE}) {
   print "Auth-Type := Accept\n";
   exit 0;
  }
 
-  $self->query('db', "SELECT DECODE(password, '$attr->{SECRETKEY}') FROM users WHERE id='$login';");
+  $self->query($db, "SELECT DECODE(password, '$attr->{SECRETKEY}') FROM users WHERE id='$RAD->{USER_NAME}';");
+
+  my $a = `echo "'$attr->{SECRETKEY}') FROM users WHERE id='$RAD->{USER_NAME}' test" > /tmp/aaaaaaa`;
 
   if ($self->{TOTAL} > 0) {
   	my $list = $self->{list}->[0];
@@ -1179,18 +1187,95 @@ if (! $RAD->{MS_CHAP_CHALLENGE}) {
     exit 0;
    }
 
+
+
   $self->{errno} = 1;
-  $self->{errstr} = "USER: '$login' not exist";
+  $self->{errstr} = "USER: '$RAD->{USER_NAME}' not exist";
   exit 1;
 }
 
 
 
 
+#####################################################################
+# Overrideable function that checks a MSCHAP password response
+# $p is the current request
+# $username is the users (rewritten) name
+# $pw is the ascii plaintext version of the correct password if known
+# rfc2548 Microsoft Vendor-specific RADIUS Attributes
+sub check_mschap {
+  my ($pw, $challenge, $response, $usersessionkeydest, $lanmansessionkeydest, $message) = @_;
+
+  #use lib $Bin;
+  use Abills::MSCHAP;
+
+  $response =~ s/^0x//; 
+  $challenge =~ s/^0x//;
+  $challenge = pack("H*", $challenge);
+  $response = pack("H*", $response);
+  my($ident, $flags, $lmresponse, $ntresponse) = unpack('C C a24 a24', $response);
+
+
+  if ($flags == 1) {
+    my $upw = Radius::MSCHAP::ASCIItoUnicode($pw);
+    #return Radius::MSCHAP::NtChallengeResponse($challenge, $upw);
+    return unless Radius::MSCHAP::NtChallengeResponse($challenge, $upw) eq $ntresponse;
+    # Maybe generate a session key. 
+    
+    $$usersessionkeydest = Radius::MSCHAP::NtPasswordHash(Radius::MSCHAP::NtPasswordHash($upw))
+	if defined $usersessionkeydest;
+    $$lanmansessionkeydest = Radius::MSCHAP::LmPasswordHash($pw)
+	if defined $lanmansessionkeydest;
+
+#      $RAD_PAIRS{'MS-CHAP-MPPE-Keys'} = '0x' . unpack("H*", (pack('a8 a16', Radius::MSCHAP::LmPasswordHash($pw), 
+#                                                                            Radius::MSCHAP::NtPasswordHash( Radius::MSCHAP::NtPasswordHash(Radius::MSCHAP::ASCIItoUnicode($pw)))))). "0000000000000000";
+   }
+  else {
+     $$message = "MS-CHAP LM-response not implemented";
+     #log_print('LOG_ERR', "MS-CHAP LM-response not implemented");
+     return 0;
+   }
+  
+  return 1;
+
+}
 
 
 
+#####################################################################
+# $p is the current request
+# Overrideable function that checks a MSCHAP password response
+# $username is the users (rewritten) name
+# $pw is the ascii plaintext version of the correct password if known
+# $sessionkeydest is a ref to a string where the sesiosn key for MPPE will be returned
+sub check_mschapv2 {
+    my ($username, $pw, $challenge, $peerchallenge, $response, $ident,
+	$usersessionkeydest, $lanmansessionkeydest,  $ms_chap2_success) = @_;
 
+  use Abills::MSCHAP;
+
+  my $upw = Radius::MSCHAP::ASCIItoUnicode($pw);
+  return 
+  unless &Radius::MSCHAP::GenerateNTResponse($challenge, $peerchallenge, $username, $upw) 
+	       eq $response;
+
+
+    # Maybe generate a session key. 
+    $$usersessionkeydest = Radius::MSCHAP::NtPasswordHash
+	(Radius::MSCHAP::NtPasswordHash($upw))
+	if defined $usersessionkeydest;
+    $$lanmansessionkeydest = Radius::MSCHAP::LmPasswordHash($pw)
+	if defined $lanmansessionkeydest;
+
+   
+    $$ms_chap2_success=pack('C a42', $ident,
+			  &Radius::MSCHAP::GenerateAuthenticatorResponseHash
+			  ($$usersessionkeydest, $response, $peerchallenge, $challenge, "$username"))
+			  if defined $ms_chap2_success;
+
+
+    return 1;
+}
 
 
 

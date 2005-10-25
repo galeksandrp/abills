@@ -10,10 +10,11 @@ my $db;
 use main;
 @ISA  = ("main");
 my %DATA;
+my $CONF;
 
 sub new {
   my $class = shift;
-  $db = shift;
+  ($db, $CONF) = shift;
   my $self = { };
   bless($self, $class);
   #$self->{debug}=1;
