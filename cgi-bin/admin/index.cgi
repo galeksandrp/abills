@@ -2370,7 +2370,7 @@ my @m = ("1:0:$_CUSTOMERS:null:::",
  "85:5:$_SHEDULE:form_shedule:::",
  "90:5:$_TEMPLATES:form_templates:::",
  
- "6:0:$_MODULES:null:::",
+ "6:0:$_OTHER:null:::",
  "999:6:$_TEST:test:::",
  "1000:6:$_DOCS::::",
  "1001:6:Postfix::::",
@@ -2379,30 +2379,12 @@ my @m = ("1:0:$_CUSTOMERS:null:::",
  "7:0:$_SEARCH:form_search:::",
  
  "8:0:$_MONITORING:null:::",
- "9:0:$_PROFILE:null:::",
+ "9:0:$_PROFILE:admin_profile:::",
  "53:9:$_PROFILE:admin_profile:::",
  "99:9:$_FUNCTIONS_LIST:flist:::",
  );
 
 
-# "70:5:$_TARIF_PLANS:form_tp:::",
-# "71:70:$_ADD:form_tp:::",
-# "72:70:$_NASS:form_nas_allow:::",
-# "73:70:$_INTERVALS:form_intervals:::",
-# "74:70:$_TRAFIC_TARIFS:form_traf_tarifs:::"
-
-
-#
-# "40:4:$_ERROR:form_error:::",
-# "41:4:$_LAST:show_sessions:::",
-# "43:4:$_USED:form_use:::",
-# "44:43:$_MONTH:form_use:::",
-#
-
-
-#"2000:5:DV:flist:1::",
-# "2001:2000:$_TARIF_PLANS:flist:1::",
-# "2002:2000:$_INTERVALS:flist:1::",
 
 
 foreach my $line (@m) {
@@ -2438,7 +2420,7 @@ sub mk_navigator {
       $root_index = $par_key;
       $h = $menu_items{$par_key};
      }
-  }
+   }
 }
 
 $FORM{root_index} = $root_index;
@@ -2451,27 +2433,49 @@ if ($root_index > 0) {
 }
 
 
-my %menu = ();
-while(my($ID, $VALUE_HASH)=each %menu_items) {
- 	foreach my $parent (keys %$VALUE_HASH) {
+#my %menu = ();
+#my @sorted_menu_items = sort {
+#   $ages{$b} <=> $ages{$a}
+#     ||
+#   length($a) <=> length($b)
+#     ||
+#   $a cmp $b
+#} keys %menu_items;
+
+
+#@persons = sort keys %ages;
+
+foreach my $ID (sort keys %menu_items) {
+ 	my $VALUE_HASH = $menu_items{$ID};
+ 	foreach my $parent (sort keys %$VALUE_HASH) {
     push( @{$menu{$parent}},  "$ID:$VALUE_HASH->{$parent}" );
    }
 }
+
+
+
+
+ my @sorted_menu = sort {
+   $ages{$b} <=> $ages{$a}
+     ||
+   length($a) <=> length($b)
+     ||
+   $a cmp $b
+ } keys %menu;
  
- 
- my @sorted_menu = sort keys %menu;
  my @last_array = ();
 
  my $menu_text = "<table border=0 width=100%>\n";
  
- foreach $parent (@sorted_menu) {
+ foreach my $parent (@sorted_menu) {
 
+    
     next if ($parent > 0);
  	  my $level  = 0;
  	  my $prefix = '';
 
  	  label:
- 	  $sub_menu_array = \@{$menu{$parent}};
+ 	  $sub_menu_array =  \@{$menu{$parent}};
  	  while( $sm_item = pop @$sub_menu_array) {
  	     my($ID, $name)=split(/:/, $sm_item, 2);
 
