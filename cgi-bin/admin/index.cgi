@@ -58,7 +58,7 @@ my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $con
 $db = $sql->{db};
 my $admin = Admins->new($db, \%conf);
 require "../../language/$html->{language}.pl";
-my %permissions = ();
+%permissions = ();
 
 
 #**********************************************************
@@ -481,7 +481,9 @@ sub user_form {
      $user_info->{EXDATA} =  "<tr><td>$_COMPANY:</td><td><a href='$SELF_URL?index=13&COMPANY_ID=$company->{COMPANY_ID}'>$company->{COMPANY_NAME}</a></td></tr>\n";
     }
 
-   $user_info->{EXDATA} .= "<tr><td>$_USER:*</td><td><input type=text name=LOGIN value=''></td></tr>\n";
+   $user_info->{EXDATA} .= "<tr><td>$_USER:*</td><td><input type=text name=LOGIN value=''></td></tr>
+   <tr><td>$_BILL:</td><td><input type=checkbox name=CREATE_BILL value='1'> $_CREATE</td></tr>
+   \n";
 
    use Tariffs;
    my $tariffs = Tariffs->new($db);
@@ -498,7 +500,8 @@ sub user_form {
   }
  else {
    $user_info->{EXDATA} = "<tr><td>$_DEPOSIT:</td><td>$user_info->{DEPOSIT}</td></tr>\n".
-           "<tr><td>$_COMPANY:</td><td><a href='$SELF_URL?index=13&COMPANY_ID=$user_info->{COMPANY_ID}'>$user_info->{COMPANY_NAME}</a></td></tr>\n";
+           "<tr><td>$_COMPANY:</td><td><a href='$SELF_URL?index=13&COMPANY_ID=$user_info->{COMPANY_ID}'>$user_info->{COMPANY_NAME}</a></td></tr>\n".
+           "<tr><td>BILL_ID:<td>%BILL_ID%</td></tr>\n";
    $user_info->{DISABLE} = ($user_info->{DISABLE} > 0) ? 'checked' : '';
    $user_info->{ACTION}='change';
    $user_info->{LNG_ACTION}=$_CHANGE;

@@ -114,12 +114,19 @@ sub dv_users_list {
 
 
 
-print Abills::HTML->letters_list(); 
+ if($FORM{TP_ID}) {
+   $LIST_PARAMS{TP_ID} = $FORM{TP_ID};
+   $pages_qs .= "&TP_ID=$FORM{TP_ID}";
+  }
+ 
+
+ print Abills::HTML->letters_list({ pages_qs => $pages_qs  }); 
 
  if ($FORM{letter}) {
    $LIST_PARAMS{FIRST_LETTER} = $FORM{letter};
    $pages_qs .= "&letter=$FORM{letter}";
   } 
+
 
 #use Users;
 #my $users = Users->new($db, $admin, \%conf); 
@@ -230,7 +237,7 @@ sub dv_tp {
 if($FORM{ADD_TP}) {
   $tariffs->add( { %FORM });
   if (! $tariffs->{errno}) {
-    message('info', $_ADDED, "$_ADDED $tariffs->{VID}");
+    message('info', $_ADDED, "$_ADDED $tariffs->{TP_ID}");
    }
  }
 elsif ($FORM{TP_ID}) {
@@ -275,7 +282,7 @@ elsif ($FORM{TP_ID}) {
   $tarif_info->{ACTION}='change';
 
  }
-elsif($FORM{del} && $FORM{is_js_confirmed}) {
+elsif(defined($FORM{del}) && $FORM{is_js_confirmed}) {
   $tariffs->del($FORM{del});
 
   if (! $tariffs->{errno}) {
@@ -332,13 +339,13 @@ my $table = Abills::HTML->table( { width      => '100%',
 my ($delete, $change);
 foreach my $line (@$list) {
   if ($permissions{4}{1}) {
-    $delete = $html->button($_DEL, "index=70&del=$line->[0]", "$_DEL ?"); 
-    $change = "<a href='$SELF_URL?index=70&TP_ID=$line->[0]'>$_INFO</a>";
+    $delete = $html->button($_DEL, "index=$index&del=$line->[0]", "$_DEL ?"); 
+    $change = "<a href='$SELF_URL?index=$index&TP_ID=$line->[0]'>$_INFO</a>";
    }
 
   $table->addrow("<b>$line->[0]</b>", "<a href='$SELF_URL?index=$index&TP_ID=$line->[0]'>$line->[1]</a>", 
    $bool_vals[$line->[2]], $bool_vals[$line->[3]], $Payment_Types[$line->[4]], $line->[5], $line->[6], $line->[7], $line->[8],
-   "<a href='$SELF_URL?index=70&subf=73&TP_ID=$line->[0]'>$_INTERVALS</a>",
+   "<a href='$SELF_URL?index=$index&subf=73&TP_ID=$line->[0]'>$_INTERVALS</a>",
    $change,
    $delete);
 }

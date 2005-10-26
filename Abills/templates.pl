@@ -60,7 +60,6 @@ return qq{
 <input type=hidden name=UID value="%UID%">
 <table width=420 cellspacing=0 cellpadding=3>
 %EXDATA%
-<tr><td>BILL_ID:<td>%BILL_ID%</td></tr>
 <tr><td colspan=2>&nbsp;</td></tr>
 
 <tr><td>$_CREDIT:</td><td><input type=text name=CREDIT value='%CREDIT%'></td></tr>

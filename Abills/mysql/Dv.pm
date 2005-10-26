@@ -339,8 +339,8 @@ sub list {
   }
 
  # Show users for spec tarifplan 
- if ($attr->{TP}) {
-    push @WHERE_RULES, "dv.tp_id='$attr->{TP}'";
+ if ($attr->{TP_ID}) {
+    push @WHERE_RULES, "dv.tp_id='$attr->{TP_ID}'";
   }
 
  # Show debeters

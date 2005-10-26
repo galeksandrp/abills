@@ -902,7 +902,11 @@ print "</table>\n";
 # letters_list();
 #**********************************************************
 sub letters_list {
+ my ($self, $attr) = @_;
+ 
+ my $pages_qs = $attr->{pages_qs} if (defined($attr->{pages_qs}));
 
+  
 my $letters = "<a href='$SELF_URL?index=$index'>All</a> ::";
 for (my $i=97; $i<123; $i++) {
   my $l = chr($i);
