@@ -299,15 +299,15 @@ foreach my $line (@periods) {
      return 1, $RAD_PAIRS;
     }
    elsif($ip eq '0') {
-     $RAD_PAIRS->{'Reply-Message'}="$self->{errstr} ($NAS->{NID})";
-     return 1, $RAD_PAIRS;
+     #$RAD_PAIRS->{'Reply-Message'}="$self->{errstr} ($NAS->{NID})";
+     #return 1, $RAD_PAIRS;
     }
    else {
      $RAD_PAIRS->{'Framed-IP-Address'} = "$ip";
     }
   }
 
-  $RAD_PAIRS->{'Framed-IP-Netmask'} = "$self->{NETMASK}";
+  $RAD_PAIRS->{'Framed-IP-Netmask'} = "$self->{NETMASK}" if(defined($RAD_PAIRS->{'Framed-IP-Address'}));
   $RAD_PAIRS->{'Filter-Id'} = "$self->{FILTER}" if (length($self->{FILTER}) > 0); 
 
 
@@ -771,6 +771,7 @@ if ($trafic_limits{1} > 0) {
 
 #*******************************************************************
 # returns:
+#
 #   -1 - No free adddress
 #    0 - No address pool using nas servers ip address
 #   192.168.101.1 - assign ip address
@@ -789,8 +790,8 @@ sub get_ip {
   WHERE ippools.nas='$nas_num';");
 
  if ($self->{TOTAL} < 1)  {
-     $self->{errno}=1;
-     $self->{errstr}='No ip pools';
+#     $self->{errno}=1;
+#     $self->{errstr}='No ip pools';
      return 0;	
   }
 

@@ -552,7 +552,7 @@ sub add {
      $self->{errstr} = 'ERROR_ENTER_NAME';
      return $self;
    }
-  elsif (length($DATA{LOGIN}) > $CONF->{max_username_length}) {
+  elsif (length($DATA{LOGIN}) > $CONF->{username_length}) {
      $self->{errno} = 9;
      $self->{errstr} = 'ERROR_SHORT_PASSWORD';
      return $self;

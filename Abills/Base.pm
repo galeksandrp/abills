@@ -617,8 +617,13 @@ sub get_radius_params {
  if ($#ARGV > 1) {
     foreach my $pair (@ARGV) {
         my ($side, $value) = split(/=/, $pair);
-        $value = clearquotes("$value");
-        $RAD{"$side"} = "$value";
+        if(defined($value)) {
+          $value = clearquotes("$value");
+          $RAD{"$side"} = "$value";
+         }
+        else {
+        	$RAD{"$side"} = "";
+         }
      }
   }
  else {
@@ -637,7 +642,7 @@ sub get_radius_params {
 #*******************************************************************
 sub clearquotes {
  my $text = shift;
- $text =~ s/"//g;
+ $text =~ s/\"//g;
  return "$text";
 }
 
@@ -667,6 +672,7 @@ sub test_radius_returns {
   }
 
 # log_print('LOG_DEBUG', "$test");
+#print $test;
 }
 
 1;

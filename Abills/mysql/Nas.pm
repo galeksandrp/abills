@@ -17,7 +17,7 @@ sub new {
   ($db, $CONF) = shift;
   my $self = { };
   bless($self, $class);
-  #$self->{debug}=1;
+#  $self->{debug}=1;
   return $self;
 }
 

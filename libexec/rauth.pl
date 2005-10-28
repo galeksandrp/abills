@@ -46,6 +46,7 @@ my $nas = Nas->new($db);
 $nas->info({IP => $RAD->{NAS_IP_ADDRESS},
             SECRETKEY => $conf{secretkey}});
 
+
 if (defined($nas->{errno}) || $nas->{TOTAL} < 1) {
   access_deny("$RAD->{USER_NAME}", "Unknow server '$RAD->{NAS_IP_ADDRESS}'", 0);
   exit 1;

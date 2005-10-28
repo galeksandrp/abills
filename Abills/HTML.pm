@@ -912,14 +912,14 @@ for (my $i=97; $i<123; $i++) {
   my $l = chr($i);
   if ($FORM{letter} eq $l) {
      $letters .= "<b>$l </b>";
-    }
+   }
   else {
      #$pages_qs = '';
      $letters .= "<a href='$SELF_URL?index=$index&letter=$l$pages_qs'>$l</a> ";
    }
  }
 
-  return $letters;
+ return $letters;
 }
 
 1
