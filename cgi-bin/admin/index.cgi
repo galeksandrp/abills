@@ -2374,11 +2374,8 @@ my @m = ("1:0:$_CUSTOMERS:null:::",
  "90:5:$_TEMPLATES:form_templates:::",
  
  "6:0:$_OTHER:null:::",
- "999:6:$_TEST:test:::",
  "1000:6:$_DOCS::::",
- "1001:6:Postfix::::",
- "1002:6:SQL_COMMANDER::::",
- 
+  
  "7:0:$_SEARCH:form_search:::",
  
  "8:0:$_MONITORING:null:::",
