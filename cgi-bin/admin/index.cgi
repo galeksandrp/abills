@@ -481,7 +481,8 @@ sub user_form {
      $user_info->{EXDATA} =  "<tr><td>$_COMPANY:</td><td><a href='$SELF_URL?index=13&COMPANY_ID=$company->{COMPANY_ID}'>$company->{COMPANY_NAME}</a></td></tr>\n";
     }
 
-   $user_info->{EXDATA} .= "<tr><td>$_USER:*</td><td><input type=text name=LOGIN value=''></td></tr>
+   $user_info->{EXDATA} .= "
+   <tr><td>$_USER:*</td><td><input type=text name=LOGIN value=''></td></tr>
    <tr><td>$_BILL:</td><td><input type=checkbox name=CREATE_BILL value='1'> $_CREATE</td></tr>
    \n";
 
@@ -499,9 +500,12 @@ sub user_form {
    $user_info->{LNG_ACTION}=$_ADD;
   }
  else {
-   $user_info->{EXDATA} = "<tr><td>$_DEPOSIT:</td><td>$user_info->{DEPOSIT}</td></tr>\n".
-           "<tr><td>$_COMPANY:</td><td><a href='$SELF_URL?index=13&COMPANY_ID=$user_info->{COMPANY_ID}'>$user_info->{COMPANY_NAME}</a></td></tr>\n".
-           "<tr><td>BILL_ID:<td>%BILL_ID%</td></tr>\n";
+   $user_info->{EXDATA} = "
+            <input type=hidden name=UID value=\"$FORM{UID}\"> 
+            <tr><td>$_DEPOSIT:</td><td>$user_info->{DEPOSIT}</td></tr>
+            <tr><td>$_COMPANY:</td><td><a href='$SELF_URL?index=13&COMPANY_ID=$user_info->{COMPANY_ID}'>$user_info->{COMPANY_NAME}</a></td></tr>
+            <tr><td>BILL_ID:<td>%BILL_ID%</td></tr>\n";
+
    $user_info->{DISABLE} = ($user_info->{DISABLE} > 0) ? 'checked' : '';
    $user_info->{ACTION}='change';
    $user_info->{LNG_ACTION}=$_CHANGE;
@@ -709,6 +713,7 @@ if(defined($attr->{USER})) {
     else {
       message('info', $_DELETE, "$_DELETED <br>from tables<br>$users->{info}");
      }
+    print "</td></tr></table>\n";
     return 0;
    }
   else {
@@ -776,8 +781,9 @@ elsif ($FORM{add}) {
 
    
     $LIST_PARAMS{UID}=$user_info->{UID};
-    form_bills({ USER => $user_info });
-    #form_payments({ USER => $user_info });
+    #form_bills({ USER => $user_info });
+    $index=2;
+    form_payments({ USER => $user_info });
     return 0;
    }
 }
@@ -2366,7 +2372,7 @@ my @m = ("1:0:$_CUSTOMERS:null:::",
  "61:60:IP POOLs:form_ip_pools:::",
  "62:60:$_NAS_STATISTIC:form_nas_stats:NID::",
 
- "65:5:$_EXCHANGE_RATE:exchange_rate:::",
+ "65:5:$_EXCHANGE_RATE:form_exchange_rate:::",
  "75:5:$_HOLIDAYS:form_holidays:::",
 
  
@@ -2657,6 +2663,11 @@ if (defined($attr->{USER})) {
   my $user = $attr->{USER};
   $payments->{UID} = $user->{UID};
 
+  if($user->{BILL_ID} < 1) {
+    form_bills({ USER => $user });
+    return 0;
+  }
+
   if (defined($FORM{OP_SID}) and $FORM{OP_SID} eq $COOKIES{OP_SID}) {
  	  message('err', $_ERROR, "$_EXIST");
    }
@@ -2713,7 +2724,7 @@ if (defined ($permissions{1}{1})) {
  }
 }
 elsif($FORM{AID} && ! defined($LIST_PARAMS{AID})) {
-	$FORM{subf}=$index;
+	#$FORM{subf}=$index;
 	form_admins();
 	return 0;
  }
@@ -2721,7 +2732,10 @@ elsif($FORM{UID}) {
 	form_users();
 	return 0;
 }	
-
+else {
+	$FORM{type}=2;
+	form_search();
+}
 
 
 if (! defined($FORM{sort})) {
@@ -2758,9 +2772,9 @@ print $table->show();
 }
 
 #*******************************************************************
-# exchange_rate
+# form_exchange_rate
 #*******************************************************************
-sub exchange_rate {
+sub form_exchange_rate {
  my @action = ('add', "$_ADD");
  my $short_name = $FORM{short_name} || '-';
  my $money = $FORM{money} || '-';
@@ -2787,7 +2801,6 @@ elsif($FORM{change}) {
    }
   else {
     message('info', $_EXCHANGE_RATE, "$_CHANGED");
-
    }
 }
 elsif($FORM{chg}) {
@@ -2813,6 +2826,7 @@ elsif($FORM{del}) {
 	
 print << "[END]";
 <form action=$SELF_URL>
+<input type=hidden name=index   value=$index>
 <input type=hidden name=op   value=er>
 <input type=hidden name=chg   value="$FORM{chg}"> 
 <table>
@@ -2853,6 +2867,12 @@ sub form_fees  {
 
 if (defined($attr->{USER})) {
   my $user = $attr->{USER};
+
+  if($user->{BILL_ID} < 1) {
+    form_bills({ USER => $user });
+    return 0;
+  }
+
   $fees->{UID} = $user->{UID};
   if ($FORM{take} && $FORM{SUM}) {
     # add to shedule
@@ -3025,7 +3045,7 @@ $SEARCH_DATA{SEL_TYPE}=$SEL_TYPE;
 
 Abills::HTML->tpl_show(templates('form_search'), \%SEARCH_DATA);
 
-if ($FORM{type}) {
+if ($FORM{search}) {
 
 	$LIST_PARAMS{LOGIN_EXPR}=$FORM{LOGIN_EXPR};
   $pages_qs = "&type=$FORM{type}";

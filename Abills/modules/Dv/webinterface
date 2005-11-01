@@ -20,6 +20,10 @@ sub dv_chg_tp {
  if(defined($attr->{USER})) {
    $user = $attr->{USER};
    $user = $Dv->info($user->{UID});
+   if($user->{TOTAL} < 1) {
+ 	   print "<p><font color=red>$_NOT_ACTIVE</font></p>";
+ 	   return 0;
+    }
   }
  else {
  	 message('err', $_ERROR, "$_USER_NOT_EXIST");
@@ -41,8 +45,9 @@ if ($FORM{set}) {
     	             D => $FORM{date_d},
                    M => $FORM{date_m},
                    Y => $FORM{date_y},
-                   DEWCRIBE => "$message<br>
-                   $_FROM: '$FORM{date_y}-$FORM{date_m}-$FORM{date_d}'"
+                   DESCRIBE => "$message<br>
+                   $_FROM: '$FORM{date_y}-$FORM{date_m}-$FORM{date_d}'",
+                   MODULE => 'Dv'
                     });
 
     if ($shedule->{errno}) {
@@ -54,7 +59,6 @@ if ($FORM{set}) {
     }
    }
   else {
-
     $user->change({ %FORM });
 
     if ($users->{errno}) {
@@ -94,12 +98,14 @@ my $variant_out = '';
  $params .= "</table><input type=submit name=set value=\"$_CHANGE\">\n";
 
 
+my $tp_index = $index + 3;
+
 my $result = "<form action=$SELF_URL>
 <input type=hidden name=UID value='$attr->{USER}->{UID}'>
 <input type=hidden name=m value=$m>
 <input type=hidden name=index value=$index>
 <table width=400 border=0>
-<tr><td>$_FROM:</td><td bgcolor=$_BG2>$user->{TP_ID} $user->{TP_NAME} [<a href='$SELF?index=$index&TP_ID=$user->{TP_ID}' title='$_VARIANTS'>$_VARIANTS</a>]</td></tr>
+<tr><td>$_FROM:</td><td bgcolor=$_BG2>$user->{TP_ID} $user->{TP_NAME} [<a href='$SELF?index=$tp_index&TP_ID=$user->{TP_ID}' title='$_VARIANTS'>$_VARIANTS</a>]</td></tr>
 $params
 </form>\n";
 
@@ -199,6 +205,7 @@ sub dv_user {
   my $user = $Dv->info($FORM{UID});
 
   if($user->{TOTAL} < 1) {
+	  print "<p><font color=red>$_NOT_ACTIVE</font></p>";
 	  $Dv = $Dv->defaults();
 	  $Dv->{ACTION}='add';
 	  $Dv->{LNG_ACTION}=$_ADD;
@@ -342,7 +349,14 @@ foreach my $line (@$list) {
     $delete = $html->button($_DEL, "index=$index&del=$line->[0]", "$_DEL ?"); 
     $change = "<a href='$SELF_URL?index=$index&TP_ID=$line->[0]'>$_INFO</a>";
    }
-
+  
+  if($FORM{TP_ID} eq $line->[0]) {
+  	$table->{rowcolor}=$_COLORS[4];
+   }
+  else {
+  	undef($table->{rowcolor});
+   }
+  
   $table->addrow("<b>$line->[0]</b>", "<a href='$SELF_URL?index=$index&TP_ID=$line->[0]'>$line->[1]</a>", 
    $bool_vals[$line->[2]], $bool_vals[$line->[3]], $Payment_Types[$line->[4]], $line->[5], $line->[6], $line->[7], $line->[8],
    "<a href='$SELF_URL?index=$index&subf=73&TP_ID=$line->[0]'>$_INTERVALS</a>",

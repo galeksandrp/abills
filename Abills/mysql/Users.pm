@@ -583,6 +583,13 @@ sub add {
 
   $admin->action_add($self->{UID}, "ADD $DATA{LOGIN}");
 
+  if ($attr->{CREATE_BILL}) {
+  	print "create bill";
+  	$self->change($self->{UID}, { 
+  		 UID     => $self->{UID},
+  		 create  => 'yes' });
+  }
+
   return $self;
 }
 
@@ -615,7 +622,7 @@ sub change {
               BILL_ID     => 'bill_id'
              );
  
-  if($attr->{create}) {
+  if($attr->{create}){
   	 use Bills;
   	 my $Bill = Bills->new($db, $admin);
   	 $Bill->create({ UID => $self->{UID} });

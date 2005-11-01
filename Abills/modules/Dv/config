@@ -38,7 +38,7 @@ $web_interface    = 1;
                    "12:11:$_ERROR:dv_error:"               => 4,
                    "13:11:$_LAST:dv_sessions:"             => 4,
                    "14:11:$_USED:dv_use:"                  => 4,
-                   "15:14:$_MONTH:dv_use_allmonthes:"       => 4,
+                   "15:14:$_MONTH:dv_use_allmonthes:"      => 4,
                    "16:0:Dialup & VPN:dv_online:"          => 8
 
                    );

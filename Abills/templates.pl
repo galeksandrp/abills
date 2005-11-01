@@ -57,7 +57,6 @@ return qq{
 <form action=$SELF_URL method=post METHOD=POST>
 <input type=hidden name=index value=11>
 <input type=hidden name=COMPANY_ID value='%COMPANY_ID%'>
-<input type=hidden name=UID value="%UID%">
 <table width=420 cellspacing=0 cellpadding=3>
 %EXDATA%
 <tr><td colspan=2>&nbsp;</td></tr>
@@ -100,27 +99,30 @@ return qq{
  }
 elsif ($tpl_name eq 'user_info') {
 return qq{
-<table width=100%>
-<tr><td>$_LOGIN:</td><td>%LOGIN%</td></tr>
-<tr><td>UID:</td><td>%UID%</td></tr>
-<tr><td>$_FIO:</td><td>%FIO%</td></tr>
-<tr><td>$_PHONE:</td><td>%PHONE%</td></tr>
-<tr><td>$_ADDRESS:</td><td>%ADDRESS%</td></tr>
-<tr><td>E-mail:</td><td>%EMAIL%</td></tr>
-<tr><td>$_TARIF_PLAN:</td><td>%TARIF_PLAN%</td></tr>
-<tr><td>$_CREDIT:</td><td>%CREDIT%</td></tr>
-<tr><td>$_REDUCTION</td><td>%REDUICTION% %</td></tr>
-<tr><td>$_SIMULTANEOUSLY:</td><td>%SIMULTANEONSLY%</td></tr>
-<tr><td>$_ACTIVATE:</td><td>%ACTIVATE%</td></tr>
-<tr><td>$_EXPIRE:</td><td>%EXPIRE%</td></tr>
-<tr><td>IP:</td><td>%IP%</td></tr>
-<tr><td>NETMASK:</td><td>%NETMASK%</td></tr>
-<tr><td>$_SPEED (Kb)</td><td>%SPEED%</td></tr>
-<tr><td>$_FILTERS</td><td>%FILTER_ID%</td></tr>
-<tr><td>CID:</td><td>%CID%</td></tr>
-<tr><th colspan=2>:$_COMMENTS:</th></tr>
-<tr><th colspan=2>%COMMENTS%</th></tr>
-</table>};
+<TABLE width=600 cellspacing=0 cellpadding=0 border=0><TR><TD bgcolor=#E1E1E1>
+<TABLE width=100% cellspacing=1 cellpadding=0 border=0>
+<tr bgcolor=$_COLORS[1]><td>$_LOGIN:</td><td>%LOGIN%</td></tr>
+<tr bgcolor=$_COLORS[1]><td>UID:</td><td>%UID%</td></tr>
+<tr bgcolor=$_COLORS[1]><td>$_FIO:</td><td>%FIO%</td></tr>
+<tr bgcolor=$_COLORS[1]><td>$_PHONE:</td><td>%PHONE%</td></tr>
+<tr bgcolor=$_COLORS[1]><td>$_ADDRESS:</td><td>%ADDRESS%</td></tr>
+<tr bgcolor=$_COLORS[1]><td>E-mail:</td><td>%EMAIL%</td></tr>
+<tr bgcolor=$_COLORS[1]><td>$_TARIF_PLAN:</td><td>%TARIF_PLAN%</td></tr>
+<tr bgcolor=$_COLORS[1]><td>$_CREDIT:</td><td>%CREDIT%</td></tr>
+<tr bgcolor=$_COLORS[1]><td>$_REDUCTION</td><td>%REDUICTION% %</td></tr>
+<tr bgcolor=$_COLORS[1]><td>$_SIMULTANEOUSLY:</td><td>%SIMULTANEONSLY%</td></tr>
+<tr bgcolor=$_COLORS[1]><td>$_ACTIVATE:</td><td>%ACTIVATE%</td></tr>
+<tr bgcolor=$_COLORS[1]><td>$_EXPIRE:</td><td>%EXPIRE%</td></tr>
+<tr bgcolor=$_COLORS[1]><td>IP:</td><td>%IP%</td></tr>
+<tr bgcolor=$_COLORS[1]><td>NETMASK:</td><td>%NETMASK%</td></tr>
+<tr bgcolor=$_COLORS[1]><td>$_SPEED (Kb)</td><td>%SPEED%</td></tr>
+<tr bgcolor=$_COLORS[1]><td>$_FILTERS</td><td>%FILTER_ID%</td></tr>
+<tr bgcolor=$_COLORS[1]><td>CID:</td><td>%CID%</td></tr>
+<tr bgcolor=$_COLORS[1]><th colspan=2>:$_COMMENTS:</th></tr>
+<tr bgcolor=$_COLORS[1]><th colspan=2>%COMMENTS%</th></tr>
+</table>
+</td></tr></table>
+};
  }
 elsif ($tpl_name eq 'form_payments') {
 return qq{
