@@ -191,7 +191,7 @@ print "<table width=100%>
 <table width=100% border=0>
 <form action=$SELF_URL>
   <tr><th align=left>$_DATE: $DATE $TIME Admin: <a href='$SELF_URL?index=53'>$admin->{A_LOGIN}</a> / Online: <abbr title=\"$online_users\"><a href='$SELF_URL?index=50' title='$online_users'>Online: $online_count</a></abbr></th>
-  <th align=right><input type=hidden name=index value=7>
+  <th align=right><input type=hidden name=index value=7><input type=hidden name=search value=y>
   Search: $SEL_TYPE <input type=text name=LOGIN_EXPR value='$FORM{LOGIN_EXPR}'> (<b><a href='#' onclick=\"window.open('help.cgi?index=$index','help',
 'height=550,width=450,resizable=0,scrollbars=yes,menubar=no, status=yes');\">?</a></b>)</th></tr>
 </form>
@@ -3094,16 +3094,17 @@ if ($FORM{del} && $FORM{is_js_confirmed}) {
 my $list = $shedule->list( { %LIST_PARAMS } );
 my $table = Abills::HTML->table( { width => '100%',
                                    border => 1,
-                                   title => ["$_HOURS", "$_DAY", "$_MONTH", "$_YEAR", "$_COUNT", "$_USER", "$_TYPE", "$_VALUE", "$_ADMINS", "$_CREATED", "-"],
-                                   cols_align => ['right', 'right', 'right', 'right', 'right', 'left', 'right', 'right', 'right', 'center'],
+                                   title => ["$_HOURS", "$_DAY", "$_MONTH", "$_YEAR", "$_COUNT", "$_USER", "$_TYPE", "$_VALUE", "$_MODULES", "$_ADMINS", "$_CREATED", "-"],
+                                   cols_align => ['right', 'right', 'right', 'right', 'right', 'left', 'right', 'right', 'right', 'left', 'right', 'center'],
                                    qs => $pages_qs,
                                    pages => $shedule->{TOTAL}
                                   } );
 
 foreach my $line (@$list) {
-  my $delete = ($permissions{4}{3}) ?  $html->button($_DEL, "index=$index&del=$line->[12]&UID=$line->[11]", "$_DEL ?") : '-'; 
+  my $delete = ($permissions{4}{3}) ?  $html->button($_DEL, "index=$index&del=$line->[13]", "$_DEL ?") : '-'; 
   $table->addrow("<b>$line->[0]</b>", $line->[1], $line->[2], 
-    $line->[3],  $line->[4],  "<a href='$SELF_URL?index=11&UID=$line->[11]'>$line->[5]</a>", "$line->[6]", "$line->[7]", "$line->[8]", "$line->[9]", $delete);
+    $line->[3],  $line->[4],  "<a href='$SELF_URL?index=11&UID=$line->[11]'>$line->[5]</a>", 
+    "$line->[6]", "$line->[7]", "$line->[8]", "$line->[9]", "$line->[10]", $delete);
 }
 
 print $table->show();

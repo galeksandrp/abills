@@ -41,7 +41,7 @@ if ($FORM{set}) {
     $FORM{date_m}++;
     $shedule->add( {UID => $user->{UID},
                    TYPE => 'tp',
-                   ACTION => $TARIF_PLAN,
+                   ACTION => $FORM{TARIF_PLAN},
     	             D => $FORM{date_d},
                    M => $FORM{date_m},
                    Y => $FORM{date_y},
