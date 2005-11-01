@@ -247,7 +247,7 @@ if($FORM{ADD_TP}) {
     message('info', $_ADDED, "$_ADDED $tariffs->{TP_ID}");
    }
  }
-elsif ($FORM{TP_ID}) {
+elsif (defined($FORM{TP_ID})) {
   $tarif_info = $tariffs->info( $FORM{TP_ID} );
 
   if ($tariffs->{errno}) {
@@ -359,7 +359,7 @@ foreach my $line (@$list) {
   
   $table->addrow("<b>$line->[0]</b>", "<a href='$SELF_URL?index=$index&TP_ID=$line->[0]'>$line->[1]</a>", 
    $bool_vals[$line->[2]], $bool_vals[$line->[3]], $Payment_Types[$line->[4]], $line->[5], $line->[6], $line->[7], $line->[8],
-   "<a href='$SELF_URL?index=$index&subf=73&TP_ID=$line->[0]'>$_INTERVALS</a>",
+   "<a href='$SELF_URL?index=". ($index+2) ."&subf=73&TP_ID=$line->[0]'>$_INTERVALS</a>",
    $change,
    $delete);
 }
