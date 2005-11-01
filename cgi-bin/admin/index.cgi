@@ -137,7 +137,12 @@ my %SEARCH_TYPES = (11 => $_USERS,
                     13 => $_COMPANY
 );
 
-$FORM{type}=11 if (! defined $FORM{type});
+if($FORM{index} != 7) {
+	$FORM{type}=$FORM{index};
+ }
+elsif (! defined $FORM{type}) {
+	$FORM{type}=11;
+}
 
 my $SEL_TYPE = "<select name=type>\n";
 while(my($k, $v)=each %SEARCH_TYPES) {
@@ -2982,7 +2987,7 @@ my %SEARCH_DATA = $admin->get_data(\%FORM);
 
 my $i=0;
 my $SEL_METHOD = "<select name=METHOD>\n";
-  $SEL_METHOD .= "<option value=''>$_ALL\n";
+   $SEL_METHOD .= "<option value=''>$_ALL\n";
 foreach my $line (@PAYMENT_METHODS) {
   $SEL_METHOD .= "<option value=$i";
 	$SEL_METHOD .= ' selected' if ($FORM{METHOD} eq $i);
@@ -3046,7 +3051,10 @@ $SEARCH_DATA{SEL_TYPE}=$SEL_TYPE;
 
 Abills::HTML->tpl_show(templates('form_search'), \%SEARCH_DATA);
 
-if ($FORM{search}) {
+if($index != 11) {
+ 	
+}
+elsif ($FORM{search}) {
 
 	$LIST_PARAMS{LOGIN_EXPR}=$FORM{LOGIN_EXPR};
   $pages_qs = "&type=$FORM{type}";
