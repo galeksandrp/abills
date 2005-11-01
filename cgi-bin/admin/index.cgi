@@ -1014,7 +1014,7 @@ elsif($attr->{TP}) {
 
   $op = "<input type=hidden name=TP_ID  value='$tarif_plan->{TP_ID}'>\n";
 }
-elsif ($FORM{TP_ID}) {
+elsif (defined($FORM{TP_ID})) {
   $FORM{chg}=$FORM{TP_ID};
   $FORM{subf}=$index;
   dv_tp();
@@ -1158,6 +1158,7 @@ if($attr->{TP}) {
  	$tarif_plan->{ACTION}='add';
  	$tarif_plan->{LNG_ACTION}=$_ADD;
 
+
   if($FORM{tt}) {
     form_traf_tarifs({ TP => $tarif_plan });
    }
@@ -1266,7 +1267,7 @@ if($attr->{TP}) {
   print $table->show();
   
  }
-elsif ($FORM{TP_ID}) {
+elsif (defined($FORM{TP_ID})) {
   $FORM{subf}=$index;
   dv_tp();
   return 0;
@@ -1490,148 +1491,148 @@ elsif($attr->{TP}) {
 }
 
 
-#**********************************************************
-# Tarif plans
-# form_tp
-#**********************************************************
-sub form_tp {
- use Tariffs;
- my $tariffs = Tariffs->new($db);
- my $tarif_info;
-
- my @Octets_Direction = ("$_RECV + $_SEND", $_RECV, $_SEND);
- my @Payment_Types = ($_PREPAID, $_POSTPAID); 
-
- $tarif_info = $tariffs->defaults();
- $tarif_info->{LNG_ACTION}=$_ADD;
- $tarif_info->{ACTION}='ADD_TP';
-
-
-
-if($FORM{ADD_TP}) {
-  $tariffs->add( { %FORM });
-  if (! $tariffs->{errno}) {
-    message('info', $_ADDED, "$_ADDED $tariffs->{VID}");
-   }
- }
-elsif ($FORM{TP_ID}) {
-  $tarif_info = $tariffs->info( $FORM{TP_ID} );
-
-  if ($tariffs->{errno}) {
-    message('err', $_ERROR, "[$tariffs->{errno}] $err_strs{$tariffs->{errno}}--");	
-    return 0;
-   }
-
-  $pages_qs .= "&TP_ID=$FORM{TP_ID}&subf=$FORM{subf}";
-  $LIST_PARAMS{TP} = $FORM{TP_ID};
-  %F_ARGS = ( TP => $tariffs );
-  
-  func_menu({ 
-  	         'ID' =>   $tariffs->{TP_ID}, 
-  	         $_NAME => $tariffs->{NAME}
-  	       }, 
-  	{ 
-  	 $_INFO          => ":TP_ID=$tariffs->{TP_ID}",
-     $_USERS         => "11:TP_ID=$tariffs->{TP_ID}",
-     $_INTERVALS     => "73:TP_ID=$tariffs->{TP_ID}",
-     $_NAS           => "72:TP_ID=$tariffs->{TP_ID}"
-  	 },
-  	{
-  		f_args => { %F_ARGS }
-  	 });
-
-  if ($FORM{subf}) {
-
-  	return 0;
-   }
-  elsif($FORM{change}) {
-    $tariffs->change( $FORM{chg}, { %FORM  } );  
-    if (! $tariffs->{errno}) {
-       message('info', $_CHANGED, "$_CHANGED $tariffs->{VID}");
-     }
-   }
-
-  $tarif_info->{LNG_ACTION}=$_CHANGE;
-  $tarif_info->{ACTION}='change';
-
- }
-elsif($FORM{del} && $FORM{is_js_confirmed}) {
-  $tariffs->del($FORM{del});
-
-  if (! $tariffs->{errno}) {
-    message('info', $_DELETE, "$_DELETED $FORM{del}");
-   }
-}
-
-
-if ($tariffs->{errno}) {
-    message('err', $_ERROR, "[$tariffs->{errno}] $err_strs{$tariffs->{errno}}");	
- }
-
-my $i=0;
-$tarif_info->{SEL_OCTETS_DIRECTION} = "<select name=OCTETS_DIRECTION>\n";
-foreach my $line (@Octets_Direction) {
-  $tarif_info->{SEL_OCTETS_DIRECTION} .= "<option value=$i";
-  $tarif_info->{SEL_OCTETS_DIRECTION} .= ' selected' if ($tarif_info->{OCTETS_DIRECTION} eq $i);
-  $tarif_info->{SEL_OCTETS_DIRECTION} .= ">$Octets_Direction[$i]\n";
-  $i++;
-}
-$tarif_info->{SEL_OCTETS_DIRECTION} .= "</select>\n";
-
-
-
-
-$i=0;
-
-$tarif_info->{PAYMENT_TYPE_SEL} = "<select name=PAYMENT_TYPE>\n";
-foreach my $line (@Payment_Types) {
-  $tarif_info->{PAYMENT_TYPE_SEL} .= "<option value=$i";
-  $tarif_info->{PAYMENT_TYPE_SEL} .= ' selected' if ($tarif_info->{PAYMENT_TYPE} eq $i);
-  $tarif_info->{PAYMENT_TYPE_SEL} .= ">$Payment_Types[$i]\n";
-  $i++;
-}
-$tarif_info->{SEL_OCTETS_DIRECTION} .= "</select>\n";
-
-
-Abills::HTML->tpl_show(templates('tp'), $tarif_info);
-
-
-my $list = $tariffs->list({ %LIST_PARAMS });	
-# Time tariff Name Begin END Day fee Month fee Simultaneously - - - 
-my $table = Abills::HTML->table( { width => '100%',
-                                   border => 1,
-                                   title => ['#', $_NAME,  $_HOUR_TARIF, $_TRAFIC_TARIFS, $_PAYMENT_TYPE, $_DAY_FEE, $_MONTH_FEE, $_SIMULTANEOUSLY, $_AGE,
-                                     '-', '-', '-'],
-                                   cols_align => ['right', 'left', 'center', 'center', 'center', 'right', 'right', 'right', 'right', 'right', 'right', 'center', 'center', 'center'],
-                                   
-                                   
-                                  } );
-                                  
-                                  
-my ($delete, $change);
-foreach my $line (@$list) {
-  if ($permissions{4}{1}) {
-    $delete = $html->button($_DEL, "index=70&del=$line->[0]", "$_DEL ?"); 
-    $change = "<a href='$SELF_URL?index=70&TP_ID=$line->[0]'>$_INFO</a>";
-   }
-
-  $table->addrow("<b>$line->[0]</b>", "<a href='$SELF_URL?index=70&TP_ID=$line->[0]'>$line->[1]</a>", 
-   $bool_vals[$line->[2]], $bool_vals[$line->[3]], $Payment_Types[$line->[4]], $line->[5], $line->[6], $line->[7], $line->[8],
-   "<a href='$SELF_URL?index=70&subf=73&TP_ID=$line->[0]'>$_INTERVALS</a>",
-   $change,
-   $delete);
-}
-
-print $table->show();
-
-$table = Abills::HTML->table( { width => '100%',
-                                cols_align => ['right', 'right'],
-                                rows => [ [ "$_TOTAL:", "<b>$tariffs->{TOTAL}</b>" ] ]
-                               } );
-print $table->show();
-
-	
-}
+##**********************************************************
+## Tarif plans
+## form_tp
+##**********************************************************
+#sub form_tp {
+# use Tariffs;
+# my $tariffs = Tariffs->new($db);
+# my $tarif_info;
+#
+# my @Octets_Direction = ("$_RECV + $_SEND", $_RECV, $_SEND);
+# my @Payment_Types = ($_PREPAID, $_POSTPAID); 
+#
+# $tarif_info = $tariffs->defaults();
+# $tarif_info->{LNG_ACTION}=$_ADD;
+# $tarif_info->{ACTION}='ADD_TP';
+#
+#
+#
+#if($FORM{ADD_TP}) {
+#  $tariffs->add( { %FORM });
+#  if (! $tariffs->{errno}) {
+#    message('info', $_ADDED, "$_ADDED $tariffs->{VID}");
+#   }
+# }
+#elsif (defined($FORM{TP_ID})) {
+#  $tarif_info = $tariffs->info( $FORM{TP_ID} );
+#
+#  if ($tariffs->{errno}) {
+#    message('err', $_ERROR, "[$tariffs->{errno}] $err_strs{$tariffs->{errno}}--");	
+#    return 0;
+#   }
+#
+#  $pages_qs .= "&TP_ID=$FORM{TP_ID}&subf=$FORM{subf}";
+#  $LIST_PARAMS{TP} = $FORM{TP_ID};
+#  %F_ARGS = ( TP => $tariffs );
+#  
+#  func_menu({ 
+#  	         'ID' =>   $tariffs->{TP_ID}, 
+#  	         $_NAME => $tariffs->{NAME}
+#  	       }, 
+#  	{ 
+#  	 $_INFO          => ":TP_ID=$tariffs->{TP_ID}",
+#     $_USERS         => "11:TP_ID=$tariffs->{TP_ID}",
+#     $_INTERVALS     => "73:TP_ID=$tariffs->{TP_ID}",
+#     $_NAS           => "72:TP_ID=$tariffs->{TP_ID}"
+#  	 },
+#  	{
+#  		f_args => { %F_ARGS }
+#  	 });
+#
+#  if ($FORM{subf}) {
+#
+#  	return 0;
+#   }
+#  elsif($FORM{change}) {
+#    $tariffs->change( $FORM{chg}, { %FORM  } );  
+#    if (! $tariffs->{errno}) {
+#       message('info', $_CHANGED, "$_CHANGED $tariffs->{VID}");
+#     }
+#   }
+#
+#  $tarif_info->{LNG_ACTION}=$_CHANGE;
+#  $tarif_info->{ACTION}='change';
+#
+# }
+#elsif($FORM{del} && $FORM{is_js_confirmed}) {
+#  $tariffs->del($FORM{del});
+#
+#  if (! $tariffs->{errno}) {
+#    message('info', $_DELETE, "$_DELETED $FORM{del}");
+#   }
+#}
+#
+#
+#if ($tariffs->{errno}) {
+#    message('err', $_ERROR, "[$tariffs->{errno}] $err_strs{$tariffs->{errno}}");	
+# }
+#
+#my $i=0;
+#$tarif_info->{SEL_OCTETS_DIRECTION} = "<select name=OCTETS_DIRECTION>\n";
+#foreach my $line (@Octets_Direction) {
+#  $tarif_info->{SEL_OCTETS_DIRECTION} .= "<option value=$i";
+#  $tarif_info->{SEL_OCTETS_DIRECTION} .= ' selected' if ($tarif_info->{OCTETS_DIRECTION} eq $i);
+#  $tarif_info->{SEL_OCTETS_DIRECTION} .= ">$Octets_Direction[$i]\n";
+#  $i++;
+#}
+#$tarif_info->{SEL_OCTETS_DIRECTION} .= "</select>\n";
+#
+#
+#
+#
+#$i=0;
+#
+#$tarif_info->{PAYMENT_TYPE_SEL} = "<select name=PAYMENT_TYPE>\n";
+#foreach my $line (@Payment_Types) {
+#  $tarif_info->{PAYMENT_TYPE_SEL} .= "<option value=$i";
+#  $tarif_info->{PAYMENT_TYPE_SEL} .= ' selected' if ($tarif_info->{PAYMENT_TYPE} eq $i);
+#  $tarif_info->{PAYMENT_TYPE_SEL} .= ">$Payment_Types[$i]\n";
+#  $i++;
+#}
+#$tarif_info->{SEL_OCTETS_DIRECTION} .= "</select>\n";
+#
+#
+#Abills::HTML->tpl_show(templates('tp'), $tarif_info);
+#
+#
+#my $list = $tariffs->list({ %LIST_PARAMS });	
+## Time tariff Name Begin END Day fee Month fee Simultaneously - - - 
+#my $table = Abills::HTML->table( { width => '100%',
+#                                   border => 1,
+#                                   title => ['#', $_NAME,  $_HOUR_TARIF, $_TRAFIC_TARIFS, $_PAYMENT_TYPE, $_DAY_FEE, $_MONTH_FEE, $_SIMULTANEOUSLY, $_AGE,
+#                                     '-', '-', '-'],
+#                                   cols_align => ['right', 'left', 'center', 'center', 'center', 'right', 'right', 'right', 'right', 'right', 'right', 'center', 'center', 'center'],
+#                                   
+#                                   
+#                                  } );
+#                                  
+#                                  
+#my ($delete, $change);
+#foreach my $line (@$list) {
+#  if ($permissions{4}{1}) {
+#    $delete = $html->button($_DEL, "index=70&del=$line->[0]", "$_DEL ?"); 
+#    $change = "<a href='$SELF_URL?index=70&TP_ID=$line->[0]'>$_INFO</a>";
+#   }
+#
+#  $table->addrow("<b>$line->[0]</b>", "<a href='$SELF_URL?index=70&TP_ID=$line->[0]'>$line->[1]</a>", 
+#   $bool_vals[$line->[2]], $bool_vals[$line->[3]], $Payment_Types[$line->[4]], $line->[5], $line->[6], $line->[7], $line->[8],
+#   "<a href='$SELF_URL?index=70&subf=73&TP_ID=$line->[0]'>$_INTERVALS</a>",
+#   $change,
+#   $delete);
+#}
+#
+#print $table->show();
+#
+#$table = Abills::HTML->table( { width => '100%',
+#                                cols_align => ['right', 'right'],
+#                                rows => [ [ "$_TOTAL:", "<b>$tariffs->{TOTAL}</b>" ] ]
+#                               } );
+#print $table->show();
+#
+#	
+#}
 
 
 #**********************************************************
