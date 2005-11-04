@@ -133,11 +133,10 @@ my %uf_menus = (); #User form menu list
 my %SEARCH_TYPES = (11 => $_USERS,
                     2 =>  $_PAYMENTS,
                     3 =>  $_FEES,
-                    41 => $_LAST_LOGIN,
                     13 => $_COMPANY
 );
 
-if($FORM{index} != 7) {
+if($FORM{index} != 7 && ! defined($FORM{type})) {
 	$FORM{type}=$FORM{index};
  }
 elsif (! defined $FORM{type}) {
@@ -2738,8 +2737,7 @@ elsif($FORM{UID}) {
 	form_users();
 	return 0;
 }	
-else {
-	$FORM{type}=2;
+elsif($index != 7) {
 	form_search();
 }
 
@@ -2937,6 +2935,9 @@ elsif($FORM{UID}) {
 	form_users();
 	return 0;
 }
+elsif($index != 7) {
+	form_search();
+}
 
 
 if (! defined($FORM{sort})) {
@@ -2996,16 +2997,7 @@ foreach my $line (@PAYMENT_METHODS) {
 }
 $SEL_METHOD .= "</select>\n";
 
-my $nas = Nas->new($db);
-my $list = $nas->list({ %LIST_PARAMS });
-my $SEL_NAS = "<select name=NAS>\n";
-  $SEL_NAS .= "<option value=''>$_ALL\n";
-foreach my $line (@$list) {
-	$SEL_NAS .= "<option value='$line->[0]'";
-	$SEL_NAS .= ' selected' if ($FORM{NAS} eq $line->[0]);
-	$SEL_NAS .= ">$line->[1]\n";
-}
-$SEL_NAS .= "</select>\n";
+
 
 
 my %search_form = ( 
@@ -3034,30 +3026,33 @@ my %search_form = (
 <tr><td>$_PHONE (>, <, *):</td><td><input type=text name=PHONE value='%PHONE%'></td></tr>
 <tr><td>$_COMMENTS (*):</td><td><input type=text name=COMMENTS value='%COMMENTS%'></td></tr>\n",
 
-41 => "
-<!-- last SESSION -->
-<tr><td colspan=2><hr></td></tr>
-<tr><td>IP (>,<)</td><td><input type=text name=IP value='%IP%'></td></tr>
-<tr><td>CID</td><td><input type=text name=CID value='%CID%'></td></tr>
-<tr><td>NAS</td><td>$SEL_NAS</td></tr>
-<tr><td>NAS Port</td><td><input type=text name=NAS_PORT value='%NAS_PORT%'></td></tr>\n"
 );
 
-$SEARCH_DATA{SEARCH_FORM}=$search_form{$FORM{type}};
-$SEARCH_DATA{FROM_DATE} = Abills::HTML->date_fld('from_', { MONTHES => \@MONTHES });
-$SEARCH_DATA{TO_DATE} = Abills::HTML->date_fld('to_', { MONTHES => \@MONTHES} );
 
-$SEARCH_DATA{SEL_TYPE}=$SEL_TYPE;
+#41 => "
+#<!-- last SESSION -->
+
+
+$SEARCH_DATA{SEARCH_FORM}=(defined($attr->{SEARCH_FORM})) ? $attr->{SEARCH_FORM} : $search_form{$FORM{type}};
+$SEARCH_DATA{FROM_DATE} = Abills::HTML->date_fld('FROM_', { MONTHES => \@MONTHES });
+$SEARCH_DATA{TO_DATE} = Abills::HTML->date_fld('TO_', { MONTHES => \@MONTHES} );
+
+
+
+
+$SEARCH_DATA{SEL_TYPE}="<tr><td>WHERE:</td><td>$SEL_TYPE</td></tr>\n" if ($index == 7);
 
 Abills::HTML->tpl_show(templates('form_search'), \%SEARCH_DATA);
 
-if($index != 11) {
- 	
-}
-elsif ($FORM{search}) {
+if ($FORM{search}) {
 
 	$LIST_PARAMS{LOGIN_EXPR}=$FORM{LOGIN_EXPR};
-  $pages_qs = "&type=$FORM{type}";
+  $pages_qs = "&search=y&type=$FORM{type}";
+
+	if(defined($FORM{FROM_D}) && defined($FORM{TO_D})) {
+	  $FORM{FROM_DATE}="$FORM{FROM_Y}-$FORM{FROM_M}-$FORM{FROM_D}";
+	  $FORM{TO_DATE}="$FORM{TO_Y}-$FORM{TO_M}-$FORM{TO_D}";
+   }	 
 	
 	while(my($k, $v)=each %FORM) {
 		if ($k =~ /([A-Z0-9]+)/ && $v ne '') {
@@ -3068,7 +3063,9 @@ elsif ($FORM{search}) {
 	 }
 
 
-  if ($FORM{type}) {
+
+  if ($FORM{type} ne $index) {
+  	#$index = $FORM{type};
     $functions{$FORM{type}}->();
    }
 }
@@ -3078,6 +3075,11 @@ elsif ($FORM{search}) {
 
 
 }
+
+
+
+
+
 
 
 #*******************************************************************

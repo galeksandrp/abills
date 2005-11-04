@@ -469,12 +469,23 @@ sub list {
 
 #IP
  if ($attr->{IP}) {
-   push @WHERE_RULES, "l.ip='$attr->{IP}'";
+   push @WHERE_RULES, "l.ip=INET_ATON('$attr->{IP}')";
   }
 
 #NAS ID
  if ($attr->{NAS_ID}) {
-   push @WHERE_RULES, "and l.nas_id='$attr->{NAS_ID}'";
+   push @WHERE_RULES, "l.nas_id='$attr->{NAS_ID}'";
+  }
+
+#NAS ID
+ if ($attr->{CID}) {
+   if($attr->{CID}) {
+     $attr->{CID} =~ s/\*/\%/ig;
+     push @WHERE_RULES, "l.cid LIKE '$attr->{CID}'";
+    }
+   else {
+     push @WHERE_RULES, "l.cid='$attr->{CID}'";
+    }
   }
 
 #NAS PORT
@@ -484,7 +495,7 @@ sub list {
 
 #TARIF_PLAN
  if ($attr->{TARIF_PLAN}) {
-   push @WHERE_RULES, "and l.tp_id='$attr->{TARIF_PLAN}'";
+   push @WHERE_RULES, "l.tp_id='$attr->{TARIF_PLAN}'";
   }
 
 #Session ID
@@ -496,6 +507,9 @@ if ($attr->{GID}) {
    push @WHERE_RULES, "u.gid='$attr->{GID}'";
   }
 
+ if ($attr->{FROM_DATE}) {
+    push @WHERE_RULES, "(date_format(l.start, '%Y-%m-%d')>='$attr->{FROM_DATE}' and date_format(l.start, '%Y-%m-%d')<='$attr->{TO_DATE}')";
+  }
 
  
 #Interval from date to date
@@ -530,6 +544,8 @@ elsif($attr->{DATE}) {
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
 
 
+
+# $self->{debug}=1;
 
  $self->query($db, "SELECT u.id, l.start, SEC_TO_TIME(l.duration), l.tp_id,
   l.sent, l.recv, l.CID, l.nas_id, l.ip, l.sum, INET_NTOA(l.ip), 
