@@ -372,10 +372,10 @@ return qq{
 elsif ($tpl_name eq 'form_search') {
 return qq{
 <form action=$SELF_URL>
-<input type=hidden name=index value=7>
+<input type=hidden name=index value=$index>
 <table>
 <tr><td>$_NAME:</td><td><input type=text name=LOGIN_EXPR value='%LOGIN_EXPR%'></td></tr>
-<tr><td>WHERE:</td><td>%SEL_TYPE%</td></tr>
+%SEL_TYPE%
 <tr><td>$_PERIOD:</td><td>
 <table width=100%>
 <tr><td>$_FROM: </td><td>%FROM_DATE%</td></tr>

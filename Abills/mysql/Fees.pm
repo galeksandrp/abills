@@ -133,24 +133,24 @@ sub list {
   }
  
  if ($attr->{AID}) {
-    push @WHERE_RULES, "and f.aid='$attr->{AID}'";
+    push @WHERE_RULES, "f.aid='$attr->{AID}'";
   }
 
  if ($attr->{A_LOGIN}) {
  	 $attr->{A_LOGIN} =~ s/\*/\%/ig;
- 	 push @WHERE_RULES, "and a.id LIKE '$attr->{A_LOGIN}'";
+ 	 push @WHERE_RULES, "a.id LIKE '$attr->{A_LOGIN}'";
  }
 
  # Show debeters
  if ($attr->{DESCRIBE}) {
     $attr->{DESCRIBE} =~ s/\*/\%/g;
-    push @WHERE_RULES, "and f.dsc LIKE '$attr->{DESCRIBE}'";
+    push @WHERE_RULES, "f.dsc LIKE '$attr->{DESCRIBE}'";
   }
 
  # Show debeters
  if ($attr->{SUM}) {
     my $value = $self->search_expr($attr->{SUM}, 'INT');
-    push @WHERE_RULES, "and f.sum$value";
+    push @WHERE_RULES, "f.sum$value";
   }
 
  # Show groups
@@ -160,9 +160,8 @@ sub list {
 
 
  # Date
- if ($attr->{DATE}) {
-    my $value = $self->search_expr("'$attr->{DATE}'", 'INT');
-    push @WHERE_RULES, "date_format(f.date, '%Y-%m-%d')$value";
+ if ($attr->{FROM_DATE}) {
+    push @WHERE_RULES, "(date_format(f.date, '%Y-%m-%d')>='$attr->{FROM_DATE}' and date_format(f.date, '%Y-%m-%d')<='$attr->{TO_DATE}')";
   }
 
  if ($attr->{COMPANY_ID}) {
@@ -172,6 +171,8 @@ sub list {
 
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
  
+# $self->{debug}=1;
+
  $self->query($db, "SELECT f.id, u.id, f.date, f.sum, f.dsc, if(a.name is NULL, 'Unknown', a.name),  INET_NTOA(f.ip), f.last_deposit, f.uid 
     FROM fees f
     LEFT JOIN users u ON (u.uid=f.uid)
