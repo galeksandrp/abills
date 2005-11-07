@@ -92,6 +92,9 @@ sub acct {
   
 
   $RAD->{SESSION_START} = (defined($RAD->{ACCT_SESSION_TIME})) ?  time - $RAD->{ACCT_SESSION_TIME} : 0;
+  
+  #print "-- $RAD->{SESSION_START} ---";
+  
   $RAD->{NAS_PORT} = 0 if  (! defined($RAD->{NAS_PORT}));
   $RAD->{CONNECT_INFO} = '' if  (! defined($RAD->{CONNECT_INFO}));
 

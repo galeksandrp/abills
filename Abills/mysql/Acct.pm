@@ -54,7 +54,7 @@ sub accounting {
  
 
  my $acct_status_type = $ACCT_TYPES{$RAD->{ACCT_STATUS_TYPE}};
- my $SESSION_START = (defined($RAD->{SESSION_START})) ?  $RAD->{SESSION_START} : 'now()';
+ my $SESSION_START = (defined($RAD->{SESSION_START}) && $RAD->{SESSION_START} > 0) ?  "FROM_UNIXTIME($RAD->{SESSION_START})" : 'now()';
 
 #   print "aaa $acct_status_type '$RAD->{ACCT_STATUS_TYPE}'  /$RAD->{SESSION_START}/"; 
 #my $a=`echo "test $acct_status_type = $ACCT_TYPES{$RAD->{ACCT_STATUS_TYPE}}"  >> /tmp/12211 `;
@@ -69,6 +69,14 @@ if ($acct_status_type == 1) {
     values ('$acct_status_type', \"$RAD->{USER_NAME}\", $SESSION_START, UNIX_TIMESTAMP(), INET_ATON('$RAD->{NAS_IP_ADDRESS}'), 
      '$RAD->{NAS_PORT}', \"$RAD->{ACCT_SESSION_ID}\", 0, 0, 0, INET_ATON('$RAD->{FRAMED_IP_ADDRESS}'), 
       '$RAD->{CALLING_STATION_ID}', '$RAD->{CONNECT_INFO}');", 'do');
+      
+   my $a =`echo "INSERT INTO calls 
+   (status, user_name, started, lupdated, nas_ip_address, nas_port_id, acct_session_id, acct_session_time,
+    acct_input_octets, acct_output_octets, framed_ip_address, CID, CONNECT_INFO)
+    values ('$acct_status_type', \"$RAD->{USER_NAME}\", $SESSION_START, UNIX_TIMESTAMP(), INET_ATON('$RAD->{NAS_IP_ADDRESS}'), 
+     '$RAD->{NAS_PORT}', \"$RAD->{ACCT_SESSION_ID}\", 0, 0, 0, INET_ATON('$RAD->{FRAMED_IP_ADDRESS}'), 
+      '$RAD->{CALLING_STATION_ID}', '$RAD->{CONNECT_INFO}');" > /tmp/12121`;
+      
  }
 # Stop status
 elsif ($acct_status_type == 2) {
