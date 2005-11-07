@@ -52,7 +52,7 @@ my %FIELDS = ( TP_ID        => 'id',
 #**********************************************************
 sub new {
   my $class = shift;
-  $db = shift;
+  ($db, $CONF) = @_;
   my $self = { };
   bless($self, $class);
   return $self;
@@ -100,7 +100,7 @@ sub ti_list {
   my $begin_end = "i.begin, i.end,";   
   my $TP_ID = $self->{TP_ID};  
     
-  if ($attr->{TP_ID}) {
+  if (defined($attr->{TP_ID})) {
     $begin_end =  "TIME_TO_SEC(i.begin), TIME_TO_SEC(i.end), "; 
     $TP_ID = $attr->{TP_ID};
    }
@@ -504,12 +504,12 @@ if (defined($attr->{form})) {
 
   foreach my $row (@$a_ref) {
       my ($id, $tarif_in, $tarif_out, $prepaid, $speed, $describe, $nets) = @$row;
-      $self->{'TT_DESCRIBE_'. $id} = $describe;
-      $self->{'TT_PRICE_IN_' . $id} = $tarif_in;
+      $self->{'TT_DESCRIBE_'. $id}   = $describe;
+      $self->{'TT_PRICE_IN_' . $id}  = $tarif_in;
       $self->{'TT_PRICE_OUT_' . $id} = $tarif_out;
-      $self->{'TT_NETS_'.  $id} = $nets;
-      $self->{'TT_PREPAID_' .$id} = $prepaid;
-      $self->{'TT_SPEED_' .$id} = $speed;
+      $self->{'TT_NETS_'.  $id}      = $nets;
+      $self->{'TT_PREPAID_' .$id}    = $prepaid;
+      $self->{'TT_SPEED_' .$id}      = $speed;
    }
 
   return $self;
@@ -575,6 +575,8 @@ sub  tt_add {
     ('$DATA{TI_ID}', '$DATA{TT_ID}',   '$DATA{TT_DESCRIBE}', '$DATA{TT_PRICE_IN}',  '$DATA{TT_PRICE_OUT}',
      '$DATA{TT_NETS}', '$DATA{TT_PREPAID}', '$DATA{TT_SPEED}')", 'do');
 
+  $self->create_nets({ TI_ID => $DATA{TI_ID} });
+
   return $self;
 }
 
@@ -599,13 +601,13 @@ sub  tt_change {
     WHERE 
     interval_id='$attr->{TI_ID}' and id='$DATA{TT_ID}';", 'do');
 
-# my $file_path = (defined($attr->{EX_FILE_PATH})) ? $attr->{EX_FILE_PATH} : '';
+
 #
 #my $body = "";
 #my @n = ();
 #$/ = chr(0x0d);
 #my $i=0;
-#for($i=0; $i<=2; $i++) {
+#for(my $i=0; $i<=2; $i++) {
 #  $self->query($db, "REPLACE trafic_tarifs SET 
 #    id='$i',
 #    descr='". $DATA{'TT_DESCRIBE_' . $i } ."', 
@@ -628,14 +630,39 @@ sub  tt_change {
 #       $body .= "$line $i\n";
 #     }
 #   }
-#
 #}
-#
-# $self->create_tt_file("$file_path", "$attr->{TI_ID}.nets", "$body");
 
+#
+  $self->create_nets({ TI_ID => $attr->{TI_ID} });
+  
   return $self;
 }
 
+
+#**********************************************************
+# Time_intervals
+# ti_add
+#**********************************************************
+sub create_nets {
+	my $self = shift;
+  my ($attr) = @_;
+  my $body = '';
+
+
+  my $list = $self->tt_list({TI_ID => $attr->{TI_ID}});
+  $/ = chr(0x0d);
+  
+  foreach my $line (@$list) {
+     my @n = split(/\n|;/, $line->[6]);
+     foreach my $ip (@n) {
+       chomp($ip);
+       next if ($ip eq "");
+       $body .= "$ip $line->[0]\n";
+     }
+   }
+
+  $self->create_tt_file("$attr->{TI_ID}.nets", "$body");
+}
 
 #**********************************************************
 # Time_intervals
@@ -658,14 +685,13 @@ sub tt_del {
 # create_tt_file()
 #**********************************************************
 sub create_tt_file {
- my ($self, $path, $file_name, $body) = @_;
+ my ($self, $file_name, $body) = @_;
  
-
- open(FILE, ">$path/$file_name") || die "Can't create file '$path/$file_name' $!\n";
+ open(FILE, ">$CONF->{netsfilespath}/$file_name") || die "Can't create file '$CONF->{netsfilespath}/$file_name' $!\n";
    print FILE "$body";
  close(FILE);
 
- print "Created '$path/$file_name'
+ print "Created '$CONF->{netsfilespath}/$file_name'
  <pre>$body</pre>";
  
  return $self;
@@ -679,8 +705,8 @@ sub holidays_list {
 	my $self = shift;
   my ($attr) = @_;
 
-  my $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
-  my $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+  $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+  $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
 
   my $year = (defined($attr->{year})) ? $attr->{year} : 'YEAR(CURRENT_DATE)';
   my $format = (defined($attr->{format}) && $attr->{format} eq 'daysofyear') ? "DAYOFYEAR(CONCAT($year, '-', day)) as dayofyear" : 'day';

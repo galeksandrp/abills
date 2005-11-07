@@ -55,6 +55,7 @@ my $bg;
 my $debug;
 my %log_levels;
 my $IMG_PATH;
+my $row_number = 0;
 #Hash of url params
 
 
@@ -285,6 +286,8 @@ sub header {
 #    @_C = split(/, /, $COOKIES{colors});
   }
 
+  my $JAVASCRIPT = ($attr->{PATH}) ? "$attr->{PATH}functions.js" : "functions.js";
+
 #print "Content-Type: text/html\n\n";
 # foreach my $line (@_C) {
 # 	 print "$line <br>\n";
@@ -305,24 +308,10 @@ $self->{header} .= qq{<!doctype html public "-//W3C//DTD HTML 3.2 Final//EN">
 };
 
 $self->{header} .= $css;
-$self->{header} .= q{ <script type="text/javascript" language="javascript">
-var confirmMsg  = 'Do you really want delete';
-  function confirmLink(theLink, theSqlQuery)
-{
-    // Confirmation is not required in the configuration file
-    if (confirmMsg == '') {
-        return true;
-    }
-
-    var is_confirmed = confirm(confirmMsg + ' :\n' + theSqlQuery);
-    if (is_confirmed) {
-        theLink.href += '&is_js_confirmed=1';
-    }
-
-    return is_confirmed;
-} // end of the 'confirmLink()' function
-</script>
-<title>~AsmodeuS~ Billing system</title>
+$self->{header} .= 
+"<script src=\"$JAVASCRIPT\" type=\"text/javascript\" language=\"javascript\"></script>".
+q{ 
+<title>~AsmodeuS~ Billing System</title>
 </head>} .
 "<body bgcolor=$_COLORS[10] text=$_COLORS[9] link=$_COLORS[8]  vlink=$_COLORS[7] leftmargin=0 topmargin=0 marginwidth=0 marginheight=0>";
 
@@ -504,8 +493,9 @@ sub addrow {
   
   my $extra=(defined($self->{extra})) ? $self->{extra} : '';
 
-
-  $self->{rows} .= "<tr bgcolor=$bg>";
+  $row_number++;
+  
+  $self->{rows} .= "<tr bgcolor=$bg  onmouseover=\"setPointer(this, $row_number, 'over', '$bg', '$_COLORS[3]', '$_COLORS[0]');\" onmouseout=\"setPointer(this, $row_number, 'out', '$bg', '$_COLORS[3]', '$_COLORS[0]');\" onmousedown=\"setPointer(this, $row_number, 'click', '$bg', '$_COLORS[3]', '$_COLORS[0]');\">";
   foreach my $val (@row) {
      $self->{rows} .= "<td $extra>$val</td>";
    }

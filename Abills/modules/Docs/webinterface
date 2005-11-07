@@ -2,180 +2,83 @@
 # Dialup vpn web functions
 
 
-require "Dv.pm";
-Dv->import();
-my $Dv = Dv->new($db, $admin, $conf);
+require "Docs.pm";
+Docs->import();
+my $Docs = Docs->new($db, $admin, $conf);
 
 
-
-#*******************************************************************
-# Change user variant form
-# form_chg_vid()
-#*******************************************************************
-sub dv_chg_tp {
- my ($attr) = @_;
-
- my $user;
-
- if(defined($attr->{USER})) {
-   $user = $attr->{USER};
-   $user = $Dv->info($user->{UID});
-   if($user->{TOTAL} < 1) {
- 	   print "<p><font color=red>$_NOT_ACTIVE</font></p>";
- 	   return 0;
-    }
-  }
- else {
- 	 message('err', $_ERROR, "$_USER_NOT_EXIST");
- 	 return 0;
-  }
-
- my $TARIF_PLAN = $FORM{tarif_plan} || $_DEFAULT_VARIANT;
- my $period = $FORM{period} || 0;
-
- use Shedule;
- $shedule = Shedule->new($db, $admin);
-
-if ($FORM{set}) {
-  if ($period == 1) {
-    $FORM{date_m}++;
-    $shedule->add( {UID => $user->{UID},
-                   TYPE => 'tp',
-                   ACTION => $FORM{TARIF_PLAN},
-    	             D => $FORM{date_d},
-                   M => $FORM{date_m},
-                   Y => $FORM{date_y},
-                   DESCRIBE => "$message<br>
-                   $_FROM: '$FORM{date_y}-$FORM{date_m}-$FORM{date_d}'",
-                   MODULE => 'Dv'
-                    });
-
-    if ($shedule->{errno}) {
-      message('err', $_ERROR, "[$shedule->{errno}] $err_strs{$shedule->{errno}}");	
-     }
-    else {
-      message('info', $_CHANGED, "$_CHANGED");
-      $user->info($user->{UID});
-    }
-   }
-  else {
-    $user->change({ %FORM });
-
-    if ($users->{errno}) {
-      message('err', $_ERROR, "[$users->{errno}] $err_strs{$users->{errno}}");	
-     }
-    else {
-      message('info', $_CHANGED, "$_CHANGED");
-      $user->info($user->{UID});
-    }
-
-  }
-}
-elsif($FORM{del}) {
-  shedule('del', { UID => $user->{UID},
-   	           id  => $FORM{del}  } 
-   	     );
-}
-
-use Tariffs;
-my $tariffs = Tariffs->new($db, \%conf);
-my $variant_out = '';
- 
- my $tariffs_list = $tariffs->list();
- foreach my $line (@$tariffs_list) {
-   $variant_out .= "<option value=$line->[0]";
-   $variant_out .= ' selected' if ($line->[0] == $user->{TP_ID});
-   $variant_out .=  ">$line->[0]:$line->[1]\n";
-  }
-
-
- my $params='';
- $q = $db->prepare("SELECT id, CONCAT(y, '-', m, '-', d), action FROM shedule WHERE type='tp' and UID='$UID';") || die $db->strerr;
- $q ->execute();
- 
- $params .= "<tr><td>$_TO:</td><td><select name=TARIF_PLAN>$variant_out</select></td></tr>";
- $params .= form_period($period);
- $params .= "</table><input type=submit name=set value=\"$_CHANGE\">\n";
-
-
-my $tp_index = $index + 3;
-
-my $result = "<form action=$SELF_URL>
-<input type=hidden name=UID value='$attr->{USER}->{UID}'>
-<input type=hidden name=m value=$m>
-<input type=hidden name=index value=$index>
-<table width=400 border=0>
-<tr><td>$_FROM:</td><td bgcolor=$_BG2>$user->{TP_ID} $user->{TP_NAME} [<a href='$SELF?index=$tp_index&TP_ID=$user->{TP_ID}' title='$_VARIANTS'>$_VARIANTS</a>]</td></tr>
-$params
-</form>\n";
-
- print $result;
-}
 
 
 #**********************************************************
 # user_dv
 #**********************************************************
-sub dv_users_list {
+sub docs_accounts {
 
 
-
- if($FORM{TP_ID}) {
-   $LIST_PARAMS{TP_ID} = $FORM{TP_ID};
-   $pages_qs .= "&TP_ID=$FORM{TP_ID}";
-  }
- 
-
- print Abills::HTML->letters_list({ pages_qs => $pages_qs  }); 
-
- if ($FORM{letter}) {
-   $LIST_PARAMS{FIRST_LETTER} = $FORM{letter};
-   $pages_qs .= "&letter=$FORM{letter}";
-  } 
-
-
-#use Users;
-#my $users = Users->new($db, $admin, \%conf); 
-
-my $list = $Dv->list( { %LIST_PARAMS } );
+my $list = $Docs->accounts_list( { %LIST_PARAMS } );
 
 if ($Dv->{errno}) {
-  message('err', $_ERROR, "[$Dv->{errno}] $err_strs{$Dv->{errno}}");	
+  message('err', $_ERROR, "[$Docs->{errno}] $err_strs{$Docs->{errno}}");	
   return 0;
  }
-elsif ($Dv->{TOTAL} == 1) {
-	form_users({  USER => user_info($list->[0]->[6]) });
-	return 0;
-}
 
-
-
+#  Date  Customer  Sum  User  Administrators  Time  
 
 my $table = Abills::HTML->table( { width => '100%',
                                    border => 1,
-                                   title => [$_LOGIN, $_FIO, $_DEPOSIT, $_CREDIT, $_TARIF_PLANS, $_STATUS, '-', '-'],
-                                   cols_align => ['left', 'left', 'right', 'right', 'left', 'center', 'center', 'center', 'center'],
+                                   title => ['#', $_DATE, $_CUSTOMER, $_SUM, $_USER, $_ADMIN, $_TIME, '-', '-'],
+                                   cols_align => ['right', 'right', 'left', 'right', 'left', 'left', 'right', 'center', 'center'],
                                    qs => $pages_qs,
-                                   pages => $Dv->{TOTAL}
+                                   pages => $Docs->{TOTAL}
                                   } );
 
 foreach my $line (@$list) {
-  my $payments = ($permissions{1}) ?  "<a href='$SELF_URL?index=2&UID=$line->[6]'>$_PAYMENTS</a>" : ''; 
-
-  $table->addrow("<a href='$SELF_URL?index=11&UID=$line->[6]'>$line->[0]</a>", "$line->[1]",
-   "$line->[2]", "$line->[3]", "$line->[4]", "$status[$line->[5]]", $payments, "<a href='$SELF_URL?index=$index&UID=$line->[6]'>$_STATS</a>");
+  my $delete = ($permissions{1}{2}) ?  $html->button($_DEL, "index=$index&del=$line->[0]&UID=$line->[10]$pages_qs", "$_DEL ?") : ''; 
+  $table->addrow("$line->[0]", "$line->[1]",
+   "$line->[2]", "$line->[3]", "$line->[4]", "$line->[5]", 
+   "$line->[6]", "$line->[7]", 
+   $delete);
 }
 print $table->show();
 
-$table = Abills::HTML->table( { width => '100%',
-                                cols_align => ['right', 'right'],
-                                rows => [ [ "$_TOTAL:", "<b>$Dv->{TOTAL}</b>" ] ]
-                               } );
-print $table->show();
+#$table = Abills::HTML->table( { width => '100%',
+#                                cols_align => ['right', 'right'],
+#                                rows => [ [ "$_TOTAL:", "<b>$Dv->{TOTAL}</b>" ] ]
+#                               } );
+#print $table->show();
 
   return 0;
 }
 
+#**********************************************************
+# user_dv
+#**********************************************************
+sub docs_account_add {
+	
+ if ($FORM{create}) {
+   if ($FORM{sum} < 0.01) {
+     message('err', "$_ERROR", "Вкажіть суму");
+    }
+   elsif(! $FORM{uid}) {
+     message('err', "$_ERROR", "$_SELECT_USER");
+    }
+   elsif(! $FORM{customer}) {
+     message('err', "$_ERROR", "Подайте назву організації");
+    }
+   else {
+     mk_acct();
+    }
+  }
+ elsif($FORM{del}) {
+   $Docs->del($FORM{del});
+   message('info', "$_INFO", "$_DELETED N: [$FORM{del}]");
+  }
+	
+	
+  Abills::HTML->tpl_show(_include('docs_account_add', 'Docs'), $Docs);
+	
+	
+}
 
 #**********************************************************
 # user_dv
@@ -230,7 +133,7 @@ sub dv_tp {
  
  use Tariffs;
  
- my $tariffs = Tariffs->new($db, \%conf);
+ my $tariffs = Tariffs->new($db);
  my $tarif_info;
 
  my @Octets_Direction = ("$_RECV + $_SEND", $_RECV, $_SEND);
@@ -617,31 +520,11 @@ if (! $list) {
 	  $LIST_PARAMS{DESC} = 'DESC';
   }
 
-  my $nas = Nas->new($db);
-  my $nas_list = $nas->list({ %LIST_PARAMS });
-
-  my $SEL_NAS = "<select name=NAS_ID>\n";
-     $SEL_NAS .= "<option value=''>$_ALL\n";
-  foreach my $line (@$nas_list) {
-  	$SEL_NAS .= "<option value='$line->[0]'";
-	  $SEL_NAS .= ' selected' if ($FORM{NAS_ID} eq $line->[0]);
-	  $SEL_NAS .= ">$line->[1] / $line->[4] ($line->[3])\n";
-   }
-  $SEL_NAS .= "</select>\n";
-
-  form_search({ SEARCH_FORM =>  	
-  	"<tr><td colspan=2><hr></td></tr>
-     <tr><td>IP (>,<)</td><td><input type=text name=IP value='%IP%'></td></tr>
-     <tr><td>CID</td><td><input type=text name=CID value='%CID%'></td></tr>
-     <tr><td>NAS</td><td>$SEL_NAS</td></tr>
-     <tr><td>NAS Port</td><td><input type=text name=NAS_PORT value='%NAS_PORT%'></td></tr>\n"
-  	
- });
-
   use Dv_Sessions;
   $sessions = Dv_Sessions->new($db);
   $list = $sessions->list({ %LIST_PARAMS });	
 }
+
 
 
 return 0 if ($sessions->{TOTAL} < 1);
@@ -667,7 +550,7 @@ my $Billing = Billing->new($db);
 
 foreach my $line (@$list) {
   if ($permissions{3}{1}) {
-    $delete = $html->button($_DEL, "index=". $index ."&$pages_qs&del=$line->[12]+$line->[11]+$line->[7]+$line->[1]+$line->[9]+$line->[0]", "$_DEL Session SESSION_ID $line->[11]?");
+    $delete = $html->button($_DEL, "index=22$pages_qs&del=$line->[12]+$line->[11]+$line->[7]+$line->[1]+$line->[9]+$line->[0]", "$_DEL Session SESSION_ID $line->[11]?");
    }
 
   my ($UID, 
@@ -1253,7 +1136,7 @@ sub dv_daily_fees {
  
  require Tariffs;
  Tariffs->import();
- my $tariffs = Tariffs->new($db, \%conf);
+ my $tariffs = Tariffs->new($db);
 
  require Fees;
  Fees->import();
@@ -1304,7 +1187,7 @@ sub dv_daily_fees {
 sub dv_monthly_fees {
  require Tariffs;
  Tariffs->import();
- my $tariffs = Tariffs->new($db, %conf);
+ my $tariffs = Tariffs->new($db);
 
  require Fees;
  Fees->import();
@@ -1406,139 +1289,6 @@ $ADMIN_REPORT{USERS_WARNINGS} .= "----------------------------------------------
 $_TOTAL: $users->{TOTAL}\n";
 
 }
-
-
-
-#**********************************************************
-# form_traf_tarifs()
-#**********************************************************
-sub dv_traf_tarifs {
-  my ($attr) = @_;
-  my $tarif_plan;
-
-  
-if (defined($FORM{tt})) {
-  $tarif_plan = $attr->{TP};
-  $tarif_plan->tt_defaults();
-  $tarif_plan->{TI_ID} = $FORM{tt};
-
-
-
-  if($FORM{add}) {
-    $tarif_plan->tt_add({ %FORM });
-    if(! $tarif_plan->{errno}) {
-      message('info', $_INFO, "$_ADDED");
-     }
-  }
-  elsif($FORM{change}) {
-    $FORM{TI_ID}=$FORM{tt};
-    $tarif_plan->tt_change({ %FORM });
-
-    if(! $tarif_plan->{errno}) {
-      message('info', $_INFO, "$_CHANGED"); 
-     }
-  }
- 	elsif(defined($FORM{chg})) {
-    $tarif_plan->tt_info({ TI_ID => $FORM{tt}, TT_ID => $FORM{chg} });
-    if(! $tarif_plan->{errno}) {
-      message('info', $_INFO, "$_CHANGING");  	
-     }
-    $tarif_plan->{ACTION}='change';
-    $tarif_plan->{LNG_ACTION}=$_CHANGE;
-  }
-  elsif(defined($FORM{del}) && defined($FORM{is_js_confirmed}) ) {
-    $tarif_plan->tt_del({ TI_ID => $FORM{tt}, TT_ID => $FORM{del} });
-    if(! $tarif_plan->{errno}) {
-    	message('info', $_INFO, "$_DELETED"); 
-     }
-  }
-
-#  else {
-    #$tarif_plan->tt_list( { TI_ID => $FORM{tt} });
-#    $tarif_plan->{TT_ID}=$tarif_plan->{TOTAL};
-#  }
-
-#  if ($FORM{change}) {
-#    $tarif_plan->tt_change( { 
-#      TI_ID          => $tarif_plan->{TI_ID},
-#      	
-#    	TT_DESCRIBE_0  => $FORM{TT_DESCRIBE_0},
-#      TT_PRICE_IN_0  => $FORM{TT_PRICE_IN_0},
-#      TT_PRICE_OUT_0 => $FORM{TT_PRICE_OUT_0},
-#      TT_NETS_0      => $FORM{TT_NETS_0},
-#      TT_PREPAID_0   => $FORM{TT_PREPAID_0},
-#      TT_SPEED_0     => $FORM{TT_SPEED_0},
-#      
-#      TT_DESCRIBE_1  => $FORM{'TT_DESCRIBE_1'},
-#      TT_PRICE_IN_1  => $FORM{TT_PRICE_IN_1},
-#      TT_PRICE_OUT_1 => $FORM{TT_PRICE_OUT_1},
-#      TT_NETS_1      => $FORM{TT_NETS_1},
-#      TT_PREPAID_1   => $FORM{TT_PREPAID_1},
-#      TT_SPEED_1     => $FORM{TT_SPEED_1},
-#
-#      TT_DESCRIBE_2 => $FORM{TT_DESCRIBE_2},
-#      TT_NETS_2 => $FORM{TT_NETS_2},
-#      TT_SPEED_2 => $FORM{TT_SPEED_2},
-#      EX_FILE_PATH => "$conf{netsfilespath}"
-#    });
-#
-#
-#    if ($tarif_plan->{errno}) {
-#      message('err', $_ERROR, "[$tarif_plan->{errno}] $err_strs{$tarif_plan->{errno}}");	
-#     }
-#    else {
-#      message('info', $_INFO, "$_INTERVALS");
-#     }
-#   }
-
-   my $list = $tarif_plan->tt_list({ TI_ID => $FORM{tt}, form => 'yes' });
-   $tarif_plan->{TT_ID}=$tarif_plan->{TOTAL} if (! defined($FORM{chg}));
-   
- }
-elsif($attr->{TP}) {
-  $tarif_plan = $attr->{TP};
-  $tarif_plan->tt_defaults();
-
-  if ($FORM{change}) {
-    $tarif_plan->tt_change( { 
-    	TT_DESCRIBE_0  => $FORM{TT_DESCRIBE_0},
-      TT_PRICE_IN_0  => $FORM{TT_PRICE_IN_0},
-      TT_PRICE_OUT_0 => $FORM{TT_PRICE_OUT_0},
-      TT_NETS_0      => $FORM{TT_NETS_0},
-      TT_PREPAID_0   => $FORM{TT_PREPAID_0},
-      TT_SPEED_0    =>     $FORM{TT_SPEED_0},
-
-      TT_DESCRIBE_1 => $FORM{'TT_DESCRIBE_1'},
-      TT_PRICE_IN_1 => $FORM{TT_PRICE_IN_1},
-      TT_PRICE_OUT_1 => $FORM{TT_PRICE_OUT_1},
-      TT_NETS_1 => $FORM{TT_NETS_1},
-      TT_PREPAID_1 => $FORM{TT_PREPAID_1},
-      TT_SPEED_1 => $FORM{TT_SPEED_1},
-
-      TT_DESCRIBE_2 => $FORM{TT_DESCRIBE_2},
-      TT_NETS_2 => $FORM{TT_NETS_2},
-      TT_SPEED_2 => $FORM{TT_SPEED_2},
-      EX_FILE_PATH => "$conf{netsfilespath}"
-    });
-
-
-    if ($tarif_plan->{errno}) {
-      my $messages = "($tarif_plan->{errstr})" if($tarif_plan->{errstr});
-      message('err', $_ERROR, "[$tarif_plan->{errno}] $err_strs{$tarif_plan->{errno}} $message");	
-     }
-    else {
-      message('info', $_INFO, "$_INTERVALS");
-     }
-   }
-
-   my $list = $tarif_plan->tt_list($FORM{ti});
- }
-  
-
-
-}
-
-
 
 1
 
