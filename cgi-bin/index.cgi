@@ -85,8 +85,8 @@ my $passwd = $FORM{passwd} || '';
 
   # ID:PARENT:NAME:FUNCTION:SHOW SUBMENU:OP:
   my @m = ( 
-   "11:0:$_USER_INFO:form_info:::",
-   "30:0:$_LOGOUT:logout:::"
+   "30:0:$_LOGOUT:logout:::",
+   "10:0:$_USER_INFO:form_info:::"
    );
 
 
@@ -155,7 +155,7 @@ print "<table border=0 width=100%>
     $functions{$index}->();
    }
   else {
-    $functions{11}->();
+    $functions{10}->();
    }
   print "</td></tr></table>\n";
 }
