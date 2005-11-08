@@ -25,15 +25,15 @@ $web_interface    = 1;
 
 #Iner_ID : Main or Sub or if -1 user menu func list
 %FUNCTIONS_LIST = ("01:-1:$_DOCS:null:UID"            => 11,
-                   "02:1:$_ACCOUNTS:docs_accounts:UID"     => 11,
-                   "03:2:$_ADD:docs_account_add:UID"       => 11,
+                   "02:1:$_ACCOUNTS:docs_accounts_list:UID"     => 11,
+                   "03:2:$_ADD:docs_account:UID"       => 11,
                    "05:0:$_DOCS:null:"                     => 5,
                    "06:5:$_TEMPLATES:null:"                => 5,
-                   "10:0:$_DOCS:docs_accounts:"            => 6,
-                   "11:10:$_ACCOUNTS:docs_accounts:"       => 6
+                   "10:0:$_DOCS:docs_accounts_list:"            => 6,
+                   "11:10:$_ACCOUNTS:docs_accounts_list:"       => 6
                    );
 
-%USER_FUNCTION_LIST = ("01:0:$_DOCS:docs_user:"            => 0
+%USER_FUNCTION_LIST = ("01:0:$_DOCS:docs_accounts_list:"            => 0
                       );
 
 #%PERIODIC = (daily   => 'dv_daily_fees',

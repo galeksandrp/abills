@@ -27,98 +27,61 @@ sub new {
   ($db, $admin, $CONF) = @_;
   my $self = { };
   bless($self, $class);
-#  $self->{debug}=1;
+  #$self->{debug}=1;
+  return $self;
+}
+
+
+
+#**********************************************************
+# Default values
+#**********************************************************
+sub account_defaults {
+  my $self = shift;
+
+  %DATA = ( SUM   => '0.00',
+            COUNTS => 1
+         );   
+ 
+  $self = \%DATA;
   return $self;
 }
 
 
 
 
-
-
-
-
 #**********************************************************
-# Bill
-#**********************************************************
-sub create {
-	my $self = shift;
-	my ($attr) = @_;
-  my %DATA = $self->get_data($attr); 
-
-  $self->query($db, "INSERT INTO bills (deposit, uid, company_id, registration) 
-    VALUES ('$DATA{DEPOSIT}', '$DATA{UID}', '$DATA{COMPANY_ID}', now());", 'do');	
-
-  return $self if ($self->{errno});
-
-#  $admin->action_add($uid, "ADD BILL [$self->{INSERT_ID}]");
-  
-  
-  $self->{BILL_ID} = $self->{INSERT_ID};
-	
-	return $self;
-}
-
-#**********************************************************
-# Bill add sum to bill
-# Type:
-#  add
-#  take
-#**********************************************************
-sub action {
-	my $self = shift;
-	my ($type, $BILL_ID, $SUM, $attr) = @_;
-  my $value = '';
-  
-  if ($type eq 'take') {
-  	 $value = "-$SUM";
-   }
-  elsif($type eq 'add') {
-     $value = "+$SUM";
-   }
-
-  $self->query($db, "UPDATE bills SET deposit=deposit$value WHERE id='$BILL_ID';", 'do');	
-  return $self if($db->err > 0);
-#  $admin->action_add($uid, "ADD BILL [$self->{INSERT_ID}]");
-	
-	return $self;
-}
-
-
-#**********************************************************
-# Bill
-#**********************************************************
-sub change {
-	my $self = shift;
-	my ($attr) = @_;
-
-	my %FIELDS = (BILL_ID    => 'id',
-	              UID        => 'uid', 
-	              COMPANY_ID => 'company_id',
-	              SUM        => 'sum'); 
-
- 	$self->changes($admin, { CHANGE_PARAM => 'BILL_ID',
-		                TABLE        => 'bills',
-		                FIELDS       => \%FIELDS,
-		                OLD_INFO     => $self->bill_info($attr->{BILL_ID}),
-		                DATA         => $attr
-		              } );
-
-
-	
-	return $self;
-}
-
-
-#**********************************************************
-# Bill
+# accounts_list
 #**********************************************************
 sub accounts_list {
   my $self = shift;
   my ($attr) = @_;
+
+  $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+  $DESC = ($attr->{DESC}) ? $attr->{DESC} : 'DESC';
 	
 
- @WHERE_RULES = ("d.id=o.aid");
+ @WHERE_RULES = ("d.id=o.acct_id");
+ 
+ if($attr->{LOGIN_EXPR}) {
+ 	 require Users;
+	 push @WHERE_RULES, "d.uid='$attr->{UID}'"; 
+  }
+ 
+ if ($attr->{FROM_DATE}) {
+    push @WHERE_RULES, "(date_format(d.date, '%Y-%m-%d')>='$attr->{FROM_DATE}' and date_format(d.date, '%Y-%m-%d')<='$attr->{TO_DATE}')";
+  }
+
+ if ($attr->{ACCT_ID}) {
+ 	  my $value = $self->search_expr($attr->{ACCT_ID}, 'INT');
+    push @WHERE_RULES, "d.acct_id$value";
+  }
+
+ if ($attr->{SUM}) {
+ 	  my $value = $self->search_expr($attr->{SUM}, 'INT');
+    push @WHERE_RULES, "o.price * o.counts$value";
+  }
+
  
  #DIsable
  if ($attr->{UID}) {
@@ -129,15 +92,14 @@ sub accounts_list {
  $WHERE = ($#WHERE_RULES > -1) ? 'WHERE ' . join(' and ', @WHERE_RULES)  : '';
 
 
-$self->{debug}=1;
 
-  $self->query($db,   "SELECT d.aid, d.date, d.customer,  sum(o.price * o.counts), u.id, d.maked, d.time, d.uid
-    FROM docs_acct d, acct_orders o
+  $self->query($db,   "SELECT d.acct_id, d.date, d.customer,  sum(o.price * o.counts), u.id, a.name, d.created, d.uid, d.id
+    FROM docs_acct d, docs_acct_orders o
     LEFT JOIN users u ON (d.uid=u.uid)
+    LEFT JOIN admins a ON (d.aid=a.aid)
     $WHERE
-    GROUP BY d.id 
+    GROUP BY d.acct_id 
     ORDER BY $SORT $DESC;");
-
 
 
  return $self->{list}  if ($self->{TOTAL} < 1);
@@ -145,20 +107,69 @@ $self->{debug}=1;
 
 
  $self->query($db, "SELECT count(*)
-    FROM docs_acct d,acct_orders o    
+    FROM docs_acct d, docs_acct_orders o    
     LEFT JOIN users u ON (d.uid=u.uid)
-    $WHERE
-    GROUP BY d.id");
+    $WHERE");
 
  my $a_ref = $self->{list}->[0];
 
- ($self->{TOTAL}, 
-  $self->{SUM}) = @$a_ref;
+ ($self->{TOTAL}) = @$a_ref;
 
-
- #LIMIT $PG, $PAGE_ROWS
-	 
 	return $list;
+}
+
+#**********************************************************
+# accounts_list
+#**********************************************************
+sub account_nextid {
+  my $self = shift;
+  my ($attr) = @_;
+
+  $self->query($db,   "SELECT max(d.acct_id), count(*) FROM docs_acct d
+    WHERE YEAR(date)=YEAR(curdate());");
+
+  my $a_ref = $self->{list}->[0];
+  ($self->{NEXT_ID},
+   $self->{TOTAL}) = @$a_ref;
+ 
+  $self->{NEXT_ID}++;
+	return $self->{NEXT_ID};
+}
+
+
+#**********************************************************
+# Bill
+#**********************************************************
+sub account_add {
+	my $self = shift;
+	my ($attr) = @_;
+  
+  %DATA = $self->get_data($attr, { default => \%DATA }); 
+  $DATA{DATE}    = ($attr->{DATE})    ? "'$attr->{DATE}'" : 'now()';
+  $DATA{ACCT_ID} = ($attr->{ACCT_ID}) ? $attr->{ACCT_ID}  : $self->account_nextid();
+
+  
+
+  $self->query($db, "insert into docs_acct (acct_id, date, created, customer, phone, aid, uid)
+      values ('$DATA{ACCT_ID}', $DATA{DATE}, now(), \"$DATA{CUSTOMER}\", \"$DATA{PHONE}\", 
+      \"$admin->{AID}\", \"$DATA{UID}\");", 'do');
+ 
+  return $self if($self->{errno});
+  $self->{DOC_ID}=$self->{INSERT_ID};
+
+  $self->query($db, "INSERT INTO docs_acct_orders (acct_id, orders, counts, unit, price)
+      values ($self->{DOC_ID}, \"$DATA{ORDERS}\", '$DATA{COUNTS}', '$DATA{UNIT}',
+ '$DATA{SUM}')", 'do');
+
+  return $self if($self->{errno});
+  
+  $self->{ACCT_ID}=$DATA{ACCT_ID};
+  $self->account_info($self->{DOC_ID});
+
+  #push @{$self->{ORDERS}}, "$DATA{ACCT_ID}|$DATA{COUNTS}|$DATA{UNIT}|$DATA{SUM}";
+  
+
+	return $self;
 }
 
 
@@ -169,7 +180,7 @@ sub account_del {
 	my $self = shift;
 	my ($id, $attr) = @_;
 
-   $self->query($db, "DELETE FROM acct_orders WHERE aid='$id'", 'do');
+   $self->query($db, "DELETE FROM docs_acct_orders WHERE acct_id='$id'", 'do');
    $self->query($db, "DELETE FROM docs_acct WHERE id='$id'", 'do');
 
 	return $self;
@@ -178,14 +189,25 @@ sub account_del {
 #**********************************************************
 # Bill
 #**********************************************************
-sub info {
+sub account_info {
 	my $self = shift;
-	my ($attr) = @_;
+	my ($id, $attr) = @_;
 
-  $self->query($db, "SELECT b.id, b.deposit, u.id, b.uid, b.company_id
-    FROM bills b
-    LEFT JOIN users u ON (u.uid = b.uid)
-    WHERE b.id='$attr->{BILL_ID}';");
+
+  $self->query($db, "SELECT d.acct_id, 
+   d.date, 
+   d.customer,  
+   sum(o.price * o.counts), 
+   u.id, 
+   a.name, 
+   d.created, 
+   d.uid, 
+   d.id
+    FROM docs_acct d, docs_acct_orders o
+    LEFT JOIN users u ON (d.uid=u.uid)
+    LEFT JOIN admins a ON (d.aid=a.aid)
+    WHERE d.id=o.acct_id and d.id='$id'
+    GROUP BY d.id;");
 
   if ($self->{TOTAL} < 1) {
      $self->{errno} = 2;
@@ -194,36 +216,47 @@ sub info {
    }
 
   my $ar = $self->{list}->[0];
-
-  ($self->{BILL_ID}, 
-   $self->{DEPOSIT}, 
-   $self->{LOGIN}, 
-   $self->{UID}, 
-   $self->{COMPANY_ID}, 
+  ($self->{ACCT_ID}, 
+   $self->{DATE}, 
+   $self->{CUSTOMER}, 
+   $self->{SUM}
   )= @$ar;
 	
+  
+  $self->query($db, "SELECT acct_id, orders, counts, unit, price
+   FROM docs_acct_orders WHERE acct_id='$id'");
+  
+  $self->{ORDERS}=$self->{list};
 
 	return $self;
 }
 
 
-##**********************************************************
-## get_bill_id($self, $ussr, $attr);
-##**********************************************************
-#sub get_bill_id {
-#  my $self = shift;
-#	my ($attr) = @_;
-#
-#  if ($user->{COMPANY_ID} > 0) {
-#  	$sql = "SELECT bill_id FROM companies WHERE id='$user->{COMPANY_ID}';";
-#   }
-#  else {
-#    $sql = "SELECT bill_id FROM users WHERE uid='$user->{UID}';";
-#   }
-#  $self->query($db, "$sql");
-#
-#  return $id;
-#}
+#**********************************************************
+# change()
+#**********************************************************
+sub account_change {
+  my $self = shift;
+  my ($attr) = @_;
+  
+  my %FIELDS = (ACCT_ID     => 'acct_id',
+                DATE        => 'date',
+                CUSTOMER    => 'customer',
+                SUM         => 'sum',
+                ID          => 'id',
+                UID         => 'uid'
+             );
+
+
+  $self->changes($admin,  { CHANGE_PARAM => 'ID',
+                   TABLE        => 'docs_acct',
+                   FIELDS       => \%FIELDS,
+                   OLD_INFO     => $self->account_info($attr->{DOC_ID}),
+                   DATA         => $attr
+                  } );
+
+  return $self->{result};
+}
 
 
 

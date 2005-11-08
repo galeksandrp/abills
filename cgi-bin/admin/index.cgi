@@ -2769,8 +2769,8 @@ if ($FORM{search}) {
   $pages_qs = "&search=y&type=$FORM{type}";
 
 	if(defined($FORM{FROM_D}) && defined($FORM{TO_D})) {
-	  $FORM{FROM_DATE}="$FORM{FROM_Y}-$FORM{FROM_M}-$FORM{FROM_D}";
-	  $FORM{TO_DATE}="$FORM{TO_Y}-$FORM{TO_M}-$FORM{TO_D}";
+	  $FORM{FROM_DATE}="$FORM{FROM_Y}-". ($FORM{FROM_M}+1). "-$FORM{FROM_D}";
+	  $FORM{TO_DATE}="$FORM{TO_Y}-". ($FORM{TO_M}+1) ."-$FORM{TO_D}";
    }	 
 	
 	while(my($k, $v)=each %FORM) {

@@ -10,7 +10,7 @@ sub _include {
     $tpl	= "modules/$module/templates/$tpl";
    }
 
-  foreach $prefix (@INC) {
+  foreach my $prefix (@INC) {
      my $realfilename = "$prefix/Abills/$tpl.tpl";
      if (-f $realfilename) {
         open(FILE, "$realfilename") || die "Can't open file '$realfilename' $!";
@@ -21,6 +21,7 @@ sub _include {
         last;
       }
   }
+
   return $tpl_content;
 }
 

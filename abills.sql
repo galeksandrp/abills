@@ -3,20 +3,6 @@
 -- Host: localhost    Database: abills
 -- ------------------------------------------------------
 -- Server version	4.0.24
-
---
--- Table structure for table `acct_orders`
---
-
-CREATE TABLE acct_orders (
-  aid int(11) NOT NULL default '0',
-  orders varchar(200) NOT NULL default '',
-  counts int(10) unsigned NOT NULL default '0',
-  unit tinyint(3) unsigned NOT NULL default '0',
-  price float(8,2) unsigned NOT NULL default '0.00',
-  KEY aid (aid)
-) TYPE=MyISAM;
-
 --
 -- Table structure for table `actions`
 --
@@ -125,17 +111,26 @@ CREATE TABLE config (
 -- Table structure for table `docs_acct`
 --
 
-CREATE TABLE docs_acct (
-  id int(11) NOT NULL auto_increment,
-  date date NOT NULL default '0000-00-00',
-  time time NOT NULL default '00:00:00',
-  customer varchar(200) NOT NULL default '',
-  phone varchar(16) NOT NULL default '0',
-  maked varchar(20) NOT NULL default '',
-  user varchar(20) NOT NULL default '',
-  aid int(10) unsigned NOT NULL default '0',
-  uid int(11) unsigned NOT NULL default '0',
-  PRIMARY KEY  (id)
+CREATE TABLE `docs_acct` (
+  `id` int(11) unsigned NOT NULL auto_increment,
+  `date` date NOT NULL default '0000-00-00',
+  `created` datetime NOT NULL default '0000-00-00 00:00:00',
+  `customer` varchar(200) NOT NULL default '',
+  `phone` varchar(16) NOT NULL default '0',
+  `user` varchar(20) NOT NULL default '',
+  `acct_id` int(10) unsigned NOT NULL default '0',
+  `uid` int(11) unsigned NOT NULL default '0',
+  `aid` smallint(6) unsigned NOT NULL default '0',
+  PRIMARY KEY  (`id`)
+) TYPE=MyISAM;
+
+CREATE TABLE `docs_acct_orders` (
+  `acct_id` int(11) unsigned NOT NULL default '0',
+  `orders` varchar(200) NOT NULL default '',
+  `counts` int(10) unsigned NOT NULL default '0',
+  `unit` tinyint(3) unsigned NOT NULL default '0',
+  `price` float(8,2) unsigned NOT NULL default '0.00',
+  KEY `aid` (`acct_id`)
 ) TYPE=MyISAM;
 
 --
