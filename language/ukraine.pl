@@ -287,3 +287,4 @@ $_ADDRESS_BUILD='Дім';
 $_ADDRESS_FLAT='Квартира';
 $_CONTRACT_ID='Номер контракта';
 $_NOT_ACTIVE='Не активовано';
+$_REFRESH='Оновлення';

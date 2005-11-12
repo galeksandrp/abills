@@ -361,6 +361,8 @@ return qq{
 <tr><td>$_TO:</td><td>%TO_DATE%</td></tr>
 </table>
 </td></tr>
+<tr><td colspan=2>&nbsp;</td></tr>
+<tr><td>$_ROWS:</td><td><input type=text name=PAGE_ROWS value=$PAGE_ROWS></td></tr>
 %SEARCH_FORM%
 </table>
 <input type=submit name=search value=$_SEARCH>

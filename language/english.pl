@@ -288,3 +288,4 @@ $_ADDRESS_BUILD='Build';
 $_ADDRESS_FLAT='Flat';
 $_CONTRACT_ID='Contract Number';
 $_NOT_ACTIVE='Not Active';
+$_REFRESH='Refresh';

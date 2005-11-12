@@ -40,11 +40,9 @@ if (defined($ARGV[0]) && $ARGV[0] eq 'pre_auth') {
   exit 0;
 }
 
-
 require Nas;
-my $nas = Nas->new($db);	
-$nas->info({IP => $RAD->{NAS_IP_ADDRESS},
-            SECRETKEY => $conf{secretkey}});
+my $nas = Nas->new($db, \%conf);	
+$nas->info({ IP => $RAD->{NAS_IP_ADDRESS} });
 
 
 if (defined($nas->{errno}) || $nas->{TOTAL} < 1) {

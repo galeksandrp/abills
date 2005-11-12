@@ -44,7 +44,8 @@ my %FIELDS = ( TP_ID        => 'id',
                MAX_SESSION_DURATION => 'max_session_duration',
                FILTER_ID        => '',
                PAYMENT_TYPE     => 'payment_type',
-               MIN_SESSION_COST => 'min_session_cost'
+               MIN_SESSION_COST => 'min_session_cost',
+               RAD_PAIRS        => 'rad_pairs'
              );
 
 #**********************************************************
@@ -55,6 +56,8 @@ sub new {
   ($db, $CONF) = @_;
   my $self = { };
   bless($self, $class);
+  
+  #$self->{debug}=1;
   return $self;
 }
 
@@ -143,31 +146,6 @@ sub ti_change {
 		               DATA         => $attr
 		              } );
 
-
-#  
-#  my $CHANGES_QUERY = "";
-#  my $CHANGES_LOG = "Intervals:";
-#  my $OLD = $self->ti_info($ti_id);
-#
-#
-#  while(my($k, $v)=each(%DATA)) {
-#    if ($OLD->{$k} ne $DATA{$k}){
-#      if ($FIELDS{$k}) {
-#         $CHANGES_LOG .= "$k $OLD->{$k}->$DATA{$k};";
-#         $CHANGES_QUERY .= "$FIELDS{$k}='$DATA{$k}',";
-#       }
-#     }
-#   }
-#
-#if ($CHANGES_QUERY eq '') {
-#  return $self->{result};	
-#}
-#
-## print $CHANGES_LOG;
-#  chop($CHANGES_QUERY);
-#  $self->query($db, "UPDATE intervals SET $CHANGES_QUERY
-#    WHERE id='$ti_id'", 'do');
-  
   if ($ti_id == $DATA{TI_ID}) {
   	$self->ti_info($ti_id);
    }
@@ -258,7 +236,8 @@ sub defaults {
             MAX_SESSION_DURATION => 0,
             FILTER_ID            => '',
             PAYMENT_TYPE         => 0,
-            MIN_SESSION_COST     => '0.00000'
+            MIN_SESSION_COST     => '0.00000',
+            RAD_PAIRS            => ''
 
          );   
  
@@ -280,14 +259,14 @@ sub add {
      day_time_limit, week_time_limit,  month_time_limit, 
      day_traf_limit, week_traf_limit,  month_traf_limit,
      activate_price, change_price, credit_tresshold, age, octets_direction,
-     max_session_duration, filter_id, payment_type, min_session_cost)
+     max_session_duration, filter_id, payment_type, min_session_cost, rad_pairs)
     values ('$DATA{TP_ID}', '$DATA{TIME_TARIF}', '$DATA{ALERT}', \"$DATA{NAME}\", 
      '$DATA{MONTH_FEE}', '$DATA{DAY_FEE}', '$DATA{SIMULTANEONSLY}', 
      '$DATA{DAY_TIME_LIMIT}', '$DATA{WEEK_TIME_LIMIT}',  '$DATA{MONTH_TIME_LIMIT}', 
      '$DATA{DAY_TRAF_LIMIT}', '$DATA{WEEK_TRAF_LIMIT}',  '$DATA{MONTH_TRAF_LIMIT}',
      '$DATA{ACTIV_PRICE}', '$DATA{CHANGE_PRICE}', '$DATA{CREDIT_TRESSHOLD}', '$DATA{AGE}', '$DATA{OCTETS_DIRECTION}',
      '$DATA{MAX_SESSION_DURATION}', '$DATA{FILTER_ID}',
-     '$DATA{payment_type}', '$DATA{min_session_cost}');", 'do' );
+     '$DATA{payment_type}', '$DATA{min_session_cost}', '$DATA{RAD_PAIRS}');", 'do' );
 
   return $self;
 }
@@ -307,6 +286,7 @@ sub change {
 		                DATA         => $attr
 		              } );
 
+  
   $self->info($tp_id);
 	
 	return $self;
@@ -338,7 +318,8 @@ sub info {
       max_session_duration,
       filter_id,
       payment_type,
-      min_session_cost
+      min_session_cost,
+      rad_pairs
     FROM tarif_plans
     WHERE id='$id';");
 
@@ -371,7 +352,8 @@ sub info {
    $self->{MAX_SESSION_DURATION},
    $self->{FILTER_ID},
    $self->{PAYMENT_TYPE},
-   $self->{MIN_SESSION_COST}
+   $self->{MIN_SESSION_COST},
+   $self->{RAD_PAIRS}
   ) = @$ar;
 
 
@@ -393,7 +375,10 @@ sub list {
  $self->query($db, "SELECT tp.id, tp.name, if(sum(i.tarif) is NULL or sum(i.tarif)=0, 0, 1), 
     if(sum(tt.in_price + tt.out_price)> 0, 1, 0), 
     tp.payment_type,
-    tp.day_fee, tp.month_fee, tp.logins, tp.age
+    tp.day_fee, tp.month_fee, 
+    tp.logins, 
+    tp.age,
+    tp.rad_pairs
     FROM tarif_plans tp
     LEFT JOIN intervals i ON (i.tp_id=tp.id)
     LEFT JOIN trafic_tarifs tt ON (tt.interval_id=i.id)
@@ -449,12 +434,13 @@ sub  tt_defaults {
 	my $self = shift;
 	
 	my %TT_DEFAULTS = (
-      TT_DESCRIBE => '',
-      TT_PRICE_IN => '0.00000',
-      TT_PRICE_OUT => '0.00000',
-      TT_NETS => '0.0.0.0/0',
-      TT_PREPAID => 0,
-      TT_SPEED => 0 );
+      TT_DESCRIBE   => '',
+      TT_PRICE_IN   => '0.00000',
+      TT_PRICE_OUT  => '0.00000',
+      TT_NETS       => '0.0.0.0/0',
+      TT_PREPAID    => 0,
+      TT_SPEED_IN   => 0,
+      TT_SPEED_OUT  => 0);
 
 #      TT_DESCRIBE_1 => '',
 #      TT_PRICE_IN_1 => '0.00000',
@@ -490,11 +476,11 @@ sub  tt_list {
 	
 	
 	if (defined( $attr->{TI_ID} )) {
-	  $self->query($db, "SELECT id, in_price, out_price, prepaid, speed, descr, nets
+	  $self->query($db, "SELECT id, in_price, out_price, prepaid, in_speed, out_speed, descr, nets
      FROM trafic_tarifs WHERE interval_id='$attr->{TI_ID}';");
    }	
 	else {
-	  $self->query($db, "SELECT id, in_price, out_price, prepaid, speed, descr, nets
+	  $self->query($db, "SELECT id, in_price, out_price, prepaid, in_speed, out_speed, descr, nets
      FROM trafic_tarifs WHERE tp_id='$self->{TP_ID}';");
    }
 
@@ -503,13 +489,14 @@ if (defined($attr->{form})) {
   my $a_ref = $self->{list};
 
   foreach my $row (@$a_ref) {
-      my ($id, $tarif_in, $tarif_out, $prepaid, $speed, $describe, $nets) = @$row;
+      my ($id, $tarif_in, $tarif_out, $prepaid, $speed_in, $speed_out, $describe, $nets) = @$row;
       $self->{'TT_DESCRIBE_'. $id}   = $describe;
       $self->{'TT_PRICE_IN_' . $id}  = $tarif_in;
       $self->{'TT_PRICE_OUT_' . $id} = $tarif_out;
       $self->{'TT_NETS_'.  $id}      = $nets;
       $self->{'TT_PREPAID_' .$id}    = $prepaid;
-      $self->{'TT_SPEED_' .$id}      = $speed;
+      $self->{'TT_SPEED_IN' .$id}    = $speed_in;
+      $self->{'TT_SPEED_OUT' .$id}   = $speed_out;
    }
 
   return $self;
@@ -529,7 +516,8 @@ sub  tt_info {
 	my ($attr) = @_;
 	
 	
-	  $self->query($db, "SELECT id, interval_id, in_price, out_price, prepaid, speed, descr, nets
+	  $self->query($db, "SELECT id, interval_id, in_price, out_price, prepaid, in_speed, out_speed, 
+	     descr, nets
      FROM trafic_tarifs 
      WHERE 
      interval_id='$attr->{TI_ID}'
@@ -542,12 +530,11 @@ sub  tt_info {
    $self->{TT_PRICE_IN},
    $self->{TT_PRICE_OUT},
    $self->{TT_PREPAID},
-   $self->{TT_SPEED},
+   $self->{TT_SPEED_IN},
+   $self->{TT_SPEED_OUT},
    $self->{TT_DESCRIBE},
    $self->{TT_NETS}
   ) = @$ar;
-
-
 
 	
 	return $self;
@@ -570,10 +557,10 @@ sub  tt_add {
    }
   
   $self->query($db, "INSERT INTO trafic_tarifs  
-    (interval_id, id, descr,  in_price,  out_price,  nets,  prepaid,  speed)
+    (interval_id, id, descr,  in_price,  out_price,  nets,  prepaid,  in_speed, out_speed)
     VALUES 
     ('$DATA{TI_ID}', '$DATA{TT_ID}',   '$DATA{TT_DESCRIBE}', '$DATA{TT_PRICE_IN}',  '$DATA{TT_PRICE_OUT}',
-     '$DATA{TT_NETS}', '$DATA{TT_PREPAID}', '$DATA{TT_SPEED}')", 'do');
+     '$DATA{TT_NETS}', '$DATA{TT_PREPAID}', '$DATA{TT_SPEED_IN}', '$DATA{TT_SPEED_OUT}')", 'do');
 
   $self->create_nets({ TI_ID => $DATA{TI_ID} });
 
@@ -597,42 +584,11 @@ sub  tt_change {
     out_price='". $DATA{TT_PRICE_OUT} ."',
     nets='". $DATA{TT_NETS} ."',
     prepaid='". $DATA{TT_PREPAID} ."',
-    speed='". $DATA{TT_SPEED} ."'
+    in_speed='". $DATA{TT_SPEED_IN} ."',
+    out_speed='". $DATA{TT_SPEED_OUT} ."'
     WHERE 
     interval_id='$attr->{TI_ID}' and id='$DATA{TT_ID}';", 'do');
 
-
-#
-#my $body = "";
-#my @n = ();
-#$/ = chr(0x0d);
-#my $i=0;
-#for(my $i=0; $i<=2; $i++) {
-#  $self->query($db, "REPLACE trafic_tarifs SET 
-#    id='$i',
-#    descr='". $DATA{'TT_DESCRIBE_' . $i } ."', 
-#    in_price='". $DATA{'TT_PRICE_IN_'. $i}  ."',
-#    out_price='". $DATA{'TT_PRICE_OUT_'. $i} ."',
-#    nets='". $DATA{'TT_NETS_'. $i} ."',
-#    prepaid='". $DATA{'TT_PREPAID_'. $i} ."',
-#    speed='". $DATA{'TT_SPEED_'. $i} ."',
-#    interval_id='$attr->{TI_ID}'
-#    ;", 'do');
-#
-#
-#    #tp_id='$self->{TP_ID}',
-#
-#  if ($DATA{'TT_NETS_'. $i} ne '') {
-#     @n = split(/\n|;/, $DATA{'TT_NETS_'. $i});
-#     foreach my $line (@n) {
-#       chomp($line);
-#       next if ($line eq "");
-#       $body .= "$line $i\n";
-#     }
-#   }
-#}
-
-#
   $self->create_nets({ TI_ID => $attr->{TI_ID} });
   
   return $self;
@@ -653,7 +609,7 @@ sub create_nets {
   $/ = chr(0x0d);
   
   foreach my $line (@$list) {
-     my @n = split(/\n|;/, $line->[6]);
+     my @n = split(/\n|;/, $line->[7]);
      foreach my $ip (@n) {
        chomp($ip);
        next if ($ip eq "");

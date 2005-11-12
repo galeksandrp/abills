@@ -19,7 +19,7 @@
 # set iface down-script "/usr/abills/libexec/linkupdown mpd down"
 
 
-my $debug=1;
+my $debug=0;
 
 #If not anought arguments
 if ( $#ARGV < 3 ) {
@@ -112,10 +112,10 @@ my @FW_ACTIONS = ();
   my($fw_num, $pipe_num, $fw_nums, $pipe_nums);
   
   foreach my $num (@START_FW) {
-    $fw_num = $num + $inum;
-    $pipe_num = $num + $inum;
-    $fw_nums .= "$fw_num ";
-    $pipe_nums .= "$pipe_num ";
+    $fw_num =     $num + $inum * 2;
+    $pipe_num =   $num + $inum * 2;
+    $fw_nums .=   ' ' . ($fw_num)   .' '. ($fw_num +1);
+    $pipe_nums .= ' ' . ($pipe_num) .' '. ($pipe_num+1);
   }
   push @FW_ACTIONS, "$IPFW delete $fw_nums";
   push @FW_ACTIONS, "$IPFW pipe delete $pipe_nums";
@@ -167,8 +167,9 @@ if ($ACTION eq 'up') {
    while(my($k, $v)=each( %TT_IDS)) {
  	    my $list = $tariffs->tt_list({ TI_ID => $v });
  	    foreach my $line (@$list)  {
- 	    	$speeds{$line->[0]}="$line->[4]";
- 	    	$nets{$line->[0]}="$line->[6]";
+ 	    	$speeds{$line->[0]}{IN}="$line->[4]";
+ 	    	$speeds{$line->[0]}{OUT}="$line->[5]";
+ 	    	$nets{$line->[0]}="$line->[7]";
  	    	#print "$line->[0] $line->[4]\n";
  	    }
  	    
@@ -184,21 +185,44 @@ if ($ACTION eq 'up') {
    }
 
  # speed apply
-  my $fw_num=0;
-  my $pipe_num=0;
+  my $fw_num_in    =0;
+  my $fw_num_out   =0;
+  my $pipe_num_in  =0;
+  my $pipe_num_out =0;
   while(my ($traf_type, $speed)=each %speeds) {
-    $fw_num = $START_FW[$traf_type] + $inum;
-    $pipe_num = $START_FW[$traf_type] + $inum;
-    if ($speed > 0) {
+    $fw_num_in  = $START_FW[$traf_type] + $inum * 2;
+    $fw_num_out = $START_FW[$traf_type] + $inum * 2 + 1;
+    $pipe_num_in  = $START_FW[$traf_type] + $inum * 2 ;
+    $pipe_num_out = $START_FW[$traf_type] + $inum * 2 + 1;
+    
+    my $speed_in  = (defined($speed->{IN}))  ? $speed->{IN}  : 0;
+    my $speed_out = (defined($speed->{OUT})) ? $speed->{OUT} : 0;
+
+    if ($speed_in > 0) {
        if ($traf_type == 0) {
-         push @FW_ACTIONS, "$IPFW add $fw_num pipe $pipe_num ip from any to any via $INTERFACE";
-         push @FW_ACTIONS, "$IPFW pipe $pipe_num config bw ". $speed ."Kbit/s queue 10Kbytes";
+         # In
+         push @FW_ACTIONS, "$IPFW add $fw_num_in pipe $pipe_num_in ip from any to any via $INTERFACE in";
+         push @FW_ACTIONS, "$IPFW pipe $pipe_num_in config bw ". $speed_in ."Kbit/s queue 10Kbytes";
         }
        else {
-         push @FW_ACTIONS, "$IPFW add $fw_num pipe $pipe_num ip from $nets{$traf_type} to any via $INTERFACE";
-         push @FW_ACTIONS, "$IPFW pipe $pipe_num config bw ". $speed ."Kbit/s queue 10Kbytes";
+       	 #In
+         push @FW_ACTIONS, "$IPFW add $fw_num_in pipe $pipe_num_in ip from $nets{$traf_type} to any via $INTERFACE in";
+         push @FW_ACTIONS, "$IPFW pipe $pipe_num_in config bw ". $speed_in ."Kbit/s queue 10Kbytes";
         }
     }
+
+    if ($speed_out > 0) {
+       if ($traf_type == 0) {
+         push @FW_ACTIONS, "$IPFW add $fw_num_out pipe $pipe_num_out ip from any to any via $INTERFACE out";
+         push @FW_ACTIONS, "$IPFW pipe $pipe_num_out config bw ". $speed_out ."Kbit/s queue 10Kbytes";
+        }
+       else {
+         push @FW_ACTIONS, "$IPFW add $fw_num_out pipe $pipe_num_out ip from $nets{$traf_type} to any via $INTERFACE out";
+         push @FW_ACTIONS, "$IPFW pipe $pipe_num_out config bw ". $speed_out ."Kbit/s queue 10Kbytes";
+        }
+    }
+    
+    
   }
 
  }

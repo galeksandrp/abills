@@ -53,9 +53,10 @@ require Abills::SQL;
 my $sql = Abills::SQL->connect($conf{dbtype}, "$conf{dbhost}", $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
 my $db = $sql->{db};
 require Nas;
-my $nas = Nas->new($db);	
-$nas->info({IP => $RAD->{NAS_IP_ADDRESS},
-            SECRETKEY => $conf{secretkey}});
+my $nas = Nas->new($db, \%conf);	
+my %NAS_PARAMS = ('IP' => "$RAD->{NAS_IP_ADDRESS}");
+$NAS_PARAMS{NAS_INDENTIFIER}=$RAD->{NAS_INDENTIFIER} if (defined($RAD->{NAS_INDENTIFIER}));
+$nas->info({ %NAS_PARAMS });
 
 if ($nas->{errno} || $nas->{TOTAL} < 1) {
   access_deny("$RAD->{USER_NAME}", "Unknow server '$RAD->{NAS_IP_ADDRESS}'", 0);

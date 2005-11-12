@@ -77,7 +77,7 @@ sub new {
   $DESC = ($FORM{desc}) ? 'DESC' : '';
   $PG = $FORM{pg} || 0;
   $OP = $FORM{op} || '';
-  $PAGE_ROWS = 25;
+  $PAGE_ROWS = $FORM{PAGE_ROWS} || 25;
   $domain = $ENV{SERVER_NAME};
   $web_path = '';
   $secure = '';

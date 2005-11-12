@@ -9,15 +9,16 @@ use vars qw(@ISA @EXPORT @EXPORT_OK %EXPORT_TAGS $VERSION
 my $db;
 use main;
 @ISA  = ("main");
-my %DATA;
 my $CONF;
+my $SECRETKEY = '';
 
 sub new {
   my $class = shift;
-  ($db, $CONF) = shift;
+  ($db, $CONF) = @_;
+  $SECRETKEY = (defined($CONF->{secretkey})) ? $CONF->{secretkey}: '';
   my $self = { };
   bless($self, $class);
-#  $self->{debug}=1;
+  #$self->{debug}=1;
   return $self;
 }
 
@@ -33,7 +34,7 @@ sub nas_params {
  
  my %NAS_INFO = ();
  my $sql = "SELECT id, name, nas_identifier, descr, ip, nas_type, auth_type, mng_host_port, mng_user, 
- DECODE(mng_password, '$self->{secretkey}'), rad_pairs 
+ DECODE(mng_password, '$SECRETKEY'), rad_pairs 
  FROM nas
  $WHERE;";
  
@@ -65,10 +66,10 @@ sub list {
  my $self = shift;
  my ($attr) = @_;
  
- my $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
- my $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
- my $PG = ($attr->{PG}) ? $attr->{PG} : 0;
- my $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
+ $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+ $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+ $PG = ($attr->{PG}) ? $attr->{PG} : 0;
+ $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
 
 
  $self->query($db, "SELECT id, name, nas_identifier, descr, ip,  nas_type, auth_type, disable
@@ -89,12 +90,18 @@ sub info {
 
  if (defined($attr->{IP})) {
  	 $WHERE = "ip='$attr->{IP}'";
+   if (defined($attr->{NAS_INDENTIFIER})) {
+     $WHERE .= " and (nas_identifier='$attr->{NAS_INDENTIFIER}' or nas_identifier='')";	
+    }
+   else {
+   	 $WHERE .= " and nas_identifier=''";
+    }
   }
  elsif(defined($attr->{NID})) {
    $WHERE = "id='$attr->{NID}'";
   }
 
- my $SECRETKEY = defined($attr->{SECRETKEY}) ? $attr->{SECRETKEY}: '';
+
  
  $self->query($db, "SELECT id, name, nas_identifier, descr, ip, nas_type, auth_type, mng_host_port, mng_user, 
  DECODE(mng_password, '$SECRETKEY'), rad_pairs, alive, disable
@@ -160,13 +167,13 @@ sub change {
   NAS_DISABLE => 'disable');
 
 
- my $OLD = $self->info({ NID => $self->{NID}, SECRETKEY => $attr->{SECRETKEY} } );
+ my $OLD = $self->info({ NID => $self->{NID} } );
 
  while(my($k, $v)=each(%DATA)) {
     if ($OLD->{$k} ne $DATA{$k}){
       if ($k eq 'NAS_MNG_PASSWORD') {
       	 $CHANGES_LOG .= "$k *->*;";
-         $CHANGES_QUERY .= "$FIELDS{$k}=ENCODE('$DATA{$k}', '$attr->{SECRETKEY}'),";
+         $CHANGES_QUERY .= "$FIELDS{$k}=ENCODE('$DATA{$k}', '$SECRETKEY'),";
        }
       elsif ($FIELDS{$k}) {
          $CHANGES_LOG .= "$k $OLD->{$k}->$DATA{$k};";
@@ -185,7 +192,7 @@ if ($CHANGES_QUERY eq '') {
     WHERE id='$self->{NID}'", 'do');
 #  $admin->action_add(0, "$CHANGES_LOG");
 
-  $self->info({ NID => $self->{NID}, SECRETKEY => $attr->{SECRETKEY} });
+  $self->info({ NID => $self->{NID} });
   
   return $self;
 }
@@ -203,7 +210,7 @@ sub add {
  $self->query($db, "INSERT INTO nas (name, nas_identifier, descr, ip, nas_type, auth_type, mng_host_port, mng_user, 
  mng_password, rad_pairs, alive, disable)
  values ('$DATA{NAS_NAME}', '$DATA{NAS_INDENTIFIER}', '$DATA{NAS_DESCRIBE}', '$DATA{NAS_IP}', '$DATA{NAS_TYPE}', '$DATA{NAS_AUTH_TYPE}',
-  '$DATA{NAS_MNG_IP_PORT}', '$DATA{NAS_MNG_USER}', ENCODE('$DATA{NAS_MNG_PASSWORD}', '$attr->{SECRETKEY}'), '$DATA{NAS_RAD_PAIRS}',
+  '$DATA{NAS_MNG_IP_PORT}', '$DATA{NAS_MNG_USER}', ENCODE('$DATA{NAS_MNG_PASSWORD}', '$SECRETKEY'), '$DATA{NAS_RAD_PAIRS}',
   '$DATA{NAS_ALIVE}', '$DATA{NAS_DISABLE}');", 'do');
 
 

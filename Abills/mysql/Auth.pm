@@ -68,7 +68,7 @@ sub dv_auth {
   week_traf_limit,
   month_traf_limit,
   tp.octets_direction,
-
+  
   if (count(un.uid) + count(tp_nas.tp_id) = 0, 0,
     if (count(un.uid)>0, 1, 2)),
 
@@ -80,7 +80,8 @@ sub dv_auth {
   if(tp.hourp + tp.day_fee + tp.month_fee=0 and (sum(tt.in_price + tt.out_price)=0 or sum(tt.in_price + tt.out_price)IS NULL), 0, 1),
   tp.max_session_duration,
   tp.payment_type,
-  tp.credit_tresshold
+  tp.credit_tresshold,
+  tp.rad_pairs
      FROM dv_main dv, tarif_plans tp
      LEFT JOIN trafic_tarifs tt ON (tt.tp_id=dv.tp_id)
      LEFT JOIN users_nas un ON (un.uid = dv.uid)
@@ -121,7 +122,8 @@ sub dv_auth {
      $self->{TP_PAYMENT},
      $self->{MAX_SESSION_DURATION},
      $self->{PAYMENT_TYPE},
-     $self->{CREDIT_TRESSHOLD}
+     $self->{CREDIT_TRESSHOLD},
+     $self->{TP_RAD_PAIRS}
     ) = @$a_ref;
 
 
@@ -406,7 +408,13 @@ if( defined($CONF->{MAC_AUTO_ASSIGN}) &&
      WHERE uid='$self->{UID}';", 'do');
 }
 
-
+  if ($self->{TP_RAD_PAIRS}) {
+  	my @p = split(/,/, $self->{TP_RAD_PAIRS});
+    foreach my $line (@p) {
+    	my ($rk, $lk)=split(/=/, $line);
+    	$RAD_PAIRS->{$rk}="$lk";
+     }
+  }
 #OK
   return 0, $RAD_PAIRS, '';
 }

@@ -491,9 +491,6 @@ sub list {
  }
  
  
- foreach my $line(@WHERE_RULES) {
-   print " --- $line \n"; 	
-}
  
  $WHERE = ($#WHERE_RULES > -1) ?  "WHERE " . join(' and ', @WHERE_RULES) : '';
  

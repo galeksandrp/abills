@@ -1017,7 +1017,7 @@ elsif (defined($FORM{TP_ID})) {
   return 0;
  }
 
-my $nas = Nas->new($db);
+my $nas = Nas->new($db, \%conf);
 my $out = "<form action='$SELF_URL'>
   <input type=hidden name=index  value='$FORM{index}'>
   <input type=hidden name=subf  value='$FORM{subf}'>
@@ -1236,7 +1236,7 @@ if(defined($attr->{TP})) {
      	 #Traffic tariff IN (1 Mb) Traffic tariff OUT (1 Mb) Prepaid (Mb) Speed (Kbits) Describe NETS 
 
        my $table2 = Abills::HTML->table( { width => '100%',
-                                   title_plain => ["#", "$_TRAFFIC_TARIFF In ", "$_TRAFFIC_TARIFF Out ", "$_PREPAID", "$_SPEED", "DESCRIBE", "NETS", "-", "-"],
+                                   title_plain => ["#", "$_TRAFFIC_TARIFF In ", "$_TRAFFIC_TARIFF Out ", "$_PREPAID", "$_SPEED IN",  "$_SPEED OUT", "DESCRIBE", "NETS", "-", "-"],
                                    cols_align => ['center', 'right', 'right', 'right', 'right', 'right', 'right', 'center', 'center', 'center', 'center'],
                                    caption => "$_BYTE_TARIF"
                                   } );
@@ -1249,7 +1249,8 @@ if(defined($attr->{TP})) {
            $line->[3], 
            $line->[4], 
            $line->[5], 
-           convert($line->[6], { text2html => yes  }),
+           $line->[6], 
+           convert($line->[7], { text2html => yes  }),
            "<a href=$SELF_URL?index=$index$pages_qs&tt=$TI_ID&chg=$line->[0]>$_CHANGE</a>",
            $html->button($_DEL, "index=$index$pages_qs&tt=$TI_ID&del=$line->[0]", "$_DEL ?"));
         }
@@ -1685,6 +1686,11 @@ sub admin_profile {
                     );
 print "$FORM{colors}";
 
+
+my $REFRESH=$COOKIES{REFRESH} || 60;
+my $ROWS=$COOKIES{PAGE_ROWS} || $PAGE_ROWS;
+
+
 print "
 <form action=$SELF_URL>
 <input type=hidden name=index value=$index>
@@ -1698,7 +1704,6 @@ while(my($k, $v) = each %LANG) {
   print ' selected' if ($k eq $language);
   print ">$v\n";	
 }
-
 print "</select></td></tr>
 <tr bgcolor=$_BG1><th colspan=3>&nbsp;</th></tr>
 <tr bgcolor=$_BG0><th colspan=2>$_PARAMS</th><th>$_VALUE</th></tr>\n";
@@ -1707,7 +1712,13 @@ print "</select></td></tr>
    print "<tr bgcolor=FFFFFF><td width=30% bgcolor=$_COLORS[$i]>$i</td><td>$colors_descr[$i]</td><td><input type=text name=colors value='$_COLORS[$i]'></td></tr>\n";
   } 
  
-print "</table>
+print "
+</table>
+<table width=100%>
+<tr><td colspan=2>&nbsp;</td></tr>
+<tr><td>$_REFRESH (sec.):</td><td><input type=input name=REFRESH value='$REFRESH'></td></tr>
+<tr><td>$_ROWS:</td><td><input type=input name=PAGE_ROWS value='$PAGE_ROWS'></td></tr>
+</table>
 </td></tr></table>
 <p><input type=submit name=set value='$_SET'> 
 <input type=submit name=default value='$_DEFAULT'>
@@ -1730,6 +1741,8 @@ while(my($thema, $colors)=each %profiles ) {
   print "'>$thema</a> ::";
 }
 
+
+
  return 0;
 }
 
@@ -1738,7 +1751,7 @@ while(my($thema, $colors)=each %profiles ) {
 # form_nas
 #**********************************************************
 sub form_nas {
-  my $nas = Nas->new($db);	
+  my $nas = Nas->new($db, \%conf);	
   $nas->{ACTION}='add';
   $nas->{LNG_ACTION}=$_ADD;
 
@@ -1793,18 +1806,19 @@ if ($nas->{errno}) {
   message('err', $_ERROR, "$err_strs{$nas->{errno}}");
  }
 
- my @nas_types = ('other', 'usr', 'pm25', 'ppp', 'exppp', 'radpppd', 'expppd', 'pppd', 'dslmax', 'mpd');
- my %nas_descr = ('usr' => "USR Netserver 8/16",
+ my @nas_types = ('other', 'usr', 'pm25', 'ppp', 'exppp', 'radpppd', 'expppd', 'pppd', 'dslmax', 'mpd', 'gnugk');
+ my %nas_descr = (
+  'usr'      => "USR Netserver 8/16",
   'pm25'      => 'LIVINGSTON portmaster 25',
   'ppp'       => 'FreeBSD ppp demon',
   'exppp'     => 'FreeBSD ppp demon with extended futures',
   'dslmax'    => 'ASCEND DSLMax',
   'expppd'    => 'pppd deamon with extended futures',
   'radpppd'   => 'pppd version 2.3 patch level 5.radius.cbcp',
-  'mpd'       => 'MPD ',
+  'mpd'       => 'MPD',
   'ipcad'     => 'IP accounting daemon with Cisco-like ip accounting export',
   'pppd'      => 'pppd + RADIUS plugin (Linux)',
-  'MAC auth'  => 'Simple MAC Authentification',
+  'gnugk'     => 'GNU GateKeeper',
   'other'     => 'Other nas server');
 
   foreach my $nt (@nas_types) {
@@ -1888,7 +1902,7 @@ elsif($FORM{nid}) {
   return 0;
 }
 else {
-  $nas = Nas->new($db);	
+  $nas = Nas->new($db, \%conf);	
 }
 
 if ($nas->{errno}) {
@@ -1919,7 +1933,7 @@ print $table->show();
 # form_nas_stats()
 #**********************************************************
 sub form_nas_stats {
-my $nas = Nas->new($db);	
+my $nas = Nas->new($db, \%conf);	
 
 my $table = Abills::HTML->table( { width => '100%',
                                    border => 1,
@@ -2748,17 +2762,9 @@ my %search_form = (
 );
 
 
-#41 => "
-#<!-- last SESSION -->
-
-
 $SEARCH_DATA{SEARCH_FORM}=(defined($attr->{SEARCH_FORM})) ? $attr->{SEARCH_FORM} : $search_form{$FORM{type}};
 $SEARCH_DATA{FROM_DATE} = Abills::HTML->date_fld('FROM_', { MONTHES => \@MONTHES });
 $SEARCH_DATA{TO_DATE} = Abills::HTML->date_fld('TO_', { MONTHES => \@MONTHES} );
-
-
-
-
 $SEARCH_DATA{SEL_TYPE}="<tr><td>WHERE:</td><td>$SEL_TYPE</td></tr>\n" if ($index == 7);
 
 Abills::HTML->tpl_show(templates('form_search'), \%SEARCH_DATA);

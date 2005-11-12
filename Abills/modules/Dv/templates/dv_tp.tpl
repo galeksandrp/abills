@@ -1,3 +1,4 @@
+
 <form action=$SELF_URL METHOD=POST>
 <input type=hidden name=index value=$index>
 <input type=hidden name=chg value='%TP_ID%'>
@@ -33,6 +34,8 @@
   <tr><td>$_AGE ($_DAYS):</td><td><input type=text name=AGE value='%AGE%'></td></tr>
   <tr><td>$_PAYMENT_TYPE:</td><td>%PAYMENT_TYPE_SEL%</td></tr>
   <tr><td>$_MIN_SESSION_COST:</td><td><input type=text name=MIN_SESSION_COST value='%MIN_SESSION_COST%'></td></tr>
+  <tr><th colspan=2>RADIUS Parameters (,)</th></tr>
+  <tr><th colspan=2><textarea cols=50 rows=4 name=RAD_PAIRS>%RAD_PAIRS%</textarea></th></tr>
 </table>
 <input type=submit name='%ACTION%' value='%LNG_ACTION%'>
 </form>
