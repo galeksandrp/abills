@@ -340,15 +340,16 @@ if ($NAS->{NAS_TYPE} eq 'exppp') {
     $RAD_PAIRS->{'Exppp-Local-IP-Table'} = "\"$attr->{NETS_FILES_PATH}$self->{TT_INTERVAL}.nets\"";
    }
 
-  #Shaper
-  if ($self->{USER_SPEED} > 0) {
-    $RAD_PAIRS->{'Exppp-Traffic-Shape'} = int($self->{USER_SPEED});
-   }
-  else {
-    if ($EX_PARAMS->{speed}  > 0) {
-      $RAD_PAIRS->{'Exppp-Traffic-Shape'} = $EX_PARAMS->{speed};
-     }
-   }
+#Shaper for exppp
+#  if ($self->{USER_SPEED} > 0) {
+#    $RAD_PAIRS->{'Exppp-Traffic-Shape'} = int($self->{USER_SPEED});
+#   }
+#  else {
+#    if ($EX_PARAMS->{speed}  > 0) {
+#      $RAD_PAIRS->{'Exppp-Traffic-Shape'} = $EX_PARAMS->{speed};
+#     }
+#   }
+
 =comments
         print "Exppp-Traffic-In-Limit = $trafic_inlimit,";
         print "Exppp-Traffic-Out-Limit = $trafic_outlimit,";
@@ -679,11 +680,14 @@ sub ex_traffic_params {
 # if ($traf_tarif > 0) {
    my $nets = 0;
 #$self->{debug}=1;
-   $self->query($db, "SELECT id, in_price, out_price, prepaid, speed, LENGTH(nets) FROM trafic_tarifs
+   $self->query($db, "SELECT id, in_price, out_price, prepaid, in_speed, out_speed, LENGTH(nets) FROM trafic_tarifs
              WHERE interval_id='$self->{TT_INTERVAL}';");
 
    if ($self->{TOTAL} < 1) {
      return \%EX_PARAMS;	
+    }
+   elsif($self->{errno}) {
+   	 return \%EX_PARAMS;
     }
 
    my $list = $self->{list};
@@ -691,12 +695,13 @@ sub ex_traffic_params {
      $prepaids{$line->[0]}=$line->[3];
      $in_prices{$line->[0]}=$line->[1];
      $out_prices{$line->[0]}=$line->[2];
-     $speeds{$line->[0]}=$line->[4];
-     $nets+=$line->[5];
+     $speeds{$line->[0]}{IN}=$line->[4];
+     $speeds{$line->[0]}{OUT}=$line->[5];
+     $nets+=$line->[6];
     }
 
    $EX_PARAMS{nets}=$nets if ($nets > 20);
-   $EX_PARAMS{speed}=int($speeds{0}) if (defined($speeds{0}));
+   #$EX_PARAMS{speed}=int($speeds{0}) if (defined($speeds{0}));
 
 #  }
 # else {

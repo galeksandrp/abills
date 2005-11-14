@@ -11,14 +11,14 @@ echo `pwd -P`;
 if [ t$1 = 'tauth' ] ; then
 
   ./rauth.pl \
-        USER_NAME="0007e919721b" \
-        USER_PASSWORD="0007e919721b" \
+        USER_NAME="aa1" \
+        USER_PASSWORD="test123" \
         CALLED_STATION_ID="00-09-E8-62-B3-4D" \
         CALLING_STATION_ID="00-07-E9-19-72-1B" \
         SERVICE_TYPE="Login-User"\
         NAS_PORT_TYPE=Wireless-802.11 \
         NAS_PORT=66\
-        NAS_IP_ADDRESS=192.168.102.11 \
+        NAS_IP_ADDRESS=192.168.101.17 \
         NAS_IDENTIFIER="ap"
 
 
