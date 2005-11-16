@@ -19,8 +19,8 @@ if [ t$1 = 'tauth' ] ; then
         NAS_PORT_TYPE=Wireless-802.11 \
         NAS_PORT=66\
         NAS_IP_ADDRESS=192.168.101.17 \
-        NAS_IDENTIFIER="ap"
-
+        NAS_IDENTIFIER="ap" \
+        ACCT_MULTI_SESSION_ID="" 
 
 #     USER_NAME="aa1" \
 #     NAS_IP_ADDRESS=192.168.101.17 \

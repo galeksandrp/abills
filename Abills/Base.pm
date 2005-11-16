@@ -628,8 +628,9 @@ sub get_radius_params {
   }
  else {
     while(my($k, $v)=each(%ENV)) {
-      $v=clearquotes("$v");
-      $RAD{$k}=$v;
+      if(defined($v) && defined($k)) {
+        $RAD{$k}=clearquotes("$v");
+       }
      }
   }
  
@@ -643,7 +644,12 @@ sub get_radius_params {
 #*******************************************************************
 sub clearquotes {
  my $text = shift;
- $text =~ s/\"//g;
+ if ($text ne '""') {
+   $text =~ s/\"//g;
+  }
+ else {
+ 	 $text = '';
+  }
  return "$text";
 }
 
