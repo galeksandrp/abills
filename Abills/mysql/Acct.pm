@@ -65,17 +65,10 @@ sub accounting {
 if ($acct_status_type == 1) { 
   $self->query($db, "INSERT INTO calls 
    (status, user_name, started, lupdated, nas_ip_address, nas_port_id, acct_session_id, acct_session_time,
-    acct_input_octets, acct_output_octets, framed_ip_address, CID, CONNECT_INFO)
+    acct_input_octets, acct_output_octets, framed_ip_address, CID, CONNECT_INFO, nas_id)
     values ('$acct_status_type', \"$RAD->{USER_NAME}\", $SESSION_START, UNIX_TIMESTAMP(), INET_ATON('$RAD->{NAS_IP_ADDRESS}'), 
      '$RAD->{NAS_PORT}', \"$RAD->{ACCT_SESSION_ID}\", 0, 0, 0, INET_ATON('$RAD->{FRAMED_IP_ADDRESS}'), 
-      '$RAD->{CALLING_STATION_ID}', '$RAD->{CONNECT_INFO}');", 'do');
-      
-   my $a =`echo "INSERT INTO calls 
-   (status, user_name, started, lupdated, nas_ip_address, nas_port_id, acct_session_id, acct_session_time,
-    acct_input_octets, acct_output_octets, framed_ip_address, CID, CONNECT_INFO)
-    values ('$acct_status_type', \"$RAD->{USER_NAME}\", $SESSION_START, UNIX_TIMESTAMP(), INET_ATON('$RAD->{NAS_IP_ADDRESS}'), 
-     '$RAD->{NAS_PORT}', \"$RAD->{ACCT_SESSION_ID}\", 0, 0, 0, INET_ATON('$RAD->{FRAMED_IP_ADDRESS}'), 
-      '$RAD->{CALLING_STATION_ID}', '$RAD->{CONNECT_INFO}');" > /tmp/12121`;
+      '$RAD->{CALLING_STATION_ID}', '$RAD->{CONNECT_INFO}', '$NAS->{NID}');", 'do');
       
  }
 # Stop status
@@ -135,9 +128,9 @@ elsif ($acct_status_type == 2) {
 
   # Delete from session wtmp
 #  $self->{debug}=1;
-  $self->query($db, "DELETE FROM calls WHERE acct_session_id=\"$RAD->{ACCT_SESSION_ID}\" and 
-     user_name=\"$RAD->{USER_NAME}\" and nas_ip_address=INET_ATON('$RAD->{NAS_IP_ADDRESS}');", 'do');
-     
+  $self->query($db, "DELETE FROM calls WHERE acct_session_id=\"$RAD->{ACCT_SESSION_ID}\" 
+     and user_name=\"$RAD->{USER_NAME}\" 
+     and nas_id='$NAS->{NID}';", 'do');
      
 }
 #Alive status 3

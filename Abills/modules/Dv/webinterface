@@ -567,7 +567,7 @@ foreach my $nas_row (@$nas_list) {
   $table->{extra}="colspan=9 class=small";
   $table->addrow("$nas_row->[0]:<b>$nas_row->[1]</b>:$nas_row->[4]" );
   
-  my $l = $online->{$nas_row->[4]};
+  my $l = $online->{$nas_row->[0]};
   foreach my $line (@$l) {
     undef($table->{rowcolor});
     undef($table->{extra});

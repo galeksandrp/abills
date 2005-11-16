@@ -87,7 +87,8 @@ sub online {
   dv.speed,  
   c.CID, 
   c.CONNECT_INFO,
-  if(date_format(c.started, '%Y-%m-%d')=curdate(), date_format(c.started, '%H:%i:%s'), c.started)
+  if(date_format(c.started, '%Y-%m-%d')=curdate(), date_format(c.started, '%H:%i:%s'), c.started),
+  c.nas_id
  FROM calls c
  LEFT JOIN users u     ON u.id=user_name
  LEFT JOIN dv_main dv  ON dv.uid=u.uid
@@ -109,14 +110,14 @@ sub online {
  foreach my $line (@$list) {
  	  $dub_logins{$line->[0]}++;
  	  $dub_ports{$line->[3]}{$line->[3]}++;
-    push( @{ $nas_sorted{"$line->[12]"} }, [ $line->[0], $line->[1], $line->[2], $line->[9], $line->[4], $line->[5], $line->[6], $line->[7], $line->[8], $line->[10], $line->[11], 
-      $line->[13], $line->[14], $line->[15], $line->[16], $line->[17], $line->[18], $line->[19], $line->[20], ]);
+    push( @{ $nas_sorted{"$line->[22]"} }, [ $line->[0], $line->[1], $line->[2], $line->[9], $line->[4], $line->[5], $line->[6], $line->[7], $line->[8], $line->[10], $line->[11], 
+      $line->[13], $line->[14], $line->[15], $line->[16], $line->[17], $line->[18], $line->[19], $line->[20], $line->[21]]);
   }
  
  
 
 
- $self->{dub_ports} = \%dub_ports;
+ $self->{dub_ports} =\%dub_ports;
  $self->{dub_logins}=\%dub_logins;
  $self->{nas_sorted}=\%nas_sorted;
 

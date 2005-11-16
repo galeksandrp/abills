@@ -628,7 +628,8 @@ sub get_radius_params {
   }
  else {
     while(my($k, $v)=each(%ENV)) {
-      $RAD{$k}=clearquotes("$v");
+      $v=clearquotes("$v");
+      $RAD{$k}=$v;
      }
   }
  
