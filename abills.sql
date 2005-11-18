@@ -73,6 +73,7 @@ CREATE TABLE calls (
   CID varchar(18) NOT NULL default '',
   CONNECT_INFO varchar(20) NOT NULL default '',
   tp_id smallint(5) unsigned NOT NULL default '0',
+  `nas_id` smallint(6) unsigned NOT NULL default '0',
   KEY user_name (user_name)
 ) TYPE=MyISAM;
 

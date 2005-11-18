@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 # Radius Accounting
 
-use vars  qw(%RAD %conf $db);
+use vars  qw(%RAD %conf $db %ACCT);
 use strict;
 
 use FindBin '$Bin';
