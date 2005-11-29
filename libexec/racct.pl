@@ -44,6 +44,16 @@ my %USER_TYPES = ('Login-User', 1,
 my $RAD = get_radius_params();
 test_radius_returns($RAD);
 #####################################################################
+
+#my $t = "\n\n";
+#while(my($k, $v)=each(%$RAD)) {
+#	$t .= "$k=$v\n";
+#}
+#print $t;
+#my $a = `echo "$t" >> /tmp/voip_test`;
+
+
+
 if (! defined($RAD->{NAS_IP_ADDRESS})) {
   access_deny("$RAD->{USER_NAME}", "Not specified NAS server", 0);
   exit 1;
@@ -52,10 +62,11 @@ if (! defined($RAD->{NAS_IP_ADDRESS})) {
 require Abills::SQL;
 my $sql = Abills::SQL->connect($conf{dbtype}, "$conf{dbhost}", $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
 my $db = $sql->{db};
+
 require Nas;
 my $nas = Nas->new($db, \%conf);	
 my %NAS_PARAMS = ('IP' => "$RAD->{NAS_IP_ADDRESS}");
-$NAS_PARAMS{NAS_INDENTIFIER}=$RAD->{NAS_INDENTIFIER} if (defined($RAD->{NAS_INDENTIFIER}));
+$NAS_PARAMS{NAS_IDENTIFIER}=$RAD->{NAS_IDENTIFIER} if (defined($RAD->{NAS_IDENTIFIER}));
 $nas->info({ %NAS_PARAMS });
 
 if ($nas->{errno} || $nas->{TOTAL} < 1) {
@@ -65,6 +76,8 @@ if ($nas->{errno} || $nas->{TOTAL} < 1) {
 
 
 my $acct = acct($RAD);
+
+
 if($acct->{errno}) {
 	log_print('LOG_ERROR', "ACCT [$RAD->{USER_NAME}] $acct->{errstr}");
 }
@@ -86,18 +99,17 @@ sub acct {
   }
 
   my $acct_status_type = $ACCT_TYPES{$RAD->{ACCT_STATUS_TYPE}};
+  
 
   $RAD->{INBYTE} = $RAD->{ACCT_OUTPUT_OCTETS} || 0;   # FROM client
   $RAD->{OUTBYTE} =  $RAD->{ACCT_INPUT_OCTETS} || 0; # TO client
   $RAD->{LOGOUT} = time;
-  
-
   $RAD->{SESSION_START} = (defined($RAD->{ACCT_SESSION_TIME})) ?  time - $RAD->{ACCT_SESSION_TIME} : 0;
-  
   #print "-- $RAD->{SESSION_START} ---";
-  
   $RAD->{NAS_PORT} = 0 if  (! defined($RAD->{NAS_PORT}));
   $RAD->{CONNECT_INFO} = '' if  (! defined($RAD->{CONNECT_INFO}));
+
+
 
 # Exppp VENDOR params           
 if ($nas->{NAS_TYPE} eq 'exppp') {
@@ -144,13 +156,17 @@ else {
     }
   }
 
-
- require Acct;
- Acct->import();
- my $Acct = Acct->new($db, \%conf);
- my $r = $Acct->accounting($RAD, $nas);
-
-
-
+if(defined($ACCT{$nas->{NAS_TYPE}})) {
+  require $ACCT{$nas->{NAS_TYPE}} . ".pm";
+  $ACCT{$nas->{NAS_TYPE}}->import();
+  my $Acct = $ACCT{$nas->{NAS_TYPE}}->new($db, \%conf);
+  my $r = $Acct->accounting($RAD, $nas);
+}
+else {
+  require Acct;
+  Acct->import();
+  my $Acct = Acct->new($db, \%conf);
+  my $r = $Acct->accounting($RAD, $nas);
+}
 
 }

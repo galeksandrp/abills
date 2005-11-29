@@ -387,8 +387,13 @@ sub time_intervals {
  my $list = $self->{list};
 
  foreach my $line (@$list) {
+   #$time_periods{INTERVAL_DAY}{INTERVAL_START}="INTERVAL_ID:INTERVAL_END";
    $time_periods{$line->[0]}{$line->[1]} = "$line->[5]:$line->[2]";
+
+   #$periods_time_tarif{INTERVAL_ID} = "INTERVAL_PRICE";
    $periods_time_tarif{$line->[5]} = $line->[3];
+
+   # Trffic price
    $periods_traf_tarif{$line->[5]} = $line->[4];
   }
 
@@ -557,6 +562,22 @@ Abills::Base->import();
  $self->{SUM}=0;
  
  return $self;
+}
+
+
+
+#*******************************************************************
+#
+#
+#*******************************************************************
+sub time_calculation() {
+	my $self = shift;
+	my ($attr) = @_;
+  my $sum;
+
+
+
+  return $sum;
 }
 
 

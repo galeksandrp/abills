@@ -42,7 +42,9 @@ if (defined($ARGV[0]) && $ARGV[0] eq 'pre_auth') {
 
 require Nas;
 my $nas = Nas->new($db, \%conf);	
-$nas->info({ IP => $RAD->{NAS_IP_ADDRESS} });
+my %NAS_PARAMS = ('IP' => "$RAD->{NAS_IP_ADDRESS}");
+$NAS_PARAMS{NAS_INDENTIFIER}=$RAD->{NAS_INDENTIFIER} if (defined($RAD->{NAS_INDENTIFIER}));
+$nas->info({ %NAS_PARAMS });
 
 
 if (defined($nas->{errno}) || $nas->{TOTAL} < 1) {

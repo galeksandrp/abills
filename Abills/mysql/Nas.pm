@@ -90,8 +90,8 @@ sub info {
 
  if (defined($attr->{IP})) {
  	 $WHERE = "ip='$attr->{IP}'";
-   if (defined($attr->{NAS_INDENTIFIER})) {
-     $WHERE .= " and (nas_identifier='$attr->{NAS_INDENTIFIER}' or nas_identifier='')";	
+   if (defined($attr->{NAS_IDENTIFIER})) {
+     $WHERE .= " and (nas_identifier='$attr->{NAS_IDENTIFIER}' or nas_identifier='')";	
     }
    else {
    	 $WHERE .= " and nas_identifier=''";
@@ -103,10 +103,11 @@ sub info {
 
 
  
- $self->query($db, "SELECT id, name, nas_identifier, descr, ip, nas_type, auth_type, mng_host_port, mng_user, 
+$self->query($db, "SELECT id, name, nas_identifier, descr, ip, nas_type, auth_type, mng_host_port, mng_user, 
  DECODE(mng_password, '$SECRETKEY'), rad_pairs, alive, disable
  FROM nas
- WHERE $WHERE;");
+ WHERE $WHERE
+ ORDER BY nas_identifier DESC;");
 
  if(defined($self->{errno})) {
    return $self;

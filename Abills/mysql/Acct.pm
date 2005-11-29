@@ -63,12 +63,23 @@ sub accounting {
 
 #Start
 if ($acct_status_type == 1) { 
-  $self->query($db, "INSERT INTO calls 
-   (status, user_name, started, lupdated, nas_ip_address, nas_port_id, acct_session_id, acct_session_time,
-    acct_input_octets, acct_output_octets, framed_ip_address, CID, CONNECT_INFO, nas_id)
-    values ('$acct_status_type', \"$RAD->{USER_NAME}\", $SESSION_START, UNIX_TIMESTAMP(), INET_ATON('$RAD->{NAS_IP_ADDRESS}'), 
-     '$RAD->{NAS_PORT}', \"$RAD->{ACCT_SESSION_ID}\", 0, 0, 0, INET_ATON('$RAD->{FRAMED_IP_ADDRESS}'), 
-      '$RAD->{CALLING_STATION_ID}', '$RAD->{CONNECT_INFO}', '$NAS->{NID}');", 'do');
+  
+  
+  $self->query($db, "INSERT INTO voip_calls 
+   (status,
+    user_name,
+    started,
+    lupdated,
+    acct_session_id,
+    calling_station_id,
+    called_station_id,
+    client_ip_address,
+    nas_id)
+    values ('$acct_status_type', \"$RAD->{USER_NAME}\", $SESSION_START, UNIX_TIMESTAMP(), \"$RAD->{ACCT_SESSION_ID}\", 
+      '$RAD->{CALLED_STATION_ID}', 
+      '$RAD->{CALLING_STATION_ID}', 
+      '$RAD->{CLIENT_IP_ADDRESS}',
+      '$NAS->{NID}');", 'do');
       
  }
 # Stop status
@@ -76,7 +87,6 @@ elsif ($acct_status_type == 2) {
 
 
   my $Billing = Billing->new($db);	
-
 
   ($self->{UID}, 
   $self->{SUM}, 
@@ -89,6 +99,9 @@ elsif ($acct_status_type == 2) {
                                                  $RAD, 
                                                  $conf);
 
+   $Billing->time_calculation({
+   	                           START     => $RAD->{SESSION_START}, 
+   	                           DURATION  => $RAD->{ACCT_SESSION_TIME} });
 
  
 #  return $self;

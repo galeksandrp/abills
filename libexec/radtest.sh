@@ -100,6 +100,31 @@ elif [ t$1 = 'tauthgt' ]; then
 
   cat $AUTH_LOG | grep GT | awk '{ print $10"  "$1" "$2" "$5" "$8 }' | sort -n
 
+
+elif [ t$1 = 'tvoip' ] ; then 
+    
+   ./racct.pl  ACCT_UNIQUE_SESSION_ID=e5a1624d4211242c \
+   H323_CONF_ID=h323-conf-id="FF8E71DC 7FF41810 93FA0001 6CC7CC03"\
+   NAS_PORT_TYPE=Virtual \
+   H323_CALL_ORIGIN="h323-call-origin=proxy" \
+   NAS_IDENTIFIER=ASMODEUSGK \
+   CLIENT_IP_ADDRESS=192.168.101.17 \
+   CISCO_AVPAIR=h323-ivr-out="h323-call-id:FF8E71DC 7FF41810 93F90001 6CC7CC03"\
+   ACCT_STATUS_TYPE=Start \
+   SERVICE_TYPE=Login-User \
+   H323_SETUP_TIME="h323-setup-time=14:24:55.000 EET Mon Nov 28 2005"\
+   USER_NAME=600 \
+   NAS_IP_ADDRESS=192.168.101.17 \
+   H323_GW_ID="h323-gw-id=ASMODEUSGK" \
+   CALLING_STATION_ID=600 \
+   H323_REMOTE_ADDRESS="h323-remote-address=192.168.101.23"\
+   ACCT_SESSION_ID=438af3510000000b \
+   FRAMED_IP_ADDRESS=192.168.101.4 \
+   ACCT_DELAY_TIME=0 \
+   H323_CALL_TYPE="h323-call-type=VoIP" \
+   CALLED_STATION_ID=101
+
+
 else 
  echo "Arguments (auth | acct | authgt | acctgt)"
  echo "       auth - test authentification
