@@ -408,4 +408,338 @@ sub periodic {
 
 
 
+#**********************************************************
+# route_add
+#**********************************************************
+sub route_add {
+  my $self = shift;
+  my ($attr) = @_;
+  
+  %DATA = $self->get_data($attr); 
+
+  $self->query($db,  "INSERT INTO voip_routes (id, prefix, name, disable, date) 
+        VALUES ('$DATA{ROUTE_ID}', '$DATA{ROUTE_PREFIX}', '$DATA{ROUTE_NAME}', '$DATA{DISABLE}', now());", 'do');
+  return $self if ($self->{errno});
+
+#  $admin->action_add($DATA{UID}, "ADDED", { MODULE => 'voip'});
+ 
+  return $self;
+}
+
+
+#**********************************************************
+# Route information
+# route_info()
+#**********************************************************
+sub route_info {
+  my $self = shift;
+  my ($id, $attr) = @_;
+
+  $self->query($db, "SELECT 
+   id,
+   prefix,
+   name,
+   date,
+   disable
+     FROM voip_routes
+   WHERE id='$id';");
+
+  if ($self->{TOTAL} < 1) {
+     $self->{errno} = 2;
+     $self->{errstr} = 'ERROR_NOT_EXIST';
+     return $self;
+   }
+
+  my $ar = $self->{list}->[0];
+
+  ($self->{ROUTE_ID},
+   $self->{ROUTE_PREFIX}, 
+   $self->{ROUTE_NAME}, 
+   $self->{DATE},
+   $self->{DISABLE}
+  )= @$ar;
+  
+  
+  return $self;
+}
+
+#**********************************************************
+# route_del
+#**********************************************************
+sub route_del {
+  my $self = shift;
+  my ($id) = @_;
+  
+  $self->query($db,  "DELETE FROM voip_routes WHERE id='$id';", 'do');
+  return $self if ($self->{errno});
+
+#  $admin->action_add($DATA{UID}, "ADDED", { MODULE => 'voip'});
+ 
+  return $self;
+}
+
+#**********************************************************
+# route_change()
+#**********************************************************
+sub route_change {
+  my $self = shift;
+  my ($attr) = @_;
+  
+  my %FIELDS = (ROUTE_ID       => 'id',
+                DISABLE        => 'disable',
+                ROUTE_PREFIX   => 'prefix',
+                ROUTE_NAME     => 'name'
+             );
+
+
+  $self->changes($admin,  { CHANGE_PARAM => 'ROUTE_ID',
+                   TABLE        => 'voip_routes',
+                   FIELDS       => \%FIELDS,
+                   OLD_INFO     => $self->route_info($attr->{ROUTE_ID}),
+                   DATA         => $attr
+                  } );
+
+  return $self->{result};
+}
+
+
+
+
+
+
+
+
+#**********************************************************
+# route_list()
+#**********************************************************
+sub routes_list {
+ my $self = shift;
+ my ($attr) = @_;
+ my @list = ();
+
+ 
+ my $search_fields = '';
+ undef @WHERE_RULES;
+
+
+ if ($attr->{ROUTE_PREFIX}) {
+   $attr->{ROUTE_PREFIX} =~ s/\*/\%/ig;
+   push @WHERE_RULES, "r.prefix LIKE '$attr->{ROUTE_PREFIX}'";
+  }
+
+ if ($attr->{ROUTE_NAME}) {
+   $attr->{ROUTE_PREFIX} =~ s/\*/\%/ig;
+   push @WHERE_RULES, "r.name LIKE '$attr->{ROUTE_name}'";
+  }
+
+ $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
+
+ $self->query($db, "SELECT r.id, r.prefix, r.name, r.disable, r.date
+     FROM voip_routes r
+     $WHERE 
+     ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");
+
+ return $self if($self->{errno});
+
+ my $list = $self->{list};
+
+ if ($self->{TOTAL} >= 0) {
+    $self->query($db, "SELECT count(r.id) FROM voip_routes r $WHERE");
+    my $a_ref = $self->{list}->[0];
+    ($self->{TOTAL}) = @$a_ref;
+   }
+
+  return $list;
+}
+
+
+
+
+#**********************************************************
+# list
+#**********************************************************
+sub tp_list() {
+  my $self = shift;
+  my ($attr) = @_;
+
+
+ my $WHERE = '';
+ $self->query($db, "SELECT tp.id, tp.name, if(sum(i.tarif) is NULL or sum(i.tarif)=0, 0, 1), 
+    tp.payment_type,
+    tp.day_fee, tp.month_fee, 
+    tp.logins, 
+    tp.age,
+    tp.rad_pairs
+    FROM tarif_plans tp
+    LEFT JOIN intervals i ON (i.tp_id=tp.id)
+    LEFT JOIN trafic_tarifs tt ON (tt.interval_id=i.id)
+    $WHERE
+    GROUP BY tp.id
+    ORDER BY $SORT $DESC;");
+
+ return $self->{list};
+}
+
+
+
+
+
+
+
+
+#**********************************************************
+# Default values
+#**********************************************************
+sub defaults {
+  my $self = shift;
+
+  %DATA = ( TP_ID => 0, 
+            NAME => '',  
+            TIME_TARIF => '0.00000',
+            DAY_FEE => '0,00',
+            MONTH_FEE => '0.00',
+            SIMULTANEOUSLY => 0,
+            AGE => 0,
+            DAY_TIME_LIMIT => 0,
+            WEEK_TIME_LIMIT => 0,
+            MONTH_TIME_LIMIT => 0,
+            DAY_TRAF_LIMIT => 0, 
+            WEEK_TRAF_LIMIT => 0, 
+            MONTH_TRAF_LIMIT => 0,
+            ACTIV_PRICE => '0.00',
+            CHANGE_PRICE => '0.00',
+            CREDIT_TRESSHOLD => '0.00',
+            ALERT => 0,
+            OCTETS_DIRECTION => 0,
+            MAX_SESSION_DURATION => 0,
+            FILTER_ID            => '',
+            PAYMENT_TYPE         => 0,
+            MIN_SESSION_COST     => '0.00000',
+            RAD_PAIRS            => ''
+
+         );   
+ 
+  $self = \%DATA;
+  return $self;
+}
+
+
+#**********************************************************
+# Add
+#**********************************************************
+sub add {
+  my $self = shift;
+  my ($attr) = @_;
+
+  %DATA = $self->get_data($attr, { default => \%DATA }); 
+
+  $self->query($db, "INSERT INTO tarif_plans (id, hourp, uplimit, name, month_fee, day_fee, logins, 
+     day_time_limit, week_time_limit,  month_time_limit, 
+     day_traf_limit, week_traf_limit,  month_traf_limit,
+     activate_price, change_price, credit_tresshold, age, octets_direction,
+     max_session_duration, filter_id, payment_type, min_session_cost, rad_pairs)
+    values ('$DATA{TP_ID}', '$DATA{TIME_TARIF}', '$DATA{ALERT}', \"$DATA{NAME}\", 
+     '$DATA{MONTH_FEE}', '$DATA{DAY_FEE}', '$DATA{SIMULTANEONSLY}', 
+     '$DATA{DAY_TIME_LIMIT}', '$DATA{WEEK_TIME_LIMIT}',  '$DATA{MONTH_TIME_LIMIT}', 
+     '$DATA{DAY_TRAF_LIMIT}', '$DATA{WEEK_TRAF_LIMIT}',  '$DATA{MONTH_TRAF_LIMIT}',
+     '$DATA{ACTIV_PRICE}', '$DATA{CHANGE_PRICE}', '$DATA{CREDIT_TRESSHOLD}', '$DATA{AGE}', '$DATA{OCTETS_DIRECTION}',
+     '$DATA{MAX_SESSION_DURATION}', '$DATA{FILTER_ID}',
+     '$DATA{payment_type}', '$DATA{min_session_cost}', '$DATA{RAD_PAIRS}');", 'do' );
+
+  return $self;
+}
+
+
+
+#**********************************************************
+# change
+#**********************************************************
+sub change {
+  my $self = shift;
+  my ($tp_id, $attr) = @_;
+	$self->changes(0, { CHANGE_PARAM => 'TP_ID',
+		                TABLE        => 'tarif_plans',
+		                FIELDS       => \%FIELDS,
+		                OLD_INFO     => $self->info($tp_id),
+		                DATA         => $attr
+		              } );
+
+  
+  $self->info($tp_id);
+	
+	return $self;
+}
+
+#**********************************************************
+# del
+#**********************************************************
+sub del {
+  my $self = shift;
+  my ($id) = @_;
+  	
+  $self->query($db, "DELETE FROM tarif_plans WHERE id='$id';", 'do');
+
+ return $self;
+}
+
+#**********************************************************
+# Info
+#**********************************************************
+sub info {
+  my $self = shift;
+  my ($id) = @_;
+
+  $self->query($db, "SELECT id, name, hourp, day_fee, month_fee, logins, age,
+      day_time_limit, week_time_limit,  month_time_limit, 
+      day_traf_limit, week_traf_limit,  month_traf_limit,
+      activate_price, change_price, credit_tresshold, uplimit, octets_direction, 
+      max_session_duration,
+      filter_id,
+      payment_type,
+      min_session_cost,
+      rad_pairs
+    FROM tarif_plans
+    WHERE id='$id';");
+
+  if ($self->{TOTAL} < 1) {
+     $self->{errno} = 2;
+     $self->{errstr} = 'ERROR_NOT_EXIST';
+     return $self;
+   }
+
+  my $ar = $self->{list}->[0];
+  
+  ($self->{TP_ID}, 
+   $self->{NAME}, 
+   $self->{TIME_TARIF}, 
+   $self->{DAY_FEE}, 
+   $self->{MONTH_FEE}, 
+   $self->{SIMULTANEOUSLY}, 
+   $self->{AGE},
+   $self->{DAY_TIME_LIMIT}, 
+   $self->{WEEK_TIME_LIMIT}, 
+   $self->{MONTH_TIME_LIMIT}, 
+   $self->{DAY_TRAF_LIMIT}, 
+   $self->{WEEK_TRAF_LIMIT}, 
+   $self->{MONTH_TRAF_LIMIT}, 
+   $self->{ACTIV_PRICE},    
+   $self->{CHANGE_PRICE}, 
+   $self->{CREDIT_TRESSHOLD},
+   $self->{ALERT},
+   $self->{OCTETS_DIRECTION},
+   $self->{MAX_SESSION_DURATION},
+   $self->{FILTER_ID},
+   $self->{PAYMENT_TYPE},
+   $self->{MIN_SESSION_COST},
+   $self->{RAD_PAIRS}
+  ) = @$ar;
+
+
+  return $self;
+}
+
+
+
+
+
 1
