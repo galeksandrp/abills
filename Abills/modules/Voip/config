@@ -1,0 +1,56 @@
+#package Dv;
+#
+#
+#
+##use strict;
+##use vars qw(@ISA @EXPORT @EXPORT_OK %EXPORT_TAGS $VERSION);
+#
+#use Exporter;
+#$VERSION = 2.00;
+#@ISA = ('Exporter');
+#
+#@EXPORT = qw(
+# $web_interface
+# @useraccount_menu
+# %FUNCTIONS_LIST
+# %USER_FUNCTION_LIST
+#);
+#
+#@EXPORT_OK = ();
+#%EXPORT_TAGS = ();
+
+
+$web_interface    = 1;
+@useraccount_menu = ('Dialup_VPN');
+
+#Iner_ID : Main or Sub or if -1 user menu func list
+%FUNCTIONS_LIST = ("01:0:VoIP $_LIST:voip_users_list:"            => 11,
+                   "02:-1:VoIP:voip_user:UID"        => 11,
+                   "03:2:$_TARIF_PLANS:voip_chg_tp:UID"      => 11,
+                   "04:2:$_STATS:voip_stats:UID"             => 11,
+                   "05:0:VoIP:null:"               => 5,
+                   "06:5:$_TARIF_PLANS:voip_tp:"             => 5,
+                   "07:6:$_ADD:voip_tp:"                     => 5,
+                   "08:6:$_INTERVALS:form_intervals:TP_ID"   => 5,
+                   "09:6:$_NASS:form_nas_allow:TP_ID"        => 5,
+                   "10:5:_ROUTES:voip_routes:"               => 5,
+                   "11:6:$_USERS:voip_users_list:TP_ID"         => 5,
+                   "12:0:VoIP:null:"               => 4,
+                   "13:11:$_ERROR:voip_error:"               => 4,
+                   "14:11:$_LAST:voip_sessions:"             => 4,
+                   "15:11:$_USED:voip_use:"                  => 4,
+                   "16:14:$_MONTH:voip_use_allmonthes:"      => 4,
+                   "17:0:VoIP:voip_online:"          => 8
+
+                   );
+
+%USER_FUNCTION_LIST = ("01:0:VoIP:voip_user_info:"   => 0,
+                       "02:1:$_INFO:voip_user_info:"         => 0,
+                       "03:1:$_STATS:voip_user_stats:"       => 0
+                      );
+
+%PERIODIC = (daily   => 'dv_daily_fees',
+             monthly => 'dv_monthly_fees');
+
+
+1
