@@ -8,6 +8,23 @@ my $Voip = Voip->new($db, $admin, $conf);
 
 
 
+
+foreach my $prefix (@INC) {
+  my $realfilename = "$prefix/Abills/modules/$module{$index}/lng_$html->{language}.pl";
+  if (-f $realfilename) {
+    $lang_file =  $realfilename;
+    require $lang_file;
+    last;
+   }
+ }
+
+if ($lang_file eq '')  {
+  require "Abills/modules/$module{$index}/lng_english.pl";
+}
+
+
+
+
 #*******************************************************************
 # Change user variant form
 # form_chg_vid()
@@ -229,12 +246,12 @@ sub voip_user {
 sub voip_tp {
  my @Payment_Types    = ($_PREPAID, $_POSTPAID); 
 
- #$Voip_tp = $Voip->tp_defaults();
- $Voip_tp->{LNG_ACTION}=$_ADD;
- $Voip_tp->{ACTION}='ADD_TP';
+ #$Voip = $Voip->tp_defaults();
+ $Voip->{LNG_ACTION}=$_ADD;
+ $Voip->{ACTION}='ADD_TP';
 
 if($FORM{ADD_TP}) {
-  $Voip->tp_add( { %FORM });
+  $Voip->tp_add({ %FORM });
   if (! $Voip->{errno}) {
     message('info', $_ADDED, "$_ADDED $Voip->{TP_ID}");
    }

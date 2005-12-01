@@ -28,7 +28,6 @@ my %SEARCH_PARAMS = (TARIF_PLAN => 0,
    DISABLE => 0, 
    IP => '0.0.0.0', 
    NETMASK => '255.255.255.255', 
-   SPEED => 0, 
    FILTER_ID => '', 
    CID => '', 
    REGISTRATION => ''
@@ -81,7 +80,7 @@ sub info {
    voip.tp_id, 
    tp.name, 
    voip.disable
-     FROM dv_main dv
+     FROM voip_main dv
      LEFT JOIN voip_tps tp ON (voip.tp_id=tp.id)
    $WHERE;");
 
@@ -164,9 +163,7 @@ sub change {
   my %FIELDS = (SIMULTANEONSLY => 'logins',
               DISABLE          => 'disable',
               IP               => 'ip',
-              NETMASK          => 'netmask',
               TARIF_PLAN       => 'tp_id',
-              SPEED            => 'speed',
               CID              => 'cid',
               UID              => 'uid',
               FILTER_ID        => 'filter_id'
@@ -570,7 +567,7 @@ sub tp_list() {
     tp.logins, 
     tp.age,
     tp.rad_pairs
-    FROM tarif_plans tp
+    FROM voip_tps tp
     LEFT JOIN intervals i ON (i.tp_id=tp.id)
     LEFT JOIN trafic_tarifs tt ON (tt.interval_id=i.id)
     $WHERE
@@ -590,7 +587,7 @@ sub tp_list() {
 #**********************************************************
 # Default values
 #**********************************************************
-sub defaults {
+sub tp_defaults {
   my $self = shift;
 
   %DATA = ( TP_ID => 0, 
@@ -603,64 +600,119 @@ sub defaults {
             DAY_TIME_LIMIT => 0,
             WEEK_TIME_LIMIT => 0,
             MONTH_TIME_LIMIT => 0,
-            DAY_TRAF_LIMIT => 0, 
-            WEEK_TRAF_LIMIT => 0, 
-            MONTH_TRAF_LIMIT => 0,
             ACTIV_PRICE => '0.00',
-            CHANGE_PRICE => '0.00',
-            CREDIT_TRESSHOLD => '0.00',
-            ALERT => 0,
-            OCTETS_DIRECTION => 0,
+            CHANGE_PRICE         => '0.00',
+            CREDIT_TRESSHOLD     => '0.00',
+            ALERT                => 0,
             MAX_SESSION_DURATION => 0,
-            FILTER_ID            => '',
             PAYMENT_TYPE         => 0,
             MIN_SESSION_COST     => '0.00000',
-            RAD_PAIRS            => ''
-
+            RAD_PAIRS            => '',
+            FIRST_PERIOD         => 0,
+            FIRST_PERIOD_STEP    => 0,
+            NEXT_PERIOD          => 0,
+            NEXT_PERIOD_STEP     => 0,
+            FREE_TIME            => 0
          );   
  
-  $self = \%DATA;
-  return $self;
+ 
+  $self->{DATA} = \%DATA;
+
+  return $self->{DATA};
 }
 
 
 #**********************************************************
 # Add
 #**********************************************************
-sub add {
+sub tp_add {
   my $self = shift;
   my ($attr) = @_;
+  my $DATA = tp_defaults();
+  
+  %DATA = $self->get_data($attr, { default => $DATA }); 
 
-  %DATA = $self->get_data($attr, { default => \%DATA }); 
+  $self->query($db, "INSERT INTO voip_tps (id, uplimit, name, month_fee, day_fee, logins, 
+     day_time_limit, 
+     week_time_limit,  
+     month_time_limit, 
+     activate_price, 
+     change_price, 
+     credit_tresshold, 
+     age, 
+     max_session_duration, 
+     payment_type, 
+     min_session_cost, 
+     rad_pairs,
 
-  $self->query($db, "INSERT INTO tarif_plans (id, hourp, uplimit, name, month_fee, day_fee, logins, 
-     day_time_limit, week_time_limit,  month_time_limit, 
-     day_traf_limit, week_traf_limit,  month_traf_limit,
-     activate_price, change_price, credit_tresshold, age, octets_direction,
-     max_session_duration, filter_id, payment_type, min_session_cost, rad_pairs)
-    values ('$DATA{TP_ID}', '$DATA{TIME_TARIF}', '$DATA{ALERT}', \"$DATA{NAME}\", 
+     first_period,
+     first_period_step,
+     next_period,
+     next_period_step,
+     free_time
+     )
+    values ('$DATA{TP_ID}', '$DATA{ALERT}', \"$DATA{NAME}\", 
      '$DATA{MONTH_FEE}', '$DATA{DAY_FEE}', '$DATA{SIMULTANEONSLY}', 
-     '$DATA{DAY_TIME_LIMIT}', '$DATA{WEEK_TIME_LIMIT}',  '$DATA{MONTH_TIME_LIMIT}', 
-     '$DATA{DAY_TRAF_LIMIT}', '$DATA{WEEK_TRAF_LIMIT}',  '$DATA{MONTH_TRAF_LIMIT}',
-     '$DATA{ACTIV_PRICE}', '$DATA{CHANGE_PRICE}', '$DATA{CREDIT_TRESSHOLD}', '$DATA{AGE}', '$DATA{OCTETS_DIRECTION}',
-     '$DATA{MAX_SESSION_DURATION}', '$DATA{FILTER_ID}',
-     '$DATA{payment_type}', '$DATA{min_session_cost}', '$DATA{RAD_PAIRS}');", 'do' );
+     '$DATA{DAY_TIME_LIMIT}', 
+     '$DATA{WEEK_TIME_LIMIT}'  
+     '$DATA{MONTH_TIME_LIMIT}', 
+     '$DATA{ACTIV_PRICE}', '$DATA{CHANGE_PRICE}', 
+     '$DATA{CREDIT_TRESSHOLD}', 
+     '$DATA{AGE}', 
+     '$DATA{MAX_SESSION_DURATION}', 
+     '$DATA{PAYMENT_TYPE}', 
+     '$DATA{MIN_SESSION_COST}', 
+     '$DATA{RAD_PAIRS}', 
+
+  '$DATA{FIRST_PERIOD}',
+  '$DATA{FIRST_PERIOD_STEP}',
+  '$DATA{NEXT_PERIOD}', 
+  '$DATA{NEXT_PERIOD_STEP}', 
+  '$DATA{FREE_TIME}');", 'do');
 
   return $self;
 }
 
 
-
 #**********************************************************
 # change
 #**********************************************************
-sub change {
+sub tp_change {
   my $self = shift;
   my ($tp_id, $attr) = @_;
+
+
+  my %FIELDS = ( TP_ID => 0, 
+            NAME => '',  
+            TIME_TARIF => '0.00000',
+            DAY_FEE => '0,00',
+            MONTH_FEE => '0.00',
+            SIMULTANEOUSLY => 0,
+            AGE => 0,
+            DAY_TIME_LIMIT => 0,
+            WEEK_TIME_LIMIT => 0,
+            MONTH_TIME_LIMIT => 0,
+            ACTIV_PRICE => '0.00',
+            CHANGE_PRICE => '0.00',
+            CREDIT_TRESSHOLD => '0.00',
+            ALERT => 0,
+            MAX_SESSION_DURATION => 0,
+            PAYMENT_TYPE         => 0,
+            MIN_SESSION_COST     => '0.00000',
+            RAD_PAIRS            => '',
+            FIRST_PERIOD         => 0,
+            FIRST_PERIOD_STEP    => 0,
+            NEXT_PERIOD          => 0,
+            NEXT_PERIOD_STEP     => 0,
+            FREE_TIME            => 0
+         );   
+
+
+
 	$self->changes(0, { CHANGE_PARAM => 'TP_ID',
-		                TABLE        => 'tarif_plans',
+		                TABLE        => 'voip_tps',
 		                FIELDS       => \%FIELDS,
-		                OLD_INFO     => $self->info($tp_id),
+		                OLD_INFO     => $self->tp_info($tp_id),
 		                DATA         => $attr
 		              } );
 
@@ -673,11 +725,11 @@ sub change {
 #**********************************************************
 # del
 #**********************************************************
-sub del {
+sub tp_del {
   my $self = shift;
   my ($id) = @_;
   	
-  $self->query($db, "DELETE FROM tarif_plans WHERE id='$id';", 'do');
+  $self->query($db, "DELETE FROM voip_tps WHERE id='$id';", 'do');
 
  return $self;
 }
@@ -685,20 +737,29 @@ sub del {
 #**********************************************************
 # Info
 #**********************************************************
-sub info {
+sub tp_info {
   my $self = shift;
   my ($id) = @_;
 
-  $self->query($db, "SELECT id, name, hourp, day_fee, month_fee, logins, age,
+  $self->query($db, "SELECT id, name, 
+      day_fee, 
+      month_fee, 
+      logins, 
+      age,
       day_time_limit, week_time_limit,  month_time_limit, 
-      day_traf_limit, week_traf_limit,  month_traf_limit,
-      activate_price, change_price, credit_tresshold, uplimit, octets_direction, 
+      activate_price, change_price, credit_tresshold, uplimit,
       max_session_duration,
-      filter_id,
       payment_type,
       min_session_cost,
-      rad_pairs
-    FROM tarif_plans
+      rad_pairs,
+
+     first_period,
+     first_period_step,
+     next_period,
+     next_period_step,
+     free_time
+
+    FROM voip_tps
     WHERE id='$id';");
 
   if ($self->{TOTAL} < 1) {
@@ -711,7 +772,6 @@ sub info {
   
   ($self->{TP_ID}, 
    $self->{NAME}, 
-   $self->{TIME_TARIF}, 
    $self->{DAY_FEE}, 
    $self->{MONTH_FEE}, 
    $self->{SIMULTANEOUSLY}, 
@@ -719,19 +779,21 @@ sub info {
    $self->{DAY_TIME_LIMIT}, 
    $self->{WEEK_TIME_LIMIT}, 
    $self->{MONTH_TIME_LIMIT}, 
-   $self->{DAY_TRAF_LIMIT}, 
-   $self->{WEEK_TRAF_LIMIT}, 
-   $self->{MONTH_TRAF_LIMIT}, 
    $self->{ACTIV_PRICE},    
    $self->{CHANGE_PRICE}, 
    $self->{CREDIT_TRESSHOLD},
    $self->{ALERT},
-   $self->{OCTETS_DIRECTION},
    $self->{MAX_SESSION_DURATION},
-   $self->{FILTER_ID},
    $self->{PAYMENT_TYPE},
    $self->{MIN_SESSION_COST},
-   $self->{RAD_PAIRS}
+   $self->{RAD_PAIRS},
+   
+   $self->{FIRST_PERIOD},
+   $self->{FIRST_PERIOD_STEP},
+   $self->{NEXT_PERIOD},
+   $self->{NEXT_PERIOD_STEP},
+   $self->{FREE_TIME}
+
   ) = @$ar;
 
 
