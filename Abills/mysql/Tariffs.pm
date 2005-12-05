@@ -23,7 +23,7 @@ my $db;
 my %DATA;
 
 
-my %FIELDS = ( TP_ID        => 'num', 
+my %FIELDS = ( TP_ID        => 'id', 
                NAME         => 'name',  
                TIME_TARIF   => 'hourp',
                DAY_FEE      => 'day_fee',
@@ -256,7 +256,7 @@ sub add {
 
   %DATA = $self->get_data($attr, { default => \%DATA }); 
 
-  $self->query($db, "INSERT INTO tarif_plans (num, hourp, uplimit, name, month_fee, day_fee, logins, 
+  $self->query($db, "INSERT INTO tarif_plans (id, hourp, uplimit, name, month_fee, day_fee, logins, 
      day_time_limit, week_time_limit,  month_time_limit, 
      day_traf_limit, week_traf_limit,  month_traf_limit,
      activate_price, change_price, credit_tresshold, age, octets_direction,
@@ -301,7 +301,7 @@ sub del {
   my $self = shift;
   my ($id) = @_;
   	
-  $self->query($db, "DELETE FROM tarif_plans WHERE num='$id';", 'do');
+  $self->query($db, "DELETE FROM tarif_plans WHERE id='$id';", 'do');
 
  return $self;
 }
@@ -313,7 +313,7 @@ sub info {
   my $self = shift;
   my ($id) = @_;
 
-  $self->query($db, "SELECT num, name, hourp, day_fee, month_fee, logins, age,
+  $self->query($db, "SELECT id, name, hourp, day_fee, month_fee, logins, age,
       day_time_limit, week_time_limit,  month_time_limit, 
       day_traf_limit, week_traf_limit,  month_traf_limit,
       activate_price, change_price, credit_tresshold, uplimit, octets_direction, 
@@ -323,7 +323,7 @@ sub info {
       min_session_cost,
       rad_pairs
     FROM tarif_plans
-    WHERE num='$id';");
+    WHERE id='$id';");
 
   if ($self->{TOTAL} < 1) {
      $self->{errno} = 2;
@@ -371,7 +371,7 @@ sub list {
   my ($attr) = @_;
 
  my $WHERE = '';
- $self->query($db, "SELECT tp.num, tp.name, if(sum(i.tarif) is NULL or sum(i.tarif)=0, 0, 1), 
+ $self->query($db, "SELECT tp.id, tp.name, if(sum(i.tarif) is NULL or sum(i.tarif)=0, 0, 1), 
     if(sum(tt.in_price + tt.out_price)> 0, 1, 0), 
     tp.payment_type,
     tp.day_fee, tp.month_fee, 
@@ -379,10 +379,10 @@ sub list {
     tp.age,
     tp.rad_pairs
     FROM tarif_plans tp
-    LEFT JOIN intervals i ON (i.tp_id=tp.num)
+    LEFT JOIN intervals i ON (i.tp_id=tp.id)
     LEFT JOIN trafic_tarifs tt ON (tt.interval_id=i.id)
     $WHERE
-    GROUP BY tp.num
+    GROUP BY tp.id
     ORDER BY $SORT $DESC;");
 
  return $self->{list};
