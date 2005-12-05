@@ -25,7 +25,7 @@ $web_interface    = 1;
 
 #Iner_ID : Main or Sub or if -1 user menu func list
 %FUNCTIONS_LIST = ("01:0:VoIP $_LIST:voip_users_list:"            => 11,
-                   "02:-1:VoIP:voip_user:UID"        => 11,
+                   "02:0:VoIP:voip_user:UID"        => 20,
                    "03:2:$_TARIF_PLANS:voip_chg_tp:UID"      => 11,
                    "04:2:$_STATS:voip_stats:UID"             => 11,
                    "05:0:VoIP:null:"               => 5,
