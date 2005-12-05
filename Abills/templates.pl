@@ -320,6 +320,20 @@ return qq{
 </form>
 }
 }
+elsif ($tpl_name eq 'chg_tp') {
+return qq{
+<form action=$SELF_URL METHOD=POST>
+<input type=hidden name=UID value='%UID%'>
+<input type=hidden name=m value=%m%>
+<input type=hidden name=index value=$index>
+<table width=400 border=0>
+<tr><td>$_FROM:</td><td bgcolor=$_BG2>$user->{TP_ID} %TP_NAME% [<a href='$SELF?index=$index&TP_ID=%TP_ID%' title='$_VARIANTS'>$_VARIANTS</a>]</td></tr>
+<tr><td>$_TO:</td><td>%TARIF_PLAN_SEL%</td></tr>
+%PARAMS%
+</table><input type=submit name=set value=\"$_CHANGE\">
+</form>
+}
+}
 elsif ($tpl_name eq 'chg_company') {
 return qq{
 <form action=$SELF_URL>

@@ -71,11 +71,14 @@ sub user_info {
   
   $self->query($db, "SELECT 
    voip.uid, 
+   voip.number,
    voip.tp_id, 
-   tp.name, 
+   tarif_plans.name, 
+   INET_NTOA(voip.ip),
    voip.disable
      FROM voip_main voip
      LEFT JOIN voip_tps tp ON (voip.tp_id=tp.id)
+     LEFT JOIN tarif_plans ON (tarif_plans.id=tp.id)
    $WHERE;");
 
   if ($self->{TOTAL} < 1) {
@@ -87,11 +90,16 @@ sub user_info {
   my $ar = $self->{list}->[0];
 
   ($self->{UID},
+   $self->{NUMBER},
    $self->{TP_ID}, 
    $self->{TP_NAME}, 
+   $self->{IP}, 
    $self->{DISABLE},
-   $self->{REGISTRATION}
+   $self->{REGISTRATION},
+   $self->{SIMULTANEOUSLY}
   )= @$ar;
+  
+  $self->{SIMULTANEOUSLY} = 0;
   
   
   return $self;
@@ -107,12 +115,9 @@ sub defaults {
 
   %DATA = (
    TARIF_PLAN => 0, 
-   SIMULTANEONSLY => 0, 
+   NUMBER => 0, 
    DISABLE => 0, 
    IP => '0.0.0.0', 
-   NETMASK => '255.255.255.255', 
-   SPEED => 0, 
-   FILTER_ID => '', 
    CID => '',
   );
 
@@ -131,9 +136,9 @@ sub user_add {
   
   %DATA = $self->get_data($attr); 
 
-  $self->query($db,  "INSERT INTO voip_main (uid, registration, tp_id, 
+  $self->query($db,  "INSERT INTO voip_main (uid, number, registration, tp_id, 
              disable, ip, cid)
-        VALUES ('$DATA{UID}', now(),
+        VALUES ('$DATA{UID}', '$DATA{NUMBER}', now(),
         '$DATA{TARIF_PLAN}', '$DATA{DISABLE}', INET_ATON('$DATA{IP}'), 
         LOWER('$DATA{CID}'));", 'do');
   
@@ -155,6 +160,7 @@ sub user_change {
   my ($attr) = @_;
   
   my %FIELDS = (SIMULTANEONSLY => 'logins',
+              NUMBER					 => 'number',
               DISABLE          => 'disable',
               IP               => 'ip',
               TARIF_PLAN       => 'tp_id',
@@ -165,9 +171,9 @@ sub user_change {
 
 
   $self->changes($admin,  { CHANGE_PARAM => 'UID',
-                   TABLE        => 'dv_main',
+                   TABLE        => 'voip_main',
                    FIELDS       => \%FIELDS,
-                   OLD_INFO     => $self->info($attr->{UID}),
+                   OLD_INFO     => $self->user_info($attr->{UID}),
                    DATA         => $attr
                   } );
 

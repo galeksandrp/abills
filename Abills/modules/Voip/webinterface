@@ -36,7 +36,7 @@ sub voip_chg_tp {
 
  if(defined($attr->{USER})) {
    $user = $attr->{USER};
-   $user = $Dv->info($user->{UID});
+   $user = $Voip->user_info($user->{UID});
    if($user->{TOTAL} < 1) {
  	   print "<p><font color=red>$_NOT_ACTIVE</font></p>";
  	   return 0;
@@ -76,14 +76,14 @@ if ($FORM{set}) {
     }
    }
   else {
-    $user->change({ %FORM });
+    $user->user_change({ %FORM });
 
     if ($users->{errno}) {
       message('err', $_ERROR, "[$users->{errno}] $err_strs{$users->{errno}}");	
      }
     else {
       message('info', $_CHANGED, "$_CHANGED");
-      $user->info($user->{UID});
+      $user->user_info($user->{UID});
     }
 
   }
@@ -94,40 +94,30 @@ elsif($FORM{del}) {
    	     );
 }
 
-use Tariffs;
-my $tariffs = Tariffs->new($db);
-my $variant_out = '';
- 
- my $tariffs_list = $tariffs->list();
+ $user->{m}=$m;
+ $user->{TARIF_PLAN_SEL}="<select name=TARIF_PLAN>\n";
+ my $tariffs_list = $Voip->tp_list();
  foreach my $line (@$tariffs_list) {
-   $variant_out .= "<option value=$line->[0]";
-   $variant_out .= ' selected' if ($line->[0] == $user->{TP_ID});
-   $variant_out .=  ">$line->[0]:$line->[1]\n";
+   $user->{TARIF_PLAN_SEL} .= "<option value=$line->[0]";
+   $user->{TARIF_PLAN_SEL} .= ' selected' if ($line->[0] == $user->{TP_ID});
+   $user->{TARIF_PLAN_SEL} .=  ">$line->[0]:$line->[1]\n";
   }
+ $user->{TARIF_PLAN_SEL}.="</select>";
+ $user->{PARAMS} = form_period($period);
+ #my $tp_index = $index + 3;
 
 
- my $params='';
- $q = $db->prepare("SELECT id, CONCAT(y, '-', m, '-', d), action FROM shedule WHERE type='tp' and UID='$UID';") || die $db->strerr;
- $q ->execute();
- 
- $params .= "<tr><td>$_TO:</td><td><select name=TARIF_PLAN>$variant_out</select></td></tr>";
- $params .= form_period($period);
- $params .= "</table><input type=submit name=set value=\"$_CHANGE\">\n";
 
+Abills::HTML->tpl_show(templates('chg_tp'), $user);
 
-my $tp_index = $index + 3;
-
-my $result = "<form action=$SELF_URL>
-<input type=hidden name=UID value='$attr->{USER}->{UID}'>
-<input type=hidden name=m value=$m>
-<input type=hidden name=index value=$index>
-<table width=400 border=0>
-<tr><td>$_FROM:</td><td bgcolor=$_BG2>$user->{TP_ID} $user->{TP_NAME} [<a href='$SELF?index=$tp_index&TP_ID=$user->{TP_ID}' title='$_VARIANTS'>$_VARIANTS</a>]</td></tr>
-$params
-</form>\n";
-
- print $result;
 }
+
+
+
+
+
+
+
 
 
 #**********************************************************
@@ -154,7 +144,7 @@ sub voip_users_list {
 #use Users;
 #my $users = Users->new($db, $admin, \%conf); 
 
-my $list = $Voip->list( { %LIST_PARAMS } );
+my $list = $Voip->user_list( { %LIST_PARAMS } );
 
 if ($Voip->{errno}) {
   message('err', $_ERROR, "[$Voip->{errno}] $err_strs{$Voip->{errno}}");	
@@ -201,25 +191,25 @@ sub voip_user {
  	$Voip->{UID}=$FORM{UID};	  
   
   if ($FORM{add}) {
-    $Voip->add({ %FORM });
+    $Voip->user_add({ %FORM });
     if (! $Voip->{errno}) {
       message('info', $_INFO, "$_ADDED");	
      }
    }
 	elsif($FORM{set}) {
-    $Voip->change({ %FORM });
+    $Voip->user_change({ %FORM });
     if (! $Voip->{errno}) {
       message('info', $_INFO, "$_CHANGED");	
      }
    }
 	elsif($FORM{del}) {
-    $Voip->del();
+    $Voip->user_del();
     if (! $Voip->{errno}) {
       message('info', $_INFO, "$_CHANGED");	
      }
 	 }
 
-  my $user = $Voip->info($FORM{UID});
+  my $user = $Voip->user_info($FORM{UID});
 
   if($user->{TOTAL} < 1) {
 	  print "<p><font color=red>$_NOT_ACTIVE</font></p>";
@@ -234,7 +224,6 @@ sub voip_user {
 
   $user->{DISABLE}=' checked' if($user->{DISABLE} == 1);
   Abills::HTML->tpl_show(_include('voip_user', 'Voip'), $Voip);
-  #Abills::HTML->tpl_show(_include('dv_tp', 'Dv'), $tarif_info);
 }
 
 
@@ -273,10 +262,10 @@ elsif (defined($FORM{TP_ID})) {
   	         $_NAME => $Voip_tp->{NAME}
   	       }, 
   	{ 
-#  	 $_INFO          => ":TP_ID=$tariffs->{TP_ID}",
-#     $_USERS         => "11:TP_ID=$tariffs->{TP_ID}",
-#     $_INTERVALS     => "73:TP_ID=$tariffs->{TP_ID}",
-#     $_NAS           => "72:TP_ID=$tariffs->{TP_ID}"
+  	 $_INFO          => ":TP_ID=$tariffs->{TP_ID}",
+     $_USERS         => "11:TP_ID=$tariffs->{TP_ID}",
+     $_INTERVALS     => "73:TP_ID=$tariffs->{TP_ID}",
+     $_NAS           => "72:TP_ID=$tariffs->{TP_ID}"
   	 },
   	{
   		f_args => { %F_ARGS }

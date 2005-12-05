@@ -993,7 +993,7 @@ if ($attr->{USER}) {
 elsif($attr->{TP}) {
   my $tarif_plan = $attr->{TP};
 
-  if ($FORM{change}) {
+  if ($FORM{change}){
     $tarif_plan->nas_add(\@allow);
     if ($tarif_plan->{errno}) {
       message('err', $_ERROR, "[$tarif_plan->{errno}] $err_strs{$tarif_plan->{errno}}");	
