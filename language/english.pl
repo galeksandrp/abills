@@ -1,5 +1,5 @@
 # 0.3
-$CHARSET = 'windows1251';
+$CHARSET = 'windows-1251';
 
 @PERIODS=('Today', 'Yesterday', 'Week', 'Month', 'All sessions', 'From activization');
 @MONTHES=('January', 'February', 'March', 'April', 'May', 'June', 'July', 'August',  'September', 'October', 'November', 'Decembe');
@@ -289,3 +289,4 @@ $_ADDRESS_FLAT='Flat';
 $_CONTRACT_ID='Contract Number';
 $_NOT_ACTIVE='Not Active';
 $_REFRESH='Refresh';
+$_ROUTES='Routes';

@@ -195,11 +195,19 @@ sub get_data {
   	 my $dhr = $attr->{default};
   	 %DATA = %$dhr;
    }
+
+
   
   while(my($k, $v)=each %$params) {
-  	$DATA{$k}=$v;
+  	 next if (! $params->{$k} && defined($DATA{$k})) ;
+  	 $DATA{$k}=$v;
 #    print "--$k, $v<br>\n";
    }
+
+#  while(my($k, $v)=each %DATA) {
+#  	print "$k, $v<br>\n";
+#  }
+
   
 	return %DATA;
 }

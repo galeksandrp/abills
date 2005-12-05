@@ -45,6 +45,7 @@ my %FIELDS = ( TP_ID        => 'id',
                FILTER_ID        => '',
                PAYMENT_TYPE     => 'payment_type',
                MIN_SESSION_COST => 'min_session_cost',
+
                RAD_PAIRS        => 'rad_pairs'
              );
 
@@ -255,7 +256,7 @@ sub add {
 
   %DATA = $self->get_data($attr, { default => \%DATA }); 
 
-  $self->query($db, "INSERT INTO tarif_plans (id, hourp, uplimit, name, month_fee, day_fee, logins, 
+  $self->query($db, "INSERT INTO tarif_plans (num, hourp, uplimit, name, month_fee, day_fee, logins, 
      day_time_limit, week_time_limit,  month_time_limit, 
      day_traf_limit, week_traf_limit,  month_traf_limit,
      activate_price, change_price, credit_tresshold, age, octets_direction,
@@ -267,6 +268,7 @@ sub add {
      '$DATA{ACTIV_PRICE}', '$DATA{CHANGE_PRICE}', '$DATA{CREDIT_TRESSHOLD}', '$DATA{AGE}', '$DATA{OCTETS_DIRECTION}',
      '$DATA{MAX_SESSION_DURATION}', '$DATA{FILTER_ID}',
      '$DATA{payment_type}', '$DATA{min_session_cost}', '$DATA{RAD_PAIRS}');", 'do' );
+
 
   return $self;
 }
@@ -299,7 +301,7 @@ sub del {
   my $self = shift;
   my ($id) = @_;
   	
-  $self->query($db, "DELETE FROM tarif_plans WHERE id='$id';", 'do');
+  $self->query($db, "DELETE FROM tarif_plans WHERE num='$id';", 'do');
 
  return $self;
 }
@@ -311,7 +313,7 @@ sub info {
   my $self = shift;
   my ($id) = @_;
 
-  $self->query($db, "SELECT id, name, hourp, day_fee, month_fee, logins, age,
+  $self->query($db, "SELECT num, name, hourp, day_fee, month_fee, logins, age,
       day_time_limit, week_time_limit,  month_time_limit, 
       day_traf_limit, week_traf_limit,  month_traf_limit,
       activate_price, change_price, credit_tresshold, uplimit, octets_direction, 
@@ -368,11 +370,8 @@ sub list {
   my $self = shift;
   my ($attr) = @_;
 
- my $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
- my $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
-
  my $WHERE = '';
- $self->query($db, "SELECT tp.id, tp.name, if(sum(i.tarif) is NULL or sum(i.tarif)=0, 0, 1), 
+ $self->query($db, "SELECT tp.num, tp.name, if(sum(i.tarif) is NULL or sum(i.tarif)=0, 0, 1), 
     if(sum(tt.in_price + tt.out_price)> 0, 1, 0), 
     tp.payment_type,
     tp.day_fee, tp.month_fee, 
@@ -380,10 +379,10 @@ sub list {
     tp.age,
     tp.rad_pairs
     FROM tarif_plans tp
-    LEFT JOIN intervals i ON (i.tp_id=tp.id)
+    LEFT JOIN intervals i ON (i.tp_id=tp.num)
     LEFT JOIN trafic_tarifs tt ON (tt.interval_id=i.id)
     $WHERE
-    GROUP BY tp.id
+    GROUP BY tp.num
     ORDER BY $SORT $DESC;");
 
  return $self->{list};
@@ -696,6 +695,20 @@ sub holidays_del {
 	my $self = shift;
   my ($id) = @_;
 	$self->query($db, "DELETE from holidays WHERE day='$id';", 'do');
+  return $self;
+}
+
+
+
+#**********************************************************
+# holidays_list
+#**********************************************************
+sub info2 {
+	my $self = shift;
+  my ($id) = @_;
+
+  print "aaaaaaaaaaaaaaaaaa";
+
   return $self;
 }
 

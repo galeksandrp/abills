@@ -229,7 +229,6 @@ sub dv_user {
 sub dv_tp {
  
  use Tariffs;
- 
  my $tariffs = Tariffs->new($db, \%conf);
  my $tarif_info;
 

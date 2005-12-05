@@ -18,20 +18,13 @@ $VERSION = 2.00;
 %EXPORT_TAGS = ();
 
 use main;
-@ISA  = ("main");
+use Tariffs;
+my $tariffs = Tariffs->new($db, $CONF);
 
+
+@ISA  = ("main");
 my $uid;
 
-
-my %SEARCH_PARAMS = (TARIF_PLAN => 0, 
-   SIMULTANEONSLY => 0, 
-   DISABLE => 0, 
-   IP => '0.0.0.0', 
-   NETMASK => '255.255.255.255', 
-   FILTER_ID => '', 
-   CID => '', 
-   REGISTRATION => ''
-);
 
 #**********************************************************
 # Init 
@@ -41,6 +34,7 @@ sub new {
   ($db, $admin, $CONF) = @_;
   my $self = { };
   bless($self, $class);
+  $self->{debug}=1;
   return $self;
 }
 
@@ -51,7 +45,7 @@ sub new {
 # User information
 # info()
 #**********************************************************
-sub info {
+sub user_info {
   my $self = shift;
   my ($uid, $attr) = @_;
 
@@ -80,7 +74,7 @@ sub info {
    voip.tp_id, 
    tp.name, 
    voip.disable
-     FROM voip_main dv
+     FROM voip_main voip
      LEFT JOIN voip_tps tp ON (voip.tp_id=tp.id)
    $WHERE;");
 
@@ -131,17 +125,17 @@ sub defaults {
 #**********************************************************
 # add()
 #**********************************************************
-sub add {
+sub user_add {
   my $self = shift;
   my ($attr) = @_;
   
   %DATA = $self->get_data($attr); 
 
-  $self->query($db,  "INSERT INTO dv_main (uid, registration, tp_id, 
-             logins, disable, ip, netmask, speed, filter_id, cid)
+  $self->query($db,  "INSERT INTO voip_main (uid, registration, tp_id, 
+             disable, ip, cid)
         VALUES ('$DATA{UID}', now(),
-        '$DATA{TARIF_PLAN}', '$DATA{SIMULTANEONSLY}', '$DATA{DISABLE}', INET_ATON('$DATA{IP}'), 
-        INET_ATON('$DATA{NETMASK}'), '$DATA{SPEED}', '$DATA{FILTER_ID}', LOWER('$DATA{CID}'));", 'do');
+        '$DATA{TARIF_PLAN}', '$DATA{DISABLE}', INET_ATON('$DATA{IP}'), 
+        LOWER('$DATA{CID}'));", 'do');
   
   return $self if ($self->{errno});
   
@@ -156,7 +150,7 @@ sub add {
 #**********************************************************
 # change()
 #**********************************************************
-sub change {
+sub user_change {
   my $self = shift;
   my ($attr) = @_;
   
@@ -187,7 +181,7 @@ sub change {
 #
 # del(attr);
 #**********************************************************
-sub del {
+sub user_del {
   my $self = shift;
   my ($attr) = @_;
 
@@ -203,7 +197,7 @@ sub del {
 #**********************************************************
 # list()
 #**********************************************************
-sub list {
+sub user_list {
  my $self = shift;
  my ($attr) = @_;
  my @list = ();
@@ -590,7 +584,7 @@ sub tp_list() {
 sub tp_defaults {
   my $self = shift;
 
-  %DATA = ( TP_ID => 0, 
+  my %DATA = ( TP_ID => 0, 
             NAME => '',  
             TIME_TARIF => '0.00000',
             DAY_FEE => '0,00',
@@ -618,7 +612,7 @@ sub tp_defaults {
  
   $self->{DATA} = \%DATA;
 
-  return $self->{DATA};
+  return \%DATA;
 }
 
 
@@ -628,22 +622,30 @@ sub tp_defaults {
 sub tp_add {
   my $self = shift;
   my ($attr) = @_;
+
+
+  $tariffs->add({ %$attr });
+
+  if (defined($tariffs->{errno})) {
+  	$self->{errno} = $tariffs->{errno};
+  	return $self;
+  }
   my $DATA = tp_defaults();
+
+
+#  while(my($k, $v)=each %$DATA) {
+#  	print "$k, $v<br>\n";
+#  }
   
   %DATA = $self->get_data($attr, { default => $DATA }); 
 
-  $self->query($db, "INSERT INTO voip_tps (id, uplimit, name, month_fee, day_fee, logins, 
+  $self->query($db, "INSERT INTO voip_tps (id, 
+     rad_pairs,
+     max_session_duration, 
+     min_session_cost, 
      day_time_limit, 
      week_time_limit,  
      month_time_limit, 
-     activate_price, 
-     change_price, 
-     credit_tresshold, 
-     age, 
-     max_session_duration, 
-     payment_type, 
-     min_session_cost, 
-     rad_pairs,
 
      first_period,
      first_period_step,
@@ -651,18 +653,13 @@ sub tp_add {
      next_period_step,
      free_time
      )
-    values ('$DATA{TP_ID}', '$DATA{ALERT}', \"$DATA{NAME}\", 
-     '$DATA{MONTH_FEE}', '$DATA{DAY_FEE}', '$DATA{SIMULTANEONSLY}', 
-     '$DATA{DAY_TIME_LIMIT}', 
-     '$DATA{WEEK_TIME_LIMIT}'  
-     '$DATA{MONTH_TIME_LIMIT}', 
-     '$DATA{ACTIV_PRICE}', '$DATA{CHANGE_PRICE}', 
-     '$DATA{CREDIT_TRESSHOLD}', 
-     '$DATA{AGE}', 
-     '$DATA{MAX_SESSION_DURATION}', 
-     '$DATA{PAYMENT_TYPE}', 
-     '$DATA{MIN_SESSION_COST}', 
-     '$DATA{RAD_PAIRS}', 
+    values ('$DATA{TP_ID}', 
+  '$DATA{RAD_PAIRS}', 
+  '$DATA{MAX_SESSION_DURATION}', 
+  '$DATA{MIN_SESSION_COST}', 
+  '$DATA{DAY_TIME_LIMIT}', 
+  '$DATA{WEEK_TIME_LIMIT}',  
+  '$DATA{MONTH_TIME_LIMIT}', 
 
   '$DATA{FIRST_PERIOD}',
   '$DATA{FIRST_PERIOD_STEP}',
@@ -682,29 +679,26 @@ sub tp_change {
   my ($tp_id, $attr) = @_;
 
 
-  my %FIELDS = ( TP_ID => 0, 
-            NAME => '',  
-            TIME_TARIF => '0.00000',
-            DAY_FEE => '0,00',
-            MONTH_FEE => '0.00',
-            SIMULTANEOUSLY => 0,
-            AGE => 0,
-            DAY_TIME_LIMIT => 0,
-            WEEK_TIME_LIMIT => 0,
-            MONTH_TIME_LIMIT => 0,
-            ACTIV_PRICE => '0.00',
-            CHANGE_PRICE => '0.00',
-            CREDIT_TRESSHOLD => '0.00',
-            ALERT => 0,
-            MAX_SESSION_DURATION => 0,
-            PAYMENT_TYPE         => 0,
-            MIN_SESSION_COST     => '0.00000',
-            RAD_PAIRS            => '',
-            FIRST_PERIOD         => 0,
-            FIRST_PERIOD_STEP    => 0,
-            NEXT_PERIOD          => 0,
-            NEXT_PERIOD_STEP     => 0,
-            FREE_TIME            => 0
+  $tariffs->change($tp_id, { %$attr });
+  if (defined($tariffs->{errno})) {
+  	$self->{errno} = $tariffs->{errno};
+  	return $self;
+  }
+
+
+
+  my %FIELDS = ( TP_ID => 'id', 
+            DAY_TIME_LIMIT =>   'day_time_limit',
+            WEEK_TIME_LIMIT =>  'week_time_limit',
+            MONTH_TIME_LIMIT => 'month_time_limit',
+            MAX_SESSION_DURATION => 'max_session_duration',
+            MIN_SESSION_COST     => 'min_session_cost',
+            RAD_PAIRS            => 'rad_pairs',
+            FIRST_PERIOD         => 'first_period',
+            FIRST_PERIOD_STEP    => 'first_period_step',
+            NEXT_PERIOD          => 'next_period',
+            NEXT_PERIOD_STEP     => 'next_period_step',
+            FREE_TIME            => 'free_time'
          );   
 
 
@@ -717,7 +711,7 @@ sub tp_change {
 		              } );
 
   
-  $self->info($tp_id);
+  $self->tp_info($tp_id);
 	
 	return $self;
 }
@@ -740,19 +734,19 @@ sub tp_del {
 sub tp_info {
   my $self = shift;
   my ($id) = @_;
+  
+  
+  $self = $tariffs->info($id);
+  if (defined($self->{errno})) {
+  	return $self;
+  }
 
-  $self->query($db, "SELECT id, name, 
-      day_fee, 
-      month_fee, 
-      logins, 
-      age,
+
+  $self->query($db, "SELECT id, 
       day_time_limit, week_time_limit,  month_time_limit, 
-      activate_price, change_price, credit_tresshold, uplimit,
       max_session_duration,
-      payment_type,
       min_session_cost,
       rad_pairs,
-
      first_period,
      first_period_step,
      next_period,
@@ -771,23 +765,12 @@ sub tp_info {
   my $ar = $self->{list}->[0];
   
   ($self->{TP_ID}, 
-   $self->{NAME}, 
-   $self->{DAY_FEE}, 
-   $self->{MONTH_FEE}, 
-   $self->{SIMULTANEOUSLY}, 
-   $self->{AGE},
    $self->{DAY_TIME_LIMIT}, 
    $self->{WEEK_TIME_LIMIT}, 
    $self->{MONTH_TIME_LIMIT}, 
-   $self->{ACTIV_PRICE},    
-   $self->{CHANGE_PRICE}, 
-   $self->{CREDIT_TRESSHOLD},
-   $self->{ALERT},
    $self->{MAX_SESSION_DURATION},
-   $self->{PAYMENT_TYPE},
    $self->{MIN_SESSION_COST},
    $self->{RAD_PAIRS},
-   
    $self->{FIRST_PERIOD},
    $self->{FIRST_PERIOD_STEP},
    $self->{NEXT_PERIOD},

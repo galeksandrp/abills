@@ -246,9 +246,9 @@ sub voip_user {
 sub voip_tp {
  my @Payment_Types    = ($_PREPAID, $_POSTPAID); 
 
- #$Voip = $Voip->tp_defaults();
- $Voip->{LNG_ACTION}=$_ADD;
- $Voip->{ACTION}='ADD_TP';
+ $Voip_tp = $Voip->tp_defaults();
+ $Voip_tp->{LNG_ACTION}=$_ADD;
+ $Voip_tp->{ACTION}='ADD_TP';
 
 if($FORM{ADD_TP}) {
   $Voip->tp_add({ %FORM });
@@ -257,20 +257,20 @@ if($FORM{ADD_TP}) {
    }
  }
 elsif (defined($FORM{TP_ID})) {
-  $Voip = $Voip->tp_info( $FORM{TP_ID} );
+  $Voip_tp = $Voip->tp_info( $FORM{TP_ID} );
 
-  if ($tariffs->{errno}) {
-    message('err', $_ERROR, "[$Voip->{errno}] $err_strs{$Voip->{errno}}");	
+  if ($Voip_tp->{errno}) {
+    message('err', $_ERROR, "[$Voip_tp->{errno}] $err_strs{$Voip->{errno}}");	
     return 0;
    }
 
   $pages_qs .= "&TP_ID=$FORM{TP_ID}&subf=$FORM{subf}";
   $LIST_PARAMS{TP} = $FORM{TP_ID};
-  %F_ARGS = ( TP => $tariffs );
+  %F_ARGS = ( TP => $Voip_tp );
   
   func_menu({ 
-  	         'ID' =>   $tariffs->{TP_ID}, 
-  	         $_NAME => $tariffs->{NAME}
+  	         'ID' =>   $Voip_tp->{TP_ID}, 
+  	         $_NAME => $Voip_tp->{NAME}
   	       }, 
   	{ 
 #  	 $_INFO          => ":TP_ID=$tariffs->{TP_ID}",
@@ -293,9 +293,9 @@ elsif (defined($FORM{TP_ID})) {
        message('info', $_CHANGED, "$_CHANGED $Voip->{TP_ID}");
      }
    }
-
-  $Voip->{LNG_ACTION}=$_CHANGE;
-  $Voip->{ACTION}='change';
+  #$Voip_tp = $Voip;
+  $Voip_tp->{LNG_ACTION}=$_CHANGE;
+  $Voip_tp->{ACTION}='change';
 
  }
 elsif(defined($FORM{del}) && $FORM{is_js_confirmed}) {
@@ -307,7 +307,7 @@ elsif(defined($FORM{del}) && $FORM{is_js_confirmed}) {
 }
 
 
-if ($tariffs->{errno}) {
+if ($Voip->{errno}) {
     message('err', $_ERROR, "[$Voip->{errno}] $err_strs{$Voip->{errno}}");	
  }
 
@@ -324,8 +324,9 @@ foreach my $line (@Payment_Types) {
 $Voip->{SEL_OCTETS_DIRECTION} .= "</select>\n";
 
 
+#$Voip_tp = $Voip;
 
-Abills::HTML->tpl_show(_include('voip_tp', 'Voip'), $Voip);
+Abills::HTML->tpl_show(_include('voip_tp', 'Voip'), $Voip_tp);
 
 
 
