@@ -314,14 +314,14 @@ if ($Voip->{errno}) {
 
 $i=0;
 
-$Voip->{PAYMENT_TYPE_SEL} = "<select name=PAYMENT_TYPE>\n";
+$Voip_tp->{PAYMENT_TYPE_SEL} = "<select name=PAYMENT_TYPE>\n";
 foreach my $line (@Payment_Types) {
-  $Voip->{PAYMENT_TYPE_SEL} .= "<option value=$i";
-  $Voip->{PAYMENT_TYPE_SEL} .= ' selected' if ($Voip->{PAYMENT_TYPE} eq $i);
-  $Voip->{PAYMENT_TYPE_SEL} .= ">$Payment_Types[$i]\n";
+  $Voip_tp->{PAYMENT_TYPE_SEL} .= "<option value=$i";
+  $Voip_tp->{PAYMENT_TYPE_SEL} .= ' selected' if ($Voip->{PAYMENT_TYPE} eq $i);
+  $Voip_tp->{PAYMENT_TYPE_SEL} .= ">$Payment_Types[$i]\n";
   $i++;
 }
-$Voip->{SEL_OCTETS_DIRECTION} .= "</select>\n";
+$Voip_tp->{SEL_OCTETS_DIRECTION} .= "</select>\n";
 
 
 #$Voip_tp = $Voip;
@@ -356,9 +356,9 @@ foreach my $line (@$list) {
    }
   
   $table->addrow("<b>$line->[0]</b>", "<a href='$SELF_URL?index=$index&TP_ID=$line->[0]'>$line->[1]</a>", 
-   $bool_vals[$line->[2]], $Payment_Types[$line->[4]], $line->[5], 
-   $line->[6], $line->[7], $line->[8],
-   "<a href='$SELF_URL?index=". ($index+2) ."&subf=73&TP_ID=$line->[0]'>$_INTERVALS</a>",
+   $bool_vals[$line->[2]], $Payment_Types[$line->[3]], $line->[4], 
+   $line->[5], $line->[6], $line->[7],
+   "<a href='$SELF_URL?index=$index&TP_ID=$line->[0]&intervals=$line->[0]'>$_INTERVALS</a>",
    $change,
    $delete);
 }

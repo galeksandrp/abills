@@ -554,16 +554,14 @@ sub tp_list() {
   my ($attr) = @_;
 
 
- my $WHERE = '';
- $self->query($db, "SELECT tp.id, tp.name, if(sum(i.tarif) is NULL or sum(i.tarif)=0, 0, 1), 
+ my $WHERE = 'WHERE tp.num=voip.id';
+ $self->query($db, "SELECT tp.num, tp.name, if(sum(i.tarif) is NULL or sum(i.tarif)=0, 0, 1), 
     tp.payment_type,
     tp.day_fee, tp.month_fee, 
     tp.logins, 
-    tp.age,
-    tp.rad_pairs
-    FROM voip_tps tp
-    LEFT JOIN intervals i ON (i.tp_id=tp.id)
-    LEFT JOIN trafic_tarifs tt ON (tt.interval_id=i.id)
+    tp.age
+    FROM tarif_plans tp, voip_tps voip
+    LEFT JOIN intervals i ON (i.tp_id=tp.num)
     $WHERE
     GROUP BY tp.id
     ORDER BY $SORT $DESC;");
@@ -724,7 +722,9 @@ sub tp_del {
   my ($id) = @_;
   	
   $self->query($db, "DELETE FROM voip_tps WHERE id='$id';", 'do');
-
+  $tariffs->del($id);
+  
+  
  return $self;
 }
 

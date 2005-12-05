@@ -23,7 +23,7 @@ my $db;
 my %DATA;
 
 
-my %FIELDS = ( TP_ID        => 'id', 
+my %FIELDS = ( TP_ID        => 'num', 
                NAME         => 'name',  
                TIME_TARIF   => 'hourp',
                DAY_FEE      => 'day_fee',
@@ -323,7 +323,7 @@ sub info {
       min_session_cost,
       rad_pairs
     FROM tarif_plans
-    WHERE id='$id';");
+    WHERE num='$id';");
 
   if ($self->{TOTAL} < 1) {
      $self->{errno} = 2;
