@@ -31,16 +31,17 @@ $web_interface    = 1;
                    "05:0:VoIP:null:"               => 5,
                    "06:5:$_TARIF_PLANS:voip_tp:"             => 5,
                    "07:6:$_ADD:voip_tp:"                     => 5,
-                   "08:6:$_INTERVALS:form_intervals:TP_ID"   => 5,
-                   "09:6:$_NASS:form_nas_allow:TP_ID"        => 5,
+                   "08:6:$_INTERVALS:voip_intervals:TP_ID"   => 5,
+                   "09:6:$_NASS:voip_nas:TP_ID"        => 5,
                    "10:5:$_ROUTES:voip_routes:"              => 5,
-                   "11:6:$_USERS:voip_users_list:TP_ID"      => 5,
-                   "12:0:VoIP:null:"               => 4,
-                   "13:12:$_ERROR:voip_error:"               => 4,
-                   "14:12:$_LAST:voip_sessions:"             => 4,
-                   "15:12:$_USED:voip_use:"                  => 4,
-                   "16:15:$_MONTH:voip_use_allmonthes:"      => 4,
-                   "17:0:VoIP:voip_online:"          => 8
+                   "10:6:$_ROUTES:voip_tp_routes:TP_ID"      => 5,
+                   "12:6:$_USERS:voip_users_list:TP_ID"      => 5,
+                   "13:0:VoIP:null:"               => 4,
+                   "14:12:$_ERROR:voip_error:"               => 4,
+                   "15:12:$_LAST:voip_sessions:"             => 4,
+                   "16:12:$_USED:voip_use:"                  => 4,
+                   "17:15:$_MONTH:voip_use_allmonthes:"      => 4,
+                   "18:0:VoIP:voip_online:"          => 8
 
                    );
 

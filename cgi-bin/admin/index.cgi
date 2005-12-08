@@ -1165,7 +1165,6 @@ if(defined($attr->{TP})) {
      }
    }
   elsif($FORM{change}) {
-
     $tarif_plan->ti_change( $FORM{TI_ID}, { %FORM } );
 
     if (! $tarif_plan->{errno}) {
@@ -2322,7 +2321,7 @@ foreach my $parent (@menu_sorted) {
   my $val = $h->{$parent};
   my $level = 0;
   my $prefix = '';
-  $table->addrow("$level:", ">> <a href='$SELF?index=$parent'>$val</a> <<");
+  $table->addrow("$level:", ">> <a href='$SELF_URL?index=$parent'>$val</a> <<");
 
   if (defined($new_hash{$parent})) {
     $level++;

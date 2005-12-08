@@ -98,11 +98,13 @@ sub ti_list {
 	my $self = shift;
 	my ($attr) = @_;
 
-  my $SORT = ($attr->{SORT}) ? $attr->{SORT} : "2, 3";
+  $SORT = ($attr->{SORT}) ? $attr->{SORT} : "2, 3";
   if ($SORT == 1) { $SORT = "2, 3"; }  
-  my $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
   my $begin_end = "i.begin, i.end,";   
   my $TP_ID = $self->{TP_ID};  
+  
+  $self->{debug}=1;
+  
     
   if (defined($attr->{TP_ID})) {
     $begin_end =  "TIME_TO_SEC(i.begin), TIME_TO_SEC(i.end), "; 

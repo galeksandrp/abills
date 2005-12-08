@@ -414,8 +414,8 @@ sub route_add {
   
   %DATA = $self->get_data($attr); 
 
-  $self->query($db,  "INSERT INTO voip_routes (id, prefix, name, disable, date) 
-        VALUES ('$DATA{ROUTE_ID}', '$DATA{ROUTE_PREFIX}', '$DATA{ROUTE_NAME}', '$DATA{DISABLE}', now());", 'do');
+  $self->query($db,  "INSERT INTO voip_routes (prefix, parent, name, disable, date) 
+        VALUES ('$DATA{ROUTE_PREFIX}', '$DATA{PARENT_ID}',  '$DATA{ROUTE_NAME}', '$DATA{DISABLE}', now());", 'do');
   return $self if ($self->{errno});
 
 #  $admin->action_add($DATA{UID}, "ADDED", { MODULE => 'voip'});
@@ -435,6 +435,7 @@ sub route_info {
   $self->query($db, "SELECT 
    id,
    prefix,
+   parent,
    name,
    date,
    disable
@@ -450,6 +451,7 @@ sub route_info {
   my $ar = $self->{list}->[0];
 
   ($self->{ROUTE_ID},
+   $self->{PARENT_ID}, 
    $self->{ROUTE_PREFIX}, 
    $self->{ROUTE_NAME}, 
    $self->{DATE},
@@ -482,7 +484,8 @@ sub route_change {
   my $self = shift;
   my ($attr) = @_;
   
-  my %FIELDS = (ROUTE_ID       => 'id',
+  my %FIELDS = (ROUTE_ID        => 'id',
+   							PARENT_ID       => 'parent',
                 DISABLE        => 'disable',
                 ROUTE_PREFIX   => 'prefix',
                 ROUTE_NAME     => 'name'
@@ -531,7 +534,7 @@ sub routes_list {
 
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
 
- $self->query($db, "SELECT r.id, r.prefix, r.name, r.disable, r.date
+ $self->query($db, "SELECT r.id, r.prefix, r.name, r.disable, r.date, r.parent
      FROM voip_routes r
      $WHERE 
      ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");
@@ -549,6 +552,52 @@ sub routes_list {
   return $list;
 }
 
+
+
+#**********************************************************
+# route price list
+# rp_list()
+#**********************************************************
+sub rp_list {
+ my $self = shift;
+ my ($attr) = @_;
+ my @list = ();
+
+ 
+ my $search_fields = '';
+ undef @WHERE_RULES;
+
+
+ if ($attr->{ROUTE_PREFIX}) {
+   $attr->{ROUTE_PREFIX} =~ s/\*/\%/ig;
+   push @WHERE_RULES, "r.prefix LIKE '$attr->{ROUTE_PREFIX}'";
+  }
+
+ if ($attr->{ROUTE_NAME}) {
+   $attr->{ROUTE_PREFIX} =~ s/\*/\%/ig;
+   push @WHERE_RULES, "r.name LIKE '$attr->{ROUTE_name}'";
+  }
+
+ $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
+
+ $self->query($db, "SELECT r.id, r.prefix, r.name, r.disable, rp.price, r.parent
+     FROM voip_routes r
+     LEFT join  voip_route_prices rp ON (rp.route_id=r.id)
+     $WHERE 
+     ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");
+
+ return $self if($self->{errno});
+
+ my $list = $self->{list};
+
+ if ($self->{TOTAL} >= 0) {
+    $self->query($db, "SELECT count(r.id) FROM voip_routes r $WHERE");
+    my $a_ref = $self->{list}->[0];
+    ($self->{TOTAL}) = @$a_ref;
+   }
+
+  return $list;
+}
 
 
 
