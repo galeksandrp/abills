@@ -104,11 +104,40 @@ elsif ($acct_status_type == 2) {
   my $TIME_PRICES = '';
 
   #%TARIFFS = ($ID => 
-  $self->{UID}=10;
-  $self->{SUM}=10; 
+  #$self->{};
+  
+  require Voip;
+  my $Voip = Voip->new($db, undef, $conf);
+  
+  
+  
+  
+  my %PARAMS = (IP     => $RAD->{FRAMED_IP_ADDRESS},
+                NUMBER => $RAD->{CALLING_STATION_ID} );
+  
+  $Voip->user_info(0, { %PARAMS });
+
+  
+  if($Voip->{TOTAL} < 1) {
+  	$self->{errno}=1;
+  	$self->{errstr}="Not exists";
+  	return $self;
+   }
+  elsif ($Voip->{errno}) {
+  	$self->{errno}=1;
+  	$self->{errstr}="Some error";
+  	return $self;
+   }
+
+  
+  $self->{UID}=$Voip->{UID};
   $self->{BILL_ID}=11; 
-  $self->{TARIF_PLAN}=1; 
+  $self->{TARIF_PLAN}=$Voip->{TP_ID}; 
+
  
+
+
+  $self->{SUM}=10; 
 
   $Billing->time_calculation({ START       => $RAD->{SESSION_START},
   	                           DURATION    => $RAD->{ACCT_SESSION_TIME},
@@ -207,4 +236,34 @@ else {
 }
 
 
+
+
+=comments
+# Cisco Values
+
+VALUE           h323-disconnect-cause        Local-Clear                    0
+VALUE           h323-disconnect-cause        Local-No-Accept                1
+VALUE           h323-disconnect-cause        Local-Decline                  2
+VALUE           h323-disconnect-cause        Remote-Clear                   3
+VALUE           h323-disconnect-cause        Remote-Refuse                  4
+VALUE           h323-disconnect-cause        Remote-No-Answer               5
+VALUE           h323-disconnect-cause        Remote-Caller-Abort            6
+VALUE           h323-disconnect-cause        Transport-Error                7
+VALUE           h323-disconnect-cause        Transport-Connect-Fail         8
+VALUE           h323-disconnect-cause        Gatekeeper-Clear               9
+VALUE           h323-disconnect-cause        Fail-No-User                   10
+VALUE           h323-disconnect-cause        Fail-No-Bandwidth              11
+VALUE           h323-disconnect-cause        No-Common-Capabilities         12
+VALUE           h323-disconnect-cause        FACILITY-Forward               13
+VALUE           h323-disconnect-cause        Fail-Security-Check            14
+VALUE           h323-disconnect-cause        Local-Busy                     15
+VALUE           h323-disconnect-cause        Local-Congestion               16
+VALUE           h323-disconnect-cause        Remote-Busy                    17
+VALUE           h323-disconnect-cause        Remote-Congestion              18
+VALUE           h323-disconnect-cause        Remote-Unreachable             19
+VALUE           h323-disconnect-cause        Remote-No-Endpoint             20
+VALUE           h323-disconnect-cause        Remote-Off-Line                21
+VALUE           h323-disconnect-cause        Remote-Temporary-Error         22
+
+=cut
 1

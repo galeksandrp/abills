@@ -7,6 +7,10 @@ Voip->import();
 my $Voip = Voip->new($db, $admin, $conf);
 
 
+use Voip_Sessions;
+my  $sessions = Voip_Sessions->new($db, \%conf);
+
+
 
 
 foreach my $prefix (@INC) {
@@ -882,8 +886,6 @@ print $table->show();
 sub voip_online {
 
 my $nas = Nas->new($db);
-use Voip_Sessions;
-$sessions = Voip_Sessions->new($db);
 
 
 my $message;
@@ -1096,20 +1098,41 @@ print $total . $table->show();
 # Whow sessions from log
 # dv_sessions()
 #**********************************************************
-sub dv_sessions {
-  my ($list, $sessions) = @_;
+sub voip_sessions {
+  my ($list) = @_;
 #Session List
+
 
 if (! $list) {
   if (! defined($FORM{sort})) {
 	  $LIST_PARAMS{SORT} = 2;
 	  $LIST_PARAMS{DESC} = 'DESC';
   }
-
-  use Dv_Sessions;
-  $sessions = Dv_Sessions->new($db);
   $list = $sessions->list({ %LIST_PARAMS });	
 }
+
+
+if ($FORM{del} && $FORM{is_js_confirmed}) {
+	if(! defined($permissions{3}{1})) {
+     message('err', $_ERROR, 'ACCESS DENY');
+     return 0;
+	 } 
+
+	my ($UID, $session_id, $nas_id, $session_start_date, $session_start_time, $sum, $login)=split(/ /, $FORM{del}, 7);
+	$sessions->{debug}=1;
+
+	$sessions->del($UID, $session_id, $nas_id, "$session_start_date $session_start_time");
+  if (! $sessions->{errno})	 {
+  	message('info', $_DELETED, "$_LOGIN: $login<br> SESSION_ID: $session_id<br> NAS_ID: $nas_id<br> SESSION_START: $session_start_date $session_start_time<br> $_SUM: $sum");
+    form_back_money('log', $sum, { UID => $UID }); #
+    return 0;
+   }
+}
+
+
+if ($sessions->{errno})	 {
+	message('err', $_ERROR, "[$sessions->{errno}] $err_strs{$sessions->{errno}}");
+ }
 
 
 
@@ -1119,8 +1142,8 @@ return 0 if ($sessions->{TOTAL} < 1);
 
 my $table = Abills::HTML->table( { width => '100%',
                                 border => 1,
-                                title => ["$_USER", "$_START", "$_DURATION", "$_TARIF_PLAN", "$_SENT", "$_RECV", 
-                                "CID", "NAS", "IP", "$_SUM", "-", "-"],
+                                title => ["$_USER", "$_START", "$_DURATION", "$_TARIF_PLAN", "CALLING_STATION_ID", "CALLED_STATION_ID", 
+                                "NAS", "IP", "$_SUM", "-", "-"],
                                 cols_align => ['left', 'right', 'right', 'RIGHT', 'right', 'right', 'right', 'right', 'right', 'right', 'center'],
                                 qs => $pages_qs,
                                 pages => $sessions->{TOTAL},
@@ -1136,7 +1159,8 @@ my $Billing = Billing->new($db);
 
 foreach my $line (@$list) {
   if ($permissions{3}{1}) {
-    $delete = $html->button($_DEL, "index=22$pages_qs&del=$line->[12]+$line->[11]+$line->[7]+$line->[1]+$line->[9]+$line->[0]", "$_DEL Session SESSION_ID $line->[11]?");
+    #$UID, $session_id, $nas_id, $session_start_date, $session_start_time, $sum, $login
+    $delete = $html->button($_DEL, "index=$index$pages_qs&del=$line->[11]+$line->[9]+$line->[6]+$line->[1]+$line->[9]+$line->[0]", "$_DEL Session SESSION_ID $line->[9]?");
    }
 
   my ($UID, 
@@ -1155,7 +1179,7 @@ foreach my $line (@$list) {
                                             \%conf,
                                             { TP_ID => $line->[3] });
   
-  my $test = "$UID, 
+  my $test = "<br>$UID, 
       <b>$SUM</b>, 
       $COMPANY_ID, 
       $TARIF_PLAN, 
@@ -1164,10 +1188,10 @@ foreach my $line (@$list) {
 
   $table->addrow("<a href='$SELF_URL?index=11&UID=$line->[12]'>$line->[0]</a>", 
      $line->[1], $line->[2],  $line->[3],  
-     int2byte($line->[4]), 
-     int2byte($line->[5]), $line->[6],
-     $line->[7], $line->[10], 
-     "$line->[9] $test", 
+     $line->[4], 
+     $line->[5], $line->[6],
+     $line->[7], 
+     "$line->[8] $test", 
      "(<a href='$SELF_URL?index=$index&UID=$line->[12]&SESSION_ID=$line->[11]' title='Session Detail'>D</a>)", 
      $delete);
 }
@@ -1189,9 +1213,7 @@ sub dv_use_allmonthes {
 #**********************************************************
 # dv_use();
 #**********************************************************
-sub dv_use {
-	use Dv_Sessions;
-  my $sessions = Dv_Sessions->new($db);
+sub Voip_use {
   use Fees;
   my $fees = Fees->new($db);
 
@@ -1393,7 +1415,7 @@ print $table->show();
 #**********************************************************
 # stats
 #**********************************************************
-sub dv_stats {
+sub voip_stats {
 	my ($attr) = @_;
  
 if (defined($attr->{USER}))	{
@@ -1422,7 +1444,7 @@ if (defined($attr->{USER}))	{
    }
   elsif($FORM{SESSION_ID}) {
   	$pages_qs .= "&SESSION_ID=$FORM{SESSION_ID}";
-  	dv_session_detail({ USER => $attr->{USER} });
+  	voip_session_detail({ USER => $attr->{USER} });
   	
   	return 0;
   }
@@ -1433,23 +1455,6 @@ if (defined($attr->{USER}))	{
 #	return 0;
 #}	
 
-use Dv_Sessions;
-my $sessions = Dv_Sessions->new($db);
-
-if ($FORM{del} && $FORM{is_js_confirmed}) {
-	if(! defined($permissions{3}{1})) {
-     message('err', $_ERROR, 'ACCESS DENY');
-     return 0;
-	 } 
-
-	my ($UID, $session_id, $nas_id, $session_start_date, $session_start_time, $sum, $login)=split(/ /, $FORM{del}, 7);
-	$sessions->del($UID, $session_id, $nas_id, "$session_start_date $session_start_time");
-  if (! $sessions->{errno})	 {
-  	message('info', $_DELETED, "$_LOGIN: $login<br> SESSION_ID: $session_id<br> NAS_ID: $nas_id<br> SESSION_START: $session_start_date $session_start_time<br> $_SUM: $sum");
-    form_back_money('log', $sum, { UID => $UID }); #
-    return 0;
-   }
-}
 
 if ($sessions->{errno})	 {
 	message('err', $_ERROR, "[$sessions->{errno}] $err_strs{$sessions->{errno}}");
@@ -1535,7 +1540,7 @@ dv_sessions($list, $sessions);
 # WHERE period
 # base_state($where, $period);
 #*******************************************************************
-sub dv_stats_calculation  {
+sub voip_stats_calculation  {
  my ($sessions) = @_;
 
 $sessions->calculation({ %LIST_PARAMS }); 
@@ -1557,7 +1562,7 @@ print $table->show();
 #**********************************************************
 # form_stats
 #**********************************************************
-sub dv_user_stats {
+sub voip_user_stats {
 	#my ($user) = @_;
 	#$UID = $user->{UID};
 	#$LIST_PARAMS{UID} = $user->{UID};
@@ -1565,9 +1570,6 @@ sub dv_user_stats {
 	  $LIST_PARAMS{SORT}=2;
 	  $LIST_PARAMS{DESC}=DESC;
    }
-
-use Dv_Sessions;
-my $sessions = Dv_Sessions->new($db);
 
 if ($sessions->{errno})	 {
 	message('err', $_ERROR, "[$sessions->{errno}] $err_strs{$sessions->{errno}}");
@@ -1642,7 +1644,7 @@ $table = Abills::HTML->table( { width => '640',
                                } );
 print "<p>" . $table->show() . "</p>\n";	
 
-dv_sessions($list, $sessions);
+voip_sessions($list, $sessions);
 #dv_show_sessions($list, $sessions);
 }
 
@@ -1655,10 +1657,7 @@ sub dv_session_detail {
 	my ($attr) = @_;
   my $user;
 
-  use Dv_Sessions;
-  my $sessions = Dv_Sessions->new($db);
 
- 
 if (defined($attr->{USER}))	{
 	$user = $attr->{USER};
 	$LIST_PARAMS{LOGIN}=$user->{LOGIN};

@@ -49,6 +49,10 @@ sub user_info {
   my $self = shift;
   my ($uid, $attr) = @_;
 
+
+  my @WHERE_RULES  = ();
+  my $WHERE = '';
+
   if(defined($attr->{LOGIN})) {
     use Users;
     my $users = Users->new($db, $admin, $CONF);   
@@ -61,13 +65,23 @@ sub user_info {
 
     $uid             = $users->{UID};
     $self->{DEPOSIT} = $users->{DEPOSIT}; 
-    $WHERE =  "WHERE voip.uid='$uid'";
+    push @WHERE_RULES, "voip.uid='$uid'";
    }
+  elsif($uid > 0) {
+  	push @WHERE_RULES, "voip.uid='$uid'";
+   }
+
+  if(defined($attr->{NUMBER})) {
+  	push @WHERE_RULES, "voip.number='$attr->{NUMBER}'";
+  }
+
+  if(defined($attr->{IP})) {
+  	push @WHERE_RULES, "voip.ip=INET_ATON('$attr->{IP}')";
+  }
   
-  #else {
-    $WHERE =  "WHERE voip.uid='$uid'";
-  # }
   #my $PASSWORD = '0'; 
+  
+  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
   
   $self->query($db, "SELECT 
    voip.uid, 

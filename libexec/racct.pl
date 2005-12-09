@@ -45,12 +45,12 @@ my $RAD = get_radius_params();
 test_radius_returns($RAD);
 #####################################################################
 
-#my $t = "\n\n";
-#while(my($k, $v)=each(%$RAD)) {
-#	$t .= "$k=$v\n";
-#}
+my $t = "\n\n";
+while(my($k, $v)=each(%$RAD)) {
+	$t .= "$k=\\\"$v\\\"\n";
+}
 #print $t;
-#my $a = `echo "$t" >> /tmp/voip_test`;
+my $a = `echo "$t" >> /tmp/voip_test`;
 
 
 
