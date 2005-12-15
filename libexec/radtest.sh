@@ -127,7 +127,8 @@ elif [ t$1 = 'tvoip' ] ; then
    CALLED_STATION_ID=101 \
    ACCT_SESSION_TIME=200 
 
-   elif [ $2 = 'tstop' ] ; then
+   elif [ t$2 = 'tstop' ] ; then
+    echo "Voip Stop"
    ./racct.pl ACCT_UNIQUE_SESSION_ID="f7989e8399e9ea8f" \
     H323_CONF_ID="h323-conf-id=513F6C41 96F41810 862E0001 6CC7CC03" \
     NAS_PORT_TYPE="Virtual"\

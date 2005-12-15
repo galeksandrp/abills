@@ -65,15 +65,20 @@ sub nas_params {
 sub list {
  my $self = shift;
  my ($attr) = @_;
+
+
+  my @WHERE_RULES  = ();
+  my $WHERE = '';
+
+  if(defined($attr->{TYPE})) {
+  	push @WHERE_RULES, "nas_type='$attr->{TYPE}'";
+  }
+  
+ $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
  
- $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
- $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
- $PG = ($attr->{PG}) ? $attr->{PG} : 0;
- $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
-
-
  $self->query($db, "SELECT id, name, nas_identifier, descr, ip,  nas_type, auth_type, disable
   FROM nas
+  $WHERE
   ORDER BY $SORT $DESC;");
 
  return $self->{list};

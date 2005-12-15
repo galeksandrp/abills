@@ -156,17 +156,24 @@ else {
     }
   }
 
+my $r;
 if(defined($ACCT{$nas->{NAS_TYPE}})) {
   require $ACCT{$nas->{NAS_TYPE}} . ".pm";
   $ACCT{$nas->{NAS_TYPE}}->import();
   my $Acct = $ACCT{$nas->{NAS_TYPE}}->new($db, \%conf);
-  my $r = $Acct->accounting($RAD, $nas);
+  $r = $Acct->accounting($RAD, $nas);
+  
+  if ($r->{errno}){
+    print "$r->{errno}\n$r->{errstr}\n";	
+   }
+  
 }
 else {
   require Acct;
   Acct->import();
   my $Acct = Acct->new($db, \%conf);
-  my $r = $Acct->accounting($RAD, $nas);
+  $r = $Acct->accounting($RAD, $nas);
 }
 
+  return $r;
 }

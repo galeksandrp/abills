@@ -1875,5 +1875,192 @@ $_TOTAL: $users->{TOTAL}\n";
 
 }
 
+
+#**********************************************************
+# voip_gk_console
+#**********************************************************
+sub voip_gk_console {
+
+use Nas;
+my  $nas = Nas->new($db, \%conf);
+
+
+
+my $list = $nas->list({ TYPE => 'gnugk'});
+my $table = Abills::HTML->table({ width => '100%',
+                                   border => 1,
+                                   title => ["#", "$_NAME", 'NAS-Identifier',  'IP' ],
+                                   cols_align => ['right', 'left', 'left', 'right'],
+                                   qs => $pages_qs
+                                  } );
+
+my ($host, $user, $password);
+foreach my $line (@$list) {
+    if($line->[0] eq $FORM{NAS_ID}) {
+    	$table->{rowcolor}=$_COLORS[4];
+     }
+    else {
+  	  undef($table->{rowcolor});
+     }
+
+    $table->addrow("<a href='$SELF_URL?index=$index&NAS_ID=$line->[0]'>$line->[0]</a>",  
+     $line->[1], $line->[2], $line->[3]);
+  }
+print $table->show();
+
+
+
+if ($FORM{NAS_ID}){
+
+ my %gk_commands = (
+  help                   => 'help',
+  unregisteralias        => 'unregisteralias',
+  PrintAllRegistrations  => 'PrintAllRegistrations, r, ? - Show all registered endpoints',
+  PrintAllRegistrationsVerbose => 'PrintAllRegistrationsVerbose, rv, ?? - Show details of all registered endpoints',
+  PrintCurrentCalls        => "PrintCurrentCalls, c, ! - Show all current calls using the same ACF syntax as in call establishment. ",
+  PrintCurrentCallsVerbose => "PrintCurrentCallsVerbose, cv, !!  - Show details of all current calls.",
+  Find                     => "Find, f - Find a registered endpoint by an alias or a prefix. ",
+  FindVerbose              => "FindVerbose, fv - Find details of a registered endpoint by an alias or a prefix. ",
+  UnregisterIP             => "Forcedly unregister an endpoint by IP and call signalling port. ",
+  UnregisterAllEndpoints   => "Forcedly unregister all registered endpoints",
+
+
+  who                     => 'who',
+  statistics              => 'statistics',
+  shutdown                => 'shutdown',
+  debug                   => 'debug',
+  disconnectalias         => 'disconnectalias',
+  disconnectcall          => 'disconnectcall',
+  disconnectendpoint      => 'disconnectendpoint',
+  disconnectip            => 'disconnectip',
+  disconnectsession       => 'disconnectsession',
+  version                 => 'version',
+  reload                  => 'reload',
+  
+ );
+
+
+  if(length($FORM{command})>0){
+    $nas->info({ NID => $FORM{NAS_ID}});
+    my @commands = ();
+ 
+    require 'Abills/nas.pl';
+    push @commands, "login:\t$nas->{NAS_MNG_USER}";
+    push @commands, "assword:\t$nas->{NAS_MNG_PASSWORD}";
+    push @commands, ";\t$FORM{command}";
+    push @commands, ";\tquit";
+
+    my $result = telnet_cmd("$nas->{NAS_MNG_IP_PORT}", \@commands, { debug => 1 });
+    my $total=0;
+    my @rows = split(/\n/, $result);
+    my @registred = ();
+
+    
+   if($FORM{command} =~ /\!|CurrentCalls/) {
+    	my $table = Abills::HTML->table({ width => '100%',
+                                   border => 1,
+                                   title => ['NUMBER', 'ACF', 'Caller_IP:Port', 'Caller_EPID', 'CRV', 'DestinationInfo', 'SrcInfo', 'IsAnswered', '-'],
+                                   cols_align => ['right', 'center', 'right', 'left', 'left', 'center'],
+                                   qs => $pages_qs,
+                                   caption => Associated
+                                  } );
+ 
+     
+     my @rows = split(/\n/, $result);
+
+     foreach my $line (@rows) {
+
+       if($line =~ /Dial/) {
+         #print "#      Caller_Aliases|Callee_Aliases|Bandwidth|Connected_Time <r>";
+         my @registred = split(/\|/, $line);
+         $table->addrow(@registred);
+         $total++;
+        }
+       elsif($line =~ /ACF/) {
+         my @registred = split(/\|/, $line);
+         #ACF|Caller_IP:Port|Caller_EPID|CRV|DestinationInfo|SrcInfo|IsAnswered;
+         #ACF|Callee_IP:Port|Callee_EPID|CRV|DestinationInfo|SrcInfo|IsAnswered;
+         $table->addrow('&nbsp;', @registred, "(<a href='$SELF_URL?index=$index&disconnectcall=@registred[4]' title='Hangup'>H</a>)");
+        }
+      }
+     print $table->show();
+
+     $table = Abills::HTML->table( { width => '100%',
+                                cols_align => ['right', 'right'],
+                                rows => [ ["$_TOTAL:", "<b>$total</b>" ] ]
+                               } );
+
+     print $table->show();
+#CurrentCalls 
+#Call No. 1 | CallID 06 20 60 00 00 60 40 10 00 00 00 0a f4 53 db fd | 5 | 175 
+#Dial 600:dialedDigits 
+#ACF|192.168.101.23:2832|9868_ag1|8354|600:dialedDigits|101:dialedDigits|false; 
+#ACF|192.168.101.18:1720|9870_ag1|41122|600:dialedDigits|101:dialedDigits|true; 
+#Number of Calls: 1 Active: 0 From Neighbor: 0 From Parent: 0 
+
+     }
+    elsif($FORM{command} =~ /\?|PrintAllRegistrations$/) {
+    	my $table = Abills::HTML->table({ width => '100%',
+                                   border => 1,
+                                   title => ["#", "IP", 'NUMBER',  "$_TYPE", "ID", ''],
+                                   cols_align => ['right', 'right', 'left', 'center', 'left', 'center'],
+                                   qs => $pages_qs,
+                                   caption => Associated
+                                  } );
+ 
+     
+     foreach my $line (@rows) {
+       if($line =~ /RCF/) {
+         @registred = split(/\|/, $line);
+         push @registred, "(<a href='$SELF_URL?index=$index&hangup=@registred[4]' title='Hangup'>H</a>)";
+         $table->addrow(@registred);
+        }
+      }
+     print $table->show();
+
+     $table = Abills::HTML->table( { width => '100%',
+                                cols_align => ['right', 'right'],
+                                rows => [ ["$_TOTAL:", "<b>$total</b>" ] ]
+                               } );
+
+     print $table->show();
+    
+     }
+    else {
+      $result =~s/\n/<br>/g;
+      print "<table><tr><td>
+        $result
+      </td></tr>
+      </table>";
+     }
+  }
+
+print "
+<form action=$SELF_URL>
+<input type=hidden name=index value=$index>
+<input type=hidden name=NAS_ID value=$FORM{NAS_ID}>
+<input type=text name=command value='$FORM{command}'>
+<input type=submit name=go value=$_SHOW>
+</form>
+";
+
+
+
+  $table = Abills::HTML->table({ width => '100%',
+                                 border => 1,
+                                 title => ["_COMMAND", "_HELP"],
+                                 cols_align => ['left', 'left']
+                               });
+#  while(my($k, $v)=each %gk_commands) {
+    
+  foreach $k (sort keys %gk_commands) {
+     $table->addrow("<a href='$SELF_URL?index=$index&NAS_ID=$FORM{NAS_ID}&command=$k'>$k</a>", $gk_commands{$k});
+   }
+  print $table->show();
+
+}
+	
+}
+
 1
 

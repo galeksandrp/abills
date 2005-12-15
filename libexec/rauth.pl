@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-use vars  qw(%RAD %conf $db);
+use vars  qw(%RAD %conf $db %AUTH);
 use strict;
 
 use FindBin '$Bin';
@@ -40,10 +40,13 @@ if (defined($ARGV[0]) && $ARGV[0] eq 'pre_auth') {
   exit 0;
 }
 
+
+
+
 require Nas;
 my $nas = Nas->new($db, \%conf);	
 my %NAS_PARAMS = ('IP' => "$RAD->{NAS_IP_ADDRESS}");
-$NAS_PARAMS{NAS_INDENTIFIER}=$RAD->{NAS_INDENTIFIER} if (defined($RAD->{NAS_INDENTIFIER}));
+$NAS_PARAMS{NAS_IDENTIFIER}=$RAD->{NAS_IDENTIFIER} if (defined($RAD->{NAS_IDENTIFIER}));
 $nas->info({ %NAS_PARAMS });
 
 
@@ -73,13 +76,37 @@ sub auth {
  	 print "Reply-Message = \"$conf{tech_works}\"\n";
  	 exit 1;
   }
+
+
+
+
+
+
+my ($r, $RAD_PAIRS);
+
+if(defined($AUTH{$nas->{NAS_TYPE}})) {
+
+  require $AUTH{$nas->{NAS_TYPE}} . ".pm";
+  $AUTH{$nas->{NAS_TYPE}}->import();
+  my $Auth = $AUTH{$nas->{NAS_TYPE}}->new($db, \%conf);
+  ($r, $RAD_PAIRS) = $Auth->auth($RAD, $nas);
  
- require Auth;
- Auth->import();
- my $Auth = Auth->new($db, \%conf);
- my ($r, $RAD_PAIRS) = $Auth->dv_auth($RAD, $nas, { SECRETKEY => $conf{secretkey},
- 	                                                   MAX_SESSION_TRAFFIC => $conf{MAX_SESSION_TRAFFIC},
- 	                                                   NETS_FILES_PATH => $conf{netsfilespath} } );
+}
+else {
+  require Auth;
+  Auth->import();
+  my $Auth = Auth->new($db, \%conf);
+  ($r, $RAD_PAIRS) = $Auth->dv_auth($RAD, $nas, { SECRETKEY => $conf{secretkey},
+ 	                                                MAX_SESSION_TRAFFIC => $conf{MAX_SESSION_TRAFFIC},
+ 	                                                NETS_FILES_PATH => $conf{netsfilespath} } );
+}
+
+
+
+ 
+
+
+
 
 #If Access deny
  
@@ -96,6 +123,10 @@ sub auth {
    log_print('LOG_DEBUG', "AUTH [$RAD->{USER_NAME}] $rr");
    print $nas->{NAS_RAD_PAIRS};
   }
+
+
+
+
 
  if ($begin_time > 0)  {
    Time::HiRes->import(qw(gettimeofday));

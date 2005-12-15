@@ -67,7 +67,7 @@ sub user_info {
     $self->{DEPOSIT} = $users->{DEPOSIT}; 
     push @WHERE_RULES, "voip.uid='$uid'";
    }
-  elsif($uid > 0) {
+  elsif($uid > 0){
   	push @WHERE_RULES, "voip.uid='$uid'";
    }
 

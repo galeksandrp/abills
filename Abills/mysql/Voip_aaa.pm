@@ -48,6 +48,58 @@ sub new {
 #**********************************************************
 # Accounting Work_
 #**********************************************************
+sub auth {
+  my $self = shift;
+  my ($RAD, $NAS) = @_;
+
+  my $WHERE = '';
+
+  if($RAD->{CHAP_PASSWORD}) {  
+    $WHERE = " and uid.phone='$RAD->{USER_NAME}'";
+   }
+
+  $self->query($db, "SELECT 
+   voip.uid, 
+   voip.number,
+   voip.tp_id, 
+   INET_NTOA(voip.ip),
+   DECODE(password, '$conf->{secretkey}'),
+   0,
+   voip.disable,
+   u.disable
+   FROM voip_main voip, 
+        users u
+   WHERE 
+    and u.uid=voip.uid
+   $WHERE;");
+
+  if ($self->{TOTAL} < 1) {
+     $self->{errno} = 2;
+     $self->{errstr} = 'ERROR_NOT_EXIST';
+     return $self;
+   }
+
+  my $ar = $self->{list}->[0];
+
+  ($self->{UID},
+   $self->{NUMBER},
+   $self->{TP_ID}, 
+   $self->{IP},
+   self->{PASSWORD},
+   $self->{SIMULTANEOUSLY}
+   $self->{VOIP_DISABLE},
+   $self->{USER_DISABLE},
+  )= @$ar;
+  
+   $self->{SIMULTANEOUSLY} = 0;
+  
+  
+  return $self;
+}
+
+#**********************************************************
+# Accounting Work_
+#**********************************************************
 sub accounting {
  my $self = shift;
  my ($RAD, $NAS)=@_;
@@ -134,7 +186,6 @@ elsif ($acct_status_type == 2) {
   $self->{BILL_ID}=11; 
   $self->{TARIF_PLAN}=$Voip->{TP_ID}; 
 
- 
 
 
   $self->{SUM}=10; 
@@ -143,6 +194,7 @@ elsif ($acct_status_type == 2) {
   	                           DURATION    => $RAD->{ACCT_SESSION_TIME},
   	                           PERIODS     => $PERIODS,
   	                           TIME_PRICES => $TIME_PRICES });
+
 
  
 #  return $self;
