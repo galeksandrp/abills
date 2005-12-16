@@ -103,7 +103,22 @@ elif [ t$1 = 'tauthgt' ]; then
 
 elif [ t$1 = 'tvoip' ] ; then 
 
-  if [ t$2 = 'tstart' ] ; then
+ echo "Voip";
+  if [ t$2 = 'tauth' ] ; then
+   echo Auth;
+   ./rauth.pl NAS_IP_ADDRESS="192.168.101.17" \
+     CHAP_PASSWORD="0x06a8f3fb0ab5f4a8e90a590686c845c456" \
+     NAS_PORT_TYPE="Virtual" \
+     NAS_IDENTIFIER="ASMODEUSGK" \
+     CLIENT_IP_ADDRESS="192.168.101.17" \
+     CISCO_AVPAIR="h323-ivr-out=terminal-alias:100;" \
+     SERVICE_TYPE="Login-User" \
+     CHAP_CHALLENGE="0x43a28c01" \
+     USER_NAME="100" \ 
+     FRAMED_IP_ADDRESS="192.168.101.23" \
+     HUNTGROUP_NAME="voips"   
+
+  elif [ t$2 = 'tstart' ] ; then
     echo "Start\n";
    ./racct.pl  ACCT_UNIQUE_SESSION_ID=e5a1624d4211242c \
    H323_CONF_ID=h323-conf-id="FF8E71DC 7FF41810 93FA0001 6CC7CC03"\

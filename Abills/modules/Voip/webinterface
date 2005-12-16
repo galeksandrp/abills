@@ -135,6 +135,14 @@ sub voip_users_list {
    $LIST_PARAMS{TP_ID} = $FORM{TP_ID};
    $pages_qs .= "&TP_ID=$FORM{TP_ID}";
   }
+
+
+  form_search({ SEARCH_FORM =>  	
+  	"<tr><td colspan=2><hr></td></tr>
+     <tr><td>IP (>,<)</td><td><input type=text name=IP value='%IP%'></td></tr>
+     <tr><td>CID</td><td><input type=text name=CID value='%CID%'></td></tr>
+     <tr><td>NAMBER (>,<):</td><td><input type=text name=NUMBER value='%NUMBER%'></td></tr>\n"
+   });
  
 
  print Abills::HTML->letters_list({ pages_qs => $pages_qs  }); 
@@ -155,7 +163,7 @@ if ($Voip->{errno}) {
   return 0;
  }
 elsif ($Voip->{TOTAL} == 1) {
-	form_users({  USER => user_info($list->[0]->[6]) });
+	form_users({  USER => user_info($list->[0]->[7]) });
 	return 0;
 }
 
@@ -164,17 +172,19 @@ elsif ($Voip->{TOTAL} == 1) {
 
 my $table = Abills::HTML->table( { width => '100%',
                                    border => 1,
-                                   title => [$_LOGIN, $_FIO, $_DEPOSIT, $_CREDIT, $_TARIF_PLANS, $_STATUS, '-', '-'],
-                                   cols_align => ['left', 'left', 'right', 'right', 'left', 'center', 'center', 'center', 'center'],
+                                   title => [$_LOGIN, $_FIO, $_DEPOSIT, $_CREDIT, $_TARIF_PLANS, $_STATUS, $_NUMBER, '-'],
+                                   cols_align => ['left', 'left', 'right', 'right', 'left', 'center', 'left', 'center', 'center', 'center'],
                                    qs => $pages_qs,
                                    pages => $Voip->{TOTAL}
                                   } );
 
 foreach my $line (@$list) {
-  my $payments = ($permissions{1}) ?  "<a href='$SELF_URL?index=2&UID=$line->[6]'>$_PAYMENTS</a>" : ''; 
+  my $payments = ($permissions{1}) ?  "<a href='$SELF_URL?index=2&UID=$line->[7]'>$_PAYMENTS</a>" : ''; 
 
-  $table->addrow("<a href='$SELF_URL?index=11&UID=$line->[6]'>$line->[0]</a>", "$line->[1]",
-   "$line->[2]", "$line->[3]", "$line->[4]", "$status[$line->[5]]", $payments, "<a href='$SELF_URL?index=22&UID=$line->[6]'>$_STATS</a>");
+  $table->addrow("<a href='$SELF_URL?index=11&UID=$line->[7]'>$line->[0]</a>", "$line->[1]",
+   "$line->[2]", "$line->[3]", "$line->[4]", "$status[$line->[5]]", 
+   "$line->[6]",
+   $payments);
 }
 print $table->show();
 
@@ -1980,7 +1990,7 @@ if ($FORM{NAS_ID}){
          my @registred = split(/\|/, $line);
          #ACF|Caller_IP:Port|Caller_EPID|CRV|DestinationInfo|SrcInfo|IsAnswered;
          #ACF|Callee_IP:Port|Callee_EPID|CRV|DestinationInfo|SrcInfo|IsAnswered;
-         $table->addrow('&nbsp;', @registred, "(<a href='$SELF_URL?index=$index&disconnectcall=@registred[4]' title='Hangup'>H</a>)");
+         $table->addrow('&nbsp;', @registred, "(<a href='$SELF_URL?index=$index&NAS_ID=$FORM{NAS_ID}&command=disconnectcall+@registred[4]' title='Hangup'>H</a>)");
         }
       }
      print $table->show();
@@ -2012,7 +2022,7 @@ if ($FORM{NAS_ID}){
      foreach my $line (@rows) {
        if($line =~ /RCF/) {
          @registred = split(/\|/, $line);
-         push @registred, "(<a href='$SELF_URL?index=$index&hangup=@registred[4]' title='Hangup'>H</a>)";
+         push @registred, "(<a href='$SELF_URL?index=$index&NAS_ID=$FORM{NAS_ID}&command=UnregisterIP+@registred[1]' title='Hangup'>H</a>)";
          $table->addrow(@registred);
         }
       }

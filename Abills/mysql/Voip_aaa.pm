@@ -21,7 +21,7 @@ use Billing;
 my ($db, $conf);
 
 
-
+my %RAD_PAIRS;
 my %ACCT_TYPES = ('Start', 1,
                'Stop', 2,
                'Alive', 3,
@@ -52,11 +52,10 @@ sub auth {
   my $self = shift;
   my ($RAD, $NAS) = @_;
 
-  my $WHERE = '';
+  my $WHERE = " and number='$RAD->{USER_NAME}'";
 
-  if($RAD->{CHAP_PASSWORD}) {  
-    $WHERE = " and uid.phone='$RAD->{USER_NAME}'";
-   }
+
+  
 
   $self->query($db, "SELECT 
    voip.uid, 
@@ -70,13 +69,14 @@ sub auth {
    FROM voip_main voip, 
         users u
    WHERE 
-    and u.uid=voip.uid
+    u.uid=voip.uid
    $WHERE;");
 
   if ($self->{TOTAL} < 1) {
      $self->{errno} = 2;
      $self->{errstr} = 'ERROR_NOT_EXIST';
-     return $self;
+     $RAD_PAIRS{'Reply-Message'}="Number not exist '$RAD->{USER_NAME}'";
+     return 1, \%RAD_PAIRS;
    }
 
   my $ar = $self->{list}->[0];
@@ -85,16 +85,37 @@ sub auth {
    $self->{NUMBER},
    $self->{TP_ID}, 
    $self->{IP},
-   self->{PASSWORD},
-   $self->{SIMULTANEOUSLY}
+   $self->{PASSWORD},
+   $self->{SIMULTANEOUSLY},
    $self->{VOIP_DISABLE},
    $self->{USER_DISABLE},
   )= @$ar;
   
-   $self->{SIMULTANEOUSLY} = 0;
+  $self->{SIMULTANEOUSLY} = 0;
   
   
-  return $self;
+ if (defined($RAD->{CHAP_PASSWORD}) && defined($RAD->{CHAP_CHALLENGE})) {
+   require Auth;
+   Auth->import();
+   my $Auth = Auth->new($db, $conf);
+
+   #$RAD->{CHAP_PASSWORD}  = "0x01443072e8fd815fd4f6bf32b32988c294";
+   #$RAD->{CHAP_CHALLENGE} = "0x38343538343231303638363531353239";
+
+   if (check_chap("$RAD->{CHAP_PASSWORD}", "$self->{PASSWORD}", "$RAD->{CHAP_CHALLENGE}", 0) == 0) {
+     $RAD_PAIRS{'Reply-Message'}="Wrong CHAP password '$self->{PASSWORD}'";
+     return 1, \%RAD_PAIRS;
+    }      	 	
+  }
+ else {
+ 	 if ($self->{IP} ne '0.0.0.0' && $self->{IP} ne $RAD->{FRAMED_IP_ADDRESS}) {
+     $RAD_PAIRS{'Reply-Message'}="Not allow IP '$RAD->{FRAMED_IP_ADDRESS}' / $self->{IP} ";
+     return 1, \%RAD_PAIRS;
+ 	  }
+  }
+  
+  
+  return 0, \%RAD_PAIRS;
 }
 
 #**********************************************************

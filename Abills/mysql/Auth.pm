@@ -9,7 +9,10 @@ use vars qw(@ISA @EXPORT @EXPORT_OK %EXPORT_TAGS $VERSION
 use Exporter;
 $VERSION = 2.00;
 @ISA = ('Exporter');
-@EXPORT = qw();
+@EXPORT = qw(
+  &check_chap
+);
+
 @EXPORT_OK = ();
 %EXPORT_TAGS = ();
 
@@ -902,6 +905,8 @@ my ($given_password,$want_password,$given_chap_challenge,$debug) = @_;
         $md5->add($want_password);
         $md5->add($chap_challenge);
         my $digest = $md5->digest();
+
+
         if ($digest eq substr($chap_password, 1)) { 
            return 1; 
           }

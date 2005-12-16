@@ -225,7 +225,7 @@ sub user_list {
  
  my $search_fields = '';
  undef @WHERE_RULES;
- push @WHERE_RULES, "u.uid = dv.uid";
+ push @WHERE_RULES, "u.uid = service.uid";
  
  if ($attr->{USERS_WARNINGS}) {
    $self->query($db, " SELECT u.id, pi.email, dv.tp_id, u.credit, b.deposit, tp.name, tp.uplimit
@@ -336,7 +336,7 @@ sub user_list {
 
  # Show users for spec tarifplan 
  if ($attr->{TP_ID}) {
-    push @WHERE_RULES, "dv.tp_id='$attr->{TP_ID}'";
+    push @WHERE_RULES, "service.tp_id='$attr->{TP_ID}'";
   }
 
  # Show debeters
@@ -370,17 +370,26 @@ sub user_list {
  if ($attr->{DISABLE}) {
    push @WHERE_RULES, "u.disable='$attr->{DISABLE}'"; 
  }
+
+
+ if ($attr->{NUMBER}) {
+   my $value = $self->search_expr("'$attr->{NUMBER}'", 'INT');
+   push @WHERE_RULES, "service.number$value"; 
+ }
+
  
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
  
  
  $self->query($db, "SELECT u.id, 
-      pi.fio, if(company.id IS NULL, b.deposit, b.deposit), u.credit, tp.name, u.disable, 
-      u.uid, u.company_id, pi.email, dv.tp_id, u.activate, u.expire, u.bill_id
-     FROM users u, voip_main dv
+      pi.fio, if(company.id IS NULL, b.deposit, b.deposit), u.credit, tp.name, 
+      u.disable, 
+      service.number,
+      u.uid, u.company_id, pi.email, service.tp_id, u.activate, u.expire, u.bill_id
+     FROM users u, voip_main service
      LEFT JOIN users_pi pi ON (u.uid = pi.uid)
      LEFT JOIN bills b ON u.bill_id = b.id
-     LEFT JOIN tarif_plans tp ON (tp.id=dv.tp_id) 
+     LEFT JOIN tarif_plans tp ON (tp.id=service.tp_id) 
      LEFT JOIN companies company ON  (u.company_id=company.id) 
      $WHERE 
      GROUP BY u.uid
@@ -393,7 +402,7 @@ sub user_list {
  my $list = $self->{list};
 
  if ($self->{TOTAL} >= 0) {
-    $self->query($db, "SELECT count(u.id) FROM users u, dv_main dv $WHERE");
+    $self->query($db, "SELECT count(u.id) FROM users u, voip_main service $WHERE");
     my $a_ref = $self->{list}->[0];
     ($self->{TOTAL}) = @$a_ref;
    }

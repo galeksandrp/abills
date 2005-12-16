@@ -166,13 +166,14 @@ if(defined($ACCT{$nas->{NAS_TYPE}})) {
   if ($r->{errno}){
     print "$r->{errno}\n$r->{errstr}\n";	
    }
-  
+#  print "Voip - ";
 }
 else {
   require Acct;
   Acct->import();
   my $Acct = Acct->new($db, \%conf);
   $r = $Acct->accounting($RAD, $nas);
+  
 }
 
   return $r;

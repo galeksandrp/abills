@@ -25,6 +25,18 @@ my $RAD = get_radius_params();
 test_radius_returns($RAD);
 ####################################################################
 
+
+
+my $t = "\n\n";
+while(my($k, $v)=each(%$RAD)) {
+	$t .= "$k=\\\"$v\\\"\n";
+}
+#print $t;
+my $a = `echo "$t" >> /tmp/voip_test`;
+
+
+
+
 require Abills::SQL;
 
 my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
@@ -110,7 +122,7 @@ else {
 
 #If Access deny
  
- if($r == 1) {
+ if($r == 1){
     print "Reply-Message = \"$RAD_PAIRS->{'Reply-Message'}\"\n";
     access_deny("$RAD->{USER_NAME}", "$RAD_PAIRS->{'Reply-Message'}", $nas->{NID});
   }
@@ -122,7 +134,7 @@ else {
    print $rr;
    log_print('LOG_DEBUG', "AUTH [$RAD->{USER_NAME}] $rr");
    print $nas->{NAS_RAD_PAIRS};
-  }
+ }
 
 
 
