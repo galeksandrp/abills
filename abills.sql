@@ -164,7 +164,7 @@ CREATE TABLE docs_acct_orders (
   orders varchar(200) NOT NULL default '',
   counts int(10) unsigned NOT NULL default '0',
   unit tinyint(3) unsigned NOT NULL default '0',
-  price float(8,2) unsigned NOT NULL default '0.00',
+  price double(10,2) unsigned NOT NULL default '0.00',
   KEY aid (acct_id)
 ) TYPE=MyISAM;
 
@@ -325,9 +325,9 @@ CREATE TABLE log (
   duration int(11) NOT NULL default '0',
   sent int(10) unsigned NOT NULL default '0',
   recv int(10) unsigned NOT NULL default '0',
-  minp float(10,2) NOT NULL default '0.00',
-  kb float(10,2) NOT NULL default '0.00',
-  sum double(14,6) NOT NULL default '0.000000',
+  minp double(10,3) NOT NULL default '0.00',
+  kb double(10,3) unsigned NOT NULL default '0.00',
+  sum double(14,6) unsigned NOT NULL default '0.000000',
   port_id smallint(5) unsigned NOT NULL default '0',
   nas_id tinyint(3) unsigned NOT NULL default '0',
   ip int(10) unsigned NOT NULL default '0',
