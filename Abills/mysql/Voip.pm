@@ -89,7 +89,9 @@ sub user_info {
    voip.tp_id, 
    tarif_plans.name, 
    INET_NTOA(voip.ip),
-   voip.disable
+   voip.disable,
+   voip.allow_answer,
+   voip.allow_calls
      FROM voip_main voip
      LEFT JOIN voip_tps tp ON (voip.tp_id=tp.id)
      LEFT JOIN tarif_plans ON (tarif_plans.id=tp.id)
@@ -109,6 +111,8 @@ sub user_info {
    $self->{TP_NAME}, 
    $self->{IP}, 
    $self->{DISABLE},
+   $self->{ALLOW_ANSWER},
+   $self->{ALLOW_CALLS},
    $self->{REGISTRATION},
    $self->{SIMULTANEOUSLY}
   )= @$ar;

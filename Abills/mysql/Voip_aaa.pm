@@ -16,6 +16,9 @@ $VERSION = 2.00;
 # User name expration
 use main;
 use Billing;
+use Auth;
+
+
 
 @ISA  = ("main");
 my ($db, $conf);
@@ -41,6 +44,68 @@ sub new {
   my $self = { };
   bless($self, $class);
   #$self->{debug}=1;
+  my $Auth = Auth->new($db, $conf);
+  return $self;
+}
+
+
+#**********************************************************
+# user_info
+#**********************************************************
+sub user_info {
+  my $self = shift;
+  my ($RAD, $NAS) = @_;
+
+  my $WHERE = " and number='$RAD->{USER_NAME}'";
+
+  $self->query($db, "SELECT 
+   voip.uid, 
+   voip.number,
+   voip.tp_id, 
+   INET_NTOA(voip.ip),
+   DECODE(password, '$conf->{secretkey}'),
+   0,
+   voip.allow_answer,
+   voip.allow_calls,
+   voip.disable,
+   u.disable,
+   u.bill_id,
+   u.company_id
+   FROM voip_main voip, 
+        users u
+   WHERE 
+    u.uid=voip.uid
+   $WHERE;");
+
+
+
+  if ($self->{TOTAL} < 1) {
+     return $self;
+   }
+
+  my $ar = $self->{list}->[0];
+
+  ($self->{UID},
+   $self->{NUMBER},
+   $self->{TP_ID}, 
+   $self->{IP},
+   $self->{PASSWORD},
+   $self->{SIMULTANEOUSLY},
+   $self->{ALLOW_ANSWER},
+   $self->{ALLOW_CALLS},
+   $self->{VOIP_DISABLE},
+   $self->{USER_DISABLE},
+   $self->{BILL_ID},
+   $self->{COMPANY_ID}
+  )= @$ar;
+  
+  $self->{SIMULTANEOUSLY} = 0;
+
+  #Chack Company account if ACCOUNT_ID > 0
+  $self->check_company_account() if ($self->{COMPANY_ID} > 0);
+
+
+
   return $self;
 }
 
@@ -52,52 +117,20 @@ sub auth {
   my $self = shift;
   my ($RAD, $NAS) = @_;
 
-  my $WHERE = " and number='$RAD->{USER_NAME}'";
+  $self->user_info($RAD, $NAS);
 
-
-  
-
-  $self->query($db, "SELECT 
-   voip.uid, 
-   voip.number,
-   voip.tp_id, 
-   INET_NTOA(voip.ip),
-   DECODE(password, '$conf->{secretkey}'),
-   0,
-   voip.disable,
-   u.disable
-   FROM voip_main voip, 
-        users u
-   WHERE 
-    u.uid=voip.uid
-   $WHERE;");
-
-  if ($self->{TOTAL} < 1) {
-     $self->{errno} = 2;
-     $self->{errstr} = 'ERROR_NOT_EXIST';
-     $RAD_PAIRS{'Reply-Message'}="Number not exist '$RAD->{USER_NAME}'";
-     return 1, \%RAD_PAIRS;
+  if($self->{errno}) {
+    $RAD_PAIRS{'Reply-Message'}=$self->{errstr};
+    return 1, \%RAD_PAIRS;
+   }
+  elsif ($self->{TOTAL} < 1) {
+    $self->{errno} = 2;
+    $self->{errstr} = 'ERROR_NOT_EXIST';
+    $RAD_PAIRS{'Reply-Message'}="Number not exist '$RAD->{USER_NAME}'";
+    return 1, \%RAD_PAIRS;
    }
 
-  my $ar = $self->{list}->[0];
-
-  ($self->{UID},
-   $self->{NUMBER},
-   $self->{TP_ID}, 
-   $self->{IP},
-   $self->{PASSWORD},
-   $self->{SIMULTANEOUSLY},
-   $self->{VOIP_DISABLE},
-   $self->{USER_DISABLE},
-  )= @$ar;
-  
-  $self->{SIMULTANEOUSLY} = 0;
-  
-  
- if (defined($RAD->{CHAP_PASSWORD}) && defined($RAD->{CHAP_CHALLENGE})) {
-   require Auth;
-   Auth->import();
-   my $Auth = Auth->new($db, $conf);
+ if (defined($RAD->{CHAP_PASSWORD}) && defined($RAD->{CHAP_CHALLENGE})){
 
    #$RAD->{CHAP_PASSWORD}  = "0x01443072e8fd815fd4f6bf32b32988c294";
    #$RAD->{CHAP_CHALLENGE} = "0x38343538343231303638363531353239";
@@ -113,6 +146,16 @@ sub auth {
      return 1, \%RAD_PAIRS;
  	  }
   }
+  
+
+#DIsable
+if ($self->{DISABLE}) {
+  $RAD_PAIRS{'Reply-Message'}="Account Disable";
+  return 1, \%RAD_PAIRS;
+}
+
+  
+  $self->check_bill_account();
   
   
   return 0, \%RAD_PAIRS;
@@ -156,8 +199,6 @@ if ($acct_status_type == 1) {
  }
 # Stop status
 elsif ($acct_status_type == 2) {
-
-
   my $Billing = Billing->new($db);	
 
 
@@ -177,40 +218,25 @@ elsif ($acct_status_type == 2) {
   my $TIME_PRICES = '';
 
   #%TARIFFS = ($ID => 
-  #$self->{};
   
-  require Voip;
-  my $Voip = Voip->new($db, undef, $conf);
+  #my %PARAMS = (IP     => $RAD->{FRAMED_IP_ADDRESS},
+  #              NUMBER => $RAD->{CALLING_STATION_ID} );
   
+  $self->user_info($RAD, $NAS);
   
-  
-  
-  my %PARAMS = (IP     => $RAD->{FRAMED_IP_ADDRESS},
-                NUMBER => $RAD->{CALLING_STATION_ID} );
-  
-  $Voip->user_info(0, { %PARAMS });
-
-  
-  if($Voip->{TOTAL} < 1) {
+  if($self->{TOTAL} < 1) {
   	$self->{errno}=1;
   	$self->{errstr}="Not exists";
   	return $self;
    }
-  elsif ($Voip->{errno}) {
+  elsif ($self->{errno}) {
   	$self->{errno}=1;
   	$self->{errstr}="Some error";
   	return $self;
    }
 
   
-  $self->{UID}=$Voip->{UID};
-  $self->{BILL_ID}=11; 
-  $self->{TARIF_PLAN}=$Voip->{TP_ID}; 
-
-
-
   $self->{SUM}=10; 
-
   $Billing->time_calculation({ START       => $RAD->{SESSION_START},
   	                           DURATION    => $RAD->{ACCT_SESSION_TIME},
   	                           PERIODS     => $PERIODS,
@@ -239,7 +265,7 @@ elsif ($acct_status_type == 2) {
         VALUES ('$self->{UID}', FROM_UNIXTIME($RAD->{SESSION_START}),  '$RAD->{ACCT_SESSION_TIME}', 
         '$RAD->{CALLING_STATION_ID}', '$RAD->{CALLED_STATION_ID}', 
         '$NAS->{NID}', INET_ATON('$RAD->{CLIENT_IP_ADDRESS}'), '$RAD->{ACCT_SESSION_ID}', 
-        '$self->{TARIF_PLAN}', '$self->{BILL_ID}', '$self->{SUM}');", 'do');
+        '$self->{TP_ID}', '$self->{BILL_ID}', '$self->{SUM}');", 'do');
 
     if ($self->{errno}) {
       my $filename = "$RAD->{USER_NAME}.$RAD->{ACCT_SESSION_ID}";

@@ -3,6 +3,7 @@
 -- Host: localhost    Database: abills
 -- ------------------------------------------------------
 -- Server version	4.0.24
+
 --
 -- Table structure for table `actions`
 --
@@ -36,12 +37,41 @@ CREATE TABLE admin_actions (
 ) TYPE=MyISAM;
 
 --
+-- Table structure for table `admin_permits`
+--
+
+CREATE TABLE admin_permits (
+  aid smallint(6) unsigned NOT NULL default '0',
+  section smallint(6) unsigned NOT NULL default '0',
+  actions smallint(6) unsigned NOT NULL default '0',
+  KEY aid (aid)
+) TYPE=MyISAM;
+
+--
+-- Table structure for table `admins`
+--
+
+CREATE TABLE admins (
+  id varchar(12) default NULL,
+  name varchar(24) default NULL,
+  regdate date default NULL,
+  password varchar(16) NOT NULL default '',
+  gid tinyint(4) unsigned NOT NULL default '0',
+  aid smallint(6) unsigned NOT NULL auto_increment,
+  disable tinyint(1) unsigned NOT NULL default '0',
+  phone varchar(16) NOT NULL default '',
+  PRIMARY KEY  (aid),
+  UNIQUE KEY aid (aid),
+  UNIQUE KEY id (id)
+) TYPE=MyISAM;
+
+--
 -- Table structure for table `bills`
 --
 
 CREATE TABLE bills (
   id int(11) unsigned NOT NULL auto_increment,
-  deposit double(7,6) NOT NULL default '0.000000',
+  deposit double(15,6) NOT NULL default '0.000000',
   uid int(11) unsigned NOT NULL default '0',
   company_id int(11) default '0',
   registration date NOT NULL default '0000-00-00',
@@ -61,19 +91,19 @@ CREATE TABLE calls (
   nas_ip_address int(11) unsigned NOT NULL default '0',
   nas_port_id int(6) unsigned default NULL,
   acct_session_id varchar(25) NOT NULL default '',
-  acct_session_time int(11) NOT NULL default '0',
-  acct_input_octets int(11) NOT NULL default '0',
-  acct_output_octets int(11) NOT NULL default '0',
-  ex_input_octets int(11) NOT NULL default '0',
-  ex_output_octets int(11) NOT NULL default '0',
+  acct_session_time int(11) unsigned NOT NULL default '0',
+  acct_input_octets int(11) unsigned NOT NULL default '0',
+  acct_output_octets int(11) unsigned NOT NULL default '0',
+  ex_input_octets int(11) unsigned NOT NULL default '0',
+  ex_output_octets int(11) unsigned NOT NULL default '0',
   connect_term_reason int(4) NOT NULL default '0',
   framed_ip_address int(11) unsigned NOT NULL default '0',
   lupdated int(11) unsigned NOT NULL default '0',
-  sum float(6,2) NOT NULL default '0.00',
+  sum double(14,6) NOT NULL default '0.000000',
   CID varchar(18) NOT NULL default '',
   CONNECT_INFO varchar(20) NOT NULL default '',
   tp_id smallint(5) unsigned NOT NULL default '0',
-  `nas_id` smallint(6) unsigned NOT NULL default '0',
+  nas_id smallint(6) unsigned NOT NULL default '0',
   KEY user_name (user_name)
 ) TYPE=MyISAM;
 
@@ -92,7 +122,7 @@ CREATE TABLE companies (
   bank_bic varchar(100) default NULL,
   registration date NOT NULL default '0000-00-00',
   disable tinyint(1) unsigned NOT NULL default '0',
-  credit double(6,2) NOT NULL default '0.00',
+  credit double(8,2) NOT NULL default '0.00',
   PRIMARY KEY  (id),
   UNIQUE KEY id (id),
   UNIQUE KEY name (name)
@@ -112,26 +142,30 @@ CREATE TABLE config (
 -- Table structure for table `docs_acct`
 --
 
-CREATE TABLE `docs_acct` (
-  `id` int(11) unsigned NOT NULL auto_increment,
-  `date` date NOT NULL default '0000-00-00',
-  `created` datetime NOT NULL default '0000-00-00 00:00:00',
-  `customer` varchar(200) NOT NULL default '',
-  `phone` varchar(16) NOT NULL default '0',
-  `user` varchar(20) NOT NULL default '',
-  `acct_id` int(10) unsigned NOT NULL default '0',
-  `uid` int(11) unsigned NOT NULL default '0',
-  `aid` smallint(6) unsigned NOT NULL default '0',
-  PRIMARY KEY  (`id`)
+CREATE TABLE docs_acct (
+  id int(11) unsigned NOT NULL auto_increment,
+  date date NOT NULL default '0000-00-00',
+  created datetime NOT NULL default '0000-00-00 00:00:00',
+  customer varchar(200) NOT NULL default '',
+  phone varchar(16) NOT NULL default '0',
+  user varchar(20) NOT NULL default '',
+  acct_id int(10) unsigned NOT NULL default '0',
+  uid int(11) unsigned NOT NULL default '0',
+  aid smallint(6) unsigned NOT NULL default '0',
+  PRIMARY KEY  (id)
 ) TYPE=MyISAM;
 
-CREATE TABLE `docs_acct_orders` (
-  `acct_id` int(11) unsigned NOT NULL default '0',
-  `orders` varchar(200) NOT NULL default '',
-  `counts` int(10) unsigned NOT NULL default '0',
-  `unit` tinyint(3) unsigned NOT NULL default '0',
-  `price` float(8,2) unsigned NOT NULL default '0.00',
-  KEY `aid` (`acct_id`)
+--
+-- Table structure for table `docs_acct_orders`
+--
+
+CREATE TABLE docs_acct_orders (
+  acct_id int(11) unsigned NOT NULL default '0',
+  orders varchar(200) NOT NULL default '',
+  counts int(10) unsigned NOT NULL default '0',
+  unit tinyint(3) unsigned NOT NULL default '0',
+  price float(8,2) unsigned NOT NULL default '0.00',
+  KEY aid (acct_id)
 ) TYPE=MyISAM;
 
 --
@@ -173,7 +207,7 @@ CREATE TABLE dv_main (
 CREATE TABLE exchange_rate (
   money varchar(30) NOT NULL default '',
   short_name varchar(30) NOT NULL default '',
-  rate double(8,4) NOT NULL default '0.0000',
+  rate double(12,4) NOT NULL default '0.0000',
   changed date default NULL,
   id smallint(6) unsigned NOT NULL auto_increment,
   UNIQUE KEY money (money),
@@ -187,10 +221,10 @@ CREATE TABLE exchange_rate (
 
 CREATE TABLE fees (
   date datetime NOT NULL default '0000-00-00 00:00:00',
-  sum double(10,2) NOT NULL default '0.00',
+  sum double(12,2) NOT NULL default '0.00',
   dsc varchar(80) default NULL,
   ip int(11) unsigned NOT NULL default '0',
-  last_deposit double(7,6) NOT NULL default '0.000000',
+  last_deposit double(15,6) NOT NULL default '0.000000',
   uid int(11) unsigned NOT NULL default '0',
   aid smallint(6) unsigned NOT NULL default '0',
   id int(11) unsigned NOT NULL auto_increment,
@@ -243,11 +277,11 @@ CREATE TABLE holidays (
 CREATE TABLE icards (
   id int(10) unsigned NOT NULL auto_increment,
   prefix varchar(4) NOT NULL default '',
-  nominal float(8,2) NOT NULL default '0.00',
+  nominal double(15,2) NOT NULL default '0.00',
   variant smallint(6) NOT NULL default '0',
   period smallint(5) unsigned NOT NULL default '0',
   expire date NOT NULL default '0000-00-00',
-  changes float(8,2) NOT NULL default '0.00',
+  changes double(15,2) NOT NULL default '0.00',
   password varchar(16) NOT NULL default '0',
   PRIMARY KEY  (id)
 ) TYPE=MyISAM;
@@ -257,7 +291,7 @@ CREATE TABLE icards (
 --
 
 CREATE TABLE intervals (
-  tp_id tinyint(4) unsigned NOT NULL default '0',
+  tp_id smallint(6) unsigned NOT NULL default '0',
   begin time NOT NULL default '00:00:00',
   end time NOT NULL default '00:00:00',
   tarif varchar(7) NOT NULL default '0',
@@ -293,7 +327,7 @@ CREATE TABLE log (
   recv int(10) unsigned NOT NULL default '0',
   minp float(10,2) NOT NULL default '0.00',
   kb float(10,2) NOT NULL default '0.00',
-  sum double(10,6) NOT NULL default '0.000000',
+  sum double(14,6) NOT NULL default '0.000000',
   port_id smallint(5) unsigned NOT NULL default '0',
   nas_id tinyint(3) unsigned NOT NULL default '0',
   ip int(10) unsigned NOT NULL default '0',
@@ -310,91 +344,94 @@ CREATE TABLE log (
 -- Table structure for table `mail_access`
 --
 
-CREATE TABLE `mail_access` (
-  `pattern` varchar(30) NOT NULL default '',
-  `action` varchar(255) NOT NULL default '',
-  `id` int(11) unsigned NOT NULL auto_increment,
-  `comments` varchar(255) NOT NULL default '',
-  `change_date` datetime NOT NULL default '0000-00-00 00:00:00',
-  `status` tinyint(1) unsigned NOT NULL default '0',
-  PRIMARY KEY  (`pattern`),
-  UNIQUE KEY `id` (`id`)
+CREATE TABLE mail_access (
+  pattern varchar(30) NOT NULL default '',
+  action varchar(255) NOT NULL default '',
+  id int(11) unsigned NOT NULL auto_increment,
+  comments varchar(255) NOT NULL default '',
+  change_date datetime NOT NULL default '0000-00-00 00:00:00',
+  status tinyint(1) unsigned NOT NULL default '0',
+  PRIMARY KEY  (pattern),
+  UNIQUE KEY id (id)
 ) TYPE=MyISAM;
 
 --
 -- Table structure for table `mail_aliases`
 --
 
-CREATE TABLE `mail_aliases` (
-  `address` varchar(255) NOT NULL default '',
-  `goto` text NOT NULL,
-  `domain` varchar(255) NOT NULL default '',
-  `create_date` datetime NOT NULL default '0000-00-00 00:00:00',
-  `change_date` datetime NOT NULL default '0000-00-00 00:00:00',
-  `status` tinyint(2) unsigned NOT NULL default '1',
-  `id` int(11) unsigned NOT NULL auto_increment,
-  `comments` varchar(255) NOT NULL default '',
-  PRIMARY KEY  (`address`),
-  UNIQUE KEY `id` (`id`)
+CREATE TABLE mail_aliases (
+  address varchar(255) NOT NULL default '',
+  goto text NOT NULL,
+  domain varchar(255) NOT NULL default '',
+  create_date datetime NOT NULL default '0000-00-00 00:00:00',
+  change_date datetime NOT NULL default '0000-00-00 00:00:00',
+  status tinyint(2) unsigned NOT NULL default '1',
+  id int(11) unsigned NOT NULL auto_increment,
+  comments varchar(255) NOT NULL default '',
+  PRIMARY KEY  (address),
+  UNIQUE KEY id (id)
 ) TYPE=MyISAM;
+
 --
 -- Table structure for table `mail_boxes`
 --
 
-CREATE TABLE `mail_boxes` (
-  `username` varchar(255) NOT NULL default '',
-  `password` varchar(255) NOT NULL default '',
-  `descr` varchar(255) NOT NULL default '',
-  `maildir` varchar(255) NOT NULL default '',
-  `create_date` datetime NOT NULL default '0000-00-00 00:00:00',
-  `change_date` datetime NOT NULL default '0000-00-00 00:00:00',
-  `mails_limit` int(11) unsigned NOT NULL default '0',
-  `status` tinyint(2) unsigned NOT NULL default '0',
-  `bill_id` int(11) unsigned NOT NULL default '0',
-  `antivirus` tinyint(1) unsigned NOT NULL default '1',
-  `antispam` tinyint(1) unsigned NOT NULL default '1',
-  `expire` date NOT NULL default '0000-00-00',
-  `id` int(11) unsigned NOT NULL auto_increment,
-  `domain_id` smallint(6) unsigned NOT NULL default '0',
-  `uid` int(11) unsigned NOT NULL default '0',
-  `box_size` int(11) unsigned NOT NULL default '0',
-  PRIMARY KEY  (`username`,`domain_id`),
-  UNIQUE KEY `id` (`id`),
-  KEY `username_antivirus` (`username`,`antivirus`),
-  KEY `username_antispam` (`username`,`antispam`)
+CREATE TABLE mail_boxes (
+  username varchar(255) NOT NULL default '',
+  password varchar(255) NOT NULL default '',
+  descr varchar(255) NOT NULL default '',
+  maildir varchar(255) NOT NULL default '',
+  create_date datetime NOT NULL default '0000-00-00 00:00:00',
+  change_date datetime NOT NULL default '0000-00-00 00:00:00',
+  mails_limit int(11) unsigned NOT NULL default '0',
+  status tinyint(2) unsigned NOT NULL default '0',
+  bill_id int(11) unsigned NOT NULL default '0',
+  antivirus tinyint(1) unsigned NOT NULL default '1',
+  antispam tinyint(1) unsigned NOT NULL default '1',
+  expire date NOT NULL default '0000-00-00',
+  id int(11) unsigned NOT NULL auto_increment,
+  domain_id smallint(6) unsigned NOT NULL default '0',
+  uid int(11) unsigned NOT NULL default '0',
+  box_size int(11) unsigned NOT NULL default '0',
+  PRIMARY KEY  (username,domain_id),
+  UNIQUE KEY id (id),
+  KEY username_antivirus (username,antivirus),
+  KEY username_antispam (username,antispam)
 ) TYPE=MyISAM;
 
 --
 -- Table structure for table `mail_domains`
 --
 
-CREATE TABLE `mail_domains` (
-  `domain` varchar(255) NOT NULL default '',
-  `create_date` datetime NOT NULL default '0000-00-00 00:00:00',
-  `change_date` datetime NOT NULL default '0000-00-00 00:00:00',
-  `status` tinyint(2) unsigned NOT NULL default '0',
-  `id` int(11) unsigned NOT NULL auto_increment,
-  `comments` varchar(255) NOT NULL default '',
-  PRIMARY KEY  (`domain`),
-  UNIQUE KEY `id` (`id`)
+CREATE TABLE mail_domains (
+  domain varchar(255) NOT NULL default '',
+  create_date datetime NOT NULL default '0000-00-00 00:00:00',
+  change_date datetime NOT NULL default '0000-00-00 00:00:00',
+  status tinyint(2) unsigned NOT NULL default '0',
+  id int(11) unsigned NOT NULL auto_increment,
+  comments varchar(255) NOT NULL default '',
+  PRIMARY KEY  (domain),
+  UNIQUE KEY id (id)
 ) TYPE=MyISAM;
+
 --
 -- Table structure for table `mail_transport`
 --
 
-CREATE TABLE `mail_transport` (
-  `domain` varchar(128) NOT NULL default '',
-  `transport` varchar(128) NOT NULL default '',
-  `comments` varchar(255) NOT NULL default '',
-  `change_date` datetime NOT NULL default '0000-00-00 00:00:00',
-  `id` int(11) unsigned NOT NULL auto_increment,
-  UNIQUE KEY `domain` (`domain`),
-  UNIQUE KEY `id` (`id`)
+CREATE TABLE mail_transport (
+  domain varchar(128) NOT NULL default '',
+  transport varchar(128) NOT NULL default '',
+  comments varchar(255) NOT NULL default '',
+  change_date datetime NOT NULL default '0000-00-00 00:00:00',
+  id int(11) unsigned NOT NULL auto_increment,
+  UNIQUE KEY domain (domain),
+  UNIQUE KEY id (id)
 ) TYPE=MyISAM;
 
 --
 -- Table structure for table `message_types`
 --
+
 CREATE TABLE message_types (
   id int(11) NOT NULL auto_increment,
   name varchar(20) default NULL,
@@ -443,6 +480,16 @@ CREATE TABLE nas (
 ) TYPE=MyISAM;
 
 --
+-- Table structure for table `netflow_address`
+--
+
+CREATE TABLE netflow_address (
+  client_ip int(11) unsigned NOT NULL default '0',
+  PRIMARY KEY  (client_ip),
+  UNIQUE KEY client_ip (client_ip)
+) TYPE=MyISAM;
+
+--
 -- Table structure for table `networks`
 --
 
@@ -471,7 +518,7 @@ CREATE TABLE payments (
   sum double(10,2) NOT NULL default '0.00',
   dsc varchar(80) default NULL,
   ip int(11) unsigned NOT NULL default '0',
-  last_deposit double(7,6) NOT NULL default '0.000000',
+  last_deposit double(15,6) NOT NULL default '0.000000',
   uid int(11) unsigned NOT NULL default '0',
   aid smallint(6) unsigned NOT NULL default '0',
   id int(11) unsigned NOT NULL auto_increment,
@@ -529,34 +576,34 @@ CREATE TABLE shedule (
 -- Table structure for table `tarif_plans`
 --
 
-CREATE TABLE `tarif_plans` (
-  `id` smallint(5) unsigned NOT NULL default '0',
-  `hourp` float(10,5) unsigned NOT NULL default '0.00000',
-  `month_fee` float(10,2) unsigned NOT NULL default '0.00',
-  `uplimit` float(10,2) default '0.00',
-  `name` varchar(40) NOT NULL default '',
-  `day_fee` float(10,2) unsigned NOT NULL default '0.00',
-  `logins` tinyint(4) NOT NULL default '0',
-  `day_time_limit` int(10) unsigned NOT NULL default '0',
-  `week_time_limit` int(10) unsigned NOT NULL default '0',
-  `month_time_limit` int(10) unsigned NOT NULL default '0',
-  `day_traf_limit` int(10) unsigned NOT NULL default '0',
-  `week_traf_limit` int(10) unsigned NOT NULL default '0',
-  `month_traf_limit` int(10) unsigned NOT NULL default '0',
-  `prepaid_trafic` int(10) unsigned NOT NULL default '0',
-  `change_price` float(8,2) unsigned NOT NULL default '0.00',
-  `activate_price` float(8,2) unsigned NOT NULL default '0.00',
-  `credit_tresshold` double(6,2) unsigned NOT NULL default '0.00',
-  `age` smallint(6) unsigned NOT NULL default '0',
-  `octets_direction` tinyint(2) unsigned NOT NULL default '0',
-  `max_session_duration` smallint(6) unsigned NOT NULL default '0',
-  `filter_id` varchar(15) NOT NULL default '',
-  `payment_type` tinyint(1) NOT NULL default '0',
-  `min_session_cost` float(10,5) unsigned NOT NULL default '0.00000',
-  `rad_pairs` text NOT NULL,
-  PRIMARY KEY  (`id`),
-  UNIQUE KEY `id` (`id`),
-  UNIQUE KEY `name` (`name`)
+CREATE TABLE tarif_plans (
+  id smallint(5) unsigned NOT NULL default '0',
+  hourp double(15,5) unsigned NOT NULL default '0.00000',
+  month_fee double(14,2) unsigned NOT NULL default '0.00',
+  uplimit double(14,2) default '0.00',
+  name varchar(40) NOT NULL default '',
+  day_fee double(14,2) unsigned NOT NULL default '0.00',
+  logins tinyint(4) NOT NULL default '0',
+  day_time_limit int(10) unsigned NOT NULL default '0',
+  week_time_limit int(10) unsigned NOT NULL default '0',
+  month_time_limit int(10) unsigned NOT NULL default '0',
+  day_traf_limit int(10) unsigned NOT NULL default '0',
+  week_traf_limit int(10) unsigned NOT NULL default '0',
+  month_traf_limit int(10) unsigned NOT NULL default '0',
+  prepaid_trafic int(10) unsigned NOT NULL default '0',
+  change_price double(14,2) unsigned NOT NULL default '0.00',
+  activate_price double(14,2) unsigned NOT NULL default '0.00',
+  credit_tresshold double(8,2) unsigned NOT NULL default '0.00',
+  age smallint(6) unsigned NOT NULL default '0',
+  octets_direction tinyint(2) unsigned NOT NULL default '0',
+  max_session_duration smallint(6) unsigned NOT NULL default '0',
+  filter_id varchar(15) NOT NULL default '',
+  payment_type tinyint(1) NOT NULL default '0',
+  min_session_cost double(14,5) unsigned NOT NULL default '0.00000',
+  rad_pairs text NOT NULL,
+  PRIMARY KEY  (id),
+  UNIQUE KEY id (id),
+  UNIQUE KEY name (name)
 ) TYPE=MyISAM;
 
 --
@@ -573,19 +620,19 @@ CREATE TABLE tp_nas (
 -- Table structure for table `trafic_tarifs`
 --
 
-CREATE TABLE `trafic_tarifs` (
-  `id` tinyint(4) NOT NULL default '0',
-  `descr` varchar(30) default NULL,
-  `nets` text,
-  `tp_id` smallint(5) unsigned NOT NULL default '0',
-  `prepaid` int(11) unsigned default '0',
-  `in_price` float(8,5) unsigned NOT NULL default '0.00000',
-  `out_price` float(8,5) unsigned NOT NULL default '0.00000',
-  `in_speed` int(10) unsigned NOT NULL default '0',
-  `interval_id` smallint(6) unsigned NOT NULL default '0',
-  `rad_pairs` text NOT NULL,
-  `out_speed` int(10) unsigned NOT NULL default '0',
-  UNIQUE KEY `id` (`id`,`interval_id`)
+CREATE TABLE trafic_tarifs (
+  id tinyint(4) NOT NULL default '0',
+  descr varchar(30) default NULL,
+  nets text,
+  tp_id smallint(5) unsigned NOT NULL default '0',
+  prepaid int(11) unsigned default '0',
+  in_price double(13,5) unsigned NOT NULL default '0.00000',
+  out_price double(13,5) unsigned NOT NULL default '0.00000',
+  in_speed int(10) unsigned NOT NULL default '0',
+  interval_id smallint(6) unsigned NOT NULL default '0',
+  rad_pairs text NOT NULL,
+  out_speed int(10) unsigned NOT NULL default '0',
+  UNIQUE KEY id (id,interval_id)
 ) TYPE=MyISAM;
 
 --
@@ -596,8 +643,8 @@ CREATE TABLE users (
   id varchar(20) NOT NULL default '',
   activate date NOT NULL default '0000-00-00',
   expire date NOT NULL default '0000-00-00',
-  credit double(6,2) NOT NULL default '0.00',
-  reduction double(3,2) NOT NULL default '0.00',
+  credit double(10,2) NOT NULL default '0.00',
+  reduction double(6,2) NOT NULL default '0.00',
   registration date default '0000-00-00',
   password varchar(16) NOT NULL default '',
   uid int(11) unsigned NOT NULL auto_increment,
@@ -646,195 +693,45 @@ CREATE TABLE web_online (
   logtime int(11) unsigned NOT NULL default '0'
 ) TYPE=MyISAM;
 
--- MySQL dump 9.11
 
-CREATE TABLE admins (
-  id varchar(12) default NULL,
-  name varchar(24) default NULL,
-  regdate date default NULL,
-  password varchar(16) NOT NULL default '',
-  gid tinyint(4) unsigned NOT NULL default '0',
-  aid smallint(6) unsigned NOT NULL auto_increment,
-  disable tinyint(1) unsigned NOT NULL default '0',
-  phone varchar(16) NOT NULL default '',
-  PRIMARY KEY  (aid),
-  UNIQUE KEY aid (aid),
-  UNIQUE KEY id (id)
-) TYPE=MyISAM;
+
 
 --
 -- Dumping data for table `admins`
 --
 
-INSERT INTO admins VALUES ('asm','~AsmodeuS~','2003-03-12','\ZLÜ',0,1,0,'34534545');
-INSERT INTO admins VALUES ('mike','Mike Tkachuk','2003-10-31','³bÇÙ˜Kº',0,2,0,'');
-INSERT INTO admins VALUES ('y','yyyyy','2004-11-23','Åi<yÏº\r',0,3,0,'3323423');
-INSERT INTO admins VALUES ('han','','2004-11-23','',0,4,0,'');
-INSERT INTO admins VALUES ('nightfly','Hobot','2004-11-23','LŒür¹Ä§t',0,5,0,'');
-INSERT INTO admins VALUES ('kaban','','2004-11-23','',0,6,0,'');
-INSERT INTO admins VALUES ('test','teststs','2005-04-29','NiŒò¢˜±',0,8,0,'623547253723');
-INSERT INTO admins VALUES ('teststsdsdfs','asas','2005-04-29','h(|k',0,10,0,'234523423423');
-INSERT INTO admins VALUES ('tetetet','askdjhasjkdks','2005-04-29','',0,11,1,'1235712312');
-INSERT INTO admins VALUES ('cool','cool nishtyak','2005-05-07','',0,12,0,'221111');
-INSERT INTO admins VALUES ('abills','abills','2005-06-16','ÓFš¶',0,13,0,'');
-INSERT INTO admins VALUES ('system','','2005-07-07','',0,14,0,'');
+INSERT INTO admins VALUES ('abills','abills','2005-06-16', ENCODE('abills', 'test12345678901234567890'), 0, 1,0,'');
+INSERT INTO admins VALUES ('system','Syetem user','2005-07-07', ENCODE('test', 'test12345678901234567890'), 0, 2, 0,'');
 
--- MySQL dump 9.11
---
--- Host: localhost    Database: abills
--- ------------------------------------------------------
--- Server version	4.0.24
 
---
--- Table structure for table `admin_permits`
---
-
-CREATE TABLE admin_permits (
-  aid smallint(6) unsigned NOT NULL default '0',
-  section smallint(6) unsigned NOT NULL default '0',
-  actions smallint(6) unsigned NOT NULL default '0',
-  KEY aid (aid)
-) TYPE=MyISAM;
 
 --
 -- Dumping data for table `admin_permits`
 --
 
-INSERT INTO admin_permits VALUES (8,0,2);
-INSERT INTO admin_permits VALUES (10,0,1);
-INSERT INTO admin_permits VALUES (13,5,0);
-INSERT INTO admin_permits VALUES (13,0,5);
-INSERT INTO admin_permits VALUES (5,5,0);
-INSERT INTO admin_permits VALUES (2,3,0);
-INSERT INTO admin_permits VALUES (2,2,3);
-INSERT INTO admin_permits VALUES (2,2,2);
-INSERT INTO admin_permits VALUES (2,2,1);
-INSERT INTO admin_permits VALUES (10,0,0);
-INSERT INTO admin_permits VALUES (12,0,0);
-INSERT INTO admin_permits VALUES (13,0,2);
-INSERT INTO admin_permits VALUES (13,0,3);
-INSERT INTO admin_permits VALUES (13,0,0);
 INSERT INTO admin_permits VALUES (1,5,0);
+INSERT INTO admin_permits VALUES (1,0,5);
+INSERT INTO admin_permits VALUES (1,0,2);
+INSERT INTO admin_permits VALUES (1,0,3);
+INSERT INTO admin_permits VALUES (1,0,0);
+INSERT INTO admin_permits VALUES (1,0,1);
+INSERT INTO admin_permits VALUES (1,0,4);
+INSERT INTO admin_permits VALUES (1,0,6);
+INSERT INTO admin_permits VALUES (1,4,2);
+INSERT INTO admin_permits VALUES (1,4,3);
+INSERT INTO admin_permits VALUES (1,4,0);
+INSERT INTO admin_permits VALUES (1,4,1);
+INSERT INTO admin_permits VALUES (1,1,2);
+INSERT INTO admin_permits VALUES (1,1,3);
+INSERT INTO admin_permits VALUES (1,1,0);
+INSERT INTO admin_permits VALUES (1,1,1);
+INSERT INTO admin_permits VALUES (1,8,0);
 INSERT INTO admin_permits VALUES (1,2,2);
 INSERT INTO admin_permits VALUES (1,2,3);
 INSERT INTO admin_permits VALUES (1,2,0);
 INSERT INTO admin_permits VALUES (1,2,1);
+INSERT INTO admin_permits VALUES (1,7,0);
 INSERT INTO admin_permits VALUES (1,3,0);
-INSERT INTO admin_permits VALUES (0,0,0);
-INSERT INTO admin_permits VALUES (8,0,1);
-INSERT INTO admin_permits VALUES (8,0,0);
-INSERT INTO admin_permits VALUES (2,2,0);
-INSERT INTO admin_permits VALUES (2,1,3);
-INSERT INTO admin_permits VALUES (2,1,2);
-INSERT INTO admin_permits VALUES (2,1,1);
-INSERT INTO admin_permits VALUES (2,1,0);
-INSERT INTO admin_permits VALUES (2,0,6);
-INSERT INTO admin_permits VALUES (2,0,5);
-INSERT INTO admin_permits VALUES (2,0,4);
-INSERT INTO admin_permits VALUES (2,0,3);
-INSERT INTO admin_permits VALUES (2,0,2);
-INSERT INTO admin_permits VALUES (2,0,1);
-INSERT INTO admin_permits VALUES (2,0,0);
 INSERT INTO admin_permits VALUES (1,3,1);
-INSERT INTO admin_permits VALUES (0,0,0);
-INSERT INTO admin_permits VALUES (8,0,3);
-INSERT INTO admin_permits VALUES (8,0,4);
-INSERT INTO admin_permits VALUES (8,0,5);
-INSERT INTO admin_permits VALUES (8,0,6);
-INSERT INTO admin_permits VALUES (10,0,2);
-INSERT INTO admin_permits VALUES (10,0,3);
-INSERT INTO admin_permits VALUES (10,0,4);
-INSERT INTO admin_permits VALUES (11,2,0);
-INSERT INTO admin_permits VALUES (11,2,1);
-INSERT INTO admin_permits VALUES (11,2,2);
-INSERT INTO admin_permits VALUES (2,4,0);
-INSERT INTO admin_permits VALUES (2,4,1);
-INSERT INTO admin_permits VALUES (2,5,0);
-INSERT INTO admin_permits VALUES (2,5,1);
-INSERT INTO admin_permits VALUES (1,0,5);
-INSERT INTO admin_permits VALUES (1,0,2);
-INSERT INTO admin_permits VALUES (12,0,1);
-INSERT INTO admin_permits VALUES (12,0,2);
-INSERT INTO admin_permits VALUES (12,0,3);
-INSERT INTO admin_permits VALUES (12,0,4);
-INSERT INTO admin_permits VALUES (12,0,5);
-INSERT INTO admin_permits VALUES (12,0,6);
-INSERT INTO admin_permits VALUES (1,0,3);
-INSERT INTO admin_permits VALUES (5,4,0);
-INSERT INTO admin_permits VALUES (5,3,0);
-INSERT INTO admin_permits VALUES (5,2,3);
-INSERT INTO admin_permits VALUES (5,2,2);
-INSERT INTO admin_permits VALUES (5,2,1);
-INSERT INTO admin_permits VALUES (5,2,0);
-INSERT INTO admin_permits VALUES (5,1,3);
-INSERT INTO admin_permits VALUES (5,1,2);
-INSERT INTO admin_permits VALUES (5,1,1);
-INSERT INTO admin_permits VALUES (5,1,0);
-INSERT INTO admin_permits VALUES (5,0,6);
-INSERT INTO admin_permits VALUES (5,0,5);
-INSERT INTO admin_permits VALUES (5,0,4);
-INSERT INTO admin_permits VALUES (5,0,3);
-INSERT INTO admin_permits VALUES (5,0,2);
-INSERT INTO admin_permits VALUES (5,0,1);
-INSERT INTO admin_permits VALUES (5,0,0);
-INSERT INTO admin_permits VALUES (1,0,0);
-INSERT INTO admin_permits VALUES (1,0,1);
-INSERT INTO admin_permits VALUES (1,0,4);
-INSERT INTO admin_permits VALUES (13,0,1);
-INSERT INTO admin_permits VALUES (13,0,4);
-INSERT INTO admin_permits VALUES (13,0,6);
-INSERT INTO admin_permits VALUES (13,4,2);
-INSERT INTO admin_permits VALUES (13,4,3);
-INSERT INTO admin_permits VALUES (13,4,0);
-INSERT INTO admin_permits VALUES (13,4,1);
-INSERT INTO admin_permits VALUES (13,1,2);
-INSERT INTO admin_permits VALUES (13,1,3);
-INSERT INTO admin_permits VALUES (13,1,0);
-INSERT INTO admin_permits VALUES (13,1,1);
-INSERT INTO admin_permits VALUES (13,8,0);
-INSERT INTO admin_permits VALUES (13,2,2);
-INSERT INTO admin_permits VALUES (13,2,3);
-INSERT INTO admin_permits VALUES (13,2,0);
-INSERT INTO admin_permits VALUES (13,2,1);
-INSERT INTO admin_permits VALUES (1,0,6);
-INSERT INTO admin_permits VALUES (1,1,2);
-INSERT INTO admin_permits VALUES (1,1,0);
-INSERT INTO admin_permits VALUES (3,3,1);
-INSERT INTO admin_permits VALUES (3,3,0);
-INSERT INTO admin_permits VALUES (3,2,2);
-INSERT INTO admin_permits VALUES (3,2,1);
-INSERT INTO admin_permits VALUES (3,2,0);
-INSERT INTO admin_permits VALUES (3,0,0);
-INSERT INTO admin_permits VALUES (14,4,1);
-INSERT INTO admin_permits VALUES (14,4,0);
-INSERT INTO admin_permits VALUES (14,4,3);
-INSERT INTO admin_permits VALUES (14,4,2);
-INSERT INTO admin_permits VALUES (14,1,1);
-INSERT INTO admin_permits VALUES (14,1,0);
-INSERT INTO admin_permits VALUES (14,1,3);
-INSERT INTO admin_permits VALUES (14,1,2);
-INSERT INTO admin_permits VALUES (14,0,6);
-INSERT INTO admin_permits VALUES (14,0,4);
-INSERT INTO admin_permits VALUES (14,0,1);
-INSERT INTO admin_permits VALUES (14,0,0);
-INSERT INTO admin_permits VALUES (14,0,3);
-INSERT INTO admin_permits VALUES (14,0,2);
-INSERT INTO admin_permits VALUES (14,0,5);
-INSERT INTO admin_permits VALUES (14,3,1);
-INSERT INTO admin_permits VALUES (14,3,0);
-INSERT INTO admin_permits VALUES (14,2,1);
-INSERT INTO admin_permits VALUES (14,2,0);
-INSERT INTO admin_permits VALUES (14,2,3);
-INSERT INTO admin_permits VALUES (14,2,2);
-INSERT INTO admin_permits VALUES (14,5,0);
-INSERT INTO admin_permits VALUES (13,7,0);
-INSERT INTO admin_permits VALUES (13,3,0);
-INSERT INTO admin_permits VALUES (13,3,1);
-INSERT INTO admin_permits VALUES (1,1,1);
-INSERT INTO admin_permits VALUES (1,4,2);
-INSERT INTO admin_permits VALUES (1,4,3);
-INSERT INTO admin_permits VALUES (13,6,0);
-INSERT INTO admin_permits VALUES (1,4,0);
-INSERT INTO admin_permits VALUES (1,4,1);
 INSERT INTO admin_permits VALUES (1,6,0);
 

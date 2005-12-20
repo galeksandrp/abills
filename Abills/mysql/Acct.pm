@@ -96,6 +96,7 @@ elsif ($acct_status_type == 2) {
                                                  $RAD, 
                                                  $conf);
 
+
    $Billing->time_calculation({
    	                           START     => $RAD->{SESSION_START}, 
    	                           DURATION  => $RAD->{ACCT_SESSION_TIME} });

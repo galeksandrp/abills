@@ -34,6 +34,10 @@ sub new {
   ($db, $CONF) = @_;
   my $self = { };
   bless($self, $class);
+  
+  #$self->{debug}=1;
+
+
   return $self;
 }
 
@@ -167,9 +171,7 @@ sub change {
  my ($attr) = @_;
  
  
- #$self->{debug}=1;
-
- my %FIELDS = (AID    =>   'aid',
+  my %FIELDS = (AID    =>   'aid',
            A_LOGIN    => 'id',
            A_FIO      => 'name',
            A_REGISTRATION => 'regdate',

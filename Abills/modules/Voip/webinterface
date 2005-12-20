@@ -237,6 +237,9 @@ sub voip_user {
 	} 
 
   $user->{DISABLE}=' checked' if($user->{DISABLE} == 1);
+  $user->{ALLOW_ANSWER}=' checked' if($user->{ALLOW_ANSWER} == 1);
+  $user->{ALLOW_CALLS}=' checked' if($user->{ALLOW_CALLS} == 1);
+  
   Abills::HTML->tpl_show(_include('voip_user', 'Voip'), $Voip);
 }
 

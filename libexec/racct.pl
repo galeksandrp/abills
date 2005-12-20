@@ -173,8 +173,9 @@ else {
   Acct->import();
   my $Acct = Acct->new($db, \%conf);
   $r = $Acct->accounting($RAD, $nas);
-  
 }
+
+
 
   return $r;
 }

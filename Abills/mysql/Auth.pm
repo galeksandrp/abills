@@ -11,6 +11,8 @@ $VERSION = 2.00;
 @ISA = ('Exporter');
 @EXPORT = qw(
   &check_chap
+  &check_company_account
+  &check_bill_account
 );
 
 @EXPORT_OK = ();
@@ -526,12 +528,6 @@ sub authentication {
 
 #return 0, \%RAD_PAIRS;
 
-#DIsable
-if ($self->{DISABLE}) {
-  $RAD_PAIRS{'Reply-Message'}="Account Disable";
-  return 1, \%RAD_PAIRS;
-}
-
 
 #Auth chap
 if (defined($RAD->{CHAP_PASSWORD}) && defined($RAD->{CHAP_CHALLENGE})) {
@@ -621,39 +617,78 @@ my $remaining_time=0;
 my $ATTR;
 
 #Chack Company account if ACCOUNT_ID > 0
+$self->check_company_account() if ($self->{COMPANY_ID} > 0);
+if($self->{errno}) {
+  $RAD_PAIRS{'Reply-Message'}=$self->{errstr};
+  return 1, \%RAD_PAIRS;
+ }
 
-  if ($self->{COMPANY_ID} > 0) {
-    $self->query($db, "SELECT bill_id, disable FROM companies WHERE id='$self->{COMPANY_ID}';");
-    if($self->{errno}) {
-  	  $RAD_PAIRS{'Reply-Message'}="SQL error";
-  	  return 1, \%RAD_PAIRS;
-     }
-    elsif ($self->{TOTAL} < 1) {
-      $RAD_PAIRS{'Reply-Message'}="Company Not Exist";
-      return 1, \%RAD_PAIRS;
-     }
+#DIsable
+if ($self->{DISABLE}) {
+  $RAD_PAIRS{'Reply-Message'}="Account Disable";
+  return 1, \%RAD_PAIRS;
+}
 
-    my $a_ref = $self->{list}->[0];
 
-    ($self->{BILL_ID},
-     $self->{DISABLE},
-     ) = @$a_ref;
-   }
+$self->check_bill_account();
+if($self->{errno}) {
+  $RAD_PAIRS{'Reply-Message'}=$self->{errstr};
+  return 1, \%RAD_PAIRS;
+ }
+
+
+  return 0, \%RAD_PAIRS, '';
+}
+
+
+#*******************************************************************
+#Chack Company account if ACCOUNT_ID > 0
+# check_company_account()
+#*******************************************************************
+sub check_bill_account() {
+  my $self = shift;
 
 #get sum from bill account
    $self->query($db, "SELECT deposit FROM bills WHERE id='$self->{BILL_ID}';");
    if($self->{errno}) {
-  	  $RAD_PAIRS{'Reply-Message'}="SQL error";
-  	  return 1, \%RAD_PAIRS;
+  	  return $self;
      }
     elsif ($self->{TOTAL} < 1) {
-      $RAD_PAIRS{'Reply-Message'}="Bill account Not Exist";
-      return 1, \%RAD_PAIRS;
+      $self->{errstr}="Bill account Not Exist";
+      return $self;
      }
 
-    ($self->{DEPOSIT}) = $self->{list}->[0]->[0];
+   ($self->{DEPOSIT}) = $self->{list}->[0]->[0];
 
-  return 0, \%RAD_PAIRS, '';
+  return $self;
+}
+#*******************************************************************
+#Chack Company account if ACCOUNT_ID > 0
+# check_company_account()
+#*******************************************************************
+sub check_company_account () {
+	my $self = shift;
+
+  $self->query($db, "SELECT bill_id, disable FROM companies WHERE id='$self->{COMPANY_ID}';");
+
+ 
+  if($self->{errno}) {
+ 	  return $self;
+   }
+  elsif ($self->{TOTAL} < 1) {
+    $self->{errstr}="Company ID '$self->{COMPANY_ID}' Not Exist";
+
+    $self->{errno}=1;
+    return $self;
+   }
+
+  my $a_ref = $self->{list}->[0];
+
+  ($self->{BILL_ID},
+   $self->{DISABLE},
+    ) = @$a_ref;
+
+  return $self;
 }
 
 
