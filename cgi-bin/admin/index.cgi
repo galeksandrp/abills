@@ -2719,6 +2719,19 @@ sub form_search {
 
 my %SEARCH_DATA = $admin->get_data(\%FORM);  
 
+
+
+
+if (defined($attr->{SIMPLE})) {
+
+	my $SEARCH_FIELDS = $attr->{SIMPLE};
+	while(my($k, $v)=each( %$SEARCH_FIELDS )) {
+	  $SEARCH_DATA{SEARCH_FORM}.="<tr><td>$k:</td><td><input type=text name=\"$v\" value=\"%". $v ."%\"></td></tr>\n";
+	 }
+  Abills::HTML->tpl_show(templates('form_search_simple'), \%SEARCH_DATA);
+}
+else {
+
 my $i=0;
 my $SEL_METHOD = "<select name=METHOD>\n";
    $SEL_METHOD .= "<option value=''>$_ALL\n";
@@ -2768,6 +2781,8 @@ $SEARCH_DATA{TO_DATE} = Abills::HTML->date_fld('TO_', { MONTHES => \@MONTHES} );
 $SEARCH_DATA{SEL_TYPE}="<tr><td>WHERE:</td><td>$SEL_TYPE</td></tr>\n" if ($index == 7);
 
 Abills::HTML->tpl_show(templates('form_search'), \%SEARCH_DATA);
+
+}
 
 if ($FORM{search}) {
 

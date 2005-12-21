@@ -126,7 +126,6 @@ if (defined($type) && $type eq 'do') {
 else {
   #print $query;
   $self->{TOTAL}=0;
-  my $a = `echo "$query" >> /tmp/calls `;
   $q = $db->prepare($query) || die $db->errstr;;
   if($db->err) {
      

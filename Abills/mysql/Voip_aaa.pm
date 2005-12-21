@@ -55,16 +55,24 @@ sub new {
 #**********************************************************
 sub preproces {
 	my ($RAD) = @_;
+  
+  my %CALLS_ORIGIN = (
+  answer     => 0,
+  originate  => 1,
+  proxy      => 2) ;
 
-  	my $test = "aa aa bb";
-  		
-  if(defined($RAD->{H323_CONF_ID})) {
-  	(undef, $RAD->{H323_CONF_ID})=split(/=/, $RAD->{H323_CONF_ID}, 2);
-  	$RAD->{H323_CONF_ID} =~ s/ //g;
+	(undef, $RAD->{H323_CONF_ID})=split(/=/, $RAD->{H323_CONF_ID}, 2);
+	$RAD->{H323_CONF_ID} =~ s/ //g;
 
-  }
+  (undef, $RAD->{H323_CALL_ORIGIN})=split(/=/, $RAD->{H323_CALL_ORIGIN}, 2);
+  $RAD->{H323_CALL_ORIGIN} = $CALLS_ORIGIN{$RAD->{H323_CALL_ORIGIN}};
+  
 
-  #H323_CALL_ORIGIN="h323-call-origin=originate"
+
+  (undef, $RAD->{H323_DISCONNECT_CAUSE}) = split(/=/, $RAD->{H323_DISCONNECT_CAUSE}, 2) if (defined($RAD->{H323_DISCONNECT_CAUSE}));
+  
+  #h323-disconnect-cause = "h323-disconnect-cause=10"
+  #H323_CALL_ORIGIN="h323-call-origin=originate";
 }
 
 
@@ -178,10 +186,24 @@ if ($self->{DISABLE}) {
   
   
   $self->check_bill_account();
-  
-  
-  
-  preproces($RAD);
+
+# if call
+
+  if(defined($RAD->{H323_CONF_ID})) {
+     preproces($RAD);
+   
+     if($self->{ALLOW_ANSWER} < 1 && $RAD->{H323_CALL_ORIGIN} == 0) {
+       $RAD_PAIRS{'Reply-Message'}="Not allow answer";
+       return 1, \%RAD_PAIRS;
+      }
+     elsif($self->{ALLOW_CALLS} < 1 && $RAD->{H323_CALL_ORIGIN} == 1) {
+     	 $RAD_PAIRS{'Reply-Message'}="Not allow calls";
+       return 1, \%RAD_PAIRS;
+      }
+   
+   }
+
+
   
   return 0, \%RAD_PAIRS;
 }
@@ -217,13 +239,15 @@ if ($acct_status_type == 1) {
       nas_id,
       client_ip_address,
       conf_id,
-      call_origin
+      call_origin,
+      uid
    )
    values ('$acct_status_type', \"$RAD->{USER_NAME}\", $SESSION_START, UNIX_TIMESTAMP(), 
      '$RAD->{ACCT_SESSION_ID}', 
       '$RAD->{CALLING_STATION_ID}', '$RAD->{CALLED_STATION_ID}', '$NAS->{NID}',
       INET_ATON('$RAD->{CLIENT_IP_ADDRESS}'),
       '$RAD->{H323_CONF_ID}',
+      0,
       0);", 'do');
       
  }

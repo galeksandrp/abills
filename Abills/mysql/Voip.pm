@@ -555,8 +555,8 @@ sub routes_list {
   }
 
  if ($attr->{ROUTE_NAME}) {
-   $attr->{ROUTE_PREFIX} =~ s/\*/\%/ig;
-   push @WHERE_RULES, "r.name LIKE '$attr->{ROUTE_name}'";
+   $attr->{ROUTE_NAME} =~ s/\*/\%/ig;
+   push @WHERE_RULES, "r.name LIKE '$attr->{ROUTE_NAME}'";
   }
 
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';

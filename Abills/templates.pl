@@ -384,6 +384,22 @@ return qq{
 };
 	
 }
+
+elsif ($tpl_name eq 'form_search_simple') {
+return qq{
+<form action=$SELF_URL>
+<input type=hidden name=index value=$index>
+<table>
+%SEARCH_FORM%
+<tr><td>$_ROWS:</td><td><input type=text name=PAGE_ROWS value=$PAGE_ROWS></td></tr>
+</table>
+<input type=submit name=search value=$_SEARCH>
+</form>
+};
+	
+}
+
+
 elsif ($tpl_name eq 'form_ip_pools') {
 return qq{
 <form action=$SELF_URL METHOD=post>

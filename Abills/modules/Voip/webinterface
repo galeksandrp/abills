@@ -787,8 +787,40 @@ if ($Voip->{errno}) {
 
 
 
+
+
+
+
 $Voip->{DISABLE}=' checked' if($Voip->{DISABLE} == 1);
 Abills::HTML->tpl_show(_include('voip_route', 'Voip'), $Voip);
+
+
+
+
+
+
+  my %SEARCH_FIELDS = ($_PREFIX => "ROUTE_PREFIX",
+                $_NAME   => "ROUTE_NAME");
+
+  form_search({ 
+     SIMPLE => \%SEARCH_FIELDS
+   });
+
+#=comments
+#print "
+#<form action=$SELF_URL METHOD=POST>
+#<input type=hidden name=index value=$index>
+#<table>
+#<tr><td>$_PREFIX:</td><td><input type=text name=ROUTE_PREFIX value='%ROUTE_PREFIX%'></td></tr>
+#<tr><td>$_NAME:</td><td><input type=text name=ROUTE_NAME value='%ROUTE_NAME%'></td></tr>
+#<tr><td>$_ROWS:</td><td><input type=text name=ROWS value='%ROWS%'></td></tr>
+#</table>
+#<input type=submit name=SEARCH value='$_SEARCH'>
+#</form>
+#";
+#=end
+
+
 
 ##
 my  %new_hash = ();
@@ -810,7 +842,6 @@ my @menu_sorted = sort {
      ||
    $a cmp $b
 } keys %$h;
-
 
 
 my $table = Abills::HTML->table( { width      => '100%',
