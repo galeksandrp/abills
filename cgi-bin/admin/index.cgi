@@ -2438,6 +2438,7 @@ if (defined($attr->{USER})) {
 #exchange rate sel
 my ($er, $total) = $payments->exchange_list();
 $payments->{SEL_ER} = "<select name=ER>\n";
+  $payments->{SEL_ER} .= "<option value=''>\n";
 foreach my $line (@$er) {
   $payments->{SEL_ER} .= "<option value=$line->[4]";
   $payments->{SEL_ER} .= ">$line->[1] : $line->[2]\n";

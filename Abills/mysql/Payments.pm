@@ -98,7 +98,7 @@ sub add {
   
   if ($user->{BILL_ID} > 0) {
     if ($DATA{ER} != 1) {
-      $DATA{SUM} = $DATA{SUM} / $DATA{ER};
+      $DATA{SUM} = $DATA{SUM} / $DATA{ER} if (defined($DATA{ER}));
      }
 
     $Bill->info( { BILL_ID => $user->{BILL_ID} } );

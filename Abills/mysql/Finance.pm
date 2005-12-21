@@ -134,7 +134,11 @@ sub exchange_info {
   my ($id) = @_;
 
   $self->query($db, "SELECT money, short_name, rate FROM exchange_rate WHERE id='$id';");
+  
+  return $self if ($self->{TOTAL} < 1);
+  
   my $ar = $self->{list}->[0];
+
   ($self->{MU_NAME}, 
    $self->{MU_SHORT_NAME}, 
    $self->{EX_RATE})=@$ar;

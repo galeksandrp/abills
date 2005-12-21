@@ -49,6 +49,27 @@ sub new {
 }
 
 
+
+#**********************************************************
+# Preproces
+#**********************************************************
+sub preproces {
+	my ($RAD) = @_;
+
+  	my $test = "aa aa bb";
+  		
+  if(defined($RAD->{H323_CONF_ID})) {
+  	(undef, $RAD->{H323_CONF_ID})=split(/=/, $RAD->{H323_CONF_ID}, 2);
+  	$RAD->{H323_CONF_ID} =~ s/ //g;
+
+  }
+
+  #H323_CALL_ORIGIN="h323-call-origin=originate"
+}
+
+
+
+
 #**********************************************************
 # user_info
 #**********************************************************
@@ -155,8 +176,12 @@ if ($self->{DISABLE}) {
 }
 
   
+  
   $self->check_bill_account();
   
+  
+  
+  preproces($RAD);
   
   return 0, \%RAD_PAIRS;
 }
@@ -175,6 +200,7 @@ sub accounting {
 #   print "aaa $acct_status_type '$RAD->{ACCT_STATUS_TYPE}'  /$RAD->{SESSION_START}/"; 
 #my $a=`echo "test $acct_status_type = $ACCT_TYPES{$RAD->{ACCT_STATUS_TYPE}}"  >> /tmp/12211 `;
  
+ preproces($RAD);
 
 #Start
 if ($acct_status_type == 1) { 
@@ -189,12 +215,16 @@ if ($acct_status_type == 1) {
       calling_station_id,
       called_station_id,
       nas_id,
-      client_ip_address
+      client_ip_address,
+      conf_id,
+      call_origin
    )
    values ('$acct_status_type', \"$RAD->{USER_NAME}\", $SESSION_START, UNIX_TIMESTAMP(), 
      '$RAD->{ACCT_SESSION_ID}', 
       '$RAD->{CALLING_STATION_ID}', '$RAD->{CALLED_STATION_ID}', '$NAS->{NID}',
-      INET_ATON('$RAD->{CLIENT_IP_ADDRESS}'));", 'do');
+      INET_ATON('$RAD->{CLIENT_IP_ADDRESS}'),
+      '$RAD->{H323_CONF_ID}',
+      0);", 'do');
       
  }
 # Stop status
@@ -218,7 +248,6 @@ elsif ($acct_status_type == 2) {
   my $TIME_PRICES = '';
 
   #%TARIFFS = ($ID => 
-  
   #my %PARAMS = (IP     => $RAD->{FRAMED_IP_ADDRESS},
   #              NUMBER => $RAD->{CALLING_STATION_ID} );
   
@@ -244,13 +273,14 @@ elsif ($acct_status_type == 2) {
 
 
  
+my $filename; 
 #  return $self;
   if ($self->{UID} == -2) {
     $self->{errno}=1;   
     $self->{errstr} = "ACCT [$RAD->{USER_NAME}] Not exist";
    }
   elsif($self->{UID} == -3) {
-    my $filename = "$RAD->{USER_NAME}.$RAD->{ACCT_SESSION_ID}";
+    $filename = "$RAD->{USER_NAME}.$RAD->{ACCT_SESSION_ID}";
     $self->{errno}=1;
     $self->{errstr}="ACCT [$RAD->{USER_NAME}] Not allow start period '$filename'";
     $Billing->mk_session_log($RAD, $conf);
@@ -268,7 +298,7 @@ elsif ($acct_status_type == 2) {
         '$self->{TP_ID}', '$self->{BILL_ID}', '$self->{SUM}');", 'do');
 
     if ($self->{errno}) {
-      my $filename = "$RAD->{USER_NAME}.$RAD->{ACCT_SESSION_ID}";
+      $filename = "$RAD->{USER_NAME}.$RAD->{ACCT_SESSION_ID}";
       $self->{LOG_WARNING}="ACCT [$RAD->{USER_NAME}] Making accounting file '$filename'";
       $Billing->mk_session_log($RAD, $conf);
      }

@@ -616,7 +616,7 @@ sub get_radius_params {
  my %RAD=();
  if ($#ARGV > 1) {
     foreach my $pair (@ARGV) {
-        my ($side, $value) = split(/=/, $pair);
+        my ($side, $value) = split(/=/, $pair, 2);
         if(defined($value)) {
           $value = clearquotes("$value");
           $RAD{"$side"} = "$value";
