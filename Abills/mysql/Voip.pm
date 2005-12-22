@@ -441,8 +441,14 @@ sub route_add {
   
   %DATA = $self->get_data($attr); 
 
-  $self->query($db,  "INSERT INTO voip_routes (prefix, parent, name, disable, date) 
-        VALUES ('$DATA{ROUTE_PREFIX}', '$DATA{PARENT_ID}',  '$DATA{ROUTE_NAME}', '$DATA{DISABLE}', now());", 'do');
+  $self->query($db,  "INSERT INTO voip_routes (prefix, parent, name, disable, date,
+        gateway_id,
+        descr) 
+        VALUES ('$DATA{ROUTE_PREFIX}', '$DATA{PARENT_ID}',  '$DATA{ROUTE_NAME}', '$DATA{DISABLE}', now(),
+        '$DATA{GATEWAY_ID}',
+        '$DATA{DESCRIBE}');", 'do');
+
+
   return $self if ($self->{errno});
 
 #  $admin->action_add($DATA{UID}, "ADDED", { MODULE => 'voip'});
@@ -465,7 +471,9 @@ sub route_info {
    parent,
    name,
    date,
-   disable
+   disable,
+   descr,
+   gateway_id
      FROM voip_routes
    WHERE id='$id';");
 
@@ -478,12 +486,16 @@ sub route_info {
   my $ar = $self->{list}->[0];
 
   ($self->{ROUTE_ID},
-   $self->{PARENT_ID}, 
    $self->{ROUTE_PREFIX}, 
+   $self->{PARENT_ID}, 
    $self->{ROUTE_NAME}, 
    $self->{DATE},
-   $self->{DISABLE}
+   $self->{DISABLE},
+   $self->{DESCRIBE},
+   $self->{GATEWAY_ID}
   )= @$ar;
+  
+  
   
   
   return $self;
@@ -515,7 +527,10 @@ sub route_change {
    							PARENT_ID       => 'parent',
                 DISABLE        => 'disable',
                 ROUTE_PREFIX   => 'prefix',
-                ROUTE_NAME     => 'name'
+                ROUTE_NAME     => 'name',
+                DESCRIBE       => 'descr',
+                GATEWAY_ID     => 'gateway_id'
+                
              );
 
 
@@ -561,7 +576,7 @@ sub routes_list {
 
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
 
- $self->query($db, "SELECT r.id, r.prefix, r.name, r.disable, r.date, r.parent
+ $self->query($db, "SELECT r.prefix, r.name, r.disable, r.date, r.gateway_id, r.id, r.parent
      FROM voip_routes r
      $WHERE 
      ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");

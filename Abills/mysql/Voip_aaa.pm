@@ -200,7 +200,14 @@ if ($self->{DISABLE}) {
      	 $RAD_PAIRS{'Reply-Message'}="Not allow calls";
        return 1, \%RAD_PAIRS;
       }
-   
+     # Get route
+     my $query params = '';
+     for (my $i=1; $i<=length($RAD->{'CALLED_STATION_ID'}); $i++) { 
+     	 $query params .= '\''. substr($RAD->{'CALLED_STATION_ID'}, 0, $i) . '\','; 
+     	}
+     chop($query params);
+     
+     
    }
 
 

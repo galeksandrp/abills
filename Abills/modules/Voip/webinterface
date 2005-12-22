@@ -781,8 +781,8 @@ elsif(defined($FORM{del}) && $FORM{is_js_confirmed}) {
 }
 
 if ($Voip->{errno}) {
-    message('err', $_ERROR, "[$Voip->{errno}] $err_strs{$Voip->{errno}}");	
-    return 0;
+   message('err', $_ERROR, "[$Voip->{errno}] $err_strs{$Voip->{errno}}");	
+   return 0;
  }
 
 
@@ -799,8 +799,11 @@ Abills::HTML->tpl_show(_include('voip_route', 'Voip'), $Voip);
 
 
 
-  my %SEARCH_FIELDS = ($_PREFIX => "ROUTE_PREFIX",
-                $_NAME   => "ROUTE_NAME");
+  my %SEARCH_FIELDS = ($_PREFIX   => "ROUTE_PREFIX",
+                       $_NAME     => "ROUTE_NAME",
+                       $_DISABLE  => "DISABLE",
+                       $_DESCRIBE => "DESCRIBE",
+                       $_GATEWAY  => "GATEWAY_SEL");
 
   form_search({ 
      SIMPLE => \%SEARCH_FIELDS
@@ -821,105 +824,142 @@ Abills::HTML->tpl_show(_include('voip_route', 'Voip'), $Voip);
 #=end
 
 
+print "---- $Voip->{DISCRIBE}    $Voip->{DESCRIBE}, ---";
+
 
 ##
 my  %new_hash = ();
 my  %phone_prefix = ();
 my $list = $Voip->routes_list({ %LIST_PARAMS });	
 
-foreach my $line (@$list) {
-  $new_hash{$line->[5]}{$line->[0]}="$line->[2]";
-  $route_info{$line->[0]}="$line->[1]:$line->[3]";
-}
-
-my $h = $new_hash{0};
-my @last_array = ();
-
-my @menu_sorted = sort {
-   $h->{$b} <=> $h->{$a}
-     ||
-   length($a) <=> length($b)
-     ||
-   $a cmp $b
-} keys %$h;
 
 
 my $table = Abills::HTML->table( { width      => '100%',
                                    border     => 1,
-                                   title      => [ $_PREFIX, $_NAME, $_STATUS, $_DATE, '-', '-'],
-                                   cols_align => [ 'left', 'left', 'center', 'center', 'center', 'center'],
+                                   title      => [$_PREFIX, $_NAME, $_STATUS, $_DATE, '-', '-'],
+                                   cols_align => ['left', 'left', 'center', 'right', 'center', 'center'],
+                                   qs => $pages_qs,
+                                   pages => $Voip->{TOTAL}
+                                   
                                   } );
 
 my ($delete, $change);
-foreach my $parent (@menu_sorted) { 
-  
-  if ($permissions{4}{1}) {
-    $delete = $html->button($_DEL, "index=$index&del=$parent", "$_DEL ?"); 
-    $change = "<a href='$SELF_URL?index=$index&ROUTE_ID=$parent'>$_CHANGE</a>";
-    $add    = "<a href='$SELF_URL?index=$index&add_route=$parent&ROUTE_ID=$parent'>$_ADD</a>";
+foreach my $line (@$list) {
+   if ($permissions{4}{1}) {
+    $delete = $html->button($_DEL, "index=$index&del=$line->[5]", "$_DEL ?"); 
+    $change = "<a href='$SELF_URL?index=$index&ROUTE_ID=$line->[5]'>$_CHANGE</a>";
+    #$add    = "<a href='$SELF_URL?index=$index&add_route=$parent&ROUTE_ID=$parent'>$_ADD</a>";
    }
 
-  
-  
-  my $val = $h->{$parent};
-  my $level = 0;
-  my $prefix = '';
-  my ($phone_prefix, $enable) = split(/:/, $route_info{$parent}, 2);
-  
-  $table->addrow("$phone_prefix",  "$val", 
-     $status[$enable],
-     $add,
-     $change,
-     $delete 
-    );
-
-  if (defined($new_hash{$parent})) {
-    $level++;
-    $prefix .= "&nbsp;&nbsp;&nbsp;";
-    label:
-      my $mi = $new_hash{$parent};
-
-      while(my($k, $val)=each %$mi) {
-       
-        if ($permissions{4}{1}) {
-          $delete = $html->button($_DEL, "index=$index&del=$k", "$_DEL ?"); 
-          $change = "<a href='$SELF_URL?index=$index&ROUTE_ID=$k'>$_CHANGE</a>";
-          $add    = "<a href='$SELF_URL?index=$index&add_route=$k'>$_ADD</a>";
-        }
-
-        my ($phone_prefix, $enable) = split(/:/, $route_info{$k}, 2);
-        $table->addrow("$prefix $phone_prefix", "$prefix $val", 
-            $status[$enable],
-            $add,
+   $table->addrow($line->[0], 
+            $line->[1], 
+            $status[$line->[2]], 
+            $line->[3], 
             $change,
-            $delete );
+            $delete);
 
-        if (defined($new_hash{$k})) {
-      	   $mi = $new_hash{$k};
-      	   $level++;
-           $prefix .= "&nbsp;&nbsp;&nbsp;";
-           push @last_array, $parent;
-           $parent = $k;
-         }
-        delete($new_hash{$parent}{$k});
-      }
-    
-    if ($#last_array > -1) {
-      $parent = pop @last_array;	
-#      print "POP/$#last_array/$parent/<br>\n";
-      $level--;
-      
-      $prefix = substr($prefix, 0, $level * 6 * 3);
-      goto label;
-    }
-    delete($new_hash{0}{$parent});
-   }
 }
-
-
-
-
 print $table->show();
+
+$table = Abills::HTML->table( { width => '100%',
+                                cols_align => ['right', 'right'],
+                                rows => [ [ "$_TOTAL:", "<b>$Voip->{TOTAL}</b>" ] ]
+                               } );
+print $table->show();
+
+
+
+
+#--------------------------------------------------------------------
+# Tree View
+
+
+#
+#foreach my $line (@$list) {
+#  $new_hash{$line->[5]}{$line->[0]}="$line->[2]";
+#  $route_info{$line->[0]}="$line->[1]:$line->[3]";
+#}
+#
+#my $h = $new_hash{0};
+#my @last_array = ();
+#
+#my @menu_sorted = sort {
+#   $h->{$b} <=> $h->{$a}
+#     ||
+#   length($a) <=> length($b)
+#     ||
+#   $a cmp $b
+#} keys %$h;
+#
+#foreach my $parent (@menu_sorted) { 
+#  
+#  if ($permissions{4}{1}) {
+#    $delete = $html->button($_DEL, "index=$index&del=$parent", "$_DEL ?"); 
+#    $change = "<a href='$SELF_URL?index=$index&ROUTE_ID=$parent'>$_CHANGE</a>";
+#    $add    = "<a href='$SELF_URL?index=$index&add_route=$parent&ROUTE_ID=$parent'>$_ADD</a>";
+#   }
+#
+#  
+#  
+#  my $val = $h->{$parent};
+#  my $level = 0;
+#  my $prefix = '';
+#  my ($phone_prefix, $enable) = split(/:/, $route_info{$parent}, 2);
+#  
+#  $table->addrow("$phone_prefix",  "$val", 
+#     $status[$enable],
+#     $add,
+#     $change,
+#     $delete 
+#    );
+#
+#  if (defined($new_hash{$parent})) {
+#    $level++;
+#    $prefix .= "&nbsp;&nbsp;&nbsp;";
+#    label:
+#      my $mi = $new_hash{$parent};
+#
+#      while(my($k, $val)=each %$mi) {
+#       
+#        if ($permissions{4}{1}) {
+#          $delete = $html->button($_DEL, "index=$index&del=$k", "$_DEL ?"); 
+#          $change = "<a href='$SELF_URL?index=$index&ROUTE_ID=$k'>$_CHANGE</a>";
+#          $add    = "<a href='$SELF_URL?index=$index&add_route=$k'>$_ADD</a>";
+#        }
+#
+#        my ($phone_prefix, $enable) = split(/:/, $route_info{$k}, 2);
+#        $table->addrow("$prefix $phone_prefix", "$prefix $val", 
+#            $status[$enable],
+#            $add,
+#            $change,
+#            $delete );
+#
+#        if (defined($new_hash{$k})) {
+#      	   $mi = $new_hash{$k};
+#      	   $level++;
+#           $prefix .= "&nbsp;&nbsp;&nbsp;";
+#           push @last_array, $parent;
+#           $parent = $k;
+#         }
+#        delete($new_hash{$parent}{$k});
+#      }
+#    
+#    if ($#last_array > -1) {
+#      $parent = pop @last_array;	
+##      print "POP/$#last_array/$parent/<br>\n";
+#      $level--;
+#      
+#      $prefix = substr($prefix, 0, $level * 6 * 3);
+#      goto label;
+#    }
+#    delete($new_hash{0}{$parent});
+#   }
+#}
+# print $table->show();
+
+
+
+
 
 	
 }
