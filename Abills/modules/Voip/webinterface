@@ -267,12 +267,11 @@ if (defined($attr->{TP})) {
 	$Voip_tp = $attr->{TP};
 
 	if ($FORM{change}) {
-		 while(($k, $v)=each %FORM) {
-		 	  if($k =~ /^p_/) {
-		 	    my($trash, $route, $interval)=split(/_/, $k, 3);
-		 	    print "$route, $interval - $v<br>";
-		     }
-		  }
+		 $Voip->rp_add({ %FORM });
+     if (! $Voip->{errno}) {
+      message('info', $_INFO, "$_ADDED");
+     }
+
 	 }
 	elsif($FORM{clear}) {
 		
@@ -286,8 +285,8 @@ else {
   
 #  my $Voip_tp = $Voip->tp_info( $FORM{TP_ID} );
   my $list = $Voip_tp->ti_list({ %LIST_PARAMS });
-  my @caption = ('PREFIX', $_ROUTES);
-  my @aligns = ('left', 'left');
+  my @caption = ('PREFIX', $_ROUTES, "$_STATUS");
+  my @aligns = ('left', 'left', 'center');
   my @interval_ids = ();
   my $intervals=0;
   foreach my $line (@$list) {
@@ -296,88 +295,131 @@ else {
      push @interval_ids, $line->[0];
    }
   $intervals = $Voip_tp->{TOTAL};
-  my $list = $Voip->routes_list({ %LIST_PARAMS });	
 
-##
-my  %new_hash = ();
-my  %phone_prefix = ();
 
+  form_search({ 
+     SIMPLE        => {$_PREFIX   => "ROUTE_PREFIX",
+                       $_NAME     => "ROUTE_NAME",
+                       $_DISABLE  => "DISABLE",
+                       $_DESCRIBE => "DESCRIBE",
+                       $_GATEWAY  => "GATEWAY_SEL",
+                       $_SUM    => "PRICE"},
+
+     HIDDEN_FIELDS => { TP_ID      => $FORM{TP_ID} }
+   });
+
+
+my $list = $Voip->rp_list({ %LIST_PARAMS });
+my %prices = ();
 foreach my $line (@$list) {
-  $new_hash{$line->[5]}{$line->[0]}="$line->[2]";
-  $route_info{$line->[0]}="$line->[1]:$line->[3]";
+  $prices{"$line->[0]"}{"$line->[1]"}=$line->[3];
 }
 
-my $h = $new_hash{0};
-my @last_array = ();
-
-my @menu_sorted = sort {
-   $h->{$b} <=> $h->{$a}
-     ||
-   length($a) <=> length($b)
-     ||
-   $a cmp $b
-} keys %$h;
 
 
-
+$list = $Voip->routes_list({ %LIST_PARAMS });	
 my $table = Abills::HTML->table( { width      => '100%',
                                    border     => 1,
                                    title      => \@caption,
                                    cols_align => \@aligns,
+                                   qs => $pages_qs,
+                                   pages => $Voip->{TOTAL}
+
                                   } );
 
 my ($delete, $change);
-foreach my $parent (@menu_sorted) { 
-  
+my $price = 0;
+foreach my $line (@$list) {
   my @l=();
   for(my $i = 0; $i<$intervals; $i++) { 
-      push @l, "<input type=text name='p_$parent". '_' . "$interval_ids[$i]' value='$parent". '_' . "$interval_ids[$i]' size=5>"; 
-    }
-  
-  my $val = $h->{$parent};
-  my $level = 0;
-  my $prefix = '';
-  my ($phone_prefix, $enable) = split(/:/, $route_info{$parent}, 2);
-  
-  $table->addrow("$phone_prefix",  "$val", @l);
-
-  if (defined($new_hash{$parent})) {
-    $level++;
-    $prefix .= "&nbsp;&nbsp;&nbsp;";
-    label:
-      my $mi = $new_hash{$parent};
-
-      while(my($k, $val)=each %$mi) {
-       
-      my @l=();
-      for(my $i = 0; $i<$intervals; $i++) { 
-         push @l, "<input type=text name='p_$k" .'_'. "$interval_ids[$i]' value='$k". "_" . "$interval_ids[$i]' size=5>"; 
+  	  if (defined($prices{"$interval_ids[$i]"}{"$line->[5]"})) {
+        $price = $prices{$interval_ids[$i]}{$line->[5]};
+  	    }
+      else {
+        $price = "$interval_ids[$i] $line->[5] -0";
        }
-
-        my ($phone_prefix, $enable) = split(/:/, $route_info{$k}, 2);
-        $table->addrow("$prefix $phone_prefix", "$prefix $val", @l);
-
-        if (defined($new_hash{$k})) {
-      	   $mi = $new_hash{$k};
-      	   $level++;
-           $prefix .= "&nbsp;&nbsp;&nbsp;";
-           push @last_array, $parent;
-           $parent = $k;
-         }
-        delete($new_hash{$parent}{$k});
-      }
-    
-    if ($#last_array > -1) {
-      $parent = pop @last_array;	
-#      print "POP/$#last_array/$parent/<br>\n";
-      $level--;
-      
-      $prefix = substr($prefix, 0, $level * 6 * 3);
-      goto label;
+      push @l, "<input type=text name='p_$line->[5]". '_' . "$interval_ids[$i]' value='$price' size=10>"; 
     }
-    delete($new_hash{0}{$parent});
-   }
+  $table->addrow("$line->[0]",  "$line->[1]", $status[$line->[2]], @l);
 }
+
+
+
+
+###
+#my  %new_hash = ();
+#my  %phone_prefix = ();
+#
+#
+#foreach my $line (@$list) {
+#  $new_hash{$line->[5]}{$line->[0]}="$line->[2]";
+#  $route_info{$line->[0]}="$line->[1]:$line->[3]";
+#}
+#
+#my $h = $new_hash{0};
+#my @last_array = ();
+#
+#my @menu_sorted = sort {
+#   $h->{$b} <=> $h->{$a}
+#     ||
+#   length($a) <=> length($b)
+#     ||
+#   $a cmp $b
+#} keys %$h;
+#
+#
+#
+#foreach my $parent (@menu_sorted) { 
+#  
+#  my @l=();
+#  for(my $i = 0; $i<$intervals; $i++) { 
+#      push @l, "<input type=text name='p_$parent". '_' . "$interval_ids[$i]' value='$parent". '_' . "$interval_ids[$i]' size=5>"; 
+#    }
+#  
+#  my $val = $h->{$parent};
+#  my $level = 0;
+#  my $prefix = '';
+#  my ($phone_prefix, $enable) = split(/:/, $route_info{$parent}, 2);
+#  
+#  $table->addrow("$phone_prefix",  "$val", @l);
+#
+#  if (defined($new_hash{$parent})) {
+#    $level++;
+#    $prefix .= "&nbsp;&nbsp;&nbsp;";
+#    label:
+#      my $mi = $new_hash{$parent};
+#
+#      while(my($k, $val)=each %$mi) {
+#       
+#      my @l=();
+#      for(my $i = 0; $i<$intervals; $i++) { 
+#         push @l, "<input type=text name='p_$k" .'_'. "$interval_ids[$i]' value='$k". "_" . "$interval_ids[$i]' size=5>"; 
+#       }
+#
+#        my ($phone_prefix, $enable) = split(/:/, $route_info{$k}, 2);
+#        $table->addrow("$prefix $phone_prefix", "$prefix $val", @l);
+#
+#        if (defined($new_hash{$k})) {
+#      	   $mi = $new_hash{$k};
+#      	   $level++;
+#           $prefix .= "&nbsp;&nbsp;&nbsp;";
+#           push @last_array, $parent;
+#           $parent = $k;
+#         }
+#        delete($new_hash{$parent}{$k});
+#      }
+#    
+#    if ($#last_array > -1) {
+#      $parent = pop @last_array;	
+##      print "POP/$#last_array/$parent/<br>\n";
+#      $level--;
+#      
+#      $prefix = substr($prefix, 0, $level * 6 * 3);
+#      goto label;
+#    }
+#    delete($new_hash{0}{$parent});
+#   }
+#}
 
 
 
@@ -391,6 +433,12 @@ print $table->show();
 print "
 <input type=submit name=change value=$_CHANGE>
 </form>";
+
+$table = Abills::HTML->table( { width => '100%',
+                                cols_align => ['right', 'right'],
+                                rows => [ [ "$_TOTAL:", "<b>$Voip->{TOTAL}</b>" ] ]
+                               } );
+print $table->show();
 
 	
 }
@@ -808,23 +856,6 @@ Abills::HTML->tpl_show(_include('voip_route', 'Voip'), $Voip);
   form_search({ 
      SIMPLE => \%SEARCH_FIELDS
    });
-
-#=comments
-#print "
-#<form action=$SELF_URL METHOD=POST>
-#<input type=hidden name=index value=$index>
-#<table>
-#<tr><td>$_PREFIX:</td><td><input type=text name=ROUTE_PREFIX value='%ROUTE_PREFIX%'></td></tr>
-#<tr><td>$_NAME:</td><td><input type=text name=ROUTE_NAME value='%ROUTE_NAME%'></td></tr>
-#<tr><td>$_ROWS:</td><td><input type=text name=ROWS value='%ROWS%'></td></tr>
-#</table>
-#<input type=submit name=SEARCH value='$_SEARCH'>
-#</form>
-#";
-#=end
-
-
-print "---- $Voip->{DISCRIBE}    $Voip->{DESCRIBE}, ---";
 
 
 ##

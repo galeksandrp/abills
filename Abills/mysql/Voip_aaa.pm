@@ -21,7 +21,7 @@ use Auth;
 
 
 @ISA  = ("main");
-my ($db, $conf);
+my ($db, $conf, $Billing);
 
 
 my %RAD_PAIRS;
@@ -45,6 +45,7 @@ sub new {
   bless($self, $class);
   #$self->{debug}=1;
   my $Auth = Auth->new($db, $conf);
+  $Billing = Billing->new($db);	
   return $self;
 }
 
@@ -99,7 +100,13 @@ sub user_info {
    voip.disable,
    u.disable,
    u.bill_id,
-   u.company_id
+   u.company_id,
+   
+  UNIX_TIMESTAMP(),
+  UNIX_TIMESTAMP(DATE_FORMAT(FROM_UNIXTIME(UNIX_TIMESTAMP()), '%Y-%m-%d')),
+  DAYOFWEEK(FROM_UNIXTIME(UNIX_TIMESTAMP())),
+  DAYOFYEAR(FROM_UNIXTIME(UNIX_TIMESTAMP()))
+
    FROM voip_main voip, 
         users u
    WHERE 
@@ -125,7 +132,13 @@ sub user_info {
    $self->{VOIP_DISABLE},
    $self->{USER_DISABLE},
    $self->{BILL_ID},
-   $self->{COMPANY_ID}
+   $self->{COMPANY_ID},
+
+   $self->{SESSION_START}, 
+   $self->{DAY_BEGIN}, 
+   $self->{DAY_OF_WEEK}, 
+   $self->{DAY_OF_YEAR}
+
   )= @$ar;
   
   $self->{SIMULTANEOUSLY} = 0;
@@ -201,13 +214,79 @@ if ($self->{DISABLE}) {
        return 1, \%RAD_PAIRS;
       }
      # Get route
-     my $query params = '';
+     my $query_params = '';
      for (my $i=1; $i<=length($RAD->{'CALLED_STATION_ID'}); $i++) { 
-     	 $query params .= '\''. substr($RAD->{'CALLED_STATION_ID'}, 0, $i) . '\','; 
+     	 $query_params .= '\''. substr($RAD->{'CALLED_STATION_ID'}, 0, $i) . '\','; 
      	}
-     chop($query params);
+     chop($query_params);
+
+     $self->query($db, "SELECT id,
+      prefix,
+      gateway_id,
+      disable
+     FROM voip_routes
+      WHERE prefix in ($query_params)
+      ORDER BY 2 DESC LIMIT 1;");
+
+    if ($self->{TOTAL} < 1) {
+       $RAD_PAIRS{'Reply-Message'}="No route '". $RAD->{'CALLED_STATION_ID'} ."'";
+       return 1, \%RAD_PAIRS;
+     }
+
+    my $ar = $self->{list}->[0];
+
+    ($self->{ROUTE_ID},
+     $self->{PREFIX},
+     $self->{GATEWAY_ID}, 
+     $self->{ROUTE_DISABLE}
+    )= @$ar;
+  
+    if ($self->{ROUTE_DISABLE} == 1) {
+       $RAD_PAIRS{'Reply-Message'}="Route disabled '". $RAD->{'CALLED_STATION_ID'} ."'";
+       return 1, \%RAD_PAIRS;
+     }
+    
+    #Get intervals and prices
+    
+    $self->query($db, "select i.day, TIME_TO_SEC(i.begin), TIME_TO_SEC(i.end), rp.price, i.id, rp.route_id
+           from intervals i, voip_route_prices rp
+           where
+            i.id=rp.interval_id 
+            and i.tp_id  = '$self->{TP_ID}'
+            and rp.route_id = '$self->{ROUTE_ID}';");
+
+    if ($self->{TOTAL} < 1) {
+       $RAD_PAIRS{'Reply-Message'}="No price for route prefix '$self->{PREFIX}' number '". $RAD->{'CALLED_STATION_ID'} ."'";
+       return 1, \%RAD_PAIRS;
+     }
+
+    my $list = $self->{list};
+
+
+   my %time_periods = ();
+   my %periods_time_tarif = ();
+   
+   foreach my $line (@$list) {
+     #$time_periods{INTERVAL_DAY}{INTERVAL_START}="INTERVAL_ID:INTERVAL_END";
+     $time_periods{$line->[0]}{$line->[1]} = "$line->[4]:$line->[2]";
+     #$periods_time_tarif{INTERVAL_ID} = "INTERVAL_PRICE";
+     $periods_time_tarif{$line->[4]} = $line->[3];
+    }
+
      
-     
+    my ($session_timeout, $ATTR) = $Billing->remaining_time($self->{DEPOSIT}, {
+    	 TIME_INTERVALS      => \%time_periods,
+       INTERVAL_TIME_TARIF => \%periods_time_tarif,
+       SESSION_START       => $self->{SESSION_START},
+       DAY_BEGIN           => $self->{DAY_BEGIN},
+       DAY_OF_WEEK         => $self->{DAY_OF_WEEK},
+       DAY_OF_YEAR         => $self->{DAY_OF_YEAR}
+      });
+    
+    if ($session_timeout > 0) {
+      $RAD_PAIRS{'Session-Timeout'}=$session_timeout;    	
+     }
+  
    }
 
 
@@ -260,7 +339,6 @@ if ($acct_status_type == 1) {
  }
 # Stop status
 elsif ($acct_status_type == 2) {
-  my $Billing = Billing->new($db);	
 
 
 #  ($self->{UID}, 

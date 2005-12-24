@@ -2719,7 +2719,12 @@ sub form_search {
 
 my %SEARCH_DATA = $admin->get_data(\%FORM);  
 
-
+if (defined($attr->{HIDDEN_FIELDS})) {
+	my $SEARCH_FIELDS = $attr->{HIDDEN_FIELDS};
+	while(my($k, $v)=each( %$SEARCH_FIELDS )) {
+	  $SEARCH_DATA{HIDDEN_FIELDS}.="<input type=hidden name=\"$k\" value=\"$v\">\n";
+	 }
+}
 
 
 if (defined($attr->{SIMPLE})) {

@@ -366,6 +366,7 @@ elsif ($tpl_name eq 'form_search') {
 return qq{
 <form action=$SELF_URL>
 <input type=hidden name=index value=$index>
+%HIDDEN_FIELDS%
 <table>
 <tr><td>$_NAME:</td><td><input type=text name=LOGIN_EXPR value='%LOGIN_EXPR%'></td></tr>
 %SEL_TYPE%
@@ -389,6 +390,7 @@ elsif ($tpl_name eq 'form_search_simple') {
 return qq{
 <form action=$SELF_URL>
 <input type=hidden name=index value=$index>
+%HIDDEN_FIELDS%
 <table>
 %SEARCH_FORM%
 <tr><td>$_ROWS:</td><td><input type=text name=PAGE_ROWS value=$PAGE_ROWS></td></tr>

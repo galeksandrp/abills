@@ -476,7 +476,6 @@ Abills::Base->import();
      $i = -1;
 
      
-     
      foreach my $int_begin (@intervals) {
        my ($int_id, $int_end) = split(/:/, $cur_int->{$int_begin}, 2);
        $i++;
@@ -580,7 +579,216 @@ sub time_calculation() {
   return $sum;
 }
 
+#********************************************************************
+# remaining_time
+#  returns
+#    -1 = access deny not allow day
+#    -2 = access deny not allow hour
+#********************************************************************
+sub remaining_time {
+  my ($self)=shift;
+  my ($deposit, 
+      $attr) = @_;
 
+  my %ATTR = ();
+  my ($session_start,  
+      $day_begin,
+      $day_of_week,
+      $day_of_year
+     );
+
+
+  if (! defined($attr->{SESSION_START})) {
+  	 $self->get_timeinfo();
+  	 $session_start = $self->{SESSION_START};
+     $day_begin     = $self->{DAY_BEGIN};
+     $day_of_week   = $self->{DAY_OF_WEEK};
+     $day_of_year   = $self->{DAY_OF_YEAR};
+   }
+  else {
+  	 $session_start = $attr->{SESSION_START};
+     $day_begin     = $attr->{DAY_BEGIN};
+     $day_of_week   = $attr->{DAY_OF_WEEK};
+     $day_of_year   = $attr->{DAY_OF_YEAR};
+   }
+
+  $time_intervals = $attr->{TIME_INTERVALS}; 
+  $periods_time_tarif = $attr->{INTERVAL_TIME_TARIF};
+  $periods_traf_tarif = undef;
+
+  my $debug = 0;
+ 
+  my $time_limit = (defined($attr->{time_limit})) ? $attr->{time_limit} : 0;
+  my $mainh_tarif = (defined($attr->{mainh_tarif})) ? $attr->{mainh_tarif} : 0;
+  my $remaining_time = 0;
+
+
+ if ($time_intervals == 0) {
+    return 0;
+    #return $deposit / $mainh_tarif * 60 * 60;	
+  }
+ 
+ my %holidays = ();
+ if (defined($time_intervals->{8})) {
+   use Tariffs;
+   my $tariffs = Tariffs->new($db);
+   my $list = $tariffs->holidays_list({ format => 'daysofyear' });
+   foreach my $line (@$list) {
+     $holidays{$line->[0]} = 1;
+    }
+  }
+
+
+ my $tarif_day = 0;
+ my $count = 0;
+ $session_start = $session_start - $day_begin;
+
+ while(($deposit > 0 && $count < 50)) {
+  
+   if ($time_limit != 0 && $time_limit < $remaining_time) {
+     $remaining_time = $time_limit;
+     last;
+    }
+
+   if(defined($holidays{$day_of_year}) && defined($time_intervals->{8})) {
+    	#print "Holliday tarif '$day_of_year' ";
+    	$tarif_day = 8;
+    }
+   elsif (defined($time_intervals->{$day_of_week})) {
+    	#print "Day tarif '$day_of_week'";
+    	$tarif_day = $day_of_week;
+    }
+   elsif(defined($time_intervals->{0})) {
+      #print "Global tarif";
+      $tarif_day = 0;
+    }
+   elsif($count > 0) {
+      last;
+    }
+   else {
+   	  return -1;
+    }
+
+
+  print "Count:  $count Remain Time: $remaining_time\n" if ($debug == 1);
+
+  # Time check
+  # $session_start
+
+     $count++;
+
+     my $cur_int = $time_intervals->{$tarif_day};
+     my $i;
+     my $prev_tarif = '';
+     
+     TIME_INTERVALS:
+
+     my @intervals = sort keys %$cur_int; 
+     $i = -1;
+
+     foreach my $int_begin (@intervals) {
+       my ($int_id, $int_end) = split(/:/, $cur_int->{$int_begin}, 2);
+       $i++;
+
+       my $price = 0;
+       my $int_prepaid = 0;
+       my $int_duration = 0;
+
+       print "Day: $tarif_day Session_start: $session_start => Int Begin: $int_begin End: $int_end Int ID: $int_id\n" if ($debug == 1);
+
+       if (($int_begin <= $session_start) && ($session_start < $int_end)) {
+          $int_duration = $int_end-$session_start;
+          
+          print " <<=\n" if ($debug == 1);    
+          # if defined prev_tarif
+          if ($prev_tarif ne '') {
+            	my ($p_day, $p_begin)=split(/:/, $prev_tarif, 2);
+            	$int_end=$p_begin;
+            	print "Prev tarif $prev_tarif / INT end: $int_end \n" if ($debug == 1);
+           }
+
+          
+          
+          if ($periods_time_tarif->{$int_id} =~ /%$/) {
+             my $tp = $periods_time_tarif->{$int_id};
+             $tp =~ s/\%//;
+             $price = $mainh_tarif  * ($tp / 100);
+           }
+          else {
+             $price = $periods_time_tarif->{$int_id};
+           }
+
+          if(defined($periods_traf_tarif->{$int_id}) && $periods_traf_tarif->{$int_id} > 0 && $remaining_time == 0) {
+            print "This tarif with traffic counts\n" if ($debug == 1);
+            $ATTR{TT}=$int_id;
+            return int($int_duration), \%ATTR;
+           }
+          elsif(defined($periods_traf_tarif->{$int_id})  && $periods_traf_tarif->{$int_id} > 0) {
+            print "Next tarif with traffic counts  $int_end {$tarif_day} {$int_begin}\n" if ($debug == 1);
+            return int($remaining_time), \%ATTR;
+           }
+          elsif ($price > 0) {
+            $int_prepaid = $deposit / $price * 3600;
+           }
+          else {
+            $int_prepaid = $int_duration;	
+           }
+          #print "Int Begin: $int_begin Int duration: $int_duration Int prepaid: $int_prepaid Prise: $price\n";
+
+
+
+          if ($int_prepaid >= $int_duration) {
+            $deposit -= ($int_duration / 3600 * $price);
+            $session_start += $int_duration;
+            $remaining_time += $int_duration;
+            #print "DP $deposit ($int_prepaid > $int_duration) $session_start\n";
+           }
+          elsif($int_prepaid <= $int_duration) {
+            $deposit =  0;    	
+            $session_start += $int_prepaid;
+            $remaining_time += $int_prepaid;
+            #print "DL '$deposit' ($int_prepaid <= $int_duration) $session_start\n";
+           }
+        }
+       elsif($i == $#intervals) {
+       	  print "!! LAST@@@@ $i == $#intervals\n" if ($debug == 1);
+       	  $prev_tarif = "$tarif_day:$int_begin";
+
+       	  if (defined($time_intervals->{0}) && $tarif_day != 0) {
+       	    $tarif_day = 0;
+       	    $cur_int = $time_intervals->{$tarif_day};
+       	    print "Go to\n" if ($debug == 1);
+       	    goto TIME_INTERVALS;
+       	   }
+       	  elsif($session_start < 86400) {
+      	  	 if ($remaining_time > 0) {
+      	  	   return int($remaining_time);
+      	  	  }
+             else {
+             	 # Not allow hour
+             	 # return -2;
+              }
+      	   }
+       	  #return $remaining_time;
+       	  next;
+        }
+      }
+
+  return -2 if ($remaining_time == 0);
+  
+  if ($session_start >= 86400) {
+    $session_start=0;
+    $day_of_week = ($day_of_week + 1 > 7) ? 1 : $day_of_week+1;
+    $day_of_year = ($day_of_year + 1 > 365) ? 1 : $day_of_year + 1;
+   }
+#  else {
+#  	return int($remaining_time), \%ATTR;
+#   }
+ 
+ }
+
+return int($remaining_time), \%ATTR;
+}
 
 #*******************************************************************
 #

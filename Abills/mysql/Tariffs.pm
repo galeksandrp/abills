@@ -98,7 +98,7 @@ sub ti_list {
 	my $self = shift;
 	my ($attr) = @_;
 
-  $SORT = ($attr->{SORT}) ? $attr->{SORT} : "2, 3";
+  my $SORT = ($attr->{SORT}) ? $attr->{SORT} : "2, 3";
   if ($SORT == 1) { $SORT = "2, 3"; }  
   my $begin_end = "i.begin, i.end,";   
   my $TP_ID = $self->{TP_ID};  

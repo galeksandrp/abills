@@ -993,9 +993,13 @@ sub get_timeinfo {
 #********************************************************************
 sub remaining_time {
   my ($self)=shift;
-  my ($tp_id, $deposit, $session_start, 
-  $day_begin, $day_of_week, $day_of_year,
-  $attr) = @_;
+  my ($tp_id, 
+      $deposit, 
+      $session_start, 
+      $day_begin, 
+      $day_of_week, 
+      $day_of_year,
+    $attr) = @_;
   
   my %ATTR = ();
 
