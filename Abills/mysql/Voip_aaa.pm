@@ -468,7 +468,7 @@ elsif ($acct_status_type == 2) {
     	    REDUCTION           => $self->{REDUCTION},
     	    TIME_INTERVALS      => $self->{TIME_PERIODS},
           PERIODS_TIME_TARIF =>  $self->{PERIODS_TIME_TARIF},
-          SESSION_START       => $self->{SESSION_START},
+          SESSION_START       => $self->{SESSION_STOP} - $RAD->{ACCT_SESSION_TIME},
           ACCT_SESSION_TIME   => $RAD->{ACCT_SESSION_TIME},
           DAY_BEGIN           => $self->{DAY_BEGIN},
           DAY_OF_WEEK         => $self->{DAY_OF_WEEK},
