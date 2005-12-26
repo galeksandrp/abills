@@ -18,7 +18,10 @@ use main;
 my $db;
 my $conf;
 
-my ($tariffs, $time_intervals, $periods_time_tarif, $periods_traf_tarif);
+my $tariffs; 
+my $time_intervals=0;
+my $periods_time_tarif=0;
+my $periods_traf_tarif=0;
 
 
 #**********************************************************
@@ -39,7 +42,7 @@ sub new {
 #**********************************************************
 sub traffic_calculations {
 	my $self = shift;
-	my ($RAD, $conf)=@_;
+	my ($RAD)=@_;
 	
   my $sent = $RAD->{OUTBYTE} || 0; #from server
   my $recv = $RAD->{INBYTE} || 0;  #to server
@@ -232,7 +235,11 @@ if ($prepaid{0} + $prepaid{1} > 0) {
 #**********************************************************
 sub session_sum {
  my $self = shift;
- my ($USER_NAME, $SESSION_START, $SESSION_DURATION, $RAD, $conf, $attr) = @_;
+ my ($USER_NAME, 
+     $SESSION_START, 
+     $SESSION_DURATION, 
+     $RAD, 
+     $attr) = @_;
 
  my $sum = 0;
  my ($TP_ID);
@@ -327,7 +334,7 @@ if(! defined($self->{NO_TPINTERVALS})) {
 
    if($periods_traf_tarif->{$k} > 0) {
    	  $self->{TI_ID}=$k;
-   	  $sum  += $self->traffic_calculations($RAD, $conf);
+   	  $sum  += $self->traffic_calculations($RAD);
     }
    }
 }
@@ -411,12 +418,28 @@ sub time_intervals {
 #********************************************************************
 sub session_splitter {
  my $self = shift;
- my ($start, $duration, $day_begin, $day_of_week, $day_of_year, $attr) = @_;
+ my ($start, 
+     $duration, 
+     $day_begin, 
+     $day_of_week, 
+     $day_of_year, 
+     $attr) = @_;
+ 
+ 
  my $debug = 0;
  my %division_time = (); #return division time
 
 
- ($time_intervals, $periods_time_tarif, $periods_traf_tarif) = $self->time_intervals($attr->{TP_ID});
+ if (defined($attr->{TP_ID})) {
+   ($time_intervals, $periods_time_tarif, $periods_traf_tarif) = $self->time_intervals($attr->{TP_ID});
+  }
+
+                     
+
+ $time_intervals      = $attr->{TIME_INTERVALS}  if (defined($attr->{TIME_INTERVALS}));
+ $periods_time_tarif  = $attr->{PERIODS_TIME_TARIF} if (defined($attr->{PERIODS_TIME_TARIF}));
+ $periods_traf_tarif  = $attr->{PERIODS_TIME_TARIF} if (defined($attr->{PERIODS_TRAF_TARIF}));
+
 
 
  if($time_intervals == 0)  {
@@ -459,7 +482,7 @@ Abills::Base->import();
       $tarif_day = 0;
     }
    else {
-#   	  err();
+#   	err();
    	  return -1;
     }
 
@@ -514,7 +537,7 @@ Abills::Base->import();
              	$duration = $duration - $int_time;
              	$start = $start + $int_time;
              	if ($start == 86400) {
-             	  $day_of_week = ($day_of_week + 1 > 7) ? 1 : $day_of_week+1;
+             	  $day_of_week = ($day_of_week + 1 > 7) ? 1   : $day_of_week + 1;
              	  $day_of_year = ($day_of_year + 1 > 365) ? 1 : $day_of_year + 1;
              	  $start = 0;
              	  last;
@@ -572,11 +595,55 @@ Abills::Base->import();
 sub time_calculation() {
 	my $self = shift;
 	my ($attr) = @_;
-  my $sum;
+  my $sum = 0;
 
 
+  $self->session_splitter($attr->{SESSION_START},
+                   $attr->{ACCT_SESSION_TIME},
+                   $attr->{DAY_BEGIN},
+                   $attr->{DAY_OF_WEEK}, 
+                   $attr->{DAY_OF_YEAR},
+                   {  TIME_INTERVALS      => $attr->{TIME_INTERVALS},
+                      PERIODS_TIME_TARIF  => $attr->{PERIODS_TIME_TARIF},
+                    }
+                  );
+ 
+ 
+ my %PRICE_UNITS = (
+  Hour => 3600,
+  Min  => 60
+ );
+ 
+ my $PRICE_UNIT = (defined($PRICE_UNITS{$attr->{PRICE_UNIT}})) ? 60 : 3600;
+ 
+  #session devisions
+  my $sd = $self->{TIME_DIVISIONS};
+  my $interval_count =  keys %$sd;
 
-  return $sum;
+$self->{debug} =1;
+
+if(! defined($self->{NO_TPINTERVALS})) {
+  if($interval_count < 1) {
+   	$self->{errno} = 3;
+   	$self->{errstr} = "Not allow start period";
+   }
+  #$self->{debug}=1;
+
+  while(my($k, $v)=each(%$sd)) {
+ 	  #print "> $k, $v\n" if ($self->{debug});
+    if(defined($periods_time_tarif->{$k})) {
+   	   $sum += ($v * $periods_time_tarif->{$k}) / $PRICE_UNIT;
+     }
+   }
+}
+
+$sum = $sum * (100 - $attr->{REDUCTION}) / 100 if (defined($attr->{REDUCTION}) && $attr->{REDUCTION} > 0);
+#$sum = $conf->{MIN_SESSION_COST} if ($sum < $self->{MIN_SESSION_COST} && $self->{MIN_SESSION_COST} > 0);
+
+  
+
+  $self->{SUM}=$sum;
+  return $self;
 }
 
 #********************************************************************
@@ -611,6 +678,11 @@ sub remaining_time {
      $day_of_week   = $attr->{DAY_OF_WEEK};
      $day_of_year   = $attr->{DAY_OF_YEAR};
    }
+
+
+  my $REDUCTION = (defined($attr->{REDUCTION})) ? $attr->{REDUCTION} : 0;
+  $deposit = $deposit + ($deposit * (100 - $REDUCTION) / 100) if ($REDUCTION > 0);
+
 
   $time_intervals = $attr->{TIME_INTERVALS}; 
   $periods_time_tarif = $attr->{INTERVAL_TIME_TARIF};
@@ -801,11 +873,11 @@ sub err {
 
 #*******************************************************************
 # Make session log file
-# mk_session_log(\$acct_info, $conf)
+# mk_session_log(\$acct_info)
 #*******************************************************************
 sub mk_session_log  {
  my $self = shift;
- my ($acct_info, $conf) = @_;
+ my ($acct_info) = @_;
  my $filename="$acct_info->{USER_NAME}.$acct_info->{ACCT_SESSION_ID}";
 
  open(FILE, ">$conf->{SPOOL_DIR}/$filename") || die "Can't open file '$conf->{SPOOL_DIR}/$filename' $!";

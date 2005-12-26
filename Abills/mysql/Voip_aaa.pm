@@ -45,7 +45,7 @@ sub new {
   bless($self, $class);
   #$self->{debug}=1;
   my $Auth = Auth->new($db, $conf);
-  $Billing = Billing->new($db);	
+  $Billing = Billing->new($db, $conf);	
   return $self;
 }
 
@@ -71,9 +71,16 @@ sub preproces {
 
 
   (undef, $RAD->{H323_DISCONNECT_CAUSE}) = split(/=/, $RAD->{H323_DISCONNECT_CAUSE}, 2) if (defined($RAD->{H323_DISCONNECT_CAUSE}));
+
+
+#        h323-gw-id = "h323-gw-id=ASMODEUSGK"
+
+#  h323-setup-time = "h323-setup-time=14:48:32.000 EET Mon Dec 26 2005"
+#  h323-connect-time = "h323-connect-time=14:48:58.000 EET Mon Dec 26 2005"
+#  h323-disconnect-time = "h323-disconnect-time=14:51:38.000 EET Mon Dec 26 2005"
+#  h323-disconnect-cause = "h323-disconnect-cause=10"
+#  h323-remote-address = "h323-remote-address=192.168.101.4"
   
-  #h323-disconnect-cause = "h323-disconnect-cause=10"
-  #H323_CALL_ORIGIN="h323-call-origin=originate";
 }
 
 
@@ -99,6 +106,7 @@ sub user_info {
    voip.allow_calls,
    voip.disable,
    u.disable,
+   u.reduction,
    u.bill_id,
    u.company_id,
    
@@ -131,6 +139,7 @@ sub user_info {
    $self->{ALLOW_CALLS},
    $self->{VOIP_DISABLE},
    $self->{USER_DISABLE},
+   $self->{REDUCTION},
    $self->{BILL_ID},
    $self->{COMPANY_ID},
 
@@ -247,22 +256,94 @@ if ($self->{DISABLE}) {
      }
     
     #Get intervals and prices
+
+    if ($RAD->{H323_CALL_ORIGIN} == 1) {
+
+       $self->get_intervals();
+       if ($self->{TOTAL} < 1) {
+         $RAD_PAIRS{'Reply-Message'}="No price for route prefix '$self->{PREFIX}' number '". $RAD->{'CALLED_STATION_ID'} ."'";
+         return 1, \%RAD_PAIRS;
+        }
+
+       my ($session_timeout, $ATTR) = $Billing->remaining_time($self->{DEPOSIT}, {
+    	    TIME_INTERVALS      => $self->{TIME_PERIODS},
+          INTERVAL_TIME_TARIF => $self->{PERIODS_TIME_TARIF},
+          SESSION_START       => $self->{SESSION_START},
+          DAY_BEGIN           => $self->{DAY_BEGIN},
+          DAY_OF_WEEK         => $self->{DAY_OF_WEEK},
+          DAY_OF_YEAR         => $self->{DAY_OF_YEAR},
+          REDUCTION           => $self->{REDUCTION}
+         });
     
-    $self->query($db, "select i.day, TIME_TO_SEC(i.begin), TIME_TO_SEC(i.end), rp.price, i.id, rp.route_id
-           from intervals i, voip_route_prices rp
-           where
-            i.id=rp.interval_id 
-            and i.tp_id  = '$self->{TP_ID}'
-            and rp.route_id = '$self->{ROUTE_ID}';");
+       if ($session_timeout > 0) {
+         $RAD_PAIRS{'Session-Timeout'}=$session_timeout;    	
+       }
+       
+       
+         #Make start record in voip_calls
 
-    if ($self->{TOTAL} < 1) {
-       $RAD_PAIRS{'Reply-Message'}="No price for route prefix '$self->{PREFIX}' number '". $RAD->{'CALLED_STATION_ID'} ."'";
-       return 1, \%RAD_PAIRS;
-     }
+  my $SESSION_START = 'now()';
+  
+  $self->query($db, "INSERT INTO voip_calls 
+   (  status,
+      user_name,
+      started,
+      lupdated,
+      calling_station_id,
+      called_station_id,
+      nas_id,
+      client_ip_address,
+      conf_id,
+      call_origin,
+      uid,
+      bill_id,
+      tp_id,
+      route_id,
+      reduction
+   )
+   values ('0', \"$RAD->{USER_NAME}\", $SESSION_START, UNIX_TIMESTAMP(), 
+      '$RAD->{CALLING_STATION_ID}', '$RAD->{CALLED_STATION_ID}', '$NAS->{NID}',
+      INET_ATON('$RAD->{CLIENT_IP_ADDRESS}'),
+      '$RAD->{H323_CONF_ID}',
+      '$RAD->{H323_CALL_ORIGIN}',
+      '$self->{UID}',
+      '$self->{BILL_ID}',
+      '$self->{TP_ID}',
+      '$self->{ROUTE_ID}',
+      '$self->{REDUCTION}');", 'do');
 
-    my $list = $self->{list};
+
+   }
+
+   
 
 
+   }
+
+
+  
+  return 0, \%RAD_PAIRS;
+}
+
+
+
+#**********************************************************
+#
+#**********************************************************
+sub get_intervals {
+	my $self = shift;
+	my ($attr) = @_;
+	
+	
+  $self->query($db, "select i.day, TIME_TO_SEC(i.begin), TIME_TO_SEC(i.end), rp.price, i.id, rp.route_id
+      from intervals i, voip_route_prices rp
+      where
+         i.id=rp.interval_id 
+         and i.tp_id  = '$self->{TP_ID}'
+         and rp.route_id = '$self->{ROUTE_ID}';");
+
+
+   my $list = $self->{list};
    my %time_periods = ();
    my %periods_time_tarif = ();
    
@@ -273,26 +354,15 @@ if ($self->{DISABLE}) {
      $periods_time_tarif{$line->[4]} = $line->[3];
     }
 
-     
-    my ($session_timeout, $ATTR) = $Billing->remaining_time($self->{DEPOSIT}, {
-    	 TIME_INTERVALS      => \%time_periods,
-       INTERVAL_TIME_TARIF => \%periods_time_tarif,
-       SESSION_START       => $self->{SESSION_START},
-       DAY_BEGIN           => $self->{DAY_BEGIN},
-       DAY_OF_WEEK         => $self->{DAY_OF_WEEK},
-       DAY_OF_YEAR         => $self->{DAY_OF_YEAR}
-      });
-    
-    if ($session_timeout > 0) {
-      $RAD_PAIRS{'Session-Timeout'}=$session_timeout;    	
-     }
-  
-   }
 
-
-  
-  return 0, \%RAD_PAIRS;
+  $self->{TIME_PERIODS}=\%time_periods;
+  $self->{PERIODS_TIME_TARIF}=\%periods_time_tarif;
+	
+	
+	return $self;
 }
+
+
 
 #**********************************************************
 # Accounting Work_
@@ -312,12 +382,17 @@ sub accounting {
 
 #Start
 if ($acct_status_type == 1) { 
+  $self->query($db, "UPDATE voip_calls SET
+    status='$acct_status_type',
+    acct_session_id='$RAD->{ACCT_SESSION_ID}'
+    WHERE conf_id='$RAD->{H323_CONF_ID}';", 'do');
+ }
+# Stop status
+elsif ($acct_status_type == 2) {
 
 
-  $self->query($db, "INSERT INTO voip_calls 
-   (  status,
-      user_name,
-      started,
+  $self->query($db, "SELECT 
+      UNIX_TIMESTAMP(started),
       lupdated,
       acct_session_id,
       calling_station_id,
@@ -326,105 +401,119 @@ if ($acct_status_type == 1) {
       client_ip_address,
       conf_id,
       call_origin,
-      uid
-   )
-   values ('$acct_status_type', \"$RAD->{USER_NAME}\", $SESSION_START, UNIX_TIMESTAMP(), 
-     '$RAD->{ACCT_SESSION_ID}', 
-      '$RAD->{CALLING_STATION_ID}', '$RAD->{CALLED_STATION_ID}', '$NAS->{NID}',
-      INET_ATON('$RAD->{CLIENT_IP_ADDRESS}'),
-      '$RAD->{H323_CONF_ID}',
-      0,
-      0);", 'do');
+      uid,
+      reduction,
+      bill_id,
+      tp_id,
+      route_id,
       
- }
-# Stop status
-elsif ($acct_status_type == 2) {
+      UNIX_TIMESTAMP(),
+      UNIX_TIMESTAMP(DATE_FORMAT(FROM_UNIXTIME(UNIX_TIMESTAMP()), '%Y-%m-%d')),
+      DAYOFWEEK(FROM_UNIXTIME(UNIX_TIMESTAMP())),
+      DAYOFYEAR(FROM_UNIXTIME(UNIX_TIMESTAMP()))
+   
+   FROM voip_calls 
+    WHERE 
+      conf_id='$RAD->{H323_CONF_ID}'
+      and call_origin='1'
+   ;");
 
-
-#  ($self->{UID}, 
-#  $self->{SUM}, 
-#  $self->{BILL_ID}, 
-#  $self->{TARIF_PLAN}, 
-#  $self->{TIME_TARIF}, 
-#  $self->{TRAF_TARIF}) = $Billing->session_sum("$RAD->{USER_NAME}", 
-#                                                 $RAD->{SESSION_START}, 
-#                                                 $RAD->{ACCT_SESSION_TIME}, 
-#                                                 $RAD, 
-#                                                 $conf);
-
-  
-  my $PERIODS     = '';
-  my $TIME_PRICES = '';
-
-  #%TARIFFS = ($ID => 
-  #my %PARAMS = (IP     => $RAD->{FRAMED_IP_ADDRESS},
-  #              NUMBER => $RAD->{CALLING_STATION_ID} );
-  
-  $self->user_info($RAD, $NAS);
-  
-  if($self->{TOTAL} < 1) {
-  	$self->{errno}=1;
-  	$self->{errstr}="Not exists";
+  if ($self->{TOTAL} < 1) {
+   	$self->{errno}=1;
+  	$self->{errstr}="Call not exists";
+  	$self->{Q}->finish();
   	return $self;
    }
-  elsif ($self->{errno}) {
+  elsif ($self->{errno}){
   	$self->{errno}=1;
-  	$self->{errstr}="Some error";
+  	$self->{errstr}="SQL error";
   	return $self;
    }
 
+
+  my $ar = $self->{list}->[0];
+
+  ($self->{SESSION_START},
+   $self->{LAST_UPDATE},
+   $self->{ACCT_SESSION_ID}, 
+   $self->{CALLING_STATION_ID},
+   $self->{CALLED_STATION_ID},
+   $self->{NAS_ID},
+   $self->{CLIENT_IP_ADDRESS},
+   $self->{CONF_ID},
+   $self->{CALL_ORIGIN},
+   $self->{UID},
+   $self->{REDUCTION},
+   $self->{BILL_ID},
+   $self->{TP_ID},
+   $self->{ROUTE_ID},
+   
+   $self->{SESSION_STOP},
+   $self->{DAY_BEGIN},
+   $self->{DAY_OF_WEEK},
+   $self->{DAY_OF_YEAR}
+   
+  )= @$ar;
   
-  $self->{SUM}=10; 
-  $Billing->time_calculation({ START       => $RAD->{SESSION_START},
-  	                           DURATION    => $RAD->{ACCT_SESSION_TIME},
-  	                           PERIODS     => $PERIODS,
-  	                           TIME_PRICES => $TIME_PRICES });
 
+#get intervals
 
- 
+       $self->get_intervals();
+       if ($self->{TOTAL} < 1) {
+         $RAD_PAIRS{'Reply-Message'}="No price for route prefix '$self->{PREFIX}' number '". $RAD->{'CALLED_STATION_ID'} ."'";
+         return 1, \%RAD_PAIRS;
+        }
+
+       $Billing->time_calculation({
+    	    REDUCTION           => $self->{REDUCTION},
+    	    TIME_INTERVALS      => $self->{TIME_PERIODS},
+          PERIODS_TIME_TARIF =>  $self->{PERIODS_TIME_TARIF},
+          SESSION_START       => $self->{SESSION_START},
+          ACCT_SESSION_TIME   => $RAD->{ACCT_SESSION_TIME},
+          DAY_BEGIN           => $self->{DAY_BEGIN},
+          DAY_OF_WEEK         => $self->{DAY_OF_WEEK},
+          DAY_OF_YEAR         => $self->{DAY_OF_YEAR},
+          PRICE_UNIT          => 'Min'
+          
+         });
+  
+  
+  if ($Billing->{errno}) {
+   	$self->{errno}=$Billing->{errno};
+  	$self->{errstr}=$Billing->{errstr};
+  	return $self;
+   }
+  
 my $filename; 
-#  return $self;
-  if ($self->{UID} == -2) {
-    $self->{errno}=1;   
-    $self->{errstr} = "ACCT [$RAD->{USER_NAME}] Not exist";
-   }
-  elsif($self->{UID} == -3) {
-    $filename = "$RAD->{USER_NAME}.$RAD->{ACCT_SESSION_ID}";
-    $self->{errno}=1;
-    $self->{errstr}="ACCT [$RAD->{USER_NAME}] Not allow start period '$filename'";
-    $Billing->mk_session_log($RAD, $conf);
-   }
-  elsif ($self->{SUM} < 0) {
-    $self->{LOG_DEBUG} =  "ACCT [$RAD->{USER_NAME}] small session ($RAD->{ACCT_SESSION_TIME}, $RAD->{INBYTE}, $RAD->{OUTBYTE})";
-   }
-  else {
+
     $self->query($db, "INSERT INTO voip_log (uid, start, duration, calling_station_id, called_station_id,
               nas_id, client_ip_address, acct_session_id, 
               tp_id, bill_id, sum) 
         VALUES ('$self->{UID}', FROM_UNIXTIME($RAD->{SESSION_START}),  '$RAD->{ACCT_SESSION_TIME}', 
         '$RAD->{CALLING_STATION_ID}', '$RAD->{CALLED_STATION_ID}', 
         '$NAS->{NID}', INET_ATON('$RAD->{CLIENT_IP_ADDRESS}'), '$RAD->{ACCT_SESSION_ID}', 
-        '$self->{TP_ID}', '$self->{BILL_ID}', '$self->{SUM}');", 'do');
+        '$self->{TP_ID}', '$self->{BILL_ID}', '$Billing->{SUM}');", 'do');
 
     if ($self->{errno}) {
       $filename = "$RAD->{USER_NAME}.$RAD->{ACCT_SESSION_ID}";
       $self->{LOG_WARNING}="ACCT [$RAD->{USER_NAME}] Making accounting file '$filename'";
-      $Billing->mk_session_log($RAD, $conf);
+      $Billing->mk_session_log($RAD);
      }
 # If SQL query filed
     else {
-      if ($self->{SUM} > 0) {
-         $self->query($db, "UPDATE bills SET deposit=deposit-$self->{SUM} WHERE id='$self->{BILL_ID}';", 'do');
+      if ($Billing->{SUM} > 0) {
+         $self->query($db, "UPDATE bills SET deposit=deposit-$Billing->{SUM} WHERE id='$self->{BILL_ID}';", 'do');
        }
      }
-   }
+
 
   # Delete from session wtmp
-#  $self->{debug}=1;
-  $self->query($db, "DELETE FROM voip_calls WHERE acct_session_id='$RAD->{ACCT_SESSION_ID}' 
+  $self->query($db, "DELETE FROM voip_calls 
+     WHERE acct_session_id='$RAD->{ACCT_SESSION_ID}' 
      and user_name=\"$RAD->{USER_NAME}\" 
-     and nas_id='$NAS->{NID}';", 'do');
-     
+     and nas_id='$NAS->{NID}'
+     and conf_id='$self->{CONF_ID}';", 'do');
+ 
 }
 #Alive status 3
 elsif($acct_status_type eq 3) {
@@ -465,7 +554,6 @@ else {
   if ($self->{errno}) {
   	$self->{errno}=1;
   	$self->{errstr}="ACCT $RAD->{ACCT_STATUS_TYPE} SQL Error";
-  	return $self;
    }
 
 

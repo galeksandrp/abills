@@ -78,10 +78,9 @@ if ($nas->{errno} || $nas->{TOTAL} < 1) {
 my $acct = acct($RAD);
 
 
-if($acct->{errno}) {
+if(defined($acct->{errno})) {
 	log_print('LOG_ERROR', "ACCT [$RAD->{USER_NAME}] $acct->{errstr}");
 }
-
 
 $db->disconnect();
 
@@ -156,24 +155,25 @@ else {
     }
   }
 
-my $r;
+my $r = 0;
+my $Acct;
 if(defined($ACCT{$nas->{NAS_TYPE}})) {
   require $ACCT{$nas->{NAS_TYPE}} . ".pm";
   $ACCT{$nas->{NAS_TYPE}}->import();
-  my $Acct = $ACCT{$nas->{NAS_TYPE}}->new($db, \%conf);
+  $Acct = $ACCT{$nas->{NAS_TYPE}}->new($db, \%conf);
   $r = $Acct->accounting($RAD, $nas);
-  
-  if ($r->{errno}){
-    print "$r->{errno}\n$r->{errstr}\n";	
-   }
-#  print "Voip - ";
 }
 else {
   require Acct;
   Acct->import();
-  my $Acct = Acct->new($db, \%conf);
+  $Acct = Acct->new($db, \%conf);
   $r = $Acct->accounting($RAD, $nas);
 }
+
+
+if ($Acct->{errno}){
+  print "Error: $r->{errno} ($r->{errstr})\n";	
+ }
 
 
 

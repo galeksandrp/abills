@@ -1018,7 +1018,7 @@ sub remaining_time {
   my $remaining_time = 0;
 
   use Billing;
-  my $Billing = Billing->new($db);
+  my $Billing = Billing->new($db, $CONF);
   my ($time_intervals, $periods_time_tarif, $periods_traf_tarif) = $Billing->time_intervals($tp_id);
 
  if ($time_intervals == 0) {

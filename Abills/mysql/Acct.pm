@@ -83,7 +83,7 @@ if ($acct_status_type == 1) {
 elsif ($acct_status_type == 2) {
 
 
-  my $Billing = Billing->new($db);	
+  my $Billing = Billing->new($db, $conf);	
 
   ($self->{UID}, 
   $self->{SUM}, 
@@ -93,13 +93,12 @@ elsif ($acct_status_type == 2) {
   $self->{TRAF_TARIF}) = $Billing->session_sum("$RAD->{USER_NAME}", 
                                                  $RAD->{SESSION_START}, 
                                                  $RAD->{ACCT_SESSION_TIME}, 
-                                                 $RAD, 
-                                                 $conf);
+                                                 $RAD);
 
 
-   $Billing->time_calculation({
-   	                           START     => $RAD->{SESSION_START}, 
-   	                           DURATION  => $RAD->{ACCT_SESSION_TIME} });
+#   $Billing->time_calculation({
+#   	                           START     => $RAD->{SESSION_START}, 
+#   	                           DURATION  => $RAD->{ACCT_SESSION_TIME} });
 
  
 #  return $self;
@@ -111,7 +110,7 @@ elsif ($acct_status_type == 2) {
     my $filename = "$RAD->{USER_NAME}.$RAD->{ACCT_SESSION_ID}";
     $self->{errno}=1;
     $self->{errstr}="ACCT [$RAD->{USER_NAME}] Not allow start period '$filename'";
-    $Billing->mk_session_log($RAD, $conf);
+    $Billing->mk_session_log($RAD);
    }
   elsif ($self->{SUM} < 0) {
     $self->{LOG_DEBUG} =  "ACCT [$RAD->{USER_NAME}] small session ($RAD->{ACCT_SESSION_TIME}, $RAD->{INBYTE}, $RAD->{OUTBYTE})";
@@ -127,7 +126,7 @@ elsif ($acct_status_type == 2) {
     if ($self->{errno}) {
       my $filename = "$RAD->{USER_NAME}.$RAD->{ACCT_SESSION_ID}";
       $self->{LOG_WARNING}="ACCT [$RAD->{USER_NAME}] Making accounting file '$filename'";
-      $Billing->mk_session_log($RAD, $conf);
+      $Billing->mk_session_log($RAD);
      }
 # If SQL query filed
     else {
