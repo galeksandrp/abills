@@ -39,8 +39,9 @@ sub new {
 sub account_defaults {
   my $self = shift;
 
-  %DATA = ( SUM   => '0.00',
-            COUNTS => 1
+  %DATA = ( SUM    => '0.00',
+            COUNTS => 1,
+            UNIT   => 1
          );   
  
   $self = \%DATA;
@@ -222,7 +223,9 @@ sub account_info {
    $self->{SUM}
   )= @$ar;
 	
-  
+ 
+  $self->{NUMBER}=$self->{ACCT_ID};
+ 
   $self->query($db, "SELECT acct_id, orders, counts, unit, price
    FROM docs_acct_orders WHERE acct_id='$id'");
   
