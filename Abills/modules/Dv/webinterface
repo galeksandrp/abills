@@ -98,7 +98,7 @@ my $variant_out = '';
  $params .= "</table><input type=submit name=set value=\"$_CHANGE\">\n";
 
 
-my $tp_index = $index + 3;
+my $tp_index = $index + 4;
 
 my $result = "<form action=$SELF_URL>
 <input type=hidden name=UID value='$attr->{USER}->{UID}'>
@@ -124,7 +124,13 @@ sub dv_users_list {
    $LIST_PARAMS{TP_ID} = $FORM{TP_ID};
    $pages_qs .= "&TP_ID=$FORM{TP_ID}";
   }
- 
+
+ form_search({ SEARCH_FORM =>  	
+ 	"<tr><td colspan=2><hr></td></tr>
+   <tr><td>IP (>,<)</td><td><input type=text name=IP value='%IP%'></td></tr>
+   <tr><td>CID</td><td><input type=text name=CID value='%CID%'></td></tr>\n"
+  });
+
 
  print Abills::HTML->letters_list({ pages_qs => $pages_qs  }); 
 
@@ -134,8 +140,9 @@ sub dv_users_list {
   } 
 
 
-#use Users;
-#my $users = Users->new($db, $admin, \%conf); 
+
+
+
 
 my $list = $Dv->list( { %LIST_PARAMS } );
 
@@ -163,7 +170,7 @@ foreach my $line (@$list) {
   my $payments = ($permissions{1}) ?  "<a href='$SELF_URL?index=2&UID=$line->[6]'>$_PAYMENTS</a>" : ''; 
 
   $table->addrow("<a href='$SELF_URL?index=11&UID=$line->[6]'>$line->[0]</a>", "$line->[1]",
-   "$line->[2]", "$line->[3]", "$line->[4]", "$status[$line->[5]]", $payments, "<a href='$SELF_URL?index=$index&UID=$line->[6]'>$_STATS</a>");
+   "$line->[2]", "$line->[3]", "$line->[4]", "$status[$line->[5]]", $payments, "<a href='$SELF_URL?index=". ($index + 3) ."&UID=$line->[6]'>$_STATS</a>");
 }
 print $table->show();
 
@@ -630,6 +637,7 @@ if (! $list) {
 
   form_search({ SEARCH_FORM =>  	
   	"<tr><td colspan=2><hr></td></tr>
+     <tr><td>SUM (>,<)</td><td><input type=text name=SUM value='%SUM%'></td></tr>
      <tr><td>IP (>,<)</td><td><input type=text name=IP value='%IP%'></td></tr>
      <tr><td>CID</td><td><input type=text name=CID value='%CID%'></td></tr>
      <tr><td>NAS</td><td>$SEL_NAS</td></tr>
@@ -685,12 +693,13 @@ foreach my $line (@$list) {
                                             \%conf,
                                             { TP_ID => $line->[3] });
   
-  my $test = "$UID, 
-      <b>$SUM</b>, 
-      $COMPANY_ID, 
-      $TARIF_PLAN, 
-      $TIME_TARIF, 
-      $TRAF_TARIF";
+  my $test = ""; 
+#  <br>$UID, 
+#      <b>$SUM</b>, 
+#      $COMPANY_ID, 
+#      $TARIF_PLAN, 
+#      $TIME_TARIF, 
+#      $TRAF_TARIF";
 
   $table->addrow("<a href='$SELF_URL?index=11&UID=$line->[12]'>$line->[0]</a>", 
      $line->[1], $line->[2],  $line->[3],  
@@ -893,6 +902,14 @@ elsif($FORM{UID}) {
   return 0;
 }
 
+
+
+if (! -f $conf{LOGFILE}) {
+	message('info', $_INFO, "'$conf{LOGFILE}' $_NOT_EXIST");
+	return 0;
+}
+
+
 my ($list, $types, $totals) = show_log("$login", "$conf{LOGFILE}", { DATE      => $FORM{DATE},
 	                                                                   LOG_TYPE  => $FORM{LOG_TYPE},
 	                                                                   PG        => $PG,
@@ -911,9 +928,9 @@ print $table->show();
 $table = Abills::HTML->table( { width => '100%',
 	                              cols_align => ['right', 'right'] } );
 
-$table->addrow("<a href='$SELF_URL?index=40&$pages_qs'>$_TOTAL:</a>", $totals);
+$table->addrow("<a href='$SELF_URL?index=$index&$pages_qs'>$_TOTAL:</a>", $totals);
 while(my($k,$v)=each %$types) {
-  $table->addrow("<a href='$SELF_URL?index=40&LOG_TYPE=$k&$pages_qs'>$k</a>", $v);
+  $table->addrow("<a href='$SELF_URL?index=$index&LOG_TYPE=$k&$pages_qs'>$k</a>", $v);
 }
 print $table->show();
 

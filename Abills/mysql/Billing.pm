@@ -154,7 +154,8 @@ sub traffic_calculations {
 
 
 my %traf_price = ();
-my %prepaid = ();
+my %prepaid = ( 0 => 0, 
+                1 => 0);
 my %used_traffic=( 0 => 0, 
                    1 => 0);
 
@@ -213,8 +214,8 @@ if ($prepaid{0} + $prepaid{1} > 0) {
 
  my $gl_in  = $recv / 1024 / 1024 * $traf_price{in}{0};
  my $gl_out = $sent / 1024 / 1024 * $traf_price{out}{0};
- my $lo_in  = $recv2 / 1024 / 1024 * $traf_price{in}{1};
- my $lo_out = $sent2 / 1024 / 1024 * $traf_price{out}{1};
+ my $lo_in  = (defined($traf_price{in}{1})) ?  $recv2 / 1024 / 1024 * $traf_price{in}{1} : 0;
+ my $lo_out = (defined($traf_price{in}{1})) ?  $sent2 / 1024 / 1024 * $traf_price{out}{1} : 0;
  $traf_sum  = $lo_in + $lo_out + $gl_in + $gl_out;
 
 
@@ -322,10 +323,12 @@ sub session_sum {
 
 if(! defined($self->{NO_TPINTERVALS})) {
   if($interval_count < 1) {
-   	print "NOt allow start period";
+   	print "NOt allow start period" if ($self->{debug});
  	  return -3, 0, 0, 0, 0, 0;	
    }
+  
   #$self->{debug}=1;
+
   while(my($k, $v)=each(%$sd)) {
  	  print "> $k, $v\n" if ($self->{debug});
     if(defined($periods_time_tarif->{$k})) {

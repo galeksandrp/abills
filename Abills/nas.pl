@@ -105,9 +105,16 @@ sub telnet_cmd {
 
  
  use Socket;
- socket(SH, PF_INET, SOCK_STREAM, getprotobyname('tcp')) || die "Can't connect to '$hostname, $port' $!";
+ if(! socket(SH, PF_INET, SOCK_STREAM, getprotobyname('tcp'))) {
+ 	 print "ERR: Can't connect to '$hostname:$port' $!";
+   return 0;
+  }
+
  my $dest = sockaddr_in($port, inet_aton("$hostname"));
- connect(SH, $dest) || die "Can't connect to '$hostname, $port' $!";
+ if(! connect(SH, $dest)) { 
+   print "ERR: Can't connect to '$hostname:$port' $!";
+   return 0;
+  }
 
  my $sock = \*SH;
  my $MAXBUF=512;

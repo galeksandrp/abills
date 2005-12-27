@@ -54,7 +54,7 @@ my %FIELDS = ( TP_ID        => 'id',
 #**********************************************************
 sub new {
   my $class = shift;
-  ($db, $CONF) = @_;
+  ($db, $CONF, $admin) = @_;
   my $self = { };
   bless($self, $class);
   
@@ -103,8 +103,7 @@ sub ti_list {
   my $begin_end = "i.begin, i.end,";   
   my $TP_ID = $self->{TP_ID};  
   
-  $self->{debug}=1;
-  
+
     
   if (defined($attr->{TP_ID})) {
     $begin_end =  "TIME_TO_SEC(i.begin), TIME_TO_SEC(i.end), "; 
@@ -133,7 +132,6 @@ sub ti_change {
   
   %DATA = $self->get_data($attr); 
 
- 
   my %FIELDS = (
     TI_DAY   => 'day', 
     TI_BEGIN => 'begin', 
@@ -142,12 +140,14 @@ sub ti_change {
     TI_ID    => 'id'
    );
 
-	$self->changes( { CHANGE_PARAM => 'TI_ID',
+	$self->changes($admin, { CHANGE_PARAM => 'TI_ID',
 		               TABLE        => 'intervals',
 		               FIELDS       => \%FIELDS,
 		               OLD_INFO     => $self->ti_info($ti_id),
 		               DATA         => $attr
 		              } );
+
+
 
   if ($ti_id == $DATA{TI_ID}) {
   	$self->ti_info($ti_id);
@@ -283,6 +283,7 @@ sub add {
 sub change {
   my $self = shift;
   my ($tp_id, $attr) = @_;
+
 	$self->changes(0, { CHANGE_PARAM => 'TP_ID',
 		                TABLE        => 'tarif_plans',
 		                FIELDS       => \%FIELDS,

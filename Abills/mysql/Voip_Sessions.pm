@@ -365,46 +365,35 @@ sub periods_totals {
   }
 
  $self->query($db, "SELECT  
-   sum(if(date_format(start, '%Y-%m-%d')=curdate(), sent, 0)), 
-   sum(if(date_format(start, '%Y-%m-%d')=curdate(), recv, 0)), 
    SEC_TO_TIME(sum(if(date_format(start, '%Y-%m-%d')=curdate(), duration, 0))), 
-
-   sum(if(TO_DAYS(curdate()) - TO_DAYS(start) = 1, sent, 0)),
-   sum(if(TO_DAYS(curdate()) - TO_DAYS(start) = 1, recv, 0)),
+   sum(if(date_format(start, '%Y-%m-%d')=curdate(), sum, 0)), 
+   
    SEC_TO_TIME(sum(if(TO_DAYS(curdate()) - TO_DAYS(start) = 1, duration, 0))),
-
-   sum(if((YEAR(curdate())=YEAR(start)) and (WEEK(curdate()) = WEEK(start)), sent, 0)),
-   sum(if((YEAR(curdate())=YEAR(start)) and  WEEK(curdate()) = WEEK(start), recv, 0)),
+   sum(if(TO_DAYS(curdate()) - TO_DAYS(start) = 1, sum, 0)),
+   
    SEC_TO_TIME(sum(if((YEAR(curdate())=YEAR(start)) and WEEK(curdate()) = WEEK(start), duration, 0))),
-
-   sum(if(date_format(start, '%Y-%m')=date_format(curdate(), '%Y-%m'), sent, 0)), 
-   sum(if(date_format(start, '%Y-%m')=date_format(curdate(), '%Y-%m'), recv, 0)), 
+   sum(if((YEAR(curdate())=YEAR(start)) and WEEK(curdate()) = WEEK(start), sum, 0)),
+   
    SEC_TO_TIME(sum(if(date_format(start, '%Y-%m')=date_format(curdate(), '%Y-%m'), duration, 0))),
-  
-   sum(sent), sum(recv), SEC_TO_TIME(sum(duration))
-   FROM log $WHERE;");
+   sum(if(date_format(start, '%Y-%m')=date_format(curdate(), '%Y-%m'), sum, 0)),
+   
+   SEC_TO_TIME(sum(duration)),
+   sum(sum)
+   
+   FROM voip_log $WHERE;");
 
   my $ar = $self->{list}->[0];
-  ($self->{sent_0}, 
-      $self->{recv_0}, 
-      $self->{duration_0}, 
-      $self->{sent_1}, 
-      $self->{recv_1}, 
+  (   $self->{duration_0}, 
+     $self->{sum_0}, 
       $self->{duration_1},
-      $self->{sent_2}, 
-      $self->{recv_2}, 
+     $self->{sum_1}, 
       $self->{duration_2}, 
-      $self->{sent_3}, 
-      $self->{recv_3}, 
+     $self->{sum_2}, 
       $self->{duration_3}, 
-      $self->{sent_4}, 
-      $self->{recv_4}, 
-      $self->{duration_4}) =  @$ar;
+     $self->{sum_3}, 
+      $self->{duration_4},
+     $self->{sum_4}, ) =  @$ar;
   
-  for(my $i=0; $i<5; $i++) {
-    $self->{'sum_'. $i } = $self->{'sent_' . $i } + $self->{'recv_' . $i};
-  }
-
   return $self;	
 }
 
@@ -570,22 +559,14 @@ sub calculation {
    }
 
   $self->query($db, "SELECT SEC_TO_TIME(min(l.duration)), SEC_TO_TIME(max(l.duration)), SEC_TO_TIME(avg(l.duration)),
-  min(l.sent), max(l.sent), avg(l.sent),
-  min(l.recv), max(l.recv), avg(l.recv),
-  min(l.recv+l.sent), max(l.recv+l.sent), avg(l.recv+l.sent)
-  FROM log l $WHERE");
+  min(l.sum), max(l.sum), avg(l.sum)
+  FROM voip_log l $WHERE");
 
   my $ar = $self->{list}->[0];
 
   ($self->{min_dur}, 
    $self->{max_dur}, 
    $self->{avg_dur}, 
-   $self->{min_sent}, 
-   $self->{max_sent}, 
-   $self->{avg_sent},
-   $self->{min_recv}, 
-   $self->{max_recv}, 
-   $self->{avg_recv}, 
    $self->{min_sum}, 
    $self->{max_sum}, 
    $self->{avg_sum}) =  @$ar;

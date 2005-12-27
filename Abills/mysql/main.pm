@@ -290,7 +290,6 @@ sub changes {
   my $CHANGES_LOG = "";
 
   while(my($k, $v)=each(%DATA)) {
-#  	print "$k, $v<br>";
     if (defined($FIELDS->{$k}) && $OLD_DATA->{$k} ne $DATA{$k}){
         if ($k eq 'PASSWORD') {
           $CHANGES_LOG .= "$k *->*;";

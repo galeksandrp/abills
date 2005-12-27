@@ -488,11 +488,13 @@ my $filename;
 
     $self->query($db, "INSERT INTO voip_log (uid, start, duration, calling_station_id, called_station_id,
               nas_id, client_ip_address, acct_session_id, 
-              tp_id, bill_id, sum) 
+              tp_id, bill_id, sum,
+              terminate_cause) 
         VALUES ('$self->{UID}', FROM_UNIXTIME($RAD->{SESSION_START}),  '$RAD->{ACCT_SESSION_TIME}', 
         '$RAD->{CALLING_STATION_ID}', '$RAD->{CALLED_STATION_ID}', 
         '$NAS->{NID}', INET_ATON('$RAD->{CLIENT_IP_ADDRESS}'), '$RAD->{ACCT_SESSION_ID}', 
-        '$self->{TP_ID}', '$self->{BILL_ID}', '$Billing->{SUM}');", 'do');
+        '$self->{TP_ID}', '$self->{BILL_ID}', '$Billing->{SUM}',
+        '$RAD->{ACCT_TERMINATE_CAUSE}');", 'do');
 
     if ($self->{errno}) {
       $filename = "$RAD->{USER_NAME}.$RAD->{ACCT_SESSION_ID}";

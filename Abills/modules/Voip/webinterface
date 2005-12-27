@@ -1485,10 +1485,10 @@ print $table_fees->show() . $table->show();
 #**********************************************************
 # dv_error
 #**********************************************************
-sub dv_error {
+sub voip_error {
 	my ($attr) = @_;
   my $PAGE_ROWS = 100;
-  $conf{LOGFILE} = "/usr/abills/var/log/abills.log";
+  $conf{LOGFILE} = "/usr/abills/var/log/abills.voip";
   my $login  = ''; 
 
 if ($attr->{USER}) {
@@ -1498,6 +1498,11 @@ if ($attr->{USER}) {
 elsif($FORM{UID}) {
   dv_users();
   return 0;
+}
+
+if (! -f $conf{LOGFILE}) {
+	message('info', $_INFO, "'$conf{LOGFILE}' $_NOT_EXIST");
+	return 0;
 }
 
 my ($list, $types, $totals) = show_log("$login", "$conf{LOGFILE}", { DATE      => $FORM{DATE},
@@ -1586,13 +1591,14 @@ if ($FORM{rows}) {
 #PEriods totals
 my $list = $sessions->periods_totals({ %LIST_PARAMS });
 my $table = Abills::HTML->table( { width => '100%',
-                                   title_plain => ["$_PERIOD", "$_DURATION", "$_SEND", "$_RECV", "$_SUM"],
-                                   cols_align => ['left', 'right', 'right', 'right', 'right'],
+                                   title_plain => ["$_PERIOD", "$_DURATION", "$_SUM"],
+                                   cols_align => ['left', 'right', 'right'],
                                    rowcolor => $_COLORS[1]
                                   } );
 for(my $i = 0; $i < 5; $i++) {
-	  $table->addrow("<a href='$SELF_URL?index=$index&period=$i$pages_qs'>$PERIODS[$i]</a>", "$sessions->{'duration_'. $i}",
-	  int2byte($sessions->{'sent_'. $i}), int2byte($sessions->{'recv_'. $i}), int2byte($sessions->{'sum_'. $i}));
+	  $table->addrow("<a href='$SELF_URL?index=$index&period=$i$pages_qs'>$PERIODS[$i]</a>", 
+	  "$sessions->{'duration_'. $i}",
+	  $sessions->{'sum_'. $i});
  }
 print $table->show();
 
@@ -1612,7 +1618,7 @@ $table = Abills::HTML->table( { width => '640',
 print $table->show();
 print "</form>\n";
 
-dv_stats_calculation($sessions);
+voip_stats_calculation($sessions);
 
 if (defined($FORM{show})) {
   $pages_qs .= "&show=y&fromd=$FORM{fromd}&fromm=$FORM{fromm}&fromy=$FORM{fromy}&tod=$FORM{tod}&tom=$FORM{tom}&toy=$FORM{toy}";
@@ -1638,16 +1644,15 @@ if (! defined($FORM{sort})) {
 
 #Session List
 $list = $sessions->list({ %LIST_PARAMS });	
-
 $table = Abills::HTML->table( { width => '640',
 	                              rowcolor => $_COLORS[1],
-                                title_plain => ["$_SESSIONS", "$_DURATION", "$_TRAFFIC", "$_SUM"],
-                                cols_align => ['right', 'right', 'right', 'right'],
-                                rows => [ [ $sessions->{TOTAL}, $sessions->{DURATION}, int2byte($sessions->{TRAFFIC}), $sessions->{SUM} ] ],
+                                title_plain => ["$_SESSIONS", "$_DURATION", "$_SUM"],
+                                cols_align => ['right', 'right', 'right'],
+                                rows => [ [ $sessions->{TOTAL}, $sessions->{DURATION}, $sessions->{SUM} ] ],
                                } );
-print "<p>" . $table->show() . "</p>\n";
+print $table->show();
 
-dv_sessions($list, $sessions);
+voip_sessions($list, $sessions);
 }
 
 
@@ -1658,17 +1663,16 @@ dv_sessions($list, $sessions);
 sub voip_stats_calculation  {
  my ($sessions) = @_;
 
-$sessions->calculation({ %LIST_PARAMS }); 
+ $sessions->calculation({ %LIST_PARAMS }); 
 
 
 my $table = Abills::HTML->table( { width => '640',
 	                              rowcolor => $_COLORS[1],
                                 title_plain => ["-", "$_MIN", "$_MAX", "$_AVG"],
                                 cols_align => ['left', 'right', 'right', 'right'],
-                                rows => [ [ $_DURATION,  $sessions->{min_dur}, $sessions->{max_dur}, $sessions->{avg_dur} ],
-                                          [ "$_TRAFFIC $_RECV", int2byte($sessions->{min_recv}), int2byte($sessions->{max_recv}), int2byte($sessions->{avg_recv}) ],
-                                          [ "$_TRAFFIC $_SENT", int2byte($sessions->{min_sent}), int2byte($sessions->{max_sent}), int2byte($sessions->{avg_sent}) ],
-                                          [ "$_TRAFFIC $_SUM",  int2byte($sessions->{min_sum}),  int2byte($sessions->{max_sum}),  int2byte($sessions->{avg_sum}) ]
+                                rows => [ 
+                                  [ $_DURATION,  $sessions->{min_dur}, $sessions->{max_dur}, $sessions->{avg_dur} ],
+                                  [ $_SUM,  $sessions->{min_sum}, $sessions->{max_sum}, $sessions->{avg_sum} ]
                                         ]
                                } );
 print $table->show();
@@ -1728,7 +1732,7 @@ $table = Abills::HTML->table( { width => '640',
 print $table->show();
 print "</form>\n";
 
-dv_stats_calculation($sessions);
+voip_stats_calculation($sessions);
 
 if (defined($FORM{show})) {
   $pages_qs .= "&show=y&fromd=$FORM{fromd}&fromm=$FORM{fromm}&fromy=$FORM{fromy}&tod=$FORM{tod}&tom=$FORM{tom}&toy=$FORM{toy}";
@@ -1832,15 +1836,15 @@ sub dv_user_info {
 #**********************************************************
 # daily_fees
 #**********************************************************
-sub dv_daily_fees {
+sub voip_daily_fees {
  
  require Tariffs;
  Tariffs->import();
- my $tariffs = Tariffs->new($db);
+ my $tariffs = Tariffs->new($db, $conf);
 
  require Fees;
  Fees->import();
- my $fees = Fees->new($db, $admin);
+ my $fees = Fees->new($db, $admin, $conf);
 
  my $list = $tariffs->list({ %LIST_PARAMS });
 
@@ -1875,6 +1879,10 @@ sub dv_daily_fees {
 
  	  }
   }
+
+
+
+
 }
 
 

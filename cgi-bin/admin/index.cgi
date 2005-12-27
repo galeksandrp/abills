@@ -726,13 +726,10 @@ print "
 <table width=100% border=0><tr><td>
       <li><a href='$SELF_URL?UID=$user_info->{UID}&index=2'>$_PAYMENTS</a>
       <li><a href='$SELF_URL?UID=$user_info->{UID}&index=3'>$_FEES</a>
-      <li><a href='$SELF_URL?UID=$user_info->{UID}&index=40'>$_ERROR_LOG</a>
       <li><a href='$SELF_URL?UID=$user_info->{UID}&index='>$_SEND_MAIL</a>
-      <li><a href='$SELF_URL?UID=$user_info->{UID}&index='>$_MESSAGES</a>
-      <li><a href='docs.cgi?docs=accts&UID=$user_info->{UID}&index='>$_ACCOUNTS</a>
 </td></tr>
 <tr><td> 
-  <br><b>$_CHANGE</b>\n";
+  <br>\n";
 
 my %userform_menus = (
              15 =>  $_LOG,
@@ -775,9 +772,7 @@ elsif ($FORM{add}) {
     $user_info = $users->info( $user_info->{UID} );
     Abills::HTML->tpl_show(templates('user_info'), $user_info);
 
-   
     $LIST_PARAMS{UID}=$user_info->{UID};
-    #form_bills({ USER => $user_info });
     $index=2;
     form_payments({ USER => $user_info });
     return 0;

@@ -75,7 +75,10 @@ if ($acct_status_type == 1) {
     \"$RAD->{ACCT_SESSION_ID}\", 0, 0, 0, 
      INET_ATON('$RAD->{FRAMED_IP_ADDRESS}'), 
     '$RAD->{CALLING_STATION_ID}', 
-    '$RAD->{CONNECT_INFO}', '$NAS->{NID}');";
+    '$RAD->{CONNECT_INFO}', 
+    '$NAS->{NID}' );";
+
+
   $self->query($db, "$sql", 'do');
       
  }
@@ -117,11 +120,15 @@ elsif ($acct_status_type == 2) {
    }
   else {
     $self->query($db, "INSERT INTO log (uid, start, tp_id, duration, sent, recv, minp, kb,  sum, nas_id, port_id,
-        ip, CID, sent2, recv2, acct_session_id, bill_id) 
+        ip, CID, sent2, recv2, acct_session_id, 
+        bill_id,
+        terminate_cause) 
         VALUES ('$self->{UID}', FROM_UNIXTIME($RAD->{SESSION_START}), '$self->{TARIF_PLAN}', '$RAD->{ACCT_SESSION_TIME}', 
         '$RAD->{OUTBYTE}', '$RAD->{INBYTE}', '$self->{TIME_TARIF}', '$self->{TRAF_TARIF}', '$self->{SUM}', '$NAS->{NID}',
         '$RAD->{NAS_PORT}', INET_ATON('$RAD->{FRAMED_IP_ADDRESS}'), '$RAD->{CALLING_STATION_ID}',
-        '$RAD->{OUTBYTE2}', '$RAD->{INBYTE2}',  \"$RAD->{ACCT_SESSION_ID}\", '$self->{BILL_ID}');", 'do');
+        '$RAD->{OUTBYTE2}', '$RAD->{INBYTE2}',  \"$RAD->{ACCT_SESSION_ID}\", 
+        '$self->{BILL_ID}',
+        '$RAD->{ACCT_TERMINATE_CAUSE}');", 'do');
 
     if ($self->{errno}) {
       my $filename = "$RAD->{USER_NAME}.$RAD->{ACCT_SESSION_ID}";
