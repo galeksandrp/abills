@@ -337,6 +337,7 @@ CREATE TABLE log (
   CID varchar(18) NOT NULL default '',
   bill_id int(11) unsigned NOT NULL default '0',
   uid int(11) unsigned NOT NULL default '0',
+  terminate_cause tinyint(4) unsigned NOT NULL default '0',
   KEY uid (uid,start)
 ) TYPE=MyISAM;
 
