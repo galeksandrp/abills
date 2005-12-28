@@ -19,7 +19,7 @@ $VERSION = 2.00;
 
 use main;
 use Tariffs;
-my $tariffs = Tariffs->new($db, $CONF);
+my $tariffs = Tariffs->new($db, $CONF, $admin);
 
 
 @ISA  = ("main");
@@ -32,6 +32,8 @@ my $uid;
 sub new {
   my $class = shift;
   ($db, $admin, $CONF) = @_;
+  
+
   my $self = { };
   bless($self, $class);
   $self->{debug}=1;
@@ -91,7 +93,9 @@ sub user_info {
    INET_NTOA(voip.ip),
    voip.disable,
    voip.allow_answer,
-   voip.allow_calls
+   voip.allow_calls,
+   voip.cid,
+   voip.logins
      FROM voip_main voip
      LEFT JOIN voip_tps tp ON (voip.tp_id=tp.id)
      LEFT JOIN tarif_plans ON (tarif_plans.id=tp.id)
@@ -113,12 +117,13 @@ sub user_info {
    $self->{DISABLE},
    $self->{ALLOW_ANSWER},
    $self->{ALLOW_CALLS},
-   $self->{REGISTRATION},
-   $self->{SIMULTANEOUSLY}
+   $self->{CID},
+   $self->{SIMULTANEOUSLY},
+   $self->{REGISTRATION}
+
   )= @$ar;
   
-  $self->{SIMULTANEOUSLY} = 0;
-  
+
   
   return $self;
 }
@@ -164,6 +169,8 @@ sub user_add {
   
  
   $admin->action_add($DATA{UID}, "ADDED");
+
+
   return $self;
 }
 
@@ -188,12 +195,16 @@ sub user_change {
              );
 
 
+
   $self->changes($admin,  { CHANGE_PARAM => 'UID',
                    TABLE        => 'voip_main',
                    FIELDS       => \%FIELDS,
                    OLD_INFO     => $self->user_info($attr->{UID}),
                    DATA         => $attr
                   } );
+
+
+  $admin->action_add($DATA{UID}, "$self->{result}");
 
   return $self->{result};
 }

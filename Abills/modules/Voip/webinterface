@@ -1,10 +1,22 @@
 #/usr/bin/perl
-# Dialup vpn web functions
+# Voip web functions
+
 
 
 require "Voip.pm";
+
+
+
 Voip->import();
+
+
+
 my $Voip = Voip->new($db, $admin, $conf);
+
+
+
+
+
 
 
 use Voip_Sessions;
@@ -42,7 +54,7 @@ sub voip_chg_tp {
    $user = $attr->{USER};
    $user = $Voip->user_info($user->{UID});
    if($user->{TOTAL} < 1) {
- 	   print "<p><font color=red>$_NOT_ACTIVE</font></p>";
+ 	   message('info', $_INFO, $_NOT_ACTIVE);
  	   return 0;
     }
   }
@@ -226,7 +238,7 @@ sub voip_user {
   my $user = $Voip->user_info($FORM{UID});
 
   if($user->{TOTAL} < 1) {
-	  print "<p><font color=red>$_NOT_ACTIVE</font></p>";
+	  message('info', $_INFO, $_NOT_ACTIVE);
 	  $Voip = $Voip->defaults();
 	  $Voip->{ACTION}='add';
 	  $Voip->{LNG_ACTION}=$_ADD;

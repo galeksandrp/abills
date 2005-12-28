@@ -21,7 +21,7 @@ sub dv_chg_tp {
    $user = $attr->{USER};
    $user = $Dv->info($user->{UID});
    if($user->{TOTAL} < 1) {
- 	   print "<p><font color=red>$_NOT_ACTIVE</font></p>";
+ 	   message('info', $_INFO, "$_NOT_ACTIVE");
  	   return 0;
     }
   }
@@ -212,7 +212,7 @@ sub dv_user {
   my $user = $Dv->info($FORM{UID});
 
   if($user->{TOTAL} < 1) {
-	  print "<p><font color=red>$_NOT_ACTIVE</font></p>";
+	  message('info', $_INFO, $_NOT_ACTIVE);
 	  $Dv = $Dv->defaults();
 	  $Dv->{ACTION}='add';
 	  $Dv->{LNG_ACTION}=$_ADD;
