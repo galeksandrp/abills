@@ -109,6 +109,7 @@ if ($uid > 0) {
 
     #next if (keys %USER_FUNCTION_LIST < 1);
     my @sordet_module_menu = sort keys %USER_FUNCTION_LIST;
+
     foreach my $line (@sordet_module_menu) {
       $maxnumber++;
       my($ID, $SUB, $NAME, $FUNTION_NAME, $ARGS)=split(/:/, $line, 5);
@@ -290,17 +291,23 @@ if ($index > 0) {
 }
 
 $FORM{root_index} = $root_index;
-#if ($root_index > 0) {
-#  my $ri = $root_index-1;
-#3  if (! defined($permissions{$ri})) {
-#	  message('err', $_ERROR, "Access deny");
-##	  exit 0;
-#   }
-#}
 
 
 my %menu = ();
-while(my($ID, $VALUE_HASH)=each %menu_items) {
+#my @s = sort keys %menu_items;
+
+my @s  = sort {
+   $menu_items{$b} <=> $menu_items{$a}
+     ||
+   length($a) <=> length($b)
+     ||
+   $a cmp $b
+} keys %menu_items;
+
+#while(my($ID, $VALUE_HASH)=each %menu_items) {
+
+foreach my $ID (@s) {
+ 	$VALUE_HASH = $menu_items{$ID};
  	foreach my $parent (keys %$VALUE_HASH) {
     push( @{$menu{$parent}},  "$ID:$VALUE_HASH->{$parent}" );
    }

@@ -1256,6 +1256,12 @@ print $table->show();
 
 sub dv_user_info {
   my $user = $Dv->info($LIST_PARAMS{UID});
+  
+  if ($user->{TOTAL} < 1) {
+  	message('info', $_INFO, "$_NOT_ACTIVE");
+    return 0;	
+  }
+  
   Abills::HTML->tpl_show(_include('dv_user_info', 'Dv'), $Dv);
 }
 

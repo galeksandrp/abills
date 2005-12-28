@@ -1685,6 +1685,7 @@ sub voip_user_stats {
 	#my ($user) = @_;
 	#$UID = $user->{UID};
 	#$LIST_PARAMS{UID} = $user->{UID};
+
 	if (! defined($FORM{sort})) {
 	  $LIST_PARAMS{SORT}=2;
 	  $LIST_PARAMS{DESC}=DESC;
@@ -1705,13 +1706,13 @@ if ($FORM{rows}) {
 #PEriods totals
 my $list = $sessions->periods_totals({ %LIST_PARAMS });
 my $table = Abills::HTML->table( { width => '100%',
-                                   title_plain => ["$_PERIOD", "$_DURATION", "$_SEND", "$_RECV", "$_SUM"],
-                                   cols_align => ['left', 'right', 'right', 'right', 'right'],
+                                   title_plain => ["$_PERIOD", "$_DURATION", "$_SUM"],
+                                   cols_align => ['left', 'right', 'right'],
                                    rowcolor => $_COLORS[1]
                                   } );
 for(my $i = 0; $i < 5; $i++) {
 	  $table->addrow("<a href='$SELF_URL?index=$index&period=$i$pages_qs'>$PERIODS[$i]</a>", "$sessions->{'duration_'. $i}",
-	  int2byte($sessions->{'sent_'. $i}), int2byte($sessions->{'recv_'. $i}), int2byte($sessions->{'sum_'. $i}));
+	  $sessions->{'sum_'. $i});
  }
 print $table->show();
 
@@ -1747,24 +1748,19 @@ elsif ($FORM{period}) {
 	$pages_qs .= "&period=$FORM{period}";
 }
 
-#if (! defined($FORM{sort})) {
-#  $LIST_PARAMS{SORT}=2;
-#  $LIST_PARAMS{DESC}=DESC;
-# }
 
 #Session List
 $list = $sessions->list({ %LIST_PARAMS });	
 
 $table = Abills::HTML->table( { width => '640',
 	                              rowcolor => $_COLORS[1],
-                                title_plain => ["$_SESSIONS", "$_DURATION", "$_TRAFFIC", "$_SUM"],
-                                cols_align => ['right', 'right', 'right', 'right'],
-                                rows => [ [ $sessions->{TOTAL}, $sessions->{DURATION}, int2byte($sessions->{TRAFFIC}), $sessions->{SUM} ] ],
+                                title_plain => ["$_SESSIONS", "$_DURATION", "$_SUM"],
+                                cols_align => ['right', 'right', 'right'],
+                                rows => [ [ $sessions->{TOTAL}, $sessions->{DURATION}, $sessions->{SUM} ] ],
                                } );
-print "<p>" . $table->show() . "</p>\n";	
+print $table->show();	
 
 voip_sessions($list, $sessions);
-#dv_show_sessions($list, $sessions);
 }
 
 
@@ -1825,9 +1821,15 @@ print $table->show();
 }
 
 
-sub dv_user_info {
-  my $user = $Voip->info($LIST_PARAMS{UID});
-  Abills::HTML->tpl_show(_include('dv_user_info', 'Dv'), $Voip);
+sub voip_user_info {
+  my $user = $Voip->user_info($LIST_PARAMS{UID});
+  
+  if ($user->{TOTAL} < 1) {
+  	message('info', $_INFO, "$_NOT_ACTIVE");
+    return 0;	
+  }
+  
+  Abills::HTML->tpl_show(_include('voip_user_info', 'Voip'), $Voip);
 }
 
 
