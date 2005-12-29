@@ -1658,13 +1658,13 @@ if (! defined($FORM{sort})) {
 $list = $sessions->list({ %LIST_PARAMS });	
 $table = Abills::HTML->table( { width => '640',
 	                              rowcolor => $_COLORS[1],
+	                              caption => '',
                                 title_plain => ["$_SESSIONS", "$_DURATION", "$_SUM"],
                                 cols_align => ['right', 'right', 'right'],
                                 rows => [ [ $sessions->{TOTAL}, $sessions->{DURATION}, $sessions->{SUM} ] ],
                                } );
 print $table->show();
-
-voip_sessions($list, $sessions);
+dv_sessions($list, $sessions) if ( $sessions->{TOTAL} > 0);
 }
 
 
@@ -1765,6 +1765,7 @@ elsif ($FORM{period}) {
 $list = $sessions->list({ %LIST_PARAMS });	
 
 $table = Abills::HTML->table( { width => '640',
+	                              caption => '',
 	                              rowcolor => $_COLORS[1],
                                 title_plain => ["$_SESSIONS", "$_DURATION", "$_SUM"],
                                 cols_align => ['right', 'right', 'right'],
@@ -1772,7 +1773,8 @@ $table = Abills::HTML->table( { width => '640',
                                } );
 print $table->show();	
 
-voip_sessions($list, $sessions);
+
+dv_sessions($list, $sessions) if ( $sessions->{TOTAL} > 0);
 }
 
 
