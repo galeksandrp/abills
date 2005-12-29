@@ -1343,6 +1343,14 @@ print $table->show();
 
 if (defined($FORM{tt})) {
 
+  $tarif_plan->{SEL_TT_ID} = "<select name=TT_ID>";
+  for(my $i=0; $i<3; $i++) {
+    $tarif_plan->{SEL_TT_ID} .= "<option value=$i";
+    $tarif_plan->{SEL_TT_ID} .= " selected" if ($i eq $tarif_plan->{TT_ID});
+    $tarif_plan->{SEL_TT_ID} .= ">$i\n";
+   }
+  $tarif_plan->{SEL_TT_ID} .=  '</select>';
+
   Abills::HTML->tpl_show(_include('dv_tt', 'Dv'), $tarif_plan);
 }
 else {
