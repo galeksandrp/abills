@@ -2908,8 +2908,31 @@ sub form_templates {
 
 
 
+
+
 if ($FORM{change}) {
-  $template = $FORM{template};
+  my $FORM2  = ();
+  my @pairs = split(/&/, $FORM{__BUFFER});
+
+foreach my $pair (@pairs) {
+   my ($side, $value) = split(/=/, $pair);
+   $value =~ tr/+/ /;
+   $value =~ s/%([a-fA-F0-9][a-fA-F0-9])/pack("C", hex($1))/eg;
+
+   if (defined($FORM2{$side})) {
+     $FORM2{$side} .= ", $value";
+    }
+   else {
+     $FORM2{$side} = $value;
+    }
+ }
+
+
+  $template = $FORM2{template};
+  
+
+
+  
 	open(FILE, ">$conf{TPL_DIR}/$FORM{tpl_name}") || message('err', $_ERROR, "Can't open file '$conf{TPL_DIR}/$FORM{tpl_name}' $!\n");
 	  print FILE "$template";
 	close(FILE);

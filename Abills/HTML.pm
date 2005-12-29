@@ -143,6 +143,7 @@ elsif ($ENV{'REQUEST_METHOD'} eq "POST") {
  }
 
 my @pairs = split(/&/, $buffer);
+$FORM{__BUFFER}=$buffer;
 
 foreach my $pair (@pairs) {
    my ($side, $value) = split(/=/, $pair);
@@ -157,8 +158,11 @@ foreach my $pair (@pairs) {
      $FORM{$side} = $value;
     }
  }
- return %FORM;
+
+  return %FORM;
 }
+
+
 
 
 
