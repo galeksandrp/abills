@@ -105,7 +105,7 @@ $var_dir=$base_dir .'var/';
 $conf{SPOOL_DIR}=$base_dir.'var/q';
 
 # Template folder
-$conf{TPL_DIR}   = $base_dir . 'cgi-bin/admin/tpls/';
+$conf{TPL_DIR}   = $base_dir . 'Abills/templates/';
 $conf{LOG_DEBUG} = $base_dir . 'var/log/abills.debug';
 $conf{WEB_LOGFILE} = 'weblog.log';
 $conf{LOGFILE}   = $base_dir . 'var/log/abills.log';
