@@ -17,7 +17,24 @@ $conf{MAIL_CHARSET}='windows-1251';
 $conf{default_language}='english';
 $conf{default_charset}='windows-1251';
 
-@MODULES = ('Dv', 'Mail', 'Docs');
+
+
+@MODULES = ('Dv',
+            'Voip',
+            'Docs', 
+            'Mail',
+            'Sqlcmd');
+
+
+%ACCT = ();
+#For VoIP GNU Gatekeeper accounting
+$ACCT{gnugk} = 'Voip_aaa';
+
+%AUTH = ();
+#For VoIP GNU Gatekeeper Auth
+$AUTH{gnugk} = 'Voip_aaa';
+
+
 
 #Technical works
 #$conf{tech_works}='Technical works';
@@ -29,7 +46,7 @@ $conf{p_users_mails}=1;  # Send user warning  messages
 # chap encryption decription key
 $conf{secretkey}="test12345678901234567890";
 $conf{s_detalization}='yes'; #make session detalization recomended for vpn leathed lines
-$conf{version}='0.30b'; #16.07.2005
+$conf{version}='0.30b'; #29.12.2005
 
 #Minimum session costs
 $conf{MINIMUM_SESSION_TIME}=10; # minimum session time for push session to db
