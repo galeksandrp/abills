@@ -2895,29 +2895,34 @@ sub form_templates {
   my %templates = ('user_warning' => USER_WARNING,
                    'invoce'       => INVOCE,
                    'admin_report' => ADMIN_REPORT,
-                   'account'      => ACCOUNT);
-  my $template = $FORM{template};
+                   'account'      => ACCOUNT,
+                   'user_info'    => USER_INFO);
+
+
 
 if ($FORM{change}) {
-	open(FILE, ">$conf{TPL_DIR}/$FORM{tpl_name}") || print "Can't open file '$conf{TPL_DIR}/$FORM{tpl_name}' $!\n";
+  $template = $FORM{template};
+	open(FILE, ">$conf{TPL_DIR}/$FORM{tpl_name}") || message('err', $_ERROR, "Can't open file '$conf{TPL_DIR}/$FORM{tpl_name}' $!\n");
 	  print FILE "$template";
 	close(FILE);
 
 	message('info', $_INFO, "$_ADDED");
 }
 elsif($FORM{tpl_name}) {
-	open(FILE, "$conf{TPL_DIR}/$FORM{tpl_name}") || print "Can't open file '$conf{TPL_DIR}/$FORM{tpl_name}' $!\n";
-	  while(<FILE>) {
-	  	 $template .= $_;
-	   }	 
-	close(FILE);
-	message('info', $_CHAMGE, "$_CHANGE: $templates{$FORM{tpl_name}}");
+  if (-f  "$conf{TPL_DIR}/$FORM{tpl_name}" ) {
+	  open(FILE, "$conf{TPL_DIR}/$FORM{tpl_name}") || message('err', $_ERROR, "Can't open file '$conf{TPL_DIR}/$FORM{tpl_name}' $!\n");;
+  	  while(<FILE>) {
+	    	 $template .= $_;
+	    }	 
+	  close(FILE);
+   }
+	  message('info', $_CHAMGE, "$_CHANGE: $templates{$FORM{tpl_name}}");
 }
 
 
 
 print << "[END]";
-<form action=$SELF_URL>
+<form action=$SELF_URL METHOD=POST>
 <input type=hidden name=index value='$index'>
 <input type=hidden name=tpl_name value='$FORM{tpl_name}'>
 <table>

@@ -1084,7 +1084,6 @@ elsif($FORM{zap}) {
                             ACCT_SESSION_ID => $acct_session_id
                             });
 
-    #my ($sum, $variant, $time_t, $traf_t) = session_sum("$RAD{USER_NAME}", $ACCT_INFO{LOGIN}, $ACCT_INFO{ACCT_SESSION_TIME}, \%ACCT_INFO);
    }
 
   message('info', $_INFO, $message);
@@ -1290,29 +1289,6 @@ foreach my $line (@$list) {
     $delete = $html->button($_DEL, "index=$index$pages_qs&del=$line->[11]+$line->[9]+$line->[6]+$line->[1]+$line->[9]+$line->[0]", "$_DEL Session SESSION_ID $line->[9]?");
    }
 
-  my ($UID, 
-      $SUM, 
-      $COMPANY_ID, 
-      $TARIF_PLAN, 
-      $TIME_TARIF, 
-      $TRAF_TARIF) = $Billing->session_sum("$line->[0]", 
-                                            $line->[13], 
-                                            $line->[14], 
-                                            {  OUTBYTE  =>  $line->[4],
-                                               INBYTE   =>  $line->[5],
-                                               OUTBYTE2 =>  0,
-                                               INBYTE2  =>  0
-                                             }, 
-                                            \%conf,
-                                            { TP_ID => $line->[3] });
-  
-  my $test = "<br>$UID, 
-      <b>$SUM</b>, 
-      $COMPANY_ID, 
-      $TARIF_PLAN, 
-      $TIME_TARIF, 
-      $TRAF_TARIF";
-
   $table->addrow("<a href='$SELF_URL?index=11&UID=$line->[12]'>$line->[0]</a>", 
      $line->[1], $line->[2],  $line->[3],  
      $line->[4], 
@@ -1340,7 +1316,7 @@ sub dv_use_allmonthes {
 #**********************************************************
 # dv_use();
 #**********************************************************
-sub Voip_use {
+sub voip_use {
   use Fees;
   my $fees = Fees->new($db);
 
@@ -1402,36 +1378,25 @@ if (defined($FORM{DATE})) {
   #Used Fraffic
   $table_sessions = Abills::HTML->table( { width => '100%',
 	                              caption => "$_SESSIONS", 
-                                title =>["$_DATE", "$_USERS", "$_SESSIONS", "$_TRAFFIC ", "$_TRAFFIC 2", $_DURATION, $_SUM],
-                                cols_align => ['right', 'left', 'right', 'right', 'right', 'right', 'right'],
+                                title =>["$_DATE", "$_USERS", "$_SESSIONS", $_DURATION, $_SUM],
+                                cols_align => ['right', 'left', 'right', 'right', 'right'],
                                 qs => $pages_qs             
                                } );
 
   my $list = $sessions->reports({ %LIST_PARAMS });
   foreach my $line (@$list) {
     $table_sessions->addrow("<b>$line->[0]</b>", 
-      "<a href='$SELF_URL?index=11&subf=22&UID=$line->[7]&DATE=$line->[0]'>$line->[1]</a>", $line->[2], int2byte($line->[3]),  int2byte($line->[4]),  $line->[5], "<b>$line->[6]</b>" );
+      "<a href='$SELF_URL?index=11&subf=22&UID=$line->[5]&DATE=$line->[0]'>$line->[1]</a>", 
+       $line->[2], $line->[3],  "<b>$line->[4]</b>" );
    }
-
-  $list = $fees->list( { %LIST_PARAMS } );
-  $table_fees = Abills::HTML->table( { width      => '100%',
-  	                                   caption    => "$_FEES", 
-                                       title      => ['ID', $_LOGIN, $_SUM, $_DESCRIBE, $_ADMINS, 'IP', $_DEPOSIT],
-                                       cols_align => ['right', 'left', 'right', 'right', 'left', 'left', 'right', 'right'],
-                                  } );
-
-  foreach my $line (@$list) {
-   $table_fees->addrow("<b>$line->[0]</b>", "<a href='$SELF_URL?index=11&subf=3&DATE=$line->[0]&UID=$line->[8]'>$line->[1]</a>",  
-      $line->[3], $line->[4],  "$line->[5]", "$line->[6]", "$line->[7]");
-    }
 
  }
 else {
   #Used Traffic
   $table_sessions = Abills::HTML->table( { width => '100%',
 	                              caption => "$_SESSIONS", 
-                                title =>["$_DATE", "$_USERS", "$_SESSIONS", "$_TRAFFIC ", "$_TRAFFIC 2", $_DURATION, $_SUM],
-                                cols_align => ['right', 'right', 'right', 'right', 'right', 'right', 'right'],
+                                title =>["$_DATE", "$_USERS", "$_SESSIONS", $_DURATION, $_SUM],
+                                cols_align => ['right', 'right', 'right', 'right', 'right'],
                                 qs => $pages_qs             
                                } );
 
@@ -1439,21 +1404,10 @@ else {
   my $list = $sessions->reports({ %LIST_PARAMS });
   foreach my $line (@$list) {
     $table_sessions->addrow("<a href='$SELF_URL?index=$index&$type=$line->[0]$pages_qs'>$line->[0]</a>", 
-       $line->[1], $line->[2], int2byte($line->[3]),  int2byte($line->[4]),  $line->[5], "<b>$line->[6]</b>" );
+       $line->[1], $line->[2], $line->[3], "<b>$line->[4]</b>" );
    }
 
-  #Fees###################################################
-  $table_fees = Abills::HTML->table( { width => '100%',
-	                              caption => $_FEES, 
-                                title =>["$_DATE", "$_COUNT", $_SUM],
-                                cols_align => ['right', 'right', 'right'],
-                               } );
 
-
-  $list = $fees->reports({ %LIST_PARAMS });
-  foreach my $line (@$list) {
-    $table_fees->addrow("<a href='$SELF_URL?index=$index&$type=$line->[0]$pages_qs'>$line->[0]</a>", $line->[1], "<b>$line->[2]</b>" );
-   }
 }
 
 
@@ -1462,8 +1416,6 @@ $table = Abills::HTML->table( { width => '100%',
                                 cols_align => ['right', 'right', 'right', 'right', 'right', 'right'],
                                 rows => [ [ "$_USERS: <b>$sessions->{USERS}</b>",
                                             "$_SESSIONS: <b>$sessions->{SESSIONS}</b>", 
-                                            "$_TRAFFIC: <b>". int2byte($sessions->{TRAFFIC}) ."</b>", 
-                                            "$_TRAFFIC 2: <b>". int2byte($sessions->{TRAFFIC_2}) ."</b>", 
                                             "$_DURATION: <b>$sessions->{DURATION}</b>", 
                                             "$_SUM: <b>$sessions->{SUM}</b>" ] ],
                                 rowcolor => $_COLORS[2]
@@ -1477,12 +1429,10 @@ $table = Abills::HTML->table( { width      => '100%',
                                 rows       => [ [ "$_TOTAL:", "<b>$fees->{TOTAL}</b>", "$_SUM", "<b>$fees->{SUM}</b>" ] ],
                                 rowcolor   => $_COLORS[2]
                                } );
-print $table_fees->show() . $table->show();
 
 
 #Users 
 #Sessions
-#Traffic 
 #Time
 #Money
 

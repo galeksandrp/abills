@@ -582,13 +582,8 @@ sub reports {
 	my ($self) = shift;
 	my ($attr) = @_;
 
- $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
- $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
  undef @WHERE_RULES;
  my $date = '';
-
-
-
 
  
  if (defined($attr->{MONTH})) {
@@ -603,25 +598,27 @@ sub reports {
    push @WHERE_RULES, "u.gid='$attr->{GID}'";
   }
 
+ if ($attr->{DATE}) {
+  push @WHERE_RULES, "date_format(l.start, '%Y-%m-%d')='$attr->{DATE}'";
+ }
+
  my $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
 
  if(defined($attr->{DATE})) {
    $self->query($db, "select date_format(l.start, '%Y-%m-%d'), if(u.id is NULL, CONCAT('> ', l.uid, ' <'), u.id), count(l.uid), 
-    sum(l.sent + l.recv), sum(l.sent2 + l.recv2), sec_to_time(sum(l.duration)), sum(l.sum), l.uid
-      FROM log l
+     sec_to_time(sum(l.duration)), sum(l.sum), l.uid
+      FROM voip_log l
       LEFT JOIN users u ON (u.uid=l.uid)
-      WHERE date_format(l.start, '%Y-%m-%d')='$attr->{DATE}'
+      $WHERE 
       GROUP BY l.uid 
       ORDER BY $SORT $DESC");
   }
  else {
   $self->query($db, "select $date, count(DISTINCT l.uid), 
       count(l.uid),
-      sum(l.sent + l.recv), 
-      sum(l.sent2 + l.recv2),
       sec_to_time(sum(l.duration)), 
       sum(l.sum)
-       FROM log l
+       FROM voip_log l
        LEFT JOIN users u ON (u.uid=l.uid)
        $WHERE    
        GROUP BY 1 
@@ -632,8 +629,6 @@ sub reports {
 
   $self->{USERS}=0; 
   $self->{SESSIONS}=0; 
-  $self->{TRAFFIC}=0; 
-  $self->{TRAFFIC_2}=0; 
   $self->{DURATION}=0; 
   $self->{SUM}=0;
   
@@ -641,11 +636,9 @@ sub reports {
 
   $self->query($db, "select count(DISTINCT l.uid), 
       count(l.uid),
-      sum(l.sent + l.recv), 
-      sum(l.sent2 + l.recv2),
       sec_to_time(sum(l.duration)), 
       sum(l.sum)
-       FROM log l
+       FROM voip_log l
        LEFT JOIN users u ON (u.uid=l.uid)
        $WHERE;");
 
@@ -653,8 +646,6 @@ sub reports {
  
   ($self->{USERS}, 
    $self->{SESSIONS}, 
-   $self->{TRAFFIC}, 
-   $self->{TRAFFIC_2}, 
    $self->{DURATION}, 
    $self->{SUM}) = @$a_ref;
 
