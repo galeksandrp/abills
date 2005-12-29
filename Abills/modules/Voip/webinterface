@@ -1306,10 +1306,10 @@ print $table->show();
 #**********************************************************
 # dv_use_all_monthes();
 #**********************************************************
-sub dv_use_allmonthes {
+sub voip_use_allmonthes {
 
   $FORM{allmonthes}='y';
-  dv_use();
+  voip_use();
 }
 
 
@@ -1407,7 +1407,7 @@ else {
        $line->[1], $line->[2], $line->[3], "<b>$line->[4]</b>" );
    }
 
-
+cd
 }
 
 
