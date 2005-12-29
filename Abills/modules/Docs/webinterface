@@ -111,6 +111,13 @@ sub docs_account {
   }
  elsif(defined($FORM{print})){
    $Docs->account_info($FORM{print});
+   my $list = $Docs->{ORDERS};
+   my $i=0;
+   foreach my $line (@$list) {
+   	 $i++;
+   	 $Docs->{ORDER} .= sprintf("<tr><td align=right>%d</td><td>%s</td><td align=right>%d</td><td align=right>%d</td><td align=right>%.2f</td><td align=right>%.2f</td></tr>\n", 
+   	  $i, $line->[1], $line->[2], $line->[3], $line->[4], ($line->[3]*$line->[4]));
+    }
    docs_print('account', $Docs);
    return 0;
   }
@@ -136,6 +143,11 @@ sub docs_account {
 	if($admin->{AID} > 0) {
   	$Docs->{FORM_ACCT_ID} = "<tr><td>N:</td><td><input type=text name=ACCT_ID value='%ACCT_ID%'></td></tr>\n";
    }
+
+  $Docs->{SEL_ORDER} .= "<select name=ORDERS>";
+  $Docs->{SEL_ORDER} .= "<option value=\"Internet service\">Internet service\n";
+  $Docs->{SEL_ORDER} .= "</select>\n";
+
 
   Abills::HTML->tpl_show(_include('docs_account_add', 'Docs'), $Docs);
 }

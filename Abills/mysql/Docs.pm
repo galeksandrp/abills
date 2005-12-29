@@ -58,10 +58,6 @@ sub accounts_list {
   my $self = shift;
   my ($attr) = @_;
 
-  $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
-  $DESC = ($attr->{DESC}) ? $attr->{DESC} : 'DESC';
-	
-
  @WHERE_RULES = ("d.id=o.acct_id");
  
  if($attr->{LOGIN_EXPR}) {
@@ -145,6 +141,7 @@ sub account_add {
 	my $self = shift;
 	my ($attr) = @_;
   
+ 
   %DATA = $self->get_data($attr, { default => \%DATA }); 
   $DATA{DATE}    = ($attr->{DATE})    ? "'$attr->{DATE}'" : 'now()';
   $DATA{ACCT_ID} = ($attr->{ACCT_ID}) ? $attr->{ACCT_ID}  : $self->account_nextid();
