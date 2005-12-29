@@ -193,55 +193,6 @@ sub form_info {
 
 
 
-#**********************************************************
-# Whow sessions from log
-# show_sessions()
-#**********************************************************
-#sub show_sessions {
-#  my ($list, $sessions) = @_;
-##Session List
-#
-#if (! $list) {
-#  if (! defined($FORM{sort})) {
-#	  $LIST_PARAMS{SORT} = 2;
-#	  $LIST_PARAMS{DESC} = 'DESC';
-#  }
-#  use Dv_Sessions;
-#  $sessions = Dv_Sessions->new($db);
-#  $list = $sessions->list({ %LIST_PARAMS });	
-#}
-#
-#
-#return 0 if ($sessions->{TOTAL} < 1);
-#
-#
-#
-#my $table = Abills::HTML->table( { width => '100%',
-#                                border => 1,
-#                                title => ["$_USER", "$_START", "$_DURATION", "$_TARIF_PLAN", "$_SENT", "$_RECV", 
-#                                "CID", "NAS", "IP", "$_SUM", "-", "-"],
-#                                cols_align => ['left', 'right', 'right', 'left', 'right', 'right', 'right', 'right', 'right', 'right', 'center'],
-#                                qs => $pages_qs,
-#                                pages => $sessions->{TOTAL},
-#                                recs_on_page => $LIST_PARAMS{PAGE_ROWS}
-#                               } );
-#my $delete = '';
-#foreach my $line (@$list) {
-#  if ($permissions{3}{1}) {
-#    $delete = $html->button($_DEL, "index=$index$pages_qs&del=$line->[12]+$line->[11]+$line->[7]+$line->[1]+$line->[9]+$line->[0]", "$_DEL Session SESSION_ID $line->[11]?");
-#   }
-#
-#  $table->addrow($line->[0], 
-#     $line->[1], $line->[2],  $line->[3],  int2byte($line->[4]), int2byte($line->[5]), $line->[6],
-#     $line->[7], $line->[10], $line->[9], 
-#     "(<a href='$SELF_URL?index=23&UID=$user->{UID}&detail=$line->[11]' title='Session Detail'>D</a>)", $delete);
-#}
-#
-#print $table->show();
-#}
-
-
-
 #*******************************************************************
 # WHERE period
 # base_state($where, $period);

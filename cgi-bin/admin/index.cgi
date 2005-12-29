@@ -90,7 +90,15 @@ else {
 
 if ($admin->{errno}) {
   print "Content-type: text/html\n\n";
-  message('err', $_ERROR, "Access Deny"); #$err_strs{$admin->{errno}}");
+  my $message = 'Access Deny';
+  if (! defined($REMOTE_USER)) {
+    $message = "'mod_rewrite' not install";
+   }
+  else {
+    $message = $err_strs{$admin->{errno}};
+   }
+
+  message('err', $_ERROR, "$message");
   exit;
 }
 
@@ -2224,7 +2232,12 @@ foreach my $ID (sort keys %menu_items) {
 
 
         if(! defined($menu_args{$ID}) || (defined($menu_args{$ID}) && defined($FORM{$menu_args{$ID}})) ) {
-       	   my $ext_args = "&$menu_args{$ID}=$FORM{$menu_args{$ID}}";
+       	   my $ext_args = '';
+       	   if (defined($menu_args{$ID})) {
+       	       $ext_args = "&$menu_args{$ID}=$FORM{$menu_args{$ID}}";
+       	       $name = "<b>$name</b>";
+       	     }
+
        	   $link = "<a href='$SELF_URL?index=$ID$ext_args'>$name</a>";   
 
     	     if($parent == 0) {
