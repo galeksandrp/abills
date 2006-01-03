@@ -78,7 +78,9 @@ sub action {
    }
 
   $self->query($db, "UPDATE bills SET deposit=deposit$value WHERE id='$BILL_ID';", 'do');	
-  return $self if($db->err > 0);
+
+
+#  return $self if($db->err > 0);
 #  $admin->action_add($uid, "ADD BILL [$self->{INSERT_ID}]");
 	
 	return $self;

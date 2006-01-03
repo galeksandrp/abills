@@ -230,7 +230,7 @@ sub list {
  push @WHERE_RULES, "u.uid = dv.uid";
  
  if ($attr->{USERS_WARNINGS}) {
-   $self->query($db, " SELECT u.id, pi.email, dv.tp_id, u.credit, b.deposit, tp.name, tp.uplimit
+   $self->query($db, "SELECT u.id, pi.email, dv.tp_id, u.credit, b.deposit, tp.name, tp.uplimit
          FROM users u, dv_main dv, bills b
          LEFT JOIN tarif_plans tp ON dv.tp_id = tp.id
          LEFT JOIN users_pi pi ON u.uid = dv.uid
@@ -238,6 +238,9 @@ sub list {
            and b.deposit<tp.uplimit AND tp.uplimit > 0 AND b.deposit+u.credit>0
          ORDER BY u.id;");
 
+
+   return $self if ($self->{errno});
+   
    my $list = $self->{list};
    return $list;
   }
@@ -424,3 +427,5 @@ sub periodic {
 
 
 
+
+1

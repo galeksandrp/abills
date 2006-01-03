@@ -20,6 +20,8 @@ use main;
 use Bills;
 @ISA  = ("main");
 my $Bill;
+my $admin;
+my $CONF;
 
 #**********************************************************
 # Init 
@@ -30,7 +32,9 @@ sub new {
   my $self = { };
   bless($self, $class);
   
+  
   $Bill=Bills->new($db, $admin, $CONF); 
+ 
   
   return $self;
 }
@@ -120,6 +124,7 @@ sub list {
  $PG = ($attr->{PG}) ? $attr->{PG} : 0;
  $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
 
+
  my @list = (); 
  undef @WHERE_RULES;
 
@@ -171,9 +176,8 @@ sub list {
 
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
  
-# $self->{debug}=1;
-
- $self->query($db, "SELECT f.id, u.id, f.date, f.sum, f.dsc, if(a.name is NULL, 'Unknown', a.name),  INET_NTOA(f.ip), f.last_deposit, f.uid 
+ $self->query($db, "SELECT f.id, u.id, f.date, f.sum, f.dsc, if(a.name is NULL, 'Unknown', a.name), 
+              INET_NTOA(f.ip), f.last_deposit, f.uid 
     FROM fees f
     LEFT JOIN users u ON (u.uid=f.uid)
     LEFT JOIN admins a ON (a.aid=f.aid)

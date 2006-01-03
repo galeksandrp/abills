@@ -6,6 +6,10 @@ require "Dv.pm";
 Dv->import();
 my $Dv = Dv->new($db, $admin, $conf);
 
+require Fees;
+Fees->import();
+my $fees = Fees->new($db, $admin, \%conf);
+
 
 
 #*******************************************************************
@@ -731,9 +735,6 @@ sub dv_use_allmonthes {
 sub dv_use {
 	use Dv_Sessions;
   my $sessions = Dv_Sessions->new($db);
-  use Fees;
-  my $fees = Fees->new($db);
-
 
 my ($y, $m, $d);
 
@@ -1278,10 +1279,6 @@ sub dv_daily_fees {
  Tariffs->import();
  my $tariffs = Tariffs->new($db, \%conf);
 
- require Fees;
- Fees->import();
- my $fees = Fees->new($db, $admin);
-
  my $list = $tariffs->list({ %LIST_PARAMS });
 
  foreach my $line (@$list) {
@@ -1328,10 +1325,6 @@ sub dv_monthly_fees {
  require Tariffs;
  Tariffs->import();
  my $tariffs = Tariffs->new($db, %conf);
-
- require Fees;
- Fees->import();
- my $fees = Fees->new($db, $admin);
 
  my $list = $tariffs->list({ %LIST_PARAMS });
 
@@ -1393,6 +1386,7 @@ my $date_unixtime =  mktime(0, 0, 0, $d, $m, $y - 1900, 0, 0, 0);
 
 #**********************************************************
 # user_warnings
+# 
 #**********************************************************
 sub dv_users_warning_messages {
 
@@ -1415,7 +1409,9 @@ foreach my $line (@$list) {
   $USER_INFO{DEPOSIT}=$line->[4];
   $USER_INFO{CREDIT}=$line->[3];
   
-  my $email = ($line->[1] eq '') ? "$line->[1]\@$conf{USERS_MAIL_DOMAIN}" : $line->[1];
+  my $email = ((! defined($line->[1])) || $line->[1] eq '') ? "$line->[0]\@$conf{USERS_MAIL_DOMAIN}" : "$line->[1]";
+  
+ 
   $ADMIN_REPORT{USERS_WARNINGS} .= sprintf ("%-14s| %4d|%-20s| %9.4f| %8.2f|\n", 
   $USER_INFO{LOGIN}, $USER_INFO{TP_ID}, $USER_INFO{TP_NAME},  $USER_INFO{DEPOSIT}, $USER_INFO{CREDIT});
   
@@ -1426,7 +1422,7 @@ foreach my $line (@$list) {
 }
 
 $ADMIN_REPORT{USERS_WARNINGS} .= "---------------------------------------------------------------
-$_TOTAL: $users->{TOTAL}\n";
+$_TOTAL: $Dv->{TOTAL}\n";
 
 }
 
