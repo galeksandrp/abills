@@ -259,11 +259,11 @@ if ($functions{$index}) {
   	}
    }
   else {
-    $functions{$index}->();
+     $functions{$index}->();
    }
 }
 else {
-  message('err', $_ERROR,  "Function not exist ($index / $root_index)");	
+  message('err', $_ERROR,  "Function not exist ($index / $root_index / $functions{$index})");	
 }
 
 
@@ -2078,7 +2078,9 @@ $hidden_inputs
 #**********************************************************
 sub fl {
 	# ID:PARENT:NAME:FUNCTION:SHOW SUBMENU:module:
-my @m = ("1:0:$_CUSTOMERS:null:::",
+my @m = (
+ "0:0::null:::",
+ "1:0:$_CUSTOMERS:null:::",
  "11:1:$_USERS:form_users:::",
  "12:11:$_ADD:user_form:::",
  "13:1:$_COMPANY:form_companies:::",
@@ -2137,7 +2139,6 @@ my @m = ("1:0:$_CUSTOMERS:null:::",
  "53:9:$_PROFILE:admin_profile:::",
  "99:9:$_FUNCTIONS_LIST:flist:::",
  );
-
 
 
 
