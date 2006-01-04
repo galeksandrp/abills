@@ -508,9 +508,18 @@ if ($attr->{GID}) {
    push @WHERE_RULES, "u.gid='$attr->{GID}'";
   }
 
- if ($attr->{FROM_DATE}) {
-    push @WHERE_RULES, "(date_format(l.start, '%Y-%m-%d')>='$attr->{FROM_DATE}' and date_format(l.start, '%Y-%m-%d')<='$attr->{TO_DATE}')";
-  }
+if ($attr->{FROM_DATE}) {
+   push @WHERE_RULES, "(date_format(l.start, '%Y-%m-%d')>='$attr->{FROM_DATE}' and date_format(l.start, '%Y-%m-%d')<='$attr->{TO_DATE}')";
+ }
+
+if ($attr->{DATE}) {
+   push @WHERE_RULES, "date_format(l.start, '%Y-%m-%d')>='$attr->{DATE}'";
+ }
+
+if ($attr->{MONTH}) {
+   push @WHERE_RULES, "date_format(l.start, '%Y-%m')>='$attr->{MONTH}'";
+ }
+
 
  
 #Interval from date to date
@@ -520,7 +529,7 @@ if ($attr->{INTERVAL}) {
   }
 #Period
 elsif (defined($attr->{PERIOD})) {
-   my $period = $attr->{PERIOD};   
+   my $period = $attr->{PERIOD} || 0;   
    if ($period == 4) { $WHERE .= ''; }
    else {
      $WHERE .= ($WHERE ne '') ? ' and ' : 'WHERE ';
@@ -657,6 +666,8 @@ sub reports {
       WHERE date_format(l.start, '%Y-%m-%d')='$attr->{DATE}'
       GROUP BY l.uid 
       ORDER BY $SORT $DESC");
+   $WHERE = "WHERE date_format(l.start, '%Y-%m-%d')='$attr->{DATE}'"; 
+   
   }
  else {
   $self->query($db, "select $date, count(DISTINCT l.uid), 

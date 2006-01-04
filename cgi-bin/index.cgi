@@ -63,7 +63,7 @@ if (defined($FORM{sid})) {
 #===========================================================
 
 print $html->header({ CHARSET => $CHARSET });
-my $sessions='sessions.db';
+my $sessions='admin/sessions.db';
 my $maxnumber = 0;
 my $uid = 0;
 my $page_qs;
@@ -181,6 +181,8 @@ sub form_info {
   use Finance;
   my $payments = Finance->payments($db, $admin);
   $LIST_PARAMS{PAGE_ROWS}=1;
+  $LIST_PARAMS{DESC}='desc';
+  $LIST_PARAMS{SORT}=1;
   my $list = $payments->list( { %LIST_PARAMS } );
   
   $user->{PAYMENT_DATE}=$list->[0]->[2];

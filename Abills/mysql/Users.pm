@@ -67,8 +67,8 @@ sub info {
    u.id, u.activate, u.expire, u.credit, u.reduction, 
    u.registration, 
    u.disable,
-   u.bill_id,
-   if(c.name IS NULL, b.deposit, cb.deposit),
+   if(u.company_id > 0, cb.id, b.id),
+   if(c.name IS NULL,   b.deposit, cb.deposit),
    u.company_id,
    if(c.name IS NULL, 'N/A', c.name), 
    if(c.name IS NULL, u.bill_id, c.bill_id)

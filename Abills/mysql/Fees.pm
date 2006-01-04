@@ -32,6 +32,7 @@ sub new {
   my $self = { };
   bless($self, $class);
   
+#  $self->{debug}=1;
   
   $Bill=Bills->new($db, $admin, $CONF); 
  
@@ -163,11 +164,21 @@ sub list {
     push @WHERE_RULES, "u.gid='$attr->{GID}'";
   }
 
-
  # Date
  if ($attr->{FROM_DATE}) {
     push @WHERE_RULES, "(date_format(f.date, '%Y-%m-%d')>='$attr->{FROM_DATE}' and date_format(f.date, '%Y-%m-%d')<='$attr->{TO_DATE}')";
   }
+
+
+ if ($attr->{DATE}) {
+    push @WHERE_RULES, "date_format(f.date, '%Y-%m-%d')='$attr->{DATE}'";
+  }
+ # Month
+ elsif ($attr->{MONTH}) {
+    push @WHERE_RULES, "date_format(f.date, '%Y-%m')='$attr->{MONTH}'";
+  }
+ # Date
+
 
  if ($attr->{COMPANY_ID}) {
  	 push @WHERE_RULES, "u.company_id='$attr->{COMPANY_ID}'";

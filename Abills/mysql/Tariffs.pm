@@ -19,8 +19,6 @@ $VERSION = 2.00;
 use main;
 @ISA  = ("main");
 
-my $db;
-my %DATA;
 
 
 my %FIELDS = ( TP_ID        => 'id', 
@@ -57,7 +55,7 @@ sub new {
   ($db, $CONF, $admin) = @_;
   my $self = { };
   bless($self, $class);
-  
+
   #$self->{debug}=1;
   return $self;
 }
@@ -373,7 +371,10 @@ sub list {
   my $self = shift;
   my ($attr) = @_;
 
- my $WHERE = '';
+  $SORT = (defined($attr->{SORT})) ? $attr->{SORT} : 1;
+  $DESC = (defined($attr->{DESC})) ? $attr->{DESC} : '';
+  $WHERE = '';
+ 
  $self->query($db, "SELECT tp.id, tp.name, if(sum(i.tarif) is NULL or sum(i.tarif)=0, 0, 1), 
     if(sum(tt.in_price + tt.out_price)> 0, 1, 0), 
     tp.payment_type,

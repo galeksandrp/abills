@@ -11,16 +11,25 @@ echo `pwd -P`;
 if [ t$1 = 'tauth' ] ; then
 
   ./rauth.pl \
-        USER_NAME="aa1" \
-        USER_PASSWORD="test123" \
-        CALLED_STATION_ID="00-09-E8-62-B3-4D" \
-        CALLING_STATION_ID="00-07-E9-19-72-1B" \
-        SERVICE_TYPE="Login-User"\
-        NAS_PORT_TYPE=Wireless-802.11 \
-        NAS_PORT=66\
+        SERVICE_TYPE=VPN \
+        USER_NAME="aa1"\
+        FRAMED_PROTOCOL=PPP\
+        CHAP_PASSWORD=0x01fb3b2bb3fb3932ea6dd01a961d6d041b \
+        CHAP-CHALLANGE=0x34353439343937323434313433303833 \
         NAS_IP_ADDRESS=192.168.101.17 \
-        NAS_IDENTIFIER="ap" \
-        ACCT_MULTI_SESSION_ID="" 
+        NAS-Port-Type = Virtual
+
+
+#        USER_NAME="aa1" \
+#        USER_PASSWORD="test123" \
+#        CALLED_STATION_ID="00-09-E8-62-B3-4D" \
+#        CALLING_STATION_ID="00-07-E9-19-72-1B" \
+#        SERVICE_TYPE="Login-User"\
+#        NAS_PORT_TYPE=Wireless-802.11 \
+#        NAS_PORT=66\
+#        NAS_IP_ADDRESS=192.168.101.17 \
+#        NAS_IDENTIFIER="ap" \
+#        ACCT_MULTI_SESSION_ID="" 
 
 #     USER_NAME="aa1" \
 #     NAS_IP_ADDRESS=192.168.101.17 \

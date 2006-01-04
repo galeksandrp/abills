@@ -44,7 +44,7 @@ $VERSION = 2.00;
 %EXPORT_TAGS = ();
 
 
-$db   = undef;
+$db    = undef;
 $admin = undef;
 $CONF  = undef;
 @WHERE_RULES = ();
@@ -56,6 +56,7 @@ $SORT      = 1;
 $DESC      = '';
 $PG        = 0;
 $PAGE_ROWS = 25;
+
 
 
 
@@ -319,7 +320,7 @@ if ($CHANGES_QUERY eq '') {
      return $self;
    }
 
-  if (defined($DATA{UID}) && $DATA{UID} > 0 && $admin != undef) { 
+  if (defined($DATA{UID}) && $DATA{UID} > 0 && defined($admin)) { 
      $admin->action_add($DATA{UID}, "$CHANGES_LOG");
    }
 

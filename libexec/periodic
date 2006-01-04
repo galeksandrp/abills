@@ -50,7 +50,7 @@ my @daily_functions=('sheduler',
                      'admin_report_daily',
                      'dv_users_warning_messages');
 
-my @monthly_functions = ('monthly_report',
+my @monthly_functions = ('admin_report_monthly',
                          'backup',
                          'logrotate');
 
@@ -71,9 +71,10 @@ my @monthly_functions = ('monthly_report',
   }
  
 if (defined($args->{monthly})) {
-   foreach my $f (@monthly_functions) {
-  	print $f . "\n";
-  	#$f->();
+   for(my $i=$#monthly_functions; $i>-1; $i--) {
+  	my $f = $monthly_functions[$i];
+  	#print $f . "\n";
+  	$f->();
    }
 
    my $message = Abills::HTML->tpl_show(templates('admin_report_day'), \%ADMIN_REPORT, { notprint => 'yes' });
@@ -192,16 +193,18 @@ require Finance;
 Finance->import();
 my $payments = Finance->payments($db, $admin, \%conf); 
 
-$ADMIN_REPORT{PAYMENTS}  =  sprintf("%-14s| %8s| %20s| %8s| %15s| %19s|\n", $_LOGIN, $_SUM, 
-    $_DESCRIBE, $_ADMINS, 'IP', $_DATE);
+$ADMIN_REPORT{PAYMENTS}  =  sprintf("%-14s| %8s| %20s| %12s| %15s| %19s|\n", $_LOGIN, $_SUM, 
+    $_DESCRIBE, 'Admins.', 'IP', $_DATE);
 $ADMIN_REPORT{PAYMENTS} .= "---------------------------------------------------------\n";
 
 $LIST_PARAMS{DATE}=$YESTERDAY;
+$LIST_PARAMS{SORT}=2;
+$LIST_PARAMS{DESC}='DESC';
 
 $list = $payments->list( { %LIST_PARAMS } );
 
 foreach my $line (@$list) {
-   $ADMIN_REPORT{PAYMENTS} .= sprintf ("%-14s| %8.4f| %20s| %8s| %15s| %19s|\n", 
+   $ADMIN_REPORT{PAYMENTS} .= sprintf ("%-14s| %8.4f| %20s| %12s| %15s| %19s|\n", 
     "$line->[1]", 
     "$line->[3]", 
     "$line->[4]", 
@@ -210,21 +213,26 @@ foreach my $line (@$list) {
     "$line->[2]");
 }
 
-$ADMIN_REPORT{PAYMENTS} .= "---------------------------------------------------------
-$_TOTAL: $payments->{TOTAL} $_SUM: $payments->{SUM}\n";
+$ADMIN_REPORT{PAYMENTS} .= "---------------------------------------------------------\n";
+$ADMIN_REPORT{PAYMENTS} .= sprintf("%-14s| %8s|\n%-14s| %8s|\n", 
+  $_TOTAL, $payments->{TOTAL},
+  $_SUM,   $payments->{SUM});
+
+
 
 #Fees
 my $fees = Finance->fees($db, $admin, \%conf);
 
+
 # Daily fees
-$ADMIN_REPORT{FEES} .= sprintf ("%-14s| %8s| %20s| %8s| %15s| %8s\n", $_LOGIN, $_SUM, $_DESCRIBE, $_ADMINS, 'IP', $_DEPOSIT);
+$ADMIN_REPORT{FEES} .= sprintf ("%-14s| %8s| %20s| %12s| %15s| %8s\n", $_LOGIN, $_SUM, $_DESCRIBE, $_ADMINS, 'IP', $_DEPOSIT);
 $ADMIN_REPORT{FEES} .= "---------------------------------------------------------\n";
 
-
+$LIST_PARAMS{PAGE_ROWS}=10000;
 $list = $fees->list( { %LIST_PARAMS } );
 foreach my $line (@$list) {
 #SELECT f.id, u.id, f.date, f.sum, f.dsc, a.name, INET_NTOA(f.ip), f.last_deposit, f.uid 
-  $ADMIN_REPORT{FEES} .= sprintf ("%-14s| %8.4f| %20s| %8s| %15s| %8.4f\n", 
+  $ADMIN_REPORT{FEES} .= sprintf ("%-14s| %8.4f| %20s| %12s| %15s| %8.4f\n", 
     $line->[1], 
     $line->[3], 
     $line->[4], 
@@ -234,8 +242,10 @@ foreach my $line (@$list) {
     
 }
 
-$ADMIN_REPORT{FEES} .= "---------------------------------------------------------
-$_TOTAL: $fees->{TOTAL} $_SUM: $fees->{SUM}\n";
+$ADMIN_REPORT{FEES} .= "---------------------------------------------------------\n";
+$ADMIN_REPORT{FEES} .= sprintf("%-14s| %8s|\n%-14s| %8s|\n", 
+    $_TOTAL, $fees->{TOTAL}, 
+    $_SUM,   $fees->{SUM});
 
 
 #USED traffic nd time
@@ -243,6 +253,7 @@ require Dv_Sessions;
 Dv_Sessions->import();
 my $sessions = Dv_Sessions->new($db, $admin, \%conf); 
 
+$sessions->{debug}=1;
 $ADMIN_REPORT{SESSIONS} .= sprintf ("%-14s| %5s| %9s| %9s| %10s| %9s|\n", $_LOGIN, $_SESSIONS, 
     $_TRAFFIC, "$_TRAFFIC 2", $_DURATION, $_SUM);
 $ADMIN_REPORT{SESSIONS} .= "---------------------------------------------------------\n";
@@ -262,9 +273,15 @@ foreach my $line (@$list) {
     $line->[6]);
 }
 
-$ADMIN_REPORT{SESSIONS} .= "---------------------------------------------------------
-$_USERS: $sessions->{USERS}, $_SESSIONS: $sessions->{SESSIONS}, $_TRAFFIC: ". int2byte($sessions->{TRAFFIC}) 
-.", $_TRAFFIC 2: ". int2byte($sessions->{TRAFFIC_2}) .", $_DURATION: $sessions->{DURATION}, $_SUM: $sessions->{SUM}\n";
+
+$ADMIN_REPORT{SESSIONS} .= "---------------------------------------------------------\n";
+$ADMIN_REPORT{SESSIONS} .= sprintf("%-14s| %20s|\n%-14s| %20s|\n%-14s| %20s|\n%-14s| %20s|\n%-14s| %20s|\n%-14s| %20s|\n", 
+   $_USERS,       $sessions->{USERS}, 
+   $_SESSIONS,    $sessions->{SESSIONS}, 
+   $_TRAFFIC,     int2byte($sessions->{TRAFFIC}), 
+   "$_TRAFFIC 2", int2byte($sessions->{TRAFFIC_2}), 
+   $_DURATION,    $sessions->{DURATION}, 
+   $_SUM,         $sessions->{SUM});
 
 
 
@@ -312,7 +329,13 @@ sub admin_report_monthly {
 
 
 
-
+#*******************************************************************
+# Log rotate
+#*******************************************************************
+sub logrotate {
+	
+	
+}
 
 
 #*******************************************************************
@@ -320,6 +343,8 @@ sub admin_report_monthly {
 # backup()
 #*******************************************************************
 sub backup {
- my $res = `$MYSQLDUMP --host=$conf{dbhost} --user="$conf{dbuser}" --password="$conf{dbpasswd}" $conf{dbname} | $GZIP > $conf{BACKUP_DIR}/stats-$DATE.sql.gz`;
+ #print "$MYSQLDUMP --host=$conf{dbhost} --user=\"$conf{dbuser}\" --password=\"$conf{dbpasswd}\" $conf{dbname} | $GZIP > $conf{BACKUP_DIR}/stats-$DATE.sql.gz";
+ my $res = `$MYSQLDUMP -v --host=$conf{dbhost} --user="$conf{dbuser}" --password="$conf{dbpasswd}" $conf{dbname} | $GZIP > $conf{BACKUP_DIR}/stats-$DATE.sql.gz`;
+ #print $res;
  #my $message .= "Backup created: $res ($conf{BACKUP_DIR}/stats-$DATE.sql.gz)";
 }

@@ -22,8 +22,10 @@ $VERSION = 2.00;
 #my $usernameregexp = "^[a-z0-9_][a-z0-9_-]*\$"; # configurable;
 use main;
 @ISA  = ("main");
+
 my $db;
 my $CONF;
+my $debug =0;
 
 #**********************************************************
 # Init 
@@ -56,8 +58,7 @@ sub dv_auth {
   }
 
 	
-  $self->query($db, "select
-  if (dv.logins=0, tp.logins, dv.logins) AS logins,
+  $self->query($db, "select  if (dv.logins=0, tp.logins, dv.logins) AS logins,
   if(dv.filter_id != '', dv.filter_id, tp.filter_id),
   if(dv.ip>0, INET_NTOA(dv.ip), 0),
   INET_NTOA(dv.netmask),
@@ -69,11 +70,11 @@ sub dv_auth {
   tp.month_time_limit,
   UNIX_TIMESTAMP(DATE_FORMAT(DATE_ADD(curdate(), INTERVAL 1 MONTH), '%Y-%m-01')) - UNIX_TIMESTAMP(),
 
-  day_traf_limit,
-  week_traf_limit,
-  month_traf_limit,
+  tp.day_traf_limit,
+  tp.week_traf_limit,
+  tp.month_traf_limit,
   tp.octets_direction,
-  
+
   if (count(un.uid) + count(tp_nas.tp_id) = 0, 0,
     if (count(un.uid)>0, 1, 2)),
 
@@ -82,17 +83,18 @@ sub dv_auth {
   DAYOFWEEK(FROM_UNIXTIME(UNIX_TIMESTAMP())),
   DAYOFYEAR(FROM_UNIXTIME(UNIX_TIMESTAMP())),
   dv.disable,
-  if(tp.hourp + tp.day_fee + tp.month_fee=0 and (sum(tt.in_price + tt.out_price)=0 or sum(tt.in_price + tt.out_price)IS NULL), 0, 1),
   tp.max_session_duration,
   tp.payment_type,
   tp.credit_tresshold,
-  tp.rad_pairs
-     FROM dv_main dv, tarif_plans tp
-     LEFT JOIN trafic_tarifs tt ON (tt.tp_id=dv.tp_id)
+  tp.rad_pairs,
+  count(i.id)
+     FROM dv_main     dv,
+          tarif_plans tp
      LEFT JOIN users_nas un ON (un.uid = dv.uid)
      LEFT JOIN tp_nas ON (tp_nas.tp_id = tp.id)
+     LEFT JOIN intervals i ON (tp.id = i.tp_id)
      WHERE dv.tp_id=tp.id
-        AND dv.uid='$self->{UID}'
+         AND dv.uid='$self->{UID}'
      GROUP BY dv.uid;");
 
 
@@ -124,11 +126,11 @@ sub dv_auth {
      $self->{DAY_OF_WEEK}, 
      $self->{DAY_OF_YEAR},
      $self->{DISABLE},
-     $self->{TP_PAYMENT},
      $self->{MAX_SESSION_DURATION},
      $self->{PAYMENT_TYPE},
      $self->{CREDIT_TRESSHOLD},
-     $self->{TP_RAD_PAIRS}
+     $self->{TP_RAD_PAIRS},
+     $self->{INTERVALS}
     ) = @$a_ref;
 
 
@@ -191,12 +193,13 @@ if ($self->{PAYMENT_TYPE} == 0) {
   $self->{DEPOSIT}=$self->{DEPOSIT}+$self->{CREDIT}-$self->{CREDIT_TRESSHOLD};
 
   #Check deposit
-  if($self->{TP_PAYMENT} > 0 && $self->{DEPOSIT}  <= 0) {
+  if($self->{DEPOSIT}  <= 0) {
     $RAD_PAIRS->{'Reply-Message'}="Negativ deposit '$self->{DEPOSIT}'. Rejected!";
     return 1, $RAD_PAIRS;
    }
-  
-  ($remaining_time, $ATTR) = $self->remaining_time($self->{TP_ID}, $self->{DEPOSIT}, 
+
+  if ($self->{INTERVALS} > 0)  {
+    ($remaining_time, $ATTR) = $self->remaining_time($self->{TP_ID}, $self->{DEPOSIT}, 
                                       $self->{SESSION_START}, 
                                       $self->{DAY_BEGIN}, 
                                       $self->{DAY_OF_WEEK}, 
@@ -204,6 +207,8 @@ if ($self->{PAYMENT_TYPE} == 0) {
                                       { mainh_tarif => $self->{TIME_TARIF},
                                         time_limit  => $self->{TODAY_LIMIT}  } 
                                       );
+    print "RT: $remaining_time" if ($debug == 1);
+   }
 
 }
 
@@ -227,6 +232,8 @@ else {
  elsif($remaining_time > 0) {
     push (@time_limits, $remaining_time);
   }
+
+
 
 #Periods Time and traf limits
 # 0 - Total limit
@@ -699,12 +706,11 @@ sub check_company_account () {
 sub ex_traffic_params {
  my ($self, $attr) = @_;	
 
- my $traf_limit = $attr->{traf_limit};
  my $deposit = (defined($attr->{deposit})) ? $attr->{deposit} : 0;
 
  my %EX_PARAMS = ();
  $EX_PARAMS{speed}=0;
- $EX_PARAMS{traf_limit}=0;
+ $EX_PARAMS{traf_limit}=(defined($attr->{traf_limit})) ? $attr->{traf_limit} : 0;
  $EX_PARAMS{traf_limit_lo}=0;
 
  my %prepaids = ();
@@ -792,19 +798,10 @@ else {
 
 
 my $trafic_limit = 0;
-if ($trafic_limits{0} > 0 || $traf_limit > 0) {
-  if($trafic_limits{0} > $traf_limit && $traf_limit > 0) {
-    $trafic_limit = $traf_limit;
-   }
-  elsif($trafic_limits{0} > 0) {
-    #$trafic_limit = $trafic_limit * 1024 * 1024;
-    #2Gb - (2048 * 1024 * 1024 ) - global traffic session limit
-    $trafic_limit = ($trafic_limits{0} > $attr->{MAX_SESSION_TRAFFIC}) ? $attr->{MAX_SESSION_TRAFFIC} :  $trafic_limits{0};
-   }
-  else {
-  	$trafic_limit = $traf_limit;
-   }
-
+#$trafic_limit = $trafic_limit * 1024 * 1024;
+#2Gb - (2048 * 1024 * 1024 ) - global traffic session limit
+if ($trafic_limits{0} > 0  && $trafic_limits{0} < $EX_PARAMS{traf_limit}) {
+  $trafic_limit = ($trafic_limits{0} > $attr->{MAX_SESSION_TRAFFIC}) ? $attr->{MAX_SESSION_TRAFFIC} :  $trafic_limits{0};
   $EX_PARAMS{traf_limit} = ($trafic_limit < 1 && $trafic_limit > 0) ? 1 : int($trafic_limit);
 }
 
