@@ -272,7 +272,8 @@ if ($self->{DISABLE}) {
           DAY_BEGIN           => $self->{DAY_BEGIN},
           DAY_OF_WEEK         => $self->{DAY_OF_WEEK},
           DAY_OF_YEAR         => $self->{DAY_OF_YEAR},
-          REDUCTION           => $self->{REDUCTION}
+          REDUCTION           => $self->{REDUCTION},
+          POSTPAID            => $self->{PAYMENT_TYPE}
          });
     
        if ($session_timeout > 0) {

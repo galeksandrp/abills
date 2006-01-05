@@ -124,6 +124,9 @@ my $v = `echo "$self->{UID},
     $self->{errno}=1;
     $self->{errstr}="ACCT [$RAD->{USER_NAME}] Not allow start period '$filename'";
     $Billing->mk_session_log($RAD);
+    
+    $v = `echo "$filename" >> /tmp/aaaaa`;
+    
    }
   elsif ($self->{SUM} < 0) {
     $self->{LOG_DEBUG} =  "ACCT [$RAD->{USER_NAME}] small session ($RAD->{ACCT_SESSION_TIME}, $RAD->{INBYTE}, $RAD->{OUTBYTE})";

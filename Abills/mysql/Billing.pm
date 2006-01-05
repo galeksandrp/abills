@@ -687,7 +687,7 @@ sub remaining_time {
   $deposit = $deposit + ($deposit * (100 - $REDUCTION) / 100) if ($REDUCTION > 0);
 
 
-  $time_intervals = $attr->{TIME_INTERVALS}; 
+  $time_intervals = $attr->{TIME_INTERVALS} || 0; 
   $periods_time_tarif = $attr->{INTERVAL_TIME_TARIF};
   $periods_traf_tarif = undef;
 
@@ -718,7 +718,7 @@ sub remaining_time {
  my $count = 0;
  $session_start = $session_start - $day_begin;
 
- while(($deposit > 0 && $count < 50)) {
+ while(($deposit > 0 || (defined($attr->{POSTPAID}) && $attr->{POSTPAID}==1 )) && $count < 50) {
   
    if ($time_limit != 0 && $time_limit < $remaining_time) {
      $remaining_time = $time_limit;
@@ -782,8 +782,6 @@ sub remaining_time {
             	print "Prev tarif $prev_tarif / INT end: $int_end \n" if ($debug == 1);
            }
 
-          
-          
           if ($periods_time_tarif->{$int_id} =~ /%$/) {
              my $tp = $periods_time_tarif->{$int_id};
              $tp =~ s/\%//;
