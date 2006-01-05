@@ -60,7 +60,8 @@ sub accounting {
 #my $a=`echo "test $acct_status_type = $ACCT_TYPES{$RAD->{ACCT_STATUS_TYPE}}"  >> /tmp/12211 `;
  
  $RAD->{FRAMED_IP_ADDRESS} = '0.0.0.0' if(! defined($RAD->{FRAMED_IP_ADDRESS}));
-
+    $self->{debug}=1;
+    
 #Start
 if ($acct_status_type == 1) { 
   my $sql = "INSERT INTO calls
@@ -99,9 +100,18 @@ elsif ($acct_status_type == 2) {
                                                  $RAD);
 
 
+my $v = `echo "$self->{UID}, 
+  $self->{SUM}, 
+  $self->{BILL_ID}, 
+  $self->{TARIF_PLAN}, 
+  $self->{TIME_TARIF}, 
+  $self->{TRAF_TARIF}" > /tmp/aaaaa`;
+
 #   $Billing->time_calculation({
 #   	                           START     => $RAD->{SESSION_START}, 
 #   	                           DURATION  => $RAD->{ACCT_SESSION_TIME} });
+
+
 
  
 #  return $self;
