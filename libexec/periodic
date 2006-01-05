@@ -253,7 +253,6 @@ require Dv_Sessions;
 Dv_Sessions->import();
 my $sessions = Dv_Sessions->new($db, $admin, \%conf); 
 
-$sessions->{debug}=1;
 $ADMIN_REPORT{SESSIONS} .= sprintf ("%-14s| %5s| %9s| %9s| %10s| %9s|\n", $_LOGIN, $_SESSIONS, 
     $_TRAFFIC, "$_TRAFFIC 2", $_DURATION, $_SUM);
 $ADMIN_REPORT{SESSIONS} .= "---------------------------------------------------------\n";
