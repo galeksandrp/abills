@@ -964,35 +964,6 @@ my ($given_password,$want_password,$given_chap_challenge,$debug) = @_;
 
 
 
-#********************************************************************
-# Get current time info
-#   SESSION_START
-#   DAY_BEGIN
-#   DAY_OF_WEEK
-#   DAY_OF_YEAR
-#********************************************************************
-sub get_timeinfo {
-  my $self = shift;
-
-  $self->query($db, "select
-    UNIX_TIMESTAMP(),
-    UNIX_TIMESTAMP(DATE_FORMAT(FROM_UNIXTIME(UNIX_TIMESTAMP()), '%Y-%m-%d')),
-    DAYOFWEEK(FROM_UNIXTIME(UNIX_TIMESTAMP())),
-    DAYOFYEAR(FROM_UNIXTIME(UNIX_TIMESTAMP()));");
-
-  if($self->{errno}) {
-    return $self;
-   }
-  my $a_ref = $self->{list}->[0];
-
- ($self->{SESSION_START},
-  $self->{DAY_BEGIN},
-  $self->{DAY_OF_WEEK},
-  $self->{DAY_OF_YEAR})  = @$a_ref;
-
- return $self;
- }
-
 
 
 

@@ -649,6 +649,37 @@ $sum = $sum * (100 - $attr->{REDUCTION}) / 100 if (defined($attr->{REDUCTION}) &
   return $self;
 }
 
+
+#********************************************************************
+# Get current time info
+#   SESSION_START
+#   DAY_BEGIN
+#   DAY_OF_WEEK
+#   DAY_OF_YEAR
+#********************************************************************
+sub get_timeinfo {
+  my $self = shift;
+
+  $self->query($db, "select
+    UNIX_TIMESTAMP(),
+    UNIX_TIMESTAMP(DATE_FORMAT(FROM_UNIXTIME(UNIX_TIMESTAMP()), '%Y-%m-%d')),
+    DAYOFWEEK(FROM_UNIXTIME(UNIX_TIMESTAMP())),
+    DAYOFYEAR(FROM_UNIXTIME(UNIX_TIMESTAMP()));");
+
+  if($self->{errno}) {
+    return $self;
+   }
+  my $a_ref = $self->{list}->[0];
+
+ ($self->{SESSION_START},
+  $self->{DAY_BEGIN},
+  $self->{DAY_OF_WEEK},
+  $self->{DAY_OF_YEAR})  = @$a_ref;
+
+ return $self;
+ }
+
+
 #********************************************************************
 # remaining_time
 #  returns
@@ -689,7 +720,7 @@ sub remaining_time {
 
   $time_intervals = $attr->{TIME_INTERVALS} || 0; 
   $periods_time_tarif = $attr->{INTERVAL_TIME_TARIF};
-  $periods_traf_tarif = undef;
+  $periods_traf_tarif = $attr->{INTERVAL_TRAF_TARIF} || undef;
 
   my $debug = 0;
  
@@ -797,6 +828,7 @@ sub remaining_time {
             return int($int_duration), \%ATTR;
            }
           elsif(defined($periods_traf_tarif->{$int_id})  && $periods_traf_tarif->{$int_id} > 0) {
+
             print "Next tarif with traffic counts  $int_end {$tarif_day} {$int_begin}\n" if ($debug == 1);
             return int($remaining_time), \%ATTR;
            }
@@ -805,6 +837,9 @@ sub remaining_time {
            }
           else {
             $int_prepaid = $int_duration;	
+            $ATTR{TT}=$int_id if (! defined($ATTR{TT}) && defined($periods_traf_tarif));
+            
+            #print "333\n";
            }
           #print "Int Begin: $int_begin Int duration: $int_duration Int prepaid: $int_prepaid Prise: $price\n";
 
@@ -835,7 +870,7 @@ sub remaining_time {
        	   }
        	  elsif($session_start < 86400) {
       	  	 if ($remaining_time > 0) {
-      	  	   return int($remaining_time);
+      	  	   return int($remaining_time), \%ATTR;
       	  	  }
              else {
              	 # Not allow hour

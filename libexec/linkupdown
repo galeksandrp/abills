@@ -62,7 +62,9 @@ require Abills::SQL;
 my $sql = Abills::SQL->connect($conf{dbtype}, "$conf{dbhost}", $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
 my $db = $sql->{db};
 
-
+require Billing;
+Billing->import();
+my $Billing = Billing->new($db, \%conf);
 
 
 
@@ -134,47 +136,70 @@ if ($ACTION eq 'up') {
    }
 
   if ($user->{SPEED} > 0) {
-    $speeds{0}=int($user->{SPEED});
+    $speeds{0}{IN}=int($user->{SPEED});
+    $speeds{0}{OUT}=int($user->{SPEED});
    }
   else {
-
-   require Auth;
-   Auth->import();
-   my $auth = Auth->new($db);
+    my ($remaining_time, $ret_attr); 
 
 
-      my($session_start, 
-      $day_begin, 
-      $day_of_week, 
-      $day_of_year);
+    ($user->{TIME_INTERVALS}, $user->{INTERVAL_TIME_TARIF}, $user->{INTERVAL_TRAF_TARIF}) = $Billing->time_intervals($user->{TP_ID});
+    ($remaining_time, $ret_attr) = $Billing->remaining_time($user->{DEPOSIT}, {
+    	    TIME_INTERVALS      => $user->{TIME_INTERVALS},
+          INTERVAL_TIME_TARIF => $user->{INTERVAL_TIME_TARIF},
+          INTERVAL_TRAF_TARIF => $user->{INTERVAL_TRAF_TARIF},
+          SESSION_START       => $user->{SESSION_START},
+          DAY_BEGIN           => $user->{DAY_BEGIN},
+          DAY_OF_WEEK         => $user->{DAY_OF_WEEK},
+          DAY_OF_YEAR         => $user->{DAY_OF_YEAR},
+          REDUCTION           => $user->{REDUCTION},
+          POSTPAID            => 1
+         });
 
-  my($remain_time, $ret_attr) = $auth->remaining_time($user->{TP_ID}, 
-      $user->{DEPOSIT}, 
-      0, 
-      0, 
-      0, 
-      0);
+#    print "RT: $remaining_time\n" if ($debug == 1);
+    my %TT_IDS = %$ret_attr;
+
+    if (keys %TT_IDS > 0) {
+    	
+    	
+    	
+      require Tariffs;
+      Tariffs->import();
+      my $tariffs = Tariffs->new($db, $admin);
+
+      while(my($k, $v)=each( %TT_IDS)) {
+# 	      print "$k, $v\n";
+ 	      my $list = $tariffs->tt_list({ TI_ID => $v });
+ 	      foreach my $line (@$list)  {
+ 	    	  $speeds{$line->[0]}{IN}="$line->[4]";
+ 	    	  $speeds{$line->[0]}{OUT}="$line->[5]";
+ 	    	  $nets{$line->[0]}="$line->[7]";
+ 	    	  #print "$line->[0] $line->[4]\n";
+ 	      }
+      }
+    }
+  
+
+
+#   require Auth;
+#   Auth->import();
+#   my $auth = Auth->new($db);
+#
+#
+#      my($session_start, 
+#      $day_begin, 
+#      $day_of_week, 
+#      $day_of_year);
+#
+#  my($remain_time, $ret_attr) = $auth->remaining_time($user->{TP_ID}, 
+#      $user->{DEPOSIT}, 
+#      0, 
+#      0, 
+#      0, 
+#      0);
 
 
  #print "$remain_time\n";
- my %TT_IDS = %$ret_attr;
- 
- if (keys %TT_IDS > 0) {
-   require Tariffs;
-   Tariffs->import();
-   my $tariffs = Tariffs->new($db, $admin);
-
-   while(my($k, $v)=each( %TT_IDS)) {
- 	    my $list = $tariffs->tt_list({ TI_ID => $v });
- 	    foreach my $line (@$list)  {
- 	    	$speeds{$line->[0]}{IN}="$line->[4]";
- 	    	$speeds{$line->[0]}{OUT}="$line->[5]";
- 	    	$nets{$line->[0]}="$line->[7]";
- 	    	#print "$line->[0] $line->[4]\n";
- 	    }
- 	    
-    }
-  }
 
 #    $q = $db->prepare("SELECT id, speed, nets FROM trafic_tarifs WHERE vid='$vid';") || die $db->errstr;
 #    $q -> execute ();

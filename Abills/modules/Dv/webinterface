@@ -1272,6 +1272,27 @@ sub dv_user_info {
 
 
 
+#**********************************************************
+# dv_periodic_logrotate
+#**********************************************************
+sub dv_periodic_logrotate {
+	
+#	$self->query($db, "CREATE TABLE `s_detail_$month` (
+#  `acct_session_id` varchar(25) NOT NULL default '',
+#  `nas_id` smallint(5) unsigned NOT NULL default '0',
+#  `acct_status` tinyint(2) unsigned NOT NULL default '0',
+#  `start` datetime default NULL,
+#  `last_update` int(11) unsigned NOT NULL default '0',
+#  `sent1` int(10) unsigned NOT NULL default '0',
+#  `recv1` int(10) unsigned NOT NULL default '0',
+#  `sent2` int(10) unsigned NOT NULL default '0',
+#  `recv2` int(10) unsigned NOT NULL default '0',
+#  `id` varchar(16) NOT NULL default '',
+#  KEY `sid` (`acct_session_id`)
+#  ) TYPE=MyISAM;", 'do');
+
+
+}
 
 #**********************************************************
 # daily_fees

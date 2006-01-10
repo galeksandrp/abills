@@ -97,9 +97,8 @@ CREATE TABLE `groups` (
 ) TYPE=MyISAM;
 
 DROP TABLE IF EXISTS admin_permits;
-
 CREATE TABLE `admin_permits` (
-  `aid` smallint(6) unsigned NOT NULL default '0',
+  `aid` smallint(6) unsigned NOT NULL default     '0',
   `section` smallint(6) unsigned NOT NULL default '0',
   `actions` smallint(6) unsigned NOT NULL default '0',
   KEY `aid` (`aid`)
