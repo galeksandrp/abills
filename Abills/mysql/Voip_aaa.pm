@@ -109,7 +109,7 @@ sub user_info {
    u.reduction,
    u.bill_id,
    u.company_id,
-   
+   u.credit,
   UNIX_TIMESTAMP(),
   UNIX_TIMESTAMP(DATE_FORMAT(FROM_UNIXTIME(UNIX_TIMESTAMP()), '%Y-%m-%d')),
   DAYOFWEEK(FROM_UNIXTIME(UNIX_TIMESTAMP())),
@@ -142,6 +142,7 @@ sub user_info {
    $self->{REDUCTION},
    $self->{BILL_ID},
    $self->{COMPANY_ID},
+   $self->{CREDIT},
 
    $self->{SESSION_START}, 
    $self->{DAY_BEGIN}, 
@@ -154,6 +155,13 @@ sub user_info {
 
   #Chack Company account if ACCOUNT_ID > 0
   $self->check_company_account() if ($self->{COMPANY_ID} > 0);
+
+
+$self->check_bill_account();
+if($self->{errno}) {
+  $RAD_PAIRS{'Reply-Message'}=$self->{errstr};
+  return 1, \%RAD_PAIRS;
+ }
 
 
 
@@ -205,9 +213,24 @@ if ($self->{DISABLE}) {
   return 1, \%RAD_PAIRS;
 }
 
+$self->{PAYMENT_TYPE}=0;
+if ($self->{PAYMENT_TYPE} == 0) {
+  $self->{DEPOSIT}=$self->{DEPOSIT}+$self->{CREDIT}; #-$self->{CREDIT_TRESSHOLD};
+
+  #Check deposit
+  if($self->{DEPOSIT}  <= 0) {
+    $RAD_PAIRS{'Reply-Message'}="Negativ deposit '$self->{DEPOSIT}'. Rejected!";
+    return 1, \%RAD_PAIRS;
+   }
+}
+else {
+  $self->{DEPOSIT}=0;
+}
+
+
+
   
-  
-  $self->check_bill_account();
+#  $self->check_bill_account();
 
 # if call
 
@@ -258,7 +281,6 @@ if ($self->{DISABLE}) {
     #Get intervals and prices
 
     if ($RAD->{H323_CALL_ORIGIN} == 1) {
-
        $self->get_intervals();
        if ($self->{TOTAL} < 1) {
          $RAD_PAIRS{'Reply-Message'}="No price for route prefix '$self->{PREFIX}' number '". $RAD->{'CALLED_STATION_ID'} ."'";

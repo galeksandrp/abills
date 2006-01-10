@@ -682,6 +682,7 @@ sub check_bill_account() {
 
   return $self;
 }
+
 #*******************************************************************
 #Chack Company account if ACCOUNT_ID > 0
 # check_company_account()

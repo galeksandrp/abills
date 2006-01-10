@@ -185,7 +185,7 @@ else {
 my $r = 0;
 my $Acct;
 
-print "aaaa\n\n\n";
+#print "aaaa\n\n\n";
 
 if(defined($ACCT{$nas->{NAS_TYPE}})) {
   require $ACCT{$nas->{NAS_TYPE}} . ".pm";
