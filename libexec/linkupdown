@@ -42,6 +42,7 @@ if ( $#ARGV < 3 ) {
  set iface up-script "/usr/abills/libexec/linkupdown mpd up"
  set iface down-script "/usr/abills/libexec/linkupdown mpd down"
 ----------------------------------------------------------------
+DEBUG: $debug
 };
 exit 0;
 }
