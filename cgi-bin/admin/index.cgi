@@ -537,7 +537,7 @@ elsif($FORM{change}){
     message('info', $_CHANGED, "$_CHANGED $users->{GID}");
    }
 }
-elsif($FORM{GID}){
+elsif(defined($FORM{GID})){
   $users->group_info( $FORM{GID} );
 
   $LIST_PARAMS{GID}=$users->{GID};
@@ -567,7 +567,7 @@ elsif($FORM{GID}){
  
   return 0;
 }
-elsif($FORM{del} && $FORM{is_js_confirmed}){
+elsif(defined($FORM{del}) && defined($FORM{is_js_confirmed})){
   $users->group_del( $FORM{del} );
   if (! $users->{errno}) {
     message('info', $_DELETED, "$_DELETED $users->{GID}");
