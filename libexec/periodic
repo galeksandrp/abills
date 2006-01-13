@@ -77,7 +77,7 @@ if (defined($args->{monthly})) {
   	$f->();
    }
 
-   my $message = Abills::HTML->tpl_show(templates('admin_report_day'), \%ADMIN_REPORT, { notprint => 'yes' });
+   my $message = Abills::HTML->tpl_show(templates('admin_report_monthly'), \%ADMIN_REPORT, { notprint => 'yes' });
    sendmail("$conf{ADMIN_MAIL}", "$conf{ADMIN_MAIL}", "Monthly billing report", 
               "$message", "$conf{MAIL_CHARSET}", "2 (High)");
  }

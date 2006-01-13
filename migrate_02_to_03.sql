@@ -1,6 +1,4 @@
-use abills3;
-
-
+DROP TABLE IF EXISTS dv_main;
 CREATE TABLE `dv_main` (
   `uid` int(11) unsigned NOT NULL auto_increment,
   `tp_id` smallint(5) unsigned NOT NULL default '0',
@@ -23,7 +21,7 @@ INSERT INTO dv_main (uid, tp_id, logins, ip, filter_id, cid, speed)
  SELECT users.uid, users.variant, users.logins, users.ip, users.filter_id, users.cid, users.speed
     FROM users;
 
-
+DROP TABLE IF EXISTS bills;
 CREATE TABLE `bills` (
   `id` int(11) unsigned NOT NULL auto_increment,
   `deposit` double(15,6) NOT NULL default '0.000000',
@@ -40,6 +38,7 @@ INSERT INTO bills (deposit, uid, registration)
  SELECT users.deposit, users.uid, now()
     FROM users;
 
+DROP TABLE IF EXISTS users_pi;
 CREATE TABLE `users_pi` (
   `uid` int(11) unsigned NOT NULL auto_increment,
   `fio` varchar(40) NOT NULL default '',
@@ -54,7 +53,7 @@ CREATE TABLE `users_pi` (
 ) TYPE=MyISAM;
 
 
-INSERT INTO bills (uid, fio, phone, email, comments) 
+INSERT INTO users_pi (uid, fio, phone, email, comments) 
  SELECT users.uid, users.fio, users.phone, users.email, users.comments
     FROM users;
 
@@ -104,7 +103,7 @@ ALTER TABLE `s_detail` DROP COLUMN `uid`;
 
 
 ALTER TABLE `exchange_rate` ADD COLUMN `id` SMALLINT(6) UNSIGNED NOT NULL AUTO_INCREMENT UNIQUE;
-ALTER TABLE `exchange_rate` ADD UNIQUE KEY `id` (`id`);
+#ALTER TABLE `exchange_rate` ADD UNIQUE KEY `id` (`id`);
 
 
 ALTER TABLE `ippools` ADD UNIQUE KEY `nas` (`nas`, `ip`);
@@ -134,28 +133,44 @@ ALTER TABLE `calls` ADD COLUMN `nas_id` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '0
 ALTER TABLE `intervals` DROP INDEX `vid`;
 ALTER TABLE `intervals` change COLUMN vid `tp_id` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '0';
 ALTER TABLE `intervals` ADD COLUMN `id` SMALLINT(6) UNSIGNED NOT NULL AUTO_INCREMENT UNIQUE PRIMARY KEY;
-ALTER TABLE `intervals` ADD PRIMARY KEY (`id`);
-ALTER TABLE `intervals` ADD UNIQUE KEY `id` (`id`);
+#ALTER TABLE `intervals` ADD PRIMARY KEY (`id`);
 ALTER TABLE `intervals` ADD UNIQUE KEY `tp_intervals` (`tp_id`, `begin`, `day`);
 
 
 
+RENAME TABLE trafic_tarifs to trafic_tarifs_old;
+
+DROP TABLE IF EXISTS `trafic_tarifs`;
+CREATE TABLE `trafic_tarifs` (
+  `id` tinyint(4) NOT NULL default '0',
+  `descr` varchar(30) default NULL,
+  `nets` text,
+  `tp_id` smallint(5) unsigned NOT NULL default '0',
+  `prepaid` int(11) unsigned default '0',
+  `in_price` double(13,5) unsigned NOT NULL default '0.00000',
+  `out_price` double(13,5) unsigned NOT NULL default '0.00000',
+  `in_speed` int(10) unsigned NOT NULL default '0',
+  `interval_id` smallint(6) unsigned NOT NULL default '0',
+  `rad_pairs` text NOT NULL,
+  `out_speed` int(10) unsigned NOT NULL default '0',
+  UNIQUE KEY `id` (`id`,`interval_id`)
+) TYPE=MyISAM;
 
 
-ALTER TABLE `trafic_tarifs` DROP INDEX `vid_id`;
-ALTER TABLE `trafic_tarifs` DROP INDEX `vid`;
-ALTER TABLE `trafic_tarifs` DROP COLUMN `price`;
-ALTER TABLE `trafic_tarifs` DROP COLUMN `vid`;
-ALTER TABLE `trafic_tarifs` DROP COLUMN `speed`;
-
-ALTER TABLE `trafic_tarifs` ADD COLUMN `tp_id` SMALLINT(5) UNSIGNED NOT NULL DEFAULT '0';
-ALTER TABLE `trafic_tarifs` MODIFY COLUMN `in_price` DOUBLE(13,5) UNSIGNED NOT NULL DEFAULT '0.00000';
-ALTER TABLE `trafic_tarifs` MODIFY COLUMN `out_price` DOUBLE(13,5) UNSIGNED NOT NULL DEFAULT '0.00000';
-ALTER TABLE `trafic_tarifs` ADD COLUMN `in_speed` INTEGER(10) UNSIGNED NOT NULL DEFAULT '0';
-ALTER TABLE `trafic_tarifs` ADD COLUMN `interval_id` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '0' PRIMARY KEY;
-ALTER TABLE `trafic_tarifs` ADD COLUMN `rad_pairs` TEXT NOT NULL;
-ALTER TABLE `trafic_tarifs` ADD COLUMN `out_speed` INTEGER(10) UNSIGNED NOT NULL DEFAULT '0';
-ALTER TABLE `trafic_tarifs` ADD UNIQUE KEY `id` (`id`, `interval_id`);
+--ALTER TABLE `trafic_tarifs` DROP INDEX `vid_id`;
+--ALTER TABLE `trafic_tarifs` DROP INDEX `vid`;
+--ALTER TABLE `trafic_tarifs` DROP COLUMN `price`;
+--ALTER TABLE `trafic_tarifs` DROP COLUMN `vid`;
+--ALTER TABLE `trafic_tarifs` DROP COLUMN `speed`;
+--
+--ALTER TABLE `trafic_tarifs` ADD COLUMN `tp_id` SMALLINT(5) UNSIGNED NOT NULL DEFAULT '0';
+--ALTER TABLE `trafic_tarifs` MODIFY COLUMN `in_price` DOUBLE(13,5) UNSIGNED NOT NULL DEFAULT '0.00000';
+--ALTER TABLE `trafic_tarifs` MODIFY COLUMN `out_price` DOUBLE(13,5) UNSIGNED NOT NULL DEFAULT '0.00000';
+--ALTER TABLE `trafic_tarifs` ADD COLUMN `in_speed` INTEGER(10) UNSIGNED NOT NULL DEFAULT '0';
+--ALTER TABLE `trafic_tarifs` ADD COLUMN `interval_id` smallint(6) unsigned NOT NULL default '0';
+--ALTER TABLE `trafic_tarifs` ADD COLUMN `rad_pairs` TEXT NOT NULL;
+--ALTER TABLE `trafic_tarifs` ADD COLUMN `out_speed` INTEGER(10) UNSIGNED NOT NULL DEFAULT '0';
+--ALTER TABLE `trafic_tarifs` ADD UNIQUE KEY `id` (`id`, `interval_id`);
 
 
 
@@ -164,9 +179,9 @@ ALTER TABLE `trafic_tarifs` ADD UNIQUE KEY `id` (`id`, `interval_id`);
 RENAME TABLE payment to payments;
 ALTER TABLE  payments DROP COLUMN ww;
 ALTER TABLE  payments  ADD COLUMN  `method` tinyint(4) unsigned NOT NULL default '0' ;
-ALTER TABLE  payments  CHANGE `last_deposit` `last_deposit` double(15,6) NOT NULL default '0.000000',
-ALTER TABLE `payments` ADD COLUMN `ext_id` VARCHAR(16) NOT NULL;
-ALTER TABLE `payments` ADD COLUMN `bill_id` int(11) unsigned NOT NULL default '0',
+ALTER TABLE  payments  CHANGE `last_deposit` `last_deposit` double(15,6) NOT NULL default '0.000000';
+ALTER TABLE `payments` ADD COLUMN `ext_id` varchar(16) NOT NULL default '';
+ALTER TABLE `payments` ADD COLUMN `bill_id` int(11) unsigned NOT NULL default '0';
  
 
  
@@ -181,6 +196,7 @@ ALTER TABLE admin_actions change date `datetime` datetime NOT NULL default '0000
 RENAME TABLE variant to tarif_plans;
 ALTER TABLE tarif_plans DROP column `kb`;
 ALTER TABLE tarif_plans DROP INDEX `vrnt`;
+ALTER TABLE tarif_plans DROP PRIMARY KEY;
 ALTER TABLE tarif_plans CHANGE column vrnt id smallint(5) unsigned NOT NULL default '0' PRIMARY KEY;
 ALTER TABLE tarif_plans CHANGE df day_fee float(10,2) unsigned NOT NULL default '0.00';
 ALTER TABLE tarif_plans CHANGE abon month_fee float(10,2) unsigned NOT NULL default '0.00';

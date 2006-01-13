@@ -110,7 +110,7 @@ sub new {
   $index = $FORM{index} || 0;  
   
   
-  if ($COOKIES{language} ne '') {
+  if (defined($COOKIES{language}) && $COOKIES{language} ne '') {
     $self->{language}=$COOKIES{language};
    }
   else {
