@@ -121,6 +121,7 @@ $conf{MAILBOX_PATH}='/var/mail/';
 
 use POSIX qw(strftime);
 $DATE = strftime "%Y-%m-%d", localtime(time);
+
 $TIME = strftime "%H:%M:%S", localtime(time);
 $curtime = strftime("%F %H.%M.%S", localtime(time));
 $year = strftime("%Y", localtime(time));

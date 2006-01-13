@@ -21,12 +21,12 @@ require Admins;
 Admins->import();
 require Abills::HTML;
 Abills::HTML->import();
+my $html = Abills::HTML->new();
 
 my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
 my $db = $sql->{db};
 my $admin = Admins->new($db, \%conf);
 $admin->info($conf{SYSTEM_ADMIN_ID}, { IP => '127.0.0.1' });
-
 
 
 
@@ -41,10 +41,12 @@ require "../language/$conf{default_language}.pl";
 use POSIX qw(mktime strftime);
 my $YESTERDAY = (strftime "%Y-%m-%d", localtime(time - 86400));
 
-my %ADMIN_REPORT = ();
+my %ADMIN_REPORT = (DATE => $DATE);
 my $args = parse_arguments(\@ARGV);
 
-my($y, $m, $d)=split(/-/, $DATE, 3);
+#print $DATE;
+
+my($y, $m, $d)=split(/-/, $ADMIN_REPORT{DATE}, 3);
 
 my @daily_functions=('sheduler',
                      'admin_report_daily',
@@ -77,14 +79,17 @@ if (defined($args->{monthly})) {
   	$f->();
    }
 
-   my $message = Abills::HTML->tpl_show(templates('admin_report_monthly'), \%ADMIN_REPORT, { notprint => 'yes' });
+   my $message = Abills::HTML->tpl_show(templates('admin_report_month'), \%ADMIN_REPORT, { notprint => 'yes' });
    sendmail("$conf{ADMIN_MAIL}", "$conf{ADMIN_MAIL}", "Monthly billing report", 
               "$message", "$conf{MAIL_CHARSET}", "2 (High)");
  }
 elsif (defined($args->{daily})) {
 
   if(defined($args->{DATE})) {
+     my($Y, $M, $D)=split(/-/, $args->{DATE}, 3);
+     $YESTERDAY = (strftime "%Y-%m-%d", localtime(POSIX::mktime( 0, 10, 1, $D, ($M-1), $Y-1900)- 86400));
    	 $YESTERDAY=$args->{DATE};
+   	 $ADMIN_REPORT{DATE} = $args->{DATE};
     }
   
   foreach my $f (@daily_functions) {

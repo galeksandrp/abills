@@ -470,7 +470,6 @@ return qq{
 };
 }
 elsif($tpl_name eq 'admin_report_day') {
-
 return qq{
 Daily Admin Report /%DATE%/
 
@@ -498,14 +497,13 @@ $_USED
 =========================================================
 %SESSIONS%
 
-
 };
 
 }
 elsif($tpl_name eq 'admin_report_month') {
 
 return qq{
-Daily Admin Report /%DATE%/
+Monthly Admin Report /%DATE%/
 
 $_PAYMENTS
 =========================================================
@@ -537,7 +535,7 @@ $_USED
 }
 
 
-return 'No such template [$tpl_name]';
+return "No such template [$tpl_name]";
 
 }
 

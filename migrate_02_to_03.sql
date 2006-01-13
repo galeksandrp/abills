@@ -212,41 +212,6 @@ ALTER TABLE tarif_plans ADD column  `min_session_cost` float(10,5) unsigned NOT 
 
 
 
-CREATE TABLE `tarif_plans` (
-  `id` smallint(5) unsigned NOT NULL default '0',
-  `hourp` double(15,5) unsigned NOT NULL default '0.00000',
-  `month_fee` double(14,2) unsigned NOT NULL default '0.00',
-  `uplimit` double(14,2) default '0.00',
-  `name` varchar(40) NOT NULL default '',
-  `day_fee` double(14,2) unsigned NOT NULL default '0.00',
-  `logins` tinyint(4) NOT NULL default '0',
-  `day_time_limit` int(10) unsigned NOT NULL default '0',
-  `week_time_limit` int(10) unsigned NOT NULL default '0',
-  `month_time_limit` int(10) unsigned NOT NULL default '0',
-  `day_traf_limit` int(10) unsigned NOT NULL default '0',
-  `week_traf_limit` int(10) unsigned NOT NULL default '0',
-  `month_traf_limit` int(10) unsigned NOT NULL default '0',
-  `prepaid_trafic` int(10) unsigned NOT NULL default '0',
-  `change_price` double(14,2) unsigned NOT NULL default '0.00',
-  `activate_price` double(14,2) unsigned NOT NULL default '0.00',
-  `credit_tresshold` double(8,2) unsigned NOT NULL default '0.00',
-  `age` smallint(6) unsigned NOT NULL default '0',
-  `octets_direction` tinyint(2) unsigned NOT NULL default '0',
-  `max_session_duration` smallint(6) unsigned NOT NULL default '0',
-  `filter_id` varchar(15) NOT NULL default '',
-  `payment_type` tinyint(1) NOT NULL default '0',
-  `min_session_cost` double(14,5) unsigned NOT NULL default '0.00000',
-  `rad_pairs` text NOT NULL,
-  PRIMARY KEY  (`id`),
-  UNIQUE KEY `id` (`id`),
-  UNIQUE KEY `name` (`name`)
-) TYPE=MyISAM;
-
-
-
-
-
-
 
 RENAME TABLE  vid_nas to tp_nas;
 ALTER TABLE tp_nas change vid tp_id smallint(5) unsigned NOT NULL default '0';
@@ -294,49 +259,29 @@ CREATE TABLE `admin_permits` (
   KEY `aid` (`aid`)
 ) TYPE=MyISAM;
  
-INSERT INTO `admin_permits` VALUES (1, 2, 2);
-INSERT INTO `admin_permits` VALUES (1, 2, 3);
-INSERT INTO `admin_permits` VALUES (1, 2, 0);
-INSERT INTO `admin_permits` VALUES (1, 2, 1);
-INSERT INTO `admin_permits` VALUES (1, 3, 0);
-INSERT INTO `admin_permits` VALUES (1, 3, 1);
-INSERT INTO `admin_permits` VALUES (1, 0, 5);
-INSERT INTO `admin_permits` VALUES (1, 0, 2);
-INSERT INTO `admin_permits` VALUES (1, 0, 3);
-INSERT INTO `admin_permits` VALUES (1, 0, 0);
-INSERT INTO `admin_permits` VALUES (1, 0, 1);
-INSERT INTO `admin_permits` VALUES (1, 0, 4);
-INSERT INTO `admin_permits` VALUES (1, 0, 6);
-INSERT INTO `admin_permits` VALUES (1, 1, 2);
-INSERT INTO `admin_permits` VALUES (1, 1, 0);
-INSERT INTO `admin_permits` VALUES (1, 1, 1);
-INSERT INTO `admin_permits` VALUES (1, 4, 2);
-INSERT INTO `admin_permits` VALUES (1, 4, 3);
-INSERT INTO `admin_permits` VALUES (1, 4, 0);
-INSERT INTO `admin_permits` VALUES (1, 4, 1);
-INSERT INTO `admin_permits` VALUES (1, 5, 0);
+INSERT INTO `admin_permits` (aid, section, actions) VALUES (1, 2, 2);
+INSERT INTO `admin_permits` (aid, section, actions) VALUES (1, 2, 3);
+INSERT INTO `admin_permits` (aid, section, actions) VALUES (1, 2, 0);
+INSERT INTO `admin_permits` (aid, section, actions) VALUES (1, 2, 1);
+INSERT INTO `admin_permits` (aid, section, actions) VALUES (1, 3, 0);
+INSERT INTO `admin_permits` (aid, section, actions) VALUES (1, 3, 1);
+INSERT INTO `admin_permits` (aid, section, actions) VALUES (1, 0, 5);
+INSERT INTO `admin_permits` (aid, section, actions) VALUES (1, 0, 2);
+INSERT INTO `admin_permits` (aid, section, actions) VALUES (1, 0, 3);
+INSERT INTO `admin_permits` (aid, section, actions) VALUES (1, 0, 0);
+INSERT INTO `admin_permits` (aid, section, actions) VALUES (1, 0, 1);
+INSERT INTO `admin_permits` (aid, section, actions) VALUES (1, 0, 4);
+INSERT INTO `admin_permits` (aid, section, actions) VALUES (1, 0, 6);
+INSERT INTO `admin_permits` (aid, section, actions) VALUES (1, 1, 2);
+INSERT INTO `admin_permits` (aid, section, actions) VALUES (1, 1, 0);
+INSERT INTO `admin_permits` (aid, section, actions) VALUES (1, 1, 1);
+INSERT INTO `admin_permits` (aid, section, actions) VALUES (1, 4, 2);
+INSERT INTO `admin_permits` (aid, section, actions) VALUES (1, 4, 3);
+INSERT INTO `admin_permits` (aid, section, actions) VALUES (1, 4, 0);
+INSERT INTO `admin_permits` (aid, section, actions) VALUES (1, 4, 1);
+INSERT INTO `admin_permits` (aid, section, actions) VALUES (1, 5, 0);
 
-INSERT INTO `admin_permits` VALUES (1, 2, 2);
-INSERT INTO `admin_permits` VALUES (1, 2, 3);
-INSERT INTO `admin_permits` VALUES (1, 2, 0);
-INSERT INTO `admin_permits` VALUES (1, 2, 1);
-INSERT INTO `admin_permits` VALUES (1, 3, 0);
-INSERT INTO `admin_permits` VALUES (1, 3, 1);
-INSERT INTO `admin_permits` VALUES (1, 0, 5);
-INSERT INTO `admin_permits` VALUES (1, 0, 2);
-INSERT INTO `admin_permits` VALUES (1, 0, 3);
-INSERT INTO `admin_permits` VALUES (1, 0, 0);
-INSERT INTO `admin_permits` VALUES (1, 0, 1);
-INSERT INTO `admin_permits` VALUES (1, 0, 4);
-INSERT INTO `admin_permits` VALUES (1, 0, 6);
-INSERT INTO `admin_permits` VALUES (1, 1, 2);
-INSERT INTO `admin_permits` VALUES (1, 1, 0);
-INSERT INTO `admin_permits` VALUES (1, 1, 1);
-INSERT INTO `admin_permits` VALUES (1, 4, 2);
-INSERT INTO `admin_permits` VALUES (1, 4, 3);
-INSERT INTO `admin_permits` VALUES (1, 4, 0);
-INSERT INTO `admin_permits` VALUES (1, 4, 1);
-INSERT INTO `admin_permits` VALUES (1, 5, 0);
+
 
 
 
