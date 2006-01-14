@@ -92,7 +92,7 @@ ALTER TABLE `users` ADD COLUMN `bill_id` INTEGER(11) UNSIGNED NOT NULL DEFAULT '
 
 ALTER TABLE `fees` DROP COLUMN `ww`;
 ALTER TABLE `fees` MODIFY COLUMN `sum` DOUBLE(12,2) NOT NULL DEFAULT '0.00';
-ALTER TABLE `fees` MODIFY COLUMN `dsc` VARCHAR(80);
+ALTER TABLE `fees` MODIFY COLUMN `dsc` VARCHAR(80) not null default '';
 ALTER TABLE `fees` MODIFY COLUMN `last_deposit` DOUBLE(15,6) NOT NULL DEFAULT '0.000000';
 ALTER TABLE `fees` ADD COLUMN `bill_id` INTEGER(11) UNSIGNED NOT NULL DEFAULT '0';
 
@@ -215,6 +215,31 @@ ALTER TABLE tarif_plans ADD column  `min_session_cost` float(10,5) unsigned NOT 
 
 RENAME TABLE  vid_nas to tp_nas;
 ALTER TABLE tp_nas change vid tp_id smallint(5) unsigned NOT NULL default '0';
+RENAME TABLE  log to log_old;
+
+DROP DATABASE IF EXISTS `log`;
+CREATE TABLE `log` (
+  `start` datetime NOT NULL default '0000-00-00 00:00:00',
+  `tp_id` smallint(5) unsigned NOT NULL default '0',
+  `duration` int(11) NOT NULL default '0',
+  `sent` int(10) unsigned NOT NULL default '0',
+  `recv` int(10) unsigned NOT NULL default '0',
+  `minp` double(10,2) unsigned NOT NULL default '0.00',
+  `kb` double(10,2) unsigned NOT NULL default '0.00',
+  `sum` double(14,6) NOT NULL default '0.000000',
+  `port_id` smallint(5) unsigned NOT NULL default '0',
+  `nas_id` tinyint(3) unsigned NOT NULL default '0',
+  `ip` int(10) unsigned NOT NULL default '0',
+  `sent2` int(11) unsigned NOT NULL default '0',
+  `recv2` int(11) unsigned NOT NULL default '0',
+  `acct_session_id` varchar(25) NOT NULL default '',
+  `CID` varchar(18) NOT NULL default '',
+  `bill_id` int(11) unsigned NOT NULL default '0',
+  `uid` int(11) unsigned NOT NULL default '0',
+  `terminate_cause` tinyint(4) unsigned NOT NULL default '0',
+  KEY `uid` (`uid`,`start`)
+) TYPE=MyISAM;
+
 
 REPLACE INTO `admins` VALUES ('abills', 'ABillS System user', '2003-03-12', ENCODE('abills', 'test12345678901234567890'), 0, 1, 0, '');
 
@@ -241,13 +266,15 @@ CREATE TABLE `companies` (
 
 DROP DATABASE IF EXISTS groups;
 CREATE TABLE `groups` (
-  `gid` tinyint(4) unsigned NOT NULL auto_increment,
+  `gid` smallint(4) unsigned NOT NULL default '0',
   `name` varchar(12) NOT NULL default '',
   `descr` varchar(200) NOT NULL default '',
   PRIMARY KEY  (`gid`),
   UNIQUE KEY `gid` (`gid`),
   UNIQUE KEY `name` (`name`)
 ) TYPE=MyISAM;
+
+
 
 DROP TABLE IF EXISTS admin_permits;
 CREATE TABLE `admin_permits` (
@@ -287,6 +314,8 @@ INSERT INTO `admin_permits` (aid, section, actions) VALUES (1, 5, 0);
 
 
 #Docs 
+DROP TABLE IF EXISTS `acct_orders`;
+DROP TABLE IF EXISTS `docs_acct_orders`;
 CREATE TABLE `docs_acct_orders` (
   `acct_id` int(11) unsigned NOT NULL default '0',
   `orders` varchar(200) NOT NULL default '',
@@ -305,46 +334,86 @@ ALTER TABLE `docs_acct` MODIFY COLUMN `aid` SMALLINT(6) UNSIGNED NOT NULL DEFAUL
 
 
 #Mails
-ALTER TABLE `mail_boxes` DROP COLUMN `quota`;
-ALTER TABLE `mail_boxes` DROP COLUMN `domain`;
-ALTER TABLE `mail_domains` DROP COLUMN `descr`;
-
-ALTER TABLE `mail_access` ADD COLUMN `comments` VARCHAR(255) NOT NULL;
-ALTER TABLE `mail_access` ADD COLUMN `change_date` DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00';
-ALTER TABLE `mail_access` ADD COLUMN `status` TINYINT(1) UNSIGNED NOT NULL DEFAULT '0';
-ALTER TABLE `mail_aliases` ADD COLUMN `comments` VARCHAR(255) NOT NULL;
-ALTER TABLE `mail_boxes` ADD COLUMN `mails_limit` INTEGER(11) UNSIGNED NOT NULL DEFAULT '0';
-ALTER TABLE `mail_boxes` ADD COLUMN `domain_id` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '0' PRIMARY KEY;
-ALTER TABLE `mail_boxes` ADD COLUMN `uid` INTEGER(11) UNSIGNED NOT NULL DEFAULT '0';
-ALTER TABLE `mail_boxes` ADD COLUMN `box_size` INTEGER(11) UNSIGNED NOT NULL DEFAULT '0';
-ALTER TABLE `mail_domains` ADD COLUMN `comments` VARCHAR(255) NOT NULL;
-ALTER TABLE `mail_transport` ADD COLUMN `comments` VARCHAR(255) NOT NULL;
-ALTER TABLE `mail_transport` ADD COLUMN `change_date` DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00';
-ALTER TABLE `mail_transport` ADD COLUMN `id` INTEGER(11) UNSIGNED NOT NULL AUTO_INCREMENT UNIQUE;
-
-ALTER TABLE `mail_boxes` DROP PRIMARY KEY;
-ALTER TABLE `mail_boxes` ADD PRIMARY KEY (`username`, );
-ALTER TABLE `mail_transport` ADD UNIQUE KEY `id` (`id`);
+DROP TABLE IF EXISTS `mail_access`;
+CREATE TABLE `mail_access` (
+  `pattern` varchar(30) NOT NULL default '',
+  `action` varchar(255) NOT NULL default '',
+  `id` int(11) unsigned NOT NULL auto_increment,
+  `comments` varchar(255) NOT NULL default '',
+  `change_date` datetime NOT NULL default '0000-00-00 00:00:00',
+  `status` tinyint(1) unsigned NOT NULL default '0',
+  PRIMARY KEY  (`pattern`),
+  UNIQUE KEY `id` (`id`)
+) TYPE=MyISAM;
 
 
 
+DROP TABLE IF EXISTS `mail_aliases`;
+CREATE TABLE `mail_aliases` (
+  `address` varchar(255) NOT NULL default '',
+  `goto` text NOT NULL,
+  `domain` varchar(255) NOT NULL default '',
+  `create_date` datetime NOT NULL default '0000-00-00 00:00:00',
+  `change_date` datetime NOT NULL default '0000-00-00 00:00:00',
+  `status` tinyint(2) unsigned NOT NULL default '1',
+  `id` int(11) unsigned NOT NULL auto_increment,
+  `comments` varchar(255) NOT NULL default '',
+  PRIMARY KEY  (`address`),
+  UNIQUE KEY `id` (`id`)
+) TYPE=MyISAM;
 
 
+DROP TABLE IF EXISTS `mail_boxes`;
+CREATE TABLE `mail_boxes` (
+  `username` varchar(255) NOT NULL default '',
+  `password` varchar(255) NOT NULL default '',
+  `descr` varchar(255) NOT NULL default '',
+  `maildir` varchar(255) NOT NULL default '',
+  `create_date` datetime NOT NULL default '0000-00-00 00:00:00',
+  `change_date` datetime NOT NULL default '0000-00-00 00:00:00',
+  `mails_limit` int(11) unsigned NOT NULL default '0',
+  `status` tinyint(2) unsigned NOT NULL default '0',
+  `bill_id` int(11) unsigned NOT NULL default '0',
+  `antivirus` tinyint(1) unsigned NOT NULL default '1',
+  `antispam` tinyint(1) unsigned NOT NULL default '1',
+  `expire` date NOT NULL default '0000-00-00',
+  `id` int(11) unsigned NOT NULL auto_increment,
+  `domain_id` smallint(6) unsigned NOT NULL default '0',
+  `uid` int(11) unsigned NOT NULL default '0',
+  `box_size` int(11) unsigned NOT NULL default '0',
+  PRIMARY KEY  (`username`,`domain_id`),
+  UNIQUE KEY `id` (`id`),
+  KEY `username_antivirus` (`username`,`antivirus`),
+  KEY `username_antispam` (`username`,`antispam`)
+) TYPE=MyISAM;
 
 
+DROP TABLE IF EXISTS `mail_domains`;
+CREATE TABLE `mail_domains` (
+  `domain` varchar(255) NOT NULL default '',
+  `create_date` datetime NOT NULL default '0000-00-00 00:00:00',
+  `change_date` datetime NOT NULL default '0000-00-00 00:00:00',
+  `status` tinyint(2) unsigned NOT NULL default '0',
+  `id` int(11) unsigned NOT NULL auto_increment,
+  `comments` varchar(255) NOT NULL default '',
+  PRIMARY KEY  (`domain`),
+  UNIQUE KEY `id` (`id`)
+) TYPE=MyISAM;
 
 
+DROP TABLE IF EXISTS `mail_transport`;
+CREATE TABLE `mail_transport` (
+  `domain` varchar(128) NOT NULL default '',
+  `transport` varchar(128) NOT NULL default '',
+  `comments` varchar(255) NOT NULL default '',
+  `change_date` datetime NOT NULL default '0000-00-00 00:00:00',
+  `id` int(11) unsigned NOT NULL auto_increment,
+  UNIQUE KEY `domain` (`domain`),
+  UNIQUE KEY `id` (`id`)
+) TYPE=MyISAM;
 
 
-
-
-
-
-
-
-
-
-
+DROP TABLE IF EXISTS `icards`;
 CREATE TABLE `icards` (
   `id` int(10) unsigned NOT NULL auto_increment,
   `prefix` varchar(4) NOT NULL default '',
