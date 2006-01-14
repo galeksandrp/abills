@@ -80,7 +80,8 @@ sub log_convert {
   $q->execute ();
   while(my($id)=$q->fetchrow()) {
     if (defined($user_ids->{"$id"})) {
-      push @sql_array,  "UPDATE log SET uid='$user_ids->{$id}' WHERE id='$id';";
+      push @sql_array,  "UPDATE log SET uid='$user_ids->{$id}', bill_id='$user_ids->{$id}'
+         WHERE id='$id';";
      }  
     else {   
       $not_found .= "$id, ";

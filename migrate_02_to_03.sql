@@ -23,7 +23,7 @@ INSERT INTO dv_main (uid, tp_id, logins, ip, filter_id, cid, speed)
 
 DROP TABLE IF EXISTS bills;
 CREATE TABLE `bills` (
-  `id` int(11) unsigned NOT NULL auto_increment,
+  `id` int(11) unsigned NOT NULL default 0 auto_increment,
   `deposit` double(15,6) NOT NULL default '0.000000',
   `uid` int(11) unsigned NOT NULL default '0',
   `company_id` int(11) default '0',
@@ -34,8 +34,8 @@ CREATE TABLE `bills` (
 ) TYPE=MyISAM;
 
 
-INSERT INTO bills (deposit, uid, registration) 
- SELECT users.deposit, users.uid, now()
+INSERT INTO bills (id, deposit, uid, registration) 
+ SELECT users.uid, users.deposit, users.uid, now()
     FROM users;
 
 DROP TABLE IF EXISTS users_pi;
@@ -85,7 +85,7 @@ ALTER TABLE `users` MODIFY COLUMN `reduction` DOUBLE(6,2) NOT NULL DEFAULT '0.00
 ALTER TABLE `users` ADD COLUMN `disable` TINYINT(1) UNSIGNED NOT NULL DEFAULT '0';
 ALTER TABLE `users` ADD COLUMN `company_id` INTEGER(11) UNSIGNED NOT NULL DEFAULT '0';
 ALTER TABLE `users` ADD COLUMN `bill_id` INTEGER(11) UNSIGNED NOT NULL DEFAULT '0';
-
+UPDATE users SET bill_id=uid;
 
 
 
@@ -206,9 +206,18 @@ ALTER TABLE tarif_plans ADD column  `max_session_duration` smallint(6) unsigned 
 ALTER TABLE tarif_plans ADD column  `filter_id` varchar(15) NOT NULL default '';
 ALTER TABLE tarif_plans ADD column  `payment_type` tinyint(1) NOT NULL default 0;
 ALTER TABLE tarif_plans ADD column  `min_session_cost` float(10,5) unsigned NOT NULL default '0.00000';
-
-
-
+ALTER TABLE `tarif_plans` DROP COLUMN `ut`;
+ALTER TABLE `tarif_plans` DROP COLUMN `dt`;
+ALTER TABLE `tarif_plans` MODIFY COLUMN `hourp` DOUBLE(15,5) UNSIGNED NOT NULL DEFAULT '0.00000';
+ALTER TABLE `tarif_plans` MODIFY COLUMN `month_fee` DOUBLE(14,2) UNSIGNED NOT NULL DEFAULT '0.00';
+ALTER TABLE `tarif_plans` MODIFY COLUMN `uplimit` DOUBLE(14,2) NOT NULL DEFAULT '0.00';
+ALTER TABLE `tarif_plans` MODIFY COLUMN `name` VARCHAR(40) NOT NULL default '';
+ALTER TABLE `tarif_plans` MODIFY COLUMN `day_fee` DOUBLE(14,2) UNSIGNED NOT NULL DEFAULT '0.00';
+ALTER TABLE `tarif_plans` MODIFY COLUMN `change_price` DOUBLE(14,2) UNSIGNED NOT NULL DEFAULT '0.00';
+ALTER TABLE `tarif_plans` MODIFY COLUMN `activate_price` DOUBLE(14,2) UNSIGNED NOT NULL DEFAULT '0.00';
+ALTER TABLE `tarif_plans` MODIFY COLUMN `min_session_cost` DOUBLE(14,5) UNSIGNED NOT NULL DEFAULT '0.00000';
+ALTER TABLE `tarif_plans` ADD COLUMN `rad_pairs` TEXT NOT NULL;
+ALTER TABLE `tarif_plans` ADD UNIQUE KEY `id` (`id`);
 
 
 
