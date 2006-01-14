@@ -2,10 +2,10 @@
 # Convert from version 0.2 to 0.3
 
 
-if($#ARGV < 0) {
-  print "NOt work \n";
-  exit;
-}
+#if($#ARGV < 0) {
+#  print "NOt work \n";
+#  exit;
+#}
 
 
 
@@ -15,13 +15,13 @@ require "libexec/config.pl";
 
 use DBI;
 
-my $db = DBI -> connect("DBI:mysql:database=$conf{dbname};host=$conf{dbhost}", "$conf{dbuser}", "$conf{dbpasswd}") 
+my $db = DBI -> connect("DBI:mysql:database=abills_new;host=$conf{dbhost}", "$conf{dbuser}", "$conf{dbpasswd}") 
   or die "Unable connect to server '$conf{dbhost}'\n" . $DBI::errstr;
 my $not_found = "";
 
 #other_convert();
 #users_convert();
-tariffs();
+#tariffs();
 log_convert();
 
 
@@ -68,11 +68,14 @@ sub tariffs {
 
 sub log_convert {
   my  @sql_array = (
-   "ALTER TABLE log add column uid integer(11) unsigned not null default 0",
+
+
+   "DELETE FROM log WHERE login<'2005-01-01 00:00:00';",
+   "ALTER TABLE log add column uid integer(11) unsigned not null default 0;",
    "ALTER TABLE log change login start datetime NOT NULL default '0000-00-00 00:00:00';",
-   "ALTER TABLE log change variant tp_id smallint(5) unsigned NOT NULL default '0'",
-   "ALTER TABLE log drop index id;",  
-   "ALTER TABLE log drop index login;");
+   "ALTER TABLE log change variant tp_id smallint(5) unsigned NOT NULL default '0';",
+   "ALTER TABLE log ADD COLUMN bill_id INTEGER(11) UNSIGNED NOT NULL DEFAULT '0';");
+   
   
   my $user_ids = get_user_ids();
 
@@ -80,19 +83,21 @@ sub log_convert {
   $q->execute ();
   while(my($id)=$q->fetchrow()) {
     if (defined($user_ids->{"$id"})) {
-      push @sql_array,  "UPDATE log SET uid='$user_ids->{$id}', bill_id='$user_ids->{$id}'
-         WHERE id='$id';";
+      push @sql_array,  "UPDATE log SET uid='$user_ids->{$id}', bill_id='$user_ids->{$id}' WHERE id='$id';";
      }  
     else {   
       $not_found .= "$id, ";
      }
    }
 
-  push @sql_array, "ALTER TABLE log add index (uid);";
-  push @sql_array, "ALTER TABLE log add index (uid, start);";
+  #push @sql_array, "ALTER TABLE log add index (uid);";
+  push @sql_array, "ALTER TABLE `log` MODIFY COLUMN `minp` DOUBLE(10,2) NOT NULL DEFAULT '0.00';";
+  push @sql_array, "ALTER TABLE `log` MODIFY COLUMN `kb` DOUBLE(10,2) NOT NULL DEFAULT '0.00';";
 
-  push @sql_array,  "ALTER TABLE log drop column id";
-  push @sql_array, "ALTER TABLE log ADD COLUMN bill_id INTEGER(11) UNSIGNED NOT NULL DEFAULT '0'";
+  push @sql_array, "ALTER TABLE log add index (uid, start);";
+  push @sql_array, "ALTER TABLE log drop index id;";  
+  push @sql_array, "ALTER TABLE log drop index login;";
+  push @sql_array, "ALTER TABLE log drop column id";
   push @sql_array, "ALTER TABLE log ADD COLUMN terminate_cause TINYINT(4) UNSIGNED NOT NULL DEFAULT '0';";
 
 

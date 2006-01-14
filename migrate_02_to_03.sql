@@ -224,30 +224,30 @@ ALTER TABLE `tarif_plans` ADD UNIQUE KEY `id` (`id`);
 
 RENAME TABLE  vid_nas to tp_nas;
 ALTER TABLE tp_nas change vid tp_id smallint(5) unsigned NOT NULL default '0';
-RENAME TABLE  log to log_old;
 
-DROP DATABASE IF EXISTS `log`;
-CREATE TABLE `log` (
-  `start` datetime NOT NULL default '0000-00-00 00:00:00',
-  `tp_id` smallint(5) unsigned NOT NULL default '0',
-  `duration` int(11) NOT NULL default '0',
-  `sent` int(10) unsigned NOT NULL default '0',
-  `recv` int(10) unsigned NOT NULL default '0',
-  `minp` double(10,2) unsigned NOT NULL default '0.00',
-  `kb` double(10,2) unsigned NOT NULL default '0.00',
-  `sum` double(14,6) NOT NULL default '0.000000',
-  `port_id` smallint(5) unsigned NOT NULL default '0',
-  `nas_id` tinyint(3) unsigned NOT NULL default '0',
-  `ip` int(10) unsigned NOT NULL default '0',
-  `sent2` int(11) unsigned NOT NULL default '0',
-  `recv2` int(11) unsigned NOT NULL default '0',
-  `acct_session_id` varchar(25) NOT NULL default '',
-  `CID` varchar(18) NOT NULL default '',
-  `bill_id` int(11) unsigned NOT NULL default '0',
-  `uid` int(11) unsigned NOT NULL default '0',
-  `terminate_cause` tinyint(4) unsigned NOT NULL default '0',
-  KEY `uid` (`uid`,`start`)
-) TYPE=MyISAM;
+--RENAME TABLE  log to log_old;
+--DROP DATABASE IF EXISTS `log`;
+--CREATE TABLE `log` (
+--  `start` datetime NOT NULL default '0000-00-00 00:00:00',
+--  `tp_id` smallint(5) unsigned NOT NULL default '0',
+--  `duration` int(11) NOT NULL default '0',
+--  `sent` int(10) unsigned NOT NULL default '0',
+--  `recv` int(10) unsigned NOT NULL default '0',
+--  `minp` double(10,2) unsigned NOT NULL default '0.00',
+--  `kb` double(10,2) unsigned NOT NULL default '0.00',
+--  `sum` double(14,6) NOT NULL default '0.000000',
+--  `port_id` smallint(5) unsigned NOT NULL default '0',
+--  `nas_id` tinyint(3) unsigned NOT NULL default '0',
+--  `ip` int(10) unsigned NOT NULL default '0',
+--  `sent2` int(11) unsigned NOT NULL default '0',
+--  `recv2` int(11) unsigned NOT NULL default '0',
+--  `acct_session_id` varchar(25) NOT NULL default '',
+--  `CID` varchar(18) NOT NULL default '',
+--  `bill_id` int(11) unsigned NOT NULL default '0',
+--  `uid` int(11) unsigned NOT NULL default '0',
+--  `terminate_cause` tinyint(4) unsigned NOT NULL default '0',
+--  KEY `uid` (`uid`,`start`)
+--) TYPE=MyISAM;
 
 
 REPLACE INTO `admins` VALUES ('abills', 'ABillS System user', '2003-03-12', ENCODE('abills', 'test12345678901234567890'), 0, 1, 0, '');
