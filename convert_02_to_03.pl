@@ -70,12 +70,13 @@ sub log_convert {
   my  @sql_array = (
 
 
-   "DELETE FROM log WHERE login<'2005-01-01 00:00:00';",
+
    "ALTER TABLE log add column uid integer(11) unsigned not null default 0;",
    "ALTER TABLE log change login start datetime NOT NULL default '0000-00-00 00:00:00';",
    "ALTER TABLE log change variant tp_id smallint(5) unsigned NOT NULL default '0';",
    "ALTER TABLE log ADD COLUMN bill_id INTEGER(11) UNSIGNED NOT NULL DEFAULT '0';");
-   
+
+   #"DELETE FROM log WHERE login<'2005-01-01 00:00:00';",   
   
   my $user_ids = get_user_ids();
 

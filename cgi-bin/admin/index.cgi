@@ -435,9 +435,9 @@ sub func_menu {
 print "<Table width=100% bgcolor=$_COLORS[2]>\n";
 
 while(my($k, $v)=each %$header) {
-  print "<tr><td>$k: <b>$v</b></td></tr>\n";
+  print "<tr><td>$k: </td><td  valign=top><b>$v</b></td></tr>\n";
 }
-print "<tr bgcolor=$_COLORS[3]><td>\n";
+print "<tr bgcolor=$_COLORS[3]><td colspan=2>\n";
 
 my $menu;
 while(my($name, $v)=each %$items) {
@@ -1198,10 +1198,10 @@ if(defined($attr->{TP})) {
   my $table = Abills::HTML->table( { width => '100%',
                                    border => 1,
                                    title => ['#', $_DAYS, $_BEGIN, $_END, $_HOUR_TARIF, $_TRAFFIC, '-', '-',  '-'],
-                                   cols_align => ['left', 'left', 'right', 'right', 'right', 'right', 'center', 'center', 'center', 'center'],
+                                   cols_align => ['left', 'left', 'right', 'right', 'right', 'center', 'center', 'center', 'center', 'center'],
                                    qs => $pages_qs,
                                    caption => $_INTERVALS
-                                  } );
+                                   } );
 
   my $color="AAA000";
   foreach my $line (@$list) {
@@ -1240,7 +1240,7 @@ if(defined($attr->{TP})) {
 
        my $table2 = Abills::HTML->table( { width => '100%',
                                    title_plain => ["#", "$_TRAFFIC_TARIFF In ", "$_TRAFFIC_TARIFF Out ", "$_PREPAID", "$_SPEED IN",  "$_SPEED OUT", "DESCRIBE", "NETS", "-", "-"],
-                                   cols_align => ['center', 'right', 'right', 'right', 'right', 'right', 'right', 'center', 'center', 'center', 'center'],
+                                   cols_align => ['center', 'right', 'right', 'right', 'right', 'right', 'left', 'right', 'center', 'center', 'center'],
                                    caption => "$_BYTE_TARIF"
                                   } );
 
@@ -1628,7 +1628,8 @@ sub admin_permissions {
    while(my($k, $v)=each(%FORM)) {
      if ($v eq 'yes') {
        my($section_index, $action_index)=split(/_/, $k);
-       $permits{$section_index}{$action_index}='y';
+       
+       $permits{$section_index}{$action_index}='y' if ($section_index >= 0);
       }
     }
    $admin->set_permissions(\%permits);
@@ -2819,7 +2820,7 @@ if ($FORM{search}) {
 	
 	while(my($k, $v)=each %FORM) {
 		if ($k =~ /([A-Z0-9]+)/ && $v ne '') {
-		  print "$k, $v<br>";
+		  #print "$k, $v<br>";
 		  $LIST_PARAMS{$k}=$v;
 	    $pages_qs .= "&$k=$v";
 		 }

@@ -121,12 +121,16 @@ $params
 # user_dv
 #**********************************************************
 sub dv_users_list {
+ my ($attr)=@_;
 
-
-
- if($FORM{TP_ID}) {
+ if ($attr->{TP}) {
    $LIST_PARAMS{TP_ID} = $FORM{TP_ID};
    $pages_qs .= "&TP_ID=$FORM{TP_ID}";
+  }
+ elsif($FORM{TP_ID}) {
+   $FORM{subf}=$index;
+   dv_tp();
+   return 0;
   }
 
  form_search({ SEARCH_FORM =>  	
@@ -269,9 +273,18 @@ elsif (defined($FORM{TP_ID})) {
   $LIST_PARAMS{TP} = $FORM{TP_ID};
   %F_ARGS = ( TP => $tariffs );
   
+  $tariffs->{NAME_SEL} = "<form action=$SELF_URL METHOD=POST><input type=hidden name=index value=$index><select name=TP_ID>";
+  my $list = $tariffs->list({ %LIST_PARAMS });	
+  foreach my $line (@$list) {
+    $tariffs->{NAME_SEL} .= "<option value=$line->[0]";
+    $tariffs->{NAME_SEL} .= " selected" if ($line->[0] eq $FORM{TP_ID});
+    $tariffs->{NAME_SEL} .= ">$line->[0]:$line->[1]\n";
+   }
+  $tariffs->{NAME_SEL} .= "</select><input type=submit name=show value='$_SHOW'></form>";
+  
   func_menu({ 
   	         'ID' =>   $tariffs->{TP_ID}, 
-  	         $_NAME => $tariffs->{NAME}
+  	         $_NAME => $tariffs->{NAME_SEL}
   	       }, 
   	{ 
 #  	 $_INFO          => ":TP_ID=$tariffs->{TP_ID}",
@@ -361,7 +374,7 @@ foreach my $line (@$list) {
    }
   
   if($FORM{TP_ID} eq $line->[0]) {
-  	$table->{rowcolor}=$_COLORS[4];
+  	$table->{rowcolor}=$_COLORS[0];
    }
   else {
   	undef($table->{rowcolor});
