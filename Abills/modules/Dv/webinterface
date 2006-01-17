@@ -664,6 +664,7 @@ if (! $list) {
 
   use Dv_Sessions;
   $sessions = Dv_Sessions->new($db);
+  $sessions->{debug}=1;
   $list = $sessions->list({ %LIST_PARAMS });	
 }
 
@@ -694,29 +695,34 @@ foreach my $line (@$list) {
     $delete = $html->button($_DEL, "index=". $index ."&$pages_qs&del=$line->[12]+$line->[11]+$line->[7]+$line->[1]+$line->[9]+$line->[0]", "$_DEL Session SESSION_ID $line->[11]?");
    }
 
-  my ($UID, 
-      $SUM, 
-      $COMPANY_ID, 
-      $TARIF_PLAN, 
-      $TIME_TARIF, 
-      $TRAF_TARIF) = $Billing->session_sum("$line->[0]", 
+  my($UID, 
+     $SUM, 
+     $BILL_ID, 
+     $TARIF_PLAN, 
+     $TIME_TARIF, 
+     $TRAF_TARIF) = $Billing->session_sum("$line->[0]", 
                                             $line->[13], 
                                             $line->[14], 
                                             {  OUTBYTE  =>  $line->[4],
                                                INBYTE   =>  $line->[5],
-                                               OUTBYTE2 =>  0,
-                                               INBYTE2  =>  0
-                                             }, 
-                                            \%conf,
-                                            { TP_ID => $line->[3] });
+                                               OUTBYTE2 =>  $line->[15],
+                                               INBYTE2  =>  $line->[16]
+                                             });
   
-  my $test = ""; 
-#  <br>$UID, 
-#      <b>$SUM</b>, 
-#      $COMPANY_ID, 
-#      $TARIF_PLAN, 
-#      $TIME_TARIF, 
-#      $TRAF_TARIF";
+# = $Billing->session_sum("$RAD->{USER_NAME}", 
+#                                                 $RAD->{SESSION_START}, 
+#                                                 $RAD->{ACCT_SESSION_TIME}, 
+#                                                 $RAD);
+#
+  
+  $SUM = sprintf("%.6f", $SUM);
+  my $n = ($SUM != $line->[9])  ? '!!!' : '';
+  my $test = "<br>$n <b>$SUM</b>";
+#  , 
+#     $BILL_ID, 
+#     $TARIF_PLAN, 
+#     $TIME_TARIF, 
+#     $TRAF_TARIF\n";
 
   $table->addrow("<a href='$SELF_URL?index=11&UID=$line->[12]'>$line->[0]</a>", 
      $line->[1], $line->[2],  $line->[3],  

@@ -562,12 +562,14 @@ elsif($attr->{DATE}) {
   l.acct_session_id, 
   l.uid, 
   UNIX_TIMESTAMP(l.start),
-  l.duration
+  l.duration,
+  l.sent2, l.recv2
   FROM log l, users u
   $WHERE
   ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");
 
  my $list = $self->{list};
+
 
 
  if ($self->{TOTAL} > 0) {

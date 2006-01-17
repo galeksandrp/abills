@@ -317,6 +317,7 @@ sub session_sum {
                   );
  
  #session devisions
+ #$self->{debug}=1;
  
  my $sd = $self->{TIME_DIVISIONS};
  my $interval_count =  keys %$sd;
@@ -436,13 +437,11 @@ sub session_splitter {
  if (defined($attr->{TP_ID})) {
    ($time_intervals, $periods_time_tarif, $periods_traf_tarif) = $self->time_intervals($attr->{TP_ID});
   }
-
-                     
-
- $time_intervals      = $attr->{TIME_INTERVALS}  if (defined($attr->{TIME_INTERVALS}));
- $periods_time_tarif  = $attr->{PERIODS_TIME_TARIF} if (defined($attr->{PERIODS_TIME_TARIF}));
- $periods_traf_tarif  = $attr->{PERIODS_TIME_TARIF} if (defined($attr->{PERIODS_TRAF_TARIF}));
-
+ else {
+  $time_intervals      = $attr->{TIME_INTERVALS}  if (defined($attr->{TIME_INTERVALS}));
+  $periods_time_tarif  = $attr->{PERIODS_TIME_TARIF} if (defined($attr->{PERIODS_TIME_TARIF}));
+  $periods_traf_tarif  = $attr->{PERIODS_TIME_TARIF} if (defined($attr->{PERIODS_TRAF_TARIF}));
+ }
 
 
  if($time_intervals == 0)  {
@@ -451,7 +450,9 @@ sub session_splitter {
    $self->{SUM}=0;
    return $self;
   }
- 
+ else {
+ 	 delete $self->{NO_TPINTERVALS};
+  }
 
  my %holidays = ();
 
@@ -600,6 +601,9 @@ sub time_calculation() {
 	my ($attr) = @_;
   my $sum = 0;
 
+
+  delete $self->{errno};
+  delete $self->{errstr};
 
   $self->session_splitter($attr->{SESSION_START},
                    $attr->{ACCT_SESSION_TIME},
