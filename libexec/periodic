@@ -71,8 +71,17 @@ my @monthly_functions = ('admin_report_monthly',
  	 require "Abills/modules/$m/webinterface" if($i > 0);
    undef %PERIODIC;
   }
+
+
+  if(defined($args->{DATE})) {
+     my($Y, $M, $D)=split(/-/, $args->{DATE}, 3);
+     $YESTERDAY = (strftime "%Y-%m-%d", localtime(POSIX::mktime( 0, 10, 1, $D, ($M-1), $Y-1900)- 86400));
+   	 $YESTERDAY=$args->{DATE};
+   	 $ADMIN_REPORT{DATE} = $args->{DATE};
+   }
  
 if (defined($args->{monthly})) {
+ 	 $DATE = $args->{DATE};
    for(my $i=$#monthly_functions; $i>-1; $i--) {
   	my $f = $monthly_functions[$i];
   	#print $f . "\n";
@@ -84,14 +93,6 @@ if (defined($args->{monthly})) {
               "$message", "$conf{MAIL_CHARSET}", "2 (High)");
  }
 elsif (defined($args->{daily})) {
-
-  if(defined($args->{DATE})) {
-     my($Y, $M, $D)=split(/-/, $args->{DATE}, 3);
-     $YESTERDAY = (strftime "%Y-%m-%d", localtime(POSIX::mktime( 0, 10, 1, $D, ($M-1), $Y-1900)- 86400));
-   	 $YESTERDAY=$args->{DATE};
-   	 $ADMIN_REPORT{DATE} = $args->{DATE};
-    }
-  
   foreach my $f (@daily_functions) {
   	#print $f . "\n";
   	$f->();

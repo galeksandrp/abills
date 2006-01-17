@@ -375,7 +375,9 @@ sub list {
   $DESC = (defined($attr->{DESC})) ? $attr->{DESC} : '';
   $WHERE = '';
  
- $self->query($db, "SELECT tp.id, tp.name, if(sum(i.tarif) is NULL or sum(i.tarif)=0, 0, 1), 
+ $self->query($db, "SELECT tp.id, 
+    tp.name, 
+    if(sum(i.tarif) is NULL or sum(i.tarif)=0, 0, 1), 
     if(sum(tt.in_price + tt.out_price)> 0, 1, 0), 
     tp.payment_type,
     tp.day_fee, tp.month_fee, 

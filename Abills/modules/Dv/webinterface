@@ -664,7 +664,6 @@ if (! $list) {
 
   use Dv_Sessions;
   $sessions = Dv_Sessions->new($db);
-  $sessions->{debug}=1;
   $list = $sessions->list({ %LIST_PARAMS });	
 }
 
@@ -1369,6 +1368,7 @@ sub dv_daily_fees {
 # monthly_fees
 #**********************************************************
 sub dv_monthly_fees {
+ my ($attr) = @_;
 
  use Users;
  my $users = Users->new($db, $admin, \%conf); 
@@ -1379,8 +1379,6 @@ sub dv_monthly_fees {
  my $list = $tariffs->list({ %LIST_PARAMS });
 
  my ($y, $m, $d)=split(/-/, $DATE, 3);
-
-
  $m--;
  
 my $date_unixtime =  mktime(0, 0, 0, $d, $m, $y - 1900, 0, 0, 0);
@@ -1388,7 +1386,7 @@ my $date_unixtime =  mktime(0, 0, 0, $d, $m, $y - 1900, 0, 0, 0);
 
  foreach my $line (@$list) {
  	 if ($line->[6] > 0) {
-# 	   print "$line->[0] $line->[7]\n";
+ 	   #print "$line->[0] $line->[6]\n";
  	   $LIST_PARAMS{TP}=$line->[0];
 
  	   my $ulist = $Dv->list({ 
@@ -1410,16 +1408,15 @@ my $date_unixtime =  mktime(0, 0, 0, $d, $m, $y - 1900, 0, 0, 0);
            );
 
 
-          if($line->[5] > 0 && ($line->[5] == 1 || $u->[2] + $u->[3] > 0 )) {
+          if($line->[4] == 1 || $u->[2] + $u->[3] > 0) {
             if ($u->[10] eq '0000-00-00' and $d == 1) {
-#            print " $u->[0] $line->[6] $u->[2] $u->[3] $u->[10] - $u->[11]\n"; 	
+                #print " $u->[0] $line->[6] $u->[2] $u->[3] $u->[10] - $u->[11]\n"; 	
                 $fees->take(\%user, $line->[6], { DESCRIBE => "$_MONTH_FEE" } );  
               }
             elsif($u->[10] ne '0000-00-00') {
               my ($activate_y, $activate_m, $activate_d)=split(/-/, $u->[10], 3);
               $activate_m--;
               my $active_unixtime =  mktime(0, 0, 0, $activate_d, $activate_m, $activate_y - 1900, 0, 0, 0);
-
               if ($date_unixtime - $active_unixtime > 30 * 86400) {
                 #my $aa = (strftime "%Y-%m-%d", localtime($active_unixtime));
                 $fees->take(\%user, $line->[6], { DESCRIBE => "$_MONTH_FEE" } );
@@ -1427,9 +1424,9 @@ my $date_unixtime =  mktime(0, 0, 0, $d, $m, $y - 1900, 0, 0, 0);
                 	  UID      => $u->[6],
                 	  ACTIVATE => $DATE } );
                }
-#          print "   $u->[0] $line->[6] $u->[2] $u->[3] $u->[10] - $u->[11]\n"; 	
+               #print "   $u->[0] $line->[6] $u->[2] $u->[3] $u->[10] - $u->[11]\n"; 	
              }
-          }
+           }
         }
        else {
       	 print "[ $u->[6] ] $u->[0] - Don't have money account\n";
