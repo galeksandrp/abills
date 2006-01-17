@@ -858,22 +858,26 @@ sub tpl_show {
 #**********************************************************
 sub test {
 
-print "<table border=1>
-<tr><td colspan=2>FORM</td></tr>
-<tr><td>index</td><td>$index</td></td></tr>
-<tr><td>root_index</td><td>root_index</td></td></tr>\n";	
-  while(my($k, $v)=each %FORM) {
-    print "<tr><td>$k</td><td>$v</td></tr>\n";	
-   }
-print "</table>\n";
+ my $output = '';
 
-print "<br><table border=1>
-<tr><td colspan=2>COOKIES</td></tr>
-<tr><td>index</td><td>$index</td></td></tr>\n";	
-  while(my($k, $v)=each %COOKIES) {
-    print "<tr><td>$k</td><td>$v</td></tr>\n";	
+#print "<table border=1>
+#<tr><td colspan=2>FORM</td></tr>
+#<tr><td>index</td><td>$index</td></td></tr>
+#<tr><td>root_index</td><td>root_index</td></td></tr>\n";	
+  while(my($k, $v)=each %FORM) {
+  	$output .= "$k | $v\n";
+    #print "<tr><td>$k</td><td>$v</td></tr>\n";	
    }
-print "</table>\n";
+#print "</table>\n";
+ $output .= "\n";
+#print "<br><table border=1>
+#<tr><td colspan=2>COOKIES</td></tr>
+#<tr><td>index</td><td>$index</td></td></tr>\n";	
+  while(my($k, $v)=each %COOKIES) {
+    $output .= "$k | $v\n";
+    #print "<tr><td>$k</td><td>$v</td></tr>\n";	
+   }
+#print "</table>\n";
 
 
 #print "<br><table border=1>\n";
@@ -888,6 +892,8 @@ print "</table>\n";
 #   }
 #print "</table>\n";
 #
+
+print "<a href='#' title='$output'><font color=$_COLORS[1]>Debug</font></a>\n";
 
 }
 

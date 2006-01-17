@@ -503,6 +503,7 @@ CREATE TABLE `voip_routes` (
   `descr` varchar(120) NOT NULL default '',
   `gateway_id` smallint(6) unsigned NOT NULL default '0',
   `id` int(11) unsigned NOT NULL auto_increment,
+   `iso_codes` VARCHAR(10) NOT NULL default '';
   PRIMARY KEY  (`id`),
   UNIQUE KEY `id` (`id`),
   UNIQUE KEY `prefix` (`prefix`)
