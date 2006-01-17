@@ -328,6 +328,112 @@ $ADMIN_REPORT{SESSIONS} .= sprintf("%-14s| %20s|\n%-14s| %20s|\n%-14s| %20s|\n%-
 # admin_report_monthly
 #**********************************************************
 sub admin_report_monthly {
+ 
+#Payments
+require Finance;
+Finance->import();
+my $payments = Finance->payments($db, $admin, \%conf); 
+
+$ADMIN_REPORT{PAYMENTS}  =  sprintf("%-14s| %8s| %20s| %12s| %15s| %19s|\n", 
+    $_LOGIN, $_SUM, $_DESCRIBE, 'Admins.', 'IP', $_DATE);
+$ADMIN_REPORT{PAYMENTS} .= "---------------------------------------------------------\n";
+
+$LIST_PARAMS{DATE}=$YESTERDAY;
+$LIST_PARAMS{SORT}=2;
+$LIST_PARAMS{DESC}='DESC';
+
+$list = $payments->list( { %LIST_PARAMS } );
+
+foreach my $line (@$list) {
+   $ADMIN_REPORT{PAYMENTS} .= sprintf ("%-14s| %8.4f| %20s| %12s| %15s| %19s|\n", 
+    "$line->[1]", 
+    "$line->[3]", 
+    "$line->[4]", 
+    "$line->[5]", 
+    "$line->[6]", 
+    "$line->[2]");
+}
+
+$ADMIN_REPORT{PAYMENTS} .= "---------------------------------------------------------\n";
+$ADMIN_REPORT{PAYMENTS} .= sprintf("%-14s| %8s|\n%-14s| %8s|\n", 
+  $_TOTAL, $payments->{TOTAL},
+  $_SUM,   $payments->{SUM});
+
+
+
+#Fees
+my $fees = Finance->fees($db, $admin, \%conf);
+
+
+# Daily fees
+# Login Count Sum  
+$ADMIN_REPORT{FEES} .= sprintf ("%-14s| %8s| %20s| %12s| %15s| %8s\n", 
+   $_LOGIN, $_SUM, $_DESCRIBE, $_ADMINS, 'IP', $_DEPOSIT);
+$ADMIN_REPORT{FEES} .= "---------------------------------------------------------\n";
+
+$LIST_PARAMS{PAGE_ROWS}=10000;
+$list = $fees->list( { %LIST_PARAMS } );
+foreach my $line (@$list) {
+#SELECT f.id, u.id, f.date, f.sum, f.dsc, a.name, INET_NTOA(f.ip), f.last_deposit, f.uid 
+  $ADMIN_REPORT{FEES} .= sprintf ("%-14s| %8.4f| %20s| %12s| %15s| %8.4f\n", 
+    $line->[1], 
+    $line->[3], 
+    $line->[4], 
+    $line->[5], 
+    $line->[6],
+    $line->[7]);
+    
+}
+
+$ADMIN_REPORT{FEES} .= "---------------------------------------------------------\n";
+$ADMIN_REPORT{FEES} .= sprintf("%-14s| %8s|\n%-14s| %8s|\n", 
+    $_TOTAL, $fees->{TOTAL}, 
+    $_SUM,   $fees->{SUM});
+
+
+#USED traffic nd time
+#Date  Users  Sessions  Traffic  Traffic 2  Duration  Sum  
+require Dv_Sessions;
+Dv_Sessions->import();
+my $sessions = Dv_Sessions->new($db, $admin, \%conf); 
+
+$ADMIN_REPORT{SESSIONS} .= sprintf ("%-14s| %5s| %9s| %9s| %10s| %9s|\n", $_LOGIN, $_SESSIONS, 
+    $_TRAFFIC, "$_TRAFFIC 2", $_DURATION, $_SUM);
+$ADMIN_REPORT{SESSIONS} .= "---------------------------------------------------------\n";
+
+$list = $sessions->reports( { %LIST_PARAMS } );
+foreach my $line (@$list) {
+  
+#   u.id, count(l.id), sum(l.sent + l.recv), sum(l.sent2 + l.recv2), sec_to_time(sum(l.duration)), sum(l.sum), l.id
+
+ 
+   $ADMIN_REPORT{SESSIONS} .= sprintf ("%-14s| %5d| %9s| %9s| %8s| %9.4f|\n", 
+    $line->[1], 
+    $line->[2], 
+    int2byte($line->[3]), 
+    int2byte($line->[4]), 
+    $line->[5], 
+    $line->[6]);
+}
+
+
+$ADMIN_REPORT{SESSIONS} .= "---------------------------------------------------------\n";
+$ADMIN_REPORT{SESSIONS} .= sprintf("%-14s| %20s|\n%-14s| %20s|\n%-14s| %20s|\n%-14s| %20s|\n%-14s| %20s|\n%-14s| %20s|\n", 
+   $_USERS,       $sessions->{USERS}, 
+   $_SESSIONS,    $sessions->{SESSIONS}, 
+   $_TRAFFIC,     int2byte($sessions->{TRAFFIC}), 
+   "$_TRAFFIC 2", int2byte($sessions->{TRAFFIC_2}), 
+   $_DURATION,    $sessions->{DURATION}, 
+   $_SUM,         $sessions->{SUM});
+
+
+
+
+
+
+
+
+
   
 
 }

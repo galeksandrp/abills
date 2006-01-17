@@ -781,14 +781,11 @@ if ($FORM{GID}) {
 }
 
 
-
-
 $sessions->{GROUPS_SEL} = sel_groups();
 Abills::HTML->tpl_show(templates('groups_sel'), $sessions);
 
 
-
-my ($tables_sessions, $table_fees);
+my ($tables_sessions);
 
 #Day reposrt
 if (defined($FORM{DATE})) {
@@ -823,19 +820,6 @@ if (defined($FORM{DATE})) {
     $table_sessions->addrow("<b>$line->[0]</b>", 
       "<a href='$SELF_URL?index=11&subf=22&UID=$line->[7]&DATE=$line->[0]'>$line->[1]</a>", $line->[2], int2byte($line->[3]),  int2byte($line->[4]),  $line->[5], "<b>$line->[6]</b>" );
    }
-  
-  $LIST_PARAMS{PAGE_ROWS}=1000;
-  $list = $fees->list( { %LIST_PARAMS } );
-  $table_fees = Abills::HTML->table( { width      => '100%',
-  	                                   caption    => "$_FEES", 
-                                       title      => ['ID', $_LOGIN, $_SUM, $_DESCRIBE, $_ADMINS, 'IP', $_DEPOSIT],
-                                       cols_align => ['right', 'left', 'right', 'right', 'left', 'left', 'right', 'right'],
-                                  } );
-
-  foreach my $line (@$list) {
-   $table_fees->addrow("<b>$line->[0]</b>", "<a href='$SELF_URL?index=11&subf=3&DATE=$line->[0]&UID=$line->[8]'>$line->[1]</a>",  
-      $line->[3], $line->[4],  "$line->[5]", "$line->[6]", "$line->[7]");
-    }
 
  }
 else {
@@ -852,19 +836,6 @@ else {
   foreach my $line (@$list) {
     $table_sessions->addrow("<a href='$SELF_URL?index=$index&$type=$line->[0]$pages_qs'>$line->[0]</a>", 
        $line->[1], $line->[2], int2byte($line->[3]),  int2byte($line->[4]),  $line->[5], "<b>$line->[6]</b>" );
-   }
-
-  #Fees###################################################
-  $table_fees = Abills::HTML->table( { width => '100%',
-	                              caption => $_FEES, 
-                                title =>["$_DATE", "$_COUNT", $_SUM],
-                                cols_align => ['right', 'right', 'right'],
-                               } );
-
-
-  $list = $fees->reports({ %LIST_PARAMS });
-  foreach my $line (@$list) {
-    $table_fees->addrow("<a href='$SELF_URL?index=$index&$type=$line->[0]$pages_qs'>$line->[0]</a>", $line->[1], "<b>$line->[2]</b>" );
    }
 }
 
@@ -883,14 +854,6 @@ $table = Abills::HTML->table( { width => '100%',
 
 
 print $table_sessions->show() . $table->show();
-
-$table = Abills::HTML->table( { width      => '100%',
-                                cols_align => ['right', 'right', 'right', 'right'],
-                                rows       => [ [ "$_TOTAL:", "<b>$fees->{TOTAL}</b>", "$_SUM", "<b>$fees->{SUM}</b>" ] ],
-                                rowcolor   => $_COLORS[2]
-                               } );
-print $table_fees->show() . $table->show();
-
 
 #Users 
 #Sessions

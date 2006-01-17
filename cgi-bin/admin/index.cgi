@@ -2078,6 +2078,169 @@ $hidden_inputs
 #**********************************************************
 #
 #**********************************************************
+sub reports {
+ my ($attr) = @_;
+ 
+ 
+my ($y, $m, $d);
+$type='DATE';
+
+if ($FORM{MONTH}) {
+  $LIST_PARAMS{MONTH}=$FORM{MONTH};
+	$pages_qs="&MONTH=$LIST_PARAMS{MONTH}";
+ }
+elsif($FORM{allmonthes}) {
+	$type='MONTH';
+	$pages_qs="&allmonthes=y";
+ }
+else {
+	($y, $m, $d)=split(/-/, $DATE, 3);
+	$LIST_PARAMS{MONTH}="$y-$m";
+	$pages_qs="&MONTH=$LIST_PARAMS{MONTH}";
+}
+
+if ($FORM{GID}) {
+	$LIST_PARAMS{GID}=$FORM{GID};
+  $pages_qs.="&GID=$FORM{GID}";
+}
+
+$fees->{GROUPS_SEL} = sel_groups();
+Abills::HTML->tpl_show(templates('groups_sel'), $fees);
+
+if (defined($FORM{DATE})) {
+  ($y, $m, $d)=split(/-/, $FORM{DATE}, 3);	
+  my $days = '';
+  for ($i=1; $i<=31; $i++) {
+     $days .= ($d == $i) ? "<b>$i </b>" : sprintf("<a href='$SELF_URL?index=$index&DATE=%d-%02.f-%02.f$pages_qs'>%d</a> ", $y, $m, $i, $i);
+   }
+
+  $table = Abills::HTML->table( { width => '100%',
+                                rowcolor => $_COLORS[1],
+                                cols_align => ['right', 'left'],
+                                rows => [ [ "$_YEAR:",  $y ],
+                                          [ "$_MONTH:", $MONTHES[$m] ], 
+                                          [ "$_DAY:",   $days ] ]
+                               } );
+
+  print $table->show();
+  $LIST_PARAMS{DATE}="$FORM{DATE}";
+  $pages_qs.="&DATE=$LIST_PARAMS{DATE}";
+}
+
+}
+
+#**********************************************************
+#
+#**********************************************************
+sub report_fees {
+  reports({ DATE   => $FORM{DATE}, 
+  	        REPORT => '' });
+
+  $LIST_PARAMS{PAGE_ROWS}=1000;
+  use Finance;
+  my $fees = Finance->fees($db, $admin, \%conf);
+
+
+if (defined($FORM{DATE})) {
+  $list = $fees->list( { %LIST_PARAMS } );
+  $table_fees = Abills::HTML->table( { width      => '100%',
+  	                                   caption    => "$_FEES", 
+                                       title      => ['ID', $_LOGIN, $_SUM, $_DESCRIBE, $_ADMINS, 'IP', $_DEPOSIT],
+                                       cols_align => ['right', 'left', 'right', 'right', 'left', 'left', 'right', 'right'],
+                                       qs => $pages_qs
+                                      });
+
+  foreach my $line (@$list) {
+   $table_fees->addrow("<b>$line->[0]</b>", "<a href='$SELF_URL?index=11&subf=3&DATE=$line->[0]&UID=$line->[8]'>$line->[1]</a>",  
+      $line->[3], $line->[4],  "$line->[5]", "$line->[6]", "$line->[7]");
+    }
+ }   
+else{ 
+  #Fees###################################################
+  $table_fees = Abills::HTML->table({ width => '100%',
+	                              caption => $_FEES, 
+                                title =>["$_DATE", "$_COUNT", $_SUM],
+                                cols_align => ['right', 'right', 'right'],
+                                qs => $pages_qs
+                                    });
+
+
+  $list = $fees->reports({ %LIST_PARAMS });
+  foreach my $line (@$list) {
+    $table_fees->addrow("<a href='$SELF_URL?index=$index&$type=$line->[0]$pages_qs'>$line->[0]</a>", $line->[1], "<b>$line->[2]</b>" );
+   }
+
+
+}
+
+  print $table_fees->show();	
+  $table = Abills::HTML->table( { width      => '100%',
+                                cols_align => ['right', 'right', 'right', 'right'],
+                                rows       => [ [ "$_TOTAL:", "<b>$fees->{TOTAL}</b>", "$_SUM", "<b>$fees->{SUM}</b>" ] ],
+                                rowcolor   => $_COLORS[2]
+                               } );
+  print $table->show();
+}
+
+
+
+
+#**********************************************************
+#
+#**********************************************************
+sub report_payments {
+  reports({ DATE   => $FORM{DATE}, 
+  	        REPORT => '' });
+
+  $LIST_PARAMS{PAGE_ROWS}=1000;
+  use Finance;
+  my $payments = Finance->payments($db, $admin, \%conf);
+
+
+if (defined($FORM{DATE})) {
+  $list  = $payments->list( { %LIST_PARAMS } );
+  $table = Abills::HTML->table( { width      => '100%',
+  	                                   caption    => "$_PAYMENTS", 
+                                       title      => ['ID', $_LOGIN, $_SUM, $_DESCRIBE, $_ADMINS, 'IP', $_DEPOSIT],
+                                       cols_align => ['right', 'left', 'right', 'right', 'left', 'left', 'right', 'right'],
+                                       qs => $pages_qs
+                                      });
+
+  foreach my $line (@$list) {
+   $table->addrow("<b>$line->[0]</b>", "<a href='$SELF_URL?index=11&subf=3&DATE=$line->[0]&UID=$line->[8]'>$line->[1]</a>",  
+      $line->[3], $line->[4],  "$line->[5]", "$line->[6]", "$line->[7]");
+    }
+ }   
+else{ 
+  $table = Abills::HTML->table({ width => '100%',
+	                              caption => $_PAYMENTS, 
+                                title =>["$_DATE", "$_COUNT", $_SUM],
+                                cols_align => ['right', 'right', 'right'],
+                                qs => $pages_qs
+                               });
+
+
+  $list = $payments->reports({ %LIST_PARAMS });
+  foreach my $line (@$list) {
+    $table->addrow("<a href='$SELF_URL?index=$index&$type=$line->[0]$pages_qs'>$line->[0]</a>", $line->[1], "<b>$line->[2]</b>" );
+   }
+
+
+}
+
+  print $table->show();	
+
+  $table = Abills::HTML->table( { width      => '100%',
+                                cols_align => ['right', 'right', 'right', 'right'],
+                                rows       => [ [ "$_TOTAL:", "<b>$payments->{TOTAL}</b>", "$_SUM", "<b>$payments->{SUM}</b>" ] ],
+                                rowcolor   => $_COLORS[2]
+                               } );
+  print $table->show();
+}
+
+#**********************************************************
+#
+#**********************************************************
 sub fl {
 	# ID:PARENT:NAME:FUNCTION:SHOW SUBMENU:module:
 my @m = (
@@ -2108,6 +2271,10 @@ my @m = (
  "2:0:$_PAYMENTS:form_payments:::",
  "3:0:$_FEES:form_fees:::",
  "4:0:$_REPORTS:null:::",
+ "41:4:$_PAYMENTS:report_payments:::",
+ "42:41:$_MONTH:report_payments:::",
+ "44:4:$_FEES:report_fees:::",
+ "45:44:$_MONTH:report_fees:::",
 
  "5:0:$_SYSTEM:null:::",
  "50:5:$_ADMINS:form_admins:::",
@@ -2619,7 +2786,7 @@ sub form_fees  {
  return 0 if (! defined ($permissions{2}));
  
  use Finance;
- my $fees = Finance->fees($db, $admin);
+ my $fees = Finance->fees($db, $admin, \%conf);
 
 if (defined($attr->{USER})) {
   my $user = $attr->{USER};

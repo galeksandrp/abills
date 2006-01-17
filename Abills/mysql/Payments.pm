@@ -252,7 +252,68 @@ sub list {
 
 
 
+#**********************************************************
+# report
+#**********************************************************
+sub reports {
+  my $self = shift;
+  my ($attr) = @_;
 
+ $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+ $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+ my $date = '';
+ undef @WHERE_RULES;
+ 
+ 
+ if ($attr->{GID}) {
+   push @WHERE_RULES, "u.gid='$attr->{GID}'";
+  }
+ 
+ if(defined($attr->{DATE})) {
+   my $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
+   #$self->query($db, "select date_format(l.start, '%Y-%m-%d'), if(u.id is NULL, CONCAT('> ', l.uid, ' <'), u.id), count(l.uid), 
+   # sum(l.sent + l.recv), sum(l.sent2 + l.recv2), sec_to_time(sum(l.duration)), sum(l.sum), l.uid
+   #   FROM log l
+   #   LEFT JOIN users u ON (u.uid=l.uid)
+   #   WHERE date_format(l.start, '%Y-%m-%d')='$attr->{DATE}'
+   #   GROUP BY l.uid 
+   #   ORDER BY $SORT $DESC");
+   #return $self->{list};
+  }
+ elsif (defined($attr->{MONTH})) {
+ 	 push @WHERE_RULES, "date_format(p.date, '%Y-%m')='$attr->{MONTH}'";
+   $date = "date_format(p.date, '%Y-%m-%d')";
+  } 
+ else {
+ 	 $date = "date_format(p.date, '%Y-%m')";
+  }
+
+
+
+  my $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
+ 
+  $self->query($db, "SELECT $date, count(*), sum(p.sum) 
+      FROM payments p
+      LEFT JOIN users u ON (u.uid=p.uid)
+      $WHERE 
+      GROUP BY 1
+      ORDER BY $SORT $DESC;");
+
+ my $list = $self->{list}; 
+	
+ $self->query($db, "SELECT count(*), sum(p.sum) 
+      FROM payments p
+      LEFT JOIN users u ON (u.uid=p.uid)
+      $WHERE;");
+
+ my $a_ref = $self->{list}->[0];
+
+ ($self->{TOTAL}, 
+  $self->{SUM}) = @$a_ref;
+
+	
+	return $list;
+}
 
 
 1
