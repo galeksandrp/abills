@@ -1289,12 +1289,13 @@ sub dv_daily_fees {
  	 if ($line->[5] > 0) {
  	   #print "$line->[0] DF: $line->[5] MF: $line->[6]\n";
  	   $LIST_PARAMS{TP}=$line->[0];
-
  	   my $ulist = $Dv->list({ 
          ACTIVATE  => "<=$DATE",
          EXPIRE    => ">$DATE",
          DISABLE   => 0,
          TP_ID     => $line->[0],
+         SORT      => 1,
+         PAGE_ROWS => 10000
  	   	 });
 
 #     .id, u.fio, if(acct.id IS NULL, u.deposit, acct.deposit), u.credit, tp.name, u.disable, 
@@ -1308,8 +1309,9 @@ sub dv_daily_fees {
              BILL_ID => $u->[12]  
            );
 
-          #print "  UID: $u->[0] / $line->[6] / DEPOSIT: $u->[2] / $u->[3] / BILL_ID: $u->[12]\n"; 	
-          if($line->[5] > 0 && ($u->[2] + $u->[3] > 0 || $line->[4] == 1)) {
+          #print "  UID: $u->[0] / $line->[5] / DEPOSIT: $u->[2] / $u->[3] / BILL_ID: $u->[12]\n"; 	
+          if($u->[2] + $u->[3] > 0 || $line->[4] == 1) {
+             #print "  UID: $u->[0] / $line->[5] / DEPOSIT: $u->[2] / $u->[3] / BILL_ID: $u->[12]\n"; 	
              $fees->take(\%user, $line->[5], { DESCRIBE => "$_DAY_FEE" } );  
            }
         }
@@ -1349,20 +1351,24 @@ my $date_unixtime =  mktime(0, 0, 0, $d, $m, $y - 1900, 0, 0, 0);
 
  foreach my $line (@$list) {
  	 if ($line->[6] > 0) {
- 	   #print "$line->[0] $line->[6]\n";
+ 	   print "$line->[0] $line->[6]\n";
  	   $LIST_PARAMS{TP}=$line->[0];
 
  	   my $ulist = $Dv->list({ 
          ACTIVATE => "<=$DATE",
          EXPIRE => ">$DATE",
          DISABLE => '0',
-         TP_ID => $line->[0]
+         TP_ID => $line->[0],
+         SORT      => 1,
+         PAGE_ROWS => 10000
+
  	   	 });
 #u.id, u.fio, if(acct.id IS NULL, u.deposit, acct.deposit), u.credit, tp.name, u.disable, 
 #      u.uid, u.account_id, u.email, u.tp_id, u.activate, u.expire
 
 
      foreach my $u (@$ulist) {
+       #print " $u->[0] $line->[6] $u->[2] $u->[3] $u->[10] - $u->[11]\n"; 	
        if ($u->[12] > 0 && defined($u->[2])) {
           my %user = (
             ACCOUNT_ID => $u->[7],
@@ -1411,7 +1417,6 @@ $ADMIN_REPORT{DATE} = $YESTERDAY;
 
 $ADMIN_REPORT{USERS_WARNINGS} = sprintf("%-14s| %4s|%-20s| %9s| %8s|\n", $_LOGIN, 'TP', $_VARIANT, $_DEPOSIT, $_CREDIT).
    "---------------------------------------------------------------\n";
-
 return 0 if ($Dv->{TOTAL} < 1);
 my %USER_INFO = ();
 
@@ -1431,6 +1436,8 @@ foreach my $line (@$list) {
   $USER_INFO{LOGIN}, $USER_INFO{TP_ID}, $USER_INFO{TP_NAME},  $USER_INFO{DEPOSIT}, $USER_INFO{CREDIT});
   
   my $message = Abills::HTML->tpl_show(templates('users_warning_messages'), \%USER_INFO, { notprint => 'yes' });
+
+
 
   #sendmail("$conf{ADMIN_MAIL}", "$email", "Попередження сервера статистики.", 
   #            "$message", "$conf{MAIL_CHARSET}", "2 (High)");

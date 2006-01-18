@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 #Periodic process
 
-use vars  qw(%RAD %conf @MODULES $db $DATE $GZIP $MYSQLDUMP);
+use vars  qw(%RAD %conf @MODULES $db $DATE $GZIP $MYSQLDUMP %ADMIN_REPORT);
 #use strict;
 use FindBin '$Bin';
 
@@ -41,7 +41,7 @@ require "../language/$conf{default_language}.pl";
 use POSIX qw(mktime strftime);
 my $YESTERDAY = (strftime "%Y-%m-%d", localtime(time - 86400));
 
-my %ADMIN_REPORT = (DATE => $DATE);
+%ADMIN_REPORT = (DATE => $DATE);
 my $args = parse_arguments(\@ARGV);
 
 #print $DATE;
@@ -172,6 +172,7 @@ my %shedule_type = ('tp' => $_VARIANT,
 # admin_report_daily
 #**********************************************************
 sub admin_report_daily {
+
 
 
 ##closed users account

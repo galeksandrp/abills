@@ -231,11 +231,17 @@ sub list {
  
  if ($attr->{USERS_WARNINGS}) {
    $self->query($db, "SELECT u.id, pi.email, dv.tp_id, u.credit, b.deposit, tp.name, tp.uplimit
-         FROM users u, dv_main dv, bills b
-         LEFT JOIN tarif_plans tp ON dv.tp_id = tp.id
+         FROM users u,
+              dv_main dv,
+              bills b,
+              tarif_plans tp
          LEFT JOIN users_pi pi ON u.uid = dv.uid
-         WHERE u.bill_id=b.id
+         WHERE
+               u.uid=dv.uid
+           and u.bill_id=b.id
+           and dv.tp_id = tp.id
            and b.deposit<tp.uplimit AND tp.uplimit > 0 AND b.deposit+u.credit>0
+         GROUP BY u.uid
          ORDER BY u.id;");
 
 
