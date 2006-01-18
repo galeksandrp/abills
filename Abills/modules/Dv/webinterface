@@ -1279,7 +1279,7 @@ sub dv_periodic_logrotate {
 # daily_fees
 #**********************************************************
 sub dv_daily_fees {
- 
+
  require Tariffs;
  Tariffs->import();
  my $tariffs = Tariffs->new($db, \%conf);
