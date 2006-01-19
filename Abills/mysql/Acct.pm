@@ -60,7 +60,6 @@ sub accounting {
 #my $a=`echo "test $acct_status_type = $ACCT_TYPES{$RAD->{ACCT_STATUS_TYPE}}"  >> /tmp/12211 `;
  
  $RAD->{FRAMED_IP_ADDRESS} = '0.0.0.0' if(! defined($RAD->{FRAMED_IP_ADDRESS}));
-    $self->{debug}=1;
     
 #Start
 if ($acct_status_type == 1) { 

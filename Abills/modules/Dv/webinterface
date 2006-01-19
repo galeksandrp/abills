@@ -403,7 +403,7 @@ print $table->show();
 #*******************************************************************
 sub dv_online {
 
-my $nas = Nas->new($db);
+my $nas = Nas->new($db, \%conf);
 use Dv_Sessions;
 $sessions = Dv_Sessions->new($db);
 
@@ -414,8 +414,8 @@ if ($FORM{ping}) {
   message('info', $_INFO,  "Ping  $FORM{ping}<br>Result:<br><pre>$res</pre>");
  }
 elsif ($FORM{hangup}) {
-  my ($nas_ip_address, $nas_port_id, $acct_session_id, $user_name) = split(/ /, $FORM{hangup}, 4);
-  $nas->info( { IP => $nas_ip_address, SECRETKEY => $conf{secretkey} });
+  my ($nas_id, $nas_port_id, $acct_session_id, $user_name) = split(/ /, $FORM{hangup}, 4);
+  $nas->info({ NID => $nas_id });
   
   if ($nas->{errno}) {
     message('err', $_NAS, "$nas->{errstr}");
@@ -425,15 +425,26 @@ elsif ($FORM{hangup}) {
   require "Abills/nas.pl";
   my $ret = hangup($nas, "$nas_port_id", "", "$acct_session_id");
   
-  
   if ($ret == 0) {
-     $message = "<table width=100%>\n".
-         "<tr><th colspan=2 align=left>$_HANGUPED</th></tr>".
-         "<tr><td>$_NAS:</td><td>$nas_ip_address</td></tr>".
-         "<tr><td>$_PORT:</td><td>$nas_port_id</td></tr>".
-         "<tr><td>SESSION_ID:</td><td>$acct_session_id</td></tr>".
-         "<tr><td colspan=2>$ret</td></tr>".
-         "</table>\n";
+    my $table = Abills::HTML->table( { width => '100%',
+                                caption => $_HANGUPED,
+                                rows => [ [ "$_NAS ID",   $nas_id],
+                                          [ "$_NAS IP",   $nas->{NAS_IP} ],
+                                          [ "$_PORT",     $nas_port_id   ],
+                                          [ "SESSION_ID", $acct_session_id ],
+                                          [ "", $ret ] ]
+                               } );
+
+
+     $message = $table->show();
+
+     #= "<table width=100%>\n".
+     #    "<tr><th colspan=2 align=left></th></tr>".
+     #    "<tr><td>:</td><td></td></tr>".
+     #    "<tr><td>:</td><td></td></tr>".
+     #    "<tr><td>:</td><td></td></tr>".
+     #    "<tr><td colspan=2>$ret</td></tr>".
+     #    "</table>\n";
          sleep 3;
      
      weblog('hangup', "$user_name");
@@ -445,37 +456,41 @@ elsif ($FORM{hangup}) {
   message('info', $_INFO, "$message");
  }
 elsif($FORM{zap}) {
-  my  ($nas_ip_address, $nas_port_id, $acct_session_id)=split(/ /, $FORM{zap}, 3);
-  $sessions->zap($nas_ip_address, $nas_port_id, $acct_session_id);
+  my($nas_id, $nas_port_id, $acct_session_id)=split(/ /, $FORM{zap}, 3);
+  $sessions->zap($nas_id, $nas_port_id, $acct_session_id);
 
   if ($sessions->{errno}) {
   	 message('err', $_ERROR, "[$sessions->{errno}] $err_strs{$sessions->{errno}}");
   	 return 0;
    }
 
-  $message = "<table width=100%>\n".
-     "<tr><th colspan=2 align=left>$_CLOSED</th></tr>".
-     "<tr><td>$_NAS:</td><td>$nas_ip_address</td></tr>".
-     "<tr><td>$_PORT:</td><td>$nas_port_id</td></tr>".
-     "<tr><td>SESSION_ID:</td><td>$acct_session_id</td></tr>".
-     "</table>\n";
+  $nas->info({NID => $nas_id });
+  my $table = Abills::HTML->table( { width => '100%',
+                                caption => $_CLOSED,
+                                rows => [ 
+                                          [ "$_NAS ID",   $nas_id],
+                                          [ "$_NAS IP",   $nas->{NAS_IP} ],
+                                          [ "$_PORT",     $nas_port_id   ],
+                                          [ "SESSION_ID", $acct_session_id ],
+                                        ]
+                               } );
 
-  $nas->info({IP => $nas_ip_address, SECRETKEY => $conf{secretkey} });
+  $message = $table->show();
  
   $sessions->list({ ACCT_SESSION_ID => $acct_session_id, 
   	                NAS_PORT => $nas_port_id,
   	                NAS_ID => $nas->{NID} });  
   
-  if ($sessions->{TOTAL} > 0) {
-    $message .= "<p align=center>[<a href='$SELF?index=$index&tolog=$acct_session_id&nas_ip_address=$nas_ip_address&nas_port_id=$nas_port_id'>add to log</a>]
-        [<a href='$SELF?index=$index&del=$acct_session_id&nas_ip_address=$nas_ip_address&nas_port_id=$nas_port_id'>$_DEL</a>]</p>";
+  if ($sessions->{TOTAL} < 1) {
+    $message .= "<p align=center>[<a href='$SELF?index=$index&tolog=$acct_session_id&nas_id=$nas_id&nas_port_id=$nas_port_id'>Add To Log</a>]
+        [<a href='$SELF?index=$index&del=$acct_session_id&nas_id=$nas_id&nas_port_id=$nas_port_id'>$_DEL</a>]</p>\n";
    }
   else {
-  	$message = "$_EXIST";
-  	$sessions->online_del({ NAS_IP_ADDRESS  => $nas_ip_address,,
+  	$message .= "$_EXIST";
+  	$sessions->online_del({ NAS_ID        => $nas_id,
                           NAS_PORT        => $nas_port_id,
                           ACCT_SESSION_ID => $acct_session_id
-                            });
+                          });
 
     #my ($sum, $variant, $time_t, $traf_t) = session_sum("$RAD{USER_NAME}", $ACCT_INFO{LOGIN}, $ACCT_INFO{ACCT_SESSION_TIME}, \%ACCT_INFO);
    }
@@ -483,7 +498,7 @@ elsif($FORM{zap}) {
   message('info', $_INFO, $message);
 }
 elsif($FORM{tolog}) {
-  my $ACCT_INFO = $sessions->online_info({ NAS_IP_ADDRESS => $FORM{nas_ip_address},
+  my $ACCT_INFO = $sessions->online_info({ NAS_ID => $FORM{nas_id},
                 NAS_PORT        => $FORM{nas_port_id},
                 ACCT_SESSION_ID => $FORM{tolog}
                });
@@ -493,6 +508,7 @@ elsif($FORM{tolog}) {
     return 0;
    }
 
+  $nas->info({ NID => $FORM{nas_id} });
 
   require Acct;
   $ACCT_INFO->{INBYTE} =   $ACCT_INFO->{ACCT_INPUT_OCTETS};
@@ -500,15 +516,12 @@ elsif($FORM{tolog}) {
   $ACCT_INFO->{INBYTE2} =  $ACCT_INFO->{ACCT_EX_INPUT_OCTETS} ;
   $ACCT_INFO->{OUTBYTE2} = $ACCT_INFO->{ACCT_EX_INPUT_OCTETS};
   $ACCT_INFO->{ACCT_STATUS_TYPE} = 'Stop';
-  
-  my $nas = Nas->new($db);	
-  $nas->info({IP        => $ACCT_INFO->{NAS_IP_ADDRESS},
-              SECRETKEY => $conf{secretkey}});
+
 
   # Exppp VENDOR params           
   Acct->import();
-  my $Acct = Acct->new($db);
-  my $r = $Acct->accounting($ACCT_INFO, $nas, \%conf);
+  my $Acct = Acct->new($db, \%conf);
+  my $r = $Acct->accounting($ACCT_INFO, $nas);
   
 
   if ($Acct->{errno}) {
@@ -516,30 +529,33 @@ elsif($FORM{tolog}) {
    }
   else {
   	my $table = Abills::HTML->table( { width => '100%'} );
-  	while(my($k, $v)=each %$ACCT_INFO) {
- 		    $table->addrow($k, $v);
+  	foreach my $k (sort keys %$ACCT_INFO) {
+ 		    $table->addrow($k, $ACCT_INFO->{$k});
   	  }
-  	while(my($k, $v)=each %$Acct) {
- 		    $table->addrow($k, $v);
+
+    $table->addrow('-', '-');
+  	foreach my $k (sort keys %$Acct) {
+ 		    $table->addrow($k, $Acct->{$k});
   	  }
+
   	message('info', $_ADDED, $table->show());	
    }
   
-  $sessions->online_del({ NAS_IP_ADDRESS  => $ACCT_INFO->{NAS_IP_ADDRESS},
+  $sessions->online_del({ NAS_ID          => $ACCT_INFO->{NAS_ID},
                           NAS_PORT        => $ACCT_INFO->{NAS_PORT},
                           ACCT_SESSION_ID => $ACCT_INFO->{ACCT_SESSION_ID}
                         });
  }
 elsif($FORM{del}) {
   $sessions->online_del({ 
-   	            NAS_IP_ADDRESS  => $FORM{nas_ip_address},
+   	            NAS_ID          => $FORM{nas_id},
                 NAS_PORT        => $FORM{nas_port_id},
                 ACCT_SESSION_ID => $FORM{del}
                            });
 
   if (! $sessions->{errno}) {
     my $table = Abills::HTML->table( { width => '100%',
-                                rows => [ [ "NAS_IP_ADDRESS",  $FORM{nas_ip_address}],
+                                rows => [ [ "NAS_ID",  $FORM{nas_id}],
                                           [ "NAS_PORT",        $FORM{nas_port_id}   ],
                                           [ "ACCT_SESSION_ID", $FORM{del} ] ]
                                } );
@@ -600,8 +616,8 @@ foreach my $nas_row (@$nas_list) {
     elsif ($line->[9] == 3)                                  { $bg='#FF0000';    }
     else {  $bg = ($bg eq $_COLORS[1]) ? $_COLORS[2] : $_COLORS[1];    }
 
-    my $zap = "(<a href='$SELF_URL?index=$index&zap=$nas_row->[4]+$line->[2]+$line->[11]' title='Hangup'>Z</A>)";
-    my $hangup = "(<a href='$SELF_URL?index=$index&hangup=$nas_row->[4]+$line->[2]+$line->[11]+$line->[0]' title='Hangup'>H</A>)";
+    my $zap = "(<a href='$SELF_URL?index=$index&zap=$nas_row->[0]+$line->[2]+$line->[11]' title='Hangup'>Z</A>)";
+    my $hangup = "(<a href='$SELF_URL?index=$index&hangup=$nas_row->[0]+$line->[2]+$line->[11]+$line->[0]' title='Hangup'>H</A>)";
     my $user_info =  "$_FIO: $line->[1]\n$_PHONE: $line->[12]\n$_VARIANT: $line->[13]\n$_DEPOSIT: $line->[14]\n".
      "$_CREDIT: $line->[15]\n$_SPEED: $line->[16]\nSESSION_ID: $line->[11]\nCID: $line->[17]\nCONNECT_INFO: $line->[18]'";
 

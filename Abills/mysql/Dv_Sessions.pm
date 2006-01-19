@@ -132,12 +132,13 @@ sub online_del {
 	my $self = shift;
 	my ($attr) = @_;
 
-  my $NAS_IP_ADDRESS  = (defined($attr->{NAS_IP_ADDRESS})) ? $attr->{NAS_IP_ADDRESS} : '';
+  my $NAS_ID  = (defined($attr->{NAS_ID})) ? $attr->{NAS_ID} : '';
   my $NAS_PORT        = (defined($attr->{NAS_PORT})) ? $attr->{NAS_PORT} : '';
   my $ACCT_SESSION_ID = (defined($attr->{ACCT_SESSION_ID})) ? $attr->{ACCT_SESSION_ID} : '';
 
 
-  $self->query($db, "DELETE FROM calls WHERE nas_ip_address=INET_ATON('$NAS_IP_ADDRESS')
+  $self->query($db, "DELETE FROM calls WHERE 
+                nas_id=INET_ATON('$NAS_ID')
             and nas_port_id='$NAS_PORT' 
             and acct_session_id='$ACCT_SESSION_ID';", 'do');
 
@@ -166,11 +167,25 @@ sub online_info {
 	my $self = shift;
 	my ($attr) = @_;
 
-  
-  my $NAS_IP_ADDRESS  = (defined($attr->{NAS_IP_ADDRESS})) ? $attr->{NAS_IP_ADDRESS} : '';
-  my $NAS_PORT        = (defined($attr->{NAS_PORT})) ? $attr->{NAS_PORT} : '';
-  my $ACCT_SESSION_ID = (defined($attr->{ACCT_SESSION_ID})) ? $attr->{ACCT_SESSION_ID} : '';
-  
+   undef @WHERE_RULES; 
+
+   if($attr->{NAS_ID}) {
+   	  push @WHERE_RULES, "nas_id=INET_ATON('$attr->{NAS_ID}')";
+    }
+   elsif (defined($attr->{NAS_IP_ADDRESS})) {
+      push @WHERE_RULES, "nas_ip_address=INET_ATON('$attr->{NAS_IP_ADDRESS}')";
+    }
+   
+   if (defined($attr->{NAS_PORT})) {
+     push @WHERE_RULES, "nas_port_id='$attr->{NAS_PORT}'";
+    }
+   
+   if (defined($attr->{ACCT_SESSION_ID})) {
+     push @WHERE_RULES, "acct_session_id='$attr->{ACCT_SESSION_ID}'";
+    }
+ 
+  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
+ 
   $self->query($db, "SELECT user_name, UNIX_TIMESTAMP(started), acct_session_time, 
    acct_input_octets,
    acct_output_octets,
@@ -183,10 +198,11 @@ sub online_info {
    INET_NTOA(nas_ip_address),
       CID,
       CONNECT_INFO,
-      acct_session_id
+      acct_session_id,
+      nas_id
       FROM calls 
-    WHERE nas_ip_address=INET_ATON('$NAS_IP_ADDRESS')
-       and nas_port_id='$NAS_PORT' and acct_session_id='$ACCT_SESSION_ID'");
+   $WHERE 
+   ");
 
 
   if ($self->{TOTAL} < 1) {
@@ -211,7 +227,8 @@ sub online_info {
    $self->{NAS_IP_ADDRESS}, 
    $self->{CALLING_STATION_ID},
    $self->{CONNECT_INFO},
-   $self->{ACCT_SESSION_ID}
+   $self->{ACCT_SESSION_ID},
+   $self->{NAS_ID}
     )= @$ar;
 
 

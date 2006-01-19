@@ -13,6 +13,9 @@ require "Abills/templates.pl";
 
 require Abills::Base;
 Abills::Base->import();
+my $begin_time = check_time();
+
+
 require Abills::SQL;
 Abills::SQL->import();
 require Users;
@@ -46,8 +49,6 @@ my $args = parse_arguments(\@ARGV);
 
 #print $DATE;
 
-my($y, $m, $d)=split(/-/, $ADMIN_REPORT{DATE}, 3);
-
 my @daily_functions=('sheduler',
                      'admin_report_daily',
                      'dv_users_warning_messages');
@@ -79,6 +80,8 @@ my @monthly_functions = ('admin_report_monthly',
    	 $YESTERDAY=$args->{DATE};
    	 $ADMIN_REPORT{DATE} = $args->{DATE};
    }
+  my($y, $m, $d)=split(/-/, $ADMIN_REPORT{DATE}, 3);
+ 
  
 if (defined($args->{monthly})) {
  	 $DATE = $args->{DATE};
@@ -87,6 +90,13 @@ if (defined($args->{monthly})) {
   	#print $f . "\n";
   	$f->();
    }
+
+   if ($begin_time > 0)  {
+     Time::HiRes->import(qw(gettimeofday));
+     my $end_time = gettimeofday();
+     my $gen_time = $end_time - $begin_time;
+     $ADMIN_REPORT{GT} = sprintf(" GT: %2.5f", $gen_time);
+    }
 
    my $message = Abills::HTML->tpl_show(templates('admin_report_month'), \%ADMIN_REPORT, { notprint => 'yes' });
    sendmail("$conf{ADMIN_MAIL}", "$conf{ADMIN_MAIL}", "Monthly billing report", 
@@ -97,6 +107,13 @@ elsif (defined($args->{daily})) {
   	#print $f . "\n";
   	$f->();
    }
+  
+  if ($begin_time > 0)  {
+    Time::HiRes->import(qw(gettimeofday));
+    my $end_time = gettimeofday();
+    my $gen_time = $end_time - $begin_time;
+    $ADMIN_REPORT{GT} = sprintf(" GT: %2.5f", $gen_time);
+  }
 
   my $message = Abills::HTML->tpl_show(templates('admin_report_day'), \%ADMIN_REPORT, { notprint => 'yes' });
   sendmail("$conf{ADMIN_MAIL}", "$conf{ADMIN_MAIL}", "Daily billing report ($YESTERDAY)", 
