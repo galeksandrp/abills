@@ -48,7 +48,7 @@ exit 0;
 }
 
 
-use vars  qw(%RAD %conf $db);
+use vars  qw(%RAD %conf $db, @START_FW);
 use strict;
 
 use FindBin '$Bin';
@@ -74,7 +74,7 @@ my $Billing = Billing->new($db, \%conf);
 
 
 my $IPFW='/sbin/ipfw';
-my @START_FW = (3000, 2000, 1000);
+#my @START_FW = (3000, 2000, 1000);
 
 # Arguments
 my ($ACTION, $INTERFACE, $USER, $HISADDR, $inum);

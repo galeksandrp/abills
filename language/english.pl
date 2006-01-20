@@ -218,7 +218,7 @@ $_NETWORKS='Networks';
 $_HOLIDAYS = 'Holidays';
 $_DUNES='Windows Error codes (DUNES)';
 $_ALLOW_NAS = 'Allow NAS';
-$_ALLOW = 'Allow';
+$_ALLOW='Allow';
 $_ALLOW_ALL = 'Allow all';
 $_DEFAULT='Default';
 $_GO = 'Go';
@@ -238,10 +238,10 @@ $ERR_NAME_TOOLONG='Login is too long';
 #Mail section
 $_MAILBOXES='Mailboxes';
 $_ALIASES = 'Aliases';
-$_DOMAINS = 'Domains';
-$_DOMAIN = 'Domain';
-$_RELAYS = 'Relay',
-$_ACCESS = 'Access';
+$_DOMAINS='Domains';
+$_DOMAIN='Domain';
+$_RELAYS='Relay',
+$_ACCESS='Access';
 $_TRANSPORT = 'Transport';
 $_BILLING = 'Billing';
 $_ANTIVIRUS='Antyvirus';
@@ -290,3 +290,9 @@ $_CONTRACT_ID='Contract Number';
 $_NOT_ACTIVE='Not Active';
 $_REFRESH='Refresh';
 $_ROUTES='Routes';
+$_DICTIONARY='Dictionary';
+
+
+
+
+

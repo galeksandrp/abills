@@ -91,6 +91,9 @@ $conf{debugmods}='LOG_DEBUG LOG_ALERT LOG_WARNING LOG_ERR LOG_INFO';
 'LOG_SQL' => 6);
 
 
+#Firewall start rule numbers
+# (GLobal, Class 1, Class 2)
+@START_FW = (3000, 2000, 1000);
 
 
 # Backup SQL data

@@ -59,7 +59,7 @@ $db = $sql->{db};
 my $admin = Admins->new($db, \%conf);
 require "../../language/$html->{language}.pl";
 %permissions = ();
-
+use Abills::Base;
 
 #**********************************************************
 #IF Mod rewrite enabled
@@ -75,7 +75,7 @@ require "../../language/$html->{language}.pl";
 #**********************************************************
 #print "Content-type: text/html\n\n";
 if (defined($ENV{HTTP_CGI_AUTHORIZATION})) {
-  use Abills::Base;
+
   $ENV{HTTP_CGI_AUTHORIZATION} =~ s/basic\s+//i;
   my ($REMOTE_USER,$REMOTE_PASSWD) = split(/:/, decode_base64($ENV{HTTP_CGI_AUTHORIZATION}));  
 
@@ -2052,7 +2052,7 @@ elsif($FORM{newpassword} ne $FORM{confirm}) {
   message('err', $_ERROR, $err_strs{5});
 }
 
-use Abills::Base;
+
 my $gen_password=mk_unique_value(8);
 
 
@@ -2296,8 +2296,9 @@ my @m = (
 
  
  "85:5:$_SHEDULE:form_shedule:::",
- "90:5:$_TEMPLATES:form_templates:::",
- 
+ "90:5:MISC:null:::",
+ "91:90:$_TEMPLATES:form_templates:::",
+ "92:90:$_DICTIONARY:form_dictionary:::",
  "6:0:$_OTHER:null:::",
  "1000:6:$_DOCS::::",
   
@@ -3242,6 +3243,164 @@ sub form_period  {
 
 
  return $form_period;	
+}
+
+#*******************************************************************
+#
+#
+#*******************************************************************
+sub form_dictionary {
+
+
+	
+	my $sub_dict = $FORM{SUB_DICT} || '';
+
+
+ ($sub_dict, undef) = split(/\./, $sub_dict, 2);
+  if ($FORM{change}) {
+  	my $out = '';
+  	my $i=0;
+  	while(my($k, $v)=each %FORM) {
+  		 if ($k =~ /$sub_dict/ && $k ne '__BUFFER') {
+  		    my ($pre, $key)=split(/_/, $k, 2);
+
+          if ($key =~ /@/) {
+   		    	$out .= "$key=$v;\n"; 
+  		     }
+  		    else {
+  		      $key =~ s/\%24/\$/;
+  		    	$out .= "$key=\"$v\";\n"; 
+  		     }
+
+  		    #print '$_'."$key=\"$v\";<br>\n";
+  		    $i++;
+  		  }
+  		  
+  	 }
+  	
+  	
+#  	print "<pre>$out  $i</pre>";
+  	
+	#open(FILE, "<../../language/". $sub_dict . ".pl" ) || print "Can't open file '../../language/$sub_dict.pl' $!\n";
+
+	  open(FILE, ">../../language/$sub_dict.pl" )  ;
+      print FILE "$out";
+	  close(FILE);
+
+  	message('info', $_CHANGED, "$_CHANGED '$FORM{SUB_DICT}'");
+   }
+
+
+	my $table = Abills::HTML->table( { width => '600',
+                                   title_plain => ["$_NAME", "-"],
+                                   cols_align => ['left', 'center']
+                                   });
+
+#show dictionaries
+ opendir DIR, "../../language/" or die "Can't open dir '../../language/' $!\n";
+   my @contents = grep  !/^\.\.?$/  , readdir DIR;
+ closedir DIR;
+
+ if ($#contents > 0) {
+   foreach my $file (@contents) {
+    if (-f "../../language/". $file) {
+        if ($sub_dict. ".pl" eq $file) {
+          $table->{rowcolor}=$_COLORS[0];      
+         }
+        else {
+    	    undef($table->{rowcolor});
+         }
+        $table->addrow("$file", "<a href='$SELF_URL?index=$index&SUB_DICT=$file'>$_CHANGE</a>");
+      }
+    }
+  }
+  
+  print $table->show();
+
+
+
+
+  #Open main dictionary	
+  my %main_dictionary = ();
+
+	open(FILE, "<../../language/english.pl") || print "Can't open file '../../language/english.pl' $!\n";
+	  while(<FILE>) {
+	  	 my($name, $value)=split(/=/, $_, 2);
+       $name =~ s/ //ig;
+       if ($_ =~ /^@/){
+       	 $main_dictionary{"$name"}=$value;
+        }
+       elsif ($_ !~ /^#|^\n/){
+         $main_dictionary{"$name"}=clearquotes($value);
+        }
+	   }
+	close(FILE);
+
+
+
+
+    my %sub_dictionary = ();
+  if ($sub_dict ne '') {
+    #Open main dictionary	
+	  open(FILE, "<../../language/". $sub_dict . ".pl" ) || print "Can't open file '../../language/$sub_dict.pl' $!\n";
+  	  while(<FILE>) {
+	    	 my($name, $value)=split(/=/, $_, 2);
+         $name =~ s/ //ig;
+	    	 if ($_ =~ /^@/){
+       	   $sub_dictionary{"$name"}=$value;
+          }
+	    	 elsif ($_ !~ /^#|^\n/) {
+           $sub_dictionary{"$name"}=clearquotes($value) 
+          }
+	     }
+	  close(FILE);
+   }
+
+
+
+	my $table = Abills::HTML->table( { width => '600',
+                                   title_plain => ["$_NAME", "$_VALUE", "-"],
+                                   cols_align  => ['left', 'left', 'center']
+                                  } );
+  my $i = 0;
+  while(my($k, $v)=each %main_dictionary) {
+  	 my $v2 = (defined($sub_dictionary{"$k"})) ? $sub_dictionary{"$k"} : '--';
+     
+     $table->addrow("<input type=text name=NAME value='$k'>", "<input type=text name=$k value=\"$v\">", 
+      "<input type=text name=". $sub_dict ."_". $k. " value=\"$v2\">");
+     $i++;
+   }
+
+   $table->addrow("$_TOTAL", "$i", ''); 
+
+
+
+  print "<FORM action=$SELF_URL METHOD=POST>
+  <input type=hidden name=index value=$index>
+  <input type=hidden name=SUB_DICT value=$sub_dict>\n";
+
+  print $table->show();
+
+  print "<input type=submit name=change value=\"$_CHANGE\">
+  </form>";
+
+}
+
+
+
+#*******************************************************************
+# For clearing quotes
+# clearquotes( $text )
+#*******************************************************************
+sub clearquotes {
+ my $text = shift;
+ if ($text ne '""') {
+   $text =~ s/\"|'|;//g;
+  }
+ else {
+ 	 $text = '';
+  }
+ return "$text";
 }
 
 
