@@ -1429,7 +1429,7 @@ sub dv_users_warning_messages {
 
 my %LIST_PARAMS = (USERS_WARNINGS => 'y' ) ;
 my $list = $Dv->list( { %LIST_PARAMS } );
-$ADMIN_REPORT{DATE} = $YESTERDAY;
+#$ADMIN_REPORT{DATE} = $YESTERDAY;
 
 $ADMIN_REPORT{USERS_WARNINGS} = sprintf("%-14s| %4s|%-20s| %9s| %8s|\n", $_LOGIN, 'TP', $_VARIANT, $_DEPOSIT, $_CREDIT).
    "---------------------------------------------------------------\n";
