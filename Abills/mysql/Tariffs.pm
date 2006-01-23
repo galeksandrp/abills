@@ -219,7 +219,7 @@ sub defaults {
   %DATA = ( TP_ID => 0, 
             NAME => '',  
             TIME_TARIF => '0.00000',
-            DAY_FEE => '0,00',
+            DAY_FEE => '0.00',
             MONTH_FEE => '0.00',
             SIMULTANEOUSLY => 0,
             AGE => 0,

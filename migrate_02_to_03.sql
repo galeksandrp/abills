@@ -487,6 +487,8 @@ CREATE TABLE `voip_main` (
   `logins` tinyint(3) unsigned NOT NULL default '0',
   PRIMARY KEY  (`uid`)
 ) TYPE=MyISAM;
+
+DROP table IF EXISTS voip_route_prices;
 CREATE TABLE `voip_route_prices` (
   `route_id` int(11) unsigned NOT NULL default '0',
   `interval_id` int(11) unsigned NOT NULL default '0',
@@ -494,7 +496,9 @@ CREATE TABLE `voip_route_prices` (
   `date` date NOT NULL default '0000-00-00',
   UNIQUE KEY `route_id` (`route_id`,`interval_id`)
 ) TYPE=MyISAM;
-DROP table 'voip_routes' IF exists;
+
+
+DROP table IF EXISTS voip_routes;
 CREATE TABLE `voip_routes` (
   `prefix` varchar(14) NOT NULL default '',
   `name` varchar(20) NOT NULL default '',
@@ -504,7 +508,7 @@ CREATE TABLE `voip_routes` (
   `descr` varchar(120) NOT NULL default '',
   `gateway_id` smallint(6) unsigned NOT NULL default '0',
   `id` int(11) unsigned NOT NULL auto_increment,
-   `iso_codes` VARCHAR(10) NOT NULL default '';
+  `iso_codes` VARCHAR(10) NOT NULL default '',
   PRIMARY KEY  (`id`),
   UNIQUE KEY `id` (`id`),
   UNIQUE KEY `prefix` (`prefix`)
