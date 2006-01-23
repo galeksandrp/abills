@@ -494,6 +494,7 @@ CREATE TABLE `voip_route_prices` (
   `date` date NOT NULL default '0000-00-00',
   UNIQUE KEY `route_id` (`route_id`,`interval_id`)
 ) TYPE=MyISAM;
+DROP table 'voip_routes' IF exists;
 CREATE TABLE `voip_routes` (
   `prefix` varchar(14) NOT NULL default '',
   `name` varchar(20) NOT NULL default '',
