@@ -13,10 +13,6 @@ my $PPPCTL = '/usr/sbin/pppctl';
 #my $NAS_INFO = nas_params();
 my $NAS;
 my $nas_type = '';
-#my $mng_user =  '';
-#my $mng_password = '';
-#my $mng_ip = '';
-#my $mng_port = 0;
 
 #*******************************************************************
 # Hangup active port
@@ -332,9 +328,13 @@ sub hangup_dslmax {
 # hangup_exppp($SERVER, $PORT)
 #*******************************************************************
 sub hangup_exppp {
- my ($NAS_IP, $PORT) = @_;
+ my ($NAS, $PORT) = @_;
  my ($ip, $mng_port)=split(/:/, $NAS->{NAS_MNG_IP_PORT}, 2);
+ 
+ 
  my $ctl_port = $mng_port + $PORT;
+
+# print "$PPPCTL -p \"$NAS->{NAS_MNG_PASSWORD}\" $NAS->{NAS_IP}:$ctl_port down";
 
  my $out=`$PPPCTL -p "$NAS->{NAS_MNG_PASSWORD}" $NAS->{NAS_IP}:$ctl_port down`;
 

@@ -2299,6 +2299,7 @@ my @m = (
  "90:5:MISC:null:::",
  "91:90:$_TEMPLATES:form_templates:::",
  "92:90:$_DICTIONARY:form_dictionary:::",
+ "93:90:Config:form_config:::",
  "6:0:$_OTHER:null:::",
  "1000:6:$_DOCS::::",
   
@@ -3384,6 +3385,26 @@ sub form_dictionary {
   print "<input type=submit name=change value=\"$_CHANGE\">
   </form>";
 
+}
+
+#*******************************************************************
+# form config
+#*******************************************************************
+sub form_config {
+	
+
+	my $table = Abills::HTML->table( { width => '600',
+                                    title_plain => ["$_NAME", "$_VALUE", "-"],
+                                    cols_align  => ['left', 'left', 'center']
+                                  } );
+  my $i = 0;
+  while(my($k, $v)=each %conf) {
+     $table->addrow($k, $v, '');
+     $i++;
+   }
+  $table->addrow("$_TOTAL", "$i", ''); 
+	print $table->show();
+	
 }
 
 

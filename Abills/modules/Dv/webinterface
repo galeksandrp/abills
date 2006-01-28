@@ -423,6 +423,8 @@ elsif ($FORM{hangup}) {
    }
 
   require "Abills/nas.pl";
+  
+ 
   my $ret = hangup($nas, "$nas_port_id", "", "$acct_session_id");
   
   if ($ret == 0) {
@@ -1362,7 +1364,7 @@ sub dv_monthly_fees {
  my ($y, $m, $d)=split(/-/, $DATE, 3);
  $m--;
  
-my $date_unixtime =  mktime(0, 0, 0, $d, $m, $y - 1900, 0, 0, 0);
+ my $date_unixtime =  mktime(0, 0, 0, $d, $m, $y - 1900, 0, 0, 0);
 
 
  foreach my $line (@$list) {

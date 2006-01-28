@@ -140,7 +140,6 @@ sub dv_auth {
     ) = @$a_ref;
 
 
-
 #return 0, \%RAD_PAIRS;
 
 #DIsable
@@ -317,6 +316,7 @@ foreach my $line (@periods) {
 
 # Return radius attr    
  if ($self->{IP} ne '0') {
+
    $RAD_PAIRS->{'Framed-IP-Address'} = "$self->{IP}";
   }
  else {
