@@ -3398,11 +3398,15 @@ sub form_config {
                                     cols_align  => ['left', 'left', 'center']
                                   } );
   my $i = 0;
-  while(my($k, $v)=each %conf) {
-     $table->addrow($k, $v, '');
+  foreach my $k (sort keys %conf) {
+     if ($k eq 'dbpasswd') {
+      	$conf{$k}='*******';
+      }
+     $table->addrow($k, $conf{$k}, '');
      $i++;
    }
-  $table->addrow("$_TOTAL", "$i", ''); 
+#  $table->addrow("$_TOTAL", "$i", ''); 
+
 	print $table->show();
 	
 }
