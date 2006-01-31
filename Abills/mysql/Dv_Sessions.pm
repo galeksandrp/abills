@@ -354,31 +354,38 @@ sub detail_list {
 	my $self = shift;
 	my ($attr) = @_;
 
- my $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
- my $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
- my $PG = ($attr->{PG}) ? $attr->{PG} : 0;
- my $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
-
 	
 	my $lupdate;
 	
+my $WHERE = ($attr->{SESSION_ID}) ? "and acct_session_id='$attr->{SESSION_ID}'" : '';	
+my $GROUP = 1;
+
 if ($attr->{PERIOD} eq 'days') {
   $lupdate = "DATE_FORMAT(FROM_UNIXTIME(last_update), '%Y-%m-%d')";	
+  $WHERE = '';
 }
 elsif($attr->{PERIOD} eq 'hours') {
   $lupdate = "DATE_FORMAT(FROM_UNIXTIME(last_update), '%Y-%m-%d %H')";	
+  $WHERE = '';
+}
+elsif($attr->{PERIOD} eq 'sessions') {
+	$WHERE = '';
+  $lupdate = "FROM_UNIXTIME(last_update)";
+  $GROUP=2;
 }
 else {
   $lupdate = "FROM_UNIXTIME(last_update)";
 }
 
-my $WHERE = ($attr->{SESSION_ID}) ? "and acct_session_id='$attr->{SESSION_ID}'" : '';
 
+ 
+ $self->{debug}=1;
+ 
  $self->query($db, "SELECT $lupdate, acct_session_id, nas_id, 
    sum(sent1), sum(recv1), sum(sent2), sum(recv2) 
   FROM s_detail 
   WHERE id='$attr->{LOGIN}' $WHERE
-  GROUP BY 1 
+  GROUP BY $GROUP 
   ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;" );
 
  my $list = $self->{list};

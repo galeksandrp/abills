@@ -11,6 +11,10 @@ Fees->import();
 my $fees = Fees->new($db, $admin, \%conf);
 
 
+use Dv_Sessions;
+my $sessions = Dv_Sessions->new($db);
+
+
 
 #*******************************************************************
 # Change user variant form
@@ -1206,8 +1210,6 @@ sub dv_session_detail {
 	my ($attr) = @_;
   my $user;
 
-  use Dv_Sessions;
-  my $sessions = Dv_Sessions->new($db);
 
  
 if (defined($attr->{USER}))	{
@@ -1223,6 +1225,7 @@ elsif($FORM{UID}) {
 
 $sessions->session_detail({ %FORM });
 
+
 $sessions->{_SENT}=int2byte($sessions->{SENT}); 
 $sessions->{_RECV}=int2byte($sessions->{RECV}); 
 $sessions->{_SENT2}=int2byte($sessions->{SENT2});
@@ -1230,10 +1233,29 @@ $sessions->{_RECV2}=int2byte($sessions->{RECV2});
 
 Abills::HTML->tpl_show(_include('dv_session_detail', 'Dv'), $sessions);
 
+my %ORDERS = (hours    => $_HOURS,
+              days     => $_DAYS,
+              sessions => $_SESSIONS  );
 
-my $list = $sessions->detail_list({ %LIST_PARAMS });
+print "<form action=$SELF_URL>
+<input type=hidden name=index value=$index>
+<input type=hidden name=UID value=$FORM{UID}>
+<input type=hidden name=SESSION_ID value=$FORM{SESSION_ID}>
+GROUP: <select name=PERIOD>\n";
 
-  my $table = Abills::HTML->table({ width => '100%',
+while(my($k, $v) = each %ORDERS ) {
+  print "<option value=$k";
+  print ' selected' if ($k eq $FORM{PERIOD});
+  print ">$v\n";
+}
+
+
+print "</select>
+<input type=submit name=SHOW value='$_SHOW'>";
+
+
+my $list = $sessions->detail_list({ %LIST_PARAMS, %FORM });
+my $table = Abills::HTML->table({ width => '100%',
                                    border => 1,
                                    title => ["LAST_UPDATE", "$_SESSION_ID", "NAS_ID", "SENT", "RECV", "SENT2", "RECV2"],
                                    cols_align => ['right', 'right', 'right', 'right', 'right', 'right', 'right'],

@@ -196,8 +196,8 @@ elsif($acct_status_type eq 3) {
    WHERE
     acct_session_id=\"$RAD->{ACCT_SESSION_ID}\" and 
     user_name=\"$RAD->{USER_NAME}\" and
-    nas_ip_address=INET_ATON('$RAD->{NAS_IP_ADDRESS}');", 'do');
-}
+    nas_id='$NAS->{NID}';", 'do');
+ }
 else {
   $self->{errno}=1;
   $self->{errstr}="ACCT [$RAD->{USER_NAME}] Unknown accounting status: $RAD->{ACCT_STATUS_TYPE} ($RAD->{ACCT_SESSION_ID})";
@@ -208,6 +208,18 @@ else {
   	$self->{errstr}="ACCT $RAD->{ACCT_STATUS_TYPE} SQL Error";
   	return $self;
    }
+
+#detalization for Exppp
+if ($conf->{s_detalization} eq 'yes') {
+  $self->query($db, "INSERT into s_detail (acct_session_id, nas_id, acct_status, last_update, 
+    sent1, recv1, sent2, recv2, id)
+  VALUES (\"$RAD->{ACCT_SESSION_ID}\", '$NAS->{NID}',
+   '$acct_status_type', UNIX_TIMESTAMP(),
+   '$RAD->{INTERIUM_INBYTE}', '$RAD->{INTERIUM_OUTBYTE}', 
+   '$RAD->{INTERIUM_INBYTE2}', 
+   '$RAD->{INTERIUM_OUTBYTE2}', 
+   '$RAD->{USER_NAME}');", 'do');
+}
 
 
 
