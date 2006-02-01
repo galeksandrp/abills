@@ -142,6 +142,7 @@ sub dv_auth {
 
 #return 0, \%RAD_PAIRS;
 
+
 #DIsable
 if ($self->{DISABLE}) {
   $RAD_PAIRS->{'Reply-Message'}="Service Disable";
@@ -149,24 +150,26 @@ if ($self->{DISABLE}) {
 }
 
 
-##Check allow nas server
-## $nas 1 - See user nas
-##      2 - See tp nas
-# if ($self->{NAS} > 0) {
-#   my $sql;
-#   if ($self->{NAS} == 1) {
-#      $sql = "SELECT un.uid FROM users_nas un WHERE un.uid='$self->{UID}' and un.nas_id='$NAS->{NID}'";
-#     }
-#   else {
-#      $sql = "SELECT nas_id FROM tp_nas WHERE tp_id='$self->{TP_ID}' and nas_id='$NAS->{NID}'";
-#     }
-#
-#   $self->query($db, "$sql");
-#   if ($self->{TOTAL} < 1) {
-#     $RAD_PAIRS{'Reply-Message'}="You are not authorized to log in $NAS->{NID} ($RAD->{NAS_IP_ADDRESS})";
-#     return 1, \%RAD_PAIRS;
-#    }
-#  }
+#Check allow nas server
+# $nas 1 - See user nas
+#      2 - See tp nas
+
+ if ($self->{NAS} > 0) {
+
+   my $sql;
+   if ($self->{NAS} == 1) {
+      $sql = "SELECT un.uid FROM users_nas un WHERE un.uid='$self->{UID}' and un.nas_id='$NAS->{NID}'";
+     }
+   else {
+      $sql = "SELECT nas_id FROM tp_nas WHERE tp_id='$self->{TP_ID}' and nas_id='$NAS->{NID}'";
+     }
+
+   $self->query($db, "$sql");
+   if ($self->{TOTAL} < 1) {
+     $RAD_PAIRS->{'Reply-Message'}="You are not authorized to log in $NAS->{NID} ($RAD->{NAS_IP_ADDRESS})";
+     return 1, $RAD_PAIRS;
+    }
+  }
 
 #Check CID (MAC) 
 if ($self->{CID} ne '') {
@@ -394,6 +397,13 @@ elsif ($NAS->{NAS_TYPE} eq 'mpd') {
   if ($EX_PARAMS->{traf_limit} > 0) {
     $RAD_PAIRS->{'Exppp-Traffic-Limit'} = $EX_PARAMS->{traf_limit} * 1024 * 1024;
    }
+  
+  # MPD have some problem with long time out value max timeout set to 7 days
+  if ($RAD_PAIRS->{'Exppp-Traffic-Limit'} > 604800)    {
+  	 $RAD_PAIRS->{'Exppp-Traffic-Limit'}=604800;
+   }
+
+      
        
 #MPD standart radius based Shaper
 #  if ($uspeed > 0) {
