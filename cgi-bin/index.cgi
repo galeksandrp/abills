@@ -38,7 +38,7 @@ my $db = $sql->{db};
 $html->{language}=$FORM{language} if (defined($FORM{language}));
 
 require "../language/$html->{language}.pl";
-my $sid = $FORM{sid} || ''; # Session ID
+$sid = $FORM{sid} || ''; # Session ID
 if ((length($COOKIES{sid})>1) && (! $FORM{passwd})) {
   $sid = $COOKIES{sid};
 }
@@ -167,7 +167,9 @@ else {
 print "</td></tr></table><hr>\n";
 
 
-#$html->test();
+$html->test();
+
+
 #==========================================================
 
 

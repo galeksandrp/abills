@@ -153,9 +153,7 @@ if ($self->{DISABLE}) {
 #Check allow nas server
 # $nas 1 - See user nas
 #      2 - See tp nas
-
  if ($self->{NAS} > 0) {
-
    my $sql;
    if ($self->{NAS} == 1) {
       $sql = "SELECT un.uid FROM users_nas un WHERE un.uid='$self->{UID}' and un.nas_id='$NAS->{NID}'";

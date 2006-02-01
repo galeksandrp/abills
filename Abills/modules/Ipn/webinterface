@@ -206,10 +206,6 @@ sub ipn_use_allmonthes {
 # dv_use();
 #**********************************************************
 sub ipn_use {
-	use Dv_Sessions;
-  my $sessions = Dv_Sessions->new($db);
-
-
 
 my ($y, $m, $d);
 
@@ -265,15 +261,15 @@ if (defined($FORM{DATE})) {
   #Used Fraffic
   $table_sessions = Abills::HTML->table( { width => '100%',
 	                              caption => "$_SESSIONS", 
-                                title =>["$_DATE", "$_USERS", "$_SESSIONS", "$_TRAFFIC ", "$_TRAFFIC 2", $_DURATION, $_SUM],
+                                title =>["$_DATE", "$_TRAFFIC ", "$_TRAFFIC 2", $_DURATION, $_SUM],
                                 cols_align => ['right', 'left', 'right', 'right', 'right', 'right', 'right'],
                                 qs => $pages_qs             
                                } );
 
-  my $list = $sessions->reports({ %LIST_PARAMS });
+  my $list = $Ipn->reports({ %LIST_PARAMS });
   foreach my $line (@$list) {
     $table_sessions->addrow("<b>$line->[0]</b>", 
-      "<a href='$SELF_URL?index=11&subf=22&UID=$line->[7]&DATE=$line->[0]'>$line->[1]</a>", $line->[2], int2byte($line->[3]),  int2byte($line->[4]),  $line->[5], "<b>$line->[6]</b>" );
+      "$line->[1]", $line->[2], int2byte($line->[3]),  int2byte($line->[4]),  $line->[5], "<b>$line->[6]</b>" );
    }
 
  }
@@ -281,16 +277,16 @@ else {
   #Used Traffic
   $table_sessions = Abills::HTML->table( { width => '100%',
 	                              caption => "$_SESSIONS", 
-                                title =>["$_DATE", "$_USERS", "$_SESSIONS", "$_TRAFFIC ", "$_TRAFFIC 2", $_DURATION, $_SUM],
+                                title =>["$_DATE", "$_TRAFFIC ", "$_TRAFFIC 2", $_DURATION, $_SUM],
                                 cols_align => ['right', 'right', 'right', 'right', 'right', 'right', 'right'],
                                 qs => $pages_qs             
                                } );
 
 
-  my $list = $sessions->reports({ %LIST_PARAMS });
+  my $list = $Ipn->reports({ %LIST_PARAMS });
   foreach my $line (@$list) {
     $table_sessions->addrow("<a href='$SELF_URL?index=$index&$type=$line->[0]$pages_qs'>$line->[0]</a>", 
-       $line->[1], $line->[2], int2byte($line->[3]),  int2byte($line->[4]),  $line->[5], "<b>$line->[6]</b>" );
+       int2byte($line->[1]),   $line->[2], "<b>$line->[3]</b>" );
    }
 }
 

@@ -468,14 +468,8 @@ sub periods_totals {
 sub list {
  my $self = shift;
  my ($attr) = @_;
-
- $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
- $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
- $PG = ($attr->{PG}) ? $attr->{PG} : 0;
- $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
-
+ 
  undef @WHERE_RULES; 
-
  
 #UID
  if ($attr->{UID}) {
@@ -549,6 +543,8 @@ if ($attr->{MONTH}) {
 #Interval from date to date
 if ($attr->{INTERVAL}) {
  	 my ($from, $to)=split(/\//, $attr->{INTERVAL}, 2);
+   
+   
    push @WHERE_RULES, "date_format(start, '%Y-%m-%d')>='$from' and date_format(start, '%Y-%m-%d')<='$to'";
   }
 #Period
