@@ -282,6 +282,11 @@ sub change {
   my $self = shift;
   my ($tp_id, $attr) = @_;
 
+  if ($tp_id != $attr->{CHG_TP_ID}) {
+  	 $FIELDS{CHG_TP_ID}='id';
+   }
+
+
 	$self->changes(0, { CHANGE_PARAM => 'TP_ID',
 		                TABLE        => 'tarif_plans',
 		                FIELDS       => \%FIELDS,
@@ -289,8 +294,13 @@ sub change {
 		                DATA         => $attr
 		              } );
 
+
+  if ($tp_id != $attr->{CHG_TP_ID}) {
+  	 $attr->{TP_ID} = $attr->{CHG_TP_ID};
+   }
+
   
-  $self->info($tp_id);
+  $self->info($attr->{TP_ID});
 	
 	return $self;
 }
@@ -706,17 +716,6 @@ sub holidays_del {
 
 
 
-#**********************************************************
-# holidays_list
-#**********************************************************
-sub info2 {
-	my $self = shift;
-  my ($id) = @_;
-
-  print "aaaaaaaaaaaaaaaaaa";
-
-  return $self;
-}
 
 
 1

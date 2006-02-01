@@ -141,11 +141,13 @@ my $lupdate = '';
 
 if ($attr->{INTERVAL_TYPE} eq 3) {
   $lupdate = "DATE_FORMAT(f_time, '%Y-%m-%d')";	
-  $GROUP="GROUP BY 7";
+  $GROUP="GROUP BY 1";
+  $size = 'sum(size)';
 }
 elsif($attr->{INTERVAL_TYPE} eq 2) {
   $lupdate = "DATE_FORMAT(f_time, '%Y-%m-%d %H')";	
-  $GROUP="GROUP BY 7";
+  $GROUP="GROUP BY 1";
+  $size = 'sum(size)';
 }
 #elsif($attr->{INTERVAL_TYPE} eq 'sessions') {
 #	$WHERE = '';
@@ -163,17 +165,18 @@ else {
 
 
 
-$PAGE_ROWS = 1000;
+#$PAGE_ROWS = 10;
 
  $self->{debug}=1;
  $self->query($db, "SELECT 
+  $lupdate,
+  $size,
   INET_NTOA(src_addr),
   src_port,
   INET_NTOA(dst_addr),
   dst_port,
-  $size,
-  protocol,
-  $lupdate
+
+  protocol
   from traf_log
   $WHERE
   $GROUP

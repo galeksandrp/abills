@@ -68,6 +68,7 @@ return qq{
 <tr><td>$_EXPIRE:</td><td><input type=text name=EXPIRE value='%EXPIRE%'></td></tr>
 <tr><td>$_REDUCTION (%):</td><td><input type=text name=REDUCTION value='%REDUCTION%'></td></tr>
 <tr><td>$_DISABLE:</td><td><input type=checkbox name=DISABLE value='1' %DISABLE%></td></tr>
+<tr><td>$_REGISTRATION</td><td>%REGISTRATION%</td></tr>
 </table>
 <input type=submit name='%ACTION%' value='%LNG_ACTION%'>
 </form>

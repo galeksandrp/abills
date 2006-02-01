@@ -305,7 +305,7 @@ elsif (defined($FORM{TP_ID})) {
   	return 0;
    }
   elsif($FORM{change}) {
-    $tariffs->change( $FORM{chg}, { %FORM  } );  
+    $tariffs->change( $FORM{TP_ID}, { %FORM  } );  
      
     if (! $tariffs->{errno}) {
        message('info', $_CHANGED, "$_CHANGED $tariffs->{TP_ID}");

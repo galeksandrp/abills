@@ -308,6 +308,8 @@ sub changes {
    }
 
 
+
+
 if ($CHANGES_QUERY eq '') {
   return $self->{result};	
 }

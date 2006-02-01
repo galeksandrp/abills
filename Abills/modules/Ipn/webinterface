@@ -17,6 +17,26 @@ my $Ipn = Ipn->new($db, \%conf);
 sub ipn_sessions {
   my ($list, $sessions) = @_;
 
+
+
+
+if (defined($FORM{show})) {
+  $pages_qs .= "&show=y&fromd=$FORM{fromd}&fromm=$FORM{fromm}&fromy=$FORM{fromy}&tod=$FORM{tod}&tom=$FORM{tom}&toy=$FORM{toy}";
+  $FORM{fromm}++;
+  $FORM{tom}++;
+  $FORM{fromm} = sprintf("%.2d", $FORM{fromm}++);
+  $FORM{tom} = sprintf("%.2d", $FORM{tom}++);
+  $LIST_PARAMS{INTERVAL} = "$FORM{fromy}-$FORM{fromm}-$FORM{fromd}/$FORM{toy}-$FORM{tom}-$FORM{tod}";
+ }
+elsif (defined($FORM{period})) {
+	$LIST_PARAMS{PERIOD} = $FORM{period}+0; 
+	$pages_qs .= "&period=$FORM{period}";
+}
+elsif($FORM{DATE}) {
+	$LIST_PARAMS{DATE} = $FORM{DATE}; 
+	$pages_qs .= "&DATE=$FORM{DATE}";
+}
+
 if (! $list) {
   if (! defined($FORM{sort})) {
 	  $LIST_PARAMS{SORT} = 2;
@@ -53,10 +73,10 @@ if (! $list) {
 
 
 
-my %GROUPS = (SRC_IP   =>  1,
-              SRC_PORT =>  2,
-              DST_IP   =>  3,
-              DST_PORT =>  4);
+my %GROUPS = (SRC_IP   =>  3,
+              SRC_PORT =>  4,
+              DST_IP   =>  5,
+              DST_PORT =>  6);
 
 my %G  = ();
 if (defined($FORM{GROUPS})) {
@@ -82,22 +102,6 @@ my $search =  $table->show();
 
 
 
-if (defined($FORM{show})) {
-  $pages_qs .= "&show=y&fromd=$FORM{fromd}&fromm=$FORM{fromm}&fromy=$FORM{fromy}&tod=$FORM{tod}&tom=$FORM{tom}&toy=$FORM{toy}";
-  $FORM{fromm}++;
-  $FORM{tom}++;
-  $FORM{fromm} = sprintf("%.2d", $FORM{fromm}++);
-  $FORM{tom} = sprintf("%.2d", $FORM{tom}++);
-  $LIST_PARAMS{INTERVAL} = "$FORM{fromy}-$FORM{fromm}-$FORM{fromd}/$FORM{toy}-$FORM{tom}-$FORM{tod}";
- }
-elsif (defined($FORM{period})) {
-	$LIST_PARAMS{PERIOD} = $FORM{period}+0; 
-	$pages_qs .= "&period=$FORM{period}";
-}
-elsif($FORM{DATE}) {
-	$LIST_PARAMS{DATE} = $FORM{DATE}; 
-	$pages_qs .= "&DATE=$FORM{DATE}";
-}
 
 
 print "<form action=$SELF_URL>
@@ -136,7 +140,7 @@ $line
 $search
 </td></tr>
 
-<tr><td>INTERVAL: <input type=text name=INTERVAL value='$FORM{INTERVAL}'></td><td colspan=3>
+<tr><td>INTERVAL: <!-- <input type=text name=INTERVAL value='$FORM{INTERVAL}'> --> </td><td colspan=3> 
 <select name=INTERVAL_TYPE>
 $INTERVAL_TYPE_SEL
 </select>
@@ -148,7 +152,7 @@ $INTERVAL_TYPE_SEL
 
 my $table = Abills::HTML->table( { width => '100%',
                                 border => 1,
-                                title => ["SRC_IP", "SRC_PORT", "DST_IP", "DST_PORT", "$_SIZE", "-", "-"],
+                                title => ["$_TIME", "$_SIZE", "SRC_IP", "SRC_PORT", "DST_IP", "DST_PORT", "$_PROTOCOL", "-"],
                                 cols_align => ['right', 'right', 'RIGHT', 'right', 'right', 'right', 'center'],
                                 qs => $pages_qs,
                                 pages => $sessions->{TOTAL},
@@ -162,10 +166,10 @@ foreach my $line (@$list) {
    }
 
   $table->addrow($line->[0],
-     $line->[1], 
+     int2byte($line->[1]), 
      $line->[2],  
      $line->[3],  
-     int2byte($line->[4]), 
+     $line->[4], 
      $line->[5],
      $line->[6], $line->[7], 
   );
