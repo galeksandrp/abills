@@ -2081,7 +2081,7 @@ $hidden_inputs
 sub reports {
  my ($attr) = @_;
  
- 
+my $EX_PARAMS; 
 my ($y, $m, $d);
 $type='DATE';
 
@@ -2107,24 +2107,49 @@ if ($FORM{GID}) {
 $fees->{GROUPS_SEL} = sel_groups();
 Abills::HTML->tpl_show(templates('groups_sel'), $fees);
 
+
+
+
+
 if (defined($FORM{DATE})) {
   ($y, $m, $d)=split(/-/, $FORM{DATE}, 3);	
+
+  $LIST_PARAMS{DATE}="$FORM{DATE}";
+  $pages_qs .="&DATE=$LIST_PARAMS{DATE}";
+
+
+  if (defined($attr->{EX_PARAMS})) {
+   	my $EP = $attr->{EX_PARAMS};
+	  while(my($k, $v)=each(%$EP)) {
+     	if ($FORM{EX_PARAMS} == $k) {
+        $EX_PARAMS .= " <b>$v</b> ";
+        $LIST_PARAMS{EX_PARAMS}=$k;
+     	 }
+     	else {
+     	  $EX_PARAMS .= "<a href='$SELF_URL?index=$index$pages_qs&EX_PARAMS=$k'>$v</a> ";
+     	 }
+	  }
+  }
+
+
+
   my $days = '';
   for ($i=1; $i<=31; $i++) {
-     $days .= ($d == $i) ? "<b>$i </b>" : sprintf("<a href='$SELF_URL?index=$index&DATE=%d-%02.f-%02.f$pages_qs'>%d</a> ", $y, $m, $i, $i);
+     $days .= ($d == $i) ? "<b>$i </b>" : sprintf("<a href='$SELF_URL?index=$index&DATE=%d-%02.f-%02.f&EX_PARAMS=$FORM{EX_PARAMS}'>%d</a> ", $y, $m, $i, $i);
    }
-
+  
+  $m--;
   $table = Abills::HTML->table( { width => '100%',
                                 rowcolor => $_COLORS[1],
                                 cols_align => ['right', 'left'],
                                 rows => [ [ "$_YEAR:",  $y ],
                                           [ "$_MONTH:", $MONTHES[$m] ], 
-                                          [ "$_DAY:",   $days ] ]
+                                          [ "$_DAY:",   $days ],
+                                          [ '', $EX_PARAMS] ]
                                } );
 
   print $table->show();
-  $LIST_PARAMS{DATE}="$FORM{DATE}";
-  $pages_qs.="&DATE=$LIST_PARAMS{DATE}";
+
 }
 
 }

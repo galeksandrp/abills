@@ -205,6 +205,16 @@ else {
 
 
 #**********************************************************
+# host_list
+#**********************************************************
+sub hosts_list {
+  my $self = shift;
+  my ($attr) = @_;
+	
+	
+}
+
+#**********************************************************
 #
 #**********************************************************
 sub reports {
@@ -269,8 +279,6 @@ elsif($attr->{DATE}) {
 
 my $lupdate = '';
 
-$attr->{INTERVAL_TYPE} = 3;
-
 if ($attr->{INTERVAL_TYPE} eq 3) {
   $lupdate = "DATE_FORMAT(f_time, '%Y-%m-%d')";	
   $GROUP="GROUP BY 1";
@@ -294,26 +302,58 @@ else {
 
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
 
+  $self->{debug}=1;
+
+ if (defined($attr->{HOSTS})) {
+
+
+   #OUT
+# 	 $self->query($db, "SELECT INET_NTOA(src_addr), sum(size), count(*)
+#     from traf_log 
+#     $WHERE and src_port=0
+#    GROUP BY 1
+#    ORDER BY 2 DESC 
+#    LIMIT $PG, $PAGE_ROWS;");
+
+ 	 $self->query($db, "SELECT INET_NTOA(dst_addr), sum(size), count(*)
+     from traf_log 
+     $WHERE
+     GROUP BY 1
+    ORDER BY 2 DESC 
+    LIMIT $PG, $PAGE_ROWS;");
+
+
+   my $list = $self->{list};
+
+
+   $self->query($db, "SELECT 
+    count(*),  sum(size)
+    from traf_log;");
+
+   my $a_ref = $self->{list}->[0];
+   ($self->{COUNT},
+    $self->{SUM}) = @$a_ref;
+
+
+   return $list;
+ }
 
 
 
 #$PAGE_ROWS = 10;
 
- $self->{debug}=1;
- $self->query($db, "SELECT 
-  $lupdate,
-  $size,
-  INET_NTOA(src_addr),
-  src_port,
-  INET_NTOA(dst_addr),
-  dst_port,
 
-  protocol
-  from traf_log
-  $WHERE
-  $GROUP
+ $self->query($db, "SELECT   $lupdate,
+   sum(if(src_port=0 && (src_port + dst_port>0), size, 0)),
+   sum(if(dst_port=0 && (src_port + dst_port>0), size, 0)),
+   sum(if(src_port=0 && dst_port=0, size, 0)),
+   sum(size),
+   count(*)
+   from traf_log 
+   $WHERE
+   $GROUP
   ORDER BY $SORT $DESC 
-  LIMIT $PG, $PAGE_ROWS
+  LIMIT $PG, $PAGE_ROWS;
   ;");
 
 

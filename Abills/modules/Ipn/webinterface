@@ -171,7 +171,8 @@ foreach my $line (@$list) {
      $line->[3],  
      $line->[4], 
      $line->[5],
-     $line->[6], $line->[7], 
+     $line->[6], 
+     "<a href='$SELF_URL?index=$index$pages_qs'>$_HOSTS</a>"
   );
 }
 
@@ -207,99 +208,136 @@ sub ipn_use_allmonthes {
 #**********************************************************
 sub ipn_use {
 
-my ($y, $m, $d);
 
-my $type='DATE';
+  my @EX_GROUPS = ('Time', 'Hosts', 'Ports');
+  
 
-if ($FORM{MONTH}) {
-  $LIST_PARAMS{MONTH}=$FORM{MONTH};
-	$pages_qs="&MONTH=$LIST_PARAMS{MONTH}";
- }
-elsif($FORM{allmonthes}) {
-	$type='MONTH';
-	$pages_qs="&allmonthes=y";
- }
-else {
-	($y, $m, $d)=split(/-/, $DATE, 3);
-	$LIST_PARAMS{MONTH}="$y-$m";
-	$pages_qs="&MONTH=$LIST_PARAMS{MONTH}";
-}
-
-
-if ($FORM{GID}) {
-	$LIST_PARAMS{GID}=$FORM{GID};
-  $pages_qs.="&GID=$FORM{GID}";
-}
+  
+  $Ipn->{EX_GROUP_SEL} ="<select name=EX_GROUP>\n";
+  my %EX_PARAMS = ();
+  my $i = 0;
+#  my $EX_PARAMS = '';
+  foreach my $line (@EX_GROUPS) {
+#    $Ipn->{EX_GROUP_SEL} .= "<option value=$i";
+#    $Ipn->{EX_GROUP_SEL} .= ' selected' if  ($i == $FORM{EX_GROUP});
+#    $Ipn->{EX_GROUP_SEL} .= ">$line\n";
+   	$EX_PARAMS{$i}=$line;
+    $i++;
+   }
+#  $Ipn->{EX_GROUP_SEL}.="</select>\n";
 
 
-$sessions->{GROUPS_SEL} = sel_groups();
-Abills::HTML->tpl_show(templates('groups_sel'), $sessions);
+  reports({ DATE      => $FORM{DATE}, 
+  	        REPORT    => '',
+  	        EX_PARAMS => \%EX_PARAMS 
+  	       });
 
 
-my ($tables_sessions);
+  my $total_in      = 0;
+  my $total_out     = 0;
+  my $total_tunnel  = 0;
+  my $total_sum     = 0;
+  my $total_package = 0;  
+
+
+
 
 #Day reposrt
 if (defined($FORM{DATE})) {
-  ($y, $m, $d)=split(/-/, $FORM{DATE}, 3);	
-  my $days = '';
-  for ($i=1; $i<=31; $i++) {
-     $days .= ($d == $i) ? "<b>$i </b>" : sprintf("<a href='$SELF_URL?index=$index&DATE=%d-%02.f-%02.f$pages_qs'>%d</a> ", $y, $m, $i, $i);
-   }
 
-  $table = Abills::HTML->table( { width => '100%',
-                                rowcolor => $_COLORS[1],
-                                cols_align => ['right', 'left'],
-                                rows => [ [ "$_YEAR:",  $y ],
-                                          [ "$_MONTH:", $MONTHES[$m] ], 
-                                          [ "$_DAY:",   $days ] ]
-                               } );
+   $LIST_PARAMS{INTERVAL_TYPE} = 2;
 
-  print $table->show();
-  $LIST_PARAMS{DATE}="$FORM{DATE}";
-  $pages_qs.="&DATE=$LIST_PARAMS{DATE}";
+   if ($FORM{EX_PARAMS} == 1) {
+      $LIST_PARAMS{HOSTS}='y';
+      my $list = $Ipn->reports({ %LIST_PARAMS });
 
-  #Used Fraffic
-  $table_sessions = Abills::HTML->table( { width => '100%',
-	                              caption => "$_SESSIONS", 
-                                title =>["$_DATE", "$_TRAFFIC ", "$_TRAFFIC 2", $_DURATION, $_SUM],
-                                cols_align => ['right', 'left', 'right', 'right', 'right', 'right', 'right'],
+      $table_sessions = Abills::HTML->table( { width => '100%',
+	                              caption => "$_IN", 
+                                title =>["IP", "$_SUM", "PACKEDGE"],
+                                cols_align => ['left', 'right', 'right'],
                                 qs => $pages_qs             
                                } );
 
-  my $list = $Ipn->reports({ %LIST_PARAMS });
-  foreach my $line (@$list) {
-    $table_sessions->addrow("<b>$line->[0]</b>", 
-      "$line->[1]", $line->[2], int2byte($line->[3]),  int2byte($line->[4]),  $line->[5], "<b>$line->[6]</b>" );
-   }
+      foreach my $line (@$list) {
+        $table_sessions->addrow("<b>$line->[0]</b>", 
+          int2byte($line->[1]), 
+          int2byte($line->[2])
+         );
+       }
 
+
+    }
+   else {
+#  $LIST_PARAMS{DATE}="$FORM{DATE}";
+#  $pages_qs.="&DATE=$LIST_PARAMS{DATE}";
+    my $list = $Ipn->reports({ %LIST_PARAMS });
+    #Used Fraffic
+    $table_sessions = Abills::HTML->table( { width => '100%',
+	                              caption => "$_SESSIONS", 
+                                title =>["$_DATE", "IN", "OUT", "TUNELS", "$_SUM", "PACKEDGE"],
+                                cols_align => ['right', 'right', 'right', 'right', 'right', 'right'],
+                                qs => $pages_qs             
+                               } );
+
+
+    foreach my $line (@$list) {
+      $table_sessions->addrow("<b>$line->[0]</b>", 
+        int2byte($line->[1]), 
+        int2byte($line->[2]), 
+        int2byte($line->[3]),  
+        int2byte($line->[4]),  
+        $line->[5], 
+      );
+
+     $total_in      += $line->[1];   
+     $total_out     += $line->[2]; 
+     $total_tunnel  += $line->[3];
+     $total_sum     += $line->[4];
+     $total_package += $line->[5];
+    }
+  }
  }
 else {
   #Used Traffic
   $table_sessions = Abills::HTML->table( { width => '100%',
 	                              caption => "$_SESSIONS", 
-                                title =>["$_DATE", "$_TRAFFIC ", "$_TRAFFIC 2", $_DURATION, $_SUM],
-                                cols_align => ['right', 'right', 'right', 'right', 'right', 'right', 'right'],
+                                title =>["$_DATE", "IN", "OUT", "TUNNELS", $_SUM, "PACKEDGE", '-', '-'],
+                                cols_align => ['right', 'right', 'right', 'right', 'right', 'right', 'center', 'center'],
                                 qs => $pages_qs             
                                } );
 
 
+  $LIST_PARAMS{INTERVAL_TYPE}=3;
   my $list = $Ipn->reports({ %LIST_PARAMS });
   foreach my $line (@$list) {
     $table_sessions->addrow("<a href='$SELF_URL?index=$index&$type=$line->[0]$pages_qs'>$line->[0]</a>", 
-       int2byte($line->[1]),   $line->[2], "<b>$line->[3]</b>" );
+       int2byte($line->[1]),   
+       int2byte($line->[2]), 
+       int2byte($line->[3]),
+       int2byte($line->[4]),
+       $line->[5],
+       "<a href='$SELF_URL?index=$index&$type=$line->[0]$pages_qs'>$_HOURS</a>",
+       "<a href='$SELF_URL?index=$index$pages_qs'>$_HOSTS</a>"
+       );
+   
+    $total_in      += $line->[1];   
+    $total_out     += $line->[2]; 
+    $total_tunnel  += $line->[3];
+    $total_sum     += $line->[4];
+    $total_package += $line->[5];
    }
 }
 
 
 
 $table = Abills::HTML->table( { width => '100%',
-                                cols_align => ['right', 'right', 'right', 'right', 'right', 'right'],
-                                rows => [ [ "$_USERS: <b>$sessions->{USERS}</b>",
-                                            "$_SESSIONS: <b>$sessions->{SESSIONS}</b>", 
-                                            "$_TRAFFIC: <b>". int2byte($sessions->{TRAFFIC}) ."</b>", 
-                                            "$_TRAFFIC 2: <b>". int2byte($sessions->{TRAFFIC_2}) ."</b>", 
-                                            "$_DURATION: <b>$sessions->{DURATION}</b>", 
-                                            "$_SUM: <b>$sessions->{SUM}</b>" ] ],
+                                cols_align => ['right', 'right', 'right', 'right', 'right'],
+                                rows => [ [ "IN: <b>". int2byte($total_in) ."</b>",
+                                            "OUT: <b>". int2byte($total_out). "</b>", 
+                                            "TUNEL: <b>". int2byte($total_tunnel) ."</b>", 
+                                            "SUM: <b>". int2byte($total_sum) ."</b>", 
+                                            "PACKAGES: <b>$total_package</b>" 
+                                           ] ],
                                 rowcolor => $_COLORS[2]
                                } );
 
