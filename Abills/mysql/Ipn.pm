@@ -309,7 +309,7 @@ else {
 
   my $list;
 
- if (defined($attr->{HOSTS})) {
+if (defined($attr->{HOSTS})) {
 
  	 $self->query($db, "SELECT INET_NTOA(src_addr), sum(size), count(*)
      from traf_log 
@@ -326,7 +326,23 @@ else {
     ORDER BY 2 DESC 
     LIMIT $PG, $PAGE_ROWS;");
    $self->{HOSTS_LIST_TO} = $self->{list};
+ }
+elsif (defined($attr->{PORTS})) {
+ 	 $self->query($db, "SELECT src_port, sum(size), count(*)
+     from traf_log 
+     $WHERE
+     GROUP BY 1
+    ORDER BY 2 DESC 
+    LIMIT $PG, $PAGE_ROWS;");
+   $self->{PORTS_LIST_FROM} = $self->{list};
 
+ 	 $self->query($db, "SELECT dst_port, sum(size), count(*)
+     from traf_log 
+     $WHERE
+     GROUP BY 1
+    ORDER BY 2 DESC 
+    LIMIT $PG, $PAGE_ROWS;");
+   $self->{PORTS_LIST_TO} = $self->{list};
  }
 else {
 #$PAGE_ROWS = 10;
