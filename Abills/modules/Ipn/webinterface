@@ -263,7 +263,7 @@ if (defined($FORM{DATE})) {
       foreach my $line (@$list) {
         $table_sessions->addrow("<b>$line->[0]</b>", 
           int2byte($line->[1]), 
-          int2byte($line->[2])
+          $line->[2]
          );
        }
 
@@ -279,7 +279,7 @@ if (defined($FORM{DATE})) {
       foreach my $line (@$list) {
         $table_sessions->addrow("<b>$line->[0]</b>", 
           int2byte($line->[1]), 
-          int2byte($line->[2])
+          $line->[2]
          );
        }
     }
@@ -299,7 +299,7 @@ if (defined($FORM{DATE})) {
       foreach my $line (@$list) {
         $table_sessions->addrow("<b>$line->[0]</b>", 
           int2byte($line->[1]), 
-          int2byte($line->[2])
+          $line->[2]
          );
        }
 
@@ -315,7 +315,7 @@ if (defined($FORM{DATE})) {
       foreach my $line (@$list) {
         $table_sessions->addrow("<b>$line->[0]</b>", 
           int2byte($line->[1]), 
-          int2byte($line->[2])
+          $line->[2]
          );
        }
     }
