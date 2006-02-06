@@ -272,6 +272,9 @@ elsif (defined($attr->{PERIOD})) {
      else {$WHERE .= "date_format(f_time, '%Y-%m-%d')=curdate() "; }
     }
  }
+elsif($attr->{HOUR}) {
+   push @WHERE_RULES, "date_format(f_time, '%Y-%m-%d %H')='$attr->{HOUR}'";
+ }
 elsif($attr->{DATE}) {
 	 push @WHERE_RULES, "date_format(f_time, '%Y-%m-%d')='$attr->{DATE}'";
 }
@@ -304,16 +307,17 @@ else {
 
   $self->{debug}=1;
 
+  my $list;
+
  if (defined($attr->{HOSTS})) {
 
-
-   #OUT
-# 	 $self->query($db, "SELECT INET_NTOA(src_addr), sum(size), count(*)
-#     from traf_log 
-#     $WHERE and src_port=0
-#    GROUP BY 1
-#    ORDER BY 2 DESC 
-#    LIMIT $PG, $PAGE_ROWS;");
+ 	 $self->query($db, "SELECT INET_NTOA(src_addr), sum(size), count(*)
+     from traf_log 
+     $WHERE
+     GROUP BY 1
+    ORDER BY 2 DESC 
+    LIMIT $PG, $PAGE_ROWS;");
+   $self->{HOSTS_LIST_FROM} = $self->{list};
 
  	 $self->query($db, "SELECT INET_NTOA(dst_addr), sum(size), count(*)
      from traf_log 
@@ -321,28 +325,11 @@ else {
      GROUP BY 1
     ORDER BY 2 DESC 
     LIMIT $PG, $PAGE_ROWS;");
+   $self->{HOSTS_LIST_TO} = $self->{list};
 
-
-   my $list = $self->{list};
-
-
-   $self->query($db, "SELECT 
-    count(*),  sum(size)
-    from traf_log;");
-
-   my $a_ref = $self->{list}->[0];
-   ($self->{COUNT},
-    $self->{SUM}) = @$a_ref;
-
-
-   return $list;
  }
-
-
-
+else {
 #$PAGE_ROWS = 10;
-
-
  $self->query($db, "SELECT   $lupdate,
    sum(if(src_port=0 && (src_port + dst_port>0), size, 0)),
    sum(if(dst_port=0 && (src_port + dst_port>0), size, 0)),
@@ -355,16 +342,17 @@ else {
   ORDER BY $SORT $DESC 
   LIMIT $PG, $PAGE_ROWS;
   ;");
-
+}
 
   #
 
- my $list = $self->{list};
+ $list = $self->{list};
 
 
  $self->query($db, "SELECT 
   count(*),  sum(size)
   from traf_log 
+  $WHERE
   ;");
 
   my $a_ref = $self->{list}->[0];

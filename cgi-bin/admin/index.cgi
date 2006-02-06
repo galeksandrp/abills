@@ -2129,6 +2129,7 @@ if (defined($FORM{DATE})) {
      	  $EX_PARAMS .= "<a href='$SELF_URL?index=$index$pages_qs&EX_PARAMS=$k'>$v</a> ";
      	 }
 	  }
+  
   }
 
 
@@ -2138,14 +2139,31 @@ if (defined($FORM{DATE})) {
      $days .= ($d == $i) ? "<b>$i </b>" : sprintf("<a href='$SELF_URL?index=$index&DATE=%d-%02.f-%02.f&EX_PARAMS=$FORM{EX_PARAMS}'>%d</a> ", $y, $m, $i, $i);
    }
   
-  $m--;
+  
+  my @rows = ([ "$_YEAR:",  $y ],
+              [ "$_MONTH:", $MONTHES[$m-1] ], 
+              [ "$_DAY:",   $days ]);
+  
+  if ($attr->{SHOW_HOURS}) {
+    my(undef, $h)=split(/ /, $FORM{HOUR}, 2);
+    my $hours = '';
+    for (my $i=0; $i<24; $i++) {
+    	$hours .= ($h == $i) ? "<b>$i </b>" : sprintf("<a href='$SELF_URL?index=$index&HOUR=%d-%02.f-%02.f+%02.f&EX_PARAMS=$FORM{EX_PARAMS}$pages_qs'>%d</a> ", $y, $m, $d, $i, $i);
+     }
+
+ 	  $LIST_PARAMS{HOUR}="$FORM{HOUR}";
+
+  	push @rows, [ "$_HOURS", $hours ];
+   }
+
+  if ($attr->{EX_PARAMS}) {
+    push @rows, [' ', $EX_PARAMS];
+   }  
+
   $table = Abills::HTML->table( { width => '100%',
                                 rowcolor => $_COLORS[1],
                                 cols_align => ['right', 'left'],
-                                rows => [ [ "$_YEAR:",  $y ],
-                                          [ "$_MONTH:", $MONTHES[$m] ], 
-                                          [ "$_DAY:",   $days ],
-                                          [ '', $EX_PARAMS] ]
+                                rows => [ @rows ]
                                } );
 
   print $table->show();

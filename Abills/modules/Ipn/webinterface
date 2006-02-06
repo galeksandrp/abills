@@ -229,7 +229,8 @@ sub ipn_use {
 
   reports({ DATE      => $FORM{DATE}, 
   	        REPORT    => '',
-  	        EX_PARAMS => \%EX_PARAMS 
+  	        EX_PARAMS => \%EX_PARAMS,
+  	        SHOW_HOURS => 'Y'
   	       });
 
 
@@ -249,10 +250,27 @@ if (defined($FORM{DATE})) {
 
    if ($FORM{EX_PARAMS} == 1) {
       $LIST_PARAMS{HOSTS}='y';
-      my $list = $Ipn->reports({ %LIST_PARAMS });
+      $Ipn->reports({ %LIST_PARAMS });
 
+      my $list = $Ipn->{HOSTS_LIST_FROM};
       $table_sessions = Abills::HTML->table( { width => '100%',
-	                              caption => "$_IN", 
+	                              caption => "$_FROM", 
+                                title =>["IP", "$_SUM", "PACKEDGE"],
+                                cols_align => ['left', 'right', 'right'],
+                                qs => $pages_qs             
+                               } );
+
+      foreach my $line (@$list) {
+        $table_sessions->addrow("<b>$line->[0]</b>", 
+          int2byte($line->[1]), 
+          int2byte($line->[2])
+         );
+       }
+
+      print $table_sessions->show();
+      $list = $Ipn->{HOSTS_LIST_TO};
+      $table_sessions = Abills::HTML->table( { width => '100%',
+	                              caption => "$_TO", 
                                 title =>["IP", "$_SUM", "PACKEDGE"],
                                 cols_align => ['left', 'right', 'right'],
                                 qs => $pages_qs             
@@ -266,6 +284,7 @@ if (defined($FORM{DATE})) {
        }
 
 
+
     }
    else {
 #  $LIST_PARAMS{DATE}="$FORM{DATE}";
@@ -274,8 +293,8 @@ if (defined($FORM{DATE})) {
     #Used Fraffic
     $table_sessions = Abills::HTML->table( { width => '100%',
 	                              caption => "$_SESSIONS", 
-                                title =>["$_DATE", "IN", "OUT", "TUNELS", "$_SUM", "PACKEDGE"],
-                                cols_align => ['right', 'right', 'right', 'right', 'right', 'right'],
+                                title =>["$_DATE", "IN", "OUT", "TUNELS", "$_SUM", "PACKEDGE", '-'],
+                                cols_align => ['right', 'right', 'right', 'right', 'right', 'right', 'center'],
                                 qs => $pages_qs             
                                } );
 
@@ -287,6 +306,7 @@ if (defined($FORM{DATE})) {
         int2byte($line->[3]),  
         int2byte($line->[4]),  
         $line->[5], 
+        "<a href='$SELF_URL?index=$index&HOUR=$line->[0]$pages_qs&EX_PARAMS=1'>$_HOSTS</a>"
       );
 
      $total_in      += $line->[1];   
