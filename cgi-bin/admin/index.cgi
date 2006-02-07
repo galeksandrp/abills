@@ -231,7 +231,26 @@ if (defined($COOKIES{qm}) && $COOKIES{qm} ne '') {
       print "<tr>\n";
      }
     my $color=($line eq $index) ? $_COLORS[0] : $_COLORS[2];
-    print "<th bgcolor=$color><a href='$SELF_URL?index=$line'>$menu_names{$line}</a></th>\n";
+    print "<th bgcolor=$color>";
+    if (defined($menu_args{$line})) {
+    	my $args = 'LOGIN_EXPR' if ($menu_args{$line} eq 'UID');
+#    	print "<a href=\"javascript:if(length){ var i;for(i=0;i<length;i++)".
+#            "{Q=frames[i].document.selection.createRange().text; if(Q){break;}}}".
+#            "else{Q=document.selection.createRange().text;}".
+#            "if(!Q)void(Q=prompt('Error',''));".
+#            "if(Q){Q=Q.substr(0,100);void(open('$SELF_URL?index=$line&$args='+Q));}\">$menu_names{$line}</a>";
+
+ print "<a href=\"javascript: Q=prompt('Error','');
+      if(Q){
+        this.location.href = '$SELF_URL?index=$line&$args=' + Q;
+       }\">$menu_names{$line}</a>";
+
+     }
+    else {
+      print "<a href='$SELF_URL?index=$line'>$menu_names{$line}</a>";
+     } 
+     
+    print "</th>\n";
 	  $i++;
 	 }
   
@@ -2518,8 +2537,8 @@ sub flist {
 
 my  %new_hash = ();
 while((my($findex, $hash)=each(%menu_items))) {
-  while(my($k, $val)=each %$hash) {
-    $new_hash{$k}{$findex}=$val;
+   while(my($k, $val)=each %$hash) {
+     $new_hash{$k}{$findex}=$val;
    }
 }
 
@@ -2561,7 +2580,7 @@ foreach my $parent (@menu_sorted) {
       my $mi = $new_hash{$parent};
 
       while(my($k, $val)=each %$mi) {
-       
+        
         my $checked = '';
         if (defined($qm{$k})) { 
         	$checked = " checked";  
@@ -3021,7 +3040,6 @@ Abills::HTML->tpl_show(templates('form_search'), \%SEARCH_DATA);
 }
 
 if ($FORM{search}) {
-
 	$LIST_PARAMS{LOGIN_EXPR}=$FORM{LOGIN_EXPR};
   $pages_qs = "&search=y&type=$FORM{type}";
 

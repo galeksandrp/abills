@@ -897,13 +897,15 @@ print $table_sessions->show() . $table->show();
 sub dv_error {
 	my ($attr) = @_;
   my $PAGE_ROWS = 100;
-#  $conf{LOGFILE} = "/usr/abills/var/log/abills.log";
   my $login  = ''; 
 
 if ($attr->{USER}) {
   my $user = $attr->{USER};
   $login = $user->{LOGIN};
 }
+elsif ($FORM{LOGIN_EXPR}) {
+  $login = $FORM{LOGIN_EXPR};
+ }
 elsif($FORM{UID}) {
   dv_users();
   return 0;
