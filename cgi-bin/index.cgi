@@ -94,7 +94,9 @@ my $user=Users->new($db, undef, \%conf);
 ($uid, $sid, $login) = auth("$login", "$passwd", "$sid");
 
 if ($uid > 0) {
-  push @m, "17:0:$_PASSWD:form_passwd:::"   if($conf{user_chg_passwd}eq 'yes');
+
+  push @m, "17:0:$_PASSWD:form_passwd:::"   if($conf{user_chg_passwd} eq 'yes');
+
   foreach my $line (@m) {
 	  my ($ID, $PARENT, $NAME, $FUNTION_NAME, $SHOW_SUBMENU, $OP)=split(/:/, $line);
     $menu_items{$ID}{$PARENT}=$NAME;

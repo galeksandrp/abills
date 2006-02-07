@@ -170,10 +170,10 @@ if ($self->{DISABLE}) {
   }
 
 #Check CID (MAC) 
-if ($self->{CID} ne '') {
-  my ($ret, $ERR_RAD_PAIRS) = $self->Auth_CID($RAD);
-  return $ret, $ERR_RAD_PAIRS if ($ret == 1);
-}
+#if ($self->{CID} ne '') {
+#  my ($ret, $ERR_RAD_PAIRS) = $self->Auth_CID($RAD);
+#  return $ret, $ERR_RAD_PAIRS if ($ret == 1);
+#}
 
 
 
@@ -884,9 +884,9 @@ sub get_ip {
 
  $list = $self->{list};
  my %used_ips = ();
- while(my($ip) = each %$list) {
-   if(exists($pools{$ip})) {
-      delete($pools{$ip});
+ foreach my $ip (@$list) {
+   if(exists($pools{$ip->[0]})) {
+      delete($pools{$ip->[0]});
      }
    }
  

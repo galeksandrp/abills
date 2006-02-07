@@ -211,6 +211,11 @@ else {
 
 #detalization for Exppp
 if ($conf->{s_detalization} eq 'yes') {
+   $RAD->{INTERIUM_INBYTE}=0 if (! defined($RAD->{INTERIUM_INBYTE}));
+   $RAD->{INTERIUM_OUTBYTE}=0 if (! defined($RAD->{INTERIUM_INBYTE}));
+   $RAD->{INTERIUM_INBYTE2}=0 if (! defined($RAD->{INTERIUM_INBYTE2}));
+   $RAD->{INTERIUM_OUTBYTE2}=0 if (! defined($RAD->{INTERIUM_OUTBYTE2}));
+
   $self->query($db, "INSERT into s_detail (acct_session_id, nas_id, acct_status, last_update, 
     sent1, recv1, sent2, recv2, id)
   VALUES (\"$RAD->{ACCT_SESSION_ID}\", '$NAS->{NID}',

@@ -468,6 +468,9 @@ sub periods_totals {
 sub list {
  my $self = shift;
  my ($attr) = @_;
+
+ my $SORT = ($attr->{SORT}) ? $attr->{SORT} : 2;
+ my $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
  
  undef @WHERE_RULES; 
  
@@ -587,6 +590,7 @@ elsif($attr->{DATE}) {
   FROM log l, users u
   $WHERE
   ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");
+
 
  my $list = $self->{list};
 

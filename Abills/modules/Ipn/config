@@ -29,7 +29,7 @@ $web_interface    = 1;
                    "14:12:$_LAST:ipn_sessions:"             => 4,
                    "15:12:$_USED:ipn_use:"                  => 4,
                    "16:15:$_MONTH:ipn_use_allmonthes:"      => 4,
-                   "17:0:Ip Net:ipn_online:"          => 8
+                   #"17:0:Ip Net:ipn_online:"          => 8
 
                    );
 

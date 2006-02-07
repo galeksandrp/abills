@@ -12,7 +12,7 @@ my $Ipn = Ipn->new($db, \%conf);
 
 #**********************************************************
 # Whow sessions from log
-# dv_sessions()
+# ipn_sessions()
 #**********************************************************
 sub ipn_sessions {
   my ($list, $sessions) = @_;
@@ -194,17 +194,17 @@ print $table->show();
 
 
 #**********************************************************
-# dv_use_all_monthes();
+# ipn_use_all_monthes();
 #**********************************************************
 sub ipn_use_allmonthes {
 
   $FORM{allmonthes}='y';
-  dv_use();
+  ipn_use();
 }
 
 
 #**********************************************************
-# dv_use();
+# ipn_use();
 #**********************************************************
 sub ipn_use {
 
@@ -414,7 +414,7 @@ print $table_sessions->show() . $table->show();
 
 
 #**********************************************************
-# dv_error
+# ipn_error
 #**********************************************************
 sub ipn_error {
 	my ($attr) = @_;
@@ -427,7 +427,7 @@ if ($attr->{USER}) {
   $login = $user->{LOGIN};
 }
 elsif($FORM{UID}) {
-  dv_users();
+  ipn_users();
   return 0;
 }
 
@@ -498,7 +498,7 @@ if (defined($attr->{USER}))	{
    }
   elsif($FORM{SESSION_ID}) {
   	$pages_qs .= "&SESSION_ID=$FORM{SESSION_ID}";
-  	dv_session_detail({ USER => $attr->{USER} });
+  	ipn_session_detail({ USER => $attr->{USER} });
   	
   	return 0;
   }
@@ -566,7 +566,7 @@ $table = Abills::HTML->table( { width => '640',
 print $table->show();
 print "</form>\n";
 
-dv_stats_calculation($sessions);
+ipn_stats_calculation($sessions);
 
 if (defined($FORM{show})) {
   $pages_qs .= "&show=y&fromd=$FORM{fromd}&fromm=$FORM{fromm}&fromy=$FORM{fromy}&tod=$FORM{tod}&tom=$FORM{tom}&toy=$FORM{toy}";
@@ -601,7 +601,7 @@ $table = Abills::HTML->table( { width => '640',
                                } );
 print "<p>" . $table->show() . "</p>\n";
 
-dv_sessions($list, $sessions);
+ipn_sessions($list, $sessions);
 }
 
 
@@ -639,9 +639,6 @@ sub ipn_user_stats {
 	  $LIST_PARAMS{SORT}=2;
 	  $LIST_PARAMS{DESC}=DESC;
    }
-
-use Dv_Sessions;
-my $sessions = Dv_Sessions->new($db);
 
 if ($sessions->{errno})	 {
 	message('err', $_ERROR, "[$sessions->{errno}] $err_strs{$sessions->{errno}}");
@@ -685,7 +682,7 @@ $table = Abills::HTML->table( { width => '640',
 print $table->show();
 print "</form>\n";
 
-dv_stats_calculation($sessions);
+ipn_stats_calculation($sessions);
 
 if (defined($FORM{show})) {
   $pages_qs .= "&show=y&fromd=$FORM{fromd}&fromm=$FORM{fromm}&fromy=$FORM{fromy}&tod=$FORM{tod}&tom=$FORM{tom}&toy=$FORM{toy}";
@@ -717,14 +714,13 @@ $table = Abills::HTML->table( { width => '640',
                                } );
 print $table->show();	
 
-dv_sessions($list, $sessions) if ( $sessions->{TOTAL} > 0);
-#dv_show_sessions($list, $sessions);
+ipn_sessions($list, $sessions) if ( $sessions->{TOTAL} > 0);
 }
 
 
 
 #**********************************************************
-# dv_session_detail
+# ipn_session_detail
 #**********************************************************
 sub ipn_session_detail {
 	my ($attr) = @_;
@@ -737,7 +733,7 @@ if (defined($attr->{USER}))	{
 	$LIST_PARAMS{LOGIN}=$user->{LOGIN};
 }
 elsif($FORM{UID}) {
-	dv_user();
+	ipn_user();
 	return 0;
 }	
 
@@ -751,7 +747,7 @@ $sessions->{_RECV}=int2byte($sessions->{RECV});
 $sessions->{_SENT2}=int2byte($sessions->{SENT2});
 $sessions->{_RECV2}=int2byte($sessions->{RECV2});
 
-Abills::HTML->tpl_show(_include('dv_session_detail', 'Dv'), $sessions);
+Abills::HTML->tpl_show(_include('ipn_session_detail', 'Ipn'), $sessions);
 
 my %ORDERS = (hours    => $_HOURS,
               days     => $_DAYS,
@@ -800,15 +796,15 @@ print $table->show();
 }
 
 
-sub dv_user_info {
-  my $user = $Dv->info($LIST_PARAMS{UID});
+sub ipn_user_info {
+  my $user = $Ipn->info($LIST_PARAMS{UID});
   
   if ($user->{TOTAL} < 1) {
   	message('info', $_INFO, "$_NOT_ACTIVE");
     return 0;	
   }
   
-  Abills::HTML->tpl_show(_include('dv_user_info', 'Dv'), $Dv);
+  Abills::HTML->tpl_show(_include('ipn_user_info', 'Ipn'), $Ipn);
 }
 
 

@@ -51,8 +51,6 @@ $conf{version}='0.30b'; #29.12.2005
 #Minimum session costs
 $conf{MINIMUM_SESSION_TIME}=10; # minimum session time for push session to db
 $conf{MINIMUM_SESSION_TRAF}=200; # minimum session trafic for push session to db
-#Take month and day fees from users with negative deposit too
-$conf{negative_deposit}='no';
 
 #System admin id
 #ID for system operation, periodic procces

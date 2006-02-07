@@ -897,7 +897,7 @@ print $table_sessions->show() . $table->show();
 sub dv_error {
 	my ($attr) = @_;
   my $PAGE_ROWS = 100;
-  $conf{LOGFILE} = "/usr/abills/var/log/abills.log";
+#  $conf{LOGFILE} = "/usr/abills/var/log/abills.log";
   my $login  = ''; 
 
 if ($attr->{USER}) {
