@@ -304,12 +304,12 @@ sub stats {
  my $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
 
  $self->query($db, "select n.name, l.port_id, count(*),
-   if(date_format(max(l.login), '%Y-%m-%d')=curdate(), date_format(max(l.login), '%H-%i-%s'), max(l.login)),
+   if(date_format(max(l.start), '%Y-%m-%d')=curdate(), date_format(max(l.start), '%H-%i-%s'), max(l.start)),
    SEC_TO_TIME(avg(l.duration)), SEC_TO_TIME(min(l.duration)), SEC_TO_TIME(max(l.duration)),
    l.nas_id
    FROM log l
    LEFT JOIN nas n ON (n.id=l.nas_id)
-   WHERE date_format(login, '%Y-%m')=date_format(curdate(), '%Y-%m')
+   WHERE date_format(start, '%Y-%m')=date_format(curdate(), '%Y-%m')
    GROUP BY l.nas_id, l.port_id 
    ORDER BY $SORT $DESC;");
 

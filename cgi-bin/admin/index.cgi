@@ -1978,6 +1978,7 @@ foreach my $line (@$list) {
      $line->[1], $line->[2],  $line->[3],  $line->[4], $line->[5], $line->[6] );
 }
 
+
 print $table->show();
 }
 
@@ -2351,7 +2352,7 @@ my @m = (
   
  "60:5:$_NAS:form_nas:::",
  "61:60:IP POOLs:form_ip_pools:::",
- "62:60:$_NAS_STATISTIC:form_nas_stats:NID::",
+ "62:60:$_NAS_STATISTIC:form_nas_stats:::",
 
  "65:5:$_EXCHANGE_RATE:form_exchange_rate:::",
  "75:5:$_HOLIDAYS:form_holidays:::",
