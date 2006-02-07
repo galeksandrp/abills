@@ -93,6 +93,8 @@ my $passwd = $FORM{passwd} || '';
 my $user=Users->new($db, undef, \%conf); 
 ($uid, $sid, $login) = auth("$login", "$passwd", "$sid");
 
+
+
 if ($uid > 0) {
 
   push @m, "17:0:$_PASSWD:form_passwd:::"   if($conf{user_chg_passwd} eq 'yes');

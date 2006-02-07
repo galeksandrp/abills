@@ -369,7 +369,7 @@ return qq{
 <input type=hidden name=index value=$index>
 %HIDDEN_FIELDS%
 <table>
-<tr><td>$_NAME:</td><td><input type=text name=LOGIN_EXPR value='%LOGIN_EXPR%'></td></tr>
+<tr><td>$_LOGIN:</td><td><input type=text name=LOGIN_EXPR value='%LOGIN_EXPR%'></td></tr>
 %SEL_TYPE%
 <tr><td>$_PERIOD:</td><td>
 <table width=100%>

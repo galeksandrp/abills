@@ -240,10 +240,8 @@ if (defined($COOKIES{qm}) && $COOKIES{qm} ne '') {
 #            "if(!Q)void(Q=prompt('Error',''));".
 #            "if(Q){Q=Q.substr(0,100);void(open('$SELF_URL?index=$line&$args='+Q));}\">$menu_names{$line}</a>";
 
- print "<a href=\"javascript: Q=prompt('Error','');
-      if(Q){
-        this.location.href = '$SELF_URL?index=$line&$args=' + Q;
-       }\">$menu_names{$line}</a>";
+ print "<a href=\"javascript: Q=prompt('$menu_names{$line}','');
+        this.location.href = '$SELF_URL?index=$line&$args=' + Q;\">$menu_names{$line}</a>";
 
      }
     else {
@@ -1137,7 +1135,7 @@ if (! defined($FORM{sort})) {
 my $list = $admin->action_list( { %LIST_PARAMS } );
 my $table = Abills::HTML->table( { width => '100%',
                                    border => 1,
-                                   title => ['#', 'UID',  $_DATE,  $_CHANGE,  $_ADMIN,   'IP', '-'],
+                                   title => ['#', 'UID',  $_DATE,  $_CHANGE,  $_ADMIN,   'IP', "$_MODULES", '-'],
                                    cols_align => ['right', 'left', 'right', 'left', 'left', 'right', 'center'],
                                    qs => $pages_qs,
                                    pages => $admin->{TOTAL}
@@ -1145,8 +1143,8 @@ my $table = Abills::HTML->table( { width => '100%',
                                   } );
 foreach my $line (@$list) {
   my $delete = $html->button($_DEL, "index=$index$pages_qs&del=$line->[0]", "$_DEL ?"); 
-  $table->addrow("<b>$line->[0]</b>", "<a href='$SELF_URL?index=11&UID=$line->[6]'>$line->[1]</a>", $line->[2], $line->[3], 
-   $line->[4], $line->[5], $delete);
+  $table->addrow("<b>$line->[0]</b>", "<a href='$SELF_URL?index=11&UID=$line->[7]'>$line->[1]</a>", $line->[2], $line->[3], 
+   $line->[4], $line->[5], $line->[6], $delete);
 }
 
 print $table->show();
@@ -2403,7 +2401,10 @@ sub mk_navigator {
   my $h = $menu_items{$root_index};
 
   while(my ($par_key, $name) = each ( %$h )) {
-    $menu_navigator =  " <a href='$SELF_URL?index=$root_index'>$name</a> /" . $menu_navigator;
+    
+    my $ex_params = (defined($FORM{$menu_args{$root_index}})) ? '&'."$menu_args{$root_index}=$FORM{$menu_args{$root_index}}" : '';
+    
+    $menu_navigator =  " <a href='$SELF_URL?index=$root_index$ex_params'>$name</a> /" . $menu_navigator;
     $tree{$root_index}='y';
     if ($par_key > 0) {
       $root_index = $par_key;

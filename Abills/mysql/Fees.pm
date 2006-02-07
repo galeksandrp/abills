@@ -104,10 +104,13 @@ sub del {
   my $a_ref = $self->{list}->[0];
   my($sum, $bill_id) = @$a_ref;
 
+  
+
   $Bill->action('add', $bill_id, $sum); 
 
   $self->query($db, "DELETE FROM fees WHERE id='$id';", 'do');
   $admin->action_add($user->{UID}, "DELETE FEES SUM: $sum");
+
   return $self->{result};
 }
 
