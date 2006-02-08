@@ -38,7 +38,6 @@ sub new {
   ($db, $admin, $CONF) = @_;
   my $self = { };
   bless($self, $class);
-  $self->{debug}=1;
   return $self;
 }
 

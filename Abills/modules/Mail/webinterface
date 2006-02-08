@@ -64,12 +64,14 @@ elsif ($Mail->{TOTAL} == 1) {
 
 
   foreach my $line (@$list) {
-    $delete = $html->button($_DEL, "index=$index&del=$line->[14]&UID=$line->[13]", "$_DEL ?"); 
-    $table->addrow("<a href='$SELF_URL?index=$index&MBOX_ID=$line->[14]&UID=$line->[13]'>$line->[0]</a>", "$line->[1]",
-     "<a href='$SELF_URL?index=11&UID=$line->[13]'>$line->[2]</a>",
-     "$line->[3]", "$line->[4]", "$line->[5]", "$status[$line->[6]]", "$status[$line->[7]]", "$status[$line->[8]]", 
-     "<a href='$SELF_URL?index=$index&MBOX_ID=$line->[14]&UID=$line->[13]'>$_CHANGE</a>",
-     $delete);
+    $delete = $html->button($_DEL, "index=$index&del=$line->[14]&UID=$line->[13]", { MESSAGE => "$_DEL ?" }); 
+
+    $table->addrow($html->button($line->[0], "index=$index&MBOX_ID=$line->[14]&UID=$line->[13]"), 
+       "$line->[1]",
+       $html->button($line->[2], "index=11&UID=$line->[13]"),
+      "$line->[3]", "$line->[4]", "$line->[5]", "$status[$line->[6]]", "$status[$line->[7]]", "$status[$line->[8]]", 
+      $html->button($_CHANGE, "index=$index&MBOX_ID=$line->[14]&UID=$line->[13]"),
+      $delete);
    }
   print $table->show();
 
@@ -202,10 +204,10 @@ sub mail_domains {
                                   } );
 
   foreach my $line (@$list) {
-    $delete = $html->button($_DEL, "index=$index&del=$line->[6]", "$_DEL ?"); 
+    $delete = $html->button($_DEL, "index=$index&del=$line->[6]", { MESSAGE => "$_DEL \"$line->[0]\"?" }); 
     $table->addrow("<b>$line->[0]</b>", "$line->[1]",
      "$status[$line->[2]]", "$line->[3]", "$line->[4]",  
-     "<a href='$SELF_URL?index=$index&MAIL_DOMAIN_ID=$line->[6]'>$_CHANGE</a>",
+     $html->button($_CHANGE, "index=$index&MAIL_DOMAIN_ID=$line->[6]"),
      $delete);
    }
   print $table->show();
@@ -270,10 +272,10 @@ sub mail_aliases {
                                   } );
 
   foreach my $line (@$list) {
-    $delete = $html->button($_DEL, "index=$index&del=$line->[6]", "$_DEL ?"); 
+    $delete = $html->button($_DEL, "index=$index&del=$line->[6]", { MESSAGE => "$_DEL \"$line->[0]\"?" }); 
     $table->addrow("$line->[0]", "$line->[1]", "$line->[2]",
      "$status[$line->[3]]", "$line->[4]", "$line->[5]",  
-     "<a href='$SELF_URL?index=$index&MAIL_ALIAS_ID=$line->[6]'>$_CHANGE</a>",
+     $html->button($_CHANGE, "index=$index&MAIL_ALIAS_ID=$line->[6]"),
      $delete);
    }
   print $table->show();
@@ -340,10 +342,10 @@ sub mail_transport {
                                   } );
 
   foreach my $line (@$list) {
-    $delete = $html->button($_DEL, "index=$index&del=$line->[4]", "$_DEL ?"); 
+    $delete = $html->button($_DEL, "index=$index&del=$line->[4]", { MESSAGE => "$_DEL \"$line->[0]\"?" }); 
     $table->addrow("$line->[0]", "$line->[1]", "$line->[2]",
      "$line->[3]", 
-     "<a href='$SELF_URL?index=$index&MAIL_TRANSPORT_ID=$line->[4]'>$_CHANGE</a>",
+     $html->button($_CHANGE, "index=$index&MAIL_TRANSPORT_ID=$line->[4]"),
      $delete);
    }
   print $table->show();
@@ -407,10 +409,10 @@ sub mail_access {
                                   } );
 
   foreach my $line (@$list) {
-    $delete = $html->button($_DEL, "index=$index&del=$line->[5]", "$_DEL ?"); 
+    $delete = $html->button($_DEL, "index=$index&del=$line->[5]", { MESSAGE => "$_DEL \"$line->[0]\"?" }); 
     $table->addrow("$line->[0]", "$line->[1]", "$line->[2]",
      "$line->[3]", 
-     "<a href='$SELF_URL?index=$index&MAIL_ACCESS_ID=$line->[5]'>$_CHANGE</a>",
+     $html->button($_CHANGE, "index=$index&MAIL_ACCESS_ID=$line->[5]"),
      $delete);
    }
   print $table->show();

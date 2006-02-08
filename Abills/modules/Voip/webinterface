@@ -1,23 +1,9 @@
 #/usr/bin/perl
 # Voip web functions
 
-
-
 require "Voip.pm";
-
-
-
 Voip->import();
-
-
-
-my $Voip = Voip->new($db, $admin, $conf);
-
-
-
-
-
-
+my $Voip = Voip->new($db, $admin, \%conf);
 
 use Voip_Sessions;
 my  $sessions = Voip_Sessions->new($db, \%conf);
@@ -520,7 +506,7 @@ if(defined($attr->{TP})) {
   my $color="AAA000";
   foreach my $line (@$list) {
 
-    my $delete = $html->button($_DEL, "index=$index$pages_qs&del=$line->[0]", "$_DEL [$line->[0]] ?"); 
+    my $delete = $html->button($_DEL, "index=$index$pages_qs&del=$line->[0]", { MESSAGE =>  "$_DEL [$line->[0]] ?" }); 
     $color = sprintf("%06x", hex('0x'. $color) + 7000);
      
     #day, $hour|$end = color
@@ -745,8 +731,8 @@ my $table = Abills::HTML->table( { width      => '100%',
 my ($delete, $change);
 foreach my $line (@$list) {
   if ($permissions{4}{1}) {
-    $delete = $html->button($_DEL, "index=$index&del=$line->[0]", "$_DEL ?"); 
-    $change = "<a href='$SELF_URL?index=$index&TP_ID=$line->[0]'>$_INFO</a>";
+    $delete = $html->button($_DEL, "index=$index&del=$line->[0]",  { MESSAGE => "$_DEL ?" }); 
+    $change = $html->button($_INFO, "index=$index&TP_ID=$line->[0]");
    }
   
   if($FORM{TP_ID} eq $line->[0]) {
@@ -759,7 +745,7 @@ foreach my $line (@$list) {
   $table->addrow("<b>$line->[0]</b>", "<a href='$SELF_URL?index=$index&TP_ID=$line->[0]'>$line->[1]</a>", 
    $bool_vals[$line->[2]], $Payment_Types[$line->[3]], $line->[4], 
    $line->[5], $line->[6], $line->[7],
-   "<a href='$SELF_URL?index=$index&TP_ID=$line->[0]&intervals=$line->[0]'>$_INTERVALS</a>",
+   $html->button($_INTERVALS, "index=$index&TP_ID=$line->[0]&intervals=$line->[0]'"),
    $change,
    $delete);
 }
@@ -889,9 +875,9 @@ my $table = Abills::HTML->table( { width      => '100%',
 my ($delete, $change);
 foreach my $line (@$list) {
    if ($permissions{4}{1}) {
-    $delete = $html->button($_DEL, "index=$index&del=$line->[5]", "$_DEL ?"); 
-    $change = "<a href='$SELF_URL?index=$index&ROUTE_ID=$line->[5]'>$_CHANGE</a>";
-    #$add    = "<a href='$SELF_URL?index=$index&add_route=$parent&ROUTE_ID=$parent'>$_ADD</a>";
+    $delete = $html->button($_DEL, "index=$index&del=$line->[5]", { MESSAGe => "$_DEL '$line->[0]'?" }); 
+    $change = $html->button($_CHANGE, "index=$index&ROUTE_ID=$line->[5]");
+    #$add   = $html->button($_ADD, "index=$index&add_route=$parent&ROUTE_ID=$parent");
    }
 
    $table->addrow($line->[0], 
@@ -1022,7 +1008,7 @@ if ($FORM{ping}) {
  }
 elsif ($FORM{hangup}) {
   my ($nas_id, $acct_session_id, $user_name) = split(/ /, $FORM{hangup}, 4);
-  $nas->info( { NID => $nas_id, SECRETKEY => $conf{secretkey} });
+  $nas->info( { NAS_ID => $nas_id, SECRETKEY => $conf{secretkey} });
   
   if ($nas->{errno}) {
     message('err', $_NAS, "$nas->{errstr}");
@@ -1061,7 +1047,7 @@ elsif($FORM{zap}) {
   	 return 0;
    }
 
-  $nas->info({NID => $nas_id, SECRETKEY => $conf{secretkey} });
+  $nas->info({NAS_ID => $nas_id, SECRETKEY => $conf{secretkey} });
   $message = "<table width=100%>
      <tr><th colspan=2 align=left>$_CLOSED</th></tr>
      <tr><td>$_NAS:</td><td>$nas->{NAS_IP} / $nas->{NAS_INDENTIFIER}</td></tr>
@@ -1072,7 +1058,7 @@ elsif($FORM{zap}) {
   
  
   $sessions->list({ ACCT_SESSION_ID => $acct_session_id, 
-  	                NAS_ID => $nas->{NID} });  
+  	                NAS_ID => $nas->{NAS_ID} });  
   
   if ($sessions->{TOTAL} < 1) {
     $message .= "<p align=center>[<a href='$SELF_URL?index=$index&tolog=$acct_session_id&nas_id=$nas_id'>add to log</a>]
@@ -1102,7 +1088,7 @@ elsif($FORM{tolog}) {
   $ACCT_INFO->{ACCT_STATUS_TYPE} = 'Stop';
   
   my $nas = Nas->new($db);	
-  $nas->info({NID       => $ACCT_INFO->{NAS_ID},
+  $nas->info({NAS_ID       => $ACCT_INFO->{NAS_ID},
               SECRETKEY => $conf{secretkey}});
 
   # Exppp VENDOR params           
@@ -1286,16 +1272,16 @@ my $Billing = Billing->new($db);
 foreach my $line (@$list) {
   if ($permissions{3}{1}) {
     #$UID, $session_id, $nas_id, $session_start_date, $session_start_time, $sum, $login
-    $delete = $html->button($_DEL, "index=$index$pages_qs&del=$line->[11]+$line->[9]+$line->[6]+$line->[1]+$line->[9]+$line->[0]", "$_DEL Session SESSION_ID $line->[9]?");
+    $delete = $html->button($_DEL, "index=$index$pages_qs&del=$line->[11]+$line->[9]+$line->[6]+$line->[1]+$line->[9]+$line->[0]", { MESSAGE => "$_DEL Session SESSION_ID $line->[9]?" });
    }
 
-  $table->addrow("<a href='$SELF_URL?index=11&UID=$line->[12]'>$line->[0]</a>", 
+  $table->addrow($html->button($line->[0], "index=11&UID=$line->[12]"), 
      $line->[1], $line->[2],  $line->[3],  
      $line->[4], 
      $line->[5], $line->[6],
      $line->[7], 
      "$line->[8] $test", 
-     "(<a href='$SELF_URL?index=$index&UID=$line->[12]&SESSION_ID=$line->[11]' title='Session Detail'>D</a>)", 
+     "(". $html->button('D', "index=$index&UID=$line->[12]&SESSION_ID=$line->[11]", { TITLE => 'Session Detail' }) .")", 
      $delete);
 }
 
@@ -2030,7 +2016,7 @@ if ($FORM{NAS_ID}){
 
 
   if(length($FORM{command})>0){
-    $nas->info({ NID => $FORM{NAS_ID}});
+    $nas->info({ NAS_ID => $FORM{NAS_ID}});
     my @commands = ();
  
     require 'Abills/nas.pl';
