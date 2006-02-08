@@ -225,8 +225,11 @@ sub del {
 sub action_add {
   my $self = shift;
   my ($uid, $actions, $attr) = @_;
-  $self->query($db, "INSERT INTO admin_actions (aid, ip, datetime, actions, uid) 
-    VALUES ('$self->{AID}', INET_ATON('$IP'), now(), '$actions', '$uid')", 'do');
+  
+  my $module = (defined($attr->{MODULE})) ? $attr->{MODULE} : '';
+  
+  $self->query($db, "INSERT INTO admin_actions (aid, ip, datetime, actions, uid, module) 
+    VALUES ('$self->{AID}', INET_ATON('$IP'), now(), '$actions', '$uid', '$attr->{MODULE}')", 'do');
   return $self;
 }
 

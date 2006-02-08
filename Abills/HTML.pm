@@ -313,11 +313,11 @@ $self->{header} .= qq{<!doctype html public "-//W3C//DTD HTML 3.2 Final//EN">
 
 $self->{header} .= $css;
 $self->{header} .= 
-"<script src=\"$JAVASCRIPT\" type=\"text/javascript\" language=\"javascript\"></script>".
+"<script src=\"$JAVASCRIPT\" type=\"text/javascript\" language=\"javascript\"></script>\n".
 q{ 
 <title>~AsmodeuS~ Billing System</title>
 </head>} .
-"<body bgcolor=$_COLORS[10] text=$_COLORS[9] link=$_COLORS[8]  vlink=$_COLORS[7] leftmargin=0 topmargin=0 marginwidth=0 marginheight=0>";
+"<body style='margin: 0' bgcolor=$_COLORS[10] text=$_COLORS[9] link=$_COLORS[8]  vlink=$_COLORS[7]>\n";
 
  return $self->{header};
 }
@@ -404,6 +404,7 @@ TABLE.border {
 
  return $css;
 }
+
 
 #**********************************************************
 # table
@@ -501,7 +502,7 @@ sub addrow {
   
   $self->{rows} .= "<tr bgcolor=$bg  onmouseover=\"setPointer(this, $row_number, 'over', '$bg', '$_COLORS[3]', '$_COLORS[0]');\" onmouseout=\"setPointer(this, $row_number, 'out', '$bg', '$_COLORS[3]', '$_COLORS[0]');\" onmousedown=\"setPointer(this, $row_number, 'click', '$bg', '$_COLORS[3]', '$_COLORS[0]');\">";
   foreach my $val (@row) {
-     $self->{rows} .= "<td $extra>$val</td>";
+     $self->{rows} .= "<td bgcolor=$bg $extra>$val</td>";
    }
   $self->{rows} .= "</tr>\n";
   return $self->{rows};
@@ -612,8 +613,8 @@ sub table_title  {
          	  $op="op=$get_op";
           }
 
-         $self->{table_title} .= "<a href='$SELF_URL?$op$qs&pg=$pg&sort=$i&desc=$desc'>".
-            "<img src='$IMG_PATH/$img' width=12 height=10 border=0 title=sort></a>";
+         $self->{table_title} .= "<a href=\"$SELF_URL?$op$qs&amp;pg=$pg&amp;sort=$i&amp;desc=$desc\">".
+            "<img src='$IMG_PATH/$img' width=12 height=10 border=0 alt='Sort' title=sort></a>";
        }
      else {
          $self->{table_title} .= "$line";
@@ -639,7 +640,7 @@ sub show  {
   $self->{show} .= "</table></td></tr></table>\n";
 
   if (defined($self->{pages})) {
- 	   $self->{show} =  '<p>'.$self->{pages} . $self->{show} . $self->{pages} .'</p>';
+ 	   $self->{show} =  '<br>'.$self->{pages} . $self->{show} . $self->{pages} .'<br>';
  	 } 
 
   return $self->{show};
@@ -651,14 +652,26 @@ sub show  {
 #**********************************************************
 sub button {
   my $self = shift;
-  my ($name, $params, $message, $attr)=@_;
+  my ($name, $params, $attr)=@_;
   my $ex_prams = (defined($attr->{ex_params})) ? $attr->{ex_params} : '';
+  my $ex_attr = '';
+  
+  $params = "$SELF_URL?$params";
+  $params = $attr->{JAVASCRIPT} if (defined($attr->{JAVASCRIPT}));
+  $params =~ s/ /%20/g;
+  $params =~ s/&/&amp;/g;
+  
 
-  my $button = "<A href='$SELF_URL?$params' ".
-  "onclick=\"return confirmLink(this, '$message')\">$name</a>";
+ 
+  
+  $ex_attr=" TITLE='$attr->{TITLE}'" if (defined($attr->{TITLE}));
+  my $message = (defined($attr->{MESSAGE})) ? "onclick=\"return confirmLink(this, '$attr->{MESSAGE}')\"" : '';
+
+
+  my $button = "<A href=\"$params\" $ex_attr $message>$name</a>";
+
   return $button;
 }
-
 
 #*******************************************************************
 # Show message box
@@ -718,7 +731,7 @@ sub pages {
  $begin = ($PG - $PAGE_ROWS * 3 < 0) ? 0 : $PG - $PAGE_ROWS * 3;
 
 for(my $i=$begin; ($i<=$count && $i < $PG + $PAGE_ROWS * 10); $i+=$PAGE_ROWS) {
-   $self->{pages} .= ($i == $PG) ? "<b>$i</b>:: " : "<a href='$SELF_URL?$argument&pg=$i'>$i</a>:: ";
+   $self->{pages} .= ($i == $PG) ? "<b>$i</b>:: " : "<a href='$SELF_URL?$argument&amp;pg=$i'>$i</a>:: ";
 }
  
  return $self->{pages};

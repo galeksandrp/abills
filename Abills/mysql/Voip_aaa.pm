@@ -325,7 +325,7 @@ else {
       reduction
    )
    values ('0', \"$RAD->{USER_NAME}\", $SESSION_START, UNIX_TIMESTAMP(), 
-      '$RAD->{CALLING_STATION_ID}', '$RAD->{CALLED_STATION_ID}', '$NAS->{NID}',
+      '$RAD->{CALLING_STATION_ID}', '$RAD->{CALLED_STATION_ID}', '$NAS->{NAS_ID}',
       INET_ATON('$RAD->{CLIENT_IP_ADDRESS}'),
       '$RAD->{H323_CONF_ID}',
       '$RAD->{H323_CALL_ORIGIN}',
@@ -515,7 +515,7 @@ my $filename;
               terminate_cause) 
         VALUES ('$self->{UID}', FROM_UNIXTIME($RAD->{SESSION_START}),  '$RAD->{ACCT_SESSION_TIME}', 
         '$RAD->{CALLING_STATION_ID}', '$RAD->{CALLED_STATION_ID}', 
-        '$NAS->{NID}', INET_ATON('$RAD->{CLIENT_IP_ADDRESS}'), '$RAD->{ACCT_SESSION_ID}', 
+        '$NAS->{NAS_ID}', INET_ATON('$RAD->{CLIENT_IP_ADDRESS}'), '$RAD->{ACCT_SESSION_ID}', 
         '$self->{TP_ID}', '$self->{BILL_ID}', '$Billing->{SUM}',
         '$RAD->{ACCT_TERMINATE_CAUSE}');", 'do');
 
@@ -536,7 +536,7 @@ my $filename;
   $self->query($db, "DELETE FROM voip_calls 
      WHERE acct_session_id='$RAD->{ACCT_SESSION_ID}' 
      and user_name=\"$RAD->{USER_NAME}\" 
-     and nas_id='$NAS->{NID}'
+     and nas_id='$NAS->{NAS_ID}'
      and conf_id='$self->{CONF_ID}';", 'do');
  
 }

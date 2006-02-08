@@ -124,7 +124,7 @@ else {
  
  if($r == 1){
     print "Reply-Message = \"$RAD_PAIRS->{'Reply-Message'}\"\n";
-    access_deny("$RAD->{USER_NAME}", "$RAD_PAIRS->{'Reply-Message'}", $nas->{NID});
+    access_deny("$RAD->{USER_NAME}", "$RAD_PAIRS->{'Reply-Message'}", $nas->{NAS_ID});
   }
  else {
    #Show pairs
@@ -147,7 +147,7 @@ else {
    $GT = sprintf(" GT: %2.5f", $gen_time);
   }
 
- log_print('LOG_INFO', "AUTH [$RAD->{USER_NAME}] NAS: $nas->{NID} ($RAD->{NAS_IP_ADDRESS})$GT");
+ log_print('LOG_INFO', "AUTH [$RAD->{USER_NAME}] NAS: $nas->{NAS_ID} ($RAD->{NAS_IP_ADDRESS})$GT");
  exit $r;
 }
 

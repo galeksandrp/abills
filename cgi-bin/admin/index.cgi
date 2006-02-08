@@ -203,14 +203,14 @@ my ($online_users, $online_count) = $admin->online();
 
 print "<table width=100%>
 <tr bgcolor=$_COLORS[3]><td colspan=2>
-<table width=100% border=0>
 <form action=$SELF_URL>
+<table width=100% border=0>
   <tr><th align=left>$_DATE: $DATE $TIME Admin: <a href='$SELF_URL?index=53'>$admin->{A_LOGIN}</a> / Online: <abbr title=\"$online_users\"><a href='$SELF_URL?index=50' title='$online_users'>Online: $online_count</a></abbr></th>
   <th align=right><input type=hidden name=index value=7><input type=hidden name=search value=y>
   Search: $SEL_TYPE <input type=text name=LOGIN_EXPR value='$FORM{LOGIN_EXPR}'> (<b><a href='#' onclick=\"window.open('help.cgi?index=$index','help',
 'height=550,width=450,resizable=0,scrollbars=yes,menubar=no, status=yes');\">?</a></b>)</th></tr>
-</form>
 </table>
+</form>
 </td></tr>\n";
 
 
@@ -234,15 +234,8 @@ if (defined($COOKIES{qm}) && $COOKIES{qm} ne '') {
     print "<th bgcolor=$color>";
     if (defined($menu_args{$line})) {
     	my $args = 'LOGIN_EXPR' if ($menu_args{$line} eq 'UID');
-#    	print "<a href=\"javascript:if(length){ var i;for(i=0;i<length;i++)".
-#            "{Q=frames[i].document.selection.createRange().text; if(Q){break;}}}".
-#            "else{Q=document.selection.createRange().text;}".
-#            "if(!Q)void(Q=prompt('Error',''));".
-#            "if(Q){Q=Q.substr(0,100);void(open('$SELF_URL?index=$line&$args='+Q));}\">$menu_names{$line}</a>";
-
- print "<a href=\"javascript: Q=prompt('$menu_names{$line}','');
-        this.location.href = '$SELF_URL?index=$line&$args=' + Q;\">$menu_names{$line}</a>";
-
+      print $html->button("$menu_names{$line}", '', 
+         { JAVASCRIPT => "javascript: Q=prompt('$menu_names{$line}',''); if (Q != null) {  Q='". "&$args='+Q;  }else{Q = '';} this.location.href='$SELF_URL?index=$line'+Q;" });
      }
     else {
       print "<a href='$SELF_URL?index=$line'>$menu_names{$line}</a>";
@@ -256,7 +249,7 @@ if (defined($COOKIES{qm}) && $COOKIES{qm} ne '') {
 }
 
 print "<tr><td valign=top width=18% bgcolor=$_COLORS[2] rowspan=2>
-<p>$menu_text</p>
+$menu_text
 </td><td bgcolor=$_COLORS[0] height=50>$navigat_menu</td></tr>
 <tr><td valign=top align=center>";
 
@@ -425,7 +418,7 @@ else {
 
   foreach my $line (@$list) {
     $table->addrow($line->[0],  $line->[1], $line->[2], "<a href='$SELF_URL?index=$index&COMPANY_ID=$line->[5]'>$line->[3]</a>", "$status[$line->[4]]",
-      "<a href='$SELF_URL?index=$index&COMPANY_ID=$line->[5]'>$_INFO</a>", $html->button($_DEL, "index=$index&del=$line->[5]", "$_DEL ?"));
+      "<a href='$SELF_URL?index=$index&COMPANY_ID=$line->[5]'>$_INFO</a>", $html->button($_DEL, "index=$index&del=$line->[5]", { MESSAGE => "$_DEL '$line->[0]'?" }));
    }
   print $table->show();
 
@@ -607,10 +600,10 @@ my $table = Abills::HTML->table( { width => '100%',
                                   } );
 
 foreach my $line (@$list) {
-  my $delete = $html->button($_DEL, "index=27$pages_qs&del=$line->[0]", "$_DEL ?"); 
+  my $delete = $html->button($_DEL, "index=27$pages_qs&del=$line->[0]", { MESSAGE => "$_DEL '$line->[0]'?" }); 
   $table->addrow("<b>$line->[0]</b>", "$line->[1]", "$line->[2]", 
-   "<a href='$SELF_URL?index=27&GID=$line->[0]&subf=11'>$line->[3]</a>", 
-   "<a href='$SELF_URL?index=27&GID=$line->[0]'>$_INFO</a>",
+   $html->button($line->[3], "index=27&GID=$line->[0]&subf=11"), 
+   $html->button($_INFO, "index=27&GID=$line->[0]"),
    $delete);
 }
 print $table->show();
@@ -1142,7 +1135,7 @@ my $table = Abills::HTML->table( { width => '100%',
                                    
                                   } );
 foreach my $line (@$list) {
-  my $delete = $html->button($_DEL, "index=$index$pages_qs&del=$line->[0]", "$_DEL ?"); 
+  my $delete = $html->button($_DEL, "index=$index$pages_qs&del=$line->[0]", { MESSAGE => "$_DEL '$line->[0]' ?" }); 
   $table->addrow("<b>$line->[0]</b>", "<a href='$SELF_URL?index=11&UID=$line->[7]'>$line->[1]</a>", $line->[2], $line->[3], 
    $line->[4], $line->[5], $line->[6], $delete);
 }
@@ -1223,7 +1216,7 @@ if(defined($attr->{TP})) {
   my $color="AAA000";
   foreach my $line (@$list) {
 
-    my $delete = $html->button($_DEL, "index=$index$pages_qs&del=$line->[0]", "$_DEL [$line->[0]] ?"); 
+    my $delete = $html->button($_DEL, "index=$index$pages_qs&del=$line->[0]", { MESSAGE => "$_DEL [$line->[0]] ?" }); 
     $color = sprintf("%06x", hex('0x'. $color) + 7000);
      
     #day, $hour|$end = color
@@ -1245,8 +1238,8 @@ if(defined($attr->{TP})) {
                   $table->td($line->[2]), 
                   $table->td($line->[3]), 
                   $table->td($line->[4]), 
-                  $table->td("<a href='$SELF_URL?index=$index$pages_qs&tt=$line->[0]'>$_TRAFFIC</a>"),
-                  $table->td("<a href='$SELF_URL?index=$index$pages_qs&chg=$line->[0]'>$_CHANGE</a>"),
+                  $table->td($html->button($_TRAFFIC, "index=$index$pages_qs&tt=$line->[0]")),
+                  $table->td($html->button($_CHANGE, "index=$index$pages_qs&chg=$line->[0]")),
                   $table->td($delete),
                   $table->td("&nbsp;", { bgcolor => $color, rowspan => ($line->[5] > 0) ? 2 : 1 })
       );
@@ -1271,8 +1264,8 @@ if(defined($attr->{TP})) {
            $line->[5], 
            $line->[6], 
            convert($line->[7], { text2html => yes  }),
-           "<a href=$SELF_URL?index=$index$pages_qs&tt=$TI_ID&chg=$line->[0]>$_CHANGE</a>",
-           $html->button($_DEL, "index=$index$pages_qs&tt=$TI_ID&del=$line->[0]", "$_DEL ?"));
+           $html->button($_CHANGE, "index=$index$pages_qs&tt=$TI_ID&chg=$line->[0]"),
+           $html->button($_DEL, "index=$index$pages_qs&tt=$TI_ID&del=$line->[0]", { MESSAGE => "$_DEL ?" } ));
         }
 
        my $table_traf = $table2->show();
@@ -1428,7 +1421,7 @@ my ($delete);
 foreach my $line (@$list) {
 	my ($m, $d)=split(/-/, $line->[0]);
 	$m--;
-  $delete = $html->button($_DEL, "index=75&del=$line->[0]", "$_DEL ?"); 
+  $delete = $html->button($_DEL, "index=75&del=$line->[0]", { MESSAGE => "$_DEL ?" }); 
   $table->addrow("$d $MONTHES[$m]", $line->[1], $delete);
   $hollidays{$m}{$d}='y';
 }
@@ -1604,10 +1597,11 @@ my $table = Abills::HTML->table( { width => '100%',
 
 my $list = $admin_form->list();
 foreach my $line (@$list) {
-  $table->addrow(@$line, "<a href='$SELF_URL?index=$index&subf=52&AID=$line->[0]'>$_PERMISSION</a>", 
-   "<a href='$SELF_URL?index=$index&subf=51&AID=$line->[0]'>$_LOG</a>",
-   "<a href='$SELF_URL?index=$index&subf=54&AID=$line->[0]'>$_PASSWD</a>",
-   "<a href='$SELF_URL?index=$index&AID=$line->[0]'>$_INFO</a>", $html->button($_DEL, "index=$index&del=$line->[0]", "$_DEL ?"));
+  $table->addrow(@$line, $html->button($_PERMISSION, "index=$index&subf=52&AID=$line->[0]"),
+   $html->button($_LOG, "index=$index&subf=51&AID=$line->[0]"),
+   $html->button($_PASSWD, "index=$index&subf=54&AID=$line->[0]"),
+   $html->button($_INFO, "index=$index&AID=$line->[0]"), 
+   $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL ?"} ));
 }
 print $table->show();
 
@@ -1730,7 +1724,7 @@ print "
 <td><select name=language>\n";
 while(my($k, $v) = each %LANG) {
   print "<option value='$k'";
-  print ' selected' if ($k eq $language);
+  print ' selected' if ($k eq $html->{language});
   print ">$v\n";	
 }
 print "</select></td></tr>
@@ -1743,6 +1737,7 @@ print "</select></td></tr>
  
 print "
 </table>
+<p>
 <table width=100%>
 <tr><td colspan=2>&nbsp;</td></tr>
 <tr><td>$_REFRESH (sec.):</td><td><input type=input name=REFRESH value='$REFRESH'></td></tr>
@@ -1751,12 +1746,12 @@ print "
 </td></tr></table>
 <p><input type=submit name=set value='$_SET'> 
 <input type=submit name=default value='$_DEFAULT'>
-</form>\n";
+</form></p>\n";
    
 my %profiles = ();
 $profiles{'Black'} = "#333333, #000000, #444444, #555555, #777777, #FFFFFF, #FFFFFF, #BBBBBB, #FFFFFF, #EEEEEE, #000000";
 $profiles{'Green'} = "#33AA44, #FFFFFF, #eeeeee, #dddddd, #E1E1E1, #FFFFFF, #FFFFFF, #000088, #0000A0, #000000, #FFFFFF";
-$profiles{'Ligth Green'} = "4BD10C, #FFFFFF, #eeeeee, #dddddd, #E1E1E1, #FFFFFF, #FFFFFF, #000088, #0000A0, #000000, #FFFFFF";
+$profiles{'Ligth Green'} = "#4BD10C, #FFFFFF, #eeeeee, #dddddd, #E1E1E1, #FFFFFF, #FFFFFF, #000088, #0000A0, #000000, #FFFFFF";
 $profiles{'мс'} = "#FCBB43, #FFFFFF, #eeeeee, #dddddd, #E1E1E1, #FFFFFF, #FFFFFF, #000088, #0000A0, #000000, #FFFFFF";
 $profiles{'Cisco'} = "#99CCCC, #FFFFFF, #FFFFFF, #669999, #669999, #FFFFFF, #FFFFFF, #003399, #003399, #000000, #FFFFFF";
 
@@ -1785,38 +1780,54 @@ sub form_nas {
   $nas->{LNG_ACTION}=$_ADD;
 
 
-if($FORM{nid}) {
-  $nas->info( { 
-  	NID => $FORM{nid},
-  	SECRETKEY => $conf{secretkey} 
-  	} );
+if($FORM{NAS_ID}) {
+  $nas->info( { NAS_ID => $FORM{NAS_ID}	} );
 
-print "<Table width=100% bgcolor=$_COLORS[2]>
-<tr><td>$_NAME: <b>$nas->{NAS_NAME}</b></td></tr>
-<tr><td>ID: $nas->{NID}</td></tr>
-<tr bgcolor=$_COLORS[3]><td>
-:: <a href='$SELF_URL?index=61&nid=$nas->{NID}'>IP POOLs</a> 
-:: <a href='$SELF_URL?index=60&nid=$nas->{NID}'>$_CHANGE</a>
-</td></tr>
-</table>\n";
+#---------------------------------------
 
-  if ($index == 61) {
-     form_ip_pools({ NAS => $nas });
-     return 0;  	
+  $pages_qs .= "&NAS_ID=$FORM{NAS_ID}&subf=$FORM{subf}";
+  $LIST_PARAMS{NAS_ID} = $FORM{NAS_ID};
+  %F_ARGS = ( NAS => $nas );
+  
+  $nas->{NAME_SEL} = "<form action=$SELF_URL METHOD=POST>
+   <input type=hidden name=index value=60>
+   <input type=hidden name=subf value='$FORM{subf}'>
+   <select name=NAS_ID>";
+  my $list = $nas->list({ %LIST_PARAMS });	
+  foreach my $line (@$list) {
+    $nas->{NAME_SEL} .= "<option value=$line->[0]";
+    $nas->{NAME_SEL} .= " selected" if ($line->[0] eq $FORM{NAS_ID});
+    $nas->{NAME_SEL} .= ">$line->[0]:$line->[1]\n";
    }
-  elsif ($FORM{change}) {
-  	$FORM{SECRETKEY}=$conf{secretkey};
-  	$nas->change({ %FORM });
+  $nas->{NAME_SEL} .= "</select><input type=submit name=show value='$_SHOW'></form>";
+  
+  func_menu({ 
+  	         'ID' =>   $nas->{NAS_ID}, 
+  	         $_NAME => $nas->{NAME_SEL}
+  	       }, 
+  	{ 
+  	 $_INFO          => ":NAS_ID=$nas->{NAS_ID}",
+     'IP Pools'      => "61:NAS_ID=$nas->{NAS_ID}",
+     $_STATS         => "62:NAS_ID=$nas->{NAS_ID}"
+  	 },
+  	{
+  		f_args => { %F_ARGS }
+  	 });
+
+  if ($FORM{subf}) {
+  	return 0;
+   }
+  elsif($FORM{change}) {
+    $nas->change({ %FORM });  
     if (! $nas->{errno}) {
-      message('info', $_INFO, "$_CHANGED '$nas->{NAS_NAME}' [$nas->{NID}]");
+       message('info', $_CHANGED, "$_CHANGED $nas->{NAS_ID}");
      }
    }
 
-  $nas->{ACTION}='change';
   $nas->{LNG_ACTION}=$_CHANGE;
+  $nas->{ACTION}='change';
  }
 elsif ($FORM{add}) {
-  $FORM{SECRETKEY}=$conf{secretkey};
   $nas->add({	%FORM	});
 
   if (! $nas->{errno}) {
@@ -1878,12 +1889,12 @@ my $table = Abills::HTML->table( { width => '100%',
 my $list = $nas->list({ %LIST_PARAMS });
 
 foreach my $line (@$list) {
-  my $delete = $html->button($_DEL, "index=60&del=$line->[0]", "$_DEL NAS $line->[2]?"); 
+  my $delete = $html->button($_DEL, "index=60&del=$line->[0]", { MESSAGE => "$_DEL NAS $line->[2]?" }); 
   $table->addrow($line->[0], $line->[1], $line->[2], 
     $line->[4], $line->[5], $auth_types[$line->[6]], 
     $status[$line->[7]],
-    "<a href='$SELF_URL?index=61&nid=$line->[0]'>IP POOLs</a>",
-    "<a href='$SELF_URL?index=60&nid=$line->[0]'>$_CHANGE</a>",
+    $html->button("IP POOLs", "index=61&NAS_ID=$line->[0]"),
+    $html->button("$_CHANGE", "index=60&NAS_ID=$line->[0]"),
     $delete);
 }
 print $table->show();
@@ -1901,7 +1912,6 @@ print $table->show();
 sub form_ip_pools {
 	my ($attr) = @_;
 	my $nas;
-  my ($pages_qs);
   
 if ($attr->{NAS}) {
 	$nas = $attr->{NAS};
@@ -1922,11 +1932,12 @@ if ($attr->{NAS}) {
        message('info', $_INFO, "$_DELETED");
      }
    }
-  $pages_qs = "&nid=$nas->{NID}";
+  $pages_qs = "&NAS_ID=$nas->{NAS_ID}";
 
   Abills::HTML->tpl_show(templates('form_ip_pools'), $nas);
  }
-elsif($FORM{nid}) {
+elsif($FORM{NAS_ID}) {
+  $FORM{subf}=$index;
   form_nas();
   return 0;
 }
@@ -1951,8 +1962,8 @@ my $table = Abills::HTML->table( { width => '100%',
 my $list = $nas->ip_pools_list({ %LIST_PARAMS });	
 
 foreach my $line (@$list) {
-  my $delete = $html->button($_DEL, "index=61$pages_qs&del=$line->[6]", "$_DEL NAS $line->[4]?"); 
-  $table->addrow("<a href='$SELF_URL?index=60&nid=$line->[7]'>$line->[0]</a>", $line->[4], $line->[5], 
+  my $delete = $html->button($_DEL, "index=61$pages_qs&del=$line->[6]", { MESSAGE => "$_DEL NAS $line->[4]?" }); 
+  $table->addrow($html->button($line->[0], "index=60&NAS_ID=$line->[7]"), $line->[4], $line->[5], 
     $line->[3],  $delete);
 }
 print $table->show();
@@ -1962,7 +1973,22 @@ print $table->show();
 # form_nas_stats()
 #**********************************************************
 sub form_nas_stats {
-my $nas = Nas->new($db, \%conf);	
+  my ($attr) = @_;
+  my $nas;
+
+if ($attr->{NAS}) {
+	$nas = $attr->{NAS};
+
+ }
+elsif($FORM{NAS_ID}) {
+  $FORM{subf}=$index;
+  form_nas();
+  return 0;
+}
+else {
+	$nas = Nas->new($db, \%conf);	
+}
+
 
 my $table = Abills::HTML->table( { width => '100%',
                                    border => 1,
@@ -1972,7 +1998,7 @@ my $table = Abills::HTML->table( { width => '100%',
 my $list = $nas->stats({ %LIST_PARAMS });	
 
 foreach my $line (@$list) {
-  $table->addrow("<a href='$SELF_URL?index=60&nid=$line->[7]'>$line->[0]</a>", 
+  $table->addrow($html->button($line->[0], "index=60&NAS_ID=$line->[7]"), 
      $line->[1], $line->[2],  $line->[3],  $line->[4], $line->[5], $line->[6] );
 }
 
@@ -2105,25 +2131,25 @@ $type='DATE';
 
 if ($FORM{MONTH}) {
   $LIST_PARAMS{MONTH}=$FORM{MONTH};
-	$pages_qs="&MONTH=$LIST_PARAMS{MONTH}";
+	$pages_qs="&amp;MONTH=$LIST_PARAMS{MONTH}";
  }
 elsif($FORM{allmonthes}) {
 	$type='MONTH';
-	$pages_qs="&allmonthes=y";
+	$pages_qs="&amp;allmonthes=y";
  }
 else {
 	($y, $m, $d)=split(/-/, $DATE, 3);
 	$LIST_PARAMS{MONTH}="$y-$m";
-	$pages_qs="&MONTH=$LIST_PARAMS{MONTH}";
+	$pages_qs="&amp;MONTH=$LIST_PARAMS{MONTH}";
 }
 
 if ($FORM{GID}) {
 	$LIST_PARAMS{GID}=$FORM{GID};
-  $pages_qs.="&GID=$FORM{GID}";
+  $pages_qs.="&amp;GID=$FORM{GID}";
 }
 
-$fees->{GROUPS_SEL} = sel_groups();
-Abills::HTML->tpl_show(templates('groups_sel'), $fees);
+$user->{GROUPS_SEL} = sel_groups();
+Abills::HTML->tpl_show(templates('groups_sel'), $user);
 
 
 
@@ -2133,8 +2159,7 @@ if (defined($FORM{DATE})) {
   ($y, $m, $d)=split(/-/, $FORM{DATE}, 3);	
 
   $LIST_PARAMS{DATE}="$FORM{DATE}";
-  $pages_qs .="&DATE=$LIST_PARAMS{DATE}";
-
+  $pages_qs .="&amp;DATE=$LIST_PARAMS{DATE}";
 
   if (defined($attr->{EX_PARAMS})) {
    	my $EP = $attr->{EX_PARAMS};
@@ -2144,7 +2169,7 @@ if (defined($FORM{DATE})) {
         $LIST_PARAMS{EX_PARAMS}=$k;
      	 }
      	else {
-     	  $EX_PARAMS .= "<a href='$SELF_URL?index=$index$pages_qs&EX_PARAMS=$k'>$v</a> ";
+     	  $EX_PARAMS .= "<a href='$SELF_URL?index=$index$pages_qs&amp;EX_PARAMS=$k'>$v</a> ";
      	 }
 	  }
   
@@ -2154,7 +2179,7 @@ if (defined($FORM{DATE})) {
 
   my $days = '';
   for ($i=1; $i<=31; $i++) {
-     $days .= ($d == $i) ? "<b>$i </b>" : sprintf("<a href='$SELF_URL?index=$index&DATE=%d-%02.f-%02.f&EX_PARAMS=$FORM{EX_PARAMS}'>%d</a> ", $y, $m, $i, $i);
+     $days .= ($d == $i) ? "<b>$i </b>" : sprintf("<a href='$SELF_URL?index=$index&amp;DATE=%d-%02.f-%02.f&EX_PARAMS=$FORM{EX_PARAMS}'>%d</a> ", $y, $m, $i, $i);
    }
   
   
@@ -2166,7 +2191,7 @@ if (defined($FORM{DATE})) {
     my(undef, $h)=split(/ /, $FORM{HOUR}, 2);
     my $hours = '';
     for (my $i=0; $i<24; $i++) {
-    	$hours .= ($h == $i) ? "<b>$i </b>" : sprintf("<a href='$SELF_URL?index=$index&HOUR=%d-%02.f-%02.f+%02.f&EX_PARAMS=$FORM{EX_PARAMS}$pages_qs'>%d</a> ", $y, $m, $d, $i, $i);
+    	$hours .= ($h == $i) ? "<b>$i </b>" : sprintf("<a href='$SELF_URL?index=$index&amp;HOUR=%d-%02.f-%02.f+%02.f&amp;EX_PARAMS=$FORM{EX_PARAMS}$pages_qs'>%d</a> ", $y, $m, $d, $i, $i);
      }
 
  	  $LIST_PARAMS{HOUR}="$FORM{HOUR}";
@@ -2212,7 +2237,7 @@ if (defined($FORM{DATE})) {
                                       });
 
   foreach my $line (@$list) {
-   $table_fees->addrow("<b>$line->[0]</b>", "<a href='$SELF_URL?index=11&subf=3&DATE=$line->[0]&UID=$line->[8]'>$line->[1]</a>",  
+   $table_fees->addrow("<b>$line->[0]</b>", "<a href='$SELF_URL?index=11&amp;subf=3&amp;DATE=$line->[0]&amp;UID=$line->[8]'>$line->[1]</a>",  
       $line->[3], $line->[4],  "$line->[5]", "$line->[6]", "$line->[7]");
     }
  }   
@@ -2228,7 +2253,7 @@ else{
 
   $list = $fees->reports({ %LIST_PARAMS });
   foreach my $line (@$list) {
-    $table_fees->addrow("<a href='$SELF_URL?index=$index&$type=$line->[0]$pages_qs'>$line->[0]</a>", $line->[1], "<b>$line->[2]</b>" );
+    $table_fees->addrow("<a href='$SELF_URL?index=$index&amp;$type=$line->[0]$pages_qs'>$line->[0]</a>", $line->[1], "<b>$line->[2]</b>" );
    }
 
 
@@ -2268,7 +2293,7 @@ if (defined($FORM{DATE})) {
                                       });
 
   foreach my $line (@$list) {
-   $table->addrow("<b>$line->[0]</b>", "<a href='$SELF_URL?index=11&subf=3&DATE=$line->[0]&UID=$line->[8]'>$line->[1]</a>",  
+   $table->addrow("<b>$line->[0]</b>", "<a href='$SELF_URL?index=11&amp;subf=3&amp;DATE=$line->[0]&amp;UID=$line->[8]'>$line->[1]</a>",  
       $line->[3], $line->[4],  "$line->[5]", "$line->[6]", "$line->[7]");
     }
  }   
@@ -2283,7 +2308,7 @@ else{
 
   $list = $payments->reports({ %LIST_PARAMS });
   foreach my $line (@$list) {
-    $table->addrow("<a href='$SELF_URL?index=$index&$type=$line->[0]$pages_qs'>$line->[0]</a>", $line->[1], "<b>$line->[2]</b>" );
+    $table->addrow("<a href='$SELF_URL?index=$index&amp;$type=$line->[0]$pages_qs'>$line->[0]</a>", $line->[1], "<b>$line->[2]</b>" );
    }
 
 
@@ -2745,7 +2770,7 @@ my $table = Abills::HTML->table( { width => '100%',
 $pages_qs .= "&subf=2" if (! $FORM{subf});
 
 foreach my $line (@$list) {
-  my $delete = ($permissions{1}{2}) ?  $html->button($_DEL, "index=$index&del=$line->[0]&UID=$line->[10]$pages_qs", "$_DEL ?") : ''; 
+  my $delete = ($permissions{1}{2}) ?  $html->button($_DEL, "index=$index&del=$line->[0]&UID=$line->[10]$pages_qs", { MESSAGE => "$_DEL '$line->[0]' ?" }) : ''; 
   $table->addrow("<b>$line->[0]</b>", "<a href='$SELF_URL?index=11&UID=$line->[10]'>$line->[1]</a>", $line->[2], 
    $line->[3], $line->[4],  "$line->[5]", "$line->[6]", "$line->[7]", $PAYMENT_METHODS[$line->[8]], "$line->[9]", $delete);
 }
@@ -2834,8 +2859,9 @@ my $table = Abills::HTML->table( { width => '640',
 
 my ($list, $total) = $finance->exchange_list( {%LIST_PARAMS} );
 foreach my $line (@$list) {
-  $table->addrow($line->[0], $line->[1], $line->[2], $line->[3], "<a href='$SELF_URL?index=65&chg=$line->[4]'>$_CHANGE</a>", 
-     $html->button($_DEL, "index=65&del=$line->[4]", "$_DEL ?"));
+  $table->addrow($line->[0], $line->[1], $line->[2], $line->[3], 
+     $html->button($_CHANGE, "index=65&chg=$line->[4]"), 
+     $html->button($_DEL, "index=65&del=$line->[4]", { MESSAGE => "$_DEL '$line->[0]'?" } ));
 }
 print $table->show();
 }
@@ -2942,9 +2968,10 @@ my $table = Abills::HTML->table( { width => '100%',
 
 $pages_qs .= "&subf=2" if (! $FORM{subf});
 foreach my $line (@$list) {
-  my $delete = ($permissions{2}{2}) ?  $html->button($_DEL, "index=$index&del=$line->[0]&UID=$line->[8]$pages_qs", "$_DEL ?") : ''; 
+  my $delete = ($permissions{2}{2}) ?  $html->button($_DEL, "index=$index&del=$line->[0]&UID=$line->[8]$pages_qs", 
+   { MESSAGE => "$_DEL ?" }) : ''; 
 
-  $table->addrow("<b>$line->[0]</b>", "<a href='$SELF_URL?index=11&UID=$line->[8]'>$line->[1]</a>", $line->[2], 
+  $table->addrow("<b>$line->[0]</b>", $html->button($line->[1], "index=11&UID=$line->[8]"), $line->[2], 
    $line->[3], $line->[4],  "$line->[5]", "$line->[6]", "$line->[7]", $delete);
 }
 
@@ -3107,9 +3134,9 @@ my $table = Abills::HTML->table( { width => '100%',
                                   } );
 
 foreach my $line (@$list) {
-  my $delete = ($permissions{4}{3}) ?  $html->button($_DEL, "index=$index&del=$line->[13]", "$_DEL ?") : '-'; 
+  my $delete = ($permissions{4}{3}) ?  $html->button($_DEL, "index=$index&del=$line->[13]", { MESSAGE =>  "$_DEL [$line->[13]]?" }) : '-'; 
   $table->addrow("<b>$line->[0]</b>", $line->[1], $line->[2], 
-    $line->[3],  $line->[4],  "<a href='$SELF_URL?index=11&UID=$line->[11]'>$line->[5]</a>", 
+    $line->[3],  $line->[4],  $html->button($line->[5], "index=11&UID=$line->[11]"), 
     "$line->[6]", "$line->[7]", "$line->[8]", "$line->[9]", "$line->[10]", $delete);
 }
 

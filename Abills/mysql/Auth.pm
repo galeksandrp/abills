@@ -156,15 +156,15 @@ if ($self->{DISABLE}) {
  if ($self->{NAS} > 0) {
    my $sql;
    if ($self->{NAS} == 1) {
-      $sql = "SELECT un.uid FROM users_nas un WHERE un.uid='$self->{UID}' and un.nas_id='$NAS->{NID}'";
+      $sql = "SELECT un.uid FROM users_nas un WHERE un.uid='$self->{UID}' and un.nas_id='$NAS->{NAS_ID}'";
      }
    else {
-      $sql = "SELECT nas_id FROM tp_nas WHERE tp_id='$self->{TP_ID}' and nas_id='$NAS->{NID}'";
+      $sql = "SELECT nas_id FROM tp_nas WHERE tp_id='$self->{TP_ID}' and nas_id='$NAS->{NAS_ID}'";
      }
 
    $self->query($db, "$sql");
    if ($self->{TOTAL} < 1) {
-     $RAD_PAIRS->{'Reply-Message'}="You are not authorized to log in $NAS->{NID} ($RAD->{NAS_IP_ADDRESS})";
+     $RAD_PAIRS->{'Reply-Message'}="You are not authorized to log in $NAS->{NAS_ID} ($RAD->{NAS_IP_ADDRESS})";
      return 1, $RAD_PAIRS;
     }
   }
@@ -321,13 +321,13 @@ foreach my $line (@periods) {
    $RAD_PAIRS->{'Framed-IP-Address'} = "$self->{IP}";
   }
  else {
-   my $ip = $self->get_ip($NAS->{NID}, "$RAD->{NAS_IP_ADDRESS}");
+   my $ip = $self->get_ip($NAS->{NAS_ID}, "$RAD->{NAS_IP_ADDRESS}");
    if ($ip eq '-1') {
-     $RAD_PAIRS->{'Reply-Message'}="Rejected! There is no free IPs in address pools ($NAS->{NID})";
+     $RAD_PAIRS->{'Reply-Message'}="Rejected! There is no free IPs in address pools ($NAS->{NAS_ID})";
      return 1, $RAD_PAIRS;
     }
    elsif($ip eq '0') {
-     #$RAD_PAIRS->{'Reply-Message'}="$self->{errstr} ($NAS->{NID})";
+     #$RAD_PAIRS->{'Reply-Message'}="$self->{errstr} ($NAS->{NAS_ID})";
      #return 1, $RAD_PAIRS;
     }
    else {

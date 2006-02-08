@@ -102,8 +102,8 @@ sub info {
    	 $WHERE .= " and nas_identifier=''";
     }
   }
- elsif(defined($attr->{NID})) {
-   $WHERE = "id='$attr->{NID}'";
+ elsif(defined($attr->{NAS_ID})) {
+   $WHERE = "id='$attr->{NAS_ID}'";
   }
 
 
@@ -125,7 +125,7 @@ $self->query($db, "SELECT id, name, nas_identifier, descr, ip, nas_type, auth_ty
 
  my $a_ref = $self->{list}->[0];
  
- ( $self->{NID},
+ ( $self->{NAS_ID},
    $self->{NAS_NAME}, 
    $self->{NAS_INDENTIFIER}, 
    $self->{NAS_DESCRIBE}, 
@@ -158,7 +158,7 @@ sub change {
  my $CHANGES_LOG = "NAS:";
 
 
- my %FIELDS = (NID => 'id', 
+ my %FIELDS = (NAS_ID => 'id', 
   NAS_NAME => 'name', 
   NAS_INDENTIFIER => 'nas_identifier', 
   NAS_DESCRIBE => 'descr', 
@@ -173,7 +173,7 @@ sub change {
   NAS_DISABLE => 'disable');
 
 
- my $OLD = $self->info({ NID => $self->{NID} } );
+ my $OLD = $self->info({ NAS_ID => $self->{NAS_ID} } );
 
  while(my($k, $v)=each(%DATA)) {
     if ($OLD->{$k} ne $DATA{$k}){
@@ -195,10 +195,10 @@ if ($CHANGES_QUERY eq '') {
 
   chop($CHANGES_QUERY);
   $self->query($db, "UPDATE nas SET $CHANGES_QUERY
-    WHERE id='$self->{NID}'", 'do');
+    WHERE id='$self->{NAS_ID}'", 'do');
 #  $admin->action_add(0, "$CHANGES_LOG");
 
-  $self->info({ NID => $self->{NID} });
+  $self->info({ NAS_ID => $self->{NAS_ID} });
   
   return $self;
 }
@@ -250,7 +250,7 @@ sub ip_pools_list {
 # my $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
 
  
- my $WHERE = (defined($self->{NID})) ? "and pool.nas='$self->{NID}'" : '' ;
+ my $WHERE = (defined($self->{NAS_ID})) ? "and pool.nas='$self->{NAS_ID}'" : '' ;
 
  $self->query($db, "SELECT nas.name, pool.ip, pool.ip + pool.counts, pool.counts,
     INET_NTOA(pool.ip), INET_NTOA(pool.ip + pool.counts), pool.id, pool.nas
@@ -273,7 +273,7 @@ sub ip_pools_add {
  my %DATA = $self->get_data($attr); 
  
  $self->query($db, "INSERT INTO ippools (nas, ip, counts) 
-   VALUES ('$self->{NID}', INET_ATON('$DATA{NAS_IP_SIP}'), '$DATA{NAS_IP_COUNT}')", 'do');
+   VALUES ('$self->{NAS_ID}', INET_ATON('$DATA{NAS_IP_SIP}'), '$DATA{NAS_IP_COUNT}')", 'do');
  return 0;	
 }
 
@@ -299,17 +299,20 @@ sub ip_pools_del {
 sub stats {
  my $self = shift;
  my ($attr) = @_;
- 
- my $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
- my $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
 
+ my $WHERE = "WHERE date_format(start, '%Y-%m')=date_format(curdate(), '%Y-%m')";
+ 
+ if(defined($attr->{NAS_ID})) {
+   $WHERE .= "and id='$attr->{NAS_ID}'";
+  }
+ 
  $self->query($db, "select n.name, l.port_id, count(*),
    if(date_format(max(l.start), '%Y-%m-%d')=curdate(), date_format(max(l.start), '%H-%i-%s'), max(l.start)),
    SEC_TO_TIME(avg(l.duration)), SEC_TO_TIME(min(l.duration)), SEC_TO_TIME(max(l.duration)),
    l.nas_id
    FROM log l
    LEFT JOIN nas n ON (n.id=l.nas_id)
-   WHERE date_format(start, '%Y-%m')=date_format(curdate(), '%Y-%m')
+   $WHERE
    GROUP BY l.nas_id, l.port_id 
    ORDER BY $SORT $DESC;");
 

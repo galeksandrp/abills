@@ -373,8 +373,8 @@ my $table = Abills::HTML->table( { width      => '100%',
 my ($delete, $change);
 foreach my $line (@$list) {
   if ($permissions{4}{1}) {
-    $delete = $html->button($_DEL, "index=$index&del=$line->[0]", "$_DEL ?"); 
-    $change = "<a href='$SELF_URL?index=$index&TP_ID=$line->[0]'>$_INFO</a>";
+    $delete = $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL '$line->[0]'?" }); 
+    $change = $html->button($_INFO, "index=$index&TP_ID=$line->[0]");
    }
   
   if($FORM{TP_ID} eq $line->[0]) {
@@ -384,9 +384,10 @@ foreach my $line (@$list) {
   	undef($table->{rowcolor});
    }
   
-  $table->addrow("<b>$line->[0]</b>", "<a href='$SELF_URL?index=$index&TP_ID=$line->[0]'>$line->[1]</a>", 
+  $table->addrow("<b>$line->[0]</b>", 
+   $html->button($line->[1], "?index=$index&TP_ID=$line->[0]"),
    $bool_vals[$line->[2]], $bool_vals[$line->[3]], $Payment_Types[$line->[4]], $line->[5], $line->[6], $line->[7], $line->[8],
-   "<a href='$SELF_URL?index=". ($index+2) ."&subf=73&TP_ID=$line->[0]'>$_INTERVALS</a>",
+   $html->button($_INTERVALS, "index=". ($index+2) ."&subf=73&TP_ID=$line->[0]"),
    $change,
    $delete);
 }
@@ -488,8 +489,8 @@ elsif($FORM{zap}) {
   	                NAS_ID => $nas->{NID} });  
   
   if ($sessions->{TOTAL} < 1) {
-    $message .= "<p align=center>[<a href='$SELF?index=$index&tolog=$acct_session_id&nas_id=$nas_id&nas_port_id=$nas_port_id'>Add To Log</a>]
-        [<a href='$SELF?index=$index&del=$acct_session_id&nas_id=$nas_id&nas_port_id=$nas_port_id'>$_DEL</a>]</p>\n";
+    $message .= "<p align=center>[<a href='$SELF?index=$index&amp;tolog=$acct_session_id&amp;nas_id=$nas_id&amp;nas_port_id=$nas_port_id'>Add To Log</a>]
+        [<a href='$SELF?index=$index&del=$acct_session_id&amp;nas_id=$nas_id&amp;nas_port_id=$nas_port_id'>$_DEL</a>]</p>\n";
    }
   else {
   	$message .= "$_EXIST";
@@ -583,7 +584,7 @@ if($FORM{ZAPED}) {
  } 
 else {
  	$sessions->online( { ZAPED => 'yes' } );	
- 	$form_link = "<a href='$SELF_URL?index=$index&ZAPED=yes'>$_ZAPED</a> ($sessions->{TOTAL})";
+ 	$form_link = "<a href='$SELF_URL?index=$index&amp;ZAPED=yes'>$_ZAPED</a> ($sessions->{TOTAL})";
 }
 
 
@@ -622,15 +623,15 @@ foreach my $nas_row (@$nas_list) {
     elsif ($line->[9] == 3)                                  { $bg='#FF0000';    }
     else {  $bg = ($bg eq $_COLORS[1]) ? $_COLORS[2] : $_COLORS[1];    }
 
-    my $zap = "(<a href='$SELF_URL?index=$index&zap=$nas_row->[0]+$line->[2]+$line->[11]' title='Hangup'>Z</A>)";
-    my $hangup = "(<a href='$SELF_URL?index=$index&hangup=$nas_row->[0]+$line->[2]+$line->[11]+$line->[0]' title='Hangup'>H</A>)";
+    my $zap = "(<a href=\"$SELF_URL?index=$index&amp;zap=$nas_row->[0]+$line->[2]+$line->[11]\" title='Hangup'>Z</A>)";
+    my $hangup = "(<a href=\"$SELF_URL?index=$index&amp;hangup=$nas_row->[0]+$line->[2]+$line->[11]+$line->[0]\" title='Hangup'>H</A>)";
     my $user_info =  "$_FIO: $line->[1]\n$_PHONE: $line->[12]\n$_VARIANT: $line->[13]\n$_DEPOSIT: $line->[14]\n".
-     "$_CREDIT: $line->[15]\n$_SPEED: $line->[16]\nSESSION_ID: $line->[11]\nCID: $line->[17]\nCONNECT_INFO: $line->[18]'";
+     "$_CREDIT: $line->[15]\n$_SPEED: $line->[16]\nSESSION_ID: $line->[11]\nCID: $line->[17]\nCONNECT_INFO: $line->[18]";
 
-    $table->addrow("<a href='$SELF_URL?index=11&UID=$line->[10]' title='$user_info'>$line->[0]</a>", 
+    $table->addrow("<a href=\"$SELF_URL?index=11&amp;UID=$line->[10]\" title='$user_info'>$line->[0]</a>", 
       $line->[1], $line->[2],  $line->[3],  $line->[4], int2byte($line->[5]), int2byte($line->[6]), 
       int2byte($line->[7]), int2byte($line->[8]),
-     "(<a href='$SELF_URL?index=$index&ping=$line->[3]'>P</a>)",
+     "(<a href='$SELF_URL?index=$index&amp;ping=$line->[3]'>P</a>)",
      "$zap",
      "$hangup");
   }
@@ -713,22 +714,24 @@ my $Billing = Billing->new($db);
 
 foreach my $line (@$list) {
   if ($permissions{3}{1}) {
-    $delete = $html->button($_DEL, "index=". $index ."&$pages_qs&del=$line->[12]+$line->[11]+$line->[7]+$line->[1]+$line->[9]+$line->[0]", "$_DEL Session SESSION_ID $line->[11]?");
+    $delete = $html->button($_DEL, "index=". $index ."$pages_qs&del=$line->[12]+$line->[11]+$line->[7]+$line->[1]+$line->[9]+$line->[0]", 
+       { MESSAGE => "$_DEL Session SESSION_ID $line->[11]?" }
+      );
    }
 
-  my($UID, 
-     $SUM, 
-     $BILL_ID, 
-     $TARIF_PLAN, 
-     $TIME_TARIF, 
-     $TRAF_TARIF) = $Billing->session_sum("$line->[0]", 
-                                            $line->[13], 
-                                            $line->[14], 
-                                            {  OUTBYTE  =>  $line->[4],
-                                               INBYTE   =>  $line->[5],
-                                               OUTBYTE2 =>  $line->[15],
-                                               INBYTE2  =>  $line->[16]
-                                             });
+#  my($UID, 
+#     $SUM, 
+#     $BILL_ID, 
+#     $TARIF_PLAN, 
+#     $TIME_TARIF, 
+#     $TRAF_TARIF) = $Billing->session_sum("$line->[0]", 
+#                                            $line->[13], 
+#                                            $line->[14], 
+#                                            {  OUTBYTE  =>  $line->[4],
+#                                               INBYTE   =>  $line->[5],
+#                                               OUTBYTE2 =>  $line->[15],
+#                                               INBYTE2  =>  $line->[16]
+#                                             });
   
 # = $Billing->session_sum("$RAD->{USER_NAME}", 
 #                                                 $RAD->{SESSION_START}, 
@@ -736,22 +739,25 @@ foreach my $line (@$list) {
 #                                                 $RAD);
 #
   
-  $SUM = sprintf("%.6f", $SUM);
-  my $n = ($SUM != $line->[9])  ? '!!!' : '';
-  my $test = "<br>$n <b>$SUM</b>";
+  $SUM = ''; #sprintf("%.6f", $SUM);
+  #my $n = ($SUM != $line->[9])  ? '!!!' : '';
+  #my $test = "<br>$n <b>$SUM</b>";
 #  , 
 #     $BILL_ID, 
 #     $TARIF_PLAN, 
 #     $TIME_TARIF, 
 #     $TRAF_TARIF\n";
 
-  $table->addrow("<a href='$SELF_URL?index=11&UID=$line->[12]'>$line->[0]</a>", 
+  $table->addrow(
+     $html->button("$line->[0]", "index=11&UID=$line->[12]"),
      $line->[1], $line->[2],  $line->[3],  
      int2byte($line->[4]), 
      int2byte($line->[5]), $line->[6],
      $line->[7], $line->[10], 
      "$line->[9] $test", 
-     "(<a href='$SELF_URL?index=$index&UID=$line->[12]&SESSION_ID=$line->[11]' title='Session Detail'>D</a>)", 
+     "(". 
+        $html->button("D", "index=$index&UID=$line->[12]&SESSION_ID=$line->[11]", { TITLE => "$_DETAIL" } )
+      . ")", 
      $delete);
 }
 

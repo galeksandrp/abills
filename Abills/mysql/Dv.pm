@@ -21,6 +21,7 @@ use main;
 
 my $uid;
 
+my $MODULE='Dv';
 
 my %SEARCH_PARAMS = (TARIF_PLAN => 0, 
    SIMULTANEONSLY => 0, 
@@ -156,7 +157,7 @@ sub add {
   return $self if ($self->{errno});
   
  
-  $admin->action_add($DATA{UID}, "ADDED");
+  #$admin->action_add($DATA{UID}, "ADDED");
   return $self;
 }
 
@@ -188,6 +189,9 @@ sub change {
                    OLD_INFO     => $self->info($attr->{UID}),
                    DATA         => $attr
                   } );
+
+
+#  $admin->action_add($DATA{UID}, "CHANGE", { MODULE => $MODULE });
 
   return $self->{result};
 }

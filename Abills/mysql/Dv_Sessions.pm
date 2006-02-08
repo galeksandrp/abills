@@ -667,8 +667,6 @@ sub reports {
  my $date = '';
 
 
-
-
  
  if (defined($attr->{MONTH})) {
  	 push @WHERE_RULES, "date_format(l.start, '%Y-%m')='$attr->{MONTH}'";

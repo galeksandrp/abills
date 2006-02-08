@@ -277,9 +277,9 @@ elsif ($tpl_name eq 'form_nas') {
 return qq{
 <form action=$SELF_URL METHOD=post>
 <input type=hidden name=index value=60>
-<input type=hidden name=nid value=%NID%>
+<input type=hidden name=NAS_ID value=%NAS_ID%>
 <table>
-<tr><td>ID</td><td>%NID%</td></tr>
+<tr><td>ID</td><td>%NAS_ID%</td></tr>
 <tr><td>IP</td><td><input type=text name=NAS_IP value='%NAS_IP%'></td></tr>
 <tr><td>$_NAME:</td><td><input type=text name=NAS_NAME value="%NAS_NAME%"></td></tr>
 <tr><td>Radius NAS-Identifier:</td><td><input type=text name=NAS_INDENTIFIER value="%NAS_INDENTIFIER%"></td></tr>
@@ -407,7 +407,7 @@ elsif ($tpl_name eq 'form_ip_pools') {
 return qq{
 <form action=$SELF_URL METHOD=post>
 <input type=hidden name=index value=61>
-<input type=hidden name=nid value=%NID%>
+<input type=hidden name=NAS_ID value=%NAS_ID%>
 <table>
 <tr><td>FIRST IP:</td><td><input type=text name=NAS_IP_SIP value='%NAS_IP_SIP%'></td></tr>
 <tr><td>COUNT:</td><td><input type=text name=NAS_IP_COUNT value='%NAS_IP_COUNT%'></td></tr>
@@ -435,7 +435,7 @@ return qq{
 <form action=$SELF_URL METHOD=POST>
 <input type=hidden name=index value=$index>
 <TABLE width=100% cellspacing=0 cellpadding=0 border=0>
-<TR><TD bgcolor=$_BG4>
+<TR><TD bgcolor=$_COLORS[1]>
 <TABLE width=100% cellspacing=1 cellpadding=0 border=0>
 <tr><td>$_GROUP:</td><td>%GROUPS_SEL% <input type=submit name=SHOW value='$_SHOW'></td></tr>
 </table>

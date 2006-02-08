@@ -76,7 +76,7 @@ if ($acct_status_type == 1) {
      INET_ATON('$RAD->{FRAMED_IP_ADDRESS}'), 
     '$RAD->{CALLING_STATION_ID}', 
     '$RAD->{CONNECT_INFO}', 
-    '$NAS->{NID}' );";
+    '$NAS->{NAS_ID}' );";
 
 
   $self->query($db, "$sql", 'do');
@@ -136,7 +136,7 @@ my $v = `echo "$self->{UID},
         bill_id,
         terminate_cause) 
         VALUES ('$self->{UID}', FROM_UNIXTIME($RAD->{SESSION_START}), '$self->{TARIF_PLAN}', '$RAD->{ACCT_SESSION_TIME}', 
-        '$RAD->{OUTBYTE}', '$RAD->{INBYTE}', '$self->{TIME_TARIF}', '$self->{TRAF_TARIF}', '$self->{SUM}', '$NAS->{NID}',
+        '$RAD->{OUTBYTE}', '$RAD->{INBYTE}', '$self->{TIME_TARIF}', '$self->{TRAF_TARIF}', '$self->{SUM}', '$NAS->{NAS_ID}',
         '$RAD->{NAS_PORT}', INET_ATON('$RAD->{FRAMED_IP_ADDRESS}'), '$RAD->{CALLING_STATION_ID}',
         '$RAD->{OUTBYTE2}', '$RAD->{INBYTE2}',  \"$RAD->{ACCT_SESSION_ID}\", 
         '$self->{BILL_ID}',
@@ -159,7 +159,7 @@ my $v = `echo "$self->{UID},
 #  $self->{debug}=1;
   $self->query($db, "DELETE FROM calls WHERE acct_session_id=\"$RAD->{ACCT_SESSION_ID}\" 
      and user_name=\"$RAD->{USER_NAME}\" 
-     and nas_id='$NAS->{NID}';", 'do');
+     and nas_id='$NAS->{NAS_ID}';", 'do');
      
 }
 #Alive status 3
@@ -196,7 +196,7 @@ elsif($acct_status_type eq 3) {
    WHERE
     acct_session_id=\"$RAD->{ACCT_SESSION_ID}\" and 
     user_name=\"$RAD->{USER_NAME}\" and
-    nas_id='$NAS->{NID}';", 'do');
+    nas_id='$NAS->{NAS_ID}';", 'do');
  }
 else {
   $self->{errno}=1;
@@ -218,7 +218,7 @@ if ($conf->{s_detalization} eq 'yes') {
 
   $self->query($db, "INSERT into s_detail (acct_session_id, nas_id, acct_status, last_update, 
     sent1, recv1, sent2, recv2, id)
-  VALUES (\"$RAD->{ACCT_SESSION_ID}\", '$NAS->{NID}',
+  VALUES (\"$RAD->{ACCT_SESSION_ID}\", '$NAS->{NAS_ID}',
    '$acct_status_type', UNIX_TIMESTAMP(),
    '$RAD->{INTERIUM_INBYTE}', '$RAD->{INTERIUM_OUTBYTE}', 
    '$RAD->{INTERIUM_INBYTE2}', 
