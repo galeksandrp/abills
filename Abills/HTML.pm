@@ -176,8 +176,8 @@ sub setCookie {
 	my $self = shift;
 	my($name, $value, $expiration, $path, $domain, $secure) = @_;
 	print "Set-Cookie: ";
-	print $name, "=", $value, "; expires=\"", $expiration,
-		"\"; path=", $path, "; domain=", $domain, "; ", $secure, "\n";
+	print $name, "=$value; expires=\"", $expiration,
+		"\"; path=/", $path, "; domain=", $domain, "; ", $secure, "\n";
 }
 
 

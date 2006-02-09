@@ -103,16 +103,24 @@ if ($admin->{errno}) {
 }
 
 #Cookie section ============================================
+if (defined($FORM{language})) {
+  $html->setCookie('language', "$FORM{language}", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure);
+}
 if (defined($FORM{colors})) {
+#	print "Content-Type: text/html\n\n";
   my $cook_colors = (defined($FORM{default})) ?  '' : $FORM{colors};
   $html->setCookie('colors', "$cook_colors", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure);
+  print "Location: $SELF_URL?index=$FORM{index}", "\n\n";
+  exit;
  }
 
 #Operation system ID
 $html->setCookie('OP_SID', "$FORM{OP_SID}", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure);
-$html->setCookie('language', "$FORM{language}", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure) if (defined($FORM{language}));
-
-$html->setCookie('qm', "$FORM{qm_item}", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure) if (defined($FORM{quick_set}));
+if (defined($FORM{quick_set})) {
+  $html->setCookie('qm', "$FORM{qm_item}", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure);
+  print "Location: $SELF_URL?index=$FORM{index}", "\n\n";
+  exit;
+}
 #===========================================================
 
 
@@ -418,7 +426,7 @@ else {
 
   foreach my $line (@$list) {
     $table->addrow($line->[0],  $line->[1], $line->[2], "<a href='$SELF_URL?index=$index&COMPANY_ID=$line->[5]'>$line->[3]</a>", "$status[$line->[4]]",
-      "<a href='$SELF_URL?index=$index&COMPANY_ID=$line->[5]'>$_INFO</a>", $html->button($_DEL, "index=$index&del=$line->[5]", { MESSAGE => "$_DEL '$line->[0]'?" }));
+      "<a href='$SELF_URL?index=$index&COMPANY_ID=$line->[5]'>$_INFO</a>", $html->button($_DEL, "index=$index&del=$line->[5]", { MESSAGE => "$_DEL \"$line->[0]\"?" }));
    }
   print $table->show();
 
@@ -600,7 +608,7 @@ my $table = Abills::HTML->table( { width => '100%',
                                   } );
 
 foreach my $line (@$list) {
-  my $delete = $html->button($_DEL, "index=27$pages_qs&del=$line->[0]", { MESSAGE => "$_DEL '$line->[0]'?" }); 
+  my $delete = $html->button($_DEL, "index=27$pages_qs&del=$line->[0]", { MESSAGE => "$_DEL [$line->[0]]?" }); 
   $table->addrow("<b>$line->[0]</b>", "$line->[1]", "$line->[2]", 
    $html->button($line->[3], "index=27&GID=$line->[0]&subf=11"), 
    $html->button($_INFO, "index=27&GID=$line->[0]"),
@@ -1135,7 +1143,7 @@ my $table = Abills::HTML->table( { width => '100%',
                                    
                                   } );
 foreach my $line (@$list) {
-  my $delete = $html->button($_DEL, "index=$index$pages_qs&del=$line->[0]", { MESSAGE => "$_DEL '$line->[0]' ?" }); 
+  my $delete = $html->button($_DEL, "index=$index$pages_qs&del=$line->[0]", { MESSAGE => "$_DEL [$line->[0]] ?" }); 
   $table->addrow("<b>$line->[0]</b>", "<a href='$SELF_URL?index=11&UID=$line->[7]'>$line->[1]</a>", $line->[2], $line->[3], 
    $line->[4], $line->[5], $line->[6], $delete);
 }
@@ -1265,7 +1273,7 @@ if(defined($attr->{TP})) {
            $line->[6], 
            convert($line->[7], { text2html => yes  }),
            $html->button($_CHANGE, "index=$index$pages_qs&tt=$TI_ID&chg=$line->[0]"),
-           $html->button($_DEL, "index=$index$pages_qs&tt=$TI_ID&del=$line->[0]", { MESSAGE => "$_DEL ?" } ));
+           $html->button($_DEL, "index=$index$pages_qs&tt=$TI_ID&del=$line->[0]", { MESSAGE => "$_DEL [$line->[0]]?" } ));
         }
 
        my $table_traf = $table2->show();
@@ -1707,6 +1715,7 @@ sub admin_profile {
                      '# 9 Text',
                      '#10 background'
                     );
+
 print "$FORM{colors}";
 
 
@@ -1717,10 +1726,8 @@ my $ROWS=$COOKIES{PAGE_ROWS} || $PAGE_ROWS;
 print "
 <form action=$SELF_URL>
 <input type=hidden name=index value=$index>
-<TABLE width=640 cellspacing=0 cellpadding=0 border=0>
-<tr><TD bgcolor=$_BG4>
-<TABLE width=100% cellspacing=1 cellpadding=0 border=0>
-<tr bgcolor=$_BG1><td colspan=2>$_LANGUAGE:</td>
+<TABLE width=640 cellspacing=0 cellpadding=0 border=0><tr><TD bgcolor=$_COLORS[4]>
+<TABLE width=100% cellspacing=1 cellpadding=0 border=0><tr bgcolor=$_COLORS[1]><td colspan=2>$_LANGUAGE:</td>
 <td><select name=language>\n";
 while(my($k, $v) = each %LANG) {
   print "<option value='$k'";
@@ -1728,8 +1735,8 @@ while(my($k, $v) = each %LANG) {
   print ">$v\n";	
 }
 print "</select></td></tr>
-<tr bgcolor=$_BG1><th colspan=3>&nbsp;</th></tr>
-<tr bgcolor=$_BG0><th colspan=2>$_PARAMS</th><th>$_VALUE</th></tr>\n";
+<tr bgcolor=$_COLORS[1]><th colspan=3>&nbsp;</th></tr>
+<tr bgcolor=$_COLORS[0]><th colspan=2>$_PARAMS</th><th>$_VALUE</th></tr>\n";
 
  for($i=0; $i<=10; $i++) {
    print "<tr bgcolor=$_COLORS[1]><td width=30% bgcolor=$_COLORS[$i]>$i</td><td>$colors_descr[$i]</td><td><input type=text name=colors value='$_COLORS[$i]'></td></tr>\n";
@@ -1737,16 +1744,17 @@ print "</select></td></tr>
  
 print "
 </table>
-<p>
+<br>
 <table width=100%>
 <tr><td colspan=2>&nbsp;</td></tr>
 <tr><td>$_REFRESH (sec.):</td><td><input type=input name=REFRESH value='$REFRESH'></td></tr>
 <tr><td>$_ROWS:</td><td><input type=input name=PAGE_ROWS value='$PAGE_ROWS'></td></tr>
 </table>
 </td></tr></table>
-<p><input type=submit name=set value='$_SET'> 
+<br>
+<input type=submit name=set value='$_SET'> 
 <input type=submit name=default value='$_DEFAULT'>
-</form></p>\n";
+</form><br>\n";
    
 my %profiles = ();
 $profiles{'Black'} = "#333333, #000000, #444444, #555555, #777777, #FFFFFF, #FFFFFF, #BBBBBB, #FFFFFF, #EEEEEE, #000000";
@@ -1756,13 +1764,13 @@ $profiles{'мс'} = "#FCBB43, #FFFFFF, #eeeeee, #dddddd, #E1E1E1, #FFFFFF, #FFFFFF
 $profiles{'Cisco'} = "#99CCCC, #FFFFFF, #FFFFFF, #669999, #669999, #FFFFFF, #FFFFFF, #003399, #003399, #000000, #FFFFFF";
 
 while(my($thema, $colors)=each %profiles ) {
-  print "<a href='$SELF_URL?index=53&set=set";
+  my $url = "index=53&set=set";
   my @c = split(/, /, $colors);
   foreach my $line (@c) {
       $line =~ s/#/%23/ig;
-      print "&colors=$line";
+      $url .= "&colors=$line";
     }
-  print "'>$thema</a> ::";
+  print $html->button("$thema", $url) . ' ::';
 }
 
 
@@ -2770,7 +2778,7 @@ my $table = Abills::HTML->table( { width => '100%',
 $pages_qs .= "&subf=2" if (! $FORM{subf});
 
 foreach my $line (@$list) {
-  my $delete = ($permissions{1}{2}) ?  $html->button($_DEL, "index=$index&del=$line->[0]&UID=$line->[10]$pages_qs", { MESSAGE => "$_DEL '$line->[0]' ?" }) : ''; 
+  my $delete = ($permissions{1}{2}) ?  $html->button($_DEL, "index=$index&del=$line->[0]&UID=$line->[10]$pages_qs", { MESSAGE => "$_DEL [$line->[0]] ?" }) : ''; 
   $table->addrow("<b>$line->[0]</b>", "<a href='$SELF_URL?index=11&UID=$line->[10]'>$line->[1]</a>", $line->[2], 
    $line->[3], $line->[4],  "$line->[5]", "$line->[6]", "$line->[7]", $PAYMENT_METHODS[$line->[8]], "$line->[9]", $delete);
 }
@@ -2861,7 +2869,7 @@ my ($list, $total) = $finance->exchange_list( {%LIST_PARAMS} );
 foreach my $line (@$list) {
   $table->addrow($line->[0], $line->[1], $line->[2], $line->[3], 
      $html->button($_CHANGE, "index=65&chg=$line->[4]"), 
-     $html->button($_DEL, "index=65&del=$line->[4]", { MESSAGE => "$_DEL '$line->[0]'?" } ));
+     $html->button($_DEL, "index=65&del=$line->[4]", { MESSAGE => "$_DEL [$line->[0]]?" } ));
 }
 print $table->show();
 }
@@ -2969,7 +2977,7 @@ my $table = Abills::HTML->table( { width => '100%',
 $pages_qs .= "&subf=2" if (! $FORM{subf});
 foreach my $line (@$list) {
   my $delete = ($permissions{2}{2}) ?  $html->button($_DEL, "index=$index&del=$line->[0]&UID=$line->[8]$pages_qs", 
-   { MESSAGE => "$_DEL ?" }) : ''; 
+   { MESSAGE => "$_DEL ID: $line->[0]?" }) : ''; 
 
   $table->addrow("<b>$line->[0]</b>", $html->button($line->[1], "index=11&UID=$line->[8]"), $line->[2], 
    $line->[3], $line->[4],  "$line->[5]", "$line->[6]", "$line->[7]", $delete);
