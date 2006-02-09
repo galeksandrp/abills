@@ -226,10 +226,10 @@ sub action_add {
   my $self = shift;
   my ($uid, $actions, $attr) = @_;
   
-  my $module = (defined($attr->{MODULE})) ? $attr->{MODULE} : '';
+  my $MODULE = (defined($self->{MODULE})) ? $self->{MODULE} : '';
   
   $self->query($db, "INSERT INTO admin_actions (aid, ip, datetime, actions, uid, module) 
-    VALUES ('$self->{AID}', INET_ATON('$IP'), now(), '$actions', '$uid', '$attr->{MODULE}')", 'do');
+    VALUES ('$self->{AID}', INET_ATON('$IP'), now(), '$actions', '$uid', '$MODULE')", 'do');
   return $self;
 }
 

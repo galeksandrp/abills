@@ -40,6 +40,7 @@ my %SEARCH_PARAMS = (TARIF_PLAN => 0,
 sub new {
   my $class = shift;
   ($db, $admin, $CONF) = @_;
+  $admin->{MODULE}='Dv';
   my $self = { };
   bless($self, $class);
   return $self;

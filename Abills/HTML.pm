@@ -628,8 +628,7 @@ sub table_title  {
          	  $op="op=$get_op";
           }
 
-         $self->{table_title} .= "<a href=\"$SELF_URL?$op$qs&amp;pg=$pg&amp;sort=$i&amp;desc=$desc\">".
-            "<img src='$IMG_PATH/$img' width=12 height=10 border=0 alt='Sort' title=sort></a>";
+         $self->{table_title} .= $self->button("<img src='$IMG_PATH/$img' width=12 height=10 border=0 alt='Sort' title=sort>", "$op$qs&amp;pg=$pg&amp;sort=$i&amp;desc=$desc");
        }
      else {
          $self->{table_title} .= "$line";
@@ -893,7 +892,7 @@ sub test {
 #<tr><td>index</td><td>$index</td></td></tr>
 #<tr><td>root_index</td><td>root_index</td></td></tr>\n";	
   while(my($k, $v)=each %FORM) {
-  	$output .= "$k | $v\n";
+  	$output .= "$k | $v\n" if ($k ne '__BUFFER');
     #print "<tr><td>$k</td><td>$v</td></tr>\n";	
    }
 #print "</table>\n";
