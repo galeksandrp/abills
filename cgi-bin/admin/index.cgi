@@ -104,20 +104,29 @@ if ($admin->{errno}) {
 
 #Cookie section ============================================
 if (defined($FORM{language})) {
-  $html->setCookie('language', "$FORM{language}", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure);
+  $html->setCookie('language', "$FORM{language}", "Fri, 1-Jan-2038 00:00:01", '', $domain, $secure);
 }
+
 if (defined($FORM{colors})) {
-#	print "Content-Type: text/html\n\n";
   my $cook_colors = (defined($FORM{default})) ?  '' : $FORM{colors};
-  $html->setCookie('colors', "$cook_colors", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure);
+  $html->setCookie('colors', "$cook_colors", "Fri, 1-Jan-2038 00:00:01", '', $domain, $secure);
   print "Location: $SELF_URL?index=$FORM{index}", "\n\n";
   exit;
  }
 
 #Operation system ID
-$html->setCookie('OP_SID', "$FORM{OP_SID}", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure);
+$html->setCookie('OP_SID', "$FORM{OP_SID}", "Fri, 1-Jan-2038 00:00:01", '', $domain, $secure);
 if (defined($FORM{quick_set})) {
-  $html->setCookie('qm', "$FORM{qm_item}", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure);
+#	print "Content-Type: text/html\n\n";
+  my $qm = '';
+  my(@qm_arr) = split(/, /, $FORM{qm_item});
+  foreach my $line (@qm_arr) {
+     $qm .= (defined($FORM{'qm_name_'.$line})) ? "$line:".$FORM{'qm_name_'.$line}."," : "$line:,";
+   }
+  chop($qm);
+
+
+  $html->setCookie('qm', "$qm", "Fri, 1-Jan-2038 00:00:01", '', $domain, $secure);
   print "Location: $SELF_URL?index=$FORM{index}", "\n\n";
   exit;
 }
@@ -232,21 +241,26 @@ if(defined($conf{tech_works})) {
 
 if (defined($COOKIES{qm}) && $COOKIES{qm} ne '') {
   print "<tr><td colspan=2><table width=100% border=0>";
-	my @a = split(/, /, $COOKIES{qm});
+	my @a = split(/,/, $COOKIES{qm});
   my $i = 0;
 	foreach my $line (@a) {
     if (  $i % 6 == 0) {
       print "<tr>\n";
      }
-    my $color=($line eq $index) ? $_COLORS[0] : $_COLORS[2];
+
+    my ($qm_id, $qm_name)=split(/:/, $line, 2);
+    my $color=($qm_id eq $index) ? $_COLORS[0] : $_COLORS[2];
+    
+    $qm_name = $menu_names{$qm_id} if ($qm_name eq '');
+    
     print "<th bgcolor=$color>";
-    if (defined($menu_args{$line})) {
-    	my $args = 'LOGIN_EXPR' if ($menu_args{$line} eq 'UID');
-      print $html->button("$menu_names{$line}", '', 
-         { JAVASCRIPT => "javascript: Q=prompt('$menu_names{$line}',''); if (Q != null) {  Q='". "&$args='+Q;  }else{Q = '';} this.location.href='$SELF_URL?index=$line'+Q;" });
+    if (defined($menu_args{$qm_id})) {
+    	my $args = 'LOGIN_EXPR' if ($menu_args{$qm_id} eq 'UID');
+      print $html->button("$qm_name", '', 
+         { JAVASCRIPT => "javascript: Q=prompt('$menu_names{$qm_id}',''); if (Q != null) {  Q='". "&$args='+Q;  }else{Q = '';} this.location.href='$SELF_URL?index=$qm_id'+Q;" });
      }
     else {
-      print "<a href='$SELF_URL?index=$line'>$menu_names{$line}</a>";
+      print "<a href='$SELF_URL?index=$qm_id'>$qm_name</a>";
      } 
      
     print "</th>\n";
@@ -425,8 +439,11 @@ else {
                                   } );
 
   foreach my $line (@$list) {
-    $table->addrow($line->[0],  $line->[1], $line->[2], "<a href='$SELF_URL?index=$index&COMPANY_ID=$line->[5]'>$line->[3]</a>", "$status[$line->[4]]",
-      "<a href='$SELF_URL?index=$index&COMPANY_ID=$line->[5]'>$_INFO</a>", $html->button($_DEL, "index=$index&del=$line->[5]", { MESSAGE => "$_DEL \"$line->[0]\"?" }));
+    $table->addrow($line->[0],  $line->[1], $line->[2], 
+      $html->button($line->[3], "index=$index&COMPANY_ID=$line->[5]"), 
+      "$status[$line->[4]]",
+      $html->button($_INFO, "index=$index&COMPANY_ID=$line->[5]"), 
+      $html->button($_DEL, "index=$index&del=$line->[5]", { MESSAGE => "$_DEL \"$line->[0]\"?" }));
    }
   print $table->show();
 
@@ -460,7 +477,7 @@ print "<tr bgcolor=$_COLORS[3]><td colspan=2>\n";
 my $menu;
 while(my($name, $v)=each %$items) {
   my ($subf, $ext_url)=split(/:/, $v, 2);
-  $menu .= (defined($FORM{subf})  && $FORM{subf} eq $subf) ? ":: <a href='$SELF_URL?index=$index&$ext_url&subf=$subf'><b>$name</b></a>": ":: <a href='$SELF_URL?index=$index&$ext_url&subf=$subf'>$name</a>\n";
+  $menu .= (defined($FORM{subf})  && $FORM{subf} eq $subf) ? "::". $html->button("<b>$name</b>", "index=$index&$ext_url&subf=$subf"): "::". $html->button($name, "index=$index&$ext_url&subf=$subf");
 }
 print "$menu</td></tr>
 </table>\n";
@@ -511,7 +528,7 @@ sub user_form {
      my $customers = Customers->new($db);
      my $company = $customers->company->info($FORM{COMPANY_ID});
  	   $user_info->{COMPANY_ID}=$FORM{COMPANY_ID};
-     $user_info->{EXDATA} =  "<tr><td>$_COMPANY:</td><td><a href='$SELF_URL?index=13&COMPANY_ID=$company->{COMPANY_ID}'>$company->{COMPANY_NAME}</a></td></tr>\n";
+     $user_info->{EXDATA} =  "<tr><td>$_COMPANY:</td><td>". $html->button($company->{COMPANY_NAME}, "index=13&COMPANY_ID=$company->{COMPANY_ID}"). "</td></tr>\n";
     }
 
    $user_info->{EXDATA} .= "
@@ -519,6 +536,7 @@ sub user_form {
    <tr><td>$_BILL:</td><td><input type=checkbox name=CREATE_BILL value='1'> $_CREATE</td></tr>
    \n";
 
+   $user_info->{DISABLE} = ($user_info->{DISABLE} > 0) ? 'checked' : '';
    $user_info->{ACTION}='add';
    $user_info->{LNG_ACTION}=$_ADD;
   }
@@ -526,7 +544,7 @@ sub user_form {
    $user_info->{EXDATA} = "
             <input type=hidden name=UID value=\"$FORM{UID}\"> 
             <tr><td>$_DEPOSIT:</td><td>$user_info->{DEPOSIT}</td></tr>
-            <tr><td>$_COMPANY:</td><td><a href='$SELF_URL?index=13&COMPANY_ID=$user_info->{COMPANY_ID}'>$user_info->{COMPANY_NAME}</a></td></tr>
+            <tr><td>$_COMPANY:</td><td>". $html->button($user_info->{COMPANY_NAME}, "index=13&COMPANY_ID=$user_info->{COMPANY_ID}") ."</td></tr>
             <tr><td>BILL_ID:<td>%BILL_ID%</td></tr>\n";
 
    $user_info->{DISABLE} = ($user_info->{DISABLE} > 0) ? 'checked' : '';
@@ -1724,7 +1742,7 @@ my $ROWS=$COOKIES{PAGE_ROWS} || $PAGE_ROWS;
 
 
 print "
-<form action=$SELF_URL>
+<form action=$SELF_URL METHOD=POST>
 <input type=hidden name=index value=$index>
 <TABLE width=640 cellspacing=0 cellpadding=0 border=0><tr><TD bgcolor=$_COLORS[4]>
 <TABLE width=100% cellspacing=1 cellpadding=0 border=0><tr bgcolor=$_COLORS[1]><td colspan=2>$_LANGUAGE:</td>
@@ -2139,21 +2157,21 @@ $type='DATE';
 
 if ($FORM{MONTH}) {
   $LIST_PARAMS{MONTH}=$FORM{MONTH};
-	$pages_qs="&amp;MONTH=$LIST_PARAMS{MONTH}";
+	$pages_qs="&MONTH=$LIST_PARAMS{MONTH}";
  }
 elsif($FORM{allmonthes}) {
 	$type='MONTH';
-	$pages_qs="&amp;allmonthes=y";
+	$pages_qs="&allmonthes=y";
  }
 else {
 	($y, $m, $d)=split(/-/, $DATE, 3);
 	$LIST_PARAMS{MONTH}="$y-$m";
-	$pages_qs="&amp;MONTH=$LIST_PARAMS{MONTH}";
+	$pages_qs="&MONTH=$LIST_PARAMS{MONTH}";
 }
 
 if ($FORM{GID}) {
 	$LIST_PARAMS{GID}=$FORM{GID};
-  $pages_qs.="&amp;GID=$FORM{GID}";
+  $pages_qs.="&GID=$FORM{GID}";
 }
 
 $user->{GROUPS_SEL} = sel_groups();
@@ -2167,7 +2185,7 @@ if (defined($FORM{DATE})) {
   ($y, $m, $d)=split(/-/, $FORM{DATE}, 3);	
 
   $LIST_PARAMS{DATE}="$FORM{DATE}";
-  $pages_qs .="&amp;DATE=$LIST_PARAMS{DATE}";
+  $pages_qs .="&DATE=$LIST_PARAMS{DATE}";
 
   if (defined($attr->{EX_PARAMS})) {
    	my $EP = $attr->{EX_PARAMS};
@@ -2177,7 +2195,7 @@ if (defined($FORM{DATE})) {
         $LIST_PARAMS{EX_PARAMS}=$k;
      	 }
      	else {
-     	  $EX_PARAMS .= "<a href='$SELF_URL?index=$index$pages_qs&amp;EX_PARAMS=$k'>$v</a> ";
+     	  $EX_PARAMS .= $html->button($v, "index=$index$pages_qs&EX_PARAMS=$k");
      	 }
 	  }
   
@@ -2187,7 +2205,7 @@ if (defined($FORM{DATE})) {
 
   my $days = '';
   for ($i=1; $i<=31; $i++) {
-     $days .= ($d == $i) ? "<b>$i </b>" : sprintf("<a href='$SELF_URL?index=$index&amp;DATE=%d-%02.f-%02.f&EX_PARAMS=$FORM{EX_PARAMS}'>%d</a> ", $y, $m, $i, $i);
+     $days .= ($d == $i) ? "<b>$i </b>" : ' '.$html->button($i, sprintf("index=$index&DATE=%d-%02.f-%02.f&EX_PARAMS=$FORM{EX_PARAMS}", $y, $m, $i));
    }
   
   
@@ -2199,7 +2217,7 @@ if (defined($FORM{DATE})) {
     my(undef, $h)=split(/ /, $FORM{HOUR}, 2);
     my $hours = '';
     for (my $i=0; $i<24; $i++) {
-    	$hours .= ($h == $i) ? "<b>$i </b>" : sprintf("<a href='$SELF_URL?index=$index&amp;HOUR=%d-%02.f-%02.f+%02.f&amp;EX_PARAMS=$FORM{EX_PARAMS}$pages_qs'>%d</a> ", $y, $m, $d, $i, $i);
+    	$hours .= ($h == $i) ? "<b>$i </b>" : ' '.$html->button($i, sprintf("index=$index&amp;HOUR=%d-%02.f-%02.f+%02.f&amp;EX_PARAMS=$FORM{EX_PARAMS}$pages_qs", $y, $m, $d, $i));
      }
 
  	  $LIST_PARAMS{HOUR}="$FORM{HOUR}";
@@ -2245,7 +2263,8 @@ if (defined($FORM{DATE})) {
                                       });
 
   foreach my $line (@$list) {
-   $table_fees->addrow("<b>$line->[0]</b>", "<a href='$SELF_URL?index=11&amp;subf=3&amp;DATE=$line->[0]&amp;UID=$line->[8]'>$line->[1]</a>",  
+   $table_fees->addrow("<b>$line->[0]</b>", 
+     $html->button($line->[1], "index=11&subf=3&DATE=$line->[0]&UID=$line->[8]"),  
       $line->[3], $line->[4],  "$line->[5]", "$line->[6]", "$line->[7]");
     }
  }   
@@ -2261,7 +2280,7 @@ else{
 
   $list = $fees->reports({ %LIST_PARAMS });
   foreach my $line (@$list) {
-    $table_fees->addrow("<a href='$SELF_URL?index=$index&amp;$type=$line->[0]$pages_qs'>$line->[0]</a>", $line->[1], "<b>$line->[2]</b>" );
+    $table_fees->addrow($html->button($line->[0], "index=$index&$type=$line->[0]$pages_qs"), $line->[1], "<b>$line->[2]</b>" );
    }
 
 
@@ -2301,7 +2320,7 @@ if (defined($FORM{DATE})) {
                                       });
 
   foreach my $line (@$list) {
-   $table->addrow("<b>$line->[0]</b>", "<a href='$SELF_URL?index=11&amp;subf=3&amp;DATE=$line->[0]&amp;UID=$line->[8]'>$line->[1]</a>",  
+   $table->addrow("<b>$line->[0]</b>", $html->button($line->[1], "index=11&subf=3&DATE=$line->[0]&UID=$line->[8]"),  
       $line->[3], $line->[4],  "$line->[5]", "$line->[6]", "$line->[7]");
     }
  }   
@@ -2316,7 +2335,7 @@ else{
 
   $list = $payments->reports({ %LIST_PARAMS });
   foreach my $line (@$list) {
-    $table->addrow("<a href='$SELF_URL?index=$index&amp;$type=$line->[0]$pages_qs'>$line->[0]</a>", $line->[1], "<b>$line->[2]</b>" );
+    $table->addrow($html->button($line->[0], "index=$index&$type=$line->[0]$pages_qs"), $line->[1], "<b>$line->[2]</b>" );
    }
 
 
@@ -2394,6 +2413,7 @@ my @m = (
  "91:90:$_TEMPLATES:form_templates:::",
  "92:90:$_DICTIONARY:form_dictionary:::",
  "93:90:Config:form_config:::",
+ "94:90:WEB server:form_webserver_info:::",
  "6:0:$_OTHER:null:::",
  "1000:6:$_DOCS::::",
   
@@ -2572,10 +2592,13 @@ sub flist {
 
 my  %new_hash = ();
 while((my($findex, $hash)=each(%menu_items))) {
-   while(my($k, $val)=each %$hash) {
-     $new_hash{$k}{$findex}=$val;
-   }
+   while(my($parent, $val)=each %$hash) {
+#     print "$findex $parent $val<br>\n";
+     $new_hash{$parent}{$findex}=$val;
+    }
 }
+
+
 
 my $h = $new_hash{0};
 my @last_array = ();
@@ -2590,9 +2613,10 @@ my @menu_sorted = sort {
 
 my %qm = ();
 if (defined($COOKIES{qm})) {
-	my @a = split(/, /, $COOKIES{qm});
+	my @a = split(/,/, $COOKIES{qm});
 	foreach $line (@a) {
-     $qm{$line} = 1;
+     my($id, $custom_name)=split(/:/, $line, 2);
+     $qm{$id} = ($custom_name ne '') ? $custom_name : '';
 	 }
 }
 
@@ -2602,20 +2626,22 @@ my $table = Abills::HTML->table( { width => '100%',
                                   } );
 
 
-foreach my $parent (@menu_sorted) { 
+for(my $parent=1; $parent<$#menu_sorted; $parent++) { 
   my $val = $h->{$parent};
   my $level = 0;
   my $prefix = '';
-  $table->addrow("$level:", ">> <a href='$SELF_URL?index=$parent'>$val</a> <<");
+  $table->{rowcolor}=$_COLORS[0];      
+  $table->addrow("$level:", "$parent >> <a href='$SELF_URL?index=$parent'><b>$val</b></a> <<", '') if ($parent != 0);
 
   if (defined($new_hash{$parent})) {
+    $table->{rowcolor}=undef;
     $level++;
     $prefix .= "&nbsp;&nbsp;&nbsp;";
     label:
       my $mi = $new_hash{$parent};
 
       while(my($k, $val)=each %$mi) {
-        
+ 
         my $checked = '';
         if (defined($qm{$k})) { 
         	$checked = " checked";  
@@ -2623,7 +2649,7 @@ foreach my $parent (@menu_sorted) {
          }
 
         
-        $table->addrow("$k <input type=checkbox name=qm_item value=$k $checked>", "$prefix <a href='$SELF_URL?index=$k'>$val</a>");
+        $table->addrow("$k <input type=checkbox name=qm_item value=$k $checked>", "$prefix <a href='$SELF_URL?index=$k'>$val</a>", "<input type=text name=qm_name_$k value='$qm{$k}'>" );
 
         if (defined($new_hash{$k})) {
       	   $mi = $new_hash{$k};
@@ -2645,9 +2671,11 @@ foreach my $parent (@menu_sorted) {
     }
     delete($new_hash{0}{$parent});
    }
+
+# return 0;
 }
 print "
-<form action=$SELF_URL >
+<form action=$SELF_URL METHOD=POST>
 <input type=hidden name=index value=$index>\n";
 
 
@@ -2702,7 +2730,7 @@ if (defined($attr->{USER})) {
       message('err', $_ERROR, "[$payments->{errno}] $err_strs{$payments->{errno}}");	
      }
     else {
-      message('info', $_PAYMENTS, "$_ADDED");
+      message('info', $_PAYMENTS, "$_ADDED $_SUM: $FORM{SUM}");
      }
    }
   elsif($FORM{del} && $FORM{is_js_confirmed}) {
@@ -2711,12 +2739,12 @@ if (defined($attr->{USER})) {
       return 0;		
 	   }
 
-	  $payments->del($user, $FORM{del});
+    $payments->del($user, $FORM{del});
     if ($payments->{errno}) {
       message('err', $_ERROR, "[$payments->{errno}] $err_strs{$payments->{errno}}");	
      }
     else {
-      message('info', $_PAYMENTS, "$_DELETED");
+      message('info', $_PAYMENTS, "$_DELETED ID: $FORM{del}");
      }
    }
 
@@ -2919,7 +2947,7 @@ if (defined($attr->{USER})) {
         message('err', $_ERROR, "[$fees->{errno}] $err_strs{$fees->{errno}}");	
        }
       else {
-        message('info', $_PAYMENTS, "$_ADDED");
+        message('info', $_PAYMENTS, "$_TAKE SUM: $FORM{SUM}");
        }
     }
    }
@@ -3242,7 +3270,7 @@ my $table = Abills::HTML->table( { width => '600',
                                   } );
 
 while(my($k, $v) = each %templates) {
-  $table->addrow("<b>$k</b>", "$v", "<a href='$SELF_URL?index=$index&tpl_name=$k'>$_CHANGE</a>");
+  $table->addrow("<b>$k</b>", "$v", $html->button($_CHANGE, "index=$index&tpl_name=$k"));
 }
 
 print $table->show();
@@ -3346,14 +3374,11 @@ sub form_period  {
 
 #*******************************************************************
 #
-#
+# form_dictionary();
 #*******************************************************************
 sub form_dictionary {
-
-
 	
 	my $sub_dict = $FORM{SUB_DICT} || '';
-
 
  ($sub_dict, undef) = split(/\./, $sub_dict, 2);
   if ($FORM{change}) {
@@ -3409,7 +3434,7 @@ sub form_dictionary {
         else {
     	    undef($table->{rowcolor});
          }
-        $table->addrow("$file", "<a href='$SELF_URL?index=$index&SUB_DICT=$file'>$_CHANGE</a>");
+        $table->addrow("$file", $html->button($_CHANGE, "index=$index&SUB_DICT=$file'"));
       }
     }
   }
@@ -3462,7 +3487,8 @@ sub form_dictionary {
                                    cols_align  => ['left', 'left', 'center']
                                   } );
   my $i = 0;
-  while(my($k, $v)=each %main_dictionary) {
+  foreach my $k (sort keys %main_dictionary) {
+  	 my $v = $main_dictionary{$k};
   	 my $v2 = (defined($sub_dictionary{"$k"})) ? $sub_dictionary{"$k"} : '--';
      
      $table->addrow("<input type=text name=NAME value='$k'>", "<input type=text name=$k value=\"$v\">", 
@@ -3483,6 +3509,22 @@ sub form_dictionary {
   print "<input type=submit name=change value=\"$_CHANGE\">
   </form>";
 
+}
+
+#*******************************************************************
+# form config
+#*******************************************************************
+sub form_webserver_info {
+
+	my $table = Abills::HTML->table( { width => '600',
+                                    title_plain => ["$_NAME", "$_VALUE", "-"],
+                                    cols_align  => ['left', 'left', 'center']
+                                  } );
+
+ foreach my $k (sort keys %ENV) {
+    $table->addrow($k, $ENV{$k}, '');
+  }
+	print $table->show();
 }
 
 #*******************************************************************

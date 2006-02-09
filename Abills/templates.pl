@@ -55,7 +55,7 @@ return qq{
  }
 elsif ($tpl_name eq 'form_user') {
 return qq{
-<form action=$SELF_URL method=post METHOD=POST>
+<form action=$SELF_URL METHOD=POST>
 <input type=hidden name=index value=11>
 <input type=hidden name=COMPANY_ID value='%COMPANY_ID%'>
 <table width=420 cellspacing=0 cellpadding=3>
