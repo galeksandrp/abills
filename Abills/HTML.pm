@@ -628,7 +628,7 @@ sub table_title  {
          	  $op="op=$get_op";
           }
 
-         $self->{table_title} .= $self->button("<img src='$IMG_PATH/$img' width=12 height=10 border=0 alt='Sort' title=sort>", "$op$qs&amp;pg=$pg&amp;sort=$i&amp;desc=$desc");
+         $self->{table_title} .= $self->button("<img src='$IMG_PATH/$img' width=12 height=10 border=0 alt='Sort' title=sort>", "$op$qs&pg=$pg&sort=$i&desc=$desc");
        }
      else {
          $self->{table_title} .= "$line";
@@ -745,7 +745,7 @@ sub pages {
  $begin = ($PG - $PAGE_ROWS * 3 < 0) ? 0 : $PG - $PAGE_ROWS * 3;
 
 for(my $i=$begin; ($i<=$count && $i < $PG + $PAGE_ROWS * 10); $i+=$PAGE_ROWS) {
-   $self->{pages} .= ($i == $PG) ? "<b>$i</b>:: " : "<a href='$SELF_URL?$argument&amp;pg=$i'>$i</a>:: ";
+   $self->{pages} .= ($i == $PG) ? "<b>$i</b>:: " : $self->button($i, "$argument&pg=$i"). ':: ';
 }
  
  return $self->{pages};

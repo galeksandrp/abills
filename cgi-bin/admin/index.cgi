@@ -768,11 +768,11 @@ if(defined($attr->{USER})) {
 
 print "
 </td><td bgcolor=$_COLORS[3] valign=top width=180>
-<table width=100% border=0><tr><td>
-      <li><a href='$SELF_URL?UID=$user_info->{UID}&index=2'>$_PAYMENTS</a>
-      <li><a href='$SELF_URL?UID=$user_info->{UID}&index=3'>$_FEES</a>
-      <li><a href='$SELF_URL?UID=$user_info->{UID}&index='>$_SEND_MAIL</a>
-</td></tr>
+<table width=100% border=0><tr><td><li>". 
+              $html->button($_PAYMENTS, "UID=$user_info->{UID}&index=2").
+      "<li>". $html->button($_FEES, "UID=$user_info->{UID}&index=3").
+      "<li>". $html->button($_SEND_MAIL, "UID=$user_info->{UID}&index=").
+"</td></tr>
 <tr><td> 
   <br>\n";
 
@@ -793,13 +793,14 @@ while(my($k, $v)=each %uf_menus) {
  
 
 while(my($k, $v)=each (%userform_menus) ) {
-  print "<li><a href='$SELF_URL?index=$k&UID=$user_info->{UID}'>";
+  my $url =  "index=$k&UID=$user_info->{UID}";
   my $a = (defined($FORM{$k})) ? "<b>$v</b>" : $v;
-  print "$a </a>\n";
+  print "<li>" . $html->button($a,  "$url");
 }
 
-print "<li><a href='$SELF?index=$index&del_user=y&UID=$user_info->{UID}' onclick=\"return confirmLink(this, '$_USER: $user_info->{LOGIN} / $user_info->{UID} ')\">$_DEL</a>
-</td></tr>
+print "<li>".
+  $html->button($_DEL, "index=$index&del_user=y&UID=$user_info->{UID}", { MESSAGE => "$_USER: $user_info->{LOGIN} / $user_info->{UID}" })
+."</td></tr>
 </table>
 </td></tr></table>\n";
   return 0;
@@ -843,7 +844,7 @@ if ($FORM{debs}) {
 #  $LIST_PARAMS{TP} = $FORM{TP_ID};
 # }
 
-my $letters = "<a href='$SELF?index=$index'>All</a> ::";
+my $letters = $html->button($_ALL, "index=$index"). "::";
 for (my $i=97; $i<123; $i++) {
   my $l = chr($i);
   if ($FORM{letter} eq $l) {
@@ -851,7 +852,7 @@ for (my $i=97; $i<123; $i++) {
     }
   else {
      #$pages_qs = '';
-     $letters .= "<a href='$SELF?index=$index&letter=$l$pages_qs'>$l</a> ";
+     $letters .= $html->button($l, "index=$index&letter=$l$pages_qs"). ' ';
    }
  }
 
@@ -884,10 +885,10 @@ my $table = Abills::HTML->table( { width => '100%',
                                   } );
 
 foreach my $line (@$list) {
-  my $payments = ($permissions{1}) ? "<a href='$SELF_URL?index=2&UID=$line->[5]'>$_PAYMENTS</a>" : ''; 
-  my $fees     = ($permissions{2}) ? "<a href='$SELF_URL?index=3&UID=$line->[5]'>$_FEES</a>" : '';
+  my $payments = ($permissions{1}) ? $html->button($_PAYMENTS, "index=2&UID=$line->[5]") : ''; 
+  my $fees     = ($permissions{2}) ? $html->button($_FEES, "index=3&UID=$line->[5]") : '';
 
-  $table->addrow("<a href='$SELF_URL?index=11&UID=$line->[5]'>$line->[0]</a>", "$line->[1]",
+  $table->addrow($html->button($line->[0], "index=11&UID=$line->[5]"), "$line->[1]",
    "$line->[2]", "$line->[3]", "$status[$line->[4]]", $payments, $fees);
 }
 print $table->show();
@@ -2217,7 +2218,7 @@ if (defined($FORM{DATE})) {
     my(undef, $h)=split(/ /, $FORM{HOUR}, 2);
     my $hours = '';
     for (my $i=0; $i<24; $i++) {
-    	$hours .= ($h == $i) ? "<b>$i </b>" : ' '.$html->button($i, sprintf("index=$index&amp;HOUR=%d-%02.f-%02.f+%02.f&amp;EX_PARAMS=$FORM{EX_PARAMS}$pages_qs", $y, $m, $d, $i));
+    	$hours .= ($h == $i) ? "<b>$i </b>" : ' '.$html->button($i, sprintf("index=$index&HOUR=%d-%02.f-%02.f+%02.f&EX_PARAMS=$FORM{EX_PARAMS}$pages_qs", $y, $m, $d, $i));
      }
 
  	  $LIST_PARAMS{HOUR}="$FORM{HOUR}";
