@@ -170,10 +170,10 @@ if ($self->{DISABLE}) {
   }
 
 #Check CID (MAC) 
-#if ($self->{CID} ne '') {
-#  my ($ret, $ERR_RAD_PAIRS) = $self->Auth_CID($RAD);
-#  return $ret, $ERR_RAD_PAIRS if ($ret == 1);
-#}
+if ($self->{CID} ne '') {
+  my ($ret, $ERR_RAD_PAIRS) = $self->Auth_CID($RAD);
+  return $ret, $ERR_RAD_PAIRS if ($ret == 1);
+}
 
 
 
@@ -465,10 +465,9 @@ sub Auth_CID {
   my $RAD_PAIRS;
   
   my @MAC_DIGITS_GET = ();
-
+   
    if (($self->{CID} =~ /:/ || $self->{CID} =~ /-/)
-       && $self->{CID} !~ /./) {
-
+       && $self->{CID} !~ /\./) {
       #@MAC_DIGITS_GET=split(/:/, $self->{CID}) if($self->{CID} =~ /:/);
       @MAC_DIGITS_GET=split(/:|-/, $self->{CID});
       my @MAC_DIGITS_NEED=split(/:/, $RAD->{CALLING_STATION_ID});

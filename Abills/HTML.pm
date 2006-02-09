@@ -692,7 +692,7 @@ sub message {
   }  
  
 print << "[END]";
-<p>
+<br>
 <table width=400 border=0 cellpadding="0" cellspacing="0">
 <tr><td bgcolor=$_COLORS[9]>
 <table width=100% border=0 cellpadding="2" cellspacing="1">
@@ -707,7 +707,7 @@ $head
 </table>
 </td></tr>
 </table>
-</p>
+<br>
 [END]
 }
 

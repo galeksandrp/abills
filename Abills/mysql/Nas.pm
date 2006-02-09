@@ -244,8 +244,8 @@ sub ip_pools_list {
  my $self = shift;
  my ($attr) = @_;
  
- my $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
- my $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+ $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+ $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
 # my $PG = ($attr->{PG}) ? $attr->{PG} : 0;
 # my $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
 
@@ -301,6 +301,12 @@ sub stats {
  my ($attr) = @_;
 
  my $WHERE = "WHERE date_format(start, '%Y-%m')=date_format(curdate(), '%Y-%m')";
+ 
+ $SORT = ($attr->{SORT} == 1) ? "1,2" : $attr->{SORT};
+ $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+
+ 
+ $self->{debug}=1;
  
  if(defined($attr->{NAS_ID})) {
    $WHERE .= "and id='$attr->{NAS_ID}'";

@@ -75,7 +75,6 @@ print << "[END]";
 <h3>ABillS</h3>
 </td></tr>
 </table>
-<center>
 <table width=100%>
 <tr><td align=center>
 [END]
@@ -351,21 +350,51 @@ return  $menu_text, "/".$menu_navigator;
 #**********************************************************
 sub form_login {
 
-print "<form action=$SELF_URL METHOD=post>
-<TABLE width=400 cellspacing=0 cellpadding=0 border=0><TR><TD bgcolor=$_BG4>
-<TABLE width=100% cellspacing=1 cellpadding=0 border=0><TR><TD bgcolor=$_BG1>
+print "
+<script type=\"text/javascript\">
+	function selectLanguage() {
+		sSix		= '';
+		sUser		= '';
+		sEmail		= '';
+		sLanguage	= '';
+		sTheme		= '';
+		
+		try {
+			frm = document.forms[0];
+			if(frm.six && frm.six.options)
+				sSix = frm.six.options[frm.six.selectedIndex].value;
+			if(frm.f_user)
+				sUser = frm.f_user.value;
+			if(frm.f_email)
+				sEmail = frm.f_email.value;
+			if(frm.tem)
+				sTheme = frm.tem.options[frm.tem.selectedIndex].value;
+			if(frm.language)
+				sLanguage = frm.language.options[frm.language.selectedIndex].value;
+			sLocation = 'index.cgi?language='+sLanguage;
+			location.replace(sLocation);
+		} catch(err) {
+			alert('Your brownser do not support JS');
+		}
+	}
+</script>
+
+
+<form action=$SELF_URL METHOD=post>
+<TABLE width=400 cellspacing=0 cellpadding=0 border=0><TR><TD bgcolor=$_COLORS[4]>
+<TABLE width=100% cellspacing=1 cellpadding=0 border=0><TR><TD bgcolor=$_COLORS[1]>
 <TABLE width=100% cellspacing=0 cellpadding=0 border=0>
 <tr><td>$_LOGIN:</td><td><input type=text name=user></td></tr>
 <tr><td>$_PASSWD:</td><td><input type=password name=passwd></td></tr>
-<tr><td>$_LANGUAGE:</td><td><select name=language>\n";
+<tr><td>$_LANGUAGE:</td><td><select name=language onChange=selectLanguage()>\n";
 
 while(my($k, $v) = each %LANG) {
   print "<option value='$k'";
-  print ' selected' if ($k eq $html-{language});
+  print ' selected' if ($k eq $html->{language});
   print ">$v\n";	
 }
 
-print "</seelct></td></tr>
+print "</select></td></tr>
 <tr><th colspan=2><input type=submit name=logined value=$_ENTER></th></tr>
 </table>
 </td></tr></table>
@@ -570,6 +599,9 @@ sub logout {
 	$FORM{op}='logout';
 	auth('', '', $sid);
 	message('info', $_INFO, $_LOGOUT);
+	
+	
+	
 	return 0;
 }
 

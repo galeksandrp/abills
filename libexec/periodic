@@ -40,7 +40,7 @@ if ($admin->{errno}) {
 
 my $users = Users->new($db, $admin, \%conf); 
 
-require "../language/$conf{default_language}.pl";
+require "language/$conf{default_language}.pl";
 use POSIX qw(mktime strftime);
 my $YESTERDAY = (strftime "%Y-%m-%d", localtime(time - 86400));
 
