@@ -143,7 +143,7 @@ sub del {
   $Bill->action('take', $bill_id, $sum); 
   
 
-  $self->query($db, "DELETE FROM payments WHERE id='$id';");
+  $self->query($db, "DELETE FROM payments WHERE id='$id';", 'do');
 
   $admin->action_add($user->{UID}, "DELETE PAYEMNTS SUM: $sum");
 

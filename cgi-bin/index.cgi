@@ -31,7 +31,7 @@ use Abills::SQL;
 use Abills::HTML;
 use Users;
 
-my $html = Abills::HTML->new( { IMG_PATH => 'img/' } );
+$html = Abills::HTML->new( { IMG_PATH => 'img/' } );
 my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
 my $db = $sql->{db};
 
@@ -43,7 +43,10 @@ if ((length($COOKIES{sid})>1) && (! $FORM{passwd})) {
   $sid = $COOKIES{sid};
 }
 elsif((length($COOKIES{sid})>1) && (defined($FORM{passwd}))){
+	#print "Content-TYpe: text/html\n\n";
 	$html->setCookie('sid', "", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure);
+	$COOKIES{sid}=undef;
+	#exit;
 }
 
 #Cookie section ============================================
@@ -91,8 +94,6 @@ my $passwd = $FORM{passwd} || '';
 
 my $user=Users->new($db, undef, \%conf); 
 ($uid, $sid, $login) = auth("$login", "$passwd", "$sid");
-
-
 
 if ($uid > 0) {
 

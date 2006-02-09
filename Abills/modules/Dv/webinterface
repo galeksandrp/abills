@@ -113,7 +113,7 @@ my $result = "<form action=$SELF_URL>
 <input type=hidden name=m value=$m>
 <input type=hidden name=index value=$index>
 <table width=400 border=0>
-<tr><td>$_FROM:</td><td bgcolor=$_BG2>$user->{TP_ID} $user->{TP_NAME} [<a href='$SELF?index=$tp_index&TP_ID=$user->{TP_ID}' title='$_VARIANTS'>$_VARIANTS</a>]</td></tr>
+<tr><td>$_FROM:</td><td bgcolor=$_COLORS[2]>$user->{TP_ID} $user->{TP_NAME} [<a href='$SELF?index=$tp_index&TP_ID=$user->{TP_ID}' title='$_VARIANTS'>$_VARIANTS</a>]</td></tr>
 $params
 </form>\n";
 
@@ -409,9 +409,6 @@ print $table->show();
 sub dv_online {
 
 my $nas = Nas->new($db, \%conf);
-use Dv_Sessions;
-$sessions = Dv_Sessions->new($db);
-
 
 my $message;
 if ($FORM{ping}) {
@@ -489,8 +486,10 @@ elsif($FORM{zap}) {
   	                NAS_ID => $nas->{NAS_ID} });  
   
   if ($sessions->{TOTAL} < 1) {
-    $message .= "<p align=center>[<a href='$SELF?index=$index&amp;tolog=$acct_session_id&amp;nas_id=$nas_id&amp;nas_port_id=$nas_port_id'>Add To Log</a>]
-        [<a href='$SELF?index=$index&del=$acct_session_id&amp;nas_id=$nas_id&amp;nas_port_id=$nas_port_id'>$_DEL</a>]</p>\n";
+    $message .= "<p align=center>[".
+    $html->button('Add To log', "index=$index&tolog=$acct_session_id&nas_id=$nas_id&nas_port_id=$nas_port_id"). 
+    "] [".
+    $html->button($_DEL, "index=$index&del=$acct_session_id&amp;nas_id=$nas_id&amp;nas_port_id=$nas_port_id"). "]</p>\n";
    }
   else {
   	$message .= "$_EXIST";
@@ -580,11 +579,11 @@ $form_link = '';
 if($FORM{ZAPED}) {
 	$LIST_PARAMS{ZAPED}='yes';
 	#$qs_params = "&WRONG_ENDED=yes";
-	$form_link = "<a href='$SELF_URL?index=$index'>On line</a>";
+	$form_link = $html->button('On line', "index=$index");
  } 
 else {
  	$sessions->online( { ZAPED => 'yes' } );	
- 	$form_link = "<a href='$SELF_URL?index=$index&amp;ZAPED=yes'>$_ZAPED</a> ($sessions->{TOTAL})";
+ 	$form_link = $html->button($_ZAPED, "index=$index&ZAPED=yes"). "($sessions->{TOTAL})";
 }
 
 
@@ -602,7 +601,6 @@ my $table = Abills::HTML->table( { width => '100%',
 
 
  
-  my $bg;
   my $online = $sessions->{nas_sorted};
 
 my $nas_list = $nas->list();
@@ -617,21 +615,23 @@ foreach my $nas_row (@$nas_list) {
   foreach my $line (@$l) {
     undef($table->{rowcolor});
     undef($table->{extra});
-    #print "$line->[0]<br>";
-    if (defined($dub_logins->{$line->[0]}))                  { $bg='#FFFF00';    }
-    elsif (defined($dub_ports->{$nas_row->[4]}{$line->[2]})) { $bg='#00FF40';    }
-    elsif ($line->[9] == 3)                                  { $bg='#FF0000';    }
-    else {  $bg = ($bg eq $_COLORS[1]) ? $_COLORS[2] : $_COLORS[1];    }
+   
+    if (defined($dub_logins->{$line->[0]}) && $dub_logins->{$line->[0]} > 1) { $table->{rowcolor}='#FFFF00'; }
+    elsif (defined($dub_ports->{$nas_row->[0]}{$line->[2]}) && $dub_ports->{$nas_row->[0]}{$line->[2]} > 1) { $table->{rowcolor}='#00FF40';    }
+    elsif ($line->[9] > 3)                                  { $table->{rowcolor}='#FF0000';    }
+    #else {  $table->{rowcolor} = ($table->{rowcolor} eq $_COLORS[1]) ? $_COLORS[2] : $_COLORS[1];    }
 
-    my $zap = "(<a href=\"$SELF_URL?index=$index&amp;zap=$nas_row->[0]+$line->[2]+$line->[11]\" title='Hangup'>Z</A>)";
-    my $hangup = "(<a href=\"$SELF_URL?index=$index&amp;hangup=$nas_row->[0]+$line->[2]+$line->[11]+$line->[0]\" title='Hangup'>H</A>)";
+    my $zap = "(". $html->button('Z', "index=$index&zap=$nas_row->[0]+$line->[2]+$line->[11]", { TITLE => 'Zap' }) . ")";
+    my $hangup = "(". $html->button('H', "index=$index&hangup=$nas_row->[0]+$line->[2]+$line->[11]+$line->[0]", { TITLE => 'Hangup' }). ")";
     my $user_info =  "$_FIO: $line->[1]\n$_PHONE: $line->[12]\n$_VARIANT: $line->[13]\n$_DEPOSIT: $line->[14]\n".
      "$_CREDIT: $line->[15]\n$_SPEED: $line->[16]\nSESSION_ID: $line->[11]\nCID: $line->[17]\nCONNECT_INFO: $line->[18]";
 
-    $table->addrow("<a href=\"$SELF_URL?index=11&amp;UID=$line->[10]\" title='$user_info'>$line->[0]</a>", 
-      $line->[1], $line->[2],  $line->[3],  $line->[4], int2byte($line->[5]), int2byte($line->[6]), 
+    $table->addrow($html->button($line->[0], "index=11&UID=$line->[10]", { TITLE => "$user_info" }), 
+      $line->[1], $line->[2],  
+      $line->[3],  $line->[4], 
+      int2byte($line->[5]), int2byte($line->[6]), 
       int2byte($line->[7]), int2byte($line->[8]),
-     "(<a href='$SELF_URL?index=$index&amp;ping=$line->[3]'>P</a>)",
+     "(". $html->button('P', "index=$index&ping=$line->[3]", { TITLE => 'ping' }) .")",
      "$zap",
      "$hangup");
   }
@@ -1176,7 +1176,7 @@ print "</form>\n";
 dv_stats_calculation($sessions);
 
 if (defined($FORM{show})) {
-  $pages_qs .= "&show=y&fromD=$FORM{fromD}&fromm=$FORM{fromM}&fromY=$FORM{fromY}&toD=$FORM{toD}&toM=$FORM{toM}&toY=$FORM{toY}";
+  $pages_qs .= "&show=y&fromD=$FORM{fromD}&fromM=$FORM{fromM}&fromY=$FORM{fromY}&toD=$FORM{toD}&toM=$FORM{toM}&toY=$FORM{toY}";
   $FORM{fromM}++;
   $FORM{toM}++;
   $FORM{fromM} = sprintf("%.2d", $FORM{fromM}++);

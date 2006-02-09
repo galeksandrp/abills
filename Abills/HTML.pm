@@ -166,6 +166,17 @@ foreach my $pair (@pairs) {
 
 
 
+sub dirname {
+    my($x) = @_;
+    #print STDERR "dirname('$x') = ";
+    if ( $x !~ s@[/\\][^/\\]+$@@ ) {
+     	$x = '.';
+    }
+    #print STDERR "'$x'\n";
+    $x;
+}
+
+
 #*******************************************************************
 #Set cookies
 # setCookie($name, $value, $expiration, $path, $domain, $secure);
@@ -175,9 +186,13 @@ sub setCookie {
 	# be sent through secure connections
 	my $self = shift;
 	my($name, $value, $expiration, $path, $domain, $secure) = @_;
+	
+	#$path = dirname($ENV{SCRIPT_NAME}) if ($path eq '');
+
+
 	print "Set-Cookie: ";
 	print $name, "=$value; expires=\"", $expiration,
-		"\"; path=/", $path, "; domain=", $domain, "; ", $secure, "\n";
+		"\"; path=$path; domain=", $domain, "; ", $secure, "\n";
 }
 
 
