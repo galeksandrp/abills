@@ -452,7 +452,7 @@ sub table {
   }
 
 
- $self->{table} = "<TABLE $width cellspacing=0 cellpadding=0 border=0>";
+ $self->{table} = "<br><TABLE $width cellspacing=0 cellpadding=0 border=0>";
  
  if (defined($attr->{caption})) {
    $self->{table} .= "<TR><TD bgcolor=$_COLORS[1] align=right><b>$attr->{caption}</b></td></tr>\n";
@@ -934,15 +934,14 @@ sub letters_list {
  my $pages_qs = $attr->{pages_qs} if (defined($attr->{pages_qs}));
 
   
-my $letters = "<a href='$SELF_URL?index=$index'>All</a> ::";
+my $letters = $self->button('All ', "index=$index"). '::';
 for (my $i=97; $i<123; $i++) {
   my $l = chr($i);
   if ($FORM{letter} eq $l) {
      $letters .= "<b>$l </b>";
    }
   else {
-     #$pages_qs = '';
-     $letters .= "<a href='$SELF_URL?index=$index&letter=$l$pages_qs'>$l</a> ";
+     $letters .= $self->button("$l", "index=$index&letter=$l$pages_qs") . ' ';
    }
  }
 

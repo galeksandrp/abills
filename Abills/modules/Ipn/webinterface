@@ -162,7 +162,7 @@ my $table = Abills::HTML->table( { width => '100%',
 my $delete = '';
 foreach my $line (@$list) {
   if ($permissions{3}{1}) {
-    $delete = $html->button($_DEL, "index=". $index ."&$pages_qs&del=$line->[12]+$line->[11]+$line->[7]+$line->[1]+$line->[9]+$line->[0]", "$_DEL Session SESSION_ID $line->[11]?");
+    $delete = $html->button($_DEL, "index=". $index ."&$pages_qs&del=$line->[12]+$line->[11]+$line->[7]+$line->[1]+$line->[9]+$line->[0]", { MESSAGE => "$_DEL Session SESSION_ID $line->[11]?" });
    }
 
   $table->addrow($line->[0],
@@ -172,7 +172,7 @@ foreach my $line (@$list) {
      $line->[4], 
      $line->[5],
      $line->[6], 
-     "<a href='$SELF_URL?index=$index$pages_qs'>$_HOSTS</a>"
+     $html->button("$_HOSTS", "index=$index$pages_qs")
   );
 }
 
@@ -341,7 +341,7 @@ if (defined($FORM{DATE})) {
         int2byte($line->[3]),  
         int2byte($line->[4]),  
         $line->[5], 
-        "<a href='$SELF_URL?index=$index&HOUR=$line->[0]$pages_qs&EX_PARAMS=1'>$_HOSTS</a>"
+        $html->button("$_HOSTS", "index=$index&HOUR=$line->[0]$pages_qs&EX_PARAMS=1")
       );
 
      $total_in      += $line->[1];   
@@ -365,14 +365,14 @@ else {
   $LIST_PARAMS{INTERVAL_TYPE}=3;
   my $list = $Ipn->reports({ %LIST_PARAMS });
   foreach my $line (@$list) {
-    $table_sessions->addrow("<a href='$SELF_URL?index=$index&$type=$line->[0]$pages_qs'>$line->[0]</a>", 
+    $table_sessions->addrow($html->button($line->[0], "index=$index&$type=$line->[0]$pages_qs"), 
        int2byte($line->[1]),   
        int2byte($line->[2]), 
        int2byte($line->[3]),
        int2byte($line->[4]),
        $line->[5],
-       "<a href='$SELF_URL?index=$index&$type=$line->[0]$pages_qs'>$_HOURS</a>",
-       "<a href='$SELF_URL?index=$index$pages_qs'>$_HOSTS</a>"
+       $html->button("$_HOURS", "index=$index&$type=$line->[0]$pages_qs"),
+       $html->button("$_HOSTS", "index=$index$pages_qs")
        );
    
     $total_in      += $line->[1];   

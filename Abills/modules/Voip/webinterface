@@ -177,9 +177,9 @@ my $table = Abills::HTML->table( { width => '100%',
                                   } );
 
 foreach my $line (@$list) {
-  my $payments = ($permissions{1}) ?  "<a href='$SELF_URL?index=2&UID=$line->[7]'>$_PAYMENTS</a>" : ''; 
+  my $payments = ($permissions{1}) ?  $html->button($_PAYMENTS, "index=2&UID=$line->[7]") : ''; 
 
-  $table->addrow("<a href='$SELF_URL?index=11&UID=$line->[7]'>$line->[0]</a>", "$line->[1]",
+  $table->addrow($html->button($line->[0], "index=11&UID=$line->[7]"), "$line->[1]",
    "$line->[2]", "$line->[3]", "$line->[4]", "$status[$line->[5]]", 
    "$line->[6]",
    $payments);
@@ -225,20 +225,20 @@ sub voip_user {
 
   if($user->{TOTAL} < 1) {
 	  message('info', $_INFO, $_NOT_ACTIVE);
-	  $Voip = $Voip->defaults();
-	  $Voip->{ACTION}='add';
-	  $Voip->{LNG_ACTION}=$_ADD;
+	  $user = $Voip->defaults();
+	  $user->{ACTION}='add';
+	  $user->{LNG_ACTION}=$_ACTIVATE;
 	 }
 	else {
-	  $Voip->{ACTION}='set';
-	  $Voip->{LNG_ACTION}=$_CHANGE;
+	  $user->{ACTION}='set';
+	  $user->{LNG_ACTION}=$_CHANGE;
 	} 
 
-  $user->{DISABLE}=' checked' if($user->{DISABLE} == 1);
+  $user->{DISABLE} = ($user->{DISABLE} == 1) ?  ' checked' : '';
   $user->{ALLOW_ANSWER}=' checked' if($user->{ALLOW_ANSWER} == 1);
   $user->{ALLOW_CALLS}=' checked' if($user->{ALLOW_CALLS} == 1);
   
-  Abills::HTML->tpl_show(_include('voip_user', 'Voip'), $Voip);
+  Abills::HTML->tpl_show(_include('voip_user', 'Voip'), $user);
 }
 
 
@@ -528,8 +528,8 @@ if(defined($attr->{TP})) {
                   $table->td($line->[2]), 
                   $table->td($line->[3]), 
                   $table->td($line->[4]), 
-                  $table->td("<a href='$SELF_URL?index=$index$pages_qs&routes=$line->[0]'>$_ROUTES</a>"),
-                  $table->td("<a href='$SELF_URL?index=$index$pages_qs&chg=$line->[0]'>$_CHANGE</a>"),
+                  $table->td($html->button("$_ROUTES", "index=$index$pages_qs&routes=$line->[0]")),
+                  $table->td($html->button("$_CHANGE", "index=$index$pages_qs&chg=$line->[0]")),
                   $table->td($delete),
                   $table->td("&nbsp;", { bgcolor => $color, rowspan => ($line->[5] > 0) ? 2 : 1 })
      );
@@ -544,6 +544,9 @@ elsif (defined($FORM{TP_ID})) {
   voip_tp();
   return 0;
  }
+
+
+
 
 if ($tarif_plan->{errno}) {
    message('err', $_ERROR, "[$tarif_plan->{errno}] $err_strs{$tarif_plan->{errno}} $tarif_plan->{errstr}");	
@@ -582,7 +585,7 @@ for(my $i=0; $i<9; $i++) {
      	   if (($h >= $h_b) && ($h < $h_e)) {
 #     	   	 print "$i // $h => $h_b && $h <= $h_e // $color <br> \n";
   	   	   $tdcolor = $color;
-  	 	     $link = "<a href='$SELF_URL?index=$index&TP_ID=$FORM{TP_ID}&subf=$FORM{subf}&chg=$p'>#</a>";
+  	 	     $link = $html->button('#', "index=$index&TP_ID=$FORM{TP_ID}&subf=$FORM{subf}&chg=$p");
   	 	     last;
   	 	    }
   	     else {
@@ -742,7 +745,8 @@ foreach my $line (@$list) {
   	undef($table->{rowcolor});
    }
   
-  $table->addrow("<b>$line->[0]</b>", "<a href='$SELF_URL?index=$index&TP_ID=$line->[0]'>$line->[1]</a>", 
+  $table->addrow("<b>$line->[0]</b>", 
+  $html->button("$line->[1]", "index=$index&TP_ID=$line->[0]"), 
    $bool_vals[$line->[2]], $Payment_Types[$line->[3]], $line->[4], 
    $line->[5], $line->[6], $line->[7],
    $html->button($_INTERVALS, "index=$index&TP_ID=$line->[0]&intervals=$line->[0]'"),
@@ -798,7 +802,7 @@ if($FORM{add_route}) {
    
    
     while(my ($par_key, $name) = each ( %$h )) {
-      $menu_navigator =  " <a href='$SELF_URL?index=$index&ROUTE_ID=$root_index'>$name</a> " . $menu_navigator;
+      $menu_navigator =  $html->button("$name", "index=$index&ROUTE_ID=$root_index") . $menu_navigator;
       $tree{$root_index}='y';
       if ($par_key > 0) {
         $root_index = $par_key;
@@ -1061,8 +1065,8 @@ elsif($FORM{zap}) {
   	                NAS_ID => $nas->{NAS_ID} });  
   
   if ($sessions->{TOTAL} < 1) {
-    $message .= "<p align=center>[<a href='$SELF_URL?index=$index&tolog=$acct_session_id&nas_id=$nas_id'>add to log</a>]
-        [<a href='$SELF_URL?index=$index&del=$acct_session_id&nas_id=$nas_id&nas_port_id=$nas_port_id'>$_DEL</a>]</p>";
+    $message .= "<p align=center>[". $html->button('add to log', "index=$index&tolog=$acct_session_id&nas_id=$nas_id"). "]
+        [". $html->button("$_DEL", "index=$index&del=$acct_session_id&nas_id=$nas_id&nas_port_id=$nas_port_id"). "]</p>";
    }
   else {
   	$message = "$_EXIST";
@@ -1139,11 +1143,11 @@ $form_link = '';
 if($FORM{ZAPED}) {
 	$LIST_PARAMS{ZAPED}='yes';
 	#$qs_params = "&WRONG_ENDED=yes";
-	$form_link = "<a href='$SELF_URL?index=$index'>On line</a>";
+	$form_link = $html->button('On line', "index=$index");
  } 
 else {
  	$sessions->online( { ZAPED => 'yes' } );	
- 	$form_link = "<a href='$SELF_URL?index=$index&ZAPED=yes'>$_ZAPED</a> ($sessions->{TOTAL})";
+ 	$form_link = $html->button($_ZAPED, "index=$index&ZAPED=yes"). " ($sessions->{TOTAL})";
 }
 
 
@@ -1181,14 +1185,14 @@ foreach my $nas_row (@$nas_list) {
     elsif ($line->[9] == 3)                                  { $bg='#FF0000';    }
     else {  $bg = ($bg eq $_COLORS[1]) ? $_COLORS[2] : $_COLORS[1];    }
 
-    my $zap = "(<a href='$SELF_URL?index=$index&zap=$nas_row->[0]+$line->[9]' title='Zap'>Z</A>)";
-    my $hangup = "(<a href='$SELF_URL?index=$index&hangup=$nas_row->[0]+$line->[2]+$line->[11]+$line->[0]' title='Hangup'>H</A>)";
+    my $zap = "(". $html->button('Z', "index=$index&zap=$nas_row->[0]+$line->[9]", { TITLE => 'Zap'}). ")";
+    my $hangup = "(". $html->button('H', "index=$index&hangup=$nas_row->[0]+$line->[2]+$line->[11]+$line->[0]", { TITLE => 'Hangup'} ) .")";
     my $user_info =  "$_FIO: $line->[1]\n$_PHONE: $line->[12]\n$_VARIANT: $line->[13]\n$_DEPOSIT: $line->[14]\n".
      "$_CREDIT: $line->[15]\n$_SPEED: $line->[16]\nSESSION_ID: $line->[11]\nCID: $line->[17]\nCONNECT_INFO: $line->[18]'";
 
-    $table->addrow("<a href='$SELF_URL?index=11&UID=$line->[10]' title='$user_info'>$line->[0]</a>", 
+    $table->addrow($html->button($line->[0], "index=11&UID=$line->[10]", { TITLE => "$user_info"}), 
       $line->[1], $line->[2],  $line->[3],  $line->[4], $line->[5], 
-     "(<a href='$SELF_URL?index=$index&ping=$line->[3]'>P</a>)",
+     "(". $html->button('P', "index=$index&ping=$line->[3]", { TITLE => 'Ping'}). ")",
      "$zap",
      "$hangup");
   }
@@ -1303,64 +1307,13 @@ sub voip_use_allmonthes {
 # dv_use();
 #**********************************************************
 sub voip_use {
-  use Fees;
-  my $fees = Fees->new($db);
-
-
-my ($y, $m, $d);
-
-my $type='DATE';
-
-if ($FORM{MONTH}) {
-  $LIST_PARAMS{MONTH}=$FORM{MONTH};
-	$pages_qs="&MONTH=$LIST_PARAMS{MONTH}";
- }
-elsif($FORM{allmonthes}) {
-	$type='MONTH';
-	$pages_qs="&allmonthes=y";
- }
-else {
-	($y, $m, $d)=split(/-/, $DATE, 3);
-	$LIST_PARAMS{MONTH}="$y-$m";
-	$pages_qs="&MONTH=$LIST_PARAMS{MONTH}";
-}
-
-
-if ($FORM{GID}) {
-	$LIST_PARAMS{GID}=$FORM{GID};
-  $pages_qs.="&GID=$FORM{GID}";
-}
-
-
-
-
-$sessions->{GROUPS_SEL} = sel_groups();
-Abills::HTML->tpl_show(templates('groups_sel'), $sessions);
-
-
+  reports({ DATE   => $FORM{DATE}, 
+  	        REPORT => '' });
 
 my ($tables_sessions, $table_fees);
 
 #Day reposrt
 if (defined($FORM{DATE})) {
-  ($y, $m, $d)=split(/-/, $FORM{DATE}, 3);	
-  my $days = '';
-  for ($i=1; $i<=31; $i++) {
-     $days .= ($d == $i) ? "<b>$i </b>" : sprintf("<a href='$SELF_URL?index=$index&DATE=%d-%02.f-%02.f$pages_qs'>%d</a> ", $y, $m, $i, $i);
-   }
-
-  $table = Abills::HTML->table( { width => '100%',
-                                rowcolor => $_COLORS[1],
-                                cols_align => ['right', 'left'],
-                                rows => [ [ "$_YEAR:",  $y ],
-                                          [ "$_MONTH:", $MONTHES[$m] ], 
-                                          [ "$_DAY:",   $days ] ]
-                               } );
-
-  print $table->show();
-  $LIST_PARAMS{DATE}="$FORM{DATE}";
-  $pages_qs.="&DATE=$LIST_PARAMS{DATE}";
-
   #Used Fraffic
   $table_sessions = Abills::HTML->table( { width => '100%',
 	                              caption => "$_SESSIONS", 
@@ -1372,7 +1325,7 @@ if (defined($FORM{DATE})) {
   my $list = $sessions->reports({ %LIST_PARAMS });
   foreach my $line (@$list) {
     $table_sessions->addrow("<b>$line->[0]</b>", 
-      "<a href='$SELF_URL?index=11&subf=22&UID=$line->[5]&DATE=$line->[0]'>$line->[1]</a>", 
+      $html->button("$line->[1]", "index=11&subf=22&UID=$line->[5]&DATE=$line->[0]"), 
        $line->[2], $line->[3],  "<b>$line->[4]</b>" );
    }
 
@@ -1389,7 +1342,8 @@ else {
 
   my $list = $sessions->reports({ %LIST_PARAMS });
   foreach my $line (@$list) {
-    $table_sessions->addrow("<a href='$SELF_URL?index=$index&$type=$line->[0]$pages_qs'>$line->[0]</a>", 
+    $table_sessions->addrow(
+    $html->button($line->[0],    "index=$index&$type=$line->[0]$pages_qs"), 
        $line->[1], $line->[2], $line->[3], "<b>$line->[4]</b>" );
    }
 
@@ -1409,22 +1363,6 @@ $table = Abills::HTML->table( { width => '100%',
 
 
 print $table_sessions->show() . $table->show();
-
-$table = Abills::HTML->table( { width      => '100%',
-                                cols_align => ['right', 'right', 'right', 'right'],
-                                rows       => [ [ "$_TOTAL:", "<b>$fees->{TOTAL}</b>", "$_SUM", "<b>$fees->{SUM}</b>" ] ],
-                                rowcolor   => $_COLORS[2]
-                               } );
-
-
-#Users 
-#Sessions
-#Time
-#Money
-
-
-
-
 
 }
 
@@ -1471,9 +1409,9 @@ print $table->show();
 $table = Abills::HTML->table( { width => '100%',
 	                              cols_align => ['right', 'right'] } );
 
-$table->addrow("<a href='$SELF_URL?index=40&$pages_qs'>$_TOTAL:</a>", $totals);
+$table->addrow($html->button("$_TOTAL", "index=40&$pages_qs"), $totals);
 while(my($k,$v)=each %$types) {
-  $table->addrow("<a href='$SELF_URL?index=40&LOG_TYPE=$k&$pages_qs'>$k</a>", $v);
+  $table->addrow($html->button("$k", "index=40&LOG_TYPE=$k&$pages_qs"), $v);
 }
 print $table->show();
 
@@ -1538,13 +1476,21 @@ if ($FORM{rows}) {
 
 #PEriods totals
 my $list = $sessions->periods_totals({ %LIST_PARAMS });
+
+
+
+if (! defined($sessions->{sum_4})) {
+	message('info', $_INFO, "$_NO_RECORD");
+	return 0;
+}
+
 my $table = Abills::HTML->table( { width => '100%',
                                    title_plain => ["$_PERIOD", "$_DURATION", "$_SUM"],
                                    cols_align => ['left', 'right', 'right'],
                                    rowcolor => $_COLORS[1]
                                   } );
 for(my $i = 0; $i < 5; $i++) {
-	  $table->addrow("<a href='$SELF_URL?index=$index&period=$i$pages_qs'>$PERIODS[$i]</a>", 
+	  $table->addrow($html->button("$PERIODS[$i]", "index=$index&period=$i$pages_qs"), 
 	  "$sessions->{'duration_'. $i}",
 	  $sessions->{'sum_'. $i});
  }
@@ -1577,7 +1523,7 @@ if (defined($FORM{show})) {
   $LIST_PARAMS{INTERVAL} = "$FORM{fromy}-$FORM{fromm}-$FORM{fromd}/$FORM{toy}-$FORM{tom}-$FORM{tod}";
  }
 elsif (defined($FORM{period})) {
-	$LIST_PARAMS{PERIOD} = $FORM{period}+0; 
+	$LIST_PARAMS{PERIOD} = int($FORM{period}); 
 	$pages_qs .= "&period=$FORM{period}";
 }
 elsif($FORM{DATE}) {
@@ -1658,8 +1604,14 @@ my $table = Abills::HTML->table( { width => '100%',
                                    cols_align => ['left', 'right', 'right'],
                                    rowcolor => $_COLORS[1]
                                   } );
+
+if (! defined($sessions->{sum_5})) {
+	message('info', $_INFO, $_NO_RECORD);
+	return 0;
+}
+
 for(my $i = 0; $i < 5; $i++) {
-	  $table->addrow("<a href='$SELF_URL?index=$index&period=$i$pages_qs'>$PERIODS[$i]</a>", "$sessions->{'duration_'. $i}",
+	  $table->addrow($html->button("$PERIODS[$i]", "index=$index&period=$i$pages_qs"), "$sessions->{'duration_'. $i}",
 	  $sessions->{'sum_'. $i});
  }
 print $table->show();
@@ -1691,8 +1643,8 @@ if (defined($FORM{show})) {
   $FORM{tom} = sprintf("%.2d", $FORM{tom}++);
   $LIST_PARAMS{INTERVAL} = "$FORM{fromy}-$FORM{fromm}-$FORM{fromd}/$FORM{toy}-$FORM{tom}-$FORM{tod}";
  }
-elsif ($FORM{period}) {
-	$LIST_PARAMS{PERIOD} = $FORM{period}; 
+elsif (defined($FORM{period})) {
+	$LIST_PARAMS{PERIOD} = int($FORM{period}); 
 	$pages_qs .= "&period=$FORM{period}";
 }
 
@@ -1978,8 +1930,10 @@ foreach my $line (@$list) {
   	  undef($table->{rowcolor});
      }
 
-    $table->addrow("<a href='$SELF_URL?index=$index&NAS_ID=$line->[0]'>$line->[0]</a>",  
-     $line->[1], $line->[2], $line->[3]);
+    $table->addrow($html->button("$line->[0]", "index=$index&NAS_ID=$line->[0]"),  
+     $line->[1], 
+     $line->[2], 
+     $line->[3]);
   }
 print $table->show();
 
@@ -2055,7 +2009,9 @@ if ($FORM{NAS_ID}){
          my @registred = split(/\|/, $line);
          #ACF|Caller_IP:Port|Caller_EPID|CRV|DestinationInfo|SrcInfo|IsAnswered;
          #ACF|Callee_IP:Port|Callee_EPID|CRV|DestinationInfo|SrcInfo|IsAnswered;
-         $table->addrow('&nbsp;', @registred, "(<a href='$SELF_URL?index=$index&NAS_ID=$FORM{NAS_ID}&command=disconnectcall+@registred[4]' title='Hangup'>H</a>)");
+         $table->addrow('&nbsp;', @registred, 
+          "(". $html->button("H", "index=$index&NAS_ID=$FORM{NAS_ID}&command=disconnectcall+@registred[4]", 
+             { TITLE => 'Hangup'} ). ')');
         }
       }
      print $table->show();
@@ -2087,7 +2043,8 @@ if ($FORM{NAS_ID}){
      foreach my $line (@rows) {
        if($line =~ /RCF/) {
          @registred = split(/\|/, $line);
-         push @registred, "(<a href='$SELF_URL?index=$index&NAS_ID=$FORM{NAS_ID}&command=UnregisterIP+@registred[1]' title='Hangup'>H</a>)";
+         push @registred, "(". $html->button('H', "index=$index&NAS_ID=$FORM{NAS_ID}&command=UnregisterIP+@registred[1]", 
+           { TITLE => 'Hangup'}). ")";
          $table->addrow(@registred);
         }
       }
@@ -2119,17 +2076,14 @@ print "
 </form>
 ";
 
-
-
   $table = Abills::HTML->table({ width => '100%',
                                  border => 1,
                                  title => ["_COMMAND", "_HELP"],
                                  cols_align => ['left', 'left']
                                });
-#  while(my($k, $v)=each %gk_commands) {
     
   foreach $k (sort keys %gk_commands) {
-     $table->addrow("<a href='$SELF_URL?index=$index&NAS_ID=$FORM{NAS_ID}&command=$k'>$k</a>", $gk_commands{$k});
+     $table->addrow($html->button("$k", "index=$index&NAS_ID=$FORM{NAS_ID}&command=$k"), $gk_commands{$k});
    }
   print $table->show();
 

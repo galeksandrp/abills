@@ -234,14 +234,14 @@ else {
 
 # if call
 
-  if(defined($RAD->{H323_CONF_ID})) {
+  if(defined($RAD->{H323_CONF_ID})){
      preproces($RAD);
    
-     if($self->{ALLOW_ANSWER} < 1 && $RAD->{H323_CALL_ORIGIN} == 0) {
+     if($self->{ALLOW_ANSWER} < 1 && $RAD->{H323_CALL_ORIGIN} == 0){
        $RAD_PAIRS{'Reply-Message'}="Not allow answer";
        return 1, \%RAD_PAIRS;
       }
-     elsif($self->{ALLOW_CALLS} < 1 && $RAD->{H323_CALL_ORIGIN} == 1) {
+     elsif($self->{ALLOW_CALLS} < 1 && $RAD->{H323_CALL_ORIGIN} == 1){
      	 $RAD_PAIRS{'Reply-Message'}="Not allow calls";
        return 1, \%RAD_PAIRS;
       }
@@ -334,14 +334,8 @@ else {
       '$self->{TP_ID}',
       '$self->{ROUTE_ID}',
       '$self->{REDUCTION}');", 'do');
-
-
    }
-
-   
-
-
-   }
+ }
 
 
   

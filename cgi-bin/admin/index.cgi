@@ -470,15 +470,16 @@ sub func_menu {
 print "<Table width=100% bgcolor=$_COLORS[2]>\n";
 
 while(my($k, $v)=each %$header) {
-  print "<tr><td>$k: </td><td  valign=top><b>$v</b></td></tr>\n";
+  print "<tr><td>$k: </td><td valign=top>$v</td></tr>\n";
 }
 print "<tr bgcolor=$_COLORS[3]><td colspan=2>\n";
 
 my $menu;
 while(my($name, $v)=each %$items) {
   my ($subf, $ext_url)=split(/:/, $v, 2);
-  $menu .= (defined($FORM{subf})  && $FORM{subf} eq $subf) ? "::". $html->button("<b>$name</b>", "index=$index&$ext_url&subf=$subf"): "::". $html->button($name, "index=$index&$ext_url&subf=$subf");
+  $menu .= (defined($FORM{subf}) && $FORM{subf} eq $subf) ? "::". $html->button("<b>$name</b>", "index=$index&$ext_url&subf=$subf"): "::". $html->button($name, "index=$index&$ext_url&subf=$subf");
 }
+
 print "$menu</td></tr>
 </table>\n";
 
@@ -542,7 +543,7 @@ sub user_form {
   }
  else {
    $user_info->{EXDATA} = "
-            <input type=hidden name=UID value=\"$FORM{UID}\"> 
+            <tr><td colspan=2><input type=hidden name=UID value=\"$FORM{UID}\"></td></tr>
             <tr><td>$_DEPOSIT:</td><td>$user_info->{DEPOSIT}</td></tr>
             <tr><td>$_COMPANY:</td><td>". $html->button($user_info->{COMPANY_NAME}, "index=13&COMPANY_ID=$user_info->{COMPANY_ID}") ."</td></tr>
             <tr><td>BILL_ID:<td>%BILL_ID%</td></tr>\n";
@@ -664,7 +665,7 @@ sub user_info {
 	my $user_info = $users->info( $UID );
   
   print  "<table width=100% bgcolor=$_COLORS[2]><tr><td>$_USER:</td>
-   <td><a href='$SELF_URL?index=11&UID=$user_info->{UID}'><b>$user_info->{LOGIN}</b></td></tr></table>\n";
+   <td>". $html->button("<b>$user_info->{LOGIN}</b>", "index=11&UID=$user_info->{UID}") ."</td></tr></table>\n";
   
   $LIST_PARAMS{UID}=$user_info->{UID};
   $pages_qs =  "&UID=$user_info->{UID}";
@@ -768,13 +769,13 @@ if(defined($attr->{USER})) {
 
 print "
 </td><td bgcolor=$_COLORS[3] valign=top width=180>
-<table width=100% border=0><tr><td><li>". 
+<table width=100% border=0><tr><td><ul><li>". 
               $html->button($_PAYMENTS, "UID=$user_info->{UID}&index=2").
-      "<li>". $html->button($_FEES, "UID=$user_info->{UID}&index=3").
+      "<li>". $html->button($_FEES, "UID=$user_info->{UID}&index=3"). 
       "<li>". $html->button($_SEND_MAIL, "UID=$user_info->{UID}&index=").
-"</td></tr>
+"</ul>\n</td></tr>
 <tr><td> 
-  <br>\n";
+  <ul>\n";
 
 my %userform_menus = (
              15 =>  $_LOG,
@@ -800,7 +801,7 @@ while(my($k, $v)=each (%userform_menus) ) {
 
 print "<li>".
   $html->button($_DEL, "index=$index&del_user=y&UID=$user_info->{UID}", { MESSAGE => "$_USER: $user_info->{LOGIN} / $user_info->{UID}" })
-."</td></tr>
+."</ul></td></tr>
 </table>
 </td></tr></table>\n";
   return 0;
@@ -844,17 +845,7 @@ if ($FORM{debs}) {
 #  $LIST_PARAMS{TP} = $FORM{TP_ID};
 # }
 
-my $letters = $html->button($_ALL, "index=$index"). "::";
-for (my $i=97; $i<123; $i++) {
-  my $l = chr($i);
-  if ($FORM{letter} eq $l) {
-     $letters .= "<b>$l </b>";
-    }
-  else {
-     #$pages_qs = '';
-     $letters .= $html->button($l, "index=$index&letter=$l$pages_qs"). ' ';
-   }
- }
+ print Abills::HTML->letters_list({ pages_qs => $pages_qs  }); 
 
  if ($FORM{letter}) {
    $LIST_PARAMS{FIRST_LETTER} = $FORM{letter};
@@ -1163,7 +1154,8 @@ my $table = Abills::HTML->table( { width => '100%',
                                   } );
 foreach my $line (@$list) {
   my $delete = $html->button($_DEL, "index=$index$pages_qs&del=$line->[0]", { MESSAGE => "$_DEL [$line->[0]] ?" }); 
-  $table->addrow("<b>$line->[0]</b>", "<a href='$SELF_URL?index=11&UID=$line->[7]'>$line->[1]</a>", $line->[2], $line->[3], 
+  $table->addrow("<b>$line->[0]</b>",
+    $html->button($line->[1], "index=11&UID=$line->[7]"), $line->[2], $line->[3], 
    $line->[4], $line->[5], $line->[6], $delete);
 }
 
@@ -1487,10 +1479,10 @@ my $curtime = POSIX::mktime(0, 1, 1, 1, $month, $tyear);
 my ($sec,$min,$hour,$mday,$mon, $gyear,$gwday,$yday,$isdst) = gmtime($curtime);
 #print  "($sec,$min,$hour,$mday,$mon,$gyear,$gwday,$yday,$isdst)<br>";
 
-print "<p><TABLE width=400 cellspacing=0 cellpadding=0 border=0>
+print "<br><TABLE width=400 cellspacing=0 cellpadding=0 border=0>
 <tr><TD bgcolor=$_COLORS[4]>
 <TABLE width=100% cellspacing=1 cellpadding=0 border=0>
-<tr bgcolor=$_COLORS[0]><th><a href='$SELF_URL?index=75&month=$p_month&year=$p_year'> << </a></th><th colspan=5>$MONTHES[$month] $year</th><th><a href='$SELF_URL?index=75&month=$n_month&year=$n_year'> >> </a></th></tr>
+<tr bgcolor=$_COLORS[0]><th>". $html->button(' << ', "index=75&month=$p_month&year=$p_year"). "</th><th colspan=5>$MONTHES[$month] $year</th><th>". $html->button(' >> ', "index=75&month=$n_month&year=$n_year") ."</th></tr>
 <tr bgcolor=$_COLORS[0]><th>$WEEKDAYS[1]</th><th>$WEEKDAYS[2]</th><th>$WEEKDAYS[3]</th>
 <th>$WEEKDAYS[4]</th><th>$WEEKDAYS[5]</th>
 <th><font color=red>$WEEKDAYS[6]</font></th><th><font color=red>$WEEKDAYS[7]</font></th></tr>\n";
@@ -1503,7 +1495,7 @@ while($day < $month_days) {
   print "<tr bgcolor=$_COLORS[1]>";
   for($wday=0; $wday < 7 and $day < $month_days; $wday++) {
      if ($day == 1 && $gwday != $wday) { 
-       print "<td>&nbsp</td>";
+       print "<td>&nbsp;</td>";
        if ($wday == 7) {
        	 print "$day == 1 && $gwday != $wday";
        	 return 0;
@@ -1519,7 +1511,7 @@ while($day < $month_days) {
          print "<th bgcolor=$_COLORS[0]>$day</th>";
         }
        else {
-         print "<td align=right $bg><a href='$SELF_URL?index=75&add=$month-$day'>$day</a></td>";
+         print "<td align=right $bg>". $html->button($day, "index=75&add=$month-$day"). '</td>';
         }
        $day++;
       }
@@ -1690,25 +1682,33 @@ sub admin_permissions {
 print "<form action=$SELF_URL METHOD=POST>
  <input type=hidden name=index value=50>
  <input type=hidden name=AID value='$FORM{AID}'>
- <input type=hidden name=subf value=$FORM{subf}>
- <table width=640>\n";
+ <input type=hidden name=subf value=$FORM{subf}>\n";
+
+
+my $table = Abills::HTML->table( { width => '400',
+                                   border => 1,
+                                   title_plain => ['ID', $_NAME, ''],
+                                   cols_align => ['right', 'left', 'center'],
+                                  } );
+
 
 while(my($k, $v) = each %menu_items ) {
-  if (defined($menu_items{$k}{0})) {
-    print "<tr bgcolor=$_COLORS[0]><td colspan=3>$k: <b>$menu_items{$k}{0}</b></td></tr>\n";
+  if (defined($menu_items{$k}{0}) && $k > 0) {
+  	$table->{rowcolor}=$_COLORS[0];
+  	$table->addrow("$k:", "<b>$menu_items{$k}{0}</b>", '');
     $k--;
     my $actions_list = $actions[$k];
     my $action_index = 0;
+    $table->{rowcolor}=undef;
     foreach my $action (@$actions_list) {
       my $checked = (defined($permits{$k}{$action_index})) ? 'checked' : '';
-      print "<tr><td align=right>$action_index</td><td>$action</td><td><input type=checkbox name='$k". "_$action_index' value='yes' $checked></td></tr>\n";
+      $table->addrow("$action_index", "$action", "<input type=checkbox name='$k". "_$action_index' value='yes' $checked>");
       $action_index++;
      }
    }
  }
   
-print "</table>
- <input type=submit name='set' value=\"$_SET\">
+print $table->show(). "<input type=submit name='set' value=\"$_SET\">
 </form>\n";
 }
 
@@ -1826,7 +1826,7 @@ if($FORM{NAS_ID}) {
     $nas->{NAME_SEL} .= " selected" if ($line->[0] eq $FORM{NAS_ID});
     $nas->{NAME_SEL} .= ">$line->[0]:$line->[1]\n";
    }
-  $nas->{NAME_SEL} .= "</select><input type=submit name=show value='$_SHOW'></form>";
+  $nas->{NAME_SEL} .= "</select><input type=submit name=show value='$_SHOW'>\n</form>\n";
   
   func_menu({ 
   	         'ID' =>   $nas->{NAS_ID}, 
@@ -1967,7 +1967,7 @@ elsif($FORM{NAS_ID}) {
   $FORM{subf}=$index;
   form_nas();
   return 0;
-}
+ }
 else {
   $nas = Nas->new($db, \%conf);	
 }
@@ -1986,12 +1986,15 @@ my $table = Abills::HTML->table( { width => '100%',
                                    qs => $pages_qs              
                                   } );
 
-my $list = $nas->ip_pools_list({ %LIST_PARAMS });	
 
+my $list = $nas->ip_pools_list({ %LIST_PARAMS });	
 foreach my $line (@$list) {
   my $delete = $html->button($_DEL, "index=61$pages_qs&del=$line->[6]", { MESSAGE => "$_DEL NAS $line->[4]?" }); 
-  $table->addrow($html->button($line->[0], "index=60&NAS_ID=$line->[7]"), $line->[4], $line->[5], 
-    $line->[3],  $delete);
+  $table->addrow($html->button($line->[0], "index=60&NAS_ID=$line->[7]"), 
+    $line->[4], 
+    $line->[5], 
+    $line->[3],  
+    $delete);
 }
 print $table->show();
 }
@@ -2206,7 +2209,7 @@ if (defined($FORM{DATE})) {
 
   my $days = '';
   for ($i=1; $i<=31; $i++) {
-     $days .= ($d == $i) ? "<b>$i </b>" : ' '.$html->button($i, sprintf("index=$index&DATE=%d-%02.f-%02.f&EX_PARAMS=$FORM{EX_PARAMS}", $y, $m, $i));
+     $days .= ($d == $i) ? " <b>$i </b>" : ' '.$html->button($i, sprintf("index=$index&DATE=%d-%02.f-%02.f&EX_PARAMS=$FORM{EX_PARAMS}", $y, $m, $i));
    }
   
   
@@ -2218,7 +2221,7 @@ if (defined($FORM{DATE})) {
     my(undef, $h)=split(/ /, $FORM{HOUR}, 2);
     my $hours = '';
     for (my $i=0; $i<24; $i++) {
-    	$hours .= ($h == $i) ? "<b>$i </b>" : ' '.$html->button($i, sprintf("index=$index&HOUR=%d-%02.f-%02.f+%02.f&EX_PARAMS=$FORM{EX_PARAMS}$pages_qs", $y, $m, $d, $i));
+    	$hours .= ($h == $i) ? " <b>$i </b>" : ' '.$html->button($i, sprintf("index=$index&HOUR=%d-%02.f-%02.f+%02.f&EX_PARAMS=$FORM{EX_PARAMS}$pages_qs", $y, $m, $d, $i));
      }
 
  	  $LIST_PARAMS{HOUR}="$FORM{HOUR}";
@@ -2458,7 +2461,7 @@ sub mk_navigator {
     
     my $ex_params = (defined($FORM{$menu_args{$root_index}})) ? '&'."$menu_args{$root_index}=$FORM{$menu_args{$root_index}}" : '';
     
-    $menu_navigator =  " <a href='$SELF_URL?index=$root_index$ex_params'>$name</a> /" . $menu_navigator;
+    $menu_navigator =  " ". $html->button($name, "index=$root_index$ex_params"). '/' . $menu_navigator;
     $tree{$root_index}='y';
     if ($par_key > 0) {
       $root_index = $par_key;
@@ -2525,7 +2528,7 @@ foreach my $ID (sort keys %menu_items) {
 
  	     next if((! $permissions{$ID-1}) && $parent == 0);
 	      	      	     
- 	     $name = (defined($tree{$ID})) ? "> <b>$name</b>": "$name";
+ 	     $name = (defined($tree{$ID})) ? "<b>$name</b>" : "$name";
  	     #print "$prefix$level / $parent /$ID ";
 
 
@@ -2533,10 +2536,10 @@ foreach my $ID (sort keys %menu_items) {
        	   my $ext_args = '';
        	   if (defined($menu_args{$ID})) {
        	       $ext_args = "&$menu_args{$ID}=$FORM{$menu_args{$ID}}";
-       	       $name = "<b>$name</b>";
+       	       $name = "<b>$name</b>" if ($name !~ /<b>/);
        	     }
 
-       	   $link = "<a href='$SELF_URL?index=$ID$ext_args'>$name</a>";   
+       	   $link = $html->button($name, "index=$ID$ext_args");
 
     	     if($parent == 0) {
  	        	 $menu_text .= "<tr><td bgcolor=$_COLORS[3] align=left>$prefix$link</td></tr>\n";
@@ -2632,7 +2635,7 @@ for(my $parent=1; $parent<$#menu_sorted; $parent++) {
   my $level = 0;
   my $prefix = '';
   $table->{rowcolor}=$_COLORS[0];      
-  $table->addrow("$level:", "$parent >> <a href='$SELF_URL?index=$parent'><b>$val</b></a> <<", '') if ($parent != 0);
+  $table->addrow("$level:", "$parent >> ". $html->button("<b>$val</b>", "index=$parent"). "<<", '') if ($parent != 0);
 
   if (defined($new_hash{$parent})) {
     $table->{rowcolor}=undef;
@@ -2808,8 +2811,11 @@ $pages_qs .= "&subf=2" if (! $FORM{subf});
 
 foreach my $line (@$list) {
   my $delete = ($permissions{1}{2}) ?  $html->button($_DEL, "index=$index&del=$line->[0]&UID=$line->[10]$pages_qs", { MESSAGE => "$_DEL [$line->[0]] ?" }) : ''; 
-  $table->addrow("<b>$line->[0]</b>", "<a href='$SELF_URL?index=11&UID=$line->[10]'>$line->[1]</a>", $line->[2], 
-   $line->[3], $line->[4],  "$line->[5]", "$line->[6]", "$line->[7]", $PAYMENT_METHODS[$line->[8]], "$line->[9]", $delete);
+  $table->addrow("<b>$line->[0]</b>", 
+  $html->button($line->[1], "index=11&UID=$line->[10]"), 
+  $line->[2], 
+   $line->[3], $line->[4],  "$line->[5]", "$line->[6]", "$line->[7]", $PAYMENT_METHODS[$line->[8]], 
+   "$line->[9]", $delete);
 }
 
 print $table->show();
@@ -3032,7 +3038,7 @@ print $table->show();
 #*******************************************************************
 sub form_search {
   my ($attr) = @_;
-
+  
 my %SEARCH_DATA = $admin->get_data(\%FORM);  
 
 if (defined($attr->{HIDDEN_FIELDS})) {
@@ -3107,7 +3113,8 @@ Abills::HTML->tpl_show(templates('form_search'), \%SEARCH_DATA);
 
 if ($FORM{search}) {
 	$LIST_PARAMS{LOGIN_EXPR}=$FORM{LOGIN_EXPR};
-  $pages_qs = "&search=y&type=$FORM{type}";
+  $pages_qs = "&search=y";
+  $pages_qs .= "&type=$FORM{type}" if ($pages_qs !~ /&type=/);
 
 	if(defined($FORM{FROM_D}) && defined($FORM{TO_D})) {
 	  $FORM{FROM_DATE}="$FORM{FROM_Y}-". sprintf("%.2d", ($FORM{FROM_M}+1)). "-$FORM{FROM_D}";
@@ -3115,7 +3122,7 @@ if ($FORM{search}) {
    }	 
 	
 	while(my($k, $v)=each %FORM) {
-		if ($k =~ /([A-Z0-9]+)/ && $v ne '') {
+		if ($k =~ /([A-Z0-9]+)/ && $v ne '' && $k ne '__BUFFER') {
 		  #print "$k, $v<br>";
 		  $LIST_PARAMS{$k}=$v;
 	    $pages_qs .= "&$k=$v";
@@ -3125,7 +3132,7 @@ if ($FORM{search}) {
 
 
   if ($FORM{type} ne $index) {
-  	#$index = $FORM{type};
+  	#print "$index = $FORM{type}";
     $functions{$FORM{type}}->();
    }
 }

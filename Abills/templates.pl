@@ -77,7 +77,7 @@ return qq{
  }
 elsif ($tpl_name eq 'client_info') {
 return qq{
-<p>
+<br>
 <TABLE width=600 cellspacing=0 cellpadding=0 border=0><TR><TD bgcolor=#E1E1E1>
 <TABLE width=100% cellspacing=1 cellpadding=0 border=0>
 <tr bgcolor=$_COLORS[2]><td><b>$_LOGIN:</b></td><td>%LOGIN%</td></tr>
@@ -88,7 +88,7 @@ return qq{
 <tr bgcolor=$_COLORS[1]><td><b>$_PHONE:</b></td><td>%PHONE%</td></tr>
 <tr bgcolor=$_COLORS[1]><td><b>$_ADDRESS:</b></td><td>%ADDRESS%</td></tr>
 <tr bgcolor=$_COLORS[1]><td><b>E-mail:</b></td><td>%EMAIL%</td></tr>
-<tr bgcolor=#DDDDDD><td colspan=2>&nbsp</td></tr>
+<tr bgcolor=#DDDDDD><td colspan=2>&nbsp;</td></tr>
 <tr bgcolor=$_COLORS[1]><td><b>$_ACTIVATE:</b></td><td>%ACTIVATE%</td></tr>
 <tr bgcolor=$_COLORS[1]><td><b>$_EXPIRE:</b></td><td>%EXPIRE%</td></tr>
 <tr bgcolor=$_COLORS[1]><th colspan=2>$_PAYMENTS</th></tr>
@@ -96,7 +96,7 @@ return qq{
 <tr bgcolor=$_COLORS[1]><td><b>$_SUM:</b></td><td>%PAYMENT_SUM%</td></tr>
 </table>
 </td></tr></table>
-</p>
+<br>
 };
  }
 elsif ($tpl_name eq 'user_info') {
@@ -414,9 +414,10 @@ return qq{
 </table>
 <input type=submit name=add value="$_ADD">
 </form>
+
 };
 }
-elsif ($tpl_name eq 'form_groups') {
+elsif ($tpl_name eq 'form_groups'){
 return qq{
 <form action=$SELF_URL METHOD=post>
 <input type=hidden name=index value=27>

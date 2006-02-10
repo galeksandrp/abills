@@ -113,7 +113,7 @@ my $result = "<form action=$SELF_URL>
 <input type=hidden name=m value=$m>
 <input type=hidden name=index value=$index>
 <table width=400 border=0>
-<tr><td>$_FROM:</td><td bgcolor=$_COLORS[2]>$user->{TP_ID} $user->{TP_NAME} [<a href='$SELF?index=$tp_index&TP_ID=$user->{TP_ID}' title='$_VARIANTS'>$_VARIANTS</a>]</td></tr>
+<tr><td>$_FROM:</td><td bgcolor=$_COLORS[2]>$user->{TP_ID} $user->{TP_NAME} [". $html->button("$_VARIANTS", "index=$tp_index&TP_ID=$user->{TP_ID}", { TITLE => "$_TP" } ). "]</td></tr>
 $params
 </form>\n";
 
@@ -179,10 +179,16 @@ my $table = Abills::HTML->table( { width => '100%',
                                   } );
 
 foreach my $line (@$list) {
-  my $payments = ($permissions{1}) ?  "<a href='$SELF_URL?index=2&UID=$line->[6]'>$_PAYMENTS</a>" : ''; 
+  my $payments = ($permissions{1}) ?  $html->button("$_PAYMENTS", "index=2&UID=$line->[6]") : ''; 
 
-  $table->addrow("<a href='$SELF_URL?index=11&UID=$line->[6]'>$line->[0]</a>", "$line->[1]",
-   "$line->[2]", "$line->[3]", "$line->[4]", "$status[$line->[5]]", $payments, "<a href='$SELF_URL?index=". ($index + 3) ."&UID=$line->[6]'>$_STATS</a>");
+  $table->addrow($html->button("$line->[0]", "index=11&UID=$line->[6]"), 
+   "$line->[1]",
+   "$line->[2]", 
+   "$line->[3]", 
+   "$line->[4]", 
+   "$status[$line->[5]]", 
+   $payments, 
+   $html->button("$_STATS", "index=". ($index + 3) ."&UID=$line->[6]"));
 }
 print $table->show();
 
@@ -234,9 +240,8 @@ sub dv_user {
 	  $Dv->{LNG_ACTION}=$_CHANGE;
 	} 
 
-  $user->{DISABLE}=' checked' if($user->{DISABLE} == 1);
+  $user->{DISABLE}=($user->{DISABLE} == 1) ? ' checked' : '';
   Abills::HTML->tpl_show(_include('dv_user', 'Dv'), $Dv);
-  #Abills::HTML->tpl_show(_include('dv_tp', 'Dv'), $tarif_info);
 }
 
 
@@ -277,7 +282,8 @@ elsif (defined($FORM{TP_ID})) {
   $LIST_PARAMS{TP} = $FORM{TP_ID};
   %F_ARGS = ( TP => $tariffs );
   
-  $tariffs->{NAME_SEL} = "<form action=$SELF_URL METHOD=POST><input type=hidden name=index value=$index><select name=TP_ID>";
+  $tariffs->{NAME_SEL} = "<form action=$SELF_URL METHOD=POST><input type=hidden name=index value=$index>
+  <select name=TP_ID>\n";
   my $list = $tariffs->list({ %LIST_PARAMS });	
   foreach my $line (@$list) {
     $tariffs->{NAME_SEL} .= "<option value=$line->[0]";
@@ -351,7 +357,7 @@ foreach my $line (@Payment_Types) {
   $tarif_info->{PAYMENT_TYPE_SEL} .= ">$Payment_Types[$i]\n";
   $i++;
 }
-$tarif_info->{SEL_OCTETS_DIRECTION} .= "</select>\n";
+$tarif_info->{PAYMENT_TYPE_SEL} .= "</select>\n";
 
 
 
@@ -489,7 +495,7 @@ elsif($FORM{zap}) {
     $message .= "<p align=center>[".
     $html->button('Add To log', "index=$index&tolog=$acct_session_id&nas_id=$nas_id&nas_port_id=$nas_port_id"). 
     "] [".
-    $html->button($_DEL, "index=$index&del=$acct_session_id&amp;nas_id=$nas_id&amp;nas_port_id=$nas_port_id"). "]</p>\n";
+    $html->button($_DEL, "index=$index&del=$acct_session_id&nas_id=$nas_id&nas_port_id=$nas_port_id"). "]</p>\n";
    }
   else {
   	$message .= "$_EXIST";
@@ -779,62 +785,14 @@ sub dv_use_allmonthes {
 # dv_use();
 #**********************************************************
 sub dv_use {
-	use Dv_Sessions;
-  my $sessions = Dv_Sessions->new($db);
-
-
-
-my ($y, $m, $d);
-
-my $type='DATE';
-
-if ($FORM{MONTH}) {
-  $LIST_PARAMS{MONTH}=$FORM{MONTH};
-	$pages_qs="&MONTH=$LIST_PARAMS{MONTH}";
- }
-elsif($FORM{allmonthes}) {
-	$type='MONTH';
-	$pages_qs="&allmonthes=y";
- }
-else {
-	($y, $m, $d)=split(/-/, $DATE, 3);
-	$LIST_PARAMS{MONTH}="$y-$m";
-	$pages_qs="&MONTH=$LIST_PARAMS{MONTH}";
-}
-
-
-if ($FORM{GID}) {
-	$LIST_PARAMS{GID}=$FORM{GID};
-  $pages_qs.="&GID=$FORM{GID}";
-}
-
-
-$sessions->{GROUPS_SEL} = sel_groups();
-Abills::HTML->tpl_show(templates('groups_sel'), $sessions);
+  reports({ DATE   => $FORM{DATE}, 
+  	        REPORT => '' });
 
 
 my ($tables_sessions);
 
 #Day reposrt
 if (defined($FORM{DATE})) {
-  ($y, $m, $d)=split(/-/, $FORM{DATE}, 3);	
-  my $days = '';
-  for ($i=1; $i<=31; $i++) {
-     $days .= ($d == $i) ? "<b>$i </b>" : sprintf("<a href='$SELF_URL?index=$index&DATE=%d-%02.f-%02.f$pages_qs'>%d</a> ", $y, $m, $i, $i);
-   }
-
-  $table = Abills::HTML->table( { width => '100%',
-                                rowcolor => $_COLORS[1],
-                                cols_align => ['right', 'left'],
-                                rows => [ [ "$_YEAR:",  $y ],
-                                          [ "$_MONTH:", $MONTHES[$m] ], 
-                                          [ "$_DAY:",   $days ] ]
-                               } );
-
-  print $table->show();
-  $LIST_PARAMS{DATE}="$FORM{DATE}";
-  $pages_qs.="&DATE=$LIST_PARAMS{DATE}";
-
   #Used Fraffic
   $table_sessions = Abills::HTML->table( { width => '100%',
 	                              caption => "$_SESSIONS", 
@@ -846,7 +804,8 @@ if (defined($FORM{DATE})) {
   my $list = $sessions->reports({ %LIST_PARAMS });
   foreach my $line (@$list) {
     $table_sessions->addrow("<b>$line->[0]</b>", 
-      "<a href='$SELF_URL?index=11&subf=22&UID=$line->[7]&DATE=$line->[0]'>$line->[1]</a>", $line->[2], int2byte($line->[3]),  int2byte($line->[4]),  $line->[5], "<b>$line->[6]</b>" );
+      $html->button("$line->[1]", "index=11&subf=22&UID=$line->[7]&DATE=$line->[0]"), 
+      $line->[2], int2byte($line->[3]),  int2byte($line->[4]),  $line->[5], "<b>$line->[6]</b>" );
    }
 
  }
@@ -862,7 +821,7 @@ else {
 
   my $list = $sessions->reports({ %LIST_PARAMS });
   foreach my $line (@$list) {
-    $table_sessions->addrow("<a href='$SELF_URL?index=$index&$type=$line->[0]$pages_qs'>$line->[0]</a>", 
+    $table_sessions->addrow($html->button("$line->[0]", "index=$index&$type=$line->[0]$pages_qs"), 
        $line->[1], $line->[2], int2byte($line->[3]),  int2byte($line->[4]),  $line->[5], "<b>$line->[6]</b>" );
    }
 }
@@ -879,8 +838,6 @@ $table = Abills::HTML->table( { width => '100%',
                                             "$_SUM: <b>$sessions->{SUM}</b>" ] ],
                                 rowcolor => $_COLORS[2]
                                } );
-
-
 print $table_sessions->show() . $table->show();
 
 #Users 
@@ -943,9 +900,9 @@ print $table->show();
 $table = Abills::HTML->table( { width => '100%',
 	                              cols_align => ['right', 'right'] } );
 
-$table->addrow("<a href='$SELF_URL?index=$index&$pages_qs'>$_TOTAL:</a>", $totals);
+$table->addrow($html->button("$_TOTAL", "index=$index&$pages_qs"), $totals);
 while(my($k,$v)=each %$types) {
-  $table->addrow("<a href='$SELF_URL?index=$index&LOG_TYPE=$k&$pages_qs'>$k</a>", $v);
+  $table->addrow($html->button($k, "index=$index&LOG_TYPE=$k&$pages_qs"), $v);
 }
 print $table->show();
 
@@ -1033,8 +990,11 @@ my $table = Abills::HTML->table( { width => '100%',
                                    rowcolor => $_COLORS[1]
                                   } );
 for(my $i = 0; $i < 5; $i++) {
-	  $table->addrow("<a href='$SELF_URL?index=$index&period=$i$pages_qs'>$PERIODS[$i]</a>", "$sessions->{'duration_'. $i}",
-	  int2byte($sessions->{'sent_'. $i}), int2byte($sessions->{'recv_'. $i}), int2byte($sessions->{'sum_'. $i}));
+	  $table->addrow($html->button("$PERIODS[$i]", "index=$index&PERIOD=$i$pages_qs"), 
+	  "$sessions->{'duration_'. $i}",
+	  int2byte($sessions->{'sent_'. $i}), 
+	  int2byte($sessions->{'recv_'. $i}), 
+	  int2byte($sessions->{'sum_'. $i}));
  }
 print $table->show();
 
@@ -1043,7 +1003,7 @@ print "<form action=$SELF_URL>
 <input type=hidden name=index value='$index'>
 <input type=hidden name=UID value='$UID'>\n";
 
-$table = Abills::HTML->table( { width => '640',
+$table = Abills::HTML->table( { width => '100%',
 	                                 rowcolor => $_COLORS[0],
                                    title_plain => [ "$_FROM: ", Abills::HTML->date_fld('from', { MONTHES => \@MONTHES} ),
                                    "$_TO: ", Abills::HTML->date_fld('to', { MONTHES => \@MONTHES } ),
@@ -1064,9 +1024,9 @@ if (defined($FORM{show})) {
   $FORM{toM} = sprintf("%.2d", $FORM{toM}++);
   $LIST_PARAMS{INTERVAL} = "$FORM{fromY}-$FORM{fromM}-$FORM{fromD}/$FORM{toY}-$FORM{toM}-$FORM{toD}";
  }
-elsif (defined($FORM{period})) {
+elsif (defined($FORM{PERIOD})) {
 	$LIST_PARAMS{PERIOD} = $FORM{period}+0; 
-	$pages_qs .= "&period=$FORM{period}";
+	$pages_qs .= "&PERIOD=$FORM{PERIOD}";
 }
 elsif($FORM{DATE}) {
 	$LIST_PARAMS{DATE} = $FORM{DATE}; 
@@ -1087,7 +1047,7 @@ $table = Abills::HTML->table( { width => '640',
                                 cols_align => ['right', 'right', 'right', 'right'],
                                 rows => [ [ $sessions->{TOTAL}, $sessions->{DURATION}, int2byte($sessions->{TRAFFIC}), $sessions->{SUM} ] ],
                                } );
-print "<p>" . $table->show() . "</p>\n";
+print "<br>" . $table->show() . "</br>\n";
 
 dv_sessions($list, $sessions);
 }
@@ -1128,9 +1088,6 @@ sub dv_user_stats {
 	  $LIST_PARAMS{DESC}=DESC;
    }
 
-use Dv_Sessions;
-my $sessions = Dv_Sessions->new($db);
-
 if ($sessions->{errno})	 {
 	message('err', $_ERROR, "[$sessions->{errno}] $err_strs{$sessions->{errno}}");
  }
@@ -1151,7 +1108,7 @@ my $table = Abills::HTML->table( { width => '100%',
                                    rowcolor => $_COLORS[1]
                                   } );
 for(my $i = 0; $i < 5; $i++) {
-	  $table->addrow("<a href='$SELF_URL?index=$index&period=$i$pages_qs'>$PERIODS[$i]</a>", "$sessions->{'duration_'. $i}",
+	  $table->addrow($html->button("$PERIODS[$i]", "index=$index&PERIOD=$i$pages_qs"), "$sessions->{'duration_'. $i}",
 	  int2byte($sessions->{'sent_'. $i}), int2byte($sessions->{'recv_'. $i}), int2byte($sessions->{'sum_'. $i}));
  }
 print $table->show();
@@ -1162,7 +1119,7 @@ print "<form action=$SELF_URL METHOD=POST>
 <input type=hidden name=index value='$index'>
 <input type=hidden name=UID value='$UID'>\n";
 
-$table = Abills::HTML->table( { width => '640',
+$table = Abills::HTML->table( { width => '100%',
 	                                 rowcolor => $_COLORS[0],
                                    title_plain => [ "$_FROM: ", Abills::HTML->date_fld('from', { MONTHES => \@MONTHES} ),
                                    "$_TO: ", Abills::HTML->date_fld('to', { MONTHES => \@MONTHES } ),
@@ -1183,9 +1140,9 @@ if (defined($FORM{show})) {
   $FORM{toM} = sprintf("%.2d", $FORM{toM}++);
   $LIST_PARAMS{INTERVAL} = "$FORM{fromY}-$FORM{fromM}-$FORM{fromD}/$FORM{toY}-$FORM{toM}-$FORM{toD}";
  }
-elsif ($FORM{period}) {
-	$LIST_PARAMS{PERIOD} = $FORM{period}; 
-	$pages_qs .= "&period=$FORM{period}";
+elsif (defined($FORM{PERIOD})) {
+	$LIST_PARAMS{PERIOD} = int($FORM{PERIOD}); 
+	$pages_qs .= "&PERIOD=$FORM{PERIOD}";
 }
 
 #if (! defined($FORM{sort})) {
@@ -1197,7 +1154,6 @@ elsif ($FORM{period}) {
 $list = $sessions->list({ %LIST_PARAMS });	
 
 $table = Abills::HTML->table( { width => '640',
-	                              caption => '',
 	                              rowcolor => $_COLORS[1],
                                 title_plain => ["$_SESSIONS", "$_DURATION", "$_TRAFFIC", "$_SUM"],
                                 cols_align => ['right', 'right', 'right', 'right'],
@@ -1206,7 +1162,7 @@ $table = Abills::HTML->table( { width => '640',
 print $table->show();	
 
 dv_sessions($list, $sessions) if ( $sessions->{TOTAL} > 0);
-#dv_show_sessions($list, $sessions);
+
 }
 
 

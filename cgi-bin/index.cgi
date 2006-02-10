@@ -240,7 +240,7 @@ if ($index > 0) {
   my $h = $menu_items{$root_index};
 
   while(my ($par_key, $name) = each ( %$h )) {
-    $menu_navigator =  " <a href='$SELF_URL?index=$root_index'>$name</a> /" . $menu_navigator;
+    $menu_navigator =  ' '. $html->button($name, "index=$root_index"). ' /' . $menu_navigator;
     $tree{$root_index}='y';
     if ($par_key > 0) {
       $root_index = $par_key;
@@ -299,7 +299,7 @@ foreach my $ID (@s) {
        	   my $ext_args = "&sid=$sid";
        	   $ext_args .= "&$menu_args{$ID}=$FORM{$menu_args{$ID}}" if (defined($menu_args{$ID}) && defined($FORM{$menu_args{$ID}}));
 
-       	   $link = "<a href='$SELF_URL?index=$ID$ext_args'>$name</a>";   
+       	   $link = $html->button($name, "index=$ID$ext_args");
 
     	     if($parent == 0) {
  	        	 $menu_text .= "<tr><td bgcolor=$_COLORS[3] align=left>$prefix$link</td></tr>\n";

@@ -31,7 +31,7 @@ sub new {
   ($db, $admin, $conf) = @_;
   my $self = { };
   bless($self, $class);
-  #$self->{debug}=1;
+#  $self->{debug}=1;
   return $self;
 }
 
@@ -542,7 +542,6 @@ if ($attr->{MONTH}) {
  }
 
 
- 
 #Interval from date to date
 if ($attr->{INTERVAL}) {
  	 my ($from, $to)=split(/\//, $attr->{INTERVAL}, 2);
@@ -551,7 +550,7 @@ if ($attr->{INTERVAL}) {
    push @WHERE_RULES, "date_format(start, '%Y-%m-%d')>='$from' and date_format(start, '%Y-%m-%d')<='$to'";
   }
 #Period
-elsif (defined($attr->{PERIOD})) {
+elsif (defined($attr->{PERIOD}) ) {
    my $period = $attr->{PERIOD} || 0;   
    if ($period == 4) { $WHERE .= ''; }
    else {
@@ -621,8 +620,6 @@ return $list;
 sub calculation {
 	my ($self) = shift;
 	my ($attr) = @_;
-
-  my $WHERE;
 
 #Login
   if ($attr->{UID}) {

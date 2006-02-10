@@ -381,7 +381,7 @@ sub periods_totals {
    sum(sum)
    
    FROM voip_log $WHERE;");
-
+  
   my $ar = $self->{list}->[0];
   (   $self->{duration_0}, 
      $self->{sum_0}, 
@@ -392,7 +392,8 @@ sub periods_totals {
       $self->{duration_3}, 
      $self->{sum_3}, 
       $self->{duration_4},
-     $self->{sum_4}, ) =  @$ar;
+     $self->{sum_4} ) =  @$ar;
+  
   
   return $self;	
 }
