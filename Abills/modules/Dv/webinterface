@@ -466,7 +466,14 @@ elsif ($FORM{hangup}) {
 
   message('info', $_INFO, "$message");
  }
+if ($FORM{zapall}) {
+  $sessions->zap(0, 0, 0, { ALL => 'y' });
+  message('info', $_INFO, "Zapped all sessions");
+ }
 elsif($FORM{zap}) {
+  
+  
+  
   my($nas_id, $nas_port_id, $acct_session_id)=split(/ /, $FORM{zap}, 3);
   $sessions->zap($nas_id, $nas_port_id, $acct_session_id);
 
@@ -476,6 +483,11 @@ elsif($FORM{zap}) {
    }
 
   $nas->info({NAS_ID => $nas_id });
+
+#  $sessions->zap($nas->{NAS_ID}, 
+#                 "$nas_port_id", 
+#                 "$acct_session_id");
+
   my $table = Abills::HTML->table( { width => '100%',
                                 caption => $_CLOSED,
                                 rows => [ 
@@ -487,7 +499,8 @@ elsif($FORM{zap}) {
                                } );
 
   $message = $table->show();
- 
+
+  
   $sessions->list({ ACCT_SESSION_ID => $acct_session_id, 
   	                NAS_PORT => $nas_port_id,
   	                NAS_ID => $nas->{NAS_ID} });  
@@ -583,14 +596,16 @@ elsif($FORM{del}) {
 
 
 $form_link = '';
+my $cure = '';
 if($FORM{ZAPED}) {
 	$LIST_PARAMS{ZAPED}='yes';
-	#$qs_params = "&WRONG_ENDED=yes";
-	$form_link = $html->button('On line', "index=$index");
+	$form_link = $html->button("On line", "index=$index");
+	$cure = 'Zap';
  } 
 else {
  	$sessions->online( { ZAPED => 'yes' } );	
- 	$form_link = $html->button($_ZAPED, "index=$index&ZAPED=yes"). "($sessions->{TOTAL})";
+ 	$form_link = $html->button("$_ZAPED", "index=$index&ZAPED=yes"). " ($sessions->{TOTAL})";
+ 	$cure='Online';
 }
 
 
@@ -645,12 +660,20 @@ foreach my $nas_row (@$nas_list) {
 }
 
 my $table2 = Abills::HTML->table( { width => '100%',
-                                cols_align => ['right', 'right', 'right'],
-                                rows => [ [ "$_TOTAL:", "<b>$sessions->{TOTAL}</b>", "$form_link" ] ]
+                                cols_align => ['left', 'right', 'right', 'right']
                                } );
-my $total = $table2->show();
 
+$table2->addtd(    $table->td("$cure", { bgcolor => $_COLORS[0] } ), 
+                  $table->td($sessions->{TOTAL}, { bgcolor => $_COLORS[0] }), 
+                  $table->td($form_link) 
+              ) ;
+
+
+my $total = $table2->show();
 print $total . $table->show();
+
+  print $html->button('Zap All', "index=$index&zapall=y", { MESSAGE => "Do you realy want zap all sessions ?" });
+
 	
 }
 

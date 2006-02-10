@@ -69,9 +69,9 @@ sub online {
  } 
  
 
- $self->query($db, "SELECT c.user_name, 
-                          pi.fio, 
-                          c.nas_port_id, 
+ $self->query($db, "SELECT c.user_name,
+                          pi.fio,
+                          c.nas_port_id,
                           c.framed_ip_address,
                           SEC_TO_TIME(UNIX_TIMESTAMP() - UNIX_TIMESTAMP(c.started)),
                           c.acct_input_octets, c.acct_output_octets, c.ex_input_octets, c.ex_output_octets,
@@ -79,13 +79,13 @@ sub online {
                           c.status,
                           u.uid,
   INET_NTOA(c.nas_ip_address),
-  c.acct_session_id, 
-  pi.phone, 
-  dv.tp_id, 
-  0, 
-  u.credit, 
-  dv.speed,  
-  c.CID, 
+  c.acct_session_id,
+  pi.phone,
+  dv.tp_id,
+    if(company.name IS NULL, b.deposit, cb.deposit),
+  u.credit,
+  dv.speed,
+  c.CID,
   c.CONNECT_INFO,
   if(date_format(c.started, '%Y-%m-%d')=curdate(), date_format(c.started, '%H:%i:%s'), c.started),
   c.nas_id
@@ -93,6 +93,11 @@ sub online {
  LEFT JOIN users u     ON u.id=user_name
  LEFT JOIN dv_main dv  ON dv.uid=u.uid
  LEFT JOIN users_pi pi ON pi.uid=u.uid
+
+ LEFT JOIN bills b ON (u.bill_id=b.id)
+ LEFT JOIN companies company ON (u.company_id=company.id)
+ LEFT JOIN bills cb ON (company.bill_id=cb.id)
+ 
  WHERE $WHERE
  ORDER BY $SORT $DESC;");
  
@@ -243,11 +248,13 @@ sub online_info {
 #**********************************************************
 sub zap {
   my $self=shift;
-  my ($nas_ip_address, $nas_port_id, $acct_session_id)=@_;
+  my ($nas_id, $nas_port_id, $acct_session_id, $attr)=@_;
+  
+  if (! defined($attr->{ALL})) {
+    $WHERE = "WHERE nas_id='$nas_id' and nas_port_id='$nas_port_id' and acct_session_id='$acct_session_id'";
+   }
 
-  $self->query($db, "UPDATE calls SET status=2 WHERE nas_ip_address=INET_ATON('$nas_ip_address')
-       and nas_port_id='$nas_port_id' and acct_session_id='$acct_session_id';", 'do');
-
+  $self->query($db, "UPDATE calls SET status='2' $WHERE;", 'do');
   return $self;
 }
 
