@@ -98,14 +98,6 @@ elsif ($acct_status_type == 2) {
                                                  $RAD->{ACCT_SESSION_TIME}, 
                                                  $RAD);
 
-
-#my $v = `echo "$self->{UID}, 
-#  $self->{SUM}, 
-#  $self->{BILL_ID}, 
-#  $self->{TARIF_PLAN}, 
-#  $self->{TIME_TARIF}, 
-#  $self->{TRAF_TARIF}" > /tmp/aaaaa`;
- 
 #  return $self;
   if ($self->{UID} == -2) {
     $self->{errno}=1;   
@@ -116,8 +108,9 @@ elsif ($acct_status_type == 2) {
     $self->{errno}=1;
     $self->{errstr}="ACCT [$RAD->{USER_NAME}] Not allow start period '$filename'";
     $Billing->mk_session_log($RAD);
-    
-    $v = `echo "$filename" >> /tmp/aaaaa`;
+   }
+  elsif ($self->{SUM} < 0) {
+    $self->{LOG_DEBUG} =  "ACCT [$RAD->{USER_NAME}] small session ($RAD->{ACCT_SESSION_TIME}, $RAD->{INBYTE}, $RAD->{OUTBYTE})";
    }
   elsif ($self->{UID} < 0) {
     $self->{LOG_DEBUG} =  "ACCT [$RAD->{USER_NAME}] small session ($RAD->{ACCT_SESSION_TIME}, $RAD->{INBYTE}, $RAD->{OUTBYTE})";
