@@ -271,6 +271,7 @@ if($FORM{ADD_TP}) {
    }
  }
 elsif (defined($FORM{TP_ID})) {
+ 
   $tarif_info = $tariffs->info( $FORM{TP_ID} );
 
   if ($tariffs->{errno}) {
@@ -391,7 +392,7 @@ foreach my $line (@$list) {
    }
   
   $table->addrow("<b>$line->[0]</b>", 
-   $html->button($line->[1], "?index=$index&TP_ID=$line->[0]"),
+   $html->button($line->[1], "index=$index&TP_ID=$line->[0]"),
    $bool_vals[$line->[2]], $bool_vals[$line->[3]], $Payment_Types[$line->[4]], $line->[5], $line->[6], $line->[7], $line->[8],
    $html->button($_INTERVALS, "index=". ($index+2) ."&subf=73&TP_ID=$line->[0]"),
    $change,

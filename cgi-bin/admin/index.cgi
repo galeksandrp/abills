@@ -236,7 +236,7 @@ my $users = Users->new($db, $admin, \%conf);
 
 
 if(defined($conf{tech_works})) {
-  print "<tr><th bgcolor=red colspan=2>$conf{tech_works}</th></tr>";
+  print "<tr><th bgcolor=#FF0000 colspan=2>$conf{tech_works}</th></tr>";
 }
 
 if (defined($COOKIES{qm}) && $COOKIES{qm} ne '') {
@@ -260,7 +260,7 @@ if (defined($COOKIES{qm}) && $COOKIES{qm} ne '') {
          { JAVASCRIPT => "javascript: Q=prompt('$menu_names{$qm_id}',''); if (Q != null) {  Q='". "&$args='+Q;  }else{Q = '';} this.location.href='$SELF_URL?index=$qm_id'+Q;" });
      }
     else {
-      print "<a href='$SELF_URL?index=$qm_id'>$qm_name</a>";
+      print $html->button($qm_name, "index=$qm_id");
      } 
      
     print "</th>\n";
@@ -1260,7 +1260,7 @@ if(defined($attr->{TP})) {
                   $table->td($html->button($_TRAFFIC, "index=$index$pages_qs&tt=$line->[0]")),
                   $table->td($html->button($_CHANGE, "index=$index$pages_qs&chg=$line->[0]")),
                   $table->td($delete),
-                  $table->td("&nbsp;", { bgcolor => $color, rowspan => ($line->[5] > 0) ? 2 : 1 })
+                  $table->td("&nbsp;", { bgcolor => '#'.$color, rowspan => ($line->[5] > 0) ? 2 : 1 })
       );
 
      if($line->[5] > 0) {
@@ -1289,7 +1289,7 @@ if(defined($attr->{TP})) {
 
        my $table_traf = $table2->show();
   
-       $table->addtd($table->td("$table_traf", { color => 'red', colspan => 7}));
+       $table->addtd($table->td("$table_traf", { bgcolor => $_COLORS[2], colspan => 7}));
      }
      
    };
@@ -1342,8 +1342,8 @@ for(my $i=0; $i<9; $i++) {
      	   ($h_b, $h_e, $color, $p)=split(/\|/, $line, 4);
      	   if (($h >= $h_b) && ($h < $h_e)) {
 #     	   	 print "$i // $h => $h_b && $h <= $h_e // $color <br> \n";
-  	   	   $tdcolor = $color;
-  	 	     $link = "<a href='$SELF_URL?index=$index&TP_ID=$FORM{TP_ID}&subf=$FORM{subf}&chg=$p'>#</a>";
+  	   	   $tdcolor = '#'.$color;
+  	 	     $link = $html->button('#', "index=$index&TP_ID=$FORM{TP_ID}&subf=$FORM{subf}&chg=$p");
   	 	     last;
   	 	    }
   	     else {
@@ -1485,7 +1485,7 @@ print "<br><TABLE width=400 cellspacing=0 cellpadding=0 border=0>
 <tr bgcolor=$_COLORS[0]><th>". $html->button(' << ', "index=75&month=$p_month&year=$p_year"). "</th><th colspan=5>$MONTHES[$month] $year</th><th>". $html->button(' >> ', "index=75&month=$n_month&year=$n_year") ."</th></tr>
 <tr bgcolor=$_COLORS[0]><th>$WEEKDAYS[1]</th><th>$WEEKDAYS[2]</th><th>$WEEKDAYS[3]</th>
 <th>$WEEKDAYS[4]</th><th>$WEEKDAYS[5]</th>
-<th><font color=red>$WEEKDAYS[6]</font></th><th><font color=red>$WEEKDAYS[7]</font></th></tr>\n";
+<th><font color=#FF0000>$WEEKDAYS[6]</font></th><th><font color=#FF0000>$WEEKDAYS[7]</font></th></tr>\n";
 
 
 
@@ -2653,7 +2653,7 @@ for(my $parent=1; $parent<$#menu_sorted; $parent++) {
          }
 
         
-        $table->addrow("$k <input type=checkbox name=qm_item value=$k $checked>", "$prefix <a href='$SELF_URL?index=$k'>$val</a>", "<input type=text name=qm_name_$k value='$qm{$k}'>" );
+        $table->addrow("$k <input type=checkbox name=qm_item value=$k $checked>", "$prefix ". $html->button($val, "index=$k") , "<input type=text name=qm_name_$k value='$qm{$k}'>" );
 
         if (defined($new_hash{$k})) {
       	   $mi = $new_hash{$k};
