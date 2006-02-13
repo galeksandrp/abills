@@ -181,13 +181,14 @@ $SEL_TYPE .= "</select>\n";
 
 
 fl();
+my %USER_SERVICES = ();
 #Add modules
 foreach my $m (@MODULES) {
 	require "Abills/modules/$m/config";
   my %module_fl=();
 
   my @sordet_module_menu = sort keys %FUNCTIONS_LIST;
-  foreach $line (@sordet_module_menu) {
+  foreach my $line (@sordet_module_menu) {
    
     $maxnumber++;
     my($ID, $SUB, $NAME, $FUNTION_NAME, $ARGS)=split(/:/, $line, 5);
@@ -196,6 +197,7 @@ foreach my $m (@MODULES) {
 
     $module_fl{"$ID"}=$maxnumber;
     $menu_args{$maxnumber}=$ARGS if ($ARGS ne '');
+ 
     #print "$line -- $ID, $SUB, $NAME, $FUNTION_NAME  // $module_fl{$SUB}<br>";
     
     if($SUB > 0) {
@@ -207,6 +209,12 @@ foreach my $m (@MODULES) {
         $uf_menus{$maxnumber}=$NAME;
       }
     }
+
+    #make user service list
+    if ($SUB == 0 && $FUNCTIONS_LIST{$line} == 11) {
+      $USER_SERVICES{$maxnumber}="$NAME" ;
+     }
+
     $menu_names{$maxnumber}=$NAME;
     $functions{$maxnumber}=\&$FUNTION_NAME if ($FUNTION_NAME  ne '');
     $module{$maxnumber}=$m;
@@ -1909,7 +1917,7 @@ Abills::HTML->tpl_show(templates('form_nas'), $nas);
     
 my $table = Abills::HTML->table( { width => '100%',
                                    border => 1,
-                                   title => ["ID", "$_NAME", "NAS-Identifier", "IP", "$_TYPE", "$_AUTH", '-', '-', '-', '-'],
+                                   title => ["ID", "$_NAME", "NAS-Identifier", "IP", "$_TYPE", "$_AUTH", "$_STATUS", '-', '-', '-'],
                                    cols_align => ['center', 'left', 'left', 'right', 'left', 'left', 'center', 'center', 'center', 'center'],
                                   } );
 
@@ -1918,8 +1926,8 @@ my $list = $nas->list({ %LIST_PARAMS });
 foreach my $line (@$list) {
   my $delete = $html->button($_DEL, "index=60&del=$line->[0]", { MESSAGE => "$_DEL NAS $line->[2]?" }); 
   $table->addrow($line->[0], $line->[1], $line->[2], 
-    $line->[4], $line->[5], $auth_types[$line->[6]], 
-    $status[$line->[7]],
+    $line->[3], $line->[4], $auth_types[$line->[5]], 
+    $status[$line->[6]],
     $html->button("IP POOLs", "index=61&NAS_ID=$line->[0]"),
     $html->button("$_CHANGE", "index=60&NAS_ID=$line->[0]"),
     $delete);
@@ -2419,7 +2427,7 @@ my @m = (
  "93:90:Config:form_config:::",
  "94:90:WEB server:form_webserver_info:::",
  "6:0:$_OTHER:null:::",
- "1000:6:$_DOCS::::",
+ "1000:6:Wizards:wizard:::",
   
  "7:0:$_SEARCH:form_search:::",
  
@@ -3609,4 +3617,28 @@ sub weblog {
 
 
 
+#*******************************************************************
+#
+#*******************************************************************
+sub wizard {
+	my ($functions) = @_;
 
+  
+
+  my $SERVICES_SEL = "<SELECT name=SERVICE>\n";
+	while(my($function_id, $service_name)=each (%USER_SERVICES))  {
+		 $SERVICES_SEL .= "<option value='$function_id'>$service_name\n";
+	 }
+	$SERVICES_SEL .= "</SELECT>\n";
+		
+
+	
+	if ($FORM{SERVICE}) {
+		$functions{$FORM{SERVICE}}->(); 
+	 }
+
+	print "<form action=$SELF_URL>\n".
+	 $SERVICES_SEL;
+	print "</form>\n";
+	
+}

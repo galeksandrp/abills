@@ -24,11 +24,11 @@ $web_interface    = 1;
 @useraccount_menu = ('Dialup_VPN');
 
 #Iner_ID : Main or Sub or if -1 user menu func list
-%FUNCTIONS_LIST = ("01:0:Dialup / VPN $_LIST:dv_users_list:"            => 11,
-                   "02:0:Dialup / VPN:dv_user:UID"          => 20,
-                   "03:2:$_TARIF_PLANS:dv_chg_tp:UID"       => 11,
-                   "04:2:$_STATS:dv_stats:UID"              => 11,
-                   "05:2:$_ERROR:dv_error:UID"              => 11,
+%FUNCTIONS_LIST = ("01:0:Dialup / VPN $_LIST:dv_users_list:"  => 11,
+                   "02:0:Dialup / VPN:dv_user:UID"            => 20,
+                   "03:2:$_TARIF_PLANS:dv_chg_tp:UID"         => 11,
+                   "04:2:$_STATS:dv_stats:UID"                => 11,
+                   "05:2:$_ERROR:dv_error:UID"                => 11,
                    "06:0:Dialup / VPN:null:"               => 5,
                    "07:6:$_TARIF_PLANS:dv_tp:"             => 5,
                    "08:7:$_ADD:dv_tp:"                     => 5,

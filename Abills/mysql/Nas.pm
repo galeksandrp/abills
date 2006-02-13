@@ -66,17 +66,20 @@ sub list {
  my $self = shift;
  my ($attr) = @_;
 
-
   my @WHERE_RULES  = ();
-  my $WHERE = '';
 
   if(defined($attr->{TYPE})) {
   	push @WHERE_RULES, "nas_type='$attr->{TYPE}'";
   }
-  
+
+  if(defined($attr->{DISABLE})) {
+  	push @WHERE_RULES, "disable='$attr->{DISABLE}'";
+  }
+ 
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
  
- $self->query($db, "SELECT id, name, nas_identifier, descr, ip,  nas_type, auth_type, disable
+ $self->query($db, "SELECT id, name, nas_identifier, ip,  nas_type, auth_type, disable, alive,
+  mng_host_port, mng_user, DECODE(mng_password, '$SECRETKEY')
   FROM nas
   $WHERE
   ORDER BY $SORT $DESC;");
@@ -157,6 +160,7 @@ sub change {
  my $CHANGES_QUERY = "";
  my $CHANGES_LOG = "NAS:";
 
+ $attr->{NAS_DISABLE} = (defined($attr->{NAS_DISABLE})) ? 1 : 0;
 
  my %FIELDS = (NAS_ID => 'id', 
   NAS_NAME => 'name', 
@@ -173,30 +177,12 @@ sub change {
   NAS_DISABLE => 'disable');
 
 
- my $OLD = $self->info({ NAS_ID => $self->{NAS_ID} } );
-
- while(my($k, $v)=each(%DATA)) {
-    if ($OLD->{$k} ne $DATA{$k}){
-      if ($k eq 'NAS_MNG_PASSWORD') {
-      	 $CHANGES_LOG .= "$k *->*;";
-         $CHANGES_QUERY .= "$FIELDS{$k}=ENCODE('$DATA{$k}', '$SECRETKEY'),";
-       }
-      elsif ($FIELDS{$k}) {
-         $CHANGES_LOG .= "$k $OLD->{$k}->$DATA{$k};";
-         $CHANGES_QUERY .= "$FIELDS{$k}='$DATA{$k}',";
-       }
-     }
-  }
-
-
-if ($CHANGES_QUERY eq '') {
-  return $self->{result};	
-}
-
-  chop($CHANGES_QUERY);
-  $self->query($db, "UPDATE nas SET $CHANGES_QUERY
-    WHERE id='$self->{NAS_ID}'", 'do');
-#  $admin->action_add(0, "$CHANGES_LOG");
+  	$self->changes($admin, { CHANGE_PARAM => 'NAS_ID',
+		                TABLE        => 'nas',
+		                FIELDS       => \%FIELDS,
+		                OLD_INFO     => $self->info({ NAS_ID => $self->{NAS_ID} }),
+		                DATA         => $attr
+		              } );
 
   $self->info({ NAS_ID => $self->{NAS_ID} });
   
@@ -305,9 +291,6 @@ sub stats {
  $SORT = ($attr->{SORT} == 1) ? "1,2" : $attr->{SORT};
  $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
 
- 
- $self->{debug}=1;
- 
  if(defined($attr->{NAS_ID})) {
    $WHERE .= "and id='$attr->{NAS_ID}'";
   }

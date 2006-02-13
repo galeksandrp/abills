@@ -52,6 +52,35 @@ sub del {
 #**********************************************************
 # online()
 #********************************************************** 
+sub online_update {
+	my $self = shift;
+	my ($attr) = @_;
+
+
+  my @SET_RULES = ('lupdated=UNIX_TIMESTAMP()');
+  
+  
+  if (defined($attr->{in})) {
+   	push @SET_RULES, "acct_input_octets='$attr->{in}'";
+   }
+
+  if (defined($attr->{out})) {
+  	push @SET_RULES, "acct_output_octets='$attr->{out}'";
+   }
+ 
+  my $SET = ($#SET_RULES > -1) ? join(', ', @SET_RULES)  : '';
+
+  $self->query($db, "UPDATE calls SET $SET
+   WHERE 
+    user_name='$attr->{USER_NAME}'
+    and acct_session_id='$attr->{ACCT_SESSION_ID}'; ", 'do');
+
+  return $self;
+}
+
+#**********************************************************
+# online()
+#********************************************************** 
 sub online {
 	my $self = shift;
 	my ($attr) = @_;
@@ -66,7 +95,11 @@ sub online {
   }
  else {
    $WHERE = "c.status=1 or c.status>=3";
- } 
+  } 
+ 
+ if (defined($attr->{USER_NAME})) {
+ 	 $WHERE = "user_name='$attr->{USER_NAME}'";
+  }
  
 
  $self->query($db, "SELECT c.user_name,

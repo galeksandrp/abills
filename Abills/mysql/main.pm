@@ -292,7 +292,7 @@ sub changes {
 
   while(my($k, $v)=each(%DATA)) {
     if (defined($FIELDS->{$k}) && $OLD_DATA->{$k} ne $DATA{$k}){
-        if ($k eq 'PASSWORD') {
+        if ($k eq 'PASSWORD' || $k eq 'NAS_MNG_PASSWORD') {
           $CHANGES_LOG .= "$k *->*;";
           $CHANGES_QUERY .= "$FIELDS->{$k}=ENCODE('$DATA{$k}', '$CONF->{secretkey}'),";
          }

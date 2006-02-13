@@ -14,6 +14,9 @@ my $PPPCTL = '/usr/sbin/pppctl';
 my $NAS;
 my $nas_type = '';
 
+
+my %stats = ();
+
 #*******************************************************************
 # Hangup active port
 # hangup($NAS_HASH_REF, $PORT, $USER, $SESSION_ID);
@@ -48,7 +51,7 @@ sub hangup {
     return 1;
    }
 
- return 0;
+  return 0;
 }
 
 
@@ -62,12 +65,6 @@ sub get_stats {
  $NAS = $Nas;
  $nas_type = $NAS->{NAS_TYPE};
 
-# $nas_id = $NAS_INFO->{$NAS};
-# $mng_user =  $NAS_INFO->{mng_user}{$nas_id};
-# $mng_password = $NAS_INFO->{mng_password}{$nas_id};
-# $mng_ip= $NAS_INFO->{mng_ip}{$id};
-# $mng_port = $NAS_INFO->{mng_port}{$nas_id};
-
  if ($nas_type eq 'usr')       {
     %stats = stats_usr($NAS, $PORT);
   }
@@ -79,10 +76,11 @@ sub get_stats {
     %stats = stats_dslmax($NAS, $PORT, $user_ip_address);
   }
  else {
-    return 0;
+    return undef;
   }
 
- return %stats;
+
+ return \%stats;
 }
 
 
@@ -180,27 +178,27 @@ foreach my $line (@$commands) {
 #*******************************************************************
 
 sub stats_pm25 {
-  my ($NAS_IP, $PORT) = @_;
+  my ($NAS, $PORT) = @_;
 
   my %stats = ();
   my $PM25_PORT=$PORT+2;
   my $SNMP_COM = $NAS->{NAS_MNG_PASSWORD} || '';
 
-# $SNMPWALK -v 1 -c $SNMP_COM $SERVER interfaces.ifTable.ifEntry.ifInOctets.$PORT | awk '{print \$4}' `a=`$SNMPWALK -v 1 -c tstats 192.168.101.130 interfaces.ifTable.ifEntry.ifInOctets.$PORT | awk '{print \$4}'`; b=`cat /usr/abills/var/devices/$SERVER-$PORT.In`; c=`expr \$a - \$b + 0`; echo \$c`;  
-  my $in  = `$SNMPWALK -v 1 -c $SNMP_COM $NAS_IP IF-MIB::ifInOctets.$PM25_PORT | awk '{print \$4}'`;
-  my $out = `$SNMPWALK -v 1 -c $SNMP_COM $NAS_IP IF-MIB::ifOutOctets.$PM25_PORT  | awk '{print \$4}'`;
+  my $in  = `$SNMPWALK -v 1 -c "$SNMP_COM" $NAS->{NAS_IP} IF-MIB::ifInOctets.$PM25_PORT | awk '{print \$4}'`;
+  my $out = `$SNMPWALK -v 1 -c "$SNMP_COM" $NAS->{NAS_IP} IF-MIB::ifOutOctets.$PM25_PORT  | awk '{print \$4}'`;
 
 
-if ($in + $out > 0) {
-  chomp($in);
-  chomp($out);
-  $stats{in} = $in;
-  $stats{out} = $out;
-}
-else {
-  $stats{in} = undef;
-  $stats{in} = undef;
+#print "$SNMPWALK -v 1 -c \"$SNMP_COM\" $NAS->{NAS_IP} IF-MIB::ifOutOctets.$PM25_PORT  | awk '{print \$4}'";
+
+if ($in eq '') {
+  $stats{error}='y';
 } 
+elsif (int($in) + int($out) > 0) {
+#  chomp($in);
+#  chomp($out);
+  $stats{in}  = int($in);
+  $stats{out} = int($out);
+}
 
 
   return %stats;
@@ -232,16 +230,18 @@ sub hangup_pm25 {
 # get_usrns_stats($SERVER, $PORT)
 #*******************************************************************
 sub stats_usrns  {
-  my ($NAS_IP, $PORT) = @_;
+  my ($NAS, $PORT) = @_;
   my $SNMP_COM = $NAS->{NAS_MNG_PASSWORD} || '';
   
 #USR trafic taker
-  my $in  = `a=\`$SNMPWALK -v 1 -c $SNMP_COM $NAS_IP interfaces.ifTable.ifEntry.ifInOctets.$PORT  | awk '{print \$4}'\`; b=\`cat /usr/abills/var/devices/$SERVER-$PORT.In\`; c=\`expr \$a - \$b + 0\`; echo \$c`;
-  my $out = `a=\`$SNMPWALK -v 1 -c $SNMP_COM $NAS_IP interfaces.ifTable.ifEntry.ifOutOctets.$PORT  | awk '{print \$4}'\`; b=\`cat /usr/abills/var/devices/$SERVER-$PORT.Out\`; c=\`expr \$a - \$b + 0\`; echo \$c`;
+  my $in  = `a=\`$SNMPWALK -v 1 -c "$SNMP_COM" $NAS->{NAS_IP} interfaces.ifTable.ifEntry.ifInOctets.$PORT  | awk '{print \$4}'\`; b=\`cat /usr/abills/var/devices/$NAS->{NAS_IP}-$PORT.In\`; c=\`expr \$a - \$b + 0\`; echo \$c`;
+  my $out = `a=\`$SNMPWALK -v 1 -c "$SNMP_COM" $NAS->{NAS_IP} interfaces.ifTable.ifEntry.ifOutOctets.$PORT  | awk '{print \$4}'\`; b=\`cat /usr/abills/var/devices/$NAS->{NAS_IP}-$PORT.Out\`; c=\`expr \$a - \$b + 0\`; echo \$c`;
 # $SNMPWALK -v 1 -c $SNMP_COM $SERVER interfaces.ifTable.ifEntry.ifInOctets.$PORT | awk '{print \$4}' `a=`$SNMPWALK -v 1 -c tstats 192.168.101.130 interfaces.ifTable.ifEntry.ifInOctets.$PORT | awk '{print \$4}'`; b=`cat /usr/abills/var/devices/$SERVER-$PORT.In`; c=`expr \$a - \$b + 0`; echo \$c`;
 #
-  $stats{in} = $in;
-  $stats{out} = $out;
+  $stats{in} = int($in);
+  $stats{out} = int($out);
+  
+  return %stats;
 }
 
 
@@ -262,7 +262,7 @@ sub stats_ppp {
  my $port = 30006;
 
  my ($ip, $mng_port)=split(/:/, $NAS->{NAS_MNG_IP_PORT}, 2);
- my $port =  $mng_port || 0;
+ $port =  $mng_port || 0;
  
  my $remote = IO::Socket::INET -> new(Proto => "tcp", PeerAddr => "$NAS",
                                   PeerPort => "$port")
@@ -285,11 +285,11 @@ while ( <$remote> ) {
 # get_dslmax_stats($SERVER, $PORT, $IP)
 #*******************************************************************
 sub stats_dslmax {
-  my ($NAS_IP, $PORT, $IP) = @_;
+  my ($NAS, $PORT, $IP) = @_;
   my %stats = ();
   my $SNMP_COM = $NAS->{NAS_MNG_PASSWORD} || '';
 
-  my $output = `id=\`$SNMPWALK -c $SNMP_COM -v1 $NAS->{NAS_IP} RFC1213-MIB::ipRouteIfIndex.$IP | awk '{ print \$4 }'\`; a=\`$SNMPWALK -c $SNMP_COM -v1 $NAS IF-MIB::ifInOctets.\$id | awk '{print \$4}'\`; b=\`$SNMPWALK -c $SNMP_COM -v1 $NAS IF-MIB::ifOutOctets.\$id | awk '{print \$4}'\`; echo \$a \$b`;
+  my $output = `id=\`$SNMPWALK -c "$SNMP_COM" -v1 $NAS->{NAS_IP} RFC1213-MIB::ipRouteIfIndex.$IP | awk '{ print \$4 }'\`; a=\`$SNMPWALK -c "$SNMP_COM" -v1 $NAS IF-MIB::ifInOctets.\$id | awk '{print \$4}'\`; b=\`$SNMPWALK -c "$SNMP_COM" -v1 $NAS IF-MIB::ifOutOctets.\$id | awk '{print \$4}'\`; echo \$a \$b`;
 
   my ($in, $out)=split(/ /, $out);
   $stats{in} = $in;
@@ -348,14 +348,18 @@ sub hangup_exppp {
 # get_exppp_stats($SERVER, $PORT)
 #*******************************************************************
 sub stats_exppp {
- my ($NAS_IP, $PORT) = @_;
+ my ($NAS, $PORT) = @_;
+ my %stats = ();
+
  my ($ip, $mng_port)=split(/:/, $NAS->{NAS_MNG_IP_PORT}, 2);
  my $ctlport = $mng_port + $PORT;
- my $out  = `$PPPCTL -p "$NAS->{NAS_MNG_PASSWORD}" $NAS->{NAS_IP}:$ctlport ! echo OCTETSIN OCTETSOUT USER`;
+ my $std_out  = `$PPPCTL -p "$NAS->{NAS_MNG_PASSWORD}" $NAS->{NAS_IP}:$ctlport ! echo OCTETSIN OCTETSOUT USER`;
  my ($in, $out, $user) = split(/ +/, $out);
    
  $stats{in} = $in;
  $stats{out} = $out;
+ 
+ return %stats;
 }
 
 
@@ -394,7 +398,7 @@ sub stats_mpd {
  my ($ip, $mng_port)=split(/:/, $NAS->{NAS_MNG_IP_PORT}, 2);
  my $ctlport = $mng_port + $PORT;
  
- my $out  = `$PPPCTL -p "$NAS->{NAS_MNG_PASSWORD}" $NAS->{NAS_IP}:$ctlport ! echo OCTETSIN OCTETSOUT USER`;
+ my $std_out  = `$PPPCTL -p "$NAS->{NAS_MNG_PASSWORD}" $NAS->{NAS_IP}:$ctlport ! echo OCTETSIN OCTETSOUT USER`;
  my ($in, $out, $user) = split(/ +/, $out);
    
  $stats{in} = $in;
@@ -440,7 +444,7 @@ my $a = `$KILL -1 $PPP_PID`;
 # get_pppd_stats ($SERVER, $PORT, $IP)
 #*******************************************************************
 sub stats_pppd  {
-  my ($NAS_IP, $PORT, $IP) = @_;	
+  my ($NAS, $PORT, $IP) = @_;	
 
   my $firstnumber = 1000;
   my $step = 10;
@@ -457,10 +461,10 @@ sub stats_pppd  {
     	if($innum  == $num) {
     	   $stats{$SERVER}{$PORT}{in} = $bytes;
     	 }
-        elsif($outnum == $num) {
-           $stats{$SERVER}{$PORT}{in} = $bytes;
-         }
-      }
+      elsif($outnum == $num) {
+         $stats{$SERVER}{$PORT}{in} = $bytes;
+       }
+     }
   close(FW);
 
 }

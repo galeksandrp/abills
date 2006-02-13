@@ -623,7 +623,7 @@ my $table = Abills::HTML->table( { width => '100%',
 
 
  
-  my $online = $sessions->{nas_sorted};
+my $online = $sessions->{nas_sorted};
 
 my $nas_list = $nas->list();
 
@@ -631,7 +631,7 @@ foreach my $nas_row (@$nas_list) {
 
   $table->{rowcolor}=$_COLORS[0];
   $table->{extra}="colspan=9 class=small";
-  $table->addrow("$nas_row->[0]:<b>$nas_row->[1]</b>:$nas_row->[4]" );
+  $table->addrow("$nas_row->[0]:<b>$nas_row->[1]</b>:$nas_row->[3]" );
   
   my $l = $online->{$nas_row->[0]};
   foreach my $line (@$l) {
@@ -715,8 +715,6 @@ if (! $list) {
   	
  });
 
-  use Dv_Sessions;
-  $sessions = Dv_Sessions->new($db);
   $list = $sessions->list({ %LIST_PARAMS });	
 }
 
@@ -976,8 +974,6 @@ if (defined($attr->{USER}))	{
 #	return 0;
 #}	
 
-use Dv_Sessions;
-my $sessions = Dv_Sessions->new($db);
 
 if ($FORM{del} && $FORM{is_js_confirmed}) {
 	if(! defined($permissions{3}{1})) {
@@ -1467,8 +1463,8 @@ foreach my $line (@$list) {
 
 
 
-  #sendmail("$conf{ADMIN_MAIL}", "$email", "Попередження сервера статистики.", 
-  #            "$message", "$conf{MAIL_CHARSET}", "2 (High)");
+  sendmail("$conf{ADMIN_MAIL}", "$email", "Попередження сервера статистики.", 
+              "$message", "$conf{MAIL_CHARSET}", "2 (High)");
 }
 
 $ADMIN_REPORT{USERS_WARNINGS} .= "---------------------------------------------------------------
