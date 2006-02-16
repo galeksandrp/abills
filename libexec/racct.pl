@@ -133,7 +133,10 @@ sub acct {
   $RAD->{SESSION_START} = (defined($RAD->{ACCT_SESSION_TIME})) ?  time - $RAD->{ACCT_SESSION_TIME} : 0;
   $RAD->{NAS_PORT} = 0 if  (! defined($RAD->{NAS_PORT}));
   $RAD->{CONNECT_INFO} = '' if  (! defined($RAD->{CONNECT_INFO}));
-  $RAD->{ACCT_TERMINATE_CAUSE} = 0 if  (! defined($RAD->{ACCT_TERMINATE_CAUSE}));
+
+  $RAD->{ACCT_TERMINATE_CAUSE} =  (defined($RAD->{ACCT_TERMINATE_CAUSE}) && defined($ACCT_TERMINATE_CAUSES{"$RAD->{ACCT_TERMINATE_CAUSE}"})) ? $ACCT_TERMINATE_CAUSES{"$RAD->{ACCT_TERMINATE_CAUSE}"} : 0;
+
+
 
 
 

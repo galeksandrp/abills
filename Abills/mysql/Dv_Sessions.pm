@@ -330,7 +330,8 @@ sub session_detail {
   u.id,
   
   l.uid,
-  l.acct_session_id
+  l.acct_session_id,
+  l.terminate_cause
  FROM log l, users u
  LEFT JOIN tarif_plans tp ON (l.tp_id=tp.id) 
  LEFT JOIN nas n ON (l.nas_id=n.id) 
@@ -370,7 +371,8 @@ sub session_detail {
    $self->{LOGIN}, 
 
    $self->{UID}, 
-   $self->{SESSION_ID}
+   $self->{SESSION_ID},
+   $self->{ACCT_TERMINATE_CAUSE}
     )= @$ar;
 
 #   $self->{UID} = $attr->{UID};

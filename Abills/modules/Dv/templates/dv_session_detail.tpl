@@ -23,6 +23,7 @@
 <tr bgcolor=$_COLORS[1]><td>$_TRAF_TARIF:</td><td>%TRAF_TARIFF%</td></tr>
 <tr bgcolor=$_COLORS[1]><td>$_SUM:</td><td>%SUM%</td></tr>
 <tr bgcolor=$_COLORS[1]><td>$_BILL:</td><td>%BILL_ID%</td></tr>
+<tr bgcolor=$_COLORS[1]><td>ACCT_TERMINATE_CAUSE</td><td>%ACCT_TERMINATE_CAUSE%</td></tr>
 </table>
 </td></tr></table>
 
