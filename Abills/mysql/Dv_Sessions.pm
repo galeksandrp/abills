@@ -46,6 +46,7 @@ sub del {
 
   $self->query($db, "DELETE FROM log 
    WHERE uid='$uid' and start='$session_start' and nas_id='$nas_id' and acct_session_id='$session_id';", 'do');
+   
   return $self;
 }
 
@@ -395,31 +396,32 @@ sub detail_list {
 	my ($attr) = @_;
 
 	
-	my $lupdate;
+my $lupdate;
 	
 my $WHERE = ($attr->{SESSION_ID}) ? "and acct_session_id='$attr->{SESSION_ID}'" : '';	
-my $GROUP = 1;
+my $GROUP;
 
 if ($attr->{PERIOD} eq 'days') {
   $lupdate = "DATE_FORMAT(FROM_UNIXTIME(last_update), '%Y-%m-%d')";	
+  $GROUP = $lupdate;
   $WHERE = '';
 }
 elsif($attr->{PERIOD} eq 'hours') {
   $lupdate = "DATE_FORMAT(FROM_UNIXTIME(last_update), '%Y-%m-%d %H')";	
+  $GROUP = $lupdate;
   $WHERE = '';
 }
 elsif($attr->{PERIOD} eq 'sessions') {
 	$WHERE = '';
   $lupdate = "FROM_UNIXTIME(last_update)";
-  $GROUP=2;
+  $GROUP='acct_session_id';
 }
 else {
   $lupdate = "FROM_UNIXTIME(last_update)";
+  $GROUP = $lupdate;
 }
 
 
- 
- $self->{debug}=1;
  
  $self->query($db, "SELECT $lupdate, acct_session_id, nas_id, 
    sum(sent1), sum(recv1), sum(sent2), sum(recv2) 
@@ -431,13 +433,12 @@ else {
  my $list = $self->{list};
 
  if ($self->{TOTAL} > 0) {
-    $self->query($db, "SELECT count(*)
+    $self->query($db, "SELECT count(DISTINCT $lupdate)
       FROM s_detail 
-     WHERE id='$attr->{LOGIN}' $WHERE;");
+     WHERE id='$attr->{LOGIN}' $WHERE ;");
     
     my $a_ref = $self->{list}->[0];
     ($self->{TOTAL}) = @$a_ref;
-   
   }
 	
 	
@@ -509,6 +510,10 @@ sub list {
  my $self = shift;
  my ($attr) = @_;
 
+
+
+ my $PG = ($attr->{PG}) ? $attr->{PG} : 0;
+ my $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
  my $SORT = ($attr->{SORT}) ? $attr->{SORT} : 2;
  my $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
  
@@ -591,7 +596,7 @@ if ($attr->{INTERVAL}) {
   }
 #Period
 elsif (defined($attr->{PERIOD}) ) {
-   my $period = $attr->{PERIOD} || 0;   
+   my $period = int($attr->{PERIOD});   
    if ($period == 4) { $WHERE .= ''; }
    else {
      $WHERE .= ($WHERE ne '') ? ' and ' : 'WHERE ';

@@ -154,7 +154,7 @@ my @actions = ([$_SA_ONLY, $_ADD, $_LIST, $_PASSWD, $_CHANGE, $_DEL, $_ALL],  # 
 my @PAYMENT_METHODS = ('Cashe', 'Bank', 'Credit Card', 'Internet Card');
 my %menu_items = ();
 my %menu_names = ();
-my $root_index = 0;
+#my $root_index = 0;
 my $maxnumber = 0;
 my %uf_menus = (); #User form menu list
 
@@ -296,7 +296,7 @@ if ($functions{$index}) {
   	 }
   	else {
   	  $functions{$index}->({ USER => $ui });
-  	  $LIST_PARAMS{LOGIN} = '11111';
+  	  #$LIST_PARAMS{LOGIN} = '11111';
   	}
    }
   else {
@@ -304,7 +304,7 @@ if ($functions{$index}) {
    }
 }
 else {
-  message('err', $_ERROR,  "Function not exist ($index / $root_index / $functions{$index})");	
+  message('err', $_ERROR,  "Function not exist ($index / $functions{$index})");	
 }
 
 
@@ -2457,136 +2457,12 @@ foreach my $line (@m) {
 #**********************************************************
 sub mk_navigator {
 
- my $menu_navigator = "";
- my %tree = ();
-
- # make navigate line 
- if ($index > 0) {
-  $root_index = $index;	
-  my $h = $menu_items{$root_index};
-
-  while(my ($par_key, $name) = each ( %$h )) {
-    
-    my $ex_params = (defined($FORM{$menu_args{$root_index}})) ? '&'."$menu_args{$root_index}=$FORM{$menu_args{$root_index}}" : '';
-    
-    $menu_navigator =  " ". $html->button($name, "index=$root_index$ex_params"). '/' . $menu_navigator;
-    $tree{$root_index}='y';
-    if ($par_key > 0) {
-      $root_index = $par_key;
-      $h = $menu_items{$par_key};
-     }
-   }
-}
-
-$FORM{root_index} = $root_index;
-if ($root_index > 0) {
-  my $ri = $root_index-1;
-  if (! defined($permissions{$ri})) {
-	  message('err', $_ERROR, "Access deny");
-#	  exit 0;
-   }
-}
-
-
-#my %menu = ();
-#my @sorted_menu_items = sort {
-#   $ages{$b} <=> $ages{$a}
-#     ||
-#   length($a) <=> length($b)
-#     ||
-#   $a cmp $b
-#} keys %menu_items;
-
-
-#@persons = sort keys %ages;
-
-foreach my $ID (sort keys %menu_items) {
- 	my $VALUE_HASH = $menu_items{$ID};
- 	foreach my $parent (sort keys %$VALUE_HASH) {
-    push( @{$menu{$parent}},  "$ID:$VALUE_HASH->{$parent}" );
-   }
-}
-
-
-
-
- my @sorted_menu = sort {
-   $ages{$b} <=> $ages{$a}
-     ||
-   length($a) <=> length($b)
-     ||
-   $a cmp $b
- } keys %menu;
- 
- my @last_array = ();
-
- my $menu_text = "<table border=0 width=100%>\n";
- 
- foreach my $parent (@sorted_menu) {
-
-    
-    next if ($parent > 0);
- 	  my $level  = 0;
- 	  my $prefix = '';
-
- 	  label:
- 	  $sub_menu_array =  \@{$menu{$parent}};
- 	  while( $sm_item = pop @$sub_menu_array) {
- 	     my($ID, $name)=split(/:/, $sm_item, 2);
-
- 	     next if((! $permissions{$ID-1}) && $parent == 0);
-	      	      	     
- 	     $name = (defined($tree{$ID})) ? "<b>$name</b>" : "$name";
- 	     #print "$prefix$level / $parent /$ID ";
-
-
-        if(! defined($menu_args{$ID}) || (defined($menu_args{$ID}) && defined($FORM{$menu_args{$ID}})) ) {
-       	   my $ext_args = '';
-       	   if (defined($menu_args{$ID})) {
-       	       $ext_args = "&$menu_args{$ID}=$FORM{$menu_args{$ID}}";
-       	       $name = "<b>$name</b>" if ($name !~ /<b>/);
-       	     }
-
-       	   $link = $html->button($name, "index=$ID$ext_args");
-
-    	     if($parent == 0) {
- 	        	 $menu_text .= "<tr><td bgcolor=$_COLORS[3] align=left>$prefix$link</td></tr>\n";
- 	          }
- 	         elsif(defined($tree{$ID})) {
- 	           $menu_text .= "<tr><td bgcolor=$_COLORS[2] align=left>$prefix>$link</td></tr>\n";
- 	          }
- 	         else {
- 	           $menu_text  .= "<tr><td bgcolor=$_COLORS[1]>$prefix$link</td></tr>\n";
- 	          }
-         }
-        else {
-          #next;
-          #$link = "<a href='$SELF_URL?index=$ID&$menu_args{$ID}'>$name</a>";	
-         }
-
- 	      	     
-
- 	     if(defined($tree{$ID})) {
- 	     	 $level++;
- 	     	 $prefix .= "&nbsp;&nbsp;&nbsp;";
-         push @last_array, $parent;
-         $parent = $ID;
- 	     	 $sub_menu_array = \@{$menu{$parent}};
- 	      }
- 	   }
- 	  
-    if ($#last_array > -1) {
-      $parent = pop @last_array;	
-      #print "POP/$#last_array/$parent/<br>\n";
-      $level--;
-      $prefix = substr($prefix, 0, $level * 6 * 3);
-      goto label;
-     }
- 	  
+my ($menu_navigator, $menu_text) = $html->menu(\%menu_items, \%menu_args, \%permissions);
+  
+  if ($html->{ERROR}) {
+  	message('err',  $_ERROR, "$html->{ERROR}");
+  	exit;
   }
- 
- 
- $menu_text .= "</table>\n";
 
 return  $menu_text, "/".$menu_navigator;
 }

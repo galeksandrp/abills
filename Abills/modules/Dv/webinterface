@@ -241,7 +241,7 @@ sub dv_user {
 	} 
 
   $user->{DISABLE}=($user->{DISABLE} == 1) ? ' checked' : '';
-  Abills::HTML->tpl_show(_include('dv_user', 'Dv'), $Dv);
+  $html->tpl_show(_include('dv_user', 'Dv'), $Dv);
 }
 
 
@@ -362,7 +362,7 @@ $tarif_info->{PAYMENT_TYPE_SEL} .= "</select>\n";
 
 
 
-Abills::HTML->tpl_show(_include('dv_tp', 'Dv'), $tarif_info);
+$html->tpl_show(_include('dv_tp', 'Dv'), $tarif_info);
 
 
 
@@ -715,6 +715,7 @@ if (! $list) {
   	
  });
 
+  $sessions = Dv_Sessions->new($db);
   $list = $sessions->list({ %LIST_PARAMS });	
 }
 
@@ -1045,7 +1046,7 @@ if (defined($FORM{show})) {
   $LIST_PARAMS{INTERVAL} = "$FORM{fromY}-$FORM{fromM}-$FORM{fromD}/$FORM{toY}-$FORM{toM}-$FORM{toD}";
  }
 elsif (defined($FORM{PERIOD})) {
-	$LIST_PARAMS{PERIOD} = $FORM{period}+0; 
+	$LIST_PARAMS{PERIOD} = $FORM{PERIOD}+0; 
 	$pages_qs .= "&PERIOD=$FORM{PERIOD}";
 }
 elsif($FORM{DATE}) {
@@ -1067,7 +1068,7 @@ $table = Abills::HTML->table( { width => '640',
                                 cols_align => ['right', 'right', 'right', 'right'],
                                 rows => [ [ $sessions->{TOTAL}, $sessions->{DURATION}, int2byte($sessions->{TRAFFIC}), $sessions->{SUM} ] ],
                                } );
-print "<br>" . $table->show() . "</br>\n";
+print "<br/>" . $table->show() . "<br/>\n";
 
 dv_sessions($list, $sessions);
 }
@@ -1100,13 +1101,18 @@ print $table->show();
 # form_stats
 #**********************************************************
 sub dv_user_stats {
-	#my ($user) = @_;
-	#$UID = $user->{UID};
-	#$LIST_PARAMS{UID} = $user->{UID};
+
 	if (! defined($FORM{sort})) {
 	  $LIST_PARAMS{SORT}=2;
 	  $LIST_PARAMS{DESC}=DESC;
    }
+
+  if(defined($FORM{SESSION_ID})) {
+  	$pages_qs .= "&SESSION_ID=$FORM{SESSION_ID}";
+  	dv_session_detail({ LOGIN => $LIST_PARAMS{LOGIN} });
+  	return 0;
+  }
+
 
 if ($sessions->{errno})	 {
 	message('err', $_ERROR, "[$sessions->{errno}] $err_strs{$sessions->{errno}}");
@@ -1118,6 +1124,7 @@ if ($FORM{rows}) {
   $conf{list_max_recs}=$FORM{rows};
   $pages_qs .= "&rows=$conf{list_max_recs}";
  }
+
 
 
 #PEriods totals
@@ -1165,10 +1172,6 @@ elsif (defined($FORM{PERIOD})) {
 	$pages_qs .= "&PERIOD=$FORM{PERIOD}";
 }
 
-#if (! defined($FORM{sort})) {
-#  $LIST_PARAMS{SORT}=2;
-#  $LIST_PARAMS{DESC}=DESC;
-# }
 
 #Session List
 $list = $sessions->list({ %LIST_PARAMS });	
@@ -1180,6 +1183,7 @@ $table = Abills::HTML->table( { width => '640',
                                 rows => [ [ $sessions->{TOTAL}, $sessions->{DURATION}, int2byte($sessions->{TRAFFIC}), $sessions->{SUM} ] ],
                                } );
 print $table->show();	
+
 
 dv_sessions($list, $sessions) if ( $sessions->{TOTAL} > 0);
 
@@ -1194,11 +1198,13 @@ sub dv_session_detail {
 	my ($attr) = @_;
   my $user;
 
-
  
 if (defined($attr->{USER}))	{
 	$user = $attr->{USER};
 	$LIST_PARAMS{LOGIN}=$user->{LOGIN};
+}
+elsif (defined($LIST_PARAMS{LOGIN}))	{
+
 }
 elsif($FORM{UID}) {
 	dv_user();
@@ -1215,7 +1221,7 @@ $sessions->{_RECV}=int2byte($sessions->{RECV});
 $sessions->{_SENT2}=int2byte($sessions->{SENT2});
 $sessions->{_RECV2}=int2byte($sessions->{RECV2});
 
-Abills::HTML->tpl_show(_include('dv_session_detail', 'Dv'), $sessions);
+$html->tpl_show(_include('dv_session_detail', 'Dv'), $sessions);
 
 my %ORDERS = (hours    => $_HOURS,
               days     => $_DAYS,
@@ -1224,7 +1230,6 @@ my %ORDERS = (hours    => $_HOURS,
 print "<form action=$SELF_URL>
 <input type=hidden name=index value=$index>
 <input type=hidden name=UID value=$FORM{UID}>
-<input type=hidden name=SESSION_ID value=$FORM{SESSION_ID}>
 GROUP: <select name=PERIOD>\n";
 
 while(my($k, $v) = each %ORDERS ) {
@@ -1233,9 +1238,21 @@ while(my($k, $v) = each %ORDERS ) {
   print ">$v\n";
 }
 
-
 print "</select>
-<input type=submit name=SHOW value='$_SHOW'>";
+SESSION_ID:
+<select name=SESSION_ID>
+";
+print "<option value='$FORM{SESSION_ID}' selected>$FORM{SESSION_ID}\n" if (defined($FORM{SESSION_ID}));
+
+print "
+<option value='0'>$_ALL
+</select>
+<input type=submit name=SHOW value='$_SHOW'>
+</form>";
+
+
+$pages_qs .= "&PERIOD=$FORM{PERIOD}" if (defined($FORM{PERIOD})); 
+
 
 
 my $list = $sessions->detail_list({ %LIST_PARAMS, %FORM });
@@ -1248,7 +1265,13 @@ my $table = Abills::HTML->table({ width => '100%',
                                   } );
 
  foreach my $line (@$list) {
-    $table->addrow($line->[0],  $line->[1], $line->[2], $line->[3],  $line->[4], $line->[5], $line->[6]);
+    $table->addrow($line->[0],  
+    $html->button($line->[1], "index=$index&UID=$UID&SESSION_ID=$line->[1]"), 
+    $line->[2], 
+    int2byte($line->[3]),  
+    int2byte($line->[4]), 
+    int2byte($line->[5]), 
+    int2byte($line->[6]));
   }
  print $table->show();
 
@@ -1272,7 +1295,7 @@ sub dv_user_info {
     return 0;	
   }
   
-  Abills::HTML->tpl_show(_include('dv_user_info', 'Dv'), $Dv);
+  $html->tpl_show(_include('dv_user_info', 'Dv'), $Dv);
 }
 
 
@@ -1459,7 +1482,7 @@ foreach my $line (@$list) {
   $ADMIN_REPORT{USERS_WARNINGS} .= sprintf ("%-14s| %4d|%-20s| %9.4f| %8.2f|\n", 
   $USER_INFO{LOGIN}, $USER_INFO{TP_ID}, $USER_INFO{TP_NAME},  $USER_INFO{DEPOSIT}, $USER_INFO{CREDIT});
   
-  my $message = Abills::HTML->tpl_show(templates('users_warning_messages'), \%USER_INFO, { notprint => 'yes' });
+  my $message = $html->tpl_show(templates('users_warning_messages'), \%USER_INFO, { notprint => 'yes' });
 
 
 

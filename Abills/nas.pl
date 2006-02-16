@@ -330,16 +330,14 @@ sub hangup_dslmax {
 sub hangup_exppp {
  my ($NAS, $PORT) = @_;
  my ($ip, $mng_port)=split(/:/, $NAS->{NAS_MNG_IP_PORT}, 2);
- 
- 
+  
  my $ctl_port = $mng_port + $PORT;
 
 # print "$PPPCTL -p \"$NAS->{NAS_MNG_PASSWORD}\" $NAS->{NAS_IP}:$ctl_port down";
 
  my $out=`$PPPCTL -p "$NAS->{NAS_MNG_PASSWORD}" $NAS->{NAS_IP}:$ctl_port down`;
 
- #print "$PPPCTL -p $NAS->{NAS_MNG_PASSWORD} $NAS->{NAS_IP}:$ctl_port down //-- $out /$?/$!/";
- 
+  
  return 0;
 }
 

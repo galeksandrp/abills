@@ -163,7 +163,30 @@ foreach my $pair (@pairs) {
 }
 
 
+#**********************************************************
+#
+#**********************************************************
+sub form_select {
+  my $self = shift;
+  my ($name, $attr)	= @_;
+	
+	my $ex_params =  (defined($attr->{EX_PARAMS})) ? $attr->{EX_PARAMS} : '';
+	
+	$self->{SELECT} = "<select name=\"$name\" $ex_params>\n";
 
+  if (defined($attr->{SEL_HASH})) {
+	  my $H = $attr->{SEL_HASH};
+	  while(my($k, $v) = each %$H) {
+     $self->{SELECT} .= "<option value='$k'";
+     $self->{SELECT} .=' selected' if ($k eq $attr->{SELECTED});
+     $self->{SELECT} .= ">$v\n";	
+     }
+   }
+	
+	$self->{SELECT} .= "</select>\n";
+
+	return $self->{SELECT};
+}
 
 
 sub dirname {
@@ -220,6 +243,144 @@ sub getCookies {
 }
 
 
+#
+# 
+# 
+sub menu () {
+ my $self = shift;
+ my ($menu_items, $menu_args, $permissions, $attr) = @_;
+
+ my $menu_navigator = '';
+ my $root_index = 0;
+ my %tree = ();
+ my %menu = ();
+ my $sub_menu_array;
+ my $EX_ARGS = (defined($attr->{EX_ARGS})) ? $attr->{EX_ARGS} : '';
+
+ # make navigate line 
+ if ($index > 0) {
+  $root_index = $index;	
+  my $h = $menu_items->{$root_index};
+
+  while(my ($par_key, $name) = each ( %$h )) {
+
+    my $ex_params = (defined($FORM{$menu_args->{$root_index}})) ? '&'."$menu_args->{$root_index}=$FORM{$menu_args->{$root_index}}" : '';
+    
+    $menu_navigator =  " ". $self->button($name, "index=$root_index$ex_params"). '/' . $menu_navigator;
+    $tree{$root_index}='y';
+    if ($par_key > 0) {
+      $root_index = $par_key;
+      $h = $menu_items->{$par_key};
+     }
+   }
+}
+
+$FORM{root_index} = $root_index;
+if ($root_index > 0) {
+  my $ri = $root_index-1;
+  if (defined($permissions) && (! defined($permissions->{$ri}))) {
+	  $self->{ERROR} = "Access deny";
+	  return '', '';
+   }
+}
+
+
+my @s = sort {
+   length($a) <=> length($b)
+     ||
+   $a cmp $b
+} keys %$menu_items;
+
+
+
+foreach my $ID (@s) {
+ 	my $VALUE_HASH = $menu_items->{$ID};
+ 	foreach my $parent (keys %$VALUE_HASH) {
+# 		print "$parent, $ID<br>";
+    push( @{$menu{$parent}},  "$ID:$VALUE_HASH->{$parent}" );
+   }
+}
+ 
+
+# my @sorted_menu = sort {
+#   length($a) <=> length($b)
+#     ||
+#   $a cmp $b
+#  } keys %menu;
+#
+ my @last_array = ();
+
+ my $menu_text = "<table border=0 width=100%>\n";
+# foreach my $parent (@sorted_menu) {
+#    print "$parent<br>";
+#    next if ($parent > 0);
+
+ 	  my $level  = 0;
+ 	  my $prefix = '';
+    
+    my $parent = 0;
+
+ 	  label:
+ 	  $sub_menu_array =  \@{$menu{$parent}};
+ 	  my $m_item='';
+ 	  
+ 	  my %table_items = ();
+ 	  
+ 	  while(my $sm_item = pop @$sub_menu_array) {
+ 	     my($ID, $name)=split(/:/, $sm_item, 2);
+ 	     next if((! defined($attr->{ALL_PERMISSIONS})) && (! $permissions->{$ID-1}) && $parent == 0);
+
+ 	     $name = (defined($tree{$ID})) ? "<b>$name</b>" : "$name";
+       if(! defined($menu_args->{$ID}) || (defined($menu_args->{$ID}) && defined($FORM{$menu_args->{$ID}})) ) {
+       	   my $ext_args = "$EX_ARGS";
+       	   if (defined($menu_args->{$ID})) {
+       	     $ext_args = "&$menu_args->{$ID}=$FORM{$menu_args->{$ID}}";
+       	     $name = "<b>$name</b>" if ($name !~ /<b>/);
+       	    }
+
+       	   my $link = $self->button($name, "index=$ID$ext_args");
+    	       if($parent == 0) {
+ 	        	   $menu_text .= "<tr><td bgcolor=\"$_COLORS[3]\" align=left>$prefix$link</td></tr>\n";
+	            }
+ 	           elsif(defined($tree{$ID})) {
+   	           $menu_text .= "<tr><td bgcolor=\"$_COLORS[2]\" align=left>$prefix>$link</td></tr>\n";
+ 	            }
+ 	           else {
+ 	             $menu_text .= "<tr><td bgcolor=\"$_COLORS[1]\">$prefix$link</td></tr>\n";
+ 	            }
+         }
+        else {
+          #next;
+          #$link = "<a href='$SELF_URL?index=$ID&$menu_args->{$ID}'>$name</a>";	
+         }
+
+ 	      	     
+ 	     if(defined($tree{$ID})) {
+ 	     	 $level++;
+ 	     	 $prefix .= "&nbsp;&nbsp;&nbsp;";
+         push @last_array, $parent;
+         $parent = $ID;
+ 	     	 $sub_menu_array = \@{$menu{$parent}};
+ 	      }
+ 	   }
+
+    if ($#last_array > -1) {
+      $parent = pop @last_array;	
+      #print "POP/$#last_array/$parent/<br>\n";
+      $level--;
+      $prefix = substr($prefix, 0, $level * 6 * 3);
+      goto label;
+     }
+
+
+ 	  
+#  }
+ 
+ 
+ $menu_text .= "</table>\n";
+ 
+ return ($menu_navigator, $menu_text);
+}
 
 #*******************************************************************
 # menu($type, $main_para,_name, $ex_params, \%menu_hash_ref);
@@ -232,12 +393,12 @@ sub getCookies {
 # $params - hash of menu items
 # menu($type, $mp_name, $ex_params, $menu, $sub_menu, $attr);
 #*******************************************************************
-sub menu {
+sub menu2 {
  my $self = shift;
  my ($type, $mp_name, $ex_params, $menu, $sub_menu, $attr)=@_;
  my @menu_captions = sort keys %$menu;
 
- $self->{menu} = "<table width=100%>\n";
+ $self->{menu} = "<TABLE width=\"100%\">\n";
 
 if ($type == 1) {
 
@@ -250,18 +411,18 @@ if ($type == 1) {
 
 #    if ((defined($FORM{$mp_name}) && $FORM{$mp_name} eq $k) && $file eq '') {
      if ((defined($FORM{root_index}) && $FORM{root_index} eq $k) && $file eq '') {
-      $self->{menu} .= "<tr><td bgcolor=$_COLORS[3]><a href='$link$ex_params'><b>". $menu->{"$line"} ."</b></a></td></tr>\n";
+      $self->{menu} .= "<tr><td bgcolor=\"$_COLORS[3]\"><a href='$link$ex_params'><b>". $menu->{"$line"} ."</b></a></td></TR>\n";
       while(my($k, $v)=each %$sub_menu) {
-      	 $self->{menu} .= "<tr><td bgcolor=$_COLORS[1]>&nbsp;&nbsp;&nbsp;<a href='$SELF_URL?index=$k'>$v</a></td></tr>\n";
+      	 $self->{menu} .= "<tr><td bgcolor=\"$_COLORS[1]\">&nbsp;&nbsp;&nbsp;<a href='$SELF_URL?index=$k'>$v</a></td></TR>\n";
        }
      }
     else {
-      $self->{menu} .= "<tr><td><a href='$link'>". $menu->{"$line"} ."</a></td></tr>\n";
+      $self->{menu} .= "<tr><td><a href='$link'>". $menu->{"$line"} ."</a></td></TR>\n";
      }
    }
 }
 else {
-  $self->{menu} .= "<tr bgcolor=$_COLORS[0]>\n";
+  $self->{menu} .= "<tr bgcolor=\"$_COLORS[0]\">\n";
   
   foreach my $line (@menu_captions) {
     my($n, $file, $k)=split(/:/, $line);
@@ -271,17 +432,17 @@ else {
 
     $self->{menu} .= "<th";
     if ($FORM{$mp_name} eq $k && $file eq '') {
-      $self->{menu} .= " bgcolor=$_COLORS[3]><a href='$link$ex_params'>". $menu->{"$line"} ."</a></th>";
+      $self->{menu} .= " bgcolor=\"$_COLORS[3]\"><a href='$link$ex_params'>". $menu->{"$line"} ."</a></th>";
      }
     else {
       $self->{menu} .= "><a href='$link'>". $menu->{"$line"} ."</a></th>\n";
      }
 
  }
-  $self->{menu} .= "</tr>\n"; 
+  $self->{menu} .= "</TR>\n"; 
 }
 
- $self->{menu} .= "</table>\n";
+ $self->{menu} .= "</TABLE>\n";
 
 
  return $self->{menu};
@@ -307,23 +468,20 @@ sub header {
 
   my $JAVASCRIPT = ($attr->{PATH}) ? "$attr->{PATH}functions.js" : "functions.js";
 
-#print "Content-Type: text/html\n\n";
-# foreach my $line (@_C) {
-# 	 print "$line <br>\n";
-#  }
   
  my $css = css();
 
 
 my $CHARSET=(defined($attr->{CHARSET})) ? $attr->{CHARSET} : 'windows-1251';
 
-$self->{header} .= qq{<!doctype html public "-//W3C//DTD HTML 3.2 Final//EN">
+$self->{header} .= qq{
+<!doctype html public "-//W3C//DTD HTML 3.2 Final//EN">
 <html>
 <head>
- <META HTTP-EQUIV="Cache-Control" content="no-cache">
- <META HTTP-EQUIV="Pragma" CONTENT="no-cache">
- <meta http-equiv="Content-Type" content="text/html; charset=$CHARSET">
- <meta name="Author" content="~AsmodeuS~">
+ <META HTTP-EQUIV="Cache-Control" content="no-cache"\>
+ <META HTTP-EQUIV="Pragma" CONTENT="no-cache"\>
+ <meta http-equiv="Content-Type" content="text/html; charset=$CHARSET"\>
+ <meta name="Author" content="~AsmodeuS~"\>
 };
 
 $self->{header} .= $css;
@@ -332,7 +490,7 @@ $self->{header} .=
 q{ 
 <title>~AsmodeuS~ Billing System</title>
 </head>} .
-"<body style='margin: 0' bgcolor=$_COLORS[10] text=$_COLORS[9] link=$_COLORS[8]  vlink=$_COLORS[7]>\n";
+"<body style='margin: 0' bgcolor=\"$_COLORS[10]\" text=\"$_COLORS[9]\" link=\"$_COLORS[8]\"  vlink=\"$_COLORS[7]\">\n";
 
  return $self->{header};
 }
@@ -432,8 +590,8 @@ sub table {
  bless($self, $class);
 
  
- my $width = (defined($attr->{width})) ? "width=$attr->{width}" : '';
- my $border = (defined($attr->{border})) ? "border=$attr->{border}" : '';
+ my $width = (defined($attr->{width})) ? "width=\"$attr->{width}\"" : '';
+ my $border = (defined($attr->{border})) ? "border=\"$attr->{border}\"" : '';
 
  if (defined($attr->{rowcolor})) {
      $self->{rowcolor} = $attr->{rowcolor};
@@ -455,11 +613,11 @@ sub table {
  $self->{table} = "<br><TABLE $width cellspacing=0 cellpadding=0 border=0>";
  
  if (defined($attr->{caption})) {
-   $self->{table} .= "<TR><TD bgcolor=$_COLORS[1] align=right><b>$attr->{caption}</b></td></tr>\n";
+   $self->{table} .= "<TR><TD bgcolor=\"$_COLORS[1]\" align=\"right\"><b>$attr->{caption}</b></td></TR>\n";
   }
 
- $self->{table} .= "<TR><TD bgcolor=$_COLORS[4]>
-               <TABLE width=100% cellspacing=1 cellpadding=0 border=0>\n";
+ $self->{table} .= "<TR><TD bgcolor=\"$_COLORS[4]\">
+               <TABLE width=\"100%\" cellspacing=\"1\" cellpadding=\"0\" border=\"0\">\n";
 
 
  if (defined($attr->{title})) {
@@ -473,8 +631,7 @@ sub table {
    $self->{table} .= "<COLGROUP>";
    my $cols_align = $attr->{cols_align};
    foreach my $line (@$cols_align) {
-     $self->{table} .= "<COL align=$line>\n";
-     <COL align=right>
+     $self->{table} .= " <COL align=\"$line\">\n";
     }
    $self->{table} .= "</COLGROUP>\n";
   }
@@ -515,11 +672,11 @@ sub addrow {
 
   $row_number++;
   
-  $self->{rows} .= "<tr bgcolor=$bg  onmouseover=\"setPointer(this, $row_number, 'over', '$bg', '$_COLORS[3]', '$_COLORS[0]');\" onmouseout=\"setPointer(this, $row_number, 'out', '$bg', '$_COLORS[3]', '$_COLORS[0]');\" onmousedown=\"setPointer(this, $row_number, 'click', '$bg', '$_COLORS[3]', '$_COLORS[0]');\">";
+  $self->{rows} .= "<tr bgcolor=\"$bg\"  onmouseover=\"setPointer(this, $row_number, 'over', '$bg', '$_COLORS[3]', '$_COLORS[0]');\" onmouseout=\"setPointer(this, $row_number, 'out', '$bg', '$_COLORS[3]', '$_COLORS[0]');\" onmousedown=\"setPointer(this, $row_number, 'click', '$bg', '$_COLORS[3]', '$_COLORS[0]');\">";
   foreach my $val (@row) {
-     $self->{rows} .= "<td bgcolor=$bg $extra>$val</td>";
+     $self->{rows} .= "<TD bgcolor=\"$bg\" $extra>$val</TD>";
    }
-  $self->{rows} .= "</tr>\n";
+  $self->{rows} .= "</TR>\n";
   return $self->{rows};
 }
 
@@ -540,12 +697,12 @@ sub addtd {
   my $extra=(defined($self->{extra})) ? $self->{extra} : '';
 
 
-  $self->{rows} .= "<tr bgcolor=$bg>";
+  $self->{rows} .= "<tr bgcolor=\"$bg\">";
   foreach my $val (@row) {
      $self->{rows} .= "$val";
    }
 
-  $self->{rows} .= "</tr>\n";
+  $self->{rows} .= "</TR>\n";
   return $self->{rows};
 }
 
@@ -564,7 +721,7 @@ sub td {
     $extra.=" $k=$v";
    }
 
-  my $td = "<td $extra>$value</td>";
+  my $td = "<TD $extra>$value</TD>";
 
   return $td;
 }
@@ -577,13 +734,13 @@ sub td {
 sub table_title_plain {
   my $self = shift;
   my ($caption)=@_;
-  $self->{table_title} = "<tr bgcolor=$_COLORS[0]>";
+  $self->{table_title} = "<tr bgcolor=\"$_COLORS[0]\">";
 	
   foreach my $line (@$caption) {
     $self->{table_title} .= "<th class=table_title>$line</th>";
    }
 	
-  $self->{table_title} .= "</tr>\n";
+  $self->{table_title} .= "</TR>\n";
   return $self->{table_title};
 }
 
@@ -604,7 +761,7 @@ sub table_title  {
 
 #  print "$sort, $desc, $pg, $op, $caption, $qs";
 
-  $self->{table_title} = "<tr bgcolor=$_COLORS[0]>";
+  $self->{table_title} = "<tr bgcolor=\"$_COLORS[0]\">";
   my $i=1;
   foreach my $line (@$caption) {
      $self->{table_title} .= "<th  class=table_title>$line ";
@@ -628,7 +785,7 @@ sub table_title  {
          	  $op="op=$get_op";
           }
 
-         $self->{table_title} .= $self->button("<img src='$IMG_PATH/$img' width=12 height=10 border=0 alt='Sort' title=sort>", "$op$qs&pg=$pg&sort=$i&desc=$desc");
+         $self->{table_title} .= $self->button("<img src='$IMG_PATH/$img' width=\"12\" height=10 border=0 alt='Sort' title=sort>", "$op$qs&pg=$pg&sort=$i&desc=$desc");
        }
      else {
          $self->{table_title} .= "$line";
@@ -637,7 +794,7 @@ sub table_title  {
      $self->{table_title} .= "</th>\n";
      $i++;
    }
- $self->{table_title} .= "</tr>\n";
+ $self->{table_title} .= "</TR>\n";
 
  return $self->{table_title};
 }
@@ -651,7 +808,7 @@ sub show  {
   my $self = shift;	
   $self->{show} .= $self->{table};
   $self->{show} .= $self->{rows}; 
-  $self->{show} .= "</table></td></tr></table>\n";
+  $self->{show} .= "</TABLE></TD></TR></TABLE>\n";
 
   if (defined($self->{pages})) {
  	   $self->{show} =  '<br>'.$self->{pages} . $self->{show} . $self->{pages} .'<br>';
@@ -667,7 +824,7 @@ sub show  {
 sub button {
   my $self = shift;
   my ($name, $params, $attr)=@_;
-  my $ex_prams = (defined($attr->{ex_params})) ? $attr->{ex_params} : '';
+  my $ex_params = (defined($attr->{ex_params})) ? $attr->{ex_params} : '';
   my $ex_attr = '';
   
   $params = "$SELF_URL?$params";
@@ -682,7 +839,7 @@ sub button {
   my $message = (defined($attr->{MESSAGE})) ? "onclick=\"return confirmLink(this, '$attr->{MESSAGE}')\"" : '';
 
 
-  my $button = "<A href=\"$params\" $ex_attr $message>$name</a>";
+  my $button = "<a href=\"$params\" $ex_attr $message>$name</a>";
 
   return $button;
 }
@@ -699,28 +856,28 @@ sub message {
  my $head = '';
  
  if ($type eq 'err') {
-   $head = "<tr><th bgcolor='#FF0000'>$caption</th></tr>\n";
+   $head = "<tr><th bgcolor=\"#FF0000\">$caption</th></TR>\n";
   }
  elsif ($type eq 'info') {
-   $head = "<tr><th bgcolor='$_COLORS[0]'>$caption</th></tr>\n";
+   $head = "<tr><th bgcolor=\"$_COLORS[0]\">$caption</th></TR>\n";
   }  
  
 print << "[END]";
 <br>
-<table width=400 border=0 cellpadding="0" cellspacing="0">
-<tr><td bgcolor=$_COLORS[9]>
-<table width=100% border=0 cellpadding="2" cellspacing="1">
-<tr><td bgcolor=$_COLORS[1]>
+<TABLE width="400" border=0 cellpadding="0" cellspacing="0">
+<tr><TD bgcolor="$_COLORS[9]">
+<TABLE width="100%" border=0 cellpadding="2" cellspacing="1">
+<tr><TD bgcolor="$_COLORS[1]">
 
-<table width=100%>
+<TABLE width="100%">
 $head
-<tr><td bgcolor=$_COLORS[1]>$message</td></tr>
-</table>
+<tr><TD bgcolor="$_COLORS[1]">$message</TD></TR>
+</TABLE>
 
-</td></tr>
-</table>
-</td></tr>
-</table>
+</TD></TR>
+</TABLE>
+</TD></TR>
+</TABLE>
 <br>
 [END]
 }
@@ -817,24 +974,24 @@ sub log_print {
   }
 
 print << "[END]";
-<table width=640 border=0 cellpadding="0" cellspacing="0">
-<tr><td bgcolor=#00000>
-<table width=100% border=0 cellpadding="2" cellspacing="1">
-<tr><td bgcolor=FFFFFF>
+<TABLE width="640" border="0" cellpadding="0" cellspacing="0">
+<tr><TD bgcolor="#00000">
+<TABLE width="100%" border="0" cellpadding="2" cellspacing="1">
+<tr><TD bgcolor="FFFFFF">
 
-<table width=100%>
-<tr bgcolor=$_COLORS[3]><th>
+<TABLE width="100%">
+<tr bgcolor="$_COLORS[3]"><th>
 $level
-</th></tr>
-<tr><td>
+</th></TR>
+<tr><TD>
 $text
-</td></tr>
-</table>
+</TD></TR>
+</TABLE>
 
-</td></tr>
-</table>
-</td></tr>
-</table>
+</TD></TR>
+</TABLE>
+</TD></TR>
+</TABLE>
 [END]
 }
 
@@ -887,37 +1044,37 @@ sub test {
 
  my $output = '';
 
-#print "<table border=1>
-#<tr><td colspan=2>FORM</td></tr>
-#<tr><td>index</td><td>$index</td></td></tr>
-#<tr><td>root_index</td><td>root_index</td></td></tr>\n";	
+#print "<TABLE border=1>
+#<tr><TD colspan=2>FORM</TD></TR>
+#<tr><TD>index</TD><TD>$index</TD></TD></TR>
+#<tr><TD>root_index</TD><TD>root_index</TD></TD></TR>\n";	
   while(my($k, $v)=each %FORM) {
   	$output .= "$k | $v\n" if ($k ne '__BUFFER');
-    #print "<tr><td>$k</td><td>$v</td></tr>\n";	
+    #print "<tr><TD>$k</TD><TD>$v</TD></TR>\n";	
    }
-#print "</table>\n";
+#print "</TABLE>\n";
  $output .= "\n";
-#print "<br><table border=1>
-#<tr><td colspan=2>COOKIES</td></tr>
-#<tr><td>index</td><td>$index</td></td></tr>\n";	
+#print "<br><TABLE border=1>
+#<tr><TD colspan=2>COOKIES</TD></TR>
+#<tr><TD>index</TD><TD>$index</TD></TD></TR>\n";	
   while(my($k, $v)=each %COOKIES) {
     $output .= "$k | $v\n";
-    #print "<tr><td>$k</td><td>$v</td></tr>\n";	
+    #print "<tr><TD>$k</TD><TD>$v</TD></TR>\n";	
    }
-#print "</table>\n";
+#print "</TABLE>\n";
 
 
-#print "<br><table border=1>\n";
+#print "<br><TABLE border=1>\n";
 #  while(my($k, $v)=each %ENV) {
-#    print "<tr><td>$k</td><td>$v</td></tr>\n";	
+#    print "<tr><TD>$k</TD><TD>$v</TD></TR>\n";	
 #   }
-#print "</table>\n";
+#print "</TABLE>\n";
 
-#print "<br><table border=1>\n";
+#print "<br><TABLE border=1>\n";
 #  while(my($k, $v)=each %conf) {
-#    print "<tr><td>$k</td><td>$v</td></tr>\n";	
+#    print "<tr><TD>$k</TD><TD>$v</TD></TR>\n";	
 #   }
-#print "</table>\n";
+#print "</TABLE>\n";
 #
 
 #print "<a href='#' onclick=\"document.write ( 'answer' )\">aaa</a>";

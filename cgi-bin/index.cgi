@@ -31,7 +31,9 @@ use Abills::SQL;
 use Abills::HTML;
 use Users;
 
-$html = Abills::HTML->new( { IMG_PATH => 'img/' } );
+my $output = Abills::HTML;
+
+$html = $output->new( { IMG_PATH => 'img/' } );
 my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
 my $db = $sql->{db};
 
@@ -73,22 +75,19 @@ my $page_qs;
 my $admin;
 
 print << "[END]";
-<table width=100% border=0>
-<tr bgcolor=$_COLORS[0]><td align=right>
-<h3>ABillS</h3>
-</td></tr>
-</table>
-<table width=100%>
-<tr><td align=center>
+<TABLE width="100%" border="0">
+<TR bgcolor="$_COLORS[0]"><TD align="right"><h3>ABillS</h3></TD></TR>
+</TABLE>
+<TABLE width="100%">
+<TR><TD align="center">
 [END]
 
 my $login = $FORM{user} || '';
 my $passwd = $FORM{passwd} || '';
 
-  # ID:PARENT:NAME:FUNCTION:SHOW SUBMENU:OP:
-  my @m = ( 
-   "30:0:$_LOGOUT:logout:::",
-   "10:0:$_USER_INFO:form_info:::"
+ my @m = ( 
+   "10:0:$_LOGOUT:logout:::",
+   "30:0:$_USER_INFO:form_info:::"
    );
 
 
@@ -122,13 +121,13 @@ if ($uid > 0) {
 
       $module_fl{"$ID"}=$maxnumber;
       $menu_args{$maxnumber}=$ARGS if ($ARGS ne '');
-      #print "$line -- $ID, $SUB, $NAME, $FUNTION_NAME  // $module_fl{$SUB}<br>";
+      #print "$line -- $ID, $SUB, $NAME, $FUNTION_NAME  // $module_fl{$SUB}<br/>";
      
       if($SUB > 0) {
         $menu_items{$maxnumber}{$module_fl{$SUB}}=$NAME;
        } 
       else {
-        $menu_items{$maxnumber}{$v}=$NAME;
+        $menu_items{$maxnumber}{0}=$NAME;
         if ($SUB == -1) {
           $uf_menus{$maxnumber}=$NAME;
          }
@@ -140,17 +139,23 @@ if ($uid > 0) {
   }
 
   my($menu_text, $menu_navigator)=mk_navigator();
-  my $table = Abills::HTML->table({ width => '100%',
+  my $table = $output->table({ width => '100%',
                                      cols_align => ['right'],
                                      rowcolor => $_COLORS[2],
-                                     rows => [ [ "$_DATE: $DATE $_TIME: $TIME <" ] ]
+                                     rows => [ [ "$_DATE: $DATE $_TIME: $TIME " ] ]
                                   } );
   print $table->show();
   
-print "<table border=0 width=100%>
-<tr><td width=200 valign=top bgcolor=$_COLORS[2]>$menu_text</td><td align=center>\n"; 
+  
+  
+  
+  
+  
+print "<TABLE border=\"0\" width=\"100%\">
+<TR><TD width=\"200\" valign=\"top\" bgcolor=\"$_COLORS[2]\">$menu_text</TD><TD align=\"center\">\n"; 
   $pages_qs="&UID=$user->{UID}&sid=$sid";
   $LIST_PARAMS{UID}=$user->{UID};
+  $LIST_PARAMS{LOGIN}=$user->{LOGIN};
 
   if(defined($module{$index})) {
  	 	require "Abills/modules/$module{$index}/webinterface";
@@ -160,15 +165,17 @@ print "<table border=0 width=100%>
     $functions{$index}->();
    }
   else {
-    $functions{10}->();
+    $functions{30}->();
    }
-  print "</td></tr></table>\n";
+  print "</TD></TR></TABLE>\n";
 }
 else {
   form_login();
 }
 
-print "</td></tr></table><hr>\n";
+print "</TD></TR></TABLE><hr/>
+</body>
+</html>\n";
 
 
 $html->test();
@@ -193,7 +200,7 @@ sub form_info {
   
   $user->{PAYMENT_DATE}=$list->[0]->[2];
   $user->{PAYMENT_SUM}=$list->[0]->[3];
-  Abills::HTML->tpl_show(templates('client_info'), $user);
+  $html->tpl_show(templates('client_info'), $user);
 }
 
 
@@ -209,7 +216,7 @@ sub stats_calculation  {
  my ($sessions) = @_;
 
 $sessions->calculation({ %LIST_PARAMS }); 
-my $table = Abills::HTML->table( { width => '640',
+my $table = $output->table( { width => '640',
 	                              rowcolor => $_COLORS[1],
                                 title_plain => ["-", "$_MIN", "$_MAX", "$_AVG"],
                                 cols_align => ['left', 'right', 'right', 'right'],
@@ -227,118 +234,13 @@ print $table->show();
 # mk_navigator()
 #**********************************************************
 sub mk_navigator {
- my $menu_navigator = "";
 
-
-
- my $menu_navigator = "";
- my %tree = ();
-
- # make navigate line 
-if ($index > 0) {
-  $root_index = $index;	
-  my $h = $menu_items{$root_index};
-
-  while(my ($par_key, $name) = each ( %$h )) {
-    $menu_navigator =  ' '. $html->button($name, "index=$root_index"). ' /' . $menu_navigator;
-    $tree{$root_index}='y';
-    if ($par_key > 0) {
-      $root_index = $par_key;
-      $h = $menu_items{$par_key};
-     }
+my ($menu_navigator, $menu_text) = $html->menu(\%menu_items, \%menu_args, undef, { EX_ARGS => "&sid=$sid", ALL_PERMISSIONS => 'y' });
+  
+  if ($html->{ERROR}) {
+  	message('err',  $_ERROR, "$html->{ERROR}");
+  	exit;
   }
-}
-
-$FORM{root_index} = $root_index;
-
-
-my %menu = ();
-#my @s = sort keys %menu_items;
-
-my @s  = sort {
-   $menu_items{$b} <=> $menu_items{$a}
-     ||
-   length($a) <=> length($b)
-     ||
-   $a cmp $b
-} keys %menu_items;
-
-#while(my($ID, $VALUE_HASH)=each %menu_items) {
-
-foreach my $ID (@s) {
- 	$VALUE_HASH = $menu_items{$ID};
- 	foreach my $parent (keys %$VALUE_HASH) {
-    push( @{$menu{$parent}},  "$ID:$VALUE_HASH->{$parent}" );
-   }
-}
- 
- 
- my @sorted_menu = sort keys %menu;
- my @last_array = ();
-
- my $menu_text = "<table border=0 width=100%>\n";
- 
- foreach $parent (@sorted_menu) {
-
-    next if ($parent > 0);
- 	  my $level  = 0;
- 	  my $prefix = '';
-
- 	  label:
- 	  $sub_menu_array = \@{$menu{$parent}};
- 	  while( $sm_item = pop @$sub_menu_array) {
- 	     my($ID, $name)=split(/:/, $sm_item, 2);
-
-# 	     next if((! $permissions{$ID-1}) && $parent == 0);
-	      	      	     
- 	     $name = (defined($tree{$ID})) ? "> <b>$name</b>": "$name";
- 	     #print "$prefix$level / $parent /$ID ";
-
-
-        if(! defined($menu_args{$ID}) || (defined($menu_args{$ID}) && defined($FORM{$menu_args{$ID}})) ) {
-       	   my $ext_args = "&sid=$sid";
-       	   $ext_args .= "&$menu_args{$ID}=$FORM{$menu_args{$ID}}" if (defined($menu_args{$ID}) && defined($FORM{$menu_args{$ID}}));
-
-       	   $link = $html->button($name, "index=$ID$ext_args");
-
-    	     if($parent == 0) {
- 	        	 $menu_text .= "<tr><td bgcolor=$_COLORS[3] align=left>$prefix$link</td></tr>\n";
- 	          }
- 	         elsif(defined($tree{$ID})) {
- 	           $menu_text .= "<tr><td bgcolor=$_COLORS[2] align=left>$prefix>$link</td></tr>\n";
- 	          }
- 	         else {
- 	           $menu_text  .= "<tr><td bgcolor=$_COLORS[1]>$prefix$link</td></tr>\n";
- 	          }
-         }
-        else {
-          #next;
-          #$link = "<a href='$SELF_URL?index=$ID&$menu_args{$ID}'>$name</a>";	
-         }
-
- 	      	     
-
- 	     if(defined($tree{$ID})) {
- 	     	 $level++;
- 	     	 $prefix .= "&nbsp;&nbsp;&nbsp;";
-         push @last_array, $parent;
-         $parent = $ID;
- 	     	 $sub_menu_array = \@{$menu{$parent}};
- 	      }
- 	   }
- 	  
-    if ($#last_array > -1) {
-      $parent = pop @last_array;	
-      #print "POP/$#last_array/$parent/<br>\n";
-      $level--;
-      $prefix = substr($prefix, 0, $level * 6 * 3);
-      goto label;
-     }
- 	  
-  }
- 
- 
- $menu_text .= "</table>\n";
 
 return  $menu_text, "/".$menu_navigator;
 
@@ -351,57 +253,13 @@ return  $menu_text, "/".$menu_navigator;
 #**********************************************************
 sub form_login {
 
-print "
-<script type=\"text/javascript\">
-	function selectLanguage() {
-		sSix		= '';
-		sUser		= '';
-		sEmail		= '';
-		sLanguage	= '';
-		sTheme		= '';
-		
-		try {
-			frm = document.forms[0];
-			if(frm.six && frm.six.options)
-				sSix = frm.six.options[frm.six.selectedIndex].value;
-			if(frm.f_user)
-				sUser = frm.f_user.value;
-			if(frm.f_email)
-				sEmail = frm.f_email.value;
-			if(frm.tem)
-				sTheme = frm.tem.options[frm.tem.selectedIndex].value;
-			if(frm.language)
-				sLanguage = frm.language.options[frm.language.selectedIndex].value;
-			sLocation = 'index.cgi?language='+sLanguage;
-			location.replace(sLocation);
-		} catch(err) {
-			alert('Your brownser do not support JS');
-		}
-	}
-</script>
+ my %first_page = ();
+ $first_page{SEL_LANGUAGE} = $html->form_select('language', 
+                                { EX_PARAMS => 'onChange="selectLanguage()"',
+ 	                                SELECTED  => $html->{language},
+ 	                                SEL_HASH  => \%LANG });
 
-
-<form action=$SELF_URL METHOD=post>
-<TABLE width=400 cellspacing=0 cellpadding=0 border=0><TR><TD bgcolor=$_COLORS[4]>
-<TABLE width=100% cellspacing=1 cellpadding=0 border=0><TR><TD bgcolor=$_COLORS[1]>
-<TABLE width=100% cellspacing=0 cellpadding=0 border=0>
-<tr><td>$_LOGIN:</td><td><input type=text name=user></td></tr>
-<tr><td>$_PASSWD:</td><td><input type=password name=passwd></td></tr>
-<tr><td>$_LANGUAGE:</td><td><select name=language onChange=selectLanguage()>\n";
-
-while(my($k, $v) = each %LANG) {
-  print "<option value='$k'";
-  print ' selected' if ($k eq $html->{language});
-  print ">$v\n";	
-}
-
-print "</select></td></tr>
-<tr><th colspan=2><input type=submit name=logined value=$_ENTER></th></tr>
-</table>
-</td></tr></table>
-</td></tr></table>
-</form>\n";
-
+ $html->tpl_show(templates('form_user_login'), \%first_page);
 }
 
 
@@ -577,21 +435,7 @@ elsif($FORM{newpassword} ne $FORM{confirm}) {
 }
 
 
-
-
-
-print "<h3>$_CHANGE_PASSWD</h3>\n";
-print << "[END]";
-<form action=$SELF_URL METHOD=POST>
-<input type=hidden name=index value=$index>
-$hidden_inputs
-<table>
-<tr><td>$_PASSWD:</td><td><input type=password name=newpassword value=''></td></tr>
-<tr><td>$_CONFIRM_PASSWD:</td><td><input type=password name=confirm value=''></td></tr>
-</table>
-<input type=submit name=change value="$_CHANGE">
-</form>
-[END]
+ $html->tpl_show(templates('form_password'), undef);
 
  return 0;
 }

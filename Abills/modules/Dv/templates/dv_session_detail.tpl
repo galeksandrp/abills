@@ -1,4 +1,4 @@
-<p>
+<br>
 <TABLE width=600 cellspacing=0 cellpadding=0 border=0>
  <TR><TD bgcolor=#E1E1E1>
 <TABLE width=100% cellspacing=1 cellpadding=0 border=0>
@@ -23,7 +23,7 @@
 <tr bgcolor=$_COLORS[1]><td>$_TRAF_TARIF:</td><td>%TRAF_TARIFF%</td></tr>
 <tr bgcolor=$_COLORS[1]><td>$_SUM:</td><td>%SUM%</td></tr>
 <tr bgcolor=$_COLORS[1]><td>$_BILL:</td><td>%BILL_ID%</td></tr>
-
-</td></tr></table>
 </table>
-</p>
+</td></tr></table>
+
+<br>
