@@ -463,16 +463,12 @@ sub header {
 # my @_C;
  if ($COOKIES{colors} ne '') {
    @_COLORS = split(/, /, $COOKIES{colors});
-#    @_C = split(/, /, $COOKIES{colors});
   }
 
-  my $JAVASCRIPT = ($attr->{PATH}) ? "$attr->{PATH}functions.js" : "functions.js";
-
-  
+ my $JAVASCRIPT = ($attr->{PATH}) ? "$attr->{PATH}functions.js" : "functions.js";
  my $css = css();
 
-
-my $CHARSET=(defined($attr->{CHARSET})) ? $attr->{CHARSET} : 'windows-1251';
+ my $CHARSET=(defined($attr->{CHARSET})) ? $attr->{CHARSET} : 'windows-1251';
 
 $self->{header} .= qq{
 <!doctype html public "-//W3C//DTD HTML 3.2 Final//EN">
@@ -490,7 +486,7 @@ $self->{header} .=
 q{ 
 <title>~AsmodeuS~ Billing System</title>
 </head>} .
-"<body style='margin: 0' bgcolor=\"$_COLORS[10]\" text=\"$_COLORS[9]\" link=\"$_COLORS[8]\"  vlink=\"$_COLORS[7]\">\n";
+"\n<body style='margin: 0' bgcolor=\"$_COLORS[10]\" text=\"$_COLORS[9]\" link=\"$_COLORS[8]\"  vlink=\"$_COLORS[7]\">\n";
 
  return $self->{header};
 }

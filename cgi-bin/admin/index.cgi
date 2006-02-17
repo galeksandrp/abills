@@ -171,14 +171,9 @@ elsif (! defined $FORM{type}) {
 	$FORM{type}=11;
 }
 
-my $SEL_TYPE = "<select name=type>\n";
-while(my($k, $v)=each %SEARCH_TYPES) {
-	$SEL_TYPE .= "<option value=$k";
-	$SEL_TYPE .= ' selected' if ($FORM{type} eq $k);
-	$SEL_TYPE .= ">$v\n";
-}
-$SEL_TYPE .= "</select>\n";
-
+my $SEL_TYPE = $html->form_select('type', 
+                                { SELECTED  => $FORM{type},
+ 	                                SEL_HASH  => \%SEARCH_TYPES });
 
 fl();
 my %USER_SERVICES = ();
@@ -1750,18 +1745,17 @@ my $REFRESH=$COOKIES{REFRESH} || 60;
 my $ROWS=$COOKIES{PAGE_ROWS} || $PAGE_ROWS;
 
 
+my $SEL_LANGUAGE = $html->form_select('language', 
+                                { 
+ 	                                SELECTED  => $html->{language},
+ 	                                SEL_HASH  => \%LANG });
+
 print "
 <form action=$SELF_URL METHOD=POST>
 <input type=hidden name=index value=$index>
 <TABLE width=640 cellspacing=0 cellpadding=0 border=0><tr><TD bgcolor=$_COLORS[4]>
 <TABLE width=100% cellspacing=1 cellpadding=0 border=0><tr bgcolor=$_COLORS[1]><td colspan=2>$_LANGUAGE:</td>
-<td><select name=language>\n";
-while(my($k, $v) = each %LANG) {
-  print "<option value='$k'";
-  print ' selected' if ($k eq $html->{language});
-  print ">$v\n";	
-}
-print "</select></td></tr>
+<td>$SEL_LANGUAGE</td></tr>
 <tr bgcolor=$_COLORS[1]><th colspan=3>&nbsp;</th></tr>
 <tr bgcolor=$_COLORS[0]><th colspan=2>$_PARAMS</th><th>$_VALUE</th></tr>\n";
 
@@ -2946,6 +2940,7 @@ else {
 my $i=0;
 my $SEL_METHOD = "<select name=METHOD>\n";
    $SEL_METHOD .= "<option value=''>$_ALL\n";
+
 foreach my $line (@PAYMENT_METHODS) {
   $SEL_METHOD .= "<option value=$i";
 	$SEL_METHOD .= ' selected' if ($FORM{METHOD} eq $i);
