@@ -291,7 +291,7 @@ $_NOT_ACTIVE='Not Active';
 $_REFRESH='Refresh';
 $_ROUTES='Routes';
 $_DICTIONARY='Dictionary';
-
+$_ABON='Periodic payments';
 
 
 

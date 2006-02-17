@@ -173,7 +173,8 @@ elsif (! defined $FORM{type}) {
 
 my $SEL_TYPE = $html->form_select('type', 
                                 { SELECTED  => $FORM{type},
- 	                                SEL_HASH  => \%SEARCH_TYPES });
+ 	                                SEL_HASH  => \%SEARCH_TYPES,
+ 	                                NO_ID     => 'y' });
 
 fl();
 my %USER_SERVICES = ();
@@ -427,26 +428,27 @@ elsif($FORM{COMPANY_ID}) {
   }
 
  }
-elsif($FORM{del}) {
+elsif(defined($FORM{del}) && defined($FORM{is_js_confirmed})) {
    $company->del( $FORM{del} );
    message('info', $_INFO, "$_DELETED # $FORM{del}");
  }
 else {
   my $list = $company->list( { %LIST_PARAMS } );
-  my $table = Abills::HTML->table( { width => '100%',
-                                   border => 1,
-                                   title => [$_NAME, $_DEPOSIT, $_REGISTRATION, $_USERS, $_STATUS, '-', '-'],
+  my $table = Abills::HTML->table( { width    => '100%',
+                                   caption    => $_COMPANIES,
+                                   border     => 1,
+                                   title      => [$_NAME, $_DEPOSIT, $_REGISTRATION, $_USERS, $_STATUS, '-', '-'],
                                    cols_align => ['left', 'right', 'right', 'right', 'center', 'center'],
-                                   pages => $company->{TOTAL},
-                                   qs => $pages_qs
+                                   pages      => $company->{TOTAL},
+                                   qs         => $pages_qs
                                   } );
 
   foreach my $line (@$list) {
     $table->addrow($line->[0],  $line->[1], $line->[2], 
-      $html->button($line->[3], "index=$index&COMPANY_ID=$line->[5]"), 
+      $html->button($line->[3], "index=13&COMPANY_ID=$line->[5]"), 
       "$status[$line->[4]]",
-      $html->button($_INFO, "index=$index&COMPANY_ID=$line->[5]"), 
-      $html->button($_DEL, "index=$index&del=$line->[5]", { MESSAGE => "$_DEL \"$line->[0]\"?" }));
+      $html->button($_INFO, "index=13&COMPANY_ID=$line->[5]"), 
+      $html->button($_DEL, "index=13&del=$line->[5]", { MESSAGE => "$_DEL $line->[0]?" }));
    }
   print $table->show();
 
@@ -569,7 +571,7 @@ sub form_groups {
 if ($FORM{add}) {
   $users->group_add( { %FORM });
   if (! $users->{errno}) {
-    message('info', $_ADDED, "$_ADDED $users->{GID}");
+    message('info', $_ADDED, "$_ADDED [$users->{GID}]");
    }
 }
 elsif($FORM{change}){
@@ -603,7 +605,7 @@ elsif(defined($FORM{GID})){
 #     }
     $users->{ACTION}='change';
     $users->{LNG_ACTION}=$_CHANGE;
-    Abills::HTML->tpl_show(templates('form_groups'), $users);
+    $html->tpl_show(templates('form_groups'), $users);
   }
  
   return 0;
@@ -621,12 +623,13 @@ if ($users->{errno}) {
   }
 
 my $list = $users->groups_list({ %LIST_PARAMS });
-my $table = Abills::HTML->table( { width => '100%',
-                                   border => 1,
-                                   title => [$_ID, $_NAME, $_DESCRIBE, $_USERS, '-', '-'],
+my $table = Abills::HTML->table( { width      => '100%',
+                                   caption    => "$_GROUPS",
+                                   border     => 1,
+                                   title      => [$_ID, $_NAME, $_DESCRIBE, $_USERS, '-', '-'],
                                    cols_align => ['right', 'left', 'left', 'right', 'center', 'center'],
-                                   qs => $pages_qs,
-                                   pages => $users->{TOTAL}
+                                   qs         => $pages_qs,
+                                   pages      => $users->{TOTAL}
                                   } );
 
 foreach my $line (@$list) {
@@ -657,7 +660,7 @@ sub add_groups {
   my $users;
   $users->{ACTION}='add';
   $users->{LNG_ACTION}=$_ADD;
-  Abills::HTML->tpl_show(templates('form_groups'), $users); 
+  $html->tpl_show(templates('form_groups'), $users); 
 }
 
 #**********************************************************
@@ -667,8 +670,18 @@ sub user_info {
   my ($UID)=@_;
 	my $user_info = $users->info( $UID );
   
-  print  "<table width=100% bgcolor=$_COLORS[2]><tr><td>$_USER:</td>
-   <td>". $html->button("<b>$user_info->{LOGIN}</b>", "index=11&UID=$user_info->{UID}") ."</td></tr></table>\n";
+  
+  $table = Abills::HTML->table( { width    => '100%',
+  	                              rowcolor => $_COLORS[2],
+  	                              border   => 0,
+                                  cols_align => ['left'],
+                                  rows => [ [ "$_USER: ". $html->button("<b>$user_info->{LOGIN}</b>", "index=11&UID=$user_info->{UID}") ] ]
+                               } );
+
+  print $table->show();
+  
+#  print  "<table width=100% bgcolor=$_COLORS[2]><tr><td>$_USER:</td>
+#   <td>". $html->button("<b>$user_info->{LOGIN}</b>", "index=11&UID=$user_info->{UID}") ."</td></tr></table>\n";
   
   $LIST_PARAMS{UID}=$user_info->{UID};
   $pages_qs =  "&UID=$user_info->{UID}";
@@ -900,15 +913,7 @@ print $table->show();
 sub user_group {
   my ($attr) = @_;
   my $user = $attr->{USER};
-
-  $user->{SEL_GROUPS} = "<select name=GID>\n";
-  $user->{SEL_GROUPS} .= "<option value='0'>-N/S-\n";
-  my $groups = $user->groups_list();
-  foreach my $line (@$groups) {
-    $user->{SEL_GROUPS} .= "<option value='$line->[0]'>$line->[0]:$line->[1]\n";
-   }
-  $user->{SEL_GROUPS} .= "</select>\n";
-
+  $user->{SEL_GROUPS} = sel_groups();
   Abills::HTML->tpl_show(templates('chg_group'), $user);
 }
 
@@ -917,20 +922,18 @@ sub user_group {
 #**********************************************************
 sub user_company {
  my ($attr) = @_;
-
  my $user_info = $attr->{USER};
-
  use Customers;
  my $customer = Customers->new($db);
 
-$user_info->{SEL_COMPANIES} = "<select name=COMPANY_ID>\n";
-$user_info->{SEL_COMPANIES} .= "<option value='0'>-N/S-\n";
-my $list = $customer->company->list();
-foreach my $line (@$list) {
-   $user_info->{SEL_COMPANIES} .= "<option value='$line->[5]'>$line->[0]\n";
- }
-
-$user_info->{SEL_COMPANIES} .= "</select>\n";
+ $user_info->{SEL_COMPANIES} = $html->form_select('COMPANY_ID', 
+                                { 
+ 	                                SELECTED  => $FORM{COMPANY_ID},
+ 	                                SEL_MULTI_ARRAY   => $customer->company->list(),
+ 	                                MULTI_ARRAY_KEY   => 5,
+ 	                                MULTI_ARRAY_VALUE => 0,
+ 	                                SEL_OPTIONS       => { 0 => '-N/S-'}
+ 	                               });
 
 Abills::HTML->tpl_show(templates('chg_company'), $user_info);
 }
@@ -1103,6 +1106,7 @@ sub form_bills {
   $user->{SEL_BILLS} .= "<option value='0'>-N/S-\n";
   my $list = $bills->list({  COMPANY_ONLY => 'y',
   	                         UID   => $user->{UID} });
+
   foreach my $line (@$list) {
     if($line->[3] ne '') {
       $user->{SEL_BILLS} .= "<option value='$line->[0]'>$line->[0] : <font color='EE44EE'>$line->[3]</font> :$line->[1]\n";
@@ -1111,6 +1115,7 @@ sub form_bills {
     	$user->{SEL_BILLS} .= "<option value='$line->[0]'> >> $line->[0] : Personal :$line->[1]\n";
      }
    }
+
 
   $user->{SEL_BILLS} .= "</select>\n";
   Abills::HTML->tpl_show(templates('chg_bill'), $user);
@@ -1227,12 +1232,12 @@ if(defined($attr->{TP})) {
    }
 
   my $list = $tarif_plan->ti_list({ %LIST_PARAMS });
-  my $table = Abills::HTML->table( { width => '100%',
-                                   border => 1,
-                                   title => ['#', $_DAYS, $_BEGIN, $_END, $_HOUR_TARIF, $_TRAFFIC, '-', '-',  '-'],
+  my $table = Abills::HTML->table( { width   => '100%',
+                                   caption   => "$_INTERVALS",
+                                   border    => 1,
+                                   title     => ['#', $_DAYS, $_BEGIN, $_END, $_HOUR_TARIF, $_TRAFFIC, '-', '-',  '-'],
                                    cols_align => ['left', 'left', 'right', 'right', 'right', 'center', 'center', 'center', 'center', 'center'],
-                                   qs => $pages_qs,
-                                   caption => $_INTERVALS
+                                   qs        => $pages_qs,
                                    } );
 
   my $color="AAA000";
@@ -1376,25 +1381,26 @@ print $table->show();
 
 if (defined($FORM{tt})) {
 
-  $tarif_plan->{SEL_TT_ID} = "<select name=TT_ID>";
-  for(my $i=0; $i<3; $i++) {
-    $tarif_plan->{SEL_TT_ID} .= "<option value=$i";
-    $tarif_plan->{SEL_TT_ID} .= " selected" if ($i eq $tarif_plan->{TT_ID});
-    $tarif_plan->{SEL_TT_ID} .= ">$i\n";
-   }
-  $tarif_plan->{SEL_TT_ID} .=  '</select>';
 
+  my %TT_IDS = (0 => "Global",
+                1 => "Extended 1",
+                2 => "Extended 2" );
+
+  $tarif_plan->{SEL_TT_ID} = $html->form_select('TT_ID', 
+                                { SELECTED    => $tarif_plan->{TT_ID},
+ 	                                SEL_HASH   => \%TT_IDS,
+ 	                               });
   Abills::HTML->tpl_show(_include('dv_tt', 'Dv'), $tarif_plan);
 }
 else {
-  my $i=0;
-  foreach $line (@DAY_NAMES) {
-    $tarif_plan->{SEL_DAYS} .= "<option value=$i";
-    $tarif_plan->{SEL_DAYS} .= " selected" if ($FORM{day} == $i || $tarif_plan->{TI_DAY} == $i);
-    $tarif_plan->{SEL_DAYS} .= ">$line\n";
-    $i++;
-  }
-  
+
+  my $day_id = $FORM{day} || $tarif_plan->{TI_DAY};
+
+  $tarif_plan->{SEL_DAYS} = $html->form_select('TI_DAY', 
+                                { SELECTED   => $day_id,
+ 	                                SEL_ARRAY  => \@DAY_NAMES,
+ 	                                ARRAY_NUM_ID  => 'y'
+ 	                               });
   Abills::HTML->tpl_show(templates('ti'), $tarif_plan);
 }
 
@@ -1435,8 +1441,9 @@ if ($holidays->{errno}) {
 
 
 my $list = $holidays->holidays_list( { %LIST_PARAMS });
-my $table = Abills::HTML->table( { width => '640',
-                                   title => [$_DAY,  $_DESCRIBE, '-'],
+my $table = Abills::HTML->table( { caption    => "$_HOLLIDAYS",
+	                                 width      => '640',
+                                   title      => [$_DAY,  $_DESCRIBE, '-'],
                                    cols_align => ['left', 'left', 'center'],
                                   } );
 my ($delete); 
@@ -1820,15 +1827,17 @@ if($FORM{NAS_ID}) {
   
   $nas->{NAME_SEL} = "<form action=$SELF_URL METHOD=POST>
    <input type=hidden name=index value=60>
-   <input type=hidden name=subf value='$FORM{subf}'>
-   <select name=NAS_ID>";
-  my $list = $nas->list({ %LIST_PARAMS });	
-  foreach my $line (@$list) {
-    $nas->{NAME_SEL} .= "<option value=$line->[0]";
-    $nas->{NAME_SEL} .= " selected" if ($line->[0] eq $FORM{NAS_ID});
-    $nas->{NAME_SEL} .= ">$line->[0]:$line->[1]\n";
-   }
-  $nas->{NAME_SEL} .= "</select><input type=submit name=show value='$_SHOW'>\n</form>\n";
+   <input type=hidden name=subf value='$FORM{subf}'>\n";
+   
+  $nas->{NAME_SEL} .= $html->form_select('NAS_ID', 
+                                { 
+ 	                                SELECTED  => $FORM{NAS_ID},
+ 	                                SEL_MULTI_ARRAY   => $nas->list({ %LIST_PARAMS }),
+ 	                                MULTI_ARRAY_KEY   => 0,
+ 	                                MULTI_ARRAY_VALUE => 1,
+ 	                               });
+
+  $nas->{NAME_SEL} .= "<input type=submit name=show value='$_SHOW'>\n</form>\n";
   
   func_menu({ 
   	         'ID' =>   $nas->{NAS_ID}, 
@@ -1875,7 +1884,7 @@ if ($nas->{errno}) {
   message('err', $_ERROR, "$err_strs{$nas->{errno}}");
  }
 
- my @nas_types = ('other', 'usr', 'pm25', 'ppp', 'exppp', 'radpppd', 'expppd', 'pppd', 'dslmax', 'mpd', 'gnugk');
+# my @nas_types = ('other', 'usr', 'pm25', 'ppp', 'exppp', 'radpppd', 'expppd', 'pppd', 'dslmax', 'mpd', 'gnugk');
  my %nas_descr = (
   'usr'      => "USR Netserver 8/16",
   'pm25'      => 'LIVINGSTON portmaster 25',
@@ -1890,30 +1899,25 @@ if ($nas->{errno}) {
   'gnugk'     => 'GNU GateKeeper',
   'other'     => 'Other nas server');
 
-  foreach my $nt (@nas_types) {
-     $nas->{SEL_TYPE} .= "<option value=$nt";
-     $nas->{SEL_TYPE} .= ' selected' if ($nas->{NAS_TYPE} eq $nt);
-     $nas->{SEL_TYPE} .= ">$nt ($nas_descr{$nt})\n";
-   }
+  $nas->{SEL_TYPE} = $html->form_select('NAS_TYPE', 
+                                { SELECTED   => $nas->{NAS_TYPE},
+ 	                                SEL_HASH   => \%nas_descr
+ 	                               });
 
-  my $i = 0;
-  foreach my $at (@auth_types) {
-     $nas->{SEL_AUTH_TYPE} .= "<option value=$i";
-     $nas->{SEL_AUTH_TYPE} .= ' selected' if ($nas->{NAS_AUTH_TYPE} eq $i);
-     $nas->{SEL_AUTH_TYPE} .= ">$at\n";
-     $i++;
-   }
+  $nas->{SEL_AUTH_TYPE} .= $html->form_select('NAS_AUTH_TYPE', 
+                                { SELECTED    => $nas->{NAS_AUTH_TYPE},
+ 	                                SEL_ARRAY   => \@auth_types
+ 	                               });
 
 $nas->{NAS_DISABLE} = ($nas->{NAS_DISABLE} > 0) ? ' checked' : '';
-
 Abills::HTML->tpl_show(templates('form_nas'), $nas);
 
-    
-my $table = Abills::HTML->table( { width => '100%',
-                                   border => 1,
-                                   title => ["ID", "$_NAME", "NAS-Identifier", "IP", "$_TYPE", "$_AUTH", "$_STATUS", '-', '-', '-'],
+my $table = Abills::HTML->table( { width   => '100%',
+                                   caption => "$_NAS",
+                                   border  => 1,
+                                   title   => ["ID", "$_NAME", "NAS-Identifier", "IP", "$_TYPE", "$_AUTH", "$_STATUS", '-', '-', '-'],
                                    cols_align => ['center', 'left', 'left', 'right', 'left', 'left', 'center', 'center', 'center', 'center'],
-                                  } );
+                                  });
 
 my $list = $nas->list({ %LIST_PARAMS });
 
@@ -1981,11 +1985,12 @@ if ($nas->{errno}) {
 
 
     
-my $table = Abills::HTML->table( { width => '100%',
-                                   border => 1,
-                                   title => ["NAS", "$_BEGIN", "$_END", "$_COUNT", '-'],
+my $table = Abills::HTML->table( { width    => '100%',
+                                   caption  => "IP POOLs",
+                                   border   => 1,
+                                   title    => ["NAS", "$_BEGIN", "$_END", "$_COUNT", '-'],
                                    cols_align => ['left', 'right', 'right', 'right', 'center'],
-                                   qs => $pages_qs              
+                                   qs       => $pages_qs              
                                   } );
 
 
@@ -2022,9 +2027,10 @@ else {
 }
 
 
-my $table = Abills::HTML->table( { width => '100%',
-                                   border => 1,
-                                   title => ["NAS", "NAS_PORT", "$_SESSIONS", "$_LAST_LOGIN", "$_AVG", "$_MIN", "$_MAX"],
+my $table = Abills::HTML->table( { width      => '100%',
+                                   caption    => "$_STATS",
+                                   border     => 1,
+                                   title      => ["NAS", "NAS_PORT", "$_SESSIONS", "$_LAST_LOGIN", "$_AVG", "$_MIN", "$_MAX"],
                                    cols_align => ['left', 'right', 'right', 'right', 'right', 'right', 'right'],
                                   } );
 my $list = $nas->stats({ %LIST_PARAMS });	
@@ -2631,8 +2637,9 @@ if (defined($attr->{USER})) {
    }
 
 #exchange rate sel
-my ($er, $total) = $payments->exchange_list();
-$payments->{SEL_ER} = "<select name=ER>\n";
+my $er = $payments->exchange_list();
+
+  $payments->{SEL_ER} = "<select name=ER>\n";
   $payments->{SEL_ER} .= "<option value=''>\n";
 foreach my $line (@$er) {
   $payments->{SEL_ER} .= "<option value=$line->[4]";
@@ -2640,16 +2647,28 @@ foreach my $line (@$er) {
 }
 $payments->{SEL_ER} .= "</select>\n";
 
+#$payments->{SEL_ER} =  $html->form_select('ER', 
+#                                { 
+# 	                                SELECTED  => '',
+# 	                                SEL_MULTI_ARRAY   => $payments->exchange_list(),
+# 	                                MULTI_ARRAY_KEY   => 4,
+# 	                                MULTI_ARRAY_VALUE => 1,
+# 	                                SEL_OPTIONS       => { 0 => '-N/S-'}
+# 	                               });
 
-my $i=0;
 
-$payments->{SEL_METHOD} = "<select name=METHOD>\n";
-foreach my $line (@PAYMENT_METHODS) {
-  $payments->{SEL_METHOD} .= "<option value=$i";
-  $payments->{SEL_METHOD} .= ">$line\n";
-  $i++;
-}
-$payments->{SEL_METHOD} .= "</select>\n";
+
+$payments->{SEL_METHOD} =  $html->form_select('METHOD', 
+                                { SELECTED   => $day_id,
+ 	                                SEL_ARRAY  => \@PAYMENT_METHODS,
+ 	                                ARRAY_NUM_ID  => 'y'
+ 	                               });
+
+
+
+
+
+
 
 if (defined ($permissions{1}{1})) {
    $payments->{OP_SID} = mk_unique_value(16);
@@ -2678,6 +2697,7 @@ if (! defined($FORM{sort})) {
 
 my $list = $payments->list( { %LIST_PARAMS } );
 my $table = Abills::HTML->table( { width => '100%',
+                                   caption => "$_PAYMENTS",
                                    border => 1,
                                    title => ['ID', $_LOGIN, $_DATE, $_SUM, $_DESCRIBE, $_ADMINS, 'IP',  $_DEPOSIT, $_PAYMENT_METHOD, 'ID', '-'],
                                    cols_align => ['right', 'left', 'right', 'right', 'left', 'left', 'right', 'right', 'left', 'left', 'center'],
@@ -2778,7 +2798,7 @@ my $table = Abills::HTML->table( { width => '640',
                                    cols_align => ['left', 'left', 'right', 'center', 'center'],
                                   } );
 
-my ($list, $total) = $finance->exchange_list( {%LIST_PARAMS} );
+my $list = $finance->exchange_list( {%LIST_PARAMS} );
 foreach my $line (@$list) {
   $table->addrow($line->[0], $line->[1], $line->[2], $line->[3], 
      $html->button($_CHANGE, "index=65&chg=$line->[4]"), 
@@ -2878,12 +2898,13 @@ if (! defined($FORM{sort})) {
  }
 
 my $list = $fees->list( { %LIST_PARAMS } );
-my $table = Abills::HTML->table( { width => '100%',
-                                   border => 1,
-                                   title => ['ID', $_LOGIN, $_DATE, $_SUM, $_DESCRIBE, $_ADMINS, 'IP',  $_DEPOSIT, '-'],
+my $table = Abills::HTML->table( { width   => '100%',
+                                   caption => "$_FEES",
+                                   border  => 1,
+                                   title   => ['ID', $_LOGIN, $_DATE, $_SUM, $_DESCRIBE, $_ADMINS, 'IP',  $_DEPOSIT, '-'],
                                    cols_align => ['right', 'left', 'right', 'right', 'left', 'left', 'right', 'right', 'center'],
-                                   qs => $pages_qs,
-                                   pages => $fees->{TOTAL}
+                                   qs      => $pages_qs,
+                                   pages   => $fees->{TOTAL}
                                   } );
 
 
@@ -2937,19 +2958,14 @@ if (defined($attr->{SIMPLE})) {
 }
 else {
 
-my $i=0;
-my $SEL_METHOD = "<select name=METHOD>\n";
-   $SEL_METHOD .= "<option value=''>$_ALL\n";
-
-foreach my $line (@PAYMENT_METHODS) {
-  $SEL_METHOD .= "<option value=$i";
-	$SEL_METHOD .= ' selected' if ($FORM{METHOD} eq $i);
-  $SEL_METHOD .= ">$line\n";
-  $i++;
-}
-$SEL_METHOD .= "</select>\n";
 
 
+
+my $SEL_METHOD =  $html->form_select('METHOD', 
+                                { SELECTED   => $day_id,
+ 	                                SEL_ARRAY  => \@PAYMENT_METHODS,
+ 	                                ARRAY_NUM_ID  => 'y'
+ 	                               });
 
 
 my %search_form = ( 
@@ -3275,6 +3291,8 @@ sub form_dictionary {
   		 if ($k =~ /$sub_dict/ && $k ne '__BUFFER') {
   		    my ($pre, $key)=split(/_/, $k, 2);
 
+ 		      $key =~ s/\%40/\@/;
+
           if ($key =~ /@/) {
    		    	$out .= "$key=$v;\n"; 
   		     }
@@ -3403,7 +3421,9 @@ sub form_dictionary {
 #*******************************************************************
 sub form_webserver_info {
 
-	my $table = Abills::HTML->table( { width => '600',
+	my $table = Abills::HTML->table( {
+		                                caption => 'WEB server info',
+		                                width => '600',
                                     title_plain => ["$_NAME", "$_VALUE", "-"],
                                     cols_align  => ['left', 'left', 'center']
                                   } );
@@ -3420,7 +3440,8 @@ sub form_webserver_info {
 sub form_config {
 	
 
-	my $table = Abills::HTML->table( { width => '600',
+	my $table = Abills::HTML->table( {caption     => 'config',
+		                                width       => '600',
                                     title_plain => ["$_NAME", "$_VALUE", "-"],
                                     cols_align  => ['left', 'left', 'center']
                                   } );
@@ -3460,16 +3481,16 @@ sub clearquotes {
 # sel_groups();
 #*******************************************************************
 sub sel_groups {
-	
-my $list = $users->groups_list({ %LIST_PARAMS });
 
-my $GROUPS_SEL = "<select name=GID>\n";
-foreach my $line (@$list) {
- $GROUPS_SEL .= "<option value=$line->[0]";
- $GROUPS_SEL .= ' selected' if ($line->[0] eq $FORM{GID});
- $GROUPS_SEL .= ">$line->[1]\n";
-}
-$GROUPS_SEL .= "</select>\n";
+$GROUPS_SEL = $html->form_select('GID', 
+                                { 
+ 	                                SELECTED  => $FORM{GID},
+ 	                                SEL_MULTI_ARRAY   => $users->groups_list({ %LIST_PARAMS }),
+ 	                                MULTI_ARRAY_KEY   => 0,
+ 	                                MULTI_ARRAY_VALUE => 1,
+ 	                                SEL_OPTIONS       => { 0 => '-N/S-'}
+ 	                               });
+
 
  return $GROUPS_SEL;	
 }

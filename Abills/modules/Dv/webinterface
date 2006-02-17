@@ -171,6 +171,7 @@ elsif ($Dv->{TOTAL} == 1) {
 
 
 my $table = Abills::HTML->table( { width => '100%',
+                                   caption => "Dialup / VPN",
                                    border => 1,
                                    title => [$_LOGIN, $_FIO, $_DEPOSIT, $_CREDIT, $_TARIF_PLANS, $_STATUS, '-', '-'],
                                    cols_align => ['left', 'left', 'right', 'right', 'left', 'center', 'center', 'center', 'center'],
@@ -369,6 +370,7 @@ $html->tpl_show(_include('dv_tp', 'Dv'), $tarif_info);
 my $list = $tariffs->list({ %LIST_PARAMS });	
 # Time tariff Name Begin END Day fee Month fee Simultaneously - - - 
 my $table = Abills::HTML->table( { width      => '100%',
+                                   caption    => "$_TARIF_PLANS",
                                    border     => 1,
                                    title      => ['#', $_NAME,  $_HOUR_TARIF, $_TRAFIC_TARIFS, $_PAYMENT_TYPE, $_DAY_FEE, $_MONTH_FEE, $_SIMULTANEOUSLY, $_AGE,
                                      '-', '-', '-'],
@@ -614,6 +616,7 @@ my $dub_ports = $sessions->{dub_ports};
 my $dub_logins = $sessions->{dub_logins};
  
 my $table = Abills::HTML->table( { width => '100%',
+                                caption => "$cure",
                                 border => 1,
                                 title => ["$_USER", "$_FIO", "$_PORT", "IP", "$_DURATION", "$_RECV", "$_SENT",
                                 "Ex_IN", "Ex_OUT",  "-", "-", "-"],
@@ -663,7 +666,7 @@ my $table2 = Abills::HTML->table( { width => '100%',
                                 cols_align => ['left', 'right', 'right', 'right']
                                } );
 
-$table2->addtd(    $table->td("$cure", { bgcolor => $_COLORS[0] } ), 
+$table2->addtd(   $table->td($_TOTAL, { bgcolor => $_COLORS[0] }), 
                   $table->td($sessions->{TOTAL}, { bgcolor => $_COLORS[0] }), 
                   $table->td($form_link) 
               ) ;
@@ -724,13 +727,14 @@ return 0 if ($sessions->{TOTAL} < 1);
 
 
 
-my $table = Abills::HTML->table( { width => '100%',
-                                border => 1,
-                                title => ["$_USER", "$_START", "$_DURATION", "$_TARIF_PLAN", "$_SENT", "$_RECV", 
+my $table = Abills::HTML->table( { width   => '100%',
+                                caption    => "$_SESSIONS",
+                                border     => 1,
+                                title      => ["$_USER", "$_START", "$_DURATION", "$_TARIF_PLAN", "$_SENT", "$_RECV", 
                                 "CID", "NAS", "IP", "$_SUM", "-", "-"],
                                 cols_align => ['left', 'right', 'right', 'RIGHT', 'right', 'right', 'right', 'right', 'right', 'right', 'center'],
-                                qs => $pages_qs,
-                                pages => $sessions->{TOTAL},
+                                qs         => $pages_qs,
+                                pages      => $sessions->{TOTAL},
                                 recs_on_page => $LIST_PARAMS{PAGE_ROWS}
                                } );
 
@@ -909,7 +913,8 @@ my ($list, $types, $totals) = show_log("$login", "$conf{LOGFILE}", { DATE      =
 	                                                                   LOG_TYPE  => $FORM{LOG_TYPE},
 	                                                                   PG        => $PG,
 	                                                                   PAGE_ROWS => $PAGE_ROWS });
-my $table = Abills::HTML->table( { width => '100%' } );
+my $table = Abills::HTML->table( { caption => "$_ERROR",
+	                                 width => '100%' } );
 foreach my $line (@$list) {
   if ($line =~ m/LOG_WARNING/i) {
     $line = "<font color=red>$line</font>";
@@ -920,7 +925,8 @@ foreach my $line (@$list) {
 print $table->show();
 
 
-$table = Abills::HTML->table( { width => '100%',
+$table = Abills::HTML->table( { 
+	                              width => '100%',
 	                              cols_align => ['right', 'right'] } );
 
 $table->addrow($html->button("$_TOTAL", "index=$index&$pages_qs"), $totals);

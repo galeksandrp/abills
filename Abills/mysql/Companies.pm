@@ -171,7 +171,7 @@ sub list {
 
  if ($attr->{LOGIN_EXPR}) {
     $attr->{LOGIN_EXPR} =~ s/\*/\%/ig;
-    $WHERE .= ($WHERE ne '') ?  " and a.name LIKE '$attr->{LOGIN_EXPR}' " : "WHERE a.name LIKE '$attr->{LOGIN_EXPR}' ";
+    $WHERE .= ($WHERE ne '') ?  " and c.name LIKE '$attr->{LOGIN_EXPR}' " : "WHERE c.name LIKE '$attr->{LOGIN_EXPR}' ";
   }
 
  $self->query($db, "SELECT c.name, b.deposit, c.registration, count(u.uid), c.disable, c.id, c.disable, c.bill_id

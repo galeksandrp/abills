@@ -172,14 +172,52 @@ sub form_select {
 	
 	my $ex_params =  (defined($attr->{EX_PARAMS})) ? $attr->{EX_PARAMS} : '';
 	
+	
+	
+	
 	$self->{SELECT} = "<select name=\"$name\" $ex_params>\n";
-
-  if (defined($attr->{SEL_HASH})) {
-	  my $H = $attr->{SEL_HASH};
+  
+  
+  if (defined($attr->{SEL_OPTIONS})) {
+ 	  my $H = $attr->{SEL_OPTIONS};
 	  while(my($k, $v) = each %$H) {
      $self->{SELECT} .= "<option value='$k'";
      $self->{SELECT} .=' selected' if ($k eq $attr->{SELECTED});
      $self->{SELECT} .= ">$v\n";	
+     }
+   }
+  
+  
+  if (defined($attr->{SEL_ARRAY})){
+	  my $H = $attr->{SEL_ARRAY};
+	  my $i=0;
+	  foreach my $v (@$H) {
+      my $id = (defined($attr->{ARRAY_NUM_ID})) ? $i : $v;
+      $self->{SELECT} .= "<option value='$id'";
+      $self->{SELECT} .= ' selected' if ($i eq $attr->{SELECTED});
+      $self->{SELECT} .= ">$v\n";
+      $i++;
+     }
+   }
+  elsif (defined($attr->{SEL_MULTI_ARRAY})){
+    my $key   = $attr->{MULTI_ARRAY_KEY};
+    my $value = $attr->{MULTI_ARRAY_VALUE};
+	  my $H = $attr->{SEL_MULTI_ARRAY};
+
+	  foreach my $v (@$H) {
+      $self->{SELECT} .= "<option value='$v->[$key]'";
+      $self->{SELECT} .= ' selected' if ($v->[$key] eq $attr->{SELECTED});
+      $self->{SELECT} .= ">$v->[$key]:$v->[$value]\n";
+     }
+   }
+  elsif (defined($attr->{SEL_HASH})) {
+
+	  my $H = $attr->{SEL_HASH};
+	  while(my($k, $v) = each %$H) {
+     $self->{SELECT} .= "<option value='$k'";
+     $self->{SELECT} .=' selected' if ($k eq $attr->{SELECTED});
+     $k = '' if ($attr->{NO_ID});
+     $self->{SELECT} .= ">$k:$v\n";	
      }
    }
 	
@@ -301,19 +339,9 @@ foreach my $ID (@s) {
    }
 }
  
-
-# my @sorted_menu = sort {
-#   length($a) <=> length($b)
-#     ||
-#   $a cmp $b
-#  } keys %menu;
-#
  my @last_array = ();
 
  my $menu_text = "<table border=0 width=100%>\n";
-# foreach my $parent (@sorted_menu) {
-#    print "$parent<br>";
-#    next if ($parent > 0);
 
  	  my $level  = 0;
  	  my $prefix = '';
@@ -601,12 +629,7 @@ sub table {
      }
   }
 
- if (defined($attr->{caption})) {
- 	 $self->{table} = "<b>$attr->{caption}</b><br>". $self->{table}; 
-  }
-
-
- $self->{table} = "<br><TABLE $width cellspacing=0 cellpadding=0 border=0>";
+ $self->{table} = "<TABLE $width cellspacing=0 cellpadding=0 border=0>";
  
  if (defined($attr->{caption})) {
    $self->{table} .= "<TR><TD bgcolor=\"$_COLORS[1]\" align=\"right\"><b>$attr->{caption}</b></td></TR>\n";

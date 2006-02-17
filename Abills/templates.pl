@@ -245,12 +245,13 @@ return qq{
 # }
 
 elsif ($tpl_name eq 'ti') {
-return qq{<form action=$SELF_URL>
+return qq{
+<form action="$SELF_URL">
 <input type=hidden name=index value=$index>
 <input type=hidden name=TP_ID value='%TP_ID%'>
 <input type=hidden name=TI_ID value='%TI_ID%'>
  <TABLE width=400 cellspacing=1 cellpadding=0 border=0>
- <TR><TD>$_DAY:</TD><TD><select name=TI_DAY>%SEL_DAYS%</select></TD></TR>
+ <TR><TD>$_DAY:</TD><TD>%SEL_DAYS%</TD></TR>
  <TR><TD>$_BEGIN:</TD><TD><input type=text name=TI_BEGIN value='%TI_BEGIN%'></TD></TR>
  <TR><TD>$_END:</TD><TD><input type=text name=TI_END value='%TI_END%'></TD></TR>
  <TR><TD>$_HOUR_TARIF<br>(0.00 / 0%):</TD><TD><input type=text name=TI_TARIF value='%TI_TARIF%'></TD></TR>
@@ -277,16 +278,16 @@ return qq{<form action=$SELF_URL>
 elsif ($tpl_name eq 'form_nas') {
 return qq{
 <form action=$SELF_URL METHOD=post>
-<input type=hidden name=index value=60>
-<input type=hidden name=NAS_ID value=%NAS_ID%>
+<input type=hidden name="index" value="60">
+<input type=hidden name="NAS_ID" value="%NAS_ID%">
 <TABLE>
 <TR><TD>ID</TD><TD>%NAS_ID%</TD></TR>
 <TR><TD>IP</TD><TD><input type=text name=NAS_IP value='%NAS_IP%'></TD></TR>
 <TR><TD>$_NAME:</TD><TD><input type=text name=NAS_NAME value="%NAS_NAME%"></TD></TR>
 <TR><TD>Radius NAS-Identifier:</TD><TD><input type=text name=NAS_INDENTIFIER value="%NAS_INDENTIFIER%"></TD></TR>
 <TR><TD>$_DESCRIBE:</TD><TD><input type=text name=NAS_DESCRIBE value="%NAS_DESCRIBE%"></TD></TR>
-<TR><TD>$_TYPE:</TD><TD><select name=NAS_TYPE>%SEL_TYPE%</select></TD></TR>
-<TR><TD>$_AUTH:</TD><TD><select name=NAS_AUTH_TYPE>%SEL_AUTH_TYPE%</select></TD></TR>
+<TR><TD>$_TYPE:</TD><TD>%SEL_TYPE%</TD></TR>
+<TR><TD>$_AUTH:</TD><TD>%SEL_AUTH_TYPE%</TD></TR>
 <TR><TD>Alive:</TD><TD><input type=text name=NAS_ALIVE value='%NAS_ALIVE%'></TD></TR>
 <TR><TD>$_DISABLE:</TD><TD><input type=checkbox name=NAS_DISABLE value=1 %NAS_DISABLE%></TD></TR>
 <TR><th colspan=2>:$_MANAGE:</th></TR>
@@ -303,20 +304,20 @@ return qq{
 }
 elsif ($tpl_name eq 'form_company') {
 return qq{	
-<form action=$SELF_URL METHOD=POST>
-<input type=hidden name=index value='13'>
-<input type=hidden name=COMPANY_ID value='%COMPANY_ID%'>
+<form action="$SELF_URL" METHOD="POST">
+<input type=hidden name="index" value='13'>
+<input type=hidden name="COMPANY_ID" value='%COMPANY_ID%'>
 <Table>
 <TR><TD>$_NAME:</TD><TD><input type=text name=COMPANY_NAME value="%COMPANY_NAME%"></TD></TR>
-<TR bgcolor=$_BG1><TD>$_BILL:</TD><TD>%BILL_ID%</TD></TR>
-<TR bgcolor=$_BG1><TD>$_DEPOSIT:</TD><TD>%DEPOSIT%</TD></TR>
-<TR bgcolor=$_BG1><TD>$_CREDIT:</TD><TD><input type=text name=CREDIT value='%CREDIT%'></TD></TR>
-<TR bgcolor=$_BG1><TD>$_TAX_NUMBER:</TD><TD><input type=text name=TAX_NUMBER value='%TAX_NUMBER%' size=60></TD></TR>
-<TR bgcolor=$_BG1><TD>$_ACCOUNT:</TD><TD><input type=text name=BANK_ACCOUNT value='%BANK_ACCOUNT%' size=60></TD></TR>
-<TR bgcolor=$_BG1><TD>$_BANK_NAME:</TD><TD><input type=text name=BANK_NAME value='%BANK_NAME%' size=60></TD></TR>
-<TR bgcolor=$_BG1><TD>$_COR_BANK_ACCOUNT:</TD><TD><input type=text name=COR_BANK_ACCOUNT value='%COR_BANK_ACCOUNT%' size=60></TD></TR>
-<TR bgcolor=$_BG1><TD>$_BANK_BIC:</TD><TD><input type=text name=BANK_BIC value='%BANK_BIC%' size=60></TD></TR>
-<TR bgcolor=$_BG1><TD>$_DISABLE:</TD><TD><input type=checkbox name=DISABLE value='1' %DISABLE%></TD></TR>
+<TR bgcolor=$_COLORS[1]><TD>$_BILL:</TD><TD>%BILL_ID%</TD></TR>
+<TR bgcolor=$_COLORS[1]><TD>$_DEPOSIT:</TD><TD>%DEPOSIT%</TD></TR>
+<TR bgcolor=$_COLORS[1]><TD>$_CREDIT:</TD><TD><input type=text name=CREDIT value='%CREDIT%'></TD></TR>
+<TR bgcolor=$_COLORS[1]><TD>$_TAX_NUMBER:</TD><TD><input type=text name=TAX_NUMBER value='%TAX_NUMBER%' size=60></TD></TR>
+<TR bgcolor=$_COLORS[1]><TD>$_ACCOUNT:</TD><TD><input type=text name=BANK_ACCOUNT value='%BANK_ACCOUNT%' size=60></TD></TR>
+<TR bgcolor=$_COLORS[1]><TD>$_BANK_NAME:</TD><TD><input type=text name=BANK_NAME value='%BANK_NAME%' size=60></TD></TR>
+<TR bgcolor=$_COLORS[1]><TD>$_COR_BANK_ACCOUNT:</TD><TD><input type=text name=COR_BANK_ACCOUNT value='%COR_BANK_ACCOUNT%' size=60></TD></TR>
+<TR bgcolor=$_COLORS[1]><TD>$_BANK_BIC:</TD><TD><input type=text name=BANK_BIC value='%BANK_BIC%' size=60></TD></TR>
+<TR bgcolor=$_COLORS[1]><TD>$_DISABLE:</TD><TD><input type=checkbox name=DISABLE value='1' %DISABLE%></TD></TR>
 </TABLE>
 <input type=submit name='%ACTION%' value='%LNG_ACTION%'>
 </form>

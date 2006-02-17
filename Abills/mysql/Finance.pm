@@ -71,8 +71,6 @@ sub exchange_list {
   
  my $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
  my $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
-# my $PG = ($attr->{PG}) ? $attr->{PG} : 0;
-# my $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
 
  $self->query($db, "SELECT money, short_name, rate, changed, id 
     FROM exchange_rate
