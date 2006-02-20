@@ -48,7 +48,7 @@ if ($Docs->{errno}) {
 
 #  Date  Customer  Sum  User  Administrators  Time  
 my $list = $Docs->accounts_list( { %LIST_PARAMS } );
-my $table = Abills::HTML->table( { width => '100%',
+my $table = $html->table( { width => '100%',
                                    border => 1,
                                    title => ['#', $_DATE, $_CUSTOMER, $_SUM, $_USER, $_ADMIN, $_TIME, '-', '-'],
                                    cols_align => ['right', 'right', 'left', 'right', 'left', 'left', 'right', 'center'],
@@ -68,7 +68,7 @@ foreach my $line (@$list) {
 }
 print $table->show();
 
-$table = Abills::HTML->table( { width => '100%',
+$table = $html->table( { width => '100%',
                                 cols_align => ['right', 'right'],
                                 rows => [ [ "$_TOTAL:", "<b>$Docs->{TOTAL}</b>" ] ]
                                } );
@@ -149,7 +149,7 @@ sub docs_account {
   $Docs->{SEL_ORDER} .= "</select>\n";
 
 
-  Abills::HTML->tpl_show(_include('docs_account_add', 'Docs'), $Docs);
+  $html->tpl_show(_include('docs_account_add', 'Docs'), $Docs);
 }
 
 
@@ -159,7 +159,7 @@ sub docs_account {
 sub docs_preview {
 	my ($type, $ATTR)=@_;
 	
-	Abills::HTML->tpl_show(_include("docs_$template.tpl", 'Docs'), $ATTR);
+	$html->tpl_show(_include("docs_$template.tpl", 'Docs'), $ATTR);
 }
 
 
@@ -170,7 +170,7 @@ sub docs_print {
 	my ($type, $ATTR)=@_;
 	
 	my $template = $type;
-	Abills::HTML->tpl_show(_include("docs_$template", 'Docs'), $ATTR);
+	$html->tpl_show(_include("docs_$template", 'Docs'), $ATTR);
 }
 
 

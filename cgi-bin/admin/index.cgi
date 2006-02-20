@@ -1441,7 +1441,7 @@ if ($holidays->{errno}) {
 
 
 my $list = $holidays->holidays_list( { %LIST_PARAMS });
-my $table = $html->table( { caption    => "$_HOLLIDAYS",
+my $table = $html->table( { caption    => "$_HOLIDAYS",
 	                                 width      => '640',
                                    title      => [$_DAY,  $_DESCRIBE, '-'],
                                    cols_align => ['left', 'left', 'center'],

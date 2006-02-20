@@ -90,11 +90,11 @@ if (defined($FORM{GROUPS})) {
 
 
 
-$table = Abills::HTML->table( { width => '640',
+$table = $html->table( { width => '640',
 	                                 rowcolor => $_COLORS[0],
                                    rows => [ [ 
-                                   "$_FROM: ", Abills::HTML->date_fld('from', { MONTHES => \@MONTHES} ),
-                                   "$_TO: ", Abills::HTML->date_fld('to', { MONTHES => \@MONTHES } ),
+                                   "$_FROM: ", $html->date_fld('from', { MONTHES => \@MONTHES} ),
+                                   "$_TO: ", $html->date_fld('to', { MONTHES => \@MONTHES } ),
                                    "$_ROWS: ",  "<input type=text name=rows value='$conf{list_max_recs}' size=4>"
                                     ] ],                                   
                                   } );
@@ -150,7 +150,7 @@ $INTERVAL_TYPE_SEL
 </form>\n";
 
 
-my $table = Abills::HTML->table( { width => '100%',
+my $table = $html->table( { width => '100%',
                                 border => 1,
                                 title => ["$_TIME", "$_SIZE", "SRC_IP", "SRC_PORT", "DST_IP", "DST_PORT", "$_PROTOCOL", "-"],
                                 cols_align => ['right', 'right', 'RIGHT', 'right', 'right', 'right', 'center'],
@@ -181,7 +181,7 @@ print $table->show();
 
 
 
-$table = Abills::HTML->table( { width => '100%',
+$table = $html->table( { width => '100%',
 	                              rowcolor => $_COLORS[1],
                                 title_plain => ["$_SESSIONS", "$_TRAFFIC"],
                                 cols_align => ['right', 'right', 'right', 'right'],
@@ -253,7 +253,7 @@ if (defined($FORM{DATE})) {
       $Ipn->reports({ %LIST_PARAMS });
 
       my $list = $Ipn->{HOSTS_LIST_FROM};
-      $table_sessions = Abills::HTML->table( { width => '100%',
+      $table_sessions = $html->table( { width => '100%',
 	                              caption => "$_FROM", 
                                 title =>["IP", "$_SUM", "PACKEDGE"],
                                 cols_align => ['left', 'right', 'right'],
@@ -269,7 +269,7 @@ if (defined($FORM{DATE})) {
 
       print $table_sessions->show();
       $list = $Ipn->{HOSTS_LIST_TO};
-      $table_sessions = Abills::HTML->table( { width => '100%',
+      $table_sessions = $html->table( { width => '100%',
 	                              caption => "$_TO", 
                                 title =>["IP", "$_SUM", "PACKEDGE"],
                                 cols_align => ['left', 'right', 'right'],
@@ -289,7 +289,7 @@ if (defined($FORM{DATE})) {
       $Ipn->reports({ %LIST_PARAMS });
 
       my $list = $Ipn->{PORTS_LIST_FROM};
-      $table_sessions = Abills::HTML->table( { width => '100%',
+      $table_sessions = $html->table( { width => '100%',
 	                              caption => "$_FROM", 
                                 title =>["IP", "$_SUM", "PACKEDGE"],
                                 cols_align => ['left', 'right', 'right'],
@@ -305,7 +305,7 @@ if (defined($FORM{DATE})) {
 
       print $table_sessions->show();
       $list = $Ipn->{PORTS_LIST_TO};
-      $table_sessions = Abills::HTML->table( { width => '100%',
+      $table_sessions = $html->table( { width => '100%',
 	                              caption => "$_TO", 
                                 title =>["IP", "$_SUM", "PACKEDGE"],
                                 cols_align => ['left', 'right', 'right'],
@@ -326,7 +326,7 @@ if (defined($FORM{DATE})) {
 #  $pages_qs.="&DATE=$LIST_PARAMS{DATE}";
     my $list = $Ipn->reports({ %LIST_PARAMS });
     #Used Fraffic
-    $table_sessions = Abills::HTML->table( { width => '100%',
+    $table_sessions = $html->table( { width => '100%',
 	                              caption => "$_SESSIONS", 
                                 title =>["$_DATE", "IN", "OUT", "TUNELS", "$_SUM", "PACKEDGE", '-'],
                                 cols_align => ['right', 'right', 'right', 'right', 'right', 'right', 'center'],
@@ -354,7 +354,7 @@ if (defined($FORM{DATE})) {
  }
 else {
   #Used Traffic
-  $table_sessions = Abills::HTML->table( { width => '100%',
+  $table_sessions = $html->table( { width => '100%',
 	                              caption => "$_SESSIONS", 
                                 title =>["$_DATE", "IN", "OUT", "TUNNELS", $_SUM, "PACKEDGE", '-', '-'],
                                 cols_align => ['right', 'right', 'right', 'right', 'right', 'right', 'center', 'center'],
@@ -385,7 +385,7 @@ else {
 
 
 
-$table = Abills::HTML->table( { width => '100%',
+$table = $html->table( { width => '100%',
                                 cols_align => ['right', 'right', 'right', 'right', 'right'],
                                 rows => [ [ "IN: <b>". int2byte($total_in) ."</b>",
                                             "OUT: <b>". int2byte($total_out). "</b>", 
@@ -443,7 +443,7 @@ my ($list, $types, $totals) = show_log("$login", "$conf{LOGFILE}", { DATE      =
 	                                                                   LOG_TYPE  => $FORM{LOG_TYPE},
 	                                                                   PG        => $PG,
 	                                                                   PAGE_ROWS => $PAGE_ROWS });
-my $table = Abills::HTML->table( { width => '100%' } );
+my $table = $html->table( { width => '100%' } );
 foreach my $line (@$list) {
   if ($line =~ m/LOG_WARNING/i) {
     $line = "<font color=red>$line</font>";
@@ -454,7 +454,7 @@ foreach my $line (@$list) {
 print $table->show();
 
 
-$table = Abills::HTML->table( { width => '100%',
+$table = $html->table( { width => '100%',
 	                              cols_align => ['right', 'right'] } );
 
 $table->addrow("<a href='$SELF_URL?index=$index&$pages_qs'>$_TOTAL:</a>", $totals);
@@ -539,7 +539,7 @@ if ($FORM{rows}) {
 
 #PEriods totals
 my $list = $sessions->periods_totals({ %LIST_PARAMS });
-my $table = Abills::HTML->table( { width => '100%',
+my $table = $html->table( { width => '100%',
                                    title_plain => ["$_PERIOD", "$_DURATION", "$_SEND", "$_RECV", "$_SUM"],
                                    cols_align => ['left', 'right', 'right', 'right', 'right'],
                                    rowcolor => $_COLORS[1]
@@ -555,10 +555,10 @@ print "<form action=$SELF_URL>
 <input type=hidden name=index value='$index'>
 <input type=hidden name=UID value='$UID'>\n";
 
-$table = Abills::HTML->table( { width => '640',
+$table = $html->table( { width => '640',
 	                                 rowcolor => $_COLORS[0],
-                                   title_plain => [ "$_FROM: ", Abills::HTML->date_fld('from', { MONTHES => \@MONTHES} ),
-                                   "$_TO: ", Abills::HTML->date_fld('to', { MONTHES => \@MONTHES } ),
+                                   title_plain => [ "$_FROM: ", $html->date_fld('from', { MONTHES => \@MONTHES} ),
+                                   "$_TO: ", $html->date_fld('to', { MONTHES => \@MONTHES } ),
                                    "$_ROWS: ",  "<input type=text name=rows value='$conf{list_max_recs}' size=4>",
                                    "<input type=submit name=show value=$_SHOW>"
                                     ],                                   
@@ -593,7 +593,7 @@ if (! defined($FORM{sort})) {
 #Session List
 $list = $sessions->list({ %LIST_PARAMS });	
 
-$table = Abills::HTML->table( { width => '640',
+$table = $html->table( { width => '640',
 	                              rowcolor => $_COLORS[1],
                                 title_plain => ["$_SESSIONS", "$_DURATION", "$_TRAFFIC", "$_SUM"],
                                 cols_align => ['right', 'right', 'right', 'right'],
@@ -615,7 +615,7 @@ sub ipn_stats_calculation  {
 $sessions->calculation({ %LIST_PARAMS }); 
 
 
-my $table = Abills::HTML->table( { width => '640',
+my $table = $html->table( { width => '640',
 	                              rowcolor => $_COLORS[1],
                                 title_plain => ["-", "$_MIN", "$_MAX", "$_AVG"],
                                 cols_align => ['left', 'right', 'right', 'right'],
@@ -654,7 +654,7 @@ if ($FORM{rows}) {
 
 #PEriods totals
 my $list = $sessions->periods_totals({ %LIST_PARAMS });
-my $table = Abills::HTML->table( { width => '100%',
+my $table = $html->table( { width => '100%',
                                    title_plain => ["$_PERIOD", "$_DURATION", "$_SEND", "$_RECV", "$_SUM"],
                                    cols_align => ['left', 'right', 'right', 'right', 'right'],
                                    rowcolor => $_COLORS[1]
@@ -671,10 +671,10 @@ print "<form action=$SELF_URL>
 <input type=hidden name=index value='$index'>
 <input type=hidden name=UID value='$UID'>\n";
 
-$table = Abills::HTML->table( { width => '640',
+$table = $html->table( { width => '640',
 	                                 rowcolor => $_COLORS[0],
-                                   title_plain => [ "$_FROM: ", Abills::HTML->date_fld('from', { MONTHES => \@MONTHES} ),
-                                   "$_TO: ", Abills::HTML->date_fld('to', { MONTHES => \@MONTHES } ),
+                                   title_plain => [ "$_FROM: ", $html->date_fld('from', { MONTHES => \@MONTHES} ),
+                                   "$_TO: ", $html->date_fld('to', { MONTHES => \@MONTHES } ),
                                    "$_ROWS: ",  "<input type=text name=rows value='$conf{list_max_recs}' size=4>",
                                    "<input type=submit name=show value=$_SHOW>"
                                     ],                                   
@@ -705,7 +705,7 @@ elsif ($FORM{period}) {
 #Session List
 $list = $sessions->list({ %LIST_PARAMS });	
 
-$table = Abills::HTML->table( { width => '640',
+$table = $html->table( { width => '640',
 	                              caption => '',
 	                              rowcolor => $_COLORS[1],
                                 title_plain => ["$_SESSIONS", "$_DURATION", "$_TRAFFIC", "$_SUM"],
@@ -747,7 +747,7 @@ $sessions->{_RECV}=int2byte($sessions->{RECV});
 $sessions->{_SENT2}=int2byte($sessions->{SENT2});
 $sessions->{_RECV2}=int2byte($sessions->{RECV2});
 
-Abills::HTML->tpl_show(_include('ipn_session_detail', 'Ipn'), $sessions);
+$html->tpl_show(_include('ipn_session_detail', 'Ipn'), $sessions);
 
 my %ORDERS = (hours    => $_HOURS,
               days     => $_DAYS,
@@ -771,7 +771,7 @@ print "</select>
 
 
 my $list = $sessions->detail_list({ %LIST_PARAMS, %FORM });
-my $table = Abills::HTML->table({ width => '100%',
+my $table = $html->table({ width => '100%',
                                    border => 1,
                                    title => ["LAST_UPDATE", "$_SESSION_ID", "NAS_ID", "SENT", "RECV", "SENT2", "RECV2"],
                                    cols_align => ['right', 'right', 'right', 'right', 'right', 'right', 'right'],
@@ -785,7 +785,7 @@ my $table = Abills::HTML->table({ width => '100%',
  print $table->show();
 
 
-$table = Abills::HTML->table( { width => '100%',
+$table = $html->table( { width => '100%',
                                 cols_align => ['right', 'right'],
                                 rows => [ ["$_TOTAL:", "<b>$sessions->{TOTAL}</b>" ] ]
                                } );
@@ -804,7 +804,7 @@ sub ipn_user_info {
     return 0;	
   }
   
-  Abills::HTML->tpl_show(_include('ipn_user_info', 'Ipn'), $Ipn);
+  $html->tpl_show(_include('ipn_user_info', 'Ipn'), $Ipn);
 }
 
 

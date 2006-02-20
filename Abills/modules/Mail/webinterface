@@ -17,7 +17,7 @@ my $Mail = Mail->new($db, $admin, $conf);
 sub mail_users_list {
  
  if (! $FORM{UID}) {
-   print Abills::HTML->letters_list();
+   print $html->letters_list();
    if ($FORM{letter}) {
      $LIST_PARAMS{FIRST_LETTER} = $FORM{letter};
      $pages_qs .= "&letter=$FORM{letter}";
@@ -49,7 +49,7 @@ elsif ($Mail->{TOTAL} == 1) {
 #        LEFT JOIN mail_domains md ON  (md.id=mb.domain_id) 
 #        $WHERE
 
-  my $table = Abills::HTML->table( { width => '100%',
+  my $table = $html->table( { width => '100%',
                                    border => 1,
                                    title => ["$_LOGIN", "$_DOMAIN", "$_USER", "$_COMMENTS", "$_LIMIT $_COUNT", "$_LIMIT $_SIZE", "$_ANTIVIRUS", "$_ANTISPAM", "$_STATUS", '-', '-'],
                                    cols_align => ['left', 'left', 'left', 'right', 'right', 'right', 'center', 'center', 'center', 'center', 'center', 'center'],
@@ -75,7 +75,7 @@ elsif ($Mail->{TOTAL} == 1) {
    }
   print $table->show();
 
-  $table = Abills::HTML->table( { width => '100%',
+  $table = $html->table( { width => '100%',
                                 cols_align => ['right', 'right'],
                                 rows => [ [ "$_TOTAL:", "<b>$Mail->{TOTAL}</b>" ] ]
                                } );
@@ -149,7 +149,7 @@ sub mail_user_boxes {
    }
   $Mail->{DOMAINS_SEL} .= "</select>\n";
 
-  Abills::HTML->tpl_show(_include('mail_box', 'Mail'), $Mail);
+  $html->tpl_show(_include('mail_box', 'Mail'), $Mail);
 }
 
 
@@ -195,7 +195,7 @@ sub mail_domains {
 
 
   my $list = $Mail->domain_list({ %FORM });
-  my $table = Abills::HTML->table( { width => '100%',
+  my $table = $html->table( { width => '100%',
                                    border => 1,
                                    title => [$_DOMAIN, "$_DESC", $_STATUS, $_CREATE, $_CHANGE,  '-', '-'],
                                    cols_align => ['left', 'left', 'center', 'right', 'right',  'center', 'center'],
@@ -212,14 +212,14 @@ sub mail_domains {
    }
   print $table->show();
 
-  $table = Abills::HTML->table( { width => '100%',
+  $table = $html->table( { width => '100%',
                                 cols_align => ['right', 'right'],
                                 rows => [ [ "$_TOTAL:", "<b>$Mail->{TOTAL}</b>" ] ]
                                } );
   print $table->show();
 
   $Mail->{DISABLE}=' checked' if($Mail->{DISABLE} == 1);
-  Abills::HTML->tpl_show(_include('mail_domain', 'Mail'), $Mail);
+  $html->tpl_show(_include('mail_domain', 'Mail'), $Mail);
 }
 
 
@@ -263,7 +263,7 @@ sub mail_aliases {
 	 }
 
   my $list = $Mail->alias_list({ %FORM });
-  my $table = Abills::HTML->table( { width => '100%',
+  my $table = $html->table( { width => '100%',
                                    border => 1,
                                    title => [$_ADDRESS, "$_TO", "$_COMMENTS", $_STATUS, $_CREATE, $_CHANGE,  '-', '-'],
                                    cols_align => ['left', 'left', 'center', 'right', 'right',  'center', 'center'],
@@ -280,14 +280,14 @@ sub mail_aliases {
    }
   print $table->show();
 
-  $table = Abills::HTML->table( { width => '100%',
+  $table = $html->table( { width => '100%',
                                 cols_align => ['right', 'right'],
                                 rows => [ [ "$_TOTAL:", "<b>$Mail->{TOTAL}</b>" ] ]
                                } );
   print $table->show();
 
   $Mail->{DISABLE}=' checked' if($Mail->{DISABLE} == 1);
-  Abills::HTML->tpl_show(_include('mail_alias', 'Mail'), $Mail);
+  $html->tpl_show(_include('mail_alias', 'Mail'), $Mail);
 }
 
 
@@ -333,7 +333,7 @@ sub mail_transport {
 	 }
 
   my $list = $Mail->transport_list({ %FORM });
-  my $table = Abills::HTML->table( { width => '100%',
+  my $table = $html->table( { width => '100%',
                                    border => 1,
                                    title => [$_ADDRESS, "$_TO", "$_COMMENTS", $_CHANGE,  '-', '-'],
                                    cols_align => ['left', 'left', 'left',  'center', 'center'],
@@ -350,14 +350,14 @@ sub mail_transport {
    }
   print $table->show();
 
-  $table = Abills::HTML->table( { width => '100%',
+  $table = $html->table( { width => '100%',
                                 cols_align => ['right', 'right'],
                                 rows => [ [ "$_TOTAL:", "<b>$Mail->{TOTAL}</b>" ] ]
                                } );
   print $table->show();
 
   $Mail->{DISABLE}=' checked' if($Mail->{DISABLE} == 1);
-  Abills::HTML->tpl_show(_include('mail_transport', 'Mail'), $Mail);
+  $html->tpl_show(_include('mail_transport', 'Mail'), $Mail);
 }
 
 
@@ -400,7 +400,7 @@ sub mail_access {
 	 }
 
   my $list = $Mail->access_list({ %FORM });
-  my $table = Abills::HTML->table( { width => '100%',
+  my $table = $html->table( { width => '100%',
                                    border => 1,
                                    title => [$_VALUE, "$_PARAMS", "$_COMMENTS", $_CHANGE,  '-', '-'],
                                    cols_align => ['left', 'left', 'left',  'center', 'center'],
@@ -417,7 +417,7 @@ sub mail_access {
    }
   print $table->show();
 
-  $table = Abills::HTML->table( { width => '100%',
+  $table = $html->table( { width => '100%',
                                 cols_align => ['right', 'right'],
                                 rows => [ [ "$_TOTAL:", "<b>$Mail->{TOTAL}</b>" ] ]
                                } );
@@ -440,7 +440,7 @@ foreach my $t (@access_actions) {
 
 
   $Mail->{DISABLE}=' checked' if($Mail->{DISABLE} == 1);
-  Abills::HTML->tpl_show(_include('mail_access', 'Mail'), $Mail);
+  $html->tpl_show(_include('mail_access', 'Mail'), $Mail);
 }
 
 
