@@ -144,7 +144,6 @@ sub del {
   
 
   $self->query($db, "DELETE FROM payments WHERE id='$id';", 'do');
-
   $admin->action_add($user->{UID}, "DELETE PAYEMNTS SUM: $sum");
 
   return $self;
@@ -158,6 +157,7 @@ sub del {
 sub list {
  my $self = shift;
  my ($attr) = @_;
+
 
  $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
  $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
@@ -234,6 +234,8 @@ sub list {
     GROUP BY p.id
     ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");
  
+
+
  $self->{SUM}='0.00';
 
  return $self->{list}  if ($self->{TOTAL} < 1);

@@ -29,7 +29,8 @@ my $uid;
 sub new {
   my $class = shift;
   ($db, $admin, $CONF) = @_;
- $WHERE = "WHERE " . join(' and ', @WHERE_RULES) if($#WHERE_RULES > -1);$CONF->{max_username_length} = 10;
+  $WHERE = "WHERE " . join(' and ', @WHERE_RULES) if($#WHERE_RULES > -1);$CONF->{max_username_length} = 10;
+
   my $self = { };
   bless($self, $class);
   return $self;
@@ -350,6 +351,7 @@ sub list {
  $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
  $PG = ($attr->{PG}) ? $attr->{PG} : 0;
  $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
+ 
  undef @WHERE_RULES;
  my $search_fields = '';
 
@@ -578,7 +580,7 @@ sub add {
   $self->{UID} = $self->{INSERT_ID};
   $self->{LOGIN} = $DATA{LOGIN};
 
-  $admin->action_add($self->{UID}, "ADD $DATA{LOGIN}");
+  $admin->action_add("$self->{UID}", "ADD $DATA{LOGIN}");
 
   if ($attr->{CREATE_BILL}) {
   	print "create bill";
@@ -678,30 +680,17 @@ sub del {
 #**********************************************************
 sub nas_list {
   my $self = shift;
-
-  my @nas_list ;
- 
-  my $sql="SELECT nas_id FROM users_nas WHERE uid='$self->{UID}';";
-  my $q = $db->prepare($sql) || die $db->strerr;
-  $q ->execute();
-
-  if ($q->rows > 0) {
-    while(my ($nas) = $q->fetchrow()) {
-      push @nas_list, $nas;
-     }
+  my $list;
+  $self->query($db, "SELECT nas_id FROM users_nas WHERE uid='$self->{UID}';");
+  if ($self->{TOTAL} > 0) {
+    $list = $self->{list};
    }
   else {
-    $sql="SELECT nas_id FROM vid_nas WHERE vid='$self->{TARIF_PLAN}';";
-    $q = $db->prepare($sql) || die $db->strerr;
-    $q ->execute();
-    if ($q->rows > 0) {
-      while(my($nas_id)=$q->fetchrow()) {
-         push @nas_list, $nas_id;
-       }
-     }
+    $self->query($db, "SELECT nas_id FROM tp_nas WHERE tp_id='$self->{TARIF_PLAN}';");
+    $list = $self->{list};
    }
 
-	return \@nas_list;
+	return $list;
 }
 
 
@@ -714,9 +703,7 @@ sub nas_add {
  
  $self->nas_del();
  foreach my $line (@$nas) {
-   my $sql = "INSERT INTO users_nas (nas_id, uid)
-        VALUES ('$line', '$self->{UID}');";	
-   my $q = $db->do($sql) || die $db->errstr;
+   $self->query($db, "INSERT INTO users_nas (nas_id, uid) VALUES ('$line', '$self->{UID}');", 'do');
   }
   
   $admin->action_add($uid, "NAS ". join(',', @$nas) );
@@ -735,35 +722,6 @@ sub nas_del {
   $admin->action_add($uid, "DELETE NAS");
   return $self;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-sub test {
- my  $self = shift;	
-
- print "test";
-}
-
-
-
 
 
 

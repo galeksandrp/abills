@@ -5,6 +5,7 @@
 sub _include {
   my ($tpl, $module) = @_;
   my $result = '';
+  my $tpl_content = '';
   
   if (defined($module)) {
     $tpl	= "modules/$module/templates/$tpl";
@@ -520,16 +521,28 @@ return qq{
 </form>
 }
 }
-elsif($tpl_name eq 'users_warning_messages') {
+elsif ($tpl_name eq 'users_start') {
 return qq{
-Шановний користувач %LOGIN%.
+<TABLE width="100%" border="0">
+<TR bgcolor="$_COLORS[0]"><TD align="right"><h3>ABillS</h3></TD></TR>
+</TABLE>
+<TABLE width="100%">
+<TR><TD align="center">
 
-Ви працюєте за тарифним планом # [%TP_ID%] %TP_NAME%.
-На Вашому рахунку на даний час залишилось %DEPOSIT% у.о.
-Якщо Ваш рахунок стане меншим за допустиму межу входу: %CREDIT%
-(Кредит %CREDIT% у.о.)
-Ваш доступ тимчасово буде заблоковано.
-};
+%BODY%
+
+</TD></TR></TABLE>
+<hr/>
+}
+}
+elsif ($tpl_name eq 'users_main') {
+return qq{
+<TABLE BORDER="0" WIDTH="100%" style='margin: 0'><tr BGCOLOR="$_COLORS[2]"><TD align="right">$_DATE: %DATE% $_TIME: %TIME%</TD></TR></TABLE>
+<TABLE border="0" width="100%" style='margin: 0'>
+<TR><TD width="200" valign="top" bgcolor="$_COLORS[2]">%MENU%</TD><TD align="center">
+%BODY%
+</TD></TR></TABLE>
+}
 }
 elsif($tpl_name eq 'admin_report_day') {
 return qq{

@@ -50,6 +50,7 @@ sub take {
   my ($user, $sum, $attr) = @_;
   
   my $DESCRIBE = (defined($attr->{DESCRIBE})) ? $attr->{DESCRIBE} : '';
+  my $DATE  =  (defined($attr->{DATE})) ? 'now()' : "'$attr->{DATE}'";
   
   if ($sum <= 0) {
      $self->{errno} = 12;
@@ -68,7 +69,7 @@ sub take {
 
 
     $self->query($db, "INSERT INTO fees (uid, bill_id, date, sum, dsc, ip, last_deposit, aid) 
-           values ('$user->{UID}', '$user->{BILL_ID}', now(), '$sum', '$DESCRIBE', INET_ATON('$admin->{SESSION_IP}'), '$Bill->{DEPOSIT}', '$admin->{AID}');", 'do');
+           values ('$user->{UID}', '$user->{BILL_ID}', $DATE, '$sum', '$DESCRIBE', INET_ATON('$admin->{SESSION_IP}'), '$Bill->{DEPOSIT}', '$admin->{AID}');", 'do');
 
     if($self->{errno}) {
        return $self;

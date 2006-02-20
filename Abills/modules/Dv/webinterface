@@ -144,7 +144,7 @@ sub dv_users_list {
   });
 
 
- print Abills::HTML->letters_list({ pages_qs => $pages_qs  }); 
+ print $html->letters_list({ pages_qs => $pages_qs  }); 
 
  if ($FORM{letter}) {
    $LIST_PARAMS{FIRST_LETTER} = $FORM{letter};
@@ -170,7 +170,7 @@ elsif ($Dv->{TOTAL} == 1) {
 
 
 
-my $table = Abills::HTML->table( { width => '100%',
+my $table = $html->table( { width => '100%',
                                    caption => "Dialup / VPN",
                                    border => 1,
                                    title => [$_LOGIN, $_FIO, $_DEPOSIT, $_CREDIT, $_TARIF_PLANS, $_STATUS, '-', '-'],
@@ -193,7 +193,7 @@ foreach my $line (@$list) {
 }
 print $table->show();
 
-$table = Abills::HTML->table( { width => '100%',
+$table = $html->table( { width => '100%',
                                 cols_align => ['right', 'right'],
                                 rows => [ [ "$_TOTAL:", "<b>$Dv->{TOTAL}</b>" ] ]
                                } );
@@ -242,6 +242,7 @@ sub dv_user {
 	} 
 
   $user->{DISABLE}=($user->{DISABLE} == 1) ? ' checked' : '';
+
   $html->tpl_show(_include('dv_user', 'Dv'), $Dv);
 }
 
@@ -369,7 +370,7 @@ $html->tpl_show(_include('dv_tp', 'Dv'), $tarif_info);
 
 my $list = $tariffs->list({ %LIST_PARAMS });	
 # Time tariff Name Begin END Day fee Month fee Simultaneously - - - 
-my $table = Abills::HTML->table( { width      => '100%',
+my $table = $html->table( { width      => '100%',
                                    caption    => "$_TARIF_PLANS",
                                    border     => 1,
                                    title      => ['#', $_NAME,  $_HOUR_TARIF, $_TRAFIC_TARIFS, $_PAYMENT_TYPE, $_DAY_FEE, $_MONTH_FEE, $_SIMULTANEOUSLY, $_AGE,
@@ -403,7 +404,7 @@ foreach my $line (@$list) {
 
 print $table->show();
 
-$table = Abills::HTML->table( { width => '100%',
+$table = $html->table( { width => '100%',
                                 cols_align => ['right', 'right'],
                                 rows => [ [ "$_TOTAL:", "<b>$tariffs->{TOTAL}</b>" ] ]
                                } );
@@ -439,7 +440,7 @@ elsif ($FORM{hangup}) {
   my $ret = hangup($nas, "$nas_port_id", "", "$acct_session_id");
   
   if ($ret == 0) {
-    my $table = Abills::HTML->table( { width => '100%',
+    my $table = $html->table( { width => '100%',
                                 caption => $_HANGUPED,
                                 rows => [ [ "$_NAS ID",   $nas_id],
                                           [ "$_NAS IP",   $nas->{NAS_IP} ],
@@ -450,15 +451,7 @@ elsif ($FORM{hangup}) {
 
 
      $message = $table->show();
-
-     #= "<table width=100%>\n".
-     #    "<tr><th colspan=2 align=left></th></tr>".
-     #    "<tr><td>:</td><td></td></tr>".
-     #    "<tr><td>:</td><td></td></tr>".
-     #    "<tr><td>:</td><td></td></tr>".
-     #    "<tr><td colspan=2>$ret</td></tr>".
-     #    "</table>\n";
-         sleep 3;
+     sleep 3;
      
      weblog('hangup', "$user_name");
    }
@@ -486,11 +479,7 @@ elsif($FORM{zap}) {
 
   $nas->info({NAS_ID => $nas_id });
 
-#  $sessions->zap($nas->{NAS_ID}, 
-#                 "$nas_port_id", 
-#                 "$acct_session_id");
-
-  my $table = Abills::HTML->table( { width => '100%',
+  my $table = $html->table( { width => '100%',
                                 caption => $_CLOSED,
                                 rows => [ 
                                           [ "$_NAS ID",   $nas_id],
@@ -556,7 +545,7 @@ elsif($FORM{tolog}) {
     message('err', $_ERRNO, "$Acct->{errno} $Acct->{errstr}");	
    }
   else {
-  	my $table = Abills::HTML->table( { width => '100%'} );
+  	my $table = $html->table( { width => '100%'} );
   	foreach my $k (sort keys %$ACCT_INFO) {
  		    $table->addrow($k, $ACCT_INFO->{$k});
   	  }
@@ -582,7 +571,7 @@ elsif($FORM{del}) {
                            });
 
   if (! $sessions->{errno}) {
-    my $table = Abills::HTML->table( { width => '100%',
+    my $table = $html->table( { width => '100%',
                                 rows => [ [ "NAS_ID",  $FORM{nas_id}],
                                           [ "NAS_PORT",        $FORM{nas_port_id}   ],
                                           [ "ACCT_SESSION_ID", $FORM{del} ] ]
@@ -615,7 +604,7 @@ $sessions->online( { %LIST_PARAMS } );
 my $dub_ports = $sessions->{dub_ports};
 my $dub_logins = $sessions->{dub_logins};
  
-my $table = Abills::HTML->table( { width => '100%',
+my $table = $html->table( { width => '100%',
                                 caption => "$cure",
                                 border => 1,
                                 title => ["$_USER", "$_FIO", "$_PORT", "IP", "$_DURATION", "$_RECV", "$_SENT",
@@ -627,7 +616,6 @@ my $table = Abills::HTML->table( { width => '100%',
 
  
 my $online = $sessions->{nas_sorted};
-
 my $nas_list = $nas->list();
 
 foreach my $nas_row (@$nas_list) {
@@ -662,7 +650,7 @@ foreach my $nas_row (@$nas_list) {
   }
 }
 
-my $table2 = Abills::HTML->table( { width => '100%',
+my $table2 = $html->table( { width => '100%',
                                 cols_align => ['left', 'right', 'right', 'right']
                                } );
 
@@ -674,8 +662,7 @@ $table2->addtd(   $table->td($_TOTAL, { bgcolor => $_COLORS[0] }),
 
 my $total = $table2->show();
 print $total . $table->show();
-
-  print $html->button('Zap All', "index=$index&zapall=y", { MESSAGE => "Do you realy want zap all sessions ?" });
+print $html->button('Zap All', "index=$index&zapall=y", { MESSAGE => "Do you realy want zap all sessions ?" });
 
 	
 }
@@ -727,7 +714,7 @@ return 0 if ($sessions->{TOTAL} < 1);
 
 
 
-my $table = Abills::HTML->table( { width   => '100%',
+my $table = $html->table( { width   => '100%',
                                 caption    => "$_SESSIONS",
                                 border     => 1,
                                 title      => ["$_USER", "$_START", "$_DURATION", "$_TARIF_PLAN", "$_SENT", "$_RECV", 
@@ -821,7 +808,7 @@ my ($tables_sessions);
 #Day reposrt
 if (defined($FORM{DATE})) {
   #Used Fraffic
-  $table_sessions = Abills::HTML->table( { width => '100%',
+  $table_sessions = $html->table( { width => '100%',
 	                              caption => "$_SESSIONS", 
                                 title =>["$_DATE", "$_USERS", "$_SESSIONS", "$_TRAFFIC ", "$_TRAFFIC 2", $_DURATION, $_SUM],
                                 cols_align => ['right', 'left', 'right', 'right', 'right', 'right', 'right'],
@@ -838,7 +825,7 @@ if (defined($FORM{DATE})) {
  }
 else {
   #Used Traffic
-  $table_sessions = Abills::HTML->table( { width => '100%',
+  $table_sessions = $html->table( { width => '100%',
 	                              caption => "$_SESSIONS", 
                                 title =>["$_DATE", "$_USERS", "$_SESSIONS", "$_TRAFFIC ", "$_TRAFFIC 2", $_DURATION, $_SUM],
                                 cols_align => ['right', 'right', 'right', 'right', 'right', 'right', 'right'],
@@ -855,7 +842,7 @@ else {
 
 
 
-$table = Abills::HTML->table( { width => '100%',
+$table = $html->table( { width => '100%',
                                 cols_align => ['right', 'right', 'right', 'right', 'right', 'right'],
                                 rows => [ [ "$_USERS: <b>$sessions->{USERS}</b>",
                                             "$_SESSIONS: <b>$sessions->{SESSIONS}</b>", 
@@ -913,7 +900,7 @@ my ($list, $types, $totals) = show_log("$login", "$conf{LOGFILE}", { DATE      =
 	                                                                   LOG_TYPE  => $FORM{LOG_TYPE},
 	                                                                   PG        => $PG,
 	                                                                   PAGE_ROWS => $PAGE_ROWS });
-my $table = Abills::HTML->table( { caption => "$_ERROR",
+my $table = $html->table( { caption => "$_ERROR",
 	                                 width => '100%' } );
 foreach my $line (@$list) {
   if ($line =~ m/LOG_WARNING/i) {
@@ -925,7 +912,7 @@ foreach my $line (@$list) {
 print $table->show();
 
 
-$table = Abills::HTML->table( { 
+$table = $html->table( { 
 	                              width => '100%',
 	                              cols_align => ['right', 'right'] } );
 
@@ -1011,7 +998,7 @@ if ($FORM{rows}) {
 
 #PEriods totals
 my $list = $sessions->periods_totals({ %LIST_PARAMS });
-my $table = Abills::HTML->table( { width => '100%',
+my $table = $html->table( { width => '100%',
                                    title_plain => ["$_PERIOD", "$_DURATION", "$_SEND", "$_RECV", "$_SUM"],
                                    cols_align => ['left', 'right', 'right', 'right', 'right'],
                                    rowcolor => $_COLORS[1]
@@ -1030,10 +1017,10 @@ print "<form action=$SELF_URL>
 <input type=hidden name=index value='$index'>
 <input type=hidden name=UID value='$UID'>\n";
 
-$table = Abills::HTML->table( { width => '100%',
+$table = $html->table( { width => '100%',
 	                                 rowcolor => $_COLORS[0],
-                                   title_plain => [ "$_FROM: ", Abills::HTML->date_fld('from', { MONTHES => \@MONTHES} ),
-                                   "$_TO: ", Abills::HTML->date_fld('to', { MONTHES => \@MONTHES } ),
+                                   title_plain => [ "$_FROM: ", $html->date_fld('from', { MONTHES => \@MONTHES} ),
+                                   "$_TO: ", $html->date_fld('to', { MONTHES => \@MONTHES } ),
                                    "$_ROWS: ",  "<input type=text name=rows value='$conf{list_max_recs}' size=4>",
                                    "<input type=submit name=show value=$_SHOW>"
                                     ],                                   
@@ -1068,7 +1055,7 @@ if (! defined($FORM{sort})) {
 #Session List
 $list = $sessions->list({ %LIST_PARAMS });	
 
-$table = Abills::HTML->table( { width => '640',
+$table = $html->table( { width => '640',
 	                              rowcolor => $_COLORS[1],
                                 title_plain => ["$_SESSIONS", "$_DURATION", "$_TRAFFIC", "$_SUM"],
                                 cols_align => ['right', 'right', 'right', 'right'],
@@ -1090,7 +1077,7 @@ sub dv_stats_calculation  {
 $sessions->calculation({ %LIST_PARAMS }); 
 
 
-my $table = Abills::HTML->table( { width => '640',
+my $table = $html->table( { width => '640',
 	                              rowcolor => $_COLORS[1],
                                 title_plain => ["-", "$_MIN", "$_MAX", "$_AVG"],
                                 cols_align => ['left', 'right', 'right', 'right'],
@@ -1135,7 +1122,7 @@ if ($FORM{rows}) {
 
 #PEriods totals
 my $list = $sessions->periods_totals({ %LIST_PARAMS });
-my $table = Abills::HTML->table( { width => '100%',
+my $table = $html->table( { width => '100%',
                                    title_plain => ["$_PERIOD", "$_DURATION", "$_SEND", "$_RECV", "$_SUM"],
                                    cols_align => ['left', 'right', 'right', 'right', 'right'],
                                    rowcolor => $_COLORS[1]
@@ -1147,21 +1134,27 @@ for(my $i = 0; $i < 5; $i++) {
 print $table->show();
 
 
-print "<form action=$SELF_URL METHOD=POST>
-<input type=hidden name=sid value='$sid'>
-<input type=hidden name=index value='$index'>
-<input type=hidden name=UID value='$UID'>\n";
 
-$table = Abills::HTML->table( { width => '100%',
+
+$table = $html->table( { width => '100%',
 	                                 rowcolor => $_COLORS[0],
-                                   title_plain => [ "$_FROM: ", Abills::HTML->date_fld('from', { MONTHES => \@MONTHES} ),
-                                   "$_TO: ", Abills::HTML->date_fld('to', { MONTHES => \@MONTHES } ),
-                                   "$_ROWS: ",  "<input type=text name=rows value='$conf{list_max_recs}' size=4>",
-                                   "<input type=submit name=show value=$_SHOW>"
+                                   title_plain => [ "$_FROM: ", $html->date_fld('from', { MONTHES => \@MONTHES} ),
+                                   "$_TO: ", $html->date_fld('to', { MONTHES => \@MONTHES } ),
+                                   "$_ROWS: ",  "<input type=\"text\" name=\"rows\" value='$conf{list_max_recs}' size=\"4\">",
+                                   "<input type=\"submit\" name=\"show\" value=\"$_SHOW\">"
                                     ],                                   
-                                  } );
-print $table->show();
-print "</form>\n";
+                        } );
+
+
+
+
+
+print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
+	                       HIDDEN  => { sid   => "$sid",
+	                                    index => "$index",
+	                                    UID   => "$UID" }});
+
+
 
 dv_stats_calculation($sessions);
 
@@ -1182,7 +1175,7 @@ elsif (defined($FORM{PERIOD})) {
 #Session List
 $list = $sessions->list({ %LIST_PARAMS });	
 
-$table = Abills::HTML->table( { width => '640',
+$table = $html->table( { width => '640',
 	                              rowcolor => $_COLORS[1],
                                 title_plain => ["$_SESSIONS", "$_DURATION", "$_TRAFFIC", "$_SUM"],
                                 cols_align => ['right', 'right', 'right', 'right'],
@@ -1292,7 +1285,7 @@ $pages_qs .= "&PERIOD=$FORM{PERIOD}" if (defined($FORM{PERIOD}));
 
 
 my $list = $sessions->detail_list({ %LIST_PARAMS, %FORM });
-my $table = Abills::HTML->table({ width => '100%',
+my $table = $html->table({ width => '100%',
                                    border => 1,
                                    title => ["LAST_UPDATE", "$_SESSION_ID", "NAS_ID", "SENT", "RECV", "SENT2", "RECV2"],
                                    cols_align => ['right', 'right', 'right', 'right', 'right', 'right', 'right'],
@@ -1312,7 +1305,7 @@ my $table = Abills::HTML->table({ width => '100%',
  print $table->show();
 
 
-$table = Abills::HTML->table( { width => '100%',
+$table = $html->table( { width => '100%',
                                 cols_align => ['right', 'right'],
                                 rows => [ ["$_TOTAL:", "<b>$sessions->{TOTAL}</b>" ] ]
                                } );
@@ -1330,6 +1323,8 @@ sub dv_user_info {
   	message('info', $_INFO, "$_NOT_ACTIVE");
     return 0;	
   }
+  
+  $Dv->{STATUS} = $status[$Dv->{DISABLE}];
   
   $html->tpl_show(_include('dv_user_info', 'Dv'), $Dv);
 }
@@ -1395,7 +1390,10 @@ sub dv_daily_fees {
           #print "  UID: $u->[0] / $line->[5] / DEPOSIT: $u->[2] / $u->[3] / BILL_ID: $u->[12]\n"; 	
           if($u->[2] + $u->[3] > 0 || $line->[4] == 1) {
              #print "  UID: $u->[0] / $line->[5] / DEPOSIT: $u->[2] / $u->[3] / BILL_ID: $u->[12]\n"; 	
-             $fees->take(\%user, $line->[5], { DESCRIBE => "$_DAY_FEE" } );  
+
+             my %PARAMS = ( DESCRIBE => "$_DAY_FEE" );
+             $PARAMS{DATE}=$DATE if ($DATE ne '');
+             $fees->take(\%user, $line->[5], { %PARAMS } );  
            }
         }
        else {
@@ -1496,7 +1494,6 @@ sub dv_users_warning_messages {
 
 my %LIST_PARAMS = (USERS_WARNINGS => 'y' ) ;
 my $list = $Dv->list( { %LIST_PARAMS } );
-#$ADMIN_REPORT{DATE} = $YESTERDAY;
 
 $ADMIN_REPORT{USERS_WARNINGS} = sprintf("%-14s| %4s|%-20s| %9s| %8s|\n", $_LOGIN, 'TP', $_VARIANT, $_DEPOSIT, $_CREDIT).
    "---------------------------------------------------------------\n";
@@ -1518,9 +1515,7 @@ foreach my $line (@$list) {
   $ADMIN_REPORT{USERS_WARNINGS} .= sprintf ("%-14s| %4d|%-20s| %9.4f| %8.2f|\n", 
   $USER_INFO{LOGIN}, $USER_INFO{TP_ID}, $USER_INFO{TP_NAME},  $USER_INFO{DEPOSIT}, $USER_INFO{CREDIT});
   
-  my $message = $html->tpl_show(templates('users_warning_messages'), \%USER_INFO, { notprint => 'yes' });
-
-
+  my $message = $html->tpl_show(_include('dv_users_warning_messages', 'Dv'), \%USER_INFO, { notprint => 'yes' });
 
   sendmail("$conf{ADMIN_MAIL}", "$email", "Попередження сервера статистики.", 
               "$message", "$conf{MAIL_CHARSET}", "2 (High)");
@@ -1528,6 +1523,7 @@ foreach my $line (@$list) {
 
 $ADMIN_REPORT{USERS_WARNINGS} .= "---------------------------------------------------------------
 $_TOTAL: $Dv->{TOTAL}\n";
+
 
 }
 

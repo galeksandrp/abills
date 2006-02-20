@@ -33,7 +33,8 @@ use Users;
 
 my $output = Abills::HTML;
 
-$html = $output->new( { IMG_PATH => 'img/' } );
+$html = $output->new( { IMG_PATH => 'img/',
+	                      NO_PRINT  => 'y' } );
 my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
 my $db = $sql->{db};
 
@@ -73,14 +74,16 @@ my $maxnumber = 0;
 my $uid = 0;
 my $page_qs;
 my $admin;
+my %OUTPUT = ();
 
-print << "[END]";
-<TABLE width="100%" border="0">
-<TR bgcolor="$_COLORS[0]"><TD align="right"><h3>ABillS</h3></TD></TR>
-</TABLE>
-<TABLE width="100%">
-<TR><TD align="center">
-[END]
+
+#print << "[END]";
+#<TABLE width="100%" border="0">
+#<TR bgcolor="$_COLORS[0]"><TD align="right"><h3>ABillS</h3></TD></TR>
+#</TABLE>
+#<TABLE width="100%">
+#<TR><TD align="center">
+#[END]
 
 my $login = $FORM{user} || '';
 my $passwd = $FORM{passwd} || '';
@@ -89,6 +92,10 @@ my $passwd = $FORM{passwd} || '';
    "10:0:$_LOGOUT:logout:::",
    "30:0:$_USER_INFO:form_info:::"
    );
+
+
+
+
 
 
 my $user=Users->new($db, undef, \%conf); 
@@ -138,21 +145,17 @@ if ($uid > 0) {
     }
   }
 
-  my($menu_text, $menu_navigator)=mk_navigator();
-  my $table = $output->table({ width => '100%',
-                                     cols_align => ['right'],
-                                     rowcolor => $_COLORS[2],
-                                     rows => [ [ "$_DATE: $DATE $_TIME: $TIME " ] ]
-                                  } );
-  print $table->show();
+  (undef, $OUTPUT{MENU}) = $html->menu(\%menu_items, \%menu_args, undef, 
+     { EX_ARGS => "&sid=$sid", ALL_PERMISSIONS => 'y' });
   
-  
-  
-  
-  
-  
-print "<TABLE border=\"0\" width=\"100%\">
-<TR><TD width=\"200\" valign=\"top\" bgcolor=\"$_COLORS[2]\">$menu_text</TD><TD align=\"center\">\n"; 
+  if ($html->{ERROR}) {
+  	message('err',  $_ERROR, "$html->{ERROR}");
+  	exit;
+  }
+
+  $OUTPUT{DATE}=$DATE;
+  $OUTPUT{TIME}=$TIME;
+
   $pages_qs="&UID=$user->{UID}&sid=$sid";
   $LIST_PARAMS{UID}=$user->{UID};
   $LIST_PARAMS{LOGIN}=$user->{LOGIN};
@@ -161,21 +164,23 @@ print "<TABLE border=\"0\" width=\"100%\">
  	 	require "Abills/modules/$module{$index}/webinterface";
    }
 
+
   if ($index != 0 && defined($functions{$index})) {
     $functions{$index}->();
    }
   else {
     $functions{30}->();
    }
-  print "</TD></TR></TABLE>\n";
+
+  $OUTPUT{BODY}=$html->{OUTPUT};
+
+  $OUTPUT{BODY}=$html->tpl_show(templates('users_main'), \%OUTPUT);
 }
 else {
   form_login();
 }
 
-print "</TD></TR></TABLE><hr/>
-</body>
-</html>\n";
+print $html->tpl_show(templates('users_start'), \%OUTPUT);
 
 
 $html->test();
@@ -213,10 +218,10 @@ sub form_info {
 # base_state($where, $period);
 #*******************************************************************
 sub stats_calculation  {
- my ($sessions) = @_;
+  my ($sessions) = @_;
 
 $sessions->calculation({ %LIST_PARAMS }); 
-my $table = $output->table( { width => '640',
+my $table = $html->table( { width => '640',
 	                              rowcolor => $_COLORS[1],
                                 title_plain => ["-", "$_MIN", "$_MAX", "$_AVG"],
                                 cols_align => ['left', 'right', 'right', 'right'],
@@ -231,35 +236,17 @@ print $table->show();
 
 
 #**********************************************************
-# mk_navigator()
-#**********************************************************
-sub mk_navigator {
-
-my ($menu_navigator, $menu_text) = $html->menu(\%menu_items, \%menu_args, undef, { EX_ARGS => "&sid=$sid", ALL_PERMISSIONS => 'y' });
-  
-  if ($html->{ERROR}) {
-  	message('err',  $_ERROR, "$html->{ERROR}");
-  	exit;
-  }
-
-return  $menu_text, "/".$menu_navigator;
-
-}
-
-
-
-#**********************************************************
 # form_login
 #**********************************************************
 sub form_login {
-
  my %first_page = ();
  $first_page{SEL_LANGUAGE} = $html->form_select('language', 
                                 { EX_PARAMS => 'onChange="selectLanguage()"',
  	                                SELECTED  => $html->{language},
- 	                                SEL_HASH  => \%LANG });
+ 	                                SEL_HASH  => \%LANG,
+ 	                                NO_ID     => 'y' });
 
- $html->tpl_show(templates('form_user_login'), \%first_page);
+ $OUTPUT{BODY} = $html->tpl_show(templates('form_user_login'), \%first_page);
 }
 
 

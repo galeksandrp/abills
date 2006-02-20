@@ -71,6 +71,12 @@ sub new {
   my $self = { };
   bless($self, $class);
 
+  if (defined($attr->{NO_PRINT})) {
+     $self->{NO_PRINT}=1;
+   }
+ 
+  $self->{OUTPUT}='';
+
   %FORM = form_parse();
   %COOKIES = getCookies();
   $SORT = $FORM{sort} || 1;
@@ -162,6 +168,41 @@ foreach my $pair (@pairs) {
   return %FORM;
 }
 
+
+sub form_main {
+  my $self = shift;
+  my ($attr)	= @_;
+	
+	$self->{FORM}="<FORM action=\"$SELF_URL\" METHOD=\"POST\">\n";
+	
+  if (defined($attr->{HIDDEN})) {
+  	my $H = $attr->{HIDDEN};
+  	while(my($k, $v)=each( %$H)) {
+      $self->{FORM} .= "<input type=\"hidden\" name=\"$k\" value=\"$v\">\n";
+  	}
+  }
+
+  if (defined($attr->{SUBMIT})) {
+  	my $H = $attr->{SUBMIT};
+  	while(my($k, $v)=each( %$H)) {
+      $self->{FORM} .= "<input type=\"submit\" name=\"$k\" value=\"$v\">\n";
+  	}
+  }
+
+	if (defined($attr->{CONTENT})) {
+	  $self->{FORM}.=$attr->{CONTENT};
+	}
+
+	$self->{FORM}.="</form>\n";
+	
+	if (defined($self->{NO_PRINT})) {
+  	$self->{OUTPUT} .= $self->{FORM};
+  	$self->{FORM} = '';
+  }
+
+	
+	return $self->{FORM};
+}
 
 #**********************************************************
 #
@@ -607,20 +648,44 @@ TABLE.border {
 # table
 #**********************************************************
 sub table {
- my $class = shift;
- my($attr)=@_;
- my $self = { };
+ my $proto = shift;
+ my $class = ref($proto) || $proto;
+ my $parent = ref($proto)  && $proto;
+ my $self;
 
- bless($self, $class);
+
+# if (@ISA && $proto->SUPER::can('table')) {
+# 	  $self = $proto->SUPER::table(@_);
+#  }
+# else {
+  $self = {};
+#  bless($self, $proto);
+# }
+
+
+# while(my($k, $v)=each %$proto) {
+#   print "$k, $v <br>";	
+# }
+ 
+ bless($self);
+
+
+ $self->{prototype} = $proto;
+ $self->{NO_PRINT} = $proto->{NO_PRINT};
+
+ my($attr)=@_;
+ $self->{rows}='';
 
  
  my $width = (defined($attr->{width})) ? "width=\"$attr->{width}\"" : '';
  my $border = (defined($attr->{border})) ? "border=\"$attr->{border}\"" : '';
 
  if (defined($attr->{rowcolor})) {
-     $self->{rowcolor} = $attr->{rowcolor};
+    $self->{rowcolor} = $attr->{rowcolor};
    }  
-
+ else {
+    $self->{rowcolor} = undef;
+  }
 
  if (defined($attr->{rows})) {
     my $rows = $attr->{rows};
@@ -629,7 +694,7 @@ sub table {
      }
   }
 
- $self->{table} = "<TABLE $width cellspacing=0 cellpadding=0 border=0>";
+ $self->{table} = "<TABLE $width cellspacing=\"0\" cellpadding=\"0\" border=\"0\">\n";
  
  if (defined($attr->{caption})) {
    $self->{table} .= "<TR><TD bgcolor=\"$_COLORS[1]\" align=\"right\"><b>$attr->{caption}</b></td></TR>\n";
@@ -669,7 +734,8 @@ sub table {
  	     }
  	   $self->{pages} =  $self->pages($attr->{pages}, "$op$attr->{qs}", { %ATTR });
 	 } 
- return $self;
+
+  return $self;
 }
 
 #*******************************************************************
@@ -678,6 +744,7 @@ sub table {
 sub addrow {
   my $self = shift;
   my (@row) = @_;
+
 
 
   if (defined($self->{rowcolor})) {
@@ -825,13 +892,25 @@ sub table_title  {
 #**********************************************************
 sub show  {
   my $self = shift;	
-  $self->{show} .= $self->{table};
+  my ($attr) = shift;
+  
+  
+  $self->{show} = $self->{table};
   $self->{show} .= $self->{rows}; 
   $self->{show} .= "</TABLE></TD></TR></TABLE>\n";
 
   if (defined($self->{pages})) {
  	   $self->{show} =  '<br>'.$self->{pages} . $self->{show} . $self->{pages} .'<br>';
  	 } 
+
+
+
+  if ((defined($self->{NO_PRINT})) && ( !defined($attr->{OUTPUT2RETURN}) )) {
+  	$self->{prototype}->{OUTPUT}.= $self->{show};
+  	#$self->{OUTPUT} .= $self->{show};
+  	$self->{show} = '';
+  }
+  
 
   return $self->{show};
 }
@@ -1026,12 +1105,7 @@ sub tpl_show {
   my $self = shift;
   my ($tpl, $variables_ref, $attr) = @_;	
   
-#  my $i=0;
-#  while(my($k, $v)=each %$variables_ref) {
-#  	print "$k $v";
-#   }
-#  return 0;
-  
+
   while($tpl =~ /\%(\w+)\%/g) {
 #    print "-$1-<br>\n";
     my $var = $1;
@@ -1044,11 +1118,12 @@ sub tpl_show {
   }
 
 
-  if ($attr->{notprint}) {
+  if (defined($attr->{notprint}) || $self->{NO_PRINT} == 1) {
+  	$self->{OUTPUT}.=$tpl;
   	return $tpl;
    }
 	else { 
-	 print $tpl;
+ 	  print $tpl;
 	}
 }
 

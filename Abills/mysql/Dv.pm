@@ -158,7 +158,7 @@ sub add {
   return $self if ($self->{errno});
   
  
-  #$admin->action_add($DATA{UID}, "ADDED");
+  $admin->action_add($DATA{UID}, "ACTIVE");
   return $self;
 }
 
