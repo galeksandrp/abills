@@ -42,7 +42,7 @@ else {
 }
 
 if ($Docs->{errno}) {
-  message('err', $_ERROR, "[$Docs->{errno}] $err_strs{$Docs->{errno}}");	
+  $html->message('err', $_ERROR, "[$Docs->{errno}] $err_strs{$Docs->{errno}}");	
   return 0;
  }
 
@@ -88,13 +88,13 @@ sub docs_account {
 	
  if ($FORM{create}) {
    if ($FORM{SUM} < 0.01) {
-     message('err', "$_ERROR", $_WRONG_SUM);
+     $html->message('err', "$_ERROR", $_WRONG_SUM);
     }
    elsif(! $LIST_PARAMS{UID}) {
-     message('err', "$_ERROR", "$_SELECT_USER");
+     $html->message('err', "$_ERROR", "$_SELECT_USER");
     }
    elsif(! $FORM{CUSTOMER}) {
-     message('err', "$_ERROR", "$_ORG_NAME");
+     $html->message('err', "$_ERROR", "$_ORG_NAME");
     }
    elsif($FORM{PREVIEW}) {
      docs_preview('account', { %FORM });
@@ -103,7 +103,7 @@ sub docs_account {
    else {
      $Docs->account_add({ %FORM });
      if(! $Docs->{errno}) {
-       message('info', "$_ADDED", "$_ADDED N: [$Docs->{ACCT_ID}]");
+       $html->message('info', "$_ADDED", "$_ADDED N: [$Docs->{ACCT_ID}]");
        docs_print('account', $Docs);
        return 0;
       }
@@ -124,19 +124,19 @@ sub docs_account {
  elsif(defined($FORM{change})) {
    $Docs->account_change({ %FORM });
    if(! $Docs->{errno}) {
-     message('info', "$_INFO", "$_CHANGED N: [$FORM{DOC_ID}]");
+     $html->message('info', "$_INFO", "$_CHANGED N: [$FORM{DOC_ID}]");
     }
   }
  elsif(defined($FORM{chg})) {
    $Docs->account_info($FORM{chg});
    if(! $Docs->{errno}) {
-     message('info', "$_INFO", "$_CHANGING N: [$FORM{chg}]");
+     $html->message('info', "$_INFO", "$_CHANGING N: [$FORM{chg}]");
     }
   }
  elsif(defined($FORM{del})) {
    $Docs->account_del($FORM{del});
    if(! $Docs->{errno}) {
-     message('info', "$_INFO", "$_DELETED N: [$FORM{del}]");
+     $html->message('info', "$_INFO", "$_DELETED N: [$FORM{del}]");
     }
   }
 	

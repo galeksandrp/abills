@@ -19,7 +19,7 @@ sub sqlcmd {
  my $list = $Sqlcmd->list( { %FORM } ) if (defined($FORM{QUERY}) && length($FORM{QUERY}) > 10);
 
 if ($Mail->{errno}) {
-  message('err', $_ERROR, "[$Sqlcmd->{errno}] $err_strs{$Sqlcmd->{errno}}");	
+  $html->message('err', $_ERROR, "[$Sqlcmd->{errno}] $err_strs{$Sqlcmd->{errno}}");	
   return 0;
  }
 

@@ -98,7 +98,7 @@ if ($admin->{errno}) {
     $message = $err_strs{$admin->{errno}};
    }
 
-  message('err', $_ERROR, "$message");
+  $html->message('err', $_ERROR, "$message");
   exit;
 }
 
@@ -288,7 +288,7 @@ if ($functions{$index}) {
   if(defined($FORM{UID}) && $FORM{UID} > 0) {
   	my $ui = user_info($FORM{UID});
   	if($ui->{errno}==2) {
-  		message('err', $_ERROR, "[$FORM{UID}] $_USER_NOT_EXIST")
+  		$html->message('err', $_ERROR, "[$FORM{UID}] $_USER_NOT_EXIST")
   	 }
   	else {
   	  $functions{$index}->({ USER => $ui });
@@ -300,7 +300,7 @@ if ($functions{$index}) {
    }
 }
 else {
-  message('err', $_ERROR,  "Function not exist ($index / $functions{$index})");	
+  $html->message('err', $_ERROR,  "Function not exist ($index / $functions{$index})");	
 }
 
 
@@ -382,7 +382,7 @@ if ($FORM{add}) {
   $company->add({ %FORM });
  
   if (! $company->{errno}) {
-    message('info', $_ADDED, "$_ADDED");
+    $html->message('info', $_ADDED, "$_ADDED");
    }
  }
 elsif($FORM{change}) {
@@ -390,7 +390,7 @@ elsif($FORM{change}) {
   $company->change({ %FORM });
 
   if (! $company->{errno}) {
-    message('info', $_INFO, $_CHANGED. " # $company->{ACCOUNT_NAME}");
+    $html->message('info', $_INFO, $_CHANGED. " # $company->{ACCOUNT_NAME}");
     goto INFO;  	 
    }
 
@@ -430,7 +430,7 @@ elsif($FORM{COMPANY_ID}) {
  }
 elsif(defined($FORM{del}) && defined($FORM{is_js_confirmed})) {
    $company->del( $FORM{del} );
-   message('info', $_INFO, "$_DELETED # $FORM{del}");
+   $html->message('info', $_INFO, "$_DELETED # $FORM{del}");
  }
 else {
   my $list = $company->list( { %LIST_PARAMS } );
@@ -460,7 +460,7 @@ else {
 }
 
   if ($company->{errno}) {
-    message('info', $_ERROR, "[$company->{errno}] $err_strs{$company->{errno}}");
+    $html->message('info', $_ERROR, "[$company->{errno}] $err_strs{$company->{errno}}");
    }
 
 }
@@ -497,7 +497,7 @@ if ($FORM{subf}) {
     $functions{$FORM{subf}}->($f_args->{f_args});
    }
   else {
-  	message('err', $_ERROR, "Function not Defined");
+  	$html->message('err', $_ERROR, "Function not Defined");
    }
  } 
 
@@ -571,13 +571,13 @@ sub form_groups {
 if ($FORM{add}) {
   $users->group_add( { %FORM });
   if (! $users->{errno}) {
-    message('info', $_ADDED, "$_ADDED [$users->{GID}]");
+    $html->message('info', $_ADDED, "$_ADDED [$users->{GID}]");
    }
 }
 elsif($FORM{change}){
   $users->group_change($FORM{chg}, { %FORM });
   if (! $users->{errno}) {
-    message('info', $_CHANGED, "$_CHANGED $users->{GID}");
+    $html->message('info', $_CHANGED, "$_CHANGED $users->{GID}");
    }
 }
 elsif(defined($FORM{GID})){
@@ -601,7 +601,7 @@ elsif(defined($FORM{GID})){
   #Sub functions
   if (! $FORM{subf}) {
 #    if (! $users->{errno}) {
-#      message('info', $_CHANGED, "$_CHANGING $users->{GID}");
+#      $html->message('info', $_CHANGED, "$_CHANGING $users->{GID}");
 #     }
     $users->{ACTION}='change';
     $users->{LNG_ACTION}=$_CHANGE;
@@ -613,13 +613,13 @@ elsif(defined($FORM{GID})){
 elsif(defined($FORM{del}) && defined($FORM{is_js_confirmed})){
   $users->group_del( $FORM{del} );
   if (! $users->{errno}) {
-    message('info', $_DELETED, "$_DELETED $users->{GID}");
+    $html->message('info', $_DELETED, "$_DELETED $users->{GID}");
    }
 }
 
 
 if ($users->{errno}) {
-   message('err', $_ERROR, "[$users->{errno}] $err_strs{$users->{errno}}");	
+   $html->message('err', $_ERROR, "[$users->{errno}] $err_strs{$users->{errno}}");	
   }
 
 my $list = $users->groups_list({ %LIST_PARAMS });
@@ -703,18 +703,18 @@ sub user_pi {
  if($FORM{add}) {
  	 my $user_pi = $user->pi_add({ %FORM });
    if (! $user_pi->{errno}) {
-    message('info', $_ADDED, "$_ADDED");	
+    $html->message('info', $_ADDED, "$_ADDED");	
    }
   }
  elsif($FORM{change}) {
  	 my $user_pi = $user->pi_change({ %FORM });
    if (! $user_pi->{errno}) {
-    message('info', $_CHAGED, "$_CHANGED");	
+    $html->message('info', $_CHAGED, "$_CHANGED");	
    }
  }
 
   if ($user_pi->{errno}) {
-    message('err', $_ERROR, "[$user_pi->{errno}] $err_strs{$user_pi->{errno}}");	
+    $html->message('err', $_ERROR, "[$user_pi->{errno}] $err_strs{$user_pi->{errno}}");	
    }
 
 
@@ -742,7 +742,7 @@ if(defined($attr->{USER})) {
 
   my $user_info = $attr->{USER};
   if ($users->{errno}) {
-    message('err', $_ERROR, "[$users->{errno}] $err_strs{$users->{errno}}");	
+    $html->message('err', $_ERROR, "[$users->{errno}] $err_strs{$users->{errno}}");	
     return 0;
    }
 
@@ -754,22 +754,22 @@ if(defined($attr->{USER})) {
   if ($FORM{change}) {
     $user_info->change($user_info->{UID}, { %FORM } );
     if ($user_info->{errno}) {
-      message('err', $_ERROR, "[$user_info->{errno}] $err_strs{$user_info->{errno}}");	
+      $html->message('err', $_ERROR, "[$user_info->{errno}] $err_strs{$user_info->{errno}}");	
       user_form();    
       print "</td></table>\n";
       return 0;	
      }
     else {
-      message('info', $_CHANGED, "$_CHANGED $users->{info}");
+      $html->message('info', $_CHANGED, "$_CHANGED $users->{info}");
      }
    }
   elsif ($FORM{del_user} && $FORM{is_js_confirmed} && $index == 11) {
     $user_info->del();
     if ($users->{errno}) {
-      message('err', $_ERROR, "[$users->{errno}] $err_strs{$users->{errno}}");	
+      $html->message('err', $_ERROR, "[$users->{errno}] $err_strs{$users->{errno}}");	
      }
     else {
-      message('info', $_DELETE, "$_DELETED <br>from tables<br>$users->{info}");
+      $html->message('info', $_DELETE, "$_DELETED <br>from tables<br>$users->{info}");
      }
     print "</td></tr></table>\n";
     return 0;
@@ -826,12 +826,12 @@ elsif ($FORM{add}) {
   my $user_info = $users->add({ %FORM });  
 
   if ($users->{errno}) {
-    message('err', $_ERROR, "[$users->{errno}] $err_strs{$users->{errno}}");	
+    $html->message('err', $_ERROR, "[$users->{errno}] $err_strs{$users->{errno}}");	
     user_form();    
     return 0;	
    }
   else {
-    message('info', $_ADDED, "$_ADDED '$user_info->{LOGIN}' / [$user_info->{UID}]");
+    $html->message('info', $_ADDED, "$_ADDED '$user_info->{LOGIN}' / [$user_info->{UID}]");
     $user_info = $users->info( $user_info->{UID} );
     $html->tpl_show(templates('user_info'), $user_info);
 
@@ -872,7 +872,7 @@ if ($FORM{debs}) {
 my $list = $users->list( { %LIST_PARAMS } );
 
 if ($users->{errno}) {
-  message('err', $_ERROR, "[$users->{errno}] $err_strs{$users->{errno}}");	
+  $html->message('err', $_ERROR, "[$users->{errno}] $err_strs{$users->{errno}}");	
   return 0;
  }
 elsif ($users->{TOTAL} == 1) {
@@ -1001,32 +1001,34 @@ sub form_nas_allow {
  my ($attr) = @_;
  my @allow = split(/, /, $FORM{ids});
  my %allow_nas = (); 
- my $op = '';
+ my %EX_HIDDEN_PARAMS = (subf  => "$FORM{subf}",
+	                       index => "$index");
 
 if ($attr->{USER}) {
   my $user = $attr->{USER};
   if ($FORM{change}) {
     $user->nas_add(\@allow);
     if (! $user->{errno}) {
-      message('info', $_INFO, "$_ALLOW $_NAS: $FORM{ids}");
+      $html->message('info', $_INFO, "$_ALLOW $_NAS: $FORM{ids}");
      }
    }
   elsif($FORM{default}) {
     $user->nas_del();
     if (! $user->{errno}) {
-      message('info', $_NAS, "$_CHANGED");
+      $html->message('info', $_NAS, "$_CHANGED");
      }
    }
 
   if ($user->{errno}) {
-    message('err', $_ERROR, "[$user->{errno}] $err_strs{$user->{errno}}");	
+    $html->message('err', $_ERROR, "[$user->{errno}] $err_strs{$user->{errno}}");	
    }
 
-  my ($nas_servers, $total) = $user->nas_list();
-  foreach my $nas_id (@$nas_servers) {
-     $allow_nas{$nas_id}='test';
+  my $list = $user->nas_list();
+  foreach my $line (@$list) {
+     $allow_nas{$line->[0]}='test';
    }
-  $op = "<input type=hidden name=UID  value='$user->{UID}'>\n";
+  
+  $EX_HIDDEN_PARAMS{UID}=$user->{UID};
  }
 elsif($attr->{TP}) {
   my $tarif_plan = $attr->{TP};
@@ -1034,10 +1036,10 @@ elsif($attr->{TP}) {
   if ($FORM{change}){
     $tarif_plan->nas_add(\@allow);
     if ($tarif_plan->{errno}) {
-      message('err', $_ERROR, "[$tarif_plan->{errno}] $err_strs{$tarif_plan->{errno}}");	
+      $html->message('err', $_ERROR, "[$tarif_plan->{errno}] $err_strs{$tarif_plan->{errno}}");	
      }
     else {
-      message('info', $_INFO, "$_ALLOW $_NAS: $FORM{ids}");
+      $html->message('info', $_INFO, "$_ALLOW $_NAS: $FORM{ids}");
      }
    }
   
@@ -1046,7 +1048,7 @@ elsif($attr->{TP}) {
      $allow_nas{$nas_id->[0]}='y';
    }
 
-  $op = "<input type=hidden name=TP_ID  value='$tarif_plan->{TP_ID}'>\n";
+  $EX_HIDDEN_PARAMS{TP_ID}=$tarif_plan->{TP_ID};
 }
 elsif (defined($FORM{TP_ID})) {
   $FORM{chg}=$FORM{TP_ID};
@@ -1056,10 +1058,7 @@ elsif (defined($FORM{TP_ID})) {
  }
 
 my $nas = Nas->new($db, \%conf);
-my $out = "<form action='$SELF_URL'>
-  <input type=hidden name=index  value='$FORM{index}'>
-  <input type=hidden name=subf  value='$FORM{subf}'>
-$op";
+
 
 my $table = $html->table( { width => '100%',
                                    border => 1,
@@ -1076,11 +1075,12 @@ foreach my $line (@$list) {
     $line->[4], $line->[5], $auth_types[$line->[6]]);
 }
 
-$out .= $table->show();
-$out .= "<p><input type=submit name=change value=$_CHANGE> <input type=submit name=default value='$_DEFAULT'>
-</form>\n";
+print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
+	                       HIDDEN  => { %EX_HIDDEN_PARAMS },
+	                       SUBMIT  => { change   => "$_CHANGE",
+	                       	            default  => $_DEFAULT 
+	                       	           } });
 
-print $out;
 }
 
 
@@ -1131,10 +1131,10 @@ sub form_changes {
 if ($FORM{del} && $FORM{is_js_confirmed}) {
 	$admin->action_del( $FORM{del} );
   if ($admins->{errno}) {
-    message('err', $_ERROR, "[$admins->{errno}] $err_strs{$admins->{errno}}");	
+    $html->message('err', $_ERROR, "[$admins->{errno}] $err_strs{$admins->{errno}}");	
    }
   else {
-    message('info', $_DELETED, "$_DELETED [$FORM{del}]");
+    $html->message('info', $_DELETED, "$_DELETED [$FORM{del}]");
    }
  }
 elsif($FORM{AID} && ! defined($LIST_PARAMS{AID})) {
@@ -1202,20 +1202,20 @@ if(defined($attr->{TP})) {
   elsif ($FORM{add}) {
     $tarif_plan->ti_add( { %FORM });
     if (! $tarif_plan->{errno}) {
-      message('info', $_INFO, "$_INTERVALS $_ADDED");
+      $html->message('info', $_INFO, "$_INTERVALS $_ADDED");
      }
    }
   elsif($FORM{change}) {
     $tarif_plan->ti_change( $FORM{TI_ID}, { %FORM } );
 
     if (! $tarif_plan->{errno}) {
-      message('info', $_INFO, "$_INTERVALS $_CHANGED [$tarif_plan->{TI_ID}]");
+      $html->message('info', $_INFO, "$_INTERVALS $_CHANGED [$tarif_plan->{TI_ID}]");
      }
    }
   elsif(defined($FORM{chg})) {
   	$tarif_plan->ti_info( $FORM{chg} );
     if (! $tarif_plan->{errno}) {
-      message('info', $_INFO, "$_INTERVALS $_CHANGE [$FORM{chg}]");
+      $html->message('info', $_INFO, "$_INTERVALS $_CHANGE [$FORM{chg}]");
      }
 
  	 	$tarif_plan->{ACTION}='change';
@@ -1224,7 +1224,7 @@ if(defined($attr->{TP})) {
   elsif($FORM{del} && $FORM{is_js_confirmed}) {
     $tarif_plan->ti_del($FORM{del});
     if (! $tarif_plan->{errno}) {
-      message('info', $_DELETED, "$_DELETED $FORM{del}");
+      $html->message('info', $_DELETED, "$_DELETED $FORM{del}");
      }
    }
   else {
@@ -1311,7 +1311,7 @@ elsif (defined($FORM{TP_ID})) {
  }
 
 if ($tarif_plan->{errno}) {
-   message('err', $_ERROR, "[$tarif_plan->{errno}] $err_strs{$tarif_plan->{errno}} $tarif_plan->{errstr}");	
+   $html->message('err', $_ERROR, "[$tarif_plan->{errno}] $err_strs{$tarif_plan->{errno}} $tarif_plan->{errstr}");	
  }
 
 
@@ -1424,19 +1424,19 @@ if ($FORM{add}) {
   	              DAY => $add_day
   	             });
   if (! $holidays->{errno}) {
-    message('info', $_INFO, "$_ADDED");	
+    $html->message('info', $_INFO, "$_ADDED");	
   }
 }
 elsif($FORM{del}){
   $holidays->holidays_del($FORM{del});
 
   if (! $holidays->{errno}) {
-    message('info', $_INFO, "$_DELETED");	
+    $html->message('info', $_INFO, "$_DELETED");	
   }
 }
 
 if ($holidays->{errno}) {
-    message('err', $_ERROR, "[$holidays->{errno}] $err_strs{$holidays->{errno}}");	
+    $html->message('err', $_ERROR, "[$holidays->{errno}] $err_strs{$holidays->{errno}}");	
  }
 
 
@@ -1569,7 +1569,7 @@ if ($FORM{AID}) {
 #    if ($password ne '0') {
 #      $admin_form->password($password, { secretkey => $conf{secretkey} } ); 
 #      if (! $admin_form->{errno}) {
-#        message('info', $_INFO, "$_ADMINS: $admin_form->{NAME}<br>$_PASSWD $_CHANGED");
+#        $html->message('info', $_INFO, "$_ADMINS: $admin_form->{NAME}<br>$_PASSWD $_CHANGED");
 #      }
 #     }
 #    return 0;
@@ -1582,7 +1582,7 @@ if ($FORM{AID}) {
   elsif($FORM{change}) {
     $admin_form->change({	%FORM  });
     if (! $admin_form->{errno}) {
-      message('info', $_CHANGED, "$_CHANGED ");	
+      $html->message('info', $_CHANGED, "$_CHANGED ");	
      }
    }
   $admin_form->{ACTION}='change';
@@ -1598,20 +1598,20 @@ elsif ($FORM{add}) {
   );
 
   if (! $admin_form->{errno}) {
-     message('info', $_INFO, "$_ADDED");	
+     $html->message('info', $_INFO, "$_ADDED");	
    }
 
 }
 elsif($FORM{del}) {
   $admin_form->del($FORM{del});
   if (! $admin_form->{errno}) {
-     message('info', $_DELETE, "$_DELETED");	
+     $html->message('info', $_DELETE, "$_DELETED");	
    }
 }
 
 
 if ($admin_form->{errno}) {
-     message('err', $_ERROR, $err_strs{$admin_form->{errno}});	
+     $html->message('err', $_ERROR, $err_strs{$admin_form->{errno}});	
  }
 
 
@@ -1675,25 +1675,20 @@ sub admin_permissions {
    $admin->set_permissions(\%permits);
 
    if ($admin->{errno}) {
-     message('err', $_ERROR, "$err_strs{$admin->{errno}}");
+     $html->message('err', $_ERROR, "$err_strs{$admin->{errno}}");
     }
    else {
-     message('info', $_INFO, "$_CHANGED");
+     $html->message('info', $_INFO, "$_CHANGED");
     }
   }
 
  my $p = $admin->get_permissions();
  if ($admin->{errno}) {
-    message('err', $_ERROR, "$err_strs{$admin->{errno}}");
+    $html->message('err', $_ERROR, "$err_strs{$admin->{errno}}");
     return 0;
   }
  my %permits = %$p;
  
-print "<form action=$SELF_URL METHOD=POST>
- <input type=hidden name=index value=50>
- <input type=hidden name=AID value='$FORM{AID}'>
- <input type=hidden name=subf value=$FORM{subf}>\n";
-
 
 my $table = $html->table( { width => '400',
                                    border => 1,
@@ -1711,15 +1706,30 @@ while(my($k, $v) = each %menu_items ) {
     my $action_index = 0;
     $table->{rowcolor}=undef;
     foreach my $action (@$actions_list) {
-      my $checked = (defined($permits{$k}{$action_index})) ? 'checked' : '';
-      $table->addrow("$action_index", "$action", "<input type=checkbox name='$k". "_$action_index' value='yes' $checked>");
+
+      $table->addrow("$action_index", "$action", 
+       $html->form_input($k."_$action_index", 'yes', { TYPE => 'checkbox',
+       	                                               OUTPUT2RETURN => 1,
+       	                                               STATE => (defined($permits{$k}{$action_index})) ? '1' : undef  
+       	                                              })  
+       	                                              );
+
       $action_index++;
      }
    }
  }
   
-print $table->show(). "<input type=submit name='set' value=\"$_SET\">
-</form>\n";
+  
+print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
+	                       HIDDEN  => { index => '50',
+                                      AID   => "$FORM{AID}",
+                                      subf  => "$FORM{subf}"
+                                     },
+	                       SUBMIT  => { set   => "$_SET"
+	                       	           } });
+
+
+
 }
 
 
@@ -1825,20 +1835,21 @@ if($FORM{NAS_ID}) {
   $LIST_PARAMS{NAS_ID} = $FORM{NAS_ID};
   %F_ARGS = ( NAS => $nas );
   
-  $nas->{NAME_SEL} = "<form action=$SELF_URL METHOD=POST>
-   <input type=hidden name=index value=60>
-   <input type=hidden name=subf value='$FORM{subf}'>\n";
-   
-  $nas->{NAME_SEL} .= $html->form_select('NAS_ID', 
-                                { 
- 	                                SELECTED  => $FORM{NAS_ID},
- 	                                SEL_MULTI_ARRAY   => $nas->list({ %LIST_PARAMS }),
- 	                                MULTI_ARRAY_KEY   => 0,
- 	                                MULTI_ARRAY_VALUE => 1,
- 	                               });
-
-  $nas->{NAME_SEL} .= "<input type=submit name=show value='$_SHOW'>\n</form>\n";
   
+  $nas->{NAME_SEL} = $html->form_main({ CONTENT => $html->form_select('NAS_ID', 
+                                         { 
+ 	                                          SELECTED  => $FORM{NAS_ID},
+ 	                                          SEL_MULTI_ARRAY   => $nas->list({ %LIST_PARAMS }),
+ 	                                          MULTI_ARRAY_KEY   => 0,
+ 	                                          MULTI_ARRAY_VALUE => 1,
+ 	                                        }),
+	                       HIDDEN  => { index => '60',
+                                      AID   => "$FORM{AID}",
+                                      subf  => "$FORM{subf}"
+                                     },
+	                       SUBMIT  => { show   => "$_SHOW"
+	                       	           } });
+
   func_menu({ 
   	         'ID' =>   $nas->{NAS_ID}, 
   	         $_NAME => $nas->{NAME_SEL}
@@ -1858,7 +1869,7 @@ if($FORM{NAS_ID}) {
   elsif($FORM{change}) {
     $nas->change({ %FORM });  
     if (! $nas->{errno}) {
-       message('info', $_CHANGED, "$_CHANGED $nas->{NAS_ID}");
+       $html->message('info', $_CHANGED, "$_CHANGED $nas->{NAS_ID}");
      }
    }
 
@@ -1869,19 +1880,19 @@ elsif ($FORM{add}) {
   $nas->add({	%FORM	});
 
   if (! $nas->{errno}) {
-    message('info', $_INFO, "$_ADDED '$FORM{NAS_IP}'");
+    $html->message('info', $_INFO, "$_ADDED '$FORM{NAS_IP}'");
    }
  }
 elsif ($FORM{del} && $FORM{is_js_confirmed}) {
   $nas->del($FORM{del});
   if (! $nas->{errno}) {
-    message('info', $_INFO, "$_DELETED [$FORM{del}]");
+    $html->message('info', $_INFO, "$_DELETED [$FORM{del}]");
    }
 
 }
 
 if ($nas->{errno}) {
-  message('err', $_ERROR, "$err_strs{$nas->{errno}}");
+  $html->message('err', $_ERROR, "$err_strs{$nas->{errno}}");
  }
 
 # my @nas_types = ('other', 'usr', 'pm25', 'ppp', 'exppp', 'radpppd', 'expppd', 'pppd', 'dslmax', 'mpd', 'gnugk');
@@ -1955,14 +1966,14 @@ if ($attr->{NAS}) {
      });
 
     if (! $nas->{errno}) {
-       message('info', $_INFO, "$_ADDED");
+       $html->message('info', $_INFO, "$_ADDED");
      }
    }
   elsif($FORM{del}) {
     $nas->ip_pools_del( $FORM{del} );
 
     if (! $nas->{errno}) {
-       message('info', $_INFO, "$_DELETED");
+       $html->message('info', $_INFO, "$_DELETED");
      }
    }
   $pages_qs = "&NAS_ID=$nas->{NAS_ID}";
@@ -1979,7 +1990,7 @@ else {
 }
 
 if ($nas->{errno}) {
-  message('err', $_ERROR, "$err_strs{$nas->{errno}}");
+  $html->message('err', $_ERROR, "$err_strs{$nas->{errno}}");
  }
 
 
@@ -2060,7 +2071,7 @@ if ($type eq 'log') {
      my $list = $users->list( { LOGIN => $attr->{LOGIN} } );
 
      if($users->{TOTAL} < 1) {
-     	 message('err', $_USER, "[$users->{errno}] $err_strs{$users->{errno}}");
+     	 $html->message('err', $_USER, "[$users->{errno}] $err_strs{$users->{errno}}");
      	 return 0;
       }
 	   $UID = $list->[0]->[6];
@@ -2074,32 +2085,16 @@ if ($type eq 'log') {
 
 my $OP_SID = mk_unique_value(16);
 
-print << "[END]";
-<form action=$SELF_URL>
-<input type=hidden name=index value=$index>
-<input type=hidden name=subf value=$index>
-<input type=hidden name=sum value='$sum'>
-<input type=hidden name=OP_SID value='$OP_SID'>
-<input type=hidden name=UID value='$UID'>
-
-
-<input type=submit name=bm value='$_BACK_MONEY ?'>
-</form>
-[END]
+ print $html->form_main({HIDDEN  => { index  => "$index",
+                                      subf   => "$index",
+                                      sum    => "$sum",
+                                      OP_SID => "$OP_SID",
+                                      UID    => "$UID"
+                                     },
+	                        SUBMIT  => { bm   => "$_BACK_MONEY ?"
+	                       	           } });
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -2125,13 +2120,13 @@ if ($FORM{newpassword} eq '') {
 
 }
 elsif (length($FORM{newpassword}) < $conf{passwd_length}) {
-  message('err', $_ERROR, $err_strs{6});
+  $html->message('err', $_ERROR, $err_strs{6});
 }
 elsif ($FORM{newpassword} eq $FORM{confirm}) {
   $FORM{PASSWORD} = $FORM{newpassword};
 }
 elsif($FORM{newpassword} ne $FORM{confirm}) {
-  message('err', $_ERROR, $err_strs{5});
+  $html->message('err', $_ERROR, $err_strs{5});
 }
 
 
@@ -2467,7 +2462,7 @@ sub mk_navigator {
 my ($menu_navigator, $menu_text) = $html->menu(\%menu_items, \%menu_args, \%permissions);
   
   if ($html->{ERROR}) {
-  	message('err',  $_ERROR, "$html->{ERROR}");
+  	$html->message('err',  $_ERROR, "$html->{ERROR}");
   	exit;
   }
 
@@ -2526,6 +2521,9 @@ for(my $parent=1; $parent<$#menu_sorted; $parent++) {
   my $level = 0;
   my $prefix = '';
   $table->{rowcolor}=$_COLORS[0];      
+
+  next if (! defined($permissions{($parent-1)}));  
+
   $table->addrow("$level:", "$parent >> ". $html->button("<b>$val</b>", "index=$parent"). "<<", '') if ($parent != 0);
 
   if (defined($new_hash{$parent})) {
@@ -2537,14 +2535,19 @@ for(my $parent=1; $parent<$#menu_sorted; $parent++) {
 
       while(my($k, $val)=each %$mi) {
  
-        my $checked = '';
+        my $checked = undef;
         if (defined($qm{$k})) { 
-        	$checked = " checked";  
+        	$checked = 1;  
         	$val = "<b>$val</b>";
          }
 
         
-        $table->addrow("$k <input type=checkbox name=qm_item value=$k $checked>", "$prefix ". $html->button($val, "index=$k") , "<input type=text name=qm_name_$k value='$qm{$k}'>" );
+        $table->addrow("$k ". $html->form_input('qm_item', "$k", { TYPE => 'checkbox',
+       	                                            OUTPUT2RETURN => 1,
+       	                                            STATE => $checked  
+       	                                           }),  
+                     "$prefix ". $html->button($val, "index=$k"), 
+                     $html->form_input("qm_name_$k", $qm{$k}, { OUTPUT2RETURN => 1 }) );
 
         if (defined($new_hash{$k})) {
       	   $mi = $new_hash{$k};
@@ -2558,7 +2561,6 @@ for(my $parent=1; $parent<$#menu_sorted; $parent++) {
     
     if ($#last_array > -1) {
       $parent = pop @last_array;	
-#      print "POP/$#last_array/$parent/<br>\n";
       $level--;
       
       $prefix = substr($prefix, 0, $level * 6 * 3);
@@ -2569,29 +2571,22 @@ for(my $parent=1; $parent<$#menu_sorted; $parent++) {
 
 # return 0;
 }
-print "
-<form action=$SELF_URL METHOD=POST>
-<input type=hidden name=index value=$index>\n";
 
 
-print $table->show();
 
 
-print "<input type=submit name=quick_set value='Quick Menu'>
-</form>\n";
+print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
+	                       HIDDEN  => { index => '50'
+                                     },
+	                       SUBMIT  => { quick_set => "$_SET"
+	                       	           } });
+
+
+
 }
 
 
 
-
-
-#**********************************************************
-# check_access
-#**********************************************************
-sub check_access {
-	#! defined($permissions{1})
-	return 0;
-}
 
 #**********************************************************
 # form_payments
@@ -2614,7 +2609,7 @@ if (defined($attr->{USER})) {
   }
 
   if (defined($FORM{OP_SID}) and $FORM{OP_SID} eq $COOKIES{OP_SID}) {
- 	  message('err', $_ERROR, "$_EXIST");
+ 	  $html->message('err', $_ERROR, "$_EXIST");
    }
   elsif ($FORM{add} && $FORM{SUM})	{
     my $er = $payments->exchange_info($FORM{ER});
@@ -2622,24 +2617,24 @@ if (defined($attr->{USER})) {
     $payments->add($user, { %FORM } );  
 
     if ($payments->{errno}) {
-      message('err', $_ERROR, "[$payments->{errno}] $err_strs{$payments->{errno}}");	
+      $html->message('err', $_ERROR, "[$payments->{errno}] $err_strs{$payments->{errno}}");	
      }
     else {
-      message('info', $_PAYMENTS, "$_ADDED $_SUM: $FORM{SUM}");
+      $html->message('info', $_PAYMENTS, "$_ADDED $_SUM: $FORM{SUM}");
      }
    }
   elsif($FORM{del} && $FORM{is_js_confirmed}) {
   	if (! defined($permissions{1}{2})) {
-      message('err', $_ERROR, "[13] $err_strs{13}");
+      $html->message('err', $_ERROR, "[13] $err_strs{13}");
       return 0;		
 	   }
 
     $payments->del($user, $FORM{del});
     if ($payments->{errno}) {
-      message('err', $_ERROR, "[$payments->{errno}] $err_strs{$payments->{errno}}");	
+      $html->message('err', $_ERROR, "[$payments->{errno}] $err_strs{$payments->{errno}}");	
      }
     else {
-      message('info', $_PAYMENTS, "$_DELETED ID: $FORM{del}");
+      $html->message('info', $_PAYMENTS, "$_DELETED ID: $FORM{del}");
      }
    }
 
@@ -2737,69 +2732,55 @@ print $table->show();
 # form_exchange_rate
 #*******************************************************************
 sub form_exchange_rate {
- my @action = ('add', "$_ADD");
- my $short_name = $FORM{short_name} || '-';
- my $money = $FORM{money} || '-';
- my $rate  = $FORM{rate} || '0.0000';
- 
- 
  use Finance;
  my $finance = Finance->new($db, $admin);
 
+ $finance->{ACTION}='add';
+ $finance->{LNG_ACTION}="$_ADD";
 
 if ($FORM{add}) {
-	$finance->exchange_add($money, $short_name, $rate);
+	$finance->exchange_add({ %FORM });
   if ($finance->{errno}) {
-    message('err', $_ERROR, "[$finance->{errno}] $err_strs{$finance->{errno}}");	
+    $html->message('err', $_ERROR, "[$finance->{errno}] $err_strs{$finance->{errno}}");	
    }
   else {
-    message('info', $_EXCHANGE_RATE, "$_ADDED");
+    $html->message('info', $_EXCHANGE_RATE, "$_ADDED");
    }
 }
 elsif($FORM{change}) {
-	$finance->exchange_change("$FORM{chg}", $money, $short_name, $rate);
+	$finance->exchange_change("$FORM{chg}", { %FORM });
   if ($finance->{errno}) {
-    message('err', $_ERROR, "[$finance->{errno}] $err_strs{$finance->{errno}}");	
+    $html->message('err', $_ERROR, "[$finance->{errno}] $err_strs{$finance->{errno}}");	
    }
   else {
-    message('info', $_EXCHANGE_RATE, "$_CHANGED");
+    $html->message('info', $_EXCHANGE_RATE, "$_CHANGED");
    }
 }
 elsif($FORM{chg}) {
 	$finance->exchange_info("$FORM{chg}");
+
   if ($finance->{errno}) {
-    message('err', $_ERROR, "[$finance->{errno}] $err_strs{$finance->{errno}}");	
+    $html->message('err', $_ERROR, "[$finance->{errno}] $err_strs{$finance->{errno}}");	
    }
   else {
-  	@action = ('change', $_CHANGE);
-    message('info', $_EXCHANGE_RATE, "$_CHANGING");
+    $finance->{ACTION}='change';
+    $finance->{LNG_ACTION}="$_CHANGE";
+    $html->message('info', $_EXCHANGE_RATE, "$_CHANGING");
    }
 }
 elsif($FORM{del}) {
 	$finance->exchange_del("$FORM{del}");
   if ($finance->{errno}) {
-    message('err', $_ERROR, "[$finance->{errno}] $err_strs{$finance->{errno}}");	
+    $html->message('err', $_ERROR, "[$finance->{errno}] $err_strs{$finance->{errno}}");	
    }
   else {
-    message('info', $_EXCHANGE_RATE, "$_DELETED");
+    $html->message('info', $_EXCHANGE_RATE, "$_DELETED");
    }
 
 }
 	
-print << "[END]";
-<form action=$SELF_URL>
-<input type=hidden name=index   value=$index>
-<input type=hidden name=op   value=er>
-<input type=hidden name=chg   value="$FORM{chg}"> 
-<table>
-<tr><td>$_MONEY:</td><td><input type=text name=money value='$finance->{MU_NAME}'></td></tr>
-<tr><td>$_SHORT_NAME:</td><td><input type=text name=short_name value='$finance->{MU_SHORT_NAME}'></td></tr>
-<tr><td>$_EXCHANGE_RATE:</td><td><input type=text name=rate value='$finance->{EX_RATE}'></td></tr>
-</table>
-<input type=submit name=$action[0] value='$action[1]'>
-</form>
-[END]
 
+$html->tpl_show(templates('form_er'), $finance);
 my $table = $html->table( { width => '640',
                                    title => ["$_MONEY", "$_SHORT_NAME", "$_EXCHANGE_RATE (1 unit =)", "$_CHANGED", '-', '-'],
                                    cols_align => ['left', 'left', 'right', 'center', 'center'],
@@ -2811,6 +2792,7 @@ foreach my $line (@$list) {
      $html->button($_CHANGE, "index=65&chg=$line->[4]"), 
      $html->button($_DEL, "index=65&del=$line->[4]", { MESSAGE => "$_DEL [$line->[0]]?" } ));
 }
+
 print $table->show();
 }
 
@@ -2856,25 +2838,25 @@ if (defined($attr->{USER})) {
     else {
       $fees->take($user, $FORM{SUM}, { DESCRIBE => $FORM{DESCR} } );  
       if ($fees->{errno}) {
-        message('err', $_ERROR, "[$fees->{errno}] $err_strs{$fees->{errno}}");	
+        $html->message('err', $_ERROR, "[$fees->{errno}] $err_strs{$fees->{errno}}");	
        }
       else {
-        message('info', $_PAYMENTS, "$_TAKE SUM: $FORM{SUM}");
+        $html->message('info', $_PAYMENTS, "$_TAKE SUM: $FORM{SUM}");
        }
     }
    }
   elsif ($FORM{del} && $FORM{is_js_confirmed}) {
   	if (! defined($permissions{2}{2})) {
-      message('err', $_ERROR, "[13] $err_strs{13}");
+      $html->message('err', $_ERROR, "[13] $err_strs{13}");
       return 0;		
 	   }
 
 	  $fees->del($user,  $FORM{del});
     if ($fees->{errno}) {
-      message('err', $_ERROR, "[$fees->{errno}] $err_strs{$fees->{errno}}");
+      $html->message('err', $_ERROR, "[$fees->{errno}] $err_strs{$fees->{errno}}");
      }
     else {
-      message('info', $_DELETED, "$_DELETED [$FORM{del}]");
+      $html->message('info', $_DELETED, "$_DELETED [$FORM{del}]");
     }
    }
 
@@ -3062,10 +3044,10 @@ my $shedule = Shedule->new($db, $admin);
 if ($FORM{del} && $FORM{is_js_confirmed}) {
   $shedule->del($FORM{del});
   if ($admins->{errno}) {
-    message('err', $_ERROR, "[$fees->{errno}] $err_strs{$fees->{errno}}");
+    $html->message('err', $_ERROR, "[$fees->{errno}] $err_strs{$fees->{errno}}");
    }
   else {
-    message('info', $_DELETED, "$_DELETED [$FORM{del}]");
+    $html->message('info', $_DELETED, "$_DELETED [$FORM{del}]");
    }
 }
 
@@ -3141,21 +3123,21 @@ foreach my $pair (@pairs) {
 
 
   
-	open(FILE, ">$conf{TPL_DIR}/$FORM{tpl_name}") || message('err', $_ERROR, "Can't open file '$conf{TPL_DIR}/$FORM{tpl_name}' $!\n");
+	open(FILE, ">$conf{TPL_DIR}/$FORM{tpl_name}") || $html->message('err', $_ERROR, "Can't open file '$conf{TPL_DIR}/$FORM{tpl_name}' $!\n");
 	  print FILE "$template";
 	close(FILE);
 
-	message('info', $_INFO, "$_ADDED");
+	$html->message('info', $_INFO, "$_ADDED");
 }
 elsif($FORM{tpl_name}) {
   if (-f  "$conf{TPL_DIR}/$FORM{tpl_name}" ) {
-	  open(FILE, "$conf{TPL_DIR}/$FORM{tpl_name}") || message('err', $_ERROR, "Can't open file '$conf{TPL_DIR}/$FORM{tpl_name}' $!\n");;
+	  open(FILE, "$conf{TPL_DIR}/$FORM{tpl_name}") || $html->message('err', $_ERROR, "Can't open file '$conf{TPL_DIR}/$FORM{tpl_name}' $!\n");;
   	  while(<FILE>) {
 	    	 $template .= $_;
 	    }	 
 	  close(FILE);
    }
-	  message('info', $_CHAMGE, "$_CHANGE: $templates{$FORM{tpl_name}}");
+	  $html->message('info', $_CHAMGE, "$_CHANGE: $templates{$FORM{tpl_name}}");
 }
 
 
@@ -3323,7 +3305,7 @@ sub form_dictionary {
       print FILE "$out";
 	  close(FILE);
 
-  	message('info', $_CHANGED, "$_CHANGED '$FORM{SUB_DICT}'");
+  	$html->message('info', $_CHANGED, "$_CHANGED '$FORM{SUB_DICT}'");
    }
 
 
@@ -3398,28 +3380,28 @@ sub form_dictionary {
                                    title_plain => ["$_NAME", "$_VALUE", "-"],
                                    cols_align  => ['left', 'left', 'center']
                                   } );
-  my $i = 0;
+
   foreach my $k (sort keys %main_dictionary) {
   	 my $v = $main_dictionary{$k};
   	 my $v2 = (defined($sub_dictionary{"$k"})) ? $sub_dictionary{"$k"} : '--';
      
-     $table->addrow("<input type=text name=NAME value='$k'>", "<input type=text name=$k value=\"$v\">", 
-      "<input type=text name=". $sub_dict ."_". $k. " value=\"$v2\">");
-     $i++;
+     $table->addrow(
+        $html->form_input('NAME', "$k"), 
+        $html->form_input("$k", "$v"), 
+        $html->form_input($sub_dict ."_". $k, "$v2")); 
    }
 
    $table->addrow("$_TOTAL", "$i", ''); 
 
 
 
-  print "<FORM action=$SELF_URL METHOD=POST>
-  <input type=hidden name=index value=$index>
-  <input type=hidden name=SUB_DICT value=$sub_dict>\n";
 
-  print $table->show();
-
-  print "<input type=submit name=change value=\"$_CHANGE\">
-  </form>";
+print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
+	                       HIDDEN  => { index    => "$index",
+                                      SUB_DICT => "$sub_dict"
+                                     },
+	                       SUBMIT  => { change   => "$_CHANGE"
+	                       	           } });
 
 }
 
@@ -3460,10 +3442,7 @@ sub form_config {
      $table->addrow($k, $conf{$k}, '');
      $i++;
    }
-#  $table->addrow("$_TOTAL", "$i", ''); 
-
 	print $table->show();
-	
 }
 
 

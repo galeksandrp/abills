@@ -169,6 +169,24 @@ foreach my $pair (@pairs) {
 }
 
 
+sub form_input {
+	my $self = shift;
+	my ($name, $value, $attr)=@_;
+
+
+  my $type = (defined($attr->{TYPE})) ? $attr->{TYPE} : 'text';
+  my $state = (defined($attr->{STATE})) ? ' checked' : ''; 
+  
+  $self->{FORM_INPUT}="<input type=\"$type\" name=\"$name\" value=\"$value\"$state>";
+
+  if (defined($self->{NO_PRINT}) && ( !defined($attr->{OUTPUT2RETURN}) )) {
+  	$self->{OUTPUT} .= $self->{FORM_INPUT};
+  	$self->{FORM_INPUT} = '';
+  }
+	
+	return $self->{FORM_INPUT};
+}
+
 sub form_main {
   my $self = shift;
   my ($attr)	= @_;
@@ -182,6 +200,11 @@ sub form_main {
   	}
   }
 
+	if (defined($attr->{CONTENT})) {
+	  $self->{FORM}.=$attr->{CONTENT};
+	}
+
+
   if (defined($attr->{SUBMIT})) {
   	my $H = $attr->{SUBMIT};
   	while(my($k, $v)=each( %$H)) {
@@ -189,9 +212,6 @@ sub form_main {
   	}
   }
 
-	if (defined($attr->{CONTENT})) {
-	  $self->{FORM}.=$attr->{CONTENT};
-	}
 
 	$self->{FORM}.="</form>\n";
 	
@@ -199,7 +219,6 @@ sub form_main {
   	$self->{OUTPUT} .= $self->{FORM};
   	$self->{FORM} = '';
   }
-
 	
 	return $self->{FORM};
 }
@@ -930,9 +949,6 @@ sub button {
   $params =~ s/ /%20/g;
   $params =~ s/&/&amp;/g;
   
-
- 
-  
   $ex_attr=" TITLE='$attr->{TITLE}'" if (defined($attr->{TITLE}));
   my $message = (defined($attr->{MESSAGE})) ? "onclick=\"return confirmLink(this, '$attr->{MESSAGE}')\"" : '';
 
@@ -948,10 +964,8 @@ sub button {
 # $type - info, err
 #*******************************************************************
 sub message {
- my $type = shift; #info; err
- my $caption = shift;
- my $message = shift;	
- my $head = '';
+ my $self = shift;
+ my ($type, $caption, $message, $head) = @_;
  
  if ($type eq 'err') {
    $head = "<tr><th bgcolor=\"#FF0000\">$caption</th></TR>\n";
@@ -960,9 +974,9 @@ sub message {
    $head = "<tr><th bgcolor=\"$_COLORS[0]\">$caption</th></TR>\n";
   }  
  
-print << "[END]";
+my $output = qq{
 <br>
-<TABLE width="400" border=0 cellpadding="0" cellspacing="0">
+<TABLE width="400" border="0" cellpadding="0" cellspacing="0">
 <tr><TD bgcolor="$_COLORS[9]">
 <TABLE width="100%" border=0 cellpadding="2" cellspacing="1">
 <tr><TD bgcolor="$_COLORS[1]">
@@ -977,7 +991,22 @@ $head
 </TD></TR>
 </TABLE>
 <br>
-[END]
+};
+
+
+
+  if (defined($self->{NO_PRINT})) {
+  	$self->{OUTPUT}.=$output;
+  	#print "aaaaaa $self->{OUTPUT}";
+  	return $output;
+  	
+
+   }
+	else { 
+
+ 	  print $output;
+	 }
+
 }
 
 
@@ -1176,7 +1205,7 @@ sub test {
 #print "<a href='#' onclick=\"open('aaa','help', 
 # 'height=550,width=450,resizable=0, scrollbars=yes, menubar=no, status=yes');\"><font color=$_COLORS[1]>Debug</font></a>";
 
-#print "<a href='#' title='$output'><font color=$_COLORS[1]>Debug</font></a>\n";
+print "<a href='#' title='$output'><font color=$_COLORS[1]>Debug</font></a>\n";
 
 }
 

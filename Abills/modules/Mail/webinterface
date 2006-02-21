@@ -33,7 +33,7 @@ sub mail_users_list {
  my $list = $Mail->mbox_list( { %LIST_PARAMS } );
 
 if ($Mail->{errno}) {
-  message('err', $_ERROR, "[$Mail->{errno}] $err_strs{$Mail->{errno}}");	
+  $html->message('err', $_ERROR, "[$Mail->{errno}] $err_strs{$Mail->{errno}}");	
   return 0;
  }
 elsif ($Mail->{TOTAL} == 1) {
@@ -58,7 +58,7 @@ elsif ($Mail->{TOTAL} == 1) {
                                   } );
 
   if ($Mail->{errno}) {
-    message('err', $_ERROR, "[$Mail->{errno}] $err_strs{$Mail->{errno}}");	
+    $html->message('err', $_ERROR, "[$Mail->{errno}] $err_strs{$Mail->{errno}}");	
     return 0;
    }
 
@@ -100,19 +100,19 @@ sub mail_user_boxes {
   if ($FORM{add}) {
     $Mail->mbox_add({ %FORM });
     if (! $Mail->{errno}) {
-      message('info', $_INFO, "$_ADDED");	
+      $html->message('info', $_INFO, "$_ADDED");	
      }
    }
 	elsif($FORM{set}) {
     $Mail->mbox_change({ %FORM });
     if (! $Mail->{errno}) {
-      message('info', $_INFO, "$_CHANGED");	
+      $html->message('info', $_INFO, "$_CHANGED");	
      }
    }
 	elsif($FORM{MBOX_ID}) {
     $Mail->mbox_info({ %FORM });
     if (! $Mail->{errno}) {
-      message('info', $_INFO, "$_CHANGING");	
+      $html->message('info', $_INFO, "$_CHANGING");	
      }
     $FORM{UID}=$Mail->{UID};
 	  $Mail->{ACTION}='set';
@@ -121,13 +121,13 @@ sub mail_user_boxes {
 	elsif($FORM{del}) {
     $Mail->mbox_del($FORM{del});
     if (! $Mail->{errno}){
-      message('info', $_INFO, "$_CHANGED");	
+      $html->message('info', $_INFO, "$_CHANGED");	
      }
 	 }
 
 
   if ($Mail->{errno}) {
-    message('err', $_ERROR, "[$Mail->{errno}] $err_strs{$Mail->{errno}}");	
+    $html->message('err', $_ERROR, "[$Mail->{errno}] $err_strs{$Mail->{errno}}");	
     return 0;
    }
   #elsif(! $FORM{MBOX_ID}) {
@@ -166,20 +166,20 @@ sub mail_domains {
   if ($FORM{add}) {
     $Mail->domain_add({ %FORM });
     if (! $Mail->{errno}) {
-      message('info', $_INFO, "$_ADDED");	
+      $html->message('info', $_INFO, "$_ADDED");	
      }
    }
 	elsif($FORM{set}) {
     $Mail->domain_change({ %FORM });
 
     if (! $Mail->{errno}) {
-      message('info', $_INFO, "$_CHANGED");	
+      $html->message('info', $_INFO, "$_CHANGED");	
      }
    }
 	elsif($FORM{MAIL_DOMAIN_ID}) {
     $Mail->domain_info({ %FORM });
     if (! $Mail->{errno}) {
-      message('info', $_INFO, "$_CHANGING");	
+      $html->message('info', $_INFO, "$_CHANGING");	
      }
 
     $Mail->{ACTION}='set';
@@ -189,7 +189,7 @@ sub mail_domains {
     $Mail->domain_del($FORM{del});
 
     if (! $Mail->{errno}) {
-      message('info', $_INFO, "$_CHANGED");	
+      $html->message('info', $_INFO, "$_CHANGED");	
      }
 	 }
 
@@ -235,20 +235,20 @@ sub mail_aliases {
   if ($FORM{add}) {
     $Mail->alias_add({ %FORM });
     if (! $Mail->{errno}) {
-      message('info', $_INFO, "$_ADDED");	
+      $html->message('info', $_INFO, "$_ADDED");	
      }
    }
 	elsif($FORM{set}) {
     $Mail->alias_change({ %FORM });
 
     if (! $Mail->{errno}) {
-      message('info', $_INFO, "$_CHANGED");	
+      $html->message('info', $_INFO, "$_CHANGED");	
      }
    }
 	elsif($FORM{MAIL_ALIAS_ID}) {
     $Mail->alias_info({ %FORM });
     if (! $Mail->{errno}) {
-      message('info', $_INFO, "$_CHANGING");	
+      $html->message('info', $_INFO, "$_CHANGING");	
      }
 
     $Mail->{ACTION}='set';
@@ -258,7 +258,7 @@ sub mail_aliases {
     $Mail->alias_del($FORM{del});
 
     if (! $Mail->{errno}) {
-      message('info', $_INFO, "$_CHANGED");	
+      $html->message('info', $_INFO, "$_CHANGED");	
      }
 	 }
 
@@ -305,20 +305,20 @@ sub mail_transport {
   if ($FORM{add}) {
     $Mail->transport_add({ %FORM });
     if (! $Mail->{errno}) {
-      message('info', $_INFO, "$_ADDED");	
+      $html->message('info', $_INFO, "$_ADDED");	
      }
    }
 	elsif($FORM{set}) {
     $Mail->transport_change({ %FORM });
 
     if (! $Mail->{errno}) {
-      message('info', $_INFO, "$_CHANGED");	
+      $html->message('info', $_INFO, "$_CHANGED");	
      }
    }
 	elsif($FORM{MAIL_TRANSPORT_ID}) {
     $Mail->transport_info({ %FORM });
     if (! $Mail->{errno}) {
-      message('info', $_INFO, "$_CHANGING");	
+      $html->message('info', $_INFO, "$_CHANGING");	
      }
 
     $Mail->{ACTION}='set';
@@ -328,7 +328,7 @@ sub mail_transport {
     $Mail->transport_del($FORM{del});
 
     if (! $Mail->{errno}) {
-      message('info', $_INFO, "$_CHANGED");	
+      $html->message('info', $_INFO, "$_CHANGED");	
      }
 	 }
 
@@ -372,20 +372,20 @@ sub mail_access {
   if ($FORM{add}) {
     $Mail->access_add({ %FORM });
     if (! $Mail->{errno}) {
-      message('info', $_INFO, "$_ADDED");	
+      $html->message('info', $_INFO, "$_ADDED");	
      }
    }
 	elsif($FORM{set}) {
     $Mail->access_change({ %FORM });
 
     if (! $Mail->{errno}) {
-      message('info', $_INFO, "$_CHANGED");	
+      $html->message('info', $_INFO, "$_CHANGED");	
      }
    }
 	elsif($FORM{MAIL_ACCESS_ID}) {
     $Mail->access_info({ %FORM });
     if (! $Mail->{errno}) {
-      message('info', $_INFO, "$_CHANGING");	
+      $html->message('info', $_INFO, "$_CHANGING");	
      }
 
     $Mail->{ACTION}='set';
@@ -395,7 +395,7 @@ sub mail_access {
     $Mail->access_del($FORM{del});
 
     if (! $Mail->{errno}) {
-      message('info', $_INFO, "$_CHANGED");	
+      $html->message('info', $_INFO, "$_CHANGED");	
      }
 	 }
 

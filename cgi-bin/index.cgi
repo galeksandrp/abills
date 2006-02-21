@@ -149,7 +149,7 @@ if ($uid > 0) {
      { EX_ARGS => "&sid=$sid", ALL_PERMISSIONS => 'y' });
   
   if ($html->{ERROR}) {
-  	message('err',  $_ERROR, "$html->{ERROR}");
+  	$html->message('err',  $_ERROR, "$html->{ERROR}");
   	exit;
   }
 
@@ -173,13 +173,13 @@ if ($uid > 0) {
    }
 
   $OUTPUT{BODY}=$html->{OUTPUT};
-
+  $html->{OUTPUT}='';
   $OUTPUT{BODY}=$html->tpl_show(templates('users_main'), \%OUTPUT);
 }
 else {
   form_login();
 }
-
+$OUTPUT{BODY}=$html->{OUTPUT};
 print $html->tpl_show(templates('users_start'), \%OUTPUT);
 
 
@@ -282,11 +282,11 @@ elsif (length($sid) > 1) {
       #print "$cur_time - $time > '$conf{web_session_timeout}'";
       #web_session_timeout
       delete $h{$sid};
-      message('info', "$_INFO", 'timeout');	
+      $html->message('info', "$_INFO", 'timeout');	
       return 0; 
      }
     elsif($ip ne $REMOTE_ADDR) {
-      message('err', "$_ERROR", 'WRONG IP');	
+      $html->message('err', "$_ERROR", 'WRONG IP');	
       return 0; 
      }
 
@@ -297,7 +297,7 @@ elsif (length($sid) > 1) {
     return ($uid, $sid, $login);
    }
   else { 
-    message('err', "$_ERROR", "$_NOT_LOGINED");	
+    $html->message('err', "$_ERROR", "$_NOT_LOGINED");	
     return 0; 
    }
  }
@@ -316,7 +316,7 @@ else {
       $ftp->quit();
      }
     else {
-      message('info', $_INFO, "Install 'libnet' module from http://cpan.org");
+      $html->message('info', $_INFO, "Install 'libnet' module from http://cpan.org");
      }
    }
 }
@@ -334,7 +334,7 @@ if ($res > 0) {
     $action = 'Access';
    }
   else {
-    message('err', "$_ERROR", "$_WRONG_PASSWD");
+    $html->message('err', "$_ERROR", "$_WRONG_PASSWD");
     $action = 'Error';
    }
  }
@@ -342,7 +342,7 @@ if ($res > 0) {
 #   return ($pass eq $universal_pass) ? 0 : 1;
 #  }
 else {
-   message('err', "$_ERROR", "$_WRONG_PASSWD");
+   $html->message('err', "$_ERROR", "$_WRONG_PASSWD");
    $ret = 0;
    $action = 'Error';
  }
@@ -369,17 +369,17 @@ sub auth_sql {
  	               ); 
 
 if ($user->{TOTAL} < 1) {
-  #message('err', $_ERROR, "$_NOT_FOUND");
+  #$html->message('err', $_ERROR, "$_NOT_FOUND");
 }
 elsif($user->{errno}) {
-	message('err', $_ERROR, "$user->{errno} $user->{errstr}");
+	$html->message('err', $_ERROR, "$user->{errno} $user->{errstr}");
 }
 else {
   $ret = $user->{UID};
 }
 
 #else {
-#  message('err', "$_ERROR", "$_WRONG_PASSWD");
+#  $html->message('err', "$_ERROR", "$_WRONG_PASSWD");
 #  $action = 'Error';
 #  $ret = -1;
 #}
@@ -400,7 +400,7 @@ if ($FORM{newpassword} eq '') {
 
 }
 elsif (length($FORM{newpassword}) < $conf{passwd_length}) {
-  message('err', $_ERROR, $err_strs{6});
+  $html->message('err', $_ERROR, $err_strs{6});
 }
 elsif ($FORM{newpassword} eq $FORM{confirm}) {
   %INFO = ( PASSWORD => $FORM{newpassword},
@@ -410,15 +410,15 @@ elsif ($FORM{newpassword} eq $FORM{confirm}) {
   $user->change($user->{UID}, { %INFO });
 
   if(!$user->{errno}) {
-  	 message('info', $_INFO, "$_CHANGED");	
+  	 $html->message('info', $_INFO, "$_CHANGED");	
    }
   else {
-  	 message('err', $_ERROR, "[$user->{errno}] $err_strs{$user->{errno}}");	
+  	 $html->message('err', $_ERROR, "[$user->{errno}] $err_strs{$user->{errno}}");	
    }
   return 0;
 }
 elsif($FORM{newpassword} ne $FORM{confirm}) {
-  message('err', $_ERROR, $err_strs{5});
+  $html->message('err', $_ERROR, $err_strs{5});
 }
 
 
@@ -430,7 +430,7 @@ elsif($FORM{newpassword} ne $FORM{confirm}) {
 sub logout {
 	$FORM{op}='logout';
 	auth('', '', $sid);
-	message('info', $_INFO, $_LOGOUT);
+	$html->message('info', $_INFO, $_LOGOUT);
 	
 	
 	

@@ -643,7 +643,9 @@ elsif($attr->{DATE}) {
 
 
  if ($self->{TOTAL} > 0) {
-    $self->query($db, "SELECT count(*), SEC_TO_TIME(sum(l.duration)), sum(l.sent + l.recv), sum(sum)  
+    $self->query($db, "SELECT count(*), SEC_TO_TIME(sum(l.duration)), sum(l.sent + l.recv), 
+      sum(l.sent2 + l.recv2), 
+      sum(sum)  
       FROM log l, users u
      $WHERE;");
 
@@ -651,6 +653,7 @@ elsif($attr->{DATE}) {
     ($self->{TOTAL},
      $self->{DURATION},
      $self->{TRAFFIC},
+     $self->{TRAFFIC2},
      $self->{SUM}) = @$a_ref;
   }
 

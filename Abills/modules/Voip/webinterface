@@ -40,12 +40,12 @@ sub voip_chg_tp {
    $user = $attr->{USER};
    $user = $Voip->user_info($user->{UID});
    if($user->{TOTAL} < 1) {
- 	   message('info', $_INFO, $_NOT_ACTIVE);
+ 	   $html->message('info', $_INFO, $_NOT_ACTIVE);
  	   return 0;
     }
   }
  else {
- 	 message('err', $_ERROR, "$_USER_NOT_EXIST");
+ 	 $html->message('err', $_ERROR, "$_USER_NOT_EXIST");
  	 return 0;
   }
 
@@ -70,10 +70,10 @@ if ($FORM{set}) {
                     });
 
     if ($shedule->{errno}) {
-      message('err', $_ERROR, "[$shedule->{errno}] $err_strs{$shedule->{errno}}");	
+      $html->message('err', $_ERROR, "[$shedule->{errno}] $err_strs{$shedule->{errno}}");	
      }
     else {
-      message('info', $_CHANGED, "$_CHANGED");
+      $html->message('info', $_CHANGED, "$_CHANGED");
       $user->info($user->{UID});
     }
    }
@@ -81,10 +81,10 @@ if ($FORM{set}) {
     $user->user_change({ %FORM });
 
     if ($users->{errno}) {
-      message('err', $_ERROR, "[$users->{errno}] $err_strs{$users->{errno}}");	
+      $html->message('err', $_ERROR, "[$users->{errno}] $err_strs{$users->{errno}}");	
      }
     else {
-      message('info', $_CHANGED, "$_CHANGED");
+      $html->message('info', $_CHANGED, "$_CHANGED");
       $user->user_info($user->{UID});
     }
 
@@ -157,7 +157,7 @@ sub voip_users_list {
 my $list = $Voip->user_list( { %LIST_PARAMS } );
 
 if ($Voip->{errno}) {
-  message('err', $_ERROR, "[$Voip->{errno}] $err_strs{$Voip->{errno}}");	
+  $html->message('err', $_ERROR, "[$Voip->{errno}] $err_strs{$Voip->{errno}}");	
   return 0;
  }
 elsif ($Voip->{TOTAL} == 1) {
@@ -205,26 +205,26 @@ sub voip_user {
   if ($FORM{add}) {
     $Voip->user_add({ %FORM });
     if (! $Voip->{errno}) {
-      message('info', $_INFO, "$_ADDED");	
+      $html->message('info', $_INFO, "$_ADDED");	
      }
    }
 	elsif($FORM{set}) {
     $Voip->user_change({ %FORM });
     if (! $Voip->{errno}) {
-      message('info', $_INFO, "$_CHANGED");	
+      $html->message('info', $_INFO, "$_CHANGED");	
      }
    }
 	elsif($FORM{del}) {
     $Voip->user_del();
     if (! $Voip->{errno}) {
-      message('info', $_INFO, "$_CHANGED");	
+      $html->message('info', $_INFO, "$_CHANGED");	
      }
 	 }
 
   my $user = $Voip->user_info($FORM{UID});
 
   if($user->{TOTAL} < 1) {
-	  message('info', $_INFO, $_NOT_ACTIVE);
+	  $html->message('info', $_INFO, $_NOT_ACTIVE);
 	  $user = $Voip->defaults();
 	  $user->{ACTION}='add';
 	  $user->{LNG_ACTION}=$_ACTIVATE;
@@ -267,7 +267,7 @@ if (defined($attr->{TP})) {
 	if ($FORM{change}) {
 		 $Voip->rp_add({ %FORM });
      if (! $Voip->{errno}) {
-      message('info', $_INFO, "$_ADDED");
+      $html->message('info', $_INFO, "$_ADDED");
      }
 
 	 }
@@ -465,20 +465,20 @@ if(defined($attr->{TP})) {
   elsif ($FORM{add}) {
     $tarif_plan->ti_add( { %FORM });
     if (! $tarif_plan->{errno}) {
-      message('info', $_INFO, "$_INTERVALS $_ADDED");
+      $html->message('info', $_INFO, "$_INTERVALS $_ADDED");
      }
    }
   elsif($FORM{change}) {
     $tarif_plan->ti_change( $FORM{TI_ID}, { %FORM } );
 
     if (! $tarif_plan->{errno}) {
-      message('info', $_INFO, "$_INTERVALS $_CHANGED [$tarif_plan->{TI_ID}]");
+      $html->message('info', $_INFO, "$_INTERVALS $_CHANGED [$tarif_plan->{TI_ID}]");
      }
    }
   elsif(defined($FORM{chg})) {
   	$tarif_plan->ti_info( $FORM{chg} );
     if (! $tarif_plan->{errno}) {
-      message('info', $_INFO, "$_INTERVALS $_CHANGE [$FORM{chg}]");
+      $html->message('info', $_INFO, "$_INTERVALS $_CHANGE [$FORM{chg}]");
      }
 
  	 	$tarif_plan->{ACTION}='change';
@@ -487,7 +487,7 @@ if(defined($attr->{TP})) {
   elsif($FORM{del} && $FORM{is_js_confirmed}) {
     $tarif_plan->ti_del($FORM{del});
     if (! $tarif_plan->{errno}) {
-      message('info', $_DELETED, "$_DELETED $FORM{del}");
+      $html->message('info', $_DELETED, "$_DELETED $FORM{del}");
      }
    }
   else {
@@ -549,7 +549,7 @@ elsif (defined($FORM{TP_ID})) {
 
 
 if ($tarif_plan->{errno}) {
-   message('err', $_ERROR, "[$tarif_plan->{errno}] $err_strs{$tarif_plan->{errno}} $tarif_plan->{errstr}");	
+   $html->message('err', $_ERROR, "[$tarif_plan->{errno}] $err_strs{$tarif_plan->{errno}} $tarif_plan->{errstr}");	
  }
 
 
@@ -640,14 +640,14 @@ sub voip_tp {
 if($FORM{ADD_TP}) {
   $Voip->tp_add({ %FORM });
   if (! $Voip->{errno}) {
-    message('info', $_ADDED, "$_ADDED $Voip->{TP_ID}");
+    $html->message('info', $_ADDED, "$_ADDED $Voip->{TP_ID}");
    }
  }
 elsif (defined($FORM{TP_ID})) {
   $Voip_tp = $Voip->tp_info( $FORM{TP_ID} );
 
   if ($Voip_tp->{errno}) {
-    message('err', $_ERROR, "[$Voip_tp->{errno}] $err_strs{$Voip->{errno}}");	
+    $html->message('err', $_ERROR, "[$Voip_tp->{errno}] $err_strs{$Voip->{errno}}");	
     return 0;
    }
 
@@ -679,7 +679,7 @@ elsif (defined($FORM{TP_ID})) {
   elsif($FORM{change}) {
     $Voip->tp_change( $FORM{chg}, { %FORM  } );  
     if (! $Voip->{errno}) {
-       message('info', $_CHANGED, "$_CHANGED $Voip->{TP_ID}");
+       $html->message('info', $_CHANGED, "$_CHANGED $Voip->{TP_ID}");
      }
    }
 
@@ -692,13 +692,13 @@ elsif(defined($FORM{del}) && $FORM{is_js_confirmed}) {
   $Voip->tp_del($FORM{del});
 
   if (! $Voip->{errno}) {
-    message('info', $_DELETE, "$_DELETED $FORM{del}");
+    $html->message('info', $_DELETE, "$_DELETED $FORM{del}");
    }
 }
 
 
 if ($Voip->{errno}) {
-    message('err', $_ERROR, "[$Voip->{errno}] $err_strs{$Voip->{errno}}");	
+    $html->message('err', $_ERROR, "[$Voip->{errno}] $err_strs{$Voip->{errno}}");	
  }
 
 
@@ -779,13 +779,13 @@ sub voip_routes {
 if($FORM{add}) {
   $Voip->route_add( { %FORM });
   if (! $Voip->{errno}) {
-    message('info', $_ADDED, "$_ADDED $Voip->{ROUTE_ID}");
+    $html->message('info', $_ADDED, "$_ADDED $Voip->{ROUTE_ID}");
    }
  }
 elsif($FORM{change}) {
   $Voip->route_change({ %FORM });
   if (! $Voip->{errno}) {
-    message('info', $_INFO, "$_CHANGED");	
+    $html->message('info', $_INFO, "$_CHANGED");	
    }
  }
 if($FORM{add_route}) {
@@ -817,7 +817,7 @@ if($FORM{add_route}) {
 elsif($FORM{ROUTE_ID}) {
   $Voip->route_info($FORM{ROUTE_ID}, { %FORM });
   if (! $Voip->{errno}) {
-    message('info', $_INFO, "$_CHANGING");	
+    $html->message('info', $_INFO, "$_CHANGING");	
    }
 
   $Voip->{ACTION}='change';
@@ -826,12 +826,12 @@ elsif($FORM{ROUTE_ID}) {
 elsif(defined($FORM{del}) && $FORM{is_js_confirmed}) {
   $Voip->route_del($FORM{del});
   if (! $tariffs->{errno}) {
-    message('info', $_DELETE, "$_DELETED $FORM{del}");
+    $html->message('info', $_DELETE, "$_DELETED $FORM{del}");
    }
 }
 
 if ($Voip->{errno}) {
-   message('err', $_ERROR, "[$Voip->{errno}] $err_strs{$Voip->{errno}}");	
+   $html->message('err', $_ERROR, "[$Voip->{errno}] $err_strs{$Voip->{errno}}");	
    return 0;
  }
 
@@ -1008,14 +1008,14 @@ my $nas = Nas->new($db);
 my $message;
 if ($FORM{ping}) {
   my $res = `/sbin/ping -c 5 $FORM{ping}`;
-  message('info', $_INFO,  "Ping  $FORM{ping}<br>Result:<br><pre>$res</pre>");
+  $html->message('info', $_INFO,  "Ping  $FORM{ping}<br>Result:<br><pre>$res</pre>");
  }
 elsif ($FORM{hangup}) {
   my ($nas_id, $acct_session_id, $user_name) = split(/ /, $FORM{hangup}, 4);
   $nas->info( { NAS_ID => $nas_id, SECRETKEY => $conf{secretkey} });
   
   if ($nas->{errno}) {
-    message('err', $_NAS, "$nas->{errstr}");
+    $html->message('err', $_NAS, "$nas->{errstr}");
   	return 0;
    }
 
@@ -1040,14 +1040,14 @@ elsif ($FORM{hangup}) {
    	$message = 'NAS NOT supported yet';
    }
 
-  message('info', $_INFO, "$message");
+  $html->message('info', $_INFO, "$message");
  }
 elsif($FORM{zap}) {
   my  ($nas_id, $acct_session_id)=split(/ /, $FORM{zap}, 3);
   $sessions->zap($nas_id, $acct_session_id);
 
   if ($sessions->{errno}) {
-  	 message('err', $_ERROR, "[$sessions->{errno}] $err_strs{$sessions->{errno}}");
+  	 $html->message('err', $_ERROR, "[$sessions->{errno}] $err_strs{$sessions->{errno}}");
   	 return 0;
    }
 
@@ -1076,7 +1076,7 @@ elsif($FORM{zap}) {
 
    }
 
-  message('info', $_INFO, $message);
+  $html->message('info', $_INFO, $message);
 }
 elsif($FORM{tolog}) {
   my $ACCT_INFO = $sessions->online_info({ NAS_ID          => $FORM{nas_id},
@@ -1084,7 +1084,7 @@ elsif($FORM{tolog}) {
                                          });
 
   if ($ACCT_INFO->{TOTAL} < 1) {
-    message('err', $_ERROR, "$_NOT_EXIST");	
+    $html->message('err', $_ERROR, "$_NOT_EXIST");	
     return 0;
    }
 
@@ -1101,7 +1101,7 @@ elsif($FORM{tolog}) {
   my $r = $Acct->accounting($ACCT_INFO, $nas, \%conf);
 
   if ($Acct->{errno}) {
-    message('err', $_ERRNO, "$Acct->{errno} $Acct->{errstr}");	
+    $html->message('err', $_ERRNO, "$Acct->{errno} $Acct->{errstr}");	
    }
   else {
   	my $table = $html->table( { width => '100%'} );
@@ -1111,7 +1111,7 @@ elsif($FORM{tolog}) {
   	while(my($k, $v)=each %$Acct) {
  		    $table->addrow($k, $v);
   	  }
-  	message('info', $_ADDED, $table->show());	
+  	$html->message('info', $_ADDED, $table->show());	
    }
   
   $sessions->online_del({ NAS_ID          => $ACCT_INFO->{NAS_ID},
@@ -1130,7 +1130,7 @@ elsif($FORM{del}) {
                                           [ "ACCT_SESSION_ID", $FORM{del} ] ]
                                      } );
     
-    message('info', $_DELETED, $table->show());	
+    $html->message('info', $_DELETED, $table->show());	
    }
 
 }
@@ -1230,7 +1230,7 @@ if (! $list) {
 
 if ($FORM{del} && $FORM{is_js_confirmed}) {
 	if(! defined($permissions{3}{1})) {
-     message('err', $_ERROR, 'ACCESS DENY');
+     $html->message('err', $_ERROR, 'ACCESS DENY');
      return 0;
 	 } 
 
@@ -1239,7 +1239,7 @@ if ($FORM{del} && $FORM{is_js_confirmed}) {
 
 	$sessions->del($UID, $session_id, $nas_id, "$session_start_date $session_start_time");
   if (! $sessions->{errno})	 {
-  	message('info', $_DELETED, "$_LOGIN: $login<br> SESSION_ID: $session_id<br> NAS_ID: $nas_id<br> SESSION_START: $session_start_date $session_start_time<br> $_SUM: $sum");
+  	$html->message('info', $_DELETED, "$_LOGIN: $login<br> SESSION_ID: $session_id<br> NAS_ID: $nas_id<br> SESSION_START: $session_start_date $session_start_time<br> $_SUM: $sum");
     form_back_money('log', $sum, { UID => $UID }); #
     return 0;
    }
@@ -1247,7 +1247,7 @@ if ($FORM{del} && $FORM{is_js_confirmed}) {
 
 
 if ($sessions->{errno})	 {
-	message('err', $_ERROR, "[$sessions->{errno}] $err_strs{$sessions->{errno}}");
+	$html->message('err', $_ERROR, "[$sessions->{errno}] $err_strs{$sessions->{errno}}");
  }
 
 
@@ -1387,7 +1387,7 @@ elsif($FORM{UID}) {
 }
 
 if (! -f $conf{LOGFILE}) {
-	message('info', $_INFO, "'$conf{LOGFILE}' $_NOT_EXIST");
+	$html->message('info', $_INFO, "'$conf{LOGFILE}' $_NOT_EXIST");
 	return 0;
 }
 
@@ -1435,17 +1435,17 @@ if (defined($attr->{USER}))	{
    }
 
   if (defined($FORM{OP_SID}) and $FORM{OP_SID} eq $COOKIES{OP_SID}) {
- 	  message('err', $_ERROR, "$_EXIST $FORM{OP_SID} eq $COOKIES{OP_SID}");
+ 	  $html->message('err', $_ERROR, "$_EXIST $FORM{OP_SID} eq $COOKIES{OP_SID}");
    }
   elsif ($FORM{bm}) {
     use Bills;
     my $Bill = Bills->new($db);
     $Bill->action('add', "$FORM{BILL_ID}", $FORM{sum});
     if($bill->{errno}) {
-      message('err', $_ERROR, "[$bill->{errno}] $err_strs{$bill->{errno}}");
+      $html->message('err', $_ERROR, "[$bill->{errno}] $err_strs{$bill->{errno}}");
      }
     else {
-      message('info', $_INFO, "$_ADDED: SUM $FORM{sum}, BILL_ID: $FORM{BILL_ID}");  	
+      $html->message('info', $_INFO, "$_ADDED: SUM $FORM{sum}, BILL_ID: $FORM{BILL_ID}");  	
      }
    }
   elsif($FORM{SESSION_ID}) {
@@ -1463,7 +1463,7 @@ if (defined($attr->{USER}))	{
 
 
 if ($sessions->{errno})	 {
-	message('err', $_ERROR, "[$sessions->{errno}] $err_strs{$sessions->{errno}}");
+	$html->message('err', $_ERROR, "[$sessions->{errno}] $err_strs{$sessions->{errno}}");
  }
 
 
@@ -1480,7 +1480,7 @@ my $list = $sessions->periods_totals({ %LIST_PARAMS });
 
 
 if (! defined($sessions->{sum_4})) {
-	message('info', $_INFO, "$_NO_RECORD");
+	$html->message('info', $_INFO, "$_NO_RECORD");
 	return 0;
 }
 
@@ -1586,7 +1586,7 @@ sub voip_user_stats {
    }
 
 if ($sessions->{errno})	 {
-	message('err', $_ERROR, "[$sessions->{errno}] $err_strs{$sessions->{errno}}");
+	$html->message('err', $_ERROR, "[$sessions->{errno}] $err_strs{$sessions->{errno}}");
  }
 
 
@@ -1606,7 +1606,7 @@ my $table = $html->table( { width => '100%',
                                   } );
 
 if (! defined($sessions->{sum_5})) {
-	message('info', $_INFO, $_NO_RECORD);
+	$html->message('info', $_INFO, $_NO_RECORD);
 	return 0;
 }
 
@@ -1727,7 +1727,7 @@ sub voip_user_info {
   my $user = $Voip->user_info($LIST_PARAMS{UID});
   
   if ($user->{TOTAL} < 1) {
-  	message('info', $_INFO, "$_NOT_ACTIVE");
+  	$html->message('info', $_INFO, "$_NOT_ACTIVE");
     return 0;	
   }
   

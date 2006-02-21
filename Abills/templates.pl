@@ -331,13 +331,30 @@ return qq{
 <input type=hidden name=m value=%m%>
 <input type=hidden name=index value=$index>
 <TABLE width=400 border=0>
-<TR><TD>$_FROM:</TD><TD bgcolor=$_BG2>$user->{TP_ID} %TP_NAME% [<a href='$SELF?index=$index&TP_ID=%TP_ID%' title='$_VARIANTS'>$_VARIANTS</a>]</TD></TR>
+<TR><TD>$_FROM:</TD><TD bgcolor=$_COLORS[2]>$user->{TP_ID} %TP_NAME% <!-- [<a href='$SELF?index=$index&TP_ID=%TP_ID%' title='$_VARIANTS'>$_VARIANTS</a>] --></TD></TR>
 <TR><TD>$_TO:</TD><TD>%TARIF_PLAN_SEL%</TD></TR>
 %PARAMS%
 </TABLE><input type=submit name=set value=\"$_CHANGE\">
 </form>
 }
 }
+elsif ($tpl_name eq 'form_er') {
+return qq{
+<form action=$SELF_URL>
+<input type=hidden name=index value=$index>
+<input type=hidden name=op    value=er>
+<input type=hidden name=chg   value="$FORM{chg}"> 
+<table>
+<tr><td>$_MONEY:</td><td><input type=text name=ER_NAME value='%ER_NAME%'></td></tr>
+<tr><td>$_SHORT_NAME:</td><td><input type=text name=ER_SHORT_NAME value='%ER_SHORT_NAME%'></td></tr>
+<tr><td>$_EXCHANGE_RATE:</td><td><input type=text name=ER_RATE value='%ER_RATE%'></td></tr>
+</table>
+<input type=submit name='%ACTION%' value='%LNG_ACTION%'>
+</form>
+
+}
+}
+
 elsif ($tpl_name eq 'chg_company') {
 return qq{
 <form action=$SELF_URL>

@@ -85,7 +85,11 @@ sub exchange_list {
 #**********************************************************
 sub exchange_add {
 	my $self = shift;
-  my ($money, $short_name, $rate) = @_;
+  my ($attr) = @_;
+  
+  my $money = (defined($attr->{ER_NAME})) ? $attr->{ER_NAME} :  '';
+  my $short_name = (defined($attr->{ER_SHORT_NAME})) ? $attr->{ER_SHORT_NAME} :  '';
+  my $rate = (defined($attr->{ER_RATE})) ? $attr->{ER_RATE} :  '0';
   
   $self->query($db, "INSERT INTO exchange_rate (money, short_name, rate, changed) 
    values ('$money', '$short_name', '$rate', now());", 'do');
@@ -111,7 +115,12 @@ sub exchange_del {
 #**********************************************************
 sub exchange_change {
 	my $self = shift;
-  my ($id, $money, $short_name, $rate) = @_;
+  my ($id, $attr) = @_;
+ 
+  my $money = (defined($attr->{ER_NAME})) ? $attr->{ER_NAME} :  '';
+  my $short_name = (defined($attr->{ER_SHORT_NAME})) ? $attr->{ER_SHORT_NAME} :  '';
+  my $rate = (defined($attr->{ER_RATE})) ? $attr->{ER_RATE} :  '0';
+
  
   $self->query($db, "UPDATE exchange_rate SET
     money='$money', 
@@ -137,9 +146,10 @@ sub exchange_info {
   
   my $ar = $self->{list}->[0];
 
-  ($self->{MU_NAME}, 
-   $self->{MU_SHORT_NAME}, 
-   $self->{EX_RATE})=@$ar;
+  ($self->{ER_NAME}, 
+   $self->{ER_SHORT_NAME}, 
+   $self->{ER_RATE})=@$ar;
+
 
 	return $self;
 }
