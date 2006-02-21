@@ -31,9 +31,9 @@ use Abills::SQL;
 use Abills::HTML;
 use Users;
 
-my $output = Abills::HTML;
 
-$html = $output->new( { IMG_PATH => 'img/',
+
+$html = Abills::HTML->new( { IMG_PATH => 'img/',
 	                      NO_PRINT  => 'y' } );
 my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
 my $db = $sql->{db};
@@ -75,15 +75,6 @@ my $uid = 0;
 my $page_qs;
 my $admin;
 my %OUTPUT = ();
-
-
-#print << "[END]";
-#<TABLE width="100%" border="0">
-#<TR bgcolor="$_COLORS[0]"><TD align="right"><h3>ABillS</h3></TD></TR>
-#</TABLE>
-#<TABLE width="100%">
-#<TR><TD align="center">
-#[END]
 
 my $login = $FORM{user} || '';
 my $passwd = $FORM{passwd} || '';
@@ -179,7 +170,9 @@ if ($uid > 0) {
 else {
   form_login();
 }
-$OUTPUT{BODY}=$html->{OUTPUT};
+
+$OUTPUT{BODY}="$html->{OUTPUT}";
+
 print $html->tpl_show(templates('users_start'), \%OUTPUT);
 
 
