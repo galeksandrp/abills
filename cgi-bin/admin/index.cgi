@@ -2613,7 +2613,7 @@ if (defined($attr->{USER})) {
    }
   elsif ($FORM{add} && $FORM{SUM})	{
     my $er = $payments->exchange_info($FORM{ER});
-    $FORM{ER} = $er->{EX_RATE};
+    $FORM{ER} = $er->{ER_RATE};
     $payments->add($user, { %FORM } );  
 
     if ($payments->{errno}) {

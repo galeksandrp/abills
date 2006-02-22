@@ -124,11 +124,9 @@ sub new {
    }
 
   if (defined($FORM{xml})) {
-    use Abills::XML;
-
+    require Abills::XML;
     $self = Abills::XML->new( { IMG_PATH => 'img/',
 	                      NO_PRINT  => 'y' } );
-    
   }
   
 

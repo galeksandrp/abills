@@ -574,15 +574,10 @@ sub table {
      }
   }
 
- if (defined($attr->{caption})) {
- 	 $self->{table} = "<b>$attr->{caption}</b><br/>". $self->{table}; 
-  }
-
-
- $self->{table} = "<TABLE>";
+ $self->{table} = "<TABLE>\n";
  
  if (defined($attr->{caption})) {
-   $self->{table} .= "<TABLE_CAPTION>>$attr->{caption}</TABLE_CAPTION>\n";
+   $self->{table} .= "<TABLE_CAPTION>$attr->{caption}</TABLE_CAPTION>\n";
   }
 
  if (defined($attr->{title})) {
