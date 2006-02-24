@@ -5,6 +5,7 @@ CREATE TABLE `admin_actions` (
   `uid` int(11) unsigned NOT NULL default '0',
   `aid` smallint(6) unsigned NOT NULL default '0',
   `id` int(11) unsigned NOT NULL auto_increment,
+  `module` varchar(10) NOT NULL default '',
   PRIMARY KEY  (`id`),
   UNIQUE KEY `id` (`id`),
   KEY `uid` (`uid`)

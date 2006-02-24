@@ -46,7 +46,14 @@ $conf{p_users_mails}=1;  # Send user warning  messages
 # chap encryption decription key
 $conf{secretkey}="test12345678901234567890";
 $conf{s_detalization}='yes'; #make session detalization recomended for vpn leathed lines
-$conf{version}='0.30b'; #29.12.2005
+$conf{version}='0.30b'; #24.02.2006
+
+#Octets direction
+# server - Count octets from server side
+# user   - Count octets from user side (default)
+$conf{octets_direction}='user';
+
+
 
 #Minimum session costs
 $conf{MINIMUM_SESSION_TIME}=10; # minimum session time for push session to db

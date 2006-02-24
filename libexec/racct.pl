@@ -82,6 +82,7 @@ my $a = `echo "$t" >> /tmp/voip_test`;
 
 
 if (! defined($RAD->{NAS_IP_ADDRESS})) {
+  $RAD->{USER_NAME}='-' if (! defined($RAD->{USER_NAME}));
   access_deny("$RAD->{USER_NAME}", "Not specified NAS server", 0);
   exit 1;
 }
@@ -127,38 +128,58 @@ sub acct {
   my $acct_status_type = $ACCT_TYPES{$RAD->{ACCT_STATUS_TYPE}};
   
 
-  $RAD->{INBYTE} = $RAD->{ACCT_INPUT_OCTETS} || 0;   # FROM client
-  $RAD->{OUTBYTE} = $RAD->{ACCT_OUTPUT_OCTETS} || 0; # TO client
+  if (defined($conf{octets_direction}) && $conf{octets_direction} eq 'server') {
+    $RAD->{INBYTE} = $RAD->{ACCT_INPUT_OCTETS} || 0;   # FROM client
+    $RAD->{OUTBYTE} = $RAD->{ACCT_OUTPUT_OCTETS} || 0; # TO client
+
+    if ($nas->{NAS_TYPE} eq 'exppp') {
+      #reverse byte parameters
+      $RAD->{INBYTE} = $RAD->{ACCT_OUTPUT_OCTETS} || 0;   # FROM client
+      $RAD->{OUTBYTE} = $RAD->{ACCT_INPUT_OCTETS} || 0; # TO client
+
+  
+      $RAD->{INBYTE2} = $RAD->{EXPPP_ACCT_LOCALOUTPUT_OCTETS} || 0;             # From client
+      $RAD->{OUTBYTE2} = $RAD->{EXPPP_ACCT_LOCALINPUT_OCTETS} || 0;            # To client
+
+      $RAD->{INTERIUM_INBYTE}  = $RAD->{EXPPP_ACCT_ITERIUMOUT_OCTETS} || 0;
+      $RAD->{INTERIUM_OUTBYTE} = $RAD->{EXPPP_ACCT_ITERIUMIN_OCTETS} || 0;
+      $RAD->{INTERIUM_INBYTE2} = $RAD->{EXPPP_ACCT_LOCALITERIUMOUT_OCTETS} || 0;
+      $RAD->{INTERIUM_OUTBYTE2} = $RAD->{EXPPP_ACCT_LOCALITERIUMIN_OCTETS} || 0;
+     }
+    else {
+      $RAD->{INBYTE2}  = 0;
+      $RAD->{OUTBYTE2} = 0;
+     }
+   }
+  # From client
+  else {
+    $RAD->{INBYTE} = $RAD->{ACCT_OUTPUT_OCTETS} || 0; # FROM client
+    $RAD->{OUTBYTE} = $RAD->{ACCT_INPUT_OCTETS} || 0; # TO client
+
+    if ($nas->{NAS_TYPE} eq 'exppp') {
+      #reverse byte parameters
+      $RAD->{INBYTE} = $RAD->{ACCT_INPUT_OCTETS} || 0;   # FROM client
+      $RAD->{OUTBYTE} = $RAD->{ACCT_OUTPUT_OCTETS} || 0; # TO client
+  
+      $RAD->{INBYTE2} = $RAD->{EXPPP_ACCT_LOCALINPUT_OCTETS} || 0;             # From client
+      $RAD->{OUTBYTE2} = $RAD->{EXPPP_ACCT_LOCALOUTPUT_OCTETS} || 0;            # To client
+
+      $RAD->{INTERIUM_INBYTE}  = $RAD->{EXPPP_ACCT_ITERIUMIN_OCTETS} || 0;
+      $RAD->{INTERIUM_OUTBYTE} = $RAD->{EXPPP_ACCT_ITERIUMOUT_OCTETS} || 0;
+      $RAD->{INTERIUM_INBYTE2} = $RAD->{EXPPP_ACCT_LOCALITERIUMIN_OCTETS} || 0;
+      $RAD->{INTERIUM_OUTBYTE2} = $RAD->{EXPPP_ACCT_LOCALITERIUMOUT_OCTETS} || 0;
+     }
+    else {
+      $RAD->{INBYTE2}  = 0;
+      $RAD->{OUTBYTE2} = 0;
+    }
+  }
+
   $RAD->{LOGOUT} = time;
   $RAD->{SESSION_START} = (defined($RAD->{ACCT_SESSION_TIME})) ?  time - $RAD->{ACCT_SESSION_TIME} : 0;
   $RAD->{NAS_PORT} = 0 if  (! defined($RAD->{NAS_PORT}));
   $RAD->{CONNECT_INFO} = '' if  (! defined($RAD->{CONNECT_INFO}));
-
   $RAD->{ACCT_TERMINATE_CAUSE} =  (defined($RAD->{ACCT_TERMINATE_CAUSE}) && defined($ACCT_TERMINATE_CAUSES{"$RAD->{ACCT_TERMINATE_CAUSE}"})) ? $ACCT_TERMINATE_CAUSES{"$RAD->{ACCT_TERMINATE_CAUSE}"} : 0;
-
-
-
-
-
-# Exppp VENDOR params           
-if ($nas->{NAS_TYPE} eq 'exppp') {
-  #reverse byte parameters
-  $RAD->{INBYTE} = $RAD->{ACCT_OUTPUT_OCTETS} || 0;   # FROM client
-  $RAD->{OUTBYTE} = $RAD->{ACCT_INPUT_OCTETS} || 0; # TO client
-
-  
-  $RAD->{INBYTE2} = $RAD->{EXPPP_ACCT_LOCALOUTPUT_OCTETS} || 0;             # From client
-  $RAD->{OUTBYTE2} = $RAD->{EXPPP_ACCT_LOCALINPUT_OCTETS} || 0;            # To client
-
-  $RAD->{INTERIUM_INBYTE}  = $RAD->{EXPPP_ACCT_ITERIUMOUT_OCTETS} || 0;
-  $RAD->{INTERIUM_OUTBYTE} = $RAD->{EXPPP_ACCT_ITERIUMIN_OCTETS} || 0;
-  $RAD->{INTERIUM_INBYTE2} = $RAD->{EXPPP_ACCT_LOCALITERIUMOUT_OCTETS} || 0;
-  $RAD->{INTERIUM_OUTBYTE2} = $RAD->{EXPPP_ACCT_LOCALITERIUMIN_OCTETS} || 0;
-}
-else {
- $RAD->{INBYTE2}  = 0;
- $RAD->{OUTBYTE2} = 0;
-}
 
  
  # Make accounting with external programs
