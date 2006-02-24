@@ -137,7 +137,7 @@ sub pi_add {
   
   return $self if ($self->{errno});
   
-  $admin->action_add($uid, "ADD");
+  $admin->action_add("$DATA{UID}", "ADD PIf");
   return $self;
 }
 
@@ -671,7 +671,7 @@ sub del {
      $self->{info} .= "$table, ";
     }
 
-  $admin->action_add($uid, "DELETE");
+  $admin->action_add($self->{UID}, "DELETE $self->{UID}:$self->{LOGIN}");
   return $self->{result};
 }
 
@@ -706,7 +706,7 @@ sub nas_add {
    $self->query($db, "INSERT INTO users_nas (nas_id, uid) VALUES ('$line', '$self->{UID}');", 'do');
   }
   
-  $admin->action_add($uid, "NAS ". join(',', @$nas) );
+  $admin->action_add($self->{UID}, "NAS ". join(',', @$nas) );
   return $self;
 }
 

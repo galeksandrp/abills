@@ -98,7 +98,7 @@ if (defined($args->{monthly})) {
      $ADMIN_REPORT{GT} = sprintf(" GT: %2.5f", $gen_time);
     }
 
-   my $message = Abills::HTML->tpl_show(templates('admin_report_month'), \%ADMIN_REPORT, { notprint => 'yes' });
+   my $message = $html->tpl_show(templates('admin_report_month'), \%ADMIN_REPORT, { notprint => 'yes' });
    sendmail("$conf{ADMIN_MAIL}", "$conf{ADMIN_MAIL}", "Monthly billing report", 
               "$message", "$conf{MAIL_CHARSET}", "2 (High)");
  }
@@ -115,7 +115,7 @@ elsif (defined($args->{daily})) {
     $ADMIN_REPORT{GT} = sprintf(" GT: %2.5f", $gen_time);
   }
 
-  my $message = Abills::HTML->tpl_show(templates('admin_report_day'), \%ADMIN_REPORT, { notprint => 'yes' });
+  my $message = $html->tpl_show(templates('admin_report_day'), \%ADMIN_REPORT, { notprint => 'yes' });
   sendmail("$conf{ADMIN_MAIL}", "$conf{ADMIN_MAIL}", "Daily billing report ($YESTERDAY)", 
              "$message", "$conf{MAIL_CHARSET}", "2 (High)");
 } 

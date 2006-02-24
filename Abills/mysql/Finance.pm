@@ -94,6 +94,8 @@ sub exchange_add {
   $self->query($db, "INSERT INTO exchange_rate (money, short_name, rate, changed) 
    values ('$money', '$short_name', '$rate', now());", 'do');
 
+  $admin->action_add(0, "$money/$short_name/$rate");
+
 	return $self;
 }
 
@@ -128,6 +130,8 @@ sub exchange_change {
     rate='$rate',
     changed=now()
    WHERE id='$id';", 'do');
+
+  $admin->action_add(0, "$money/$short_name/$rate");
 
 	return $self;
 }
