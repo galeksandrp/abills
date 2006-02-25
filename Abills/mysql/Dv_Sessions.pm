@@ -68,6 +68,13 @@ sub online_update {
   if (defined($attr->{out})) {
   	push @SET_RULES, "acct_output_octets='$attr->{out}'";
    }
+
+
+  if (defined($attr->{STATUS})) {
+  	push @SET_RULES, "status='$attr->{STATUS}'";
+   }
+
+
  
   my $SET = ($#SET_RULES > -1) ? join(', ', @SET_RULES)  : '';
 

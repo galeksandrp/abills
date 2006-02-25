@@ -1,7 +1,16 @@
 #!/bin/sh
+# Traf stats
+#trafstats [Interface] 
+
+
+if [ w$2 = w ]; then
+ echo "trafstats [nasid] [Interface]";
+ exit 0;
+fi;
 
 # IF_NAME - interface name
-IF_NAME='fxp0';
+IF_NAME=$2;
+NAS_ID=$1;
 
 #Temporary log path
 # default LOG_PATH='/usr/abills/var/log/ipn/'
@@ -9,10 +18,10 @@ LOG_PATH='/usr/abills/var/log/ipn/';
 
 /usr/local/bin/trafsave ${IF_NAME}
 sleep 30
-/usr/local/bin/traflog -n -i ${IF_NAME} > ${LOG_PATH}trafd
+/usr/local/bin/traflog -n -i ${IF_NAME} > ${LOG_PATH}trafd_${NAS_ID}_${IF_NAME}
 /bin/rm /usr/local/var/trafd/trafd.${IF_NAME}
 
-/usr/abills/libexec/traffic2sql
+/usr/abills/libexec/traffic2sql ${NAS_ID} ${IF_NAME}
 
 
 

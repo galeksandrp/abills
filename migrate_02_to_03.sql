@@ -95,6 +95,7 @@ ALTER TABLE `fees` MODIFY COLUMN `sum` DOUBLE(12,2) NOT NULL DEFAULT '0.00';
 ALTER TABLE `fees` MODIFY COLUMN `dsc` VARCHAR(80) not null default '';
 ALTER TABLE `fees` MODIFY COLUMN `last_deposit` DOUBLE(15,6) NOT NULL DEFAULT '0.000000';
 ALTER TABLE `fees` ADD COLUMN `bill_id` INTEGER(11) UNSIGNED NOT NULL DEFAULT '0';
+UPDATE fees SET bill_id=uid;
 
 
 
@@ -182,6 +183,7 @@ ALTER TABLE  payments  ADD COLUMN  `method` tinyint(4) unsigned NOT NULL default
 ALTER TABLE  payments  CHANGE `last_deposit` `last_deposit` double(15,6) NOT NULL default '0.000000';
 ALTER TABLE `payments` ADD COLUMN `ext_id` varchar(16) NOT NULL default '';
 ALTER TABLE `payments` ADD COLUMN `bill_id` int(11) unsigned NOT NULL default '0';
+UPDATE payments  SET bill_id=uid;
  
 
  
@@ -189,6 +191,7 @@ RENAME TABLE userlog to admin_actions;
 ALTER TABLE `admin_actions` DROP COLUMN `ww`;
 ALTER TABLE admin_actions change log actions varchar(100) NOT NULL default '';
 ALTER TABLE admin_actions change date `datetime` datetime NOT NULL default '0000-00-00 00:00:00';
+ALTER TABLE admin_actions add column `module` varchar(10) NOT NULL default '';
 
 
 

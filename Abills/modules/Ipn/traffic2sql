@@ -1,14 +1,23 @@
 #!/usr/bin/perl -w
 # PUSH traffic to sql
 
-use vars  qw(%RAD %conf $db %AUTH $var_dir);
+use vars  qw(%RAD %conf $db %AUTH $DATE $var_dir);
 use strict;
+
+
+
+if ($#ARGV < 1) {
+	print "\ntraffic2sql [NAS_ID] [Interface]\n";
+	exit;
+}
+
+my $NAS_ID=$ARGV[0];
+my $IF_NAME=$ARGV[1];
+
 
 use FindBin '$Bin';
 require $Bin . '/config.pl';
-
 unshift(@INC, $Bin . '/../', $Bin . "/../Abills/$conf{dbtype}");
-
 require Abills::Base;
 Abills::Base->import();
 my $begin_time = check_time();
@@ -21,13 +30,11 @@ require Ipn;
 Ipn->import();
 my $Ipn = Ipn->new($db, \%conf);
 
+my $log = $var_dir."log/ipn/trafd_". $NAS_ID. "_" .$IF_NAME;
 
 
 #my $user = "ipstat";
 #my $group = "guest";
-
-my $log = $var_dir."log/ipn/trafd";
-
 #$zip = $path."bin/zip";
 #$unzip = $path."bin/unzip";
 
@@ -58,6 +65,8 @@ while( <LOG> ) {
 	  $DATA{PROTOCOL}=0;
 		$DATA{SRC_PORT} = 0 if ( $DATA{SRC_PORT} !~ /^\d+$/ );
 		$DATA{DST_PORT} = 0 if ( $DATA{DST_PORT} !~ /^\d+$/ );
+		$DATA{NAS_ID}=$NAS_ID;
+		$DATA{IF_NAME}='0';
     $Ipn->traffic_add({ %DATA });
 
 

@@ -19,6 +19,10 @@ $VERSION = 2.00;
 use main;
 @ISA  = ("main");
 
+use POSIX qw(strftime);
+my $DATE = strftime "%Y-%m-%d", localtime(time);
+
+
 my $db;
 my $CONF;
 my $debug =0;
@@ -48,15 +52,32 @@ sub traffic_add {
   my $self = shift;
   my ($DATA) = @_;
 
-#  $self->{debug}=1;
+# $self->{debug}=1;
+ my ($Y, $M, $D)=split(/-/, $DATE, 3);
+ my $table_name = "ipn_traf_log_". $Y."_".$M;
 
-  $self->query($db, "insert into traf_log (src_addr,
+ $self->query($db, "CREATE TABLE IF NOT EXISTS `$table_name`  (
+  `src_addr` int(11) unsigned NOT NULL default '0',
+  `dst_addr` int(11) unsigned NOT NULL default '0',
+  `src_port` smallint(5) unsigned NOT NULL default '0',
+  `dst_port` smallint(5) unsigned NOT NULL default '0',
+  `protocol` tinyint(3) unsigned default '0',
+  `size` bigint(20) unsigned default '0',
+  `f_time` datetime NOT NULL default '0000-00-00 00:00:00',
+  `s_time` datetime NOT NULL default '0000-00-00 00:00:00',
+  `nas_id` smallint(5) unsigned NOT NULL default 0
+  );", 'do');
+
+
+
+  $self->query($db, "insert into $table_name (src_addr,
        dst_addr,
        src_port,
        dst_port,
        protocol,
        size,
-       f_time)
+       f_time,
+       nas_id)
      VALUES (
         $DATA->{SRC_IP},
         $DATA->{DST_IP},
@@ -64,7 +85,8 @@ sub traffic_add {
        '$DATA->{DST_PORT}',
        '$DATA->{PROTOCOL}',
        '$DATA->{SIZE}',
-       now()
+        now(),
+        '$DATA->{NAS_ID}'
       );", 'do');
 
  return $self;

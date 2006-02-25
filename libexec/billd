@@ -34,7 +34,7 @@ my $default_alive_interval = 120;
 my $hanguplimit = 3500000000;
 
 # console
-my $error_output='console';
+my $error_output='';
 
 if ($admin->{errno}) {
 	print  $admin->{errno};
@@ -90,6 +90,7 @@ sub check_lines {
      
       if (defined($external_stats->{error})) {
       	print "Error:  Login: $line->[0], NAS-IP: $NAS{NAS_IP}, Port: $line->[2], Session-ID: $line->[11]\n" if ($error_output eq 'console');
+      	$sessions->online_update({ USER_NAME => $line->[0], ACCT_SESSION_ID => $line->[11], STATUS => 5 });
        }
       elsif (defined($external_stats->{in})) {
         $sessions->online_update({ USER_NAME => $line->[0], ACCT_SESSION_ID => $line->[11], %$external_stats });
