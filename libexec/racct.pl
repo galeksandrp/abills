@@ -1,5 +1,6 @@
 #!/usr/bin/perl -w
-# Radius Accounting
+# Radius Accounting 
+#
 
 use vars  qw(%RAD %conf $db %ACCT);
 use strict;
