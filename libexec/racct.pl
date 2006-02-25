@@ -183,6 +183,8 @@ sub acct {
 
  
  # Make accounting with external programs
+if (-d $conf{extern_acct_dir}) {
+
  opendir DIR, $conf{extern_acct_dir} or die "Can't open dir '$conf{extern_acct_dir}' $!\n";
    my @contents = grep  !/^\.\.?$/  , readdir DIR;
  closedir DIR;
@@ -205,6 +207,8 @@ sub acct {
       }
     }
   }
+}
+
 
 my $r = 0;
 my $Acct;

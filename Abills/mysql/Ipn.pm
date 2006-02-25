@@ -21,7 +21,7 @@ use main;
 
 use POSIX qw(strftime);
 my $DATE = strftime "%Y-%m-%d", localtime(time);
-
+my ($Y, $M, $D)=split(/-/, $DATE, 3);
 
 my $db;
 my $CONF;
@@ -53,7 +53,6 @@ sub traffic_add {
   my ($DATA) = @_;
 
 # $self->{debug}=1;
- my ($Y, $M, $D)=split(/-/, $DATE, 3);
  my $table_name = "ipn_traf_log_". $Y."_".$M;
 
  $self->query($db, "CREATE TABLE IF NOT EXISTS `$table_name`  (
@@ -104,6 +103,8 @@ sub list {
  my ($attr) = @_;
 
  undef @WHERE_RULES; 
+
+ my $table_name = "ipn_traf_log_". $Y."_".$M;
 
  my $GROUP = '';
  my $size  = 'size';
@@ -199,7 +200,7 @@ else {
   dst_port,
 
   protocol
-  from traf_log
+  FROM $table_name
   $WHERE
   $GROUP
   ORDER BY $SORT $DESC 
@@ -242,6 +243,8 @@ sub hosts_list {
 sub reports {
  my $self = shift;
  my ($attr) = @_;
+
+  my $table_name = "ipn_traf_log_". $Y."_".$M;
 
  undef @WHERE_RULES; 
 
@@ -334,7 +337,7 @@ else {
 if (defined($attr->{HOSTS})) {
 
  	 $self->query($db, "SELECT INET_NTOA(src_addr), sum(size), count(*)
-     from traf_log 
+     from $table_name
      $WHERE
      GROUP BY 1
     ORDER BY 2 DESC 
@@ -342,7 +345,7 @@ if (defined($attr->{HOSTS})) {
    $self->{HOSTS_LIST_FROM} = $self->{list};
 
  	 $self->query($db, "SELECT INET_NTOA(dst_addr), sum(size), count(*)
-     from traf_log 
+     from $table_name
      $WHERE
      GROUP BY 1
     ORDER BY 2 DESC 
@@ -351,7 +354,7 @@ if (defined($attr->{HOSTS})) {
  }
 elsif (defined($attr->{PORTS})) {
  	 $self->query($db, "SELECT src_port, sum(size), count(*)
-     from traf_log 
+     from  $table_name
      $WHERE
      GROUP BY 1
     ORDER BY 2 DESC 
@@ -359,7 +362,7 @@ elsif (defined($attr->{PORTS})) {
    $self->{PORTS_LIST_FROM} = $self->{list};
 
  	 $self->query($db, "SELECT dst_port, sum(size), count(*)
-     from traf_log 
+     from  $table_name
      $WHERE
      GROUP BY 1
     ORDER BY 2 DESC 
@@ -374,7 +377,7 @@ else {
    sum(if(src_port=0 && dst_port=0, size, 0)),
    sum(size),
    count(*)
-   from traf_log 
+   from  $table_name
    $WHERE
    $GROUP
   ORDER BY $SORT $DESC 
@@ -389,7 +392,7 @@ else {
 
  $self->query($db, "SELECT 
   count(*),  sum(size)
-  from traf_log 
+  from  $table_name
   $WHERE
   ;");
 
