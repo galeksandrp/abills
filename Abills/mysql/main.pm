@@ -36,8 +36,6 @@ $VERSION = 2.00;
   $DESC
   $PG
   $PAGE_ROWS
-
-  
 );
 
 @EXPORT_OK = ();

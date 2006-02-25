@@ -168,7 +168,7 @@ if($FORM{index} != 7 && ! defined($FORM{type})) {
 	$FORM{type}=$FORM{index};
  }
 elsif (! defined $FORM{type}) {
-	$FORM{type}=11;
+	$FORM{type}=15;
 }
 
 my $SEL_TYPE = $html->form_select('type', 
@@ -635,7 +635,7 @@ my $table = $html->table( { width      => '100%',
 foreach my $line (@$list) {
   my $delete = $html->button($_DEL, "index=27$pages_qs&del=$line->[0]", { MESSAGE => "$_DEL [$line->[0]]?" }); 
   $table->addrow("<b>$line->[0]</b>", "$line->[1]", "$line->[2]", 
-   $html->button($line->[3], "index=27&GID=$line->[0]&subf=11"), 
+   $html->button($line->[3], "index=27&GID=$line->[0]&subf=15"), 
    $html->button($_INFO, "index=27&GID=$line->[0]"),
    $delete);
 }
@@ -675,13 +675,13 @@ sub user_info {
   	                              rowcolor => $_COLORS[2],
   	                              border   => 0,
                                   cols_align => ['left'],
-                                  rows => [ [ "$_USER: ". $html->button("<b>$user_info->{LOGIN}</b>", "index=11&UID=$user_info->{UID}") ] ]
+                                  rows => [ [ "$_USER: ". $html->button("<b>$user_info->{LOGIN}</b>", "index=15&UID=$user_info->{UID}") ] ]
                                } );
 
   print $table->show();
   
 #  print  "<table width=100% bgcolor=$_COLORS[2]><tr><td>$_USER:</td>
-#   <td>". $html->button("<b>$user_info->{LOGIN}</b>", "index=11&UID=$user_info->{UID}") ."</td></tr></table>\n";
+#   <td>". $html->button("<b>$user_info->{LOGIN}</b>", "index=15&UID=$user_info->{UID}") ."</td></tr></table>\n";
   
   $LIST_PARAMS{UID}=$user_info->{UID};
   $pages_qs =  "&UID=$user_info->{UID}";
@@ -895,7 +895,7 @@ foreach my $line (@$list) {
   my $payments = ($permissions{1}) ? $html->button($_PAYMENTS, "index=2&UID=$line->[5]") : ''; 
   my $fees     = ($permissions{2}) ? $html->button($_FEES, "index=3&UID=$line->[5]") : '';
 
-  $table->addrow($html->button($line->[0], "index=11&UID=$line->[5]"), "$line->[1]",
+  $table->addrow($html->button($line->[0], "index=15&UID=$line->[5]"), "$line->[1]",
    "$line->[2]", "$line->[3]", "$status[$line->[4]]", $payments, $fees);
 }
 print $table->show();
@@ -1163,7 +1163,7 @@ my $table = $html->table( { width => '100%',
 foreach my $line (@$list) {
   my $delete = $html->button($_DEL, "index=$index$pages_qs&del=$line->[0]", { MESSAGE => "$_DEL [$line->[0]] ?" }); 
   $table->addrow("<b>$line->[0]</b>",
-    $html->button($line->[1], "index=11&UID=$line->[7]"), $line->[2], $line->[3], 
+    $html->button($line->[1], "index=15&UID=$line->[7]"), $line->[2], $line->[3], 
    $line->[4], $line->[5], $line->[6], $delete);
 }
 
@@ -2112,7 +2112,7 @@ sub form_passwd {
  	}
  elsif (defined($attr->{USER})) {
 	 $hidden_inputs = "<input type=hidden name=UID value='$attr->{USER}->{UID}'>";
-	 $index=11;
+	 $index=15;
  }
 
 
@@ -2271,7 +2271,7 @@ if (defined($FORM{DATE})) {
 
   foreach my $line (@$list) {
    $table_fees->addrow("<b>$line->[0]</b>", 
-     $html->button($line->[1], "index=11&subf=3&DATE=$line->[0]&UID=$line->[8]"),  
+     $html->button($line->[1], "index=15&subf=3&DATE=$line->[0]&UID=$line->[8]"),  
       $line->[2],
       $line->[3], $line->[4],  "$line->[5]", "$line->[6]", "$line->[7]");
     }
@@ -2329,7 +2329,7 @@ if (defined($FORM{DATE})) {
 
   foreach my $line (@$list) {
    $table->addrow("<b>$line->[0]</b>", 
-      $html->button($line->[1], "index=11&subf=3&DATE=$line->[0]&UID=$line->[8]"),  
+      $html->button($line->[1], "index=15&subf=3&DATE=$line->[0]&UID=$line->[8]"),  
       $line->[2],
       $line->[3], 
       $line->[4],  
@@ -2374,26 +2374,25 @@ my @m = (
  "0:0::null:::",
  "1:0:$_CUSTOMERS:null:::",
  "11:1:$_USERS:form_users:::",
- "12:11:$_ADD:user_form:::",
+ "24:11:$_ADD:user_form:::",
  "13:1:$_COMPANY:form_companies:::",
  "14:13:$_ADD:add_company:::",
- "22:13:$_LIST:form_companies:::",
- "15:11:$_LOG:form_changes:UID::",
- "17:11:$_PASSWD:form_passwd:UID::",
- "18:11:$_NAS:form_nas_allow:UID::",
- "19:11:$_BILL:form_bills:UID::",
- "20:11:$_SERVICES:null:UID::",
- "21:11:$_COMPANY:user_company:UID::",
- "101:11:$_PAYMENTS:form_payments:UID::",
- "102:11:$_FEES:form_fees:UID::",
+ "25:13:$_LIST:form_companies:::",
+ "15:11:$_INFO:form_users:UID::",
+ "22:15:$_LOG:form_changes:UID::",
+ "17:15:$_PASSWD:form_passwd:UID::",
+ "18:15:$_NAS:form_nas_allow:UID::",
+ "19:15:$_BILL:form_bills:UID::",
+ "20:15:$_SERVICES:null:UID::",
+ "21:15:$_COMPANY:user_company:UID::",
+ "101:15:$_PAYMENTS:form_payments:UID::",
+ "102:15:$_FEES:form_fees:UID::",
 
- "25:22:$_STATS:form_back_money:UID::",
- "23:22:_DETAIL:session_detail:UID::",
- "24:11:$_GROUP:user_group:UID::",
+ "12:15:$_GROUP:user_group:UID::",
  "27:1:$_GROUPS:form_groups:::",
  "28:27:$_ADD:add_groups:::",
  "29:27:$_LIST:form_groups:::",
- "30:11:$_USER_INFO:user_pi:UID::",
+ "30:15:$_USER_INFO:user_pi:UID::",
 
  "2:0:$_PAYMENTS:form_payments:::",
  "3:0:$_FEES:form_fees:::",
@@ -2712,7 +2711,7 @@ $pages_qs .= "&subf=2" if (! $FORM{subf});
 foreach my $line (@$list) {
   my $delete = ($permissions{1}{2}) ?  $html->button($_DEL, "index=$index&del=$line->[0]&UID=$line->[10]$pages_qs", { MESSAGE => "$_DEL [$line->[0]] ?" }) : ''; 
   $table->addrow("<b>$line->[0]</b>", 
-  $html->button($line->[1], "index=11&UID=$line->[10]"), 
+  $html->button($line->[1], "index=15&UID=$line->[10]"), 
   $line->[2], 
    $line->[3], $line->[4],  "$line->[5]", "$line->[6]", "$line->[7]", $PAYMENT_METHODS[$line->[8]], 
    "$line->[9]", $delete);
@@ -2902,7 +2901,7 @@ foreach my $line (@$list) {
   my $delete = ($permissions{2}{2}) ?  $html->button($_DEL, "index=$index&del=$line->[0]&UID=$line->[8]$pages_qs", 
    { MESSAGE => "$_DEL ID: $line->[0]?" }) : ''; 
 
-  $table->addrow("<b>$line->[0]</b>", $html->button($line->[1], "index=11&UID=$line->[8]"), $line->[2], 
+  $table->addrow("<b>$line->[0]</b>", $html->button($line->[1], "index=15&UID=$line->[8]"), $line->[2], 
    $line->[3], $line->[4],  "$line->[5]", "$line->[6]", "$line->[7]", $delete);
 }
 
@@ -3064,7 +3063,7 @@ my $table = $html->table( { width => '100%',
 foreach my $line (@$list) {
   my $delete = ($permissions{4}{3}) ?  $html->button($_DEL, "index=$index&del=$line->[13]", { MESSAGE =>  "$_DEL [$line->[13]]?" }) : '-'; 
   $table->addrow("<b>$line->[0]</b>", $line->[1], $line->[2], 
-    $line->[3],  $line->[4],  $html->button($line->[5], "index=11&UID=$line->[11]"), 
+    $line->[3],  $line->[4],  $html->button($line->[5], "index=15&UID=$line->[11]"), 
     "$line->[6]", "$line->[7]", "$line->[8]", "$line->[9]", "$line->[10]", $delete);
 }
 

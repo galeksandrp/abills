@@ -1,0 +1,19 @@
+#!/bin/sh
+
+# IF_NAME - interface name
+IF_NAME='fxp0';
+
+#Temporary log path
+# default LOG_PATH='/usr/abills/var/log/ipn/'
+LOG_PATH='/usr/abills/var/log/ipn/';
+
+/usr/local/bin/trafsave ${IF_NAME}
+sleep 30
+/usr/local/bin/traflog -n -i ${IF_NAME} > ${LOG_PATH}trafd
+/bin/rm /usr/local/var/trafd/trafd.${IF_NAME}
+
+/usr/abills/libexec/traffic2sql
+
+
+
+

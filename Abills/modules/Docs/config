@@ -24,9 +24,9 @@ $web_interface    = 1;
 @useraccount_menu = ('Dialup_VPN');
 
 #Iner_ID : Main or Sub or if -1 user menu func list
-%FUNCTIONS_LIST = ("01:-1:$_DOCS:null:UID"            => 11,
-                   "02:1:$_ACCOUNTS:docs_accounts_list:UID"     => 11,
-                   "03:2:$_ADD:docs_account:UID"       => 11,
+%FUNCTIONS_LIST = ("01:-1:$_DOCS:null:UID"            => 15,
+                   "02:1:$_ACCOUNTS:docs_accounts_list:UID"     => 15,
+                   "03:2:$_ADD:docs_account:UID"       => 15,
                    "05:0:$_DOCS:null:"                     => 5,
                    "06:5:$_TEMPLATES:null:"                => 5,
                    "10:0:$_DOCS:docs_accounts_list:"            => 6,
