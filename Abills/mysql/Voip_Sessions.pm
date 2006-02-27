@@ -159,7 +159,7 @@ sub online_info {
     calling_station_id,
     called_station_id,
     acct_session_id
-    FROM calls 
+    FROM dv_calls 
     WHERE nas_id=$NAS_ID
      and acct_session_id='$ACCT_SESSION_ID'");
 

@@ -44,7 +44,7 @@ sub del {
   my ($uid, $session_id, $nas_id, $session_start, $attr) = @_;
 
 
-  $self->query($db, "DELETE FROM log 
+  $self->query($db, "DELETE FROM dv_log 
    WHERE uid='$uid' and start='$session_start' and nas_id='$nas_id' and acct_session_id='$session_id';", 'do');
    
   return $self;
@@ -78,7 +78,7 @@ sub online_update {
  
   my $SET = ($#SET_RULES > -1) ? join(', ', @SET_RULES)  : '';
 
-  $self->query($db, "UPDATE calls SET $SET
+  $self->query($db, "UPDATE dv_calls SET $SET
    WHERE 
     user_name='$attr->{USER_NAME}'
     and acct_session_id='$attr->{ACCT_SESSION_ID}'; ", 'do');
@@ -130,7 +130,7 @@ sub online {
   c.CONNECT_INFO,
   if(date_format(c.started, '%Y-%m-%d')=curdate(), date_format(c.started, '%H:%i:%s'), c.started),
   c.nas_id
- FROM calls c
+ FROM dv_calls c
  LEFT JOIN users u     ON u.id=user_name
  LEFT JOIN dv_main dv  ON dv.uid=u.uid
  LEFT JOIN users_pi pi ON pi.uid=u.uid
@@ -183,7 +183,7 @@ sub online_del {
   my $ACCT_SESSION_ID = (defined($attr->{ACCT_SESSION_ID})) ? $attr->{ACCT_SESSION_ID} : '';
 
 
-  $self->query($db, "DELETE FROM calls WHERE 
+  $self->query($db, "DELETE FROM dv_calls WHERE 
                 nas_id=INET_ATON('$NAS_ID')
             and nas_port_id='$NAS_PORT' 
             and acct_session_id='$ACCT_SESSION_ID';", 'do');
@@ -246,7 +246,7 @@ sub online_info {
       CONNECT_INFO,
       acct_session_id,
       nas_id
-      FROM calls 
+      FROM dv_calls 
    $WHERE 
    ");
 
@@ -295,7 +295,7 @@ sub zap {
     $WHERE = "WHERE nas_id='$nas_id' and nas_port_id='$nas_port_id' and acct_session_id='$acct_session_id'";
    }
 
-  $self->query($db, "UPDATE calls SET status='2' $WHERE;", 'do');
+  $self->query($db, "UPDATE dv_calls SET status='2' $WHERE;", 'do');
   return $self;
 }
 
@@ -339,7 +339,7 @@ sub session_detail {
   l.uid,
   l.acct_session_id,
   l.terminate_cause
- FROM log l, users u
+ FROM dv_log l, users u
  LEFT JOIN tarif_plans tp ON (l.tp_id=tp.id) 
  LEFT JOIN nas n ON (l.nas_id=n.id) 
  WHERE l.uid=u.uid 
@@ -486,7 +486,7 @@ sub periods_totals {
    SEC_TO_TIME(sum(if(date_format(start, '%Y-%m')=date_format(curdate(), '%Y-%m'), duration, 0))),
   
    sum(sent), sum(recv), SEC_TO_TIME(sum(duration))
-   FROM log $WHERE;");
+   FROM dv_log $WHERE;");
 
   my $ar = $self->{list}->[0];
   ($self->{sent_0}, 
@@ -640,7 +640,7 @@ elsif($attr->{DATE}) {
   UNIX_TIMESTAMP(l.start),
   l.duration,
   l.sent2, l.recv2
-  FROM log l, users u
+  FROM dv_log l, users u
   $WHERE
   ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");
 
@@ -653,7 +653,7 @@ elsif($attr->{DATE}) {
     $self->query($db, "SELECT count(*), SEC_TO_TIME(sum(l.duration)), sum(l.sent + l.recv), 
       sum(l.sent2 + l.recv2), 
       sum(sum)  
-      FROM log l, users u
+      FROM dv_log l, users u
      $WHERE;");
 
     my $a_ref = $self->{list}->[0];
@@ -687,7 +687,7 @@ sub calculation {
   min(l.sent), max(l.sent), avg(l.sent),
   min(l.recv), max(l.recv), avg(l.recv),
   min(l.recv+l.sent), max(l.recv+l.sent), avg(l.recv+l.sent)
-  FROM log l $WHERE");
+  FROM dv_log l $WHERE");
 
   my $ar = $self->{list}->[0];
 
@@ -739,7 +739,7 @@ sub reports {
  if(defined($attr->{DATE})) {
    $self->query($db, "select date_format(l.start, '%Y-%m-%d'), if(u.id is NULL, CONCAT('> ', l.uid, ' <'), u.id), count(l.uid), 
     sum(l.sent + l.recv), sum(l.sent2 + l.recv2), sec_to_time(sum(l.duration)), sum(l.sum), l.uid
-      FROM log l
+      FROM dv_log l
       LEFT JOIN users u ON (u.uid=l.uid)
       WHERE date_format(l.start, '%Y-%m-%d')='$attr->{DATE}'
       GROUP BY l.uid 
@@ -754,7 +754,7 @@ sub reports {
       sum(l.sent2 + l.recv2),
       sec_to_time(sum(l.duration)), 
       sum(l.sum)
-       FROM log l
+       FROM dv_log l
        LEFT JOIN users u ON (u.uid=l.uid)
        $WHERE    
        GROUP BY 1 
@@ -778,7 +778,7 @@ sub reports {
       sum(l.sent2 + l.recv2),
       sec_to_time(sum(l.duration)), 
       sum(l.sum)
-       FROM log l
+       FROM dv_log l
        LEFT JOIN users u ON (u.uid=l.uid)
        $WHERE;");
 

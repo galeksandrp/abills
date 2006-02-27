@@ -1,4 +1,4 @@
-<form actio=$SELF_URL METHOD=POST>
+<form action="$SELF_URL" METHOD="POST">
 <table>
 <tr><td>$_BEGIN:</td><td><input type=text name=BEGIN value='%BEGIN%'></td></tr>
 <tr><td>$_COUNT:</td><td><input type=text name=COUNT value='%COUNT%'></td></tr>

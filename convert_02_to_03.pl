@@ -101,6 +101,7 @@ sub log_convert {
   push @sql_array, "ALTER TABLE log drop column id";
   push @sql_array, "UPDATE log SET bill_id=uid;";
   push @sql_array, "ALTER TABLE log ADD COLUMN terminate_cause TINYINT(4) UNSIGNED NOT NULL DEFAULT '0';";
+  push @sql_array, "RENAME TABLE log to dv_log";
 
 
 

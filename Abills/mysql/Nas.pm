@@ -299,7 +299,7 @@ sub stats {
    if(date_format(max(l.start), '%Y-%m-%d')=curdate(), date_format(max(l.start), '%H-%i-%s'), max(l.start)),
    SEC_TO_TIME(avg(l.duration)), SEC_TO_TIME(min(l.duration)), SEC_TO_TIME(max(l.duration)),
    l.nas_id
-   FROM log l
+   FROM dv_log l
    LEFT JOIN nas n ON (n.id=l.nas_id)
    $WHERE
    GROUP BY l.nas_id, l.port_id 

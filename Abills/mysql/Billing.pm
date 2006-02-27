@@ -70,7 +70,7 @@ sub traffic_calculations {
     #Get traffic from begin of month
     $sql = "SELECT sum(sent + recv) / 1024 / 1024, 
                    sum(sent2 + recv2) / 1024 / 1024
-       FROM log 
+       FROM dv_log 
        WHERE uid='$self->{UID}' and (start>=DATE_FORMAT(curdate(), '%Y-%m-00'))
        GROUP BY uid";
 
@@ -109,7 +109,7 @@ sub traffic_calculations {
 
  if ($prepaid_traffic > 0) {
     $sql = "SELECT (sent + recv) / 1024 / 1024, (sent2 + recv2) / 1024 / 1024  
-     FROM log WHERE uid='$self->{UID}' and start>'$self->{ACTIVATE}'";
+     FROM dv_log WHERE uid='$self->{UID}' and start>'$self->{ACTIVATE}'";
 
     my $q = $db->prepare($sql) || die $db->errstr;
     $q ->execute();
@@ -173,7 +173,7 @@ foreach my $line (@$list) {
 if ($prepaid{0} + $prepaid{1} > 0) {
    #Get traffic from begin of month
    $self->query($db, "SELECT sum(sent + recv), sum(sent2 + recv2)
-       FROM log WHERE uid='$self->{UID}' and (DATE_FORMAT(start, '%Y-%m')=DATE_FORMAT(curdate(), '%Y-%m'))
+       FROM dv_log WHERE uid='$self->{UID}' and (DATE_FORMAT(start, '%Y-%m')=DATE_FORMAT(curdate(), '%Y-%m'))
        GROUP BY uid;");
 
    if ($self->{TOTAL} > 0) {

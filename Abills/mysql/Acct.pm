@@ -63,7 +63,7 @@ sub accounting {
     
 #Start
 if ($acct_status_type == 1) { 
-  my $sql = "INSERT INTO calls
+  my $sql = "INSERT INTO dv_calls
    (status, user_name, started, lupdated, nas_ip_address, nas_port_id, acct_session_id, acct_session_time,
     acct_input_octets, acct_output_octets, framed_ip_address, CID, CONNECT_INFO, nas_id)
     values ('$acct_status_type', 
@@ -116,7 +116,7 @@ elsif ($acct_status_type == 2) {
     $self->{LOG_DEBUG} =  "ACCT [$RAD->{USER_NAME}] small session ($RAD->{ACCT_SESSION_TIME}, $RAD->{INBYTE}, $RAD->{OUTBYTE})";
    }
   else {
-    $self->query($db, "INSERT INTO log (uid, start, tp_id, duration, sent, recv, minp, kb,  sum, nas_id, port_id,
+    $self->query($db, "INSERT INTO dv_log (uid, start, tp_id, duration, sent, recv, minp, kb,  sum, nas_id, port_id,
         ip, CID, sent2, recv2, acct_session_id, 
         bill_id,
         terminate_cause) 
@@ -142,7 +142,7 @@ elsif ($acct_status_type == 2) {
 
   # Delete from session wtmp
 #  $self->{debug}=1;
-  $self->query($db, "DELETE FROM calls WHERE acct_session_id=\"$RAD->{ACCT_SESSION_ID}\" 
+  $self->query($db, "DELETE FROM dv_calls WHERE acct_session_id=\"$RAD->{ACCT_SESSION_ID}\" 
      and user_name=\"$RAD->{USER_NAME}\" 
      and nas_id='$NAS->{NAS_ID}';", 'do');
      
@@ -168,7 +168,7 @@ elsif($acct_status_type eq 3) {
 #}
 ###
 
-  $self->query($db, "UPDATE calls SET
+  $self->query($db, "UPDATE dv_calls SET
     status='$acct_status_type',
     nas_port_id='$RAD->{NAS_PORT}',
     acct_session_time=UNIX_TIMESTAMP()-UNIX_TIMESTAMP(started),

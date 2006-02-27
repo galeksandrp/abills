@@ -66,10 +66,10 @@ CREATE TABLE `bills` (
 # --------------------------------------------------------
 
 #
-# Структура таблиці `calls`
+# Структура таблиці `dv_calls`
 #
 
-CREATE TABLE `calls` (
+CREATE TABLE `dv_calls` (
   `status` int(3) default NULL,
   `user_name` varchar(32) default NULL,
   `started` datetime NOT NULL default '0000-00-00 00:00:00',
@@ -331,10 +331,10 @@ CREATE TABLE `ippools` (
 # --------------------------------------------------------
 
 #
-# Структура таблиці `log`
+# Структура таблиці `dv_log`
 #
 
-CREATE TABLE `log` (
+CREATE TABLE `dv_log` (
   `start` datetime NOT NULL default '0000-00-00 00:00:00',
   `tp_id` smallint(5) unsigned NOT NULL default '0',
   `duration` int(11) NOT NULL default '0',

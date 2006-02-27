@@ -179,7 +179,7 @@ if ($self->{CID} ne '') {
 
 #Check  simultaneously logins if needs
 if ($self->{LOGINS} > 0) {
-  $self->query($db, "SELECT count(*) FROM calls WHERE user_name='$RAD->{USER_NAME}' and status <> 2;");
+  $self->query($db, "SELECT count(*) FROM dv_calls WHERE user_name='$RAD->{USER_NAME}' and status <> 2;");
   
   my $a_ref = $self->{list}->[0];
   my($active_logins) = @$a_ref;
@@ -265,7 +265,7 @@ foreach my $line (@periods) {
      if (($self->{$line . '_TIME_LIMIT'} > 0) || ($self->{$line . '_TRAF_LIMIT'} > 0)) {
         $self->query($db, "SELECT if(". $self->{$line . '_TIME_LIMIT'} ." > 0, ". $self->{$line . '_TIME_LIMIT'} ." - sum(duration), 0),
                                   if(". $self->{$line . '_TRAF_LIMIT'} ." > 0, ". $self->{$line . '_TRAF_LIMIT'} ." - sum(sent + recv) / 1024 / 1024, 0) 
-            FROM log
+            FROM dv_log
             WHERE uid='$self->{UID}' and DATE_FORMAT(start, '%Y-%m-%d')=curdate()
             GROUP BY DATE_FORMAT(start, '%Y-%m-%d');");
 
@@ -775,7 +775,7 @@ sub ex_traffic_params {
 
 
 if ((defined($prepaids{0}) || defined($prepaids{0})) && ($prepaids{0}+$prepaids{1}>0)) {
-  $self->query($db, "SELECT sum(sent+recv) / 1024 / 1024, sum(sent2+recv2) / 1024 / 1024 FROM log 
+  $self->query($db, "SELECT sum(sent+recv) / 1024 / 1024, sum(sent2+recv2) / 1024 / 1024 FROM dv_log 
      WHERE uid='$self->{UID}' and DATE_FORMAT(start, '%Y-%m')=DATE_FORMAT(curdate(), '%Y-%m')
      GROUP BY DATE_FORMAT(start, '%Y-%m');");
 
@@ -878,7 +878,7 @@ sub get_ip {
 #get active address and delete from pool
 
  $self->query($db, "SELECT framed_ip_address
-  FROM calls 
+  FROM dv_calls 
   WHERE nas_ip_address=INET_ATON('$nas_ip') and (status=1 or status>=3);");
 
  $list = $self->{list};

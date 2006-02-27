@@ -555,7 +555,7 @@ elsif($acct_status_type eq 3) {
 #}
 ###
 
-  $self->query($db, "UPDATE calls SET
+  $self->query($db, "UPDATE voip_calls SET
     status='$acct_status_type',
     acct_session_time=UNIX_TIMESTAMP()-UNIX_TIMESTAMP(started),
     client_ip_address=INET_ATON('$RAD->{FRAMED_IP_ADDRESS}'),

@@ -263,7 +263,7 @@ sub list {
      LEFT JOIN users_pi pi ON u.uid = dv.uid
      LEFT JOIN tarif_plans tp ON  (tp.id=u.tp_id) 
      LEFT JOIN companies company ON  (u.company_id=company.id) 
-     LEFT JOIN log l ON  (l.uid=u.uid) 
+     LEFT JOIN dv_log l ON  (l.uid=u.uid) 
      WHERE  
         u.bill_id=b.id
         and (b.deposit+u.credit-tp.credit_tresshold<=0

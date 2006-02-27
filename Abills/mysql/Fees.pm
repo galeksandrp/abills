@@ -236,14 +236,6 @@ sub reports {
  
  if(defined($attr->{DATE})) {
    my $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
-   $self->query($db, "select date_format(l.start, '%Y-%m-%d'), if(u.id is NULL, CONCAT('> ', l.uid, ' <'), u.id), count(l.uid), 
-    sum(l.sent + l.recv), sum(l.sent2 + l.recv2), sec_to_time(sum(l.duration)), sum(l.sum), l.uid
-      FROM log l
-      LEFT JOIN users u ON (u.uid=l.uid)
-      WHERE date_format(l.start, '%Y-%m-%d')='$attr->{DATE}'
-      GROUP BY l.uid 
-      ORDER BY $SORT $DESC");
-   return $self->{list};
   }
  elsif (defined($attr->{MONTH})) {
  	 push @WHERE_RULES, "date_format(f.date, '%Y-%m')='$attr->{MONTH}'";
