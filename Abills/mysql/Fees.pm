@@ -50,7 +50,7 @@ sub take {
   my ($user, $sum, $attr) = @_;
   
   my $DESCRIBE = (defined($attr->{DESCRIBE})) ? $attr->{DESCRIBE} : '';
-  my $DATE  =  (defined($attr->{DATE})) ? 'now()' : "'$attr->{DATE}'";
+  my $DATE  =  (defined($attr->{DATE})) ? "'$attr->{DATE}'" : 'now()';
   
   if ($sum <= 0) {
      $self->{errno} = 12;

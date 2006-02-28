@@ -51,7 +51,8 @@ my $args = parse_arguments(\@ARGV);
 
 my @daily_functions=('sheduler',
                      'admin_report_daily',
-                     'dv_users_warning_messages');
+                     'dv_users_warning_messages'
+                     );
 
 my @monthly_functions = ('admin_report_monthly',
                          'backup',
@@ -73,14 +74,15 @@ my @monthly_functions = ('admin_report_monthly',
    undef %PERIODIC;
   }
 
+my($Y, $M, $D);
 
   if(defined($args->{DATE})) {
-     my($Y, $M, $D)=split(/-/, $args->{DATE}, 3);
+     ($Y, $M, $D)=split(/-/, $args->{DATE}, 3);
      $YESTERDAY = (strftime "%Y-%m-%d", localtime(POSIX::mktime( 0, 10, 1, $D, ($M-1), $Y-1900)- 86400));
    	 $YESTERDAY=$args->{DATE};
    	 $ADMIN_REPORT{DATE} = $args->{DATE};
    }
-  my($y, $m, $d)=split(/-/, $ADMIN_REPORT{DATE}, 3);
+  ($Y, $M, $D)=split(/-/, $ADMIN_REPORT{DATE}, 3);
  
  
 if (defined($args->{monthly})) {
@@ -138,42 +140,41 @@ sub sheduler {
 	
 	
 my %shedule_type = ('tp' => $_VARIANT, 
-                 'fees' => $_FEES,
-                 'message' => $_MESSAGES
+                    'fees' => $_FEES,
+                    'message' => $_MESSAGES
  );
 
-#Change variant
+#Change tp
  require Shedule;
  Shedule->import();
  my $shedule = Shedule->new($db, $admin);
 
  require Fees;
  Fees->import();
- my $fees = Fees->new($db, $admin);
+ my $fees = Fees->new($db, $admin, \%conf);
 
 
- my $list = $shedule->list({ Y => $y,
- 	                           M => $m,
- 	                           D => $d});
+ my $list = $shedule->list({ Y => $Y,
+ 	                           M => $M,
+ 	                           D => $D });
 
- $ADMIN_REPORT{SHEDULE}=sprintf("%-14s| %-8s| %-14s|\n", $_LOGIN, $_TYPE, $_VALUE);  
+ $ADMIN_REPORT{SHEDULE}=sprintf("%-14s| %-12s| %-8s| %-14s|\n", "$_LOGIN", "$_MODULES", "$_TYPE", "$_VALUE");
  $ADMIN_REPORT{SHEDULE}.= "---------------------------------------------------------\n";
  foreach my $line (@$list) {
-    #s.h, s.d, s.m, s.y, s.counts, u.id, s.type, s.action, a.id, s.date, a.aid, s.uid, s.id  
-	  #print "$line->[5] $line->[6] $line->[7]\n";
-	  if($line->[6] eq 'tp') {
-       $users->change($line->[11], { TARIF_PLAN => $line->[7] } );
-       $shedule->del($line->[12]);
-     }
-    elsif ($line->[6] eq 'fees') {
-    	 my $user = $users->info( $line->[11] );
+   if ($line->[6] eq 'fees') {
+    	 my $user = $users->info( $line->[12] );
     	 my ($sum, $descr) = split(/:/, $line->[7], 2);
     	 #my $module = $line->[8];
     	 $fees->take($user, $sum, { DESCRIBE => "$_SHEDULE: $descr" } );  
-    	 $shedule->del($line->[12]);
      }
+   #Required modules
+   elsif ($line->[8] ne '') {
+    	 my $function = lc  $line->[8] . "_sheduler";
+    	 $function->($line->[6], "$line->[7]", $line->[12]);
+     }
+ 	 $shedule->del({ ID => $line->[13] });
 
-	  $ADMIN_REPORT{SHEDULE}.=sprintf("%-14s| %-8s| %-14s|\n", $line->[5], $line->[6], $line->[7]);  
+	  $ADMIN_REPORT{SHEDULE}.=sprintf("%-14s| %-12s| %-8s| %-14s|\n", $line->[5], $line->[8], $line->[6], $line->[7]);
   } 
 
 }

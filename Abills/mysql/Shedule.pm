@@ -43,10 +43,30 @@ sub info {
  my $self = shift;
  my ($attr) = @_;
  
- my $WHERE;
+ @WHERE_RULES =();
  
- $self->query($db, "SELECT s.h, s.d, s.m, s.y, s.counts, s.action, s.date, s.uid, s.id  
+ if ($attr->{UID}) {
+    push @WHERE_RULES, "s.uid='$attr->{UID}'";
+  }
+ 
+ if ($attr->{TYPE}) {
+    push @WHERE_RULES, "s.type='$attr->{TYPE}'";
+  }
+
+ if ($attr->{MODULE}) {
+    push @WHERE_RULES, "s.module='$attr->{MODULE}'";
+  }
+ 
+
+
+ $WHERE = "WHERE " . join(' and ', @WHERE_RULES) if($#WHERE_RULES > -1);
+
+ 
+
+ 
+ $self->query($db, "SELECT s.h, s.d, s.m, s.y, s.counts, s.action, s.date, s.uid, s.id, a.id 
     FROM shedule s
+    LEFT JOIN admins a ON (a.aid=s.aid) 
     $WHERE;");
 
  if ($self->{TOTAL} < 1) {
@@ -65,7 +85,8 @@ sub info {
    $self->{ACTION},
    $self->{DATE}, 
    $self->{UID}, 
-   $self->{SHEDULE_ID}
+   $self->{SHEDULE_ID},
+   $self->{ADMIN_NAME}
   )= @$ar;
 
 
@@ -111,7 +132,13 @@ sub list {
  if ($attr->{D}) {
     push @WHERE_RULES, "s.d='$attr->{D}'";
   }
+
+
+ if ($attr->{MODULE}) {
+    push @WHERE_RULES, "s.module='$attr->{MODULE}'";
+  }
  
+
 
  $WHERE = "WHERE " . join(' and ', @WHERE_RULES) if($#WHERE_RULES > -1);
   
@@ -145,22 +172,17 @@ sub add {
  my $UID=(defined($attr->{UID})) ? int($attr->{UID}) : 0;
  my $TYPE=(defined($attr->{TYPE})) ? $attr->{TYPE} : '';
  my $ACTION=(defined($attr->{ACTION})) ? $attr->{ACTION} : '';
-  
- my $sql = "INSERT INTO shedule (h, d, m, y, uid, type, action, aid, date) 
-        VALUES ('$H', '$D', '$M', '$Y', '$UID', '$TYPE', '$ACTION', '$admin->{AID}', now());";
-#print $sql;
- my $q = $db->do($sql);
+ my $MODULE=(defined($attr->{MODULE})) ? $attr->{MODULE} : '';
+ 
+ $self->{debug}=1;
+ $self->query($db, "INSERT INTO shedule (h, d, m, y, uid, type, action, aid, date, module) 
+        VALUES ('$H', '$D', '$M', '$Y', '$UID', '$TYPE', '$ACTION', '$admin->{AID}', now(), '$MODULE');", 'do');
 
- if ($db->err == 1062) {
+ if ($self->{errno}) {
      $self->{errno} = 7;
      $self->{errstr} = 'ERROR_DUBLICATE';
      return $self;
    }
- elsif($db->err > 0) {
-     $self->{errno} = 3;
-     $self->{errstr} = 'SQL_ERROR';
-     return $self;
-  }
 
  return $self;	
 }
@@ -175,9 +197,9 @@ sub add {
 #**********************************************************
 sub del {
  my $self = shift;
- my ($id) = @_;
+ my ($attr) = @_;
 
- $self->query($db, "DELETE FROM shedule WHERE id='$id';", 'do');
+ $self->query($db, "DELETE FROM shedule WHERE id='$attr->{ID}';", 'do');
  
  # $admin->action_add($user->{UID}, "DELETE SHEDULE $id");
  return $self;	

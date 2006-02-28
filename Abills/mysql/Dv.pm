@@ -176,7 +176,7 @@ sub change {
               DISABLE          => 'disable',
               IP               => 'ip',
               NETMASK          => 'netmask',
-              TARIF_PLAN       => 'tp_id',
+              TP_ID            => 'tp_id',
               SPEED            => 'speed',
               CID              => 'cid',
               UID              => 'uid',
@@ -184,7 +184,8 @@ sub change {
              );
 
 
-  $self->changes($admin,  { CHANGE_PARAM => 'UID',
+
+  $self->changes($admin, { CHANGE_PARAM => 'UID',
                    TABLE        => 'dv_main',
                    FIELDS       => \%FIELDS,
                    OLD_INFO     => $self->info($attr->{UID}),

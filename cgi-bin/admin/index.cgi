@@ -746,7 +746,7 @@ if(defined($attr->{USER})) {
     return 0;
    }
 
-  print "<table width=100% border=0 cellspacing=1 cellpadding=2><tr><td valign=top align=center>\n";
+  print "<table width=100% border=\"0\" cellspacing=\"1\" cellpadding=\"2\"><tr><td valign=\"top\" align=\"center\">\n";
   
   
   form_passwd({ USER => $user_info}) if (defined($FORM{newpassword}));
@@ -2816,22 +2816,35 @@ if (defined($attr->{USER})) {
     form_bills({ USER => $user });
     return 0;
   }
+  
+  use Shedule;
+  my $shedule = Shedule->new($db, $admin); 
 
   $fees->{UID} = $user->{UID};
   if ($FORM{take} && $FORM{SUM}) {
     # add to shedule
     if ($period == 1) {
-      use Shedule;
-      $FORM{date_m}++;
-      my $shedule = Shedule->new($db, $admin); 
+
+      $FORM{date_M}++;
       $shedule->add( { DESCRIBE => $FORM{DESCR}, 
-      	               D => $FORM{date_d},
-      	               M => $FORM{date_m},
-      	               Y => $FORM{date_y},
+      	               D => $FORM{date_D},
+      	               M => $FORM{date_M},
+      	               Y => $FORM{date_Y},
                        UID => $user->{UID},
                        TYPE => 'fees',
                        ACTION => "$FORM{SUM}:$FORM{DESCR}"
                       } );
+
+
+  if ($shedule->{errno}) {
+    $html->message('err', $_ERROR, "[$shedule->{errno}] $err_strs{$shedule->{errno}}");	
+   }
+  else {
+  	$html->message('info', $_SHEDULE, "$_ADDED");
+   }
+
+
+
      }
     #Add now
     else {
@@ -2860,11 +2873,20 @@ if (defined($attr->{USER})) {
    }
 
 
+  $shedule->list({ UID  => $user->{UID},
+                   TYPE => 'fees' });
+  
+  if ($shedule->{TOTAL} > 0) {
+  	 $fees->{SHEDULE}=$html->button($_SHEDULE, "index=85&UID=$user->{UID}"); 
+   }
+  
   $fees->{PERIOD_FORM}=form_period($period);
+  if (defined ($permissions{2}{1})) {
+    $html->tpl_show(templates('form_fees'), $fees);
+   }	
 
-if (defined ($permissions{2}{1})) {
-  $html->tpl_show(templates('form_fees'), $fees);
- }	
+
+
 }
 elsif($FORM{AID} && ! defined($LIST_PARAMS{AID})) {
 	$FORM{subf}=$index;
@@ -3041,7 +3063,7 @@ use Shedule;
 my $shedule = Shedule->new($db, $admin);
 
 if ($FORM{del} && $FORM{is_js_confirmed}) {
-  $shedule->del($FORM{del});
+  $shedule->del({ ID => $FORM{del} });
   if ($admins->{errno}) {
     $html->message('err', $_ERROR, "[$fees->{errno}] $err_strs{$fees->{errno}}");
    }
@@ -3063,8 +3085,13 @@ my $table = $html->table( { width => '100%',
 foreach my $line (@$list) {
   my $delete = ($permissions{4}{3}) ?  $html->button($_DEL, "index=$index&del=$line->[13]", { MESSAGE =>  "$_DEL [$line->[13]]?" }) : '-'; 
   $table->addrow("<b>$line->[0]</b>", $line->[1], $line->[2], 
-    $line->[3],  $line->[4],  $html->button($line->[5], "index=15&UID=$line->[11]"), 
-    "$line->[6]", "$line->[7]", "$line->[8]", "$line->[9]", "$line->[10]", $delete);
+    $line->[3],  $line->[4],  
+    $html->button($line->[5], "index=15&UID=$line->[12]"), 
+    "$line->[6]", 
+    "$line->[7]", 
+    "$line->[8]", 
+    "$line->[9]", 
+    "$line->[10]", $delete);
 }
 
 print $table->show();
