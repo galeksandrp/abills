@@ -22,6 +22,7 @@ $VERSION = 2.00;
   &ip2int
   &int2byte
   &sec2time
+  &time2sec
   &int2ml
   &show_log
   &mk_unique_value
@@ -283,6 +284,23 @@ sub ip2int($){
   return unpack("N", pack("C4", split( /\./, $ip)));
 }
 
+
+
+#********************************************************************
+# Time to second
+# time2sec()
+# return $sec;
+#********************************************************************
+sub time2sec {
+  my ($value, $attr) = @_;
+  my $sec;
+
+  my($H, $M, $S)=split(/:/, $value, 3);
+  
+  $sec = ($H*60*60)+($M*60)+$S;
+
+  return $sec;
+}
 
 
 #********************************************************************

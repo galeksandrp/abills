@@ -46,6 +46,9 @@ $conf{p_users_mails}=1;  # Send user warning  messages
 # chap encryption decription key
 $conf{secretkey}="test12345678901234567890";
 $conf{s_detalization}='yes'; #make session detalization recomended for vpn leathed lines
+#Check periodic deposit and session. hangup after get negative result
+$conf{periodic_check}='no';
+
 $conf{version}='0.30b'; #24.02.2006
 
 #Octets direction
