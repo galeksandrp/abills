@@ -174,7 +174,6 @@ sub add {
  my $ACTION=(defined($attr->{ACTION})) ? $attr->{ACTION} : '';
  my $MODULE=(defined($attr->{MODULE})) ? $attr->{MODULE} : '';
  
- $self->{debug}=1;
  $self->query($db, "INSERT INTO shedule (h, d, m, y, uid, type, action, aid, date, module) 
         VALUES ('$H', '$D', '$M', '$Y', '$UID', '$TYPE', '$ACTION', '$admin->{AID}', now(), '$MODULE');", 'do');
 
