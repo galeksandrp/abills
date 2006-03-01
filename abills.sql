@@ -861,7 +861,16 @@ CREATE TABLE `voip_tps` (
   UNIQUE KEY `id` (`id`)
 ) TYPE=MyISAM;
 
-# --------------------------------------------------------
+
+
+CREATE TABLE `help` (
+  `function` varchar(20) NOT NULL default '',
+  `title` varchar(200) NOT NULL default '',
+  `help` text NOT NULL,
+  PRIMARY KEY  (`function`),
+  UNIQUE KEY `function` (`function`)
+);
+
 
 #
 # Структура таблиці `web_online`
