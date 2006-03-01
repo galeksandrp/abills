@@ -52,9 +52,10 @@ $web_interface    = 1;
                        "03:1:$_STATS:voip_user_stats:"       => 0
                       );
 
-#%PERIODIC = (daily   => [ 'voip_daily_fees' ],
-#             monthly => [ 'voip_monthly_fees' ],
-#             report  => [ 'voip_report' ]);
+%PERIODIC = ( report  => [ 'voip_report' ]);
+
+#daily   => [ 'voip_daily_fees' ],
+#monthly => [ 'voip_monthly_fees' ],
 
 
 

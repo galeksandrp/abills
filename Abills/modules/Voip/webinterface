@@ -11,8 +11,10 @@ my  $sessions = Voip_Sessions->new($db, \%conf);
 
 
 
+my $MODULE = (defined($module{$index})) ? $module{$index} : 'Voip';
+
 foreach my $prefix (@INC) {
-  my $realfilename = "$prefix/Abills/modules/$module{$index}/lng_$html->{language}.pl";
+  my $realfilename = "$prefix/Abills/modules/$MODULE/lng_$html->{language}.pl";
   if (-f $realfilename) {
     $lang_file =  $realfilename;
     require $lang_file;
@@ -21,7 +23,7 @@ foreach my $prefix (@INC) {
  }
 
 if ($lang_file eq '')  {
-  require "Abills/modules/$module{$index}/lng_english.pl";
+  require "Abills/modules/$MODULE/lng_english.pl";
 }
 
 
@@ -343,7 +345,7 @@ else {
    });
 
 
-my $list = $Voip->rp_list({ %LIST_PARAMS });
+$list = $Voip->rp_list({ %LIST_PARAMS });
 my %prices = ();
 foreach my $line (@$list) {
   $prices{"$line->[0]"}{"$line->[1]"}=$line->[3];
@@ -1061,13 +1063,25 @@ elsif ($FORM{hangup}) {
   
   
   if ($ret == 0) {
-     $message = "<table width=100%>\n".
-         "<tr><th colspan=2 align=left>$_HANGUPED</th></tr>".
-         "<tr><td>$_NAS:</td><td>$nas->{NAS_IP}</td></tr>".
-         "<tr><td>$_PORT:</td><td>$nas_port_id</td></tr>".
-         "<tr><td>SESSION_ID:</td><td>$acct_session_id</td></tr>".
-         "<tr><td colspan=2>$ret</td></tr>".
-         "</table>\n";
+     
+         my $table = $html->table( { width => '100%',
+                                caption => $_HANGUPED,
+                                rows => [ [ "$_NAS ID",   $nas_id],
+                                          [ "$_NAS IP",   $nas->{NAS_IP} ],
+                                          [ "$_PORT",     $nas_port_id   ],
+                                          [ "SESSION_ID", $acct_session_id ],
+                                          [ "", $ret ] ]
+                               } );
+
+     
+     $message = $table->show();
+#         "<table width=100%>\n".
+#         "<tr><th colspan=2 align=left>$_HANGUPED</th></tr>".
+#         "<tr><td>$_NAS:</td><td>$nas->{NAS_IP}</td></tr>".
+#         "<tr><td>$_PORT:</td><td>$nas_port_id</td></tr>".
+#         "<tr><td>SESSION_ID:</td><td>$acct_session_id</td></tr>".
+#         "<tr><td colspan=2>$ret</td></tr>".
+#         "</table>\n";
          sleep 3;
      
      weblog('hangup', "$user_name");
@@ -1176,14 +1190,18 @@ elsif($FORM{del}) {
 
 
 $form_link = '';
+my $cure = '';
+
+
 if($FORM{ZAPED}) {
 	$LIST_PARAMS{ZAPED}='yes';
-	#$qs_params = "&WRONG_ENDED=yes";
 	$form_link = $html->button('On line', "index=$index");
+	$cure = 'Zap';
  } 
 else {
  	$sessions->online( { ZAPED => 'yes' } );	
  	$form_link = $html->button($_ZAPED, "index=$index&ZAPED=yes"). " ($sessions->{TOTAL})";
+	$cure = 'Online';
 }
 
 
@@ -1191,12 +1209,12 @@ $sessions->online( { %LIST_PARAMS } );
 my $dub_ports = $sessions->{dub_ports};
 my $dub_logins = $sessions->{dub_logins};
  
-my $table = $html->table( { width => '100%',
-                                border => 1,
-                                title => ["$_USER", "$_FIO", "CALLING_STATION_ID", "CALLING_STATION_ID", "$_DURATION", "CLIENT_IP_ADDRESS",  "-", "-", "-"],
-                                cols_align => ['left', 'left', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'center'],
-                                qs => $pages_qs,
-                               } );
+my $table = $html->table( { caption  => "$cure",
+	                          width    => '100%',
+                            title    => ["$_USER", "$_FIO", "CALLING_STATION_ID", "CALLING_STATION_ID", "$_DURATION", "CLIENT_IP_ADDRESS",  "-", "-", "-"],
+                            cols_align => ['left', 'left', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'center'],
+                            qs => $pages_qs,
+                           });
 
 
  
@@ -1216,9 +1234,9 @@ foreach my $nas_row (@$nas_list) {
     undef($table->{rowcolor});
     undef($table->{extra});
     #print "$line->[0]<br>";
-    if (defined($dub_logins->{$line->[0]}))                  { $bg='#FFFF00';    }
+    if (defined($dub_logins->{$line->[0]}))                   { $bg='#FFFF00';    }
 #    elsif (defined($dub_ports->{$nas_row->[4]}{$line->[2]})) { $bg='#00FF40';    }
-    elsif ($line->[9] == 3)                                  { $bg='#FF0000';    }
+    elsif ($line->[9] == 3)                                   { $bg='#FF0000';    }
     else {  $bg = ($bg eq $_COLORS[1]) ? $_COLORS[2] : $_COLORS[1];    }
 
     my $zap = "(". $html->button('Z', "index=$index&zap=$nas_row->[0]+$line->[9]", { TITLE => 'Zap'}). ")";
@@ -1379,18 +1397,18 @@ else {
   my $list = $sessions->reports({ %LIST_PARAMS });
   foreach my $line (@$list) {
     $table_sessions->addrow(
-    $html->button($line->[0],    "index=$index&$type=$line->[0]$pages_qs"), 
+    $html->button($line->[0], "index=$index&$type=$line->[0]$pages_qs"), 
        $line->[1], $line->[2], $line->[3], "<b>$line->[4]</b>" );
    }
 
-cd
 }
 
 
 
-$table = $html->table( { width => '100%',
-                                cols_align => ['right', 'right', 'right', 'right', 'right', 'right'],
-                                rows => [ [ "$_USERS: <b>$sessions->{USERS}</b>",
+$table = $html->table( { width   => '100%',
+                         caption => $_SESSIONS,
+                         cols_align => ['right', 'right', 'right', 'right', 'right', 'right'],
+                         rows => [ [ "$_USERS: <b>$sessions->{USERS}</b>",
                                             "$_SESSIONS: <b>$sessions->{SESSIONS}</b>", 
                                             "$_DURATION: <b>$sessions->{DURATION}</b>", 
                                             "$_SUM: <b>$sessions->{SUM}</b>" ] ],
@@ -1776,7 +1794,7 @@ sub voip_daily_fees {
 #**********************************************************
 # monthly_fees
 #**********************************************************
-sub dv_monthly_fees {
+sub voip_monthly_fees {
  require Tariffs;
  Tariffs->import();
  my $tariffs = Tariffs->new($db);
@@ -1845,16 +1863,15 @@ my $date_unixtime =  mktime(0, 0, 0, $d, $m, $y - 1900, 0, 0, 0);
 
 #**********************************************************
 # user_warnings
+# 
 #**********************************************************
-sub dv_users_warning_messages {
+sub voip_users_warning_messages {
 
 my %LIST_PARAMS = (USERS_WARNINGS => 'y' ) ;
-my $list = $Dv->list( { %LIST_PARAMS } );
-$ADMIN_REPORT{DATE} = $YESTERDAY;
+my $list = $Voip->list( { %LIST_PARAMS } );
 
 $ADMIN_REPORT{USERS_WARNINGS} = sprintf("%-14s| %4s|%-20s| %9s| %8s|\n", $_LOGIN, 'TP', $_VARIANT, $_DEPOSIT, $_CREDIT).
    "---------------------------------------------------------------\n";
-
 return 0 if ($Dv->{TOTAL} < 1);
 my %USER_INFO = ();
 
@@ -1867,18 +1884,21 @@ foreach my $line (@$list) {
   $USER_INFO{DEPOSIT}=$line->[4];
   $USER_INFO{CREDIT}=$line->[3];
   
-  my $email = ($line->[1] eq '') ? "$line->[1]\@$conf{USERS_MAIL_DOMAIN}" : $line->[1];
+  my $email = ((! defined($line->[1])) || $line->[1] eq '') ? "$line->[0]\@$conf{USERS_MAIL_DOMAIN}" : "$line->[1]";
+  
+ 
   $ADMIN_REPORT{USERS_WARNINGS} .= sprintf ("%-14s| %4d|%-20s| %9.4f| %8.2f|\n", 
   $USER_INFO{LOGIN}, $USER_INFO{TP_ID}, $USER_INFO{TP_NAME},  $USER_INFO{DEPOSIT}, $USER_INFO{CREDIT});
   
-  my $message = $html->tpl_show(templates('users_warning_messages'), \%USER_INFO, { notprint => 'yes' });
+  my $message = $html->tpl_show(_include('dv_users_warning_messages', 'Dv'), \%USER_INFO, { notprint => 'yes' });
 
-  #sendmail("$conf{ADMIN_MAIL}", "$email", "Попередження сервера статистики.", 
-  #            "$message", "$conf{MAIL_CHARSET}", "2 (High)");
+  sendmail("$conf{ADMIN_MAIL}", "$email", "Попередження сервера статистики.", 
+              "$message", "$conf{MAIL_CHARSET}", "2 (High)");
 }
 
 $ADMIN_REPORT{USERS_WARNINGS} .= "---------------------------------------------------------------
-$_TOTAL: $users->{TOTAL}\n";
+$_TOTAL: $Dv->{TOTAL}\n";
+
 
 }
 
@@ -1894,12 +1914,13 @@ my  $nas = Nas->new($db, \%conf);
 
 
 my $list = $nas->list({ TYPE => 'gnugk'});
-my $table = $html->table({ width => '100%',
-                                   border => 1,
-                                   title => ["#", "$_NAME", 'NAS-Identifier',  'IP' ],
-                                   cols_align => ['right', 'left', 'left', 'right'],
-                                   qs => $pages_qs
-                                  } );
+my $table = $html->table({ caption => "$_NAS",
+	                         width   => '100%',
+                           border  => 1,
+                           title   => ["#", "$_NAME", 'NAS-Identifier',  'IP' ],
+                           cols_align => ['right', 'left', 'left', 'right'],
+                           qs      => $pages_qs
+                          });
 
 my ($host, $user, $password);
 foreach my $line (@$list) {
@@ -1971,7 +1992,7 @@ if ($FORM{NAS_ID}){
                                    title => ['NUMBER', 'ACF', 'Caller_IP:Port', 'Caller_EPID', 'CRV', 'DestinationInfo', 'SrcInfo', 'IsAnswered', '-'],
                                    cols_align => ['right', 'center', 'right', 'left', 'left', 'center'],
                                    qs => $pages_qs,
-                                   caption => Associated
+                                   caption => 'Associated'
                                   } );
  
      
@@ -1990,15 +2011,16 @@ if ($FORM{NAS_ID}){
          #ACF|Caller_IP:Port|Caller_EPID|CRV|DestinationInfo|SrcInfo|IsAnswered;
          #ACF|Callee_IP:Port|Callee_EPID|CRV|DestinationInfo|SrcInfo|IsAnswered;
          $table->addrow('&nbsp;', @registred, 
-          "(". $html->button("H", "index=$index&NAS_ID=$FORM{NAS_ID}&command=disconnectcall+@registred[4]", 
+          "(". $html->button("H", "index=$index&NAS_ID=$FORM{NAS_ID}&command=disconnectcall+$registred[4]", 
              { TITLE => 'Hangup'} ). ')');
         }
       }
      print $table->show();
 
-     $table = $html->table( { width => '100%',
-                                cols_align => ['right', 'right'],
-                                rows => [ ["$_TOTAL:", "<b>$total</b>" ] ]
+     $table = $html->table( { caption  => 'Commands',
+     	                        width    => '100%',
+                              cols_align => ['right', 'right'],
+                              rows => [ ["$_TOTAL:", "<b>$total</b>" ] ]
                                } );
 
      print $table->show();
@@ -2012,18 +2034,18 @@ if ($FORM{NAS_ID}){
      }
     elsif($FORM{command} =~ /\?|PrintAllRegistrations$/) {
     	my $table = $html->table({ width => '100%',
-                                   border => 1,
-                                   title => ["#", "IP", 'NUMBER',  "$_TYPE", "ID", ''],
-                                   cols_align => ['right', 'right', 'left', 'center', 'left', 'center'],
-                                   qs => $pages_qs,
-                                   caption => Associated
+                                 border => 1,
+                                 title => ["#", "IP", 'NUMBER',  "$_TYPE", "ID", ''],
+                                 cols_align => ['right', 'right', 'left', 'center', 'left', 'center'],
+                                 qs => $pages_qs,
+                                 caption => 'Associated'
                                   } );
  
      
      foreach my $line (@rows) {
        if($line =~ /RCF/) {
          @registred = split(/\|/, $line);
-         push @registred, "(". $html->button('H', "index=$index&NAS_ID=$FORM{NAS_ID}&command=UnregisterIP+@registred[1]", 
+         push @registred, "(". $html->button('H', "index=$index&NAS_ID=$FORM{NAS_ID}&command=UnregisterIP+$registred[1]", 
            { TITLE => 'Hangup'}). ")";
          $table->addrow(@registred);
         }
@@ -2034,35 +2056,29 @@ if ($FORM{NAS_ID}){
                                 cols_align => ['right', 'right'],
                                 rows => [ ["$_TOTAL:", "<b>$total</b>" ] ]
                                } );
-
      print $table->show();
-    
      }
     else {
       $result =~s/\n/<br>/g;
-      print "<table><tr><td>
-        $result
-      </td></tr>
-      </table>";
+      $html->message('info', $_INFO, "$result");
      }
   }
 
-print "
-<form action=$SELF_URL>
-<input type=hidden name=index value=$index>
-<input type=hidden name=NAS_ID value=$FORM{NAS_ID}>
-<input type=text name=command value='$FORM{command}'>
-<input type=submit name=go value=$_SHOW>
-</form>
-";
+print  $html->form_main({ CONTENT => $html->form_input('command', "$FORM{command}"),
+  	                      HIDDEN  => { index   => "$index",
+  	                      	           NAS_ID  => "$FORM{NAS_ID}"  
+  	                      	          },
+	                        SUBMIT  => { go   => "$_SHOW"} 
+	                        });
 
-  $table = $html->table({ width => '100%',
-                                 border => 1,
-                                 title => ["_COMMAND", "_HELP"],
-                                 cols_align => ['left', 'left']
-                               });
+ $table = $html->table({ caption => 'Commands',
+  	                      width => '100%',
+                          border => 1,
+                          title => ["_COMMAND", "_HELP"],
+                          cols_align => ['left', 'left']
+                         });
     
-  foreach $k (sort keys %gk_commands) {
+  foreach my $k (sort keys %gk_commands) {
      $table->addrow($html->button("$k", "index=$index&NAS_ID=$FORM{NAS_ID}&command=$k"), $gk_commands{$k});
    }
   print $table->show();
@@ -2076,10 +2092,10 @@ print "
 #***********************************************************
 # voip_sheduler
 #***********************************************************
-sub dv_sheduler {
+sub voip_sheduler {
 	my ($type, $action, $uid)=@_;
 
-  my $user = $Dv->info($uid);  	
+  my $user = $Voip->user_info($uid);  	
   if ($type eq 'tp') {
     $Voip->user_change({UID   => $uid, 
     	                  TP_ID => $action });
@@ -2089,6 +2105,18 @@ sub dv_sheduler {
 
 
 
+#***********************************************************
+# voip_report
+#***********************************************************
+sub voip_report {
+	my ($type, $attr)=@_;
+  my $REPORT = "Module: Voip\n";
+  
+  %LIST_PARAMS = %{$attr->{LIST_PARAMS}} if (defined($attr->{LIST_PARAMS}));
+
+ 
+  return $REPORT;
+}
 
 
 1

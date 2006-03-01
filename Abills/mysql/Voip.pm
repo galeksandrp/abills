@@ -202,7 +202,7 @@ sub user_change {
                   } );
 
 
-  $admin->action_add($DATA{UID}, "$self->{result}");
+  $admin->action_add($attr->{UID}, "$self->{result}");
 
   return $self->{result};
 }
