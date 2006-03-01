@@ -23,18 +23,11 @@ BEGIN {
 
 require "config.pl";
 require "Abills/defs.conf";
+require "Abills/templates.pl";
+
+
 #
 #==== End config
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -46,29 +39,60 @@ require "Abills/defs.conf";
 #use FindBin '$Bin2';
 use Abills::SQL;
 use Abills::HTML;
+use Help;
 
 my $html = Abills::HTML->new();
 my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
 my $db = $sql->{db};
 require "../../language/$html->{language}.pl";
+print $html->header({ 
+	 PATH    => '../',
+	 CHARSET => $CHARSET });
 
-
-print $html->header();
 help();
 
 
 sub help {
-print << "[END]";
-<center>
-<form action=$PHP_SELF METHOD=post>
-<input type=hidden name=index value=$FORM{index}
+ my $Help = Help->new($db);
 
-<table border=1>
-<tr><td>$_SUBJECT: </td><td><input type=text name=caption value='$caption' size=40></td></tr>
-<tr><th colspan=2><textarea name=text cols=50 rows=4>$FORM</textarea></th></tr>
-<tr><th colspan=2><input type=submit name=add></th></tr>
-</table>
-[END]
+
+if ($FORM{add}) {
+	$Help->add({ %FORM });
+	$html->message('info', $_ADDED, "$_ADDED");
+}
+elsif ($FORM{change}) {
+	$Help->change({ %FORM });
+	$html->message('info', $_CHANGED, "$_CHANGED");
+}
+elsif ($FORM{del}) {
+	$Help->del({ %FORM });
+	$html->message('info', $_DELETED, "$_DELETED ''");
+}
+
+
+
+
+if (defined($FORM{FUNCTION})){
+  $Help->info({ FUNCTION => "$FORM{FUNCTION}" });
+
+
+  if($Help->{TOTAL}>0) {
+    $html->tpl_show(templates('help_info'), $Help);
+  	$Help->{ACTION}='change';
+  	$Help->{LNG_ACTION}=$_CHANGE;
+
+  }
+ else {
+ 	 $html->message('info', $_INFO, "$_NOT_EXIST");
+ 	 $Help->{ACTION}='add';
+ 	 $Help->{LNG_ACTION}=$_ADD;
+  }
+}
+
+
+
+$html->tpl_show(templates('help_form'), $Help);
+
 
 
 }

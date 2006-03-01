@@ -212,7 +212,7 @@ foreach my $m (@MODULES) {
      }
 
     $menu_names{$maxnumber}=$NAME;
-    $functions{$maxnumber}=\&$FUNTION_NAME if ($FUNTION_NAME  ne '');
+    $functions{$maxnumber}=$FUNTION_NAME if ($FUNTION_NAME  ne '');
     $module{$maxnumber}=$m;
   }
 }
@@ -228,8 +228,9 @@ print "<table width=100%>
 <table width=100% border=0>
   <tr><th align=left>$_DATE: $DATE $TIME Admin: <a href='$SELF_URL?index=53'>$admin->{A_LOGIN}</a> / Online: <abbr title=\"$online_users\"><a href='$SELF_URL?index=50' title='$online_users'>Online: $online_count</a></abbr></th>
   <th align=right><input type=hidden name=index value=7><input type=hidden name=search value=y>
-  Search: $SEL_TYPE <input type=text name=LOGIN_EXPR value='$FORM{LOGIN_EXPR}'> (<b><a href='#' onclick=\"window.open('help.cgi?index=$index','help',
-'height=550,width=450,resizable=0,scrollbars=yes,menubar=no, status=yes');\">?</a></b>)</th></tr>
+  Search: $SEL_TYPE <input type=text name=\"LOGIN_EXPR\" value='$FORM{LOGIN_EXPR}'> 
+  (<b><a href='#' onclick=\"window.open('help.cgi?index=$index&amp;FUNCTION=$functions{$index}','help',
+    'height=550,width=450,resizable=0,scrollbars=yes,menubar=no, status=yes');\">?</a></b>)</th></tr>
 </table>
 </form>
 </td></tr>\n";
@@ -2445,7 +2446,7 @@ foreach my $line (@m) {
 	my ($ID, $PARENT, $NAME, $FUNTION_NAME, $ARGS, $OP)=split(/:/, $line);
   $menu_items{$ID}{$PARENT}=$NAME;
   $menu_names{$ID}=$NAME;
-  $functions{$ID}=\&$FUNTION_NAME if ($FUNTION_NAME  ne '');
+  $functions{$ID}=$FUNTION_NAME if ($FUNTION_NAME  ne '');
   $menu_args{$ID}=$ARGS if ($ARGS ne '');
   $maxnumber=$ID if ($maxnumber < $ID);
 }
