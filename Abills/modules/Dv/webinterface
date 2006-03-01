@@ -54,7 +54,7 @@ if ($FORM{set}) {
                    M => $FORM{date_M},
                    Y => $FORM{date_Y},
                    DESCRIBE => "$message<br>
-                   $_FROM: '$FORM{date_y}-$FORM{date_m}-$FORM{date_d}'",
+                   $_FROM: '$FORM{date_Y}-$FORM{date_M}-$FORM{date_D}'",
                    MODULE => 'Dv'
                     });
 
@@ -832,11 +832,11 @@ my ($tables_sessions);
 #Day reposrt
 if (defined($FORM{DATE})) {
   #Used Fraffic
-  $table_sessions = $html->table( { width => '100%',
-	                              caption => "$_SESSIONS", 
-                                title =>["$_DATE", "$_USERS", "$_SESSIONS", "$_TRAFFIC ", "$_TRAFFIC 2", $_DURATION, $_SUM],
-                                cols_align => ['right', 'left', 'right', 'right', 'right', 'right', 'right'],
-                                qs => $pages_qs             
+  $table_sessions = $html->table({ width => '100%',
+	                                 caption => "$_SESSIONS", 
+                                   title =>["$_DATE", "$_USERS", "$_SESSIONS", "$_TRAFFIC ", "$_TRAFFIC 2", $_DURATION, $_SUM],
+                                   cols_align => ['right', 'left', 'right', 'right', 'right', 'right', 'right'],
+                                   qs => $pages_qs             
                                } );
 
   my $list = $sessions->reports({ %LIST_PARAMS });
@@ -1468,35 +1468,34 @@ sub dv_monthly_fees {
 
  foreach my $line (@$list) {
  	 if ($line->[6] > 0) {
- 	   print "$line->[0] $line->[6]\n";
- 	   $LIST_PARAMS{TP}=$line->[0];
-
- 	   my $ulist = $Dv->list({ 
-         ACTIVATE => "<=$DATE",
-         EXPIRE => ">$DATE",
-         DISABLE => '0',
-         TP_ID => $line->[0],
-         SORT      => 1,
-         PAGE_ROWS => 10000
+# 	   print "TP_ID: $line->[0] MONTH_ABON: $line->[6]\n";
+	   my $ulist = $Dv->list({ 
+         ACTIVATE   => "<=$DATE",
+         EXPIRE     => ">$DATE",
+         DISABLE    => '0',
+         TP_ID      => $line->[0],
+         SORT       => 1,
+         PAGE_ROWS  => 10000
 
  	   	 });
 #u.id, u.fio, if(acct.id IS NULL, u.deposit, acct.deposit), u.credit, tp.name, u.disable, 
 #      u.uid, u.account_id, u.email, u.tp_id, u.activate, u.expire
 
-
      foreach my $u (@$ulist) {
-       #print " $u->[0] $line->[6] $u->[2] $u->[3] $u->[10] - $u->[11]\n"; 	
+#       print " Login: $u->[0] TP_ID: $u->[9] Fees: $line->[6] $u->[2] $u->[3] $u->[10] - $u->[11]\n"; 	
+       
        if ($u->[12] > 0 && defined($u->[2])) {
           my %user = (
             ACCOUNT_ID => $u->[7],
-            UID => $u->[6],
-            BILL_ID => $u->[12]   
+            UID        => $u->[6],
+            BILL_ID    => $u->[12]   
            );
 
 
           if($line->[4] == 1 || $u->[2] + $u->[3] > 0) {
+#                print " $u->[0] $line->[6] $u->[2] $u->[3] $u->[10] - $u->[11] /$DATE $d == 1\n"; 	
             if ($u->[10] eq '0000-00-00' and $d == 1) {
-                #print " $u->[0] $line->[6] $u->[2] $u->[3] $u->[10] - $u->[11]\n"; 	
+#                print " $u->[0] $line->[6] $u->[2] $u->[3] $u->[10] - $u->[11] / $d == 1\n"; 	
                 $fees->take(\%user, $line->[6], { DESCRIBE => "$_MONTH_FEE" } );  
               }
             elsif($u->[10] ne '0000-00-00') {
@@ -1504,7 +1503,6 @@ sub dv_monthly_fees {
               $activate_m--;
               my $active_unixtime =  mktime(0, 0, 0, $activate_d, $activate_m, $activate_y - 1900, 0, 0, 0);
               if ($date_unixtime - $active_unixtime > 30 * 86400) {
-                #my $aa = (strftime "%Y-%m-%d", localtime($active_unixtime));
                 $fees->take(\%user, $line->[6], { DESCRIBE => "$_MONTH_FEE" } );
                 $users->change($u->[6], { 
                 	  UID      => $u->[6],
@@ -1695,7 +1693,7 @@ elsif($attr->{TP}) {
 }
 
 #***********************************************************
-#
+# dv_sheduler
 #***********************************************************
 sub dv_sheduler {
 	my ($type, $action, $uid)=@_;
@@ -1707,6 +1705,77 @@ sub dv_sheduler {
    }
 
 }
+
+
+#***********************************************************
+# dv_report
+#***********************************************************
+sub dv_report {
+	my ($type, $attr)=@_;
+  my $REPORT = "Module: DV\n";
+  
+  %LIST_PARAMS = %{$attr->{LIST_PARAMS}} if (defined($attr->{LIST_PARAMS}));
+
+  
+if ($type eq 'daily') {
+	$REPORT .= sprintf ("%-14s| %5s| %9s| %9s| %10s| %9s|\n", $_LOGIN, $_SESSIONS, 
+    $_TRAFFIC, "$_TRAFFIC 2", $_DURATION, $_SUM);
+  $REPORT .= "---------------------------------------------------------\n";
+
+  $list = $sessions->reports( { %LIST_PARAMS } );
+  foreach my $line (@$list) {
+   $REPORT .= sprintf ("%-14s| %5d| %9s| %9s| %8s| %9.4f|\n", 
+     $line->[1], 
+     $line->[2], 
+     int2byte($line->[3]), 
+     int2byte($line->[4]), 
+     $line->[5], 
+     $line->[6]);
+   }
+
+  $REPORT .= "---------------------------------------------------------\n";
+  $REPORT .= sprintf("%-14s| %20s|\n%-14s| %20s|\n%-14s| %20s|\n%-14s| %20s|\n%-14s| %20s|\n%-14s| %20s|\n", 
+   $_USERS,       $sessions->{USERS}, 
+   $_SESSIONS,    $sessions->{SESSIONS}, 
+   $_TRAFFIC,     int2byte($sessions->{TRAFFIC}), 
+   "$_TRAFFIC 2", int2byte($sessions->{TRAFFIC_2}), 
+   $_DURATION,    $sessions->{DURATION}, 
+   $_SUM,         $sessions->{SUM});
+
+ }
+elsif ($type eq 'monthly') {
+  $REPORT .= sprintf (" %12s| %5s| %5s| %10s| %10s| %12s| %9s|\n", $_DATE, $_USERS, $_SESSIONS, 
+    $_TRAFFIC, "$_TRAFFIC 2", $_DURATION, $_SUM);
+  $REPORT .= "---------------------------------------------------------\n";
+ 
+  my $list = $sessions->reports( { %LIST_PARAMS } );
+
+  foreach my $line (@$list) {
+#   u.id, count(l.id), sum(l.sent + l.recv), sum(l.sent2 + l.recv2), sec_to_time(sum(l.duration)), sum(l.sum), l.id
+    $REPORT .= sprintf (" %12s| %5s| %5s| %10s| %10s| %12s| %9.4f|\n", 
+     $line->[0], 
+     $line->[1], 
+     $line->[2], 
+     int2byte($line->[3]), 
+     int2byte($line->[4]), 
+     $line->[5], 
+     $line->[6]);
+   }
+
+  $REPORT .= "---------------------------------------------------------\n";
+  $REPORT .= sprintf("%-14s| %20s|\n%-14s| %20s|\n%-14s| %20s|\n%-14s| %20s|\n%-14s| %20s|\n%-14s| %20s|\n", 
+    $_USERS,       $sessions->{USERS}, 
+    $_SESSIONS,    $sessions->{SESSIONS}, 
+    $_TRAFFIC,     int2byte($sessions->{TRAFFIC}), 
+    "$_TRAFFIC 2", int2byte($sessions->{TRAFFIC_2}), 
+    $_DURATION,    $sessions->{DURATION}, 
+    $_SUM,         $sessions->{SUM});
+}
+
+ 
+  return $REPORT;
+}
+
 
 1
 

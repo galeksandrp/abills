@@ -50,13 +50,13 @@ my $args = parse_arguments(\@ARGV);
 #print $DATE;
 
 my @daily_functions=('sheduler',
-                     'admin_report_daily',
-                     'dv_users_warning_messages'
+                     'admin_report_daily'
                      );
 
 my @monthly_functions = ('admin_report_monthly',
                          'backup',
                          'logrotate');
+my @reports = ();
 
 
 
@@ -65,14 +65,29 @@ my @monthly_functions = ('admin_report_monthly',
 
     my $i=0;
     while(my($k, $v)= each %PERIODIC) {
-      push @daily_functions, $PERIODIC{$k} if ($k eq 'daily');
-      push @monthly_functions, $PERIODIC{$k} if ($k eq 'monthly');
+      if ($k eq 'daily') {
+        foreach my $funtion_name (@{ $PERIODIC{$k} })  {
+          push @daily_functions, $funtion_name;
+         }
+       }
+      elsif ($k eq 'monthly') {
+        foreach my $funtion_name (@{ $PERIODIC{$k} })  {
+          push @monthly_functions, $funtion_name;
+         }
+       }
+      elsif ($k eq 'report') {
+        foreach my $funtion_name (@{ $PERIODIC{$k} })  {
+          push @reports, $funtion_name;
+         }      
+       }
       $i++;
      }
 
  	 require "Abills/modules/$m/webinterface" if($i > 0);
    undef %PERIODIC;
   }
+
+
 
 my($Y, $M, $D);
 
@@ -86,7 +101,6 @@ my($Y, $M, $D);
  
  
 if (defined($args->{monthly})) {
- 	 $DATE = $args->{DATE};
    for(my $i=$#monthly_functions; $i>-1; $i--) {
   	my $f = $monthly_functions[$i];
   	#print $f . "\n";
@@ -225,6 +239,7 @@ $ADMIN_REPORT{PAYMENTS} .= "----------------------------------------------------
 $LIST_PARAMS{DATE}=$YESTERDAY;
 $LIST_PARAMS{SORT}=2;
 $LIST_PARAMS{DESC}='DESC';
+$LIST_PARAMS{PAGE_ROWS}=10000;
 
 $list = $payments->list( { %LIST_PARAMS } );
 
@@ -273,70 +288,10 @@ $ADMIN_REPORT{FEES} .= sprintf("%-14s| %8s|\n%-14s| %8s|\n",
     $_SUM,   $fees->{SUM});
 
 
-#USED traffic nd time
-require Dv_Sessions;
-Dv_Sessions->import();
-my $sessions = Dv_Sessions->new($db, $admin, \%conf); 
-
-$ADMIN_REPORT{SESSIONS} .= sprintf ("%-14s| %5s| %9s| %9s| %10s| %9s|\n", $_LOGIN, $_SESSIONS, 
-    $_TRAFFIC, "$_TRAFFIC 2", $_DURATION, $_SUM);
-$ADMIN_REPORT{SESSIONS} .= "---------------------------------------------------------\n";
-
-$list = $sessions->reports( { %LIST_PARAMS } );
-foreach my $line (@$list) {
-  
-#   u.id, count(l.id), sum(l.sent + l.recv), sum(l.sent2 + l.recv2), sec_to_time(sum(l.duration)), sum(l.sum), l.id
-
- 
-   $ADMIN_REPORT{SESSIONS} .= sprintf ("%-14s| %5d| %9s| %9s| %8s| %9.4f|\n", 
-    $line->[1], 
-    $line->[2], 
-    int2byte($line->[3]), 
-    int2byte($line->[4]), 
-    $line->[5], 
-    $line->[6]);
+#Module report functions
+foreach my $function (@reports) {
+	$ADMIN_REPORT{MODULES} .= $function->('daily', { LIST_PARAMS => \%LIST_PARAMS });
 }
-
-
-$ADMIN_REPORT{SESSIONS} .= "---------------------------------------------------------\n";
-$ADMIN_REPORT{SESSIONS} .= sprintf("%-14s| %20s|\n%-14s| %20s|\n%-14s| %20s|\n%-14s| %20s|\n%-14s| %20s|\n%-14s| %20s|\n", 
-   $_USERS,       $sessions->{USERS}, 
-   $_SESSIONS,    $sessions->{SESSIONS}, 
-   $_TRAFFIC,     int2byte($sessions->{TRAFFIC}), 
-   "$_TRAFFIC 2", int2byte($sessions->{TRAFFIC_2}), 
-   $_DURATION,    $sessions->{DURATION}, 
-   $_SUM,         $sessions->{SUM});
-
-
-
-#my $total_sum = 0;
-#my $total_dur_sec = 0;
-#my $total_trafic = 0;
-#my $total_sessions = 0;
-#my $unique_users= 0;
-#while(my($login, $sessions, $trafic, $duration, $sum, $dur_sec) = $q -> fetchrow_array()) {
-#  $total_sum += $sum;
-#  $total_dur_sec += $dur_sec;
-#  $total_trafic += $trafic;
-#  $total_sessions += $sessions;
-#  $unique_users++;
-#  $message .= sprintf ("%-14s| %4d| %12s| %10s| %8s\n", $login, $sessions, 
-#    int2byte($trafic), $duration, $sum);
-#}
-#
-#
-##print $stats;
-#my ($s,$m,$h,$days) = sec2time($total_dur_sec);
-#
-#$message .= "=========================================================\n";
-#$message .= sprintf ("%s:%4d/%4d| %9s| %s+%02.d:%02.d:%02.d| %-8.2f\n", $_TOTAL, 
-#    $unique_users, $total_sessions,  int2byte($total_trafic), $days, $h,$m,$s,  $total_sum);
-
-
-
-
-
-
 
 
 
@@ -353,28 +308,27 @@ require Finance;
 Finance->import();
 my $payments = Finance->payments($db, $admin, \%conf); 
 
-$ADMIN_REPORT{PAYMENTS}  =  sprintf("%-14s| %8s| %20s| %12s| %15s| %19s|\n", 
-    $_LOGIN, $_SUM, $_DESCRIBE, 'Admins.', 'IP', $_DATE);
+$ADMIN_REPORT{PAYMENTS}  =  sprintf(" %19s| %9s| %12s|\n", $_DATE, $_COUNT, $_SUM);
 $ADMIN_REPORT{PAYMENTS} .= "---------------------------------------------------------\n";
 
-$LIST_PARAMS{DATE}=$YESTERDAY;
-$LIST_PARAMS{SORT}=2;
-$LIST_PARAMS{DESC}='DESC';
+my %LIST_PARAMS = ();
+my ($Y, $M, $D)=split(/-/, $YESTERDAY, 3);
 
-$list = $payments->list( { %LIST_PARAMS } );
+$LIST_PARAMS{MONTH}="$Y-$M";
+$LIST_PARAMS{PAGE_ROWS}=100000;
+
+$list = $payments->reports( { %LIST_PARAMS } );
 
 foreach my $line (@$list) {
-   $ADMIN_REPORT{PAYMENTS} .= sprintf ("%-14s| %8.4f| %20s| %12s| %15s| %19s|\n", 
+   $ADMIN_REPORT{PAYMENTS} .= sprintf (" %19s| %9s| %12s|\n", 
+    "$line->[0]", 
     "$line->[1]", 
-    "$line->[3]", 
-    "$line->[4]", 
-    "$line->[5]", 
-    "$line->[6]", 
-    "$line->[2]");
+    "$line->[2]"
+   );
 }
 
 $ADMIN_REPORT{PAYMENTS} .= "---------------------------------------------------------\n";
-$ADMIN_REPORT{PAYMENTS} .= sprintf("%-14s| %8s|\n%-14s| %8s|\n", 
+$ADMIN_REPORT{PAYMENTS} .= sprintf("%-14s| %12s|\n%-14s| %12s|\n", 
   $_TOTAL, $payments->{TOTAL},
   $_SUM,   $payments->{SUM});
 
@@ -383,77 +337,31 @@ $ADMIN_REPORT{PAYMENTS} .= sprintf("%-14s| %8s|\n%-14s| %8s|\n",
 #Fees
 my $fees = Finance->fees($db, $admin, \%conf);
 
-
-# Daily fees
-# Login Count Sum  
-$ADMIN_REPORT{FEES} .= sprintf ("%-14s| %8s| %20s| %12s| %15s| %8s\n", 
-   $_LOGIN, $_SUM, $_DESCRIBE, $_ADMINS, 'IP', $_DEPOSIT);
+$ADMIN_REPORT{FEES} .= sprintf(" %19s| %9s| %12s|\n", $_DATE, $_COUNT, $_SUM);
 $ADMIN_REPORT{FEES} .= "---------------------------------------------------------\n";
 
-$LIST_PARAMS{PAGE_ROWS}=10000;
-$list = $fees->list( { %LIST_PARAMS } );
+$list = $fees->reports( { %LIST_PARAMS } );
 foreach my $line (@$list) {
-#SELECT f.id, u.id, f.date, f.sum, f.dsc, a.name, INET_NTOA(f.ip), f.last_deposit, f.uid 
-  $ADMIN_REPORT{FEES} .= sprintf ("%-14s| %8.4f| %20s| %12s| %15s| %8.4f\n", 
+  $ADMIN_REPORT{FEES} .= sprintf (" %19s| %9s| %12s|\n", 
+    $line->[0], 
     $line->[1], 
-    $line->[3], 
-    $line->[4], 
-    $line->[5], 
-    $line->[6],
-    $line->[7]);
+    $line->[2]
+   );
     
 }
 
 $ADMIN_REPORT{FEES} .= "---------------------------------------------------------\n";
-$ADMIN_REPORT{FEES} .= sprintf("%-14s| %8s|\n%-14s| %8s|\n", 
+$ADMIN_REPORT{FEES} .= sprintf("%-14s| %12s|\n%-14s| %12s|\n", 
     $_TOTAL, $fees->{TOTAL}, 
     $_SUM,   $fees->{SUM});
 
-
-#USED traffic nd time
-#Date  Users  Sessions  Traffic  Traffic 2  Duration  Sum  
-require Dv_Sessions;
-Dv_Sessions->import();
-my $sessions = Dv_Sessions->new($db, $admin, \%conf); 
-
-$ADMIN_REPORT{SESSIONS} .= sprintf ("%-14s| %5s| %9s| %9s| %10s| %9s|\n", $_LOGIN, $_SESSIONS, 
-    $_TRAFFIC, "$_TRAFFIC 2", $_DURATION, $_SUM);
-$ADMIN_REPORT{SESSIONS} .= "---------------------------------------------------------\n";
-
-$list = $sessions->reports( { %LIST_PARAMS } );
-foreach my $line (@$list) {
-  
-#   u.id, count(l.id), sum(l.sent + l.recv), sum(l.sent2 + l.recv2), sec_to_time(sum(l.duration)), sum(l.sum), l.id
-
- 
-   $ADMIN_REPORT{SESSIONS} .= sprintf ("%-14s| %5d| %9s| %9s| %8s| %9.4f|\n", 
-    $line->[1], 
-    $line->[2], 
-    int2byte($line->[3]), 
-    int2byte($line->[4]), 
-    $line->[5], 
-    $line->[6]);
+#Module report functions
+foreach my $function (@reports) {
+	$ADMIN_REPORT{MODULES} .= $function->('monthly', { DATE => $DATE,
+		                                                 LIST_PARAMS => \%LIST_PARAMS });
 }
 
-
-$ADMIN_REPORT{SESSIONS} .= "---------------------------------------------------------\n";
-$ADMIN_REPORT{SESSIONS} .= sprintf("%-14s| %20s|\n%-14s| %20s|\n%-14s| %20s|\n%-14s| %20s|\n%-14s| %20s|\n%-14s| %20s|\n", 
-   $_USERS,       $sessions->{USERS}, 
-   $_SESSIONS,    $sessions->{SESSIONS}, 
-   $_TRAFFIC,     int2byte($sessions->{TRAFFIC}), 
-   "$_TRAFFIC 2", int2byte($sessions->{TRAFFIC_2}), 
-   $_DURATION,    $sessions->{DURATION}, 
-   $_SUM,         $sessions->{SUM});
-
-
-
-
-
-
-
-
-
-  
+ 
 
 }
 

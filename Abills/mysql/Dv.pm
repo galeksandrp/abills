@@ -40,7 +40,7 @@ my %SEARCH_PARAMS = (TARIF_PLAN => 0,
 sub new {
   my $class = shift;
   ($db, $admin, $CONF) = @_;
-  $admin->{MODULE}='Dv';
+  $admin->{MODULE}=$MODULE;
   my $self = { };
   bless($self, $class);
   return $self;
@@ -356,7 +356,7 @@ sub list {
   }
 
  # Show users for spec tarifplan 
- if ($attr->{TP_ID}) {
+ if (defined($attr->{TP_ID})) {
     push @WHERE_RULES, "dv.tp_id='$attr->{TP_ID}'";
   }
 
@@ -388,7 +388,7 @@ sub list {
  }
 
 #DIsable
- if ($attr->{DISABLE}) {
+ if (defined($attr->{DISABLE})) {
    push @WHERE_RULES, "u.disable='$attr->{DISABLE}'"; 
  }
  

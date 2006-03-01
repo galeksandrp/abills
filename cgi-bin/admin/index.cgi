@@ -876,6 +876,7 @@ if ($users->{errno}) {
   return 0;
  }
 elsif ($users->{TOTAL} == 1) {
+	$FORM{index} = 15;
 	form_users({  USER => user_info($list->[0]->[5]) });
 	return 0;
 }
@@ -2283,7 +2284,7 @@ else{
                                 title =>["$_DATE", "$_COUNT", $_SUM],
                                 cols_align => ['right', 'right', 'right'],
                                 qs => $pages_qs
-                                    });
+                               });
 
 
   $list = $fees->reports({ %LIST_PARAMS });
@@ -2295,11 +2296,11 @@ else{
 }
 
   print $table_fees->show();	
-  $table = $html->table( { width      => '100%',
-                                cols_align => ['right', 'right', 'right', 'right'],
-                                rows       => [ [ "$_TOTAL:", "<b>$fees->{TOTAL}</b>", "$_SUM", "<b>$fees->{SUM}</b>" ] ],
-                                rowcolor   => $_COLORS[2]
-                               } );
+  $table = $html->table( { width           => '100%',
+                           cols_align => ['right', 'right', 'right', 'right'],
+                           rows       => [ [ "$_TOTAL:", "<b>$fees->{TOTAL}</b>", "$_SUM", "<b>$fees->{SUM}</b>" ] ],
+                           rowcolor   => $_COLORS[2]
+                          });
   print $table->show();
 }
 

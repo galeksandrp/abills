@@ -49,7 +49,6 @@ sub voip_chg_tp {
  	 return 0;
   }
 
- my $TARIF_PLAN = $FORM{tarif_plan} || $_DEFAULT_VARIANT;
  my $period = $FORM{period} || 0;
 
  use Shedule;
@@ -57,16 +56,16 @@ sub voip_chg_tp {
 
 if ($FORM{set}) {
   if ($period == 1) {
-    $FORM{date_m}++;
+    $FORM{date_M}++;
     $shedule->add( {UID => $user->{UID},
                    TYPE => 'tp',
-                   ACTION => $FORM{TARIF_PLAN},
-    	             D => $FORM{date_d},
-                   M => $FORM{date_m},
-                   Y => $FORM{date_y},
+                   ACTION => $FORM{TP_ID},
+    	             D => $FORM{date_D},
+                   M => $FORM{date_M},
+                   Y => $FORM{date_Y},
                    DESCRIBE => "$message<br>
-                   $_FROM: '$FORM{date_y}-$FORM{date_m}-$FORM{date_d}'",
-                   MODULE => 'Dv'
+                   $_FROM: '$FORM{date_Y}-$FORM{date_M}-$FORM{date_D}'",
+                   MODULE => 'Voip'
                     });
 
     if ($shedule->{errno}) {
@@ -74,7 +73,7 @@ if ($FORM{set}) {
      }
     else {
       $html->message('info', $_CHANGED, "$_CHANGED");
-      $user->info($user->{UID});
+      $user->user_info($user->{UID});
     }
    }
   else {
@@ -91,26 +90,63 @@ if ($FORM{set}) {
   }
 }
 elsif($FORM{del}) {
-  shedule('del', { UID => $user->{UID},
-   	           id  => $FORM{del}  } 
-   	     );
+  $shedule->del( { UID => $user->{UID},
+   	               ID  => $FORM{SHEDULE_ID}  } 
+   	            );
+
+  $html->message('info', $_DELETED, "$_DELETED [$FORM{SHEDULE_ID}]");
 }
 
- $user->{m}=$m;
- $user->{TARIF_PLAN_SEL}="<select name=TARIF_PLAN>\n";
- my $tariffs_list = $Voip->tp_list();
- foreach my $line (@$tariffs_list) {
-   $user->{TARIF_PLAN_SEL} .= "<option value=$line->[0]";
-   $user->{TARIF_PLAN_SEL} .= ' selected' if ($line->[0] == $user->{TP_ID});
-   $user->{TARIF_PLAN_SEL} .=  ">$line->[0]:$line->[1]\n";
+my $tariffs;
+
+
+
+  $shedule->info( {UID     => $user->{UID},
+                   TYPE    => 'tp',
+                   MODULE  => 'Voip'
+                   });
+
+
+  if ($shedule->{TOTAL} > 0) {
+  	$table = $html->table( { width   => '100%',
+  		                       caption => "$_SHEDULE",
+                             cols_align => ['left', 'left'],
+                             rows => [ [ "$_TARIF_PLAN:", "$shedule->{ACTION}"   ],
+                                       [ "$_DATE:",   "$shedule->{D}-$shedule->{M}-$shedule->{Y}" ],
+                                       [ "$_ADMIN:",  "$shedule->{ADMIN_NAME}" ],
+                                       [ "$_ADDED:",  "$shedule->{DATE}"     ],
+                                       [ "ID:",       "$shedule->{SHEDULE_ID}"   ]  
+                                      ]
+                               } );
+  	$tariffs->{TARIF_PLAN_SEL} = $table->show(). $html->form_input('SHEDULE_ID', "$shedule->{SHEDULE_ID}", {TYPE => 'HIDDEN' });
+  	$tariffs->{ACTION}='del';
+  	$tariffs->{LNG_ACTION}=$_DEL;
   }
- $user->{TARIF_PLAN_SEL}.="</select>";
- $user->{PARAMS} = form_period($period);
- #my $tp_index = $index + 3;
+ else {
+   $tariffs->{TARIF_PLAN_SEL}=$html->form_select('TP_ID', 
+                                          { 
+ 	                                          SELECTED  => $user->{TP_ID},
+ 	                                          SEL_MULTI_ARRAY   => $Voip->tp_list(),
+ 	                                          MULTI_ARRAY_KEY   => 0,
+ 	                                          MULTI_ARRAY_VALUE => 1,
+ 	                                        });
+
+   $tariffs->{PARAMS} .= form_period($period);	
+   $tariffs->{ACTION}='set';
+   $tariffs->{LNG_ACTION}=$_CHANGE;
+  }
+
+ 
+
+my $tp_index = $index + 4;
+
+$tariffs->{UID}=$attr->{USER}->{UID};
+$tariffs->{m}=$m;
+$tariffs->{TP_ID} = $user->{TP_ID};
+$tariffs->{TP_NAME} = "$user->{TP_ID}:$user->{TP_NAME} [". $html->button("$_VARIANTS", "index=$tp_index&TP_ID=$user->{TP_ID}", { TITLE => "$_TP" } ). "]";
 
 
-
-$html->tpl_show(templates('chg_tp'), $user);
+print $html->tpl_show(templates('chg_tp'), $tariffs);
 
 }
 
@@ -123,7 +159,7 @@ $html->tpl_show(templates('chg_tp'), $user);
 
 
 #**********************************************************
-# user_dv
+# user_voip
 #**********************************************************
 sub voip_users_list {
 
@@ -1667,62 +1703,6 @@ dv_sessions($list, $sessions) if ( $sessions->{TOTAL} > 0);
 
 
 
-#**********************************************************
-# dv_session_detail
-#**********************************************************
-sub dv_session_detail {
-	my ($attr) = @_;
-  my $user;
-
-
-if (defined($attr->{USER}))	{
-	$user = $attr->{USER};
-	$LIST_PARAMS{LOGIN}=$user->{LOGIN};
-}
-elsif($FORM{UID}) {
-	dv_user();
-	return 0;
-}	
-
-
-
-$sessions->session_detail({ %FORM });
-
-$sessions->{_SENT}=int2byte($sessions->{SENT}); 
-$sessions->{_RECV}=int2byte($sessions->{RECV}); 
-$sessions->{_SENT2}=int2byte($sessions->{SENT2});
-$sessions->{_RECV2}=int2byte($sessions->{RECV2});
-
-$html->tpl_show(_include('dv_session_detail', 'Dv'), $sessions);
-
-
-my $list = $sessions->detail_list({ %LIST_PARAMS });
-
-  my $table = $html->table({ width => '100%',
-                                   border => 1,
-                                   title => ["LAST_UPDATE", "$_SESSION_ID", "NAS_ID", "SENT", "RECV", "SENT2", "RECV2"],
-                                   cols_align => ['right', 'right', 'right', 'right', 'right', 'right', 'right'],
-                                   pages => $sessions->{TOTAL},
-                                   qs => $pages_qs
-                                  } );
-
- foreach my $line (@$list) {
-    $table->addrow($line->[0],  $line->[1], $line->[2], $line->[3],  $line->[4], $line->[5], $line->[6]);
-  }
- print $table->show();
-
-
-$table = $html->table( { width => '100%',
-                                cols_align => ['right', 'right'],
-                                rows => [ ["$_TOTAL:", "<b>$sessions->{TOTAL}</b>" ] ]
-                               } );
-print $table->show();
-
-
-
-}
-
-
 sub voip_user_info {
   my $user = $Voip->user_info($LIST_PARAMS{UID});
   
@@ -2090,6 +2070,26 @@ print "
 }
 	
 }
+
+
+
+#***********************************************************
+# voip_sheduler
+#***********************************************************
+sub dv_sheduler {
+	my ($type, $action, $uid)=@_;
+
+  my $user = $Dv->info($uid);  	
+  if ($type eq 'tp') {
+    $Voip->user_change({UID   => $uid, 
+    	                  TP_ID => $action });
+   }
+
+}
+
+
+
+
 
 1
 

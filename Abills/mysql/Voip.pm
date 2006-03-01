@@ -1,8 +1,6 @@
-
 package Voip;
 # Voip  managment functions
 #
-
 
 
 use strict;
@@ -21,6 +19,7 @@ use main;
 use Tariffs;
 my $tariffs = Tariffs->new($db, $CONF, $admin);
 
+my $MODULE='Voip';
 
 @ISA  = ("main");
 my $uid;
@@ -32,7 +31,7 @@ my $uid;
 sub new {
   my $class = shift;
   ($db, $admin, $CONF) = @_;
-  
+  $admin->{MODULE}=$MODULE; 
 
   my $self = { };
   bless($self, $class);
@@ -136,7 +135,7 @@ sub defaults {
   my $self = shift;
 
   %DATA = (
-   TARIF_PLAN => 0, 
+   TP_ID => 0, 
    NUMBER => 0, 
    DISABLE => 0, 
    IP => '0.0.0.0', 
@@ -187,7 +186,7 @@ sub user_change {
               NUMBER					 => 'number',
               DISABLE          => 'disable',
               IP               => 'ip',
-              TARIF_PLAN       => 'tp_id',
+              TP_ID            => 'tp_id',
               CID              => 'cid',
               UID              => 'uid',
               FILTER_ID        => 'filter_id'
@@ -685,8 +684,8 @@ sub tp_list() {
   my $self = shift;
   my ($attr) = @_;
 
-
  my $WHERE = 'WHERE tp.id=voip.id';
+
  $self->query($db, "SELECT tp.id, tp.name, if(sum(i.tarif) is NULL or sum(i.tarif)=0, 0, 1), 
     tp.payment_type,
     tp.day_fee, tp.month_fee, 

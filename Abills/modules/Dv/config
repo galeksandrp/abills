@@ -49,8 +49,11 @@ $web_interface    = 1;
                        "02:1:$_STATS:dv_user_stats:"       => 0
                       );
 
-%PERIODIC = (daily   => 'dv_daily_fees',
-             monthly => 'dv_monthly_fees');
+
+
+%PERIODIC = (daily   => [ 'dv_daily_fees', 'dv_users_warning_messages' ],
+             monthly => [ 'dv_monthly_fees' ],
+             report  => [ 'dv_report'       ]);
 
 
 1
