@@ -299,17 +299,37 @@ sub stats_dslmax {
 #*******************************************************************
 # HANGUP Cisco
 # hangup_cisco($SERVER, $PORT)
+#
+# Cisco config  for rsh functions:
+#
+# ip rcmd rcp-enable
+# ip rcmd rsh-enable
+# no ip rcmd domain-lookup
+# ! ip rcmd remote-host èìÿ_şçåğà_íà_cisco IP_address_èëè_èìÿ_êîìïà_ñ_êîòîğîãî_çàïóñêàåòñÿ_ñêğèïò èìÿ_şçåğà_îò_÷üåãî_èìåíè_áóäåò_çàïóêàòüñÿ_ñêğèïò enable
+# ! íàïğèìåğ
+# ip rcmd remote-host admin 192.168.0.254 root enable
+#
 #*******************************************************************
 sub hangup_cisco {
  my ($NAS, $PORT) = @_;
- my $SNMP_COM = $NAS->{NAS_MNG_PASSWORD} || '';
+ my $exec;
+
+#Rsh version
+if ($self->{NAS_MNG_USER}) {
+# èìÿ şçåğà íà öèñêî êîòğîìó ğàçğåøåí rsh è õâàòàåò ïğèâåëåãèé äëÿ ñáğîñà
+  my $cisco_user=$self->{NAS_MNG_USER};
+# èñïîëüçîâàíèå: NAS-IP-Address NAS-Port SQL-User-Name
+  $exec = `/usr/bin/rsh -4 -n -l $cisco_user $NAS->{NAS_IP} clear interface Virtual-Access $PORT`; 
+ }
+else {
+#SNMP version
+  my $SNMP_COM = $NAS->{NAS_MNG_PASSWORD} || '';
+  my $SNMPSET=`/usr/bin/which snmpset`;
  
- my $SNMPWALK=`/usr/bin/which snmpwalk`;
- my $SNMPSET=`/usr/bin/which snmpset`;
- 
- my $INTNAME=`finger @$NAS->{NAS_IP} | awk '{print $1 " " $2}' | grep $1"$" | awk '{print $1}' | sed s/Vi/Virtual-Access/g`;
- my $INTNUM=`$SNMPWALK -v 1 -c $SNMP_COM -O n $NAS->{NAS_IP} .1.3.6.1.2.1.2.2.1.2 | grep $INTNAME"$" | awk '{print $1}' | sed s/.1.3.6.1.2.1.2.2.1.2.//g`;
- my $exec=`$SNMPSET -v 1 -c $SNMP_COM $NAS->{NAS_IP} 1.3.6.1.2.1.2.2.1.7.$INTNUM i 2 > /dev/null 2>&1`;
+  my $INTNAME=`finger @$NAS->{NAS_IP} | awk '{print $1 " " $2}' | grep $1"$" | awk '{print $1}' | sed s/Vi/Virtual-Access/g`;
+  my $INTNUM=`$SNMPWALK -v 1 -c $SNMP_COM -O n $NAS->{NAS_IP} .1.3.6.1.2.1.2.2.1.2 | grep $INTNAME"$" | awk '{print $1}' | sed s/.1.3.6.1.2.1.2.2.1.2.//g`;
+  $exec=`$SNMPSET -v 1 -c $SNMP_COM $NAS->{NAS_IP} 1.3.6.1.2.1.2.2.1.7.$INTNUM i 2 > /dev/null 2>&1`;
+}
 
  return 0;
 }
