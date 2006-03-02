@@ -1910,6 +1910,7 @@ if ($nas->{errno}) {
   'ipcad'     => 'IP accounting daemon with Cisco-like ip accounting export',
   'pppd'      => 'pppd + RADIUS plugin (Linux)',
   'gnugk'     => 'GNU GateKeeper',
+  'cisco'     => 'Cisco (Experimental)',
   'other'     => 'Other nas server');
 
   $nas->{SEL_TYPE} = $html->form_select('NAS_TYPE', 
@@ -3546,5 +3547,8 @@ sub wizard {
 	print "<form action=$SELF_URL>\n".
 	 $SERVICES_SEL;
 	print "</form>\n";
+	
+	my @tpls = ('form_user', 'form_pi');
+	
 	
 }

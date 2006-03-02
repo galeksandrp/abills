@@ -26,11 +26,6 @@ sub hangup {
 
  $NAS = $Nas;
  $nas_type = $NAS->{NAS_TYPE};
-# $nas_id = $NAS_INFO->{$NAS};
-# $mng_user =  $NAS_INFO->{mng_user}{$nas_id};
-# $mng_password = $NAS_INFO->{mng_password}{$nas_id};
-# $mng_ip= $NAS_INFO->{mng_ip}{$nas_id};
-# $mng_port = $NAS_INFO->{mng_port}{$nas_id};
 
  if ($nas_type eq 'exppp') {
     hangup_exppp($NAS, $PORT);
@@ -40,6 +35,9 @@ sub hangup {
   }
  elsif ($nas_type eq 'radpppd') {
     hangup_radpppd($NAS, $PORT);
+  }
+ elsif ($nas_type eq 'cisco')  {
+ 	  hangup_cisco($NAS, $PORT);
   }
  elsif ($nas_type eq 'mpd') {
     hangup_mpd($NAS, $PORT);
@@ -297,11 +295,29 @@ sub stats_dslmax {
   return %stats;
 }
 
+
+#*******************************************************************
+# HANGUP Cisco
+# hangup_cisco($SERVER, $PORT)
+#*******************************************************************
+sub hangup_cisco {
+ my ($NAS, $PORT) = @_;
+ my $SNMP_COM = $NAS->{NAS_MNG_PASSWORD} || '';
+ 
+ my $SNMPWALK=`/usr/bin/which snmpwalk`;
+ my $SNMPSET=`/usr/bin/which snmpset`;
+ 
+ my $INTNAME=`finger @$NAS->{NAS_IP} | awk '{print $1 " " $2}' | grep $1"$" | awk '{print $1}' | sed s/Vi/Virtual-Access/g`;
+ my $INTNUM=`$SNMPWALK -v 1 -c $SNMP_COM -O n $NAS->{NAS_IP} .1.3.6.1.2.1.2.2.1.2 | grep $INTNAME"$" | awk '{print $1}' | sed s/.1.3.6.1.2.1.2.2.1.2.//g`;
+ my $exec=`$SNMPSET -v 1 -c $SNMP_COM $NAS->{NAS_IP} 1.3.6.1.2.1.2.2.1.7.$INTNUM i 2 > /dev/null 2>&1`;
+
+ return 0;
+}
+
 #*******************************************************************
 # HANGUP dslmax
 # hangup_dslmax($SERVER, $PORT)
 #*******************************************************************
-
 sub hangup_dslmax {
  my ($NAS_IP, $PORT) = @_;
 
@@ -476,7 +492,7 @@ sub hangup_pppd {
  my ($NAS_IP, $id) = @_;
 
  use FindBin '$Bin';
- system ("/usr/bin/sudo $Bin/modules/hangup.pl $id");
+ system ("/usr/bin/sudo $Bin/modules/hangup.pl hangup $id");
  return 0;
 }
 
