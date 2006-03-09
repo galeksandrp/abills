@@ -659,6 +659,8 @@ sub nas_list {
   my $self = shift;
   my $list;
   $self->query($db, "SELECT nas_id FROM users_nas WHERE uid='$self->{UID}';");
+
+
   if ($self->{TOTAL} > 0) {
     $list = $self->{list};
    }
@@ -696,7 +698,7 @@ sub nas_del {
   $self->query($db, "DELETE FROM users_nas WHERE uid='$self->{UID}';", 'do');	
   return $self if($db->err > 0);
 
-  $admin->action_add($uid, "DELETE NAS");
+  $admin->action_add($self->{UID}, "DELETE NAS");
   return $self;
 }
 

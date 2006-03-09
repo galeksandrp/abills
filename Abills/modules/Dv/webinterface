@@ -2009,7 +2009,7 @@ sub dv_wizard_user2 {
 
       $user->pi_add({ UID => "$UID", %{$add_values{2}} });
 
-   	  $Dv->add({ %{$add_values{3}} });
+   	  $Dv->add({ UID => $UID, %{$add_values{3}} });
       if ($Dv->{errno}) {
          $html->message('err', $_ERROR, "[$Dv->{errno}] $err_strs{$Dv->{errno}}");	
         }

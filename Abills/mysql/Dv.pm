@@ -161,11 +161,9 @@ sub add {
         VALUES ('$DATA{UID}', now(),
         '$DATA{TP_ID}', '$DATA{SIMULTANEONSLY}', '$DATA{DISABLE}', INET_ATON('$DATA{IP}'), 
         INET_ATON('$DATA{NETMASK}'), '$DATA{SPEED}', '$DATA{FILTER_ID}', LOWER('$DATA{CID}'));", 'do');
-  
+
   return $self if ($self->{errno});
-  
- 
-  $admin->action_add($DATA{UID}, "ACTIVE");
+  $admin->action_add("$DATA{UID}", "ACTIVE");
   return $self;
 }
 
