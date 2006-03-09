@@ -92,7 +92,10 @@ if ($admin->{errno}) {
   print "Content-type: text/html\n\n";
   my $message = 'Access Deny';
   if (! defined($REMOTE_USER)) {
-    $message = "'mod_rewrite' not install";
+    $message = "Wrong password";
+   }
+  elsif (! defined($REMOTE_PASSWD)) {
+  	$message = "'mod_rewrite' not install";
    }
   else {
     $message = $err_strs{$admin->{errno}};
@@ -522,9 +525,9 @@ sub add_company {
 # user_form()
 #**********************************************************
 sub user_form {
- my ($type, $user_info, $attr) = @_;
+ my ($user_info, $attr) = @_;
 
- 
+ $index = 15;
  
  if (! defined($user_info->{UID})) {
    my $user = Users->new($db, $admin); 
@@ -538,23 +541,20 @@ sub user_form {
      $user_info->{EXDATA} =  "<tr><td>$_COMPANY:</td><td>". $html->button($company->{COMPANY_NAME}, "index=13&COMPANY_ID=$company->{COMPANY_ID}"). "</td></tr>\n";
     }
 
-   $user_info->{EXDATA} .= "
-   <tr><td>$_USER:*</td><td><input type=text name=LOGIN value=''></td></tr>
-   <tr><td>$_BILL:</td><td><input type=checkbox name=CREATE_BILL value='1'> $_CREATE</td></tr>
-   \n";
+   $user_info->{EXDATA} .=  $html->tpl_show(templates('form_user_exdata'), undef, { notprint => 'y' });
 
-   $user_info->{DISABLE} = ($user_info->{DISABLE} > 0) ? 'checked' : '';
+   $user_info->{DISABLE} = ($user_info->{DISABLE} > 0) ? ' checked' : '';
    $user_info->{ACTION}='add';
    $user_info->{LNG_ACTION}=$_ADD;
   }
  else {
    $user_info->{EXDATA} = "
-            <tr><td colspan=2><input type=hidden name=UID value=\"$FORM{UID}\"></td></tr>
+            <tr><td colspan='2'><input type='hidden' name='UID' value=\"$FORM{UID}\"></td></tr>
             <tr><td>$_DEPOSIT:</td><td>$user_info->{DEPOSIT}</td></tr>
             <tr><td>$_COMPANY:</td><td>". $html->button($user_info->{COMPANY_NAME}, "index=13&COMPANY_ID=$user_info->{COMPANY_ID}") ."</td></tr>
             <tr><td>BILL_ID:<td>%BILL_ID%</td></tr>\n";
 
-   $user_info->{DISABLE} = ($user_info->{DISABLE} > 0) ? 'checked' : '';
+   $user_info->{DISABLE} = ($user_info->{DISABLE} > 0) ? ' checked' : '';
    $user_info->{ACTION}='change';
    $user_info->{LNG_ACTION}=$_CHANGE;
   } 
@@ -643,8 +643,6 @@ foreach my $line (@$list) {
 print $table->show();
 
 
-
-
 $table = $html->table( { width => '100%',
                                 cols_align => ['right', 'right'],
                                 rows => [ [ "$_TOTAL:", "<b>$users->{TOTAL}</b>" ] ]
@@ -673,21 +671,16 @@ sub user_info {
   
   
   $table = $html->table( { width    => '100%',
-  	                              rowcolor => $_COLORS[2],
-  	                              border   => 0,
-                                  cols_align => ['left'],
-                                  rows => [ [ "$_USER: ". $html->button("<b>$user_info->{LOGIN}</b>", "index=15&UID=$user_info->{UID}") ] ]
-                               } );
-
+  	                       rowcolor => $_COLORS[2],
+  	                       border   => 0,
+                           cols_align => ['left'],
+                           rows => [ [ "$_USER: ". $html->button("<b>$user_info->{LOGIN}</b>", "index=15&UID=$user_info->{UID}") ] ]
+                          } );
   print $table->show();
-  
-#  print  "<table width=100% bgcolor=$_COLORS[2]><tr><td>$_USER:</td>
-#   <td>". $html->button("<b>$user_info->{LOGIN}</b>", "index=15&UID=$user_info->{UID}") ."</td></tr></table>\n";
-  
+ 
   $LIST_PARAMS{UID}=$user_info->{UID};
   $pages_qs =  "&UID=$user_info->{UID}";
   $pages_qs .= "&subf=$FORM{subf}" if (defined($FORM{subf}));
-
   
   return 	$user_info;
 }
@@ -728,9 +721,9 @@ sub user_pi {
  	  $user_pi->{ACTION}='change';
 	  $user_pi->{LNG_ACTION}=$_CHANGE;
    }
-   
-  $html->tpl_show(templates('form_pi'), $user_pi);      
-	
+  
+  $index=30;
+  $html->tpl_show(templates('form_pi'), $user_pi);
 }
 
 #**********************************************************
@@ -764,7 +757,7 @@ if(defined($attr->{USER})) {
       $html->message('info', $_CHANGED, "$_CHANGED $users->{info}");
      }
    }
-  elsif ($FORM{del_user} && $FORM{is_js_confirmed} && $index == 11) {
+  elsif ($FORM{del_user} && $FORM{is_js_confirmed} && $index == 15) {
     $user_info->del();
     if ($users->{errno}) {
       $html->message('err', $_ERROR, "[$users->{errno}] $err_strs{$users->{errno}}");	
@@ -777,7 +770,7 @@ if(defined($attr->{USER})) {
    }
   else {
     @action = ('change', $_CHANGE);
-    user_form('test', $user_info);
+    user_form($user_info);
     
     user_pi({ USER => $user_info });
 
@@ -795,7 +788,7 @@ print "
   <ul>\n";
 
 my %userform_menus = (
-             15 =>  $_LOG,
+             22 =>  $_LOG,
              17 =>  $_PASSWD,
              21 =>  $_COMPANY,
              24 =>  $_GROUP,
@@ -817,7 +810,7 @@ while(my($k, $v)=each (%userform_menus) ) {
 }
 
 print "<li>".
-  $html->button($_DEL, "index=$index&del_user=y&UID=$user_info->{UID}", { MESSAGE => "$_USER: $user_info->{LOGIN} / $user_info->{UID}" })
+  $html->button($_DEL, "index=15&del_user=y&UID=$user_info->{UID}", { MESSAGE => "$_USER: $user_info->{LOGIN} / $user_info->{UID}" })
 ."</ul></td></tr>
 </table>
 </td></tr></table>\n";
@@ -862,7 +855,7 @@ if ($FORM{debs}) {
 #  $LIST_PARAMS{TP} = $FORM{TP_ID};
 # }
 
- print Abills::HTML->letters_list({ pages_qs => $pages_qs  }); 
+ print $html->letters_list({ pages_qs => $pages_qs  }); 
 
  if ($FORM{letter}) {
    $LIST_PARAMS{FIRST_LETTER} = $FORM{letter};
@@ -886,12 +879,12 @@ print $letters;
 
 
 my $table = $html->table( { width => '100%',
-                                   border => 1,
-                                   title => [$_LOGIN, $_FIO, $_DEPOSIT, $_CREDIT, $_STATUS, '-', '-'],
-                                   cols_align => ['left', 'left', 'right', 'right', 'center', 'center', 'center', 'center'],
-                                   qs => $pages_qs,
-                                   pages => $users->{TOTAL}
-                                  } );
+                            border => 1,
+                            title => [$_LOGIN, $_FIO, $_DEPOSIT, $_CREDIT, $_STATUS, '-', '-'],
+                            cols_align => ['left', 'left', 'right', 'right', 'center', 'center', 'center', 'center'],
+                            qs => $pages_qs,
+                            pages => $users->{TOTAL}
+                          });
 
 foreach my $line (@$list) {
   my $payments = ($permissions{1}) ? $html->button($_PAYMENTS, "index=2&UID=$line->[5]") : ''; 
@@ -903,9 +896,9 @@ foreach my $line (@$list) {
 print $table->show();
 
 $table = $html->table( { width => '100%',
-                                cols_align => ['right', 'right'],
-                                rows => [ [ "$_TOTAL:", "<b>$users->{TOTAL}</b>" ] ]
-                               } );
+                         cols_align => ['right', 'right'],
+                         rows => [ [ "$_TOTAL:", "<b>$users->{TOTAL}</b>" ] ]
+                       });
 print $table->show();
 }
 
@@ -969,10 +962,9 @@ if ($FORM{add}) {
 
 
 print << "[END]";
-<FORM action=$SELF_URL>
-<input type=hidden name=UID value=$user->{UID}>
-<input type=hidden name=op value=users>
-<input type=hidden name=services value=y>
+<FORM action="$SELF_URL">
+<input type="hidden" name="UID" value="$user->{UID}">
+<input type="hidden" name="index" value="$index">
 <table>
 <tr><td>$_SERVICES:</td><td>$variant_out</td></tr>
 <tr><td>$_DESCRIBE:</td><td><input type=text name=S_DESCRIBE value="%S_DESCRIBE%"></td></tr>
@@ -1935,9 +1927,12 @@ my $table = $html->table( { width   => '100%',
 
 my $list = $nas->list({ %LIST_PARAMS });
 
+
 foreach my $line (@$list) {
-  my $delete = $html->button($_DEL, "index=60&del=$line->[0]", { MESSAGE => "$_DEL NAS $line->[2]?" }); 
-  $table->addrow($line->[0], $line->[1], $line->[2], 
+  my $delete = $html->button($_DEL, "index=60&del=$line->[0]", { MESSAGE => "$_DEL NAS \\'$line->[1]\\'?" }); 
+  $table->addrow($line->[0], 
+    $line->[1], 
+    $line->[2], 
     $line->[3], $line->[4], $auth_types[$line->[5]], 
     $status[$line->[6]],
     $html->button("IP POOLs", "index=61&NAS_ID=$line->[0]"),
@@ -2642,7 +2637,6 @@ if (defined($attr->{USER})) {
 
 #exchange rate sel
 my $er = $payments->exchange_list();
-
   $payments->{SEL_ER} = "<select name=ER>\n";
   $payments->{SEL_ER} .= "<option value=''>\n";
 foreach my $line (@$er) {
@@ -2701,13 +2695,13 @@ if (! defined($FORM{sort})) {
 
 my $list = $payments->list( { %LIST_PARAMS } );
 my $table = $html->table( { width => '100%',
-                                   caption => "$_PAYMENTS",
-                                   border => 1,
-                                   title => ['ID', $_LOGIN, $_DATE, $_SUM, $_DESCRIBE, $_ADMINS, 'IP',  $_DEPOSIT, $_PAYMENT_METHOD, 'ID', '-'],
-                                   cols_align => ['right', 'left', 'right', 'right', 'left', 'left', 'right', 'right', 'left', 'left', 'center'],
-                                   qs => $pages_qs,
-                                   pages => $payments->{TOTAL}
-                                  } );
+                            caption => "$_PAYMENTS",
+                            border => 1,
+                            title => ['ID', $_LOGIN, $_DATE, $_SUM, $_DESCRIBE, $_ADMINS, 'IP',  $_DEPOSIT, $_PAYMENT_METHOD, 'ID', '-'],
+                            cols_align => ['right', 'left', 'right', 'right', 'left', 'left', 'right', 'right', 'left', 'left', 'center'],
+                            qs => $pages_qs,
+                            pages => $payments->{TOTAL}
+                           } );
 
 $pages_qs .= "&subf=2" if (! $FORM{subf});
 
@@ -2716,8 +2710,10 @@ foreach my $line (@$list) {
   $table->addrow("<b>$line->[0]</b>", 
   $html->button($line->[1], "index=15&UID=$line->[10]"), 
   $line->[2], 
-   $line->[3], $line->[4],  "$line->[5]", "$line->[6]", "$line->[7]", $PAYMENT_METHODS[$line->[8]], 
-   "$line->[9]", $delete);
+  $line->[3], $line->[4],  "$line->[5]", "$line->[6]", "$line->[7]", 
+  $PAYMENT_METHODS[$line->[8]], 
+  "$line->[9]", 
+  $delete);
 }
 
 print $table->show();
@@ -3000,9 +2996,10 @@ my %search_form = (
 11 => "
 <!-- USERS -->
 <tr><td colspan=2><hr></td></tr>
-<tr><td>IP (>, <, *):</td><td><input type=text name=IP value='%IP%' title='Examples:\n 192.168.101.1\n >192.168.0\n 192.168.*.*'></td></tr>
+<!-- <tr><td>IP (>, <, *):</td><td><input type=text name=IP value='%IP%' title='Examples:\n 192.168.101.1\n >192.168.0\n 192.168.*.*'></td></tr>
 <tr><td>$_SPEED (>, <):</td><td><input type=text name=SPEED value='%SPEED%'></td></tr>
 <tr><td>CID</td><td><input type=text name=CID value='%CID%'></td></tr>
+-->
 <tr><td>$_FIO (*):</td><td><input type=text name=FIO value='%FIO%'></td></tr>
 <tr><td>$_PHONE (>, <, *):</td><td><input type=text name=PHONE value='%PHONE%'></td></tr>
 <tr><td>$_COMMENTS (*):</td><td><input type=text name=COMMENTS value='%COMMENTS%'></td></tr>\n",
@@ -3205,59 +3202,6 @@ print $table->show();
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#**********************************************************
-# sql()
-#**********************************************************
-sub sql {
-print << "[END]";
-<a href='$SELF_URL?index=81'>SQL Commander</a> :: 
-<a href='$SELF_URL?index=82'>SQL Backup</a>
-[END]
-
-
-}
-
-
-#**********************************************************
-# sql_cmd()
-#**********************************************************
-sub sql_cmd {
-print << "[END]";
-
-[END]
-}
-
-
-#**********************************************************
-# sql_backup()
-#**********************************************************
-sub sql_backup {
-
-print << "[END]";
-
-[END]
-}
 
 
 
@@ -3532,23 +3476,69 @@ sub wizard {
 
   
 
-  my $SERVICES_SEL = "<SELECT name=SERVICE>\n";
-	while(my($function_id, $service_name)=each (%USER_SERVICES))  {
-		 $SERVICES_SEL .= "<option value='$function_id'>$service_name\n";
-	 }
-	$SERVICES_SEL .= "</SELECT>\n";
-		
-
-	
-	if ($FORM{SERVICE}) {
-		$functions{$FORM{SERVICE}}->(); 
-	 }
-
-	print "<form action=$SELF_URL>\n".
-	 $SERVICES_SEL;
-	print "</form>\n";
-	
-	my @tpls = ('form_user', 'form_pi');
-	
+#  my $SERVICES_SEL = "<SELECT name=SERVICE>\n";
+#	while(my($function_id, $service_name)=each (%USER_SERVICES))  {
+#		 $SERVICES_SEL .= "<option value='$function_id'>$service_name\n";
+#	 }
+#	$SERVICES_SEL .= "</SELECT>\n";
+#		
+#
+#	my $wizard;
+#	$wizard->{SERVICES}=$SERVICES_SEL;
+#
+#	
+#
+#	            #"4:Step_2:$_SERVICES"   => templates('services'), 	
+#	# Action => templates
+#	my %tpls = ("1::$_LOGIN"            => templates('form_user'), 
+#	            "2:Step_1:$_INFO"       => templates('form_pi'), 
+#	            "5:Step_3:Dialup/VPN"   => _include('dv_user', 'Dv'),
+#	            "6:Step_4:$_TARIF_PLAN" => templates('chg_tp'),
+# 	            "7:Step_5:$_PAYMENTS"   => templates('form_payments')
+#);
+#
+#	
+#	my $i=1;
+#	my $template='';
+#  $wizard->{ACTION}='Step_'.$i;
+#  $wizard->{LNG_ACTION}='Step '.$i;
+#
+#
+# my @sorted_templates = sort keys %tpls;;
+# 
+# foreach my $key (@sorted_templates) {
+#     my($n, $action, $descr)=split(/:/, $key, 3);
+##print "$n, $action, $tpls{$key}<br>\n";
+##           $template.=$tpls{"$key"};
+##     if (defined($FORM{$action})) {
+#      #print "<b>$descr</b><br>\n";
+#      $wizard->{ACTION}='Step_'.$i;
+#      $wizard->{LNG_ACTION}='Step '.$i;
+#      $template .= "<tr bgcolor=$_COLORS[0]><th>$descr</th></tr>\n";
+#      $template .= "<tr><th align=center>". $tpls{"$key"}. "</th></tr>\n";
+#      $i=0;
+##      last;
+##     }
+#    $i++;
+#   }
+#
+##  if ($template eq '') {
+##  	print "<b>$_LOGIN</b><br>\n";
+##  	$template = $tpls{"1::$_LOGIN"};
+##   }
+#
+#
+#  $template =~ s/(<form .*?>)//gi;
+#  $template =~ s/<\/form>//ig;
+#  $template =~ s/(<input .*?type=submit.*?>)//gi;
+#  $template =~ s/(<input .*?name=index.*?>)//gi;
+#  $template =~ s/<hr>//gi;
+#  
+#
+#  print "<textarea cols=120 rows=3>$1 / $2</textarea><br>\n";
+#
+#  print "<table width=100%>\n";
+#  $html->tpl_show($template, $wizard);
+#  print "</table>\n";
 	
 }

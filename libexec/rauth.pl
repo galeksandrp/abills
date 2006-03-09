@@ -38,7 +38,6 @@ test_radius_returns($RAD);
 
 
 require Abills::SQL;
-
 my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
 my $db = $sql->{db};
 
@@ -64,6 +63,10 @@ $nas->info({ %NAS_PARAMS });
 
 if (defined($nas->{errno}) || $nas->{TOTAL} < 1) {
   access_deny("$RAD->{USER_NAME}", "Unknow server '$RAD->{NAS_IP_ADDRESS}'", 0);
+  exit 1;
+}
+elsif($RAD->{USER_NAME} eq '') {
+  #access_deny("$RAD->{USER_NAME}", "Disabled NAS server '$RAD->{NAS_IP_ADDRESS}'", 0);
   exit 1;
 }
 elsif($nas->{NAS_DISABLE} > 0) {

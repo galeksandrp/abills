@@ -371,7 +371,7 @@ sub menu () {
 
   while(my ($par_key, $name) = each ( %$h )) {
 
-    my $ex_params = (defined($FORM{$menu_args->{$root_index}})) ? '&'."$menu_args->{$root_index}=$FORM{$menu_args->{$root_index}}" : '';
+    my $ex_params = (defined($menu_args->{$root_index}) && defined($FORM{$menu_args->{$root_index}})) ? '&'."$menu_args->{$root_index}=$FORM{$menu_args->{$root_index}}" : '';
     
     $menu_navigator =  " ". $self->button($name, "index=$root_index$ex_params"). '/' . $menu_navigator;
     $tree{$root_index}='y';
@@ -558,7 +558,7 @@ sub header {
  my $admin_ip=$ENV{REMOTE_ADDR};
  $self->{header} = "Content-Type: text/html\n\n";
 # my @_C;
- if ($COOKIES{colors} ne '') {
+ if (defined($COOKIES{colors}) && $COOKIES{colors} ne '') {
    @_COLORS = split(/, /, $COOKIES{colors});
   }
 
@@ -957,6 +957,10 @@ sub button {
   $params = $attr->{JAVASCRIPT} if (defined($attr->{JAVASCRIPT}));
   $params =~ s/ /%20/g;
   $params =~ s/&/&amp;/g;
+  $params =~ s/>/&gt;/g;
+  $params =~ s/</&lt;/g;
+  $params =~ s/\"/&quot;/g;
+
   
   $ex_attr=" TITLE='$attr->{TITLE}'" if (defined($attr->{TITLE}));
   my $message = (defined($attr->{MESSAGE})) ? "onclick=\"return confirmLink(this, '$attr->{MESSAGE}')\"" : '';

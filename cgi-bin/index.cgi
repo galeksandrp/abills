@@ -3,7 +3,8 @@
 #
 #
 
-#use vars qw($begin_time);
+use vars qw($begin_time %LANG $CHARSET @MODULES $FUNCTIONS_LIST $USER_FUNCTION_LIST $UID);
+
 BEGIN {
  my $libpath = '../';
  
@@ -58,7 +59,7 @@ if (defined($FORM{colors})) {
   $html->setCookie('colors', "$cook_colors", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure);
  }
 #Operation system ID
-$html->setCookie('OP_SID', "$FORM{OP_SID}", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure);
+$html->setCookie('OP_SID', "$FORM{OP_SID}", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure) if (defined($FORM{OP_SID}));
 $html->setCookie('language', "$FORM{language}", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure) if (defined($FORM{language}));
 
 if (defined($FORM{sid})) {
@@ -91,7 +92,7 @@ my $passwd = $FORM{passwd} || '';
 
 my $user=Users->new($db, undef, \%conf); 
 ($uid, $sid, $login) = auth("$login", "$passwd", "$sid");
-
+my %uf_menus = ();
 if ($uid > 0) {
 
   push @m, "17:0:$_PASSWD:form_passwd:::"   if($conf{user_chg_passwd} eq 'yes');
@@ -242,6 +243,31 @@ sub form_login {
  $OUTPUT{BODY} = $html->tpl_show(templates('form_user_login'), \%first_page);
 }
 
+#*******************************************************************
+# Auth throught the radius
+#*******************************************************************
+sub auth_radius {
+	my ($login, $passwd, $sid)=@_;
+  my $res = 0;
+  
+  my $check_access = $conf{check_access};
+ 
+  use Abills::Radius;
+
+  $conf{'dictionary'} = '../Abills/dictionary' if (! exists($conf{'dictionary'}));
+
+  $r = new Radius(Host   => "$check_access->{NAS_IP}",
+                  Secret => "$check_access->{NAS_SECRET}"
+                  ) or die ("Can't connect to '$check_access->{NAS_IP}' $!");
+
+  $r->load_dictionary($conf{'dictionary'}) || die("Cannot load dictionary '$conf{dictionary}' !");
+ 
+  if($r->check_pwd("$login", "$passwd", "$check_access->{NAS_FRAMED_IP}")) {
+    $res = 1;
+   }
+
+	return $res;
+}
 
 #*******************************************************************
 # FTP authentification
@@ -251,6 +277,7 @@ sub auth {
  my ($login, $password, $sid) = @_;
  my $uid = 0;
  my $ret = 0;
+ my $res = 0;
  my $REMOTE_ADDR = $ENV{'REMOTE_ADDR'} || '';
  my $HTTP_X_FORWARDED_FOR = $ENV{'HTTP_X_FORWARDED_FOR'} || '';
  my $ip = "$REMOTE_ADDR/$HTTP_X_FORWARDED_FOR";
@@ -261,7 +288,7 @@ sub auth {
  
 
 
-if ($FORM{op} eq 'logout') {
+if (defined($FORM{op}) && $FORM{op} eq 'logout') {
   delete $h{$sid} ;
   untie %h;
   return 0;
@@ -298,9 +325,17 @@ else {
 # print "$sid";
   return 0 if (! $login  || ! $password);
   
-  $res = auth_sql("$login", "$password");
+  #check password from RADIUS SERVER if defined $conf{check_access}
+  if (defined($conf{check_access})) {
+    $res = auth_radius("$login", "$password")
+   }
+  #check password direct from SQL
+  else {
+    $res = auth_sql("$login", "$password") if ($res < 1);
+   }
+
+  #check password throught ftp access
   if ($res < 1) {
-    
     eval { require Net::FTP; };
     if (! $@) {
       Net::FTP->import();
@@ -315,7 +350,7 @@ else {
 }
 #Get user ip
 
-if ($res > 0) {
+if (defined($res) && $res > 0) {
   $user->info(0, { LOGIN => "$login" });
 
   if ($user->{TOTAL} > 0) {
@@ -341,7 +376,7 @@ else {
  }
 
  open(FILE, ">>login.log") || die "can't open file 'login.log' $!";
-   print FILE "$DATE $TIME $action:$login:$logined:$ip\n";
+   print FILE "$DATE $TIME $action:$login:$ip\n";
  close(FILE);
 
  return ($ret, $sid, $login);

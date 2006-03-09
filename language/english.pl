@@ -186,6 +186,7 @@ $_ORDER='Order';
 $_PRINT='Print';
 $_ACCOUNT_EXIST='Account exist';
 $_SDETAIL='Sessions detalization';
+$_DETAIL='Detail';
 
 $_AUTH='Authorization';
 $_SHORT_NAME="Short name";

@@ -162,8 +162,8 @@ sub dv_users_list {
 
  form_search({ SEARCH_FORM =>  	
  	"<tr><td colspan=2><hr></td></tr>
-   <tr><td>IP (>,<)</td><td><input type=text name=IP value='%IP%'></td></tr>
-   <tr><td>CID</td><td><input type=text name=CID value='%CID%'></td></tr>\n"
+   <tr><td>IP (>,<)</td><td><input type='text' name='IP' value='%IP%'></td></tr>
+   <tr><td>CID</td><td><input type='text' name='CID' value='%CID%'></td></tr>\n"
   });
 
 
@@ -181,45 +181,62 @@ sub dv_users_list {
 
 my $list = $Dv->list( { %LIST_PARAMS } );
 
+my @TITLE = ($_LOGIN, $_FIO, $_DEPOSIT, $_CREDIT, $_TARIF_PLANS, $_STATUS, '-', '-');
+for(my $i=0; $i<$Dv->{SEARCH_FIELDS_COUNT}; $i++){
+	push @TITLE, '-';
+	$TITLE[6+$i] = '';
+}
+
 if ($Dv->{errno}) {
   $html->message('err', $_ERROR, "[$Dv->{errno}] $err_strs{$Dv->{errno}}");	
   return 0;
  }
 elsif ($Dv->{TOTAL} == 1) {
-	form_users({  USER => user_info($list->[0]->[6]) });
+	form_users({  USER => user_info($list->[0]->[6+$Dv->{SEARCH_FIELDS_COUNT}]) });
 	return 0;
 }
 
 
 
 
+
+
 my $table = $html->table( { width => '100%',
-                                   caption => "Dialup / VPN",
-                                   border => 1,
-                                   title => [$_LOGIN, $_FIO, $_DEPOSIT, $_CREDIT, $_TARIF_PLANS, $_STATUS, '-', '-'],
-                                   cols_align => ['left', 'left', 'right', 'right', 'left', 'center', 'center', 'center', 'center'],
-                                   qs => $pages_qs,
-                                   pages => $Dv->{TOTAL}
-                                  } );
+                            caption => "Dialup / VPN",
+                            border => 1,
+                            title => \@TITLE,
+                            cols_align => ['left', 'left', 'right', 'right', 'left', 'center', 'center', 'center', 'center'],
+                            qs => $pages_qs,
+                            pages => $Dv->{TOTAL}
+                           });
 
 foreach my $line (@$list) {
-  my $payments = ($permissions{1}) ?  $html->button("$_PAYMENTS", "index=2&UID=$line->[6]") : ''; 
-
-  $table->addrow($html->button("$line->[0]", "index=11&UID=$line->[6]"), 
+  my $payments = ($permissions{1}) ?  $html->button("$_PAYMENTS", "index=2&UID=". $line->[6+$Dv->{SEARCH_FIELDS_COUNT}]) : ''; 
+  
+  my @fields_array  = ();
+  for(my $i=0; $i<$Dv->{SEARCH_FIELDS_COUNT}; $i++){
+     push @fields_array, $line->[6+$i];
+   }
+  
+  $table->addrow(
+   $html->button("$line->[0]", "index=15&UID=$line->[6]"), 
    "$line->[1]",
    "$line->[2]", 
    "$line->[3]", 
    "$line->[4]", 
-   "$status[$line->[5]]", 
+   "$status[$line->[5]]",
+   @fields_array, 
    $payments, 
-   $html->button("$_STATS", "index=". ($index + 3) ."&UID=$line->[6]"));
+   $html->button("$_STATS", "index=". ($index + 3) ."&UID=". $line->[6+$Dv->{SEARCH_FIELDS_COUNT}])
+
+   );
 }
 print $table->show();
 
 $table = $html->table( { width => '100%',
-                                cols_align => ['right', 'right'],
-                                rows => [ [ "$_TOTAL:", "<b>$Dv->{TOTAL}</b>" ] ]
-                               } );
+                         cols_align => ['right', 'right'],
+                         rows => [ [ "$_TOTAL:", "<b>$Dv->{TOTAL}</b>" ] ]
+                        } );
 print $table->show();
 
   return 0;
@@ -794,11 +811,15 @@ foreach my $line (@$list) {
 
   $table->addrow(
      $html->button("$line->[0]", "index=11&UID=$line->[12]"),
-     $line->[1], $line->[2],  $line->[3],  
+     $line->[1], 
+     $line->[2],  
+     $line->[3],  
      int2byte($line->[4]), 
-     int2byte($line->[5]), $line->[6],
-     $line->[7], $line->[10], 
-     "$line->[9] $test", 
+     int2byte($line->[5]), 
+     $line->[6],
+     $line->[7], 
+     $line->[10], 
+     "$line->[9]", 
      "(". 
         $html->button("D", "index=$index&UID=$line->[12]&SESSION_ID=$line->[11]", { TITLE => "$_DETAIL" } )
       . ")", 
@@ -1181,6 +1202,9 @@ $table = $html->table( { width => '100%',
 
 
 
+#if (! defined($UID)) {
+#	$UID=$FORM{UID};
+#}
 
 print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
 	                       HIDDEN  => { sid   => "$sid",
@@ -1526,11 +1550,15 @@ sub dv_monthly_fees {
 #**********************************************************
 sub dv_users_warning_messages {
 
+ $ADMIN_REPORT{USERS_WARNINGS} = sprintf("%-14s| %4s|%-20s| %9s| %8s|\n", $_LOGIN, 'TP', $_VARIANT, $_DEPOSIT, $_CREDIT).
+   "---------------------------------------------------------------\n";
+ if (defined(NO_USERS_WARNINGS)) {
+    return 0; 	
+  }
+
 my %LIST_PARAMS = (USERS_WARNINGS => 'y' ) ;
 my $list = $Dv->list( { %LIST_PARAMS } );
 
-$ADMIN_REPORT{USERS_WARNINGS} = sprintf("%-14s| %4s|%-20s| %9s| %8s|\n", $_LOGIN, 'TP', $_VARIANT, $_DEPOSIT, $_CREDIT).
-   "---------------------------------------------------------------\n";
 return 0 if ($Dv->{TOTAL} < 1);
 my %USER_INFO = ();
 
@@ -1775,6 +1803,283 @@ elsif ($type eq 'monthly') {
  
   return $REPORT;
 }
+
+
+#*******************************************************************
+#
+#*******************************************************************
+sub dv_wizard_user {
+	my ($functions) = @_;
+
+
+	my %tpls = ("1::$_LOGIN"            => 'user_form', 
+	            "2:Step_1:$_INFO"       => 'form_pi', 
+	            "5:Step_3:Dialup/VPN"   => 'dv_user',
+	            "6:Step_4:$_TARIF_PLAN" => templates('chg_tp'),
+ 	            "7:Step_5:$_PAYMENTS"   => templates('form_payments'),
+	            "7:add:$_INFO"       => templates('user_info'),
+	            "8:Step_7:$_MAIN"       => templates('form_user'));
+
+	
+	my $i=1;
+	my $template='';
+  $wizard->{ACTION}='Step_'.$i;
+  $wizard->{LNG_ACTION}='Step '.$i;
+
+
+ my @sorted_templates = sort keys %tpls;;
+	
+ foreach my $key (@sorted_templates) {
+     my($n, $action, $descr)=split(/:/, $key, 3);
+     #print "$n, $action, $tpls{$key}<br>\n";
+     if (defined($FORM{$action})) {
+      print "<b>$descr</b><br>\n";
+      $wizard->{ACTION}='Step_'.$i;
+      $wizard->{LNG_ACTION}='Step '.$i;
+      $template=$tpls{"$key"};
+    
+    
+      $i=0;
+      last;
+     }
+    $i++;
+  }
+
+
+  if ($template eq '') {
+  	print "<b>$_LOGIN</b><br>\n";
+  	$template = $tpls{"1::$_LOGIN"};
+   }
+  $template->();
+  
+
+#  my $SERVICES_SEL = "<SELECT name=SERVICE>\n";
+#	while(my($function_id, $service_name)=each (%USER_SERVICES))  {
+#		 $SERVICES_SEL .= "<option value='$function_id'>$service_name\n";
+#	 }
+#	$SERVICES_SEL .= "</SELECT>\n";
+#	
+#	use Tariffs;
+#  my $tariffs = Tariffs->new($db, \%conf);
+#
+#
+#	my $wizard;
+#	$wizard->{SERVICES}=$SERVICES_SEL;
+#  $wizard->{TARIF_PLAN_SEL}=$html->form_select('TP_ID', 
+#                                          { 
+# 	                                          SELECTED  => $user->{TP_ID},
+# 	                                          SEL_MULTI_ARRAY   => $tariffs->list(),
+# 	                                          MULTI_ARRAY_KEY   => 0,
+# 	                                          MULTI_ARRAY_VALUE => 1,
+# 	                                        });
+#
+#  
+#
+#
+#	
+#	# Action => templates
+#	my %tpls = ("1::$_LOGIN"            => templates('form_user'), 
+#	            "2:Step_1:$_INFO"       => templates('form_pi'), 
+#	            "4:Step_2:$_SERVICES"   => templates('services'), 
+#	            "5:Step_3:Dialup/VPN"   => _include('dv_user', 'Dv'),
+#	            "6:Step_4:$_TARIF_PLAN" => templates('chg_tp'),
+# 	            "7:Step_5:$_PAYMENTS"   => templates('form_payments'),
+#	            "7:add:$_INFO"       => templates('user_info'),
+#	            "8:Step_7:$_MAIN"       => templates('form_user'));
+#
+#	
+#	my $i=1;
+#	my $template='';
+#  $wizard->{ACTION}='Step_'.$i;
+#  $wizard->{LNG_ACTION}='Step '.$i;
+#
+#
+# my @sorted_templates = sort keys %tpls;;
+#	
+# foreach my $key (@sorted_templates) {
+#     my($n, $action, $descr)=split(/:/, $key, 3);
+#     #print "$n, $action, $tpls{$key}<br>\n";
+#     if (defined($FORM{$action})) {
+#      print "<b>$descr</b><br>\n";
+#      $wizard->{ACTION}='Step_'.$i;
+#      $wizard->{LNG_ACTION}='Step '.$i;
+#      $template=$tpls{"$key"};
+#      $i=0;
+#      last;
+#     }
+#    $i++;
+#   }
+#
+#  if ($template eq '') {
+#  	print "<b>$_LOGIN</b><br>\n";
+#  	$template = $tpls{"1::$_LOGIN"};
+#  }
+# 	$html->tpl_show($template, $wizard);
+#	
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#*******************************************************************
+#
+#*******************************************************************
+sub dv_wizard_user2 {
+	my ($functions) = @_;
+  use Finance;
+  my $payments = Finance->payments($db, $admin, \%conf);
+ 
+  
+  my $users = Users->new($db, $admin, \%conf); 
+  
+  my $users_defaults = $users->defaults();
+  $users_defaults->{DISABLE}=($users_defaults->{DISABLE} == 1) ? ' checked' : '';
+
+  $users_defaults->{EXDATA}=$html->tpl_show(templates('form_user_exdata'), { CREATE_BILL  => ' checked' }, { notprint => 'y' });
+
+  my $dv_defaults = $Dv->defaults();
+  $dv_defaults->{DISABLE}=($dv_defaults->{DISABLE} == 1) ? ' checked' : '';
+  
+  $payments->{SEL_METHOD} =  $html->form_select('METHOD', 
+                                { SELECTED   => $day_id,
+ 	                                SEL_ARRAY  => \@PAYMENT_METHODS,
+ 	                                ARRAY_NUM_ID  => 'y'
+ 	                               });
+  $payments->{SUM} = '0.00';
+
+  my $er = $payments->exchange_list();
+  $payments->{SEL_ER} = "<select name=ER>\n";
+  $payments->{SEL_ER} .= "<option value=''>\n";
+  foreach my $line (@$er) {
+    $payments->{SEL_ER} .= "<option value=$line->[4]";
+    $payments->{SEL_ER} .= ">$line->[1] : $line->[2]\n";
+   }
+  $payments->{SEL_ER} .= "</select>\n";
+
+  
+  
+	use Tariffs;
+  my $tariffs = Tariffs->new($db, \%conf, $admin);
+  $dv_defaults->{TP_ID} = $html->form_select('TP_ID', 
+                                         { 
+ 	                                         SELECTED  => $user->{TP_ID},
+ 	                                         SEL_MULTI_ARRAY   => $tariffs->list(),
+ 	                                         MULTI_ARRAY_KEY   => 0,
+ 	                                         MULTI_ARRAY_VALUE => 1,
+ 	                                        });
+	my %tpls = (
+	            "1:$_LOGIN::"     => $html->tpl_show(templates('form_user'), $users_defaults, { notprint => 'y' }),  
+	            "2:$_INFO::"      => templates('form_pi'), 
+	            "3:Dialup/VPN::"  => $html->tpl_show(_include('dv_user', 'Dv'), $dv_defaults, { notprint => 'y' }),
+ 	            "4:$_PAYMENTS::"  => $html->tpl_show(templates('form_payments'), $payments, { notprint => 'y' }),
+             );
+
+
+  my %add_values = ();
+
+  if ($FORM{add}) {
+  	my $table = $html->table({ width => '100%',
+                                  } );
+  	foreach my $k ( sort %FORM) {
+      #$table->addrow($k, $FORM{$k});
+      if ($k =~ m/[A-Z]+/ && $k !~ /__|[a-z]/) {
+        $k =~ s/%22//g;
+        my ($id, $main_key)=split(/\./, $k, 2);
+        $add_values{$id}{$main_key}=$FORM{$k};
+        # $table->addrow($k, $FORM{$k});  	   
+       }
+  	 }
+   #print $table->show();
+
+   my $user=$users->add({ %{$add_values{1}} });
+   if (! $user->{errno}) {
+   	  $UID = $user->{UID};
+   	  $user = $user->info($UID);
+
+      $user->pi_add({ UID => "$UID", %{$add_values{2}} });
+
+   	  $Dv->add({ %{$add_values{3}} });
+      if ($Dv->{errno}) {
+         $html->message('err', $_ERROR, "[$Dv->{errno}] $err_strs{$Dv->{errno}}");	
+        }
+      else {
+        $html->message('info', 'Dialup/VPN', "$_ADDED");
+       }
+
+      my $er = $payments->exchange_info($FORM{'4.ER'});
+      if ($FORM{'4.SUM'}) {
+        $payments->add($user, { %{$add_values{4}}, ER => $er->{ER_RATE} } );  
+
+        if ($payments->{errno}) {
+          $html->message('err', $_ERROR, "[$payments->{errno}] $err_strs{$payments->{errno}}");	
+         }
+        else {
+          $html->message('info', $_PAYMENTS, "$_ADDED $_SUM: $FORM{'4.SUM'}");
+         }
+      }
+      
+      my $dv = $Dv->info($UID);
+      my $pi = $user->pi($UID);
+      $user = $user->info($UID);
+      $html->tpl_show(templates('user_info'), { %$user, %$pi } ),  
+      $html->tpl_show(_include('dv_user_info', 'Dv'), $dv),
+      return 0;
+    }
+   else {
+     $html->message('err', $_ERROR, "[$users->{errno}] $err_strs{$users->{errno}}");	
+    }
+   
+  } 
+
+
+
+	my $wizard;
+	
+  my $template='';
+  my @sorted_templates = sort keys %tpls;;
+ 
+ foreach my $key (@sorted_templates) {
+     my($n, $descr, $pre, $post)=split(/:/, $key, 4);
+
+     $template .= "<tr bgcolor=\"$_COLORS[0]\"><th>$descr</th></tr>\n";
+     #$wizard = $pre;
+     my $sub_tpl .= $html->tpl_show($tpls{"$key"}, $wizard, { notprint => 'y' });
+     $sub_tpl =~ s/(<input .*?UID.*?>)//gi;
+     $sub_tpl =~ s/(<input .*?index.*?>)//gi;
+     $sub_tpl =~ s/name=([A-Z_]+)/name=$n.$1/gi;
+     $sub_tpl =~ s/name="([A-Z_]+)"/name=$n.$1/gi;
+     $sub_tpl =~ s/name='([A-Z_]+)'/name=$n.$1/gi;
+
+     $template .= "<tr><th align=\"center\">". $sub_tpl . "</th></tr>\n";
+   }
+
+
+
+  $template =~ s/(<form .*?>)//gi;
+  $template =~ s/<\/form>//ig;
+  $template =~ s/(<input .*?type=submit.*?>)//gi;
+  $template =~ s/<hr>//gi;
+  
+#  print "<textarea cols=120 rows=3>$1 / $2 / $3</textarea><br>\n";
+
+  print $html->form_main({ CONTENT => "<table width=100%>$template</table>",
+  	 ,                   HIDDEN  => { index => "$index" },
+	                       SUBMIT  => { add   => "$_ADD"  } 
+	                        });
+	
+}
+
 
 
 1

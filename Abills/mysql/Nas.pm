@@ -110,7 +110,6 @@ sub info {
   }
 
 
- 
 $self->query($db, "SELECT id, name, nas_identifier, descr, ip, nas_type, auth_type, mng_host_port, mng_user, 
  DECODE(mng_password, '$SECRETKEY'), rad_pairs, alive, disable
  FROM nas
@@ -127,7 +126,6 @@ $self->query($db, "SELECT id, name, nas_identifier, descr, ip, nas_type, auth_ty
   }
 
  my $a_ref = $self->{list}->[0];
- 
  ( $self->{NAS_ID},
    $self->{NAS_NAME}, 
    $self->{NAS_INDENTIFIER}, 

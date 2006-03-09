@@ -99,6 +99,14 @@ $conf{debugmods}='LOG_DEBUG LOG_ALERT LOG_WARNING LOG_ERR LOG_INFO';
 'LOG_SQL' => 6);
 
 
+
+#Check password from radius for web interface
+#$conf{check_access} = { NAS_IP        => '127.0.0.1:1812',
+#                        NAS_FRAMED_IP => '127.0.0.1',
+#                        NAS_SECRET    => 'radsecret' 
+#                       };
+
+
 #Firewall start rule numbers
 # (GLobal, Class 1, Class 2)
 @START_FW = (3000, 2000, 1000);
@@ -124,8 +132,6 @@ $conf{LOG_ACCT}  = $base_dir . 'var/log/acct.log';
 
 #For file auth type allow file
 $conf{extern_acct_dir}=$base_dir.'libexec/ext_acct/';
-#$start_dir=$base_dir.'libexec/start/';
-#$stop_dir=$base_dir.'libexec/start/';
 
 $conf{MAILBOX_PATH}='/var/mail/';
 # Low bounds

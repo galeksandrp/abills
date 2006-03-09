@@ -22,11 +22,14 @@ $conf{MAX_SESSION_TRAFFIC} = 2048;
 
 ############################################################
 # Accounting status types
-my %ACCT_TYPES = ('Start', 1,
-               'Stop', 2,
-               'Alive', 3,
-               'Accounting-On', 7,
-               'Accounting-Off', 8);
+# rfc2866
+my %ACCT_TYPES = ('Start' => 1,
+                  'Stop'  => 2,
+                  'Alive' => 3,
+                  'Interim-Update' => 3,
+                  'Accounting-On'  => 7,
+                  'Accounting-Off' => 8
+                  ); 
 
 
 my %USER_TYPES = ('Login-User',           1,
@@ -73,12 +76,12 @@ my $RAD = get_radius_params();
 test_radius_returns($RAD);
 #####################################################################
 
-my $t = "\n\n";
-while(my($k, $v)=each(%$RAD)) {
-	$t .= "$k=\\\"$v\\\"\n";
-}
+#my $t = "\n\n";
+#while(my($k, $v)=each(%$RAD)) {
+#	$t .= "$k=\\\"$v\\\"\n";
+#}
 #print $t;
-my $a = `echo "$t" >> /tmp/voip_test`;
+#my $a = `echo "$t" >> /tmp/voip_test`;
 
 
 
@@ -141,16 +144,18 @@ sub acct {
   
       $RAD->{INBYTE2} = $RAD->{EXPPP_ACCT_LOCALOUTPUT_OCTETS} || 0;             # From client
       $RAD->{OUTBYTE2} = $RAD->{EXPPP_ACCT_LOCALINPUT_OCTETS} || 0;            # To client
-
-      $RAD->{INTERIUM_INBYTE}  = $RAD->{EXPPP_ACCT_ITERIUMOUT_OCTETS} || 0;
-      $RAD->{INTERIUM_OUTBYTE} = $RAD->{EXPPP_ACCT_ITERIUMIN_OCTETS} || 0;
-      $RAD->{INTERIUM_INBYTE2} = $RAD->{EXPPP_ACCT_LOCALITERIUMOUT_OCTETS} || 0;
-      $RAD->{INTERIUM_OUTBYTE2} = $RAD->{EXPPP_ACCT_LOCALITERIUMIN_OCTETS} || 0;
      }
     else {
       $RAD->{INBYTE2}  = 0;
       $RAD->{OUTBYTE2} = 0;
      }
+
+      $RAD->{INTERIUM_INBYTE}  = $RAD->{EXPPP_ACCT_ITERIUMOUT_OCTETS} || 0;
+      $RAD->{INTERIUM_OUTBYTE} = $RAD->{EXPPP_ACCT_ITERIUMIN_OCTETS} || 0;
+      $RAD->{INTERIUM_INBYTE2} = $RAD->{EXPPP_ACCT_LOCALITERIUMOUT_OCTETS} || 0;
+      $RAD->{INTERIUM_OUTBYTE2} = $RAD->{EXPPP_ACCT_LOCALITERIUMIN_OCTETS} || 0;
+
+
    }
   # From client
   else {
@@ -164,16 +169,18 @@ sub acct {
   
       $RAD->{INBYTE2} = $RAD->{EXPPP_ACCT_LOCALINPUT_OCTETS} || 0;             # From client
       $RAD->{OUTBYTE2} = $RAD->{EXPPP_ACCT_LOCALOUTPUT_OCTETS} || 0;            # To client
-
-      $RAD->{INTERIUM_INBYTE}  = $RAD->{EXPPP_ACCT_ITERIUMIN_OCTETS} || 0;
-      $RAD->{INTERIUM_OUTBYTE} = $RAD->{EXPPP_ACCT_ITERIUMOUT_OCTETS} || 0;
-      $RAD->{INTERIUM_INBYTE2} = $RAD->{EXPPP_ACCT_LOCALITERIUMIN_OCTETS} || 0;
-      $RAD->{INTERIUM_OUTBYTE2} = $RAD->{EXPPP_ACCT_LOCALITERIUMOUT_OCTETS} || 0;
      }
     else {
       $RAD->{INBYTE2}  = 0;
       $RAD->{OUTBYTE2} = 0;
     }
+
+      $RAD->{INTERIUM_INBYTE}  = $RAD->{EXPPP_ACCT_ITERIUMIN_OCTETS} || 0;
+      $RAD->{INTERIUM_OUTBYTE} = $RAD->{EXPPP_ACCT_ITERIUMOUT_OCTETS} || 0;
+      $RAD->{INTERIUM_INBYTE2} = $RAD->{EXPPP_ACCT_LOCALITERIUMIN_OCTETS} || 0;
+      $RAD->{INTERIUM_OUTBYTE2} = $RAD->{EXPPP_ACCT_LOCALITERIUMOUT_OCTETS} || 0;
+
+
   }
 
   $RAD->{LOGOUT} = time;

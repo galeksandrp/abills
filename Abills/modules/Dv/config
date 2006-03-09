@@ -40,8 +40,8 @@ $web_interface    = 1;
                    "14:12:$_LAST:dv_sessions:"             => 4,
                    "15:12:$_USED:dv_use:"                  => 4,
                    "16:15:$_MONTH:dv_use_allmonthes:"      => 4,
-                   "17:0:Dialup / VPN:dv_online:"          => 8
-
+                   "17:0:Dialup / VPN:dv_online:"          => 8,
+                   "18:0:$_USERS $_ADD:dv_wizard_user2:"        => 1000 
                    );
 
 %USER_FUNCTION_LIST = ("01:0:Dialup / VPN:dv_user_info:"   => 0,

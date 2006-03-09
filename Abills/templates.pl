@@ -35,9 +35,8 @@ sub templates {
 
 if ($tpl_name eq 'form_pi') {
 return qq{
-<hr\>
 <form action=$SELF_URL method=post>
-<input type=hidden name=index value=30>
+<input type=hidden name=index value=$index>
 <input type=hidden name=UID value="%UID%">
 <TABLE width=420 cellspacing=0 cellpadding=3>
 <TR><TD>$_FIO:*</TD><TD><input type=text name=FIO value="%FIO%"></TD></TR>
@@ -55,12 +54,19 @@ return qq{
 };
 
  }
+elsif ($tpl_name eq 'form_user_exdata') {
+return qq{
+   <tr bgcolor="$_COLORS[2]"><td>$_USER:*</td><td><input type="text" name="LOGIN" value=""></td></tr>
+   <tr><td>$_BILL:</td><td><input type="checkbox" name="CREATE_BILL" %CREATE_BILL% value='1'> $_CREATE</td></tr>
+  };
+ }
 elsif ($tpl_name eq 'form_user') {
 return qq{
-<form action=$SELF_URL METHOD=POST>
-<input type=hidden name=index value=15>
+
+<form action="$SELF_URL" METHOD="POST">
+<input type=hidden name="index" value="$index">
 <input type=hidden name=COMPANY_ID value='%COMPANY_ID%'>
-<TABLE width=420 cellspacing=0 cellpadding=3>
+<TABLE width="420" cellspacing="0" cellpadding="3">
 %EXDATA%
 <TR><TD colspan=2>&nbsp;</TD></TR>
 
@@ -74,6 +80,7 @@ return qq{
 </TABLE>
 <input type=submit name='%ACTION%' value='%LNG_ACTION%'>
 </form>
+<hr\>
 };
 
  }
@@ -103,27 +110,31 @@ return qq{
  }
 elsif ($tpl_name eq 'user_info') {
 return qq{
-<TABLE width="600" cellspacing="0" cellpadding="0" border="0"><TR><TD bgcolor="#E1E1E1">
+<TABLE width="500" cellspacing="0" cellpadding="0" border="0"><TR><TD bgcolor="#E1E1E1">
 <TABLE width="100%" cellspacing="1" cellpadding="0" border="0">
+<TR bgcolor="$_COLORS[0]"><TH ALIGN=RIGHT COLSPAN="2">$_INFO</TH></TR>
 <TR bgcolor="$_COLORS[1]"><TD>$_LOGIN:</TD><TD>%LOGIN%</TD></TR>
-<TR bgcolor="$_COLORS[1]"><TD>UID:</TD><TD>%UID%</TD></TR>
+<tR bgcolor="$_COLORS[1]"><TD>UID:</TD><TD>%UID%</TD></TR>
+<tR bgcolor="$_COLORS[1]"><TD>$_DEPOSIT:</TD><TD>%DEPOSIT%</TD></TR>
 <TR bgcolor="$_COLORS[1]"><TD>$_FIO:</TD><TD>%FIO%</TD></TR>
 <TR bgcolor="$_COLORS[1]"><TD>$_PHONE:</TD><TD>%PHONE%</TD></TR>
 <TR bgcolor="$_COLORS[1]"><TD>$_ADDRESS:</TD><TD>%ADDRESS%</TD></TR>
 <TR bgcolor="$_COLORS[1]"><TD>E-mail:</TD><TD>%EMAIL%</TD></TR>
-<TR bgcolor="$_COLORS[1]"><TD>$_TARIF_PLAN:</TD><TD>%TARIF_PLAN%</TD></TR>
-<TR bgcolor="$_COLORS[1]"><TD>$_CREDIT:</TD><TD>%CREDIT%</TD></TR>
-<TR bgcolor="$_COLORS[1]"><TD>$_REDUCTION</TD><TD>%REDUICTION% %</TD></TR>
-<TR bgcolor="$_COLORS[1]"><TD>$_SIMULTANEOUSLY:</TD><TD>%SIMULTANEONSLY%</TD></TR>
+<tR bgcolor="$_COLORS[1]"><TD>$_CREDIT:</TD><TD>%CREDIT%</TD></TR>
+<TR bgcolor="$_COLORS[1]"><TD>$_REDUCTION</TD><TD>%REDUCTION% %</TD></TR>
 <TR bgcolor="$_COLORS[1]"><TD>$_ACTIVATE:</TD><TD>%ACTIVATE%</TD></TR>
 <TR bgcolor="$_COLORS[1]"><TD>$_EXPIRE:</TD><TD>%EXPIRE%</TD></TR>
+<TR bgcolor="$_COLORS[1]"><th colspan="2">:$_COMMENTS:</th></TR>
+<TR bgcolor="$_COLORS[1]"><th colspan="2">%COMMENTS%</th></TR>
+<!-- <tR bgcolor="$_COLORS[1]"><TH colspan="2">Dilup / VPN</TH></TR>
+<TR bgcolor="$_COLORS[1]"><TD>$_TARIF_PLAN:</TD><TD>%TP_ID%:%TP_NAME%</TD></TR>
+<TR bgcolor="$_COLORS[1]"><TD>$_SIMULTANEOUSLY:</TD><TD>%SIMULTANEONSLY%</TD></TR>
 <TR bgcolor="$_COLORS[1]"><TD>IP:</TD><TD>%IP%</TD></TR>
 <TR bgcolor="$_COLORS[1]"><TD>NETMASK:</TD><TD>%NETMASK%</TD></TR>
 <TR bgcolor="$_COLORS[1]"><TD>$_SPEED (Kb)</TD><TD>%SPEED%</TD></TR>
 <TR bgcolor="$_COLORS[1]"><TD>$_FILTERS</TD><TD>%FILTER_ID%</TD></TR>
 <TR bgcolor="$_COLORS[1]"><TD>CID:</TD><TD>%CID%</TD></TR>
-<TR bgcolor="$_COLORS[1]"><th colspan="2">:$_COMMENTS:</th></TR>
-<TR bgcolor="$_COLORS[1]"><th colspan="2">%COMMENTS%</th></TR>
+-->
 </TABLE>
 </TD></TR></TABLE>
 };
@@ -336,6 +347,15 @@ return qq{
 <TR><TD>$_TO:</TD><TD>%TARIF_PLAN_SEL%</TD></TR>
 %PARAMS%
 </TABLE>
+<input type=submit name=%ACTION% value=\"%LNG_ACTION%\">
+</form>
+}
+}
+elsif ($tpl_name eq 'services') {
+return qq{
+<form action="$SELF_URL" METHOD="POST">
+<input type=hidden name='index' value='$index'>
+%SERVICES%
 <input type=submit name=%ACTION% value=\"%LNG_ACTION%\">
 </form>
 }

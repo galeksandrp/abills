@@ -23,7 +23,7 @@ my $uid;
 
 my $MODULE='Dv';
 
-my %SEARCH_PARAMS = (TARIF_PLAN => 0, 
+my %SEARCH_PARAMS = (TP_ID => 0, 
    SIMULTANEONSLY => 0, 
    DISABLE => 0, 
    IP => '0.0.0.0', 
@@ -123,15 +123,15 @@ sub info {
 sub defaults {
   my $self = shift;
 
-  %DATA = (
-   TARIF_PLAN => 0, 
+  my %DATA = (
+   TP_ID     => 0, 
    SIMULTANEONSLY => 0, 
-   DISABLE => 0, 
-   IP => '0.0.0.0', 
-   NETMASK => '255.255.255.255', 
-   SPEED => 0, 
-   FILTER_ID => '', 
-   CID => '',
+   DISABLE        => 0, 
+   IP             => '0.0.0.0', 
+   NETMASK        => '255.255.255.255', 
+   SPEED          => 0, 
+   FILTER_ID      => '', 
+   CID            => '',
   );
 
  
@@ -149,10 +149,17 @@ sub add {
   
   %DATA = $self->get_data($attr); 
 
-  $self->query($db,  "INSERT INTO dv_main (uid, registration, tp_id, 
-             logins, disable, ip, netmask, speed, filter_id, cid)
+  $self->query($db,  "INSERT INTO dv_main (uid, registration, 
+             tp_id, 
+             logins, 
+             disable, 
+             ip, 
+             netmask, 
+             speed, 
+             filter_id, 
+             cid)
         VALUES ('$DATA{UID}', now(),
-        '$DATA{TARIF_PLAN}', '$DATA{SIMULTANEONSLY}', '$DATA{DISABLE}', INET_ATON('$DATA{IP}'), 
+        '$DATA{TP_ID}', '$DATA{SIMULTANEONSLY}', '$DATA{DISABLE}', INET_ATON('$DATA{IP}'), 
         INET_ATON('$DATA{NETMASK}'), '$DATA{SPEED}', '$DATA{FILTER_ID}', LOWER('$DATA{CID}'));", 'do');
   
   return $self if ($self->{errno});
@@ -231,7 +238,10 @@ sub list {
  $PG = ($attr->{PG}) ? $attr->{PG} : 0;
  $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
 
- my $search_fields = '';
+
+ $self->{SEARCH_FIELDS} = '';
+ $self->{SEARCH_FIELDS_COUNT}=0;
+
  undef @WHERE_RULES;
  push @WHERE_RULES, "u.uid = dv.uid";
  
@@ -315,12 +325,15 @@ sub list {
            $last_ip .= '.';
           }
        }
-      push @WHERE_RULES, "(u.ip>=INET_ATON('$first_ip') and u.ip<=INET_ATON('$last_ip'))";
+      push @WHERE_RULES, "(dv.ip>=INET_ATON('$first_ip') and dv.ip<=INET_ATON('$last_ip'))";
      }
     else {
       my $value = $self->search_expr($attr->{IP}, 'IP');
-      push @WHERE_RULES, "u.ip$value";
+      push @WHERE_RULES, "dv.ip$value";
     }
+
+    $self->{SEARCH_FIELDS} = 'INET_NTOA(dv.ip), ';
+    $self->{SEARCH_FIELDS_COUNT}++;
   }
 
  if ($attr->{PHONE}) {
@@ -337,11 +350,16 @@ sub list {
  if ($attr->{SPEED}) {
     my $value = $self->search_expr($attr->{SPEED}, 'INT');
     push @WHERE_RULES, "u.speed$value";
+
+    $self->{SEARCH_FIELDS} = 'dv.speed, ';
+    $self->{SEARCH_FIELDS_COUNT}++;
   }
 
  if ($attr->{CID}) {
     $attr->{CID} =~ s/\*/\%/ig;
-    push @WHERE_RULES, "u.cid LIKE '$attr->{CID}'";
+    push @WHERE_RULES, "dv.cid LIKE '$attr->{CID}'";
+    $self->{SEARCH_FIELDS} = 'dv.cid, ';
+    $self->{SEARCH_FIELDS_COUNT}++;
   }
 
  if ($attr->{COMMENTS}) {
@@ -395,8 +413,17 @@ sub list {
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
  
  $self->query($db, "SELECT u.id, 
-      pi.fio, if(u.company_id > 0, cb.deposit, b.deposit), u.credit, tp.name, u.disable, 
-      u.uid, u.company_id, pi.email, dv.tp_id, u.activate, u.expire, 
+      pi.fio, if(u.company_id > 0, cb.deposit, b.deposit), 
+      u.credit, 
+      tp.name, 
+      u.disable, 
+      $self->{SEARCH_FIELDS}
+      u.uid, 
+      u.company_id, 
+      pi.email, 
+      dv.tp_id, 
+      u.activate, 
+      u.expire, 
       if(u.company_id > 0, company.bill_id, u.bill_id)
      FROM users u, dv_main dv
      LEFT JOIN users_pi pi ON (u.uid = pi.uid)

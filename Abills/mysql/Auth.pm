@@ -163,6 +163,9 @@ if ($self->{DISABLE}) {
      }
 
    $self->query($db, "$sql");
+   
+   #print "$sql $self->{NAS}";
+   
    if ($self->{TOTAL} < 1) {
      $RAD_PAIRS->{'Reply-Message'}="You are not authorized to log in $NAS->{NAS_ID} ($RAD->{NAS_IP_ADDRESS})";
      return 1, $RAD_PAIRS;

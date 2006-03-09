@@ -222,11 +222,10 @@ sub defaults {
   my $self = shift;
 
   %DATA = ( LOGIN => '', 
-   ACTIVATE => '0000-00-00', 
-   EXPIRE => '0000-00-00', 
+   ACTIVATE       => '0000-00-00', 
+   EXPIRE         => '0000-00-00', 
    CREDIT => 0, 
    REDUCTION => '0.00', 
-   TARIF_PLAN => 0, 
    SIMULTANEONSLY => 0, 
    DISABLE => 0, 
    COMPANY_ID => 0,
@@ -410,38 +409,10 @@ sub list {
   }
  
 
- if ($attr->{IP}) {
-    if ($attr->{IP} =~ m/\*/g) {
-      my ($i, $first_ip, $last_ip);
-      my @p = split(/\./, $attr->{IP});
-      for ($i=0; $i<4; $i++) {
-
-         if ($p[$i] eq '*') {
-         	 $first_ip .= '0';
-         	 $last_ip .= '255';
-          }
-         else {
-         	 $first_ip .= $p[$i];
-         	 $last_ip .= $p[$i];
-          }
-         if ($i != 3) {
-         	 $first_ip .= '.';
-         	 $last_ip .= '.';
-          }
-       }
-      push @WHERE_RULES, "(u.ip>=INET_ATON('$first_ip') and u.ip<=INET_ATON('$last_ip'))";
-     }
-    else {
-      my $value = $self->search_expr($attr->{IP}, 'IP');
-      push @WHERE_RULES, "u.ip$value ";
-    }
-  }
-
  if ($attr->{PHONE}) {
     my $value = $self->search_expr($attr->{PHONE}, 'INT');
-    push @WHERE_RULES, "u.phone$value";
+    push @WHERE_RULES, "pi.phone$value";
   }
-
 
  if ($attr->{DEPOSIT}) {
     my $value = $self->search_expr($attr->{DEPOSIT}, 'INT');
@@ -451,7 +422,7 @@ sub list {
 
  if ($attr->{COMMENTS}) {
  	$attr->{COMMENTS} =~ s/\*/\%/ig;
- 	push @WHERE_RULES, "u.comments LIKE '$attr->{COMMENTS}'";
+ 	push @WHERE_RULES, "pi.comments LIKE '$attr->{COMMENTS}'";
   }    
 
 
@@ -496,7 +467,6 @@ sub list {
  
  $WHERE = ($#WHERE_RULES > -1) ?  "WHERE " . join(' and ', @WHERE_RULES) : '';
  
- 
  $self->query($db, "SELECT u.id, 
       pi.fio, if(company.id IS NULL, b.deposit, b.deposit), u.credit, u.disable, 
       u.uid, u.company_id, pi.email, u.activate, u.expire
@@ -513,7 +483,12 @@ sub list {
  my $list = $self->{list};
 
  if ($self->{TOTAL} > 0) {
-    $self->query($db, "SELECT count(u.id) FROM users u $WHERE");
+    $self->query($db, "SELECT count(u.id) FROM users u 
+     LEFT JOIN users_pi pi ON (u.uid = pi.uid)
+     LEFT JOIN bills b ON u.bill_id = b.id
+     LEFT JOIN companies company ON  (u.company_id=company.id) 
+
+    $WHERE");
     my $a_ref = $self->{list}->[0];
     ($self->{TOTAL}) = @$a_ref;
    }
@@ -582,8 +557,10 @@ sub add {
 
   $admin->action_add("$self->{UID}", "ADD $DATA{LOGIN}");
 
+
+
   if ($attr->{CREATE_BILL}) {
-  	print "create bill";
+  	#print "create bill";
   	$self->change($self->{UID}, { 
   		 UID     => $self->{UID},
   		 create  => 'yes' });
@@ -662,7 +639,7 @@ sub del {
                   'users_nas', 
                   'messages',
                   'docs_acct',
-                  'log',
+                  'dv_log',
                   'users',
                   'users_pi');
 
