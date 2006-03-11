@@ -156,8 +156,8 @@ sub tariff_change {
 sub tariff_del {
   my $self = shift;
   my ($id) = @_;
-
-  $self->query($db, "DELETE from abon_tariffs WHERE uid='$id';", 'do');
+  
+  $self->query($db, "DELETE from abon_tariffs WHERE id='$id';", 'do');
   return $self->{result};
 }
 
@@ -172,8 +172,10 @@ sub tariff_list {
 # push @WHERE_RULES, "u.uid = service.uid";
 # $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
  
- $self->query($db, "SELECT name, price, period, id
+ $self->query($db, "SELECT name, price, period, count(ul.uid), id 
      FROM abon_tariffs
+     LEFT JOIN abon_user_list ul ON (abon_tariffs.id=ul.tp_id)
+     GROUP BY id
      ORDER BY $SORT $DESC;");
 
   return $self->{list};
