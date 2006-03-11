@@ -188,13 +188,12 @@ sub user_tariff_list {
  my $self = shift;
  my ($uid, $attr) = @_;
 
-# undef @WHERE_RULES;
-# push @WHERE_RULES, "u.uid = service.uid";
+# @WHERE_RULES = ("ul.uid='$uid'");
 # $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
  
  $self->query($db, "SELECT id, name, price, period, ul.date, count(ul.uid)
      FROM abon_tariffs
-     LEFT JOIN abon_user_list ul ON (abon_tariffs.id=ul.tp_id)
+     LEFT JOIN abon_user_list ul ON (abon_tariffs.id=ul.tp_id and ul.uid='$uid')
      GROUP BY id
      ORDER BY $SORT $DESC;");
 
@@ -229,19 +228,51 @@ sub user_tariff_change {
 
 
 
+#**********************************************************
+# user_tariffs()
+#**********************************************************
+sub user_tariff_update {
+ my $self = shift;
+ my ($attr) = @_;
+
+ my $DATE = ($attr->{DATE}) ? "'$attr->{DATE}'" : "now()"; 
+ 
+ $self->query($db, "UPDATE abon_user_list SET date=$DATE
+   WHERE uid='$attr->{UID}' and tp_id='$attr->{TP_ID}';", 'do');
+
+ return $self;
+}
+
+
 
 #**********************************************************
 # Periodic
 #**********************************************************
-sub periodic {
+sub periodic_list {
   my $self = shift;
   my ($period) = @_;
   
-  if($period eq 'daily') {
-    $self->daily_fees();
-  }
+
+ $self->query($db, "SELECT at.period, at.price, u.uid, if(u.company_id > 0, c.bill_id, u.bill_id),
+  u.id, at.id, at.name,
+  if(c.name IS NULL, b.deposit, cb.deposit),
+  if(u.company_id > 0, c.credit, u.credit),
+  u.disable,
+  at.id
+  FROM abon_tariffs at, `abon_user_list` al, users u
+     LEFT JOIN bills b ON (u.bill_id=b.id)
+     LEFT JOIN companies c ON (u.company_id=c.id)
+     LEFT JOIN bills cb ON (c.bill_id=cb.id)
+WHERE
+at.id=al.tp_id and
+al.uid=u.uid
+ORDER BY 1;");
+
+ my $list = $self->{list};
+
+
   
-  return $self;
+  return $list;
 }
 
 

@@ -50,8 +50,8 @@ $web_interface    = 1;
                       );
 
 
-
-%PERIODIC = (daily   => [ 'dv_daily_fees', 'dv_users_warning_messages' ],
+#, 'dv_users_warning_messages' 
+%PERIODIC = (daily   => [ 'dv_daily_fees'],
              monthly => [ 'dv_monthly_fees' ],
              report  => [ 'dv_report'       ]);
 

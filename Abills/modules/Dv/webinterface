@@ -13,7 +13,7 @@ my $fees = Fees->new($db, $admin, \%conf);
 
 use Dv_Sessions;
 use Shedule;
-my $sessions = Dv_Sessions->new($db);
+my $sessions = Dv_Sessions->new($db, $admin, \%conf);
 
 
 
@@ -1420,7 +1420,7 @@ sub dv_daily_fees {
 
  require Tariffs;
  Tariffs->import();
- my $tariffs = Tariffs->new($db, \%conf);
+ my $tariffs = Tariffs->new($db, \%conf, $admin);
  my $list = $tariffs->list({ %LIST_PARAMS });
 
  foreach my $line (@$list) {
@@ -1463,6 +1463,8 @@ sub dv_daily_fees {
       }
  	  }
   }
+
+
 
 }
 

@@ -7,8 +7,7 @@ $web_interface    = 1;
 
 %USER_FUNCTION_LIST = ( );
 
-%PERIODIC = (daily   => [ abon_periodic ],
-             month   => [ abon_periodic ]);
+%PERIODIC = (daily   => [ 'abon_periodic' ]);
 
 
 1

@@ -2,11 +2,13 @@
 # Dialup vpn web functions
 
 
+
+
+
 require "Abon.pm";
 Abon->import();
 my $Abon = Abon->new($db, $admin, $conf);
 my @PERIODS = ($_DAY, $_MONTH, $_YEAR);
-
 
 #*******************************************************************
 # Change user variant form
@@ -138,8 +140,6 @@ foreach my $line (@$list) {
 
 print $table->show();
   
-  
-  
 }
 
 
@@ -147,51 +147,66 @@ print $table->show();
 # daily_fees
 #**********************************************************
 sub abon_periodic {
+  
+  require Fees;
+  Fees->import();
+  
+  
+  my $fees = Fees->new($db, $admin, \%conf);
 
- require Tariffs;
- Tariffs->import();
- my $tariffs = Tariffs->new($db, \%conf);
- my $list = $tariffs->list({ %LIST_PARAMS });
+  my $list = $Abon->periodic_list({ %LIST_PARAMS });
+
+ #at.period, at.price, u.uid, if(u.company_id > 0, c.bill_id, u.bill_id),
+ # u.id, at.id, at.name,
+ # if(c.name IS NULL, b.deposit, cb.deposit),
+ # if(u.company_id > 0, c.credit, u.credit),
+ # disable,
+ # at.id 
+ my ($y, $m, $d)=split(/-/, $DATE, 3);
+ $m--;
 
  foreach my $line (@$list) {
- 	 if ($line->[5] > 0) {
- 	   #print "$line->[0] DF: $line->[5] MF: $line->[6]\n";
- 	   $LIST_PARAMS{TP}=$line->[0];
- 	   my $ulist = $Dv->list({ 
-         ACTIVATE  => "<=$DATE",
-         EXPIRE    => ">$DATE",
-         DISABLE   => 0,
-         TP_ID     => $line->[0],
-         SORT      => 1,
-         PAGE_ROWS => 10000
- 	   	 });
+ 
+ #print "<br>$line->[0], $line->[1], $line->[2], $line->[3], $line->[4], $line->[5], $line->[6], DEPOSIT: $line->[7], CREDIT: $line->[8], DISABLE: $line->[9] -";
+ 
 
-#     .id, u.fio, if(acct.id IS NULL, u.deposit, acct.deposit), u.credit, tp.name, u.disable, 
-#      u.uid, u.account_id, u.email, u.tp_id
-     foreach my $u (@$ulist) {
+  if (defined($line->[7])) {
+     my %user = (
+       UID => $line->[2],
+       BILL_ID => $line->[3]
+      );
 
-        if ($u->[12] > 0 && defined($u->[2])) {
-          my %user = (
-             ACCOUNT_ID => $u->[7],
-             UID => $u->[6],
-             BILL_ID => $u->[12]  
-           );
+    my %PARAMS = ( DESCRIBE => "ABON: [$line->[10]] $line->[6]" );
+    $PARAMS{DATE}=$DATE if ($DATE ne '');
 
-          #print "  UID: $u->[0] / $line->[5] / DEPOSIT: $u->[2] / $u->[3] / BILL_ID: $u->[12]\n"; 	
-          if($u->[2] + $u->[3] > 0 || $line->[4] == 1) {
-             #print "  UID: $u->[0] / $line->[5] / DEPOSIT: $u->[2] / $u->[3] / BILL_ID: $u->[12]\n"; 	
 
-             my %PARAMS = ( DESCRIBE => "$_DAY_FEE" );
-             $PARAMS{DATE}=$DATE if ($DATE ne '');
-             $fees->take(\%user, $line->[5], { %PARAMS } );  
-           }
-        }
-       else {
-       	  print "[ $u->[6] ] $u->[0] - Don't have money account\n";
-        }
+    if($line->[7] + $line->[8] > 0 || $line->[9] == 0) {
+     	if ($line->[0] == 0) {
+         $fees->take(\%user, $line->[1], { %PARAMS } ); 
+         $Abon->user_tariff_update({ UID => "$line->[2]", TP_ID => "$line->[10]", DATE => $DATE, });
 
-      }
- 	  }
+         #print "$line->[0] Day fee<Br>\n"; 
+       }
+    	elsif ($line->[0] == 1 && ($d == 1)) {
+         $fees->take(\%user, $line->[1], { %PARAMS } ); 
+         $Abon->user_tariff_update({ UID => "$line->[2]", DATE => $DATE, TP_ID => "$line->[9]" });
+         #print "Month Fee $d<Br>\n"; 
+       }
+  	  elsif ($line->[0] == 2 && ($m == 0 && $d == 1)) {
+         $fees->take(\%user, $line->[1], { %PARAMS } ); 
+         $Abon->user_tariff_update({ UID => "$line->[2]", DATE => $DATE, TP_ID => "$line->[9]" });
+         #print "Year fee $m $d<Br>\n"; 
+       }
+     }
+
+   }
+  else {
+    print "[ $line->[2] ] $line->[4] - Don't have money account\n";
+   }
+
+
+
+
   }
 
 }
