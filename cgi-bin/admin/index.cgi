@@ -1096,7 +1096,7 @@ sub form_bills {
   use Bills;
   my  $bills = Bills->new($db);
 
-  $user->{SEL_BILLS} =  "<select name=BILL_ID>\n";
+  $user->{SEL_BILLS} =  "<select name='BILL_ID'>\n";
   $user->{SEL_BILLS} .= "<option value='0'>-N/S-\n";
   my $list = $bills->list({  COMPANY_ONLY => 'y',
   	                         UID   => $user->{UID} });
@@ -2077,9 +2077,9 @@ if ($type eq 'log') {
   else {
 	  $UID = $attr->{UID};
    }
-
 }
 
+my $user = $users->info($UID);
 
 my $OP_SID = mk_unique_value(16);
 
@@ -2087,7 +2087,8 @@ my $OP_SID = mk_unique_value(16);
                                       subf   => "$index",
                                       sum    => "$sum",
                                       OP_SID => "$OP_SID",
-                                      UID    => "$UID"
+                                      UID    => "$UID",
+                                      BILL_ID => $user->{BILL_ID}
                                      },
 	                        SUBMIT  => { bm   => "$_BACK_MONEY ?"
 	                       	           } });

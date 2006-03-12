@@ -256,6 +256,8 @@ sub add {
 
   %DATA = $self->get_data($attr, { default => \%DATA }); 
 
+  #$self->{debug}=1;
+
   $self->query($db, "INSERT INTO tarif_plans (id, hourp, uplimit, name, month_fee, day_fee, logins, 
      day_time_limit, week_time_limit,  month_time_limit, 
      day_traf_limit, week_traf_limit,  month_traf_limit,
