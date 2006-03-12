@@ -73,7 +73,7 @@ sub tariff_info {
   ($self->{NAME},
    $self->{PERIOD},
    $self->{SUM}, 
-   $self->{ID}
+   $self->{ABON_ID}
   )= @$ar;
   
 
@@ -128,16 +128,16 @@ sub tariff_change {
   my $self = shift;
   my ($attr) = @_;
   
-  my %FIELDS = (ID        => 'id',
+  my %FIELDS = (ABON_ID        => 'id',
               NAME				=> 'name',
               PERIOD      => 'period',
               SUM         => 'price'
              );
 
-  $self->changes($admin,  { CHANGE_PARAM => 'ID',
+  $self->changes($admin,  { CHANGE_PARAM => 'ABON_ID',
                    TABLE        => 'abon_tariffs',
                    FIELDS       => \%FIELDS,
-                   OLD_INFO     => $self->tariff_info($attr->{ID}),
+                   OLD_INFO     => $self->tariff_info($attr->{ABON_ID}),
                    DATA         => $attr
                   } );
 
@@ -182,6 +182,59 @@ sub tariff_list {
 }
 
 
+
+#**********************************************************
+# user_list()
+#**********************************************************
+sub user_list {
+ my $self = shift;
+ my ($attr) = @_;
+
+ @WHERE_RULES = ("u.uid=ul.uid", "at.id=ul.tp_id");
+
+ # Start letter 
+ if ($attr->{FIRST_LETTER}) {
+    push @WHERE_RULES, "u.id LIKE '$attr->{FIRST_LETTER}%'";
+  }
+ elsif ($attr->{LOGIN}) {
+    $attr->{LOGIN_EXPR} =~ s/\*/\%/ig;
+    push @WHERE_RULES, "u.id='$attr->{LOGIN}'";
+  }
+ # Login expresion
+ elsif ($attr->{LOGIN_EXPR}) {
+    $attr->{LOGIN_EXPR} =~ s/\*/\%/ig;
+    push @WHERE_RULES, "u.id LIKE '$attr->{LOGIN_EXPR}'";
+  }
+
+ if ($attr->{ABON_ID}) {
+ 	 push @WHERE_RULES, "at.id='$attr->{ABON_ID}'";
+ }
+
+ $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
+ 
+ $self->query($db, "SELECT u.id, pi.fio, at.name, ul.date, u.uid, at.id
+     FROM users u, abon_user_list ul, abon_tariffs at
+     LEFT JOIN users_pi pi ON u.uid = pi.uid
+     $WHERE
+     GROUP BY u.id
+     ORDER BY $SORT $DESC
+     LIMIT $PG, $PAGE_ROWS;");
+ my $list = $self->{list};
+
+
+ if ($self->{TOTAL} > 0) {
+    $self->query($db, "SELECT count(*)
+     FROM users u, abon_user_list ul, abon_tariffs at
+     $WHERE
+     GROUP BY at.id");
+
+    my $a_ref = $self->{list}->[0];
+    ($self->{TOTAL}) = @$a_ref;
+   }
+
+
+ return $list;
+}
 
 #**********************************************************
 # user_tariffs()
