@@ -676,6 +676,7 @@ sub voip_tp {
  $Voip_tp->{ACTION}='ADD_TP';
 
 if($FORM{ADD_TP}) {
+  $FORM{TP_ID} = $FORM{CHG_TP_ID};
   $Voip->tp_add({ %FORM });
   if (! $Voip->{errno}) {
     $html->message('info', $_ADDED, "$_ADDED $Voip->{TP_ID}");
@@ -707,15 +708,16 @@ elsif (defined($FORM{TP_ID})) {
   		f_args => { %F_ARGS }
   	 });
 
-  if($attr->{f}) {
-     $attr->{f}->({ TP => $Voip_tp });
-     return 0;
-   }
-  elsif ($FORM{subf}) {
+#  if($attr->{f}) {
+#     $attr->{f}->({ TP => $Voip_tp });
+#     return 0;
+#   }
+#  els
+  if ($FORM{subf}) {
   	return 0;
    }
   elsif($FORM{change}) {
-    $Voip->tp_change( $FORM{chg}, { %FORM  } );  
+    $Voip->tp_change( $FORM{TP_ID}, { %FORM  } );  
     if (! $Voip->{errno}) {
        $html->message('info', $_CHANGED, "$_CHANGED $Voip->{TP_ID}");
      }
@@ -740,17 +742,13 @@ if ($Voip->{errno}) {
  }
 
 
-$i=0;
 
-$Voip_tp->{PAYMENT_TYPE_SEL} = "<select name=PAYMENT_TYPE>\n";
-foreach my $line (@Payment_Types) {
-  $Voip_tp->{PAYMENT_TYPE_SEL} .= "<option value=$i";
-  $Voip_tp->{PAYMENT_TYPE_SEL} .= ' selected' if ($Voip->{PAYMENT_TYPE} eq $i);
-  $Voip_tp->{PAYMENT_TYPE_SEL} .= ">$Payment_Types[$i]\n";
-  $i++;
-}
-$Voip_tp->{PAYMENT_TYPE_SEL} .= "</select>\n";
 
+$Voip_tp->{PAYMENT_TYPE_SEL} = $html->form_select('PAYMENT_TYPE', 
+                                { SELECTED   => $Voip_tp->{PAYMENT_TYPE},
+ 	                                SEL_ARRAY  => \@Payment_Types,
+ 	                                ARRAY_NUM_ID  => 'y'
+ 	                               });
 
 #$Voip_tp = $Voip;
 

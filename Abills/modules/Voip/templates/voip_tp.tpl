@@ -1,8 +1,8 @@
 <form action=$SELF_URL METHOD=POST>
 <input type=hidden name=index value=$index>
-<input type=hidden name=chg value='%TP_ID%'>
+<input type=hidden name=TP_ID value='%TP_ID%'>
 <table border=0>
-  <tr><th>#</th><td><input type=text name=TP_ID value='%TP_ID%'></td></tr>
+  <tr><th>#</th><td><input type=text name=CHG_TP_ID value='%TP_ID%'></td></tr>
   <tr><td>$_NAME:</td><td><input type=text name=NAME value='%NAME%'></td></tr>
   <tr><td>$_UPLIMIT:</td><td><input type=text name=ALERT value='%ALERT%'></td></tr>
 
@@ -21,7 +21,7 @@
   <tr><td>$_MAX_SESSION_DURATION (sec.):</td><td><input type=text name=MAX_SESSION_DURATION value='%MAX_SESSION_DURATION%'></td></tr>
   <tr><td>$_AGE ($_DAYS):</td><td><input type=text name=AGE value='%AGE%'></td></tr>
   <tr><td>$_PAYMENT_TYPE:</td><td>%PAYMENT_TYPE_SEL%</td></tr>
-  <tr><td>$_MIN_SESSION_COST:</td><td><input type=text name=MIN_SESSION_COST value='%MIN_SESSION_COST%'></td></tr>
+  <tr><td>$_MIN_SESSION_COST:</td><td><input type='text' name='MIN_SESSION_COST' value='%MIN_SESSION_COST%'></td></tr>
   <tr><th colspan=2 bgcolor=$_COLORS[0]>-</th></tr> 
   <tr><td>$_FREE_TIME:</td><td><input type=text name=FREE_TIME value='%FREE_TIME%'></td></tr>
   <tr><td>$_FIRST_PERIOD:</td><td><input type=text name=FIRST_PERIOD value='%FIRST_PERIOD%'></td></tr>

@@ -2250,6 +2250,14 @@ if (defined($FORM{DATE})) {
 #**********************************************************
 #
 #**********************************************************
+sub report_fees_month {
+	$FORM{allmonthes}='y';
+  report_fees();
+}
+
+#**********************************************************
+#
+#**********************************************************
 sub report_fees {
   reports({ DATE   => $FORM{DATE}, 
   	        REPORT => '' });
@@ -2303,6 +2311,15 @@ else{
 }
 
 
+
+
+#**********************************************************
+#
+#**********************************************************
+sub report_payments_month {
+	$FORM{allmonthes}='y';
+  report_payments();
+}
 
 
 #**********************************************************
@@ -2397,9 +2414,9 @@ my @m = (
  "3:0:$_FEES:form_fees:::",
  "4:0:$_REPORTS:null:::",
  "41:4:$_PAYMENTS:report_payments:::",
- "42:41:$_MONTH:report_payments:::",
+ "42:41:$_MONTH:report_payments_month:::",
  "44:4:$_FEES:report_fees:::",
- "45:44:$_MONTH:report_fees:::",
+ "45:44:$_MONTH:report_fees_month:::",
 
  "5:0:$_SYSTEM:null:::",
  "50:5:$_ADMINS:form_admins:::",

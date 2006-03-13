@@ -815,6 +815,8 @@ sub tp_change {
   }
 
 
+ 
+
 
   my %FIELDS = ( TP_ID => 'id', 
             DAY_TIME_LIMIT =>   'day_time_limit',
@@ -830,14 +832,23 @@ sub tp_change {
             FREE_TIME            => 'free_time'
          );   
 
+  if ($tp_id != $attr->{CHG_TP_ID}) {
+  	 $FIELDS{CHG_TP_ID}='id';
+  	 
 
+   }
 
-	$self->changes(0, { CHANGE_PARAM => 'TP_ID',
+	$self->changes($admin, { CHANGE_PARAM => 'TP_ID',
 		                TABLE        => 'voip_tps',
 		                FIELDS       => \%FIELDS,
-		                OLD_INFO     => $self->tp_info($tp_id),
+		                OLD_INFO     => $self->tp_info($tp_id, $attr),
 		                DATA         => $attr
 		              } );
+
+
+  if ($tp_id != $attr->{CHG_TP_ID}) {
+  	 $attr->{TP_ID} = $attr->{CHG_TP_ID};
+   }
 
   
   $self->tp_info($tp_id);
@@ -864,10 +875,16 @@ sub tp_del {
 #**********************************************************
 sub tp_info {
   my $self = shift;
-  my ($id) = @_;
+  my ($id, $attr) = @_;
   
   
-  $self = $tariffs->info($id);
+  if ($attr->{CHG_TP_ID}) {
+    $self = $tariffs->info($attr->{CHG_TP_ID});
+   }
+  else {
+    $self = $tariffs->info($id);
+   }
+
   if (defined($self->{errno})) {
   	return $self;
   }

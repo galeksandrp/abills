@@ -289,7 +289,7 @@ sub change {
    }
 
 
-	$self->changes(0, { CHANGE_PARAM => 'TP_ID',
+	$self->changes($admin, { CHANGE_PARAM => 'TP_ID',
 		                TABLE        => 'tarif_plans',
 		                FIELDS       => \%FIELDS,
 		                OLD_INFO     => $self->info($tp_id),
@@ -301,9 +301,8 @@ sub change {
   	 $attr->{TP_ID} = $attr->{CHG_TP_ID};
    }
 
-  
+
   $self->info($attr->{TP_ID});
-	
 	return $self;
 }
 
