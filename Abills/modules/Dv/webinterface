@@ -901,16 +901,6 @@ $table = $html->table( { width => '100%',
                                } );
 print $table_sessions->show() . $table->show();
 
-#Users 
-#Sessions
-#Traffic 
-#Time
-#Money
-
-
-
-
-
 }
 
 

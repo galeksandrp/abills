@@ -2176,6 +2176,7 @@ else {
 	$pages_qs="&MONTH=$LIST_PARAMS{MONTH}";
 }
 
+
 if ($FORM{GID}) {
 	$LIST_PARAMS{GID}=$FORM{GID};
   $pages_qs.="&GID=$FORM{GID}";
@@ -2212,7 +2213,7 @@ if (defined($FORM{DATE})) {
 
   my $days = '';
   for ($i=1; $i<=31; $i++) {
-     $days .= ($d == $i) ? " <b>$i </b>" : ' '.$html->button($i, sprintf("index=$index&DATE=%d-%02.f-%02.f&EX_PARAMS=$FORM{EX_PARAMS}", $y, $m, $i));
+     $days .= ($d == $i) ? " <b>$i </b>" : ' '.$html->button($i, sprintf("index=$index&DATE=%d-%02.f-%02.f&EX_PARAMS=$FORM{EX_PARAMS}%s", $y, $m, $i, (defined($FORM{GID})) ? "&GID=$FORM{GID}" : ''     ));
    }
   
   

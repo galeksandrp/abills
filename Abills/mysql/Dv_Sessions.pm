@@ -519,8 +519,6 @@ sub list {
  my $self = shift;
  my ($attr) = @_;
 
-
-
  my $PG = ($attr->{PG}) ? $attr->{PG} : 0;
  my $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
  my $SORT = ($attr->{SORT}) ? $attr->{SORT} : 2;
@@ -715,14 +713,22 @@ sub reports {
 	my ($self) = shift;
 	my ($attr) = @_;
 
+
  $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
  $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
  undef @WHERE_RULES;
  my $date = '';
 
 
+ if ($attr->{GID}) {
+ 	 push @WHERE_RULES, "u.gid='$attr->{GID}'";
+  } 
  
- if (defined($attr->{MONTH})) {
+ 
+ if(defined($attr->{DATE})) {
+   push @WHERE_RULES, " date_format(l.start, '%Y-%m-%d')='$attr->{DATE}'";
+  }
+ elsif (defined($attr->{MONTH})) {
  	 push @WHERE_RULES, "date_format(l.start, '%Y-%m')='$attr->{MONTH}'";
    $date = "date_format(l.start, '%Y-%m-%d')";
   } 
@@ -741,10 +747,10 @@ sub reports {
     sum(l.sent + l.recv), sum(l.sent2 + l.recv2), sec_to_time(sum(l.duration)), sum(l.sum), l.uid
       FROM dv_log l
       LEFT JOIN users u ON (u.uid=l.uid)
-      WHERE date_format(l.start, '%Y-%m-%d')='$attr->{DATE}'
+      $WHERE 
       GROUP BY l.uid 
       ORDER BY $SORT $DESC");
-   $WHERE = "WHERE date_format(l.start, '%Y-%m-%d')='$attr->{DATE}'"; 
+   #$WHERE = "WHERE date_format(l.start, '%Y-%m-%d')='$attr->{DATE}'"; 
    
   }
  else {
