@@ -871,6 +871,7 @@ if ($users->{errno}) {
  }
 elsif ($users->{TOTAL} == 1) {
 	$FORM{index} = 15;
+	$FORM{UID}=$list->[0]->[5];
 	form_users({  USER => user_info($list->[0]->[5]) });
 	return 0;
 }
