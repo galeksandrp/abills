@@ -30,6 +30,7 @@ if ($lang_file eq '')  {
 sub docs_accounts_list {
 
 
+
 if ($LIST_PARAMS{UID}) {
 	docs_account();
 }
@@ -46,6 +47,8 @@ if ($Docs->{errno}) {
   return 0;
  }
 
+
+
 #  Date  Customer  Sum  User  Administrators  Time  
 my $list = $Docs->accounts_list( { %LIST_PARAMS } );
 my $table = $html->table( { width => '100%',
@@ -58,7 +61,7 @@ my $table = $html->table( { width => '100%',
 
 
 foreach my $line (@$list) {
-  my $delete = ($permissions{1}{2}) ?  $html->button($_DEL, "index=$index&del=$line->[8]&UID=$line->[7]", "$_DEL ?") : ''; 
+  my $delete = ($permissions{1}{2}) ?  $html->button($_DEL, "index=$index&del=$line->[8]&UID=$line->[7]", { MESSAGE => "$_DEL ?" }) : ''; 
   $table->addrow("$line->[0]", "$line->[1]",
    "$line->[2]", "$line->[3]", 
    "<a href='$SELF_URL?index=11&UID=$line->[7]'>$line->[4]", "$line->[5]", 
@@ -141,10 +144,10 @@ sub docs_account {
   }
 	
 	if($admin->{AID} > 0) {
-  	$Docs->{FORM_ACCT_ID} = "<tr><td>N:</td><td><input type=text name=ACCT_ID value='%ACCT_ID%'></td></tr>\n";
+  	$Docs->{FORM_ACCT_ID} = "<tr><td>N:</td><td><input type='text' name=ACCT_ID value='%ACCT_ID%'></td></tr>\n";
    }
 
-  $Docs->{SEL_ORDER} .= "<select name=ORDERS>";
+  $Docs->{SEL_ORDER} .= "<select name='ORDERS'>";
   $Docs->{SEL_ORDER} .= "<option value=\"Internet service\">Internet service\n";
   $Docs->{SEL_ORDER} .= "</select>\n";
 
