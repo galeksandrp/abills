@@ -23,9 +23,9 @@ $conf{MAX_SESSION_TRAFFIC} = 2048;
 ############################################################
 # Accounting status types
 # rfc2866
-my %ACCT_TYPES = ('Start' => 1,
-                  'Stop'  => 2,
-                  'Alive' => 3,
+my %ACCT_TYPES = ('Start'          => 1,
+                  'Stop'           => 2,
+                  'Alive'          => 3,
                   'Interim-Update' => 3,
                   'Accounting-On'  => 7,
                   'Accounting-Off' => 8
