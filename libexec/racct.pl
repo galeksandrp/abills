@@ -241,7 +241,18 @@ if ($Acct->{errno}){
   print "Error: $r->{errno} ($r->{errstr})\n";	
  }
 
-
-
   return $r;
+}
+
+
+
+#*******************************************************************
+# access_deny($user, $message);
+#*******************************************************************
+sub access_deny {
+my ($user, $message, $nas_num) = @_;
+
+ log_print('LOG_WARNING', "AUTH [$user] NAS: $nas_num $message");
+
+exit 1;
 }
