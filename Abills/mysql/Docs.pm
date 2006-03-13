@@ -58,6 +58,10 @@ sub accounts_list {
   my $self = shift;
   my ($attr) = @_;
 
+ $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+ $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+
+
  @WHERE_RULES = ("d.id=o.acct_id");
  
  if($attr->{LOGIN_EXPR}) {
@@ -87,7 +91,6 @@ sub accounts_list {
  
 
  $WHERE = ($#WHERE_RULES > -1) ? 'WHERE ' . join(' and ', @WHERE_RULES)  : '';
-
 
 
   $self->query($db,   "SELECT d.acct_id, d.date, d.customer,  sum(o.price * o.counts), u.id, a.name, d.created, d.uid, d.id
