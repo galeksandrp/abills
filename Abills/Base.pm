@@ -200,8 +200,6 @@ sub show_log {
       	next;
        }
       
-      
-      
       $user =~ s/\[|\]//g;
       if ($login ne "") {
       	if($login eq $user) {
@@ -225,7 +223,7 @@ sub show_log {
   
 # my $output;
  my $i = 0;
- for ($i = $total; $i>=$total - $PAGE_ROWS && $i >= 0; $i--) {
+ for ($i = $total - $PG; $i>=($total - $PG) - $PAGE_ROWS && $i >= 0; $i--) {
     push @list, "$err_recs[$i]";
 #    $output .= "$i / $err_recs[$i]<br>";
    }

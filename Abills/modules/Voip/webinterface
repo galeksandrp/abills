@@ -1429,41 +1429,78 @@ sub voip_error {
   $conf{LOGFILE} = "/usr/abills/var/log/abills.voip";
   my $login  = ''; 
 
+
 if ($attr->{USER}) {
   my $user = $attr->{USER};
   $login = $user->{LOGIN};
 }
+elsif ($FORM{LOGIN_EXPR}) {
+  $login = $FORM{LOGIN_EXPR};
+  $pages_qs .= "&LOGIN_EXPR=$FORM{LOGIN_EXPR}";
+ }
 elsif($FORM{UID}) {
   dv_users();
   return 0;
 }
+
+
 
 if (! -f $conf{LOGFILE}) {
 	$html->message('info', $_INFO, "'$conf{LOGFILE}' $_NOT_EXIST");
 	return 0;
 }
 
+
+if (defined($FORM{LOG_TYPE})) {
+	$pages_qs .= "&LOG_TYPE=$FORM{LOG_TYPE}";
+}
+
 my ($list, $types, $totals) = show_log("$login", "$conf{LOGFILE}", { DATE      => $FORM{DATE},
 	                                                                   LOG_TYPE  => $FORM{LOG_TYPE},
 	                                                                   PG        => $PG,
 	                                                                   PAGE_ROWS => $PAGE_ROWS });
-my $table = $html->table( { width => '100%' } );
+	                                                                   
+
+print $html->form_main({ CONTENT => $html->form_input('LOGIN_EXPR', "$FORM{LOGIN_EXPR}"),
+	                       HIDDEN  => { sid   => "$sid",
+	                                    index => "$index",
+	                                    UID   => "$UID"   },
+	                       SUBMIT  => { show  => "$_SHOW" }
+	                      
+	                      });
+	                                                                   
+
+	                                                                   
+my $table = $html->table( { caption => "$_LOG",
+	                          width   => '100%',
+	                          pages   => $totals,
+	                          qs      => $pages_qs
+	                         } );
+
 foreach my $line (@$list) {
   if ($line =~ m/LOG_WARNING/i) {
-    $line = "<font color=red>$line</font>";
+     $line = "<font color='#FF0000'>$line</font>";
    }
-  
+
+#  if ($line =~ m/LOG_WARNING/i) {
+#    $table->{rowcolor}='#FF0000';
+#   } 
+#  else {
+#  	$table->{rowcolor}=undef;
+#   }  
+
   $table->addrow($line);
 }
 print $table->show();
 
 
-$table = $html->table( { width => '100%',
+$table = $html->table( { 
+	                              width => '100%',
 	                              cols_align => ['right', 'right'] } );
 
-$table->addrow($html->button("$_TOTAL", "index=40&$pages_qs"), $totals);
+$table->addrow($html->button("$_TOTAL", "index=$index&$pages_qs"), $totals);
 while(my($k,$v)=each %$types) {
-  $table->addrow($html->button("$k", "index=40&LOG_TYPE=$k&$pages_qs"), $v);
+  $table->addrow($html->button($k, "index=$index&LOG_TYPE=$k$pages_qs"), $v);
 }
 print $table->show();
 
