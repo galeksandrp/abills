@@ -48,7 +48,7 @@ exit 0;
 }
 
 
-use vars  qw(%RAD %conf $db, @START_FW);
+use vars  qw(%RAD %conf $db @START_FW);
 use strict;
 
 use FindBin '$Bin';
@@ -120,8 +120,8 @@ my @FW_ACTIONS = ();
     $fw_nums .=   ' ' . ($fw_num)   .' '. ($fw_num +1);
     $pipe_nums .= ' ' . ($pipe_num) .' '. ($pipe_num+1);
   }
-  push @FW_ACTIONS, "$IPFW delete $fw_nums";
-  push @FW_ACTIONS, "$IPFW pipe delete $pipe_nums";
+  push @FW_ACTIONS, "$IPFW -f delete $fw_nums";
+  push @FW_ACTIONS, "$IPFW -f pipe delete $pipe_nums";
 
 
 # Up fw shaper rules
@@ -132,8 +132,12 @@ if ($ACTION eq 'up') {
   my $user = $Dv->info(0, { LOGIN => "$USER" });
 
   if(defined($Dv->{errno})) {
-  	print "[$user->{errno}] $user->{errstr}\n";
-  	exit 1;
+     print "[$Dv->{errno}] $Dv->{errstr}\n";
+     exit 1;
+   }
+  elsif($Dv->{TOTAL} < 1){
+    print "$USER - Not exist\n";
+    exit 1;
    }
 
   if ($user->{SPEED} > 0) {
@@ -146,7 +150,7 @@ if ($ACTION eq 'up') {
 
     ($user->{TIME_INTERVALS}, $user->{INTERVAL_TIME_TARIF}, $user->{INTERVAL_TRAF_TARIF}) = $Billing->time_intervals($user->{TP_ID});
     ($remaining_time, $ret_attr) = $Billing->remaining_time($user->{DEPOSIT}, {
-    	    TIME_INTERVALS      => $user->{TIME_INTERVALS},
+    	  TIME_INTERVALS      => $user->{TIME_INTERVALS},
           INTERVAL_TIME_TARIF => $user->{INTERVAL_TIME_TARIF},
           INTERVAL_TRAF_TARIF => $user->{INTERVAL_TRAF_TARIF},
           SESSION_START       => $user->{SESSION_START},
@@ -157,7 +161,7 @@ if ($ACTION eq 'up') {
           POSTPAID            => 1
          });
 
-#    print "RT: $remaining_time\n" if ($debug == 1);
+#    print "RT: $remaining_time\n"  if ($debug == 1);
     my %TT_IDS = %$ret_attr;
 
     if (keys %TT_IDS > 0) {

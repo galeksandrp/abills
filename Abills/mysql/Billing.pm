@@ -734,7 +734,7 @@ sub remaining_time {
 
 
  if ($time_intervals == 0) {
-    return 0;
+    return 0, \%ATTR;
     #return $deposit / $mainh_tarif * 60 * 60;	
   }
  
@@ -776,7 +776,7 @@ sub remaining_time {
       last;
     }
    else {
-   	  return -1;
+      return -1, \%ATTR;
     }
 
 
@@ -886,7 +886,7 @@ sub remaining_time {
         }
       }
 
-  return -2 if ($remaining_time == 0);
+  return -2, \%ATTR if ($remaining_time == 0);
   
   if ($session_start >= 86400) {
     $session_start=0;
