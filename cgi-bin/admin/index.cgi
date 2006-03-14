@@ -2637,7 +2637,7 @@ if (defined($attr->{USER})) {
       $html->message('err', $_ERROR, "[$payments->{errno}] $err_strs{$payments->{errno}}");	
      }
     else {
-      $html->message('info', $_PAYMENTS, "$_ADDED $_SUM: $FORM{SUM}");
+      $html->message('info', $_PAYMENTS, "$_ADDED $_SUM: $FORM{SUM} $er->{ER_SHORT_NAME}");
      }
    }
   elsif($FORM{del} && $FORM{is_js_confirmed}) {
