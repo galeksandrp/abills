@@ -97,6 +97,11 @@ my($Y, $M, $D);
    	 $YESTERDAY=$args->{DATE};
    	 $ADMIN_REPORT{DATE} = $args->{DATE};
    }
+  
+  if (defined($args->{NO_USERS_WARNINGS})) {
+    $ADMIN_REPORT{NO_USERS_WARNINGS}=1;
+   }
+
   ($Y, $M, $D)=split(/-/, $ADMIN_REPORT{DATE}, 3);
  
  
@@ -141,8 +146,8 @@ elsif (defined($args->{backup})) {
 else {
  print "Arguments (daily|monthly|backup)
    Optional arguments
-   DATE=2005-10-01\n";
-
+   DATE=2005-10-01
+   NO_USERS_WARNINGS - Don't send user warning messages\n";
  exit;
 }
 

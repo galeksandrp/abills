@@ -13,6 +13,9 @@ my $fees = Fees->new($db, $admin, \%conf);
 
 use Dv_Sessions;
 use Shedule;
+use Tariffs;
+
+my $tariffs = Tariffs->new($db, \%conf, $admin);
 my $sessions = Dv_Sessions->new($db, $admin, \%conf);
 
 
@@ -86,11 +89,6 @@ elsif($FORM{del}) {
 
   $html->message('info', $_DELETED, "$_DELETED [$FORM{SHEDULE_ID}]");
 }
-
-use Tariffs;
-my $tariffs = Tariffs->new($db, \%conf);
-
-
 
   $shedule->info( {UID     => $user->{UID},
                    TYPE    => 'tp',
@@ -273,6 +271,18 @@ sub dv_user {
   if($user->{TOTAL} < 1) {
 	  $html->message('info', $_INFO, $_NOT_ACTIVE);
 	  $Dv = $Dv->defaults();
+	  
+	  
+    $Dv->{TP_ID}=$html->form_select('TP_ID', 
+                                         { 
+ 	                                          SELECTED  => $user->{TP_ID},
+ 	                                          SEL_MULTI_ARRAY   => $tariffs->list(),
+ 	                                          MULTI_ARRAY_KEY   => 0,
+ 	                                          MULTI_ARRAY_VALUE => 1,
+ 	                                        });
+
+	  
+	  
 	  $Dv->{ACTION}='add';
 	  $Dv->{LNG_ACTION}=$_ACTIVATE;
 	 }
@@ -282,6 +292,9 @@ sub dv_user {
 	} 
 
   $user->{DISABLE}=($user->{DISABLE} == 1) ? ' checked' : '';
+
+
+  
 
   $html->tpl_show(_include('dv_user', 'Dv'), $Dv);
 }
@@ -294,8 +307,6 @@ sub dv_user {
 #**********************************************************
 sub dv_tp {
  
- use Tariffs;
- my $tariffs = Tariffs->new($db, \%conf);
  my $tarif_info;
 
  my @Octets_Direction = ("$_RECV + $_SEND", $_RECV, $_SEND);
@@ -1448,9 +1459,6 @@ sub dv_periodic_logrotate {
 #**********************************************************
 sub dv_daily_fees {
 
- require Tariffs;
- Tariffs->import();
- my $tariffs = Tariffs->new($db, \%conf, $admin);
  my $list = $tariffs->list({ %LIST_PARAMS });
 
  foreach my $line (@$list) {
@@ -1511,9 +1519,6 @@ sub dv_monthly_fees {
  use Users;
  my $users = Users->new($db, $admin, \%conf); 
 
- require Tariffs;
- Tariffs->import();
- my $tariffs = Tariffs->new($db, \%conf, $admin);
  my $list = $tariffs->list({ %LIST_PARAMS });
 
  my ($y, $m, $d)=split(/-/, $DATE, 3);
@@ -1584,9 +1589,10 @@ sub dv_users_warning_messages {
 
  $ADMIN_REPORT{USERS_WARNINGS} = sprintf("%-14s| %4s|%-20s| %9s| %8s|\n", $_LOGIN, 'TP', $_VARIANT, $_DEPOSIT, $_CREDIT).
    "---------------------------------------------------------------\n";
- if (defined(NO_USERS_WARNINGS)) {
-    return 0; 	
+ if (defined($ADMIN_REPORT{NO_USERS_WARNINGS})) {
+    return 0;
   }
+
 
 my %LIST_PARAMS = (USERS_WARNINGS => 'y' ) ;
 my $list = $Dv->list( { %LIST_PARAMS } );
@@ -2001,8 +2007,6 @@ sub dv_wizard_user2 {
 
   
   
-	use Tariffs;
-  my $tariffs = Tariffs->new($db, \%conf, $admin);
   $dv_defaults->{TP_ID} = $html->form_select('TP_ID', 
                                          { 
  	                                         SELECTED  => $user->{TP_ID},
@@ -2057,7 +2061,7 @@ sub dv_wizard_user2 {
           $html->message('err', $_ERROR, "[$payments->{errno}] $err_strs{$payments->{errno}}");	
          }
         else {
-          $html->message('info', $_PAYMENTS, "$_ADDED $_SUM: $FORM{'4.SUM'}");
+          $html->message('info', $_PAYMENTS, "$_ADDED $_SUM: $FORM{'4.SUM'} $er->{ER_SHORT_NAME}");
          }
       }
       
