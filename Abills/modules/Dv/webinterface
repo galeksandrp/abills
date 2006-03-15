@@ -2,9 +2,11 @@
 # Dialup vpn web functions
 
 
+
 require "Dv.pm";
 Dv->import();
 my $Dv = Dv->new($db, $admin, $conf);
+
 
 require Fees;
 Fees->import();
@@ -217,7 +219,7 @@ foreach my $line (@$list) {
    }
   
   $table->addrow(
-   $html->button("$line->[0]", "index=15&UID=$line->[6]"), 
+   $html->button("$line->[0]", "index=15&UID=$line->[6+$Dv->{SEARCH_FIELDS_COUNT}]"), 
    "$line->[1]",
    "$line->[2]", 
    "$line->[3]", 
@@ -1417,6 +1419,64 @@ print $table->show();
 }
 
 
+
+#**********************************************************
+# dv_user_info
+#**********************************************************
+sub dv_user_chg_tp {
+
+ my $user;
+
+ if(defined($LIST_PARAMS{UID})) {
+   $user = $attr->{USER};
+   $user = $Dv->info($LIST_PARAMS{UID});
+   if($user->{TOTAL} < 1) {
+ 	   $html->message('info', $_INFO, "$_NOT_ACTIVE");
+ 	   return 0;
+    }
+  }
+ else {
+ 	 $html->message('err', $_ERROR, "$_USER_NOT_EXIST");
+ 	 return 0;
+  }
+
+if ($FORM{set}) {
+    $FORM{UID}=$LIST_PARAMS{UID};
+
+    $user->change({ %FORM });
+
+    if ($users->{errno}) {
+      $html->message('err', $_ERROR, "[$users->{errno}] $err_strs{$users->{errno}}");	
+     }
+    else {
+      $html->message('info', $_CHANGED, "$_CHANGED");
+      $user->info($user->{UID});
+    }
+}
+
+   $tariffs->{TARIF_PLAN_SEL}=$html->form_select('TP_ID', 
+                                          { 
+ 	                                          SELECTED  => $user->{TP_ID},
+ 	                                          SEL_MULTI_ARRAY   => $tariffs->list(),
+ 	                                          MULTI_ARRAY_KEY   => 0,
+ 	                                          MULTI_ARRAY_VALUE => 1,
+ 	                                        });
+
+   $tariffs->{ACTION}='set';
+   $tariffs->{LNG_ACTION}=$_CHANGE;
+
+   $tariffs->{UID}=$attr->{USER}->{UID};
+   $tariffs->{m}=$m;
+   $tariffs->{TP_ID} = $user->{TP_ID};
+   $tariffs->{TP_NAME} = "$user->{TP_ID}:$user->{TP_NAME}";
+
+   $html->tpl_show(templates('chg_tp'), $tariffs);
+}
+
+
+#**********************************************************
+# dv_user_info
+#**********************************************************
 sub dv_user_info {
   my $user = $Dv->info($LIST_PARAMS{UID});
   

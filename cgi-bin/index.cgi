@@ -3,7 +3,7 @@
 #
 #
 
-use vars qw($begin_time %LANG $CHARSET @MODULES $FUNCTIONS_LIST $USER_FUNCTION_LIST $UID);
+use vars qw($begin_time %LANG $CHARSET @MODULES $FUNCTIONS_LIST $USER_FUNCTION_LIST $UID $admin);
 
 BEGIN {
  my $libpath = '../';
@@ -74,13 +74,20 @@ my $sessions='admin/sessions.db';
 my $maxnumber = 0;
 my $uid = 0;
 my $page_qs;
-my $admin;
+
+require Admins;
+Admins->import();
+$admin = Admins->new($db, \%conf);
+$admin->info($conf{SYSTEM_ADMIN_ID}, { IP => '127.0.0.1' });
+
+#my $admin;
+
 my %OUTPUT = ();
 
 my $login = $FORM{user} || '';
 my $passwd = $FORM{passwd} || '';
 
- my @m = ( 
+ my @m = (
    "10:0:$_LOGOUT:logout:::",
    "30:0:$_USER_INFO:form_info:::"
    );
@@ -90,7 +97,7 @@ my $passwd = $FORM{passwd} || '';
 
 
 
-my $user=Users->new($db, undef, \%conf); 
+my $user=Users->new($db, $admin, \%conf); 
 ($uid, $sid, $login) = auth("$login", "$passwd", "$sid");
 my %uf_menus = ();
 if ($uid > 0) {

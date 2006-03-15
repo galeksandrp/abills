@@ -94,8 +94,8 @@ sub dv_auth {
   tp.credit_tresshold,
   tp.rad_pairs,
   count(i.id)
-     FROM dv_main     dv,
-          tarif_plans tp
+     FROM (dv_main     dv,
+          tarif_plans tp)
      LEFT JOIN users_nas un ON (un.uid = dv.uid)
      LEFT JOIN tp_nas ON (tp_nas.tp_id = tp.id)
      LEFT JOIN intervals i ON (tp.id = i.tp_id)

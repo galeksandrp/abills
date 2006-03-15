@@ -197,9 +197,6 @@ sub change {
                    DATA         => $attr
                   } );
 
-
-#  $admin->action_add($DATA{UID}, "CHANGE", { MODULE => $MODULE });
-
   return $self->{result};
 }
 
