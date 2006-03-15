@@ -245,10 +245,10 @@ sub list {
  
  if ($attr->{USERS_WARNINGS}) {
    $self->query($db, "SELECT u.id, pi.email, dv.tp_id, u.credit, b.deposit, tp.name, tp.uplimit
-         FROM users u,
+         FROM (users u,
               dv_main dv,
               bills b,
-              tarif_plans tp
+              tarif_plans tp)
          LEFT JOIN users_pi pi ON u.uid = dv.uid
          WHERE
                u.uid=dv.uid
@@ -268,7 +268,7 @@ sub list {
    $self->query($db, "SELECT u.id, pi.fio, if(company.id IS NULL, b.deposit, b.deposit), 
       u.credit, tp.name, u.disable, 
       u.uid, u.company_id, u.email, u.tp_id, if(l.start is NULL, '-', l.start)
-     FROM users u, bills b
+     FROM ( users u, bills b )
      LEFT JOIN users_pi pi ON u.uid = dv.uid
      LEFT JOIN tarif_plans tp ON  (tp.id=u.tp_id) 
      LEFT JOIN companies company ON  (u.company_id=company.id) 
@@ -423,7 +423,7 @@ sub list {
       u.activate, 
       u.expire, 
       if(u.company_id > 0, company.bill_id, u.bill_id)
-     FROM users u, dv_main dv
+     FROM (users u, dv_main dv)
      LEFT JOIN users_pi pi ON (u.uid = pi.uid)
      LEFT JOIN bills b ON u.bill_id = b.id
      LEFT JOIN tarif_plans tp ON (tp.id=dv.tp_id) 
@@ -440,7 +440,7 @@ sub list {
  my $list = $self->{list};
 
  if ($self->{TOTAL} >= 0) {
-    $self->query($db, "SELECT count(u.id) FROM users u, dv_main dv $WHERE");
+    $self->query($db, "SELECT count(u.id) FROM (users u, dv_main dv) $WHERE");
     my $a_ref = $self->{list}->[0];
     ($self->{TOTAL}) = @$a_ref;
    }
