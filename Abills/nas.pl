@@ -95,6 +95,8 @@ sub telnet_cmd {
    ($hostname, $port)=split(/:/, $hostname, 2);
  }
 
+# my $debug   = (defined($attr->{debug})) ? 1 : 0;
+ my $timeout = defined($attr->{'TimeOut'}) ? $attr->{'TimeOut'} : 5;
  
  use Socket;
  if(! socket(SH, PF_INET, SOCK_STREAM, getprotobyname('tcp'))) {
@@ -108,11 +110,10 @@ sub telnet_cmd {
    return 0;
   }
 
+ log_print('LOG_DEBUG', "Connected to $hostname:$port");
+
  my $sock = \*SH;
  my $MAXBUF=512;
-
-
-
  my $input = '';
  my $len = 0;
  my $text = '';
@@ -121,12 +122,9 @@ sub telnet_cmd {
 
 
 foreach my $line (@$commands) {
-  my ($waitfor, $sendtext)=split(/\t/, $line, 2);
-  
-#  print "<hr>1";
-#  print "$waitfor, $sendtext\n" if ($attr->{debug});
 
- 
+  my ($waitfor, $sendtext)=split(/\t/, $line, 2);
+
   $input = '';
   do {
      recv($sock, $inbuf, $MAXBUF, 0);
@@ -134,32 +132,31 @@ foreach my $line (@$commands) {
      $len = length($inbuf);
 
      alarm 5;
-    } while ($len == $MAXBUF || $len < 4);
+    } while ($len >= $MAXBUF || $len < 4);
 
-
-#     print "<pre>$input</pre>";
 
   log_print('LOG_DEBUG', "Get: \"$input\"\nLength: $len");
-  log_print('LOG_DEBUG', " Wait for: $waitfor");
+  log_print('LOG_DEBUG', " Wait for: '$waitfor'");
 
-
-  if ($input =~ /$waitfor/ig) {
+  if ($input =~ /$waitfor/ig){ # || $waitfor eq '') {
     $text = $sendtext;
     log_print('LOG_DEBUG', "Send: $text");
     #print "$waitfor - $sendtext\n";
-    
-    send($sock, "$text\r\n", 0, $dest) or die "Can't send: $!\n";
+    send($sock, "$text\r\n", 0, $dest) or die log_print('LOG_INFO', "Can't send: '$text' $!");
+    #"Can't send: $!\n";
    };
 
-    
  $res .= "$input\n";
+ 
+ #print "<pre>$res</pre>";
+
 }
 
 
  #print "<pre>$res</pre>";
-
+ close(SH);
  return $res;
-# close(SH);
+
 }
 
 

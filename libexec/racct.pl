@@ -32,18 +32,18 @@ my %ACCT_TYPES = ('Start'          => 1,
                   ); 
 
 
-my %USER_TYPES = ('Login-User',           1,
-               'Framed-User',             2,       
-               'Callback-Login-User',     3, 
-               'Callback-Framed-User',    4,
-               'Outbound-User',           5,
-               'Administrative-User',     6,
-               'NAS-Prompt-User',         7,
-               'Authenticate-Only',       8,
-               'Call-Check',              10,
-               'Callback-Administrative',  11,
-               'Voice',                   12,
-               'Fax',                     13);
+my %USER_TYPES = ('Login-User'         => 1,
+               'Framed-User'           => 2,       
+               'Callback-Login-User'   => 3, 
+               'Callback-Framed-User'  => 4,
+               'Outbound-User'         => 5,
+               'Administrative-User'   => 6,
+               'NAS-Prompt-User'       => 7,
+               'Authenticate-Only'     => 8,
+               'Call-Check'            =>  10,
+               'Callback-Administrative' =>  11,
+               'Voic'                  => 12,
+               'Fax'                   => 13);
 
 my %ACCT_TERMINATE_CAUSES = (
                       'User-Request'        =>     1,
@@ -188,7 +188,7 @@ sub acct {
   $RAD->{NAS_PORT} = 0 if  (! defined($RAD->{NAS_PORT}));
   $RAD->{CONNECT_INFO} = '' if  (! defined($RAD->{CONNECT_INFO}));
   $RAD->{ACCT_TERMINATE_CAUSE} =  (defined($RAD->{ACCT_TERMINATE_CAUSE}) && defined($ACCT_TERMINATE_CAUSES{"$RAD->{ACCT_TERMINATE_CAUSE}"})) ? $ACCT_TERMINATE_CAUSES{"$RAD->{ACCT_TERMINATE_CAUSE}"} : 0;
-
+  $RAD->{CALLING_STATION_ID} = '' if (! defined($RAD->{CALLING_STATION_ID}));
  
  # Make accounting with external programs
 if (-d $conf{extern_acct_dir}) {

@@ -1904,6 +1904,7 @@ if ($nas->{errno}) {
   'pppd'      => 'pppd + RADIUS plugin (Linux)',
   'gnugk'     => 'GNU GateKeeper',
   'cisco'     => 'Cisco (Experimental)',
+  'bsr1000'   => 'CMTS Motorola BSR 1000',
   'other'     => 'Other nas server');
 
   $nas->{SEL_TYPE} = $html->form_select('NAS_TYPE', 
