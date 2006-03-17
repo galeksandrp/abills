@@ -676,11 +676,18 @@ my $nas_list = $nas->list();
 
 foreach my $nas_row (@$nas_list) {
 
-  $table->{rowcolor}=$_COLORS[0];
-  $table->{extra}="colspan=9 class=small";
-  $table->addrow("$nas_row->[0]:<b>$nas_row->[1]</b>:$nas_row->[3]" );
-  
+  next if (! defined($online->{$nas_row->[0]}));
+
+
   my $l = $online->{$nas_row->[0]};
+  my $total = $#{@$l} + 1;  
+  $table->{rowcolor}=$_COLORS[0];
+  $table->{extra}="colspan='8' class='small'";
+  $table->addrow("$nas_row->[0]:<b>$nas_row->[1]</b>:$nas_row->[3]:$_TOTAL: $total" );
+  
+  
+
+  
   foreach my $line (@$l) {
     undef($table->{rowcolor});
     undef($table->{extra});
