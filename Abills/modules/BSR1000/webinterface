@@ -39,7 +39,9 @@ my %bsr1000_commands = ('show cable modem'    => '',
                         'show interface cable 0/0 upstream' => '',
                         'show cable flap-list' => '',
                         'show clock'           => '',
-                        'show process'        => '');
+                        'show process'        => '',
+                        'show cable spectrum-group' => '',
+                        'show cable resource-manager' => '');
 
 
                           
@@ -104,24 +106,29 @@ sub Bsr1000_cmd {
     my $total=0;
     my @rows = split(/\n/, $result);
    
-   if($FORM{command} =~ /show cable modem/) {
+   if($FORM{command} eq 'show cable modem') {
     	my $table = $html->table({ width       => '100%',
                                  border      => 1,
-                                 title_plain => ['Interface', 'Prim Sid', 'Connect state', 'Timing Offset', 'Rec Power', 'Ip Address', 'Mac Address', '-', '-'],
+                                 title_plain => ['Interface', 'Prim Sid', 'Connect state', 'Timing Offset', 'Rec Power', 'Ip Address', 'Mac Address', '-', '-', '-'],
                                  cols_align  => ['right', 'center', 'right', 'left', 'left', 'center'],
                                  #qs          => $pages_qs,
                                  caption     => 'Modems'
                                   } );
  
-     
+     my %interfaces = ();
      foreach my $line (@rows) {
 
        if($line =~ /Cable\s+(\d\/\d\/U\d)\s(\d+)\s+([a-z]+)\s+(\d+)\s+(\d+)\s+([0-9.]+)\s+([0-9a-f.]+)/) {
-         my @registred = split(/ /, $line);
+
+         $table->{rowcolor} = (defined($FORM{SID}) && $FORM{SID} == $2) ? $_COLORS[0] : undef;
+
          $table->addrow($1, $2, $3, $4, $5, $6, $7,
-         $html->button("P", "index=$index$pages_qs&command=ping $6", { TITLE => 'Ping'   }),
-         $html->button("H", "index=$index$pages_qs&command=clear cable modem $7 reset",  { TITLE => 'Hangup' })
+         $html->button("D", "index=$index$pages_qs&SID=$2&command=show cable modem detail $2", { TITLE => 'Detail' }),
+         $html->button("P", "index=$index$pages_qs&SID=$2&command=ping $6", { TITLE => 'Ping'   }),
+         $html->button("H", "index=$index$pages_qs&SID=$2&command=clear cable modem $7 reset",  { TITLE => 'Hangup' })
          );
+         
+         $interfaces{"$1"}++;
          $total++;
         }
       }
@@ -132,13 +139,39 @@ sub Bsr1000_cmd {
                               cols_align => ['right', 'right'],
                               rows => [ ["$_TOTAL:", "<b>$total</b>" ] ]
                                } );
-
+     while(my($k, $v)=each %interfaces){
+          $table->addrow($k, $v);
+      }
      print $table->show();
+
+     }
+    elsif ($FORM{command} =~ /show cable modem detail/) {
+
+      if ($result =~ /Unable to locate the cable modem for sid/g) {
+       	 $html->message('err', $_ERROR, "Unable to locate the cable modem for sid $FORM{SID}");
+       }
+      else {
+  	     $table = $html->table( {
+     	                        width    => '500',
+                              cols_align => ['right', 'right'],
+                               } );
+        foreach my $line (@rows) {
+          #$line =~ /(\S+)\s+(\w+)/;
+          if ($line =~ /\t|##|--|Equalization|\d{2}/) {
+            my($k, $v)=split(/\t/, $line, 2);
+            $table->addrow($k, $v);
+           }
+         }
+        print $table->show();
+      }
+
+      $FORM{command}='show cable modem';
+      Bsr1000_cmd();
      }
     else {
       $result =~s/\n/<br>/g;
-      $html->message('info', $_INFO, "$result");
-      if ($FORM{command} =~ /ping|clear cable modem/) {
+      $html->message('info', $_INFO, "<code>$result</code>");
+      if ($FORM{command} =~ /ping|clear cable modem|show cable modem detail/) {
         $FORM{command}='show cable modem';
         Bsr1000_cmd();
         return 0;
