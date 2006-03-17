@@ -312,9 +312,9 @@ sub hangup_cisco {
  my $exec;
 
 #Rsh version
-if ($self->{NAS_MNG_USER}) {
+if ($NAS->{NAS_MNG_USER}) {
 # имя юзера на циско котрому разрешен rsh и хватает привелегий для сброса
-  my $cisco_user=$self->{NAS_MNG_USER};
+  my $cisco_user=$NAS->{NAS_MNG_USER};
 # использование: NAS-IP-Address NAS-Port SQL-User-Name
   $exec = `/usr/bin/rsh -4 -n -l $cisco_user $NAS->{NAS_IP} clear interface Virtual-Access $PORT`; 
  }
