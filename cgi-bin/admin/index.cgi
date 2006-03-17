@@ -2348,7 +2348,7 @@ if (defined($FORM{DATE})) {
 
   foreach my $line (@$list) {
    $table->addrow("<b>$line->[0]</b>", 
-      $html->button($line->[1], "index=15&subf=3&DATE=$line->[0]&UID=$line->[8]"),  
+      $html->button($line->[1], "index=15&subf=3&DATE=$line->[0]&UID=$line->[10]"),  
       $line->[2],
       $line->[3], 
       $line->[4],  
