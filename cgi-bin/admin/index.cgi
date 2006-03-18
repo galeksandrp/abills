@@ -1831,13 +1831,9 @@ sub form_nas {
 
 if($FORM{NAS_ID}) {
   $nas->info( { NAS_ID => $FORM{NAS_ID}	} );
-
-#---------------------------------------
-
   $pages_qs .= "&NAS_ID=$FORM{NAS_ID}&subf=$FORM{subf}";
   $LIST_PARAMS{NAS_ID} = $FORM{NAS_ID};
   %F_ARGS = ( NAS => $nas );
-  
   
   $nas->{NAME_SEL} = $html->form_main({ CONTENT => $html->form_select('NAS_ID', 
                                          { 
@@ -1937,11 +1933,9 @@ my $table = $html->table( { width      => '100%',
                             caption    => "$_NAS",
                             title      => ["ID", "$_NAME", "NAS-Identifier", "IP", "$_TYPE", "$_AUTH", "$_STATUS", '-', '-', '-'],
                             cols_align => ['center', 'left', 'left', 'right', 'left', 'left', 'center', 'center', 'center', 'center'],
-                                  });
+                           });
 
 my $list = $nas->list({ %LIST_PARAMS });
-
-
 foreach my $line (@$list) {
   my $delete = $html->button($_DEL, "index=60&del=$line->[0]", { MESSAGE => "$_DEL NAS \\'$line->[1]\\'?" }); 
   $table->addrow($line->[0], 
@@ -1972,8 +1966,8 @@ sub form_ip_pools {
 if ($attr->{NAS}) {
 	$nas = $attr->{NAS};
   if ($FORM{add}) {
-    $nas->ip_pools_add( {
-       NAS_IP_SIP => $FORM{NAS_IP_SIP},
+    $nas->ip_pools_add({
+       NAS_IP_SIP   => $FORM{NAS_IP_SIP},
        NAS_IP_COUNT => $FORM{NAS_IP_COUNT}
      });
 
@@ -1981,7 +1975,7 @@ if ($attr->{NAS}) {
        $html->message('info', $_INFO, "$_ADDED");
      }
    }
-  elsif($FORM{del}) {
+  elsif($FORM{del} && $FORM{is_js_confirmed} ) {
     $nas->ip_pools_del( $FORM{del} );
 
     if (! $nas->{errno}) {
@@ -2008,13 +2002,13 @@ if ($nas->{errno}) {
 
 
     
-my $table = $html->table( { width    => '100%',
-                                   caption  => "IP POOLs",
-                                   border   => 1,
-                                   title    => ["NAS", "$_BEGIN", "$_END", "$_COUNT", '-'],
-                                   cols_align => ['left', 'right', 'right', 'right', 'center'],
-                                   qs       => $pages_qs              
-                                  } );
+my $table = $html->table( { width      => '100%',
+                            caption    => "IP POOLs",
+                            border     => 1,
+                            title      => ["NAS", "$_BEGIN", "$_END", "$_COUNT", '-'],
+                            cols_align => ['left', 'right', 'right', 'right', 'center'],
+                            qs         => $pages_qs              
+                           });
 
 
 my $list = $nas->ip_pools_list({ %LIST_PARAMS });	
@@ -2117,14 +2111,19 @@ my $OP_SID = mk_unique_value(16);
 #**********************************************************
 sub form_passwd {
  my ($attr)=@_;
- my $hidden_inputs;
+ my $password_form;
+ 
  
  if (defined($FORM{AID})) {
- 	 $hidden_inputs = "<input type=hidden name=AID value='$FORM{AID}'>";
+   $password_form->{HIDDDEN_INPUT} = $html->form_input('AID', "$FORM{AID}", { TYPE => 'hidden',
+       	                                OUTPUT2RETURN => 1
+       	                               });
  	 $index=50;
  	}
  elsif (defined($attr->{USER})) {
-	 $hidden_inputs = "<input type=hidden name=UID value='$attr->{USER}->{UID}'>";
+	 $password_form->{HIDDDEN_INPUT} = $html->form_input('UID', "$FORM{UID}", { TYPE => 'hidden',
+       	                               OUTPUT2RETURN => 1
+       	                               });
 	 $index=15;
  }
 
@@ -2142,24 +2141,8 @@ elsif($FORM{newpassword} ne $FORM{confirm}) {
   $html->message('err', $_ERROR, $err_strs{5});
 }
 
-
-my $gen_password=mk_unique_value(8);
-
-
-
-print << "[END]";
-<h3>$_CHANGE_PASSWD</h3>
-<form action=$SELF_URL  METHOD=POST>
-<input type=hidden name=index value=$index>
-$hidden_inputs
-<table>
-<tr><td>$_GENERED_PARRWORD:</td><td>$gen_password</td></tr>
-<tr><td>$_PASSWD:</td><td><input type=password name=newpassword value='$gen_password'></td></tr>
-<tr><td>$_CONFIRM_PASSWD:</td><td><input type=password name=confirm value='$gen_password'></td></tr>
-</table>
-<input type=submit name=change value="$_CHANGE">
-</form>
-[END]
+$password_form->{GEN_PASSWORD}=mk_unique_value(8);
+$html->tpl_show(templates('form_possword'), $password_form);
 
  return 0;
 }
@@ -2285,11 +2268,11 @@ sub report_fees {
 if (defined($FORM{DATE})) {
   $list = $fees->list( { %LIST_PARAMS } );
   $table_fees = $html->table( { width      => '100%',
-  	                                   caption    => "$_FEES", 
-                                       title      => ['ID', $_LOGIN, $_DATE, $_SUM, $_DESCRIBE, $_ADMINS, 'IP', $_DEPOSIT],
-                                       cols_align => ['right', 'left', 'right', 'right', 'left', 'left', 'right', 'right'],
-                                       qs => $pages_qs
-                                      });
+  	                            caption    => "$_FEES", 
+                                title      => ['ID', $_LOGIN, $_DATE, $_SUM, $_DESCRIBE, $_ADMINS, 'IP', $_DEPOSIT],
+                                cols_align => ['right', 'left', 'right', 'right', 'left', 'left', 'right', 'right'],
+                                qs         => $pages_qs
+                               });
 
   foreach my $line (@$list) {
    $table_fees->addrow("<b>$line->[0]</b>", 
@@ -2317,7 +2300,7 @@ else{
 }
 
   print $table_fees->show();	
-  $table = $html->table( { width           => '100%',
+  $table = $html->table( { width      => '100%',
                            cols_align => ['right', 'right', 'right', 'right'],
                            rows       => [ [ "$_TOTAL:", "<b>$fees->{TOTAL}</b>", "$_SUM", "<b>$fees->{SUM}</b>" ] ],
                            rowcolor   => $_COLORS[2]

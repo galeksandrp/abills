@@ -139,6 +139,22 @@ return qq{
 </TD></TR></TABLE>
 };
  }
+
+elsif ($tpl_name eq 'form_possword') {
+return qq{
+<h3>$_CHANGE_PASSWD</h3>
+<form action='$SELF_URL'  METHOD='POST'>
+<input type=hidden name='index' value='$index'>
+%HIDDDEN_INPUT%
+<table>
+<tr><td>$_GENERED_PARRWORD:</td><td>%GEN_PASSWORD%</td></tr>
+<tr><td>$_PASSWD:</td><td><input type='password' name='newpassword' value='%GEN_PASSWORD%'></td></tr>
+<tr><td>$_CONFIRM_PASSWD:</td><td><input type='password' name='confirm' value='%GEN_PASSWORD%'></td></tr>
+</table>
+<input type='submit' name='change' value="$_CHANGE">
+</form>
+}
+}
 elsif ($tpl_name eq 'form_payments') {
 return qq{
 <form action=$SELF_URL>

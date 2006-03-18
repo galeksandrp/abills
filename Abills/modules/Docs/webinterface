@@ -58,7 +58,6 @@ if ($Docs->{errno}) {
 #  Date  Customer  Sum  User  Administrators  Time  
 
 if (! defined($FORM{sort})) {
-  print "111";
   $LIST_PARAMS{SORT}=1;
   $LIST_PARAMS{DESC}='DESC';
 }
