@@ -1913,8 +1913,12 @@ if ($nas->{errno}) {
   'gnugk'     => 'GNU GateKeeper',
   'cisco'     => 'Cisco (Experimental)',
   'bsr1000'   => 'CMTS Motorola BSR 1000',
-  'M@H'       => 'test',
   'other'     => 'Other nas server');
+
+
+  if (defined($conf{nas_servers})) {
+  	%nas_descr = ( %nas_descr,  %{$conf{nas_servers}} );
+   }
 
   $nas->{SEL_TYPE} = $html->form_select('NAS_TYPE', 
                                 { SELECTED   => $nas->{NAS_TYPE},
@@ -1929,11 +1933,10 @@ if ($nas->{errno}) {
 $nas->{NAS_DISABLE} = ($nas->{NAS_DISABLE} > 0) ? ' checked' : '';
 $html->tpl_show(templates('form_nas'), $nas);
 
-my $table = $html->table( { width   => '100%',
-                                   caption => "$_NAS",
-                                   border  => 1,
-                                   title   => ["ID", "$_NAME", "NAS-Identifier", "IP", "$_TYPE", "$_AUTH", "$_STATUS", '-', '-', '-'],
-                                   cols_align => ['center', 'left', 'left', 'right', 'left', 'left', 'center', 'center', 'center', 'center'],
+my $table = $html->table( { width      => '100%',
+                            caption    => "$_NAS",
+                            title      => ["ID", "$_NAME", "NAS-Identifier", "IP", "$_TYPE", "$_AUTH", "$_STATUS", '-', '-', '-'],
+                            cols_align => ['center', 'left', 'left', 'right', 'left', 'left', 'center', 'center', 'center', 'center'],
                                   });
 
 my $list = $nas->list({ %LIST_PARAMS });
