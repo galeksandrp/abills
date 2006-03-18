@@ -184,7 +184,7 @@ my $list = $Dv->list( { %LIST_PARAMS } );
 my @TITLE = ($_LOGIN, $_FIO, $_DEPOSIT, $_CREDIT, $_TARIF_PLANS, $_STATUS, '-', '-');
 for(my $i=0; $i<$Dv->{SEARCH_FIELDS_COUNT}; $i++){
 	push @TITLE, '-';
-	$TITLE[6+$i] = '';
+	$TITLE[6+$i] = "$_SEARCH";
 }
 
 if ($Dv->{errno}) {

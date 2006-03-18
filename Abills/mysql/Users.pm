@@ -350,6 +350,10 @@ sub list {
  $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
  $PG = ($attr->{PG}) ? $attr->{PG} : 0;
  $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
+
+ $self->{SEARCH_FIELDS} = '';
+ $self->{SEARCH_FIELDS_COUNT}=0;
+
  
  undef @WHERE_RULES;
  my $search_fields = '';
@@ -412,6 +416,8 @@ sub list {
  if ($attr->{PHONE}) {
     my $value = $self->search_expr($attr->{PHONE}, 'INT');
     push @WHERE_RULES, "pi.phone$value";
+    $self->{SEARCH_FIELDS} = 'pi.phone, ';
+    $self->{SEARCH_FIELDS_COUNT}++;
   }
 
  if ($attr->{DEPOSIT}) {
@@ -469,6 +475,7 @@ sub list {
  
  $self->query($db, "SELECT u.id, 
       pi.fio, if(company.id IS NULL, b.deposit, b.deposit), u.credit, u.disable, 
+      $self->{SEARCH_FIELDS}
       u.uid, u.company_id, pi.email, u.activate, u.expire
      FROM users u
      LEFT JOIN users_pi pi ON (u.uid = pi.uid)

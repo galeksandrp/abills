@@ -407,8 +407,8 @@ return qq{
 }
 elsif ($tpl_name eq 'form_search') {
 return qq{
-<form action=$SELF_URL>
-<input type=hidden name=index value=$index>
+<form action='$SELF_URL' METHOD='POST'>
+<input type='hidden' name='index' value='$index'>
 %HIDDEN_FIELDS%
 <TABLE>
 <TR><TD>$_LOGIN:</TD><TD><input type=text name=LOGIN_EXPR value='%LOGIN_EXPR%'></TD></TR>
@@ -491,22 +491,10 @@ elsif($tpl_name eq 'form_user_login') {
 return qq{
 <script type=\"text/javascript\">
 	function selectLanguage() {
-		sSix		= '';
-		sUser		= '';
-		sEmail		= '';
 		sLanguage	= '';
-		sTheme		= '';
 		
 		try {
 			frm = document.forms[0];
-			if(frm.six && frm.six.options)
-				sSix = frm.six.options[frm.six.selectedIndex].value;
-			if(frm.f_user)
-				sUser = frm.f_user.value;
-			if(frm.f_email)
-				sEmail = frm.f_email.value;
-			if(frm.tem)
-				sTheme = frm.tem.options[frm.tem.selectedIndex].value;
 			if(frm.language)
 				sLanguage = frm.language.options[frm.language.selectedIndex].value;
 			sLocation = 'index.cgi?language='+sLanguage;

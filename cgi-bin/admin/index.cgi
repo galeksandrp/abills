@@ -177,7 +177,9 @@ elsif (! defined $FORM{type}) {
 my $SEL_TYPE = $html->form_select('type', 
                                 { SELECTED  => $FORM{type},
  	                                SEL_HASH  => \%SEARCH_TYPES,
- 	                                NO_ID     => 'y' });
+ 	                                NO_ID     => 'y'
+ 	                                #EX_PARAMS => 'onChange="selectstype()"'
+ 	                               });
 
 fl();
 my %USER_SERVICES = ();
@@ -849,12 +851,6 @@ if ($FORM{debs}) {
   $LIST_PARAMS{DEBETERS} = 'y';
  }  
 
-#if ($FORM{TP_ID}) {
-#  print "<p>$_VARIANT: $FORM{TP_ID}</p>\n"; 
-#  $pages_qs .= "&TP_ID=$FORM{TP_ID}";
-#  $LIST_PARAMS{TP} = $FORM{TP_ID};
-# }
-
  print $html->letters_list({ pages_qs => $pages_qs  }); 
 
  if ($FORM{letter}) {
@@ -862,8 +858,13 @@ if ($FORM{debs}) {
    $pages_qs .= "&letter=$FORM{letter}";
   } 
 
-
 my $list = $users->list( { %LIST_PARAMS } );
+
+my @TITLE = ($_LOGIN, $_FIO, $_DEPOSIT, $_CREDIT, $_STATUS, '-', '-');
+for(my $i=0; $i<$users->{SEARCH_FIELDS_COUNT}; $i++){
+	push @TITLE, '-';
+	$TITLE[5+$i] = "$_SEARCH";
+}
 
 if ($users->{errno}) {
   $html->message('err', $_ERROR, "[$users->{errno}] $err_strs{$users->{errno}}");	
@@ -872,27 +873,34 @@ if ($users->{errno}) {
 elsif ($users->{TOTAL} == 1) {
 	$FORM{index} = 15;
 	$FORM{UID}=$list->[0]->[5];
-	form_users({  USER => user_info($list->[0]->[5]) });
+	form_users({  USER => user_info($list->[0]->[5+$users->{SEARCH_FIELDS_COUNT}]) });
 	return 0;
 }
 
-print $letters;
 
-
-my $table = $html->table( { width => '100%',
-                            border => 1,
-                            title => [$_LOGIN, $_FIO, $_DEPOSIT, $_CREDIT, $_STATUS, '-', '-'],
+my $table = $html->table( { width      => '100%',
+                            title      => \@TITLE,
                             cols_align => ['left', 'left', 'right', 'right', 'center', 'center', 'center', 'center'],
-                            qs => $pages_qs,
-                            pages => $users->{TOTAL}
+                            qs         => $pages_qs,
+                            pages      => $users->{TOTAL}
                           });
 
 foreach my $line (@$list) {
-  my $payments = ($permissions{1}) ? $html->button($_PAYMENTS, "index=2&UID=$line->[5]") : ''; 
-  my $fees     = ($permissions{2}) ? $html->button($_FEES, "index=3&UID=$line->[5]") : '';
+  my $payments = ($permissions{1}) ? $html->button($_PAYMENTS, "index=2&UID=$line->[5+$users->{SEARCH_FIELDS_COUNT}]") : ''; 
+  my $fees     = ($permissions{2}) ? $html->button($_FEES, "index=3&UID=$line->[5+$users->{SEARCH_FIELDS_COUNT}]") : '';
 
-  $table->addrow($html->button($line->[0], "index=15&UID=$line->[5]"), "$line->[1]",
-   "$line->[2]", "$line->[3]", "$status[$line->[4]]", $payments, $fees);
+  my @fields_array  = ();
+  for(my $i=0; $i<$users->{SEARCH_FIELDS_COUNT}; $i++){
+     push @fields_array, $line->[5+$i];
+   }
+
+  $table->addrow($html->button($line->[0], "index=15&UID=$line->[5+$users->{SEARCH_FIELDS_COUNT}]"), "$line->[1]",
+   "$line->[2]", 
+   "$line->[3]", 
+   "$status[$line->[4]]", 
+   @fields_array, 
+   $payments, 
+   $fees);
 }
 print $table->show();
 
@@ -1055,12 +1063,12 @@ elsif (defined($FORM{TP_ID})) {
 my $nas = Nas->new($db, \%conf);
 
 
-my $table = $html->table( { width => '100%',
-                                   border => 1,
-                                   title => ["$_ALLOW", "ID", "$_NAME", "IP", "$_TYPE", "$_AUTH"],
-                                   cols_align => ['center', 'left', 'left', 'right', 'left', 'left'],
-                                   qs => $pages_qs,
-                                  } );
+my $table = $html->table( { width     => '100%',
+                           border     => 1,
+                           title      => ["$_ALLOW", "ID", "$_NAME", "IP", "$_TYPE", "$_AUTH"],
+                           cols_align => ['center', 'left', 'left', 'right', 'left', 'left'],
+                           qs         => $pages_qs
+                           });
 
 my $list = $nas->list();
 
