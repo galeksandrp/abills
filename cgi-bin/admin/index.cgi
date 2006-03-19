@@ -2372,9 +2372,9 @@ else{
   print $table->show();	
 
   $table = $html->table( { width      => '100%',
-                                cols_align => ['right', 'right', 'right', 'right'],
-                                rows       => [ [ "$_TOTAL:", "<b>$payments->{TOTAL}</b>", "$_SUM", "<b>$payments->{SUM}</b>" ] ],
-                                rowcolor   => $_COLORS[2]
+                           cols_align => ['right', 'right', 'right', 'right'],
+                           rows       => [ [ "$_TOTAL:", "<b>$payments->{TOTAL}</b>", "$_SUM", "<b>$payments->{SUM}</b>" ] ],
+                           rowcolor   => $_COLORS[2]
                                } );
   print $table->show();
 }
