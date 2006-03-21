@@ -779,12 +779,16 @@ if(defined($attr->{USER})) {
    }
 
 
+
+my $payments = (defined($permissions{1})) ? '<li>'. $html->button($_PAYMENTS, "UID=$user_info->{UID}&index=2") : '';
+my $fees = (defined($permissions{2})) ? '<li>' .$html->button($_FEES, "UID=$user_info->{UID}&index=3") : '';
+
 print "
-</td><td bgcolor=$_COLORS[3] valign=top width=180>
-<table width=100% border=0><tr><td><ul><li>". 
-              $html->button($_PAYMENTS, "UID=$user_info->{UID}&index=2").
-      "<li>". $html->button($_FEES, "UID=$user_info->{UID}&index=3"). 
-      "<li>". $html->button($_SEND_MAIL, "UID=$user_info->{UID}&index=").
+</td><td bgcolor='$_COLORS[3]' valign='top' width='180'>
+<table width='100%' border='0'><tr><td><ul>
+      $payments
+      $fees
+      <li>". $html->button($_SEND_MAIL, "UID=$user_info->{UID}&index=").
 "</ul>\n</td></tr>
 <tr><td> 
   <ul>\n";
@@ -2838,6 +2842,10 @@ if (defined($attr->{USER})) {
   $fees->{UID} = $user->{UID};
   if ($FORM{take} && $FORM{SUM}) {
     # add to shedule
+    if ($FORM{ER} && $FORM{ER} ne '') {
+      $FORM{SUM} = $FORM{SUM} / $FORM{ER} if (defined($FORM{ER}));
+    }
+
     if ($period == 1) {
 
       $FORM{date_M}++;
@@ -2847,7 +2855,7 @@ if (defined($attr->{USER})) {
       	               Y => $FORM{date_Y},
                        UID => $user->{UID},
                        TYPE => 'fees',
-                       ACTION => "$FORM{SUM}:$FORM{DESCR}"
+                       ACTION => "$FORM{SUM}:$FORM{DESCRIBE}"
                       } );
 
 
@@ -2859,11 +2867,10 @@ if (defined($attr->{USER})) {
    }
 
 
-
      }
     #Add now
     else {
-      $fees->take($user, $FORM{SUM}, { DESCRIBE => $FORM{DESCR} } );  
+      $fees->take($user, $FORM{SUM}, { %FORM } );  
       if ($fees->{errno}) {
         $html->message('err', $_ERROR, "[$fees->{errno}] $err_strs{$fees->{errno}}");	
        }
@@ -2897,6 +2904,16 @@ if (defined($attr->{USER})) {
   
   $fees->{PERIOD_FORM}=form_period($period);
   if (defined ($permissions{2}{1})) {
+    #exchange rate sel
+    my $er = $fees->exchange_list();
+    $fees->{SEL_ER} = "<select name='ER'>\n";
+    $fees->{SEL_ER} .= "<option value=''>\n";
+    foreach my $line (@$er) {
+      $fees->{SEL_ER} .= "<option value='$line->[4]'";
+      $fees->{SEL_ER} .= ">$line->[1] : $line->[2]\n";
+    }
+    $fees->{SEL_ER} .= "</select>\n";
+
     $html->tpl_show(templates('form_fees'), $fees);
    }	
 

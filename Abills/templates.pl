@@ -157,7 +157,7 @@ return qq{
 }
 elsif ($tpl_name eq 'form_payments') {
 return qq{
-<form action=$SELF_URL>
+<form action='$SELF_URL' METHOD='POST'>
 <input type=hidden name=index value=$index>
 <input type=hidden name=subf value=$FORM{subf}>
 <input type=hidden name=OP_SID value=%OP_SID%>
@@ -183,10 +183,11 @@ return qq{
 %SHEDULE%
 <TABLE>
 <TR><TD>$_SUM:</TD><TD><input type="text" name="SUM"></TD></TR>
-<TR><TD>$_DESCRIBE:</TD><TD><input type="text" name="DESCR"></TD></TR>
+<TR><TD>$_DESCRIBE:</TD><TD><input type="text" name="DESCRIBE"></TD></TR>
+<TR><TD>$_EXCHANGE_RATE:</TD><TD>%SEL_ER%</TD></TR>
 %PERIOD_FORM%
 </TABLE>
-<input type=submit name=take value='$_TAKE'>
+<input type=submit name='take' value='$_TAKE'>
 </form>
 }
 
