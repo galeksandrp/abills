@@ -3025,6 +3025,7 @@ sub form_sendmail {
  $user->info($FORM{UID});
  $user->pi();
  
+
  $user->{EMAIL} = (defined($user->{EMAIL}) && $user->{EMAIL} ne '') ? $user->{EMAIL} : $user->{LOGIN} .'@'. $conf{USERS_MAIL_DOMAIN};
  $user->{FROM} = $FORM{FROM} || $conf{ADMIN_MAIL};
 
