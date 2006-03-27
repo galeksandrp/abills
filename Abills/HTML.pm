@@ -263,7 +263,7 @@ sub form_select {
 	  foreach my $v (@$H) {
       my $id = (defined($attr->{ARRAY_NUM_ID})) ? $i : $v;
       $self->{SELECT} .= "<option value='$id'";
-      $self->{SELECT} .= ' selected' if ($i eq $attr->{SELECTED});
+      $self->{SELECT} .= ' selected' if (($i eq $attr->{SELECTED}) || ($v eq $attr->{SELECTED}) );
       $self->{SELECT} .= ">$v\n";
       $i++;
      }

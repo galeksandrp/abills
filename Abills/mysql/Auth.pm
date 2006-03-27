@@ -777,14 +777,14 @@ sub ex_traffic_params {
 #  }
 
 
-if ((defined($prepaids{0}) || defined($prepaids{0})) && ($prepaids{0}+$prepaids{1}>0)) {
+if ((defined($prepaids{0}) && $prepaids{0} > 0 ) || (defined($prepaids{1}) && $prepaids{1}>0 )) {
   $self->query($db, "SELECT sum(sent+recv) / 1024 / 1024, sum(sent2+recv2) / 1024 / 1024 FROM dv_log 
      WHERE uid='$self->{UID}' and DATE_FORMAT(start, '%Y-%m')=DATE_FORMAT(curdate(), '%Y-%m')
      GROUP BY DATE_FORMAT(start, '%Y-%m');");
 
   if ($self->{TOTAL} == 0) {
-    $trafic_limits{0}=$prepaids{0};
-    $trafic_limits{1}=$prepaids{1};
+    $trafic_limits{0}=$prepaids{0} || 0;
+    $trafic_limits{1}=$prepaids{1} || 0;
    }
   else {
     my $used = $self->{list}->[0];
@@ -810,7 +810,7 @@ else {
     $trafic_limits{0} = ($deposit / (($in_prices{0} + $out_prices{0}) / 2));
    }
 
-  if ($in_prices{1}+$out_prices{1} > 0) {
+  if (defined($in_prices{1}) && $in_prices{1}+$out_prices{1} > 0) {
     $trafic_limits{1} = ($deposit / (($in_prices{1} + $out_prices{1}) / 2));
    }
   else {
@@ -830,7 +830,7 @@ if (defined($trafic_limits{0}) && $trafic_limits{0} > 0  && $trafic_limits{0} < 
 }
 
 #Local Traffic limit
-if ($trafic_limits{1} > 0) {
+if (defined($trafic_limits{1}) && $trafic_limits{1} > 0) {
   #10Gb - (10240 * 1024 * 1024) - local traffic session limit
   $trafic_limit = ($trafic_limits{1} > 4090) ? 4090 :  $trafic_limits{1};
   $EX_PARAMS{traf_limit_lo} = ($trafic_limit < 1 && $trafic_limit > 0) ? 1 : int($trafic_limit);

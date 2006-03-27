@@ -151,21 +151,21 @@ my @actions = ([$_SA_ONLY, $_ADD, $_LIST, $_PASSWD, $_CHANGE, $_DEL, $_ALL],  # 
                [$_PROFILE],
                );
 
-@action = ('add', $_ADD);
+@action    = ('add', $_ADD);
 @bool_vals = ($_NO, $_YES);
 
 my @PAYMENT_METHODS = ('Cashe', 'Bank', 'Credit Card', 'Internet Card');
-my %menu_items = ();
-my %menu_names = ();
+my %menu_items  = ();
+my %menu_names  = ();
 #my $root_index = 0;
-my $maxnumber = 0;
-my %uf_menus = (); #User form menu list
+my $maxnumber   = 0;
+my %uf_menus    = (); #User form menu list
 
 my %SEARCH_TYPES = (11 => $_USERS,
-                    2 =>  $_PAYMENTS,
-                    3 =>  $_FEES,
+                    2  => $_PAYMENTS,
+                    3  => $_FEES,
                     13 => $_COMPANY
-);
+                   );
 
 if($FORM{index} != 7 && ! defined($FORM{type})) {
 	$FORM{type}=$FORM{index};
@@ -788,11 +788,23 @@ print "
 <table width='100%' border='0'><tr><td><ul>
       $payments
       $fees
-      <li>". $html->button($_SEND_MAIL, "UID=$user_info->{UID}&index=").
+      <li>". $html->button($_SEND_MAIL, "UID=$user_info->{UID}&index=31").
 "</ul>\n</td></tr>
 <tr><td> 
   <ul>\n";
 
+
+#Show services
+
+while(my($k, $v)=each %menu_items) {
+	if (defined($menu_items{$k}{20})) {
+		print '<li>'. $html->button($menu_items{$k}{20}, "UID=$user_info->{UID}&index=$k");
+	 }
+}
+
+#
+
+print  "</ul><ul>\n";
 my %userform_menus = (
              22 =>  $_LOG,
              17 =>  $_PASSWD,
@@ -807,14 +819,11 @@ while(my($k, $v)=each %uf_menus) {
 	$userform_menus{$k}=$v;
 }
 
- 
-
 while(my($k, $v)=each (%userform_menus) ) {
   my $url =  "index=$k&UID=$user_info->{UID}";
   my $a = (defined($FORM{$k})) ? "<b>$v</b>" : $v;
   print "<li>" . $html->button($a,  "$url");
 }
-
 print "<li>".
   $html->button($_DEL, "index=15&del_user=y&UID=$user_info->{UID}", { MESSAGE => "$_USER: $user_info->{LOGIN} / $user_info->{UID}" })
 ."</ul></td></tr>
@@ -1134,6 +1143,7 @@ sub form_bills {
 #**********************************************************
 sub form_changes {
  my ($attr) = @_; 
+ my %search_params = ();
  
 if ($FORM{del} && $FORM{is_js_confirmed}) {
 	$admin->action_del( $FORM{del} );
@@ -1158,27 +1168,58 @@ if (! defined($FORM{sort})) {
   $LIST_PARAMS{DESC}=DESC;
  }
 
-my $list = $admin->action_list( { %LIST_PARAMS } );
-my $table = $html->table( { width => '100%',
-                                   border => 1,
-                                   title => ['#', 'UID',  $_DATE,  $_CHANGE,  $_ADMIN,   'IP', "$_MODULES", '-'],
-                                   cols_align => ['right', 'left', 'right', 'left', 'left', 'right', 'center'],
-                                   qs => $pages_qs,
-                                   pages => $admin->{TOTAL}
-                                   
-                                  } );
+
+%search_params=%FORM;
+$search_params{MODULES_SEL} = $html->form_select('MODULE', 
+                                { SELECTED      => $FORM{MODULE},
+ 	                                SEL_ARRAY     => ['', @MODULES],
+ 	                                OUTPUT2RETURN => 1
+ 	                               });
+
+
+form_search({ HIDDEN_FIELDS => $LIST_PARAMS{AID},
+	            SEARCH_FORM   => $html->tpl_show(templates('history_search'), \%search_params, { notprint => 'y' })
+	           });
+
+
+
+my $list = $admin->action_list({ %LIST_PARAMS });
+my $table = $html->table( { width      => '100%',
+                            border     => 1,
+                            title      => ['#', 'UID',  $_DATE,  $_CHANGE,  $_ADMIN,   'IP', "$_MODULES", '-'],
+                            cols_align => ['right', 'left', 'right', 'left', 'left', 'right', 'center'],
+                            qs         => $pages_qs,
+                            pages      => $admin->{TOTAL}
+                           });
+
+
+
 foreach my $line (@$list) {
   my $delete = $html->button($_DEL, "index=$index$pages_qs&del=$line->[0]", { MESSAGE => "$_DEL [$line->[0]] ?" }); 
+
   $table->addrow("<b>$line->[0]</b>",
-    $html->button($line->[1], "index=15&UID=$line->[7]"), $line->[2], $line->[3], 
-   $line->[4], $line->[5], $line->[6], $delete);
+    $html->button($line->[1], "index=15&UID=$line->[7]"), 
+    $line->[2], 
+    $line->[3], 
+    $line->[4], 
+    $line->[5], 
+    $line->[6], 
+    $delete);
 }
+
+
 
 print $table->show();
 $table = $html->table( { width => '100%',
                                 cols_align => ['right', 'right'],
                                 rows => [ [ "$_TOTAL:", "<b>$admin->{TOTAL}</b>" ] ]
                                } );
+
+
+
+
+
+
 print $table->show();
 }
 
@@ -1327,11 +1368,11 @@ if ($tarif_plan->{errno}) {
 #                               cols_align => ['center', 'right', 'right', 'right', 'right', 'right', 'right', 'center', 'center'],
 
 
-$table = $html->table( { width => '100%',
-	                              title_plain => [$_DAYS, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,14,15,16,17,18, 19, 20, 21, 22, 23],
-                                caption => "$_INTERVALS",
-                                rowcolor => $_COLORS[1]
-                               } );
+$table = $html->table({ width       => '100%',
+	                      title_plain => [$_DAYS, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,14,15,16,17,18, 19, 20, 21, 22, 23],
+                        caption     => "$_INTERVALS",
+                        rowcolor    => $_COLORS[1]
+                        });
 
 
 
@@ -2411,6 +2452,7 @@ my @m = (
  "28:27:$_ADD:add_groups:::",
  "29:27:$_LIST:form_groups:::",
  "30:15:$_USER_INFO:user_pi:UID::",
+ "31:15:Send e-mail:form_sendmail:UID::",
 
  "2:0:$_PAYMENTS:form_payments:::",
  "3:0:$_FEES:form_fees:::",
@@ -2971,8 +3013,47 @@ print $table->show();
 
 }
 
+#*******************************************************************
+sub form_sendmail {
+ my %MAIL_PRIORITY = (2 => 'High', 
+                      3 => 'Normal', 
+                      4  => 'Low');
 
 
+
+ my $user = Users->new($db, $admin); 
+ $user->info($FORM{UID});
+ $user->pi();
+ 
+ $user->{EMAIL} = (defined($user->{EMAIL})) ? $user->{EMAIL} : $user->{LOGIN} .'@'. $conf{USERS_MAIL_DOMAIN};
+ $user->{FROM} = $FORM{FROM} || $conf{ADMIN_MAIL};
+
+ if ($FORM{sent}) {
+   
+   sendmail("$user->{FROM}", "$user->{EMAIL}", "$FORM{SUBJECT}", "$FORM{TEXT}", "$conf{MAIL_CHARSET}", "$FORM{PRIORITY} ($MAIL_PRIORITY{$FORM{PRIORITY}})");
+   my $table = $html->table({ width    => '100%',
+                              rows     => [ [ "$_USER:",    "$user->{LOGIN}" ],
+                                            [ "E-Mail:",    "$user->{EMAIL}" ],
+                                            [ "$_SUBJECT:", "$FORM{SUBJECT}" ],
+                                            [ "$_FROM:",    "$user->{FROM}"  ],
+                                            [ "PRIORITY:",  "$FORM{PRIORITY} (". $MAIL_PRIORITY{$FORM{PRIORITY}} .")"]    
+                                           ],
+                              rowcolor => $_COLORS[1]
+                              });
+
+   $html->message('info', $_SENDED, $table->show());
+   return 0;
+  }
+
+
+ $user->{EXTRA} = "<tr><td>$_TO:</td><td bgcolor='$_COLORS[2]'>$user->{EMAIL}</td></tr>\n";
+ $user->{PRIORITY_SEL}=$html->form_select('PRIORITY', 
+                                { SELECTED  => $FORM{PRIORITY},
+ 	                                SEL_HASH  => \%MAIL_PRIORITY
+ 	                               });
+
+ $html->tpl_show(templates('mail_form'), $user); 
+}
 
 #*******************************************************************
 # Search form
@@ -2985,7 +3066,9 @@ my %SEARCH_DATA = $admin->get_data(\%FORM);
 if (defined($attr->{HIDDEN_FIELDS})) {
 	my $SEARCH_FIELDS = $attr->{HIDDEN_FIELDS};
 	while(my($k, $v)=each( %$SEARCH_FIELDS )) {
-	  $SEARCH_DATA{HIDDEN_FIELDS}.="<input type=hidden name=\"$k\" value=\"$v\">\n";
+	  $SEARCH_DATA{HIDDEN_FIELDS}.=$html->form_input("$k", "$v", { TYPE => 'hidden',
+       	                                OUTPUT2RETURN => 1
+      	                               });
 	 }
 }
 
@@ -2999,8 +3082,6 @@ if (defined($attr->{SIMPLE})) {
   $html->tpl_show(templates('form_search_simple'), \%SEARCH_DATA);
 }
 else {
-
-
 
 
 my $SEL_METHOD =  $html->form_select('METHOD', 
@@ -3097,8 +3178,8 @@ my $shedule = Shedule->new($db, $admin);
 
 if ($FORM{del} && $FORM{is_js_confirmed}) {
   $shedule->del({ ID => $FORM{del} });
-  if ($admins->{errno}) {
-    $html->message('err', $_ERROR, "[$fees->{errno}] $err_strs{$fees->{errno}}");
+  if ($shedule->{errno}) {
+    $html->message('err', $_ERROR, "[$shedule->{errno}] $err_strs{$shedule->{errno}}");
    }
   else {
     $html->message('info', $_DELETED, "$_DELETED [$FORM{del}]");

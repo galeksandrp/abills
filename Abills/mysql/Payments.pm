@@ -183,7 +183,6 @@ sub list {
  	 push @WHERE_RULES,  "a.id LIKE '$attr->{A_LOGIN}' ";
  }
 
- # Show debeters
  if ($attr->{DESCRIBE}) {
     $attr->{DESCRIBE} =~ s/\*/\%/g;
     push @WHERE_RULES, "p.dsc LIKE '$attr->{DESCRIBE}' ";

@@ -149,7 +149,11 @@ sub pi_add {
 #**********************************************************
 sub pi {
 	my $self = shift;
-
+  my ($attr) = @_;
+  
+  my $UID = (defined($attr->{UID})) ? $attr->{UID} : $self->{UID};
+  
+  
   $self->query($db, "SELECT pi.fio, 
   pi.phone, 
   pi.address_street, 
@@ -159,7 +163,7 @@ sub pi {
   pi.contract_id,
   pi.comments
     FROM users_pi pi
-    WHERE pi.uid='$self->{UID}';");
+    WHERE pi.uid='$UID';");
 
   if ($self->{TOTAL} < 1) {
      $self->{errno} = 2;
@@ -192,9 +196,9 @@ sub pi_change {
   my ($attr) = @_;
 
 
-my %FIELDS = (EMAIL => 'email',
-              FIO => 'fio',
-              PHONE => 'phone',
+my %FIELDS = (EMAIL          => 'email',
+              FIO            => 'fio',
+              PHONE          => 'phone',
               ADDRESS_BUILD  => 'address_build',
               ADDRESS_STREET => 'address_street',
               ADDRESS_FLAT   => 'address_flat',
@@ -206,7 +210,7 @@ my %FIELDS = (EMAIL => 'email',
 	$self->changes($admin, { CHANGE_PARAM => 'UID',
 		                TABLE        => 'users_pi',
 		                FIELDS       => \%FIELDS,
-		                OLD_INFO     => $self->pi($attr->{UID}),
+		              OLD_INFO     => $self->pi({ UID => $attr->{UID} }),
 		                DATA         => $attr
 		              } );
 

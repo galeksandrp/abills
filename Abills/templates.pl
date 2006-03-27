@@ -277,16 +277,16 @@ return qq{
 elsif ($tpl_name eq 'ti') {
 return qq{
 <form action="$SELF_URL">
-<input type=hidden name=index value=$index>
-<input type=hidden name=TP_ID value='%TP_ID%'>
-<input type=hidden name=TI_ID value='%TI_ID%'>
+<input type=hidden name='index' value='$index'>
+<input type=hidden name='TP_ID' value='%TP_ID%'>
+<input type=hidden name='TI_ID' value='%TI_ID%'>
  <TABLE width=400 cellspacing=1 cellpadding=0 border=0>
  <TR><TD>$_DAY:</TD><TD>%SEL_DAYS%</TD></TR>
  <TR><TD>$_BEGIN:</TD><TD><input type=text name=TI_BEGIN value='%TI_BEGIN%'></TD></TR>
  <TR><TD>$_END:</TD><TD><input type=text name=TI_END value='%TI_END%'></TD></TR>
- <TR><TD>$_HOUR_TARIF<br>(0.00 / 0%):</TD><TD><input type=text name=TI_TARIF value='%TI_TARIF%'></TD></TR>
+ <TR><TD>$_HOUR_TARIF (0.00<!--  / 0% -->):</TD><TD><input type=text name=TI_TARIF value='%TI_TARIF%'></TD></TR>
 </TABLE>
-<input type=submit name=%ACTION% value='%LNG_ACTION%'>
+<input type=submit name='%ACTION%' value='%LNG_ACTION%'>
 </form>
 };
  }
@@ -445,7 +445,14 @@ return qq{
 };
 	
 }
-
+elsif ($tpl_name eq 'history_search') {
+return qq{
+ 	 <tr><td colspan=2><hr></td></tr>
+   <tr><td>$_ADMIN:</td><td><input type='text' name='ADMIN' value='%ADMIN%'></td></tr>
+   <tr><td>$_CHANGE (*)</td><td><input type='text' name='ACTION' value='%ACTION%'></td></tr>
+   <tr><td>$_MODULES:</td><td>%MODULES_SEL%</td></tr>
+};
+}
 elsif ($tpl_name eq 'form_search_simple') {
 return qq{
 <form action=$SELF_URL>
@@ -588,6 +595,26 @@ return qq{
 </TD></TR></TABLE>
 }
 }
+elsif($tpl_name eq 'mail_form') {
+return qq{
+<form action='$SELF_URL' METHOD='post'>
+<input type='hidden' name='index' value='$index'>
+<input type='hidden' name='UID' value='$FORM{UID}'>
+<table>
+%EXTRA%
+<tr><td>$_SUBJECT:</td><td><input type='text' name='SUBJECT' value='%SUBJECT%' size='40'></td></tr>
+<tr><td>$_FROM:</td><td><input type='text' name='FROM' value='%FROM%' size='40'></td></tr>
+<tr><th colspan='2' bgcolor='$_COLORS[0]'>$_MESSAGE</th></tr>
+<tr><th colspan='2'><textarea name='TEXT' rows='15' cols='80'></textarea></th></tr>
+<tr><td>PRIORITY:</td><td>%PRIORITY_SEL%</td></tr>
+%PERIOD_FORM%
+%EXTRA2%
+</table>
+<input type='submit' name='sent' value='$_SEND'>
+</form>
+	
+ } 
+ }
 elsif($tpl_name eq 'admin_report_day') {
 return qq{
 Daily Admin Report /%DATE%/
