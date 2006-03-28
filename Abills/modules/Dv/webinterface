@@ -2133,7 +2133,7 @@ sub dv_wizard_user2 {
       }
       
       my $dv = $Dv->info($UID);
-      my $pi = $user->pi($UID);
+      my $pi = $user->pi({ UID => $UID });
       $user = $user->info($UID);
       $html->tpl_show(templates('user_info'), { %$user, %$pi } ),  
       $html->tpl_show(_include('dv_user_info', 'Dv'), $dv),

@@ -429,7 +429,6 @@ sub session_splitter {
      $day_of_year, 
      $attr) = @_;
  
- 
  my $debug = 0;
  my %division_time = (); #return division time
 
@@ -506,6 +505,19 @@ Abills::Base->import();
      foreach my $int_begin (@intervals) {
        my ($int_id, $int_end) = split(/:/, $cur_int->{$int_begin}, 2);
        $i++;
+
+#       #begin > end / Begin: 22:00 => End: 3:00
+#       if ($int_begin > $int_end) {
+#       	 if( $session_start < 86400 && $session_start > $int_begin) {
+#       	   $extended_time = $int_end;
+#       	   $int_end = 86400;
+#       	  }
+#         elsif($session_start < $int_end) {
+#         	 $int_begin = 0;
+#          }
+#        } 
+
+
 	
 	      print "\t Start: $start (". sec2time($start, { str => 'yes' }) .") Duration: $duration ==> $int_begin / $int_end | ". sec2time($int_begin, { str => 'yes' }) if ($debug == 1);
         if ($start >= $int_begin && $start < $int_end) {
@@ -800,10 +812,22 @@ sub remaining_time {
        my ($int_id, $int_end) = split(/:/, $cur_int->{$int_begin}, 2);
        $i++;
 
-       my $price = 0;
-       my $int_prepaid = 0;
-       my $int_duration = 0;
+       my $price         = 0;
+       my $int_prepaid   = 0;
+       my $int_duration  = 0;
+       my $extended_time = 0;
 
+       #begin > end / Begin: 22:00 => End: 3:00
+       if ($int_begin > $int_end) {
+       	 if( $session_start < 86400 && $session_start > $int_begin) {
+       	   $extended_time = $int_end;
+       	   $int_end = 86400;
+       	  }
+         elsif($session_start < $int_end) {
+         	 $int_begin = 0;
+          }
+        } 
+       
        print "Day: $tarif_day Session_start: $session_start => Int Begin: $int_begin End: $int_end Int ID: $int_id\n" if ($debug == 1);
 
        if (($int_begin <= $session_start) && ($session_start < $int_end)) {

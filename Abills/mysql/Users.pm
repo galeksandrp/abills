@@ -151,7 +151,7 @@ sub pi {
 	my $self = shift;
   my ($attr) = @_;
   
-  my $UID = (defined($attr->{UID})) ? $attr->{UID} : $self->{UID};
+  my $UID = ($attr->{UID}) ? $attr->{UID} : $self->{UID};
   
   
   $self->query($db, "SELECT pi.fio, 

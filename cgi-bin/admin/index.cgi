@@ -1078,7 +1078,7 @@ my $nas = Nas->new($db, \%conf);
 
 my $table = $html->table( { width     => '100%',
                            border     => 1,
-                           title      => ["$_ALLOW", "ID", "$_NAME", "IP", "$_TYPE", "$_AUTH"],
+                           title      => ["$_ALLOW", "$_NAME", 'NAS-Identifier', "IP", "$_TYPE", "$_AUTH"],
                            cols_align => ['center', 'left', 'left', 'right', 'left', 'left'],
                            qs         => $pages_qs
                            });
@@ -1087,8 +1087,11 @@ my $list = $nas->list();
 
 foreach my $line (@$list) {
   my $checked = (defined($allow_nas{$line->[0]}) || $allow_nas{all}) ? ' checked ' :  '';    
-  $table->addrow("<input type=checkbox name=ids value=$line->[0] $checked>", $line->[2], $line->[1], 
-    $line->[4], $line->[5], $auth_types[$line->[6]]);
+  $table->addrow("<input type=checkbox name=ids value=$line->[0] $checked>", 
+    $line->[1], 
+    $line->[2],  
+    $line->[3],  
+    $line->[4], $auth_types[$line->[5]]);
 }
 
 print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),

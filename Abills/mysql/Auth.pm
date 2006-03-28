@@ -63,7 +63,8 @@ sub dv_auth {
      return 1, $RAD_PAIRS;
   }
 
-	
+#	my $date = '2006-04-28 10:23:00';
+
   $self->query($db, "select  if (dv.logins=0, tp.logins, dv.logins) AS logins,
   if(dv.filter_id != '', dv.filter_id, tp.filter_id),
   if(dv.ip>0, INET_NTOA(dv.ip), 0),
