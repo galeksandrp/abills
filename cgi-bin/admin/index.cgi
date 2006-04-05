@@ -61,6 +61,8 @@ require "../../language/$html->{language}.pl";
 %permissions = ();
 use Abills::Base;
 
+@state_colors = ("#00FF00", "#FF0000", "#AAAAFF");
+
 #**********************************************************
 #IF Mod rewrite enabled
 #
@@ -905,16 +907,32 @@ foreach my $line (@$list) {
 
   my @fields_array  = ();
   for(my $i=0; $i<$users->{SEARCH_FIELDS_COUNT}; $i++){
-     push @fields_array, $line->[5+$i];
+     push @fields_array, $table->td($line->[5+$i]);
    }
 
-  $table->addrow($html->button($line->[0], "index=15&UID=$line->[5+$users->{SEARCH_FIELDS_COUNT}]"), "$line->[1]",
-   "$line->[2]", 
-   "$line->[3]", 
-   "$status[$line->[4]]", 
-   @fields_array, 
-   $payments, 
-   $fees);
+
+
+
+$table->addtd(
+                  $table->td($html->button($line->[0], "index=15&UID=$line->[5+$users->{SEARCH_FIELDS_COUNT}]") ), 
+                  $table->td($line->[1]), 
+                  $table->td($line->[2]), 
+                  $table->td($line->[3]), 
+                  $table->td($status[$line->[4]], { bgcolor => $state_colors[$line->[4]] }), 
+                  @fields_array, 
+                  $table->td($payments),
+                  $table->td($fees)
+      );
+
+#  $table->addrow($html->button($line->[0], "index=15&UID=$line->[5+$users->{SEARCH_FIELDS_COUNT}]"), 
+#   "$line->[1]",
+#   "$line->[2]", 
+#   "$line->[3]", 
+#   "$status[$line->[4]]", 
+#   @fields_array, 
+#   $payments, 
+#   $fees);
+
 }
 print $table->show();
 
