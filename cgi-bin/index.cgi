@@ -434,7 +434,7 @@ sub form_passwd {
 if ($FORM{newpassword} eq '') {
 
 }
-elsif (length($FORM{newpassword}) < $conf{passwd_length}) {
+elsif (length($FORM{newpassword}) < $conf{PASSWD_LENGTH}) {
   $html->message('err', $_ERROR, $err_strs{6});
 }
 elsif ($FORM{newpassword} eq $FORM{confirm}) {

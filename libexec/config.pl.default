@@ -49,7 +49,7 @@ $conf{s_detalization}='yes'; #make session detalization recomended for vpn leath
 #Check periodic deposit and session. hangup after get negative result
 $conf{periodic_check}='no';
 
-$conf{version}='0.30b'; #24.02.2006
+$conf{version}='0.31b'; #24.02.2006
 
 #Octets direction
 # server - Count octets from server side
@@ -67,8 +67,10 @@ $conf{MINIMUM_SESSION_TRAF}=200; # minimum session trafic for push session to db
 $conf{SYSTEM_ADMIN_ID}=1;
 
 #Web interface
-$conf{passwd_length}=6;
-$conf{username_length}=15;
+$conf{PASSWD_LENGTH}=6;
+$conf{MAX_USERNAME_LENGTH}=15;
+# User name expration
+$conf{USERNAMEREGEXP}="^[a-z0-9_][a-z0-9_-]*\$";
 $conf{list_max_recs}=25;
 $conf{web_session_timeout} = 1800;
 $conf{user_chg_passwd}='no';

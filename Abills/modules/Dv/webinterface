@@ -2122,7 +2122,7 @@ sub dv_wizard_user2 {
       
       #2 
       if ($FORM{'2.newpassword'} ne '') {
-        if (length($FORM{'2.newpassword'}) < $conf{passwd_length}) {
+        if (length($FORM{'2.newpassword'}) < $conf{PASSWD_LENGTH}) {
           $html->message('err', $_ERROR, $err_strs{6});
          }
         elsif ($FORM{'2.newpassword'} eq $FORM{'2.confirm'}) {
