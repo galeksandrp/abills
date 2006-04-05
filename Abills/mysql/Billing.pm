@@ -753,7 +753,7 @@ sub remaining_time {
  my %holidays = ();
  if (defined($time_intervals->{8})) {
    use Tariffs;
-   my $tariffs = Tariffs->new($db);
+   my $tariffs = Tariffs->new($db, $conf);
    my $list = $tariffs->holidays_list({ format => 'daysofyear' });
    foreach my $line (@$list) {
      $holidays{$line->[0]} = 1;
