@@ -179,8 +179,8 @@ sub list {
   my $self = shift;
   my ($attr) = @_;
 
-  my $WHERE;
-
+  @WHERE_RULES = ();
+  
  if (defined($attr->{STATUS})) {
     push @WHERE_RULES, "md.status='$attr->{STATUS}'";
   }

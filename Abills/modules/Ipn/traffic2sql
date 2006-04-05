@@ -33,6 +33,8 @@ my $Ipn = Ipn->new($db, \%conf);
 my $log = $var_dir."log/ipn/trafd_". $NAS_ID. "_" .$IF_NAME;
 
 
+
+
 #my $user = "ipstat";
 #my $group = "guest";
 #$zip = $path."bin/zip";
@@ -43,6 +45,8 @@ my %PROTOCOLS = ('tcp'    => 1,
                  'udp'    => 2);
 my $PROTOCOL = 0; #(defined($PROTOCOLS{$PROTOCOL})) ? $PROTOCOLS{$PROTOCOL} : 0;
 
+
+$Ipn->user_ips();
 
 open( LOG, $log ) || die "Can't open log file '$log' $!";
 my %DATA=();
@@ -67,17 +71,24 @@ while( <LOG> ) {
 		$DATA{DST_PORT} = 0 if ( $DATA{DST_PORT} !~ /^\d+$/ );
 		$DATA{NAS_ID}=$NAS_ID;
 		$DATA{IF_NAME}='0';
-    $Ipn->traffic_add({ %DATA });
+    $Ipn->traffic_add_log({ %DATA });
+    
+    #$Ipn->traffic_add({ %DATA });
 
 
 #		my $key = $fip."_".$fp."_".$tip."_".$tp;
 #		if ( exists $DATA{$key} ) { $DATA{$key} += $amount; }
 #		else { $DATA{$key} = $amount; }
 	}
-
-   
 }
 close(LOG);
+
+my $ips = $Ipn->{USERS_IPS};
+
+while(my($k, $v)=each (%$ips)) {
+	print "$k\t$v: \n";
+	
+}
 
 
 

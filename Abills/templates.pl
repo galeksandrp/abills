@@ -125,7 +125,7 @@ return qq{
 <TR bgcolor="$_COLORS[1]"><TD>$_ACTIVATE:</TD><TD>%ACTIVATE%</TD></TR>
 <TR bgcolor="$_COLORS[1]"><TD>$_EXPIRE:</TD><TD>%EXPIRE%</TD></TR>
 <TR bgcolor="$_COLORS[1]"><th colspan="2">:$_COMMENTS:</th></TR>
-<TR bgcolor="$_COLORS[1]"><th colspan="2">%COMMENTS%</th></TR>
+<TR bgcolor="$_COLORS[1]"><td colspan="2">%COMMENTS%</td></TR>
 <!-- <tR bgcolor="$_COLORS[1]"><TH colspan="2">Dilup / VPN</TH></TR>
 <TR bgcolor="$_COLORS[1]"><TD>$_TARIF_PLAN:</TD><TD>%TP_ID%:%TP_NAME%</TD></TR>
 <TR bgcolor="$_COLORS[1]"><TD>$_SIMULTANEOUSLY:</TD><TD>%SIMULTANEONSLY%</TD></TR>
@@ -140,18 +140,17 @@ return qq{
 };
  }
 
-elsif ($tpl_name eq 'form_possword') {
+elsif ($tpl_name eq 'form_password') {
 return qq{
-<h3>$_CHANGE_PASSWD</h3>
 <form action='$SELF_URL'  METHOD='POST'>
-<input type=hidden name='index' value='$index'>
+<input type='hidden' name='index' value='$index'>
 %HIDDDEN_INPUT%
 <table>
 <tr><td>$_GENERED_PARRWORD:</td><td>%GEN_PASSWORD%</td></tr>
 <tr><td>$_PASSWD:</td><td><input type='password' name='newpassword' value='%GEN_PASSWORD%'></td></tr>
 <tr><td>$_CONFIRM_PASSWD:</td><td><input type='password' name='confirm' value='%GEN_PASSWORD%'></td></tr>
 </table>
-<input type='submit' name='change' value="$_CHANGE">
+<input type=submit name='%ACTION%' value='%LNG_ACTION%'>
 </form>
 }
 }
@@ -465,23 +464,6 @@ return qq{
 <input type=submit name=search value=$_SEARCH>
 </form>
 };
-	
-}
-
-elsif ($tpl_name eq 'form_password') {
-return qq{
-<h3>$_CHANGE_PASSWD</h3>
-<form action=$SELF_URL METHOD=POST>
-<input type=hidden name=index value=$index>
-$hidden_inputs
-<TABLE>
-<TR><TD>$_PASSWD:</TD><TD><input type=password name=newpassword value=''></TD></TR>
-<TR><TD>$_CONFIRM_PASSWD:</TD><TD><input type=password name=confirm value=''></TD></TR>
-</TABLE>
-<input type=submit name=change value="$_CHANGE">
-</form>
-};
-
 }
 elsif ($tpl_name eq 'form_ip_pools') {
 return qq{
@@ -521,7 +503,7 @@ return qq{
 			frm = document.forms[0];
 			if(frm.language)
 				sLanguage = frm.language.options[frm.language.selectedIndex].value;
-			sLocation = 'index.cgi?language='+sLanguage;
+			sLocation = '$SELF_URL?language='+sLanguage;
 			location.replace(sLocation);
 		} catch(err) {
 			alert('Your brownser do not support JS');

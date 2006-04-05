@@ -23,6 +23,7 @@ use POSIX qw(strftime);
 my $DATE = strftime "%Y-%m-%d", localtime(time);
 my ($Y, $M, $D)=split(/-/, $DATE, 3);
 
+my %ips = ();
 my $db;
 my $CONF;
 my $debug =0;
@@ -44,6 +45,146 @@ sub new {
 }
 
 
+
+#**********************************************************
+# user_ips
+#**********************************************************
+sub user_ips {
+  my $self = shift;
+  my ($DATA) = @_;
+
+  
+  #$self->query($db, "SELECT uid, ip  FROM dv_main WHERE ip>0;");
+  $self->query($db, "SELECT u.uid, calls.framed_ip_address  
+    FROM dv_calls calls, users u 
+   WHERE u.id=calls.user_name;");
+
+  my $list = $self->{list};
+
+
+
+  
+  $ips{0}='0';
+  $self->{0}{IN}=0;
+ 	$self->{0}{OUT}=0;
+
+
+
+  foreach my $line (@$list) {
+  	 $ips{$line->[1]}=$line->[0];
+  	 $self->{$line->[1]}{IN}=0;
+  	 $self->{$line->[1]}{OUT}=0;
+   }
+ 
+  $self->{USERS_IPS} = \%ips;
+
+  return $self;
+}
+
+#**********************************************************
+# status
+#**********************************************************
+sub user_status {
+ my $self = shift;
+ my ($DATA) = @_;
+
+ my $SESSION_START = 'now()';
+
+ my $sql = "INSERT INTO dv_calls
+   (status, 
+    user_name, 
+    started, 
+    lupdated, 
+    nas_port_id, 
+    acct_session_id, 
+    framed_ip_address, 
+    CID, 
+    CONNECT_INFO, 
+    nas_id)
+    values (
+    '$DATA->{ACCT_STATUS_TYPE}', 
+    \"$DATA->{USER_NAME}\", 
+    $SESSION_START, 
+    UNIX_TIMESTAMP(), 
+    '$DATA->{NAS_PORT}', 
+    \"$DATA->{ACCT_SESSION_ID}\",
+     INET_ATON('$DATA->{FRAMED_IP_ADDRESS}'), 
+    '$DATA->{CALLING_STATION_ID}', 
+    '$DATA->{CONNECT_INFO}', 
+    '$DATA->{NAS_ID}' );";
+
+$self->{debug}=1;
+  $self->query($db, "$sql", 'do');
+
+	
+ return $self;
+}
+
+
+#**********************************************************
+# traffic_add_log
+#**********************************************************
+sub traffic_add_log {
+  my $self = shift;
+  my ($DATA) = @_;
+ 
+  my $ips=$self->{USERS_IPS};
+  my $y = 0;
+
+  if (defined($ips->{$DATA->{SRC_IP}})) {
+    $DATA->{UID} = $ips->{$DATA->{SRC_IP}};
+ 	 	$self->{$DATA->{SRC_IP}}{OUT}+=$DATA->{SIZE};
+ 		$y++;
+   }
+#  else {
+#  	$DATA->{UID}=0;
+#  	$self->{$DATA->{UID}}{IN}+=$DATA->{SIZE};
+#    push @{$self->{IN}}, "$DATA->{SRC_IP}/$DATA->{DST_IP}";	
+#   }
+
+  if (defined($ips->{$DATA->{DST_IP}})) {
+    $DATA->{UID} = $ips->{$DATA->{DST_IP}};
+	  $self->{$DATA->{DST_IP}}{IN}+=$DATA->{SIZE};
+	  $y++;
+   }
+  elsif ($y < 1) {
+  	$DATA->{UID}=0;
+  	$self->{$DATA->{UID}}{OUT}+=$DATA->{SIZE};
+    push @{$self->{IN}}, "$DATA->{SRC_IP}/$DATA->{DST_IP}/$DATA->{SIZE}";	
+    #push @{$self->{OUT}}, "$DATA->{DST_IP}/$DATA->{DST_IP}";
+   }
+
+  
+
+
+  my $start = 'now()';
+  my $traffic_class = 0;
+  my $in  = 0;
+  my $out = 0;
+
+
+
+  
+#  $self->query($db, "insert into ipn_log (
+#         uid,
+#         start,
+#         stop,
+#         traffic_class,
+#         in,
+#         out,
+#         nas_id,
+#       )
+#     VALUES (
+#        $DATA->{UID},
+#        $start,
+#       '$traffic_class',
+#       '$in',
+#       '$out',
+#       '$DATA->{NAS_ID}'
+#      );", 'do');
+
+  return $self;
+}
 
 #**********************************************************
 # traffic_add

@@ -796,15 +796,55 @@ print $table->show();
 }
 
 
+
+	
+	
+
 sub ipn_user_info {
-  my $user = $Ipn->info($LIST_PARAMS{UID});
+
+  my $users = Users->new($db, $admin, \%conf); 
+  my $user = $users->info( $LIST_PARAMS{UID} );
+  my $nas = Nas->new($db, \%conf);	
   
-  if ($user->{TOTAL} < 1) {
-  	$html->message('info', $_INFO, "$_NOT_ACTIVE");
-    return 0;	
-  }
+  if ($FORM{ACTIVE}) {
+     my %DATA = (ACCT_STATUS_TYPE  => 1, 
+                 USER_NAME         => $user->{LOGIN}, 
+                 SESSION_START     => 0, 
+                 ACCT_SESSION_ID   => mk_unique_value(10), 
+                 FRAMED_IP_ADDRESS => $FORM{REMOTE_ADDR}, 
+                 CONNECT_INFO      => '', 
+                 NAS_ID            => $FORM{NAS_ID});
+     
+     $Ipn->user_status({ %DATA });
+   }
+  elsif ($FORM{LOGOUT}) {
+     $Ipn->user_status('Off');
+   }
+
+
+  #my $user = $Ipn->user_info($LIST_PARAMS{UID});
+  #if ($user->{TOTAL} < 1) {
+  #	$html->message('info', $_INFO, "$_NOT_ACTIVE");
+  #  return 0;	
+  #}
+  #$html->tpl_show(_include('ipn_user_info', 'Ipn'), $Ipn);
+
+
+  my $nas_list = $html->form_select('NAS_ID', 
+                                    { 
+ 	                                   SELECTED  => $FORM{NAS_ID},
+ 	                                   SEL_MULTI_ARRAY   => $nas->list(),
+ 	                                   MULTI_ARRAY_KEY   => 0,
+ 	                                   MULTI_ARRAY_VALUE => 1,
+ 	                                  });
   
-  $html->tpl_show(_include('ipn_user_info', 'Ipn'), $Ipn);
+  print $html->form_main({ CONTENT => $html->form_input('REMOTE_ADDR', "$ENV{REMOTE_ADDR}") . $nas_list,
+                     HIDDEN  => { index   => "$index",
+                     	            UID     => $LIST_PARAMS{UID}
+                     	           },
+	                   SUBMIT  => { ACTIVE   => "$_ACTIV" } 
+	                 });
+
 }
 
 

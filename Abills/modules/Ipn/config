@@ -24,7 +24,8 @@ $web_interface    = 1;
 @useraccount_menu = ('Dialup_VPN');
 
 #Iner_ID : Main or Sub or if -1 user menu func list
-%FUNCTIONS_LIST = ("12:0:IP Net:null:"                      => 4,
+%FUNCTIONS_LIST = ("10:0:IP Net:ipn_user_info:UID"          => 20,
+                   "12:0:IP Net:null:"                      => 4,
                    "13:12:$_ERROR:ipn_error:"               => 4,
                    "14:12:$_LAST:ipn_sessions:"             => 4,
                    "15:12:$_USED:ipn_use:"                  => 4,
@@ -33,10 +34,8 @@ $web_interface    = 1;
 
                    );
 
-#%USER_FUNCTION_LIST = ("01:0:Dialup & VPN:dv_user_info:"   => 0,
-#                       "02:1:$_INFO:dv_user_info:"         => 0,
-#                       "02:1:$_STATS:dv_user_stats:"       => 0
-#                      );
+%USER_FUNCTION_LIST = ("01:0:IP Net:ipn_user_info:"   => 0
+                       );
 
 #%PERIODIC = (daily   => 'dv_daily_fees',
 #             monthly => 'dv_monthly_fees');

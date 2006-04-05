@@ -30,8 +30,13 @@ sub new {
   my $class = shift;
   ($db, $admin, $CONF) = @_;
   $WHERE = "WHERE " . join(' and ', @WHERE_RULES) if($#WHERE_RULES > -1);$CONF->{max_username_length} = 10;
+  
+  if (defined($CONF->{USERNAMEREGEXP})) {
+  	$usernameregexp=$CONF->{USERNAMEREGEXP};
+   }
 
   my $self = { };
+
   bless($self, $class);
   return $self;
 }
@@ -49,7 +54,7 @@ sub info {
   my ($uid, $attr) = @_;
 
   my $WHERE;
-  
+    
   if (defined($attr->{LOGIN}) && defined($attr->{PASSWORD})) {
     $WHERE = "WHERE u.id='$attr->{LOGIN}' and DECODE(u.password, '$CONF->{secretkey}')='$attr->{PASSWORD}'";
     #$PASSWORD = "if(DECODE(password, '$SECRETKEY')='$attr->{PASSWORD}', 0, 1)";
@@ -133,7 +138,7 @@ sub pi_add {
            VALUES ('$DATA{UID}', '$DATA{FIO}', '$DATA{PHONE}', \"$DATA{ADDRESS_STREET}\", 
             \"$DATA{ADDRESS_BUILD}\", \"$DATA{ADDRESS_FLAT}\",
             '$DATA{EMAIL}', '$DATA{CONTRACT_ID}',
-            '$self->{COMMENTS}' );", 'do');
+            '$DATA{COMMENTS}' );", 'do');
   
   return $self if ($self->{errno});
   
@@ -228,12 +233,13 @@ sub defaults {
   %DATA = ( LOGIN => '', 
    ACTIVATE       => '0000-00-00', 
    EXPIRE         => '0000-00-00', 
-   CREDIT => 0, 
-   REDUCTION => '0.00', 
+   CREDIT         => 0, 
+   REDUCTION      => '0.00', 
    SIMULTANEONSLY => 0, 
-   DISABLE => 0, 
-   COMPANY_ID => 0,
-   GID => 0 );
+   DISABLE        => 0, 
+   COMPANY_ID     => 0,
+   GID            => 0,
+   DISABLE        => 0 );
  
   $self = \%DATA;
   return $self;
@@ -407,7 +413,6 @@ sub list {
     push @WHERE_RULES, "u.id LIKE '$attr->{FIRST_LETTER}%'";
   }
  elsif ($attr->{LOGIN}) {
-    $attr->{LOGIN_EXPR} =~ s/\*/\%/ig;
     push @WHERE_RULES, "u.id='$attr->{LOGIN}'";
   }
  # Login expresion
@@ -589,10 +594,6 @@ sub change {
   my $self = shift;
   my ($uid, $attr) = @_;
   
-  my %DATA = $self->get_data($attr); 
-  $DATA{DISABLE} = (defined($attr->{DISABLE})) ? 1 : 0;
-  #my $secretkey = (defined($attr->{secretkey}))? $attr->{secretkey} : '';  
-
   my %FIELDS = (UID         => 'uid',
               LOGIN       => 'id',
               ACTIVATE    => 'activate',
@@ -608,9 +609,11 @@ sub change {
               BILL_ID     => 'bill_id'
              );
  
+  my $old_info = $self->info($attr->{UID});
+  
   if($attr->{create}){
   	 use Bills;
-  	 my $Bill = Bills->new($db, $admin);
+  	 my $Bill = Bills->new($db, $admin, $CONF);
   	 $Bill->create({ UID => $self->{UID} });
      if($Bill->{errno}) {
        $self->{errno}  = $Bill->{errno};
@@ -619,12 +622,14 @@ sub change {
       }
      #$DATA{BILL_ID}=$Bill->{BILL_ID};
      $attr->{BILL_ID}=$Bill->{BILL_ID};
+     $attr->{DISABLE}=$old_info->{DISABLE};
    }
-   
+  
+  
 	$self->changes($admin, { CHANGE_PARAM => 'UID',
 		                TABLE        => 'users',
 		                FIELDS       => \%FIELDS,
-		                OLD_INFO     => $self->info($attr->{UID}),
+		                OLD_INFO     => $old_info,
 		                DATA         => $attr
 		              } );
 

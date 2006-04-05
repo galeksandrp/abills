@@ -294,6 +294,7 @@ $_ROUTES='Routes';
 $_DICTIONARY='Dictionary';
 $_ABON='Periodic payments';
 
-
+$_SYMBOLS='Symbols';
+$_SERIAL='Serial';
 
 

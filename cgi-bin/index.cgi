@@ -3,7 +3,7 @@
 #
 #
 
-use vars qw($begin_time %LANG $CHARSET @MODULES $FUNCTIONS_LIST $USER_FUNCTION_LIST $UID $admin);
+use vars qw($begin_time %LANG $CHARSET @MODULES $FUNCTIONS_LIST $USER_FUNCTION_LIST $UID $user $admin);
 
 BEGIN {
  my $libpath = '../';
@@ -97,7 +97,7 @@ my $passwd = $FORM{passwd} || '';
 
 
 
-my $user=Users->new($db, $admin, \%conf); 
+$user=Users->new($db, $admin, \%conf); 
 ($uid, $sid, $login) = auth("$login", "$passwd", "$sid");
 my %uf_menus = ();
 if ($uid > 0) {
@@ -456,8 +456,11 @@ elsif($FORM{newpassword} ne $FORM{confirm}) {
   $html->message('err', $_ERROR, $err_strs{5});
 }
 
+ my $password_form;
+ $password_form->{ACTION}='change';
+ $password_form->{LNG_ACTION}="$_CHANGE";
 
- $html->tpl_show(templates('form_password'), undef);
+ $html->tpl_show(templates('form_password'), $password_form);
 
  return 0;
 }

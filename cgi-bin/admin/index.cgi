@@ -154,7 +154,7 @@ my @actions = ([$_SA_ONLY, $_ADD, $_LIST, $_PASSWD, $_CHANGE, $_DEL, $_ALL],  # 
 @action    = ('add', $_ADD);
 @bool_vals = ($_NO, $_YES);
 
-my @PAYMENT_METHODS = ('Cashe', 'Bank', 'Credit Card', 'Internet Card');
+my @PAYMENT_METHODS = ('Cashe', 'Bank', 'Internet Card', 'Credit Card' );
 my %menu_items  = ();
 my %menu_names  = ();
 #my $root_index = 0;
@@ -228,12 +228,12 @@ my ($online_users, $online_count) = $admin->online();
 
 
 print "<table width=100%>
-<tr bgcolor=$_COLORS[3]><td colspan=2>
-<form action=$SELF_URL>
-<table width=100% border=0>
-  <tr><th align=left>$_DATE: $DATE $TIME Admin: <a href='$SELF_URL?index=53'>$admin->{A_LOGIN}</a> / Online: <abbr title=\"$online_users\"><a href='$SELF_URL?index=50' title='$online_users'>Online: $online_count</a></abbr></th>
-  <th align=right><input type=hidden name=index value=7><input type=hidden name=search value=y>
-  Search: $SEL_TYPE <input type=text name=\"LOGIN_EXPR\" value='$FORM{LOGIN_EXPR}'> 
+<tr bgcolor='$_COLORS[3]'><td colspan='2'>
+<form action='$SELF_URL'>
+<table width='100%' border='0'>
+  <tr><th align='left'>$_DATE: $DATE $TIME Admin: <a href='$SELF_URL?index=53'>$admin->{A_LOGIN}</a> / Online: <abbr title=\"$online_users\"><a href='$SELF_URL?index=50' title='$online_users'>Online: $online_count</a></abbr></th>
+  <th align=right><input type='hidden' name='index' value='7'><input type='hidden' name='search' value='y'>
+  Search: $SEL_TYPE <input type='text' name=\"LOGIN_EXPR\" value='$FORM{LOGIN_EXPR}'> 
   (<b><a href='#' onclick=\"window.open('help.cgi?index=$index&amp;FUNCTION=$functions{$index}','help',
     'height=550,width=450,resizable=0,scrollbars=yes,menubar=no, status=yes');\">?</a></b>)</th></tr>
 </table>
@@ -542,7 +542,8 @@ sub user_form {
  	   $user_info->{COMPANY_ID}=$FORM{COMPANY_ID};
      $user_info->{EXDATA} =  "<tr><td>$_COMPANY:</td><td>". $html->button($company->{COMPANY_NAME}, "index=13&COMPANY_ID=$company->{COMPANY_ID}"). "</td></tr>\n";
     }
-
+   
+   $user_info->{GID} = sel_groups();
    $user_info->{EXDATA} .=  $html->tpl_show(templates('form_user_exdata'), undef, { notprint => 'y' });
 
    $user_info->{DISABLE} = ($user_info->{DISABLE} > 0) ? ' checked' : '';
@@ -2190,7 +2191,9 @@ elsif($FORM{newpassword} ne $FORM{confirm}) {
 }
 
 $password_form->{GEN_PASSWORD}=mk_unique_value(8);
-$html->tpl_show(templates('form_possword'), $password_form);
+$password_form->{ACTION}='change';
+$password_form->{LNG_ACTION}="$_CHANGE";
+$html->tpl_show(templates('form_password'), $password_form);
 
  return 0;
 }

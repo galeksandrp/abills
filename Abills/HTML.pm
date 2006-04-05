@@ -202,6 +202,9 @@ sub form_main {
 	
 	$self->{FORM}="<FORM action=\"$SELF_URL\" METHOD=\"POST\">\n";
 	
+
+	
+	
   if (defined($attr->{HIDDEN})) {
   	my $H = $attr->{HIDDEN};
   	while(my($k, $v)=each( %$H)) {
