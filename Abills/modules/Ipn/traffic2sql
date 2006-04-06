@@ -33,8 +33,6 @@ my $Ipn = Ipn->new($db, \%conf);
 my $log = $var_dir."log/ipn/trafd_". $NAS_ID. "_" .$IF_NAME;
 
 
-
-
 #my $user = "ipstat";
 #my $group = "guest";
 #$zip = $path."bin/zip";
@@ -83,19 +81,29 @@ while( <LOG> ) {
 }
 close(LOG);
 
-my $ips = $Ipn->{USERS_IPS};
 
-while(my($k, $v)=each (%$ips)) {
-	print "$k\t$v: \n";
-	
+my $IN_ARRAY  = $Ipn->{IN};
+my $OUT_ARRAY = $Ipn->{OUT};
+
+foreach my $line (@$IN_ARRAY) {
+	my($from, $to, $size)=split(/\//, $line, 3);
+	printf("%15s -> %15s %10s\n", int2ip($from), int2ip($to), $size);
 }
 
 
 
+my $ips = $Ipn->{USERS_IPS};
+#while(my($k, $v)=each (%$ips)) {
+foreach my $ip ( sort keys %$ips) {
+  my $uid = $ips->{$ip} ;
+  
+  
+  if ($Ipn->{$ip}{IN} + $Ipn->{$ip}{OUT} > 0) {
+     printf("%5s| %15s| %10s| %10s|\n", $uid, int2ip($ip), $Ipn->{$ip}{IN}, $Ipn->{$ip}{OUT});
+	 }
 
-
-
-
+	#print int2ip($k). "\t$v: $Ipn->{$v}{IN}\t $Ipn->{$v}{OUT}\n";
+}
 
 
 
