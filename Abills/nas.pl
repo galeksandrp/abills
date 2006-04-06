@@ -17,6 +17,10 @@ my $nas_type = '';
 
 my %stats = ();
 
+
+
+
+
 #*******************************************************************
 # Hangup active port
 # hangup($NAS_HASH_REF, $PORT, $USER, $SESSION_ID);
@@ -292,6 +296,18 @@ sub stats_dslmax {
   return %stats;
 }
 
+#*******************************************************************
+# hangup_radius_disconnect
+# 
+# Radius-Disconnect messages
+# rfc2882
+#*******************************************************************
+sub hangup_radius_disconnect {
+  my ($NAS_IP, $PORT) = @_;
+  
+  #echo "User-Name = user" | radclient 10.0.0.219:3799 40 secret123
+  #Received response ID 219, code 41, length = 20 
+}
 
 #*******************************************************************
 # HANGUP Cisco

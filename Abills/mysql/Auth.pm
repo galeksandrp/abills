@@ -18,8 +18,6 @@ $VERSION = 2.00;
 @EXPORT_OK = ();
 %EXPORT_TAGS = ();
 
-# User name expration
-#my $usernameregexp = "^[a-z0-9_][a-z0-9_-]*\$"; # configurable;
 use main;
 @ISA  = ("main");
 
@@ -346,8 +344,8 @@ foreach my $line (@periods) {
 
 ####################################################################
 # Vendor specific return
-# ExPPP
 
+# ExPPP
 if ($NAS->{NAS_TYPE} eq 'exppp') {
   #$traf_tarif 
   my $EX_PARAMS = $self->ex_traffic_params( { 
@@ -387,7 +385,33 @@ if ($NAS->{NAS_TYPE} eq 'exppp') {
         print "Exppp-LocalTraffic-Out-Limit = $trafic_lo_outlimit,";
 =cut
  }
-###########################################################
+
+# Mikrotik (http://www.mikrotik.com)
+if ($NAS->{NAS_TYPE} eq 'mikrotik') {
+  #$traf_tarif 
+  my $EX_PARAMS = $self->ex_traffic_params( { 
+  	                                        traf_limit => $traf_limit, 
+                                            deposit    => $self->{DEPOSIT},
+                                            MAX_SESSION_TRAFFIC => $attr->{MAX_SESSION_TRAFFIC} });
+
+  #global Traffic
+  if ($EX_PARAMS->{traf_limit} > 0) {
+    $RAD_PAIRS->{'Mikrotik-Recv-Limit'} = $EX_PARAMS->{traf_limit} * 1024 * 1024 / 2;
+    $RAD_PAIRS->{'Mikrotik-Xmit-Limit'} = $EX_PARAMS->{traf_limit} * 1024 * 1024 / 2;
+   }
+
+#Shaper
+  if ($self->{USER_SPEED} > 0) {
+    $RAD_PAIRS->{'Rate-Limit'} = "rx-rate=". int($self->{USER_SPEED}) .", tx-rate=". int($self->{USER_SPEED});
+   }
+  else {
+    if ($EX_PARAMS->{speed}  > 0) {
+      $RAD_PAIRS->{'Ascend-Xmit-Rate'} = $EX_PARAMS->{speeds}->{0}->{IN};
+      $RAD_PAIRS->{'Ascend-Data-Rate'} = $EX_PARAMS->{speeds}->{0}->{OUT};
+     }
+   }
+ }
+######################
 # MPD
 elsif ($NAS->{NAS_TYPE} eq 'mpd') {
   my $EX_PARAMS = $self->ex_traffic_params({ 
@@ -764,8 +788,8 @@ sub ex_traffic_params {
      $prepaids{$line->[0]}=$line->[3];
      $in_prices{$line->[0]}=$line->[1];
      $out_prices{$line->[0]}=$line->[2];
-     $speeds{$line->[0]}{IN}=$line->[4];
-     $speeds{$line->[0]}{OUT}=$line->[5];
+     $EX_PARAMS{speed}{$line->[0]}{IN}=$line->[4];
+     $EX_PARAMS{speed}{$line->[0]}{OUT}=$line->[5];
      $nets+=$line->[6];
     }
 
@@ -1060,7 +1084,7 @@ sub check_mschap {
     $$lanmansessionkeydest = Radius::MSCHAP::LmPasswordHash($pw)
 	if defined $lanmansessionkeydest;
 
-#      $RAD_PAIRS{'MS-CHAP-MPPE-Keys'} = '0x' . unpack("H*", (pack('a8 a16', Radius::MSCHAP::LmPasswordHash($pw), 
+#      $RAD_PAIRS{'MS-CHAP-MPPE-Keys'} = '0x' . unpaAIRS{'MS-CHAP-MPPE-Keys'} = '0x' . unpaAIRS{'MS-CHAP-MPPE-Keys'} = '0x' . unpaAIRS{'MS-CHAP-MPPE-Keys'} = '0x' . unpack("H*", (pack('a8 a16', Radius::MSCHAP::LmPasswordHash($pw), 
 #                                                                            Radius::MSCHAP::NtPasswordHash( Radius::MSCHAP::NtPasswordHash(Radius::MSCHAP::ASCIItoUnicode($pw)))))). "0000000000000000";
    }
   else {

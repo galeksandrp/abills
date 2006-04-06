@@ -924,15 +924,6 @@ $table->addtd(
                   $table->td($fees)
       );
 
-#  $table->addrow($html->button($line->[0], "index=15&UID=$line->[5+$users->{SEARCH_FIELDS_COUNT}]"), 
-#   "$line->[1]",
-#   "$line->[2]", 
-#   "$line->[3]", 
-#   "$status[$line->[4]]", 
-#   @fields_array, 
-#   $payments, 
-#   $fees);
-
 }
 print $table->show();
 
@@ -1976,6 +1967,7 @@ if ($nas->{errno}) {
   'gnugk'     => 'GNU GateKeeper',
   'cisco'     => 'Cisco (Experimental)',
   'bsr1000'   => 'CMTS Motorola BSR 1000',
+  'mikrotik'  => 'Mikrotik (http://www.mikrotik.com)',
   'other'     => 'Other nas server');
 
 
@@ -2198,7 +2190,7 @@ sub form_passwd {
 if ($FORM{newpassword} eq '') {
 
 }
-elsif (length($FORM{newpassword}) < $conf{PASSWD_LEGTH}) {
+elsif (length($FORM{newpassword}) < $conf{passwd_length}) {
   $html->message('err', $_ERROR, $err_strs{6});
 }
 elsif ($FORM{newpassword} eq $FORM{confirm}) {
