@@ -48,6 +48,10 @@ if (defined($ARGV[0]) && $ARGV[0] eq 'pre_auth') {
   my $Auth = Auth->new($db, \%conf);
 
   $Auth->pre_auth($RAD, { SECRETKEY => $conf{secretkey} });
+  if ($Auth->{errno}) {
+    log_print('LOG_INFO', "AUTH [$RAD->{USER_NAME}] MS-CHAP PREAUTH FAILED$GT");
+  }
+ 
   exit 0;
 }
 

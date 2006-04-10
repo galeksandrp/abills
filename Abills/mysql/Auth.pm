@@ -1036,7 +1036,7 @@ if (! $RAD->{MS_CHAP_CHALLENGE}) {
 
   $self->query($db, "SELECT DECODE(password, '$attr->{SECRETKEY}') FROM users WHERE id='$RAD->{USER_NAME}';");
 
-  my $a = `echo "'$attr->{SECRETKEY}') FROM users WHERE id='$RAD->{USER_NAME}' test" > /tmp/aaaaaaa`;
+  my $a = `echo \`date\` "'$attr->{SECRETKEY}') FROM users WHERE id='$RAD->{USER_NAME}' test" >> /tmp/aaaaaaa`;
 
   if ($self->{TOTAL} > 0) {
   	my $list = $self->{list}->[0];
