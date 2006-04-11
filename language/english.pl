@@ -131,6 +131,7 @@ $_GEN_PASSWD='Gen password';
 $_CONFIRM_PASSWD='Confirm password';
 $_MAKE_BACKAUP='Make backup';
 $_SIZE='Size';
+$_LENGTH='Length';
 
 $_MIN='Min';
 $_AVG='AVG';
@@ -296,5 +297,5 @@ $_ABON='Periodic payments';
 
 $_SYMBOLS='Symbols';
 $_SERIAL='Serial';
-
+$_BRUTE_ATACK='Brute Attack';
 

@@ -40,6 +40,7 @@ test_radius_returns($RAD);
 require Abills::SQL;
 my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
 my $db = $sql->{db};
+my $GT = '';
 
 
 if (defined($ARGV[0]) && $ARGV[0] eq 'pre_auth') {

@@ -541,11 +541,12 @@ sub add {
      $self->{errstr} = 'ERROR_ENTER_NAME';
      return $self;
    }
-  elsif (length($DATA{LOGIN}) > $CONF->{username_length}) {
+  elsif (length($DATA{LOGIN}) > $CONF->{MAX_USERNAME_LENGTH}) {
      $self->{errno} = 9;
-     $self->{errstr} = 'ERROR_SHORT_PASSWORD';
+     $self->{errstr} = 'ERROR_LONG_USERNAME';
      return $self;
    }
+  #ERROR_SHORT_PASSWORD
   elsif($DATA{LOGIN} !~ /$usernameregexp/) {
      $self->{errno} = 10;
      $self->{errstr} = 'ERROR_WRONG_NAME';
