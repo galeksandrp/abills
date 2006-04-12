@@ -534,7 +534,7 @@ sub add {
   
   defaults();  
   %DATA = $self->get_data($attr, { default => $self }); 
-  
+
 
   if ($DATA{LOGIN} eq '') {
      $self->{errno} = 8;
