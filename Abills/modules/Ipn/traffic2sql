@@ -97,17 +97,6 @@ my $Acct = Acct->new($db, \%conf);
 
 
 
-    status='$acct_status_type',
-    nas_port_id='$RAD->{NAS_PORT}',
-    acct_session_time=UNIX_TIMESTAMP()-UNIX_TIMESTAMP(started),
-    acct_input_octets='$RAD->{INBYTE}',
-    acct_output_octets='$RAD->{OUTBYTE}',
-    ex_input_octets='$RAD->{INBYTE2}',
-    ex_output_octets='$RAD->{OUTBYTE2}',
-    framed_ip_address=INET_ATON('$RAD->{FRAMED_IP_ADDRESS}'),
-    lupdated=UNIX_TIMESTAMP()
-
-
 my $ips         = $Ipn->{USERS_IPS};
 my $logins      = $Ipn->{LOGINS_IPS};
 my $session_ids = $Ipn->{SESSIONS_IPS};
@@ -119,7 +108,7 @@ foreach my $ip ( sort keys %$ips) {
   my $session_id = $session_ids->{$ip};
   
   if ($Ipn->{$ip}{IN} + $Ipn->{$ip}{OUT} > 0) {
-   	 $RAD = ( NAS_PORT          => 0,
+   	 %RAD = ( NAS_PORT          => 0,
    	          INBYTE            => $Ipn->{$ip}{IN},
    	          OUTBYTE           => $Ipn->{$ip}{OUT},
    	          INBYTE2           => 0,
@@ -128,7 +117,7 @@ foreach my $ip ( sort keys %$ips) {
               USER_NAME         => $login,
               ACCT_SESSION_ID   => $session_id );
 
-     printf("%5s| %15s| %10s| %10s|\n", $uid, , $RAD{INBYTE}, $Ipn->{$ip}{OUT});
+     printf("%5s| %15s| %10s| %10s|\n", $uid, $RAD{FRAMED_IP_ADDRESS}, $RAD{INBYTE}, $Ipn->{$ip}{OUT});
    	 my $r = $Acct->accounting(\%RAD, { NAS_ID => $NAS_ID });
 
 	 }

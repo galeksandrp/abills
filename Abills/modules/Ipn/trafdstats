@@ -24,6 +24,8 @@ sleep 5
 /usr/local/bin/traflog -n -i ${IF_NAME} > ${LOG_PATH}trafd_${NAS_ID}_${IF_NAME}
 /bin/rm /usr/local/var/trafd/trafd.${IF_NAME}
 
+#/home/asmodeus/abills2/libexec/traffic2sql ${NAS_ID} ${IF_NAME}
+
 /usr/abills/libexec/traffic2sql ${NAS_ID} ${IF_NAME}
 
 
