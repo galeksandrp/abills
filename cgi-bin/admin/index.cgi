@@ -2651,7 +2651,7 @@ for(my $parent=1; $parent<$#menu_sorted; $parent++) {
 
 
 print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
-	                       HIDDEN  => { index => '50'
+	                       HIDDEN  => { index => "$index"
                                      },
 	                       SUBMIT  => { quick_set => "$_SET"
 	                       	           } });
