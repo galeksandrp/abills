@@ -38,6 +38,7 @@ sub new {
   my $self = { };
 
   bless($self, $class);
+  
   return $self;
 }
 
@@ -559,7 +560,8 @@ sub add {
       return $self;
      }
    }
-    
+  
+  $DATA{DISABLE} = int($DATA{DISABLE});
   $self->query($db,  "INSERT INTO users (id, activate, expire, credit, reduction, 
            registration, disable, company_id, gid)
            VALUES ('$DATA{LOGIN}', '$DATA{ACTIVATE}', '$DATA{EXPIRE}', '$DATA{CREDIT}', '$DATA{REDUCTION}', 
@@ -578,6 +580,7 @@ sub add {
   if ($attr->{CREATE_BILL}) {
   	#print "create bill";
   	$self->change($self->{UID}, { 
+  		 DISABLE => int($DATA{DISABLE}),
   		 UID     => $self->{UID},
   		 create  => 'yes' });
   }

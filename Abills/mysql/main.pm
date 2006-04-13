@@ -264,7 +264,7 @@ sub changes {
   my $FIELDS       = $attr->{FIELDS};
   my %DATA         = $self->get_data($attr->{DATA}); 
 
-  $DATA{DISABLE} = (defined($DATA{DISABLE})) ? 1 : 0;
+  $DATA{DISABLE} = ($DATA{DISABLE}) ? 1 : 0;
 
   if(defined($DATA{EMAIL}) && $DATA{EMAIL} ne '') {
     if ($DATA{EMAIL} !~ /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/) {
