@@ -120,7 +120,7 @@ foreach my $ip ( sort keys %$ips) {
               ACCT_SESSION_ID   => $session_id );
 
      printf("%5s| %15s| %10s| %10s|\n", $uid, $RAD{FRAMED_IP_ADDRESS}, $RAD{INBYTE}, $Ipn->{$ip}{OUT});
-#   	 my $r = $Acct->accounting(\%RAD, { NAS_ID => $NAS_ID });
+   	 my $r = $Acct->accounting(\%RAD, { NAS_ID => $NAS_ID });
 
 	 }
 
