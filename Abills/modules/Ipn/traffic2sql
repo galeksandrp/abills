@@ -118,7 +118,7 @@ foreach my $ip ( sort keys %$ips) {
               FRAMED_IP_ADDRESS => int2ip($ip),
               USER_NAME         => $login,
               ACCT_SESSION_ID   => $session_id,
-              ACCT_STATUS_TYPE  => 3 );
+              ACCT_STATUS_TYPE  => 'Alive' );
 
      printf("%5s| %15s| %10s| %10s|\n", $uid, $RAD{FRAMED_IP_ADDRESS}, $RAD{INBYTE}, $Ipn->{$ip}{OUT});
    	 $Acct->{debug}=1;
