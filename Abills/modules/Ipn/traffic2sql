@@ -24,7 +24,7 @@ my $begin_time = check_time();
 
 require Abills::SQL;
 my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
-my $db = $sql->{db};
+my $db  = $sql->{db};
 
 require Ipn;
 Ipn->import();
@@ -70,7 +70,7 @@ while( <LOG> ) {
 		$DATA{NAS_ID}=$NAS_ID;
 		$DATA{IF_NAME}='0';
     $Ipn->traffic_add_log({ %DATA });
-    
+
     #$Ipn->traffic_add({ %DATA });
 
 
