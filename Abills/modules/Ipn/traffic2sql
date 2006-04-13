@@ -1,5 +1,8 @@
 #!/usr/bin/perl -w
 # PUSH traffic to sql
+#
+#
+
 
 use vars  qw(%RAD %conf $db %AUTH $DATE $var_dir);
 use strict;
