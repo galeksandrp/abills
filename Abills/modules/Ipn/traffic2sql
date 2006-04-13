@@ -91,7 +91,8 @@ foreach my $line (@$IN_ARRAY) {
 }
 
 
-use Acct;
+require Acct;
+Acct->import();
 my $Acct = Acct->new($db, \%conf);
 
 
