@@ -94,9 +94,9 @@ foreach my $line (@$IN_ARRAY) {
 }
 
 
-#require Acct;
-#Acct->import();
-#my $Acct = Acct->new($db, \%conf);
+require Acct;
+Acct->import();
+my $Acct = Acct->new($db, \%conf);
 
 
 my $ips         = $Ipn->{USERS_IPS};
