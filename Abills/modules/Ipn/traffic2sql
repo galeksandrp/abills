@@ -121,8 +121,10 @@ foreach my $ip ( sort keys %$ips) {
               ACCT_STATUS_TYPE  => 'Alive' );
 
      printf("%5s| %15s| %10s| %10s|\n", $uid, $RAD{FRAMED_IP_ADDRESS}, $RAD{INBYTE}, $Ipn->{$ip}{OUT});
-
-   	 my $r = $Acct->accounting(\%RAD, { NAS_ID => $NAS_ID });
+     
+     if ($uid > 0) {
+   	   my $r = $Acct->accounting(\%RAD, { NAS_ID => $NAS_ID });
+      }
 
 	 }
 
