@@ -55,28 +55,34 @@ sub user_ips {
 
   
   #$self->query($db, "SELECT uid, ip  FROM dv_main WHERE ip>0;");
-  $self->query($db, "SELECT u.uid, calls.framed_ip_address  
+  $self->query($db, "SELECT u.uid, calls.framed_ip_address, calls.user_name, calls.acct_session_id
     FROM dv_calls calls, users u 
    WHERE u.id=calls.user_name;");
 
   my $list = $self->{list};
-
-
-
+  my %logins      = ();
+  my %session_ids = ();
   
   $ips{0}='0';
+  $logins{0}='';
+  
+  
   $self->{0}{IN}=0;
  	$self->{0}{OUT}=0;
 
 
 
   foreach my $line (@$list) {
-  	 $ips{$line->[1]}=$line->[0];
-  	 $self->{$line->[1]}{IN}=0;
-  	 $self->{$line->[1]}{OUT}=0;
+  	 $ips{$line->[1]}         = $line->[0];
+  	 $logins{$line->[1]}      = $line->[2];
+  	 $session_ids{$line->[1]}      = $line->[3];
+  	 $self->{$line->[1]}{IN}  = 0;
+  	 $self->{$line->[1]}{OUT} = 0;
    }
  
-  $self->{USERS_IPS} = \%ips;
+  $self->{USERS_IPS}   = \%ips;
+  $self->{LOGINS_IPS}  = \%logins;
+  $self->{SESSIONS_IPS}= \%session_ids;
 
   return $self;
 }

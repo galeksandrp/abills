@@ -908,47 +908,29 @@ INSERT INTO admins VALUES ('system','Syetem user','2005-07-07', ENCODE('test', '
 --
 -- Dumping data for table `admin_permits`
 --
-
-INSERT INTO `admin_permits` (aid, section, actions) VALUES (1, 2, 2);
-
-INSERT INTO `admin_permits` (aid, section, actions) VALUES (1, 2, 3);
-
-INSERT INTO `admin_permits` (aid, section, actions) VALUES (1, 2, 0);
-
-INSERT INTO `admin_permits` (aid, section, actions) VALUES (1, 2, 1);
-
-INSERT INTO `admin_permits` (aid, section, actions) VALUES (1, 3, 0);
-
-INSERT INTO `admin_permits` (aid, section, actions) VALUES (1, 3, 1);
-
-INSERT INTO `admin_permits` (aid, section, actions) VALUES (1, 0, 5);
-
-INSERT INTO `admin_permits` (aid, section, actions) VALUES (1, 0, 2);
-
-INSERT INTO `admin_permits` (aid, section, actions) VALUES (1, 0, 3);
-
-INSERT INTO `admin_permits` (aid, section, actions) VALUES (1, 0, 0);
-
-INSERT INTO `admin_permits` (aid, section, actions) VALUES (1, 0, 1);
-
-INSERT INTO `admin_permits` (aid, section, actions) VALUES (1, 0, 4);
-
-INSERT INTO `admin_permits` (aid, section, actions) VALUES (1, 0, 6);
-
-INSERT INTO `admin_permits` (aid, section, actions) VALUES (1, 1, 2);
-
-INSERT INTO `admin_permits` (aid, section, actions) VALUES (1, 1, 0);
-
-INSERT INTO `admin_permits` (aid, section, actions) VALUES (1, 1, 1);
-
-INSERT INTO `admin_permits` (aid, section, actions) VALUES (1, 4, 2);
-
-INSERT INTO `admin_permits` (aid, section, actions) VALUES (1, 4, 3);
-
-INSERT INTO `admin_permits` (aid, section, actions) VALUES (1, 4, 0);
-
-INSERT INTO `admin_permits` (aid, section, actions) VALUES (1, 4, 1);
-
-INSERT INTO `admin_permits` (aid, section, actions) VALUES (1, 5, 0);
-
-
+INSERT INTO `admin_permits` (`aid`, `section`, `actions`, `module`) VALUES 
+  (1,0,0,''),
+  (1,0,1,''),
+  (1,0,2,''),
+  (1,0,3,''),
+  (1,0,4,''),
+  (1,0,5,''),
+  (1,0,6,''),
+  (1,1,0,''),
+  (1,1,1,''),
+  (1,1,2,''),
+  (1,1,3,''),
+  (1,2,0,''),
+  (1,2,1,''),
+  (1,2,2,''),
+  (1,2,3,''),
+  (1,3,0,''),
+  (1,3,1,''),
+  (1,4,0,''),
+  (1,4,1,''),
+  (1,4,2,''),
+  (1,4,3,''),
+  (1,5,0,''),
+  (1,6,0,''),
+  (1,7,0,''),
+  (1,8,0,'');
