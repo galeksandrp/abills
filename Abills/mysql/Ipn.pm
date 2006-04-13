@@ -55,7 +55,11 @@ sub user_ips {
 
   
   #$self->query($db, "SELECT uid, ip  FROM dv_main WHERE ip>0;");
-  $self->query($db, "SELECT u.uid, calls.framed_ip_address, calls.user_name, calls.acct_session_id
+  $self->query($db, "SELECT u.uid, calls.framed_ip_address, calls.user_name, 
+    calls.acct_session_id,
+    acct_input_octets,
+    acct_output_octets
+    
     FROM dv_calls calls, users u 
    WHERE u.id=calls.user_name;");
 
@@ -76,8 +80,8 @@ sub user_ips {
   	 $ips{$line->[1]}         = $line->[0];
   	 $logins{$line->[1]}      = $line->[2];
   	 $session_ids{$line->[1]}      = $line->[3];
-  	 $self->{$line->[1]}{IN}  = 0;
-  	 $self->{$line->[1]}{OUT} = 0;
+  	 $self->{$line->[1]}{IN}  = $line->[4];
+  	 $self->{$line->[1]}{OUT} = $line->[5];
    }
  
   $self->{USERS_IPS}   = \%ips;
