@@ -5,7 +5,6 @@
 # check_activity
 #
 #
-#
 #*******************************************************************
 
 my $PPPCTL = '/usr/sbin/pppctl';
@@ -435,6 +434,7 @@ sub radius_disconnect {
   
   return $result;
 }
+
 
 #*******************************************************************
 # hangup_radius_disconnect

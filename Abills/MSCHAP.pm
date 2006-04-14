@@ -9,7 +9,6 @@
 # This code is offered on the same terms as draft-ietf-pppext-mschap-00.txt
 # $Id$
 
-
 package Radius::MSCHAP;
 use strict;
 use Digest::MD4;
