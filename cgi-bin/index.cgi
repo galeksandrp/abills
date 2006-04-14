@@ -68,9 +68,17 @@ if (defined($FORM{sid})) {
 
 #$html->setCookie('qm', "$FORM{qm_item}", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure) if (defined($FORM{quick_set}));
 #===========================================================
+my $sessions='admin/sessions.db';
+
+if ($index == 10) {
+  logout();
+
+  print "Location: $SELF_URL". "\n\n";
+  exit;
+}
 
 print $html->header({ CHARSET => $CHARSET });
-my $sessions='admin/sessions.db';
+
 my $maxnumber = 0;
 my $uid = 0;
 my $page_qs;
@@ -142,6 +150,8 @@ if ($uid > 0) {
       $functions{$maxnumber}=\&$FUNTION_NAME if ($FUNTION_NAME  ne '');
       $module{$maxnumber}=$m;
     }
+
+    %USER_FUNCTION_LIST = ();
   }
 
   (undef, $OUTPUT{MENU}) = $html->menu(\%menu_items, \%menu_args, undef, 
@@ -468,7 +478,7 @@ elsif($FORM{newpassword} ne $FORM{confirm}) {
 sub logout {
 	$FORM{op}='logout';
 	auth('', '', $sid);
-	$html->message('info', $_INFO, $_LOGOUT);
+	#$html->message('info', $_INFO, $_LOGOUT);
 	
 	
 	
