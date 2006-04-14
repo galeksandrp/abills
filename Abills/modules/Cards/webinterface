@@ -335,7 +335,7 @@ elsif ($FORM{del}  && $FORM{is_js_confirmed} ) {
 sub cards_user_payment () {
 	
 	if ($FORM{PIN}) {
-		my $BRUTE_LIMIT = ($conf{CARDS_BRUTE_LIMIT}) ? $conf{BRUTE_LIMIT} : 5;
+		my $BRUTE_LIMIT = ($conf{CARDS_BRUTE_LIMIT}) ? $conf{CARDS_BRUTE_LIMIT} : 5;
 
 		my $brute = $Cards->bruteforce_list({ UID => $LIST_PARAMS{UID} });
 		$Cards->cards_payments_info({ %FORM });
@@ -345,7 +345,7 @@ sub cards_user_payment () {
      return 0;
     }
 	 elsif (int($Cards->{BRUTE_COUNT}) >= $BRUTE_LIMIT) {
-     $html->message('err', $_ERROR, "$_BRUTE_ATACK");	
+     $html->message('err', $_ERROR, "$_BRUTE_ATACK $Cards->{BRUTE_COUNT}) >= $BRUTE_LIMIT");	
      return 0;
  	 	}
 	 elsif ($Cards->{EXPIRE_STATUS} == 1) {
