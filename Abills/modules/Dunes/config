@@ -1,6 +1,4 @@
 $web_interface    = 1;
-@useraccount_menu = ('Dialup_VPN');
-
 #Iner_ID : Main or Sub or if -1 user menu func list
 %FUNCTIONS_LIST = ("01:0:DUNES:dunes_list:"  => 6
                    );
