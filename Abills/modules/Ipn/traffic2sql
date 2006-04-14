@@ -1,10 +1,10 @@
 #!/usr/bin/perl -w
 # PUSH traffic to sql
-#
+# 
 #
 
 
-use vars  qw(%RAD %conf $db %AUTH $DATE $var_dir);
+use vars  qw(%RAD %conf $db %AUTH $DATE $TIME $var_dir);
 use strict;
 
 
@@ -17,6 +17,7 @@ if ($#ARGV < 1) {
 my $NAS_ID=$ARGV[0];
 my $IF_NAME=$ARGV[1];
 
+my $debug = 0;
 
 use FindBin '$Bin';
 require $Bin . '/config.pl';
@@ -34,7 +35,18 @@ Ipn->import();
 my $Ipn = Ipn->new($db, \%conf);
 
 my $log = $var_dir."log/ipn/trafd_". $NAS_ID. "_" .$IF_NAME;
+my $unknown_ip_log = $var_dir."log/ipn/unknown_ip.log";
 
+
+my $ARGV = parse_arguments(\@ARGV);
+
+if (defined($ARGV->{debug})) {
+	print "Debug mode on\n";
+	$debug=1;
+}
+elsif(defined($ARGV->{help})){
+	print "Help:\n";
+}
 
 #my $user = "ipstat";
 #my $group = "guest";
@@ -77,6 +89,7 @@ while( <LOG> ) {
     #$Ipn->traffic_add({ %DATA });
 
 
+
 #		my $key = $fip."_".$fp."_".$tip."_".$tp;
 #		if ( exists $DATA{$key} ) { $DATA{$key} += $amount; }
 #		else { $DATA{$key} = $amount; }
@@ -87,11 +100,13 @@ close(LOG);
 
 my $IN_ARRAY  = $Ipn->{IN};
 my $OUT_ARRAY = $Ipn->{OUT};
-
+my $unknow_ip = '';
 foreach my $line (@$IN_ARRAY) {
 	my($from, $to, $size)=split(/\//, $line, 3);
-	printf("%15s -> %15s %10s\n", int2ip($from), int2ip($to), $size);
+	$unknow_ip .= sprintf("%15s -> %15s %10s\n", int2ip($from), int2ip($to), $size); 
 }
+
+
 
 
 require Acct;
@@ -120,20 +135,22 @@ foreach my $ip ( sort keys %$ips) {
               ACCT_SESSION_ID   => $session_id,
               ACCT_STATUS_TYPE  => 'Alive' );
 
-     printf("%5s| %15s| %10s| %10s|\n", $uid, $RAD{FRAMED_IP_ADDRESS}, $RAD{INBYTE}, $Ipn->{$ip}{OUT});
-     
+     printf("%5s| %15s| %10s| %10s|\n", $uid, $RAD{FRAMED_IP_ADDRESS}, $RAD{INBYTE}, $Ipn->{$ip}{OUT}) if ($debug == 1);
+
      if ($uid > 0) {
    	   my $r = $Acct->accounting(\%RAD, { NAS_ID => $NAS_ID });
       }
 
 	 }
-
 	#print int2ip($k). "\t$v: $Ipn->{$v}{IN}\t $Ipn->{$v}{OUT}\n";
 }
 
 
 
-
+open(FILE, ">>$unknown_ip_log") or die "Can't open '$unknown_ip_log' $!";
+  print FILE ">> $DATE $TIME\n";
+  print FILE $unknow_ip;
+close(FILE);
 
 
 
