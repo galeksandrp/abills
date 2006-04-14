@@ -146,6 +146,10 @@ foreach my $ip ( sort keys %$ips) {
 }
 
 
+if ($debug == 1) {
+	print $unknow_ip;
+}
+
 
 open(FILE, ">>$unknown_ip_log") or die "Can't open '$unknown_ip_log' $!";
   print FILE ">> $DATE $TIME\n";
