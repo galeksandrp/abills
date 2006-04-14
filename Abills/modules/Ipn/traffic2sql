@@ -149,13 +149,12 @@ foreach my $ip ( sort keys %$ips) {
 if ($debug == 1) {
 	print $unknow_ip;
 }
-
-
-open(FILE, ">>$unknown_ip_log") or die "Can't open '$unknown_ip_log' $!";
-  print FILE ">> $DATE $TIME\n";
-  print FILE $unknow_ip;
-close(FILE);
-
+elsif($unknow_ip ne '') {
+ open(FILE, ">>$unknown_ip_log") or die "Can't open '$unknown_ip_log' $!";
+   print FILE ">> $DATE $TIME\n";
+   print FILE $unknow_ip;
+ close(FILE);
+}
 
 
 

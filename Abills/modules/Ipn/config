@@ -1,7 +1,8 @@
 $web_interface    = 1;
 
 #Iner_ID : Main or Sub or if -1 user menu func list
-%FUNCTIONS_LIST = ("10:0:IP Net:ipn_user_info:UID"          => 20,
+%FUNCTIONS_LIST = ("10:0:IP Net:ipn_form_user:UID"          => 20,
+                   "11:10:$_ACTIVATE:ipn_user_activate:UID"      => 20,
                    "12:0:IP Net:null:"                      => 4,
                    "13:12:$_ERROR:ipn_error:"               => 4,
                    "14:12:$_LAST:ipn_sessions:"             => 4,
@@ -11,7 +12,7 @@ $web_interface    = 1;
 
                    );
 
-%USER_FUNCTION_LIST = ("01:0:IP Net:ipn_user_info:"   => 0
+%USER_FUNCTION_LIST = ("01:0:IP Net:ipn_user_activate:"     => 0
                        );
 
 #%PERIODIC = (daily   => 'dv_daily_fees',
