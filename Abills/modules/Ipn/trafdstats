@@ -15,7 +15,7 @@ NAS_ID=$1;
 
 if [ w$3 = wdebug  ]; then
  DEBUG="debug=1";
- echo ${DEBUG};
+ 
 fi;
 
 
