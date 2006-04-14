@@ -1,6 +1,7 @@
 #!/bin/sh
 # Traf stats
 #trafstats [Interface] 
+#
 
 
 if [ w$2 = w ]; then

@@ -2,6 +2,7 @@
 # Dialup vpn web functions
 
 
+
 require Ipn;
 Ipn->import();
 my $Ipn = Ipn->new($db, \%conf);
@@ -821,9 +822,18 @@ print $table->show();
 
 
 	
+sub ipn_form_user {
+	
+  $Ipn->{LNG_ACTION}="$_ACTIVATE";
+	$Ipn->{ACTION}='Active';
+
+	$html->tpl_show(_include('ipn_form_user', 'Ipn'), $Ipn);
+}
+
 	
 
-sub ipn_user_info {
+
+sub ipn_user_activate {
 
 
   #ipfw 
