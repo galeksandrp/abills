@@ -13,6 +13,11 @@ fi;
 IF_NAME=$2;
 NAS_ID=$1;
 
+if [ w$3 = wdebug  ]; then
+ DEBUG="debug=1";
+fi;
+
+
 #Temporary log path
 # default 
 # LOG_PATH='/usr/abills/var/log/ipn/'
@@ -27,7 +32,7 @@ sleep 5
 
 #/home/asmodeus/abills2/libexec/traffic2sql ${NAS_ID} ${IF_NAME}
 
-/usr/abills/libexec/traffic2sql ${NAS_ID} ${IF_NAME}
+/usr/abills/libexec/traffic2sql ${NAS_ID} ${IF_NAME} ${DEBUG}
 
 
 
