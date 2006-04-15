@@ -60,7 +60,8 @@ sub dv_auth {
   if ($ret == 1) {
      return 1, $RAD_PAIRS;
   }
-
+  
+  my $MAX_SESSION_TRAFFIC = $CONF->{MAX_SESSION_TRAFFIC};
 #	my $date = '2006-04-28 10:23:00';
 
   $self->query($db, "select  if (dv.logins=0, tp.logins, dv.logins) AS logins,
@@ -257,7 +258,7 @@ else {
 # 3 - Month limit
 my @traf_limits = ();
 my $time_limit  = $self->{TIME_LIMIT}; 
-my $traf_limit  = $attr->{MAX_SESSION_TRAFFIC};
+my $traf_limit  = $MAX_SESSION_TRAFFIC;
 
 push @time_limits, $self->{MAX_SESSION_DURATION} if ($self->{MAX_SESSION_DURATION} > 0);
 
@@ -351,7 +352,7 @@ if ($NAS->{NAS_TYPE} eq 'exppp') {
   my $EX_PARAMS = $self->ex_traffic_params( { 
   	                                        traf_limit => $traf_limit, 
                                             deposit => $self->{DEPOSIT},
-                                            MAX_SESSION_TRAFFIC => $attr->{MAX_SESSION_TRAFFIC} });
+                                            MAX_SESSION_TRAFFIC => $MAX_SESSION_TRAFFIC });
 
   #global Traffic
   if ($EX_PARAMS->{traf_limit} > 0) {
@@ -365,7 +366,8 @@ if ($NAS->{NAS_TYPE} eq 'exppp') {
        
   #Local ip tables
   if (defined($EX_PARAMS->{nets})) {
-    $RAD_PAIRS->{'Exppp-Local-IP-Table'} = "\"$attr->{NETS_FILES_PATH}$self->{TT_INTERVAL}.nets\"";
+    my $DV_EXPPP_NETFILES = (defined($CONF->{DV_EXPPP_NETFILES})) ? $CONF->{DV_EXPPP_NETFILES} : '';
+    $RAD_PAIRS->{'Exppp-Local-IP-Table'} = "\"$DV_EXPPP_NETFILES$self->{TT_INTERVAL}.nets\"";
    }
 
 #Shaper for exppp
@@ -392,7 +394,7 @@ if ($NAS->{NAS_TYPE} eq 'mikrotik') {
   my $EX_PARAMS = $self->ex_traffic_params( { 
   	                                        traf_limit => $traf_limit, 
                                             deposit    => $self->{DEPOSIT},
-                                            MAX_SESSION_TRAFFIC => $attr->{MAX_SESSION_TRAFFIC} });
+                                            MAX_SESSION_TRAFFIC => $MAX_SESSION_TRAFFIC });
 
   #global Traffic
   if ($EX_PARAMS->{traf_limit} > 0) {
@@ -418,7 +420,7 @@ elsif ($NAS->{NAS_TYPE} eq 'mpd') {
   my $EX_PARAMS = $self->ex_traffic_params({ 
   	                                        traf_limit => $traf_limit, 
                                             deposit => $self->{DEPOSIT},
-                                            MAX_SESSION_TRAFFIC => $attr->{MAX_SESSION_TRAFFIC} });
+                                            MAX_SESSION_TRAFFIC => $MAX_SESSION_TRAFFIC });
 
   #global Traffic
   if ($EX_PARAMS->{traf_limit} > 0) {
@@ -451,7 +453,7 @@ elsif ($NAS->{NAS_TYPE} eq 'pppd') {
   my $EX_PARAMS = $self->ex_traffic_params( { 
   	                                        traf_limit => $traf_limit, 
                                             deposit => $self->{DEPOSIT},
-                                            MAX_SESSION_TRAFFIC => $attr->{MAX_SESSION_TRAFFIC} });
+                                            MAX_SESSION_TRAFFIC => $MAX_SESSION_TRAFFIC });
 
   #global Traffic
   if ($EX_PARAMS->{traf_limit} > 0) {
@@ -851,7 +853,7 @@ my $trafic_limit = 0;
 #$trafic_limit = $trafic_limit * 1024 * 1024;
 #2Gb - (2048 * 1024 * 1024 ) - global traffic session limit
 if (defined($trafic_limits{0}) && $trafic_limits{0} > 0  && $trafic_limits{0} < $EX_PARAMS{traf_limit}) {
-  $trafic_limit = ($trafic_limits{0} > $attr->{MAX_SESSION_TRAFFIC}) ? $attr->{MAX_SESSION_TRAFFIC} :  $trafic_limits{0};
+  $trafic_limit = ($trafic_limits{0} > $CONF->{MAX_SESSION_TRAFFIC}) ? $CONF->{MAX_SESSION_TRAFFIC} :  $trafic_limits{0};
   $EX_PARAMS{traf_limit} = ($trafic_limit < 1 && $trafic_limit > 0) ? 1 : int($trafic_limit);
 }
 

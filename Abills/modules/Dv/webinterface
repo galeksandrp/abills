@@ -1770,7 +1770,7 @@ if (defined($FORM{tt})) {
 #      TT_DESCRIBE_2 => $FORM{TT_DESCRIBE_2},
 #      TT_NETS_2 => $FORM{TT_NETS_2},
 #      TT_SPEED_2 => $FORM{TT_SPEED_2},
-#      EX_FILE_PATH => "$conf{netsfilespath}"
+#      EX_FILE_PATH => "$conf{DV_EXPPP_NETFILES}"
 #    });
 #
 #
@@ -1809,7 +1809,7 @@ elsif($attr->{TP}) {
       TT_DESCRIBE_2 => $FORM{TT_DESCRIBE_2},
       TT_NETS_2 => $FORM{TT_NETS_2},
       TT_SPEED_2 => $FORM{TT_SPEED_2},
-      EX_FILE_PATH => "$conf{netsfilespath}"
+      EX_FILE_PATH => "$conf{DV_EXPPP_NETFILES}"
     });
 
 

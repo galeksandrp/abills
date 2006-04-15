@@ -659,11 +659,11 @@ sub tt_del {
 sub create_tt_file {
  my ($self, $file_name, $body) = @_;
  
- open(FILE, ">$CONF->{netsfilespath}/$file_name") || die "Can't create file '$CONF->{netsfilespath}/$file_name' $!\n";
+ open(FILE, ">$CONF->{DV_EXPPP_NETFILES}/$file_name") || die "Can't create file '$CONF->{DV_EXPPP_NETFILES}/$file_name' $!\n";
    print FILE "$body";
  close(FILE);
 
- print "Created '$CONF->{netsfilespath}/$file_name'
+ print "Created '$CONF->{DV_EXPPP_NETFILES}/$file_name'
  <pre>$body</pre>";
  
  return $self;

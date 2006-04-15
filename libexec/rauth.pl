@@ -117,8 +117,7 @@ else {
   Auth->import();
   my $Auth = Auth->new($db, \%conf);
   ($r, $RAD_PAIRS) = $Auth->dv_auth($RAD, $nas, { SECRETKEY => $conf{secretkey},
- 	                                                MAX_SESSION_TRAFFIC => $conf{MAX_SESSION_TRAFFIC},
- 	                                                NETS_FILES_PATH => $conf{netsfilespath} } );
+ 	                                          MAX_SESSION_TRAFFIC => $conf{MAX_SESSION_TRAFFIC}  } );
 }
 
 
