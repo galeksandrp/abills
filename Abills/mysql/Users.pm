@@ -29,7 +29,9 @@ my $uid;
 sub new {
   my $class = shift;
   ($db, $admin, $CONF) = @_;
-  $WHERE = "WHERE " . join(' and ', @WHERE_RULES) if($#WHERE_RULES > -1);$CONF->{MAX_USERNAME_LENGTH} = 10;
+  $WHERE = "WHERE " . join(' and ', @WHERE_RULES) if($#WHERE_RULES > -1);
+  
+  $CONF->{MAX_USERNAME_LENGTH} = 10 if (! defined($CONF->{MAX_USERNAME_LENGTH}));
   
   if (defined($CONF->{USERNAMEREGEXP})) {
   	$usernameregexp=$CONF->{USERNAMEREGEXP};
