@@ -57,7 +57,7 @@ my $debug;
 my %log_levels;
 my $IMG_PATH;
 my $row_number = 0;
-#Hash of url params
+
 
 
 #**********************************************************
@@ -98,7 +98,7 @@ sub new {
             '#dddddd',  # 3 TH.sum, TD.sum
             '#E1E1E1',  # 4 border
             '#FFFFFF',  # 5
-            '#FFFFFF',  # 6
+            '#FF0000',  # 6
             '#000088',  # 7 vlink
             '#0000A0',  # 8 Link
             '#000000',  # 9 Text
