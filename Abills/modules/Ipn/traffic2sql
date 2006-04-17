@@ -116,7 +116,7 @@ my $Acct = Acct->new($db, \%conf);
 
 my $ips         = $Ipn->{USERS_IPS};
 
-my $ips_interium = $Ipn->{INTERIUM};
+my $ips_interium = $Ipn->{INTERIM};
 my $logins       = $Ipn->{LOGINS_IPS};
 my $session_ids  = $Ipn->{SESSIONS_IPS};
 
@@ -129,7 +129,7 @@ foreach my $ip ( sort keys %$ips_interium) {
   my $login      = $logins->{$ip};
   my $session_id = $session_ids->{$ip};
   
-  if ($Ipn->{INTERIUM}{$ip}{IN} + $Ipn->{INTERIUM}{$ip}{OUT} > 0) {
+  if ($Ipn->{INTERIM}{$ip}{IN} + $Ipn->{INTERIM}{$ip}{OUT} > 0) {
    	 %RAD = ( NAS_PORT          => 0,
    	          INBYTE            => $Ipn->{$ip}{IN},
    	          OUTBYTE           => $Ipn->{$ip}{OUT},
@@ -144,7 +144,7 @@ foreach my $ip ( sort keys %$ips_interium) {
 
      $registred .= sprintf("%5s| %15s| %10s| %10s| %10s| %10s|\n", 
        $uid, $RAD{FRAMED_IP_ADDRESS}, $RAD{INBYTE},  $RAD{OUTBYTE}, 
-       	$Ipn->{INTERIUM}{$ip}{IN}, $Ipn->{INTERIUM}{$ip}{OUT}
+       	$Ipn->{INTERIM}{$ip}{IN}, $Ipn->{INTERIM}{$ip}{OUT}
        	) if ($debug == 1);
 
      if ($uid > 0) {
