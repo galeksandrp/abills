@@ -1,5 +1,6 @@
 package Ipn;
-# Auth functions
+# Ipn functions
+#
 #
 
 use strict;
@@ -139,7 +140,7 @@ $self->{debug}=1;
 #**********************************************************
 # traffic_add_log
 #**********************************************************
-sub traffic_add_log {
+sub traffic_agregate {
   my $self = shift;
   my ($DATA) = @_;
  
@@ -188,8 +189,8 @@ sub traffic_add_log {
 #         start,
 #         stop,
 #         traffic_class,
-#         in,
-#         out,
+#         traffic_in,
+#         traffic_out,
 #         nas_id,
 #       )
 #     VALUES (
@@ -203,6 +204,43 @@ sub traffic_add_log {
 
   return $self;
 }
+
+
+
+
+#**********************************************************
+# traffic_add_log
+#**********************************************************
+sub traffic_add_user {
+  my $self = shift;
+  my ($DATA) = @_;
+ 
+  my $start = (! $DATA->{START}) ? 'now()':  "'$DATA->{START}'";
+  my $stop= 0;
+ 
+  $self->query($db, "insert into ipn_log (
+         uid,
+         start,
+         stop,
+         traffic_class,
+         traffic_in,
+         traffic_out,
+         nas_id
+       )
+     VALUES (
+       '$DATA->{UID}',
+        $start,
+        $stop,
+       '$DATA->{TARFFIC_CLASS}',
+       '$DATA->{INBYTE}',
+       '$DATA->{OUTBYTE}',
+       '$DATA->{NAS_ID}'
+      );", 'do');
+
+
+  return $self;
+}
+
 
 #**********************************************************
 # traffic_add

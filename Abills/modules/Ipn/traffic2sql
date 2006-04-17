@@ -85,7 +85,7 @@ while( <LOG> ) {
 		$DATA{DST_PORT} = 0 if ( $DATA{DST_PORT} !~ /^\d+$/ );
 		$DATA{NAS_ID}=$NAS_ID;
 		$DATA{IF_NAME}='0';
-    $Ipn->traffic_add_log({ %DATA });
+    $Ipn->traffic_agregate({ %DATA });
 
     #$Ipn->traffic_add({ %DATA });
 
@@ -146,10 +146,17 @@ foreach my $ip ( sort keys %$ips_interium) {
      $registred .= sprintf("%5s| %15s| %10s| %10s| %10s| %10s|\n", 
        $uid, $RAD{FRAMED_IP_ADDRESS}, $RAD{INBYTE},  $RAD{OUTBYTE}, 
        	$Ipn->{INTERIM}{$ip}{IN}, $Ipn->{INTERIM}{$ip}{OUT}
-       	) if ($debug == 1);
+      ) if ($debug == 1);
 
      if ($uid > 0) {
    	    my $r = $Acct->accounting(\%RAD, { NAS_ID => $NAS_ID });
+   	    $Ipn->traffic_add_user( {
+   	        UID            => "$uid",
+            TARFFIC_CLASS  => "0",
+            INBYTE         => "$Ipn->{INTERIM}{$ip}{IN}",
+            OUTBYTE        => "$Ipn->{INTERIM}{$ip}{OUT}",
+            NAS_ID         => $NAS_ID
+   	      } );
       }
 
 	 }
