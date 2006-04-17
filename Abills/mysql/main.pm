@@ -126,9 +126,6 @@ else {
   $self->{TOTAL}=0;
   $q = $db->prepare($query) || die $db->errstr;;
   if($db->err) {
-     
-
-     
      $self->{errno} = 3;
      $self->{sql_errno}=$db->err;
      $self->{sql_errstr}=$db->errstr;
@@ -198,7 +195,6 @@ sub get_data {
   	 my $dhr = $attr->{default};
   	 %DATA = %$dhr;
    }
-
 
   
   while(my($k, $v)=each %$params) {

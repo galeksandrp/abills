@@ -168,7 +168,7 @@ if ($debug == 1) {
    }
 
 	print "$unknow_ip$registred
-    $GT / $sql->{mysql}->{query_count}\n";
+    $GT / $Ipn->{query_count}\n";
 
 }
 elsif($unknow_ip ne '') {
