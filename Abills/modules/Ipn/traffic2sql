@@ -174,8 +174,7 @@ if ($debug == 1) {
     $GT = sprintf(" GT: %2.5f", $gen_time);
    }
 
-	print "$unknow_ip$registred
-    $GT / $Ipn->{query_count}\n";
+	print "$unknow_ip$registred  $GT / $Ipn->{query_count}\n";
 
 }
 elsif($unknow_ip ne '') {
