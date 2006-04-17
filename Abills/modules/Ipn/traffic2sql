@@ -149,11 +149,11 @@ foreach my $ip ( sort keys %$ips_interium) {
        	) if ($debug == 1);
 
      if ($uid > 0) {
-   	   # my $r = $Acct->accounting(\%RAD, { NAS_ID => $NAS_ID });
+   	    my $r = $Acct->accounting(\%RAD, { NAS_ID => $NAS_ID });
       }
 
 	 }
-	#print int2ip($k). "\t$v: $Ipn->{$v}{IN}\t $Ipn->{$v}{OUT}\n";
+
 }
 
 
