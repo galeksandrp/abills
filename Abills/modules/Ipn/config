@@ -12,8 +12,10 @@ $web_interface    = 1;
 
                    );
 
-%USER_FUNCTION_LIST = ("01:0:IP Net:ipn_user_activate:"     => 0
+%USER_FUNCTION_LIST = (
                        );
+
+$USER_FUNCTION_LIST{"01:0:IP Net:ipn_user_activate:"} = 0 if ($conf{IPN_USERMENU});
 
 #%PERIODIC = (daily   => 'dv_daily_fees',
 #             monthly => 'dv_monthly_fees');

@@ -73,6 +73,8 @@ sub user_ips {
   
   $self->{0}{IN}=0;
  	$self->{0}{OUT}=0;
+  $self->{INTERIUM}{0}{IN}=0;
+ 	$self->{INTERIUM}{0}{OUT}=0;
 
 
 
@@ -82,6 +84,9 @@ sub user_ips {
   	 $session_ids{$line->[1]}      = $line->[3];
   	 $self->{$line->[1]}{IN}  = $line->[4];
   	 $self->{$line->[1]}{OUT} = $line->[5];
+  	 
+   	 $self->{INTERIUM}{$line->[1]}{IN}  = 0;
+  	 $self->{INTERIUM}{$line->[1]}{OUT} = 0;
    }
  
   $self->{USERS_IPS}   = \%ips;
@@ -144,6 +149,7 @@ sub traffic_add_log {
   if (defined($ips->{$DATA->{SRC_IP}})) {
     $DATA->{UID} = $ips->{$DATA->{SRC_IP}};
  	 	$self->{$DATA->{SRC_IP}}{OUT}+=$DATA->{SIZE};
+ 		$self->{INTERIUM}{$DATA->{SRC_IP}}{OUT}+=$DATA->{SIZE};
  		$y++;
    }
 #  else {
@@ -155,12 +161,14 @@ sub traffic_add_log {
   if (defined($ips->{$DATA->{DST_IP}})) {
     $DATA->{UID} = $ips->{$DATA->{DST_IP}};
 	  $self->{$DATA->{DST_IP}}{IN}+=$DATA->{SIZE};
+  	$self->{INTERIUM}{$DATA->{DST_IP}}{IN}+=$DATA->{SIZE};
 	  $y++;
    }
   elsif ($y < 1) {
   	$DATA->{UID}=0;
-  	$self->{$DATA->{UID}}{OUT}+=$DATA->{SIZE};
+  	$self->{INTERIUM}{$DATA->{UID}}{OUT}+=$DATA->{SIZE};
     push @{$self->{IN}}, "$DATA->{SRC_IP}/$DATA->{DST_IP}/$DATA->{SIZE}";	
+
     #push @{$self->{OUT}}, "$DATA->{DST_IP}/$DATA->{DST_IP}";
    }
 

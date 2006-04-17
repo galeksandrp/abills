@@ -115,16 +115,21 @@ my $Acct = Acct->new($db, \%conf);
 
 
 my $ips         = $Ipn->{USERS_IPS};
-my $logins      = $Ipn->{LOGINS_IPS};
-my $session_ids = $Ipn->{SESSIONS_IPS};
+
+my $ips_interium = $Ipn->{INTERIUM};
+my $logins       = $Ipn->{LOGINS_IPS};
+my $session_ids  = $Ipn->{SESSIONS_IPS};
 
 my %RAD = ();
-foreach my $ip ( sort keys %$ips) {
+my $registred = '';
+
+
+foreach my $ip ( sort keys %$ips_interium) {
   my $uid        = $ips->{$ip};
   my $login      = $logins->{$ip};
   my $session_id = $session_ids->{$ip};
   
-  if ($Ipn->{$ip}{IN} + $Ipn->{$ip}{OUT} > 0) {
+  if ($Ipn->{INTERIUM}{$ip}{IN} + $Ipn->{INTERIUM}{$ip}{OUT} > 0) {
    	 %RAD = ( NAS_PORT          => 0,
    	          INBYTE            => $Ipn->{$ip}{IN},
    	          OUTBYTE           => $Ipn->{$ip}{OUT},
@@ -133,12 +138,17 @@ foreach my $ip ( sort keys %$ips) {
               FRAMED_IP_ADDRESS => int2ip($ip),
               USER_NAME         => $login,
               ACCT_SESSION_ID   => $session_id,
-              ACCT_STATUS_TYPE  => 'Alive' );
+              ACCT_STATUS_TYPE  => 'Alive'
+              
+               );
 
-     printf("%5s| %15s| %10s| %10s|\n", $uid, $RAD{FRAMED_IP_ADDRESS}, $RAD{INBYTE}, $Ipn->{$ip}{OUT}) if ($debug == 1);
+     $registred .= sprintf("%5s| %15s| %10s| %10s| %10s| %10s|\n", 
+       $uid, $RAD{FRAMED_IP_ADDRESS}, $RAD{INBYTE},  $RAD{OUTBYTE}, 
+       	$Ipn->{INTERIUM}{$ip}{IN}, $Ipn->{INTERIUM}{$ip}{OUT}
+       	) if ($debug == 1);
 
      if ($uid > 0) {
-   	   my $r = $Acct->accounting(\%RAD, { NAS_ID => $NAS_ID });
+   	   # my $r = $Acct->accounting(\%RAD, { NAS_ID => $NAS_ID });
       }
 
 	 }
@@ -147,13 +157,16 @@ foreach my $ip ( sort keys %$ips) {
 
 
 if ($debug == 1) {
-	print $unknow_ip;
+	print 
+	$unknow_ip,
+	$registred
+	;
 }
 elsif($unknow_ip ne '') {
- open(FILE, ">>$unknown_ip_log") or die "Can't open '$unknown_ip_log' $!";
-   print FILE ">> $DATE $TIME\n";
-   print FILE $unknow_ip;
- close(FILE);
+  open(FILE, ">>$unknown_ip_log") or die "Can't open '$unknown_ip_log' $!";
+    print FILE ">> $DATE $TIME\n";
+    print FILE $unknow_ip;
+  close(FILE);
 }
 
 

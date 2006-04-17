@@ -12,10 +12,14 @@ fi;
 # IF_NAME - interface name
 IF_NAME=$2;
 NAS_ID=$1;
+TRAFFIC2SQL=/usr/abills/libexec/traffic2sql
 
 if [ w$3 = wdebug  ]; then
- DEBUG="debug=1";
- 
+  DEBUG="debug=1";
+fi;
+
+if [ w$4 != w ]; then
+  TRAFFIC2SQL=$4;
 fi;
 
 
@@ -33,7 +37,7 @@ sleep 5
 
 #/home/asmodeus/abills2/libexec/traffic2sql ${NAS_ID} ${IF_NAME}
 
-/usr/abills/libexec/traffic2sql ${NAS_ID} ${IF_NAME} ${DEBUG}
+${TRAFFIC2SQL} ${NAS_ID} ${IF_NAME} ${DEBUG}
 
 
 

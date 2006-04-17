@@ -2503,6 +2503,7 @@ my @m = (
  "92:90:$_DICTIONARY:form_dictionary:::",
  "93:90:Config:form_config:::",
  "94:90:WEB server:form_webserver_info:::",
+ "95:90:$_SQL_BACKUP:form_sql_backup:::",
  "6:0:$_OTHER:null:::",
  "1000:6:Wizards:wizard:::",
   
@@ -3585,7 +3586,53 @@ $GROUPS_SEL = $html->form_select('GID',
  return $GROUPS_SEL;	
 }
 
+
 #*******************************************************************
+# Make SQL backup
+#*******************************************************************
+sub form_sql_backup {
+
+
+if ($FORM{mk_backup}) {
+   print "$MYSQLDUMP --host=$conf{dbhost} --user=\"$conf{dbuser}\" --password=\"****\" $conf{dbname} | $GZIP > $BACKUP_DIR/abills-$DATE.sql.gz<br>";
+   my $res = `$MYSQLDUMP --host=$conf{dbhost} --user="$conf{dbuser}" --password="$conf{dbpasswd}" $conf{dbname} | $GZIP > $conf{BACKUP_DIR}/abills-$DATE.sql.gz`;
+   $html->message('info', $_INFO, "Backup created: $res ($conf{BACKUP_DIR}/abills-$DATE.sql.gz)");
+ }
+elsif($FORM{del}) {
+  my $status = unlink("$conf{BACKUP_DIR}/$FORM{del}");
+  $html->message('info', $_INFO, "$_DELETED : $conf{BACKUP_DIR}/$FORM{del} [$status]");
+}
+
+
+
+
+  my $table = $html->table( { width      => '600',
+                              caption    => "$_SQL_BACKUP",
+                              border     => 1,
+                              title      => ["$_NAME", $_DATE, $_SIZE, '-'],
+                              cols_align => ['left', 'right', 'right', 'center']
+                               } );
+
+
+  opendir DIR, $conf{BACKUP_DIR} or $html->message('err', $_ERROR, "Can't open dir '$conf{BACKUP_DIR}' $!\n");
+    my @contents = grep  !/^\.\.?$/  , readdir DIR;
+  closedir DIR;
+
+  use POSIX qw(strftime);
+  foreach my $filename (@contents) {
+    my ($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size,$atime,$mtime,$ctime,$blksize,$blocks)=stat("$conf{BACKUP_DIR}/$filename");
+    my $date = strftime "%Y-%m-%d %H:%M:%S", localtime($mtime);
+    $table->addrow($filename,  $date, $size, $html->button($_DEL, "index=$index&del=$filename", { MESSAGE => "$_DEL $filename?" })
+    );
+   }
+
+ print  $table->show();
+ print  $html->button($_CREATE, "index=$index&mk_backup=y");
+	
+}
+
+
+#******************************************************************
 #
 #*******************************************************************
 sub weblog {
@@ -3672,4 +3719,10 @@ sub wizard {
 #  $html->tpl_show($template, $wizard);
 #  print "</table>\n";
 	
+
+
+	
 }
+
+
+

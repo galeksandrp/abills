@@ -495,7 +495,7 @@ else {
   $exec=`$SNMPSET -v 1 -c $SNMP_COM $NAS->{NAS_IP} 1.3.6.1.2.1.2.2.1.7.$INTNUM i 2 > /dev/null 2>&1`;
 }
 
- return 0;
+ return $exec;
 }
 
 #*******************************************************************
@@ -673,10 +673,11 @@ sub stats_pppd  {
 # hangup_pppd($SERVER, $PORT)
 #*******************************************************************
 sub hangup_pppd {
- my ($NAS_IP, $id) = @_;
+ my ($NAS, $id) = @_;
 
  use FindBin '$Bin';
- system ("/usr/bin/sudo $Bin/modules/hangup.pl hangup $id");
+ 
+ system ("/usr/bin/sudo /usr/abills/misc/pppd_hangup.pl hangup $id");
  return 0;
 }
 
