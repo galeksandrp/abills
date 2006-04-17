@@ -29,6 +29,8 @@ require Abills::SQL;
 my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
 my $db  = $sql->{db};
 
+
+
 require Ipn;
 Ipn->import();
 my $Ipn = Ipn->new($db, \%conf);
@@ -165,10 +167,8 @@ if ($debug == 1) {
     $GT = sprintf(" GT: %2.5f", $gen_time);
    }
 
-	print "
-	 $unknow_ip$registred
-	 $GT
-	";
+	print "$unknow_ip$registred
+    $GT / $sql->{mysql}->{query_count}\n";
 
 }
 elsif($unknow_ip ne '') {

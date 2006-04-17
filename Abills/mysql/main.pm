@@ -16,7 +16,6 @@ use vars qw(@ISA @EXPORT @EXPORT_OK %EXPORT_TAGS $VERSION
   $DESC
   $PG
   $PAGE_ROWS
-
 );
 
 use Exporter;
@@ -55,7 +54,7 @@ $DESC      = '';
 $PG        = 0;
 $PAGE_ROWS = 25;
 
-
+my $query_count = 0;
 
 
 use DBI;
@@ -78,7 +77,8 @@ sub connect {
    #  $self->{errno}=3;
    #  $self->{errstr}=;
    #}
-
+  
+  $self->{query_count}=0;
   return $self;
 }
 
@@ -147,6 +147,7 @@ else {
      $self->{errstr}=$db->errstr;
      return $self->{errno};
    }
+
   $self->{Q}=$q;
   $self->{TOTAL} = $q->rows;
 }
@@ -177,7 +178,10 @@ if ($self->{TOTAL} > 0) {
 else {
 	delete $self->{list};
 }
-  return $self;
+
+ $self->{query_count}++;
+
+ return $self;
 }
 
 
