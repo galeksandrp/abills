@@ -2,10 +2,9 @@
 # PUSH traffic to sql
 # 
 #
-
-
 use vars  qw(%RAD %conf $db %AUTH $DATE $TIME $var_dir);
 use strict;
+
 
 
 
@@ -157,10 +156,20 @@ foreach my $ip ( sort keys %$ips_interium) {
 
 
 if ($debug == 1) {
-	print 
-	$unknow_ip,
-	$registred
-	;
+	my $GT = '';
+	
+  if ($begin_time > 0)  {
+    Time::HiRes->import(qw(gettimeofday));
+    my $end_time = gettimeofday();
+    my $gen_time = $end_time - $begin_time;
+    $GT = sprintf(" GT: %2.5f", $gen_time);
+   }
+
+	print "
+	 $unknow_ip$registred
+	 $GT
+	";
+
 }
 elsif($unknow_ip ne '') {
   open(FILE, ">>$unknown_ip_log") or die "Can't open '$unknown_ip_log' $!";
