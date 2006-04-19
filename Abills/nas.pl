@@ -8,6 +8,7 @@
 #*******************************************************************
 
 my $PPPCTL = '/usr/sbin/pppctl';
+my $RADCLIENT = '/usr/local/bin/radclient';
 
 #my $NAS_INFO = nas_params();
 my $NAS;
@@ -426,7 +427,7 @@ sub radius_disconnect {
   
   my ($ip, $mng_port)=split(/:/, $NAS->{NAS_MNG_IP_PORT}, 2);
   
-  my $result = `echo "User-Name=$USER" | radclient $ip:$mng_port 40 $NAS->{NAS_MNG_PASSWORD}`;
+  my $result = `echo "User-Name=$USER" | $RADCLIENT $ip:$mng_port 40 $NAS->{NAS_MNG_PASSWORD}`;
 
   #Received response ID 219, code 41, length = 20 `;
   #echo "User-Name = user" | radclient 10.0.0.219:3799 40 secret123

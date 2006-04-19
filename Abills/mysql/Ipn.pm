@@ -31,8 +31,6 @@ my $debug = 0;
 
 my %zones;
 my @zoneids;
-my %total_inb=();
-my %total_outb=();
 
 my @clients_lst = ();
 
@@ -201,18 +199,22 @@ sub traffic_agregate2 {
 	  if ($self->is_client_ip($DATA->{SRC_IP})) { # это исходящий трафик клиента
       if ($self->{debug}) { print "         It is outbound\n"; }
 	    # прогоняем адрес по зонам и смотрим, куда попадает
-	    foreach my $zid (@zoneids) {
-  	    if (ip_in_zone($DATA->{DST_IP}, $DATA->{DST_PORT}, $zid)) {
-		      # в эту зону попал, плюсуем трафик и заканчиваем проверку
+	    
+	    if ( $#zoneids >= 0 ) {
+	      foreach my $zid (@zoneids) {
+  	      if (ip_in_zone($DATA->{DST_IP}, $DATA->{DST_PORT}, $zid)) {
+		        # в эту зону попал, плюсуем трафик и заканчиваем проверку
 
-          #$self->{$DATA->{SRC_IP}}{"$zid"}{IN} = 0 if (! defined($self->{$DATA->{SRC_IP}}{"$zid"}{IN}));
-		      $self->{INTERIM}{$DATA->{SRC_IP}}{"$zid"}{OUT} = $DATA->{SIZE};
-		      $total_outb{$DATA->{SRC_IP}}{$zid} += $DATA->{SIZE};
-		      
-		      #print " $zid $DATA->{SIZE} ". int2ip($DATA->{SRC_IP}) ." -> ". int2ip($DATA->{DST_IP}) ."\n";
-		      
-		      last;
-		     }
+            #$self->{$DATA->{SRC_IP}}{"$zid"}{IN} = 0 if (! defined($self->{$DATA->{SRC_IP}}{"$zid"}{IN}));
+		        $self->{INTERIM}{$DATA->{SRC_IP}}{"$zid"}{OUT} = $DATA->{SIZE};
+	  	      #print " $zid $DATA->{SIZE} ". int2ip($DATA->{SRC_IP}) ." -> ". int2ip($DATA->{DST_IP}) ."\n";
+    
+		        last;
+		       }
+	       }
+       }
+	    else {
+	    	 $self->{INTERIM}{$DATA->{SRC_IP}}{"0"}{OUT} = $DATA->{SIZE};
 	     }
 	    $y++;
 	   }
@@ -221,17 +223,23 @@ sub traffic_agregate2 {
       if ($self->{debug}) { print "         It is inbound\n"; }
 
 	    # прогоняем адрес по зонам и смотрим, куда попадает
-	    foreach my $zid (@zoneids) {
- 		    if (ip_in_zone($DATA->{SRC_IP}, $DATA->{SRC_PORT}, $zid)) {
-		      # в эту зону попал, плюсуем трафик и заканчиваем проверку
-		      $self->{INTERIM}{$DATA->{DST_IP}}{"$zid"}{IN} += $DATA->{SIZE};
-		      $total_inb{$DATA->{DST_IP}}{$zid} += $DATA->{SIZE};
+	    if ($#zoneids >= 0) {
+	      foreach my $zid (@zoneids) {
+ 		      if (ip_in_zone($DATA->{SRC_IP}, $DATA->{SRC_PORT}, $zid)) {
+		        # в эту зону попал, плюсуем трафик и заканчиваем проверку
+	  	      $self->{INTERIM}{$DATA->{DST_IP}}{"$zid"}{IN} += $DATA->{SIZE};
 		      
-		      #print " $zid $DATA->{SIZE} ". int2ip($DATA->{DST_IP}) ." -> ". int2ip($DATA->{SRC_IP}) ."\n";
+  		      #print " $zid $DATA->{SIZE} ". int2ip($DATA->{DST_IP}) ." -> ". int2ip($DATA->{SRC_IP}) ."\n";
 		      
-		      last;
-		     }
+  		      last;
+		       }
+	       }
+       }
+	    else {
+	    	 $self->{INTERIM}{$DATA->{DST_IP}}{"0"}{IN} = $DATA->{SIZE};
 	     }
+
+	   
 	   }
    elsif ($y < 1) {
   	$DATA->{UID}=0;
@@ -259,7 +267,7 @@ sub get_zone {
   Tariffs->import();
   my $tariffs = Tariffs->new($db, $admin);
 
-  my $list = $tariffs->tt_list({ TI_ID => 37 });
+  my $list = $tariffs->tt_list({ TI_ID => 0 });
   my %nets = ();
 
 
@@ -309,6 +317,7 @@ sub get_zone {
        }
  	 }
 
+#print  "--- $#zoneids \n";
 
 }
 
