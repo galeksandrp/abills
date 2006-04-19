@@ -450,15 +450,16 @@ elsif ($NAS->{NAS_TYPE} eq 'mpd') {
 ###########################################################
 # pppd + RADIUS plugin (Linux) http://samba.org/ppp/
 elsif ($NAS->{NAS_TYPE} eq 'pppd') {
-  my $EX_PARAMS = $self->ex_traffic_params( { 
-  	                                        traf_limit => $traf_limit, 
-                                            deposit => $self->{DEPOSIT},
-                                            MAX_SESSION_TRAFFIC => $MAX_SESSION_TRAFFIC });
+  my $EX_PARAMS = $self->ex_traffic_params({ 
+  	                                         traf_limit => $traf_limit, 
+                                             deposit    => $self->{DEPOSIT},
+                                             MAX_SESSION_TRAFFIC => $MAX_SESSION_TRAFFIC 
+                                           });
 
   #global Traffic
   if ($EX_PARAMS->{traf_limit} > 0) {
     $RAD_PAIRS->{'Session-Octets-Limit'} = $EX_PARAMS->{traf_limit} * 1024 * 1024;
-    $RAD_PAIRS->{'Octets-Direction'} = 0;
+    $RAD_PAIRS->{'Octets-Direction'} = $self->{OCTETS_DIRECTION};
    }
  }
 

@@ -27,7 +27,14 @@ my ($Y, $M, $D)=split(/-/, $DATE, 3);
 my %ips = ();
 my $db;
 my $CONF;
-my $debug =0;
+my $debug = 0;
+
+my %zones;
+my @zoneids;
+my %total_inb=();
+my %total_outb=();
+
+my @clients_lst = ();
 
 #**********************************************************
 # Init 
@@ -74,8 +81,8 @@ sub user_ips {
   
   $self->{0}{IN}=0;
  	$self->{0}{OUT}=0;
-  $self->{INTERIM}{0}{IN}=0;
- 	$self->{INTERIM}{0}{OUT}=0;
+  #$self->{INTERIM}{0}{IN}=0;
+ 	#$self->{INTERIM}{0}{OUT}=0;
 
 
 
@@ -86,13 +93,16 @@ sub user_ips {
   	 $self->{$line->[1]}{IN}  = $line->[4];
   	 $self->{$line->[1]}{OUT} = $line->[5];
   	 
-   	 $self->{INTERIM}{$line->[1]}{IN}  = 0;
-  	 $self->{INTERIM}{$line->[1]}{OUT} = 0;
+   	 #$self->{INTERIM}{$line->[1]}{IN}  = 0;
+  	 #$self->{INTERIM}{$line->[1]}{OUT} = 0;
+  	 	
+  	 push @clients_lst, $line->[1];
    }
  
   $self->{USERS_IPS}   = \%ips;
   $self->{LOGINS_IPS}  = \%logins;
   $self->{SESSIONS_IPS}= \%session_ids;
+  
 
   return $self;
 }
@@ -173,38 +183,185 @@ sub traffic_agregate {
     #push @{$self->{OUT}}, "$DATA->{DST_IP}/$DATA->{DST_IP}";
    }
 
-  
-
-
-  my $start = 'now()';
-  my $traffic_class = 0;
-  my $in  = 0;
-  my $out = 0;
-
-
-
-  
-#  $self->query($db, "insert into ipn_log (
-#         uid,
-#         start,
-#         stop,
-#         traffic_class,
-#         traffic_in,
-#         traffic_out,
-#         nas_id,
-#       )
-#     VALUES (
-#        $DATA->{UID},
-#        $start,
-#       '$traffic_class',
-#       '$in',
-#       '$out',
-#       '$DATA->{NAS_ID}'
-#      );", 'do');
 
   return $self;
 }
 
+
+#**********************************************************
+# traffic_add_log
+#**********************************************************
+sub traffic_agregate2 {
+  my $self = shift;
+  my ($DATA) = @_;
+ 
+  my $ips=$self->{USERS_IPS};
+  my $y = 0;
+
+	  if ($self->is_client_ip($DATA->{SRC_IP})) { # это исходящий трафик клиента
+      if ($self->{debug}) { print "         It is outbound\n"; }
+	    # прогоняем адрес по зонам и смотрим, куда попадает
+	    foreach my $zid (@zoneids) {
+  	    if (ip_in_zone($DATA->{DST_IP}, $DATA->{DST_PORT}, $zid)) {
+		      # в эту зону попал, плюсуем трафик и заканчиваем проверку
+
+          #$self->{$DATA->{SRC_IP}}{"$zid"}{IN} = 0 if (! defined($self->{$DATA->{SRC_IP}}{"$zid"}{IN}));
+		      $self->{INTERIM}{$DATA->{SRC_IP}}{"$zid"}{OUT} = $DATA->{SIZE};
+		      $total_outb{$DATA->{SRC_IP}}{$zid} += $DATA->{SIZE};
+		      
+		      #print " $zid $DATA->{SIZE} ". int2ip($DATA->{SRC_IP}) ." -> ". int2ip($DATA->{DST_IP}) ."\n";
+		      
+		      last;
+		     }
+	     }
+	    $y++;
+	   }
+
+	  if ($self->is_client_ip($DATA->{DST_IP})) { # это входящий трафик клиента
+      if ($self->{debug}) { print "         It is inbound\n"; }
+
+	    # прогоняем адрес по зонам и смотрим, куда попадает
+	    foreach my $zid (@zoneids) {
+ 		    if (ip_in_zone($DATA->{SRC_IP}, $DATA->{SRC_PORT}, $zid)) {
+		      # в эту зону попал, плюсуем трафик и заканчиваем проверку
+		      $self->{INTERIM}{$DATA->{DST_IP}}{"$zid"}{IN} += $DATA->{SIZE};
+		      $total_inb{$DATA->{DST_IP}}{$zid} += $DATA->{SIZE};
+		      
+		      #print " $zid $DATA->{SIZE} ". int2ip($DATA->{DST_IP}) ." -> ". int2ip($DATA->{SRC_IP}) ."\n";
+		      
+		      last;
+		     }
+	     }
+	   }
+   elsif ($y < 1) {
+  	$DATA->{UID}=0;
+  	#$self->{INTERIM}{$DATA->{UID}}{OUT}+=$DATA->{SIZE};
+    push @{$self->{IN}}, "$DATA->{SRC_IP}/$DATA->{DST_IP}/$DATA->{SIZE}";	
+
+    #push @{$self->{OUT}}, "$DATA->{DST_IP}/$DATA->{DST_IP}";
+   }
+
+  
+}
+
+#**********************************************************
+#
+#**********************************************************
+sub get_zone {
+	my $self = shift;
+	my ($attr)=@_;
+
+
+	my $zoneid = 0;
+  my $tariff = 0;
+
+  require Tariffs;
+  Tariffs->import();
+  my $tariffs = Tariffs->new($db, $admin);
+
+  my $list = $tariffs->tt_list({ TI_ID => 37 });
+  my %nets = ();
+
+
+
+  foreach my $line (@$list)  {
+ 	    #$speeds{$line->[0]}{IN}="$line->[4]";
+ 	    #$speeds{$line->[0]}{OUT}="$line->[5]";
+      $zoneid=$line->[0];
+
+      $zones{$zoneid}{PriceIn}=$line->[1]+0;
+      $zones{$zoneid}{PriceOut}=$line->[2]+0;
+  	  my $ip_list="$line->[7]";
+  	  
+  	  #Make ip hach
+      # !10.10.0.0/24:3400
+      # [Negative][IP][/NETMASK][:PORT]
+      my @ip_list_array = split(/\n|;/, $ip_list);
+      
+      push @zoneids, $zoneid;
+
+      my $i = 0;      
+      foreach my $ip_full (@ip_list_array) {
+   	    if ($ip_full =~ /([!]{0,1})(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(\/{0,1})(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/ ) {
+   	    	my $NEG      = $1 || ''; 
+   	    	my $IP       = unpack("N", pack("C4", split( /\./, $2))); 
+   	    	my $NETMASK  = unpack("N", pack("C4", split( /\./, "$4")));
+   	    	
+   	    	#print "REG ID: $zoneid NEGATIVE: $NEG IP: $IP MASK: $NETMASK\n";
+
+  	      $zones{$zoneid}{A}[$i]{IP}   = $IP;
+	        $zones{$zoneid}{A}[$i]{Mask} = $NETMASK;
+	        $zones{$zoneid}{A}[$i]{Neg}  = $NEG;
+	        
+    	    #my $sth2 = $dbh->prepare("SELECT PortNum FROM Port WHERE Address_ID=$ref1->{'ID'}");
+    	    #$sth2->execute();
+	        
+	        @{$zones{$zoneid}{A}[$i]{'Ports'}} = ();
+	      	
+	      	#while (my $ref2=$sth2->fetchrow_hashref()) {
+	        #  if ($DEBUG) { print "$ref2->{'PortNum'} "; }
+	        #  push @{$zones{$zoneid}{A}[$i]{Ports}}, $ref2->{'PortNum'};
+	        #}
+   	     }
+
+        
+        $i++;
+       }
+ 	 }
+
+
+}
+
+
+
+
+
+#**********************************************************
+# определяет принадлежность адреса зоне, зоны заданы СУПЕР-ПУПЕР-хэшем %zones
+#**********************************************************
+sub ip_in_zone($$$) {
+    my $self;
+    my ($ip_num, $port, $zoneid) = @_;
+    
+    # переводим адрес в число
+
+    # изначально считаем, что адрес в зону не попадает
+    my $res = 0;
+    # debug
+
+
+
+    if ($self->{debug}) { print "--- CALL ip_in_zone($ip_num, $port, $zoneid) -> \n"; }
+    # идем по списку адресов зоны
+    for (my $i=0; $i<=$#{$zones{$zoneid}{A}}; $i++) {
+	     
+	     my $adr_hash = \%{$zones{$zoneid}{A}[$i]};
+       
+       my $a_ip = $$adr_hash{'IP'}; 
+       my $a_msk = $$adr_hash{'Mask'}; 
+       my $a_neg = $$adr_hash{'Neg'}; 
+       my $a_ports_ref = \@{$$adr_hash{'Ports'}};
+       
+       
+       # если адрес попадает в подсеть
+       if ( (($a_ip & $a_msk) == ($ip_num & $a_msk)) && # адрес совпадает
+              (is_exist($a_ports_ref, $port)) ) {       # И порт совпадает
+
+          #print ">>". int2ip($a_ip). " & $a_msk / ". int2ip($ip_num) ." $zoneid / $res\n";
+	        if ($a_neg) { # если установлен бит выбрасывания адреса
+		        $res = 0; # то выбрасываем найденный адрес из зоны
+	         } 
+	        else {
+		        $res = 1;
+            #print ">>". int2ip($a_ip). " & $a_msk / ". int2ip($ip_num) ." $zoneid / $res\n";
+		        next; #next
+	         }
+	      }
+    }
+    
+    #if ($self->{debug}) { print "IP is " . ($res ? "" : "not ") . "in zone $zoneid\n";  }
+    return $res;									  												      
+}
 
 
 
@@ -726,5 +883,47 @@ else {
 }
 
 
+
+sub is_client_ip($) {
+  my $self = shift;
+  my $ip = shift @_;
+
+    if ($self->{debug}) { print "--- CALL is_client_ip($ip),\t\$#clients_lst = $#clients_lst\n"; }
+    if ($#clients_lst < 0) {return 0;} # список пуст!
+    foreach my $i (@clients_lst) {
+	    if ($i eq $ip) { return 1; }
+     }
+    if ($self->{debug}) { print "         Client $ip not found in \@clients_lst\n"; }
+    return 0;
+}
+
+# определяет наличие элемента в массиве (массив по ссылке)
+sub is_exist($$)
+{
+    (my $arrayref, my $elem) = @_;
+    # если список пуст, считаем, что элемент в него попадает
+    if ($#{@$arrayref} == -1) { return 1; }
+    
+    foreach my $e (@$arrayref) {
+	    if ($e eq $elem) { return 1; }
+     }
+    
+    return 0;
+}
+
+
+#*******************************************************************
+# Convert integer value to ip
+# int2ip($i);
+#*******************************************************************
+sub int2ip {
+my $i = shift;
+my (@d);
+$d[0]=int($i/256/256/256);
+$d[1]=int(($i-$d[0]*256*256*256)/256/256);
+$d[2]=int(($i-$d[0]*256*256*256-$d[1]*256*256)/256);
+$d[3]=int($i-$d[0]*256*256*256-$d[1]*256*256-$d[2]*256);
+ return "$d[0].$d[1].$d[2].$d[3]";
+}
 
 1

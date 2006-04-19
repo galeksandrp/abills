@@ -31,7 +31,7 @@ LOG_PATH='/usr/abills/var/log/ipn/';
 
 
 /usr/local/bin/trafsave ${IF_NAME}
-sleep 5
+#sleep 5
 /usr/local/bin/traflog -n -i ${IF_NAME} > ${LOG_PATH}trafd_${NAS_ID}_${IF_NAME}
 /bin/rm /usr/local/var/trafd/trafd.${IF_NAME}
 
