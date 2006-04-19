@@ -132,15 +132,10 @@ my $registred = '';
 
 
 foreach my $ip ( sort keys %$ips_interim) {
-	
   my $uid        = $ips->{$ip};
   my $login      = $logins->{$ip};
   my $session_id = $session_ids->{$ip};
-  
-  
-  
   my $ip_stats = $Ipn->{INTERIM}{$ip};
-
   my $total_in = 0; 
   my $total_out = 0;
   my $extended = '';
@@ -151,43 +146,41 @@ foreach my $ip ( sort keys %$ips_interim) {
       $total_in += $in;
       $total_out += $out;
       
+      if ($uid > 0) {
+##   	  my $r = $Acct->accounting(\%RAD, { NAS_ID => $NAS_ID });
+   	    $Ipn->traffic_add_user( {
+   	        UID            => "$uid",
+            TARFFIC_CLASS  => $k,
+            INBYTE         => "$in",
+            OUTBYTE        => "$out",
+            NAS_ID         => $NAS_ID
+   	      } );
+      }
       $extended = sprintf("   %d| %10s| %10s|\n", $k, $in, $out);
    }
   
-  printf("%15s IN: %10s OUT: %10s\n%s", int2ip($ip), $total_in, $total_out, $extended);
+  if ($uid > 0) {
+   	%RAD = (  NAS_PORT          => 0,
+   	          INBYTE            => $Ipn->{$ip}{IN}+$total_in,
+   	          OUTBYTE           => $Ipn->{$ip}{OUT}+$total_out,
+   	          INBYTE2           => 0,
+   	          OUTBYTE2          => 0,
+              FRAMED_IP_ADDRESS => int2ip($ip),
+              USER_NAME         => $login,
+              ACCT_SESSION_ID   => $session_id,
+              ACCT_STATUS_TYPE  => 'Alive'
+               );
+
+    my $r = $Acct->accounting(\%RAD, { NAS_ID => $NAS_ID });
+   }
   
-#  if ($Ipn->{INTERIM}{$ip}{IN} + $Ipn->{INTERIM}{$ip}{OUT} > 0) {
-#   	 %RAD = ( NAS_PORT          => 0,
-#   	          INBYTE            => $Ipn->{$ip}{IN},
-#   	          OUTBYTE           => $Ipn->{$ip}{OUT},
-#   	          INBYTE2           => 0,
-#   	          OUTBYTE2          => 0,
-#              FRAMED_IP_ADDRESS => int2ip($ip),
-#              USER_NAME         => $login,
-#              ACCT_SESSION_ID   => $session_id,
-#              ACCT_STATUS_TYPE  => 'Alive'
-#              
-#               );
-#
-#     $registred .= sprintf("%5s| %15s| %10s| %10s| %10s| %10s|\n", 
-#       $uid, $RAD{FRAMED_IP_ADDRESS}, $RAD{INBYTE},  $RAD{OUTBYTE}, 
-#       	$Ipn->{INTERIM}{$ip}{IN}, $Ipn->{INTERIM}{$ip}{OUT}
-#      ) if ($debug == 1);
-#
-#     if ($uid > 0) {
-##   	    my $r = $Acct->accounting(\%RAD, { NAS_ID => $NAS_ID });
-#   	    $Ipn->traffic_add_user( {
-#   	        UID            => "$uid",
-#            TARFFIC_CLASS  => "0",
-#            INBYTE         => "$Ipn->{INTERIM}{$ip}{IN}",
-#            OUTBYTE        => "$Ipn->{INTERIM}{$ip}{OUT}",
-#            NAS_ID         => $NAS_ID
-#   	      } );
-#      }
-#
-#	 }
-	
-	
+  $registred .= sprintf("%5s| %15s| %10s| %10s| %10s| %10s|\n%s", 
+       $uid, $RAD{FRAMED_IP_ADDRESS}, $RAD{INBYTE},  $RAD{OUTBYTE}, 
+       	$total_in, $total_out, $extended
+     ) if ($debug == 1);
+  
+  #printf("%5s| %15s IN: %10s OUT: %10s\n%s", $uid, int2ip($ip), $total_in, $total_out, $extended);
+
 }
 
 
