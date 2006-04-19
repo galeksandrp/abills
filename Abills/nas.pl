@@ -423,10 +423,10 @@ sub stats_dslmax {
 #*******************************************************************
 sub radius_disconnect {
   my ($NAS, $PORT, $USER) = @_;
-  
-  
+ 
   my ($ip, $mng_port)=split(/:/, $NAS->{NAS_MNG_IP_PORT}, 2);
-  
+  log_print('LOG_DEBUG', " HANGUP: echo \"User-Name=$USER\" | $RADCLIENT $ip:$mng_port 40 $NAS->{NAS_MNG_PASSWORD}\n"); 
+
   my $result = `echo "User-Name=$USER" | $RADCLIENT $ip:$mng_port 40 $NAS->{NAS_MNG_PASSWORD}`;
 
   #Received response ID 219, code 41, length = 20 `;

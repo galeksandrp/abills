@@ -497,7 +497,7 @@ elsif ($FORM{hangup}) {
   require "Abills/nas.pl";
   
  
-  my $ret = hangup($nas, "$nas_port_id", "", "$acct_session_id");
+  my $ret = hangup($nas, "$nas_port_id", "$user_name", "$acct_session_id");
   
   if ($ret == 0) {
     my $table = $html->table( { width => '100%',
