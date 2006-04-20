@@ -405,12 +405,12 @@ if ($NAS->{NAS_TYPE} eq 'mikrotik') {
 
 #Shaper
   if ($self->{USER_SPEED} > 0) {
-    $RAD_PAIRS->{'Rate-Limit'} = "\"rx-rate=". int($self->{USER_SPEED}) .", tx-rate=". int($self->{USER_SPEED})."\"";
+    $RAD_PAIRS->{'Rate-Limit'} = "$self->{USER_SPEED}k";
    }
   else {
     if ($EX_PARAMS->{speed}  > 0) {
-      $RAD_PAIRS->{'Ascend-Xmit-Rate'} = int($EX_PARAMS->{speed}->{0}->{IN});
-      $RAD_PAIRS->{'Ascend-Data-Rate'} = int($EX_PARAMS->{speed}->{0}->{OUT});
+      $RAD_PAIRS->{'Ascend-Xmit-Rate'} = int($EX_PARAMS->{speed}->{0}->{IN}) * 1024;
+      $RAD_PAIRS->{'Ascend-Data-Rate'} = int($EX_PARAMS->{speed}->{0}->{OUT})* 1024;
      }
    }
  }
