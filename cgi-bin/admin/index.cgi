@@ -1434,7 +1434,6 @@ for(my $i=0; $i<9; $i++) {
   $table->addtd("<td>$DAY_NAMES[$i]</td>", @hours);
 }
 
-
 print $table->show();
 
 
@@ -1451,6 +1450,16 @@ if (defined($FORM{tt})) {
                                 { SELECTED    => $tarif_plan->{TT_ID},
  	                                SEL_HASH   => \%TT_IDS,
  	                               });
+  
+  if ($conf{DV_EXPPP_NETFILES}) {
+     $tarif_plan->{DV_EXPPP_NETFILES}="EXPPP_NETFILES: ". $html->form_input('DV_EXPPP_NETFILES', 'yes', 
+                                                       { TYPE          => 'checkbox',
+       	                                                 OUTPUT2RETURN => 1,
+       	                                                 STATE         => 1
+       	                                                }  
+       	                                               );
+   }
+  
   $html->tpl_show(_include('dv_tt', 'Dv'), $tarif_plan);
 }
 else {

@@ -13,7 +13,7 @@ if ($#ARGV < 1) {
 	exit;
 }
 
-my $NAS_ID=$ARGV[0];
+my $NAS_ID =$ARGV[0];
 my $IF_NAME=$ARGV[1];
 
 my $debug = 0;
@@ -48,12 +48,6 @@ if (defined($ARGV->{debug})) {
 elsif(defined($ARGV->{help})){
 	print "Help:\n";
 }
-
-#my $user = "ipstat";
-#my $group = "guest";
-#$zip = $path."bin/zip";
-#$unzip = $path."bin/unzip";
-
 
 
 
@@ -91,8 +85,10 @@ while( <LOG> ) {
 		$DATA{DST_PORT} = 0 if ( $DATA{DST_PORT} !~ /^\d+$/ );
 		$DATA{NAS_ID}=$NAS_ID;
 		$DATA{IF_NAME}='0';
-    $Ipn->traffic_agregate2({ %DATA });
 
+    $Ipn->traffic_agregate_users({ %DATA });
+
+    #$Ipn->traffic_agregate2 ({ %DATA });
     #$Ipn->traffic_add({ %DATA });
 
 
@@ -116,6 +112,24 @@ foreach my $line (@$IN_ARRAY) {
 
 
 
+#my $AGREGATE_USERS  = $Ipn->{AGREGATE_USERS};
+##
+#while (my ($k, $v)= each (%$AGREGATE_USERS)) {
+#	print "$k, $v\n";
+#  if (defined($AGREGATE_USERS->{$k}->{OUT})) {
+#    my @array = @{ $AGREGATE_USERS->{$k}->{OUT} };
+#  	foreach my $line ( @array ) {
+#  		 while (my ($k, $v)= each ( %$line )) {
+#  	     print "$k $v |";
+#  		  }
+#     print "\n";
+#  	 }
+#  }	
+#}
+
+
+$Ipn->traffic_agregate_nets();
+
 require Acct;
 Acct->import();
 my $Acct = Acct->new($db, \%conf);
@@ -123,8 +137,9 @@ my $Acct = Acct->new($db, \%conf);
 
 my $ips          = $Ipn->{USERS_IPS};
 
-my $ips_interim = $Ipn->{INTERIM};
-my $logins       = $Ipn->{LOGINS_IPS};
+my $ips_interim  = $Ipn->{INTERIM};
+my $logins       = $Ipn->{USERS_INFO}->{LOGINS};
+my $tps          = $Ipn->{USERS_INFO}->{TPS};
 my $session_ids  = $Ipn->{SESSIONS_IPS};
 
 my %RAD = ();
@@ -132,13 +147,14 @@ my $registred = '';
 
 
 foreach my $ip ( sort keys %$ips_interim) {
-  my $uid        = $ips->{$ip};
-  my $login      = $logins->{$ip};
-  my $session_id = $session_ids->{$ip};
-  my $ip_stats = $Ipn->{INTERIM}{$ip};
-  my $total_in = 0; 
-  my $total_out = 0;
-  my $extended = '';
+  my $uid          = $ips->{$ip};
+  my $login        = $logins->{$uid};
+  my $tariif_plan  = $tps->{$uid};
+  my $session_id   = $session_ids->{$ip};
+  my $ip_stats     = $Ipn->{INTERIM}{$ip};
+  my $total_in     = 0; 
+  my $total_out    = 0;
+  my $extended     = '';
 
   while(my($k, $v)=each %$ip_stats) {
       my $in = (defined($v->{IN} )) ? int($v->{IN}) : 0;

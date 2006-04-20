@@ -453,7 +453,7 @@ sub  tt_defaults {
       TT_DESCRIBE   => '',
       TT_PRICE_IN   => '0.00000',
       TT_PRICE_OUT  => '0.00000',
-      TT_NETS       => '0.0.0.0/0',
+      TT_NETS       => '',
       TT_PREPAID    => 0,
       TT_SPEED_IN   => 0,
       TT_SPEED_OUT  => 0);
@@ -581,7 +581,10 @@ sub  tt_add {
     ('$DATA{TI_ID}', '$DATA{TT_ID}',   '$DATA{TT_DESCRIBE}', '$DATA{TT_PRICE_IN}',  '$DATA{TT_PRICE_OUT}',
      '$DATA{TT_NETS}', '$DATA{TT_PREPAID}', '$DATA{TT_SPEED_IN}', '$DATA{TT_SPEED_OUT}')", 'do');
 
-  $self->create_nets({ TI_ID => $DATA{TI_ID} });
+
+  if ($attr->{DV_EXPPP_NETFILES}) {
+    $self->create_nets({ TI_ID => $DATA{TI_ID} });
+   }
 
   return $self;
 }
@@ -597,6 +600,7 @@ sub  tt_change {
   
   my %DATA = $self->get_data($attr, { default => $self->tt_defaults() }); 
 
+ 
   $self->query($db, "UPDATE trafic_tarifs SET 
     descr='". $DATA{TT_DESCRIBE} ."', 
     in_price='". $DATA{TT_PRICE_IN}  ."',
@@ -608,8 +612,11 @@ sub  tt_change {
     WHERE 
     interval_id='$attr->{TI_ID}' and id='$DATA{TT_ID}';", 'do');
 
-  $self->create_nets({ TI_ID => $attr->{TI_ID} });
-  
+
+  if ($attr->{DV_EXPPP_NETFILES}) {
+    $self->create_nets({ TI_ID => $attr->{TI_ID} });
+   }
+
   return $self;
 }
 
@@ -625,6 +632,7 @@ sub create_nets {
 
 
   my $list = $self->tt_list({TI_ID => $attr->{TI_ID}});
+
   $/ = chr(0x0d);
   
   foreach my $line (@$list) {

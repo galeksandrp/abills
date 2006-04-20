@@ -1791,6 +1791,8 @@ elsif($attr->{TP}) {
   $tarif_plan->tt_defaults();
 
   if ($FORM{change}) {
+
+    
     $tarif_plan->tt_change( { 
     	TT_DESCRIBE_0  => $FORM{TT_DESCRIBE_0},
       TT_PRICE_IN_0  => $FORM{TT_PRICE_IN_0},
@@ -1809,6 +1811,7 @@ elsif($attr->{TP}) {
       TT_DESCRIBE_2 => $FORM{TT_DESCRIBE_2},
       TT_NETS_2 => $FORM{TT_NETS_2},
       TT_SPEED_2 => $FORM{TT_SPEED_2},
+
       EX_FILE_PATH => "$conf{DV_EXPPP_NETFILES}"
     });
 

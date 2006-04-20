@@ -15,8 +15,6 @@ $VERSION = 2.00;
 @EXPORT_OK = ();
 %EXPORT_TAGS = ();
 
-# User name expration
-#my $usernameregexp = "^[a-z0-9_][a-z0-9_-]*\$"; # configurable;
 use main;
 @ISA  = ("main");
 
@@ -29,9 +27,9 @@ my $db;
 my $CONF;
 my $debug = 0;
 
+my %intervals = ();
 my %zones;
 my @zoneids;
-
 my @clients_lst = ();
 
 #**********************************************************
@@ -63,18 +61,18 @@ sub user_ips {
   #$self->query($db, "SELECT uid, ip  FROM dv_main WHERE ip>0;");
   $self->query($db, "SELECT u.uid, calls.framed_ip_address, calls.user_name, 
     calls.acct_session_id,
-    acct_input_octets,
-    acct_output_octets
+    calls.acct_input_octets,
+    calls.acct_output_octets,
+    calls.tp_id
     
-    FROM dv_calls calls, users u 
+    FROM dv_calls calls, users u
    WHERE u.id=calls.user_name;");
 
   my $list = $self->{list};
-  my %logins      = ();
   my %session_ids = ();
+  my %users_info  = ();
   
   $ips{0}='0';
-  $logins{0}='';
   
   
   $self->{0}{IN}=0;
@@ -86,10 +84,14 @@ sub user_ips {
 
   foreach my $line (@$list) {
   	 $ips{$line->[1]}         = $line->[0];
-  	 $logins{$line->[1]}      = $line->[2];
+
   	 $session_ids{$line->[1]} = $line->[3];
   	 $self->{$line->[1]}{IN}  = $line->[4];
   	 $self->{$line->[1]}{OUT} = $line->[5];
+
+     
+  	 $users_info{TPS}{$line->[0]} = $line->[6];
+   	 $users_info{LOGINS}{$line->[0]} = $line->[2];
   	 
    	 #$self->{INTERIM}{$line->[1]}{IN}  = 0;
   	 #$self->{INTERIM}{$line->[1]}{OUT} = 0;
@@ -98,8 +100,8 @@ sub user_ips {
    }
  
   $self->{USERS_IPS}   = \%ips;
-  $self->{LOGINS_IPS}  = \%logins;
   $self->{SESSIONS_IPS}= \%session_ids;
+  $self->{USERS_INFO}  = \%users_info;
   
 
   return $self;
@@ -189,6 +191,102 @@ sub traffic_agregate {
 #**********************************************************
 # traffic_add_log
 #**********************************************************
+sub traffic_agregate_users {
+  my $self = shift;
+  my ($DATA) = @_;
+ 
+  my $ips=$self->{USERS_IPS};
+  my $y = 0;
+ 
+
+  if (defined($ips->{$DATA->{SRC_IP}})) {
+    #$DATA->{UID} = $ips->{$DATA->{SRC_IP}};
+ 	 	#$self->{$DATA->{SRC_IP}}{OUT}+=$DATA->{SIZE};
+ 	  push @{ $self->{AGREGATE_USERS}{$ips->{$DATA->{SRC_IP}}}{OUT} }, { %$DATA };
+ 		$y++;
+   }
+#  else {
+#  	$DATA->{UID}=0;
+#  	$self->{$DATA->{UID}}{IN}+=$DATA->{SIZE};
+#    push @{$self->{IN}}, "$DATA->{SRC_IP}/$DATA->{DST_IP}";	
+#   }
+
+  if (defined($ips->{$DATA->{DST_IP}})) {
+    #$DATA->{UID} = $ips->{$DATA->{DST_IP}};
+	  #$self->{$DATA->{DST_IP}}{IN}+=$DATA->{SIZE};
+  	#$self->{INTERIM}{$DATA->{DST_IP}}{IN}+=$DATA->{SIZE};
+    push @{ $self->{AGREGATE_USERS}{$ips->{$DATA->{DST_IP}}}{IN} }, { %$DATA };
+	  $y++;
+   }
+  elsif ($y < 1) {
+  	$DATA->{UID}=0;
+  	$self->{INTERIM}{$DATA->{UID}}{OUT}+=$DATA->{SIZE};
+    push @{$self->{IN}}, "$DATA->{SRC_IP}/$DATA->{DST_IP}/$DATA->{SIZE}";	
+
+    #push @{$self->{OUT}}, "$DATA->{DST_IP}/$DATA->{DST_IP}";
+   }
+
+
+  return $self;
+}
+
+
+
+sub traffic_agregate_nets {
+  my $self = shift;
+  my ($DATA) = @_;
+
+  $AGREGATE_USERS  = $Ipn->{AGREGATE_USERS}; 
+  my $ips=$self->{USERS_IPS};
+
+
+  while(my ($uid, $data_hash)= each (%$AGREGATE_USERS)) {
+    if (defined($data_hash->{OUT})) {
+	    if ( $#zoneids >= 0 ) {
+	      foreach my $zid (@zoneids) {
+  	      if (ip_in_zone($DATA->{DST_IP}, $DATA->{DST_PORT}, $zid)) {
+		        # в эту зону попал, плюсуем трафик и заканчиваем проверку
+            #$self->{$DATA->{SRC_IP}}{"$zid"}{IN} = 0 if (! defined($self->{$DATA->{SRC_IP}}{"$zid"}{IN}));
+		        $self->{INTERIM}{$DATA->{SRC_IP}}{"$zid"}{OUT} = $DATA->{SIZE};
+	  	      #print " $zid $DATA->{SIZE} ". int2ip($DATA->{SRC_IP}) ." -> ". int2ip($DATA->{DST_IP}) ."\n";
+		        last;
+		       }
+	       }
+       }
+	    else {
+	    	 $self->{INTERIM}{$DATA->{SRC_IP}}{"0"}{OUT} = $DATA->{SIZE};
+	     }
+
+
+
+	    # прогоняем адрес по зонам и смотрим, куда попадает
+	    if ($#zoneids >= 0) {
+	      foreach my $zid (@zoneids) {
+ 		      if (ip_in_zone($DATA->{SRC_IP}, $DATA->{SRC_PORT}, $zid)) {
+		        # в эту зону попал, плюсуем трафик и заканчиваем проверку
+	  	      $self->{INTERIM}{$DATA->{DST_IP}}{"$zid"}{IN} += $DATA->{SIZE};
+		      
+  		      #print " $zid $DATA->{SIZE} ". int2ip($DATA->{DST_IP}) ." -> ". int2ip($DATA->{SRC_IP}) ."\n";
+		      
+  		      last;
+		       }
+	       }
+       }
+	    else {
+	    	 $self->{INTERIM}{$DATA->{DST_IP}}{"0"}{IN} = $DATA->{SIZE};
+	     }
+
+}
+
+
+}
+
+
+
+
+#**********************************************************
+# traffic_add_log
+#**********************************************************
 sub traffic_agregate2 {
   my $self = shift;
   my ($DATA) = @_;
@@ -266,21 +364,17 @@ sub get_zone {
   require Tariffs;
   Tariffs->import();
   my $tariffs = Tariffs->new($db, $admin);
+  my $list = $tariffs->tt_list({ TI_ID => $tariff });
 
-  my $list = $tariffs->tt_list({ TI_ID => 0 });
-  my %nets = ();
-
-
-
-  foreach my $line (@$list)  {
+  foreach my $line (@$list) {
  	    #$speeds{$line->[0]}{IN}="$line->[4]";
  	    #$speeds{$line->[0]}{OUT}="$line->[5]";
       $zoneid=$line->[0];
 
       $zones{$zoneid}{PriceIn}=$line->[1]+0;
       $zones{$zoneid}{PriceOut}=$line->[2]+0;
+
   	  my $ip_list="$line->[7]";
-  	  
   	  #Make ip hach
       # !10.10.0.0/24:3400
       # [Negative][IP][/NETMASK][:PORT]
@@ -317,7 +411,9 @@ sub get_zone {
        }
  	 }
 
-#print  "--- $#zoneids \n";
+   @{$intervals{$tariff}{ZONEIDS}}=@zoneids;
+   %{$intervals{$tariff}{ZONES}}=%zones;
+
 
 }
 
@@ -932,6 +1028,31 @@ $d[0]=int($i/256/256/256);
 $d[1]=int(($i-$d[0]*256*256*256)/256/256);
 $d[2]=int(($i-$d[0]*256*256*256-$d[1]*256*256)/256);
 $d[3]=int($i-$d[0]*256*256*256-$d[1]*256*256-$d[2]*256);
+ return "$d[0].$d[1].$d[2].$d[3]";
+}
+
+1
+56);
+ return "$d[0].$d[1].$d[2].$d[3]";
+}
+
+1
+56);
+ return "$d[0].$d[1].$d[2].$d[3]";
+}
+
+1
+56);
+ return "$d[0].$d[1].$d[2].$d[3]";
+}
+
+1
+56);
+ return "$d[0].$d[1].$d[2].$d[3]";
+}
+
+1
+6-$d[2]*256);
  return "$d[0].$d[1].$d[2].$d[3]";
 }
 

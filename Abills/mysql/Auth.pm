@@ -22,8 +22,8 @@ use main;
 @ISA  = ("main");
 
 use Billing;
-my $Billing;
 
+my $Billing;
 
 my $db;
 my $CONF;
