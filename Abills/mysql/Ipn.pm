@@ -237,10 +237,24 @@ sub traffic_agregate_nets {
   my ($DATA) = @_;
 
   $AGREGATE_USERS  = $Ipn->{AGREGATE_USERS}; 
-  my $ips=$self->{USERS_IPS};
+  my $ips       = $self->{USERS_IPS};
+  my $user_info = $self->{USER_INFO};
 
-
+  my $tp_interval = ();
   while(my ($uid, $data_hash)= each (%$AGREGATE_USERS)) {
+    my $tp = $user_info->{TP};
+    $tp_interval{TP}=37;
+    
+    if (! defined($intervals{$tp_interval{TP}} )) {
+    	get_zone({ TP_INETRVAL => $tp_interval{TP} });
+     }
+
+
+   @zoneids = @{$intervals{$tp_interval{TP}}{ZONEIDS}};
+   %zones   = %{$intervals{$tp_interval{TP}}{ZONES}};
+    
+    
+    
     if (defined($data_hash->{OUT})) {
 	    if ( $#zoneids >= 0 ) {
 	      foreach my $zid (@zoneids) {
@@ -256,8 +270,6 @@ sub traffic_agregate_nets {
 	    else {
 	    	 $self->{INTERIM}{$DATA->{SRC_IP}}{"0"}{OUT} = $DATA->{SIZE};
 	     }
-
-
 
 	    # прогоняем адрес по зонам и смотрим, куда попадает
 	    if ($#zoneids >= 0) {
@@ -359,7 +371,8 @@ sub get_zone {
 
 
 	my $zoneid = 0;
-  my $tariff = 0;
+	my %zones  = ();
+  my $tariff = $attr->{TP_INETRVAL} || 0;
 
   require Tariffs;
   Tariffs->import();
