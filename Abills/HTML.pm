@@ -56,7 +56,11 @@ my $bg;
 my $debug;
 my %log_levels;
 my $IMG_PATH;
+my $CONF;
+
+
 my $row_number = 0;
+
 
 
 
@@ -67,7 +71,9 @@ sub new {
   my $class = shift;
   my ($attr) = @_;
   
+  
   $IMG_PATH = (defined($attr->{IMG_PATH})) ? $attr->{IMG_PATH} : '../img/';
+  $CONF = $attr->{CONF} if (defined($attr->{CONF}));
 
   my $self = { };
   bless($self, $class);
@@ -114,20 +120,22 @@ sub new {
   %functions = ();
   
   $pages_qs = '';
-  $index = $FORM{index} || 0;  
+  $index = $FORM{index} || 0;
   
   
   if (defined($COOKIES{language}) && $COOKIES{language} ne '') {
     $self->{language}=$COOKIES{language};
    }
   else {
-    $self->{language} = 'english';
+    $self->{language} = $CONF->{default_language} || 'english';
    }
 
   if (defined($FORM{xml})) {
     require Abills::XML;
     $self = Abills::XML->new( { IMG_PATH => 'img/',
-	                      NO_PRINT  => 'y' } );
+	                              NO_PRINT  => 'y' 
+	                            
+	                            });
   }
   
 

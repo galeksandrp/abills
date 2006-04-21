@@ -236,58 +236,65 @@ sub traffic_agregate_nets {
   my $self = shift;
   my ($DATA) = @_;
 
-  $AGREGATE_USERS  = $Ipn->{AGREGATE_USERS}; 
+  my $AGREGATE_USERS  = $self->{AGREGATE_USERS}; 
   my $ips       = $self->{USERS_IPS};
   my $user_info = $self->{USER_INFO};
 
-  my $tp_interval = ();
+  my %tp_interval = ();
+
   while(my ($uid, $data_hash)= each (%$AGREGATE_USERS)) {
     my $tp = $user_info->{TP};
     $tp_interval{TP}=37;
     
-    if (! defined($intervals{$tp_interval{TP}} )) {
+    print "####3 $tp_interval{TP}  ####";
+    
+    if (! defined( $intervals{$tp_interval{TP}} )) {
     	get_zone({ TP_INETRVAL => $tp_interval{TP} });
      }
 
 
-   @zoneids = @{$intervals{$tp_interval{TP}}{ZONEIDS}};
-   %zones   = %{$intervals{$tp_interval{TP}}{ZONES}};
+   @zoneids = @{ $intervals{$tp_interval{TP}}{ZONEIDS} };
+   %zones   = %{ $intervals{$tp_interval{TP}}{ZONES} };
     
     
     
-    if (defined($data_hash->{OUT})) {
-	    if ( $#zoneids >= 0 ) {
-	      foreach my $zid (@zoneids) {
-  	      if (ip_in_zone($DATA->{DST_IP}, $DATA->{DST_PORT}, $zid)) {
-		        # в эту зону попал, плюсуем трафик и заканчиваем проверку
-            #$self->{$DATA->{SRC_IP}}{"$zid"}{IN} = 0 if (! defined($self->{$DATA->{SRC_IP}}{"$zid"}{IN}));
-		        $self->{INTERIM}{$DATA->{SRC_IP}}{"$zid"}{OUT} = $DATA->{SIZE};
-	  	      #print " $zid $DATA->{SIZE} ". int2ip($DATA->{SRC_IP}) ." -> ". int2ip($DATA->{DST_IP}) ."\n";
-		        last;
-		       }
-	       }
-       }
-	    else {
-	    	 $self->{INTERIM}{$DATA->{SRC_IP}}{"0"}{OUT} = $DATA->{SIZE};
-	     }
+#    if (defined($data_hash->{OUT})) {
+#      $DATA = $data_hash->{OUT};
+#
+#	    if ( $#zoneids >= 0 ) {
+#
+#	      foreach my $zid (@zoneids) {
+#  	      if (ip_in_zone($DATA->{DST_IP}, $DATA->{DST_PORT}, $zid)) {
+#		        # в эту зону попал, плюсуем трафик и заканчиваем проверку
+#            #$self->{$DATA->{SRC_IP}}{"$zid"}{IN} = 0 if (! defined($self->{$DATA->{SRC_IP}}{"$zid"}{IN}));
+#		        $self->{INTERIM}{$DATA->{SRC_IP}}{"$zid"}{OUT} = $DATA->{SIZE};
+#	  	      #print " $zid $DATA->{SIZE} ". int2ip($DATA->{SRC_IP}) ." -> ". int2ip($DATA->{DST_IP}) ."\n";
+#		        last;
+#		       }
+#	       }
+#       }
+#	    else {
+#	    	 $self->{INTERIM}{$DATA->{SRC_IP}}{"0"}{OUT} = $DATA->{SIZE};
+#	     }
+#    }
 
-	    # прогоняем адрес по зонам и смотрим, куда попадает
-	    if ($#zoneids >= 0) {
-	      foreach my $zid (@zoneids) {
- 		      if (ip_in_zone($DATA->{SRC_IP}, $DATA->{SRC_PORT}, $zid)) {
-		        # в эту зону попал, плюсуем трафик и заканчиваем проверку
-	  	      $self->{INTERIM}{$DATA->{DST_IP}}{"$zid"}{IN} += $DATA->{SIZE};
-		      
-  		      #print " $zid $DATA->{SIZE} ". int2ip($DATA->{DST_IP}) ." -> ". int2ip($DATA->{SRC_IP}) ."\n";
-		      
-  		      last;
-		       }
-	       }
-       }
-	    else {
-	    	 $self->{INTERIM}{$DATA->{DST_IP}}{"0"}{IN} = $DATA->{SIZE};
-	     }
-
+#	    # прогоняем адрес по зонам и смотрим, куда попадает
+#	    if ($#zoneids >= 0) {
+#	      foreach my $zid (@zoneids) {
+# 		      if (ip_in_zone($DATA->{SRC_IP}, $DATA->{SRC_PORT}, $zid)) {
+#		        # в эту зону попал, плюсуем трафик и заканчиваем проверку
+#	  	      $self->{INTERIM}{$DATA->{DST_IP}}{"$zid"}{IN} += $DATA->{SIZE};
+#		      
+#  		      #print " $zid $DATA->{SIZE} ". int2ip($DATA->{DST_IP}) ." -> ". int2ip($DATA->{SRC_IP}) ."\n";
+#		      
+#  		      last;
+#		       }
+#	       }
+#       }
+#	    else {
+#	    	 $self->{INTERIM}{$DATA->{DST_IP}}{"0"}{IN} = $DATA->{SIZE};
+#	     }
+#
 }
 
 
@@ -370,9 +377,11 @@ sub get_zone {
 	my ($attr)=@_;
 
 
-	my $zoneid = 0;
-	my %zones  = ();
-  my $tariff = $attr->{TP_INETRVAL} || 0;
+	my $zoneid  = 0;
+	my %zones   = ();
+	my @zoneids = ();
+
+  my $tariff  = $attr->{TP_INETRVAL} || 0;
 
   require Tariffs;
   Tariffs->import();
@@ -427,6 +436,10 @@ sub get_zone {
    @{$intervals{$tariff}{ZONEIDS}}=@zoneids;
    %{$intervals{$tariff}{ZONES}}=%zones;
 
+
+print "-----". @{$intervals{$tariff}{ZONEIDS}};
+print "///". %{$intervals{$tariff}{ZONES}};
+exit;
 
 }
 
@@ -1044,29 +1057,5 @@ $d[3]=int($i-$d[0]*256*256*256-$d[1]*256*256-$d[2]*256);
  return "$d[0].$d[1].$d[2].$d[3]";
 }
 
-1
-56);
- return "$d[0].$d[1].$d[2].$d[3]";
-}
-
-1
-56);
- return "$d[0].$d[1].$d[2].$d[3]";
-}
-
-1
-56);
- return "$d[0].$d[1].$d[2].$d[3]";
-}
-
-1
-56);
- return "$d[0].$d[1].$d[2].$d[3]";
-}
-
-1
-6-$d[2]*256);
- return "$d[0].$d[1].$d[2].$d[3]";
-}
 
 1

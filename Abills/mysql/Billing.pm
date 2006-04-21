@@ -270,7 +270,8 @@ sub session_sum {
    u.activate,
    tp.day_fee,
    tp.min_session_cost,
-   u.company_id
+   u.company_id,
+   tp.payment_type
  FROM users u, 
       dv_main dv, 
       tarif_plans tp
@@ -299,7 +300,8 @@ sub session_sum {
    $self->{ACTIVATE},
    $self->{DAY_FEE},
    $self->{MIN_SESSION_COST},
-   $self->{COMPANY_ID}
+   $self->{COMPANY_ID},
+   $self->{PAYMENT_TYPE}
   ) = @$ar;
 
   $self->{TP_ID}=$attr->{TP_ID} if (defined($attr->{TP_ID}));

@@ -660,6 +660,11 @@ sub tt_del {
 	$self->query($db, "DELETE FROM trafic_tarifs 
 	 WHERE  interval_id='$attr->{TI_ID}'  and id='$attr->{TT_ID}' ;", 'do');
 
+  if ($CONF->{DV_EXPPP_NETFILES} && -f "$CONF->{DV_EXPPP_NETFILES}/$attr->{TI_ID}.nets" ) {
+     $self->create_nets({ TI_ID => $attr->{TI_ID} });
+   }
+
+
 	return $self;
 }
 

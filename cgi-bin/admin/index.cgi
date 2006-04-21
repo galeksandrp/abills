@@ -52,7 +52,7 @@ use Abills::HTML;
 use Nas;
 use Admins;
 
-$html = Abills::HTML->new();
+$html = Abills::HTML->new({ CONF => \%conf });
 my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
 
 $db = $sql->{db};
@@ -1826,6 +1826,8 @@ sub admin_profile {
                     );
 
 print "$FORM{colors}";
+
+print $html->{language};
 
 
 my $REFRESH=$COOKIES{REFRESH} || 60;

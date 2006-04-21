@@ -35,7 +35,10 @@ use Users;
 
 
 $html = Abills::HTML->new( { IMG_PATH => 'img/',
-	                      NO_PRINT  => 'y' } );
+	                           NO_PRINT => 'y',
+	                           CONF     => \%conf 
+	                          });
+
 my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
 my $db = $sql->{db};
 
