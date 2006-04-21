@@ -81,10 +81,16 @@ if (defined($ENV{HTTP_CGI_AUTHORIZATION})) {
   $ENV{HTTP_CGI_AUTHORIZATION} =~ s/basic\s+//i;
   my ($REMOTE_USER,$REMOTE_PASSWD) = split(/:/, decode_base64($ENV{HTTP_CGI_AUTHORIZATION}));  
 
-  if (check_permissions("$REMOTE_USER", "$REMOTE_PASSWD") == 1) {
+  my $res =  check_permissions("$REMOTE_USER", "$REMOTE_PASSWD");
+  if ($res == 1) {
     print "WWW-Authenticate: Basic realm=\"Billing system\"\n";
     print "Status: 401 Unauthorized\n";
    }
+  elsif ($res == 2) {
+    print "WWW-Authenticate: Basic realm=\"Billing system / '$REMOTE_USER' Account Disabled\"\n";
+    print "Status: 401 Unauthorized\n";
+   }
+
 }
 else {
   check_permissions('$REMOTE_USER');
@@ -93,7 +99,11 @@ else {
 if ($admin->{errno}) {
   print "Content-type: text/html\n\n";
   my $message = 'Access Deny';
-  if (! defined($REMOTE_USER)) {
+
+  if ($admin->{errno} == 2) {
+  	$message = "Account Disabled";
+   }
+  elsif (! defined($REMOTE_USER)) {
     $message = "Wrong password";
    }
   elsif (! defined($REMOTE_PASSWD)) {
@@ -359,15 +369,20 @@ $html->test();
 sub check_permissions {
   my ($login, $password, $attr)=@_;
 
-  my %PARAMS = ( LOGIN => "$login", 
-                 PASSWORD => "$password",
+  my %PARAMS = ( LOGIN     => "$login", 
+                 PASSWORD  => "$password",
                  SECRETKEY => $conf{secretkey},
-                 IP => $SESSION_IP);
+                 IP        => $SESSION_IP);
 
-  $admin->info(0, {%PARAMS } );
+  $admin->info(0, { %PARAMS } );
 
   if ($admin->{errno}) {
     return 1;
+   }
+  elsif($admin->{DISABLE} == 1) {
+  	$admin->{errno}=2;
+  	$admin->{errstr} = 'DISABLED';
+  	return 2;
    }
 
   my $p_ref = $admin->get_permissions();

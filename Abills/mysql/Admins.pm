@@ -164,8 +164,8 @@ sub change {
  
  
   my %FIELDS = (AID    =>   'aid',
-           A_LOGIN    => 'id',
-           A_FIO      => 'name',
+           A_LOGIN     => 'id',
+           A_FIO       => 'name',
            A_REGISTRATION => 'regdate',
            A_PHONE    => 'phone',
            DISABLE    => 'disable',
