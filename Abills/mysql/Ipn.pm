@@ -248,25 +248,58 @@ sub traffic_agregate_nets {
 
   my %tp_interval = ();
 
+  require Dv;
+  Dv->import();
+  my $Dv = Dv->new($db, undef, $CONF);
+
+
+
   while(my ($uid, $data_hash)= each (%$AGREGATE_USERS)) {
-    $tp_interval{TP} = $user_info->{TPS}{$uid};
-    ($user_info->{TIME_INTERVALS}, 
-     $user_info->{INTERVAL_TIME_TARIF}, 
-     $user_info->{INTERVAL_TRAF_TARIF}) = $Billing->time_intervals($tp_interval{TP});
+
+    my $user = $Dv->info($uid);
+
+    #$tp_interval{TP} = $user_info->{TPS}{$uid};
+    #($user_info->{TIME_INTERVALS}, 
+    # $user_info->{INTERVAL_TIME_TARIF}, 
+    # $user_info->{INTERVAL_TRAF_TARIF}) = $Billing->time_intervals($tp_interval{TP});
     
-    print "$tp_interval{TP} --\n";
+    #print "$tp_interval{TP} --\n";
+    #$tp_interval{}=37;
     
-    #$tp_interval{TP}=37;
     
-    print "####TP Interval: $tp_interval{TP}  ####\n";
+    my ($remaining_time, $ret_attr);
+    if (! defined( $tp_interval{$user->{TP_ID}} )) {
+      ($user->{TIME_INTERVALS},
+       $user->{INTERVAL_TIME_TARIF},
+       $user->{INTERVAL_TRAF_TARIF}) = $Billing->time_intervals($user->{TP_ID});
+
+
+      ($remaining_time, $ret_attr) = $Billing->remaining_time(0, {
+          TIME_INTERVALS      => $user->{TIME_INTERVALS},
+          INTERVAL_TIME_TARIF => $user->{INTERVAL_TIME_TARIF},
+          INTERVAL_TRAF_TARIF => $user->{INTERVAL_TRAF_TARIF},
+          SESSION_START       => $user->{SESSION_START},
+          DAY_BEGIN           => $user->{DAY_BEGIN},
+          DAY_OF_WEEK         => $user->{DAY_OF_WEEK},
+          DAY_OF_YEAR         => $user->{DAY_OF_YEAR},
+          REDUCTION           => $user->{REDUCTION},
+          POSTPAID            => 1 
+         });
+  
+  
+       $tp_interval{$user->{TP_ID}} = 0; #  ($ret_attr->{TT} > 0) ? $ret_attr->{TT} :  $ret_attr->{TT};
+      }
+
     
-    if (! defined( $intervals{$tp_interval{TP}} )) {
-    	$self->get_zone({ TP_INTERVAL => $tp_interval{TP} });
+    print "####TP $user->{TP_ID} Interval: $tp_interval{$user->{TP_ID}}  ####\n";
+    
+    if (! defined(  $intervals{$tp_interval{$user->{TP_ID}}} )) {
+    	$self->get_zone({ TP_INTERVAL => $tp_interval{$user->{TP_ID}} });
      }
 
 
-   @zoneids = @{ $intervals{$tp_interval{TP}}{ZONEIDS} };
-   %zones   = %{ $intervals{$tp_interval{TP}}{ZONES} };
+   @zoneids = @{ $intervals{$tp_interval{$user->{TP_ID}}}{ZONEIDS} };
+   %zones   = %{ $intervals{$tp_interval{$user->{TP_ID}}}{ZONES} };
     
     
     

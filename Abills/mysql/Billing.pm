@@ -439,9 +439,9 @@ sub session_splitter {
    ($time_intervals, $periods_time_tarif, $periods_traf_tarif) = $self->time_intervals($attr->{TP_ID});
   }
  else {
-  $time_intervals      = $attr->{TIME_INTERVALS}  if (defined($attr->{TIME_INTERVALS}));
-  $periods_time_tarif  = $attr->{PERIODS_TIME_TARIF} if (defined($attr->{PERIODS_TIME_TARIF}));
-  $periods_traf_tarif  = $attr->{PERIODS_TIME_TARIF} if (defined($attr->{PERIODS_TRAF_TARIF}));
+   $time_intervals      = $attr->{TIME_INTERVALS}  if (defined($attr->{TIME_INTERVALS}));
+   $periods_time_tarif  = $attr->{PERIODS_TIME_TARIF} if (defined($attr->{PERIODS_TIME_TARIF}));
+   $periods_traf_tarif  = $attr->{PERIODS_TIME_TARIF} if (defined($attr->{PERIODS_TRAF_TARIF}));
  }
 
 
@@ -749,7 +749,6 @@ sub remaining_time {
 
  if ($time_intervals == 0) {
     return 0, \%ATTR;
-    #return $deposit / $mainh_tarif * 60 * 60;	
   }
  
  my %holidays = ();

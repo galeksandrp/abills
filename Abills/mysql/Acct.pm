@@ -78,7 +78,7 @@ if ($acct_status_type == 1) {
      INET_ATON('$RAD->{FRAMED_IP_ADDRESS}'), 
     '$RAD->{CALLING_STATION_ID}', 
     '$RAD->{CONNECT_INFO}', 
-    '$NAS->{NAS_ID}' );";
+    '$NAS->{NAS_ID}');";
 
 
   $self->query($db, "$sql", 'do');

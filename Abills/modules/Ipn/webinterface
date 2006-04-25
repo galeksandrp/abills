@@ -842,8 +842,9 @@ sub ipn_user_activate {
   
   
   my $users = Users->new($db, $admin, \%conf); 
-  my $user = $users->info( $LIST_PARAMS{UID} );
-  my $nas = Nas->new($db, \%conf);	
+  my $user  = $users->info( $LIST_PARAMS{UID} );
+  
+  my $nas   = Nas->new($db, \%conf);	
   
   if ($FORM{ACTIVE}) {
      my %DATA = (ACCT_STATUS_TYPE  => 1, 
@@ -852,7 +853,8 @@ sub ipn_user_activate {
                  ACCT_SESSION_ID   => mk_unique_value(10), 
                  FRAMED_IP_ADDRESS => $FORM{REMOTE_ADDR}, 
                  CONNECT_INFO      => '', 
-                 NAS_ID            => $FORM{NAS_ID});
+                 NAS_ID            => $FORM{NAS_ID},
+                 TP                => 0 );
      
      $Ipn->user_status({ %DATA });
    }
@@ -877,7 +879,8 @@ sub ipn_user_activate {
  	                                   MULTI_ARRAY_VALUE => 1,
  	                                  });
   
-  print $html->form_main({ CONTENT => $html->form_input('REMOTE_ADDR', "$ENV{REMOTE_ADDR}") . $nas_list,
+  print $html->form_main({ CONTENT => $html->form_input('REMOTE_ADDR', "$ENV{REMOTE_ADDR}") . $nas_list. 
+  	   "TP:". $html->form_input('TP_ID', "0") ,
                      HIDDEN  => { index   => "$index",
                      	            UID     => $LIST_PARAMS{UID}
                      	           },
