@@ -6,13 +6,13 @@ CREATE TABLE `abon_tariffs` (
   PRIMARY KEY  (`id`),
   UNIQUE KEY `id` (`id`),
   UNIQUE KEY `name` (`name`)
-) TYPE=MyISAM;
+) ;
 
 CREATE TABLE `abon_user_list` (
   `uid` int(11) unsigned NOT NULL default '0',
   `tp_id` smallint(6) unsigned NOT NULL default '0',
   `date` date NOT NULL default '0000-00-00'
-) TYPE=MyISAM;
+) ;
 
 CREATE TABLE `admin_actions` (
   `actions` varchar(100) NOT NULL default '',
@@ -25,13 +25,8 @@ CREATE TABLE `admin_actions` (
   PRIMARY KEY  (`id`),
   UNIQUE KEY `id` (`id`),
   KEY `uid` (`uid`)
-) TYPE=MyISAM;
+) ;
 
-# --------------------------------------------------------
-
-#
-# Структура таблиці `admin_permits`
-#
 
 CREATE TABLE `admin_permits` (
   `aid` smallint(6) unsigned NOT NULL default '0',
@@ -40,13 +35,8 @@ CREATE TABLE `admin_permits` (
   `module` varchar(12) NOT NULL default '',
   UNIQUE KEY `aid_modules` (`aid`,`module`,`section`,`actions`),
   KEY `aid` (`aid`)
-) TYPE=MyISAM;
+) ;
 
-# --------------------------------------------------------
-
-#
-# Структура таблиці `admins`
-#
 
 CREATE TABLE `admins` (
   `id` varchar(12) default NULL,
@@ -60,13 +50,8 @@ CREATE TABLE `admins` (
   PRIMARY KEY  (`aid`),
   UNIQUE KEY `aid` (`aid`),
   UNIQUE KEY `id` (`id`)
-) TYPE=MyISAM;
+) ;
 
-# --------------------------------------------------------
-
-#
-# Структура таблиці `bills`
-#
 
 CREATE TABLE `bills` (
   `id` int(11) unsigned NOT NULL auto_increment,
@@ -77,7 +62,7 @@ CREATE TABLE `bills` (
   PRIMARY KEY  (`id`),
   UNIQUE KEY `id` (`id`),
   UNIQUE KEY `uid` (`uid`,`company_id`)
-) TYPE=MyISAM;
+) ;
 
 # --------------------------------------------------------
 
@@ -106,7 +91,7 @@ CREATE TABLE `dv_calls` (
   `tp_id` smallint(5) unsigned NOT NULL default '0',
   `nas_id` smallint(6) unsigned NOT NULL default '0',
   KEY `user_name` (`user_name`)
-) TYPE=MyISAM;
+) ;
 
 # --------------------------------------------------------
 
@@ -129,7 +114,7 @@ CREATE TABLE `companies` (
   PRIMARY KEY  (`id`),
   UNIQUE KEY `id` (`id`),
   UNIQUE KEY `name` (`name`)
-) TYPE=MyISAM;
+) ;
 
 # --------------------------------------------------------
 
@@ -141,7 +126,7 @@ CREATE TABLE `config` (
   `param` varchar(20) NOT NULL default '',
   `value` varchar(200) NOT NULL default '',
   UNIQUE KEY `param` (`param`)
-) TYPE=MyISAM;
+) ;
 
 # --------------------------------------------------------
 
@@ -160,7 +145,7 @@ CREATE TABLE `docs_acct` (
   `uid` int(11) unsigned NOT NULL default '0',
   `aid` smallint(6) unsigned NOT NULL default '0',
   PRIMARY KEY  (`id`)
-) TYPE=MyISAM;
+) ;
 
 # --------------------------------------------------------
 
@@ -175,7 +160,7 @@ CREATE TABLE `docs_acct_orders` (
   `unit` tinyint(3) unsigned NOT NULL default '0',
   `price` double(10,2) unsigned NOT NULL default '0.00',
   KEY `aid` (`acct_id`)
-) TYPE=MyISAM;
+) ;
 
 # --------------------------------------------------------
 
@@ -189,7 +174,7 @@ CREATE TABLE `dunes` (
   `translate` varchar(200) NOT NULL default '',
   `error_text` varchar(200) NOT NULL default '',
   `solution` text
-) TYPE=MyISAM;
+) ;
 
 # --------------------------------------------------------
 
@@ -211,7 +196,7 @@ CREATE TABLE `dv_main` (
   `disable` tinyint(1) unsigned NOT NULL default '0',
   PRIMARY KEY  (`uid`),
   KEY `tp_id` (`tp_id`)
-) TYPE=MyISAM;
+) ;
 
 # --------------------------------------------------------
 
@@ -228,7 +213,7 @@ CREATE TABLE `exchange_rate` (
   UNIQUE KEY `money` (`money`),
   UNIQUE KEY `short_name` (`short_name`),
   UNIQUE KEY `id` (`id`)
-) TYPE=MyISAM;
+) ;
 
 # --------------------------------------------------------
 
@@ -250,7 +235,7 @@ CREATE TABLE `fees` (
   UNIQUE KEY `id` (`id`),
   KEY `date` (`date`),
   KEY `uid` (`uid`)
-) TYPE=MyISAM;
+) ;
 
 # --------------------------------------------------------
 
@@ -264,7 +249,7 @@ CREATE TABLE `filters` (
   `descr` varchar(200) NOT NULL default '',
   PRIMARY KEY  (`id`),
   UNIQUE KEY `filter` (`filter`)
-) TYPE=MyISAM ;
+)  ;
 
 # --------------------------------------------------------
 
@@ -279,7 +264,7 @@ CREATE TABLE `groups` (
   PRIMARY KEY  (`gid`),
   UNIQUE KEY `gid` (`gid`),
   UNIQUE KEY `name` (`name`)
-) TYPE=MyISAM;
+) ;
 
 # --------------------------------------------------------
 
@@ -291,7 +276,7 @@ CREATE TABLE `holidays` (
   `day` varchar(5) NOT NULL default '',
   `descr` varchar(100) NOT NULL default '',
   PRIMARY KEY  (`day`)
-) TYPE=MyISAM;
+) ;
 
 # --------------------------------------------------------
 
@@ -309,7 +294,7 @@ CREATE TABLE `icards` (
   `changes` double(15,2) NOT NULL default '0.00',
   `password` varchar(16) NOT NULL default '0',
   PRIMARY KEY  (`id`)
-) TYPE=MyISAM;
+) ;
 
 # --------------------------------------------------------
 
@@ -327,7 +312,7 @@ CREATE TABLE `intervals` (
   PRIMARY KEY  (`id`),
   UNIQUE KEY `id` (`id`),
   UNIQUE KEY `tp_intervals` (`tp_id`,`begin`,`day`)
-) TYPE=MyISAM ;
+)  ;
 
 # --------------------------------------------------------
 
@@ -342,7 +327,7 @@ CREATE TABLE `ippools` (
   `counts` int(10) unsigned NOT NULL default '0',
   PRIMARY KEY  (`id`),
   UNIQUE KEY `nas` (`nas`,`ip`)
-) TYPE=MyISAM;
+) ;
 
 # --------------------------------------------------------
 
@@ -370,7 +355,7 @@ CREATE TABLE `dv_log` (
   `uid` int(11) unsigned NOT NULL default '0',
   `terminate_cause` tinyint(4) unsigned NOT NULL default '0',
   KEY `uid` (`uid`,`start`)
-) TYPE=MyISAM;
+) ;
 
 # --------------------------------------------------------
 
@@ -387,7 +372,7 @@ CREATE TABLE `mail_access` (
   `status` tinyint(1) unsigned NOT NULL default '0',
   PRIMARY KEY  (`pattern`),
   UNIQUE KEY `id` (`id`)
-) TYPE=MyISAM;
+) ;
 
 # --------------------------------------------------------
 
@@ -406,7 +391,7 @@ CREATE TABLE `mail_aliases` (
   `comments` varchar(255) NOT NULL default '',
   PRIMARY KEY  (`address`),
   UNIQUE KEY `id` (`id`)
-) TYPE=MyISAM;
+) ;
 
 # --------------------------------------------------------
 
@@ -435,7 +420,7 @@ CREATE TABLE `mail_boxes` (
   UNIQUE KEY `id` (`id`),
   KEY `username_antivirus` (`username`,`antivirus`),
   KEY `username_antispam` (`username`,`antispam`)
-) TYPE=MyISAM ;
+)  ;
 
 # --------------------------------------------------------
 
@@ -452,7 +437,7 @@ CREATE TABLE `mail_domains` (
   `comments` varchar(255) NOT NULL default '',
   PRIMARY KEY  (`domain`),
   UNIQUE KEY `id` (`id`)
-) TYPE=MyISAM ;
+)  ;
 
 # --------------------------------------------------------
 
@@ -468,7 +453,7 @@ CREATE TABLE `mail_transport` (
   `id` int(11) unsigned NOT NULL auto_increment,
   UNIQUE KEY `domain` (`domain`),
   UNIQUE KEY `id` (`id`)
-) TYPE=MyISAM ;
+)  ;
 
 # --------------------------------------------------------
 
@@ -481,7 +466,7 @@ CREATE TABLE `message_types` (
   `name` varchar(20) default NULL,
   PRIMARY KEY  (`id`),
   UNIQUE KEY `name` (`name`)
-) TYPE=MyISAM ;
+)  ;
 
 # --------------------------------------------------------
 
@@ -502,7 +487,7 @@ CREATE TABLE `messages` (
   `state` tinyint(2) unsigned default '0',
   `aid` smallint(6) unsigned NOT NULL default '0',
   PRIMARY KEY  (`id`)
-) TYPE=MyISAM ;
+)  ;
 
 # --------------------------------------------------------
 
@@ -525,7 +510,7 @@ CREATE TABLE `nas` (
   `alive` smallint(6) unsigned NOT NULL default '0',
   `disable` tinyint(6) unsigned NOT NULL default '0',
   PRIMARY KEY  (`id`)
-) TYPE=MyISAM ;
+)  ;
 
 # --------------------------------------------------------
 
@@ -537,7 +522,7 @@ CREATE TABLE `netflow_address` (
   `client_ip` int(11) unsigned NOT NULL default '0',
   PRIMARY KEY  (`client_ip`),
   UNIQUE KEY `client_ip` (`client_ip`)
-) TYPE=MyISAM;
+) ;
 
 # --------------------------------------------------------
 
@@ -559,7 +544,7 @@ CREATE TABLE `networks` (
   `web_control` varchar(21) NOT NULL default '',
   PRIMARY KEY  (`ip`,`netmask`),
   UNIQUE KEY `id` (`id`)
-) TYPE=MyISAM ;
+)  ;
 
 # --------------------------------------------------------
 
@@ -583,7 +568,7 @@ CREATE TABLE `payments` (
   UNIQUE KEY `id` (`id`),
   KEY `date` (`date`),
   KEY `uid` (`uid`)
-) TYPE=MyISAM ;
+)  ;
 
 # --------------------------------------------------------
 
@@ -603,7 +588,7 @@ CREATE TABLE `s_detail` (
   `recv2` int(10) unsigned NOT NULL default '0',
   `id` varchar(16) NOT NULL default '',
   KEY `sid` (`acct_session_id`)
-) TYPE=MyISAM;
+) ;
 
 # --------------------------------------------------------
 
@@ -628,7 +613,7 @@ CREATE TABLE `shedule` (
   UNIQUE KEY `id` (`id`),
   UNIQUE KEY `uniq_action` (`h`,`d`,`m`,`y`,`type`,`uid`),
   KEY `date_type_uid` (`date`,`type`,`uid`)
-) TYPE=MyISAM ;
+)  ;
 
 # --------------------------------------------------------
 
@@ -664,7 +649,7 @@ CREATE TABLE `tarif_plans` (
   PRIMARY KEY  (`id`),
   UNIQUE KEY `name` (`name`),
   UNIQUE KEY `id` (`id`)
-) TYPE=MyISAM;
+) ;
 
 # --------------------------------------------------------
 
@@ -676,7 +661,7 @@ CREATE TABLE `tp_nas` (
   `tp_id` smallint(5) unsigned NOT NULL default '0',
   `nas_id` smallint(5) unsigned NOT NULL default '0',
   KEY `vid` (`tp_id`)
-) TYPE=MyISAM;
+) ;
 
 # --------------------------------------------------------
 
@@ -697,7 +682,7 @@ CREATE TABLE `trafic_tarifs` (
   `rad_pairs` text NOT NULL,
   `out_speed` int(10) unsigned NOT NULL default '0',
   UNIQUE KEY `id` (`id`,`interval_id`)
-) TYPE=MyISAM;
+) ;
 
 # --------------------------------------------------------
 
@@ -720,7 +705,7 @@ CREATE TABLE `users` (
   `bill_id` int(11) unsigned NOT NULL default '0',
   PRIMARY KEY  (`uid`),
   UNIQUE KEY `id` (`id`)
-) TYPE=MyISAM ;
+)  ;
 
 # --------------------------------------------------------
 
@@ -732,7 +717,7 @@ CREATE TABLE `users_nas` (
   `uid` int(10) unsigned NOT NULL default '0',
   `nas_id` smallint(5) unsigned NOT NULL default '0',
   KEY `uid` (`uid`)
-) TYPE=MyISAM;
+) ;
 
 # --------------------------------------------------------
 
@@ -751,7 +736,7 @@ CREATE TABLE `users_pi` (
   `comments` text NOT NULL,
   `contract_id` varchar(10) NOT NULL default '',
   PRIMARY KEY  (`uid`)
-) TYPE=MyISAM;
+) ;
 
 # --------------------------------------------------------
 
@@ -776,7 +761,7 @@ CREATE TABLE `voip_calls` (
   `route_id` int(11) unsigned NOT NULL default '0',
   `bill_id` int(11) unsigned NOT NULL default '0',
   `reduction` double(6,2) unsigned NOT NULL default '0.00'
-) TYPE=MyISAM;
+) ;
 
 # --------------------------------------------------------
 
@@ -797,7 +782,7 @@ CREATE TABLE `voip_log` (
   `bill_id` int(11) unsigned NOT NULL default '0',
   `sum` double(14,6) NOT NULL default '0.000000',
   `terminate_cause` tinyint(4) unsigned NOT NULL default '0'
-) TYPE=MyISAM;
+) ;
 
 # --------------------------------------------------------
 
@@ -817,7 +802,7 @@ CREATE TABLE `voip_main` (
   `allow_calls` tinyint(1) unsigned NOT NULL default '1',
   `logins` tinyint(3) unsigned NOT NULL default '0',
   PRIMARY KEY  (`uid`)
-) TYPE=MyISAM;
+) ;
 
 # --------------------------------------------------------
 
@@ -831,7 +816,7 @@ CREATE TABLE `voip_route_prices` (
   `price` double(15,5) unsigned NOT NULL default '0.00000',
   `date` date NOT NULL default '0000-00-00',
   UNIQUE KEY `route_id` (`route_id`,`interval_id`)
-) TYPE=MyISAM;
+) ;
 
 # --------------------------------------------------------
 
@@ -852,7 +837,7 @@ CREATE TABLE `voip_routes` (
   PRIMARY KEY  (`id`),
   UNIQUE KEY `id` (`id`),
   UNIQUE KEY `prefix` (`prefix`)
-) TYPE=MyISAM;
+) ;
 
 # --------------------------------------------------------
 
@@ -875,7 +860,7 @@ CREATE TABLE `voip_tps` (
   `free_time` int(10) unsigned NOT NULL default '0',
   PRIMARY KEY  (`id`),
   UNIQUE KEY `id` (`id`)
-) TYPE=MyISAM;
+) ;
 
 
 
@@ -896,7 +881,7 @@ CREATE TABLE `web_online` (
   `admin` varchar(15) NOT NULL default '',
   `ip` varchar(15) NOT NULL default '',
   `logtime` int(11) unsigned NOT NULL default '0'
-) TYPE=MyISAM;
+) ;
     
 
 
