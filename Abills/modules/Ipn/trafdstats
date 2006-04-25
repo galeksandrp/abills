@@ -26,8 +26,8 @@ fi;
 #Temporary log path
 # default 
 # LOG_PATH='/usr/abills/var/log/ipn/'
-LOG_PATH='/usr/abills/var/log/ipn/';
-#LOG_PATH='/home/asmodeus/abills2/var/log/ipn/';
+#LOG_PATH='/usr/abills/var/log/ipn/';
+LOG_PATH='/home/asmodeus/abills2/var/log/ipn/';
 
 
 /usr/local/bin/trafsave ${IF_NAME}
@@ -36,6 +36,8 @@ sleep 5
 /bin/rm /usr/local/var/trafd/trafd.${IF_NAME}
 
 #/home/asmodeus/abills2/libexec/traffic2sql ${NAS_ID} ${IF_NAME}
+
+echo "${TRAFFIC2SQL} ${NAS_ID} ${IF_NAME} ${DEBUG}";
 
 ${TRAFFIC2SQL} ${NAS_ID} ${IF_NAME} ${DEBUG}
 

@@ -18,6 +18,11 @@ $VERSION = 2.00;
 use main;
 @ISA  = ("main");
 
+
+require Billing;
+Billing->import();
+my $Billing;
+
 use POSIX qw(strftime);
 my $DATE = strftime "%Y-%m-%d", localtime(time);
 my ($Y, $M, $D)=split(/-/, $DATE, 3);
@@ -45,6 +50,7 @@ sub new {
   	 $CONF->{KBYTE_SIZE}=1024;
   	}
 
+  $Billing = Billing->new($db, $CONF);
   return $self;
 }
 
@@ -238,18 +244,24 @@ sub traffic_agregate_nets {
 
   my $AGREGATE_USERS  = $self->{AGREGATE_USERS}; 
   my $ips       = $self->{USERS_IPS};
-  my $user_info = $self->{USER_INFO};
+  my $user_info = $self->{USERS_INFO};
 
   my %tp_interval = ();
 
   while(my ($uid, $data_hash)= each (%$AGREGATE_USERS)) {
-    my $tp = $user_info->{TP};
-    $tp_interval{TP}=37;
+    $tp_interval{TP} = $user_info->{TPS}{$uid};
+    ($user_info->{TIME_INTERVALS}, 
+     $user_info->{INTERVAL_TIME_TARIF}, 
+     $user_info->{INTERVAL_TRAF_TARIF}) = $Billing->time_intervals($tp_interval{TP});
     
-    print "####3 $tp_interval{TP}  ####";
+    print "$tp_interval{TP} --\n";
+    
+    #$tp_interval{TP}=37;
+    
+    print "####TP Interval: $tp_interval{TP}  ####\n";
     
     if (! defined( $intervals{$tp_interval{TP}} )) {
-    	get_zone({ TP_INETRVAL => $tp_interval{TP} });
+    	$self->get_zone({ TP_INTERVAL => $tp_interval{TP} });
      }
 
 
@@ -258,43 +270,48 @@ sub traffic_agregate_nets {
     
     
     
-#    if (defined($data_hash->{OUT})) {
-#      $DATA = $data_hash->{OUT};
-#
-#	    if ( $#zoneids >= 0 ) {
-#
-#	      foreach my $zid (@zoneids) {
-#  	      if (ip_in_zone($DATA->{DST_IP}, $DATA->{DST_PORT}, $zid)) {
-#		        # в эту зону попал, плюсуем трафик и заканчиваем проверку
-#            #$self->{$DATA->{SRC_IP}}{"$zid"}{IN} = 0 if (! defined($self->{$DATA->{SRC_IP}}{"$zid"}{IN}));
-#		        $self->{INTERIM}{$DATA->{SRC_IP}}{"$zid"}{OUT} = $DATA->{SIZE};
-#	  	      #print " $zid $DATA->{SIZE} ". int2ip($DATA->{SRC_IP}) ." -> ". int2ip($DATA->{DST_IP}) ."\n";
-#		        last;
-#		       }
-#	       }
-#       }
-#	    else {
-#	    	 $self->{INTERIM}{$DATA->{SRC_IP}}{"0"}{OUT} = $DATA->{SIZE};
-#	     }
-#    }
+    if (defined($data_hash->{OUT})) {
+      #Get User data array
+      my $DATA_ARRAY_REF = $data_hash->{OUT};
+      foreach my $DATA ( @$DATA_ARRAY_REF ) {
+  	    if ( $#zoneids >= 0 ) {
+  	      foreach my $zid (@zoneids) {
+    	      if (ip_in_zone($DATA->{DST_IP}, $DATA->{DST_PORT}, $zid)) {
+		          # в эту зону попал, плюсуем трафик и заканчиваем проверку
+              #$self->{$DATA->{SRC_IP}}{"$zid"}{IN} = 0 if (! defined($self->{$DATA->{SRC_IP}}{"$zid"}{IN}));
+		          $self->{INTERIM}{$DATA->{SRC_IP}}{"$zid"}{OUT} = $DATA->{SIZE};
+	  	        print " $zid $DATA->{SIZE} ". int2ip($DATA->{SRC_IP}) ." -> ". int2ip($DATA->{DST_IP}) ."\n";
+		          last;
+		         }
+	         }
+         }
+	      else {
+	    	  $self->{INTERIM}{$DATA->{SRC_IP}}{"0"}{OUT} = $DATA->{SIZE};
+	       }
+      } 
+    }
 
 #	    # прогоняем адрес по зонам и смотрим, куда попадает
-#	    if ($#zoneids >= 0) {
-#	      foreach my $zid (@zoneids) {
-# 		      if (ip_in_zone($DATA->{SRC_IP}, $DATA->{SRC_PORT}, $zid)) {
-#		        # в эту зону попал, плюсуем трафик и заканчиваем проверку
-#	  	      $self->{INTERIM}{$DATA->{DST_IP}}{"$zid"}{IN} += $DATA->{SIZE};
-#		      
-#  		      #print " $zid $DATA->{SIZE} ". int2ip($DATA->{DST_IP}) ." -> ". int2ip($DATA->{SRC_IP}) ."\n";
-#		      
-#  		      last;
-#		       }
-#	       }
-#       }
-#	    else {
-#	    	 $self->{INTERIM}{$DATA->{DST_IP}}{"0"}{IN} = $DATA->{SIZE};
-#	     }
-#
+    if (defined($data_hash->{IN})) {
+      #Get User data array
+      my $DATA_ARRAY_REF = $data_hash->{IN};
+      foreach my $DATA ( @$DATA_ARRAY_REF ) {
+  	    if ($#zoneids >= 0) {
+ 	        foreach my $zid (@zoneids) {
+ 		        if (ip_in_zone($DATA->{SRC_IP}, $DATA->{SRC_PORT}, $zid)) {
+		          # в эту зону попал, плюсуем трафик и заканчиваем проверку
+	    	      $self->{INTERIM}{$DATA->{DST_IP}}{"$zid"}{IN} += $DATA->{SIZE};
+    		      #print " $zid $DATA->{SIZE} ". int2ip($DATA->{DST_IP}) ." -> ". int2ip($DATA->{SRC_IP}) ."\n";
+  		        last;
+		         }
+	         }
+         }
+	      else {
+	    	  $self->{INTERIM}{$DATA->{DST_IP}}{"0"}{IN} = $DATA->{SIZE};
+	       }
+       }
+     }
+
 }
 
 
@@ -381,8 +398,8 @@ sub get_zone {
 	my %zones   = ();
 	my @zoneids = ();
 
-  my $tariff  = $attr->{TP_INETRVAL} || 0;
-
+  my $tariff  = $attr->{TP_INTERVAL} || 0;
+ 
   require Tariffs;
   Tariffs->import();
   my $tariffs = Tariffs->new($db, $admin);
@@ -437,9 +454,9 @@ sub get_zone {
    %{$intervals{$tariff}{ZONES}}=%zones;
 
 
-print "-----". @{$intervals{$tariff}{ZONEIDS}};
-print "///". %{$intervals{$tariff}{ZONES}};
-exit;
+print "\n Tariff Interval: $tariff";
+print "\n Zone Ids:". @{$intervals{$tariff}{ZONEIDS}};
+print "\n Zones:". %{$intervals{$tariff}{ZONES}};
 
 }
 

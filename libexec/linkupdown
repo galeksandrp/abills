@@ -165,7 +165,10 @@ if ($ACTION eq 'up') {
     my ($remaining_time, $ret_attr); 
 
 
-    ($user->{TIME_INTERVALS}, $user->{INTERVAL_TIME_TARIF}, $user->{INTERVAL_TRAF_TARIF}) = $Billing->time_intervals($user->{TP_ID});
+    ($user->{TIME_INTERVALS},
+     $user->{INTERVAL_TIME_TARIF}, 
+     $user->{INTERVAL_TRAF_TARIF}) = $Billing->time_intervals($user->{TP_ID});
+
     ($remaining_time, $ret_attr) = $Billing->remaining_time($user->{DEPOSIT}, {
     	  TIME_INTERVALS      => $user->{TIME_INTERVALS},
           INTERVAL_TIME_TARIF => $user->{INTERVAL_TIME_TARIF},
