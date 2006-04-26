@@ -1,6 +1,6 @@
 package Auth;
 # Auth functions
-#
+# 26.04.2006
 
 use strict;
 use vars qw(@ISA @EXPORT @EXPORT_OK %EXPORT_TAGS $VERSION
@@ -28,6 +28,9 @@ my $Billing;
 my $db;
 my $CONF;
 my $debug =0;
+
+
+
 
 #**********************************************************
 # Init 
