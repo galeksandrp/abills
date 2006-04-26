@@ -33,7 +33,6 @@ my $CONF;
 my $debug = 0;
 
 my %intervals = ();
-my %zones;
 my @zoneids;
 my @clients_lst = ();
 
@@ -265,13 +264,14 @@ sub traffic_agregate_nets {
     
     #print "$tp_interval{TP} --\n";
     #$tp_interval{}=37;
-    
+        
     
     my ($remaining_time, $ret_attr);
     if (! defined( $tp_interval{$user->{TP_ID}} )) {
       ($user->{TIME_INTERVALS},
        $user->{INTERVAL_TIME_TARIF},
        $user->{INTERVAL_TRAF_TARIF}) = $Billing->time_intervals($user->{TP_ID});
+
 
 
       ($remaining_time, $ret_attr) = $Billing->remaining_time(0, {
@@ -287,17 +287,17 @@ sub traffic_agregate_nets {
          });
   
   
-       $tp_interval{$user->{TP_ID}} = (defined($ret_attr->{TT}) && $ret_attr->{TT} > 0) ? $ret_attr->{TT} :  0;
+       $tp_interval{$user->{TP_ID}} = 26; #(defined($ret_attr->{TT}) && $ret_attr->{TT} > 0) ? $ret_attr->{TT} :  0;
       }
 
     
-    print "####TP $user->{TP_ID} Interval: $tp_interval{$user->{TP_ID}}  ####\n";
+    print "\nUID: $uid\n####TP $user->{TP_ID} Interval: $tp_interval{$user->{TP_ID}}  ####\n";
     
     if (! defined(  $intervals{$tp_interval{$user->{TP_ID}}} )) {
     	$self->get_zone({ TP_INTERVAL => $tp_interval{$user->{TP_ID}} });
      }
 
-
+   my %zones;
    @zoneids = @{ $intervals{$tp_interval{$user->{TP_ID}}}{ZONEIDS} };
    %zones   = %{ $intervals{$tp_interval{$user->{TP_ID}}}{ZONES} };
     
@@ -309,17 +309,20 @@ sub traffic_agregate_nets {
       foreach my $DATA ( @$DATA_ARRAY_REF ) {
   	    if ( $#zoneids >= 0 ) {
   	      foreach my $zid (@zoneids) {
-    	      if (ip_in_zone($DATA->{DST_IP}, $DATA->{DST_PORT}, $zid)) {
+
+    	      if (ip_in_zone($DATA->{DST_IP}, $DATA->{DST_PORT}, $zid, \%zones)) {
 		          # в эту зону попал, плюсуем трафик и заканчиваем проверку
               #$self->{$DATA->{SRC_IP}}{"$zid"}{IN} = 0 if (! defined($self->{$DATA->{SRC_IP}}{"$zid"}{IN}));
 		          $self->{INTERIM}{$DATA->{SRC_IP}}{"$zid"}{OUT} = $DATA->{SIZE};
 	  	        print " $zid $DATA->{SIZE} ". int2ip($DATA->{SRC_IP}) ." -> ". int2ip($DATA->{DST_IP}) ."\n";
 		          last;
 		         }
+
 	         }
+         
          }
 	      else {
-	    	  print "aaaaaaaaa";
+	    	  print " < $DATA->{SIZE} ". int2ip($DATA->{SRC_IP}) ." -> ". int2ip($DATA->{DST_IP}) ."\n";
 	    	  $self->{INTERIM}{$DATA->{SRC_IP}}{"0"}{OUT} = $DATA->{SIZE};
 	       }
       } 
@@ -332,15 +335,16 @@ sub traffic_agregate_nets {
       foreach my $DATA ( @$DATA_ARRAY_REF ) {
   	    if ($#zoneids >= 0) {
  	        foreach my $zid (@zoneids) {
- 		        if (ip_in_zone($DATA->{SRC_IP}, $DATA->{SRC_PORT}, $zid)) {
+ 		        if (ip_in_zone($DATA->{SRC_IP}, $DATA->{SRC_PORT}, $zid, \%zones)) {
 		          # в эту зону попал, плюсуем трафик и заканчиваем проверку
 	    	      $self->{INTERIM}{$DATA->{DST_IP}}{"$zid"}{IN} += $DATA->{SIZE};
-    		      #print " $zid $DATA->{SIZE} ". int2ip($DATA->{DST_IP}) ." -> ". int2ip($DATA->{SRC_IP}) ."\n";
+    		      print " $zid $DATA->{SIZE} ". int2ip($DATA->{SRC_IP}) ." -> ". int2ip($DATA->{DST_IP}) ."\n";
   		        last;
 		         }
 	         }
          }
 	      else {
+	    	  print " > $DATA->{SIZE} ". int2ip($DATA->{SRC_IP}) ." -> ". int2ip($DATA->{DST_IP}) ."\n";
 	    	  $self->{INTERIM}{$DATA->{DST_IP}}{"0"}{IN} = $DATA->{SIZE};
 	       }
        }
@@ -456,13 +460,14 @@ sub get_zone {
       push @zoneids, $zoneid;
 
       my $i = 0;      
+
       foreach my $ip_full (@ip_list_array) {
-   	    if ($ip_full =~ /([!]{0,1})(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(\/{0,1})(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/ ) {
+   	    if ($ip_full =~ /([!]{0,1})(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(\/{0,1})(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}|\d{2})/ ) {
    	    	my $NEG      = $1 || ''; 
    	    	my $IP       = unpack("N", pack("C4", split( /\./, $2))); 
    	    	my $NETMASK  = unpack("N", pack("C4", split( /\./, "$4")));
    	    	
-   	    	#print "REG ID: $zoneid NEGATIVE: $NEG IP: $IP MASK: $NETMASK\n";
+   	    	print "REG ID: $zoneid NEGATIVE: $NEG IP: $IP MASK: ". int2ip($NETMASK) ."\n";
 
   	      $zones{$zoneid}{A}[$i]{IP}   = $IP;
 	        $zones{$zoneid}{A}[$i]{Mask} = $NETMASK;
@@ -488,9 +493,9 @@ sub get_zone {
    %{$intervals{$tariff}{ZONES}}=%zones;
 
 
-print "\n Tariff Interval: $tariff";
-print "\n Zone Ids:". @{$intervals{$tariff}{ZONEIDS}};
-print "\n Zones:". %{$intervals{$tariff}{ZONES}};
+print " Tariff Interval: $tariff\n";
+print " Zone Ids:". @{$intervals{$tariff}{ZONEIDS}}."\n";
+print " Zones:". %{$intervals{$tariff}{ZONES}}."\n";
 
 }
 
@@ -503,15 +508,19 @@ print "\n Zones:". %{$intervals{$tariff}{ZONES}};
 #**********************************************************
 sub ip_in_zone($$$) {
     my $self;
-    my ($ip_num, $port, $zoneid) = @_;
+    my ($ip_num, 
+        $port, 
+        $zoneid,
+        $zone_data) = @_;
     
     # переводим адрес в число
 
     # изначально считаем, что адрес в зону не попадает
     my $res = 0;
     # debug
+    my %zones = %$zone_data;
 
-
+print %zones. "$#{$zones{$zoneid}{A}}";
 
     if ($self->{debug}) { print "--- CALL ip_in_zone($ip_num, $port, $zoneid) -> \n"; }
     # идем по списку адресов зоны

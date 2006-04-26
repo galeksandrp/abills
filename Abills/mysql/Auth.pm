@@ -408,7 +408,7 @@ if ($NAS->{NAS_TYPE} eq 'mikrotik') {
     $RAD_PAIRS->{'Rate-Limit'} = "$self->{USER_SPEED}k";
    }
   else {
-    if ($EX_PARAMS->{speed}  > 0) {
+    if (defined($EX_PARAMS->{speed}->{0})) {
       $RAD_PAIRS->{'Ascend-Xmit-Rate'} = int($EX_PARAMS->{speed}->{0}->{IN}) * 1024;
       $RAD_PAIRS->{'Ascend-Data-Rate'} = int($EX_PARAMS->{speed}->{0}->{OUT})* 1024;
      }
@@ -762,7 +762,6 @@ sub ex_traffic_params {
  my $deposit = (defined($attr->{deposit})) ? $attr->{deposit} : 0;
 
  my %EX_PARAMS = ();
- #$EX_PARAMS{speed}=0;
  $EX_PARAMS{traf_limit}=(defined($attr->{traf_limit})) ? $attr->{traf_limit} : 0;
  $EX_PARAMS{traf_limit_lo}=4090;
 
