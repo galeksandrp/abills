@@ -287,7 +287,7 @@ sub traffic_agregate_nets {
          });
   
   
-       $tp_interval{$user->{TP_ID}} = 26; #(defined($ret_attr->{TT}) && $ret_attr->{TT} > 0) ? $ret_attr->{TT} :  0;
+       $tp_interval{$user->{TP_ID}} = (defined($ret_attr->{TT}) && $ret_attr->{TT} > 0) ? $ret_attr->{TT} :  0;
       }
 
     
@@ -314,7 +314,7 @@ sub traffic_agregate_nets {
 		          # в эту зону попал, плюсуем трафик и заканчиваем проверку
               #$self->{$DATA->{SRC_IP}}{"$zid"}{IN} = 0 if (! defined($self->{$DATA->{SRC_IP}}{"$zid"}{IN}));
 		          $self->{INTERIM}{$DATA->{SRC_IP}}{"$zid"}{OUT} = $DATA->{SIZE};
-	  	        print " $zid $DATA->{SIZE} ". int2ip($DATA->{SRC_IP}) ." -> ". int2ip($DATA->{DST_IP}) ."\n";
+	  	        print " $zid ". int2ip($DATA->{SRC_IP}) ." -> ". int2ip($DATA->{DST_IP}) ."  $DATA->{SIZE}\n";
 		          last;
 		         }
 
@@ -338,7 +338,7 @@ sub traffic_agregate_nets {
  		        if (ip_in_zone($DATA->{SRC_IP}, $DATA->{SRC_PORT}, $zid, \%zones)) {
 		          # в эту зону попал, плюсуем трафик и заканчиваем проверку
 	    	      $self->{INTERIM}{$DATA->{DST_IP}}{"$zid"}{IN} += $DATA->{SIZE};
-    		      print " $zid $DATA->{SIZE} ". int2ip($DATA->{SRC_IP}) ." -> ". int2ip($DATA->{DST_IP}) ."\n";
+    		      print " $zid ". int2ip($DATA->{DST_IP}) ." <- ". int2ip($DATA->{SRC_IP})  ."  $DATA->{SIZE} \n";
   		        last;
 		         }
 	         }
@@ -462,12 +462,12 @@ sub get_zone {
       my $i = 0;      
 
       foreach my $ip_full (@ip_list_array) {
-   	    if ($ip_full =~ /([!]{0,1})(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(\/{0,1})(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}|\d{2})/ ) {
+   	    if ($ip_full =~ /([!]{0,1})(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(\/{0,1})(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}|\d{1,2})/ ) {
    	    	my $NEG      = $1 || ''; 
    	    	my $IP       = unpack("N", pack("C4", split( /\./, $2))); 
-   	    	my $NETMASK  = unpack("N", pack("C4", split( /\./, "$4")));
+   	    	my $NETMASK  = (length($4) < 3) ? unpack "N", pack("B*",  ( "1" x $4 . "0" x (32 - $4) )) : unpack("N", pack("C4", split( /\./, "$4")));
    	    	
-   	    	print "REG ID: $zoneid NEGATIVE: $NEG IP: $IP MASK: ". int2ip($NETMASK) ."\n";
+   	    	print "REG ID: $zoneid NEGATIVE: $NEG IP: ".  int2ip($IP). " MASK: ". int2ip($NETMASK) ."\n";
 
   	      $zones{$zoneid}{A}[$i]{IP}   = $IP;
 	        $zones{$zoneid}{A}[$i]{Mask} = $NETMASK;
@@ -519,8 +519,6 @@ sub ip_in_zone($$$) {
     my $res = 0;
     # debug
     my %zones = %$zone_data;
-
-print %zones. "$#{$zones{$zoneid}{A}}";
 
     if ($self->{debug}) { print "--- CALL ip_in_zone($ip_num, $port, $zoneid) -> \n"; }
     # идем по списку адресов зоны
