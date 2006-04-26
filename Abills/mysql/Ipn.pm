@@ -287,7 +287,7 @@ sub traffic_agregate_nets {
          });
   
   
-       $tp_interval{$user->{TP_ID}} = 0; #  ($ret_attr->{TT} > 0) ? $ret_attr->{TT} :  $ret_attr->{TT};
+       $tp_interval{$user->{TP_ID}} = (defined($ret_attr->{TT}) && $ret_attr->{TT} > 0) ? $ret_attr->{TT} :  0;
       }
 
     
@@ -319,6 +319,7 @@ sub traffic_agregate_nets {
 	         }
          }
 	      else {
+	    	  print "aaaaaaaaa";
 	    	  $self->{INTERIM}{$DATA->{SRC_IP}}{"0"}{OUT} = $DATA->{SIZE};
 	       }
       } 
