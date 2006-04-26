@@ -268,7 +268,7 @@ sub traffic_agregate_nets {
     my $TP_ID = $user->{TP_ID} || 0;
     
     my ($remaining_time, $ret_attr);
-    if (! defined( $tp_interval{$user->{TP_ID}} )) {
+    if (! defined( $tp_interval{$TP_ID} )) {
       ($user->{TIME_INTERVALS},
        $user->{INTERVAL_TIME_TARIF},
        $user->{INTERVAL_TRAF_TARIF}) = $Billing->time_intervals($TP_ID);
@@ -288,19 +288,19 @@ sub traffic_agregate_nets {
          });
   
   
-       $tp_interval{$user->{TP_ID}} = (defined($ret_attr->{TT}) && $ret_attr->{TT} > 0) ? $ret_attr->{TT} :  0;
+       $tp_interval{$TP_ID} = (defined($ret_attr->{TT}) && $ret_attr->{TT} > 0) ? $ret_attr->{TT} :  0;
       }
 
     
-  print "\nUID: $uid\n####TP $user->{TP_ID} Interval: $tp_interval{$user->{TP_ID}}  ####\n" if ($self->{debug}); 
+  print "\nUID: $uid\n####TP $TP_ID Interval: $tp_interval{$TP_ID}  ####\n" if ($self->{debug}); 
     
     if (! defined(  $intervals{$tp_interval{$TP_ID}} )) {
-    	$self->get_zone({ TP_INTERVAL => $tp_interval{$user->{TP_ID}} });
+    	$self->get_zone({ TP_INTERVAL => $tp_interval{$TP_ID} });
      }
 
    my %zones;
-   @zoneids = @{ $intervals{$tp_interval{$user->{TP_ID}}}{ZONEIDS} };
-   %zones   = %{ $intervals{$tp_interval{$user->{TP_ID}}}{ZONES} };
+   @zoneids = @{ $intervals{$tp_interval{$TP_ID}}{ZONEIDS} };
+   %zones   = %{ $intervals{$tp_interval{$TP_ID}}{ZONES} };
     
     
     
