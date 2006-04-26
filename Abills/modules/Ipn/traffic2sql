@@ -35,6 +35,7 @@ require Ipn;
 Ipn->import();
 my $Ipn = Ipn->new($db, \%conf);
 
+
 my $log = $var_dir."log/ipn/trafd_". $NAS_ID. "_" .$IF_NAME;
 my $unknown_ip_log = $var_dir."log/ipn/unknown_ip.log";
 
@@ -50,8 +51,8 @@ elsif(defined($ARGV->{help})){
 }
 
 
+$Ipn->{debug}=1 if ($debug > 0);
 
-#exit;
 
 my %PROTOCOLS = ('tcp'    => 1,
                  'udp'    => 2);

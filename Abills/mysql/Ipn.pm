@@ -48,6 +48,7 @@ sub new {
   if (! defined($CONF->{KBYTE_SIZE})) {
   	 $CONF->{KBYTE_SIZE}=1024;
   	}
+  
 
   $Billing = Billing->new($db, $CONF);
   return $self;
@@ -264,13 +265,13 @@ sub traffic_agregate_nets {
     
     #print "$tp_interval{TP} --\n";
     #$tp_interval{}=37;
-        
+    my $TP_ID = $user->{TP_ID} || 0;
     
     my ($remaining_time, $ret_attr);
     if (! defined( $tp_interval{$user->{TP_ID}} )) {
       ($user->{TIME_INTERVALS},
        $user->{INTERVAL_TIME_TARIF},
-       $user->{INTERVAL_TRAF_TARIF}) = $Billing->time_intervals($user->{TP_ID});
+       $user->{INTERVAL_TRAF_TARIF}) = $Billing->time_intervals($TP_ID);
 
 
 
@@ -291,9 +292,9 @@ sub traffic_agregate_nets {
       }
 
     
-    print "\nUID: $uid\n####TP $user->{TP_ID} Interval: $tp_interval{$user->{TP_ID}}  ####\n";
+  print "\nUID: $uid\n####TP $user->{TP_ID} Interval: $tp_interval{$user->{TP_ID}}  ####\n" if ($self->{debug}); 
     
-    if (! defined(  $intervals{$tp_interval{$user->{TP_ID}}} )) {
+    if (! defined(  $intervals{$tp_interval{$TP_ID}} )) {
     	$self->get_zone({ TP_INTERVAL => $tp_interval{$user->{TP_ID}} });
      }
 
@@ -313,8 +314,8 @@ sub traffic_agregate_nets {
     	      if (ip_in_zone($DATA->{DST_IP}, $DATA->{DST_PORT}, $zid, \%zones)) {
 		          # в эту зону попал, плюсуем трафик и заканчиваем проверку
               #$self->{$DATA->{SRC_IP}}{"$zid"}{IN} = 0 if (! defined($self->{$DATA->{SRC_IP}}{"$zid"}{IN}));
-		          $self->{INTERIM}{$DATA->{SRC_IP}}{"$zid"}{OUT} = $DATA->{SIZE};
-	  	        print " $zid ". int2ip($DATA->{SRC_IP}) ." -> ". int2ip($DATA->{DST_IP}) ."  $DATA->{SIZE}\n";
+		          $self->{INTERIM}{$DATA->{SRC_IP}}{"$zid"}{OUT} += $DATA->{SIZE};
+	  	      print " $zid ". int2ip($DATA->{SRC_IP}) ." -> ". int2ip($DATA->{DST_IP}) ."  $DATA->{SIZE}\n" if ($self->{debug});;
 		          last;
 		         }
 
@@ -322,8 +323,8 @@ sub traffic_agregate_nets {
          
          }
 	      else {
-	    	  print " < $DATA->{SIZE} ". int2ip($DATA->{SRC_IP}) ." -> ". int2ip($DATA->{DST_IP}) ."\n";
-	    	  $self->{INTERIM}{$DATA->{SRC_IP}}{"0"}{OUT} = $DATA->{SIZE};
+	    	print " < $DATA->{SIZE} ". int2ip($DATA->{SRC_IP}) ." -> ". int2ip($DATA->{DST_IP}) ."\n" if ($self->{debug});
+	    	  $self->{INTERIM}{$DATA->{SRC_IP}}{"0"}{OUT} += $DATA->{SIZE};
 	       }
       } 
     }
@@ -338,14 +339,14 @@ sub traffic_agregate_nets {
  		        if (ip_in_zone($DATA->{SRC_IP}, $DATA->{SRC_PORT}, $zid, \%zones)) {
 		          # в эту зону попал, плюсуем трафик и заканчиваем проверку
 	    	      $self->{INTERIM}{$DATA->{DST_IP}}{"$zid"}{IN} += $DATA->{SIZE};
-    		      print " $zid ". int2ip($DATA->{DST_IP}) ." <- ". int2ip($DATA->{SRC_IP})  ."  $DATA->{SIZE} \n";
+    		      print " $zid ". int2ip($DATA->{DST_IP}) ." <- ". int2ip($DATA->{SRC_IP})  ."  $DATA->{SIZE} \n" if ($self->{debug});
   		        last;
 		         }
 	         }
          }
 	      else {
-	    	  print " > $DATA->{SIZE} ". int2ip($DATA->{SRC_IP}) ." -> ". int2ip($DATA->{DST_IP}) ."\n";
-	    	  $self->{INTERIM}{$DATA->{DST_IP}}{"0"}{IN} = $DATA->{SIZE};
+	    	  print " > $DATA->{SIZE} ". int2ip($DATA->{SRC_IP}) ." -> ". int2ip($DATA->{DST_IP}) ."\n" if ($self->{debug});
+	    	  $self->{INTERIM}{$DATA->{DST_IP}}{"0"}{IN} += $DATA->{SIZE};
 	       }
        }
      }
@@ -467,7 +468,7 @@ sub get_zone {
    	    	my $IP       = unpack("N", pack("C4", split( /\./, $2))); 
    	    	my $NETMASK  = (length($4) < 3) ? unpack "N", pack("B*",  ( "1" x $4 . "0" x (32 - $4) )) : unpack("N", pack("C4", split( /\./, "$4")));
    	    	
-   	    	print "REG ID: $zoneid NEGATIVE: $NEG IP: ".  int2ip($IP). " MASK: ". int2ip($NETMASK) ."\n";
+   	    print "REG ID: $zoneid NEGATIVE: $NEG IP: ".  int2ip($IP). " MASK: ". int2ip($NETMASK) ."\n" if ($self->{debug});
 
   	      $zones{$zoneid}{A}[$i]{IP}   = $IP;
 	        $zones{$zoneid}{A}[$i]{Mask} = $NETMASK;
@@ -493,9 +494,9 @@ sub get_zone {
    %{$intervals{$tariff}{ZONES}}=%zones;
 
 
-print " Tariff Interval: $tariff\n";
-print " Zone Ids:". @{$intervals{$tariff}{ZONEIDS}}."\n";
-print " Zones:". %{$intervals{$tariff}{ZONES}}."\n";
+print " Tariff Interval: $tariff\n".
+   " Zone Ids:". @{$intervals{$tariff}{ZONEIDS}}."\n".
+   " Zones:". %{$intervals{$tariff}{ZONES}}."\n" if ($self->{debug}); 
 
 }
 
@@ -595,7 +596,6 @@ sub traffic_add {
   my $self = shift;
   my ($DATA) = @_;
 
-# $self->{debug}=1;
  my $table_name = "ipn_traf_log_". $Y."_".$M;
 
  $self->query($db, "CREATE TABLE IF NOT EXISTS `$table_name`  (
@@ -997,7 +997,6 @@ else {
 
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
 
-  $self->{debug}=1;
 
   my $list;
 
