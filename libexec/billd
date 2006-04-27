@@ -156,7 +156,7 @@ sub check_lines {
         print "> Login: $RAD{USER_NAME} START: $RAD{SESSION_START} DURATION: $RAD{ACCT_SESSION_TIME}\n".
          "UID: $self->{UID} SUM: $self->{SUM} BILL_ID: $self->{BILL_ID} TARIF_PLAN: $self->{TARIF_PLAN} TRAF_TARIF: $self->{TRAF_TARIF}\n" if ($debug == 1);
 
-        if ( ($Billing->{PAYMENT_TYPE}==1) && ($line->[14] + $line->[15] < $self->{SUM}) ) {
+        if ( ($Billing->{PAYMENT_TYPE}==0) && ($line->[14] + $line->[15] < $self->{SUM}) ) {
            my $ret = hangup(\%NAS, "$nas_port_id", "$line->[0]", "$acct_session_id");
            print "Hanguped Login: $RAD{USER_NAME} DEPOSIT: $line->[14] CREDIT: $line->[15] SESSION_SUM: $self->{SUM}\n"; # if ($debug == 1);
           }
