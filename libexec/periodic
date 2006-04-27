@@ -49,8 +49,9 @@ my $args = parse_arguments(\@ARGV);
 
 #print $DATE;
 
-my @daily_functions=('sheduler',
-                     'admin_report_daily'
+my @daily_functions=(
+                     'admin_report_daily',
+                     'sheduler'
                      );
 
 my @monthly_functions = ('admin_report_monthly',
@@ -124,11 +125,12 @@ if (defined($args->{monthly})) {
               "$message", "$conf{MAIL_CHARSET}", "2 (High)");
  }
 elsif (defined($args->{daily})) {
-  foreach my $f (@daily_functions) {
-  	#print $f . "\n";
-  	$f->();
+  for(my $i=$#daily_functions; $i>-1; $i--) {
+        my $f = $daily_functions[$i];
+        #print $f . "\n";
+        $f->();
    }
-  
+
   if ($begin_time > 0)  {
     Time::HiRes->import(qw(gettimeofday));
     my $end_time = gettimeofday();

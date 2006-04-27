@@ -48,7 +48,8 @@ sub new {
   if (! defined($CONF->{KBYTE_SIZE})) {
   	 $CONF->{KBYTE_SIZE}=1024;
   	}
-  
+
+$self->{debug}  =1;
 
   $Billing = Billing->new($db, $CONF);
   return $self;
@@ -572,7 +573,8 @@ sub traffic_add_user {
          traffic_class,
          traffic_in,
          traffic_out,
-         nas_id
+         nas_id,
+         ip
        )
      VALUES (
        '$DATA->{UID}',
@@ -581,7 +583,8 @@ sub traffic_add_user {
        '$DATA->{TARFFIC_CLASS}',
        '$DATA->{INBYTE}',
        '$DATA->{OUTBYTE}',
-       '$DATA->{NAS_ID}'
+       '$DATA->{NAS_ID}',
+       '$DATA->{IP}'
       );", 'do');
 
 
@@ -902,7 +905,135 @@ else {
 }
 
 
+#**********************************************************
+#
+#**********************************************************
+sub stats {
+ my $self=shift;
+ my ($attr) = @_;
+ 
+ undef @WHERE_RULES;  
+ 
+ if ($attr->{UID}) {
+     push @WHERE_RULES, "l.uid='$attr->{UID}'"; 	
+  }
 
+ if ($attr->{UID}) {
+ 	
+ }
+ 
+ my $GROUP = 'l.uid, l.ip, l.traffic_class';
+
+ $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
+$self->{debug}=1;
+ $self->query($db, "SELECT u.id, min(l.start), INET_NTOA(l.ip), l.traffic_class,
+   sum(l.traffic_in), sum(l.traffic_out),
+   l.nas_id
+   from ipn_log l
+   LEFT join  users u ON (l.uid=u.uid)
+   $WHERE 
+   GROUP BY $GROUP
+  ;");
+  #
+
+ my $list = $self->{list};
+
+
+ $self->query($db, "SELECT 
+  count(*),  sum(l.traffic_in), sum(l.traffic_out)
+  from  ipn_log l
+  $WHERE
+  ;");
+
+  my $a_ref = $self->{list}->[0];
+  ($self->{COUNT},
+   $self->{SUM}) = @$a_ref;
+
+
+  return $list;
+}
+
+
+#**********************************************************
+#
+#**********************************************************
+sub reports_users {
+ my $self=shift;
+ my ($attr) = @_;
+ 
+ 
+my $lupdate = "DATE_FORMAT(start, '%Y-%m-%d'), count(DISTINCT l.uid), ";
+my $GROUP = '1';
+
+
+ 
+ undef @WHERE_RULES;  
+ 
+ if ($attr->{UID}) {
+     push @WHERE_RULES, "l.uid='$attr->{UID}'"; 	
+  }
+
+ 
+ #Interval from date to date
+if ($attr->{INTERVAL}) {
+ 	my ($from, $to)=split(/\//, $attr->{INTERVAL}, 2);
+  push @WHERE_RULES, "date_format(f_time, '%Y-%m-%d')>='$from' and date_format(f_time, '%Y-%m-%d')<='$to'";
+ }
+#Period
+elsif (defined($attr->{PERIOD})) {
+   my $period = $attr->{PERIOD} || 0;   
+   if ($period == 4) { $WHERE .= ''; }
+   else {
+     $WHERE .= ($WHERE ne '') ? ' and ' : 'WHERE ';
+     if($period == 0)    {  push @WHERE_RULES, "date_format(f_time, '%Y-%m-%d')=curdate()"; }
+     elsif($period == 1) {  push @WHERE_RULES, "TO_DAYS(curdate()) - TO_DAYS(f_time) = 1 ";  }
+     elsif($period == 2) {  push @WHERE_RULES, "YEAR(curdate()) = YEAR(f_time) and (WEEK(curdate()) = WEEK(f_time)) ";  }
+     elsif($period == 3) {  push @WHERE_RULES, "date_format(f_time, '%Y-%m')=date_format(curdate(), '%Y-%m') "; }
+     elsif($period == 5) {  push @WHERE_RULES, "date_format(f_time, '%Y-%m-%d')='$attr->{DATE}' "; }
+     else {$WHERE .= "date_format(f_time, '%Y-%m-%d')=curdate() "; }
+    }
+ }
+elsif($attr->{HOUR}) {
+   push @WHERE_RULES, "date_format(f_time, '%Y-%m-%d %H')='$attr->{HOUR}'";
+ }
+elsif($attr->{DATE}) {
+	 push @WHERE_RULES, "date_format(start, '%Y-%m-%d')='$attr->{DATE}'";
+	 $GROUP = "1, 2, 5";
+	 $lupdate = "DATE_FORMAT(start, '%Y-%m-%d'), u.id, ";
+}
+
+
+
+ $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
+
+
+ $self->query($db, "SELECT $lupdate
+   sum(l.traffic_in), sum(l.traffic_out), 
+   l.traffic_class,
+   l.nas_id
+   from ipn_log l
+   LEFT join  users u ON (l.uid=u.uid)
+   $WHERE 
+   GROUP BY $GROUP
+  ;");
+  #
+
+ my $list = $self->{list};
+
+
+ $self->query($db, "SELECT 
+  count(*),  sum(l.traffic_in), sum(l.traffic_out)
+  from  ipn_log l
+  $WHERE
+  ;");
+
+  my $a_ref = $self->{list}->[0];
+  ($self->{COUNT},
+   $self->{SUM}) = @$a_ref;
+
+
+  return $list;
+}
 
 #**********************************************************
 #
@@ -1113,6 +1244,7 @@ $d[2]=int(($i-$d[0]*256*256*256-$d[1]*256*256)/256);
 $d[3]=int($i-$d[0]*256*256*256-$d[1]*256*256-$d[2]*256);
  return "$d[0].$d[1].$d[2].$d[3]";
 }
+
 
 
 1
