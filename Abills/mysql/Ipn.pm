@@ -49,7 +49,7 @@ sub new {
   	 $CONF->{KBYTE_SIZE}=1024;
   	}
 
-$self->{debug}  =1;
+  #$self->{debug}  =1;
 
   $Billing = Billing->new($db, $CONF);
   return $self;
@@ -258,14 +258,6 @@ sub traffic_agregate_nets {
   while(my ($uid, $data_hash)= each (%$AGREGATE_USERS)) {
 
     my $user = $Dv->info($uid);
-
-    #$tp_interval{TP} = $user_info->{TPS}{$uid};
-    #($user_info->{TIME_INTERVALS}, 
-    # $user_info->{INTERVAL_TIME_TARIF}, 
-    # $user_info->{INTERVAL_TRAF_TARIF}) = $Billing->time_intervals($tp_interval{TP});
-    
-    #print "$tp_interval{TP} --\n";
-    #$tp_interval{}=37;
     my $TP_ID = $user->{TP_ID} || 0;
     
     my ($remaining_time, $ret_attr);
@@ -292,7 +284,7 @@ sub traffic_agregate_nets {
        $tp_interval{$TP_ID} = (defined($ret_attr->{TT}) && $ret_attr->{TT} > 0) ? $ret_attr->{TT} :  0;
       }
 
-    
+  $tp_interval{$TP_ID}=37;
   print "\nUID: $uid\n####TP $TP_ID Interval: $tp_interval{$TP_ID}  ####\n" if ($self->{debug}); 
     
     if (! defined(  $intervals{$tp_interval{$TP_ID}} )) {
@@ -303,20 +295,20 @@ sub traffic_agregate_nets {
    @zoneids = @{ $intervals{$tp_interval{$TP_ID}}{ZONEIDS} };
    %zones   = %{ $intervals{$tp_interval{$TP_ID}}{ZONES} };
     
-    
-    
     if (defined($data_hash->{OUT})) {
       #Get User data array
       my $DATA_ARRAY_REF = $data_hash->{OUT};
+      
       foreach my $DATA ( @$DATA_ARRAY_REF ) {
+   	    #print "------ < $DATA->{SIZE} ". int2ip($DATA->{SRC_IP}) .":$DATA->{SRC_PORT} -> ". int2ip($DATA->{DST_IP}) .":$DATA->{DST_PORT}\n" if ($self->{debug});
   	    if ( $#zoneids >= 0 ) {
+  	     
   	      foreach my $zid (@zoneids) {
-
     	      if (ip_in_zone($DATA->{DST_IP}, $DATA->{DST_PORT}, $zid, \%zones)) {
 		          # в эту зону попал, плюсуем трафик и заканчиваем проверку
               #$self->{$DATA->{SRC_IP}}{"$zid"}{IN} = 0 if (! defined($self->{$DATA->{SRC_IP}}{"$zid"}{IN}));
 		          $self->{INTERIM}{$DATA->{SRC_IP}}{"$zid"}{OUT} += $DATA->{SIZE};
-	  	      print " $zid ". int2ip($DATA->{SRC_IP}) ." -> ". int2ip($DATA->{DST_IP}) ."  $DATA->{SIZE}\n" if ($self->{debug});;
+	  	        print " $zid ". int2ip($DATA->{SRC_IP}) .":$DATA->{SRC_PORT} -> ". int2ip($DATA->{DST_IP}) .":$DATA->{DST_PORT}  $DATA->{SIZE}\n" if ($self->{debug});;
 		          last;
 		         }
 
@@ -324,7 +316,7 @@ sub traffic_agregate_nets {
          
          }
 	      else {
-	    	print " < $DATA->{SIZE} ". int2ip($DATA->{SRC_IP}) ." -> ". int2ip($DATA->{DST_IP}) ."\n" if ($self->{debug});
+	    	  print " < $DATA->{SIZE} ". int2ip($DATA->{SRC_IP}) .":$DATA->{SRC_PORT} -> ". int2ip($DATA->{DST_IP}) .":$DATA->{DST_PORT}\n" if ($self->{debug});
 	    	  $self->{INTERIM}{$DATA->{SRC_IP}}{"0"}{OUT} += $DATA->{SIZE};
 	       }
       } 
@@ -335,18 +327,19 @@ sub traffic_agregate_nets {
       #Get User data array
       my $DATA_ARRAY_REF = $data_hash->{IN};
       foreach my $DATA ( @$DATA_ARRAY_REF ) {
+  	    #print "!!------ < $DATA->{SIZE} ". int2ip($DATA->{SRC_IP}) .":$DATA->{SRC_PORT} -> ". int2ip($DATA->{DST_IP}) .":$DATA->{DST_PORT}\n" if ($self->{debug});
   	    if ($#zoneids >= 0) {
  	        foreach my $zid (@zoneids) {
  		        if (ip_in_zone($DATA->{SRC_IP}, $DATA->{SRC_PORT}, $zid, \%zones)) {
 		          # в эту зону попал, плюсуем трафик и заканчиваем проверку
 	    	      $self->{INTERIM}{$DATA->{DST_IP}}{"$zid"}{IN} += $DATA->{SIZE};
-    		      print " $zid ". int2ip($DATA->{DST_IP}) ." <- ". int2ip($DATA->{SRC_IP})  ."  $DATA->{SIZE} \n" if ($self->{debug});
+    		      print " $zid ". int2ip($DATA->{DST_IP}) .":$DATA->{DST_PORT} <- ". int2ip($DATA->{SRC_IP})  .":$DATA->{SRC_PORT}  $DATA->{SIZE} \n" if ($self->{debug});
   		        last;
 		         }
 	         }
          }
 	      else {
-	    	  print " > $DATA->{SIZE} ". int2ip($DATA->{SRC_IP}) ." -> ". int2ip($DATA->{DST_IP}) ."\n" if ($self->{debug});
+	    	  print " > $DATA->{SIZE} ". int2ip($DATA->{SRC_IP}) ."$DATA->{SRC_PORT} -> ". int2ip($DATA->{DST_IP}) ."$DATA->{DST_PORT}\n" if ($self->{debug});
 	    	  $self->{INTERIM}{$DATA->{DST_IP}}{"0"}{IN} += $DATA->{SIZE};
 	       }
        }
@@ -464,26 +457,29 @@ sub get_zone {
       my $i = 0;      
 
       foreach my $ip_full (@ip_list_array) {
-   	    if ($ip_full =~ /([!]{0,1})(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(\/{0,1})(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}|\d{1,2})/ ) {
+   	    if ($ip_full =~ /([!]{0,1})(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(\/{0,1})(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}|\d{1,2})(:{0,1})(\S{0,100})/ ) {
    	    	my $NEG      = $1 || ''; 
    	    	my $IP       = unpack("N", pack("C4", split( /\./, $2))); 
    	    	my $NETMASK  = (length($4) < 3) ? unpack "N", pack("B*",  ( "1" x $4 . "0" x (32 - $4) )) : unpack("N", pack("C4", split( /\./, "$4")));
    	    	
-   	    print "REG ID: $zoneid NEGATIVE: $NEG IP: ".  int2ip($IP). " MASK: ". int2ip($NETMASK) ."\n" if ($self->{debug});
+   	      print "REG ID: $zoneid NEGATIVE: $NEG IP: ".  int2ip($IP). " MASK: ". int2ip($NETMASK) ." Ports: $6\n" if ($self->{debug});
 
   	      $zones{$zoneid}{A}[$i]{IP}   = $IP;
 	        $zones{$zoneid}{A}[$i]{Mask} = $NETMASK;
 	        $zones{$zoneid}{A}[$i]{Neg}  = $NEG;
-	        
-    	    #my $sth2 = $dbh->prepare("SELECT PortNum FROM Port WHERE Address_ID=$ref1->{'ID'}");
-    	    #$sth2->execute();
-	        
+        
+	        #Get ports
 	        @{$zones{$zoneid}{A}[$i]{'Ports'}} = ();
-	      	
-	      	#while (my $ref2=$sth2->fetchrow_hashref()) {
-	        #  if ($DEBUG) { print "$ref2->{'PortNum'} "; }
-	        #  push @{$zones{$zoneid}{A}[$i]{Ports}}, $ref2->{'PortNum'};
-	        #}
+          if ($6 ne '')	{      	
+	      	  my @PORTS_ARRAY = split(/,/, $6);
+	      	  foreach my $port (@PORTS_ARRAY) {
+	      	    push @{$zones{$zoneid}{A}[$i]{Ports}}, $port;
+    	      	#while (my $ref2=$sth2->fetchrow_hashref()) {
+	            #  if ($DEBUG) { print "$ref2->{'PortNum'} "; }
+	            #  push @{$zones{$zoneid}{A}[$i]{Ports}}, $ref2->{'PortNum'};
+	            #}
+             }
+           }
    	     }
 
         
@@ -533,6 +529,7 @@ sub ip_in_zone($$$) {
        my $a_neg = $$adr_hash{'Neg'}; 
        my $a_ports_ref = \@{$$adr_hash{'Ports'}};
        
+       #print "AAAAAAAA:" . @$a_ports_ref . "\n";
        
        # если адрес попадает в подсеть
        if ( (($a_ip & $a_msk) == ($ip_num & $a_msk)) && # адрес совпадает
@@ -1217,8 +1214,7 @@ sub is_client_ip($) {
 }
 
 # определяет наличие элемента в массиве (массив по ссылке)
-sub is_exist($$)
-{
+sub is_exist($$) {
     (my $arrayref, my $elem) = @_;
     # если список пуст, считаем, что элемент в него попадает
     if ($#{@$arrayref} == -1) { return 1; }

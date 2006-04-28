@@ -162,7 +162,7 @@ foreach my $ip ( sort keys %$ips_interim) {
             IP						 => $ip
    	      } );
       }
-      $extended = sprintf("   %d| %10s| %10s|\n", $k, $in, $out);
+      $extended .= sprintf("   %d| %10s| %10s|\n", $k, $in, $out);
    }
   
   if ($uid > 0) {
