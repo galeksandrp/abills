@@ -50,8 +50,7 @@ my $args = parse_arguments(\@ARGV);
 #print $DATE;
 
 my @daily_functions=(
-                     'admin_report_daily',
-                     'sheduler'
+                     'admin_report_daily'
                      );
 
 my @monthly_functions = ('admin_report_monthly',
@@ -88,7 +87,7 @@ my @reports = ();
    undef %PERIODIC;
   }
 
-
+  push  @daily_functions, 'sheduler';
 
 my($Y, $M, $D);
 
