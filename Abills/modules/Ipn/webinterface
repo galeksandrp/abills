@@ -7,7 +7,7 @@ require Ipn;
 Ipn->import();
 my $Ipn = Ipn->new($db, \%conf);
 
-my @TT_COLORS = ("", "#80FF80", "#FFFF80", "#BFBFFF");
+my @TT_COLORS = ("$_COLORS[1]", "#80FF80", "#FFFF80", "#BFBFFF");
 
 #**********************************************************
 # Whow sessions from log
@@ -262,17 +262,12 @@ sub ipn_use_allmonthes {
 #**********************************************************
 sub ipn_use_users {
 
-
- my @EX_GROUPS = ('Time', 'Hosts', 'Ports');
-  
   $Ipn->{EX_GROUP_SEL} ="<select name='EX_GROUP'>\n";
 
   reports({ DATE      => $FORM{DATE}, 
   	        REPORT    => '',
   	        SHOW_HOURS => 'Y'
   	       });
-
-
 
  my %totals = ();
 
@@ -283,79 +278,8 @@ if (defined($FORM{DATE})) {
 
    $LIST_PARAMS{INTERVAL_TYPE} = 2;
 
-   if ($FORM{EX_PARAMS} == 1) {
-      $LIST_PARAMS{HOSTS}='y';
-      $Ipn->reports_users({ %LIST_PARAMS });
 
-      my $list = $Ipn->{HOSTS_LIST_FROM};
-      $table_sessions = $html->table( { width => '100%',
-	                              caption => "$_FROM", 
-                                title =>["IP", "$_SUM", "PACKEDGE"],
-                                cols_align => ['left', 'right', 'right'],
-                                qs => $pages_qs             
-                               } );
 
-      foreach my $line (@$list) {
-        $table_sessions->addrow("<b>$line->[0]</b>", 
-          int2byte($line->[1]), 
-          $line->[2]
-         );
-       }
-
-      print $table_sessions->show();
-      $list = $Ipn->{HOSTS_LIST_TO};
-      $table_sessions = $html->table( { width => '100%',
-	                              caption => "$_TO", 
-                                title =>["IP", "$_SUM", "PACKEDGE"],
-                                cols_align => ['left', 'right', 'right'],
-                                qs => $pages_qs             
-                               } );
-
-      foreach my $line (@$list) {
-        $table_sessions->addrow("<b>$line->[0]</b>", 
-          int2byte($line->[1]), 
-          $line->[2]
-         );
-       }
-    }
-
-   elsif ($FORM{EX_PARAMS} == 2) {
-      $LIST_PARAMS{PORTS}='y';
-      $Ipn->reports_users({ %LIST_PARAMS });
-
-      my $list = $Ipn->{PORTS_LIST_FROM};
-      $table_sessions = $html->table( { width => '100%',
-	                              caption       => "$_FROM", 
-                                title         => ["IP", "$_SUM", "PACKEDGE"],
-                                cols_align    => ['left', 'right', 'right'],
-                                qs            => $pages_qs             
-                               } );
-
-      foreach my $line (@$list) {
-        $table_sessions->addrow("<b>$line->[0]</b>", 
-          int2byte($line->[1]), 
-          $line->[2]
-         );
-       }
-
-      print $table_sessions->show();
-      $list = $Ipn->{PORTS_LIST_TO};
-      $table_sessions = $html->table( { width   => '100%',
-	                              caption         => "$_TO", 
-                                title           => ["IP", "$_SUM", "PACKEDGE"],
-                                cols_align      => ['left', 'right', 'right'],
-                                qs              => $pages_qs             
-                               } );
-
-      foreach my $line (@$list) {
-        $table_sessions->addrow("<b>$line->[0]</b>", 
-          int2byte($line->[1]), 
-          $line->[2]
-         );
-       }
-    }
-
-   else {
 #  $LIST_PARAMS{DATE}="$FORM{DATE}";
 #  $pages_qs.="&DATE=$LIST_PARAMS{DATE}";
     my $list = $Ipn->reports_users({ %LIST_PARAMS });
@@ -363,11 +287,12 @@ if (defined($FORM{DATE})) {
     $table_sessions = $html->table( { width => '100%',
 	                              caption => "$_SESSIONS", 
                                 title =>["$_DATE", "$_USERS", "IN", "OUT", "$_SUM", "TT"],
-                                cols_align => ['right', 'right', 'right', 'right', 'right', 'right'],
+                                cols_align => ['right', 'left', 'right', 'right', 'right', 'right'],
                                 qs => $pages_qs             
                                } );
 
 
+    my %report = ();
     foreach my $line (@$list) {
       if ($TT_COLORS[$line->[4]] ne '') {
         $table_sessions->{rowcolor}=$TT_COLORS[$line->[4]] 
@@ -376,13 +301,15 @@ if (defined($FORM{DATE})) {
   	    $table_sessions->{rowcolor}=undef;
        }
 
-      $table_sessions->addrow("<b>$line->[0]</b>", 
-        $line->[1], 
-        int2byte($line->[2]), 
-        int2byte($line->[3]),  
-        int2byte($line->[2]+$line->[3]),  
-        $line->[4]
-      );
+       push  @{$report{"$line->[0]$line->[1]"}}, [ @$line ];
+      
+#      $table_sessions->addrow("<b>$line->[0]</b>", 
+#        $line->[1], 
+#        int2byte($line->[2]), 
+#        int2byte($line->[3]),  
+#        int2byte($line->[2]+$line->[3]),  
+#        $line->[4]
+#      );
 
      $total_in      += $line->[1];   
      $total_out     += $line->[2]; 
@@ -390,7 +317,62 @@ if (defined($FORM{DATE})) {
      $total_sum     += $line->[4];
      $total_package += $line->[5];
     }
-  }
+    
+
+    while(my($k, $v)=each %report) {
+      my @stats_array = @$v;
+
+      if ($TT_COLORS[$stats_array[0][2]] ne '') {
+         $table_sessions->{rowcolor}=$TT_COLORS[$stats_array[0][2]] 
+       }
+      else {
+  	    $table_sessions->{rowcolor}=undef;
+       }
+
+      my $user_total_in=0;
+      my $user_total_out=0;
+      my $user_sum=0;
+
+      $table_sessions->addtd(
+                  $table->td($stats_array[0][0], { rowspan => ($#stats_array > 0) ? $#stats_array+2 : 2 } ),
+                  $table->td($stats_array[0][1], { rowspan => ($#stats_array > 0) ? $#stats_array+2 : 2 } ),
+                  $table->td($stats_array[0][2]), 
+                  $table->td(int2byte($stats_array[0][3])), 
+                  $table->td(int2byte($stats_array[0][4])),
+                  $table->td(int2byte($stats_array[0][4]+$stats_array[0][3]))
+      );
+
+      $user_total_in+=$stats_array[0][3];
+      $user_total_out+=$stats_array[0][4];
+      $user_sum+=$stats_array[0][4]+$stats_array[0][3];
+
+      for($i=1; $i<$#stats_array+1; $i++)  {
+
+        if ($TT_COLORS[$stats_array[$i][2]] ne '') {
+          $table_sessions->{rowcolor}=$TT_COLORS[$stats_array[$i][2]] 
+         }
+        else {
+  	      $table_sessions->{rowcolor}=undef;
+         } 
+
+        $table_sessions->addrow($stats_array[$i][2], 
+          int2byte($stats_array[$i][3]),
+          int2byte($stats_array[$i][4]),
+          int2byte($stats_array[$i][4]+$stats_array[$i][3]));
+        
+          $user_total_in+=$stats_array[$i][3];
+          $user_total_out+=$stats_array[$i][4];
+          $user_sum+=$stats_array[$i][4]+$stats_array[$i][3];
+     }
+
+     $table_sessions->{rowcolor}=$_COLORS[3];
+     $table_sessions->addtd("<th>$_TOTAL:</th>", 
+        "<th>". int2byte($user_total_in) ."</th>",
+        "<th>". int2byte($user_total_out) ."</th>",
+        "<th>". int2byte($user_sum). "</th>");
+   
+   }
+
  }
 else {
   #Used Traffic

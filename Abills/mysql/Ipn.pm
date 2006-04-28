@@ -995,7 +995,7 @@ elsif($attr->{HOUR}) {
  }
 elsif($attr->{DATE}) {
 	 push @WHERE_RULES, "date_format(start, '%Y-%m-%d')='$attr->{DATE}'";
-	 $GROUP = "1, 2, 5";
+	 $GROUP = "1, 2, 3";
 	 $lupdate = "DATE_FORMAT(start, '%Y-%m-%d'), u.id, ";
 }
 
@@ -1005,8 +1005,10 @@ elsif($attr->{DATE}) {
 
 
  $self->query($db, "SELECT $lupdate
-   sum(l.traffic_in), sum(l.traffic_out), 
    l.traffic_class,
+
+   sum(l.traffic_in), sum(l.traffic_out), 
+
    l.nas_id
    from ipn_log l
    LEFT join  users u ON (l.uid=u.uid)

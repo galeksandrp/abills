@@ -1264,7 +1264,7 @@ sub form_intervals {
 
   my %visual_view = ();
   my $tarif_plan;
-  
+  my $max_traffic_class_id = 0; #Max taffic class id
 
 if(defined($attr->{TP})) {
   $tarif_plan = $attr->{TP};
@@ -1353,12 +1353,13 @@ if(defined($attr->{TP})) {
 
        my $table2 = $html->table( { width => '100%',
                                    title_plain => ["#", "$_TRAFFIC_TARIFF In ", "$_TRAFFIC_TARIFF Out ", "$_PREPAID", "$_SPEED IN",  "$_SPEED OUT", "DESCRIBE", "NETS", "-", "-"],
-                                   cols_align => ['center', 'right', 'right', 'right', 'right', 'right', 'left', 'right', 'center', 'center', 'center'],
-                                   caption => "$_BYTE_TARIF"
+                                   cols_align  => ['center', 'right', 'right', 'right', 'right', 'right', 'left', 'right', 'center', 'center', 'center'],
+                                   caption     => "$_BYTE_TARIF"
                                   } );
 
        my $list_tt = $tarif_plan->tt_list({ TI_ID => $line->[0] });
        foreach my $line (@$list_tt) {
+          $max_traffic_class_id=$line->[0] if ($line->[0] > $max_traffic_class_id);
           $table2->addrow($line->[0], 
            $line->[1], 
            $line->[2], 
@@ -1460,6 +1461,12 @@ if (defined($FORM{tt})) {
   my %TT_IDS = (0 => "Global",
                 1 => "Extended 1",
                 2 => "Extended 2" );
+
+  if ($max_traffic_class_id > 2) {
+  	for (my $i=3; $i<=$max_traffic_class_id; $i++) { 
+  	  $TT_IDS{$i}="Extended $i";
+  	 }
+  }
 
   $tarif_plan->{SEL_TT_ID} = $html->form_select('TT_ID', 
                                 { SELECTED    => $tarif_plan->{TT_ID},
