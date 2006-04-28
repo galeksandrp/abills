@@ -339,7 +339,7 @@ sub traffic_agregate_nets {
 	         }
          }
 	      else {
-	    	  print " > $DATA->{SIZE} ". int2ip($DATA->{SRC_IP}) ."$DATA->{SRC_PORT} -> ". int2ip($DATA->{DST_IP}) ."$DATA->{DST_PORT}\n" if ($self->{debug});
+	    	  print " > $DATA->{SIZE} ". int2ip($DATA->{SRC_IP}) .":$DATA->{SRC_PORT} -> ". int2ip($DATA->{DST_IP}) .":$DATA->{DST_PORT}\n" if ($self->{debug});
 	    	  $self->{INTERIM}{$DATA->{DST_IP}}{"0"}{IN} += $DATA->{SIZE};
 	       }
        }
