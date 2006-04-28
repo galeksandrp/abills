@@ -169,9 +169,19 @@ foreach my $ip ( sort keys %$ips_interim) {
    	      } );
       }
 
-     $extended .= sprintf("   %d| %10s| %10s| Price:%5s%5s\n", $k, $in, $out, 
-       ( defined($intervals->{$tp_interval->{ $tps->{$uid} }}->{ZONES}->{0}->{PriceIn}) ) ? $intervals->{$tp_interval->{ $tps->{$uid} }}->{ZONES}->{0}->{PriceIn} : 0,
-       ( defined($intervals->{$tp_interval->{ $tps->{$uid} }}->{ZONES}->{0}->{PriceOut}) ) ? $intervals->{$tp_interval->{ $tps->{$uid} }}->{ZONES}->{0}->{PriceOut} : 0
+     my $price_in = ( defined($intervals->{$tp_interval->{ $tps->{$uid} }}->{ZONES}->{0}->{PriceIn}) ) ? $intervals->{$tp_interval->{ $tps->{$uid} }}->{ZONES}->{0}->{PriceIn} : 0;
+     my $price_out = ( defined($intervals->{$tp_interval->{ $tps->{$uid} }}->{ZONES}->{0}->{PriceOut}) ) ? $intervals->{$tp_interval->{ $tps->{$uid} }}->{ZONES}->{0}->{PriceOut} : 0;
+     
+     my $sum_in = ($price_in > 0_) ? $in / $conf{KBYTE_SIZE} / $conf{KBYTE_SIZE} * $price_in  : 0; 
+     my $sum_out = ($price_out > 0) ? $out / $conf{KBYTE_SIZE}/ $conf{KBYTE_SIZE} * $price_out : 0;
+
+     
+     $extended .= sprintf("   %d| %10s| %10s| Price:%5s%5s = %f/%f=%f\n", $k, $in, $out, 
+       $price_in,
+       $price_out,
+       $sum_in,
+       $sum_out,
+       $sum_in + $sum_out
        );
    }
   
