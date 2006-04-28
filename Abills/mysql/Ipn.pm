@@ -258,7 +258,12 @@ sub traffic_agregate_nets {
   while(my ($uid, $data_hash)= each (%$AGREGATE_USERS)) {
 
     my $user = $Dv->info($uid);
-    my $TP_ID = $user->{TP_ID} || 0;
+    my $TP_ID = 0;
+
+    if ($Dv->{TOTAL} > 0) {
+    	$TP_ID = $user->{TP_ID} || 0;
+    }
+      
     
     my ($remaining_time, $ret_attr);
     if (! defined( $tp_interval{$TP_ID} )) {
@@ -339,7 +344,7 @@ sub traffic_agregate_nets {
 	         }
          }
 	      else {
-	    	  print " > $DATA->{SIZE} ". int2ip($DATA->{SRC_IP}) .":$DATA->{SRC_PORT} -> ". int2ip($DATA->{DST_IP}) .":$DATA->{DST_PORT}\n" if ($self->{debug});
+	    	  print " > $DATA->{SIZE} ". int2ip($DATA->{SRC_IP}) .":$DATA->{	} -> ". int2ip($DATA->{DST_IP}) .":$DATA->{DST_PORT}\n" if ($self->{debug});
 	    	  $self->{INTERIM}{$DATA->{DST_IP}}{"0"}{IN} += $DATA->{SIZE};
 	       }
        }
