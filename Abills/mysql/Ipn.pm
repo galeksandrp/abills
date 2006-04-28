@@ -33,6 +33,9 @@ my $CONF;
 my $debug = 0;
 
 my %intervals = ();
+my %tp_interval = ();
+
+
 my @zoneids;
 my @clients_lst = ();
 
@@ -154,46 +157,6 @@ $self->{debug}=1;
 }
 
 
-#**********************************************************
-# traffic_add_log
-#**********************************************************
-sub traffic_agregate {
-  my $self = shift;
-  my ($DATA) = @_;
- 
-  my $ips=$self->{USERS_IPS};
-  my $y = 0;
-
-  if (defined($ips->{$DATA->{SRC_IP}})) {
-    $DATA->{UID} = $ips->{$DATA->{SRC_IP}};
- 	 	$self->{$DATA->{SRC_IP}}{OUT}+=$DATA->{SIZE};
- 		$self->{INTERIM}{$DATA->{SRC_IP}}{OUT}+=$DATA->{SIZE};
- 		$y++;
-   }
-#  else {
-#  	$DATA->{UID}=0;
-#  	$self->{$DATA->{UID}}{IN}+=$DATA->{SIZE};
-#    push @{$self->{IN}}, "$DATA->{SRC_IP}/$DATA->{DST_IP}";	
-#   }
-
-  if (defined($ips->{$DATA->{DST_IP}})) {
-    $DATA->{UID} = $ips->{$DATA->{DST_IP}};
-	  $self->{$DATA->{DST_IP}}{IN}+=$DATA->{SIZE};
-  	$self->{INTERIM}{$DATA->{DST_IP}}{IN}+=$DATA->{SIZE};
-	  $y++;
-   }
-  elsif ($y < 1) {
-  	$DATA->{UID}=0;
-  	$self->{INTERIM}{$DATA->{UID}}{OUT}+=$DATA->{SIZE};
-    push @{$self->{IN}}, "$DATA->{SRC_IP}/$DATA->{DST_IP}/$DATA->{SIZE}";	
-
-    #push @{$self->{OUT}}, "$DATA->{DST_IP}/$DATA->{DST_IP}";
-   }
-
-
-  return $self;
-}
-
 
 #**********************************************************
 # traffic_add_log
@@ -205,23 +168,12 @@ sub traffic_agregate_users {
   my $ips=$self->{USERS_IPS};
   my $y = 0;
  
-
   if (defined($ips->{$DATA->{SRC_IP}})) {
-    #$DATA->{UID} = $ips->{$DATA->{SRC_IP}};
- 	 	#$self->{$DATA->{SRC_IP}}{OUT}+=$DATA->{SIZE};
  	  push @{ $self->{AGREGATE_USERS}{$ips->{$DATA->{SRC_IP}}}{OUT} }, { %$DATA };
  		$y++;
    }
-#  else {
-#  	$DATA->{UID}=0;
-#  	$self->{$DATA->{UID}}{IN}+=$DATA->{SIZE};
-#    push @{$self->{IN}}, "$DATA->{SRC_IP}/$DATA->{DST_IP}";	
-#   }
 
   if (defined($ips->{$DATA->{DST_IP}})) {
-    #$DATA->{UID} = $ips->{$DATA->{DST_IP}};
-	  #$self->{$DATA->{DST_IP}}{IN}+=$DATA->{SIZE};
-  	#$self->{INTERIM}{$DATA->{DST_IP}}{IN}+=$DATA->{SIZE};
     push @{ $self->{AGREGATE_USERS}{$ips->{$DATA->{DST_IP}}}{IN} }, { %$DATA };
 	  $y++;
    }
@@ -229,10 +181,7 @@ sub traffic_agregate_users {
   	$DATA->{UID}=0;
   	$self->{INTERIM}{$DATA->{UID}}{OUT}+=$DATA->{SIZE};
     push @{$self->{IN}}, "$DATA->{SRC_IP}/$DATA->{DST_IP}/$DATA->{SIZE}";	
-
-    #push @{$self->{OUT}}, "$DATA->{DST_IP}/$DATA->{DST_IP}";
    }
-
 
   return $self;
 }
@@ -247,8 +196,6 @@ sub traffic_agregate_nets {
   my $ips       = $self->{USERS_IPS};
   my $user_info = $self->{USERS_INFO};
 
-  my %tp_interval = ();
-
   require Dv;
   Dv->import();
   my $Dv = Dv->new($db, undef, $CONF);
@@ -262,8 +209,9 @@ sub traffic_agregate_nets {
 
     if ($Dv->{TOTAL} > 0) {
     	$TP_ID = $user->{TP_ID} || 0;
-    }
-      
+      $self->{USERS_INFO}->{TPS}->{$uid}=$TP_ID;
+     }
+    
     
     my ($remaining_time, $ret_attr);
     if (! defined( $tp_interval{$TP_ID} )) {
@@ -310,10 +258,8 @@ sub traffic_agregate_nets {
   	     
   	      foreach my $zid (@zoneids) {
     	      if (ip_in_zone($DATA->{DST_IP}, $DATA->{DST_PORT}, $zid, \%zones)) {
-		          # в эту зону попал, плюсуем трафик и заканчиваем проверку
-              #$self->{$DATA->{SRC_IP}}{"$zid"}{IN} = 0 if (! defined($self->{$DATA->{SRC_IP}}{"$zid"}{IN}));
 		          $self->{INTERIM}{$DATA->{SRC_IP}}{"$zid"}{OUT} += $DATA->{SIZE};
-	  	        print " $zid ". int2ip($DATA->{SRC_IP}) .":$DATA->{SRC_PORT} -> ". int2ip($DATA->{DST_IP}) .":$DATA->{DST_PORT}  $DATA->{SIZE}\n" if ($self->{debug});;
+	  	        print " $zid ". int2ip($DATA->{SRC_IP}) .":$DATA->{SRC_PORT} -> ". int2ip($DATA->{DST_IP}) .":$DATA->{DST_PORT}  $DATA->{SIZE} / $zones{$zid}{PriceOut}\n" if ($self->{debug});;
 		          last;
 		         }
 
@@ -327,7 +273,6 @@ sub traffic_agregate_nets {
       } 
     }
 
-#	    # прогоняем адрес по зонам и смотрим, куда попадает
     if (defined($data_hash->{IN})) {
       #Get User data array
       my $DATA_ARRAY_REF = $data_hash->{IN};
@@ -336,9 +281,8 @@ sub traffic_agregate_nets {
   	    if ($#zoneids >= 0) {
  	        foreach my $zid (@zoneids) {
  		        if (ip_in_zone($DATA->{SRC_IP}, $DATA->{SRC_PORT}, $zid, \%zones)) {
-		          # в эту зону попал, плюсуем трафик и заканчиваем проверку
 	    	      $self->{INTERIM}{$DATA->{DST_IP}}{"$zid"}{IN} += $DATA->{SIZE};
-    		      print " $zid ". int2ip($DATA->{DST_IP}) .":$DATA->{DST_PORT} <- ". int2ip($DATA->{SRC_IP})  .":$DATA->{SRC_PORT}  $DATA->{SIZE} \n" if ($self->{debug});
+    		      print " $zid ". int2ip($DATA->{DST_IP}) .":$DATA->{DST_PORT} <- ". int2ip($DATA->{SRC_IP})  .":$DATA->{SRC_PORT}  $DATA->{SIZE} / $zones{$zid}{PriceIn}\n" if ($self->{debug});
   		        last;
 		         }
 	         }
@@ -355,73 +299,17 @@ sub traffic_agregate_nets {
 
 }
 
-
-
-
 #**********************************************************
-# traffic_add_log
+#
 #**********************************************************
-sub traffic_agregate2 {
-  my $self = shift;
-  my ($DATA) = @_;
- 
-  my $ips=$self->{USERS_IPS};
-  my $y = 0;
+sub get_interval_params {
+	my $self = shift;
 
-	  if ($self->is_client_ip($DATA->{SRC_IP})) { # это исходящий трафик клиента
-      if ($self->{debug}) { print "         It is outbound\n"; }
-	    # прогоняем адрес по зонам и смотрим, куда попадает
-	    
-	    if ( $#zoneids >= 0 ) {
-	      foreach my $zid (@zoneids) {
-  	      if (ip_in_zone($DATA->{DST_IP}, $DATA->{DST_PORT}, $zid)) {
-		        # в эту зону попал, плюсуем трафик и заканчиваем проверку
 
-            #$self->{$DATA->{SRC_IP}}{"$zid"}{IN} = 0 if (! defined($self->{$DATA->{SRC_IP}}{"$zid"}{IN}));
-		        $self->{INTERIM}{$DATA->{SRC_IP}}{"$zid"}{OUT} = $DATA->{SIZE};
-	  	      #print " $zid $DATA->{SIZE} ". int2ip($DATA->{SRC_IP}) ." -> ". int2ip($DATA->{DST_IP}) ."\n";
-    
-		        last;
-		       }
-	       }
-       }
-	    else {
-	    	 $self->{INTERIM}{$DATA->{SRC_IP}}{"0"}{OUT} = $DATA->{SIZE};
-	     }
-	    $y++;
-	   }
 
-	  if ($self->is_client_ip($DATA->{DST_IP})) { # это входящий трафик клиента
-      if ($self->{debug}) { print "         It is inbound\n"; }
 
-	    # прогоняем адрес по зонам и смотрим, куда попадает
-	    if ($#zoneids >= 0) {
-	      foreach my $zid (@zoneids) {
- 		      if (ip_in_zone($DATA->{SRC_IP}, $DATA->{SRC_PORT}, $zid)) {
-		        # в эту зону попал, плюсуем трафик и заканчиваем проверку
-	  	      $self->{INTERIM}{$DATA->{DST_IP}}{"$zid"}{IN} += $DATA->{SIZE};
-		      
-  		      #print " $zid $DATA->{SIZE} ". int2ip($DATA->{DST_IP}) ." -> ". int2ip($DATA->{SRC_IP}) ."\n";
-		      
-  		      last;
-		       }
-	       }
-       }
-	    else {
-	    	 $self->{INTERIM}{$DATA->{DST_IP}}{"0"}{IN} = $DATA->{SIZE};
-	     }
 
-	   
-	   }
-   elsif ($y < 1) {
-  	$DATA->{UID}=0;
-  	#$self->{INTERIM}{$DATA->{UID}}{OUT}+=$DATA->{SIZE};
-    push @{$self->{IN}}, "$DATA->{SRC_IP}/$DATA->{DST_IP}/$DATA->{SIZE}";	
-
-    #push @{$self->{OUT}}, "$DATA->{DST_IP}/$DATA->{DST_IP}";
-   }
-
-  
+	return \%intervals, \%tp_interval;
 }
 
 #**********************************************************
@@ -516,8 +404,6 @@ sub ip_in_zone($$$) {
         $zoneid,
         $zone_data) = @_;
     
-    # переводим адрес в число
-
     # изначально считаем, что адрес в зону не попадает
     my $res = 0;
     # debug
@@ -900,10 +786,7 @@ else {
   my $a_ref = $self->{list}->[0];
   ($self->{COUNT},
    $self->{SUM}) = @$a_ref;
-
-
  return $list;
-
 }
 
 

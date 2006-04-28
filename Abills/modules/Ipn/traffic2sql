@@ -114,6 +114,9 @@ foreach my $line (@$IN_ARRAY) {
 
 
 $Ipn->traffic_agregate_nets();
+my ($intervals, $tp_interval) = $Ipn->get_interval_params();
+
+
 
 require Acct;
 Acct->import();
@@ -165,7 +168,10 @@ foreach my $ip ( sort keys %$ips_interim) {
             IP						 => $ip
    	      } );
       }
-      $extended .= sprintf("   %d| %10s| %10s|\n", $k, $in, $out);
+     $extended .= sprintf("   %d| %10s| %10s| Price:%5s%5s\n", $k, $in, $out, 
+       $intervals->{$tp_interval->{ $tps->{$uid} }}->{ZONES}->{0}->{PriceIn},
+       $intervals->{$tp_interval->{ $tps->{$uid} }}->{ZONES}->{0}->{PriceOut}
+       );
    }
   
   if ($uid > 0) {
@@ -200,7 +206,7 @@ foreach my $ip ( sort keys %$ips_interim) {
 
 
 
-
+print $intervals;  #->{27}->{ZONES}->{$k}->{PriceOut}
 
 
 
