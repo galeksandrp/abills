@@ -1463,7 +1463,7 @@ if (defined($FORM{tt})) {
                 2 => "Extended 2" );
 
   if ($max_traffic_class_id > 2) {
-  	for (my $i=3; $i<=$max_traffic_class_id; $i++) { 
+  	for (my $i=3; $i<$max_traffic_class_id+2; $i++) { 
   	  $TT_IDS{$i}="Extended $i";
   	 }
   }
