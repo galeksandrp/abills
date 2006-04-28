@@ -207,10 +207,6 @@ foreach my $ip ( sort keys %$ips_interim) {
 
 
 
-print $intervals;  #->{27}->{ZONES}->{$k}->{PriceOut}
-
-
-
 #foreach my $ip ( sort keys %$ips_interim) {
 #  my $uid        = $ips->{$ip};
 #  my $login      = $logins->{$ip};
