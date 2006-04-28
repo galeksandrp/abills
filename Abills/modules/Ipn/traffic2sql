@@ -168,9 +168,10 @@ foreach my $ip ( sort keys %$ips_interim) {
             IP						 => $ip
    	      } );
       }
+
      $extended .= sprintf("   %d| %10s| %10s| Price:%5s%5s\n", $k, $in, $out, 
        ( defined($intervals->{$tp_interval->{ $tps->{$uid} }}->{ZONES}->{0}->{PriceIn}) ) ? $intervals->{$tp_interval->{ $tps->{$uid} }}->{ZONES}->{0}->{PriceIn} : 0,
-       ( defined($intervals->{$tp_interval->{ $tps->{$uid} }}->{ZONES}->{0}->{PriceOut} ) ? $intervals->{$tp_interval->{ $tps->{$uid} }}->{ZONES}->{0}->{PriceOut} : 0
+       ( defined($intervals->{$tp_interval->{ $tps->{$uid} }}->{ZONES}->{0}->{PriceOut}) ) ? $intervals->{$tp_interval->{ $tps->{$uid} }}->{ZONES}->{0}->{PriceOut} : 0
        );
    }
   
