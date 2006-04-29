@@ -165,7 +165,8 @@ foreach my $ip ( sort keys %$ips_interim) {
             INBYTE         => "$in",
             OUTBYTE        => "$out",
             NAS_ID         => $NAS_ID,
-            IP						 => $ip
+            IP						 => $ip,
+            INTERVAL       => $tp_interval->{ $tps->{$uid} }
    	      } );
       }
 

@@ -464,7 +464,8 @@ sub traffic_add_user {
          traffic_in,
          traffic_out,
          nas_id,
-         ip
+         ip,
+         interval_id
        )
      VALUES (
        '$DATA->{UID}',
@@ -474,7 +475,8 @@ sub traffic_add_user {
        '$DATA->{INBYTE}',
        '$DATA->{OUTBYTE}',
        '$DATA->{NAS_ID}',
-       '$DATA->{IP}'
+       '$DATA->{IP}',
+       '$DATA->{INTERVAL}'
       );", 'do');
 
 
@@ -886,7 +888,7 @@ elsif($attr->{HOUR}) {
 elsif($attr->{DATE}) {
 	 push @WHERE_RULES, "date_format(start, '%Y-%m-%d')='$attr->{DATE}'";
 	 $GROUP = "1, 2, 3";
-	 $lupdate = "DATE_FORMAT(start, '%Y-%m-%d'), u.id, ";
+	 $lupdate = "DATE_FORMAT(start, '%Y-%m-%d'), u.id, l.traffic_class,";
 }
 
 
@@ -895,7 +897,7 @@ elsif($attr->{DATE}) {
 
 
  $self->query($db, "SELECT $lupdate
-   l.traffic_class,
+   
 
    sum(l.traffic_in), sum(l.traffic_out), 
 
