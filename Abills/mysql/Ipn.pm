@@ -53,7 +53,7 @@ sub new {
   	}
 
   #$self->{debug}  =1;
-
+  $self->{TRAFFIC_ROWS}=0;
   $Billing = Billing->new($db, $CONF);
   return $self;
 }
