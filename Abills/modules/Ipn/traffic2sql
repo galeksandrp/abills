@@ -266,7 +266,7 @@ if ($debug > 0) {
     $GT = sprintf(" GT: %2.5f", $gen_time);
    }
 
-	print "$unknow_ip$registred  $GT / $Ipn->{query_count}\n";
+	print "$unknow_ip$registred  $GT / $Ipn->{query_count}/ Stats Rows: $Ipn->{TRAFFIC_ROWS}\n";
 
 }
 elsif($unknow_ip ne '') {

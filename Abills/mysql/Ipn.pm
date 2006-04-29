@@ -182,7 +182,9 @@ sub traffic_agregate_users {
   	$self->{INTERIM}{$DATA->{UID}}{OUT}+=$DATA->{SIZE};
     push @{$self->{IN}}, "$DATA->{SRC_IP}/$DATA->{DST_IP}/$DATA->{SIZE}";	
    }
-
+  
+  $self->{TRAFFIC_ROWS}++;
+  
   return $self;
 }
 
