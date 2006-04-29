@@ -68,15 +68,37 @@ sub user_ips {
   my ($DATA) = @_;
 
   
-  #$self->query($db, "SELECT uid, ip  FROM dv_main WHERE ip>0;");
-  $self->query($db, "SELECT u.uid, calls.framed_ip_address, calls.user_name, 
+  my $sql;
+  
+  if ( $CONF->{IPN_DEPOSIT_OPERATION} ) {
+  	$sql="select u.uid, calls.framed_ip_address, calls.user_name,
+      calls.acct_session_id,
+      calls.acct_input_octets,
+      calls.acct_output_octets,
+      dv.tp_id,
+      if(u.company_id > 0, cb.id, b.id),
+      if(c.name IS NULL, b.deposit, cb.deposit)+u.credit
+    FROM dv_calls calls, users u
+      LEFT JOIN companies c ON (u.company_id=c.id)
+      LEFT JOIN bills b ON (u.bill_id=b.id)
+      LEFT JOIN bills cb ON (c.bill_id=cb.id)
+      LEFT JOIN dv_main dv ON (u.uid=dv.uid)
+    WHERE u.id=calls.user_name;";
+  }
+  else {
+  	$sql = "SELECT u.uid, calls.framed_ip_address, calls.user_name, 
     calls.acct_session_id,
     calls.acct_input_octets,
     calls.acct_output_octets,
-    calls.tp_id
-    
+    calls.tp_id,
+    NUll,
+    NULL
     FROM dv_calls calls, users u
-   WHERE u.id=calls.user_name;");
+   WHERE u.id=calls.user_name;";
+  }  
+  
+  
+  $self->query($db, $sql);
 
   my $list = $self->{list};
   my %session_ids = ();
@@ -98,11 +120,12 @@ sub user_ips {
   	 $session_ids{$line->[1]} = $line->[3];
   	 $self->{$line->[1]}{IN}  = $line->[4];
   	 $self->{$line->[1]}{OUT} = $line->[5];
-
      
   	 $users_info{TPS}{$line->[0]} = $line->[6];
    	 $users_info{LOGINS}{$line->[0]} = $line->[2];
-  	 
+  	 $users_info{DEPOSIT}{$line->[0]} = $line->[7];
+  	 $users_info{BILL_ID}{$line->[0]} = $line->[8];
+
    	 #$self->{INTERIM}{$line->[1]}{IN}  = 0;
   	 #$self->{INTERIM}{$line->[1]}{OUT} = 0;
   	 	
@@ -481,18 +504,22 @@ sub traffic_add_user {
        '$DATA->{SUM}'
       );", 'do');
 
-  if ($CONF->{IPN_DEPOSIT_OPERATION} && $DATA->{SUM} > 0) {
-    #Get Bill id
-    $self->query($db, "SELECT bill_id FROM users WHERE uid='$DATA->{UID}'");
-    my $bill_id = $self->{list}->[0]->[0];
-    if ($bill_id == 0) {
-      $self->{errno}=1;
-      $self->{errstr}='DONT_HAVE_MONEY_ACCOUNT';
-      return $self;
-     }
-
+  if ($self->{USERS_INFO}->{DEPOSIT}->{$DATA->{UID}}) {
   	#Take money from bill
-  	$self->query($db, "UPDATE bills SET deposit=deposit-$DATA->{SUM} WHERE id='$bill_id';", 'do');
+    if ($DATA->{SUM} > 0) {
+   	  $self->query($db, "UPDATE bills SET deposit=deposit-$DATA->{SUM} WHERE id='$self->{USERS_INFO}->{BILL_ID}->{$DATA->{UID}}';", 'do');
+     }
+    #If negative deposit hangup
+    if ($self->{USERS_INFO}->{BILL_ID}->{$DATA->{UID}} - $DATA->{SUM} < 0) {
+      my $ip = int2ip($DATA->{IP});
+      my @ip_array = split(/\./, $ip, 4);
+      my $rule_num = $CONF->{IPN_FIRST_FW_RULE} + $ip_array[3];
+
+      print "Hangup UID: $DATA->{UID} DEPOSIT: $self->{USERS_INFO}->{BILL_ID}->{$DATA->{UID}}  $self->{USERS_INFO}->{DEPOSIT}->{$DATA->{UID}}\n" if ($self->{debug});
+      print "ipfw add $rule_num deny ip from $ip to any" if ($self->{debug}); 
+      #system("/sbin/ipfw add $rule_num deny ip from $ip to any");
+
+     }
    }
 
   return $self;
