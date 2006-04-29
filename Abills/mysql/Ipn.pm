@@ -123,8 +123,8 @@ sub user_ips {
      
   	 $users_info{TPS}{$line->[0]} = $line->[6];
    	 $users_info{LOGINS}{$line->[0]} = $line->[2];
-  	 $users_info{DEPOSIT}{$line->[0]} = $line->[7];
-  	 $users_info{BILL_ID}{$line->[0]} = $line->[8];
+  	 $users_info{DEPOSIT}{$line->[0]} = $line->[8];
+  	 $users_info{BILL_ID}{$line->[0]} = $line->[7];
 
    	 #$self->{INTERIM}{$line->[1]}{IN}  = 0;
   	 #$self->{INTERIM}{$line->[1]}{OUT} = 0;
@@ -510,15 +510,8 @@ sub traffic_add_user {
    	  $self->query($db, "UPDATE bills SET deposit=deposit-$DATA->{SUM} WHERE id='$self->{USERS_INFO}->{BILL_ID}->{$DATA->{UID}}';", 'do');
      }
     #If negative deposit hangup
-    if ($self->{USERS_INFO}->{BILL_ID}->{$DATA->{UID}} - $DATA->{SUM} < 0) {
-      my $ip = int2ip($DATA->{IP});
-      my @ip_array = split(/\./, $ip, 4);
-      my $rule_num = $CONF->{IPN_FIRST_FW_RULE} + $ip_array[3];
-
-      print "Hangup UID: $DATA->{UID} DEPOSIT: $self->{USERS_INFO}->{BILL_ID}->{$DATA->{UID}}  $self->{USERS_INFO}->{DEPOSIT}->{$DATA->{UID}}\n" if ($self->{debug});
-      print "ipfw add $rule_num deny ip from $ip to any" if ($self->{debug}); 
-      #system("/sbin/ipfw add $rule_num deny ip from $ip to any");
-
+    if ($self->{USERS_INFO}->{DEPOSIT}->{$DATA->{UID}} - $DATA->{SUM} < 0) {
+      $self->{USERS_INFO}->{DEPOSIT}->{$DATA->{UID}}=$self->{USERS_INFO}->{DEPOSIT}->{$DATA->{UID}} - $DATA->{SUM};
      }
    }
 

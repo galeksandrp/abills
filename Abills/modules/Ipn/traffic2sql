@@ -136,7 +136,6 @@ my $registred = '';
 
 foreach my $ip ( sort keys %$ips_interim) {
   if ($ip == 0) {
-  	print $ip."\n";
   	next ;
   }
   my $uid          = $ips->{$ip};
@@ -151,6 +150,7 @@ foreach my $ip ( sort keys %$ips_interim) {
   my $total_out    = 0;
   my $extended     = '';
 
+  my $ip_addr;
   while(my($k, $v)=each %$ip_stats) {
       my $in = (defined($v->{IN})) ? int($v->{IN}) : 0;
       my $out = (defined($v->{OUT})) ? int($v->{OUT}) : 0;
@@ -162,11 +162,13 @@ foreach my $ip ( sort keys %$ips_interim) {
      #Get price and calculate traffic
      my $price_in = ( defined($intervals->{$tp_interval->{ $tps->{$uid} }}->{ZONES}->{0}->{PriceIn}) ) ? $intervals->{$tp_interval->{ $tps->{$uid} }}->{ZONES}->{0}->{PriceIn} : 0;
      my $price_out = ( defined($intervals->{$tp_interval->{ $tps->{$uid} }}->{ZONES}->{0}->{PriceOut}) ) ? $intervals->{$tp_interval->{ $tps->{$uid} }}->{ZONES}->{0}->{PriceOut} : 0;
-     my $sum_in = ($price_in > 0_) ? $in / $conf{KBYTE_SIZE} / $conf{KBYTE_SIZE} * $price_in  : 0; 
+     my $sum_in = ($price_in > 0) ? $in / $conf{KBYTE_SIZE} / $conf{KBYTE_SIZE} * $price_in  : 0; 
      my $sum_out = ($price_out > 0) ? $out / $conf{KBYTE_SIZE}/ $conf{KBYTE_SIZE} * $price_out : 0;
 
      $total_user_sum+=$sum_in + $sum_out;
-
+     $ip_addr = int2ip($ip);
+     
+     
       if ($uid > 0) {
 ##   	  my $r = $Acct->accounting(\%RAD, { NAS_ID => $NAS_ID });
    	    $Ipn->traffic_add_user( {
@@ -179,6 +181,17 @@ foreach my $ip ( sort keys %$ips_interim) {
             INTERVAL       => $tp_interval->{ $tps->{$uid} },
             SUM						 => $total_user_sum
    	      } );
+
+
+      if ($Ipn->{USERS_INFO}->{DEPOSIT}->{$uid}<0) {
+         my @ip_array = split(/\./, $ip_addr, 4);
+         my $rule_num = $conf{IPN_FIRST_FW_RULE} + $ip_array[3];
+
+         print "Hangup UID: $uid DEPOSIT: $Ipn->{USERS_INFO}->{DEPOSIT}->{$uid}\n" if ($debug==1);
+         print "ipfw add $rule_num deny ip from $ip_addr to any" if ($debug==1); 
+         #system("/sbin/ipfw add $rule_num deny ip from $ip_addr to any");
+       }
+
       }
 
 
@@ -200,7 +213,7 @@ foreach my $ip ( sort keys %$ips_interim) {
    	          OUTBYTE           => $Ipn->{$ip}{OUT}+$total_out,
    	          INBYTE2           => 0,
    	          OUTBYTE2          => 0,
-              FRAMED_IP_ADDRESS => int2ip($ip),
+              FRAMED_IP_ADDRESS => $ip_addr,
               USER_NAME         => $login,
               ACCT_SESSION_ID   => $session_id,
               ACCT_STATUS_TYPE  => 'Alive'
