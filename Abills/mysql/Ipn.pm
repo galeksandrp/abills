@@ -465,7 +465,8 @@ sub traffic_add_user {
          traffic_out,
          nas_id,
          ip,
-         interval_id
+         interval_id,
+         sum
        )
      VALUES (
        '$DATA->{UID}',
@@ -476,9 +477,23 @@ sub traffic_add_user {
        '$DATA->{OUTBYTE}',
        '$DATA->{NAS_ID}',
        '$DATA->{IP}',
-       '$DATA->{INTERVAL}'
+       '$DATA->{INTERVAL}',
+       '$DATA->{SUM}'
       );", 'do');
 
+  if ($CONF->{IPN_DEPOSIT_OPERATION} && $DATA->{SUM} > 0) {
+    #Get Bill id
+    $self->query($db, "SELECT bill_id FROM users WHERE uid='$DATA->{UID}'");
+    my $bill_id = $self->{list}->[0]->[0];
+    if ($bill_id == 0) {
+      $self->{errno}=1;
+      $self->{errstr}='DONT_HAVE_MONEY_ACCOUNT';
+      return $self;
+     }
+
+  	#Take money from bill
+  	$self->query($db, "UPDATE bills SET deposit=deposit-$DATA->{SUM} WHERE id='$bill_id';", 'do');
+   }
 
   return $self;
 }
@@ -901,7 +916,7 @@ elsif($attr->{DATE}) {
 
    sum(l.traffic_in), sum(l.traffic_out), 
 
-   l.nas_id
+   l.nas_id, l.uid
    from ipn_log l
    LEFT join  users u ON (l.uid=u.uid)
    $WHERE 

@@ -302,7 +302,6 @@ if (defined($FORM{DATE})) {
        }
 
        push  @{$report{"$line->[0]$line->[1]"}}, [ @$line ];
-      
 #      $table_sessions->addrow("<b>$line->[0]</b>", 
 #        $line->[1], 
 #        int2byte($line->[2]), 
@@ -335,7 +334,7 @@ if (defined($FORM{DATE})) {
 
       $table_sessions->addtd(
                   $table->td($stats_array[0][0], { rowspan => ($#stats_array > 0) ? $#stats_array+2 : 2 } ),
-                  $table->td($stats_array[0][1], { rowspan => ($#stats_array > 0) ? $#stats_array+2 : 2 } ),
+                  $table->td($html->button($stats_array[0][1], "index=11&UID=$stats_array[0][6]"), { rowspan => ($#stats_array > 0) ? $#stats_array+2 : 2 } ),
                   $table->td($stats_array[0][2]), 
                   $table->td(int2byte($stats_array[0][3])), 
                   $table->td(int2byte($stats_array[0][4])),

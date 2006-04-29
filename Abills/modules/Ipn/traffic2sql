@@ -154,9 +154,19 @@ foreach my $ip ( sort keys %$ips_interim) {
   while(my($k, $v)=each %$ip_stats) {
       my $in = (defined($v->{IN})) ? int($v->{IN}) : 0;
       my $out = (defined($v->{OUT})) ? int($v->{OUT}) : 0;
+      my $total_user_sum = 0;
       $total_in += $in;
       $total_out += $out;
-      
+
+
+     #Get price and calculate traffic
+     my $price_in = ( defined($intervals->{$tp_interval->{ $tps->{$uid} }}->{ZONES}->{0}->{PriceIn}) ) ? $intervals->{$tp_interval->{ $tps->{$uid} }}->{ZONES}->{0}->{PriceIn} : 0;
+     my $price_out = ( defined($intervals->{$tp_interval->{ $tps->{$uid} }}->{ZONES}->{0}->{PriceOut}) ) ? $intervals->{$tp_interval->{ $tps->{$uid} }}->{ZONES}->{0}->{PriceOut} : 0;
+     my $sum_in = ($price_in > 0_) ? $in / $conf{KBYTE_SIZE} / $conf{KBYTE_SIZE} * $price_in  : 0; 
+     my $sum_out = ($price_out > 0) ? $out / $conf{KBYTE_SIZE}/ $conf{KBYTE_SIZE} * $price_out : 0;
+
+     $total_user_sum+=$sum_in + $sum_out;
+
       if ($uid > 0) {
 ##   	  my $r = $Acct->accounting(\%RAD, { NAS_ID => $NAS_ID });
    	    $Ipn->traffic_add_user( {
@@ -166,15 +176,11 @@ foreach my $ip ( sort keys %$ips_interim) {
             OUTBYTE        => "$out",
             NAS_ID         => $NAS_ID,
             IP						 => $ip,
-            INTERVAL       => $tp_interval->{ $tps->{$uid} }
+            INTERVAL       => $tp_interval->{ $tps->{$uid} },
+            SUM						 => $total_user_sum
    	      } );
       }
 
-     my $price_in = ( defined($intervals->{$tp_interval->{ $tps->{$uid} }}->{ZONES}->{0}->{PriceIn}) ) ? $intervals->{$tp_interval->{ $tps->{$uid} }}->{ZONES}->{0}->{PriceIn} : 0;
-     my $price_out = ( defined($intervals->{$tp_interval->{ $tps->{$uid} }}->{ZONES}->{0}->{PriceOut}) ) ? $intervals->{$tp_interval->{ $tps->{$uid} }}->{ZONES}->{0}->{PriceOut} : 0;
-     
-     my $sum_in = ($price_in > 0_) ? $in / $conf{KBYTE_SIZE} / $conf{KBYTE_SIZE} * $price_in  : 0; 
-     my $sum_out = ($price_out > 0) ? $out / $conf{KBYTE_SIZE}/ $conf{KBYTE_SIZE} * $price_out : 0;
 
      
      $extended .= sprintf("   %d| %10s| %10s| Price:%5s%5s = %f/%f=%f\n", $k, $in, $out, 
@@ -184,6 +190,8 @@ foreach my $ip ( sort keys %$ips_interim) {
        $sum_out,
        $sum_in + $sum_out
        );
+
+
    }
   
   if ($uid > 0) {
@@ -217,44 +225,6 @@ foreach my $ip ( sort keys %$ips_interim) {
 }
 
 
-
-#foreach my $ip ( sort keys %$ips_interim) {
-#  my $uid        = $ips->{$ip};
-#  my $login      = $logins->{$ip};
-#  my $session_id = $session_ids->{$ip};
-#  
-#  if ($Ipn->{INTERIM}{$ip}{IN} + $Ipn->{INTERIM}{$ip}{OUT} > 0) {
-#   	 %RAD = ( NAS_PORT          => 0,
-#   	          INBYTE            => $Ipn->{$ip}{IN},
-#   	          OUTBYTE           => $Ipn->{$ip}{OUT},
-#   	          INBYTE2           => 0,
-#   	          OUTBYTE2          => 0,
-#              FRAMED_IP_ADDRESS => int2ip($ip),
-#              USER_NAME         => $login,
-#              ACCT_SESSION_ID   => $session_id,
-#              ACCT_STATUS_TYPE  => 'Alive'
-#              
-#               );
-#
-#     $registred .= sprintf("%5s| %15s| %10s| %10s| %10s| %10s|\n", 
-#       $uid, $RAD{FRAMED_IP_ADDRESS}, $RAD{INBYTE},  $RAD{OUTBYTE}, 
-#       	$Ipn->{INTERIM}{$ip}{IN}, $Ipn->{INTERIM}{$ip}{OUT}
-#      ) if ($debug == 1);
-#
-#     if ($uid > 0) {
-#   	    my $r = $Acct->accounting(\%RAD, { NAS_ID => $NAS_ID });
-#   	    $Ipn->traffic_add_user( {
-#   	        UID            => "$uid",
-#            TARFFIC_CLASS  => "0",
-#            INBYTE         => "$Ipn->{INTERIM}{$ip}{IN}",
-#            OUTBYTE        => "$Ipn->{INTERIM}{$ip}{OUT}",
-#            NAS_ID         => $NAS_ID
-#   	      } );
-#      }
-#
-#	 }
-#
-#}
 
 
 if ($debug > 0) {

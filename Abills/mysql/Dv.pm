@@ -79,10 +79,7 @@ sub info {
     $WHERE =  "WHERE dv.uid='$uid'";
    }
   
-  #else {
-    $WHERE =  "WHERE dv.uid='$uid'";
-  # }
-  #my $PASSWORD = '0'; 
+  $WHERE =  "WHERE dv.uid='$uid'";
   
   $self->query($db, "SELECT dv.uid, dv.tp_id, 
    tp.name, 
