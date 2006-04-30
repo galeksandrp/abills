@@ -1070,7 +1070,7 @@ sub ipn_club_monitor {
 
   use Dv_Sessions;
   my $sessions = Dv_Sessions->new($db, $admin, \%conf);
-$sessions->{debug}=1;
+  $sessions->{debug}=1;
 
   if ($FORM{ACTIVE}){
      my @ip_array = split(/\./, $FORM{ip}, 4);
@@ -1098,17 +1098,30 @@ $sessions->{debug}=1;
                                 ACCT_SESSION_ID => $FORM{ACCT_SESSION_ID},
                                 STATUS          => 11
                                });
-	}
-	
+	 }
+	elsif ($FORM{ping}) {
+    my $res = `/sbin/ping -c 5 $FORM{ping}`;
+    $html->message('info', $_INFO,  "Ping  $FORM{ping}<br>Result:<br><pre>$res</pre>");
+   }
+	elsif ($FORM{DETAIL}) {
+		my $table = $html->table( { width  => '100%',
+                            caption    => "$_DETAIL",
+                            rows       => [[], 
+                                           []],
+                               } );
+
+		
+		$html->message('info', $_INFO, $table->show());
+	 }
 
 $sessions->online( { %LIST_PARAMS } );	
 my $dub_logins = $sessions->{dub_logins};
  
 my $table = $html->table( { width      => '100%',
-                            caption    => "$cure",
+                            caption    => "Online",
                             border     => 1,
                             title      => ["$_USER", "$_FIO", "$_PORT", "IP", "$_DURATION", "$_RECV", "$_SENT",
-                                "Ex_IN", "Ex_OUT",  "-", "-" ],
+                                 "$_SUM", "-", "-", '-', '-' ],
                             cols_align => ['left', 'left', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'center'],
                             qs         => $pages_qs,
                                } );
@@ -1146,29 +1159,38 @@ foreach my $nas_row (@$nas_list) {
       $line->[1], $line->[2],  
       $line->[3],  $line->[4], 
       int2byte($line->[5]), int2byte($line->[6]), 
-      int2byte($line->[7]), int2byte($line->[8]),
+      $line->[14],
      "(". $html->button('P', "index=$index&ping=$line->[3]", { TITLE => 'ping' }) .")",
-     "$status"
+     "$status",
+     "(". $html->button('H', "index=$index&hangup=$line->[3]", { TITLE => 'Hangup' }) .")",
+     "(". $html->button("$_DETAIL", "index=$index&DETAIL=$line->[3]", { TITLE => 'Detail' }) .")",
      );
   }
 }
 
-my $table2 = $html->table( { width => '100%',
-                                cols_align => ['left', 'right', 'right', 'right']
-                               } );
-
-$table2->addtd(   $table->td($_TOTAL, { bgcolor => $_COLORS[0] }), 
-                  $table->td($sessions->{TOTAL}, { bgcolor => $_COLORS[0] }), 
-                  $table->td($form_link) 
-              ) ;
-
-
-my $total = $table2->show();
-print $total . $table->show();	
+print $table->show();	
 	
 	
 }
 
+#**********************************************************
+#
+#**********************************************************
+sub ipn_user_add {
+	
+ use Tariffs;
+ my $tariffs = Tariffs->new($db, \%conf, $admin);
+	
+	
+ $Ipn->{TP_SEL}=$html->form_select('TP_ID', 
+                                          { 
+ 	                                          SEL_MULTI_ARRAY   => $tariffs->list(),
+ 	                                          MULTI_ARRAY_KEY   => 0,
+ 	                                          MULTI_ARRAY_VALUE => 1,
+ 	                                        });
+ $Ipn->{ACTIVATE}='checked';
+ $html->tpl_show(_include('ipn_form_user_add', 'Ipn'), $Ipn);	
+}
 
 
 1

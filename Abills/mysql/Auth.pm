@@ -431,8 +431,8 @@ elsif ($NAS->{NAS_TYPE} eq 'mpd') {
    }
   
   # MPD have some problem with long time out value max timeout set to 7 days
-  if ($RAD_PAIRS->{'Exppp-Traffic-Limit'} > 604800)    {
-  	 $RAD_PAIRS->{'Exppp-Traffic-Limit'}=604800;
+  if ($RAD_PAIRS->{'Session-Timeout'} > 604800)    {
+  	 $RAD_PAIRS->{'Session-Timeout'}=604800;
    }
 
       

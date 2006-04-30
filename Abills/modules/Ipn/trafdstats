@@ -5,7 +5,7 @@
 
 
 if [ w$2 = w ]; then
- echo "trafstats [nasid] [Interface] debug";
+ echo "trafdstats [nasid] [Interface] debug";
  exit 0;
 fi;
 
@@ -26,8 +26,8 @@ fi;
 #Temporary log path
 # default 
 # LOG_PATH='/usr/abills/var/log/ipn/'
-LOG_PATH='/usr/abills/var/log/ipn/';
-#LOG_PATH='/home/asmodeus/abills2/var/log/ipn/';
+#LOG_PATH='/usr/abills/var/log/ipn/';
+LOG_PATH='/home/asmodeus/abills2/var/log/ipn/';
 
 
 /usr/local/bin/trafsave ${IF_NAME}

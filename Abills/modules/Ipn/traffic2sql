@@ -128,7 +128,7 @@ my $ips          = $Ipn->{USERS_IPS};
 my $ips_interim  = $Ipn->{INTERIM};
 my $logins       = $Ipn->{USERS_INFO}->{LOGINS};
 my $tps          = $Ipn->{USERS_INFO}->{TPS};
-my $session_ids  = $Ipn->{SESSIONS_IPS};
+my $session_ids  = $Ipn->{USERS_INFO}->{SESSION_IDS};
 
 my %RAD = ();
 my $registred = '';
@@ -141,8 +141,7 @@ foreach my $ip ( sort keys %$ips_interim) {
   my $uid          = $ips->{$ip};
   my $login        = $logins->{$uid};
   my $tariif_plan  = $tps->{$uid};
-  my $session_id   = $session_ids->{$ip};
- 
+  my $session_id   = $session_ids->{$uid};
   my $ip_stats     = $Ipn->{INTERIM}{$ip};
   	
   	
@@ -179,6 +178,7 @@ foreach my $ip ( sort keys %$ips_interim) {
             NAS_ID         => $NAS_ID,
             IP						 => $ip,
             INTERVAL       => $tp_interval->{ $tps->{$uid} },
+            SESSION_ID     => $session_id,    
             SUM						 => $total_user_sum
    	      } );
 
@@ -187,9 +187,10 @@ foreach my $ip ( sort keys %$ips_interim) {
          my @ip_array = split(/\./, $ip_addr, 4);
          my $rule_num = $conf{IPN_FIRST_FW_RULE} + $ip_array[3];
 
-         print "Hangup UID: $uid DEPOSIT: $Ipn->{USERS_INFO}->{DEPOSIT}->{$uid}\n" if ($debug==1);
-         print "/sbin/ipfw add $rule_num deny ip from $ip_addr to any" if ($debug==1); 
+         print "Hangup UID: $uid DEPOSIT: $Ipn->{USERS_INFO}->{DEPOSIT}->{$uid}\n" if ($debug>0);
+         print "/sbin/ipfw add $rule_num deny ip from $ip_addr to any" if ($debug>0); 
          #system("sudo ipfw show /sbin/ipfw add $rule_num deny ip from $ip_addr to any");
+         $Ipn->acct_stop();
        }
 
       }

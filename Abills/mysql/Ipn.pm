@@ -117,12 +117,12 @@ sub user_ips {
   foreach my $line (@$list) {
   	 $ips{$line->[1]}         = $line->[0];
 
-  	 $session_ids{$line->[1]} = $line->[3];
   	 $self->{$line->[1]}{IN}  = $line->[4];
   	 $self->{$line->[1]}{OUT} = $line->[5];
      
   	 $users_info{TPS}{$line->[0]} = $line->[6];
    	 $users_info{LOGINS}{$line->[0]} = $line->[2];
+     $users_info{SESSION_IDS}{$line->[0]} = $line->[3];
   	 $users_info{DEPOSIT}{$line->[0]} = $line->[8];
   	 $users_info{BILL_ID}{$line->[0]} = $line->[7];
 
@@ -133,7 +133,6 @@ sub user_ips {
    }
  
   $self->{USERS_IPS}   = \%ips;
-  $self->{SESSIONS_IPS}= \%session_ids;
   $self->{USERS_INFO}  = \%users_info;
   
 
@@ -489,7 +488,8 @@ sub traffic_add_user {
          nas_id,
          ip,
          interval_id,
-         sum
+         sum,
+         session_id
        )
      VALUES (
        '$DATA->{UID}',
@@ -501,7 +501,8 @@ sub traffic_add_user {
        '$DATA->{NAS_ID}',
        '$DATA->{IP}',
        '$DATA->{INTERVAL}',
-       '$DATA->{SUM}'
+       '$DATA->{SUM}',
+       '$DATA->{SESSION_ID}'
       );", 'do');
 
   if ($self->{USERS_INFO}->{DEPOSIT}->{$DATA->{UID}}) {
@@ -563,9 +564,16 @@ sub traffic_add {
 
  return $self;
 }
-	
 
 
+
+#**********************************************************
+# Acct_stop
+#**********************************************************
+sub acct_stop {
+
+
+}
 
 
 #**********************************************************
