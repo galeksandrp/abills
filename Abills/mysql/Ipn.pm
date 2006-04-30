@@ -122,7 +122,8 @@ sub user_ips {
      
   	 $users_info{TPS}{$line->[0]} = $line->[6];
    	 $users_info{LOGINS}{$line->[0]} = $line->[2];
-     $users_info{SESSION_IDS}{$line->[0]} = $line->[3];
+     $session_ids{$line->[1]} = $line->[3];
+
   	 $users_info{DEPOSIT}{$line->[0]} = $line->[8];
   	 $users_info{BILL_ID}{$line->[0]} = $line->[7];
 
@@ -134,7 +135,7 @@ sub user_ips {
  
   $self->{USERS_IPS}   = \%ips;
   $self->{USERS_INFO}  = \%users_info;
-  
+  $self->{SESSIONS_ID} = \%session_ids;
 
   return $self;
 }
@@ -849,6 +850,11 @@ sub stats {
  if ($attr->{UID}) {
      push @WHERE_RULES, "l.uid='$attr->{UID}'"; 	
   }
+
+ if ($attr->{SESSION_ID}) {
+     push @WHERE_RULES, "l.session_id='$attr->{SESSION_ID}'"; 	
+  }
+
 
  if ($attr->{UID}) {
  	

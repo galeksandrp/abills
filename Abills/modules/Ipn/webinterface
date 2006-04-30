@@ -15,19 +15,14 @@ my @TT_COLORS = ("$_COLORS[1]", "#80FF80", "#FFFF80", "#BFBFFF");
 #**********************************************************
 sub ipn_sessions2 {
 
-
-
-
 $LIST_PARAMS{UID}=$FORM{UID};
-
-print $LIST_PARAMS{UID};
 
 
 my $list = $Ipn->stats({ %LIST_PARAMS });
 
 my $table = $html->table( { width  => '100%',
                             border => 1,
-                            title  => ["$_USER", "$_DATE", "IP", "TT", "IN", "OUT", "NAS", "-"],
+                            title  => ["$_USER", "$_DATE", "IP", "TT", "IN", "OUT", "NAS"],
                             cols_align   => ['right', 'right', 'RIGHT', 'right', 'right', 'right', 'center'],
                             qs            => $pages_qs,
                             pages         => $sessions->{TOTAL},
@@ -56,7 +51,6 @@ foreach my $line (@$list) {
      $line->[4], 
      $line->[5],
      $line->[6], 
-     $html->button("$_HOSTS", "index=$index$pages_qs")
   );
 }
 
@@ -1109,6 +1103,9 @@ sub ipn_club_monitor {
     $html->message('info', $_INFO,  "Ping  $FORM{ping}<br>Result:<br><pre>$res</pre>");
    }
 	elsif ($FORM{DETAIL}) {
+		
+    $LIST_PARAMS{SESSION_ID}=$FORM{DETAIL};
+    ipn_sessions2();
 		my $table = $html->table( { width  => '100%',
                             caption    => "$_DETAIL",
                             rows       => [[], 
@@ -1168,7 +1165,7 @@ foreach my $nas_row (@$nas_list) {
      "(". $html->button('P', "index=$index&ping=$line->[3]", { TITLE => 'ping' }) .")",
      "$status",
      "(". $html->button('H', "index=$index&hangup=$line->[3]", { TITLE => 'Hangup' }) .")",
-     "(". $html->button("$_DETAIL", "index=$index&DETAIL=$line->[3]", { TITLE => 'Detail' }) .")",
+     "(". $html->button("$_DETAIL", "index=$index&DETAIL=$line->[11]", { TITLE => 'Detail' }) .")",
      );
   }
 }
