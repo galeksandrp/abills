@@ -1077,7 +1077,8 @@ sub ipn_club_monitor {
      my $rule_num = $conf{IPN_FIRST_FW_RULE} + $ip_array[3];
  
      $html->message('info', $_INFO, "$_ACTIVE IP: $FORM{ip}");
-     my $cmd = "/usr/local/bin/sudo /sbin/ipfw -q add $rule_num allow ip from $FORM{ip} to any";
+     my $cmd = "/usr/local/bin/sudo /sbin/ipfw -q delete $rule_num;
+     /usr/local/bin/sudo /sbin/ipfw -q add $rule_num allow ip from $FORM{ip} to any";
      
      print "$cmd";
      system($cmd);
@@ -1093,7 +1094,8 @@ sub ipn_club_monitor {
      my @ip_array = split(/\./, $FORM{ip}, 4);
      my $rule_num = $conf{IPN_FIRST_FW_RULE} + $ip_array[3];
      
-     my $cmd = "/usr/local/bin/sudo /sbin/ipfw -q add $rule_num deny ip from $FORM{ip} to any"; 
+     my $cmd = "/usr/local/bin/sudo /sbin/ipfw -q delete $rule_num;
+     /usr/local/bin/sudo /sbin/ipfw -q add $rule_num deny ip from $FORM{ip} to any"; 
      
      print "$cmd";
      system($cmd);
