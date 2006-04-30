@@ -1089,6 +1089,9 @@ sub ipn_club_monitor {
    }
 	elsif ($FORM{DEACTIVE}) {
      $html->message('info', $_INFO, "Hangup IP: $FORM{ip}");
+
+     my @ip_array = split(/\./, $FORM{ip}, 4);
+     my $rule_num = $conf{IPN_FIRST_FW_RULE} + $ip_array[3];
      
      my $cmd = "/usr/local/bin/sudo /sbin/ipfw add $rule_num deny ip from $FORM{ip} to any"; 
      
