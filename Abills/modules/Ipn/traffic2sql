@@ -140,7 +140,7 @@ foreach my $ip ( sort keys %$ips_interim) {
   }
   my $uid          = $ips->{$ip};
   my $login        = $logins->{$uid};
-  my $tariif_plan  = $tps->{$uid};
+  my $tariif_plan  = $tps->{$uid} || 0;
   my $session_id   = $session_ids->{$ip};
   my $ip_stats     = $Ipn->{INTERIM}{$ip};
   	
@@ -157,7 +157,7 @@ foreach my $ip ( sort keys %$ips_interim) {
       $total_in += $in;
       $total_out += $out;
       
-      my $user_tp_interval  = (defined($tp_interval->{ $tps->{$uid} })) ? $tp_interval->{ $tps->{$uid} } : 0;
+      my $user_tp_interval  = (defined($tp_interval->{ $tariif_plan })) ? $tp_interval->{ $tariif_plan } : 0;
 
      #Get price and calculate traffic
      my $price_in = ( defined($intervals->{$user_tp_interval}->{ZONES}->{0}->{PriceIn}) ) ? $intervals->{$user_tp_interval}->{ZONES}->{0}->{PriceIn} : 0;
@@ -189,8 +189,12 @@ foreach my $ip ( sort keys %$ips_interim) {
          my $rule_num = $conf{IPN_FW_FIRST_RULE} + $ip_array[3];
 
          print "Hangup UID: $uid DEPOSIT: $Ipn->{USERS_INFO}->{DEPOSIT}->{$uid}\n" if ($debug>0);
-         print "/sbin/ipfw delete $rule_num; /sbin/ipfw add $rule_num deny ip from $ip_addr to any" if ($debug>0); 
-         #system("sudo ipfw show /sbin/ipfw add $rule_num deny ip from $ip_addr to any");
+         my $cmd = $conf{IPN_FW_STOP_RULE};
+         $cmd =~ s/\%IP/$ip_addr/g;
+         $cmd =~ s/\%NUM/$rule_num/g;
+
+         print "$cmd" if ($debug>0); 
+         #system("$cmd");
          $Ipn->acct_stop();
        }
 
