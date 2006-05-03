@@ -1072,11 +1072,16 @@ sub ipn_club_monitor {
      my @ip_array = split(/\./, $FORM{ip}, 4);
      my $rule_num = $conf{IPN_FW_FIRST_RULE} + $ip_array[3];
  
-     $html->message('info', $_INFO, "$_ACTIVE IP: $FORM{ip}");
-     my $cmd = "/usr/local/bin/sudo /sbin/ipfw -q delete $rule_num; /usr/local/bin/sudo /sbin/ipfw -q add $rule_num allow ip from $FORM{ip} to any";
-     
+
+
+     my $cmd = $conf{IPN_FW_START_RULE};
+     $cmd =~ s/\%IP/$FORM{ip}/g;
+     $cmd =~ s/\%NUM/$rule_num/g;
+     #"/usr/local/bin/sudo /sbin/ipfw -q delete $rule_num; /usr/local/bin/sudo /sbin/ipfw -q add $rule_num allow ip from $FORM{ip} to any";
      print "$cmd";
      system($cmd);
+
+     $html->message('info', $_INFO, "$_ACTIVE IP: $FORM{ip}");
      $sessions->online_update({ USER_NAME       => $FORM{ACTIVE},
                                 ACCT_SESSION_ID => $FORM{ACCT_SESSION_ID},
                                 STATUS          => 10
@@ -1084,19 +1089,15 @@ sub ipn_club_monitor {
      
    }
 	elsif ($FORM{DEACTIVE}) {
-     $html->message('info', $_INFO, "Hangup IP: $FORM{ip}");
-
      my @ip_array = split(/\./, $FORM{ip}, 4);
      my $rule_num = $conf{IPN_FW_FIRST_RULE} + $ip_array[3];
-     
-     my $cmd = "/usr/local/bin/sudo /sbin/ipfw -q delete $rule_num;
-     /usr/local/bin/sudo /sbin/ipfw -q add $rule_num deny ip from $FORM{ip} to any"; 
-     
+     my $cmd = $conf{IPN_FW_STOP_RULE};
+     $cmd =~ s/\%IP/$FORM{ip}/g;
+     $cmd =~ s/\%NUM/$rule_num/g;
      print "$cmd";
      system($cmd);
-     my $exit_value  = $? >> 8;
-     print "'---- $exit_value ----";
-     
+
+     $html->message('info', $_INFO, "Hangup IP: $FORM{ip}");     
      $sessions->online_update({ USER_NAME       => $FORM{DEACTIVE},
                                 ACCT_SESSION_ID => $FORM{ACCT_SESSION_ID},
                                 STATUS          => 11
@@ -1115,7 +1116,6 @@ sub ipn_club_monitor {
     #                        rows       => [[], 
     #                                       []],
     #                           } );
-		
 		#$html->message('info', $_INFO, $table->show());
 	 }
 

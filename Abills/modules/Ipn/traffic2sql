@@ -156,11 +156,12 @@ foreach my $ip ( sort keys %$ips_interim) {
       my $total_user_sum = 0;
       $total_in += $in;
       $total_out += $out;
-
+      
+      my $user_tp_interval  = (defined($tp_interval->{ $tps->{$uid} })) ? $tp_interval->{ $tps->{$uid} } : 0;
 
      #Get price and calculate traffic
-     my $price_in = ( defined($intervals->{$tp_interval->{ $tps->{$uid} }}->{ZONES}->{0}->{PriceIn}) ) ? $intervals->{$tp_interval->{ $tps->{$uid} }}->{ZONES}->{0}->{PriceIn} : 0;
-     my $price_out = ( defined($intervals->{$tp_interval->{ $tps->{$uid} }}->{ZONES}->{0}->{PriceOut}) ) ? $intervals->{$tp_interval->{ $tps->{$uid} }}->{ZONES}->{0}->{PriceOut} : 0;
+     my $price_in = ( defined($intervals->{$user_tp_interval}->{ZONES}->{0}->{PriceIn}) ) ? $intervals->{$user_tp_interval}->{ZONES}->{0}->{PriceIn} : 0;
+     my $price_out = ( defined($intervals->{$user_tp_interval}->{ZONES}->{0}->{PriceOut}) ) ? $intervals->{$user_tp_interval}->{ZONES}->{0}->{PriceOut} : 0;
      my $sum_in = ($price_in > 0) ? $in / $conf{KBYTE_SIZE} / $conf{KBYTE_SIZE} * $price_in  : 0; 
      my $sum_out = ($price_out > 0) ? $out / $conf{KBYTE_SIZE}/ $conf{KBYTE_SIZE} * $price_out : 0;
 
@@ -177,13 +178,13 @@ foreach my $ip ( sort keys %$ips_interim) {
             OUTBYTE        => "$out",
             NAS_ID         => $NAS_ID,
             IP						 => $ip,
-            INTERVAL       => $tp_interval->{ $tps->{$uid} },
+            INTERVAL       => $user_tp_interval,
             SESSION_ID     => $session_id,    
             SUM						 => $total_user_sum
    	      } );
 
 
-      if ($Ipn->{USERS_INFO}->{DEPOSIT}->{$uid}<0) {
+      if (defined($Ipn->{USERS_INFO}->{DEPOSIT}->{$uid}) && $Ipn->{USERS_INFO}->{DEPOSIT}->{$uid}<0) {
          my @ip_array = split(/\./, $ip_addr, 4);
          my $rule_num = $conf{IPN_FW_FIRST_RULE} + $ip_array[3];
 
