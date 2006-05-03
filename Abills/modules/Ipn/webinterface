@@ -22,7 +22,7 @@ my $list = $Ipn->stats({ %LIST_PARAMS });
 
 my $table = $html->table( { width  => '100%',
                             border => 1,
-                            title  => ["$_USER", "$_DATE", "IP", "TT", "IN", "OUT", "NAS"],
+                            title  => ["$_USER", "$_DATE", "IP", "TT", "$_NAME", "IN", "OUT", "NAS"],
                             cols_align   => ['right', 'right', 'RIGHT', 'right', 'right', 'right', 'center'],
                             qs            => $pages_qs,
                             pages         => $sessions->{TOTAL},
@@ -51,6 +51,7 @@ foreach my $line (@$list) {
      $line->[4], 
      $line->[5],
      $line->[6], 
+     $line->[7]
   );
 }
 
@@ -1066,8 +1067,6 @@ sub ipn_club_monitor {
 
   use Dv_Sessions;
   my $sessions = Dv_Sessions->new($db, $admin, \%conf);
-  $sessions->{debug}=1;
-
   if ($FORM{ACTIVE}){
      my @ip_array = split(/\./, $FORM{ip}, 4);
      my $rule_num = $conf{IPN_FW_FIRST_RULE} + $ip_array[3];

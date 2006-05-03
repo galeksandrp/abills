@@ -864,11 +864,14 @@ sub stats {
 
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
 $self->{debug}=1;
- $self->query($db, "SELECT u.id, min(l.start), INET_NTOA(l.ip), l.traffic_class,
+ $self->query($db, "SELECT u.id, min(l.start), INET_NTOA(l.ip), 
+   l.traffic_class,
+   tt.descr,
    sum(l.traffic_in), sum(l.traffic_out),
    l.nas_id
    from ipn_log l
    LEFT join  users u ON (l.uid=u.uid)
+   LEFT join  trafic_tarifs tt ON (l.interval_id=tt.interval_id)
    $WHERE 
    GROUP BY $GROUP
   ;");
