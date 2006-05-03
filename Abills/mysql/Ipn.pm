@@ -871,7 +871,7 @@ $self->{debug}=1;
    l.nas_id
    from ipn_log l
    LEFT join  users u ON (l.uid=u.uid)
-   LEFT join  trafic_tarifs tt ON (l.interval_id=tt.interval_id)
+   LEFT join  trafic_tarifs tt ON (l.interval_id=tt.interval_id and l.traffic_class=tt.id)
    $WHERE 
    GROUP BY $GROUP
   ;");

@@ -23,7 +23,7 @@ my $list = $Ipn->stats({ %LIST_PARAMS });
 my $table = $html->table( { width  => '100%',
                             border => 1,
                             title  => ["$_USER", "$_DATE", "IP", "TT", "$_NAME", "IN", "OUT", "NAS"],
-                            cols_align   => ['right', 'right', 'RIGHT', 'right', 'right', 'right', 'center'],
+                            cols_align   => ['left', 'right', 'RIGHT', 'right', 'left', 'right', 'right', 'center'],
                             qs            => $pages_qs,
                             pages         => $sessions->{TOTAL},
                             recs_on_page  => $LIST_PARAMS{PAGE_ROWS}
