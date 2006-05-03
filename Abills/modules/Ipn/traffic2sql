@@ -185,10 +185,10 @@ foreach my $ip ( sort keys %$ips_interim) {
 
       if ($Ipn->{USERS_INFO}->{DEPOSIT}->{$uid}<0) {
          my @ip_array = split(/\./, $ip_addr, 4);
-         my $rule_num = $conf{IPN_FIRST_FW_RULE} + $ip_array[3];
+         my $rule_num = $conf{IPN_FW_FIRST_RULE} + $ip_array[3];
 
          print "Hangup UID: $uid DEPOSIT: $Ipn->{USERS_INFO}->{DEPOSIT}->{$uid}\n" if ($debug>0);
-         print "/sbin/ipfw add $rule_num deny ip from $ip_addr to any" if ($debug>0); 
+         print "/sbin/ipfw delete $rule_num; /sbin/ipfw add $rule_num deny ip from $ip_addr to any" if ($debug>0); 
          #system("sudo ipfw show /sbin/ipfw add $rule_num deny ip from $ip_addr to any");
          $Ipn->acct_stop();
        }

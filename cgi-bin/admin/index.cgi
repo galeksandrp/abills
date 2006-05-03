@@ -75,7 +75,13 @@ use Abills::Base;
 #    Options Indexes ExecCGI FollowSymLinks
 #
 #**********************************************************
-#print "Content-type: text/html\n\n";
+
+    
+#while(my($k, $v)=each %ENV) {
+#	print "$k, $v\n";
+#}
+#exit;
+
 if (defined($ENV{HTTP_CGI_AUTHORIZATION})) {
 
   $ENV{HTTP_CGI_AUTHORIZATION} =~ s/basic\s+//i;

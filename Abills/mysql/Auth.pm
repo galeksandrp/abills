@@ -160,7 +160,7 @@ if ($self->{DISABLE}) {
    my $sql;
    if ($self->{NAS} == 1) {
       $sql = "SELECT un.uid FROM users_nas un WHERE un.uid='$self->{UID}' and un.nas_id='$NAS->{NAS_ID}'";
-     }
+    }
    else {
       $sql = "SELECT nas_id FROM tp_nas WHERE tp_id='$self->{TP_ID}' and nas_id='$NAS->{NAS_ID}'";
      }
@@ -329,7 +329,7 @@ foreach my $line (@periods) {
  else {
    my $ip = $self->get_ip($NAS->{NAS_ID}, "$RAD->{NAS_IP_ADDRESS}");
    if ($ip eq '-1') {
-     $RAD_PAIRS->{'Reply-Message'}="Rejected! There is no free IPs in address pools ($NAS->{NAS_ID})";
+     $RAD_PAIRS->{'Reply-Message'}="Rejected! There is no free IPs in address pools (USED: $self->{USED_IPS} NAS: $NAS->{NAS_ID})";
      return 1, $RAD_PAIRS;
     }
    elsif($ip eq '0') {
@@ -885,8 +885,6 @@ sub get_ip {
  my $self = shift;
  my ($nas_num, $nas_ip) = @_;
 
- use IO::Socket;
- 
 #get ip pool
  $self->query($db, "SELECT ippools.ip, ippools.counts 
   FROM ippools
@@ -910,22 +908,23 @@ sub get_ip {
    }
 
 #get active address and delete from pool
-
  $self->query($db, "SELECT framed_ip_address
   FROM dv_calls 
   WHERE nas_ip_address=INET_ATON('$nas_ip') and (status=1 or status>=3);");
 
  $list = $self->{list};
- my %used_ips = ();
+ $self->{USED_IPS}=0;
+
  foreach my $ip (@$list) {
    if(exists($pools{$ip->[0]})) {
       delete($pools{$ip->[0]});
+      $self->{USED_IPS}++;
      }
    }
  
  my ($assign_ip, undef) = each(%pools);
  if ($assign_ip) {
-   $assign_ip = inet_ntoa(pack('N', $assign_ip));
+   $assign_ip = int2ip($assign_ip);
    return $assign_ip; 	
   }
  else { # no addresses available in pools
@@ -936,6 +935,21 @@ sub get_ip {
 }
 
 
+
+#*******************************************************************
+# Convert integer value to ip
+# int2ip($i);
+#*******************************************************************
+sub int2ip {
+my $i = shift;
+my (@d);
+
+$d[0]=int($i/256/256/256);
+$d[1]=int(($i-$d[0]*256*256*256)/256/256);
+$d[2]=int(($i-$d[0]*256*256*256-$d[1]*256*256)/256);
+$d[3]=int($i-$d[0]*256*256*256-$d[1]*256*256-$d[2]*256);
+ return "$d[0].$d[1].$d[2].$d[3]";
+}
 
 #********************************************************************
 # System auth function
