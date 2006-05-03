@@ -572,7 +572,111 @@ sub traffic_add {
 # Acct_stop
 #**********************************************************
 sub acct_stop {
+  my $self = shift;
+  my ($attr) = @_;
+  my $session_id = $attr->{SESSION_ID} || '';
+  
+ 
+  $self->{ACCT_TERMINATE_CAUSE}=0;
+   
+  my	$sql="select u.uid, calls.framed_ip_address, 
+      calls.user_name,
+      calls.acct_session_id,
+      calls.acct_input_octets,
+      calls.acct_output_octets,
+      dv.tp_id,
+      if(u.company_id > 0, cb.id, b.id),
+      if(c.name IS NULL, b.deposit, cb.deposit)+u.credit,
+      calls.started,
+      sec_to_time(UNIX_TIMESTAMP()-UNIX_TIMESTAMP(calls.started)),
+      nas_id,
+      nas_port_id
+    FROM dv_calls calls, users u
+      LEFT JOIN companies c ON (u.company_id=c.id)
+      LEFT JOIN bills b ON (u.bill_id=b.id)
+      LEFT JOIN bills cb ON (c.bill_id=cb.id)
+      LEFT JOIN dv_main dv ON (u.uid=dv.uid)
+    WHERE u.id=calls.user_name and acct_session_id='$session_id';";
 
+  $self->query($db, $sql);
+
+  my $a_ref = $self->{list}->[0];
+
+  ($self->{UID},
+   $self->{FRAMED_IP_ADDRESS},
+   $self->{USER_NAME},
+   $self->{ACCT_SESSION_ID},
+   $self->{INPUT_OCTETS},
+   $self->{OUTPUT_OCTETS},
+   $self->{TP_ID},
+   $self->{BILL_ID},
+   $self->{DEPOSIT},
+   $self->{START},
+   $self->{ACCT_SESSION_TIME},
+   $self->{NAS_ID},
+   $self->{NAS_PORT}
+  ) = @$a_ref;
+
+ 
+  
+ $self->query($db, "SELECT sum(l.traffic_in), 
+   sum(l.traffic_out),
+   sum(l.sum),
+   l.nas_id
+   from ipn_log l
+   WHERE session_id='$session_id'
+   GROUP BY session_id  ;");  
+
+
+  if ($self->{TOTAL} < 1) {
+    $self->{TRAFFIC_IN}=0;
+    $self->{TRAFFIC_OUT}=0;
+    $self->{SUM}=0;
+    $self->{NAS_ID}=0;
+    return $self;
+  }
+  
+  $a_ref = $self->{list}->[0];
+
+  ($self->{TRAFFIC_IN},
+   $self->{TRAFFIC_OUT},
+   $self->{SUM}
+  ) = @$a_ref;
+
+
+
+  $self->query($db, "INSERT INTO dv_log (uid, 
+    start, 
+    tp_id, 
+    duration, 
+    sent, 
+    recv, 
+    minp, 
+    kb,  
+    sum, 
+    nas_id, 
+    port_id,
+    ip, 
+    CID, 
+    sent2, 
+    recv2, 
+    acct_session_id, 
+    bill_id,
+    terminate_cause) 
+        VALUES ('$self->{UID}', '$self->{START}', '$self->{TP_ID}', 
+          '$self->{ACCT_SESSION_TIME}', 
+          '$self->{OUTPUT_OCTETS}', '$self->{INPUT_OCTETS}', 
+          '0', '0', '$self->{SUM}', '$self->{NAS_ID}',
+          '$self->{NAS_PORT}', 
+          '$self->{FRAMED_IP_ADDRESS}', 
+          '',
+          '0', 
+          '0',  
+          '$self->{ACCT_SESSION_ID}', 
+          '$self->{BILL_ID}',
+          '$self->{ACCT_TERMINATE_CAUSE}');", 'do');
+
+  $self->query($db, "DELETE from dv_calls WHERE acct_session_id='$self->{ACCT_SESSION_ID}';", 'do');
 
 }
 
@@ -868,6 +972,7 @@ $self->{debug}=1;
    l.traffic_class,
    tt.descr,
    sum(l.traffic_in), sum(l.traffic_out),
+   sum(sum),
    l.nas_id
    from ipn_log l
    LEFT join  users u ON (l.uid=u.uid)
@@ -1186,6 +1291,8 @@ $d[2]=int(($i-$d[0]*256*256*256-$d[1]*256*256)/256);
 $d[3]=int($i-$d[0]*256*256*256-$d[1]*256*256-$d[2]*256);
  return "$d[0].$d[1].$d[2].$d[3]";
 }
+
+
 
 
 
