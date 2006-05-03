@@ -574,7 +574,14 @@ sub traffic_add {
 sub acct_stop {
   my $self = shift;
   my ($attr) = @_;
-  my $session_id = $attr->{SESSION_ID} || '';
+  my $session_id;
+  
+  if (defined($attr->{SESSION_ID})) {
+  	$session_id=$attr->{SESSION_ID};
+   }
+  else {
+    return $self;
+  }
   
  
   $self->{ACCT_TERMINATE_CAUSE}=0;
@@ -633,6 +640,7 @@ sub acct_stop {
     $self->{TRAFFIC_OUT}=0;
     $self->{SUM}=0;
     $self->{NAS_ID}=0;
+    $self->query($db, "DELETE from dv_calls WHERE acct_session_id='$self->{ACCT_SESSION_ID}';", 'do');
     return $self;
   }
   
@@ -1045,7 +1053,7 @@ elsif($attr->{HOUR}) {
 elsif($attr->{DATE}) {
 	 push @WHERE_RULES, "date_format(start, '%Y-%m-%d')='$attr->{DATE}'";
 	 $GROUP = "1, 2, 3";
-	 $lupdate = "DATE_FORMAT(start, '%Y-%m-%d'), u.id, l.traffic_class,";
+	 $lupdate = "DATE_FORMAT(start, '%Y-%m-%d'), u.id, l.traffic_class, tt.descr, ";
 }
 
 
@@ -1061,6 +1069,7 @@ elsif($attr->{DATE}) {
    l.nas_id, l.uid
    from ipn_log l
    LEFT join  users u ON (l.uid=u.uid)
+   LEFT join  trafic_tarifs tt ON (l.interval_id=tt.interval_id and l.traffic_class=tt.id)
    $WHERE 
    GROUP BY $GROUP
   ;");
@@ -1072,6 +1081,7 @@ elsif($attr->{DATE}) {
  $self->query($db, "SELECT 
   count(*),  sum(l.traffic_in), sum(l.traffic_out)
   from  ipn_log l
+
   $WHERE
   ;");
 
