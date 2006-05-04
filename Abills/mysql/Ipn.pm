@@ -575,7 +575,8 @@ sub acct_stop {
   my $self = shift;
   my ($attr) = @_;
   my $session_id;
-  
+
+
   if (defined($attr->{SESSION_ID})) {
   	$session_id=$attr->{SESSION_ID};
    }
