@@ -13,8 +13,8 @@ $web_interface    = 1;
                    "30:0:IP Net:null:"                      => 5,
                    "31:30:IP Net comps:ipn_comps:"          => 5,
                    #"17:0:Ip Net:ipn_online:"               => 8,
-                   "50:0:Club monitor:ipn_club_monitor:"    => 6,
-                   "51:50:$_ADD:ipn_user_add:"              => 6
+                   "50:0:Club monitor:ipn_club_monitor:"    => 8,
+                   "51:50:$_ADD:ipn_user_add:"              => 8
                    );
 
 %USER_FUNCTION_LIST = (
