@@ -5,7 +5,7 @@
 
 require "Dv.pm";
 Dv->import();
-my $Dv = Dv->new($db, $admin, $conf);
+my $Dv = Dv->new($db, $admin, \%conf);
 
 
 require Fees;
