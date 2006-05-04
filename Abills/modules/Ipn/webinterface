@@ -1265,6 +1265,13 @@ sub ipn_user_add {
  use Tariffs;
  my $tariffs = Tariffs->new($db, \%conf, $admin);
  
+ my $list = $Ipn->comps_list({ %LIST_PARAMS });
+ my %allow_comps = ();
+	 
+ foreach my $line (@$list) {
+   $allow_comps{$line->[2]}=$line->[1];
+  }
+
 	
  if ($FORM{ACTIVATE}) {
      my $Dv = Dv->new($db, $admin, \%conf);
@@ -1341,7 +1348,7 @@ sub ipn_user_add {
      my $table = $html->table( { width  => '100%',
                                  rows   => [["$_LOGIN:",      "$LOGIN"],
                                             ["IP:",           "$FORM{IP}"],
-                                            ["_COMPUTER:",    "$FORM{COMP}" ],
+                                            ["$_COMPUTER:",   "$allow_comps{$FORM{IP}}" ],
                                             ["$_SUM:",        "$FORM{SUM}"  ],
                                             ["$_TARIF_PLAN:", "$FORM{TP_ID}"]
                                             ]
@@ -1370,13 +1377,8 @@ sub ipn_user_add {
  	                                   MULTI_ARRAY_VALUE => 1,
  	                                  });
  
- my $list = $Ipn->comps_list({ %LIST_PARAMS });
+ 
  if ($Ipn->{TOTAL} > 0) {
- 	 my %allow_comps = ();
- 	 
-   foreach my $line (@$list) {
-   	  $allow_comps{$line->[2]}=$line->[1];
-    }
 	 
  	 my $session_list=$sessions->online( { %LIST_PARAMS } );	
 

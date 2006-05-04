@@ -108,7 +108,7 @@ sub query {
    }
 
 my $q;
-#print $query;
+#print "$query<br>";
 
 if (defined($type) && $type eq 'do') {
   
