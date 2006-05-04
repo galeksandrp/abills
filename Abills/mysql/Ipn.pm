@@ -1288,6 +1288,93 @@ sub is_exist($$) {
 }
 
 
+#**********************************************************
+#
+#**********************************************************
+sub comps_list {
+ my $self = shift;
+ my ($attr) = @_;
+ 
+  $self->query($db, "SELECT id, name, INET_NTOA(ip), cid FROM ipn_club_comps
+  ORDER BY $SORT $DESC ;");
+ 
+  my $list = $self->{list};
+  return $list;
+}
+
+#**********************************************************
+#
+#**********************************************************
+sub comps_add {
+ my $self = shift;
+ my ($attr) = @_;
+
+  $self->query($db, "INSERT INTO ipn_club_comps (name, ip, cid)
+  values ('$attr->{NAME}', INET_ATON('$attr->{IP}'), '$attr->{CID}');", 'do');
+
+}
+
+#**********************************************************
+#
+#**********************************************************
+sub comps_info {
+ my $self = shift;
+ my ($id) = @_;
+ 
+  $self->query($db, "SELECT 
+  name,
+  INET_NTOA(ip),
+  cid
+  FROM ipn_club_comps
+  WHERE id='$id';");
+
+  my $a_ref = $self->{list}->[0];
+  ($self->{NAME},
+   $self->{IP},
+   $self->{CID}
+   ) = @$a_ref;
+ 
+ return $self;
+}
+
+#**********************************************************
+#
+#**********************************************************
+sub comps_change {
+ my $self = shift;
+ my ($attr) = @_;
+ 
+ 	my %FIELDS = (ID    => 'id',
+	              NAME  => 'name', 
+	              IP    => 'ip',
+	              CID   => 'cid'); 
+
+
+
+ 	$self->changes($admin, { CHANGE_PARAM => 'ID',
+		                TABLE        => 'ipn_club_comps',
+		                FIELDS       => \%FIELDS,
+		                OLD_INFO     => $self->comps_info($attr->{ID}),
+		                DATA         => $attr
+		              } );
+
+ 
+ 
+}
+
+#**********************************************************
+#
+#**********************************************************
+sub comps_del {
+ my $self = shift;
+ my ($id) = @_;
+
+ $self->query($db, "DELETE FROM ipn_club_comps WHERE id='$id';");
+
+ return $self;
+}
+
+
 #*******************************************************************
 # Convert integer value to ip
 # int2ip($i);

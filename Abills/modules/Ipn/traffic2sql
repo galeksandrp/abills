@@ -195,7 +195,7 @@ foreach my $ip ( sort keys %$ips_interim) {
 
          print "$cmd" if ($debug>0); 
          #system("$cmd");
-         $Ipn->acct_stop({ SESSION_ID => $session_id });
+         #$Ipn->acct_stop({ SESSION_ID => $session_id });
        }
 
       }

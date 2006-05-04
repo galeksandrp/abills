@@ -1139,12 +1139,6 @@ sub ipn_club_monitor {
 		
     $LIST_PARAMS{SESSION_ID}=$FORM{DETAIL};
     ipn_sessions2();
-		#my $table = $html->table( { width  => '100%',
-    #                        caption    => "$_DETAIL",
-    #                        rows       => [[], 
-    #                                       []],
-    #                           } );
-		#$html->message('info', $_INFO, $table->show());
 	 }
 
 $sessions->online( { %LIST_PARAMS } );	
@@ -1170,18 +1164,13 @@ foreach my $nas_row (@$nas_list) {
   my $l = $online->{$nas_row->[0]};
   my $total = $#{@$l} + 1;  
   $table->{rowcolor}=$_COLORS[0];
-  $table->{extra}="colspan='9' class='small'";
+  $table->{extra}="colspan='8' class='small'";
   $table->addrow("$nas_row->[0]:<b>$nas_row->[1]</b>:$nas_row->[3]:$_TOTAL: $total" );
   
   
   foreach my $line (@$l) {
     undef($table->{rowcolor});
     undef($table->{extra});
-   
-    #if (defined($dub_logins->{$line->[0]}) && $dub_logins->{$line->[0]} > 1) { $table->{rowcolor}='#FFFF00'; }
-    #elsif (defined($dub_ports->{$nas_row->[0]}{$line->[2]}) && $dub_ports->{$nas_row->[0]}{$line->[2]} > 1) { $table->{rowcolor}='#00FF40';    }
-    #elsif ($line->[9] > 3)                                 { $table->{rowcolor}='#FF0000';    }
-    #else {  $table->{rowcolor} = ($table->{rowcolor} eq $_COLORS[1]) ? $_COLORS[2] : $_COLORS[1];    }
 
     my $status = ($line->[9] == 10 || $line->[9] == 3 || $line->[9] == 1) ? "(". $html->button("DEACTIVE", "index=$index&DEACTIVE=$line->[0]&ip=$line->[3]&ACCT_SESSION_ID=$line->[11]", { TITLE => 'Status' }) . ")" : "(". $html->button("$_ACTIVATE", "index=$index&ACTIVE=$line->[0]&ip=$line->[3]&ACCT_SESSION_ID=$line->[11]", { TITLE => 'active users' }) . ")" ;
     my $user_info =  "$_FIO: $line->[1]\n$_PHONE: $line->[12]\n$_VARIANT: $line->[13]\n$_DEPOSIT: $line->[14]\n".
@@ -1192,17 +1181,85 @@ foreach my $nas_row (@$nas_list) {
       $line->[3],  $line->[4], 
       int2byte($line->[5]), int2byte($line->[6]), 
       $line->[14],
-     "(". $html->button('P', "index=$index&ping=$line->[3]", { TITLE => 'ping' }) .")",
      "$status",
-     "(". $html->button('H', "index=$index&HANGUP=$line->[3]&SESSION_ID=$line->[11]", { TITLE => 'Hangup' }) .")",
      "(". $html->button("$_DETAIL", "index=$index&DETAIL=$line->[11]", { TITLE => 'Detail' }) .")",
+     "(". $html->button('P', "index=$index&ping=$line->[3]", { TITLE => 'ping' }) .")",
+     "(". $html->button('H', "index=$index&HANGUP=$line->[3]&SESSION_ID=$line->[11]", { TITLE => 'Hangup' }) .")"
      );
   }
 }
 
 print $table->show();	
+}
+
+
+#**********************************************************
+# 
+#**********************************************************
+sub ipn_comps {
+
+  $Ipn->{ACTION}='add';
+	$Ipn->{ACTION_LNG}="$_ADD";
+
+if ($FORM{add}) {
+	$Ipn->comps_add({ %FORM });
+   if($Ipn->{errno}) {
+      $html->message('err', $_ERROR, "[$Ipn->{errno}] $err_strs{$Ipn->{errno}}");
+   }
+  else {
+	  $html->message('info', $_INFO, "$_ADDED");
+   }
+}
+elsif ($FORM{change}) {
+	$Ipn->comps_change({ %FORM });
+
+  if($Ipn->{errno}) {
+      $html->message('err', $_ERROR, "[$Ipn->{errno}] $err_strs{$Ipn->{errno}}");
+   }
+  else {
+  	$html->message('info', $_INFO, "$_CHANGED");
+   }
+}
+elsif ($FORM{chg}) {
+	$Ipn->comps_info($FORM{chg});
+	$html->message('info', $_INFO, "$_CHANGING");
 	
-	
+  $Ipn->{ACTION}='change';
+	$Ipn->{ACTION_LNG}=$_CHANGE;
+}
+elsif ($FORM{del}){
+	$Ipn->comps_del({ %FORM });
+	$html->message('info', $_INFO, "$_DELETED");
+}
+
+
+$html->tpl_show(_include('ipn_comps', 'Ipn'), $Ipn);	
+
+my $list = $Ipn->comps_list({ %LIST_PARAMS });
+my $table = $html->table( { width      => '100%',
+                            caption    => "Computers",
+                            border     => 1,
+                            title      => ["ID", "$_NAME", "IP", "MAC", '-', '-' ],
+                            cols_align => ['right', 'left', 'right', 'right', 'center', 'center'],
+                            qs         => $pages_qs,
+                           } );
+
+foreach $line (@$list) {
+	$table->addrow(
+	 $line->[0],
+	 $line->[1],
+	 $line->[2],
+	 $line->[3],
+	 $html->button($_CHANGE, "index=$index&chg=$line->[0]"),
+	 $html->button($_DEL, "index=". $index ."&$pages_qs&del=$line->[0]", { MESSAGE => "$_DEL '$line->[1]?" })
+	);
+}
+
+
+
+
+print $table->show();
+
 }
 
 #**********************************************************
@@ -1219,7 +1276,25 @@ sub ipn_user_add {
  	                                          SEL_MULTI_ARRAY   => $tariffs->list(),
  	                                          MULTI_ARRAY_KEY   => 0,
  	                                          MULTI_ARRAY_VALUE => 1,
- 	                                        });
+                                         });
+ 
+ 
+ my $list = $Ipn->comps_list({ %LIST_PARAMS });
+ if ($Ipn->{TOTAL} > 0) {
+ 	 $Ipn->{IP}=$html->form_select('IP', 
+                                    { 
+ 	                                   SEL_MULTI_ARRAY   => $list,
+ 	                                   MULTI_ARRAY_KEY   => 2,
+ 	                                   MULTI_ARRAY_VALUE => 1,
+ 	                                  });
+	 
+ 	 }
+ else {
+   $Ipn->{IP}=$html->form_input('IP', '0.0.0.0');
+  }
+ 
+ 
+ 
  $Ipn->{ACTIVATE}='checked';
  $html->tpl_show(_include('ipn_form_user_add', 'Ipn'), $Ipn);	
 }
