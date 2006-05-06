@@ -1122,8 +1122,8 @@ $table = $html->table( { width => '100%',
 	                                 rowcolor => $_COLORS[0],
                                    title_plain => [ "$_FROM: ", $html->date_fld('from', { MONTHES => \@MONTHES} ),
                                    "$_TO: ", $html->date_fld('to', { MONTHES => \@MONTHES } ),
-                                   "$_ROWS: ",  "<input type=text name=rows value='$conf{list_max_recs}' size=4>",
-                                   "<input type=submit name=show value=$_SHOW>"
+                                   "$_ROWS: ",  "<input type=text name=rows value='$conf{list_max_recs}' size='4'>",
+                                   "<input type='submit' name='show' value='$_SHOW'>"
                                     ],                                   
                                   } );
 

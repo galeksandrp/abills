@@ -190,10 +190,13 @@ sub form_input {
 	my ($name, $value, $attr)=@_;
 
 
-  my $type = (defined($attr->{TYPE})) ? $attr->{TYPE} : 'text';
+  my $type  = (defined($attr->{TYPE})) ? $attr->{TYPE} : 'text';
   my $state = (defined($attr->{STATE})) ? ' checked' : ''; 
+  my $size  = (defined($attr->{SIZE})) ? "SIZE=\"$attr->{SIZE}\"" : '';
+
+
   
-  $self->{FORM_INPUT}="<input type=\"$type\" name=\"$name\" value=\"$value\"$state>";
+  $self->{FORM_INPUT}="<input type=\"$type\" name=\"$name\" value=\"$value\"$state$size>";
 
   if (defined($self->{NO_PRINT}) && ( !defined($attr->{OUTPUT2RETURN}) )) {
   	$self->{OUTPUT} .= $self->{FORM_INPUT};
@@ -209,7 +212,8 @@ sub form_main {
   my $self = shift;
   my ($attr)	= @_;
 	
-	$self->{FORM}="<FORM action=\"$SELF_URL\" METHOD=\"POST\">\n";
+	my $METHOD = ($attr->{METHOD}) ? $attr->{METHOD} : 'POST';
+	$self->{FORM}="<FORM action=\"$SELF_URL\" METHOD=\"$METHOD\">\n";
 	
 
 	
@@ -578,11 +582,13 @@ sub header {
  my $css = css();
 
  my $CHARSET=(defined($attr->{CHARSET})) ? $attr->{CHARSET} : 'windows-1251';
+ my $REFRESH = ($FORM{REFRESH}) ? "<META HTTP-EQUIV=\"Refresh\" CONTENT=\"$FORM{REFRESH}; URL=$ENV{REQUEST_URI}\"/>\n" : '';
 
 $self->{header} .= qq{
 <!doctype html public "-//W3C//DTD HTML 3.2 Final//EN">
 <html>
 <head>
+ $REFRESH
  <META HTTP-EQUIV="Cache-Control" content="no-cache"\>
  <META HTTP-EQUIV="Pragma" CONTENT="no-cache"\>
  <meta http-equiv="Content-Type" content="text/html; charset=$CHARSET"\>

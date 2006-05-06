@@ -317,7 +317,7 @@ sub sec2time {
     $d=int($value / (24 * 3600));
 
  if($attr->{str}) {
-   return "+$d $c:$b:$a";
+   return sprintf("+%d %.2d:%.2d:%.2d", $d, $c,$b, $a);
   }
  else {
     return($a,$b,$c,$d);
@@ -591,6 +591,42 @@ sub decode_base64 {
         $res .= unpack("u", $len . $1 );    # uudecode
     }
 
+    return $res;
+}
+
+#**********************************************************
+# encode_base64()
+#**********************************************************
+sub encode_base64 ($;$)
+{
+    if ($] >= 5.006) {
+	require bytes;
+	if (bytes::length($_[0]) > length($_[0]) ||
+	    ($] >= 5.008 && $_[0] =~ /[^\0-\xFF]/))
+	{
+	    require Carp;
+	    Carp::croak("The Base64 encoding is only defined for bytes");
+	}
+    }
+
+    use integer;
+
+    my $eol = $_[1];
+    $eol = "\n" unless defined $eol;
+
+    my $res = pack("u", $_[0]);
+    # Remove first character of each line, remove newlines
+    $res =~ s/^.//mg;
+    $res =~ s/\n//g;
+
+    $res =~ tr|` -_|AA-Za-z0-9+/|;               # `# help emacs
+    # fix padding at the end
+    my $padding = (3 - length($_[0]) % 3) % 3;
+    $res =~ s/.{$padding}$/'=' x $padding/e if $padding;
+    # break encoded string into lines of no more than 76 characters each
+    if (length $eol) {
+	$res =~ s/(.{1,76})/$1$eol/g;
+    }
     return $res;
 }
 
