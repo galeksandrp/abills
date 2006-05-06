@@ -7,10 +7,7 @@ use Abills::Base;
 use Socket;
 
 
-$conf{SQUID_HOST}="sky.yes.ko.if.ua";
-$conf{SQUID_PORT}=8080;
-$conf{SQUID_CACHEMGR_PASSWD}="";
-$conf{SQUID_RESOLVIP}=0; 
+
 
 
 
