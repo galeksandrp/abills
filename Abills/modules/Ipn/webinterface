@@ -1406,6 +1406,49 @@ sub ipn_user_add {
 }
 
 
+#**********************************************************
+#
+#**********************************************************
+sub ipn_ipfw {
+	
+my $fw = "00010       71       3320 deny log logamount 100 tcp from any to any 25 via rl0
+01101       93       9935 deny ip from 192.168.0.101 to any via rl0
+01102      270      17456 deny ip from 192.168.0.102 to any via rl0
+01103        5        994 deny ip from 192.168.0.103 to any via rl0
+01104        0          0 deny ip from 192.168.0.104 to any via rl0
+01105       53       3026 deny ip from 192.168.0.105 to any via rl0
+01106        6       1092 deny ip from 192.168.0.106 to any via rl0
+01107       84       8657 deny ip from 192.168.0.107 to any via rl0
+01108        5        994 deny ip from 192.168.0.108 to any via rl0
+01109      755      47240 deny ip from 192.168.0.109 to any via rl0
+01110        5       1175 deny ip from 192.168.0.110 to any via rl0
+01111      443      29484 deny ip from 192.168.0.111 to any via rl0
+01112       86       7552 deny ip from 192.168.0.112 to any via rl0
+50000    54112   19223594 count ip from any to any in recv tun0
+50001    56557    5803097 count ip from any to any out xmit tun0
+65535 43820756 9909262975 allow ip from any to any
+";
+
+my @rows = split(/\n/, $fw);
+
+
+$table = $html->table( { width       => '100%',
+                            caption     => "ipfw",
+                            border      => 1,
+                            title       => ["$_NUM", "$_IN", "$_OUT", "$_TYPE", "-"],
+                            cols_align  => ['right', 'right', 'center'],
+                           });
+
+
+foreach my $row (@rows) {
+	my ($num, $in, $out,  $type, $protocol, $other)=split(/ +/, $row, 6);
+	$table->addrow($num, $in, $out,  $type, $protocol, $other);
+}
+
+print	 $table->show();
+	
+}
+
 1
 
 

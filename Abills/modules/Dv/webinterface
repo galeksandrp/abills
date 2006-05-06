@@ -734,6 +734,22 @@ $table2->addtd(   $table->td($_TOTAL, { bgcolor => $_COLORS[0] }),
 
 my $total = $table2->show();
 print $total . $table->show();
+
+
+
+my $table = $html->table( { width       => '100%',
+                            title_plain => [ 
+                                             "$_REFRESH (sec): ".   $html->form_input('REFRESH', int($FORM{REFRESH}), { SIZE => 4 } ),
+                                             $html->form_input('SHOW',  $_SHOW, {TYPE => 'SUBMIT'})  
+                                            ],
+                           });
+
+
+print $html->form_main({ CONTENT => $table->show(),
+	                       HIDDEN  => { index =>  "$index" },
+	                       METHOD  => 'GET'
+                        });
+
 print $html->button('Zap All', "index=$index&zapall=y", { MESSAGE => "Do you realy want zap all sessions ?" });
 
 	
@@ -1124,7 +1140,7 @@ $table = $html->table( { width => '100%',
                                    "$_TO: ", $html->date_fld('to', { MONTHES => \@MONTHES } ),
                                    "$_ROWS: ",  "<input type=text name=rows value='$conf{list_max_recs}' size='4'>",
                                    "<input type='submit' name='show' value='$_SHOW'>"
-                                    ],                                   
+                                   ],                                   
                                   } );
 
 
@@ -1296,16 +1312,17 @@ $table = $html->table( {  caption => "$_SUM",
 	                              rowcolor => $_COLORS[1],
                                 title_plain => ["$_SESSIONS", "$_DURATION", "$_TRAFFIC", "$_TRAFFIC 2", "$_SUM"],
                                 cols_align => ['right', 'right', 'right', 'right'],
-                                rows => [ [ $sessions->{TOTAL}, 
+                                rows => [  [  $sessions->{TOTAL}, 
                                 $sessions->{DURATION}, 
                                 int2byte($sessions->{TRAFFIC}), 
                                 int2byte($sessions->{TRAFFIC2}),
-                                $sessions->{SUM} ] ],
+                                $sessions->{SUM} ] ]
                                } );
 print $table->show();	
 
-
 dv_sessions($list, $sessions) if ( $sessions->{TOTAL} > 0);
+
+
 }
 
 

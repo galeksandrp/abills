@@ -12,15 +12,19 @@ $web_interface    = 1;
                    "26:25:$_MONTH:ipn_use_allmonthes:"      => 4,
                    "30:0:IP Net:null:"                      => 5,
                    "31:30:IP Net comps:ipn_comps:"          => 5,
-                   #"17:0:Ip Net:ipn_online:"               => 8,
-                   "50:0:Club monitor:ipn_club_monitor:"    => 8,
-                   "51:50:$_ADD:ipn_user_add:"              => 8
+                   "32:30:IPFW $_MONITOR:ipn_ipfw:"         => 5,
+                   #"17:0:Ip Net:ipn_online:"               => 8
                    );
 
 %USER_FUNCTION_LIST = (
                        );
 
 $USER_FUNCTION_LIST{"01:0:IP Net:ipn_user_activate:"} = 0 if ($conf{IPN_USERMENU});
+
+if ($conf{IPN_CLUBMONITOR}) {
+  $FUNCTIONS_LIST{"50:0:Club monitor:ipn_club_monitor:"} = 8;
+  $FUNCTIONS_LIST{"51:50:$_ADD:ipn_user_add:"}           = 8;
+}
 
 #%PERIODIC = (daily   => 'dv_daily_fees',
 #             monthly => 'dv_monthly_fees');
