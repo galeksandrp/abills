@@ -583,10 +583,9 @@ sub acct_stop {
   else {
     return $self;
   }
-  
  
-  $self->{ACCT_TERMINATE_CAUSE}=0;
-   
+  my $ACCT_TERMINATE_CAUSE = (defined($attr->{ACCT_TERMINATE_CAUSE})) ? $attr->{ACCT_TERMINATE_CAUSE} : 0;
+
   my	$sql="select u.uid, calls.framed_ip_address, 
       calls.user_name,
       calls.acct_session_id,
@@ -683,7 +682,7 @@ sub acct_stop {
           '0',  
           '$self->{ACCT_SESSION_ID}', 
           '$self->{BILL_ID}',
-          '$self->{ACCT_TERMINATE_CAUSE}');", 'do');
+          '$ACCT_TERMINATE_CAUSE');", 'do');
 
   $self->query($db, "DELETE from dv_calls WHERE acct_session_id='$self->{ACCT_SESSION_ID}';", 'do');
 

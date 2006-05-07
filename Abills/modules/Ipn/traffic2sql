@@ -201,6 +201,7 @@ foreach my $ip ( sort keys %$ips_interim) {
    }
   
   if ($uid > 0) {
+
     %RAD = (  NAS_PORT          => 0,
    	          INBYTE            => $Ipn->{$ip}{IN}+$total_in,
    	          OUTBYTE           => $Ipn->{$ip}{OUT}+$total_out,
@@ -211,7 +212,6 @@ foreach my $ip ( sort keys %$ips_interim) {
               ACCT_SESSION_ID   => $session_id,
               ACCT_STATUS_TYPE  => 'Alive'
             );
-
     my $r = $Acct->accounting(\%RAD, { NAS_ID => $NAS_ID });
     
     if (defined($Ipn->{USERS_INFO}->{DEPOSIT}->{$uid}) && $Ipn->{USERS_INFO}->{DEPOSIT}->{$uid}<0) {
@@ -225,9 +225,10 @@ foreach my $ip ( sort keys %$ips_interim) {
 
          print "$cmd" if ($debug>0); 
          system("$cmd");
-         $Ipn->acct_stop({ SESSION_ID => $session_id });
+         $Ipn->acct_stop({ SESSION_ID           => $session_id,
+         	                 ACCT_TERMINATE_CAUSE => 10 });
        }
-  q}
+  }
   
   $registred .= sprintf("%5s| %15s| %10s| %10s| %10s| %10s|\n%s", 
        $uid, 
@@ -361,3 +362,4 @@ if ( $file ne "" )
 	chmod 256, $file.".zip";
 	chown $uid, $gid, $file.".zip";
 }
+

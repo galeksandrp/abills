@@ -1101,7 +1101,7 @@ sub ipn_club_monitor {
 	 }
 	elsif ($FORM{HANGUP}) {
 
-    $Ipn->acct_stop({ %FORM });
+    $Ipn->acct_stop({ %FORM, ACCT_TERMINATE_CAUSE => 6 });
 
      my @ip_array = split(/\./, $FORM{HANGUP}, 4);
      my $rule_num = $conf{IPN_FW_FIRST_RULE} + $ip_array[3];
