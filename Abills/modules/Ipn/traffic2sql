@@ -183,6 +183,18 @@ foreach my $ip ( sort keys %$ips_interim) {
             SUM						 => $total_user_sum
    	      } );
 
+   	    %RAD = (  NAS_PORT          => 0,
+   	          INBYTE            => $Ipn->{$ip}{IN}+$total_in,
+   	          OUTBYTE           => $Ipn->{$ip}{OUT}+$total_out,
+   	          INBYTE2           => 0,
+   	          OUTBYTE2          => 0,
+              FRAMED_IP_ADDRESS => $ip_addr,
+              USER_NAME         => $login,
+              ACCT_SESSION_ID   => $session_id,
+              ACCT_STATUS_TYPE  => 'Alive'
+            );
+
+    my $r = $Acct->accounting(\%RAD, { NAS_ID => $NAS_ID });
 
       if (defined($Ipn->{USERS_INFO}->{DEPOSIT}->{$uid}) && $Ipn->{USERS_INFO}->{DEPOSIT}->{$uid}<0) {
          my @ip_array = split(/\./, $ip_addr, 4);
@@ -213,23 +225,6 @@ foreach my $ip ( sort keys %$ips_interim) {
 
    }
   
-  if ($uid > 0) {
-   	%RAD = (  NAS_PORT          => 0,
-   	          INBYTE            => $Ipn->{$ip}{IN}+$total_in,
-   	          OUTBYTE           => $Ipn->{$ip}{OUT}+$total_out,
-   	          INBYTE2           => 0,
-   	          OUTBYTE2          => 0,
-              FRAMED_IP_ADDRESS => $ip_addr,
-              USER_NAME         => $login,
-              ACCT_SESSION_ID   => $session_id,
-              ACCT_STATUS_TYPE  => 'Alive'
-            );
-
-    my $r = $Acct->accounting(\%RAD, { NAS_ID => $NAS_ID });
-    
-
-    
-   }
   
   $registred .= sprintf("%5s| %15s| %10s| %10s| %10s| %10s|\n%s", 
        $uid, 
