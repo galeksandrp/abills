@@ -1264,4 +1264,131 @@ for (my $i=97; $i<123; $i++) {
  return $letters;
 }
 
+#**********************************************************
+# Using some flash from http://www.maani.us
+#
+#**********************************************************
+sub make_chars {
+	my $self = shift;
+	my ($attr) = @_;
+  my @chart_transition = ('dissolve', 'drop', 'spin', 'scale', 'zoom', 'blink', 'slide_right', 'slide_left', 'slide_up', 'slide_down', 'none');
+  my $DATA = $attr->{DATA};
+  
+  my $ex_params = '';
+
+  if ($attr->{TRANSITION}) {
+    my $random = int(rand(@chart_transition));
+    
+    $ex_params = " <chart_transition type=\"$chart_transition[$random]\" delay=\"1\" duration=\"2\" order=\"series\" />\n";
+   }
+
+
+  my $data = '
+  <chart>'.
+  $ex_params
+
+	.'<series_color>
+		<value>ff8800</value>
+		<value>00FF00</value>
+	</series_color>
+
+  	<chart_grid_h alpha="10" color="0066FF" thickness="28" />
+	  <chart_grid_v alpha="10" color="0066FF" thickness="1" />
+
+	<axis_category font="arial" bold="1" size="11" color="000000" alpha="50" skip="2" />
+	<axis_ticks value_ticks="" category_ticks="1" major_thickness="2" minor_thickness="1" minor_count="3" major_color="000000" minor_color="888888" position="outside" />
+	<axis_value font="arial" bold="1" size="10" color="000000" alpha="50" steps="4" prefix="" suffix="" decimals="0" separator="" show_min="1" />
+	<chart_border color="000000" top_thickness="1" bottom_thickness="2" left_thickness="0" right_thickness="0" />
+  <chart_rect x="20" y="50" width="450" height="220" positive_color="FFFFFF" positive_alpha="40" />
+ 
+  ';
+
+  $data .= "<chart_data>\n";
+
+
+  if ($attr->{PERIOD} eq 'month_stats') {
+    $data .= "<row>\n".   	
+    "<string></string>";
+    for(my $i=0; $i<=31; $i++) {
+    	 $data .= "<string>$i</string>\n";
+     }
+   $data .= "</row>\n";
+  	
+  }
+  
+
+  while(my($name, $value)=each %$DATA ){
+    my $midle=0;
+
+    $data .= "<row>\n".
+    "<string>$name</string>";
+    print "$name<br>";	
+    
+
+    if (defined($attr->{AVG}{$name}) && $attr->{AVG}{$name} > 0) {
+    	 $midle = 100 / $attr->{AVG}{$name};
+      }
+
+    foreach my $line (@$value) {
+    	 $data .= "<number>";
+    	 $data .= ($midle > 0) ? $line * $midle : $line; 
+    	 $data .="</number>\n";
+     }
+   $data .= "</row>\n";
+  }
+
+  $data .= '</chart_data>';
+
+  
+  if ($attr->{TYPE}) {
+    $data .= "<chart_type>\n";
+		my $type_array_ref = $attr->{TYPE};
+		foreach my $line (@$type_array_ref) {
+		  $data .= " <value>$line</value>\n";
+     }
+   	$data .= " </chart_type>\n";
+   }
+  
+  
+  
+  if (defined($attr->{AVG}{MONEY}) && $attr->{AVG}{MONEY} > 0) {
+      	
+   	my $part = $attr->{AVG}{MONEY} / 4;
+   	$data .= 
+   	"<draw>\n";
+   	foreach(my $i=0; $i<=4; $i++) {
+     	   $data .= "<text x=\"470\" y=\"". (260-$i*45) ."\" color=\"000000\">". int($i * $part) ."</text>\n";
+   	  }
+   	$data .= "</draw>\n";
+   }
+  
+
+
+ 
+ 
+ open(FILE, ">2.xml");
+   print FILE $data;
+ close(FILE);
+ 	
+  	
+
+print "<OBJECT classid='clsid:D27CDB6E-AE6D-11cf-96B8-444553540000' 
+codebase='http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=6,0,0,0' 
+WIDTH=500 HEIGHT=300 id='charts' ALIGN=''>
+<PARAM NAME=movie VALUE='charts.swf?library_path=charts_library&php_source=2.xml'> 
+<PARAM NAME=quality VALUE=high> <PARAM NAME=bgcolor VALUE=$_COLORS[1]> 
+
+<EMBED src='charts.swf?library_path=charts_library&php_source=1.xml' 
+quality=high bgcolor=#FFFFFF 
+WIDTH=400 HEIGHT=250 NAME='charts' 
+ALIGN='' swLiveConnect='true' 
+TYPE='application/x-shockwave-flash' 
+PLUGINSPAGE='http://www.macromedia.com/go/getflashplayer'></EMBED></OBJECT>";
+	
+	
+}
+
+
+
+
 1

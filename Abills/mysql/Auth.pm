@@ -500,12 +500,28 @@ sub Auth_CID {
   my $RAD_PAIRS;
   
   my @MAC_DIGITS_GET = ();
-   
+  if (! defined($RAD->{CALLING_STATION_ID})) {
+     $RAD_PAIRS->{'Reply-Message'}="Wrong MAC ''";
+     return 1, $RAD_PAIRS, "Wrong MAC ''";
+   }
+
+
    if (($self->{CID} =~ /:/ || $self->{CID} =~ /-/)
        && $self->{CID} !~ /\./) {
       #@MAC_DIGITS_GET=split(/:/, $self->{CID}) if($self->{CID} =~ /:/);
       @MAC_DIGITS_GET=split(/:|-/, $self->{CID});
-      my @MAC_DIGITS_NEED=split(/:/, $RAD->{CALLING_STATION_ID});
+      
+      
+
+      #NAS MPD 3.18 with patch
+      if ($RAD->{CALLING_STATION_ID} =~ /\//) {
+         $RAD->{CALLING_STATION_ID} =~ s/ //g;
+         my ($cid_ip, $trash);
+         ($cid_ip, $RAD->{CALLING_STATION_ID}, $trash) = split(/\//, $RAD->{CALLING_STATION_ID}, 3);
+       }
+
+      my @MAC_DIGITS_NEED = split(/:/, $RAD->{CALLING_STATION_ID});
+
       for(my $i=0; $i<=5; $i++) {
         if(hex($MAC_DIGITS_NEED[$i]) != hex($MAC_DIGITS_GET[$i])) {
           $RAD_PAIRS->{'Reply-Message'}="Wrong MAC '$RAD->{CALLING_STATION_ID}'";
@@ -1055,7 +1071,7 @@ if (! $RAD->{MS_CHAP_CHALLENGE}) {
 
   $self->query($db, "SELECT DECODE(password, '$attr->{SECRETKEY}') FROM users WHERE id='$RAD->{USER_NAME}';");
 
-  my $a = `echo \`date\` "'$attr->{SECRETKEY}') FROM users WHERE id='$RAD->{USER_NAME}' test" >> /tmp/aaaaaaa`;
+  #my $a = `echo \`date\` "'$attr->{SECRETKEY}') FROM users WHERE id='$RAD->{USER_NAME}' test" >> /tmp/aaaaaaa`;
 
   if ($self->{TOTAL} > 0) {
   	my $list = $self->{list}->[0];

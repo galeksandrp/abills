@@ -737,7 +737,7 @@ print $total . $table->show();
 
 
 
-my $table = $html->table( { width       => '100%',
+$table = $html->table( { width       => '100%',
                             title_plain => [ 
                                              "$_REFRESH (sec): ".   $html->form_input('REFRESH', int($FORM{REFRESH}), { SIZE => 4 } ),
                                              $html->form_input('SHOW',  $_SHOW, {TYPE => 'SUBMIT'})  
@@ -897,6 +897,14 @@ sub dv_use {
 
 my ($tables_sessions);
 
+my %DATA_HASH = (  	 	             );
+my %AVG = (MONEY    => 0,
+           TRAFFIC  => 0,
+           DURATION => 0);
+
+my $graph_type='';
+
+
 #Day reposrt
 if (defined($FORM{DATE})) {
   #Used Fraffic
@@ -925,11 +933,33 @@ else {
                                } );
 
 
+  $graph_type='month_stats';
   my $list = $sessions->reports({ %LIST_PARAMS });
   foreach my $line (@$list) {
     $table_sessions->addrow($html->button("$line->[0]", "index=$index&$type=$line->[0]$pages_qs"), 
        $line->[1], $line->[2], int2byte($line->[3]),  int2byte($line->[4]),  $line->[5], "<b>$line->[6]</b>" );
+
+
+      $AVG{USERS}    = $line->[1] if ($AVG{USERS} < $line->[1]);
+      $AVG{TRAFFIC}  = $line->[3] if ($AVG{TRAFFIC} < $line->[3]);
+
+      $AVG{DURATION} = time2sec($line->[5]) if ($AVG{DURATION} < time2sec($line->[5]));
+      $AVG{MONEY}    = $line->[6] if ($AVG{MONEY} < $line->[6]);
+
+
+
+      push @{ $DATA_HASH{USERS} },    $line->[1];      
+      push @{ $DATA_HASH{TRAFFIC} },  $line->[3];
+
+      push @{ $DATA_HASH{DURATION} }, time2sec($line->[5]);
+      push @{ $DATA_HASH{MONEY} },    $line->[6];
+
+
+
    }
+
+
+
 }
 
 
@@ -945,6 +975,17 @@ $table = $html->table( { width => '100%',
                                 rowcolor => $_COLORS[2]
                                } );
 print $table_sessions->show() . $table->show();
+
+
+$html->make_chars({  
+	 PERIOD     => $graph_type,
+	 DATA       => \%DATA_HASH,
+	 AVG        => \%AVG,
+	 TYPE       => ['column', 'column', 'column', 'line'],
+	 TRANSITION => 1
+  });
+
+
 
 }
 

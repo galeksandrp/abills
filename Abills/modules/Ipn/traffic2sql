@@ -212,6 +212,7 @@ foreach my $ip ( sort keys %$ips_interim) {
               ACCT_SESSION_ID   => $session_id,
               ACCT_STATUS_TYPE  => 'Alive'
             );
+
     my $r = $Acct->accounting(\%RAD, { NAS_ID => $NAS_ID });
     
     if (defined($Ipn->{USERS_INFO}->{DEPOSIT}->{$uid}) && $Ipn->{USERS_INFO}->{DEPOSIT}->{$uid}<0) {

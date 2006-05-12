@@ -146,7 +146,7 @@ sub online {
  ORDER BY $SORT $DESC;");
  
  if ($self->{TOTAL} < 1) {
- 	 return $self;
+ 	 return $self->{list};
   }
 
 

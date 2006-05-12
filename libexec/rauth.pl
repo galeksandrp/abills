@@ -20,11 +20,17 @@ $conf{MAX_SESSION_TRAFFIC} = 2048;
 
 
 
+
 ####################################################################
 my $RAD = get_radius_params();
 test_radius_returns($RAD);
 ####################################################################
 
+
+require Abills::SQL;
+my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
+my $db  = $sql->{db};
+my $GT  = '';
 
 
 #my $t = "\n\n";
@@ -36,13 +42,6 @@ test_radius_returns($RAD);
 
 
 
-
-require Abills::SQL;
-my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
-my $db = $sql->{db};
-my $GT = '';
-
-
 if (defined($ARGV[0]) && $ARGV[0] eq 'pre_auth') {
   require Auth;
   Auth->import();
@@ -52,25 +51,41 @@ if (defined($ARGV[0]) && $ARGV[0] eq 'pre_auth') {
   if ($Auth->{errno}) {
     log_print('LOG_INFO', "AUTH [$RAD->{USER_NAME}] MS-CHAP PREAUTH FAILED$GT");
   }
- 
+
   exit 0;
 }
 
 
 
-
 require Nas;
 my $nas = Nas->new($db, \%conf);	
+
+
+get_nas_info();
+auth($RAD);
+$db->disconnect();
+
+
+#*******************************************************************
+# get_nas_info();
+#*******************************************************************
+sub get_nas_info {
+ my ($RAD)=@_;
+
+
+$RAD->{NAS_IP_ADDRESS}='' if (!defined($RAD->{NAS_IP_ADDRESS}));
+$RAD->{USER_NAME}='' if (!defined($RAD->{USER_NAME}));
+
 my %NAS_PARAMS = ('IP' => "$RAD->{NAS_IP_ADDRESS}");
 $NAS_PARAMS{NAS_IDENTIFIER}=$RAD->{NAS_IDENTIFIER} if (defined($RAD->{NAS_IDENTIFIER}));
 $nas->info({ %NAS_PARAMS });
-
+print "$RAD->{NAS_IP_ADDRESS} $RAD->{'NAS-IP-Address'} /// $nas->{errno}) || $nas->{TOTAL}";
 
 if (defined($nas->{errno}) || $nas->{TOTAL} < 1) {
   access_deny("$RAD->{USER_NAME}", "Unknow server '$RAD->{NAS_IP_ADDRESS}'", 0);
   exit 1;
 }
-elsif($RAD->{USER_NAME} eq '') {
+elsif(! defined($RAD->{USER_NAME}) || $RAD->{USER_NAME} eq '') {
   #access_deny("$RAD->{USER_NAME}", "Disabled NAS server '$RAD->{NAS_IP_ADDRESS}'", 0);
   exit 1;
 }
@@ -80,18 +95,18 @@ elsif($nas->{NAS_DISABLE} > 0) {
 }
 
 $nas->{at} = 0 if (defined($RAD->{CHAP_PASSWORD}) && defined($RAD->{CHAP_CHALLENGE}));
-auth($RAD);
-$db->disconnect();
-
+}
 
 
 #*******************************************************************
 # auth();
 #*******************************************************************
 sub auth {
+ my ($RAD)=@_;
+
  my $GT = '';
  my $rr='';
- 
+
  if(defined($conf{tech_works})) {
  	 print "Reply-Message = \"$conf{tech_works}\"\n";
  	 exit 1;

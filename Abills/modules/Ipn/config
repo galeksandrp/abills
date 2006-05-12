@@ -1,9 +1,9 @@
-$web_interface    = 1;
+#$web_interface    = 1;
+# Iner_ID : Main or Sub or if -1 user menu func list
 
-#Iner_ID : Main or Sub or if -1 user menu func list
 %FUNCTIONS_LIST = ("10:0:IP Net:ipn_form_user:UID"           => 20,
                    "11:10:$_ACTIVATE:ipn_user_activate:UID"  => 20,
-                   "12:10:$_STATS:ipn_sessions2:UID"             => 20,
+                   "12:10:$_STATS:ipn_sessions2:UID"         => 20,
                    "22:0:IP Net:null:"                      => 4,
                    "23:22:$_ERROR:ipn_error:"               => 4,
                    "24:22:$_LAST:ipn_sessions:"             => 4,
@@ -12,8 +12,7 @@ $web_interface    = 1;
                    "26:25:$_MONTH:ipn_use_allmonthes:"      => 4,
                    "30:0:IP Net:null:"                      => 5,
                    "31:30:IP Net comps:ipn_comps:"          => 5,
-                   "32:30:IPFW $_MONITOR:ipn_ipfw:"         => 5,
-                   #"17:0:Ip Net:ipn_online:"               => 8
+                   "32:30:IPFW:ipn_ipfw:"         => 5
                    );
 
 %USER_FUNCTION_LIST = (
