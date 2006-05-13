@@ -1268,7 +1268,7 @@ for (my $i=97; $i<123; $i++) {
 # Using some flash from http://www.maani.us
 #
 #**********************************************************
-sub make_chars {
+sub make_charts {
 	my $self = shift;
 	my ($attr) = @_;
   my @chart_transition = ('dissolve', 'drop', 'spin', 'scale', 'zoom', 'blink', 'slide_right', 'slide_left', 'slide_up', 'slide_down', 'none');
@@ -1283,14 +1283,13 @@ sub make_chars {
    }
 
 
-  my $data = '
-  <chart>'.
+  my $data = '<chart>'.
   $ex_params
 
 	.'<series_color>
 		<value>ff8800</value>
 		<value>00FF00</value>
-	</series_color>
+	 </series_color>
 
   	<chart_grid_h alpha="10" color="0066FF" thickness="28" />
 	  <chart_grid_v alpha="10" color="0066FF" thickness="1" />
@@ -1300,11 +1299,9 @@ sub make_chars {
 	<axis_value font="arial" bold="1" size="10" color="000000" alpha="50" steps="4" prefix="" suffix="" decimals="0" separator="" show_min="1" />
 	<chart_border color="000000" top_thickness="1" bottom_thickness="2" left_thickness="0" right_thickness="0" />
   <chart_rect x="20" y="50" width="450" height="220" positive_color="FFFFFF" positive_alpha="40" />
- 
   ';
 
   $data .= "<chart_data>\n";
-
 
   if ($attr->{PERIOD} eq 'month_stats') {
     $data .= "<row>\n".   	
@@ -1366,24 +1363,27 @@ sub make_chars {
 
  
  
- open(FILE, ">2.xml");
+ open(FILE, ">charts.xml") || $self->message('err', 'ERROR', "Can't create file $!");
    print FILE $data;
  close(FILE);
  	
-  	
+my $PATH='';
+if ($IMG_PATH ne '') {
+	$PATH = $IMG_PATH;
+	$PATH =~ s/img//;
+}
 
 print "<OBJECT classid='clsid:D27CDB6E-AE6D-11cf-96B8-444553540000' 
-codebase='http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=6,0,0,0' 
-WIDTH=500 HEIGHT=300 id='charts' ALIGN=''>
-<PARAM NAME=movie VALUE='charts.swf?library_path=charts_library&php_source=2.xml'> 
+codebase='http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=6,0,0,0' WIDTH=500 HEIGHT=300 id='charts' ALIGN=''>
+<PARAM NAME=movie VALUE='". $PATH. "charts.swf?library_path=". $PATH. "charts_library&php_source=charts.xml'>
 <PARAM NAME=quality VALUE=high> <PARAM NAME=bgcolor VALUE=$_COLORS[1]> 
 
-<EMBED src='charts.swf?library_path=charts_library&php_source=1.xml' 
+<EMBED src='". $PATH. "charts.swf?library_path=". $PATH. "charts_library&php_source=charts.xml' 
 quality=high bgcolor=#FFFFFF 
 WIDTH=400 HEIGHT=250 NAME='charts' 
 ALIGN='' swLiveConnect='true' 
 TYPE='application/x-shockwave-flash' 
-PLUGINSPAGE='http://www.macromedia.com/go/getflashplayer'></EMBED></OBJECT>";
+PLUGINSPAGE='http://www.macromedia.com/go/getflashplayer'></EMBED></OBJECT>\n";
 	
 	
 }

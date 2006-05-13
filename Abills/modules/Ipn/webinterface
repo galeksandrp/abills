@@ -446,7 +446,7 @@ print $table_sessions->show() . $table->show();
 
 
 
-$html->make_chars({  
+$html->make_charts({  
 	 PERIOD => $graph_type,
 	 DATA   => \%DATA_HASH,
 	 AVG    => \%AVG,

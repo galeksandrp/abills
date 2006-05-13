@@ -61,7 +61,7 @@ require Nas;
 my $nas = Nas->new($db, \%conf);	
 
 
-get_nas_info();
+get_nas_info($RAD);
 auth($RAD);
 $db->disconnect();
 
@@ -72,14 +72,13 @@ $db->disconnect();
 sub get_nas_info {
  my ($RAD)=@_;
 
+ $RAD->{NAS_IP_ADDRESS}='' if (!defined($RAD->{NAS_IP_ADDRESS}));
+ $RAD->{USER_NAME}='' if (!defined($RAD->{USER_NAME}));
 
-$RAD->{NAS_IP_ADDRESS}='' if (!defined($RAD->{NAS_IP_ADDRESS}));
-$RAD->{USER_NAME}='' if (!defined($RAD->{USER_NAME}));
-
-my %NAS_PARAMS = ('IP' => "$RAD->{NAS_IP_ADDRESS}");
-$NAS_PARAMS{NAS_IDENTIFIER}=$RAD->{NAS_IDENTIFIER} if (defined($RAD->{NAS_IDENTIFIER}));
-$nas->info({ %NAS_PARAMS });
-print "$RAD->{NAS_IP_ADDRESS} $RAD->{'NAS-IP-Address'} /// $nas->{errno}) || $nas->{TOTAL}";
+ my %NAS_PARAMS = ('IP' => "$RAD->{NAS_IP_ADDRESS}");
+ $NAS_PARAMS{NAS_IDENTIFIER}=$RAD->{NAS_IDENTIFIER} if (defined($RAD->{NAS_IDENTIFIER}));
+ $nas->info({ %NAS_PARAMS });
+# print "$RAD->{NAS_IP_ADDRESS} $RAD->{'NAS-IP-Address'} /// $nas->{errno}) || $nas->{TOTAL}";
 
 if (defined($nas->{errno}) || $nas->{TOTAL} < 1) {
   access_deny("$RAD->{USER_NAME}", "Unknow server '$RAD->{NAS_IP_ADDRESS}'", 0);
