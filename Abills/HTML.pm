@@ -1292,7 +1292,9 @@ sub make_charts {
     $ex_params = " <chart_transition type=\"$chart_transition[$random]\" delay=\"1\" duration=\"2\" order=\"series\" />\n";
    }
 
-
+ 	
+  
+  
   my $data = '<chart>'.
   $ex_params
 
@@ -1306,9 +1308,14 @@ sub make_charts {
 
 	<axis_category font="arial" bold="1" size="11" color="000000" alpha="50" skip="2" />
 	<axis_ticks value_ticks="" category_ticks="1" major_thickness="2" minor_thickness="1" minor_count="3" major_color="000000" minor_color="888888" position="outside" />
-	<axis_value font="arial" bold="1" size="10" color="000000" alpha="50" steps="4" prefix="" suffix="" decimals="0" separator="" show_min="1" />
+
+  <axis_value font="arial" bold="1" size="9" color="000000" alpha="75" 
+  steps="4" prefix="" suffix="%" decimals="0" separator="" show_min="1" />
+
+
+
 	<chart_border color="000000" top_thickness="1" bottom_thickness="2" left_thickness="0" right_thickness="0" />
-  <chart_rect x="20" y="50" width="450" height="220" positive_color="FFFFFF" positive_alpha="40" />
+  <chart_rect x="30" y="50" width="450" height="220" positive_color="FFFFFF" positive_alpha="40" />
   ';
 
   $data .= "<chart_data>\n";
@@ -1390,7 +1397,7 @@ sub make_charts {
     	$data .= 
      	"<draw>\n";
    	  foreach(my $i=0; $i<=4; $i++) {
-     	   $data .= "<text x=\"470\" y=\"". (260-$i*45) ."\" color=\"000000\">". int($i * $part) ."</text>\n";
+     	   $data .= "<text size=\"9\" x=\"480\" y=\"". (260-$i*45) ."\" color=\"000000\">". int($i * $part) ."</text>\n";
    	   }
    	  $data .= "</draw>\n";
     }
