@@ -292,6 +292,7 @@ sub ipn_use_users {
 
  my %totals = ();
 
+$Ipn->{debug}=1;
 
 my %DATA_HASH = (  	 	             );
 my %CHART = ();

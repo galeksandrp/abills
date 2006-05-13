@@ -3,6 +3,7 @@ package Ipn;
 #
 #
 
+
 use strict;
 use vars qw(@ISA @EXPORT @EXPORT_OK %EXPORT_TAGS $VERSION
 );
@@ -1027,6 +1028,7 @@ my $GROUP = '1';
      push @WHERE_RULES, "l.uid='$attr->{UID}'"; 	
   }
 
+
  
  #Interval from date to date
 if ($attr->{INTERVAL}) {
@@ -1055,7 +1057,12 @@ elsif($attr->{DATE}) {
 	 $GROUP = "1, 2, 3";
 	 $lupdate = "DATE_FORMAT(start, '%Y-%m-%d'), u.id, l.traffic_class, tt.descr, ";
 }
-
+elsif (defined($attr->{MONTH})) {
+ 	 push @WHERE_RULES, "date_format(l.start, '%Y-%m')='$attr->{MONTH}'";
+ } 
+else {
+ 	 $lupdate = "date_format(l.start, '%Y-%m'), count(DISTINCT u.id), "; 
+ }
 
 
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
@@ -1064,7 +1071,7 @@ elsif($attr->{DATE}) {
  $self->query($db, "SELECT $lupdate
    
 
-   sum(l.traffic_in), sum(l.traffic_out), 
+   sum(l.traffic_in), sum(l.traffic_out), sum(sum),
 
    l.nas_id, l.uid
    from ipn_log l
