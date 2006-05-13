@@ -2,6 +2,8 @@ package Dv_Sessions;
 # Stats functions
 #
 
+
+
 use strict;
 use vars qw(@ISA @EXPORT @EXPORT_OK %EXPORT_TAGS $VERSION
 );
@@ -31,7 +33,6 @@ sub new {
   ($db, $admin, $conf) = @_;
   my $self = { };
   bless($self, $class);
-#  $self->{debug}=1;
   return $self;
 }
 
@@ -387,17 +388,6 @@ sub session_detail {
    $self->{ACCT_TERMINATE_CAUSE}
     )= @$ar;
 
-#   $self->{UID} = $attr->{UID};
-#   $self->{SESSION_ID} = $attr->{SESSION_ID};
-
-#Ext traffic detail
-# $self->query($db, "SELECT 
-#  acct_session_id
-#  traffic_id,
-#  in,
-#  out
-# FROM traffic_details
-# WHERE acct_session_id='$attr->{SESSION_ID}';");
 
  return $self;
 }

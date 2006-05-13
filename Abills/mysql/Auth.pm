@@ -1,6 +1,7 @@
 package Auth;
 # Auth functions
-# 26.04.2006
+# 14.05.2006
+
 
 use strict;
 use vars qw(@ISA @EXPORT @EXPORT_OK %EXPORT_TAGS $VERSION
@@ -22,7 +23,6 @@ use main;
 @ISA  = ("main");
 
 use Billing;
-
 my $Billing;
 
 my $db;
@@ -65,7 +65,6 @@ sub dv_auth {
   }
   
   my $MAX_SESSION_TRAFFIC = $CONF->{MAX_SESSION_TRAFFIC};
-#	my $date = '2006-04-28 10:23:00';
 
   $self->query($db, "select  if (dv.logins=0, tp.logins, dv.logins) AS logins,
   if(dv.filter_id != '', dv.filter_id, tp.filter_id),
@@ -488,6 +487,7 @@ if( defined($CONF->{MAC_AUTO_ASSIGN}) &&
   return 0, $RAD_PAIRS, '';
 }
 	
+
 
 #*********************************************************
 # Auth_mac
