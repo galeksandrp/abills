@@ -898,6 +898,7 @@ sub dv_use {
 my ($tables_sessions);
 
 my %DATA_HASH = (  	 	             );
+my %CHART = ();
 my %AVG = (MONEY    => 0,
            TRAFFIC  => 0,
            DURATION => 0);
@@ -910,7 +911,7 @@ if (defined($FORM{DATE})) {
   #Used Fraffic
   $table_sessions = $html->table({ width      => '100%',
 	                                 caption    => "$_SESSIONS", 
-                                   title      =>["$_DATE", "$_USERS", "$_SESSIONS", "$_TRAFFIC ", "$_TRAFFIC 2", $_DURATION, $_SUM],
+                                   title      => ["$_DATE", "$_USERS", "$_SESSIONS", "$_TRAFFIC ", "$_TRAFFIC 2", $_DURATION, $_SUM],
                                    cols_align => ['right', 'left', 'right', 'right', 'right', 'right', 'right'],
                                    qs         => $pages_qs             
                                } );
@@ -934,6 +935,8 @@ else {
 
 
   $graph_type='month_stats';
+  my $num = 0;
+  
   my $list = $sessions->reports({ %LIST_PARAMS });
   foreach my $line (@$list) {
     $table_sessions->addrow($html->button("$line->[0]", "index=$index&$type=$line->[0]$pages_qs"), 
@@ -948,14 +951,18 @@ else {
 
 
 
-      push @{ $DATA_HASH{USERS} },    $line->[1];      
-      push @{ $DATA_HASH{TRAFFIC} },  $line->[3];
-
-      push @{ $DATA_HASH{DURATION} }, time2sec($line->[5]);
-      push @{ $DATA_HASH{MONEY} },    $line->[6];
-
-
-
+      if ($line->[0] =~ /(\d+)-(\d+)-(\d+)/) {
+      	 $num = $3;
+        }
+      elsif ($line->[0] =~ /(\d+)-(\d+)/) {
+      	 $CHART{X_LINE}[$num]=$line->[0];
+       	 $num++;
+       }
+     
+      $DATA_HASH{USERS}[$num]    = $line->[1];      
+      $DATA_HASH{TRAFFIC}[$num]  = $line->[3];
+      $DATA_HASH{DURATION}[$num] = time2sec($line->[5]);
+      $DATA_HASH{MONEY}[$num]    = $line->[6];
    }
 
 

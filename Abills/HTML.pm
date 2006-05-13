@@ -1286,9 +1286,9 @@ sub make_charts {
   my $DATA = $attr->{DATA};
   my $ex_params = '';
 
-  if ($attr->{TRANSITION}) {
+
+  if ($attr->{TRANSITION} && $CONF->{CHAR_ANIMATION}) {
     my $random = int(rand(@chart_transition));
-    
     $ex_params = " <chart_transition type=\"$chart_transition[$random]\" delay=\"1\" duration=\"2\" order=\"series\" />\n";
    }
 
@@ -1315,27 +1315,33 @@ sub make_charts {
 
   if ($attr->{PERIOD} eq 'month_stats') {
     $data .= "<row>\n".   	
-    "<string></string>";
-    for(my $i=0; $i<=31; $i++) {
+    "<string></string>\n";
+    for(my $i=1; $i<=31; $i++) {
     	 $data .= "<string>$i</string>\n";
      }
    $data .= "</row>\n";
-  	
+  }
+  elsif ($attr->{PERIOD} eq 'day_stats') {
+    $data .= "<row>\n".   	
+    "<string></string>\n";
+    for(my $i=0; $i<=23; $i++) {
+    	 $data .= "<string>$i</string>\n";
+     }
+   $data .= "</row>\n";
   }
   
 
   while(my($name, $value)=each %$DATA ){
+    next if ($name eq 'MONEY');
+
     my $midle=0;
-
     $data .= "<row>\n".
-    "<string>$name</string>";
-    print "$name<br>";	
-    
-
+    "<string>$name</string>\n";
     if (defined($attr->{AVG}{$name}) && $attr->{AVG}{$name} > 0) {
     	 $midle = 100 / $attr->{AVG}{$name};
       }
 
+    shift @$value;
     foreach my $line (@$value) {
     	 $data .= "<number>";
     	 $data .= ($midle > 0) ? $line * $midle : $line; 
@@ -1344,9 +1350,28 @@ sub make_charts {
    $data .= "</row>\n";
   }
 
-  $data .= '</chart_data>';
+#Make money graffic
+  if (defined($DATA->{MONEY})) { 
+    $data .= "<row>\n".
+    "<string>MONEY</string>\n";
+    my $name = 'MONEY';
+    my $value = $DATA->{$name};
+    my $midle = 0;
+    if (defined($attr->{AVG}{$name}) && $attr->{AVG}{$name} > 0) {
+    	 $midle = 100 / $attr->{AVG}{$name};
+     }
+    
+    shift @$value;
+    foreach my $line (@$value) {
+    	 $data .= "<number>";
+    	 $data .= ($midle > 0) ? $line * $midle : $line; 
+    	 $data .="</number>\n";
+     }
+    $data .= "</row>\n";
+  }   
 
-  
+  $data .= "</chart_data>\n";
+
   if ($attr->{TYPE}) {
     $data .= "<chart_type>\n";
 		my $type_array_ref = $attr->{TYPE};
@@ -1357,18 +1382,19 @@ sub make_charts {
    }
   
   
-  
-  if (defined($attr->{AVG}{MONEY}) && $attr->{AVG}{MONEY} > 0) {
-      	
-   	my $part = $attr->{AVG}{MONEY} / 4;
-   	$data .= 
-   	"<draw>\n";
-   	foreach(my $i=0; $i<=4; $i++) {
+
+
+    #Make right text
+    if (defined($attr->{AVG}{MONEY}) && $attr->{AVG}{MONEY} > 0) {
+     	my $part = $attr->{AVG}{MONEY} / 4;
+    	$data .= 
+     	"<draw>\n";
+   	  foreach(my $i=0; $i<=4; $i++) {
      	   $data .= "<text x=\"470\" y=\"". (260-$i*45) ."\" color=\"000000\">". int($i * $part) ."</text>\n";
-   	  }
-   	$data .= "</draw>\n";
-   }
-  
+   	   }
+   	  $data .= "</draw>\n";
+    }
+ 
 
 
  

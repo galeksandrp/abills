@@ -272,10 +272,9 @@ print $table->show();
 #**********************************************************
 # ipn_use_all_monthes();
 #**********************************************************
-sub ipn_use_allmonthes {
-
+sub ipn_use_users_allmonthes {
   $FORM{allmonthes}='y';
-  ipn_use();
+  ipn_use_users();
 }
 
 
@@ -295,6 +294,7 @@ sub ipn_use_users {
 
 
 my %DATA_HASH = (  	 	             );
+my %CHART = ();
 my %AVG = (MONEY    => 0,
            TRAFFIC  => 0,
            DURATION => 0);
@@ -400,9 +400,12 @@ else {
                                } );
 
   $LIST_PARAMS{INTERVAL_TYPE}=3;
+
   my $list = $Ipn->reports_users({ %LIST_PARAMS });
   $graph_type='month_stats';
   
+  my $num = 0;
+
   foreach my $line (@$list) {
     $table_sessions->addrow($html->button($line->[0], "index=$index&$type=$line->[0]$pages_qs"), 
        $line->[1],   
@@ -416,9 +419,18 @@ else {
       $AVG{TRAFFIC}  = $line->[2]+$line->[3] if ($AVG{TRAFFIC} < $line->[2]+$line->[3]);
       $AVG{USERS}    = $line->[1] if ($AVG{USERS} < $line->[1]);
 
-      push @{ $DATA_HASH{MONEY} },    $line->[4];
-      push @{ $DATA_HASH{TRAFFIC} },  $line->[2]+$line->[3];
-      push @{ $DATA_HASH{USERS} },    $line->[1];
+
+      if ($line->[0] =~ /(\d+)-(\d+)-(\d+)/) {
+      	 $num = $3;
+        }
+      elsif ($line->[0] =~ /(\d+)-(\d+)/) {
+      	 $CHART{X_LINE}[$num]=$line->[0];
+      	 $num++;
+       }
+      
+      $DATA_HASH{MONEY}[$num]=$line->[4];
+      $DATA_HASH{TRAFFIC}[$num]=$line->[2]+$line->[3];
+      $DATA_HASH{USERS}[$num]=$line->[1];
 
       $total_in      += $line->[2];   
       $total_out     += $line->[3]; 
@@ -450,7 +462,8 @@ $html->make_charts({
 	 PERIOD => $graph_type,
 	 DATA   => \%DATA_HASH,
 	 AVG    => \%AVG,
-	 TYPE   => ['column', 'column', 'line'] 
+	 TYPE   => ['column', 'column', 'line'],
+	 TRANSITION => 1
   });
 
 
