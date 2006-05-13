@@ -1271,9 +1271,19 @@ for (my $i=97; $i<123; $i++) {
 sub make_charts {
 	my $self = shift;
 	my ($attr) = @_;
+
+  my $PATH='';
+  if ($IMG_PATH ne '') {
+	  $PATH = $IMG_PATH;
+	  $PATH =~ s/img//;
+   }
+
+  if (! -f $PATH. "charts.swf") {
+  	 return 0;
+   }
+
   my @chart_transition = ('dissolve', 'drop', 'spin', 'scale', 'zoom', 'blink', 'slide_right', 'slide_left', 'slide_up', 'slide_down', 'none');
   my $DATA = $attr->{DATA};
-  
   my $ex_params = '';
 
   if ($attr->{TRANSITION}) {
@@ -1367,11 +1377,7 @@ sub make_charts {
    print FILE $data;
  close(FILE);
  	
-my $PATH='';
-if ($IMG_PATH ne '') {
-	$PATH = $IMG_PATH;
-	$PATH =~ s/img//;
-}
+
 
 print "<OBJECT classid='clsid:D27CDB6E-AE6D-11cf-96B8-444553540000' 
 codebase='http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=6,0,0,0' WIDTH=500 HEIGHT=300 id='charts' ALIGN=''>
