@@ -1412,7 +1412,9 @@ sub make_charts {
  	
 
 
-print "<OBJECT classid='clsid:D27CDB6E-AE6D-11cf-96B8-444553540000' 
+print "
+<BR>
+<OBJECT classid='clsid:D27CDB6E-AE6D-11cf-96B8-444553540000' 
 codebase='http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=6,0,0,0' WIDTH=500 HEIGHT=300 id='charts' ALIGN=''>
 <PARAM NAME=movie VALUE='". $PATH. "charts.swf?library_path=". $PATH. "charts_library&php_source=charts.xml'>
 <PARAM NAME=quality VALUE=high> <PARAM NAME=bgcolor VALUE=$_COLORS[1]> 
@@ -1422,7 +1424,8 @@ quality=high bgcolor=#FFFFFF
 WIDTH=400 HEIGHT=250 NAME='charts' 
 ALIGN='' swLiveConnect='true' 
 TYPE='application/x-shockwave-flash' 
-PLUGINSPAGE='http://www.macromedia.com/go/getflashplayer'></EMBED></OBJECT>\n";
+PLUGINSPAGE='http://www.macromedia.com/go/getflashplayer'></EMBED></OBJECT>
+<BR>\n";
 	
 	
 }

@@ -8,9 +8,10 @@ Ipn->import();
 my $Ipn = Ipn->new($db, \%conf);
 my @TT_COLORS = ("$_COLORS[1]", "#80FF80", "#FFFF80", "#BFBFFF");
 
-require "Dv.pm";
-Dv->import();
+use Dv;
 use Dv_Sessions;
+use Nas;
+
 my $sessions = Dv_Sessions->new($db, $admin, \%conf);
 
 
@@ -1055,13 +1056,16 @@ sub ipn_user_activate {
   #ipfw 
   #ipfw
   
-  
+ 
   my $users = Users->new($db, $admin, \%conf); 
   my $user  = $users->info( $LIST_PARAMS{UID} );
-  
   my $nas   = Nas->new($db, \%conf);	
   
   if ($FORM{ACTIVE}) {
+    if (! $FORM{NAS_ID}) {
+      $html->message('err', $_ERROR, "Unknown NAS");  	
+     }
+    else {
      my %DATA = (ACCT_STATUS_TYPE  => 1, 
                  USER_NAME         => $user->{LOGIN}, 
                  SESSION_START     => 0, 
@@ -1072,6 +1076,7 @@ sub ipn_user_activate {
                  TP                => 0 );
      
      $Ipn->user_status({ %DATA });
+    }
    }
   elsif ($FORM{LOGOUT}) {
      $Ipn->user_status('Off');
@@ -1093,13 +1098,19 @@ sub ipn_user_activate {
  	                                   MULTI_ARRAY_KEY   => 0,
  	                                   MULTI_ARRAY_VALUE => 1,
  	                                  });
+
+#  	   $nas_list. 
+#  	   "TP:". $html->form_input('TP_ID', "0") ,
   
-  print $html->form_main({ CONTENT => $html->form_input('REMOTE_ADDR', "$ENV{REMOTE_ADDR}") . $nas_list. 
-  	   "TP:". $html->form_input('TP_ID', "0") ,
+  my $ip = ($UID) ? $html->form_input('REMOTE_ADDR', "$ENV{REMOTE_ADDR}", { OUTPUT2RETURN => 1}): $ENV{REMOTE_ADDR};
+  my $nas = '';
+  
+  print $html->form_main({ CONTENT => "IP: $ip ". $nas, 
+
                      HIDDEN  => { index   => "$index",
                      	            UID     => $LIST_PARAMS{UID}
                      	           },
-	                   SUBMIT  => { ACTIVE   => "$_ACTIV" } 
+	                   SUBMIT  => { ACTIVE   => "$_ACTIVATE" } 
 	                 });
 
 }
