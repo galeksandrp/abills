@@ -1287,7 +1287,7 @@ sub make_charts {
   my $ex_params = '';
 
 
-  if ($attr->{TRANSITION} && $CONF->{CHAR_ANIMATION}) {
+  if ($attr->{TRANSITION} && $CONF->{CHART_ANIMATION}) {
     my $random = int(rand(@chart_transition));
     $ex_params = " <chart_transition type=\"$chart_transition[$random]\" delay=\"1\" duration=\"2\" order=\"series\" />\n";
    }

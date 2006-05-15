@@ -1052,70 +1052,201 @@ sub ipn_form_user {
 #**********************************************************
 sub ipn_user_activate {
 
-  #sudo
-  #ipfw 
-  #ipfw
-  
- 
+
   my $users = Users->new($db, $admin, \%conf); 
-  my $user  = $users->info( $LIST_PARAMS{UID} );
-  my $nas   = Nas->new($db, \%conf);	
-  
+  my $nas  = Nas->new($db, \%conf);	
+
+  my $ip = '0.0.0.0';
+  if (! $user->{UID})  {
+    $ip = ($FORM{REMOTE_ADDR}) ? $FORM{REMOTE_ADDR} : $html->form_input('REMOTE_ADDR', "$ENV{REMOTE_ADDR}", { OUTPUT2RETURN => 1});
+   } 
+  else {
+    $ip = $ENV{REMOTE_ADDR};
+   }
+ 
+  my $nas_id = 0;
+  my $poll_list = $nas->ip_pools_list();
+  my $ip_num = unpack("N", pack("C4", split( /\./, $ip))); 
+
+  # Get valid NAS
+  foreach my $line (@$poll_list) {
+  	if ( ($line->[1] <= $ip_num) && ($ip_num <= $line->[2]) ) {
+  		$nas_id=$line->[7];
+  	 }
+   }
+ 
+  if ($nas_id < 1) {
+  	$html->message('err', $_ERROR, "$_NOT_EXIST IP '$ip'");
+  	return 0;
+   }
+
+
   if ($FORM{ACTIVE}) {
-    if (! $FORM{NAS_ID}) {
+    if (int($nas_id) < 1) {
       $html->message('err', $_ERROR, "Unknown NAS");  	
      }
     else {
-     my %DATA = (ACCT_STATUS_TYPE  => 1, 
-                 USER_NAME         => $user->{LOGIN}, 
-                 SESSION_START     => 0, 
-                 ACCT_SESSION_ID   => mk_unique_value(10), 
-                 FRAMED_IP_ADDRESS => $FORM{REMOTE_ADDR}, 
-                 CONNECT_INFO      => '', 
-                 NAS_ID            => $FORM{NAS_ID},
-                 TP                => 0 );
+      my $user  = $users->info( $LIST_PARAMS{UID} );
+      my %DATA = (ACCT_STATUS_TYPE  => 1, 
+                  USER_NAME         => $user->{LOGIN}, 
+                  SESSION_START     => 0, 
+                  ACCT_SESSION_ID   => mk_unique_value(10), 
+                  FRAMED_IP_ADDRESS => $ip, 
+                  CONNECT_INFO      => '', 
+                  NAS_ID            => $nas_id,
+                  TP                => 0 );
      
      $Ipn->user_status({ %DATA });
+     ipn_change_status({ STATUS => 'ONLINE_ENABLE', %DATA });
     }
    }
   elsif ($FORM{LOGOUT}) {
-     $Ipn->user_status('Off');
+  	 ipn_change_status({ STATUS                => 'HANGUP',
+  	 	                   FRAMED_IP_ADDRESS     => $ip,
+  	 	                   ACCT_TERMINATE_CAUSE  => 1
+  	 	         	 	     });
+     $html->message('info', $_INFO, "$_DISABLE");
+   }
+
+#  my $nas_list = $html->form_select('NAS_ID', 
+#                                    { 
+# 	                                   SELECTED  => $FORM{NAS_ID},
+# 	                                   SEL_MULTI_ARRAY   => $nas->list(),
+# 	                                   MULTI_ARRAY_KEY   => 0,
+# 	                                   MULTI_ARRAY_VALUE => 1,
+# 	                                  });
+#  	   $nas_list. 
+#  	   "TP:". $html->form_input('TP_ID', "0") ,
+
+
+  
+  my %ACTION = ( ACTIVE => "$_ACTIVATE" ); 
+  my %HIDDEN = ();
+#  my $nas = '';
+
+
+  my $table;
+  
+  my $list = $sessions->online({ USER_NAME => $user->{LOGIN} });
+  
+  if ($sessions->{TOTAL} > 0){
+
+
+
+
+   $table = $html->table( { width   => '100%',
+                            caption     => "Online",
+                            border      => 1,
+                            title_plain  => ["$_USER", "$_PORT", "IP", "$_DURATION", "$_RECV", "$_SENT" ],
+                            cols_align  => ['left', 'right', 'right', 'right', 'right', 'right', 'right', 'right'],
+                            qs          => $pages_qs,
+                               } );
+   foreach my $line (@$list) {
+    my $online_ip = int2ip($line->[3]);
+    $online_ips{$ip}=1;
+
+    if ($online_ip eq $ip) {
+       $ACTION{LOGOUT}= "$_HANGUP";    	
+       $HIDDEN{SESSION_ID} = $line->[13];
+       delete $ACTION{ACTIVE};
+       if ($line->[10] == 11) {
+       	 $html->message('err', $_ERROR, "$_DISABLE");
+       	 return 0;
+        } 
+       
+     }
+
+    $table->addrow($line->[0], 
+      $line->[2],  
+      $online_ip,  
+      $line->[4], 
+      int2byte($line->[5]), int2byte($line->[6])
+     );
+}
+
+
+    
+    
+   } 
+  else {
+    $ACTION{ACTIVE}="$_ACTIVATE";    
    }
 
 
-  #my $user = $Ipn->user_info($LIST_PARAMS{UID});
-  #if ($user->{TOTAL} < 1) {
-  #	$html->message('info', $_INFO, "$_NOT_ACTIVE");
-  #  return 0;	
-  #}
-  #$html->tpl_show(_include('ipn_user_info', 'Ipn'), $Ipn);
-
-
-  my $nas_list = $html->form_select('NAS_ID', 
-                                    { 
- 	                                   SELECTED  => $FORM{NAS_ID},
- 	                                   SEL_MULTI_ARRAY   => $nas->list(),
- 	                                   MULTI_ARRAY_KEY   => 0,
- 	                                   MULTI_ARRAY_VALUE => 1,
- 	                                  });
-
-#  	   $nas_list. 
-#  	   "TP:". $html->form_input('TP_ID', "0") ,
-  
-  my $ip = ($UID) ? $html->form_input('REMOTE_ADDR', "$ENV{REMOTE_ADDR}", { OUTPUT2RETURN => 1}): $ENV{REMOTE_ADDR};
-  my $nas = '';
-  
-  print $html->form_main({ CONTENT => "IP: $ip ". $nas, 
+  print $html->form_main({ CONTENT => "IP: $ip (". $nas_id.") ", 
 
                      HIDDEN  => { index   => "$index",
-                     	            UID     => $LIST_PARAMS{UID}
+                     	            UID     => $LIST_PARAMS{UID},
+                     	            %HIDDEN
                      	           },
-	                   SUBMIT  => { ACTIVE   => "$_ACTIVATE" } 
+	                   SUBMIT  => { %ACTION } 
 	                 });
+
+
+print $table->show();	
 
 }
 
 
+
+#**********************************************************
+# ipn_change_status
+#**********************************************************
+sub ipn_change_status {
+	my ($attr) = @_;
+
+	my $STATUS          = $attr->{STATUS} || '';
+  my $USER_NAME       = $attr->{USER_NAME} || '';
+  my $ACCT_SESSION_ID = $attr->{ACCT_SESSION_ID} || '';
+	my $ip              = $attr->{FRAMED_IP_ADDRESS};
+
+  my @ip_array = split(/\./, $ip, 4);
+  my $rule_num = $conf{IPN_FW_FIRST_RULE} + $ip_array[3];
+  my $cmd;
+	
+	if ($STATUS eq 'ONLINE_ENABLE'){
+     $cmd = $conf{IPN_FW_START_RULE};
+
+     $html->message('info', $_INFO, "$_ENABLE IP: $ip");
+     $sessions->online_update({ USER_NAME       => $USER_NAME,
+                                ACCT_SESSION_ID => $ACCT_SESSION_ID,
+                                STATUS          => 10
+                               });
+     
+   }
+	elsif($STATUS eq 'ONLINE_DISABLE') {
+     $cmd = $conf{IPN_FW_STOP_RULE};
+
+     $html->message('info', $_INFO, "Hangup IP: $ip");     
+     $sessions->online_update({ USER_NAME       => $USER_NAME,
+                                ACCT_SESSION_ID => $ACCT_SESSION_ID,
+                                STATUS          => 11
+                               });
+	 }
+	elsif ($STATUS eq 'HANGUP') {
+     my $ACCT_TERMINATE_CAUSE = $attr->{ACCT_TERMINATE_CAUSE} || 6;
+     $Ipn->acct_stop({ %FORM, ACCT_TERMINATE_CAUSE => $ACCT_TERMINATE_CAUSE });
+
+     $cmd = $conf{IPN_FW_STOP_RULE};
+
+     my $table = $html->table( { width      => '100%',
+                            caption    => "Hangup",
+                            border     => 1,
+                            rows       => [["IN:" ,   int2byte($Ipn->{TRAFFIC_IN})   ], 
+                                           ["OUT:",   int2byte($Ipn->{TRAFFIC_OUT})  ], 
+                                           ["$_TOTAL:", int2byte($Ipn->{TRAFFIC_IN}+$Ipn->{TRAFFIC_OUT})   ], 
+                                           ["DURATION:", $Ipn->{ACCT_SESSION_TIME}   ], 
+                                           ["SUM:",   "$Ipn->{SUM}" ]]
+                         });
+
+    $html->message('info', $_INFO,  $table->show({ OUTPUT2RETURN => 1 }));
+   }
+	
+  $cmd =~ s/\%IP/$ip/g;
+  $cmd =~ s/\%NUM/$rule_num/g;
+  print "$cmd";
+  system($cmd);
+}
 
 
 #**********************************************************
@@ -1130,8 +1261,6 @@ sub ipn_club_monitor {
      my @ip_array = split(/\./, $FORM{ip}, 4);
      my $rule_num = $conf{IPN_FW_FIRST_RULE} + $ip_array[3];
  
-
-
      my $cmd = $conf{IPN_FW_START_RULE};
      $cmd =~ s/\%IP/$FORM{ip}/g;
      $cmd =~ s/\%NUM/$rule_num/g;
@@ -1162,7 +1291,7 @@ sub ipn_club_monitor {
 	 }
 	elsif ($FORM{HANGUP}) {
 
-    $Ipn->acct_stop({ %FORM, ACCT_TERMINATE_CAUSE => 6 });
+     $Ipn->acct_stop({ %FORM, ACCT_TERMINATE_CAUSE => 6 });
 
      my @ip_array = split(/\./, $FORM{HANGUP}, 4);
      my $rule_num = $conf{IPN_FW_FIRST_RULE} + $ip_array[3];
@@ -1526,8 +1655,6 @@ print	 $table->show();
 }
 
 1
-
-
 
 
 

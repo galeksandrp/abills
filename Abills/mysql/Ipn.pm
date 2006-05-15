@@ -173,7 +173,7 @@ sub user_status {
     '$DATA->{CONNECT_INFO}', 
     '$DATA->{NAS_ID}' );";
 
-$self->{debug}=1;
+  $self->{debug}=1;
   $self->query($db, "$sql", 'do');
 
 	
@@ -577,6 +577,7 @@ sub acct_stop {
   my ($attr) = @_;
   my $session_id;
 
+  $self->{debug}=1;
 
   if (defined($attr->{SESSION_ID})) {
   	$session_id=$attr->{SESSION_ID};

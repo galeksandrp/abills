@@ -110,7 +110,12 @@ sub online {
  if (defined($attr->{USER_NAME})) {
  	 $WHERE = "user_name='$attr->{USER_NAME}'";
   }
- 
+
+
+ if (defined($attr->{FRAMED_IP_ADDRESS})) {
+ 	 $WHERE = "framed_ip_address=INET_ATON('$attr->{FRAMED_IP_ADDRESS}')";
+  }
+
 
  $self->query($db, "SELECT c.user_name,
                           pi.fio,
