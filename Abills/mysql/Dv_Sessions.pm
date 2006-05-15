@@ -116,6 +116,10 @@ sub online {
  	 $WHERE = "framed_ip_address=INET_ATON('$attr->{FRAMED_IP_ADDRESS}')";
   }
 
+ if (defined($attr->{NAS_ID})) {
+ 	 $WHERE = "nas_id='$attr->{NAS_ID}'";
+  }
+
 
  $self->query($db, "SELECT c.user_name,
                           pi.fio,

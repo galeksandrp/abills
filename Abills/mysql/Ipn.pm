@@ -173,7 +173,7 @@ sub user_status {
     '$DATA->{CONNECT_INFO}', 
     '$DATA->{NAS_ID}' );";
 
-  $self->{debug}=1;
+
   $self->query($db, "$sql", 'do');
 
 	
@@ -577,7 +577,6 @@ sub acct_stop {
   my ($attr) = @_;
   my $session_id;
 
-  $self->{debug}=1;
 
   if (defined($attr->{SESSION_ID})) {
   	$session_id=$attr->{SESSION_ID};
@@ -786,7 +785,6 @@ else {
 
 #$PAGE_ROWS = 10;
 
- $self->{debug}=1;
  $self->query($db, "SELECT 
   $lupdate,
   $size,
@@ -925,7 +923,6 @@ else {
 
 
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
- $self->{debug}=1;
  my $list;
 
  $self->query($db, "SELECT INET_NTOA(dst_addr), sum(size), count(*), 
@@ -977,7 +974,6 @@ sub stats {
  my $GROUP = 'l.uid, l.ip, l.traffic_class';
 
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
-$self->{debug}=1;
  $self->query($db, "SELECT u.id, min(l.start), INET_NTOA(l.ip), 
    l.traffic_class,
    tt.descr,

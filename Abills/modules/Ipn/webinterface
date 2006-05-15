@@ -1127,46 +1127,47 @@ sub ipn_user_activate {
 
   my $table;
   
-  my $list = $sessions->online({ USER_NAME => $user->{LOGIN} });
+  my $list = $sessions->online( );
   
   if ($sessions->{TOTAL} > 0){
 
 
 
 
-   $table = $html->table( { width   => '100%',
+   $table = $html->table( { width       => '100%',
                             caption     => "Online",
                             border      => 1,
-                            title_plain  => ["$_USER", "$_PORT", "IP", "$_DURATION", "$_RECV", "$_SENT" ],
+                            title_plain => ["$_USER", "$_PORT", "IP", "$_DURATION", "$_RECV", "$_SENT" ],
                             cols_align  => ['left', 'right', 'right', 'right', 'right', 'right', 'right', 'right'],
                             qs          => $pages_qs,
                                } );
-   foreach my $line (@$list) {
+  foreach my $line (@$list) {
     my $online_ip = int2ip($line->[3]);
     $online_ips{$ip}=1;
 
     if ($online_ip eq $ip) {
-       $ACTION{LOGOUT}= "$_HANGUP";    	
-       $HIDDEN{SESSION_ID} = $line->[13];
-       delete $ACTION{ACTIVE};
-       if ($line->[10] == 11) {
-       	 $html->message('err', $_ERROR, "$_DISABLE");
-       	 return 0;
-        } 
-       
-     }
+       if ($line->[11] == $LIST_PARAMS{UID}) {
+         $ACTION{LOGOUT}= "$_HANGUP";    	
+         $HIDDEN{SESSION_ID} = $line->[13];
+         delete $ACTION{ACTIVE};
+         if ($line->[10] == 11) {
+       	   $html->message('err', $_ERROR, "$_DISABLE");
+       	   return 0;
+          } 
+        }       
+       else {
+       	  $html->message('err', $_ERROR, "THIS IP IS CURRENTLY IN USE");
+       	  return 0;
+        }
+    }
 
     $table->addrow($line->[0], 
-      $line->[2],  
-      $online_ip,  
-      $line->[4], 
-      int2byte($line->[5]), int2byte($line->[6])
-     );
-}
-
-
-    
-    
+       $line->[2],  
+       $online_ip,  
+       $line->[4], 
+       int2byte($line->[5]), int2byte($line->[6])
+       )  if ($line->[11] == $LIST_PARAMS{UID} );
+    }
    } 
   else {
     $ACTION{ACTIVE}="$_ACTIVATE";    
