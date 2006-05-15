@@ -1057,8 +1057,10 @@ sub ipn_user_activate {
   my $nas  = Nas->new($db, \%conf);	
 
   my $ip = '0.0.0.0';
+  my $IP_INPUT = '';
   if (! $user->{UID})  {
-    $ip = ($FORM{REMOTE_ADDR}) ? $FORM{REMOTE_ADDR} : $html->form_input('REMOTE_ADDR', "$ENV{REMOTE_ADDR}", { OUTPUT2RETURN => 1});
+    $IP_INPUT = $html->form_input('REMOTE_ADDR', "$ENV{REMOTE_ADDR}", { OUTPUT2RETURN => 1});
+    $ip = ($FORM{REMOTE_ADDR}) ? $FORM{REMOTE_ADDR} : $ENV{REMOTE_ADDR};
    } 
   else {
     $ip = $ENV{REMOTE_ADDR};
@@ -1145,7 +1147,7 @@ sub ipn_user_activate {
     my $online_ip = int2ip($line->[3]);
     $online_ips{$ip}=1;
 
-    if ($online_ip eq $ip) {
+    if ($online_ip eq $ip && $user->{UID}) {
        if ($line->[11] == $LIST_PARAMS{UID}) {
          $ACTION{LOGOUT}= "$_HANGUP";    	
          $HIDDEN{SESSION_ID} = $line->[13];
@@ -1174,7 +1176,7 @@ sub ipn_user_activate {
    }
 
 
-  print $html->form_main({ CONTENT => "IP: $ip (". $nas_id.") ", 
+  print $html->form_main({ CONTENT => "IP: $ip $IP_INPUT (". $nas_id.") ", 
 
                      HIDDEN  => { index   => "$index",
                      	            UID     => $LIST_PARAMS{UID},
