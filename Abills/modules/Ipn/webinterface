@@ -1219,6 +1219,10 @@ sub ipn_change_status {
   my $USER_NAME       = $attr->{USER_NAME} || '';
   my $ACCT_SESSION_ID = $attr->{ACCT_SESSION_ID} || '';
 	my $ip              = $attr->{FRAMED_IP_ADDRESS};
+  
+  my $speed_in=0;
+  my $speed_out=0;
+   
 
   my @ip_array = split(/\./, $ip, 4);
   my $rule_num = $conf{IPN_FW_FIRST_RULE} + $ip_array[3];
@@ -1263,6 +1267,8 @@ sub ipn_change_status {
 	
   $cmd =~ s/\%IP/$ip/g;
   $cmd =~ s/\%NUM/$rule_num/g;
+  $cmd =~ s/\%SPEED_IN/$speed_in/g if ($speed_in > 0);
+  $cmd =~ s/\%SPEED_OUT/$speed_out/g if ($speed_out > 0);
   #print "$cmd";
   system($cmd);
 }
