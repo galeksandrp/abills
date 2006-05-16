@@ -500,8 +500,8 @@ sub Auth_CID {
   
   my @MAC_DIGITS_GET = ();
   if (! defined($RAD->{CALLING_STATION_ID})) {
-     $RAD_PAIRS->{'Reply-Message'}="Wrong MAC ''";
-     return 1, $RAD_PAIRS, "Wrong MAC ''";
+     $RAD_PAIRS->{'Reply-Message'}="Wrong CID ''";
+     return 1, $RAD_PAIRS, "Wrong CID ''";
    }
 
 

@@ -1084,11 +1084,13 @@ sub ipn_user_activate {
 
 
   if ($FORM{ACTIVE}) {
+    use Auth;
     if (int($nas_id) < 1) {
       $html->message('err', $_ERROR, "Unknown NAS");  	
      }
     else {
       my $user  = $users->info( $LIST_PARAMS{UID} );
+      $nas->info({ NAS_ID => $nas_id });
       my %DATA = (ACCT_STATUS_TYPE  => 1, 
                   USER_NAME         => $user->{LOGIN}, 
                   SESSION_START     => 0, 
@@ -1096,7 +1098,21 @@ sub ipn_user_activate {
                   FRAMED_IP_ADDRESS => $ip, 
                   CONNECT_INFO      => '', 
                   NAS_ID            => $nas_id,
+                  NAS_IP_ADDRESS    => $nas->{NAS_IP},
                   TP                => 0 );
+
+    
+    
+    
+    my $Auth = Auth->new($db, \%conf);
+    my ($r, $RAD_PAIRS) = $Auth->dv_auth(\%DATA, $nas, { SECRETKEY => $conf{secretkey}
+ 	                                      } );
+
+    if ($r == 1) {
+       $html->message('err', $_ERROR, "$RAD_PAIRS->{'Reply-Message'}");
+    	 return 0;
+     }
+     
      
      $Ipn->user_status({ %DATA });
      ipn_change_status({ STATUS => 'ONLINE_ENABLE', %DATA });
@@ -1247,7 +1263,7 @@ sub ipn_change_status {
 	
   $cmd =~ s/\%IP/$ip/g;
   $cmd =~ s/\%NUM/$rule_num/g;
-  print "$cmd";
+  #print "$cmd";
   system($cmd);
 }
 
