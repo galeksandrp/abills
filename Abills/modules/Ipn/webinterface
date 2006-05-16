@@ -1139,8 +1139,8 @@ sub ipn_user_activate {
    $table = $html->table( { width       => '100%',
                             caption     => "Online",
                             border      => 1,
-                            title_plain => ["$_USER", "$_PORT", "IP", "$_DURATION", "$_RECV", "$_SENT" ],
-                            cols_align  => ['left', 'right', 'right', 'right', 'right', 'right', 'right', 'right'],
+                            title_plain => ["$_USER", "$_PORT", "IP", "$_DURATION", "$_RECV", "$_SENT", '-' ],
+                            cols_align  => ['left', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'center'],
                             qs          => $pages_qs,
                                } );
   foreach my $line (@$list) {
@@ -1167,7 +1167,8 @@ sub ipn_user_activate {
        $line->[2],  
        $online_ip,  
        $line->[4], 
-       int2byte($line->[5]), int2byte($line->[6])
+       int2byte($line->[5]), int2byte($line->[6]),
+       $html->button("$_HANGUP", "index=$index&LOGOUT=1&SESSION_ID=$line->[13]")
        )  if ($line->[11] == $LIST_PARAMS{UID} );
     }
    } 
@@ -1209,7 +1210,6 @@ sub ipn_change_status {
 	
 	if ($STATUS eq 'ONLINE_ENABLE'){
      $cmd = $conf{IPN_FW_START_RULE};
-
      $html->message('info', $_INFO, "$_ENABLE IP: $ip");
      $sessions->online_update({ USER_NAME       => $USER_NAME,
                                 ACCT_SESSION_ID => $ACCT_SESSION_ID,
@@ -1261,61 +1261,24 @@ sub ipn_club_monitor {
   	                    11  => undef);
 
   if ($FORM{ACTIVE}){
-     my @ip_array = split(/\./, $FORM{ip}, 4);
-     my $rule_num = $conf{IPN_FW_FIRST_RULE} + $ip_array[3];
- 
-     my $cmd = $conf{IPN_FW_START_RULE};
-     $cmd =~ s/\%IP/$FORM{ip}/g;
-     $cmd =~ s/\%NUM/$rule_num/g;
-     print "$cmd";
-     system($cmd);
-
-     $html->message('info', $_INFO, "$_ACTIVE IP: $FORM{ip}");
-     $sessions->online_update({ USER_NAME       => $FORM{ACTIVE},
-                                ACCT_SESSION_ID => $FORM{ACCT_SESSION_ID},
-                                STATUS          => 10
-                               });
-     
+   	 ipn_change_status({ STATUS            => 'ONLINE_ENABLE',
+   	 	                   USER_NAME         => $FORM{ACTIVE},
+                         FRAMED_IP_ADDRESS => $FORM{ip},
+                         ACCT_SESSION_ID   => $FORM{ACCT_SESSION_ID},
+  	 	         	 	     });
    }
 	elsif ($FORM{DEACTIVE}) {
-     my @ip_array = split(/\./, $FORM{ip}, 4);
-     my $rule_num = $conf{IPN_FW_FIRST_RULE} + $ip_array[3];
-     my $cmd = $conf{IPN_FW_STOP_RULE};
-     $cmd =~ s/\%IP/$FORM{ip}/g;
-     $cmd =~ s/\%NUM/$rule_num/g;
-     print "$cmd";
-     system($cmd);
-
-     $html->message('info', $_INFO, "Hangup IP: $FORM{ip}");     
-     $sessions->online_update({ USER_NAME       => $FORM{DEACTIVE},
-                                ACCT_SESSION_ID => $FORM{ACCT_SESSION_ID},
-                                STATUS          => 11
-                               });
+   	 ipn_change_status({ STATUS            => 'ONLINE_DISABLE',
+   	 	                   FRAMED_IP_ADDRESS => $FORM{ip},
+   	 	                   USER_NAME         => $FORM{DEACTIVE},
+                         ACCT_SESSION_ID   => $FORM{ACCT_SESSION_ID},
+  	 	         	 	     });
 	 }
 	elsif ($FORM{HANGUP}) {
-
-     $Ipn->acct_stop({ %FORM, ACCT_TERMINATE_CAUSE => 6 });
-
-     my @ip_array = split(/\./, $FORM{HANGUP}, 4);
-     my $rule_num = $conf{IPN_FW_FIRST_RULE} + $ip_array[3];
-     my $cmd = $conf{IPN_FW_STOP_RULE};
-     $cmd =~ s/\%IP/$FORM{ip}/g;
-     $cmd =~ s/\%NUM/$rule_num/g;
-     print "$cmd";
-     system($cmd);
-
-
-     my $table = $html->table( { width      => '100%',
-                            caption    => "Hangup",
-                            border     => 1,
-                            rows       => [["IN:" ,   int2byte($Ipn->{TRAFFIC_IN})   ], 
-                                           ["OUT:",   int2byte($Ipn->{TRAFFIC_OUT})  ], 
-                                           ["$_TOTAL:", int2byte($Ipn->{TRAFFIC_IN}+$Ipn->{TRAFFIC_OUT})   ], 
-                                           ["DURATION:", $Ipn->{ACCT_SESSION_TIME}   ], 
-                                           ["SUM:",   "$Ipn->{SUM}" ]]
-                         });
-    
-    $html->message('info', $_INFO,  $table->show());
+   	 ipn_change_status({ STATUS                => 'HANGUP',
+  	 	                   FRAMED_IP_ADDRESS     => $ip,
+  	 	                   ACCT_TERMINATE_CAUSE  => 6
+  	 	         	 	     });
    }
 	elsif ($FORM{ping}) {
     my $res = `/sbin/ping -c 5 $FORM{ping}`;
