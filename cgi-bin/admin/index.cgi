@@ -76,14 +76,13 @@ use Abills::Base;
 #
 #**********************************************************
 
-    
+#print "Content-Type: texthtml\n\n";    
 #while(my($k, $v)=each %ENV) {
 #	print "$k, $v\n";
 #}
 #exit;
 
 if (defined($ENV{HTTP_CGI_AUTHORIZATION})) {
-
   $ENV{HTTP_CGI_AUTHORIZATION} =~ s/basic\s+//i;
   my ($REMOTE_USER,$REMOTE_PASSWD) = split(/:/, decode_base64($ENV{HTTP_CGI_AUTHORIZATION}));  
 
@@ -107,7 +106,7 @@ if ($admin->{errno}) {
   my $message = 'Access Deny';
 
   if ($admin->{errno} == 2) {
-  	$message = "Account Disabled";
+  	$message = "Account Disabled $admin->{errstr}";
    }
   elsif (! defined($REMOTE_USER)) {
     $message = "Wrong password";
