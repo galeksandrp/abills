@@ -1255,11 +1255,12 @@ sub ipn_change_status {
      my $table = $html->table( { width      => '100%',
                             caption    => "Hangup",
                             border     => 1,
-                            rows       => [["IN:" ,   int2byte($Ipn->{TRAFFIC_IN})   ], 
-                                           ["OUT:",   int2byte($Ipn->{TRAFFIC_OUT})  ], 
-                                           ["$_TOTAL:", int2byte($Ipn->{TRAFFIC_IN}+$Ipn->{TRAFFIC_OUT})   ], 
-                                           ["DURATION:", $Ipn->{ACCT_SESSION_TIME}   ], 
-                                           ["SUM:",   "$Ipn->{SUM}" ]]
+                            rows       => [["IP:" ,      int2ip($Ipn->{FRAMED_IP_ADDRESS}) ],
+                                           ["IN:" ,      int2byte($Ipn->{TRAFFIC_IN})      ], 
+                                           ["OUT:",      int2byte($Ipn->{TRAFFIC_OUT})     ], 
+                                           ["$_TOTAL:",  int2byte($Ipn->{TRAFFIC_IN}+$Ipn->{TRAFFIC_OUT})   ], 
+                                           ["DURATION:", sec2time($Ipn->{ACCT_SESSION_TIME}, { str => 1 })   ], 
+                                           ["SUM:",      "$Ipn->{SUM}" ]]
                          });
 
     $html->message('info', $_INFO,  $table->show({ OUTPUT2RETURN => 1 }));

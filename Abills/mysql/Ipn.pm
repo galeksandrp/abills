@@ -596,7 +596,7 @@ sub acct_stop {
       if(u.company_id > 0, cb.id, b.id),
       if(c.name IS NULL, b.deposit, cb.deposit)+u.credit,
       calls.started,
-      sec_to_time(UNIX_TIMESTAMP()-UNIX_TIMESTAMP(calls.started)),
+      UNIX_TIMESTAMP()-UNIX_TIMESTAMP(calls.started),
       nas_id,
       nas_port_id
     FROM dv_calls calls, users u
@@ -607,6 +607,12 @@ sub acct_stop {
     WHERE u.id=calls.user_name and acct_session_id='$session_id';";
 
   $self->query($db, $sql);
+  
+  if ($self->{TOTAL} < 1){
+  	 $self->{errno}=2;
+  	 $self->{errstr}='ERROR_NOT_EXIST';
+  	 return $self;
+   }
 
   my $a_ref = $self->{list}->[0];
 
@@ -652,7 +658,6 @@ sub acct_stop {
   ) = @$a_ref;
 
 
-$self->{debug}=1;
 
   $self->query($db, "INSERT INTO dv_log (uid, 
     start, 
