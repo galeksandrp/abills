@@ -626,8 +626,6 @@ sub acct_stop {
   ) = @$a_ref;
 
  
-  print "----------- $self->{ACCT_SESSION_TIME}--";
-  
  $self->query($db, "SELECT sum(l.traffic_in), 
    sum(l.traffic_out),
    sum(l.sum),
@@ -654,6 +652,7 @@ sub acct_stop {
   ) = @$a_ref;
 
 
+$self->{debug}=1;
 
   $self->query($db, "INSERT INTO dv_log (uid, 
     start, 
