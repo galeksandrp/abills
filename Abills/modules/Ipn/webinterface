@@ -1298,7 +1298,7 @@ sub ipn_club_monitor {
 	 }
 	elsif ($FORM{HANGUP}) {
    	 ipn_change_status({ STATUS                => 'HANGUP',
-  	 	                   FRAMED_IP_ADDRESS     => $FORM{ip},
+  	 	                   FRAMED_IP_ADDRESS     => $FORM{HANGUP},
   	 	                   ACCT_TERMINATE_CAUSE  => 6
   	 	         	 	     });
    }

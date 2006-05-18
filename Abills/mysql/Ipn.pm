@@ -626,6 +626,7 @@ sub acct_stop {
   ) = @$a_ref;
 
  
+  print "----------- $self->{ACCT_SESSION_TIME}--";
   
  $self->query($db, "SELECT sum(l.traffic_in), 
    sum(l.traffic_out),

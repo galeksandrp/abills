@@ -229,7 +229,7 @@ foreach my $ip ( sort keys %$ips_interim) {
 
     my $r = $Acct->accounting(\%RAD, { NAS_ID => $NAS_ID });
     
-    if (defined($Ipn->{USERS_INFO}->{DEPOSIT}->{$uid}) && $Ipn->{USERS_INFO}->{DEPOSIT}->{$uid}<0) {
+    if (defined($Ipn->{USERS_INFO}->{DEPOSIT}->{$uid}) && $Ipn->{USERS_INFO}->{DEPOSIT}->{$uid} < 0) {
          my @ip_array = split(/\./, $ip_addr, 4);
          my $rule_num = $conf{IPN_FW_FIRST_RULE} + $ip_array[3];
 
