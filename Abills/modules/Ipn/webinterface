@@ -1269,7 +1269,7 @@ sub ipn_change_status {
   $cmd =~ s/\%NUM/$rule_num/g;
   $cmd =~ s/\%SPEED_IN/$speed_in/g if ($speed_in > 0);
   $cmd =~ s/\%SPEED_OUT/$speed_out/g if ($speed_out > 0);
-  #print "$cmd";
+  print "$cmd";
   system($cmd);
 }
 
