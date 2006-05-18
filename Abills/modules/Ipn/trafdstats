@@ -22,7 +22,6 @@ if [ w$4 != w ]; then
   TRAFFIC2SQL=$4;
 fi;
 
-
 #Temporary log path
 # default 
 # LOG_PATH='/usr/abills/var/log/ipn/'
@@ -30,6 +29,15 @@ LOG_PATH='/usr/abills/var/log/ipn/';
 #LOG_PATH='/home/asmodeus/abills2/var/log/ipn/';
 
 
+#IPcad dump
+#/usr/local/bin/ipcad
+#IPCAD_SERVER_IP=127.0.0.1;
+#/usr/bin/rsh ${IPCAD_SERVER_IP} dump
+#/usr/bin/rsh ${IPCAD_SERVER_IP} clear ip accounting
+
+
+
+# Freebsd trafd
 /usr/local/bin/trafsave ${IF_NAME}
 sleep 15
 /usr/local/bin/traflog -n -i ${IF_NAME} > ${LOG_PATH}trafd_${NAS_ID}_${IF_NAME}

@@ -50,6 +50,7 @@ elsif(defined($ARGV->{help})){
 	print "Help:\n";
 }
 
+$log = $ARGV->{log} if ($ARGV->{log});
 
 
 $Ipn->{debug}=1 if ($debug > 2);
@@ -70,18 +71,30 @@ $Ipn->user_ips();
 open( LOG, $log ) || die "Can't open log file '$log' $!";
 my %DATA=();
 while( <LOG> ) {
-  my ($MM, $DD,$HH, $YY);
-	if ( /at [A-Za-z]{3} ([A-Za-z]{3}) +(\d?\d) (\d+):\d+:\d+ (\d{4}) / )	{
-		$MM = $1;
-		$DD = $2; 
-		$HH = $3; 
-		$YY = $4;
-		$DD = "0".$DD if ( $DD < 10 ); 
-		print "$MM, $DD,$HH, $YY,$DD\n";
-  }
- 
-   
- 	if ( /^(\d+)\.(\d+)\.(\d+)\.(\d+)\s+([^\s]+)\s+(\d+)\.(\d+)\.(\d+)\.(\d+)\s+([^\s]+)\s+[a-z]+\s+\d+\s+(\d+)/ ){
+#  my ($MM, $DD,$HH, $YY);
+#	if ( /at [A-Za-z]{3} ([A-Za-z]{3}) +(\d?\d) (\d+):\d+:\d+ (\d{4}) / )	{
+#		$MM = $1;
+#		$DD = $2; 
+#		$HH = $3; 
+#		$YY = $4;
+#		$DD = "0".$DD if ( $DD < 10 ); 
+#		print "$MM, $DD,$HH, $YY,$DD\n";
+#  }
+
+  
+  if (/ (\d+)\.(\d+)\.(\d+)\.(\d+)\s+(\d+)\.(\d+)\.(\d+)\.(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)/) {
+  	#print "-$1.$2.$3.$4 $5.$6.$7.$8 $9 $10 $11 $12\n";
+		( $DATA{SRC_IP}, $DATA{SRC_PORT} ) = ( 16777216 * $1 + 65536 * $2 + 256 * $3 + $4, $11 );
+		( $DATA{DST_IP}, $DATA{DST_PORT} ) = ( 16777216 * $5 + 65536 * $6 + 256 * $7 + $8, $12 ); 
+  	$DATA{SIZE} = $10;
+    $DATA{PROTOCOL}=0;
+		$DATA{SRC_PORT} = 0 if ( $DATA{SRC_PORT} !~ /^\d+$/ );
+		$DATA{DST_PORT} = 0 if ( $DATA{DST_PORT} !~ /^\d+$/ );
+		$DATA{NAS_ID}=$NAS_ID;
+		$DATA{IF_NAME}='0';
+    $Ipn->traffic_agregate_users({ %DATA });
+   }
+ 	elsif ( /^(\d+)\.(\d+)\.(\d+)\.(\d+)\s+([^\s]+)\s+(\d+)\.(\d+)\.(\d+)\.(\d+)\s+([^\s]+)\s+[a-z]+\s+\d+\s+(\d+)/ ){
 		( $DATA{SRC_IP}, $DATA{SRC_PORT} ) = ( 16777216 * $1 + 65536 * $2 + 256 * $3 + $4, $5 );
 		( $DATA{DST_IP}, $DATA{DST_PORT} ) = ( 16777216 * $6 + 65536 * $7 + 256 * $8 + $9, $10 ); 
   	$DATA{SIZE} = $11;
@@ -102,6 +115,7 @@ while( <LOG> ) {
 	}
 }
 close(LOG);
+
 
 
 my $IN_ARRAY  = $Ipn->{IN};
@@ -219,7 +233,7 @@ foreach my $ip ( sort keys %$ips_interim) {
          my @ip_array = split(/\./, $ip_addr, 4);
          my $rule_num = $conf{IPN_FW_FIRST_RULE} + $ip_array[3];
 
-         print "Hangup UID: $uid DEPOSIT: $Ipn->{USERS_INFO}->{DEPOSIT}->{$uid}\n" if ($debug>0);
+         print "$DATE $TIME Hangup UID: $uid DEPOSIT: $Ipn->{USERS_INFO}->{DEPOSIT}->{$uid}\n" if ($debug>0);
          my $cmd = $conf{IPN_FW_STOP_RULE};
          $cmd =~ s/\%IP/$ip_addr/g;
          $cmd =~ s/\%NUM/$rule_num/g;
