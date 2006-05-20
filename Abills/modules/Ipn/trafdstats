@@ -30,12 +30,17 @@ LOG_PATH='/usr/abills/var/log/ipn/';
 
 
 #IPcad dump
-#/usr/local/bin/ipcad
-#IPCAD_SERVER_IP=127.0.0.1;
-#/usr/bin/rsh ${IPCAD_SERVER_IP} dump
-#/usr/bin/rsh ${IPCAD_SERVER_IP} clear ip accounting
+if [ w$2 = wipcad ]; then
+  #/usr/local/bin/ipcad
+  IPCAD_SERVER_IP=127.0.0.1;
 
-
+  /usr/bin/rsh ${IPCAD_SERVER_IP} dump > /dev/null
+  /usr/bin/rsh ${IPCAD_SERVER_IP} clear ip accounting > /dev/null
+  sleep 15
+  mv /var/ipcad/ipcad.dump ${LOG_PATH}
+  ${TRAFFIC2SQL} ${NAS_ID} ${IF_NAME} ${DEBUG} log=${LOG_PATH}/ipcad.dump
+  exit
+fi;
 
 # Freebsd trafd
 /usr/local/bin/trafsave ${IF_NAME}

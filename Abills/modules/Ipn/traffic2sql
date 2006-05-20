@@ -34,12 +34,9 @@ my $db  = $sql->{db};
 require Ipn;
 Ipn->import();
 my $Ipn = Ipn->new($db, \%conf);
-
-
-my $log = $var_dir."log/ipn/trafd_". $NAS_ID. "_" .$IF_NAME;
 my $unknown_ip_log = $var_dir."log/ipn/unknown_ip.log";
 
-
+my $log = $var_dir."log/ipn/trafd_". $NAS_ID. "_" .$IF_NAME;
 my $ARGV = parse_arguments(\@ARGV);
 
 if (defined($ARGV->{debug})) {
@@ -51,8 +48,6 @@ elsif(defined($ARGV->{help})){
 }
 
 $log = $ARGV->{log} if ($ARGV->{log});
-
-
 $Ipn->{debug}=1 if ($debug > 2);
 
 
@@ -63,59 +58,40 @@ my %PROTOCOLS = ('tcp'    => 1,
 my $PROTOCOL = 0; #(defined($PROTOCOLS{$PROTOCOL})) ? $PROTOCOLS{$PROTOCOL} : 0;
 
 
-
 $Ipn->user_ips();
-#$Ipn->get_zone();
 
-
-open( LOG, $log ) || die "Can't open log file '$log' $!";
-my %DATA=();
-while( <LOG> ) {
-#  my ($MM, $DD,$HH, $YY);
-#	if ( /at [A-Za-z]{3} ([A-Za-z]{3}) +(\d?\d) (\d+):\d+:\d+ (\d{4}) / )	{
-#		$MM = $1;
-#		$DD = $2; 
-#		$HH = $3; 
-#		$YY = $4;
-#		$DD = "0".$DD if ( $DD < 10 ); 
-#		print "$MM, $DD,$HH, $YY,$DD\n";
-#  }
-
-  
-  if (/ (\d+)\.(\d+)\.(\d+)\.(\d+)\s+(\d+)\.(\d+)\.(\d+)\.(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)/) {
-  	#print "-$1.$2.$3.$4 $5.$6.$7.$8 $9 $10 $11 $12\n";
-		( $DATA{SRC_IP}, $DATA{SRC_PORT} ) = ( 16777216 * $1 + 65536 * $2 + 256 * $3 + $4, $11 );
-		( $DATA{DST_IP}, $DATA{DST_PORT} ) = ( 16777216 * $5 + 65536 * $6 + 256 * $7 + $8, $12 ); 
-  	$DATA{SIZE} = $10;
-    $DATA{PROTOCOL}=0;
-		$DATA{SRC_PORT} = 0 if ( $DATA{SRC_PORT} !~ /^\d+$/ );
-		$DATA{DST_PORT} = 0 if ( $DATA{DST_PORT} !~ /^\d+$/ );
-		$DATA{NAS_ID}=$NAS_ID;
-		$DATA{IF_NAME}='0';
-    $Ipn->traffic_agregate_users({ %DATA });
-   }
- 	elsif ( /^(\d+)\.(\d+)\.(\d+)\.(\d+)\s+([^\s]+)\s+(\d+)\.(\d+)\.(\d+)\.(\d+)\s+([^\s]+)\s+[a-z]+\s+\d+\s+(\d+)/ ){
-		( $DATA{SRC_IP}, $DATA{SRC_PORT} ) = ( 16777216 * $1 + 65536 * $2 + 256 * $3 + $4, $5 );
-		( $DATA{DST_IP}, $DATA{DST_PORT} ) = ( 16777216 * $6 + 65536 * $7 + 256 * $8 + $9, $10 ); 
-  	$DATA{SIZE} = $11;
-	  $DATA{PROTOCOL}=0;
-		$DATA{SRC_PORT} = 0 if ( $DATA{SRC_PORT} !~ /^\d+$/ );
-		$DATA{DST_PORT} = 0 if ( $DATA{DST_PORT} !~ /^\d+$/ );
-		$DATA{NAS_ID}=$NAS_ID;
-		$DATA{IF_NAME}='0';
-
-    $Ipn->traffic_agregate_users({ %DATA });
-
-    #$Ipn->traffic_agregate2 ({ %DATA });
-    #$Ipn->traffic_add({ %DATA });
-
-#		my $key = $fip."_".$fp."_".$tip."_".$tp;
-#		if ( exists $DATA{$key} ) { $DATA{$key} += $amount; }
-#		else { $DATA{$key} = $amount; }
-	}
+if (-f $log) {
+  get_collector_data($log);
+  processing();
+  my $status = unlink("$log");
 }
-close(LOG);
 
+
+#Get flow tools files
+opendir DIR, $var_dir."log/ipn/" or die "Can't open dir '$var_dir/log/ipn/' $!\n";
+  my @contents = grep  /^ft*/, readdir DIR;
+closedir DIR;
+use POSIX qw(strftime);
+foreach $log (sort @contents) {
+  #print $log."\n";
+  $log =~ /ft-(\w+)\.(\d+)\-(\d+)\-(\d+)\.(\d{2})(\d{2})(\d{2})\+(\d+)/;
+  my ($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size,$atime,$mtime,$ctime,$blksize,$blocks)=stat("$var_dir/log/ipn/$log");
+  my $start_date = "$2-$3-$4 $5:$6:$7";
+  my $end_date = strftime "%Y-%m-%d %H:%M:%S", localtime($mtime);
+  #print "Start: $start_date End: $end_date\n"; 
+
+  get_collector_data("flow-cat $var_dir/log/ipn/$log | flow-print |");
+  processing();
+  # Delete log file
+  my $status = unlink("$var_dir/log/ipn/$log");
+}
+
+
+
+#**********************************************************
+#
+#**********************************************************
+sub processing {
 
 
 my $IN_ARRAY  = $Ipn->{IN};
@@ -138,7 +114,6 @@ my $Acct = Acct->new($db, \%conf);
 
 
 my $ips          = $Ipn->{USERS_IPS};
-
 my $ips_interim  = $Ipn->{INTERIM};
 my $logins       = $Ipn->{USERS_INFO}->{LOGINS};
 my $tps          = $Ipn->{USERS_INFO}->{TPS};
@@ -257,21 +232,18 @@ foreach my $ip ( sort keys %$ips_interim) {
   
 }
 
-
-
-
 if ($debug > 0) {
 	my $GT = '';
-	
-  if ($begin_time > 0)  {
+
+	if ($begin_time > 0) {
     Time::HiRes->import(qw(gettimeofday));
     my $end_time = gettimeofday();
     my $gen_time = $end_time - $begin_time;
     $GT = sprintf(" GT: %2.5f", $gen_time);
    }
-
-	print "$unknow_ip$registred  $GT / $Ipn->{query_count}/ Stats Rows: $Ipn->{TRAFFIC_ROWS}\n";
-
+	print "$unknow_ip$registred  $GT / $Ipn->{query_count}/ Stats Rows: $Ipn->{TRAFFIC_ROWS}";
+	print " Unknown: $#{$Ipn->{IN}}/$Ipn->{INTERIM}{0}{OUT}" if ($Ipn->{IN});
+	print "\n";
 }
 elsif($unknow_ip ne '') {
   open(FILE, ">>$unknown_ip_log") or die "Can't open '$unknown_ip_log' $!";
@@ -280,101 +252,86 @@ elsif($unknow_ip ne '') {
   close(FILE);
 }
 
+}
 
 
 
 
+#**********************************************************
+# Get data from collectors
+#**********************************************************
+sub get_collector_data {
+ my ($log, $attr) = @_;
+ 
+# $attr->{START}
+# $attr->{END}
+print "$log\n" if ($debug > 1);
 
-
-
-
-
-
-__END__
-$uid = getpwnam( $user );
-$gid = getgrnam( $group );
-
-%DATA = ();
-%MON = (	"Jan" => "01", "Feb" => "02", "Mar" => "03",
-		"Apr" => "04", "May" => "05", "Jun" => "06",
-		"Jul" => "07", "Aug" => "08", "Sep" => "09",
-		"Oct" => "10", "Nov" => "11", "Dec" => "12" );
+$Ipn->traffic_agregate_clean();
 
 open( LOG, $log ) || die "Can't open log file '$log' $!";
-while( <LOG> )
-{
-	#считываем дату и время		
-	if ( /at [A-Za-z]{3} ([A-Za-z]{3}) +(\d?\d) (\d+):\d+:\d+ (\d{4}) / )
-	{
-		$MM = $MON{$1};
-		$DD = $2; 
-		$HH = $3; 
-		$YY = $4;
-		$DD = "0".$DD if ( $DD < 10 ); 
+my %DATA=();
+while( <LOG> ) {
+#  my ($MM, $DD,$HH, $YY);
+#	if ( /at [A-Za-z]{3} ([A-Za-z]{3}) +(\d?\d) (\d+):\d+:\d+ (\d{4}) / )	{
+#		$MM = $1;
+#		$DD = $2; 
+#		$HH = $3; 
+#		$YY = $4;
+#		$DD = "0".$DD if ( $DD < 10 ); 
+#		print "$MM, $DD,$HH, $YY,$DD\n";
+#  }
+  #Ipcad log analize
+  if (/ (\d+)\.(\d+)\.(\d+)\.(\d+)\s+(\d+)\.(\d+)\.(\d+)\.(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)/) {
+  	#print "-$1.$2.$3.$4 $5.$6.$7.$8 $9 $10 $11 $12\n";
+		( $DATA{SRC_IP}, $DATA{SRC_PORT} ) = ( 16777216 * $1 + 65536 * $2 + 256 * $3 + $4, $11 );
+		( $DATA{DST_IP}, $DATA{DST_PORT} ) = ( 16777216 * $5 + 65536 * $6 + 256 * $7 + $8, $12 ); 
+  	$DATA{SIZE} = $10;
+    $DATA{PROTOCOL}=0;
+		$DATA{SRC_PORT} = 0 if ( $DATA{SRC_PORT} !~ /^\d+$/ );
+		$DATA{DST_PORT} = 0 if ( $DATA{DST_PORT} !~ /^\d+$/ );
+		$DATA{NAS_ID}=$NAS_ID;
+		$DATA{IF_NAME}='0';
+    $Ipn->traffic_agregate_users({ %DATA });
+   }
+  # flow-capture
+ 	elsif ( /(\d+)\.(\d+)\.(\d+)\.(\d+)\s+(\d+)\.(\d+)\.(\d+)\.(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)/ ){
+  	#print "-$1.$2.$3.$4 $5.$6.$7.$8 $9 $10 $11 $12\n";
+		( $DATA{SRC_IP}, $DATA{SRC_PORT} ) = ( 16777216 * $1 + 65536 * $2 + 256 * $3 + $4, $10 );
+		( $DATA{DST_IP}, $DATA{DST_PORT} ) = ( 16777216 * $5 + 65536 * $6 + 256 * $7 + $8, $11 ); 
 
-		$file = $path.$YY;
+  	$DATA{SIZE} = $12;
+    $DATA{PROTOCOL}=0; #$9
+		$DATA{SRC_PORT} = 0 if ( $DATA{SRC_PORT} !~ /^\d+$/ );
+		$DATA{DST_PORT} = 0 if ( $DATA{DST_PORT} !~ /^\d+$/ );
+		$DATA{NAS_ID}=$NAS_ID;
+		$DATA{IF_NAME}='0';
+    $Ipn->traffic_agregate_users({ %DATA });
+ 	 }
+ 	#trafdlog analize
+ 	elsif ( /^(\d+)\.(\d+)\.(\d+)\.(\d+)\s+([^\s]+)\s+(\d+)\.(\d+)\.(\d+)\.(\d+)\s+([^\s]+)\s+[a-z]+\s+\d+\s+(\d+)/ ){
+		( $DATA{SRC_IP}, $DATA{SRC_PORT} ) = ( 16777216 * $1 + 65536 * $2 + 256 * $3 + $4, $5 );
+		( $DATA{DST_IP}, $DATA{DST_PORT} ) = ( 16777216 * $6 + 65536 * $7 + 256 * $8 + $9, $10 ); 
+  	$DATA{SIZE} = $11;
+	  $DATA{PROTOCOL}=0;
+		$DATA{SRC_PORT} = 0 if ( $DATA{SRC_PORT} !~ /^\d+$/ );
+		$DATA{DST_PORT} = 0 if ( $DATA{DST_PORT} !~ /^\d+$/ );
+		$DATA{NAS_ID}=$NAS_ID;
+		$DATA{IF_NAME}='0';
 
-		if ( !-e $file )
-		{
-			mkdir $file, 320;
-			chown $uid, $gid, $file;
-		}
+    $Ipn->traffic_agregate_users({ %DATA });
 
-		$file = $path.$YY."/".$MM;
+    #$Ipn->traffic_agregate2 ({ %DATA });
+    #$Ipn->traffic_add({ %DATA });
 
-		if ( !-e $file )
-		{
-			mkdir $file, 320;
-			chown $uid, $gid, $file;
-		}
-
-		$file = $path.$YY."/".$MM."/".$DD."_".$HH;
-
-		#считываем данные, если за это время уже есть файл
-		if ( -e $file.".zip" )
-		{
-			open( FILE, $unzip." -p ".$file.".zip ".$DD. "_".$HH." |" );
-			while( <FILE> )
-			{
-				if ( /^(\d+)[\t\s]+(\d+)[\t\s]+(\d+)[\t\s]+(\d+)[\t\s]+(\d+)/ )
-				{
-					my ( $fip, $fp, $tip, $tp, $amount ) = ( $1, $2, $3, $4, $5 );
-					print $fip."\n";
-					$DATA{$fip."_".$fp."_".$tip."_".$tp} = $amount;
-				}
-			}
-			close( FILE );
-		}
-	}
-
-	# 
-	if ( /^(\d+)\.(\d+)\.(\d+)\.(\d+)\s+([^\s]+)\s+(\d+)\.(\d+)\.(\d+)\.(\d+)\s+([^\s]+)\s+[a-z]+\s+\d+\s+(\d+)/ )
-	{
-		my ( $fip, $fp ) = ( 16777216 * $1 + 65536 * $2 + 256 * $3 + $4, $5 );
-		my ( $tip, $tp ) = ( 16777216 * $6 + 65536 * $7 + 256 * $8 + $9, $10 ); 
-		my $amount = $11;
-		$fp = 0 if ( $fp !~ /^\d+$/ );
-		$tp = 0 if ( $tp !~ /^\d+$/ );
-		my $key = $fip."_".$fp."_".$tip."_".$tp;
-		if ( exists $DATA{$key} ) { $DATA{$key} += $amount; }
-		else { $DATA{$key} = $amount; }
+#		my $key = $fip."_".$fp."_".$tip."_".$tp;
+#		if ( exists $DATA{$key} ) { $DATA{$key} += $amount; }
+#		else { $DATA{$key} = $amount; }
 	}
 }
-close( LOG );
-
-#печатаем данные в файл
-if ( $file ne "" )
-{
-	open( FILE, ">".$file );
-	foreach my $key ( keys %DATA )
-	{
-		my @addrs = split( /_/, $key );
-		printf FILE "%-10s\t%-5s\t%-10s\t%-5s\t%s\n", ( $addrs[0], $addrs[1], $addrs[2], $addrs[3], $DATA{$key} );
-	}
-	close( FILE );
-	chdir $path.$YY."/".$MM."/";
-	$err = `$zip -m $file.zip ${DD}_$HH`;
-	chmod 256, $file.".zip";
-	chown $uid, $gid, $file.".zip";
+close(LOG);
 }
+
+
+
 

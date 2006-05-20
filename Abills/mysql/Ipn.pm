@@ -180,6 +180,12 @@ sub user_status {
  return $self;
 }
 
+sub traffic_agregate_clean {
+  my $self = shift;
+  delete $self->{AGREGATE_USERS};
+  delete $self->{INTERIM};
+  delete $self->{IN};
+}
 
 
 #**********************************************************
@@ -188,7 +194,7 @@ sub user_status {
 sub traffic_agregate_users {
   my $self = shift;
   my ($DATA) = @_;
- 
+
   my $ips=$self->{USERS_IPS};
   my $y = 0;
  
@@ -321,7 +327,6 @@ sub traffic_agregate_nets {
      }
 
 }
-
 
 }
 
