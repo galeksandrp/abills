@@ -483,7 +483,7 @@ sub traffic_add_user {
   my ($DATA) = @_;
  
   my $start = (! $DATA->{START}) ? 'now()':  "'$DATA->{START}'";
-  my $stop= 0;
+  my $stop  = (! $DATA->{STOP}) ?  0 : "'$DATA->{STOP}'";
  
   $self->query($db, "insert into ipn_log (
          uid,

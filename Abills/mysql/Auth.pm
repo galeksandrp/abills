@@ -1063,11 +1063,8 @@ sub bin2hex ($) {
 sub pre_auth {
   my ($self, $RAD, $attr)=@_;
 
-if (! $RAD->{MS_CHAP_CHALLENGE}) {
-  print "Auth-Type := Accept\n";
-  exit 0;
- }
 
+if (defined($RAD->{MS_CHAP_CHALLENGE}) || defined($RAD->{EAP_MESSAGE})) {
   $self->query($db, "SELECT DECODE(password, '$attr->{SECRETKEY}') FROM users WHERE id='$RAD->{USER_NAME}';");
 
   #my $a = `echo \`date\` "'$attr->{SECRETKEY}') FROM users WHERE id='$RAD->{USER_NAME}' test" >> /tmp/aaaaaaa`;
@@ -1079,11 +1076,15 @@ if (! $RAD->{MS_CHAP_CHALLENGE}) {
     exit 0;
    }
 
-
-
   $self->{errno} = 1;
   $self->{errstr} = "USER: '$RAD->{USER_NAME}' not exist";
   exit 1;
+ }
+
+  print "Auth-Type := Accept\n";
+  exit 0;
+
+
 }
 
 

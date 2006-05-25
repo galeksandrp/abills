@@ -42,6 +42,7 @@ my $GT  = '';
 
 
 
+
 if (defined($ARGV[0]) && $ARGV[0] eq 'pre_auth') {
   require Auth;
   Auth->import();
@@ -57,11 +58,14 @@ if (defined($ARGV[0]) && $ARGV[0] eq 'pre_auth') {
 
 
 
+
 require Nas;
+
 my $nas = Nas->new($db, \%conf);	
 
-
 get_nas_info($RAD);
+
+
 auth($RAD);
 $db->disconnect();
 

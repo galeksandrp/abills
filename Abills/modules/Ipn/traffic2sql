@@ -80,8 +80,9 @@ foreach $log (sort @contents) {
   my $end_date = strftime "%Y-%m-%d %H:%M:%S", localtime($mtime);
   #print "Start: $start_date End: $end_date\n"; 
 
-  get_collector_data("flow-cat $var_dir/log/ipn/$log | flow-print |");
-  processing();
+  get_collector_data("flow-cat $var_dir/log/ipn/$log | flow-print |", { START => $start_date });
+  processing({ START => $start_date,
+  	           STOP  => $end_date });
   # Delete log file
   my $status = unlink("$var_dir/log/ipn/$log");
 }
@@ -92,7 +93,7 @@ foreach $log (sort @contents) {
 #
 #**********************************************************
 sub processing {
-
+ my ($attr) = @_;
 
 my $IN_ARRAY  = $Ipn->{IN};
 my $OUT_ARRAY = $Ipn->{OUT};
@@ -127,6 +128,7 @@ foreach my $ip ( sort keys %$ips_interim) {
   if ($ip == 0) {
   	next ;
   }
+
   my $uid          = $ips->{$ip};
   my $login        = $logins->{$uid};
   my $tariif_plan  = $tps->{$uid} || 0;
@@ -161,6 +163,8 @@ foreach my $ip ( sort keys %$ips_interim) {
       if ($uid > 0) {
 ##   	  my $r = $Acct->accounting(\%RAD, { NAS_ID => $NAS_ID });
    	    $Ipn->traffic_add_user( {
+   	        START					 => $attr->{START} || undef,
+   	        STOP					 => $attr->{STOP} || undef,
    	        UID            => "$uid",
             TARFFIC_CLASS  => $k,
             INBYTE         => "$in",
