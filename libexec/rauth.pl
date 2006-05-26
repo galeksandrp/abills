@@ -41,6 +41,19 @@ my $GT  = '';
 #my $a = `echo "$t" >> /tmp/voip_test`;
 
 
+#
+# This the remapping of return values 
+#
+        use constant  RLM_MODULE_REJECT=>    0;#  /* immediately reject the request */
+        use constant  RLM_MODULE_FAIL=>      1;#  /* module failed, don't reply */
+        use constant  RLM_MODULE_OK=>        2;#  /* the module is OK, continue */
+        use constant  RLM_MODULE_HANDLED=>   3;#  /* the module handled the request, so stop. */
+        use constant  RLM_MODULE_INVALID=>   4;#  /* the module considers therequest invalid. */
+        use constant  RLM_MODULE_USERLOCK=>  5;#  /* reject the request (useris locked out) */
+        use constant  RLM_MODULE_NOTFOUND=>  6;#  /* user not found */
+        use constant  RLM_MODULE_NOOP=>      7;#  /* module succeeded withoutdoing anything */
+        use constant  RLM_MODULE_UPDATED=>   8;#  /* OK (pairs modified) */
+        use constant  RLM_MODULE_NUMCODES=>  9;#  /* How many return codes there are */
 
 
 if (defined($ARGV[0]) && $ARGV[0] eq 'pre_auth') {
@@ -55,11 +68,7 @@ if (defined($ARGV[0]) && $ARGV[0] eq 'pre_auth') {
   exit 0;
 }
 elsif (defined($ARGV[0]) && $ARGV[0] eq 'post_auth') {
-  my $reject_info = '';
-  if (defined($RAD->{CALLING_STATION_ID})) {
-    $reject_info=" CID $RAD->{CALLING_STATION_ID}";
-   }
-  log_print('LOG_INFO', "AUTH [$RAD->{USER_NAME}] AUTH REJECT$reject_info$GT");
+  post_auth();
   exit 0;
 }
 
@@ -184,8 +193,18 @@ else {
 
 
 
+#*******************************************************************
+# post_auth()
+#*******************************************************************
+sub post_auth {
+  my $reject_info = '';
+  if (defined($RAD->{CALLING_STATION_ID})) {
+    $reject_info=" CID $RAD->{CALLING_STATION_ID}";
+   }
+  log_print('LOG_INFO', "AUTH [$RAD->{USER_NAME}] AUTH REJECT$reject_info$GT");
 
-
+  return RLM_MODULE_OK;
+}
 
 
 
