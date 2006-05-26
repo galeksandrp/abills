@@ -48,14 +48,20 @@ if (defined($ARGV[0]) && $ARGV[0] eq 'pre_auth') {
   Auth->import();
   my $Auth = Auth->new($db, \%conf);
 
-  $Auth->pre_auth($RAD, { SECRETKEY => $conf{secretkey} });
+  $Auth->pre_auth($RAD);
   if ($Auth->{errno}) {
     log_print('LOG_INFO', "AUTH [$RAD->{USER_NAME}] MS-CHAP PREAUTH FAILED$GT");
   }
-
   exit 0;
 }
-
+elsif (defined($ARGV[0]) && $ARGV[0] eq 'post_auth') {
+  my $reject_info = '';
+  if (defined($RAD->{CALLING_STATION_ID})) {
+    $reject_info=" CID $RAD->{CALLING_STATION_ID}";
+   }
+  log_print('LOG_INFO', "AUTH [$RAD->{USER_NAME}] AUTH REJECT$reject_info$GT");
+  exit 0;
+}
 
 
 
@@ -134,7 +140,7 @@ else {
   require Auth;
   Auth->import();
   my $Auth = Auth->new($db, \%conf);
-  ($r, $RAD_PAIRS) = $Auth->dv_auth($RAD, $nas, { SECRETKEY => $conf{secretkey},
+  ($r, $RAD_PAIRS) = $Auth->dv_auth($RAD, $nas, { 
  	                                          MAX_SESSION_TRAFFIC => $conf{MAX_SESSION_TRAFFIC}  } );
 }
 

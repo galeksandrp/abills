@@ -1065,7 +1065,7 @@ sub pre_auth {
 
 
 if (defined($RAD->{MS_CHAP_CHALLENGE}) || defined($RAD->{EAP_MESSAGE})) {
-  $self->query($db, "SELECT DECODE(password, '$attr->{SECRETKEY}') FROM users WHERE id='$RAD->{USER_NAME}';");
+  $self->query($db, "SELECT DECODE(password, '$CONF->{secretkey}') FROM users WHERE id='$RAD->{USER_NAME}';");
 
   #my $a = `echo \`date\` "'$attr->{SECRETKEY}') FROM users WHERE id='$RAD->{USER_NAME}' test" >> /tmp/aaaaaaa`;
 
