@@ -39,8 +39,6 @@ my $GT  = '';
 #}
 ##print $t;
 #my $a = `echo "$t" >> /tmp/voip_test`;
-
-
 #
 # This the remapping of return values 
 #
@@ -149,17 +147,13 @@ else {
   require Auth;
   Auth->import();
   my $Auth = Auth->new($db, \%conf);
-  ($r, $RAD_PAIRS) = $Auth->dv_auth($RAD, $nas, { 
- 	                                          MAX_SESSION_TRAFFIC => $conf{MAX_SESSION_TRAFFIC}  } );
+  ($r, $RAD_PAIRS) = $Auth->dv_auth($RAD, $nas, 
+                                       { MAX_SESSION_TRAFFIC => $conf{MAX_SESSION_TRAFFIC}  } );
 }
 
 
 
  
-
-
-
-
 #If Access deny
  
  if($r == 1){
@@ -167,13 +161,22 @@ else {
     access_deny("$RAD->{USER_NAME}", "$RAD_PAIRS->{'Reply-Message'}", $nas->{NAS_ID});
   }
  else {
+ 	 #GEt Nas rad pairs
+ 	 $nas->{NAS_RAD_PAIRS} =~ tr/\n\r//d;
+   #my @pairs_arr = split(/,/, $nas->{NAS_RAD_PAIRS});
+   #foreach my $line (@pairs_arr) {
+   #	 my($l, $r)=split(/=/, $line, 2);
+   #	 $RAD_PAIRS->{"$l"}=$r;
+   # }
    #Show pairs
    while(my($rs, $ls)=each %$RAD_PAIRS) {
      $rr .= "$rs = $ls,\n";
     }
+
+   
    print $rr;
-   log_print('LOG_DEBUG', "AUTH [$RAD->{USER_NAME}] $rr");
    print $nas->{NAS_RAD_PAIRS};
+   log_print('LOG_DEBUG', "AUTH [$RAD->{USER_NAME}] $rr");
  }
 
 
