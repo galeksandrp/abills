@@ -2019,8 +2019,9 @@ if ($nas->{errno}) {
  	                               });
 
   $nas->{SEL_AUTH_TYPE} .= $html->form_select('NAS_AUTH_TYPE', 
-                                { SELECTED    => $nas->{NAS_AUTH_TYPE},
- 	                                SEL_ARRAY   => \@auth_types
+                                { SELECTED     => $nas->{NAS_AUTH_TYPE},
+ 	                                SEL_ARRAY    => \@auth_types,
+                                  ARRAY_NUM_ID => 'y' 	                                
  	                               });
 
 $nas->{NAS_DISABLE} = ($nas->{NAS_DISABLE} > 0) ? ' checked' : '';
