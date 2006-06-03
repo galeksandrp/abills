@@ -3611,8 +3611,7 @@ sub clearquotes {
 # sel_groups();
 #*******************************************************************
 sub sel_groups {
-
-$GROUPS_SEL = $html->form_select('GID', 
+  $GROUPS_SEL = $html->form_select('GID', 
                                 { 
  	                                SELECTED  => $FORM{GID},
  	                                SEL_MULTI_ARRAY   => $users->groups_list(),
@@ -3620,7 +3619,6 @@ $GROUPS_SEL = $html->form_select('GID',
  	                                MULTI_ARRAY_VALUE => 1,
  	                                SEL_OPTIONS       => { 0 => '-N/S-'}
  	                               });
-
 
  return $GROUPS_SEL;	
 }
