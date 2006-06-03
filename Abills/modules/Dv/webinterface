@@ -1283,7 +1283,7 @@ sub dv_user_stats {
   }
 
 
-if ($sessions->{errno})	 {
+if ($sessions->{errno})	{
 	$html->message('err', $_ERROR, "[$sessions->{errno}] $err_strs{$sessions->{errno}}");
  }
 
@@ -1294,10 +1294,24 @@ if ($FORM{rows}) {
   $pages_qs .= "&rows=$conf{list_max_recs}";
  }
 
+#online sessions
+my $list = $sessions->online( { USER_NAME => $LIST_PARAMS{LOGIN} } );
+if ($sessions->{TOTAL} > 0) {
+  my $table = $html->table( { caption => "Online",
+	                          width => '100%',
+                            title_plain => ["$_LOGIN", "IP", "CID", "$_DURATION", "$_SEND", "$_RECV"],
+                            cols_align => ['left', 'right', 'right', 'right', 'right', 'right' ],
+                            rowcolor => $_COLORS[1]
+                            } );
+  foreach my $line (@$list) {
+    $table->addrow($line->[0], int2ip($line->[3]), $line->[19], $line->[4], int2byte($line->[5]), int2byte($line->[6]));  	
+   }
+  print $table->show();
+}
 
 
 #PEriods totals
-my $list = $sessions->periods_totals({ %LIST_PARAMS });
+$list = $sessions->periods_totals({ %LIST_PARAMS });
 my $table = $html->table( { caption => "$_PERIOD",
 	                          width => '100%',
                             title_plain => ["$_PERIOD", "$_DURATION", "$_SEND", "$_RECV", "$_SUM"],
