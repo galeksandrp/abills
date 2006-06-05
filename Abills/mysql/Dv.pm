@@ -79,7 +79,12 @@ sub info {
     $WHERE =  "WHERE dv.uid='$uid'";
    }
   
+  
   $WHERE =  "WHERE dv.uid='$uid'";
+  
+  if (defined($attr->{IP})) {
+  	$WHERE = "WHERE dv.ip=INET_ATON('$attr->{IP}')";
+   }
   
   $self->query($db, "SELECT dv.uid, dv.tp_id, 
    tp.name, 

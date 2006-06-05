@@ -1,5 +1,5 @@
 #/usr/bin/perl
-# Dialup vpn web functions
+# Mail web interface functions
 
 
 require "Mail.pm";
@@ -12,7 +12,7 @@ my $Mail = Mail->new($db, $admin, $conf);
 
 
 #**********************************************************
-# user_dv
+#  mail_users_list
 #**********************************************************
 sub mail_users_list {
  
@@ -40,14 +40,6 @@ elsif ($Mail->{TOTAL} == 1) {
 	#mail_user_boxes();
 	#return 0;
 }
-
-#mb.username, md.domain, mb.descr, mb.quota, mb.antivirus, 
-#	      mb.antispam, mb.status, 
-#	      mb.create_date, mb.change_date, mb.expire, mb.maildir, 
-#	      mb.uid, mb.id
-#        FROM mail_boxes mb
-#        LEFT JOIN mail_domains md ON  (md.id=mb.domain_id) 
-#        $WHERE
 
   my $table = $html->table( { width => '100%',
                                    border => 1,
