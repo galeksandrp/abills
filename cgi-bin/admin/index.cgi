@@ -2273,14 +2273,18 @@ else {
 }
 
 
-if ($FORM{GID}) {
-	$LIST_PARAMS{GID}=$FORM{GID};
-  $pages_qs.="&GID=$FORM{GID}";
+if ($LIST_PARAMS{UID}) {
+	 $pages_qs.="&UID=$LIST_PARAMS{UID}";
+ }
+else {
+  if ($FORM{GID}) {
+	  $LIST_PARAMS{GID}=$FORM{GID};
+    $pages_qs="&GID=$FORM{GID}";
+   }
+
+  $user->{GROUPS_SEL} = sel_groups();
+  $html->tpl_show(templates('groups_sel'), $user);
 }
-
-$user->{GROUPS_SEL} = sel_groups();
-$html->tpl_show(templates('groups_sel'), $user);
-
 
 
 
@@ -2309,7 +2313,9 @@ if (defined($FORM{DATE})) {
 
   my $days = '';
   for ($i=1; $i<=31; $i++) {
-     $days .= ($d == $i) ? " <b>$i </b>" : ' '.$html->button($i, sprintf("index=$index&DATE=%d-%02.f-%02.f&EX_PARAMS=$FORM{EX_PARAMS}%s", $y, $m, $i, (defined($FORM{GID})) ? "&GID=$FORM{GID}" : ''     ));
+     $days .= ($d == $i) ? " <b>$i </b>" : ' '.$html->button($i, sprintf("index=$index&DATE=%d-%02.f-%02.f&EX_PARAMS=$FORM{EX_PARAMS}%s%s", $y, $m, $i, 
+       (defined($FORM{GID})) ? "&GID=$FORM{GID}" : '', 
+       (defined($FORM{UID})) ? "&UID=$FORM{UID}" : '' ));
    }
   
   

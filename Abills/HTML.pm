@@ -426,7 +426,7 @@ foreach my $ID (@s) {
  
  my @last_array = ();
 
- my $menu_text = "<table border=0 width=100%>\n";
+ my $menu_text = "<table border='0' width='100%'>\n";
 
  	  my $level  = 0;
  	  my $prefix = '';
@@ -1281,11 +1281,14 @@ sub make_charts {
   if (! -f $PATH. "charts.swf") {
   	 return 0;
    }
+  
+  my $suffix = ($attr->{SUFFIX}) ? $attr->{SUFFIX} : '';
 
   my @chart_transition = ('dissolve', 'drop', 'spin', 'scale', 'zoom', 'blink', 'slide_right', 'slide_left', 'slide_up', 'slide_down', 'none');
   my $DATA = $attr->{DATA};
   my $ex_params = '';
 
+  return 0 if(scalar keys  %$DATA == 0);
 
   if ($attr->{TRANSITION} && $CONF->{CHART_ANIMATION}) {
     my $random = int(rand(@chart_transition));
@@ -1310,12 +1313,17 @@ sub make_charts {
 	<axis_ticks value_ticks="" category_ticks="1" major_thickness="2" minor_thickness="1" minor_count="3" major_color="000000" minor_color="888888" position="outside" />
 
   <axis_value font="arial" bold="1" size="9" color="000000" alpha="75" 
-  steps="4" prefix="" suffix="%" decimals="0" separator="" show_min="1" />
+  steps="4" prefix="" suffix="'. $suffix .'" 
+  decimals="0" 
+  separator="" 
+  show_min="1" 
+  orientation="diagonal_up"
+  />
 
 
 
 	<chart_border color="000000" top_thickness="1" bottom_thickness="2" left_thickness="0" right_thickness="0" />
-  <chart_rect x="30" y="50" width="450" height="220" positive_color="FFFFFF" positive_alpha="40" />
+  <chart_rect x="30" y="50" width="400" height="200" positive_color="FFFFFF" positive_alpha="40" />
   ';
 
   $data .= "<chart_data>\n";
@@ -1337,6 +1345,7 @@ sub make_charts {
    $data .= "</row>\n";
   }
   
+
 
   while(my($name, $value)=each %$DATA ){
     next if ($name eq 'MONEY');
@@ -1397,7 +1406,7 @@ sub make_charts {
     	$data .= 
      	"<draw>\n";
    	  foreach(my $i=0; $i<=4; $i++) {
-     	   $data .= "<text size=\"9\" x=\"480\" y=\"". (260-$i*45) ."\" color=\"000000\">". int($i * $part) ."</text>\n";
+     	   $data .= "<text size=\"9\" x=\"435\" y=\"". (242-$i*45) ."\" color=\"000000\">". int($i * $part) ."</text>\n";
    	   }
    	  $data .= "</draw>\n";
     }
@@ -1421,7 +1430,7 @@ codebase='http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#ve
 
 <EMBED src='". $PATH. "charts.swf?library_path=". $PATH. "charts_library&php_source=charts.xml' 
 quality=high bgcolor=#FFFFFF 
-WIDTH=400 HEIGHT=250 NAME='charts' 
+WIDTH=500 HEIGHT=300 NAME='charts' 
 ALIGN='' swLiveConnect='true' 
 TYPE='application/x-shockwave-flash' 
 PLUGINSPAGE='http://www.macromedia.com/go/getflashplayer'></EMBED></OBJECT>

@@ -1,4 +1,5 @@
 <form action='$SELF_URL' METHOD='POST' ENCTYPE='multipart/form-data'>
+
 <input type='hidden' name='index' value='$index'>
 <table>
 <tr bgcolor='$_COLORS[0]'><th colspan=2>$_SERIAL:</th></tr>

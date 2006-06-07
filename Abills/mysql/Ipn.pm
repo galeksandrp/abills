@@ -1024,23 +1024,24 @@ sub reports_users {
  my ($attr) = @_;
  
  
-my $lupdate = "DATE_FORMAT(start, '%Y-%m-%d'), count(DISTINCT l.uid), ";
+my $lupdate = ""; 
 my $GROUP = '1';
-
 
  
  undef @WHERE_RULES;  
- 
  if ($attr->{UID}) {
-     push @WHERE_RULES, "l.uid='$attr->{UID}'"; 	
+   push @WHERE_RULES, "l.uid='$attr->{UID}'"; 	
+   $lupdate = " DATE_FORMAT(start, '%Y-%m-%d'), ";
   }
-
-
+ else {
+   $lupdate = " DATE_FORMAT(start, '%Y-%m-%d'), count(DISTINCT l.uid), ";
+  }
+  
  
  #Interval from date to date
 if ($attr->{INTERVAL}) {
  	my ($from, $to)=split(/\//, $attr->{INTERVAL}, 2);
-  push @WHERE_RULES, "date_format(f_time, '%Y-%m-%d')>='$from' and date_format(f_time, '%Y-%m-%d')<='$to'";
+  push @WHERE_RULES, "date_format(start, '%Y-%m-%d')>='$from' and date_format(start, '%Y-%m-%d')<='$to'";
  }
 #Period
 elsif (defined($attr->{PERIOD})) {
@@ -1048,21 +1049,32 @@ elsif (defined($attr->{PERIOD})) {
    if ($period == 4) { $WHERE .= ''; }
    else {
      $WHERE .= ($WHERE ne '') ? ' and ' : 'WHERE ';
-     if($period == 0)    {  push @WHERE_RULES, "date_format(f_time, '%Y-%m-%d')=curdate()"; }
-     elsif($period == 1) {  push @WHERE_RULES, "TO_DAYS(curdate()) - TO_DAYS(f_time) = 1 ";  }
-     elsif($period == 2) {  push @WHERE_RULES, "YEAR(curdate()) = YEAR(f_time) and (WEEK(curdate()) = WEEK(f_time)) ";  }
-     elsif($period == 3) {  push @WHERE_RULES, "date_format(f_time, '%Y-%m')=date_format(curdate(), '%Y-%m') "; }
-     elsif($period == 5) {  push @WHERE_RULES, "date_format(f_time, '%Y-%m-%d')='$attr->{DATE}' "; }
-     else {$WHERE .= "date_format(f_time, '%Y-%m-%d')=curdate() "; }
+     if($period == 0)    {  push @WHERE_RULES, "date_format(start, '%Y-%m-%d')=curdate()"; }
+     elsif($period == 1) {  push @WHERE_RULES, "TO_DAYS(curdate()) - TO_DAYS(start) = 1 ";  }
+     elsif($period == 2) {  push @WHERE_RULES, "YEAR(curdate()) = YEAR(start) and (WEEK(curdate()) = WEEK(start)) ";  }
+     elsif($period == 3) {  push @WHERE_RULES, "date_format(start, '%Y-%m')=date_format(curdate(), '%Y-%m') "; }
+     elsif($period == 5) {  push @WHERE_RULES, "date_format(start, '%Y-%m-%d')='$attr->{DATE}' "; }
+     else {$WHERE .= "date_format(start, '%Y-%m-%d')=curdate() "; }
     }
  }
 elsif($attr->{HOUR}) {
-   push @WHERE_RULES, "date_format(f_time, '%Y-%m-%d %H')='$attr->{HOUR}'";
+   push @WHERE_RULES, "date_format(start, '%Y-%m-%d %H')='$attr->{HOUR}'";
+	 $GROUP = "1, 2, 3";
+	 $lupdate = "DATE_FORMAT(start, '%Y-%m-%d %H'), u.id, l.traffic_class, tt.descr, ";
  }
 elsif($attr->{DATE}) {
+
 	 push @WHERE_RULES, "date_format(start, '%Y-%m-%d')='$attr->{DATE}'";
-	 $GROUP = "1, 2, 3";
-	 $lupdate = "DATE_FORMAT(start, '%Y-%m-%d'), u.id, l.traffic_class, tt.descr, ";
+
+   if ($attr->{UID}) {
+   	 $GROUP = "1, 2";
+     push @WHERE_RULES, "l.uid='$attr->{UID}'"; 	
+     $lupdate = " DATE_FORMAT(start, '%Y-%m-%d %H'), l.traffic_class, tt.descr,";
+    }
+   else {
+   	 $GROUP = "1, 2, 3";
+	   $lupdate = "DATE_FORMAT(start, '%Y-%m-%d'), u.id, l.traffic_class, tt.descr, ";
+	  }
 }
 elsif (defined($attr->{MONTH})) {
  	 push @WHERE_RULES, "date_format(l.start, '%Y-%m')='$attr->{MONTH}'";
@@ -1106,6 +1118,9 @@ else {
 
   return $list;
 }
+
+
+
 
 #**********************************************************
 #
