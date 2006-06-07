@@ -1414,29 +1414,36 @@ sub make_charts {
 
 
  
- 
- open(FILE, ">charts.xml") || $self->message('err', 'ERROR', "Can't create file $!");
+ my $file_xml = (defined($attr->{SOURCE_XML})) ? $attr->{SOURCE_XML} : 'charts.xml';
+ open(FILE, ">$file_xml") || $self->message('err', 'ERROR', "Can't create file $!");
    print FILE $data;
  close(FILE);
  	
 
 
-print "
+my $output = "
 <BR>
 <OBJECT classid='clsid:D27CDB6E-AE6D-11cf-96B8-444553540000' 
-codebase='http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=6,0,0,0' WIDTH=500 HEIGHT=300 id='charts' ALIGN=''>
-<PARAM NAME=movie VALUE='". $PATH. "charts.swf?library_path=". $PATH. "charts_library&php_source=charts.xml'>
+codebase='http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=6,0,0,0' WIDTH=500 HEIGHT=300 
+id='charts' 
+ALIGN='CENTER'>
+<PARAM NAME=movie VALUE='". $PATH. "charts.swf?library_path=". $PATH. "charts_library&php_source=". $file_xml ."'>
 <PARAM NAME=quality VALUE=high> <PARAM NAME=bgcolor VALUE=$_COLORS[1]> 
 
-<EMBED src='". $PATH. "charts.swf?library_path=". $PATH. "charts_library&php_source=charts.xml' 
+<EMBED src='". $PATH. "charts.swf?library_path=". $PATH. "charts_library&php_source=". $file_xml ."' 
 quality=high bgcolor=#FFFFFF 
 WIDTH=500 HEIGHT=300 NAME='charts' 
-ALIGN='' swLiveConnect='true' 
+ALIGN='CENTER' swLiveConnect='true' 
 TYPE='application/x-shockwave-flash' 
 PLUGINSPAGE='http://www.macromedia.com/go/getflashplayer'></EMBED></OBJECT>
 <BR>\n";
 	
+	if ($attr->{OUTPUT2RETURN}) {
+		 return $output;
+	  }
 	
+  print $output;
+
 }
 
 

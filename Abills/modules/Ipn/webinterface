@@ -495,6 +495,7 @@ my %AVG = (MONEY    => 0,
            DURATION => 0);
 
 my $graph_type='';
+my $out = '';
 
 #Day reposrt
 if (defined($FORM{DATE})) {
@@ -584,6 +585,7 @@ if (defined($FORM{DATE})) {
 
  }
 else {
+  my %DATA_HASH2 = ();
   #Used Traffic
   $table_sessions = $html->table( { width      => '100%',
 	                                  caption    => "$_SESSIONS", 
@@ -608,9 +610,10 @@ else {
        $line->[4]
       );
    
-      $AVG{MONEY}    = $line->[4] if ($AVG{MONEY} < $line->[4]);
-      $AVG{TRAFFIC}  = $line->[2]+$line->[3] if ($AVG{TRAFFIC} < $line->[2]+$line->[3]);
-      $AVG{USERS}    = $line->[1] if ($AVG{USERS} < $line->[1]);
+      $AVG{MONEY}      = $line->[4] if ($AVG{MONEY} < $line->[4]);
+      #$AVG{TRAFFIC_IN}  = $line->[2] if ($AVG{TRAFFIC_IN} < $line->[2]);
+      #$AVG{TRAFFIC_OUT} = $line->[3] if ($AVG{TRAFFIC_OUT} < $line->[3]);
+      $AVG{USERS}      = $line->[1] if ($AVG{USERS} < $line->[1]);
 
 
       if ($line->[0] =~ /(\d+)-(\d+)-(\d+)/) {
@@ -621,14 +624,26 @@ else {
       	 $num++;
        }
       
-      $DATA_HASH{MONEY}[$num]=$line->[4];
-      $DATA_HASH{TRAFFIC}[$num]=$line->[2]+$line->[3];
-      $DATA_HASH{USERS}[$num]=$line->[1];
+      $DATA_HASH2{MONEY}[$num]=$line->[4];
+      $DATA_HASH{TRAFFIC_OUT}[$num]=$line->[2];
+      $DATA_HASH{TRAFFIC_IN}[$num]=$line->[3];
+      $DATA_HASH2{USERS}[$num]=$line->[1];
 
       $total_in      += $line->[2];   
       $total_out     += $line->[3]; 
       $total_sum     += $line->[4];
    }
+
+  $out = $html->make_charts({  
+	 PERIOD => $graph_type,
+	 DATA   => \%DATA_HASH2,
+	 AVG    => \%AVG,
+	 TYPE   => ['column', 'line'],
+	 TRANSITION => 1,
+	 %CHART,
+	 SOURCE_XML => 'charts_2.xml',
+   OUTPUT2RETURN => 1	 
+  });
 
 
 }
@@ -646,7 +661,7 @@ $table = $html->table( { width => '100%',
                                } );
 
 
-print $table_sessions->show() . $table->show();
+print $table_sessions->show() . $table->show() . $out;
 
 
 
@@ -655,7 +670,7 @@ $html->make_charts({
 	 PERIOD => $graph_type,
 	 DATA   => \%DATA_HASH,
 	 AVG    => \%AVG,
-	 TYPE   => ['column', 'column', 'line'],
+	 TYPE   => ['area', 'area'],
 	 TRANSITION => 1,
 	 %CHART
   });
