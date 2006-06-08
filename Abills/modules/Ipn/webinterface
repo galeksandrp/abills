@@ -425,7 +425,7 @@ sub ipn_use_users {
 
  my %totals = ();
 
-
+my %DATA_HASH2= ();
 my %DATA_HASH = (  	 	             );
 my %CHART = (SUFFIC => '%');
 my %AVG = (MONEY    => 0,
@@ -474,7 +474,10 @@ if (defined($FORM{DATE})) {
         my $user_total_out=0;
         my $user_traffic_sum=0;
         my $user_sum=0;
+        my $user_count = $stats_array[0][1];
+        
 
+        
         $table_sessions->addtd(
                   $table->td($stats_array[0][0], { rowspan => ($#stats_array > 0) ? $#stats_array+2 : 2 } ),
                   $table->td($stats_array[0][1], { rowspan => ($#stats_array > 0) ? $#stats_array+2 : 2 } ),
@@ -490,7 +493,7 @@ if (defined($FORM{DATE})) {
         $user_total_out+=$stats_array[0][5];
         $user_traffic_sum+=$stats_array[0][4]+$stats_array[0][5];
         $user_sum+=$stats_array[0][6];
-     
+
 
 
         for($i=1; $i<$#stats_array+1; $i++)  {
@@ -514,6 +517,7 @@ if (defined($FORM{DATE})) {
           $user_total_out+=$stats_array[$i][5];
           $user_traffic_sum+=$stats_array[$i][4]+$stats_array[$i][5];
           $user_sum+=$stats_array[$i][6];
+          
          }
 
         $table_sessions->{rowcolor}=$_COLORS[3];
@@ -533,8 +537,19 @@ if (defined($FORM{DATE})) {
         $AVG{MONEY}        = $user_sum if ($AVG{TRAFFIC_IN} < $user_sum);
         $DATA_HASH{TRAFFIC_IN}[$h]=int($user_total_in / 3600) ;
         $DATA_HASH{TRAFFIC_OUT}[$h]=int($user_total_out / 3600) ;
-        $DATA_HASH{MONEY}[$h]=$user_sum;
+        $DATA_HASH2{USERS}[$h]=$user_count;
+        $DATA_HASH2{MONEY}[$h]=int($user_sum);
        }	
+
+       $out = $html->make_charts({  
+	        PERIOD => $graph_type,
+	        DATA   => \%DATA_HASH2,
+	        AVG    => \%AVG,
+	        TYPE   => ['column', 'line'],
+	        TRANSITION => 1,
+	        %CHART,
+          OUTPUT2RETURN => 1	 
+       });
 
       @type = ('area', 'area', 'line');
      }
@@ -611,7 +626,6 @@ if (defined($FORM{DATE})) {
 
  }
 else {
-  my %DATA_HASH2 = ();
   #Used Traffic
   $table_sessions = $html->table( { width      => '100%',
 	                                  caption    => "$_SESSIONS", 
