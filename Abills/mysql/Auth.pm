@@ -291,11 +291,12 @@ foreach my $line (@periods) {
 #push (@traf_limits, $prepaid_traff) if ($prepaid_traff > 0);
 
  for(my $i=0; $i<=$#traf_limits; $i++) {
- 	 #print $traf_limits[$i]. "------\n";
+ 	 #print "$i / $traf_limits[$i]". "------\n";
    if ($traf_limit > $traf_limits[$i]) {
-     $traf_limit = int($traf_limits[$i]);
+     	 $traf_limit = $traf_limits[$i]; 
     }
   }
+
 
  if($traf_limit < 0) {
    $RAD_PAIRS->{'Reply-Message'}="Rejected! Traffic limit utilized '$traf_limit Mb'";
