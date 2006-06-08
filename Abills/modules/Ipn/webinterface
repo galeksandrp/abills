@@ -132,6 +132,7 @@ if (defined($FORM{DATE})) {
     #$AVG{TRAFFIC_IN}   = $user_total_in if ($AVG{TRAFFIC_IN} < $user_total_in);
     #$AVG{TRAFFIC_OUT}  = $user_total_out if ($AVG{TRAFFIC_OUT} < $user_total_out);
 
+    
     $DATA_HASH{TRAFFIC_IN}[$h]=int($user_total_in / 3600) ;
     $DATA_HASH{TRAFFIC_OUT}[$h]=int($user_total_out / 3600) ;
  
@@ -215,72 +216,6 @@ $html->make_charts({
 	 %CHART
   });
 
-
-
-=comments
-
-
-my $list = $Ipn->stats({ %LIST_PARAMS });
-
-my $table = $html->table( { width  => '100%',
-                            border => 1,
-                            title  => ["$_USER", "$_DATE", "IP", "TT", "$_NAME", "IN", "OUT", "$_SUM"],
-                            cols_align   => ['left', 'right', 'RIGHT', 'right', 'left', 'right', 'right', 'center'],
-                            qs            => $pages_qs,
-                            pages         => $sessions->{TOTAL},
-                            recs_on_page  => $LIST_PARAMS{PAGE_ROWS}
-                               } );
-
-
-
-my $delete = '';
-my $sum=0;
-my $traffic_in_sum=0;
-my $traffic_out_sum=0;
-foreach my $line (@$list) {
-  if ($permissions{3}{1}) {
-    $delete = $html->button($_DEL, "index=". $index ."&$pages_qs&del=$line->[12]+$line->[11]+$line->[7]+$line->[1]+$line->[9]+$line->[0]", { MESSAGE => "$_DEL Session SESSION_ID $line->[11]?" });
-   }
-
-  if ($TT_COLORS[$line->[3]] ne '') {
-    $table->{rowcolor}=$TT_COLORS[$line->[3]] 
-  }
-  else {
-  	$table->{rowcolor}=undef;
-  }
-
-  $table->addrow($line->[0],
-     $line->[1], 
-     $line->[2],  
-     $line->[3],  
-     $line->[4], 
-     int2byte($line->[5]),
-     int2byte($line->[6]), 
-     $line->[7]
-  );
-
-  $traffic_in_sum+=$line->[5];
-  $traffic_out_sum+=$line->[6];
-  $sum += $line->[7];
-  
-  
-
-}
-
-$table->{rowcolor}=$_COLORS[3];
-$table->addtd(
-                  $table->td("$_TOTAL:", { colspan => 5 } ),
-                  $table->td(int2byte($traffic_in_sum)),
-                  $table->td(int2byte($traffic_out_sum)), 
-                  $table->td($sum)
-      );
-
-
-
-print $table->show();
-
-
-=cut
 
 }
 
