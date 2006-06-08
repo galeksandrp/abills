@@ -1272,6 +1272,7 @@ sub make_charts {
 	my $self = shift;
 	my ($attr) = @_;
 
+
   my $PATH='';
   if ($IMG_PATH ne '') {
 	  $PATH = $IMG_PATH;
@@ -1414,8 +1415,16 @@ sub make_charts {
 
 
  
- my $file_xml = (defined($attr->{SOURCE_XML})) ? $attr->{SOURCE_XML} : 'charts.xml';
- open(FILE, ">$file_xml") || $self->message('err', 'ERROR', "Can't create file $!");
+ my $file_xml = 'charts';
+ if (! defined($self->{CHART_NUM})) {
+   $self->{CHART_NUM}=0; 	
+  }
+ else {
+ 	 $self->{CHART_NUM}++; 	
+ 	 $file_xml='charts'. $self->{CHART_NUM};
+  }
+ 
+ open(FILE, ">$file_xml".'.xml') || $self->message('err', 'ERROR', "Can't create file '$file_xml.xml' $!");
    print FILE $data;
  close(FILE);
  	
@@ -1424,18 +1433,21 @@ sub make_charts {
 my $output = "
 <BR>
 <OBJECT classid='clsid:D27CDB6E-AE6D-11cf-96B8-444553540000' 
-codebase='http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=6,0,0,0' WIDTH=500 HEIGHT=300 
-id='charts' 
-ALIGN='CENTER'>
-<PARAM NAME=movie VALUE='". $PATH. "charts.swf?library_path=". $PATH. "charts_library&php_source=". $file_xml ."'>
+codebase='http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=6,0,0,0' 
+WIDTH=500 
+HEIGHT=300 
+id='$file_xml'>
+<PARAM NAME=movie VALUE='". $PATH. "charts.swf?library_path=". $PATH. "charts_library&amp;php_source=". $file_xml .".xml'>
 <PARAM NAME=quality VALUE=high> <PARAM NAME=bgcolor VALUE=$_COLORS[1]> 
 
-<EMBED src='". $PATH. "charts.swf?library_path=". $PATH. "charts_library&php_source=". $file_xml ."' 
+<EMBED src='". $PATH. "charts.swf?library_path=". $PATH. "charts_library&amp;php_source=". $file_xml .".xml' 
 quality=high bgcolor=#FFFFFF 
-WIDTH=500 HEIGHT=300 NAME='charts' 
-ALIGN='CENTER' swLiveConnect='true' 
+WIDTH=500 HEIGHT=300 
+NAME='$file_xml' 
+swLiveConnect='true' 
 TYPE='application/x-shockwave-flash' 
-PLUGINSPAGE='http://www.macromedia.com/go/getflashplayer'></EMBED></OBJECT>
+PLUGINSPAGE='http://www.macromedia.com/go/getflashplayer'>
+</EMBED></OBJECT>
 <BR>\n";
 	
 	if ($attr->{OUTPUT2RETURN}) {

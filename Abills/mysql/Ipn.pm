@@ -1071,6 +1071,10 @@ elsif($attr->{DATE}) {
      push @WHERE_RULES, "l.uid='$attr->{UID}'"; 	
      $lupdate = " DATE_FORMAT(start, '%Y-%m-%d %H'), l.traffic_class, tt.descr,";
     }
+   elsif($attr->{HOURS}) {
+   	 $GROUP = "1, 3";
+	   $lupdate = "DATE_FORMAT(start, '%Y-%m-%d %H'), count(DISTINCT u.id), l.traffic_class, tt.descr, ";
+    }
    else {
    	 $GROUP = "1, 2, 3";
 	   $lupdate = "DATE_FORMAT(start, '%Y-%m-%d'), u.id, l.traffic_class, tt.descr, ";

@@ -633,7 +633,6 @@ elsif($attr->{DATE}) {
 
 
 
-# $self->{debug}=1;
 
  $self->query($db, "SELECT u.id, l.start, SEC_TO_TIME(l.duration), l.tp_id,
   l.sent, l.recv, l.CID, l.nas_id, l.ip, l.sum, INET_NTOA(l.ip), 
@@ -747,7 +746,17 @@ sub reports {
  my $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
 
  if(defined($attr->{DATE})) {
-   $self->query($db, "select date_format(l.start, '%Y-%m-%d'), if(u.id is NULL, CONCAT('> ', l.uid, ' <'), u.id), count(l.uid), 
+   if (defined($attr->{HOURS})) {
+   	$self->query($db, "select date_format(l.start, '%Y-%m-%d %H'), count(DISTINCT l.uid), count(l.uid), 
+    sum(l.sent + l.recv), sum(l.sent2 + l.recv2), sec_to_time(sum(l.duration)), sum(l.sum), l.uid
+      FROM dv_log l
+      LEFT JOIN users u ON (u.uid=l.uid)
+      $WHERE 
+      GROUP BY 1 
+      ORDER BY $SORT $DESC");
+    }
+   else {
+   	$self->query($db, "select date_format(l.start, '%Y-%m-%d'), if(u.id is NULL, CONCAT('> ', l.uid, ' <'), u.id), count(l.uid), 
     sum(l.sent + l.recv), sum(l.sent2 + l.recv2), sec_to_time(sum(l.duration)), sum(l.sum), l.uid
       FROM dv_log l
       LEFT JOIN users u ON (u.uid=l.uid)
@@ -755,7 +764,7 @@ sub reports {
       GROUP BY l.uid 
       ORDER BY $SORT $DESC");
    #$WHERE = "WHERE date_format(l.start, '%Y-%m-%d')='$attr->{DATE}'"; 
-   
+    }
   }
  else {
   $self->query($db, "select $date, count(DISTINCT l.uid), 

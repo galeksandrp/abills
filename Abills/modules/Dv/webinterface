@@ -891,11 +891,16 @@ sub dv_use_allmonthes {
 # dv_use();
 #**********************************************************
 sub dv_use {
-  reports({ DATE   => $FORM{DATE}, 
-  	        REPORT => '' });
+  reports({ DATE      => $FORM{DATE}, 
+  	        REPORT    => '',
+  	        EX_PARAMS => { HOURS => "$_HOURS",
+  	        	             USERS => "$_USERS" } 
+  	       });
+
 
 
 my ($tables_sessions);
+my $output = '';
 
 my %DATA_HASH = (  	 	             );
 my %CHART = ();
@@ -916,21 +921,71 @@ if (defined($FORM{DATE})) {
                                    qs         => $pages_qs             
                                } );
 
-  my $list = $sessions->reports({ %LIST_PARAMS });
-  foreach my $line (@$list) {
-    $table_sessions->addrow("<b>$line->[0]</b>", 
-      $html->button("$line->[1]", "index=15&UID=$line->[7]&DATE=$line->[0]"), 
-      $line->[2], int2byte($line->[3]),  int2byte($line->[4]),  $line->[5], "<b>$line->[6]</b>" );
+  if ($FORM{EX_PARAMS} && $FORM{EX_PARAMS} eq 'HOURS') {
+
+ 	  my $list = $sessions->reports({ %LIST_PARAMS });
+    foreach my $line (@$list) {
+      $table_sessions->addrow("<b>$line->[0]</b>", 
+        $line->[1], 
+        $line->[2], 
+        int2byte($line->[3]),  
+        int2byte($line->[4]),  
+        $line->[5], 
+        "<b>$line->[6]</b>" );
+
+      $AVG{USERS}    = $line->[1] if ($AVG{USERS} < $line->[1]);
+      $AVG{TRAFFIC}  = $line->[3] if ($AVG{TRAFFIC} < $line->[3]);
+
+      $AVG{DURATION} = time2sec($line->[5]) if ($AVG{DURATION} < time2sec($line->[5]));
+      $AVG{MONEY}    = $line->[6] if ($AVG{MONEY} < $line->[6]);
+
+      if ($line->[0] =~ /(\d+)-(\d+)-(\d+) (\d+)/) {
+      	 $num = $4+1;
+        }
+      elsif ($line->[0] =~ /(\d+)-(\d+)/) {
+      	 $CHART{X_LINE}[$num]=$line->[0];
+       	 $num++;
+       }
+     
+      $DATA_HASH{USERS}[$num]     = $line->[1];      
+      $DATA_HASH2{TRAFFIC}[$num]  = $line->[3];
+      $DATA_HASH2{DURATION}[$num] = time2sec($line->[5]);
+      $DATA_HASH{MONEY}[$num]     = $line->[6];
+
+     }
+
+    $graph_type='day_stats';
+    $output = $html->make_charts({  
+	        PERIOD     => $graph_type,
+	        DATA       => \%DATA_HASH2,
+	        AVG        => \%AVG,
+	        TYPE       => ['area', 'area'],
+	        TRANSITION => 1,
+          OUTPUT2RETURN => 1	 
+       });
+
    }
+  else {
+    my $list = $sessions->reports({ %LIST_PARAMS });
+    foreach my $line (@$list) {
+      $table_sessions->addrow("<b>$line->[0]</b>", 
+        $html->button("$line->[1]", "index=15&UID=$line->[7]&DATE=$line->[0]"), 
+        $line->[2], 
+        int2byte($line->[3]),  
+        int2byte($line->[4]),  
+        $line->[5], 
+        "<b>$line->[6]</b>" );
+     }
+  }
 
  }
 else {
   #Used Traffic
-  $table_sessions = $html->table( { width => '100%',
-	                              caption => "$_SESSIONS", 
-                                title =>["$_DATE", "$_USERS", "$_SESSIONS", "$_TRAFFIC ", "$_TRAFFIC 2", $_DURATION, $_SUM],
-                                cols_align => ['right', 'right', 'right', 'right', 'right', 'right', 'right'],
-                                qs => $pages_qs             
+  $table_sessions = $html->table({ width      => '100%',
+	                                 caption    => "$_SESSIONS", 
+                                   title      => ["$_DATE", "$_USERS", "$_SESSIONS", "$_TRAFFIC ", "$_TRAFFIC 2", $_DURATION, $_SUM],
+                                   cols_align => ['right', 'right', 'right', 'right', 'right', 'right', 'right'],
+                                   qs         => $pages_qs             
                                } );
 
 
@@ -960,11 +1015,20 @@ else {
        }
      
       $DATA_HASH{USERS}[$num]    = $line->[1];      
-      $DATA_HASH{TRAFFIC}[$num]  = $line->[3];
-      $DATA_HASH{DURATION}[$num] = time2sec($line->[5]);
+      $DATA_HASH2{TRAFFIC}[$num]  = $line->[3];
+      $DATA_HASH2{DURATION}[$num] = time2sec($line->[5]);
       $DATA_HASH{MONEY}[$num]    = $line->[6];
    }
 
+
+$output = $html->make_charts({  
+	 PERIOD     => $graph_type,
+	 DATA       => \%DATA_HASH2,
+	 AVG        => \%AVG,
+	 TYPE       => ['area', 'area'],
+	 TRANSITION => 1,
+   OUTPUT2RETURN => 1	 
+  });
 
 
 }
@@ -981,14 +1045,14 @@ $table = $html->table( { width => '100%',
                                             "$_SUM: <b>$sessions->{SUM}</b>" ] ],
                                 rowcolor => $_COLORS[2]
                                } );
-print $table_sessions->show() . $table->show();
+print $table_sessions->show() . $table->show(). $output;
 
 
 $html->make_charts({  
 	 PERIOD     => $graph_type,
 	 DATA       => \%DATA_HASH,
 	 AVG        => \%AVG,
-	 TYPE       => ['column', 'column', 'column', 'line'],
+	 TYPE       => ['column', 'line'],
 	 TRANSITION => 1
   });
 
@@ -1462,7 +1526,7 @@ print $html->form_main({ CONTENT => $html->form_select('PERIOD',
  	                                          SEL_HASH  => \%ORDERS,
  	                                          NO_ID     => 'y'
  	                                        }) .
- 	                                        "SESSION_ID:".
+ 	                                                                                                                                                                                                                                                "SESSION_ID:".
  	                                        
  	                                        $html->form_select('SESSION_ID', 
                                           { 

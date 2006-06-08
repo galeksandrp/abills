@@ -126,7 +126,8 @@ if (defined($FORM{DATE})) {
     $totals{TRAFFIC_OUT}+=$user_total_out;
     
     my($date, $h)=split(/ /, $stats_array[0][0], 2);
-    
+
+    $h++;
     $AVG{MONEY}        = $user_sum if ($AVG{TRAFFIC_IN} < $user_sum);
     #$AVG{TRAFFIC_IN}   = $user_total_in if ($AVG{TRAFFIC_IN} < $user_total_in);
     #$AVG{TRAFFIC_OUT}  = $user_total_out if ($AVG{TRAFFIC_OUT} < $user_total_out);
@@ -480,9 +481,11 @@ sub ipn_use_users_allmonthes {
 #**********************************************************
 sub ipn_use_users {
 
-  reports({ DATE      => $FORM{DATE}, 
-  	        REPORT    => '',
-  	        SHOW_HOURS => 'Y'
+  reports({ DATE       => $FORM{DATE}, 
+  	        REPORT     => '',
+  	        SHOW_HOURS => 'Y',
+   	        EX_PARAMS => { HOURS => "$_HOURS",
+            	             USERS => "$_USERS" } 
   	       });
 
  my %totals = ();
@@ -496,12 +499,13 @@ my %AVG = (MONEY    => 0,
 
 my $graph_type='';
 my $out = '';
+my @type = ();
 
 #Day reposrt
+
 if (defined($FORM{DATE})) {
 
    $LIST_PARAMS{INTERVAL_TYPE} = 2;
-
 #  $LIST_PARAMS{DATE}="$FORM{DATE}";
 #  $pages_qs.="&DATE=$LIST_PARAMS{DATE}";
     my $list = $Ipn->reports_users({ %LIST_PARAMS });
@@ -515,21 +519,106 @@ if (defined($FORM{DATE})) {
 
 
     my %report = ();
-    foreach my $line (@$list) {
-       push  @{$report{"$line->[0]$line->[1]"}}, [ @$line ];
-    }
     
+    if ($FORM{EX_PARAMS} && $FORM{EX_PARAMS} eq 'HOURS') {
+      $graph_type='day_stats';
+      
+      foreach my $line (@$list) {
+         push  @{$report{"$line->[0]"}}, [ @$line ];
+       }
 
-    while(my($k, $v)=each %report) {
-      my @stats_array = @$v;
-	    $table_sessions->{rowcolor}=$_COLORS[1];
+      foreach my $k ( sort %report) {  
+        my $v=$report{$k};
+        next if (ref($k) eq 'ARRAY');
 
-      my $user_total_in=0;
-      my $user_total_out=0;
-      my $user_traffic_sum=0;
-      my $user_sum=0;
 
-      $table_sessions->addtd(
+        my @stats_array = @$v;
+	      $table_sessions->{rowcolor}=$_COLORS[1];
+
+        my $user_total_in=0;
+        my $user_total_out=0;
+        my $user_traffic_sum=0;
+        my $user_sum=0;
+
+        $table_sessions->addtd(
+                  $table->td($stats_array[0][0], { rowspan => ($#stats_array > 0) ? $#stats_array+2 : 2 } ),
+                  $table->td($stats_array[0][1], { rowspan => ($#stats_array > 0) ? $#stats_array+2 : 2 } ),
+                  $table->td($stats_array[0][2], { bgcolor => $TT_COLORS[$stats_array[0][2]] }), 
+                  $table->td($stats_array[0][3], { bgcolor => $TT_COLORS[$stats_array[0][2]] }), 
+                  $table->td(int2byte($stats_array[0][4]), { bgcolor => $TT_COLORS[$stats_array[0][2]] }), 
+                  $table->td(int2byte($stats_array[0][5]), { bgcolor => $TT_COLORS[$stats_array[0][2]] }),
+                  $table->td(int2byte($stats_array[0][4]+$stats_array[0][5]), { bgcolor => $TT_COLORS[$stats_array[0][2]] }),
+                  $table->td($stats_array[0][6], { bgcolor => $TT_COLORS[$stats_array[0][2]] })
+         );
+
+        $user_total_in+=$stats_array[0][4];
+        $user_total_out+=$stats_array[0][5];
+        $user_traffic_sum+=$stats_array[0][4]+$stats_array[0][5];
+        $user_sum+=$stats_array[0][6];
+     
+
+
+        for($i=1; $i<$#stats_array+1; $i++)  {
+
+          if ($TT_COLORS[$stats_array[$i][2]] ne '') {
+            $table_sessions->{rowcolor}=$TT_COLORS[$stats_array[$i][2]] 
+           }
+          else {
+  	        $table_sessions->{rowcolor}=undef;
+           } 
+
+          $table_sessions->addrow($stats_array[$i][2], 
+             $stats_array[$i][3],
+             int2byte($stats_array[$i][4]),
+             int2byte($stats_array[$i][5]),
+             int2byte($stats_array[$i][4]+$stats_array[$i][5]),
+             $stats_array[$i][6]
+            );
+        
+          $user_total_in+=$stats_array[$i][4];
+          $user_total_out+=$stats_array[$i][5];
+          $user_traffic_sum+=$stats_array[$i][4]+$stats_array[$i][5];
+          $user_sum+=$stats_array[$i][6];
+         }
+
+        $table_sessions->{rowcolor}=$_COLORS[3];
+        $table_sessions->addtd("<th colspan='2'>$_TOTAL:</th>", 
+          "<th>". int2byte($user_total_in) ."</th>",
+          "<th>". int2byte($user_total_out) ."</th>",
+          "<th>". int2byte($user_traffic_sum). "</th>",
+          "<th>". $user_sum . "</th>" );
+ 
+
+        $totals{SUM}+=$user_sum;
+        $totals{TRAFFIC_IN}+=$user_total_in;
+        $totals{TRAFFIC_OUT}+=$user_total_out;
+#Chart        
+        my($date, $h)=split(/ /, $stats_array[0][0], 2);
+        $h++;
+        $AVG{MONEY}        = $user_sum if ($AVG{TRAFFIC_IN} < $user_sum);
+        $DATA_HASH{TRAFFIC_IN}[$h]=int($user_total_in / 3600) ;
+        $DATA_HASH{TRAFFIC_OUT}[$h]=int($user_total_out / 3600) ;
+        $DATA_HASH{MONEY}[$h]=$user_sum;
+       }	
+
+      @type = ('area', 'area', 'line');
+     }
+#Report by users
+    else {
+      foreach my $line (@$list) {
+        push  @{$report{"$line->[0]$line->[1]"}}, [ @$line ];
+       }
+
+      while(my($k, $v)=each %report) {
+        my @stats_array = @$v;
+	      $table_sessions->{rowcolor}=$_COLORS[1];
+
+        my $user_total_in=0;
+        my $user_total_out=0;
+        my $user_traffic_sum=0;
+        my $user_sum=0;
+
+        $table_sessions->addtd(
                   $table->td($stats_array[0][0], { rowspan => ($#stats_array > 0) ? $#stats_array+2 : 2 } ),
                   $table->td($html->button($stats_array[0][1], "index=11&UID=$stats_array[0][8]"), { rowspan => ($#stats_array > 0) ? $#stats_array+2 : 2 } ),
                   $table->td($stats_array[0][2], { bgcolor => $TT_COLORS[$stats_array[0][2]] }), 
@@ -538,50 +627,52 @@ if (defined($FORM{DATE})) {
                   $table->td(int2byte($stats_array[0][5]), { bgcolor => $TT_COLORS[$stats_array[0][2]] }),
                   $table->td(int2byte($stats_array[0][4]+$stats_array[0][5]), { bgcolor => $TT_COLORS[$stats_array[0][2]] }),
                   $table->td($stats_array[0][6], { bgcolor => $TT_COLORS[$stats_array[0][2]] })
-      );
+         );
 
-      $user_total_in+=$stats_array[0][4];
-      $user_total_out+=$stats_array[0][5];
-      $user_traffic_sum+=$stats_array[0][4]+$stats_array[0][5];
-      $user_sum+=$stats_array[0][6];
-      
+        $user_total_in+=$stats_array[0][4];
+        $user_total_out+=$stats_array[0][5];
+        $user_traffic_sum+=$stats_array[0][4]+$stats_array[0][5];
+        $user_sum+=$stats_array[0][6];
+     
 
-      for($i=1; $i<$#stats_array+1; $i++)  {
 
-        if ($TT_COLORS[$stats_array[$i][2]] ne '') {
-          $table_sessions->{rowcolor}=$TT_COLORS[$stats_array[$i][2]] 
-         }
-        else {
-  	      $table_sessions->{rowcolor}=undef;
-         } 
+       for($i=1; $i<$#stats_array+1; $i++)  {
 
-        $table_sessions->addrow($stats_array[$i][2], 
-          $stats_array[$i][3],
-          int2byte($stats_array[$i][4]),
-          int2byte($stats_array[$i][5]),
-          int2byte($stats_array[$i][4]+$stats_array[$i][5]),
-          $stats_array[$i][6]
-          );
+         if ($TT_COLORS[$stats_array[$i][2]] ne '') {
+           $table_sessions->{rowcolor}=$TT_COLORS[$stats_array[$i][2]] 
+          }
+         else {
+  	       $table_sessions->{rowcolor}=undef;
+          } 
+
+         $table_sessions->addrow($stats_array[$i][2], 
+             $stats_array[$i][3],
+             int2byte($stats_array[$i][4]),
+             int2byte($stats_array[$i][5]),
+             int2byte($stats_array[$i][4]+$stats_array[$i][5]),
+             $stats_array[$i][6]
+            );
         
-          $user_total_in+=$stats_array[$i][4];
-          $user_total_out+=$stats_array[$i][5];
-          $user_traffic_sum+=$stats_array[$i][4]+$stats_array[$i][5];
-          $user_sum+=$stats_array[$i][6];
-     }
+            $user_total_in+=$stats_array[$i][4];
+            $user_total_out+=$stats_array[$i][5];
+            $user_traffic_sum+=$stats_array[$i][4]+$stats_array[$i][5];
+            $user_sum+=$stats_array[$i][6];
+       }
 
-     $table_sessions->{rowcolor}=$_COLORS[3];
-     $table_sessions->addtd("<th colspan='2'>$_TOTAL:</th>", 
-        "<th>". int2byte($user_total_in) ."</th>",
-        "<th>". int2byte($user_total_out) ."</th>",
-        "<th>". int2byte($user_traffic_sum). "</th>",
-        "<th>". $user_sum . "</th>" );
+       $table_sessions->{rowcolor}=$_COLORS[3];
+       $table_sessions->addtd("<th colspan='2'>$_TOTAL:</th>", 
+          "<th>". int2byte($user_total_in) ."</th>",
+          "<th>". int2byte($user_total_out) ."</th>",
+          "<th>". int2byte($user_traffic_sum). "</th>",
+          "<th>". $user_sum . "</th>" );
+ 
 
-
-    $totals{SUM}+=$user_sum;
-    $totals{TRAFFIC_IN}+=$user_total_in;
-    $totals{TRAFFIC_OUT}+=$user_total_out;
-
+      $totals{SUM}+=$user_sum;
+      $totals{TRAFFIC_IN}+=$user_total_in;
+      $totals{TRAFFIC_OUT}+=$user_total_out;
    }
+}
+
 
  }
 else {
@@ -624,14 +715,19 @@ else {
       	 $num++;
        }
       
+
+      $DATA_HASH2{USERS}[$num]=$line->[1];
       $DATA_HASH2{MONEY}[$num]=$line->[4];
+            
       $DATA_HASH{TRAFFIC_OUT}[$num]=$line->[2];
       $DATA_HASH{TRAFFIC_IN}[$num]=$line->[3];
-      $DATA_HASH2{USERS}[$num]=$line->[1];
 
-      $total_in      += $line->[2];   
-      $total_out     += $line->[3]; 
-      $total_sum     += $line->[4];
+
+     
+     $totals{TRAFFIC_IN}+=$line->[2];
+     $totals{TRAFFIC_OUT}+=$line->[3];
+     $totals{SUM}+=$line->[4];
+   
    }
 
   $out = $html->make_charts({  
@@ -641,10 +737,11 @@ else {
 	 TYPE   => ['column', 'line'],
 	 TRANSITION => 1,
 	 %CHART,
-	 SOURCE_XML => 'charts_2.xml',
    OUTPUT2RETURN => 1	 
   });
 
+
+ @type = ('area', 'area');
 
 }
 
@@ -670,7 +767,7 @@ $html->make_charts({
 	 PERIOD => $graph_type,
 	 DATA   => \%DATA_HASH,
 	 AVG    => \%AVG,
-	 TYPE   => ['area', 'area'],
+	 TYPE   => \@type,
 	 TRANSITION => 1,
 	 %CHART
   });
@@ -711,27 +808,20 @@ sub ipn_use {
 
 return 0;
 
- my @EX_GROUPS = ('Time', 'Hosts', 'Ports');
-  
 
-  
-  $Ipn->{EX_GROUP_SEL} ="<select name=EX_GROUP>\n";
-  my %EX_PARAMS = ();
-  my $i = 0;
-#  my $EX_PARAMS = '';
-  foreach my $line (@EX_GROUPS) {
-#    $Ipn->{EX_GROUP_SEL} .= "<option value=$i";
-#    $Ipn->{EX_GROUP_SEL} .= ' selected' if  ($i == $FORM{EX_GROUP});
-#    $Ipn->{EX_GROUP_SEL} .= ">$line\n";
+ my @EX_GROUPS = ('Time', 'Hosts', 'Ports');
+ my %EX_PARAMS = ();
+ my $i = 0;
+ foreach my $line (@EX_GROUPS) {
    	$EX_PARAMS{$i}=$line;
     $i++;
-   }
-#  $Ipn->{EX_GROUP_SEL}.="</select>\n";
+  }
 
 
-  reports({ DATE      => $FORM{DATE}, 
-  	        REPORT    => '',
-  	        EX_PARAMS => \%EX_PARAMS,
+
+  reports({ DATE       => $FORM{DATE}, 
+  	        REPORT     => '',
+  	        EX_PARAMS  => \%EX_PARAMS,
   	        SHOW_HOURS => 'Y'
   	       });
 

@@ -2297,13 +2297,19 @@ if (defined($FORM{DATE})) {
 
   if (defined($attr->{EX_PARAMS})) {
    	my $EP = $attr->{EX_PARAMS};
+
 	  while(my($k, $v)=each(%$EP)) {
-     	if ($FORM{EX_PARAMS} == $k) {
+     	if ($FORM{EX_PARAMS} eq $k) {
         $EX_PARAMS .= " <b>$v</b> ";
-        $LIST_PARAMS{EX_PARAMS}=$k;
+        $LIST_PARAMS{$k}=1;
+        $pages_qs .="&EX_PARAMS=$k";
+
+     	  if ($k eq 'HOURS') {
+    	  	 undef $attr->{SHOW_HOURS};
+	       } 
      	 }
      	else {
-     	  $EX_PARAMS .= $html->button($v, "index=$index$pages_qs&EX_PARAMS=$k");
+     	  $EX_PARAMS .= '::'. $html->button($v, "index=$index$pages_qs&EX_PARAMS=$k");
      	 }
 	  }
   
