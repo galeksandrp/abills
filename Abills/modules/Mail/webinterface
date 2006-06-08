@@ -14,8 +14,7 @@ my $Mail = Mail->new($db, $admin, $conf);
 #**********************************************************
 sub mail_users_list {
  
- my @invert_status = ("$_DISABLE", "$_ENABLE" );
- 
+
  if (! $FORM{UID}) {
    print $html->letters_list();
    if ($FORM{letter}) {
@@ -62,7 +61,7 @@ elsif ($Mail->{TOTAL} == 1) {
        "$line->[1]",
        $html->button($line->[2], "index=11&UID=$line->[13]"),
       "$line->[3]", "$line->[4]", "$line->[5]", 
-      "$invert_status[$line->[6]]", "$invert_status[$line->[7]]", "$status[$line->[8]]", 
+      "$status[$line->[6]]", "$status[$line->[7]]", "$status[$line->[8]]", 
       $html->button($_CHANGE, "index=$index&MBOX_ID=$line->[14]&UID=$line->[13]"),
       $delete);
    }
@@ -127,8 +126,8 @@ sub mail_user_boxes {
   #  mail_users_list();
   # }
 
-  $Mail->{ANTIVIRUS}=' checked' if($Mail->{ANTIVIRUS} == 1);
-  $Mail->{ANTISPAM}=' checked' if($Mail->{ANTISPAM} == 1);
+  $Mail->{ANTIVIRUS}=' checked' if($Mail->{ANTIVIRUS} == 0);
+  $Mail->{ANTISPAM}=' checked' if($Mail->{ANTISPAM} == 0);
   $Mail->{DISABLE}=' checked' if($Mail->{DISABLE} == 1);
   
   
