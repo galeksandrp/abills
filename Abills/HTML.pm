@@ -1254,10 +1254,10 @@ my $letters = $self->button('All ', "index=$index"). '::';
 for (my $i=97; $i<123; $i++) {
   my $l = chr($i);
   if ($FORM{letter} eq $l) {
-     $letters .= "<b>$l </b>";
+     $letters .= "<b>$l </b>\n";
    }
   else {
-     $letters .= $self->button("$l", "index=$index&letter=$l$pages_qs") . ' ';
+     $letters .= $self->button("$l", "index=$index&letter=$l$pages_qs") . " \n";
    }
  }
 
@@ -1431,24 +1431,26 @@ sub make_charts {
 
 
 my $output = "
-<BR>
+<br>
 <OBJECT classid='clsid:D27CDB6E-AE6D-11cf-96B8-444553540000' 
 codebase='http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=6,0,0,0' 
+WIDTH=500 HEIGHT=300 id='$file_xml' ALIGN=''>
+<PARAM NAME=movie VALUE='". $PATH. "charts.swf?library_path=". $PATH. "charts_library&amp;php_source=". $file_xml .".xml'> 
+<PARAM NAME=quality VALUE=high> <PARAM NAME=bgcolor VALUE=#EEEEEE> 
+<EMBED src='". $PATH. "charts.swf?library_path=". $PATH. "charts_library&amp;php_source=". $file_xml .".xml' 
+quality=high 
+bgcolor='#EEEEEE' 
 WIDTH=500 
 HEIGHT=300 
-id='$file_xml'>
-<PARAM NAME=movie VALUE='". $PATH. "charts.swf?library_path=". $PATH. "charts_library&amp;php_source=". $file_xml .".xml'>
-<PARAM NAME=quality VALUE=high> <PARAM NAME=bgcolor VALUE=$_COLORS[1]> 
-
-<EMBED src='". $PATH. "charts.swf?library_path=". $PATH. "charts_library&amp;php_source=". $file_xml .".xml' 
-quality=high bgcolor=#FFFFFF 
-WIDTH=500 HEIGHT=300 
 NAME='$file_xml' 
+ALIGN='' 
 swLiveConnect='true' 
 TYPE='application/x-shockwave-flash' 
 PLUGINSPAGE='http://www.macromedia.com/go/getflashplayer'>
 </EMBED></OBJECT>
-<BR>\n";
+<br>
+";
+
 	
 	if ($attr->{OUTPUT2RETURN}) {
 		 return $output;

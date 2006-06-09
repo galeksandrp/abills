@@ -3160,6 +3160,7 @@ my $SEL_METHOD =  $html->form_select('METHOD',
  	                               });
 
 
+my $group_sel = sel_groups();
 my %search_form = ( 
 2 => "
 <!-- PAYMENTS -->
@@ -3179,13 +3180,12 @@ my %search_form = (
 11 => "
 <!-- USERS -->
 <tr><td colspan=2><hr></td></tr>
-<!-- <tr><td>IP (>, <, *):</td><td><input type=text name=IP value='%IP%' title='Examples:\n 192.168.101.1\n >192.168.0\n 192.168.*.*'></td></tr>
-<tr><td>$_SPEED (>, <):</td><td><input type=text name=SPEED value='%SPEED%'></td></tr>
-<tr><td>CID</td><td><input type=text name=CID value='%CID%'></td></tr>
--->
 <tr><td>$_FIO (*):</td><td><input type=text name=FIO value='%FIO%'></td></tr>
 <tr><td>$_PHONE (>, <, *):</td><td><input type=text name=PHONE value='%PHONE%'></td></tr>
-<tr><td>$_COMMENTS (*):</td><td><input type=text name=COMMENTS value='%COMMENTS%'></td></tr>\n",
+<tr><td>$_COMMENTS (*):</td><td><input type=text name=COMMENTS value='%COMMENTS%'></td></tr>
+<tr><td>$_GROUP:</td><td>$group_sel</td></tr>
+<tr><td>$_PAYMENTS $_DATE (>, <):</td><td><input type=text name='PAYMENTS' value='%PAYMENTS%'></td></tr>
+\n",
 
 );
 

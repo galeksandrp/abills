@@ -239,7 +239,10 @@ sub search_expr {
   if ($type eq 'IP') {
   	$value = "INET_ATON('$value')";
    }
- 
+  else {
+  	$value="'$value'";
+   }
+
   $value = $expr . $value;
   return $value;
 }
