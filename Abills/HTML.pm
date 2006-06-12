@@ -145,17 +145,25 @@ sub new {
 
 
 
+
+
 #*******************************************************************
 # Parse inputs from query
 # form_parse()
+# return HASH
+#
+# For upload file: Content-Type
+#                  Contents
+#                  filename
+#                  Size
 #*******************************************************************
 sub form_parse {
   my $self = shift;
-  my $buffer = '';
-  my $value='';
   my %FORM = ();
-  
+  my($boundary, @pairs);
+  my($buffer, $name);
   return %FORM if (! defined($ENV{'REQUEST_METHOD'}));
+
 
 if ($ENV{'REQUEST_METHOD'} eq "GET") {
    $buffer= $ENV{'QUERY_STRING'};
@@ -164,27 +172,125 @@ elsif ($ENV{'REQUEST_METHOD'} eq "POST") {
    read(STDIN, $buffer, $ENV{'CONTENT_LENGTH'});
  }
 
-my @pairs = split(/&/, $buffer);
-$FORM{__BUFFER}=$buffer;
+if (! defined($ENV{CONTENT_TYPE}) || $ENV{CONTENT_TYPE} !~ /boundary/ ) {
 
-foreach my $pair (@pairs) {
-   my ($side, $value) = split(/=/, $pair);
-   $value =~ tr/+/ /;
-   $value =~ s/%([a-fA-F0-9][a-fA-F0-9])/pack("C", hex($1))/eg;
-   $value =~ s/<!--(.|\n)*-->//g;
-   $value =~ s/<([^>]|\n)*>//g;
-   if (defined($FORM{$side})) {
-     $FORM{$side} .= ", $value";
-    }
-   else {
-     $FORM{$side} = $value;
-    }
+  @pairs = split(/&/, $buffer);
+  $FORM{__BUFFER}=$buffer if ($#pairs > -1);
+
+  foreach my $pair (@pairs) {
+    my ($side, $value) = split(/=/, $pair);
+    $value =~ tr/+/ /;
+    $value =~ s/%([a-fA-F0-9][a-fA-F0-9])/pack("C", hex($1))/eg;
+    $value =~ s/<!--(.|\n)*-->//g;
+    $value =~ s/<([^>]|\n)*>//g;
+    if (defined($FORM{$side})) {
+      $FORM{$side} .= ", $value";
+     }
+    else {
+      $FORM{$side} = $value;
+     }
+   }
  }
+else {
+ ($boundary = $ENV{CONTENT_TYPE}) =~ s/^.*boundary=(.*)$/$1/;
+ 
+ @pairs = split(/--$boundary/, $buffer);
+ @pairs = splice(@pairs,1,$#pairs-1);
+
+ for my $part (@pairs) {
+      $part =~ s/[\r]\n$//g;
+      my ($dump, $firstline, $datas) = split(/[\r]\n/, $part, 3);
+      next if $firstline =~ /filename=\"\"/;
+      $firstline =~ s/^Content-Disposition: form-data; //;
+      my (@columns) = split(/;\s+/, $firstline);
+      ($name = $columns[0]) =~ s/^name="([^"]+)"$/$1/g;
+      my $blankline;
+      if ($#columns > 0) {
+	      if ($datas =~ /^Content-Type:/) {
+	        ($FORM{"$name"}->{'Content-Type'}, $blankline, $datas) = split(/[\r]\n/, $datas, 3);
+           $FORM{"$name"}->{'Content-Type'} =~ s/^Content-Type: ([^\s]+)$/$1/g;
+	       }
+	      else {
+	        ($blankline, $datas) = split(/[\r]\n/, $datas, 2);
+	        $FORM{"$name"}->{'Content-Type'} = "application/octet-stream";
+	       }
+       }
+      else {
+	     ($blankline, $datas) = split(/[\r]\n/, $datas, 2);
+        if (grep(/^$name$/, keys(%FORM))) {
+          if (@{$FORM{$name}} > 0) {
+            push(@{$FORM{$name}}, $datas);
+           }
+          else {
+            my $arrvalue = $FORM{$name};
+            undef $FORM{$name};
+            $FORM{$name}[0] = $arrvalue;
+            push(@{$FORM{$name}}, $datas);
+           }
+         }
+        else {
+	        next if $datas =~ /^\s*$/;
+           $FORM{"$name"} = $datas;
+         }
+        next;
+       }
+      for my $currentColumn (@columns) {
+        my ($currentHeader, $currentValue) = $currentColumn =~ /^([^=]+)="([^"]+)"$/;
+        if ($currentHeader eq 'filename') {
+        	 if ( $currentValue =~ /(\S+)\\(\S+)$/ ){
+        	   $currentValue = $2;
+            }
+          }
+        $FORM{"$name"}->{"$currentHeader"} = $currentValue;
+       }
+
+      $FORM{"$name"}->{'Contents'} = $datas;
+      $FORM{"$name"}->{'Size'} = length($FORM{"$name"}->{'Contents'});
+    }
+}
 
   return %FORM;
 }
 
+#sub form_parse {
+#  my $self = shift;
+#  my $buffer = '';
+#  my $value='';
+#  my %FORM = ();
+#  
+#  return %FORM if (! defined($ENV{'REQUEST_METHOD'}));
+#
+#if ($ENV{'REQUEST_METHOD'} eq "GET") {
+#   $buffer= $ENV{'QUERY_STRING'};
+# }
+#elsif ($ENV{'REQUEST_METHOD'} eq "POST") {
+#   read(STDIN, $buffer, $ENV{'CONTENT_LENGTH'});
+# }
+#
+#my @pairs = split(/&/, $buffer);
+#$FORM{__BUFFER}=$buffer;
+#
+#foreach my $pair (@pairs) {
+#   my ($side, $value) = split(/=/, $pair);
+#   $value =~ tr/+/ /;
+#   $value =~ s/%([a-fA-F0-9][a-fA-F0-9])/pack("C", hex($1))/eg;
+#   $value =~ s/<!--(.|\n)*-->//g;
+#   $value =~ s/<([^>]|\n)*>//g;
+#   if (defined($FORM{$side})) {
+#     $FORM{$side} .= ", $value";
+#    }
+#   else {
+#     $FORM{$side} = $value;
+#    }
+# }
+#
+#  return %FORM;
+#}
 
+
+#*******************************************************************
+# form_input
+#*******************************************************************
 sub form_input {
 	my $self = shift;
 	my ($name, $value, $attr)=@_;
@@ -207,7 +313,9 @@ sub form_input {
 }
 
 
-
+#*******************************************************************
+# form_main
+#*******************************************************************
 sub form_main {
   my $self = shift;
   my ($attr)	= @_;
@@ -912,6 +1020,10 @@ sub table_title  {
          
          if ($FORM{index}) {
          	  $op="index=$FORM{index}";
+          }
+         
+         if ($FORM{index}) {
+         	  $op="index=$FORM{index}";
          	}
          else {
          	  $op="op=$get_op";
@@ -1404,8 +1516,7 @@ sub make_charts {
     #Make right text
     if (defined($attr->{AVG}{MONEY}) && $attr->{AVG}{MONEY} > 0) {
      	my $part = $attr->{AVG}{MONEY} / 4;
-    	$data .= 
-     	"<draw>\n";
+    	$data .= "<draw>\n";
    	  foreach(my $i=0; $i<=4; $i++) {
      	   $data .= "<text size=\"9\" x=\"435\" y=\"". (242-$i*45) ."\" color=\"000000\">". int($i * $part) ."</text>\n";
    	   }
