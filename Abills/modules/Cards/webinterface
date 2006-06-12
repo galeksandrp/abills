@@ -209,38 +209,9 @@ else {
 #**********************************************************
 #
 #**********************************************************
-sub cards_users () {
+sub cards_users_add () {
+  my ($attr) = @_;
 
-
-#  if ($FORM{create}) {
-#
-#    my $table = $html->table( { width      => '100%',
-#                                title      => ['ID', "$_LOGIN", "$_PASSWD", "$_GROUP", "$_STATUS", '-'],
-#                                cols_align => ['right', 'left', 'left', 'center'],
-#                                qs         => $pages_qs,
-#                                pages      => $Cards->{TOTAL}
-#                               });
-#
-#
-#  	my $begin = $FORM{BEGIN} || 0;
-#  	my $count = $FORM{COUNT} || 0;
-#  	
-#  	for(my $i=$begin; $i<=$begin+$count; $i++) {
-#
-#  		$table->addrow("$i", $FORM{LOGIN_PREFIX}.($FORM{LOGIN_BEGIN}++), 
-#  		  mk_unique_value($FORM{PASSWD_LENGTH}, { SYMBOLS => $FORM{PASSWD_SYMBOLS} || undef }),
-#  		  '',
-#  		  $status[$line->[3]],
-#  		  $html->button($_DEL, "index=$index$pages_qs&del=$line->[0]", { MESSAGE => "$_DEL [$i] ?" })
-#  		  
-#  		);
-#  	 }
-#  	
-#  	print $table->show();
-#   }
-#  elsif($FORM{del}) {
-#  	
-#   }
 
   if ($FORM{create}) {
       my $export = '';
@@ -264,8 +235,13 @@ sub cards_users () {
         	 my %USER_HASH = ();
         	 my @params = split(/\t/, $line);
            $USER_HASH{LOGIN}=$params[0];
-           $USER_HASH{PASSWORD}=$params[1];
-
+           if ($params[1] eq '-') {
+           	 $USER_HASH{PASSWORD}=mk_unique_value($FORM{PASSWD_LENGTH}, { SYMBOLS => $FORM{PASSWD_SYMBOLS} || undef });
+            }
+           else {
+             $USER_HASH{PASSWORD}=$params[1];
+            }
+            
            for(my $i=2; $i<=$#params; $i++) {
            	 #print "$params[$i]<br>\n";
            	 my($k, $v)=split(/=/, $params[$i], 2);
@@ -273,15 +249,17 @@ sub cards_users () {
            	 $USER_HASH{$k}=$v;
             }
 
-
-           push @DATA_ARRAY, %USER_HASH;
+           
+           push @DATA_ARRAY, { %USER_HASH };
+           $generated++;
           }
 
-      	$table = $html->table( { width  => '100%',
-                                 rows   => [ [$_NAME, $FORM{FILE_DATA}{filename}],
-                                             ["$_SIZE", $FORM{FILE_DATA}{Size}  ]
+      	$table = $html->table({ width  => '100%',
+                                rows   => [ [$_NAME, $FORM{FILE_DATA}{filename}],
+                                            ["$_SIZE", $FORM{FILE_DATA}{Size}  ]
                                            ]
                                });
+
       	$html->message('info', $_INFO, $table->show());
        }
 
@@ -296,13 +274,13 @@ sub cards_users () {
   	 	    my $login = sprintf(  "%s%.". $LOGIN_LENGTH."d", $FORM{LOGIN_PREFIX}, $LOGIN_NUMBER);
           
          
-          $Cards->cards_users_add({ LOGIN     => "$login",
-        	                          NUMBER    => "$i",
-        	                          PASSWORD  => "$password",
-        	                          SERIA     => "$serial",
-        	                          SUM       => "$FORM{SUM}",
-        	                          STATUS    => 0,
-        	                          GROUP     => int($FROM{GROUP})   });
+#          $Cards->cards_users_add({ LOGIN     => "$login",
+#        	                          NUMBER    => "$i",
+#        	                          PASSWORD  => "$password",
+#        	                          SERIA     => "$serial",
+#        	                          SUM       => "$FORM{SUM}",
+#        	                          STATUS    => 0,
+#        	                          GROUP     => int($FORM{GROUP})   });
 
           if ($Cards->{errno}) {
        	    $html->message('err', $_ERROR, "[$Cards->{errno}] $err_strs{$Cards->{errno}} $_LOGIN: '$login' / $_ADDED: $generated");
@@ -314,13 +292,15 @@ sub cards_users () {
 
   	      push @DATA_ARRAY, { LOGIN     => "$login",
   	      	                  PASSWORD  => "$password"
-  	      	                  };
+ 	      	                   };
 
   	   }
 
-   	  $html->message('info', $_INFO, "$_ADDED: $generated");
-   	  print "<textarea cols='70' rows='30'>$export</textarea>\n";
-   	  
+    $html->message('info', $_INFO, "$_CREATE: $generated");
+
+    if ($generated > 0) {
+   	   print "<textarea cols='70' rows='30'>$export</textarea>\n";
+   	 }
    	  
     return \@DATA_ARRAY;
  }
@@ -332,11 +312,19 @@ elsif ($FORM{del}  && $FORM{is_js_confirmed} ) {
  }
   
   $Cards = $Cards->defaults();
-	$Cards->{SEL_GROUPS} = sel_groups();
+  $Cards->{EXPARAMS}=$attr->{EXTRA_TPL};
 	$html->tpl_show(_include('cards_add', 'Cards'), $Cards);
 	
-	
-	
+
+}
+
+#*******************************************************************
+# cards_users_list();
+#*******************************************************************
+sub cards_users {
+  
+  cards_users_add();
+
   my $list = $Cards->cards_users_list({ %LIST_PARAMS });
 	$table = $html->table( { width      => '100%',
                            caption    => "$_SERIAL",
@@ -344,7 +332,7 @@ elsif ($FORM{del}  && $FORM{is_js_confirmed} ) {
                            cols_align => ['right', 'left', 'left', 'center'],
                            qs         => $pages_qs,
                            pages      => $Cards->{TOTAL}
-                               });
+                          });
 
 
   foreach $line (@$list) {
@@ -367,10 +355,9 @@ elsif ($FORM{del}  && $FORM{is_js_confirmed} ) {
                           rows => [ [ "$_TOTAL:", "<b>$Cards->{TOTAL}</b>" ] ]
                         });
 
-
   print $table->show();	
-
 }
+
 
 #**********************************************************
 #

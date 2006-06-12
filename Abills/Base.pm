@@ -32,6 +32,7 @@ $VERSION = 2.00;
   &test_radius_returns
   &ping
   &sendmail
+  &in_array
   %variants
   %int
  );
@@ -47,6 +48,19 @@ sub null {
   return 0;	
 }
 
+#**********************************************************
+# isvalue()
+# Check value in array
+#**********************************************************
+sub in_array {
+ my ($value, $array) = @_;
+ 
+ foreach my $line (@$array) {
+ 	 return 1 if ($value eq $line);
+  }
+
+ return 0;	
+}
 
 #**********************************************************
 # Converter
