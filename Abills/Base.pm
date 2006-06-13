@@ -4,7 +4,6 @@ package Abills::Base;
 use strict;
 use vars qw(@ISA @EXPORT @EXPORT_OK %EXPORT_TAGS $VERSION
  %int
- %variants
  %conf
 );
 
@@ -33,7 +32,6 @@ $VERSION = 2.00;
   &ping
   &sendmail
   &in_array
-  %variants
   %int
  );
 

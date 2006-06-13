@@ -227,11 +227,11 @@ sub cards_users_add () {
        }
 
       if(defined($FORM{FILE_DATA})) {
-      	
+
       	my @rows = split(/[\r]\n/, $FORM{"FILE_DATA"}{'Contents'});
 
         foreach my $line (@rows) {
-        	 
+      	   my $other='';        	 
         	 my %USER_HASH = ();
         	 my @params = split(/\t/, $line);
            $USER_HASH{LOGIN}=$params[0];
@@ -246,10 +246,18 @@ sub cards_users_add () {
            	 #print "$params[$i]<br>\n";
            	 my($k, $v)=split(/=/, $params[$i], 2);
            	 $v =~ s/"//g;
+           	 
            	 $USER_HASH{$k}=$v;
+           	 if (defined($FORM{EXPORT}) && $FORM{EXPORT} eq 'XML') {
+           	 	  $other.="<$k>$v</$k>";
+           	  }
+             else {
+             	  $other.="\t$k: $v";
+              }
             }
 
-           
+           $export .= (defined($FORM{EXPORT}) && $FORM{EXPORT} eq 'XML') ? "<LOGIN>$USER_HASH{LOGIN}</LOGIN><PASSWORD>$USER_HASH{PASSWORD}</PASSWORD><ID>$serial</ID><EXPIRE>$FORM{EXPIRE}</EXPIRE>\n" : "$USER_HASH{LOGIN}\t$USER_HASH{PASSWORD}\t$serial\t$FORM{EXPIRE}$other\n";           
+
            push @DATA_ARRAY, { %USER_HASH };
            $generated++;
           }

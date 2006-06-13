@@ -2078,25 +2078,32 @@ sub dv_cards {
 	require "Abills/modules/Cards/webinterface";
 
   my $dv_tpl = dv_wizard_user({ OUTPUT2RETURN => 1,
+  	                            NO_EXTRADATA  => 1,
   	                            TPLS          => { '2:' => '',
                                                    '3:' => '' } 
                               });
 
 
-	my $return = cards_users_add({ EXTRA_TPL => $dv_tpl });
- 
+	my $return = cards_users_add({ EXTRA_TPL    => $dv_tpl  });
+  
+
   $FORM{add}=1;
+  my %FORM2=%FORM;
 
   if (ref($return) eq 'ARRAY') {
+     undef %FORM;
+  	 %FORM = %FORM2;
   	 foreach my $line (@$return) {
   	 	  while(my($k, $v)= each %$line) {
-  	 	  	 print "$k, $v";
+  	 	  	 $FORM{$k}=clearquotes($v);
   	 	    }
         print "<br>";
   	 	  $FORM{'1.LOGIN'}=$line->{LOGIN};
   	 	  $FORM{'1.PASSWORD'}=$line->{PASSWORD};
+  	 	  $FORM{'1.CREATE_BILL'}=1;
 
   	 	  if ( dv_wizard_user({ SHORT_REPORT => 1 }) != 1) {
+  	 	  	 print $html->message('err', $_ERROR, "$_LOGIN: $line->{LOGIN}");
   	 	  	 return 0;
   	 	   }
   	  }
@@ -2121,9 +2128,9 @@ sub dv_wizard_user {
   my %add_values = ();
 
   if ($FORM{add}) {
-  	#my $table = $html->table({ width => '100%' });
+  #	my $table = $html->table({ width => '100%' });
   	foreach my $k ( sort %FORM) {
-    #  $table->addrow($k, $FORM{$k});
+   #  $table->addrow($k, $FORM{$k});
       if ($k =~ m/[A-Z]+/ && $k !~ /__|[a-z]/) {
         $k =~ s/%22//g;
         my ($id, $main_key)=split(/\./, $k, 2);
@@ -2206,8 +2213,12 @@ sub dv_wizard_user {
   my $users_defaults = $users->defaults();
   $users_defaults->{DISABLE}=($users_defaults->{DISABLE} == 1) ? ' checked' : '';
   $users_defaults->{GID} = sel_groups();
-  $users_defaults->{EXDATA}=$html->tpl_show(templates('form_user_exdata'), { CREATE_BILL  => ' checked' }, { notprint => 'y' });
-
+  if (! $attr->{NO_EXTRADATA}) {
+    $users_defaults->{EXDATA}=$html->tpl_show(templates('form_user_exdata'), 
+       { CREATE_BILL  => ' checked' }, 
+       { notprint => 'y' });
+   }
+  
   my $dv_defaults = $Dv->defaults();
   $dv_defaults->{DISABLE}=($dv_defaults->{DISABLE} == 1) ? ' checked' : '';
   

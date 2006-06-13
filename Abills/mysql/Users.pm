@@ -242,7 +242,8 @@ sub defaults {
    DISABLE        => 0, 
    COMPANY_ID     => 0,
    GID            => 0,
-   DISABLE        => 0 );
+   DISABLE        => 0,
+   PASSWORD       => '');
  
   $self = \%DATA;
   return $self;
@@ -574,6 +575,7 @@ sub add {
   my $self = shift;
   my ($attr) = @_;
   
+
   defaults();  
   %DATA = $self->get_data($attr, { default => $self }); 
 
@@ -588,6 +590,7 @@ sub add {
      $self->{errstr} = 'ERROR_LONG_USERNAME';
      return $self;
    }
+
   #ERROR_SHORT_PASSWORD
   elsif($DATA{LOGIN} !~ /$usernameregexp/) {
      $self->{errno} = 10;
@@ -604,10 +607,12 @@ sub add {
   
   $DATA{DISABLE} = int($DATA{DISABLE});
   $self->query($db,  "INSERT INTO users (id, activate, expire, credit, reduction, 
-           registration, disable, company_id, gid)
+           registration, disable, company_id, gid, password)
            VALUES ('$DATA{LOGIN}', '$DATA{ACTIVATE}', '$DATA{EXPIRE}', '$DATA{CREDIT}', '$DATA{REDUCTION}', 
            now(),  '$DATA{DISABLE}', 
-           '$DATA{COMPANY_ID}', '$DATA{GID}');", 'do');
+           '$DATA{COMPANY_ID}', '$DATA{GID}', 
+           ENCODE('$DATA{PASSWORD}', '$CONF->{secretkey}')
+            );", 'do');
   
   return $self if ($self->{errno});
   
