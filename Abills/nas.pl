@@ -23,10 +23,10 @@ my %stats = ();
 
 #*******************************************************************
 # Hangup active port
-# hangup($NAS_HASH_REF, $PORT, $USER, $SESSION_ID);
+# hangup($NAS_HASH_REF, $PORT, $USER, $attr);
 #*******************************************************************
 sub hangup {
- my ($Nas, $PORT, $USER, $SESSION_ID) = @_;
+ my ($Nas, $PORT, $USER, $attr) = @_;
 
  $NAS = $Nas;
  $nas_type = $NAS->{NAS_TYPE};
@@ -51,7 +51,7 @@ sub hangup {
     hangup_mpd($NAS, $PORT);
   }
  elsif ($nas_type eq 'pppd') {
-   hangup_pppd($NAS, $PORT);
+   hangup_pppd($NAS, $PORT, { FRAMED_IP_ADDRESS => $attr->{FRAMED_IP_ADDRESS} });
   }
  else {
     return 1;
@@ -616,7 +616,7 @@ sub stats_pppd  {
 # hangup_pppd($SERVER, $PORT)
 #*******************************************************************
 sub hangup_pppd {
- my ($NAS, $id) = @_;
+ my ($NAS, $id, $attr) = @_;
 
  use FindBin '$Bin';
  
