@@ -247,7 +247,7 @@ if ($ACTION eq 'up') {
          }
         else {
           push @FW_ACTIONS, "/sbin/tc qdisc add dev $INTERFACE root handle $fw_num_out: htb default 10";
-          push @FW_ACTIONS, "/sbin/tc class add dev $INTERFACE parent $fw_num_out: classid 1:10 htb rate $speed_in";
+          push @FW_ACTIONS, "/sbin/tc class add dev $INTERFACE parent $fw_num_out: classid 1:10 htb rate $speed_out";
           push @FW_ACTIONS, "/sbin/tc qdisc add dev $INTERFACE parent $fw_num_out:10 handle 10: sfq perturb 10";
          }
        }
