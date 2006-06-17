@@ -244,8 +244,10 @@ my ($menu_text, $navigat_menu) = mk_navigator();
 my ($online_users, $online_count) = $admin->online();
 
 
-print "<table width=100%>
+print "
+<table width=100%>
 <tr bgcolor='$_COLORS[3]'><td colspan='2'>
+<div class='header'>
 <form action='$SELF_URL'>
 <table width='100%' border='0'>
   <tr><th align='left'>$_DATE: $DATE $TIME Admin: <a href='$SELF_URL?index=53'>$admin->{A_LOGIN}</a> / Online: <abbr title=\"$online_users\"><a href='$SELF_URL?index=50' title='$online_users'>Online: $online_count</a></abbr></th>
@@ -255,6 +257,7 @@ print "<table width=100%>
     'height=550,width=450,resizable=0,scrollbars=yes,menubar=no, status=yes');\">?</a></b>)</th></tr>
 </table>
 </form>
+</div>
 </td></tr>\n";
 
 
@@ -263,11 +266,11 @@ my $users = Users->new($db, $admin, \%conf);
 
 
 if(defined($conf{tech_works})) {
-  print "<tr><th bgcolor=#FF0000 colspan=2>$conf{tech_works}</th></tr>";
+  print "<tr><th bgcolor='#FF0000' colspan='2'>$conf{tech_works}</th></tr>";
 }
 
 if (defined($COOKIES{qm}) && $COOKIES{qm} ne '') {
-  print "<tr><td colspan=2><table width=100% border=0>";
+  print "<tr><td colspan='2' class='noprint'><table  width='100%' border='0'>";
 	my @a = split(/,/, $COOKIES{qm});
   my $i = 0;
 	foreach my $line (@a) {
@@ -280,7 +283,7 @@ if (defined($COOKIES{qm}) && $COOKIES{qm} ne '') {
     
     $qm_name = $menu_names{$qm_id} if ($qm_name eq '');
     
-    print "<th bgcolor=$color>";
+    print "<th bgcolor='$color'>";
     if (defined($menu_args{$qm_id})) {
     	my $args = 'LOGIN_EXPR' if ($menu_args{$qm_id} eq 'UID');
       print $html->button("$qm_name", '', 
@@ -297,10 +300,10 @@ if (defined($COOKIES{qm}) && $COOKIES{qm} ne '') {
   print "</table></td></tr>\n";
 }
 
-print "<tr><td valign=top width=18% bgcolor=$_COLORS[2] rowspan=2>
+print "<tr><td valign=top width=18% bgcolor=$_COLORS[2] rowspan=2 class='noprint'>
 $menu_text
-</td><td bgcolor=$_COLORS[0] height=50>$navigat_menu</td></tr>
-<tr><td valign=top align=center>";
+</td><td bgcolor='$_COLORS[0]' height='50'>$navigat_menu</td></tr>
+<tr><td valign='top' align='center'>";
 
 
 if ($functions{$index}) {
@@ -328,13 +331,14 @@ else {
 
 
 print "</td></tr></table>\n";
+
 if ($begin_time > 0) {
   my $end_time = gettimeofday;
   my $gen_time = $end_time - $begin_time;
   $conf{version} .= " (Generation time: $gen_time)";
 }
-print '<hr>'. $conf{version};
 
+print '<hr> ABillS '. $conf{version};
 
 $html->test();
 
@@ -913,10 +917,10 @@ elsif ($users->{TOTAL} == 1) {
 	return 0;
 }
 
-
+#User list
 my $table = $html->table( { width      => '100%',
                             title      => \@TITLE,
-                            cols_align => ['left', 'left', 'right', 'right', 'center', 'center', 'center', 'center'],
+                            cols_align => ['left', 'left', 'right', 'right', 'center', 'center:noprint', 'center:noprint'],
                             qs         => $pages_qs,
                             pages      => $users->{TOTAL}
                           });
@@ -942,7 +946,7 @@ $table->addtd(
                   @fields_array, 
                   $table->td($payments),
                   $table->td($fees)
-      );
+         );
 
 }
 print $table->show();
@@ -1220,7 +1224,7 @@ my $list = $admin->action_list({ %LIST_PARAMS });
 my $table = $html->table( { width      => '100%',
                             border     => 1,
                             title      => ['#', 'UID',  $_DATE,  $_CHANGE,  $_ADMIN,   'IP', "$_MODULES", '-'],
-                            cols_align => ['right', 'left', 'right', 'left', 'left', 'right', 'center'],
+                            cols_align => ['right', 'left', 'right', 'left', 'left', 'right', 'left', 'center:noprint'],
                             qs         => $pages_qs,
                             pages      => $admin->{TOTAL}
                            });
@@ -1992,15 +1996,16 @@ if ($nas->{errno}) {
 
 # my @nas_types = ('other', 'usr', 'pm25', 'ppp', 'exppp', 'radpppd', 'expppd', 'pppd', 'dslmax', 'mpd', 'gnugk');
  my %nas_descr = (
-  'usr'      => "USR Netserver 8/16",
+  'usr'       => "USR Netserver 8/16",
   'pm25'      => 'LIVINGSTON portmaster 25',
   'ppp'       => 'FreeBSD ppp demon',
   'exppp'     => 'FreeBSD ppp demon with extended futures',
   'dslmax'    => 'ASCEND DSLMax',
   'expppd'    => 'pppd deamon with extended futures',
   'radpppd'   => 'pppd version 2.3 patch level 5.radius.cbcp',
-  'mpd'       => 'MPD',
+  'mpd'       => 'MPD with kha0s patch',
   'ipcad'     => 'IP accounting daemon with Cisco-like ip accounting export',
+  'lepppd'    => 'Linux PPPD IPv4 zone counters',
   'pppd'      => 'pppd + RADIUS plugin (Linux)',
   'gnugk'     => 'GNU GateKeeper',
   'cisco'     => 'Cisco (Experimental)',
@@ -2030,7 +2035,7 @@ $html->tpl_show(templates('form_nas'), $nas);
 my $table = $html->table( { width      => '100%',
                             caption    => "$_NAS",
                             title      => ["ID", "$_NAME", "NAS-Identifier", "IP", "$_TYPE", "$_AUTH", "$_STATUS", '-', '-', '-'],
-                            cols_align => ['center', 'left', 'left', 'right', 'left', 'left', 'center', 'center', 'center', 'center'],
+                            cols_align => ['center', 'left', 'left', 'right', 'left', 'left', 'center', 'center:noprint', 'center:noprint', 'center:noprint'],
                            });
 
 my $list = $nas->list({ %LIST_PARAMS });
@@ -2828,7 +2833,7 @@ my $table = $html->table( { width => '100%',
                             caption => "$_PAYMENTS",
                             border => 1,
                             title => ['ID', $_LOGIN, $_DATE, $_SUM, $_DESCRIBE, $_ADMINS, 'IP',  $_DEPOSIT, $_PAYMENT_METHOD, 'ID', '-'],
-                            cols_align => ['right', 'left', 'right', 'right', 'left', 'left', 'right', 'right', 'left', 'left', 'center'],
+                            cols_align => ['right', 'left', 'right', 'right', 'left', 'left', 'right', 'right', 'left', 'left', 'center:noprint'],
                             qs => $pages_qs,
                             pages => $payments->{TOTAL}
                            } );
@@ -3050,13 +3055,13 @@ if (! defined($FORM{sort})) {
  }
 
 my $list = $fees->list( { %LIST_PARAMS } );
-my $table = $html->table( { width   => '100%',
-                                   caption => "$_FEES",
-                                   border  => 1,
-                                   title   => ['ID', $_LOGIN, $_DATE, $_SUM, $_DESCRIBE, $_ADMINS, 'IP',  $_DEPOSIT, '-'],
-                                   cols_align => ['right', 'left', 'right', 'right', 'left', 'left', 'right', 'right', 'center'],
-                                   qs      => $pages_qs,
-                                   pages   => $fees->{TOTAL}
+my $table = $html->table( { width      => '100%',
+                            caption    => "$_FEES",
+                            border     => 1,
+                            title      => ['ID', $_LOGIN, $_DATE, $_SUM, $_DESCRIBE, $_ADMINS, 'IP',  $_DEPOSIT, '-'],
+                            cols_align => ['right', 'left', 'right', 'right', 'left', 'left', 'right', 'right', 'center:noprint'],
+                            qs         => $pages_qs,
+                            pages      => $fees->{TOTAL}
                                   } );
 
 

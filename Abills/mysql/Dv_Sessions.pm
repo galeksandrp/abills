@@ -193,15 +193,20 @@ sub online_del {
 	my $self = shift;
 	my ($attr) = @_;
 
-  my $NAS_ID  = (defined($attr->{NAS_ID})) ? $attr->{NAS_ID} : '';
-  my $NAS_PORT        = (defined($attr->{NAS_PORT})) ? $attr->{NAS_PORT} : '';
-  my $ACCT_SESSION_ID = (defined($attr->{ACCT_SESSION_ID})) ? $attr->{ACCT_SESSION_ID} : '';
-
-
-  $self->query($db, "DELETE FROM dv_calls WHERE 
-                nas_id=INET_ATON('$NAS_ID')
+  if ($attr->{SESSIONS_LIST}) {
+  	my $session_list = join("', '", @{$attr->{SESSIONS_LIST}});
+  	$WHERE = "acct_session_id in ( '$session_list' )";
+   }
+  else {
+    my $NAS_ID  = (defined($attr->{NAS_ID})) ? $attr->{NAS_ID} : '';
+    my $NAS_PORT        = (defined($attr->{NAS_PORT})) ? $attr->{NAS_PORT} : '';
+    my $ACCT_SESSION_ID = (defined($attr->{ACCT_SESSION_ID})) ? $attr->{ACCT_SESSION_ID} : '';
+    $WHERE = "nas_id=INET_ATON('$NAS_ID')
             and nas_port_id='$NAS_PORT' 
-            and acct_session_id='$ACCT_SESSION_ID';", 'do');
+            and acct_session_id='$ACCT_SESSION_ID'";
+   }
+
+  $self->query($db, "DELETE FROM dv_calls WHERE $WHERE;", 'do');
 
   return $self;
 }

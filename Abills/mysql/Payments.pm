@@ -196,7 +196,7 @@ sub list {
     push @WHERE_RULES, "p.method='$attr->{METHOD}' ";
   }
  if ($attr->{DATE}) {
-    my $value = $self->search_expr("'$attr->{DATE}'", 'INT');
+    my $value = $self->search_expr("$attr->{DATE}", 'INT');
     push @WHERE_RULES,  " date_format(p.date, '%Y-%m-%d')$value ";
   }
 

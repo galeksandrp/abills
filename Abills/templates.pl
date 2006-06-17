@@ -38,7 +38,7 @@ sub templates {
 
 if ($tpl_name eq 'form_pi') {
 return qq{
-<form action=$SELF_URL method=post>
+<form action='$SELF_URL' method='post'>
 <input type=hidden name=index value=$index>
 <input type=hidden name=UID value="%UID%">
 <TABLE width=420 cellspacing=0 cellpadding=3>
@@ -159,6 +159,7 @@ return qq{
 }
 elsif ($tpl_name eq 'form_payments') {
 return qq{
+<div class='noprint'>
 <form action='$SELF_URL' METHOD='POST'>
 <input type=hidden name=index value=$index>
 <input type=hidden name=subf value=$FORM{subf}>
@@ -174,10 +175,12 @@ return qq{
 </TABLE>
 <input type=submit name=add value='$_ADD'>
 </form>
+</div>
 };
  }
 elsif ($tpl_name eq 'form_fees') {
 return qq{
+<div class='noprint'>
 <form action="$SELF_URL">
 <input type=hidden name=UID value='%UID%'>
 <input type=hidden name=index value='$index'>
@@ -191,6 +194,7 @@ return qq{
 </TABLE>
 <input type=submit name='take' value='$_TAKE'>
 </form>
+</div>
 }
 
 }
@@ -278,6 +282,7 @@ return qq{
 
 elsif ($tpl_name eq 'ti') {
 return qq{
+<div class='noprint'>
 <form action="$SELF_URL">
 <input type=hidden name='index' value='$index'>
 <input type=hidden name='TP_ID' value='%TP_ID%'>
@@ -290,6 +295,7 @@ return qq{
 </TABLE>
 <input type=submit name='%ACTION%' value='%LNG_ACTION%'>
 </form>
+</div>
 };
  }
 elsif ($tpl_name eq 'form_admin') {
@@ -309,6 +315,7 @@ return qq{<form action=$SELF_URL>
 }
 elsif ($tpl_name eq 'form_nas') {
 return qq{
+<div class="noprint">
 <form action=$SELF_URL METHOD=post>
 <input type=hidden name="index" value="60">
 <input type=hidden name="NAS_ID" value="%NAS_ID%">
@@ -331,6 +338,7 @@ return qq{
 </TABLE>
 <input type=submit name=%ACTION% value='%LNG_ACTION%'>
 </form>
+</div>
 };
 
 }
@@ -401,49 +409,51 @@ return qq{
 <form action=$SELF_URL>
 <input type=hidden name=index value=11>
 <input type=hidden name=UID value=%UID%>
-<input type=hidden name=user_f value=chg_company>
+<input type=hidden name='user_f' value='chg_company'>
 <Table>
 <TR><TD>$_COMPANY:</TD><TD>%COMPANY_NAME%</TD></TR>
 <TR><TD>$_TO:</TD><TD>%SEL_COMPANIES%</TD></TR>
 </TABLE>
-<input type=submit name=change value=$_CHANGE>
+<input type='submit' name='change' value='$_CHANGE'>
 </form>
 }
 }
 elsif ($tpl_name eq 'chg_group') {
 return qq{
 <form action=$SELF_URL>
-<input type=hidden name=index value=11>
-<input type=hidden name=UID value=%UID%>
-<input type=hidden name=user_f value=chg_group>
+<input type='hidden' name='index' value='11'>
+<input type='hidden' name='UID' value='%UID%'>
+<input type='hidden' name='user_f' value='chg_group'>
 <Table>
 <TR><TD>$_GROUP:</TD><TD>%GID%:%G_NAME%</TD></TR>
 <TR><TD>$_TO:</TD><TD>%SEL_GROUPS%</TD></TR>
 </TABLE>
-<input type=submit name=change value=$_CHANGE>
+<input type='submit' name='change' value='$_CHANGE'>
 </form>
 }
 }
 elsif ($tpl_name eq 'form_search') {
 return qq{
+<div class='noprint'>
 <form action='$SELF_URL' METHOD='POST'>
 <input type='hidden' name='index' value='$index'>
 %HIDDEN_FIELDS%
 <TABLE>
-<TR><TD>$_LOGIN:</TD><TD><input type=text name=LOGIN_EXPR value='%LOGIN_EXPR%'></TD></TR>
+<TR><TD>$_LOGIN:</TD><TD><input type='text' name='LOGIN_EXPR' value='%LOGIN_EXPR%'></TD></TR>
 %SEL_TYPE%
 <TR><TD>$_PERIOD:</TD><TD>
-<TABLE width=100%>
+<TABLE width='100%'>
 <TR><TD>$_FROM: </TD><TD>%FROM_DATE%</TD></TR>
 <TR><TD>$_TO:</TD><TD>%TO_DATE%</TD></TR>
 </TABLE>
 </TD></TR>
 <TR><TD colspan=2>&nbsp;</TD></TR>
-<TR><TD>$_ROWS:</TD><TD><input type=text name=PAGE_ROWS value=$PAGE_ROWS></TD></TR>
+<TR><TD>$_ROWS:</TD><TD><input type='text' name='PAGE_ROWS' value='$PAGE_ROWS'></TD></TR>
 %SEARCH_FORM%
 </TABLE>
-<input type=submit name=search value=$_SEARCH>
+<input type='submit' name='search' value='$_SEARCH'>
 </form>
+</div>
 };
 	
 }

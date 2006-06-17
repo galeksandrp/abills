@@ -534,7 +534,8 @@ foreach my $ID (@s) {
  
  my @last_array = ();
 
- my $menu_text = "<table border='0' width='100%'>\n";
+ my $menu_text = "<div class='menu'>
+ <table border='0' width='100%'>\n";
 
  	  my $level  = 0;
  	  my $prefix = '';
@@ -598,7 +599,7 @@ foreach my $ID (@s) {
 #  }
  
  
- $menu_text .= "</table>\n";
+ $menu_text .= "</table>\n</div>\n";
  
  return ($menu_navigator, $menu_text);
 }
@@ -686,7 +687,14 @@ sub header {
    @_COLORS = split(/, /, $COOKIES{colors});
   }
 
- my $JAVASCRIPT = ($attr->{PATH}) ? "$attr->{PATH}functions.js" : "functions.js";
+ my $JAVASCRIPT = "functions.js"; 
+ my $PRINTCSS = "print.css";
+
+ if ($attr->{PATH}) {
+ 	 $JAVASCRIPT = "$attr->{PATH}$JAVASCRIPT";
+ 	 $PRINTCSS = "$attr->{PATH}$PRINTCSS";
+  }
+
  my $css = css();
 
  my $CHARSET=(defined($attr->{CHARSET})) ? $attr->{CHARSET} : 'windows-1251';
@@ -697,19 +705,21 @@ $self->{header} .= qq{
 <html>
 <head>
  $REFRESH
- <META HTTP-EQUIV="Cache-Control" content="no-cache"\>
- <META HTTP-EQUIV="Pragma" CONTENT="no-cache"\>
- <meta http-equiv="Content-Type" content="text/html; charset=$CHARSET"\>
- <meta name="Author" content="~AsmodeuS~"\>
+ <META HTTP-EQUIV="Cache-Control" content="no-cache"/>
+ <META HTTP-EQUIV="Pragma" CONTENT="no-cache"/>
+ <meta http-equiv="Content-Type" content="text/html; charset=$CHARSET"/>
+ <meta name="Author" content="~AsmodeuS~"/>
 };
 
 $self->{header} .= $css;
 $self->{header} .= 
-"<script src=\"$JAVASCRIPT\" type=\"text/javascript\" language=\"javascript\"></script>\n".
+" <link rel=\"stylesheet\" media=\"print\" type=\"text/css\" href=\"$PRINTCSS\" />
+ <script src=\"$JAVASCRIPT\" type=\"text/javascript\" language=\"javascript\"></script>\n".
+
 q{ 
 <title>~AsmodeuS~ Billing System</title>
 </head>} .
-"\n<body style='margin: 0' bgcolor=\"$_COLORS[10]\" text=\"$_COLORS[9]\" link=\"$_COLORS[8]\"  vlink=\"$_COLORS[7]\">\n";
+"\n<body style=\"margin: 0\" bgcolor=\"$_COLORS[10]\" text=\"$_COLORS[9]\" link=\"$_COLORS[8]\"  vlink=\"$_COLORS[7]\">\n";
 
  return $self->{header};
 }
@@ -792,6 +802,9 @@ TABLE.border {
   border-style : solid;
   border-width : 1px;
 }
+
+
+
 </style>";
 
  return $css;
@@ -833,6 +846,7 @@ sub table {
  
  my $width = (defined($attr->{width})) ? "width=\"$attr->{width}\"" : '';
  my $border = (defined($attr->{border})) ? "border=\"$attr->{border}\"" : '';
+ my $table_class = (defined($attr->{class})) ? "class=\"$attr->{class}\"" : '';
 
  if (defined($attr->{rowcolor})) {
     $self->{rowcolor} = $attr->{rowcolor};
@@ -848,10 +862,10 @@ sub table {
      }
   }
 
- $self->{table} = "<TABLE $width cellspacing=\"0\" cellpadding=\"0\" border=\"0\">\n";
+ $self->{table} = "<TABLE $width cellspacing=\"0\" cellpadding=\"0\" border=\"0\"$table_class>\n";
  
  if (defined($attr->{caption})) {
-   $self->{table} .= "<TR><TD bgcolor=\"$_COLORS[1]\" align=\"right\"><b>$attr->{caption}</b></td></TR>\n";
+   $self->{table} .= "<TR><TD bgcolor=\"$_COLORS[1]\" align=\"right\" class=\"tcaption\"><b>$attr->{caption}</b></td></TR>\n";
   }
 
  $self->{table} .= "<TR><TD bgcolor=\"$_COLORS[4]\">
@@ -869,7 +883,13 @@ sub table {
    $self->{table} .= "<COLGROUP>";
    my $cols_align = $attr->{cols_align};
    foreach my $line (@$cols_align) {
-     $self->{table} .= " <COL align=\"$line\">\n";
+     my $class = '';
+     if ($line =~ /:/) {
+       ($line, $class) = split(/:/, $line,  2);
+       $class = " class=\"$class\"";
+      }
+     
+     $self->{table} .= " <COL align=\"$line\"$class>\n";
     }
    $self->{table} .= "</COLGROUP>\n";
   }
@@ -977,7 +997,7 @@ sub table_title_plain {
   $self->{table_title} = "<tr bgcolor=\"$_COLORS[0]\">";
 	
   foreach my $line (@$caption) {
-    $self->{table_title} .= "<th class=table_title>$line</th>";
+    $self->{table_title} .= "<th class='table_title'>$line</th>";
    }
 	
   $self->{table_title} .= "</TR>\n";
@@ -1004,7 +1024,7 @@ sub table_title  {
   $self->{table_title} = "<tr bgcolor=\"$_COLORS[0]\">";
   my $i=1;
   foreach my $line (@$caption) {
-     $self->{table_title} .= "<th  class=table_title>$line ";
+     $self->{table_title} .= "<th  class='table_title'>$line ";
      if ($line ne '-') {
          if ($sort != $i) {
              $img = 'sort_none.png';
@@ -1029,7 +1049,7 @@ sub table_title  {
          	  $op="op=$get_op";
           }
 
-         $self->{table_title} .= $self->button("<img src='$IMG_PATH/$img' width=\"12\" height=10 border=0 alt='Sort' title=sort>", "$op$qs&pg=$pg&sort=$i&desc=$desc");
+         $self->{table_title} .= $self->button("<img src='$IMG_PATH/$img' width='12\' height='10' border='0' alt='Sort' title='sort' class='noprint'>", "$op$qs&pg=$pg&sort=$i&desc=$desc");
        }
      else {
          $self->{table_title} .= "$line";
@@ -1119,7 +1139,7 @@ sub message {
  
 my $output = qq{
 <br>
-<TABLE width="400" border="0" cellpadding="0" cellspacing="0">
+<TABLE width="400" border="0" cellpadding="0" cellspacing="0" class="noprint">
 <tr><TD bgcolor="$_COLORS[9]">
 <TABLE width="100%" border=0 cellpadding="2" cellspacing="1">
 <tr><TD bgcolor="$_COLORS[1]">
