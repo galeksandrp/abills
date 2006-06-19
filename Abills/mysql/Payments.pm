@@ -201,7 +201,7 @@ sub list {
   }
 
   if ($attr->{MONTH}) {
-    my $value = $self->search_expr("'$attr->{MONTH}'", 'INT');
+    my $value = $self->search_expr("$attr->{MONTH}", 'INT');
     push @WHERE_RULES,  " date_format(p.date, '%Y-%m')$value ";
   }
 

@@ -446,7 +446,7 @@ elsif($FORM{COMPANY_ID}) {
      $_USERS    => "11:COMPANY_ID=$company->{COMPANY_ID}",
      $_PAYMENTS => "2:COMPANY_ID=$company->{COMPANY_ID}",
      $_FEES     => "3:COMPANY_ID=$company->{COMPANY_ID}",
-     $_ADD_USER => "12:COMPANY_ID=$FORM{COMPANY_ID}",
+     $_ADD_USER => "24:COMPANY_ID=$FORM{COMPANY_ID}",
      $_BILL     => "19:COMPANY_ID=$FORM{COMPANY_ID}"
   	 });
  
@@ -2447,7 +2447,6 @@ sub report_payments {
   $LIST_PARAMS{PAGE_ROWS}=1000;
   use Finance;
   my $payments = Finance->payments($db, $admin, \%conf);
-
 
 if (defined($FORM{DATE})) {
   $list  = $payments->list( { %LIST_PARAMS } );
