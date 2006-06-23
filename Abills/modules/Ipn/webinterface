@@ -1306,27 +1306,45 @@ sub ipn_user_activate {
   my $ip = '0.0.0.0';
   my $IP_INPUT = '';
   if (! $user->{UID})  {
-    $IP_INPUT = $html->form_input('REMOTE_ADDR', "$ENV{REMOTE_ADDR}", { OUTPUT2RETURN => 1});
-    $ip = ($FORM{REMOTE_ADDR}) ? $FORM{REMOTE_ADDR} : $ENV{REMOTE_ADDR};
+     $IP_INPUT = $html->form_input('REMOTE_ADDR', "$ENV{REMOTE_ADDR}", { OUTPUT2RETURN => 1});
+
+     $ip = ($FORM{REMOTE_ADDR}) ? $FORM{REMOTE_ADDR} : $ENV{REMOTE_ADDR};
    } 
   else {
     $ip = $ENV{REMOTE_ADDR};
    }
- 
-  my $nas_id = 0;
-  my $poll_list = $nas->ip_pools_list();
-  my $ip_num = unpack("N", pack("C4", split( /\./, $ip))); 
 
-  # Get valid NAS
-  foreach my $line (@$poll_list) {
-  	if ( ($line->[1] <= $ip_num) && ($ip_num <= $line->[2]) ) {
-  		$nas_id=$line->[7];
-  	 }
+
+  my $nas_id = 0; 
+  if (! $user->{UID} && defined ($FORM{NAS_ID}))  {
+    $nas_id=int($FORM{NAS_ID});
    }
- 
+  else {
+    my $poll_list = $nas->ip_pools_list();
+    my $ip_num = unpack("N", pack("C4", split( /\./, $ip))); 
+  
+    # Get valid NAS
+    foreach my $line (@$poll_list) {
+    	if ( ($line->[1] <= $ip_num) && ($ip_num <= $line->[2]) ) {
+  	  	$nas_id=$line->[7];
+  	   } 
+     }
+   }
+
   if ($nas_id < 1) {
   	$html->message('err', $_ERROR, "$_NOT_EXIST IP '$ip'");
-  	return 0;
+  	if (! $user->{UID}) {
+      $IP_INPUT .= $html->form_select('NAS_ID', 
+                                    { 
+ 	                                   SELECTED  => $nas_id,
+ 	                                   SEL_MULTI_ARRAY   => $nas->list(),
+ 	                                   MULTI_ARRAY_KEY   => 0,
+ 	                                   MULTI_ARRAY_VALUE => 1,
+ 	                                  });
+  	 }
+    else {
+    	return 0;
+     }
    }
 
 
@@ -1440,7 +1458,7 @@ sub ipn_user_activate {
    }
 
 
-  print $html->form_main({ CONTENT => "IP: $ip $IP_INPUT (". $nas_id.") ", 
+  print $html->form_main({ CONTENT => "IP: $ip $IP_INPUT (". $nas_id .") ", 
 
                      HIDDEN  => { index   => "$index",
                      	            UID     => $LIST_PARAMS{UID},

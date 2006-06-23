@@ -2,23 +2,19 @@
 # Radius Accounting 
 #
 
-use vars  qw(%RAD %conf $db %ACCT);
+use vars  qw(%RAD %conf $db %ACCT
+ %RAD_REQUEST %RAD_REPLY %RAD_CHECK 
+ $begin_time
+ $nas);
 use strict;
 
 use FindBin '$Bin';
 require $Bin . '/config.pl';
-#use lib '../', "../Abills/$conf{dbtype}";
 unshift(@INC, $Bin . '/../', $Bin ."/../Abills/$conf{dbtype}");
-
-
 
 require Abills::Base;
 Abills::Base->import();
 my $begin_time = check_time();
-
-# Max session tarffic limit  (Mb)
-$conf{MAX_SESSION_TRAFFIC} = 2048; 
-
 
 ############################################################
 # Accounting status types
@@ -69,67 +65,61 @@ my %ACCT_TERMINATE_CAUSES = (
                       'Port-Disabled'       =>     22       
                     );
 
-
 ####################################################################
-my $RAD = get_radius_params();
-test_radius_returns($RAD);
+#test_radius_returns($RAD);
 #####################################################################
 
-#my $t = "\n\n";
-#while(my($k, $v)=each(%$RAD)) {
-#	$t .= "$k=\\\"$v\\\"\n";
-#}
-#print $t;
-#my $a = `echo "$t" >> /tmp/voip_test`;
 
 
 
-if (! defined($RAD->{NAS_IP_ADDRESS})) {
-  $RAD->{USER_NAME}='-' if (! defined($RAD->{USER_NAME}));
-  access_deny("$RAD->{USER_NAME}", "Not specified NAS server", 0);
-  exit 1;
+my $RAD;
+if (! defined(%RAD_REQUEST)) {
+  $RAD = get_radius_params();
+  if (! defined($RAD->{NAS_IP_ADDRESS})) {
+    $RAD->{USER_NAME}='-' if (! defined($RAD->{USER_NAME}));
+    access_deny("$RAD->{USER_NAME}", "Not specified NAS server", 0);
+    return 1;
+   }
+
+  require Abills::SQL;
+  my $sql = Abills::SQL->connect($conf{dbtype}, "$conf{dbhost}", $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
+  $db = $sql->{db};
+
+  require Nas;
+  $nas = Nas->new($db, \%conf);	
+  my %NAS_PARAMS = ('IP' => "$RAD->{NAS_IP_ADDRESS}");
+  $NAS_PARAMS{NAS_IDENTIFIER}=$RAD->{NAS_IDENTIFIER} if (defined($RAD->{NAS_IDENTIFIER}));
+  $nas->info({ %NAS_PARAMS });
+
+  if ($nas->{errno} || $nas->{TOTAL} < 1) {
+    access_deny("$RAD->{USER_NAME}", "Unknow server '$RAD->{NAS_IP_ADDRESS}'", 0);
+    #exit 1;
+   }
+
+  my $acct = acct($RAD, $nas);
+
+  if(defined($acct->{errno})) {
+	  log_print('LOG_ERROR', "ACCT [$RAD->{USER_NAME}] $acct->{errstr}");
+   }
+
+  #$db->disconnect();
 }
 
-require Abills::SQL;
-my $sql = Abills::SQL->connect($conf{dbtype}, "$conf{dbhost}", $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
-my $db = $sql->{db};
-
-require Nas;
-my $nas = Nas->new($db, \%conf);	
-my %NAS_PARAMS = ('IP' => "$RAD->{NAS_IP_ADDRESS}");
-$NAS_PARAMS{NAS_IDENTIFIER}=$RAD->{NAS_IDENTIFIER} if (defined($RAD->{NAS_IDENTIFIER}));
-$nas->info({ %NAS_PARAMS });
-
-if ($nas->{errno} || $nas->{TOTAL} < 1) {
-  access_deny("$RAD->{USER_NAME}", "Unknow server '$RAD->{NAS_IP_ADDRESS}'", 0);
-  exit 1;
-}
-
-
-my $acct = acct($RAD);
-
-
-if(defined($acct->{errno})) {
-	log_print('LOG_ERROR', "ACCT [$RAD->{USER_NAME}] $acct->{errstr}");
-}
-
-#$db->disconnect();
 
 
 #*******************************************************************
 # acct();
 #*******************************************************************
 sub acct {
- my ($RAD) = @_;
+ my ($RAD, $nas) = @_;
  my $GT = '';
 
  if (defined($USER_TYPES{$RAD->{SERVICE_TYPE}}) && $USER_TYPES{$RAD->{SERVICE_TYPE}} == 6) {
    log_print('LOG_DEBUG', "ACCT [$RAD->{USER_NAME}] $RAD->{SERVICE_TYPE}");
-   exit 0;	
+   return 0;	
   }
 
   my $acct_status_type = $ACCT_TYPES{$RAD->{ACCT_STATUS_TYPE}};
-  
 
   if (defined($conf{octets_direction}) && $conf{octets_direction} eq 'server') {
     $RAD->{INBYTE} = $RAD->{ACCT_INPUT_OCTETS} || 0;   # FROM client
@@ -220,8 +210,6 @@ if (-d $conf{extern_acct_dir}) {
 my $r = 0;
 my $Acct;
 
-#print "aaaa\n\n\n";
-
 if(defined($ACCT{$nas->{NAS_TYPE}})) {
   require $ACCT{$nas->{NAS_TYPE}} . ".pm";
   $ACCT{$nas->{NAS_TYPE}}->import();
@@ -249,9 +237,10 @@ if ($Acct->{errno}){
 # access_deny($user, $message);
 #*******************************************************************
 sub access_deny {
-my ($user, $message, $nas_num) = @_;
-
- log_print('LOG_WARNING', "AUTH [$user] NAS: $nas_num $message");
-
-exit 1;
+  my ($user, $message, $nas_num) = @_;
+  log_print('LOG_WARNING', "AUTH [$user] NAS: $nas_num $message");
+  return 1;
 }
+
+
+1

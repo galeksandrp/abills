@@ -42,7 +42,7 @@ sub new {
   ($db, $conf) = @_;
   my $self = { };
   bless($self, $class);
-  #$self->{debug}=1;
+
   return $self;
 }
 
@@ -146,7 +146,6 @@ elsif ($acct_status_type == 2) {
    }
 
   # Delete from session
-  $self->{debug}=1;
   $self->query($db, "DELETE FROM dv_calls WHERE acct_session_id=\"$RAD->{ACCT_SESSION_ID}\" 
      and user_name=\"$RAD->{USER_NAME}\" 
      and nas_id='$NAS->{NAS_ID}';", 'do');

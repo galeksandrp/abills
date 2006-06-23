@@ -976,7 +976,7 @@ sub check_systemauth {
 
  if ($< != 0) {
    log_print('LOG_ERR', "For system Authentification you need root privileges");
-   exit 1;
+   return 1;
   }
 
  my @pw = getpwnam("$user");
@@ -1074,16 +1074,16 @@ if (defined($RAD->{MS_CHAP_CHALLENGE}) || defined($RAD->{EAP_MESSAGE})) {
   	my $list = $self->{list}->[0];
     my $password = $list->[0];
     print "User-Password == \"$password\"";
-    exit 0;
+    return 0;
    }
 
   $self->{errno} = 1;
   $self->{errstr} = "USER: '$RAD->{USER_NAME}' not exist";
-  exit 1;
+  return 1;
  }
 
   print "Auth-Type := Accept\n";
-  exit 0;
+  return 0;
 
 
 }

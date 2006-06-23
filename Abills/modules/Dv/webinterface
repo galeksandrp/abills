@@ -176,7 +176,6 @@ sub dv_users_list {
 
 
 
-
 my $list = $Dv->list( { %LIST_PARAMS } );
 
 my @TITLE = ($_LOGIN, $_FIO, $_DEPOSIT, $_CREDIT, $_TARIF_PLANS, $_STATUS, '-', '-');
