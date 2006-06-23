@@ -1928,7 +1928,6 @@ sub form_nas {
   $nas->{ACTION}='add';
   $nas->{LNG_ACTION}=$_ADD;
 
-
 if($FORM{NAS_ID}) {
   $nas->info( { NAS_ID => $FORM{NAS_ID}	} );
   $pages_qs .= "&NAS_ID=$FORM{NAS_ID}&subf=$FORM{subf}";
