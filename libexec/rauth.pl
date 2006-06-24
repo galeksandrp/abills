@@ -108,6 +108,7 @@ sub get_nas_info {
 if (defined($nas->{errno}) || $nas->{TOTAL} < 1) {
   # (defined($RAD->{NAS_IDENTIFIER})) ? $RAD->{NAS_IDENTIFIER} : ''
   access_deny("$RAD->{USER_NAME}", "Unknow server '$RAD->{NAS_IP_ADDRESS}'", 0);
+  $RAD_REPLY{'Reply-Message'}="Unknow server '$RAD->{NAS_IP_ADDRESS}'";
   return 1;
  }
 elsif(! defined($RAD->{USER_NAME}) || $RAD->{USER_NAME} eq '') {
@@ -154,9 +155,9 @@ else {
   my $Auth = Auth->new($db, \%conf);
   ($r, $RAD_PAIRS) = $Auth->dv_auth($RAD, $nas, 
                                        { MAX_SESSION_TRAFFIC => $conf{MAX_SESSION_TRAFFIC}  } );
-  %RAD_REPLY = %$RAD_PAIRS;
 }
 
+  %RAD_REPLY = %$RAD_PAIRS;
 
 #If Access deny
  if($r == 1){
@@ -223,8 +224,8 @@ sub post_auth {
   if (defined($RAD->{CALLING_STATION_ID})) {
     $reject_info=" CID $RAD->{CALLING_STATION_ID}";
    }
-  log_print('LOG_INFO', "AUTH [$RAD->{USER_NAME}] AUTH REJECT$reject_info$GT");
 
+  log_print('LOG_INFO', "AUTH [$RAD->{USER_NAME}] AUTH REJECT$reject_info$GT");
   # return RLM_MODULE_OK;
 }
 
