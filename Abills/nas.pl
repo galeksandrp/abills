@@ -514,19 +514,14 @@ sub stats_exppp {
 sub hangup_mpd {
  my ($NAS_IP, $PORT) = @_;
 
-
  my $ctl_port = "pptp$PORT";
- my @commands = ();
- 
- push @commands, "\]\tlink $ctl_port";
- push @commands, "\]\tlink $ctl_port";
- push @commands, "\]\tclose";
- push @commands, "\] exit";
+ my @commands=("\]\tlink $ctl_port",
+               "\]\tlink $ctl_port",
+               "\]\tclose",
+               "\]\texit");
 
  my $result = telnet_cmd("$NAS->{NAS_MNG_IP_PORT}", \@commands);
  print $result;
-
-
  return 0;
 }
 
