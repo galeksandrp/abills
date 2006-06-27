@@ -48,12 +48,17 @@ require $Bin ."/rauth.pl";
 sub authorize {
   $begin_time = check_time();
   convert_radpairs();
-  #print test_radius_returns(\%RAD_REQUEST);
+  
   if ( get_nas_info(\%RAD_REQUEST) == 0 ) {
-    if ( auth(\%RAD_REQUEST) == 0 ) {
-    	return RLM_MODULE_OK;
+  	
+  	if (auth(\%RAD_REQUEST, { pre_auth => 1 }) == 0) {
+      if ( auth(\%RAD_REQUEST) == 0 ) {
+         #$RAD_CHECK{'User-Password'} = 'test12345';
+    	   return RLM_MODULE_OK;
+       }
      }
    }
+
   return RLM_MODULE_REJECT;
 }
 
@@ -62,21 +67,14 @@ sub authorize {
 #
 #**********************************************************
 sub authenticate {
-	# For debugging purposes only
-  #	&log_request_attributes;
-  
-#  &test_call('authenticate');
-  
-#	if ($RAD_REQUEST{'User-Name'} =~ /^baduser/i) {
-#		# Reject user and tell him why
-#		$RAD_REPLY{'Reply-Message'} = "Denied access by rlm_perl function";
-#		return RLM_MODULE_REJECT;
-#	} else {
-#		# Accept user and set some attribute
-#		$RAD_REPLY{'h323-credit-amount'} = "100";
-#		return RLM_MODULE_OK;
-#	}
-#
+  if ( get_nas_info(\%RAD_REQUEST) == 0 ) {
+    if ( auth(\%RAD_REQUEST) == 0 ) {
+    	return RLM_MODULE_OK;
+     }
+   }
+
+  $RAD_CHECK{'Auth-Type'} = 'Accept';
+	return RLM_MODULE_OK;
 }
 
 
@@ -91,6 +89,7 @@ sub accounting {
   if ( get_nas_info(\%RAD_REQUEST) == 0 ) {
      my $ret = acct(\%RAD_REQUEST, $nas);
    }
+
 
 	return RLM_MODULE_OK;
 }

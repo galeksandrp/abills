@@ -484,8 +484,13 @@ my $nas = Nas->new($db, \%conf);
 
 my $message;
 if ($FORM{ping}) {
-  my $res = `/sbin/ping -c 5 $FORM{ping}`;
-  $html->message('info', $_INFO,  "Ping  $FORM{ping}<br>Result:<br><pre>$res</pre>");
+  if ($FORM{ping} =~ /^(\d){1,3}\.(\d){1,3}\.(\d){1,3}\.(\d){1,3}$/) {
+    my $res = `/sbin/ping -c 5 $FORM{ping}`;
+    $html->message('info', $_INFO,  "Ping  $FORM{ping}<br>Result:<br><pre>$res</pre>");
+   }
+  else {
+    $html->message('err', $_ERROR,  "_WRONG_DATA");
+   }
  }
 elsif ($FORM{hangup}) {
   my ($nas_id, $nas_port_id, $acct_session_id, $user_name) = split(/ /, $FORM{hangup}, 4);

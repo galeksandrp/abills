@@ -2,6 +2,7 @@
 
 use vars  qw(%RAD %conf $db %AUTH
  %RAD_REQUEST %RAD_REPLY %RAD_CHECK 
+ %auth_mod
  $begin_time
  $nas);
 
@@ -16,13 +17,19 @@ $begin_time = check_time();
 
 # Max session tarffic limit  (Mb)
 $conf{MAX_SESSION_TRAFFIC} = 2048; 
+my %auth_mod = ();
+
+
 require Abills::SQL;
 my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
 $db  = $sql->{db};
 require Nas;
 $nas = Nas->new($db, \%conf);	
+require Auth;
+Auth->import();
+$auth_mod{'default'} = Auth->new($db, \%conf);
 
-my %auth_mod = ();
+
 my $GT  = '';
 my $rr  = '';
 
@@ -57,14 +64,7 @@ my $RAD;
 if (! defined(%RAD_REQUEST)) {
   $RAD = get_radius_params();
   if (defined($ARGV[0]) && $ARGV[0] eq 'pre_auth') {
-    require Auth;
-    Auth->import();
-    my $Auth = Auth->new($db, \%conf);
-
-    $Auth->pre_auth($RAD);
-    if ($Auth->{errno}) {
-      log_print('LOG_INFO', "AUTH [$RAD->{USER_NAME}] MS-CHAP PREAUTH FAILED$GT");
-     }
+    auth($RAD, { pre_auth => 1 });
     exit 0;
    }
   elsif (defined($ARGV[0]) && $ARGV[0] eq 'post_auth') {
@@ -130,15 +130,31 @@ elsif($nas->{NAS_DISABLE} > 0) {
 # auth();
 #*******************************************************************
 sub auth {
- my ($RAD)=@_;
+ my ($RAD, $attr)=@_;
+ my ($r, $RAD_PAIRS);
 
  if(defined($conf{tech_works})) {
  	 $RAD_REPLY{'Reply-Message'}="$conf{tech_works}";
  	 return 1;
   }
 
+
+ if ($attr->{'pre_auth'}) {
+   $r = $auth_mod{'default'}->pre_auth($RAD);
+   if ($auth_mod{'default'}->{errno}) {
+     log_print('LOG_INFO', "AUTH [$RAD->{USER_NAME}] MS-CHAP PREAUTH FAILED$GT");
+    }
+   else {
+      while(my($k, $v)=each(%{ $auth_mod{'default'}->{'RAD_CHECK'} })) {
+      	$RAD_CHECK{$k}=$v;
+       }
+    }
+   return $r;	
+  }
+
+
  $rr = '';
- my ($r, $RAD_PAIRS);
+
 
 if(defined($AUTH{$nas->{NAS_TYPE}})) {
   if (! defined($auth_mod{"$nas->{NAS_TYPE}"})) {
@@ -150,14 +166,11 @@ if(defined($AUTH{$nas->{NAS_TYPE}})) {
   ($r, $RAD_PAIRS) = $auth_mod{"$nas->{NAS_TYPE}"}->auth($RAD, $nas);
 }
 else {
-  require Auth;
-  Auth->import();
-  my $Auth = Auth->new($db, \%conf);
-  ($r, $RAD_PAIRS) = $Auth->dv_auth($RAD, $nas, 
+  ($r, $RAD_PAIRS) = $auth_mod{"default"}->dv_auth($RAD, $nas, 
                                        { MAX_SESSION_TRAFFIC => $conf{MAX_SESSION_TRAFFIC}  } );
 }
 
-  %RAD_REPLY = %$RAD_PAIRS;
+%RAD_REPLY = %$RAD_PAIRS;
 
 #If Access deny
  if($r == 1){
@@ -185,7 +198,8 @@ else {
    	   my($left, $right)=split(/=/, $line, 2);
    	   $RAD_REPLY{"$left"}="$right";
    	  }
-    }
+ 	 $RAD_CHECK{'Auth-Type'} = 'Accept';
+  }
    
    #$RAD_REPLY{'cisco-avpair'}="\"tunnel-type=VLAN,tunnel-medium-type==IEEE-802,tunnel-private-group-id=1, ip:inacl#1=deny ip 10.10.10.10 0.0.255.255 20.20.20.20 255.255.0.0\"";
 
@@ -211,6 +225,8 @@ else {
 
   log_print('LOG_INFO', "AUTH [$RAD->{USER_NAME}] NAS: $nas->{NAS_ID} ($RAD->{NAS_IP_ADDRESS})$GT");
 
+#  print "-- $r ---\n";
+
   return $r;
 }
 
@@ -221,11 +237,20 @@ else {
 #*******************************************************************
 sub post_auth {
   my $reject_info = '';
-  if (defined($RAD->{CALLING_STATION_ID})) {
-    $reject_info=" CID $RAD->{CALLING_STATION_ID}";
+  if (defined(%RAD_REQUEST)) {
+    return 0;
+    if (defined($RAD_REQUEST{CALLING_STATION_ID})) {
+      $reject_info=" CID $RAD_REQUEST{CALLING_STATION_ID}";
+     }
+    log_print('LOG_INFO', "AUTH [$RAD_REQUEST{'User-Name'}] AUTH REJECT$reject_info$GT");
+   }
+  else {
+    if (defined($RAD->{CALLING_STATION_ID})) {
+      $reject_info=" CID $RAD->{CALLING_STATION_ID}";
+     }
+    log_print('LOG_INFO', "AUTH [$RAD->{USER_NAME}] AUTH REJECT$reject_info$GT");
    }
 
-  log_print('LOG_INFO', "AUTH [$RAD->{USER_NAME}] AUTH REJECT$reject_info$GT");
   # return RLM_MODULE_OK;
 }
 

@@ -1,5 +1,5 @@
 package Voip_aaa;
-# VoIP Accounting functions
+# VoIP AAA functions
 #
 
 use strict;
