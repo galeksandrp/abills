@@ -314,28 +314,44 @@ sub menu () {
  my ($menu_items, $menu_args, $permissions, $attr) = @_;
 
  my $menu_navigator = '';
- my $root_index = 0;
- my %tree = ();
- my %menu = ();
+ my $root_index     = 0;
+ my %tree           = ();
+ my %menu           = ();
  my $sub_menu_array;
  my $EX_ARGS = (defined($attr->{EX_ARGS})) ? $attr->{EX_ARGS} : '';
 
+ 
+ if (defined($attr->{FUNCTION_LIST})) {
+   
+   my $qmenu_text = "<NAVIGATOR>\n";
+   my $fl = $attr->{FUNCTION_LIST};
+   
+ 	 while(my($k, $v)=each %$fl ){
+ 	 	 $qmenu_text .= "<MENU NAME=\"$v\" ID=\"$k\" EX_ARGS=\"". link_former($EX_ARGS) ."\"/>\n";
+ 	  }
+   $qmenu_text .= "</NAVIGATOR>\n";
+
+   return  '', $qmenu_text;
+  }
+
+
+
  # make navigate line 
  if ($index > 0) {
-  $root_index = $index;	
-  my $h = $menu_items->{$root_index};
+   $root_index = $index;
+   my $h = $menu_items->{$root_index};
 
-  while(my ($par_key, $name) = each ( %$h )) {
+   while(my ($par_key, $name) = each ( %$h )) {
 
-    my $ex_params = (defined($FORM{$menu_args->{$root_index}})) ? '&'."$menu_args->{$root_index}=$FORM{$menu_args->{$root_index}}" : '';
+     my $ex_params = (defined($FORM{$menu_args->{$root_index}})) ? '&'."$menu_args->{$root_index}=$FORM{$menu_args->{$root_index}}" : '';
     
-    $menu_navigator =  " ". $self->button($name, "index=$root_index$ex_params"). '/' . $menu_navigator;
-    $tree{$root_index}='y';
-    if ($par_key > 0) {
-      $root_index = $par_key;
-      $h = $menu_items->{$par_key};
-     }
-   }
+     $menu_navigator =  " ". $self->button($name, "index=$root_index$ex_params"). '/' . $menu_navigator;
+     $tree{$root_index}='y';
+     if ($par_key > 0) {
+        $root_index = $par_key;
+        $h = $menu_items->{$par_key};
+      }
+    }
 }
 
 $FORM{root_index} = $root_index;
@@ -366,8 +382,7 @@ foreach my $ID (@s) {
 
  my @last_array = ();
 
- my $menu_text = "\n<NAVIGATOR>\n";
-
+    my $menu_text = "\n<NAVIGATOR>\n";
  	  my $level  = 0;
  	  my $prefix = '';
     
@@ -813,6 +828,18 @@ sub show  {
 
 #**********************************************************
 #
+#**********************************************************
+sub link_former {
+  my ($params) = @_;
+
+
+  $params =~ s/ /%20/g;
+  $params =~ s/&/&amp;/g;
+ 
+  return $params;
+}
+#**********************************************************
+#
 # del_button($op, $del, $message, $attr)
 #**********************************************************
 sub button {
@@ -823,8 +850,7 @@ sub button {
   
   $params = "$params";
   $params = $attr->{JAVASCRIPT} if (defined($attr->{JAVASCRIPT}));
-  $params =~ s/ /%20/g;
-  $params =~ s/&/&amp;/g;
+  $params = link_former($params);
   
 
  
@@ -881,7 +907,7 @@ for(my $i=$begin; ($i<=$count && $i < $PG + $PAGE_ROWS * 10); $i+=$PAGE_ROWS) {
    $self->{pages} .= ($i == $PG) ? "<b>$i</b>:: " : $self->button($i, "$argument&pg=$i"). ':: ';
 }
  
- return $self->{pages};
+ return "<PAGES>". $self->{pages} ."</PAGES>\n";
 }
 
 
