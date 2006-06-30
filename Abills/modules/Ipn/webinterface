@@ -1731,6 +1731,7 @@ sub ipn_user_add {
    $allow_comps{$line->[2]}=$line->[1];
   }
 
+
 	
  if ($FORM{add}) {
      my $Dv = Dv->new($db, $admin, \%conf);
@@ -1790,7 +1791,7 @@ sub ipn_user_add {
        my $cmd = $conf{IPN_FW_START_RULE};
        $cmd =~ s/\%IP/$FORM{IP}/g;
        $cmd =~ s/\%NUM/$rule_num/g;
-       print "<div class='noprint'>$cmd</div>\m";
+       print "<div class='noprint'>$cmd</div>\n";
        system($cmd);
      }
      
@@ -1815,6 +1816,9 @@ sub ipn_user_add {
      return 0;
   }
 
+
+
+
  $Ipn->{TP_SEL}=$html->form_select('TP_ID', 
                                           { 
  	                                          SEL_MULTI_ARRAY   => $tariffs->list(),
@@ -1831,10 +1835,13 @@ sub ipn_user_add {
  	                                   MULTI_ARRAY_VALUE => 1,
  	                                  });
  
+
  
  if ($Ipn->{TOTAL} > 0) {
 	 
  	 my $session_list=$sessions->online( { %LIST_PARAMS } );	
+
+
 
    foreach my $line (@$session_list) {
    	  if (defined($allow_comps{int2ip($line->[3])})) {
@@ -1842,12 +1849,11 @@ sub ipn_user_add {
    	  }
     }
 
- 	 
+
  	 $Ipn->{IP}=$html->form_select('IP', 
                                     { 
- 	                                   SEL_HASH   => \%allow_comps,
+ 	                                   SEL_HASH   => \%allow_comps
  	                                  });
-	 
  	 }
  else {
    $Ipn->{IP}=$html->form_input('IP', '0.0.0.0');

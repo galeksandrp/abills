@@ -252,42 +252,6 @@ else {
   return %FORM;
 }
 
-#sub form_parse {
-#  my $self = shift;
-#  my $buffer = '';
-#  my $value='';
-#  my %FORM = ();
-#  
-#  return %FORM if (! defined($ENV{'REQUEST_METHOD'}));
-#
-#if ($ENV{'REQUEST_METHOD'} eq "GET") {
-#   $buffer= $ENV{'QUERY_STRING'};
-# }
-#elsif ($ENV{'REQUEST_METHOD'} eq "POST") {
-#   read(STDIN, $buffer, $ENV{'CONTENT_LENGTH'});
-# }
-#
-#my @pairs = split(/&/, $buffer);
-#$FORM{__BUFFER}=$buffer;
-#
-#foreach my $pair (@pairs) {
-#   my ($side, $value) = split(/=/, $pair);
-#   $value =~ tr/+/ /;
-#   $value =~ s/%([a-fA-F0-9][a-fA-F0-9])/pack("C", hex($1))/eg;
-#   $value =~ s/<!--(.|\n)*-->//g;
-#   $value =~ s/<([^>]|\n)*>//g;
-#   if (defined($FORM{$side})) {
-#     $FORM{$side} .= ", $value";
-#    }
-#   else {
-#     $FORM{$side} = $value;
-#    }
-# }
-#
-#  return %FORM;
-#}
-
-
 #*******************************************************************
 # form_input
 #*******************************************************************

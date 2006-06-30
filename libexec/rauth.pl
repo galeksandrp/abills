@@ -39,27 +39,8 @@ my $rr  = '';
 #}
 ##print $t;
 #my $a = `echo "$t" >> /tmp/voip_test`;
-#
-# This the remapping of return values 
-#
-#        use constant  RLM_MODULE_REJECT=>    0;#  /* immediately reject the request */
-#        use constant  RLM_MODULE_FAIL=>      1;#  /* module failed, don't reply */
-#        use constant  RLM_MODULE_OK=>        2;#  /* the module is OK, continue */
-#        use constant  RLM_MODULE_HANDLED=>   3;#  /* the module handled the request, so stop. */
-#        use constant  RLM_MODULE_INVALID=>   4;#  /* the module considers therequest invalid. */
-#        use constant  RLM_MODULE_USERLOCK=>  5;#  /* reject the request (useris locked out) */
-#        use constant  RLM_MODULE_NOTFOUND=>  6;#  /* user not found */
-#        use constant  RLM_MODULE_NOOP=>      7;#  /* module succeeded withoutdoing anything */
-#        use constant  RLM_MODULE_UPDATED=>   8;#  /* OK (pairs modified) */
-#        use constant  RLM_MODULE_NUMCODES=>  9;#  /* How many return codes there are */
 
-
-
-
-
-
-
-
+# files auth section
 my $RAD;
 if (! defined(%RAD_REQUEST)) {
   $RAD = get_radius_params();
@@ -88,13 +69,13 @@ if (! defined(%RAD_REQUEST)) {
   exit $ret;
 }
 
+
+
 #*******************************************************************
 # get_nas_info();
 #*******************************************************************
 sub get_nas_info {
  my ($RAD)=@_;
-
-
 
  $RAD->{NAS_IP_ADDRESS}='' if (!defined($RAD->{NAS_IP_ADDRESS}));
  $RAD->{USER_NAME}='' if (!defined($RAD->{USER_NAME}));
@@ -212,9 +193,6 @@ else {
    log_print('LOG_DEBUG', "AUTH [$RAD->{USER_NAME}] $rr");
  }
 
-
-
-
  if ($begin_time > 0)  {
    Time::HiRes->import(qw(gettimeofday));
    my $end_time = gettimeofday();
@@ -224,9 +202,6 @@ else {
 
 
   log_print('LOG_INFO', "AUTH [$RAD->{USER_NAME}] NAS: $nas->{NAS_ID} ($RAD->{NAS_IP_ADDRESS})$GT");
-
-#  print "-- $r ---\n";
-
   return $r;
 }
 

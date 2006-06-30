@@ -77,17 +77,17 @@ sub new {
    }
 
 
-  %FORM = form_parse();
-  %COOKIES = getCookies();
-  $SORT = $FORM{sort} || 1;
-  $DESC = ($FORM{desc}) ? 'DESC' : '';
-  $PG = $FORM{pg} || 0;
-  $OP = $FORM{op} || '';
+  %FORM     = form_parse();
+  %COOKIES  = getCookies();
+  $SORT     = $FORM{SORT} || 1;
+  $DESC     = ($FORM{desc}) ? 'DESC' : '';
+  $PG       = $FORM{pg} || 0;
+  $OP       = $FORM{op} || '';
   $PAGE_ROWS = $FORM{PAGE_ROWS} || 25;
-  $domain = $ENV{SERVER_NAME};
+  $domain   = $ENV{SERVER_NAME};
   $web_path = '';
-  $secure = '';
-  my $prot = (defined($ENV{HTTPS}) && $ENV{HTTPS} =~ /on/i) ? 'https' : 'http' ;
+  $secure   = '';
+  my $prot  = (defined($ENV{HTTPS}) && $ENV{HTTPS} =~ /on/i) ? 'https' : 'http' ;
   $SELF_URL = (defined($ENV{HTTP_HOST})) ? "$prot://$ENV{HTTP_HOST}$ENV{SCRIPT_NAME}" : '';
   $SESSION_IP = $ENV{REMOTE_ADDR} || '0.0.0.0';
   
@@ -104,11 +104,11 @@ sub new {
             '#FFFFFF',  #10 background
            ); #border
   
-  %LIST_PARAMS = ( SORT => $SORT,
-	       DESC => $DESC,
-	       PG => $PG,
-	       PAGE_ROWS => $PAGE_ROWS,
-	      );
+  %LIST_PARAMS = ( SORT      => $SORT,
+	                 DESC      => $DESC,
+	                 PG        => $PG,
+	                 PAGE_ROWS => $PAGE_ROWS
+	                );
 
   %functions = ();
   
@@ -169,6 +169,30 @@ foreach my $pair (@pairs) {
 }
 
 
+#*******************************************************************
+# form_input
+#*******************************************************************
+sub form_input {
+	my $self = shift;
+	my ($name, $value, $attr)=@_;
+
+
+  my $type  = (defined($attr->{TYPE})) ? $attr->{TYPE} : 'text';
+  my $state = (defined($attr->{STATE})) ? ' checked="1"' : ''; 
+  my $size  = (defined($attr->{SIZE})) ? " SIZE=\"$attr->{SIZE}\"" : '';
+
+
+  
+  $self->{FORM_INPUT}="<input type=\"$type\" name=\"$name\" value=\"$value\"$state$size/>";
+
+  if (defined($self->{NO_PRINT}) && ( !defined($attr->{OUTPUT2RETURN}) )) {
+  	$self->{OUTPUT} .= $self->{FORM_INPUT};
+  	$self->{FORM_INPUT} = '';
+  }
+	
+	return $self->{FORM_INPUT};
+}
+
 sub form_main {
   my $self = shift;
   my ($attr)	= @_;
@@ -178,7 +202,7 @@ sub form_main {
   if (defined($attr->{HIDDEN})) {
   	my $H = $attr->{HIDDEN};
   	while(my($k, $v)=each( %$H)) {
-      $self->{FORM} .= "<input type=\"hidden\" name=\"$k\" value=\"$v\">\n";
+      $self->{FORM} .= "<input type=\"hidden\" name=\"$k\" value=\"$v\"/>\n";
   	}
   }
 
@@ -190,12 +214,12 @@ sub form_main {
   if (defined($attr->{SUBMIT})) {
   	my $H = $attr->{SUBMIT};
   	while(my($k, $v)=each( %$H)) {
-      $self->{FORM} .= "<input type=\"submit\" name=\"$k\" value=\"$v\">\n";
+      $self->{FORM} .= "<input type=\"submit\" name=\"$k\" value=\"$v\"/>\n";
   	}
   }
 
 
-	$self->{FORM}.="</form>\n";
+	$self->{FORM}.="</FORM>\n";
 	
 	if (defined($self->{NO_PRINT})) {
   	$self->{OUTPUT} .= $self->{FORM};
@@ -220,7 +244,7 @@ sub form_select {
 	  my $H = $attr->{SEL_HASH};
 	  while(my($k, $v) = each %$H) {
      $self->{SELECT} .= "<option value=\"$k\"";
-     #$self->{SELECT} .=' selected' if ($k eq $attr->{SELECTED});
+     $self->{SELECT} .=' selected="1"' if ($k eq $attr->{SELECTED});
      $self->{SELECT} .= ">$v</option>\n";	
      }
    }
@@ -438,7 +462,7 @@ sub header {
 
 my $CHARSET=(defined($attr->{CHARSET})) ? $attr->{CHARSET} : 'windows-1251';
 
-$self->{header} .= qq{<?xml version="1.0"?>};
+$self->{header} .= qq{<?xml version="1.0"  encoding="$CHARSET" ?>};
 #<!DOCTYPE rss PUBLIC "-//Netscape Communications//DTD RSS 0.91//EN"
 #              "http://my.netscape.com/publish/formats/rss-0.91.dtd">
 #
@@ -726,7 +750,7 @@ sub table_title  {
   $self->{table_title} = "<TR bgcolor=\"$_COLORS[0]\">";
   my $i=1;
   foreach my $line (@$caption) {
-     $self->{table_title} .= "<th  class=table_title>$line ";
+     $self->{table_title} .= "<th  class=\"table_title\">$line ";
      if ($line ne '-') {
          if ($sort != $i) {
              $img = 'sort_none.png';
@@ -746,7 +770,7 @@ sub table_title  {
          else {
          	  $op="op=$get_op";
           }
-         $self->{table_title} .= $self->button("<img src='$IMG_PATH/$img' width=\"12\" height=\"10\" border=\"0\" alt='Sort' title=sort>", "$op$qs&pg=$pg&sort=$i&desc=$desc");
+         $self->{table_title} .= $self->button("<img src=\"$IMG_PATH/$img\" width=\"12\" height=\"10\" border=\"0\" alt=\"Sort\" title=\"sort\"/>", "$op$qs&pg=$pg&sort=$i&desc=$desc");
        }
      else {
          $self->{table_title} .= "$line";
@@ -884,10 +908,10 @@ sub date_fld  {
 my $result  = "<SELECT name=\"". $base_name ."D\">";
 for (my $i=1; $i<=31; $i++) {
    $result .= sprintf("<option value=\"%.2d\"", $i);
-   $result .= ' selected' if($day == $i ) ;
-   $result .= ">$i\n";
+   $result .= ' selected="1"' if($day == $i ) ;
+   $result .= ">$i</option>\n";
  }	
-$result .= '</select>';
+$result .= '</SELECT>';
 
 
 $result  .= "<SELECT name=\"". $base_name ."M\">";
@@ -895,21 +919,21 @@ $result  .= "<SELECT name=\"". $base_name ."M\">";
 my $i=0;
 foreach my $line (@$MONTHES) {
    $result .= sprintf("<option value=\"%.2d\"", $i);
-   $result .= ' selected' if($month == $i ) ;
+   $result .= ' selected="1"' if($month == $i ) ;
    
-   $result .= ">$line\n";
+   $result .= ">$line</option>\n";
    $i++
 }
 
-$result .= '</select>';
+$result .= '</SELECT>';
 
 $result  .= "<SELECT name=\"". $base_name ."Y\">";
 for ($i=2001; $i<=$curyear + 1900; $i++) {
    $result .= "<option value=\"$i\"";
-   $result .= ' selected' if($year eq $i ) ;
-   $result .= ">$i\n";
+   $result .= ' selected="1"' if($year eq $i ) ;
+   $result .= ">$i</option>\n";
  }	
-$result .= '</select>';
+$result .= '</SELECT>';
 
 return $result ;
 }
@@ -958,7 +982,10 @@ $text
 sub tpl_show {
   my $self = shift;
   my ($tpl, $variables_ref, $attr) = @_;	
-  my $xml_tpl = "<INFO>\n";  
+  
+  my $tpl_name = '';
+  
+  my $xml_tpl = "<INFO name=\"$tpl_name\">\n";  
   
   while($tpl =~ /\%(\w+)\%/g) {
     my $var = $1;
