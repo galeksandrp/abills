@@ -78,7 +78,7 @@ sub new {
   my $self = { };
   bless($self, $class);
 
-  if (defined($attr->{NO_PRINT})) {
+  if ($attr->{NO_PRINT}) {
      $self->{NO_PRINT}=1;
    }
  
@@ -132,8 +132,8 @@ sub new {
 
   if (defined($FORM{xml})) {
     require Abills::XML;
-    $self = Abills::XML->new( { IMG_PATH => 'img/',
-	                              NO_PRINT  => 'y' 
+    $self = Abills::XML->new( { IMG_PATH  => 'img/',
+	                              NO_PRINT  => defined($attr->{'NO_PRINT'}) ? $attr->{'NO_PRINT'} : 1 
 	                            
 	                            });
   }
@@ -1335,6 +1335,9 @@ sub test {
 print "<a href='#' title='$output'><font color=$_COLORS[1]>Debug</font></a>\n";
 
 }
+
+
+
 
 
 #**********************************************************

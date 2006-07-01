@@ -72,7 +72,7 @@ sub new {
   my $self = { };
   bless($self, $class);
 
-  if (defined($attr->{NO_PRINT})) {
+  if ($attr->{NO_PRINT}) {
      $self->{NO_PRINT}=1;
    }
 
@@ -193,6 +193,8 @@ sub form_input {
 	return $self->{FORM_INPUT};
 }
 
+
+
 sub form_main {
   my $self = shift;
   my ($attr)	= @_;
@@ -309,7 +311,88 @@ sub getCookies {
 }
 
 
-sub menu () {
+#**********************************************************
+# Functions list
+#**********************************************************
+sub menu {
+ my $self = shift;
+ my ($menu_items, $menu_args, $permissions, $attr) = @_;
+ 
+ my $menu_navigator;
+ my $menu_text='';
+ my $EX_ARGS = (defined($attr->{EX_ARGS})) ? $attr->{EX_ARGS} : '';
+ my $fl = $attr->{FUNCTION_LIST};
+ 
+my  %new_hash = ();
+while((my($findex, $hash)=each(%$menu_items))) {
+   while(my($parent, $val)=each %$hash) {
+     #print "$parent $findex $val<br>\n";
+     $new_hash{$parent}{$findex}=$val;
+    }
+}
+
+
+
+my $h = $new_hash{0};
+my @last_array = ();
+
+my @menu_sorted = sort {
+   $h->{$b} <=> $h->{$a}
+     ||
+   length($a) <=> length($b)
+     ||
+   $a cmp $b
+} keys %$h;
+
+for(my $parent=1; $parent<$#menu_sorted; $parent++) { 
+  my $val = $h->{$menu_sorted[$parent]};
+  my $level = 0;
+  my $prefix = '';
+  my $ID = $menu_sorted[$parent];
+  
+
+  next if((! defined($attr->{ALL_PERMISSIONS})) && (! $permissions->{$parent-1}) && $parent == 0);
+#  next if (! defined($permissions->{($parent-1)}));  
+  $menu_text .= "<MENU NAME=\"$fl->{$ID}\" ID=\"$ID\" EX_ARGS=\"". link_former($EX_ARGS) ."\" DESCRIBE=\"$val\" TYPE=\"MAIN\"/>\n ";
+
+  #next;
+  if (defined($new_hash{$ID})) {
+    $level++;
+    $prefix .= "   ";
+    label:
+      my $mi = $new_hash{$ID};
+
+      while(my($k, $val)=each %$mi) {
+         $menu_text .= "$prefix<MENU NAME=\"$fl->{$k}\" ID=\"$k\" EX_ARGS=\"". link_former("$EX_ARGS") ."\" DESCRIBE=\"$val\" TYPE=\"SUB\" PARENT=\"$ID\"/>\n ";
+
+        if (defined($new_hash{$k})) {
+      	   $mi = $new_hash{$k};
+      	   $level++;
+           $prefix .= "    ";
+           push @last_array, $ID;
+           $ID = $k;
+         }
+        delete($new_hash{$ID}{$k});
+      }
+    
+    if ($#last_array > -1) {
+      $ID = pop @last_array;	
+      $level--;
+      
+      $prefix = substr($prefix, 0, $level * 1 * 3);
+      goto label;
+    }
+    delete($new_hash{0}{$parent});
+   }
+
+# return 0;
+}
+
+
+ return ($menu_navigator, $menu_text);
+}
+
+sub menu2 () {
  my $self = shift;
  my ($menu_items, $menu_args, $permissions, $attr) = @_;
 
@@ -319,20 +402,19 @@ sub menu () {
  my %menu           = ();
  my $sub_menu_array;
  my $EX_ARGS = (defined($attr->{EX_ARGS})) ? $attr->{EX_ARGS} : '';
-
+ my $fl = $attr->{FUNCTION_LIST};
  
- if (defined($attr->{FUNCTION_LIST})) {
-   
-   my $qmenu_text = "<NAVIGATOR>\n";
-   my $fl = $attr->{FUNCTION_LIST};
-   
- 	 while(my($k, $v)=each %$fl ){
- 	 	 $qmenu_text .= "<MENU NAME=\"$v\" ID=\"$k\" EX_ARGS=\"". link_former($EX_ARGS) ."\"/>\n";
- 	  }
-   $qmenu_text .= "</NAVIGATOR>\n";
-
-   return  '', $qmenu_text;
-  }
+# if (defined($attr->{FUNCTION_LIST}) && $attr->{ALL_PERMISSIONS}) {
+#   
+#   my $qmenu_text = "<NAVIGATOR>\n";
+#  
+# 	 while(my($k, $v)=each %{ $attr->{FUNCTION_LIST} } ){
+# 	 	 $qmenu_text .= "<MENU NAME=\"$v\" ID=\"$k\" DESCRIBE=\"\" EX_ARGS=\"". link_former($EX_ARGS) ."\"/>\n";
+# 	  }
+#   $qmenu_text .= "</NAVIGATOR>\n";
+#
+#   return  '', $qmenu_text;
+#  }
 
 
 
@@ -398,7 +480,6 @@ foreach my $ID (@s) {
  	     my($ID, $name)=split(/:/, $sm_item, 2);
  	     next if((! defined($attr->{ALL_PERMISSIONS})) && (! $permissions->{$ID-1}) && $parent == 0);
 
- 	     $name = (defined($tree{$ID})) ? "$name" : "$name";
        if(! defined($menu_args->{$ID}) || (defined($menu_args->{$ID}) && defined($FORM{$menu_args->{$ID}})) ) {
        	   my $ext_args = "$EX_ARGS";
        	   if (defined($menu_args->{$ID})) {
@@ -406,15 +487,18 @@ foreach my $ID (@s) {
        	     $name = "<b>$name</b>" if ($name !~ /<b>/);
        	    }
 
-       	   my $link = $self->button($name, "index=$ID$ext_args");
+       	   #my $link = $self->button($name, "index=$ID$ext_args");
     	       if($parent == 0) {
- 	        	   $menu_text .= "<ITEM TYPE=\"MAIN\" ID=\"$ID\">$prefix$link</ITEM>\n";
+ 	        	   $menu_text .= "<ITEM NAME=\"$fl->{$ID}\" ID=\"$ID\" DESCRIBE=\"$name\" EX_ARGS=\"". link_former($EX_ARGS) ."\" TYPE=\"MAIN\" />\n";
+ 	        	   #$menu_text .= "<ITEM NAME=\"$fl->{$ID}\" TYPE=\"MAIN\" ID=\"$ID\">$prefix$link</ITEM>\n";
 	            }
  	           elsif(defined($tree{$ID})) {
-   	           $menu_text .= "<ITEM TYPE=\"TREE\" ID=\"$ID\">$prefix$link</ITEM>\n";
+   	           $menu_text .= "<ITEM NAME=\"$fl->{$ID}\" ID=\"$ID\" DESCRIBE=\"$name\" EX_ARGS=\"". link_former($EX_ARGS) ."\" TYPE=\"TREE\" />\n"; 
+#   	           $menu_text .= "<ITEM TYPE=\"TREE\" ID=\"$ID\">$prefix$link</ITEM>\n";
  	            }
  	           else {
- 	             $menu_text .= "<ITEM TYPE=\"SUB\" PARENT=\"$parent\" ID=\"$ID\">$prefix$link</ITEM>\n";
+ 	             $menu_text .= "  <ITEM NAME=\"$fl->{$ID}\" ID=\"$ID\" DESCRIBE=\"$name\" EX_ARGS=\"". link_former($EX_ARGS) ."\" TYPE=\"SUB\" PARENT=\"$parent\" />\n"; 
+ 	             #$menu_text .= "<ITEM TYPE=\"SUB\" PARENT=\"$parent\" ID=\"$ID\">$prefix$link</ITEM>\n";
  	            }
          }
         else {
@@ -650,7 +734,8 @@ sub table {
  	     }
  	   $self->{pages} =  $self->pages($attr->{pages}, "$op$attr->{qs}", { %ATTR });
 	 } 
- return $self;
+
+  return $self;
 }
 
 #*******************************************************************
@@ -676,6 +761,7 @@ sub addrow {
   foreach my $val (@row) {
      $self->{rows} .= "<TD $extra>$val</TD>";
    }
+
   $self->{rows} .= "</TR>\n";
   return $self->{rows};
 }
@@ -703,6 +789,7 @@ sub addtd {
    }
 
   $self->{rows} .= "</TR>\n";
+
   return $self->{rows};
 }
 
@@ -718,7 +805,7 @@ sub td {
   my $extra='';
   
   while(my($k, $v)=each %$attr ) {
-    $extra.=" $k=$v";
+    $extra.=" $k=\"$v\"";
    }
 
   my $td = "<TD $extra>$value</TD>";
@@ -823,6 +910,8 @@ sub show  {
    }
 
 
+
+
   return $self->{show};
 }
 
@@ -859,7 +948,7 @@ sub button {
   my $message = (defined($attr->{MESSAGE})) ? "onclick=\"return confirmLink(this, '$attr->{MESSAGE}')\"" : '';
 
 
-  my $button = "<BUTTON VALUE=\"$params\">$name</BUTTON>";
+  my $button = "<BUTTON VALUE=\"$params\" $ex_attr>$name</BUTTON>";
 
   return $button;
 }
@@ -1086,6 +1175,11 @@ sub test {
 
 #print "<a href='#' onclick=\"open('aaa','help', 
 # 'height=550,width=450,resizable=0, scrollbars=yes, menubar=no, status=yes');\"><font color=$_COLORS[1]>Debug</font></a>";
+
+#print "<a href='#' title='$output'><font color=$_COLORS[1]>Debug</font></a>\n";
+
+#}
+#>Debug</font></a>";
 
 #print "<a href='#' title='$output'><font color=$_COLORS[1]>Debug</font></a>\n";
 

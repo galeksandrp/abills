@@ -175,7 +175,7 @@ sub list {
   }
 
  $self->query($db, "SELECT c.name, b.deposit, c.registration, count(u.uid), c.disable, c.id, c.disable, c.bill_id
-    FROM companies c
+    FROM companies  c
     LEFT JOIN users u ON (u.company_id=c.id)
     LEFT JOIN bills b ON (b.id=c.bill_id)
     $WHERE
