@@ -183,6 +183,11 @@ if (! defined($ENV{CONTENT_TYPE}) || $ENV{CONTENT_TYPE} !~ /boundary/ ) {
     $value =~ s/%([a-fA-F0-9][a-fA-F0-9])/pack("C", hex($1))/eg;
     $value =~ s/<!--(.|\n)*-->//g;
     $value =~ s/<([^>]|\n)*>//g;
+
+    #Check quotes
+    $value =~ s/"/\\"/g;
+    $value =~ s/'/\''/g;
+   
     if (defined($FORM{$side})) {
       $FORM{$side} .= ", $value";
      }

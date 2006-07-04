@@ -378,6 +378,12 @@ $html->test();
 sub check_permissions {
   my ($login, $password, $attr)=@_;
 
+
+  $login =~ s/"/\\"/g;
+  $login =~ s/'/\''/g;
+  $password =~ s/"/\\"/g;
+  $password =~ s/'/\\'/g;
+
   my %PARAMS = ( LOGIN     => "$login", 
                  PASSWORD  => "$password",
                  SECRETKEY => $conf{secretkey},
