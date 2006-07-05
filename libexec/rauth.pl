@@ -29,7 +29,6 @@ require Auth;
 Auth->import();
 $auth_mod{'default'} = Auth->new($db, \%conf);
 
-
 my $GT  = '';
 my $rr  = '';
 

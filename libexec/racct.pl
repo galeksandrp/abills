@@ -144,16 +144,15 @@ sub acct {
 
     if ($nas->{NAS_TYPE} eq 'exppp') {
       #reverse byte parameters
-      $RAD->{INBYTE} = $RAD->{ACCT_OUTPUT_OCTETS} || 0;   # FROM client
+      $RAD->{INBYTE}  = $RAD->{ACCT_OUTPUT_OCTETS} || 0;   # FROM client
       $RAD->{OUTBYTE} = $RAD->{ACCT_INPUT_OCTETS} || 0; # TO client
-
   
-      $RAD->{INBYTE2} = $RAD->{EXPPP_ACCT_LOCALOUTPUT_OCTETS} || 0;             # From client
+      $RAD->{INBYTE2}  = $RAD->{EXPPP_ACCT_LOCALOUTPUT_OCTETS} || 0;             # From client
       $RAD->{OUTBYTE2} = $RAD->{EXPPP_ACCT_LOCALINPUT_OCTETS} || 0;            # To client
       
-      $RAD->{INTERIUM_INBYTE}  = $RAD->{EXPPP_ACCT_ITERIUMOUT_OCTETS} || 0;
-      $RAD->{INTERIUM_OUTBYTE} = $RAD->{EXPPP_ACCT_ITERIUMIN_OCTETS} || 0;
-      $RAD->{INTERIUM_INBYTE2} = $RAD->{EXPPP_ACCT_LOCALITERIUMOUT_OCTETS} || 0;
+      $RAD->{INTERIUM_INBYTE}   = $RAD->{EXPPP_ACCT_ITERIUMOUT_OCTETS} || 0;
+      $RAD->{INTERIUM_OUTBYTE}  = $RAD->{EXPPP_ACCT_ITERIUMIN_OCTETS} || 0;
+      $RAD->{INTERIUM_INBYTE2}  = $RAD->{EXPPP_ACCT_LOCALITERIUMOUT_OCTETS} || 0;
       $RAD->{INTERIUM_OUTBYTE2} = $RAD->{EXPPP_ACCT_LOCALITERIUMIN_OCTETS} || 0;
      }
     elsif ($nas->{NAS_TYPE} eq 'lepppd') {
@@ -212,7 +211,7 @@ sub acct {
 
   $RAD->{LOGOUT}             = time;
   $RAD->{SESSION_START}      = (defined($RAD->{ACCT_SESSION_TIME})) ?  time - $RAD->{ACCT_SESSION_TIME} : 0;
-  $RAD->{NAS_PORT}           = 0 if  (! defined($RAD->{NAS_PORT}));
+  $RAD->{NAS_PORT}           = 0  if  (! defined($RAD->{NAS_PORT}));
   $RAD->{CONNECT_INFO}       = '' if  (! defined($RAD->{CONNECT_INFO}));
   $RAD->{ACCT_TERMINATE_CAUSE} =  (defined($RAD->{ACCT_TERMINATE_CAUSE}) && defined($ACCT_TERMINATE_CAUSES{"$RAD->{ACCT_TERMINATE_CAUSE}"})) ? $ACCT_TERMINATE_CAUSES{"$RAD->{ACCT_TERMINATE_CAUSE}"} : 0;
   $RAD->{CALLING_STATION_ID} = '' if (! defined($RAD->{CALLING_STATION_ID}));

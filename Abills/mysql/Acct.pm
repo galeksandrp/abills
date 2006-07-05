@@ -105,13 +105,13 @@ elsif ($acct_status_type == 2) {
 
 #  return $self;
   if ($self->{UID} == -2) {
-    $self->{errno}=1;   
+    $self->{errno}  = 1;   
     $self->{errstr} = "ACCT [$RAD->{USER_NAME}] Not exist";
    }
   elsif($self->{UID} == -3) {
-    my $filename = "$RAD->{USER_NAME}.$RAD->{ACCT_SESSION_ID}";
-    $self->{errno}=1;
-    $self->{errstr}="ACCT [$RAD->{USER_NAME}] Not allow start period '$filename'";
+    my $filename   = "$RAD->{USER_NAME}.$RAD->{ACCT_SESSION_ID}";
+    $self->{errno} = 1;
+    $self->{errstr}= "ACCT [$RAD->{USER_NAME}] Not allow start period '$filename'";
     $Billing->mk_session_log($RAD);
    }
   elsif ($self->{SUM} < 0) {
