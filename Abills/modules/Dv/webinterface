@@ -1005,9 +1005,15 @@ if (defined($FORM{DATE})) {
  }
 else {
   #Used Traffic
+  my @caption = ("$_DATE", "$_USERS", "$_SESSIONS", "$_TRAFFIC ", "$_TRAFFIC 2", $_DURATION, $_SUM);
+  if ($FORM{TYPE} eq 'USER') {
+  	$caption[0]="$_USER";
+  	$caption[1]="$_LOGINS";
+   }
+  
   $table_sessions = $html->table({ width      => '100%',
 	                                 caption    => "$_SESSIONS", 
-                                   title      => ["$_DATE", "$_USERS", "$_SESSIONS", "$_TRAFFIC ", "$_TRAFFIC 2", $_DURATION, $_SUM],
+                                   title      => \@caption,
                                    cols_align => ['right', 'right', 'right', 'right', 'right', 'right', 'right'],
                                    qs         => $pages_qs             
                                } );
