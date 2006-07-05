@@ -606,8 +606,6 @@ if ($attr->{MONTH}) {
 #Interval from date to date
 if ($attr->{INTERVAL}) {
  	 my ($from, $to)=split(/\//, $attr->{INTERVAL}, 2);
-   
-   
    push @WHERE_RULES, "date_format(start, '%Y-%m-%d')>='$from' and date_format(start, '%Y-%m-%d')<='$to'";
   }
 #Period
@@ -726,7 +724,7 @@ sub reports {
  $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
  undef @WHERE_RULES;
  my $date = '';
-
+ 
 
  if ($attr->{GID}) {
  	 push @WHERE_RULES, "u.gid='$attr->{GID}'";
@@ -736,6 +734,19 @@ sub reports {
  if(defined($attr->{DATE})) {
    push @WHERE_RULES, " date_format(l.start, '%Y-%m-%d')='$attr->{DATE}'";
   }
+ elsif ($attr->{INTERVAL}) {
+ 	 my ($from, $to)=split(/\//, $attr->{INTERVAL}, 2);
+   push @WHERE_RULES, "date_format(l.start, '%Y-%m-%d')>='$from' and date_format(l.start, '%Y-%m-%d')<='$to'";
+   if ($attr->{TYPE} eq 'HOURS') {
+     $date = "date_format(l.start, '%H')";
+    }
+   elsif ($attr->{TYPE} eq 'DAYS') {
+     $date = "date_format(l.start, '%Y-%m-%d')";
+    }
+   else {
+     $date = "u.id";   	
+    }  
+  }
  elsif (defined($attr->{MONTH})) {
  	 push @WHERE_RULES, "date_format(l.start, '%Y-%m')='$attr->{MONTH}'";
    $date = "date_format(l.start, '%Y-%m-%d')";
@@ -743,6 +754,8 @@ sub reports {
  else {
  	 $date = "date_format(l.start, '%Y-%m')";
   }
+
+
 
  if ($attr->{GID}) {
    push @WHERE_RULES, "u.gid='$attr->{GID}'";
@@ -787,13 +800,13 @@ sub reports {
 
   my $list = $self->{list}; 
 
-  $self->{USERS}=0; 
-  $self->{SESSIONS}=0; 
-  $self->{TRAFFIC}=0; 
-  $self->{TRAFFIC_2}=0; 
-  $self->{DURATION}=0; 
-  $self->{SUM}=0;
-  
+  $self->{USERS}    = 0; 
+  $self->{SESSIONS} = 0; 
+  $self->{TRAFFIC}  = 0; 
+  $self->{TRAFFIC_2}= 0; 
+  $self->{DURATION} = 0; 
+  $self->{SUM}      = 0;
+
   return $list if ($self->{TOTAL} < 1);
 
   $self->query($db, "select count(DISTINCT l.uid), 

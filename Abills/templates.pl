@@ -480,29 +480,29 @@ return qq{
 }
 elsif ($tpl_name eq 'form_ip_pools') {
 return qq{
-<form action=$SELF_URL METHOD=post>
-<input type=hidden name=index value=61>
-<input type=hidden name=NAS_ID value=%NAS_ID%>
+<form action="$SELF_URL" METHOD="post">
+<input type="hidden" name="index" value="61"/>
+<input type="hidden" name="NAS_ID" value="%NAS_ID%"/>
 <TABLE>
-<TR><TD>FIRST IP:</TD><TD><input type=text name=NAS_IP_SIP value='%NAS_IP_SIP%'></TD></TR>
-<TR><TD>COUNT:</TD><TD><input type=text name=NAS_IP_COUNT value='%NAS_IP_COUNT%'></TD></TR>
+<TR><TD>FIRST IP:</TD><TD><input type="text" name="NAS_IP_SIP" value="%NAS_IP_SIP%"/></TD></TR>
+<TR><TD>COUNT:</TD><TD><input type="text" name="NAS_IP_COUNT" value="%NAS_IP_COUNT%"/></TD></TR>
 </TABLE>
-<input type=submit name=add value="$_ADD">
+<input type="submit" name="add" value="$_ADD" class="button"/>
 </form>
 
 };
 }
 elsif ($tpl_name eq 'form_groups'){
 return qq{
-<form action=$SELF_URL METHOD=post>
-<input type=hidden name=index value=27>
-<input type=hidden name=chg value=%GID%>
+<form action="$SELF_URL" METHOD="post">
+<input type="hidden" name="index" value="27"/>
+<input type="hidden" name="chg" value="%GID%"/>
 <TABLE>
-<TR><TD>GID:</TD><TD><input type=text name=GID value='%GID%'></TD></TR>
-<TR><TD>$_NAME:</TD><TD><input type=text name=G_NAME value='%G_NAME%'></TD></TR>
-<TR><TD>$_DESCRIBE:</TD><TD><input type=text name=G_DESCRIBE value='%G_DESCRIBE%'></TD></TR>
+<TR><TD>GID:</TD><TD><input type="text" name="GID" value="%GID%"/></TD></TR>
+<TR><TD>$_NAME:</TD><TD><input type="text" name="G_NAME" value="%G_NAME%"/></TD></TR>
+<TR><TD>$_DESCRIBE:</TD><TD><input type="text" name="G_DESCRIBE" value="%G_DESCRIBE%"></TD></TR>
 </TABLE>
-<input type=submit name=%ACTION% value="%LNG_ACTION%">
+<input type="submit" name="%ACTION%" value="%LNG_ACTION%" class="button"/>
 </form>
 };
 }
@@ -540,12 +540,12 @@ return qq{
 }
 elsif ($tpl_name eq 'groups_sel') {
 return qq{
-<form action=$SELF_URL METHOD=POST>
-<input type=hidden name=index value=$index>
+<form action="$SELF_URL" METHOD="POST">
+<input type=hidden name="index" value="$index"/>
 <TABLE width="100%" cellspacing="0" cellpadding="0" border="0">
 <TR><TD bgcolor="$_COLORS[1]">
 <TABLE width="100%" cellspacing="1" cellpadding="0" border="0">
-<TR><TD>$_GROUP:</TD><TD>%GROUPS_SEL% <input type=submit name=SHOW value='$_SHOW'></TD></TR>
+<TR><TD>$_GROUP:</TD><TD>%GROUPS_SEL% <input type="submit" name="SHOW" value="$_SHOW" class="button"/></TD></TR>
 </TABLE>
 </TD></TR></TABLE>
 </form>
@@ -553,17 +553,17 @@ return qq{
 }
 elsif ($tpl_name eq 'chg_bill') {
 return qq{
-<form action=$SELF_URL>
-<input type=hidden name=index value=$index>
-<input type=hidden name=UID value=%UID%>
-<input type=hidden name=COMPANY_ID value=$FORM{COMPANY_ID}>
+<form action="$SELF_URL">
+<input type=hidden name="index" value="$index"/>
+<input type=hidden name="UID" value="%UID%"/>
+<input type=hidden name="COMPANY_ID" value="$FORM{COMPANY_ID}"/>
 <Table width=300>
 <TR><TD>$_BILL:</TD><TD>%BILL_ID%:%LOGIN%</TD></TR>
-<TR><TD>$_CREATE:</TD><TD><input type=checkbox name=create value=1></TD></TR>
+<TR><TD>$_CREATE:</TD><TD><input type="checkbox" name="create" value="1"/></TD></TR>
 <TR><TD>$_TO:</TD><TD>%SEL_BILLS%</TD></TR>
 </TABLE>
 %CREATE_BTN%
-<input type=submit name=change value=$_CHANGE>
+<input type="submit" name="change" value="$_CHANGE" class="button"/>
 </form>
 }
 }

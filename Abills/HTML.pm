@@ -265,13 +265,22 @@ sub form_input {
 	my ($name, $value, $attr)=@_;
 
 
-  my $type  = (defined($attr->{TYPE})) ? $attr->{TYPE} : 'text';
+  my $type  = 'text';
+  my $class = '';
+
+  if (defined($attr->{TYPE})) {
+  	$type=$attr->{TYPE};
+    if ($type =~ /submit/i) {
+    	$class=' class="button"';
+     }
+   }  
+
   my $state = (defined($attr->{STATE})) ? ' checked' : ''; 
   my $size  = (defined($attr->{SIZE})) ? "SIZE=\"$attr->{SIZE}\"" : '';
-
+  
 
   
-  $self->{FORM_INPUT}="<input type=\"$type\" name=\"$name\" value=\"$value\"$state$size>";
+  $self->{FORM_INPUT}="<input type=\"$type\" name=\"$name\" value=\"$value\"$state$size$class/>";
 
   if (defined($self->{NO_PRINT}) && ( !defined($attr->{OUTPUT2RETURN}) )) {
   	$self->{OUTPUT} .= $self->{FORM_INPUT};
@@ -310,7 +319,7 @@ sub form_main {
   if (defined($attr->{SUBMIT})) {
   	my $H = $attr->{SUBMIT};
   	while(my($k, $v)=each( %$H)) {
-      $self->{FORM} .= "<input type=\"submit\" name=\"$k\" value=\"$v\">\n";
+      $self->{FORM} .= "<input type=\"submit\" name=\"$k\" value=\"$v\" class=\"button\">\n";
   	}
   }
 
@@ -742,10 +751,10 @@ form {
 
 .button {
   font-family:  Arial, Tahoma,Verdana, Helvetica, sans-serif;
-  background-color: #003366;
-  color: #fcdc43;
+  background-color: $_COLORS[2];
+  color: $_COLORS[9];
   font-size: 12px;
-  font-weight: bold;
+  //font-weight: bold;
 }
 
 input, textarea {

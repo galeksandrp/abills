@@ -750,9 +750,9 @@ my $output = $total . $table->show();
 
 $table = $html->table( { width       => '100%',
                          title_plain => [ 
-                                             "$_REFRESH (sec): ".   $html->form_input('REFRESH', int($FORM{REFRESH}), { SIZE => 4 } ),
-                                             $html->form_input('SHOW',  $_SHOW, {TYPE => 'SUBMIT'})  
-                                            ],
+                                           "$_REFRESH (sec): ".   $html->form_input('REFRESH', int($FORM{REFRESH}), { SIZE => 4 } ),
+                                           $html->form_input('SHOW',  $_SHOW, { TYPE => 'SUBMIT'})  
+                                         ],
                           cols_align => ['center:noprint', 'center:noprint'],
                            });
 
@@ -800,7 +800,7 @@ if (! $list) {
   my $SEL_NAS = "<select name=NAS_ID>\n";
      $SEL_NAS .= "<option value=''>$_ALL\n";
   foreach my $line (@$nas_list) {
-  	$SEL_NAS .= "<option value='$line->[0]'";
+  	$SEL_NAS .= "<option value=\"$line->[0]\"";
 	  $SEL_NAS .= ' selected' if ($FORM{NAS_ID} eq $line->[0]);
 	  $SEL_NAS .= ">$line->[1] / $line->[4] ($line->[3])\n";
    }
@@ -914,10 +914,11 @@ sub dv_use_allmonthes {
 # dv_use();
 #**********************************************************
 sub dv_use {
-  reports({ DATE      => $FORM{DATE}, 
-  	        REPORT    => '',
-  	        EX_PARAMS => { HOURS => "$_HOURS",
-  	        	             USERS => "$_USERS" } 
+  reports({ DATE          => $FORM{DATE}, 
+  	        REPORT        => '',
+  	        EX_PARAMS     => { HOURS => "$_HOURS",
+  	        	                 USERS => "$_USERS" }, 
+  	        PERIOD_FORM		=> 1
   	       });
 
 
@@ -1225,10 +1226,10 @@ if ($FORM{del} && $FORM{is_js_confirmed}) {
   if (! $sessions->{errno})	 {
   	my $table = $html->table( { 
 	                          width => '100%',
-                            rows => [["$_LOGIN",         $login],
-                                     ['SESSION_ID',      $session_id],
-                                     ['NAS_ID',          $nas_id],
-                                     ['SESSION_START',   "$session_start_date $session_start_time"],
+                            rows  => [["$_LOGIN",        $login ],
+                                     ['SESSION_ID',      $session_id ],
+                                     ['NAS_ID',          $nas_id ],
+                                     ['SESSION_START',   "$session_start_date $session_start_time" ],
                                      [$_SUM, $sum]
                                     ]
                            } );

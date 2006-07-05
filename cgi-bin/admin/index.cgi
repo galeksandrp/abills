@@ -2293,9 +2293,43 @@ else {
    }
 
   $user->{GROUPS_SEL} = sel_groups();
-  $html->tpl_show(templates('groups_sel'), $user);
+  #$html->tpl_show(templates('groups_sel'), $user);
 }
 
+if ($attr->{PERIOD_FORM}) {
+	$table = $html->table( { width    => '100%',
+	                         rowcolor => $_COLORS[1],
+                           rows     => [["$_FROM: ",   $html->date_fld('from', { MONTHES => \@MONTHES} ),
+                                          "$_TO: ",    $html->date_fld('to', { MONTHES => \@MONTHES } ), 
+                                          "$_GROUP:",  sel_groups(),
+                                          "$_TYPE:",   $html->form_select('TYPE', 
+                                                                 { SELECTED     => $FORM{TYPE},
+ 	                                                                 SEL_HASH     => { DAYS  => $_DAYS, 
+ 	                                                                                   USER  => $_USERS, 
+ 	                                                                                   HOURS => $_HOURS },
+ 	                                                                 NO_ID        => 1
+ 	                                                                }) ,
+                                          $html->form_input('show', $_SHOW, { TYPE => 'submit' }) ]
+                                         ],                                   
+                      });
+ 
+  print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
+	                       HIDDEN  => { 
+	                                    index => "$index"
+	                                    }});
+
+  if (defined($FORM{show})) {
+    $pages_qs .= "&show=y&fromD=$FORM{fromD}&fromM=$FORM{fromM}&fromY=$FORM{fromY}&toD=$FORM{toD}&toM=$FORM{toM}&toY=$FORM{toY}";
+    $FORM{fromM}++;
+    $FORM{toM}++;
+    $FORM{fromM} = sprintf("%.2d", $FORM{fromM}++);
+    $FORM{toM} = sprintf("%.2d", $FORM{toM}++);
+
+    $LIST_PARAMS{TYPE}=$FORM{TYPE};
+    $LIST_PARAMS{INTERVAL} = "$FORM{fromY}-$FORM{fromM}-$FORM{fromD}/$FORM{toY}-$FORM{toM}-$FORM{toD}";
+   }
+	
+}
 
 
 
@@ -3200,7 +3234,10 @@ my %search_form = (
 <tr><td>$_PHONE (>, <, *):</td><td><input type='text' name='PHONE' value='%PHONE%'/></td></tr>
 <tr><td>$_COMMENTS (*):</td><td><input type='text' name='COMMENTS' value='%COMMENTS%'/></td></tr>
 <tr><td>$_GROUP:</td><td>$group_sel</td></tr>
-<tr><td>$_PAYMENTS $_DATE (>, <):</td><td><input type='text' name='PAYMENTS' value='%PAYMENTS%'/></td></tr>
+<tr><td>$_DEPOSIT (>, <):</td><td><input type='text' name='DEPOSIT' value='%DEPOSIT%'/></td></tr>
+<tr><td>$_CREDIT (>, <):</td><td><input type='text' name='CREDIT' value='%CREDIT%'/></td></tr>
+<tr><td>$_PAYMENTS $_DATE ((>, <) YYYY-MM-DD):</td><td><input type='text' name='PAYMENTS' value='%PAYMENTS%'/></td></tr>
+<tr><td>$_DISABLE:</td><td><input type='checkbox' name='DISABLE' value='1'/></td></tr>
 \n",
 
 );
