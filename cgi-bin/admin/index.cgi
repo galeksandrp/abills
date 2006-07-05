@@ -1549,10 +1549,10 @@ if ($holidays->{errno}) {
 
 my $list = $holidays->holidays_list( { %LIST_PARAMS });
 my $table = $html->table( { caption    => "$_HOLIDAYS",
-	                                 width      => '640',
-                                   title      => [$_DAY,  $_DESCRIBE, '-'],
-                                   cols_align => ['left', 'left', 'center'],
-                                  } );
+	                          width      => '640',
+                            title      => [$_DAY,  $_DESCRIBE, '-'],
+                            cols_align => ['left', 'left', 'center'],
+                          } );
 my ($delete); 
 foreach my $line (@$list) {
 	my ($m, $d)=split(/-/, $line->[0]);
@@ -1564,9 +1564,9 @@ foreach my $line (@$list) {
 
 print $table->show();
 
-$table = $html->table( { width => '640',
-                                cols_align => ['right', 'right'],
-                                rows => [ [ "$_TOTAL:", "<b>$holidays->{TOTAL}</b>" ] ]
+$table = $html->table( { width      => '640',
+                         cols_align => ['right', 'right'],
+                         rows       => [ [ "$_TOTAL:", "<b>$holidays->{TOTAL}</b>" ] ]
                                } );
 print $table->show();
 
@@ -1610,7 +1610,7 @@ my $day = 1;
 my $month_days = 31;
 while($day < $month_days) {
   print "<tr bgcolor=\"$_COLORS[1]\">";
-  for($wday=0; $wday < 7 and $day < $month_days; $wday++) {
+  for($wday=0; $wday < 7 and $day <= $month_days; $wday++) {
      if ($day == 1 && $gwday != $wday) { 
        print "<td>&nbsp;</td>";
        if ($wday == 7) {
