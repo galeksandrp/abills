@@ -2413,8 +2413,10 @@ sub report_fees_month {
 #
 #**********************************************************
 sub report_fees {
-  reports({ DATE   => $FORM{DATE}, 
-  	        REPORT => '' });
+  reports({ DATE        => $FORM{DATE}, 
+  	        REPORT      => '',
+            PERIOD_FORM => 1
+  	         });
 
   $LIST_PARAMS{PAGE_ROWS}=1000;
   use Finance;
@@ -2439,11 +2441,11 @@ if (defined($FORM{DATE})) {
  }   
 else{ 
   #Fees###################################################
-  $table_fees = $html->table({ width       => '100%',
-	                              caption    => $_FEES, 
-                                title      => ["$_DATE", "$_COUNT", $_SUM],
-                                cols_align => ['right', 'right', 'right'],
-                                qs         => $pages_qs
+  $table_fees = $html->table({ width      => '100%',
+	                             caption    => $_FEES, 
+                               title      => ["$_DATE", "$_COUNT", $_SUM],
+                               cols_align => ['right', 'right', 'right'],
+                               qs         => $pages_qs
                                });
 
 
