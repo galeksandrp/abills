@@ -186,7 +186,7 @@ if (! defined($ENV{CONTENT_TYPE}) || $ENV{CONTENT_TYPE} !~ /boundary/ ) {
 
     #Check quotes
     $value =~ s/"/\\"/g;
-    $value =~ s/'/\''/g;
+    $value =~ s/'/\\'/g;
    
     if (defined($FORM{$side})) {
       $FORM{$side} .= ", $value";
@@ -342,12 +342,8 @@ sub form_select {
   my ($name, $attr)	= @_;
 	
 	my $ex_params =  (defined($attr->{EX_PARAMS})) ? $attr->{EX_PARAMS} : '';
-	
-	
-	
-	
+			
 	$self->{SELECT} = "<select name=\"$name\" $ex_params>\n";
-  
   
   if (defined($attr->{SEL_OPTIONS})) {
  	  my $H = $attr->{SEL_OPTIONS};
