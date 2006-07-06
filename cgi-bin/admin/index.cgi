@@ -2482,8 +2482,10 @@ sub report_payments_month {
 #
 #**********************************************************
 sub report_payments {
-  reports({ DATE   => $FORM{DATE}, 
-  	        REPORT => '' });
+  reports({ DATE        => $FORM{DATE}, 
+  	        REPORT      => '',
+  	        PERIOD_FORM => 1 });
+
 
   $LIST_PARAMS{PAGE_ROWS}=1000;
   use Finance;

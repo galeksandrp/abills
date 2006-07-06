@@ -62,16 +62,16 @@ sub new {
 sub defaults {
   my $self = shift;
 
-  %DATA = (UID      => 0,
-           BILL_ID  => 0, 
-           SUM      => '0.00', 
-           DESCRIBE => '', 
-           IP       => '0.0.0.0',
+  %DATA = (UID          => 0,
+           BILL_ID      => 0, 
+           SUM          => '0.00', 
+           DESCRIBE     => '', 
+           IP           => '0.0.0.0',
            LAST_DEPOSIT => '0.00', 
-           AID      => 0,
-           METHOD   => 0,
-           ER       => 1,
-           EXT_ID   => ''
+           AID          => 0,
+           METHOD       => 0,
+           ER           => 1,
+           EXT_ID       => ''
           );
 
   $self = \%DATA;
@@ -271,7 +271,20 @@ sub reports {
   }
  
  if(defined($attr->{DATE})) {
-   my $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
+   push @WHERE_RULES, "date_format(p.date, '%Y-%m-%d')='$attr->{DATE}'";
+  }
+ elsif ($attr->{INTERVAL}) {
+ 	 my ($from, $to)=split(/\//, $attr->{INTERVAL}, 2);
+   push @WHERE_RULES, "date_format(p.date, '%Y-%m-%d')>='$from' and date_format(p.date, '%Y-%m-%d')<='$to'";
+   if ($attr->{TYPE} eq 'HOURS') {
+     $date = "date_format(p.date, '%H')";
+    }
+   elsif ($attr->{TYPE} eq 'DAYS') {
+     $date = "date_format(p.date, '%Y-%m-%d')";
+    }
+   else {
+     $date = "u.id";   	
+    }  
   }
  elsif (defined($attr->{MONTH})) {
  	 push @WHERE_RULES, "date_format(p.date, '%Y-%m')='$attr->{MONTH}'";
