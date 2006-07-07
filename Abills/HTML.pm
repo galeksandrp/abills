@@ -1069,6 +1069,22 @@ sub show  {
 
 #**********************************************************
 #
+#**********************************************************
+sub link_former {
+  my ($params) = @_;
+
+
+  $params =~ s/ /%20/g;
+  $params =~ s/&/&amp;/g;
+  $params =~ s/>/&gt;/g;
+  $params =~ s/</&lt;/g;
+  $params =~ s/\"/&quot;/g;
+ 
+  return $params;
+}
+
+#**********************************************************
+#
 # del_button($op, $del, $message, $attr)
 #**********************************************************
 sub button {
@@ -1077,16 +1093,14 @@ sub button {
   my $ex_params = (defined($attr->{ex_params})) ? $attr->{ex_params} : '';
   my $ex_attr = '';
   
-  $params = "$SELF_URL?$params";
+  
+  $params = ($attr->{GLOBAL_URL})? $attr->{GLOBAL_URL} : "$SELF_URL?$params";
   $params = $attr->{JAVASCRIPT} if (defined($attr->{JAVASCRIPT}));
-  $params =~ s/ /%20/g;
-  $params =~ s/&/&amp;/g;
-  $params =~ s/>/&gt;/g;
-  $params =~ s/</&lt;/g;
-  $params =~ s/\"/&quot;/g;
+  $params = link_former($params);
 
   
   $ex_attr=" TITLE='$attr->{TITLE}'" if (defined($attr->{TITLE}));
+  
   my $message = (defined($attr->{MESSAGE})) ? "onclick=\"return confirmLink(this, '$attr->{MESSAGE}')\"" : '';
 
 
