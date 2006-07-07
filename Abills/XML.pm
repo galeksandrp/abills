@@ -318,10 +318,14 @@ sub menu {
  my $self = shift;
  my ($menu_items, $menu_args, $permissions, $attr) = @_;
  
- my $menu_navigator;
+
+ 
+ my $menu_navigator='';
  my $menu_text='';
  my $EX_ARGS = (defined($attr->{EX_ARGS})) ? $attr->{EX_ARGS} : '';
  my $fl = $attr->{FUNCTION_LIST};
+
+ return $menu_navigator, $menu_text if ($FORM{NO_MENU});
  
 my  %new_hash = ();
 while((my($findex, $hash)=each(%$menu_items))) {
@@ -535,7 +539,14 @@ foreach my $ID (@s) {
 }
 
 
-
+#*******************************************************************
+# heder off main page
+# make_charts()
+#*******************************************************************
+sub make_charts () {
+	
+	
+}
 
 #*******************************************************************
 # heder off main page

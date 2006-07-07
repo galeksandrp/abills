@@ -587,7 +587,7 @@ sub user_form {
             <tr><td colspan='2'><input type='hidden' name='UID' value=\"$FORM{UID}\"/></td></tr>
             <tr><td>$_DEPOSIT:</td><td>$user_info->{DEPOSIT}</td></tr>
             <tr><td>$_COMPANY:</td><td>". $html->button($user_info->{COMPANY_NAME}, "index=13&COMPANY_ID=$user_info->{COMPANY_ID}") ."</td></tr>
-            <tr><td>BILL_ID:<td>%BILL_ID%</td></tr>\n";
+            <tr><td>BILL_ID:</td><td>%BILL_ID%</td></tr>\n";
 
    $user_info->{DISABLE} = ($user_info->{DISABLE} > 0) ? ' checked' : '';
    $user_info->{ACTION}='change';
@@ -775,7 +775,7 @@ if(defined($attr->{USER})) {
     return 0;
    }
 
-  print "<table width=100% border=\"0\" cellspacing=\"1\" cellpadding=\"2\"><tr><td valign=\"top\" align=\"center\">\n";
+  print "<table width=\"100%\" border=\"0\" cellspacing=\"1\" cellpadding=\"2\"><tr><td valign=\"top\" align=\"center\">\n";
   
   
   form_passwd({ USER => $user_info}) if (defined($FORM{newpassword}));
@@ -813,15 +813,15 @@ if(defined($attr->{USER})) {
 
 
 
-my $payments = (defined($permissions{1})) ? '<li>'. $html->button($_PAYMENTS, "UID=$user_info->{UID}&index=2") : '';
-my $fees = (defined($permissions{2})) ? '<li>' .$html->button($_FEES, "UID=$user_info->{UID}&index=3") : '';
+my $payments = (defined($permissions{1})) ? '<li/>'. $html->button($_PAYMENTS, "UID=$user_info->{UID}&index=2") : '';
+my $fees = (defined($permissions{2})) ? '<li/>' .$html->button($_FEES, "UID=$user_info->{UID}&index=3") : '';
 
 print "
 </td><td bgcolor='$_COLORS[3]' valign='top' width='180'>
 <table width='100%' border='0'><tr><td><ul>
       $payments
       $fees
-      <li>". $html->button($_SEND_MAIL, "UID=$user_info->{UID}&index=31").
+      <li/>". $html->button($_SEND_MAIL, "UID=$user_info->{UID}&index=31").
 "</ul>\n</td></tr>
 <tr><td> 
   <ul>\n";
@@ -831,7 +831,7 @@ print "
 
 while(my($k, $v)=each %menu_items) {
 	if (defined($menu_items{$k}{20})) {
-		print '<li>'. $html->button($menu_items{$k}{20}, "UID=$user_info->{UID}&index=$k");
+		print '<li/>'. $html->button($menu_items{$k}{20}, "UID=$user_info->{UID}&index=$k");
 	 }
 }
 
@@ -855,9 +855,9 @@ while(my($k, $v)=each %uf_menus) {
 while(my($k, $v)=each (%userform_menus) ) {
   my $url =  "index=$k&UID=$user_info->{UID}";
   my $a = (defined($FORM{$k})) ? "<b>$v</b>" : $v;
-  print "<li>" . $html->button($a,  "$url");
+  print "<li/>" . $html->button($a,  "$url");
 }
-print "<li>".
+print "<li/>".
   $html->button($_DEL, "index=15&del_user=y&UID=$user_info->{UID}", { MESSAGE => "$_USER: $user_info->{LOGIN} / $user_info->{UID}" })
 ."</ul></td></tr>
 </table>

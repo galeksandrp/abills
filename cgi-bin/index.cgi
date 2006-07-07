@@ -479,7 +479,7 @@ elsif($FORM{newpassword} ne $FORM{confirm}) {
  my $password_form;
  $password_form->{ACTION}='change';
  $password_form->{LNG_ACTION}="$_CHANGE";
-
+ $password_form->{GEN_PASSWORD}=mk_unique_value(8);
  $html->tpl_show(templates('form_password'), $password_form);
 
  return 0;
