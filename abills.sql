@@ -163,21 +163,6 @@ CREATE TABLE `docs_acct_orders` (
 ) ;
 
 # --------------------------------------------------------
-
-#
-# Структура таблиці `dunes`
-#
-
-CREATE TABLE `dunes` (
-  `err_id` smallint(5) unsigned NOT NULL default '0',
-  `win_err_handle` varchar(30) NOT NULL default '',
-  `translate` varchar(200) NOT NULL default '',
-  `error_text` varchar(200) NOT NULL default '',
-  `solution` text
-) ;
-
-# --------------------------------------------------------
-
 #
 # Структура таблиці `dv_main`
 #
