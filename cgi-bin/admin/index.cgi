@@ -1598,7 +1598,7 @@ my ($sec,$min,$hour,$mday,$mon, $gyear,$gwday,$yday,$isdst) = gmtime($curtime);
 
 print "<br><TABLE width=\"400\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\">
 <tr><TD bgcolor=\"$_COLORS[4]\">
-<TABLE width=100% cellspacing=1 cellpadding=0 border=0>
+<TABLE width=\"100%\" cellspacing=1 cellpadding=0 border=0>
 <tr bgcolor=\"$_COLORS[0]\"><th>". $html->button(' << ', "index=75&month=$p_month&year=$p_year"). "</th><th colspan=5>$MONTHES[$month] $year</th><th>". $html->button(' >> ', "index=75&month=$n_month&year=$n_year") ."</th></tr>
 <tr bgcolor=\"$_COLORS[0]\"><th>$WEEKDAYS[1]</th><th>$WEEKDAYS[2]</th><th>$WEEKDAYS[3]</th>
 <th>$WEEKDAYS[4]</th><th>$WEEKDAYS[5]</th>
@@ -1874,21 +1874,26 @@ my $ROWS=$COOKIES{PAGE_ROWS} || $PAGE_ROWS;
 my $SEL_LANGUAGE = $html->form_select('language', 
                                 { 
  	                                SELECTED  => $html->{language},
- 	                                SEL_HASH  => \%LANG });
+ 	                                SEL_HASH  => \%LANG 
+ 	                               });
 
-print "
-<form action=$SELF_URL METHOD=POST>
-<input type=hidden name=index value=$index>
-<TABLE width=640 cellspacing=0 cellpadding=0 border=0><tr><TD bgcolor=\"$_COLORS[4]\">
-<TABLE width=100% cellspacing=1 cellpadding=0 border=0><tr bgcolor=\"$_COLORS[1]\"><td colspan=\"2\">$_LANGUAGE:</td>
+print << "[END]";
+<form action="$SELF_URL" METHOD="POST">
+<input type="hidden" name="index" value="$index">
+<TABLE width="640" cellspacing="0" cellpadding="0" border="0"><tr><TD bgcolor="$_COLORS[4]">
+<TABLE width="100%" cellspacing="1" cellpadding="0" border="0"><tr bgcolor="$_COLORS[1]"><td colspan="2">$_LANGUAGE:</td>
 <td>$SEL_LANGUAGE</td></tr>
-<tr bgcolor=\"$_COLORS[1]\"><th colspan=\"3\">&nbsp;</th></tr>
-<tr bgcolor=\"$_COLORS[0]\"><th colspan=\"2\">$_PARAMS</th><th>$_VALUE</th></tr>\n";
+<tr bgcolor="$_COLORS[1]"><th colspan="3">&nbsp;</th></tr>
+<tr bgcolor="$_COLORS[0]"><th colspan="2">$_PARAMS</th><th>$_VALUE</th></tr>
+
+[END]
+
 
  for($i=0; $i<=10; $i++) {
    print "<tr bgcolor=\"$_COLORS[1]\"><td width=30% bgcolor=\"$_COLORS[$i]\">$i</td><td>$colors_descr[$i]</td><td><input type=text name=colors value='$_COLORS[$i]'></td></tr>\n";
   } 
  
+
 print "
 </table>
 <br>

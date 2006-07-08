@@ -451,7 +451,8 @@ elsif ($NAS->{NAS_TYPE} eq 'mpd') {
  }
 ###########################################################
 # pppd + RADIUS plugin (Linux) http://samba.org/ppp/
-elsif ($NAS->{NAS_TYPE} eq 'pppd') {
+# lepppd - PPPD IPv4 zone counters 
+elsif ($NAS->{NAS_TYPE} eq 'pppd' or ($NAS->{NAS_TYPE} eq 'lepppd')) {
   my $EX_PARAMS = $self->ex_traffic_params({ 
   	                                         traf_limit => $traf_limit, 
                                              deposit    => $self->{DEPOSIT},
@@ -462,6 +463,18 @@ elsif ($NAS->{NAS_TYPE} eq 'pppd') {
   if ($EX_PARAMS->{traf_limit} > 0) {
     $RAD_PAIRS->{'Session-Octets-Limit'} = $EX_PARAMS->{traf_limit} * 1024 * 1024;
     $RAD_PAIRS->{'Octets-Direction'} = $self->{OCTETS_DIRECTION};
+   }
+
+  #Speed limit attributes 
+  if ($self->{USER_SPEED} > 0) { 
+    $RAD_PAIRS->{'PPPD-Upstream-Speed-Limit'} = int($self->{USER_SPEED}); 
+    $RAD_PAIRS->{'PPPD-Downstream-Speed-Limit'} = int($self->{USER_SPEED}); 
+   } 
+  else { 
+    if (defined($EX_PARAMS->{speed}->{0})) { 
+      $RAD_PAIRS->{'PPPD-Downstream-Speed-Limit'} = int($EX_PARAMS->{speed}->{0}->{IN}); 
+      $RAD_PAIRS->{'PPPD-Upstream-Speed-Limit'} = int($EX_PARAMS->{speed}->{0}->{OUT}); 
+     } 
    }
  }
 

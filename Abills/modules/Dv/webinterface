@@ -2326,7 +2326,7 @@ sub dv_wizard_user {
 
 
 
-  $template = "<table width=100%>$template</table>";
+  $template = "<table width=\"100%\">$template</table>";
   if ($attr->{OUTPUT2RETURN}) {
     return $template;	
    }
