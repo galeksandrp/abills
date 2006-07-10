@@ -237,11 +237,12 @@ foreach my $line (@$commands) {
 # Get stats from Livingston Portmaster
 # stats_pm25($NAS, $PORT)
 #*******************************************************************
-
 sub stats_pm25 {
   my ($NAS, $PORT) = @_;
 
-  my %stats = ();
+  my %stats = (in  => 0,
+               out => 0);
+
   my $PM25_PORT=$PORT+2;
   my $SNMP_COM = $NAS->{NAS_MNG_PASSWORD} || '';
 

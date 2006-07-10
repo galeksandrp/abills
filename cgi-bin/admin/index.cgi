@@ -444,7 +444,7 @@ elsif($FORM{COMPANY_ID}) {
   $pages_qs .= "&COMPANY_ID=$FORM{COMPANY_ID}";
 
   func_menu({ 
-  	         'ID' => $company->{COMPANY_ID}, 
+  	         'ID'   => $company->{COMPANY_ID}, 
   	         $_NAME =>$company->{COMPANY_NAME}
   	       }, 
   	{ 
@@ -472,17 +472,19 @@ elsif(defined($FORM{del}) && defined($FORM{is_js_confirmed})) {
  }
 else {
   my $list = $company->list( { %LIST_PARAMS } );
-  my $table = $html->table( { width    => '100%',
-                                   caption    => $_COMPANIES,
-                                   border     => 1,
-                                   title      => [$_NAME, $_DEPOSIT, $_REGISTRATION, $_USERS, $_STATUS, '-', '-'],
-                                   cols_align => ['left', 'right', 'right', 'right', 'center', 'center'],
-                                   pages      => $company->{TOTAL},
-                                   qs         => $pages_qs
+  my $table = $html->table( { width      => '100%',
+                              caption    => $_COMPANIES,
+                              border     => 1,
+                              title      => [$_NAME, $_DEPOSIT, $_REGISTRATION, $_USERS, $_STATUS, '-', '-'],
+                              cols_align => ['left', 'right', 'right', 'right', 'center', 'center'],
+                              pages      => $company->{TOTAL},
+                              qs         => $pages_qs
                                   } );
 
   foreach my $line (@$list) {
-    $table->addrow($line->[0],  $line->[1], $line->[2], 
+    $table->addrow($line->[0],  
+      $line->[1], 
+      $line->[2], 
       $html->button($line->[3], "index=13&COMPANY_ID=$line->[5]"), 
       "$status[$line->[4]]",
       $html->button($_INFO, "index=13&COMPANY_ID=$line->[5]"), 
@@ -490,9 +492,9 @@ else {
    }
   print $table->show();
 
-  $table = $html->table( { width => '100%',
-                                cols_align => ['right', 'right'],
-                                rows => [ [ "$_TOTAL:", "<b>$company->{TOTAL}</b>" ] ]
+  $table = $html->table( { width      => '100%',
+                           cols_align => ['right', 'right'],
+                           rows       => [ [ "$_TOTAL:", "<b>$company->{TOTAL}</b>" ] ]
                                } );
   print $table->show();
 }
@@ -623,11 +625,11 @@ elsif(defined($FORM{GID})){
   $pages_qs="&GID=$users->{GID}&subf=$FORM{subf}";
 
   func_menu({ 
-  	         'ID' => $users->{GID}, 
+  	         'ID'   => $users->{GID}, 
   	         $_NAME =>$users->{G_NAME}
   	       }, 
   	{ 
-     $_CHANGE     => ":GID=$users->{GID}",
+     $_CHANGE   => ":GID=$users->{GID}",
      $_USERS    => "11:GID=$users->{GID}",
      $_PAYMENTS => "2:GID=$users->{GID}",
      $_FEES     => "3:GID=$users->{GID}",
@@ -660,12 +662,12 @@ if ($users->{errno}) {
 
 my $list = $users->groups_list({ %LIST_PARAMS });
 my $table = $html->table( { width      => '100%',
-                                   caption    => "$_GROUPS",
-                                   border     => 1,
-                                   title      => [$_ID, $_NAME, $_DESCRIBE, $_USERS, '-', '-'],
-                                   cols_align => ['right', 'left', 'left', 'right', 'center', 'center'],
-                                   qs         => $pages_qs,
-                                   pages      => $users->{TOTAL}
+                            caption    => "$_GROUPS",
+                            border     => 1,
+                            title      => [$_ID, $_NAME, $_DESCRIBE, $_USERS, '-', '-'],
+                            cols_align => ['right', 'left', 'left', 'right', 'center', 'center'],
+                            qs         => $pages_qs,
+                            pages      => $users->{TOTAL}
                                   } );
 
 foreach my $line (@$list) {
@@ -678,10 +680,10 @@ foreach my $line (@$list) {
 print $table->show();
 
 
-$table = $html->table( { width => '100%',
-                                cols_align => ['right', 'right'],
-                                rows => [ [ "$_TOTAL:", "<b>$users->{TOTAL}</b>" ] ]
-                               } );
+$table = $html->table({ width      => '100%',
+                        cols_align => ['right', 'right'],
+                        rows       => [ [ "$_TOTAL:", "<b>$users->{TOTAL}</b>" ] ]
+                      });
 print $table->show();
 }
 
@@ -705,11 +707,11 @@ sub user_info {
 	my $user_info = $users->info( $UID );
   
   
-  $table = $html->table( { width    => '100%',
-  	                       rowcolor => $_COLORS[2],
-  	                       border   => 0,
+  $table = $html->table( { width      => '100%',
+  	                       rowcolor   => $_COLORS[2],
+  	                       border     => 0,
                            cols_align => ['left'],
-                           rows => [ [ "$_USER: ". $html->button("<b>$user_info->{LOGIN}</b>", "index=15&UID=$user_info->{UID}") ] ]
+                           rows       => [ [ "$_USER: ". $html->button("<b>$user_info->{LOGIN}</b>", "index=15&UID=$user_info->{UID}") ] ]
                           } );
   print $table->show();
  
@@ -957,9 +959,9 @@ $table->addtd(
 }
 print $table->show();
 
-$table = $html->table( { width => '100%',
+$table = $html->table( { width      => '100%',
                          cols_align => ['right', 'right'],
-                         rows => [ [ "$_TOTAL:", "<b>$users->{TOTAL}</b>" ] ]
+                         rows       => [ [ "$_TOTAL:", "<b>$users->{TOTAL}</b>" ] ]
                        });
 print $table->show();
 }
@@ -985,7 +987,7 @@ sub user_company {
 
  $user_info->{SEL_COMPANIES} = $html->form_select('COMPANY_ID', 
                                 { 
- 	                                SELECTED  => $FORM{COMPANY_ID},
+ 	                                SELECTED          => $FORM{COMPANY_ID},
  	                                SEL_MULTI_ARRAY   => $customer->company->list(),
  	                                MULTI_ARRAY_KEY   => 5,
  	                                MULTI_ARRAY_VALUE => 0,

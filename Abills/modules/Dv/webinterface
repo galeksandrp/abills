@@ -348,13 +348,13 @@ elsif (defined($FORM{TP_ID})) {
   
   $tariffs->{NAME_SEL} = $html->form_main({ CONTENT => $html->form_select('TP_ID', 
                                           { 
- 	                                          SELECTED  => $FORM{TP_ID},
+ 	                                          SELECTED          => $FORM{TP_ID},
  	                                          SEL_MULTI_ARRAY   => $tariffs->list({ %LIST_PARAMS }),
  	                                          MULTI_ARRAY_KEY   => 0,
  	                                          MULTI_ARRAY_VALUE => 1,
  	                                        }),
 	                       HIDDEN  => { index => "$index" },
-	                       SUBMIT  => { show  => "$_SHOW"} 
+	                       SUBMIT  => { show  => "$_SHOW" } 
 	                        });
   
   func_menu({ 
@@ -1260,11 +1260,11 @@ if ($FORM{rows}) {
 
 #PEriods totals
 my $list = $sessions->periods_totals({ %LIST_PARAMS });
-my $table = $html->table( { caption => "$_PERIOD",
-	                          width => '100%',
+my $table = $html->table( { caption     => "$_PERIOD",
+	                          width       => '100%',
                             title_plain => ["$_PERIOD", "$_DURATION", "$_SEND", "$_RECV", "$_SUM"],
-                            cols_align => ['left', 'right', 'right', 'right', 'right'],
-                            rowcolor => $_COLORS[1]
+                            cols_align  => ['left', 'right', 'right', 'right', 'right'],
+                            rowcolor    => $_COLORS[1]
                            } );
 for(my $i = 0; $i < 5; $i++) {
 	  $table->addrow($html->button("$PERIODS[$i]", "index=$index&PERIOD=$i$pages_qs"), 
@@ -1579,12 +1579,12 @@ $pages_qs .= "&PERIOD=$FORM{PERIOD}" if (defined($FORM{PERIOD}));
 
 
 my $list = $sessions->detail_list({ %LIST_PARAMS, %FORM });
-my $table = $html->table({ width => '100%',
-                                   border => 1,
-                                   title => ["LAST_UPDATE", "$_SESSION_ID", "NAS_ID", "SENT", "RECV", "SENT2", "RECV2"],
-                                   cols_align => ['right', 'right', 'right', 'right', 'right', 'right', 'right'],
-                                   pages => $sessions->{TOTAL},
-                                   qs => $pages_qs
+my $table = $html->table({ width      => '100%',
+                           border     => 1,
+                           title      => ["LAST_UPDATE", "$_SESSION_ID", "NAS_ID", "SENT", "RECV", "SENT2", "RECV2"],
+                           cols_align => ['right', 'right', 'right', 'right', 'right', 'right', 'right'],
+                           pages      => $sessions->{TOTAL},
+                           qs         => $pages_qs
                                   } );
 
  foreach my $line (@$list) {
@@ -1599,9 +1599,9 @@ my $table = $html->table({ width => '100%',
  print $table->show();
 
 
-$table = $html->table( { width => '100%',
+$table = $html->table( { width      => '100%',
                          cols_align => ['right', 'right'],
-                         rows => [ ["$_TOTAL:", "<b>$sessions->{TOTAL}</b>" ] ]
+                         rows       => [ ["$_TOTAL:", "<b>$sessions->{TOTAL}</b>" ] ]
                        } );
 print $table->show();
 
@@ -1645,7 +1645,7 @@ if ($FORM{set}) {
 
    $tariffs->{TARIF_PLAN_SEL}=$html->form_select('TP_ID', 
                                           { 
- 	                                          SELECTED  => $user->{TP_ID},
+ 	                                          SELECTED          => $user->{TP_ID},
  	                                          SEL_MULTI_ARRAY   => $tariffs->list(),
  	                                          MULTI_ARRAY_KEY   => 0,
  	                                          MULTI_ARRAY_VALUE => 1,
