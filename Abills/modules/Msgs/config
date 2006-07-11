@@ -7,11 +7,18 @@ $web_interface    = 1;
                    );
 
 
+%QUICK_SHOW=();
 
 
 
-%USER_FUNCTION_LIST = ("01:0:$_MESSAGES:msgs_user:"      => 0
-                      );
+
+%USER_FUNCTION_LIST = ();
+
+if (defined($UID) && $UID > 0) {
+  require "Abills/modules/Msgs/webinterface";
+  my $count=msgs_new($UID);
+  $USER_FUNCTION_LIST{"01:0:$_MESSAGES $count:msgs_user:"} = 0;
+ }
 
 
 # 

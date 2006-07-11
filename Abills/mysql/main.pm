@@ -231,10 +231,13 @@ sub search_expr {
   if($type eq 'INT' && $value =~ s/\*//g) {
   	$expr = '>';
    }
-  elsif ($value =~ tr/>//d) {
+  elsif ($value =~ tr/^<>//d) {
+    $expr = '<>';
+   }
+  elsif ($value =~ tr/^>//d) {
     $expr = '>';
    }
-  elsif($value =~ tr/<//d) {
+  elsif($value =~ tr/^<//d) {
     $expr = '<';
    }
   

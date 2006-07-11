@@ -440,45 +440,28 @@ CREATE TABLE `mail_transport` (
   UNIQUE KEY `id` (`id`)
 )  ;
 
-# --------------------------------------------------------
-
-#
-# Структура таблиці `message_types`
-#
-
-CREATE TABLE `message_types` (
-  `id` int(11) NOT NULL auto_increment,
-  `name` varchar(20) default NULL,
+CREATE TABLE `msgs_chapters` (
+  `id` int(11) unsigned NOT NULL auto_increment,
+  `name` varchar(20) NOT NULL default '',
   PRIMARY KEY  (`id`),
+  UNIQUE KEY `id` (`id`),
   UNIQUE KEY `name` (`name`)
-)  ;
+);
 
-# --------------------------------------------------------
-
-#
-# Структура таблиці `messages`
-#
-
-CREATE TABLE `messages` (
+CREATE TABLE `msgs_messages` (
   `id` int(11) unsigned NOT NULL auto_increment,
   `par` int(11) unsigned NOT NULL default '0',
   `uid` int(11) unsigned NOT NULL default '0',
-  `type` smallint(6) NOT NULL default '0',
+  `chapter` smallint(6) unsigned NOT NULL default '0',
   `message` text,
-  `admin` varchar(12) default NULL,
   `reply` text,
   `ip` int(11) unsigned default '0',
   `date` datetime NOT NULL default '0000-00-00 00:00:00',
   `state` tinyint(2) unsigned default '0',
   `aid` smallint(6) unsigned NOT NULL default '0',
+  `subject` varchar(40) NOT NULL default '',
   PRIMARY KEY  (`id`)
-)  ;
-
-# --------------------------------------------------------
-
-#
-# Структура таблиці `nas`
-#
+);
 
 CREATE TABLE `nas` (
   `id` smallint(5) unsigned NOT NULL auto_increment,

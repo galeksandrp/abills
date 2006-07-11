@@ -24,7 +24,7 @@ sub msgs_admin {
  	
    }
   elsif ($FORM{reply}) {
-    $Msgs->message_change({ STATE => 2, %FORM });
+    $Msgs->message_change({ STATE => 0, %FORM });
     $html->message('info', $_INFO, "$_REPLY") if (! $Msgs->{errno});  	
    }
   elsif ($FORM{chg}) {
@@ -34,8 +34,8 @@ sub msgs_admin {
     $html->message('info', $_INFO, "$_CHANGING") if (! $Msgs->{errno});  	
    }
   elsif ($FORM{del}) {
-    $Msgs->message_del({ ID => $FORM{del} });
-    $html->message('info', $_INFO, "$_ADDED") if (! $Msgs->{errno});  	
+    $Msgs->message_del({ ID => $FORM{del}, UID => $UID  });
+    $html->message('info', $_INFO, "$_DELETED") if (! $Msgs->{errno});  	
    }
 
 
@@ -53,8 +53,10 @@ sub msgs_admin {
 
   $html->tpl_show(_include('msgs_send_form', 'Msgs'), $Msgs);
   
-
-  $list = $Msgs->messages_list({ %LIST_PARAMS });  
+  $list = $Msgs->messages_list({ %LIST_PARAMS, DESC => (! $FORM{sort}) ? 'DESC' : $FORM{desc} });
+  
+  
+  
   my $table = $html->table( { width      => '100%',
                               caption    => "$_MESSAGES",
                               title      => ['#', "$_USER", "$_SUBJECT", "$_CHAPTERS", "$_DATE", "$_STATUS", "IP", "$_ADMIN", "-", "-"],
@@ -67,9 +69,9 @@ foreach my $line (@$list) {
   my $state = '<img src="../img/red_dot.gif" border="0" alt="No reply"/>' if ($line->[5] eq '');
 
   $table->addrow(
-   $line->[0], 
+   $line->[0] . $html->form_input('del', "$line->[0]", {TYPE => 'checkbox' }), 
    $line->[1],
-   $line->[2], 
+   $html->button($line->[2], "index=$index&UID=$line->[8]&chg=$line->[0]"), 
    $line->[3],
    $line->[4],
    $state,
@@ -81,7 +83,20 @@ foreach my $line (@$list) {
   );
 }
 
+print $html->form_main({ CONTENT => $table->show(),
+	                       HIDDEN  => { index            => "$index",
+	                                    UID							 => $UID      },
+	                       SUBMIT  => { delete           => $_DEL     } 
+	                       });
+
+
+
+$table = $html->table({ width      => '100%',
+                        cols_align => ['right', 'right'],
+                        rows       => [ [ "$_TOTAL:", "<b>$Msgs->{TOTAL}</b>" ] ]
+                      });
 print $table->show();
+
   
   
 }
@@ -121,7 +136,8 @@ sub msgs_user {
 
 
 
-  $list = $Msgs->messages_list({ %LIST_PARAMS });  
+  $list = $Msgs->messages_list({ %LIST_PARAMS, SORT => '11, 5 DESC', REPLY => '<>' });  
+
   my $table = $html->table( { width        => '100%',
                               caption      => "$_MESSAGES",
                               title_plain  => ["$_SUBJECT", "$_CHAPTERS", "$_DATE", "-" ],
@@ -162,7 +178,7 @@ sub msgs_chapters {
   elsif ($FORM{change}) {
     $Msgs->chapter_change({ %FORM });
 
-    $html->message('info', $_INFO, "$_ADDED") if (! $Msgs->{errno});  	
+    $html->message('info', $_INFO, "$_CHANGED") if (! $Msgs->{errno});  	
    }
   elsif ($FORM{chg}) {
 
@@ -171,12 +187,12 @@ sub msgs_chapters {
     $Msgs->{ACTION}='change';
     $Msgs->{ACTION_LNG}=$_CHANGE;
 
-    $html->message('info', $_INFO, "$_ADDED") if (! $Msgs->{errno});  	  	
+    $html->message('info', $_INFO, "$_CHANGING") if (! $Msgs->{errno});  	  	
    }
   elsif ($FORM{del}) {
     $Msgs->chapter_del({ ID => $FORM{del} });
 
-    $html->message('info', $_INFO, "$_ADDED") if (! $Msgs->{errno});
+    $html->message('info', $_INFO, "$_DELETED") if (! $Msgs->{errno});
    }
 
   if ($Msgs->{errno}) {
@@ -218,6 +234,21 @@ foreach my $line (@$list) {
 
 print $table->show();
   
+}
+
+
+#*******************************************************************
+# Count New messages for user
+#*******************************************************************
+sub msgs_new {
+  my $UID = shift;
+
+  $Msgs->messages_list({ UID => $UID, STATE => '<>1' });
+
+  if ($Msgs->{TOTAL} > 0) {
+     return "($Msgs->{TOTAL})";
+   }
+  return '';
 }
 
 
