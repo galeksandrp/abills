@@ -1368,7 +1368,7 @@ if(defined($attr->{TP})) {
      	 my $TI_ID = $line->[0];
      	 #Traffic tariff IN (1 Mb) Traffic tariff OUT (1 Mb) Prepaid (Mb) Speed (Kbits) Describe NETS 
 
-       my $table2 = $html->table( { width => '100%',
+       my $table2 = $html->table( { width      => '100%',
                                    title_plain => ["#", "$_TRAFFIC_TARIFF In ", "$_TRAFFIC_TARIFF Out ", "$_PREPAID", "$_SPEED IN",  "$_SPEED OUT", "DESCRIBE", "NETS", "-", "-"],
                                    cols_align  => ['center', 'right', 'right', 'right', 'right', 'right', 'left', 'right', 'center', 'center', 'center'],
                                    caption     => "$_BYTE_TARIF"

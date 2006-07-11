@@ -856,14 +856,16 @@ sub table {
  if (defined($attr->{cols_align})) {
    $self->{table} .= "<COLGROUP>";
    my $cols_align = $attr->{cols_align};
+   my $i=0;
    foreach my $line (@$cols_align) {
      my $class = '';
      if ($line =~ /:/) {
        ($line, $class) = split(/:/, $line,  2);
        $class = " class=\"$class\"";
       }
-     
-     $self->{table} .= " <COL align=\"$line\"$class>\n";
+     my $width = (defined($attr->{cols_width}) && defined(@{$attr->{cols_width}}[$i])  ) ? " width=\"@{$attr->{cols_width}}[$i]\"" : '';
+     $self->{table} .= " <COL align=\"$line\"$class$width>\n";
+     $i++;
     }
    $self->{table} .= "</COLGROUP>\n";
   }
@@ -998,7 +1000,7 @@ sub table_title  {
   $self->{table_title} = "<tr bgcolor=\"$_COLORS[0]\">";
   my $i=1;
   foreach my $line (@$caption) {
-     $self->{table_title} .= "<th  class='table_title'>$line ";
+     $self->{table_title} .= "<th class='table_title'>$line ";
      if ($line ne '-') {
          if ($sort != $i) {
              $img = 'sort_none.png';
@@ -1023,7 +1025,7 @@ sub table_title  {
          	  $op="op=$get_op";
           }
 
-         $self->{table_title} .= $self->button("<img src='$IMG_PATH/$img' width='12\' height='10' border='0' alt='Sort' title='sort' class='noprint'>", "$op$qs&pg=$pg&sort=$i&desc=$desc");
+         $self->{table_title} .= $self->button("<img src=\"$IMG_PATH/$img\" width=\"12\" height=\"10\" border=\"0\" alt=\"Sort\" title=\"Sort\" class=\"noprint\">", "$op$qs&pg=$pg&sort=$i&desc=$desc");
        }
      else {
          $self->{table_title} .= "$line";
