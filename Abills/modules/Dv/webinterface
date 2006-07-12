@@ -1616,6 +1616,10 @@ sub dv_user_chg_tp {
 
  my $user;
 
+ if (! $conf{DV_USER_CHG_TP}) {
+    messages('err', $_ERROR, "$_NOT_ALLOW");
+  }
+
  if(defined($LIST_PARAMS{UID})) {
    $user = $attr->{USER};
    $user = $Dv->info($LIST_PARAMS{UID});

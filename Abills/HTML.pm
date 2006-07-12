@@ -267,7 +267,12 @@ sub form_input {
 
   my $type  = 'text';
   my $class = '';
-
+  my $ex_params = '';
+  
+  if ($attr->{EX_PARAMS}) {
+  	$ex_params = $attr->{EX_ATTR};
+   }
+  
   if (defined($attr->{TYPE})) {
   	$type=$attr->{TYPE};
     if ($type =~ /submit/i) {
@@ -280,7 +285,7 @@ sub form_input {
   
 
   
-  $self->{FORM_INPUT}="<input type=\"$type\" name=\"$name\" value=\"$value\"$state$size$class/>";
+  $self->{FORM_INPUT}="<input type=\"$type\" name=\"$name\" value=\"$value\"$state$size$class$ex_params/>";
 
   if (defined($self->{NO_PRINT}) && ( !defined($attr->{OUTPUT2RETURN}) )) {
   	$self->{OUTPUT} .= $self->{FORM_INPUT};
