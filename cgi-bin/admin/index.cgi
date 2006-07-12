@@ -56,7 +56,7 @@ $html = Abills::HTML->new({ CONF => \%conf, NO_PRINT => 0 });
 my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
 
 $db = $sql->{db};
-my $admin = Admins->new($db, \%conf);
+$admin = Admins->new($db, \%conf);
 require "../../language/$html->{language}.pl";
 %permissions = ();
 use Abills::Base;

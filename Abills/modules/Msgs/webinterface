@@ -77,7 +77,7 @@ foreach my $line (@$list) {
    $state,
    $line->[6],      
    $line->[7],      
-   $html->button("$_REPLY", "index=$index&chg=$line->[0]$pages_qs"),
+   $html->button("$_REPLY", "index=$index&chg=$line->[0]&UID=$line->[8]"),
    $html->button($_DEL, "index=$index&del=$line->[0]$pages_qs", { MESSAGE => "$_DEL $line->[0]?" }) 
 
   );
@@ -241,13 +241,24 @@ print $table->show();
 # Count New messages for user
 #*******************************************************************
 sub msgs_new {
-  my $UID = shift;
+  my ($attr) = @_;
 
-  $Msgs->messages_list({ UID => $UID, STATE => '<>1' });
+  my   %SHOW_PARAMS = ();
+
+  if ($attr->{UID}) {
+    %SHOW_PARAMS = (UID   => $UID, 
+                    STATE => '<>1');
+   }
+  elsif ($attr->{AID}) {
+    %SHOW_PARAMS = (REPLY => '');
+   }
+
+  $Msgs->messages_list({ %SHOW_PARAMS });
 
   if ($Msgs->{TOTAL} > 0) {
      return "($Msgs->{TOTAL})";
    }
+
   return '';
 }
 

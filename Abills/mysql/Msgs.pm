@@ -59,7 +59,7 @@ sub messages_list {
   }
 
 
- if ($attr->{REPLY}) {
+ if (defined($attr->{REPLY})) {
  	  my $value = $self->search_expr($attr->{REPLY});
     push @WHERE_RULES, "m.reply$value";
   }

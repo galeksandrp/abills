@@ -359,13 +359,13 @@ $INTERVAL_TYPE_SEL
 </form>\n";
 
 
-my $table = $html->table( { width => '100%',
-                                border => 1,
-                                title => ["$_TIME", "$_SIZE", "SRC_IP", "SRC_PORT", "DST_IP", "DST_PORT", "$_PROTOCOL", "-"],
-                                cols_align => ['right', 'right', 'RIGHT', 'right', 'right', 'right', 'center'],
-                                qs => $pages_qs,
-                                pages => $sessions->{TOTAL},
-                                recs_on_page => $LIST_PARAMS{PAGE_ROWS}
+my $table = $html->table( { width        => '100%',
+                            border       => 1,
+                            title        => ["$_TIME", "$_SIZE", "SRC_IP", "SRC_PORT", "DST_IP", "DST_PORT", "$_PROTOCOL", "-"],
+                            cols_align   => ['right', 'right', 'RIGHT', 'right', 'right', 'right', 'center'],
+                            qs           => $pages_qs,
+                            pages        => $sessions->{TOTAL},
+                            recs_on_page => $LIST_PARAMS{PAGE_ROWS}
                                } );
 
 my $delete = '';
@@ -390,12 +390,12 @@ print $table->show();
 
 
 
-$table = $html->table( { width => '100%',
-	                              rowcolor => $_COLORS[1],
-                                title_plain => ["$_SESSIONS", "$_TRAFFIC"],
-                                cols_align => ['right', 'right', 'right', 'right'],
-                                rows => [ [ $Ipn->{COUNT}, int2byte($Ipn->{SUM}) ] ],
-                               } );
+$table = $html->table( { width       => '100%',
+	                       rowcolor    => $_COLORS[1],
+                         title_plain => ["$_SESSIONS", "$_TRAFFIC"],
+                         cols_align  => ['right', 'right', 'right', 'right'],
+                         rows        => [ [ $Ipn->{COUNT}, int2byte($Ipn->{SUM}) ] ],
+                       } );
 
 
 print $table->show();
@@ -738,10 +738,10 @@ sub ipn_use {
       my $list = $Ipn->reports2({ %LIST_PARAMS });
 
       $table_sessions = $html->table( { width => '100%',
-	                              caption    => "$_FROM", 
-                                title      => ["IP", "PACKEDGE", "$_SUM"],
-                                cols_align => ['left', 'right', 'right'],
-                                qs         => $pages_qs             
+	                                      caption    => "$_FROM", 
+                                        title      => ["IP", "PACKEDGE", "$_SUM"],
+                                        cols_align => ['left', 'right', 'right'],
+                                        qs         => $pages_qs             
                                } );
 
       foreach my $line (@$list) {
