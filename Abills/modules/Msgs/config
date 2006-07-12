@@ -13,7 +13,7 @@ if (defined($user->{UID})) {
   my $count=msgs_new({ UID => $UID });
   $USER_FUNCTION_LIST{"01:0:$_MESSAGES $count:msgs_user:"} = 0;
  }
-else {
+elsif(defined($admin->{AID})) {
   my $count=msgs_new({ AID => $admin->{AID} });
   $FUNCTIONS_LIST{"02:0:$_MESSAGES $count:msgs_admin:"}=5;
  }   
