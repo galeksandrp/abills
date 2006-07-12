@@ -254,6 +254,7 @@ sub action_list {
 
   my @list = ();
   @WHERE_RULES = ();
+  $WHERE='';
 
   # UID
   if ($attr->{UID}) {
@@ -296,7 +297,8 @@ sub action_list {
   }
 
 
-  $WHERE = "WHERE " . join(' and ', @WHERE_RULES) if($#WHERE_RULES > -1);
+  $WHERE = "WHERE " . join(' and ', @WHERE_RULES) if ($#WHERE_RULES > -1);
+
   $self->query($db, "select aa.id, u.id, aa.datetime, aa.actions, a.id, INET_NTOA(aa.ip), aa.module, aa.uid, aa.aid, aa.id
       FROM admin_actions aa
       LEFT JOIN admins a ON (aa.aid=a.aid)

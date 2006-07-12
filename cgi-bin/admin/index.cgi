@@ -1227,6 +1227,7 @@ form_search({ HIDDEN_FIELDS => $LIST_PARAMS{AID},
 	           });
 
 
+$admin->{debug}=1;
 
 my $list = $admin->action_list({ %LIST_PARAMS });
 my $table = $html->table( { width      => '100%',
@@ -1255,16 +1256,10 @@ foreach my $line (@$list) {
 
 
 print $table->show();
-$table = $html->table( { width => '100%',
-                                cols_align => ['right', 'right'],
-                                rows => [ [ "$_TOTAL:", "<b>$admin->{TOTAL}</b>" ] ]
-                               } );
-
-
-
-
-
-
+$table = $html->table( { width      => '100%',
+                         cols_align => ['right', 'right'],
+                         rows       => [ [ "$_TOTAL:", "<b>$admin->{TOTAL}</b>" ] ]
+                       } );
 print $table->show();
 }
 
@@ -1534,7 +1529,7 @@ if ($FORM{add}) {
   	             });
   if (! $holidays->{errno}) {
     $html->message('info', $_INFO, "$_ADDED");	
-  }
+   }
 }
 elsif($FORM{del}){
   $holidays->holidays_del($FORM{del});

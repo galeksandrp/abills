@@ -93,20 +93,25 @@ sub messages_list {
     LIMIT $PG, $PAGE_ROWS;");
 
 
- return $self->{list}  if ($self->{TOTAL} < 1);
  my $list = $self->{list};
 
-
- $self->query($db, "SELECT count(*)
+ if ($self->{TOTAL} > 0 ) {
+   $self->query($db, "SELECT count(*)
     FROM msgs_messages m
     LEFT JOIN users u ON (m.uid=u.uid)
     $WHERE");
 
- my $a_ref = $self->{list}->[0];
+   my $a_ref = $self->{list}->[0];
 
- ($self->{TOTAL}) = @$a_ref;
+   ($self->{TOTAL}) = @$a_ref;
+  }
+ 
 
-	return $list;
+
+ $WHERE = '';
+ @WHERE_RULES=();
+  
+ return $list;
 }
 
 
@@ -140,7 +145,7 @@ sub message_del {
 	my $self = shift;
 	my ($attr) = @_;
 
-  undef @WHERE_RULES;
+  @WHERE_RULES=();
 
   if ($attr->{ID}) {
     if ($attr->{ID} =~ /,/) {
@@ -284,19 +289,18 @@ sub chapters_list {
     GROUP BY mc.id 
     ORDER BY $SORT $DESC;");
 
-
- return $self->{list}  if ($self->{TOTAL} < 1);
  my $list = $self->{list};
 
+ if ($self->{TOTAL} > 0) {
+   $self->query($db, "SELECT count(*)
+     FROM msgs_chapters mc
+     $WHERE");
+   my $a_ref = $self->{list}->[0];
 
- $self->query($db, "SELECT count(*)
-    FROM msgs_chapters mc
-    $WHERE");
-
- my $a_ref = $self->{list}->[0];
-
- ($self->{TOTAL}) = @$a_ref;
-
+   ($self->{TOTAL}) = @$a_ref;
+  }
+ 
+ 
 	return $list;
 }
 
@@ -328,7 +332,7 @@ sub chapter_del {
 	my $self = shift;
 	my ($attr) = @_;
 
-  undef @WHERE_RULES;
+  @WHERE_RULES=();
 
   if ($attr->{ID}) {
   	 push @WHERE_RULES, "id='$attr->{ID}'";
