@@ -505,7 +505,7 @@ elsif ($FORM{hangup}) {
   
  
   my $ret = hangup($nas, "$nas_port_id", "$user_name", { ACCT_SESION_ID   => "$acct_session_id",
-  	                                                     FRAMED_IP_ADDRES => "$FORM{FRAMED_IP_ADDRES}" });
+  	                                                     FRAMED_IP_ADDRESS => "$FORM{FRAMED_IP_ADDRESS}" });
   
   if ($ret == 0) {
     my $table = $html->table( { width => '100%',

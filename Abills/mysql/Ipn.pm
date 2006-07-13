@@ -270,7 +270,6 @@ sub traffic_agregate_nets {
       }
 
   #$tp_interval{$TP_ID}=37;
-  print "// $tp_interval{$TP_ID}---------\n";
   print "\nUID: $uid\n####TP $TP_ID Interval: $tp_interval{$TP_ID}  ####\n" if ($self->{debug}); 
     
     if (! defined(  $intervals{$tp_interval{$TP_ID}} )) {
@@ -948,14 +947,16 @@ else {
  $list = $self->{list};
 
 
- $self->query($db, "SELECT count(*),  sum(size)
-  from $table_name
-  $WHERE
-   ;");
+ if ($self->{TOTAL} > 0) {
+   $self->query($db, "SELECT count(*),  sum(size)
+     from $table_name
+     $WHERE ;");
 
-  my $a_ref = $self->{list}->[0];
-  ($self->{COUNT},
-   $self->{SUM}) = @$a_ref;
+    my $a_ref = $self->{list}->[0];
+     ($self->{COUNT},
+      $self->{SUM}) = @$a_ref;
+  }
+
  return $list;
 }
 

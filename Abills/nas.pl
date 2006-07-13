@@ -33,13 +33,13 @@ sub hangup {
  $nas_type = $NAS->{NAS_TYPE};
 
  if ($nas_type eq 'exppp') {
-    hangup_exppp($NAS, $PORT);
+    hangup_exppp($NAS, $PORT, $attr);
   }
  elsif ($nas_type eq 'pm25') {
-    hangup_pm25($NAS, $PORT);
+    hangup_pm25($NAS, $PORT, $attr);
   }
  elsif ($nas_type eq 'radpppd') {
-    hangup_radpppd($NAS, $PORT);
+    hangup_radpppd($NAS, $PORT, $attr);
   }
  elsif ($nas_type eq 'mikrotik') {
     radius_disconnect($NAS, $PORT, $USER);
@@ -52,7 +52,7 @@ sub hangup {
     hangup_mpd($NAS, $PORT);
   }
  elsif ($nas_type eq 'pppd') {
-   hangup_pppd($NAS, $PORT, { FRAMED_IP_ADDRESS => $attr->{FRAMED_IP_ADDRESS} });
+   hangup_pppd($NAS, $PORT, $attr);
   }
  else {
     return 1;
