@@ -42,7 +42,7 @@ CREATE TABLE `admins` (
   `id` varchar(12) default NULL,
   `name` varchar(24) default NULL,
   `regdate` date default NULL,
-  `password` varchar(16) NOT NULL default '',
+  `password` varchar(16) binary NOT NULL default '',
   `gid` tinyint(4) unsigned NOT NULL default '0',
   `aid` smallint(6) unsigned NOT NULL auto_increment,
   `disable` tinyint(1) unsigned NOT NULL default '0',
@@ -177,7 +177,7 @@ CREATE TABLE `dv_main` (
   `speed` int(10) unsigned NOT NULL default '0',
   `netmask` int(10) unsigned NOT NULL default '4294967294',
   `cid` varchar(35) NOT NULL default '',
-  `password` varchar(16) NOT NULL default '',
+  `password` varchar(16) binary NOT NULL default '',
   `disable` tinyint(1) unsigned NOT NULL default '0',
   PRIMARY KEY  (`uid`),
   KEY `tp_id` (`tp_id`)
@@ -277,7 +277,7 @@ CREATE TABLE `icards` (
   `period` smallint(5) unsigned NOT NULL default '0',
   `expire` date NOT NULL default '0000-00-00',
   `changes` double(15,2) NOT NULL default '0.00',
-  `password` varchar(16) NOT NULL default '0',
+  `password` varchar(16) binary NOT NULL default '0',
   PRIMARY KEY  (`id`)
 ) ;
 
@@ -386,7 +386,7 @@ CREATE TABLE `mail_aliases` (
 
 CREATE TABLE `mail_boxes` (
   `username` varchar(255) NOT NULL default '',
-  `password` varchar(255) NOT NULL default '',
+  `password` varchar(16) binary NOT NULL default '',
   `descr` varchar(255) NOT NULL default '',
   `maildir` varchar(255) NOT NULL default '',
   `create_date` datetime NOT NULL default '0000-00-00 00:00:00',
@@ -473,7 +473,7 @@ CREATE TABLE `nas` (
   `auth_type` tinyint(3) unsigned NOT NULL default '0',
   `mng_host_port` varchar(21) default NULL,
   `mng_user` varchar(20) default NULL,
-  `mng_password` varchar(16) default NULL,
+  `mng_password` varchar(16) binary  NOT NULL default '',
   `rad_pairs` text NOT NULL,
   `alive` smallint(6) unsigned NOT NULL default '0',
   `disable` tinyint(6) unsigned NOT NULL default '0',
@@ -665,7 +665,7 @@ CREATE TABLE `users` (
   `credit` double(10,2) NOT NULL default '0.00',
   `reduction` double(6,2) NOT NULL default '0.00',
   `registration` date default '0000-00-00',
-  `password` varchar(16) NOT NULL default '',
+  `password` varchar(16) binary NOT NULL default '',
   `uid` int(11) unsigned NOT NULL auto_increment,
   `gid` smallint(6) unsigned NOT NULL default '0',
   `disable` tinyint(1) unsigned NOT NULL default '0',

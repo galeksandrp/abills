@@ -848,7 +848,7 @@ my %userform_menus = (
              18 =>  $_NAS,
              20 =>  $_SERVICES,
              19	=>  $_BILL
- );
+             );
 
 while(my($k, $v)=each %uf_menus) {
 	$userform_menus{$k}=$v;
@@ -988,7 +988,7 @@ sub user_company {
  $user_info->{SEL_COMPANIES} = $html->form_select('COMPANY_ID', 
                                 { 
  	                                SELECTED          => $FORM{COMPANY_ID},
- 	                                SEL_MULTI_ARRAY   => $customer->company->list(),
+ 	                                SEL_MULTI_ARRAY   => $customer->company->list({ PAGE_ROWS => 2000 }),
  	                                MULTI_ARRAY_KEY   => 5,
  	                                MULTI_ARRAY_VALUE => 0,
  	                                SEL_OPTIONS       => { 0 => '-N/S-'}
