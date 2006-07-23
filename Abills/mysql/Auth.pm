@@ -203,7 +203,7 @@ if ($self->{PAYMENT_TYPE} == 0) {
   $self->{DEPOSIT}=$self->{DEPOSIT}+$self->{CREDIT}-$self->{CREDIT_TRESSHOLD};
 
   #Check deposit
-  if($self->{DEPOSIT}  <= 0) {
+  if($self->{DEPOSIT} <= 0) {
     $RAD_PAIRS->{'Reply-Message'}="Negativ deposit '$self->{DEPOSIT}'. Rejected!";
     return 1, $RAD_PAIRS;
    }
@@ -724,7 +724,6 @@ if($self->{errno}) {
   return 1, \%RAD_PAIRS;
  }
 
-
   return 0, \%RAD_PAIRS, '';
 }
 
@@ -742,6 +741,7 @@ sub check_bill_account() {
   	  return $self;
      }
     elsif ($self->{TOTAL} < 1) {
+      $self->{errno}=2;
       $self->{errstr}="Bill account Not Exist";
       return $self;
      }
@@ -758,7 +758,9 @@ sub check_bill_account() {
 sub check_company_account () {
 	my $self = shift;
 
-  $self->query($db, "SELECT bill_id, disable FROM companies WHERE id='$self->{COMPANY_ID}';");
+  $self->query($db, "SELECT bill_id, 
+                            disable,
+                            credit FROM companies WHERE id='$self->{COMPANY_ID}';");
 
  
   if($self->{errno}) {
@@ -775,7 +777,10 @@ sub check_company_account () {
 
   ($self->{BILL_ID},
    $self->{DISABLE},
+   $self->{COMPANY_CREDIT}
     ) = @$a_ref;
+
+  $self->{CREDIT}+=$self->{COMPANY_CREDIT};
 
   return $self;
 }
