@@ -1061,8 +1061,7 @@ elsif ($FORM{hangup}) {
   
   
   if ($ret == 0) {
-     
-         my $table = $html->table( { width => '100%',
+     my $table = $html->table( { width => '100%',
                                 caption => $_HANGUPED,
                                 rows => [ [ "$_NAS ID",   $nas_id],
                                           [ "$_NAS IP",   $nas->{NAS_IP} ],
@@ -1070,17 +1069,9 @@ elsif ($FORM{hangup}) {
                                           [ "SESSION_ID", $acct_session_id ],
                                           [ "", $ret ] ]
                                } );
-
      
      $message = $table->show();
-#         "<table width=100%>\n".
-#         "<tr><th colspan=2 align=left>$_HANGUPED</th></tr>".
-#         "<tr><td>$_NAS:</td><td>$nas->{NAS_IP}</td></tr>".
-#         "<tr><td>$_PORT:</td><td>$nas_port_id</td></tr>".
-#         "<tr><td>SESSION_ID:</td><td>$acct_session_id</td></tr>".
-#         "<tr><td colspan=2>$ret</td></tr>".
-#         "</table>\n";
-         sleep 3;
+     sleep 3;
      
      weblog('hangup', "$user_name");
    }
@@ -1113,7 +1104,7 @@ elsif($FORM{zap}) {
   	                NAS_ID => $nas->{NAS_ID} });  
   
   if ($sessions->{TOTAL} < 1) {
-    $message .= "<p align=center>[". $html->button('add to log', "index=$index&tolog=$acct_session_id&nas_id=$nas_id"). "]
+    $message .= "<p align=\"center\">[". $html->button('add to log', "index=$index&tolog=$acct_session_id&nas_id=$nas_id"). "]
         [". $html->button("$_DEL", "index=$index&del=$acct_session_id&nas_id=$nas_id&nas_port_id=$nas_port_id"). "]</p>";
    }
   else {
@@ -1207,11 +1198,11 @@ $sessions->online( { %LIST_PARAMS } );
 my $dub_ports = $sessions->{dub_ports};
 my $dub_logins = $sessions->{dub_logins};
  
-my $table = $html->table( { caption  => "$cure",
-	                          width    => '100%',
-                            title    => ["$_USER", "$_FIO", "CALLING_STATION_ID", "CALLING_STATION_ID", "$_DURATION", "CLIENT_IP_ADDRESS",  "-", "-", "-"],
+my $table = $html->table( { caption    => "$cure",
+	                          width      => '100%',
+                            title      => ["$_USER", "$_FIO", "CALLING_STATION_ID", "CALLING_STATION_ID", "$_DURATION", "CLIENT_IP_ADDRESS",  "-", "-", "-"],
                             cols_align => ['left', 'left', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'center'],
-                            qs => $pages_qs,
+                            qs         => $pages_qs,
                            });
 
 
@@ -1222,11 +1213,14 @@ my $table = $html->table( { caption  => "$cure",
 my $nas_list = $nas->list();
 
 foreach my $nas_row (@$nas_list) {
+  next if (! defined($online->{$nas_row->[0]}));
 
   $table->{rowcolor}=$_COLORS[0];
-  $table->{extra}="colspan=9 class=small";
+  $table->{extra}="colspan=\"9\" class=\"small\"";
   $table->addrow("$nas_row->[0]:<b>$nas_row->[1]</b>:$nas_row->[4]" );
-  
+
+
+
   my $l = $online->{$nas_row->[0]};
   foreach my $line (@$l) {
     undef($table->{rowcolor});
@@ -1305,17 +1299,14 @@ if ($sessions->{errno})	 {
 
 
 return 0 if ($sessions->{TOTAL} < 1);
-
-
-
-my $table = $html->table( { width => '100%',
-                                border => 1,
-                                title => ["$_USER", "$_START", "$_DURATION", "$_TARIF_PLAN", "CALLING_STATION_ID", "CALLED_STATION_ID", 
-                                "NAS", "IP", "$_SUM", "-", "-"],
-                                cols_align => ['left', 'right', 'right', 'RIGHT', 'right', 'right', 'right', 'right', 'right', 'right', 'center'],
-                                qs => $pages_qs,
-                                pages => $sessions->{TOTAL},
-                                recs_on_page => $LIST_PARAMS{PAGE_ROWS}
+my $table = $html->table( { width        => '100%',
+                            border       => 1,
+                            title        => ["$_USER", "$_START", "$_DURATION", "$_TARIF_PLAN", "CALLING_STATION_ID", "CALLED_STATION_ID", 
+                                     "NAS", "IP", "$_SUM", "-", "-"],
+                            cols_align   => ['left', 'right', 'right', 'RIGHT', 'right', 'right', 'right', 'right', 'right', 'right', 'center'],
+                            qs           => $pages_qs,
+                            pages        => $sessions->{TOTAL},
+                            recs_on_page => $LIST_PARAMS{PAGE_ROWS}
                                } );
 
 my $delete = '';
@@ -1367,11 +1358,11 @@ my ($tables_sessions, $table_fees);
 #Day reposrt
 if (defined($FORM{DATE})) {
   #Used Fraffic
-  $table_sessions = $html->table( { width => '100%',
-	                              caption => "$_SESSIONS", 
-                                title =>["$_DATE", "$_USERS", "$_SESSIONS", $_DURATION, $_SUM],
-                                cols_align => ['right', 'left', 'right', 'right', 'right'],
-                                qs => $pages_qs             
+  $table_sessions = $html->table( { width      => '100%',
+	                                  caption    => "$_SESSIONS", 
+                                    title      => ["$_DATE", "$_USERS", "$_SESSIONS", $_DURATION, $_SUM],
+                                    cols_align => ['right', 'left', 'right', 'right', 'right'],
+                                    qs         => $pages_qs             
                                } );
 
   my $list = $sessions->reports({ %LIST_PARAMS });
@@ -1494,9 +1485,10 @@ foreach my $line (@$list) {
 print $table->show();
 
 
-$table = $html->table( { 
-	                              width => '100%',
-	                              cols_align => ['right', 'right'] } );
+$table = $html->table({ 
+                        width      => '100%',
+                        cols_align => ['right', 'right'] 
+                        });
 
 $table->addrow($html->button("$_TOTAL", "index=$index&$pages_qs"), $totals);
 while(my($k,$v)=each %$types) {
