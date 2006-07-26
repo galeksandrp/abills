@@ -435,7 +435,7 @@ else {
   my $SNMP_COM = $NAS->{NAS_MNG_PASSWORD} || '';
   my $SNMPSET=`/usr/bin/which snmpset`;
  
-  my $INTNAME=`finger @$NAS->{NAS_IP} | awk '{print $1 " " $2}' | grep $1"$" | awk '{print $1}' | sed s/Vi/Virtual-Access/g`;
+  my $INTNAME=`finger \@$NAS->{NAS_IP} | awk '{print $1 " " $2}' | grep $1"$" | awk '{print $1}' | sed s/Vi/Virtual-Access/g`;
   my $INTNUM=`$SNMPWALK -v 1 -c $SNMP_COM -O n $NAS->{NAS_IP} .1.3.6.1.2.1.2.2.1.2 | grep $INTNAME"$" | awk '{print $1}' | sed s/.1.3.6.1.2.1.2.2.1.2.//g`;
   $exec=`$SNMPSET -v 1 -c $SNMP_COM $NAS->{NAS_IP} 1.3.6.1.2.1.2.2.1.7.$INTNUM i 2 > /dev/null 2>&1`;
 }
