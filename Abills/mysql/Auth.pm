@@ -257,7 +257,7 @@ else {
 # 1 - Day limit
 # 2 - Week limit
 # 3 - Month limit
-my @traf_limits = ();
+#my @traf_limits = ();
 my $time_limit  = $self->{TIME_LIMIT}; 
 my $traf_limit  = $MAX_SESSION_TRAFFIC;
 
@@ -267,6 +267,8 @@ my @periods = ('DAY', 'WEEK', 'MONTH');
 
 foreach my $line (@periods) {
      if (($self->{$line . '_TIME_LIMIT'} > 0) || ($self->{$line . '_TRAF_LIMIT'} > 0)) {
+        my $session_time_limit=$traf_limit;
+        my $session_traf_limit=$traf_limit;
         $self->query($db, "SELECT if(". $self->{$line . '_TIME_LIMIT'} ." > 0, ". $self->{$line . '_TIME_LIMIT'} ." - sum(duration), 0),
                                   if(". $self->{$line . '_TRAF_LIMIT'} ." > 0, ". $self->{$line . '_TRAF_LIMIT'} ." - sum(sent + recv) / 1024 / 1024, 0) 
             FROM dv_log
@@ -275,33 +277,41 @@ foreach my $line (@periods) {
 
         if ($self->{TOTAL} == 0) {
           push (@time_limits, $self->{$line . '_TIME_LIMIT'}) if ($self->{$line . '_TIME_LIMIT'} > 0);
-          push (@traf_limits, $self->{$line . '_TRAF_LIMIT'}) if ($self->{$line . '_TRAF_LIMIT'} > 0);
+          $session_traf_limit = $self->{$line . '_TRAF_LIMIT'} if ($self->{$line . '_TRAF_LIMIT'} > 0);
          } 
         else {
         	$a_ref = $self->{list}->[0];
-          my ($time_limit, $traf_limit) = @$a_ref;
-          push (@time_limits, $time_limit) if ($self->{$line . '_TIME_LIMIT'} > 0);
-          push (@traf_limits, $traf_limit) if ($self->{$line . '_TRAF_LIMIT'} > 0);
+          ($session_time_limit, $session_traf_limit) = @$a_ref;
+          push (@time_limits, $session_time_limit) if ($self->{$line . '_TIME_LIMIT'} > 0);
          }
-       }
+        
+
+#        print "$line / $traf_limit / $session_traf_limit". "------\n";
+        if ($traf_limit > $session_traf_limit) {
+      	  $traf_limit = int($session_traf_limit); 
+         }
+       
+        if($traf_limit < 0) {
+          $RAD_PAIRS->{'Reply-Message'}="Rejected! $line Traffic limit utilized '$traf_limit Mb'";
+          return 1, $RAD_PAIRS;
+        }
+
+      }
 }
 
 
 #set traffic limit
 #push (@traf_limits, $prepaid_traff) if ($prepaid_traff > 0);
-
- for(my $i=0; $i<=$#traf_limits; $i++) {
- 	 #print "$i / $traf_limits[$i]". "------\n";
-   if ($traf_limit > $traf_limits[$i]) {
-     	 $traf_limit = $traf_limits[$i]; 
-    }
-  }
-
-
- if($traf_limit < 0) {
-   $RAD_PAIRS->{'Reply-Message'}="Rejected! Traffic limit utilized '$traf_limit Mb'";
-   return 1, $RAD_PAIRS;
-  }
+# for(my $i=0; $i<=$#traf_limits; $i++) {
+# 	 print "$i / $traf_limit / $traf_limits[$i]". "------\n";
+#   if ($traf_limit > $traf_limits[$i]) {
+#     	 $traf_limit = $traf_limits[$i]; 
+#    }
+#  }
+# if($traf_limit < 0) {
+#   $RAD_PAIRS->{'Reply-Message'}="Rejected! Traffic limit utilized '$traf_limit Mb'";
+#   return 1, $RAD_PAIRS;
+#  }
 
 
 
