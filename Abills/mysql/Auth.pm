@@ -833,12 +833,6 @@ sub ex_traffic_params {
    $EX_PARAMS{nets}=$nets if ($nets > 20);
    #$EX_PARAMS{speed}=int($speeds{0}) if (defined($speeds{0}));
 
-#  }
-# else {
-#   return %EX_PARAMS;	
-#  }
-
-
 if ((defined($prepaids{0}) && $prepaids{0} > 0 ) || (defined($prepaids{1}) && $prepaids{1}>0 )) {
   $self->query($db, "SELECT sum(sent+recv) / 1024 / 1024, sum(sent2+recv2) / 1024 / 1024 FROM dv_log 
      WHERE uid='$self->{UID}' and DATE_FORMAT(start, '%Y-%m')=DATE_FORMAT(curdate(), '%Y-%m')
