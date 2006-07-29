@@ -264,6 +264,11 @@ my $traf_limit  = $MAX_SESSION_TRAFFIC;
 push @time_limits, $self->{MAX_SESSION_DURATION} if ($self->{MAX_SESSION_DURATION} > 0);
 
 my @periods = ('DAY', 'WEEK', 'MONTH');
+my %SQL_params = (
+                  DAY   => "DATE_FORMAT(start, '%Y-%m-%d')=curdate()",
+                  WEEK  => "(YEAR(curdate())=YEAR(start)) and (WEEK(curdate()) = WEEK(start))",
+                  MONTH => "date_format(start, '%Y-%m')=date_format(curdate(), '%Y-%m')" 
+                  );
 
 foreach my $line (@periods) {
      if (($self->{$line . '_TIME_LIMIT'} > 0) || ($self->{$line . '_TRAF_LIMIT'} > 0)) {
@@ -272,8 +277,8 @@ foreach my $line (@periods) {
         $self->query($db, "SELECT if(". $self->{$line . '_TIME_LIMIT'} ." > 0, ". $self->{$line . '_TIME_LIMIT'} ." - sum(duration), 0),
                                   if(". $self->{$line . '_TRAF_LIMIT'} ." > 0, ". $self->{$line . '_TRAF_LIMIT'} ." - sum(sent + recv) / 1024 / 1024, 0) 
             FROM dv_log
-            WHERE uid='$self->{UID}' and DATE_FORMAT(start, '%Y-%m-%d')=curdate()
-            GROUP BY DATE_FORMAT(start, '%Y-%m-%d');");
+            WHERE uid='$self->{UID}' and $SQL_params{$line}
+            GROUP BY uid;");
 
         if ($self->{TOTAL} == 0) {
           push (@time_limits, $self->{$line . '_TIME_LIMIT'}) if ($self->{$line . '_TIME_LIMIT'} > 0);
@@ -284,34 +289,19 @@ foreach my $line (@periods) {
           ($session_time_limit, $session_traf_limit) = @$a_ref;
           push (@time_limits, $session_time_limit) if ($self->{$line . '_TIME_LIMIT'} > 0);
          }
-        
 
-#        print "$line / $traf_limit / $session_traf_limit". "------\n";
+        #print "$line / $traf_limit / $session_traf_limit". "------\n";
         if ($traf_limit > $session_traf_limit) {
-      	  $traf_limit = int($session_traf_limit); 
+      	  $traf_limit = $session_traf_limit;
          }
        
-        if($traf_limit < 0) {
+        if($traf_limit <= 0) {
           $RAD_PAIRS->{'Reply-Message'}="Rejected! $line Traffic limit utilized '$traf_limit Mb'";
           return 1, $RAD_PAIRS;
-        }
+         }
 
       }
 }
-
-
-#set traffic limit
-#push (@traf_limits, $prepaid_traff) if ($prepaid_traff > 0);
-# for(my $i=0; $i<=$#traf_limits; $i++) {
-# 	 print "$i / $traf_limit / $traf_limits[$i]". "------\n";
-#   if ($traf_limit > $traf_limits[$i]) {
-#     	 $traf_limit = $traf_limits[$i]; 
-#    }
-#  }
-# if($traf_limit < 0) {
-#   $RAD_PAIRS->{'Reply-Message'}="Rejected! Traffic limit utilized '$traf_limit Mb'";
-#   return 1, $RAD_PAIRS;
-#  }
 
 
 
@@ -350,8 +340,8 @@ foreach my $line (@periods) {
     }
   }
 
-  $RAD_PAIRS->{'Framed-IP-Netmask'} = "$self->{NETMASK}" if(defined($RAD_PAIRS->{'Framed-IP-Address'}));
-  $RAD_PAIRS->{'Filter-Id'} = "$self->{FILTER}" if (length($self->{FILTER}) > 0); 
+  $RAD_PAIRS->{'Framed-IP-Netmask'} = "$self->{NETMASK}" if (defined( $RAD_PAIRS->{'Framed-IP-Address'} ));
+  $RAD_PAIRS->{'Filter-Id'} = "$self->{FILTER}" if (length( $self->{FILTER} ) > 0); 
 
 
 
@@ -361,19 +351,19 @@ foreach my $line (@periods) {
 # ExPPP
 if ($NAS->{NAS_TYPE} eq 'exppp') {
   #$traf_tarif 
-  my $EX_PARAMS = $self->ex_traffic_params( { 
+  my $EX_PARAMS = $self->ex_traffic_params({ 
   	                                        traf_limit => $traf_limit, 
                                             deposit => $self->{DEPOSIT},
                                             MAX_SESSION_TRAFFIC => $MAX_SESSION_TRAFFIC });
 
   #global Traffic
   if ($EX_PARAMS->{traf_limit} > 0) {
-    $RAD_PAIRS->{'Exppp-Traffic-Limit'} = $EX_PARAMS->{traf_limit} * 1024 * 1024;
+    $RAD_PAIRS->{'Exppp-Traffic-Limit'} = int($EX_PARAMS->{traf_limit} * 1024 * 1024);
    }
 
   #Local traffic
   if ($EX_PARAMS->{traf_limit_lo} > 0) {
-    $RAD_PAIRS->{'Exppp-LocalTraffic-Limit'} = $EX_PARAMS->{traf_limit_lo} * 1024 * 1024 ;
+    $RAD_PAIRS->{'Exppp-LocalTraffic-Limit'} = int($EX_PARAMS->{traf_limit_lo} * 1024 * 1024);
    }
        
   #Local ip tables
