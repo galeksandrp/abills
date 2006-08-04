@@ -49,10 +49,11 @@ sub new {
   my $self = { };
   bless($self, $class);
 
-  if (! defined($CONF->{KBYTE_SIZE})) {
-  	 $CONF->{KBYTE_SIZE}=1024;
-  	}
+  if (! defined($CONF->{KBYTE_SIZE})){
+  	$CONF->{KBYTE_SIZE}=1024;
+   }
 
+  
   #$self->{debug}  =1;
   $self->{TRAFFIC_ROWS}=0;
   $Billing = Billing->new($db, $CONF);

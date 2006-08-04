@@ -327,6 +327,8 @@ sub session_detail {
  my ($attr) = @_;
  
 
+
+
  $WHERE = " and l.uid='$attr->{UID}'" if ($attr->{UID});
  
 
@@ -528,12 +530,30 @@ sub list {
  my $self = shift;
  my ($attr) = @_;
 
- my $PG = ($attr->{PG}) ? $attr->{PG} : 0;
- my $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
- my $SORT = ($attr->{SORT}) ? $attr->{SORT} : 2;
- my $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+ $PG = ($attr->{PG}) ? $attr->{PG} : 0;
+ $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
+ $SORT = ($attr->{SORT}) ? $attr->{SORT} : 2;
+ $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
  
  undef @WHERE_RULES; 
+ 
+  %{$self->{SESSIONS_FIELDS}} = (LOGIN           => 'u.id', 
+                                 START           => 'l.start', 
+                                 DURATION        => 'SEC_TO_TIME(l.duration)', 
+                                 TP              => 'l.tp_id',
+                                 SENT            => 'l.sent', 
+                                 RECV            => 'l.recv', 
+                                 CID             => 'l.CID', 
+                                 NAS_ID          => 'l.nas_id', 
+                                 IP_INT          => 'l.ip', 
+                                 SUM             => 'l.sum', 
+                                 IP              => 'INET_NTOA(l.ip)', 
+                                 ACCT_SESSION_ID => 'l.acct_session_id', 
+                                 UID             => 'l.uid', 
+                                 START_UNIX_TIME => 'UNIX_TIMESTAMP(l.start)',
+                                 DURATION_SEC    => 'l.duration',
+                                 SEND            => 'l.sent2', 
+                                 RECV            => 'l.recv2');
  
 #UID
  if ($attr->{UID}) {
@@ -790,7 +810,8 @@ sub reports {
       sum(l.sent + l.recv), 
       sum(l.sent2 + l.recv2),
       sec_to_time(sum(l.duration)), 
-      sum(l.sum)
+      sum(l.sum),
+      l.uid
        FROM dv_log l
        LEFT JOIN users u ON (u.uid=l.uid)
        $WHERE    
