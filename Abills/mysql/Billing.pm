@@ -327,14 +327,14 @@ sub session_sum {
 if(! defined($self->{NO_TPINTERVALS})) {
   if($interval_count < 1) {
    	print "NOt allow start period" if ($self->{debug});
- 	  return -3, 0, 0, 0, 0, 0;	
+ 	return -3, 0, 0, 0, 0, 0;	
    }
   
   #$self->{debug}=1;
 
   while(my($k, $v)=each(%$sd)) {
- 	  print "> $k, $v\n" if ($self->{debug});
-    if(defined($periods_time_tarif->{$k})) {
+    print "> $k, $v\n" if ($self->{debug});
+    if(defined($periods_time_tarif->{$k}) && $periods_time_tarif->{$k} > 0) {
    	   $sum += ($v * $periods_time_tarif->{$k}) / 60 / 60;
      }
 

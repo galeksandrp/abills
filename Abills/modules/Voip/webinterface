@@ -1042,6 +1042,8 @@ my $nas = Nas->new($db);
 
 
 my $message;
+
+
 if ($FORM{ping}) {
   if ($FORM{ping} =~ /^(\d){1,3}\.(\d){1,3}\.(\d){1,3}\.(\d){1,3}$/) {
     my $res = `/sbin/ping -c 5 $FORM{ping}`;
@@ -1212,8 +1214,8 @@ my $table = $html->table( { caption    => "$cure",
 
 
  
-  my $bg;
-  my $online = $sessions->{nas_sorted};
+my $bg;
+my $online = $sessions->{nas_sorted};
 
 my $nas_list = $nas->list();
 

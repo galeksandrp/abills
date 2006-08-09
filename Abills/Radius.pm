@@ -72,8 +72,9 @@ sub new {
 	$port = getservbyname($service, 'udp') unless $port;
 
 	unless ($port) {
-		my %services = ( radius => 1645, radacct => 1646,
-						 'radius-acct' => 1813 );
+		my %services = ( radius        => 1812, 
+		                 radacct       => 1646,
+						         'radius-acct' => 1813 );
 		if (exists($services{$service})) {
 			$port = $services{$service};
 		} else {

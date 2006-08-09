@@ -2003,6 +2003,7 @@ if ($nas->{errno}) {
 
 # my @nas_types = ('other', 'usr', 'pm25', 'ppp', 'exppp', 'radpppd', 'expppd', 'pppd', 'dslmax', 'mpd', 'gnugk');
  my %nas_descr = (
+  'asterisk'  => "Asterisk",
   'usr'       => "USR Netserver 8/16",
   'pm25'      => 'LIVINGSTON portmaster 25',
   'ppp'       => 'FreeBSD ppp demon',
@@ -2018,7 +2019,8 @@ if ($nas->{errno}) {
   'cisco'     => 'Cisco (Experimental)',
   'bsr1000'   => 'CMTS Motorola BSR 1000',
   'mikrotik'  => 'Mikrotik (http://www.mikrotik.com)',
-  'other'     => 'Other nas server');
+  'other'     => 'Other nas server'
+ );
 
 
   if (defined($conf{nas_servers})) {
