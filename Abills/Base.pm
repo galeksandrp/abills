@@ -20,6 +20,7 @@ $VERSION = 2.00;
   &int2ip
   &ip2int
   &int2byte
+  &sec2date
   &sec2time
   &time2sec
   &int2ml
@@ -313,7 +314,6 @@ sub time2sec {
   return $sec;
 }
 
-
 #********************************************************************
 # Second to date
 # sec2time()
@@ -334,6 +334,26 @@ sub sec2time {
  else {
     return($a,$b,$c,$d);
   }
+}
+
+#********************************************************************
+# Second to date
+# sec2date()
+# sec2date();
+#********************************************************************
+sub sec2date {
+  my $secnum = shift;
+  return "0000-00-00 00:00:00" if ($secnum == 0);
+
+  my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime($secnum);
+  $year += 1900;  $mon++;
+  $sec  = sprintf("%02d",$sec);
+  $min  = sprintf("%02d",$min);
+  $hour = sprintf("%02d",$hour);
+  $mon  = sprintf("%02d",$mon);
+  $mday = sprintf("%02d",$mday);
+
+  return "$year-$mon-$mday $hour:$min:$sec";
 }
 
 #********************************************************************
