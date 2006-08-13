@@ -281,7 +281,7 @@ sub form_input {
    }  
 
   my $state = (defined($attr->{STATE})) ? ' checked' : ''; 
-  my $size  = (defined($attr->{SIZE})) ? "SIZE=\"$attr->{SIZE}\"" : '';
+  my $size  = (defined($attr->{SIZE})) ? " SIZE=\"$attr->{SIZE}\"" : '';
   
 
   

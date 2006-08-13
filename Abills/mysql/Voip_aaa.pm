@@ -230,9 +230,7 @@ else {
 
   
 #  $self->check_bill_account();
-
 # if call
-
   if(defined($RAD->{H323_CONF_ID})){
      preproces($RAD);
    
@@ -305,7 +303,8 @@ else {
          #Make start record in voip_calls
 
   my $SESSION_START = 'now()';
-  
+
+
   $self->query($db, "INSERT INTO voip_calls 
    (  status,
       user_name,
@@ -335,7 +334,6 @@ else {
       '$self->{REDUCTION}');", 'do');
    }
  }
-
 
   
   return 0, \%RAD_PAIRS;
