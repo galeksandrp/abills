@@ -153,14 +153,15 @@ sub online_info {
   $self->query($db, "SELECT user_name, 
     UNIX_TIMESTAMP(started), 
     SEC_TO_TIME(UNIX_TIMESTAMP() - UNIX_TIMESTAMP(started)), 
-    INET_NTOA(framed_ip_address),
-    lupdated,
     INET_NTOA(client_ip_address),
+    lupdated,
+    nas_id,
     calling_station_id,
     called_station_id,
-    acct_session_id
-    FROM dv_calls 
-    WHERE nas_id=$NAS_ID
+    acct_session_id,
+    INET_NTOA(client_ip_address)
+    FROM voip_calls 
+    WHERE nas_id='$NAS_ID'
      and acct_session_id='$ACCT_SESSION_ID'");
 
 
@@ -181,6 +182,7 @@ sub online_info {
    $self->{CALLING_STATION_ID},
    $self->{CALLED_STATION_ID},
    $self->{ACCT_SESSION_ID},
+   $self->{CLIENT_IP_ADDRESS},
    $self->{CONNECT_TERM_REASON}, 
     )= @$ar;
 

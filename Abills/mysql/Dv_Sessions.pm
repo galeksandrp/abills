@@ -707,10 +707,11 @@ sub calculation {
     $WHERE .= ($WHERE ne '') ?  " and l.uid='$attr->{UID}' " : "WHERE l.uid='$attr->{UID}' ";
    }
 
-  $self->query($db, "SELECT SEC_TO_TIME(min(l.duration)), SEC_TO_TIME(max(l.duration)), SEC_TO_TIME(avg(l.duration)),
-  min(l.sent), max(l.sent), avg(l.sent),
-  min(l.recv), max(l.recv), avg(l.recv),
-  min(l.recv+l.sent), max(l.recv+l.sent), avg(l.recv+l.sent)
+  $self->query($db, "SELECT 
+  SEC_TO_TIME(min(l.duration)), SEC_TO_TIME(max(l.duration)), SEC_TO_TIME(avg(l.duration)), SEC_TO_TIME(sum(l.duration)),
+  min(l.sent), max(l.sent), avg(l.sent), sum(l.sent),
+  min(l.recv), max(l.recv), avg(l.recv), sum(l.recv),
+  min(l.recv+l.sent), max(l.recv+l.sent), avg(l.recv+l.sent), sum(l.recv+l.sent)
   FROM dv_log l $WHERE");
 
   my $ar = $self->{list}->[0];
@@ -718,15 +719,22 @@ sub calculation {
   ($self->{min_dur}, 
    $self->{max_dur}, 
    $self->{avg_dur}, 
+   $self->{total_dur}, 
+
    $self->{min_sent}, 
    $self->{max_sent}, 
    $self->{avg_sent},
+   $self->{total_sent},
+   
    $self->{min_recv}, 
    $self->{max_recv}, 
    $self->{avg_recv}, 
+   $self->{total_recv}, 
+
    $self->{min_sum}, 
    $self->{max_sum}, 
-   $self->{avg_sum}) =  @$ar;
+   $self->{avg_sum},
+   $self->{total_sum}) =  @$ar;
 
 	return $self;
 }
