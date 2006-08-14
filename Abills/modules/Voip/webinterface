@@ -1153,22 +1153,33 @@ elsif($FORM{tolog}) {
                           ACCT_SESSION_ID => $ACCT_INFO->{ACCT_SESSION_ID}
                         });
  }
-elsif($FORM{del}) {
-  $sessions->online_del({ 
-   	                     NAS_ID          => $FORM{nas_id},
-                         ACCT_SESSION_ID => $FORM{del}
-                         });
+elsif($FORM{del} || $FORM{dellist}) {
+  if ($FORM{dellist}) {
+    my @sessions_list = split(/, /, $FORM{dellist});
+    $sessions->online_del({ SESSIONS_LIST => \@sessions_list });
+    $FORM{del} = $FORM{dellist};
+   }
+  else {
+    $sessions->online_del({
+   	            NAS_ID          => $FORM{nas_id},
+                ACCT_SESSION_ID => $FORM{del}
+                           });
+   }
 
   if (! $sessions->{errno}) {
     my $table = $html->table( { width => '100%',
-                                rows  => [ [ "NAS_ID",  $FORM{nas_id}],
-                                           [ "ACCT_SESSION_ID", $FORM{del} ] ]
-                                     } );
+                                rows => [ [ "NAS_ID",          $FORM{nas_id}     ],
+                                          [ "ACCT_SESSION_ID", $FORM{del}        ]
+                                        ]
+                               } );
     
     $html->message('info', $_DELETED, $table->show());	
    }
 
 }
+
+
+
 
 
 
@@ -1228,9 +1239,9 @@ foreach my $nas_row (@$nas_list) {
     else {  $bg = ($bg eq $_COLORS[1]) ? $_COLORS[2] : $_COLORS[1];    }
 
     my $zap = "(". $html->button('Z', "index=$index&zap=$nas_row->[0]+$line->[9]", { TITLE => 'Zap'}). ")";
-    my $hangup = "(". $html->button('H', "index=$index&hangup=$nas_row->[0]+$line->[2]+$line->[11]+$line->[0]", { TITLE => 'Hangup'} ) .")";
+    my $hangup = ($FORM{ZAPED}) ? $html->form_input('dellist', "$line->[9]", { TYPE => 'checkbox' } ) : "(". $html->button('H', "index=$index&hangup=$nas_row->[0]+$line->[2]+$line->[9]+$line->[0]", { TITLE => 'Hangup'} ) .")";
     my $user_info =  "$_FIO: $line->[1]\n$_PHONE: $line->[12]\n$_VARIANT: $line->[13]\n$_DEPOSIT: $line->[14]\n".
-     "$_CREDIT: $line->[15]\n$_SPEED: $line->[16]\nSESSION_ID: $line->[11]\nCID: $line->[17]\nCONNECT_INFO: $line->[18]";
+     "$_CREDIT: $line->[15]\n$_SPEED: $line->[16]\nSESSION_ID: $line->[9]\nCID: $line->[17]\nCONNECT_INFO: $line->[18]";
 
     $table->addrow($html->button($line->[0], "index=11&UID=$line->[10]", { TITLE => "$user_info"}), 
       $line->[1], $line->[2],  $line->[3],  $line->[4], $line->[5], 
@@ -1240,14 +1251,43 @@ foreach my $nas_row (@$nas_list) {
   }
 }
 
-my $table2 = $html->table( { width => '100%',
-                                cols_align => ['right', 'right', 'right'],
-                                rows => [ [ "$_TOTAL:", "<b>$sessions->{TOTAL}</b>", "$form_link" ] ]
+my $table2 = $html->table( { width      => '100%',
+                             cols_align => ['right', 'right', 'right'],
+                             rows       => [ [ "$_TOTAL:", "<b>$sessions->{TOTAL}</b>", "$form_link" ] ]
                                } );
-my $total = $table2->show();
 
-print $total . $table->show();
-	
+
+my $total = $table2->show();
+my $output = $total . $table->show();
+
+$table = $html->table( { width       => '100%',
+                         title_plain => [ 
+                                           "$_REFRESH (sec): ".   $html->form_input('REFRESH', int($FORM{REFRESH}), { SIZE => 4 } ),
+                                           $html->form_input('SHOW',  $_SHOW, { TYPE => 'SUBMIT'})  
+                                         ],
+                          cols_align => ['center:noprint', 'center:noprint'],
+                           });
+
+if ($FORM{ZAPED}) {
+  $output = $html->form_main({ CONTENT => $output,
+	                       HIDDEN  => { index => "$index",
+	                       	            ZAPED => 1 },
+	                       SUBMIT  => { go    => "$_DEL" },
+	                       METHOD  => 'GET'
+                        });
+ }
+else {
+  $output .= $html->form_main({ CONTENT => $table->show(),
+	                              HIDDEN  => { index =>  "$index" },
+	                              METHOD  => 'GET'
+                        });
+
+  $output .= $html->button('Zap All', "index=$index&zapall=y", { MESSAGE => "Do you realy want zap all sessions ?" });
+ }
+
+
+print  $output;
+		
 }
 
 

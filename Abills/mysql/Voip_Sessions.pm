@@ -125,12 +125,19 @@ sub online_del {
 	my $self = shift;
 	my ($attr) = @_;
 
-  my $NAS_ID          = (defined($attr->{NAS_ID})) ? $attr->{NAS_ID} : '';
-  my $ACCT_SESSION_ID = (defined($attr->{ACCT_SESSION_ID})) ? $attr->{ACCT_SESSION_ID} : '';
-
-
-  $self->query($db, "DELETE FROM voip_calls WHERE nas_id='$NAS_ID'
-            and acct_session_id='$ACCT_SESSION_ID';", 'do');
+  if ($attr->{SESSIONS_LIST}) {
+  	my $session_list = join("', '", @{$attr->{SESSIONS_LIST}});
+  	$WHERE = "acct_session_id in ( '$session_list' )";
+   }
+  else {
+    my $NAS_ID  = (defined($attr->{NAS_ID})) ? $attr->{NAS_ID} : '';
+    my $ACCT_SESSION_ID = (defined($attr->{ACCT_SESSION_ID})) ? $attr->{ACCT_SESSION_ID} : '';
+    $WHERE = "nas_id=INET_ATON('$NAS_ID')
+            and acct_session_id='$ACCT_SESSION_ID'";
+   }
+  
+  $self->{debug}=1;
+  $self->query($db, "DELETE FROM voip_calls WHERE $WHERE;", 'do');
 
   return $self;
 }
@@ -159,6 +166,7 @@ sub online_info {
     calling_station_id,
     called_station_id,
     acct_session_id,
+    conf_id,
     INET_NTOA(client_ip_address)
     FROM voip_calls 
     WHERE nas_id='$NAS_ID'
@@ -182,6 +190,7 @@ sub online_info {
    $self->{CALLING_STATION_ID},
    $self->{CALLED_STATION_ID},
    $self->{ACCT_SESSION_ID},
+   $self->{H323_CONF_ID},
    $self->{CLIENT_IP_ADDRESS},
    $self->{CONNECT_TERM_REASON}, 
     )= @$ar;
