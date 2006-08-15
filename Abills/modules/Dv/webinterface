@@ -96,15 +96,15 @@ elsif($FORM{del}) {
 
 
   if ($shedule->{TOTAL} > 0) {
-  	$table = $html->table( { width   => '100%',
-  		                       caption => "$_SHEDULE",
+  	$table = $html->table( { width      => '100%',
+  		                       caption    => "$_SHEDULE",
                              cols_align => ['left', 'left'],
-                             rows => [ [ "$_TARIF_PLAN:", "$shedule->{ACTION}"   ],
-                                       [ "$_DATE:",   "$shedule->{D}-$shedule->{M}-$shedule->{Y}" ],
-                                       [ "$_ADMIN:",  "$shedule->{ADMIN_NAME}" ],
-                                       [ "$_ADDED:",  "$shedule->{DATE}"     ],
-                                       [ "ID:",       "$shedule->{SHEDULE_ID}"   ]  
-                                      ]
+                             rows       => [ [ "$_TARIF_PLAN:", "$shedule->{ACTION}"   ],
+                                             [ "$_DATE:",   "$shedule->{D}-$shedule->{M}-$shedule->{Y}" ],
+                                             [ "$_ADMIN:",  "$shedule->{ADMIN_NAME}"   ],
+                                             [ "$_ADDED:",  "$shedule->{DATE}"         ],
+                                             [ "ID:",       "$shedule->{SHEDULE_ID}"   ]  
+                                            ]
                                } );
   	$tariffs->{TARIF_PLAN_SEL} = $table->show(). $html->form_input('SHEDULE_ID', "$shedule->{SHEDULE_ID}", {TYPE => 'HIDDEN' });
   	$tariffs->{ACTION}='del';
@@ -113,7 +113,7 @@ elsif($FORM{del}) {
  else {
    $tariffs->{TARIF_PLAN_SEL}=$html->form_select('TP_ID', 
                                           { 
- 	                                          SELECTED  => $user->{TP_ID},
+ 	                                          SELECTED          => $user->{TP_ID},
  	                                          SEL_MULTI_ARRAY   => $tariffs->list(),
  	                                          MULTI_ARRAY_KEY   => 0,
  	                                          MULTI_ARRAY_VALUE => 1,
@@ -1304,18 +1304,16 @@ print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
 
 
 
-dv_stats_calculation($sessions);
-
 if (defined($FORM{show})) {
   $pages_qs .= "&show=y&fromD=$FORM{fromD}&fromM=$FORM{fromM}&fromY=$FORM{fromY}&toD=$FORM{toD}&toM=$FORM{toM}&toY=$FORM{toY}";
   $FORM{fromM}++;
   $FORM{toM}++;
   $FORM{fromM} = sprintf("%.2d", $FORM{fromM}++);
-  $FORM{toM} = sprintf("%.2d", $FORM{toM}++);
+  $FORM{toM}   = sprintf("%.2d", $FORM{toM}++);
   $LIST_PARAMS{INTERVAL} = "$FORM{fromY}-$FORM{fromM}-$FORM{fromD}/$FORM{toY}-$FORM{toM}-$FORM{toD}";
  }
 elsif (defined($FORM{PERIOD})) {
-	$LIST_PARAMS{PERIOD} = $FORM{PERIOD}+0; 
+	$LIST_PARAMS{PERIOD} = $FORM{PERIOD}; 
 	$pages_qs .= "&PERIOD=$FORM{PERIOD}";
 }
 elsif($FORM{DATE}) {
@@ -1327,6 +1325,8 @@ if (! defined($FORM{sort})) {
   $LIST_PARAMS{SORT}=2;
   $LIST_PARAMS{DESC}=DESC;
  }
+
+dv_stats_calculation($sessions);
 
 #Session List
 $list = $sessions->list({ %LIST_PARAMS });	

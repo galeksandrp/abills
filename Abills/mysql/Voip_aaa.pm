@@ -297,6 +297,8 @@ else {
     
        if ($session_timeout > 0) {
          $RAD_PAIRS{'Session-Timeout'}=$session_timeout;    	
+
+         #$RAD_PAIRS{'h323-credit-time'}=$session_timeout;
        }
        
        

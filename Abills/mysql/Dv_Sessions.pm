@@ -702,10 +702,34 @@ sub calculation {
 	my ($self) = shift;
 	my ($attr) = @_;
 
+
 #Login
   if ($attr->{UID}) {
-    $WHERE .= ($WHERE ne '') ?  " and l.uid='$attr->{UID}' " : "WHERE l.uid='$attr->{UID}' ";
+  	push @WHERE_RULES, "l.uid='$attr->{UID}'";
+    #$WHERE .= ($WHERE ne '') ?  " and l.uid='$attr->{UID}' " : "WHERE l.uid='$attr->{UID}' ";
    }
+
+if($attr->{INTERVAL}) {
+ 	 my ($from, $to)=split(/\//, $attr->{INTERVAL}, 2);
+   push @WHERE_RULES, "date_format(start, '%Y-%m-%d')>='$from' and date_format(start, '%Y-%m-%d')<='$to'";
+ }
+#Period
+elsif (defined($attr->{PERIOD}) ) {
+   my $period = int($attr->{PERIOD});   
+   if ($period == 4) {  
+
+   	}
+   else {
+     if($period == 0)    {  push @WHERE_RULES, "date_format(start, '%Y-%m-%d')=curdate()"; }
+     elsif($period == 1) {  push @WHERE_RULES, "TO_DAYS(curdate()) - TO_DAYS(start) = 1 ";  }
+     elsif($period == 2) {  push @WHERE_RULES, "YEAR(curdate()) = YEAR(start) and (WEEK(curdate()) = WEEK(start)) ";  }
+     elsif($period == 3) {  push @WHERE_RULES, "date_format(start, '%Y-%m')=date_format(curdate(), '%Y-%m') "; }
+     elsif($period == 5) {  push @WHERE_RULES, "date_format(start, '%Y-%m-%d')='$attr->{DATE}' "; }
+    }
+ }
+
+  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
+
 
   $self->query($db, "SELECT 
   SEC_TO_TIME(min(l.duration)), SEC_TO_TIME(max(l.duration)), SEC_TO_TIME(avg(l.duration)), SEC_TO_TIME(sum(l.duration)),
