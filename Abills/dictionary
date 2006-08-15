@@ -251,4 +251,6 @@ ATTRIBUTE       h323-disconnect-cause   30      string  Cisco
 ATTRIBUTE       h323-setup-time         25      string  Cisco
 ATTRIBUTE       h323-connect-time       28      string  Cisco
 ATTRIBUTE       h323-disconnect-time    29      string  Cisco
+ATTRIBUTE       h323-credit-time				102     string  Cisco
+ATTRIBUTE       h323-return-code				103     string  Cisco
 

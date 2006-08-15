@@ -1360,7 +1360,7 @@ $sessions->calculation({ %LIST_PARAMS });
 my $table = $html->table( { width       => '640',
 	                          rowcolor    => $_COLORS[1],
                             title_plain => ["-", "$_MIN", "$_MAX", "$_AVG", "$_TOTAL"],
-                            cols_align  => ['left', 'right', 'right', 'right'],
+                            cols_align  => ['left', 'right', 'right', 'right', 'right'],
                             rows        => [ [ $_DURATION,  $sessions->{min_dur}, $sessions->{max_dur}, $sessions->{avg_dur},  $sessions->{total_dur} ],
                                              [ "$_TRAFFIC $_RECV", int2byte($sessions->{min_recv}), int2byte($sessions->{max_recv}), int2byte($sessions->{avg_recv}),  int2byte($sessions->{total_recv})],
                                              [ "$_TRAFFIC $_SENT", int2byte($sessions->{min_sent}), int2byte($sessions->{max_sent}), int2byte($sessions->{avg_sent}), int2byte($sessions->{total_sent})],

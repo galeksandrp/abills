@@ -207,7 +207,8 @@ sub auth {
   
 
 #DIsable
-if ($self->{DISABLE}) {
+if ($self->{DISABLE} ||  $self->{VOIP_DISABLE} || $self->{USER_DISABLE}) {
+	#$RAD_PAIRS{'h323-return-code'}=7;
   $RAD_PAIRS{'Reply-Message'}="Account Disable";
   return 1, \%RAD_PAIRS;
 }
@@ -215,7 +216,6 @@ if ($self->{DISABLE}) {
 $self->{PAYMENT_TYPE}=0;
 if ($self->{PAYMENT_TYPE} == 0) {
   $self->{DEPOSIT}=$self->{DEPOSIT}+$self->{CREDIT}; #-$self->{CREDIT_TRESSHOLD};
-
   #Check deposit
   if($self->{DEPOSIT}  <= 0) {
     $RAD_PAIRS{'Reply-Message'}="Negativ deposit '$self->{DEPOSIT}'. Rejected!";
@@ -258,6 +258,7 @@ else {
       ORDER BY 2 DESC LIMIT 1;");
 
     if ($self->{TOTAL} < 1) {
+       #$RAD_PAIRS{'h323-return-code'}=8;
        $RAD_PAIRS{'Reply-Message'}="No route '". $RAD->{'CALLED_STATION_ID'} ."'";
        return 1, \%RAD_PAIRS;
      }
