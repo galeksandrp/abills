@@ -34,7 +34,7 @@ CREATE TABLE `cards_payments` (
 
 
 CREATE TABLE `cards_users` (
-  `serial` int(11) unsigned zerofill NOT NULL default '00000000000',
+  `serial` int(11) unsigned zerofill NOT NULL default '00000000000' auto_increment,
   `login` varchar(20) NOT NULL default '',
   `password` varchar(16) NOT NULL default '',
   `status` tinyint(2) unsigned NOT NULL default '0',

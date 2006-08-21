@@ -2143,7 +2143,8 @@ sub dv_cards {
   	 	  while(my($k, $v)= each %$line) {
   	 	  	 $FORM{$k}=clearquotes($v);
   	 	    }
-        print "<br>";
+
+        print "<br>\n";
   	 	  $FORM{'1.LOGIN'}=$line->{LOGIN};
   	 	  $FORM{'1.PASSWORD'}=$line->{PASSWORD};
   	 	  $FORM{'1.CREATE_BILL'}=1;
@@ -2152,8 +2153,11 @@ sub dv_cards {
   	 	  	 print $html->message('err', $_ERROR, "$_LOGIN: $line->{LOGIN}");
   	 	  	 return 0;
   	 	   }
+  	 	  else {
+  	 	    #Confim card creation	
+  	 	  	cards_users_gen_confim({ %$line });
+  	 	   }
   	  }
-  
    }
  
   

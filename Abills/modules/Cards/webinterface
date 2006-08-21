@@ -259,7 +259,6 @@ sub cards_users_add () {
       my $DATA_ARRAY = ();
 
       if ($FORM{LOGIN_FILE}) {
-      	 
       	 $html->message('info', $_INFO, "$_FILE: $FORM{LOGIN_FILE}{filename}");
        }
 
@@ -272,6 +271,8 @@ sub cards_users_add () {
         	 my %USER_HASH = ();
         	 my @params = split(/\t/, $line);
            $USER_HASH{LOGIN}=$params[0];
+           $USER_HASH{DILLER_ID}=int($FORM{DILLER_ID});
+
            if ($params[1] eq '-') {
            	 $USER_HASH{PASSWORD}=mk_unique_value($FORM{PASSWD_LENGTH}, { SYMBOLS => $FORM{PASSWD_SYMBOLS} || undef });
             }
@@ -335,10 +336,11 @@ sub cards_users_add () {
   	      $LOGIN_NUMBER++;
   	      $generated++;
 
-  	      push @DATA_ARRAY, { LOGIN     => "$login",
-  	      	                  PASSWORD  => "$password"
+  	      push @DATA_ARRAY, { LOGIN      => "$login",
+  	      	                  PASSWORD   => "$password",
+  	      	                  SERIA      => "$serial",
+  	      	                  DILLER_ID  => $FORM{DILLER_ID}
  	      	                   };
-
   	   }
 
     $html->message('info', $_INFO, "$_CREATE: $generated");
@@ -360,15 +362,33 @@ elsif ($FORM{del}  && $FORM{is_js_confirmed} ) {
   $Cards->{EXPARAMS}=$attr->{EXTRA_TPL};
   $Cards->{DILLERS_SEL}=$html->form_select('DILLER_ID', 
                                          { 
- 	                                         SELECTED          => $user->{DILLER_ID},
- 	                                         SEL_MULTI_ARRAY   => $Cards->cards_dillers_list({ DISABLE => 0 }),
+ 	                                         SELECTED          => $FORM{DILLER_ID},
+ 	                                         SEL_MULTI_ARRAY   => [['', ''] , @{ $Cards->cards_dillers_list({ DISABLE => 0 }) }],
  	                                         MULTI_ARRAY_KEY   => 0,
  	                                         MULTI_ARRAY_VALUE => 1,
  	                                         NO_ID             => 1
  	                                        });
 
 	$html->tpl_show(_include('cards_add', 'Cards'), $Cards);
+}
 
+
+#*******************************************************************
+#
+#*******************************************************************
+sub cards_users_gen_confim {
+  my ($attr) = @_;
+  
+  
+  print "$attr->{LOGIN},  $attr->{PASSWORD}, $attr->{SERIA}, $attr->{DILLER_ID}/<br>";
+  $Cards->{debug}=1;
+  $Cards->cards_users_add({ %$attr });
+   if ($Cards->{errno}) {
+     $html->message('err', $_CARDS, "[$Cards->{errno}] $err_strs{$Cards->{errno}}");
+    }
+
+  
+  return 0;
 }
 
 #*******************************************************************
