@@ -25,6 +25,8 @@
 <tr><td colspan='2'><input type='radio' name='EXPORT' value='TEXT'> Text<br>
 <input type='radio' name='EXPORT' value='XML'> XML
 </td></tr>
+<tr bgcolor='$_COLORS[0]'><th colspan=2>-</th></tr>
+<tr><td>$_DILLERS:</td><td>%DILLERS_SEL%</td></tr>
 </table>
 <input type='submit' name='create' value='$_CREATE'>
 </form>

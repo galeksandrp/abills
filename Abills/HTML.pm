@@ -379,7 +379,9 @@ sub form_select {
 	  foreach my $v (@$H) {
       $self->{SELECT} .= "<option value='$v->[$key]'";
       $self->{SELECT} .= ' selected' if ($v->[$key] eq $attr->{SELECTED});
-      $self->{SELECT} .= ">$v->[$key]:$v->[$value]\n";
+      $self->{SELECT} .= '>';
+      $self->{SELECT} .= "$v->[$key]:" if (! $attr->{NO_ID});
+      $self->{SELECT} .= "$v->[$value]\n";
      }
    }
   elsif (defined($attr->{SEL_HASH})) {

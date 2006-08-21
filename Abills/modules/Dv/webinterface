@@ -48,15 +48,15 @@ sub dv_chg_tp {
 if ($FORM{set}) {
   if ($period == 1) {
     $FORM{date_M}++;
-    $shedule->add( {UID => $user->{UID},
-                   TYPE => 'tp',
-                   ACTION => $FORM{TP_ID},
-    	             D => $FORM{date_D},
-                   M => $FORM{date_M},
-                   Y => $FORM{date_Y},
+    $shedule->add( {UID     => $user->{UID},
+                   TYPE     => 'tp',
+                   ACTION   => $FORM{TP_ID},
+    	             D        => $FORM{date_D},
+                   M        => $FORM{date_M},
+                   Y        => $FORM{date_Y},
                    DESCRIBE => "$message<br>
                    $_FROM: '$FORM{date_Y}-$FORM{date_M}-$FORM{date_D}'",
-                   MODULE => 'Dv'
+                   MODULE   => 'Dv'
                     });
 
     if ($shedule->{errno}) {
@@ -88,10 +88,10 @@ elsif($FORM{del}) {
   $html->message('info', $_DELETED, "$_DELETED [$FORM{SHEDULE_ID}]");
 }
 
-  $shedule->info( {UID     => $user->{UID},
-                   TYPE    => 'tp',
+  $shedule->info( {UID      => $user->{UID},
+                   TYPE     => 'tp',
                    DESCRIBE => "$message\n$_FROM: '$FORM{date_y}-$FORM{date_m}-$FORM{date_d}'",
-                   MODULE => 'Dv'
+                   MODULE   => 'Dv'
                    });
 
 

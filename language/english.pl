@@ -302,3 +302,4 @@ $_SERIAL='Serial';
 $_BRUTE_ATACK='Brute Attack';
 $_CHAPTERS='Chapter';
 
+$_DILLERS='Dillers';
