@@ -199,6 +199,7 @@ sub account_info {
    d.date, 
    d.customer,  
    sum(o.price * o.counts), 
+   d.phone,
    u.id, 
    a.name, 
    d.created, 
@@ -220,7 +221,8 @@ sub account_info {
   ($self->{ACCT_ID}, 
    $self->{DATE}, 
    $self->{CUSTOMER}, 
-   $self->{SUM}
+   $self->{SUM},
+   $self->{PHONE}
   )= @$ar;
 	
  

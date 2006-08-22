@@ -42,7 +42,7 @@ elsif(defined($FORM{del})) {
  }
 else {
   form_search({ SEARCH_FORM =>  	
-  	"<tr><td colspan=2><hr></td></tr>
+  	"<tr><td colspan='2'><hr></td></tr>
      <tr><td>ID (>,<)</td><td><input type=text name=ACCT_ID value='%ACCT_ID%'></td></tr>
      <tr><td>$_ADMIN</td><td><input type=text name=AID value='%AID%'></td></tr>
      <tr><td>$_SUM</td><td><input type=text name=SUM value='%SUM%'></td></tr>\n" });
@@ -63,19 +63,21 @@ if (! defined($FORM{sort})) {
 }
 
 my $list = $Docs->accounts_list( { %LIST_PARAMS } );
-my $table = $html->table( { width => '100%',
-                                   border => 1,
-                                   title => ['#', $_DATE, $_CUSTOMER, $_SUM, $_USER, $_ADMIN, $_TIME, '-', '-'],
-                                   cols_align => ['right', 'right', 'left', 'right', 'left', 'left', 'right', 'center'],
-                                   qs => $pages_qs,
-                                   pages => $Docs->{TOTAL}
-                                  });
+my $table = $html->table( { width      => '100%',
+                            border     => 1,
+                            title      => ['#', $_DATE, $_CUSTOMER, $_SUM, $_USER, $_ADMIN, $_TIME, '-', '-'],
+                            cols_align => ['right', 'right', 'left', 'right', 'left', 'left', 'right', 'center'],
+                            qs         => $pages_qs,
+                            pages      => $Docs->{TOTAL}
+                          });
 
 
 foreach my $line (@$list) {
   my $delete = ($permissions{1}{2}) ?  $html->button($_DEL, "index=$index&del=$line->[8]&UID=$line->[7]", { MESSAGE => "$_DEL ?" }) : ''; 
-  $table->addrow("$line->[0]", "$line->[1]",
-   "$line->[2]", "$line->[3]", 
+  $table->addrow("$line->[0]", 
+   "$line->[1]",
+   "$line->[2]", 
+   "$line->[3]", 
    $html->button($line->[4], "index=11&UID=$line->[7]"),
    "$line->[5]", 
    "$line->[6]", 
@@ -84,10 +86,12 @@ foreach my $line (@$list) {
 }
 print $table->show();
 
-$table = $html->table( { width => '100%',
-                                cols_align => ['right', 'right'],
-                                rows => [ [ "$_TOTAL:", "<b>$Docs->{TOTAL}</b>" ] ]
-                               } );
+$table = $html->table( { width      => '100%',
+                         cols_align => ['right', 'right'],
+                         rows       => [ [ "$_TOTAL:", "<b>$Docs->{TOTAL}</b>" ] ]
+                      } );
+
+
 print $table->show();
 
   return 0;
@@ -120,14 +124,27 @@ sub docs_account {
      $Docs->account_add({ %FORM });
      if(! $Docs->{errno}) {
        $html->message('info', "$_ADDED", "$_ADDED N: [$Docs->{ACCT_ID}]");
+       $Docs->account_info($Docs->{ACCT_ID});
+       
+       my $list = $Docs->{ORDERS};
+       my $i=0;
+      
+       foreach my $line (@$list) {
+   	     $i++;
+   	     $Docs->{ORDER} .= sprintf("<tr><td align=right>%d</td><td>%s</td><td align=right>%d</td><td align=right>%d</td><td align=right>%.2f</td><td align=right>%.2f</td></tr>\n", 
+   	       $i, $line->[1], $line->[2], $line->[3], $line->[4], ($line->[3]*$line->[4]));
+        }
+     
+
        docs_print('account', $Docs);
        return 0;
       }
     }
   }
  elsif(defined($FORM{print})){
-
    $Docs->account_info($FORM{print});
+   $Docs->{FROM_DATE_LIT}='';
+
    my $list = $Docs->{ORDERS};
    my $i=0;
    foreach my $line (@$list) {
@@ -135,6 +152,7 @@ sub docs_account {
    	 $Docs->{ORDER} .= sprintf("<tr><td align=right>%d</td><td>%s</td><td align=right>%d</td><td align=right>%d</td><td align=right>%.2f</td><td align=right>%.2f</td></tr>\n", 
    	  $i, $line->[1], $line->[2], $line->[3], $line->[4], ($line->[3]*$line->[4]));
     }
+
    docs_print('account', $Docs);
    return 0;
   }
@@ -185,6 +203,23 @@ sub docs_preview {
 #**********************************************************
 sub docs_print {
 	my ($type, $ATTR)=@_;
+	
+	if (defined(@MONTHES_LIT) && $ATTR->{DATE}) {
+    my ($y, $m, $d)=split(/-/, $ATTR->{DATE}, 3);
+    $ATTR->{FROM_DATE_LIT} = "$d ". @MONTHES_LIT[int($m)-1] ." $y $_YEAR";
+   }
+
+  $ATTR->{SUM_LIT} = int2ml("$ATTR->{SUM}", { 
+  	 ONES             => \@ones,
+     TWOS             => \@twos,
+     FIFTH            => \@fifth,
+     ONE              => \@one,
+     ONEST            => \@onest,
+     TEN              => \@ten,
+     TENS             => \@tens,
+     HUNDRED          => \@hundred,
+     MONEY_UNIT_NAMES => \@money_unit_names
+  	  });
 	
 	my $template = $type;
 	$html->tpl_show(_include("docs_$template", 'Docs'), $ATTR);

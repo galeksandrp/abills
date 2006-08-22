@@ -1363,7 +1363,7 @@ sub test {
 #print "<a href='#' onclick=\"open('aaa','help', 
 # 'height=550,width=450,resizable=0, scrollbars=yes, menubar=no, status=yes');\"><font color=$_COLORS[1]>Debug</font></a>";
 
-print "<a href='#' title='$output'><font color=$_COLORS[1]>Debug</font></a>\n";
+print "<a href='#' title='$output' class='noprint'><font color=$_COLORS[1]>Debug</font></a>\n";
 
 }
 

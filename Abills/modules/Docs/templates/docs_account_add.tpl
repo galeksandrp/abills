@@ -1,7 +1,7 @@
-<form action=$SELF_URL method=post>
+<form action='$SELF_URL' method='post'>
 <input type=hidden name=index value=$index>
-<input type=hidden name=UID value=$FORM{UID}>
-<input type=hidden name=DOC_ID value='%DOC_ID%'>
+<input type=hidden name='UID' value='$FORM{UID}'>
+<input type=hidden name='DOC_ID' value='%DOC_ID%'>
 <Table>
 %FORM_ACCT_ID%
 <tr><td>$_DATE:</td><td><input type=text name=DATE value='%DATE%'></td></tr>
