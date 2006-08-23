@@ -33,6 +33,7 @@ sub docs_accounts_list {
 
 if ($LIST_PARAMS{UID}) {
 	docs_account();
+	return 0 if ($FORM{'print'});
  }
 elsif(defined($FORM{del})) {
   $Docs->account_del($FORM{del});

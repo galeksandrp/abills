@@ -1,0 +1,167 @@
+require "Netlist.pm";
+Netlist->import();
+my $Netlist = Netlist->new($db, $admin, \%conf);
+
+
+
+#**********************************************************
+#
+#**********************************************************
+sub netlist_list {
+  $Netlist->{ACTION}='add';
+  $Netlist->{ACTION_LNG}=$_ADD;
+
+  $Netlist->{debug}=1;
+  
+  if($FORM{add}) {
+    $Netlist->ip_add({ %FORM });
+    if(! $Netlist->{errno}) {
+      $html->message('info', $_INFO, "$_ADDED");
+     }
+  }
+  elsif($FORM{change}) {
+    $Netlist->ip_change({ %FORM });
+    if(! $Netlist->{errno}) {
+      $html->message('info', $_INFO, "$_CHANGED"); 
+     }
+  }
+ 	elsif(defined($FORM{chg})) {
+    $Netlist->ip_info($FORM{chg});
+    if(! $Netlist->{errno}) {
+      $html->message('info', $_INFO, "$_CHANGING");  	
+     }
+    $Netlist->{ACTION}='change';
+    $Netlist->{ACTION_LNG}=$_CHANGE;
+  }
+  elsif(defined($FORM{del}) && defined($FORM{is_js_confirmed}) ) {
+    $Netlist->ip_del($FORM{del});
+      if(! $Netlist->{errno}) {
+    	$html->message('info', $_INFO, "$_DELETED"); 
+     }
+  }
+
+  if ($Netlist->{errno}) {
+    $html->message('err', $_ERROR, "[$Netlist->{errno}] $err_strs{$Netlist->{errno}}");	
+   }
+
+  $Netlist->{GROUP_SEL}=$html->form_select('GROUP_ID', 
+                                          { 
+ 	                                          SELECTED          => $FORM{GROUP_ID},
+ 	                                          SEL_MULTI_ARRAY   => $Netlist->groups_list(),
+ 	                                          MULTI_ARRAY_KEY   => 3,
+ 	                                          MULTI_ARRAY_VALUE => 0,
+ 	                                          NO_ID             => 1
+ 	                                        });
+
+$html->tpl_show(_include('netlist_ip', 'Netlist'), $Netlist); 
+
+my $list = $Netlist->ip_list( { %LIST_PARAMS } );
+my $table = $html->table( { width   => '100%',
+                            caption => "IP",
+                            border  => 1,
+                            title   => ['IP', 'NETMASK', 'HOSTNAME', $_STATE,  $_DATE, '-', '-'],
+                            cols_align => ['right', 'right', 'left', 'center', 'right', 'center:noprint', 'center:noprint'],
+                            qs      => $pages_qs,
+                            pages   => $Netlist->{TOTAL}
+                           });
+
+
+
+  foreach my $line (@$list) {
+     my $delete = $html->button($_DEL, "index=$index&del=$line->[4]", { MESSAGE => "$_DEL $line->[0]?" }); 
+     my $change = $html->button($_INFO, "index=$index&chg=$line->[4]");
+
+     $table->addrow($line->[0], 
+     $line->[1], 
+     $line->[2], 
+     $status[$line->[3]], 
+     $line->[4], 
+     $change,
+     $delete
+     );
+   }
+ 
+
+  print $table->show();
+
+
+
+}
+
+
+#**********************************************************
+#
+#**********************************************************
+sub netlist_groups {
+
+
+  $Netlist->{ACTION}='add';
+  $Netlist->{ACTION_LNG}=$_ADD;
+
+  if($FORM{add}) {
+    $Netlist->group_add({ %FORM });
+    if(! $Netlist->{errno}) {
+      $html->message('info', $_INFO, "$_ADDED");
+     }
+  }
+  elsif($FORM{change}) {
+    $Netlist->group_change({ %FORM });
+    if(! $Netlist->{errno}) {
+      $html->message('info', $_INFO, "$_CHANGED"); 
+     }
+  }
+ 	elsif(defined($FORM{chg})) {
+    $Netlist->group_info($FORM{chg});
+    if(! $Netlist->{errno}) {
+      $html->message('info', $_INFO, "$_CHANGING");  	
+     }
+    $Netlist->{ACTION}='change';
+    $Netlist->{ACTION_LNG}=$_CHANGE;
+  }
+  elsif(defined($FORM{del}) && defined($FORM{is_js_confirmed}) ) {
+    $Netlist->group_del($FORM{del});
+    if(! $Netlist->{errno}) {
+    	$html->message('info', $_INFO, "$_DELETED"); 
+     }
+  }
+
+  if ($Netlist->{errno}) {
+    $html->message('err', $_ERROR, "[$Netlist->{errno}] $err_strs{$Netlist->{errno}}");	
+   }
+
+
+$html->tpl_show(_include('netlist_group', 'Netlist'), $Netlist);
+
+
+my $list = $Netlist->groups_list( { %LIST_PARAMS } );
+my $table = $html->table( { width   => '100%',
+                            caption => "$_GROUPS",
+                            border  => 1,
+                            title   => [$_NAME, $_COMMENTS, 'IP', '-', '-'],
+                            cols_align => ['left', 'left', 'right', 'center:noprint', 'center:noprint'],
+                            qs      => $pages_qs,
+                            pages   => $Netlist->{TOTAL}
+                           });
+
+
+
+  foreach my $line (@$list) {
+     my $delete = $html->button($_DEL, "index=$index&del=$line->[3]", { MESSAGE => "$_DEL $line->[0]?" }); 
+     my $change = $html->button($_INFO, "index=$index&chg=$line->[3]");
+
+     $table->addrow($line->[0], 
+     $line->[1], 
+     $line->[2], 
+     $change,
+     $delete
+     );
+   }
+ 
+
+  print $table->show();
+
+  return 0;
+}
+
+1
+

@@ -433,11 +433,11 @@ $html->tpl_show(_include('dv_tp', 'Dv'), $tarif_info);
 my $list = $tariffs->list({ %LIST_PARAMS });	
 # Time tariff Name Begin END Day fee Month fee Simultaneously - - - 
 my $table = $html->table( { width      => '100%',
-                                   caption    => "$_TARIF_PLANS",
-                                   border     => 1,
-                                   title      => ['#', $_NAME,  $_HOUR_TARIF, $_TRAFIC_TARIFS, $_PAYMENT_TYPE, $_DAY_FEE, $_MONTH_FEE, $_SIMULTANEOUSLY, $_AGE,
-                                     '-', '-', '-'],
-                                   cols_align => ['right', 'left', 'center', 'center', 'center', 'right', 'right', 'right', 'right', 'center:noprint', 'center:noprint', 'center:noprint'],
+                            caption    => "$_TARIF_PLANS",
+                            border     => 1,
+                            title      => ['#', $_NAME,  $_HOUR_TARIF, $_TRAFIC_TARIFS, $_PAYMENT_TYPE, $_DAY_FEE, $_MONTH_FEE, $_SIMULTANEOUSLY, $_AGE,
+                                    '-', '-', '-'],
+                            cols_align => ['right', 'left', 'center', 'center', 'center', 'right', 'right', 'right', 'right', 'center:noprint', 'center:noprint', 'center:noprint'],
                                    
                                    
                                   } );
@@ -466,9 +466,9 @@ foreach my $line (@$list) {
 
 print $table->show();
 
-$table = $html->table( { width => '100%',
-                                cols_align => ['right', 'right'],
-                                rows => [ [ "$_TOTAL:", "<b>$tariffs->{TOTAL}</b>" ] ]
+$table = $html->table( { width      => '100%',
+                         cols_align => ['right', 'right'],
+                         rows       => [ [ "$_TOTAL:", "<b>$tariffs->{TOTAL}</b>" ] ]
                                } );
 print $table->show();
 
@@ -596,10 +596,10 @@ elsif($FORM{tolog}) {
   $nas->info({ NAS_ID => $FORM{nas_id} });
 
   require Acct;
-  $ACCT_INFO->{INBYTE}   =   $ACCT_INFO->{ACCT_INPUT_OCTETS};
-  $ACCT_INFO->{OUTBYTE}  =  $ACCT_INFO->{ACCT_OUTPUT_OCTETS},;
-  $ACCT_INFO->{INBYTE2}  =  $ACCT_INFO->{ACCT_EX_INPUT_OCTETS} ;
-  $ACCT_INFO->{OUTBYTE2} = $ACCT_INFO->{ACCT_EX_INPUT_OCTETS};
+  $ACCT_INFO->{INBYTE}           =   $ACCT_INFO->{ACCT_INPUT_OCTETS};
+  $ACCT_INFO->{OUTBYTE}          =  $ACCT_INFO->{ACCT_OUTPUT_OCTETS},;
+  $ACCT_INFO->{INBYTE2}          =  $ACCT_INFO->{ACCT_EX_INPUT_OCTETS} ;
+  $ACCT_INFO->{OUTBYTE2}         = $ACCT_INFO->{ACCT_EX_INPUT_OCTETS};
   $ACCT_INFO->{ACCT_STATUS_TYPE} = 'Stop';
 
 

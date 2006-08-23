@@ -1812,9 +1812,9 @@ while(my($k, $v) = each %menu_items ) {
     foreach my $action (@$actions_list) {
 
       $table->addrow("$action_index", "$action", 
-       $html->form_input($k."_$action_index", 'yes', { TYPE => 'checkbox',
+       $html->form_input($k."_$action_index", 'yes', { TYPE          => 'checkbox',
        	                                               OUTPUT2RETURN => 1,
-       	                                               STATE => (defined($permits{$k}{$action_index})) ? '1' : undef  
+       	                                               STATE         => (defined($permits{$k}{$action_index})) ? '1' : undef  
        	                                              })  
        	                                              );
 
@@ -2727,9 +2727,9 @@ for(my $parent=1; $parent<$#menu_sorted; $parent++) {
          }
 
         
-        $table->addrow("$k ". $html->form_input('qm_item', "$k", { TYPE => 'checkbox',
-       	                                            OUTPUT2RETURN => 1,
-       	                                            STATE => $checked  
+        $table->addrow("$k ". $html->form_input('qm_item', "$k", { TYPE          => 'checkbox',
+       	                                                           OUTPUT2RETURN => 1,
+       	                                                           STATE         => $checked  
        	                                           }),  
                      "$prefix ". $html->button($val, "index=$k"), 
                      $html->form_input("qm_name_$k", $qm{$k}, { OUTPUT2RETURN => 1 }) );

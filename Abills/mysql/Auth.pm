@@ -676,8 +676,8 @@ elsif(defined($RAD->{MS_CHAP_CHALLENGE})) {
           }
         }
 
-       $RAD_PAIRS{'MS-CHAP-MPPE-Keys'} = '0x' . unpack("H*", (pack('a8 a16', $lanmansessionkey, 
-														$usersessionkey))) . "0000000000000000";
+#       $RAD_PAIRS{'MS-CHAP-MPPE-Keys'} = '0x' . unpack("H*", (pack('a8 a16', $lanmansessionkey, 
+#														$usersessionkey))) . "0000000000000000";
 
        # 1      Encryption-Allowed 
        # 2      Encryption-Required 
