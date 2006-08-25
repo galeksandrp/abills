@@ -17,7 +17,6 @@ sub new {
   ($db, $admin, $CONF) = @_;
   my $self = { };
   bless($self, $class);
-  #$self->{debug}=1;
   return $self;
 }
 
@@ -131,9 +130,33 @@ sub ip_list() {
   my $self = shift;
   my ($attr) = @_;
 
- $self->query($db, "SELECT INET_NTOA(ip), INET_NTOA(netmask), hostname, status, ip
-    FROM netlist_ips
-    GROUP BY ip
+  if ($attr->{GID}) {
+    my $value = $self->search_expr($attr->{GID}, 'INT');
+    push @WHERE_RULES, "ni.gid$value";
+   }
+
+  if ($attr->{IP}) {
+    push @WHERE_RULES, "ni.ip=INET_ATON('$attr->{IP}')";
+   }
+
+  if ($attr->{STATUS}) {
+    push @WHERE_RULES, "ni.status='$attr->{STATUS}'";
+   }
+
+  if ($attr->{HOSTNAME}) {
+  	$attr->{HOSTNAME} =~ s/\*/\%/ig;
+    push @WHERE_RULES, "ni.hostname LIKE '$attr->{HOSTNAME}'";
+   }
+
+
+ $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : ''; 
+
+ $self->query($db, "SELECT ni.ip, INET_NTOA(ni.netmask), ni.hostname, 
+      ng.name, ni.status, ni.date, INET_NTOA(ni.ip)
+    FROM netlist_ips ni
+    LEFT JOIN netlist_groups ng ON (ng.id=ni.gid)
+    $WHERE
+    GROUP BY ni.ip
     ORDER BY $SORT $DESC;");
 
  return $self->{list};
@@ -155,12 +178,14 @@ sub ip_add {
      status,
      comments,
      date,
+     descr,
      aid)
     values (INET_ATON('$DATA{IP}'), INET_ATON('$DATA{NETMASK}'), '$DATA{HOSTNAME}',
       '$DATA{GID}',
       '$DATA{STATUS}',
       '$DATA{COMMENTS}',
       now(),
+      '$DATA{DESCR}',
       '$admin->{AID}'
      );", 'do');
 
@@ -176,18 +201,20 @@ sub ip_change {
   my ($attr) = @_;
 
 
-  my %FIELDS = ( IP        => 'ip', 
+  my %FIELDS = ( IP_NUM    => 'ip', 
                  NETMASK   => 'netmask',
                  HOSTNAME  => 'hostname',
                  GID       => 'gid',
                  STATUS    => 'status',
-                 COMMENTS  => 'comments'
+                 COMMENTS  => 'comments',
+                 IP				 => 'ip',
+                 DESCR     => 'descr'
                 );   
  
-	$self->changes($admin, { CHANGE_PARAM => 'IP',
+	$self->changes($admin, { CHANGE_PARAM => 'IP_NUM',
 		                TABLE        => 'netlist_ips',
 		                FIELDS       => \%FIELDS,
-		                OLD_INFO     => $self->group_info($attr->{IP}, $attr),
+		                OLD_INFO     => $self->ip_info($attr->{IP_NUM}, $attr),
 		                DATA         => $attr
 		              } );
  
@@ -220,7 +247,9 @@ sub ip_info {
        hostname,
        gid,
        status,
-       comments
+       comments,
+       descr,
+       ip
     FROM netlist_ips
     WHERE ip='$ip';");
 
@@ -237,7 +266,9 @@ sub ip_info {
    $self->{HOSTNAME},
    $self->{GID},
    $self->{STATUS},
-   $self->{COMMENTS}
+   $self->{COMMENTS},
+   $self->{DESCR},
+   $self->{IP_NUM},
   ) = @$ar;
 
 

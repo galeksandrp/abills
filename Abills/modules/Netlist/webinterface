@@ -11,8 +11,6 @@ sub netlist_list {
   $Netlist->{ACTION}='add';
   $Netlist->{ACTION_LNG}=$_ADD;
 
-  $Netlist->{debug}=1;
-  
   if($FORM{add}) {
     $Netlist->ip_add({ %FORM });
     if(! $Netlist->{errno}) {
@@ -44,38 +42,70 @@ sub netlist_list {
     $html->message('err', $_ERROR, "[$Netlist->{errno}] $err_strs{$Netlist->{errno}}");	
    }
 
-  $Netlist->{GROUP_SEL}=$html->form_select('GROUP_ID', 
+  my $groups = $Netlist->groups_list();
+
+  $Netlist->{GROUP_SEL}=$html->form_select('GID', 
                                           { 
- 	                                          SELECTED          => $FORM{GROUP_ID},
- 	                                          SEL_MULTI_ARRAY   => $Netlist->groups_list(),
+ 	                                          SELECTED          => $Netlist->{GID},
+ 	                                          SEL_MULTI_ARRAY   => [@$groups],
  	                                          MULTI_ARRAY_KEY   => 3,
  	                                          MULTI_ARRAY_VALUE => 0,
  	                                          NO_ID             => 1
  	                                        });
 
+
+  $Netlist->{STATE_SEL}=$html->form_select('STATUS', 
+                                          { 
+ 	                                          SELECTED    => $Netlist->{STATUS},
+ 	                                          SEL_ARRAY   => \@status,
+ 	                                          ARRAY_NUM_ID => 1
+ 	                                        });
+
+
 $html->tpl_show(_include('netlist_ip', 'Netlist'), $Netlist); 
 
-my $list = $Netlist->ip_list( { %LIST_PARAMS } );
-my $table = $html->table( { width   => '100%',
-                            caption => "IP",
-                            border  => 1,
-                            title   => ['IP', 'NETMASK', 'HOSTNAME', $_STATE,  $_DATE, '-', '-'],
-                            cols_align => ['right', 'right', 'left', 'center', 'right', 'center:noprint', 'center:noprint'],
-                            qs      => $pages_qs,
-                            pages   => $Netlist->{TOTAL}
+$Netlist->{GROUP_SEL}=$html->form_select('GID', 
+                                          { 
+ 	                                          SELECTED          => $FORM{GID},
+ 	                                          SEL_MULTI_ARRAY   => [['', ''], @$groups],
+ 	                                          MULTI_ARRAY_KEY   => 3,
+ 	                                          MULTI_ARRAY_VALUE => 0,
+ 	                                          NO_ID             => 1
+ 	                                        });
+
+  $Netlist->{STATE_SEL}=$html->form_select('STATUS', 
+                                          { 
+ 	                                          SELECTED    => $Netlist->{STATUS},
+ 	                                          SEL_ARRAY   => ['', @status],
+ 	                                          ARRAY_NUM_ID => 1
+ 	                                        });
+
+
+$html->tpl_show(_include('netlist_ip_search', 'Netlist'), { %$Netlist, %FORM }); 
+
+
+my $list = $Netlist->ip_list( { %LIST_PARAMS, %FORM } );
+my $table = $html->table( { width      => '100%',
+                            caption    => "IP",
+                            border     => 1,
+                            title      => ['IP', 'NETMASK', 'HOSTNAME', $_GROUP, $_STATE,  $_DATE, '-', '-'],
+                            cols_align => ['right', 'right', 'left', 'left', 'center', 'right', 'center:noprint', 'center:noprint'],
+                            qs         => $pages_qs,
+                            pages      => $Netlist->{TOTAL}
                            });
 
 
 
   foreach my $line (@$list) {
-     my $delete = $html->button($_DEL, "index=$index&del=$line->[4]", { MESSAGE => "$_DEL $line->[0]?" }); 
-     my $change = $html->button($_INFO, "index=$index&chg=$line->[4]");
+     my $delete = $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?" }); 
+     my $change = $html->button($_INFO, "index=$index&chg=$line->[0]");
 
-     $table->addrow($line->[0], 
+     $table->addrow($line->[6], 
      $line->[1], 
      $line->[2], 
-     $status[$line->[3]], 
-     $line->[4], 
+     $line->[3], 
+     $status[$line->[4]], 
+     $line->[5], 
      $change,
      $delete
      );
