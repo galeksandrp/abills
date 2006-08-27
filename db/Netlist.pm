@@ -18,6 +18,8 @@ CREATE TABLE `netlist_ips` (
   `date` datetime NOT NULL default '0000-00-00 00:00:00',
   `aid` smallint(6) unsigned NOT NULL default '0',
   `descr` varchar(200) NOT NULL default '',
+  `machine_type` smallint(6) unsigned NOT NULL default '0',
+  `location` varchar(100) NOT NULL default '',
   PRIMARY KEY  (`ip`),
   UNIQUE KEY `ip` (`ip`)
 );

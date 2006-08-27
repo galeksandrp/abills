@@ -111,11 +111,11 @@ sub new {
             '#FFFFFF',  #10 background
            ); #border
   
-  %LIST_PARAMS = ( SORT => $SORT,
-	       DESC => $DESC,
-	       PG => $PG,
-	       PAGE_ROWS => $PAGE_ROWS,
-	      );
+  %LIST_PARAMS = ( SORT      => $SORT,
+	                 DESC      => $DESC,
+	                 PG        => $PG,
+	                 PAGE_ROWS => $PAGE_ROWS,
+	                );
 
   %functions = ();
   
@@ -1002,7 +1002,7 @@ sub table_title  {
   my ($op);
   my $img='';
 
-#  print "$sort, $desc, $pg, $op, $caption, $qs";
+  #print "$FORM{sort} // SORT: $sort, DESC: $desc, PAGE: $pg, $op, $caption, $qs--";
 
   $self->{table_title} = "<tr bgcolor=\"$_COLORS[0]\">";
   my $i=1;

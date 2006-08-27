@@ -10,6 +10,7 @@ my $db;
 use main;
 @ISA  = ("main");
 my $CONF;
+my $admin;
 my $SECRETKEY = '';
 
 sub new {
@@ -26,6 +27,10 @@ sub new {
 sub groups_list() {
   my $self = shift;
   my ($attr) = @_;
+
+ $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+ $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+
 
  $self->query($db, "SELECT ng.name, ng.comments, count(ni.ip), ng.id
     FROM netlist_groups ng
@@ -49,6 +54,8 @@ sub group_add {
 
   $self->query($db, "INSERT INTO netlist_groups (name, comments)
     values ('$DATA{NAME}', '$DATA{COMMENTS}');", 'do');
+
+  $self->{GID}=$self->{INSERT_ID};
 
   return $self;
 }
@@ -130,6 +137,10 @@ sub ip_list() {
   my $self = shift;
   my ($attr) = @_;
 
+  $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+  $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+
+
   if ($attr->{GID}) {
     my $value = $self->search_expr($attr->{GID}, 'INT');
     push @WHERE_RULES, "ni.gid$value";
@@ -152,7 +163,9 @@ sub ip_list() {
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : ''; 
 
  $self->query($db, "SELECT ni.ip, INET_NTOA(ni.netmask), ni.hostname, 
-      ng.name, ni.status, ni.date, INET_NTOA(ni.ip)
+      ni.descr,
+      ng.name, 
+      ni.status, ni.date, INET_NTOA(ni.ip)
     FROM netlist_ips ni
     LEFT JOIN netlist_groups ng ON (ng.id=ni.gid)
     $WHERE

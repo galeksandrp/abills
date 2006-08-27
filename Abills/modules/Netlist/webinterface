@@ -1,6 +1,7 @@
 require "Netlist.pm";
 Netlist->import();
 my $Netlist = Netlist->new($db, $admin, \%conf);
+use Socket;
 
 
 
@@ -88,8 +89,8 @@ my $list = $Netlist->ip_list( { %LIST_PARAMS, %FORM } );
 my $table = $html->table( { width      => '100%',
                             caption    => "IP",
                             border     => 1,
-                            title      => ['IP', 'NETMASK', 'HOSTNAME', $_GROUP, $_STATE,  $_DATE, '-', '-'],
-                            cols_align => ['right', 'right', 'left', 'left', 'center', 'right', 'center:noprint', 'center:noprint'],
+                            title      => ['IP', 'NETMASK', 'HOSTNAME', $_DESCRIBE, $_GROUP, $_STATE,  $_DATE, '-', '-'],
+                            cols_align => ['right', 'right', 'left', 'left', 'left', 'center', 'right', 'center:noprint', 'center:noprint'],
                             qs         => $pages_qs,
                             pages      => $Netlist->{TOTAL}
                            });
@@ -100,12 +101,13 @@ my $table = $html->table( { width      => '100%',
      my $delete = $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?" }); 
      my $change = $html->button($_INFO, "index=$index&chg=$line->[0]");
 
-     $table->addrow($line->[6], 
+     $table->addrow($line->[7], 
      $line->[1], 
      $line->[2], 
      $line->[3], 
      $status[$line->[4]], 
      $line->[5], 
+     $line->[6], 
      $change,
      $delete
      );
@@ -130,16 +132,48 @@ sub netlist_groups {
 
   if($FORM{add}) {
     $Netlist->group_add({ %FORM });
+    my $GID=$Netlist->{GID};
+
     if(! $Netlist->{errno}) {
       $html->message('info', $_INFO, "$_ADDED");
      }
-  }
+    
+      if ($FORM{IP}) {
+      	if($FORM{IP} !~ /(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/) {
+      	  $html->message('err', $_ERROR, "$ERR_WRONG_DATA [IP]");
+    	    return 0;
+    	   }
+      	if($FORM{NETMASK} !~ /(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/) {
+      	  $html->message('err', $_ERROR, "$ERR_WRONG_DATA [NETMASK]");
+    	    return 0;
+    	   }
+        else {
+      	  my $ip_num = ip2int($FORM{IP}); #) {
+      	  my $ip_count = unpack("N", pack("C4", split( /\./, "255.255.255.255"))) - unpack("N", pack("C4", split( /\./, "$FORM{NETMASK}")));
+
+
+
+       	  for(my $i=0; $i<$ip_count; $i++){
+      		  my $ip = int2ip($ip_num + $i);
+      		  $Netlist->ip_add({IP       => $ip,
+      		                    NETMASK  => $FORM{NETMASK},
+      		                    HOSTNAME => lookupaddress($ip),
+                              GID      => $GID });
+
+            if ($Netlist->{errno}) {
+               $html->message('err', $_ERROR, "[$Netlist->{errno}] $err_strs{$Netlist->{errno}}");	
+              return 0
+             }
+       	   }
+        }
+       }
+   }
   elsif($FORM{change}) {
     $Netlist->group_change({ %FORM });
     if(! $Netlist->{errno}) {
       $html->message('info', $_INFO, "$_CHANGED"); 
      }
-  }
+   }
  	elsif(defined($FORM{chg})) {
     $Netlist->group_info($FORM{chg});
     if(! $Netlist->{errno}) {
@@ -147,23 +181,24 @@ sub netlist_groups {
      }
     $Netlist->{ACTION}='change';
     $Netlist->{ACTION_LNG}=$_CHANGE;
-  }
+   }
   elsif(defined($FORM{del}) && defined($FORM{is_js_confirmed}) ) {
     $Netlist->group_del($FORM{del});
     if(! $Netlist->{errno}) {
     	$html->message('info', $_INFO, "$_DELETED"); 
      }
-  }
+   }
 
   if ($Netlist->{errno}) {
     $html->message('err', $_ERROR, "[$Netlist->{errno}] $err_strs{$Netlist->{errno}}");	
    }
 
 
+$Netlist->{NETMASK}='255.255.255.0';
 $html->tpl_show(_include('netlist_group', 'Netlist'), $Netlist);
 
 
-my $list = $Netlist->groups_list( { %LIST_PARAMS } );
+my $list = $Netlist->groups_list({ %LIST_PARAMS });
 my $table = $html->table( { width   => '100%',
                             caption => "$_GROUPS",
                             border  => 1,
@@ -191,6 +226,32 @@ my $table = $html->table( { width   => '100%',
   print $table->show();
 
   return 0;
+}
+
+
+#**********************************************************
+#
+#**********************************************************
+sub lookupaddress {
+  my($hostname,$server) = @_;
+
+  my $iaddr = inet_aton($hostname); # or whatever address
+  my $name  = gethostbyaddr($iaddr, AF_INET);
+
+return $name;
+}
+
+
+sub netlist_new {
+my $table = $html->table( { width   => '100%',
+                            caption => "$_GROUPS",
+                            border  => 1,
+                            title   => [$_NAME, $_COMMENTS, 'IP', '-', '-'],
+                            qs      => $pages_qs,
+                            pages   => $Netlist->{TOTAL}
+                           });
+
+	print $table->show();
 }
 
 1
