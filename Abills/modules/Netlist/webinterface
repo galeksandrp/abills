@@ -17,12 +17,14 @@ sub netlist_list {
     if(! $Netlist->{errno}) {
       $html->message('info', $_INFO, "$_ADDED");
      }
+    undef %FORM;
   }
   elsif($FORM{change}) {
     $Netlist->ip_change({ %FORM });
     if(! $Netlist->{errno}) {
       $html->message('info', $_INFO, "$_CHANGED"); 
      }
+    undef %FORM;
   }
  	elsif(defined($FORM{chg})) {
     $Netlist->ip_info($FORM{chg});
@@ -77,7 +79,7 @@ $Netlist->{GROUP_SEL}=$html->form_select('GID',
   $Netlist->{STATE_SEL}=$html->form_select('STATUS', 
                                           { 
  	                                          SELECTED    => $Netlist->{STATUS},
- 	                                          SEL_ARRAY   => ['', @status],
+ 	                                          SEL_ARRAY   => [@status, ''],
  	                                          ARRAY_NUM_ID => 1
  	                                        });
 
@@ -89,7 +91,7 @@ my $list = $Netlist->ip_list( { %LIST_PARAMS, %FORM } );
 my $table = $html->table( { width      => '100%',
                             caption    => "IP",
                             border     => 1,
-                            title      => ['IP', 'NETMASK', 'HOSTNAME', $_DESCRIBE, $_GROUP, $_STATE,  $_DATE, '-', '-'],
+                            title      => ['IP', 'NETMASK', 'HOSTNAME', $_DESCRIBE, $_GROUP, $_STATE,  $_CHANGE, '-', '-'],
                             cols_align => ['right', 'right', 'left', 'left', 'left', 'center', 'right', 'center:noprint', 'center:noprint'],
                             qs         => $pages_qs,
                             pages      => $Netlist->{TOTAL}
@@ -101,12 +103,14 @@ my $table = $html->table( { width      => '100%',
      my $delete = $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?" }); 
      my $change = $html->button($_INFO, "index=$index&chg=$line->[0]");
 
-     $table->addrow($line->[7], 
+     $table->addrow(
+     $line->[7].' '.$html->form_input('IDS', "$line->[0]", { TYPE => 'checkbox', EX_PARAMS => 'class="noprint"' } ), 
      $line->[1], 
      $line->[2], 
      $line->[3], 
-     $status[$line->[4]], 
-     $line->[5], 
+     $line->[4], 
+     $status[$line->[5]], 
+
      $line->[6], 
      $change,
      $delete
@@ -114,9 +118,30 @@ my $table = $html->table( { width      => '100%',
    }
  
 
+
+my $table2 = $html->table( { width       => '100%',
+                             border      => 1,
+      	                     class       => 'noprint',
+                             title_plain => [
+                                             "$_GROUP: ". $Netlist->{GROUP_SEL},
+  	                                         "$_STATUS: ". $Netlist->{STATE_SEL},
+                     	                       "RESOLVE: ". $html->form_input('RESOLV', '1', { TYPE => 'checkbox' } ),
+                     	                       $html->form_input('change', $_CHANGE, { TYPE => 'SUBMIT' } )
+                     	                     ]
+                           });
+
+
+  print $html->form_main({ CONTENT => $table->show(). $table2->show(),
+	                         HIDDEN  => { index  =>  "$index" },
+                         });
+
+
+  $table = $html->table({ width       => '100%',
+                          cols_align  => ['left', 'right'],    
+                          rows        => [ ["$_TOTAL:", $Netlist->{TOTAL} ]]
+                      });
+
   print $table->show();
-
-
 
 }
 
@@ -216,12 +241,21 @@ my $table = $html->table( { width   => '100%',
 
      $table->addrow($line->[0], 
      $line->[1], 
-     $line->[2], 
+     $html->button($line->[2], "index=". ($index-1). "&GID=$line->[3]"),
      $change,
      $delete
      );
    }
  
+
+  
+  print $table->show(); 
+
+
+  $table = $html->table({ width       => '100%',
+                          cols_align  => ['left', 'right'],    
+                          rows        => [ ["$_TOTAL:", $Netlist->{TOTAL} ]]
+                      });
 
   print $table->show();
 

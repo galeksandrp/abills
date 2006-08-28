@@ -12,7 +12,7 @@
 <tr><td>$_PHONE:   </td><td><input type='text' name='PHONE' value='%PHONE%'></td></tr>
 <tr><td>E-Mail:</td><td><input type='text' name='EMAIL' value='%EMAIL%'></td></tr>
 <tr><td>$_COMMENTS: </td><td><input type='text' name='COMMENTS' value='%COMMNETS%'></td></tr>
-<tr><td>$_ROWS: </td><td><input type='text' name='ROWS' value='%COMMNETS%'></td></tr>
+<tr><td>$_ROWS: </td><td><input type='text' name='PAGE_ROWS' value='%PAGE_ROWS%'></td></tr>
 </table>
 <input type='submit' name='search' value='$_SEARCH'>
 </FORM>

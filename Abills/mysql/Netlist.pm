@@ -8,6 +8,8 @@ use vars qw(@ISA @EXPORT @EXPORT_OK %EXPORT_TAGS $VERSION
 
 my $db;
 use main;
+use Socket;
+
 @ISA  = ("main");
 my $CONF;
 my $admin;
@@ -139,7 +141,10 @@ sub ip_list() {
 
   $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
   $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+  $PG   = ($attr->{PG}) ? $attr->{PG} : 0;
+  $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
 
+  
 
   if ($attr->{GID}) {
     my $value = $self->search_expr($attr->{GID}, 'INT');
@@ -165,14 +170,27 @@ sub ip_list() {
  $self->query($db, "SELECT ni.ip, INET_NTOA(ni.netmask), ni.hostname, 
       ni.descr,
       ng.name, 
-      ni.status, ni.date, INET_NTOA(ni.ip)
+      ni.status, DATE_FORMAT(ni.date, '%Y-%m-%d'), INET_NTOA(ni.ip)
     FROM netlist_ips ni
     LEFT JOIN netlist_groups ng ON (ng.id=ni.gid)
     $WHERE
     GROUP BY ni.ip
-    ORDER BY $SORT $DESC;");
+    ORDER BY $SORT $DESC
+    LIMIT $PG, $PAGE_ROWS;");
 
- return $self->{list};
+
+ my $list = $self->{list};
+
+ $self->query($db, "SELECT count(*)
+    FROM netlist_ips ni
+    LEFT JOIN netlist_groups ng ON (ng.id=ni.gid)
+    $WHERE;");
+
+  my $a_ref = $self->{list}->[0];
+  ($self->{TOTAL}) = @$a_ref;
+
+
+ return $list;
 }
 
 
@@ -223,13 +241,33 @@ sub ip_change {
                  IP				 => 'ip',
                  DESCR     => 'descr'
                 );   
+
+
+  if ($attr->{IDS}) {
+  	my @ids_array = split(/, /, $attr->{IDS});
+  	foreach my $a (@ids_array) {
+      $attr->{IP_NUM} = $a;	
+      $attr->{HOSTNAME}  = gethostbyaddr(inet_aton($a), AF_INET) if ($attr->{RESOLV});
+
+	    $self->changes($admin, { CHANGE_PARAM => 'IP_NUM',
+		                           TABLE        => 'netlist_ips',
+		                           FIELDS       => \%FIELDS,
+		                           OLD_INFO     => $self->ip_info($attr->{IP_NUM}, $attr),
+		                           DATA         => $attr
+		                          } );
+
+      return $self if ($self->{errno});
+
+  	 }
+  	return 0;
+   }
  
 	$self->changes($admin, { CHANGE_PARAM => 'IP_NUM',
-		                TABLE        => 'netlist_ips',
-		                FIELDS       => \%FIELDS,
-		                OLD_INFO     => $self->ip_info($attr->{IP_NUM}, $attr),
-		                DATA         => $attr
-		              } );
+		                       TABLE        => 'netlist_ips',
+		                       FIELDS       => \%FIELDS,
+		                       OLD_INFO     => $self->ip_info($attr->{IP_NUM}, $attr),
+		                       DATA         => $attr
+		                      } );
  
 	return $self;
 }

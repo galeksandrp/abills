@@ -270,7 +270,7 @@ sub form_input {
   my $ex_params = '';
   
   if ($attr->{EX_PARAMS}) {
-  	$ex_params = $attr->{EX_ATTR};
+  	$ex_params = $attr->{EX_PARAMS};
    }
   
   if (defined($attr->{TYPE})) {
@@ -403,11 +403,9 @@ sub form_select {
 
 sub dirname {
     my($x) = @_;
-    #print STDERR "dirname('$x') = ";
     if ( $x !~ s@[/\\][^/\\]+$@@ ) {
      	$x = '.';
     }
-    #print STDERR "'$x'\n";
     $x;
 }
 
@@ -1186,6 +1184,8 @@ sub pages {
  $self->{pages} = '';
  $begin = ($PG - $PAGE_ROWS * 3 < 0) ? 0 : $PG - $PAGE_ROWS * 3;
 
+ return $self->{pages} if ($count < $PAGE_ROWS);
+ 
 for(my $i=$begin; ($i<=$count && $i < $PG + $PAGE_ROWS * 10); $i+=$PAGE_ROWS) {
    $self->{pages} .= ($i == $PG) ? "<b>$i</b>:: " : $self->button($i, "$argument&pg=$i"). ':: ';
 }
