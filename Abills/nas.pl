@@ -114,7 +114,7 @@ sub telnet_cmd {
   }
 
  my $dest = sockaddr_in($port, inet_aton("$hostname"));
- if(! connect(SH, $dest)) { 
+ if(! &connect(SH, $dest)) { 
    print "ERR: Can't connect to '$hostname:$port' $!";
    return 0;
   }
@@ -172,7 +172,10 @@ foreach my $line (@$commands) {
 }
 
 
-
+#**********************************************************
+#
+#
+#**********************************************************
 sub telnet_cmd2 {
  my($host, $commands, $attr)=@_;
  my $port = 23;

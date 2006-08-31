@@ -20,6 +20,7 @@ sub netlist_list {
     undef %FORM;
   }
   elsif($FORM{change}) {
+    $FORM{DATE}=$DATE;
     $Netlist->ip_change({ %FORM });
     if(! $Netlist->{errno}) {
       $html->message('info', $_INFO, "$_CHANGED"); 

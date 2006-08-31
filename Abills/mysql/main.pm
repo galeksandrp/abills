@@ -316,6 +316,8 @@ if ($CHANGES_QUERY eq '') {
   return $self->{result};	
 }
 
+
+
 # print $CHANGES_LOG;
   chop($CHANGES_QUERY);
   $self->query($db, "UPDATE $TABLE SET $CHANGES_QUERY WHERE $FIELDS->{$CHANGE_PARAM}='$DATA{$CHANGE_PARAM}'", 'do');

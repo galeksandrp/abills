@@ -94,7 +94,8 @@ sub dv_auth {
   tp.payment_type,
   tp.credit_tresshold,
   tp.rad_pairs,
-  count(i.id)
+  count(i.id),
+  tp.age
      FROM (dv_main     dv,
           tarif_plans tp)
      LEFT JOIN users_nas un ON (un.uid = dv.uid)
@@ -137,7 +138,8 @@ sub dv_auth {
      $self->{PAYMENT_TYPE},
      $self->{CREDIT_TRESSHOLD},
      $self->{TP_RAD_PAIRS},
-     $self->{INTERVALS}
+     $self->{INTERVALS},
+     $self->{ACCOUNT_AGE}
     ) = @$a_ref;
 
 
@@ -487,7 +489,14 @@ if( defined($CONF->{MAC_AUTO_ASSIGN}) &&
 #  print "ADD MAC___\n";
   $self->query($db, "UPDATE dv_main SET cid='$RAD->{CALLING_STATION_ID}'
      WHERE uid='$self->{UID}';", 'do');
-}
+ }
+
+# SET ACCOUNT expire date
+if( $self->{ACCOUNT_AGE} > 0 && $self->{ACCOUNT_EXPIRE} eq '0000-00-00') {
+  $self->query($db, "UPDATE users SET expire=curdate() + INTERVAL $self->{ACCOUNT_AGE} day 
+     WHERE uid='$self->{UID}';", 'do');
+ }
+
 
   if ($self->{TP_RAD_PAIRS}) {
   	my @p = split(/,/, $self->{TP_RAD_PAIRS});
@@ -495,7 +504,7 @@ if( defined($CONF->{MAC_AUTO_ASSIGN}) &&
     	my ($rk, $lk)=split(/=/, $line);
     	$RAD_PAIRS->{$rk}="$lk";
      }
-  }
+   }
 #OK
   return 0, $RAD_PAIRS, '';
 }
@@ -583,7 +592,8 @@ sub authentication {
   u.company_id,
   u.disable,
   u.bill_id,
-  u.credit
+  u.credit,
+  u.expire
      FROM users u
      WHERE 
         u.id='$RAD->{USER_NAME}'
@@ -612,7 +622,8 @@ sub authentication {
      $self->{COMPANY_ID},
      $self->{DISABLE},
      $self->{BILL_ID},
-     $self->{CREDIT}
+     $self->{CREDIT},
+     $self->{ACCOUNT_EXPIRE}
     ) = @$a_ref;
 
 
