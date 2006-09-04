@@ -571,7 +571,6 @@ sub add {
   #ERROR_SHORT_PASSWORD
   elsif($DATA{LOGIN} !~ /$usernameregexp/) {
      $self->{errno} = 10;
-     print "- / $usernameregexp--";
      $self->{errstr} = 'ERROR_WRONG_NAME';
      return $self; 	
    }

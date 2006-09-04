@@ -100,21 +100,26 @@ sub telnet_cmd {
  my($hostname, $commands, $attr)=@_;
  my $port = 23;
 
+
  if ($hostname =~ /:/) {
    ($hostname, $port)=split(/:/, $hostname, 2);
  }
 
+
 # my $debug   = (defined($attr->{debug})) ? 1 : 0;
  my $timeout = defined($attr->{'TimeOut'}) ? $attr->{'TimeOut'} : 5;
  
+
+ 
  use Socket;
  if(! socket(SH, PF_INET, SOCK_STREAM, getprotobyname('tcp'))) {
- 	 print "ERR: Can't connect to '$hostname:$port' $!";
+ 	 print "ERR: Can't init '$hostname:$port' $!";
    return 0;
   }
 
  my $dest = sockaddr_in($port, inet_aton("$hostname"));
- if(! &connect(SH, $dest)) { 
+
+ if(! CORE::connect(SH, $dest) ) { 
    print "ERR: Can't connect to '$hostname:$port' $!";
    return 0;
   }

@@ -1378,20 +1378,38 @@ sub letters_list {
  my ($self, $attr) = @_;
  
  my $pages_qs = $attr->{pages_qs} if (defined($attr->{pages_qs}));
+ my @alphabet = ('a-z');
+#'97-123'
+ if ($attr->{EXPR}) {
+  push @alphabet, $attr->{EXPR};
+  }
 
-  
 my $letters = $self->button('All ', "index=$index"). '::';
-for (my $i=97; $i<123; $i++) {
-  my $l = chr($i);
-  if ($FORM{letter} eq $l) {
-     $letters .= "<b>$l </b>\n";
-   }
-  else {
-     $letters .= $self->button("$l", "index=$index&letter=$l$pages_qs") . " \n";
-   }
- }
 
- return $letters;
+foreach my $line (@alphabet) {
+  $line=~/(\S)-(\S)/;
+  my $first = ord($1);
+  my $last  = ord($2);
+
+  for (my $i=$first; $i<$last; $i++) {
+    my $l = chr($i);
+    if ($FORM{letter} eq $l) {
+      $letters .= "<b>$l </b>\n";
+     }
+    else {
+      $letters .= $self->button("$l", "index=$index&letter=$l$pages_qs") . " \n";
+    }
+   }
+
+  $letters.="<br>\n";
+}
+  if (defined($self->{NO_PRINT})) {
+  	$self->{OUTPUT}.=$letters;
+  	return '';
+   }
+	else { 
+ 	  return $letters;
+	 }
 }
 
 #**********************************************************

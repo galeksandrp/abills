@@ -3210,8 +3210,12 @@ if (defined($attr->{SIMPLE})) {
 	while(my($k, $v)=each( %$SEARCH_FIELDS )) {
 	  $SEARCH_DATA{SEARCH_FORM}.="<tr><td>$k:</td><td><input type=text name=\"$v\" value=\"%". $v ."%\"></td></tr>\n";
 	 }
+
   $html->tpl_show(templates('form_search_simple'), \%SEARCH_DATA);
-}
+ }
+elsif ($attr->{TPL}) {
+	#defined();
+ }
 else {
 
 

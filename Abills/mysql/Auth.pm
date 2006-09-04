@@ -293,7 +293,7 @@ foreach my $line (@periods) {
          }
 
         #print "$line / $traf_limit / $session_traf_limit". "------\n";
-        if ($traf_limit > $session_traf_limit) {
+        if ($traf_limit > $session_traf_limit && $self->{$line . '_TRAF_LIMIT'} > 0) {
       	  $traf_limit = $session_traf_limit;
          }
        

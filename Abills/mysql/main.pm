@@ -288,9 +288,12 @@ sub changes {
      $self->{errstr} = $OLD_DATA->{errstr};
      return $self;
    }
+ 
+
 
   my $CHANGES_QUERY = "";
   my $CHANGES_LOG = "";
+
 
   while(my($k, $v)=each(%DATA)) {
     if (defined($FIELDS->{$k}) && $OLD_DATA->{$k} ne $DATA{$k}){
