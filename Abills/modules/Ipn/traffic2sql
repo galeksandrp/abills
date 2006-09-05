@@ -9,8 +9,12 @@ use strict;
 
 
 if ($#ARGV < 1) {
-	print "\ntraffic2sql [NAS_ID] [Interface]\n";
-	exit;
+  print "\ntraffic2sql [NAS_ID] [Interface] [Options]
+ Options:
+   log   - Log file
+   debug - Set debug mode (1,2)\n";
+
+  exit;
 }
 
 my $NAS_ID =$ARGV[0];

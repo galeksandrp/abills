@@ -63,7 +63,7 @@ sub dv_auth {
      return 1, $RAD_PAIRS;
   }
   
-  my $MAX_SESSION_TRAFFIC = $CONF->{MAX_SESSION_TRAFFIC};
+  my $MAX_SESSION_TRAFFIC = $CONF->{MAX_SESSION_TRAFFIC} || 2048;
 
   $self->query($db, "select  if (dv.logins=0, tp.logins, dv.logins) AS logins,
   if(dv.filter_id != '', dv.filter_id, tp.filter_id),
@@ -276,6 +276,7 @@ foreach my $line (@periods) {
      if (($self->{$line . '_TIME_LIMIT'} > 0) || ($self->{$line . '_TRAF_LIMIT'} > 0)) {
         my $session_time_limit=$traf_limit;
         my $session_traf_limit=$traf_limit;
+      $self->{debug}=1;
         $self->query($db, "SELECT if(". $self->{$line . '_TIME_LIMIT'} ." > 0, ". $self->{$line . '_TIME_LIMIT'} ." - sum(duration), 0),
                                   if(". $self->{$line . '_TRAF_LIMIT'} ." > 0, ". $self->{$line . '_TRAF_LIMIT'} ." - sum(sent + recv) / 1024 / 1024, 0) 
             FROM dv_log
@@ -296,7 +297,7 @@ foreach my $line (@periods) {
         if ($traf_limit > $session_traf_limit && $self->{$line . '_TRAF_LIMIT'} > 0) {
       	  $traf_limit = $session_traf_limit;
          }
-       
+        
         if($traf_limit <= 0) {
           $RAD_PAIRS->{'Reply-Message'}="Rejected! $line Traffic limit utilized '$traf_limit Mb'";
           return 1, $RAD_PAIRS;
