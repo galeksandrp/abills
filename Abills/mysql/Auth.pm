@@ -39,7 +39,6 @@ sub new {
   ($db, $CONF) = @_;
   my $self = { };
   bless($self, $class);
-  #$self->{debug}=1;
 
   if (! defined($CONF->{KBYTE_SIZE})) {
   	 $CONF->{KBYTE_SIZE}=1024;
@@ -276,7 +275,6 @@ foreach my $line (@periods) {
      if (($self->{$line . '_TIME_LIMIT'} > 0) || ($self->{$line . '_TRAF_LIMIT'} > 0)) {
         my $session_time_limit=$traf_limit;
         my $session_traf_limit=$traf_limit;
-      $self->{debug}=1;
         $self->query($db, "SELECT if(". $self->{$line . '_TIME_LIMIT'} ." > 0, ". $self->{$line . '_TIME_LIMIT'} ." - sum(duration), 0),
                                   if(". $self->{$line . '_TRAF_LIMIT'} ." > 0, ". $self->{$line . '_TRAF_LIMIT'} ." - sum(sent + recv) / 1024 / 1024, 0) 
             FROM dv_log
@@ -792,7 +790,9 @@ sub check_company_account () {
    $self->{COMPANY_CREDIT}
     ) = @$a_ref;
 
+  
   $self->{CREDIT}+=$self->{COMPANY_CREDIT};
+
 
   return $self;
 }
@@ -821,7 +821,6 @@ sub ex_traffic_params {
  #get traffic limits
 # if ($traf_tarif > 0) {
    my $nets = 0;
-#$self->{debug}=1;
    $self->query($db, "SELECT id, in_price, out_price, prepaid, in_speed, out_speed, LENGTH(nets) FROM trafic_tarifs
              WHERE interval_id='$self->{TT_INTERVAL}';");
 

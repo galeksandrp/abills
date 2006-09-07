@@ -1693,7 +1693,7 @@ elsif ($FORM{chg}) {
 	$Ipn->{ACTION_LNG}=$_CHANGE;
 }
 elsif ($FORM{del}){
-	$Ipn->comps_del({ %FORM });
+	$Ipn->comps_del( $FORM{del} );
 	$html->message('info', $_INFO, "$_DELETED");
 }
 
@@ -1716,7 +1716,7 @@ foreach $line (@$list) {
 	 $line->[2],
 	 $line->[3],
 	 $html->button($_CHANGE, "index=$index&chg=$line->[0]"),
-	 $html->button($_DEL, "index=". $index ."&$pages_qs&del=$line->[0]", { MESSAGE => "$_DEL '$line->[1]?" })
+	 $html->button($_DEL, "index=$index&$pages_qs&del=$line->[0]", { MESSAGE => "$_DEL '$line->[1]?" })
 	);
 }
 

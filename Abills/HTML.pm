@@ -1184,6 +1184,9 @@ sub pages {
  $self->{pages} = '';
  $begin = ($PG - $PAGE_ROWS * 3 < 0) ? 0 : $PG - $PAGE_ROWS * 3;
 
+ $argument .= "&sort=$FORM{sort}" if ($FORM{sort});
+ $argument .= "&desc=$FORM{desc}" if ($FORM{sort});
+
  return $self->{pages} if ($count < $PAGE_ROWS);
  
 for(my $i=$begin; ($i<=$count && $i < $PG + $PAGE_ROWS * 10); $i+=$PAGE_ROWS) {
