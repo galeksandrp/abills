@@ -349,6 +349,8 @@ return qq{
 <input type=hidden name="COMPANY_ID" value='%COMPANY_ID%'>
 <Table>
 <TR><TD>$_NAME:</TD><TD><input type=text name=COMPANY_NAME value="%COMPANY_NAME%"></TD></TR>
+<TR bgcolor=$_COLORS[1]><TD>$_ADDRESS:</TD><TD><input type='text' name='ADDRESS' value='%ADDRESS%' size='60'></TD></TR>
+<TR bgcolor=$_COLORS[1]><TD>$_PHONE:</TD><TD><input type='text' name='PHONE' value='%PHONE%' size='60'></TD></TR>
 <TR bgcolor=$_COLORS[1]><TD>$_BILL:</TD><TD>%BILL_ID%</TD></TR>
 <TR bgcolor=$_COLORS[1]><TD>$_DEPOSIT:</TD><TD>%DEPOSIT%</TD></TR>
 <TR bgcolor=$_COLORS[1]><TD>$_CREDIT:</TD><TD><input type=text name=CREDIT value='%CREDIT%'></TD></TR>
