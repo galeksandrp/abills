@@ -94,7 +94,8 @@ sub dv_auth {
   tp.credit_tresshold,
   tp.rad_pairs,
   count(i.id),
-  tp.age
+  tp.age,
+  dv.callback
      FROM (dv_main     dv,
           tarif_plans tp)
      LEFT JOIN users_nas un ON (un.uid = dv.uid)
@@ -138,16 +139,19 @@ sub dv_auth {
      $self->{CREDIT_TRESSHOLD},
      $self->{TP_RAD_PAIRS},
      $self->{INTERVALS},
-     $self->{ACCOUNT_AGE}
+     $self->{ACCOUNT_AGE},
+     $self->{CALLBACK}
     ) = @$a_ref;
 
 
 #return 0, \%RAD_PAIRS;
-
-
 #DIsable
 if ($self->{DISABLE}) {
   $RAD_PAIRS->{'Reply-Message'}="Service Disable";
+  return 1, $RAD_PAIRS;
+}
+elsif (defined($RAD_PAIRS->{'Callback-Number'}) && $self->{CALLBACK} != 1){
+  $RAD_PAIRS->{'Reply-Message'}="Callback disabled";
   return 1, $RAD_PAIRS;
 }
 
@@ -581,6 +585,13 @@ sub authentication {
   my $SECRETKEY = (defined($CONF->{secretkey})) ? $CONF->{secretkey} : '';
   my %RAD_PAIRS = ();
   
+  #Get callback number
+  if ($RAD->{USER_NAME} =~ /(\d+):(\S+)/) {
+    $RAD_PAIRS{'Callback-Number'}=$1;
+    $RAD->{USER_NAME}=$2;
+   }
+
+
   $self->query($db, "select
   u.uid,
   DECODE(password, '$SECRETKEY'),

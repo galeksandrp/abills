@@ -198,13 +198,13 @@ elsif ($Dv->{TOTAL} == 1) {
 
 
 
-my $table = $html->table( { width   => '100%',
-                            caption => "Dialup / VPN",
-                            border  => 1,
-                            title   => \@TITLE,
+my $table = $html->table( { width      => '100%',
+                            caption    => "Dialup / VPN",
+                            border     => 1,
+                            title      => \@TITLE,
                             cols_align => ['left', 'left', 'right', 'right', 'left', 'center', 'center:noprint', 'center:noprint'],
-                            qs      => $pages_qs,
-                            pages   => $Dv->{TOTAL}
+                            qs         => $pages_qs,
+                            pages      => $Dv->{TOTAL}
                            });
 
 foreach my $line (@$list) {
@@ -230,9 +230,9 @@ foreach my $line (@$list) {
 }
 print $table->show();
 
-$table = $html->table( { width => '100%',
+$table = $html->table( { width      => '100%',
                          cols_align => ['right', 'right'],
-                         rows => [ [ "$_TOTAL:", "<b>$Dv->{TOTAL}</b>" ] ]
+                         rows       => [ [ "$_TOTAL:", "<b>$Dv->{TOTAL}</b>" ] ]
                         } );
 print $table->show();
 
@@ -295,9 +295,8 @@ sub dv_user {
 	} 
 
   $user->{DISABLE}=($user->{DISABLE} == 1) ? ' checked' : '';
-
-
-  
+  $user->{CALLBACK}=($user->{CALLBACK} == 1) ? ' checked' : '';
+ 
 
   $html->tpl_show(_include('dv_user', 'Dv'), $Dv);
 }
