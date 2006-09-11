@@ -113,7 +113,8 @@ sub info {
    }
 
   $IP = (defined($attr->{IP}))? $attr->{IP} : '0.0.0.0';
-  $self->query($db, "SELECT aid, id, name, regdate, phone, disable, $PASSWORD FROM admins $WHERE;");
+  $self->query($db, "SELECT aid, id, name, regdate, phone, disable, $PASSWORD,
+    web_options FROM admins $WHERE;");
 
   if ($self->{TOTAL} < 1) {
      $self->{errno} = 2;
@@ -133,7 +134,8 @@ sub info {
    $self->{A_FIO},
    $self->{A_REGISTRATION},
    $self->{A_PHONE},
-   $self->{DISABLE} )= @$a_ref;
+   $self->{DISABLE},
+   $self->{WEB_OPTIONS} )= @$a_ref;
 
    $self->{SESSION_IP}  = $IP;
 
@@ -167,9 +169,10 @@ sub change {
            A_LOGIN     => 'id',
            A_FIO       => 'name',
            A_REGISTRATION => 'regdate',
-           A_PHONE    => 'phone',
-           DISABLE    => 'disable',
-           PASSWORD   => 'password'
+           A_PHONE     => 'phone',
+           DISABLE     => 'disable',
+           PASSWORD    => 'password',
+           WEB_OPTIONS => 'web_options'
    );
 
  $self->changes($admin, { CHANGE_PARAM => 'AID',
