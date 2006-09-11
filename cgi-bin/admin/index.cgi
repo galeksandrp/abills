@@ -466,7 +466,7 @@ elsif($FORM{COMPANY_ID}) {
   }
 
  }
-elsif(defined($FORM{del}) && defined($FORM{is_js_confirmed})) {
+elsif(defined($FORM{del}) && defined($FORM{is_js_confirmed})  && $permissions{0}{5} ) {
    $company->del( $FORM{del} );
    $html->message('info', $_INFO, "$_DELETED # $FORM{del}");
  }
@@ -488,7 +488,8 @@ else {
       $html->button($line->[3], "index=13&COMPANY_ID=$line->[5]"), 
       "$status[$line->[4]]",
       $html->button($_INFO, "index=13&COMPANY_ID=$line->[5]"), 
-      $html->button($_DEL, "index=13&del=$line->[5]", { MESSAGE => "$_DEL $line->[0]?" }));
+      (defined($permissions{0}{5})) ? $html->button($_DEL, "index=13&del=$line->[5]", { MESSAGE => "$_DEL $line->[0]?" }) : ''
+      );
    }
   print $table->show();
 
@@ -648,7 +649,7 @@ elsif(defined($FORM{GID})){
  
   return 0;
 }
-elsif(defined($FORM{del}) && defined($FORM{is_js_confirmed})){
+elsif(defined($FORM{del}) && defined($FORM{is_js_confirmed}) && $permissions{0}{5}){
   $users->group_del( $FORM{del} );
   if (! $users->{errno}) {
     $html->message('info', $_DELETED, "$_DELETED $users->{GID}");
@@ -671,7 +672,8 @@ my $table = $html->table( { width      => '100%',
                                   } );
 
 foreach my $line (@$list) {
-  my $delete = $html->button($_DEL, "index=27$pages_qs&del=$line->[0]", { MESSAGE => "$_DEL [$line->[0]]?" }); 
+  my $delete = (defined($permissions{0}{5})) ?  $html->button($_DEL, "index=27$pages_qs&del=$line->[0]", { MESSAGE => "$_DEL [$line->[0]]?" }) : ''; 
+
   $table->addrow("<b>$line->[0]</b>", "$line->[1]", "$line->[2]", 
    $html->button($line->[3], "index=27&GID=$line->[0]&subf=15"), 
    $html->button($_INFO, "index=27&GID=$line->[0]"),
@@ -794,7 +796,7 @@ if(defined($attr->{USER})) {
       $html->message('info', $_CHANGED, "$_CHANGED $users->{info}");
      }
    }
-  elsif ($FORM{del_user} && $FORM{is_js_confirmed} && $index == 15) {
+  elsif ($FORM{del_user} && $FORM{is_js_confirmed} && $index == 15 && $permissions{0}{5} ) {
     $user_info->del();
     if ($users->{errno}) {
       $html->message('err', $_ERROR, "[$users->{errno}] $err_strs{$users->{errno}}");	
@@ -859,9 +861,10 @@ while(my($k, $v)=each (%userform_menus) ) {
   my $a = (defined($FORM{$k})) ? "<b>$v</b>" : $v;
   print "<li/>" . $html->button($a,  "$url");
 }
-print "<li/>".
-  $html->button($_DEL, "index=15&del_user=y&UID=$user_info->{UID}", { MESSAGE => "$_USER: $user_info->{LOGIN} / $user_info->{UID}" })
-."</ul></td></tr>
+
+print "<li/>". $html->button($_DEL, "index=15&del_user=y&UID=$user_info->{UID}", { MESSAGE => "$_USER: $user_info->{LOGIN} / $user_info->{UID}" }) if (defined($permissions{0}{5}));
+
+print "</ul></td></tr>
 </table>
 </td></tr></table>\n";
   return 0;
@@ -1794,11 +1797,11 @@ sub admin_permissions {
  my %permits = %$p;
  
 
-my $table = $html->table( { width => '400',
-                                   border => 1,
-                                   title_plain => ['ID', $_NAME, ''],
-                                   cols_align => ['right', 'left', 'center'],
-                                  } );
+my $table = $html->table( { width       => '400',
+                            border      => 1,
+                            title_plain => ['ID', $_NAME, ''],
+                            cols_align  => ['right', 'left', 'center'],
+                        } );
 
 
 while(my($k, $v) = each %menu_items ) {
@@ -1859,9 +1862,7 @@ sub admin_profile {
                      '#10 background'
                     );
 
-print "$FORM{colors}";
-
-print $html->{language};
+print "$FORM{colors} ". $html->{language};
 
 
 my $REFRESH=$COOKIES{REFRESH} || 60;
