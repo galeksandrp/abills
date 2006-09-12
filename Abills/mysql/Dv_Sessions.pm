@@ -777,6 +777,29 @@ sub reports {
  $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
  undef @WHERE_RULES;
  my $date = '';
+
+
+ my @FIELDS_ARR = ('DATE', 
+                   'USERS', 
+                   'SESSIONS', 
+                   'TRAFFIC_RECV', 
+                   'TRAFFIC_SENT',
+                   'TRAFFIC_SUM', 
+                   'TRAFFIC_2_SUM', 
+                   'DURATION', 
+                   'SUM'
+                   );
+
+ $self->{REPORT_FIELDS} = {DATE            => '',  	
+                           USERS           => 'u.id',
+                           SESSIONS        => 'count(l.uid)',
+                           TRAFFIC_SUM     => 'sum(l.sent + l.recv)',
+                           TRAFFIC_2_SUM   => 'sum(l.sent2 + l.recv2)',
+                           DURATION        => 'sec_to_time(sum(l.duration))',
+                           SUM             => 'sum(l.sum)',
+                           TRAFFIC_RECV    => 'l.recv',
+                           TRAFFIC_SENT    => 'l.sent'
+                          };
  
 
  if ($attr->{GID}) {
@@ -816,6 +839,34 @@ sub reports {
 
  my $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
 
+
+$self->{REPORT_FIELDS}{DATE}=$date;
+my $fields = "$date, count(DISTINCT l.uid), 
+      count(l.uid),
+      sum(l.sent + l.recv), 
+      sum(l.sent2 + l.recv2),
+      sec_to_time(sum(l.duration)), 
+      sum(l.sum)";
+
+if ($attr->{FIELDS}) {
+	my @fields_array = split(/, /, $attr->{FIELDS});
+	my @show_fields = ();
+  my %get_fields_hash = ();
+
+  foreach my $line (@fields_array) {
+  	$get_fields_hash{$line}=1;
+   }
+  
+  foreach my $k (@FIELDS_ARR) {
+    push @show_fields, $self->{REPORT_FIELDS}{$k} if ($get_fields_hash{$k});
+  }
+
+  $fields = join(', ', @show_fields)
+}
+ 
+ 
+ $self->{debug}=1;
+ 
  if(defined($attr->{DATE})) {
    if (defined($attr->{HOURS})) {
    	$self->query($db, "select date_format(l.start, '%Y-%m-%d %H'), count(DISTINCT l.uid), count(l.uid), 
@@ -838,12 +889,7 @@ sub reports {
     }
   }
  else {
-  $self->query($db, "select $date, count(DISTINCT l.uid), 
-      count(l.uid),
-      sum(l.sent + l.recv), 
-      sum(l.sent2 + l.recv2),
-      sec_to_time(sum(l.duration)), 
-      sum(l.sum),
+  $self->query($db, "select $fields,
       l.uid
        FROM dv_log l
        LEFT JOIN users u ON (u.uid=l.uid)

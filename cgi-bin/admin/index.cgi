@@ -2295,6 +2295,7 @@ $html->tpl_show(templates('form_password'), $password_form);
 
 #**********************************************************
 #
+# FIELDS => FIELDS_HASH
 #**********************************************************
 sub reports {
  my ($attr) = @_;
@@ -2331,6 +2332,28 @@ else {
   #$html->tpl_show(templates('groups_sel'), $user);
 }
 
+my @rows = ();
+
+my $FIELDS='';
+
+if ($attr->{FIELDS}) {
+  my %fields_hash = (); 
+  if ($FORM{FIELDS}) {
+  	my @fileds_arr = split(/, /, $FORM{FIELDS});
+   	foreach my $line (@fileds_arr) {
+   		$fields_hash{$line}=1;
+   	 }
+   }
+
+  $LIST_PARAMS{FIELDS}=$FORM{FIELDS};
+
+  foreach my $line (sort keys %{ $attr->{FIELDS} }) {
+  	my ($id, $k)=split(/:/, $line);
+  	$FIELDS .= $html->form_input("FIELDS", $k, { TYPE => 'checkbox', STATE => (defined($fields_hash{$k})) ? 'checked' : undef }). " $attr->{FIELDS}{$line}";
+   }
+ }  
+
+
 if ($attr->{PERIOD_FORM}) {
 	$table = $html->table( { width    => '100%',
 	                         rowcolor => $_COLORS[1],
@@ -2348,8 +2371,8 @@ if ($attr->{PERIOD_FORM}) {
                                          ],                                   
                       });
  
-  print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
-	                       HIDDEN  => { 
+  print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }).$FIELDS,
+	                         HIDDEN  => { 
 	                                    index => "$index"
 	                                    }});
 
@@ -2365,6 +2388,9 @@ if ($attr->{PERIOD_FORM}) {
    }
 	
 }
+
+
+
 
 
 
@@ -2404,9 +2430,9 @@ if (defined($FORM{DATE})) {
    }
   
   
-  my @rows = ([ "$_YEAR:",  $y ],
-              [ "$_MONTH:", $MONTHES[$m-1] ], 
-              [ "$_DAY:",   $days ]);
+  @rows = ([ "$_YEAR:",  $y ],
+           [ "$_MONTH:", $MONTHES[$m-1] ], 
+           [ "$_DAY:",   $days ]);
   
   if ($attr->{SHOW_HOURS}) {
     my(undef, $h)=split(/ /, $FORM{HOUR}, 2);
@@ -2423,6 +2449,11 @@ if (defined($FORM{DATE})) {
   if ($attr->{EX_PARAMS}) {
     push @rows, [' ', $EX_PARAMS];
    }  
+
+
+  
+  
+  
 
   $table = $html->table({ width       => '100%',
                            rowcolor   => $_COLORS[1],

@@ -913,13 +913,24 @@ sub dv_use_allmonthes {
 # dv_use();
 #**********************************************************
 sub dv_use {
+
+my %CAPTIONS_HASH = ('1:DATE'            => $_DATE,  	
+                     '2:USERS'           => $_USERS,
+                     '3:SESSIONS'        => $_SESSIONS,
+                     '4:TRAFFIC_SUM'     => $_TRAFFIC,
+                     '5:TRAFFIC_2_SUM'   => $_TRAFFIC." 2",
+                     '6:DURATION'        => $_DURATION,
+                     '7:SUM'             => $_SUM,
+                     '8:TRAFFIC_RECV'    => "$_TRAFFIC $_RECV",
+                     '9:TRAFFIC_SENT'    => "$_TRAFFIC $_SENT");
+
   reports({ DATE          => $FORM{DATE}, 
   	        REPORT        => '',
   	        EX_PARAMS     => { HOURS => "$_HOURS",
   	        	                 USERS => "$_USERS" }, 
-  	        PERIOD_FORM		=> 1
+  	        PERIOD_FORM		=> 1,
+  	        FIELDS        => { %CAPTIONS_HASH }
   	       });
-
 
 
 my ($tables_sessions);
@@ -1004,7 +1015,31 @@ if (defined($FORM{DATE})) {
  }
 else {
   #Used Traffic
-  my @caption = ("$_DATE", "$_USERS", "$_SESSIONS", "$_TRAFFIC ", "$_TRAFFIC 2", $_DURATION, $_SUM);
+  my @caption = ();  
+  
+  
+  my %fields_hash = (); 
+  if ($FORM{FIELDS}) {
+  	my @fields_arr = split(/, /, $FORM{FIELDS});
+   	foreach my $line (@fields_arr) {
+   		$fields_hash{$line}=1;
+   	 }
+
+    foreach my $line (sort keys %CAPTIONS_HASH) {
+      my($k, $val)=split(/:/, $line);
+
+      if ($fields_hash{$val}) {
+  	    push @caption, $CAPTIONS_HASH{$line};
+  	   }
+     }
+   }
+  else {
+  	@caption = ("$_DATE", "$_USERS", "$_SESSIONS", "$_TRAFFIC ", "$_TRAFFIC 2", $_DURATION, $_SUM); 
+   }
+
+  
+  
+
   if ($FORM{TYPE} eq 'USER') {
   	$caption[0]="$_USER";
   	$caption[1]="$_LOGINS";
@@ -1026,16 +1061,22 @@ else {
   
   
   foreach my $line (@$list) {
-    $table_sessions->addrow($html->button("$line->[0]", 
+    my @rows = ();
+    
+    if ($FORM{FIELDS}) {
+      for(my $i=0; $i<=$#caption; $i++) {
+        push @rows, $line->[$i];
+      }
+     }
+    else {
+    	 @rows = ($html->button("$line->[0]", 
        ($FORM{TYPE} eq 'USER') ? "index=11&UID=$line->[7]" : "index=$index&$type=$line->[0]$pages_qs"), 
        $line->[1], 
        $line->[2], 
        int2byte($line->[3]),  
        int2byte($line->[4]),  
        $line->[5], 
-       "<b>$line->[6]</b>" 
-      );
-
+       "<b>$line->[6]</b>" );
 
       $AVG{USERS}    = $line->[1] if ($AVG{USERS} < $line->[1]);
       $AVG{TRAFFIC}  = $line->[3] if ($AVG{TRAFFIC} < $line->[3]);
@@ -1057,6 +1098,11 @@ else {
       $DATA_HASH2{TRAFFIC}[$num]  = $line->[3];
       $DATA_HASH2{DURATION}[$num] = time2sec($line->[5]);
       $DATA_HASH{MONEY}[$num]     = $line->[6];
+     }
+
+    $table_sessions->addrow(@rows);
+
+
    }
 
 
