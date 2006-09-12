@@ -113,8 +113,8 @@ sub info {
    }
 
   $IP = (defined($attr->{IP}))? $attr->{IP} : '0.0.0.0';
-  $self->query($db, "SELECT aid, id, name, regdate, phone, disable, $PASSWORD,
-    web_options FROM admins $WHERE;");
+  $self->query($db, "SELECT aid, id, name, regdate, phone, disable, web_options, $PASSWORD
+     FROM admins $WHERE;");
 
   if ($self->{TOTAL} < 1) {
      $self->{errno} = 2;
@@ -175,12 +175,15 @@ sub change {
            WEB_OPTIONS => 'web_options'
    );
 
+
+ 
+
  $self->changes($admin, { CHANGE_PARAM => 'AID',
-		               TABLE        => 'admins',
-		               FIELDS       => \%FIELDS,
-		               OLD_INFO     => $self->info($self->{AID}),
-		               DATA         => $attr
-		              } );
+		                      TABLE        => 'admins',
+		                      FIELDS       => \%FIELDS,
+		                      OLD_INFO     => $self->info($self->{AID}),
+		                      DATA         => $attr
+		                     } );
 
 
 

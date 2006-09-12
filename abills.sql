@@ -47,6 +47,7 @@ CREATE TABLE `admins` (
   `aid` smallint(6) unsigned NOT NULL auto_increment,
   `disable` tinyint(1) unsigned NOT NULL default '0',
   `phone` varchar(16) NOT NULL default '',
+  `web_options` text NOT NULL,
   PRIMARY KEY  (`aid`),
   UNIQUE KEY `aid` (`aid`),
   UNIQUE KEY `id` (`id`)
@@ -181,6 +182,7 @@ CREATE TABLE `dv_main` (
   `cid` varchar(35) NOT NULL default '',
   `password` varchar(16) binary NOT NULL default '',
   `disable` tinyint(1) unsigned NOT NULL default '0',
+  `callback` tinyint(1) unsigned NOT NULL default '0',
   PRIMARY KEY  (`uid`),
   KEY `tp_id` (`tp_id`)
 ) ;

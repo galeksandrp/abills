@@ -33,6 +33,7 @@ sub new {
   ($db, $admin, $conf) = @_;
   my $self = { };
   bless($self, $class);
+  #$self->{debug}=1;
   return $self;
 }
 

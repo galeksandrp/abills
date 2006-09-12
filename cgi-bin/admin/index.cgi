@@ -52,13 +52,11 @@ use Abills::HTML;
 use Nas;
 use Admins;
 
-$html = Abills::HTML->new({ CONF => \%conf, NO_PRINT => 0 });
+
 my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
 
 $db = $sql->{db};
 $admin = Admins->new($db, \%conf);
-require "../../language/$html->{language}.pl";
-%permissions = ();
 use Abills::Base;
 
 @state_colors = ("#00FF00", "#FF0000", "#AAAAFF");
@@ -81,7 +79,7 @@ use Abills::Base;
 #	print "$k, $v\n";
 #}
 #exit;
-
+%permissions = ();
 if (defined($ENV{HTTP_CGI_AUTHORIZATION})) {
   $ENV{HTTP_CGI_AUTHORIZATION} =~ s/basic\s+//i;
   my ($REMOTE_USER,$REMOTE_PASSWD) = split(/:/, decode_base64($ENV{HTTP_CGI_AUTHORIZATION}));  
@@ -100,6 +98,11 @@ if (defined($ENV{HTTP_CGI_AUTHORIZATION})) {
 else {
   check_permissions('$REMOTE_USER');
 }
+
+$html = Abills::HTML->new({ CONF => \%conf, NO_PRINT => 0, %{ $admin->{WEB_OPTIONS} } });
+require "../../language/$html->{language}.pl";
+
+
 
 if ($admin->{errno}) {
   print "Content-type: text/html\n\n";
@@ -122,34 +125,50 @@ if ($admin->{errno}) {
   exit;
 }
 
-#Cookie section ============================================
-if (defined($FORM{language})) {
-  $html->setCookie('language', "$FORM{language}", "Fri, 1-Jan-2038 00:00:01", '', $domain, $secure);
-}
-
-if (defined($FORM{colors})) {
-  my $cook_colors = (defined($FORM{default})) ?  '' : $FORM{colors};
-  $html->setCookie('colors', "$cook_colors", "Fri, 1-Jan-2038 00:00:01", '', $domain, $secure);
-  print "Location: $SELF_URL?index=$FORM{index}", "\n\n";
-  exit;
- }
 
 #Operation system ID
 $html->setCookie('OP_SID', "$FORM{OP_SID}", "Fri, 1-Jan-2038 00:00:01", '', $domain, $secure);
-if (defined($FORM{quick_set})) {
-#	print "Content-Type: text/html\n\n";
-  my $qm = '';
-  my(@qm_arr) = split(/, /, $FORM{qm_item});
-  foreach my $line (@qm_arr) {
-     $qm .= (defined($FORM{'qm_name_'.$line})) ? "$line:".$FORM{'qm_name_'.$line}."," : "$line:,";
+
+#Admin Web_options
+if ($FORM{AWEB_OPTIONS}) {
+  my %WEB_OPTIONS = ( language  => 1,
+                      REFRESH   => 1,
+                      colors    => 1,
+                      PAGE_ROWS => 1
+                    );
+
+	my $web_options = '';
+	
+	if (! $FORM{default}) {
+	  while(my($k, $v)=each %WEB_OPTIONS){
+		  if ($FORM{$k}) {
+  			$web_options .= "$k=$FORM{$k};";
+	  	 }
+      else {
+    	  $web_options .= "$k=$admin->{WEB_OPTIONS}{$k};" if ($admin->{WEB_OPTIONS}{$k});
+       } 
+	   }
    }
-  chop($qm);
 
+  if (defined($FORM{quick_set})) {
+    my(@qm_arr) = split(/, /, $FORM{qm_item});
+    $web_options.="qm=";
+    foreach my $line (@qm_arr) {
+      $web_options .= (defined($FORM{'qm_name_'.$line})) ? "$line:".$FORM{'qm_name_'.$line}."," : "$line:,";
+     }
+    chop($web_options);
+   }
+  else {
+    $web_options.="qm=$admin->{WEB_OPTIONS}{qm};";
+   }
+  
+  $admin->change({ AID => $admin->{AID}, WEB_OPTIONS => $web_options });
 
-  $html->setCookie('qm', "$qm", "Fri, 1-Jan-2038 00:00:01", '', $domain, $secure);
   print "Location: $SELF_URL?index=$FORM{index}", "\n\n";
   exit;
 }
+
+
 #===========================================================
 
 
@@ -269,9 +288,9 @@ if(defined($conf{tech_works})) {
   print "<tr><th bgcolor='#FF0000' colspan='2'>$conf{tech_works}</th></tr>";
 }
 
-if (defined($COOKIES{qm}) && $COOKIES{qm} ne '') {
+if ($admin->{WEB_OPTIONS}{qm}) {
   print "<tr><td colspan='2' class='noprint'>\n<table  width='100%' border='0'>";
-	my @a = split(/,/, $COOKIES{qm});
+	my @a = split(/,/, $admin->{WEB_OPTIONS}{qm});
   my $i = 0;
 	foreach my $line (@a) {
     if (  $i % 6 == 0) {
@@ -391,6 +410,8 @@ sub check_permissions {
 
   $admin->info(0, { %PARAMS } );
 
+  
+
   if ($admin->{errno}) {
     return 1;
    }
@@ -399,7 +420,15 @@ sub check_permissions {
   	$admin->{errstr} = 'DISABLED';
   	return 2;
    }
-
+  
+  if ($admin->{WEB_OPTIONS}) {
+    my @WO_ARR = split(/;/, $admin->{WEB_OPTIONS}	);
+    foreach my $line (@WO_ARR) {
+    	my ($k, $v)=split(/=/, $line);
+    	$admin->{WEB_OPTIONS}{$k}=$v;
+     }
+   }
+  
   my $p_ref = $admin->get_permissions();
   %permissions = %$p_ref;
   
@@ -1323,13 +1352,13 @@ if(defined($attr->{TP})) {
    }
 
   my $list = $tarif_plan->ti_list({ %LIST_PARAMS });
-  my $table = $html->table( { width   => '100%',
-                                   caption   => "$_INTERVALS",
-                                   border    => 1,
-                                   title     => ['#', $_DAYS, $_BEGIN, $_END, $_HOUR_TARIF, $_TRAFFIC, '-', '-',  '-'],
-                                   cols_align => ['left', 'left', 'right', 'right', 'right', 'center', 'center', 'center', 'center', 'center'],
-                                   qs        => $pages_qs,
-                                   } );
+  my $table = $html->table( { width      => '100%',
+                              caption    => "$_INTERVALS",
+                              border     => 1,
+                              title      => ['#', $_DAYS, $_BEGIN, $_END, $_HOUR_TARIF, $_TRAFFIC, '-', '-',  '-'],
+                              cols_align => ['left', 'left', 'right', 'right', 'right', 'center', 'center', 'center', 'center', 'center'],
+                              qs         => $pages_qs,
+                           } );
 
   my $color="AAA000";
   foreach my $line (@$list) {
@@ -1847,7 +1876,7 @@ print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
 # profile()
 #*******************************************************************
 sub admin_profile {
- my ($admin) = @_;
+ #my ($admin) = @_;
 
  my @colors_descr = ('# 0 TH', 
                      '# 1 TD.1',
@@ -1865,8 +1894,8 @@ sub admin_profile {
 print "$FORM{colors} ". $html->{language};
 
 
-my $REFRESH=$COOKIES{REFRESH} || 60;
-my $ROWS=$COOKIES{PAGE_ROWS} || $PAGE_ROWS;
+my $REFRESH=$admin->{WEB_OPTIONS}{REFRESH} || 60;
+my $ROWS=$admin->{WEB_OPTIONS}{PAGE_ROWS} || $PAGE_ROWS;
 
 
 my $SEL_LANGUAGE = $html->form_select('language', 
@@ -1878,6 +1907,7 @@ my $SEL_LANGUAGE = $html->form_select('language',
 print << "[END]";
 <form action="$SELF_URL" METHOD="POST">
 <input type="hidden" name="index" value="$index">
+<input type="hidden" name="AWEB_OPTIONS" value="1">
 <TABLE width="640" cellspacing="0" cellpadding="0" border="0"><tr><TD bgcolor="$_COLORS[4]">
 <TABLE width="100%" cellspacing="1" cellpadding="0" border="0"><tr bgcolor="$_COLORS[1]"><td colspan="2">$_LANGUAGE:</td>
 <td>$SEL_LANGUAGE</td></tr>
@@ -1897,13 +1927,13 @@ print "
 <br>
 <table width=\"100%\">
 <tr><td colspan=\"2\">&nbsp;</td></tr>
-<tr><td>$_REFRESH (sec.):</td><td><input type=input name=REFRESH value='$REFRESH'></td></tr>
-<tr><td>$_ROWS:</td><td><input type=input name=PAGE_ROWS value='$PAGE_ROWS'></td></tr>
+<tr><td>$_REFRESH (sec.):</td><td><input type='input' name='REFRESH' value='$REFRESH'></td></tr>
+<tr><td>$_ROWS:</td><td><input type='input' name='PAGE_ROWS' value='$PAGE_ROWS'></td></tr>
 </table>
 </td></tr></table>
 <br>
-<input type=submit name=set value='$_SET'> 
-<input type=submit name=default value='$_DEFAULT'>
+<input type='submit' name='set' value='$_SET'> 
+<input type='submit' name='default' value='$_DEFAULT'>
 </form><br>\n";
    
 my %profiles = ();
@@ -1914,7 +1944,7 @@ $profiles{'мс'} = "#FCBB43, #FFFFFF, #eeeeee, #dddddd, #E1E1E1, #FFFFFF, #FF0000
 $profiles{'Cisco'} = "#99CCCC, #FFFFFF, #FFFFFF, #669999, #669999, #FFFFFF, #FF0000, #003399, #003399, #000000, #FFFFFF";
 
 while(my($thema, $colors)=each %profiles ) {
-  my $url = "index=53&set=set";
+  my $url = "index=53&AWEB_OPTIONS=1&set=set";
   my @c = split(/, /, $colors);
   foreach my $line (@c) {
       $line =~ s/#/%23/ig;
@@ -2688,8 +2718,8 @@ my @menu_sorted = sort {
 } keys %$h;
 
 my %qm = ();
-if (defined($COOKIES{qm})) {
-	my @a = split(/,/, $COOKIES{qm});
+if (defined($admin->{WEB_OPTIONS}{qm})) {
+	my @a = split(/,/, $admin->{WEB_OPTIONS}{qm});
 	foreach my $line (@a) {
      my($id, $custom_name)=split(/:/, $line, 2);
      $qm{$id} = ($custom_name ne '') ? $custom_name : '';
@@ -2762,7 +2792,8 @@ for(my $parent=1; $parent<$#menu_sorted; $parent++) {
 
 
 print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
-	                       HIDDEN  => { index => "$index"
+	                       HIDDEN  => { index        => "$index",
+	                       	            AWEB_OPTIONS => 1
                                      },
 	                       SUBMIT  => { quick_set => "$_SET"
 	                       	           } });

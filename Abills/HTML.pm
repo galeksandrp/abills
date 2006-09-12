@@ -75,6 +75,8 @@ sub new {
   $IMG_PATH = (defined($attr->{IMG_PATH})) ? $attr->{IMG_PATH} : '../img/';
   $CONF = $attr->{CONF} if (defined($attr->{CONF}));
 
+  #$CONF = $attr->{CONF} if (defined($attr->{CONF}));
+
   my $self = { };
   bless($self, $class);
 
@@ -84,13 +86,26 @@ sub new {
  
   $self->{OUTPUT}='';
 
+  $self->{colors} = $attr->{colors} if (defined($attr->{colors}));
+ 
   %FORM = form_parse();
   %COOKIES = getCookies();
+
   $SORT = $FORM{sort} || 1;
   $DESC = ($FORM{desc}) ? 'DESC' : '';
   $PG = $FORM{pg} || 0;
   $OP = $FORM{op} || '';
-  $PAGE_ROWS = $FORM{PAGE_ROWS} || 25;
+
+  if ($FORM{PAGE_ROWS}) {
+  	$PAGE_ROWS = $FORM{PAGE_ROWS};
+   }
+  elsif ($attr->{PAGE_ROWS}) {
+  	$PAGE_ROWS = int($attr->{PAGE_ROWS});
+   }
+  else {
+ 	 	$PAGE_ROWS = 25;
+   }
+
   $domain = $ENV{SERVER_NAME};
   $web_path = '';
   $secure = '';
@@ -123,8 +138,11 @@ sub new {
   $index = $FORM{index} || 0;
   
   
-  if (defined($COOKIES{language}) && $COOKIES{language} ne '') {
-    $self->{language}=$COOKIES{language};
+  if ($attr->{language}) {
+    $self->{language}=$attr->{language};
+   }
+  elsif ($COOKIES{language}) {
+  	$self->{language}=$COOKIES{language};
    }
   else {
     $self->{language} = $CONF->{default_language} || 'english';
@@ -661,8 +679,12 @@ sub header {
  my $admin_name=$ENV{REMOTE_USER};
  my $admin_ip=$ENV{REMOTE_ADDR};
  $self->{header} = "Content-Type: text/html\n\n";
-# my @_C;
- if (defined($COOKIES{colors}) && $COOKIES{colors} ne '') {
+
+
+ if ($self->{colors}) {
+   @_COLORS = split(/, /, $self->{colors});
+  }
+ elsif (defined($COOKIES{colors}) && $COOKIES{colors} ne '') {
    @_COLORS = split(/, /, $COOKIES{colors});
   }
 
@@ -1086,6 +1108,7 @@ sub link_former {
   $params =~ s/>/&gt;/g;
   $params =~ s/</&lt;/g;
   $params =~ s/\"/&quot;/g;
+  $params =~ s/\*/&#42;/g;
  
   return $params;
 }
@@ -1097,6 +1120,7 @@ sub link_former {
 sub button {
   my $self = shift;
   my ($name, $params, $attr)=@_;
+
   my $ex_params = (defined($attr->{ex_params})) ? $attr->{ex_params} : '';
   my $ex_attr = '';
   
@@ -1109,7 +1133,7 @@ sub button {
   $ex_attr=" TITLE='$attr->{TITLE}'" if (defined($attr->{TITLE}));
   
   my $message = (defined($attr->{MESSAGE})) ? "onclick=\"return confirmLink(this, '$attr->{MESSAGE}')\"" : '';
-  my $button = "<a href=\"$params\" $ex_attr $message>$name</a>";
+  my $button = "<a href=\"$params\"$ex_attr$message>$name</a>";
 
   return $button;
 }
