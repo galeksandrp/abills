@@ -280,7 +280,7 @@ foreach my $line (@periods) {
         my $session_time_limit=$traf_limit;
         my $session_traf_limit=$traf_limit;
         $self->query($db, "SELECT if(". $self->{$line . '_TIME_LIMIT'} ." > 0, ". $self->{$line . '_TIME_LIMIT'} ." - sum(duration), 0),
-                                  if(". $self->{$line . '_TRAF_LIMIT'} ." > 0, ". $self->{$line . '_TRAF_LIMIT'} ." - sum(sent + recv) / 1024 / 1024, 0) 
+                                  if(". $self->{$line . '_TRAF_LIMIT'} ." > 0, ". $self->{$line . '_TRAF_LIMIT'} ." - sum(sent + recv) / $CONF->{KBYTE_SIZE} / $CONF->{KBYTE_SIZE}, 0) 
             FROM dv_log
             WHERE uid='$self->{UID}' and $SQL_params{$line}
             GROUP BY uid;");
@@ -363,12 +363,12 @@ if ($NAS->{NAS_TYPE} eq 'exppp') {
 
   #global Traffic
   if ($EX_PARAMS->{traf_limit} > 0) {
-    $RAD_PAIRS->{'Exppp-Traffic-Limit'} = int($EX_PARAMS->{traf_limit} * 1024 * 1024);
+    $RAD_PAIRS->{'Exppp-Traffic-Limit'} = int($EX_PARAMS->{traf_limit} * $CONF->{KBYTE_SIZE} * $CONF->{KBYTE_SIZE});
    }
 
   #Local traffic
   if ($EX_PARAMS->{traf_limit_lo} > 0) {
-    $RAD_PAIRS->{'Exppp-LocalTraffic-Limit'} = int($EX_PARAMS->{traf_limit_lo} * 1024 * 1024);
+    $RAD_PAIRS->{'Exppp-LocalTraffic-Limit'} = int($EX_PARAMS->{traf_limit_lo} * $CONF->{KBYTE_SIZE} * $CONF->{KBYTE_SIZE});
    }
        
   #Local ip tables
@@ -406,8 +406,8 @@ if ($NAS->{NAS_TYPE} eq 'mikrotik') {
   #global Traffic
   if ($EX_PARAMS->{traf_limit} > 0) {
                    
-    $RAD_PAIRS->{'Mikrotik-Recv-Limit'} = $EX_PARAMS->{traf_limit} * 1024 * 1024 / 2;
-    $RAD_PAIRS->{'Mikrotik-Xmit-Limit'} = $EX_PARAMS->{traf_limit} * 1024 * 1024 / 2;
+    $RAD_PAIRS->{'Mikrotik-Recv-Limit'} = $EX_PARAMS->{traf_limit} * $CONF->{KBYTE_SIZE} * $CONF->{KBYTE_SIZE} / 2;
+    $RAD_PAIRS->{'Mikrotik-Xmit-Limit'} = $EX_PARAMS->{traf_limit} * $CONF->{KBYTE_SIZE} * $CONF->{KBYTE_SIZE} / 2;
    }
 
 #Shaper
@@ -416,8 +416,8 @@ if ($NAS->{NAS_TYPE} eq 'mikrotik') {
    }
   else {
     if (defined($EX_PARAMS->{speed}->{0})) {
-      $RAD_PAIRS->{'Ascend-Xmit-Rate'} = int($EX_PARAMS->{speed}->{0}->{IN}) * 1024;
-      $RAD_PAIRS->{'Ascend-Data-Rate'} = int($EX_PARAMS->{speed}->{0}->{OUT})* 1024;
+      $RAD_PAIRS->{'Ascend-Xmit-Rate'} = int($EX_PARAMS->{speed}->{0}->{IN}) * $CONF->{KBYTE_SIZE};
+      $RAD_PAIRS->{'Ascend-Data-Rate'} = int($EX_PARAMS->{speed}->{0}->{OUT})* $CONF->{KBYTE_SIZE};
      }
    }
  }
@@ -431,7 +431,7 @@ elsif ($NAS->{NAS_TYPE} eq 'mpd') {
 
   #global Traffic
   if ($EX_PARAMS->{traf_limit} > 0) {
-    $RAD_PAIRS->{'Exppp-Traffic-Limit'} = $EX_PARAMS->{traf_limit} * 1024 * 1024;
+    $RAD_PAIRS->{'Exppp-Traffic-Limit'} = $EX_PARAMS->{traf_limit} * $CONF->{KBYTE_SIZE} * $CONF->{KBYTE_SIZE};
    }
   
   # MPD have some problem with long time out value max timeout set to 7 days
@@ -466,7 +466,7 @@ elsif ($NAS->{NAS_TYPE} eq 'pppd' or ($NAS->{NAS_TYPE} eq 'lepppd')) {
 
   #global Traffic
   if ($EX_PARAMS->{traf_limit} > 0) {
-    $RAD_PAIRS->{'Session-Octets-Limit'} = $EX_PARAMS->{traf_limit} * 1024 * 1024;
+    $RAD_PAIRS->{'Session-Octets-Limit'} = $EX_PARAMS->{traf_limit} * $CONF->{KBYTE_SIZE} * $CONF->{KBYTE_SIZE};
     $RAD_PAIRS->{'Octets-Direction'} = $self->{OCTETS_DIRECTION};
    }
 
@@ -856,7 +856,7 @@ sub ex_traffic_params {
    #$EX_PARAMS{speed}=int($speeds{0}) if (defined($speeds{0}));
 
 if ((defined($prepaids{0}) && $prepaids{0} > 0 ) || (defined($prepaids{1}) && $prepaids{1}>0 )) {
-  $self->query($db, "SELECT sum(sent+recv) / 1024 / 1024, sum(sent2+recv2) / 1024 / 1024 FROM dv_log 
+  $self->query($db, "SELECT sum(sent+recv) / $CONF->{KBYTE_SIZE} / $CONF->{KBYTE_SIZE}, sum(sent2+recv2) / $CONF->{KBYTE_SIZE} / $CONF->{KBYTE_SIZE} FROM dv_log 
      WHERE uid='$self->{UID}' and DATE_FORMAT(start, '%Y-%m')=DATE_FORMAT(curdate(), '%Y-%m')
      GROUP BY DATE_FORMAT(start, '%Y-%m');");
 
@@ -900,7 +900,6 @@ else {
 
 
 my $trafic_limit = 0;
-#$trafic_limit = $trafic_limit * 1024 * 1024;
 #2Gb - (2048 * 1024 * 1024 ) - global traffic session limit
 if (defined($trafic_limits{0}) && $trafic_limits{0} > 0  && $trafic_limits{0} < $EX_PARAMS{traf_limit}) {
   $trafic_limit = ($trafic_limits{0} > $CONF->{MAX_SESSION_TRAFFIC}) ? $CONF->{MAX_SESSION_TRAFFIC} :  $trafic_limits{0};

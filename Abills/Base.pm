@@ -12,7 +12,8 @@ use Exporter;
 $VERSION = 2.00;
 @ISA = ('Exporter');
 
-@EXPORT = qw( &radius_log
+@EXPORT = qw( 
+  &radius_log
   &null
   &convert
   &parse_arguments
@@ -179,6 +180,8 @@ sub sendmail {
 
   return 0;
 }
+
+
 #*******************************************************************
 # show log
 # show_log($uid, $type, $attr)
@@ -364,6 +367,7 @@ sub sec2date {
 sub int2byte {
  my ($val, $attr) = @_;
  
+
  my $KBYTE_SIZE = 1024;
  $KBYTE_SIZE = int($attr->{KBYTE_SIZE}) if (defined($attr->{KBYTE_SIZE}));
  my $MEGABYTE = $KBYTE_SIZE * $KBYTE_SIZE;
