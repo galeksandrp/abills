@@ -332,8 +332,7 @@ sub burn_billing {
    }
   else {
     if ($self->{SUM} > 0) {
-      print $self->{SUM};
-      #$self->query($db, "UPDATE bills SET deposit=deposit-$self->{SUM} WHERE id='$self->{BILL_ID}';", 'do');
+      $self->query($db, "UPDATE bills SET deposit=deposit-$self->{SUM} WHERE id='$self->{BILL_ID}';", 'do');
      }
    }
 	
