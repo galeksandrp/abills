@@ -917,12 +917,12 @@ sub dv_use {
 my %CAPTIONS_HASH = ('1:DATE'            => $_DATE,  	
                      '2:USERS'           => $_USERS,
                      '3:SESSIONS'        => $_SESSIONS,
-                     '4:TRAFFIC_SUM'     => $_TRAFFIC,
-                     '5:TRAFFIC_2_SUM'   => $_TRAFFIC." 2",
+                     '4:TRAFFIC_RECV'    => "$_TRAFFIC $_RECV",
+                     '5:TRAFFIC_SENT'    => "$_TRAFFIC $_SENT",
+                     '8:TRAFFIC_SUM'     => $_TRAFFIC,
+                     '9:TRAFFIC_2_SUM'   => $_TRAFFIC." 2",
                      '6:DURATION'        => $_DURATION,
-                     '7:SUM'             => $_SUM,
-                     '8:TRAFFIC_RECV'    => "$_TRAFFIC $_RECV",
-                     '9:TRAFFIC_SENT'    => "$_TRAFFIC $_SENT");
+                     '7:SUM'             => $_SUM);
 
   reports({ DATE          => $FORM{DATE}, 
   	        REPORT        => '',
@@ -1035,15 +1035,15 @@ else {
    }
   else {
   	@caption = ("$_DATE", "$_USERS", "$_SESSIONS", "$_TRAFFIC ", "$_TRAFFIC 2", $_DURATION, $_SUM); 
+    if ($FORM{TYPE} eq 'USER') {
+    	$caption[0]="$_USER";
+  	  $caption[1]="$_LOGINS";
+     }
    }
 
   
   
 
-  if ($FORM{TYPE} eq 'USER') {
-  	$caption[0]="$_USER";
-  	$caption[1]="$_LOGINS";
-   }
   
   $table_sessions = $html->table({ width      => '100%',
 	                                 caption    => "$_SESSIONS", 

@@ -797,8 +797,8 @@ sub reports {
                            TRAFFIC_2_SUM   => 'sum(l.sent2 + l.recv2)',
                            DURATION        => 'sec_to_time(sum(l.duration))',
                            SUM             => 'sum(l.sum)',
-                           TRAFFIC_RECV    => 'l.recv',
-                           TRAFFIC_SENT    => 'l.sent'
+                           TRAFFIC_RECV    => 'sum(l.recv)',
+                           TRAFFIC_SENT    => 'sum(l.sent)'
                           };
  
 
@@ -865,7 +865,6 @@ if ($attr->{FIELDS}) {
 }
  
  
- $self->{debug}=1;
  
  if(defined($attr->{DATE})) {
    if (defined($attr->{HOURS})) {
