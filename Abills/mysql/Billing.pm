@@ -250,8 +250,12 @@ sub session_sum {
  my $sent2 = $RAD->{OUTBYTE2} || 0; 
  my $recv2 = $RAD->{INBYTE2} || 0;
 
- if ((defined($CONF->{MINIMUM_SESSION_TIME}) && $SESSION_DURATION < $CONF->{MINIMUM_SESSION_TIME}) || 
-    (defined($CONF->{MINIMUM_SESSION_TRAF}) && $sent + $recv < $CONF->{MINIMUM_SESSION_TRAF})) {
+ if (! $attr->{FULL_COUNT} && 
+     (
+      (defined($CONF->{MINIMUM_SESSION_TIME}) && $SESSION_DURATION < $CONF->{MINIMUM_SESSION_TIME}) || 
+      (defined($CONF->{MINIMUM_SESSION_TRAF}) && $sent + $recv < $CONF->{MINIMUM_SESSION_TRAF})
+     )
+     ) {
     
     return -1, 0, 0, 0, 0, 0;
   }
@@ -326,8 +330,8 @@ sub session_sum {
 
 if(! defined($self->{NO_TPINTERVALS})) {
   if($interval_count < 1) {
-   	print "NOt allow start period" if ($self->{debug});
- 	return -3, 0, 0, 0, 0, 0;	
+   	print "Not allow start period" if ($self->{debug});
+ 	  return -3, 0, 0, 0, 0, 0;	
    }
   
   #$self->{debug}=1;
@@ -346,7 +350,10 @@ if(! defined($self->{NO_TPINTERVALS})) {
 }
 
 $sum = $sum * (100 - $self->{REDUCTION}) / 100 if ($self->{REDUCTION} > 0);
-$sum = $self->{MIN_SESSION_COST} if ($sum < $self->{MIN_SESSION_COST} && $self->{MIN_SESSION_COST} > 0);
+
+if (! $attr->{FULL_COUNT}) {
+  $sum = $self->{MIN_SESSION_COST} if ($sum < $self->{MIN_SESSION_COST} && $self->{MIN_SESSION_COST} > 0);
+}
 
 if ($self->{COMPANY_ID} > 0) {
   $self->query($db, "SELECT bill_id
