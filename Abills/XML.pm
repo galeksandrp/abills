@@ -571,7 +571,7 @@ sub header {
 
 
 my $CHARSET=(defined($attr->{CHARSET})) ? $attr->{CHARSET} : 'windows-1251';
-
+$CHARSET=~s/ //g;
 $self->{header} .= qq{<?xml version="1.0"  encoding="$CHARSET" ?>};
 #<!DOCTYPE rss PUBLIC "-//Netscape Communications//DTD RSS 0.91//EN"
 #              "http://my.netscape.com/publish/formats/rss-0.91.dtd">
@@ -586,7 +586,7 @@ $self->{header} .= qq{<?xml version="1.0"  encoding="$CHARSET" ?>};
 #q{ 
 #<title>~AsmodeuS~ Billing System</title>
 #</head>} .
-#"<body style='margin: 0' bgcolor=\"$_COLORS[10]\" text=\"$_COLORS[9]\" link=\"$_COLORS[8]\"  vlink=\"$_COLORS[7]\">\n";
+
 
  return $self->{header};
 }

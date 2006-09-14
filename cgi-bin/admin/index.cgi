@@ -2346,7 +2346,8 @@ if ($attr->{FIELDS}) {
    }
 
   $LIST_PARAMS{FIELDS}=$FORM{FIELDS};
-
+  $pages_qs="&FIELDS=$FORM{FIELDS}";
+  
   foreach my $line (sort keys %{ $attr->{FIELDS} }) {
   	my ($id, $k)=split(/:/, $line);
   	$FIELDS .= $html->form_input("FIELDS", $k, { TYPE => 'checkbox', STATE => (defined($fields_hash{$k})) ? 'checked' : undef }). " $attr->{FIELDS}{$line}";
@@ -2367,6 +2368,7 @@ if ($attr->{PERIOD_FORM}) {
  	                                                                                   HOURS => $_HOURS },
  	                                                                 NO_ID        => 1
  	                                                                }) ,
+ 	                                        ($attr->{XML}) ? $html->form_input('XML', 1, { TYPE => 'checkbox' })."XML" : '',
                                           $html->form_input('show', $_SHOW, { TYPE => 'submit' }) ]
                                          ],                                   
                       });
