@@ -322,10 +322,13 @@ sub menu {
  
  my $menu_navigator='';
  my $menu_text='';
+
+ return $menu_navigator, $menu_text if ($FORM{NO_MENU});
+
  my $EX_ARGS = (defined($attr->{EX_ARGS})) ? $attr->{EX_ARGS} : '';
  my $fl = $attr->{FUNCTION_LIST};
 
- return $menu_navigator, $menu_text if ($FORM{NO_MENU});
+
  
 my  %new_hash = ();
 while((my($findex, $hash)=each(%$menu_items))) {

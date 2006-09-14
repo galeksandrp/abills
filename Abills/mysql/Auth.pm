@@ -661,7 +661,11 @@ elsif(defined($RAD->{MS_CHAP_CHALLENGE})) {
      my $rad_response = pack("H*", $RAD->{MS_CHAP2_RESPONSE});
      my ($ident, $flags, $peerchallenge, $reserved, $response) = unpack('C C a16 a8 a24', $rad_response);
 
-     if (check_mschapv2("$RAD->{USER_NAME}", $self->{PASSWD}, $challenge, $peerchallenge, $response, $ident,
+      
+
+     
+     if (check_mschapv2(($RAD_PAIRS{'Callback-Number'}) ? "$RAD_PAIRS{'Callback-Number'}:$RAD->{USER_NAME}" : $RAD->{USER_NAME},
+       $self->{PASSWD}, $challenge, $peerchallenge, $response, $ident,
  	     \$usersessionkey, \$lanmansessionkey, \$ms_chap2_success) == 1) {
          $RAD_PAIRS{'MS-CHAP-Error'}="\"Wrong MS-CHAP2 password\"";
          $RAD_PAIRS{'Reply-Message'}=$RAD_PAIRS{'MS-CHAP-Error'};
@@ -1093,10 +1097,16 @@ sub bin2hex ($) {
 #*******************************************************************
 sub pre_auth {
   my ($self, $RAD, $attr)=@_;
-
-
+  
+  
 if (defined($RAD->{MS_CHAP_CHALLENGE}) || defined($RAD->{EAP_MESSAGE})) {
-  $self->query($db, "SELECT DECODE(password, '$CONF->{secretkey}') FROM users WHERE id='$RAD->{USER_NAME}';");
+  
+  my $login = $RAD->{USER_NAME};
+  if ($RAD->{USER_NAME} =~ /:(.+)/) {
+    $login = $1;	 
+  }
+
+  $self->query($db, "SELECT DECODE(password, '$CONF->{secretkey}') FROM users WHERE id='$login';");
   if ($self->{TOTAL} > 0) {
   	my $list = $self->{list}->[0];
     my $password = $list->[0];
@@ -1106,7 +1116,7 @@ if (defined($RAD->{MS_CHAP_CHALLENGE}) || defined($RAD->{EAP_MESSAGE})) {
    }
 
   $self->{errno} = 1;
-  $self->{errstr} = "USER: '$RAD->{USER_NAME}' not exist";
+  $self->{errstr} = "USER: '$login' not exist";
   return 1;
  }
   

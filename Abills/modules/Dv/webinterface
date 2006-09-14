@@ -930,7 +930,7 @@ my %CAPTIONS_HASH = ('1:DATE'            => $_DATE,
   	        	                 USERS => "$_USERS" }, 
   	        PERIOD_FORM		=> 1,
   	        FIELDS        => { %CAPTIONS_HASH },
-  	        XML           => 0
+  	        XML           => 1
   	       });
 
 

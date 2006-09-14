@@ -2368,7 +2368,10 @@ if ($attr->{PERIOD_FORM}) {
  	                                                                                   HOURS => $_HOURS },
  	                                                                 NO_ID        => 1
  	                                                                }) ,
- 	                                        ($attr->{XML}) ? $html->form_input('XML', 1, { TYPE => 'checkbox' })."XML" : '',
+ 	                                        ($attr->{XML}) ? 
+ 	                                        $html->form_input('NO_MENU', 1, { TYPE => 'hidden' }).
+ 	                                        $html->form_input('xml', 1, { TYPE => 'checkbox' })."XML" : '',
+
                                           $html->form_input('show', $_SHOW, { TYPE => 'submit' }) ]
                                          ],                                   
                       });
