@@ -83,7 +83,7 @@ $_TRAFFIC='Traffic';
 $_DURATION='Duration';
 $_DAY_DURATION='Day time limit';
 $_LOGIN='Login';
-$_LOGINS='Sessions';
+$_LOGINS='Logins';
 $_PASSWD='Password';
 $_CONFIRM='Confirmation';
 

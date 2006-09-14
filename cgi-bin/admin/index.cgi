@@ -2618,7 +2618,7 @@ sub fl {
 my @m = (
  "0:0::null:::",
  "1:0:$_CUSTOMERS:null:::",
- "11:1:$_USERS:form_users:::",
+ "11:1:$_LOGINS:form_users:::",
  "24:11:$_ADD:user_form:::",
  "13:1:$_COMPANY:form_companies:::",
  "14:13:$_ADD:add_company:::",
