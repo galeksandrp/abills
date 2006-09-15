@@ -190,7 +190,9 @@ my @actions = ([$_SA_ONLY, $_ADD, $_LIST, $_PASSWD, $_CHANGE, $_DEL, $_ALL],  # 
 @action    = ('add', $_ADD);
 @bool_vals = ($_NO, $_YES);
 
-my @PAYMENT_METHODS = ('Cash', 'Bank', 'Internet Card', 'Credit Card' );
+my @PAYMENT_METHODS = ('Cash', 'Bank', 'Internet Card', 'Credit Card', 'Bonus');
+
+
 my %menu_items  = ();
 my %menu_names  = ();
 #my $root_index = 0;
