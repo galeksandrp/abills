@@ -322,6 +322,7 @@ sub menu {
  
  my $menu_navigator='';
  my $menu_text='';
+ $menu_text="<SID>$self->{SID}</SID>\n" if ($self->{SID});
 
  return $menu_navigator, $menu_text if ($FORM{NO_MENU});
 

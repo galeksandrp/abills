@@ -155,12 +155,13 @@ if ($uid > 0) {
 
     %USER_FUNCTION_LIST = ();
   }
-
+  
+  $html->{SID}=$sid;
   (undef, $OUTPUT{MENU}) = $html->menu(\%menu_items, \%menu_args, undef, 
      { EX_ARGS         => "&sid=$sid", 
      	 ALL_PERMISSIONS => 'y',
      	 FUNCTION_LIST   => \%functions
-     	  });
+     });
   
   if ($html->{ERROR}) {
   	$html->message('err',  $_ERROR, "$html->{ERROR}");
