@@ -327,7 +327,7 @@ return qq{
 <TR><TD>$_DESCRIBE:</TD><TD><input type=text name=NAS_DESCRIBE value="%NAS_DESCRIBE%"></TD></TR>
 <TR><TD>$_TYPE:</TD><TD>%SEL_TYPE%</TD></TR>
 <TR><TD>$_AUTH:</TD><TD>%SEL_AUTH_TYPE%</TD></TR>
-<TR><TD>Alive:</TD><TD><input type=text name=NAS_ALIVE value='%NAS_ALIVE%'></TD></TR>
+<TR><TD>Alive (sec.):</TD><TD><input type=text name=NAS_ALIVE value='%NAS_ALIVE%'></TD></TR>
 <TR><TD>$_DISABLE:</TD><TD><input type=checkbox name=NAS_DISABLE value=1 %NAS_DISABLE%></TD></TR>
 <TR><th colspan=2>:$_MANAGE:</th></TR>
 <TR><TD>IP:PORT:</TD><TD><input type=text name=NAS_MNG_IP_PORT value="%NAS_MNG_IP_PORT%"></TD></TR>
