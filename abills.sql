@@ -857,8 +857,8 @@ CREATE TABLE `web_online` (
     
 
 
-INSERT INTO admins VALUES ('abills','abills','2005-06-16', ENCODE('abills', 'test12345678901234567890'), 0, 1,0,'');
-INSERT INTO admins VALUES ('system','Syetem user','2005-07-07', ENCODE('test', 'test12345678901234567890'), 0, 2, 0,'');
+INSERT INTO admins VALUES ('abills','abills','2005-06-16', ENCODE('abills', 'test12345678901234567890'), 0, 1,0,'', '');
+INSERT INTO admins VALUES ('system','Syetem user','2005-07-07', ENCODE('test', 'test12345678901234567890'), 0, 2, 0,'', '');
 
 
 
