@@ -303,3 +303,5 @@ $_BRUTE_ATACK='Brute Attack';
 $_CHAPTERS='Chapter';
 
 $_DILLERS='Dillers';
+
+$_VAT='Vat';

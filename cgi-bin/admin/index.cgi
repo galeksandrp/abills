@@ -408,7 +408,7 @@ sub check_permissions {
   my %PARAMS = ( LOGIN     => "$login", 
                  PASSWORD  => "$password",
                  SECRETKEY => $conf{secretkey},
-                 IP        => $SESSION_IP);
+                 IP        => $ENV{REMOTE_ADDR} || '0.0.0.0');
 
   $admin->info(0, { %PARAMS } );
 

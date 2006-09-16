@@ -354,6 +354,7 @@ return qq{
 <TR bgcolor=$_COLORS[1]><TD>$_BILL:</TD><TD>%BILL_ID%</TD></TR>
 <TR bgcolor=$_COLORS[1]><TD>$_DEPOSIT:</TD><TD>%DEPOSIT%</TD></TR>
 <TR bgcolor=$_COLORS[1]><TD>$_CREDIT:</TD><TD><input type=text name=CREDIT value='%CREDIT%'></TD></TR>
+<TR bgcolor=$_COLORS[1]><TD>$_VAT (%):</TD><TD><input type=text name=VAT value='%VAT%'></TD></TR>
 <TR bgcolor=$_COLORS[1]><TD>$_TAX_NUMBER:</TD><TD><input type=text name=TAX_NUMBER value='%TAX_NUMBER%' size=60></TD></TR>
 <TR bgcolor=$_COLORS[1]><TD>$_ACCOUNT:</TD><TD><input type=text name=BANK_ACCOUNT value='%BANK_ACCOUNT%' size=60></TD></TR>
 <TR bgcolor=$_COLORS[1]><TD>$_BANK_NAME:</TD><TD><input type=text name=BANK_NAME value='%BANK_NAME%' size=60></TD></TR>

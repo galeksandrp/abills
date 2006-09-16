@@ -111,7 +111,9 @@ sub new {
   $secure = '';
   my $prot = (defined($ENV{HTTPS}) && $ENV{HTTPS} =~ /on/i) ? 'https' : 'http' ;
   $SELF_URL = (defined($ENV{HTTP_HOST})) ? "$prot://$ENV{HTTP_HOST}$ENV{SCRIPT_NAME}" : '';
+
   $SESSION_IP = $ENV{REMOTE_ADDR} || '0.0.0.0';
+
   
   @_COLORS = ('#FDE302',  # 0 TH
             '#FFFFFF',  # 1 TD.1

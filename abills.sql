@@ -114,6 +114,7 @@ CREATE TABLE `companies` (
   `credit` double(8,2) NOT NULL default '0.00',
   `address` varchar(100) NOT NULL default '',
   `phone` varchar(20) NOT NULL default '',
+  `vat` double(5,2) unsigned NOT NULL default '0.00',
   PRIMARY KEY  (`id`),
   UNIQUE KEY `id` (`id`),
   UNIQUE KEY `name` (`name`)
@@ -220,6 +221,7 @@ CREATE TABLE `fees` (
   `aid` smallint(6) unsigned NOT NULL default '0',
   `id` int(11) unsigned NOT NULL auto_increment,
   `bill_id` int(11) unsigned NOT NULL default '0',
+  `vat` double(5,2) unsigned NOT NULL default '0.00',
   PRIMARY KEY  (`id`),
   UNIQUE KEY `id` (`id`),
   KEY `date` (`date`),

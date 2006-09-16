@@ -69,7 +69,6 @@ sub info {
     $WHERE = "WHERE u.uid='$uid'";
    }
 
-
   $self->query($db, "SELECT u.uid,
    u.gid, 
    g.name,
@@ -80,8 +79,7 @@ sub info {
    if(c.name IS NULL, b.deposit, cb.deposit),
    u.company_id,
    if(c.name IS NULL, 'N/A', c.name), 
-   if(c.name IS NULL, u.bill_id, c.bill_id)
-
+   if(c.name IS NULL, 0, c.vat)
      FROM users u
      LEFT JOIN bills b ON (u.bill_id=b.id)
      LEFT JOIN groups g ON (u.gid=g.gid)
@@ -111,9 +109,10 @@ sub info {
    $self->{DEPOSIT}, 
    $self->{COMPANY_ID},
    $self->{COMPANY_NAME},
+   $self->{COMPANY_VAT}
  )= @$ar;
   
-  
+ 
   return $self;
 }
 

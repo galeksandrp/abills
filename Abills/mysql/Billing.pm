@@ -356,7 +356,7 @@ if (! $attr->{FULL_COUNT}) {
 }
 
 if ($self->{COMPANY_ID} > 0) {
-  $self->query($db, "SELECT bill_id
+  $self->query($db, "SELECT bill_id, vat
     FROM companies
     WHERE id='$self->{COMPANY_ID}';");
 
@@ -364,7 +364,9 @@ if ($self->{COMPANY_ID} > 0) {
  	  return -4, 0, 0, 0, 0, 0;	
  	 }
   $ar = $self->{list}->[0];
-  ($self->{BILL_ID})= @$ar;
+  ($self->{BILL_ID}, $self->{VAT})= @$ar;
+
+  $sum = $sum + ((100 + $user->{COMPANY_VAT}) / 100) if ($user->{COMPANY_VAT});
 }
 
 return $self->{UID}, $sum, $self->{BILL_ID}, $self->{TP_ID}, 0, 0;
@@ -876,7 +878,6 @@ sub remaining_time {
           else {
             $int_prepaid = $int_duration;	
             $ATTR{TT}=$int_id if (! defined($ATTR{TT}) && defined($periods_traf_tarif));
-            
             #print "333\n";
            }
           #print "Int Begin: $int_begin Int duration: $int_duration Int prepaid: $int_prepaid Prise: $price\n";

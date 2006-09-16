@@ -50,10 +50,11 @@ sub add {
 
   my %DATA = $self->get_data($attr); 
   $self->query($db, "INSERT INTO companies (name, tax_number, bank_account, bank_name, cor_bank_account, 
-     bank_bic, disable, credit, address, phone) 
+     bank_bic, disable, credit, address, phone, vat) 
      VALUES ('$DATA{COMPANY_NAME}', '$DATA{TAX_NUMBER}', '$DATA{BANK_ACCOUNT}', '$DATA{BANK_NAME}', '$DATA{COR_BANK_ACCOUNT}', 
       '$DATA{BANK_BIC}', '$DATA{DISABLE}', '$DATA{CREDIT}',
-      '$DATA{ADDRESS}', '$DATA{PHONE}'
+      '$DATA{ADDRESS}', '$DATA{PHONE}',
+      '$DATA{VAT}'
       );", 'do');
 
   return $self;
@@ -94,7 +95,8 @@ sub change {
    BILL_ID        => 'bill_id',
    COMPANY_ID     => 'id',
    ADDRESS        => 'address',
-   PHONE          => 'phone'
+   PHONE          => 'phone',
+   VAT            => 'vat'
    );
 
 	$self->changes($admin, { CHANGE_PARAM => 'COMPANY_ID',
@@ -131,7 +133,8 @@ sub info {
 
   $self->query($db, "SELECT c.id, c.name, c.credit, c.tax_number, c.bank_account, c.bank_name, 
   c.cor_bank_account, c.bank_bic, c.disable, c.bill_Id, b.deposit,
-  c.address, c.phone
+  c.address, c.phone,
+  c.vat
     FROM companies c
     LEFT JOIN bills b ON (c.bill_id=b.id)
     WHERE c.id='$company_id';");
@@ -156,7 +159,8 @@ sub info {
    $self->{BILL_ID},
    $self->{DEPOSIT},
    $self->{ADDRESS},
-   $self->{PHONE}
+   $self->{PHONE},
+   $self->{VAT}
    ) = @$a_ref;
     
   return $self;

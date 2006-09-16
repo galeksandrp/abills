@@ -267,3 +267,4 @@ $_PAYMENT_DELETED="Оплата удалена";
 $_COR_BANK_ACCOUNT="Коресп. счет";
 $_MAX_SESSION_DURATION="Мак время сесии";
 $_HANGUPED="Отключен";
+$_VAT='НДС';

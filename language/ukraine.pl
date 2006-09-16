@@ -267,3 +267,4 @@ $_SEND_MAIL="Відправити e-mail";
 $_RELAYS=" Relay,";
 $_DEPOSIT="Депозит";
 $_BILLS="Грошові рахунки";
+$_VAT='ПДВ';
