@@ -984,7 +984,7 @@ sub message {
  my ($type, $caption, $message) = @_;	
  my $output = "<MESSAGE TYPE=\"$type\" CAPTION=\"$caption\">$message</MESSAGE>\n";
  
-   if (defined($self->{NO_PRINT})) {
+  if (defined($self->{NO_PRINT})) {
   	$self->{OUTPUT}.=$output;
   	return $output;
    }
@@ -1014,7 +1014,7 @@ sub pages {
  $begin = ($PG - $PAGE_ROWS * 3 < 0) ? 0 : $PG - $PAGE_ROWS * 3;
 
 for(my $i=$begin; ($i<=$count && $i < $PG + $PAGE_ROWS * 10); $i+=$PAGE_ROWS) {
-   $self->{pages} .= ($i == $PG) ? "<b>$i</b>:: " : $self->button($i, "$argument&pg=$i"). ':: ';
+   $self->{pages} .= ($i == $PG) ? "<b>$i</b>" : $self->button($i, "$argument&pg=$i"). '';
 }
  
  return "<PAGES>". $self->{pages} ."</PAGES>\n";
@@ -1216,18 +1216,25 @@ sub letters_list {
  my $pages_qs = $attr->{pages_qs} if (defined($attr->{pages_qs}));
 
   
-my $letters = $self->button('All ', "index=$index"). '::';
+my $output = $self->button('All ', "index=$index");
 for (my $i=97; $i<123; $i++) {
   my $l = chr($i);
   if ($FORM{letter} eq $l) {
-     $letters .= "<b>$l </b>";
+     $output .= "<b>$l </b>";
    }
   else {
-     $letters .= $self->button("$l", "index=$index&letter=$l$pages_qs") . ' ';
+     $output .= $self->button("$l", "index=$index&letter=$l$pages_qs") . "\n";
    }
  }
 
- return $letters;
+  if (defined($self->{NO_PRINT})) {
+  	$self->{OUTPUT}.=$output;
+  	return '';
+   }
+	else {
+ 	  print $output;
+	 }
+
 }
 
 1
