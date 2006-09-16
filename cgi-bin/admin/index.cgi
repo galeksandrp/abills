@@ -444,7 +444,8 @@ sub check_permissions {
 #**********************************************************
 sub form_companies {
   use Customers;	
-  my $customer = Customers->new($db);
+
+  my $customer = Customers->new($db, $admin, \%conf);
   my $company = $customer->company();
 
 if ($FORM{add}) {
@@ -476,7 +477,7 @@ elsif($FORM{COMPANY_ID}) {
 
   func_menu({ 
   	         'ID'   => $company->{COMPANY_ID}, 
-  	         $_NAME =>$company->{COMPANY_NAME}
+  	         $_NAME => $company->{COMPANY_NAME}
   	       }, 
   	{ 
   	 $_INFO     => ":COMPANY_ID=$company->{COMPANY_ID}",
@@ -2848,8 +2849,14 @@ print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
 #**********************************************************
 sub form_payments () {
  my ($attr) = @_; 
+
+ print    "-- $admin ///";
+
  use Finance;
+
  my $payments = Finance->payments($db, $admin, \%conf);
+
+
 
  return 0 if (! defined ($permissions{1}));
 
@@ -2919,10 +2926,6 @@ $payments->{SEL_METHOD} =  $html->form_select('METHOD',
  	                                SEL_ARRAY     => \@PAYMENT_METHODS,
  	                                ARRAY_NUM_ID  => 'y'
  	                               });
-
-
-
-
 
 
 
@@ -3217,7 +3220,7 @@ print $table->show();
 sub form_sendmail {
  my %MAIL_PRIORITY = (2 => 'High', 
                       3 => 'Normal', 
-                      4  => 'Low');
+                      4 => 'Low');
 
 
 
@@ -3262,7 +3265,8 @@ sub form_sendmail {
 sub form_search {
   my ($attr) = @_;
   
-my %SEARCH_DATA = $admin->get_data(\%FORM);  
+ 
+  my %SEARCH_DATA = $admin->get_data(\%FORM);  
 
 if (defined($attr->{HIDDEN_FIELDS})) {
 	my $SEARCH_FIELDS = $attr->{HIDDEN_FIELDS};
