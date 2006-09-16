@@ -2849,11 +2849,7 @@ print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
 #**********************************************************
 sub form_payments () {
  my ($attr) = @_; 
-
- print    "-- $admin ///";
-
  use Finance;
-
  my $payments = Finance->payments($db, $admin, \%conf);
 
 
