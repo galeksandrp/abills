@@ -3117,7 +3117,7 @@ if (defined($attr->{USER})) {
         $html->message('err', $_ERROR, "[$fees->{errno}] $err_strs{$fees->{errno}}");	
        }
       else {
-        $html->message('info', $_PAYMENTS, "$_TAKE SUM: $FORM{SUM}");
+        $html->message('info', $_PAYMENTS, "$_TAKE SUM: $fees->{SUM}");
        }
     }
    }
