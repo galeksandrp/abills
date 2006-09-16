@@ -915,7 +915,7 @@ sub show  {
   $self->{show} .= "</TABLE>\n";
 
   if (defined($self->{pages})) {
- 	   $self->{show} =  '<br/>'.$self->{pages} . $self->{show} . $self->{pages} .'<br/>';
+ 	   $self->{show} =  '<br/>' .$self->{show} . $self->{pages} .'<br/>';
  	 } 
 
   if ((defined($self->{NO_PRINT})) && ( !defined($attr->{OUTPUT2RETURN}) )) {
