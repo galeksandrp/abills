@@ -366,7 +366,7 @@ if ($self->{COMPANY_ID} > 0) {
   $ar = $self->{list}->[0];
   ($self->{BILL_ID}, $self->{VAT})= @$ar;
 
-  $sum = $sum + ((100 + $user->{COMPANY_VAT}) / 100) if ($user->{COMPANY_VAT});
+  $sum = $sum + ((100 + $self->{COMPANY_VAT}) / 100) if ($self->{COMPANY_VAT});
 }
 
 return $self->{UID}, $sum, $self->{BILL_ID}, $self->{TP_ID}, 0, 0;
