@@ -1262,8 +1262,6 @@ form_search({ HIDDEN_FIELDS => $LIST_PARAMS{AID},
 	           });
 
 
-$admin->{debug}=1;
-
 my $list = $admin->action_list({ %LIST_PARAMS });
 my $table = $html->table( { width      => '100%',
                             border     => 1,
