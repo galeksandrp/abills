@@ -1,8 +1,10 @@
 =====0.34=====
   * Добавлена ставка НДС.
  ''Изминения для базы''\\
+
     ALTER TABLE companies add column vat double(5,2) unsigned NOT NULL default '0.00';
     ALTER TABLE fees add column vat double(5,2) unsigned NOT NULL default '0.00';
+    ALTER TABLE docs_acct add column vat double(5,2) unsigned NOT NULL default '0.00';
 
   * Сохранение настроек для веб интерфейса администратора в базе\\
  ''Изминения для базы''\\

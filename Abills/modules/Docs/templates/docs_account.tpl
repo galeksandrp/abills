@@ -39,7 +39,7 @@
 <tr><td>
 Всього на суму: %SUM%<br>
 <b>(%SUM_LIT%)</b><br>
-ПДВ:      0.00 UAH
+ПДВ:      %VAT% грн
 </td></tr>
 </table>
 
