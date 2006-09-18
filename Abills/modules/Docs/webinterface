@@ -71,6 +71,7 @@ my $table = $html->table( { width      => '100%',
 
 foreach my $line (@$list) {
   my $delete = ($permissions{1}{2}) ?  $html->button($_DEL, "index=$index&del=$line->[8]&UID=$line->[7]", { MESSAGE => "$_DEL ?" }) : ''; 
+
   $table->addrow("$line->[0]", 
    "$line->[1]",
    "$line->[2]", 
@@ -78,7 +79,7 @@ foreach my $line (@$list) {
    $html->button($line->[4], "index=11&UID=$line->[7]"),
    "$line->[5]", 
    "$line->[6]", 
-   $html->button($_PRINT, "index=$index&print=$line->[8]&UID=$line->[7]"), 
+   $html->button($_PRINT, "index=$index&print=$line->[8]&UID=$line->[7]$pages_qs"), 
    $delete);
 }
 print $table->show();
