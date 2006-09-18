@@ -455,7 +455,7 @@ sub cards_user_payment () {
 
 	 my $brute = $Cards->bruteforce_list({ UID => $LIST_PARAMS{UID} });
 	 
-	 if ($FORM{PIN} =~ /^user#/) {
+	 if ($conf{CARDS_UMT} && $FORM{PIN} =~ /^user#/) {
 	 	 #print transfer money from one account to other
 	 	 my $user_new = Users->new($db, $admin, \%conf);
 	 	 my (undef, $login, $password)=split(/#/, $FORM{PIN}, 3);
