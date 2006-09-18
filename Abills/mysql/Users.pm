@@ -60,6 +60,13 @@ sub info {
     
   if (defined($attr->{LOGIN}) && defined($attr->{PASSWORD})) {
     $WHERE = "WHERE u.id='$attr->{LOGIN}' and DECODE(u.password, '$CONF->{secretkey}')='$attr->{PASSWORD}'";
+    if (defined($attr->{EXPIRE})) {
+    	$WHERE .= " and u.expire='$attr->{EXPIRE}'";
+     }
+    if (defined($attr->{DISABLE})) {
+    	$WHERE .= " and u.disable='$attr->{DISABLE}'";
+     }
+    
     #$PASSWORD = "if(DECODE(password, '$SECRETKEY')='$attr->{PASSWORD}', 0, 1)";
    }
   elsif(defined($attr->{LOGIN})) {
@@ -93,8 +100,7 @@ sub info {
      return $self;
    }
 
-  my $ar = $self->{list}->[0];
-
+  
   ($self->{UID},
    $self->{GID},
    $self->{G_NAME},
@@ -110,7 +116,7 @@ sub info {
    $self->{COMPANY_ID},
    $self->{COMPANY_NAME},
    $self->{COMPANY_VAT}
- )= @$ar;
+ )= @{ $self->{list}->[0] };
   
  
   return $self;

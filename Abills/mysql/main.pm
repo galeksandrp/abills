@@ -102,7 +102,8 @@ sub query {
 
   $self->{errstr}=undef;
   $self->{errno}=undef;
-
+  $self->{TOTAL} = 0;
+  
   print "<p>$query</p>\n" if ($self->{debug});
 
   if (defined($attr->{test})) {
@@ -117,7 +118,7 @@ if (defined($type) && $type eq 'do') {
 #  print $query;
 
   $q = $db->do($query);
-  $self->{TOTAL} = 0;
+#  $self->{TOTAL} = 0;
 
   if (defined($db->{'mysql_insertid'})) {
   	 $self->{INSERT_ID} = $db->{'mysql_insertid'};
@@ -125,19 +126,18 @@ if (defined($type) && $type eq 'do') {
 }
 else {
   #print $query;
-  $self->{TOTAL}=0;
   $q = $db->prepare($query) || die $db->errstr;;
   if($db->err) {
      $self->{errno} = 3;
      $self->{sql_errno}=$db->err;
      $self->{sql_errstr}=$db->errstr;
      $self->{errstr}=$db->errstr;
-#     print "-----------------------111";
-     
+   
      return $self->{errno};
    }
   #print $query;
   $q ->execute(); 
+
   if($db->err) {
      $self->{errno} = 3;
 
@@ -146,7 +146,7 @@ else {
      $self->{errstr}=$db->errstr;
      return $self->{errno};
    }
-
+  
   $self->{Q}=$q;
   $self->{TOTAL} = $q->rows;
 }
@@ -169,7 +169,6 @@ if($db->err) {
 if ($self->{TOTAL} > 0) {
   my @rows;
   while(my @row = $q->fetchrow()) {
-#   print "---$row[0] -";
    push @rows, \@row;
   }
   $self->{list} = \@rows;

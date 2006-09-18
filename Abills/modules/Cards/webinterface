@@ -36,7 +36,7 @@ sub cards_bruteforce () {
                                 cols_align => ['left', 'left', 'right'],
                                 qs         => $pages_qs,
                                 pages      => $Cards->{TOTAL}
-                            });
+                             } );
 
     foreach my $line (@$list) {
  	 	  $table->addrow($html->button($line->[0], "index=15&UID=$line->[4]"), 
@@ -445,11 +445,49 @@ sub cards_users {
 #**********************************************************
 sub cards_user_payment () {
 	
+  if (! defined($user)) {
+   	$user = Users->new($db, $admin, \%conf);
+   }
+
+	
 	if ($FORM{PIN}) {
 		my $BRUTE_LIMIT = ($conf{CARDS_BRUTE_LIMIT}) ? $conf{CARDS_BRUTE_LIMIT} : 5;
 
-		my $brute = $Cards->bruteforce_list({ UID => $LIST_PARAMS{UID} });
-		$Cards->cards_payments_info({ %FORM });
+	 my $brute = $Cards->bruteforce_list({ UID => $LIST_PARAMS{UID} });
+	 
+	 if ($FORM{PIN} =~ /^user#/) {
+	 	 #print transfer money from one account to other
+	 	 my $user_new = Users->new($db, $admin, \%conf);
+	 	 my (undef, $login, $password)=split(/#/, $FORM{PIN}, 3);
+	 	 
+	 	 $user_new->info(0, {
+ 	                   LOGIN    => "$login", 
+ 	                   PASSWORD => "$password",
+ 	                   DISABLE  => 0,
+ 	                   EXPIRE   => '0000-00-00' });
+
+	   if ($user_new->{TOTAL} > 0) {
+	   	 $Cards->{TOTAL}=1;
+	   	 $Cards->{SUM}=$user_new->{DEPOSIT};
+	   	 $Cards->{SERIAL}='user';
+	   	 $Cards->{NUMBER}="$login";
+
+	   	 my $fees = Fees->new($db, $admin, \%conf);
+       
+       $fees->take($user_new, $Cards->{SUM}, { DESCRIBE => "TRANSFER TO $user->{LOGIN}" });
+      
+       $user_new->change($user_new->{UID}, { 
+       	UID     => $user_new->{UID},
+       	DISABLE => 1 });
+	   	}
+     else {
+     	 $Cards->{TOTAL} = -1;
+      }
+
+	  }
+	 else {
+	   $Cards->cards_payments_info({ %FORM });
+    }
     
    if ($Cards->{error}) {
      $html->message('err', $_ERROR, "$ERR_SUPPORT");	
@@ -472,19 +510,22 @@ sub cards_user_payment () {
 	   return 0;
 	  }
    
-   if (! defined($user)) {
-   	  $user = Users->new($db, $admin, \%conf);
-    }
    
    $user->info($LIST_PARAMS{UID});
+   
+   
+   
    $payments->add($user, { SUM     => $Cards->{SUM},
                            METHOD  => 2, 
                            EXT_ID  => "$Cards->{SERIAL}$Cards->{NUMBER}"
                            });  
 
+
    if (! $payments->{errno}) {
      $html->message('info', $_PAYMENTS, "$_ADDED $_SUM: $Cards->{SUM}");
-     $Cards->cards_payments_change({ PIN => $FORM{PIN}, STATUS => 2, DATETIME => "$DATE $TIME" });	
+     $Cards->cards_payments_change({ PIN      => $FORM{PIN}, 
+     	                               STATUS   => 2, 
+     	                               DATETIME => "$DATE $TIME" });	
      return 0;
     }
    
