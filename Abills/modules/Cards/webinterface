@@ -477,8 +477,8 @@ sub cards_user_payment () {
        $fees->take($user_new, $Cards->{SUM}, { DESCRIBE => "TRANSFER TO $user->{LOGIN}" });
       
        $user_new->change($user_new->{UID}, { 
-       	UID     => $user_new->{UID},
-       	DISABLE => 1 });
+       	UID      => $user_new->{UID},
+       	DISABLE  => 1 });
 	   	}
      else {
      	 $Cards->{TOTAL} = -1;
