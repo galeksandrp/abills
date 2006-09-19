@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# 701082
+# 
 # http://www.maani.us/charts/index.php
 #use vars qw($begin_time);
 BEGIN {
@@ -172,10 +172,6 @@ if ($FORM{AWEB_OPTIONS}) {
 #===========================================================
 
 
-print $html->header({ 
-	 PATH    => '../',
-	 CHARSET => $CHARSET });
-
 my @actions = ([$_SA_ONLY, $_ADD, $_LIST, $_PASSWD, $_CHANGE, $_DEL, $_ALL],  # Users
                [$_LIST, $_ADD, $_DEL, $_ALL],                                 # Payments
                [$_LIST, $_ADD, $_DEL, $_ALL],                                 # Fees
@@ -189,35 +185,12 @@ my @actions = ([$_SA_ONLY, $_ADD, $_LIST, $_PASSWD, $_CHANGE, $_DEL, $_ALL],  # 
 
 @action    = ('add', $_ADD);
 @bool_vals = ($_NO, $_YES);
-
 my @PAYMENT_METHODS = ('Cash', 'Bank', 'Internet Card', 'Credit Card', 'Bonus');
-
-
 my %menu_items  = ();
 my %menu_names  = ();
-#my $root_index = 0;
 my $maxnumber   = 0;
 my %uf_menus    = (); #User form menu list
 
-my %SEARCH_TYPES = (11 => $_USERS,
-                    2  => $_PAYMENTS,
-                    3  => $_FEES,
-                    13 => $_COMPANY
-                   );
-
-if($FORM{index} != 7 && ! defined($FORM{type})) {
-	$FORM{type}=$FORM{index};
- }
-elsif (! defined $FORM{type}) {
-	$FORM{type}=15;
-}
-
-my $SEL_TYPE = $html->form_select('type', 
-                                { SELECTED  => $FORM{type},
- 	                                SEL_HASH  => \%SEARCH_TYPES,
- 	                                NO_ID     => 'y'
- 	                                #EX_PARAMS => 'onChange="selectstype()"'
- 	                               });
 
 fl();
 my %USER_SERVICES = ();
@@ -260,9 +233,56 @@ foreach my $m (@MODULES) {
   }
 }
 
+use Users;
+my $users = Users->new($db, $admin, \%conf); 
+
+
+#Quick index
+# Show only function results whithout main windows
+if ($FORM{qindex}) {
+  $index = $FORM{qindex};
+  if(defined($module{$index})) {
+ 	 	require "Abills/modules/$module{$index}/webinterface";
+   }
+  $functions{$index}->();
+ 
+  exit;
+}
+
+
+
+
+
+
+
+print $html->header({ 
+	 PATH    => '../',
+	 CHARSET => $CHARSET });
+
 
 my ($menu_text, $navigat_menu) = mk_navigator();
 my ($online_users, $online_count) = $admin->online();
+
+
+my %SEARCH_TYPES = (11 => $_USERS,
+                    2  => $_PAYMENTS,
+                    3  => $_FEES,
+                    13 => $_COMPANY
+                   );
+
+if($FORM{index} != 7 && ! defined($FORM{type})) {
+	$FORM{type}=$FORM{index};
+ }
+elsif (! defined $FORM{type}) {
+	$FORM{type}=15;
+}
+
+my $SEL_TYPE = $html->form_select('type', 
+                                { SELECTED  => $FORM{type},
+ 	                                SEL_HASH  => \%SEARCH_TYPES,
+ 	                                NO_ID     => 'y'
+ 	                                #EX_PARAMS => 'onChange="selectstype()"'
+ 	                               });
 
 
 print "
@@ -281,9 +301,6 @@ print "
 </div>
 </td></tr>\n";
 
-
-use Users;
-my $users = Users->new($db, $admin, \%conf); 
 
 
 if(defined($conf{tech_works})) {
@@ -341,6 +358,9 @@ if ($functions{$index}) {
   	  $functions{$index}->({ USER => $ui });
   	  #$LIST_PARAMS{LOGIN} = '11111';
   	}
+   }
+  elsif ($index == 0) {
+  	form_start();
    }
   else {
      $functions{$index}->();
@@ -438,9 +458,83 @@ sub check_permissions {
 }
 
 
-
 #**********************************************************
-# form_customers
+#
+#**********************************************************
+sub form_start {
+my  %new_hash = ();
+while((my($findex, $hash)=each(%menu_items))) {
+   while(my($parent, $val)=each %$hash) {
+     $new_hash{$parent}{$findex}=$val;
+    }
+}
+
+
+
+my $h = $new_hash{0};
+my @last_array = ();
+
+my @menu_sorted = sort {
+   $h->{$b} <=> $h->{$a}
+     ||
+   length($a) <=> length($b)
+     ||
+   $a cmp $b
+} keys %$h;
+
+my $table2 = $html->table({ width       => '100%',
+	                          border => 0 });
+my $table;
+my @rows;
+
+for(my $parent=1; $parent<$#menu_sorted; $parent++) { 
+  my $val = $h->{$parent};
+  my $level = 0;
+  my $prefix = '';
+  $table->{rowcolor}=$_COLORS[0];      
+
+  next if (! defined($permissions{($parent-1)}));  
+
+  if ($parent != 0) {
+    $table = $html->table({ width       => '200',
+                            title_plain => [ $html->button("<b>$val</b>", "index=$parent") ],
+                            border      => 1,
+                            cols_align  => ['left']
+                         });
+   }
+
+  if (defined($new_hash{$parent})) {
+    $table->{rowcolor}=$_COLORS[1];
+    $level++;
+    $prefix .= "&nbsp;&nbsp;&nbsp;";
+
+    label:
+      my $mi = $new_hash{$parent};
+      while(my($k, $val)=each %$mi) {
+        $table->addrow("$prefix ". $html->button($val, "index=$k"));
+        delete($new_hash{$parent}{$k});
+      }
+  }
+
+push @rows, $table->td($table->show(), { bgcolor => $_COLORS[1], valign => 'top', align => 'center' });
+
+if ($#rows > 1) {
+  $table2->addtd(@rows);
+  undef @rows;
+}
+
+
+}
+
+$table2->addtd(@rows);
+print $table2->show();
+# return 0;
+
+
+	
+}
+#**********************************************************
+#
 #**********************************************************
 sub form_companies {
   use Customers;	
@@ -2676,7 +2770,6 @@ my @m = (
  "94:90:WEB server:form_webserver_info:::",
  "95:90:$_SQL_BACKUP:form_sql_backup:::",
  "6:0:$_OTHER:null:::",
- "1000:6:Wizards:wizard:::",
   
  "7:0:$_SEARCH:form_search:::",
  
