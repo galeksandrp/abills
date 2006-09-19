@@ -60,9 +60,16 @@ sub info {
     
   if (defined($attr->{LOGIN}) && defined($attr->{PASSWORD})) {
     $WHERE = "WHERE u.id='$attr->{LOGIN}' and DECODE(u.password, '$CONF->{secretkey}')='$attr->{PASSWORD}'";
-    if (defined($attr->{EXPIRE})) {
-    	$WHERE .= " and u.expire='$attr->{EXPIRE}'";
+    if (defined($attr->{ACTIVATE})) {
+    	my $value = $self->search_expr("$attr->{ACTIVATE}", 'INT');
+    	$WHERE .= " and u.activate$value";
      }
+
+    if (defined($attr->{EXPIRE})) {
+    	my $value = $self->search_expr("$attr->{EXPIRE}", 'INT');
+    	$WHERE .= " and u.expire$value";
+     }
+
     if (defined($attr->{DISABLE})) {
     	$WHERE .= " and u.disable='$attr->{DISABLE}'";
      }

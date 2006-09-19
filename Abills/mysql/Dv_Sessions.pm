@@ -707,7 +707,6 @@ sub calculation {
 #Login
   if ($attr->{UID}) {
   	push @WHERE_RULES, "l.uid='$attr->{UID}'";
-    #$WHERE .= ($WHERE ne '') ?  " and l.uid='$attr->{UID}' " : "WHERE l.uid='$attr->{UID}' ";
    }
 
 if($attr->{INTERVAL}) {

@@ -382,7 +382,7 @@ sub cards_users_gen_confim {
   
   
   print "$attr->{LOGIN},  $attr->{PASSWORD}, $attr->{SERIA}, $attr->{DILLER_ID}/<br>";
-  $Cards->{debug}=1;
+
   $Cards->cards_users_add({ %$attr });
    if ($Cards->{errno}) {
      $html->message('err', $_CARDS, "[$Cards->{errno}] $err_strs{$Cards->{errno}}");
@@ -464,7 +464,9 @@ sub cards_user_payment () {
  	                   LOGIN    => "$login", 
  	                   PASSWORD => "$password",
  	                   DISABLE  => 0,
- 	                   EXPIRE   => '0000-00-00' });
+ 	                   ACTIVATE => '0000-00-00',
+ 	                   EXPIRE   => "<=$DATE" 
+ 	                   });
 
 	   if ($user_new->{TOTAL} > 0) {
 	   	 $Cards->{TOTAL}=1;

@@ -495,8 +495,8 @@ if( defined($CONF->{MAC_AUTO_ASSIGN}) &&
  }
 
 # SET ACCOUNT expire date
-if( $self->{ACCOUNT_AGE} > 0 && $self->{ACCOUNT_EXPIRE} eq '0000-00-00') {
-  $self->query($db, "UPDATE users SET expire=curdate() + INTERVAL $self->{ACCOUNT_AGE} day 
+if( $self->{ACCOUNT_AGE} > 0 && $self->{ACCOUNT_ACTIVATE} eq '0000-00-00') {
+  $self->query($db, "UPDATE users SET  activate=curdate(), expire=curdate() + INTERVAL $self->{ACCOUNT_AGE} day 
      WHERE uid='$self->{UID}';", 'do');
  }
 
@@ -603,7 +603,7 @@ sub authentication {
   u.disable,
   u.bill_id,
   u.credit,
-  u.expire
+  u.activate
      FROM users u
      WHERE 
         u.id='$RAD->{USER_NAME}'
@@ -633,7 +633,7 @@ sub authentication {
      $self->{DISABLE},
      $self->{BILL_ID},
      $self->{CREDIT},
-     $self->{ACCOUNT_EXPIRE}
+     $self->{ACCOUNT_ACTIVATE}
     ) = @$a_ref;
 
 

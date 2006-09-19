@@ -46,7 +46,7 @@ sub hangup {
     #hangup_mikrotik_telnet($NAS, $PORT, $USER);
   }
  elsif ($nas_type eq 'cisco')  {
- 	  hangup_cisco($NAS, $PORT);
+ 	  hangup_cisco($NAS, $PORT, $attr);
   }
  elsif ($nas_type eq 'mpd') {
     hangup_mpd($NAS, $PORT);
@@ -428,7 +428,7 @@ sub hangup_mikrotik_telnet {
 #
 #*******************************************************************
 sub hangup_cisco {
- my ($NAS, $PORT) = @_;
+ my ($NAS, $PORT, $attr) = @_;
  my $exec;
 
 #Rsh version
@@ -436,6 +436,13 @@ if ($NAS->{NAS_MNG_USER}) {
 # имя юзера на циско котрому разрешен rsh и хватает привелегий для сброса
   my $cisco_user=$NAS->{NAS_MNG_USER};
 # использование: NAS-IP-Address NAS-Port SQL-User-Name
+
+  my $user = $attr->{USER};
+
+ 
+  my $VIRTUALINT=`/usr/bin/rsh -l $cisco_user $NAS->{NAS_IP} show users | grep -i " \$1 " | awk '{print \$1}';`;
+  $PORT=`echo $VIRTUALINT echo  | sed -e "s/[[:alpha:]]*\\([[:digit:]]\\{1,\\}\\)/\\1/"`;
+
   $exec = `/usr/bin/rsh -4 -n -l $cisco_user $NAS->{NAS_IP} clear interface Virtual-Access $PORT`; 
  }
 else {
