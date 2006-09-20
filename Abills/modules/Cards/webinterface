@@ -123,6 +123,8 @@ sub cards_payments () {
   	   $added++;
   	   }
    	  $html->message('info', $_INFO, "$_ADDED: $added $_CARDS");
+   	  
+      $export="<CARDS>\n$export</CARDS>" if ($FORM{EXPORT} eq 'XML');
    	  print "<textarea cols='70' rows='30'>$export</textarea>\n";
     }
  }
@@ -347,6 +349,7 @@ sub cards_users_add () {
     $html->message('info', $_INFO, "$_CREATE: $generated");
 
     if ($generated > 0) {
+       $export="<CARDS>\n$export</CARDS>" if ($FORM{EXPORT} eq 'XML');
    	   print "<textarea cols='70' rows='30'>$export</textarea>\n";
    	 }
    	  
@@ -610,7 +613,4 @@ if ($Cards->{errno}) {
 }
 
 
-
-
-1
 
