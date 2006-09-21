@@ -192,7 +192,7 @@ sub check_ppp {
 
 while(my($ip_address, $pid)=each %$ip_pid_hash) {
   print "Killed IP: $ip_address PID: $pid\n";
-#  my $res = `/bin/kill -1 $pid`;
+  my $res = `/bin/kill -1 $pid`;
   $pid=~/(\d+)/;
   get_pid_info($1);
 }

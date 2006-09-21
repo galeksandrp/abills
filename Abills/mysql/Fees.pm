@@ -70,6 +70,9 @@ sub take {
     if ($user->{COMPANY_VAT}) {
       $sum = $sum * ((100 + $user->{COMPANY_VAT}) / 100);
      }
+    else {
+    	$user->{COMPANY_VAT}=0;
+     }
 
     $Bill->action('take', $user->{BILL_ID}, $sum);
     if($Bill->{errno}) {

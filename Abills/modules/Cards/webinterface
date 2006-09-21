@@ -90,7 +90,7 @@ sub cards_bruteforce () {
 #**********************************************************
 sub cards_payments () {
   
-  
+ 
   if ($FORM{add}) {
     if (! $FORM{SUM} || $FORM{SUM} == 0 ) {
       $html->message('err', $_ERROR, "$_NO_SUM");
@@ -119,13 +119,21 @@ sub cards_payments () {
        	    $html->message('err', $_ERROR, "[$Cards->{errno}] $err_strs{$Cards->{errno}}");
        	    return 0;
            }
-       $export .= (defined($FORM{EXPORT}) && $FORM{EXPORT} eq 'XML' ) ? "<ID>$serial</ID><PIN>$pin</PIN><SUM>$FORM{SUM}</SUM><EXPIRE>$FORM{EXPIRE}</EXPIRE>\n" : "$serial\t$pin\t$FORM{SUM}\t$FORM{EXPIRE}\n";
+       $export .= (defined($FORM{EXPORT}) && $FORM{EXPORT} eq 'XML' ) ? "<CARD SERIA='$serial' PIN='$pin' SUM='$FORM{SUM}' EXPIRE='$FORM{EXPIRE}'/>\n" : "$serial\t$pin\t$FORM{SUM}\t$FORM{EXPIRE}\n";
   	   $added++;
   	   }
-   	  $html->message('info', $_INFO, "$_ADDED: $added $_CARDS");
+
+      $export="<?xml version=\"1.0\" encoding=\"$html->{CHARSET}\"?>\n<CARDS>\n$export</CARDS>" if ($FORM{EXPORT} eq 'XML');
    	  
-      $export="<CARDS>\n$export</CARDS>" if ($FORM{EXPORT} eq 'XML');
-   	  print "<textarea cols='70' rows='30'>$export</textarea>\n";
+ 	    if ($FORM{qindex}){
+        $export = ($FORM{EXPORT} eq 'XML') ? "Content-Type: text/xml\n\n$export" : "Content-Type: text/plain\n\n$export";
+        print "$export";
+        return 0;
+   	   }
+   	  else {
+   	    $html->message('info', $_INFO, "$_ADDED: $added $_CARDS");
+   	    print "<textarea cols='70' rows='30'>$export</textarea>\n";
+   	   }
     }
  }
 elsif ($FORM{change}) {
@@ -297,7 +305,7 @@ sub cards_users_add () {
               }
             }
 
-           $export .= (defined($FORM{EXPORT}) && $FORM{EXPORT} eq 'XML') ? "<LOGIN>$USER_HASH{LOGIN}</LOGIN><PASSWORD>$USER_HASH{PASSWORD}</PASSWORD><ID>$serial</ID><EXPIRE>$FORM{EXPIRE}</EXPIRE>\n" : "$USER_HASH{LOGIN}\t$USER_HASH{PASSWORD}\t$serial\t$FORM{EXPIRE}$other\n";           
+           $export .= (defined($FORM{EXPORT}) && $FORM{EXPORT} eq 'XML') ? "<LOGIN>$USER_HASH{LOGIN}</LOGIN><PASSWORD>$USER_HASH{PASSWORD}</PASSWORD><ID>$serial</ID><EXPIRE>$FORM{EXPIRE}</EXPIRE>\n" : "$USER_HASH{LOGIN}\t$USER_HASH{PASSWORD}\t$serial\t$FORM{EXPIRE}$other\n";
 
            push @DATA_ARRAY, { %USER_HASH };
            $generated++;
@@ -335,7 +343,8 @@ sub cards_users_add () {
        	    $html->message('err', $_ERROR, "[$Cards->{errno}] $err_strs{$Cards->{errno}} $_LOGIN: '$login' / $_ADDED: $generated");
        	    return 0;
            }
-          $export .= ($FORM{EXPORT} eq 'XML') ? "<LOGIN>$login</LOGIN><PASSWORD>$password</PASSWORD><ID>$serial</ID><EXPIRE>$FORM{EXPIRE}</EXPIRE>\n" : "$login\t$password\t$serial\t$FORM{EXPIRE}\n";
+
+          $export .= ($FORM{EXPORT} eq 'XML') ? "<CARD LOGIN='$login' PASSWORD='$password' ID='$serial' EXPIRE='$FORM{EXPIRE}'/>\n" : "$login\t$password\t$serial\t$FORM{EXPIRE}\n";
   	      $LOGIN_NUMBER++;
   	      $generated++;
 
@@ -346,14 +355,21 @@ sub cards_users_add () {
  	      	                   };
   	   }
 
-    $html->message('info', $_INFO, "$_CREATE: $generated");
-
     if ($generated > 0) {
-       $export="<CARDS>\n$export</CARDS>" if ($FORM{EXPORT} eq 'XML');
-   	   print "<textarea cols='70' rows='30'>$export</textarea>\n";
+      $export="<?xml version=\"1.0\" encoding=\"$html->{CHARSET}\"?>\n<CARDS>\n$export</CARDS>" if ($FORM{EXPORT} eq 'XML');
+
+# 	    if ($FORM{qindex}){
+#        $export = ($FORM{EXPORT} eq 'XML') ? "Content-Type: text/xml\n\n$export" : "Content-Type: text/plain\n\n$export";
+#        print "$export";
+#        #return 0;
+#   	   }
+#   	  else {
+   	    $html->message('info', $_INFO, "$_CREATE: $generated");
+   	    print "<textarea cols='70' rows='30'>$export</textarea>\n";
+#   	   }
    	 }
    	  
-    return \@DATA_ARRAY;
+   return \@DATA_ARRAY;
  }
 elsif ($FORM{del}  && $FORM{is_js_confirmed} ) {
   $Cards->cards_users_del({ SERIA => $FORM{SERIA}  });
@@ -613,4 +629,7 @@ if ($Cards->{errno}) {
 }
 
 
+
+
+1
 

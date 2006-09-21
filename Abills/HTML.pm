@@ -95,7 +95,8 @@ sub new {
   $DESC = ($FORM{desc}) ? 'DESC' : '';
   $PG = $FORM{pg} || 0;
   $OP = $FORM{op} || '';
-
+  $self->{CHARSET}=(defined($attr->{CHARSET})) ? $attr->{CHARSET} : 'windows-1251';
+   
   if ($FORM{PAGE_ROWS}) {
   	$PAGE_ROWS = $FORM{PAGE_ROWS};
    }
@@ -700,7 +701,6 @@ sub header {
 
  my $css = css();
 
- my $CHARSET=(defined($attr->{CHARSET})) ? $attr->{CHARSET} : 'windows-1251';
  my $REFRESH = ($FORM{REFRESH}) ? "<META HTTP-EQUIV=\"Refresh\" CONTENT=\"$FORM{REFRESH}; URL=$ENV{REQUEST_URI}\"/>\n" : '';
 
 $self->{header} .= qq{
@@ -710,7 +710,7 @@ $self->{header} .= qq{
  $REFRESH
  <META HTTP-EQUIV="Cache-Control" content="no-cache"/>
  <META HTTP-EQUIV="Pragma" CONTENT="no-cache"/>
- <meta http-equiv="Content-Type" content="text/html; charset=$CHARSET"/>
+ <meta http-equiv="Content-Type" content="text/html; charset=$self->{CHARSET}"/>
  <meta name="Author" content="~AsmodeuS~"/>
 };
 

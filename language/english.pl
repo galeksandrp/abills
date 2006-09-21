@@ -301,6 +301,7 @@ $_SYMBOLS='Symbols';
 $_SERIAL='Serial';
 $_BRUTE_ATACK='Brute Attack';
 $_CHAPTERS='Chapter';
+$_DOWNLOAD='Download';
 
 $_DILLERS='Dillers';
 
