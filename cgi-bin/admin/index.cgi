@@ -2381,7 +2381,9 @@ elsif($FORM{newpassword} ne $FORM{confirm}) {
   $html->message('err', $_ERROR, $err_strs{5});
 }
 
-$password_form->{GEN_PASSWORD}=mk_unique_value(8);
+#$password_form->{GEN_PASSWORD}=mk_unique_value(8);
+$password_form->{PW_CHARS}="abcdefhjmnpqrstuvwxyz23456789ABCDEFGHJKLMNPQRSTUVWYXZ";
+$password_form->{PW_LENGTH}=8;
 $password_form->{ACTION}='change';
 $password_form->{LNG_ACTION}="$_CHANGE";
 $html->tpl_show(templates('form_password'), $password_form);

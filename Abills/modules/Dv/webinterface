@@ -278,7 +278,7 @@ sub dv_user {
 	  
     $Dv->{TP_ID}=$html->form_select('TP_ID', 
                                          { 
- 	                                          SELECTED  => $user->{TP_ID},
+ 	                                          SELECTED          => $user->{TP_ID},
  	                                          SEL_MULTI_ARRAY   => $tariffs->list(),
  	                                          MULTI_ARRAY_KEY   => 0,
  	                                          MULTI_ARRAY_VALUE => 1,
