@@ -988,4 +988,333 @@ sub video_check {
 }
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#**********************************************************
+# Add
+#**********************************************************
+sub chapter_add {
+  my $self = shift;
+  my ($attr) = @_;
+
+ 
+  %DATA = $self->get_data($attr); 
+
+  $self->query($db, "INSERT INTO filearch_chapters 
+     (id,
+      name,
+      type
+      )
+     values
+     ('$DATA{ID}',
+      '$DATA{NAME}',
+      '$DATA{TYPE}
+     );", 'do');
+
+  return $self;
+}
+
+#**********************************************************
+# list
+#**********************************************************
+sub chapter_list() {
+  my $self = shift;
+  my ($attr) = @_;
+
+  $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+  $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+  $PG   = ($attr->{PG}) ? $attr->{PG} : 0;
+  $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
+
+  undef @WHERE_RULES;
+  
+  if ($attr->{NAME}) {
+  	$attr->{NAME} =~ s/\*/\%/ig;
+    push @WHERE_RULES, "(f.name LIKE '$attr->{NAME}' or f.filename LIKE '$attr->{NAME}')";
+   }
+
+
+ $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : ''; 
+ 
+ 
+ $self->query($db, "SELECT  c.id,
+  c.name,
+  c.type
+   FROM filearch_chapters 
+    $WHERE
+    GROUP BY f.id
+    ORDER BY $SORT $DESC
+    LIMIT $PG, $PAGE_ROWS;");
+
+
+ my $list = $self->{list};
+
+ if ($self->{TOTAL} == $PAGE_ROWS || $PG > 0) {
+   $self->query($db, "SELECT count(DISTINCT f.id)
+     FROM filearch_chapters 
+     $WHERE
+   ;");
+ 
+   my $a_ref = $self->{list}->[0];
+   ($self->{TOTAL}) = @$a_ref;
+  }
+
+ return $list;
+}
+
+#**********************************************************
+# change
+#**********************************************************
+sub chapter_change {
+  my $self = shift;
+  my ($attr) = @_;
+
+
+  my %FIELDS = ( ID            => 'id',
+                 NAME          => 'name',
+                 TYPE          => 'type'
+                );   
+
+  
+  my $OLD_INFO = $self->video_info($attr->{ID}, $attr);
+  
+  if ($OLD_INFO->{EXT_INFO} < 1) {
+  	 $self->video_add($attr);
+  	 return $self;
+   }
+ 
+	$self->changes($admin, { CHANGE_PARAM => 'ID',
+		                       TABLE        => 'filearch_video',
+		                       FIELDS       => \%FIELDS,
+		                       OLD_INFO     => $OLD_INFO,
+		                       DATA         => $attr
+		                      } );
+ 
+  $self->film_genres_add({ ID => "$attr->{ID}", GENRE => $attr->{GENRES} }) if ($attr->{GENRES});
+  $self->film_actors_add( $attr ) if ($attr->{ACTORS});
+
+	return $self;
+}
+
+#**********************************************************
+# del
+#**********************************************************
+sub video_del {
+  my $self = shift;
+  my ($id) = @_;
+  $self->query($db, "DELETE FROM filearch_video WHERE id='$id';", 'do');
+  return $self;
+}
+
+
+1
+ ($id) = @_;
+  $self->query($db, "DELETE FROM filearch_video WHERE id='$id';", 'do');
+  return $self;
+}
+
+
+1
+shift;
+  my ($id) = @_;
+  $self->query($db, "DELETE FROM filearch_video WHERE id='$id';", 'do');
+  return $self;
+}
+
+
+1
+shift;
+  my ($id) = @_;
+  $self->query($db, "DELETE FROM filearch_video WHERE id='$id';", 'do');
+  return $self;
+}
+
+
+1
+shift;
+  my ($id) = @_;
+  $self->query($db, "DELETE FROM filearch_video WHERE id='$id';", 'do');
+  return $self;
+}
+
+
+1
+eo_del {
+  my $self = shift;
+  my ($id) = @_;
+  $self->query($db, "DELETE FROM filearch_video WHERE id='$id';", 'do');
+  return $self;
+}
+
+
+1
+eo_del {
+  my $self = shift;
+  my ($id) = @_;
+  $self->query($db, "DELETE FROM filearch_video WHERE id='$id';", 'do');
+  return $self;
+}
+
+
+1
+b video_del {
+  my $self = shift;
+  my ($id) = @_;
+  $self->query($db, "DELETE FROM filearch_video WHERE id='$id';", 'do');
+  return $self;
+}
+
+
+1
+b video_del {
+  my $self = shift;
+  my ($id) = @_;
+  $self->query($db, "DELETE FROM filearch_video WHERE id='$id';", 'do');
+  return $self;
+}
+
+
+1
+ub video_del {
+  my $self = shift;
+  my ($id) = @_;
+  $self->query($db, "DELETE FROM filearch_video WHERE id='$id';", 'do');
+  return $self;
+}
+
+
+1
+**
+sub video_del {
+  my $self = shift;
+  my ($id) = @_;
+  $self->query($db, "DELETE FROM filearch_video WHERE id='$id';", 'do');
+  return $self;
+}
+
+
+1
+**
+sub video_del {
+  my $self = shift;
+  my ($id) = @_;
+  $self->query($db, "DELETE FROM filearch_video WHERE id='$id';", 'do');
+  return $self;
+}
+
+
+1
+****************
+sub video_del {
+  my $self = shift;
+  my ($id) = @_;
+  $self->query($db, "DELETE FROM filearch_video WHERE id='$id';", 'do');
+  return $self;
+}
+
+
+1
+# del
+#**********************************************************
+sub video_del {
+  my $self = shift;
+  my ($id) = @_;
+  $self->query($db, "DELETE FROM filearch_video WHERE id='$id';", 'do');
+  return $self;
+}
+
+
+1
+**
+# del
+#**********************************************************
+sub video_del {
+  my $self = shift;
+  my ($id) = @_;
+  $self->query($db, "DELETE FROM filearch_video WHERE id='$id';", 'do');
+  return $self;
+}
+
+
+1
+**
+# del
+#**********************************************************
+sub video_del {
+  my $self = shift;
+  my ($id) = @_;
+  $self->query($db, "DELETE FROM filearch_video WHERE id='$id';", 'do');
+  return $self;
+}
+
+
+1
+**********
+# del
+#**********************************************************
+sub video_del {
+  my $self = shift;
+  my ($id) = @_;
+  $self->query($db, "DELETE FROM filearch_video WHERE id='$id';", 'do');
+  return $self;
+}
+
+
+1
+***********************************
+# del
+#**********************************************************
+sub video_del {
+  my $self = shift;
+  my ($id) = @_;
+  $self->query($db, "DELETE FROM filearch_video WHERE id='$id';", 'do');
+  return $self;
+}
+
+
+1
+***********************************
+# del
+#**********************************************************
+sub video_del {
+  my $self = shift;
+  my ($id) = @_;
+  $self->query($db, "DELETE FROM filearch_video WHERE id='$id';", 'do');
+  return $self;
+}
+
+
 1
