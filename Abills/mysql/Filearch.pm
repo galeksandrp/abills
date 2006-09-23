@@ -1050,7 +1050,7 @@ sub chapter_add {
 #**********************************************************
 # list
 #**********************************************************
-sub chapter_list() {
+sub chapters_list() {
   my $self = shift;
   my ($attr) = @_;
 
@@ -1073,9 +1073,9 @@ sub chapter_list() {
  $self->query($db, "SELECT  c.id,
   c.name,
   c.type
-   FROM filearch_chapters 
+   FROM filearch_chapters  c
     $WHERE
-    GROUP BY f.id
+    GROUP BY c.id
     ORDER BY $SORT $DESC
     LIMIT $PG, $PAGE_ROWS;");
 
@@ -1107,7 +1107,6 @@ sub chapter_change {
                  NAME          => 'name',
                  TYPE          => 'type'
                 );   
-
   
   my $OLD_INFO = $self->video_info($attr->{ID}, $attr);
   
@@ -1117,204 +1116,25 @@ sub chapter_change {
    }
  
 	$self->changes($admin, { CHANGE_PARAM => 'ID',
-		                       TABLE        => 'filearch_video',
+		                       TABLE        => 'filearch_chapters',
 		                       FIELDS       => \%FIELDS,
 		                       OLD_INFO     => $OLD_INFO,
 		                       DATA         => $attr
 		                      } );
  
-  $self->film_genres_add({ ID => "$attr->{ID}", GENRE => $attr->{GENRES} }) if ($attr->{GENRES});
-  $self->film_actors_add( $attr ) if ($attr->{ACTORS});
-
 	return $self;
 }
 
 #**********************************************************
 # del
 #**********************************************************
-sub video_del {
+sub chapter_del {
   my $self = shift;
   my ($id) = @_;
-  $self->query($db, "DELETE FROM filearch_video WHERE id='$id';", 'do');
+  $self->query($db, "DELETE FROM filearch_chapters WHERE id='$id';", 'do');
   return $self;
 }
 
-
-1
- ($id) = @_;
-  $self->query($db, "DELETE FROM filearch_video WHERE id='$id';", 'do');
-  return $self;
-}
-
-
-1
-shift;
-  my ($id) = @_;
-  $self->query($db, "DELETE FROM filearch_video WHERE id='$id';", 'do');
-  return $self;
-}
-
-
-1
-shift;
-  my ($id) = @_;
-  $self->query($db, "DELETE FROM filearch_video WHERE id='$id';", 'do');
-  return $self;
-}
-
-
-1
-shift;
-  my ($id) = @_;
-  $self->query($db, "DELETE FROM filearch_video WHERE id='$id';", 'do');
-  return $self;
-}
-
-
-1
-eo_del {
-  my $self = shift;
-  my ($id) = @_;
-  $self->query($db, "DELETE FROM filearch_video WHERE id='$id';", 'do');
-  return $self;
-}
-
-
-1
-eo_del {
-  my $self = shift;
-  my ($id) = @_;
-  $self->query($db, "DELETE FROM filearch_video WHERE id='$id';", 'do');
-  return $self;
-}
-
-
-1
-b video_del {
-  my $self = shift;
-  my ($id) = @_;
-  $self->query($db, "DELETE FROM filearch_video WHERE id='$id';", 'do');
-  return $self;
-}
-
-
-1
-b video_del {
-  my $self = shift;
-  my ($id) = @_;
-  $self->query($db, "DELETE FROM filearch_video WHERE id='$id';", 'do');
-  return $self;
-}
-
-
-1
-ub video_del {
-  my $self = shift;
-  my ($id) = @_;
-  $self->query($db, "DELETE FROM filearch_video WHERE id='$id';", 'do');
-  return $self;
-}
-
-
-1
-**
-sub video_del {
-  my $self = shift;
-  my ($id) = @_;
-  $self->query($db, "DELETE FROM filearch_video WHERE id='$id';", 'do');
-  return $self;
-}
-
-
-1
-**
-sub video_del {
-  my $self = shift;
-  my ($id) = @_;
-  $self->query($db, "DELETE FROM filearch_video WHERE id='$id';", 'do');
-  return $self;
-}
-
-
-1
-****************
-sub video_del {
-  my $self = shift;
-  my ($id) = @_;
-  $self->query($db, "DELETE FROM filearch_video WHERE id='$id';", 'do');
-  return $self;
-}
-
-
-1
-# del
-#**********************************************************
-sub video_del {
-  my $self = shift;
-  my ($id) = @_;
-  $self->query($db, "DELETE FROM filearch_video WHERE id='$id';", 'do');
-  return $self;
-}
-
-
-1
-**
-# del
-#**********************************************************
-sub video_del {
-  my $self = shift;
-  my ($id) = @_;
-  $self->query($db, "DELETE FROM filearch_video WHERE id='$id';", 'do');
-  return $self;
-}
-
-
-1
-**
-# del
-#**********************************************************
-sub video_del {
-  my $self = shift;
-  my ($id) = @_;
-  $self->query($db, "DELETE FROM filearch_video WHERE id='$id';", 'do');
-  return $self;
-}
-
-
-1
-**********
-# del
-#**********************************************************
-sub video_del {
-  my $self = shift;
-  my ($id) = @_;
-  $self->query($db, "DELETE FROM filearch_video WHERE id='$id';", 'do');
-  return $self;
-}
-
-
-1
-***********************************
-# del
-#**********************************************************
-sub video_del {
-  my $self = shift;
-  my ($id) = @_;
-  $self->query($db, "DELETE FROM filearch_video WHERE id='$id';", 'do');
-  return $self;
-}
-
-
-1
-***********************************
-# del
-#**********************************************************
-sub video_del {
-  my $self = shift;
-  my ($id) = @_;
-  $self->query($db, "DELETE FROM filearch_video WHERE id='$id';", 'do');
-  return $self;
-}
 
 
 1
