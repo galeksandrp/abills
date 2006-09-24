@@ -148,6 +148,7 @@ CREATE TABLE `docs_acct` (
   `acct_id` int(10) unsigned NOT NULL default '0',
   `uid` int(11) unsigned NOT NULL default '0',
   `aid` smallint(6) unsigned NOT NULL default '0',
+  `vat` double(5,2) unsigned NOT NULL default '0.00',
   PRIMARY KEY  (`id`)
 ) ;
 

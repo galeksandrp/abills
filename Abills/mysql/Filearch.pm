@@ -1030,18 +1030,20 @@ sub chapter_add {
   my $self = shift;
   my ($attr) = @_;
 
- 
   %DATA = $self->get_data($attr); 
-
   $self->query($db, "INSERT INTO filearch_chapters 
-     (id,
+     (
       name,
-      type
+      type,
+      dir,
+      skip
       )
      values
-     ('$DATA{ID}',
+     (
       '$DATA{NAME}',
-      '$DATA{TYPE}
+      '$DATA{TYPE}',
+      '$DATA{dir}',
+      '$DATA{skip}'
      );", 'do');
 
   return $self;
@@ -1072,7 +1074,8 @@ sub chapters_list() {
  
  $self->query($db, "SELECT  c.id,
   c.name,
-  c.type
+  c.type,
+  c.dir
    FROM filearch_chapters  c
     $WHERE
     GROUP BY c.id
@@ -1105,15 +1108,13 @@ sub chapter_change {
 
   my %FIELDS = ( ID            => 'id',
                  NAME          => 'name',
-                 TYPE          => 'type'
+                 TYPE          => 'type',
+                 DIR           => 'dir',
+                 SKIP          => 'skip',
+                 COMMENTS      => 'comments'
                 );   
   
-  my $OLD_INFO = $self->video_info($attr->{ID}, $attr);
-  
-  if ($OLD_INFO->{EXT_INFO} < 1) {
-  	 $self->video_add($attr);
-  	 return $self;
-   }
+  my $OLD_INFO = $self->chapter_info($attr->{ID}, $attr);
  
 	$self->changes($admin, { CHANGE_PARAM => 'ID',
 		                       TABLE        => 'filearch_chapters',
@@ -1134,6 +1135,43 @@ sub chapter_del {
   $self->query($db, "DELETE FROM filearch_chapters WHERE id='$id';", 'do');
   return $self;
 }
+
+
+#**********************************************************
+# Info
+#**********************************************************
+sub chapter_info {
+  my $self = shift;
+  my ($id, $attr) = @_;
+  
+  $self->query($db, "SELECT c.id,
+         c.name,
+         c.type,
+         c.dir,
+         c.skip
+  FROM filearch_chapters c
+   WHERE c.id='$id'
+ GROUP BY c.id;");
+
+  if ($self->{TOTAL} < 1) {
+     $self->{errno} = 2;
+     $self->{errstr} = 'ERROR_NOT_EXIST';
+     return $self;
+   }
+
+  my $ar = $self->{list}->[0];
+  
+  ($self->{ID},
+   $self->{NAME},
+   $self->{TYPE},
+   $self->{DIR},
+   $self->{SKIP}
+  ) = @$ar;
+
+
+  return $self;
+}
+
 
 
 

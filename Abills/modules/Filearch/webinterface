@@ -897,6 +897,11 @@ sub filearch_ext_check {
 #*******************************************************************
 sub filearch_chapters {
 
+  $Filearch->{debug}=1;
+  $Filearch->{ACTION}='add';
+  $Filearch->{LNG_ACTION}=$_ADD;
+
+
 if ($FORM{add}) {
   $Filearch->chapter_add({ %FORM });
 	if (! $Filearch->{errno}) {
@@ -918,6 +923,7 @@ elsif ($FORM{ID}) {
   $Filearch->{LNG_ACTION}=$_CHANGE;
  }
 elsif ($FORM{del} && $FORM{is_js_confirmed} ) {
+	$Filearch->chapter_del($FORM{del});
 	if (! $Filearch->{errno}) {
     $html->message('info', $_INFO, "$_CHANGING ");	
    }
@@ -929,6 +935,12 @@ if ($Filearch->{errno}) {
  }	
 
 
+$Filearch->{TYPE_SEL}=$html->form_select('TYPE', {
+  	                           	          SELECTED          => $type,
+ 	                                        SEL_ARRAY         => [ 'Video', 'MP3', 'Files' ],
+ 	                                        NO_ID             => 1
+  	                                    }),
+
 
 $html->tpl_show(_include('filearch_chapters', 'Filearch'), $Filearch);
 my $list = $Filearch->chapters_list({ %LIST_PARAMS });
@@ -936,8 +948,8 @@ my $list = $Filearch->chapters_list({ %LIST_PARAMS });
 $table = $html->table( { width       => '100%',
                          caption     => "$_CHAPTERS",
                          border      => 1,
-                         title       => ["$_NAME", "$_NAME", "$_TYPE" ],
-                         cols_align  => ['left',  'right', 'left', 'left', 'center:noprint', 'center:noprint' ],
+                         title       => ["ID", "$_NAME", "$_TYPE", "$_FOLDER", '-', '-' ],
+                         cols_align  => ['right', 'left', 'left', 'center:noprint', 'center:noprint' ],
                          qs          => $pages_qs,
                        });
 
@@ -945,9 +957,9 @@ foreach my $line (@$list)  {
   $table->addrow( $line->[0],
     		          $line->[1],
   	  	          $line->[2],
-  		            $line->[3],
-  		            $html->button("$_SHOW", "index=$index&ID=$line->[4]"), 
-  		           $html->button($_DEL, "index=$index$pages_qs&del=$line->[4]", { MESSAGE => "$_DEL [$line->[0]] ?" })
+  	  	          $line->[3],
+  		            $html->button("$_SHOW", "index=$index&ID=$line->[0]"), 
+  		           $html->button($_DEL, "index=$index$pages_qs&del=$line->[0]", { MESSAGE => "$_DEL [$line->[0]] ?" })
   		           );
  }
 
