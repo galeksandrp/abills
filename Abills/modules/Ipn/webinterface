@@ -1689,27 +1689,6 @@ print $html->make_charts({
   });
 
 
-
-#$table = $html->table( { width       => '100%',
-#                         caption     => "Online",
-#                         border      => 1,
-#                         title_plain => ["$_NUM", "$_FIO",  '' ],
-#                         cols_align  => ['left', 'left', 'left'],
-#                      } );
-#
-#foreach my $line ( keys %sessions_remaining ) {
-#	my ($user, $comp_number)=split(/:/, $line, 2);
-#	#my $sessions_remaining{"$line"}
-#	my $width = int($sessions_remaining{"$line"});
-#	my $img = "<img src='' width='$width' border='0' height='5' alt='' title=''> $width";
-#	$table->addrow("$comp_number", "$user",  $img
-#	
-#	 );
-#}
-#
-#
-#print $table->show();
-
 }
 
 

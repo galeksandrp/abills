@@ -28,11 +28,11 @@ sub abon_user {
  
 
 my $list = $Abon->user_tariff_list($FORM{UID});
-my $table = $html->table( { width => '100%',
-                            caption => "$_ABON",
-                            title => ['-', $_NAME, $_SUM, $_PERIOD, $_DATE ],
+my $table = $html->table( { width      => '100%',
+                            caption    => "$_ABON",
+                            title      => ['-', $_NAME, $_SUM, $_PERIOD, $_DATE ],
                             cols_align => ['left', 'right', 'left', 'center', 'center'],
-                            qs => $pages_qs,
+                            qs         => $pages_qs,
                            });
 
 
@@ -119,9 +119,8 @@ sub abon_tariffs {
 #  $Abon = $Abon->defaults();
   $Abon->{ACTION}='add';
   $Abon->{ACTION_LNG}=$_ADD;
-
+  my @Payment_Types    = ($_PREPAID, $_POSTPAID); 
   
-
   if ($FORM{add}) {
     $Abon->tariff_add({ %FORM });  
     if (! $Abon->{errno}){
@@ -197,27 +196,34 @@ sub abon_tariffs {
  	                                          
  	                                        });
 
+  $Abon->{PAYMENT_TYPE_SEL} =  $html->form_select('PAYMENT_TYPE', 
+                                { SELECTED      => $Abon->{PAYMENT_TYPE} || $FORM{PAYMENT_TYPE},
+ 	                                SEL_ARRAY     => [$_PREPAID, $_POSTPAID],
+ 	                                ARRAY_NUM_ID  => 'y'
+ 	                               });
+
   $html->tpl_show(_include('abon_tp', 'Abon'), $Abon);
 
  my $list = $Abon->tariff_list();
- my $table = $html->table( { width => '100%',
-                            caption => "$_ABON",
-                            title => [$_NAME, $_SUM, $_PERIOD, $_USERS, '-', '-'],
+ my $table = $html->table( { width     => '100%',
+                            caption    => "$_ABON",
+                            title      => [$_NAME, $_SUM, $_PERIOD, $_PAYMENT_TYPE, $_USERS, '-', '-'],
                             cols_align => ['left', 'right', 'left', 'right', 'center', 'center'],
-                            qs => $pages_qs,
+                            qs         => $pages_qs,
                            });
 
 
 my $delete = '';
 foreach my $line (@$list) {
   if ($permissions{4}{1}) {
-    $delete = $html->button($_DEL, "index=$index&del=$line->[4]", { MESSAGE => "$_DEL $line->[0]?" }); 
+    $delete = $html->button($_DEL, "index=$index&del=$line->[5]", { MESSAGE => "$_DEL $line->[0]?" }); 
    }
-  $table->addrow($html->button("$line->[0]", "index=$index&ABON_ID=$line->[4]"), 
+  $table->addrow($html->button("$line->[0]", "index=$index&ABON_ID=$line->[5]"), 
      "$line->[1]", 
      $PERIODS[$line->[2]], 
-     $line->[3], 
-     $html->button("$_CHANGE", "index=$index&ABON_ID=$line->[4]"), 
+     $Payment_Types[$line->[3]], 
+     $line->[4], 
+     $html->button("$_CHANGE", "index=$index&ABON_ID=$line->[5]"), 
      $delete
    );
  }

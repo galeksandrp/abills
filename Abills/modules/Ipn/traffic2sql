@@ -80,7 +80,7 @@ if (-f $log) {
   my $flow_dir = ($ARGV->{flowdir}) ? $var_dir."log/ipn/" : '';
 
   #Get flow tools files
-  opendir DIR, $flow_dir or die "Can't open dir '$var_dir/log/ipn/' $!\n";
+  opendir DIR, $flow_dir or die "Can't open dir '$flow_dir' $!\n";
     my @contents = grep  /^ft*/, readdir DIR;
   closedir DIR;
 

@@ -58,6 +58,7 @@ sub tariff_info {
    name,
    period,
    price,
+   payment_type,
    id
      FROM abon_tariffs
    $WHERE;");
@@ -73,6 +74,7 @@ sub tariff_info {
   ($self->{NAME},
    $self->{PERIOD},
    $self->{SUM}, 
+   $self->{PAYMENT_TYPE},
    $self->{ABON_ID}
   )= @$ar;
   
@@ -110,8 +112,8 @@ sub tariff_add {
   
   %DATA = $self->get_data($attr); 
 
-  $self->query($db,  "INSERT INTO abon_tariffs (id, name, period, price)
-        VALUES ('$DATA{ID}', '$DATA{NAME}', '$DATA{PERIOD}', '$DATA{SUM}');", 'do');
+  $self->query($db,  "INSERT INTO abon_tariffs (id, name, period, price, payment_type)
+        VALUES ('$DATA{ID}', '$DATA{NAME}', '$DATA{PERIOD}', '$DATA{SUM}', '$DATA{PAYMENT_TYPE}');", 'do');
 
   return $self if ($self->{errno});
 #  $admin->action_add($DATA{UID}, "ADDED");
@@ -129,9 +131,10 @@ sub tariff_change {
   my ($attr) = @_;
   
   my %FIELDS = (ABON_ID        => 'id',
-              NAME				=> 'name',
-              PERIOD      => 'period',
-              SUM         => 'price'
+              NAME				     => 'name',
+              PERIOD           => 'period',
+              SUM              => 'price',
+              PAYMENT_TYPE     => 'payment_type'
              );
 
   $self->changes($admin,  { CHANGE_PARAM => 'ABON_ID',
@@ -172,7 +175,7 @@ sub tariff_list {
 # push @WHERE_RULES, "u.uid = service.uid";
 # $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
  
- $self->query($db, "SELECT name, price, period, count(ul.uid), id 
+ $self->query($db, "SELECT name, price, period, payment_type, count(ul.uid), id 
      FROM abon_tariffs
      LEFT JOIN abon_user_list ul ON (abon_tariffs.id=ul.tp_id)
      GROUP BY id
