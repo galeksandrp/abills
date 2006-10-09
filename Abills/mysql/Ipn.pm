@@ -173,7 +173,8 @@ sub user_status {
     framed_ip_address, 
     CID, 
     CONNECT_INFO, 
-    nas_id)
+    nas_id
+)
     values (
     '$DATA->{ACCT_STATUS_TYPE}', 
     \"$DATA->{USER_NAME}\", 
@@ -1345,7 +1346,7 @@ sub comps_list {
  my $self = shift;
  my ($attr) = @_;
  
-  $self->query($db, "SELECT id, name, INET_NTOA(ip), cid FROM ipn_club_comps
+ $self->query($db, "SELECT number, name, INET_NTOA(ip), cid, id FROM ipn_club_comps
   ORDER BY $SORT $DESC ;");
  
   my $list = $self->{list};
@@ -1359,8 +1360,8 @@ sub comps_add {
  my $self = shift;
  my ($attr) = @_;
 
-  $self->query($db, "INSERT INTO ipn_club_comps (name, ip, cid)
-  values ('$attr->{NAME}', INET_ATON('$attr->{IP}'), '$attr->{CID}');", 'do');
+  $self->query($db, "INSERT INTO ipn_club_comps (number, name, ip, cid)
+  values ('$attr->{NUMBER}', '$attr->{NAME}', INET_ATON('$attr->{IP}'), '$attr->{CID}');", 'do');
 
 }
 
@@ -1372,6 +1373,7 @@ sub comps_info {
  my ($id) = @_;
  
   $self->query($db, "SELECT 
+  number,
   name,
   INET_NTOA(ip),
   cid
@@ -1379,7 +1381,8 @@ sub comps_info {
   WHERE id='$id';");
 
   my $a_ref = $self->{list}->[0];
-  ($self->{NAME},
+  ($self->{NUMBER},
+   $self->{NAME},
    $self->{IP},
    $self->{CID}
    ) = @$a_ref;
@@ -1394,10 +1397,11 @@ sub comps_change {
  my $self = shift;
  my ($attr) = @_;
  
- 	my %FIELDS = (ID    => 'id',
-	              NAME  => 'name', 
-	              IP    => 'ip',
-	              CID   => 'cid'); 
+ 	my %FIELDS = (NUMBER => 'number',
+ 	              ID     => 'id',
+	              NAME   => 'name', 
+	              IP     => 'ip',
+	              CID    => 'cid'); 
 
 
 

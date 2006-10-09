@@ -96,8 +96,8 @@ sub online {
 	my $self = shift;
 	my ($attr) = @_;
 
- my $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
- my $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+ $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+ $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
  
  my $WHERE;
  

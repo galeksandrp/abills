@@ -734,7 +734,7 @@ foreach my $nas_row (@$nas_list) {
 
 my $table2 = $html->table( { width      => '100%',
                              cols_align => ['left', 'right', 'right', 'right']
-                               } );
+                         } );
 
 $table2->addtd(   $table->td($_TOTAL, { bgcolor => $_COLORS[0] }), 
                   $table->td($sessions->{TOTAL}, { bgcolor => $_COLORS[0] }), 
@@ -757,17 +757,17 @@ $table = $html->table( { width       => '100%',
 
 if ($FORM{ZAPED}) {
   $output = $html->form_main({ CONTENT => $output,
-	                       HIDDEN  => { index => "$index",
-	                       	            ZAPED => 1 },
-	                       SUBMIT  => { go    => "$_DEL" },
-	                       METHOD  => 'GET'
-                        });
+	                             HIDDEN  => { index => "$index",
+	                       	                  ZAPED => 1 },
+	                             SUBMIT  => { go    => "$_DEL" },
+	                             METHOD  => 'GET'
+                            });
  }
 else {
   $output .= $html->form_main({ CONTENT => $table->show(),
 	                              HIDDEN  => { index =>  "$index" },
 	                              METHOD  => 'GET'
-                        });
+                              });
 
   $output .= $html->button('Zap All', "index=$index&zapall=y", { MESSAGE => "Do you realy want zap all sessions ?" });
  }
@@ -937,7 +937,7 @@ my %CAPTIONS_HASH = ('1:DATE'            => $_DATE,
 my ($tables_sessions);
 my $output = '';
 
-my %DATA_HASH = (  	 	             );
+my %DATA_HASH = ();
 my %CHART = ();
 my %AVG = (MONEY    => 0,
            TRAFFIC  => 0,
@@ -1113,7 +1113,7 @@ $output = $html->make_charts({
 	 AVG        => \%AVG,
 	 TYPE       => ['area', 'area'],
 	 TRANSITION => 1,
-   OUTPUT2RETURN => 1	 
+   OUTPUT2RETURN => 1
   });
 
 
