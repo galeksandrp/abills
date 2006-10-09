@@ -77,7 +77,7 @@ if (-f $log) {
 
 # GEt information from flowtools
 
-  my $flow_dir = ($ARGV->{flowdir}) ? $var_dir."log/ipn/" : '';
+  my $flow_dir = ($ARGV->{flowdir}) ? $ARGV->{flowdir} : $var_dir."log/ipn/";
 
   #Get flow tools files
   opendir DIR, $flow_dir or die "Can't open dir '$flow_dir' $!\n";
