@@ -316,7 +316,8 @@ sub periodic_list {
   if(c.name IS NULL, b.deposit, cb.deposit),
   if(u.company_id > 0, c.credit, u.credit),
   u.disable,
-  at.id
+  at.id,
+  at.payment_type
   FROM abon_tariffs at, `abon_user_list` al, users u
      LEFT JOIN bills b ON (u.bill_id=b.id)
      LEFT JOIN companies c ON (u.company_id=c.id)

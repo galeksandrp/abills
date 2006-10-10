@@ -244,7 +244,6 @@ sub abon_periodic {
   
   
   my $fees = Fees->new($db, $admin, \%conf);
-
   my $list = $Abon->periodic_list({ %LIST_PARAMS });
 
  #at.period, at.price, u.uid, if(u.company_id > 0, c.bill_id, u.bill_id),
@@ -257,13 +256,12 @@ sub abon_periodic {
  $m--;
 
  foreach my $line (@$list) {
- 
- #print "<br>$line->[0], $line->[1], $line->[2], $line->[3], $line->[4], $line->[5], $line->[6], DEPOSIT: $line->[7], CREDIT: $line->[8], DISABLE: $line->[9] -";
+ print "<br>$line->[0], $line->[1], $line->[2], $line->[3], $line->[4], $line->[5], $line->[6], DEPOSIT: $line->[7], CREDIT: $line->[8], DISABLE: $line->[9] -\n";
  
 
   if (defined($line->[7])) {
      my %user = (
-       UID => $line->[2],
+       UID     => $line->[2],
        BILL_ID => $line->[3]
       );
 
@@ -271,7 +269,7 @@ sub abon_periodic {
     $PARAMS{DATE}=$DATE if ($DATE ne '');
 
 
-    if($line->[7] + $line->[8] > 0 || $line->[9] == 0) {
+    if(($line->[7] + $line->[8] > 0 || $line->[11] == 1) && $line->[9] == 0) {
      	if ($line->[0] == 0) {
          $fees->take(\%user, $line->[1], { %PARAMS } ); 
          $Abon->user_tariff_update({ UID => "$line->[2]", TP_ID => "$line->[10]", DATE => $DATE, });
