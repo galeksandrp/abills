@@ -252,11 +252,11 @@ sub abon_periodic {
  # if(u.company_id > 0, c.credit, u.credit),
  # disable,
  # at.id 
- my ($y, $m, $d)=split(/-/, $DATE, 3);
+ my ($y, $m, $d)=split(/-/, $ADMIN_REPORT{DATE}, 3);
  $m--;
 
  foreach my $line (@$list) {
- print "<br>$line->[0], $line->[1], $line->[2], $line->[3], $line->[4], $line->[5], $line->[6], DEPOSIT: $line->[7], CREDIT: $line->[8], DISABLE: $line->[9] -\n";
+    #print "<br>$line->[0], $line->[1], $line->[2], $line->[3], $line->[4], $line->[5], $line->[6], DEPOSIT: $line->[7], CREDIT: $line->[8], DISABLE: $line->[9] PAYMENT_TYPE: $line->[11]-\n";
  
 
   if (defined($line->[7])) {
@@ -267,7 +267,6 @@ sub abon_periodic {
 
     my %PARAMS = ( DESCRIBE => "ABON: [$line->[10]] $line->[6]" );
     $PARAMS{DATE}=$DATE if ($DATE ne '');
-
 
     if(($line->[7] + $line->[8] > 0 || $line->[11] == 1) && $line->[9] == 0) {
      	if ($line->[0] == 0) {
