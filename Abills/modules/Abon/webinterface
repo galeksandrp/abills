@@ -278,12 +278,12 @@ sub abon_periodic {
        }
     	elsif ($line->[0] == 1 && ($d == 1)) {
          $fees->take(\%user, $line->[1], { %PARAMS } ); 
-         $Abon->user_tariff_update({ UID => "$line->[2]", DATE => $DATE, TP_ID => "$line->[9]" });
+         $Abon->user_tariff_update({ UID => "$line->[2]", DATE => $DATE, TP_ID => "$line->[10]" });
          #print "Month Fee $d<Br>\n"; 
        }
   	  elsif ($line->[0] == 2 && ($m == 0 && $d == 1)) {
          $fees->take(\%user, $line->[1], { %PARAMS } ); 
-         $Abon->user_tariff_update({ UID => "$line->[2]", DATE => $DATE, TP_ID => "$line->[9]" });
+         $Abon->user_tariff_update({ UID => "$line->[2]", DATE => $DATE, TP_ID => "$line->[10]" });
          #print "Year fee $m $d<Br>\n"; 
        }
      }
