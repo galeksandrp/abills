@@ -79,11 +79,11 @@ sub abon_user_list {
 
 
  my $list = $Abon->user_list({ %LIST_PARAMS });
- my $table = $html->table( { width => '100%',
-                            caption => "$_ABON",
-                            title => [$_LOGIN, $_FIO, $_TARIF_PLAN, $_DATE],
+ my $table = $html->table( { width     => '100%',
+                            caption    => "$_ABON",
+                            title      => [$_LOGIN, $_FIO, $_TARIF_PLAN, $_DATE],
                             cols_align => ['left', 'right', 'left', 'right'],
-                            qs => $pages_qs,
+                            qs         => $pages_qs,
                            });
 
 
@@ -150,8 +150,9 @@ sub abon_tariffs {
                                           { 
  	                                          SELECTED  => $FORM{ABON_ID},
  	                                          SEL_MULTI_ARRAY   => $Abon->tariff_list(),
- 	                                          MULTI_ARRAY_KEY   => 4,
+ 	                                          MULTI_ARRAY_KEY   => 5,
  	                                          MULTI_ARRAY_VALUE => 0,
+ 	                                          NO_ID             => 1
  	                                        }),
 	                       HIDDEN  => { index => "$index" },
 	                       SUBMIT  => { show   => "$_SHOW"} 
@@ -222,7 +223,7 @@ foreach my $line (@$list) {
      "$line->[1]", 
      $PERIODS[$line->[2]], 
      $Payment_Types[$line->[3]], 
-     $line->[4], 
+     $html->button("$line->[4]", "index=". ($index-2). "&ABON_ID=$line->[5]"), 
      $html->button("$_CHANGE", "index=$index&ABON_ID=$line->[5]"), 
      $delete
    );

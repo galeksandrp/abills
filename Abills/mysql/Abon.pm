@@ -34,6 +34,7 @@ sub new {
   $admin->{MODULE}=$MODULE;
   my $self = { };
   bless($self, $class);
+  
   return $self;
 }
 
@@ -178,7 +179,7 @@ sub tariff_list {
  $self->query($db, "SELECT name, price, period, payment_type, count(ul.uid), id 
      FROM abon_tariffs
      LEFT JOIN abon_user_list ul ON (abon_tariffs.id=ul.tp_id)
-     GROUP BY id
+     GROUP BY abon_tariffs.id
      ORDER BY $SORT $DESC;");
 
   return $self->{list};
@@ -228,12 +229,12 @@ sub user_list {
  if ($self->{TOTAL} > 0) {
     $self->query($db, "SELECT count(*)
      FROM users u, abon_user_list ul, abon_tariffs at
-     $WHERE
-     GROUP BY at.id");
+     $WHERE");
 
     my $a_ref = $self->{list}->[0];
     ($self->{TOTAL}) = @$a_ref;
    }
+
 
 
  return $list;
