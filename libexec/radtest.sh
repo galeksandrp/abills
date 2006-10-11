@@ -12,8 +12,8 @@ if [ t$1 = 'tauth' ] ; then
 
   ./rauth.pl \
         SERVICE_TYPE=VPN \
-        USER_NAME="20194:00001"\
-        USER_PASSWORD="testtest"\
+        USER_NAME="aa1"\
+        USER_PASSWORD="test12345"\
          CALLING_STATION_ID="10.10.10.2" \
         NAS_IP_ADDRESS=192.168.202.13 \
 #        NAS-Port-Type = Virtual \
@@ -54,52 +54,50 @@ if [ t$1 = 'tauth' ] ; then
 elif [ t$1 = 'tacct' ]; then
    echo "Accounting test";
 
-  ./racct.pl \
+  if [ t$2 = 'tStart' ]; then
+   echo Start;
+   ./racct.pl \
         USER_NAME="aa1" \
         SERVICE_TYPE=Framed-User \
         FRAMED_PROTOCOL=PPP \
         FRAMED_IP_ADDRESS=10.0.0.1 \
         FRAMED_IP_NETMASK=0.0.0.0 \
         CALLING_STATION_ID="192.168.101.4" \
-        NAS_IP_ADDRESS=192.168.101.17 \
+        NAS_IP_ADDRESS=192.168.202.13 \
+        NAS_IDENTIFIER="media.intranet" \
+        NAS_PORT_TYPE=Virtual \
+        ACCT_STATUS_TYPE=Start \
+        ACCT_SESSION_ID="83419_AA11118757979" \
+        USER_NAME="aa1" \
+
+   elif [ t$2 = 'tStop' ] ; then
+      echo Stop;
+      ./racct.pl \
+        USER_NAME="aa1" \
+        SERVICE_TYPE=Framed-User \
+        FRAMED_PROTOCOL=PPP \
+        FRAMED_IP_ADDRESS=10.0.0.1 \
+        FRAMED_IP_NETMASK=0.0.0.0 \
+        CALLING_STATION_ID="192.168.101.4" \
+        NAS_IP_ADDRESS=192.168.202.13 \
         NAS_IDENTIFIER="media.intranet" \
         NAS_PORT_TYPE=Virtual \
         ACCT_STATUS_TYPE=Stop \
         ACCT_SESSION_ID="83419_AA11118757979" \
         USER_NAME="aa1" \
         ACCT_DELAY_TIME=0 \
-        ACCT_INPUT_OCTETS=13409 \
+        ACCT_INPUT_OCTETS=11332409 \
         ACCT_INPUT_GIGAWORDS=0 \
-        ACCT_INPUT_PACKETS=25 \
-        ACCT_OUTPUT_OCTETS=0 \
+        ACCT_INPUT_PACKETS=125 \
+        ACCT_OUTPUT_OCTETS=10343000 \
         ACCT_OUTPUT_GIGAWORDS=0 \
         ACCT_OUTPUT_PACKETS=0 \
-        ACCT_SESSION_TIME=113975 \
+        ACCT_SESSION_TIME=1200 \
 
 
 
-#      ACCT_SESSION_ID=sessin_82762626 \
-#      USER_NAME="aa1" \
-#      FRAMED_IP_ADDRESS=192.168.101.200 \
-#      NAS_IP_ADDRESS=192.168.101.132 \
-#      ACCT_STATUS_TYPE=Alive \
-#      ACCT_SESSION_TIME=1000 \
-#      ACCT_TERMINATE_CAUSE=0 \
-#      ACCT_INPUT_OCTETS=3000 \
-#      ACCT_OUTPUT_OCTETS=231726 \
-#      CALLING_STATION_ID="" \
-#      SERVICE_TYPE="Framed-User" \
+   fi
 
-#      NAS_PORT=10 \
-#      EXPPP_ACCT_ITERIUMIN_OCTETS=0 \
-#      EXPPP_ACCT_ITERIUMOUT_OCTETS=0 \
-#      EXPPP_ACCT_LOCALITERIUMIN_OCTETS=0 \
-#      EXPPP_ACCT_LOCALITERIUMOUT_OCTETS=0 \
-#      EXPPP_ACCT_LOCALINPUT_OCTETS=0 \
-#      EXPPP_ACCT_LOCALOUTPUT_OCTETS=0 \
-
-
- 
 
 elif [ t$1 = 'tacctgt' ]; then
 

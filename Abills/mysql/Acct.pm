@@ -68,9 +68,15 @@ sub accounting {
     
 #Start
 if ($acct_status_type == 1) { 
+  #Get TP_ID
+  $self->query($db, "SELECT dv.tp_id FROM users u, dv_main dv
+    WHERE u.uid=dv.uid and u.id='$RAD->{USER_NAME}';");
+  ($self->{TP_ID})= @{ $self->{list}->[0] };
+
+  # 
   my $sql = "INSERT INTO dv_calls
    (status, user_name, started, lupdated, nas_ip_address, nas_port_id, acct_session_id, acct_session_time,
-    acct_input_octets, acct_output_octets, framed_ip_address, CID, CONNECT_INFO, nas_id)
+    acct_input_octets, acct_output_octets, framed_ip_address, CID, CONNECT_INFO, nas_id, tp_id)
     values ('$acct_status_type', 
     \"$RAD->{USER_NAME}\", 
     $SESSION_START, 
@@ -81,24 +87,21 @@ if ($acct_status_type == 1) {
      INET_ATON('$RAD->{FRAMED_IP_ADDRESS}'), 
     '$RAD->{CALLING_STATION_ID}', 
     '$RAD->{CONNECT_INFO}', 
-    '$NAS->{NAS_ID}');";
+    '$NAS->{NAS_ID}',
+    '$self->{TP_ID}');";
 
 
   $self->query($db, "$sql", 'do');
-      
  }
 # Stop status
 elsif ($acct_status_type == 2) {
 
-
   my $Billing = Billing->new($db, $conf);	
 
-  
   
   if ($burn_billing == 1) {
     $self->burn_billing($RAD, $NAS);
     
-
     $self->query($db, "INSERT INTO dv_log (uid, start, tp_id, duration, sent, recv, minp, kb,  sum, nas_id, port_id,
         ip, CID, sent2, recv2, acct_session_id, 
         bill_id,
@@ -109,61 +112,74 @@ elsif ($acct_status_type == 2) {
         '$RAD->{OUTBYTE2}', '$RAD->{INBYTE2}',  \"$RAD->{ACCT_SESSION_ID}\", 
         '$self->{BILL_ID}',
         '$RAD->{ACCT_TERMINATE_CAUSE}');", 'do');
-    
-    
-  }
-  else {
-  ($self->{UID}, 
-  $self->{SUM}, 
-  $self->{BILL_ID}, 
-  $self->{TARIF_PLAN}, 
-  $self->{TIME_TARIF}, 
-  $self->{TRAF_TARIF}) = $Billing->session_sum("$RAD->{USER_NAME}", 
-                                                $RAD->{SESSION_START}, 
-                                                $RAD->{ACCT_SESSION_TIME}, 
-                                                $RAD);
-
-#  return $self;
-  if ($self->{UID} == -2) {
-    $self->{errno}  = 1;   
-    $self->{errstr} = "ACCT [$RAD->{USER_NAME}] Not exist";
-   }
-  elsif($self->{UID} == -3) {
-    my $filename   = "$RAD->{USER_NAME}.$RAD->{ACCT_SESSION_ID}";
-    $self->{errno} = 1;
-    $self->{errstr}= "ACCT [$RAD->{USER_NAME}] Not allow start period '$filename'";
-    $Billing->mk_session_log($RAD);
-   }
-  elsif ($self->{SUM} < 0) {
-    $self->{LOG_DEBUG} =  "ACCT [$RAD->{USER_NAME}] small session ($RAD->{ACCT_SESSION_TIME}, $RAD->{INBYTE}, $RAD->{OUTBYTE})";
-   }
-  elsif ($self->{UID} <= 0) {
-    $self->{LOG_DEBUG} =  "ACCT [$RAD->{USER_NAME}] small session ($RAD->{ACCT_SESSION_TIME}, $RAD->{INBYTE}, $RAD->{OUTBYTE}), $self->{UID}";
    }
   else {
-    $self->query($db, "INSERT INTO dv_log (uid, start, tp_id, duration, sent, recv, minp, kb,  sum, nas_id, port_id,
-        ip, CID, sent2, recv2, acct_session_id, 
-        bill_id,
-        terminate_cause) 
-        VALUES ('$self->{UID}', FROM_UNIXTIME($RAD->{SESSION_START}), '$self->{TARIF_PLAN}', '$RAD->{ACCT_SESSION_TIME}', 
-        '$RAD->{OUTBYTE}', '$RAD->{INBYTE}', '$self->{TIME_TARIF}', '$self->{TRAF_TARIF}', '$self->{SUM}', '$NAS->{NAS_ID}',
-        '$RAD->{NAS_PORT}', INET_ATON('$RAD->{FRAMED_IP_ADDRESS}'), '$RAD->{CALLING_STATION_ID}',
-        '$RAD->{OUTBYTE2}', '$RAD->{INBYTE2}',  \"$RAD->{ACCT_SESSION_ID}\", 
-        '$self->{BILL_ID}',
-        '$RAD->{ACCT_TERMINATE_CAUSE}');", 'do');
+    my %EXT_ATTR = ();
+    
+    #Get connected TP
+    $self->query($db, "SELECT tp_id FROM dv_calls
+      WHERE
+      acct_session_id=\"$RAD->{ACCT_SESSION_ID}\" and 
+      user_name=\"$RAD->{USER_NAME}\" and
+      nas_id='$NAS->{NAS_ID}';");
 
-    if ($self->{errno}) {
-      my $filename = "$RAD->{USER_NAME}.$RAD->{ACCT_SESSION_ID}";
-      $self->{LOG_WARNING}="ACCT [$RAD->{USER_NAME}] Making accounting file '$filename'";
+    ($EXT_ATTR{TP_ID}) = @{ $self->{list}->[0] } if ($self->{TOTAL} > 0);
+  
+    ($self->{UID}, 
+     $self->{SUM}, 
+     $self->{BILL_ID}, 
+     $self->{TARIF_PLAN}, 
+     $self->{TIME_TARIF}, 
+     $self->{TRAF_TARIF}) = $Billing->session_sum("$RAD->{USER_NAME}", 
+                                                   $RAD->{SESSION_START}, 
+                                                   $RAD->{ACCT_SESSION_TIME}, 
+                                                   $RAD, 
+                                                   \%EXT_ATTR );
+
+  #  return $self;
+    if ($self->{UID} == -2) {
+      $self->{errno}  = 1;   
+      $self->{errstr} = "ACCT [$RAD->{USER_NAME}] Not exist";
+     }
+    elsif($self->{UID} == -3) {
+      my $filename   = "$RAD->{USER_NAME}.$RAD->{ACCT_SESSION_ID}";
+      $RAD->{SQL_ERROR}="$Billing->{errno}:$Billing->{errstr}";
+      $self->{errno} = 1;
+      $self->{errstr}= "SQL Error ($Billing->{errstr}) SESSION: '$filename'";
+
       $Billing->mk_session_log($RAD);
+      return $self;
      }
-# If SQL query filed
+    elsif ($self->{SUM} < 0) {
+      $self->{LOG_DEBUG} =  "ACCT [$RAD->{USER_NAME}] small session ($RAD->{ACCT_SESSION_TIME}, $RAD->{INBYTE}, $RAD->{OUTBYTE})";
+     }
+    elsif ($self->{UID} <= 0) {
+      $self->{LOG_DEBUG} =  "ACCT [$RAD->{USER_NAME}] small session ($RAD->{ACCT_SESSION_TIME}, $RAD->{INBYTE}, $RAD->{OUTBYTE}), $self->{UID}";
+     }
     else {
-      if ($self->{SUM} > 0) {
-         $self->query($db, "UPDATE bills SET deposit=deposit-$self->{SUM} WHERE id='$self->{BILL_ID}';", 'do');
+      $self->query($db, "INSERT INTO dv_log (uid, start, tp_id, duration, sent, recv, minp, kb,  sum, nas_id, port_id,
+          ip, CID, sent2, recv2, acct_session_id, 
+          bill_id,
+          terminate_cause) 
+          VALUES ('$self->{UID}', FROM_UNIXTIME($RAD->{SESSION_START}), '$self->{TARIF_PLAN}', '$RAD->{ACCT_SESSION_TIME}', 
+          '$RAD->{OUTBYTE}', '$RAD->{INBYTE}', '$self->{TIME_TARIF}', '$self->{TRAF_TARIF}', '$self->{SUM}', '$NAS->{NAS_ID}',
+          '$RAD->{NAS_PORT}', INET_ATON('$RAD->{FRAMED_IP_ADDRESS}'), '$RAD->{CALLING_STATION_ID}',
+          '$RAD->{OUTBYTE2}', '$RAD->{INBYTE2}',  \"$RAD->{ACCT_SESSION_ID}\", 
+          '$self->{BILL_ID}',
+          '$RAD->{ACCT_TERMINATE_CAUSE}');", 'do');
+ 
+      if ($self->{errno}) {
+        my $filename = "$RAD->{USER_NAME}.$RAD->{ACCT_SESSION_ID}";
+        $self->{LOG_WARNING}="ACCT [$RAD->{USER_NAME}] Making accounting file '$filename'";
+        $Billing->mk_session_log($RAD);
        }
-     }
-   }
+  # If SQL query filed
+      else {
+        if ($self->{SUM} > 0) {
+          $self->query($db, "UPDATE bills SET deposit=deposit-$self->{SUM} WHERE id='$self->{BILL_ID}';", 'do');
+         }
+       }
+    }
 }
 
 

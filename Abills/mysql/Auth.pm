@@ -115,10 +115,6 @@ sub dv_auth {
     return 1, $RAD_PAIRS;
    }
 
-#  print $RAD_PAIRS->{'MS-CHAP-MPPE-Keys'};
-
-  my $a_ref = $self->{list}->[0];
-
   ($self->{LOGINS}, 
      $self->{FILTER}, 
      $self->{IP}, 
@@ -141,10 +137,8 @@ sub dv_auth {
      $self->{INTERVALS},
      $self->{ACCOUNT_AGE},
      $self->{CALLBACK}
-    ) = @$a_ref;
+    ) = @{ $self->{list}->[0] };
 
-
-#return 0, \%RAD_PAIRS;
 #DIsable
 if ($self->{DISABLE}) {
   $RAD_PAIRS->{'Reply-Message'}="Service Disable";
@@ -189,9 +183,7 @@ if ($self->{CID} ne '') {
 #Check  simultaneously logins if needs
 if ($self->{LOGINS} > 0) {
   $self->query($db, "SELECT count(*) FROM dv_calls WHERE user_name='$RAD->{USER_NAME}' and status <> 2;");
-  
-  my $a_ref = $self->{list}->[0];
-  my($active_logins) = @$a_ref;
+  my($active_logins) = @{ $self->{list}->[0] };
   if ($active_logins >= $self->{LOGINS}) {
     $RAD_PAIRS->{'Reply-Message'}="More then allow login ($self->{LOGINS}/$active_logins)";
     return 1, $RAD_PAIRS;
@@ -290,8 +282,7 @@ foreach my $line (@periods) {
           $session_traf_limit = $self->{$line . '_TRAF_LIMIT'} if ($self->{$line . '_TRAF_LIMIT'} > 0);
          } 
         else {
-        	$a_ref = $self->{list}->[0];
-          ($session_time_limit, $session_traf_limit) = @$a_ref;
+          ($session_time_limit, $session_traf_limit) = @{ $self->{list}->[0] };
           push (@time_limits, $session_time_limit) if ($self->{$line . '_TIME_LIMIT'} > 0);
          }
 

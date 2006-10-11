@@ -99,15 +99,17 @@ if (! defined(%RAD_REQUEST)) {
   $NAS_PARAMS{NAS_IDENTIFIER}=$RAD->{NAS_IDENTIFIER} if (defined($RAD->{NAS_IDENTIFIER}));
   $nas->info({ %NAS_PARAMS });
 
+  my $acct;
   if ($nas->{errno} || $nas->{TOTAL} < 1) {
     access_deny("$RAD->{USER_NAME}", "Unknow server '$RAD->{NAS_IP_ADDRESS}'", 0);
     #exit 1;
    }
-
-  my $acct = acct($RAD, $nas);
+  else {
+    $acct = acct($RAD, $nas);
+   }
 
   if(defined($acct->{errno})) {
-	  log_print('LOG_ERROR', "ACCT [$RAD->{USER_NAME}] $acct->{errstr}");
+	  log_print('LOG_ERR', "ACCT [$RAD->{USER_NAME}] $acct->{errstr}");
    }
 
   #$db->disconnect();
