@@ -272,7 +272,7 @@ my %SEARCH_TYPES = (11 => $_USERS,
                     13 => $_COMPANY
                    );
 
-if($FORM{index} != 7 && ! defined($FORM{type})) {
+if(defined($FORM{index}) && $FORM{index} != 7 && ! defined($FORM{type})) {
 	$FORM{type}=$FORM{index};
  }
 elsif (! defined $FORM{type}) {
@@ -1508,7 +1508,7 @@ if(defined($attr->{TP})) {
            $line->[4], 
            $line->[5], 
            $line->[6], 
-           convert($line->[7], { text2html => yes  }),
+           convert($line->[7], { text2html => 'yes'  }),
            $html->button($_CHANGE, "index=$index$pages_qs&tt=$TI_ID&chg=$line->[0]"),
            $html->button($_DEL, "index=$index$pages_qs&tt=$TI_ID&del=$line->[0]", { MESSAGE => "$_DEL [$line->[0]]?" } ));
         }
@@ -1685,7 +1685,7 @@ foreach my $line (@$list) {
 	$m--;
   $delete = $html->button($_DEL, "index=75&del=$line->[0]", { MESSAGE => "$_DEL ?" }); 
   $table->addrow("$d $MONTHES[$m]", $line->[1], $delete);
-  $hollidays{$m}{$d}='y';
+  #$hollidays{$m}{$d}='y';
 }
 
 print $table->show();
@@ -1920,7 +1920,8 @@ sub admin_permissions {
     $html->message('err', $_ERROR, "$err_strs{$admin->{errno}}");
     return 0;
   }
- my %permits = %$p;
+
+ %permits = %$p;
  
 
 my $table = $html->table( { width       => '400',
@@ -2145,6 +2146,7 @@ if ($nas->{errno}) {
   'pppd'      => 'pppd + RADIUS plugin (Linux)',
   'gnugk'     => 'GNU GateKeeper',
   'cisco'     => 'Cisco (Experimental)',
+  'cisco_air' => 'Cisco Aironets',
   'bsr1000'   => 'CMTS Motorola BSR 1000',
   'mikrotik'  => 'Mikrotik (http://www.mikrotik.com)',
   'other'     => 'Other nas server'
@@ -2427,7 +2429,7 @@ else {
     $pages_qs="&GID=$FORM{GID}";
    }
 
-  $user->{GROUPS_SEL} = sel_groups();
+  #$user->{GROUPS_SEL} = sel_groups();
   #$html->tpl_show(templates('groups_sel'), $user);
 }
 
@@ -3763,10 +3765,10 @@ sub form_dictionary {
 
 
 
-	my $table = $html->table( { width       => '600',
-                              title_plain => ["$_NAME", "$_VALUE", "-"],
-                              cols_align  => ['left', 'left', 'center']
-                                  } );
+	$table = $html->table( { width       => '600',
+                           title_plain => ["$_NAME", "$_VALUE", "-"],
+                           cols_align  => ['left', 'left', 'center']
+                        } );
 
   foreach my $k (sort keys %main_dictionary) {
   	 my $v = $main_dictionary{$k};

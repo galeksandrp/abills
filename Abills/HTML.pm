@@ -399,7 +399,7 @@ sub form_select {
 
 	  foreach my $v (@$H) {
       $self->{SELECT} .= "<option value='$v->[$key]'";
-      $self->{SELECT} .= ' selected' if ($v->[$key] eq $attr->{SELECTED});
+      $self->{SELECT} .= ' selected' if (defined($attr->{SELECTED}) && $v->[$key] eq $attr->{SELECTED});
       $self->{SELECT} .= '>';
       $self->{SELECT} .= "$v->[$key]:" if (! $attr->{NO_ID});
       $self->{SELECT} .= "$v->[$value]\n";
@@ -410,7 +410,7 @@ sub form_select {
 	  my $H = $attr->{SEL_HASH};
 	  while(my($k, $v) = each %$H) {
      $self->{SELECT} .= "<option value='$k'";
-     $self->{SELECT} .=' selected' if ($k eq $attr->{SELECTED});
+     $self->{SELECT} .=' selected' if (defined($attr->{SELECTED}) && $k eq $attr->{SELECTED});
      $k = '' if ($attr->{NO_ID});
      $self->{SELECT} .= ">$k:$v\n";	
      }
@@ -1569,7 +1569,7 @@ sub make_charts {
     shift @$value;
     foreach my $line (@$value) {
     	 $data .= "<number>";
-    	 $data .= ($midle > 0) ? $line * $midle : $line; 
+    	 $data .= ($midle > 0 && defined($line)) ? $line * $midle : $line; 
     	 $data .="</number>\n";
      }
     $data .= "</row>\n";
