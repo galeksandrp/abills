@@ -102,8 +102,7 @@ $table = $html->table( { width       => '100%',
                          caption     => "CISCO Aironets",
                          border      => 1,
                          title       => ['MAC', @default_fields, "-"],
-                         cols_align  => ['left', 'left', 'right', 'right', 'center'],
-#                        qs          => $pages_qs
+                         cols_align  => ['left', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'center'],
                        });
 
 
