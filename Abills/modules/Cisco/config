@@ -1,0 +1,9 @@
+$web_interface    = 1;
+#Iner_ID : Main or Sub or if -1 user menu func list
+%FUNCTIONS_LIST = (
+                   "1:0:Cisco Aironets:cisco_aironets:"   => 8
+                   );
+
+
+
+1
