@@ -24,11 +24,23 @@ my $list = $Nas->list({ TYPE => 'cisco_air' });
 
 
 if ($FORM{Client}) {
-	my $info;
+	my %info = ();
+
+  use Users;
+  my $users = Users->new($db, $admin, \%conf); 
+  
+  my $list = $users->list({ COMMENTS => '%cisco_air:'. $FORM{MAC} .'%'  });
+  #cisco_air:00:11:95:e9:3b:2e
+  if ($users->{TOTAL} > 0) {
+	  $info{LOGIN} = $html->button("$list->[0]->[0]", "index=11&UID=$list->[0]->[5]");
+	 }
+  else {
+	  $info{LOGIN} = "Check comment for cisco_air:MAC";
+	 }
+
+
 	
-	
-	$html->tpl_show(_include('cisco_aironet_client_info', 'Cisco'), $info);
-	
+	$html->tpl_show(_include('cisco_aironet_client_info', 'Cisco'), \%info);
 	return 0;
 }
 
@@ -45,6 +57,7 @@ my @default_fields = ('ClientName',
 
 
 if ($FORM{fields}) {
+ 
   @default_fields = split(/, /, $FORM{fields});
 }
 
@@ -214,7 +227,7 @@ my $system_indefy = '.1.7.119.108.97.110.119.101.112'; #'\.\d{1,3}\.\d{1,3}\.\d{
       	push @arr, $result{$ft}{$k};
        }
     	
-    	$table->addrow($html->button("<CODE>$mac</CODE>", "index=$index&Client=$k"), 
+    	$table->addrow($html->button("<CODE>$mac</CODE>", "index=$index&Client=$k&MAC=$mac"), 
                      @arr,
     	               "(". $html->button('H', "index=$index&hangup=$k", { TITLE => 'Hangup' }). ")"
                      );
