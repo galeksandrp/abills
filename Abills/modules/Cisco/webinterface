@@ -14,6 +14,13 @@ require "Abills/nas.pl";
 my $debug=0;
 
 
+          my @association_state = ('initial',
+                         'authenNotAssociated',
+                         'assocAndAuthenticated',
+                         'assocNotAnuthenticated',
+                         'authenticated');
+
+
 #*******************************************************************
 # 
 # 
@@ -23,46 +30,6 @@ sub cisco_aironets {
 
 my $Nas = Nas->new($db, \%conf);
 my $list = $Nas->list({ TYPE => 'cisco_air', DISABLE => 0 });
-
-
-
-if ($FORM{Client}) {
-	my %info = ();
-
-  use Users;
-  my $users = Users->new($db, $admin, \%conf); 
-  
-  my $list = $users->list({ COMMENTS => '%cisco_air:'. $FORM{MAC} .'%'  });
-  #cisco_air:00:11:95:e9:3b:2e
-  if ($users->{TOTAL} > 0) {
-	  $info{LOGIN} = $html->button("$list->[0]->[0]", "index=11&UID=$list->[0]->[5]");
-	 }
-  else {
-	  $info{LOGIN} = "Check comment for cisco_air:MAC";
-	 }
-
-   #my($if_num) = snmpget("$community\@$host", '.1.3.6.1.4.1.9.9.273.1.1.2.1.1.1');
-	
-	$html->tpl_show(_include('cisco_aironet_client_info', 'Cisco'), \%info);
-	return 0;
-}
-
-
-my @default_fields = ('ClientName',
-                      'ClientDevType',
-                      'ClientIpAddress',
-                      'ClientAssociationState',
-                      'ClientSigQuality', 
-                      'ClientSignalStrength',
-                      'ClinetUptime', 
-                      'ClientDuplicates'
-                     );
-
-
-if ($FORM{fields}) {
-  @default_fields = split(/, /, $FORM{fields});
-}
-
 
 my %fields = (#'ParentAddress'          => '.1.3.6.1.4.1.9.9.273.1.1.1.0',
               #'ActiveWirelessClients'  => '.1.3.6.1.4.1.9.9.273.1.1.2.1.1.1',
@@ -111,6 +78,59 @@ my %fields = (#'ParentAddress'          => '.1.3.6.1.4.1.9.9.273.1.1.1.0',
 #              'MAC                    => '.1.3.6.1.2.1.17.4.3.1.1.'
               );
 
+if ($FORM{Client}) {
+	my %info = ();
+
+  use Users;
+  my $users = Users->new($db, $admin, \%conf); 
+  
+  my $list = $users->list({ COMMENTS => '%cisco_air:'. $FORM{MAC} .'%'  });
+  #cisco_air:00:11:95:e9:3b:2e
+  $info{MAC} = $FORM{MAC};
+  if ($users->{TOTAL} > 0) {
+	  $info{LOGIN} = $html->button("$list->[0]->[0]", "index=11&UID=$list->[0]->[5]");
+	 }
+  else {
+	  $info{LOGIN} = "Check comment for cisco_air:MAC";
+	 }
+  
+  $Nas->info({ NAS_ID => $FORM{NAS_ID} });
+
+  foreach my $key (keys %fields) {
+	 	
+	 	
+	 	
+	 	
+	 	$info{$key} = snmpget("$Nas->{NAS_MNG_PASSWORD}\@$Nas->{NAS_IP}", $fields{$key}. '.1.7.119.108.97.110.119.101.112.'. $FORM{Client});
+	 	
+	 	print "$key: $fields{$key}.1.7.119.108.97.110.119.101.112.$FORM{Client} = $info{$key}<br>" if ($debug == 1);
+	 	
+	 	$info{$key} = data_convert($key, $info{$key});
+	 }
+
+	$html->tpl_show(_include('cisco_aironet_client_info', 'Cisco'), \%info);
+	return 0;
+}
+
+
+my @default_fields = ('ClientName',
+                      'ClientDevType',
+                      'ClientIpAddress',
+                      'ClientAssociationState',
+                      'ClientSigQuality', 
+                      'ClientSignalStrength',
+                      'ClinetUptime', 
+                      'ClientDuplicates'
+                     );
+
+
+if ($FORM{fields}) {
+  @default_fields = split(/, /, $FORM{fields});
+}
+
+
+
+
 
 
 $table = $html->table( { width       => '100%',
@@ -156,35 +176,11 @@ foreach my $line (@$list) {
 
       my @arr = ();
       foreach my $ft (@default_fields) {
-        if ($ft eq 'ClientIpAddress' ) {
-           $result{'ClientIpAddress'}{$k} = int2ip(unpack("N4", $result{'ClientIpAddress'}{$k}));
-         }
-        elsif ($ft eq 'ClinetUptime') {
-      	  $result{'ClinetUptime'}{$k} = sec2time($result{'ClinetUptime'}{$k}, { str => 1});
-         }
-        elsif ($ft eq 'ClientDataRateSet') {
-          my @arr = unpack("C*", $result{'ClientDataRateSet'}{$k});
-          for(my $i; $i<$#arr; $i++) {
-          	 $arr[$i]=$arr[$i]/2;
-           }
-          $result{'ClientDataRateSet'}{$k} = join(", ", @arr). ' Mbps';
-         }
-        elsif ($ft eq 'ClientCurrentTxRate' || $ft eq 'ClientCurrentTxRateSet') {
-          $result{$ft}{$k} = (hex((unpack("H2", $result{$ft}{$k})) ) / 2) . " Mbps";
-         }
-        elsif ($ft eq 'ClientAssociationState') {
-          my @association_state = ('initial',
-                         'authenNotAssociated',
-                         'assocAndAuthenticated',
-                         'assocNotAnuthenticated',
-                         'authenticated');
-          $result{'ClientAssociationState'}{$k} = $association_state[$result{'ClientAssociationState'}{$k}];
-         }
-
+        $result{$ft}{$k} = data_convert($ft, $result{$ft}{$k});
       	push @arr, $result{$ft}{$k};
        }
     	
-    	$table->addrow($html->button("<CODE>$mac</CODE>", "index=$index&Client=$k&MAC=$mac"), 
+    	$table->addrow($html->button("<CODE>$mac</CODE>", "index=$index&Client=$k&MAC=$mac&NAS_ID=$line->[0]"), 
                      @arr,
     	               "(". $html->button('H', "index=$index&hangup=$k", { TITLE => 'Hangup' }). ")"
                      );
@@ -241,6 +237,44 @@ print  $output .= $html->form_main({ CONTENT => $table2->show(). $table->show(),
 
 }
 
+
+#**********************************************************
+#
+#**********************************************************
+sub data_convert () {
+	my ($name, $data) = @_;
+	
+	my $ret = '';
+	
+	
+	      if ($name eq 'ClientIpAddress') {
+           $ret = int2ip(unpack("N4", $data));
+         }
+        elsif ($name eq 'ClientParentAddress') {
+        	$ret = join(':', unpack("H*", $data));
+         }
+        elsif ($name eq 'ClinetUptime') {
+      	  $ret = sec2time($data, { str => 1});
+         }
+        elsif ($name eq 'ClientDataRateSet') {
+          my @arr = unpack("C*", $data);
+          for(my $i; $i<$#arr; $i++) {
+          	 $arr[$i]=$arr[$i]/2;
+           }
+          $ret = join(", ", @arr). ' Mbps';
+         }
+        elsif ($name eq 'ClientCurrentTxRate' || $name eq 'ClientCurrentTxRateSet') {
+          $ret = (hex((unpack("H2", $data)) ) / 2) . " Mbps";
+         }
+        elsif ($name eq 'ClientAssociationState') {
+          $ret = $association_state[$data];
+         }
+        else {
+        	$ret = $data;
+         }
+	
+	return $ret;
+}
 
 
 
