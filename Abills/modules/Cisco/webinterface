@@ -2,11 +2,14 @@
 # Squid
 
 
-require "Abills/nas.pl";
-#use Abills::Base;
 use Nas;
 use Socket;
 
+use BER;
+use SNMP_Session;
+use SNMP_util;
+
+require "Abills/nas.pl";
 
 my $debug=0;
 
@@ -19,7 +22,7 @@ sub cisco_aironets {
 
 
 my $Nas = Nas->new($db, \%conf);
-my $list = $Nas->list({ TYPE => 'cisco_air' });
+my $list = $Nas->list({ TYPE => 'cisco_air', DISABLE => 0 });
 
 
 
@@ -38,7 +41,7 @@ if ($FORM{Client}) {
 	  $info{LOGIN} = "Check comment for cisco_air:MAC";
 	 }
 
-
+   #my($if_num) = snmpget("$community\@$host", '.1.3.6.1.4.1.9.9.273.1.1.2.1.1.1');
 	
 	$html->tpl_show(_include('cisco_aironet_client_info', 'Cisco'), \%info);
 	return 0;
@@ -57,7 +60,6 @@ my @default_fields = ('ClientName',
 
 
 if ($FORM{fields}) {
- 
   @default_fields = split(/, /, $FORM{fields});
 }
 
@@ -115,67 +117,30 @@ $table = $html->table( { width       => '100%',
                          caption     => "CISCO Aironets",
                          border      => 1,
                          title       => ['MAC', @default_fields, "-"],
-                         cols_align  => ['left', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'center'],
+                         cols_align  => ['left', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'center'],
                        });
-
-
-#Get kay
-my $snmp_oid='';  '.1.3.6.1.4.1.9.9.273.1';
-
-
-
- my @keys = split(/\./, $fields{$default_fields[0]});
-
-	for(my $k=1; $k<=$#keys; $k++) {
-	  foreach my $name (@default_fields) {
-	     if ($fields{$name} !~ /^$snmp_oid.$keys[$k]/) {
-	     	  $k='';
-	     	  last;
-	      }
-	   }
-	  last if ($k eq '');
-	  $snmp_oid .= ".$keys[$k]";
-	 }
 
 my $total_sessions = 0;
 foreach my $line (@$list) {
-  
- 
-  my $res = `$SNMPWALK -On -v2c -c '$line->[10]' $line->[3] $snmp_oid`;
-  my @sessions_arr = split(/\n/, $res);
-  
   my %result = ();
-  for($i=0; $i<$#sessions_arr; $i++) {
-    next if ($sessions_arr[$i] eq '');
-    my $line = $sessions_arr[$i];
 
-
-
-#system indentify 
-#\.\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}
-
-my $system_indefy = '.1.7.119.108.97.110.119.101.112'; #'\.\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}';
-
-#keys %fields
-    foreach my $k ( @default_fields ) {
-       my $expr_value = $fields{$k};
-    	 if ($line =~ /^$expr_value$system_indefy\.(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}) = \S+: (.+)/) {
-    	 	 print "<b>$k //".$line."($1 $2)</b><br>" if ($debug == 1);
-    	 	 $result{$k}{$1}=$2;
-    	 	 last;
-    	  }
-       else {
-       	  print "$line<br>\n" if ($debug == 1);
-        }
+  foreach my $field (@default_fields) {
+    my @arr = snmpwalk("$line->[10]\@$line->[3]", $fields{$field});
+    foreach my $line (@arr) {
+      if ('.'.$line =~ /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\.(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(.+)/) {
+        $result{$field}{$1}=$2;
+        print "$field // $line <br>"if ($debug == 1);
+       }
      }
-
    }
 
-  my @MAC_ARR = keys %{ $result{'ClientSigQuality'} } ;
+  my @MAC_ARR = keys %{ $result{ $default_fields[0] } } ;
   
   $table->{rowcolor}=$_COLORS[0];
-  $table->{extra}="colspan='11' class='small'";
-  $table->addrow("$line->[0]:<b>$line->[1]</b>:$line->[3] (". $html->button('WEB', "", { GLOBAL_URL => "http://$line->[3]" }) ."):$_TOTAL: ". ( $#MAC_ARR + 1 ) );
+  $table->{extra}="colspan='". ($#default_fields + 2) ."' class='small'";
+  $table->addrow("$line->[0]:<b>$line->[1]</b>:$line->[3] (". 
+   $html->button('WEB', "", { GLOBAL_URL => "http://$line->[3]" }) 
+   ."):$_TOTAL: ". ( $#MAC_ARR + 1 ) );
 
   $total_sessions += $#MAC_ARR + 1;
 
@@ -183,7 +148,6 @@ my $system_indefy = '.1.7.119.108.97.110.119.101.112'; #'\.\d{1,3}\.\d{1,3}\.\d{
   undef($table->{extra});
 
     foreach my $k ( @MAC_ARR ) {
-    	
       my @mac_arr = split(/\./, $k);
       for(my $i=0; $i<=$#mac_arr; $i++) {
      	  $mac_arr[$i] = sprintf("%.2X", $mac_arr[$i]);
@@ -193,28 +157,20 @@ my $system_indefy = '.1.7.119.108.97.110.119.101.112'; #'\.\d{1,3}\.\d{1,3}\.\d{
       my @arr = ();
       foreach my $ft (@default_fields) {
         if ($ft eq 'ClientIpAddress' ) {
-          my @arr = split(/ /, $result{'ClientIpAddress'}{$k});
-          for(my $i=0; $i<=$#arr; $i++) {
-     	      $arr[$i] = hex($arr[$i]);
-           }
-          $result{'ClientIpAddress'}{$k} = join('.', @arr);
+           $result{'ClientIpAddress'}{$k} = int2ip(unpack("N4", $result{'ClientIpAddress'}{$k}));
          }
         elsif ($ft eq 'ClinetUptime') {
       	  $result{'ClinetUptime'}{$k} = sec2time($result{'ClinetUptime'}{$k}, { str => 1});
          }
         elsif ($ft eq 'ClientDataRateSet') {
-          my @arr = split(/ /, $result{'ClientDataRateSet'}{$k});
-          for(my $i=0; $i<=$#arr; $i++) {
-     	      $arr[$i] = hex($arr[$i]) / 2;
+          my @arr = unpack("C*", $result{'ClientDataRateSet'}{$k});
+          for(my $i; $i<$#arr; $i++) {
+          	 $arr[$i]=$arr[$i]/2;
            }
-          $result{'ClientDataRateSet'}{$k} = join(', ', @arr). " Mbps";
+          $result{'ClientDataRateSet'}{$k} = join(", ", @arr). ' Mbps';
          }
-        elsif ($ft eq 'ClientCurrentTxRate') {
-          my @arr = split(/ /, $result{'ClientCurrentTxRate'}{$k});
-          for(my $i=0; $i<=$#arr; $i++) {
-     	      $arr[$i] = hex($arr[$i]) / 2;
-           }
-          $result{'ClientCurrentTxRate'}{$k} = join(', ', @arr). " Mbps";
+        elsif ($ft eq 'ClientCurrentTxRate' || $ft eq 'ClientCurrentTxRateSet') {
+          $result{$ft}{$k} = (hex((unpack("H2", $result{$ft}{$k})) ) / 2) . " Mbps";
          }
         elsif ($ft eq 'ClientAssociationState') {
           my @association_state = ('initial',
