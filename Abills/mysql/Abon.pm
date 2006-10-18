@@ -319,7 +319,7 @@ sub periodic_list {
   u.disable,
   at.id,
   at.payment_type
-  FROM abon_tariffs at, `abon_user_list` al, users u
+  FROM abon_tariffs at, abon_user_list al, users u
      LEFT JOIN bills b ON (u.bill_id=b.id)
      LEFT JOIN companies c ON (u.company_id=c.id)
      LEFT JOIN bills cb ON (c.bill_id=cb.id)

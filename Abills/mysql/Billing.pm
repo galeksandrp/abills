@@ -230,6 +230,7 @@ if ($prepaid{0} + $prepaid{1} > 0) {
 # -2 Not found user in users db
 # -3 SQL Error
 # -4 Company not found
+# -5 TP not found
 # -16 Not allow start period
 #
 # session_sum($USER_NAME, $SESSION_START, $SESSION_DURATION, $RAD_HASH_REF, $attr);
@@ -304,11 +305,10 @@ sub session_sum {
     }
    #TP not found
    elsif ($self->{TOTAL} < 1) {
-     return -4, 0, 0, 0, 0, 0;	
+     return -5, 0, 0, 0, 0, 0;	
     }
 
   ($self->{MIN_SESSION_COST},
-   $self->{COMPANY_ID},
    $self->{PAYMENT_TYPE}
   ) = @{ $self->{list}->[0] };
  	

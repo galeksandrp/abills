@@ -31,7 +31,7 @@ my %ACCT_TYPES = ('Start'          => 1,
                   ); 
 
 
-my $burn_billing = 0;
+
 
 
 #**********************************************************
@@ -99,7 +99,7 @@ elsif ($acct_status_type == 2) {
   my $Billing = Billing->new($db, $conf);	
 
   
-  if ($burn_billing == 1) {
+  if ($conf->{burn_billing}) {
     $self->burn_billing($RAD, $NAS);
     
     $self->query($db, "INSERT INTO dv_log (uid, start, tp_id, duration, sent, recv, minp, kb,  sum, nas_id, port_id,
@@ -135,6 +135,14 @@ elsif ($acct_status_type == 2) {
                                                    $RAD->{ACCT_SESSION_TIME}, 
                                                    $RAD, 
                                                    \%EXT_ATTR );
+
+    
+    my $aaass = `echo "$self->{UID}, 
+     $self->{SUM}, 
+     $self->{BILL_ID}, 
+     $self->{TARIF_PLAN}, 
+     $self->{TIME_TARIF}, 
+     $self->{TRAF_TARIF}" >> /tmp/billing`;
 
   #  return $self;
     if ($self->{UID} == -2) {
@@ -211,7 +219,7 @@ elsif($acct_status_type eq 3) {
 ###
   
   $self->{SUM}=0;
-  $self->burn_billing($RAD, $NAS) if ($burn_billing == 1);
+  $self->burn_billing($RAD, $NAS) if ($conf->{burn_billing});
 
   $self->query($db, "UPDATE dv_calls SET
     status='$acct_status_type',
