@@ -190,9 +190,11 @@ sub check_ppp {
   get_db_info($ip_pid_hash);
 
 
-while(my($ip_address, $pid)=each %$ip_pid_hash) {
+while(my($ip_address, $info)=each %$ip_pid_hash) {
+  my($pid, $iface)=split(/:/, $info, 2);
   print "Killed IP: $ip_address PID: $pid\n";
-  my $res = `/bin/kill -1 $pid`;
+  my $res = `/bin/kill -9 $pid; /sbin/ifconfig tun$iface delete`;
+  # /sbin/ifconfig tun$iface delete
   $pid=~/(\d+)/;
   get_pid_info($1);
 }
@@ -261,7 +263,7 @@ sub get_if_info {
        }
      }
     print "$tunnum $addr $pid\n" if ($debug == 1);
-    $ip_pid_hash{$addr}=$pid;
+    $ip_pid_hash{$addr}="$pid:$tunnum";
   }
 
   return \%ip_pid_hash;
