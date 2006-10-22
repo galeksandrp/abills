@@ -1635,7 +1635,35 @@ $pages_qs .= "&PERIOD=$FORM{PERIOD}" if (defined($FORM{PERIOD}));
 
 
 
-my $list = $sessions->detail_list({ %LIST_PARAMS, %FORM });
+#Log intervals
+my $list = $sessions->list_log_intervals({ ACCT_SESSION_ID =>  $FORM{SESSION_ID} });
+if ($sessions->{TOTAL} > 0) {
+  my $table = $html->table({ width      => '100%',
+                             caption    => "$_INTERVALS",
+                             border     => 1,
+                             title      => ["$_INTERVAL", "$_TRAFFIC", "$_SENT", "$_RECV", "$_DURATION", "$_SUM"],
+                             cols_align => ['right', 'right', 'right', 'right', 'right', 'right'],
+                             qs         => $pages_qs
+                          } );
+
+  foreach my $line (@$list) {
+    $table->addrow($line->[0],  
+    $line->[1],
+    int2byte($line->[2]), 
+    int2byte($line->[3]),  
+    $line->[4], 
+    $line->[5], 
+    );
+  }
+
+  print $table->show();
+
+}
+
+
+
+#Log detail list
+$list = $sessions->detail_list({ %LIST_PARAMS, %FORM });
 my $table = $html->table({ width      => '100%',
                            border     => 1,
                            title      => ["LAST_UPDATE", "$_SESSION_ID", "NAS_ID", "SENT", "RECV", "SENT2", "RECV2"],

@@ -1420,7 +1420,7 @@ foreach my $line (@alphabet) {
   my $first = ord($1);
   my $last  = ord($2);
 
-  for (my $i=$first; $i<$last; $i++) {
+  for (my $i=$first; $i<=$last; $i++) {
     my $l = chr($i);
     if ($FORM{letter} eq $l) {
       $letters .= "<b>$l </b>\n";

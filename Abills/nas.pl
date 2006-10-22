@@ -110,14 +110,16 @@ sub telnet_cmd {
  my $timeout = defined($attr->{'TimeOut'}) ? $attr->{'TimeOut'} : 5;
  
 
- 
+
  use Socket;
+ my $dest = sockaddr_in($port, inet_aton("$hostname"));
+
  if(! socket(SH, PF_INET, SOCK_STREAM, getprotobyname('tcp'))) {
  	 print "ERR: Can't init '$hostname:$port' $!";
    return 0;
   }
 
- my $dest = sockaddr_in($port, inet_aton("$hostname"));
+ 
 
  if(! CORE::connect(SH, $dest) ) { 
    print "ERR: Can't connect to '$hostname:$port' $!";
@@ -126,13 +128,19 @@ sub telnet_cmd {
 
  log_print('LOG_DEBUG', "Connected to $hostname:$port");
 
- my $sock = \*SH;
- my $MAXBUF=512;
+ my $sock  = \*SH;
+ my $MAXBUF= 512;
  my $input = '';
- my $len = 0;
- my $text = '';
+ my $len   = 0;
+ my $text  = '';
  my $inbuf = '';
- my $res = '';
+ my $res   = '';
+
+
+ my $old_fh = select($SH); $| = 1; select($old_fh);
+
+ SH->autoflush(1);
+
 
 
 foreach my $line (@$commands) {
@@ -151,6 +159,8 @@ foreach my $line (@$commands) {
      $len = length($inbuf);
      alarm 5;
     } while ($len >= $MAXBUF || $len < 4);
+
+
  
   log_print('LOG_DEBUG', "Get: \"$input\"\nLength: $len");
   log_print('LOG_DEBUG', " Wait for: '$waitfor'");
@@ -158,7 +168,6 @@ foreach my $line (@$commands) {
   if ($input =~ /$waitfor/ig){ # || $waitfor eq '') {
     $text = $sendtext;
     log_print('LOG_DEBUG', "Send: $text");
-    #print "$waitfor - $sendtext\n";
     send($sock, "$text\r\n", 0, $dest) or die log_print('LOG_INFO', "Can't send: '$text' $!");
     #"Can't send: $!\n";
    };
@@ -646,5 +655,30 @@ sub hangup_pppd {
 
 
 
+#*******************************************************************
+# HANGUP Patton 29xx
+#*******************************************************************
+sub hangup_patton29xx {
+ my ($NAS, $PORT, $attr) = @_;
+
+
+ return $exec;
+}
+
+
+#*******************************************************************
+# Get stats from Patton RAS 29xx
+# 
+#*******************************************************************
+sub stats_patton29xx {
+  my ($NAS, $PORT) = @_;
+
+  my %stats = (in  => 0,
+               out => 0);
+
+
+
+  return %stats;
+}
 
 1

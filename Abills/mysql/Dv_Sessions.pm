@@ -933,5 +933,47 @@ if ($attr->{FIELDS}) {
 
 
 
+#**********************************************************
+# List
+#**********************************************************
+sub list_log_intervals {
+ my $self = shift;
+ my ($attr) = @_;
+
+ $PG = ($attr->{PG}) ? $attr->{PG} : 0;
+ $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
+ $SORT = ($attr->{SORT}) ? $attr->{SORT} : 2;
+ $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+ 
+ undef @WHERE_RULES; 
+ 
+ $self->{debug}=1;
+ 
+#UID
+ if ($attr->{ACCT_SESSION_ID}) {
+    push @WHERE_RULES, "l.acct_session_id='$attr->{ACCT_SESSION_ID}'";
+  }
+
+ 
+ $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
+
+
+
+
+ $self->query($db, "SELECT interval_id,
+                           traffic_type,
+                           sent,
+                           recv,
+                           duration,
+                           sum
+  FROM dv_log_intervals l
+  $WHERE
+  ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");
+
+
+ my $list = $self->{list};
+
+ return $list;
+}
 
 1

@@ -99,8 +99,8 @@ elsif ($acct_status_type == 2) {
   my $Billing = Billing->new($db, $conf);	
 
   
-  if ($conf->{burn_billing}) {
-    $self->burn_billing($RAD, $NAS);
+  if ($conf->{rt_billing}) {
+    $self->rt_billing($RAD, $NAS);
     
     $self->query($db, "INSERT INTO dv_log (uid, start, tp_id, duration, sent, recv, minp, kb,  sum, nas_id, port_id,
         ip, CID, sent2, recv2, acct_session_id, 
@@ -219,7 +219,7 @@ elsif($acct_status_type eq 3) {
 ###
   
   $self->{SUM}=0;
-  $self->burn_billing($RAD, $NAS) if ($conf->{burn_billing});
+  $self->rt_billing($RAD, $NAS) if ($conf->{rt_billing});
 
   $self->query($db, "UPDATE dv_calls SET
     status='$acct_status_type',
@@ -274,7 +274,7 @@ if ($conf->{s_detalization} eq 'yes') {
 #**********************************************************
 # Alive accounting
 #**********************************************************
-sub burn_billing {
+sub rt_billing {
 	my $self = shift;
   my ($RAD, $NAS)=@_;
   
@@ -283,6 +283,7 @@ sub burn_billing {
    $RAD->{OUTBYTE}  - acct_output_octets,
    $RAD->{INBYTE2}  - ex_input_octets,
    $RAD->{OUTBYTE2} - ex_output_octets,
+   acct_session_id,
    sum
    FROM dv_calls 
   WHERE user_name='$RAD->{USER_NAME}' and acct_session_id='$RAD->{ACCT_SESSION_ID}';");
@@ -305,6 +306,7 @@ sub burn_billing {
    $RAD->{INTERIUM_OUTBYTE},
    $RAD->{INTERIUM_INBYTE2},
    $RAD->{INTERIUM_OUTBYTE2},
+   $RAD->{ACCT_SESSION_ID},
    $self->{CALLS_SUM}
    ) = @{ $self->{list}->[0] };
 
@@ -326,15 +328,49 @@ sub burn_billing {
                                                 	},
                                                 { FULL_COUNT => 1 }
                                                 );
-
+  
+  
   my $a = `echo "
-  $self->{UID}, 
-   $self->{SUM}, 
-   $self->{BILL_ID}, 
-   $self->{TARIF_PLAN}, 
-   $self->{TIME_TARIF}, 
-   $self->{TRAF_TARIF}
+   UID: $self->{UID}, 
+   SUM: $self->{SUM}, 
+   BILL_ID: $self->{BILL_ID}, 
+   TP: $self->{TARIF_PLAN}, 
+   TIME_TARRIF: $self->{TIME_TARIF}, 
+   TRAFF_TARRIF: $self->{TRAF_TARIF},
+   TIME INTERVAL ID: $Billing->{TI_ID}
+   
+   DURATION: $RAD->{INTERIUM_ACCT_SESSION_TIME},
+   IN: $RAD->{INTERIUM_INBYTE},
+   OUT: $RAD->{INTERIUM_OUTBYTE},
+   IN2: $RAD->{INTERIUM_INBYTE2},
+   OUT2: $RAD->{INTERIUM_OUTBYTE2}
+
    \n" >> /tmp/echoccc`;
+
+ 
+   $self->query($db, "SELECT count(*) FROM dv_log_intervals WHERE acct_session_id='$RAD->{ACCT_SESSION_ID}' and interval_id='$Billing->{TI_ID}' and traffic_type='0';"  );
+
+
+   my $count = @{ $self->{list}->[0] }[0];
+   
+   
+   if ($count > 0) {
+
+     $a = `echo "
+   UPDATE '$count'" >> /tmp/echoccc `; 
+
+     $self->query($db, "UPDATE dv_log_intervals SET  
+                                                    sent=sent+'$RAD->{INTERIUM_OUTBYTE}', 
+                                                    recv=recv+'$RAD->{INTERIUM_INBYTE}', 
+                                                    duration=duration+'$RAD->{INTERIUM_ACCT_SESSION_TIME}', 
+                                                    sum=sum+'$self->{SUM}'
+                         WHERE interval_id='$Billing->{TI_ID}' and acct_session_id='$RAD->{ACCT_SESSION_ID}' and traffic_type='0';", 'do');
+    }
+   else {
+     $self->query($db, "INSERT INTO dv_log_intervals (interval_id, sent, recv, duration, traffic_type, sum, acct_session_id)
+      values ('$Billing->{TI_ID}', '$RAD->{INTERIUM_OUTBYTE}', '$RAD->{INTERIUM_INBYTE}', 
+      '$RAD->{INTERIUM_ACCT_SESSION_TIME}', '0', '$self->{SUM}', '$RAD->{ACCT_SESSION_ID}');", 'do');
+    }
 
 
 #  return $self;

@@ -23,7 +23,7 @@
 
 
 my $CMTS_prompt         = (defined($conf{BSR1000_PROMPT})) ? $conf{BSR1000_PROMPT} : 'catv0';
-my $CMTS_terminal_lines = 128;
+my $CMTS_terminal_lines = 100;
 
 use Nas;
 my $nas = Nas->new($db, \%conf);
@@ -103,6 +103,8 @@ sub Bsr1000_cmd {
     my $result = telnet_cmd("$nas->{NAS_MNG_IP_PORT}", \@commands, { debug => 1 });
     my $total=0;
     my @rows = split(/\n/, $result);
+
+    #print "<pre>$result</pre>";
 
    
     if($FORM{command} eq 'show cable modem') {
