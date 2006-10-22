@@ -911,7 +911,9 @@ sub remaining_time {
             $ATTR{TT}=$int_id;
             return int($int_duration), \%ATTR;
            }
-          elsif(defined($periods_traf_tarif->{$int_id}) && $periods_traf_tarif->{$int_id} > 0 && ! $CONF->{rt_billing} ) {
+          elsif(defined($periods_traf_tarif->{$int_id}) && $periods_traf_tarif->{$int_id} > 0 
+            && ! $CONF->{rt_billing} 
+            ) {
 
             print "Next tarif with traffic counts (Remaining: $remaining_time) Day: $tarif_day Int Begin: $int_begin End: $int_end ID: $int_id\n" if ($debug == 1);
             return int($remaining_time), \%ATTR;
