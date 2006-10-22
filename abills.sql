@@ -94,11 +94,19 @@ CREATE TABLE `dv_calls` (
   KEY `user_name` (`user_name`)
 ) ;
 
-# --------------------------------------------------------
 
-#
-# Структура таблиці `companies`
-#
+
+CREATE TABLE `dv_log_intervals` (
+  `interval_id` smallint(6) unsigned NOT NULL default '0',
+  `sent` int(11) unsigned NOT NULL default '0',
+  `recv` int(11) unsigned NOT NULL default '0',
+  `duration` int(11) unsigned NOT NULL default '0',
+  `traffic_type` tinyint(4) unsigned NOT NULL default '0',
+  `sum` double(14,6) unsigned NOT NULL default '0.000000',
+  `acct_session_id` varchar(25) NOT NULL default ''
+);
+
+
 
 CREATE TABLE `companies` (
   `id` int(11) unsigned NOT NULL auto_increment,
