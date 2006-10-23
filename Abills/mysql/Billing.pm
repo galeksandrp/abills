@@ -313,7 +313,7 @@ sub session_sum {
    $self->{PAYMENT_TYPE}
   ) = @{ $self->{list}->[0] };
  	
- }
+  }
  else {
   $self->query($db, "SELECT 
     u.uid,

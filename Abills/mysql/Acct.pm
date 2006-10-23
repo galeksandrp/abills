@@ -304,8 +304,8 @@ sub rt_billing {
    $RAD->{INTERIUM_ACCT_SESSION_TIME},
    $RAD->{INTERIUM_INBYTE},
    $RAD->{INTERIUM_OUTBYTE},
-   $RAD->{INTERIUM_INBYTE2},
-   $RAD->{INTERIUM_OUTBYTE2},
+   $RAD->{INTERIUM_INBYTE1},
+   $RAD->{INTERIUM_OUTBYTE1},
    $RAD->{ACCT_SESSION_ID},
    $self->{CALLS_SUM}
    ) = @{ $self->{list}->[0] };
@@ -323,8 +323,8 @@ sub rt_billing {
                                                 $RAD->{INTERIUM_ACCT_SESSION_TIME}, 
                                                 {  OUTBYTE  => $RAD->{INTERIUM_OUTBYTE},
                                                    INBYTE   => $RAD->{INTERIUM_INBYTE},
-                                                   OUTBYTE2 => $RAD->{INTERIUM_OUTBYTE2},
-                                                   INBYTE2  => $RAD->{INTERIUM_INBYTE2}
+                                                   OUTBYTE2 => $RAD->{INTERIUM_OUTBYTE1},
+                                                   INBYTE2  => $RAD->{INTERIUM_INBYTE1}
                                                 	},
                                                 { FULL_COUNT => 1 }
                                                 );
@@ -342,37 +342,43 @@ sub rt_billing {
    DURATION: $RAD->{INTERIUM_ACCT_SESSION_TIME},
    IN: $RAD->{INTERIUM_INBYTE},
    OUT: $RAD->{INTERIUM_OUTBYTE},
-   IN2: $RAD->{INTERIUM_INBYTE2},
-   OUT2: $RAD->{INTERIUM_OUTBYTE2}
+   IN2: $RAD->{INTERIUM_INBYTE1},
+   OUT2: $RAD->{INTERIUM_OUTBYTE1}
 
    \n" >> /tmp/echoccc`;
 
  
-   $self->query($db, "SELECT count(*) FROM dv_log_intervals WHERE acct_session_id='$RAD->{ACCT_SESSION_ID}' and interval_id='$Billing->{TI_ID}' and traffic_type='0';"  );
+   $self->query($db, "SELECT traffic_type FROM dv_log_intervals 
+     WHERE acct_session_id='$RAD->{ACCT_SESSION_ID}' 
+           and interval_id='$Billing->{TI_ID}';"  );
 
+   my %intrval_traffic = ();
+   foreach my $line (@{ $self->{list} }) {
+   	 $intrval_traffic{$line->[0]}=1;
+    }
 
-   my $count = @{ $self->{list}->[0] }[0];
+   my @RAD_TRAFF_SUFIX = ('', '1');
    
-   
-   if ($count > 0) {
+   for(my $traffic_type = 0; $traffic_type <= $#RAD_TRAFF_SUFIX; $traffic_type++) {
+     next if ($RAD->{'INTERIUM_OUTBYTE'.$RAD_TRAFF_SUFIX[$traffic_type]} + $RAD->{'INTERIUM_INBYTE'.$RAD_TRAFF_SUFIX[$traffic_type]} < 1);
 
-     $a = `echo "
-   UPDATE '$count'" >> /tmp/echoccc `; 
-
-     $self->query($db, "UPDATE dv_log_intervals SET  
-                                                    sent=sent+'$RAD->{INTERIUM_OUTBYTE}', 
-                                                    recv=recv+'$RAD->{INTERIUM_INBYTE}', 
+     if ($intrval_traffic{$traffic_type}) {
+       $self->query($db, "UPDATE dv_log_intervals SET  
+                                                    sent=sent+'". $RAD->{'INTERIUM_OUTBYTE'. $RAD_TRAFF_SUFIX[$traffic_type]} ."', 
+                                                    recv=recv+'". $RAD->{'INTERIUM_INBYTE'. $RAD_TRAFF_SUFIX[$traffic_type]} ."', 
                                                     duration=duration+'$RAD->{INTERIUM_ACCT_SESSION_TIME}', 
                                                     sum=sum+'$self->{SUM}'
-                         WHERE interval_id='$Billing->{TI_ID}' and acct_session_id='$RAD->{ACCT_SESSION_ID}' and traffic_type='0';", 'do');
+                         WHERE interval_id='$Billing->{TI_ID}' and acct_session_id='$RAD->{ACCT_SESSION_ID}' and traffic_type='$traffic_type';", 'do');
+      }
+     else {
+       $self->query($db, "INSERT INTO dv_log_intervals (interval_id, sent, recv, duration, traffic_type, sum, acct_session_id)
+        values ('$Billing->{TI_ID}', 
+          '". $RAD->{'INTERIUM_OUTBYTE'. $RAD_TRAFF_SUFIX[$traffic_type]} ."', 
+          '". $RAD->{'INTERIUM_INBYTE'. $RAD_TRAFF_SUFIX[$traffic_type]} ."', 
+        '$RAD->{INTERIUM_ACCT_SESSION_TIME}', '$traffic_type', '$self->{SUM}', '$RAD->{ACCT_SESSION_ID}');", 'do');
+      }
     }
-   else {
-     $self->query($db, "INSERT INTO dv_log_intervals (interval_id, sent, recv, duration, traffic_type, sum, acct_session_id)
-      values ('$Billing->{TI_ID}', '$RAD->{INTERIUM_OUTBYTE}', '$RAD->{INTERIUM_INBYTE}', 
-      '$RAD->{INTERIUM_ACCT_SESSION_TIME}', '0', '$self->{SUM}', '$RAD->{ACCT_SESSION_ID}');", 'do');
-    }
-
-
+ 
 #  return $self;
   if ($self->{UID} == -2) {
     $self->{errno}  = 1;   
