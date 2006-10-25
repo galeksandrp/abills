@@ -262,7 +262,7 @@ sub stats_pm25 {
 
   my $PM25_PORT=$PORT+2;
   my $SNMP_COM = $NAS->{NAS_MNG_PASSWORD} || '';
-
+ 
   my $in  = `$SNMPWALK -v 1 -c "$SNMP_COM" $NAS->{NAS_IP} IF-MIB::ifInOctets.$PM25_PORT | awk '{print \$4}'`;
   my $out = `$SNMPWALK -v 1 -c "$SNMP_COM" $NAS->{NAS_IP} IF-MIB::ifOutOctets.$PM25_PORT  | awk '{print \$4}'`;
 

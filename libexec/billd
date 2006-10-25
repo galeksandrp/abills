@@ -245,7 +245,6 @@ sub check_speed {
      }
   }
 
-
   require Billing;
   Billing->import();
   my $Billing = Billing->new($db, \%conf);
