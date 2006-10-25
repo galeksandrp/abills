@@ -313,7 +313,10 @@ if ($ACTION eq 'up') {
             push @FW_ACTIONS, "$IPFW pipe $pipe_num_in config bw ". $speed_in ."Kbit/s queue 10Kbytes";
          }
        }
-
+      else {
+      	
+        }
+      
       if ($speed_out > 0) {
         if ($traf_type == 0) {
           push @FW_ACTIONS, "$IPFW add $fw_num_out pipe $pipe_num_out ip from any to any via $INTERFACE out";
@@ -339,6 +342,11 @@ if ($ACTION eq 'up') {
           push @FW_ACTIONS, "$IPFW pipe $pipe_num_out config bw ". $speed_out ."Kbit/s queue 10Kbytes";
          }
        }
+      else {
+      	
+        }
+
+
     }
     
   }

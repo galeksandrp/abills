@@ -99,28 +99,33 @@ sub online {
  $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
  $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
  
- my $WHERE;
+ my @WHERE_RULES = ();
  
  if (defined($attr->{ZAPED})) {
- 	 $WHERE = "c.status=2";
+ 	 push @WHERE_RULES, "c.status=2";
+  }
+ elsif ($attr->{ALL}) {
+
   }
  else {
-   $WHERE = "c.status=1 or c.status>=3";
+   push @WHERE_RULES, "c.status=1 or c.status>=3";
   } 
  
  if (defined($attr->{USER_NAME})) {
- 	 $WHERE = "user_name='$attr->{USER_NAME}'";
+ 	 push @WHERE_RULES, "user_name='$attr->{USER_NAME}'";
   }
 
 
  if (defined($attr->{FRAMED_IP_ADDRESS})) {
- 	 $WHERE = "framed_ip_address=INET_ATON('$attr->{FRAMED_IP_ADDRESS}')";
+ 	 push @WHERE_RULES, "framed_ip_address=INET_ATON('$attr->{FRAMED_IP_ADDRESS}')";
   }
 
  if (defined($attr->{NAS_ID})) {
- 	 $WHERE = "nas_id='$attr->{NAS_ID}'";
+ 	 push @WHERE_RULES, "nas_id='$attr->{NAS_ID}'";
   }
 
+
+ $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
 
  $self->query($db, "SELECT c.user_name,
                           pi.fio,
@@ -153,7 +158,7 @@ sub online {
  LEFT JOIN companies company ON (u.company_id=company.id)
  LEFT JOIN bills cb ON (company.bill_id=cb.id)
  
- WHERE $WHERE
+ $WHERE
  ORDER BY $SORT $DESC;");
  
  if ($self->{TOTAL} < 1) {

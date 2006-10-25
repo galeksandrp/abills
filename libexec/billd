@@ -193,7 +193,7 @@ sub check_lines {
 #**********************************************************
 sub check_speed {		
 	
-	if ($ARGV->{NAS_ID}) {
+	if (! $ARGV->{NAS_ID}) {
 		print "NAS not specify\n";
 		exit;
 	 }
@@ -224,18 +224,19 @@ sub check_speed {
    }
 
 
-
-	$sessions->online( { %LIST_PARAMS } );	
+	$sessions->online( { %LIST_PARAMS, NAS_ID => $ARGV->{NAS_ID}  } );	
 	my $online = $sessions->{nas_sorted};
   $LIST_PARAMS{DISABLE} = 0;
-  my $nas_list = $nas->list({ #TYPE => 'exppp' 
-  	 });
+
+  my $nas_list = $nas->list({  });
 
   #my %TP_ARR = ();
   my %IFACES=();
   my %TP_HASH = ();
 
   foreach my $nas_row (@$nas_list) {
+    next if (! $online->{$nas_row->[0]});
+
     my $l = $online->{$nas_row->[0]};
     foreach my $line (@$l) {
                            #IFACE : TP : SPEED  :IP
@@ -337,6 +338,7 @@ sub check_speed {
 
 
   	 	       while(my($k, $v)=each %{ $speeds{$TP}{OUT} }) {
+  	 	       	  next if ($v == 0);
   	 	       	  my $fw_num = $START_FW[$k] + $IFACE * 2;
   	 	       	  $debug_outputs .= "  $k, $v ipfw: $fw_num";
   	 	       	  if (! $rule_speed{$IFACE}{$fw_num}) {
@@ -359,6 +361,7 @@ sub check_speed {
 
    	 	 $debug_outputs .= " OUT: ";
   	 	       while(my($k, $v)=each %{ $speeds{$TP}{OUT} }) {
+  	 	       	  next if ($v == 0);
   	 	       	  my $fw_num = $START_FW[$k] + $IFACE * 2 + 1 ;
   	 	       	  $debug_outputs .= "  $k, $v ipfw: $fw_num";
 
