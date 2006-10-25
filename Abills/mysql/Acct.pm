@@ -330,9 +330,10 @@ sub rt_billing {
                                                 );
   
   
-  my $a = `echo "
+  my $a = `date >> /tmp/echoccc;
+   echo "
    UID: $self->{UID}, 
-   SUM: $self->{SUM}, 
+   SUM: $self->{SUM} / $self->{CALLS_SUM}, 
    BILL_ID: $self->{BILL_ID}, 
    TP: $self->{TARIF_PLAN}, 
    TIME_TARRIF: $self->{TIME_TARIF}, 
@@ -344,7 +345,6 @@ sub rt_billing {
    OUT: $RAD->{INTERIUM_OUTBYTE},
    IN2: $RAD->{INTERIUM_INBYTE1},
    OUT2: $RAD->{INTERIUM_OUTBYTE1}
-
    \n" >> /tmp/echoccc`;
 
  

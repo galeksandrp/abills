@@ -5,8 +5,13 @@
 
 
 
-use vars  qw(%RAD %conf @MODULES $db $DATE $GZIP $MYSQLDUMP %ADMIN_REPORT);
-#use strict;
+use vars  qw(%RAD %conf @MODULES $db $DATE $GZIP $MYSQLDUMP %ADMIN_REPORT $IPFW
+ $IFCONFIG
+ @START_FW
+ 
+ );
+use strict;
+
 use FindBin '$Bin';
 require $Bin . '/config.pl';
 unshift(@INC, $Bin . '/../', $Bin . "/../Abills/$conf{dbtype}");
@@ -21,13 +26,15 @@ my $debug=0;
 my $ARGV = parse_arguments(\@ARGV);
 
 if (defined($ARGV->{debug})) {
-  print "Debug mode on\n";
-  $debug=1;
+  $debug=$ARGV->{debug} || 1;
+  print "Debug mode $debug\n";
 }
 elsif(defined($ARGV->{help})){
   print "Help:
-  checkppp - check Active ppp session and disconnect unknown ip
-  debug    - debug mode
+  checkppp    - check Active ppp session and disconnect unknown ip
+  checkspeed  - check cure speed for user. Arguments NAS_ID=xx
+  debug       - debug mode
+  
 \n";
   exit;
 }
@@ -53,7 +60,7 @@ if ($admin->{errno}) {
 	exit 0;
 }
 
-%LIST_PARAMS = ();
+my %LIST_PARAMS = ();
 require Dv_Sessions;
 my $sessions = Dv_Sessions->new($db, $admin, \%conf);
 require Nas;
@@ -64,11 +71,14 @@ my %stats = ();
 if (defined($ARGV->{checkppp})) {
   check_ppp();
  }
+elsif (defined($ARGV->{checkspeed})){
+	check_speed();
+ }
 else {
   check_lines();
 }
 
- if ($begin_time > 0 && $debug == 1)  {
+ if ($begin_time > 0 && $debug > 0)  {
    Time::HiRes->import(qw(gettimeofday));
    my $end_time = gettimeofday();
    my $gen_time = $end_time - $begin_time;
@@ -83,7 +93,7 @@ sub check_lines {
 	require Billing;
 	Billing->import();
 
-	$LIST_PARAMS{ROWS}=2;
+	#$LIST_PARAMS{ROWS}=2;
 	$sessions->online( { %LIST_PARAMS } );	
 	
 	my $online = $sessions->{nas_sorted};
@@ -113,7 +123,7 @@ sub check_lines {
       if ($acct_input_octets_ext > $exppp_hanguplimit || $acct_output_octets_ext > $exppp_hanguplimit) {
         my $ret = hangup(\%NAS, "$nas_port_id", "$line->[0]", { ACCT_SESSION_ID   => "$acct_session_id",
         	                                                      FRAMED_IP_ADDRESS => "$line->[3]"
-        	                                                      } );
+        	                                                      });
         print "Hangup '$line->[0]' $acct_input_octets, $acct_output_octets, $acct_input_octets_ext, $acct_output_octets_ext, Session-ID: $acct_session_id\n"; 
        }     
 
@@ -176,10 +186,211 @@ sub check_lines {
 
      }
    }
+}
+
+#**********************************************************
+# Ceck current speed
+#**********************************************************
+sub check_speed {		
+	
+	if ($ARGV->{NAS_ID}) {
+		print "NAS not specify\n";
+		exit;
+	 }
+	
+	
+	my $result = `$IPFW show; $IPFW pipe show`;
+	my @rules = split(/\n/, $result);
+	my %rule_speed = ();
+	my %interfaces = ();
+	my %speeds_rotations = ('Kbit' => 1,
+	                        'Mbit' => 1000);
+	
+	foreach my $line (@rules) {
+     if ($line =~ /(\d+):\s+(\S+) (\w+)/) {
+       my $speed = $2 * $speeds_rotations{$3};
+       $rule_speed{$interfaces{$1}}{int($1)} = "$speed";
+     	}
+	   elsif ($line =~ /(\d+).+tun(\d+)/){
+	     $interfaces{$1}=$2;
+	    }
+	 }
+
+  while(my($iface, $rules)=each %rule_speed) {
+  	 print "$iface\n" if ($debug == 1);
+  	 foreach my $line ( sort keys %$rules ) {
+  	 	  print " $line -> $rules->{$line}\n" if ($debug == 2);
+  	  }
+   }
+
+
+
+	$sessions->online( { %LIST_PARAMS } );	
+	my $online = $sessions->{nas_sorted};
+  $LIST_PARAMS{DISABLE} = 0;
+  my $nas_list = $nas->list({ #TYPE => 'exppp' 
+  	 });
+
+  #my %TP_ARR = ();
+  my %IFACES=();
+  my %TP_HASH = ();
+
+  foreach my $nas_row (@$nas_list) {
+    my $l = $online->{$nas_row->[0]};
+    foreach my $line (@$l) {
+                           #IFACE : TP : SPEED  :IP
+       $IFACES{$line->[0]}="$line->[2]:$line->[13]:$line->[16]:$line->[3]";
+       $TP_HASH{$line->[13]}=1;
+     }
+  }
+
+
+  require Billing;
+  Billing->import();
+  my $Billing = Billing->new($db, \%conf);
+  my $user = $Billing->get_timeinfo();
+
+  require Tariffs;
+  Tariffs->import();
+  my $tariffs = Tariffs->new($db, $admin);
+  my %speeds = ();
+  
+  
+  #GET TP speed
+  foreach my $tp (keys (%TP_HASH)) {
+  	print "TP: $tp\n" if ($debug == 2);
+  
+    my ($remaining_time, $ret_attr); 
+
+    ($user->{TIME_INTERVALS},
+     $user->{INTERVAL_TIME_TARIF}, 
+     $user->{INTERVAL_TRAF_TARIF}) = $Billing->time_intervals($tp);
+
+    ($remaining_time, $ret_attr) = $Billing->remaining_time(0, {
+    	    TIME_INTERVALS      => $user->{TIME_INTERVALS},
+          INTERVAL_TIME_TARIF => $user->{INTERVAL_TIME_TARIF},
+          INTERVAL_TRAF_TARIF => $user->{INTERVAL_TRAF_TARIF},
+          SESSION_START       => $user->{SESSION_START},
+          DAY_BEGIN           => $user->{DAY_BEGIN},
+          DAY_OF_WEEK         => $user->{DAY_OF_WEEK},
+          DAY_OF_YEAR         => $user->{DAY_OF_YEAR},
+          REDUCTION           => 0,
+          POSTPAID            => 1
+         });
+
+#    print "RT: $remaining_time\n"  if ($debug == 1);
+    my %TT_IDS = %$ret_attr;
+
+
+    if (keys %TT_IDS > 0) {
+      #Get intervals
+      while(my($k, $v)=each( %TT_IDS)) {
+ 	      print " INTERVAL: $k, $v\n" if ($debug == 2);
+
+ 	      my $list = $tariffs->tt_list({ TI_ID => $v });
+ 	      foreach my $line (@$list)  {
+ 	    	  print "   $line->[0] IN: $line->[4] OUT: $line->[5]\n" if ($debug == 2);
+ 	    	  $speeds{$tp}{IN}{$line->[0]}="$line->[4]";
+ 	    	  $speeds{$tp}{OUT}{$line->[0]}="$line->[5]";
+ 	      }
+      }
+    }
+  
+   }
+
+
+  
+ 
+  my $debug_outputs = '';
+  my $cmd_debug='';
+
+  if ($debug > 1) {
+  	$cmd_debug='debug';
+   }
+  
+  while(my($user, $other)=each %IFACES) {
+  	 my($IFACE, $TP, $SPEED, $IP)=split(/:/, $other);
+
+  	 $debug_outputs = "$user -> IFACE: $IFACE TP: $TP IP: $IP\n";
+  	 
+     if (! $rule_speed{$IFACE}) {
+        $debug_outputs .= "  ! No interface\n";	
+        print $debug_outputs if ($debug > 0); 
+        next;
+      }
+
+  	 
+     if ($SPEED > 0)  {
+     	  my $fw_num = $START_FW[0] + $IFACE * 2;
+     	  $debug_outputs .= " IN:  0, $SPEED ipfw: $fw_num / $rule_speed{$IFACE}{$fw_num}\n".
+     	                    " OUT: 0, $SPEED ipfw: ". $rule_speed{$IFACE}{$fw_num + 1} ."\n";
+        
+     	  if ($SPEED != $rule_speed{$IFACE}{$fw_num} || $SPEED != $rule_speed{$IFACE}{$fw_num + 1} ) {
+           my $cmd=`$Bin/linkupdown down tun$IFACE $user $IP $cmd_debug; $Bin/linkupdown up tun$IFACE $user $IP $cmd_debug`;
+           $debug_outputs .= $cmd;
+           next;
+     	   }
+
+     	}
+  	 elsif(defined($speeds{$TP})) {
+  	 	 $debug_outputs .= " IN:  ";
+
+
+  	 	       while(my($k, $v)=each %{ $speeds{$TP}{OUT} }) {
+  	 	       	  my $fw_num = $START_FW[$k] + $IFACE * 2;
+  	 	       	  $debug_outputs .= "  $k, $v ipfw: $fw_num";
+  	 	       	  if (! $rule_speed{$IFACE}{$fw_num}) {
+                  my $cmd=`$Bin/linkupdown down tun$IFACE $user $IP $cmd_debug; $Bin/linkupdown up tun$IFACE $user $IP $cmd_debug;`;
+                  $debug_outputs .= "\n". $cmd;
+                  goto ENDWHILE;
+                  next;
+  	 	       	   }
+  	 	       	  else {
+  	 	       	    $debug_outputs .= "/ $rule_speed{$IFACE}{$fw_num}\n";
+     	            
+     	            if ($rule_speed{$IFACE}{$fw_num} != $v) {
+                    my $cmd=`$Bin/linkupdown down tun$IFACE $user $IP $cmd_debug; $Bin/linkupdown up tun$IFACE $user $IP $cmd_debug`;
+                    $debug_outputs .= $cmd;
+                    goto ENDWHILE;
+                    next;
+     	             }
+                 }
+  	 	        }
+
+   	 	 $debug_outputs .= " OUT: ";
+  	 	       while(my($k, $v)=each %{ $speeds{$TP}{OUT} }) {
+  	 	       	  my $fw_num = $START_FW[$k] + $IFACE * 2 + 1 ;
+  	 	       	  $debug_outputs .= "  $k, $v ipfw: $fw_num";
+
+  	 	       	  if (! defined($rule_speed{$IFACE}{$fw_num})) {
+                    my $cmd=`$Bin/linkupdown down tun$IFACE $user $IP $cmd_debug; $Bin/linkupdown up tun$IFACE $user $IP $cmd_debug;`;
+                    $debug_outputs .= "\n". $cmd;
+                    next;
+  	 	       	   }
+  	 	       	  else {
+  	 	       	    $debug_outputs .= "/ $rule_speed{$IFACE}{$fw_num}\n";
+     	            
+     	            if ($rule_speed{$IFACE}{$fw_num} != $v) {
+                    my $cmd=`$Bin/linkupdown down tun$IFACE $user $IP $cmd_debug; $Bin/linkupdown up tun$IFACE $user $IP $cmd_debug;`;
+                    $debug_outputs .= $cmd;
+                    next;
+     	             }
+    	 	       	 }
+  	 	        }
+
+  	  }
+  	 else {
+  	 	 $debug_outputs .= " IN:  N/S (TP: $TP)\n";
+  	  }
+
+  	 ENDWHILE:
+  	 print $debug_outputs if ($debug == 2); 
+   }
+
+
 
 
 }
-
 
 
 #**********************************************************
@@ -246,6 +457,7 @@ sub get_if_info {
     }
  close(IFC);
 
+ my ($tunnum, $addr, $pid);
  while($ifconfig =~ /tun(.+\n.+\n.+PID.+)/gi) {
     my @ifs = split(/\n/, $1);
     my $tunnum = 0;

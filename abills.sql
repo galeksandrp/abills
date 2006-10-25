@@ -39,9 +39,9 @@ CREATE TABLE `admin_permits` (
 
 
 CREATE TABLE `admins` (
-  `id` varchar(12) default NULL,
-  `name` varchar(24) default NULL,
-  `regdate` date default NULL,
+  `id` varchar(12) NOT NULL default '',
+  `name` varchar(50) NOT NULL default '',
+  `regdate` date NOT NULL default '0000-00-00',
   `password` varchar(16) binary NOT NULL default '',
   `gid` tinyint(4) unsigned NOT NULL default '0',
   `aid` smallint(6) unsigned NOT NULL auto_increment,

@@ -816,6 +816,10 @@ sub remaining_time {
  my $tarif_day = 0;
  my $count = 0;
  $session_start = $session_start - $day_begin;
+ 
+ #If use post paid service
+ 
+
 
  while(($deposit > 0 || (defined($attr->{POSTPAID}) && $attr->{POSTPAID}==1 )) && $count < 50) {
   
@@ -858,7 +862,8 @@ sub remaining_time {
 
      my @intervals = sort keys %$cur_int; 
      $i = -1;
-
+     
+     #Check intervals
      foreach my $int_begin (@intervals) {
        my ($int_id, $int_end) = split(/:/, $cur_int->{$int_begin}, 2);
        $i++;
@@ -884,13 +889,15 @@ sub remaining_time {
        if (($int_begin <= $session_start) && ($session_start < $int_end)) {
           $int_duration = $int_end-$session_start;
           
-          print " <<=\n" if ($debug == 1);    
+          print " <<!=\n" if ($debug == 1);    
+
           # if defined prev_tarif
           if ($prev_tarif ne '') {
             	my ($p_day, $p_begin)=split(/:/, $prev_tarif, 2);
             	$int_end=$p_begin;
             	print "Prev tarif $prev_tarif / INT end: $int_end \n" if ($debug == 1);
            }
+
           #Time calculations
           if ($periods_time_tarif->{$int_id} =~ /%$/) {
              my $tp = $periods_time_tarif->{$int_id};
@@ -900,12 +907,13 @@ sub remaining_time {
           else {
              $price = $periods_time_tarif->{$int_id};
            }
-
+          
+          
           #Traf calculation
-          if(defined($periods_traf_tarif->{$int_id}) && 
-             $periods_traf_tarif->{$int_id} > 0 && 
-             $remaining_time == 0 
-             && ! $CONF->{rt_billing}
+          if(defined($periods_traf_tarif->{$int_id})
+             && $periods_traf_tarif->{$int_id} > 0 
+             && $remaining_time == 0 
+             && ($attr->{GET_INTERVAL} || ! $CONF->{rt_billing})
              ) {
             print "This tarif with traffic counts\n" if ($debug == 1);
             $ATTR{TT}=$int_id;

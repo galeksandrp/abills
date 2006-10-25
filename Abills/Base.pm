@@ -141,7 +141,7 @@ sub parse_arguments {
     	   $args{"$k"}=(defined($v)) ? $v : '';
     	 }
     	else {
-    		$args{"$line"}='y';
+    		$args{"$line"}=1;
     	 }
      }
   return \%args;

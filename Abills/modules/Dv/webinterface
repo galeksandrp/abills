@@ -582,10 +582,10 @@ elsif($FORM{zap}) {
   $html->message('info', $_INFO, $message);
 }
 elsif($FORM{tolog}) {
-  my $ACCT_INFO = $sessions->online_info({ NAS_ID => $FORM{nas_id},
-                NAS_PORT        => $FORM{nas_port_id},
-                ACCT_SESSION_ID => $FORM{tolog}
-               });
+  my $ACCT_INFO = $sessions->online_info({ NAS_ID          => $FORM{nas_id},
+                                           NAS_PORT        => $FORM{nas_port_id},
+                                           ACCT_SESSION_ID => $FORM{tolog}
+                                       });
 
   if ($ACCT_INFO->{TOTAL} < 1) {
     $html->message('err', $_ERROR, "$_NOT_EXIST");	
@@ -595,9 +595,9 @@ elsif($FORM{tolog}) {
   $nas->info({ NAS_ID => $FORM{nas_id} });
 
   require Acct;
-  $ACCT_INFO->{INBYTE}           =   $ACCT_INFO->{ACCT_INPUT_OCTETS};
-  $ACCT_INFO->{OUTBYTE}          =  $ACCT_INFO->{ACCT_OUTPUT_OCTETS},;
-  $ACCT_INFO->{INBYTE2}          =  $ACCT_INFO->{ACCT_EX_INPUT_OCTETS} ;
+  $ACCT_INFO->{INBYTE}           = $ACCT_INFO->{ACCT_INPUT_OCTETS};
+  $ACCT_INFO->{OUTBYTE}          = $ACCT_INFO->{ACCT_OUTPUT_OCTETS},;
+  $ACCT_INFO->{INBYTE2}          = $ACCT_INFO->{ACCT_EX_INPUT_OCTETS} ;
   $ACCT_INFO->{OUTBYTE2}         = $ACCT_INFO->{ACCT_EX_INPUT_OCTETS};
   $ACCT_INFO->{ACCT_STATUS_TYPE} = 'Stop';
 
