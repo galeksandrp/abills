@@ -14,7 +14,7 @@ use strict;
 
 use FindBin '$Bin';
 require $Bin . '/config.pl';
-unshift(@INC, $Bin . '/../', $Bin . "/../Abills/$conf{dbtype}");
+unshift(@INC, $Bin . "/../Abills/", $Bin . '/../', $Bin . "/../Abills/$conf{dbtype}");
 
 require "Abills/defs.conf";
 require "Abills/nas.pl";

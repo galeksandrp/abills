@@ -7,6 +7,12 @@
 #
 #*******************************************************************
 
+
+use BER;
+use SNMP_Session;
+use SNMP_util;
+
+
 my $PPPCTL = '/usr/sbin/pppctl';
 my $RADCLIENT = '/usr/local/bin/radclient';
 my $SUDO = '/usr/local/bin/sudo';
@@ -74,6 +80,9 @@ sub get_stats {
 
  if ($nas_type eq 'usr')       {
     %stats = stats_usr($NAS, $PORT);
+  }
+ elsif ($nas_type eq 'patton')   {
+    %stats = stats_patton29xx($NAS, $PORT);
   }
  elsif ($nas_type eq 'pm25')   {
     %stats = stats_pm25($NAS, $PORT);
@@ -262,19 +271,18 @@ sub stats_pm25 {
 
   my $PM25_PORT=$PORT+2;
   my $SNMP_COM = $NAS->{NAS_MNG_PASSWORD} || '';
+  #my $in  = `$SNMPWALK -v 1 -c "$SNMP_COM" $NAS->{NAS_IP} IF-MIB::ifInOctets.$PM25_PORT | awk '{print \$4}'`;
+  #my $out = `$SNMPWALK -v 1 -c "$SNMP_COM" $NAS->{NAS_IP} IF-MIB::ifOutOctets.$PM25_PORT  | awk '{print \$4}'`;
+
+
+  my ($in) = snmpget($SNMP_COM .'@'. $NAS->{NAS_IP},  ".1.3.6.1.2.1.2.2.1.10.$PM25_PORT");
+  my ($out) = snmpget($SNMP_COM .'@'.$NAS->{NAS_IP}, ".1.3.6.1.2.1.2.2.1.16.$PM25_PORT");
+
  
-  my $in  = `$SNMPWALK -v 1 -c "$SNMP_COM" $NAS->{NAS_IP} IF-MIB::ifInOctets.$PM25_PORT | awk '{print \$4}'`;
-  my $out = `$SNMPWALK -v 1 -c "$SNMP_COM" $NAS->{NAS_IP} IF-MIB::ifOutOctets.$PM25_PORT  | awk '{print \$4}'`;
-
-
-#print "$SNMPWALK -v 1 -c \"$SNMP_COM\" $NAS->{NAS_IP} IF-MIB::ifOutOctets.$PM25_PORT  | awk '{print \$4}'";
-
-if ($in eq '') {
-  $stats{error}='y';
+if (! defined($in)) {
+  $stats{error}=1;
 } 
 elsif (int($in) + int($out) > 0) {
-#  chomp($in);
-#  chomp($out);
   $stats{in}  = int($in);
   $stats{out} = int($out);
 }
@@ -662,6 +670,8 @@ sub hangup_patton29xx {
  my ($NAS, $PORT, $attr) = @_;
 
 
+
+
  return $exec;
 }
 
@@ -675,6 +685,30 @@ sub stats_patton29xx {
 
   my %stats = (in  => 0,
                out => 0);
+
+
+  # Get active sessions
+  my %active = ();
+  my @arr = snmpwalk("$NAS->{NAS_MNG_PASSWORD}\@$NAS->{NAS_IP}", ".1.3.6.1.4.1.1768.5.100.1.3");
+  foreach my $line (@arr) {
+	  if ($line =~ /(\d+):6/) {
+		  $active{$1}=1;
+	   }
+   }
+
+
+  @arr = snmpwalk("$NAS->{NAS_MNG_PASSWORD}\@$NAS->{NAS_IP}", ".1.3.6.1.4.1.1768.5.100.1.9");
+  foreach my $line (@arr) {
+	  if ($line =~ /(\d+):(\d+)/) {
+		  if ($2 == $PORT && $active{$1} ) {
+		    $stats{out} = snmpget("$NAS->{NAS_MNG_PASSWORD}\@$NAS->{NAS_IP}", ".1.3.6.1.4.1.1768.5.100.1.36.$1");
+		    $stats{in} = snmpget("$NAS->{NAS_MNG_PASSWORD}\@$NAS->{NAS_IP}", ".1.3.6.1.4.1.1768.5.100.1.37.$1");
+		    #print snmpget("comoashuan\@192.168.101.133", ".1.3.6.1.4.1.1768.5.100.1.56.$1");
+		    #print " IFACE: $iface INDEX $1 IN: $in OUT: $out\n";
+		    last;
+       }
+	   }
+  }
 
 
 

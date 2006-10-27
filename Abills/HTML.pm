@@ -406,13 +406,23 @@ sub form_select {
      }
    }
   elsif (defined($attr->{SEL_HASH})) {
+    my @H = ();
 
-	  my $H = $attr->{SEL_HASH};
-	  while(my($k, $v) = each %$H) {
-     $self->{SELECT} .= "<option value='$k'";
-     $self->{SELECT} .=' selected' if (defined($attr->{SELECTED}) && $k eq $attr->{SELECTED});
-     $k = '' if ($attr->{NO_ID});
-     $self->{SELECT} .= ">$k:$v\n";	
+	  if ($attr->{SORT_KEY}) {
+	  	@H = sort keys %{ $attr->{SEL_HASH} };
+	  }
+	  else {
+	    @H = keys %{ $attr->{SEL_HASH} };
+     }
+    
+    
+    foreach my $k (@H) {
+      $self->{SELECT} .= "<option value='$k'";
+      $self->{SELECT} .=' selected' if (defined($attr->{SELECTED}) && $k eq $attr->{SELECTED});
+
+      $self->{SELECT} .= ">";
+      $self->{SELECT} .= "$k:" if (! $attr->{NO_ID});
+      $self->{SELECT} .= "$attr->{SEL_HASH}{$k}\n";	
      }
    }
 	

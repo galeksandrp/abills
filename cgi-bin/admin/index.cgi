@@ -280,9 +280,9 @@ elsif (! defined $FORM{type}) {
 }
 
 my $SEL_TYPE = $html->form_select('type', 
-                                { SELECTED  => $FORM{type},
- 	                                SEL_HASH  => \%SEARCH_TYPES,
- 	                                NO_ID     => 'y'
+                                { SELECTED   => $FORM{type},
+ 	                                SEL_HASH   => \%SEARCH_TYPES,
+ 	                                NO_ID      => 1
  	                                #EX_PARAMS => 'onChange="selectstype()"'
  	                               });
 
@@ -2146,6 +2146,7 @@ if ($nas->{errno}) {
   'pppd'      => 'pppd + RADIUS plugin (Linux)',
   'gnugk'     => 'GNU GateKeeper',
   'cisco'     => 'Cisco (Experimental)',
+  'patton'    => 'Patton RAS 29xx',
   'cisco_air' => 'Cisco Aironets',
   'bsr1000'   => 'CMTS Motorola BSR 1000',
   'mikrotik'  => 'Mikrotik (http://www.mikrotik.com)',
@@ -2159,7 +2160,8 @@ if ($nas->{errno}) {
 
   $nas->{SEL_TYPE} = $html->form_select('NAS_TYPE', 
                                 { SELECTED   => $nas->{NAS_TYPE},
- 	                                SEL_HASH   => \%nas_descr
+ 	                                SEL_HASH   => \%nas_descr,
+ 	                                SORT_KEY   => 1 
  	                               });
 
   $nas->{SEL_AUTH_TYPE} .= $html->form_select('NAS_AUTH_TYPE', 
@@ -2191,10 +2193,10 @@ foreach my $line (@$list) {
 }
 print $table->show();
 
-$table = $html->table( { width => '100%',
-                                cols_align => ['right', 'right'],
-                                rows => [ [ "$_TOTAL:", "<b>$nas->{TOTAL}</b>" ] ]
-                               } );
+$table = $html->table( { width      => '100%',
+                         cols_align => ['right', 'right'],
+                         rows       => [ [ "$_TOTAL:", "<b>$nas->{TOTAL}</b>" ] ]
+                     } );
 print $table->show();
 }
 

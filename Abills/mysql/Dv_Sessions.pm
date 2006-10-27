@@ -96,6 +96,8 @@ sub online {
 	my $self = shift;
 	my ($attr) = @_;
 
+
+ 
  $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
  $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
  
@@ -108,7 +110,7 @@ sub online {
 
   }
  else {
-   push @WHERE_RULES, "c.status=1 or c.status>=3";
+   push @WHERE_RULES, "(c.status=1 or c.status>=3)";
   } 
  
  if (defined($attr->{USER_NAME})) {
