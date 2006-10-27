@@ -954,7 +954,6 @@ sub list_log_intervals {
  
  undef @WHERE_RULES; 
  
- $self->{debug}=1;
  
 #UID
  if ($attr->{ACCT_SESSION_ID}) {
