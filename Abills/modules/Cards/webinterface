@@ -400,12 +400,12 @@ sub cards_users_gen_confim {
   my ($attr) = @_;
   
   
-  print "$attr->{LOGIN},  $attr->{PASSWORD}, $attr->{SERIA}, $attr->{DILLER_ID}/<br>";
+  #print "$attr->{LOGIN},  $attr->{PASSWORD}, $attr->{SERIA}, $attr->{DILLER_ID}/<br>";
 
   $Cards->cards_users_add({ %$attr });
-   if ($Cards->{errno}) {
-     $html->message('err', $_CARDS, "[$Cards->{errno}] $err_strs{$Cards->{errno}}");
-    }
+  if ($Cards->{errno}) {
+    $html->message('err', "$_ERROR:$_CARDS", "[$Cards->{errno}] $err_strs{$Cards->{errno}}");
+   }
 
   
   return 0;
@@ -417,7 +417,14 @@ sub cards_users_gen_confim {
 sub cards_users {
   
   cards_users_add();
+  
+  
+  if (! defined($FORM{sort})) {
+    $LIST_PARAMS{SORT}=1;
+    $LIST_PARAMS{DESC}=DESC;
+   }
 
+  
   my $list = $Cards->cards_users_list({ %LIST_PARAMS });
 	$table = $html->table( { width      => '100%',
                            caption    => "$_SERIAL",

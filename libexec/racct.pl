@@ -160,12 +160,14 @@ sub acct {
     elsif ($nas->{NAS_TYPE} eq 'lepppd') {
       $RAD->{'INBYTE'} = $RAD->{'PPPD_INPUT_OCTETS_ZONES_0'};
       $RAD->{'OUTBYTE'} = $RAD->{'PPPD_OUTPUT_OCTETS_ZONES_0'};
+
       for(my $i=1; $i<4; $i++) {
       	if (defined($RAD->{'PPPD_INPUT_OCTETS_ZONES_'.$i})) {
-          $RAD->{'INBYTE'.$i} = $RAD->{'PPPD_INPUT_OCTETS_ZONES_'.$i};
-          $RAD->{'OUTBYTE'.$i} = $RAD->{'PPPD_OUTPUT_OCTETS_ZONES_'.$i};
+          $RAD->{'INBYTE'.($i + 1)} = $RAD->{'PPPD_INPUT_OCTETS_ZONES_'.$i};
+          $RAD->{'OUTBYTE'.($i + 1)} = $RAD->{'PPPD_OUTPUT_OCTETS_ZONES_'.$i};
       	 }
        }
+
      }
     else {
       $RAD->{INBYTE2}  = 0;
@@ -200,8 +202,8 @@ sub acct {
       $RAD->{'OUTBYTE'} = $RAD->{'PPPD_INPUT_OCTETS_ZONES_0'};
       for(my $i=1; $i<4; $i++) {
       	if (defined($RAD->{'PPPD_INPUT_OCTETS_ZONES_'.$i})) {
-          $RAD->{'INBYTE'.$i}  = $RAD->{'PPPD_OUTPUT_OCTETS_ZONES_'.$i};
-          $RAD->{'OUTBYTE'.$i} = $RAD->{'PPPD_INPUT_OCTETS_ZONES_'.$i};
+          $RAD->{'INBYTE'.($i+1)}  = $RAD->{'PPPD_OUTPUT_OCTETS_ZONES_'.$i};
+          $RAD->{'OUTBYTE'.($i+1)} = $RAD->{'PPPD_INPUT_OCTETS_ZONES_'.$i};
       	 }
        }
      }

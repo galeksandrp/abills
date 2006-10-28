@@ -693,7 +693,6 @@ sub del {
                   'fees', 
                   'payments', 
                   'users_nas', 
-                  'messages',
                   'docs_acct',
                   'dv_log',
                   'users',

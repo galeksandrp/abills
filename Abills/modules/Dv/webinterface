@@ -1670,7 +1670,7 @@ my $table = $html->table({ width      => '100%',
                            cols_align => ['right', 'right', 'right', 'right', 'right', 'right', 'right'],
                            pages      => $sessions->{TOTAL},
                            qs         => $pages_qs
-                                  } );
+                           } );
 
  foreach my $line (@$list) {
     $table->addrow($line->[0],  
@@ -2209,6 +2209,17 @@ sub dv_cards {
 
   $FORM{add}=1;
   my %FORM2=%FORM;
+  my $CREATED = '';
+  my $added_count = 0;
+
+
+  my $table = $html->table({ width      => '100%',
+                             border     => 1,
+                             title      => ["$_LOGIN", "ID", "$_INFO"],
+                             cols_align => ['left', 'right', 'right'],
+                            });
+
+
 
   if (ref($return) eq 'ARRAY') {
      undef %FORM;
@@ -2218,24 +2229,28 @@ sub dv_cards {
   	 	  	 $FORM{$k}=clearquotes($v);
   	 	    }
 
-        print "<br>\n";
   	 	  $FORM{'1.LOGIN'}=$line->{LOGIN};
   	 	  $FORM{'1.PASSWORD'}=$line->{PASSWORD};
   	 	  $FORM{'1.CREATE_BILL'}=1;
 
   	 	  if ( dv_wizard_user({ SHORT_REPORT => 1 }) != 1) {
   	 	  	 print $html->message('err', $_ERROR, "$_LOGIN: $line->{LOGIN}");
-  	 	  	 return 0;
+  	 	  	 last;
   	 	   }
   	 	  else {
-  	 	    #Confim card creation	
+  	 	    #Confim card creation
+  	 	    $added_count++;
+  	 	    print " .";
+  	 	    $table->addrow("$FORM{'1.LOGIN'}", "$UID", "$FORM{ex_message}");
   	 	  	cards_users_gen_confim({ %$line });
   	 	   }
   	  }
    }
- 
   
+   
 
+  message('info', $_INFO, "$_ADDED:  $added_count");
+  print $table->show();
 }
 
 
@@ -2252,19 +2267,16 @@ sub dv_wizard_user {
   my %add_values = ();
 
   if ($FORM{add}) {
-  #	my $table = $html->table({ width => '100%' });
+
   	foreach my $k ( sort %FORM) {
-   #  $table->addrow($k, $FORM{$k});
       if ($k =~ m/[A-Z]+/ && $k !~ /__|[a-z]/) {
         $k =~ s/%22//g;
         my ($id, $main_key)=split(/\./, $k, 2);
         $add_values{$id}{$main_key}=$FORM{$k};
-       # $table->addrow($k, $FORM{$k});  	   
        }
-      
   	 }
+
    #print $table->show();
-   
    # Password
    my $user=$users->add({ %{$add_values{1}} });
    my $message = '';
@@ -2275,7 +2287,7 @@ sub dv_wizard_user {
       #2 
       if (defined($FORM{'2.newpassword'}) && $FORM{'2.newpassword'} ne '') {
         if (length($FORM{'2.newpassword'}) < $conf{PASSWD_LENGTH}) {
-          $html->message('err', $_ERROR, $err_strs{6});
+          $html->message('err', $_ERROR, "$err_strs{6}");
          }
         elsif ($FORM{'2.newpassword'} eq $FORM{'2.confirm'}) {
           $add_values{2}{PASSWORD}=$FORM{'2.newpassword'};
@@ -2286,7 +2298,6 @@ sub dv_wizard_user {
           $html->message('err', $_ERROR, $err_strs{5});
          }
 
-
         $user->change($UID, { %{$add_values{2}} });
        }
       
@@ -2296,16 +2307,19 @@ sub dv_wizard_user {
       #4 Dv
    	  $Dv->add({ UID => $UID, %{$add_values{4}} });
       if ($Dv->{errno}) {
-         $html->message('err', $_ERROR, "[$Dv->{errno}] $err_strs{$Dv->{errno}}");	
+         $html->message('err', $_ERROR, "[$Dv->{errno}] $err_strs{$Dv->{errno}}  Dv Modules");	
+         return 0;
         }
       
-      #5 Payments
-      my $er = $payments->exchange_info($FORM{'5.ER'});
-      if ($FORM{'5.SUM'}) {
+      #5 Payments section
+      if ($FORM{'5.SUM'} && $FORM{'5.SUM'} + 0 > 0) {
+
+        my $er = ($FORM{'5.ER'}) ? $payments->exchange_info($FORM{'5.ER'}) : ( ER_RATE => 1 );  
         $payments->add($user, { %{$add_values{5}}, ER => $er->{ER_RATE} } );  
 
         if ($payments->{errno}) {
-          $html->message('err', $_ERROR, "[$payments->{errno}] $err_strs{$payments->{errno}}");	
+          $html->message('err', "$_ERROR:$_PAYMENTS", "[$payments->{errno}] $err_strs{$payments->{errno}}");	
+          return 0;
          }
         else {
           $message = "$_SUM: $FORM{'5.SUM'} $er->{ER_SHORT_NAME}";
@@ -2317,9 +2331,10 @@ sub dv_wizard_user {
       my $pi = $user->pi({ UID => $UID });
       $user  = $user->info($UID);
       
-      $html->message('info', $_ADDED, "LOGIN: $add_values{1}{LOGIN} UID: $UID  $message");
       
       if (! $attr->{SHORT_REPORT}) {
+        $FORM{ex_message}=$message;
+        $html->message('info', $_ADDED, "LOGIN: $add_values{1}{LOGIN} UID: $UID  $message");
         $html->tpl_show(templates('user_info'), { %$user, %$pi } );
         $html->tpl_show(_include('dv_user_info', 'Dv'), $dv);
        }
@@ -2327,7 +2342,7 @@ sub dv_wizard_user {
       return 1;
     }
    else {
-     $html->message('err', $_ERROR, "[$users->{errno}] $err_strs{$users->{errno}}");	
+     $html->message('err', "[$users->{errno}] $err_strs{$users->{errno}}", "$_LOGIN: '$add_values{1}{LOGIN}'");	
      return 0 if ($attr->{SHORT_REPORT});
     }
    
