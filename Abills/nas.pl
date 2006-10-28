@@ -57,7 +57,7 @@ sub hangup {
  elsif ($nas_type eq 'mpd') {
     hangup_mpd($NAS, $PORT);
   }
- elsif ($nas_type eq 'pppd') {
+ elsif ($nas_type eq 'pppd' || $nas_type eq 'lepppd') {
    hangup_pppd($NAS, $PORT, $attr);
   }
  else {
