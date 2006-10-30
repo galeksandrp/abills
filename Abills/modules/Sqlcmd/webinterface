@@ -14,7 +14,20 @@ my $Sqlcmd = Sqlcmd->new($db, $admin, \%conf);
 #**********************************************************
 sub sqlcmd {
  
+if ($FORM{WIZARD}) {
+	my @f = split(/, /, $FORM{FIELDS});
+  
+  $FORM{QUERY} = "SELECT ";
+  
+  if ($#f < 0) {
+	  $FORM{QUERY} .= '*';
+	 }
+	else {
+	  $FORM{QUERY} .= join(', ', @f);
+	 }
 
+	$FORM{QUERY} .= " FROM $FORM{TABLE_INFO} LIMIT $PAGE_ROWS";
+}
 
  my $list = $Sqlcmd->list( { %FORM } ) if (defined($FORM{QUERY}) && length($FORM{QUERY}) > 10);
 
@@ -23,29 +36,41 @@ if ($Sqlcmd->{errno}) {
   return 0;
  }
 
-#elsif ($Mail->{TOTAL} == 1) {
-#	#mail_user_boxes();
-#	#return 0;
-#}
 
 
-  $html->tpl_show(_include('sqlcmd', 'Sqlcmd'), $Sqlcmd);
+$html->tpl_show(_include('sqlcmd', 'Sqlcmd'), { %$Sqlcmd, \%FORM });
 
-#cols_align => ['left', 'left', 'left', 'right', 'right', 'right', 'center', 'center', 'center', 'center', 'center', 'center'],
+$pages_qs .= "&QUERY=$FORM{QUERY}";
+
+#Syntax hightligth
+my @syntax = ('SELECT', 'FROM', 'WHERE', 'ORDER', 'LIMIT', 'MIN', 'MAX', 'AVG', 'SUM', 'IF');
+foreach my $s (@syntax) {
+  $FORM{QUERY} =~ s/^$s | $s/ <b>$s<\/b> /gi;
+  $FORM{QUERY} =~ s/ (\d+)|(\d+),/ <font color='red'>$1<\/font>/g;
+}
+
+
+
+  my $table = $html->table( { width       => '100%',
+                              cols_align  => ['left'],
+                              rows        => [["$FORM{QUERY}"]]
+                           } );
+  
+  print $table->show();
+
+
+
 
   my @CAPTION = ();
-    
-  print "NAME: $Sqlcm->{Q}->{NAME}<br>";
+  @CAPTION = @{ $Sqlcmd->{MYSQL_FIELDS_NAMES} } if ($Sqlcmd->{MYSQL_FIELDS_NAMES});
+ 
 
-  
-
-  my $table = $html->table( { width => '100%',
-                                   border => 1,
-                                   title => [@CAPTION], 
-
-                                   qs => $pages_qs,
-                                   pages => $Sqlcmd->{TOTAL}
-                                  } );
+  $table = $html->table( { width  => '100%',
+                           border => 1,
+                           title  => [@CAPTION], 
+                           qs     => $pages_qs,
+                           pages  => $Sqlcmd->{TOTAL}
+                       } );
 
 
   foreach my $line (@$list) {
@@ -58,11 +83,48 @@ if ($Sqlcmd->{errno}) {
    }
   print $table->show();
 
-  $table = $html->table( { width => '100%',
-                                cols_align => ['right', 'right'],
-                                rows => [ [ "$_TOTAL:", "<b>$Sqlcmd->{TOTAL}</b>" ] ]
-                               } );
+  $table = $html->table( { width      => '100%',
+                           cols_align => ['right', 'right'],
+                           rows       => [ [ "$_TOTAL:", "<b>$Sqlcmd->{TOTAL}</b>" ] ]
+                        } );
   print $table->show();
+
+
+if ($FORM{TABLE_INFO}) {
+  $table = $html->table( { width        => '100%',
+                           border       => 1,
+                           title_plain  => [$_NAME, $_TYPE, "$_MAX $_LENGTH", "NO NULL", 'INDEX', 'PRIMARY_INDEX'], 
+                       } );
+	
+
+
+
+	my $i=0;
+	foreach my $line (@CAPTION) {
+		$table->addrow($html->form_input('FIELDS', $line, {TYPE => 'CHECKBOX' } ). " $line", 
+		 "$Sqlcmd->{MYSQL_TYPE_NAME}->[$i] ($Sqlcmd->{MYSQL_LENGTH}->[$i])",
+	 	 $Sqlcmd->{MYSQL_MAX_LENGTH}->[$i],
+	 	 $bool_vals[$Sqlcmd->{MYSQL_IS_NOT_NULL}->[$i]],
+		 $bool_vals[$Sqlcmd->{MYSQL_IS_KEY}->[$i]],
+		 $bool_vals[$Sqlcmd->{MYSQL_IS_PRIMARY_KEY}->[$i]]
+		 );
+		$i++;
+	 }
+
+
+  $table2 = $html->table({ width       => '100%',
+                           border       => 1,
+                           title_plain  => [ $html->form_input('WIZARD', "$_SHOW", {TYPE => 'SUBMIT'}) ]
+                        });
+	
+	
+	print  $html->form_main({ CONTENT => $table->show() . $table2->show(),
+  	                        HIDDEN  => { index      =>  "$index",
+  	                        	           TABLE_INFO => $FORM{TABLE_INFO} },
+	                          METHOD  => 'GET'
+                          });
+
+}
 
 
   return 0;
@@ -86,16 +148,17 @@ sub sql_info {
   my @CAPTIONS = ('Name', 
                   'Type',
                   'Row_format',
-                  'Comment',
+                  "$_COMMENTS",
                   'Rows',
-                  "$_SIZE");
+                  "$_SIZE",
+                  "-");
   
   #@{ $Sqlcmd->{FIELD_NAMES} };
 
   my $table = $html->table( { width  => '100%',
                               border => 1,
                               title  => \@CAPTIONS,
-                              cols_align => ['left', 'left', 'left', 'left', 'right', 'right']
+                              cols_align => ['left', 'left', 'left', 'left', 'right', 'right', 'center']
                                   } );
 
   foreach my $line (@$list) {
@@ -109,7 +172,8 @@ sub sql_info {
                    $line->{'Row_format'},
                    "$line->{'Comment'}",
                    "$line->{'Rows'}",
-                   int2byte($line->{'Index_length'} + $line->{'Data_length'})
+                   int2byte($line->{'Index_length'} + $line->{'Data_length'}),
+                   $html->button($_SHOW, "index=". ($index - 1).  "&TABLE_INFO=$line->{'Name'}&QUERY=SELECT * FROM $line->{'Name'} LIMIT $PAGE_ROWS")
                    );
    }
   print $table->show();

@@ -159,27 +159,47 @@ sub list {
  my $search_fields = '';
 
 
+
+ my $q = $db->prepare($attr->{QUERY}, { "mysql_use_result" => 1  } ) || die $db->errstr;
+ if($db->err) {
+     $self->{errno} = 3;
+     $self->{sql_errno}=$db->err;
+     $self->{sql_errstr}=$db->errstr;
+     $self->{errstr}=$db->errstr;
+   
+     return $self->{errno};
+   }
+ $q->execute(); 
+
+ if($db->err) {
+     $self->{errno} = 3;
+     $self->{sql_errno}=$db->err;
+     $self->{sql_errstr}=$db->errstr;
+     $self->{errstr}=$db->errstr;
+     return $self->{errno};
+   }
+  
+  $self->{MYSQL_FIELDS_NAMES}  = $q->{NAME};
+  $self->{MYSQL_IS_PRIMARY_KEY}= $q->{mysql_is_pri_key};
+  $self->{MYSQL_IS_NOT_NULL}   = $q->{mysql_is_not_null};
+  $self->{MYSQL_LENGTH}        = $q->{mysql_length};
+  $self->{MYSQL_MAX_LENGTH}    = $q->{mysql_max_length};
+  $self->{MYSQL_IS_KEY}        = $q->{mysql_is_key};
+  $self->{MYSQL_TYPE_NAME}     = $q->{mysql_type_name};
+
+  $self->{TOTAL} = $q->rows;
+
+  my @rows = ();
+  while(my @row = $q->fetchrow()) {
+   push @rows, \@row;
+  }
+  my $list = \@rows;
+
  
- $self->query($db, "$attr->{QUERY};");
-
-   print $self->{Q};
-   my $a = $self->{Q}->{NAME};
-
- #print "$self->{TEST} / $a{NAME}";
- #while(my($k, $v)=each %$self->{Q}->{NAME}) {
- #  print "------$k, $v<br>"; 	
-#}
+ #$self->query($db, "$attr->{QUERY};");
 
  return $self if($self->{errno});
- my $list = $self->{list};
-
-# if ($self->{TOTAL} >= $attr->{PAGE_ROWS}) {
-#    $self->query($db, "$attr->{QUERY}");
-#    my $a_ref = $self->{list}->[0];
-#    ($self->{TOTAL}) = @$a_ref;
-#   }
-
-  return $list;
+ return $list;
 }
 
 

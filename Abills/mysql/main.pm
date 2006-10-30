@@ -114,19 +114,15 @@ my $q;
 #print "$query<br>";
 
 if (defined($type) && $type eq 'do') {
-  
 #  print $query;
-
   $q = $db->do($query);
-#  $self->{TOTAL} = 0;
-
   if (defined($db->{'mysql_insertid'})) {
   	 $self->{INSERT_ID} = $db->{'mysql_insertid'};
    }
 }
 else {
   #print $query;
-  $q = $db->prepare($query) || die $db->errstr;;
+  $q = $db->prepare($query) || die $db->errstr;
   if($db->err) {
      $self->{errno} = 3;
      $self->{sql_errno}=$db->err;
@@ -149,6 +145,7 @@ else {
   
   $self->{Q}=$q;
   $self->{TOTAL} = $q->rows;
+#  $self->{NUM_OF_FIELDS} = $q->{NUM_OF_FIELDS};
 }
 
 

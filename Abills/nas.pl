@@ -57,6 +57,9 @@ sub hangup {
  elsif ($nas_type eq 'mpd') {
     hangup_mpd($NAS, $PORT);
   }
+ elsif ($nas_type eq 'patton')  {
+ 	  hangup_patton29xx($NAS, $PORT, $attr);
+  }
  elsif ($nas_type eq 'pppd' || $nas_type eq 'lepppd') {
    hangup_pppd($NAS, $PORT, $attr);
   }
@@ -668,9 +671,33 @@ sub hangup_pppd {
 #*******************************************************************
 sub hangup_patton29xx {
  my ($NAS, $PORT, $attr) = @_;
+ my $exec = '';
  
  
+  # Get active sessions
+  my %active = ();
+  my @arr = snmpwalk("$NAS->{NAS_MNG_PASSWORD}\@$NAS->{NAS_IP}", ".1.3.6.1.4.1.1768.5.100.1.3");
+  foreach my $line (@arr) {
+	  if ($line =~ /(\d+):6/) {
+		  $active{$1}=1;
+	   }
+   }
+  
+  #Get iface
+  @arr = snmpwalk("$NAS->{NAS_MNG_PASSWORD}\@$NAS->{NAS_IP}", ".1.3.6.1.4.1.1768.5.100.1.9");
+  foreach my $line (@arr) {
+	  if ($line =~ /(\d+):(\d+)/) {
+		  if ($2 == $PORT && $active{$1} ) {
+		    $exec = snmpset("$NAS->{NAS_MNG_PASSWORD}\@$NAS->{NAS_IP}", ".1.3.6.1.4.1.1768.5.100.1.3.$1", 'integer', 10);
+		    #print " IFACE: $iface INDEX $1 IN: $in OUT: $out\n";
+		    last;
+       }
+	   }
+  }
 
+  
+  
+ 
 
 
  return $exec;
@@ -687,7 +714,6 @@ sub stats_patton29xx {
   my %stats = (in  => 0,
                out => 0);
 
-
   # Get active sessions
   my %active = ();
   my @arr = snmpwalk("$NAS->{NAS_MNG_PASSWORD}\@$NAS->{NAS_IP}", ".1.3.6.1.4.1.1768.5.100.1.3");
@@ -697,14 +723,13 @@ sub stats_patton29xx {
 	   }
    }
 
-
+  #Get iface
   @arr = snmpwalk("$NAS->{NAS_MNG_PASSWORD}\@$NAS->{NAS_IP}", ".1.3.6.1.4.1.1768.5.100.1.9");
   foreach my $line (@arr) {
 	  if ($line =~ /(\d+):(\d+)/) {
 		  if ($2 == $PORT && $active{$1} ) {
 		    $stats{out} = snmpget("$NAS->{NAS_MNG_PASSWORD}\@$NAS->{NAS_IP}", ".1.3.6.1.4.1.1768.5.100.1.36.$1");
 		    $stats{in} = snmpget("$NAS->{NAS_MNG_PASSWORD}\@$NAS->{NAS_IP}", ".1.3.6.1.4.1.1768.5.100.1.37.$1");
-		    #print snmpget("comoashuan\@192.168.101.133", ".1.3.6.1.4.1.1768.5.100.1.56.$1");
 		    #print " IFACE: $iface INDEX $1 IN: $in OUT: $out\n";
 		    last;
        }
