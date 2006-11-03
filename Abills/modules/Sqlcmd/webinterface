@@ -14,6 +14,26 @@ my $Sqlcmd = Sqlcmd->new($db, $admin, \%conf);
 #**********************************************************
 sub sqlcmd {
  
+ 
+ 
+my $FORM2  = ();
+my @pairs = split(/&/, $FORM{__BUFFER});
+
+foreach my $pair (@pairs) {
+   my ($side, $value) = split(/=/, $pair);
+   $value =~ tr/+/ /;
+   $value =~ s/%([a-fA-F0-9][a-fA-F0-9])/pack("C", hex($1))/eg;
+
+   if (defined($FORM2{$side})) {
+     $FORM2{$side} .= ", $value";
+    }
+   else {
+     $FORM2{$side} = $value;
+    }
+ }
+
+ 
+ 
 if ($FORM{WIZARD}) {
 	my @f = split(/, /, $FORM{FIELDS});
   
@@ -29,16 +49,31 @@ if ($FORM{WIZARD}) {
 	$FORM{QUERY} .= " FROM $FORM{TABLE_INFO} LIMIT $PAGE_ROWS";
 }
 
- my $list = $Sqlcmd->list( { %FORM } ) if (defined($FORM{QUERY}) && length($FORM{QUERY}) > 10);
+ 
+
+ $html->tpl_show(_include('sqlcmd', 'Sqlcmd'), { %$Sqlcmd, \%FORM });
+ 
+ my $list = $Sqlcmd->list( { %FORM2 } ) if (defined($FORM2{QUERY}) && length($FORM2{QUERY}) > 10);
+
+
+  my $table = $html->table( { width       => '100%',
+                              cols_align  => ['left'],
+                              rows        => [["$FORM2{QUERY}"]]
+                           } );
+  
+  print $table->show();
+
 
 if ($Sqlcmd->{errno}) {
   $html->message('err', $_ERROR, "[$Sqlcmd->{errno}] $err_strs{$Sqlcmd->{errno}} /$Sqlcmd->{errstr}/");	
+  
+  
   return 0;
  }
 
 
 
-$html->tpl_show(_include('sqlcmd', 'Sqlcmd'), { %$Sqlcmd, \%FORM });
+
 
 $pages_qs .= "&QUERY=$FORM{QUERY}";
 
@@ -51,12 +86,6 @@ foreach my $s (@syntax) {
 
 
 
-  my $table = $html->table( { width       => '100%',
-                              cols_align  => ['left'],
-                              rows        => [["$FORM{QUERY}"]]
-                           } );
-  
-  print $table->show();
 
 
 

@@ -1311,4 +1311,190 @@ sub encode_oid_with_errmsg ($) {
   return $tmp;
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#
+# Read in the passed MIB file, parsing it
+# for their text-to-OID mappings
+#
+sub snmpMIB_to_OID_extended ($) {
+  my($arg) = @_;
+  my($quote, $buf, $var, $code, $val, $tmp, $tmpv, $strt);
+  my($ret, $pass, $pos, $need2pass, $cnt, %prev);
+  my(%Link) = (
+    'org' => 'iso',
+    'dod' => 'org',
+    'internet' => 'dod',
+    'directory' => 'internet',
+    'mgmt' => 'internet',
+    'mib-2' => 'mgmt',
+    'experimental' => 'internet',
+    'private' => 'internet',
+    'enterprises' => 'private',
+  );
+
+  if (!open(MIB, $arg)) {
+    carp "snmpMIB_to_OID: Can't open $arg: $!"
+      unless ($SNMP_Session::suppress_warnings > 1);
+    return -1;
+  }
+  print "snmpMIB_to_OID: loading $arg\n" if $SNMP_util::Debug;
+  $ret = 0;
+  $pass = 0;
+  $need2pass = 1;
+  $cnt = 0;
+  $pos = tell(MIB);
+  while($need2pass) {
+    while(<MIB>) {
+      s/--.*--//g;	# throw away comments (-- anything --)
+      s/--.*//;		# throw away comments (-- anything EOL)
+      if ($quote) {
+	next unless /"/;
+	$quote = 0;
+      }
+      chop;
+#
+#	$buf = "$buf $_";
+# Previous line removed (and following replacement)
+# suggested by Brian Reichert, reichert@numachi.com
+#
+      $buf .= ' ' . $_;
+      $buf =~ s/\s+/ /g;
+
+      if ($buf =~ / DEFINITIONS ::= BEGIN/) {
+	if ($pass == 0 && $need2pass) {
+	  seek(MIB, $pos, 0);
+	  $buf = "";
+	  $pass = 1;
+	  $need2pass = 0;
+	  $cnt = 0;
+	  next;
+	}
+	$need2pass = 0;
+	$pass = 0;
+	$pos = tell(MIB);
+	undef %Link;
+	undef %prev;
+	%Link = (
+	  'org' => 'iso',
+	  'dod' => 'org',
+	  'internet' => 'dod',
+	  'directory' => 'internet',
+	  'mgmt' => 'internet',
+	  'mib-2' => 'mgmt',
+	  'experimental' => 'internet',
+	  'private' => 'internet',
+	  'enterprises' => 'private',
+	);
+	$buf = "";
+	next;
+      }
+
+      $buf =~ s/OBJECT-TYPE/OBJECT IDENTIFIER/;
+      $buf =~ s/OBJECT-IDENTITY/OBJECT IDENTIFIER/;
+      $buf =~ s/OBJECT-GROUP/OBJECT IDENTIFIER/;
+      $buf =~ s/MODULE-IDENTITY/OBJECT IDENTIFIER/;
+      $buf =~ s/ IMPORTS .*\;//;
+      $buf =~ s/ SEQUENCE {.*}//;
+      $buf =~ s/ SYNTAX .*//;
+      $buf =~ s/ [\w-]+ ::= OBJECT IDENTIFIER//;
+      $buf =~ s/ OBJECT IDENTIFIER .* ::= {/ OBJECT IDENTIFIER ::= {/;
+      $buf =~ s/".*"//;
+      if ($buf =~ /"/) {
+	$quote = 1;
+      }
+
+      if ($buf =~ / ([\w\-]+) OBJECT IDENTIFIER ::= {([^}]+)}/) {
+	$var = $1;
+	$buf = $2;
+	undef $val;
+	$buf =~ s/ +$//;
+	($code, $val) = split(' ', $buf, 2);
+
+	if (!defined($val) || (length($val) <= 0)) {
+	  $SNMP_util::OIDS{$var} = $code;
+	  $cnt++;
+	  print "'$var' => '$code'\n" if $SNMP_util::Debug;
+	} else {
+	  $strt = $code;
+	  while($val =~ / /) {
+	    ($tmp, $val) = split(' ', $val, 2);
+	    if ($tmp =~ /([\w\-]+)\((\d+)\)/) {
+	      $tmp = $1;
+	      if (exists($SNMP_util::OIDS{$strt})) {
+		$tmpv = "$SNMP_util::OIDS{$strt}.$2";
+	      } else {
+		$tmpv = $2;
+	      }
+	      $Link{$tmp} = $strt;
+	      if (!exists($prev{$tmp}) && exists($SNMP_util::OIDS{$tmp})) {
+		if ($tmpv ne $SNMP_util::OIDS{$tmp}) {
+		  $strt = "$strt.$tmp";
+		  $SNMP_util::OIDS{$strt} = $tmpv;
+		  $cnt++;
+		}
+	      } else {
+		$prev{$tmp} = 1;
+		$SNMP_util::OIDS{$tmp} = $tmpv;
+		$cnt++;
+		$strt = $tmp;
+	      }
+	    }
+	  }
+
+	  if (!exists($SNMP_util::OIDS{$strt})) {
+	    if ($pass) {
+	      carp "snmpMIB_to_OID: $arg: \"$strt\" prefix unknown, load the parent MIB first.\n"
+		unless ($SNMP_Session::suppress_warnings > 1);
+	    } else {
+		$need2pass = 1;
+	    }
+	  }
+	  $Link{$var} = $strt;
+	  if (exists($SNMP_util::OIDS{$strt})) {
+	    $val = "$SNMP_util::OIDS{$strt}.$val";
+	  }
+	  if (!exists($prev{$var}) && exists($SNMP_util::OIDS{$var})) {
+	    if ($val ne $SNMP_util::OIDS{$var}) {
+	      $var = "$strt.$var";
+	    }
+	  }
+
+	  $SNMP_util::OIDS{$var} = $val;
+	  $prev{$var} = 1;
+	  $cnt++;
+
+	  print "'$var' => '$val'\n" if $SNMP_util::Debug;
+	}
+	undef $buf;
+      }
+    }
+    if ($pass == 0 && $need2pass) {
+      seek(MIB, $pos, 0);
+      $buf = "";
+      $pass = 1;
+      $cnt = 0;
+    } else {
+      $ret += $cnt;
+      $need2pass = 0;
+    }
+  }
+  close(MIB);
+  $RevNeeded = 1;
+  return $ret;
+}
 1;
