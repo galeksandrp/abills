@@ -8,33 +8,58 @@
 sub _include {
   my ($tpl, $module) = @_;
   my $result = '';
-  my $tpl_content = '';
+
   
-  if (defined($module)) {
+  if (-f "../../Abills/templates/$module". _. "$tpl".".tpl") {
+    return tpl_content("../../Abills/templates/$module". _. "$tpl".".tpl");
+   }
+  elsif (-f "../Abills/templates/$module". _. "$tpl".".tpl") {
+    return tpl_content("../Abills/templates/$module". _. "$tpl".".tpl");
+   }
+  elsif (defined($module)) {
     $tpl	= "modules/$module/templates/$tpl";
    }
 
   foreach my $prefix (@INC) {
      my $realfilename = "$prefix/Abills/$tpl.tpl";
      if (-f $realfilename) {
-        open(FILE, "$realfilename") || die "Can't open file '$realfilename' $!";
-        while(<FILE>) {
-  	      $tpl_content .= eval "\"$_\"";
-         }
-        close(FILE);
-        last;
+        return tpl_content($realfilename);
       }
-  }
+   }
 
-  return $tpl_content;
+  return "No such template [$tpl]";
 }
 
 
 #**********************************************************
 # templates
 #**********************************************************
+sub tpl_content {
+  my ($filename) = @_;
+  my $tpl_content = '';
+  
+  open(FILE, "$filename") || die "Can't open file '$filename' $!";
+    while(<FILE>) {
+      $tpl_content .= eval "\"$_\"";
+    }
+  close(FILE);
+ 	
+	return $tpl_content;
+}
+
+#**********************************************************
+# templates
+#**********************************************************
 sub templates {
   my ($tpl_name) = @_;
+
+  if (-f "../../Abills/templates/_"."$tpl_name".".tpl") {
+    return tpl_content("../../Abills/templates/_". "$tpl_name".".tpl");
+   }
+  elsif (-f "../Abills/templates/_"."$tpl_name".".tpl") {
+    return tpl_content("../Abills/templates/_"."$tpl_name".".tpl");
+   }
+  
 
 if ($tpl_name eq 'form_pi') {
 return qq{
@@ -615,6 +640,8 @@ return qq{
 	
  } 
  }
+
+
 elsif($tpl_name eq 'admin_report_day') {
 return qq{
 Daily Admin Report /%DATE%/

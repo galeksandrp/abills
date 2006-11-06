@@ -560,8 +560,8 @@ elsif($FORM{zap}) {
 
   
   $sessions->list({ ACCT_SESSION_ID => $acct_session_id, 
-  	                NAS_PORT => $nas_port_id,
-  	                NAS_ID => $nas->{NAS_ID} });  
+  	                NAS_PORT        => $nas_port_id,
+  	                NAS_ID          => $nas->{NAS_ID} });  
   
   if ($sessions->{TOTAL} < 1) {
     $message .= "<p align=center>[".
@@ -793,17 +793,14 @@ if (! $list) {
 	  $LIST_PARAMS{DESC} = 'DESC';
   }
 
-  my $nas = Nas->new($db);
-  my $nas_list = $nas->list({ %LIST_PARAMS });
-
-  my $SEL_NAS = "<select name=NAS_ID>\n";
-     $SEL_NAS .= "<option value=''>$_ALL\n";
-  foreach my $line (@$nas_list) {
-  	$SEL_NAS .= "<option value=\"$line->[0]\"";
-	  $SEL_NAS .= ' selected' if ($FORM{NAS_ID} eq $line->[0]);
-	  $SEL_NAS .= ">$line->[1] / $line->[4] ($line->[3])\n";
-   }
-  $SEL_NAS .= "</select>\n";
+  my $nas = Nas->new($db, \%conf);
+  $SEL_NAS = $html->form_select('NAS_ID', 
+                                          { 
+ 	                                          SELECTED          => $FORM{NAS_ID},
+ 	                                          SEL_MULTI_ARRAY   => [['', $_ALL], @{ $nas->list({ %LIST_PARAMS }) } ],
+ 	                                          MULTI_ARRAY_KEY   => 0,
+ 	                                          MULTI_ARRAY_VALUE => 1,
+ 	                                        });
 
   form_search({ SEARCH_FORM =>  	
   	"<tr><td colspan=2><hr></td></tr>

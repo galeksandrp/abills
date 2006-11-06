@@ -137,13 +137,6 @@ elsif ($acct_status_type == 2) {
                                                    \%EXT_ATTR );
 
     
-    my $aaass = `echo "$self->{UID}, 
-     $self->{SUM}, 
-     $self->{BILL_ID}, 
-     $self->{TARIF_PLAN}, 
-     $self->{TIME_TARIF}, 
-     $self->{TRAF_TARIF}" >> /tmp/billing`;
-
   #  return $self;
     if ($self->{UID} == -2) {
       $self->{errno}  = 1;   

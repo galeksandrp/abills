@@ -3537,44 +3537,67 @@ print $table->show();
 # form_templates()
 #**********************************************************
 sub form_templates {
-  my %templates = ('user_warning' => USER_WARNING,
-                   'invoce'       => INVOCE,
-                   'admin_report' => ADMIN_REPORT,
-                   'account'      => ACCOUNT,
-                   'user_info'    => USER_INFO);
+  
+  
+  my $sys_templates = '../../Abills/modules';
+  my $template = '';
+  my %info = ();
 
 
+  my %main_templates = ('user_warning' => USER_WARNING,
+                        'invoce'       => INVOCE,
+                        'admin_report' => ADMIN_REPORT,
+                        'account'      => ACCOUNT,
+                        'user_info'    => USER_INFO);
 
 
+$info{ACTION_LNG}=$_CREATE;
 
-if ($FORM{change}) {
+if ($FORM{create}) {
+   
+   my ($module, $file)=split(/:/, $FORM{create}, 2);
+   $info{TPL_NAME} = "$module"._."$file";
+  
+ 
+   if (-f  "$sys_templates/$module/templates/$file" ) {
+	  open(FILE, "$sys_templates/$module/templates/$file") || $html->message('err', $_ERROR, "Can't open file '$sys_templates/$module/templates/$file' $!\n");;
+  	  while(<FILE>) {
+	    	$info{TEMPLATE} .= $_;
+	    }	 
+	  close(FILE);
+   }
+
+   
+
+   
+ }
+elsif ($FORM{change}) {
   my $FORM2  = ();
   my @pairs = split(/&/, $FORM{__BUFFER});
-
-foreach my $pair (@pairs) {
-   my ($side, $value) = split(/=/, $pair);
-   $value =~ tr/+/ /;
-   $value =~ s/%([a-fA-F0-9][a-fA-F0-9])/pack("C", hex($1))/eg;
-
-   if (defined($FORM2{$side})) {
-     $FORM2{$side} .= ", $value";
-    }
-   else {
-     $FORM2{$side} = $value;
-    }
- }
-
-
-  $template = $FORM2{template};
+  $info{ACTION_LNG}=$_CHANGE;
   
+  foreach my $pair (@pairs) {
+    my ($side, $value) = split(/=/, $pair);
+    $value =~ tr/+/ /;
+    $value =~ s/%([a-fA-F0-9][a-fA-F0-9])/pack("C", hex($1))/eg;
+
+    if (defined($FORM2{$side})) {
+      $FORM2{$side} .= ", $value";
+     }
+    else {
+      $FORM2{$side} = $value;
+     }
+   }
 
 
+  $info{TEMPLATE} = $FORM2{template};
+  $info{TPL_NAME} = $FORM{tpl_name};
   
 	open(FILE, ">$conf{TPL_DIR}/$FORM{tpl_name}") || $html->message('err', $_ERROR, "Can't open file '$conf{TPL_DIR}/$FORM{tpl_name}' $!\n");
-	  print FILE "$template";
+	  print FILE "$info{TEMPLATE}";
 	close(FILE);
 
-	$html->message('info', $_INFO, "$_ADDED");
+	$html->message('info', $_INFO, "$_CHANGED");
 }
 elsif($FORM{tpl_name}) {
   if (-f  "$conf{TPL_DIR}/$FORM{tpl_name}" ) {
@@ -3584,33 +3607,64 @@ elsif($FORM{tpl_name}) {
 	    }	 
 	  close(FILE);
    }
-	  $html->message('info', $_CHAMGE, "$_CHANGE: $templates{$FORM{tpl_name}}");
-}
 
+  $html->message('info', $_CHAMGE, "$_CHANGE: $templates{$FORM{tpl_name}}");
+}
 
 
 print << "[END]";
-<form action=$SELF_URL METHOD=POST>
+
+<form action='$SELF_URL' METHOD='POST'>
 <input type="hidden" name="index" value='$index'>
-<input type="hidden" name="tpl_name" value='$FORM{tpl_name}'>
+<input type="hidden" name="tpl_name" value='$info{TPL_NAME}'>
 <table>
 <tr bgcolor="$_COLORS[0]"><th>$_TEMPLATES</th></tr>
+<tr bgcolor="$_COLORS[0]"><td>$info{TPL_NAME}</td></tr>
 <tr><td>
-<textarea cols="100" rows="30" name="template">$template</textarea>
+   <textarea cols="100" rows="30" name="template">$info{TEMPLATE}</textarea>
 </td></tr>
+<tr><td>$conf{TPL_DIR}</td></tr>
 </table>
-<input type="submit" name="change" value='$_CHANGE'>
+<input type="submit" name="change" value='$info{ACTION_LNG}'>
 </form>
 [END]
 
-my $table = $html->table( { width => '600',
-                                   title_plain => ["FILE", "$_NAME", "-"],
-                                   cols_align => ['left', 'left', 'center']
-                                  } );
 
-while(my($k, $v) = each %templates) {
-  $table->addrow("<b>$k</b>", "$v", $html->button($_CHANGE, "index=$index&tpl_name=$k"));
+
+my $table = $html->table( { width       => '600',
+                            title_plain => ["FILE", "$_SIZE", "-", "-"],
+                            cols_align  => ['left', 'left', 'center']
+                         } );
+
+
+foreach my $module (@MODULES) {
+	$table->{rowcolor}=$_COLORS[0];
+	$table->{extra}="colspan='4' class='small'";
+	
+	$table->addrow("$module ($sys_templates/$module/templates)");
+	if (-d "$sys_templates/$module/templates" ) {
+    opendir DIR, "$sys_templates/$module/templates" or die "Can't open dir '$sys_templates/$module/templates' $!\n";
+      my @contents = grep  !/^\.\.?$/  , readdir DIR;
+    closedir DIR;
+    $table->{rowcolor}=undef;
+    $table->{extra}=undef;
+
+    foreach my $file (@contents) {
+      next if (-d "$sys_templates/$module/templates/".$file);
+
+      my ($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size,$atime,$mtime,$ctime,$blksize,$blocks)=stat("$sys_templates/$module/templates/".$file);
+
+      $table->addrow("$file", $size, 
+         (-f "$conf{TPL_DIR}/$module_$file") ? $html->button($_CHANGE, "index=$index&tpl_name=$module_$file") : $html->button($_CREATE, "index=$index&create=$module:$file"),
+         (-f "$conf{TPL_DIR}/$module_$file") ? $html->button($_DEL, "index=$index&delete=$module_$file") : '');
+     }
+
+   }
 }
+
+#while(my($k, $v) = each %templates) {
+#  $table->addrow("<b>$k</b>", "$v", $html->button($_CHANGE, "index=$index&tpl_name=$k"));
+#}
 
 print $table->show();
 
