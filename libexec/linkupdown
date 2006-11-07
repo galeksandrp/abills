@@ -199,7 +199,8 @@ if ($ACTION eq 'up') {
           DAY_OF_YEAR         => $user->{DAY_OF_YEAR},
           REDUCTION           => $user->{REDUCTION},
           POSTPAID            => 1,
-          GET_INTERVAL        => 1
+          GET_INTERVAL        => 1,
+          debug               => ($debug > 0) ? 1 : undef
          });
 
 #    print "RT: $remaining_time\n"  if ($debug == 1);
@@ -214,7 +215,7 @@ if ($ACTION eq 'up') {
 
       #Get intervals
       while(my($k, $v)=each( %TT_IDS)) {
-# 	      print "$k, $v\n";
+        print "$k, $v\n" if ($debug > 0);
         $user->{TI_ID}=$v;
  	      my $list = $tariffs->tt_list({ TI_ID => $v });
  	      foreach my $line (@$list)  {

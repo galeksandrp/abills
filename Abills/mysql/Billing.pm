@@ -792,7 +792,7 @@ sub remaining_time {
   $periods_time_tarif = $attr->{INTERVAL_TIME_TARIF};
   $periods_traf_tarif = $attr->{INTERVAL_TRAF_TARIF} || undef;
 
-  my $debug = 0;
+  my $debug = $attr->{debug} || 0;
  
   my $time_limit = (defined($attr->{time_limit})) ? $attr->{time_limit} : 0;
   my $mainh_tarif = (defined($attr->{mainh_tarif})) ? $attr->{mainh_tarif} : 0;
@@ -822,7 +822,7 @@ sub remaining_time {
 
 
  while(($deposit > 0 || (defined($attr->{POSTPAID}) && $attr->{POSTPAID}==1 )) && $count < 50) {
-  
+
    if ($time_limit != 0 && $time_limit < $remaining_time) {
      $remaining_time = $time_limit;
      last;
@@ -896,6 +896,7 @@ sub remaining_time {
             	my ($p_day, $p_begin)=split(/:/, $prev_tarif, 2);
             	$int_end=$p_begin;
             	print "Prev tarif $prev_tarif / INT end: $int_end \n" if ($debug == 1);
+            	
            }
 
           #Time calculations
@@ -916,13 +917,23 @@ sub remaining_time {
              && ($attr->{GET_INTERVAL} || ! $CONF->{rt_billing})
              ) {
             print "This tarif with traffic counts\n" if ($debug == 1);
-            $ATTR{TT}=$int_id;
-            return int($int_duration), \%ATTR;
-           }
-          elsif(defined($periods_traf_tarif->{$int_id}) && $periods_traf_tarif->{$int_id} > 0 
-            && ! $CONF->{rt_billing} 
-            ) {
+            
+            $ATTR{TT}=$int_id if (! defined($ATTR{TT}));
+            if ($int_end - $int_begin < 86400) {
+              return int($int_duration), \%ATTR 
+             }
 
+
+
+            $price = $periods_traf_tarif->{$int_id};
+            $int_prepaid = $int_duration;	
+            $remaining_time += $int_duration;
+           }
+          elsif(defined($periods_traf_tarif->{$int_id}) 
+            && $periods_traf_tarif->{$int_id} > 0 
+            && ! $CONF->{rt_billing} 
+            && (($int_end - $int_begin < 86400) && $periods_traf_tarif->{$int_id} != $price)
+            ) {
             print "Next tarif with traffic counts (Remaining: $remaining_time) Day: $tarif_day Int Begin: $int_begin End: $int_end ID: $int_id\n" if ($debug == 1);
             return int($remaining_time), \%ATTR;
            }
@@ -932,11 +943,8 @@ sub remaining_time {
           else {
             $int_prepaid = $int_duration;	
             $ATTR{TT}=$int_id if (! defined($ATTR{TT}) && defined($periods_traf_tarif));
-            #print "333\n";
            }
           #print "Int Begin: $int_begin Int duration: $int_duration Int prepaid: $int_prepaid Prise: $price\n";
-
-
 
           if ($int_prepaid >= $int_duration) {
             $deposit -= ($int_duration / 3600 * $price);
@@ -976,7 +984,7 @@ sub remaining_time {
       }
 
   return -2, \%ATTR if ($remaining_time == 0);
-  
+ 
   if ($session_start >= 86400) {
     $session_start=0;
     $day_of_week = ($day_of_week + 1 > 7) ? 1 : $day_of_week+1;
@@ -985,7 +993,7 @@ sub remaining_time {
 #  else {
 #  	return int($remaining_time), \%ATTR;
 #   }
- 
+ print "-------------------$deposit $count\n";
  }
 
 return int($remaining_time), \%ATTR;

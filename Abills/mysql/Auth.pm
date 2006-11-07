@@ -241,6 +241,7 @@ else {
   }
  elsif ($remaining_time == -2) {
     $RAD_PAIRS->{'Reply-Message'}="Not Allow time";
+    $RAD_PAIRS->{'Reply-Message'} .= " Interval: $ATTR->{TT}" if ($ATTR->{TT});
     return 1, $RAD_PAIRS;
   }
  elsif($remaining_time > 0) {

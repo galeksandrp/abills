@@ -13,11 +13,9 @@ $VERSION = 2.00;
 @ISA = ('Exporter');
 
 @EXPORT = qw( 
-  &radius_log
   &null
   &convert
   &parse_arguments
-  &session_spliter
   &int2ip
   &ip2int
   &int2byte
@@ -31,7 +29,6 @@ $VERSION = 2.00;
   &check_time
   &get_radius_params
   &test_radius_returns
-  &ping
   &sendmail
   &in_array
   %int
