@@ -993,7 +993,6 @@ sub remaining_time {
 #  else {
 #  	return int($remaining_time), \%ATTR;
 #   }
- print "-------------------$deposit $count\n";
  }
 
 return int($remaining_time), \%ATTR;
