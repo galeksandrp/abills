@@ -137,8 +137,13 @@ sub acct {
   $RAD->{INTERIUM_OUTBYTE}  = 0;
   $RAD->{INTERIUM_INBYTE2}  = 0;
   $RAD->{INTERIUM_OUTBYTE2} = 0;
-
- 
+   
+  #Cisco-AVPair
+  if ($RAD->{CISCO_AVPAIR}) {
+  	 if ($RAD->{CISCO_AVPAIR} =~ /client-mac-address=(\S+)/) {
+  		 $RAD->{CALLING_STATION_ID}=$1;
+      }
+   }
 
   if (defined($conf{octets_direction}) && $conf{octets_direction} eq 'server') {
     $RAD->{INBYTE} = $RAD->{ACCT_INPUT_OCTETS} || 0;   # FROM client

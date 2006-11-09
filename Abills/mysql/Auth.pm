@@ -720,6 +720,14 @@ else {
 }
 
 
+if ($RAD->{CISCO_AVPAIR}) {
+  if ($RAD->{CISCO_AVPAIR} =~ /client-mac-address=(\S+)/) {
+    $RAD->{CALLING_STATION_ID}=$1;
+  }
+}
+
+
+
 #DIsable
 if ($self->{DISABLE}) {
   $RAD_PAIRS{'Reply-Message'}="Account Disable";
