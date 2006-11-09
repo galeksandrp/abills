@@ -143,6 +143,9 @@ sub acct {
   	 if ($RAD->{CISCO_AVPAIR} =~ /client-mac-address=(\S+)/) {
   		 $RAD->{CALLING_STATION_ID}=$1;
       }
+     if ($RAD->{NAS_PORT} == 0 && $RAD->{CISCO_NAS_PORT} =~ /\d\/\d\/\d\/(\d+)/) {
+     	 $RAD->{NAS_PORT}=$1;
+      }
    }
 
   if (defined($conf{octets_direction}) && $conf{octets_direction} eq 'server') {
