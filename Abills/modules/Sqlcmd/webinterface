@@ -58,8 +58,21 @@ if ($FORM{WIZARD}) {
 
   my $table = $html->table( { width       => '100%',
                               cols_align  => ['left'],
-                              rows        => [["$FORM2{QUERY}"]]
-                           } );
+                             } );
+
+  #Syntax hightligth
+  my @syntax = ('SELECT', 'FROM', 'WHERE', 'ORDER', 'LIMIT', 'MIN', 'MAX', 'AVG', 'SUM', 'IF',
+            'INSERT', 'INTO', 'VALUES');
+
+  foreach my $query ( @{ $Sqlcmd->{EXECUTED_QUERY} } ) {
+    foreach my $s (@syntax) {
+      $query =~ s/^$s | $s/ <b>$s<\/b> /gi;
+      $query =~ s/ (\d+)|(\d+),/ <font color='red'>$1<\/font>/g;
+     }
+    $table->addrow("$query", "Ok");
+  }
+
+
   
   print $table->show();
 
@@ -76,15 +89,6 @@ if ($Sqlcmd->{errno}) {
 
 
 $pages_qs .= "&QUERY=$FORM{QUERY}";
-
-#Syntax hightligth
-my @syntax = ('SELECT', 'FROM', 'WHERE', 'ORDER', 'LIMIT', 'MIN', 'MAX', 'AVG', 'SUM', 'IF');
-foreach my $s (@syntax) {
-  $FORM{QUERY} =~ s/^$s | $s/ <b>$s<\/b> /gi;
-  $FORM{QUERY} =~ s/ (\d+)|(\d+),/ <font color='red'>$1<\/font>/g;
-}
-
-
 
 
 
