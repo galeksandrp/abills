@@ -633,6 +633,15 @@ if ($Cards->{errno}) {
     }
 
   print $table->show();
+  
+  
+ 	 $table = $html->table( { width      => '100%',
+                            cols_align => ['right', 'right'],
+                            rows       => [ [ "$_TOTAL:", "<b>$Cards->{TOTAL}</b>" ] ]
+                        } );
+   print $table->show();	
+
+  
 }
 
 

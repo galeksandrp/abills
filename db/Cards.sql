@@ -29,7 +29,8 @@ CREATE TABLE `cards_payments` (
   `expire` date NOT NULL default '0000-00-00',
   `diller_id` smallint(6) unsigned NOT NULL default '0',
   UNIQUE KEY `pin` (`pin`),
-  UNIQUE KEY `serial` (`serial`,`number`)
+  UNIQUE KEY `serial` (`serial`,`number`),
+  KEY `diller_id` (`diller_id`)
 );
 
 
@@ -45,5 +46,6 @@ CREATE TABLE `cards_users` (
   `diller_id` smallint(6) unsigned NOT NULL default '0',
   PRIMARY KEY  (`serial`),
   UNIQUE KEY `serial` (`serial`),
-  UNIQUE KEY `login` (`login`)
+  UNIQUE KEY `login` (`login`),
+  KEY `diller_id` (`diller_id`)
 );
