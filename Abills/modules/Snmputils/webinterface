@@ -1011,6 +1011,7 @@ sub snmputils_load_mibs  {
   
   print "<pre>\n";
   foreach my $line (@$mib_array) {
+    next if (! -f "../../Abills/MIBs/$line");
     my($ret, $oid_hash, $oid_ex) = snmpMIB_to_OID_extended("../../Abills/MIBs/$line");
 
     print "MIBS: $line Loaded<br> " if ($debug == 1);
