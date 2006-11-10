@@ -2,6 +2,12 @@
 # BSR1000 functions
 
 
+
+use SNMP_Session;
+use SNMP_util;
+use BER;
+
+
 #iso.3.6.1.2.1.3.1.1.1.2.1. show ip
 # Byte
 # iso.3.6.1.2.1.2.2.1.10.1
@@ -206,6 +212,67 @@ print  $html->form_main({ CONTENT => "Command: ". $html->form_input('command', "
 
 
 
+#**********************************************************
+#
+#**********************************************************
+sub Bsr1000_log {
+
+
+    	my $table = $html->table({ width       => '100%',
+                                 border      => 1,
+                                 title_plain => ['-', '-'],
+                                 cols_align  => ['left', 'left'],
+                                 #qs          => $pages_qs,
+                                 caption     => 'LOG'
+                                  } );
+
+
+my $list = $nas->list({ %LIST_PARAMS, TYPE =>  'bsr1000' });
+
+
+
+foreach my $line (@$list) {
+  $table->{rowcolor}=$_COLORS[0];
+  $table->addrow("$line->[0]:<b>$line->[1]</b>:$line->[3]") ;
+  $table->{rowcolor}=undef;
+  my @arr = snmpwalk("$line->[10]\@$line->[3]", '1.3.6.1.4.1.4981.3.9.1.2');
+  for( my $i=$#arr; $i>=0; $i--) {
+    $table->addrow($arr[$i]);
+  }
+}
+
+print $table->show();
+
+
+my %info = (
+'rdnSyslogSize' => '',
+'rdnSyslogMaxSize' => '', 
+'rdnSyslogServerEnable'  => '',
+#rdnSyslogServerTable
+#   rdnSyslogServerAddress  
+#   rdnSyslogServerStatus
+'rdnSyslogSeverity'  => '',
+'rdnSyslogConsoleSeverity' =>  '',
+'rdnSyslogClear'  => '', 
+'rdnSyslogTrapSeverity' => ''
+};
+  
+	
+	
+}
+
+
+
+#**********************************************************
+#
+#**********************************************************
+sub Bsr1000_info {
+	
+	
+	
+	
+	
+}
 
 1
 

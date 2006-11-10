@@ -1034,7 +1034,13 @@ sub snmputils_load_mibs  {
 #**********************************************************
 sub snmp_info_form {
 
+  
   my %info = ();
+
+  $info{ACTION}='add';
+  $info{ACTION_LNG}=$_ADD;
+
+
   snmpmapOID("ipRoutingTable", "1.3.6.1.2.1.4.21");
 # $SNMP_util::Debug = 1;
 
@@ -1061,34 +1067,6 @@ sub snmp_info_form {
                    'common.mib',
                    'product.mib'
      ] ) };
-
-
-#=comments
-                   
-#
-#
-#
-#
-#                         'SNMPv2-SMI', 
-#                         'SNMPv2-MIB', 
-#                         'SNMPv2-CONF',
-#                    'IF-MIB', 
-#                   'IP-MIB',
-#                   'RFC1212-MIB',
-#                   'RFC1155-SMI',
-#                   'RFC1213-MIB',
-#                   'ENTITY-MIB',
-#
-# #River Delta                   
-#                   'RDN-MIB',
-#                   'RDN-SYSLOG-MIB',
-# #Cisco Mibs       
-#                   'CISCO-SMI',
-#                   'CISCO-DOT11-IF-MIB',
-#                   'CISCO-DOT11-ASSOCIATION-MIB']
-#                  ) };
-# 
-#=end
 
 
   $info{TYPE_SEL}=$html->form_select('TYPE', 
@@ -1273,7 +1251,10 @@ if ($FORM{SHOW}) {
    	print $table->show();
    	
   snmp_form_footer(\%result, \@CAPTION, { OIDS_EXINFO => \%OIDS_EXINFO });
-   	
+ 
+   if ($FORM{TYPE} eq 'ipRoutingTable')   {
+     print $html->tpl_show(_include('snmputils_route', 'Snmputils'), \%info);   	
+   }
    	
    	
   }

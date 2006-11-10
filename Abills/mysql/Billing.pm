@@ -397,7 +397,6 @@ if(! defined($self->{NO_TPINTERVALS})) {
      }
 
    if($periods_traf_tarif->{$k} > 0) {
-   	  
    	  $sum  += $self->traffic_calculations($RAD);
    	  last;
     }
