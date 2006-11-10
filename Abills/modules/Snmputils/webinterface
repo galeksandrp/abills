@@ -1058,6 +1058,7 @@ sub snmp_info_form {
  #River Delta                   
                    'RDN-MIB',
                    'RDN-SYSLOG-MIB',
+                   'RDN-CABLE-SPECTRUM',
  #Cisco Mibs       
                    'CISCO-SMI',
                    'CISCO-DOT11-IF-MIB',
@@ -1065,7 +1066,10 @@ sub snmp_info_form {
  #'livingston.mib' 
                    'corporat.mib',
                    'common.mib',
-                   'product.mib'
+                   'product.mib',
+ #DOCSIS
+                   'DOCS-IF-MIB',
+                   'DOCS-CABLE-DEVICE-MIB'
      ] ) };
 
 
@@ -1174,6 +1178,8 @@ else {
 }
 
 if ($FORM{SHOW}) {
+
+    my $rows_count  =  0;
     $FORM{TYPE}=$FORM{SNMP_OID} if ($FORM{SNMP_OID});
 
     my $SNMP_COMMUNITY = "$FORM{SNMP_COMMUNITY}\@$FORM{SNMP_HOST}";
@@ -1216,7 +1222,7 @@ if ($FORM{SHOW}) {
                               title       => ['index', @CAPTION],
                               cols_align  => ['left', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'center']
                            });
-
+      
       foreach my $k (@RES_ARR) {
         my @arr = ($k);
         foreach my $ft (@CAPTION) {
@@ -1224,10 +1230,14 @@ if ($FORM{SHOW}) {
         	push @arr, ($OIDS_EXINFO{$ft}{ACCESS} eq 'read-write') ? $html->button("$result{$ft}{$k}", "index=$index&change=y&SNMP_INDEX=$k&SNMP_OID=$OIDS_HASH{$ft}$page_qs") : $result{$ft}{$k};
          }
         $table->addrow(@arr);
+        $rows_count++;
        }
+
+
+
      }
     else {
-     $table = $html->table({ width       => '100%',
+     $table = $html->table({ width     => '100%',
                            caption     => "$_RESULT: $SNMP_COMMUNITY",
                            border      => 1,
                            title       => ['MIB', 'OID Name', "inst", "$_VALUE", "ACCESS", "$_DESCRIBE"],
@@ -1245,10 +1255,19 @@ if ($FORM{SHOW}) {
 
            );
        }
+      $rows_count++;
      }
     }
 
-   	print $table->show();
+  print $table->show();
+  
+  $table = $html->table( {
+  	                        width      => '100%',
+                            cols_align => ['right', 'right'],
+                            rowcolor   => $_COLORS[0],
+                            rows       => [ ["$_TOTAL:", "<b>$rows_count</b>" ] ]
+                        } );
+  print $table->show();
    	
   snmp_form_footer(\%result, \@CAPTION, { OIDS_EXINFO => \%OIDS_EXINFO });
  

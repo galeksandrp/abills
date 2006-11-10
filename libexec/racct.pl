@@ -226,8 +226,13 @@ sub acct {
   $RAD->{NAS_PORT}           = 0  if  (! defined($RAD->{NAS_PORT}));
   $RAD->{CONNECT_INFO}       = '' if  (! defined($RAD->{CONNECT_INFO}));
   $RAD->{ACCT_TERMINATE_CAUSE} =  (defined($RAD->{ACCT_TERMINATE_CAUSE}) && defined($ACCT_TERMINATE_CAUSES{"$RAD->{ACCT_TERMINATE_CAUSE}"})) ? $ACCT_TERMINATE_CAUSES{"$RAD->{ACCT_TERMINATE_CAUSE}"} : 0;
-  $RAD->{CALLING_STATION_ID} = '' if (! defined($RAD->{CALLING_STATION_ID}));
- 
+
+  if ($RAD->{'TUNNEL_SERVER_ENDPOINT:0'} && ! $RAD->{CALLING_STATION_ID}) {
+    $RAD->{CALLING_STATION_ID}=$RAD->{'TUNNEL_SERVER_ENDPOINT:0'};
+   }
+  elsif(! defined($RAD->{CALLING_STATION_ID})) {
+    $RAD->{CALLING_STATION_ID} = '';
+   }
 # Make accounting with external programs
 if (-d $conf{extern_acct_dir}) {
   opendir DIR, $conf{extern_acct_dir} or die "Can't open dir '$conf{extern_acct_dir}' $!\n";

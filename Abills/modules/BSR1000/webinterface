@@ -28,6 +28,10 @@ use BER;
 # iso.3.6.1.2.1.4.22.1.2.2.10.0.2.95
 
 
+
+my %info_oids('Events' => '1.3.6.1.2.1.69.1.5.8.1',
+              'Syslog' => '1.3.6.1.4.1.4981.3.9.1.2');
+
 my $CMTS_prompt         = (defined($conf{BSR1000_PROMPT})) ? $conf{BSR1000_PROMPT} : 'catv0';
 my $CMTS_terminal_lines = 100;
 
@@ -255,7 +259,7 @@ my %info = (
 'rdnSyslogConsoleSeverity' =>  '',
 'rdnSyslogClear'  => '', 
 'rdnSyslogTrapSeverity' => ''
-};
+);
   
 	
 	
