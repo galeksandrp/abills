@@ -9,6 +9,7 @@ BEGIN {
  unshift(@INC, $libpath ."Abills/$sql_type/");
  unshift(@INC, $libpath);
  unshift(@INC, $libpath . 'libexec/');
+ unshift(@INC, $libpath . 'Abills/');
 
  eval { require Time::HiRes; };
  if (! $@) {

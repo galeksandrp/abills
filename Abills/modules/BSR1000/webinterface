@@ -29,8 +29,12 @@ use BER;
 
 
 
-my %info_oids('Events' => '1.3.6.1.2.1.69.1.5.8.1',
-              'Syslog' => '1.3.6.1.4.1.4981.3.9.1.2');
+my %info_oids = ('Events'          => '1.3.6.1.2.1.69.1.5.8.1',
+ 
+              'Syslog'          => '1.3.6.1.4.1.4981.3.9.1.2',
+              'Flap_Modems'     => '1.3.6.1.4.1.4981.6.1.1.2.1',
+              'Spectrum_Groups' => '1.3.6.1.4.1.4981.6.1.2.5.1',
+              'UpstreamChannelEntry' => '1.3.6.1.4.1.4981.2.1.2.1');
 
 my $CMTS_prompt         = (defined($conf{BSR1000_PROMPT})) ? $conf{BSR1000_PROMPT} : 'catv0';
 my $CMTS_terminal_lines = 100;

@@ -1048,6 +1048,7 @@ sub snmp_info_form {
   my %OIDS_EXINFO = %{ snmputils_load_mibs([ 'SNMPv2-SMI', 
                                              'SNMPv2-MIB', 
                                              'SNMPv2-CONF',
+                                             'SNMPv2-TC',
                                              'IF-MIB', 
                    'IP-MIB',
                    'RFC1212-MIB',
@@ -1055,10 +1056,6 @@ sub snmp_info_form {
                    'RFC1213-MIB',
                    'ENTITY-MIB',
 
- #River Delta                   
-                   'RDN-MIB',
-                   'RDN-SYSLOG-MIB',
-                   'RDN-CABLE-SPECTRUM',
  #Cisco Mibs       
                    'CISCO-SMI',
                    'CISCO-DOT11-IF-MIB',
@@ -1069,7 +1066,18 @@ sub snmp_info_form {
                    'product.mib',
  #DOCSIS
                    'DOCS-IF-MIB',
-                   'DOCS-CABLE-DEVICE-MIB'
+                   'DOCS-CABLE-DEVICE-MIB',
+                   'DOCS-IF-EXT-MIB',
+                   
+ #River Delta                   
+                   'RDN-MIB',
+
+                   
+                   'RDN-CABLE-SPECTRUM',
+                   'RDN-CABLE-SPECTRUM-GROUP-MIB',
+                   'RDN-CMTS-MIB',
+                   'RDN-SYSLOG-MIB',                   
+                   
      ] ) };
 
 
@@ -1504,6 +1512,7 @@ elsif ($buf =~ /FROM (\S+)/) {
 	    if ($pass) {
 	      carp "snmpMIB_to_OID: $arg: \"$strt\" prefix unknown, load the parent MIB first.\n"
 		unless ($SNMP_Session::suppress_warnings > 1);
+		print "snmpMIB_to_OID: $arg: \"$strt\" prefix unknown, load the parent MIB first.<br>\n";
 	    } else {
 		$need2pass = 1;
 	    }
