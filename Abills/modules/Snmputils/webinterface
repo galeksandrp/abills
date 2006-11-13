@@ -1075,7 +1075,7 @@ sub snmp_info_form {
                    
                    'RDN-CABLE-SPECTRUM',
                    'RDN-CABLE-SPECTRUM-GROUP-MIB',
-                   'RDN-CMTS-MIB',
+#                   'RDN-CMTS-MIB',
                    'RDN-SYSLOG-MIB',                   
                    
      ] ) };

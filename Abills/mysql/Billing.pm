@@ -358,7 +358,7 @@ sub session_sum {
   ) = @{ $self->{list}->[0] };
  }
 
-  $self->{TP_ID}=$attr->{TP_ID} if (defined($attr->{TP_ID}));
+ $self->{TP_ID}=$attr->{TP_ID} if (defined($attr->{TP_ID}));
 
 
  $tariffs = Tariffs->new($db, $CONF);
@@ -379,6 +379,7 @@ sub session_sum {
  my $sd = $self->{TIME_DIVISIONS};
  my $interval_count =  keys %$sd;
  $self->{TI_ID} = 0;
+
 if(! defined($self->{NO_TPINTERVALS})) {
   if($interval_count < 1) {
    	print "Not allow start period" if ($self->{debug});

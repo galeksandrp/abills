@@ -398,8 +398,12 @@ if ($NAS->{NAS_TYPE} eq 'mikrotik') {
   #global Traffic
   if ($EX_PARAMS->{traf_limit} > 0) {
                    
-    $RAD_PAIRS->{'Mikrotik-Recv-Limit'} = $EX_PARAMS->{traf_limit} * $CONF->{KBYTE_SIZE} * $CONF->{KBYTE_SIZE} / 2;
-    $RAD_PAIRS->{'Mikrotik-Xmit-Limit'} = $EX_PARAMS->{traf_limit} * $CONF->{KBYTE_SIZE} * $CONF->{KBYTE_SIZE} / 2;
+    $RAD_PAIRS->{'Mikrotik-Recv-Limit'} = int($EX_PARAMS->{traf_limit} * $CONF->{KBYTE_SIZE} * $CONF->{KBYTE_SIZE} / 2);
+    $RAD_PAIRS->{'Mikrotik-Xmit-Limit'} = int($EX_PARAMS->{traf_limit} * $CONF->{KBYTE_SIZE} * $CONF->{KBYTE_SIZE} / 2);
+
+    # $RAD_PAIRS->{'Mikrotik-Recv-Limit-Gigawords'}
+    # $RAD_PAIRS->{'Mikrotik-Xmit-Limit-Gigawords'}
+
    }
 
 #Shaper
@@ -413,6 +417,12 @@ if ($NAS->{NAS_TYPE} eq 'mikrotik') {
      }
    }
  }
+# Cisco Shaper
+#
+# lcp:interface-config#1=rate-limit input 256000 7500 7500 
+#  conform-action continue 
+#   exceed-action drop
+
 ######################
 # MPD
 elsif ($NAS->{NAS_TYPE} eq 'mpd') {

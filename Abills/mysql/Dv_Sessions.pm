@@ -97,7 +97,48 @@ sub online {
 	my ($attr) = @_;
 
 
+  my @FIELDS_ALL = (
+   'c.user_name',
+   'pi.fio',
+   'c.nas_port_id',
+   'c.framed_ip_address',
+   'SEC_TO_TIME(UNIX_TIMESTAMP() - UNIX_TIMESTAMP(c.started))',
+
+   'c.acct_input_octets', 'c.acct_output_octets', 'c.ex_input_octets', 'c.ex_output_octets',
  
+   'c.CID',                           
+   'c.acct_session_id',
+   'dv.tp_id',
+   'c.CONNECT_INFO',
+   'dv.speed',   
+   'c.sum',
+   'c.status',
+
+   'pi.phone',
+   'INET_NTOA(c.framed_ip_address)',
+   'u.uid',
+   'INET_NTOA(c.nas_ip_address)',
+   'if(company.name IS NULL, b.deposit, cb.deposit)',
+   'u.credit',
+   'if(date_format(c.started, "%Y-%m-%d")=curdate(), date_format(c.started, "%H:%i:%s"), c.started)',
+   'c.nas_id',
+   'UNIX_TIMESTAMP()-c.lupdated' );
+
+
+  my @RES_FIELDS = (0, 1, 2, 3, 4, 5, 6, 7);
+ 
+  if ($attr->{FIELDS}) {
+  	@RES_FIELDS = @{ $attr->{FIELDS} };
+   }
+  
+  my $fields = '';
+  my $port_id=0;
+  for(my $i=0; $i<=$#RES_FIELDS; $i++) {
+  	$port_id=$i if ($RES_FIELDS[$i] == 2);
+    $fields .= "$FIELDS_ALL[$RES_FIELDS[$i]], ";
+   }
+
+
  $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
  $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
  
@@ -125,32 +166,29 @@ sub online {
  if (defined($attr->{NAS_ID})) {
  	 push @WHERE_RULES, "nas_id='$attr->{NAS_ID}'";
   }
-
-
+ 
+ if ($attr->{FILTER}) {
+ 	 push @WHERE_RULES, "$FIELDS_ALL[$attr->{FILTER_FIELD}]='$attr->{FILTER}'";
+  }
+ 
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
 
- $self->query($db, "SELECT c.user_name,
-                          pi.fio,
-                          c.nas_port_id,
-                          c.framed_ip_address,
-                          SEC_TO_TIME(UNIX_TIMESTAMP() - UNIX_TIMESTAMP(c.started)),
-                          c.acct_input_octets, c.acct_output_octets, c.ex_input_octets, c.ex_output_octets,
-                          INET_NTOA(c.framed_ip_address),
-                          c.status,
-                          u.uid,
-  INET_NTOA(c.nas_ip_address),
-  c.acct_session_id,
-  pi.phone,
-  dv.tp_id,
-    if(company.name IS NULL, b.deposit, cb.deposit),
-  u.credit,
-  dv.speed,
-  c.CID,
-  c.CONNECT_INFO,
-  if(date_format(c.started, '%Y-%m-%d')=curdate(), date_format(c.started, '%H:%i:%s'), c.started),
-  c.nas_id,
-  UNIX_TIMESTAMP()-c.lupdated,
-  c.sum
+ $self->query($db, "SELECT  $fields
+ 
+   pi.phone,
+   INET_NTOA(c.framed_ip_address),
+   u.uid,
+   INET_NTOA(c.nas_ip_address),
+   if(company.name IS NULL, b.deposit, cb.deposit),
+   u.credit,
+   if(date_format(c.started, '%Y-%m-%d')=curdate(), date_format(c.started, '%H:%i:%s'), c.started),
+   UNIX_TIMESTAMP()-c.lupdated,
+   c.status,
+   c.nas_id,
+   c.user_name,
+   c.nas_port_id,
+   c.acct_session_id
+
  FROM dv_calls c
  LEFT JOIN users u     ON u.id=user_name
  LEFT JOIN dv_main dv  ON dv.uid=u.uid
@@ -162,23 +200,57 @@ sub online {
  
  $WHERE
  ORDER BY $SORT $DESC;");
- 
+
+ my %dub_logins = ();
+ my %dub_ports  = ();
+ my %nas_sorted = ();
+
+
  if ($self->{TOTAL} < 1) {
+ 	 $self->{dub_ports} =\%dub_ports;
+   $self->{dub_logins}=\%dub_logins;
+   $self->{nas_sorted}=\%nas_sorted;
+
  	 return $self->{list};
   }
 
 
  my $list = $self->{list};
- my %dub_logins = ();
- my %dub_ports = ();
- my %nas_sorted = ();
  
+ my $nas_id_field = $#RES_FIELDS+10;
  
  foreach my $line (@$list) {
+
+    
  	  $dub_logins{$line->[0]}++;
- 	  $dub_ports{$line->[22]}{$line->[2]}++;
-    push( @{ $nas_sorted{"$line->[22]"} }, [ $line->[0], $line->[1], $line->[2], $line->[9], $line->[4], $line->[5], $line->[6], $line->[7], $line->[8], $line->[10], $line->[11], 
-      $line->[13], $line->[14], $line->[15], $line->[16], $line->[17], $line->[18], $line->[19], $line->[20], $line->[21], $line->[23], $line->[24]]);
+ 	  $dub_ports{$line->[$nas_id_field]}{$line->[$port_id]}++;
+
+    push( @{ $nas_sorted{"$line->[$nas_id_field]"} }, [ 
+      $line->[0], 
+      $line->[1], 
+      $line->[2], 
+      $line->[3], 
+      $line->[4], 
+      $line->[5], 
+      $line->[6], 
+      $line->[7], 
+      $line->[8], 
+      $line->[9], 
+      $line->[10], 
+      $line->[11], 
+      $line->[12], 
+      $line->[13], 
+      $line->[14], 
+      $line->[15], 
+      $line->[16], 
+      $line->[17], 
+      $line->[18], 
+      $line->[19], 
+      $line->[20], 
+      $line->[21], 
+      $line->[22], 
+      $line->[23], 
+      $line->[24]]);
 
   }
  
@@ -859,6 +931,9 @@ if ($attr->{FIELDS}) {
 	my @show_fields = ();
   my %get_fields_hash = ();
 
+#  foreachsh = ();
+
+
   foreach my $line (@fields_array) {
   	$get_fields_hash{$line}=1;
    }
@@ -874,7 +949,7 @@ if ($attr->{FIELDS}) {
  
  if(defined($attr->{DATE})) {
    if (defined($attr->{HOURS})) {
-   	$self->query($db, "select date_format(l.start, '%Y-%m-%d %H'), count(DISTINCT l.uid), count(l.uid), 
+   	$self->query($db, "select date_format(l.start, '%Y-%m-%d %H')start, '%Y-%m-%d %H')start, '%Y-%m-%d %H'), count(DISTINCT l.uid), count(l.uid), 
     sum(l.sent + l.recv), sum(l.sent2 + l.recv2), sec_to_time(sum(l.duration)), sum(l.sum), l.uid
       FROM dv_log l
       LEFT JOIN users u ON (u.uid=l.uid)
