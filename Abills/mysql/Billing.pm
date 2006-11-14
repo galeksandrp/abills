@@ -374,25 +374,20 @@ sub session_sum {
                         );
  
  #session devisions
- #$self->{debug}=1;
- 
- my $sd = $self->{TIME_DIVISIONS};
- my $interval_count =  keys %$sd;
+ my @sd = @{ $self->{TIME_DIVISIONS_ARR} };
  $self->{TI_ID} = 0;
+ #$self->{debug}=1;
 
 if(! defined($self->{NO_TPINTERVALS})) {
-  if($interval_count < 1) {
+  if($#sd < 0) {
    	print "Not allow start period" if ($self->{debug});
  	  return -16, 0, 0, 0, 0, 0;	
    }
   
-  #$self->{debug}=1;
-
-  while(my($k, $v)=each(%$sd)) {
+  foreach my $line (@sd) {
+    my ($k, $v)=split(/,/,  $line);
     print "> $k, $v\n" if ($self->{debug});
-
     $self->{TI_ID}=$k;
-
     if($periods_time_tarif->{$k} && $periods_time_tarif->{$k} > 0) {
    	   $sum += ($v * $periods_time_tarif->{$k}) / 60 / 60;
      }
@@ -404,6 +399,7 @@ if(! defined($self->{NO_TPINTERVALS})) {
    }
 }
 
+print "$sum\n";
 $sum = $sum * (100 - $self->{REDUCTION}) / 100 if ($self->{REDUCTION} > 0);
 
 if (! $attr->{FULL_COUNT}) {
@@ -493,7 +489,6 @@ sub session_splitter {
      $attr) = @_;
  
  my $debug = 0;
- my %division_time = (); #return division time
  my @division_time_arr = ();
 
  if (defined($attr->{TP_ID})) {
@@ -507,7 +502,7 @@ sub session_splitter {
 
 
  if ($time_intervals == 0)  {
-   $self->{TIME_DIVISIONS} = \%division_time;
+   $self->{TIME_DIVISIONS_ARR} = \@division_time_arr;
    $self->{NO_TPINTERVALS} = 'y';
    $self->{SUM}=0;
    return $self;
@@ -584,13 +579,6 @@ if ($debug == 1) {
          
          #IF Start + DUARATION < END period last the calculation 
          if ($start + $duration < $int_end) {
-           if (defined($division_time{$int_id})) {
-             $division_time{$int_id}+=$duration;
-            }
-           else {
-             $division_time{$int_id}=$duration;
-            }
-
             #experimental division time arr
             push @division_time_arr, "$int_id,$duration";
             $duration = 0;
@@ -598,14 +586,6 @@ if ($debug == 1) {
           }
          else {
               my $int_time = $int_end - $start;
-
-              if (defined($division_time{$int_id})) {
-            	  $division_time{$int_id}+=$int_time;
-               }
-              else {
-                $division_time{$int_id}=$int_time;
-               }
-
               push @division_time_arr, "$int_id,$int_time";
              	$duration = $duration - $int_time;
              	$start = $start + $int_time;
@@ -615,11 +595,10 @@ if ($debug == 1) {
              	  $start = 0;
              	  last;
             	 }
-             }
+          }
 
-            print "$int_id $division_time{$int_id}" . "\n" if($debug==1);
-
-            next;
+           print "  INT/TIME: $division_time_arr[$#division_time_arr]\n" if($debug==1);
+           next;
           }
         elsif($i == $#intervals) {
        	  print "\n!! LAST@@@@ $i == $#intervals\n" if ($debug == 1);
@@ -653,7 +632,6 @@ if ($debug == 1) {
       }
   }
  
- $self->{TIME_DIVISIONS} = \%division_time;
  $self->{TIME_DIVISIONS_ARR} = \@division_time_arr;
  $self->{SUM}=0;
  
@@ -694,19 +672,20 @@ sub time_calculation() {
  my $PRICE_UNIT = (defined($PRICE_UNITS{$attr->{PRICE_UNIT}})) ? 60 : 3600;
  
   #session devisions
-  my $sd = $self->{TIME_DIVISIONS};
-  my $interval_count =  keys %$sd;
+  my @sd = $self->{TIME_DIVISIONS_ARR};
 
 $self->{debug} =1;
 
 if(! defined($self->{NO_TPINTERVALS})) {
-  if($interval_count < 1) {
+  if($#sd < 0) {
    	$self->{errno} = 3;
    	$self->{errstr} = "Not allow start period";
    }
   #$self->{debug}=1;
 
-  while(my($k, $v)=each(%$sd)) {
+  foreach my $line (@sd) {
+    my ($k, $v)=split(/,/,  $line);
+
  	  #print "> $k, $v\n" if ($self->{debug});
     if(defined($periods_time_tarif->{$k})) {
    	   $sum += ($v * $periods_time_tarif->{$k}) / $PRICE_UNIT;
