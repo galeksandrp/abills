@@ -494,7 +494,7 @@ sub session_splitter {
  
  my $debug = 0;
  my %division_time = (); #return division time
-
+ my @division_time_arr = ();
 
  if (defined($attr->{TP_ID})) {
    ($time_intervals, $periods_time_tarif, $periods_traf_tarif) = $self->time_intervals($attr->{TP_ID});
@@ -591,6 +591,8 @@ if ($debug == 1) {
              $division_time{$int_id}=$duration;
             }
 
+            #experimental division time arr
+            push @division_time_arr, "$int_id,$duration";
             $duration = 0;
          	  last;
           }
@@ -604,6 +606,7 @@ if ($debug == 1) {
                 $division_time{$int_id}=$int_time;
                }
 
+              push @division_time_arr, "$int_id,$int_time";
              	$duration = $duration - $int_time;
              	$start = $start + $int_time;
              	if ($start == 86400) {
@@ -651,6 +654,7 @@ if ($debug == 1) {
   }
  
  $self->{TIME_DIVISIONS} = \%division_time;
+ $self->{TIME_DIVISIONS_ARR} = \@division_time_arr;
  $self->{SUM}=0;
  
  return $self;

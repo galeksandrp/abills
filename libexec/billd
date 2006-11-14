@@ -197,7 +197,7 @@ sub check_lines {
 }
 
 #**********************************************************
-# Ceck current speed
+# Ceck current speed for exppp
 #**********************************************************
 sub check_speed {		
 	
@@ -217,7 +217,9 @@ sub check_speed {
 	foreach my $line (@rules) {
      if ($line =~ /(\d+):\s+(\S+) (\w+)/) {
        my $speed = $2 * $speeds_rotations{$3};
-       $rule_speed{$interfaces{$1}}{int($1)} = "$speed";
+       if (defined($interfaces{$1})) {
+         $rule_speed{$interfaces{$1}}{int($1)} = "$speed";
+        }
      	}
 	   elsif ($line =~ /(\d+).+tun(\d+)/){
 	     $interfaces{$1}=$2;
@@ -232,7 +234,7 @@ sub check_speed {
    }
 
 
-	$sessions->online( { %LIST_PARAMS, NAS_ID => $ARGV->{NAS_ID}  } );	
+	$sessions->online( { %LIST_PARAMS, NAS_ID => $ARGV->{NAS_ID}, FIELDS => [0,2,11,13]   } );	
 	my $online = $sessions->{nas_sorted};
   $LIST_PARAMS{DISABLE} = 0;
 
@@ -248,8 +250,8 @@ sub check_speed {
     my $l = $online->{$nas_row->[0]};
     foreach my $line (@$l) {
                            #IFACE : TP : SPEED  :IP
-       $IFACES{$line->[0]}="$line->[2]:$line->[13]:$line->[16]:$line->[3]";
-       $TP_HASH{$line->[13]}=1;
+       $IFACES{$line->[0]}="$line->[1]:$line->[2]:$line->[3]:$line->[7]";
+       $TP_HASH{$line->[2]}=1;
      }
   }
 
