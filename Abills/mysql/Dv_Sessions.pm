@@ -125,7 +125,7 @@ sub online {
    'UNIX_TIMESTAMP()-c.lupdated' );
 
 
-  my @RES_FIELDS = (0, 1, 2, 3, 4, 5, 6, 7);
+  my @RES_FIELDS = (0, 1, 2, 3, 4, 5, 6, 7, 8);
  
   if ($attr->{FIELDS}) {
   	@RES_FIELDS = @{ $attr->{FIELDS} };
