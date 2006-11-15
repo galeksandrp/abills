@@ -408,7 +408,7 @@ if ($NAS->{NAS_TYPE} eq 'mikrotik') {
 
 #Shaper
   if ($self->{USER_SPEED} > 0) {
-    $RAD_PAIRS->{'Rate-Limit'} = "$self->{USER_SPEED}k";
+    $RAD_PAIRS->{'Mikrotik-Rate-Limit'} = "$self->{USER_SPEED}k";
    }
   else {
     if (defined($EX_PARAMS->{speed}->{0})) {
