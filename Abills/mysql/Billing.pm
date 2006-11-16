@@ -363,8 +363,6 @@ sub session_sum {
 
  $tariffs = Tariffs->new($db, $CONF);
 
-
-
  $self->session_splitter($SESSION_START,
                          $SESSION_DURATION,
                          $self->{DAY_BEGIN},
@@ -376,7 +374,6 @@ sub session_sum {
  #session devisions
  my @sd = @{ $self->{TIME_DIVISIONS_ARR} };
  $self->{TI_ID} = 0;
- #$self->{debug}=1;
 
 if(! defined($self->{NO_TPINTERVALS})) {
   if($#sd < 0) {
@@ -487,7 +484,7 @@ sub session_splitter {
      $day_of_year, 
      $attr) = @_;
  
- my $debug = 0;
+ my $debug = $self->{debug} || 0;
  my @division_time_arr = ();
 
  if (defined($attr->{TP_ID})) {

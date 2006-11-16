@@ -309,6 +309,21 @@ my $table = $html->table({ width       => '100%',
 
 my $list = $nas->list({ %LIST_PARAMS, TYPE =>  'bsr1000' });
 
+#docsIfCmtsCmStatusMacAddress 
+#docsIfCmtsCmStatusUncorrectables 
+#docsIfCmtsCmStatusMicroreflections 
+#docsIfCmtsCmStatusSignalNoise 
+#docsIfCmtsCmStatusUpChannelIfIndex 
+#docsIfCmtsCmStatusEqualizationData 
+#docsIfCmtsCmStatusValue 
+#docsIfCmtsCmStatusEntry 
+#docsIfCmtsCmStatusDownChannelIfIndex 
+#docsIfCmtsCmStatusRxPower 
+#docsIfCmtsCmStatusTimingOffset 
+#docsIfCmtsCmStatusIpAddress 
+#docsIfCmtsCmStatusCorrecteds 
+#docsIfCmtsCmStatusUnerroreds
+
 foreach my $line (@$list) {
     my %result = &snmpwalkhash("$line->[10]\@$line->[3]", \&my_simple_hash, '1.3.6.1.2.1.10.127.1.3.3.1');
     my @CAPTION = keys %result;
@@ -454,6 +469,114 @@ sub my_simple_hash {
         $h_ref->{$name}->{$inst} = $value;
 }
 
+#**********************************************************
+#
+#**********************************************************
+sub snmputils_multioid_view {
+   my ($attr) = @_;
 
+       my $fields         = $attr->{FIELDS};
+       my @default_fields = @{ $attr->{DEFAULT_FIELDS} };
+       my $oid_prefix     = $attr->{OID_PREFIX} || '';
+       my $nas_type       = $attr->{NAS_TYPE} || '';
+      
+if ($FORM{fields}) {
+  @default_fields = split(/, /, 'diactIndex, '. $FORM{fields});
+}
+
+my $OIDS_EXINFO;
+if ($attr->{MIBS}) {
+	$OIDS_EXINFO = snmputils_load_mibs($attr->{MIBS});
+}
+
+$table = $html->table({ width       => '100%',
+                        caption     => "$nas_type",
+                        border      => 1,
+                        title       => [@default_fields, "-"],
+                        cols_align  => ['left', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'center'],
+                      });
+
+
+my $Nas = Nas->new($db, \%conf);
+my $list = $Nas->list({ TYPE => $nas_type, DISABLE => 0 });
+
+foreach my $line (@$list) {
+  my %result = ();
+  
+  foreach my $field (@default_fields) {
+    my @arr = ();
+    if (@arr = snmpwalk("$line->[10]\@$line->[3]", $oid_prefix.'.'.$fields->{$field})) {
+      
+      my $oid = "$field - $oid_prefix/$fields->{$field}";
+      
+      if ($SNMP_Session::errmsg) {
+         print $html->message('err', $_ERROR, "$oid<br>$SNMP_Session::suppress_warnings / $SNMP_Session::errmsg");
+         last;
+       }
+
+      foreach my $line (@arr) {
+        if ($line =~ /(\d+):(.+)/) {
+          $result{$field}{$1}=$2;
+          print "$field // $line ($1:$2) <br>"if ($debug == 1);
+        }
+       }
+     }
+    else {
+       print "$field - $oid_prefix/$fields->{$field} <br>"if ($debug == 1);
+       print "No response";
+       last;
+     }
+   }
+
+#  $SORT = 0;
+#  $SORT = $FORM{sort} - 1 if ($FORM{sort});
+  
+  
+  $table->{rowcolor}=$_COLORS[0];
+  $table->{extra}="colspan='". ($#default_fields + 2) ."' class='small'";
+  $table->addrow("$line->[0]:<b>$line->[1]</b>:$line->[3] ");
+  $page_qs .= "&NAS_ID=$line->[0]";
+  $total_sessions += $#MAC_ARR + 1;
+
+  undef($table->{rowcolor});
+  undef($table->{extra});
+
+  
+my @SESSION_ARR = sort keys %{ $result{ $default_fields[0] } } ;
+
+#print "$default_fields[$sort] / $SORT <br>";
+#print join(', ', @SESSION_ARR);
+
+    foreach my $k ( @SESSION_ARR ) {
+      my @arr = ();
+      foreach my $ft (@default_fields) {
+        #$result{$ft}{$k} = data_convert($ft, $result{$ft}{$k});
+      	push @arr, ($OIDS_EXINFO->{$ft}{ACCESS} eq 'read-write') ? $html->button($result{$ft}{$k}, "index=$index&change=y&SNMP_INDEX=$inst&SNMP_OID=$OIDS_HASH{$ft}$page_qs") :  $result{$ft}{$k}
+       }
+   	
+    	$table->addrow(@arr,
+    	               "(". $html->button('H', "index=$index&hangup=$k", { TITLE => 'Hangup' }). ")"
+                     );
+
+   }
+
+}
+
+
+
+print $table->show();
+$table = $html->table({ width       => '100%',
+                        rowcolor    => $_COLORS[3],
+                        cols_align  => ['right', 'left', 'right', 'right', 'center'],    
+                        rows        => [ ["$_TOTAL:", "$_USERS:", "$total_users", "$_SESSIONS:", "$total_sessions" ]]
+                      });
+
+print $table->show();
+
+	
+	
+snmp_form_footer($fields, \@default_fields, { OIDS_EXINFO => $OIDS_EXINFO });
+
+}
 1
 

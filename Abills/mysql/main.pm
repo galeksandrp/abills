@@ -64,19 +64,15 @@ use DBI;
 sub connect {
   my $class = shift;
   my $self = { };
-  my ($dbhost, $dbname, $dbuser, $dbpasswd) = @_;
+  my ($dbhost, $dbname, $dbuser, $dbpasswd, $attr) = @_;
   bless($self, $class);
-   #$self->{debug}=1;
-   $self->{db} = DBI->connect("DBI:mysql:database=$dbname;host=$dbhost", "$dbuser", "$dbpasswd") or die 
+  #$self->{debug}=1;
+  $self->{db} = DBI->connect("DBI:mysql:database=$dbname;host=$dbhost", "$dbuser", "$dbpasswd") or die 
        "Unable connect to server '$dbhost:$dbname'\n";
-
-   #   print "---- $! --\n";
-   #if ($db->err) {
-   #  print "---------1!1lj2lk\n";
-   #  $self->{errno}=3;
-   #  $self->{errstr}=;
-   #}
   
+  #For mysql 5 or highter
+  #$self->{db}->do("set names ".$attr->{CHARSET}) if ($attr->{CHARSET});
+ 
   $self->{query_count}=0;
   return $self;
 }

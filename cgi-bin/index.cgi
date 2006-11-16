@@ -361,18 +361,23 @@ else {
    }
 
   #check password throught ftp access
-  if ($res < 1) {
-    eval { require Net::FTP; };
-    if (! $@) {
-      Net::FTP->import();
-      my $ftp = Net::FTP->new($ftpserver) || die "could not connect to the server '$ftpserver' $!";
-      $res = $ftp->login("$login", "$password");
-      $ftp->quit();
+  # 
+  if (defined($conf{check_access}{NAS_IP}) && $conf{check_access}{NAS_IP} =~ /(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):21/) {
+  	my $ftpserver = $1;
+
+    if ($res < 1) {
+      eval { require Net::FTP; };
+      if (! $@) {
+        Net::FTP->import();
+        my $ftp = Net::FTP->new($ftpserver) || die "could not connect to the server '$ftpserver' $!";
+        $res = $ftp->login("$login", "$password");
+        $ftp->quit();
+       }
+      else {
+        $html->message('info', $_INFO, "Install 'libnet' module from http://cpan.org");
+       }
      }
-    else {
-      $html->message('info', $_INFO, "Install 'libnet' module from http://cpan.org");
-     }
-   }
+  }
 }
 #Get user ip
 

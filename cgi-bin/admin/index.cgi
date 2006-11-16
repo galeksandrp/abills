@@ -54,7 +54,8 @@ use Nas;
 use Admins;
 
 
-my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
+my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd},
+  { CHARSET => $conf{dbcharset} });
 
 $db = $sql->{db};
 $admin = Admins->new($db, \%conf);

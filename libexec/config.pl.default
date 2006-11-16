@@ -9,6 +9,8 @@ $conf{dbname}='abills';
 $conf{dbuser}='abills';
 $conf{dbpasswd}='sqlpassword';
 $conf{dbtype}='mysql';
+#For MySQL 5 and highter
+#$conf{dbcharset}='cp1251';
 
 #Mail configuration
 $conf{ADMIN_MAIL}='admin@yourhost.com';
@@ -101,13 +103,15 @@ $conf{debugmods}='LOG_ALERT LOG_WARNING LOG_ERR LOG_INFO';
 'LOG_SQL' => 6);
 
 
-
-#Check password from radius for web interface
-#$conf{check_access} = { NAS_IP        => '127.0.0.1:1812',
-#                        NAS_FRAMED_IP => '127.0.0.1',
-#                        NAS_SECRET    => 'radsecret' 
+#Check password from radius or FTP servers for web interface
+#Radius
+#$conf{check_access} = { NAS_IP        => '192.168.101.17:1812',
+#                        NAS_FRAMED_IP => '192.168.101.17',
+#                        NAS_SECRET    => 'test'
 #                       };
-
+# FTP
+#  $conf{check_access} = { NAS_IP      => '192.168.101.17:21'
+#                         };
 
 #Firewall start rule numbers
 # (GLobal, Class 1, Class 2)
