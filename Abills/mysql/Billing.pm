@@ -381,16 +381,18 @@ if(! defined($self->{NO_TPINTERVALS})) {
  	  return -16, 0, 0, 0, 0, 0;	
    }
   
-  foreach my $line (@sd) {
-    my ($k, $v)=split(/,/,  $line);
+  for(my $i=0; $i<=$#sd; $i++) {
+    my ($k, $v)=split(/,/,  $sd[$i]);
     print "> $k, $v\n" if ($self->{debug});
     $self->{TI_ID}=$k;
     if($periods_time_tarif->{$k} && $periods_time_tarif->{$k} > 0) {
    	   $sum += ($v * $periods_time_tarif->{$k}) / 60 / 60;
      }
-
+   
    if(defined($periods_traf_tarif->{$k})) {
-   	  $sum  += $self->traffic_calculations($RAD);
+   	  if ($i == 0) {
+   	    $sum  += $self->traffic_calculations($RAD);
+   	   }
    	  last;
     }
    }
