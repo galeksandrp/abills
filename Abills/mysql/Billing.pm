@@ -389,7 +389,7 @@ if(! defined($self->{NO_TPINTERVALS})) {
    	   $sum += ($v * $periods_time_tarif->{$k}) / 60 / 60;
      }
    
-    if(defined($periods_traf_tarif->{$k}) && $i == 0 && $periods_traf_tarif->{$k} > 0) {
+    if( $i == 0 && defined($periods_traf_tarif->{$k}) && $periods_traf_tarif->{$k} > 0) {
    	    $sum  += $self->traffic_calculations($RAD);
    	    last;
      }

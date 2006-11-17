@@ -617,7 +617,12 @@ sub get_radius_params {
  else {
     while(my($k, $v)=each(%ENV)) {
       if(defined($v) && defined($k)) {
-        $RAD{$k}=clearquotes("$v");
+        if ($RAD{$k}) {
+          $RAD{$k}.=";".clearquotes("$v");
+         }
+        else {
+        	$RAD{$k}=clearquotes("$v");
+         }
        }
      }
   }

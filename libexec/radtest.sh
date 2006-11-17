@@ -15,6 +15,7 @@ if [ t$1 = 'tauth' ] ; then
         USER_NAME="aa1"\
         USER_PASSWORD="test12345"\
         NAS_IP_ADDRESS=192.168.202.13 \
+        CISCO_AVPAIR="connect-progress=LAN Ses Up" \
         CISCO_AVPAIR="client-mac-address=000f.ea3d.92ef"
 #         CALLING_STATION_ID="10.10.10.2" \
 #        NAS-Port-Type = Virtual \
@@ -63,13 +64,16 @@ elif [ t$1 = 'tacct' ]; then
         FRAMED_PROTOCOL=PPP \
         FRAMED_IP_ADDRESS=10.0.0.1 \
         FRAMED_IP_NETMASK=0.0.0.0 \
-        CALLING_STATION_ID="192.168.101.4" \
+        CISCO_AVPAIR="connect-progress=LAN Ses Up"\
+        CISCO_AVPAIR="client-mac-address=0001.29d2.2695"\
         NAS_IP_ADDRESS=192.168.202.13 \
         NAS_IDENTIFIER="media.intranet" \
         NAS_PORT_TYPE=Virtual \
         ACCT_STATUS_TYPE=Start \
         ACCT_SESSION_ID="83419_AA11118757979" \
         USER_NAME="aa1" \
+
+#        CALLING_STATION_ID="192.168.101.4" \
 
    elif [ t$2 = 'tStop' ] ; then
       echo Stop;
