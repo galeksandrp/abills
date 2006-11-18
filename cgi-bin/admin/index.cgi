@@ -2773,6 +2773,7 @@ my @m = (
 
  
  "85:5:$_SHEDULE:form_shedule:::",
+ "86:5:$_BRUTE_ATACK:form_bruteforce:::",
  "90:5:MISC:null:::",
  "91:90:$_TEMPLATES:form_templates:::",
  "92:90:$_DICTIONARY:form_dictionary:::",
@@ -3987,5 +3988,44 @@ sub weblog {
 
 
 
+#**********************************************************
+#
+#**********************************************************
+sub form_bruteforce {
+	
+	
+if(defined($FORM{del}) && defined($FORM{is_js_confirmed})  && $permissions{0}{5} ) {
+   $users->bruteforce_del({ LOGIN => $FORM{del} });
+   $html->message('info', $_INFO, "$_DELETED # $FORM{del}");
+ }
+	
+  my $list = $users->bruteforce_list( { %LIST_PARAMS, %FORM } );
+  my $table = $html->table( { width      => '100%',
+                              caption    => "$_BRUTE_ATACK",
+                              border     => 1,
+                              title      => [$_LOGIN, $_PASSWD, $_DATE, $_COUNT, '-', '-'],
+                              cols_align => ['left', 'left', 'right', 'right', 'center', 'center'],
+                              pages      => $users->{TOTAL},
+                              qs         => $pages_qs
+                           } );
+
+  foreach my $line (@$list) {
+    $table->addrow($line->[0],  
+      $line->[1], 
+      $line->[2], 
+      $line->[3], 
+      $html->button($_INFO, "index=$index&LOGIN=$line->[0]"), 
+      (defined($permissions{0}{5})) ? $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?" }) : ''
+      );
+   }
+  print $table->show();
+
+  $table = $html->table( { width      => '100%',
+                           cols_align => ['right', 'right'],
+                           rows       => [ [ "$_TOTAL:", "<b>$users->{TOTAL}</b>" ] ]
+                        } );
+  print $table->show();
+
+}
 
 

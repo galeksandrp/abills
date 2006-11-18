@@ -690,11 +690,16 @@ CREATE TABLE `users` (
   UNIQUE KEY `id` (`id`)
 )  ;
 
-# --------------------------------------------------------
 
-#
-# Структура таблиці `users_nas`
-#
+CREATE TABLE `users_bruteforce` (
+  `login` varchar(20) NOT NULL default '',
+  `password` varchar(16) binary NOT NULL default '0',
+  `datetime` datetime NOT NULL default '0000-00-00 00:00:00',
+  `ip` int(11) unsigned NOT NULL default '0',
+  `auth_state` tinyint(1) unsigned NOT NULL default '0',
+  KEY `login` (`login`)
+);
+
 
 CREATE TABLE `users_nas` (
   `uid` int(10) unsigned NOT NULL default '0',

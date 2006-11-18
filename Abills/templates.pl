@@ -558,10 +558,10 @@ return qq{
 <TABLE width="400"  cellspacing="0" cellpadding="0" border="0"><TR><TD bgcolor="$_COLORS[4]">
 <TABLE width="100%" cellspacing="1" cellpadding="0" border="0"><TR><TD bgcolor="$_COLORS[1]">
 <TABLE width="100%" cellspacing="0" cellpadding="0" border="0">
+<TR><TD>$_LANGUAGE:</TD><TD>%SEL_LANGUAGE%</TD></TR>
 <TR><TD>$_LOGIN:</TD><TD><input type="text" name="user"></TD></TR>
 <TR><TD>$_PASSWD:</TD><TD><input type="password" name="passwd"></TD></TR>
-<TR><TD>$_LANGUAGE:</TD><TD>%SEL_LANGUAGE%</TD></TR>
-<TR><th colspan="2"><input type="submit" name="logined" value="$_ENTER"></th></TR>
+<tr><th colspan="2"><input type="submit" name="logined" value="$_ENTER"></th></TR>
 </TABLE>
 </TD></TR></TABLE>
 </TD></TR></TABLE>
@@ -727,6 +727,26 @@ return qq{
 </form>
 </center>
 }
+}
+
+
+elsif ($tpl_name eq 'form_bruteforce_message') {
+	return qq{
+  <TABLE width="400" border="0" cellpadding="0" cellspacing="0" class="noprint">
+<tr><TD bgcolor="$_COLORS[9]">
+<TABLE width="100%" border=0 cellpadding="2" cellspacing="1">
+<tr><TD bgcolor="$_COLORS[1]">
+<TABLE width="100%">
+<tr bgcolor='#FF0000'><th>$_ERROR</th></tr>
+<tr><td>
+	  You try to brute password and system block your account.<br>
+	  Please conntact system administrator.
+
+</td></tr></table>
+</TD></TR></TABLE>
+</TD></TR></TABLE>
+
+	};
 }
 elsif ($tpl_name eq 'help_info') {
 return qq{

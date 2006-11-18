@@ -191,7 +191,7 @@ sub pi {
      return $self;
    }
 
-  my $ar = $self->{list}->[0];
+
 
   ($self->{FIO}, 
    $self->{PHONE}, 
@@ -201,7 +201,7 @@ sub pi {
    $self->{EMAIL}, 
    $self->{CONTRACT_ID},
    $self->{COMMENTS}
-  )= @$ar;
+  )= @{ $self->{list}->[0] };
 	
 	
 	return $self;
@@ -506,8 +506,8 @@ sub list {
      $self->query($db, "SELECT count(DISTINCT u.uid) FROM users u 
        LEFT JOIN payments p ON (u.uid = p.uid)
       $WHERE;");
-      my $a_ref = $self->{list}->[0];
-      ($self->{TOTAL}) = @$a_ref;
+
+      ($self->{TOTAL}) = @{ $self->{list}->[0] };
     }
 
  	  return $list
@@ -536,8 +536,7 @@ sub list {
      LEFT JOIN bills b ON u.bill_id = b.id
      LEFT JOIN companies company ON  (u.company_id=company.id) 
     $WHERE");
-    my $a_ref = $self->{list}->[0];
-    ($self->{TOTAL}) = @$a_ref;
+    ($self->{TOTAL}) = @{ $self->{list}->[0] };
    }
 
   return $list;
@@ -758,5 +757,74 @@ sub nas_del {
 }
 
 
+#**********************************************************
+#
+#**********************************************************
+sub bruteforce_add {
+  my $self = shift;	
+  my ($attr) = @_;
+  
+  
+	$self->query($db, "INSERT INTO users_bruteforce (login, password, datetime, ip, auth_state) VALUES 
+	      ('$attr->{LOGIN}', '$attr->{PASSWORD}', now(), INET_ATON('$attr->{REMOTE_ADDR}'), '$attr->{AUTH_STATE}');", 'do');	
+	
+	return $self;
+}
+
+
+#**********************************************************
+#
+#**********************************************************
+sub bruteforce_list {
+  my $self = shift;	
+	my ($attr) = @_;
+	
+
+
+	my $GROUP = 'GROUP BY login';
+  my $count='count(login)';	
+	
+	if ($attr->{AUTH_STATE}) {
+    push @WHERE_RULES, "auth_state='$attr->{AUTH_STATE}'";
+   }
+	
+	if ($attr->{LOGIN}) {
+		push @WHERE_RULES, "login='$attr->{LOGIN}'";
+  	$count='auth_state';
+  	$GROUP = '';
+	 }
+	
+  my $WHERE = "WHERE " . join(' and ', @WHERE_RULES) if($#WHERE_RULES > -1);
+	my $list;
+	
+	
+  if (! $attr->{CHECK}) {
+	  $self->query($db,  "SELECT login, password, datetime, $count, INET_NTOA(ip) FROM users_bruteforce
+	    $WHERE
+	    $GROUP
+	    ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");
+    $list = $self->{list};
+  }
+
+  $self->query($db, "SELECT count(*) FROM users_bruteforce $WHERE;");
+  ($self->{TOTAL}) = @{ $self->{list}->[0] };
+
+	
+	return $list;
+}
+
+
+#**********************************************************
+#
+#**********************************************************
+sub bruteforce_del {
+  my $self = shift;	
+	my ($attr) = @_;
+	
+  $self->query($db,  "DELETE FROM users_bruteforce
+	 WHERE login='$attr->{LOGIN}';", 'do');
+
+	return $self;
+}
 
 1

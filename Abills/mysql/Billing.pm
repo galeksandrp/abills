@@ -396,6 +396,7 @@ if(! defined($self->{NO_TPINTERVALS})) {
    }
 }
 
+
 $sum = $sum * (100 - $self->{REDUCTION}) / 100 if ($self->{REDUCTION} > 0);
 
 if (! $attr->{FULL_COUNT}) {

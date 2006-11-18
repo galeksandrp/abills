@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/perl 
 # User Web interface
 #
 #
@@ -256,7 +256,7 @@ print $table->show();
 
 
 #**********************************************************
-# form_login
+# form_login  
 #**********************************************************
 sub form_login {
  my %first_page = ();
@@ -278,18 +278,34 @@ sub auth_radius {
   
   my $check_access = $conf{check_access};
  
-  use Abills::Radius;
-
-  $conf{'dictionary'} = '../Abills/dictionary' if (! exists($conf{'dictionary'}));
-
-  $r = new Radius(Host   => "$check_access->{NAS_IP}",
+  #check password throught ftp access
+  if ($conf{check_access}{NAS_IP} =~ /(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):21/) {
+  	my $ftpserver = $1;
+    if ($res < 1) {
+      eval { require Net::FTP; };
+      if (! $@) {
+        Net::FTP->import();
+        my $ftp = Net::FTP->new($ftpserver) || die "could not connect to the server '$ftpserver' $!";
+        $res = $ftp->login("$login", "$passwd");
+        $ftp->quit();
+       }
+      else {
+        $html->message('info', $_INFO, "Install 'libnet' module from http://cpan.org");
+       }
+     }
+   }
+  elsif ($check_access->{NAS_SECRET}) {
+    use Abills::Radius;
+    $conf{'dictionary'} = '../Abills/dictionary' if (! exists($conf{'dictionary'}));
+    $r = new Radius(Host   => "$check_access->{NAS_IP}",
                   Secret => "$check_access->{NAS_SECRET}"
                   ) or die ("Can't connect to '$check_access->{NAS_IP}' $!");
 
-  $r->load_dictionary($conf{'dictionary'}) || die("Cannot load dictionary '$conf{dictionary}' !");
+    $r->load_dictionary($conf{'dictionary'}) || die("Cannot load dictionary '$conf{dictionary}' !");
  
-  if($r->check_pwd("$login", "$passwd", "$check_access->{NAS_FRAMED_IP}")) {
-    $res = 1;
+    if($r->check_pwd("$login", "$passwd", "$check_access->{NAS_FRAMED_IP}")) {
+      $res = 1;
+     }
    }
 
 	return $res;
@@ -351,6 +367,16 @@ else {
 # print "$sid";
   return 0 if (! $login  || ! $password);
   
+  if ($conf{wi_bruteforce}) {
+  	$user->bruteforce_list({ LOGIN    => $login,
+  		                       PASSWORD => $password,
+  		                       CHECK    => 1 });
+  	if ($user->{TOTAL} > $conf{wi_bruteforce}) {
+  		$OUTPUT{BODY} = $html->tpl_show(templates('form_bruteforce_message'), undef);
+  		return 0;
+  	 }
+   }
+  
   #check password from RADIUS SERVER if defined $conf{check_access}
   if (defined($conf{check_access})) {
     $res = auth_radius("$login", "$password")
@@ -359,25 +385,6 @@ else {
   else {
     $res = auth_sql("$login", "$password") if ($res < 1);
    }
-
-  #check password throught ftp access
-  # 
-  if (defined($conf{check_access}{NAS_IP}) && $conf{check_access}{NAS_IP} =~ /(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):21/) {
-  	my $ftpserver = $1;
-
-    if ($res < 1) {
-      eval { require Net::FTP; };
-      if (! $@) {
-        Net::FTP->import();
-        my $ftp = Net::FTP->new($ftpserver) || die "could not connect to the server '$ftpserver' $!";
-        $res = $ftp->login("$login", "$password");
-        $ftp->quit();
-       }
-      else {
-        $html->message('info', $_INFO, "Install 'libnet' module from http://cpan.org");
-       }
-     }
-  }
 }
 #Get user ip
 
@@ -401,14 +408,22 @@ if (defined($res) && $res > 0) {
 #   return ($pass eq $universal_pass) ? 0 : 1;
 #  }
 else {
+   $user->bruteforce_add({ LOGIN       => $login, 
+ 	                       PASSWORD    => $password,
+    	                   REMOTE_ADDR => $REMOTE_ADDR,
+    	                   AUTH_STATE  => $ret });
+
    $html->message('err', "$_ERROR", "$_WRONG_PASSWD");
    $ret = 0;
    $action = 'Error';
  }
 
- open(FILE, ">>login.log") || die "can't open file 'login.log' $!";
-   print FILE "$DATE $TIME $action:$login:$ip\n";
- close(FILE);
+
+
+
+# open(FILE, ">>login.log") || die "can't open file 'login.log' $!";
+#   print FILE "$DATE $TIME $action:$login:$ip\n";
+# close(FILE);
 
  return ($ret, $sid, $login);
 }
@@ -499,3 +514,12 @@ sub logout {
 	return 0;
 }
 
+#**********************************************************
+#
+#**********************************************************
+sub bruteforce {
+	
+	
+	
+	
+}
