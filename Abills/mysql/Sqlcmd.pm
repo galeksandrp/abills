@@ -219,5 +219,45 @@ foreach my $query (@QUERY_ARRAY) {
   return $list;
 }
 
+#**********************************************************
+# show 
+#**********************************************************
+sub sqlcmd_info {
+ my $self = shift;
+
+my @row;
+my %stats = ();
+my %vars = ();
+
+# Determine MySQL version
+my $query = $db->prepare("SHOW VARIABLES LIKE 'version';");
+$query->execute();
+@row = $query->fetchrow_array();
+
+my ($major, $minor, $patch) = ($row[1] =~ /(\d{1,2})\.(\d{1,2})\.(\d{1,2})/);
+
+if($major == 5 && (($minor == 0 && $patch >= 2) || $minor > 0)) {
+  $query = $db->prepare("SHOW GLOBAL STATUS;");
+}
+else { 
+  $query = $db->prepare("SHOW STATUS;"); 
+ }
+
+
+# Get status values
+$query->execute();
+while(@row = $query->fetchrow_array()) { 
+	$stats{$row[0]} = $row[1]; 
+ }
+
+# Get server system variables
+$query = $db->prepare("SHOW VARIABLES;");
+$query->execute();
+while(@row = $query->fetchrow_array()) { 
+	$vars{$row[0]} = $row[1]; 
+ }
+   
+ return \%stats, \%vars;
+}
 
 1
