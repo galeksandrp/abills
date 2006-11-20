@@ -656,7 +656,7 @@ sub hangup_pppd {
 
  $IP_ADDR=$attr->{FRAMED_IP_ADDRESS}  || '0.0.0.0';
 
- my $INTERFACE=`/sbin/ifconfig | awk -v RS='\n\n'  "/$IP_ADDR/ {print \\$1}"`;
+ my $INTERFACE=`/sbin/ifconfig | awk -v RS='\n\n'  "/$IP_ADDR/ {print \\\$1}"`;
  my $PPP_PID=`cat /var/run/$INTERFACE.pid`;
  my $res =`$SUDO /bin/kill -1 $PPP_PID`;
 

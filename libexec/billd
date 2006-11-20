@@ -120,13 +120,14 @@ sub check_lines {
     $NAS{NAS_MNG_PASSWORD} = $nas_row->[10]; 
 
     foreach my $line (@$l) {
+
 	    my $acct_input_octets       = $line->[5];
 	    my $acct_output_octets      = $line->[6];
 	    my $acct_input_octets_ext   = $line->[7];
 	    my $acct_output_octets_ext  = $line->[8];
 	    my $nas_port_id             = $line->[2];
-	    my $acct_session_id         = $line->[20];
-	    
+	    my $acct_session_id         = $line->[21];
+
       if ($acct_input_octets_ext > $exppp_hanguplimit || $acct_output_octets_ext > $exppp_hanguplimit) {
         my $ret = hangup(\%NAS, "$nas_port_id", "$line->[0]", { ACCT_SESSION_ID   => "$acct_session_id",
         	                                                      FRAMED_IP_ADDRESS => int2ip($line->[3])
@@ -151,7 +152,7 @@ sub check_lines {
       		                        });
        }
       elsif (defined($external_stats->{in})) {
-        $sessions->online_update({ USER_NAME => $line->[0], ACCT_SESSION_ID => $line->[20], %$external_stats });
+        $sessions->online_update({ USER_NAME => $line->[0], ACCT_SESSION_ID => $acct_session_id, %$external_stats });
        }
       
       # periodic check deposit stats
@@ -174,9 +175,9 @@ sub check_lines {
          $self->{TARIF_PLAN}, 
          $self->{TIME_TARIF}, 
          $self->{TRAF_TARIF}) = $Billing->session_sum("$RAD{USER_NAME}", 
-                                                 $RAD{SESSION_START}, 
-                                                 $RAD{ACCT_SESSION_TIME}, 
-                                                 \%RAD);
+                                                    $RAD{SESSION_START}, 
+                                                    $RAD{ACCT_SESSION_TIME}, 
+                                                    \%RAD);
 
         next if ($self->{UID} < 1);
         
