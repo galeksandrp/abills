@@ -643,26 +643,25 @@ sub stats_pppd  {
 }
 
 
-#*******************************************************************
-# HANGUP pppd
-# hangup_pppd($SERVER, $PORT)
-# Необходимо добавить в файл /etc/sudoers: 
+#******************************************************************* 
+# HANGUP pppd 
+# hangup_pppd($SERVER, $PORT) 
+# add next string to  /etc/sudoers: 
 # 
 # apache   ALL = NOPASSWD: /usr/abills/misc/pppd_kill 
 # 
-#*******************************************************************
-sub hangup_pppd {
- my ($NAS, $id, $attr) = @_;
-
- $IP_ADDR=$attr->{FRAMED_IP_ADDRESS}  || '0.0.0.0';
-
- my $INTERFACE=`/sbin/ifconfig | awk -v RS='\n\n'  "/$IP_ADDR/ {print \\\$1}"`;
- my $PPP_PID=`cat /var/run/$INTERFACE.pid`;
- my $res =`$SUDO /bin/kill -1 $PPP_PID`;
+#******************************************************************* 
+sub hangup_pppd { 
+ my ($NAS, $id, $attr) = @_; 
 
 
- return 0;
-}
+ my $IP =  $attr->{FRAMED_IP_ADDRESS} ; 
+
+
+ system ("/usr/bin/sudo /usr/abills/misc/pppd_kill $IP"); 
+ return 0; 
+} 
+
 
 
 
