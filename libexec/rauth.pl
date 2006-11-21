@@ -19,7 +19,6 @@ Abills::Base->import();
 $begin_time = check_time();
 
 # Max session tarffic limit  (Mb)
-$conf{MAX_SESSION_TRAFFIC} = 2048; 
 my %auth_mod = ();
 
 

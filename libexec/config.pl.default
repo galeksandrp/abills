@@ -77,6 +77,8 @@ $conf{USERNAMEREGEXP}="^[a-z0-9_][a-z0-9_-]*\$";
 $conf{list_max_recs}=25;
 $conf{web_session_timeout} = 1800;
 $conf{user_chg_passwd}='no';
+#Max session traffic Mb
+$conf{MAX_SESSION_TRAFFIC} = 2048; 
 
 
 # Exppp options
