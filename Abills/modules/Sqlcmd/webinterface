@@ -292,8 +292,8 @@ my $dms = $DMS_vals{SELECT} + $DMS_vals{INSERT} + $DMS_vals{REPLACE} + $DMS_vals
  $table->addrow('Buffer used', make_short($key_buffer_used, 1), 'of '.  make_short($vars->{'key_buffer_size'}, 1),
     '%Used:', perc($key_buffer_used, $vars->{'key_buffer_size'}) ); 
  $table->addrow(' Current',   make_short($key_buffer_usage, 1), '', '', '%Usage:', perc($key_buffer_usage, $vars->{'key_buffer_size'})) if ($key_buffer_usage > 0);
- $table->addrow('Write ratio', $key_write_ratio);
- $table->addrow('Read ratio',  $key_read_ratio);
+ $table->addrow('Write ratio', $key_write_ratio, '','', '');
+ $table->addrow('Read ratio',  $key_read_ratio, '', '', '');
 
  $table->{rowcolor}=$_COLORS[0];
  $table->{extra}="colspan='7'";
@@ -301,7 +301,7 @@ my $dms = $DMS_vals{SELECT} + $DMS_vals{INSERT} + $DMS_vals{REPLACE} + $DMS_vals
  undef($table->{extra});
  undef($table->{rowcolor});
 
- $table->addrow('Total', make_short($questions), t($questions, $stats->{'Uptime'}). '/s') ;
+ $table->addrow('Total', make_short($questions), t($questions, $stats->{'Uptime'}). '/s', '', '') ;
  # Distribution of Total Questions invoked by -dtq or -all
 
  my %DTQ=();
@@ -341,7 +341,7 @@ my $dms = $DMS_vals{SELECT} + $DMS_vals{INSERT} + $DMS_vals{REPLACE} + $DMS_vals
   perc($stats{'Slow_queries'}, $questions) 
 );
 
- $table->addrow('DMS', make_short($dms), t($dms, $stats->{'Uptime'}), perc($dms, $questions));
+ $table->addrow('DMS', make_short($dms), t($dms, $stats->{'Uptime'}), perc($dms, $questions), '');
 
 
    for(sort { $DMS_vals{$b} <=> $DMS_vals{$a} } keys(%DMS_vals)) {
@@ -355,13 +355,13 @@ my $dms = $DMS_vals{SELECT} + $DMS_vals{INSERT} + $DMS_vals{REPLACE} + $DMS_vals
   $stat_val   = 0;
   for(values %Com_vals) { $stat_val += $_; }
 
-  $table->addrow('Com_', make_short($stat_val), t($stat_val, $stats->{Uptime}), perc($stat_val, $questions));
+  $table->addrow('Com_', make_short($stat_val), t($stat_val, $stats->{Uptime}), perc($stat_val, $questions), '');
   # Sort remaining Com values, print only the top $op{'com'} number of values
   for(sort { $Com_vals{$b} <=> $Com_vals{$a} } keys(%Com_vals))  {
     $stat_name = $_;
     $stat_val  = $Com_vals{$_};
 
-    $table->addrow("&nbsp;&nbsp;&nbsp;".$stat_name, make_short($stat_val), t($stat_val, $stats->{Uptime}), perc($stat_val, $questions));
+    $table->addrow("&nbsp;&nbsp;&nbsp;".$stat_name, make_short($stat_val), t($stat_val, $stats->{Uptime}), perc($stat_val, $questions), '');
     last if !(--$op{'com'});
    }
 
@@ -375,15 +375,15 @@ my $dms = $DMS_vals{SELECT} + $DMS_vals{INSERT} + $DMS_vals{REPLACE} + $DMS_vals
 $table->addrow('Scan',  make_short($stats->{'Select_scan'}), t($stats->{'Select_scan'}).'/s', '%SELECT: ', perc($stats{'Select_scan'}, $stats{'Com_select'}) );
 # perc($stats{'Select_scan'}, 
 
-$table->addrow('Range', make_short($stats->{'Select_range'}), t($stats->{'Select_range'}).'/s', perc($stats->{'Select_range'}, $stats->{'Com_select'}) );
-$table->addrow('Full join',  make_short($stats->{'Select_full_join'}), t($stats->{'Select_full_join'}).'/s', perc($stats->{'Select_full_join'}, $stats->{'Com_select'}));
+$table->addrow('Range', make_short($stats->{'Select_range'}), t($stats->{'Select_range'}).'/s', perc($stats->{'Select_range'}, $stats->{'Com_select'}), '' );
+$table->addrow('Full join',  make_short($stats->{'Select_full_join'}), t($stats->{'Select_full_join'}).'/s', perc($stats->{'Select_full_join'}, $stats->{'Com_select'}), '');
 
-$table->addrow('Range check', make_short($stats{'Select_range_check'}), t($stats{'Select_range_check'}).'/s', perc($stats{'Select_range_check'}, $stats{'Com_select'}) );
+$table->addrow('Range check', make_short($stats{'Select_range_check'}), t($stats{'Select_range_check'}).'/s', perc($stats{'Select_range_check'}, $stats{'Com_select'}), '');
 
-$table->addrow('Full rng join', make_short($stats{'Select_full_range_join'}), t($stats{'Select_full_range_join'}).'/s', perc($stats{'Select_full_range_join'}, $stats{'Com_select'}));
-$table->addrow('Sort scan', make_short($stats{'Sort_scan'}), t($stats{'Sort_scan'}).'/s');
-$table->addrow('Sort range', make_short($stats{'Sort_range'}), t($stats{'Sort_range'}).'/s');
-$table->addrow('Sort mrg pass', make_short($stats{'Sort_merge_passes'}), t($stats{'Sort_merge_passes'}).'/s');
+$table->addrow('Full rng join', make_short($stats{'Select_full_range_join'}), t($stats{'Select_full_range_join'}).'/s', perc($stats{'Select_full_range_join'}, $stats{'Com_select'}), '');
+$table->addrow('Sort scan', make_short($stats{'Sort_scan'}), t($stats{'Sort_scan'}).'/s', '', '');
+$table->addrow('Sort range', make_short($stats{'Sort_range'}), t($stats{'Sort_range'}).'/s', '', '');
+$table->addrow('Sort mrg pass', make_short($stats{'Sort_merge_passes'}), t($stats{'Sort_merge_passes'}).'/s', '', '');
 
 
 
@@ -420,7 +420,7 @@ $table->addrow('Sort mrg pass', make_short($stats{'Sort_merge_passes'}), t($stat
    undef($table->{rowcolor});
 
  $table->addrow('Waited', make_short($stats{'Table_locks_waited'}), t($stats{'Table_locks_waited'}).'/s',  '%Total:',  perc($stats{'Table_locks_waited'}, $stats{'Table_locks_waited'} + $stats{'Table_locks_immediate'}));
- $table->addrow('Immediate', make_short($stats{'Table_locks_immediate'}), t($stats{'Table_locks_immediate'}).'/s');
+ $table->addrow('Immediate', make_short($stats{'Table_locks_immediate'}), t($stats{'Table_locks_immediate'}).'/s', '', '');
 
  $table->{rowcolor}=$_COLORS[0];
  $table->{extra}="colspan='6'";
@@ -430,7 +430,7 @@ $table->addrow('Sort mrg pass', make_short($stats{'Sort_merge_passes'}), t($stat
 
 
 $table->addrow('Open',  make_short($stats{'Open_tables'}),  'of '. $vars{'table_cache'}, '%Cache:',  perc($stats{'Open_tables'}, $vars{'table_cache'}));
-$table->addrow('Opened', make_short($stats{'Opened_tables'}), t($stats{'Opened_tables'}).'/s');
+$table->addrow('Opened', make_short($stats{'Opened_tables'}), t($stats{'Opened_tables'}).'/s', '', '');
 
  $table->{rowcolor}=$_COLORS[0];
  $table->{extra}="colspan='6'";
@@ -439,7 +439,7 @@ $table->addrow('Opened', make_short($stats{'Opened_tables'}), t($stats{'Opened_t
  undef($table->{rowcolor});
 
 $table->addrow('Max used', $stats{'Max_used_connections'}, 'of '.  $vars{'max_connections'}, '%Max:',  perc($stats{'Max_used_connections'}, $vars{'max_connections'}));
-$table->addrow('Total', make_short($stats{'Connections'}), t($stats{'Connections'}).'/s');
+$table->addrow('Total', make_short($stats{'Connections'}), t($stats{'Connections'}).'/s', '', '');
 
  $table->{rowcolor}=$_COLORS[0];
  $table->{extra}="colspan='6'";
@@ -447,10 +447,10 @@ $table->addrow('Total', make_short($stats{'Connections'}), t($stats{'Connections
  undef($table->{extra});
  undef($table->{rowcolor});
 
-$table->addrow('Disk table', make_short($stats{'Created_tmp_disk_tables'}), t($stats{'Created_tmp_disk_tables'}).'/s');
-$table->addrow('Table', make_short($stats{'Created_tmp_tables'}), t($stats{'Created_tmp_tables'}).'/s');
+$table->addrow('Disk table', make_short($stats{'Created_tmp_disk_tables'}), t($stats{'Created_tmp_disk_tables'}).'/s', '', '');
+$table->addrow('Table', make_short($stats{'Created_tmp_tables'}), t($stats{'Created_tmp_tables'}).'/s', '', '');
 
-$table->addrow('File',  make_short($stats{'Created_tmp_files'}), t($stats{'Created_tmp_files'}).'/s');
+$table->addrow('File',  make_short($stats{'Created_tmp_files'}), t($stats{'Created_tmp_files'}).'/s', '', '');
 
 
 
@@ -460,12 +460,12 @@ $table->addrow('File',  make_short($stats{'Created_tmp_files'}), t($stats{'Creat
  undef($table->{extra});
  undef($table->{rowcolor});
 
-$table->addrow('Running', $stats{'Threads_running'}, 'of '.$stats{'Threads_connected'});
+$table->addrow('Running', $stats{'Threads_running'}, 'of '.$stats{'Threads_connected'}, '', '');
 
 $table->addrow('Cached', $stats{'Threads_cached'}, ' of '.$vars{'thread_cache_size'}, '%Hit:',  make_short(100 - perc($stats{'Threads_created'}, $stats{'Connections'})));
  
-$table->addrow('Created', make_short($stats{'Threads_created'}), t($stats{'Threads_created'}).'/s');
-$table->addrow('Slow', $stats{'Slow_launch_threads'}, t($stats{'Slow_launch_threads'}).'/s');
+$table->addrow('Created', make_short($stats{'Threads_created'}), t($stats{'Threads_created'}).'/s', '', '');
+$table->addrow('Slow', $stats{'Slow_launch_threads'}, t($stats{'Slow_launch_threads'}).'/s', '', '');
 
  $table->{rowcolor}=$_COLORS[0];
  $table->{extra}="colspan='6'";
@@ -473,8 +473,8 @@ $table->addrow('Slow', $stats{'Slow_launch_threads'}, t($stats{'Slow_launch_thre
  undef($table->{extra});
  undef($table->{rowcolor});
 
-$table->addrow('Clients', make_short($stats{'Aborted_clients'}), t($stats{'Aborted_clients'}).'/s');
-$table->addrow('Connects', make_short($stats{'Aborted_connects'}), t($stats{'Aborted_connects'}).'/s');
+$table->addrow('Clients', make_short($stats{'Aborted_clients'}), t($stats{'Aborted_clients'}).'/s', '', '');
+$table->addrow('Connects', make_short($stats{'Aborted_connects'}), t($stats{'Aborted_connects'}).'/s', '', '');
 
  $table->{rowcolor}=$_COLORS[0];
  $table->{extra}="colspan='6'";
@@ -482,8 +482,8 @@ $table->addrow('Connects', make_short($stats{'Aborted_connects'}), t($stats{'Abo
  undef($table->{extra});
  undef($table->{rowcolor});
 
-$table->addrow('Sent', make_short($stats{'Bytes_sent'}), make_short(t($stats{'Bytes_sent'})).'/s');
-$table->addrow('Received', make_short($stats{'Bytes_received'}), make_short(t($stats{'Bytes_received'})).'/s');
+$table->addrow('Sent', make_short($stats{'Bytes_sent'}), make_short(t($stats{'Bytes_sent'})).'/s', '', '');
+$table->addrow('Received', make_short($stats{'Bytes_received'}), make_short(t($stats{'Bytes_received'})).'/s', '', '');
 
 
 
