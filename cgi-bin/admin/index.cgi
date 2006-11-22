@@ -4003,7 +4003,7 @@ if(defined($FORM{del}) && defined($FORM{is_js_confirmed})  && $permissions{0}{5}
   my $table = $html->table( { width      => '100%',
                               caption    => "$_BRUTE_ATACK",
                               border     => 1,
-                              title      => [$_LOGIN, $_PASSWD, $_DATE, $_COUNT, '-', '-'],
+                              title      => [$_LOGIN, $_PASSWD, $_DATE, $_COUNT, 'IP', '-', '-'],
                               cols_align => ['left', 'left', 'right', 'right', 'center', 'center'],
                               pages      => $users->{TOTAL},
                               qs         => $pages_qs
@@ -4014,6 +4014,7 @@ if(defined($FORM{del}) && defined($FORM{is_js_confirmed})  && $permissions{0}{5}
       $line->[1], 
       $line->[2], 
       $line->[3], 
+      $line->[4], 
       $html->button($_INFO, "index=$index&LOGIN=$line->[0]"), 
       (defined($permissions{0}{5})) ? $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?" }) : ''
       );
