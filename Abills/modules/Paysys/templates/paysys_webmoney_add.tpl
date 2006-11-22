@@ -10,7 +10,10 @@
 
 <input type='hidden' name='LMI_PAYMENT_NO' value='%LMI_PAYMENT_NO%'>
 <input type='hidden' name='LMI_PAYEE_PURSE' value='$conf{PAYSYS_WZ_ACCOUNT}'>
+
+<input type='hidden' name='LMI_MODE' value='$conf{PAYSYS_LMI_MODE}'>
 <input type='hidden' name='LMI_SIM_MODE' value='0'>
+
 
 <input type='hidden' name='UID' value='$FORM{UID}'>
 <input type='hidden' name='index' value='$index'>

@@ -38,6 +38,8 @@ if ($FORM{TRUE}) {
 	
 	  print $html->message('info', $_INFO, "$_ADDED $_SUM: $sum ID: $FORM{LMI_PAYMENT_NO}");
 	 }
+
+  return 0;
  }
 elsif ($FORM{FALSE}) {
 	print $html->message('err', $_ERROR, "$_FAILED ID: $FORM{LMI_PAYMENT_NO}");
