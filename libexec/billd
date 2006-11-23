@@ -139,15 +139,16 @@ sub check_lines {
       #Get stats from nas servers which don't support rad Alive
       my $external_stats = get_stats(\%NAS, $line->[2]);
 
+
       if ( $NAS{NAS_ALIVE} > 0 
-           && ( $line->[20] > $NAS{NAS_ALIVE} * $error_alive_count )) {
-         print "Error: Lost Alive / Login: $line->[0], Last Alive: $line->[20], Session-ID: $line->[20]\n"; # if ( $debug == 1 );
-         $sessions->zap($nas_row->[0], $line->[2], $line->[20]);
+           && ( $line->[16] > $NAS{NAS_ALIVE} * $error_alive_count )) {
+         print "Error: Lost Alive / Login: $line->[0], Last Alive: $line->[16], Session-ID: $acct_session_id\n"; # if ( $debug == 1 );
+         $sessions->zap($nas_row->[0], $line->[2], $acct_session_id);
        } 
       elsif (defined($external_stats->{error})) {
-      	print "Error:  Login: $line->[0], NAS-IP: $NAS{NAS_IP}, Port: $line->[2], Session-ID: $line->[20]\n" if ($debug == 1);
+      	print "Error:  Login: $line->[0], NAS-IP: $NAS{NAS_IP}, Port: $line->[2], Session-ID: $acct_session_id\n" if ($debug == 1);
       	$sessions->online_update({ USER_NAME       => $line->[0], 
-      		                         ACCT_SESSION_ID => $line->[20], 
+      		                         ACCT_SESSION_ID => $acct_session_id, 
       		                         STATUS          => 5 
       		                        });
        }
