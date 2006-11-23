@@ -34,6 +34,7 @@ use Users;
 
 
 
+
 my $html = Abills::HTML->new( { IMG_PATH => 'img/',
 	                              CONF     => \%conf 
 	                          });
@@ -48,7 +49,7 @@ my $db = $sql->{db};
 
 
 
-my $a=`echo %FORM >> /tmp/test_wm`;
+my $a=`echo "-----". %FORM >> /tmp/test_wm`;
 
 
 
