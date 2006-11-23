@@ -49,7 +49,7 @@ my $db = $sql->{db};
 
 my $output = '';
 while(my($k, $v)=each %FORM) {
-	$output .= "$k, $v\n";
+ 	$output .= "$k, $v\n"	if (! $FORM{__BUFFER});
 }
 
 
