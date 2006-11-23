@@ -56,6 +56,7 @@ while(my($k, $v)=each %FORM) {
 my $a=`echo "-----". $output >> /tmp/test_wm`;
 
 
+print $output;
 
 
 =comments
