@@ -47,9 +47,13 @@ my $db = $sql->{db};
 
 
 
+my $output = '';
+while(my($k, $v)=each %FORM) {
+	$output .= "$k, $v\n";
+}
 
 
-my $a=`echo "-----". %FORM >> /tmp/test_wm`;
+my $a=`echo "-----". $output >> /tmp/test_wm`;
 
 
 
