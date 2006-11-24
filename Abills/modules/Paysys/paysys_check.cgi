@@ -28,7 +28,7 @@ use Abills::SQL;
 use Abills::HTML;
 use Users;
 use Paysys;
-
+use Finance;
 
 my $Paysys = Paysys->new($db, undef, \%conf);
 
@@ -69,7 +69,12 @@ if($FORM{'LMI_PREREQUEST'} && $FORM{'LMI_PREREQUEST'} == 1) {
  
  }
 #Payment notification
-else {
+elsif($FORM{LMI_HASH}) {
+  my $check_sum = wm_validate();
+  my $payments = Finance->payments($db, $admin, \%conf);
+	my $users = Users->new($db, undef, \%conf); 
+	my $user = $users->info($FORM{UID});
+	
   if ($FORM{LMI_PAYEE_PURSE} ne $conf{PAYSYS_WM_ACCOUNT}) {
   	$status = 'Not valid money account';
   	#return 0;
@@ -78,7 +83,27 @@ else {
   	$status = 'Test mode';
   	#return 0;
    }
-  
+  elsif ($FORM{LMI_HASH} ne $check_sum) {
+  	$status = 'Incorect checksum';
+   }
+  elsif ($user->{errno}) {
+		$status = "ERROR: $user->{errno}";
+	 }
+	elsif ($user->{TOTAL} < 0) {
+		$status = "User not exist";
+	 }
+
+  #Add payments
+
+  my $er = ($FORM{'5.ER'}) ? $payments->exchange_info() : { ER_RATE => 1 } ;  
+  $payments->add($user, {SUM          => '',
+  	                     DESCRIBE     => '', 
+  	                     METHOD       => 'Webmoney', 
+  	                     EXT_ID       => $FORM{LMI_PAYMENT_NO}, 
+  	                     ER           => $er->{ER_RATE} } );  
+
+
+  #Info section  
   $Paysys->add({ SYSTEM_ID      => 1, 
   	             DATETIME       => '', 
   	             SUM            => $FORM{LMI_PAYMENT_AMOUNT},
@@ -87,15 +112,18 @@ else {
                  TRANSACTION_ID => $FORM{LMI_PAYMENT_NO},
                  $DATA{INFO}    => "$output2"
                });
+
+  $output2 .= "CHECK_SUM: $check_sum\n";
 }
 
 
 
-if ($FORM{LMI_MODE} == 1) {
+
+if ($FORM{LMI_MODE} && $FORM{LMI_MODE} == 1) {
 	$output2 = "TEST MODE:\n". $output2;
 }
 
-$output2 .= "Valid code: ". wm_validate();
+
 
 my $a=`echo "-----\n$output2\n-$status \n"  >> /tmp/test_wm`;
 
