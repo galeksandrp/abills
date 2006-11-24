@@ -97,12 +97,14 @@ elsif($FORM{LMI_HASH}) {
   #Add payments
 
   my $er = ($FORM{'5.ER'}) ? $payments->exchange_info() : { ER_RATE => 1 } ;  
-  $payments->add($user, {SUM          => '',
+  $payments->add($user, {SUM          => '$FORM{LMI_PAYMENT_AMOUNT}',
   	                     DESCRIBE     => '', 
   	                     METHOD       => 'Webmoney', 
   	                     EXT_ID       => $FORM{LMI_PAYMENT_NO}, 
   	                     ER           => $er->{ER_RATE} } );  
-
+  
+  $output2 .= "payments:".$payments->{errno} if ($payments->{errno});
+  
 
   #Info section  
   $Paysys->add({ SYSTEM_ID      => 1, 
@@ -113,6 +115,8 @@ elsif($FORM{LMI_HASH}) {
                  TRANSACTION_ID => $FORM{LMI_PAYMENT_NO},
                  $DATA{INFO}    => "$output2"
                });
+
+  $output2 .= "Paysys:".$Paysys->{errno} if ($Paysys->{errno});
 
   $output2 .= "CHECK_SUM: $check_sum\n";
 }
