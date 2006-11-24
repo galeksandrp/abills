@@ -123,7 +123,7 @@ elsif($FORM{LMI_HASH}) {
   	             UID            => $FORM{UID}, 
                  IP             => $FORM{IP},
                  TRANSACTION_ID => $FORM{LMI_PAYMENT_NO},
-                 $DATA{INFO}    => "$output2"
+                 INFO           => "$output2"
                });
 
   $output2 .= "Paysys:".$Paysys->{errno} if ($Paysys->{errno});
