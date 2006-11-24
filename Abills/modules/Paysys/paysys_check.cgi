@@ -27,7 +27,10 @@ use Abills::Base;
 use Abills::SQL;
 use Abills::HTML;
 use Users;
+use Paysys;
 
+
+my $Paysys = Paysys->new($db, undef, \%conf);
 
 
 
@@ -41,10 +44,51 @@ my $db = $sql->{db};
 #my %FORM = 
 
 
+
+wm_payments();
+
+
+#**********************************************************
+#
+#**********************************************************
+sub wm_payments {
+
+
+
 my $output2 = '';
 while(my($k, $v)=each %FORM) {
  	$output2 .= "$k, $v\n"	if ($k ne '__BUFFER');
 }
+
+
+
+my $status = '';
+#Pre request section
+if($FORM{'LMI_PREREQUEST'} && $FORM{'LMI_PREREQUEST'} == 1) { 
+
+ 
+ }
+#Payment notification
+else {
+  if ($FORM{LMI_PAYEE_PURSE} ne $conf{PAYSYS_WM_ACCOUNT}) {
+  	$status = 'Not valid money account';
+  	#return 0;
+   }
+  elsif (defined($FORM{LMI_MODE}) && $FORM{LMI_MODE} == 1) {
+  	$status = 'Test mode';
+  	#return 0;
+   }
+  
+  $Paysys->add({ SYSTEM_ID      => 1, 
+  	             DATETIME       => '', 
+  	             SUM            => $FORM{LMI_PAYMENT_AMOUNT},
+  	             UID            => $FORM{UID}, 
+                 IP             => $FORM{IP},
+                 TRANSACTION_ID => $FORM{LMI_PAYMENT_NO},
+                 $DATA{INFO}    => "$output2"
+               });
+}
+
 
 
 if ($FORM{LMI_MODE} == 1) {
@@ -53,12 +97,12 @@ if ($FORM{LMI_MODE} == 1) {
 
 $output2 .= "Valid code: ". wm_validate();
 
-my $a=`echo "-----\n$output2 \n"  >> /tmp/test_wm`;
+my $a=`echo "-----\n$output2\n-$status \n"  >> /tmp/test_wm`;
 
 
 print "//".$output2;
 
-
+}
 
 
 sub wm_validate {
@@ -87,7 +131,7 @@ sub wm_validate {
   $md5->add($FORM{LMI_PAYER_PURSE}); 
   $md5->add($FORM{LMI_PAYER_WM}); 
 
-  my $digest = $md5->digest();	
+  my $digest = uc($md5->digest());	
   
   return bin2hex($digest);
 }

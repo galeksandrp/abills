@@ -3,7 +3,99 @@
 
 
 
+
+foreach my $prefix (@INC) {
+  my $realfilename = "$prefix/Abills/modules/$module{$index}/lng_$html->{language}.pl";
+  if (-f $realfilename) {
+    $lang_file =  $realfilename;
+    require $lang_file;
+    last;
+   }
+ }
+
+if ($lang_file eq '')  {
+  require "Abills/modules/Docs/lng_english.pl";
+}
+
+
+use Paysys;
+my $Paysys = Paysys->new($db, $admin, \%conf);
+
+
+my %PAY_SYSTEMS = (1 => "Webmoney");
 my @status = ('ENABLE', 'DISABLE', 'USED');
+
+
+#**********************************************************
+#
+#**********************************************************
+sub paysys_log {
+	
+
+if ($FORM{info}) {
+	$Paysys->info($FORM{info});
+
+  my $table = $html->table( { width => '100%',
+                              rows => [ [ "ID",            $self->{ID}       ],
+                                        [ "$_LOGIN",       $self->{LOGIN}    ],
+                                        [ "$_DATE",        $self->{DATETIME} ],
+                                        [ "$_SUM",         $self->{SUM}      ],
+                                        [ "$_PAY_SYSTEM",  $PAY_SYSTEMS{$self->{SYSTEM_ID}}        ],
+                                        [ "$_TRANSACTION", $self->{TRANSACTION_ID}  ],
+                                        [ "IP",            $self->{IP}       ],
+                                        [ "$_INFO",        $self->{INFO}     ]
+                                       ]
+                               } );
+
+   print $table->show();
+ }
+elsif(defined($FORM{del}) && $FORM{is_js_confirmed}) {
+  $Psysys->del($FORM{del});
+
+  if (! $Paysys->{errno}) {
+    $html->message('info', $_DELETE, "$_DELETED $FORM{del}");
+   }
+}
+
+if ($Paysys->{errno}) {
+  $html->message('err', $_ERROR, "[$Paysys->{errno}] $err_strs{$Paysys->{errno}}");
+ }
+
+
+my $list = $Paysys->list( { %LIST_PARAMS } );	
+my $table = $html->table( { width      => '100%',
+                            caption    => "Paysys",
+                            border     => 1,
+                            title      => ['ID', "$_LOGIN", "$_DATE", "$_SUM", "$_PAY_SYSTEM", "$_TRANSACTION", "IP", '-', '-'],
+                            cols_align => ['left', 'left', 'right', 'right', 'left', 'right', 'right', 'center:noprint', 'center:noprint'],
+                            qs         => $pages_qs,
+                            pages      => $Paysys->{TOTAL}
+                           });
+
+foreach my $line (@$list) {
+ 
+  $table->addrow($line->[0],
+   $html->button("$line->[1]", "index=15&UID=$line->[8]"), 
+   "$line->[2]", 
+   "$line->[3]", 
+   "$PAY_SYSTEMS{$line->[4]}", 
+   "$line->[5]",
+   "$line->[6]",
+   $html->button($_INFO, "index=$index&info=$line->[0]"),
+   $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?" })
+   );
+}
+print $table->show();
+
+$table = $html->table( { width      => '100%',
+                         cols_align => ['right', 'right'],
+                         rows       => [ [ "$_TOTAL:", "<b>$Paysys->{TOTAL}</b>" ] ]
+                        } );
+print $table->show();
+
+
+}
+
 
 
 
