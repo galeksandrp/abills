@@ -1,5 +1,6 @@
 #!/usr/bin/perl -w
 # Check payments incomming request
+#
 
 
 use vars qw($begin_time %FORM %LANG $CHARSET @MODULES);
