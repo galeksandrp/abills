@@ -2,9 +2,7 @@
 # Check payments incomming request
 
 
-
-use vars qw($begin_time %LANG $CHARSET @MODULES $FUNCTIONS_LIST $user $admin);
-
+use vars qw($begin_time %FORM %LANG $CHARSET @MODULES);
 BEGIN {
  my $libpath = '../';
  
@@ -35,28 +33,24 @@ use Users;
 
 
 
-my $html = Abills::HTML->new( { IMG_PATH => 'img/',
-	                              CONF     => \%conf 
-	                          });
-
+my $html = Abills::HTML->new();
 print $html->header({ CHARSET => $CHARSET });
 
 my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
 my $db = $sql->{db};
+#my %FORM = 
 
 
-
-
-my $output = '';
+my $output2 = '';
 while(my($k, $v)=each %FORM) {
- 	$output .= "$k, $v\n"	if (! $FORM{__BUFFER});
+ 	$output2 .= "$k, $v\n"	if ($k ne '__BUFFER');
 }
 
 
-my $a=`echo "-----". $output >> /tmp/test_wm`;
+my $a=`echo "-----\n$output2 \n"  >> /tmp/test_wm`;
 
 
-print $output;
+print "//".$output2;
 
 
 =comments
