@@ -50,7 +50,7 @@ if ($FORM{info}) {
    print $table->show();
  }
 elsif(defined($FORM{del}) && $FORM{is_js_confirmed}) {
-  $Psysys->del($FORM{del});
+  $Paysys->del($FORM{del});
 
   if (! $Paysys->{errno}) {
     $html->message('info', $_DELETE, "$_DELETED $FORM{del}");
