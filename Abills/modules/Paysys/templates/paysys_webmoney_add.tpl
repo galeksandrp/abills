@@ -18,6 +18,7 @@
 <input type='hidden' name='UID' value='$FORM{UID}'>
 <input type='hidden' name='IP' value='$ENV{REMOTE_ADDR}'>
 <input type='hidden' name='index' value='$index'>
+%TEST_MODE%
 <table>
 <tr><td>ID:</td><td>%LMI_PAYMENT_NO%</td></tr>
 <tr><td>$_SUM:</td><td><input type='text' name='LMI_PAYMENT_AMOUNT' value='0.0'></td></tr>

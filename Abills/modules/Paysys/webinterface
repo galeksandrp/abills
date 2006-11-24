@@ -105,8 +105,6 @@ print $table->show();
 sub paysys_webmoney () {
 
 
- wm_validate();
-
 if ($FORM{TRUE}) {
 
   my $payments = Finance->payments($db, $admin, \%conf);
@@ -137,8 +135,17 @@ elsif ($FORM{FALSE}) {
 	print $html->message('err', $_ERROR, "$_FAILED ID: $FORM{LMI_PAYMENT_NO}");
  }
   
+
 my %info = ();
 $info{LMI_PAYMENT_NO} = mk_unique_value(8, {  SYMBOLS => '0123456789' });
+$info{TEST_MODE}="<font color='red'>Test mode</font>" if ($conf{PAYSYS_LMI_MODE}); 
+$info{PAY_SYSTEMS_SEL}=$html->form_select('PAYMENT_SYSTEM', 
+                                          { 
+ 	                                          SELECTED  => $FORM{PAYMENT_SYSTEM},
+ 	                                          SEL_HASH  => \%PAY_SYSTEMS,
+ 	                                          NO_ID     => 'y'
+ 	                                        }) .
+
 
 $conf{PAYSYS_LMI_RESULT_URL} = "http://$ENV{SERVER_NAME}$ENV{REQUEST_URI}" if (! $conf{PAYSYS_LMI_RESULT_URL});
 $html->tpl_show(_include('paysys_webmoney_add', 'Paysys'), \%info);
