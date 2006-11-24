@@ -130,7 +130,7 @@ print $table->show();
 sub paysys_webmoney () {
 
 
-if ($FORM{TRUE}) {
+if ($FORM{LMI_PAYMENT_NO}) {
 
   my $payments = Finance->payments($db, $admin, \%conf);
 	my $users = Users->new($db, $admin, \%conf); 
