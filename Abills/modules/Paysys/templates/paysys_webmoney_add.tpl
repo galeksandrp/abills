@@ -15,13 +15,15 @@
 <input type='hidden' name='LMI_SIM_MODE' value='0'>
 
 
-<input type='hidden' name='UID' value='$FORM{UID}'>
+<input type='hidden' name='UID' value='$LIST_PARAMS{UID}'>
+<input type='hidden' name='sid' value='$FORM{sid}'>
 <input type='hidden' name='IP' value='$ENV{REMOTE_ADDR}'>
 <input type='hidden' name='index' value='$index'>
 %TEST_MODE%
-<table>
+<table width=300>
+<tr bgcolor=$_COLORS[0]><th colspan='2' align=right>Webmoney</th></tr>
 <tr><td>ID:</td><td>%LMI_PAYMENT_NO%</td></tr>
-<tr><td>$_SUM:</td><td><input type='text' name='LMI_PAYMENT_AMOUNT' value='0.0'></td></tr>
+<tr><td>$_SUM:</td><td><input type='text' name='LMI_PAYMENT_AMOUNT' value='0.00'></td></tr>
 <tr><td>$_DESCRIBE:</td><td><input type='text' name='LMI_PAYMENT_DESC' value='Пополнение счёта'></td></tr>
 <tr><td>$_ACCOUNT:</td><td>$conf{PAYSYS_WM_ACCOUNT}</td></tr>
 </table>
