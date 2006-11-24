@@ -30,11 +30,12 @@ use Abills::HTML;
 use Users;
 use Paysys;
 use Finance;
+use Admins;
+
+
+
 
 my $Paysys = Paysys->new($db, undef, \%conf);
-
-
-
 
 
 my $html = Abills::HTML->new();
@@ -71,10 +72,16 @@ if($FORM{'LMI_PREREQUEST'} && $FORM{'LMI_PREREQUEST'} == 1) {
  }
 #Payment notification
 elsif($FORM{LMI_HASH}) {
+
   my $check_sum = wm_validate();
+
+	my $admin = Admins->new($db, \%conf);
+  $admin->info($conf{SYSTEM_ADMIN_ID}, { IP => '127.0.0.1' });
   my $payments = Finance->payments($db, $admin, \%conf);
-	my $users = Users->new($db, undef, \%conf); 
+
+	my $users = Users->new($db, $admin, \%conf); 
 	my $user = $users->info($FORM{UID});
+	
 	
   if ($FORM{LMI_PAYEE_PURSE} ne $conf{PAYSYS_WM_ACCOUNT}) {
   	$status = 'Not valid money account';
@@ -83,6 +90,9 @@ elsif($FORM{LMI_HASH}) {
   elsif (defined($FORM{LMI_MODE}) && $FORM{LMI_MODE} == 1) {
   	$status = 'Test mode';
   	#return 0;
+   }
+  elsif (length($FORM{LMI_HASH}) != 32 ) {
+  	$status = 'Not MD5 checksum';
    }
   elsif ($FORM{LMI_HASH} ne $check_sum) {
   	$status = 'Incorect checksum';
