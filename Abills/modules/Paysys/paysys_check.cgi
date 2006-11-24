@@ -51,7 +51,7 @@ if ($FORM{LMI_MODE} == 1) {
 	$output2 = "TEST MODE:\n". $output2;
 }
 
-$output2 .= "Valid code: ". wm_validate;
+$output2 .= "Valid code: ". wm_validate();
 
 my $a=`echo "-----\n$output2 \n"  >> /tmp/test_wm`;
 
