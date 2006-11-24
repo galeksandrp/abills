@@ -143,15 +143,13 @@ if ($FORM{TRUE}) {
 		print $html->message('err', $_ERROR, "$_NOT_EXIST");
 	 }
 	else {
-    my $er = ($FORM{'5.ER'}) ? $payments->exchange_info() : { ER_RATE => 1 } ;  
-    $payments->add($user, {SUM          => '',
-  	                       DESCRIBE     => '', 
-  	                       METHOD       => 'Webmoney', 
-  	                       EXT_ID       => $FORM{LMI_PAYMENT_NO}, 
-  	                       ER           => $er->{ER_RATE} } );  
-
-	
-	  print $html->message('info', $_INFO, "$_ADDED $_SUM: $sum ID: $FORM{LMI_PAYMENT_NO}");
+    my $list = $Paysys->list({ TRANSACTION_ID => 'LMI_PAYMENT_NO', UID => $LIST_PARAMS{UID} });
+    if ($Paysys->{TOTAL} > 0) {
+	    print $html->message('info', $_INFO, "$_ADDED $_SUM: $list->[3] ID: $FORM{LMI_PAYMENT_NO}");
+	   }
+    else {
+    	print $html->message('err', $_ERROR, "$_FAILED ID: $FORM{LMI_PAYMENT_NO}");
+     }
 	 }
 
   return 0;
