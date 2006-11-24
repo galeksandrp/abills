@@ -47,10 +47,49 @@ while(my($k, $v)=each %FORM) {
 }
 
 
+if ($FORM{LMI_MODE} == 1) {
+	$output2 = "TEST MODE:\n". $output2;
+}
+
+$output2 .= "Valid code: ". wm_validate;
+
 my $a=`echo "-----\n$output2 \n"  >> /tmp/test_wm`;
 
 
 print "//".$output2;
+
+
+
+
+sub wm_validate {
+	
+	
+	eval { require Digest::MD5; };
+ if (! $@) {
+    Digest::MD5->import();
+   }
+ else {
+    log_print('LOG_ERR', "Can't load 'Digest::MD5' check http://www.cpan.org");
+  }
+
+  my $md5 = new Digest::MD5;
+  $md5->reset;
+
+	$md5->add($FORM{LMI_PAYEE_PURSE}); 
+	$md5->add($FORM{LMI_PAYMENT_AMOUNT});
+  $md5->add($FORM{LMI_PAYMENT_NO});
+  $md5->add($FORM{LMI_MODE}); 
+  $md5->add($FORM{LMI_SYS_INVS_NO});
+  $md5->add($FORM{LMI_SYS_TRANS_NO});
+  $md5->add($FORM{LMI_SYS_TRANS_DATE});
+  $md5->add($FORM{LMI_SECRET_KEY}); 
+  $md5->add($FORM{LMI_PAYER_PURSE}); 
+  $md5->add($FORM{LMI_PAYER_WM}); 
+
+  my $digest = $md5->digest();	
+  
+  return bin2hex($digest);
+}
 
 
 =comments
