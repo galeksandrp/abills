@@ -82,7 +82,8 @@ sub wm_validate {
   $md5->add($FORM{LMI_SYS_INVS_NO});
   $md5->add($FORM{LMI_SYS_TRANS_NO});
   $md5->add($FORM{LMI_SYS_TRANS_DATE});
-  $md5->add($FORM{LMI_SECRET_KEY}); 
+  $md5->add($conf{PAYSYS_LMI_SECRET_KEY}); 
+  #$md5->add($FORM{LMI_SECRET_KEY}); 
   $md5->add($FORM{LMI_PAYER_PURSE}); 
   $md5->add($FORM{LMI_PAYER_WM}); 
 
