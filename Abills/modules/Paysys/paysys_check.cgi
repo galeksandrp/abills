@@ -75,6 +75,8 @@ elsif($FORM{LMI_HASH}) {
 
   my $check_sum = wm_validate();
 
+  my $info = '';
+
 	my $admin = Admins->new($db, \%conf);
   $admin->info($conf{SYSTEM_ADMIN_ID}, { IP => '127.0.0.1' });
   my $payments = Finance->payments($db, $admin, \%conf);
@@ -103,18 +105,21 @@ elsif($FORM{LMI_HASH}) {
 	elsif ($user->{TOTAL} < 0) {
 		$status = "User not exist";
 	 }
+  else {
+    #Add payments
+    my $er = ($FORM{'5.ER'}) ? $payments->exchange_info() : { ER_RATE => 1 } ;  
+    $payments->add($user, {SUM          => $FORM{LMI_PAYMENT_AMOUNT},
+    	                     DESCRIBE     => '', 
+    	                     METHOD       => 'Webmoney', 
+  	                       EXT_ID       => $FORM{LMI_PAYMENT_NO}, 
+  	                       ER           => $er->{ER_RATE} } );  
 
-  #Add payments
-
-  my $er = ($FORM{'5.ER'}) ? $payments->exchange_info() : { ER_RATE => 1 } ;  
-  $payments->add($user, {SUM          => $FORM{LMI_PAYMENT_AMOUNT},
-  	                     DESCRIBE     => '', 
-  	                     METHOD       => 'Webmoney', 
-  	                     EXT_ID       => $FORM{LMI_PAYMENT_NO}, 
-  	                     ER           => $er->{ER_RATE} } );  
+    $info = "PAYMENT ERROR: $payments->{errno}\n" if ($payments->{errno});
+   }
   
-  $output2 .= "payments:".$payments->{errno} if ($payments->{errno});
-  
+  while(my($k, $v)=each %FORM) {
+    $info .= "$k, $v\n" if ($FORM{$k} =~ /^LMI/);
+   }
 
   #Info section  
   $Paysys->add({ SYSTEM_ID      => 1, 
@@ -123,7 +128,7 @@ elsif($FORM{LMI_HASH}) {
   	             UID            => $FORM{UID}, 
                  IP             => $FORM{IP},
                  TRANSACTION_ID => $FORM{LMI_PAYMENT_NO},
-                 INFO           => "$output2"
+                 INFO           => "$info"
                });
 
   $output2 .= "Paysys:".$Paysys->{errno} if ($Paysys->{errno});
