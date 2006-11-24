@@ -62,6 +62,12 @@ if ($Paysys->{errno}) {
  }
 
 
+form_search({ SEARCH_FORM => $html->tpl_show(_include('paysys_search', 'Paysys'), { %info, %FORM }, { notprint => 1 })  
+	            });
+
+
+
+
 my $list = $Paysys->list( { %LIST_PARAMS } );	
 my $table = $html->table( { width      => '100%',
                             caption    => "Paysys",
@@ -136,15 +142,17 @@ elsif ($FORM{FALSE}) {
  }
   
 
+
+
 my %info = ();
 $info{LMI_PAYMENT_NO} = mk_unique_value(8, {  SYMBOLS => '0123456789' });
-$info{TEST_MODE}="<font color='red'>Test mode</font>" if ($conf{PAYSYS_LMI_MODE}); 
+$info{TEST_MODE}="<font color='red'>$_TEST_MODE</font>" if ($conf{PAYSYS_LMI_MODE}); 
 $info{PAY_SYSTEMS_SEL}=$html->form_select('PAYMENT_SYSTEM', 
                                           { 
  	                                          SELECTED  => $FORM{PAYMENT_SYSTEM},
  	                                          SEL_HASH  => \%PAY_SYSTEMS,
  	                                          NO_ID     => 'y'
- 	                                        }) .
+ 	                                        });
 
 
 $conf{PAYSYS_LMI_RESULT_URL} = "http://$ENV{SERVER_NAME}$ENV{REQUEST_URI}" if (! $conf{PAYSYS_LMI_RESULT_URL});
