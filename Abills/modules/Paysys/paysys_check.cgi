@@ -97,7 +97,7 @@ elsif($FORM{LMI_HASH}) {
   #Add payments
 
   my $er = ($FORM{'5.ER'}) ? $payments->exchange_info() : { ER_RATE => 1 } ;  
-  $payments->add($user, {SUM          => '$FORM{LMI_PAYMENT_AMOUNT}',
+  $payments->add($user, {SUM          => $FORM{LMI_PAYMENT_AMOUNT},
   	                     DESCRIBE     => '', 
   	                     METHOD       => 'Webmoney', 
   	                     EXT_ID       => $FORM{LMI_PAYMENT_NO}, 
