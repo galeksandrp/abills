@@ -4,7 +4,7 @@
 <input type='hidden' name='LMI_SUCCESS_URL' value='http://$ENV{SERVER_NAME}$ENV{REQUEST_URI}&TRUE=1'>
 <input type='hidden' name='LMI_SUCCESS_METHOD' value='0'>
 
-<input type='hidden' name='LMI_FAIL_URL' value='http://$ENV{SERVER_NAME}$ENV{REQUEST_URI}&FALSE=1'>
+<input type='hidden' name='LMI_FAIL_URL' value='http://$ENV{SERVER_NAME}$ENV{REQUEST_URI}&FALSE=1&LMI_PAYMENT_NO=%LMI_PAYMENT_NO%'>
 <input type='hidden' name='LMI_FAIL_METHOD' value='2'>
 
 
