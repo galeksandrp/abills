@@ -172,12 +172,9 @@ elsif ($FORM{LMI_PAYMENT_NO}) {
  }
   
 
-
-
 my %info = ();
 $info{LMI_PAYMENT_NO} = mk_unique_value(8, {  SYMBOLS => '0123456789' });
 $info{TEST_MODE}="<font color='red'>$_TEST_MODE</font>" if ($conf{PAYSYS_LMI_MODE}); 
-
 
 $conf{PAYSYS_LMI_RESULT_URL} = "http://$ENV{SERVER_NAME}$ENV{REQUEST_URI}" if (! $conf{PAYSYS_LMI_RESULT_URL});
 $html->tpl_show(_include('paysys_webmoney_add', 'Paysys'), \%info);
@@ -185,6 +182,22 @@ $html->tpl_show(_include('paysys_webmoney_add', 'Paysys'), \%info);
 
 }
 
+
+#**********************************************************
+#
+#**********************************************************
+sub paysys_rupay {
+	
+	$info{SUM_VAL}=$html->form_select('PAYMENT_SYSTEM', 
+                                      { 
+ 	                                      SELECTED  => $FORM{sum_val},
+ 	                                      SEL_ARRAY => [USD, EUR, UAH, RUR],
+ 	                                      NO_ID     => 'y'
+                                    });
+
+	
+  	
+}
 
 
 

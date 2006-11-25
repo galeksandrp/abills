@@ -39,16 +39,149 @@ my $Paysys = Paysys->new($db, undef, \%conf);
 
 
 my $html = Abills::HTML->new();
-print $html->header({ CHARSET => $CHARSET });
-
 my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
 my $db = $sql->{db};
-#my %FORM = 
+#Operation status
+my $status = '';
+
+my $admin = Admins->new($db, \%conf);
+$admin->info($conf{SYSTEM_ADMIN_ID}, { IP => '127.0.0.1' });
+my $payments = Finance->payments($db, $admin, \%conf);
+
+my $users = Users->new($db, $admin, \%conf); 
 
 
+print "Content-Type: text/html\n\n";
 
-wm_payments();
+eval { require Digest::MD5; };
+if (! $@) {
+   Digest::MD5->import();
+  }
+else {
+   print "Can't load 'Digest::MD5' check http://www.cpan.org";
+   exit;
+ }
 
+my $md5 = new Digest::MD5;
+
+
+#DEbug
+my $output2 = '';
+while(my($k, $v)=each %FORM) {
+ 	$output2 .= "$k, $v\n"	if ($k ne '__BUFFER');
+}
+
+payments();
+
+
+#debug
+my $a=`echo "-----\n$output2\n-$status \n"  >> /tmp/test_paysys`;
+print "//".$output2;
+
+
+#**********************************************************
+#
+#**********************************************************
+sub payments {
+  if ($FORM{LMI_HASH}) {
+  	wm_payments();
+   }
+  elsif($FORM{rupay_action}) {
+  	rupay_payments();
+   }
+  else {
+  	print "Unknown payment system";
+   }
+}
+
+
+#**********************************************************
+#
+#**********************************************************
+sub rupay_payments {
+
+$md5->reset;
+my $checksum = '';
+my $info = '';
+my $user = $users->info($FORM{user_field_UID});
+
+if ($user->{errno}) {
+	$status = "ERROR: $user->{errno}";
+ }
+elsif ($user->{TOTAL} < 0) {
+	$status = "User not exist";
+ }
+elsif ($FORM{rupay_site_id} ne $conf{PAYSYS_RUPAY_ID}) {
+	$status = 'Not valid money account';
+ }
+
+while(my($k, $v)=each %FORM) {
+  $info .= "$k, $v\n" if ($k =~ /^rupay|^user_field/);
+ }
+
+
+#notification
+#Make checksum
+if ($FORM{rupay_action} eq 'add') {
+  $md5->add("$FORM{rupay_action}::$FORM{rupay_site_id}::$FORM{rupay_order_id}::$FORM{rupay_name_service}::$FORM{rupay_id}::$FORM{rupay_sum}::$FORM{rupay_user}::$FORM{rupay_email}::$FORM{rupay_data}::$conf{PAYSYS_RUPAY_SECRET_KEY}");
+  $checksum = $md5->digest();	
+
+  if ($FORM{rupay_hash} ne $checksum) {
+  	$status = 'Incorect checksum';
+   }
+
+  #Info section  
+  $Paysys->add({ SYSTEM_ID      => 1, 
+  	             DATETIME       => '', 
+  	             SUM            => $FORM{rupay_sum},
+  	             UID            => $FORM{user_field_UID}, 
+                 IP             => $FORM{user_field_IP},
+                 TRANSACTION_ID => $FORM{rupay_order_id},
+                 INFO           => "STATUS, $status\n$info"
+               });
+ } 
+#Add paymets
+elsif ($FORM{rupay_action} eq 'update') {
+  #Make checksum
+  $md5->add("$FORM{rupay_action}::$FORM{rupay_site_id}::$FORM{rupay_order_id}::$FORM{rupay_sum}::$FORM{rupay_id}::$FORM{rupay_data}::$FORM{rupay_status}::$conf{PAYSYS_RUPAY_SECRET_KEY}"); 
+  $checksum = $md5->digest();	
+
+  if ($FORM{rupay_hash} ne $checksum) {
+  	$status = 'Incorect checksum';
+   }
+  elsif($status eq '') {
+    #Add payments
+    my $er = ($FORM{'5.ER'}) ? $payments->exchange_info() : { ER_RATE => 1 } ;  
+    $payments->add($user, {SUM          => $FORM{rupay_sum},
+    	                     DESCRIBE     => '', 
+    	                     METHOD       => 'Rupay', 
+  	                       EXT_ID       => $FORM{rupay_order_id}, 
+  	                       ER           => $er->{ER_RATE} } );  
+
+    if ($payments->{errno}) {
+      $info = "PAYMENT ERROR: $payments->{errno}\n";
+     }
+    else {
+    	$status = "Added $payments->{INSERT_ID}\n";
+     }
+   }
+
+  #Info section  
+  $Paysys->add({ SYSTEM_ID      => 1, 
+  	             DATETIME       => '', 
+  	             SUM            => $FORM{rupay_sum},
+  	             UID            => $FORM{user_field_UID}, 
+                 IP             => $FORM{user_field_IP},
+                 TRANSACTION_ID => $FORM{rupay_order_id},
+                 INFO           => "STATUS, $status\n$info"
+               });
+
+  $output2 .= "Paysys:".$Paysys->{errno} if ($Paysys->{errno});
+  $output2 .= "CHECK_SUM: $checksum\n";
+ }
+
+
+}
 
 #**********************************************************
 #
@@ -57,14 +190,6 @@ sub wm_payments {
 
 
 
-my $output2 = '';
-while(my($k, $v)=each %FORM) {
- 	$output2 .= "$k, $v\n"	if ($k ne '__BUFFER');
-}
-
-
-
-my $status = '';
 #Pre request section
 if($FORM{'LMI_PREREQUEST'} && $FORM{'LMI_PREREQUEST'} == 1) { 
 
@@ -72,18 +197,9 @@ if($FORM{'LMI_PREREQUEST'} && $FORM{'LMI_PREREQUEST'} == 1) {
  }
 #Payment notification
 elsif($FORM{LMI_HASH}) {
-
-  my $check_sum = wm_validate();
-
+  my $checksum = wm_validate();
   my $info = '';
-
-	my $admin = Admins->new($db, \%conf);
-  $admin->info($conf{SYSTEM_ADMIN_ID}, { IP => '127.0.0.1' });
-  my $payments = Finance->payments($db, $admin, \%conf);
-
-	my $users = Users->new($db, $admin, \%conf); 
 	my $user = $users->info($FORM{UID});
-	
 	
   if ($FORM{LMI_PAYEE_PURSE} ne $conf{PAYSYS_WM_ACCOUNT}) {
   	$status = 'Not valid money account';
@@ -96,7 +212,7 @@ elsif($FORM{LMI_HASH}) {
   elsif (length($FORM{LMI_HASH}) != 32 ) {
   	$status = 'Not MD5 checksum';
    }
-  elsif ($FORM{LMI_HASH} ne $check_sum) {
+  elsif ($FORM{LMI_HASH} ne $checksum) {
   	$status = 'Incorect checksum';
    }
   elsif ($user->{errno}) {
@@ -114,7 +230,12 @@ elsif($FORM{LMI_HASH}) {
   	                       EXT_ID       => $FORM{LMI_PAYMENT_NO}, 
   	                       ER           => $er->{ER_RATE} } );  
 
-    $info = "PAYMENT ERROR: $payments->{errno}\n" if ($payments->{errno});
+    if ($payments->{errno}) {
+      $info = "PAYMENT ERROR: $payments->{errno}\n";
+     }
+    else {
+    	$status = "Added $payments->{INSERT_ID}\n";
+     }
    }
   
   while(my($k, $v)=each %FORM) {
@@ -132,39 +253,13 @@ elsif($FORM{LMI_HASH}) {
                });
 
   $output2 .= "Paysys:".$Paysys->{errno} if ($Paysys->{errno});
-
-  $output2 .= "CHECK_SUM: $check_sum\n";
+  $output2 .= "CHECK_SUM: $checksum\n";
 }
-
-
-
-
-if ($FORM{LMI_MODE} && $FORM{LMI_MODE} == 1) {
-	$output2 = "TEST MODE:\n". $output2;
-}
-
-
-
-my $a=`echo "-----\n$output2\n-$status \n"  >> /tmp/test_wm`;
-
-
-print "//".$output2;
 
 }
 
 
 sub wm_validate {
-	
-	
-	eval { require Digest::MD5; };
- if (! $@) {
-    Digest::MD5->import();
-   }
- else {
-    log_print('LOG_ERR', "Can't load 'Digest::MD5' check http://www.cpan.org");
-  }
-
-  my $md5 = new Digest::MD5;
   $md5->reset;
 
 	$md5->add($FORM{LMI_PAYEE_PURSE}); 

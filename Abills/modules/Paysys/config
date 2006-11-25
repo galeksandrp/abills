@@ -5,7 +5,7 @@ $web_interface    = 1;
                    "02:0:Paysys:paysys_log:"             => 4
                    );
 
-%USER_FUNCTION_LIST = ("01:0:$_PAYMENTS Paysys:paysys_payment:"  => 0,
+%USER_FUNCTION_LIST = ("01:0:Paysys:paysys_payment:"  => 0,
                        );
 
 #$USER_FUNCTION_LIST{"04:1:$_TARIF_PLAN:dv_user_chg_tp:"}=0 if (defined($conf{dv_user_chg_tp}));
