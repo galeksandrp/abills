@@ -160,7 +160,7 @@ if ($FORM{LMI_PAYMENT_NO}) {
 	    $html->message('info', $_INFO, "$_ADDED $_SUM: $list->[0][3] ID: $FORM{LMI_PAYMENT_NO}");
 	   }
     else {
-    	$html->message('err', $_ERROR, "$_FAILED ID: $FORM{LMI_PAYMENT_NO}");
+    	$html->message('err', $_ERROR, "$_FAILED ID: $FORM{LMI_PAYMENT_NO} $_ERR_NO_TRANSACTION");
      }
 	 }
 
