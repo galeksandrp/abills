@@ -780,8 +780,7 @@ foreach my $nas_row (@$nas_list) {
 
 
     if ($line->[$#ACTIVE_FIELDS + 9] > 3)  { $table->{rowcolor}='#FF0000';    }
-
-    my $zap = "(". $html->button('Z', "index=$index&zap=$nas_row->[0]+$line->[$#ACTIVE_FIELDS + 12]+$line->[$#ACTIVE_FIELDS + 13]", { TITLE => 'Zap' }) . ")";
+    my $zap = "(". $html->button('Z', "index=$index&zap=$nas_row->[0]+".$line->[$#ACTIVE_FIELDS + 12]."+". $line->[($#ACTIVE_FIELDS + 13)], { TITLE => 'Zap' }) . ")";
     my $hangup = ($FORM{ZAPED}) ? $html->form_input('dellist', "$line->[$#ACTIVE_FIELDS + 13]", { TYPE => 'checkbox' } ) : "(". $html->button('H', "index=$index&FRAMED_IP_ADDRESS=$line->[$#ACTIVE_FIELDS+2]&hangup=$nas_row->[0]+$line->[$#ACTIVE_FIELDS + 12]+$line->[$#ACTIVE_FIELDS + 13]+$line->[$#ACTIVE_FIELDS + 11]", { TITLE => 'Hangup' }). ")";
 
 
