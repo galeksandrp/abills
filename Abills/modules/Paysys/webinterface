@@ -42,18 +42,27 @@ sub paysys_log {
 
 if ($FORM{info}) {
 	$Paysys->info($FORM{info});
+  
+  my @info_arr = split(/\n/, $Paysys->{INFO});
+  my $table = $html->table( { width => '100%' });
+  foreach my $line (@info_arr) {
+    my($k, $v)=split(/,/, $line, 2);
+    $table->addrow($k, $v);
+   }
 
-  my $table = $html->table( { width => '400',
-                              rows => [ [ "ID",            $Paysys->{ID}       ],
-                                        [ "$_LOGIN",       $Paysys->{LOGIN}    ],
-                                        [ "$_DATE",        $Paysys->{DATETIME} ],
-                                        [ "$_SUM",         $Paysys->{SUM}      ],
-                                        [ "$_PAY_SYSTEM",  $PAY_SYSTEMS{$Paysys->{SYSTEM_ID}}        ],
-                                        [ "$_TRANSACTION", $Paysys->{TRANSACTION_ID}  ],
-                                        [ "IP",            $Paysys->{IP}       ],
-                                        [ "$_INFO",        $Paysys->{INFO}     ]
-                                       ]
-                               } );
+  $Paysys->{INFO}=$table->show();
+
+  $table = $html->table( { width => '500',
+                           rows => [ [ "ID",            $Paysys->{ID}       ],
+                                     [ "$_LOGIN",       $Paysys->{LOGIN}    ],
+                                     [ "$_DATE",        $Paysys->{DATETIME} ],
+                                     [ "$_SUM",         $Paysys->{SUM}      ],
+                                     [ "$_PAY_SYSTEM",  $PAY_SYSTEMS{$Paysys->{SYSTEM_ID}}        ],
+                                     [ "$_TRANSACTION", $Paysys->{TRANSACTION_ID}  ],
+                                     [ "IP",            $Paysys->{IP}       ],
+                                     [ "$_INFO",        $Paysys->{INFO}     ]
+                                    ]
+                        } );
 
    print $table->show();
  }
@@ -86,6 +95,10 @@ form_search({ SEARCH_FORM => $html->tpl_show(_include('paysys_search', 'Paysys')
 
 
 
+if (! defined($FORM{sort})) {
+  $LIST_PARAMS{SORT}=1;
+  $LIST_PARAMS{DESC}=DESC;
+ }
 
 my $list = $Paysys->list( { %LIST_PARAMS } );	
 my $table = $html->table( { width      => '100%',
@@ -134,8 +147,6 @@ if ($FORM{LMI_PAYMENT_NO}) {
   my $payments = Finance->payments($db, $admin, \%conf);
 	my $users = Users->new($db, $admin, \%conf); 
 	my $user = $users->info($FORM{UID});
-	
-
 	
 	if ($user->{errno}) {
 		$html->message('err', $_ERROR, "$_ERROR $user->{errno}");
