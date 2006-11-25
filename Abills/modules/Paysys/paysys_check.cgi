@@ -118,7 +118,7 @@ elsif($FORM{LMI_HASH}) {
    }
   
   while(my($k, $v)=each %FORM) {
-    $info .= "$k, $v\n" if ($FORM{$k} =~ /^LMI/);
+    $info .= "$k, $v\n" if ($k =~ /^LMI/);
    }
 
   #Info section  
