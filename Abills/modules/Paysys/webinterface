@@ -22,7 +22,8 @@ use Paysys;
 my $Paysys = Paysys->new($db, $admin, \%conf);
 
 
-my %PAY_SYSTEMS = (1 => "Webmoney");
+my %PAY_SYSTEMS = (1 => "Webmoney",
+                   2 => "RUpay");
 my @status = ('ENABLE', 'DISABLE', 'USED');
 
 
@@ -144,7 +145,7 @@ sub paysys_webmoney () {
 
 
 if ($FORM{FALSE}) {
-	$html->message('err', $_ERROR, "$_FAILED ID: $FORM{LMI_PAYMENT_NO} $_ERR_NO_TRANSACTION");
+	$html->message('err', $_ERROR, "$_FAILED ID: $FORM{LMI_PAYMENT_NO}");
  }
 elsif ($FORM{LMI_PAYMENT_NO}) {
 

@@ -131,7 +131,7 @@ if ($FORM{rupay_action} eq 'add') {
    }
 
   #Info section  
-  $Paysys->add({ SYSTEM_ID      => 1, 
+  $Paysys->add({ SYSTEM_ID      => 2, 
   	             DATETIME       => '', 
   	             SUM            => $FORM{rupay_sum},
   	             UID            => $FORM{user_field_UID}, 
@@ -167,7 +167,7 @@ elsif ($FORM{rupay_action} eq 'update') {
    }
 
   #Info section  
-  $Paysys->add({ SYSTEM_ID      => 1, 
+  $Paysys->add({ SYSTEM_ID      => 2, 
   	             DATETIME       => '', 
   	             SUM            => $FORM{rupay_sum},
   	             UID            => $FORM{user_field_UID}, 
