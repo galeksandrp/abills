@@ -214,6 +214,14 @@ sub list {
  	 push @WHERE_RULES, "u.company_id='$attr->{COMPANY_ID}'";
   }
 
+ if ($attr->{EXT_ID}) {
+ 	 push @WHERE_RULES, "p.ext_id='$attr->{EXT_ID}'";
+  }
+
+ if ($attr->{ID}) {
+ 	 push @WHERE_RULES, "p.id='$attr->{ID}'";
+  }
+
  # Show groups
  if ($attr->{GID}) {
     push @WHERE_RULES, "u.gid='$attr->{GID}'";

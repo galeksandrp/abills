@@ -3056,7 +3056,7 @@ my $list = $payments->list( { %LIST_PARAMS } );
 my $table = $html->table( { width      => '100%',
                             caption    => "$_PAYMENTS",
                             border     => 1,
-                            title      => ['ID', $_LOGIN, $_DATE, $_SUM, $_DESCRIBE, $_ADMINS, 'IP',  $_DEPOSIT, $_PAYMENT_METHOD, 'ID', '-'],
+                            title      => ['ID', $_LOGIN, $_DATE, $_SUM, $_DESCRIBE, $_ADMINS, 'IP',  $_DEPOSIT, $_PAYMENT_METHOD, 'EXT ID', '-'],
                             cols_align => ['right', 'left', 'right', 'right', 'left', 'left', 'right', 'right', 'left', 'left', 'center:noprint'],
                             qs         => $pages_qs,
                             pages      => $payments->{TOTAL}
@@ -3406,7 +3406,10 @@ my %search_form = (
 <tr><td>$_OPERATOR:</td><td><input type='text' name='A_LOGIN' value='%A_LOGIN%'/></td></tr>
 <tr><td>$_DESCRIBE (*):</td><td><input type='text' name='DESCRIBE' value='%DESCRIBE%'/></td></tr>
 <tr><td>$_SUM (&lt;):</td><td><input type='text' name='SUM' value='%SUM%'/></td></tr>
-<tr><td>$_PAYMENT_METHOD:</td><td>$SEL_METHOD</td></tr>\n",
+<tr><td>$_PAYMENT_METHOD:</td><td>$SEL_METHOD</td></tr>
+<tr><td>ID:</td><td><input type='text' name='ID' value='%ID%'/></td></tr>
+<tr><td>EXT ID:</td><td><input type='text' name='EXT_ID' value='%EXT_ID%'/></td></tr>
+\n",
 
 3 => "
 <!-- FEES -->
