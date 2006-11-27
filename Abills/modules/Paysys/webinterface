@@ -227,7 +227,7 @@ foreach my $line (@$list) {
     "$line->[2]", 
     "$line->[3]", 
     "$PAY_SYSTEMS{$line->[4]}", 
-    $html->button("$line->[5]", "index=2&EXT_ID=$line->[5]&search=1"),
+    $line->[5],
     "$line->[6]",
     $html->button($_INFO, "index=$index&info=$line->[0]")
    );
@@ -263,7 +263,6 @@ elsif ($FORM{LMI_PAYMENT_NO}) {
 		$html->message('err', $_ERROR, "$_NOT_EXIST");
 	 }
 	else {
-    $Paysys->{debug}=1;
     my $list = $Paysys->list({ TRANSACTION_ID => "$FORM{'LMI_PAYMENT_NO'}", UID => $LIST_PARAMS{UID} });
 
     if ($Paysys->{TOTAL} > 0) {
@@ -285,8 +284,9 @@ $info{LMI_MODE}=0;
 
 if ($conf{PAYSYS_WEBMONEY_TESTMODE}) {
   my ($LMI_MODE, $LMI_SIM_MODE)=split(/:/, $conf{PAYSYS_WEBMONEY_TESTMODE}, 2);
+
+  $info{LMI_MODE}=1;
   $info{TEST_MODE}="
-   $info{LMI_MODE}=1;
    <input type='hidden' name='LMI_SIM_MODE' value='$LMI_SIM_MODE'>
    <font color='red'>$_TEST_MODE (LMI_MODE: $info{LMI_MODE}, LMI_SIM_MODE: $LMI_SIM_MODE)</font>"; 
  }
