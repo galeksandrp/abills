@@ -280,15 +280,11 @@ elsif ($FORM{LMI_PAYMENT_NO}) {
 my %info = ();
 $info{LMI_PAYMENT_NO} = $FORM{OPERATION_ID};
 
-$info{LMI_MODE}=0;
-
 if ($conf{PAYSYS_WEBMONEY_TESTMODE}) {
   my ($LMI_MODE, $LMI_SIM_MODE)=split(/:/, $conf{PAYSYS_WEBMONEY_TESTMODE}, 2);
-
-  $info{LMI_MODE}=1;
   $info{TEST_MODE}="
    <input type='hidden' name='LMI_SIM_MODE' value='$LMI_SIM_MODE'>
-   <font color='red'>$_TEST_MODE (LMI_MODE: $info{LMI_MODE}, LMI_SIM_MODE: $LMI_SIM_MODE)</font>"; 
+   <font color='red'>$_TEST_MODE (LMI_MODE: $LMI_MODE, LMI_SIM_MODE: $LMI_SIM_MODE)</font>"; 
  }
 
 my @ACCOUNTS = split(/;/, $conf{PAYSYS_WEBMONEY_ACCOUNTS});
