@@ -92,7 +92,7 @@ sub payments {
    }
   else {
   	print "Unknown payment system";
-  	$output2 .= "Unknown payment system"; 
+  	#$output2 .= "Unknown payment system"; 
    }
 }
 
