@@ -201,7 +201,9 @@ elsif($FORM{LMI_HASH}) {
   my $info = '';
 	my $user = $users->info($FORM{UID});
 	
-  if ($FORM{LMI_PAYEE_PURSE} ne $conf{PAYSYS_WM_ACCOUNT}) {
+	my @ACCOUNTS = split(/;/, $conf{PAYSYS_WEBMONEY_ACCOUNTS});
+	
+  if (! in_array(@ACCOUNTS, $FORM{LMI_PAYEE_PURSE})) {
   	$status = 'Not valid money account';
   	#return 0;
    }
