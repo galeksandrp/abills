@@ -14,6 +14,7 @@
 <input type='hidden' name='IP' value='$ENV{REMOTE_ADDR}'>
 <input type='hidden' name='index' value='$index'>
 <input type='hidden' name='PAYMENT_SYSTEM' value='1'>
+<input type='hidden' name='LMI_MODE' value='%LMI_MODE%'>
 
 %TEST_MODE%
 <table width=300>
