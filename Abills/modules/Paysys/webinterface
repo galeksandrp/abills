@@ -53,6 +53,14 @@ sub paysys_payment {
 	else {
 	  my %info = ();
 	  $info{OPERATION_ID}   = mk_unique_value(8, {  SYMBOLS => '0123456789' });
+	  my %PAY_SYSTEM_ACCOUNTS = (1 => 'PAYSYS_WEBMONEY_ACCOUNTS',
+	                             2 => 'PAYSYS_RUPAY_ID' );
+	  
+	  while(my($k, $v) = each %PAY_SYSTEMS) {
+	  	delete $PAY_SYSTEMS{$k} if (! $PAY_SYSTEM_ACCOUNTS{$k});
+	   }
+	  
+	  
 	  $info{PAY_SYSTEM_SEL} = $html->form_select('PAYMENT_SYSTEM', 
                                           { 
  	                                          SELECTED  => $FORM{PAYMENT_SYSTEM},
