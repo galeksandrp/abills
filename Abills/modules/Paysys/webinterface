@@ -263,7 +263,8 @@ elsif ($FORM{LMI_PAYMENT_NO}) {
 		$html->message('err', $_ERROR, "$_NOT_EXIST");
 	 }
 	else {
-    my $list = $Paysys->list({ TRANSACTION_ID => $FORM{'LMI_PAYMENT_NO'}, UID => $LIST_PARAMS{UID} });
+    my $list = $Paysys->list({ TRANSACTION_ID => "$FORM{'LMI_PAYMENT_NO'}", UID => $LIST_PARAMS{UID} });
+    $Paysys->{debug}=1;
     if ($Paysys->{TOTAL} > 0) {
 	    $html->message('info', $_INFO, "$_ADDED $_SUM: $list->[0][3] ID: $FORM{LMI_PAYMENT_NO}");
 	   }
