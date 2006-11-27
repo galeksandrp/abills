@@ -18,10 +18,21 @@ if ($lang_file eq '')  {
 }
 
 
-use Paysys;
+#use Paysys;
+
+eval { require Paysys; };
+if (! $@) {
+   Paysys->import();
+  }
+else {
+   print "Can't load 'Paysys'. Purchase this module http://abills.asmodeus.com.ua";
+   return 0;
+ }
+
+
+
+
 my $Paysys = Paysys->new($db, $admin, \%conf);
-
-
 my %PAY_SYSTEMS = (1 => "Webmoney",
                    2 => "RUpay");
 my @status = ('ENABLE', 'DISABLE', 'USED');
@@ -246,12 +257,12 @@ sub paysys_rupay {
 sub wm_validate {
 	
 	
-	eval { require Digest::MD5; };
+ eval { require Digest::MD5; };
  if (! $@) {
     Digest::MD5->import();
    }
  else {
-    log_print('LOG_ERR', "Can't load 'Digest::MD5' check http://www.cpan.org");
+    print "Can't load 'Digest::MD5' check http://www.cpan.org";
   }
 
   my $md5 = new Digest::MD5;
