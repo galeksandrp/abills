@@ -1,5 +1,7 @@
 <form method='POST' action='$SELF_URL'>
 <input type='hidden' name='index' value='$index'>
+<input type='hidden' name='sid' value='$FORM{sid}'>
+
 <input type='hidden' name='OPERATION_ID' value='%OPERATION_ID%'>
 <table width=300>
 <tr bgcolor=$_COLORS[0]><th colspan='2' align=right>Paysys</th></tr>
