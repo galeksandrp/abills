@@ -32,7 +32,25 @@ my @status = ('ENABLE', 'DISABLE', 'USED');
 #
 #**********************************************************
 sub paysys_payment {
-	paysys_webmoney();
+  
+  if ($FORM{PAYMENT_SYSTEM} == 1) {
+   	 paysys_webmoney();
+	 }
+	elsif($FORM{PAYMENT_SYSTEM} == 2) {
+     paysys_rupay();
+	 }
+	else {
+	  my %info = ();
+	  $info{OPERATION_ID}   = mk_unique_value(8, {  SYMBOLS => '0123456789' });
+	  $info{PAY_SYSTEM_SEL} = $html->form_select('PAYMENT_SYSTEM', 
+                                          { 
+ 	                                          SELECTED  => $FORM{PAYMENT_SYSTEM},
+ 	                                          SEL_HASH  => \%PAY_SYSTEMS,
+ 	                                          NO_ID     => 'y'
+ 	                                        });
+
+	  $html->tpl_show(_include('paysys_main', 'Paysys'), \%info);
+	 }
 }
 
 #**********************************************************
@@ -114,14 +132,14 @@ my $table = $html->table( { width      => '100%',
 foreach my $line (@$list) {
  
   $table->addrow($line->[0],
-   $html->button("$line->[1]", "index=15&UID=$line->[8]"), 
-   "$line->[2]", 
-   "$line->[3]", 
-   "$PAY_SYSTEMS{$line->[4]}", 
-   "$line->[5]",
-   "$line->[6]",
-   $html->button($_INFO, "index=$index&info=$line->[0]"),
-   $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?" })
+    $html->button("$line->[1]", "index=15&UID=$line->[8]"), 
+    "$line->[2]", 
+    "$line->[3]", 
+    "$PAY_SYSTEMS{$line->[4]}", 
+    "$line->[5]",
+    $html->button("$line->[6]", "index=2&EXT_ID=$line->[6]"),
+    $html->button($_INFO, "index=$index&info=$line->[0]"),
+    $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?" })
    );
 }
 print $table->show();
@@ -148,7 +166,6 @@ if ($FORM{FALSE}) {
 	$html->message('err', $_ERROR, "$_FAILED ID: $FORM{LMI_PAYMENT_NO}");
  }
 elsif ($FORM{LMI_PAYMENT_NO}) {
-
   my $payments = Finance->payments($db, $admin, \%conf);
 	my $users = Users->new($db, $admin, \%conf); 
 	my $user = $users->info($FORM{UID});
@@ -174,8 +191,26 @@ elsif ($FORM{LMI_PAYMENT_NO}) {
   
 
 my %info = ();
-$info{LMI_PAYMENT_NO} = mk_unique_value(8, {  SYMBOLS => '0123456789' });
-$info{TEST_MODE}="<font color='red'>$_TEST_MODE</font>" if ($conf{PAYSYS_LMI_MODE}); 
+$info{LMI_PAYMENT_NO} = $FORM{OPERATION_ID};
+
+if ($conf{PAYSYS_WEBMONEY_TESTMODE}) {
+  my ($LMI_MODE, $LMI_SIM_MODE)=split(/:/, $conf{PAYSYS_WEBMONEY_TESTMODE}, 2);
+  $info{TEST_MODE}="
+   <input type='hidden' name='LMI_MODE' value='$LMI_MODE'>
+   <input type='hidden' name='LMI_SIM_MODE' value='$LMI_SIM_MODE'>
+   <font color='red'>$_TEST_MODE (LMI_MODE: $LMI_MODE, LMI_SIM_MODE: $LMI_SIM_MODE)</font>"; 
+ }
+
+my @ACCOUNTS = split(/;/, $conf{PAYSYS_WEBMONEY_ACCOUNTS});
+$info{ACCOUNTS_SEL}=$html->form_select('LMI_PAYEE_PURSE', 
+                                      { 
+ 	                                      SELECTED  => $FORM{sum_val},
+ 	                                      SEL_ARRAY => \@ACCOUNTS,
+ 	                                      NO_ID     => 'y'
+                                       });
+
+$info{LMI_PAYMENT_AMOUNT}=$FORM{SUM};
+
 
 $conf{PAYSYS_LMI_RESULT_URL} = "http://$ENV{SERVER_NAME}$ENV{REQUEST_URI}" if (! $conf{PAYSYS_LMI_RESULT_URL});
 $html->tpl_show(_include('paysys_webmoney_add', 'Paysys'), \%info);
@@ -189,15 +224,20 @@ $html->tpl_show(_include('paysys_webmoney_add', 'Paysys'), \%info);
 #**********************************************************
 sub paysys_rupay {
 	
-	$info{SUM_VAL}=$html->form_select('PAYMENT_SYSTEM', 
-                                      { 
+	my %info = ();
+	
+	$info{SUM_VAL_SEL}=$html->form_select('sum_val', 
+                                    { 
  	                                      SELECTED  => $FORM{sum_val},
  	                                      SEL_ARRAY => [USD, EUR, UAH, RUR],
  	                                      NO_ID     => 'y'
-                                    });
+                                     });
 
-	
-  	
+	$info{ORDER_ID}  = $FORM{OPERATION_ID};  
+  $info{SUM}       = $FORM{SUM};
+  $info{DESCRIBE}  = $FORM{DESCRIBE};
+
+  $html->tpl_show(_include('paysys_rupay_add', 'Paysys'), \%info);
 }
 
 

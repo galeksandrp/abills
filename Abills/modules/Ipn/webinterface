@@ -75,7 +75,6 @@ if (defined($FORM{DATE})) {
       my $user_traffic_sum=0;
 
       $table_sessions->addtd(
-
                   $table->td($stats_array[0][0], { rowspan => ($#stats_array > 0) ? $#stats_array+2 : 2 } ),
                   $table->td($stats_array[0][1], { bgcolor => $TT_COLORS[$stats_array[0][1]] }), 
                   $table->td($stats_array[0][2], { bgcolor => $TT_COLORS[$stats_array[0][1]] }), 

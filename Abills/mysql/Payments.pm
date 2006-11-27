@@ -229,9 +229,6 @@ sub list {
 
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
  
-
- 
- 
  $self->query($db, "SELECT p.id, u.id, p.date, p.sum, p.dsc, if(a.name is null, 'Unknown', a.name),  
       INET_NTOA(p.ip), p.last_deposit, p.method, p.ext_id, p.uid 
     FROM payments p

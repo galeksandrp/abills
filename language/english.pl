@@ -306,3 +306,4 @@ $_DOWNLOAD='Download';
 $_DILLERS='Dillers';
 
 $_VAT='Vat';
+$_BONUS='Bonus';
