@@ -916,7 +916,9 @@ else {
 my $trafic_limit = 0;
 #2Gb - (2048 * 1024 * 1024 ) - global traffic session limit
 if (defined($trafic_limits{0}) && $trafic_limits{0} > 0  && $trafic_limits{0} < $EX_PARAMS{traf_limit}) {
-  $trafic_limit = ($trafic_limits{0} > $CONF->{MAX_SESSION_TRAFFIC}) ? $CONF->{MAX_SESSION_TRAFFIC} :  $trafic_limits{0};
+  if ($CONF->{MAX_SESSION_TRAFFIC}) {
+    $trafic_limit = ($trafic_limits{0} > $CONF->{MAX_SESSION_TRAFFIC}) ? $CONF->{MAX_SESSION_TRAFFIC} :  $trafic_limits{0};
+   }
   $EX_PARAMS{traf_limit} = ($trafic_limit < 1 && $trafic_limit > 0) ? 1 : int($trafic_limit);
 }
 
