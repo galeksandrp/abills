@@ -1054,7 +1054,10 @@ my $GROUP = '1';
  else {
    $lupdate = " DATE_FORMAT(start, '%Y-%m-%d'), count(DISTINCT l.uid), ";
   }
-  
+
+if ($attr->{SESSION_ID}) {
+	push @WHERE_RULES, "session_id='$attr->{SESSION_ID}'";
+}
  
  #Interval from date to date
 if ($attr->{INTERVAL}) {
