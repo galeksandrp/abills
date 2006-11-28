@@ -1484,6 +1484,7 @@ sub ipn_change_status {
    }
 
 	my $ip              = $attr->{FRAMED_IP_ADDRESS};
+	my $netmask         = 32;
 	my $STATUS          = $attr->{STATUS} || '';
   my $USER_NAME       = $attr->{USER_NAME} || '';
   my $ACCT_SESSION_ID = $attr->{ACCT_SESSION_ID} || '';
@@ -1537,6 +1538,7 @@ sub ipn_change_status {
 
 	
   $cmd =~ s/\%IP/$ip/g;
+  $cmd =~ s/\%MASK/$netmask/g;
   $cmd =~ s/\%NUM/$rule_num/g;
   $cmd =~ s/\%SPEED_IN/$speed_in/g if ($speed_in > 0);
   $cmd =~ s/\%SPEED_OUT/$speed_out/g if ($speed_out > 0);
