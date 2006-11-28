@@ -187,7 +187,7 @@ sub paysys_user_log {
     $table->addrow($k, $v) if ($k =~ /STATUS/);
    }
 
-  $Paysys->{INFO}=$table->show();
+  $Paysys->{INFO}=$table->show({ OUTPUT2RETURN => 1 });
 
   $table = $html->table( { width => '500',
                            rows => [ [ "ID",            $Paysys->{ID}       ],

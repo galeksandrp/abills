@@ -1,3 +1,30 @@
+=====0.35=====
+  * 27.11.2006 - Новый модуль [[http://abills.asmodeus.com.ua/wiki/doku.php?id=abills:docs:modules:paysys:ru|Paysys]] для получения платежей с разных платёжных систем. Реализирована поддержка [[http://www.webmoney.ru|Webmoney]] и [[http://www.rupay.ru|RUpay]] (ещё тестируется).
+  * 27.11.2006 - Модуль Cisco переименован на Snmputils
+  * 20.11.2006 - $conf{MAX_SESSION_TRAFFIC} перенесена в конфиг
+  * 18.11.2006 - Добавлен контроль перебора паролей в веб интерфейсе Опция: $conf{wi_bruteforce}
+ ''MySQL''
+
+  CREATE TABLE `users_bruteforce` (
+    `login` varchar(20) NOT NULL default '',
+    `password` varchar(16) binary NOT NULL default '0',
+    `datetime` datetime NOT NULL default '0000-00-00 00:00:00',
+    `ip` int(11) unsigned NOT NULL default '0',
+    `auth_state` tinyint(1) unsigned NOT NULL default '0',
+    KEY `login` (`login`)
+  );
+
+  * 06.11.2006 - Возможность создания своих темплейтов из веб интерфейса (/ System configuration/ MISC/ Template/).
+  * 15.10.2006 - Модуль [[http://abills.asmodeus.com.ua/wiki/doku.php?id=abills:docs:modules:cisco:ru|Cisco]] для мониторинга оборудования Cisco Systems
+  * 9.10.2006 - Номера компов для Club Monitor
+ ''MySQL''\\
+    ALTER TABLE ipn_club_comps add column number smallint(6) unsigned NOT NULL default '0';
+    ALTER TABLE ipn_club_comps add UNIQUE KEY number (number);
+
+  * Добавнлено виды отчислений: предоплата, по факту 
+ ''MySQL''\\
+    ALTER TABLE abon_tariffs add payment_type tinyint(1) unsigned NOT NULL default '0';
+
 =====0.34=====
   * 21.09.2006 - FreeBSD ipfw table support
   * Добавлена ставка НДС.

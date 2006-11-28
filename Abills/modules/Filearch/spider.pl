@@ -22,7 +22,7 @@ require "Filearch.pm";
 Filearch->import();
 
 my $Filearch = Filearch->new($db, $admin, \%conf);
-require "Abills/nas.pl";
+#require "Abills/nas.pl";
 
 
 use Socket;
@@ -59,6 +59,7 @@ if ($#ARGV < 0) {
 	checkfiles   - CHECK disk files
 	getinfo      - get info from sharereaktor.ru (Only new)
 	CHECK_ALL=1  - CHECK all files
+        GET_DUBS     - Get dublicats
 	\n";
  }
 elsif ($ARGV[0] eq 'checkfiles') {
@@ -78,11 +79,37 @@ elsif($ARGV[0] eq 'getinfo') {
   }
  print "TOTAL: $stats{TOTAL} ADDED: $stats{ADDED}\n";
 }
+elsif (defined($params->{'GET_DUBS'})) {
+  my $path = ($params->{GET_DUBS} eq '') ? '.' : $params->{GET_DUBS};
+  get_dublicats($path);
+}
 
 
+#**********************************************************
+#
+#**********************************************************
+sub get_dublicats {
+  my ($path) = @_;
+
+  print "Check files PATH: '$path'" if ($debug == 1);
+  
+  # HASH -> (PATH_ARRAY)
+  my %file_list = ();
 
 
+  
+}
 
+#*********************************************************
+#
+#*********************************************************
+sub make_ed2k_hash {
+ my ($file) = @_;
+ my $ed2k_hash = '';
+
+ 
+ return $ed2k_hash;
+}
 
 #**********************************************************
 #

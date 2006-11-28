@@ -86,8 +86,9 @@ CREATE DATABASE abills;\\
 
 
 =====Web Server=====
+
 =====Apache=====
-В случае использования веб-сервер Apache вносим в **httpd.conf**
+В случае использования веб-сервера Apache вносим в **httpd.conf**
 
   #Abills version 0.3
   # User interface
@@ -105,6 +106,11 @@ CREATE DATABASE abills;\\
     DirectoryIndex index.cgi
     Order allow,deny
     Allow from all
+
+    <Files ~ "\.(db|log)$">
+      Order allow,deny
+      Deny from all
+    </Files>
   </Directory>
   
   
