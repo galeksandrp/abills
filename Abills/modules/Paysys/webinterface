@@ -312,14 +312,31 @@ sub paysys_rupay {
 	
 	my %info = ();
 	
-	$info{SUM_VAL_SEL}=$html->form_select('sum_val', 
+if ($FORM{FALSE}) {
+	$html->message('err', $_ERROR, "$_FAILED ID: $FORM{OPERATION_ID}");
+ }
+elsif ($FORM{TRUE}) {
+   my $list = $Paysys->list({ TRANSACTION_ID => "$FORM{OPERATION_ID}", UID => $LIST_PARAMS{UID} });
+
+   if ($Paysys->{TOTAL} > 0) {
+	    $html->message('info', $_INFO, "$_TRANSACTION_PROCESSING $_SUM: $list->[0][3] ID: $FORM{OPERATION_ID}");
+	   }
+    else {
+    	$html->message('err', $_ERROR, "$_FAILED ID: $FORM{OPERATION_ID} $_ERR_NO_TRANSACTION");
+     }
+
+  return 0;
+ }
+	
+
+$info{SUM_VAL_SEL}=$html->form_select('sum_val', 
                                     { 
  	                                      SELECTED  => $FORM{sum_val},
  	                                      SEL_ARRAY => [USD, EUR, UAH, RUR],
  	                                      NO_ID     => 'y'
                                      });
 
-	$info{ORDER_ID}  = $FORM{OPERATION_ID};  
+	$info{OPERATION_ID}  = $FORM{OPERATION_ID};  
   $info{SUM}       = $FORM{SUM};
   $info{DESCRIBE}  = $FORM{DESCRIBE};
 

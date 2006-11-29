@@ -138,7 +138,7 @@ if ($FORM{rupay_action} eq 'add') {
   	             SUM            => $FORM{rupay_sum},
   	             UID            => $FORM{user_field_UID}, 
                  IP             => $FORM{user_field_IP},
-                 TRANSACTION_ID => $FORM{rupay_order_id},
+                 TRANSACTION_ID => $FORM{user_field_OPERATION_ID},
                  INFO           => "STATUS, $status\n$info"
                });
  } 
