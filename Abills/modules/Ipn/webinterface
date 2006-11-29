@@ -311,7 +311,7 @@ my $search =  $table->show();
 
 
 
-print "<form action=$SELF_URL>
+print "<form action='$SELF_URL'>
 <input type=hidden name=index value=$index>
 <table border=1>
 <tr><td>SRC_ADDR:</td><td><input type=text name=SRC_ADDR value='$FORM{SRC_ADDR}'></td><td>SRC_PORT:</td><td><input type=text name=SRC_PORT value='$FORM{SRC_PORT}' size=5></td></tr>
@@ -1456,8 +1456,9 @@ sub ipn_user_activate {
    }
 
 
-  print $html->form_main({ CONTENT => "IP: $ip $IP_INPUT (". $nas_id .") ", 
+  $HIDDEN{sid}=$html->{SID} if ($html->{SID});
 
+  print $html->form_main({ CONTENT => "IP: $ip $IP_INPUT (". $nas_id .") ", 
                      HIDDEN  => { index   => "$index",
                      	            UID     => $LIST_PARAMS{UID},
                      	            %HIDDEN
