@@ -6,10 +6,9 @@
 <input type='hidden' name='user_field_UID' value='$LIST_PARAMS{UID}'> 
 <input type='hidden' name='user_field_sid' value='$FORM{sid}'>
 <input type='hidden' name='user_field_IP' value='$ENV{REMOTE_ADDR}'> 
-<input type='hidden' name='user_field_OPERATION_ID' value='%OPERATION_ID%'>
 
 <input type='hidden' name='pay_id' value='$conf{PAYSYS_RUPAY_ID}'>
-<input type='hidden' name='order_id' value='%ORDER_ID%'>
+<input type='hidden' name='order_id' value='%OPERATION_ID%'>
 <input type='hidden' name='success_url' value='http://$ENV{SERVER_NAME}$ENV{REQUEST_URI}?UID=$LIST_PARAMS{UID}&index=$index&sid=$FORM{sid}&OPERATION_ID=%OPERATION_ID%&PAYMENT_SYSTEM=2&TRUE=1'>
 <input type='hidden' name='fail_url' value='http://$ENV{SERVER_NAME}$ENV{REQUEST_URI}?UID=$LIST_PARAMS{UID}&index=$index&sid=$FORM{sid}&FALSE=1&OPERATION_ID=%OPERATION_ID%&PAYMENT_SYSTEM=2&FALSE=1'>
 <table>

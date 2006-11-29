@@ -139,7 +139,7 @@ if ($FORM{rupay_action} eq 'add') {
   	             SUM            => $FORM{rupay_sum},
   	             UID            => $FORM{user_field_UID}, 
                  IP             => $FORM{user_field_IP},
-                 TRANSACTION_ID => $FORM{user_field_OPERATION_ID},
+                 TRANSACTION_ID => $FORM{order_id},
                  INFO           => "STATUS, $status\n$info"
                });
  } 
@@ -159,7 +159,7 @@ elsif ($FORM{rupay_action} eq 'update') {
     $payments->add($user, {SUM          => $FORM{rupay_sum},
     	                     DESCRIBE     => 'RUpay', 
     	                     METHOD       => '2', 
-  	                       EXT_ID       => $FORM{user_field_OPERATION_ID}, 
+  	                       EXT_ID       => $FORM{order_id}, 
   	                       ER           => $er->{ER_RATE} } );  
 
     if ($payments->{errno}) {
@@ -176,7 +176,7 @@ elsif ($FORM{rupay_action} eq 'update') {
   	             SUM            => $FORM{rupay_sum},
   	             UID            => $FORM{user_field_UID}, 
                  IP             => $FORM{user_field_IP},
-                 TRANSACTION_ID => $FORM{user_field_OPERATION_ID},
+                 TRANSACTION_ID => $FORM{order_id},
                  INFO           => "STATUS, $status\n$info"
                });
 
