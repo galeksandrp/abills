@@ -98,8 +98,19 @@ elsif ($acct_status_type == 2) {
 
   my $Billing = Billing->new($db, $conf);	
 
-  
-  if ($conf->{rt_billing}) {
+  if ($NAS->{NAS_TYPE} eq 'ipcad') {
+    $self->query($db, "INSERT INTO dv_log (uid, start, tp_id, duration, sent, recv, minp, kb,  sum, nas_id, port_id,
+        ip, CID, sent2, recv2, acct_session_id, 
+        bill_id,
+        terminate_cause) 
+        VALUES ('$self->{UID}', FROM_UNIXTIME($RAD->{SESSION_START}), '$self->{TARIF_PLAN}', '$RAD->{ACCT_SESSION_TIME}', 
+        '$RAD->{OUTBYTE}', '$RAD->{INBYTE}', '$self->{TIME_TARIF}', '$self->{TRAF_TARIF}', $self->{CALLS_SUM}+$self->{SUM}, '$NAS->{NAS_ID}',
+        '$RAD->{NAS_PORT}', INET_ATON('$RAD->{FRAMED_IP_ADDRESS}'), '$RAD->{CALLING_STATION_ID}',
+        '$RAD->{OUTBYTE2}', '$RAD->{INBYTE2}',  \"$RAD->{ACCT_SESSION_ID}\", 
+        '$self->{BILL_ID}',
+        '$RAD->{ACCT_TERMINATE_CAUSE}');", 'do');
+   }
+  elsif ($conf->{rt_billing}) {
     $self->rt_billing($RAD, $NAS);
     
     $self->query($db, "INSERT INTO dv_log (uid, start, tp_id, duration, sent, recv, minp, kb,  sum, nas_id, port_id,
@@ -212,7 +223,13 @@ elsif($acct_status_type eq 3) {
 ###
   
   $self->{SUM}=0;
-  $self->rt_billing($RAD, $NAS) if ($conf->{rt_billing});
+  if ($NAS->{NAS_TYPE} eq 'ipcad') {
+    return $self;
+   }
+  elsif ($conf->{rt_billing}) {
+    $self->rt_billing($RAD, $NAS);
+   }
+
 
   $self->query($db, "UPDATE dv_calls SET
     status='$acct_status_type',
