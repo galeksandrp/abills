@@ -110,6 +110,7 @@ my %uf_menus = ();
 
 if ($uid > 0) {
   $UID = $uid;
+  my $default_index = 30;
   push @m, "17:0:$_PASSWD:form_passwd:::"   if($conf{user_chg_passwd} eq 'yes');
 
   foreach my $line (@m) {
@@ -136,7 +137,13 @@ if ($uid > 0) {
       $module_fl{"$ID"}=$maxnumber;
       #$fl .= "$FUNTION_NAME $maxnumber\n";
       
-      $menu_args{$maxnumber}=$ARGS if ($ARGS ne '');
+      if ($index < 1 && $ARGS eq 'defaultindex') {
+        $default_index=$maxnumber;
+        $index=$default_index;
+       }
+      elsif ($ARGS ne '' && $ARGS ne 'defaultindex') {
+        $menu_args{$maxnumber}=$ARGS;
+       }
       #print "$line -- $ID, $SUB, $NAME, $FUNTION_NAME  // $module_fl{$SUB}<br/>";
      
       if($SUB > 0) {
@@ -148,6 +155,7 @@ if ($uid > 0) {
           $uf_menus{$maxnumber}=$NAME;
          }
       }
+
       $menu_names{$maxnumber} = $NAME;
       $functions{$maxnumber}  = $FUNTION_NAME if ($FUNTION_NAME  ne '');
       $module{$maxnumber}     = $m;
@@ -184,7 +192,7 @@ if ($uid > 0) {
     $functions{$index}->();
    }
   else {
-    $functions{30}->();
+    $functions{$default_index}->();
    }
 
 
