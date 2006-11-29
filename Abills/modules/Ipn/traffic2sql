@@ -219,7 +219,7 @@ foreach my $ip ( sort keys %$ips_interim) {
               ACCT_STATUS_TYPE  => 'Alive'
             );
 
-    my $r = $Acct->accounting(\%RAD, { NAS_ID => $NAS_ID, NAS_TYPE => 'ipcad' });
+    my $r = $Acct->accounting(\%RAD, { NAS_ID => $NAS_ID, NAS_TYPE => 'other' });
     
     if (defined($Ipn->{USERS_INFO}->{DEPOSIT}->{$uid}) && $Ipn->{USERS_INFO}->{DEPOSIT}->{$uid} < 0) {
          my @ip_array = split(/\./, $ip_addr, 4);
