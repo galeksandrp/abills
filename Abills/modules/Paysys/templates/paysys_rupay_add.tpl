@@ -1,3 +1,6 @@
+<a href="http://rupay.com/guarante.php?id=$conf{PAYSYS_RUPAY_ID}" target="_blank">
+<img src="http://rupay.com/images/guarante_rupay.gif" border="0">
+</a> 
 <form action='http://www.rupay.com/rupay/pay/index.php' name='pay' method='POST'>
 <input type='hidden' name='user_field_index' value='$index'> 
 <input type='hidden' name='user_field_UID' value='$LIST_PARAMS{UID}'> 

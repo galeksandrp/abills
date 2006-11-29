@@ -128,6 +128,7 @@ if ($FORM{rupay_action} eq 'add') {
   $md5->add("$FORM{rupay_action}::$FORM{rupay_site_id}::$FORM{rupay_order_id}::$FORM{rupay_name_service}::$FORM{rupay_id}::$FORM{rupay_sum}::$FORM{rupay_user}::$FORM{rupay_email}::$FORM{rupay_data}::$conf{PAYSYS_RUPAY_SECRET_KEY}");
   $checksum = bin2hex($md5->digest());	
 
+  $status = 'Preview Request';
   if ($FORM{rupay_hash} ne $checksum) {
   	$status = "Incorect checksum '$checksum'";
    }
@@ -296,4 +297,6 @@ sub bin2hex ($) {
    $hex .= $c;
  }
 
- return
+ return $hex;
+}
+
