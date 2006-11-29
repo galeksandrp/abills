@@ -148,6 +148,7 @@ elsif ($FORM{rupay_action} eq 'update') {
   $md5->add("$FORM{rupay_action}::$FORM{rupay_site_id}::$FORM{rupay_order_id}::$FORM{rupay_sum}::$FORM{rupay_id}::$FORM{rupay_data}::$FORM{rupay_status}::$conf{PAYSYS_RUPAY_SECRET_KEY}"); 
   $checksum = bin2hex($md5->digest());	
 
+
   if ($FORM{rupay_hash} ne $checksum) {
   	$status = 'Incorect checksum';
    }
@@ -157,7 +158,7 @@ elsif ($FORM{rupay_action} eq 'update') {
     $payments->add($user, {SUM          => $FORM{rupay_sum},
     	                     DESCRIBE     => 'RUpay', 
     	                     METHOD       => '2', 
-  	                       EXT_ID       => $FORM{rupay_order_id}, 
+  	                       EXT_ID       => $FORM{user_field_OPERATION_ID}, 
   	                       ER           => $er->{ER_RATE} } );  
 
     if ($payments->{errno}) {
@@ -174,7 +175,7 @@ elsif ($FORM{rupay_action} eq 'update') {
   	             SUM            => $FORM{rupay_sum},
   	             UID            => $FORM{user_field_UID}, 
                  IP             => $FORM{user_field_IP},
-                 TRANSACTION_ID => $FORM{rupay_order_id},
+                 TRANSACTION_ID => $FORM{user_field_OPERATION_ID},
                  INFO           => "STATUS, $status\n$info"
                });
 
@@ -295,6 +296,4 @@ sub bin2hex ($) {
    $hex .= $c;
  }
 
- return $hex;
-}
-
+ return
