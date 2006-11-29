@@ -6,8 +6,8 @@
 
 <input type='hidden' name='pay_id' value='$conf{PAYSYS_RUPAY_ID}'>
 <input type='hidden' name='order_id' value='%ORDER_ID%'>
-<input type='hidden' name='success_url' value='http://$ENV{SERVER_NAME}$ENV{REQUEST_URI}&UID=$LIST_PARAMS{UID}&index=$index&sid=$FORM{sid}&PAYMENT_NO=%LMI_PAYMENT_NO%&PAYMENT_SYSTEM=2'>
-<input type='hidden' name='fail_url' value='http://$ENV{SERVER_NAME}$ENV{REQUEST_URI}&UID=$LIST_PARAMS{UID}&index=$index&sid=$FORM{sid}&FALSE=1&PAYMENT_NO=%LMI_PAYMENT_NO%&PAYMENT_SYSTEM=2'>
+<input type='hidden' name='success_url' value='http://$ENV{SERVER_NAME}$ENV{REQUEST_URI}?UID=$LIST_PARAMS{UID}&index=$index&sid=$FORM{sid}&PAYMENT_NO=%LMI_PAYMENT_NO%&PAYMENT_SYSTEM=2'>
+<input type='hidden' name='fail_url' value='http://$ENV{SERVER_NAME}$ENV{REQUEST_URI}?UID=$LIST_PARAMS{UID}&index=$index&sid=$FORM{sid}&FALSE=1&PAYMENT_NO=%LMI_PAYMENT_NO%&PAYMENT_SYSTEM=2'>
 <table>
 <tr><th colspan='2' align='right' bgcolor=$_COLORS[0]>RUpay</th></tr>
 <tr><td>$_MONEY:</td><td>%SUM_VAL_SEL%</td></tr>
