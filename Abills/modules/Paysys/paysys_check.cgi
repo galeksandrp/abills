@@ -126,10 +126,10 @@ while(my($k, $v)=each %FORM) {
 #Make checksum
 if ($FORM{rupay_action} eq 'add') {
   $md5->add("$FORM{rupay_action}::$FORM{rupay_site_id}::$FORM{rupay_order_id}::$FORM{rupay_name_service}::$FORM{rupay_id}::$FORM{rupay_sum}::$FORM{rupay_user}::$FORM{rupay_email}::$FORM{rupay_data}::$conf{PAYSYS_RUPAY_SECRET_KEY}");
-  $checksum = $md5->digest();	
+  $checksum = bin2hex($md5->digest());	
 
   if ($FORM{rupay_hash} ne $checksum) {
-  	$status = 'Incorect checksum';
+  	$status = "Incorect checksum '$checksum'";
    }
 
   #Info section  
@@ -146,7 +146,7 @@ if ($FORM{rupay_action} eq 'add') {
 elsif ($FORM{rupay_action} eq 'update') {
   #Make checksum
   $md5->add("$FORM{rupay_action}::$FORM{rupay_site_id}::$FORM{rupay_order_id}::$FORM{rupay_sum}::$FORM{rupay_id}::$FORM{rupay_data}::$FORM{rupay_status}::$conf{PAYSYS_RUPAY_SECRET_KEY}"); 
-  $checksum = $md5->digest();	
+  $checksum = bin2hex($md5->digest());	
 
   if ($FORM{rupay_hash} ne $checksum) {
   	$status = 'Incorect checksum';
@@ -217,7 +217,7 @@ elsif($FORM{LMI_HASH}) {
   	$status = 'Not MD5 checksum';
    }
   elsif ($FORM{LMI_HASH} ne $checksum) {
-  	$status = 'Incorect checksum';
+  	$status = "Incorect checksum '$checksum'";
    }
   elsif ($user->{errno}) {
 		$status = "ERROR: $user->{errno}";
