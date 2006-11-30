@@ -371,26 +371,13 @@ sub wm_validate {
   $md5->add($FORM{LMI_PAYER_PURSE}); 
   $md5->add($FORM{LMI_PAYER_WM}); 
 
-  my $digest = $md5->digest();	
+  my $digest = uc($md5->hexdigest());	
   
-  print bin2hex($digest);
+  print $digest;
 }
 
 
 
-#***********************************************************
-# bin2hex()
-#***********************************************************
-sub bin2hex ($) {
- my $bin = shift;
- my $hex = '';
- 
- for my $c (unpack("H*",$bin)){
-   $hex .= $c;
- }
-
- return $hex;
-}
 
 
 1

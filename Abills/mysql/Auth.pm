@@ -222,8 +222,7 @@ else {
           REDUCTION           => $self->{REDUCTION},
           POSTPAID            => $self->{PAYMENT_TYPE}
          });
-
-    print "RT: $remaining_time" if ($debug == 1);
+     print "RT: $remaining_time" if ($debug == 1);
    }
 
 

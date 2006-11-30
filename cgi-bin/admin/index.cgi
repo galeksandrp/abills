@@ -111,7 +111,7 @@ if ($admin->{errno}) {
   my $message = 'Access Deny';
 
   if ($admin->{errno} == 2) {
-  	$message = "Account Disabled $admin->{errstr}";
+  	$message = "Account Disabled or $admin->{errstr}";
    }
   elsif (! defined($REMOTE_USER)) {
     $message = "Wrong password";
@@ -3469,10 +3469,6 @@ if ($FORM{search}) {
    }
 }
 
-
-
-
-
 }
 
 
@@ -4033,3 +4029,12 @@ if(defined($FORM{del}) && defined($FORM{is_js_confirmed})  && $permissions{0}{5}
 }
 
 
+
+#**********************************************************
+#
+#**********************************************************
+sub form_multiuser_operation {
+	
+	
+	
+}

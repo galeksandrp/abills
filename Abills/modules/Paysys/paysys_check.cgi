@@ -126,7 +126,7 @@ while(my($k, $v)=each %FORM) {
 #Make checksum
 if ($FORM{rupay_action} eq 'add') {
   $md5->add("$FORM{rupay_action}::$FORM{rupay_site_id}::$FORM{rupay_order_id}::$FORM{rupay_name_service}::$FORM{rupay_id}::$FORM{rupay_sum}::$FORM{rupay_user}::$FORM{rupay_email}::$FORM{rupay_data}::$conf{PAYSYS_RUPAY_SECRET_KEY}");
-  $checksum = bin2hex($md5->digest());	
+  $checksum = $md5->hexdigest();	
 
   $status = 'Preview Request';
   if ($FORM{rupay_hash} ne $checksum) {
@@ -147,7 +147,7 @@ if ($FORM{rupay_action} eq 'add') {
 elsif ($FORM{rupay_action} eq 'update') {
   #Make checksum
   $md5->add("$FORM{rupay_action}::$FORM{rupay_site_id}::$FORM{rupay_order_id}::$FORM{rupay_sum}::$FORM{rupay_id}::$FORM{rupay_data}::$FORM{rupay_status}::$conf{PAYSYS_RUPAY_SECRET_KEY}"); 
-  $checksum = bin2hex($md5->digest());	
+  $checksum = $md5->hexdigest();	
 
 
   if ($FORM{rupay_hash} ne $checksum) {
@@ -280,23 +280,7 @@ sub wm_validate {
   $md5->add($FORM{LMI_PAYER_PURSE}); 
   $md5->add($FORM{LMI_PAYER_WM}); 
 
-  my $digest = uc($md5->digest());	
+  my $digest = uc($md5->hexdigest());	
   
-  return bin2hex($digest);
+  return $digest;
 }
-
-
-#***********************************************************
-# bin2hex()
-#***********************************************************
-sub bin2hex ($) {
- my $bin = shift;
- my $hex = '';
- 
- for my $c (unpack("H*",$bin)){
-   $hex .= $c;
- }
-
- return $hex;
-}
-

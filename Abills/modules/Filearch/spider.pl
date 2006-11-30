@@ -53,13 +53,19 @@ my $FILEHASH;
 my $params = parse_arguments(\@ARGV);
 
 
+if ($params->{debug}) {
+  print "Debug mode: $params->{debug}\n";
+  $debug = $params->{debug} ;
+}
 
 if ($#ARGV < 0) {
 	print "spider.pl [options]
-	checkfiles   - CHECK disk files
-	getinfo      - get info from sharereaktor.ru (Only new)
-	CHECK_ALL=1  - CHECK all files
-        GET_DUBS     - Get dublicats
+	checkfiles         - CHECK disk files
+	getinfo            - get info from sharereaktor.ru (Only new)
+	CHECK_ALL=1        - CHECK all files
+  GET_DUBS           - Get dublicats
+  debug              - Debug mode
+  ed2k_hash=FILENAME - Make ed2k hash
 	\n";
  }
 elsif ($ARGV[0] eq 'checkfiles') {
@@ -82,20 +88,55 @@ elsif($ARGV[0] eq 'getinfo') {
 elsif (defined($params->{'GET_DUBS'})) {
   my $path = ($params->{GET_DUBS} eq '') ? '.' : $params->{GET_DUBS};
   get_dublicats($path);
+ }
+elsif ($params->{ed2k_hash}) {
+  my($path, $filename, $size, $hash) = make_ed2k_hash($params->{ed2k_hash});
+  print "$path, $filename, $size, $hash\n";
 }
+
 
 
 #**********************************************************
 #
 #**********************************************************
 sub get_dublicats {
-  my ($path) = @_;
+  my ($dir) = @_;
 
-  print "Check files PATH: '$path'" if ($debug == 1);
+  print "Check files PATH: '$dir'" if ($debug == 1);
   
   # HASH -> (PATH_ARRAY)
   my %file_list = ();
+  
+  opendir DIR, $dir or return;
+    my @contents = map "$dir/$_",
+    sort grep !/^\.\.?$/,
+    readdir DIR;
+  closedir DIR;
 
+foreach my $file (@contents) {
+  exit if ($recursive == $rec_level && $recursive != 0 );
+
+  if (! -l $file && -d $file ) {
+    #print "> $_ \n";
+    $rec_level++;
+    #print "Recurs Level: $rec_level\n";
+    &getfiles($file);
+    #recode($_);
+   }
+  elsif ($file) {
+    my ($filename, $dir, $size, $ed2k_hash) = make_ed2k_hash($file);
+    push @{ $file_list{$ed2k_hash} }, "$filename, $dir, $size, $ed2k_hash";
+   }
+}
+
+while(my($hash, $params_arr)= each %file_list ) {
+  if ($#{ $params_arr } > 0) {
+    print "$hash\n";	
+    foreach my $line (@$params_arr) {
+    	 print "  $line\n";
+     }
+  }
+}
 
   
 }
@@ -107,8 +148,51 @@ sub make_ed2k_hash {
  my ($file) = @_;
  my $ed2k_hash = '';
 
+    #Make ed2k hash
+    my ($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size,$atime,$mtime,$ctime,$blksize,$blocks)=stat("$file");
+
+   	my $filename = $file;
+   	$filename =~ s/$conf{FILEARCH_PATH}//;
+  	my $dir  = dirname($filename);
+  	$filename =~ s/$dir\///;
+  	$dir =~ s/^\///;
+    
+    if (defined($FILEHASH->{"$filename"}{"$dir"})) {
+    	 print "Skip $dir / $filename\n" if ($debug > 1);
+    	 next;
+     }
+    
+    #my $date = strftime "%Y-%m-%d %H:%M:%S", localtime($mtime);
+    $blocks = int($size / BLOCKSIZE);
+    $blocks++ if ($size % BLOCKSIZE > 0);
+    my @blocks_hashes = ();
+
+    my $ctx = Digest::MD4->new;   
+    open(FILE, "$file") || die "Can't open '$file' $!";
+    binmode(FILE);
+    my $data;    
+    for (my $b=0; $b < $blocks; $b++) {
+
+       my $len =  BLOCKSIZE;
+       $len = $size % BLOCKSIZE if ($b == $blocks - 1); 
+       
+       my $ADDRESS = ($b * BLOCKSIZE);
+       seek(FILE, $ADDRESS, 0) or die "seek:$!";
+       read(FILE, $data, $len);
+       $ctx->add($data);
+       $blocks_hashes[$b]=$ctx->digest;
+       print " hash block $b: ". bin2hex($blocks_hashes[$b]) ."\n" if ($debug > 1);
+     }
+    close(FILE);
+
+    $ctx->add(@blocks_hashes);
+    my $filehash = $ctx->hexdigest;
+    #$filehash =~ tr/[a-z]/[A-Z]/;
+
+
+
  
- return $ed2k_hash;
+ return ($dir, $filename, $size, $ed2k_hash);
 }
 
 #**********************************************************
@@ -117,10 +201,11 @@ sub make_ed2k_hash {
 sub getfiles {
   my $dir = shift;
 
-  if ($dir =~ /\/bfs\/Share\/Video\/Movies\/_unsorted/) {
+  if ($dir =~ /$conf{FILEARCH_SKIPDIR}/) {
   	print "Skip dir '$conf{FILEARCH_SKIPDIR}'\n";
   	return 0;
    }
+
   opendir DIR, $dir or return;
     my @contents = map "$dir/$_",
     sort grep !/^\.\.?$/,
@@ -141,6 +226,8 @@ foreach my $file (@contents) {
    }
   elsif ($file) {
     $stats{TOTAL}++;
+
+    #Make ed2k hash
     my ($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size,$atime,$mtime,$ctime,$blksize,$blocks)=stat("$file");
 
    	my $filename = $file;

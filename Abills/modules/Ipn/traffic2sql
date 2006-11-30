@@ -72,7 +72,7 @@ $Ipn->user_ips({ NAS_ID => $NAS_ID });
 if (-f $log) {
   get_collector_data($log);
   processing();
-  my $status = unlink("$log");
+  #my $status = unlink("$log");
 }
 
 # GEt information from flowtools
@@ -298,9 +298,10 @@ while( <LOG> ) {
 #		$DD = "0".$DD if ( $DD < 10 ); 
 #		print "$MM, $DD,$HH, $YY,$DD\n";
 #  }
+
   #Ipcad log analize
-  if (/ (\d+)\.(\d+)\.(\d+)\.(\d+)\s+(\d+)\.(\d+)\.(\d+)\.(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)/) {
-  	#print "-$1.$2.$3.$4 $5.$6.$7.$8 $9 $10 $11 $12\n";
+  if (/ (\d+)\.(\d+)\.(\d+)\.(\d+)\s+(\d+)\.(\d+)\.(\d+)\.(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s(\S+)/) {
+  	#print "-$1.$2.$3.$4 $5.$6.$7.$8 Pkg: $9 Byte: $10 Port: $11 / $12 Proto: $13 > $14\n";
 		( $DATA{SRC_IP}, $DATA{SRC_PORT} ) = ( 16777216 * $1 + 65536 * $2 + 256 * $3 + $4, $11 );
 		( $DATA{DST_IP}, $DATA{DST_PORT} ) = ( 16777216 * $5 + 65536 * $6 + 256 * $7 + $8, $12 ); 
   	$DATA{SIZE} = $10;
@@ -308,7 +309,10 @@ while( <LOG> ) {
 		$DATA{SRC_PORT} = 0 if ( $DATA{SRC_PORT} !~ /^\d+$/ );
 		$DATA{DST_PORT} = 0 if ( $DATA{DST_PORT} !~ /^\d+$/ );
 		$DATA{NAS_ID}=$NAS_ID;
-		$DATA{IF_NAME}='0';
+		if ($14) {
+			$DATA{IF_NAME}=$14;
+		 }
+		
     $Ipn->traffic_agregate_users({ %DATA });
    }
   # flow-capture

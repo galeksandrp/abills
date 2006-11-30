@@ -462,7 +462,7 @@ sub ip_in_zone($$$) {
 	     
 	     my $adr_hash = \%{$zones{$zoneid}{A}[$i]};
        
-       my $a_ip = $$adr_hash{'IP'}; 
+       my $a_ip  = $$adr_hash{'IP'}; 
        my $a_msk = $$adr_hash{'Mask'}; 
        my $a_neg = $$adr_hash{'Neg'}; 
        my $a_ports_ref = \@{$$adr_hash{'Ports'}};
@@ -1455,14 +1455,18 @@ sub log_del {
 	my $self = shift;
 	my ($attr) = @_;
 
+ if ($attr->{UID}) {
+   push @WHERE_RULES, "ipn_log.uid='$attr->{UID}'";
+  }
 
+ if ($attr->{SESSION_ID}) {
+   push @WHERE_RULES, "ipn_log.session_id='$attr->{SESSION_ID}'";
+  }
 
+ my $WHERE = "WHERE " . join(' and ', @WHERE_RULES);
+ $self->query($db, "DELETE FROM ipn_log WHERE $WHERE;");
 
-
-
-
-
-
+ return $self;
 }
 
 
