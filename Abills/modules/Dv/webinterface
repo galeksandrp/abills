@@ -2330,12 +2330,17 @@ sub dv_cards {
   	 	  	cards_users_gen_confim({ %$line });
   	 	   }
   	  }
+
+
+
    }
   
-   
 
-  $html->message('info', $_INFO, "$_ADDED:  $added_count");
+if ($added_count > 0) {
+  $html-message('info', $_INFO, "$_ADDED:  $added_count");
   print $table->show();
+}
+
 }
 
 
