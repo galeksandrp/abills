@@ -283,7 +283,9 @@ sub cards_users_add () {
         	 my @params = split(/\t/, $line);
            $USER_HASH{LOGIN}=$params[0];
            $USER_HASH{DILLER_ID}=int($FORM{DILLER_ID});
-
+           
+           next if ($USER_HASH{LOGIN} eq '');
+           
            if ($params[1] eq '-') {
            	 $USER_HASH{PASSWORD}=mk_unique_value($FORM{PASSWD_LENGTH}, { SYMBOLS => $FORM{PASSWD_SYMBOLS} || undef });
             }

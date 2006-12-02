@@ -2350,7 +2350,7 @@ if ($added_count > 0) {
 sub dv_wizard_user {
 	my ($attr) = @_;
 
-
+  my $fees = Finance->fees($db, $admin, \%conf);
   my $payments = Finance->payments($db, $admin, \%conf);
   my $users = Users->new($db, $admin, \%conf); 
 
@@ -2402,18 +2402,37 @@ sub dv_wizard_user {
         }
       
       #5 Payments section
-      if ($FORM{'5.SUM'} && $FORM{'5.SUM'} + 0 > 0) {
+      if ($FORM{'5.SUM'}) {
 
-        my $er = ($FORM{'5.ER'}) ? $payments->exchange_info($FORM{'5.ER'}) : { ER_RATE => 1 } ;  
-        $payments->add($user, { %{$add_values{5}}, ER => $er->{ER_RATE} } );  
 
-        if ($payments->{errno}) {
-          $html->message('err', "$_ERROR:$_PAYMENTS", "[$payments->{errno}] $err_strs{$payments->{errno}}");	
-          return 0;
-         }
-        else {
-          $message = "$_SUM: $FORM{'5.SUM'} $er->{ER_SHORT_NAME}";
-         }
+       if($FORM{'5.SUM'} + 0 > 0) {
+          my $er = ($FORM{'5.ER'}) ? $payments->exchange_info($FORM{'5.ER'}) : { ER_RATE => 1 } ;  
+          $payments->add($user, { %{$add_values{5}}, ER => $er->{ER_RATE} } );  
+
+          if ($payments->{errno}) {
+            $html->message('err', "$_ERROR:$_PAYMENTS", "[$payments->{errno}] $err_strs{$payments->{errno}}");	
+            return 0;
+           }
+          else {
+            $message = "$_SUM: $FORM{'5.SUM'} $er->{ER_SHORT_NAME}";
+           }
+        }
+       elsif($FORM{'5.SUM'} + 0 < 0) {
+          my $er = ($FORM{'5.ER'}) ? $payments->exchange_info($FORM{'5.ER'}) : { ER_RATE => 1 } ;  
+          
+          $fees->{debug}=1;
+          
+          $fees->take($user, $FORM{'5.SUM'}, { DESCRIBE => 'MIGRATION',  ER => $er->{ER_RATE} } );  
+
+          if ($fees->{errno}) {
+            $html->message('err', "$_ERROR:$_FEES", "[$fees->{errno}] $err_strs{$fees->{errno}}");	
+            return 0;
+           }
+          else {
+            $message = "$_SUM: $FORM{'5.SUM'} $er->{ER_SHORT_NAME}";
+           }
+        }
+
       }
       
       # Info
