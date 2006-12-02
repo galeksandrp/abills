@@ -2337,7 +2337,7 @@ sub dv_cards {
   
 
 if ($added_count > 0) {
-  $html-message('info', $_INFO, "$_ADDED:  $added_count");
+  $html->message('info', $_INFO, "$_ADDED:  $added_count");
   print $table->show();
 }
 
