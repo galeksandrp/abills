@@ -2319,7 +2319,7 @@ sub dv_cards {
   	 	  $FORM{'1.CREATE_BILL'}=1;
 
   	 	  if ( dv_wizard_user({ SHORT_REPORT => 1 }) != 1) {
-  	 	  	 print $html->message('err', $_ERROR, "$_LOGIN: $line->{LOGIN}");
+  	 	  	 $html->message('err', $_ERROR, "$_LOGIN: $line->{LOGIN}");
   	 	  	 last;
   	 	   }
   	 	  else {
@@ -2334,7 +2334,7 @@ sub dv_cards {
   
    
 
-  message('info', $_INFO, "$_ADDED:  $added_count");
+  $html->message('info', $_INFO, "$_ADDED:  $added_count");
   print $table->show();
 }
 
