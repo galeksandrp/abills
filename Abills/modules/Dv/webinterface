@@ -2422,7 +2422,7 @@ sub dv_wizard_user {
           
           $fees->{debug}=1;
           
-          $fees->take($user, $FORM{'5.SUM'}, { DESCRIBE => 'MIGRATION',  ER => $er->{ER_RATE} } );  
+          $fees->take($user, abs($FORM{'5.SUM'}), { DESCRIBE => 'MIGRATION',  ER => $er->{ER_RATE} } );  
 
           if ($fees->{errno}) {
             $html->message('err', "$_ERROR:$_FEES", "[$fees->{errno}] $err_strs{$fees->{errno}}");	
