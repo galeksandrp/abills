@@ -8,6 +8,7 @@ use strict;
 
 
 
+
 use FindBin '$Bin';
 require $Bin . '/config.pl';
 unshift(@INC, $Bin . '/../', $Bin . "/../Abills/$conf{dbtype}");
@@ -66,6 +67,7 @@ if ($#ARGV < 0) {
   GET_DUBS           - Get dublicats
   debug              - Debug mode
   ed2k_hash=FILENAME - Make ed2k hash
+  CHECK_SR           - CHECK file names from Share reactors
 	\n";
  }
 elsif ($ARGV[0] eq 'checkfiles') {
@@ -89,6 +91,11 @@ elsif (defined($params->{'GET_DUBS'})) {
   my $path = ($params->{GET_DUBS} eq '') ? '.' : $params->{GET_DUBS};
   get_dublicats($path);
  }
+elsif (defined($params->{'CHECK_SR'})) {
+  my $path = ($params->{CHECK_SR} eq '') ? '.' : $params->{CHECK_SR};
+  $params->{NEW_FOLDER} = '.' if (! $params->{NEW_FOLDER});
+  check_sr($path);
+ }
 elsif ($params->{ed2k_hash}) {
   my($path, $filename, $size, $hash) = make_ed2k_hash($params->{ed2k_hash});
   print "$path, $filename, $size, $hash\n";
@@ -96,13 +103,14 @@ elsif ($params->{ed2k_hash}) {
 
 
 
+
 #**********************************************************
 #
 #**********************************************************
-sub get_dublicats {
+sub check_sr {
   my ($dir) = @_;
 
-  print "Check files PATH: '$dir'" if ($debug == 1);
+  print "Check files PATH: '$dir'\n" if ($debug == 1);
   
   # HASH -> (PATH_ARRAY)
   my %file_list = ();
@@ -120,15 +128,67 @@ foreach my $file (@contents) {
     #print "> $_ \n";
     $rec_level++;
     #print "Recurs Level: $rec_level\n";
-    &getfiles($file);
+    &check_sr($file);
     #recode($_);
    }
   elsif ($file) {
+
+    my ($filename, $dir, $size, $ed2k_hash) = make_ed2k_hash($file);
+
+    print "$file / $ed2k_hash" if ($debug == 1);
+    
+    my $search_ret = sr_search($ed2k_hash);
+    
+    if (ref $search_ret eq 'HASH') {
+       $search_ret->{ORIGIN_NAME} =~ s/ /\./g;
+       print " $search_ret->{ORIGIN_NAME}.avi | $search_ret->{NAME}";
+     }
+    
+    print "\n";
+    
+    #push @{ $file_list{$ed2k_hash} }, "$filename, $dir, $size, $ed2k_hash";
+   }
+}
+
+}
+
+
+
+#**********************************************************
+#
+#**********************************************************
+sub get_dublicats {
+  my ($dir) = @_;
+
+  print "Check files PATH: '$dir'\n" if ($debug == 1);
+  
+  # HASH -> (PATH_ARRAY)
+  my %file_list = ();
+  
+  opendir DIR, $dir or return;
+    my @contents = map "$dir/$_",
+    sort grep !/^\.\.?$/,
+    readdir DIR;
+  closedir DIR;
+
+foreach my $file (@contents) {
+  exit if ($recursive == $rec_level && $recursive != 0 );
+
+  if (! -l $file && -d $file ) {
+    #print "> $_ \n";
+    $rec_level++;
+    #print "Recurs Level: $rec_level\n";
+    &get_dublicats($file);
+    #recode($_);
+   }
+  elsif ($file) {
+    print "$file\n" if ($debug == 1);
     my ($filename, $dir, $size, $ed2k_hash) = make_ed2k_hash($file);
     push @{ $file_list{$ed2k_hash} }, "$filename, $dir, $size, $ed2k_hash";
    }
 }
 
+print "Finish:\n";
 while(my($hash, $params_arr)= each %file_list ) {
   if ($#{ $params_arr } > 0) {
     print "$hash\n";	
@@ -157,18 +217,13 @@ sub make_ed2k_hash {
   	$filename =~ s/$dir\///;
   	$dir =~ s/^\///;
     
-    if (defined($FILEHASH->{"$filename"}{"$dir"})) {
-    	 print "Skip $dir / $filename\n" if ($debug > 1);
-    	 next;
-     }
-    
     #my $date = strftime "%Y-%m-%d %H:%M:%S", localtime($mtime);
     $blocks = int($size / BLOCKSIZE);
     $blocks++ if ($size % BLOCKSIZE > 0);
     my @blocks_hashes = ();
 
     my $ctx = Digest::MD4->new;   
-    open(FILE, "$file") || die "Can't open '$file' $!";
+    open(FILE, "$file") || die "Can't open '$file' $!\n";
     binmode(FILE);
     my $data;    
     for (my $b=0; $b < $blocks; $b++) {
@@ -177,7 +232,7 @@ sub make_ed2k_hash {
        $len = $size % BLOCKSIZE if ($b == $blocks - 1); 
        
        my $ADDRESS = ($b * BLOCKSIZE);
-       seek(FILE, $ADDRESS, 0) or die "seek:$!";
+       seek(FILE, $ADDRESS, 0) or die "seek:$!\n";
        read(FILE, $data, $len);
        $ctx->add($data);
        $blocks_hashes[$b]=$ctx->digest;
@@ -192,7 +247,7 @@ sub make_ed2k_hash {
 
 
  
- return ($dir, $filename, $size, $ed2k_hash);
+ return ($dir, $filename, $size, $filehash);
 }
 
 #**********************************************************

@@ -177,9 +177,9 @@ sub sr_search {
 
  my $res = web_request($request, {'TimeOut' => 60 });
 
- if($res =~ /mzinfo.cgi\?id=(\d*)/) {
-   print "FIND: $1 (http://www.sharereactor.ru/cgi-bin/mzinfo.cgi?id=$1)" if (defined($attr->{debug}) > 0);
-   my $res = web_request("http://www.sharereactor.ru/cgi-bin/mzinfo.cgi?id=$1", {'TimeOut' => 60 });      
+ if($res =~ /\/movies\/(\d*)/) {
+   print "FIND: $1 (http://www.sharereactor.ru/movies/$1)" if (defined($attr->{debug}) > 0);
+   my $res = web_request("http://www.sharereactor.ru/movies/$1", {'TimeOut' => 60 });      
    return parse_info($res, { EXPRESSIONS => $SEARCH_EXPRESSiONS{sr}{GET_INFO} });
   }
 
