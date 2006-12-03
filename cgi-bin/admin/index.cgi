@@ -2445,7 +2445,7 @@ my $FIELDS='';
 
 if ($attr->{FIELDS}) {
   my %fields_hash = (); 
-  if ($FORM{FIELDS}) {
+  if (defined($FORM{FIELDS})) {
   	my @fileds_arr = split(/, /, $FORM{FIELDS});
    	foreach my $line (@fileds_arr) {
    		$fields_hash{$line}=1;
@@ -2682,8 +2682,6 @@ sub report_payments {
   use Finance;
   my $payments = Finance->payments($db, $admin, \%conf);
   
-$payments->{debug}=1;
-
 if (defined($FORM{DATE})) {
   $list  = $payments->list( { %LIST_PARAMS } );
   $table = $html->table({ width      => '100%',
