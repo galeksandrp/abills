@@ -2472,7 +2472,10 @@ if ($attr->{PERIOD_FORM}) {
                                                                  { SELECTED     => $FORM{TYPE},
  	                                                                 SEL_HASH     => { DAYS  => $_DAYS, 
  	                                                                                   USER  => $_USERS, 
- 	                                                                                   HOURS => $_HOURS },
+ 	                                                                                   HOURS => $_HOURS,
+ 	                                                                                   ($attr->{EXT_TYPE}) ? %{ $attr->{EXT_TYPE} } : ''
+ 	                                                                                   
+ 	                                                                                    },
  	                                                                 NO_ID        => 1
  	                                                                }) ,
  	                                        ($attr->{XML}) ? 
@@ -2671,7 +2674,8 @@ sub report_payments {
   reports({ DATE        => $FORM{DATE}, 
   	        REPORT      => '',
   	        PERIOD_FORM => 1,
-  	        FIELDS     => { %METHODS_HASH },
+  	        FIELDS      => { %METHODS_HASH },
+  	        EXT_TYPE    => { PAYMENT_METHOD => $_PAYMENT_METHOD }
          });
   
   if ($FORM{FIELDS}) {
@@ -2703,17 +2707,29 @@ if (defined($FORM{DATE})) {
     }
  }   
 else{ 
+  
+  
+  my @CAPTION = ("$_DATE", "$_COUNT", $_SUM);
+  if ($FORM{TYPE} && $FORM{TYPE} eq 'PAYMENT_METHOD') {
+  	$CAPTION[0]=$_PAYMENT_METHOD;
+  }
+  
   $table = $html->table({ width      => '100%',
 	                        caption    => $_PAYMENTS, 
-                          title      => ["$_DATE", "$_COUNT", $_SUM],
+                          title      => \@CAPTION,
                           cols_align => ['right', 'right', 'right'],
                           qs         => $pages_qs
-                               });
+                        });
 
 
   $list = $payments->reports({ %LIST_PARAMS });
+
   foreach my $line (@$list) {
-    $table->addrow($html->button($line->[0], "index=$index&$type=$line->[0]$pages_qs"), $line->[1], "<b>$line->[2]</b>" );
+    $table->addrow(
+    
+      ($FORM{TYPE} && $FORM{TYPE} eq 'PAYMENT_METHOD') ? @PAYMENT_METHODS[$line->[0]] : $html->button($line->[0], "index=$index&$type=$line->[0]$pages_qs"), 
+      $line->[1], 
+     "<b>$line->[2]</b>" );
    }
 
 

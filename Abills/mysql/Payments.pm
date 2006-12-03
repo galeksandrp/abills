@@ -300,6 +300,9 @@ sub reports {
    elsif ($attr->{TYPE} eq 'DAYS') {
      $date = "date_format(p.date, '%Y-%m-%d')";
     }
+   elsif($attr->{TYPE} eq 'PAYMENT_METHOD') {
+   	 $date = "p.method";   	
+    }
    else {
      $date = "u.id";   	
     }  
