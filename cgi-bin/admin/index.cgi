@@ -187,9 +187,11 @@ my @actions = ([$_SA_ONLY, $_ADD, $_LIST, $_PASSWD, $_CHANGE, $_DEL, $_ALL],  # 
 
 
 
+#Global Vars
 @action    = ('add', $_ADD);
 @bool_vals = ($_NO, $_YES);
-my @PAYMENT_METHODS = ('Cash', 'Bank', 'Internet Card', 'Credit Card', 'Bonus');
+@PAYMENT_METHODS = ('Cash', 'Bank', 'Internet Card', 'Credit Card', 'Bonus');
+
 my %menu_items  = ();
 my %menu_names  = ();
 my $maxnumber   = 0;
@@ -2658,14 +2660,29 @@ sub report_payments_month {
 #
 #**********************************************************
 sub report_payments {
+
+  my %METHODS_HASH = ();
+  
+  for(my $i=0; $i<=$#PAYMENT_METHODS; $i++) {
+  	$METHODS_HASH{"$i:$i"}="$PAYMENT_METHODS[$i]";
+   }
+  
+
   reports({ DATE        => $FORM{DATE}, 
   	        REPORT      => '',
-  	        PERIOD_FORM => 1 });
-
+  	        PERIOD_FORM => 1,
+  	        FIELDS     => { %METHODS_HASH },
+         });
+  
+  if ($FORM{FIELDS}) {
+  	$LIST_PARAMS{METHODS}=$FORM{FIELDS};
+   }
 
   $LIST_PARAMS{PAGE_ROWS}=1000;
   use Finance;
   my $payments = Finance->payments($db, $admin, \%conf);
+  
+$payments->{debug}=1;
 
 if (defined($FORM{DATE})) {
   $list  = $payments->list( { %LIST_PARAMS } );

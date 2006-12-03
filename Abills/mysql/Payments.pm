@@ -192,9 +192,15 @@ sub list {
     my $value = $self->search_expr($attr->{SUM}, 'INT');
     push @WHERE_RULES, "p.sum$value ";
   }
+
  if ($attr->{METHOD}) {
     push @WHERE_RULES, "p.method='$attr->{METHOD}' ";
   }
+ elsif ($attr->{METHODS}) {
+    push @WHERE_RULES, "p.method IN ($attr->{METHODS}) ";
+  }
+
+
  if ($attr->{DATE}) {
     my $value = $self->search_expr("$attr->{DATE}", 'INT');
     push @WHERE_RULES,  " date_format(p.date, '%Y-%m-%d')$value ";
@@ -274,6 +280,13 @@ sub reports {
  if ($attr->{GID}) {
    push @WHERE_RULES, "u.gid='$attr->{GID}'";
   }
+
+
+
+ if ($attr->{METHODS}) {
+    push @WHERE_RULES, "p.method IN ('$attr->{METHODS}') ";
+  }
+
  
  if(defined($attr->{DATE})) {
    push @WHERE_RULES, "date_format(p.date, '%Y-%m-%d')='$attr->{DATE}'";
