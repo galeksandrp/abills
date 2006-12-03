@@ -291,7 +291,7 @@ my $dms = $DMS_vals{SELECT} + $DMS_vals{INSERT} + $DMS_vals{REPLACE} + $DMS_vals
 
  $table->addrow('Buffer used', make_short($key_buffer_used, 1), 'of '.  make_short($vars->{'key_buffer_size'}, 1),
     '%Used:', perc($key_buffer_used, $vars->{'key_buffer_size'}) ); 
- $table->addrow(' Current',   make_short($key_buffer_usage, 1), '', '', '%Usage:', perc($key_buffer_usage, $vars->{'key_buffer_size'})) if ($key_buffer_usage > 0);
+ $table->addrow(' Current',   make_short($key_buffer_usage, 1), '', '%Usage:', perc($key_buffer_usage, $vars->{'key_buffer_size'})) if ($key_buffer_usage > 0);
  $table->addrow('Write ratio', $key_write_ratio, '','', '');
  $table->addrow('Read ratio',  $key_read_ratio, '', '', '');
 
