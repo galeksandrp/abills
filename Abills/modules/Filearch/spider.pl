@@ -31,7 +31,7 @@ use IO::Socket;
 use IO::Select;
 
 
-$debug=1;
+$debug=0;
 require "Abills/modules/Filearch/Filesearcher.pm";
 Filesearcher->import();
 
@@ -50,6 +50,7 @@ my %stats = (TOTAL => 0,
 
 my @not_exist_files=();
 my $FILEHASH;
+my %file_list = ();
 
 my $params = parse_arguments(\@ARGV);
 
@@ -90,6 +91,16 @@ elsif($ARGV[0] eq 'getinfo') {
 elsif (defined($params->{'GET_DUBS'})) {
   my $path = ($params->{GET_DUBS} eq '') ? '.' : $params->{GET_DUBS};
   get_dublicats($path);
+  
+  print "Finish:\n";
+  while(my($hash, $params_arr)= each %file_list ) {
+    if ($#{ $params_arr } > 0) {
+      print "$hash\n";	
+      foreach my $line (@$params_arr) {
+    	  print "  $line\n";
+       }
+     }
+  }
  }
 elsif (defined($params->{'CHECK_SR'})) {
   my $path = ($params->{CHECK_SR} eq '') ? '.' : $params->{CHECK_SR};
@@ -125,11 +136,8 @@ foreach my $file (@contents) {
   exit if ($recursive == $rec_level && $recursive != 0 );
 
   if (! -l $file && -d $file ) {
-    #print "> $_ \n";
     $rec_level++;
-    #print "Recurs Level: $rec_level\n";
     &check_sr($file);
-    #recode($_);
    }
   elsif ($file) {
 
@@ -141,8 +149,17 @@ foreach my $file (@contents) {
     
     if (ref $search_ret eq 'HASH') {
        $search_ret->{ORIGIN_NAME} =~ s/ /\./g;
+       if($search_ret->{LINKS} =~ /ed2k:\/\/\|file\|[\(\)a-zA-Z0-9 "',\.]+ (\d)[ \.]of[ \.]\d [\(\)a-zA-Z0-9 "',\.]+\|$size\|$ed2k_hash\|/) {
+       	  $search_ret->{ORIGIN_NAME} .= ".cd$1";
+        }
+
        print " $search_ret->{ORIGIN_NAME}.avi | $search_ret->{NAME}";
-       system("mv $file $params->{NEW_FOLDER}/$search_ret->{ORIGIN_NAME}.avi");
+       if (! -f "$params->{NEW_FOLDER}/$search_ret->{ORIGIN_NAME}.avi") {
+         system("mv '$file' '$params->{NEW_FOLDER}/$search_ret->{ORIGIN_NAME}.avi'");
+        }
+       else {
+       	 print "Exist...";
+        }
      }
     
     print "\n";
@@ -162,10 +179,7 @@ sub get_dublicats {
   my ($dir) = @_;
 
   print "Check files PATH: '$dir'\n" if ($debug == 1);
-  
   # HASH -> (PATH_ARRAY)
-  my %file_list = ();
-  
   opendir DIR, $dir or return;
     my @contents = map "$dir/$_",
     sort grep !/^\.\.?$/,
@@ -176,30 +190,17 @@ foreach my $file (@contents) {
   exit if ($recursive == $rec_level && $recursive != 0 );
 
   if (! -l $file && -d $file ) {
-    #print "> $_ \n";
     $rec_level++;
-    #print "Recurs Level: $rec_level\n";
     &get_dublicats($file);
-    #recode($_);
    }
   elsif ($file) {
     print "$file\n" if ($debug == 1);
     my ($filename, $dir, $size, $ed2k_hash) = make_ed2k_hash($file);
-    push @{ $file_list{$ed2k_hash} }, "$filename, $dir, $size, $ed2k_hash";
+    push @{ $file_list{$ed2k_hash} }, "$filename/$dir, $size, $ed2k_hash";
    }
 }
 
-print "Finish:\n";
-while(my($hash, $params_arr)= each %file_list ) {
-  if ($#{ $params_arr } > 0) {
-    print "$hash\n";	
-    foreach my $line (@$params_arr) {
-    	 print "  $line\n";
-     }
-  }
-}
-
-  
+ 
 }
 
 #*********************************************************

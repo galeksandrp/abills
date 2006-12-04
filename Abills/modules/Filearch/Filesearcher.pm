@@ -59,7 +59,7 @@ $VERSION = 2.00;
                                        COVER        => '<IMG SRC=\'(.+)\' alt=\'(.+)\'>',
                                        POSTER       => '<IMG SRC=\'(.+)\' alt=\'(.+)\'>',
                                        SITES        => '',
-                                       LINKS        => ''
+                                       LINKS        => '<B>—сылка:</B> (.+)\n'
                                    }
 	                                },
                           imdb => { SEARCH       => '/title/tt(\d+)/.+>(.+)</a> \((\d+)\)',
