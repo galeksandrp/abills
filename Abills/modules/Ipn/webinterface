@@ -1429,9 +1429,9 @@ sub ipn_user_activate {
     if ($online_ip eq $ip && $user->{UID}) {
        if ($line->[11] == $LIST_PARAMS{UID}) {
          $ACTION{LOGOUT}= "$_HANGUP";    	
-         $HIDDEN{SESSION_ID} = $line->[13];
+         $HIDDEN{SESSION_ID} = $line->[21];
          delete $ACTION{ACTIVE};
-         if ($line->[10] == 11) {
+         if ($line->[17] == 11) {
        	   $html->message('err', $_ERROR, "$_DISABLE");
        	   return 0;
           } 
@@ -1447,7 +1447,7 @@ sub ipn_user_activate {
        $online_ip,  
        $line->[4], 
        int2byte($line->[5]), int2byte($line->[6]),
-       $html->button("$_HANGUP", "index=$index&LOGOUT=1&SESSION_ID=$line->[13]")
+       $html->button("$_HANGUP", "index=$index&UID=$LIST_PARAMS{UID}&LOGOUT=1&SESSION_ID=$line->[21]")
        )  if ($line->[11] == $LIST_PARAMS{UID} );
     }
    } 
