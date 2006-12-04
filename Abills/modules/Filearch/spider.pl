@@ -142,6 +142,7 @@ foreach my $file (@contents) {
     if (ref $search_ret eq 'HASH') {
        $search_ret->{ORIGIN_NAME} =~ s/ /\./g;
        print " $search_ret->{ORIGIN_NAME}.avi | $search_ret->{NAME}";
+       system("mv $file $params->{NEW_FOLDER}/$search_ret->{ORIGIN_NAME}.avi");
      }
     
     print "\n";

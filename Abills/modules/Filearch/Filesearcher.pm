@@ -58,7 +58,8 @@ $VERSION = 2.00;
                                        FILE_SOUND   => '<B>Звук:</B> (.+)\n',
                                        COVER        => '<IMG SRC=\'(.+)\' alt=\'(.+)\'>',
                                        POSTER       => '<IMG SRC=\'(.+)\' alt=\'(.+)\'>',
-                                       SITES        => ''
+                                       SITES        => '',
+                                       LINKS        => ''
                                    }
 	                                },
                           imdb => { SEARCH       => '/title/tt(\d+)/.+>(.+)</a> \((\d+)\)',
