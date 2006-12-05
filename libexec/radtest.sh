@@ -59,7 +59,7 @@ elif [ t$1 = 'tacct' ]; then
   if [ t$2 = 'tStart' ]; then
    echo Start;
    ./racct.pl \
-        USER_NAME="aa1" \
+        USER_NAME="12333:aa1" \
         SERVICE_TYPE=Framed-User \
         FRAMED_PROTOCOL=PPP \
         FRAMED_IP_ADDRESS=10.0.0.1 \
@@ -71,7 +71,6 @@ elif [ t$1 = 'tacct' ]; then
         NAS_PORT_TYPE=Virtual \
         ACCT_STATUS_TYPE=Start \
         ACCT_SESSION_ID="83419_AA11118757979" \
-        USER_NAME="aa1" \
 
 #        CALLING_STATION_ID="192.168.101.4" \
 

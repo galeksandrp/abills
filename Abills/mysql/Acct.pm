@@ -95,7 +95,6 @@ if ($acct_status_type == 1) {
     '$NAS->{NAS_ID}',
     '$self->{TP_ID}');";
 
-
   $self->query($db, "$sql", 'do');
  }
 # Stop status
