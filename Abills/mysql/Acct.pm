@@ -65,7 +65,12 @@ sub accounting {
  if (length($RAD->{ACCT_SESSION_ID}) > 25) {
  	  $RAD->{ACCT_SESSION_ID} = substr($RAD->{ACCT_SESSION_ID}, 0, 1);
   }
-    
+ 
+if ($RAD->{USER_NAME} =~ /(\d+):(\S+)/) {
+  $RAD->{USER_NAME}=$2;
+  $RAD->{CALLING_STATION_ID}=$1;
+}  
+
 #Start
 if ($acct_status_type == 1) { 
   #Get TP_ID

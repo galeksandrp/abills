@@ -155,6 +155,7 @@ foreach my $file (@contents) {
 
        print " $search_ret->{ORIGIN_NAME}.avi | $search_ret->{NAME}";
        if (! -f "$params->{NEW_FOLDER}/$search_ret->{ORIGIN_NAME}.avi") {
+         $file =~ s/'/\\'/;
          system("mv '$file' '$params->{NEW_FOLDER}/$search_ret->{ORIGIN_NAME}.avi'");
         }
        else {
