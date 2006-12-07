@@ -16,6 +16,7 @@ my $fees = Fees->new($db, $admin, \%conf);
 my $tariffs = Tariffs->new($db, \%conf, $admin);
 my $sessions = Dv_Sessions->new($db, $admin, \%conf);
 
+my %FORM2 = ();
 
 
 #*******************************************************************
@@ -148,7 +149,7 @@ sub dv_users_list {
 
  if ($attr->{TP}) {
    $LIST_PARAMS{TP_ID} = $FORM{TP_ID};
-   $pages_qs .= "&TP_ID=$FORM{TP_ID}";
+   #$pages_qs .= "&TP_ID=$FORM{TP_ID}";
   }
  elsif($FORM{TP_ID}) {
    $FORM{subf}=$index;
@@ -2293,7 +2294,8 @@ sub dv_cards {
   
 
   $FORM{add}=1;
-  my %FORM2=%FORM;
+  %FORM2=%FORM if ($#{ keys %FORM2 } < 0);
+
   my $CREATED = '';
   my $added_count = 0;
 

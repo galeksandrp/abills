@@ -157,9 +157,7 @@ my %prepaid     = ( 0 => 0,
 my %used_traffic= ( 0 => 0, 
                     1 => 0);
 
-
 my $list = $tariffs->tt_list( { TI_ID => $self->{TI_ID} });
-
 #id, in_price, out_price, prepaid, speed, descr, nets
 foreach my $line (@$list) {
    $traf_price{in}{$line->[0]}  =	$line->[1];
@@ -171,7 +169,8 @@ foreach my $line (@$list) {
 if ($prepaid{0} + $prepaid{1} > 0) {
    #Get traffic from begin of month
    $self->query($db, "SELECT sum(sent + recv), sum(sent2 + recv2)
-       FROM dv_log WHERE uid='$self->{UID}' and (DATE_FORMAT(start, '%Y-%m')=DATE_FORMAT(curdate(), '%Y-%m'))
+       FROM dv_log 
+       WHERE uid='$self->{UID}' and (DATE_FORMAT(start, '%Y-%m')=DATE_FORMAT($RAD->{SESSION_START}, '%Y-%m'))
        GROUP BY uid;");
 
    if ($self->{TOTAL} > 0) {
@@ -390,7 +389,7 @@ if(! defined($self->{NO_TPINTERVALS})) {
      }
    
     if( $i == 0 && defined($periods_traf_tarif->{$k}) && $periods_traf_tarif->{$k} > 0) {
-   	    $sum  += $self->traffic_calculations($RAD);
+   	    $sum  += $self->traffic_calculations({ %$RAD, SESSION_START => $SESSION_START });
    	    last;
      }
    }

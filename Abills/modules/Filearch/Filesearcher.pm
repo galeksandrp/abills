@@ -34,10 +34,10 @@ $VERSION = 2.00;
 
 
 
-%SEARCH_EXPRESSiONS = ( sr   => { SEARCH       => 'mzinfo.cgi\?id=(\d+)">(.+)</A></TD>[ ]+<TD>(\d+)</TD>[ ]+<TD>(\W+)</TD>.+</TR>',  # '(mzinfo.cgi\?id=.+\n)',
+%SEARCH_EXPRESSiONS = ( sr   => { SEARCH       => 'movies/(\d+)">(.+)</A></TD>[ ]+<TD>(\d+)</TD>[ ]+<TD>(\W+)</TD>.+</TR>',  # '(mzinfo.cgi\?id=.+\n)',
 	                                  SEARCH_LINK  => 'http://www.sharereactor.ru/cgi-bin/mzsearch.cgi?search=',
                                     SEARCH_PARSE => '',
-                                    INFO_PAGE    => 'http://www.sharereactor.ru/cgi-bin/mzinfo.cgi?id=%ID%',
+                                    INFO_PAGE    => 'http://www.sharereactor.ru/movies/%ID%',
                                     GET_INFO     => {
                                   	   NAME        => '<H1>(.+)</H1>',
                                        ORIGIN_NAME => '<B>Оригинальное&nbsp;название:</B> (.+)\n',

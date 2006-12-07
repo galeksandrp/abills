@@ -69,6 +69,8 @@ if ($#ARGV < 0) {
   debug              - Debug mode
   ed2k_hash=FILENAME - Make ed2k hash
   CHECK_SR           - CHECK file names from Share reactors
+  SKIP_DIRS          - Skip some dirs
+  
 	\n";
  }
 elsif ($ARGV[0] eq 'checkfiles') {
@@ -143,27 +145,33 @@ foreach my $file (@contents) {
 
     my ($filename, $dir, $size, $ed2k_hash) = make_ed2k_hash($file);
 
-    print "$file / $ed2k_hash" if ($debug == 1);
+    print "$file / $ed2k_hash\n" if ($debug == 1);
     
     my $search_ret = sr_search($ed2k_hash);
     
     if (ref $search_ret eq 'HASH') {
        $search_ret->{ORIGIN_NAME} =~ s/ /\./g;
-       if($search_ret->{LINKS} =~ /ed2k:\/\/\|file\|[\(\)a-zA-Z0-9 "',\.]+ (\d)[ \.]of[ \.]\d [\(\)a-zA-Z0-9 "',\.]+\|$size\|$ed2k_hash\|/) {
+#       /\:*?<>"
+
+       if($search_ret->{LINKS} =~ /ed2k:\/\/\|file\|[\(\)a-zA-Z0-9 @&"',\.]+(\d)[ |\.]of[ |\.]\d[\(\)a-zA-Z0-9 @&"',\.]+\|$size\|$ed2k_hash\|/) {
        	  $search_ret->{ORIGIN_NAME} .= ".cd$1";
         }
 
-       print " $search_ret->{ORIGIN_NAME}.avi | $search_ret->{NAME}";
+       print "$file -> $search_ret->{ORIGIN_NAME}.avi | $search_ret->{NAME}\n";
        if (! -f "$params->{NEW_FOLDER}/$search_ret->{ORIGIN_NAME}.avi") {
-         $file =~ s/'/\\'/;
-         system("mv '$file' '$params->{NEW_FOLDER}/$search_ret->{ORIGIN_NAME}.avi'");
+         $file =~ s/"/\\"/;
+         #$search_ret->{ORIGIN_NAME} =~ s/\"/\\"/;
+         $search_ret->{ORIGIN_NAME} =~ s/\/\:*?<>"/_/;
+         
+         print "mv \"$file\" \"$params->{NEW_FOLDER}/$search_ret->{ORIGIN_NAME}.avi\"\n";
+         
+         system("mv \"$file\" \"$params->{NEW_FOLDER}/$search_ret->{ORIGIN_NAME}.avi\"");
         }
        else {
-       	 print "Exist...";
+       	 print "Exist...\n";
         }
      }
-    
-    print "\n";
+  
     
     #push @{ $file_list{$ed2k_hash} }, "$filename, $dir, $size, $ed2k_hash";
    }

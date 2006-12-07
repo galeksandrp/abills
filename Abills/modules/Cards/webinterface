@@ -366,7 +366,7 @@ sub cards_users_add () {
 #        #return 0;
 #   	   }
 #   	  else {
-   	    $html->message('info', $_INFO, "$_CREATE: $generated");
+   	    $html->message('info', $_INFO, "$_CREATED: $generated");
    	    print "<textarea cols='70' rows='30'>$export</textarea>\n";
 #   	   }
    	 }
