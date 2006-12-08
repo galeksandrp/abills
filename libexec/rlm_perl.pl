@@ -57,12 +57,8 @@ sub sql_connect {
 sub authorize {
   $begin_time = check_time();
   convert_radpairs();
-  
-  if (defined($nas->{errno}) && $nas->{errno} == 3) {
- 	   sql_connect();
-   }
-  
-  
+  sql_connect();
+ 
   if ( get_nas_info(\%RAD_REQUEST) == 0 ) {
   	
   	if (auth(\%RAD_REQUEST, { pre_auth => 1 }) == 0) {
@@ -81,6 +77,8 @@ sub authorize {
 #
 #**********************************************************
 sub authenticate {
+  
+  sql_connect();
   if ( get_nas_info(\%RAD_REQUEST) == 0 ) {
     if ( auth(\%RAD_REQUEST) == 0 ) {
     	return RLM_MODULE_OK;
@@ -100,6 +98,7 @@ sub accounting {
   $begin_time = check_time();
   convert_radpairs();
 
+  sql_connect();
   if ( get_nas_info(\%RAD_REQUEST) == 0 ) {
      my $ret = acct(\%RAD_REQUEST, $nas);
    }
