@@ -2325,9 +2325,10 @@ sub dv_cards {
 
 
   if (ref($return) eq 'ARRAY') {
-     %FORM = ();
-  	 %FORM = %FORM_BASE;
   	 foreach my $line (@$return) {
+        %FORM = ();
+     	  %FORM = %FORM_BASE;
+
   	 	  while(my($k, $v)= each %$line) {
   	 	  	 $FORM{$k}=clearquotes($v);
   	 	    }
