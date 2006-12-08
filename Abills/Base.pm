@@ -231,7 +231,7 @@ sub show_log {
  $total = $#err_recs;
  my @list;
 
- return (\@list, \%types, $total) if ($total < 1);
+ return (\@list, \%types, $total) if ($total < 0);
 
   
 # my $output;

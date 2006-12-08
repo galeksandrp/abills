@@ -42,12 +42,26 @@ require $Bin ."/rauth.pl";
 
 
 #**********************************************************
+# Function to handle authenticate
+#
+#**********************************************************
+sub sql_connect {
+	my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
+  $db  = $sql->{db};
+}
+
+#**********************************************************
 # Function to handle authorize
 #
 #**********************************************************
 sub authorize {
   $begin_time = check_time();
   convert_radpairs();
+  
+  if (defined($nas->{errno}) && $nas->{errno} == 3) {
+ 	   sql_connect();
+   }
+  
   
   if ( get_nas_info(\%RAD_REQUEST) == 0 ) {
   	

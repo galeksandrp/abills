@@ -58,12 +58,13 @@ sub dv_auth {
 	
 	
   my ($ret, $RAD_PAIRS) = $self->authentication($RAD, $NAS, $attr);
+
   if ($ret == 1) {
      return 1, $RAD_PAIRS;
   }
   
   my $MAX_SESSION_TRAFFIC = $CONF->{MAX_SESSION_TRAFFIC} || 2048;
-
+ 
   $self->query($db, "select  if (dv.logins=0, tp.logins, dv.logins) AS logins,
   if(dv.filter_id != '', dv.filter_id, tp.filter_id),
   if(dv.ip>0, INET_NTOA(dv.ip), 0),
@@ -591,7 +592,6 @@ sub authentication {
     $RAD_PAIRS{'Callback-Number'}=$1;
     $RAD->{USER_NAME}=$2;
    }
-
 
   $self->query($db, "select
   u.uid,
