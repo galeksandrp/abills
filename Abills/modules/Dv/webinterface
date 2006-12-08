@@ -969,8 +969,8 @@ foreach my $line (@$list) {
      $line->[1], 
      $line->[2],  
      $line->[3],  
-     int2byte($line->[4]), 
-     int2byte($line->[5]), 
+     int2byte($line->[4], { DIMENSION => $FORM{DIMENSION} }), 
+     int2byte($line->[5], { DIMENSION => $FORM{DIMENSION} }), 
      $line->[6],
      $line->[7], 
      $line->[10], 
@@ -1422,6 +1422,10 @@ $table = $html->table( { width       => '100%',
 	                       rowcolor    => $_COLORS[0],
                          title_plain => [ "$_FROM: ",  $html->date_fld('from', { MONTHES => \@MONTHES} ),
                                           "$_TO: ",    $html->date_fld('to', { MONTHES => \@MONTHES } ),
+                                          $html->form_select('DIMENSION', { SELECTED   => $FORM{DIMENSION},
+ 	                                                                          SEL_ARRAY  => ['', 'Kb', 'Mb', 'Gb']
+                              	                                           }
+                              	                             ),
                                           "$_ROWS: ",  $html->form_input('rows', int($conf{list_max_recs}), { SIZE => 4 } ),
                                           $html->form_input('show', $_SHOW, { TYPE => 'submit' })
                                          ],                                   
@@ -1453,6 +1457,9 @@ elsif($FORM{DATE}) {
 	$pages_qs .= "&DATE=$FORM{DATE}";
 }
 
+
+$pages_qs .= "&DIMENSION=$FORM{DIMENSION}"  if ($FORM{DIMENSION});
+
 if (! defined($FORM{sort})) {
   $LIST_PARAMS{SORT}=2;
   $LIST_PARAMS{DESC}=DESC;
@@ -1469,8 +1476,8 @@ $table = $html->table( { caption     => "$_SUM",
                          title_plain => ["$_SESSIONS", "$_DURATION", "$_TRAFFIC", "$_TRAFFIC 2", "$_SUM"],
                          cols_align  => ['right', 'right', 'right', 'right', 'right'],
                          rows        => [ [ $sessions->{TOTAL}, $sessions->{DURATION}, 
-                                            int2byte($sessions->{TRAFFIC}), 
-                                            int2byte($sessions->{TRAFFIC2}),
+                                            int2byte($sessions->{TRAFFIC}, { DIMENSION => $FORM{DIMENSION} }), 
+                                            int2byte($sessions->{TRAFFIC2}, { DIMENSION => $FORM{DIMENSION} }),
                                             $sessions->{SUM} ] ],
                      } );
 print $table->show();
@@ -1568,6 +1575,10 @@ $table = $html->table({ width       => '100%',
 	                      rowcolor    => $_COLORS[0],
                         title_plain => [ "$_FROM: ", $html->date_fld('from', { MONTHES => \@MONTHES} ),
                                          "$_TO: ",   $html->date_fld('to', { MONTHES => \@MONTHES } ),
+                                          $html->form_select('DIMENSION', { SELECTED   => $FORM{DIMENSION},
+ 	                                                                          SEL_ARRAY  => ['', 'Kb', 'Mb', 'Gb']
+                              	                                           }
+                              	                             ),
                                          "$_ROWS: ", $html->form_input('rows', int($conf{list_max_recs}), { SIZE => 4, OUTPUT2RETURN => 1 } ),
                                          $html->form_input('show', $_SHOW, { TYPE => 'submit', OUTPUT2RETURN => 1 })
                                     ],                                   
@@ -1602,6 +1613,7 @@ elsif (defined($FORM{PERIOD})) {
 	$pages_qs .= "&PERIOD=$FORM{PERIOD}";
 }
 
+$pages_qs .= "&DIMENSION=$FORM{DIMENSION}"  if ($FORM{DIMENSION});
 
 #Session List
 $list = $sessions->list({ %LIST_PARAMS });	

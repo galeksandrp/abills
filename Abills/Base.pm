@@ -370,8 +370,21 @@ sub int2byte {
  my $MEGABYTE = $KBYTE_SIZE * $KBYTE_SIZE;
  my $GIGABYTE = $KBYTE_SIZE * $KBYTE_SIZE * $KBYTE_SIZE;
 
-
- if($val > $GIGABYTE)      { $val = sprintf("%.2f GB", $val / $GIGABYTE);   }  # 1024 * 1024 * 1024
+ if ($attr->{DIMENSION}) {
+ 	 if ($attr->{DIMENSION} eq 'Mb') {
+ 	 	 $val = sprintf("%.2f MB", $val / $MEGABYTE);
+ 	  }
+ 	 elsif($attr->{DIMENSION} eq 'Gb') {
+ 	 	 $val = sprintf("%.2f GB", $val / $GIGABYTE);
+ 	  }
+ 	 elsif($attr->{DIMENSION} eq 'Kb') {
+ 	 	 $val = sprintf("%.2f Kb", $val / $KBYTE_SIZE);
+ 	  }
+ 	 else {
+ 	 	 $val .= " Bt";
+ 	  }
+  }
+ elsif($val > $GIGABYTE)   { $val = sprintf("%.2f GB", $val / $GIGABYTE);   }  # 1024 * 1024 * 1024
  elsif($val > $MEGABYTE)   { $val = sprintf("%.2f MB", $val / $MEGABYTE);   }  # 1024 * 1024
  elsif($val > $KBYTE_SIZE) { $val = sprintf("%.2f Kb", $val / $KBYTE_SIZE); }
  else { $val .= " Bt"; }

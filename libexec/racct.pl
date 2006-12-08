@@ -166,16 +166,17 @@ sub acct {
       $RAD->{INTERIUM_OUTBYTE2} = $RAD->{EXPPP_ACCT_LOCALITERIUMIN_OCTETS} || 0;
      }
     elsif ($nas->{NAS_TYPE} eq 'lepppd') {
-      $RAD->{'INBYTE'} = $RAD->{'PPPD_INPUT_OCTETS_ZONES_0'};
-      $RAD->{'OUTBYTE'} = $RAD->{'PPPD_OUTPUT_OCTETS_ZONES_0'};
+      $RAD->{INBYTE}  = $RAD->{ACCT_OUTPUT_OCTETS} || 0;   # FROM client
+      $RAD->{OUTBYTE} = $RAD->{ACCT_INPUT_OCTETS} || 0; # TO client
+      #$RAD->{'INBYTE'} = $RAD->{'PPPD_INPUT_OCTETS_ZONES_0'};
+      #$RAD->{'OUTBYTE'} = $RAD->{'PPPD_OUTPUT_OCTETS_ZONES_0'};
 
-      for(my $i=1; $i<4; $i++) {
+      for(my $i=0; $i<4; $i++) {
       	if (defined($RAD->{'PPPD_INPUT_OCTETS_ZONES_'.$i})) {
           $RAD->{'INBYTE'.($i + 1)} = $RAD->{'PPPD_INPUT_OCTETS_ZONES_'.$i};
           $RAD->{'OUTBYTE'.($i + 1)} = $RAD->{'PPPD_OUTPUT_OCTETS_ZONES_'.$i};
       	 }
        }
-
      }
     else {
       $RAD->{INBYTE2}  = 0;

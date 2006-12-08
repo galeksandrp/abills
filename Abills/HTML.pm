@@ -1276,7 +1276,7 @@ foreach my $line (@$MONTHES) {
 $result .= '</select>';
 
 $result  .= "<SELECT name=". $base_name ."Y>";
-for ($i=2001; $i<=$curyear + 1900; $i++) {
+for ($i=2001; $i<=$curyear + 1900+2; $i++) {
    $result .= "<option value=$i";
    $result .= ' selected' if($year eq $i ) ;
    $result .= ">$i\n";
