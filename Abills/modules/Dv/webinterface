@@ -16,7 +16,7 @@ my $fees = Fees->new($db, $admin, \%conf);
 my $tariffs = Tariffs->new($db, \%conf, $admin);
 my $sessions = Dv_Sessions->new($db, $admin, \%conf);
 
-my %FORM2 = ();
+my %FORM_BASE = ();
 
 
 #*******************************************************************
@@ -2306,9 +2306,10 @@ sub dv_cards {
   
 
   $FORM{add}=1;
-  if (scalar keys %FORM2 < 1) {
-  	%FORM2=%FORM;
+  if (scalar keys %FORM_BASE < 1) {
+  	%FORM_BASE=%FORM;
   	print "FORM2  scalar";
+  	print %FORM_BASE;
    }
 
   my $CREATED = '';
@@ -2325,7 +2326,7 @@ sub dv_cards {
 
   if (ref($return) eq 'ARRAY') {
      %FORM = ();
-  	 %FORM = %FORM2;
+  	 %FORM = %FORM_BASE;
   	 foreach my $line (@$return) {
   	 	  while(my($k, $v)= each %$line) {
   	 	  	 $FORM{$k}=clearquotes($v);
