@@ -2306,7 +2306,7 @@ sub dv_cards {
   
 
   $FORM{add}=1;
-  %FORM2=%FORM if ($#{ keys %FORM2 } < 0);
+  %FORM2=%FORM if (scalar keys %FORM2 < 1);
 
   my $CREATED = '';
   my $added_count = 0;
