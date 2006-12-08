@@ -2324,7 +2324,7 @@ sub dv_cards {
 
 
   if (ref($return) eq 'ARRAY') {
-     undef %FORM;
+     %FORM = ();
   	 %FORM = %FORM2;
   	 foreach my $line (@$return) {
   	 	  while(my($k, $v)= each %$line) {
