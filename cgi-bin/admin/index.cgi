@@ -174,7 +174,7 @@ if ($FORM{AWEB_OPTIONS}) {
 #===========================================================
 
 
-my @actions = ([$_SA_ONLY, $_ADD, $_LIST, $_PASSWD, $_CHANGE, $_DEL, $_ALL],  # Users
+my @actions = ([$_SA_ONLY, $_ADD, $_LIST, $_PASSWD, $_CHANGE, $_DEL, $_ALL, $_MULTIUSER_OP],  # Users
                [$_LIST, $_ADD, $_DEL, $_ALL],                                 # Payments
                [$_LIST, $_ADD, $_DEL, $_ALL],                                 # Fees
                [$_LIST, $_DEL],                                               # reports view
@@ -824,7 +824,7 @@ print $table->show();
 
 
 #**********************************************************
-# form_users()
+# add_groups()
 #**********************************************************
 sub add_groups {
   my $users;
@@ -930,8 +930,8 @@ if(defined($attr->{USER})) {
    }
   elsif ($FORM{del_user} && $FORM{is_js_confirmed} && $index == 15 && $permissions{0}{5} ) {
     $user_info->del();
-    if ($users->{errno}) {
-      $html->message('err', $_ERROR, "[$users->{errno}] $err_strs{$users->{errno}}");	
+    if ($user_info->{errno}) {
+      $html->message('err', $_ERROR, "[$user_info->{errno}] $err_strs{$user_info->{errno}}");	
      }
     else {
       $html->message('info', $_DELETE, "$_DELETED <br>from tables<br>$users->{info}");
@@ -1020,6 +1020,47 @@ elsif ($FORM{add}) {
     return 0;
    }
 }
+#Multi user operations
+elsif ($FORM{MULTIUSER}) {
+  my @multiuser_arr = split(/, /, $FORM{IDS});
+  my $count = 0;
+	my %CHANGE_PARAMS = ();
+ 	while(my($k, $v)=each %FORM) {
+ 		if ($k =~ /^MU_(\S+)/) {
+      $CHANGE_PARAMS{$1}=$FORM{$1};
+	   }
+	 }
+
+
+  if ($#multiuser_arr < 0) {
+  	$html->message('err', $_MULTIUSER_OP, "$_SELECT_USER");
+   }
+  elsif (scalar keys %CHANGE_PARAMS < 1) {
+  	#$html->message('err', $_MULTIUSER_OP, "$_SELECT_USER");
+   }
+  else {
+  	foreach my $uid (@multiuser_arr) {
+  		if ($FORM{DEL} && $FORM{MU_DEL}) {
+  	    my $user_info = $users->info( $uid );
+  	    $user_info->del();
+
+        if ($users->{errno}) {
+          $html->message('err', $_ERROR, "[$users->{errno}] $err_strs{$users->{errno}}");	
+         }
+  		 }
+  		else {
+  			$users->change($uid, { UID => $uid, %CHANGE_PARAMS } );
+  			if ($users->{errno}) {
+  			  $html->message('err', $_ERROR, "[$users->{errno}] $err_strs{$users->{errno}}");	
+  			  return 0;
+  			 }
+  		 }
+  	 }
+    $html->message('info', $_MULTIUSER_OP, "$_TOTAL: $#multiuser_arr IDS: $FORM{IDS}");
+   }
+	
+}
+
 
 
 if ($FORM{COMPANY_ID}) {
@@ -1079,9 +1120,11 @@ foreach my $line (@$list) {
 
 
 
+my $multiuser = ($permissions{0}{7}) ? $html->form_input('IDS', "$line->[5+$users->{SEARCH_FIELDS_COUNT}]", { TYPE => 'checkbox', }) : '';
 
 $table->addtd(
-                  $table->td($html->button($line->[0], "index=15&UID=$line->[5+$users->{SEARCH_FIELDS_COUNT}]") ), 
+                  $table->td(
+                  $multiuser.$html->button($line->[0], "index=15&UID=$line->[5+$users->{SEARCH_FIELDS_COUNT}]") ), 
                   $table->td($line->[1]), 
                   $table->td( ($line->[2] + $line->[3] < 0) ? "<font color='$_COLORS[6]'>$line->[2]</font>" : $line->[2] ), 
                   $table->td($line->[3]), 
@@ -1092,13 +1135,43 @@ $table->addtd(
          );
 
 }
-print $table->show();
 
-$table = $html->table( { width      => '100%',
-                         cols_align => ['right', 'right'],
-                         rows       => [ [ "$_TOTAL:", "<b>$users->{TOTAL}</b>" ] ]
+
+my $table2 = $html->table( { width      => '100%',
+                             cols_align => ['right', 'right'],
+                             rows       => [ [ "$_TOTAL:", "<b>$users->{TOTAL}</b>" ] ]
+                          });
+
+
+if ($permissions{0}{7}) {
+  my $table3 = $html->table( { width      => '100%',
+  	                       caption    => "$_MULTIUSER_OP",
+                           cols_align => ['right', 'right'],
+                           rows       => [ [ $html->form_input('MU_GID', "1", { TYPE => 'checkbox', }). $_GROUP,    sel_groups()],
+                                           [ $html->form_input('MU_DISABLE', "1", { TYPE => 'checkbox', }). $_DISABLE,  $html->form_input('DISABLE', "1", { TYPE => 'checkbox', }) ],
+                                           [ $html->form_input('MU_DEL', "1", { TYPE => 'checkbox', }). $_DEL,      $html->form_input('DEL', "1", { TYPE => 'checkbox', }) ],
+                                           [ $html->form_input('MU_ACTIVATE', "1", { TYPE => 'checkbox', }). $_ACTIVATE, $html->form_input('ACTIVATE', "0000-00-00") ], 
+                                           [ $html->form_input('MU_EXPIRE', "1", { TYPE => 'checkbox', }). $_EXPIRE,   $html->form_input('EXPIRE', "0000-00-00")   ], 
+                                           [ '',         $html->form_input('MULTIUSER', "$_CHANGE", { TYPE => 'submit'})   ], 
+                                         
+                                         ]
                        });
-print $table->show();
+
+   print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }).
+   	                                   $table2->show({ OUTPUT2RETURN => 1 }).
+   	                                   $table3->show({ OUTPUT2RETURN => 1 }),
+	                          HIDDEN  => { index => 11,
+	                       	          },
+                       });
+
+
+
+}
+else {
+  print $table->show() . $table2->show();	
+}
+
+
 }
 
 #**********************************************************
@@ -1729,7 +1802,7 @@ my ($sec,$min,$hour,$mday,$mon, $gyear,$gwday,$yday,$isdst) = gmtime($curtime);
 print "<br><TABLE width=\"400\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\">
 <tr><TD bgcolor=\"$_COLORS[4]\">
 <TABLE width=\"100%\" cellspacing=1 cellpadding=0 border=0>
-<tr bgcolor=\"$_COLORS[0]\"><th>". $html->button(' << ', "index=75&month=$p_month&year=$p_year"). "</th><th colspan=5>$MONTHES[$month] $year</th><th>". $html->button(' >> ', "index=75&month=$n_month&year=$n_year") ."</th></tr>
+<tr bgcolor=\"$_COLORS[0]\"><th>". $html->button(' << ', "index=75&month=$p_month&year=$p_year"). "</th><th colspan=5>$MONTHES[$month] $yeayeayeayear</th><th>". $html->button(' >> ', "index=75&month=$n_month&year=$n_year") ."</th></tr>
 <tr bgcolor=\"$_COLORS[0]\"><th>$WEEKDAYS[1]</th><th>$WEEKDAYS[2]</th><th>$WEEKDAYS[3]</th>
 <th>$WEEKDAYS[4]</th><th>$WEEKDAYS[5]</th>
 <th><font color=\"#FF0000\">$WEEKDAYS[6]</font></th><th><font color=#FF0000>$WEEKDAYS[7]</font></th></tr>\n";

@@ -312,8 +312,6 @@ sub rt_billing {
     return $self;
    }
 
-
-  
   ($RAD->{INTERIUM_SESSION_START},
    $RAD->{INTERIUM_ACCT_SESSION_TIME},
    $RAD->{INTERIUM_INBYTE},

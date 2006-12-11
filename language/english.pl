@@ -307,3 +307,5 @@ $_DILLERS='Dillers';
 
 $_VAT='Vat';
 $_BONUS='Bonus';
+$_PERCENTAGE='Percentage';
+$_MULTIUSER_OP='Multiuser operation';

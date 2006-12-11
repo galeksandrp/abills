@@ -651,8 +651,9 @@ if ($FORM{fields}) {
 $table = $html->table({ width       => '100%',
                         caption     => "BSR 1000",
                         border      => 1,
-                        title       => [@default_fields, "-"],
-                        cols_align  => ['left', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'center'],
+                        title       => [@default_fields, '-', '-'],
+                        cols_align  => ['left', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 
+                          'center', 'center'],
                       });
 
 my $total_sessions = 0;
@@ -715,8 +716,8 @@ foreach my $line (@$list) {
 
 $table = $html->table( { width      => '100%',
                          caption    => "$_SESSIONS", 
-                         title      => ["UP", "DOWN", "MAC", "IP", "$_STATE", "Noise", "Rx Power", "$_DURATION"],
-                         cols_align => ['right', 'left', 'right', 'right', 'right', 'right', 'right'],
+                         title      => ["UP", "DOWN", "MAC", "IP", "$_STATE", "Noise", "Rx Power", "$_DURATION", '-', '-'],
+                         cols_align => ['right', 'left', 'right', 'right', 'right', 'right', 'right', 'right', 'center', 'center'],
                          qs         => $pages_qs             
                       } );
 
@@ -739,7 +740,10 @@ while(my ($up_channel, $up_chanell_hash) = each %info) {
              $table->td($result{docsIfCmtsCmStatusValue}{$info{$up_channel}{$down_channels[0]}[0]}),
              $table->td($result{docsIfCmtsCmStatusSignalNoise}{$info{$up_channel}{$down_channels[0]}[0]}),
              $table->td($result{docsIfCmtsCmStatusRxPower}{$info{$up_channel}{$down_channels[0]}[0]}),
-             $table->td($result{docsIfCmtsCmStatusTimingOffset}{$info{$up_channel}{$down_channels[0]}[0]})
+             $table->td($result{docsIfCmtsCmStatusTimingOffset}{$info{$up_channel}{$down_channels[0]}[0]}),
+             $table->td($html->button('(P)', "")),
+             $table->td($html->button('(H)', ""))
+
       );
 
    for(my $i=1;  $i<=$#{ $info{$up_channel}{$down_channels[0]} }; $i++) { 
@@ -749,7 +753,9 @@ while(my ($up_channel, $up_chanell_hash) = each %info) {
              $result{docsIfCmtsCmStatusValue}{$info{$up_channel}{$down_channels[0]}[$i]},
              $result{docsIfCmtsCmStatusSignalNoise}{$info{$up_channel}{$down_channels[0]}[$i]},
              $result{docsIfCmtsCmStatusRxPower}{$info{$up_channel}{$down_channels[0]}[$i]},
-             $result{docsIfCmtsCmStatusTimingOffset}{$info{$up_channel}{$down_channels[0]}[$i]}
+             $result{docsIfCmtsCmStatusTimingOffset}{$info{$up_channel}{$down_channels[0]}[$i]},
+             $html->button('(P)', ""),
+             $html->button('(H)', "")
 
             );  
     }
@@ -765,7 +771,11 @@ while(my ($up_channel, $up_chanell_hash) = each %info) {
              $table->td($result{docsIfCmtsCmStatusValue}{$info{$up_channel}{$down_channels[$down_channel]}[0]}),
              $table->td($result{docsIfCmtsCmStatusSignalNoise}{$info{$up_channel}{$down_channels[$down_channel]}[0]}),
              $table->td($result{docsIfCmtsCmStatusRxPower}{$info{$up_channel}{$down_channels[$down_channel]}[0]}),
-             $table->td($result{docsIfCmtsCmStatusTimingOffset}{$info{$up_channel}{$down_channels[$down_channel]}[0]})
+             $table->td($result{docsIfCmtsCmStatusTimingOffset}{$info{$up_channel}{$down_channels[$down_channel]}[0]}),
+             
+             $table->td($html->button('(P)', "")),
+             $table->td($html->button('(H)', ""))
+
            );  
 
       for(my $i=1;  $i<=$#{ $info{$up_channel}{$down_channels[$down_channel]} }; $i++) { 
@@ -774,7 +784,10 @@ while(my ($up_channel, $up_chanell_hash) = each %info) {
              $result{docsIfCmtsCmStatusValue}{$info{$up_channel}{$down_channels[$down_channel]}[$i]},
              $result{docsIfCmtsCmStatusSignalNoise}{$info{$up_channel}{$down_channels[$down_channel]}[$i]},
              $result{docsIfCmtsCmStatusRxPower}{$info{$up_channel}{$down_channels[$down_channel]}[$i]},
-             $result{docsIfCmtsCmStatusTimingOffset}{$info{$up_channel}{$down_channels[$down_channel]}[$i]}
+             $result{docsIfCmtsCmStatusTimingOffset}{$info{$up_channel}{$down_channels[$down_channel]}[$i]},
+             
+             $html->button('(P)', ""),
+             $html->button('(H)', "")
             );  
        }
 

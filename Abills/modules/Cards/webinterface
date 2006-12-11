@@ -11,7 +11,7 @@ use Tariffs;
 my $tariffs = Tariffs->new($db, \%conf, $admin);
 my $payments = Payments->new($db, $admin, \%conf);
 
-my @status = ('ENABLE', 'DISABLE', 'USED');
+my @status = ($_ENABLE, $_DISABLE, $_USED, $_DELETED);
 
 
 
@@ -149,18 +149,29 @@ elsif ($FORM{del}  && $FORM{is_js_confirmed} ) {
    }
 }
 
-  $Cards->defaults();
-  $Cards->{DILLERS_SEL}=$html->form_select('DILLER_ID', 
-                                         { 
+
+ cards_payments_list();
+
+}
+
+
+
+
+#**********************************************************
+#
+#**********************************************************
+sub cards_payments_list () {
+
+$Cards->defaults();
+$Cards->{DILLERS_SEL}=$html->form_select('DILLER_ID', { 
  	                                         SELECTED          => $user->{DILLER_ID},
- 	                                         SEL_MULTI_ARRAY   => [['', ''] , @{ $Cards->cards_dillers_list({ DISABLE => 0 }) }],
+ 	                                         SEL_MULTI_ARRAY   => [['', ''] , @{ $Cards->cards_dillers_list({ DISABLE => 0, PAGE_ROWS => 10000 }) }],
  	                                         MULTI_ARRAY_KEY   => 0,
  	                                         MULTI_ARRAY_VALUE => 1,
  	                                         NO_ID             => 1,
  	                                        });
 
-  $Cards->{STATUS_SEL}=$html->form_select('DILLER_ID', 
-                                         { 
+  $Cards->{STATUS_SEL}=$html->form_select('STATUS', { 
  	                                         SEL_ARRAY   => \@status,
  	                                        });
 
@@ -169,8 +180,9 @@ elsif ($FORM{del}  && $FORM{is_js_confirmed} ) {
 	
 
 my $table;
-	$html->tpl_show(_include('cards_payments_search', 'Cards'), { %FORM, %$Cards });
+$html->tpl_show(_include('cards_payments_search', 'Cards'), { %FORM, %$Cards });
 
+my @total_arr=();
 
 if (defined($FORM{SERIA})) {
   $pages_qs.="&SERIA=$FORM{SERIA}";
@@ -181,7 +193,7 @@ if (defined($FORM{SERIA})) {
   $table = $html->table( { width      => '100%',
                            caption    => "$_SERIAL: $FORM{SERIA}",
                            title      => ["$_SERIAL", "$_NUM", "$_SUM", "$_STATUS", "$_EXPIRE", "$_ADDED", "$_DILLERS", "$_ADMINS", @pin, '-'],
-                           cols_align => ['right', 'right','right','right', 'right', 'left', 'left', 'center'],
+                           cols_align => ['right', 'right','right','right', 'right', 'left', 'left', 'center:noprint'],
                            qs         => $pages_qs,
                            pages      => $Cards->{TOTAL}
                          });
@@ -200,19 +212,22 @@ if (defined($FORM{SERIA})) {
   		  $line->[6],
   		  $line->[7],
   		  @pin,
-  		  $html->button($_DEL, "index=$index&del=y&SERIA=$line->[0]&ID=$line->[1]", { MESSAGE => "$_DEL [$line->[0]] ?" })
+  		  $html->button($_DEL, "index=$index&del=y&SERIA=$line->[0]&ID=$line->[1]$pages_qs", { MESSAGE => "$_DEL [$line->[0]] ?" })
   		);
     }
 
 
 
   print $html->form_main({ CONTENT => $table->show().
-                                                      "$_DILLERS: ". $Cards->{DILLERS_SEL},
+                             "$_DILLERS: ". $Cards->{DILLERS_SEL}.
+                             "$_STATUS: ". $Cards->{STATUS_SEL},
+
 	                       HIDDEN  => { index => "$index",
 	                       	            SERIA => $FORM{SERIA}   },
 	                       SUBMIT  => { change  => "$_CHANGE" } 
 	                        });
    
+  push @total_arr, ["$_TOTAL", $Cards->{TOTAL}];
  }
 else {
   my $list = $Cards->cards_payments_list({ %LIST_PARAMS });
@@ -220,11 +235,15 @@ else {
                            caption    => "$_SERIAL",
                            title      => ["$_SERIAL", "$_BEGIN", "$_SUM", "$_COUNT", 
                                 "$_ENABLE", "$_USED",  "$_EXPIRE", "$_ADDED", "$_ADMINS", '-', '-'],
-                           cols_align => ['right', 'right','right','right', 'right', 'left', 'center'],
+                           cols_align => ['right', 'right','right','right', 'right', 'left', 
+                              'right', 'right', 'left', 'center:noprint', 'center:noprint'],
                            qs         => $pages_qs,
                            pages      => $Cards->{TOTAL}
                                });
 
+
+  my $total_cards = 0;
+  my $total_sum  = 0;
 
   foreach $line (@$list) {
    	$table->addrow($line->[0], 
@@ -238,19 +257,29 @@ else {
   		  $line->[8],
   		  $html->button($_SHOW, "index=$index$pages_qs&SERIA=$line->[0]"),
   		  $html->button($_DEL, "index=$index$pages_qs&del=y&SERIA=$line->[0]", { MESSAGE => "$_DEL [$line->[0]] ?" })
+  		   
   		   );
-    }
 
+     $total_cards += $line->[3];
+     $total_sum += $line->[2] * $line->[3];
+    }
   print $table->show();	
+  
+  
+ push @total_arr, [ "$_SERIAL:", "$Cards->{TOTAL}" ],
+                  [ "$_ICARDS:", "$total_cards" ],
+                  [ "$_SUM:", "$total_sum" ];
+  
 }
 
 
 
   $table = $html->table( { width      => '100%',
                            cols_align => ['right', 'right'],
-                           rows       => [ [ "$_TOTAL:", "<b>$Cards->{TOTAL}</b>" ] ]
+                           rows       => \@total_arr 
                         } );
   print $table->show();	
+
 }
 
 
@@ -385,7 +414,7 @@ elsif ($FORM{del}  && $FORM{is_js_confirmed} ) {
   $Cards->{DILLERS_SEL}=$html->form_select('DILLER_ID', 
                                          { 
  	                                         SELECTED          => $FORM{DILLER_ID},
- 	                                         SEL_MULTI_ARRAY   => [['', ''] , @{ $Cards->cards_dillers_list({ DISABLE => 0 }) }],
+ 	                                         SEL_MULTI_ARRAY   => [['', ''] , @{ $Cards->cards_dillers_list({ DISABLE => 0, PAGE_ROWS => 10000 }) }],
  	                                         MULTI_ARRAY_KEY   => 0,
  	                                         MULTI_ARRAY_VALUE => 1,
  	                                         NO_ID             => 1
@@ -419,7 +448,20 @@ sub cards_users_gen_confim {
 sub cards_users {
   
   cards_users_add();
+ 	$html->tpl_show(_include('cards_users_search', 'Cards'), { %FORM, %$Cards });
   
+  if ($FORM{change}) {
+  	$Cards->cards_users_change({ %FORM });
+	  if (! $Cards->{errno}) {
+     	$html->message('info', $_CHANGED, "$_CHANGED: $FORM{IDS} ");
+     }
+   }
+
+
+if ($Cards->{errno}) {
+  $html->message('err', $_ERROR, "[$Cards->{errno}] $err_strs{$Cards->{errno}}");
+ }
+
   
   if (! defined($FORM{sort})) {
     $LIST_PARAMS{SORT}=1;
@@ -439,11 +481,11 @@ sub cards_users {
 
   foreach $line (@$list) {
    	$table->addrow(
-   	    $line->[0].$html->form_input("IDS", $line->[1], {TYPE => 'checkbox'}),  
-  	    $line->[1],
+   	    $line->[0].$html->form_input("IDS", $line->[0], {TYPE => 'checkbox'}),  
+  	    $html->button($line->[1], "index=7&LOGIN_EXPR=$line->[1]&search=1"),
   		  $line->[2],
-        $line->[3],
-  		  $line->[4],
+  		  $line->[3],
+        $status[$line->[4]],
   		  $line->[5],
   		  $line->[6],
   		  $line->[7],
@@ -454,8 +496,8 @@ sub cards_users {
 
 
   print $html->form_main({ CONTENT => $table->show().
-                                                      "$_DILLERS: ". $Cards->{DILLERS_SEL},
-  	                       HIDDEN  => { index => "$index"},
+                              "$_DILLERS: ". $Cards->{DILLERS_SEL},
+  	                       HIDDEN  => { index   => "$index"},
 	                         SUBMIT  => { change  => "$_CHANGE" } 
 	                        });
 
@@ -578,7 +620,57 @@ if ($FORM{add}) {
   if (! $Cards->{errno}) {
     $html->message('info', $_INFO, "$_ADDED");	
    }
-}
+ }
+elsif ($FORM{info}) {
+
+  $FORM{DILLER_ID}=$FORM{info};
+  $pages_qs = "&info=$FORM{info}";
+  $LIST_PARAMS{DILLER_ID}=$FORM{DILLER_ID};
+
+
+
+  $Cards = $Cards->cards_diller_info({ ID => $FORM{info} });
+  $html->tpl_show(_include('cards_diller_info', 'Cards'), $Cards);  
+  cards_payments_list();  
+
+  #User Cards
+
+
+  my $list = $Cards->cards_users_list({ %LIST_PARAMS, DILLER_ID => $FORM{info} });
+	$table = $html->table( { width      => '100%',
+                           caption    => "$_USERS",
+                           title      => ['ID', "$_LOGIN", "$_ADDED", "$_GROUP", "$_STATUS", "$_EXPIRE", "$_DILLERS", "$_ADMINS", '-'],
+                           cols_align => ['right', 'left', 'right',  'left', 'center', 'right', 'left', 'left', 'center:noprint'],
+                           qs         => $pages_qs,
+                           pages      => $Cards->{TOTAL}
+                          });
+
+
+  foreach $line (@$list) {
+   	$table->addrow(
+   	    $line->[0].$html->form_input("IDS", $line->[0], {TYPE => 'checkbox'}),  
+  	    $html->button($line->[1], "index=11&LOGIN_EXPR=$line->[1]"),
+  		  $line->[2],
+        $line->[3],
+  		  $line->[4],
+  		  $line->[5],
+  		  $line->[6],
+  		  $line->[7],
+  		  $html->button($_DEL, "index=$index$pages_qs&del=y&SERIA=$line->[0]", { MESSAGE => "$_DEL [$line->[0]] ?" })
+  		   );
+    }
+
+  print $table->show();
+
+  $table = $html->table( { width      => '100%',
+                           cols_align => ['right', 'right'],
+                           rows       => [ [ "$_TOTAL:", "<b>$Cards->{TOTAL}</b>" ] ]
+                        } );
+  print $table->show();	
+
+
+  return 0;
+ }
 elsif ($FORM{change}) {
   $Cards->cards_diller_change({ %FORM });
   if (! $Cards->{errno}) {
@@ -612,9 +704,10 @@ if ($Cards->{errno}) {
   my $list = $Cards->cards_dillers_list({ %LIST_PARAMS });
 	$table = $html->table( { width      => '100%',
                            caption    => "$_DILLERS",
-                           title      => ['ID', "$_NAME", "$_ADDRESS", "E-Mail", "$_REGISTRATION", "$_STATE", 
-                              "$_USERS",  "$_PAYMENTS", '-', '-'],
-                           cols_align => ['right', 'left', 'left',  'left', 'right', 'right', 'center', 'center'],
+                           title      => ['ID', "$_NAME", "$_ADDRESS", "E-Mail", "$_REGISTRATION", "$_PERCENTAGE", "$_STATE", 
+                              "$_USERS",  "$_PAYMENTS", '-', '-', '-'],
+                           cols_align => ['right', 'left', 'left',  'left', 'right', 'right', 'right', 
+                            'center:noprint', 'center:noprint', 'center:noprint'],
                            qs         => $pages_qs,
                            pages      => $Cards->{TOTAL}
                           });
@@ -626,9 +719,11 @@ if ($Cards->{errno}) {
   		  $line->[2],
         $line->[3],
   		  $line->[4],
-  		  $status[$line->[5]],
-  		  $line->[6],
+  		  $line->[5],
+  		  $status[$line->[6]],
   		  $line->[7],
+  		  $line->[8],
+  		  $html->button($_INFO, "index=$index$pages_qs&info=$line->[0]"),
   		  $html->button($_CHANGE, "index=$index$pages_qs&chg=$line->[0]"),
   		  $html->button($_DEL, "index=$index$pages_qs&del=$line->[0]", { MESSAGE => "$_DEL [$line->[0]] ?" })
 		   );
@@ -640,13 +735,23 @@ if ($Cards->{errno}) {
  	 $table = $html->table( { width      => '100%',
                             cols_align => ['right', 'right'],
                             rows       => [ [ "$_TOTAL:", "<b>$Cards->{TOTAL}</b>" ] ]
-                        } );
+                        });
    print $table->show();	
 
   
 }
 
 
+#**********************************************************
+#
+#**********************************************************
+sub cards_report {
+	
+#Предприятие  Наимен.  Приход  Реализация  Остаток  Возврат  
+# Кол-во  Сумма  Кол-во  Сумма  Кол-во  Сумма  Кол-во  Сумма  
+
+	
+}
 
 
 1
