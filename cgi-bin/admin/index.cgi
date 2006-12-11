@@ -1146,7 +1146,7 @@ my $table2 = $html->table( { width      => '100%',
 if ($permissions{0}{7}) {
   my $table3 = $html->table( { width      => '100%',
   	                       caption    => "$_MULTIUSER_OP",
-                           cols_align => ['right', 'right'],
+                           cols_align => ['left', 'left'],
                            rows       => [ [ $html->form_input('MU_GID', "1", { TYPE => 'checkbox', }). $_GROUP,    sel_groups()],
                                            [ $html->form_input('MU_DISABLE', "1", { TYPE => 'checkbox', }). $_DISABLE,  $html->form_input('DISABLE', "1", { TYPE => 'checkbox', }) ],
                                            [ $html->form_input('MU_DEL', "1", { TYPE => 'checkbox', }). $_DEL,      $html->form_input('DEL', "1", { TYPE => 'checkbox', }) ],
