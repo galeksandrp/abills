@@ -140,12 +140,6 @@ CREATE TABLE `config` (
   UNIQUE KEY `param` (`param`)
 ) ;
 
-# --------------------------------------------------------
-
-#
-# Структура таблиці `docs_acct`
-#
-
 CREATE TABLE `docs_acct` (
   `id` int(11) unsigned NOT NULL auto_increment,
   `date` date NOT NULL default '0000-00-00',
@@ -160,12 +154,6 @@ CREATE TABLE `docs_acct` (
   PRIMARY KEY  (`id`)
 ) ;
 
-# --------------------------------------------------------
-
-#
-# Структура таблиці `docs_acct_orders`
-#
-
 CREATE TABLE `docs_acct_orders` (
   `acct_id` int(11) unsigned NOT NULL default '0',
   `orders` varchar(200) NOT NULL default '',
@@ -175,10 +163,31 @@ CREATE TABLE `docs_acct_orders` (
   KEY `aid` (`acct_id`)
 ) ;
 
-# --------------------------------------------------------
-#
-# Структура таблиці `dv_main`
-#
+
+CREATE TABLE `docs_invoice` (
+  `id` int(11) NOT NULL auto_increment,
+  `date` date NOT NULL default '0000-00-00',
+  `customer` varchar(200) NOT NULL default '',
+  `phone` varchar(16) NOT NULL default '0',
+  `aid` smallint(6) unsigned NOT NULL default '0',
+  `uid` int(11) unsigned NOT NULL default '0',
+  `created` datetime NOT NULL default '0000-00-00 00:00:00',
+  `invoice_id` int(10) unsigned NOT NULL default '0',
+  `vat` double(5,2) unsigned NOT NULL default '0.00',
+  `by_proxy_seria` varchar(40) NOT NULL default '',
+  `by_proxy_person` varchar(15) NOT NULL default '',
+  `by_proxy_date` date NOT NULL default '0000-00-00',
+  PRIMARY KEY  (`id`)
+);
+
+CREATE TABLE `docs_invoice_orders` (
+  `invoice_id` int(11) unsigned NOT NULL default '0',
+  `orders` varchar(200) NOT NULL default '',
+  `counts` int(10) unsigned NOT NULL default '0',
+  `unit` tinyint(3) unsigned NOT NULL default '0',
+  `price` double(10,2) unsigned NOT NULL default '0.00',
+  KEY `invoice_id` (`invoice_id`)
+);
 
 CREATE TABLE `dv_main` (
   `uid` int(11) unsigned NOT NULL auto_increment,

@@ -223,7 +223,7 @@ sub search_expr {
   if($type eq 'INT' && $value =~ s/\*//g) {
   	$expr = '>';
    }
-  elsif ($value =~ tr/^<>//d) {
+  elsif ($value =~ s/^<>//) {
     $expr = '<>';
    }
   elsif ($value =~ tr/^>//d) {
@@ -233,6 +233,8 @@ sub search_expr {
     $expr = '<';
    }
   
+
+  
   if ($type eq 'IP') {
   	$value = "INET_ATON('$value')";
    }
@@ -240,7 +242,11 @@ sub search_expr {
   	$value="'$value'";
    }
 
+
+  
   $value = $expr . $value;
+ 
+
   return $value;
 }
 

@@ -2344,7 +2344,7 @@ sub dv_cards {
   	 	    $added_count++;
   	 	    print " .";
   	 	    $table->addrow("$FORM{'1.LOGIN'}", "$UID", "$FORM{ex_message}");
-  	 	  	cards_users_gen_confim({ %$line });
+  	 	  	cards_users_gen_confim({ %$line, SUM => ($FORM{'5.SUM'}) ? $FORM{'5.SUM'} : 0  });
   	 	   }
   	  }
 
@@ -2425,7 +2425,6 @@ sub dv_wizard_user {
        if($FORM{'5.SUM'} + 0 > 0) {
           my $er = ($FORM{'5.ER'}) ? $payments->exchange_info($FORM{'5.ER'}) : { ER_RATE => 1 } ;  
           $payments->add($user, { %{$add_values{5}}, ER => $er->{ER_RATE} } );  
-
           if ($payments->{errno}) {
             $html->message('err', "$_ERROR:$_PAYMENTS", "[$payments->{errno}] $err_strs{$payments->{errno}}");	
             return 0;
