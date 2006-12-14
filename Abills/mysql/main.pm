@@ -245,8 +245,6 @@ sub search_expr {
 
   
   $value = $expr . $value;
- 
-
   return $value;
 }
 
