@@ -272,10 +272,18 @@ else {
 
 
 
-  $table = $html->table( { width      => '100%',
-                           cols_align => ['right', 'right'],
-                           rows       => \@total_arr 
-                        } );
+  $table = $html->table({ width       => '100%',
+                          title_plain => [$_STATUS, "$_COUNT", "$_SUM" ],
+                          cols_align  => ['right', 'right', 'right'],
+                          rows        => [ [ "$_TOTAL:",   "<b>$Cards->{TOTAL}</b>", $Cards->{TOTAL_SUM}   ],
+                                          [ "$_USED",     $Cards->{USED}          , $Cards->{USED_SUM}     ],
+                                          [ "$_ENABLE:", $Cards->{ENABLED}       , $Cards->{ENABLED_SUM}  ],
+                                          [ "$_DISABLE:", $Cards->{DISABLED}      , $Cards->{DISABLED_SUM} ],
+                                          [ "$_DELETED",  $Cards->{DELETED}       , $Cards->{DELETED_SUM}  ],
+                                          [ "$_RETURNED", $Cards->{RETURNED}      , $Cards->{RETURNED_SUM} ]
+                                        ]
+                        });
+
   print $table->show();	
 
 }
