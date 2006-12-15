@@ -6,7 +6,7 @@ require "Cards.pm";
 Cards->import();
 my $Cards = Cards->new($db, $admin, $conf);
 
-$Cards->{debug}=1;
+#$Cards->{debug}=1;
 use Payments;
 use Tariffs;
 my $tariffs = Tariffs->new($db, \%conf, $admin);
