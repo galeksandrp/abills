@@ -783,7 +783,7 @@ sub cards_report {
 	$table = $html->table( { width      => '100%',
                            caption    => "$_SERIAL",
                            #title      => ['ID', "$_LOGIN", "$_ADDED", "$_GROUP", "$_STATUS", "$_EXPIRE", "$_DILLERS", "$_ADMINS", '-'],
-                           cols_align => ['right', 'left', 'left', 'center'],
+                           cols_align => ['left', 'right', 'right','right','right','right','right','right','right'],
                            qs         => $pages_qs,
                            pages      => $Cards->{TOTAL}
                           });
@@ -798,6 +798,7 @@ sub cards_report {
              $table->td($_TOTAL, { bgcolor => $_COLORS[0], colspan => 2 } )
       );
 
+      $table->{rowcolor} = $_COLORS[3];
     	$table->addrow(
     	  "$_COUNT", "$_SUM",
     	  "$_COUNT", "$_SUM",
@@ -806,6 +807,7 @@ sub cards_report {
     	  "$_COUNT", "$_SUM"
     	);
 
+     $table->{rowcolor} = undef;
 
 
   foreach $line (@$list) {
