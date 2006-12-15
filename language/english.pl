@@ -112,7 +112,7 @@ $_BEGIN='Begin';
 $_END='END';
 
 $_EXIST='Exist';
-$_COUNT='count';
+$_COUNT='Count';
 $_CREDITORS='Creditors';
 $_PERMISSION='Permisions';
 

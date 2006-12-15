@@ -6,7 +6,7 @@ require "Cards.pm";
 Cards->import();
 my $Cards = Cards->new($db, $admin, $conf);
 
-#$Cards->{debug}=1;
+$Cards->{debug}=1;
 use Payments;
 use Tariffs;
 my $tariffs = Tariffs->new($db, \%conf, $admin);
@@ -520,6 +520,8 @@ if ($Cards->{errno}) {
    }
 
   
+  print %LIST_PARAMS;
+  
   my $list = $Cards->cards_users_list({ %LIST_PARAMS });
 	$table = $html->table( { width      => '100%',
                            caption    => "$_SERIAL",
@@ -777,31 +779,55 @@ sub cards_report {
   	     });
 
 
-  my $list = $Cards->cards_users_list({ %LIST_PARAMS });
+  my $list = $Cards->cards_report_dillers({ %LIST_PARAMS });
 	$table = $html->table( { width      => '100%',
                            caption    => "$_SERIAL",
-                           title      => ['ID', "$_LOGIN", "$_ADDED", "$_GROUP", "$_STATUS", "$_EXPIRE", "$_DILLERS", "$_ADMINS", '-'],
+                           #title      => ['ID', "$_LOGIN", "$_ADDED", "$_GROUP", "$_STATUS", "$_EXPIRE", "$_DILLERS", "$_ADMINS", '-'],
                            cols_align => ['right', 'left', 'left', 'center'],
                            qs         => $pages_qs,
                            pages      => $Cards->{TOTAL}
                           });
 
 
+   $table->addtd(
+             $table->td($_DILLERS, { bgcolor => $_COLORS[0], rowspan => 2 }),
+             $table->td($_DISABLE, { bgcolor => $_COLORS[0], colspan => 2 } ), 
+             $table->td($_USED, { bgcolor => $_COLORS[0], colspan => 2 }), 
+             $table->td($_DELETED, { bgcolor => $_COLORS[0], colspan => 2 } ), 
+             $table->td($_RETURNED, { bgcolor => $_COLORS[0], colspan => 2 } ), 
+             $table->td($_TOTAL, { bgcolor => $_COLORS[0], colspan => 2 } )
+      );
+
+    	$table->addrow(
+    	  "$_COUNT", "$_SUM",
+    	  "$_COUNT", "$_SUM",
+    	  "$_COUNT", "$_SUM",
+     	  "$_COUNT", "$_SUM",
+    	  "$_COUNT", "$_SUM"
+    	);
+
+
+
   foreach $line (@$list) {
    	$table->addrow(
-   	    $line->[0].$html->form_input("IDS", $line->[0], {TYPE => 'checkbox'}),  
-  	    $html->button($line->[1], "index=7&LOGIN_EXPR=$line->[1]&search=1"),
+   	    $line->[0],  
+  	    $line->[1],
   		  $line->[2],
   		  $line->[3],
-        $status[$line->[4]],
+        $line->[4],
   		  $line->[5],
   		  $line->[6],
   		  $line->[7],
-  		  $html->button($_DEL, "index=$index$pages_qs&del=y&SERIA=$line->[0]", { MESSAGE => "$_DEL [$line->[0]] ?" })
-  		   );
+  		  $line->[8],
+  		  $line->[9],
+  		  $line->[10]
+
+		   );
+		   
     }
 
-	
+
+print $table->show();
 }
 
 
