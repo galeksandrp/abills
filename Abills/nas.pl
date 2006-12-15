@@ -450,6 +450,7 @@ sub hangup_mikrotik_telnet {
 sub hangup_cisco {
  my ($NAS, $PORT, $attr) = @_;
  my $exec;
+ my $command = '';
 
 #Rsh version
 if ($NAS->{NAS_MNG_USER}) {
@@ -459,20 +460,36 @@ if ($NAS->{NAS_MNG_USER}) {
 
   my $user = $attr->{USER};
 
- 
-  my $VIRTUALINT=`/usr/bin/rsh -l $cisco_user $NAS->{NAS_IP} show users | grep -i " \$1 " | awk '{print \$1}';`;
-  $PORT=`echo $VIRTUALINT echo  | sed -e "s/[[:alpha:]]*\\([[:digit:]]\\{1,\\}\\)/\\1/"`;
-
-  $exec = `/usr/bin/rsh -4 -n -l $cisco_user $NAS->{NAS_IP} clear interface Virtual-Access $PORT`; 
+  $command = "/usr/bin/rsh -l $cisco_user $NAS->{NAS_IP} show users | grep -i \" \$1 \" | awk '{print \$1}';";
+  log_print('LOG_DEBUG', "$command");
+  my $VIRTUALINT=`$command`;
+  $command = "echo $VIRTUALINT echo  | sed -e \"s/[[:alpha:]]*\\([[:digit:]]\\{1,\\}\\)/\\1/\"";
+  log_print('LOG_DEBUG', "$command");
+  $PORT=`$command`;
+  $command = "/usr/bin/rsh -4 -n -l $cisco_user $NAS->{NAS_IP} clear interface Virtual-Access $PORT";
+  log_print('LOG_DEBUG', "$command");
+  $exec = `$command`; 
  }
 else {
 #SNMP version
   my $SNMP_COM = $NAS->{NAS_MNG_PASSWORD} || '';
-  my $SNMPSET=`/usr/bin/which snmpset`;
- 
-  my $INTNAME=`finger \@$NAS->{NAS_IP} | awk '{print $1 " " $2}' | grep $1"$" | awk '{print $1}' | sed s/Vi/Virtual-Access/g`;
-  my $INTNUM=`$SNMPWALK -v 1 -c $SNMP_COM -O n $NAS->{NAS_IP} .1.3.6.1.2.1.2.2.1.2 | grep $INTNAME"$" | awk '{print $1}' | sed s/.1.3.6.1.2.1.2.2.1.2.//g`;
-  $exec=`$SNMPSET -v 1 -c $SNMP_COM $NAS->{NAS_IP} 1.3.6.1.2.1.2.2.1.7.$INTNUM i 2 > /dev/null 2>&1`;
+
+  $command = "/usr/bin/which snmpset";
+  log_print('LOG_DEBUG', "$command");
+  my $SNMPSET=`$command`;
+  my $user = $attr->{USER};
+
+  $command = "finger \@$NAS->{NAS_IP} | awk '{print $1 \" \" $2}' | grep $user\"$\" | awk '{print $1}' | sed s/Vi/Virtual-Access/g";
+  log_print('LOG_DEBUG', "$command");
+  my $INTNAME=`$command`;
+
+  $command = "$SNMPWALK -v 1 -c $SNMP_COM -O n $NAS->{NAS_IP} .1.3.6.1.2.1.2.2.1.2 | grep $INTNAME\"$\" | awk '{print $1}' | sed s/.1.3.6.1.2.1.2.2.1.2.//g";
+  log_print('LOG_DEBUG', "$command");
+  my $INTNUM=`$command`;
+
+  $command = "$SNMPSET -v 1 -c $SNMP_COM $NAS->{NAS_IP} 1.3.6.1.2.1.2.2.1.7.$INTNUM i 2 > /dev/null 2>&1";
+  log_print('LOG_DEBUG', "$command");
+  $exec=`$command`;
 }
 
  return $exec;
