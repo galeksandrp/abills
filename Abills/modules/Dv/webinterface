@@ -2334,8 +2334,9 @@ sub dv_cards {
   	 	  $FORM{'1.LOGIN'}=$line->{LOGIN};
   	 	  $FORM{'1.PASSWORD'}=$line->{PASSWORD};
   	 	  $FORM{'1.CREATE_BILL'}=1;
-
-  	 	  if ( dv_wizard_user({ SHORT_REPORT => 1 }) != 1) {
+        
+        $line->{UID} = dv_wizard_user({ SHORT_REPORT => 1 });
+  	 	  if ( $line->{UID} < 1) {
   	 	  	 $html->message('err', $_ERROR, "$_LOGIN: $line->{LOGIN}");
   	 	  	 last;
   	 	   }
@@ -2344,7 +2345,9 @@ sub dv_cards {
   	 	    $added_count++;
   	 	    print " .";
   	 	    $table->addrow("$FORM{'1.LOGIN'}", "$UID", "$FORM{ex_message}");
-  	 	  	cards_users_gen_confim({ %$line, SUM => ($FORM{'5.SUM'}) ? $FORM{'5.SUM'} : 0  });
+  	 	  	if(cards_users_gen_confim({ %$line, SUM => ($FORM{'5.SUM'}) ? $FORM{'5.SUM'} : 0  }) == 0) {
+  	 	  		 return 0;
+  	 	  		}
   	 	   }
   	  }
 
@@ -2463,7 +2466,7 @@ sub dv_wizard_user {
         $html->tpl_show(_include('dv_user_info', 'Dv'), $dv);
        }
 
-      return 1;
+      return $UID;
     }
    else {
      $html->message('err', "[$users->{errno}] $err_strs{$users->{errno}}", "$_LOGIN: '$add_values{1}{LOGIN}'");	

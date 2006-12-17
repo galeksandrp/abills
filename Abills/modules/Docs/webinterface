@@ -6,7 +6,6 @@ require "Docs.pm";
 Docs->import();
 my $Docs = Docs->new($db, $admin, $conf);
 
-
 foreach my $prefix (@INC) {
   my $realfilename = "$prefix/Abills/modules/$module{$index}/lng_$html->{language}.pl";
   if (-f $realfilename) {
@@ -31,7 +30,8 @@ sub docs_invoice_add  {
 
  if ($attr->{CREATE}) {
    if (defined($FORM{OP_SID}) and $FORM{OP_SID} eq $COOKIES{OP_SID}) {
- 	   $html->message('err', $_ERROR, "$_EXIST");
+ 	   $html->message('err', $_ERROR, "$_INVOICE $_EXIST");
+ 	   return 0;
     }
    elsif(! $attr->{CUSTOMER}) {
      $html->message('err', "$_ERROR", "$_ORG_NAME");

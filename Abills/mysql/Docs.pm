@@ -142,7 +142,8 @@ sub docs_invoice_info {
    d.created,
    d.by_proxy_seria,
    d.by_proxy_person,
-   d.by_proxy_date
+   d.by_proxy_date,
+   d.id
     FROM docs_invoice d, docs_invoice_orders o
     LEFT JOIN users u ON (d.uid=u.uid)
     LEFT JOIN admins a ON (d.aid=a.aid)
@@ -175,7 +176,7 @@ sub docs_invoice_info {
   $self->{NUMBER}=$self->{INVOICE_ID};
  
   $self->query($db, "SELECT invoice_id, orders, unit, counts, price
-   FROM docs_invoice_orders WHERE invoice_id='$self->{INVOICE_ID}'");
+   FROM docs_invoice_orders WHERE invoice_id='$self->{DOC_ID}'");
 
   $self->{ORDERS}=$self->{list};
 
