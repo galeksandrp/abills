@@ -435,7 +435,6 @@ sub list {
     $self->{SEARCH_FIELDS_COUNT}++;
   }
 
- $self->{debug}=1;
 
  if ($attr->{DEPOSIT}) {
     my $value = $self->search_expr($attr->{DEPOSIT}, 'INT');
