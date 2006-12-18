@@ -7,7 +7,7 @@ if (! $@) {
  }
 else {
   print "Can't load 'Cards'. Purchase this module http://abills.asmodeus.com.ua";
-  1;
+  return 0;
  }
 
 use Payments;
@@ -612,8 +612,7 @@ if ($FORM{info}) {
 
   $Cards = $Cards->cards_diller_info({ ID => $FORM{info} });
   $html->tpl_show(_include('cards_diller_info', 'Cards'), $Cards);  
-  cards_payments();  
-  cards_users();
+  cards_main();
   return 0;
  }
 elsif ($FORM{add}) {
