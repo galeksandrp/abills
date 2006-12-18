@@ -306,7 +306,7 @@ if ($ACTION eq 'up') {
                	  push @FW_ACTIONS, "$IPFW table $table_number add $line";
                 }
               }
-            push @FW_ACTIONS, "$IPFW add $fw_num_in pipe $pipe_num_in ip from table\\($table_number\\) to any via $INTERFACE in";
+            push @FW_ACTIONS, "$IPFW add $fw_num_in pipe $pipe_num_in ip from any to table\\($table_number\\)  via $INTERFACE in";
            }
           else {
             push @FW_ACTIONS, "$IPFW add $fw_num_in pipe $pipe_num_in ip from $nets{$traf_type} to any via $INTERFACE in";
