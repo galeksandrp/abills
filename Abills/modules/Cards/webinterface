@@ -1,17 +1,21 @@
 #!/usr/bin/perl
 # Card System
 
-
-require "Cards.pm";
-Cards->import();
-my $Cards = Cards->new($db, $admin, $conf);
-
+eval { require Cards; };
+if (! $@) {
+  Cards->import();
+ }
+else {
+  print "Can't load 'Cards'. Purchase this module http://abills.asmodeus.com.ua";
+  return 0;
+ }
 
 use Payments;
 use Tariffs;
 my $tariffs = Tariffs->new($db, \%conf, $admin);
 my $payments = Payments->new($db, $admin, \%conf);
 
+my $Cards = Cards->new($db, $admin, $conf);
 my @status = ($_ENABLE, $_DISABLE, $_USED, $_DELETED, $_RETURNED);
 
 
