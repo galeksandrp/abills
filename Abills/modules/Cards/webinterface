@@ -609,6 +609,7 @@ if ($FORM{info}) {
 
   $pages_qs = "&info=$FORM{info}";
   $LIST_PARAMS{DILLER_ID}=$FORM{info};
+  $FORM{SERIA}=0;
 
   $Cards = $Cards->cards_diller_info({ ID => $FORM{info} });
   $html->tpl_show(_include('cards_diller_info', 'Cards'), $Cards);  
@@ -655,7 +656,7 @@ if ($Cards->{errno}) {
 	$table = $html->table( { width      => '100%',
                            caption    => "$_DILLERS",
                            title      => ['ID', "$_NAME", "$_ADDRESS", "E-Mail", "$_REGISTRATION", "$_PERCENTAGE", "$_STATE", 
-                              "$_USERS",  "$_PAYMENTS", '-', '-', '-'],
+                              "$_COUNT",   '-', '-', '-'],
                            cols_align => ['right', 'left', 'left',  'left', 'right', 'right', 'right', 
                             'center:noprint', 'center:noprint', 'center:noprint'],
                            qs         => $pages_qs,
@@ -672,7 +673,6 @@ if ($Cards->{errno}) {
   		  $line->[5],
   		  $status[$line->[6]],
   		  $line->[7],
-  		  $line->[8],
   		  $html->button($_INFO, "index=$index$pages_qs&info=$line->[0]"),
   		  $html->button($_CHANGE, "index=$index$pages_qs&chg=$line->[0]"),
   		  $html->button($_DEL, "index=$index$pages_qs&del=$line->[0]", { MESSAGE => "$_DEL [$line->[0]] ?" })
