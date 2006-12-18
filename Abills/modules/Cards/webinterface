@@ -7,7 +7,7 @@ if (! $@) {
  }
 else {
   print "Can't load 'Cards'. Purchase this module http://abills.asmodeus.com.ua";
-  return 0;
+  1;
  }
 
 use Payments;
