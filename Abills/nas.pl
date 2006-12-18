@@ -478,7 +478,7 @@ else {
   log_print('LOG_DEBUG', "$command");
   my $SNMPSET=`$command`;
 
-  $command = "finger \@$NAS->{NAS_IP} | awk '{print \$1 \" \" \$2}' | grep $user\"\$\" | awk '{print $1}' | sed s/Vi/Virtual-Access/g";
+  $command = "finger \@$NAS->{NAS_IP} | awk '{print \$1 \" \" \$2}' | grep $user\"\$\" | awk '{print \$1}' | sed s/Vi/Virtual-Access/g";
   log_print('LOG_DEBUG', "$command");
   my $INTNAME=`$command`;
 

@@ -405,6 +405,38 @@ sub list {
     $self->{SEARCH_FIELDS_COUNT}++;
   }
 
+ if ($attr->{ADDRESS_BUILD}) {
+    $attr->{ADDRESS_BUILD} =~ s/\*/\%/ig;
+    push @WHERE_RULES, "pi.address_build LIKE '$attr->{ADDRESS_BUILD}'";
+    $self->{SEARCH_FIELDS} .= 'pi.address_build, ';
+    $self->{SEARCH_FIELDS_COUNT}++;
+  }
+
+ if ($attr->{ADDRESS_STREET}) {
+    $attr->{ADDRESS_STREET} =~ s/\*/\%/ig;
+    push @WHERE_RULES, "pi.address_street LIKE '$attr->{ADDRESS_STREET}' ";
+    $self->{SEARCH_FIELDS} .= 'pi.address_street, ';
+    $self->{SEARCH_FIELDS_COUNT}++;
+  }
+
+ if ($attr->{ADDRESS_FLAT}) {
+    $attr->{ADDRESS_FLAT} =~ s/\*/\%/ig;
+    push @WHERE_RULES, "pi.address_flat LIKE '$attr->{ADDRESS_FLAT}'";
+    $self->{SEARCH_FIELDS} .= 'pi.address_flat, ';
+    $self->{SEARCH_FIELDS_COUNT}++;
+  }
+
+
+
+ if ($attr->{CONTRACT_ID}) {
+    $attr->{CONTRACT_ID} =~ s/\*/\%/ig;
+    push @WHERE_RULES, "pi.contract_id LIKE '$attr->{CONTRACT_ID}'";
+    $self->{SEARCH_FIELDS} .= 'pi.contract_id, ';
+    $self->{SEARCH_FIELDS_COUNT}++;
+  }
+
+ $self->{debug}=1;
+
  if ($attr->{DEPOSIT}) {
     my $value = $self->search_expr($attr->{DEPOSIT}, 'INT');
     push @WHERE_RULES, "b.deposit$value";
@@ -468,7 +500,7 @@ sub list {
 
     my $value = $self->search_expr($attr->{PAYMENTS}, 'INT');
     push @WHERE_RULES, "max(p.date)$value";
-    $self->{SEARCH_FIELDS} = 'max(p.date), ';
+    $self->{SEARCH_FIELDS} .= 'max(p.date), ';
     $self->{SEARCH_FIELDS_COUNT}++;
 
    my $HAVING = ($#WHERE_RULES > -1) ?  "HAVING " . join(' and ', @WHERE_RULES) : '';

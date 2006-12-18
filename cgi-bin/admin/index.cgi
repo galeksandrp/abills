@@ -940,12 +940,14 @@ if(defined($attr->{USER})) {
     return 0;
    }
   else {
+
     @action = ('change', $_CHANGE);
     user_form($user_info);
     
     user_pi({ USER => $user_info });
 
    }
+
 
 
 
@@ -1096,7 +1098,7 @@ if ($users->{errno}) {
  }
 elsif ($users->{TOTAL} == 1) {
 	$FORM{index} = 15;
-	$FORM{UID}=$list->[0]->[5];
+	$FORM{UID}=$list->[0]->[5+$users->{SEARCH_FIELDS_COUNT}];
 	form_users({  USER => user_info($list->[0]->[5+$users->{SEARCH_FIELDS_COUNT}]) });
 	return 0;
 }
@@ -3517,23 +3519,14 @@ my %search_form = (
 
 3 => "
 <!-- FEES -->
-<tr><td colspan=\"2\"><hr/></td></tr>
+<tr><td colspan='2'><hr/></td></tr>
 <tr><td>$_OPERATOR (*):</td><td><input type=text name=A_LOGIN value='%A_LOGIN%'/></td></tr>
 <tr><td>$_DESCRIBE (*):</td><td><input type=text name=DESCRIBE value='%DESCRIBE%'/></td></tr>
 <tr><td>$_SUM (<,>):</td><td><input type=text name=SUM value='%SUM%'/></td></tr>\n",
 
-11 => "
-<!-- USERS -->
-<tr><td colspan='2'><hr/></td></tr>
-<tr><td>$_FIO (*):</td><td><input type='text' name='FIO' value='%FIO%'/></td></tr>
-<tr><td>$_PHONE (>, <, *):</td><td><input type='text' name='PHONE' value='%PHONE%'/></td></tr>
-<tr><td>$_COMMENTS (*):</td><td><input type='text' name='COMMENTS' value='%COMMENTS%'/></td></tr>
-<tr><td>$_GROUP:</td><td>$group_sel</td></tr>
-<tr><td>$_DEPOSIT (>, <):</td><td><input type='text' name='DEPOSIT' value='%DEPOSIT%'/></td></tr>
-<tr><td>$_CREDIT (>, <):</td><td><input type='text' name='CREDIT' value='%CREDIT%'/></td></tr>
-<tr><td>$_PAYMENTS $_DATE ((>, <) YYYY-MM-DD):</td><td><input type='text' name='PAYMENTS' value='%PAYMENTS%'/></td></tr>
-<tr><td>$_DISABLE:</td><td><input type='checkbox' name='DISABLE' value='1'/></td></tr>
-\n",
+11 => $html->tpl_show(templates('form_search_users'), { %info, %FORM, GROUPS_SEL => $group_sel }, { notprint => 1 })
+ 
+
 
 );
 

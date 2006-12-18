@@ -487,6 +487,35 @@ return qq{
 };
 	
 }
+
+elsif ($tpl_name eq 'form_search_users') {
+return qq{
+<!-- USERS -->
+<tr><td colspan='2'><hr/></td></tr>
+<tr><td colspan='2'>
+<table>
+<tr><td colspan='2'>$_FIO (*):</td><td><input type='text' name='FIO' value='%FIO%'/></td></tr>
+<tr><td colspan='2'>$_PHONE (>, <, *):</td><td><input type='text' name='PHONE' value='%PHONE%'/></td></tr>
+<tr><td colspan='2'>$_COMMENTS (*):</td><td><input type='text' name='COMMENTS' value='%COMMENTS%'/></td></tr>
+<tr><td colspan='2'>$_GROUP:</td><td>%GROUPS_SEL%</td></tr>
+<tr><td colspan='2'>$_DEPOSIT (>, <):</td><td><input type='text' name='DEPOSIT' value='%DEPOSIT%'/></td></tr>
+<tr><td colspan='2'>$_CREDIT (>, <):</td><td><input type='text' name='CREDIT' value='%CREDIT%'/></td></tr>
+<tr><td colspan='2'>$_PAYMENTS $_DATE ((>, <) YYYY-MM-DD):</td><td><input type='text' name='PAYMENTS' value='%PAYMENTS%'/></td></tr>
+
+<tr bgcolor=$_COLORS[2]><td rowspan=3>$_ADDRESS:</td><td>$_ADDRESS_STREET:</td><td><input type='text' name='ADDRESS_STREET' value='%ADDRESS_STREET%'/></td></tr>
+<tr bgcolor=$_COLORS[2]><td>$_ADDRESS_BUILD:</td><td><input type='text' name='ADDRESS_BUILD' value='%ADDRESS_BUILD%'/></td></tr>
+<tr bgcolor=$_COLORS[2]><td>$_ADDRESS_FLAT:</td><td><input type='text' name='ADDRESS_FLAT' value='%ADDRESS_FLAT%'/></td></tr>
+
+<tr><td colspan='2'>$_DISABLE:</td><td><input type='checkbox' name='DISABLE' value='1'/></td></tr>
+<tr><td colspan='2'>$_CONTRACT_ID (*):</td><td><input type='text' name='CONTRACT_ID' value='%CONTRACT_ID%'/></td></tr>
+</table>
+</td></tr>
+
+
+};
+	
+}
+
 elsif ($tpl_name eq 'history_search') {
 return qq{
  	 <tr><td colspan=2><hr></td></tr>
@@ -765,6 +794,8 @@ return qq{
 return "No such template [$tpl_name]";
 
 }
+
+
 
 
 1
