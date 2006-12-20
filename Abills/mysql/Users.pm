@@ -40,7 +40,7 @@ sub new {
   my $self = { };
 
   bless($self, $class);
-  
+
   return $self;
 }
 
@@ -678,7 +678,7 @@ sub change {
               PASSWORD    => 'password',
               BILL_ID     => 'bill_id'
              );
- 
+
   my $old_info = $self->info($attr->{UID});
   
   if($attr->{create}){

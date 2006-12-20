@@ -165,12 +165,11 @@ foreach my $line (@$list) {
    $prepaid{$line->[0]}         = $line->[3];
 }
 
-
 if ($prepaid{0} + $prepaid{1} > 0) {
    #Get traffic from begin of month
    $self->query($db, "SELECT sum(sent + recv), sum(sent2 + recv2)
        FROM dv_log 
-       WHERE uid='$self->{UID}' and (DATE_FORMAT(start, '%Y-%m')=DATE_FORMAT($RAD->{SESSION_START}, '%Y-%m'))
+       WHERE uid='$self->{UID}' and (DATE_FORMAT(start, '%Y-%m')=DATE_FORMAT(FROM_UNIXTIME($RAD->{SESSION_START}), '%Y-%m'))
        GROUP BY uid;");
 
    if ($self->{TOTAL} > 0) {
