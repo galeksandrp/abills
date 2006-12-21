@@ -50,6 +50,8 @@ sub traffic_calculations {
   my $sent2 = $RAD->{OUTBYTE2} || 0; 
   my $recv2 = $RAD->{INBYTE2} || 0;
 
+  my $traffic_period = ($self->{ACTIVATE} ne '0000-00-00') ? "DATE_FORMAT(start, '%Y-%m')=DATE_FORMAT(FROM_UNIXTIME($RAD->{SESSION_START}), '%Y-%m')" : "DATE_FORMAT(start, '%Y-%m-%d')>='$self->{ACTIVATE}'";
+
 
 =comments
 #local Prepaid Traffic
@@ -169,7 +171,7 @@ if ($prepaid{0} + $prepaid{1} > 0) {
    #Get traffic from begin of month
    $self->query($db, "SELECT sum(sent + recv), sum(sent2 + recv2)
        FROM dv_log 
-       WHERE uid='$self->{UID}' and (DATE_FORMAT(start, '%Y-%m')=DATE_FORMAT(FROM_UNIXTIME($RAD->{SESSION_START}), '%Y-%m'))
+       WHERE uid='$self->{UID}' and ($traffic_period)
        GROUP BY uid;");
 
    if ($self->{TOTAL} > 0) {
