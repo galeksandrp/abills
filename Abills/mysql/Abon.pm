@@ -227,7 +227,7 @@ sub user_list {
 
 
  if ($self->{TOTAL} > 0) {
-    $self->query($db, "SELECT count(*)
+    $self->query($db, "SELECT count(DISTINCT u.uid)
      FROM users u, abon_user_list ul, abon_tariffs at
      $WHERE");
 

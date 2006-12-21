@@ -80,10 +80,11 @@ sub abon_user_list {
 
  my $list = $Abon->user_list({ %LIST_PARAMS });
  my $table = $html->table( { width     => '100%',
-                            caption    => "$_ABON",
-                            title      => [$_LOGIN, $_FIO, $_TARIF_PLAN, $_DATE],
-                            cols_align => ['left', 'right', 'left', 'right'],
-                            qs         => $pages_qs,
+                             caption    => "$_ABON",
+                             title      => [$_LOGIN, $_FIO, $_TARIF_PLAN, $_DATE],
+                             cols_align => ['left', 'right', 'left', 'right'],
+                             qs         => $pages_qs,
+                             pages      => $Abon->{TOTAL}
                            });
 
 

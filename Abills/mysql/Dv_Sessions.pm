@@ -715,8 +715,6 @@ elsif($attr->{DATE}) {
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
 
 
-
-
  $self->query($db, "SELECT u.id, l.start, SEC_TO_TIME(l.duration), l.tp_id,
   l.sent, l.recv, l.CID, l.nas_id, l.ip, l.sum, INET_NTOA(l.ip), 
   l.acct_session_id, 
@@ -734,7 +732,7 @@ elsif($attr->{DATE}) {
 
 
  if ($self->{TOTAL} > 0) {
-    $self->query($db, "SELECT count(*), SEC_TO_TIME(sum(l.duration)), sum(l.sent + l.recv), 
+    $self->query($db, "SELECT count(l.uid), SEC_TO_TIME(sum(l.duration)), sum(l.sent + l.recv), 
       sum(l.sent2 + l.recv2), 
       sum(sum)  
       FROM (dv_log l, users u)
