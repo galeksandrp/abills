@@ -104,8 +104,6 @@ else {
 $html = Abills::HTML->new({ CONF => \%conf, NO_PRINT => 0, %{ $admin->{WEB_OPTIONS} } });
 require "../../language/$html->{language}.pl";
 
-
-
 if ($admin->{errno}) {
   print "Content-type: text/html\n\n";
   my $message = 'Access Deny';
@@ -176,7 +174,7 @@ if ($FORM{AWEB_OPTIONS}) {
 
 my @actions = ([$_SA_ONLY, $_ADD, $_LIST, $_PASSWD, $_CHANGE, $_DEL, $_ALL, $_MULTIUSER_OP],  # Users
                [$_LIST, $_ADD, $_DEL, $_ALL],                                 # Payments
-               [$_LIST, $_ADD, $_DEL, $_ALL],                                 # Fees
+               [$_LIST, $_GET, $_DEL, $_ALL],                                 # Fees
                [$_LIST, $_DEL],                                               # reports view
                [$_LIST, $_ADD, $_CHANGE, $_DEL],                              # system magment
                [$_ALL],                                                       # Modules managments
@@ -254,9 +252,6 @@ if ($FORM{qindex}) {
  
   exit;
 }
-
-
-
 
 
 

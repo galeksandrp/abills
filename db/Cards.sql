@@ -32,7 +32,7 @@ CREATE TABLE `cards_users` (
   `diller_date` date NOT NULL default '0000-00-00',
   `sum` double(10,2) unsigned NOT NULL default '0.00',
   `serial` varchar(10) NOT NULL default '',
-  `pin` varchar(20) NOT NULL default '',
+  `pin` blob NOT NULL default '',
   `uid` int(11) unsigned NOT NULL default '0',
   UNIQUE KEY `serial` (`number`,`serial`),
   KEY `diller_id` (`diller_id`)
