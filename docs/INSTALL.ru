@@ -57,6 +57,7 @@
 
 
 
+
 =====MySQL=====
 Загрузить пакет MySQL можно по адресу [http://www.mysql.com]\\
 
@@ -73,8 +74,8 @@
 use mysql;\\
 INSERT INTO user (Host, User, Password) VALUES ('%','abills', password('sqlpassword'));\\
 
-INSERT INTO db (Host, Db, User, Select_priv, Insert_priv, Update_priv, Delete_priv, Create_priv, Drop_priv, Index_priv, Alter_priv) \\
-VALUES ('localhost', 'abills', 'abills', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y');\\
+INSERT INTO db (Host, Db, User, Select_priv, Insert_priv, Update_priv, Delete_priv, Create_priv, Drop_priv, Index_priv, Alter_priv, Lock_tables_priv, Create_tmp_table_priv) \\
+VALUES ('localhost', 'abills', 'abills', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y');\\
 \\
 CREATE DATABASE abills;\\
 \\
@@ -87,8 +88,17 @@ CREATE DATABASE abills;\\
 
 =====Web Server=====
 
+
+
 =====Apache=====
-В случае использования веб-сервера Apache вносим в **httpd.conf**
+ [[http://www.apache.org|Apache]]\\
+ Веб сервер должен быть собран  с поддержкой ''mod_rewrite''\\
+
+  # ./configure --prefix=/usr/local/apache --enable-rewrite=shared
+  # make
+  # make install
+
+Вносим в конфигурационый файл следующие опции **httpd.conf**.
 
   #Abills version 0.3
   # User interface
