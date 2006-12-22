@@ -405,17 +405,17 @@ sub list {
     $self->{SEARCH_FIELDS_COUNT}++;
   }
 
- if ($attr->{ADDRESS_BUILD}) {
-    $attr->{ADDRESS_BUILD} =~ s/\*/\%/ig;
-    push @WHERE_RULES, "pi.address_build LIKE '$attr->{ADDRESS_BUILD}'";
-    $self->{SEARCH_FIELDS} .= 'pi.address_build, ';
-    $self->{SEARCH_FIELDS_COUNT}++;
-  }
-
  if ($attr->{ADDRESS_STREET}) {
     $attr->{ADDRESS_STREET} =~ s/\*/\%/ig;
     push @WHERE_RULES, "pi.address_street LIKE '$attr->{ADDRESS_STREET}' ";
     $self->{SEARCH_FIELDS} .= 'pi.address_street, ';
+    $self->{SEARCH_FIELDS_COUNT}++;
+  }
+
+ if ($attr->{ADDRESS_BUILD}) {
+    $attr->{ADDRESS_BUILD} =~ s/\*/\%/ig;
+    push @WHERE_RULES, "pi.address_build LIKE '$attr->{ADDRESS_BUILD}'";
+    $self->{SEARCH_FIELDS} .= 'pi.address_build, ';
     $self->{SEARCH_FIELDS_COUNT}++;
   }
 
@@ -529,13 +529,15 @@ sub list {
    my $list = $self->{list};
 
    if ($self->{TOTAL} > 0) {
-     shift @WHERE_RULES;
+     
      my $value = $self->search_expr($attr->{PAYMENTS}, 'INT');
-     push @WHERE_RULES, "p.date$value";
+     $WHERE_RULES[$#WHERE_RULES]="p.date$value";
+    
      $WHERE = ($#WHERE_RULES > -1) ?  "WHERE " . join(' and ', @WHERE_RULES) : '';
     
      $self->query($db, "SELECT count(DISTINCT u.uid) FROM users u 
        LEFT JOIN payments p ON (u.uid = p.uid)
+       LEFT JOIN users_pi pi ON (u.uid = pi.uid)
       $WHERE;");
 
       ($self->{TOTAL}) = @{ $self->{list}->[0] };

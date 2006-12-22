@@ -2450,7 +2450,7 @@ if ($FORM{newpassword} eq '') {
 
 }
 elsif (length($FORM{newpassword}) < $conf{passwd_length}) {
-  $html->message('err', $_ERROR, $err_strs{6});
+  $html->message('err', $_ERROR,  "$ERR_SHORT_PASSWD");
 }
 elsif ($FORM{newpassword} eq $FORM{confirm}) {
   $FORM{PASSWORD} = $FORM{newpassword};
