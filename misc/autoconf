@@ -1,0 +1,109 @@
+#!/usr/bin/perl -w 
+# Auto configure service
+
+
+use vars  qw(%RAD %conf $db %AUTH
+ %RAD_REQUEST %RAD_REPLY %RAD_CHECK
+ %auth_mod
+ $begin_time
+ $nas);
+
+use strict;
+use FindBin '$Bin';
+require $Bin . '/../libexec/config.pl';
+require $Bin . '/../Abills/Base.pm';
+Abills::Base->import();
+
+my $debug=0;
+my $ARGV = parse_arguments(\@ARGV);
+
+
+
+if ($ARGV->{debug}) {
+  $debug=int($ARGV->{debug});
+  print "Debug mode: $debug\n";
+}
+
+
+if ($ARGV->{help}) {
+  print "Auto configuration script
+   ./autoconf [parameters]
+  PROGRAMS=[PROGRAMS,...] - Program names (postfix)
+  debug                   - Debug level
+                            1 short debug
+                            2 full debug
+                            3 emulate mode\n";
+ }
+elsif ($ARGV->{PROGRAMS} && $ARGV->{PROGRAMS} eq 'postfix') {
+  postfix();
+}
+
+
+#**********************************************************
+# Postfix autoconf
+#**********************************************************
+sub postfix {
+ 
+ check_install('postfix/install');
+
+ return 0;
+}
+
+
+#**********************************************************
+# Postfix autoconf
+#**********************************************************
+sub check_install {
+ my ($config)=@_;
+
+ my @files = ();
+ open(FILE, "< $config") || die "Can't open file '$config'  $!";
+   while(<FILE>) {
+   	 next if (/^#/);
+ 	   push @files, $_;
+    }
+ close(FILE);
+
+ foreach my $file (@files) {
+ 	if($file =~ /^(\S+) +(>|>>) +\[(\S+)\]\/(.+)/) {
+ 	  my $config = $1;
+ 	  my $type   = $2;
+ 	  my $folder = $3;
+ 	  my $dest   = $4;
+    my $config_body = '';
+    
+    $config = $Bin."/postfix/$config";
+    print "$config $type $folder/$dest\n" if ($debug > 0);
+    #Open local config
+    open(FILE, "< $config") || die "Can't open file '$config'  $!";
+      while(<FILE>) {
+ 	     $config_body .= $_;
+      }
+    close(FILE);
+
+
+    while(my($key, $val) = each %conf) {
+      $config_body =~ s/%$key%/$val/;
+     }
+
+    print "$config_body\n" if ($debug == 2); 	  
+ 	  #Copy config
+    if (! -d $folder ) {
+    	mkdir($folder);
+    	print "mkdir $folder\n" if ($debug == 2);
+     }
+
+    if ($debug == 3) {
+     
+     }
+    else {
+      open(FILE, "$type$folder/$dest") || die "Can't open file '$config'  $!";
+ 	      print FILE $config_body;
+      close(FILE);
+     }
+
+   }
+ }
+
+
+}

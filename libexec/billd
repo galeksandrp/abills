@@ -8,6 +8,8 @@
 use vars  qw(%RAD %conf @MODULES $db $DATE $GZIP $MYSQLDUMP %ADMIN_REPORT $IPFW
  $IFCONFIG
  @START_FW
+ $SNMPWALK
+ $SNMPSET
  
  );
 use strict;

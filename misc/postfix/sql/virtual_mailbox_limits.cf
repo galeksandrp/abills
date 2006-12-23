@@ -1,0 +1,9 @@
+user = dbuser
+password = dbpasswd
+hosts = localhost
+dbname = abills
+table = mail_boxes
+select_field = box_size
+where_field = username
+
+

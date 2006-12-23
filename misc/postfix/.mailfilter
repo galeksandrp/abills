@@ -1,0 +1,3 @@
+UMASK=077
+LOGNAME=tolower($LOGNAME)
+include "$HOME/.mailfilters/$LOGNAME" 
