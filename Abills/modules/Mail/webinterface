@@ -4,7 +4,7 @@
 
 require "Mail.pm";
 Mails->import();
-my $Mail = Mail->new($db, $admin, $conf);
+my $Mail = Mail->new($db, $admin, \%conf);
 
 
 
@@ -92,6 +92,9 @@ sub mail_user_boxes {
   if ($FORM{add}) {
     $Mail->mbox_add({ %FORM, PASSWORD => $FORM{newpassword} });
     if (! $Mail->{errno}) {
+    	#system("su -fm vmail -c 'maildirmake /var/spool/virtual/$FORM{USERNAME}@$Mail->{DOMAINNAME}' ;
+      #        su -fm vmail -c 'maildirmake -f Spam /var/spool/virtual/$FORM{USERNAME}@$Mail->{DOMAINNAME}' ");
+
       $html->message('info', $_INFO, "$_ADDED");	
      }
    }
