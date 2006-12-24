@@ -410,7 +410,7 @@ CREATE TABLE `mail_aliases` (
 
 CREATE TABLE `mail_boxes` (
   `username` varchar(255) NOT NULL default '',
-  `password` varchar(16) binary NOT NULL default '',
+  `password` blob NOT NULL,
   `descr` varchar(255) NOT NULL default '',
   `maildir` varchar(255) NOT NULL default '',
   `create_date` datetime NOT NULL default '0000-00-00 00:00:00',

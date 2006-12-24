@@ -58,11 +58,12 @@ sub mbox_add {
 	$self->query($db, "INSERT INTO mail_boxes 
     (username,  domain_id, descr, maildir, create_date, change_date, mails_limit, box_size, status, 
      uid, 
-     antivirus, antispam, expire) values
+     antivirus, antispam, expire, password) values
     ('$DATA{USERNAME}', '$DATA{DOMAIN_ID}', '$DATA{COMMENTS}', '$DATA{MAILDIR}', now(), now(), 
      '$DATA{MAILS_LIMIT}', '$DATA{BOX_SIZE}', '$DATA{DISABLE}', 
     '$DATA{UID}', 
-    '$DATA{ANTIVIRUS}', '$DATA{ANTISPAM}', '$DATA{EXPIRE}');", 'do');
+    '$DATA{ANTIVIRUS}', '$DATA{ANTISPAM}', '$DATA{EXPIRE}', 
+    ENCODE('$DATA{PASSWORD}', '$CONF->{secretkey}'));", 'do');
 	
 	return $self;
 }
@@ -102,7 +103,8 @@ sub mbox_change {
 	              UID          => 'uid', 
 	              ANTIVIRUS    => 'antivirus', 
 	              ANTISPAM     => 'antispam',
-	              EXPIRE       => 'expire'
+	              EXPIRE       => 'expire',
+	              PASSWORD     => 'password'	              
 	              );
 	
   $attr->{ANTIVIRUS} = (defined($attr->{ANTIVIRUS})) ? 0 : 1;

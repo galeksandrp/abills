@@ -90,12 +90,25 @@ sub mail_user_boxes {
 
   
   if ($FORM{add}) {
-    $Mail->mbox_add({ %FORM });
+    $Mail->mbox_add({ %FORM, PASSWORD => $FORM{newpassword} });
     if (! $Mail->{errno}) {
       $html->message('info', $_INFO, "$_ADDED");	
      }
    }
 	elsif($FORM{set}) {
+    #password section
+    if ($FORM{newpassword}) {
+      if (length($FORM{newpassword}) < $conf{passwd_length}) {
+        $html->message('err', $_ERROR,  "$ERR_SHORT_PASSWD");
+       }
+      elsif ($FORM{newpassword} eq $FORM{confirm}) {
+        $FORM{PASSWORD} = $FORM{newpassword};
+       }
+      elsif($FORM{newpassword} ne $FORM{confirm}) {
+        $html->message('err', $_ERROR, $err_strs{5});
+       } 
+     }
+
     $Mail->mbox_change({ %FORM });
     if (! $Mail->{errno}) {
       $html->message('info', $_INFO, "$_CHANGED");	
@@ -140,6 +153,28 @@ sub mail_user_boxes {
     $Mail->{DOMAINS_SEL} .= ">$line->[0]\n";
    }
   $Mail->{DOMAINS_SEL} .= "</select>\n";
+
+ $Mail->{DOMAINS_SEL}=$html->form_select('DOMAIN_ID', 
+                                { 
+ 	                                SELECTED          => $Mail->{DOMAIN_ID},
+ 	                                SEL_MULTI_ARRAY   => $Mail->domain_list(),
+ 	                                MULTI_ARRAY_KEY   => 6,
+ 	                                MULTI_ARRAY_VALUE => 0,
+ 	                                SEL_OPTIONS       => { 0 => '-N/S-'},
+ 	                                NO_ID             => 1
+ 	                               });
+
+
+$PW_CHARS  = "abcdefhjmnpqrstuvwxyz23456789ABCDEFGHJKLMNPQRSTUVWYXZ";
+$PW_LENGTH = 8;
+
+$Mail->{PASSWORD} = qq{  
+	<tr><td>$_PASSWD:</td><td><input type="password" id="text_pma_pw" name="newpassword" title="$_PASSWD" onchange="pred_password.value = 'userdefined';" /></td></tr>
+  <tr><td>$_CONFIRM_PASSWD:</td><td><input type="password" name="confirm" id="text_pma_pw2" title="$_CONFIRM" onchange="pred_password.value = 'userdefined';" /></td></tr>
+  <tr><td>  <input type="button" id="button_generate_password" value="$_GENERED_PARRWORD" onclick="suggestPassword('%PW_CHARS%', '%PW_LENGTH%')" />
+          <input type="button" id="button_copy_password" value="Copy" onclick="suggestPasswordCopy(this.form)" />
+    </td><td><input type="text" name="generated_pw" id="generated_pw" /></td></tr>
+ };
 
   $html->tpl_show(_include('mail_box', 'Mail'), $Mail);
 }

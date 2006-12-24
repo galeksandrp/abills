@@ -1,4 +1,5 @@
 <form action='$SELF_URL' METHOD='POST'>
+
 <input type=hidden name='index' value='$index'>
 <input type=hidden name='UID' value='$FORM{UID}'>
 <input type=hidden name='MBOX_ID' value='%MBOX_ID%'>
@@ -13,6 +14,10 @@
 <tr><td>$_EXPIRE</td><td><input type=text name=EXPIRE value='%EXPIRE%'></td></tr>
 <tr><td>$_REGISTRATION:</td><td>%CREATE_DATE%</td></tr>
 <tr><td>$_CHANGED:</td><td>%CHANGE_DATE%</td></tr>
+<tr><th colspan=2><hr></th></tr>
+%PASSWORD%
+
+<tr><th colspan=2><hr></th></tr>
 </table>
 <input type=submit name=%ACTION% value='%LNG_ACTION%'>
 </form>
