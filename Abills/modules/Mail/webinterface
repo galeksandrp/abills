@@ -7,8 +7,6 @@ Mails->import();
 my $Mail = Mail->new($db, $admin, \%conf);
 
 
-
-
 #**********************************************************
 #  mail_users_list
 #**********************************************************
@@ -67,9 +65,9 @@ elsif ($Mail->{TOTAL} == 1) {
    }
   print $table->show();
 
-  $table = $html->table( { width => '100%',
-                                cols_align => ['right', 'right'],
-                                rows => [ [ "$_TOTAL:", "<b>$Mail->{TOTAL}</b>" ] ]
+  $table = $html->table( { width      => '100%',
+                           cols_align => ['right', 'right'],
+                           rows       => [ [ "$_TOTAL:", "<b>$Mail->{TOTAL}</b>" ] ]
                                } );
   print $table->show();
 
@@ -147,21 +145,11 @@ sub mail_user_boxes {
   $Mail->{DISABLE}=' checked' if($Mail->{DISABLE} == 1);
   
   
-  my $list = $Mail->domain_list({ %FORM });
-  $Mail->{DOMAINS_SEL} = "<select name=DOMAIN_ID>\n";
-  $Mail->{DOMAINS_SEL} .= "<option value=0>\n";
-  foreach my $line (@$list) {
-    $Mail->{DOMAINS_SEL} .= "<option value=$line->[6]";
-    $Mail->{DOMAINS_SEL} .= ' selected' if ($line->[6] eq $Mail->{DOMAIN_ID});
-    $Mail->{DOMAINS_SEL} .= ">$line->[0]\n";
-   }
-  $Mail->{DOMAINS_SEL} .= "</select>\n";
-
  $Mail->{DOMAINS_SEL}=$html->form_select('DOMAIN_ID', 
                                 { 
  	                                SELECTED          => $Mail->{DOMAIN_ID},
  	                                SEL_MULTI_ARRAY   => $Mail->domain_list(),
- 	                                MULTI_ARRAY_KEY   => 6,
+ 	                                MULTI_ARRAY_KEY   => 7,
  	                                MULTI_ARRAY_VALUE => 0,
  	                                SEL_OPTIONS       => { 0 => '-N/S-'},
  	                                NO_ID             => 1
@@ -188,7 +176,7 @@ $Mail->{PASSWORD} = qq{
 #**********************************************************
 sub mail_domains {
   
-  
+   
   
   $Mail->{ACTION}='add';
   $Mail->{LNG_ACTION}=$_ADD;
@@ -225,30 +213,35 @@ sub mail_domains {
 
 
   my $list = $Mail->domain_list({ %FORM });
-  my $table = $html->table( { width => '100%',
-                                   border => 1,
-                                   title => [$_DOMAIN, "$_DESC", $_STATUS, $_CREATE, $_CHANGE,  '-', '-'],
-                                   cols_align => ['left', 'left', 'center', 'right', 'right',  'center', 'center'],
-                                   qs => $pages_qs,
-                                   pages => $Mail->{TOTAL}
-                                  } );
+  my $table = $html->table( { width      => '100%',
+                              border     => 1,
+                              title      => [$_DOMAIN, "$_DESC", $_STATUS, 'Backup_MX', $_CREATE, $_CHANGE,  '-', '-'],
+                              cols_align => ['left', 'left', 'center', 'right', 'right',  'center', 'center'],
+                              qs         => $pages_qs,
+                              pages      => $Mail->{TOTAL}
+                           } );
 
   foreach my $line (@$list) {
-    $delete = $html->button($_DEL, "index=$index&del=$line->[6]", { MESSAGE => "$_DEL \"$line->[0]\"?" }); 
+    $delete = $html->button($_DEL, "index=$index&del=$line->[7]", { MESSAGE => "$_DEL \"$line->[0]\"?" }); 
     $table->addrow("<b>$line->[0]</b>", "$line->[1]",
-     "$status[$line->[2]]", "$line->[3]", "$line->[4]",  
-     $html->button($_CHANGE, "index=$index&MAIL_DOMAIN_ID=$line->[6]"),
+     "$status[$line->[2]]", 
+     "$bool_vals[$line->[3]]", 
+     "$line->[4]",  
+     "$line->[5]", 
+     $html->button($_CHANGE, "index=$index&MAIL_DOMAIN_ID=$line->[7]"),
      $delete);
    }
   print $table->show();
 
-  $table = $html->table( { width => '100%',
-                                cols_align => ['right', 'right'],
-                                rows => [ [ "$_TOTAL:", "<b>$Mail->{TOTAL}</b>" ] ]
-                               } );
+  $table = $html->table( { width      => '100%',
+                           cols_align => ['right', 'right'],
+                           rows       => [ [ "$_TOTAL:", "<b>$Mail->{TOTAL}</b>" ] ]
+                       } );
+
   print $table->show();
 
   $Mail->{DISABLE}=' checked' if($Mail->{DISABLE} == 1);
+  $Mail->{BACKUP_MX}=' checked' if($Mail->{BACKUP_MX} == 1);
   $html->tpl_show(_include('mail_domain', 'Mail'), $Mail);
 }
 

@@ -248,8 +248,8 @@ sub domain_add {
 	my ($attr) = @_;
   %DATA = $self->get_data($attr); 
 	
-	$self->query($db, "INSERT INTO mail_domains (domain, comments, create_date, change_date, status)
-           VALUES ('$DATA{DOMAIN}', '$DATA{COMMENTS}', now(), now(), '$DATA{STATUS}');", 'do');
+	$self->query($db, "INSERT INTO mail_domains (domain, comments, create_date, change_date, status, backup_mx)
+           VALUES ('$DATA{DOMAIN}', '$DATA{COMMENTS}', now(), now(), '$DATA{STATUS}', '$DATA{BACKUP_MX}');", 'do');
 	
 	return $self;
 }
@@ -280,16 +280,18 @@ sub domain_change {
 	              DOMAIN       => 'domain',
 	              COMMENTS     => 'comments', 
 	              CHANGE_DATE  => 'change_date', 
-	              DISABLE      => 'status'
+	              DISABLE      => 'status',
+	              BACKUP_MX    => 'backup_mx'
 	              );
-	
+
+
+  $attr->{BACKUP_MX} = (! defined($attr->{BACKUP_MX})) ? 0 : 1;
  	$self->changes($admin, { CHANGE_PARAM => 'MAIL_DOMAIN_ID',
 	                TABLE        => 'mail_domains',
 	                FIELDS       => \%FIELDS,
 	                OLD_INFO     => $self->domain_info($attr),
 	                DATA         => $attr
 		              } );
-
 	
 	
 	return $self;
@@ -303,9 +305,9 @@ sub domain_info {
 	my ($attr) = @_;
 	
 	
-	print "aaaaaaaa $attr->{MAIL_DOMAIN_ID}";
-	
-  $self->query($db, "SELECT domain, comments, create_date, change_date, status, id
+  $self->query($db, "SELECT domain, comments, create_date, change_date, status, 
+  backup_mx,
+  id
    FROM mail_domains WHERE id='$attr->{MAIL_DOMAIN_ID}';");
 
   if ($self->{TOTAL} < 1) {
@@ -321,6 +323,7 @@ sub domain_info {
    $self->{CREATE_DATE}, 
    $self->{CHANGE_DATE}, 
    $self->{DISABLE},
+   $self->{BACKUP_MX},
    $self->{MAIL_DOMAIN_ID}
   )= @$ar;
 	
@@ -341,7 +344,7 @@ sub domain_list {
  	
 	my $WHERE;
 	
-	$self->query($db, "SELECT md.domain, md.comments, md.status, md.create_date, 
+	$self->query($db, "SELECT md.domain, md.comments, md.status, md.backup_mx, md.create_date, 
 	    md.change_date, count(*) as mboxes, md.id
         FROM mail_domains md
         LEFT JOIN mail_boxes mb ON  (md.id=mb.domain_id) 

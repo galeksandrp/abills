@@ -443,6 +443,7 @@ CREATE TABLE `mail_domains` (
   `change_date` datetime NOT NULL default '0000-00-00 00:00:00',
   `status` tinyint(2) unsigned NOT NULL default '0',
   `id` int(11) unsigned NOT NULL auto_increment,
+  `backup_mx` tinyint(1) unsigned NOT NULL default '0',
   `comments` varchar(255) NOT NULL default '',
   PRIMARY KEY  (`domain`),
   UNIQUE KEY `id` (`id`)

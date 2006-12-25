@@ -1,6 +1,7 @@
 #main.cf            >> [/usr/local/etc/postfix]/main.cf
 sql/aliases.cf         > [/usr/local/etc/postfix]/sql/aliases.cf              
 sql/virtual_domains.cf > [/usr/local/etc/postfix]/sql/virtual_domains.cf
+sql/relay_domains.cf   > [/usr/local/etc/postfix]/sql/relay_domains.cf
 sql/transport.cf       > [/usr/local/etc/postfix]/sql/transport.cf            
 sql/virtual_mailbox.cf > [/usr/local/etc/postfix]/sql/virtual_mailbox.cf
 sql/virtual_mailbox_limits.cf > [/usr/local/etc/postfix]/sql/virtual_mailbox_limits.cf
