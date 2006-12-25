@@ -8,7 +8,6 @@ $web_interface    = 1;
                    "11:0:E-MAIL:null:"                   => 5,
                    "12:11:$_DOMAINS:mail_domains:"       => 5,
                    "13:11:$_ACCESS:mail_access:"         => 5,
-                   "14:11:$_TRANSPORT:mail_transport:"   => 5,
                    "15:11:$_ALIASES:mail_aliases:"       => 5
                    );
 
