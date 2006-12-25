@@ -149,7 +149,7 @@ sub mail_user_boxes {
                                 { 
  	                                SELECTED          => $Mail->{DOMAIN_ID},
  	                                SEL_MULTI_ARRAY   => $Mail->domain_list(),
- 	                                MULTI_ARRAY_KEY   => 7,
+ 	                                MULTI_ARRAY_KEY   => 8,
  	                                MULTI_ARRAY_VALUE => 0,
  	                                SEL_OPTIONS       => { 0 => '-N/S-'},
  	                                NO_ID             => 1
@@ -215,20 +215,21 @@ sub mail_domains {
   my $list = $Mail->domain_list({ %FORM });
   my $table = $html->table( { width      => '100%',
                               border     => 1,
-                              title      => [$_DOMAIN, "$_DESC", $_STATUS, 'Backup_MX', $_CREATE, $_CHANGE,  '-', '-'],
+                              title      => [$_DOMAIN, "$_DESC", $_STATUS, 'Backup_MX', $_TRANSPORT, $_CREATE, $_CHANGE,  '-', '-'],
                               cols_align => ['left', 'left', 'center', 'right', 'right',  'center', 'center'],
                               qs         => $pages_qs,
                               pages      => $Mail->{TOTAL}
                            } );
 
   foreach my $line (@$list) {
-    $delete = $html->button($_DEL, "index=$index&del=$line->[7]", { MESSAGE => "$_DEL \"$line->[0]\"?" }); 
+    $delete = $html->button($_DEL, "index=$index&del=$line->[8]", { MESSAGE => "$_DEL \"$line->[0]\"?" }); 
     $table->addrow("<b>$line->[0]</b>", "$line->[1]",
      "$status[$line->[2]]", 
      "$bool_vals[$line->[3]]", 
      "$line->[4]",  
      "$line->[5]", 
-     $html->button($_CHANGE, "index=$index&MAIL_DOMAIN_ID=$line->[7]"),
+     "$line->[6]", 
+     $html->button($_CHANGE, "index=$index&MAIL_DOMAIN_ID=$line->[8]"),
      $delete);
    }
   print $table->show();

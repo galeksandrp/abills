@@ -248,8 +248,8 @@ sub domain_add {
 	my ($attr) = @_;
   %DATA = $self->get_data($attr); 
 	
-	$self->query($db, "INSERT INTO mail_domains (domain, comments, create_date, change_date, status, backup_mx)
-           VALUES ('$DATA{DOMAIN}', '$DATA{COMMENTS}', now(), now(), '$DATA{STATUS}', '$DATA{BACKUP_MX}');", 'do');
+	$self->query($db, "INSERT INTO mail_domains (domain, comments, create_date, change_date, status, backup_mx, transport)
+           VALUES ('$DATA{DOMAIN}', '$DATA{COMMENTS}', now(), now(), '$DATA{STATUS}', '$DATA{BACKUP_MX}', '$DATA{TRANSPORT}');", 'do');
 	
 	return $self;
 }
@@ -281,7 +281,8 @@ sub domain_change {
 	              COMMENTS     => 'comments', 
 	              CHANGE_DATE  => 'change_date', 
 	              DISABLE      => 'status',
-	              BACKUP_MX    => 'backup_mx'
+	              BACKUP_MX    => 'backup_mx',
+	              TRANSPORT    => 'transport'
 	              );
 
 
@@ -307,6 +308,7 @@ sub domain_info {
 	
   $self->query($db, "SELECT domain, comments, create_date, change_date, status, 
   backup_mx,
+  transport,
   id
    FROM mail_domains WHERE id='$attr->{MAIL_DOMAIN_ID}';");
 
@@ -324,6 +326,7 @@ sub domain_info {
    $self->{CHANGE_DATE}, 
    $self->{DISABLE},
    $self->{BACKUP_MX},
+   $self->{TRANSPORT},
    $self->{MAIL_DOMAIN_ID}
   )= @$ar;
 	
@@ -344,7 +347,7 @@ sub domain_list {
  	
 	my $WHERE;
 	
-	$self->query($db, "SELECT md.domain, md.comments, md.status, md.backup_mx, md.create_date, 
+	$self->query($db, "SELECT md.domain, md.comments, md.status, md.backup_mx, md.transport, md.create_date, 
 	    md.change_date, count(*) as mboxes, md.id
         FROM mail_domains md
         LEFT JOIN mail_boxes mb ON  (md.id=mb.domain_id) 
