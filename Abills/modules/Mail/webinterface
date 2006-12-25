@@ -363,13 +363,13 @@ sub mail_transport {
 	 }
 
   my $list = $Mail->transport_list({ %FORM });
-  my $table = $html->table( { width => '100%',
-                                   border => 1,
-                                   title => [$_ADDRESS, "$_TO", "$_COMMENTS", $_CHANGE,  '-', '-'],
-                                   cols_align => ['left', 'left', 'left',  'center', 'center'],
-                                   qs => $pages_qs,
-                                   pages => $Mail->{TOTAL}
-                                  } );
+  my $table = $html->table( { width      => '100%',
+                              border     => 1,
+                              title      => [$_ADDRESS, "$_TO", "$_COMMENTS", $_CHANGE,  '-', '-'],
+                              cols_align => ['left', 'left', 'left',  'center', 'center'],
+                              qs         => $pages_qs,
+                              pages      => $Mail->{TOTAL}
+                          } );
 
   foreach my $line (@$list) {
     $delete = $html->button($_DEL, "index=$index&del=$line->[4]", { MESSAGE => "$_DEL \"$line->[0]\"?" }); 
@@ -380,13 +380,14 @@ sub mail_transport {
    }
   print $table->show();
 
-  $table = $html->table( { width => '100%',
-                                cols_align => ['right', 'right'],
-                                rows => [ [ "$_TOTAL:", "<b>$Mail->{TOTAL}</b>" ] ]
-                               } );
+  $table = $html->table( { width      => '100%',
+                           cols_align => ['right', 'right'],
+                           rows       => [ [ "$_TOTAL:", "<b>$Mail->{TOTAL}</b>" ] ]
+                       } );
   print $table->show();
 
   $Mail->{DISABLE}=' checked' if($Mail->{DISABLE} == 1);
+  #$Mail->{TRANSPORT_SEL} = $html->form_sel('GOTO', );
   $html->tpl_show(_include('mail_transport', 'Mail'), $Mail);
 }
 

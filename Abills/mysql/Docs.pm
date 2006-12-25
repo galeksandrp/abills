@@ -97,7 +97,7 @@ sub docs_invoice_list {
 
 
   $self->query($db,   "SELECT d.invoice_id, d.date, d.customer,  sum(o.price * o.counts), u.id, a.name, d.created, d.uid, d.id
-    FROM docs_invoice d, docs_invoice_orders o
+    FROM (docs_invoice d, docs_invoice_orders o)
     LEFT JOIN users u ON (d.uid=u.uid)
     LEFT JOIN admins a ON (d.aid=a.aid)
     $WHERE
@@ -111,7 +111,7 @@ sub docs_invoice_list {
 
 
  $self->query($db, "SELECT count(*)
-    FROM docs_invoice d, docs_invoice_orders o    
+    FROM (docs_invoice d, docs_invoice_orders o)
     LEFT JOIN users u ON (d.uid=u.uid)
     $WHERE");
 
@@ -144,7 +144,7 @@ sub docs_invoice_info {
    d.by_proxy_person,
    d.by_proxy_date,
    d.id
-    FROM docs_invoice d, docs_invoice_orders o
+    FROM (docs_invoice d, docs_invoice_orders o)
     LEFT JOIN users u ON (d.uid=u.uid)
     LEFT JOIN admins a ON (d.aid=a.aid)
     WHERE d.id=o.invoice_id and d.id='$id'
@@ -299,7 +299,7 @@ sub accounts_list {
 
 
   $self->query($db,   "SELECT d.acct_id, d.date, d.customer,  sum(o.price * o.counts), u.id, a.name, d.created, d.uid, d.id
-    FROM docs_acct d, docs_acct_orders o
+    FROM (docs_acct d, docs_acct_orders o)
     LEFT JOIN users u ON (d.uid=u.uid)
     LEFT JOIN admins a ON (d.aid=a.aid)
     $WHERE
@@ -313,7 +313,7 @@ sub accounts_list {
 
 
  $self->query($db, "SELECT count(*)
-    FROM docs_acct d, docs_acct_orders o    
+    FROM (docs_acct d, docs_acct_orders o)    
     LEFT JOIN users u ON (d.uid=u.uid)
     $WHERE");
 
@@ -424,7 +424,7 @@ sub account_info {
    d.uid, 
    d.id
 
-    FROM docs_acct d, docs_acct_orders o
+    FROM (docs_acct d, docs_acct_orders o)
     LEFT JOIN users u ON (d.uid=u.uid)
     LEFT JOIN admins a ON (d.aid=a.aid)
     WHERE d.id=o.acct_id and d.id='$id'
