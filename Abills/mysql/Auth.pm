@@ -174,7 +174,7 @@ elsif (defined($RAD_PAIRS->{'Callback-Number'}) && $self->{CALLBACK} != 1){
   }
 
 #Check CID (MAC) 
-if ($self->{CID} ne '') {
+if ($self->{CID} ne '' && $self->{CID} ne '0') {
   my ($ret, $ERR_RAD_PAIRS) = $self->Auth_CID($RAD);
   return $ret, $ERR_RAD_PAIRS if ($ret == 1);
 }
