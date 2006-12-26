@@ -419,6 +419,9 @@ sub check_ppp {
 
 while(my($ip_address, $info)=each %$ip_pid_hash) {
   my($pid, $iface)=split(/:/, $info, 2);
+  if ($conf{DV_PPP_UNCHECKED}) {
+    next if ($ip_address =~ /$conf{DV_PPP_UNCHECKED}/);
+   }
   print "Killed IP: $ip_address PID: $pid\n";
   my $res = `/bin/kill -9 $pid; /sbin/ifconfig tun$iface delete`;
   # /sbin/ifconfig tun$iface delete
