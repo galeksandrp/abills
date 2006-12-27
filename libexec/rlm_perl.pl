@@ -6,7 +6,7 @@ use vars qw(%RAD_REQUEST %RAD_REPLY %RAD_CHECK %conf
  $begin_time
  $db
  $nas);
-use Data::Dumper;
+#use Data::Dumper;
 
 
 # This is hash wich hold original request from radius
