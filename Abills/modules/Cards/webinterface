@@ -1,13 +1,15 @@
 #!/usr/bin/perl
 # Card System
 
+
+
 eval { require Cards; };
 if (! $@) {
   Cards->import();
  }
 else {
-  print "Can't load 'Cards'. Purchase this module http://abills.asmodeus.com.ua";
-  return 0;
+  print "Can't load 'Cards'. Purchase this module http://abills.asmodeus.com.ua $@";
+  exit; #return 0;
  }
 
 use Payments;
@@ -346,7 +348,6 @@ sub cards_bruteforce () {
 #**********************************************************
 sub cards_users_add () {
   my ($attr) = @_;
-
 
   if ($FORM{create}) {
       my $export = '';
@@ -703,6 +704,96 @@ sub cards_report {
   	     });
 
 
+
+my $report_hash = $Cards->cards_report_days({ %LIST_PARAMS });
+
+if($Cards->{errno}) {
+  $html->message('err', $_ERROR, "[$Cards->{errno}] $err_strs{$Cards->{errno}}");  
+  return 0;
+}
+my $table = $html->table( { width      => '100%',
+                            caption    => "$_SERIAL",
+
+                            cols_align => ['left', 'right', 'right','right','right','right','right','right','right'],
+                            qs         => $pages_qs
+                          });
+ 
+    $table->addtd(
+             $table->td($_DATE, { bgcolor => $_COLORS[0], rowspan => 2 }),
+             $table->td($_ENABLE, { bgcolor => $_COLORS[0], colspan => 2 } ), 
+             $table->td($_PAYMENTS, { bgcolor => $_COLORS[0], colspan => 2 }), 
+             $table->td($_DELETED, { bgcolor => $_COLORS[0], colspan => 2 } ), 
+             $table->td($_RETURNED, { bgcolor => $_COLORS[0], colspan => 2 } ), 
+             $table->td($_LOGIN, { bgcolor => $_COLORS[0], colspan => 2 } ),
+             $table->td($_DILLERS, { bgcolor => $_COLORS[0], colspan => 2 } )
+      );
+
+      $table->{rowcolor} = $_COLORS[3];
+    	$table->addrow(
+    	  "$_COUNT", "$_SUM",
+    	  "$_COUNT", "$_SUM",
+    	  "$_COUNT", "$_SUM",
+     	  "$_COUNT", "$_SUM",
+    	  "$_COUNT", "$_SUM",
+     	  "$_COUNT", "$_SUM"
+    	);
+
+ $table->{rowcolor} = undef;
+
+ foreach my $k (sort { $b <=> $a } keys %$report_hash )  {
+   my $v=$report_hash->{$k};
+
+ 	 $table->addrow($html->button($k, "&index=$index&DATE=$k"), 
+ 	   ($v->{ENABLE})   ? $v->{ENABLE} : 0,
+ 	   ($v->{ENABLE_SUM})   ? $v->{ENABLE_SUM} : 0.00,
+
+ 	   ($v->{USED})     ? $v->{USED} : 0,
+ 	   ($v->{USED_SUM})     ? $v->{USED_SUM} : 0.00,
+
+ 	   ($v->{DISABLE})  ? $v->{DISABLE} : 0,
+ 	   ($v->{DISABLE_SUM})  ? $v->{DISABLE_SUM} : 0.00,
+
+ 	   ($v->{RETURNED}) ? $v->{RETURNED} : 0,
+ 	   ($v->{RETURNED_SUM}) ? $v->{RETURNED_SUM} : 0.00,
+
+ 	   ($v->{LOGIN})   ? $v->{LOGIN} : 0,
+ 	   ($v->{LOGIN_SUM})   ? $v->{LOGIN_SUM} : 0.00,
+
+ 	   ($v->{DILLERS})   ? $v->{DILLERS} : 0,
+ 	   ($v->{DILLERS_SUM})   ? $v->{DILLERS_SUM} : 0.00,
+
+
+ 	 $val);
+ 	 
+  }
+
+  $table->addrow( "$_TOTAL:", 
+                            
+                             	   ($Cards->{ENABLE_TOTAL})   ? $Cards->{ENABLE_TOTAL} : 0,
+                            	   ($Cards->{ENABLE_TOTAL_SUM})   ? $Cards->{ENABLE_TOTAL_SUM} : 0.00,
+
+ 	                               ($Cards->{USED_TOTAL})     ? $Cards->{USED_TOTAL} : 0,
+ 	                               ($Cards->{USED_TOTAL_SUM})     ? $Cards->{USED_TOTAL_SUM} : 0.00,
+
+ 	                               ($Cards->{DISABLE_TOTAL})  ? $Cards->{DISABLE_TOTAL} : 0,
+ 	                               ($Cards->{DISABLE_TOTAL_SUM})  ? $Cards->{DISABLE_TOTAL_SUM} : 0.00,
+
+                             	   ($Cards->{RETURNED_TOTAL}) ? $Cards->{RETURNED_TOTAL} : 0,
+ 	                               ($Cards->{RETURNED_TOTAL_SUM}) ? $Cards->{RETURNED_TOTAL_SUM} : 0.00,
+
+ 	                               ($Cards->{LOGIN_TOTAL})   ? $Cards->{LOGIN_TOTAL} : 0,
+ 	                               ($Cards->{LOGIN_TOTAL_SUM})   ? $Cards->{LOGIN_TOTAL_SUM} : 0.00, 
+
+ 	                               ($Cards->{DILLERS_TOTAL})   ? $Cards->{DILLERS_TOTAL} : 0,
+ 	                               ($Cards->{DILLERS_TOTAL_SUM})   ? $Cards->{DILLERS_TOTAL_SUM} : 0.00
+                        );
+
+ print $table->show();
+
+
+
+
+=comments
   my $list = $Cards->cards_report_dillers({ %LIST_PARAMS });
 	$table = $html->table( { width      => '100%',
                            caption    => "$_SERIAL",
@@ -752,8 +843,9 @@ sub cards_report {
 		   
     }
 
-
 print $table->show();
+=cut
+
 }
 
 

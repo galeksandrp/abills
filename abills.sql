@@ -431,12 +431,6 @@ CREATE TABLE `mail_boxes` (
   KEY `username_antispam` (`username`,`antispam`)
 )  ;
 
-# --------------------------------------------------------
-
-#
-# Структура таблиці `mail_domains`
-#
-
 CREATE TABLE `mail_domains` (
   `domain` varchar(255) NOT NULL default '',
   `create_date` datetime NOT NULL default '0000-00-00 00:00:00',
@@ -444,24 +438,9 @@ CREATE TABLE `mail_domains` (
   `status` tinyint(2) unsigned NOT NULL default '0',
   `id` int(11) unsigned NOT NULL auto_increment,
   `backup_mx` tinyint(1) unsigned NOT NULL default '0',
-  `comments` varchar(255) NOT NULL default '',
-  PRIMARY KEY  (`domain`),
-  UNIQUE KEY `id` (`id`)
-)  ;
-
-# --------------------------------------------------------
-
-#
-# Структура таблиці `mail_transport`
-#
-
-CREATE TABLE `mail_transport` (
-  `domain` varchar(128) NOT NULL default '',
   `transport` varchar(128) NOT NULL default '',
   `comments` varchar(255) NOT NULL default '',
-  `change_date` datetime NOT NULL default '0000-00-00 00:00:00',
-  `id` int(11) unsigned NOT NULL auto_increment,
-  UNIQUE KEY `domain` (`domain`),
+  PRIMARY KEY  (`domain`),
   UNIQUE KEY `id` (`id`)
 )  ;
 
