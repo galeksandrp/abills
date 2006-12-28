@@ -704,14 +704,21 @@ sub cards_report {
   	     });
 
 
+$Cards->{debug}=1;
 
-my $report_hash = $Cards->cards_report_days({ %LIST_PARAMS });
 
-if($Cards->{errno}) {
-  $html->message('err', $_ERROR, "[$Cards->{errno}] $err_strs{$Cards->{errno}}");  
-  return 0;
+if ($FORM{DATE}) {
+	
+	
 }
-my $table = $html->table( { width      => '100%',
+else {
+ my $report_hash = $Cards->cards_report_days({ %LIST_PARAMS });
+
+ if($Cards->{errno}) {
+   $html->message('err', $_ERROR, "[$Cards->{errno}] $err_strs{$Cards->{errno}}");  
+   return 0;
+  }
+ my $table = $html->table( { width      => '100%',
                             caption    => "$_SERIAL",
                             cols_align => ['left', 'right', 'right','right','right','right','right','right','right'],
                             qs         => $pages_qs
@@ -768,7 +775,8 @@ my @days_arr = sort keys %$report_hash;
  	 $val);
  	 
   }
-
+  
+  $table->{rowcolor} = $_COLORS[3];
   $table->addrow( "$_TOTAL:", 
                             
                              	   ($Cards->{ENABLE_TOTAL})   ? $Cards->{ENABLE_TOTAL} : 0,
@@ -792,7 +800,7 @@ my @days_arr = sort keys %$report_hash;
 
  print $table->show();
 
-
+}
 
 
 }
