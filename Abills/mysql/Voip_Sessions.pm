@@ -254,7 +254,7 @@ sub session_detail {
   
   l.uid,
   l.acct_session_id
- FROM voip_log l, users u
+ FROM (voip_log l, users u)
  LEFT JOIN tarif_plans tp ON (l.tp_id=tp.id) 
  LEFT JOIN nas n ON (l.nas_id=n.id) 
  WHERE l.uid=u.uid 
@@ -531,7 +531,7 @@ elsif($attr->{DATE}) {
  l.uid,
  UNIX_TIMESTAMP(l.start),
  l.duration
-  FROM voip_log l, users u
+  FROM (voip_log l, users u)
   $WHERE
   ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");
 
@@ -540,7 +540,7 @@ elsif($attr->{DATE}) {
 
  if ($self->{TOTAL} > 0) {
     $self->query($db, "SELECT count(*), SEC_TO_TIME(sum(l.duration)), sum(sum)  
-      FROM voip_log l, users u
+      FROM (voip_log l, users u)
      $WHERE;");
 
     my $a_ref = $self->{list}->[0];

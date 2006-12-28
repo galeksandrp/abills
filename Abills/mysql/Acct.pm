@@ -74,7 +74,7 @@ if ($RAD->{USER_NAME} =~ /(\d+):(\S+)/) {
 #Start
 if ($acct_status_type == 1) { 
   #Get TP_ID
-  $self->query($db, "SELECT dv.tp_id FROM users u, dv_main dv
+  $self->query($db, "SELECT dv.tp_id FROM (users u, dv_main dv)
     WHERE u.uid=dv.uid and u.id='$RAD->{USER_NAME}';");
   ($self->{TP_ID})= @{ $self->{list}->[0] };
 

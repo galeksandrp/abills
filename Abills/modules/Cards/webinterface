@@ -708,7 +708,34 @@ $Cards->{debug}=1;
 
 
 if ($FORM{DATE}) {
+	#Dillers  Payment Login  Returned Get
 	
+  my $table = $html->table({ width      => '100%',
+                             caption    => "$_DILLERS",
+                             cols_align => ['left', 'right', 'right','right','right','right','right','right','right'],
+                             qs         => $pages_qs
+                          });
+
+   $table->addtd(
+             $table->td($_DILLERS, { bgcolor => $_COLORS[0], rowspan => 2 }),
+             $table->td($_PAYMENTS, { bgcolor => $_COLORS[0], colspan => 2 } ), 
+             $table->td($_LOGIN, { bgcolor => $_COLORS[0], colspan => 2 }), 
+             $table->td($_RETURNED, { bgcolor => $_COLORS[0], colspan => 2 } ), 
+             $table->td($_GET, { bgcolor => $_COLORS[0], colspan => 2 } )
+      );
+
+      $table->{rowcolor} = $_COLORS[3];
+    	$table->addrow(
+    	  "$_COUNT", "$_SUM",
+    	  "$_COUNT", "$_SUM",
+    	  "$_COUNT", "$_SUM",
+     	  "$_COUNT", "$_SUM",
+    	);
+
+
+  
+
+   print $table->show();	
 	
 }
 else {
@@ -752,7 +779,7 @@ my @days_arr = sort keys %$report_hash;
  	 my $k = $days_arr[$i];
    my $v=$report_hash->{$k};
 
- 	 $table->addrow($html->button($k, "&index=$index&DATE=$k"), 
+ 	 $table->addrow($html->button($k, "index=$index&DATE=$k"), 
  	   ($v->{ENABLE})   ? $v->{ENABLE} : 0,
  	   ($v->{ENABLE_SUM})   ? $v->{ENABLE_SUM} : 0.00,
 

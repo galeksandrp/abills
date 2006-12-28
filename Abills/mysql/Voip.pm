@@ -256,7 +256,7 @@ sub user_list {
    $self->query($db, "SELECT u.id, pi.fio, if(company.id IS NULL, b.deposit, b.deposit), 
       u.credit, tp.name, u.disable, 
       u.uid, u.company_id, u.email, u.tp_id, if(l.start is NULL, '-', l.start)
-     FROM users u, bills b
+     FROM (users u, bills b)
      LEFT JOIN users_pi pi ON u.uid = dv.uid
      LEFT JOIN tarif_plans tp ON  (tp.id=u.tp_id) 
      LEFT JOIN companies company ON  (u.company_id=company.id) 
@@ -399,7 +399,7 @@ sub user_list {
       u.disable, 
       service.number,
       u.uid, u.company_id, pi.email, service.tp_id, u.activate, u.expire, u.bill_id
-     FROM users u, voip_main service
+     FROM (users u, voip_main service)
      LEFT JOIN users_pi pi ON (u.uid = pi.uid)
      LEFT JOIN bills b ON u.bill_id = b.id
      LEFT JOIN tarif_plans tp ON (tp.id=service.tp_id) 
@@ -415,7 +415,7 @@ sub user_list {
  my $list = $self->{list};
 
  if ($self->{TOTAL} >= 0) {
-    $self->query($db, "SELECT count(u.id) FROM users u, voip_main service $WHERE");
+    $self->query($db, "SELECT count(u.id) FROM (users u, voip_main service) $WHERE");
     my $a_ref = $self->{list}->[0];
     ($self->{TOTAL}) = @$a_ref;
    }
@@ -691,7 +691,7 @@ sub tp_list() {
     tp.day_fee, tp.month_fee, 
     tp.logins, 
     tp.age
-    FROM tarif_plans tp, voip_tps voip
+    FROM (tarif_plans tp, voip_tps voip)
     LEFT JOIN intervals i ON (i.tp_id=tp.id)
     $WHERE
     GROUP BY tp.id

@@ -329,9 +329,9 @@ sub session_sum {
     tp.min_session_cost,
     u.company_id,
     tp.payment_type
-   FROM users u, 
+   FROM (users u, 
       dv_main dv, 
-      tarif_plans tp
+      tarif_plans tp)
    WHERE dv.tp_id=tp.id 
    and dv.uid=u.uid
    and u.id='$USER_NAME';");

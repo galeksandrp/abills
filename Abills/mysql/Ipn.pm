@@ -81,7 +81,7 @@ sub user_ips {
       if(u.company_id > 0, cb.id, b.id),
       if(c.name IS NULL, b.deposit, cb.deposit)+u.credit,
       tp.payment_type
-    FROM dv_calls calls, users u
+    FROM (dv_calls calls, users u)
       LEFT JOIN companies c ON (u.company_id=c.id)
       LEFT JOIN bills b ON (u.bill_id=b.id)
       LEFT JOIN bills cb ON (c.bill_id=cb.id)
@@ -99,7 +99,7 @@ sub user_ips {
     NUll,
     NULL,
     1
-    FROM dv_calls calls, users u
+    FROM (dv_calls calls, users u)
    WHERE u.id=calls.user_name
    and calls.nas_id='$DATA->{NAS_ID}';";
   }  
@@ -620,7 +620,7 @@ sub acct_stop {
       UNIX_TIMESTAMP()-UNIX_TIMESTAMP(calls.started),
       nas_id,
       nas_port_id
-    FROM dv_calls calls, users u
+    FROM (dv_calls calls, users u)
       LEFT JOIN companies c ON (u.company_id=c.id)
       LEFT JOIN bills b ON (u.bill_id=b.id)
       LEFT JOIN bills cb ON (c.bill_id=cb.id)
