@@ -713,7 +713,6 @@ if($Cards->{errno}) {
 }
 my $table = $html->table( { width      => '100%',
                             caption    => "$_SERIAL",
-
                             cols_align => ['left', 'right', 'right','right','right','right','right','right','right'],
                             qs         => $pages_qs
                           });
@@ -722,7 +721,7 @@ my $table = $html->table( { width      => '100%',
              $table->td($_DATE, { bgcolor => $_COLORS[0], rowspan => 2 }),
              $table->td($_ENABLE, { bgcolor => $_COLORS[0], colspan => 2 } ), 
              $table->td($_PAYMENTS, { bgcolor => $_COLORS[0], colspan => 2 }), 
-             $table->td($_DELETED, { bgcolor => $_COLORS[0], colspan => 2 } ), 
+             $table->td($_DISABLE, { bgcolor => $_COLORS[0], colspan => 2 } ), 
              $table->td($_RETURNED, { bgcolor => $_COLORS[0], colspan => 2 } ), 
              $table->td($_LOGIN, { bgcolor => $_COLORS[0], colspan => 2 } ),
              $table->td($_DILLERS, { bgcolor => $_COLORS[0], colspan => 2 } )
@@ -740,7 +739,10 @@ my $table = $html->table( { width      => '100%',
 
  $table->{rowcolor} = undef;
 
- foreach my $k (sort { $b <=> $a } keys %$report_hash )  {
+my @days_arr = sort keys %$report_hash;
+
+ for(my $i=$#days_arr; $i>=0;  $i--)  {
+ 	 my $k = $days_arr[$i];
    my $v=$report_hash->{$k};
 
  	 $table->addrow($html->button($k, "&index=$index&DATE=$k"), 
@@ -793,7 +795,14 @@ my $table = $html->table( { width      => '100%',
 
 
 
-=comments
+}
+
+
+#**********************************************************
+#
+#**********************************************************
+sub cards_report_dillers {
+	
   my $list = $Cards->cards_report_dillers({ %LIST_PARAMS });
 	$table = $html->table( { width      => '100%',
                            caption    => "$_SERIAL",
@@ -844,9 +853,9 @@ my $table = $html->table( { width      => '100%',
     }
 
 print $table->show();
-=cut
-
+	
 }
+
 
 
 1
