@@ -2414,18 +2414,9 @@ sub dv_wizard_user {
       #3 personal info
       $user->pi_add({ UID => "$UID", %{$add_values{3}} });
 
-      #4 Dv
-   	  $Dv->add({ UID => $UID, %{$add_values{4}} });
-      if ($Dv->{errno}) {
-         $html->message('err', $_ERROR, "[$Dv->{errno}] $err_strs{$Dv->{errno}}  Dv Modules");	
-         return 0;
-        }
-      
       #5 Payments section
       if ($FORM{'5.SUM'}) {
-
-
-       if($FORM{'5.SUM'} + 0 > 0) {
+        if($FORM{'5.SUM'} + 0 > 0) {
           my $er = ($FORM{'5.ER'}) ? $payments->exchange_info($FORM{'5.ER'}) : { ER_RATE => 1 } ;  
           $payments->add($user, { %{$add_values{5}}, ER => $er->{ER_RATE} } );  
           if ($payments->{errno}) {
@@ -2435,8 +2426,8 @@ sub dv_wizard_user {
           else {
             $message = "$_SUM: $FORM{'5.SUM'} $er->{ER_SHORT_NAME}";
            }
-        }
-       elsif($FORM{'5.SUM'} + 0 < 0) {
+         }
+        elsif($FORM{'5.SUM'} + 0 < 0) {
           my $er = ($FORM{'5.ER'}) ? $payments->exchange_info($FORM{'5.ER'}) : { ER_RATE => 1 } ;  
           
           
@@ -2449,9 +2440,16 @@ sub dv_wizard_user {
           else {
             $message = "$_SUM: $FORM{'5.SUM'} $er->{ER_SHORT_NAME}";
            }
-        }
+         }
+       }
 
-      }
+      #4 Dv
+   	  $Dv->add({ UID => $UID, %{$add_values{4}} });
+      if ($Dv->{errno}) {
+        $html->message('err', $_ERROR, "[$Dv->{errno}] $err_strs{$Dv->{errno}}  Dv Modules");	
+        return 0;
+       }
+      
       
       # Info
       my $dv = $Dv->info($UID);
