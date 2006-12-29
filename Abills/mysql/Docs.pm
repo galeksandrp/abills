@@ -317,9 +317,7 @@ sub accounts_list {
     LEFT JOIN users u ON (d.uid=u.uid)
     $WHERE");
 
- my $a_ref = $self->{list}->[0];
-
- ($self->{TOTAL}) = @$a_ref;
+ ($self->{TOTAL}) = @{ $self->{list}->[0] };
 
 	return $list;
 }
