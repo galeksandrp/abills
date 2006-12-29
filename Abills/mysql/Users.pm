@@ -435,6 +435,13 @@ sub list {
     $self->{SEARCH_FIELDS_COUNT}++;
   }
 
+ if ($attr->{REGISTRATION}) {
+    my $value = $self->search_expr("'$attr->{REGISTRATION}'", 'INT');
+    push @WHERE_RULES, "u.registration LIKE '$attr->{REGISTRATION}'";
+    $self->{SEARCH_FIELDS} .= 'u.registration, ';
+    $self->{SEARCH_FIELDS_COUNT}++;
+  }
+
 
  if ($attr->{DEPOSIT}) {
     my $value = $self->search_expr($attr->{DEPOSIT}, 'INT');

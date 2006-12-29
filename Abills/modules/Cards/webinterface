@@ -364,7 +364,7 @@ sub cards_users_add () {
 
       if(defined($FORM{FILE_DATA})) {
 
-      	my @rows = split(/[\r]\n/, $FORM{"FILE_DATA"}{'Contents'});
+      	my @rows = split(/[\r]{0,1}\n/, $FORM{"FILE_DATA"}{'Contents'});
 
         foreach my $line (@rows) {
       	   my $other='';        	 
@@ -406,8 +406,10 @@ sub cards_users_add () {
            $begin++;
           }
 
+        
       	$table = $html->table({ width  => '100%',
-                                rows   => [ [$_NAME, $FORM{FILE_DATA}{filename}],
+                                rows   => [ [$_NAME,   $FORM{FILE_DATA}{filename} ],
+                                            [$_TOTAL,  $#DATA_ARRAY+1 ],
                                             ["$_SIZE", $FORM{FILE_DATA}{Size}  ]
                                            ]
                                });
@@ -510,6 +512,10 @@ sub cards_users_gen_confim {
 
   $Cards->cards_add({ %$attr });
   if ($Cards->{errno}) {
+    $html->message('err', "$_ERROR", "$_ICARDS $_EXIST $_SERIAL: '$attr->{SERIA}' $_NUM: $attr->{NUMBER}]");
+    return 0; 
+   }
+  elsif ($Cards->{errno}) {
     $html->message('err', "$_ERROR:$_ICARDS", "[$Cards->{errno}] $err_strs{$Cards->{errno}}");
     return 0; 
    }
