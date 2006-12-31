@@ -2,7 +2,7 @@
 $CHARSET = 'windows-1251';
 
 @PERIODS=('Today', 'Yesterday', 'Week', 'Month', 'All sessions', 'From activization');
-@MONTHES=('January', 'February', 'March', 'April', 'May', 'June', 'July', 'August',  'September', 'October', 'November', 'Decembe');
+@MONTHES=('January', 'February', 'March', 'April', 'May', 'June', 'July', 'August',  'September', 'October', 'November', 'December');
 @WEEKDAYS=('Hollidays', 'Mo', 'Tu', 'Wn', 'Th', 'Fr', 'Sat', 'Sun');
 
 $_ADD='Add';

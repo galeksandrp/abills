@@ -27,6 +27,32 @@ sub cards_main {
 
 
 if ($FORM{change}) {
+  my @ORDERS  = ();    
+  my $list;
+
+  if (in_array('Docs', \@MODULES) && $FORM{INVOICE}) {
+     require "Abills/modules/Docs/webinterface";
+     $list = $Cards->cards_list({ IDS => $FORM{IDS}, ROWS => 1000000 });
+       my %DILLERS_LIST = ();
+       foreach my $line (@$list) {
+    	   $DILLERS_LIST{"$line->[7]"}{"$line->[1]:$line->[3]"}++ if ($line->[7] ne '') ;
+        }
+
+#Invoice for 'give back' dillers
+       while(my ($diller, $cards) = each (%DILLERS_LIST)) {
+         @ORDERS = ();
+         while(my ($k, $v) = each (%$cards)) {
+           my ($seria, $price)=split(/:/, $k, 2);
+           push @ORDERS, "$_ICARDS $_SERIAL: $seria $_SUM: $price|0|$v|$price";
+          }
+
+ 		     docs_invoice_add({ CUSTOMER  => $diller,
+                          	ORDERS    => [ @ORDERS ],
+                          	CREATE    => 1
+                          });
+        }
+  }
+
  	$Cards->cards_change({ %FORM });
 
   if (! $Cards->{errno}) {
@@ -42,11 +68,12 @@ if ($FORM{change}) {
        my $list = $Cards->cards_list({ IDS => $FORM{IDS}, ROWS => 1000000 });
 
        my %CARDS_GROUPS = ();
+       my %DILLERS_LIST = ();
        foreach my $line (@$list) {
     	   $CARDS_GROUPS{"$line->[1]:$line->[3]"}++;
+    	   $DILLERS_LIST{"$line->[7]"}{"$line->[1]:$line->[3]"}++ if ($line->[7] ne 'null') ;
         }
-
- 		   my @ORDERS  = ();    
+       @ORDERS = ();
        while(my ($k, $v) = each (%CARDS_GROUPS)) {
          my ($seria, $price)=split(/:/, $k, 2);
          push @ORDERS, "$_ICARDS $_SERIAL: $seria $_SUM: $price|0|$v|$price";
@@ -706,6 +733,7 @@ sub cards_report {
 
  reports({ DATE        => $FORM{DATE}, 
  	         REPORT      => '',
+ 	         EX_PARAMS   => { 1 => $_DILLERS, 2 => $_ICARDS },
            PERIOD_FORM => 1
   	     });
 
@@ -714,35 +742,16 @@ $Cards->{debug}=1;
 
 
 if ($FORM{DATE}) {
-	#Dillers  Payment Login  Returned Get
-	
-  my $table = $html->table({ width      => '100%',
-                             caption    => "$_DILLERS",
-                             cols_align => ['left', 'right', 'right','right','right','right','right','right','right'],
-                             qs         => $pages_qs
-                          });
-
-   $table->addtd(
-             $table->td($_DILLERS, { bgcolor => $_COLORS[0], rowspan => 2 }),
-             $table->td($_PAYMENTS, { bgcolor => $_COLORS[0], colspan => 2 } ), 
-             $table->td($_LOGIN, { bgcolor => $_COLORS[0], colspan => 2 }), 
-             $table->td($_RETURNED, { bgcolor => $_COLORS[0], colspan => 2 } ), 
-             $table->td($_GET, { bgcolor => $_COLORS[0], colspan => 2 } )
-      );
-
-      $table->{rowcolor} = $_COLORS[3];
-    	$table->addrow(
-    	  "$_COUNT", "$_SUM",
-    	  "$_COUNT", "$_SUM",
-    	  "$_COUNT", "$_SUM",
-     	  "$_COUNT", "$_SUM",
-    	);
 
 
-  
-
-   print $table->show();	
-	
+  if ($FORM{EX_PARAMS} == 2) {
+  	$LIST_PARAMS{GROUP}='c.serial';
+  	
+  	cards_report_dillers({ CAPTION => "$_ICARDS" });
+   }
+  else {
+    cards_report_dillers({ CAPTION => "$_DILLERS" });
+	 }
 }
 else {
  my $report_hash = $Cards->cards_report_days({ %LIST_PARAMS });
@@ -767,7 +776,7 @@ else {
              $table->td($_DILLERS, { bgcolor => $_COLORS[0], colspan => 2 } )
       );
 
-      $table->{rowcolor} = $_COLORS[3];
+      $table->{rowcolor} = $_COLORS[0];
     	$table->addrow(
     	  "$_COUNT", "$_SUM",
     	  "$_COUNT", "$_SUM",
@@ -843,12 +852,14 @@ my @days_arr = sort keys %$report_hash;
 #
 #**********************************************************
 sub cards_report_dillers {
+	my ($attr) = @_;
 	
   my $list = $Cards->cards_report_dillers({ %LIST_PARAMS });
 	$table = $html->table( { width      => '100%',
-                           caption    => "$_SERIAL",
+                           caption    =>  $attr->{CAPTION},
                            #title      => ['ID', "$_LOGIN", "$_ADDED", "$_GROUP", "$_STATUS", "$_EXPIRE", "$_DILLERS", "$_ADMINS", '-'],
-                           cols_align => ['left', 'right', 'right','right','right','right','right','right','right'],
+                           cols_align => ['left', 'right', 'right','right','right','right','right','right','right'
+                            ,'right','right'],
                            qs         => $pages_qs,
                            pages      => $Cards->{TOTAL}
                           });
@@ -856,19 +867,23 @@ sub cards_report_dillers {
 
    $table->addtd(
              $table->td($_DILLERS, { bgcolor => $_COLORS[0], rowspan => 2 }),
+             $table->td($_ENABLE, { bgcolor => $_COLORS[0], colspan => 2 } ), 
              $table->td($_DISABLE, { bgcolor => $_COLORS[0], colspan => 2 } ), 
-             $table->td($_USED, { bgcolor => $_COLORS[0], colspan => 2 }), 
-             $table->td($_DELETED, { bgcolor => $_COLORS[0], colspan => 2 } ), 
+             $table->td($_PAYMENTS, { bgcolor => $_COLORS[0], colspan => 2 }), 
+             $table->td($_LOGIN, { bgcolor => $_COLORS[0], colspan => 2 } ), 
+             $table->td($_TAKE, { bgcolor => $_COLORS[0], colspan => 2 } ), 
              $table->td($_RETURNED, { bgcolor => $_COLORS[0], colspan => 2 } ), 
              $table->td($_TOTAL, { bgcolor => $_COLORS[0], colspan => 2 } )
       );
 
-      $table->{rowcolor} = $_COLORS[3];
+      $table->{rowcolor} = $_COLORS[0];
     	$table->addrow(
     	  "$_COUNT", "$_SUM",
     	  "$_COUNT", "$_SUM",
     	  "$_COUNT", "$_SUM",
      	  "$_COUNT", "$_SUM",
+    	  "$_COUNT", "$_SUM",
+    	  "$_COUNT", "$_SUM",
     	  "$_COUNT", "$_SUM"
     	);
 
@@ -887,17 +902,52 @@ sub cards_report_dillers {
   		  $line->[7],
   		  $line->[8],
   		  $line->[9],
-  		  $line->[10]
+  		  $line->[10],
+   		  $line->[11],
+   		  $line->[12],
+   		  $line->[13],
+   		  $line->[14]
 
 		   );
 		   
     }
+
+$table->{rowcolor} = $_COLORS[3];
+  $table->addrow( "$_TOTAL:", 
+     $Cards->{ENABLE_TOTAL}, 
+     $Cards->{ENABLE_TOTAL_SUM}, 
+     $Cards->{DISABLE_TOTAL},  
+     $Cards->{DISABLE_TOTAL_SUM},  
+     $Cards->{PAYMENT_TOTAL}, 
+     $Cards->{PAYMENT_TOTAL_SUM}, 
+     $Cards->{LOGIN_TOTAL},  
+     $Cards->{LOGIN_TOTAL_SUM},
+     $Cards->{TAKE_TOTAL},  
+     $Cards->{TAKE_TOTAL_SUM},
+     $Cards->{RETURN_TOTAL},  
+     $Cards->{RETURN_TOTAL_SUM},
+     $Cards->{COUNT_TOTAL},
+     $Cards->{COUNT_TOTAL_SUM} );
 
 print $table->show();
 	
 }
 
 
+#**********************************************************
+#
+#**********************************************************
+sub cards_report_seria {
+	
+	
+		#Dillers  Payment Login  Returned Get
+	
+
+  
+
+   print $table->show();	
+	
+}
 
 1
 

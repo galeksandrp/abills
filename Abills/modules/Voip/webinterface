@@ -297,8 +297,8 @@ sub voip_nas {
 #**********************************************************
 sub voip_tp_routes {
 	my ($attr) = @_;
-	
-	my $Voip_tp;
+
+my $Voip_tp;
 if (defined($attr->{TP})) {
 	$Voip_tp = $attr->{TP};
 

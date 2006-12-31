@@ -2592,7 +2592,7 @@ if (defined($FORM{DATE})) {
      	if ($FORM{EX_PARAMS} eq $k) {
         $EX_PARAMS .= " <b>$v</b> ";
         $LIST_PARAMS{$k}=1;
-        $pages_qs .="&EX_PARAMS=$k";
+        #$pages_qs .="&EX_PARAMS=$k";
 
      	  if ($k eq 'HOURS') {
     	  	 undef $attr->{SHOW_HOURS};

@@ -11,7 +11,7 @@
 # 
 
   IP_ADDR=$1 
-  INTERFACE=`ifconfig | awk -v RS='\n\n'  "/$IP_ADDR/ {print \\$1}"` 
+  INTERFACE=`ifconfig | awk -v RS='\n\n'  "/$IP_ADDR / {print \\$1}"` 
   PPP_PID=`cat /var/run/$INTERFACE.pid` 
 
   kill -1 $PPP_PID
