@@ -2455,7 +2455,7 @@ sub dv_wizard_user {
         require "Abills/modules/Mail/webinterface";
         my $Mail = Mail->new($db, $admin, \%conf);
         
-        $FORM{'6.newpassword'} = $FORM{'6.PASSWORD'} if ($FORM{'6.PASSWORD');
+        $FORM{'6.newpassword'} = $FORM{'6.PASSWORD'} if ($FORM{'6.PASSWORD'});
 
         $Mail->mbox_add({ UID => "$UID", %{$add_values{6}}, PASSWORD => $FORM{'6.newpassword'} });
 
