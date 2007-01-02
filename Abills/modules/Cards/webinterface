@@ -729,9 +729,6 @@ if ($Cards->{errno}) {
 #**********************************************************
 sub cards_report {
 	
-#Предприятие  Наимен.  Приход  Реализация  Остаток  Возврат  
-# Кол-во  Сумма  Кол-во  Сумма  Кол-во  Сумма  Кол-во  Сумма  
-
  reports({ DATE        => $FORM{DATE}, 
  	         REPORT      => '',
  	         EX_PARAMS   => { 1 => $_DILLERS, 2 => $_ICARDS },
@@ -745,7 +742,7 @@ if ($FORM{DATE}) {
   if ($FORM{EX_PARAMS} == 2) {
   	$LIST_PARAMS{GROUP}='c.serial';
   	
-  	cards_report_dillers({ CAPTION => "$_ICARDS" });
+  	cards_report_dillers({ CAPTION => "$_ICARDS / $_SERIAL" });
    }
   else {
     cards_report_dillers({ CAPTION => "$_DILLERS" });
@@ -864,7 +861,7 @@ sub cards_report_dillers {
 
 
    $table->addtd(
-             $table->td($_DILLERS, { bgcolor => $_COLORS[0], rowspan => 2 }),
+             $table->td($attr->{CAPTION}, { bgcolor => $_COLORS[0], rowspan => 2 }),
              $table->td($_ENABLE, { bgcolor => $_COLORS[0], colspan => 2 } ), 
              $table->td($_DISABLE, { bgcolor => $_COLORS[0], colspan => 2 } ), 
              $table->td($_PAYMENTS, { bgcolor => $_COLORS[0], colspan => 2 }), 
