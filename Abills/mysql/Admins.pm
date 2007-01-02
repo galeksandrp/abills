@@ -168,9 +168,6 @@ sub list {
 sub change {
  my $self = shift;
  my ($attr) = @_;
- 
-   $self->{debug}  =1;
- 
   my %FIELDS = (AID    =>   'aid',
            A_LOGIN     => 'id',
            A_FIO       => 'name',
