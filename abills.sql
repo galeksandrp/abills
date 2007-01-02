@@ -43,7 +43,7 @@ CREATE TABLE `admins` (
   `name` varchar(50) NOT NULL default '',
   `regdate` date NOT NULL default '0000-00-00',
   `password` varchar(16) binary NOT NULL default '',
-  `gid` tinyint(4) unsigned NOT NULL default '0',
+  `gid` smallint(4) unsigned NOT NULL default '0',
   `aid` smallint(6) unsigned NOT NULL auto_increment,
   `disable` tinyint(1) unsigned NOT NULL default '0',
   `phone` varchar(16) NOT NULL default '',

@@ -738,9 +738,6 @@ sub cards_report {
   	     });
 
 
-$Cards->{debug}=1;
-
-
 if ($FORM{DATE}) {
 
 

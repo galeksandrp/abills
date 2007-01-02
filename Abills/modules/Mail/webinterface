@@ -13,7 +13,7 @@ my $Mail = Mail->new($db, $admin, \%conf);
 sub mail_users_list {
  
 
- if (! $FORM{UID}) {
+ if (! defined($FORM{UID})) {
    print $html->letters_list();
    if ($FORM{letter}) {
      $LIST_PARAMS{FIRST_LETTER} = $FORM{letter};
@@ -53,7 +53,10 @@ elsif ($Mail->{TOTAL} == 1) {
 
 
   foreach my $line (@$list) {
-    $delete = $html->button($_DEL, "index=$index&del=$line->[14]&UID=$line->[13]", { MESSAGE => "$_DEL ?" }); 
+    
+    if (! $user->{UID} || $conf{MAIL_USER_FULL_CONTROL}) {
+      $delete = $html->button($_DEL, "index=$index&del=$line->[14]&UID=$line->[13]", { MESSAGE => "$_DEL ?" }); 
+     }
 
     $table->addrow($html->button($line->[0], "index=$index&MBOX_ID=$line->[14]&UID=$line->[13]"), 
        "$line->[1]",
@@ -124,8 +127,8 @@ sub mail_user_boxes {
 	  $Mail->{ACTION}='set';
 	  $Mail->{LNG_ACTION}=$_CHANGE;
    }
-	elsif($FORM{del}) {
-    $Mail->mbox_del($FORM{del});
+	elsif($FORM{del} && $FORM{is_js_confirmed}) {
+    $Mail->mbox_del($FORM{del}, { %LIST_PARAMS });
     if (! $Mail->{errno}){
       $html->message('info', $_INFO, "$_CHANGED");	
      }
@@ -148,7 +151,7 @@ sub mail_user_boxes {
  $Mail->{DOMAINS_SEL}=$html->form_select('DOMAIN_ID', 
                                 { 
  	                                SELECTED          => $Mail->{DOMAIN_ID},
- 	                                SEL_MULTI_ARRAY   => $Mail->domain_list(),
+ 	                                SEL_MULTI_ARRAY   => $Mail->domain_list({ BACKUP_MX => 0 }),
  	                                MULTI_ARRAY_KEY   => 8,
  	                                MULTI_ARRAY_VALUE => 0,
  	                                SEL_OPTIONS       => { 0 => '-N/S-'},
@@ -167,7 +170,23 @@ $Mail->{PASSWORD} = qq{
     </td><td><input type="text" name="generated_pw" id="generated_pw" /></td></tr>
  };
 
+if (! $user->{UID}) {
   $html->tpl_show(_include('mail_box', 'Mail'), $Mail);
+ }
+else {
+  
+  
+  print $html->form_main({ CONTENT => "<table>
+  	                    <tr bgcolor='$_BG[2]'><td>E-Mail:</td><td>$Mail->{USERNAME}\@$Mail->{DOMAIN}</td></tr>
+  	                    $Mail->{PASSWORD}</table>",
+  	                       HIDDEN  => { index   => "$index",
+  	                       	            UID     => "$user->{UID}",
+  	                       	            MBOX_ID => $Mail->{MBOX_ID}
+ 	                       	             },
+	                         SUBMIT  => { set   => "$_CHANGE"  } 
+	                        });
+ }
+
 }
 
 
@@ -467,6 +486,13 @@ foreach my $t (@access_actions) {
   $Mail->{DISABLE}=' checked' if($Mail->{DISABLE} == 1);
   $html->tpl_show(_include('mail_access', 'Mail'), $Mail);
 }
+
+
+#**********************************************************
+#
+#**********************************************************
+
+
 
 
 1

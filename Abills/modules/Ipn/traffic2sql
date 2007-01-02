@@ -87,18 +87,18 @@ if (-f $log) {
   use POSIX qw(strftime);
 
   foreach $log (sort @contents) {
-    print "$var_dir/log/ipn/$log\n" if ($debug > 0);
+    print "$flow_dir/$log\n" if ($debug > 0);
     if($log =~ /ft-(\w+)\.(\d+)\-(\d+)\-(\d+)\.(\d{2})(\d{2})(\d{2})[\-|\+](\d+)/) {
       my ($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size,$atime,$mtime,$ctime,$blksize,$blocks)=stat("$var_dir/log/ipn/$log");
       my $start_date = "$2-$3-$4 $5:$6:$7";
       my $end_date = strftime "%Y-%m-%d %H:%M:%S", localtime($mtime);
       #print "Start: $start_date End: $end_date\n"; 
  
-      get_collector_data("flow-cat $var_dir/log/ipn/$log | flow-print |", { START => $start_date });
+      get_collector_data("flow-cat $flow_dir/$log | flow-print |", { START => $start_date });
       processing({ START => $start_date,
   	               STOP  => $end_date });
       # Delete log file
-      my $status = unlink("$var_dir/log/ipn/$log");
+      my $status = unlink("$flow_dir/$log");
      }
     else {
        print "Unknow File name format\n";

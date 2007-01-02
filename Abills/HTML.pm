@@ -789,7 +789,6 @@ form {
   background-color: $_COLORS[2];
   color: $_COLORS[9];
   font-size: 12px;
-  //font-weight: bold;
 }
 
 input, textarea {

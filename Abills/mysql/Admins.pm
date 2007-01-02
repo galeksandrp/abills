@@ -34,7 +34,7 @@ sub new {
   ($db, $CONF) = @_;
   my $self = { };
   bless($self, $class);
-  
+
   return $self;
 }
 
@@ -113,8 +113,10 @@ sub info {
    }
 
   $IP = (defined($attr->{IP}))? $attr->{IP} : '0.0.0.0';
-  $self->query($db, "SELECT aid, id, name, regdate, phone, disable, web_options, $PASSWORD
-     FROM admins $WHERE;");
+  $self->query($db, "SELECT aid, id, name, regdate, phone, disable, web_options, gid, $PASSWORD
+     FROM 
+      admins 
+     $WHERE;");
 
   if ($self->{TOTAL} < 1) {
      $self->{errno} = 2;
@@ -135,7 +137,9 @@ sub info {
    $self->{A_REGISTRATION},
    $self->{A_PHONE},
    $self->{DISABLE},
-   $self->{WEB_OPTIONS} )= @$a_ref;
+   $self->{WEB_OPTIONS},
+   $self->{GID}
+    )= @$a_ref;
 
    $self->{SESSION_IP}  = $IP;
 
@@ -150,8 +154,9 @@ sub list {
  my ($attr) = @_;
 
  
- $self->query($db, "select aid, id, name, regdate, disable, gid 
- FROM admins
+ $self->query($db, "select a.aid, a.id, a.name, a.regdate, a.disable, g.name 
+ FROM admins a
+  LEFT JOIN groups g ON (a.gid=g.gid) 
  ORDER BY $SORT $DESC;");
 
  return $self->{list};
@@ -164,6 +169,7 @@ sub change {
  my $self = shift;
  my ($attr) = @_;
  
+   $self->{debug}  =1;
  
   my %FIELDS = (AID    =>   'aid',
            A_LOGIN     => 'id',
@@ -172,7 +178,8 @@ sub change {
            A_PHONE     => 'phone',
            DISABLE     => 'disable',
            PASSWORD    => 'password',
-           WEB_OPTIONS => 'web_options'
+           WEB_OPTIONS => 'web_options',
+           GID         => 'gid'
    );
 
 
@@ -202,8 +209,8 @@ sub add {
   my ($attr) = @_;
   %DATA = $self->get_data($attr); 
 
-  $self->query($db, "INSERT INTO admins (id, name, regdate, phone, disable) 
-   VALUES ('$DATA{A_LOGIN}', '$DATA{A_FIO}', now(),  '$DATA{A_PHONE}', '$DATA{DISABLE}');", 'do');
+  $self->query($db, "INSERT INTO admins (id, name, regdate, phone, disable, gid) 
+   VALUES ('$DATA{A_LOGIN}', '$DATA{A_FIO}', now(),  '$DATA{A_PHONE}', '$DATA{DISABLE}', '$DATA{GID}');", 'do');
 
   return $self;
 }

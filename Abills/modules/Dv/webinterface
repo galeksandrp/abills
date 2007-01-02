@@ -2386,11 +2386,11 @@ sub dv_wizard_user {
        }
   	 }
 
-   #print $table->show();
-   # Password
-   my $user=$users->add({ %{$add_values{1}} });
-   my $message = '';
-   if (! $user->{errno}) {
+    #print $table->show();
+    # Password
+    my $user=$users->add({ %{$add_values{1}} });
+    my $message = '';
+    if (! $user->{errno}) {
    	  $UID = $user->{UID};
    	  $user = $user->info($UID);
       
@@ -2450,6 +2450,20 @@ sub dv_wizard_user {
         return 0;
        }
       
+      # Add E-Mail account
+      if (in_array('Mail', \@MODULES) && $FORM{'6.USERNAME'}) {
+        require "Abills/modules/Mail/webinterface";
+        my $Mail = Mail->new($db, $admin, \%conf);
+        
+        $FORM{'6.newpassword'} = $FORM{'6.PASSWORD'} if ($FORM{'6.PASSWORD');
+
+        $Mail->mbox_add({ UID => "$UID", %{$add_values{6}}, PASSWORD => $FORM{'6.newpassword'} });
+
+        if ($Mail->{errno}) {
+          $html->message('err', "$_ERROR : $_MAIL", "[$Mail->{errno}] $err_strs{$Mail->{errno}}");	
+          return 0;
+         }
+       }
       
       # Info
       my $dv = $Dv->info($UID);
@@ -2487,8 +2501,8 @@ sub dv_wizard_user {
   $dv_defaults->{DISABLE}=($dv_defaults->{DISABLE} == 1) ? ' checked' : '';
   
   $payments->{SEL_METHOD} =  $html->form_select('METHOD', 
-                                { SELECTED   => $day_id,
- 	                                SEL_ARRAY  => \@PAYMENT_METHODS,
+                                { SELECTED      => $day_id,
+ 	                                SEL_ARRAY     => \@PAYMENT_METHODS,
  	                                ARRAY_NUM_ID  => 'y'
  	                               });
   $payments->{SUM} = '0.00';
@@ -2509,6 +2523,7 @@ sub dv_wizard_user {
  	                                         MULTI_ARRAY_KEY   => 0,
  	                                         MULTI_ARRAY_VALUE => 1,
  	                                        });
+  $dv_defaults->{CALLBACK} = '';
  	             
  my $password_form;                           
  $password_form->{GEN_PASSWORD}=mk_unique_value(8);
@@ -2519,6 +2534,33 @@ sub dv_wizard_user {
 	            "4:Dialup/VPN::" => $html->tpl_show(_include('dv_user', 'Dv'), $dv_defaults, { notprint => 'y' }),
  	            "5:$_PAYMENTS::" => $html->tpl_show(templates('form_payments'), $payments, { notprint => 'y' }),
              );
+ 
+ #If mail module added
+ if (in_array('Mail', \@MODULES)) {
+   require "Abills/modules/Mail/webinterface";
+   my $Mail = Mail->new($db, $admin, \%conf);
+
+   $Mail->{PASSWORD} = qq{  
+	<tr><td>$_PASSWD:</td><td><input type="password" id="text_pma_pw_mail" name="newpassword" title="$_PASSWD" onchange="pred_password.value = 'userdefined';" /></td></tr>
+  <tr><td>$_CONFIRM_PASSWD:</td><td><input type="password" name="confirm" id="text_pma_pw2_mail" title="$_CONFIRM" onchange="pred_password.value = 'userdefined';" /></td></tr>
+  <tr><td>  <input type="button" id="button_generate_password_mail" value="$_GET $_USER $_PASSWD" onclick="CopyInputField('text_pma_pw', 'generated_pw_mail');" />
+          <input type="button" id="button_copy_password_mail" value="Copy" onclick="CopyInputField('generated_pw_mail', 'text_pma_pw_mail'); CopyInputField('generated_pw_mail', 'text_pma_pw2_mail')" />
+    </td><td><input type="text" name="generated_pw" id="generated_pw_mail" /></td></tr>
+     };
+
+   $Mail->{DOMAINS_SEL}=$html->form_select('DOMAIN_ID', 
+                                { 
+ 	                                SELECTED          => $Mail->{DOMAIN_ID},
+ 	                                SEL_MULTI_ARRAY   => $Mail->domain_list(),
+ 	                                MULTI_ARRAY_KEY   => 8,
+ 	                                MULTI_ARRAY_VALUE => 0,
+ 	                                SEL_OPTIONS       => { 0 => '-N/S-'},
+ 	                                NO_ID             => 1
+ 	                               });
+
+
+    $tpls{"6:E-Mail::"}=$html->tpl_show(_include('mail_box', 'Mail'), $Mail,  { notprint => 'y' });
+  } 
  
  if ($attr->{TPLS}) {
    while(my($k, $v)=each %{ $attr->{TPLS} } ) {

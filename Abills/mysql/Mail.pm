@@ -36,6 +36,7 @@ use main;
 sub new {
   my $class = shift;
   ($db, $admin, $CONF) = @_;
+  $admin->{MODULE}='Mail';
   my $self = { };
   bless($self, $class);
   return $self;
@@ -76,7 +77,9 @@ sub mbox_del {
 	my ($id, $attr) = @_;
 
 	$self->query($db, "DELETE FROM mail_boxes 
-    WHERE id='$id';", 'do');
+    WHERE id='$id' and uid='$attr->{UID}';", 'do');
+	
+	$admin->action_add("$attr->{UID}", "DELETE mailbox_id: $id");
 	
 	return $self;
 }
@@ -344,10 +347,19 @@ sub domain_list {
  $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
  $PG = ($attr->{PG}) ? $attr->{PG} : 0;
  $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
- 	
-	my $WHERE;
-	
-	$self->query($db, "SELECT md.domain, md.comments, md.status, md.backup_mx, md.transport, md.create_date, 
+
+
+ my @WHERE_RULES = ();
+
+ if (defined($attr->{BACKUP_MX})) {
+   push @WHERE_RULES, "md.backup_mx='$attr->{BACKUP_MX}'"; 
+  }
+
+ my $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
+
+
+
+ $self->query($db, "SELECT md.domain, md.comments, md.status, md.backup_mx, md.transport, md.create_date, 
 	    md.change_date, count(*) as mboxes, md.id
         FROM mail_domains md
         LEFT JOIN mail_boxes mb ON  (md.id=mb.domain_id) 
@@ -702,6 +714,7 @@ sub transport_info {
 sub transport_list {
 	my $self = shift;
 	my ($attr) = @_;
+	
 	
 	$self->query($db, "SELECT domain, transport, comments, change_date, id
         FROM mail_transport

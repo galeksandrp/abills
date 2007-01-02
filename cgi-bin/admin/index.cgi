@@ -1896,18 +1896,10 @@ if ($FORM{AID}) {
   $admin_form->{LNG_ACTION}=$_CHANGE;
  }
 elsif ($FORM{add}) {
-  $admin_form->add( {
-    A_LOGIN => $FORM{A_LOGIN},
-    A_FIO   => $FORM{A_FIO},
-    DISABLE => $FORM{DISABLE},
-    A_PHONE => $FORM{A_PHONE}	
-    } 
-  );
-
+  $admin_form->add({ %FORM });
   if (! $admin_form->{errno}) {
      $html->message('info', $_INFO, "$_ADDED");	
    }
-
 }
 elsif($FORM{del}) {
   $admin_form->del($FORM{del});
@@ -1923,17 +1915,25 @@ if ($admin_form->{errno}) {
 
 
 $admin_form->{DISABLE} = ($admin_form->{DISABLE} > 0) ? 'checked' : '';
+$admin_form->{GROUP_SEL} = sel_groups();
+
 $html->tpl_show(templates('form_admin'), $admin_form);
 
-my $table = $html->table( { width => '100%',
-                                   border => 1,
-                                   title => ['ID', $_NAME, $_FIO, $_CREATE, $_GROUPS, '-', '-', '-', '-', '-', '-'],
-                                   cols_align => ['right', 'left', 'left', 'right', 'left', 'center', 'center', 'center', 'center', 'center', 'center'],
-                                  } );
+my $table = $html->table( { width      => '100%',
+                            border     => 1,
+                            title      => ['ID', $_NAME, $_FIO, $_CREATE, $_STATUS,  $_GROUPS, '-', '-', '-', '-', '-', '-'],
+                            cols_align => ['right', 'left', 'left', 'right', 'left', 'center', 'center', 'center', 'center', 'center', 'center'],
+                         } );
 
 my $list = $admin_form->list();
 foreach my $line (@$list) {
-  $table->addrow(@$line, $html->button($_PERMISSION, "index=$index&subf=52&AID=$line->[0]"),
+  $table->addrow($line->[0], 
+    $line->[1], 
+    $line->[2], 
+    $line->[3], 
+    $status[$line->[4]], 
+    $line->[5], 
+   $html->button($_PERMISSION, "index=$index&subf=52&AID=$line->[0]"),
    $html->button($_LOG, "index=$index&subf=51&AID=$line->[0]"),
    $html->button($_PASSWD, "index=$index&subf=54&AID=$line->[0]"),
    $html->button($_INFO, "index=$index&AID=$line->[0]"), 
@@ -1941,9 +1941,9 @@ foreach my $line (@$list) {
 }
 print $table->show();
 
-$table = $html->table( { width => '100%',
-                                cols_align => ['right', 'right'],
-                                rows => [ [ "$_TOTAL:", "<b>$admin_form->{TOTAL}</b>" ] ]
+$table = $html->table( { width      => '100%',
+                         cols_align => ['right', 'right'],
+                         rows       => [ [ "$_TOTAL:", "<b>$admin_form->{TOTAL}</b>" ] ]
                                } );
 print $table->show();
 
