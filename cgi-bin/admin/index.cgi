@@ -183,7 +183,7 @@ my @actions = ([$_SA_ONLY, $_ADD, $_LIST, $_PASSWD, $_CHANGE, $_DEL, $_ALL, $_MU
                [$_PROFILE],
                );
 
-
+$LIST_PARAMS{GID}=$admin->{GID} if ($admin->{GID} > 0);
 
 #Global Vars
 @action    = ('add', $_ADD);
@@ -454,7 +454,6 @@ sub check_permissions {
   
   my $p_ref = $admin->get_permissions();
   %permissions = %$p_ref;
-  $LIST_PARAMS{GID}=$admin->{GID} if ($admin->{GID} > 0);
   return 0;
 }
 
