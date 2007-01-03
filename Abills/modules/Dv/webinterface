@@ -765,7 +765,7 @@ foreach my $nas_row (@$nas_list) {
                            "CID: \n".
                            "CONNECT_INFO: \n".
                            "UPDATES: $line->[$#ACTIVE_FIELDS+8]";
-    	  	$value = $html->button($line->[0], "index=11&UID=$line->[$#ACTIVE_FIELDS+3]", { TITLE => $user_info });
+    	  	$value = "<acronym title='$user_info'>".$html->button($line->[0], "index=11&UID=$line->[$#ACTIVE_FIELDS+3]")."</acronym>";
           #Dublicate logins
  	  	    if (defined($dub_logins->{$line->[0]}) && $dub_logins->{$line->[0]} > 1) { $table->{rowcolor}='#FFFF00'; }
     	   }	

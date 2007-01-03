@@ -454,7 +454,7 @@ sub check_permissions {
   
   my $p_ref = $admin->get_permissions();
   %permissions = %$p_ref;
-  
+  $LIST_PARAMS{GID}=$admin->{GID} if ($admin->{GID} > 0);
   return 0;
 }
 

@@ -226,9 +226,12 @@ foreach my $ip ( sort keys %$ips_interim) {
          my $rule_num = $conf{IPN_FW_FIRST_RULE} + $ip_array[3];
 
          print "$DATE $TIME Hangup UID: $uid DEPOSIT: $Ipn->{USERS_INFO}->{DEPOSIT}->{$uid}\n" if ($debug>0);
+         my $netmask = 32;
+
          my $cmd = $conf{IPN_FW_STOP_RULE};
          $cmd =~ s/\%IP/$ip_addr/g;
          $cmd =~ s/\%NUM/$rule_num/g;
+         $cmd =~ s/\%MASK/$netmask/g;
 
          print "$cmd" if ($debug>0); 
          system("$cmd");
