@@ -337,8 +337,6 @@ sub online_info {
      return $self;
    }
 
-  my $ar = $self->{list}->[0];
-
   ($self->{USER_NAME}, 
    $self->{SESSION_START}, 
    $self->{ACCT_SESSION_TIME}, 
@@ -355,7 +353,7 @@ sub online_info {
    $self->{CONNECT_INFO},
    $self->{ACCT_SESSION_ID},
    $self->{NAS_ID}
-    )= @$ar;
+    )= @{ $self->{list}->[0] };
 
 
   return $self;
