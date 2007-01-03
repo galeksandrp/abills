@@ -343,7 +343,7 @@ sub online_info {
    $self->{ACCT_INPUT_OCTETS}, 
    $self->{ACCT_OUTPUT_OCTETS}, 
    $self->{ACCT_EX_INPUT_OCTETS}, 
-   $self->{ACCT_EX_INPUT_OCTETS}, 
+   $self->{ACCT_EX_OUTPUT_OCTETS}, 
    $self->{CONNECT_TERM_REASON}, 
    $self->{FRAMED_IP_ADDRESS}, 
    $self->{LAST_UPDATE}, 

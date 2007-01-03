@@ -3287,7 +3287,9 @@ if (defined($attr->{USER})) {
   if ($FORM{take} && $FORM{SUM}) {
     # add to shedule
     if ($FORM{ER} && $FORM{ER} ne '') {
-      $FORM{SUM} = $FORM{SUM} / $FORM{ER} if (defined($FORM{ER}));
+      my $er = $fees->exchange_info($FORM{ER});
+      $FORM{ER} = $er->{ER_RATE};
+      $FORM{SUM} = $FORM{SUM} / $FORM{ER};
     }
 
     if ($period == 1) {
@@ -3302,18 +3304,16 @@ if (defined($attr->{USER})) {
                        ACTION   => "$FORM{SUM}:$FORM{DESCRIBE}"
                       } );
 
-
-  if ($shedule->{errno}) {
-    $html->message('err', $_ERROR, "[$shedule->{errno}] $err_strs{$shedule->{errno}}");	
-   }
-  else {
-  	$html->message('info', $_SHEDULE, "$_ADDED");
-   }
-
-
+      if ($shedule->{errno}) {
+        $html->message('err', $_ERROR, "[$shedule->{errno}] $err_strs{$shedule->{errno}}");	
+       }
+      else {
+  	    $html->message('info', $_SHEDULE, "$_ADDED");
+       }
      }
     #Add now
     else {
+      
       $fees->take($user, $FORM{SUM}, { %FORM } );  
       if ($fees->{errno}) {
         $html->message('err', $_ERROR, "[$fees->{errno}] $err_strs{$fees->{errno}}");	
