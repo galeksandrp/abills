@@ -12,8 +12,7 @@ use Exporter;
 $VERSION = 2.00;
 @ISA = ('Exporter');
 
-@EXPORT = qw(
-);
+@EXPORT = qw();
 
 @EXPORT_OK = ();
 %EXPORT_TAGS = ();
@@ -155,7 +154,11 @@ sub online {
   } 
  
  if (defined($attr->{USER_NAME})) {
- 	 push @WHERE_RULES, "user_name='$attr->{USER_NAME}'";
+ 	 push @WHERE_RULES, "c.user_name='$attr->{USER_NAME}'";
+  }
+
+ if (defined($attr->{GID})) {
+ 	 push @WHERE_RULES, "u.gid='$attr->{GID}'";
   }
 
 

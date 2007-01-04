@@ -355,6 +355,9 @@ if ($functions{$index}) {
   	if($ui->{errno}==2) {
   		$html->message('err', $_ERROR, "[$FORM{UID}] $_USER_NOT_EXIST")
   	 }
+    elsif ($admin->{GID} > 0 && $ui->{GID} != $admin->{GID}) {
+    	$html->message('err', $_ERROR, "[$FORM{UID}] $_USER_NOT_EXIST")
+     }
   	else {
   	  $functions{$index}->({ USER => $ui });
   	  #$LIST_PARAMS{LOGIN} = '11111';
@@ -705,6 +708,9 @@ sub user_form {
     }
    
    $user_info->{GID} = sel_groups();
+   if ($admin->{GID}) {
+   	 $user_info->{GID} .= "<input type='hidden' name='GID' value='$admin->{GID}'>";
+    }
    $user_info->{EXDATA} .=  $html->tpl_show(templates('form_user_exdata'), undef, { notprint => 'y' });
 
    $user_info->{DISABLE} = ($user_info->{DISABLE} > 0) ? ' checked' : '';
@@ -835,12 +841,12 @@ sub user_info {
 	my $user_info = $users->info( $UID );
   
   
-  $table = $html->table( { width      => '100%',
-  	                       rowcolor   => $_COLORS[2],
-  	                       border     => 0,
-                           cols_align => ['left'],
-                           rows       => [ [ "$_USER: ". $html->button("<b>$user_info->{LOGIN}</b>", "index=15&UID=$user_info->{UID}") ] ]
-                          } );
+  $table = $html->table({ width      => '100%',
+  	                      rowcolor   => $_COLORS[2],
+  	                      border     => 0,
+                          cols_align => ['left'],
+                          rows       => [ [ "$_USER: ". $html->button("<b>$user_info->{LOGIN}</b>", "index=15&UID=$user_info->{UID}") ] ]
+                        });
   print $table->show();
  
   $LIST_PARAMS{UID}=$user_info->{UID};
@@ -4005,7 +4011,14 @@ sub clearquotes {
 # sel_groups();
 #*******************************************************************
 sub sel_groups {
-  $GROUPS_SEL = $html->form_select('GID', 
+  my $GROUPS_SEL = '';
+
+  if ($admin->{GID} > 0) {
+  	$users->group_info($admin->{GID});
+  	$GROUPS_SEL = "$admin->{GID}:$users->{G_NAME}";
+   }
+  else {
+    $GROUPS_SEL = $html->form_select('GID', 
                                 { 
  	                                SELECTED          => $FORM{GID},
  	                                SEL_MULTI_ARRAY   => $users->groups_list(),
@@ -4013,8 +4026,9 @@ sub sel_groups {
  	                                MULTI_ARRAY_VALUE => 1,
  	                                SEL_OPTIONS       => { 0 => '-N/S-'}
  	                               });
+   }
 
- return $GROUPS_SEL;	
+  return $GROUPS_SEL;	
 }
 
 
