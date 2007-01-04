@@ -3,6 +3,7 @@ CREATE TABLE `abon_tariffs` (
   `name` varchar(20) NOT NULL default '',
   `period` tinyint(2) unsigned NOT NULL default '0',
   `price` double(14,2) unsigned NOT NULL default '0.00',
+  `payment_type` tinyint(1) unsigned NOT NULL default '0',
   PRIMARY KEY  (`id`),
   UNIQUE KEY `id` (`id`),
   UNIQUE KEY `name` (`name`)
