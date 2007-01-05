@@ -434,6 +434,7 @@ sub check_permissions {
                  SECRETKEY => $conf{secretkey},
                  IP        => $ENV{REMOTE_ADDR} || '0.0.0.0');
 
+
   $admin->info(0, { %PARAMS } );
 
   
@@ -457,6 +458,7 @@ sub check_permissions {
   
   my $p_ref = $admin->get_permissions();
   %permissions = %$p_ref;
+
   return 0;
 }
 
