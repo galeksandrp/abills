@@ -8,8 +8,8 @@ $web_interface    = 1;
                    "06:5:$_ADD:cards_add:"              => 5,
                    "07:0:Cards:cards_user_payment:UID"  => 2,
                    "08:0:Cards:cards_report:"           => 4,
-                   "09:7:$_USERS:cards_report:"         => 4,
-                   "10:7:$_PAYMENTS:cards_report:"      => 4,
+#                   "09:8:$_USERS:cards_report:"         => 4,
+#                   "10:8:$_PAYMENTS:cards_report:"      => 4,
                    "11:8:$_DILLERS:cards_report_dillers:"   => 4
                    );
 

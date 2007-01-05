@@ -4,6 +4,7 @@
 use vars  qw(%RAD %conf @MODULES $db $html $DATE $GZIP $MYSQLDUMP %ADMIN_REPORT);
 #use strict;
 use FindBin '$Bin';
+use Sys::Hostname;
 
 require $Bin . '/config.pl';
 unshift(@INC, $Bin . '/../', $Bin . "/../Abills/$conf{dbtype}");
@@ -46,6 +47,7 @@ my $YESTERDAY = (strftime "%Y-%m-%d", localtime(time - 86400));
 
 %ADMIN_REPORT = (DATE => $DATE);
 my $args = parse_arguments(\@ARGV);
+$ADMIN_REPORT{HOSTNAME}=hostname();
 
 #print $DATE;
 
@@ -120,7 +122,7 @@ if (defined($args->{monthly})) {
     }
 
    my $message = $html->tpl_show(templates('admin_report_month'), \%ADMIN_REPORT, { notprint => 'yes' });
-   sendmail("$conf{ADMIN_MAIL}", "$conf{ADMIN_MAIL}", "Monthly billing report", 
+   sendmail("$conf{ADMIN_MAIL}", "$conf{ADMIN_MAIL}", "$ADMIN_REPORT{HOSTNAME}: Monthly billing report", 
               "$message", "$conf{MAIL_CHARSET}", "2 (High)");
  }
 elsif (defined($args->{daily})) {
@@ -138,7 +140,7 @@ elsif (defined($args->{daily})) {
   }
 
   my $message = $html->tpl_show(templates('admin_report_day'), \%ADMIN_REPORT, { notprint => 'yes' });
-  sendmail("$conf{ADMIN_MAIL}", "$conf{ADMIN_MAIL}", "Daily billing report ($YESTERDAY)", 
+  sendmail("$conf{ADMIN_MAIL}", "$conf{ADMIN_MAIL}", "$ADMIN_REPORT{HOSTNAME}: Daily billing report ($YESTERDAY)", 
              "$message", "$conf{MAIL_CHARSET}", "2 (High)");
 } 
 elsif (defined($args->{backup})) {
@@ -159,8 +161,8 @@ else {
 sub sheduler {
 	
 	
-my %shedule_type = ('tp' => $_VARIANT, 
-                    'fees' => $_FEES,
+my %shedule_type = ('tp'      => $_VARIANT, 
+                    'fees'    => $_FEES,
                     'message' => $_MESSAGES
  );
 

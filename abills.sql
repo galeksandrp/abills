@@ -252,7 +252,7 @@ CREATE TABLE `filters` (
 
 CREATE TABLE `groups` (
   `gid` smallint(4) unsigned NOT NULL default '0',
-  `name` varchar(12) NOT NULL default '',
+  `name` varchar(30) NOT NULL default '',
   `descr` varchar(200) NOT NULL default '',
   PRIMARY KEY  (`gid`),
   UNIQUE KEY `gid` (`gid`),

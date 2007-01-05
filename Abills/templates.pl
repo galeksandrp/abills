@@ -676,6 +676,7 @@ return qq{
 elsif($tpl_name eq 'admin_report_day') {
 return qq{
 Daily Admin Report /%DATE%/
+Hostname: %HOSTNAME%
 
 $_PAYMENTS
 =========================================================
@@ -711,6 +712,7 @@ elsif($tpl_name eq 'admin_report_month') {
 
 return qq{
 Monthly Admin Report /%DATE%/
+Hostname: %HOSTNAME%
 
 $_PAYMENTS
 =========================================================
