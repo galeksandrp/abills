@@ -265,13 +265,13 @@ sub cards_add {
           my $pin = mk_unique_value($FORM{PASSWD_LENGTH}, { SYMBOLS => $FORM{PASSWD_SYMBOLS} || undef });
   	 	    my $serial = sprintf("%s%.10d", $FORM{SERIAL}, $i);
           $Cards->cards_add({ SERIAL    => "$FORM{SERIAL}",
-        	                             NUMBER    => "$i",
-            	                         PIN       => "$pin",
-           	                           SUM       => "$FORM{SUM}",
-        	                             STATUS    => 0,
-        	                             EXPIRE    => "$FORM{EXPIRE}",
-        	                             DILLER_ID => int($FORM{DILLER_ID})
-        	                           });
+        	                    NUMBER    => "$i",
+            	                PIN       => "$pin",
+           	                  SUM       => "$FORM{SUM}",
+        	                    STATUS    => 0,
+        	                    EXPIRE    => "$FORM{EXPIRE}",
+        	                    DILLER_ID => int($FORM{DILLER_ID})
+        	                  });
 
           if ($Cards->{errno}) {
        	    $html->message('err', $_ERROR, "[$Cards->{errno}] $err_strs{$Cards->{errno}}");
@@ -295,6 +295,7 @@ sub cards_add {
     }
  }
 
+  $Cards->{DILLERS_SEL} = cards_dillers_sel();
 	$Cards->{CARDS_TYPE}=$html->tpl_show(_include('cards_payment', 'Cards'), $Cards, { notprint => 'y' });
 	$html->tpl_show(_include('cards_add', 'Cards'), $Cards);
 }
@@ -509,14 +510,7 @@ elsif ($FORM{del}  && $FORM{is_js_confirmed} ) {
   
   $Cards = $Cards->defaults();
   $Cards->{EXPARAMS}=$attr->{EXTRA_TPL};
-  $Cards->{DILLERS_SEL}=$html->form_select('DILLER_ID', 
-                                         { 
- 	                                         SELECTED          => $FORM{DILLER_ID},
- 	                                         SEL_MULTI_ARRAY   => [['', ''] , @{ $Cards->cards_dillers_list({ DISABLE => 0, PAGE_ROWS => 10000 }) }],
- 	                                         MULTI_ARRAY_KEY   => 0,
- 	                                         MULTI_ARRAY_VALUE => 1,
- 	                                         NO_ID             => 1
- 	                                        });
+  $Cards->{DILLERS_SEL}=cards_dillers_sel();
 
   $Cards->{STATUS_SEL}=$html->form_select('STATUS', { 
  	                                         SEL_ARRAY    => ['', @status ],
@@ -628,6 +622,24 @@ sub cards_user_payment () {
 	
 	$html->tpl_show(_include('cards_payment_add', 'Cards'), $Cards);
 	
+}
+
+#**********************************************************
+#
+#**********************************************************
+sub cards_dillers_sel {
+  my $dillers_sel = '';
+
+  $dillers_sel=$html->form_select('DILLER_ID', { 
+ 	                                         SELECTED          => $FORM{DILLER_ID},
+ 	                                         SEL_MULTI_ARRAY   => [['', ''] , @{ $Cards->cards_dillers_list({ DISABLE => 0, PAGE_ROWS => 10000 }) }],
+ 	                                         MULTI_ARRAY_KEY   => 0,
+ 	                                         MULTI_ARRAY_VALUE => 1,
+ 	                                         NO_ID             => 1,
+ 	                                        });
+
+
+  return $dillers_sel;
 }
 
 #**********************************************************
