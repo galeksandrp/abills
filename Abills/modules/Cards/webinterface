@@ -168,7 +168,8 @@ if (defined($FORM{SERIA})) {
                               "$_STATUS: ".  $Cards->{STATUS_SEL},
   	                       HIDDEN  => { index  => "$index",
   	                       	            SERIA  => $FORM{SERIA},
-  	                       	            OP_SID => $op_sid
+  	                       	            OP_SID => $op_sid,
+  	                       	            info   => $FORM{info}
   	                       	           },
 	                         SUBMIT  => { 
 	                         	            change  => "$_CHANGE" 
