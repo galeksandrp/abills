@@ -30,6 +30,7 @@ CREATE TABLE `cards_users` (
   `expire` date NOT NULL default '0000-00-00',
   `diller_id` smallint(6) unsigned NOT NULL default '0',
   `diller_date` date NOT NULL default '0000-00-00',
+  `diller_sold_date` date NOT NULL default '0000-00-00',
   `sum` double(10,2) unsigned NOT NULL default '0.00',
   `serial` varchar(10) NOT NULL default '',
   `pin` blob NOT NULL default '',
