@@ -757,12 +757,12 @@ foreach my $nas_row (@$nas_list) {
     	   }
     	  elsif ($ACTIVE_FIELDS[$i] == 0) {
           my $user_info =  "$_FIO: $line->[1]\n$_PHONE: $line->[$#ACTIVE_FIELDS+1]\n".
-                           "$_TARIF_PLAN: $line->[0]\n".
+                           "$_TARIF_PLAN: $line->[$#ACTIVE_FIELDS+15]\n".
                            "$_DEPOSIT: $line->[$#ACTIVE_FIELDS+5]\n".
                            "$_CREDIT: $line->[$#ACTIVE_FIELDS+6]\n".
                            "$_SPEED: \n".
                            "SESSION_ID: $line->[$#ACTIVE_FIELDS+13]\n".
-                           "CID: \n".
+                           "CID: $line->[$#ACTIVE_FIELDS+14]\n".
                            "CONNECT_INFO: \n".
                            "UPDATES: $line->[$#ACTIVE_FIELDS+8]";
     	  	$value = "<acronym title='$user_info'>".$html->button($line->[0], "index=11&UID=$line->[$#ACTIVE_FIELDS+3]")."</acronym>";

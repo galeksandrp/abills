@@ -190,8 +190,10 @@ sub online {
    c.nas_id,
    c.user_name,
    c.nas_port_id,
-   c.acct_session_id
-
+   c.acct_session_id,
+   c.CID,
+   dv.tp_id
+   
  FROM dv_calls c
  LEFT JOIN users u     ON u.id=user_name
  LEFT JOIN dv_main dv  ON dv.uid=u.uid
@@ -229,7 +231,7 @@ sub online {
  	  $dub_ports{$line->[$nas_id_field]}{$line->[$port_id]}++;
     
     my @fields = ();
-    for(my $i=0; $i<=$#RES_FIELDS+13; $i++) {
+    for(my $i=0; $i<=$#RES_FIELDS+15; $i++) {
        push @fields, $line->[$i];
      }
 

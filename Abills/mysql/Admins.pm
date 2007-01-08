@@ -315,18 +315,13 @@ sub action_list {
       LEFT JOIN users u ON (aa.uid=u.uid)
       $WHERE ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");
   
-  
   my $list = $self->{list};
   
-  if ($self->{TOTAL} > 0) {
-    $self->query($db, "SELECT count(*) FROM admin_actions aa 
+  $self->query($db, "SELECT count(*) FROM admin_actions aa 
     LEFT JOIN users u ON (aa.uid=u.uid)
     LEFT JOIN admins a ON (aa.aid=a.aid)
     $WHERE;");
-    my $a_ref = $self->{list}->[0];
-    ($self->{TOTAL}) = @$a_ref;
-   }
-
+    ($self->{TOTAL}) = @{ $self->{list}->[0] };
 
   return $list;
 }

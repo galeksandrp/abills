@@ -311,5 +311,7 @@ $_BONUS='Bonus';
 $_PERCENTAGE='Percentage';
 $_MULTIUSER_OP='Multiuser operation';
 $_RETURNED='Returned';
+$_SOLD='Sold';
+
 
 $_CASH='Cash';

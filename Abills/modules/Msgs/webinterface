@@ -141,7 +141,7 @@ sub msgs_user {
   my $table = $html->table( { width        => '100%',
                               caption      => "$_MESSAGES",
                               title_plain  => ["$_SUBJECT", "$_CHAPTERS", "$_DATE", "-" ],
-                              cols_align   => ['right', 'left', 'left', 'right', 'right', 'left', 'center'],
+                              cols_align   => ['left', 'left', 'left', 'right', 'right', 'left', 'center'],
                               qs           => $pages_qs,
                               pages        => $Msgs->{TOTAL}
                            });
@@ -153,7 +153,7 @@ foreach my $line (@$list) {
     ($line->[10] == 1) ? $line->[2] : "<b>$line->[2]</b>", 
     $line->[3],
     $line->[4],
-    $html->button($_SHOW, "index=$index&ID=$line->[0]")
+    $html->button($_SHOW, "index=$index&ID=$line->[0]&sid=$sid")
   );
 }
 
