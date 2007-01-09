@@ -2388,6 +2388,7 @@ sub dv_wizard_user {
 
     #print $table->show();
     # Password
+    $add_values{1}{GID} = $admin->{GID} if ($admin->{GID});
     my $user=$users->add({ %{$add_values{1}} });
     my $message = '';
     if (! $user->{errno}) {
