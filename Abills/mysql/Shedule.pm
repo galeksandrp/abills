@@ -28,7 +28,7 @@ my %DATA = ();
 
 sub new {
   my $class = shift;
-  ($db, $admin) = @_;
+  ($db, $admin, $CONF) = @_;
   my $self = { };
   bless($self, $class);
   return $self;

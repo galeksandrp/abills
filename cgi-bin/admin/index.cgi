@@ -928,6 +928,13 @@ if(defined($attr->{USER})) {
      }
     else {
       $html->message('info', $_CHANGED, "$_CHANGED $users->{info}");
+      
+      #External scripts 
+      if ($conf{external_userchange}) {
+        if (! _external($conf{external_userchange}, { %FORM }) ) {
+     	    return 0;
+         }
+       }
      }
    }
   elsif ($FORM{del_user} && $FORM{is_js_confirmed} && $index == 15 && $permissions{0}{5} ) {
@@ -3096,6 +3103,12 @@ if (defined($attr->{USER})) {
      }
     else {
       $html->message('info', $_PAYMENTS, "$_ADDED $_SUM: $FORM{SUM} $er->{ER_SHORT_NAME}");
+      
+      if ($conf{external_payments}) {
+        if (! _external($conf{external_payments}, { %FORM }) ) {
+     	    return 0;
+         }
+       }
      }
    }
   elsif($FORM{del} && $FORM{is_js_confirmed}) {
@@ -3295,7 +3308,7 @@ if (defined($attr->{USER})) {
   }
   
   use Shedule;
-  my $shedule = Shedule->new($db, $admin); 
+  my $shedule = Shedule->new($db, $admin, \%conf); 
 
   $fees->{UID} = $user->{UID};
   if ($FORM{take} && $FORM{SUM}) {
@@ -3334,6 +3347,13 @@ if (defined($attr->{USER})) {
        }
       else {
         $html->message('info', $_PAYMENTS, "$_TAKE SUM: $fees->{SUM}");
+        
+        #External script
+        if ($conf{external_fees}) {
+          if (! _external($conf{external_fees}, { %FORM }) ) {
+       	    return 0;
+           }
+         }
        }
     }
    }
