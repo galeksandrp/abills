@@ -26,7 +26,7 @@ CREATE TABLE `admins` (
   `id` varchar(12) NOT NULL default '',
   `name` varchar(50) NOT NULL default '',
   `regdate` date NOT NULL default '0000-00-00',
-  `password` varchar(16) binary NOT NULL default '',
+  `password` BLOB NOT NULL,
   `gid` smallint(4) unsigned NOT NULL default '0',
   `aid` smallint(6) unsigned NOT NULL auto_increment,
   `disable` tinyint(1) unsigned NOT NULL default '0',
@@ -183,7 +183,7 @@ CREATE TABLE `dv_main` (
   `speed` int(10) unsigned NOT NULL default '0',
   `netmask` int(10) unsigned NOT NULL default '4294967294',
   `cid` varchar(35) NOT NULL default '',
-  `password` varchar(16) binary NOT NULL default '',
+  `password` BLOB NOT NULL,
   `disable` tinyint(1) unsigned NOT NULL default '0',
   `callback` tinyint(1) unsigned NOT NULL default '0',
   PRIMARY KEY  (`uid`),
@@ -270,26 +270,6 @@ CREATE TABLE `holidays` (
   `descr` varchar(100) NOT NULL default '',
   PRIMARY KEY  (`day`)
 ) ;
-
-# --------------------------------------------------------
-
-#
-# Структура таблиці `icards`
-#
-
-CREATE TABLE `icards` (
-  `id` int(10) unsigned NOT NULL auto_increment,
-  `prefix` varchar(4) NOT NULL default '',
-  `nominal` double(15,2) NOT NULL default '0.00',
-  `variant` smallint(6) NOT NULL default '0',
-  `period` smallint(5) unsigned NOT NULL default '0',
-  `expire` date NOT NULL default '0000-00-00',
-  `changes` double(15,2) NOT NULL default '0.00',
-  `password` varchar(16) binary NOT NULL default '0',
-  PRIMARY KEY  (`id`)
-) ;
-
-# --------------------------------------------------------
 
 #
 # Структура таблиці `intervals`
@@ -461,7 +441,7 @@ CREATE TABLE `nas` (
   `auth_type` tinyint(3) unsigned NOT NULL default '0',
   `mng_host_port` varchar(21) default NULL,
   `mng_user` varchar(20) default NULL,
-  `mng_password` varchar(16) binary  NOT NULL default '',
+  `mng_password` blob NOT NULL,
   `rad_pairs` text NOT NULL,
   `alive` smallint(6) unsigned NOT NULL default '0',
   `disable` tinyint(6) unsigned NOT NULL default '0',
@@ -653,7 +633,7 @@ CREATE TABLE `users` (
   `credit` double(10,2) NOT NULL default '0.00',
   `reduction` double(6,2) NOT NULL default '0.00',
   `registration` date default '0000-00-00',
-  `password` varchar(16) binary NOT NULL default '',
+  `password` blob NOT NULL,
   `uid` int(11) unsigned NOT NULL auto_increment,
   `gid` smallint(6) unsigned NOT NULL default '0',
   `disable` tinyint(1) unsigned NOT NULL default '0',
@@ -666,7 +646,7 @@ CREATE TABLE `users` (
 
 CREATE TABLE `users_bruteforce` (
   `login` varchar(20) NOT NULL default '',
-  `password` varchar(16) binary NOT NULL default '0',
+  `password` blob NOT NULL,
   `datetime` datetime NOT NULL default '0000-00-00 00:00:00',
   `ip` int(11) unsigned NOT NULL default '0',
   `auth_state` tinyint(1) unsigned NOT NULL default '0',
