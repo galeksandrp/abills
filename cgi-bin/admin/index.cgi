@@ -1007,7 +1007,7 @@ print "</ul></td></tr>
 }
 elsif ($FORM{add}) {
   my $user_info = $users->add({ %FORM });  
-
+  
   if ($users->{errno}) {
     $html->message('err', $_ERROR, "[$users->{errno}] $err_strs{$users->{errno}}");	
     user_form();    
@@ -1015,6 +1015,13 @@ elsif ($FORM{add}) {
    }
   else {
     $html->message('info', $_ADDED, "$_ADDED '$user_info->{LOGIN}' / [$user_info->{UID}]");
+
+    if ($conf{external_useradd}) {
+       if (! _external($conf{external_useradd}, { %FORM }) ) {
+       	  return 0;
+        }
+     }
+
     $user_info = $users->info( $user_info->{UID} );
     $html->tpl_show(templates('user_info'), $user_info);
 
@@ -4138,10 +4145,27 @@ if(defined($FORM{del}) && defined($FORM{is_js_confirmed})  && $permissions{0}{5}
 
 
 #**********************************************************
-#
+# Make external operations
 #**********************************************************
-sub form_multiuser_operation {
-	
-	
+sub _external {
+	my ($file, $attr) = @_;
+  
+  my $arguments = '';
+  while(my ($k, $v) = each %$attr) {
+  	if ($k ne '__BUFFER' && $k =~ /[A-Z0-9_]/) {
+  		$arguments .= " $k=\"$v\"";
+  	 }
+   }
+
+  my $result = `$file $arguments`;
+  my ($num, $message)=split(/:/, $result, 2);
+  if ($num == 1) {
+   	$html->message('info', "_EXTERNAL $_ADDED", "$message");
+   	return 1;
+   }
+  else {
+ 	  $html->message('err', "_EXTERNAL $_ERROR", "[$num] $message");
+    return 0;
+   }
 	
 }

@@ -2410,6 +2410,12 @@ sub dv_wizard_user {
          }
 
         $user->change($UID, { %{$add_values{2}} });
+        
+        if ($conf{external_useradd}) {
+          if (! _external($conf{external_useradd}, { LOGIN => $add_values{1}{LOGIN}, %{$add_values{2}} }) ) {
+       	    return 0;
+           }
+         }
        }
       
       #3 personal info
