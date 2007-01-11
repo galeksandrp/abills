@@ -201,8 +201,8 @@ else {
   }
 
 
-
-  log_print('LOG_INFO', "AUTH [$RAD->{USER_NAME}] NAS: $nas->{NAS_ID} ($RAD->{NAS_IP_ADDRESS})$GT");
+  my $CID = ($RAD->{CALLING_STATION_ID}) ? " CID: $RAD->{CALLING_STATION_ID} " : '';
+  log_print('LOG_INFO', "AUTH [$RAD->{USER_NAME}] NAS: $nas->{NAS_ID} ($RAD->{NAS_IP_ADDRESS})$CID$GT");
   return $r;
 }
 
