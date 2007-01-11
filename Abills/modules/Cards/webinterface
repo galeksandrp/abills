@@ -268,7 +268,7 @@ sub cards_add {
   	  for(my $i=$begin; $i<$begin+$count; $i++) {
 #        REPLAY:
           my $pin = mk_unique_value($FORM{PASSWD_LENGTH}, { SYMBOLS => $FORM{PASSWD_SYMBOLS} || undef });
-  	 	    my $serial = sprintf("%s%.10d", $FORM{SERIAL}, $i);
+  	 	    my $serial = sprintf("%s%.11d", $FORM{SERIAL}, $i);
           $Cards->cards_add({ SERIAL    => "$FORM{SERIAL}",
         	                    NUMBER    => "$i",
             	                PIN       => "$pin",
@@ -459,7 +459,7 @@ sub cards_users_add () {
           my $LOGIN_LENGTH = (length("$FORM{LOGIN_PREFIX}$LOGIN_NUMBER") < $FORM{LOGIN_LENGTH}) ? $FORM{LOGIN_LENGTH} - length($FORM{LOGIN_PREFIX}) : $FORM{LOGIN_LENGTH};
 
           my $password = mk_unique_value($FORM{PASSWD_LENGTH}, { SYMBOLS => $FORM{PASSWD_SYMBOLS} || undef });
-  	 	    my $serial = sprintf("%s%.10d", $FORM{SERIAL}, $i);
+  	 	    my $serial = sprintf("%s%.11d", $FORM{SERIAL}, $i);
   	 	    my $login = sprintf(  "%s%.". $LOGIN_LENGTH."d", $FORM{LOGIN_PREFIX}, $LOGIN_NUMBER);
           
          
