@@ -11,11 +11,11 @@ require "Abills/modules/Msgs/webinterface";
 
 if (defined($user->{UID})) {
   my $count=msgs_new({ UID => $UID });
-  if ($count > 0) {
+  if ($count ne '') {
     $USER_FUNCTION_LIST{"01:0:$_MESSAGES $count:msgs_user:defaultindex"} = 0;
    }
   else {
-    $USER_FUNCTION_LIST{"01:0:$_MESSAGES $count:msgs_user:"} = 0;
+    $USER_FUNCTION_LIST{"01:0:$_MESSAGES:msgs_user:"} = 0;
    }
  }
 elsif(defined($admin->{AID})) {
