@@ -627,7 +627,7 @@ else {
   $table = $html->table( { width      => '100%',
                            cols_align => ['right', 'right'],
                            rows       => [ [ "$_TOTAL:", "<b>$company->{TOTAL}</b>" ] ]
-                               } );
+                       } );
   print $table->show();
 }
 
