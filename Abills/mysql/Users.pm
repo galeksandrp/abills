@@ -31,6 +31,7 @@ sub new {
   ($db, $admin, $CONF) = @_;
   $WHERE = "WHERE " . join(' and ', @WHERE_RULES) if($#WHERE_RULES > -1);
   
+  $admin->{MODULE}='';
   $CONF->{MAX_USERNAME_LENGTH} = 10 if (! defined($CONF->{MAX_USERNAME_LENGTH}));
   
   if (defined($CONF->{USERNAMEREGEXP})) {
