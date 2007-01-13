@@ -30,6 +30,8 @@ sub cards_main {
 if ($FORM{change}) {
   my @ORDERS  = ();    
   my $list;
+  
+  my $FROM = '';
 
   if (in_array('Docs', \@MODULES) && $FORM{INVOICE}) {
      require "Abills/modules/Docs/webinterface";
@@ -46,11 +48,14 @@ if ($FORM{change}) {
            my ($seria, $price)=split(/:/, $k, 2);
            push @ORDERS, "$_ICARDS $_SERIAL: $seria $_SUM: $price|0|$v|$price";
           }
+         $FROM .= "$diller, ";
 
- 		     docs_invoice_add({ CUSTOMER  => $diller,
-                          	ORDERS    => [ @ORDERS ],
-                          	CREATE    => 1
-                          });
+ 		     #docs_invoice_add({ FROM      => $diller,
+ 		     #	                  CUSTOMER  => $diller,
+         #                 	ORDERS    => [ @ORDERS ],
+         #                 	CREATE    => 1
+         #                 });
+
         }
   }
 
@@ -82,7 +87,8 @@ if ($FORM{change}) {
 
  		   docs_invoice_add({ CUSTOMER  => $Cards->{NAME},
                          	ORDERS    => [ @ORDERS ],
-                         	CREATE    => 1
+                         	CREATE    => 1,
+                         	FROM      => $FROM
                        });
    	 }
     return 0;

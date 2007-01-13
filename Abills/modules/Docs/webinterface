@@ -41,6 +41,8 @@ sub docs_invoice_add  {
      return 0;
     }
    else {
+     
+     $Docs->{FROM} = $attr->{FROM} if ($attr->{FROM});
      $Docs->docs_invoice_add({ %$attr });
      if(! $Docs->{errno}) {
        $html->message('info', "$_ADDED", "$_NUM: [$Docs->{DOC_ID}] $_DATE: $FORM{DATE}");
