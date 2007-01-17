@@ -1,14 +1,8 @@
 #!/usr/bin/perl
-# Squid
-
-
-require "Abills/nas.pl";
-require "Hosts.pm";
+# Dhcphosts
+#require "Abills/nas.pl";
 
 use Dhcphosts;
-
-Cards_xLan->import();
-my $Hosts = Hosts->new($db, $admin, \%conf);
 my $Dhcphosts = Dhcphosts->new($db, $admin, \%conf);
 
 use Abills::Base;
