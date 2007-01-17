@@ -4,7 +4,7 @@
 
 require "Docs.pm";
 Docs->import();
-my $Docs = Docs->new($db, $admin, $conf);
+my $Docs = Docs->new($db, $admin, \%conf);
 
 foreach my $prefix (@INC) {
   my $realfilename = "$prefix/Abills/modules/$module{$index}/lng_$html->{language}.pl";

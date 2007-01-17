@@ -1,0 +1,449 @@
+#!/usr/bin/perl
+# Squid
+
+
+require "Abills/nas.pl";
+require "Hosts.pm";
+
+use Dhcphosts;
+
+Cards_xLan->import();
+my $Hosts = Hosts->new($db, $admin, \%conf);
+my $Dhcphosts = Dhcphosts->new($db, $admin, \%conf);
+
+use Abills::Base;
+use Socket;
+
+
+foreach my $prefix (@INC) {
+  my $realfilename = "$prefix/Abills/modules/$module{$index}/lng_$html->{language}.pl";
+  if (-f $realfilename) {
+    $lang_file =  $realfilename;
+    require $lang_file;
+    last;
+   }
+ }
+
+if ($lang_file eq '')  {
+  require "Abills/modules/Docs/lng_english.pl";
+}
+
+
+#use Spreadsheet::WriteExcel::Simple;
+#use Switch;
+
+#*******************************************************************
+# 
+# 
+#*******************************************************************
+sub dhcphosts_networks {
+
+
+  $Dhcphosts->{ACTION}='add';
+  $Dhcphosts->{ACTION_LNG}=$_ADD;
+
+  if ($FORM{add}) {
+    $Dhcphosts->network_add({ %FORM });
+    if (! $Dhcphosts->{errno}) {
+	    $html->message('info', $_ADDED, "$_ADDED [$FORM{del}] ");
+	   }
+	 }
+  elsif ($FORM{change}) {
+	  $FORM{MASK} = ip2int($FORM{MASK});
+	  $FORM{NETWORK} = ip2int($FORM{NETWORK});
+
+	  $Dhcphosts->network_change({ %FORM });
+    
+    if (! $Dhcphosts->{errno}) {
+	    $html->message('info', $_CHANGED, "$_CHANGED [$FORM{ID}] $FORM{NAME} ");
+	   }
+	 }
+  elsif ($FORM{chg}) {
+	  $Dhcphosts->network_info( $FORM{chg} );
+
+    $Dhcphosts->{ACTION}='change';
+    $Dhcphosts->{ACTION_LNG}=$_CHANGE;
+
+    if (! $Dhcphosts->{errstr}) {
+	    $html->message('info', $_CHANGE, "$_CHANGE [$FORM{chg}] ");
+	   }
+   }
+  elsif ($FORM{del} && $FORM{is_js_confirmed}) {
+   	$Dhcphosts->network_del($FORM{del});
+    if (! $Dhcphosts->{errstr}) {
+	    $html->message('info', $_DELETED, "$_DELETED [$FORM{del}] ");
+	   }
+   }
+
+  if ($Dhcphosts->{errno}) {
+    $html->message('err', $_ERROR, "[$Dhcphosts->{errno}] $err_strs{$Dhcphosts->{errno}}");
+  }
+
+
+   $html->tpl_show(_include('dhcphosts_network', 'Dhcphosts'), $Dhcphosts);
+   my $list = $Dhcphosts->networks_list({ %LIST_PARAMS });
+
+   my $table = $html->table( { width      => '100%',
+				caption    => "$_HOSTS_NETWORKS",
+				title      => ['#', "$_HOSTS_NETWORKS_NAME", "$_HOSTS_NETWORKS_NET", "$_HOSTS_NETWORKS_COORDINATOR", 
+				  "$_HOSTS_NETWORKS_COORDINATOR_PHONE","-","-", '-'],
+				cols_align => ['left', 'left', 'left', 'left', 'left', 'center:noprint', 'center:noprint','center:noprint',
+				 'center:noprint' ],
+				qs         => $pages_qs,
+				pages      => $Dhcphosts->{TOTAL}
+    });
+
+    foreach my $line (@$list) {
+      my $state = '<img src="../img/red_dot.gif" border="0" alt="No reply"/>' if ($line->[5] eq '');
+      $table->addrow(
+	    $line->[0], 
+	    $line->[1],
+	    $line->[2]."/". $line->[3],
+	    $line->[4],
+	    $line->[5],
+	    $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?" }),
+	    $html->button($_CHANGE, "index=$index&chg=$line->[0]"),
+	    $html->button("Routes", "index=".($index+1)."&NET_ID=$line->[0]") 	    	    
+     );
+    };
+  print $table->show();
+  
+  $table = $html->table( { width      => '100%',
+                           cols_align => ['right', 'right'],
+                           rows       => [ [ "$_TOTAL:", "<b>$Dhcphosts->{TOTAL}</b>" ] ]
+                       } );
+  print $table->show();
+};
+
+
+
+#*******************************************************************
+# 
+# 
+#*******************************************************************
+sub dhcphosts_hosts {
+
+  my $list = $Dhcphosts->hosts_list({ %LIST_PARAMS });
+
+
+  my $table = $html->table({ width      => '100%',
+				                     caption    => "$_HOSTS_USER",
+				                     title      => ['#', "$_USER",  "$_HOSTS_IP", "$_HOSTS_HOSTNAME","$_HOSTS_NETWORKS_NET", "$_HOSTS_MAC", "$_STATUS", "$_HOSTS_BLOCKTIME", "$_HOSTS_BLOCKED","-","-"],
+				                     cols_align => ['left', 'left', 'left','left', 'left', 'left','center:noprint','center:noprint'],
+				                     qs         => $pages_qs,
+				                     pages      => $Dhcphosts->{TOTAL}
+                           });
+
+  my $i=4;
+  foreach my $line (@$list) {
+    my $state = '<img src="../img/red_dot.gif" border="0" alt="No reply"/>' if ($line->[6] eq '');
+   	$status=$line->[10]+$line->[8];
+
+	  if ($status == 0)    { $table->{rowcolor}=$_COLORS[6]; }
+	  elsif($status == 1 ) { $table->{rowcolor}=$_COLORS[2]; }
+	  elsif($status == 2 ) { $table->{rowcolor}=$_COLORS[1]; }
+
+	  if (($line->[11]==1) && $status) { $table->{rowcolor}=$_COLORS[0]; };
+
+	  #$table->{rowcolor}=$_COLORS[$i];
+    $table->addrow(
+	    $line->[0], 
+	    $html->button($line->[1], "index=11&UID=$line->[12]"),
+	    $line->[2],
+	    $line->[3],
+	    $line->[5].": ".$line->[4],
+	    $line->[6],
+	    $line->[10]."/".$line->[8],
+	    $line->[9],
+	    $line->[7],
+	    $html->button($_CHANGE, "index=$index&chg=$line->[0]&UID=$line->[12]"),
+	    $html->button($_DEL, "index=$index&del=$line->[0]&UID=$line->[12]", { MESSAGE => "$_DEL $line->[0]?" })
+
+     );
+	   $i++;
+   };
+  print $table->show();	
+
+}
+
+
+#**********************************************************
+#
+#**********************************************************
+sub dhcphosts_routes {
+
+  $Dhcphosts->{ACTION}='add';
+  $Dhcphosts->{ACTION_LNG}=$_ADD;
+  
+
+
+  if ($FORM{add}) {
+    $Dhcphosts->route_add({ %FORM });
+    if (! $Dhcphosts->{errno}) {
+	    $html->message('info', $_ADDED, "$_ADDED [$FORM{SRC}] ");
+	   }
+	 }
+  elsif ($FORM{change}) {
+	  $FORM{SRC}     = ip2int($FORM{SRC});
+	  $FORM{MASK} = ip2int($FORM{MASK});
+	  $FORM{ROUTER}  = ip2int($FORM{ROUTER});
+
+	  $Dhcphosts->route_change({ %FORM });
+    
+    if (! $Dhcphosts->{errno}) {
+	    $html->message('info', $_CHANGED, "$_CHANGED [$FORM{ID}] $FORM{SRC} ");
+	   }
+	 }
+  elsif ($FORM{chg}) {
+	  $Dhcphosts->route_info( $FORM{chg} );
+
+    $Dhcphosts->{ACTION}='change';
+    $Dhcphosts->{ACTION_LNG}=$_CHANGE;
+
+    if (! $Dhcphosts->{errstr}) {
+	    $html->message('info', $_CHANGE, "$_CHANGE [$FORM{chg}] ");
+	   }
+   }
+  elsif ($FORM{del} && $FORM{is_js_confirmed}) {
+   	$Dhcphosts->route_del($FORM{del});
+    if (! $Dhcphosts->{errstr}) {
+	    $html->message('info', $_DELETED, "$_DELETED [$FORM{del}] ");
+	   }
+   }
+
+  if ($Dhcphosts->{errno}) {
+    $html->message('err', $_ERROR, "[$Dhcphosts->{errno}] $err_strs{$Dhcphosts->{errno}}");
+  }
+
+ 
+    $html->tpl_show(_include('dhcphosts_routes', 'Dhcphosts'), $Dhcphosts);
+
+
+    $LIST_PARAMS{NET_ID} = $FORM{NET_ID};
+    my $list = $Dhcphosts->routes_list({ %LIST_PARAMS });
+
+    my $table = $html->table( { width      => '100%',
+				caption    => "Routes",
+				title      => ['#', "$_HOSTS_NETWORKS_NAME", "$_HOSTS_NETWORKS_NET", "NETMASK","$_HOSTS_ROUTER" ,"-","-"],
+				cols_align => ['left', 'left', 'right','left', 'left', 'center:noprint','center:noprint'],
+				qs         => $pages_qs,
+				pages      => $Dhcphosts->{TOTAL}
+    });
+
+    foreach my $line (@$list) {
+      $table->addrow(
+	    $line->[0], 
+	    $line->[1].":".$line->[5],
+	    $line->[2],
+	    $line->[3],
+	    $line->[4],
+	    $html->button($_DEL, "index=$index&del=$line->[0]&NET_ID=".$FORM{NET_ID}, { MESSAGE => "$_DEL $line->[0]?" }),
+	    $html->button($_CHANGE, "index=$index&chg=$line->[0]&NET_ID=".$FORM{NET_ID})
+      );
+    };
+
+   print $table->show();
+
+  $table = $html->table( { width      => '100%',
+                           cols_align => ['right', 'right'],
+                           rows       => [ [ "$_TOTAL:", "<b>$Dhcphosts->{TOTAL}</b>" ] ]
+                       } );
+  print $table->show();
+
+};
+
+#**********************************************************
+#
+#**********************************************************
+sub dhcphosts_user {
+  $Dhcphosts->{ACTION}='add';
+  $Dhcphosts->{ACTION_LNG}=$_ADD;
+
+
+  if ($FORM{add}) {
+    $Dhcphosts->host_add({ %FORM });
+    if (! $Dhcphosts->{errno}) {
+	    $html->message('info', $_ADDED, "$_ADDED [$FORM{HOSTNAME}] ");
+	   }
+	 }
+  elsif ($FORM{change}) {
+	  $FORM{MASK} = ip2int($FORM{MASK});
+	  $FORM{NETWORK} = ip2int($FORM{NETWORK});
+
+	  $Dhcphosts->host_change({ %FORM });
+    
+    if (! $Dhcphosts->{errno}) {
+	    $html->message('info', $_CHANGED, "$_CHANGED [$FORM{ID}] $FORM{NAME} ");
+	   }
+	 }
+  elsif ($FORM{chg}) {
+	  $Dhcphosts->host_info( $FORM{chg} );
+
+    $Dhcphosts->{ACTION}='change';
+    $Dhcphosts->{ACTION_LNG}=$_CHANGE;
+
+    if (! $Dhcphosts->{errstr}) {
+	    $html->message('info', $_CHANGE, "$_CHANGE [$FORM{chg}] ");
+	   }
+   }
+  elsif ($FORM{del} && $FORM{is_js_confirmed}) {
+   	$Dhcphosts->host_del($FORM{del});
+    if (! $Dhcphosts->{errstr}) {
+	    $html->message('info', $_DELETED, "$_DELETED [$FORM{del}] ");
+	   }
+   }
+  
+  if ($Dhcphosts->{errno}) {
+    $html->message('err', $_ERROR, "[$Dhcphosts->{errno}] $err_strs{$Dhcphosts->{errno}}");
+  }
+
+  my $list=$Dhcphosts->networks_list();
+  if ($Hosts->{errno}) {
+   	print $html->message('err', $_ERROR, "[$Hosts->{errno}] $err_strs{$Hosts->{errno}}");
+   	return 0;
+   }
+
+  %networks = ();
+  foreach my $line (@$list) {
+    $networks{$line->[0]}=$line->[1]."(".$line->[2]."/".$line->[3].")";
+   }; 
+   
+  
+  $Dhcphosts->{NETWORKS_SEL} = $html->form_select('NETWORK', 	
+                                     {
+    	                                SELECTED => $FORM{NETWORK},
+		                                  SEL_HASH => \%networks 
+		                                  });
+
+  $Dhcphosts->{STATUS_SEL} = $html->form_select('STATUS',
+			                                   {   SELECTED => $FORM{STATUS},
+		                                         SEL_HASH => { 0   => "Not Set",
+                                                           -1  => $_DISABLE,
+                                                           1   => "$_ENABLE" } 
+                                          });
+
+  $html->tpl_show(_include('dhcphosts_host', 'Dhcphosts'), { %{ $Dhcphosts->host_defaults() },  %$Dhcphosts }); 
+  dhcphosts_hosts();
+
+};
+
+
+#**********************************************************
+#
+#**********************************************************
+sub dhcphosts_config {
+
+  my %INFO = ();
+
+  my %curnet = ();
+  $Dhcphosts->network_info($FORM{NET_ID});
+
+  $INFO{DNS}=$Dhcphosts->{DNS};
+  $INFO{DOMAINNAME}=$Dhcphosts->{DOMAINNAME};    
+
+
+  $INFO{NETWORK_NAME}=$Dhcphosts->{NAME};
+  $INFO{BLOCK_NETWORK}=$Dhcphosts->{BLOCK_NETWORK};
+  $INFO{BLOCK_MASK}=$Dhcphosts->{BLOCK_MASK};
+  $INFO{NETWORK}=$Dhcphosts->{NETWORK};
+  $INFO{NETWORK_MASK}=$Dhcphosts->{MASK};
+  
+
+  my $list = $Dhcphosts->routes_list({ NET_ID => $FORM{NET_ID} });  
+  
+  my $routes="";
+
+  foreach my $line (@$list) {
+    #($src,$mask,$router)=$sth->fetchrow_array()){
+    my $src = $line->[2];
+    my $mask = $line->[3]; 
+    my $router = $line->[4];
+    print "// $src,$mask,$router\n";
+
+    my @ip=split(/\./,$src);
+    my @ip2=split(/\./,$router);    
+    $mask = mask2bitlen($mask);
+    $routes.=$mask;
+        
+    for(my $i=0;$i<$mask/8;$i++) {
+     	$routes.=", $ip[$i]";
+     };
+    $routes.=", ".join(", ",@ip2).",\n";
+   }
+
+  chop $routes;
+  chop $routes;
+  $routes.=";";
+
+
+  $INFO{NET_ROUTES}=$routes;
+
+
+  $INFO->{NETWORK}='';
+
+  $list = $Dhcphosts->hosts_list({ });
+  
+  foreach my $line (@$list) {
+    $INFO{HOSTS} .= $html->tpl_show(_include('dhcphosts_dhcp_conf_host', 'Dhcphosts',), { 
+    	  MAC      => $line->[6],
+        IP       => $line->[2],
+        ROUTERS  => convert_ip("0.0.0.1", '', $Dhcphosts),
+        LOGIN    => $line->[1],
+        HOSTNAME => $line->[3]
+    	}, { notprint => 1 });
+   }
+  
+
+
+  
+  
+  print "<textarea cols=90 rows=20>";
+  $html->tpl_show(_include('dhcphosts_dhcp_conf_main', 'Dhcphosts'), \%INFO);
+	print "</textarea>";
+	
+}
+
+
+#**********************************************************
+#
+#**********************************************************
+sub convert_ip {
+    my ($cid, $blocked, $attr)=@_;
+
+    if (! $Dhcphosts->{NETWORK}) {
+      $Dhcphosts->network_info($net_id);
+     }
+
+    my @ip = split(/\./, $cid);
+    my @ip2 = ();
+    if ($blocked) { 
+    	@ip2=split(/\./,  $Dhcphosts->{BLOCK_NETWORK}); 
+     }
+    else {
+    	@ip2=split(/\./, $Dhcphosts->{NETWORK});
+     }
+
+    return "$ip2[0].$ip2[1].$ip2[2].$ip[3]";
+}
+
+#**********************************************************
+# Get bit count from net mask
+#**********************************************************
+sub mask2bitlen {
+  my ($netmask) = @_;
+
+  my @mask = split(/\./, $netmask);
+  my $bitlen = 0;
+  foreach my $line (@mask) {
+    if ($line == 255) {
+      $bitlen += 8;
+     }
+    else {
+      last;
+     }
+   }
+  return $bitlen;
+}
+
+
+1
