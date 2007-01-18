@@ -358,7 +358,7 @@ foreach my $NET_ID (@networks) {
   $Dhcphosts->network_info($NET_ID);
 
   $INFO{DNS}=$Dhcphosts->{DNS};
-  $INFO{DOMAINNAME}=$Dhcphosts->{DOMAINNAME};    
+  $INFO{DOMAINNAME}="\"$Dhcphosts->{DOMAINNAME}\"";    
   $INFO{DATETIME}="$DATE $TIME";
   
   $INFO{NETWORK_NAME}=$Dhcphosts->{NAME};
