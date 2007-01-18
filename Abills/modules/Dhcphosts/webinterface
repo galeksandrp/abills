@@ -337,8 +337,8 @@ sub dhcphosts_config {
 
   $INFO{DNS}=$Dhcphosts->{DNS};
   $INFO{DOMAINNAME}=$Dhcphosts->{DOMAINNAME};    
-
-
+  $INFO{DATETIME}="$DATE $TIME";
+  
   $INFO{NETWORK_NAME}=$Dhcphosts->{NAME};
   $INFO{BLOCK_NETWORK}=$Dhcphosts->{BLOCK_NETWORK};
   $INFO{BLOCK_MASK}=$Dhcphosts->{BLOCK_MASK};
