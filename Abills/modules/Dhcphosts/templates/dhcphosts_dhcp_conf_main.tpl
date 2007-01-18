@@ -1,5 +1,5 @@
 # Create %DATETIME%
-option domain-name '%DOMAINNAME%';
+option domain-name %DOMAINNAME%;
 option domain-name-servers %DNS%;
 default-lease-time 86400;
 max-lease-time 172800;
