@@ -293,10 +293,10 @@ sub rt_billing {
   my ($RAD, $NAS)=@_;
   
   $self->query($db, "SELECT lupdated, UNIX_TIMESTAMP()-lupdated, 
-   $RAD->{INBYTE}   - acct_input_octets,
-   $RAD->{OUTBYTE}  - acct_output_octets,
-   $RAD->{INBYTE2}  - ex_input_octets,
-   $RAD->{OUTBYTE2} - ex_output_octets,
+   if($RAD->{INBYTE} > acct_input_octets, $RAD->{INBYTE} - acct_input_octets, acct_input_octets),
+   if($RAD->{OUTBYTE} > acct_output_octets, $RAD->{OUTBYTE}  - acct_output_octets, acct_output_octets),
+   if($RAD->{INBYTE2}  > ex_input_octets, $RAD->{INBYTE2}  - ex_input_octets, acct_output_octets),
+   if($RAD->{OUTBYTE2} > ex_output_octets, $RAD->{OUTBYTE2} - ex_output_octets, acct_output_octets),
    acct_session_id,
    sum
    FROM dv_calls 
@@ -312,6 +312,9 @@ sub rt_billing {
     return $self;
    }
 
+
+
+
   ($RAD->{INTERIUM_SESSION_START},
    $RAD->{INTERIUM_ACCT_SESSION_TIME},
    $RAD->{INTERIUM_INBYTE},
@@ -322,6 +325,13 @@ sub rt_billing {
    $self->{CALLS_SUM}
    ) = @{ $self->{list}->[0] };
 
+  # Giga word check  
+
+  #if ($RAD->{INTERIUM_INBYTE} == -1) {
+  #	 return 0;
+  # }
+  
+  
   my $Billing = Billing->new($db, $conf);	
 
 
