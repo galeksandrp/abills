@@ -126,7 +126,7 @@ sub dhcphosts_hosts {
 
    	$status=$line->[10]+$line->[8];
 	  if ($status == 0)    { $table->{rowcolor}=$_COLORS[2]; }
-	  elsif($status == 1 ) { $table->{rowcolor}=$_COLORS[2]; }
+	  elsif($status == 1 ) { $table->{rowcolor}=$_COLORS[6]; }
 	  elsif($status == 2 ) { $table->{rowcolor}=$_COLORS[1]; }
 
 	  if (($line->[11]==1) && $status) { $table->{rowcolor}=$_COLORS[0]; };
