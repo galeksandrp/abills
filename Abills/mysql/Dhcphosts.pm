@@ -31,7 +31,10 @@ sub new {
 
   my $self = { };
   bless($self, $class);
- 
+
+  if ($CONF->{DELETE_USER}) {
+    $self->host_del({ UID => $CONF->{DELETE_USER} });
+   }
   
   return $self;
 }
@@ -246,6 +249,8 @@ sub host_defaults {
   $self = \%DATA;
   return $self;
 }
+
+
 #**********************************************************
 # host_add()
 #**********************************************************
@@ -259,6 +264,10 @@ sub host_add {
     VALUES('$DATA{UID}', '$DATA{HOSTNAME}', '$DATA{NETWORK}',
       INET_ATON('$DATA{IP}'), '$DATA{MAC}', '$DATA{BLOCKTIME}', '$DATA{FORCED}');", 'do');
 
+
+  
+  $admin->action_add($DATA{DATA}, "ADD $DATA{IP}/$DATA{MAC}");
+
   return $self;
 }
 
@@ -267,9 +276,20 @@ sub host_add {
 #**********************************************************
 sub host_del {
   my $self=shift;
-  my ($id)=@_;
+  my ($attr)=@_;
 
-  $self->query($db,"DELETE FROM dhcphosts_hosts where id='$id'", 'do');
+  if ($attr->{UID}) {
+  	$WHERE =  "uid='$attr->{UID}'";
+   }
+  else {
+  	$WHERE = "id='$attr->{ID}'";
+   }
+
+  $self->query($db, "DELETE FROM dhcphosts_hosts where $WHERE", 'do');
+  
+  if ($attr->{UID}) {
+    $admin->action_add($attr->{UID}, "DELETE");
+   }
 
   return $self;
 };
@@ -335,6 +355,8 @@ sub host_change {
 		               OLD_INFO     => $self->host_info($attr->{ID}),
 		               DATA         => $attr
 		              } );
+
+
   return $self;
 };
 
@@ -452,11 +474,70 @@ sub hosts_list {
    }
  }
 
+ if ($attr->{LOGIN_EXPR}) {
+   $attr->{LOGIN_EXPR} =~ s/\*/\%/g;
+   push @WHERE_RULES, "u.id LIKE '$attr->{LOGIN_EXPR}'"; 
+  }
+
+ if ($attr->{HOSTNAME}) {
+   $attr->{HOSTNAME} =~ s/\*/\%/g;
+   push @WHERE_RULES, "h.hostname LIKE '$attr->{HOSTNAME}'"; 
+  }
+ 
+ if ($attr->{MAC}) {
+   $attr->{MAC} =~ s/\*/\%/g;
+   push @WHERE_RULES, "h.mac LIKE '$attr->{MAC}'"; 
+  }
+
+ 	
+
+ if ($attr->{NETWORK}) {
+   push @WHERE_RULES, "h.network='$attr->{NETWORK}'"; 
+  }
+
+
+ if ($attr->{IP}) {
+    if ($attr->{IP} =~ m/\*/g) {
+      my ($i, $first_ip, $last_ip);
+      my @p = split(/\./, $attr->{IP});
+      for ($i=0; $i<4; $i++) {
+
+         if ($p[$i] eq '*') {
+           $first_ip .= '0';
+           $last_ip .= '255';
+          }
+         else {
+           $first_ip .= $p[$i];
+           $last_ip .= $p[$i];
+          }
+         if ($i != 3) {
+           $first_ip .= '.';
+           $last_ip .= '.';
+          }
+       }
+      push @WHERE_RULES, "(h.ip>=INET_ATON('$first_ip') and h.ip<=INET_ATON('$last_ip'))";
+     }
+    else {
+      my $value = $self->search_expr($attr->{IP}, 'IP');
+      push @WHERE_RULES, "h.ip$value";
+    }
+  }
+
+  if ($attr->{EXPIRE}) {
+    my $value = $self->search_expr($attr->{EXPIRE}, 'INT');
+    push @WHERE_RULES, "h.expire$value";
+  }
+
+  if (defined($attr->{STATUS})) {
+    push @WHERE_RULES, "h.disable='$attr->{STATUS}'";
+  }
+
+
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
 
  $self->query($db, "SELECT 
     h.id, u.id, INET_NTOA(h.ip), h.hostname, n.name, h.network, h.mac, h.block_date, h.forced, 
-      h.blocktime, h.active, seen, h.uid
+      h.blocktime, h.disable, seen, h.uid
      FROM dhcphosts_hosts h
      left join dhcphosts_networks n on h.network=n.id
      left join users u on h.uid=u.uid

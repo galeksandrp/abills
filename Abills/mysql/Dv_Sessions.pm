@@ -22,17 +22,22 @@ use main;
 
 my $db;
 my $admin;
-my $conf;
+my $CONF;
 
 #**********************************************************
 # Init 
 #**********************************************************
 sub new {
   my $class = shift;
-  ($db, $admin, $conf) = @_;
+  ($db, $admin, $CONF) = @_;
   my $self = { };
   bless($self, $class);
   #$self->{debug}=1;
+  
+  if ($CONF->{DELETE_USER}) {
+    $self->del($CONF->{DELETE_USER}, '', '', '', { DELETE_USER => $CONF->{DELETE_USER} });
+   }
+  
   return $self;
 }
 
@@ -44,10 +49,14 @@ sub del {
   my $self = shift;
   my ($uid, $session_id, $nas_id, $session_start, $attr) = @_;
 
+  if ($attr->{DELETE_USER}) {
+    $self->query($db, "DELETE FROM dv_log WHERE uid='$attr->{DELETE_USER}';", 'do');
+  }
+  else {
+    $self->query($db, "DELETE FROM dv_log 
+     WHERE uid='$uid' and start='$session_start' and nas_id='$nas_id' and acct_session_id='$session_id';", 'do');
+   }
 
-  $self->query($db, "DELETE FROM dv_log 
-   WHERE uid='$uid' and start='$session_start' and nas_id='$nas_id' and acct_session_id='$session_id';", 'do');
-   
   return $self;
 }
 

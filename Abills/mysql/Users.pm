@@ -733,8 +733,6 @@ sub del {
                   'fees', 
                   'payments', 
                   'users_nas', 
-                  'docs_acct',
-                  'dv_log',
                   'users',
                   'users_pi');
 

@@ -53,6 +53,9 @@ sub new {
   	$CONF->{KBYTE_SIZE}=1024;
    }
 
+  if ($CONF->{DELETE_USER}) {
+    $self->user_del({ UID => $CONF->{DELETE_USER} });
+   }
   
   #$self->{debug}  =1;
   $self->{TRAFFIC_ROWS}=0;
@@ -61,6 +64,19 @@ sub new {
 }
 
 
+#**********************************************************
+# Delete user log
+# user_del 
+#**********************************************************
+sub user_del {
+  my $self = shift;
+  my ($attr) = @_;
+ 
+  $self->query($db, "DELETE FROM ipn_log WHERE uid='$attr->{UID}';", 'do');
+
+  $admin->action_add($attr->{UID}, "DELETE");
+  return $self;   
+}
 
 #**********************************************************
 # user_ips

@@ -50,6 +50,12 @@ sub new {
   my $self = { };
   
   bless($self, $class);
+  
+  if ($CONF->{DELETE_USER}) {
+    $self->{UID}=$CONF->{DELETE_USER};
+    $self->del({ UID => $CONF->{DELETE_USER} });
+   }
+  
   return $self;
 }
 
@@ -106,7 +112,6 @@ sub info {
      return $self;
    }
 
-  my $ar = $self->{list}->[0];
 
   ($self->{UID},
    $self->{TP_ID}, 
@@ -119,7 +124,7 @@ sub info {
    $self->{CID},
    $self->{DISABLE},
    $self->{CALLBACK}
-  )= @$ar;
+  )= @{ $self->{list}->[0] };
   
   
   return $self;

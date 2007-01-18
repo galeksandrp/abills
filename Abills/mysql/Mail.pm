@@ -39,6 +39,13 @@ sub new {
   $admin->{MODULE}='Mail';
   my $self = { };
   bless($self, $class);
+  
+  
+  if ($CONF->{DELETE_USER}) {
+    $self->mbox_del(0, { UID => $CONF->{DELETE_USER} });
+   }
+
+  
   return $self;
 }
 
@@ -66,6 +73,9 @@ sub mbox_add {
     '$DATA{ANTIVIRUS}', '$DATA{ANTISPAM}', '$DATA{EXPIRE}', 
     ENCODE('$DATA{PASSWORD}', '$CONF->{secretkey}'));", 'do');
 	
+	
+  $admin->action_add($DATA{UID}, "ADD $DATA{USERNAME}");
+	
 	return $self;
 }
 
@@ -76,11 +86,16 @@ sub mbox_del {
 	my $self = shift;
 	my ($id, $attr) = @_;
 
-	$self->query($db, "DELETE FROM mail_boxes 
-    WHERE id='$id' and uid='$attr->{UID}';", 'do');
-	
+  if ($CONF->{DELETE_USER}) {
+  	$self->query($db, "DELETE FROM mail_boxes 
+      WHERE uid='$CONF->{DELETE_USER}';", 'do');
+   }
+  else {
+	 $self->query($db, "DELETE FROM mail_boxes 
+     WHERE id='$id' and uid='$attr->{UID}';", 'do');
+	 }
+
 	$admin->action_add("$attr->{UID}", "DELETE mailbox_id: $id");
-	
 	return $self;
 }
 

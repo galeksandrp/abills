@@ -85,7 +85,25 @@ my @reports = ();
       $i++;
      }
 
- 	 require "Abills/modules/$m/webinterface" if($i > 0);
+   if($i > 0) {
+     #Language pack
+     
+     my $lang_file = '';
+     foreach my $prefix (@INC) {
+       my $realfilename = "$prefix/Abills/modules/$m/lng_$html->{language}.pl";
+       if (-f $realfilename) {
+         $lang_file =  $realfilename;
+         require $lang_file;
+         last;
+        }
+       }
+
+     if ($lang_file eq '' && -f "Abills/modules/$m/lng_english.pl" ) {
+       require "Abills/modules/$m/lng_english.pl";
+      }
+     
+ 	   require "Abills/modules/$m/webinterface";
+    }
    undef %PERIODIC;
   }
 

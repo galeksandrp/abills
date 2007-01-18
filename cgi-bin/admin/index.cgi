@@ -245,13 +245,30 @@ my $users = Users->new($db, $admin, \%conf);
 # Show only function results whithout main windows
 if ($FORM{qindex}) {
   $index = $FORM{qindex};
+
   if(defined($module{$index})) {
+    my $lang_file = '';
+    foreach my $prefix (@INC) {
+      my $realfilename = "$prefix/Abills/modules/$module{$index}/lng_$html->{language}.pl";
+      if (-f $realfilename) {
+        $lang_file =  $realfilename;
+        require $lang_file;
+        last;
+       }
+     }
+
+    if ($lang_file eq '' && -f "Abills/modules/$module{$index}/lng_english.pl" ) {
+      require "Abills/modules/$module{$index}/lng_english.pl";
+     }
+
  	 	require "Abills/modules/$module{$index}/webinterface";
    }
+
   $functions{$index}->();
- 
   exit;
 }
+
+
 
 
 
@@ -347,6 +364,20 @@ $menu_text
 
 if ($functions{$index}) {
   if(defined($module{$index})) {
+    my $lang_file = '';
+    foreach my $prefix (@INC) {
+      my $realfilename = "$prefix/Abills/modules/$module{$index}/lng_$html->{language}.pl";
+      if (-f $realfilename) {
+        $lang_file =  $realfilename;
+        require $lang_file;
+        last;
+       }
+     }
+
+    if ($lang_file eq '' && -f "Abills/modules/$module{$index}/lng_english.pl" ) {
+      require "Abills/modules/$module{$index}/lng_english.pl";
+     }
+
  	 	require "Abills/modules/$module{$index}/webinterface";
    }
   
@@ -945,6 +976,14 @@ if(defined($attr->{USER})) {
     else {
       $html->message('info', $_DELETE, "$_DELETED <br>from tables<br>$users->{info}");
      }
+    
+    $conf{DELETE_USER}=$user_info->{UID};
+    foreach my $mod (@MODULES) {
+    	print $mod . "<br>\n";
+    	require "Abills/modules/$mod/webinterface";
+     }
+    
+
     print "</td></tr></table>\n";
     return 0;
    }

@@ -6,7 +6,7 @@ CREATE TABLE `dhcphosts_hosts` (
   `hostname` varchar(40) NOT NULL default '',
   `network` smallint(5) unsigned NOT NULL default '0',
   `mac` varchar(17) default '00:00:00:00:00:00',
-  `active` int(1) NOT NULL default '1',
+  `disable` tinyint(1) unsigned NOT NULL default '1',
   `forced` int(1) NOT NULL default '0',
   `blocktime` int(3) unsigned NOT NULL default '3',
   `block_date` datetime NOT NULL default '0000-00-00 00:00:00',

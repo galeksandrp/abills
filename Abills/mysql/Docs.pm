@@ -27,6 +27,12 @@ sub new {
   ($db, $admin, $CONF) = @_;
   my $self = { };
   bless($self, $class);
+
+  #if ($CONF->{DELETE_USER}) {
+  #  $self->{UID}=$CONF->{DELETE_USER};
+  #  $self->del({ UID => $CONF->{DELETE_USER} });
+  # }
+
 #  $self->{debug}=1;
   return $self;
 }
@@ -396,8 +402,8 @@ sub account_del {
 	my $self = shift;
 	my ($id, $attr) = @_;
 
-   $self->query($db, "DELETE FROM docs_acct_orders WHERE acct_id='$id'", 'do');
-   $self->query($db, "DELETE FROM docs_acct WHERE id='$id'", 'do');
+  $self->query($db, "DELETE FROM docs_acct_orders WHERE acct_id='$id'", 'do');
+  $self->query($db, "DELETE FROM docs_acct WHERE id='$id'", 'do');
 
 	return $self;
 }

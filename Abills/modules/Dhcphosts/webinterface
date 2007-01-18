@@ -8,21 +8,6 @@ my $Dhcphosts = Dhcphosts->new($db, $admin, \%conf);
 use Abills::Base;
 use Socket;
 
-
-foreach my $prefix (@INC) {
-  my $realfilename = "$prefix/Abills/modules/$module{$index}/lng_$html->{language}.pl";
-  if (-f $realfilename) {
-    $lang_file =  $realfilename;
-    require $lang_file;
-    last;
-   }
- }
-
-if ($lang_file eq '')  {
-  require "Abills/modules/Docs/lng_english.pl";
-}
-
-
 #use Spreadsheet::WriteExcel::Simple;
 #use Switch;
 
@@ -88,7 +73,6 @@ sub dhcphosts_networks {
     });
 
     foreach my $line (@$list) {
-      my $state = '<img src="../img/red_dot.gif" border="0" alt="No reply"/>' if ($line->[5] eq '');
       $table->addrow(
 	    $line->[0], 
 	    $line->[1],
@@ -116,10 +100,19 @@ sub dhcphosts_networks {
 # 
 #*******************************************************************
 sub dhcphosts_hosts {
-
+  
+  
+  if (! $FORM{UID}) {
+    
+    $Dhcphosts->{NETWORKS_SEL} = dhcphosts_network_sel();
+    form_search({ SEARCH_FORM => $html->tpl_show(_include('dhcphosts_search', 'Dhcphosts'), 
+  	                                  { %$Dhcphosts, %FORM }, 
+  	                                  { notprint => 1 })  
+	            });
+   }
+  
+  $Dhcphosts->{debug}=1;
   my $list = $Dhcphosts->hosts_list({ %LIST_PARAMS });
-
-
   my $table = $html->table({ width      => '100%',
 				                     caption    => "$_HOSTS_USER",
 				                     title      => ['#', "$_USER",  "$_HOSTS_IP", "$_HOSTS_HOSTNAME","$_HOSTS_NETWORKS_NET", "$_HOSTS_MAC", "$_STATUS", "$_HOSTS_BLOCKTIME", "$_HOSTS_BLOCKED","-","-"],
@@ -130,9 +123,8 @@ sub dhcphosts_hosts {
 
   my $i=4;
   foreach my $line (@$list) {
-    my $state = '<img src="../img/red_dot.gif" border="0" alt="No reply"/>' if ($line->[6] eq '');
-   	$status=$line->[10]+$line->[8];
 
+   	$status=$line->[10]+$line->[8];
 	  if ($status == 0)    { $table->{rowcolor}=$_COLORS[6]; }
 	  elsif($status == 1 ) { $table->{rowcolor}=$_COLORS[2]; }
 	  elsif($status == 2 ) { $table->{rowcolor}=$_COLORS[1]; }
@@ -281,7 +273,7 @@ sub dhcphosts_user {
 	   }
    }
   elsif ($FORM{del} && $FORM{is_js_confirmed}) {
-   	$Dhcphosts->host_del($FORM{del});
+   	$Dhcphosts->host_del({ ID => $FORM{del} });
     if (! $Dhcphosts->{errstr}) {
 	    $html->message('info', $_DELETED, "$_DELETED [$FORM{del}] ");
 	   }
@@ -291,23 +283,11 @@ sub dhcphosts_user {
     $html->message('err', $_ERROR, "[$Dhcphosts->{errno}] $err_strs{$Dhcphosts->{errno}}");
   }
 
-  my $list=$Dhcphosts->networks_list();
-  if ($Hosts->{errno}) {
-   	print $html->message('err', $_ERROR, "[$Hosts->{errno}] $err_strs{$Hosts->{errno}}");
-   	return 0;
-   }
-
-  %networks = ();
-  foreach my $line (@$list) {
-    $networks{$line->[0]}=$line->[1]."(".$line->[2]."/".$line->[3].")";
-   }; 
    
   
-  $Dhcphosts->{NETWORKS_SEL} = $html->form_select('NETWORK', 	
-                                     {
-    	                                SELECTED => $FORM{NETWORK},
-		                                  SEL_HASH => \%networks 
-		                                  });
+  $Dhcphosts->{NETWORKS_SEL} = dhcphosts_network_sel();
+
+
 
   $Dhcphosts->{STATUS_SEL} = $html->form_select('STATUS',
 			                                   {   SELECTED => $FORM{STATUS},
@@ -321,6 +301,29 @@ sub dhcphosts_user {
 
 };
 
+
+#**********************************************************
+#
+#**********************************************************
+sub dhcphosts_network_sel {
+	
+  my $list=$Dhcphosts->networks_list();
+  if ($Hosts->{errno}) {
+   	print $html->message('err', $_ERROR, "[$Hosts->{errno}] $err_strs{$Hosts->{errno}}");
+   	return 0;
+   }
+
+  my %networks = ();
+  foreach my $line (@$list) {
+    $networks{$line->[0]}=$line->[1]."(".$line->[2]."/".$line->[3].")";
+   }; 
+
+  return $html->form_select('NETWORK', 	
+                                    {
+    	                               SELECTED => $FORM{NETWORK},
+		                                 SEL_HASH => \%networks 
+		                            });
+}
 
 #**********************************************************
 #
