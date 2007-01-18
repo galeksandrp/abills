@@ -122,7 +122,6 @@ sub dhcphosts_hosts {
 	            });
    }
   
-  $Dhcphosts->{debug}=1;
   my $list = $Dhcphosts->hosts_list({ %LIST_PARAMS });
   my $table = $html->table({ width      => '100%',
 				                     caption    => "$_HOSTS_USER",
