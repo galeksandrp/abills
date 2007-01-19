@@ -125,7 +125,7 @@ sub dhcphosts_hosts {
   my $list = $Dhcphosts->hosts_list({ %LIST_PARAMS });
   my $table = $html->table({ width      => '100%',
 				                     caption    => "$_HOSTS_USER",
-				                     title      => ['#', "$_USER",  "$_HOSTS_IP", "$_HOSTS_HOSTNAME","$_HOSTS_NETWORKS_NET", "$_HOSTS_MAC", "$_STATUS", "$_HOSTS_BLOCKTIME", "$_HOSTS_BLOCKED","-","-"],
+				                     title      => ['#', "$_USER",  "IP", "$_HOSTS_HOSTNAME","$_HOSTS_NETWORKS_NET", "$_HOSTS_MAC", "$_STATUS", "$_HOSTS_BLOCKTIME", "$_HOSTS_BLOCKED","-","-"],
 				                     cols_align => ['left', 'left', 'left','left', 'left', 'left','center:noprint','center:noprint'],
 				                     qs         => $pages_qs,
 				                     pages      => $Dhcphosts->{TOTAL}
@@ -160,6 +160,11 @@ sub dhcphosts_hosts {
    };
   print $table->show();	
 
+  $table = $html->table( { width      => '100%',
+                           cols_align => ['right', 'right'],
+                           rows       => [ [ "$_TOTAL:", "<b>$Dhcphosts->{TOTAL}</b>" ] ]
+                       } );
+  print $table->show();
 }
 
 
@@ -263,10 +268,9 @@ sub dhcphosts_user {
 	   }
 	 }
   elsif ($FORM{change}) {
-	  $FORM{MASK} = ip2int($FORM{MASK});
-	  $FORM{NETWORK} = ip2int($FORM{NETWORK});
-
 	  $Dhcphosts->host_change({ %FORM });
+    
+    $FORM{NETWORK}=$Dhcphosts->{NETWORK};
     
     if (! $Dhcphosts->{errno}) {
 	    $html->message('info', $_CHANGED, "$_CHANGED [$FORM{ID}] $FORM{NAME} ");
@@ -305,6 +309,8 @@ sub dhcphosts_user {
                                                            -1  => $_DISABLE,
                                                            1   => "$_ENABLE" } 
                                           });
+
+  $Dhcphosts->{DISABLE}=' checked' if($Dhcphosts->{DISABLE});
 
   $html->tpl_show(_include('dhcphosts_host', 'Dhcphosts'), { %{ $Dhcphosts->host_defaults() },  %$Dhcphosts }); 
   dhcphosts_hosts();
@@ -347,9 +353,6 @@ sub dhcphosts_config {
    }
 
   my %INFO = ();
-  
-  
-  
   my @networks = split(/, /, $attr->{NETWORKS});
 
 foreach my $NET_ID (@networks) {
@@ -400,7 +403,7 @@ foreach my $NET_ID (@networks) {
 
   $INFO->{NETWORK}='';
 
-  $list = $Dhcphosts->hosts_list({ NETWORK => $NET_ID });
+  $list = $Dhcphosts->hosts_list({ NETWORK => $NET_ID, STATUS => 0 });
   
   foreach my $line (@$list) {
     $INFO{HOSTS} .= $html->tpl_show(_include('dhcphosts_dhcp_conf_host', 'Dhcphosts',), { 
@@ -414,12 +417,43 @@ foreach my $NET_ID (@networks) {
   
 }
 
+
+
+if ($attr->{reconfig} || $FORM{reconfig} ) {
+	$conf{DHCPHOSTS_CONFIG} = "/usr/local/etc/dhcpd.conf" if (! $conf{DHCPHOSTS_CONFIG}) ;
+
+  my $tpl = $html->tpl_show(_include('dhcphosts_dhcp_conf_main', 'Dhcphosts'), \%INFO, { notprint => 'yes' });	 
+	open(FILE, ">$conf{DHCPHOSTS_CONFIG}") || print "Can't open file '$conf{DHCPHOSTS_CONFIG}' $!";
+	   print FILE $tpl;
+  close(FILE);
   
+  dhcphosts_reconfigure();
   
+  print $html->message('info', $_INFO, "DHCP $_RECONFIGURE '/usr/local/etc/dhcpd.conf'");
+ }
+else {
   print "<textarea cols=90 rows=20>";
   $html->tpl_show(_include('dhcphosts_dhcp_conf_main', 'Dhcphosts'), \%INFO);
 	print "</textarea>";
+	print $html->form_main(	{  HIDDEN  => { index  => $index,
+		                                     IDS    => $FORM{IDS},
+		                                     config => 'dhcp.conf' },
+                            SUBMIT  => { reconfig => $_RECONFIGURE }
+                         } );
 	
+}
+	
+}
+
+
+#**********************************************************
+# Get bit count from net mask
+#**********************************************************
+sub dhcphosts_reconfigure {
+  my ($attr) = @_;
+  my $res = `$conf{DHCPHOSTS_RECONFIGURE}`;
+
+  return 0;
 }
 
 
@@ -463,6 +497,9 @@ sub mask2bitlen {
    }
   return $bitlen;
 }
+
+
+
 
 
 1

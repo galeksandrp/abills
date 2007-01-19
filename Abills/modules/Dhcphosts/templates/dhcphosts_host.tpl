@@ -9,7 +9,7 @@
 <tr><td>$_HOSTS_IP:</td><td><input type=text name=IP value='%IP%'></td></tr>			
 <tr><td>$_HOSTS_MAC:</td><td><input type=text name=MAC value='%MAC%'></td></tr>			
 <tr><td>$_EXPIRE:</td><td><input type=text name=EXPIRE value='%EXPIRE%'></td></tr>
-<tr><td>$_STATUS:</td><td>%STATUS_SEL%</td></tr>
+<tr><td>$_STATUS:</td><td><input type=checkbox name=DISABLE value='1' %DISABLE%></td></tr>
 
 </table>
 <input type=submit name=%ACTION% value='%ACTION_LNG%'>

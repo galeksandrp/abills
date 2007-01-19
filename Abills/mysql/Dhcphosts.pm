@@ -35,7 +35,7 @@ sub new {
   if ($CONF->{DELETE_USER}) {
     $self->host_del({ UID => $CONF->{DELETE_USER} });
    }
-  
+ 
   return $self;
 }
 
@@ -260,9 +260,9 @@ sub host_add {
 
   my %DATA = $self->get_data($attr); 
 
-  $self->query($db, "INSERT INTO dhcphosts_hosts (uid, hostname, network, ip, mac, blocktime, forced) 
+  $self->query($db, "INSERT INTO dhcphosts_hosts (uid, hostname, network, ip, mac, blocktime, forced, disable) 
     VALUES('$DATA{UID}', '$DATA{HOSTNAME}', '$DATA{NETWORK}',
-      INET_ATON('$DATA{IP}'), '$DATA{MAC}', '$DATA{BLOCKTIME}', '$DATA{FORCED}');", 'do');
+      INET_ATON('$DATA{IP}'), '$DATA{MAC}', '$DATA{BLOCKTIME}', '$DATA{FORCED}', '$DATA{DISABLE}');", 'do');
 
 
   
@@ -308,7 +308,8 @@ sub host_info {
    INET_NTOA(ip), 
    mac, 
    blocktime, 
-   forced
+   forced,
+   disable
   FROM dhcphosts_hosts
   WHERE id='$id';");
 
@@ -324,9 +325,9 @@ sub host_info {
    $self->{IP}, 
    $self->{MAC}, 
    $self->{BLOCKTIME}, 
-   $self->{FORCED}
+   $self->{FORCED},
+   $self->{DISABLE}
    ) = @{ $self->{list}->[0] };
-
   return $self;
 };
 
@@ -343,11 +344,14 @@ sub host_change {
    UID         => 'uid',
    HOSTNAME    => 'hostname', 
    NETWORK     => 'network', 
-   IP         => 'ip', 
+   IP         =>  'ip', 
    MAC         => 'mac', 
    BLOCKTIME   => 'blocktime', 
-   FORCED      => 'forced'
+   FORCED      => 'forced',
+   DISABLE     => 'disable'
   );
+
+
 
 	$self->changes($admin, { CHANGE_PARAM => 'ID',
 		               TABLE        => 'dhcphosts_hosts',
@@ -530,6 +534,10 @@ sub hosts_list {
 
   if (defined($attr->{STATUS})) {
     push @WHERE_RULES, "h.disable='$attr->{STATUS}'";
+  }
+
+  if (defined($attr->{USER_DISABLE})) {
+    push @WHERE_RULES, "u.disable='$attr->{USER_DISABLE}'";
   }
 
 
