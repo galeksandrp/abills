@@ -743,6 +743,7 @@ sub remaining_time {
   my ($deposit, 
       $attr) = @_;
 
+
   my %ATTR = ();
   my ($session_start,  
       $day_begin,
@@ -750,6 +751,7 @@ sub remaining_time {
       $day_of_year
      );
 
+  
 
   if (! defined($attr->{SESSION_START})) {
   	 $self->get_timeinfo();
@@ -768,7 +770,6 @@ sub remaining_time {
 
   my $REDUCTION = (defined($attr->{REDUCTION})) ? $attr->{REDUCTION} : 0;
   $deposit = $deposit + ($deposit * (100 - $REDUCTION) / 100) if ($REDUCTION > 0);
-
 
   $time_intervals = $attr->{TIME_INTERVALS} || 0; 
   $periods_time_tarif = $attr->{INTERVAL_TIME_TARIF};
@@ -828,7 +829,7 @@ sub remaining_time {
    else {
       return -1, \%ATTR;
     }
-
+  
   print "Count:  $count Remain Time: $remaining_time\n" if ($debug == 1);
 
   # Time check
@@ -882,7 +883,7 @@ sub remaining_time {
             	
            }
 
-          #Time calculations
+          #Time calculations/ Time tariff price
           if ($periods_time_tarif->{$int_id} =~ /%$/) {
              my $tp = $periods_time_tarif->{$int_id};
              $tp =~ s/\%//;
@@ -904,15 +905,23 @@ sub remaining_time {
             if ($periods_traf_tarif->{$int_id} > 0) {
               print "This tarif with traffic counts\n" if ($debug == 1);
               if ($int_end - $int_begin < 86400) {
+                
                 return int($int_duration), \%ATTR 
                }
              }
 
-
-            $price = $periods_traf_tarif->{$int_id};
-            $int_prepaid = $int_duration;	
-            $remaining_time += $int_duration;
-
+            #Traffic tarif price
+            my $price = $periods_traf_tarif->{$int_id};
+            
+            # 20.01.2007
+            #$remaining_time += $int_duration;
+            if ($price > 0) {
+              $int_prepaid = int($deposit / $price * 3600);
+              print "$int_prepaid = int($deposit / $price * 3600);\n";
+             }
+            else {
+              $int_prepaid = $int_duration;		
+             }
            }
           elsif(defined($periods_traf_tarif->{$int_id}) 
             && $periods_traf_tarif->{$int_id} > 0 
@@ -929,8 +938,8 @@ sub remaining_time {
             $int_prepaid = $int_duration;	
             $ATTR{TT}=$int_id if (! defined($ATTR{TT}) && defined($periods_traf_tarif));
            }
-          #print "Int Begin: $int_begin Int duration: $int_duration Int prepaid: $int_prepaid Prise: $price\n";
 
+          #print "Int Begin: $int_begin Int duration: $int_duration Int prepaid: $int_prepaid Prise: $price\n";
           if ($int_prepaid >= $int_duration) {
             $deposit -= ($int_duration / 3600 * $price);
             $session_start += $int_duration;
@@ -943,6 +952,7 @@ sub remaining_time {
             $remaining_time += int($int_prepaid);
             #print "DL '$deposit' ($int_prepaid <= $int_duration) $session_start\n";
            }
+
         }
        elsif($i == $#intervals) {
        	  print "!! LAST@@@@ $i == $#intervals\n" if ($debug == 1);

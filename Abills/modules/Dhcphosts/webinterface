@@ -457,13 +457,14 @@ else {
 #**********************************************************
 sub dhcphosts_reconfigure {
   my ($attr) = @_;
-  
+
   if (! $conf{DHCPHOSTS_RECONFIGURE}) {
   	print $html->message('err', $_ERROR, "Can't find reconfiguration command ". '"$conf{DHCPHOSTS_RECONFIGURE}"');
   	return 0;
    }
-  
+ 
   my $res = `$conf{DHCPHOSTS_RECONFIGURE}`;
+  #print $res;
 
   return 0;
 }

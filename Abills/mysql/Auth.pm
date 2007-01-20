@@ -603,7 +603,8 @@ sub authentication {
   u.disable,
   u.bill_id,
   u.credit,
-  u.activate
+  u.activate,
+  u.reduction
      FROM users u
      WHERE 
         u.id='$RAD->{USER_NAME}'
@@ -633,7 +634,8 @@ sub authentication {
      $self->{DISABLE},
      $self->{BILL_ID},
      $self->{CREDIT},
-     $self->{ACCOUNT_ACTIVATE}
+     $self->{ACCOUNT_ACTIVATE},
+     $self->{REDUCTION}
     ) = @$a_ref;
 
 
