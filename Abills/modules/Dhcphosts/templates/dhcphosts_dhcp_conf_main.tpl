@@ -5,6 +5,7 @@ option domain-name-servers %DNS%;
 default-lease-time 86400;
 max-lease-time 172800;
 ddns-update-style none;
+lease-file-name \"/var/db/dhcpd/dhcpd.leases\";
 
 
 option ms-classless-static-routes code 249 = array of integer 8;

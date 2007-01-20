@@ -917,7 +917,6 @@ sub remaining_time {
             #$remaining_time += $int_duration;
             if ($price > 0) {
               $int_prepaid = int($deposit / $price * 3600);
-              print "$int_prepaid = int($deposit / $price * 3600);\n";
              }
             else {
               $int_prepaid = $int_duration;		
