@@ -1,4 +1,4 @@
-# Login: %LOGIN% 
+# Login: %LOGIN%
 host %HOSTNAME% {
   hardware ethernet %MAC%;
   fixed-address %IP%;
