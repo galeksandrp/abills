@@ -21,6 +21,11 @@ sub dhcphosts_networks {
   $Dhcphosts->{ACTION}='add';
   $Dhcphosts->{ACTION_LNG}=$_ADD;
 
+  if ($FORM{NAME} and $FORM{NAME} !~ /^[0-9a-zA-Z_]+$/) {
+  	print $html->message('err', $_ERROR, "$_HOSTS_NETWORKS_NAME - '$FORM{NAME}' $ERR_WRONG_DATA");
+  	return 0;
+   }
+  
   if ($FORM{config}) {
   	dhcphosts_config({ NETWORKS => $FORM{IDS} });
   	
@@ -29,7 +34,7 @@ sub dhcphosts_networks {
   elsif ($FORM{add}) {
     $Dhcphosts->network_add({ %FORM });
     if (! $Dhcphosts->{errno}) {
-	    $html->message('info', $_ADDED, "$_ADDED [$FORM{del}] ");
+	    $html->message('info', $_ADDED, "$_HOSTS_NETWORKS_NAME [$FORM{NAME}] ");
 	   }
 	 }
   elsif ($FORM{change}) {
@@ -265,6 +270,7 @@ sub dhcphosts_user {
     $Dhcphosts->host_add({ %FORM });
     if (! $Dhcphosts->{errno}) {
 	    $html->message('info', $_ADDED, "$_ADDED [$FORM{HOSTNAME}] ");
+      dhcphosts_config({ NETWORKS => $FORM{NETWORK}, reconfig => 1 });
 	   }
 	 }
   elsif ($FORM{change}) {
@@ -272,6 +278,7 @@ sub dhcphosts_user {
     
     if (! $Dhcphosts->{errno}) {
 	    $html->message('info', $_CHANGED, "$_CHANGED [$FORM{ID}] $FORM{NAME} ");
+	    dhcphosts_config({ NETWORKS => $FORM{NETWORK}, reconfig => 1 });
 	   }
 	 }
   elsif ($FORM{chg}) {
@@ -347,7 +354,7 @@ sub dhcphosts_config {
   my ($attr) = @_;
 
   if (! $attr->{NETWORKS}) {
-  	$html->message('err', $_ERROR, "$_NO_DATE");
+  	$html->message('err', $_ERROR, "$ERR_WRONG_DATA");
   	return 0;
    }
 
@@ -428,7 +435,7 @@ if ($attr->{reconfig} || $FORM{reconfig} ) {
   
   dhcphosts_reconfigure();
   
-  print $html->message('info', $_INFO, "DHCP $_RECONFIGURE '/usr/local/etc/dhcpd.conf'");
+  print $html->message('info', $_INFO, "DHCP $_RECONFIGURE '$conf{DHCPHOSTS_CONFIG}'");
  }
 else {
   print "<textarea cols=90 rows=20>";
@@ -450,6 +457,12 @@ else {
 #**********************************************************
 sub dhcphosts_reconfigure {
   my ($attr) = @_;
+  
+  if (! $conf{DHCPHOSTS_RECONFIGURE}) {
+  	print $html->message('err', $_ERROR, "Can't find reconfiguration command ". '"$conf{DHCPHOSTS_RECONFIGURE}"');
+  	return 0;
+   }
+  
   my $res = `$conf{DHCPHOSTS_RECONFIGURE}`;
 
   return 0;
