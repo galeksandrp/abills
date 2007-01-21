@@ -293,10 +293,10 @@ sub rt_billing {
   my ($RAD, $NAS)=@_;
   
   $self->query($db, "SELECT lupdated, UNIX_TIMESTAMP()-lupdated, 
-   if($RAD->{INBYTE} > acct_input_octets, $RAD->{INBYTE} - acct_input_octets, acct_input_octets),
-   if($RAD->{OUTBYTE} > acct_output_octets, $RAD->{OUTBYTE}  - acct_output_octets, acct_output_octets),
-   if($RAD->{INBYTE2}  > ex_input_octets, $RAD->{INBYTE2}  - ex_input_octets, acct_output_octets),
-   if($RAD->{OUTBYTE2} > ex_output_octets, $RAD->{OUTBYTE2} - ex_output_octets, acct_output_octets),
+   if($RAD->{INBYTE} >= acct_input_octets, $RAD->{INBYTE} - acct_input_octets, acct_input_octets),
+   if($RAD->{OUTBYTE} >= acct_output_octets, $RAD->{OUTBYTE}  - acct_output_octets, acct_output_octets),
+   if($RAD->{INBYTE2}  >= ex_input_octets, $RAD->{INBYTE2}  - ex_input_octets, ex_input_octets),
+   if($RAD->{OUTBYTE2} >= ex_output_octets, $RAD->{OUTBYTE2} - ex_output_octets, ex_output_octets),
    acct_session_id,
    sum
    FROM dv_calls 
