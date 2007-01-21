@@ -852,6 +852,7 @@ sub remaining_time {
        $i++;
 
        my $price         = 0;
+       my $traf_price    = 0;
        my $int_prepaid   = 0;
        my $int_duration  = 0;
        my $extended_time = 0;
@@ -908,10 +909,10 @@ sub remaining_time {
                 
                 return int($int_duration), \%ATTR 
                }
+              #Traffic tarif price
+              $traf_price = $periods_traf_tarif->{$int_id};
              }
 
-            #Traffic tarif price
-            my $price = $periods_traf_tarif->{$int_id};
             
             # 20.01.2007
             #$remaining_time += $int_duration;
@@ -922,10 +923,11 @@ sub remaining_time {
               $int_prepaid = $int_duration;		
              }
            }
+          # Check next traffic interval if the price is same add this interval to session timeout
           elsif(defined($periods_traf_tarif->{$int_id}) 
             && $periods_traf_tarif->{$int_id} > 0 
             && ! $CONF->{rt_billing} 
-            && (($int_end - $int_begin < 86400) && $periods_traf_tarif->{$int_id} != $price)
+            && (($int_end - $int_begin < 86400) && $periods_traf_tarif->{$int_id} != $traf_price)
             ) {
             print "Next tarif with traffic counts (Remaining: $remaining_time) Day: $tarif_day Int Begin: $int_begin End: $int_end ID: $int_id\n" if ($debug == 1);
             return int($remaining_time), \%ATTR;
