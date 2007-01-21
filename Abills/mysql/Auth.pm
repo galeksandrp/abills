@@ -846,6 +846,7 @@ sub ex_traffic_params {
  #get traffic limits
 # if ($traf_tarif > 0) {
    my $nets = 0;
+
    $self->query($db, "SELECT id, in_price, out_price, prepaid, in_speed, out_speed, LENGTH(nets) FROM trafic_tarifs
              WHERE interval_id='$self->{TT_INTERVAL}';");
 
@@ -870,9 +871,11 @@ sub ex_traffic_params {
    #$EX_PARAMS{speed}=int($speeds{0}) if (defined($speeds{0}));
 
 if ((defined($prepaids{0}) && $prepaids{0} > 0 ) || (defined($prepaids{1}) && $prepaids{1}>0 )) {
+  my $start_period = ($self->{ACCOUNT_ACTIVATE} ne '0000-00-00') ? "'$self->{ACCOUNT_ACTIVATE}'" : 'curdate()';
+  
   $self->query($db, "SELECT sum(sent+recv) / $CONF->{KBYTE_SIZE} / $CONF->{KBYTE_SIZE}, sum(sent2+recv2) / $CONF->{KBYTE_SIZE} / $CONF->{KBYTE_SIZE} FROM dv_log 
-     WHERE uid='$self->{UID}' and DATE_FORMAT(start, '%Y-%m')=DATE_FORMAT(curdate(), '%Y-%m')
-     GROUP BY DATE_FORMAT(start, '%Y-%m');");
+     WHERE uid='$self->{UID}' and DATE_FORMAT(start, '%Y-%m')>=DATE_FORMAT($start_period, '%Y-%m')
+     GROUP BY uid;");
 
   if ($self->{TOTAL} == 0) {
     $trafic_limits{0}=$prepaids{0} || 0;
@@ -881,18 +884,22 @@ if ((defined($prepaids{0}) && $prepaids{0} > 0 ) || (defined($prepaids{1}) && $p
   else {
     my $used = $self->{list}->[0];
 
+    #Check global traffic
     if ($used->[0] < $prepaids{0}) {
       $trafic_limits{0}=$prepaids{0} - $used->[0];
      }
     elsif($in_prices{0} + $out_prices{0} > 0) {
       $trafic_limits{0} = ($deposit / (($in_prices{0} + $out_prices{0}) / 2));
      }
-
-    if ($used->[1]  < $prepaids{1}) {
-      $trafic_limits{1}=$prepaids{1} - $used->[1];
-     }
-    elsif($in_prices{1} + $out_prices{1} > 0) {
-      $trafic_limits{1} = ($deposit / (($in_prices{1} + $out_prices{1}) / 2));
+    
+    # Check extended prepaid traffic
+    if ($prepaids{1}) {
+      if (($used->[1]  < $prepaids{1})) {
+        $trafic_limits{1}=$prepaids{1} - $used->[1];
+       }
+      elsif($in_prices{1} + $out_prices{1} > 0) {
+        $trafic_limits{1} = ($deposit / (($in_prices{1} + $out_prices{1}) / 2));
+       }
      }
    }
    
