@@ -411,8 +411,7 @@ foreach my $NET_ID (@networks) {
 
 
   $INFO->{NETWORK}='';
-  $Dhcphosts->{debug}=1;
-  $list = $Dhcphosts->hosts_list({ NETWORK => $NET_ID, STATUS => 0, PAGE_ROWS => 10000 });
+  $list = $Dhcphosts->hosts_list({ NETWORK => $NET_ID, STATUS => 0, PAGE_ROWS => 100000 });
   
   foreach my $line (@$list) {
     $INFO{HOSTS} .= $html->tpl_show(_include('dhcphosts_dhcp_conf_host', 'Dhcphosts',), { 

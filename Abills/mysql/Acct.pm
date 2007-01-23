@@ -352,22 +352,22 @@ sub rt_billing {
                                                 );
   
   
-  my $a = `date >> /tmp/echoccc;
-   echo "
-   UID: $self->{UID}, 
-   SUM: $self->{SUM} / $self->{CALLS_SUM}, 
-   BILL_ID: $self->{BILL_ID}, 
-   TP: $self->{TARIF_PLAN}, 
-   TIME_TARRIF: $self->{TIME_TARIF}, 
-   TRAFF_TARRIF: $self->{TRAF_TARIF},
-   TIME INTERVAL ID: $Billing->{TI_ID}
-   
-   DURATION: $RAD->{INTERIUM_ACCT_SESSION_TIME},
-   IN: $RAD->{INTERIUM_INBYTE},
-   OUT: $RAD->{INTERIUM_OUTBYTE},
-   IN2: $RAD->{INTERIUM_INBYTE1},
-   OUT2: $RAD->{INTERIUM_OUTBYTE1}
-   \n" >> /tmp/echoccc`;
+#  my $a = `date >> /tmp/echoccc;
+#   echo "
+#   UID: $self->{UID}, 
+#   SUM: $self->{SUM} / $self->{CALLS_SUM}, 
+#   BILL_ID: $self->{BILL_ID}, 
+#   TP: $self->{TARIF_PLAN}, 
+#   TIME_TARRIF: $self->{TIME_TARIF}, 
+#   TRAFF_TARRIF: $self->{TRAF_TARIF},
+#   TIME INTERVAL ID: $Billing->{TI_ID}
+#   
+#   DURATION: $RAD->{INTERIUM_ACCT_SESSION_TIME},
+#   IN: $RAD->{INTERIUM_INBYTE},
+#   OUT: $RAD->{INTERIUM_OUTBYTE},
+#   IN2: $RAD->{INTERIUM_INBYTE1},
+#   OUT2: $RAD->{INTERIUM_OUTBYTE1}
+#   \n" >> /tmp/echoccc`;
 
  
    $self->query($db, "SELECT traffic_type FROM dv_log_intervals 
