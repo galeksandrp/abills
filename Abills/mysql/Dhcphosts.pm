@@ -1,4 +1,6 @@
 package Dhcphosts;
+# Special thanx for dreamer_538
+#
 # DHCP server managment and user control
 #
 
@@ -93,8 +95,8 @@ sub network_add {
 
 
   $self->query($db,"INSERT INTO dhcphosts_networks 
-     (name,network,mask,coordinator,phone, dns, suffix) 
-     VALUES('$attr->{NAME}', INET_ATON('$attr->{NETWORK}'), INET_ATON('$attr->{MASK}'),
+     (name,network,mask, routers, coordinator,phone, dns, suffix) 
+     VALUES('$attr->{NAME}', INET_ATON('$attr->{NETWORK}'), INET_ATON('$attr->{MASK}'), INET_ATON('$attr->{ROUTERS}'),
        '$attr->{COORDINATOR}', '$attr->{PHONE}', '$attr->{DNS}', '$attr->{DOMAINNAME}')", 'do');
 
   return $self;
@@ -131,7 +133,8 @@ sub network_change {
    DOMAINNAME    => 'suffix',
    DNS           => 'dns',
    COORDINATOR   => 'coordinator',
-   PHONE         => 'phone'
+   PHONE         => 'phone',
+   ROUTERS       => 'routers'
 
    );
 
@@ -159,6 +162,7 @@ sub network_info {
    name,
    INET_NTOA(network),
    INET_NTOA(mask),
+   INET_NTOA(routers),
    INET_NTOA(block_network),
    INET_NTOA(block_mask),
    suffix,
@@ -179,6 +183,7 @@ sub network_info {
    $self->{NAME}, 
    $self->{NETWORK}, 
    $self->{MASK}, 
+   $self->{ROUTERS}, 
    $self->{BLOCK_NETWORK}, 
    $self->{BLOCK_MASK}, 
    $self->{DOMAINNAME}, 
@@ -186,6 +191,7 @@ sub network_info {
    $self->{COORDINATOR},
    $self->{PHONE}
    ) = @{ $self->{list}->[0] };
+    
     
   return $self;
 }

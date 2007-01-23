@@ -2620,6 +2620,29 @@ sub dv_wizard_user {
 }
 
 
+#**********************************************************
+#
+#**********************************************************
+sub dv_registration  {
+	my ($attr) = @_;
+	
+	if ($FORM{registration}) {
+		
+		
+	 }
+	else {
+		
+		$html->message('info', $_INFO, "$_REGISTRATION");
+
+		#$html->message('err', $_ERROR, "$_REGISTRATION");
+	 }
+	
+  $html->tpl_show(_include('dv_registration', 'Dv'), $Dv);
+
+#  print $html->tpl_show(templates('chg_tp'), $Dv);	
+
+	return 0;
+}
 
 1
 

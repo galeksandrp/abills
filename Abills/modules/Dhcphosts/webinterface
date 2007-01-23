@@ -1,5 +1,6 @@
 #!/usr/bin/perl
 # Dhcphosts
+# Special thanx for dreamer_538
 #require "Abills/nas.pl";
 
 use Dhcphosts;
@@ -40,6 +41,7 @@ sub dhcphosts_networks {
   elsif ($FORM{change}) {
 	  $FORM{MASK} = ip2int($FORM{MASK});
 	  $FORM{NETWORK} = ip2int($FORM{NETWORK});
+    $FORM{ROUTERS} = ip2int($FORM{ROUTERS});
 
 	  $Dhcphosts->network_change({ %FORM });
     
@@ -368,6 +370,7 @@ foreach my $NET_ID (@networks) {
 
   $INFO{DNS}=$Dhcphosts->{DNS};
   $INFO{DOMAINNAME}="\"$Dhcphosts->{DOMAINNAME}\"";    
+  $INFO{ROUTERS}=$Dhcphosts->{ROUTERS};    
   $INFO{DATETIME}="$DATE $TIME";
   
   $INFO{NETWORK_NAME}=$Dhcphosts->{NAME};
@@ -408,14 +411,14 @@ foreach my $NET_ID (@networks) {
 
 
   $INFO->{NETWORK}='';
-
-  $list = $Dhcphosts->hosts_list({ NETWORK => $NET_ID, STATUS => 0 });
+  $Dhcphosts->{debug}=1;
+  $list = $Dhcphosts->hosts_list({ NETWORK => $NET_ID, STATUS => 0, PAGE_ROWS => 10000 });
   
   foreach my $line (@$list) {
     $INFO{HOSTS} .= $html->tpl_show(_include('dhcphosts_dhcp_conf_host', 'Dhcphosts',), { 
     	  MAC      => $line->[6],
         IP       => $line->[2],
-        ROUTERS  => convert_ip("0.0.0.1", '', $Dhcphosts),
+        ROUTERS  => ($Dhcphosts->{ROUTERS} ne '0.0.0.0') ? $Dhcphosts->{ROUTERS} : convert_ip("0.0.0.1", '', $Dhcphosts),
         LOGIN    => $line->[1],
         HOSTNAME => $line->[3]
     	}, { notprint => 1 });

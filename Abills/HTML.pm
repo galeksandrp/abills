@@ -1343,7 +1343,7 @@ sub tpl_show {
   }
 
 
-  if (defined($attr->{notprint}) || $self->{NO_PRINT} == 1) {
+  if (defined($attr->{notprint}) || ($self->{NO_PRINT} && $self->{NO_PRINT} == 1)) {
   	$self->{OUTPUT}.=$tpl;
   	return $tpl;
    }

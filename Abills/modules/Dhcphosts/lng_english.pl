@@ -11,6 +11,7 @@ $_HOSTS_HOSTNAME="Host name";
 $_HOSTS_FORCE="Force";
 $_HOSTS_BLOCKTIME="Days to blocking";
 $_HOSTS_ROUTES="Routes";
+$_DEFAULT_ROUTER='Default router';
 
 $_HOSTS_SRC="Destination";
 $_HOSTS_MASK="Netmask of destination";

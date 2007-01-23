@@ -186,21 +186,18 @@ sub get_data {
   my %DATA;
   
   if(defined($attr->{default})) {
-  	 my $dhr = $attr->{default};
-  	 %DATA = %$dhr;
+  	 %DATA = %{ $attr->{default} };
    }
-
   
   while(my($k, $v)=each %$params) {
   	 next if (! $params->{$k} && defined($DATA{$k})) ;
   	 $DATA{$k}=$v;
-#    print "--$k, $v<br>\n";
+     #print "--$k, '$v'<br>\n";
    }
 
 #  while(my($k, $v)=each %DATA) {
 #  	print "$k, $v<br>\n";
 #  }
-
   
 	return %DATA;
 }
@@ -292,6 +289,7 @@ sub changes {
 
 
   while(my($k, $v)=each(%DATA)) {
+    $OLD_DATA->{$k} = '' if (! $OLD_DATA->{$k});
     if (defined($FIELDS->{$k}) && $OLD_DATA->{$k} ne $DATA{$k}){
         if ($k eq 'PASSWORD' || $k eq 'NAS_MNG_PASSWORD') {
           $CHANGES_LOG .= "$k *->*;";

@@ -163,7 +163,7 @@ sub add {
   my $self = shift;
   my ($attr) = @_;
   
-  my %DATA = $self->get_data($attr); 
+  my %DATA = $self->get_data($attr, { default => defaults() }); 
 
 
   if ($DATA{TP_ID} > 0) {

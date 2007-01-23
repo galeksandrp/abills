@@ -132,14 +132,35 @@ sub info {
 
 
 #**********************************************************
+#
+#**********************************************************
+sub defaults_pi {
+  my $self = shift;
+
+  %DATA = (
+   FIO            => '', 
+   PHONE          => 0, 
+   ADDRESS_STREET => 0, 
+   ADDRESS_BUILD  => 0, 
+   ADDRESS_FLAT   => 0, 
+   EMAIL          => '', 
+   COMMENTS       => '',
+   CONTRACT_ID    => '',
+  );
+ 
+  $self = \%DATA;
+  return $self;
+}
+
+
+#**********************************************************
 # pi_add()
 #**********************************************************
 sub pi_add {
   my $self = shift;
   my ($attr) = @_;
   
-  defaults();  
-  %DATA = $self->get_data($attr, { default => $self }); 
+  %DATA = $self->get_data($attr, { default => defaults_pi()   }); 
   
   if($DATA{EMAIL} ne '') {
     if ($DATA{EMAIL} !~ /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/) {
@@ -604,12 +625,9 @@ sub add {
   my $self = shift;
   my ($attr) = @_;
   
+  my %DATA = $self->get_data($attr, { default => defaults() }); 
 
-  defaults();  
-  %DATA = $self->get_data($attr, { default => $self }); 
-
-
-  if ($DATA{LOGIN} eq '') {
+  if (! defined($DATA{LOGIN})) {
      $self->{errno} = 8;
      $self->{errstr} = 'ERROR_ENTER_NAME';
      return $self;
@@ -633,6 +651,7 @@ sub add {
       return $self;
      }
    }
+  
   
   $DATA{DISABLE} = int($DATA{DISABLE});
   $self->query($db,  "INSERT INTO users (id, activate, expire, credit, reduction, 

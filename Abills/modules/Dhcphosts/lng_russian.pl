@@ -11,6 +11,7 @@ $_HOSTS_HOSTNAME="Имя хоста";
 $_HOSTS_FORCE="Принудительно";
 $_HOSTS_BLOCKTIME="Дней до блокировки";
 $_HOSTS_ROUTES="Управление маршрутами";
+$_DEFAULT_ROUTER='Роутер по умолчанию';
 
 $_HOSTS_SRC="Назначение";
 $_HOSTS_MASK="Маска";
