@@ -73,29 +73,34 @@ if ($RAD->{USER_NAME} =~ /(\d+):(\S+)/) {
 
 #Start
 if ($acct_status_type == 1) { 
-  #Get TP_ID
-  $self->query($db, "SELECT dv.tp_id FROM (users u, dv_main dv)
-    WHERE u.uid=dv.uid and u.id='$RAD->{USER_NAME}';");
-  ($self->{TP_ID})= @{ $self->{list}->[0] };
 
-  # 
-  my $sql = "INSERT INTO dv_calls
-   (status, user_name, started, lupdated, nas_ip_address, nas_port_id, acct_session_id, acct_session_time,
-    acct_input_octets, acct_output_octets, framed_ip_address, CID, CONNECT_INFO, nas_id, tp_id)
-    values ('$acct_status_type', 
-    \"$RAD->{USER_NAME}\", 
-    $SESSION_START, 
-    UNIX_TIMESTAMP(), 
-    INET_ATON('$RAD->{NAS_IP_ADDRESS}'),
-    '$RAD->{NAS_PORT}', 
-    \"$RAD->{ACCT_SESSION_ID}\", 0, 0, 0, 
+  $self->query($db, "SELECT count(*) FROM dv_calls 
+    WHERE user_name='$RAD->{USER_NAME}' and acct_session_id='$RAD->{ACCT_SESSION_ID}';");
+
+  if ($self->{list}->[0] < 1) {
+   #Get TP_ID
+   $self->query($db, "SELECT dv.tp_id FROM (users u, dv_main dv)
+     WHERE u.uid=dv.uid and u.id='$RAD->{USER_NAME}';");
+   ($self->{TP_ID})= @{ $self->{list}->[0] };
+
+   # 
+   my $sql = "INSERT INTO dv_calls
+    (status, user_name, started, lupdated, nas_ip_address, nas_port_id, acct_session_id, acct_session_time,
+     acct_input_octets, acct_output_octets, framed_ip_address, CID, CONNECT_INFO, nas_id, tp_id)
+     values ('$acct_status_type', 
+     \"$RAD->{USER_NAME}\", 
+     $SESSION_START, 
+     UNIX_TIMESTAMP(), 
+     INET_ATON('$RAD->{NAS_IP_ADDRESS}'),
+     '$RAD->{NAS_PORT}', 
+     \"$RAD->{ACCT_SESSION_ID}\", 0, 0, 0, 
      INET_ATON('$RAD->{FRAMED_IP_ADDRESS}'), 
-    '$RAD->{CALLING_STATION_ID}', 
-    '$RAD->{CONNECT_INFO}', 
-    '$NAS->{NAS_ID}',
-    '$self->{TP_ID}');";
-
-  $self->query($db, "$sql", 'do');
+     '$RAD->{CALLING_STATION_ID}', 
+     '$RAD->{CONNECT_INFO}', 
+     '$NAS->{NAS_ID}',
+     '$self->{TP_ID}');";
+   $self->query($db, "$sql", 'do');
+  }
  }
 # Stop status
 elsif ($acct_status_type == 2) {
