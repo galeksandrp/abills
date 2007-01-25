@@ -74,10 +74,12 @@ if ($RAD->{USER_NAME} =~ /(\d+):(\S+)/) {
 #Start
 if ($acct_status_type == 1) { 
 
-  $self->query($db, "SELECT count(*) FROM dv_calls 
+  $self->query($db, "SELECT count(user_name) FROM dv_calls 
     WHERE user_name='$RAD->{USER_NAME}' and acct_session_id='$RAD->{ACCT_SESSION_ID}';");
 
-  if ($self->{list}->[0] < 1) {
+  my $aaa = `echo "$self->{list}->[0]---- " > /tmp/12121`;
+
+  if ($self->{list}->[0]->[0] < 1) {
    #Get TP_ID
    $self->query($db, "SELECT dv.tp_id FROM (users u, dv_main dv)
      WHERE u.uid=dv.uid and u.id='$RAD->{USER_NAME}';");

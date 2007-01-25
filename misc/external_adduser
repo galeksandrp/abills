@@ -60,8 +60,8 @@ sub maildrop_dir {
 
  my $DOMAIN_NAME = $args->{DOMAINNAME} || '';
 #Make maildrop dir
- $cmd = "/usr/bin/su -u vmail -fm vmail -c 'maildirmake /var/spool/virtual/$USER_NAME\@$DOMAIN_NAME'; 
-  /usr/bin/su -u vmail -fm vmail -c 'maildirmake -f Spam /var/spool/virtual/$USER_NAME\@$DOMAIN_NAME';";
+ $cmd = "/usr/bin/su -u vmail -fm vmail -c 'maildirmake /var/spool/virtual/$DOMAIN_NAME/$USER_NAME'; 
+  /usr/bin/su -u vmail -fm vmail -c 'maildirmake -f Spam /var/spool/virtual/$DOMAIN_NAME/$USER_NAME';";
 
  print $cmd if ($debug > 0);
  my $result = `$cmd`;
