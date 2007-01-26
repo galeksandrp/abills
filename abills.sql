@@ -428,6 +428,7 @@ CREATE TABLE `msgs_messages` (
   `state` tinyint(2) unsigned default '0',
   `aid` smallint(6) unsigned NOT NULL default '0',
   `subject` varchar(40) NOT NULL default '',
+  `gid` smallint(4) unsigned NOT NULL default '0',
   PRIMARY KEY  (`id`)
 );
 
