@@ -309,7 +309,7 @@ if ($ACTION eq 'up') {
             push @FW_ACTIONS, "$IPFW add $fw_num_in pipe $pipe_num_in ip from any to table\\($table_number\\)  via $INTERFACE in";
            }
           else {
-            push @FW_ACTIONS, "$IPFW add $fw_num_in pipe $pipe_num_in ip from $nets{$traf_type} to any via $INTERFACE in";
+            push @FW_ACTIONS, "$IPFW add $fw_num_in pipe $pipe_num_in ip from any to $nets{$traf_type} via $INTERFACE in";
            }
             push @FW_ACTIONS, "$IPFW pipe $pipe_num_in config bw ". $speed_in ."Kbit/s queue 10Kbytes";
          }
@@ -324,6 +324,7 @@ if ($ACTION eq 'up') {
           push @FW_ACTIONS, "$IPFW pipe $pipe_num_out config bw ". $speed_out ."Kbit/s queue 10Kbytes";
          }
         else {
+          #User ipfw table if more then 5 networks
           if ($#nets_arr > 5) {
              my $table_number = $user->{TI_ID};
 
