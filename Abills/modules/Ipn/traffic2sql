@@ -541,7 +541,7 @@ open( LOG, $log ) || die "Can't open log file '$log' $!\n";
 
 while( <LOG> ) {
   #Ipcad log analize
-  if (/ (\d+)\.(\d+)\.(\d+)\.(\d+)\s+(\d+)\.(\d+)\.(\d+)\.(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s(\S+)/) {
+  if (/ (\d+)\.(\d+)\.(\d+)\.(\d+)[ |\t]+(\d+)\.(\d+)\.(\d+)\.(\d+)[ |\t]+(\d+)[ |\t]+(\d+)[ |\t]+(\d+)[ |\t]+(\d+)[ |\t]+(\d+)[ |\t]+(\S+)/) {
   	#print "-$1.$2.$3.$4 $5.$6.$7.$8 Pkg: $9 Byte: $10 Port: $11 / $12 Proto: $13 > $14\n";
 		( $DATA{SRC_IP}, $DATA{SRC_PORT} ) = ( 16777216 * $1 + 65536 * $2 + 256 * $3 + $4, $11 );
 		( $DATA{DST_IP}, $DATA{DST_PORT} ) = ( 16777216 * $5 + 65536 * $6 + 256 * $7 + $8, $12 ); 
@@ -553,7 +553,6 @@ while( <LOG> ) {
 		if ($14) {
 			$DATA{IF_NAME}=$14;
 		 }
-		
     $Ipn->traffic_agregate_users({ %DATA });
    }
   # flow-capture
