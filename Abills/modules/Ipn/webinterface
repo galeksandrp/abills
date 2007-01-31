@@ -191,10 +191,10 @@ else {
 $table = $html->table( { width => '100%',
 	    cols_align => ['right', 'right', 'right', 'right', 'right'],
 	          rows => [ [ "$_USERS: <b>". int2byte($total_tunnel) ."</b>", 
-	                      "IN: <b>". int2byte($totals{TRAFFIC_IN}) ."</b>",
-                        "OUT: <b>".   int2byte($totals{TRAFFIC_OUT}). "</b>", 
+	                      "IN: <b>".      int2byte($totals{TRAFFIC_IN}) ."</b>",
+                        "OUT: <b>".     int2byte($totals{TRAFFIC_OUT}). "</b>", 
                         "TRAFFIC: <b>". int2byte($totals{TRAFFIC_IN}+$totals{TRAFFIC_OUT}) ."</b>", 
-                        "SUM: <b>".   $totals{SUM} ."</b>"
+                        "SUM: <b>".     $totals{SUM} ."</b>"
                         ] ],
                         rowcolor => $_COLORS[2]
                                } );

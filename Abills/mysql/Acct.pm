@@ -82,6 +82,11 @@ if ($acct_status_type == 1) {
     $self->query($db, "SELECT dv.tp_id FROM (users u, dv_main dv)
      WHERE u.uid=dv.uid and u.id='$RAD->{USER_NAME}';");
     ($self->{TP_ID})= @{ $self->{list}->[0] };
+    
+    #Get connection speed 
+    if ($RAD->{X_ASCEND_DATA_RATE} && $RAD->{X_ASCEND_XMIT_RATE}) {
+      $RAD->{CONNECT_INFO}="$RAD->{X_ASCEND_DATA_RATE} / $RAD->{X_ASCEND_XMIT_RATE}";
+     }
 
     # 
     my $sql = "INSERT INTO dv_calls
@@ -137,13 +142,13 @@ elsif ($acct_status_type == 2) {
     my %EXT_ATTR = ();
     
     #Get connected TP
-    $self->query($db, "SELECT tp_id FROM dv_calls
+    $self->query($db, "SELECT tp_id, CONNECT_INFO FROM dv_calls
       WHERE
       acct_session_id=\"$RAD->{ACCT_SESSION_ID}\" and 
       user_name=\"$RAD->{USER_NAME}\" and
       nas_id='$NAS->{NAS_ID}';");
 
-    ($EXT_ATTR{TP_ID}) = @{ $self->{list}->[0] } if ($self->{TOTAL} > 0);
+    ($EXT_ATTR{TP_ID}, $EXT_ATTR{CONNECT_INFO}) = @{ $self->{list}->[0] } if ($self->{TOTAL} > 0);
   
     ($self->{UID}, 
      $self->{SUM}, 

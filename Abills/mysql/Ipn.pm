@@ -96,7 +96,8 @@ sub user_ips {
       dv.tp_id,
       if(u.company_id > 0, cb.id, b.id),
       if(c.name IS NULL, b.deposit, cb.deposit)+u.credit,
-      tp.payment_type
+      tp.payment_type,
+      UNIX_TIMESTAMP() - calls.lupdated
     FROM (dv_calls calls, users u)
       LEFT JOIN companies c ON (u.company_id=c.id)
       LEFT JOIN bills b ON (u.bill_id=b.id)
@@ -114,7 +115,8 @@ sub user_ips {
     calls.tp_id,
     NUll,
     NULL,
-    1
+    1,
+    UNIX_TIMESTAMP() - calls.lupdated
     FROM (dv_calls calls, users u)
    WHERE u.id=calls.user_name
    and calls.nas_id='$DATA->{NAS_ID}';";
@@ -126,27 +128,30 @@ sub user_ips {
   my $list = $self->{list};
   my %session_ids = ();
   my %users_info  = ();
+  my %interim_times  = ();
   
   $ips{0}='0';
-  
-  
   $self->{0}{IN}=0;
  	$self->{0}{OUT}=0;
-  #$self->{INTERIM}{0}{IN}=0;
- 	#$self->{INTERIM}{0}{OUT}=0;
-
-
 
   foreach my $line (@$list) {
+     #UID
   	 $ips{$line->[1]}         = $line->[0];
-
+     
+     #IN / OUT octets
   	 $self->{$line->[1]}{IN}  = $line->[4];
   	 $self->{$line->[1]}{OUT} = $line->[5];
      
-  	 $users_info{TPS}{$line->[0]} = $line->[6];
-   	 $users_info{LOGINS}{$line->[0]} = $line->[2];
-     $session_ids{$line->[1]} = $line->[3];
      
+  	 $users_info{TPS}{$line->[0]} = $line->[6];
+   	 #User login
+   	 $users_info{LOGINS}{$line->[0]} = $line->[2];
+     #Session ID
+     $session_ids{$line->[1]} = $line->[3];
+     $interim_times{$line->[3]}=$line->[10];
+     #$self->{INTERIM}{$line->[3]}{TIME}=$line->[10];
+
+    
      #If post paid set deposit to 0
      if (defined($line->[9]) && $line->[9] == 1) {
   	   $users_info{DEPOSIT}{$line->[0]} = 0;
@@ -156,17 +161,15 @@ sub user_ips {
   	  }
 
  	   $users_info{BILL_ID}{$line->[0]} = $line->[7];  	 
-
-   	 #$self->{INTERIM}{$line->[1]}{IN}  = 0;
-  	 #$self->{INTERIM}{$line->[1]}{OUT} = 0;
-  	 	
+ 	 	
   	 push @clients_lst, $line->[1];
    }
  
-  $self->{USERS_IPS}   = \%ips;
-  $self->{USERS_INFO}  = \%users_info;
-  $self->{SESSIONS_ID} = \%session_ids;
-
+  $self->{USERS_IPS}     = \%ips;
+  $self->{USERS_INFO}    = \%users_info;
+  $self->{SESSIONS_ID}   = \%session_ids;
+  $self->{INTERIM_TIME} = \%interim_times;
+  
   return $self;
 }
 
@@ -219,32 +222,34 @@ sub traffic_agregate_clean {
 
 
 #**********************************************************
-# traffic_add_log
+# traffic_agregate_users
+# Get Data and agregate it by users
 #**********************************************************
 sub traffic_agregate_users {
   my $self = shift;
   my ($DATA) = @_;
 
-  my $ips=$self->{USERS_IPS};
+  my $users_ips=$self->{USERS_IPS};
   my $y = 0;
  
-  if (defined($ips->{$DATA->{SRC_IP}})) {
- 	  push @{ $self->{AGREGATE_USERS}{$ips->{$DATA->{SRC_IP}}}{OUT} }, { %$DATA };
+  if (defined($users_ips->{$DATA->{SRC_IP}})) {
+ 	  push @{ $self->{AGREGATE_USERS}{$users_ips->{$DATA->{SRC_IP}}}{OUT} }, { %$DATA };
  		$y++;
    }
 
-  if (defined($ips->{$DATA->{DST_IP}})) {
-    push @{ $self->{AGREGATE_USERS}{$ips->{$DATA->{DST_IP}}}{IN} }, { %$DATA };
+  if (defined($users_ips->{$DATA->{DST_IP}})) {
+    push @{ $self->{AGREGATE_USERS}{$users_ips->{$DATA->{DST_IP}}}{IN} }, { %$DATA };
 	  $y++;
    }
+  #Unknow Ips
   elsif ($y < 1) {
   	$DATA->{UID}=0;
   	$self->{INTERIM}{$DATA->{UID}}{OUT}+=$DATA->{SIZE};
-    push @{$self->{IN}}, "$DATA->{SRC_IP}/$DATA->{DST_IP}/$DATA->{SIZE}";	
+    push @{ $self->{IN} }, "$DATA->{SRC_IP}/$DATA->{DST_IP}/$DATA->{SIZE}";	
    }
   
   $self->{TRAFFIC_ROWS}++;
-  
+
   return $self;
 }
 
@@ -264,12 +269,15 @@ sub traffic_agregate_nets {
   Dv->import();
   my $Dv = Dv->new($db, undef, $CONF);
 
+  
 
 
-  while(my ($uid, $data_hash)= each (%$AGREGATE_USERS)) {
+  #while(my ($uid, $data_hash)= each (%$AGREGATE_USERS)) {
+  #Get user and session TP
+  while (my ($uid, $session_tp) = each ( %{ $user_info->{TPS} } )) {
 
-    my $user = $Dv->info($uid);
     my $TP_ID = 0;
+    my $user = $Dv->info($uid);
 
     if ($Dv->{TOTAL} > 0) {
     	$TP_ID = $user->{TP_ID} || 0;
@@ -283,8 +291,6 @@ sub traffic_agregate_nets {
        $user->{INTERVAL_TIME_TARIF},
        $user->{INTERVAL_TRAF_TARIF}) = $Billing->time_intervals($TP_ID);
 
-
-
       ($remaining_time, $ret_attr) = $Billing->remaining_time(0, {
           TIME_INTERVALS      => $user->{TIME_INTERVALS},
           INTERVAL_TIME_TARIF => $user->{INTERVAL_TIME_TARIF},
@@ -296,19 +302,34 @@ sub traffic_agregate_nets {
           REDUCTION           => $user->{REDUCTION},
           POSTPAID            => 1 
          });
-  
-  
-       $tp_interval{$TP_ID} = (defined($ret_attr->{TT}) && $ret_attr->{TT} > 0) ? $ret_attr->{TT} :  0;
-      }
 
-  #$tp_interval{$TP_ID}=37;
+       #$tp_interval{$TP_ID} = (defined($ret_attr->{TT}) && $ret_attr->{TT} > 0) ? $ret_attr->{TT} :  0;
+       
+       $tp_interval{$TP_ID} = ($ret_attr->{FIRST_INTERVAL}) ? $ret_attr->{FIRST_INTERVAL} :  0;
+       $intervals{$tp_interval{$TP_ID}}{TIME_TARIFF} = ($ret_attr->{TIME_PRICE}) ? $ret_attr->{TIME_PRICE} :  0;
+     }
+
+  #$self->{debug}=1;
   print "\nUID: $uid\n####TP $TP_ID Interval: $tp_interval{$TP_ID}  ####\n" if ($self->{debug}); 
-    
-    if (! defined(  $intervals{$tp_interval{$TP_ID}} )) {
+
+
+    if (! defined(  $intervals{$tp_interval{$TP_ID}}{ZONES} )) {
     	$self->get_zone({ TP_INTERVAL => $tp_interval{$TP_ID} });
      }
 
+   my $data_hash;
+   
+   #Get agrigation data
+   if (defined($AGREGATE_USERS->{$uid})) {
+     $data_hash = $AGREGATE_USERS->{$uid};
+    }
+   # Go to next user
+   else {
+   	 next;
+    }
+
    my %zones;
+
    @zoneids = @{ $intervals{$tp_interval{$TP_ID}}{ZONEIDS} };
    %zones   = %{ $intervals{$tp_interval{$TP_ID}}{ZONES} };
     
@@ -391,7 +412,7 @@ sub get_zone {
  
   require Tariffs;
   Tariffs->import();
-  my $tariffs = Tariffs->new($db, $admin);
+  my $tariffs = Tariffs->new($db, $admin, $CONF);
   my $list = $tariffs->tt_list({ TI_ID => $tariff });
 
   foreach my $line (@$list) {
@@ -445,7 +466,6 @@ sub get_zone {
 
    @{$intervals{$tariff}{ZONEIDS}}=@zoneids;
    %{$intervals{$tariff}{ZONES}}=%zones;
-
 
 print " Tariff Interval: $tariff\n".
    " Zone Ids:". @{$intervals{$tariff}{ZONEIDS}}."\n".

@@ -176,13 +176,13 @@ sub ti_info {
      return $self;
    }
 
-  my $ar = $self->{list}->[0];
+
   $self->{TI_ID}=$ti_id;
   ($self->{TI_DAY}, 
    $self->{TI_BEGIN}, 
    $self->{TI_END}, 
    $self->{TI_TARIF}
-  ) = @$ar;
+  ) = @{ $self->{list}->[0] };
 
   return $self;
 }
@@ -534,14 +534,12 @@ sub  tt_info {
 	my ($attr) = @_;
 	
 	
-	  $self->query($db, "SELECT id, interval_id, in_price, out_price, prepaid, in_speed, out_speed, 
+  $self->query($db, "SELECT id, interval_id, in_price, out_price, prepaid, in_speed, out_speed, 
 	     descr, nets
      FROM trafic_tarifs 
      WHERE 
      interval_id='$attr->{TI_ID}'
      and id='$attr->{TT_ID}';");
-
-  my $ar = $self->{list}->[0];
 
   ($self->{TT_ID},
    $self->{Ti_ID},
@@ -552,7 +550,7 @@ sub  tt_info {
    $self->{TT_SPEED_OUT},
    $self->{TT_DESCRIBE},
    $self->{TT_NETS}
-  ) = @$ar;
+  ) = @{ $self->{list}->[0] };
 
 	
 	return $self;

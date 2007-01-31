@@ -874,7 +874,6 @@ sub remaining_time {
           $int_duration = $int_end-$session_start;
           
           print " <<!=\n" if ($debug == 1);    
-          #if ($attr->{FIRST_INTERVAL});
 
           # if defined prev_tarif
           if ($prev_tarif ne '') {
@@ -892,6 +891,11 @@ sub remaining_time {
            }
           else {
              $price = $periods_time_tarif->{$int_id};
+           }
+
+          if (! $ATTR{FIRST_INTERVAL}) {
+          	$ATTR{FIRST_INTERVAL} = $int_id;
+          	$ATTR{TIME_PRICE} = $price;
            }
           
           

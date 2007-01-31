@@ -16,5 +16,9 @@ $web_interface    = 1;
                    );
 
 
+%PERIODIC = (
+              daily   => [ 'dhcphosts_periodic' ]
+             );
+
 
 1
