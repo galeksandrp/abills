@@ -77,6 +77,8 @@ if (-f $log) {
   get_collector_data($log);
   processing();
   #my $status = unlink("$log");
+  
+  exit;
 }
 
 # GEt information from flowtools
@@ -243,6 +245,23 @@ if ($Ipn->{INTERIM}{$ip}) {
 
    }
  }
+elsif($total_user_sum > 0 && $uid > 0) {
+	
+  $Ipn->traffic_add_user( {
+   	        START					 => $attr->{START} || undef,
+   	        STOP					 => $attr->{STOP} || undef,
+   	        UID            => "$uid",
+            TARFFIC_CLASS  => 0,
+            INBYTE         => "0",
+            OUTBYTE        => "0",
+            NAS_ID         => $NAS_ID,
+            IP						 => $ip,
+            INTERVAL       => $user_tp_interval,
+            SESSION_ID     => $session_id,    
+            SUM						 => $total_user_sum
+   	      } );
+	
+}
 
   #Put user date to database  
   if ($uid > 0) {
