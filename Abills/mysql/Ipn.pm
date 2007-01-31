@@ -537,7 +537,10 @@ sub traffic_add_user {
   my $start = (! $DATA->{START}) ? 'now()':  "'$DATA->{START}'";
   my $stop  = (! $DATA->{STOP}) ?  0 : "'$DATA->{STOP}'";
  
-  $self->query($db, "insert into ipn_log (
+ 
+  if ($DATA->{INBYTE} + $DATA->{OUTBYTE} > 0) {
+
+   $self->query($db, "insert into ipn_log (
          uid,
          start,
          stop,
@@ -563,6 +566,8 @@ sub traffic_add_user {
        '$DATA->{SUM}',
        '$DATA->{SESSION_ID}'
       );", 'do');
+   }
+
 
   if ($self->{USERS_INFO}->{DEPOSIT}->{$DATA->{UID}}) {
   	#Take money from bill

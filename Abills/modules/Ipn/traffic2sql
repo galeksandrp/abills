@@ -246,14 +246,14 @@ if ($Ipn->{INTERIM}{$ip}) {
    }
  }
 elsif($total_user_sum > 0 && $uid > 0) {
-	
+	print "aaaa0-000000000000000\n";
   $Ipn->traffic_add_user( {
    	        START					 => $attr->{START} || undef,
    	        STOP					 => $attr->{STOP} || undef,
    	        UID            => "$uid",
             TARFFIC_CLASS  => 0,
-            INBYTE         => "0",
-            OUTBYTE        => "0",
+            INBYTE         => 0,
+            OUTBYTE        => 0,
             NAS_ID         => $NAS_ID,
             IP						 => $ip,
             INTERVAL       => $user_tp_interval,
@@ -399,7 +399,7 @@ foreach my $ip ( sort keys %$ips_interim) {
   if ( $intervals->{$user_tp_interval}->{TIME_TARIFF} ) {
     my $time_tariff = $intervals->{$user_tp_interval}->{TIME_TARIFF};
     $total_user_sum = ($time_tariff > 0) ? $interium_time / 60 / 60 * $time_tariff  : 0;
-    $extended .= "Time: Tarif: $time_tariff Sum: $total_user_sum\n";
+    $extended .= "  Time| Tarif: $time_tariff Sum: $total_user_sum\n";
    }
   
   #parse  traffic stats
