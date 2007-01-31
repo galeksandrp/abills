@@ -1407,6 +1407,7 @@ sub ipn_user_activate {
 
 
   my $table;
+  my $online_session = '';
   
   my $list = $sessions->online( );
   
@@ -1450,6 +1451,8 @@ sub ipn_user_activate {
        $html->button("$_HANGUP", "index=$index&UID=$LIST_PARAMS{UID}&LOGOUT=1&SESSION_ID=$line->[21]")
        )  if ($line->[11] == $LIST_PARAMS{UID} );
     }
+
+    $online_session = $table->show();	
    } 
   else {
     $ACTION{ACTIVE}="$_ACTIVATE";    
@@ -1458,7 +1461,7 @@ sub ipn_user_activate {
 
   $HIDDEN{sid}=$html->{SID} if ($html->{SID});
 
-  print $html->form_main({ CONTENT => "IP: $ip $IP_INPUT (". $nas_id .") ", 
+print $html->form_main({ CONTENT => "IP: $ip $IP_INPUT (". $nas_id .") ", 
                      HIDDEN  => { index   => "$index",
                      	            UID     => $LIST_PARAMS{UID},
                      	            %HIDDEN
@@ -1466,8 +1469,8 @@ sub ipn_user_activate {
 	                   SUBMIT  => { %ACTION } 
 	                 });
 
+print $online_session;
 
-print $table->show();	
 
 }
 
