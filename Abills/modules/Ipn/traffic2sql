@@ -76,7 +76,7 @@ $Ipn->user_ips({ NAS_ID => $NAS_ID });
 if (-f $log) {
   get_collector_data($log);
   processing();
-  #my $status = unlink("$log");
+  my $status = unlink("$log");
 }
 
 # GEt information from flowtools
@@ -124,7 +124,7 @@ my $OUT_ARRAY = $Ipn->{OUT};
 my $unknow_ip = '';
 foreach my $line (@$IN_ARRAY) {
 	my($from, $to, $size)=split(/\//, $line, 3);
-	#$unknow_ip .= sprintf("%15s -> %15s %10s\n", int2ip($from), int2ip($to), $size); 
+	$unknow_ip .= sprintf("%15s -> %15s %10s\n", int2ip($from), int2ip($to), $size); 
 }
 
 
