@@ -130,7 +130,8 @@ sub online {
    'u.credit',
    'if(date_format(c.started, "%Y-%m-%d")=curdate(), date_format(c.started, "%H:%i:%s"), c.started)',
    'c.nas_id',
-   'UNIX_TIMESTAMP()-c.lupdated' );
+   'UNIX_TIMESTAMP()-c.lupdated',
+   'c.acct_session_time' );
 
 
   my @RES_FIELDS = (0, 1, 2, 3, 4, 5, 6, 7, 8);
@@ -275,7 +276,7 @@ sub online_del {
     my $NAS_ID  = (defined($attr->{NAS_ID})) ? $attr->{NAS_ID} : '';
     my $NAS_PORT        = (defined($attr->{NAS_PORT})) ? $attr->{NAS_PORT} : '';
     my $ACCT_SESSION_ID = (defined($attr->{ACCT_SESSION_ID})) ? $attr->{ACCT_SESSION_ID} : '';
-    $WHERE = "nas_id=INET_ATON('$NAS_ID')
+    $WHERE = "nas_id='$NAS_ID'
             and nas_port_id='$NAS_PORT' 
             and acct_session_id='$ACCT_SESSION_ID'";
    }
@@ -310,7 +311,7 @@ sub online_info {
    undef @WHERE_RULES; 
 
    if($attr->{NAS_ID}) {
-   	  push @WHERE_RULES, "nas_id=INET_ATON('$attr->{NAS_ID}')";
+   	  push @WHERE_RULES, "nas_id='$attr->{NAS_ID}'";
     }
    elsif (defined($attr->{NAS_IP_ADDRESS})) {
       push @WHERE_RULES, "nas_ip_address=INET_ATON('$attr->{NAS_IP_ADDRESS}')";
@@ -339,7 +340,8 @@ sub online_info {
       CID,
       CONNECT_INFO,
       acct_session_id,
-      nas_id
+      nas_id,
+      started
       FROM dv_calls 
    $WHERE 
    ");
@@ -366,7 +368,8 @@ sub online_info {
    $self->{CALLING_STATION_ID},
    $self->{CONNECT_INFO},
    $self->{ACCT_SESSION_ID},
-   $self->{NAS_ID}
+   $self->{NAS_ID},
+   $self->{ACCT_SESSION_STARTED}
     )= @{ $self->{list}->[0] };
 
 

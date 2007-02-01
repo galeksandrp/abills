@@ -187,7 +187,7 @@ my %shedule_type = ('tp'      => $_VARIANT,
 #Change tp
  require Shedule;
  Shedule->import();
- my $shedule = Shedule->new($db, $admin);
+ my $shedule = Shedule->new($db, $admin, \%conf);
 
  require Fees;
  Fees->import();
@@ -196,7 +196,8 @@ my %shedule_type = ('tp'      => $_VARIANT,
 
  my $list = $shedule->list({ Y => $Y,
  	                           M => $M,
- 	                           D => $D });
+ 	                           D => $D, 
+ 	                           PAGE_ROWS => 100000 });
 
  $ADMIN_REPORT{SHEDULE}=sprintf("%-14s| %-12s| %-8s| %-14s|\n", "$_LOGIN", "$_MODULES", "$_TYPE", "$_VALUE");
  $ADMIN_REPORT{SHEDULE}.= "---------------------------------------------------------\n";

@@ -99,7 +99,7 @@ sub check_lines {
 	Billing->import();
 
 	#$LIST_PARAMS{ROWS}=2;
-	$sessions->online( { %LIST_PARAMS } );	
+	$sessions->online( { %LIST_PARAMS, ALL => 1, FIELDS => [0, 1, 2, 3, 4, 5, 6, 7, 8, 25] } );	
 	
   print "==> check_lines\n" if ($debug > 1);
 	
@@ -108,11 +108,16 @@ sub check_lines {
   my $nas_list = $nas->list({ %LIST_PARAMS });
   my %NAS  = ();
 
+  require Acct;
+  Acct->import();
+  my $Acct = Acct->new($db, \%conf);
+
 
   foreach my $nas_row (@$nas_list) {
 
     my $l = $online->{$nas_row->[0]};
     print "NAS IP: $nas_row->[3]\n NAS_TYPE: $nas_row->[4]\n STATUS: $nas_row->[6]\n Alive: $nas_row->[7]/\n " if ($debug > 0);
+    $NAS{NAS_ID}    = $nas_row->[0];
     $NAS{NAS_IP}    = $nas_row->[3];
     $NAS{NAS_TYPE}  = $nas_row->[4];
     $NAS{NAS_ALIVE} = $nas_row->[7] || 0;
@@ -127,7 +132,7 @@ sub check_lines {
 	    my $acct_input_octets_ext   = $line->[7];
 	    my $acct_output_octets_ext  = $line->[8];
 	    my $nas_port_id             = $line->[2];
-	    my $acct_session_id         = $line->[21];
+	    my $acct_session_id         = $line->[22];
 
       if ($acct_input_octets_ext > $exppp_hanguplimit || $acct_output_octets_ext > $exppp_hanguplimit) {
         my $ret = hangup(\%NAS, "$nas_port_id", "$line->[0]", { ACCT_SESSION_ID   => "$acct_session_id",
@@ -142,16 +147,54 @@ sub check_lines {
 
 
       if ( $NAS{NAS_ALIVE} > 0 
-           && ( $line->[16] > $NAS{NAS_ALIVE} * $error_alive_count )) {
-         print "Error: Lost Alive / Login: $line->[0], Last Alive: $line->[16], Session-ID: $acct_session_id\n"; # if ( $debug == 1 );
-         $sessions->zap($nas_row->[0], $line->[2], $acct_session_id);
+           && ( $line->[17] > $NAS{NAS_ALIVE} * $error_alive_count )) {
+
+         if($line->[17] > ($NAS{NAS_ALIVE} * $error_alive_count * 2) ) {
+           
+           my $ACCT_INFO = $sessions->online_info({ NAS_ID          => $nas_row->[0],
+                                                    NAS_PORT        => $line->[2],
+                                                    ACCT_SESSION_ID => $acct_session_id
+                                                  });
+
+           $ACCT_INFO->{INBYTE}            = $acct_input_octets;
+           $ACCT_INFO->{OUTBYTE}           = $acct_output_octets;
+           $ACCT_INFO->{INBYTE2}           = $acct_input_octets_ext;
+           $ACCT_INFO->{OUTBYTE2}          = $acct_output_octets_ext;
+           $ACCT_INFO->{ACCT_STATUS_TYPE}  = 'Stop';
+           $ACCT_INFO->{ACCT_SESSION_TIME} = $line->[9];
+           $ACCT_INFO->{ACCT_TERMINATE_CAUSE} = 15;
+
+           my $r = $Acct->accounting($ACCT_INFO, \%NAS);
+           my $info = '';
+           
+           if ($debug > 0) {
+             
+   
+           	 foreach my $k (sort keys %$ACCT_INFO) {
+ 	  	          $info .= sprintf("%-28s | %-30s |\n", $k, (defined($ACCT_INFO->{$k})) ? $ACCT_INFO->{$k} : '' );
+	           }
+
+             $info .= sprintf("%-28s\n", '----------------------------------------------------');
+
+	           foreach my $k (sort keys %$Acct) {
+ 		           $info .= sprintf("%-28s | %-30s |\n", $k, (defined($Acct->{$k})) ? $Acct->{$k} : '' );
+  	         }
+            }
+
+           print "Error: Session Calculate / Login: $line->[0], Last Alive: $line->[17], Session-ID: $acct_session_id\n$info"; # if ( $debug == 1 );
+          }
+         else {
+           print "Error: Lost Alive / Login: $line->[0], Last Alive: $line->[16], Session-ID: $acct_session_id\n"; # if ( $debug == 1 );
+           $sessions->zap($nas_row->[0], $line->[2], $acct_session_id);
+          }
+         
        } 
       elsif (defined($external_stats->{error})) {
       	print "Error:  Login: $line->[0], NAS-IP: $NAS{NAS_IP}, Port: $line->[2], Session-ID: $acct_session_id\n" if ($debug == 1);
-      	$sessions->online_update({ USER_NAME       => $line->[0], 
-      		                         ACCT_SESSION_ID => $acct_session_id, 
-      		                         STATUS          => 5 
-      		                        });
+      	$sessions->online_update({ USER_NAME       => $line->[0],
+      		                         ACCT_SESSION_ID => $acct_session_id,
+      		                         STATUS          => 5
+      		                      });
        }
       elsif (defined($external_stats->{in})) {
         $sessions->online_update({ USER_NAME => $line->[0], ACCT_SESSION_ID => $acct_session_id, %$external_stats });
@@ -186,11 +229,11 @@ sub check_lines {
         print "> Login: $RAD{USER_NAME} START: $RAD{SESSION_START} DURATION: $RAD{ACCT_SESSION_TIME}\n".
          "UID: $self->{UID} SUM: $self->{SUM} BILL_ID: $self->{BILL_ID} TARIF_PLAN: $self->{TARIF_PLAN} TRAF_TARIF: $self->{TRAF_TARIF}\n" if ($debug == 1);
 
-        if ( ($Billing->{PAYMENT_TYPE}==0) && ($line->[13] + $line->[14] < $self->{SUM}) ) {
+        if ( ($Billing->{PAYMENT_TYPE}==0) && ($line->[14] + $line->[15] < $self->{SUM}) ) {
            my $ret = hangup(\%NAS, "$nas_port_id", "$line->[0]", { ACCT_SESSION_IS   => $acct_session_id,
            	                                                       FRAMED_IP_ADDRESS => int2ip($line->[3])
            	                                                      });
-           print "Hanguped Login: $RAD{USER_NAME} DEPOSIT: $line->[13] CREDIT: $line->[14] SESSION_SUM: $self->{SUM}\n"; # if ($debug == 1);
+           print "Hanguped Login: $RAD{USER_NAME} DEPOSIT: $line->[14] CREDIT: $line->[14] SESSION_SUM: $self->{SUM} SESSION_ID: $acct_session_id\n"; # if ($debug == 1);
           }
        }
 

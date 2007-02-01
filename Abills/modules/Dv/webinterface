@@ -603,6 +603,7 @@ elsif($FORM{tolog}) {
   $ACCT_INFO->{INBYTE2}          = $ACCT_INFO->{ACCT_EX_INPUT_OCTETS} ;
   $ACCT_INFO->{OUTBYTE2}         = $ACCT_INFO->{ACCT_EX_OUTPUT_OCTETS};
   $ACCT_INFO->{ACCT_STATUS_TYPE} = 'Stop';
+  $ACCT_INFO->{ACCT_TERMINATE_CAUSE} = 3;
 
 
   # Exppp VENDOR params           
@@ -1896,13 +1897,15 @@ sub dv_daily_fees {
 
  my $list = $tariffs->list({ %LIST_PARAMS });
 
+ $ADMIN_REPORT{DATE}=$DATE if (! $ADMIN_REPORT{DATE});
+
  foreach my $line (@$list) {
  	 if ($line->[5] > 0) {
  	   #print "$line->[0] DF: $line->[5] MF: $line->[6]\n";
  	   $LIST_PARAMS{TP}=$line->[0];
- 	    	   my $ulist = $Dv->list({ 
-         ACTIVATE  => "<='$DATE'",
-         EXPIRE    => ">'$DATE'",
+ 	   my $ulist = $Dv->list({ 
+         ACTIVATE  => "<='$ADMIN_REPORT{DATE}'",
+         EXPIRE    => ">'$ADMIN_REPORT{DATE}'",
          DISABLE   => 0,
          TP_ID     => $line->[0],
          SORT      => 1,
@@ -1953,10 +1956,11 @@ sub dv_monthly_fees {
 
  use Users;
  my $users = Users->new($db, $admin, \%conf); 
-
  my $list = $tariffs->list({ %LIST_PARAMS });
 
- my ($y, $m, $d)=split(/-/, $DATE, 3);
+
+ $ADMIN_REPORT{DATE}=$DATE if (! $ADMIN_REPORT{DATE});
+ my ($y, $m, $d)=split(/-/, $ADMIN_REPORT{DATE}, 3);
  $m--;
  
  my $date_unixtime =  mktime(0, 0, 0, $d, $m, $y - 1900, 0, 0, 0);
@@ -1966,12 +1970,12 @@ sub dv_monthly_fees {
  	 if ($line->[6] > 0) {
 #	   print "TP_ID: $line->[0] MONTH_ABON: $line->[6]\n";
 	   my $ulist = $Dv->list({ 
-         ACTIVATE   => ">=$DATE",
-         EXPIRE     => "<$DATE",
+         ACTIVATE   => ">=$ADMIN_REPORT{DATE}",
+         EXPIRE     => "<$ADMIN_REPORT{DATE}",
          DISABLE    => '0',
          TP_ID      => $line->[0],
          SORT       => 1,
-         PAGE_ROWS  => 10000
+         PAGE_ROWS  => 100000
 
  	   	 });
 #u.id, u.fio, if(acct.id IS NULL, u.deposit, acct.deposit), u.credit, tp.name, u.disable, 
@@ -1990,10 +1994,12 @@ sub dv_monthly_fees {
 
           if($line->[4] == 1 || $u->[2] + $u->[3] > 0) {
 #                print " $u->[0] $line->[6] $u->[2] $u->[3] $u->[10] - $u->[11] /$DATE $d == 1\n"; 	
+            #take fees in first day of month
             if ($u->[10] eq '0000-00-00' and $d == 1) {
 #                print " $u->[0] $line->[6] $u->[2] $u->[3] $u->[10] - $u->[11] / $d == 1\n"; 	
                 $fees->take(\%user, $line->[6], { DESCRIBE => "$_MONTH_FEE" } );  
               }
+            # If activation set to monthly fees taken throught 30 days
             elsif($u->[10] ne '0000-00-00') {
               my ($activate_y, $activate_m, $activate_d)=split(/-/, $u->[10], 3);
               $activate_m--;
@@ -2001,8 +2007,9 @@ sub dv_monthly_fees {
               if ($date_unixtime - $active_unixtime > 30 * 86400) {
                 $fees->take(\%user, $line->[6], { DESCRIBE => "$_MONTH_FEE" } );
                 $users->change($u->[6], { 
-                	  UID      => $u->[6],
-                	  ACTIVATE => $DATE } );
+                	                        UID      => $u->[6],
+                	                        ACTIVATE => $ADMIN_REPORT{DATE} } 
+                	             );
                }
                #print "   $u->[0] $line->[6] $u->[2] $u->[3] $u->[10] - $u->[11]\n"; 	
              }
