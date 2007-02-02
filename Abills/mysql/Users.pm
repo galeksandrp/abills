@@ -479,6 +479,8 @@ sub list {
  if ($attr->{COMMENTS}) {
   	$attr->{COMMENTS} =~ s/\*/\%/ig;
  	  push @WHERE_RULES, "pi.comments LIKE '$attr->{COMMENTS}'";
+    $self->{SEARCH_FIELDS} .= 'pi.comments, ';
+    $self->{SEARCH_FIELDS_COUNT}++;
   }    
 
 
