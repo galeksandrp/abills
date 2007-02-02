@@ -55,7 +55,7 @@ use Admins;
 
 
 my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd},
-  { CHARSET => $conf{dbcharset} });
+  { CHARSET => ($conf{dbcharset}) ? $conf{dbcharset} : undef  });
 
 $db = $sql->{db};
 $admin = Admins->new($db, \%conf);

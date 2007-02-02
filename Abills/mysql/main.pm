@@ -71,7 +71,7 @@ sub connect {
        "Unable connect to server '$dbhost:$dbname'\n";
   
   #For mysql 5 or highter
-  #$self->{db}->do("set names ".$attr->{CHARSET}) if ($attr->{CHARSET});
+  $self->{db}->do("set names ".$attr->{CHARSET}) if ($attr->{CHARSET});
  
   $self->{query_count}=0;
   return $self;

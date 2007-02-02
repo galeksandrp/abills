@@ -39,7 +39,8 @@ $html = Abills::HTML->new( { IMG_PATH => 'img/',
 	                           CONF     => \%conf 
 	                          });
 
-my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
+my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd},
+  { CHARSET => ($conf{dbcharset}) ? $conf{dbcharset} : undef });
 my $db = $sql->{db};
 
 $html->{language}=$FORM{language} if (defined($FORM{language}));
