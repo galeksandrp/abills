@@ -1624,11 +1624,12 @@ $table = $html->table( {  caption    => "$_SUM",
 	                        rowcolor   => $_COLORS[1],
                           title_plain=> ["$_SESSIONS", "$_DURATION", "$_TRAFFIC", "$_TRAFFIC 2", "$_SUM"],
                           cols_align => ['right', 'right', 'right', 'right'],
-                          rows       => [  [  $sessions->{TOTAL}, 
-                                        $sessions->{DURATION}, 
-                                        int2byte($sessions->{TRAFFIC}), 
-                                        int2byte($sessions->{TRAFFIC2}),
-                                        $sessions->{SUM} ] ]
+                          rows       => [ [  $sessions->{TOTAL}, 
+                                             $sessions->{DURATION}, 
+                                             int2byte($sessions->{TRAFFIC}, { DIMENSION => $FORM{DIMENSION} }), 
+                                             int2byte($sessions->{TRAFFIC2}, { DIMENSION => $FORM{DIMENSION} }),
+                                             $sessions->{SUM} 
+                                         ] ]
                                } );
 print $table->show();	
 
