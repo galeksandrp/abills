@@ -489,7 +489,7 @@ if ($FORM{ping}) {
     $html->message('info', $_INFO,  "Ping  $FORM{ping}<br>Result:<br><pre>$res</pre>");
    }
   else {
-    $html->message('err', $_ERROR,  "_WRONG_DATA");
+    $html->message('err', $_ERROR,  "$ERR_WRONG_DATA");
    }
  }
 elsif ($FORM{hangup}) {
@@ -574,9 +574,9 @@ elsif($FORM{zap}) {
    }
   else {
   	$message .= "$_EXIST";
-  	$sessions->online_del({ NAS_ID        => $nas_id,
-                          NAS_PORT        => $nas_port_id,
-                          ACCT_SESSION_ID => $acct_session_id
+  	$sessions->online_del({ NAS_ID          => $nas_id,
+                            NAS_PORT        => $nas_port_id,
+                            ACCT_SESSION_ID => $acct_session_id
                           });
 
     #my ($sum, $variant, $time_t, $traf_t) = session_sum("$RAD{USER_NAME}", $ACCT_INFO{LOGIN}, $ACCT_INFO{ACCT_SESSION_TIME}, \%ACCT_INFO);

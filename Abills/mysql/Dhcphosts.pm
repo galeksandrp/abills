@@ -505,8 +505,17 @@ sub hosts_list {
    push @WHERE_RULES, "h.network='$attr->{NETWORK}'"; 
   }
 
-
- if ($attr->{IP}) {
+ if ($attr->{IPS}) {
+ 	 my @ip_arr = split(/,/, $attr->{IPS});
+ 	 $attr->{IPS}='';
+ 	 foreach my $ip (@ip_arr) {
+ 	   $ip =~ s/ //g;
+ 	   $attr->{IPS}.="INET_ATON('$ip'),";
+ 	 }
+ 	 chop($attr->{IPS});
+ 	 push @WHERE_RULES, "h.ip IN ($attr->{IPS})";
+  }
+ elsif ($attr->{IP}) {
     if ($attr->{IP} =~ m/\*/g) {
       my ($i, $first_ip, $last_ip);
       my @p = split(/\./, $attr->{IP});

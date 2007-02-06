@@ -21,6 +21,135 @@ sub dhcphosts_periodic {
 	
 }
 
+#*******************************************************************
+# Show dhcpd.leases information
+#*******************************************************************
+sub dhcphosts_monitor {
+
+ if (! $conf{DHCPHOSTS_LEASES}) {
+  	print $html->message('err', $_ERROR, "$_NOT_EXIST ". '$conf{DHCPHOSTS_LEASES}');
+  	return 0;
+  }
+ 
+ if ($FORM{ping}) {
+  if ($FORM{ping} =~ /^(\d){1,3}\.(\d){1,3}\.(\d){1,3}\.(\d){1,3}$/) {
+    my $res = `/sbin/ping -c 5 $FORM{ping}`;
+    $html->message('info', $_INFO,  "Ping  $FORM{ping}<br>Result:<br><pre>$res</pre>");
+   }
+  else {
+    $html->message('err', $_ERROR,  "$ERR_WRONG_DATA");
+   }
+ }
+
+ 
+ #Get info from dhcpd.leased 
+ my $dhcp_hash = leaseparse($conf{DHCPHOSTS_LEASES});
+ #Get user info from DB
+
+ my $hosts_list = $Dhcphosts->hosts_list({ IPS       => join(", ",  keys %$dhcp_hash), 
+ 	                                         PAGE_ROWS => 10000 
+ 	                                       });
+ 
+ my $table = $html->table({ width      => '100%',
+                     			  caption    => "$_HOSTS",
+				                    title      => ["$_USER", 'IP', "$_START", "MAC", "$_HOSTS",  "abandoned","-","-", '-'],
+				                    cols_align => ['left', 'right', 'right', 'right', 'left', 'center:noprint', 'center:noprint','center:noprint', 'center:noprint' ]
+                          });
+
+ $table->{rowcolor}=$_COLORS[0];
+ $table->{extra}="colspan='6'";
+ $table->addrow("$_TOTAL: $Dhcphosts->{TOTAL}");
+ $table->{extra}=undef;
+ $table->{rowcolor}=undef;
+
+
+ foreach my $line (@$hosts_list) {
+      $table->addrow(
+                     $html->button("$line->[1]", "index=11&UID=$line->[12]"), 
+                     $line->[2],
+                     $dhcp_hash->{$line->[2]}{starts},
+                     $dhcp_hash->{$line->[2]}{hardware},
+                     $dhcp_hash->{$line->[2]}{'client-hostname'},
+                     $dhcp_hash->{$line->[2]}{abandoned},
+                     "(". $html->button('P', "index=$index&ping=$line->[2]", { TITLE => 'ping' }) .")",
+                     '',
+                     ''
+                     );
+
+     delete $dhcp_hash->{$line->[2]};
+  }
+ 
+ my @unregistred = sort keys %$dhcp_hash;
+ $table->{rowcolor}=$_COLORS[0];
+ $table->{extra}="colspan='6'";
+ $table->addrow("$_NOT_EXIST $_TOTAL: ". ($#unregistred + 1));
+ $table->{extra}=undef;
+ $table->{rowcolor}=undef;
+
+ foreach my $ip ( @unregistred ) {
+      $table->addrow(
+                     '', 
+                     $ip,
+                     $dhcp_hash->{$ip}{starts},
+                     $dhcp_hash->{$ip}{hardware},
+                     $dhcp_hash->{$ip}{'client-hostname'},
+                     $dhcp_hash->{$ip}{abandoned},
+                     "(". $html->button('P', "index=$index&ping=$ip", { TITLE => 'ping' }) .")",
+                     '',
+                     ''
+                     );
+  }
+	
+ print $table->show();	
+
+}
+
+
+#*******************************************************************
+# Parse dhcpd.leases
+#*******************************************************************
+sub leaseparse {
+   my $logfile = shift;
+   my ( %list, $ip );
+
+   open (FILE, $logfile) or print "Can't read file '$logfile' $!";
+   
+   
+   while (<FILE>) {
+      next if /^#|^$/;
+
+      if (/^lease (\d+\.\d+\.\d+\.\d+)/) {
+         $ip = $1; 
+         $list{$ip}{ip}=sprintf("%-17s", $ip);
+         $ips_hash{$ip}=$list{$ip}{ip};
+       }
+      elsif (/^\s*client-hostname "(.*)";/) {
+      	 $list{$ip}{'client-hostname'}=sprintf("%-17s", $1);
+       }
+
+      /^\s*hardware ethernet (.*);/ && ( $list{$ip}{hardware}=sprintf("%-19s", $1) );
+      /^\s*starts \d (.*);/ && (  $list{$ip}{starts}=sprintf("%-21s", $1) );
+      /^\s*(abandoned).*/ && (    $list{$ip}{abandoned}=sprintf("%-19s", $1) );
+   }
+
+   close FILE;
+
+# make all entries 74 characters long to format properly
+#   foreach (keys %list) {
+#     #$list{$_} = sprintf("%-74s", $list{$_}) if (length$list{$_} < 76);
+#     
+#     push @list_arr, [ $list{$_}{'ip'}, 
+#      $list{$_}{starts}, 
+#      $list{$_}{hardware},
+#      ($list{$_}{'client-hostname'}) ? $list{$_}{'client-hostname'} : '',
+#      ($list{$ip}{abandoned}) ? $list{$ip}{abandoned} : '',
+#       ] ;
+#   }
+
+   return \%list;
+}
+
+
 
 #*******************************************************************
 # 
