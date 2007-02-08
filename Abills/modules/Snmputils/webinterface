@@ -465,9 +465,9 @@ sub snmputils_dlink_ip_mac_port  {
   my $table = $html->table({ width       => '100%',
                              border      => 1,
                              cols_align  => ['left', 'center'],
-                             rows        => [['Port binding enable mode:', $THREE_MODE{$enable_mode}],
-                                        ['Login:' , $THREE_MODE{$loging_mode}],
-                                        ['CAL IP MAC:' , $THREE_MODE{$acl_ip_mac}]
+                             rows        => [['Port binding enable mode:', $THREE_MODE{int($enable_mode)}, $html->button(($enable_mode != 2) ? $_ENABLE : $_DISABLE, "index=$index&")],
+                                             ['Login:' , $THREE_MODE{int($loging_mode)},     $html->button(($loging_mode != 2) ? $_ENABLE : $_DISABLE, "index=$index&")],
+                                             ['CAL IP MAC:' , $THREE_MODE{$int($acl_ip_mac)}, $html->button(($acl_ip_mac != 2) ? $_ENABLE : $_DISABLE, "index=$index&")]
                                        ]
                            });
  
@@ -480,7 +480,10 @@ sub snmputils_dlink_ip_mac_port  {
                         cols_align  => ['left', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'center'],
                       });
   
-  #my %result = &snmpwalkhash("$SNMP_COMMUNITY", \&my_simple_hash, ".1.3.6.1.4.1.171.11.64.1.2.7.2.1.3");
+  my %result = &snmpwalkhash("$SNMP_COMMUNITY", \&my_simple_hash, ".1.3.6.1.4.1.171.11.64.1.2.7.2.1.3");
+
+
+
   # IP addresses
   #1.3.6.1.4.1.171.11.64.1.2.7.2.1.3.$ip
   

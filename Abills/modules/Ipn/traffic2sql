@@ -76,8 +76,7 @@ $Ipn->user_ips({ NAS_ID => $NAS_ID });
 if (-f $log) {
   get_collector_data($log);
   processing();
-  #my $status = unlink("$log");
-  
+  my $status = unlink("$log");
   exit;
 }
 
