@@ -467,7 +467,7 @@ sub snmputils_dlink_ip_mac_port  {
                              cols_align  => ['left', 'center'],
                              rows        => [['Port binding enable mode:', $THREE_MODE{int($enable_mode)}, $html->button(($enable_mode != 2) ? $_ENABLE : $_DISABLE, "index=$index&")],
                                              ['Login:' , $THREE_MODE{int($loging_mode)},     $html->button(($loging_mode != 2) ? $_ENABLE : $_DISABLE, "index=$index&")],
-                                             ['CAL IP MAC:' , $THREE_MODE{$int($acl_ip_mac)}, $html->button(($acl_ip_mac != 2) ? $_ENABLE : $_DISABLE, "index=$index&")]
+                                             ['CAL IP MAC:' , $THREE_MODE{int($acl_ip_mac)}, $html->button(($acl_ip_mac != 2) ? $_ENABLE : $_DISABLE, "index=$index&")]
                                        ]
                            });
  
