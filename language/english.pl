@@ -143,6 +143,7 @@ $_NO_RECORD='Records not exist';
 
 $_TIME_LIMIT='Time limit';
 $_TRAF_LIMIT='Traffic limit';
+$_EXPRASSION='Exprassions';
 
 $_LIMIT = 'Limit';
 $_SPEED = 'Speed';

@@ -342,7 +342,6 @@ sub info {
      return $self;
    }
 
-  my $ar = $self->{list}->[0];
   
   ($self->{TP_ID}, 
    $self->{NAME}, 
@@ -367,7 +366,7 @@ sub info {
    $self->{PAYMENT_TYPE},
    $self->{MIN_SESSION_COST},
    $self->{RAD_PAIRS}
-  ) = @$ar;
+  ) = @{ $self->{list}->[0] };
 
 
   return $self;
@@ -535,7 +534,9 @@ sub  tt_info {
 	
 	
   $self->query($db, "SELECT id, interval_id, in_price, out_price, prepaid, in_speed, out_speed, 
-	     descr, nets
+	     descr, 
+	     nets,
+	     expression
      FROM trafic_tarifs 
      WHERE 
      interval_id='$attr->{TI_ID}'
@@ -549,7 +550,8 @@ sub  tt_info {
    $self->{TT_SPEED_IN},
    $self->{TT_SPEED_OUT},
    $self->{TT_DESCRIBE},
-   $self->{TT_NETS}
+   $self->{TT_NETS},
+   $self->{TT_EXPRASSION}
   ) = @{ $self->{list}->[0] };
 
 	
@@ -573,10 +575,10 @@ sub  tt_add {
    }
   
   $self->query($db, "INSERT INTO trafic_tarifs  
-    (interval_id, id, descr,  in_price,  out_price,  nets,  prepaid,  in_speed, out_speed)
+    (interval_id, id, descr,  in_price,  out_price,  nets,  prepaid,  in_speed, out_speed, expression)
     VALUES 
     ('$DATA{TI_ID}', '$DATA{TT_ID}',   '$DATA{TT_DESCRIBE}', '$DATA{TT_PRICE_IN}',  '$DATA{TT_PRICE_OUT}',
-     '$DATA{TT_NETS}', '$DATA{TT_PREPAID}', '$DATA{TT_SPEED_IN}', '$DATA{TT_SPEED_OUT}')", 'do');
+     '$DATA{TT_NETS}', '$DATA{TT_PREPAID}', '$DATA{TT_SPEED_IN}', '$DATA{TT_SPEED_OUT}', '$DATA{TT_EXPRASSION}')", 'do');
 
 
   if ($attr->{DV_EXPPP_NETFILES}) {
@@ -605,7 +607,8 @@ sub  tt_change {
     nets='". $DATA{TT_NETS} ."',
     prepaid='". $DATA{TT_PREPAID} ."',
     in_speed='". $DATA{TT_SPEED_IN} ."',
-    out_speed='". $DATA{TT_SPEED_OUT} ."'
+    out_speed='". $DATA{TT_SPEED_OUT} ."',
+    expression = '". $DATA{TT_EXPRASSION} ."'
     WHERE 
     interval_id='$attr->{TI_ID}' and id='$DATA{TT_ID}';", 'do');
 

@@ -97,6 +97,7 @@ sub dv_auth {
   count(i.id),
   tp.age,
   dv.callback
+
      FROM (dv_main dv, tarif_plans tp)
      LEFT JOIN users_nas un ON (un.uid = dv.uid)
      LEFT JOIN tp_nas ON (tp_nas.tp_id = tp.id)
@@ -324,7 +325,7 @@ foreach my $line (@periods) {
  else {
    my $ip = $self->get_ip($NAS->{NAS_ID}, "$RAD->{NAS_IP_ADDRESS}");
    if ($ip eq '-1') {
-     $RAD_PAIRS->{'Reply-Message'}="Rejected! There is no free IPs in address pools (USED: $self->{USED_IPS} NAS: $NAS->{NAS_ID})";
+     $RAD_PAIRS->{'Reply-Message'}="Rejected! There is no free IPs in address pools (USED: $self->{USED_IPS})";
      return 1, $RAD_PAIRS;
     }
    elsif($ip eq '0') {

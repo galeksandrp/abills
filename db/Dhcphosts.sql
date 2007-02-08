@@ -37,6 +37,7 @@ CREATE TABLE `dhcphosts_networks` (
   `dns` varchar(100) NOT NULL default '',
   `coordinator` varchar(50) NOT NULL default '',
   `phone` varchar(20) NOT NULL default '',
+  `routers` int(11) unsigned NOT NULL default '0',
   PRIMARY KEY  (`id`),
   UNIQUE KEY `name` (`name`)
 );
