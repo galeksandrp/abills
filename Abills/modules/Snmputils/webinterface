@@ -373,16 +373,81 @@ elsif ($FORM{NAS_TYPE}) {
 }
 
 
+#**********************************************************
+#
+#**********************************************************
+sub dlink_ip_mac_port {
+	my ($attr) = @_;
+	
+	
+}
 
-#*******************************************************************
+
+#**********************************************************
 # http://www.dlink.ru/technical/faq_hub_switch_100.php
 # Примеры настройки функции IP-MAC-Port Binding по SNMP для серий DES-38XX и DES-35XX 
-#*******************************************************************
+#**********************************************************
 sub snmputils_dlink_ip_mac_port  {
   my ($attr) = @_;
   
   my $SNMP_COMMUNITY = $attr->{SNMP_COMMUNITY} || '';
+  my $message = '';
 
+  if ($FORM{aaadd}) {
+     my $ip = $FORM{IP};
+     my $port = 0;
+     my $mac = '';
+     $mac =~ s/://g;
+
+     #Шаг 1. Задать IP-адрес связки:
+     #.1.3.6.1.4.1.171.11.64.1.2.7.2.1.3.$ip i 4";
+     $message .= ".1.3.6.1.4.1.171.11.64.1.2.7.2.1.3.$ip => 4\n";
+     if(snmpset($SNMP_COMMUNITY, ".1.3.6.1.4.1.171.11.64.1.2.7.2.1.3.$ip", "integer", "4")) {
+     	  $message .= " Ok\n";
+       }
+
+     #Шаг 2. Назначить эту связку на порт 1:
+     #.1.3.6.1.4.1.171.11.64.1.2.7.2.1.4.$ip x $port";
+     $message .= ".1.3.6.1.4.1.171.11.64.1.2.7.2.1.4.$ip => $port\n";
+     if(snmpset($SNMP_COMMUNITY, ".1.3.6.1.4.1.171.11.64.1.2.7.2.1.4.$ip", "octetstring", "$port")) {
+     	  $message .= "Ok\n";
+       }
+     #Шаг 3. Задать MAC-адрес (AA-BB-CC-DD-EE-FF) связки:
+     #.1.3.6.1.4.1.171.11.64.1.2.7.2.1.2.$ip x $mac";
+     $message .= ".1.3.6.1.4.1.171.11.64.1.2.7.2.1.2.$ip => $mac\n";
+     if(snmpset($SNMP_COMMUNITY, ".1.3.6.1.4.1.171.11.64.1.2.7.2.1.2.$ip", "octetstring", "$mac")) {
+     	  $message .= "Ok\n";
+       }
+
+     #Шаг 4. Задать режим связки IP MAC Port Binding (ARP / ACL):
+     #.1.3.6.1.4.1.171.11.64.1.2.7.2.1.6.$ip i 1";
+     $message .= ".1.3.6.1.4.1.171.11.64.1.2.7.2.1.6.$ip => 1\n";
+     if(snmpset($SNMP_COMMUNITY, ".1.3.6.1.4.1.171.11.64.1.2.7.2.1.6.$ip", "integer", "1")) {
+     	  $message .= "Ok\n";
+       }
+
+     #Шаг 5. Включить IP-MAC-Port Binding на этом порту:
+     #.1.3.6.1.4.1.171.11.64.1.2.7.1.1.2.1 i 2";
+     $message .= ".1.3.6.1.4.1.171.11.64.1.2.7.1.1.2.$port => 2\n";
+     if(snmpset($SNMP_COMMUNITY, ".1.3.6.1.4.1.171.11.64.1.2.7.1.1.2.1.$port", "integer", "2")) {
+     	  $message .= "Ok\n";
+       }
+  
+     print $html->message('info', $_INFO, "$message");
+   }
+  elsif ($FORM{del}) {
+   
+    #delete 
+    if(snmpset($SNMP_COMMUNITY, "1.3.6.1.4.1.171.11.64.1.2.7.2.1.3.$ip", "integer", "6")) {
+   	  print $html->message('info', $_INFO, "$_DELETED $ip");
+     }
+    
+    #delete from block list
+    # Delete from block list decimal mac
+    # 1.3.6.1.4.1.171.11.64.1.2.7.3.1.5.1.$mac i 3 
+
+
+   }
   
   #Port binding enable mode
   my %THREE_MODE = (1 => $_OTHER,
@@ -419,11 +484,29 @@ sub snmputils_dlink_ip_mac_port  {
   # IP addresses
   #1.3.6.1.4.1.171.11.64.1.2.7.2.1.3.$ip
   
+  #Blocked 
+  # 1.3.6.1.4.1.171.11.64.1.2.7.3.1.2
+  
+  # Показать имя VLAN-а заблокированной связки IP MAC Binding: 
+  # 1.3.6.1.4.1.171.11.64.1.2.7.3.1.3
+  
+  # POrts for blocking IP
+  # 1.3.6.1.4.1.171.11.64.1.2.7.3.1.4
+  
+  # Block type
+  # 1.3.6.1.4.1.171.11.64.1.2.7.3.1.5
+  
+  
   # Check active ports
   #1.3.6.1.4.1.171.11.64.1.2.7.1.1.2
 
  
   print $table->show();
+  
+  
+  $html->tpl_show(_include('snmputils_ip_mac_port', 'Snmputils'), { %$Snmputils, %FORM }); 
+  
+  
 }
 
 #*******************************************************************
