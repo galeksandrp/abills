@@ -501,15 +501,23 @@ sub snmputils_dlink_ip_mac_port  {
   my @result_ports = &snmpwalk("$SNMP_COMMUNITY", ".1.3.6.1.4.1.171.11.64.1.2.7.1.1.2");
 
 
+
+  my %info = ();
+
   # IP addresses
   #1.3.6.1.4.1.171.11.64.1.2.7.2.1.3.$ip
   my @result = &snmpwalk("$SNMP_COMMUNITY", ".1.3.6.1.4.1.171.11.64.1.2.7.2.1.3");
-
-  my %info = ();
   foreach my $line (@result) {
   	my ($ip, $value) = split(/:/, $line, 2);
   	$info{IP}{$ip}=$value;
    }
+
+  @result = &snmpwalk("$SNMP_COMMUNITY", ".1.3.6.1.4.1.171.11.64.1.2.7.2.1.2");
+  foreach my $line (@result) {
+  	my ($id, $value) = split(/:/, $line, 2);
+  	$info{MAC}{$id}=$value;
+   }
+
 
 
   foreach my $line (@result_ports) {
@@ -517,8 +525,11 @@ sub snmputils_dlink_ip_mac_port  {
   	$table->addrow($port, 
   	               $THREE_MODE{$state}, 
   	               
+  	               
   	               "", "");
    }
+
+  #1.3.6.1.4.1.171.11.64.1.2.7.3.1.4
 
   # IP addresses
   #1.3.6.1.4.1.171.11.64.1.2.7.2.1.3.$ip
@@ -1713,4 +1724,11 @@ elsif ($buf =~ /FROM (\S+)/) {
   close(MIB);
   $RevNeeded = 1;
   
-  $loaded_mibs{
+  $loaded_mibs{$MIB_NAME}=1;
+  
+  return ($ret, \%OIDS_HASH, \%OIDS_EX);
+}
+
+
+1
+
