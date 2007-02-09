@@ -453,32 +453,40 @@ sub snmputils_dlink_ip_mac_port  {
   my %THREE_MODE = (1 => $_OTHER,
                     2 => $_ENABLE,
                     3 => $_DISABLE );
-  #1.3.6.1.4.1.171.11.64.1.2.7.4.0
-  my $enable_mode = snmpget("$SNMP_COMMUNITY", '.1.3.6.1.4.1.171.11.64.1.2.7.4.0') || 0;
-  if (! $enable_mode) {
-  	 $html->message("info", $_INFO, "_NOT_SUPPORT");
-  	 return 0;
-   }
-  
-  #Loging
-  #1.3.6.1.4.1.171.11.64.1.2.7.5.0 i 2 
-  
-  my $loging_mode = snmpget("$SNMP_COMMUNITY", '.1.3.6.1.4.1.171.11.64.1.2.7.5.0') || 0; 
-  # ACL IP MAC
-  # 1.3.6.1.4.1.171.11.64.1.2.7.6.0 i 2
-  my $acl_ip_mac = snmpget("$SNMP_COMMUNITY", '.1.3.6.1.4.1.171.11.64.1.2.7.6.0') || 0;
+                    
+  my %MAIN_OPTIONS = (enable_mode  => '.1.3.6.1.4.1.171.11.64.1.2.7.4.0',  # enable_mode
+                      loging_mode  => '.1.3.6.1.4.1.171.11.64.1.2.7.5.0',  # Loging
+                      acl_ip_mac   => '.1.3.6.1.4.1.171.11.64.1.2.7.6.0'   # ACL IP MAC 
+                      );
+  my $MAIN_VALUE = ();
 
   my $table = $html->table({ width       => '100%',
                              border      => 1,
                              cols_align  => ['left', 'center'],
-                             rows        => [['Port binding enable mode:', $THREE_MODE{int($enable_mode)}, $html->button(($enable_mode != 2) ? $_ENABLE : $_DISABLE, "index=$index&")],
-                                             ['Login:' , $THREE_MODE{int($loging_mode)},     $html->button(($loging_mode != 2) ? $_ENABLE : $_DISABLE, "index=$index&")],
-                                             ['CAL IP MAC:' , $THREE_MODE{int($acl_ip_mac)}, $html->button(($acl_ip_mac != 2) ? $_ENABLE : $_DISABLE, "index=$index&")]
-                                       ]
+                             #rows        => [['Port binding enable mode:', $THREE_MODE{int($enable_mode)}, $html->button(($enable_mode != 2) ? $_ENABLE : $_DISABLE, "index=$index&")],
+                             #                ['Login:' , $THREE_MODE{int($loging_mode)},     $html->button(($loging_mode != 2) ? $_ENABLE : $_DISABLE, "index=$index&")],
+                             #                ['CAL IP MAC:' , $THREE_MODE{int($acl_ip_mac)}, $html->button(($acl_ip_mac != 2) ? $_ENABLE : $_DISABLE, "index=$index&")]
+                             #          ]
                            });
- 
-  print $table->show();
+
+  while(my($key, $value)= each %MAIN_OPTIONS) {
+    #1.3.6.1.4.1.171.11.64.1.2.7.4.0
+    $MAIN_VALUE{$key} = snmpget("$SNMP_COMMUNITY", "$value") || 0;
+    if (! $MAIN_VALUE{$key}) {
+  	  $html->message("info", $_INFO, "'$key':$value  _NOT_SUPPORT");
+     }
+    else {
+      $table->addrow($key, 
+        $THREE_MODE{int($MAIN_VALUE{$key})}, 
+        $html->button(($MAIN_VALUE{$key} != 2) ? $_ENABLE : $_DISABLE, "index=$index&NAS_ID=$FORM{NAS_ID}&TYPE=$FORM{TYPE}&SHOW=1&key=". (($MAIN_VALUE{$key} != 2) ? 3 : 2) )
+       );
+     }
+  }
   
+  print $table->show();
+
+
+#Port section  
   $table = $html->table({ width       => '100%',
                         caption     => "IP-MAC-Port Binding",
                         border      => 1,
@@ -490,10 +498,10 @@ sub snmputils_dlink_ip_mac_port  {
   #Get port state
   #.1.3.6.1.4.1.171.11.64.1.2.7.1.1.2
   print ".1.3.6.1.4.1.171.11.64.1.2.7.1.1.2";
-  my %result = &snmpwalkhash("$SNMP_COMMUNITY", \&my_simple_hash, ".1.3.6.1.4.1.171.11.64.1.2.7.1.1.2");
+  my @result = &snmpwalk("$SNMP_COMMUNITY", ".1.3.6.1.4.1.171.11.64.1.2.7.1.1.2");
 
-  while(my($k, $v)=each %result) {
-  	$table->addrow($k, $v);
+  foreach my $line (@result) {
+  	$table->addrow($line);
   }
 
   # IP addresses
