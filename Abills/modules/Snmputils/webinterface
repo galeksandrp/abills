@@ -393,7 +393,7 @@ sub snmputils_dlink_ip_mac_port  {
   my $SNMP_COMMUNITY = $attr->{SNMP_COMMUNITY} || '';
   my $message = '';
 
-  if ($FORM{aaadd}) {
+  if ($FORM{add}) {
      my $ip = $FORM{IP};
      my $port = 0;
      my $mac = '';
@@ -436,12 +436,10 @@ sub snmputils_dlink_ip_mac_port  {
      print $html->message('info', $_INFO, "$message");
    }
   elsif ($FORM{del}) {
-   
     #delete 
     if(snmpset($SNMP_COMMUNITY, "1.3.6.1.4.1.171.11.64.1.2.7.2.1.3.$ip", "integer", "6")) {
    	  print $html->message('info', $_INFO, "$_DELETED $ip");
      }
-    
     #delete from block list
     # Delete from block list decimal mac
     # 1.3.6.1.4.1.171.11.64.1.2.7.3.1.5.1.$mac i 3 
