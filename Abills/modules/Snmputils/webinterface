@@ -409,7 +409,7 @@ sub snmputils_dlink_ip_mac_port  {
      #Шаг 2. Назначить эту связку на порт 1:
      #.1.3.6.1.4.1.171.11.64.1.2.7.2.1.4.$ip x $port";
      $message .= ".1.3.6.1.4.1.171.11.64.1.2.7.2.1.4.$ip => $port\n";
-     $port = 8000000;
+     #$port = 8000000;
      if(snmpset($SNMP_COMMUNITY, ".1.3.6.1.4.1.171.11.64.1.2.7.2.1.4.$ip", "string", "$port")) {
      	  $message .= "Ok\n";
        }
