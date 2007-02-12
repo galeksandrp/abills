@@ -382,6 +382,14 @@ sub dlink_ip_mac_port {
 	
 }
 
+sub hex2bin {
+    my ($digit) = shift;
+    print $no_revb
+        ? unpack("B4", pack("H", $digit))
+        : substr(unpack("b8", pack("H", $digit)), -4);
+    print "$char";
+}
+
 
 #**********************************************************
 # http://www.dlink.ru/technical/faq_hub_switch_100.php
@@ -410,7 +418,7 @@ sub snmputils_dlink_ip_mac_port  {
      #.1.3.6.1.4.1.171.11.64.1.2.7.2.1.4.$ip x $port";
      $message .= ".1.3.6.1.4.1.171.11.64.1.2.7.2.1.4.$ip => $port\n";
      my $port_binding = 8000000;
-     if(snmpset($SNMP_COMMUNITY, ".1.3.6.1.4.1.171.11.64.1.2.7.2.1.4.$ip", "string", "$port_binding")) {
+     if(snmpset($SNMP_COMMUNITY, ".1.3.6.1.4.1.171.11.64.1.2.7.2.1.4.$ip", "bin", "$port_binding")) {
      	  $message .= "Ok\n";
        }
      else {
@@ -419,6 +427,9 @@ sub snmputils_dlink_ip_mac_port  {
 
      #Шаг 3. Задать MAC-адрес (AA-BB-CC-DD-EE-FF) связки:
      #.1.3.6.1.4.1.171.11.64.1.2.7.2.1.2.$ip x $mac";
+     
+       print hex2bin(17);
+     
      $message .= ".1.3.6.1.4.1.171.11.64.1.2.7.2.1.2.$ip => $mac\n";
      if(snmpset($SNMP_COMMUNITY, ".1.3.6.1.4.1.171.11.64.1.2.7.2.1.2.$ip", "string", "$mac")) {
      	  $message .= "Ok\n";
