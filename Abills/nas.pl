@@ -354,8 +354,9 @@ sub stats_ppp {
  my ($ip, $mng_port)=split(/:/, $NAS->{NAS_MNG_IP_PORT}, 2);
  $port =  $mng_port || 0;
  
- my $remote = IO::Socket::INET -> new(Proto => "tcp", PeerAddr => "$NAS",
-                                  PeerPort => "$port")
+ my $remote = IO::Socket::INET -> new(Proto    => "tcp", 
+                                      PeerAddr => "$NAS",
+                                      PeerPort => "$port")
  or print "cannot connect to pppcons port at $NAS->{NAS_IP}:$port $!\n";
 
 while ( <$remote> ) {
@@ -673,13 +674,27 @@ sub stats_pppd  {
 #******************************************************************* 
 sub hangup_pppd { 
  my ($NAS, $id, $attr) = @_; 
-
-
  my $IP =  $attr->{FRAMED_IP_ADDRESS} ; 
+ my $result =  '';
+ 
+ if ($NAS->{NAS_MNG_IP_PORT} =~ /:/) {
+   my ($ip, $mng_port)=split(/:/, $NAS->{NAS_MNG_IP_PORT}, 2);	
+   use IO::Socket;
+
+   my $remote = IO::Socket::INET -> new(Proto    => "tcp", 
+                                        PeerAddr => "$IP",
+                                        PeerPort => $mng_port )
+    or die "cannot connect to rmstats port at $ip:$mng_port $!\n"s
+
+   print $remote "$IP\n";
+   $result =  <$remote> ;
+  }
+ else {
+   $result = system ("/usr/bin/sudo /usr/abills/misc/pppd_kill $IP"); 
+  }
 
 
- system ("/usr/bin/sudo /usr/abills/misc/pppd_kill $IP"); 
- return 0; 
+ return $result; 
 } 
 
 

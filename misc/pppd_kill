@@ -19,7 +19,7 @@ if [ w$1 = wserver ] ; then
   read IP_ADDR
 else if [ w$1 = w ] ; then
   echo "Linux pppd kill script"
-  echo "pppd_kill [port]";
+  echo "pppd_kill [IP_ADDRESS]";
   exit;
 else
   IP_ADDR=$1 
@@ -30,3 +30,4 @@ fi
   PPP_PID=`cat /var/run/$INTERFACE.pid` 
 
   kill -1 $PPP_PID
+  echo "killed PID: $PPP_PID INTERFACE: $INTERFACE  IP: ${IP_ADDR}"
