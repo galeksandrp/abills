@@ -719,6 +719,7 @@ $self->{header} .= qq{
 <head>
  $REFRESH
  <META HTTP-EQUIV="Cache-Control" content="no-cache"/>
+ <META HTTP-EQUIV="Expires" CONTENT="-1"/>
  <META HTTP-EQUIV="Pragma" CONTENT="no-cache"/>
  <meta http-equiv="Content-Type" content="text/html; charset=$self->{CHARSET}"/>
  <meta name="Author" content="~AsmodeuS~"/>
