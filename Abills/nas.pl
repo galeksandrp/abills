@@ -684,7 +684,7 @@ sub hangup_pppd {
    my $remote = IO::Socket::INET -> new(Proto    => "tcp", 
                                         PeerAddr => "$IP",
                                         PeerPort => $mng_port )
-    or die "cannot connect to rmstats port at $ip:$mng_port $!\n"s
+    or die "cannot connect to rmstats port at $ip:$mng_port $!\n";
 
    print $remote "$IP\n";
    $result =  <$remote> ;
