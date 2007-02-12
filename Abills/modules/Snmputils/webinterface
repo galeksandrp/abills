@@ -417,8 +417,8 @@ sub snmputils_dlink_ip_mac_port  {
      #Шаг 2. Назначить эту связку на порт 1:
      #.1.3.6.1.4.1.171.11.64.1.2.7.2.1.4.$ip x $port";
      $message .= ".1.3.6.1.4.1.171.11.64.1.2.7.2.1.4.$ip => $port\n";
-     my $port_binding = 8000000;
-     if(snmpset($SNMP_COMMUNITY, ".1.3.6.1.4.1.171.11.64.1.2.7.2.1.4.$ip", "bin", "$port_binding")) {
+     my $port_binding = 2147483648;
+     if(snmpset($SNMP_COMMUNITY, ".1.3.6.1.4.1.171.11.64.1.2.7.2.1.4.$ip", "integer", "$port_binding")) {
      	  $message .= "Ok\n";
        }
      else {
@@ -428,9 +428,10 @@ sub snmputils_dlink_ip_mac_port  {
      #Шаг 3. Задать MAC-адрес (AA-BB-CC-DD-EE-FF) связки:
      #.1.3.6.1.4.1.171.11.64.1.2.7.2.1.2.$ip x $mac";
      
-       print hex2bin(17);
+     print hex2bin(17);
      
      $message .= ".1.3.6.1.4.1.171.11.64.1.2.7.2.1.2.$ip => $mac\n";
+     #my $mac1 = 
      if(snmpset($SNMP_COMMUNITY, ".1.3.6.1.4.1.171.11.64.1.2.7.2.1.2.$ip", "string", "$mac")) {
      	  $message .= "Ok\n";
        }
