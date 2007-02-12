@@ -435,7 +435,7 @@ sub snmputils_dlink_ip_mac_port  {
      my @mac_arr = split(/:|-/, $mac);
      $mac = '';
      foreach my $c (@mac_arr) {
-     	 $mac .= chr(0x$c);
+     	 $mac .= chr('0x'.$c);
       }
 
      $message .= ".1.3.6.1.4.1.171.11.64.1.2.7.2.1.2.$ip => $mac\n";
