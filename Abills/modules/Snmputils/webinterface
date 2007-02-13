@@ -438,7 +438,7 @@ sub snmputils_dlink_ip_mac_port  {
      $mac = '';
      foreach my $c (@mac_arr) {
      	 #my $char = '0x'.$c;
-     	 $mac .= chr(hex(41));
+     	 $mac .= chr(hex($c));
      	 #print "($char)";
       }
 
