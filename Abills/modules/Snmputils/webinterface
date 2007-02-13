@@ -1504,12 +1504,15 @@ if ($FORM{SHOW}) {
 sub my_simple_hash {
         my ($h_ref, $host, $name, $oid, $inst, $value) = @_;
         $inst =~ s/^\.+//;
-        if ($name =~/ifPhysAddress/)
-        {
+        if ($name =~/ifPhysAddress/ || $name =~ /ipNetToMediaPhysAddress/) {
                 my $mac = '';
                 map { $mac .= sprintf("%02X:",$_) } unpack "CCCCCC", $value;
                 $value = $mac;
         }
+        #elsif () {
+        #  $value = join(':', unpack("H2H2H2H2H2H2", $data));	
+        #}
+
         $h_ref->{$name}->{$inst} = $value;
 }
 
