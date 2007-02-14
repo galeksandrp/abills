@@ -551,7 +551,7 @@ sub snmputils_dlink_ip_mac_port  {
   	  print "----------";
   	  if ($1 == 4) {
   	    my $port = $3;
-  	  	printf("%.8x<br>",  $3);
+  	  	print unpack("A2A2A2A2", sprintf("%.8x",  $3));
   	  	$info{PORT}{$port}=$2;
   	   }
   	  elsif ($PREFIX{$1}) {
