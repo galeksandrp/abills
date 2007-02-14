@@ -538,14 +538,14 @@ sub snmputils_dlink_ip_mac_port  {
 
 
   my %PREFIX  = ( IP   => '.1.3.6.1.4.1.171.11.64.1.2.7.2.1.3',
-                MAC  => '.1.3.6.1.4.1.171.11.64.1.2.7.2.1.2',
-                PORT => '.1.3.6.1.4.1.171.11.64.1.2.7.2.1.2' ) ;
+                  MAC  => '.1.3.6.1.4.1.171.11.64.1.2.7.2.1.2',
+                  PORT => '.1.3.6.1.4.1.171.11.64.1.2.7.2.1.4' ) ;
   my %info = ();
 
-  # IP addresses
-  #1.3.6.1.4.1.171.11.64.1.2.7.2.1.3.$ip
-  my @result = &snmpwalk("$SNMP_COMMUNITY", ".1.3.6.1.4.1.171.11.64.1.2.7.2.1.3");
+  #Full list
+  my @result = &snmpwalk("$SNMP_COMMUNITY", ".1.3.6.1.4.1.171.11.64.1.2.7.2.1");
   foreach my $line (@result) {
+    print "$line<br>\n";
   	my ($ip, $value) = split(/:/, $line, 2);
   	$info{IP}{$ip}=$value;
    }
