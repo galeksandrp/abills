@@ -549,7 +549,7 @@ sub snmputils_dlink_ip_mac_port  {
     print "$line<br>\n";
     if($line =~ /(\d)\.(\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3}):(.+)/) {
   	  if ($1 == 4) {
-  	    my $port = $3;
+  	    my $port = 0;
         my $string = unpack("B32",  $port);
         if ( $string =~ m/1/g ) {
           $port =  pos($string);
@@ -571,6 +571,9 @@ sub snmputils_dlink_ip_mac_port  {
   foreach my $line (@result_ports) {
   	my ($port, $state) = split(/:/, $line, 2);
   	my $ip = $info{PORT}{$port};
+  	
+  	print "$ip<br>";
+  	
   	$table->addrow($port, 
   	               $THREE_MODE{$state}, 
   	               $ip,
