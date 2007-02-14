@@ -548,16 +548,17 @@ sub snmputils_dlink_ip_mac_port  {
   foreach my $line (@result) {
     print "$line<br>\n";
     if($line =~ /(\d)\.(\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3}):(.+)/) {
-  	  print "----------";
   	  if ($1 == 4) {
   	    my $port = $3;
+        my $len = length($port);
   	  	print "<br>4<b>--". unpack("A2A2A2A2", sprintf("%.8x",  $3));
+  	    print "/$len/";
   	  	print "</b><br>\n";
   	  	$info{PORT}{$port}=$2;
   	   }
   	  elsif ($PREFIX{$1}) {
   		  $info{$PREFIX{$1}}{$2}=$3;
-  		  print "$1 $2 $#<br>";
+  		  print "$1 $2 $3<br>";
   	   }
     }
    }
