@@ -548,10 +548,9 @@ sub snmputils_dlink_ip_mac_port  {
   foreach my $line (@result) {
     print "$line<br>\n";
     if($line =~ /(\d)\.(\d{1,3}\.\d{1,3}\.\d{1,3}.\d{1,3}):(.+)/) {
-  	  
+  	  print "----------";
   	  if ($1 == 4) {
   	    my $port = $3;
-  	  	
   	  	printf("%.8x<br>",  $3);
   	  	$info{PORT}{$port}=$2;
   	   }
