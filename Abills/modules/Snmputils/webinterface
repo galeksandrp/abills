@@ -554,8 +554,8 @@ sub snmputils_dlink_ip_mac_port  {
         if ( $string =~ m/1/g ) {
           $port =  pos($string);
          }
-        print $port."<br>\n";      
-  	  	$info{PORT}{$port}=$2;
+        print $port." $2 <br>\n";      
+  	  	push @{ $info{PORT}{$port} },  $2;
   	   }
   	  elsif ($PREFIX{$1}) {
   		  $info{$PREFIX{$1}}{$2}=$3;
