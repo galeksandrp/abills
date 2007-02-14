@@ -553,6 +553,7 @@ sub snmputils_dlink_ip_mac_port  {
         my $len = length($port);
         
         my $ret = join(':', unpack("H2H2H2H2", $3));
+        print unpack("B32",  $port);
   	  	print "<br>4<b>--". unpack("A2A2A2A2", sprintf("%.8x",  $port));
   	    print "/$len/- $ret -";
   	  	print "</b><br>\n";
