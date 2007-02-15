@@ -570,9 +570,11 @@ sub snmputils_dlink_ip_mac_port  {
 
   foreach my $line (@result_ports) {
   	my ($port, $state) = split(/:/, $line, 2);
-  	my $ip = $info{PORT}{$port};
+  	my $ip = '';
   	
-  	print "$ip<br>";
+  	foreach my $line ( @{ $info{PORT}{$port} } ) {
+  	  $ip .= $line;
+     }
   	
   	$table->addrow($port, 
   	               $THREE_MODE{$state}, 
