@@ -578,7 +578,7 @@ sub snmputils_dlink_ip_mac_port  {
   	my $ip = '';
   	
   	foreach my $line ( @{ $info{PORT}{$port} } ) {
-  	  $ip .= "- $line / $info{MAC}{$ip} / $info{ACTIVE}{$ip} / $info{MODE}{$ip}";
+  	  $ip .= "- $line / ". $info{MAC}{"$line"}. "/ $info{ACTIVE}{$line} / $info{MODE}{$line}";
      }
   	
   	$table->addrow($port, 
