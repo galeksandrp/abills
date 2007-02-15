@@ -589,6 +589,7 @@ sub snmputils_dlink_ip_mac_port  {
 
 
    for(my $i=1;  $i<=$#ip_arr; $i++) { 
+     print $ip_arr{$i};
      $table->addrow(
              $ip_arr{$i},
              $info{MAC}{"$ip_arr{$i}"},
