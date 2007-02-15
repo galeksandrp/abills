@@ -524,7 +524,7 @@ sub snmputils_dlink_ip_mac_port  {
   $table = $html->table({ width       => '100%',
                           caption     => "IP-MAC-Port Binding",
                           border      => 1,
-                          title       => ["$_PORT", "IP", "MAC", "$_STATUS", "_MODE", "-", "-"],
+                          title       => ["$_PORT", "$_STATE", "IP", "MAC", "$_STATUS", "_MODE", "-", "-"],
                           cols_align  => ['left', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'center'],
                       });
   #.1.3.6.1.4.1.171.11.64.1.2.7.1.1.2
@@ -571,47 +571,45 @@ sub snmputils_dlink_ip_mac_port  {
 
 
 
-
-
   foreach my $line (@result_ports) {
   	my ($port, $state) = split(/:/, $line, 2);
-  	my $ip = '';
+  	my @ip_arr = @{ $info{PORT}{$port} };
+  	my $ips_count  = $#ip_arr;
   	
-  	foreach my $line ( @{ $info{PORT}{$port} } ) {
-  	  $ip .= "- $line / ". $info{MAC}{"$line"}. "/ $info{ACTIVE}{$line} / $info{MODE}{$line}";
-     }
+    $table->addtd(
+             $table->td($up_channel_name,    { rowspan => $ips_count + 1 } ),
+             $table->td($THREE_MODE{$state}, { bgcolor => $_COLORS[1], rowspan => $ips_count + 1  }), 
+             $table->td($ip_arr{0}),
+             $table->td($info{MAC}{"$ip_arr{0}"}),
+             $table->td($info{ACTIVE}{"$ip_arr{0}"}),
+             $table->td($info{MODE}{"$ip_arr{0}"}),
+             $table->td($html->button('(P)', "")),
+             $table->td($html->button('(H)', ""))
+      );
+
+
+   for(my $i=1;  $i<=$#ip_arr; $i++) { 
+     $table->addrow(
+             $ip_arr{$i},
+             $info{MAC}{"$ip_arr{$i}"},
+             $info{ACTIVE}{"$ip_arr{$i}"},
+             $info{MODE}{"$ip_arr{$i}"},
+             $html->button('(P)', ""),
+             $html->button('(H)', "")
+            );  
+    }
+
   	
-  	$table->addrow($port, 
-  	               $THREE_MODE{$state}, 
-  	               $ip,
-  	               $info{MAC}{$ip},
-  	               $info{ACTIVE}{$ip},
-  	               $info{MODE}{$ip},
-                   '',
-  	               $html->button($_DEL, "index=$index&NAS_ID=$FORM{NAS_ID}&TYPE=$FORM{TYPE}&SHOW=1&del=$ip" )
-  	               );
+#  	$table->addrow($port, 
+#  	               $THREE_MODE{$state}, 
+#  	               $ip,
+#  	               $info{MAC}{$ip},
+#  	               $info{ACTIVE}{$ip},
+#  	               $info{MODE}{$ip},
+#                   '',
+#  	               $html->button($_DEL, "index=$index&NAS_ID=$FORM{NAS_ID}&TYPE=$FORM{TYPE}&SHOW=1&del=$ip" )
+#  	               );
    }
-
-  #1.3.6.1.4.1.171.11.64.1.2.7.3.1.4
-
-  # IP addresses
-  #1.3.6.1.4.1.171.11.64.1.2.7.2.1.3.$ip
-  
-  #Blocked 
-  # 1.3.6.1.4.1.171.11.64.1.2.7.3.1.2
-  
-  # ѕоказать им€ VLAN-а заблокированной св€зки IP MAC Binding: 
-  # 1.3.6.1.4.1.171.11.64.1.2.7.3.1.3
-  
-  # POrts for blocking IP
-  # 1.3.6.1.4.1.171.11.64.1.2.7.3.1.4
-  
-  # Block type
-  # 1.3.6.1.4.1.171.11.64.1.2.7.3.1.5
-  
-  
-  # Check active ports
-  #1.3.6.1.4.1.171.11.64.1.2.7.1.1.2
 
  
   print $table->show();
@@ -1081,7 +1079,7 @@ $table = $html->table({ width       => '100%',
                         caption     => "$nas_type",
                         border      => 1,
                         title       => [@default_fields, "-"],
-                        cols_align  => ['left', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'center'],
+                        cols_align  => ['left', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'center']
                       });
 
 
@@ -1098,7 +1096,7 @@ foreach my $line (@$list) {
       my $oid = "$field - $oid_prefix/$fields->{$field}";
       
       if ($SNMP_Session::errmsg) {
-         print $html->message('err', $_ERROR, "$oid<br>$SNMP_Session::suppress_warnings / $SNMP_Session::errmsg");
+         print $html->message('err', $_ERROR, "$oid<br>$SNMP_Session::suppress_warnings / $SNMP_Session::errmrnings / $SNMP_Session::errmrnings / $SNMP_Session::errmrnings / $SNMP_Session::errmrnings / $SNMP_Session::errmrnings / $SNMP_Session::errmrnings / $SNMP_Session::errmrnings / $SNMP_Session::errmrnings / $SNMP_Session::errmrnings / $SNMP_Session::errmrnings / $SNMP_Session::errmrnings / $SNMP_Session::errmrnings / $SNMP_Session::errmrnings / $SNMP_Session::errmsg");
          last;
        }
 
