@@ -536,11 +536,11 @@ sub snmputils_dlink_ip_mac_port  {
 
 
 
-  my %PREFIX  = ( IP     => '1',
-                  MAC    => '2',
-                  PORT   => '4',
-                  ACTIVE => '5',
-                  MODE   => '6') ;
+  my %PREFIX  = ( 1 => 'IP',
+                  2 => 'MAC',
+                  4 => 'PORT',
+                  5 => 'ACTIVE',
+                  6 => 'MODE') ;
   my %info = ();
 
   #Full list
@@ -557,6 +557,9 @@ sub snmputils_dlink_ip_mac_port  {
          }
         print $port."/ IP: $ip / $string <br>\n";      
   	  	push @{ $info{PORT}{$port} },  $ip;
+  	   }
+  	  elsif ($1 == 2) {
+  	  	$info{$PREFIX{MAC}}{$2}=join(':', unpack("H2H2H2H2H2H2", $3));
   	   }
   	  elsif ($PREFIX{$1}) {
   		  $info{$PREFIX{$1}}{$2}=$3;
