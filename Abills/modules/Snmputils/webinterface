@@ -576,13 +576,15 @@ sub snmputils_dlink_ip_mac_port  {
   	my @ip_arr = @{ $info{PORT}{$port} };
   	my $ips_count  = $#ip_arr;
   	
+
+  	
     $table->addtd(
-             $table->td($up_channel_name,    { rowspan => $ips_count + 1 } ),
+             $table->td($port,    { rowspan => $ips_count + 1 } ),
              $table->td($THREE_MODE{$state}, { bgcolor => $_COLORS[1], rowspan => $ips_count + 1  }), 
-             $table->td($ip_arr{0}),
-             $table->td($info{MAC}{"$ip_arr{0}"}),
-             $table->td($info{ACTIVE}{"$ip_arr{0}"}),
-             $table->td($info{MODE}{"$ip_arr{0}"}),
+             $table->td($ip_arr[0]),
+             $table->td($info{MAC}{"$ip_arr[0]"}),
+             $table->td($info{ACTIVE}{"$ip_arr[0]"}),
+             $table->td($info{MODE}{"$ip_arr[0]"}),
              $table->td($html->button('(P)', "")),
              $table->td($html->button('(H)', ""))
       );
@@ -591,10 +593,10 @@ sub snmputils_dlink_ip_mac_port  {
    for(my $i=1;  $i<=$#ip_arr; $i++) { 
      print $ip_arr{$i};
      $table->addrow(
-             $ip_arr{$i},
-             $info{MAC}{"$ip_arr{$i}"},
-             $info{ACTIVE}{"$ip_arr{$i}"},
-             $info{MODE}{"$ip_arr{$i}"},
+             $ip_arr[$i],
+             $info{MAC}{"$ip_arr[$i]"},
+             $info{ACTIVE}{"$ip_arr[$i]"},
+             $info{MODE}{"$ip_arr[$i]"},
              $html->button('(P)', ""),
              $html->button('(H)', "")
             );  
