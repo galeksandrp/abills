@@ -560,6 +560,7 @@ sub snmputils_dlink_ip_mac_port  {
   	   }
   	  elsif ($1 == 2) {
   	  	$info{$PREFIX{MAC}}{$2}=join(':', unpack("H2H2H2H2H2H2", $3));
+  	    print "MAC<br>";
   	   }
   	  elsif ($PREFIX{$1}) {
   		  $info{$PREFIX{$1}}{$2}=$3;
