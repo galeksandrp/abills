@@ -400,7 +400,13 @@ sub snmputils_dlink_ip_mac_port  {
   
   my $SNMP_COMMUNITY = $attr->{SNMP_COMMUNITY} || '';
   my $message = '';
-     
+  
+  my %MAIN_OPTIONS = (enable_mode  => '.1.3.6.1.4.1.171.11.64.1.2.7.4.0',  # enable_mode
+                      loging_mode  => '.1.3.6.1.4.1.171.11.64.1.2.7.5.0',  # Loging
+                      acl_ip_mac   => '.1.3.6.1.4.1.171.11.64.1.2.7.6.0'   # ACL IP MAC 
+                      );
+
+  
   if ($FORM{add}) {
      my $ip   = $FORM{IP};
      my $port = $FORM{PORT};
@@ -476,6 +482,14 @@ sub snmputils_dlink_ip_mac_port  {
   elsif($FORM{chg}) {
   	
    }
+  elsif ($FORM{MAIN_CONF}) {
+  	
+    if(snmpset($SNMP_COMMUNITY, "$MAIN_OPTIONS{$FORM{MAIN_CONF}}", "integer", "$FORM{key}")) {
+   	  $message .= "Ok\n";
+     }
+
+    print $html->message('info', $_INFO, "$FORM{MAIN_CONF} $MAIN_OPTIONS{$FORM{MAIN_CONF}} $message");
+   }
   elsif ($FORM{del}) {
     #delete 
     if(snmpset($SNMP_COMMUNITY, "1.3.6.1.4.1.171.11.64.1.2.7.2.1.3.$ip", "integer", "6")) {
@@ -493,10 +507,6 @@ sub snmputils_dlink_ip_mac_port  {
                     2 => $_ENABLE,
                     3 => $_DISABLE );
                     
-  my %MAIN_OPTIONS = (enable_mode  => '.1.3.6.1.4.1.171.11.64.1.2.7.4.0',  # enable_mode
-                      loging_mode  => '.1.3.6.1.4.1.171.11.64.1.2.7.5.0',  # Loging
-                      acl_ip_mac   => '.1.3.6.1.4.1.171.11.64.1.2.7.6.0'   # ACL IP MAC 
-                      );
   my $MAIN_VALUE = ();
 
   my $table = $html->table({ width       => '100%',
@@ -513,7 +523,8 @@ sub snmputils_dlink_ip_mac_port  {
     else {
       $table->addrow($key, 
         $THREE_MODE{int($MAIN_VALUE{$key})}, 
-        $html->button(($MAIN_VALUE{$key} != 2) ? $_ENABLE : $_DISABLE, "index=$index&NAS_ID=$FORM{NAS_ID}&TYPE=$FORM{TYPE}&SHOW=1&MAIN_CONF=$key&key=". (($MAIN_VALUE{$key} != 2) ? 3 : 2) )
+        $html->button(($MAIN_VALUE{$key} != 2) ? $_ENABLE : $_DISABLE, 
+          "index=$index&NAS_ID=$FORM{NAS_ID}&TYPE=$FORM{TYPE}&SHOW=1&MAIN_CONF=$key&key=". (($MAIN_VALUE{$key} != 2) ? 3 : 2) )
        );
      }
   }
@@ -588,7 +599,7 @@ sub snmputils_dlink_ip_mac_port  {
              $ip_arr[$i],
              $info{MAC}{"$ip_arr[$i]"},
              $THREE_MODE{$info{ACTIVE}{"$ip_arr[$i]"}},
-             $MODES($info{MODE}{"$ip_arr[$i]"}),
+             $MODES{$info{MODE}{"$ip_arr[$i]"}},
              $html->button('', ""),
              $html->button($_DEL, "index=$index&del=$ip_arr[0]&NAS_ID=$FORM{NAS_ID}&TYPE=$FORM{TYPE}&SHOW=1")
             );  
