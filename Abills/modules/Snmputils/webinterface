@@ -406,19 +406,19 @@ sub snmputils_dlink_ip_mac_port  {
   if(my $version  = snmpget($SNMP_COMMUNITY, ".1.3.6.1.2.1.1.1.0")) {
     print $version;
     if ($version =~ /DES-3550/ ) {
-      $oid_prefix = '1.3.6.1.4.1.171.11.64.2.2.7.';
+      $oid_prefix = '.1.3.6.1.4.1.171.11.64.2.2.7.';
      }
     elsif ($version =~ /DES-3828/) {
-  	  $oid_prefix = '1.3.6.1.4.1.171.11.69.1.2.7.';
+  	  $oid_prefix = '.1.3.6.1.4.1.171.11.69.1.2.7.';
      }
     elsif ($version =~ /DES-3828DC/) {
-  	  $oid_prefix = '1.3.6.1.4.1.171.11.69.2.2.7.';
+  	  $oid_prefix = '.1.3.6.1.4.1.171.11.69.2.2.7.';
      }
     elsif ($version =~ /DES-3828P/) {
-  	  $oid_prefix = '1.3.6.1.4.1.171.11.69.3.2.7.';
+  	  $oid_prefix = '.1.3.6.1.4.1.171.11.69.3.2.7.';
      }
     elsif ($version =~ /DES-3852/) {
-  	  $oid_prefix = '1.3.6.1.4.1.171.11.69.4.2.7.';
+  	  $oid_prefix = '.1.3.6.1.4.1.171.11.69.4.2.7.';
      }
    }
   else {
@@ -487,7 +487,6 @@ sub snmputils_dlink_ip_mac_port  {
 
 
      #Шаг 4. Задать режим связки IP MAC Port Binding (ARP / ACL):
-     #.1.3.6.1.4.1.171.11.64.1.2.7.2.1.6.$ip i 1";
      my $mode = ($FORM{ACL_IP_MAC}) ? 1 : 0;
      $message .= $oid_prefix."2.1.6.$ip => 1\n";
      if(snmpset($SNMP_COMMUNITY, $oid_prefix."2.1.6.$ip", "integer", $mode)) {
@@ -495,7 +494,6 @@ sub snmputils_dlink_ip_mac_port  {
        }
 
      #Шаг 5. Включить IP-MAC-Port Binding на этом порту:
-     #.1.3.6.1.4.1.171.11.64.1.2.7.1.1.2.1 i 2";
      $message .= $oid_prefix."1.1.2.$port => 2\n";
      if(snmpset($SNMP_COMMUNITY, $oid_prefix."1.1.2.$port", "integer", "2")) {
      	  $message .= "Ok\n";
@@ -563,8 +561,7 @@ sub snmputils_dlink_ip_mac_port  {
                           title       => ["$_PORT", "$_STATE", "IP", "MAC", "$_STATUS", "_MODE", "-", "-"],
                           cols_align  => ['left', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'center'],
                       });
-  my @result_ports = &snmpwalk("$SNMP_COMMUNITY", $prefix . "1.1.2");
-
+  my @result_ports = &snmpwalk("$SNMP_COMMUNITY", $oid_prefix . "1.1.2");
   my %PREFIX  = ( 1 => 'IP',
                   2 => 'MAC',
                   4 => 'PORT',
@@ -573,8 +570,8 @@ sub snmputils_dlink_ip_mac_port  {
   my %info = ();
 
   #Full list
-  my @result = &snmpwalk("$SNMP_COMMUNITY", $oid_prefix ."2.1");
-                                             print $oid_prefix ."2.1";
+  my @result = &snmpwalk("$SNMP_COMMUNITY", $oid_prefix .'1.1.2');
+                                             
   foreach my $line (@result) {
     #print "$line<br>\n";
     if($line =~ /(\d)\.(\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3}):(.+)/) {
@@ -597,14 +594,14 @@ sub snmputils_dlink_ip_mac_port  {
    }
 
   
-
+  my @ports = ();
   my %MODES = (0 => 'ARP', 1 => 'ACL' );
   foreach my $line (@result_ports) {
   	my ($port, $state) = split(/:/, $line, 2);
   	my @ip_arr = @{ $info{PORT}{$port} };
   	my $ips_count  = $#ip_arr;
   	
-
+    push @ports, $port;
   	
     $table->addtd(
              $table->td($port,    { rowspan => $ips_count + 1 } ),
@@ -633,6 +630,14 @@ sub snmputils_dlink_ip_mac_port  {
 
  
   print $table->show();
+ 
+  $Snmputils->{PORT_SEL}=$html->form_select('PORT', 
+                                          { 
+ 	                                          SELECTED   => $FORM{PORT},
+ 	                                          SEL_ARRAY  => \@ports,
+                                            NO_ID      => 1
+                                          });
+  
  
   $html->tpl_show(_include('snmputils_ip_mac_port', 'Snmputils'), { %$Snmputils, %FORM }); 
   

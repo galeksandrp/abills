@@ -4,7 +4,7 @@
 <input type='hidden' name='TYPE' value='$FORM{TYPE}'>
 <input type='hidden' name='SHOW' value='1'>
 <table>
-<tr><td>$_PORT:</td><td><input type=text name=PORT value='%PORT%'></td></tr>
+<tr><td>$_PORT:</td><td>%PORT_SEL%</td></tr>
 <tr><td>IP:</td><td><input type=text name=IP value='%IP%'></td></tr>
 <tr><td>MAC:</td><td><input type=text name=MAC value='%MAC%'></td></tr>
 <tr><td>ACL_IP_MAC:</td><td><input type=checkbox name=ACL_IP_MAC value='1' %ACL_IP_MAC%></td></tr>
