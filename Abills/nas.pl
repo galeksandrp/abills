@@ -52,7 +52,7 @@ sub hangup {
     #hangup_mikrotik_telnet($NAS, $PORT, $USER);
   }
  elsif ($nas_type eq 'usr') {
-   hangup_snmp($NAS, $PORT, { OID   => '.1.3.6.1.4.1.429.4.10.13.'. ($PORT + 2),
+   hangup_snmp($NAS, $PORT, { OID   => '.1.3.6.1.4.1.429.4.10.13.'. $PORT,
    	                          TYPE  => 'integer',
    	                          VALUE => 9 });
   }
@@ -708,8 +708,9 @@ sub hangup_pppd {
    use IO::Socket;
 
    my $remote = IO::Socket::INET -> new(Proto    => "tcp", 
-                                        PeerAddr => "$IP",
-                                        PeerPort => $mng_port )
+                                        PeerAddr => "$ip",
+                                        PeerPort => $mng_port 
+                                        )
     or die "cannot connect to rmstats port at $ip:$mng_port $!\n";
 
    print $remote "$IP\n";
