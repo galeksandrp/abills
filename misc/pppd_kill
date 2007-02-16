@@ -26,8 +26,16 @@ else
 fi
 fi
 
-  INTERFACE=`ifconfig | awk -v RS='\n\n'  "/$IP_ADDR / {print \\$1}"` 
-  PPP_PID=`cat /var/run/$INTERFACE.pid` 
+IP_STRIP=`echo "$IP_ADDR" | /usr/bin/tr -d '\r'` 
 
-  kill -1 $PPP_PID
-  echo "killed PID: $PPP_PID INTERFACE: $INTERFACE  IP: ${IP_ADDR}"
+# only one from following two strings must be uncommented 
+INTERFACE=`/sbin/ifconfig | /bin/awk -v RS='\n\n'  "/$IP_STRIP / {print \\$1}"` 
+
+# INTERFACE=`/sbin/ip a | /bin/grep $IP_STRIP/32 | /usr/bin/tr -s ' ' | /bin/cut -f 8 -d ' '` 
+
+PPP_PID=`cat /var/run/$INTERFACE.pid` 
+kill -1 $PPP_PID 
+
+echo "killed PID: $PPP_PID INTERFACE: $INTERFACE  IP: $IP_STRIP" 
+
+
