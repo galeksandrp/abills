@@ -569,8 +569,9 @@ sub snmputils_dlink_ip_mac_port  {
     }
    }
 
+  
 
-
+  my %MODES = (1 => 'ARP', 2 => 'ACL' );
   foreach my $line (@result_ports) {
   	my ($port, $state) = split(/:/, $line, 2);
   	my @ip_arr = @{ $info{PORT}{$port} };
@@ -583,10 +584,10 @@ sub snmputils_dlink_ip_mac_port  {
              $table->td($THREE_MODE{$state}, { bgcolor => $_COLORS[1], rowspan => $ips_count + 1  }), 
              $table->td($ip_arr[0]),
              $table->td($info{MAC}{"$ip_arr[0]"}),
-             $table->td($info{ACTIVE}{"$ip_arr[0]"}),
-             $table->td($info{MODE}{"$ip_arr[0]"}),
+             $table->td( $THREE_MODE{$info{ACTIVE}{"$ip_arr[0]"}} ),
+             $table->td( $MODES{$info{MODE}{"$ip_arr[0]"}} ),
              $table->td($html->button('(P)', "")),
-             $table->td($html->button('(H)', ""))
+             $table->td($html->button($_DEL, "index=$index&del=$ip_arr[0]"))
       );
 
 
@@ -595,10 +596,10 @@ sub snmputils_dlink_ip_mac_port  {
      $table->addrow(
              $ip_arr[$i],
              $info{MAC}{"$ip_arr[$i]"},
-             $info{ACTIVE}{"$ip_arr[$i]"},
+             $THREE_MODE{$info{ACTIVE}{"$ip_arr[$i]"}},
              $info{MODE}{"$ip_arr[$i]"},
-             $html->button('(P)', ""),
-             $html->button('(H)', "")
+             $html->button('', ""),
+             $html->button($_DEL, "")
             );  
     }
 

@@ -51,6 +51,11 @@ sub hangup {
     radius_disconnect($NAS, $PORT, $USER);
     #hangup_mikrotik_telnet($NAS, $PORT, $USER);
   }
+ elsif ($nas_type eq 'usr') {
+   hangup_snmp($NAS, $PORT, { OID   => '.1.3.6.1.4.1.429.4.10.13.'. ($PORT + 2),
+   	                          TYPE  => 'integer',
+   	                          VALUE => 9 });
+  }
  elsif ($nas_type eq 'cisco')  {
  	  hangup_cisco($NAS, $PORT, { USER => $USER });
   }
@@ -200,7 +205,6 @@ foreach my $line (@$commands) {
 
 #**********************************************************
 #
-#
 #**********************************************************
 sub telnet_cmd2 {
  my($host, $commands, $attr)=@_;
@@ -313,6 +317,7 @@ sub hangup_pm25 {
 }
 
 
+
 #####################################################################
 # USR Netserver 8/16
 #*******************************************************************
@@ -386,6 +391,27 @@ sub stats_dslmax {
   $stats{in} = $in;
   $stats{out} = $out;
   return %stats;
+}
+
+#**********************************************************
+# Base SNMP set hangup function
+#**********************************************************
+sub hangup_snmp {
+	my ($NAS, $PORT, $attr) = @_;
+
+	my $oid  = $attr->{OID};
+  my $type = $attr->{TYPE} || 'integer';
+  my $value  = $attr->{VALUE};
+
+  log_print('LOG_DEBUG', "SNMPSET: $NAS->{NAS_MNG_PASSWORD}\@$NAS->{NAS_IP} $oid $type $value");  
+	my $result = snmpset("$NAS->{NAS_MNG_PASSWORD}\@$NAS->{NAS_IP}", "$oid", "$type", $value);
+
+  if ($SNMP_Session::errmsg) {
+    log_print('LOG_ERR', "$SNMP_Session::errmrnings / $SNMP_Session::errmsg");
+   }
+
+	
+  return $result;
 }
 
 #*******************************************************************
