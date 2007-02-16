@@ -458,8 +458,9 @@ sub snmputils_dlink_ip_mac_port  {
 
      #Шаг 4. Задать режим связки IP MAC Port Binding (ARP / ACL):
      #.1.3.6.1.4.1.171.11.64.1.2.7.2.1.6.$ip i 1";
+     my $mode = ($FORM{ACL_IP_MAC}) ? 1 : 0;
      $message .= ".1.3.6.1.4.1.171.11.64.1.2.7.2.1.6.$ip => 1\n";
-     if(snmpset($SNMP_COMMUNITY, ".1.3.6.1.4.1.171.11.64.1.2.7.2.1.6.$ip", "integer", "1")) {
+     if(snmpset($SNMP_COMMUNITY, ".1.3.6.1.4.1.171.11.64.1.2.7.2.1.6.$ip", "integer", $mode)) {
      	  $message .= "Ok\n";
        }
 
@@ -571,7 +572,7 @@ sub snmputils_dlink_ip_mac_port  {
 
   
 
-  my %MODES = (1 => 'ARP', 2 => 'ACL' );
+  my %MODES = (0 => 'ARP', 1 => 'ACL' );
   foreach my $line (@result_ports) {
   	my ($port, $state) = split(/:/, $line, 2);
   	my @ip_arr = @{ $info{PORT}{$port} };
@@ -587,7 +588,7 @@ sub snmputils_dlink_ip_mac_port  {
              $table->td( $THREE_MODE{$info{ACTIVE}{"$ip_arr[0]"}} ),
              $table->td( $MODES{$info{MODE}{"$ip_arr[0]"}} ),
              $table->td($html->button('(P)', "")),
-             $table->td($html->button($_DEL, "index=$index&del=$ip_arr[0]"))
+             $table->td($html->button($_DEL, "index=$index&del=$ip_arr[0]&NAS_ID=$FORM{NAS_ID}&TYPE=$FORM{TYPE}&SHOW=1"))
       );
 
 
@@ -597,9 +598,9 @@ sub snmputils_dlink_ip_mac_port  {
              $ip_arr[$i],
              $info{MAC}{"$ip_arr[$i]"},
              $THREE_MODE{$info{ACTIVE}{"$ip_arr[$i]"}},
-             $info{MODE}{"$ip_arr[$i]"},
+             $MODES($info{MODE}{"$ip_arr[$i]"}),
              $html->button('', ""),
-             $html->button($_DEL, "")
+             $html->button($_DEL, "index=$index&del=$ip_arr[0]&NAS_ID=$FORM{NAS_ID}&TYPE=$FORM{TYPE}&SHOW=1")
             );  
     }
 
