@@ -492,7 +492,7 @@ sub snmputils_dlink_ip_mac_port  {
    }
   elsif ($FORM{del}) {
     #delete 
-    if(snmpset($SNMP_COMMUNITY, "1.3.6.1.4.1.171.11.64.1.2.7.2.1.3.$ip", "integer", "6")) {
+    if(snmpset($SNMP_COMMUNITY, "1.3.6.1.4.1.171.11.64.1.2.7.2.1.3.$FORM{del}", "integer", "6")) {
    	  print $html->message('info', $_INFO, "$_DELETED $ip");
      }
     #delete from block list
@@ -604,23 +604,11 @@ sub snmputils_dlink_ip_mac_port  {
              $html->button($_DEL, "index=$index&del=$ip_arr[0]&NAS_ID=$FORM{NAS_ID}&TYPE=$FORM{TYPE}&SHOW=1")
             );  
     }
-
-  	
-#  	$table->addrow($port, 
-#  	               $THREE_MODE{$state}, 
-#  	               $ip,
-#  	               $info{MAC}{$ip},
-#  	               $info{ACTIVE}{$ip},
-#  	               $info{MODE}{$ip},
-#                   '',
-#  	               $html->button($_DEL, "index=$index&NAS_ID=$FORM{NAS_ID}&TYPE=$FORM{TYPE}&SHOW=1&del=$ip" )
-#  	               );
    }
 
  
   print $table->show();
-  
-  
+ 
   $html->tpl_show(_include('snmputils_ip_mac_port', 'Snmputils'), { %$Snmputils, %FORM }); 
   
   
