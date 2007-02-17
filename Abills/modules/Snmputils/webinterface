@@ -576,8 +576,8 @@ sub snmputils_dlink_ip_mac_port  {
                           title       => ["$_PORT", "$_STATE", "IP", "MAC", "$_STATUS", "_MODE", "-", "-"],
                           cols_align  => ['left', 'center', 'right', 'right', 'right', 'right', 'center', 'center', 'center'],
                       });
-  my @result_ports = &snmpwalk("$SNMP_COMMUNITY", $oid_prefix . ".$oid_sufix{STATE}" );
-  print $oid_prefix . ".$oid_sufix{STATE}";
+  my @result_ports = &snmpwalk("$SNMP_COMMUNITY", $oid_prefix . "$oid_sufix{STATE}" );
+  print $oid_prefix . "$oid_sufix{STATE}";
 
   my %info = ();
   #Full list
