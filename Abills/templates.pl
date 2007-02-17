@@ -628,19 +628,6 @@ return qq{
 </form>
 }
 }
-elsif ($tpl_name eq 'form_binding') {
-return qq{
-<FORM action=$SELF_URL METHOD=POST>
-<input type=hidden name=index value=$index>
-<input type=hidden name=chg value=$FORM{chg}>
-<TABLE>
-<TR><TD>ID:</TD><TD><input type=text name=ID value=%ID%></TD></TR>
-</TABLE>
-<input type="submit" name="%ACTION%" value="%LNG_ACTION%" class="button"/>
-</FORM>
-}
-}
-
 elsif ($tpl_name eq 'users_start') {
 return qq{
 <TABLE width="100%" border="0">

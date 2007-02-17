@@ -2896,7 +2896,6 @@ my @m = (
  "19:15:$_BILL:form_bills:UID::",
  "20:15:$_SERVICES:null:UID::",
  "21:15:$_COMPANY:user_company:UID::",
- "23:15:_BINDING:form_binding:UID::",
  "101:15:$_PAYMENTS:form_payments:UID::",
  "102:15:$_FEES:form_fees:UID::",
 
@@ -4200,16 +4199,6 @@ if(defined($FORM{del}) && defined($FORM{is_js_confirmed})  && $permissions{0}{5}
                         } );
   print $table->show();
 
-}
-
-#**********************************************************
-# binding ID binding
-#**********************************************************
-sub form_binding {
-	my $binding;
-	
-	
-	$html->tpl_show(templates('form_binding'), $binding);
 }
 
 #**********************************************************
