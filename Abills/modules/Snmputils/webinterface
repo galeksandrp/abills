@@ -581,7 +581,7 @@ sub snmputils_dlink_ip_mac_port  {
 
   my %info = ();
   #Full list
-  my @result = &snmpwalk("$SNMP_COMMUNITY", $oid_prefix."$oid_sufix{STATE}");
+  my @result = &snmpwalk("$SNMP_COMMUNITY", $oid_prefix);
   print $oid_prefix."$oid_sufix{STATE}";
                                              
   foreach my $line (@result) {
