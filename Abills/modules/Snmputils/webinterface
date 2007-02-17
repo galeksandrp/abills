@@ -420,6 +420,9 @@ sub snmputils_dlink_ip_mac_port  {
     elsif ($version =~ /DES-3852/) {
   	  $oid_prefix = '.1.3.6.1.4.1.171.11.69.4.2.7.';
      }
+    elsif ($version =~ /DES-30/) {
+  	  $oid_prefix = '.1.3.6.1.4.1.171.12.23.3.2.1.2.';
+     }
    }
   else {
   	$html->message('err', $_ERROR, "$SNMP_Session::suppress_warnings / $SNMP_Session::errmsg");
