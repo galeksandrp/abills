@@ -510,7 +510,7 @@ sub snmputils_dlink_ip_mac_port  {
        }
 
      #Ўаг 5. ¬ключить IP-MAC-Port Binding на этом порту:
-     $message .= $oid_prefix.$oid_sufix{STATE}.$port ." => 2\n";
+     $message .= $oid_prefix.$oid_sufix{STATE}.".$port => 2\n";
      if(snmpset($SNMP_COMMUNITY, $oid_prefix.$oid_sufix{STATE}.".$port", "integer", "2")) {
      	  $message .= "Ok\n";
        }
@@ -581,7 +581,8 @@ sub snmputils_dlink_ip_mac_port  {
 
   my %info = ();
   #Full list
-  my @result = &snmpwalk("$SNMP_COMMUNITY", $oid_prefix.".$oid_sufix{STATE}");
+  my @result = &snmpwalk("$SNMP_COMMUNITY", $oid_prefix."$oid_sufix{STATE}");
+  print $oid_prefix."$oid_sufix{STATE}";
                                              
   foreach my $line (@result) {
     #print "$line<br>\n";
