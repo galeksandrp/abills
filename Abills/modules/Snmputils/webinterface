@@ -401,8 +401,25 @@ sub snmputils_dlink_ip_mac_port  {
   my $SNMP_COMMUNITY = $attr->{SNMP_COMMUNITY} || '';
   my $message = '';
   
+  
   #Get system version and make prefix
   my $oid_prefix = '.1.3.6.1.4.1.171.11.64.1.2.7.';
+  my %oid_sufix = ('IP'     => '2.1.1.',
+                   'MAC'    => '2.1.2.',
+                   'PORT'   => '2.1.4.',
+                   'ACTIVE' => '2.1.5.',
+                   'MODE'   => '2.1.6.',
+                   'STATE'  => '1.1.2.',
+                   'MAKE'   => '2.1.3.'
+                    );
+  
+  my %PREFIX  = ( 1 => 'IP',
+                  2 => 'MAC',
+                  4 => 'PORT',
+                  5 => 'ACTIVE',
+                  6 => 'MODE') ;
+
+  
   if(my $version  = snmpget($SNMP_COMMUNITY, ".1.3.6.1.2.1.1.1.0")) {
     print $version;
     if ($version =~ /DES-3550/ ) {
@@ -422,6 +439,7 @@ sub snmputils_dlink_ip_mac_port  {
      }
     elsif ($version =~ /DES-30/) {
   	  $oid_prefix = '.1.3.6.1.4.1.171.12.23.3.';
+  	  $oid_sufix = (STATE => '2.1.2');
      }
    }
   else {
@@ -440,16 +458,12 @@ sub snmputils_dlink_ip_mac_port  {
      my $port = $FORM{PORT};
      my $mac  = $FORM{MAC};
      
-
      #Шаг 1. Задать IP-адрес связки:
-     $message .= $oid_prefix."2.1.3.$ip => 4\n ";
-     if(snmpset($SNMP_COMMUNITY, $oid_prefix."2.1.3.$ip", "integer", "4")) {
+     $message .= $oid_prefix.$oid_sufix{MAKE}.$ip ." => 4\n ";
+     if(snmpset($SNMP_COMMUNITY, $oid_prefix.$oid_sufix{MAKE}.$ip, "integer", "4")) {
      	  $message .= " Ok\n";
        }
-
      #Шаг 2. Назначить эту связку на порт 1:
-     #.1.3.6.1.4.1.171.11.64.1.2.7.2.1.4.$ip x $port";
-     
      #Convert to D-Link port value
      my $first_port = 0b10000000000000000000000000000000;
      my $port_binding = ($port > 1) ? $first_port >> $port - 1 : $first_port;
@@ -460,10 +474,8 @@ sub snmputils_dlink_ip_mac_port  {
        $port_binding .= chr(hex($c));
       }
      
-     print @ar;
-     
-     $message .= $oid_prefix."2.1.4.$ip => $port_binding\n";
-     if(snmpset($SNMP_COMMUNITY, $oid_prefix."2.1.4.$ip", "string", "$port_binding")) {
+     $message .= $oid_prefix.$oid_sufix{PORT}.$ip ." => $port_binding\n";
+     if(snmpset($SNMP_COMMUNITY, $oid_prefix.$oid_sufix{PORT}.$ip, "string", "$port_binding")) {
      	  $message .= "Ok\n";
        }
      else {
@@ -471,17 +483,14 @@ sub snmputils_dlink_ip_mac_port  {
       }
 
      #Шаг 3. Задать MAC-адрес (AA-BB-CC-DD-EE-FF) связки:
-     #.1.3.6.1.4.1.171.11.64.1.2.7.2.1.2.$ip x $mac";
-     
      my @mac_arr = split(/:|-/, $mac);
      $mac = '';
      foreach my $c (@mac_arr) {
      	 $mac .= chr(hex($c));
       }
 
-     $message .= $oid_prefix."2.1.2.$ip => $mac\n";
-     #my $mac1 = 
-     if(snmpset($SNMP_COMMUNITY, $oid_prefix."2.1.2.$ip", "string", "$mac")) {
+     $message .= $oid_prefix.$oid_sufix{MAC}.$ip ." => $mac\n";
+     if(snmpset($SNMP_COMMUNITY, $oid_prefix.$oid_sufix{MAC}.$ip, "string", "$mac")) {
      	  $message .= "Ok\n";
        }
      else {
@@ -491,17 +500,17 @@ sub snmputils_dlink_ip_mac_port  {
 
      #Шаг 4. Задать режим связки IP MAC Port Binding (ARP / ACL):
      my $mode = ($FORM{ACL_IP_MAC}) ? 1 : 0;
-     $message .= $oid_prefix."2.1.6.$ip => 1\n";
-     if(snmpset($SNMP_COMMUNITY, $oid_prefix."2.1.6.$ip", "integer", $mode)) {
+     $message .= $oid_prefix.$oid_sufix.$ip ." => $mode\n";
+     if(snmpset($SNMP_COMMUNITY, $oid_prefix.$oid_sufix{MODE}.$ip, "integer", $mode)) {
      	  $message .= "Ok\n";
        }
 
      #Шаг 5. Включить IP-MAC-Port Binding на этом порту:
-     $message .= $oid_prefix."1.1.2.$port => 2\n";
-     if(snmpset($SNMP_COMMUNITY, $oid_prefix."1.1.2.$port", "integer", "2")) {
+     $message .= $oid_prefix.$oid_sufix{STATE}.$port ." => 2\n";
+     if(snmpset($SNMP_COMMUNITY, $oid_prefix.$oid_sufix{STATE}.$port, "integer", "2")) {
      	  $message .= "Ok\n";
        }
-  
+
      print $html->message('info', $_INFO, "$message");
    }
   elsif($FORM{chg}) {
@@ -517,13 +526,12 @@ sub snmputils_dlink_ip_mac_port  {
    }
   elsif ($FORM{del}) {
     #delete 
-    if(snmpset($SNMP_COMMUNITY, "1.3.6.1.4.1.171.11.64.1.2.7.2.1.3.$FORM{del}", "integer", "6")) {
+    if(snmpset($SNMP_COMMUNITY, $oid_prefix.$oid_sufix{MAKE}.$FORM{del}, "integer", "6")) {
    	  print $html->message('info', $_INFO, "$_DELETED $ip");
      }
     #delete from block list
     # Delete from block list decimal mac
     # 1.3.6.1.4.1.171.11.64.1.2.7.3.1.5.1.$mac i 3 
-
 
    }
   
@@ -540,7 +548,6 @@ sub snmputils_dlink_ip_mac_port  {
                            });
 
   while(my($key, $value)= each %MAIN_OPTIONS) {
-    #1.3.6.1.4.1.171.11.64.1.2.7.4.0
     $MAIN_VALUE{$key} = snmpget("$SNMP_COMMUNITY", "$value") || 0;
     if (! $MAIN_VALUE{$key}) {
   	  $html->message("info", $_INFO, "'$key':$value  _NOT_SUPPORT");
@@ -564,17 +571,12 @@ sub snmputils_dlink_ip_mac_port  {
                           title       => ["$_PORT", "$_STATE", "IP", "MAC", "$_STATUS", "_MODE", "-", "-"],
                           cols_align  => ['left', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'center'],
                       });
-  my @result_ports = &snmpwalk("$SNMP_COMMUNITY", $oid_prefix . "1.1.2");
+  my @result_ports = &snmpwalk("$SNMP_COMMUNITY", $oid_prefix . $oid_sufix{STATE} );
   print $oid_prefix . "1.1.2";
-  my %PREFIX  = ( 1 => 'IP',
-                  2 => 'MAC',
-                  4 => 'PORT',
-                  5 => 'ACTIVE',
-                  6 => 'MODE') ;
   my %info = ();
 
   #Full list
-  my @result = &snmpwalk("$SNMP_COMMUNITY", $oid_prefix .'1.1.2');
+  my @result = &snmpwalk("$SNMP_COMMUNITY", $oid_prefix.$oid_sufix{STATE});
                                              
   foreach my $line (@result) {
     #print "$line<br>\n";
