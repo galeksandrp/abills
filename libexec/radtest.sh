@@ -15,9 +15,10 @@ if [ t$1 = 'tauth' ] ; then
         USER_NAME="aa1"\
         USER_PASSWORD="test12345"\
         NAS_IP_ADDRESS=192.168.202.13 \
-        CISCO_AVPAIR="connect-progress=LAN Ses Up" \
-        CISCO_AVPAIR="client-mac-address=000f.ea3d.92ef"
-#         CALLING_STATION_ID="10.10.10.2" \
+        CALLING_STATION_ID="00-0D-88-42-87-7E"
+#        CISCO_AVPAIR="connect-progress=LAN Ses Up" \
+#        CISCO_AVPAIR="client-mac-address=000f.ea3d.92ef"\
+         CALLING_STATION_ID="00-0D-88-42-87-7E" 
 #        NAS-Port-Type = Virtual \
 #        CALLED_STATION_ID="00-09-E8-62-B3-4D" \
 #        CALLING_STATION_ID="10.10.10.2"

@@ -547,7 +547,7 @@ sub Auth_CID {
          ($cid_ip, $RAD->{CALLING_STATION_ID}, $trash) = split(/\//, $RAD->{CALLING_STATION_ID}, 3);
        }
 
-      my @MAC_DIGITS_NEED = split(/:|\./, $RAD->{CALLING_STATION_ID});
+      my @MAC_DIGITS_NEED = split(/:|\.|-/, $RAD->{CALLING_STATION_ID});
 
       for(my $i=0; $i<=5; $i++) {
         if(hex($MAC_DIGITS_NEED[$i]) != hex($MAC_DIGITS_GET[$i])) {
