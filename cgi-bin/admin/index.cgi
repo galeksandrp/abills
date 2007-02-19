@@ -2309,8 +2309,10 @@ $html->tpl_show(templates('form_nas'), $nas);
 
 my $table = $html->table( { width      => '100%',
                             caption    => "$_NAS",
-                            title      => ["ID", "$_NAME", "NAS-Identifier", "IP", "$_TYPE", "$_AUTH", "$_STATUS", '-', '-', '-'],
-                            cols_align => ['center', 'left', 'left', 'right', 'left', 'left', 'center', 'center:noprint', 'center:noprint', 'center:noprint'],
+                            title      => ["ID", "$_NAME", "NAS-Identifier", "IP", "$_TYPE", "$_AUTH", 
+                             "$_STATUS", "$_DESCRIBE", '-', '-', '-'],
+                            cols_align => ['center', 'left', 'left', 'right', 'left', 'left', 'center', 'left', 
+                              'center:noprint', 'center:noprint', 'center:noprint'],
                            });
 
 my $list = $nas->list({ %LIST_PARAMS });
@@ -2321,6 +2323,7 @@ foreach my $line (@$list) {
     $line->[2], 
     $line->[3], $line->[4], $auth_types[$line->[5]], 
     $status[$line->[6]],
+    $line->[7],
     $html->button("IP POOLs", "index=61&NAS_ID=$line->[0]"),
     $html->button("$_CHANGE", "index=60&NAS_ID=$line->[0]"),
     $delete);
