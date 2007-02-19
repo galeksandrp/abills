@@ -3721,7 +3721,7 @@ sub form_templates {
 $info{ACTION_LNG}=$_CREATE;
 
 if ($FORM{create}) {
-   
+   $FORM{create} =~ s/ |\///g;
    my ($module, $file)=split(/:/, $FORM{create}, 2);
    $info{TPL_NAME} = "$module"._."$file";
   
@@ -3733,10 +3733,6 @@ if ($FORM{create}) {
 	    }	 
 	  close(FILE);
    }
-
-   
-
-   
  }
 elsif ($FORM{change}) {
   my $FORM2  = ();
@@ -3765,6 +3761,15 @@ elsif ($FORM{change}) {
 	close(FILE);
 
 	$html->message('info', $_INFO, "$_CHANGED");
+}
+elsif ($FORM{del} && $FORM{is_js_confirmed} ) {
+  $FORM{del} =~ s/ |\///g;
+  if(unlink("$conf{TPL_DIR}/$FORM{del}") == 1 ) {	
+	  $html->message('info', $_DELETED, "$_DELETED: '$FORM{del}'");
+	 }
+  else {
+  	$html->message('del', $_DELETED, "$_ERROR");
+   }
 }
 elsif($FORM{tpl_name}) {
   if (-f  "$conf{TPL_DIR}/$FORM{tpl_name}" ) {
@@ -3820,10 +3825,9 @@ foreach my $module (@MODULES) {
       next if (-d "$sys_templates/$module/templates/".$file);
 
       my ($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size,$atime,$mtime,$ctime,$blksize,$blocks)=stat("$sys_templates/$module/templates/".$file);
-
       $table->addrow("$file", $size, 
-         (-f "$conf{TPL_DIR}/$module_$file") ? $html->button($_CHANGE, "index=$index&tpl_name=$module_$file") : $html->button($_CREATE, "index=$index&create=$module:$file"),
-         (-f "$conf{TPL_DIR}/$module_$file") ? $html->button($_DEL, "index=$index&delete=$module_$file") : '');
+         (-f "$conf{TPL_DIR}/$module"."_$file") ? $html->button($_CHANGE, "index=$index&tpl_name=$module_$file") : $html->button($_CREATE, "index=$index&create=$module:$file"),
+         (-f "$conf{TPL_DIR}/$module"."_$file") ? $html->button($_DEL, "index=$index&del=$module". "_$file", { MESSAGE => "$_DEL $file" }) : '');
      }
 
    }
