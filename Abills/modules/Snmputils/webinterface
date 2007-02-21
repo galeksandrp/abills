@@ -660,7 +660,34 @@ sub snmputils_dlink_ip_mac_port  {
   
  
   $html->tpl_show(_include('snmputils_ip_mac_port', 'Snmputils'), { %$Snmputils, %FORM }); 
+ 
+ 
+ 
+  $table = $html->table({ width       => '100%',
+                          caption     => "$_BLOCKED",
+                          border      => 1,
+                          title       => ["ID", "$_PORT", "VID", "IP", "MAC", "$_STATUS", "-"],
+                          cols_align  => ['left', 'center', 'right', 'right', 'right', 'right', 'center', 'center', 'center'],
+                      });
+ 
+  #Blocked address
+  @result = &snmpwalk("$SNMP_COMMUNITY", $oid_prefix.'3.1');
+  my %BLOCK_HASH = ();
+  foreach my $line (@result) {
+  	if($line =~ /(\d)\.\d\.(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(.+)/ ) {
+  	  $BLOCK_HASH{$2}{$1}=$3;
+     }
+   }
   
+  
+  while(my($key, $val) = each %BLOCK_HASH) {
+  	$table->addrow("$key", 
+  	               $BLOCK_HASH{$key}{4},
+  	               $BLOCK_HASH{$key}{3},
+  	               $BLOCK_HASH{$key}{5}
+  	              );
+   }
+ print $table->show(); 
   
 }
 
