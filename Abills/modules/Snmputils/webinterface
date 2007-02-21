@@ -666,7 +666,7 @@ sub snmputils_dlink_ip_mac_port  {
   $table = $html->table({ width       => '100%',
                           caption     => "$_BLOCKED",
                           border      => 1,
-                          title       => ["ID", "$_PORT", "VID", "IP", "MAC", "$_STATUS", "-"],
+                          title       => ["ID", "$_PORT", "MAC", "VID", "-"],
                           cols_align  => ['left', 'center', 'right', 'right', 'right', 'right', 'center', 'center', 'center'],
                       });
  
@@ -681,10 +681,12 @@ sub snmputils_dlink_ip_mac_port  {
   
   
   while(my($key, $val) = each %BLOCK_HASH) {
-  	$table->addrow("$key", 
+  	$table->addrow($BLOCK_HASH{$key}{1}, 
   	               $BLOCK_HASH{$key}{4},
+  	               join(':', unpack("H2H2H2H2H2H2", $BLOCK_HASH{$key}{2})),
   	               $BLOCK_HASH{$key}{3},
-  	               $BLOCK_HASH{$key}{5}
+  	               $BLOCK_HASH{$key}{5},
+  	               $html->button($_DEL, "index=$index&del=$key&NAS_ID=$FORM{NAS_ID}&TYPE=$FORM{TYPE}&SHOW=1")
   	              );
    }
  print $table->show(); 
