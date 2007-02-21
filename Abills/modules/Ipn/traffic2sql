@@ -203,8 +203,8 @@ if ($Ipn->{INTERIM}{$ip}) {
       
 
      #Get price and calculate traffic
-     my $price_in = ( defined($intervals->{$user_tp_interval}->{ZONES}->{0}->{PriceIn}) ) ? $intervals->{$user_tp_interval}->{ZONES}->{0}->{PriceIn} : 0;
-     my $price_out = ( defined($intervals->{$user_tp_interval}->{ZONES}->{0}->{PriceOut}) ) ? $intervals->{$user_tp_interval}->{ZONES}->{0}->{PriceOut} : 0;
+     my $price_in = ( defined($intervals->{$user_tp_interval}->{ZONES}->{$k}->{PriceIn}) ) ? $intervals->{$user_tp_interval}->{ZONES}->{$k}->{PriceIn} : 0;
+     my $price_out = ( defined($intervals->{$user_tp_interval}->{ZONES}->{$k}->{PriceOut}) ) ? $intervals->{$user_tp_interval}->{ZONES}->{$k}->{PriceOut} : 0;
 
      
      my $sum_in = ($price_in > 0) ? $in / $conf{KBYTE_SIZE} / $conf{KBYTE_SIZE} * $price_in  : 0; 
