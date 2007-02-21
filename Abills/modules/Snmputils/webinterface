@@ -640,7 +640,7 @@ sub snmputils_dlink_ip_mac_port  {
              $table->td($info{MAC}{"$ip_arr[0]"}),
              $table->td( $THREE_MODE{$info{ACTIVE}{"$ip_arr[0]"}} ),
              $table->td( $MODES{$info{MODE}{"$ip_arr[0]"}} ),
-             $table->td($html->button(($state == 2) ? $THREE_MODE{3} : $THREE_MODE{2}, "index=$index&state=". (($state == 2) ? 3 : 2) )),
+             $table->td($html->button(($state == 2) ? $THREE_MODE{3} : $THREE_MODE{2}, "NAS_ID=$FORM{NAS_ID}&TYPE=$FORM{TYPE}&SHOW=1&index=$index&state=". (($state == 2) ? 3 : 2) )),
              $table->td($html->button($_DEL, "index=$index&del=$ip_arr[0]&NAS_ID=$FORM{NAS_ID}&TYPE=$FORM{TYPE}&SHOW=1"))
       );
 
