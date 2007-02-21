@@ -528,7 +528,7 @@ sub snmputils_dlink_ip_mac_port  {
   elsif($FORM{state}) {
      #Ўаг 5. ¬ключить IP-MAC-Port Binding на этом порту:
      $message .= $oid_prefix.$oid_sufix{STATE}.".$port => 2\n";
-     if(snmpset($SNMP_COMMUNITY, $oid_prefix.$oid_sufix{STATE}.".$port", "integer", "$FORM{state}")) {
+     if(snmpset($SNMP_COMMUNITY, $oid_prefix.$oid_sufix{STATE}.".$FORM{PORT}", "integer", "$FORM{state}")) {
      	  $message .= "Ok\n";
        }
 
@@ -642,7 +642,7 @@ sub snmputils_dlink_ip_mac_port  {
              $table->td($info{MAC}{"$ip_arr[0]"}),
              $table->td( $THREE_MODE{$info{ACTIVE}{"$ip_arr[0]"}} ),
              $table->td( $MODES{$info{MODE}{"$ip_arr[0]"}} ),
-             $table->td($html->button(($state == 2) ? $THREE_MODE{3} : $THREE_MODE{2}, "NAS_ID=$FORM{NAS_ID}&TYPE=$FORM{TYPE}&SHOW=1&index=$index&state=". (($state == 2) ? 3 : 2) )),
+             $table->td($html->button(($state == 2) ? $THREE_MODE{3} : $THREE_MODE{2}, "NAS_ID=$FORM{NAS_ID}&TYPE=$FORM{TYPE}&SHOW=1&index=$index&PORT=$port&state=". (($state == 2) ? 3 : 2) )),
              $table->td($html->button($_DEL, "index=$index&del=$ip_arr[0]&NAS_ID=$FORM{NAS_ID}&TYPE=$FORM{TYPE}&SHOW=1"))
       );
 
