@@ -537,14 +537,20 @@ sub snmputils_dlink_ip_mac_port  {
     print $html->message('info', $_INFO, "$FORM{MAIN_CONF} $MAIN_OPTIONS{$FORM{MAIN_CONF}} $message");
    }
   elsif ($FORM{del}) {
-    #delete 
-    if(snmpset($SNMP_COMMUNITY, $oid_prefix.$oid_sufix{MAKE}.".$FORM{del}", "integer", "6")) {
+    #Delete from block list
+    if ($FORM{del} eq 'block') {
+	    if(snmpset($SNMP_COMMUNITY, $oid_prefix. "1.$FORM{MAC}", "integer", "3")) {
+   	     print $html->message('info', $_INFO, "$_DELETED $FORM{MAC}");
+       }
+     }
+    #delete from binding list
+    elsif(snmpset($SNMP_COMMUNITY, $oid_prefix.$oid_sufix{MAKE}.".$FORM{del}", "integer", "6")) {
    	  print $html->message('info', $_INFO, "$_DELETED $ip");
      }
-    #delete from bl
-    ock list
+    #delete from bl    ock list
     # Delete from block list decimal mac
     # 1.3.6.1.4.1.171.11.64.1.2.7.3.1.5.1.$mac i 3 
+    
 
    }
   
@@ -686,7 +692,7 @@ sub snmputils_dlink_ip_mac_port  {
   	               join(':', unpack("H2H2H2H2H2H2", $BLOCK_HASH{$key}{2})),
   	               $BLOCK_HASH{$key}{3},
   	               $BLOCK_HASH{$key}{5},
-  	               $html->button($_DEL, "index=$index&del=$key&NAS_ID=$FORM{NAS_ID}&TYPE=$FORM{TYPE}&SHOW=1")
+  	               $html->button($_DEL, "index=$index&del=$key&MAC=$key&NAS_ID=$FORM{NAS_ID}&TYPE=$FORM{TYPE}&SHOW=1")
   	              );
    }
  print $table->show(); 
