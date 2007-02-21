@@ -611,8 +611,8 @@ sub snmputils_dlink_ip_mac_port  {
   	    my $port = $3;
         my $ip = $2;
         my $string = unpack("B32",  $port);
+        print "Port: $string<br>";
         if ( $string =~ m/1/g ) {
-          print "Port: $string<br>";
           $port =  pos($string);
          }
   	  	push @{ $info{PORT}{$port} },  $ip;
