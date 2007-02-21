@@ -531,6 +531,8 @@ sub snmputils_dlink_ip_mac_port  {
      if(snmpset($SNMP_COMMUNITY, $oid_prefix.$oid_sufix{STATE}.".$port", "integer", "$FORM{state}")) {
      	  $message .= "Ok\n";
        }
+
+     print $html->message('info', $_INFO, "$message");
    }
   elsif ($FORM{MAIN_CONF}) {
   	
