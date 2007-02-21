@@ -525,8 +525,12 @@ sub snmputils_dlink_ip_mac_port  {
 
      print $html->message('info', $_INFO, "$message");
    }
-  elsif($FORM{chg}) {
-  	
+  elsif($FORM{state}) {
+     #Ўаг 5. ¬ключить IP-MAC-Port Binding на этом порту:
+     $message .= $oid_prefix.$oid_sufix{STATE}.".$port => 2\n";
+     if(snmpset($SNMP_COMMUNITY, $oid_prefix.$oid_sufix{STATE}.".$port", "integer", "$FORM{state}")) {
+     	  $message .= "Ok\n";
+       }
    }
   elsif ($FORM{MAIN_CONF}) {
   	
@@ -636,7 +640,7 @@ sub snmputils_dlink_ip_mac_port  {
              $table->td($info{MAC}{"$ip_arr[0]"}),
              $table->td( $THREE_MODE{$info{ACTIVE}{"$ip_arr[0]"}} ),
              $table->td( $MODES{$info{MODE}{"$ip_arr[0]"}} ),
-             $table->td($html->button('(P)', "")),
+             $table->td($html->button(($state == 2) ? $THREE_MODE{3} : $THREE_MODE{2}, "index=$index&state=". (($state == 2) ? 3 : 2) )),
              $table->td($html->button($_DEL, "index=$index&del=$ip_arr[0]&NAS_ID=$FORM{NAS_ID}&TYPE=$FORM{TYPE}&SHOW=1"))
       );
 
@@ -692,7 +696,7 @@ sub snmputils_dlink_ip_mac_port  {
   	               join(':', unpack("H2H2H2H2H2H2", $BLOCK_HASH{$key}{2})),
   	               $BLOCK_HASH{$key}{3},
   	               $BLOCK_HASH{$key}{5},
-  	               $html->button($_DEL, "index=$index&del=$key&MAC=$key&NAS_ID=$FORM{NAS_ID}&TYPE=$FORM{TYPE}&SHOW=1")
+  	               $html->button($_DEL, "index=$index&del=block&MAC=$key&NAS_ID=$FORM{NAS_ID}&TYPE=$FORM{TYPE}&SHOW=1")
   	              );
    }
  print $table->show(); 
