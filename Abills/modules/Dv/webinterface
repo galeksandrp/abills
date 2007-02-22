@@ -830,8 +830,8 @@ if ($#arr > -1 ) {
 
 
 my $FIELDS_SEL = $html->form_select('FILTER_FIELD', 
-                                { SELECTED   => $FORM{FILTER_FIELD},
- 	                                SEL_ARRAY  => \@FIELDS_ALL,
+                                { SELECTED      => $FORM{FILTER_FIELD},
+ 	                                SEL_ARRAY     => \@FIELDS_ALL,
  	                                ARRAY_NUM_ID  => 1
  	                               });
 
@@ -1356,7 +1356,6 @@ if (defined($attr->{USER}))	{
   	
   	return 0;
   }
-
 }
 #elsif($FORM{UID}) {
 #	form_users();
@@ -1401,7 +1400,15 @@ if ($FORM{rows}) {
  }
 
 
-#PEriods totals
+if (! $LIST_PARAMS{UID} && $FORM{LOGIN_EXPR}) {
+  my $users = Users->new($db, $admin, \%conf); 
+  my $list = $users->list( { LOGIN_EXPR => $FORM{LOGIN_EXPR} } );
+  if ($users->{TOTAL} == 1) {
+	  $LIST_PARAMS{UID}=$list->[0]->[5+$users->{SEARCH_FIELDS_COUNT}];
+   }
+  $pages_qs .= "&UID=$LIST_PARAMS{UID}";
+}
+
 my $list = $sessions->periods_totals({ %LIST_PARAMS });
 my $table = $html->table( { caption     => "$_PERIOD",
 	                          width       => '100%',

@@ -1,7 +1,7 @@
 #$web_interface    = 1;
 # Iner_ID : Main or Sub or if -1 user menu func list
 
-%FUNCTIONS_LIST = ("10:0:IP Net:ipn_form_user:UID"           => 20,
+%FUNCTIONS_LIST = ("10:0:IP Net:ipn_user_activate:UID"           => 20,
                    "11:10:$_ACTIVATE:ipn_user_activate:UID"  => 20,
                    "12:10:$_STATS:ipn_sessions2:UID"         => 20,
                    "22:0:IP Net:null:"                       => 4,

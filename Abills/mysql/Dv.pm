@@ -80,8 +80,9 @@ sub info {
        return $self; 
      }
 
-    $uid             = $users->{UID};
-    $self->{DEPOSIT} = $users->{DEPOSIT}; 
+    $uid              = $users->{UID};
+    $self->{DEPOSIT}  = $users->{DEPOSIT};
+    $self->{ACCOUNT_ACTIVATE} = $users->{ACTIVATE};
     $WHERE =  "WHERE dv.uid='$uid'";
    }
   

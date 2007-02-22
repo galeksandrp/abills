@@ -490,12 +490,12 @@ sub  tt_list {
 	
 	
 	if (defined( $attr->{TI_ID} )) {
-	  $self->query($db, "SELECT id, in_price, out_price, prepaid, in_speed, out_speed, descr, nets
+	  $self->query($db, "SELECT id, in_price, out_price, prepaid, in_speed, out_speed, descr, nets, expression
      FROM trafic_tarifs WHERE interval_id='$attr->{TI_ID}'
      ORDER BY id DESC;");
    }	
 	else {
-	  $self->query($db, "SELECT id, in_price, out_price, prepaid, in_speed, out_speed, descr, nets
+	  $self->query($db, "SELECT id, in_price, out_price, prepaid, in_speed, out_speed, descr, nets, expression
      FROM trafic_tarifs 
      WHERE tp_id='$self->{TP_ID}'
      ORDER BY id;");

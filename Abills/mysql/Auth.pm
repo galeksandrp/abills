@@ -350,7 +350,7 @@ if ($NAS->{NAS_TYPE} eq 'exppp') {
   #$traf_tarif 
   my $EX_PARAMS = $self->ex_traffic_params({ 
   	                                        traf_limit => $traf_limit, 
-                                            deposit => $self->{DEPOSIT},
+                                            deposit    => $self->{DEPOSIT},
                                             MAX_SESSION_TRAFFIC => $MAX_SESSION_TRAFFIC });
 
   #global Traffic
@@ -646,7 +646,7 @@ sub authentication {
 #Auth chap
 if (defined($RAD->{CHAP_PASSWORD}) && defined($RAD->{CHAP_CHALLENGE})) {
   if (check_chap("$RAD->{CHAP_PASSWORD}", "$self->{PASSWD}", "$RAD->{CHAP_CHALLENGE}", 0) == 0) {
-    $RAD_PAIRS{'Reply-Message'}="Wrong CHAP password '$self->{PASSWD}'";
+    $RAD_PAIRS{'Reply-Message'}="Wrong CHAP password";
     return 1, \%RAD_PAIRS;
    }      	 	
  }
@@ -837,18 +837,19 @@ sub ex_traffic_params {
  $EX_PARAMS{traf_limit}=(defined($attr->{traf_limit})) ? $attr->{traf_limit} : 0;
  $EX_PARAMS{traf_limit_lo}=4090;
 
- my %prepaids = ();
- my %speeds = ();
- my %in_prices = ();
- my %out_prices = ();
+ my %prepaids      = ();
+ my %speeds        = ();
+ my %in_prices     = ();
+ my %out_prices    = ();
  my %trafic_limits = ();
- 
+ my %expr          = ();
  
  #get traffic limits
 # if ($traf_tarif > 0) {
    my $nets = 0;
 
-   $self->query($db, "SELECT id, in_price, out_price, prepaid, in_speed, out_speed, LENGTH(nets) FROM trafic_tarifs
+   $self->query($db, "SELECT id, in_price, out_price, prepaid, in_speed, out_speed, LENGTH(nets), expression
+             FROM trafic_tarifs
              WHERE interval_id='$self->{TT_INTERVAL}';");
 
    if ($self->{TOTAL} < 1) {
@@ -865,29 +866,36 @@ sub ex_traffic_params {
      $out_prices{$line->[0]}=$line->[2];
      $EX_PARAMS{speed}{$line->[0]}{IN}=$line->[4];
      $EX_PARAMS{speed}{$line->[0]}{OUT}=$line->[5];
+     $expr{$line->[0]}=$line->[7] if (length($line->[7]) > 5);
      $nets+=$line->[6];
     }
 
    $EX_PARAMS{nets}=$nets if ($nets > 20);
    #$EX_PARAMS{speed}=int($speeds{0}) if (defined($speeds{0}));
 
-if ((defined($prepaids{0}) && $prepaids{0} > 0 ) || (defined($prepaids{1}) && $prepaids{1}>0 )) {
-  my $start_period = ($self->{ACCOUNT_ACTIVATE} ne '0000-00-00') ? "'$self->{ACCOUNT_ACTIVATE}'" : 'curdate()';
-  
-  $self->query($db, "SELECT sum(sent+recv) / $CONF->{KBYTE_SIZE} / $CONF->{KBYTE_SIZE}, sum(sent2+recv2) / $CONF->{KBYTE_SIZE} / $CONF->{KBYTE_SIZE} FROM dv_log 
-     WHERE uid='$self->{UID}' and DATE_FORMAT(start, '%Y-%m')>=DATE_FORMAT($start_period, '%Y-%m')
-     GROUP BY uid;");
+#Get tarfic limit if prepaid > 0 or
+# expresion exist
+if ((defined($prepaids{0}) && $prepaids{0} > 0 ) || (defined($prepaids{1}) && $prepaids{1}>0 ) || $expr{0} || $expr{1}) {
 
+  my $start_period = ($self->{ACCOUNT_ACTIVATE} ne '0000-00-00') ? "DATE_FORMAT(start, '%Y-%m')>=DATE_FORMAT('$self->{ACCOUNT_ACTIVATE}', '%Y-%m')" : undef;
+  my $used_traffic=$Billing->get_traffic({ UID    => $self->{UID},
+                                           PERIOD => $start_period });
+
+
+  $used_traffic->{TRAFFIC_SUM}=$used_traffic->{TRAFFIC_IN}+$used_traffic->{TRAFFIC_OUT};
+  $used_traffic->{TRAFFIC_SUM_2}=$used_traffic->{TRAFFIC_IN_2}+$used_traffic->{TRAFFIC_OUT_2};
+
+  #print "-- $used_traffic->{TRAFFIC_SUM}  $used_traffic->{TRAFFIC_SUM_2}\n";
+  
   if ($self->{TOTAL} == 0) {
     $trafic_limits{0}=$prepaids{0} || 0;
     $trafic_limits{1}=$prepaids{1} || 0;
    }
   else {
-    my $used = $self->{list}->[0];
-
+    #my $used = $self->{list}->[0];
     #Check global traffic
-    if ($used->[0] < $prepaids{0}) {
-      $trafic_limits{0}=$prepaids{0} - $used->[0];
+    if ($used_traffic->{TRAFFIC_SUM} < $prepaids{0}) {
+      $trafic_limits{0}=$prepaids{0} - $used_traffic->{TRAFFIC_SUM};
      }
     elsif($in_prices{0} + $out_prices{0} > 0) {
       $trafic_limits{0} = ($deposit / (($in_prices{0} + $out_prices{0}) / 2));
@@ -895,15 +903,23 @@ if ((defined($prepaids{0}) && $prepaids{0} > 0 ) || (defined($prepaids{1}) && $p
     
     # Check extended prepaid traffic
     if ($prepaids{1}) {
-      if (($used->[1]  < $prepaids{1})) {
-        $trafic_limits{1}=$prepaids{1} - $used->[1];
+      if (($used_traffic->{TRAFFIC_SUM_2}  < $prepaids{1})) {
+        $trafic_limits{1}=$prepaids{1} - $used_traffic->{TRAFFIC_SUM_2};
        }
       elsif($in_prices{1} + $out_prices{1} > 0) {
         $trafic_limits{1} = ($deposit / (($in_prices{1} + $out_prices{1}) / 2));
        }
      }
    }
-   
+  #Use expresion 
+  my $RESULT = $Billing->expression($self->{UID}, \%expr, { START_PERIOD => $start_period,
+  	                                                        debug        => 0 });
+  	                                                        
+  if ($RESULT->{TRAFFIC_LIMIT}) {
+  	#print $RESULT->{TRAFFIC_LIMIT} . print $used_traffic->{TRAFFIC_SUM};
+  	$trafic_limits{0} =  $RESULT->{TRAFFIC_LIMIT} - $used_traffic->{TRAFFIC_SUM};
+   }
+  #End expresion   
  }
 else {
   if ($in_prices{0}+$out_prices{0} > 0) {

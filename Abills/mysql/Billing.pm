@@ -33,6 +33,7 @@ sub new {
   ($db, $CONF) = @_;
   my $self = { };
   bless($self, $class);
+  $CONF->{MB_SIZE} = $CONF->{KBYTE_SIZE} * $CONF->{KBYTE_SIZE};
   #$self->{debug}=1;
   return $self;
 }
@@ -51,8 +52,7 @@ sub traffic_calculations {
   my $recv2 = $RAD->{INBYTE2} || 0;
 
   my $traffic_period = ($self->{ACTIVATE} ne '0000-00-00') ? "DATE_FORMAT(start, '%Y-%m-%d')>='$self->{ACTIVATE}'" : "DATE_FORMAT(start, '%Y-%m')=DATE_FORMAT(FROM_UNIXTIME($RAD->{SESSION_START}), '%Y-%m')" ;
-
-
+  
 =comments
 #local Prepaid Traffic
 # Separated local prepaid and global prepaid
@@ -156,8 +156,6 @@ sub traffic_calculations {
 my %traf_price  = ();
 my %prepaid     = ( 0 => 0, 
                     1 => 0);
-my %used_traffic= ( 0 => 0, 
-                    1 => 0);
 
 my $list = $tariffs->tt_list( { TI_ID => $self->{TI_ID} });
 #id, in_price, out_price, prepaid, speed, descr, nets
@@ -170,37 +168,35 @@ foreach my $line (@$list) {
 if ($prepaid{0} + $prepaid{1} > 0) {
    #Get traffic from begin of month
    
-   $self->query($db, "SELECT sum(sent + recv), sum(sent2 + recv2)
-       FROM dv_log 
-       WHERE uid='$self->{UID}' and ($traffic_period)
-       GROUP BY uid;");
-
-   if ($self->{TOTAL} > 0) {
-     my $a_ref = $self->{list}->[0];
-     ($used_traffic{0}, $used_traffic{1})=@$a_ref;
-    }
+   my $used_traffic = $self->get_traffic({ UID    => $self->{UID},
+   	                                       PERIOD => $traffic_period
+   	                                    });
+   
+   print $used_traffic;
+   $used_traffic->{TRAFFIC_SUM}=$used_traffic->{TRAFFIC_OUT} + $used_traffic->{TRAFFIC_IN};
     
    # If left global prepaid traffic set traf price to 0
-   if (($used_traffic{0} + $sent + $recv) / $CONF->{KBYTE_SIZE} / $CONF->{KBYTE_SIZE} < $prepaid{0}) {
+   if ($used_traffic->{TRAFFIC_SUM} + ($sent + $recv) / $CONF->{MB_SIZE}  < $prepaid{0}) {
      $traf_price{in}{0} = 0;
      $traf_price{out}{0} = 0;
     }
    # 
-   elsif (($used_traffic{0} + $sent + $recv) / $CONF->{KBYTE_SIZE} / $CONF->{KBYTE_SIZE} > $prepaid{0} 
-            && $used_traffic{0} / $CONF->{KBYTE_SIZE} / $CONF->{KBYTE_SIZE} < $prepaid{0}) {
-     my $not_prepaid = ($used_traffic{0} + $sent + $recv) - $prepaid{0} * $CONF->{KBYTE_SIZE} * $CONF->{KBYTE_SIZE};
+   elsif ($used_traffic->{TRAFFIC_SUM} + ($sent + $recv) / $CONF->{MB_SIZE} > $prepaid{0} 
+            && $used_traffic->{TRAFFIC_SUM} < $prepaid{0}) {
+     my $not_prepaid = ($used_traffic->{TRAFFIC_SUM} * $CONF->{MB_SIZE} + $sent + $recv) - $prepaid{0} * $CONF->{MB_SIZE};
      $sent = $not_prepaid / 2;
      $recv = $not_prepaid / 2;
     }
 
    # If left local prepaid traffic set traf price to 0
-   if (($used_traffic{1} + $sent2 + $recv2) / $CONF->{KBYTE_SIZE} / $CONF->{KBYTE_SIZE} < $prepaid{1}) { 
+   $used_traffic->{TRAFFIC_SUM_2} = $used_traffic->{TRAFFIC_OUT_2} + $used_traffic->{TRAFFIC_IN_2};
+   if ($used_traffic->{TRAFFIC_SUM_2} + ($sent2 + $recv2) / $CONF->{MB_SIZE} < $prepaid{1}) {
      $traf_price{in}{1} = 0;
      $traf_price{out}{1} = 0;
     }
-   elsif ( (($used_traffic{1} + $sent2 + $recv2) / $CONF->{KBYTE_SIZE} / $CONF->{KBYTE_SIZE} > $prepaid{1}) 
-      && ( $used_traffic{1} / $CONF->{KBYTE_SIZE} / $CONF->{KBYTE_SIZE} < $prepaid{1}) ) {
-     my $not_prepaid = ($used_traffic{1} + $sent2 + $recv2) - $prepaid{1} * $CONF->{KBYTE_SIZE} * $CONF->{KBYTE_SIZE};
+   elsif ( ($used_traffic->{TRAFFIC_SUM_2} + ($sent2 + $recv2) / $CONF->{MB_SIZE} > $prepaid{1}) 
+      && ( $used_traffic->{TRAFFIC_SUM_2} / $CONF->{MB_SIZE} < $prepaid{1}) ) {
+     my $not_prepaid = ($used_traffic->{TRAFFIC_SUM_2} * $CONF->{MB_SIZE} + $sent2 + $recv2) - $prepaid{1} * $CONF->{MB_SIZE};
      $sent2 = $not_prepaid / 2;
      $recv2 = $not_prepaid / 2;
     }
@@ -211,10 +207,10 @@ if ($prepaid{0} + $prepaid{1} > 0) {
 # TRafic payments
  my $traf_sum = 0;
 
- my $gl_in  = $recv / $CONF->{KBYTE_SIZE} / $CONF->{KBYTE_SIZE} * $traf_price{in}{0};
- my $gl_out = $sent / $CONF->{KBYTE_SIZE} / $CONF->{KBYTE_SIZE} * $traf_price{out}{0};
- my $lo_in  = (defined($traf_price{in}{1})) ?  $recv2 / $CONF->{KBYTE_SIZE} / $CONF->{KBYTE_SIZE} * $traf_price{in}{1} : 0;
- my $lo_out = (defined($traf_price{in}{1})) ?  $sent2 / $CONF->{KBYTE_SIZE} / $CONF->{KBYTE_SIZE} * $traf_price{out}{1} : 0;
+ my $gl_in  = $recv / $CONF->{MB_SIZE} * $traf_price{in}{0};
+ my $gl_out = $sent / $CONF->{MB_SIZE} * $traf_price{out}{0};
+ my $lo_in  = (defined($traf_price{in}{1})) ?  $recv2 / $CONF->{MB_SIZE} * $traf_price{in}{1} : 0;
+ my $lo_out = (defined($traf_price{in}{1})) ?  $sent2 / $CONF->{MB_SIZE} * $traf_price{out}{1} : 0;
  $traf_sum  = $lo_in + $lo_out + $gl_in + $gl_out;
 
 
@@ -222,6 +218,46 @@ if ($prepaid{0} + $prepaid{1} > 0) {
  return $traf_sum;
 }
 
+
+#**********************************************************
+# Get traffic from some period
+# UID     - user id
+# PERIOD  - start period
+# 
+# Return traffic recalculation by MB 
+#
+#**********************************************************
+sub get_traffic {
+	my ($self, $attr) = @_;
+
+	my %result = (
+	   TRAFFIC_OUT   => 0, 
+     TRAFFIC_IN    => 0,
+     TRAFFIC_OUT_2 => 0,
+     TRAFFIC_IN_2  => 0
+	);
+  
+  my $period = ($attr->{PERIOD}) ? $attr->{PERIOD} : "DATE_FORMAT(start, '%Y-%m')=DATE_FORMAT(curdate(), '%Y-%m')";
+  #($attr->{ACTIVATE} ne '0000-00-00') ? "DATE_FORMAT(start, '%Y-%m-%d')>='$attr->{ACTIVATE}'" : "DATE_FORMAT(start, '%Y-%m')=DATE_FORMAT(FROM_UNIXTIME($RAD->{SESSION_START}), '%Y-%m')" ;
+ 
+  $self->query($db, "SELECT sum(sent)  / $CONF->{MB_SIZE},  
+                            sum(recv)  / $CONF->{MB_SIZE}, 
+                            sum(sent2) / $CONF->{MB_SIZE}, 
+                            sum(recv2) / $CONF->{MB_SIZE}
+       FROM dv_log 
+       WHERE uid='$attr->{UID}' and ($period)
+       GROUP BY uid;");
+
+  if ($self->{TOTAL} > 0) {
+    ($result{TRAFFIC_OUT}, 
+     $result{TRAFFIC_IN},
+     $result{TRAFFIC_OUT_2},
+     $result{TRAFFIC_IN_2}
+    )=@{ $self->{list}->[0] };
+  }
+
+	return \%result;
+}
 
 
 #**********************************************************
@@ -1062,4 +1098,93 @@ sub interval_sum {
 }
 
 
+#**********************************************************
+#
+#**********************************************************
+sub expression {
+  my ($self, $UID, $expr, $attr) = @_;
+
+  my $debug = $attr->{debug} || 0;
+  my $RESULT;    
+
+  #Expresion section
+  if (scalar(keys %{ $expr }) > 0) {
+    my $start_period = ($attr->{START_PERIOD} && $attr->{START_PERIOD} ne '0000-00-00') ? "DATE_FORMAT(start, '%Y-%m')>=DATE_FORMAT('$attr->{START_PERIOD}', '%Y-%m')" : "DATE_FORMAT(start, '%Y-%m')>=DATE_FORMAT(curdate(), '%Y-%m')";
+
+    my %ex = ();
+    my $counters;
+
+
+    while(my($id, $expresion_text) = each %{ $expr } ) {
+  	  $expresion_text =~ s/\n|[\r]//g;
+  	  my @expresions_array = split(/;/, $expresion_text);
+  	  
+  	  foreach my $expresion (@expresions_array) {
+  	    print "$id, $expresion\n" if ($debug > 0);
+  	    my($left, $right)=split(/=/, $expresion);
+  	  
+  	    if($left =~ /([A-Z0-9_]+)(<|>)([0-9\.]+)/) {
+    	    $ex{ARGUMENT}=$1;
+    	    $ex{EXPR}=$2;
+  	      $ex{PARAMENTER}=$3;
+  	      
+          #$CONF->{KBYTE_SIZE} = 1;
+  	      print "ARGUMENT: $ex{ARGUMENT} EXP: '$ex{EXPR}' PARAMENTER: $ex{PARAMENTER}\n" if ($debug > 0); 
+  	      if ($ex{ARGUMENT} =~ /TRAFFIC/) {
+  	      	$counters = $self->get_traffic({ UID    => $UID,
+     	                                       PERIOD => $start_period
+   	                                          }) if (! $counters->{TRAFFIC_IN});
+
+            if ( $ex{ARGUMENT} eq 'TRAFFIC_SUM' && ! $counters->{TRAFFIC_SUM}) {
+              $counters->{TRAFFIC_SUM}=$counters->{TRAFFIC_IN}+$counters->{TRAFFIC_OUT};
+             }
+            
+            if($ex{EXPR} eq '<' && $counters->{$ex{ARGUMENT}}  <  $ex{PARAMENTER}) {
+             	print "--$ex{EXPR} $ex{RES}/$ex{RES_VAL}/ \n" if ($debug > 0);
+             	$RESULT = get_result($right);
+             }
+            elsif($ex{EXPR} eq '>' && $counters->{$ex{ARGUMENT}} >  $ex{PARAMENTER}) {
+            	print "--$ex{EXPR} $counters->{$ex{ARGUMENT}} \n" if ($debug > 0);
+            	$RESULT = get_result($right);
+             }
+            else {
+            	print "No hits!\n" if ($debug > 0);
+            	$RESULT->{TRAFFIC_LIMIT}=$ex{PARAMENTER};
+            	last;
+             }
+  	       }
+
+       }
+     }
+    }
+   }
+	
+	return $RESULT;
+}
+
+
+
+
+#**********************************************************
+# get expresion result
+#**********************************************************
+sub get_result {
+  my ($right, $attr) = @_;
+
+  my %RESULT = ();
+  my @right_arr=split(/,/, $right);
+  #print "RESULTS: " if ($debug > 0) ;
+  foreach my $line (@right_arr) {
+    if ($line =~ /([A-Z0-9_]+):([0-9\.]+)/) {
+ 	    $RESULT{$1}=$2;
+      #print "$1/$RESULT{$1}\n" if ($self->{debug} > 0) ;
+ 	   }
+	 }
+
+  return \%RESULT;
+}
+
+
+
 1
+
