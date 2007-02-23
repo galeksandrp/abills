@@ -400,6 +400,24 @@ sub hex2bin {
 sub snmputils_dlink_portbind {
 	my ($attr) = @_;
 	
+	#Get nas servers TYPE: dlink_pb
+	
+
+my $list = $nas->list({ PAGE_ROWS => 10000, TYPE => dlink_pb });
+foreach my $line (@$list) {
+  my $delete = $html->button($_DEL, "index=60&del=$line->[0]", { MESSAGE => "$_DEL NAS \\'$line->[1]\\'?" }); 
+  $table->addrow($line->[0], 
+    $line->[1], 
+    $line->[2], 
+    $line->[3], $line->[4], $auth_types[$line->[5]], 
+    $status[$line->[6]],
+    $line->[7],
+    $html->button("IP POOLs", "index=61&NAS_ID=$line->[0]"),
+    $html->button("$_CHANGE", "index=60&NAS_ID=$line->[0]"),
+    $delete);
+}
+print $table->show();
+
 	
 	
 	
@@ -681,7 +699,7 @@ sub snmputils_dlink_ip_mac_port  {
   	
     $table->addtd(
              $table->td($port,    { rowspan => 1 } ),
-             $table->td($THREE_MODE{$state}, { bgcolor => ($THREE_MODE{3} == 2) ? '#00FF00' : $_COLORS[1], rowspan => 1  }), 
+             $table->td($THREE_MODE{$state}, { bgcolor => ($state == 2) ? '#00FF00' : $_COLORS[1], rowspan => 1  }), 
              $table->td(''),
              $table->td(''),
              $table->td(''),
