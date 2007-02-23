@@ -481,7 +481,9 @@ sub snmputils_dlink_ip_mac_port  {
      my $port_binding = ($port > 1) ? $first_port >> $port - 1 : $first_port;
      
      my @ar =  unpack("A2A2A2A2", sprintf("%.8x",  $port_binding));
-     printf("%x", $port_binding);
+
+     printf("\n%.32b\n",  $port_binding);
+
      my $port_binding = '';
      foreach my $c (@ar) {
        $port_binding .= chr(hex($c));
