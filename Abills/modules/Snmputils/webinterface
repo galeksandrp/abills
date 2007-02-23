@@ -664,7 +664,7 @@ sub snmputils_dlink_ip_mac_port  {
   	
     $table->addtd(
              $table->td($port,    { rowspan => 1 } ),
-             $table->td($THREE_MODE{$state}, { bgcolor => ($THREE_MODE{3} == 2) ? 00FF00 : $_COLORS[1], rowspan => 1  }), 
+             $table->td($THREE_MODE{$state}, { bgcolor => ($THREE_MODE{3} == 2) ? '#00FF00' : $_COLORS[1], rowspan => 1  }), 
              $table->td(''),
              $table->td(''),
              $table->td(''),
