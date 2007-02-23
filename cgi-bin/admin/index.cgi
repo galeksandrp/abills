@@ -2284,6 +2284,7 @@ if ($nas->{errno}) {
   'cisco_air' => 'Cisco Aironets',
   'bsr1000'   => 'CMTS Motorola BSR 1000',
   'mikrotik'  => 'Mikrotik (http://www.mikrotik.com)',
+  'dlink_pb'  => 'Dlink IP-MAC-Port Binding',
   'other'     => 'Other nas server'
  );
 
