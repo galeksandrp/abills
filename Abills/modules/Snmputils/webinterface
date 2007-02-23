@@ -627,18 +627,19 @@ sub snmputils_dlink_ip_mac_port  {
   	    my $port = $3;
         my $ip = $2;
         my $string = unpack("B32",  $port);
-        #if ( $string =~ m/1/g ) {
-        #  $port =  pos($string);
-        # }
-
         my $port = 0;
         print $string;
-
+        
+        my $multi_ports = '';
+        my $count=0;
         while ( $string =~ m/1/g ) {
           $port = 33 - pos($string);
-          print " Port: $port \n";
+          $multi_ports .= ",$port";
     	  	push @{ $info{PORT}{$port} },  $ip;
+    	  	$count++;
          }
+
+        $info{MULTIPORTS}{$2}="$multi_ports" if ($count>1);
   	   }
   	  elsif ($1 == 2) {
   	  	$info{MAC}{$2}=join(':', unpack("H2H2H2H2H2H2", $3));
@@ -672,7 +673,6 @@ sub snmputils_dlink_ip_mac_port  {
 
 
    for(my $i=1;  $i<=$#ip_arr; $i++) { 
-     print $ip_arr{$i};
      $table->addrow(
              $ip_arr[$i],
              $info{MAC}{"$ip_arr[$i]"},
@@ -684,15 +684,23 @@ sub snmputils_dlink_ip_mac_port  {
     }
    }
 
+#My multiports  section
+  $table->addrow("Multi port");
+
+  while(my($ip, $ports) = each %{ $info{MULTIPORTS} } ) {
+    $table->addtd(
+             $table->td($ports,    { colspan => 2 } ),
+             $table->td($ip),
+             $table->td($info{MAC}{"$ip"}),
+             $table->td( $THREE_MODE{$info{ACTIVE}{"$ip"}} ),
+             $table->td( $MODES{$info{MODE}{"$ip"}} ),
+             $table->td($html->button(($state == 2) ? $THREE_MODE{3} : $THREE_MODE{2}, "NAS_ID=$FORM{NAS_ID}&TYPE=$FORM{TYPE}&SHOW=1&index=$index&PORT=$port&state=". (($state == 2) ? 3 : 2) )),
+             $table->td($html->button($_DEL, "index=$index&del=$ip&NAS_ID=$FORM{NAS_ID}&TYPE=$FORM{TYPE}&SHOW=1"))
+      );
+   }
  
   print $table->show();
- 
-#  $Snmputils->{PORT_SEL}=$html->form_select('PORT', 
-#                                          { 
-# 	                                          SELECTED   => $FORM{PORT},
-# 	                                          SEL_ARRAY  => \@ports,
-#                                            NO_ID      => 1
-#                                          });
+
 
   $Snmputils->{PORT_SEL}=$table = $html->table({ width       => '100%',
                                                  cols_align  => ['right', 'right', 'right', 'right', 'right', 'right', 'right' ]
