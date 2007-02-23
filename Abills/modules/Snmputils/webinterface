@@ -631,15 +631,15 @@ sub snmputils_dlink_ip_mac_port  {
         print $string;
         
         my $multi_ports = '';
-        my $count=0;
+        #my $count=0;
         while ( $string =~ m/1/g ) {
           $port = 33 - pos($string);
           $multi_ports .= ",$port";
     	  	push @{ $info{PORT}{$port} },  $ip;
-    	  	$count++;
+    	  	#$count++;
          }
 
-        $info{MULTIPORTS}{$2}="$multi_ports" if ($count>1);
+        $info{MULTIPORTS}{$2}="$multi_ports"; #if ($count>1);
   	   }
   	  elsif ($1 == 2) {
   	  	$info{MAC}{$2}=join(':', unpack("H2H2H2H2H2H2", $3));
@@ -669,7 +669,8 @@ sub snmputils_dlink_ip_mac_port  {
              $table->td(''),
              $table->td(''),
              $table->td($html->button(($state == 2) ? $THREE_MODE{3} : $THREE_MODE{2}, "NAS_ID=$FORM{NAS_ID}&TYPE=$FORM{TYPE}&SHOW=1&index=$index&PORT=$port&state=". (($state == 2) ? 3 : 2) )),
-             $table->td($html->button($_DEL, "index=$index&del=$ip_arr[0]&NAS_ID=$FORM{NAS_ID}&TYPE=$FORM{TYPE}&SHOW=1"))
+             ''
+             #$table->td($html->button($_DEL, "index=$index&del=$ip_arr[0]&NAS_ID=$FORM{NAS_ID}&TYPE=$FORM{TYPE}&SHOW=1"))
       );
 
 
@@ -686,7 +687,7 @@ sub snmputils_dlink_ip_mac_port  {
    }
 
 #My multiports  section
-  $table->addrow("Multi port");
+  $table->td($port,    { colspan => 9, color => $_COLORS[0] } );
 
   while(my($ip, $ports) = each %{ $info{MULTIPORTS} } ) {
     $table->addtd(
