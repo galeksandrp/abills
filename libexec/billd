@@ -116,14 +116,14 @@ sub check_lines {
   foreach my $nas_row (@$nas_list) {
 
     my $l = $online->{$nas_row->[0]};
-    print "NAS IP: $nas_row->[3]\n NAS_TYPE: $nas_row->[4]\n STATUS: $nas_row->[6]\n Alive: $nas_row->[7]/\n " if ($debug > 0);
+    print "NAS IP: $nas_row->[3]\n NAS_TYPE: $nas_row->[4]\n STATUS: $nas_row->[6]\n Alive: $nas_row->[8]/\n " if ($debug > 0);
     $NAS{NAS_ID}    = $nas_row->[0];
     $NAS{NAS_IP}    = $nas_row->[3];
     $NAS{NAS_TYPE}  = $nas_row->[4];
-    $NAS{NAS_ALIVE} = $nas_row->[7] || 0;
-    $NAS{NAS_MNG_IP_PORT}  = $nas_row->[8];
-    $NAS{NAS_MNG_USER}     = $nas_row->[9]; 
-    $NAS{NAS_MNG_PASSWORD} = $nas_row->[10]; 
+    $NAS{NAS_ALIVE} = $nas_row->[8] || 0;
+    $NAS{NAS_MNG_IP_PORT}  = $nas_row->[9];
+    $NAS{NAS_MNG_USER}     = $nas_row->[10]; 
+    $NAS{NAS_MNG_PASSWORD} = $nas_row->[11]; 
 
     foreach my $line (@$l) {
 
@@ -284,7 +284,7 @@ sub check_speed {
 	my $online = $sessions->{nas_sorted};
   $LIST_PARAMS{DISABLE} = 0;
 
-  my $nas_list = $nas->list({  });
+  my $nas_list = $nas->list({ PAGE_ROWS => 1000  });
 
   #my %TP_ARR = ();
   my %IFACES=();
