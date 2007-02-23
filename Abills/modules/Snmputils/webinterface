@@ -464,7 +464,6 @@ sub snmputils_dlink_ip_mac_port  {
                       acl_ip_mac   => $oid_prefix.'6.0'   # ACL IP MAC 
                       );
 
-  
   if ($FORM{add}) {
      my $ip   = $FORM{IP};
      my $port = $FORM{PORT};
@@ -477,13 +476,20 @@ sub snmputils_dlink_ip_mac_port  {
        }
      #Шаг 2. Назначить эту связку на порт 1:
      #Convert to D-Link port value
-     my $first_port = 0b10000000000000000000000000000000;
-     my $port_binding = ($port > 1) ? $first_port >> $port - 1 : $first_port;
-     
-     my @ar =  unpack("A2A2A2A2", sprintf("%.8x",  $port_binding));
+#     my $first_port = 0b10000000000000000000000000000000;
+#     my $port_binding = ($port > 1) ? $first_port >> $port - 1 : $first_port;
+#     
+#     my @ar =  unpack("A2A2A2A2", sprintf("%.8x",  $port_binding));
+#
+#     printf("\n%.32b\n",  $port_binding);
 
-     printf("\n%.32b\n",  $port_binding);
-
+ 	   my @get_arr = split(/, /, $FORM{PORT_ID});
+   	 my @port_array = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+  	 foreach my $id (@get_arr) {
+    	 $port_array[32-$id]=1;
+  	  }
+  	
+  	 my @ar = unpack("H2H2H2H2", pack("B32", join("", @port_array)));
      my $port_binding = '';
      foreach my $c (@ar) {
        $port_binding .= chr(hex($c));
@@ -676,13 +682,27 @@ sub snmputils_dlink_ip_mac_port  {
  
   print $table->show();
  
-  $Snmputils->{PORT_SEL}=$html->form_select('PORT', 
-                                          { 
- 	                                          SELECTED   => $FORM{PORT},
- 	                                          SEL_ARRAY  => \@ports,
-                                            NO_ID      => 1
-                                          });
+#  $Snmputils->{PORT_SEL}=$html->form_select('PORT', 
+#                                          { 
+# 	                                          SELECTED   => $FORM{PORT},
+# 	                                          SEL_ARRAY  => \@ports,
+#                                            NO_ID      => 1
+#                                          });
+
+  $Snmputils->{PORT_SEL}=$table = $html->table({ width       => '100%',
+                                                 cols_align  => ['right', 'right', 'right', 'right', 'right', 'right', 'right' ]
+                                               });
+  my @arr=();
+  foreach my $port (@ports) {
+    push @arr, " $port".$html->form_input('PORT_ID', "$port", {TYPE => 'checkbox' });	
+    if ($#arr !=0 && $#arr % 7 == 0) {
+       $table->addrow(@arr);
+       @arr=();
+     }
+   }
   
+  $table->addrow(@arr) if ($#arr > -1);
+  $Snmputils->{PORT_SEL}=$table->show(); 
  
   $html->tpl_show(_include('snmputils_ip_mac_port', 'Snmputils'), { %$Snmputils, %FORM }); 
  
