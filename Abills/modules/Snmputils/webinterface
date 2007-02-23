@@ -656,32 +656,33 @@ sub snmputils_dlink_ip_mac_port  {
   foreach my $line (@result_ports) {
   	my ($port, $state) = split(/:/, $line, 2);
   	my @ip_arr = @{ $info{PORT}{$port} };
+  	#@ip_arr = () if ()
   	my $ips_count  = $#ip_arr;
   	
     push @ports, $port;
   	
     $table->addtd(
-             $table->td($port,    { rowspan => $ips_count + 1 } ),
-             $table->td($THREE_MODE{$state}, { bgcolor => $_COLORS[1], rowspan => $ips_count + 1  }), 
-             $table->td($ip_arr[0]),
-             $table->td($info{MAC}{"$ip_arr[0]"}),
-             $table->td( $THREE_MODE{$info{ACTIVE}{"$ip_arr[0]"}} ),
-             $table->td( $MODES{$info{MODE}{"$ip_arr[0]"}} ),
+             $table->td($port,    { rowspan => 1 } ),
+             $table->td($THREE_MODE{$state}, { bgcolor => $_COLORS[1], rowspan => 1  }), 
+             $table->td(''),
+             $table->td(''),
+             $table->td(''),
+             $table->td(''),
              $table->td($html->button(($state == 2) ? $THREE_MODE{3} : $THREE_MODE{2}, "NAS_ID=$FORM{NAS_ID}&TYPE=$FORM{TYPE}&SHOW=1&index=$index&PORT=$port&state=". (($state == 2) ? 3 : 2) )),
              $table->td($html->button($_DEL, "index=$index&del=$ip_arr[0]&NAS_ID=$FORM{NAS_ID}&TYPE=$FORM{TYPE}&SHOW=1"))
       );
 
 
-   for(my $i=1;  $i<=$#ip_arr; $i++) { 
-     $table->addrow(
-             $ip_arr[$i],
-             $info{MAC}{"$ip_arr[$i]"},
-             $THREE_MODE{$info{ACTIVE}{"$ip_arr[$i]"}},
-             $MODES{$info{MODE}{"$ip_arr[$i]"}},
-             $html->button('', ""),
-             $html->button($_DEL, "index=$index&del=$ip_arr[0]&NAS_ID=$FORM{NAS_ID}&TYPE=$FORM{TYPE}&SHOW=1")
-            );  
-    }
+   #for(my $i=1;  $i<=$#ip_arr; $i++) { 
+   #  $table->addrow(
+   #          $ip_arr[$i],
+   #          $info{MAC}{"$ip_arr[$i]"},
+   #          $THREE_MODE{$info{ACTIVE}{"$ip_arr[$i]"}},
+   #          $MODES{$info{MODE}{"$ip_arr[$i]"}},
+   #          $html->button('', ""),
+   #          $html->button($_DEL, "index=$index&del=$ip_arr[$i]&NAS_ID=$FORM{NAS_ID}&TYPE=$FORM{TYPE}&SHOW=1")
+   #         );  
+   # }
    }
 
 #My multiports  section
