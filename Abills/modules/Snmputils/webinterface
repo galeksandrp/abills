@@ -481,6 +481,7 @@ sub snmputils_dlink_ip_mac_port  {
      my $port_binding = ($port > 1) ? $first_port >> $port - 1 : $first_port;
      
      my @ar =  unpack("A2A2A2A2", sprintf("%.8x",  $port_binding));
+     printf("%x", $port_binding);
      my $port_binding = '';
      foreach my $c (@ar) {
        $port_binding .= chr(hex($c));
@@ -614,7 +615,6 @@ sub snmputils_dlink_ip_mac_port  {
      }
     #Binding Address
     elsif($line =~ /^\d\.\d\.\d\.(\d)\.(\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3}):(.+)/) {
-      print "------<br>";
   	  if ($1 == 4) {
   	    my $port = $3;
         my $ip = $2;
