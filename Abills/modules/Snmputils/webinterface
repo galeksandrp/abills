@@ -611,6 +611,9 @@ sub snmputils_dlink_pb_del {
 	my $oid_prefix = $sw_info->{oid_prefix};
 	my %oid_sufix = %{ $sw_info->{oid_sufix} } ;
 
+	print $oid_prefix. "1.$attr->{MAC} ---- ";
+	
+	print $oid_prefix.$oid_sufix{MAKE}."!!!";
 	
 	if ($attr->{DEL} eq 'block') {
     if(snmpset($SNMP_COMMUNITY, $oid_prefix. "1.$attr->{MAC}", "integer", "3")) {
@@ -618,7 +621,7 @@ sub snmputils_dlink_pb_del {
        }
    }
   #delete from binding list
-  elsif(snmpset($SNMP_COMMUNITY, $oid_prefix.$oid_sufix{MAKE}.".$attr->{del}", "integer", "6")) {
+  elsif(snmpset($SNMP_COMMUNITY, $oid_prefix.$oid_sufix{MAKE}.".$attr->{DEL}", "integer", "6")) {
   	 $message = "$_DELETED $ip";
    }
   
