@@ -509,6 +509,8 @@ sub snmputils_dlink_pb_add {
   if(snmpset($SNMP_COMMUNITY, $oid_prefix.$oid_sufix{MAKE}.".$ip", "integer", "4")) {
    	  $message .= " Ok\n";
     }
+
+
   #Шаг 2. Назначить эту связку на порт 1:
   #Convert to D-Link port value
   #   my $first_port = 0b10000000000000000000000000000000;
@@ -527,6 +529,7 @@ sub snmputils_dlink_pb_add {
   my @ar = unpack("H2H2H2H2", pack("B32", join("", @port_array)));
   my $port_binding = '';
   foreach my $c (@ar) {
+    print "$c:";
     $port_binding .= chr(hex($c));
    }
      
