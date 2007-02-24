@@ -844,8 +844,8 @@ sub snmputils_dlink_ip_mac_port{
   my %BLOCK_HASH = ();
 
   #Full list
-  my @result = &snmpwalk("$SNMP_COMMUNITY", $oid_prefix);
-  print $oid_prefix." / $oid_sufix{STATE}" if ($debug > 0);
+  my @result = &snmpwalk("$SNMP_COMMUNITY", $SWITCH_INFO->{oid_prefix});
+  print $SWITCH_INFO->{oid_prefix}." / $SWITCH_INFO->{oid_sufix}{STATE}" if ($debug > 0);
                                               
   foreach my $line (@result) {
     print "$line<br>\n" if ($debug > 0);
