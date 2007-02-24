@@ -583,7 +583,7 @@ sub snmputils_dlink_pb_state {
 
   #Ўаг 5. ¬ключить IP-MAC-Port Binding на этом порту:
   my $message .= $sw_info->{oid_prefix}.$sw_info->{oid_sufix}{STATE}.".$attr->{PORT} => $attr->{STATE}\n";
-  if(snmpset($SNMP_COMMUNITY, $oid_prefix.$oid_sufix{STATE}.".$attr->{PORT}", "integer", "$attr->{STATE}")) {
+  if(snmpset($SNMP_COMMUNITY, $sw_info->{oid_prefix}.$sw_info->{oid_sufix}{STATE}.".$attr->{PORT}", "integer", "$attr->{STATE}")) {
  	  $message .= "Ok\n";
    }
   else {
