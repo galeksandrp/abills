@@ -772,7 +772,7 @@ sub snmputils_dlink_ip_mac_port{
      	                                         PORT           => $FORM{PORT},
      	                                         SWITCH_INFO    => $SWITCH_INFO
      	                                       });
-
+     $SWITCH_INFO = snmputils_dlink_pb_version({ SNMP_COMMUNITY => $SNMP_COMMUNITY });
      print $html->message('info', $_INFO, "$message");
    }
   elsif ($FORM{MAIN_CONF}) {
