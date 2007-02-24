@@ -521,13 +521,23 @@ sub snmputils_dlink_pb_add {
   #     printf("\n%.32b\n",  $port_binding);
   
   print $port_list;
+  my $port_count = $#{ $sw_info->{PORT_STATE} };
+  
  	my @get_arr = split(/, /, $port_list);
-  my @port_array = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-  foreach my $id (@get_arr) {
-   	$port_array[32-$id]=1;
+  my @port_array = (); #(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+
+#  foreach my $id (@get_arr) {
+#   	$port_array[32-$id]=1;
+#   }
+ 
+  for(my $i=0; $i<=$port_count; $i++) {
+  	$port_array[$i]=(in_array(($i+1), @get_arr)) ? 1 : 0;
    }
-  	
+  print join("", @port_array);
+
+
   my @ar = unpack("H2H2H2H2", pack("B32", join("", @port_array)));
+
   my $port_binding = '';
   foreach my $c (@ar) {
     print "$c:";
@@ -611,20 +621,16 @@ sub snmputils_dlink_pb_del {
 	my $oid_prefix = $sw_info->{oid_prefix};
 	my %oid_sufix = %{ $sw_info->{oid_sufix} } ;
 
-	print $oid_prefix. "1.$attr->{MAC} ---- ";
-	
-	print $oid_prefix.$oid_sufix{MAKE}."!!!";
-	
 	if ($attr->{DEL} eq 'block') {
     if(snmpset($SNMP_COMMUNITY, $oid_prefix. "1.$attr->{MAC}", "integer", "3")) {
-   	     $message = "$_DELETED $FORM{MAC}";
-       }
+   	  $message = "$_DELETED $FORM{MAC}";
+     }
    }
   #delete from binding list
   elsif(snmpset($SNMP_COMMUNITY, $oid_prefix.$oid_sufix{MAKE}.".$attr->{DEL}", "integer", "6")) {
   	 $message = "$_DELETED $ip";
    }
-  
+
   if($SNMP_Session::suppress_warnings) { 
   	$message =	"$SNMP_Session::suppress_warnings / $SNMP_Session::errmsg"; 
    };
