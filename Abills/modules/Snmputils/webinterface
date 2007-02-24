@@ -559,7 +559,7 @@ sub snmputils_dlink_pb_add {
 
 
   #Шаг 4. Задать режим связки IP MAC Port Binding (ARP / ACL):
-  my $mode = ($FORM{ACL_IP_MAC}) ? 1 : 0;
+  my $mode = ($attr->{ACL_IP_MAC}) ? 1 : 0;
   $message .= $oid_prefix.$oid_sufix.".$ip => $mode\n";
   if(snmpset($SNMP_COMMUNITY, $oid_prefix.$oid_sufix{MODE}.".$ip", "integer", $mode)) {
     $message .= "Ok\n";
@@ -789,7 +789,8 @@ sub snmputils_dlink_ip_mac_port{
      	    IP             => $FORM{IP},
           PORT_ID        => $FORM{PORT_ID},
           MAC            => $FORM{MAC},
-     	    SWITCH_INFO    => $SWITCH_INFO
+     	    SWITCH_INFO    => $SWITCH_INFO,
+     	    ACL_IP_MAC     => $FORM{ACL_IP_MAC}
      	});
      print $html->message('info', $_INFO, "$message");
    }
