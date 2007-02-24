@@ -612,7 +612,7 @@ sub snmputils_dlink_pb_del {
 	my %oid_sufix = %{ $sw_info->{oid_sufix} } ;
 
 	
-	if ($attr->{del} eq 'block') {
+	if ($attr->{DEL} eq 'block') {
     if(snmpset($SNMP_COMMUNITY, $oid_prefix. "1.$attr->{MAC}", "integer", "3")) {
    	     $message = "$_DELETED $FORM{MAC}";
        }
@@ -621,6 +621,10 @@ sub snmputils_dlink_pb_del {
   elsif(snmpset($SNMP_COMMUNITY, $oid_prefix.$oid_sufix{MAKE}.".$attr->{del}", "integer", "6")) {
   	 $message = "$_DELETED $ip";
    }
+  
+  if($SNMP_Session::suppress_warnings) { 
+  	$message =	"$SNMP_Session::suppress_warnings / $SNMP_Session::errmsg"; 
+   };
 
   return $message;
 }
@@ -812,7 +816,7 @@ sub snmputils_dlink_ip_mac_port{
     my $message = snmputils_dlink_pb_del({ SNMP_COMMUNITY => $SNMP_COMMUNITY,
      	                                     DEL            => $FORM{del},
      	                                     SWITCH_INFO    => $SWITCH_INFO,
-     	                                     MACK           => $FORM{MAC}
+     	                                     MAC            => $FORM{MAC}
      	                                   });
  
     print $html->message('info', $_INFO, "$message");
