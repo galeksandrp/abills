@@ -406,7 +406,7 @@ sub snmputils_dlink_pb {
 #Get nas servers TYPE: dlink_pb
   my $list = $nas->list({ PAGE_ROWS => 10000, TYPE => dlink_pb });
   foreach my $line (@$list) {
-    #rint "$line->[0], $line->[9], $line->[11] $line->[12]<br>";
+    print "$line->[0], $line->[9], $line->[11] $line->[12]<br>";
     #GET users for this NAS
     my $list = $Snmputils->snmputils_nas_ipmac({ NAS_ID => $line->[0] });
     my $SNMP_COMMUNITY = "$line->[11]\@$line->[9]";
@@ -416,18 +416,26 @@ sub snmputils_dlink_pb {
       my $ports = $1;
       my $SWICH_INFO = snmputils_dlink_pb_version({ SNMP_COMMUNITY => $SNMP_COMMUNITY });
 
-      foreach my $line (@$list) {
-        my $message = snmputils_dlink_pb_add({  
-     	    SNMP_COMMUNITY => $SNMP_COMMUNITY,
-     	    IP             => $line->[2],
-          PORT_ID        => $ports,
-          MAC            => $line->[3],
-     	    SWITCH_INFO    => $SWITCH_INFO,
-     	    ACL_IP_MAC     => 1
-       	});
+      my($ACTIVE_MAC, $BLOCK_MAC) = snmputils_dlink_pb_list({ SNMP_COMMUNITY => $SNMP_COMMUNITY,
+                                                              SWITCH_INFO    => $SWITCH_INFO,
+	                                                          });
 
-        print $message."<br>\n";
-     	  #print "$line->[0], $line->[1], $line->[2], $line->[3]<br>\n";
+      while(my($key, $val)=each %$ACTIVE_MAC) {
+      	 print "$key, $val<br>";
+       }
+
+      foreach my $line (@$list) {
+#        my $message = snmputils_dlink_pb_add({  
+#     	    SNMP_COMMUNITY => $SNMP_COMMUNITY,
+#     	    IP             => $line->[2],
+#          PORT_ID        => $ports,
+#          MAC            => $line->[3],
+#     	    SWITCH_INFO    => $SWITCH_INFO,
+#     	    ACL_IP_MAC     => 1
+#       	});
+#
+#        print $message."<br>\n";
+     	  print "$line->[0], $line->[1], $line->[2], $line->[3]<br>\n";
        }
     	
     	
@@ -732,6 +740,7 @@ sub snmputils_dlink_ip_mac_port{
   my $message = '';
   
   if ($FORM{TEST}) {
+    print "Test:";
     snmputils_dlink_pb();
     return 0;
    }
