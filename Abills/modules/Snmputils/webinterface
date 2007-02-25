@@ -680,6 +680,13 @@ sub snmputils_dlink_pb_list {
   my $SNMP_COMMUNITY = $attr->{SNMP_COMMUNITY} || '';
 	my $SWITCH_INFO = $attr->{SWITCH_INFO} || snmputils_dlink_pb_version({ SNMP_COMMUNITY => $SNMP_COMMUNITY });
 	
+	
+  my %PREFIX  = ( 1 => 'IP',
+                  2 => 'MAC',
+                  4 => 'PORT',
+                  5 => 'ACTIVE',
+                  6 => 'MODE');
+
 	my %info = ();
   my %BLOCK_HASH = ();
 
@@ -835,6 +842,7 @@ sub snmputils_dlink_ip_mac_port{
   
   my($ACTIVE_MAC, $BLOCK_MAC) = snmputils_dlink_pb_list({ SNMP_COMMUNITY => $SNMP_COMMUNITY,
                                                           SWITCH_INFO    => $SWITCH_INFO,
+                                                          DEBUG          => $FORM{DEBUG}
 	                                                      });
 
 
@@ -2118,8 +2126,4 @@ sub snmputils_binding {
 	$Snmputils->{ACTION}='add';
 	$Snmputils->{ACTION_LNG}=$_ADD;
 
-  $html->tpl_show(_include('snmputils_binding', 'Snmputils'), { %$Snmputils, %FORM }); 	
-}
-
-1
-
+  $htm
