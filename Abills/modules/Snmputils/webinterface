@@ -403,6 +403,8 @@ sub hex2bin {
 sub snmputils_dlink_pb {
 	my ($attr) = @_;
 	
+	my $debug = $attr->{DEBUG} || 0;
+
 #Get nas servers TYPE: dlink_pb
   my $list = $nas->list({ PAGE_ROWS => 10000, TYPE => dlink_pb });
   foreach my $line (@$list) {
@@ -420,35 +422,47 @@ sub snmputils_dlink_pb {
                                                               SWITCH_INFO    => $SWITCH_INFO,
 	                                                          });
 
-      my %ACTIVE = (); #Now active in server
+      my %SERVER_MAC = (); #Now active in server
       my %MUST_ACTIVATE = (); #Need to be active
       if ($ACTIVE_MAC->{MAC}) {
-        %ACTIVE = %{ $ACTIVE_MAC->{MAC} };
+        # IP -> MAC
+        %SERVER_MAC = %{ $ACTIVE_MAC->{MAC} };
        }
-
-      while(my($key, $val)=each %ACTIVE) {
-     	  print "$key, $val<br>";
-       }
-
 
       foreach my $line (@$list) {
-#        my $message = snmputils_dlink_pb_add({  
-#     	    SNMP_COMMUNITY => $SNMP_COMMUNITY,
-#     	    IP             => $line->[2],
-#          PORT_ID        => $ports,
-#          MAC            => $line->[3],
-#     	    SWITCH_INFO    => $SWITCH_INFO,
-#     	    ACL_IP_MAC     => 1
-#       	});
-#
-#        print $message."<br>\n";
-
         $MUST_ACTIVATE{$line->[3]}=$line->[2];
-     	  print "$line->[0], $line->[1], $line->[2], $line->[3]<br>\n";
+     	  print "$line->[0], $line->[1], $line->[2], $line->[3]<br>\n" if ($debug > 2);
        }
-    	
-    	
-      }
+
+      while(my($ip, $mac)=each %SERVER) {
+     	    print "<BR>$ip, $mac" if ($debug > 0);
+     	    if ($MUST_ACTIVATE{$mac}) {
+     	       delete $MUST_ACTIVATE{$mac};
+     	       delete $SERVER{ip};
+     	       print "deleted" if ($debug > 0);
+           }
+          else {
+          	print "Delete from server" if ($debug > 0);
+           }
+       }
+      
+      print "Add to server\n" if ($debug > 0);
+      while(my($mac, $ip)=each %MUST_ACTIVATE) {
+     	    print "<BR>$ip, $mac" if ($debug > 0);
+   	      if ($debug < 2) {
+   	        my $message = snmputils_dlink_pb_add({  
+        	    SNMP_COMMUNITY => $SNMP_COMMUNITY,
+         	    IP             => $line->[2],
+              PORT_ID        => $ports,
+              MAC            => $line->[3],
+        	    SWITCH_INFO    => $SWITCH_INFO,
+        	    ACL_IP_MAC     => 1
+         	   });
+           print $message."<br>\n";
+         }
+       }
+   	
+    }
     
     
     
@@ -756,8 +770,7 @@ sub snmputils_dlink_ip_mac_port{
   my $message = '';
   
   if ($FORM{TEST}) {
-    print "Test:";
-    snmputils_dlink_pb();
+    snmputils_dlink_pb({ DEBUG => $FORM{DEBUG} });
     return 0;
    }
 
