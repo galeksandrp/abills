@@ -434,11 +434,11 @@ sub snmputils_dlink_pb {
      	  print "$line->[0], $line->[1], $line->[2], $line->[3]<br>\n" if ($debug > 2);
        }
 
-      while(my($ip, $mac)=each %SERVER) {
+      while(my($ip, $mac)=each %SERVER_MAC) {
      	    print "<BR>$ip, $mac" if ($debug > 0);
      	    if ($MUST_ACTIVATE{$mac}) {
      	       delete $MUST_ACTIVATE{$mac};
-     	       delete $SERVER{ip};
+     	       delete $SERVER_MAC{$ip};
      	       print "deleted" if ($debug > 0);
            }
           else {
