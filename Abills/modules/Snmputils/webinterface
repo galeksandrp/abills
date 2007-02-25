@@ -420,9 +420,15 @@ sub snmputils_dlink_pb {
                                                               SWITCH_INFO    => $SWITCH_INFO,
 	                                                          });
 
-      while(my($key, $val)=each %$ACTIVE_MAC) {
-      	 print "$key, $val<br>";
+      my %ACTIVE = ();
+      if ($ACTIVE_MAC->{MAC}) {
+        %ACTIVE = %{ $ACTIVE_MAC->{MAC} };
        }
+
+      while(my($key, $val)=each %ACTIVE) {
+     	  print "$key, $val<br>";
+       }
+
 
       foreach my $line (@$list) {
 #        my $message = snmputils_dlink_pb_add({  
@@ -767,7 +773,8 @@ sub snmputils_dlink_ip_mac_port{
           PORT_ID        => $FORM{PORT_ID},
           MAC            => $FORM{MAC},
      	    SWITCH_INFO    => $SWITCH_INFO,
-     	    ACL_IP_MAC     => $FORM{ACL_IP_MAC}
+     	    ACL_IP_MAC     => $FORM{ACL_IP_MAC},
+     	    DEBUG          => $FORM{DEBUG}
      	});
      print $html->message('info', $_INFO, "$message");
    }
@@ -775,7 +782,8 @@ sub snmputils_dlink_ip_mac_port{
      my $message =  snmputils_dlink_pb_state({ SNMP_COMMUNITY => $SNMP_COMMUNITY,
      	                                         STATE          => $FORM{state},
      	                                         PORT           => $FORM{PORT},
-     	                                         SWITCH_INFO    => $SWITCH_INFO
+     	                                         SWITCH_INFO    => $SWITCH_INFO,
+     	                                         DEBUG          => $FORM{DEBUG}
      	                                       });
      $SWITCH_INFO = snmputils_dlink_pb_version({ SNMP_COMMUNITY => $SNMP_COMMUNITY });
      print $html->message('info', $_INFO, "$message");
@@ -792,7 +800,8 @@ sub snmputils_dlink_ip_mac_port{
     my $message = snmputils_dlink_pb_del({ SNMP_COMMUNITY => $SNMP_COMMUNITY,
      	                                     DEL            => $FORM{del},
      	                                     SWITCH_INFO    => $SWITCH_INFO,
-     	                                     MAC            => $FORM{MAC}
+     	                                     MAC            => $FORM{MAC},
+     	                                     DEBUG          => $FORM{DEBUG}
      	                                   });
  
     print $html->message('info', $_INFO, "$message");
@@ -2126,4 +2135,8 @@ sub snmputils_binding {
 	$Snmputils->{ACTION}='add';
 	$Snmputils->{ACTION_LNG}=$_ADD;
 
-  $htm
+  $html->tpl_show(_include('snmputils_binding', 'Snmputils'), { %$Snmputils, %FORM }); 	
+}
+
+1
+
