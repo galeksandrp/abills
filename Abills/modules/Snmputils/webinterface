@@ -420,7 +420,8 @@ sub snmputils_dlink_pb {
                                                               SWITCH_INFO    => $SWITCH_INFO,
 	                                                          });
 
-      my %ACTIVE = ();
+      my %ACTIVE = (); #Now active in server
+      my %MUST_ACTIVATE = (); #Need to be active
       if ($ACTIVE_MAC->{MAC}) {
         %ACTIVE = %{ $ACTIVE_MAC->{MAC} };
        }
@@ -441,6 +442,8 @@ sub snmputils_dlink_pb {
 #       	});
 #
 #        print $message."<br>\n";
+
+        $MUST_ACTIVATE{$line->[3]}=$line->[2];
      	  print "$line->[0], $line->[1], $line->[2], $line->[3]<br>\n";
        }
     	
