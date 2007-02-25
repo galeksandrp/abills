@@ -675,10 +675,10 @@ sub snmputils_dlink_pb_del {
 sub snmputils_dlink_pb_list {
 	my ($attr)=@_;
 	
-	
-  my $SNMP_COMMUNITY = $attr->{SNMP_COMMUNITY} || '';
-	my $sw_info = $attr->{SWITCH_INFO} || snmputils_dlink_pb_version({ SNMP_COMMUNITY => $SNMP_COMMUNITY });
+	my $debug = $attr->{DEBUG} || 0;
 
+  my $SNMP_COMMUNITY = $attr->{SNMP_COMMUNITY} || '';
+	my $SWITCH_INFO = $attr->{SWITCH_INFO} || snmputils_dlink_pb_version({ SNMP_COMMUNITY => $SNMP_COMMUNITY });
 	
 	my %info = ();
   my %BLOCK_HASH = ();
