@@ -118,7 +118,7 @@ sub snmp_binding_info {
 #**********************************************************
 # accounts_list
 #**********************************************************
-sub snmputils_nas_ipmac {
+sub snmputils_binding_list {
   my $self = shift;
   my ($attr) = @_;
 
