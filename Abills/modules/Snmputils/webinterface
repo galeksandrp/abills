@@ -849,7 +849,7 @@ sub snmputils_dlink_ip_mac_port{
      	                                     DEBUG          => $FORM{DEBUG}
      	                                   });
  
-    print $html->message('info', $_INFO, "$message");
+    print $html->message('info', $_DELETED, "$message");
    }
   
   #Port binding enable mode
