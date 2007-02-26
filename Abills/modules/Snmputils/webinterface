@@ -664,7 +664,6 @@ sub snmputils_dlink_pb_add {
 
     }
   else {
-  	print $oid_prefix.$oid_sufix{MAKE}.".$ip => 1";
   	$message .= "$SNMP_Session::suppress_warnings / $SNMP_Session::errmsg";	
    }
 
