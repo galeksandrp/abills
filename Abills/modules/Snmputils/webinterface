@@ -583,7 +583,9 @@ sub snmputils_dlink_pb_add {
   if(snmpset($SNMP_COMMUNITY, $oid_prefix.$oid_sufix{MAKE}.".$ip", "integer", "4")) {
    	  $message .= " Ok\n";
     }
-
+  else {
+  	$message .= "$SNMP_Session::suppress_warnings / $SNMP_Session::errmsg";	
+   }
 
   #Шаг 2. Назначить эту связку на порт 1:
   #Convert to D-Link port value
