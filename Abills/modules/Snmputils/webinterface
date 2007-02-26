@@ -435,13 +435,20 @@ sub snmputils_dlink_pb {
        }
 
       while(my($ip, $mac)=each %SERVER_MAC) {
-     	    print "<BR>$ip, $mac" if ($debug > 0);
+     	    print "<BR>IP: $ip MAC: $mac" if ($debug > 0);
      	    if ($MUST_ACTIVATE{$mac}) {
      	       delete $MUST_ACTIVATE{$mac};
      	       delete $SERVER_MAC{$ip};
-     	       print "deleted" if ($debug > 0);
+     	       print "Skip" if ($debug > 0);
            }
           else {
+       	    my $message = snmputils_dlink_pb_del({ SNMP_COMMUNITY => $SNMP_COMMUNITY,
+            	                                     DEL            => $ip,
+     	                                             SWITCH_INFO    => $SWITCH_INFO,
+     	                                             MAC            => $mac,
+     	                                             DEBUG          => $debug
+     	                                          });
+
           	print "Delete from server" if ($debug > 0);
            }
        }

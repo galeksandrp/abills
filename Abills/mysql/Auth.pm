@@ -388,7 +388,7 @@ if ($NAS->{NAS_TYPE} eq 'exppp') {
  }
 
 # Mikrotik (http://www.mikrotik.com)
-if ($NAS->{NAS_TYPE} eq 'mikrotik') {
+elsif ($NAS->{NAS_TYPE} eq 'mikrotik') {
   #$traf_tarif 
   my $EX_PARAMS = $self->ex_traffic_params( { 
   	                                        traf_limit => $traf_limit, 
@@ -440,9 +440,6 @@ elsif ($NAS->{NAS_TYPE} eq 'mpd') {
   if ($RAD_PAIRS->{'Session-Timeout'} > 604800)    {
   	 $RAD_PAIRS->{'Session-Timeout'}=604800;
    }
-
-      
-       
 #MPD standart radius based Shaper
 #  if ($uspeed > 0) {
 #    $RAD_PAIRS{'mpd-rule'} = "\"1=pipe %p1 ip from any to any\"";
