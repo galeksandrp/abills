@@ -575,7 +575,7 @@ if ($attr->{reconfig} || $FORM{reconfig} ) {
 	   print FILE $tpl;
   close(FILE);
   
-  dhcphosts_reconfigure();
+  dhcphosts_reconfigure({ DEBUG => $FORM{DEBUG} });
   
   print $html->message('info', $_INFO, "DHCP $_RECONFIGURE '$conf{DHCPHOSTS_CONFIG}'");
  }
@@ -600,13 +600,15 @@ else {
 sub dhcphosts_reconfigure {
   my ($attr) = @_;
 
+  my $debug = $attr->{DEBUG} || 0;
+
   if (! $conf{DHCPHOSTS_RECONFIGURE}) {
   	print $html->message('err', $_ERROR, "Can't find reconfiguration command ". '"$conf{DHCPHOSTS_RECONFIGURE}"');
   	return 0;
    }
  
   my $res = `$conf{DHCPHOSTS_RECONFIGURE}`;
-  #print $res;
+  print $res if ($debug > 1);
 
   return 0;
 }
