@@ -472,6 +472,20 @@ sub snmputils_dlink_pb {
             $debug_output .= "$message\n";
            }
        }
+     #Active ports
+     
+     my @ports_arr = split(/,/, $ports);
+     foreach my $port (@ports_arr) {
+       if ($debug < 3) {
+         my $message =  snmputils_dlink_pb_state({ SNMP_COMMUNITY => $SNMP_COMMUNITY,
+     	                                             STATE          => 2,
+     	                                             PORT           => $port,
+     	                                             SWITCH_INFO    => $SWITCH_INFO,
+     	                                             DEBUG          => $debug
+     	                                          });
+        }
+       $debug_output .= "Active port: $port\n" if ($debug > 1);
+      }
     }
    }
   
