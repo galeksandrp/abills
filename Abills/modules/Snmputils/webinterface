@@ -463,9 +463,9 @@ sub snmputils_dlink_pb {
    	      if ($debug < 3) {
    	        my $message = snmputils_dlink_pb_add({  
         	    SNMP_COMMUNITY => $SNMP_COMMUNITY,
-         	    IP             => $line->[2],
+         	    IP             => $ip,
               PORT_ID        => $ports,
-              MAC            => $line->[3],
+              MAC            => $mac,
         	    SWITCH_INFO    => $SWITCH_INFO,
         	    ACL_IP_MAC     => 1
          	   });
