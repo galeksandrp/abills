@@ -417,7 +417,7 @@ sub ipn_use_users {
   reports({ DATE       => $FORM{DATE}, 
   	        REPORT     => '',
   	        SHOW_HOURS => 'Y',
-   	        EX_PARAMS => { HOURS => "$_HOURS",
+   	        EX_PARAMS  => { HOURS => "$_HOURS",
             	             USERS => "$_USERS" } 
   	       });
 
