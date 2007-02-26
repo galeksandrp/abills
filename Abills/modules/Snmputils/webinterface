@@ -583,18 +583,18 @@ sub snmputils_dlink_pb_add {
   $message .= "$oid => 4\n";
   if(snmpset($SNMP_COMMUNITY, $oid, "integer", "4")) {
    	$message .= " Ok\n";
+   }
 
-    #Шаг 2. Назначить эту связку на порт 1:
-    #Convert to D-Link port value
-    #   my $first_port = 0b10000000000000000000000000000000;
-    #     my $port_binding = ($port > 1) ? $first_port >> $port - 1 : $first_port;
-    #     
-    #     my @ar =  unpack("A2A2A2A2", sprintf("%.8x",  $port_binding));
-    #
-    #     printf("\n%.32b\n",  $port_binding);
-  
-    print $port_list;
-    my $port_count = $#{ $sw_info->{PORT_STATE} };
+  #Шаг 2. Назначить эту связку на порт 1:
+  #Convert to D-Link port value
+  #   my $first_port = 0b10000000000000000000000000000000;
+  #     my $port_binding = ($port > 1) ? $first_port >> $port - 1 : $first_port;
+  #     
+  #     my @ar =  unpack("A2A2A2A2", sprintf("%.8x",  $port_binding));
+  #
+  #     printf("\n%.32b\n",  $port_binding);
+  print $port_list;
+  my $port_count = $#{ $sw_info->{PORT_STATE} };
 
     $port_list=~s/ //g;
 
@@ -657,14 +657,6 @@ sub snmputils_dlink_pb_add {
   $message .= $oid_prefix.$oid_sufix{STATE}.".$port => 2\n";
   if(snmpset($SNMP_COMMUNITY, $oid_prefix.$oid_sufix{STATE}.".$port", "integer", "2")) {
     $message .= "Ok\n";
-   }
-
-
-
-
-    }
-  else {
-  	$message .= "$SNMP_Session::suppress_warnings / $SNMP_Session::errmsg";	
    }
 
 
