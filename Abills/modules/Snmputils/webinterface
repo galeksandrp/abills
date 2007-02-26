@@ -659,6 +659,10 @@ sub snmputils_dlink_pb_add {
     $message .= "Ok\n";
    }
 
+  if($sw_info->{version}=~/DES-30/ && snmpset($SNMP_COMMUNITY, $oid, "integer", "4")) {
+   	$message .= " Ok\n";
+   }
+
 
 
 
