@@ -369,7 +369,7 @@ if ($NAS->{NAS_TYPE} eq 'exppp') {
     $RAD_PAIRS->{'Exppp-Local-IP-Table'} = "\"$DV_EXPPP_NETFILES$self->{TT_INTERVAL}.nets\"";
    }
 
-#Shaper for exppp
+#Radius Shaper for exppp
 #  if ($self->{USER_SPEED} > 0) {
 #    $RAD_PAIRS->{'Exppp-Traffic-Shape'} = int($self->{USER_SPEED});
 #   }
@@ -386,7 +386,6 @@ if ($NAS->{NAS_TYPE} eq 'exppp') {
         print "Exppp-LocalTraffic-Out-Limit = $trafic_lo_outlimit,";
 =cut
  }
-
 # Mikrotik (http://www.mikrotik.com)
 elsif ($NAS->{NAS_TYPE} eq 'mikrotik') {
   #$traf_tarif 
@@ -397,24 +396,19 @@ elsif ($NAS->{NAS_TYPE} eq 'mikrotik') {
 
   #global Traffic
   if ($EX_PARAMS->{traf_limit} > 0) {
-                   
     $RAD_PAIRS->{'Mikrotik-Recv-Limit'} = int($EX_PARAMS->{traf_limit} * $CONF->{KBYTE_SIZE} * $CONF->{KBYTE_SIZE} / 2);
     $RAD_PAIRS->{'Mikrotik-Xmit-Limit'} = int($EX_PARAMS->{traf_limit} * $CONF->{KBYTE_SIZE} * $CONF->{KBYTE_SIZE} / 2);
-
     # $RAD_PAIRS->{'Mikrotik-Recv-Limit-Gigawords'}
     # $RAD_PAIRS->{'Mikrotik-Xmit-Limit-Gigawords'}
-
    }
 
 #Shaper
   if ($self->{USER_SPEED} > 0) {
     $RAD_PAIRS->{'Mikrotik-Rate-Limit'} = "$self->{USER_SPEED}k";
    }
-  else {
-    if (defined($EX_PARAMS->{speed}->{0})) {
-      $RAD_PAIRS->{'Ascend-Xmit-Rate'} = int($EX_PARAMS->{speed}->{0}->{IN}) * $CONF->{KBYTE_SIZE};
-      $RAD_PAIRS->{'Ascend-Data-Rate'} = int($EX_PARAMS->{speed}->{0}->{OUT})* $CONF->{KBYTE_SIZE};
-     }
+  elsif (defined($EX_PARAMS->{speed}->{0})) {
+    $RAD_PAIRS->{'Ascend-Xmit-Rate'} = int($EX_PARAMS->{speed}->{0}->{IN}) * $CONF->{KBYTE_SIZE};
+    $RAD_PAIRS->{'Ascend-Data-Rate'} = int($EX_PARAMS->{speed}->{0}->{OUT})* $CONF->{KBYTE_SIZE};
    }
  }
 # Cisco Shaper
@@ -435,7 +429,6 @@ elsif ($NAS->{NAS_TYPE} eq 'mpd') {
   if ($EX_PARAMS->{traf_limit} > 0) {
     $RAD_PAIRS->{'Exppp-Traffic-Limit'} = $EX_PARAMS->{traf_limit} * $CONF->{KBYTE_SIZE} * $CONF->{KBYTE_SIZE};
    }
-  
   # MPD have some problem with long time out value max timeout set to 7 days
   if ($RAD_PAIRS->{'Session-Timeout'} > 604800)    {
   	 $RAD_PAIRS->{'Session-Timeout'}=604800;
@@ -474,13 +467,32 @@ elsif ($NAS->{NAS_TYPE} eq 'pppd' or ($NAS->{NAS_TYPE} eq 'lepppd')) {
     $RAD_PAIRS->{'PPPD-Upstream-Speed-Limit'} = int($self->{USER_SPEED}); 
     $RAD_PAIRS->{'PPPD-Downstream-Speed-Limit'} = int($self->{USER_SPEED}); 
    } 
-  else { 
-    if (defined($EX_PARAMS->{speed}->{0})) { 
+  elsif (defined($EX_PARAMS->{speed}->{0})) { 
       $RAD_PAIRS->{'PPPD-Downstream-Speed-Limit'} = int($EX_PARAMS->{speed}->{0}->{IN}); 
       $RAD_PAIRS->{'PPPD-Upstream-Speed-Limit'} = int($EX_PARAMS->{speed}->{0}->{OUT}); 
-     } 
    }
  }
+#Chillispot www.chillispot.org
+elsif ($NAS->{NAS_TYPE} eq 'chillispot') {
+	
+	my $EX_PARAMS = $self->ex_traffic_params({ traf_limit          => $traf_limit, 
+                                             deposit             => $self->{DEPOSIT}, 
+                                             MAX_SESSION_TRAFFIC => $MAX_SESSION_TRAFFIC }); 
+  #global Traffic 
+  if ($EX_PARAMS->{traf_limit} > 0) { 
+    $RAD_PAIRS->{'ChilliSpot-Max-Total-Octets'} = int($EX_PARAMS->{traf_limit} * $CONF->{KBYTE_SIZE} * $CONF->{KBYTE_SIZE}); 
+   } 
+  #Shaper for chillispot 
+  if ($self->{USER_SPEED} > 0) { 
+     $RAD_PAIRS->{'WISPr-Bandwidth-Max-Down'} = int($self->{USER_SPEED}) * $CONF->{KBYTE_SIZE}; 
+     $RAD_PAIRS->{'WISPr-Bandwidth-Max-Up'} = int($self->{USER_SPEED}) * $CONF->{KBYTE_SIZE}; 
+   } 
+  elsif (defined($EX_PARAMS->{speed}->{0})) { 
+     $RAD_PAIRS->{'WISPr-Bandwidth-Max-Down'} = int($EX_PARAMS->{speed}->{0}->{IN}) * $CONF->{KBYTE_SIZE}; 
+     $RAD_PAIRS->{'WISPr-Bandwidth-Max-Up'} = int($EX_PARAMS->{speed}->{0}->{OUT}) * $CONF->{KBYTE_SIZE}; 
+   } 
+	
+}
 
 #Auto assing MAC in first connect
 if( defined($CONF->{MAC_AUTO_ASSIGN}) && 

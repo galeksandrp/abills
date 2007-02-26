@@ -2264,7 +2264,6 @@ if ($nas->{errno}) {
   $html->message('err', $_ERROR, "$err_strs{$nas->{errno}}");
  }
 
-# my @nas_types = ('other', 'usr', 'pm25', 'ppp', 'exppp', 'radpppd', 'expppd', 'pppd', 'dslmax', 'mpd', 'gnugk');
  my %nas_descr = (
   'asterisk'  => "Asterisk",
   'usr'       => "USR Netserver 8/16",
@@ -2285,7 +2284,8 @@ if ($nas->{errno}) {
   'bsr1000'   => 'CMTS Motorola BSR 1000',
   'mikrotik'  => 'Mikrotik (http://www.mikrotik.com)',
   'dlink_pb'  => 'Dlink IP-MAC-Port Binding',
-  'other'     => 'Other nas server'
+  'other'     => 'Other nas server',
+  'chillispot'=> 'Chillispot (www.chillispot.org)'
  );
 
 
