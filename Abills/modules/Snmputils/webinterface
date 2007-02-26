@@ -779,7 +779,7 @@ sub snmputils_dlink_ip_mac_port{
   
   if ($FORM{TEST}) {
     print "<pre>";
-      snmputils_dlink_pb({ DEBUG => $FORM{DEBUG} });
+    print  snmputils_dlink_pb({ DEBUG => $FORM{DEBUG} });
     print "</pre>";
     return 0;
    }
