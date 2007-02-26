@@ -509,7 +509,7 @@ foreach my $NET_ID (@networks) {
 
   $INFO{DNS}=$Dhcphosts->{DNS};
   $INFO{DOMAINNAME}="\"$Dhcphosts->{DOMAINNAME}\"";    
-  $INFO{ROUTERS}=$Dhcphosts->{ROUTERS};    
+  $INFO{ROUTERS}="option routers $Dhcphosts->{ROUTERS};" if ($Dhcphosts->{ROUTERS} ne '0.0.0.0');
   $INFO{DATETIME}="$DATE $TIME";
   
   $INFO{NETWORK_NAME}=$Dhcphosts->{NAME};
@@ -521,32 +521,33 @@ foreach my $NET_ID (@networks) {
 
   my $list = $Dhcphosts->routes_list({ NET_ID => $NET_ID });  
   
-  my $routes="";
-
-  foreach my $line (@$list) {
-    #($src,$mask,$router)=$sth->fetchrow_array()){
-    my $src = $line->[2];
-    my $mask = $line->[3]; 
-    my $router = $line->[4];
-    #print "// $src,$mask,$router\n";
-
-    my @ip=split(/\./,$src);
-    my @ip2=split(/\./,$router);    
-    $mask = mask2bitlen($mask);
-    $routes.=$mask;
+  if ($Dhcphosts->{TOTAL} > 0) {
+    my $routes="";
+ 
+    foreach my $line (@$list) {
+      #($src,$mask,$router)=$sth->fetchrow_array()){
+      my $src = $line->[2];
+      my $mask = $line->[3]; 
+      my $router = $line->[4];
+      #print "// $src,$mask,$router\n";
+      
+      my @ip=split(/\./,$src);
+      my @ip2=split(/\./,$router);    
+      $mask = mask2bitlen($mask);
+      $routes.=$mask;
         
-    for(my $i=0;$i<$mask/8;$i++) {
-     	$routes.=", $ip[$i]";
-     };
-    $routes.=", ".join(", ",@ip2).",\n";
+      for(my $i=0;$i<$mask/8;$i++) {
+     	  $routes.=", $ip[$i]";
+       };
+      $routes.=", ".join(", ",@ip2).",\n";
+     }
+
+    chop $routes;
+    chop $routes;
+    $routes.=";";
+  
+    $INFO{NET_ROUTES}="option ms-classless-static-routes $routes";
    }
-
-  chop $routes;
-  chop $routes;
-  $routes.=";";
-
-
-  $INFO{NET_ROUTES}=$routes;
 
 
   $INFO->{NETWORK}='';

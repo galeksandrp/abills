@@ -25,7 +25,8 @@ subnet %NETWORK% netmask %NETWORK_MASK% {
   deny unknown-clients;
   authoritative;
 #  option static-routes %STATIC_ROUTES%
-  option ms-classless-static-routes %NET_ROUTES%
+  %ROUTERS%
+  %NET_ROUTES%
 }
 
 }
