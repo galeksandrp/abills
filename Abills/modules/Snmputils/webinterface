@@ -579,8 +579,9 @@ sub snmputils_dlink_pb_add {
 	my %oid_sufix = %{ $sw_info->{oid_sufix} } ;
 	
 	#Шаг 1. Задать IP-адрес связки:
-  $message .= $oid_prefix.$oid_sufix{MAKE}.".$ip => 1\n ";
-  if(snmpset($SNMP_COMMUNITY, $oid_prefix.$oid_sufix{MAKE}.".$ip", "integer", "1")) {
+	my $oid = $oid_prefix.$oid_sufix{MAKE}.".$ip";
+  $message .= "$oid => 4\n";
+  if(snmpset($SNMP_COMMUNITY, $oid, "integer", "4")) {
    	  $message .= " Ok\n";
 
   #Шаг 2. Назначить эту связку на порт 1:
