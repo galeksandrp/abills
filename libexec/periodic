@@ -7,7 +7,7 @@ use FindBin '$Bin';
 use Sys::Hostname;
 
 require $Bin . '/config.pl';
-unshift(@INC, $Bin . '/../', $Bin . "/../Abills/$conf{dbtype}");
+unshift(@INC, $Bin . '/../', $Bin . '/../Abills', $Bin . "/../Abills/$conf{dbtype}");
 
 require "Abills/defs.conf";
 require "Abills/templates.pl";
