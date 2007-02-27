@@ -403,9 +403,6 @@ sub hex2bin {
 sub snmputils_dlink_pb {
 	my ($attr) = @_;
 	
-	print "test";
-	return 0;
-	
 	my $debug = $attr->{DEBUG} || 0;
   my $debug_output = '';
   
