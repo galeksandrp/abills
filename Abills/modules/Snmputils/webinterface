@@ -546,7 +546,7 @@ sub snmputils_dlink_pb_version {
      }
    }
   else {
-  	$html->message('err', $_ERROR, "$SNMP_Session::suppress_warnings / $SNMP_Session::errmsg");
+  	print "$SNMP_Session::suppress_warnings / $SNMP_Session::errmsg";
   	return 0;
    }
  
@@ -609,13 +609,11 @@ sub snmputils_dlink_pb_add {
 #  	$port_array[$i]=(in_array(($i+1), \@get_arr)) ? 1 : 0;
 #   }
 
-  print "<br>";
   print join("", @port_array);
 
 
   my @ar = unpack("H2H2H2H2", pack("B32", join("", @port_array)));
 
-  print "<br>";
   my $port_binding = '';
   foreach my $c (@ar) {
     print "$c:";
@@ -685,7 +683,7 @@ sub snmputils_dlink_pb_state {
  	  $message .= "Ok\n";
    }
   else {
-    print	$html->message('err', $_ERROR, "$SNMP_Session::suppress_warnings / $SNMP_Session::errmsg");
+    $message .="$SNMP_Session::suppress_warnings / $SNMP_Session::errmsg";
    }
   
   return $message;
