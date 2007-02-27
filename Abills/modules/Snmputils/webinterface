@@ -762,8 +762,11 @@ sub snmputils_dlink_pb_list {
         my $ip = $2;
         my $string = unpack("B32",  $port);
         my $port = 0;
-        print $string if ($debug > 0);
-        
+        if ($debug > 0) {
+       	  my $hex_val = join(':', unpack("H2H2H2H2", pack("B32", $string)));
+       	  print "IP: $ip PORT: $hex_val ($string)<BR>\n";
+         }
+
         my $multi_ports = '';
         #my $count=0;
         while ( $string =~ m/1/g ) {
