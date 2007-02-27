@@ -60,6 +60,7 @@ my @monthly_functions = ('admin_report_monthly',
                          'logrotate');
 my @reports = ();
 
+#make periodic oparation only for selected modules
 if ($args->{MODULES}) {
 	$args->{MODULES}=~s/ //g;
 	@MODULES = split(/,/, $args->{MODULES});

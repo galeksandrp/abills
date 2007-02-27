@@ -1,6 +1,3 @@
-use CGI::Carp qw(fatalsToBrowser);
-
-
 
 $_HOSTS_NETWORKS='Hosts Networks';
 $_HOSTS_ROUTES='Hosts routes';
