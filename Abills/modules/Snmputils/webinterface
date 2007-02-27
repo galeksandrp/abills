@@ -453,13 +453,13 @@ sub snmputils_dlink_pb {
      	                                          });
 
              }
-          	$debug_output .= "Delete from server\n" if ($debug > 0);
+          	$debug_output .= "Delete from server:\n" if ($debug > 0);
            }
        }
       
-      $debug_output .= "Add to server\n" if ($debug > 0);
+      $debug_output .= "Add to server:\n" if ($debug > 0);
       while(my($mac, $ip)=each %MUST_ACTIVATE) {
-     	    $debug_output .= "$ip, $mac" if ($debug > 0);
+     	    $debug_output .= "$ip, $mac\n" if ($debug > 0);
 
    	      if ($debug < 3) {
    	        my $message = snmputils_dlink_pb_add({  
@@ -489,7 +489,7 @@ sub snmputils_dlink_pb {
       }
     }
    }
-  
+  $DEBUG = $debug_output;
   return $debug_output;
 }
 

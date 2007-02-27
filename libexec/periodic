@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 #Periodic process
 
-use vars  qw(%RAD %conf @MODULES $db $html $DATE $GZIP $MYSQLDUMP %ADMIN_REPORT);
+use vars  qw(%RAD %conf @MODULES $db $html $DATE $GZIP $MYSQLDUMP %ADMIN_REPORT $DEBUG);
 #use strict;
 use FindBin '$Bin';
 use Sys::Hostname;
@@ -65,6 +65,11 @@ if ($args->{MODULES}) {
 	$args->{MODULES}=~s/ //g;
 	@MODULES = split(/,/, $args->{MODULES});
 }
+
+if ($args->{DEBUG}) {
+
+}
+
 
 
   foreach my $m (@MODULES) {
@@ -150,7 +155,7 @@ elsif (defined($args->{daily})) {
   for(my $i=$#daily_functions; $i>-1; $i--) {
         my $f = $daily_functions[$i];
         #print $f . "\n";
-        $f->();
+        $f->({ DEBUG => $args->{DEBUG} });
    }
 
   if ($begin_time > 0)  {
@@ -180,6 +185,11 @@ else {
  exit;
 }
 
+
+if ($args->{DEBUG}) {
+	print "DEBUG MODE: $args->{DEBUG}\n";
+	print $DEBUG;
+}
 
 #**********************************************************
 # sheduler()
