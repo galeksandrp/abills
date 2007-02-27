@@ -9,5 +9,7 @@ $web_interface    = 1;
                    );
 
 
+%PERIODIC = (daily   => [ 'snmputils_dlink_pb' ]);
+
 
 1

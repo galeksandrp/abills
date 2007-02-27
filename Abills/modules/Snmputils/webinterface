@@ -403,6 +403,9 @@ sub hex2bin {
 sub snmputils_dlink_pb {
 	my ($attr) = @_;
 	
+	print "test";
+	return 0;
+	
 	my $debug = $attr->{DEBUG} || 0;
   my $debug_output = '';
   
@@ -680,7 +683,7 @@ sub snmputils_dlink_pb_state {
 	my $sw_info = $attr->{SWITCH_INFO} || snmputils_dlink_pb_version({ SNMP_COMMUNITY => $SNMP_COMMUNITY });
 
   #Ўаг 5. ¬ключить IP-MAC-Port Binding на этом порту:
-  my $message .= $sw_info->{oid_prefix}.$sw_info->{oid_sufix}{STATE}.".$attr->{PORT} => $attr->{STATE}\n";
+  $message .= $sw_info->{oid_prefix}.$sw_info->{oid_sufix}{STATE}.".$attr->{PORT} => $attr->{STATE}\n";
   if(snmpset($SNMP_COMMUNITY, $sw_info->{oid_prefix}.$sw_info->{oid_sufix}{STATE}.".$attr->{PORT}", "integer", "$attr->{STATE}")) {
  	  $message .= "Ok\n";
    }
@@ -761,7 +764,6 @@ sub snmputils_dlink_pb_list {
   	    my $port = $3;
         my $ip = $2;
         my $string = unpack("B32",  $port);
-        my $port = 0;
         if ($debug > 0) {
        	  my $hex_val = join(':', unpack("H2H2H2H2", pack("B32", $string)));
        	  print "IP: $ip PORT: $hex_val ($string)<BR>\n";

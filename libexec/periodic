@@ -63,9 +63,6 @@ my @reports = ();
 if ($args->{MODULES}) {
 	$args->{MODULES}=~s/ //g;
 	@MODULES = split(/,/, $args->{MODULES});
-	
-	print @MODULES;
-	exit;
 }
 
 
@@ -94,7 +91,6 @@ if ($args->{MODULES}) {
 
    if($i > 0) {
      #Language pack
-     
      my $lang_file = '';
      foreach my $prefix (@INC) {
        my $realfilename = "$prefix/Abills/modules/$m/lng_$html->{language}.pl";
