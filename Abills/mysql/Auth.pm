@@ -886,10 +886,9 @@ sub ex_traffic_params {
 # expresion exist
 if ((defined($prepaids{0}) && $prepaids{0} > 0 ) || (defined($prepaids{1}) && $prepaids{1}>0 ) || $expr{0} || $expr{1}) {
 
-  my $start_period = ($self->{ACCOUNT_ACTIVATE} ne '0000-00-00') ? "DATE_FORMAT(start, '%Y-%m')>=DATE_FORMAT('$self->{ACCOUNT_ACTIVATE}', '%Y-%m')" : undef;
+  my $start_period = ($self->{ACCOUNT_ACTIVATE} ne '0000-00-00') ? "DATE_FORMAT(start, '%Y-%m-%d')>='$self->{ACCOUNT_ACTIVATE}'" : undef;
   my $used_traffic=$Billing->get_traffic({ UID    => $self->{UID},
                                            PERIOD => $start_period });
-
 
   $used_traffic->{TRAFFIC_SUM}=$used_traffic->{TRAFFIC_IN}+$used_traffic->{TRAFFIC_OUT};
   $used_traffic->{TRAFFIC_SUM_2}=$used_traffic->{TRAFFIC_IN_2}+$used_traffic->{TRAFFIC_OUT_2};
@@ -921,11 +920,11 @@ if ((defined($prepaids{0}) && $prepaids{0} > 0 ) || (defined($prepaids{1}) && $p
      }
    }
   #Use expresion 
-  my $RESULT = $Billing->expression($self->{UID}, \%expr, { START_PERIOD => $start_period,
+  my $RESULT = $Billing->expression($self->{UID}, \%expr, { START_PERIOD => $self->{ACCOUNT_ACTIVATE},
   	                                                        debug        => 0 });
   	                                                        
   if ($RESULT->{TRAFFIC_LIMIT}) {
-  	#print $RESULT->{TRAFFIC_LIMIT} . print $used_traffic->{TRAFFIC_SUM};
+  	#print "LIMIT: $RESULT->{TRAFFIC_LIMIT} USED: $used_traffic->{TRAFFIC_SUM}";
   	$trafic_limits{0} =  $RESULT->{TRAFFIC_LIMIT} - $used_traffic->{TRAFFIC_SUM};
    }
   #End expresion   

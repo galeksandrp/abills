@@ -813,11 +813,6 @@ sub snmputils_dlink_ip_mac_port{
   my $SWITCH_INFO = snmputils_dlink_pb_version({ SNMP_COMMUNITY => $SNMP_COMMUNITY });
 
   print "$SWITCH_INFO->{version}/$SWITCH_INFO->{firmware}/$SWITCH_INFO->{firmware2}";
-  my %MAIN_OPTIONS = (enable_mode  => $oid_prefix.'4.0',  # enable_mode
-                      loging_mode  => $oid_prefix.'5.0',  # Loging
-                      acl_ip_mac   => $oid_prefix.'6.0'   # ACL IP MAC 
-                      );
-
   if ($FORM{add}) {
      my $message = snmputils_dlink_pb_add({  
      	    SNMP_COMMUNITY => $SNMP_COMMUNITY,
@@ -859,6 +854,13 @@ sub snmputils_dlink_ip_mac_port{
     print $html->message('info', $_DELETED, "$message");
    }
   
+  
+  my $oid_prefix=$SWITCH_INFO->{oid_prefix};
+  my %MAIN_OPTIONS = (enable_mode  => $oid_prefix.'4.0',  # enable_mode
+                      loging_mode  => $oid_prefix.'5.0',  # Loging
+                      acl_ip_mac   => $oid_prefix.'6.0'   # ACL IP MAC 
+                      );
+
   #Port binding enable mode
   my %THREE_MODE = (1 => $_OTHER,
                     2 => $_ENABLE,

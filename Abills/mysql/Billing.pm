@@ -238,8 +238,7 @@ sub get_traffic {
 	);
   
   my $period = ($attr->{PERIOD}) ? $attr->{PERIOD} : "DATE_FORMAT(start, '%Y-%m')=DATE_FORMAT(curdate(), '%Y-%m')";
-  #($attr->{ACTIVATE} ne '0000-00-00') ? "DATE_FORMAT(start, '%Y-%m-%d')>='$attr->{ACTIVATE}'" : "DATE_FORMAT(start, '%Y-%m')=DATE_FORMAT(FROM_UNIXTIME($RAD->{SESSION_START}), '%Y-%m')" ;
- 
+
   $self->query($db, "SELECT sum(sent)  / $CONF->{MB_SIZE},  
                             sum(recv)  / $CONF->{MB_SIZE}, 
                             sum(sent2) / $CONF->{MB_SIZE}, 
@@ -255,7 +254,9 @@ sub get_traffic {
      $result{TRAFFIC_IN_2}
     )=@{ $self->{list}->[0] };
   }
-
+  
+  $self->{PERIOD_TRAFFIC}=\%result;
+  
 	return \%result;
 }
 
@@ -1109,7 +1110,7 @@ sub expression {
 
   #Expresion section
   if (scalar(keys %{ $expr }) > 0) {
-    my $start_period = ($attr->{START_PERIOD} && $attr->{START_PERIOD} ne '0000-00-00') ? "DATE_FORMAT(start, '%Y-%m')>=DATE_FORMAT('$attr->{START_PERIOD}', '%Y-%m')" : "DATE_FORMAT(start, '%Y-%m')>=DATE_FORMAT(curdate(), '%Y-%m')";
+    my $start_period = ($attr->{START_PERIOD} && $attr->{START_PERIOD} ne '0000-00-00') ? "DATE_FORMAT(start, '%Y-%m-%d')>='$attr->{START_PERIOD}'" : "DATE_FORMAT(start, '%Y-%m')>=DATE_FORMAT(curdate(), '%Y-%m')";
 
     my %ex = ();
     my $counters;
@@ -1131,19 +1132,26 @@ sub expression {
           #$CONF->{KBYTE_SIZE} = 1;
   	      print "ARGUMENT: $ex{ARGUMENT} EXP: '$ex{EXPR}' PARAMENTER: $ex{PARAMENTER}\n" if ($debug > 0); 
   	      if ($ex{ARGUMENT} =~ /TRAFFIC/) {
-  	      	$counters = $self->get_traffic({ UID    => $UID,
+
+  	      	
+            if ($self->{PERIOD_TRAFFIC}) {
+            	 $counters = $self->{PERIOD_TRAFFIC};
+             }
+            else {
+  	      	  $counters = $self->get_traffic({ UID    => $UID,
      	                                       PERIOD => $start_period
    	                                          }) if (! $counters->{TRAFFIC_IN});
+             }
 
             if ( $ex{ARGUMENT} eq 'TRAFFIC_SUM' && ! $counters->{TRAFFIC_SUM}) {
               $counters->{TRAFFIC_SUM}=$counters->{TRAFFIC_IN}+$counters->{TRAFFIC_OUT};
              }
             
-            if($ex{EXPR} eq '<' && $counters->{$ex{ARGUMENT}}  <  $ex{PARAMENTER}) {
+            if($ex{EXPR} eq '<' && $counters->{$ex{ARGUMENT}}  <=  $ex{PARAMENTER}) {
              	print "--$ex{EXPR} $ex{RES}/$ex{RES_VAL}/ \n" if ($debug > 0);
              	$RESULT = get_result($right);
              }
-            elsif($ex{EXPR} eq '>' && $counters->{$ex{ARGUMENT}} >  $ex{PARAMENTER}) {
+            elsif($ex{EXPR} eq '>' && $counters->{$ex{ARGUMENT}} >=  $ex{PARAMENTER}) {
             	print "--$ex{EXPR} $counters->{$ex{ARGUMENT}} \n" if ($debug > 0);
             	$RESULT = get_result($right);
              }

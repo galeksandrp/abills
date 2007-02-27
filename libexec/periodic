@@ -60,6 +60,13 @@ my @monthly_functions = ('admin_report_monthly',
                          'logrotate');
 my @reports = ();
 
+if ($args->{MODULES}) {
+	$args->{MODULES}=~s/ //g;
+	@MODULES = split(/,/, $args->{MODULES});
+	
+	print @MODULES;
+	exit;
+}
 
 
   foreach my $m (@MODULES) {
@@ -107,10 +114,8 @@ my @reports = ();
    undef %PERIODIC;
   }
 
-  push  @daily_functions, 'sheduler';
-
+push  @daily_functions, 'sheduler';
 my($Y, $M, $D);
-
   if(defined($args->{DATE})) {
      ($Y, $M, $D)=split(/-/, $args->{DATE}, 3);
      $YESTERDAY = (strftime "%Y-%m-%d", localtime(POSIX::mktime( 0, 10, 1, $D, ($M-1), $Y-1900)- 86400));
@@ -126,21 +131,21 @@ my($Y, $M, $D);
  
  
 if (defined($args->{monthly})) {
-   for(my $i=$#monthly_functions; $i>-1; $i--) {
+  for(my $i=$#monthly_functions; $i>-1; $i--) {
   	my $f = $monthly_functions[$i];
   	#print $f . "\n";
   	$f->();
+  }
+
+  if ($begin_time > 0)  {
+    Time::HiRes->import(qw(gettimeofday));
+    my $end_time = gettimeofday();
+    my $gen_time = $end_time - $begin_time;
+    $ADMIN_REPORT{GT} = sprintf(" GT: %2.5f", $gen_time);
    }
 
-   if ($begin_time > 0)  {
-     Time::HiRes->import(qw(gettimeofday));
-     my $end_time = gettimeofday();
-     my $gen_time = $end_time - $begin_time;
-     $ADMIN_REPORT{GT} = sprintf(" GT: %2.5f", $gen_time);
-    }
-
-   my $message = $html->tpl_show(templates('admin_report_month'), \%ADMIN_REPORT, { notprint => 'yes' });
-   sendmail("$conf{ADMIN_MAIL}", "$conf{ADMIN_MAIL}", "$ADMIN_REPORT{HOSTNAME}: Monthly billing report", 
+  my $message = $html->tpl_show(templates('admin_report_month'), \%ADMIN_REPORT, { notprint => 'yes' });
+  sendmail("$conf{ADMIN_MAIL}", "$conf{ADMIN_MAIL}", "$ADMIN_REPORT{HOSTNAME}: Monthly billing report", 
               "$message", "$conf{MAIL_CHARSET}", "2 (High)");
  }
 elsif (defined($args->{daily})) {
@@ -167,8 +172,10 @@ elsif (defined($args->{backup})) {
 else {
  print "Arguments (daily|monthly|backup)
    Optional arguments
-   DATE=2005-10-01
-   NO_USERS_WARNINGS - Don't send user warning messages\n";
+   DATE=2005-10-01            - Date for periodic process
+   NO_USERS_WARNINGS          - Don't send user warning messages
+   MODULES=[modules_list,...] - Make periodic process only for this modules
+   DEBUG                      - Show debug output\n";
  exit;
 }
 
