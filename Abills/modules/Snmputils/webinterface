@@ -1190,7 +1190,7 @@ foreach my $line (@$list) {
   my %result = ();
 
   foreach my $field (@default_fields) {
-    my @arr = snmpwalk("$line->[10]\@$line->[3]", $fields{$field});
+    my @arr = snmpwalk("$line->[11]\@$line->[3]", $fields{$field});
     
     print "<b>$fields{$field}</b><br>" if ($debug == 1);
     
@@ -1531,7 +1531,7 @@ foreach my $line (@$list) {
   
   foreach my $field (@default_fields) {
     my @arr = ();
-    if (@arr = snmpwalk("$line->[10]\@$line->[3]", $oid_prefix.'.'.$fields->{$field})) {
+    if (@arr = snmpwalk("$line->[11]\@$line->[3]", $oid_prefix.'.'.$fields->{$field})) {
       
       my $oid = "$field - $oid_prefix/$fields->{$field}";
       
