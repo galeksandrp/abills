@@ -34,8 +34,9 @@ elsif(defined($ARGV->{help})){
   print "Help:
   checkppp    - check Active ppp session and disconnect unknown ip
   checkspeed  - check cure speed for user. Arguments NAS_ID=xx
+  checklines  - 
   debug       - debug mode
-  
+
 \n";
   exit;
 }

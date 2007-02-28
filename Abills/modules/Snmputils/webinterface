@@ -420,6 +420,11 @@ sub snmputils_dlink_pb {
       my $ports = $1 || '';
       my $SWICH_INFO = snmputils_dlink_pb_version({ SNMP_COMMUNITY => $SNMP_COMMUNITY });
 
+      if (! $SWICH_INFO->{version}) {
+      	 $debug_output .= "Unknow version\n" if ($debug > 1);
+      	 next;
+       }
+
       my($ACTIVE_MAC, $BLOCK_MAC) = snmputils_dlink_pb_list({ SNMP_COMMUNITY => $SNMP_COMMUNITY,
                                                               SWITCH_INFO    => $SWITCH_INFO,
 	                                                          });
@@ -488,6 +493,7 @@ sub snmputils_dlink_pb {
         }
        $debug_output .= "$port," if ($debug > 1);
       }
+    $debug_output .= "\n";
     }
    }
   $DEBUG = $debug_output;
