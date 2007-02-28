@@ -11,6 +11,11 @@ MAILDIR="$HOME/$domain/$user/"
 `test -d $MAILDIR`
 if ($RETURNCODE!=0)
  {
+  `test -d $HOME/$domain/`
+   if ($RETURNCODE!=0) {
+     mkdir $HOME/$domain/ 
+    }
+
   `/usr/local/bin/maildirmake $MAILDIR`
   }
 
