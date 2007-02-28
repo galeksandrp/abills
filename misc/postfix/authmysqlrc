@@ -11,7 +11,7 @@ MYSQL_MAILDIR_FIELD     CONCAT('/var/spool/virtual/', md.domain,'/',mb.username,
 MYSQL_NAME_FIELD        CONCAT(mb.username, '@', md.domain)
 MYSQL_OPT               0
 MYSQL_PORT              3306
-MYSQL_QUOTA_FIELD       CONCAT(mb.box_size,'S')
+MYSQL_QUOTA_FIELD       CONCAT(mb.box_size * 1048576,'S')
 MYSQL_UID_FIELD         '1001'
 MYSQL_USER_TABLE        mail_boxes mb, mail_domains md
 MYSQL_WHERE_CLAUSE      mb.status='0'
