@@ -172,7 +172,6 @@ if ($prepaid{0} + $prepaid{1} > 0) {
    	                                       PERIOD => $traffic_period
    	                                    });
    
-   print $used_traffic;
    $used_traffic->{TRAFFIC_SUM}=$used_traffic->{TRAFFIC_OUT} + $used_traffic->{TRAFFIC_IN};
     
    # If left global prepaid traffic set traf price to 0
