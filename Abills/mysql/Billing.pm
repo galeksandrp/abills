@@ -206,11 +206,11 @@ if ($prepaid{0} + $prepaid{1} > 0) {
 #####################################################################
 # TRafic payments
  my $traf_sum = 0;
-
- my $gl_in  = $recv / $CONF->{MB_SIZE} * $traf_price{in}{0};
- my $gl_out = $sent / $CONF->{MB_SIZE} * $traf_price{out}{0};
+ 
+ my $gl_in  = ($traf_price{in}{0}) ? $recv / $CONF->{MB_SIZE} * $traf_price{in}{0} : 0;
+ my $gl_out = ($traf_price{out}{0}) ? $sent / $CONF->{MB_SIZE} * $traf_price{out}{0} : 0;
  my $lo_in  = (defined($traf_price{in}{1})) ?  $recv2 / $CONF->{MB_SIZE} * $traf_price{in}{1} : 0;
- my $lo_out = (defined($traf_price{in}{1})) ?  $sent2 / $CONF->{MB_SIZE} * $traf_price{out}{1} : 0;
+ my $lo_out = (defined($traf_price{out}{1})) ?  $sent2 / $CONF->{MB_SIZE} * $traf_price{out}{1} : 0;
  $traf_sum  = $lo_in + $lo_out + $gl_in + $gl_out;
 
 
