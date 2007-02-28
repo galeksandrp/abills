@@ -757,12 +757,11 @@ sub get_timeinfo {
   if($self->{errno}) {
     return $self;
    }
-  my $a_ref = $self->{list}->[0];
 
  ($self->{SESSION_START},
   $self->{DAY_BEGIN},
   $self->{DAY_OF_WEEK},
-  $self->{DAY_OF_YEAR})  = @$a_ref;
+  $self->{DAY_OF_YEAR})  = @{ $self->{list}->[0] };
 
   return $self;
 }
