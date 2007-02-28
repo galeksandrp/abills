@@ -408,7 +408,7 @@ sub snmputils_dlink_pb {
   my $debug_output = '';
   
 #Get nas servers TYPE: dlink_pb
-  my $list = $nas->list({ PAGE_ROWS => 10000, TYPE => dlink_pb });
+  my $list = $nas->list({ PAGE_ROWS => 10000, TYPE => dlink_pb, DISABLE => 0 });
   foreach my $line (@$list) {
     $debug_output .= "NAS: $line->[0], $line->[9], $line->[11] $line->[12]\n" if ($debug > 1);
     #GET users for this NAS
@@ -747,7 +747,10 @@ sub snmputils_dlink_pb_list {
 
 	my %info = ();
   my %BLOCK_HASH = ();
-
+  if ( ! $SWITCH_INFO->{oid_prefix}) {
+  	print "No swich info '$attr->{SNMP_COMMUNITY}'\n";
+  	return 0;
+   }
   #Full list
   my @result = &snmpwalk("$SNMP_COMMUNITY", $SWITCH_INFO->{oid_prefix});
   print $SWITCH_INFO->{oid_prefix}." / $SWITCH_INFO->{oid_sufix}{STATE}" if ($debug > 0);
