@@ -48,7 +48,7 @@ sub snmputils_nas_ipmac {
 
  $self->query($db,   "SELECT un.nas_id, un.uid, INET_NTOA(d.ip), d.mac,
      if(u.company_id > 0, cb.deposit, ub.deposit)
-     FROM users u, users_nas un, dhcphosts_hosts d
+     FROM (users u, users_nas un, dhcphosts_hosts d)
      LEFT JOIN bills ub ON (u.bill_id = ub.id)
      LEFT JOIN companies company ON  (u.company_id=company.id)
      LEFT JOIN bills cb ON  (company.bill_id=cb.id)
