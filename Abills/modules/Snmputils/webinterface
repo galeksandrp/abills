@@ -440,7 +440,7 @@ sub snmputils_dlink_pb {
       foreach my $line (@$list) {
         
      	  $debug_output .= "$line->[0], $line->[1], $line->[2], $line->[3]\n" if ($debug > 2);
-        if ($line->[4] > 0) {
+        if ($line->[4] >= 0) {
           $MUST_ACTIVATE{$line->[3]}=$line->[2];
          }
         else {
