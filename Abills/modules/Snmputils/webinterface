@@ -416,6 +416,7 @@ sub snmputils_dlink_pb {
     my $SNMP_COMMUNITY = "$line->[11]\@$line->[9]";
 
     if($Snmputils->{TOTAL} > 0) {
+      
       $line->[12]=~/Assign-Ports="(.+)"/;
       my $ports = $1 || '';
       my $SWICH_INFO = snmputils_dlink_pb_version({ SNMP_COMMUNITY => $SNMP_COMMUNITY });
@@ -437,8 +438,14 @@ sub snmputils_dlink_pb {
        }
 
       foreach my $line (@$list) {
-        $MUST_ACTIVATE{$line->[3]}=$line->[2];
+        
      	  $debug_output .= "$line->[0], $line->[1], $line->[2], $line->[3]\n" if ($debug > 2);
+        if ($line->[4] > 0) {
+          $MUST_ACTIVATE{$line->[3]}=$line->[2];
+         }
+        else {
+        	$debug_output .= "Negative deposit\n" if ($debug > 2);
+         }
        }
 
       while(my($ip, $mac)=each %SERVER_MAC) {

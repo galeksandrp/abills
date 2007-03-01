@@ -46,10 +46,14 @@ sub snmputils_nas_ipmac {
  @WHERE_RULES = ();
  $WHERE = ($#WHERE_RULES > -1) ? 'WHERE ' . join(' and ', @WHERE_RULES)  : '';
 
- $self->query($db,   "SELECT un.nas_id, un.uid, INET_NTOA(d.ip), d.mac
-            from users u, users_nas un, dhcphosts_hosts d
+ $self->query($db,   "SELECT un.nas_id, un.uid, INET_NTOA(d.ip), d.mac,
+     if(u.company_id > 0, cb.deposit, ub.deposit)
+     FROM users u, users_nas un, dhcphosts_hosts d
+     LEFT JOIN bills ub ON (u.bill_id = ub.id)
+     LEFT JOIN companies company ON  (u.company_id=company.id)
+     LEFT JOIN bills cb ON  (company.bill_id=cb.id)
             WHERE u.uid=un.uid
-               and un.uid=d.uid and un.nas_id='$attr->{NAS_ID}'
+               and un.uid=d.uid and un.nas_id='18'
                and u.disable=0
             ORDER BY $SORT $DESC
             LIMIT $PG, $PAGE_ROWS;");
