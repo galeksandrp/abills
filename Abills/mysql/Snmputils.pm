@@ -47,8 +47,10 @@ sub snmputils_nas_ipmac {
  $WHERE = ($#WHERE_RULES > -1) ? 'WHERE ' . join(' and ', @WHERE_RULES)  : '';
 
  $self->query($db,   "SELECT un.nas_id, un.uid, INET_NTOA(d.ip), d.mac
-            from users_nas un, dhcphosts_hosts d
-            WHERE un.uid=d.uid and un.nas_id='$attr->{NAS_ID}'
+            from users u, users_nas un, dhcphosts_hosts d
+            WHERE u.uid=un.uid
+               and un.uid=d.uid and un.nas_id='$attr->{NAS_ID}'
+               and u.disable=0
             ORDER BY $SORT $DESC
             LIMIT $PG, $PAGE_ROWS;");
 

@@ -503,14 +503,11 @@ sub list {
 
  return $self if($self->{errno});
 
-
-
  my $list = $self->{list};
 
  if ($self->{TOTAL} >= 0) {
     $self->query($db, "SELECT count(u.id) FROM (users u, dv_main dv) $WHERE");
-    my $a_ref = $self->{list}->[0];
-    ($self->{TOTAL}) = @$a_ref;
+    ($self->{TOTAL}) = @{ $self->{list}->[0] };
    }
 
   return $list;
