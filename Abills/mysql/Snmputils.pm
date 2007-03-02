@@ -75,7 +75,7 @@ sub snmp_binding_add {
   %DATA = $self->get_data($attr, { default => \%DATA }); 
 
   $self->query($db, "insert into snmputils_binding (uid, binding, comments, params)
-    values ('$DATA{UID}', '$DATA{BINDING}', '$DATA{COMMENTS}', '$DATA{PARAMS}');", 'do');
+    values ('$DATA{UID}', '$DATA{ID}', '$DATA{COMMENTS}', '$DATA{PARAMS}');", 'do');
 
 	return $self;
 }

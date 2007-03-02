@@ -1,6 +1,7 @@
 <FORM action=$SELF_URL METHOD=POST>
 <input type=hidden name=index value=$index>
 <input type=hidden name=chg value='$FORM{chg}'>
+<input type=hidden name=UID value='$FORM{UID}'>
 <TABLE>
 <TR><TD>ID:</TD><TD><input type=text name=ID value='%ID%'></TD></TR>
 <TR><TD>$_PARAMS:</TD><TD><input type=text name=PARAMS value='%PARAMS%'></TD></TR>

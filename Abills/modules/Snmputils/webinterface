@@ -681,8 +681,11 @@ sub snmputils_dlink_pb_add {
     $message .= "Ok\n";
    }
 
-  if($sw_info->{version}=~/DES-30/ && snmpset($SNMP_COMMUNITY, $oid, "integer", "4")) {
-   	$message .= " Ok\n";
+  if($sw_info->{version} =~ /DES-30/) {
+  	print "=> $oid\n";
+  	if(snmpset($SNMP_COMMUNITY, $oid, "integer", "4")) {
+   	  $message .= " Ok\n";
+     }
    }
 
 
@@ -2275,7 +2278,7 @@ sub snmputils_binding {
 
 	$Snmputils->{ACTION}='add';
 	$Snmputils->{ACTION_LNG}=$_ADD;
-
+  $Snmputils->{debug}=1;
   
   if($FORM{add}) {
     $Snmputils->snmp_binding_add({ %FORM });
@@ -2314,6 +2317,8 @@ sub snmputils_binding {
 
 
   $html->tpl_show(_include('snmputils_binding', 'Snmputils'), { %$Snmputils, %FORM }); 	
+  
+#  %LIST_PARAMS = ();
 
   snmputils_binding_list();  
 }
