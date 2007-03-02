@@ -75,7 +75,7 @@ sub snmp_binding_add {
   %DATA = $self->get_data($attr, { default => \%DATA }); 
 
   $self->query($db, "insert into snmputils_binding (uid, binding, comments, params)
-    values ('$DATA{UID}', '$DATA{ID}', '$DATA{COMMENTS}', '$DATA{PARAMS}');", 'do');
+    values ('$DATA{UID}', '$DATA{BINDING}', '$DATA{COMMENTS}', '$DATA{PARAMS}');", 'do');
 
 	return $self;
 }
@@ -86,8 +86,35 @@ sub snmp_binding_add {
 sub snmp_binding_del {
 	my $self = shift;
 	my ($attr) = @_;
-  $self->query($db, "DELETE FROM snmputils_binding WHERE id='$attr->{ID}'", 'do');
+  $self->query($db, "DELETE FROM snmputils_binding WHERE binding='$attr->{ID}'", 'do');
 	return $self;
+}
+
+
+#**********************************************************
+# group_info()
+#**********************************************************
+sub snmp_binding_change {
+ my $self = shift;
+ my ($attr) = @_;
+ 
+
+ my %FIELDS = (UID      => 'uid',
+               BINDING  => 'binding',
+               COMMENTS => 'comments',
+               PARAMS   => 'params',
+               ID       => 'id'
+               );
+
+ $self->changes($admin, { CHANGE_PARAM => 'ID',
+		               TABLE        => 'snmputils_binding',
+		               FIELDS       => \%FIELDS,
+		               OLD_INFO     => $self->snmp_binding_info($attr->{ID}),
+		               DATA         => $attr
+		              } );
+
+
+ return $self;
 }
 
 #**********************************************************

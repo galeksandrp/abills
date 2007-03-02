@@ -2307,12 +2307,12 @@ sub snmputils_binding {
      }
   }
  	elsif(defined($FORM{chg})) {
-    $Snmputils->snmp_binding_info(ID => $FORM{ID}, { %FORM });
+    $Snmputils->snmp_binding_info($FORM{chg}, { %FORM });
     if(! $Snmputils->{errno}) {
       $html->message('info', $_INFO, "$_CHANGING");  	
      }
     $Snmputils->{ACTION}='change';
-    $Snmputils->{LNG_ACTION}=$_CHANGE;
+    $Snmputils->{ACTION_LNG}=$_CHANGE;
   }
   elsif(defined($FORM{del}) && defined($FORM{is_js_confirmed}) ) {
     $Snmputils->snmp_binding_del({ ID => $FORM{del} });
@@ -2358,7 +2358,7 @@ $table = $html->table({ width       => '100%',
 
  foreach my $line (@$list) {
     my $delete = $html->button($_DEL, "index=$index&del=$line->[1]$pages_qs", { MESSAGE => "$_DEL [$line->[1]] ?" });
-    my $change = $html->button($_DEL, "index=$index&chg=$line->[1]$pages_qs");;
+    my $change = $html->button($_CHANGE, "index=$index&chg=$line->[4]$pages_qs");;
 
     $table->addrow($line->[0],
      $line->[1],
