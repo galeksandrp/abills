@@ -2333,7 +2333,7 @@ sub snmputils_binding {
   $html->tpl_show(_include('snmputils_binding', 'Snmputils'), { %$Snmputils, %FORM }); 	
   
 #  %LIST_PARAMS = ();
-
+  $pages_qs="&UID=$FORM{UID}";
   snmputils_binding_list();  
 }
 
@@ -2357,13 +2357,15 @@ $table = $html->table({ width       => '100%',
                       });
 
  foreach my $line (@$list) {
-    my $delete = '';
-    my $change = '';
+    my $delete = $html->button($_DEL, "index=$index&del=$line->[1]$pages_qs", { MESSAGE => "$_DEL [$line->[1]] ?" });
+    my $change = $html->button($_DEL, "index=$index&chg=$line->[1]$pages_qs");;
 
     $table->addrow($line->[0],
      $line->[1],
      $line->[2],
-     $line->[3]);
+     $line->[3],
+     $change,
+     $delete);
   }
 
 
