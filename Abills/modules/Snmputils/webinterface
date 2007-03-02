@@ -789,7 +789,8 @@ sub snmputils_dlink_pb_list {
         my $multi_ports = '';
         #my $count=0;
         while ( $string =~ m/1/g ) {
-          $port = 33 - pos($string);
+          #$port = 33 - 
+          $port = pos($string);
           $multi_ports .= ",$port";
     	  	push @{ $info{PORT}{$port} },  $ip;
     	  	#$count++;
@@ -2331,9 +2332,3 @@ $table = $html->table({ width       => '100%',
 
 
  print $table->show();
-
-}
-
-
-1
-
