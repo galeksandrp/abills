@@ -801,8 +801,12 @@ sub snmputils_dlink_pb_list {
         my $multi_ports = '';
         #my $count=0;
         while ( $string =~ m/1/g ) {
-          #$port = 33 - 
-          $port = pos($string);
+   	      if ($SWITCH_INFO->{version} =~ /DES-30/) {
+            $port = 33 - pos($string);
+          else {
+            $port = pos($string);
+           }
+
           $multi_ports .= ",$port";
     	  	push @{ $info{PORT}{$port} },  $ip;
     	  	#$count++;
