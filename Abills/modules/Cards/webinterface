@@ -135,6 +135,8 @@ if (defined($FORM{SERIA})) {
   my @pin = ();
   @pin = ("PIN") if ($conf{CARDS_SHOW_PINS}) ;
 
+
+  $Cards->{debug}=1;
   my $list = $Cards->cards_list({ %LIST_PARAMS, SERIA => $FORM{SERIA} });
   $table = $html->table( { width      => '100%',
                            caption    => "$_SERIAL: $FORM{SERIA}",
@@ -153,7 +155,7 @@ if (defined($FORM{SERIA})) {
    	    
    	    $line->[0]. $html->form_input("IDS", "$line->[1]:$line->[0]", {TYPE => 'checkbox'}), 
   	    $line->[1],
-  	    $html->button($line->[2], "&index=11&UID=$line->[12]"),
+  	    $html->button($line->[2], "&index=11&UID=$line->[13]"),
   		  $line->[3],
   		  $status[$line->[4]],
   		  $line->[5],
