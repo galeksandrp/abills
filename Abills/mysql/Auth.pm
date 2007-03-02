@@ -96,7 +96,8 @@ sub dv_auth {
   tp.rad_pairs,
   count(i.id),
   tp.age,
-  dv.callback
+  dv.callback,
+  dv.port
 
      FROM (dv_main dv, tarif_plans tp)
      LEFT JOIN users_nas un ON (un.uid = dv.uid)
@@ -137,7 +138,8 @@ sub dv_auth {
      $self->{TP_RAD_PAIRS},
      $self->{INTERVALS},
      $self->{ACCOUNT_AGE},
-     $self->{CALLBACK}
+     $self->{CALLBACK},
+     $self->{PORT}
     ) = @{ $self->{list}->[0] };
 
 #DIsable
@@ -179,7 +181,11 @@ if ($self->{CID} ne '' && $self->{CID} ne '0') {
   return $ret, $ERR_RAD_PAIRS if ($ret == 1);
 }
 
-
+#Check port
+if ($self->{PORT} > 0 && $self->{PORT} != $RAD->{NAS_PORT}) {
+  $RAD_PAIRS->{'Reply-Message'}="Wrong port '$RAD->{NAS_PORT}'";
+  return 1, $RAD_PAIRS;
+}
 
 #Check  simultaneously logins if needs
 if ($self->{LOGINS} > 0) {

@@ -102,7 +102,8 @@ sub info {
    dv.filter_id, 
    dv.cid,
    dv.disable,
-   dv.callback
+   dv.callback,
+   dv.port
      FROM dv_main dv
      LEFT JOIN tarif_plans tp ON (dv.tp_id=tp.id)
    $WHERE;");
@@ -124,7 +125,8 @@ sub info {
    $self->{FILTER_ID}, 
    $self->{CID},
    $self->{DISABLE},
-   $self->{CALLBACK}
+   $self->{CALLBACK},
+   $self->{PORT}
   )= @{ $self->{list}->[0] };
   
   
@@ -149,6 +151,7 @@ sub defaults {
    FILTER_ID      => '', 
    CID            => '',
    CALLBACK       => 0,
+   PORT           => 0
   );
 
  
@@ -198,11 +201,13 @@ sub add {
              speed, 
              filter_id, 
              cid,
-             callback)
+             callback,
+             port)
         VALUES ('$DATA{UID}', now(),
         '$DATA{TP_ID}', '$DATA{SIMULTANEONSLY}', '$DATA{DISABLE}', INET_ATON('$DATA{IP}'), 
         INET_ATON('$DATA{NETMASK}'), '$DATA{SPEED}', '$DATA{FILTER_ID}', LOWER('$DATA{CID}'),
-        '$DATA{CALLBACK}');", 'do');
+        '$DATA{CALLBACK}',
+        '$DATA{PORT}');", 'do');
 
   return $self if ($self->{errno});
   $admin->action_add("$DATA{UID}", "ACTIVE");
@@ -230,7 +235,8 @@ sub change {
               CID              => 'cid',
               UID              => 'uid',
               FILTER_ID        => 'filter_id',
-              CALLBACK         => 'callback'
+              CALLBACK         => 'callback',
+              PORT             => 'port'
              );
   
   if (! $attr->{CALLBACK}) {

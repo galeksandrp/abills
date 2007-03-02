@@ -252,7 +252,7 @@ my %FIELDS = (EMAIL          => 'email',
 	$self->changes($admin, { CHANGE_PARAM => 'UID',
 		                TABLE        => 'users_pi',
 		                FIELDS       => \%FIELDS,
-		              OLD_INFO     => $self->pi({ UID => $attr->{UID} }),
+		                OLD_INFO     => $self->pi({ UID => $attr->{UID} }),
 		                DATA         => $attr
 		              } );
 
@@ -304,8 +304,7 @@ sub groups_list {
 
  if ($self->{TOTAL} > 0) {
     $self->query($db, "SELECT count(*) FROM groups");
-    my $a_ref = $self->{list}->[0];
-    ($self->{TOTAL}) = @$a_ref;
+    ($self->{TOTAL}) = @{ $self->{list}->[0] };
    }
 
  return $list;
@@ -323,10 +322,8 @@ sub group_info {
 
  return $self if ($self->{errno});
 
- my $a_ref = $self->{list}->[0];
-
  ($self->{G_NAME},
- 	$self->{G_DESCRIBE}) = @$a_ref;
+ 	$self->{G_DESCRIBE}) = @{ $self->{list}->[0] };
  
  $self->{GID}=$gid;
 
@@ -341,8 +338,8 @@ sub group_change {
  my ($gid, $attr) = @_;
  
 
- my %FIELDS = (GID => 'gid',
-               G_NAME => 'name',
+ my %FIELDS = (GID        => 'gid',
+               G_NAME     => 'name',
                G_DESCRIBE => 'descr');
 
  $self->changes($admin, { CHANGE_PARAM => 'GID',

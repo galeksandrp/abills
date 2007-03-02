@@ -2254,11 +2254,86 @@ elsif ($buf =~ /FROM (\S+)/) {
 #**********************************************************
 sub snmputils_binding {
 	my $binding;
+
 	$Snmputils->{ACTION}='add';
 	$Snmputils->{ACTION_LNG}=$_ADD;
 
+  
+  if($FORM{add}) {
+    $Snmputils->snmp_binding_add({ %FORM });
+    if(! $Snmputils->{errno}) {
+      $html->message('info', $_INFO, "$_ADDED");
+     }
+  }
+  elsif($FORM{change}) {
+    $Snmputils->snmp_binding_change({ %FORM });
+    if(! $Snmputils->{errno}) {
+      $html->message('info', $_INFO, "$_CHANGED"); 
+     }
+  }
+ 	elsif(defined($FORM{chg})) {
+    $Snmputils->snmp_binding_info(ID => $FORM{ID}, { %FORM });
+    if(! $Snmputils->{errno}) {
+      $html->message('info', $_INFO, "$_CHANGING");  	
+     }
+    $Snmputils->{ACTION}='change';
+    $Snmputils->{LNG_ACTION}=$_CHANGE;
+  }
+  elsif(defined($FORM{del}) && defined($FORM{is_js_confirmed}) ) {
+    $Snmputils->snmp_binding_del({ ID => $FORM{del} });
+    if(! $Snmputils->{errno}) {
+    	$html->message('info', $_INFO, "$_DELETED"); 
+     }
+  }
+
+  if ($Snmputils->{errno} == 7) {
+  	$html->message('err', $_ERROR, "$_EXIST '$FORM{ID}'"); 
+   }
+  elsif($Snmputils->{errno}) {
+    $html->message('err', $_ERROR, "[$Snmputils->{errno}] $err_strs{$Snmputils->{errno}}"); 
+   }
+
+
+
   $html->tpl_show(_include('snmputils_binding', 'Snmputils'), { %$Snmputils, %FORM }); 	
+
+  snmputils_binding_list();  
 }
+
+
+#**********************************************************
+# binding ID binding
+#**********************************************************
+sub snmputils_binding_list {
+
+
+$Snmputils->{debug}=1;
+my $list = $Snmputils->snmputils_binding_list({ %LIST_PARAMS }); 
+
+$table = $html->table({ width       => '100%',
+                        caption     => "$_RESULT: $SNMP_COMMUNITY",
+                        border      => 1,
+                        title       => ["$_USER", "ID", "$_PARAMS", "$_COMMENTS", '-', '-'],
+                        cols_align  => ['left', 'right', 'right', 'right', 'right', 'center', 'center'],
+                        qs          => $pages_qs,
+                        pages       => $Snmputils->{TOTAL}
+                      });
+
+ foreach my $line (@$list) {
+    my $delete = '';
+    my $change = '';
+
+    $table->addrow($line->[0],
+     $line->[1],
+     $line->[2],
+     $line->[3]);
+  }
+
+
+ print $table->show();
+
+}
+
 
 1
 
