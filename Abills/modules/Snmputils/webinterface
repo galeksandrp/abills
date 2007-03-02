@@ -618,6 +618,21 @@ sub snmputils_dlink_pb_add {
    	$message .= " Ok\n";
    }
 
+  #Шаг 3. Задать MAC-адрес (AA-BB-CC-DD-EE-FF) связки:
+  my @mac_arr = split(/:|-/, $mac);
+  $mac = '';
+  foreach my $c (@mac_arr) {
+    $mac .= chr(hex($c));
+   }
+
+  $message .= $oid_prefix.$oid_sufix{MAC}.".$ip => $mac\n";
+  if(snmpset($SNMP_COMMUNITY, $oid_prefix.$oid_sufix{MAC}.".$ip", "string", "$mac")) {
+    $message .= "Ok\n";
+   }
+  else {
+    print "$SNMP_Session::suppress_warnings / $SNMP_Session::errmsg";	
+   }
+
   #Шаг 2. Назначить эту связку на порт 1:
   #Convert to D-Link port value
   #   my $first_port = 0b10000000000000000000000000000000;
@@ -661,21 +676,6 @@ sub snmputils_dlink_pb_add {
   $message .= $oid_prefix.$oid_sufix{PORT}.".$ip => $port_binding\n";
   if(snmpset($SNMP_COMMUNITY, $oid_prefix.$oid_sufix{PORT}.".$ip", "string", "$port_binding")) {
   	$message .= "Ok\n";
-   }
-  else {
-    print "$SNMP_Session::suppress_warnings / $SNMP_Session::errmsg";	
-   }
-
-  #Шаг 3. Задать MAC-адрес (AA-BB-CC-DD-EE-FF) связки:
-  my @mac_arr = split(/:|-/, $mac);
-  $mac = '';
-  foreach my $c (@mac_arr) {
-    $mac .= chr(hex($c));
-   }
-
-  $message .= $oid_prefix.$oid_sufix{MAC}.".$ip => $mac\n";
-  if(snmpset($SNMP_COMMUNITY, $oid_prefix.$oid_sufix{MAC}.".$ip", "string", "$mac")) {
-    $message .= "Ok\n";
    }
   else {
     print "$SNMP_Session::suppress_warnings / $SNMP_Session::errmsg";	
