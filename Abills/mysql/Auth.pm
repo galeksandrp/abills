@@ -896,10 +896,23 @@ if ((defined($prepaids{0}) && $prepaids{0} > 0 ) || (defined($prepaids{1}) && $p
   my $used_traffic=$Billing->get_traffic({ UID    => $self->{UID},
                                            PERIOD => $start_period });
 
-  $used_traffic->{TRAFFIC_SUM}=$used_traffic->{TRAFFIC_IN}+$used_traffic->{TRAFFIC_OUT};
-  $used_traffic->{TRAFFIC_SUM_2}=$used_traffic->{TRAFFIC_IN_2}+$used_traffic->{TRAFFIC_OUT_2};
 
-  #print "-- $used_traffic->{TRAFFIC_SUM}  $used_traffic->{TRAFFIC_SUM_2}\n";
+
+  #Make trafiic sum only for diration
+  #Recv / IN
+  if($self->{OCTETS_DIRECTION} == 1) {
+ 	  $used_traffic->{TRAFFIC_COUNTER}   = $used_traffic->{TRAFFIC_IN};
+    $used_traffic->{TRAFFIC_COUNTER_2} = $used_traffic->{TRAFFIC_IN_2};
+   }
+  #Sent / OUT
+  elsif ($self->{OCTETS_DIRECTION} == 2 ) {
+ 	  $used_traffic->{TRAFFIC_COUNTER}   = $used_traffic->{TRAFFIC_OUT};
+    $used_traffic->{TRAFFIC_COUNTER_2} = $used_traffic->{TRAFFIC_OUT_2};
+   }
+  else {
+ 	  $used_traffic->{TRAFFIC_COUNTER}   = $used_traffic->{TRAFFIC_IN}+$used_traffic->{TRAFFIC_OUT};
+    $used_traffic->{TRAFFIC_COUNTER_2} = $used_traffic->{TRAFFIC_IN_2}+$used_traffic->{TRAFFIC_OUT_2};
+   }   
   
   if ($self->{TOTAL} == 0) {
     $trafic_limits{0}=$prepaids{0} || 0;
@@ -908,8 +921,10 @@ if ((defined($prepaids{0}) && $prepaids{0} > 0 ) || (defined($prepaids{1}) && $p
   else {
     #my $used = $self->{list}->[0];
     #Check global traffic
-    if ($used_traffic->{TRAFFIC_SUM} < $prepaids{0}) {
-      $trafic_limits{0}=$prepaids{0} - $used_traffic->{TRAFFIC_SUM};
+   
+
+    if ($used_traffic->{TRAFFIC_COUNTER} < $prepaids{0}) {
+      $trafic_limits{0}=$prepaids{0} - $used_traffic->{TRAFFIC_COUNTER};
      }
     elsif($in_prices{0} > 0 && $out_prices{0} > 0) {
       $trafic_limits{0} = ($deposit / (($in_prices{0} + $out_prices{0}) / 2));
@@ -923,8 +938,8 @@ if ((defined($prepaids{0}) && $prepaids{0} > 0 ) || (defined($prepaids{1}) && $p
     
     # Check extended prepaid traffic
     if ($prepaids{1}) {
-      if (($used_traffic->{TRAFFIC_SUM_2}  < $prepaids{1})) {
-        $trafic_limits{1}=$prepaids{1} - $used_traffic->{TRAFFIC_SUM_2};
+      if (($used_traffic->{TRAFFIC_COUNTER_2}  < $prepaids{1})) {
+        $trafic_limits{1}=$prepaids{1} - $used_traffic->{TRAFFIC_COUNTER_2};
        }
       elsif($in_prices{1} > 0 && $out_prices{1} > 0) {
         $trafic_limits{1} = ($deposit / (($in_prices{1} + $out_prices{1}) / 2));
@@ -944,17 +959,33 @@ if ((defined($prepaids{0}) && $prepaids{0} > 0 ) || (defined($prepaids{1}) && $p
   	                                                        
   if ($RESULT->{TRAFFIC_LIMIT}) {
   	#print "LIMIT: $RESULT->{TRAFFIC_LIMIT} USED: $used_traffic->{TRAFFIC_SUM}";
-  	$trafic_limits{0} =  $RESULT->{TRAFFIC_LIMIT} - $used_traffic->{TRAFFIC_SUM};
+  	$trafic_limits{0} =  $RESULT->{TRAFFIC_LIMIT} - $used_traffic->{TRAFFIC_COUNTER};
    }
   #End expresion   
  }
 else {
-  if ($in_prices{0}+$out_prices{0} > 0) {
+  if($in_prices{0} > 0 && $out_prices{0} > 0) {
     $trafic_limits{0} = ($deposit / (($in_prices{0} + $out_prices{0}) / 2));
    }
+  elsif($in_prices{0} > 0 && $out_prices{0} == 0) {
+   	$trafic_limits{0} = ($deposit / $in_prices{0});
+   }
+  elsif($in_prices{0} == 0 && $out_prices{0} > 0) {
+    $trafic_limits{0} = ($deposit / $out_prices{0});
+   }
 
-  if (defined($in_prices{1}) && $in_prices{1}+$out_prices{1} > 0) {
-    $trafic_limits{1} = ($deposit / (($in_prices{1} + $out_prices{1}) / 2));
+
+
+  if (defined($in_prices{1})) {
+    if($in_prices{1} > 0 && $out_prices{1} > 0) {
+      $trafic_limits{1} = ($deposit / (($in_prices{1} + $out_prices{1}) / 2));
+     }
+    elsif($in_prices{1} > 0 && $out_prices{1} == 0) {
+    	$trafic_limits{1} = ($deposit / $in_prices{1});
+     }
+    elsif($in_prices{1} == 0 && $out_prices{1} > 0) {
+      $trafic_limits{1} = ($deposit / $out_prices{1});
+     }
    }
   else {
     $trafic_limits{1} = 0;
@@ -1270,6 +1301,7 @@ sub check_mschapv2 {
 
     return 0;
 }
+
 
 
 
