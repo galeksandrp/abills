@@ -820,10 +820,10 @@ sub snmputils_dlink_pb_list {
         $info{MULTIPORTS}{$2}="$multi_ports"; #if ($count>1);
   	   }
   	  elsif ($1 == 2) {
-  	  	$info{MAC}{$2}=join(':', unpack("H2H2H2H2H2H2", $3));
   	  	if ($debug > 0) {
   	  		 print "IP: $2 MAC: $3<br>\n";
   	  	 }
+  	  	$info{MAC}{$2}=join(':', unpack("H2H2H2H2H2H2", $3));
   	   }
   	  elsif ($PREFIX{$1}) {
   		  $info{$PREFIX{$1}}{$2}=$3;
