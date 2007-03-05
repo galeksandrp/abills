@@ -935,8 +935,9 @@ sub remaining_time {
           
           
           #Traf calculation
-          if(defined($periods_traf_tarif->{$int_id})
 #30.11             && $periods_traf_tarif->{$int_id} > 0 
+
+          if(defined($periods_traf_tarif->{$int_id})
              && $remaining_time == 0 
              && ($attr->{GET_INTERVAL} || ! $CONF->{rt_billing})
              ) {
