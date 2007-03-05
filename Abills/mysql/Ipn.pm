@@ -439,7 +439,7 @@ sub get_zone {
    	    	my $IP       = unpack("N", pack("C4", split( /\./, $2))); 
    	    	my $NETMASK  = (length($4) < 3) ? unpack "N", pack("B*",  ( "1" x $4 . "0" x (32 - $4) )) : unpack("N", pack("C4", split( /\./, "$4")));
    	    	
-   	      print "REG ID: $zoneid NEGATIVE: $NEG IP: ".  int2ip($IP). " MASK: ". int2ip($NETMASK) ." Ports: $6\n" if ($self->{debug});
+   	      print "REG $i ID: $zoneid NEGATIVE: $NEG IP: ".  int2ip($IP). " MASK: ". int2ip($NETMASK) ." Ports: $6\n" if ($self->{debug});
 
   	      $zones{$zoneid}{A}[$i]{IP}   = $IP;
 	        $zones{$zoneid}{A}[$i]{Mask} = $NETMASK;
@@ -496,7 +496,7 @@ sub ip_in_zone($$$) {
     # идем по списку адресов зоны
     for (my $i=0; $i<=$#{$zones{$zoneid}{A}}; $i++) {
 	     
-	     my $adr_hash = \%{$zones{$zoneid}{A}[$i]};
+	     my $adr_hash = \%{ $zones{$zoneid}{A}[$i] };
        
        my $a_ip  = $$adr_hash{'IP'}; 
        my $a_msk = $$adr_hash{'Mask'}; 
@@ -506,7 +506,7 @@ sub ip_in_zone($$$) {
        #print "AAAAAAAA:" . @$a_ports_ref . "\n";
        
        # если адрес попадает в подсеть
-       print "( $a_ip & $a_msk) == ($ip_num & $a_msk)\n";
+       print "($i/ ". int2ip($a_ip). " & $a_msk) == (". int2ip($ip_num) ." & $a_msk)\n";
        if ( (( $a_ip & $a_msk) == ($ip_num & $a_msk)) && # адрес совпадает
               (is_exist($a_ports_ref, $port)) ) {       # И порт совпадает
 
