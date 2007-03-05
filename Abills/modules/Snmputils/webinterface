@@ -791,7 +791,7 @@ sub snmputils_dlink_pb_list {
     	print "Block<br>" if ($debug > 0);
      }
     #Binding Address
-    elsif($line =~ /^[\d\.]{0,2}\d\.\d\.(\d)\.(\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3}):([\n].+)/g) {
+    elsif($line =~ /^[\d\.]{0,2}\d\.\d\.(\d)\.(\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3}):([\n]?.+)/g) {
       print "=> $1 / $2 / $3 <br>\n" if ($debug > 0);
       #Port
   	  if ($1 == 4) {
