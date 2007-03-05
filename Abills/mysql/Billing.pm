@@ -172,8 +172,19 @@ if ($prepaid{0} + $prepaid{1} > 0) {
    	                                       PERIOD => $traffic_period
    	                                    });
    
-   $used_traffic->{TRAFFIC_SUM}=$used_traffic->{TRAFFIC_OUT} + $used_traffic->{TRAFFIC_IN};
-    
+   
+   #Recv / IN
+   if($self->{OCTETS_DIRECTION}==1) {
+     $used_traffic->{TRAFFIC_SUM}=$used_traffic->{TRAFFIC_IN};
+    }
+   #Sent / Out
+   elsif($self->{OCTETS_DIRECTION}==2) {
+   	 $used_traffic->{TRAFFIC_SUM}=$used_traffic->{TRAFFIC_OUT};
+    }
+   else {
+     $used_traffic->{TRAFFIC_SUM}=$used_traffic->{TRAFFIC_OUT} + $used_traffic->{TRAFFIC_IN};
+    }
+
    # If left global prepaid traffic set traf price to 0
    if ($used_traffic->{TRAFFIC_SUM} + ($sent + $recv) / $CONF->{MB_SIZE}  < $prepaid{0}) {
      $traf_price{in}{0} = 0;
@@ -334,7 +345,8 @@ sub session_sum {
  	
  	$self->query($db, "SELECT 
     tp.min_session_cost,
-    tp.payment_type
+    tp.payment_type,
+    tp.octets_direction
    FROM tarif_plans tp
    WHERE tp.id='$attr->{TP_ID}';");
 
@@ -347,7 +359,8 @@ sub session_sum {
     }
 
   ($self->{MIN_SESSION_COST},
-   $self->{PAYMENT_TYPE}
+   $self->{PAYMENT_TYPE},
+   $self->{OCTETS_DIRECTION}
   ) = @{ $self->{list}->[0] };
  	
   }
@@ -364,7 +377,8 @@ sub session_sum {
     u.activate,
     tp.min_session_cost,
     u.company_id,
-    tp.payment_type
+    tp.payment_type,
+    tp.octets_direction
    FROM (users u, 
       dv_main dv, 
       tarif_plans tp)
@@ -391,7 +405,8 @@ sub session_sum {
    $self->{ACTIVATE},
    $self->{MIN_SESSION_COST},
    $self->{COMPANY_ID},
-   $self->{PAYMENT_TYPE}
+   $self->{PAYMENT_TYPE},
+   $self->{OCTETS_DIRECTION}
   ) = @{ $self->{list}->[0] };
  }
 
@@ -1138,7 +1153,7 @@ sub expression {
              }
             else {
   	      	  $counters = $self->get_traffic({ UID    => $UID,
-     	                                       PERIOD => $start_period
+     	                                         PERIOD => $start_period
    	                                          }) if (! $counters->{TRAFFIC_IN});
              }
 
