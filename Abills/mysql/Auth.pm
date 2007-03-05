@@ -911,8 +911,14 @@ if ((defined($prepaids{0}) && $prepaids{0} > 0 ) || (defined($prepaids{1}) && $p
     if ($used_traffic->{TRAFFIC_SUM} < $prepaids{0}) {
       $trafic_limits{0}=$prepaids{0} - $used_traffic->{TRAFFIC_SUM};
      }
-    elsif($in_prices{0} + $out_prices{0} > 0) {
+    elsif($in_prices{0} > 0 && $out_prices{0} > 0) {
       $trafic_limits{0} = ($deposit / (($in_prices{0} + $out_prices{0}) / 2));
+     }
+    elsif($in_prices{0} > 0 && $out_prices{0} == 0) {
+    	$trafic_limits{0} = ($deposit / $in_prices{0});
+     }
+    elsif($in_prices{0} == 0 && $out_prices{0} > 0) {
+      $trafic_limits{0} = ($deposit / $out_prices{0});
      }
     
     # Check extended prepaid traffic
@@ -920,9 +926,16 @@ if ((defined($prepaids{0}) && $prepaids{0} > 0 ) || (defined($prepaids{1}) && $p
       if (($used_traffic->{TRAFFIC_SUM_2}  < $prepaids{1})) {
         $trafic_limits{1}=$prepaids{1} - $used_traffic->{TRAFFIC_SUM_2};
        }
-      elsif($in_prices{1} + $out_prices{1} > 0) {
+      elsif($in_prices{1} > 0 && $out_prices{1} > 0) {
         $trafic_limits{1} = ($deposit / (($in_prices{1} + $out_prices{1}) / 2));
        }
+      elsif($in_prices{1} > 0 && $out_prices{1} == 0) {
+      	$trafic_limits{1} = ($deposit / $in_prices{1});
+       }
+      elsif($in_prices{1} == 0 && $out_prices{1} > 0) {
+        $trafic_limits{1} = ($deposit / $out_prices{1});
+       }
+
      }
    }
   #Use expresion 

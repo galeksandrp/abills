@@ -597,20 +597,6 @@ sub snmputils_dlink_pb_add {
 	my $oid_prefix = $sw_info->{oid_prefix};
 	my %oid_sufix = %{ $sw_info->{oid_sufix} } ;
 	
-  if($sw_info->{version} =~ /DES-30/) {
-    $message .= $oid_prefix.$oid_sufix{STATE}.".$port => 2\n";
-    if(snmpset($SNMP_COMMUNITY, $oid_prefix.$oid_sufix{STATE}.".$port", "integer", "2")) {
-      $message .= "Ok\n";
-     }
-
-  	print "=> $oid\n";
-  	if(snmpset($SNMP_COMMUNITY, $oid, "integer", "4")) {
-   	  $message .= " Ok\n";
-     }
-   }
-
-
-	
 	#Шаг 1. Задать IP-адрес связки:
 	my $oid = $oid_prefix.$oid_sufix{MAKE}.".$ip";
   $message .= "$oid => 4\n";

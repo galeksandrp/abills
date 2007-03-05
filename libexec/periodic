@@ -66,6 +66,15 @@ if ($args->{MODULES}) {
 	@MODULES = split(/,/, $args->{MODULES});
 }
 
+#Don't process for this modules
+my @SKIP_MODULES = ();
+if ($args->{SKIP_MODULES}) {
+	$args->{SKIP_MODULES}=~s/ //g;
+	@SKIP_MODULES = split(/,/, $args->{SKIP_MODULES});
+}
+
+
+
 if ($args->{DEBUG}) {
 
 }
@@ -73,8 +82,10 @@ if ($args->{DEBUG}) {
 
 
   foreach my $m (@MODULES) {
-  	require "Abills/modules/$m/config";
+    next if(in_array($m, \@SKIP_MODULES));
 
+  	require "Abills/modules/$m/config";
+ 
     my $i=0;
     while(my($k, $v)= each %PERIODIC) {
       if ($k eq 'daily') {
@@ -180,6 +191,7 @@ else {
    DATE=2005-10-01            - Date for periodic process
    NO_USERS_WARNINGS          - Don't send user warning messages
    MODULES=[modules_list,...] - Make periodic process only for this modules
+   SKIP_MODULES=[modules_list]- Skip this module in periodic proccess
    NO_ADM_REPORT              - Don't send report to admin via e-mail
    DEBUG                      - Show debug output\n";
  exit;
