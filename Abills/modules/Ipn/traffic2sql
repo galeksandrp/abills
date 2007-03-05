@@ -79,7 +79,6 @@ if (-f $log) {
   my $status = unlink("$log");
   exit;
 }
-
 # GEt information from flowtools
 #
   my $flow_dir = ($ARGV->{flowdir}) ? $ARGV->{flowdir} : $var_dir."log/ipn/";

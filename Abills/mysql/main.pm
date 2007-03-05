@@ -155,7 +155,7 @@ if($db->err) {
    }
 
   $self->{errno} = 3;
-  $self->{errstr} = 'SQL_ERROR';
+  $self->{errstr} = 'SQL_ERROR' . $self->{db}->strerr;
   return $self;
  }
 
