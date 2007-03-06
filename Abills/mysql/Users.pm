@@ -94,7 +94,8 @@ sub info {
    if(c.name IS NULL, b.deposit, cb.deposit),
    u.company_id,
    if(c.name IS NULL, 'N/A', c.name), 
-   if(c.name IS NULL, 0, c.vat)
+   if(c.name IS NULL, 0, c.vat),
+   if(c.name IS NULL, b.uid, cb.uid)
      FROM users u
      LEFT JOIN bills b ON (u.bill_id=b.id)
      LEFT JOIN groups g ON (u.gid=g.gid)
@@ -123,7 +124,8 @@ sub info {
    $self->{DEPOSIT}, 
    $self->{COMPANY_ID},
    $self->{COMPANY_NAME},
-   $self->{COMPANY_VAT}
+   $self->{COMPANY_VAT},
+   $self->{BILL_OWNER}
  )= @{ $self->{list}->[0] };
   
  

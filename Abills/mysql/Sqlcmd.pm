@@ -38,9 +38,14 @@ sub new {
 #**********************************************************
 sub info {
   my $self = shift;
-  my ($type) = @_;
+  my ($attr) = @_;
 
   my $list;
+ 
+ $SORT = ($attr->{SORT}) ? $attr->{SORT} : 0;
+ $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+
+ my $type = $attr->{TYPE} || '';
  
   if ($type eq 'showtables') {
     

@@ -179,7 +179,7 @@ sub sqlcmd_tables {
 	#SHOW TABLE STATUS FROM abills;
   #$table{size} = Index_length + Data_length
   
-  my $list = $Sqlcmd->info('showtables');
+  my $list = $Sqlcmd->info({ TYPE => 'showtables', %LIST_PARAMS });
 
   if ($Sqlcmd->{errno}) {
     $html->message('err', $_ERROR, "[$Sqlcmd->{errno}] $err_strs{$Sqlcmd->{errno}}");	
@@ -212,14 +212,37 @@ sub sqlcmd_tables {
 
   my $tables_total=0;
   my $tables_size=0;
-  my @sorted = @$list;
+  
   my %SORT_HASH = ();
+  my $i=0;
+
   foreach my $line (@$list) {
-  	push @sorted,  $line->{$ACTIVE_FIELDS[$FORM{sort}-1]}
-  	$SORT_HASH{$i}=$line->{$ACTIVE_FIELDS[$FORM{sort}-1]};
+  	if($ACTIVE_FIELDS[$FORM{sort}-1] eq 'Size') {
+  		$SORT_HASH{$i} = $line->{'Index_length'} + $line->{'Data_length'};
+  	 }
+  	else {
+  	  $SORT_HASH{$i}=$line->{$ACTIVE_FIELDS[$FORM{sort}-1]};
+  	 }
+
+  	$i++;
   }
 
   #print $sorted[0]->{$ACTIVE_FIELDS[$FORM{sort}-1]} ;
+  my @sorted_ids = sort { 
+     if($ACTIVE_FIELDS[$FORM{sort}-1] eq 'Name') {
+       $SORT_HASH{$a} cmp $SORT_HASH{$b}
+      }
+     else {
+     	length($SORT_HASH{$a}) <=> length($SORT_HASH{$b})
+       ||
+  	   $SORT_HASH{$a} cmp $SORT_HASH{$b}
+  	  } 
+  	 } keys %SORT_HASH;
+  
+  my @sorted=();
+  foreach my $line (@sorted_ids) {
+    push @sorted, $list->[$line];
+   }
 
   foreach my $line (@sorted) {
     my @table_rows = ();
