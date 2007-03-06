@@ -1895,6 +1895,13 @@ sub dv_periodic_logrotate {
 #  KEY `sid` (`acct_session_id`)
 #  ) TYPE=MyISAM;", 'do');
 
+  # Clean s_detail table
+  #Period 
+  # 1D - 1 day
+  # 2M - 2 Month
+  $sessions->log_rotate({ TYPE   => 'SESSION_DETAILS',
+  	                      PERIOD => '2M' });
+
 
 }
 

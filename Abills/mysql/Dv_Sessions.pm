@@ -1050,4 +1050,16 @@ sub list_log_intervals {
  return $list;
 }
 
+#**********************************************************
+# Rotete logs
+#**********************************************************
+sub log_rotate {
+	my $self = shift;
+	my ($attr)=@_;
+	
+	
+	
+	return $self;
+}
+
 1

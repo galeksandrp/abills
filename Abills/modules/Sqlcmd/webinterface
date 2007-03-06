@@ -115,7 +115,7 @@ $pages_qs .= "&QUERY=$FORM{QUERY}";
 
   foreach my $line (@$list) {
     my @table_row = ();
-    foreach $l (@$line) {
+    foreach my $l (@$line) {
     	push @table_row, $l;
      }
 
@@ -133,6 +133,7 @@ $pages_qs .= "&QUERY=$FORM{QUERY}";
 if ($FORM{TABLE_INFO}) {
   $table = $html->table( { width        => '100%',
                            border       => 1,
+                           caption      => $FORM{TABLE_INFO},
                            title_plain  => [$_NAME, $_TYPE, "$_MAX $_LENGTH", "NO NULL", 'INDEX', 'PRIMARY_INDEX'], 
                        } );
 	
@@ -185,39 +186,60 @@ sub sqlcmd_tables {
     return 0;
    }
 
-  my @CAPTIONS = ('Name', 
+
+  
+
+  my @ACTIVE_FIELDS = ('Name', 
                   'Type',
                   'Row_format',
-                  "$_COMMENTS",
+                  "Comment",
                   'Rows',
-                  "$_SIZE",
+                  "Size",
                   "-");
   
-  #@{ $Sqlcmd->{FIELD_NAMES} };
-
-  my $table = $html->table( { width  => '100%',
-                              border => 1,
-                              title  => \@CAPTIONS,
-                              cols_align => ['left', 'left', 'left', 'left', 'right', 'right', 'center']
-                                  } );
+  
+  @ACTIVE_FIELDS = split(/, /, $FORM{'fields'}) if ($FORM{'fields'});
+  $ACTIVE_FIELDS[0] = 'Name' if ($ACTIVE_FIELDS[0] ne 'Name');
+  
+  push @ACTIVE_FIELDS, '-';
+  
+  my $table = $html->table( { width      => '100%',
+                              border     => 1,
+                              title      => \@ACTIVE_FIELDS,
+                              cols_align => ['left', 'left', 'left', 'left', 'right', 'right', 'center'],
+                              qs         => "&fields=$FORM{fields}"
+                          } );
 
   $tables_total=0;
   $tables_size=0;
-
+  my @sorted = @$list;
   foreach my $line (@$list) {
-    #my @table_row = ();
-    #foreach $l (@$line) {
-    #	push @table_row, $l;
-    # }
+  	push @sorted,  $line->{$ACTIVE_FIELDS[$FORM{sort}-1]}
+  }
 
-    $table->addrow($line->{'Name'}, 
-                   $line->{'Type'},
-                   $line->{'Row_format'},
-                   "$line->{'Comment'}",
-                   "$line->{'Rows'}",
-                   int2byte($line->{'Index_length'} + $line->{'Data_length'}),
-                   $html->button($_SHOW, "index=". ($index - 1).  "&TABLE_INFO=$line->{'Name'}&QUERY=SELECT * FROM $line->{'Name'} LIMIT $PAGE_ROWS")
-                   );
+  #print $sorted[0]->{$ACTIVE_FIELDS[$FORM{sort}-1]} ;
+
+  foreach my $line (@sorted) {
+    my @table_rows = ();
+    for(my $i = 0; $i<$#ACTIVE_FIELDS; $i++) {
+    	my $l = $ACTIVE_FIELDS[$i];
+
+    	if ($l eq 'Size') {
+    		$l = int2byte($line->{'Index_length'} + $line->{'Data_length'});
+    	 }
+    	else {
+    		$l = $line->{$l};
+    	 }
+    	push @table_rows, $l;
+     }
+    
+    $table->addrow(
+      @table_rows,
+      $html->button($_SHOW, "index=". ($index - 1).  "&TABLE_INFO=$line->{'Name'}&QUERY=SELECT * FROM $line->{'Name'} LIMIT $PAGE_ROWS")
+     );
+    
+    
+    
     $tables_total++;
     $tables_size+=$line->{'Index_length'} + $line->{'Data_length'};
    }
@@ -226,8 +248,34 @@ sub sqlcmd_tables {
   $table = $html->table( { width       => '100%',
                            cols_align  => ['right', 'right', 'right', 'right'],
                            rows        => [ [ "$_TOTAL:", "$tables_total", "$_SIZE:", int2byte("$tables_size") ] ]
-                               } );
+                       } );
   print $table->show();
+  
+  
+my $table2 = $html->table({ width => '100%' });
+my @arr = ();
+my $i=0;
+push @{ $Sqlcmd->{FIELD_NAMES} }, 'Size';
+foreach my $name ( @{ $Sqlcmd->{FIELD_NAMES} } ) {
+  push @arr, $html->form_input('fields', "$name", { TYPE => 'checkbox', STATE => (in_array($name, \@ACTIVE_FIELDS)) ? 1 : undef  }). " <b>$name</b>";
+
+  if ($#arr > 2) {
+    $table2->addrow(@arr);
+    @arr = ();
+   }
+  $i++;
+}
+
+
+if ($#arr > -1 ) {
+  $table2->addrow(@arr);
+ }
+
+print $html->form_main({ CONTENT => $table2->show(),
+                              HIDDEN  => { index =>  "$index" },
+                              METHOD  => 'GET',
+                              SUBMIT  => { $_SHOW    => "$_SHOW" }
+                           });
 
 
 }
