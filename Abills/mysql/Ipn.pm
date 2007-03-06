@@ -507,7 +507,6 @@ sub ip_in_zone($$$) {
        #print "AAAAAAAA:" . @$a_ports_ref . "\n";
        
        # если адрес попадает в подсеть
-       print "($i/ ". int2ip($a_ip). " & $a_msk) == (". int2ip($ip_num) ." & $a_msk)\n";
        if ( (( $a_ip & $a_msk) == ($ip_num & $a_msk)) && # адрес совпадает
               (is_exist($a_ports_ref, $port)) ) {       # И порт совпадает
 
