@@ -638,8 +638,6 @@ sub authentication {
     return 1, \%RAD_PAIRS;
    }
 
-  my $a_ref = $self->{list}->[0];
-
   ($self->{UID}, 
      $self->{PASSWD}, 
      $self->{SESSION_START}, 
@@ -652,7 +650,7 @@ sub authentication {
      $self->{CREDIT},
      $self->{ACCOUNT_ACTIVATE},
      $self->{REDUCTION}
-    ) = @$a_ref;
+    ) = @{ $self->{list}->[0] };
 
 
 #return 0, \%RAD_PAIRS;
