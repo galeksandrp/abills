@@ -186,6 +186,7 @@ CREATE TABLE `dv_main` (
   `password` BLOB NOT NULL,
   `disable` tinyint(1) unsigned NOT NULL default '0',
   `callback` tinyint(1) unsigned NOT NULL default '0',
+  `port` int(11) unsigned NOT NULL default '0',
   PRIMARY KEY  (`uid`),
   KEY `tp_id` (`tp_id`)
 ) ;

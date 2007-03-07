@@ -1,4 +1,9 @@
 =====0.36=====
+  * 02.03.2005 - в [[abills:docs:modules:dv:ru |Dv]] добавлена привязка к порту 
+''MySQL''
+  ALTER TABLE dv_main add column port int(11) unsigned NOT NULL default '0';
+
+  * 26.02.2007 - Добавлена поддержка [[abills:docs:chillispot:ru|Chillispot]]
   * 26.01.2007 - Регулярные выражения акаунтинга и авторизации [[abills:docs:modules:dv:ru#intervals|Expressions]].
 ''MySQL''
   ALTER TABLE trafic_tarifs ADD COLUMN expression varchar(255) NOT NULL default '';

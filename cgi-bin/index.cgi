@@ -487,7 +487,8 @@ elsif (length($FORM{newpassword}) < $conf{PASSWD_LENGTH}) {
 }
 elsif ($FORM{newpassword} eq $FORM{confirm}) {
   %INFO = ( PASSWORD => $FORM{newpassword},
-            UID      => $user->{UID}
+            UID      => $user->{UID},
+            DISABLE  => $user->{DISABLE}
             );
 
   $user->change($user->{UID}, { %INFO });

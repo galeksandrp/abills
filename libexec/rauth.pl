@@ -156,7 +156,12 @@ else {
 
 #If Access deny
  if($r == 1){
-    access_deny("$RAD->{USER_NAME}", "$RAD_PAIRS->{'Reply-Message'}", $nas->{NAS_ID});
+    my $message = "$RAD_PAIRS->{'Reply-Message'} ";
+    if ($auth_mod{"default"}->{errstr}) {
+    	 $auth_mod{"default"}->{errstr}=~s/\n//g;
+    	 $message .= $auth_mod{"default"}->{errstr};
+     }
+    access_deny("$RAD->{USER_NAME}", "$message", $nas->{NAS_ID});
     return $r;
   }
  else {
