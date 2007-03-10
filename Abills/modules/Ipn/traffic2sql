@@ -11,9 +11,12 @@ use strict;
 if ($#ARGV < 1) {
   print "traffic2sql [NAS_ID] [Interface] [Options]
  Options:
-   log     - Log file
-   flowdir - Folder where stored flow-capture result files
-   debug   - Set debug mode (1,2)\n";
+   log        - Log file
+   flowdir    - Folder where stored flow-capture result files
+   debug      - Set debug mode (1,2)
+   
+   FLOW_CAT   - Flow tools flow-cat location
+   FLOW_PRINT - Flow tools flow-print location\n";
   exit;
 }
 
@@ -57,7 +60,11 @@ if ($NAS_ID < 1) {
 }
 
 $log = $ARGV->{log} if ($ARGV->{log});
+my $FLOW_CAT = $ARGS->{FLOW_CAT} || '/usr/local/bin/flow-cat';
+my $FLOW_PRINT = $ARGS->{FLOW_CAT} || '/usr/local/bin/flow-print';
+
 $Ipn->{debug}=1 if ($debug > 2);
+
 
 
 
@@ -96,7 +103,7 @@ if (-f $log) {
       my $end_date = strftime "%Y-%m-%d %H:%M:%S", localtime($mtime);
       #print "Start: $start_date End: $end_date\n"; 
  
-      get_collector_data("flow-cat $flow_dir/$log | flow-print |", { START => $start_date });
+      get_collector_data("$FLOW_CAT $flow_dir/$log | $FLOW_PRINT |", { START => $start_date });
       processing({ START => $start_date,
   	               STOP  => $end_date });
 
