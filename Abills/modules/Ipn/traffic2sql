@@ -60,8 +60,8 @@ if ($NAS_ID < 1) {
 }
 
 $log = $ARGV->{log} if ($ARGV->{log});
-my $FLOW_CAT = $ARGS->{FLOW_CAT} || '/usr/local/bin/flow-cat';
-my $FLOW_PRINT = $ARGS->{FLOW_CAT} || '/usr/local/bin/flow-print';
+my $FLOW_CAT = $ARGV->{FLOW_CAT} || '/usr/local/bin/flow-cat';
+my $FLOW_PRINT = $ARGV->{FLOW_CAT} || '/usr/local/bin/flow-print';
 
 $Ipn->{debug}=1 if ($debug > 2);
 
