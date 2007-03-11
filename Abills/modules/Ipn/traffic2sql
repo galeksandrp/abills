@@ -9,7 +9,8 @@ use strict;
 
 
 if ($#ARGV < 1) {
-  print "traffic2sql [NAS_ID] [Interface] [Options]
+  print "traffic2sql [NAS_IDS] [Interface] [Options]
+   NAS_IDS    - Ids of NAS servers 1,2,3
  Options:
    log        - Log file
    flowdir    - Folder where stored flow-capture result files
@@ -20,7 +21,8 @@ if ($#ARGV < 1) {
   exit;
 }
 
-my $NAS_ID=int($ARGV[0]);
+# Get nas servers is
+my $NAS_IDS=$ARGV[0];
 my $IF_NAME=$ARGV[1];
 
 my $debug = 0;
@@ -42,6 +44,7 @@ my $Ipn = Ipn->new($db, \%conf);
 use POSIX qw(strftime);
 
 
+my $NAS_ID = 0;
 my $unknown_ip_log = $var_dir."log/ipn/unknown_ip.log";
 my $log = $var_dir."log/ipn/trafd_". $NAS_ID. "_" .$IF_NAME;
 my $ARGV = parse_arguments(\@ARGV);
@@ -54,7 +57,7 @@ elsif(defined($ARGV->{help})){
 	print "Help:\n";
 }
 
-if ($NAS_ID < 1) {
+if ($NAS_IDS eq '') {
 	print "You don't specify NAS ID\n";
 	exit;
 }
@@ -74,7 +77,7 @@ my %PROTOCOLS = ('tcp'    => 1,
 my $PROTOCOL = 0; #(defined($PROTOCOLS{$PROTOCOL})) ? $PROTOCOLS{$PROTOCOL} : 0;
 
 #Get users info from online log
-$Ipn->user_ips({ NAS_ID => $NAS_ID });
+$Ipn->user_ips({ NAS_ID => $NAS_IDS });
 #exit;
 
 
@@ -229,7 +232,7 @@ if ($Ipn->{INTERIM}{$ip}) {
             TARFFIC_CLASS  => $k,
             INBYTE         => "$in",
             OUTBYTE        => "$out",
-            NAS_ID         => $NAS_ID,
+            NAS_ID         => $Ipn->{$ip}{NAS_ID},
             IP						 => $ip,
             INTERVAL       => $user_tp_interval,
             SESSION_ID     => $session_id,    
@@ -259,7 +262,7 @@ elsif($total_user_sum > 0 && $uid > 0) {
             TARFFIC_CLASS  => 0,
             INBYTE         => 0,
             OUTBYTE        => 0,
-            NAS_ID         => $NAS_ID,
+            NAS_ID         => $Ipn->{$ip}{NAS_ID},
             IP						 => $ip,
             INTERVAL       => $user_tp_interval,
             SESSION_ID     => $session_id,    
@@ -282,7 +285,7 @@ elsif($total_user_sum > 0 && $uid > 0) {
             );
 
     #Make accounting
-    my $r = $Acct->accounting(\%RAD, { NAS_ID => $NAS_ID, NAS_TYPE => 'other' });
+    my $r = $Acct->accounting(\%RAD, { NAS_ID => $Ipn->{$ip}{NAS_ID}, NAS_TYPE => 'other' });
     
     #Hangup users with negative deposit
     if (defined($Ipn->{USERS_INFO}->{DEPOSIT}->{$uid}) && $Ipn->{USERS_INFO}->{DEPOSIT}->{$uid} < 0) {
@@ -554,7 +557,7 @@ while( <LOG> ) {
     $DATA{PROTOCOL}=0;
 		$DATA{SRC_PORT} = 0 if ( $DATA{SRC_PORT} !~ /^\d+$/ );
 		$DATA{DST_PORT} = 0 if ( $DATA{DST_PORT} !~ /^\d+$/ );
-		$DATA{NAS_ID}=$NAS_ID;
+		#$DATA{NAS_ID}=$NAS_ID;
 		if ($14) {
 			$DATA{IF_NAME}=$14;
 		 }
@@ -570,7 +573,7 @@ while( <LOG> ) {
     $DATA{PROTOCOL}=0; #$9
 		$DATA{SRC_PORT} = 0 if ( $DATA{SRC_PORT} !~ /^\d+$/ );
 		$DATA{DST_PORT} = 0 if ( $DATA{DST_PORT} !~ /^\d+$/ );
-		$DATA{NAS_ID}=$NAS_ID;
+		#$DATA{NAS_ID}=$NAS_ID;
 		$DATA{IF_NAME}='0';
     $Ipn->traffic_agregate_users({ %DATA });
  	 }
@@ -582,7 +585,7 @@ while( <LOG> ) {
 	  $DATA{PROTOCOL}=0;
 		$DATA{SRC_PORT} = 0 if ( $DATA{SRC_PORT} !~ /^\d+$/ );
 		$DATA{DST_PORT} = 0 if ( $DATA{DST_PORT} !~ /^\d+$/ );
-		$DATA{NAS_ID}=$NAS_ID;
+		#$DATA{NAS_ID}=$NAS_ID;
 		$DATA{IF_NAME}='0';
 
     $Ipn->traffic_agregate_users({ %DATA });

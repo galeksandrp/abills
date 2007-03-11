@@ -97,7 +97,8 @@ sub user_ips {
       if(u.company_id > 0, cb.id, b.id),
       if(c.name IS NULL, b.deposit, cb.deposit)+u.credit,
       tp.payment_type,
-      UNIX_TIMESTAMP() - calls.lupdated
+      UNIX_TIMESTAMP() - calls.lupdated,
+      calls.nas_id
     FROM (dv_calls calls, users u)
       LEFT JOIN companies c ON (u.company_id=c.id)
       LEFT JOIN bills b ON (u.bill_id=b.id)
@@ -116,12 +117,12 @@ sub user_ips {
     NUll,
     NULL,
     1,
-    UNIX_TIMESTAMP() - calls.lupdated
+    UNIX_TIMESTAMP() - calls.lupdated,
+    calls.nas_id
     FROM (dv_calls calls, users u)
    WHERE u.id=calls.user_name
    and calls.nas_id IN ($DATA->{NAS_ID});";
   }  
-  
   
   $self->query($db, $sql);
 
@@ -142,6 +143,8 @@ sub user_ips {
   	 $self->{$line->[1]}{IN}  = $line->[4];
   	 $self->{$line->[1]}{OUT} = $line->[5];
      
+     #user NAS
+     $self->{$line->[1]}{NAS_ID} = $line->[11];
      
   	 $users_info{TPS}{$line->[0]} = $line->[6];
    	 #User login
@@ -168,7 +171,7 @@ sub user_ips {
   $self->{USERS_IPS}     = \%ips;
   $self->{USERS_INFO}    = \%users_info;
   $self->{SESSIONS_ID}   = \%session_ids;
-  $self->{INTERIM_TIME} = \%interim_times;
+  $self->{INTERIM_TIME}  = \%interim_times;
   
   return $self;
 }
