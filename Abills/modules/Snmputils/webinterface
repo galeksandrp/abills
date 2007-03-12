@@ -1122,7 +1122,7 @@ my %fields = (
                 cDot11ClientIpAddress         => '.1.3.6.1.4.1.9.9.273.1.2.1.1.16',
                 cDot11ClientVlanId            => '.1.3.6.1.4.1.9.9.273.1.2.1.1.17',
                 cDot11ClientSubIfIndex        => '.1.3.6.1.4.1.9.9.273.1.2.1.1.18',
-                cDot11ClientAuthenAlgorithm   => '.1.3.6.1.4.1.9.9.273.1.2.1.1.19',
+#                cDot11ClientAuthenAlgorithm   => '.1.3.6.1.4.1.9.9.273.1.2.1.1.19',
                 cDot11ClientAdditionalAuthen  => '.1.3.6.1.4.1.9.9.273.1.2.1.1.2.20',
                 cDot11ClientDot1xAuthenAlgorithm => '.1.3.6.1.4.1.9.9.273.1.2.1.1.2.21',
                 cDot11ClientKeyManagement     => '.1.3.6.1.4.1.9.9.273.1.2.1.1.2.22',
@@ -1172,13 +1172,19 @@ if ($FORM{Client}) {
 	 }
   
   $Nas->info({ NAS_ID => $FORM{NAS_ID} });
-
   foreach my $key (keys %fields) {
 	 	$info{$key} = snmpget("$Nas->{NAS_MNG_PASSWORD}\@$Nas->{NAS_IP}", $fields{$key}. '.1.7.119.108.97.110.119.101.112.'. $FORM{Client});
-	 	print "$key: $fields{$key}.1.7.119.108.97.110.119.101.112.$FORM{Client} = $info{$key}<br>" if ($debug == 1);
+	
+	  if ($debug  > 0) {
+	 	  print "$key: $fields{$key}.1.7.119.108.97.110.119.101.112.$FORM{Client} = $info{$key}<br>";
+      if ($SNMP_Session::errmsg) {
+        print "$SNMP_Session::errmsg<br>";
+      }	 	
+    }	 	
+
 	 	$info{$key} = data_convert($key, $info{$key});
 	 }
-
+  $info{MAC}=$FORM{MAC};
 	$html->tpl_show(_include('snmputils_cisco_air_client_info', 'Snmputils'), \%info);
 	return 0;
 }
@@ -1279,7 +1285,7 @@ foreach my $line (@$list) {
     	if ($FORM{GET_USERS}) {
     		if ($binding->{$mac}) {
     		  my ($name, $uid) = split(/:/, $binding->{$mac});
-    		  unshift @arr, $html->button("$name", "index=11&UID=$uid");  
+    		  unshift @arr, $html->button("$name", "index=15&UID=$uid");  
     		 }
         else {
         	unshift @arr, '';  
@@ -1335,7 +1341,7 @@ sub data_convert  {
         	$ret = join(':', unpack("H2H2H2H2H2H2", $data));
         	#$ret = join(':', unpack("H*", $data));
          }
-        elsif ($name eq 'ClinetUpTime') {
+        elsif ($name eq 'cDot11ClientUpTime') {
       	  $ret = sec2time($data, { str => 1});
          }
         elsif ($name eq 'cDot11ClientDataRateSet') {
