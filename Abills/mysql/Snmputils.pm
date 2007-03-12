@@ -165,6 +165,11 @@ sub snmputils_binding_list {
    $attr->{BINDING} =~ s/\*/\%/ig;
    push @WHERE_RULES, "b.binding LIKE '$attr->{BINDING}'";
   }
+ elsif($attr->{IDS}) {
+   push @WHERE_RULES, "b.binding IN ($attr->{IDS})";
+  }
+ 
+
 
  if ($attr->{PARAMS}) {
    $attr->{PARAMS} =~ s/\*/\%/ig;
@@ -185,7 +190,7 @@ sub snmputils_binding_list {
  $WHERE = ($#WHERE_RULES > -1) ? 'WHERE ' . join(' and ', @WHERE_RULES)  : '';
 
  $self->query($db,   "SELECT u.id, b.binding,  b.comments, b.params, b.id, b.uid
-            from snmputils_binding b
+            from (snmputils_binding b)
             LEFT JOIN users u ON (u.uid = b.uid)
             $WHERE
             ORDER BY $SORT $DESC

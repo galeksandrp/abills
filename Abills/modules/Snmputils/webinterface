@@ -22,7 +22,7 @@ my $Snmputils = Snmputils->new($db, $admin, \%conf);
 
 
 my $debug=0;
-
+$FORM{GET_USERS}=1;
 
           my @association_state = ('initial',
                          'authenNotAssociated',
@@ -1162,18 +1162,13 @@ my %fields = (
 
 if ($FORM{Client}) {
 	my %info = ();
-
-  use Users;
-  my $users = Users->new($db, $admin, \%conf); 
-  
-  my $list = $users->list({ COMMENTS => '%cisco_air:'. $FORM{MAC} .'%'  });
+  my $list = $Snmputils->snmputils_binding_list({ BINDING => $FORM{MAC} }); 
   #cisco_air:00:11:95:e9:3b:2e
-  $info{MAC} = $FORM{MAC};
-  if ($users->{TOTAL} > 0) {
+  if ($Snmputils->{TOTAL} > 0) {
 	  $info{LOGIN} = $html->button("$list->[0]->[0]", "index=11&UID=$list->[0]->[5]");
 	 }
   else {
-	  $info{LOGIN} = "Check comment for cisco_air:MAC";
+	  $info{LOGIN} = "Check binding";
 	 }
   
   $Nas->info({ NAS_ID => $FORM{NAS_ID} });
@@ -1204,15 +1199,17 @@ if ($FORM{fields}) {
   @default_fields = split(/, /, $FORM{fields});
 }
 
+my @CAPTION = ('MAC', @default_fields, '-');
 
-
-
-
+my $binding; 
+if ($FORM{GET_USERS}) {
+  unshift @CAPTION, $_USERS;
+}
 
 $table = $html->table({ width       => '100%',
                         caption     => "CISCO Aironets",
                         border      => 1,
-                        title       => ['MAC', @default_fields, "-"],
+                        title       => \@CAPTION,
                         cols_align  => ['left', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'center'],
                       });
 
@@ -1236,9 +1233,23 @@ foreach my $line (@$list) {
    }
 
   my @MAC_ARR = keys %{ $result{ $default_fields[0] } } ;
-  
+ 
+  if ($FORM{GET_USERS}) { 
+    my $IDS = '';
+    foreach my $mac (@MAC_ARR) {
+      my @mac_arr = split(/\./, $mac);
+      for(my $i=0; $i<=$#mac_arr; $i++) {
+     	  $mac_arr[$i] = sprintf("%.2X", $mac_arr[$i]);
+       }
+      my $mac = join(':', @mac_arr);
+     	$IDS .= "'$mac',";    	
+     }
+   	chop($IDS);
+    $binding = snmputils_get_users({ IDS => "$IDS" });
+   }
+
   $table->{rowcolor}=$_COLORS[0];
-  $table->{extra}="colspan='". ($#default_fields + 2) ."' class='small'";
+  $table->{extra}="colspan='". ($#CAPTION + 2) ."' class='small'";
   $table->addrow("$line->[0]:<b>$line->[1]</b>:$line->[3] (". 
   $html->button('WEB', "", { GLOBAL_URL => "http://$line->[3]" }) 
    ."):$_TOTAL: ". ( $#MAC_ARR + 1 ) );
@@ -1261,8 +1272,22 @@ foreach my $line (@$list) {
         $result{$ft}{$k} = data_convert($ft, $result{$ft}{$k});
       	push @arr, $result{$ft}{$k};
        }
-    	
-    	$table->addrow($html->button("<CODE>$mac</CODE>", "index=$index&NAS_TYPE=cisco_air&Client=$k&MAC=$mac&NAS_ID=$line->[0]"), 
+
+
+     	unshift @arr, $html->button("<CODE>$mac</CODE>", "index=$index&NAS_TYPE=cisco_air&Client=$k&MAC=$mac&NAS_ID=$line->[0]");      
+      #Get binding info    	
+    	if ($FORM{GET_USERS}) {
+    		if ($binding->{$mac}) {
+    		  my ($name, $uid) = split(/:/, $binding->{$mac});
+    		  unshift @arr, $html->button("$name", "index=11&UID=$uid");  
+    		 }
+        else {
+        	unshift @arr, '';  
+         }    		
+    	 }
+
+
+    	$table->addrow(
                      @arr,
     	               "(". $html->button('H', "index=$index&hangup=$k", { TITLE => 'Hangup' }). ")"
                      );
@@ -2334,7 +2359,6 @@ sub snmputils_binding {
 #**********************************************************
 sub snmputils_binding_list {
 
-
 $Snmputils->{debug}=1;
 my $list = $Snmputils->snmputils_binding_list({ %LIST_PARAMS }); 
 
@@ -2364,6 +2388,21 @@ $table = $html->table({ width       => '100%',
 
 }
 
+
+#**********************************************************
+# binding users
+#**********************************************************
+sub snmputils_get_users {
+  my ($attr) = @_;
+
+  my %user_hash = ();
+  my $list = $Snmputils->snmputils_binding_list({ IDS => $attr->{IDS} }); 
+  foreach my $line (@$list) {
+  	$user_hash{$line->[1]}="$line->[0]:$line->[5]";
+   }
+
+  return \%user_hash; 
+}
 
 1
 
