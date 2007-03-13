@@ -248,7 +248,8 @@ sub host_defaults {
   my %DATA = (
    MAC            => '00:00:00:00:00:00', 
    EXPIRE         => '0000-00-00', 
-   IP             => '0.0.0.0'
+   IP             => '0.0.0.0',
+   COMMENTS       => ''
   );
 
  
@@ -266,9 +267,10 @@ sub host_add {
 
   my %DATA = $self->get_data($attr); 
 
-  $self->query($db, "INSERT INTO dhcphosts_hosts (uid, hostname, network, ip, mac, blocktime, forced, disable) 
+  $self->query($db, "INSERT INTO dhcphosts_hosts (uid, hostname, network, ip, mac, blocktime, forced, disable, comments) 
     VALUES('$DATA{UID}', '$DATA{HOSTNAME}', '$DATA{NETWORK}',
-      INET_ATON('$DATA{IP}'), '$DATA{MAC}', '$DATA{BLOCKTIME}', '$DATA{FORCED}', '$DATA{DISABLE}');", 'do');
+      INET_ATON('$DATA{IP}'), '$DATA{MAC}', '$DATA{BLOCKTIME}', '$DATA{FORCED}', '$DATA{DISABLE}',
+      '$DATA{COMMENTS}');", 'do');
 
 
   
@@ -307,6 +309,7 @@ sub host_info {
   my $self=shift;
   my ($id)=@_;
 
+
   $self->query($db, "SELECT
    uid, 
    hostname, 
@@ -315,7 +318,8 @@ sub host_info {
    mac, 
    blocktime, 
    forced,
-   disable
+   disable,
+   comments
   FROM dhcphosts_hosts
   WHERE id='$id';");
 
@@ -332,7 +336,8 @@ sub host_info {
    $self->{MAC}, 
    $self->{BLOCKTIME}, 
    $self->{FORCED},
-   $self->{DISABLE}
+   $self->{DISABLE},
+   $self->{COMMENTS}
    ) = @{ $self->{list}->[0] };
   return $self;
 };
@@ -354,7 +359,8 @@ sub host_change {
    MAC         => 'mac', 
    BLOCKTIME   => 'blocktime', 
    FORCED      => 'forced',
-   DISABLE     => 'disable'
+   DISABLE     => 'disable',
+   COMMENTS    => 'comments'
   );
 
 

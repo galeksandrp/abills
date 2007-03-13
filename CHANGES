@@ -1,4 +1,10 @@
 =====0.36=====
+  * 02.03.2005 - доработка тарифных планов 
+''MySQL''
+  ALTER TABLE tarif_plans add column reduction_fee tinyint(1) unsigned NOT NULL default '0';
+  ALTER TABLE tarif_plans add column postpaid_fee tinyint(1) unsigned NOT NULL default '0';
+  ALTER TABLE dhcphosts_hosts add column comments varchar(250) NOT NULL default '';
+
   * 02.03.2005 - в [[abills:docs:modules:dv:ru |Dv]] добавлена привязка к порту 
 ''MySQL''
   ALTER TABLE dv_main add column port int(11) unsigned NOT NULL default '0';
