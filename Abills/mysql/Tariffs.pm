@@ -26,6 +26,8 @@ my %FIELDS = ( TP_ID            => 'id',
                TIME_TARIF       => 'hourp',
                DAY_FEE          => 'day_fee',
                MONTH_FEE        => 'month_fee',
+               REDUCTION_FEE    => 'reduction_fee',
+               POSTPAID_FEE     => 'postpaid_fee',
                SIMULTANEOUSLY   => 'logins',
                AGE              => 'age',
                DAY_TIME_LIMIT   => 'day_time_limit',
@@ -216,29 +218,30 @@ sub defaults {
   my $self = shift;
 
   %DATA = ( TP_ID => 0, 
-            NAME => '',  
-            TIME_TARIF => '0.00000',
-            DAY_FEE => '0.00',
-            MONTH_FEE => '0.00',
-            SIMULTANEOUSLY => 0,
-            AGE => 0,
-            DAY_TIME_LIMIT => 0,
-            WEEK_TIME_LIMIT => 0,
+            NAME             => '',  
+            TIME_TARIF       => '0.00000',
+            DAY_FEE          => '0.00',
+            MONTH_FEE        => '0.00',
+            REDUCTION_FEE    => 0,
+            POSTPAID_FEE     => 0,
+            SIMULTANEOUSLY   => 0,
+            AGE              => 0,
+            DAY_TIME_LIMIT   => 0,
+            WEEK_TIME_LIMIT  => 0,
             MONTH_TIME_LIMIT => 0,
-            DAY_TRAF_LIMIT => 0, 
-            WEEK_TRAF_LIMIT => 0, 
+            DAY_TRAF_LIMIT   => 0, 
+            WEEK_TRAF_LIMIT  => 0, 
             MONTH_TRAF_LIMIT => 0,
-            ACTIV_PRICE => '0.00',
-            CHANGE_PRICE => '0.00',
+            ACTIV_PRICE      => '0.00',
+            CHANGE_PRICE     => '0.00',
             CREDIT_TRESSHOLD => '0.00',
-            ALERT => 0,
+            ALERT            => 0,
             OCTETS_DIRECTION => 0,
             MAX_SESSION_DURATION => 0,
             FILTER_ID            => '',
             PAYMENT_TYPE         => 0,
             MIN_SESSION_COST     => '0.00000',
             RAD_PAIRS            => ''
-
          );   
  
   $self = \%DATA;
@@ -257,13 +260,16 @@ sub add {
 
   #$self->{debug}=1;
 
-  $self->query($db, "INSERT INTO tarif_plans (id, hourp, uplimit, name, month_fee, day_fee, logins, 
+  $self->query($db, "INSERT INTO tarif_plans (id, hourp, uplimit, name, 
+     month_fee, day_fee, reduction_fee, postpaid_fee,
+     logins, 
      day_time_limit, week_time_limit,  month_time_limit, 
      day_traf_limit, week_traf_limit,  month_traf_limit,
      activate_price, change_price, credit_tresshold, age, octets_direction,
      max_session_duration, filter_id, payment_type, min_session_cost, rad_pairs)
     values ('$DATA{TP_ID}', '$DATA{TIME_TARIF}', '$DATA{ALERT}', \"$DATA{NAME}\", 
-     '$DATA{MONTH_FEE}', '$DATA{DAY_FEE}', '$DATA{SIMULTANEONSLY}', 
+     '$DATA{MONTH_FEE}', '$DATA{DAY_FEE}', '$DATA{REDUCTION_FEE}', '$DATA{POSTPAID_FEE}', 
+     '$DATA{SIMULTANEONSLY}', 
      '$DATA{DAY_TIME_LIMIT}', '$DATA{WEEK_TIME_LIMIT}',  '$DATA{MONTH_TIME_LIMIT}', 
      '$DATA{DAY_TRAF_LIMIT}', '$DATA{WEEK_TRAF_LIMIT}',  '$DATA{MONTH_TRAF_LIMIT}',
      '$DATA{ACTIV_PRICE}', '$DATA{CHANGE_PRICE}', '$DATA{CREDIT_TRESSHOLD}', '$DATA{AGE}', '$DATA{OCTETS_DIRECTION}',
@@ -286,8 +292,10 @@ sub change {
   if ($tp_id != $attr->{CHG_TP_ID}) {
   	 $FIELDS{CHG_TP_ID}='id';
    }
-
-
+ 
+  $attr->{REDUCTION_FEE}=0 if (! $attr->{REDUCTION_FEE});
+  $attr->{POSTPAID_FEE}=0 if (! $attr->{POSTPAID_FEE});
+ 
 	$self->changes($admin, { CHANGE_PARAM => 'TP_ID',
 		                TABLE        => 'tarif_plans',
 		                FIELDS       => \%FIELDS,
@@ -324,7 +332,7 @@ sub info {
   my $self = shift;
   my ($id) = @_;
 
-  $self->query($db, "SELECT id, name, hourp, day_fee, month_fee, logins, age,
+  $self->query($db, "SELECT id, name, hourp, day_fee, month_fee, reduction_fee, postpaid_fee, logins, age,
       day_time_limit, week_time_limit,  month_time_limit, 
       day_traf_limit, week_traf_limit,  month_traf_limit,
       activate_price, change_price, credit_tresshold, uplimit, octets_direction, 
@@ -348,6 +356,8 @@ sub info {
    $self->{TIME_TARIF}, 
    $self->{DAY_FEE}, 
    $self->{MONTH_FEE}, 
+   $self->{REDUCTION_FEE}, 
+   $self->{POSTPAID_FEE}, 
    $self->{SIMULTANEOUSLY}, 
    $self->{AGE},
    $self->{DAY_TIME_LIMIT}, 
@@ -392,7 +402,9 @@ sub list {
     tp.day_fee, tp.month_fee, 
     tp.logins, 
     tp.age,
-    tp.rad_pairs
+    tp.rad_pairs,
+    tp.reduction_fee,
+    tp.postpaid_fee
     FROM tarif_plans tp
     LEFT JOIN intervals i ON (i.tp_id=tp.id)
     LEFT JOIN trafic_tarifs tt ON (tt.interval_id=i.id)

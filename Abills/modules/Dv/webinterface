@@ -424,7 +424,8 @@ foreach my $line (@Payment_Types) {
 }
 $tarif_info->{PAYMENT_TYPE_SEL} .= "</select>\n";
 
-
+$tarif_info->{REDUCTION_FEE} = ($tarif_info->{REDUCTION_FEE}) ? 'checked' : '';
+$tarif_info->{POSTPAID_FEE} = ($tarif_info->{POSTPAID_FEE}) ? 'checked' : '';
 
 $html->tpl_show(_include('dv_tp', 'Dv'), $tarif_info);
 
@@ -1909,42 +1910,60 @@ sub dv_periodic_logrotate {
 # daily_fees
 #**********************************************************
 sub dv_daily_fees {
+  my ($attr) =@_;
+
+	my $debug = $attr->{DEBUG} || 0;
+  my $debug_output = '';
+
+ $debug_output .= "Daily pariodic payments\n" if ($debug > 1);
 
  my $list = $tariffs->list({ %LIST_PARAMS });
-
  $ADMIN_REPORT{DATE}=$DATE if (! $ADMIN_REPORT{DATE});
 
  foreach my $line (@$list) {
  	 if ($line->[5] > 0) {
- 	   #print "$line->[0] DF: $line->[5] MF: $line->[6]\n";
+ 	   $debug_output .= "TP ID: $line->[0] DF: $line->[5] MF: $line->[6] POSTPAID: $line->[11] REDUCTION: $line->[10] \n" if ($debug > 1);
  	   $LIST_PARAMS{TP}=$line->[0];
- 	   my $ulist = $Dv->list({ 
+ 	   my $ulist = $Dv->list({
          ACTIVATE  => "<='$ADMIN_REPORT{DATE}'",
          EXPIRE    => ">'$ADMIN_REPORT{DATE}'",
          DISABLE   => 0,
          TP_ID     => $line->[0],
          SORT      => 1,
-         PAGE_ROWS => 10000
+         PAGE_ROWS => 100000
  	   	 });
 
 #     .id, u.fio, if(acct.id IS NULL, u.deposit, acct.deposit), u.credit, tp.name, u.disable, 
 #      u.uid, u.account_id, u.email, u.tp_id
      foreach my $u (@$ulist) {
-
         if ($u->[12] > 0 && defined($u->[2])) {
           my %user = (
              ACCOUNT_ID => $u->[7],
              UID        => $u->[6],
-             BILL_ID    => $u->[12]  
+             BILL_ID    => $u->[12],
+             REDUCTION  => $u->[13]  
            );
+          
 
           #print "  UID: $u->[0] / $line->[5] / DEPOSIT: $u->[2] / $u->[3] / BILL_ID: $u->[12]\n"; 	
-          if($u->[2] + $u->[3] > 0 || $line->[4] == 1) {
+          #If deposit is above-zero or TARIF PALIN is POST PAID or PERIODIC PAYMENTS is POSTPAID
+          if($u->[2] + $u->[3] > 0 || $line->[4] == 1 || $line->[11] == 1 ) {
              #print "  UID: $u->[0] / $line->[5] / DEPOSIT: $u->[2] / $u->[3] / BILL_ID: $u->[12]\n"; 	
+             my $sum = $line->[5];
+             # IF TP have PARIODIC PAYMENTS USER reduction
+             if ($line->[10] == 1 && $u->[13] > 0) {
+               $sum = $sum * (100 - $u->[13]) / 100;
+              }
 
              my %PARAMS = ( DESCRIBE => "$_DAY_FEE" );
              $PARAMS{DATE}=$DATE if ($DATE ne '');
-             $fees->take(\%user, $line->[5], { %PARAMS } );  
+
+             if ($debug > 4) {
+                $debug_output .= " UID: $user{UID} SUM: $sum REDUCTION: $u->[13]\n";
+              }
+             else {
+               $fees->take(\%user, $sum, { %PARAMS } );
+              }
            }
         }
        else {
@@ -1956,7 +1975,8 @@ sub dv_daily_fees {
   }
 
 
-
+  $DEBUG = $debug_output;
+  return $debug_output;
 }
 
 
@@ -1968,6 +1988,10 @@ sub dv_daily_fees {
 #**********************************************************
 sub dv_monthly_fees {
  my ($attr) = @_;
+
+ my $debug = $attr->{DEBUG} || 0;
+ my $debug_output = '';
+ $debug_output .= "Daily pariodic payments\n" if ($debug > 1);
 
  use Users;
  my $users = Users->new($db, $admin, \%conf); 
@@ -1983,7 +2007,8 @@ sub dv_monthly_fees {
 
  foreach my $line (@$list) {
  	 if ($line->[6] > 0) {
-#	   print "TP_ID: $line->[0] MONTH_ABON: $line->[6]\n";
+ 	   $debug_output .= "TP ID: $line->[0] MF: $line->[6] POSTPAID: $line->[11] REDUCTION: $line->[10] \n" if ($debug > 1);
+
 	   my $ulist = $Dv->list({ 
          ACTIVATE   => ">=$ADMIN_REPORT{DATE}",
          EXPIRE     => "<$ADMIN_REPORT{DATE}",
@@ -1991,7 +2016,6 @@ sub dv_monthly_fees {
          TP_ID      => $line->[0],
          SORT       => 1,
          PAGE_ROWS  => 100000
-
  	   	 });
 #u.id, u.fio, if(acct.id IS NULL, u.deposit, acct.deposit), u.credit, tp.name, u.disable, 
 #      u.uid, u.account_id, u.email, u.tp_id, u.activate, u.expire
@@ -2005,26 +2029,45 @@ sub dv_monthly_fees {
             UID        => $u->[6],
             BILL_ID    => $u->[12]   
            );
+          
+          #Make sum 
+          my $sum = $line->[6];
 
+          #Use reduction
+          if ($line->[10] == 1 && $u->[13] > 0) {
+            $sum = $sum * (100 - $u->[13]) / 100;
+           }
 
-          if($line->[4] == 1 || $u->[2] + $u->[3] > 0) {
+          
+          
+          #If deposit is above-zero or TARIF PALIN is POST PAID or PERIODIC PAYMENTS is POSTPAID
+          if($line->[4] == 1 || $u->[2] + $u->[3] > 0 || $line->[11] == 1) {
 #                print " $u->[0] $line->[6] $u->[2] $u->[3] $u->[10] - $u->[11] /$DATE $d == 1\n"; 	
             #take fees in first day of month
             if ($u->[10] eq '0000-00-00' and $d == 1) {
-#                print " $u->[0] $line->[6] $u->[2] $u->[3] $u->[10] - $u->[11] / $d == 1\n"; 	
-                $fees->take(\%user, $line->[6], { DESCRIBE => "$_MONTH_FEE" } );  
-              }
+              if ($debug > 4) {
+                $debug_output .= " UID: $user{UID} SUM: $sum REDUCTION: $u->[13]\n";
+               }
+              else {
+                $fees->take(\%user, $sum, { DESCRIBE => "$_MONTH_FEE" } );  
+               }
+             }
             # If activation set to monthly fees taken throught 30 days
             elsif($u->[10] ne '0000-00-00') {
               my ($activate_y, $activate_m, $activate_d)=split(/-/, $u->[10], 3);
               $activate_m--;
               my $active_unixtime =  mktime(0, 0, 0, $activate_d, $activate_m, $activate_y - 1900, 0, 0, 0);
               if ($date_unixtime - $active_unixtime > 30 * 86400) {
-                $fees->take(\%user, $line->[6], { DESCRIBE => "$_MONTH_FEE" } );
-                $users->change($u->[6], { 
+                if ($debug > 4) {
+                  $debug_output .= " UID: $user{UID} SUM: $sum REDUCTION: $u->[13]\n";
+                 }
+                else {
+                  $fees->take(\%user, $sum, { DESCRIBE => "$_MONTH_FEE" } );
+                  $users->change($u->[6], { 
                 	                        UID      => $u->[6],
                 	                        ACTIVATE => $ADMIN_REPORT{DATE} } 
-                	             );
+                 	             );
+                 }
                }
                #print "   $u->[0] $line->[6] $u->[2] $u->[3] $u->[10] - $u->[11]\n"; 	
              }
@@ -2036,6 +2079,9 @@ sub dv_monthly_fees {
  	  }
   }
 }
+
+  $DEBUG = $debug_output;
+  return $debug_output;
 }
 
 #**********************************************************

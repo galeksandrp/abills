@@ -100,7 +100,8 @@ sub check_lines {
 	Billing->import();
 
 	#$LIST_PARAMS{ROWS}=2;
-	$sessions->online( { %LIST_PARAMS, ALL => 1, FIELDS => [0, 1, 2, 3, 4, 5, 6, 7, 8, 25] } );	
+        $sessions->{debug}=1;
+	$sessions->online( { %LIST_PARAMS, ALL => 1, FIELDS => [0, 1, 2, 3, 4, 5, 6, 7, 8, 26] } );	
 	
   print "==> check_lines\n" if ($debug > 1);
 	
@@ -127,7 +128,6 @@ sub check_lines {
     $NAS{NAS_MNG_PASSWORD} = $nas_row->[11]; 
 
     foreach my $line (@$l) {
-
 	    my $acct_input_octets       = $line->[5];
 	    my $acct_output_octets      = $line->[6];
 	    my $acct_input_octets_ext   = $line->[7];
@@ -157,6 +157,7 @@ sub check_lines {
                                                     ACCT_SESSION_ID => $acct_session_id
                                                   });
 
+           
            $ACCT_INFO->{INBYTE}            = $acct_input_octets;
            $ACCT_INFO->{OUTBYTE}           = $acct_output_octets;
            $ACCT_INFO->{INBYTE2}           = $acct_input_octets_ext;

@@ -131,7 +131,9 @@ sub online {
    'if(date_format(c.started, "%Y-%m-%d")=curdate(), date_format(c.started, "%H:%i:%s"), c.started)',
    'c.nas_id',
    'UNIX_TIMESTAMP()-c.lupdated',
-   'c.acct_session_time' );
+   'c.acct_session_time',
+   'c.lupdated - UNIX_TIMESTAMP(c.started)'
+   );
 
 
   my @RES_FIELDS = (0, 1, 2, 3, 4, 5, 6, 7, 8);

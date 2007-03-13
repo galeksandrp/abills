@@ -147,7 +147,7 @@ if (defined($args->{monthly})) {
   for(my $i=$#monthly_functions; $i>-1; $i--) {
   	my $f = $monthly_functions[$i];
   	#print $f . "\n";
-  	$f->();
+  	$f->({ DEBUG => $args->{DEBUG} });
   }
 
   if ($begin_time > 0)  {

@@ -503,6 +503,7 @@ sub snmputils_dlink_pb {
     $debug_output .= "\n";
     }
    }
+
   $DEBUG = $debug_output;
   return $debug_output;
 }
@@ -977,10 +978,22 @@ sub snmputils_dlink_ip_mac_port{
    }
 
 #My multiports  section
+  my $binding;
+
+  if ($FORM{GET_USERS}) {
+    my $IDS = '';
+    while(my($ip, $mac) = each %{ $ACTIVE_MAC->{MAC} } ) {
+     	$IDS .= "'$mac',";    	
+     }
+   	chop($IDS);
+    $binding = snmputils_get_users({ IDS => "$IDS" });
+   }
+
+
   $table->td($port,    { colspan => 9, bgcolor => $_COLORS[0] } );
 
   while(my($ip, $ports) = each %{ $ACTIVE_MAC->{MULTIPORTS} } ) {
-    $table->addtd(
+    my @arr = (
              $table->td($ports,    { colspan => 2 } ),
              $table->td($ip),
              $table->td($ACTIVE_MAC->{MAC}{"$ip"}),
@@ -989,6 +1002,15 @@ sub snmputils_dlink_ip_mac_port{
              $table->td($html->button(($state == 2) ? $THREE_MODE{3} : $THREE_MODE{2}, "NAS_ID=$FORM{NAS_ID}&TYPE=$FORM{TYPE}&SHOW=1&index=$index&PORT=$port&state=". (($state == 2) ? 3 : 2) )),
              $table->td($html->button($_DEL, "index=$index&del=$ip&NAS_ID=$FORM{NAS_ID}&TYPE=$FORM{TYPE}&SHOW=1"))
       );
+     
+    if($binding->{$ACTIVE_MAC->{MAC}{"$ip"}}) {
+    	unshift @arr, $binding->{$ACTIVE_MAC->{MAC}{"$ip"}};
+     }
+    else {
+    	unshift @arr, '-';
+     }	
+    
+    $table->addtd(@arr);
    }
  
   print $table->show();
