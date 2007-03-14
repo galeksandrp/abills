@@ -1104,8 +1104,9 @@ sub snmputils_dlink_pb_monitor {
     my $binding;
     if ($FORM{GET_USERS}) {
       my $IDS = '';
-      while(my($ip, $mac) = each %{ $ACTIVE_MAC->{MAC} } ) {
-     	  $IDS .= "'$mac',";    	
+      while(my($mac_dec, $value) = each %{ $ACTIVE_MAC->{MAC} } ) {
+     	  my $mac = join(':', unpack("H2H2H2H2H2H2", $BLOCK_MAC->{$mac_dec}{2}))
+     	  $IDS .= "'$mac',";
        }
    	  chop($IDS);
       $binding = snmputils_get_users({ IDS => "$IDS" });
@@ -1115,14 +1116,19 @@ sub snmputils_dlink_pb_monitor {
     
     
     while(my($key, $val) = each %$BLOCK_MAC) {
+  	  my $mac = join(':', unpack("H2H2H2H2H2H2", $BLOCK_MAC->{$key}{2}));
   	  my @arr = ('-',
   	             $BLOCK_MAC->{$key}{1}, 
   	             $BLOCK_MAC->{$key}{4},
-  	             join(':', unpack("H2H2H2H2H2H2", $BLOCK_MAC->{$key}{2})),
+  	             $mac,
   	             $BLOCK_MAC->{$key}{3},
   	             $BLOCK_MAC->{$key}{5},
   	             $html->button($_DEL, "index=$index&del=block&MAC=$key&NAS_ID=$FORM{NAS_ID}&TYPE=$FORM{TYPE}&SHOW=1")
   	            );
+     
+      if($binding->{$mac}) {
+      	@arr[0] = $binding->{$mac};
+       }
 
   	  $table->addrow(@arr);
      }
