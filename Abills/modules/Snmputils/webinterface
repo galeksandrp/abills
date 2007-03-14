@@ -438,8 +438,12 @@ sub snmputils_dlink_pb {
        }
 
       foreach my $line (@$list) {
-        
-     	  $debug_output .= "$line->[0], $line->[1], IP: $line->[2] MAC: $line->[3] COMMENTS: $line->[5]\n" if ($debug > 2);
+        $user_ports='';
+        if ($line->[5] =~ /pb=([0-9,]+)/) {
+          $user_ports = $1;
+     	   }
+
+     	  $debug_output .= "$line->[0], UID: $line->[1] IP: $line->[2] MAC: $line->[3] PORT: $user_ports\n" if ($debug > 2);
         if ($line->[4] >= 0) {
           $MUST_ACTIVATE{$line->[3]}=$line->[2];
          }
