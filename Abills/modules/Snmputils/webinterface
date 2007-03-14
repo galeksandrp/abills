@@ -449,7 +449,7 @@ sub snmputils_dlink_pb {
           $MUST_ACTIVATE{$line->[3]}="$line->[2]:$user_ports";
          }
         else {
-        	$debug_output .= "Negative deposit\n" if ($debug > 2);
+        	$debug_output .= " Negative deposit\n" if ($debug > 2);
          }
        }
 
