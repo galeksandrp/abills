@@ -1105,7 +1105,7 @@ sub snmputils_dlink_pb_monitor {
     if ($FORM{GET_USERS}) {
       my $IDS = '';
       while(my($mac_dec, $value) = each %{ $ACTIVE_MAC->{MAC} } ) {
-     	  my $mac = join(':', unpack("H2H2H2H2H2H2", $BLOCK_MAC->{$mac_dec}{2}))
+     	  my $mac = join(':', unpack("H2H2H2H2H2H2", $BLOCK_MAC->{$mac_dec}{2}));
      	  $IDS .= "'$mac',";
        }
    	  chop($IDS);
