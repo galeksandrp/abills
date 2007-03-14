@@ -482,7 +482,7 @@ sub snmputils_dlink_pb {
    	        my $message = snmputils_dlink_pb_add({  
         	    SNMP_COMMUNITY => $SNMP_COMMUNITY,
          	    IP             => $ip,
-              PORT_ID        => ($user_ports ne '') ? $user_ports : $ports;
+              PORT_ID        => ($user_ports ne '') ? $user_ports : $ports,
               MAC            => $mac,
         	    SWITCH_INFO    => $SWITCH_INFO,
         	    ACL_IP_MAC     => 1
