@@ -941,7 +941,7 @@ sub snmputils_dlink_ip_mac_port{
   $table = $html->table({ width       => '100%',
                           caption     => "IP-MAC-Port Binding",
                           border      => 1,
-                          title       => ["$_PORT", "$_STATE", "IP", "MAC", "$_STATUS", "_MODE", "-", "-"],
+                          title       => ["$_USER", "$_PORT", "$_STATE", "IP", "MAC", "$_STATUS", "_MODE", "-", "-"],
                           cols_align  => ['left', 'center', 'right', 'right', 'right', 'right', 'center', 'center', 'center'],
                       });
 
@@ -965,6 +965,7 @@ sub snmputils_dlink_ip_mac_port{
     push @ports, $port;
   	
     $table->addtd(
+             $table->td('-'),
              $table->td($port,    { rowspan => 1 } ),
              $table->td($THREE_MODE{$state}, { bgcolor => ($state == 2) ? '#00FF00' : $_COLORS[1], rowspan => 1  }), 
              $table->td(''),
