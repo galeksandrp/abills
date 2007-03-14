@@ -1007,7 +1007,7 @@ sub snmputils_dlink_ip_mac_port{
     	unshift @arr, $binding->{$ACTIVE_MAC->{MAC}{"$ip"}};
      }
     else {
-    	unshift @arr, '-';
+    	unshift @arr, $table->td('-');
      }	
     
     $table->addtd(@arr);
