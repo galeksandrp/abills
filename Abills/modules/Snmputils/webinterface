@@ -417,7 +417,7 @@ sub snmputils_dlink_pb {
 
     if($Snmputils->{TOTAL} > 0) {
       
-      $line->[12]=~/Assign-Ports="(.+)"/;
+      $line->[12]=~/Assign-Ports=\"(.+)\"/;
       my $ports = $1 || '';
       my $SWICH_INFO = snmputils_dlink_pb_version({ SNMP_COMMUNITY => $SNMP_COMMUNITY });
 
