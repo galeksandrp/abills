@@ -445,7 +445,7 @@ sub snmputils_dlink_pb {
 
      	  $debug_output .= "$line->[0], UID: $line->[1] IP: $line->[2] MAC: $line->[3] PORT: $user_ports\n" if ($debug > 2);
         if ($line->[4] >= 0) {
-          $MUST_ACTIVATE{$line->[3]}=$line->[2];
+          $MUST_ACTIVATE{$line->[3]}="$line->[2]:$user_ports";
          }
         else {
         	$debug_output .= "Negative deposit\n" if ($debug > 2);
@@ -474,14 +474,15 @@ sub snmputils_dlink_pb {
        }
       
       $debug_output .= "Add to server:\n" if ($debug > 0);
-      while(my($mac, $ip)=each %MUST_ACTIVATE) {
-     	    $debug_output .= "$ip, $mac\n" if ($debug > 0);
-
+      while(my($mac, $ip_port)=each %MUST_ACTIVATE) {
+     	    $debug_output .= "$ip_port, $mac\n" if ($debug > 0);
+          my ($ip, $user_ports) = split(/:/, $ip_port, 2);
+          
    	      if ($debug < 3) {
    	        my $message = snmputils_dlink_pb_add({  
         	    SNMP_COMMUNITY => $SNMP_COMMUNITY,
          	    IP             => $ip,
-              PORT_ID        => $ports,
+              PORT_ID        => ($user_ports ne '') ? $user_ports : $ports;
               MAC            => $mac,
         	    SWITCH_INFO    => $SWITCH_INFO,
         	    ACL_IP_MAC     => 1
