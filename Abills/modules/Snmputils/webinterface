@@ -1006,7 +1006,8 @@ sub snmputils_dlink_ip_mac_port{
       );
      
     if($binding->{$ACTIVE_MAC->{MAC}{"$ip"}}) {
-    	unshift @arr, $table->td($binding->{$ACTIVE_MAC->{MAC}{"$ip"}});
+ 		  my ($name, $uid) = split(/:/, $binding->{$ACTIVE_MAC->{MAC}{"$ip"}});
+    	unshift @arr, $table->td($html->button("$name", "index=15&UID=$uid"));
      }
     else {
     	unshift @arr, $table->td('-');
@@ -1046,17 +1047,19 @@ sub snmputils_dlink_ip_mac_port{
   
   
   while(my($key, $val) = each %$BLOCK_MAC) {
+    my $mac = join(':', unpack("H2H2H2H2H2H2", $BLOCK_MAC->{$key}{2}));
     my @arr = ('-',
                $BLOCK_MAC->{$key}{1}, 
   	           $BLOCK_MAC->{$key}{4},
-  	           join(':', unpack("H2H2H2H2H2H2", $BLOCK_MAC->{$key}{2})),
+  	           $mac,
   	           $BLOCK_MAC->{$key}{3},
   	           $BLOCK_MAC->{$key}{5},
   	           $html->button($_DEL, "index=$index&del=block&MAC=$key&NAS_ID=$FORM{NAS_ID}&TYPE=$FORM{TYPE}&SHOW=1")
   	          );
 
-    if($binding->{$ACTIVE_MAC->{MAC}{"$ip"}}) {
-    	@arr[0] = $binding->{$ACTIVE_MAC->{MAC}{"$ip"}};
+     if($binding->{$mac}) {
+ 		  my ($name, $uid) = split(/:/, $binding->{$mac});
+    	@arr[0] = $html->button("$name", "index=15&UID=$uid");
      }
 
   	$table->addrow(@arr);
@@ -1127,7 +1130,8 @@ sub snmputils_dlink_pb_monitor {
   	            );
      
       if($binding->{$mac}) {
-      	@arr[0] = $binding->{$mac};
+  		  my ($name, $uid) = split(/:/, $binding->{$mac});
+   		  @arr[0] = $html->button("$name", "index=15&UID=$uid");  
        }
 
   	  $table->addrow(@arr);
