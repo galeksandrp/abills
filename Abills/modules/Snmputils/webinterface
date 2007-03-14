@@ -438,7 +438,7 @@ sub snmputils_dlink_pb {
        }
 
       foreach my $line (@$list) {
-        $user_ports='';
+        my $user_ports='';
         if ($line->[5] =~ /pb=([0-9,]+)/) {
           $user_ports = $1;
      	   }
@@ -491,9 +491,11 @@ sub snmputils_dlink_pb {
        }
      #Active ports
      
+     print "--- $ports --";
      my @ports_arr = split(/,/, $ports);
      $debug_output .= "Active port: ";
      foreach my $port (@ports_arr) {
+       
        if ($debug < 3) {
          my $message =  snmputils_dlink_pb_state({ SNMP_COMMUNITY => $SNMP_COMMUNITY,
      	                                             STATE          => 2,
