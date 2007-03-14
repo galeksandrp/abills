@@ -680,7 +680,6 @@ sub acct_stop {
   	 return $self;
    }
 
-  my $a_ref = $self->{list}->[0];
 
   ($self->{UID},
    $self->{FRAMED_IP_ADDRESS},
@@ -695,7 +694,7 @@ sub acct_stop {
    $self->{ACCT_SESSION_TIME},
    $self->{NAS_ID},
    $self->{NAS_PORT}
-  ) = @$a_ref;
+  ) = @{ $self->{list}->[0] };
 
  
  $self->query($db, "SELECT sum(l.traffic_in), 
@@ -716,12 +715,10 @@ sub acct_stop {
     return $self;
   }
   
-  $a_ref = $self->{list}->[0];
-
   ($self->{TRAFFIC_IN},
    $self->{TRAFFIC_OUT},
    $self->{SUM}
-  ) = @$a_ref;
+  ) = @{ $self->{list}->[0] };
 
 
 
@@ -882,9 +879,8 @@ else {
   from $table_name
   ;");
 
-  my $a_ref = $self->{list}->[0];
   ($self->{COUNT},
-   $self->{SUM}) = @$a_ref;
+   $self->{SUM}) = @{ $self->{list}->[0] };
 
 
   return $list;
@@ -1013,9 +1009,8 @@ else {
      from $table_name
      $WHERE ;");
 
-    my $a_ref = $self->{list}->[0];
      ($self->{COUNT},
-      $self->{SUM}) = @$a_ref;
+      $self->{SUM}) = @{ $self->{list}->[0] };
   }
 
  return $list;
@@ -1070,9 +1065,8 @@ sub stats {
   $WHERE
   ;");
 
-  my $a_ref = $self->{list}->[0];
   ($self->{COUNT},
-   $self->{SUM}) = @$a_ref;
+   $self->{SUM}) = @{ $self->{list}->[0] };
 
 
   return $list;
