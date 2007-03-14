@@ -738,7 +738,7 @@ sub snmputils_dlink_pb_del {
    }
   #delete from binding list
   elsif(snmpset($SNMP_COMMUNITY, $oid_prefix.$oid_sufix{MAKE}.".$attr->{DEL}", "integer", "6")) {
-  	 $message = "$_DELETED $ip";
+  	 $message = "$_DELETED $attr->{DEL}";
    }
 
   if($SNMP_Session::suppress_warnings) { 
@@ -1065,7 +1065,7 @@ sub snmputils_dlink_ip_mac_port{
 
      if($binding->{$mac}) {
  		  my ($name, $uid) = split(/:/, $binding->{$mac});
-    	@arr[0] = $html->button("$name", "index=15&UID=$uid");
+    	$arr[0] = $html->button("$name", "index=15&UID=$uid");
      }
 
   	$table->addrow(@arr);
@@ -1137,7 +1137,7 @@ sub snmputils_dlink_pb_monitor {
      
       if($binding->{$mac}) {
   		  my ($name, $uid) = split(/:/, $binding->{$mac});
-   		  @arr[0] = $html->button("$name", "index=15&UID=$uid");  
+   		  $arr[0] = $html->button("$name", "index=15&UID=$uid");  
        }
 
   	  $table->addrow(@arr);
@@ -2470,8 +2470,4 @@ sub snmputils_get_users {
   	$user_hash{$line->[1]}="$line->[0]:$line->[5]";
    }
 
-  return \%user_hash; 
-}
-
-1
-
+  return \%user_hash
