@@ -420,7 +420,6 @@ sub snmputils_dlink_pb {
       
       $line->[12]=~/Assign-Ports=\"(.+)\"/;
       my $ports = $1 || '';
-      $debug_output .= "// $ports //\n";
       my $SWICH_INFO = snmputils_dlink_pb_version({ SNMP_COMMUNITY => $SNMP_COMMUNITY });
 
       if (! $SWICH_INFO->{version}) {
@@ -494,7 +493,6 @@ sub snmputils_dlink_pb {
        }
      #Active ports
      
-     $debug_output .= "--- $ports --";
      my @ports_arr = split(/,/, $ports);
      $debug_output .= "Active port: ";
      foreach my $port (@ports_arr) {
