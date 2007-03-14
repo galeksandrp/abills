@@ -439,7 +439,7 @@ sub snmputils_dlink_pb {
 
       foreach my $line (@$list) {
         
-     	  $debug_output .= "$line->[0], $line->[1], $line->[2], $line->[3]\n" if ($debug > 2);
+     	  $debug_output .= "$line->[0], $line->[1], IP: $line->[2] MAC: $line->[3] COMMENTS: $line->[5]\n" if ($debug > 2);
         if ($line->[4] >= 0) {
           $MUST_ACTIVATE{$line->[3]}=$line->[2];
          }
@@ -2470,4 +2470,8 @@ sub snmputils_get_users {
   	$user_hash{$line->[1]}="$line->[0]:$line->[5]";
    }
 
-  return \%user_hash
+  return \%user_hash; 
+}
+
+1
+
