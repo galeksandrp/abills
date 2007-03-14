@@ -1077,8 +1077,8 @@ sub snmputils_dlink_pb_monitor {
   my $table = $html->table({ width       => '100%',
                              caption     => "$_DISABLED",
                              border      => 1,
-                             title       => ["ID", "$_PORT", "MAC", "VID", "-"],
-                             cols_align  => ['left', 'center', 'right', 'right', 'right', 'right', 'center', 'center', 'center'],
+                             title       => ["$_USER", "ID", "$_PORT", "MAC", "VID", "-"],
+                             cols_align  => ['left', 'left', 'center', 'right', 'right', 'right', 'right', 'center', 'center', 'center'],
                            });
 
   my $list = $nas->list({ PAGE_ROWS => 10000, TYPE => dlink_pb, DISABLE => 0 });
@@ -1087,7 +1087,7 @@ sub snmputils_dlink_pb_monitor {
     #GET users for this NAS
     
     $table->{rowcolor}=$_COLORS[0];
-    $table->{extra}="colspan='4' class='small'";
+    $table->{extra}="colspan='5' class='small'";
     $table->addrow("$line->[0]:<b>$line->[1]</b>:$line->[3] " );
 
     undef($table->{rowcolor});
@@ -1101,15 +1101,31 @@ sub snmputils_dlink_pb_monitor {
                                                             SWITCH_INFO    => $SWITCH_INFO,
 	                                                          });
  
-    while(my($key, $val) = each %$BLOCK_MAC) {
-  	  $table->addrow($BLOCK_MAC->{$key}{1}, 
-  	                 $BLOCK_MAC->{$key}{4},
-  	                 join(':', unpack("H2H2H2H2H2H2", $BLOCK_MAC->{$key}{2})),
-  	                 $BLOCK_MAC->{$key}{3},
-  	                 $BLOCK_MAC->{$key}{5},
-  	                 $html->button($_DEL, "index=$index&del=block&MAC=$key&NAS_ID=$FORM{NAS_ID}&TYPE=$FORM{TYPE}&SHOW=1")
-  	                 );
+    my $binding;
+    if ($FORM{GET_USERS}) {
+      my $IDS = '';
+      while(my($ip, $mac) = each %{ $ACTIVE_MAC->{MAC} } ) {
+     	  $IDS .= "'$mac',";    	
        }
+   	  chop($IDS);
+      $binding = snmputils_get_users({ IDS => "$IDS" });
+     }
+
+ 
+    
+    
+    while(my($key, $val) = each %$BLOCK_MAC) {
+  	  my @arr = ('-',
+  	             $BLOCK_MAC->{$key}{1}, 
+  	             $BLOCK_MAC->{$key}{4},
+  	             join(':', unpack("H2H2H2H2H2H2", $BLOCK_MAC->{$key}{2})),
+  	             $BLOCK_MAC->{$key}{3},
+  	             $BLOCK_MAC->{$key}{5},
+  	             $html->button($_DEL, "index=$index&del=block&MAC=$key&NAS_ID=$FORM{NAS_ID}&TYPE=$FORM{TYPE}&SHOW=1")
+  	            );
+
+  	  $table->addrow(@arr);
+     }
   }
 
 
