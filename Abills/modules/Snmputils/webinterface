@@ -1056,7 +1056,7 @@ sub snmputils_dlink_ip_mac_port{
   	          );
 
     if($binding->{$ACTIVE_MAC->{MAC}{"$ip"}}) {
-    	unshift @arr[0], $binding->{$ACTIVE_MAC->{MAC}{"$ip"}};
+    	@arr[0] = $binding->{$ACTIVE_MAC->{MAC}{"$ip"}};
      }
 
   	$table->addrow(@arr);
