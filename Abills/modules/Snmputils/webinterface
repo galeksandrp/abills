@@ -669,6 +669,7 @@ sub snmputils_dlink_pb_add {
   	$message .= "Ok\n";
    }
   else {
+    print "$oid_prefix / $oid_sufix{PORT} / $ip => $port_binding\n";
     print "$SNMP_Session::suppress_warnings / $SNMP_Session::errmsg";	
    }
 
