@@ -942,7 +942,7 @@ sub snmputils_dlink_ip_mac_port{
                           caption     => "IP-MAC-Port Binding",
                           border      => 1,
                           title       => ["$_USER", "$_PORT", "$_STATE", "IP", "MAC", "$_STATUS", "_MODE", "-", "-"],
-                          cols_align  => ['left', 'center', 'right', 'right', 'right', 'right', 'center', 'center', 'center'],
+                          cols_align  => ['left', 'left', 'center', 'right', 'right', 'right', 'right', 'center', 'center', 'center'],
                       });
 
 
@@ -995,6 +995,7 @@ sub snmputils_dlink_ip_mac_port{
 
   while(my($ip, $ports) = each %{ $ACTIVE_MAC->{MULTIPORTS} } ) {
     my @arr = (
+             
              $table->td($ports,    { colspan => 2 } ),
              $table->td($ip),
              $table->td($ACTIVE_MAC->{MAC}{"$ip"}),
@@ -1038,20 +1039,27 @@ sub snmputils_dlink_ip_mac_port{
   $table = $html->table({ width       => '100%',
                           caption     => "$_DISABLED",
                           border      => 1,
-                          title       => ["ID", "$_PORT", "MAC", "VID", "-"],
-                          cols_align  => ['left', 'center', 'right', 'right', 'right', 'right', 'center', 'center', 'center'],
+                          title       => ["$_USER", "ID", "$_PORT", "MAC", "VID", "-"],
+                          cols_align  => ['left', 'left', 'center', 'right', 'right', 'right', 'right', 'center', 'center', 'center'],
                       });
  
   
   
   while(my($key, $val) = each %$BLOCK_MAC) {
-  	$table->addrow($BLOCK_MAC->{$key}{1}, 
-  	               $BLOCK_MAC->{$key}{4},
-  	               join(':', unpack("H2H2H2H2H2H2", $BLOCK_MAC->{$key}{2})),
-  	               $BLOCK_MAC->{$key}{3},
-  	               $BLOCK_MAC->{$key}{5},
-  	               $html->button($_DEL, "index=$index&del=block&MAC=$key&NAS_ID=$FORM{NAS_ID}&TYPE=$FORM{TYPE}&SHOW=1")
-  	              );
+    my @arr = ('-',
+               $BLOCK_MAC->{$key}{1}, 
+  	           $BLOCK_MAC->{$key}{4},
+  	           join(':', unpack("H2H2H2H2H2H2", $BLOCK_MAC->{$key}{2})),
+  	           $BLOCK_MAC->{$key}{3},
+  	           $BLOCK_MAC->{$key}{5},
+  	           $html->button($_DEL, "index=$index&del=block&MAC=$key&NAS_ID=$FORM{NAS_ID}&TYPE=$FORM{TYPE}&SHOW=1")
+  	          );
+
+    if($binding->{$ACTIVE_MAC->{MAC}{"$ip"}}) {
+    	unshift @arr[0], $binding->{$ACTIVE_MAC->{MAC}{"$ip"}};
+     }
+
+  	$table->addrow(@arr);
    }
  print $table->show(); 
   
