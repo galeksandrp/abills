@@ -53,6 +53,8 @@ sub new {
   	$CONF->{KBYTE_SIZE}=1024;
    }
 
+  $CONF->{MB_SIZE} = $CONF->{KBYTE_SIZE} * $CONF->{KBYTE_SIZE};
+
   if ($CONF->{DELETE_USER}) {
     $self->user_del({ UID => $CONF->{DELETE_USER} });
    }
@@ -425,6 +427,7 @@ sub get_zone {
 
       $zones{$zoneid}{PriceIn}=$line->[1]+0;
       $zones{$zoneid}{PriceOut}=$line->[2]+0;
+      $zones{$zoneid}{PREPAID_TSUM}=$line->[3]+0;
 
   	  my $ip_list="$line->[7]";
   	  #Make ip hash
@@ -588,6 +591,36 @@ sub traffic_add_user {
 }
 
 
+#**********************************************************
+# traffic_user_get
+# Get used traffic from DB
+#**********************************************************
+sub traffic_user_get {
+  my $self = shift;
+  my ($attr) = @_;
+
+  my $uid        = $attr->{UID};
+  my $traffic_id = $attr->{TRAFFIC_ID} || 0;
+  my $from       = $attr->{FROM} || '';
+  my %result = ();
+
+
+  $self->query($db, "SELECT traffic_class, sum(traffic_in) / $CONF->{MB_SIZE}, sum(traffic_out) / $CONF->{MB_SIZE}  from ipn_log
+        WHERE uid='$uid'
+        and DATE_FORMAT(start, '%Y-%m')>=DATE_FORMAT(curdate(), '%Y-%m')
+        GROUP BY uid, traffic_class;");
+  
+  foreach my $line (@{ $self->{list} }) {
+  	$result{$line->[0]}{TRAFFIC_SUM}=$line->[1]+$line->[2];
+  	#$result{$line->[0]}{IN}=$line->[1];
+  	#$result{$line->[0]}{OUT}=$line->[2];
+   }
+
+  return \%result;
+}
+ 
+ 
+ 
 #**********************************************************
 # traffic_add
 #**********************************************************
@@ -1339,7 +1372,7 @@ else {
 
 
  $self->query($db, "SELECT 
-  count(*),  sum(size)
+  count(*),  suuuuuuum(size)
   from  $table_name
   $WHERE
   ;");

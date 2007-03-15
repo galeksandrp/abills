@@ -322,11 +322,11 @@ print "
 
 
 if(defined($conf{tech_works})) {
-  print "<tr><th bgcolor='#FF0000' colspan='2'>$conf{tech_works}</th></tr>";
+  print "<tr><th bgcolor='#FF0000' colspan='2'>$conf{tech_works}</th></tr>\n";
 }
 
 if ($admin->{WEB_OPTIONS}{qm}) {
-  print "<tr><td colspan='2' class='noprint'>\n<table  width='100%' border='0'>";
+  print "<tr><td colspan='2' class='noprint'>\n<table  width='100%' border='0'>\n";
 	my @a = split(/,/, $admin->{WEB_OPTIONS}{qm});
   my $i = 0;
 	foreach my $line (@a) {

@@ -46,7 +46,6 @@ if (defined($FORM{DATE})) {
    $LIST_PARAMS{INTERVAL_TYPE} = 2;
    $graph_type='day_stats';
    
-   
    my $list = $Ipn->reports_users({ %LIST_PARAMS });
    #Used Fraffic
    $table_sessions = $html->table( { width      => '100%',
@@ -54,12 +53,12 @@ if (defined($FORM{DATE})) {
                                      title      => ["$_DATE", "TT", "$_NAME", "IN", "OUT", "$_TOTAL", "$_SUM"],
                                      cols_align => ['right', 'left', 'right', 'right', 'right', 'right', 'right'],
                                      qs         => $pages_qs             
-                               } );
+                                 } );
 
 
     my %report = ();
     foreach my $line (@$list) {
-       push  @{$report{"$line->[0]"}}, [ @$line ];
+       push  @{ $report{"$line->[0]"} }, [ @$line ];
      }
     
     foreach my $k ( sort %report) {  
@@ -81,7 +80,7 @@ if (defined($FORM{DATE})) {
                   $table->td(int2byte($stats_array[0][3]), { bgcolor => $TT_COLORS[$stats_array[0][1]] }), 
                   $table->td(int2byte($stats_array[0][4]), { bgcolor => $TT_COLORS[$stats_array[0][1]] }),
                   $table->td(int2byte($stats_array[0][3]+$stats_array[0][5]), { bgcolor => $TT_COLORS[$stats_array[0][1]] }),
-                  $table->td($stats_array[0][5], { bgcolor => $TT_COLORS[$stats_array[0][1]] })
+                  $table->td("$stats_array[0][5]", { bgcolor => $TT_COLORS[$stats_array[0][1]] })
       );
 
       $user_total_in+=$stats_array[0][3];
@@ -103,7 +102,7 @@ if (defined($FORM{DATE})) {
           int2byte($stats_array[$i][3]),
           int2byte($stats_array[$i][4]),
           int2byte($stats_array[$i][3]+$stats_array[$i][4]),
-          $stats_array[$i][5]
+          "$stats_array[$i][5]"
           );
         
           $user_total_in+=$stats_array[$i][3];
@@ -1130,11 +1129,12 @@ if ($FORM{rows}) {
 
 #PEriods totals
 my $list = $sessions->periods_totals({ %LIST_PARAMS });
-my $table = $html->table( { width => '100%',
-                                   title_plain => ["$_PERIOD", "$_DURATION", "$_SEND", "$_RECV", "$_SUM"],
-                                   cols_align => ['left', 'right', 'right', 'right', 'right'],
-                                   rowcolor => $_COLORS[1]
-                                  } );
+my $table = $html->table( { width       => '100%',
+                            title_plain => ["$_PERIOD", "$_DURATION", "$_SEND", "$_RECV", "$_SUM"],
+                            cols_align  => ['left', 'right', 'right', 'right', 'right'],
+                            rowcolor    => $_COLORS[1]
+                        } );
+
 for(my $i = 0; $i < 5; $i++) {
 	  $table->addrow("<a href='$SELF_URL?index=$index&period=$i$pages_qs'>$PERIODS[$i]</a>", "$sessions->{'duration_'. $i}",
 	  int2byte($sessions->{'sent_'. $i}), int2byte($sessions->{'recv_'. $i}), int2byte($sessions->{'sum_'. $i}));
@@ -1247,13 +1247,13 @@ print "</select>
 
 
 my $list = $sessions->detail_list({ %LIST_PARAMS, %FORM });
-my $table = $html->table({ width => '100%',
-                                   border => 1,
-                                   title => ["LAST_UPDATE", "$_SESSION_ID", "NAS_ID", "SENT", "RECV", "SENT2", "RECV2"],
-                                   cols_align => ['right', 'right', 'right', 'right', 'right', 'right', 'right'],
-                                   pages => $sessions->{TOTAL},
-                                   qs => $pages_qs
-                                  } );
+my $table = $html->table({ width      => '100%',
+                           border     => 1,
+                           title      => ["LAST_UPDATE", "$_SESSION_ID", "NAS_ID", "SENT", "RECV", "SENT2", "RECV2"],
+                           cols_align => ['right', 'right', 'right', 'right', 'right', 'right', 'right'],
+                           pages      => $sessions->{TOTAL},
+                           qs         => $pages_qs
+                        });
 
  foreach my $line (@$list) {
     $table->addrow($line->[0],  $line->[1], $line->[2], $line->[3],  $line->[4], $line->[5], $line->[6]);
