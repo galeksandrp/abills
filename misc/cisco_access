@@ -24,15 +24,17 @@ if [ w${IP} = w ]; then
   exit;
 fi
 
-if [ w${ACTION} = 'Allow' ]; then
-  /usr/bin/rsh -l firewall ${NAS_IP} access-template 100 ABILS host $IP any
+if [ w${ACTION} = wAllow ]; then
+  command="/usr/bin/rsh -l firewall ${NAS_IP} access-template 100 ABILS host $IP any"
+  `${command}`;
 else 
-if [ w${ACTION} = 'Deny' ]; then
-  /usr/bin/rsh -l firewall ${NAS_IP} clear access-template 100 ABILS host $IP any
+if [ w${ACTION} = wDeny ]; then
+  command="/usr/bin/rsh -l firewall ${NAS_IP} clear access-template 100 ABILS host $IP any";
+  `${command}`
 fi;
 fi;
 
 #Make log
 if [ w$3 = wdebug ]; then
-  echo "${ACTION} ${IP}" >> /tmp/cisco_${NAS_IP}
+  echo "${ACTION} ${command} " >> /tmp/cisco_${NAS_IP}
 fi
