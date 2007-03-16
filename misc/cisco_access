@@ -36,5 +36,6 @@ fi;
 
 #Make log
 if [ w$3 = wdebug ]; then
-  echo "${ACTION} ${command} " >> /tmp/cisco_${NAS_IP}
+  DATE=`/bin/date "+%Y-%m-%d %H:%M:%S"`
+  echo "${DATE} ${ACTION} ${command} " >> /tmp/cisco_${NAS_IP}
 fi
