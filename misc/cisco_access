@@ -1,6 +1,8 @@
 #!/bin/sh
 # Cisco allow/deny access script
-# Maked by kir (kir@offline.net.ru)
+# Maked by kir (kir@gorsv.ru)
+
+ 
 
 #Server ip address
 NAS_IP=213.24.219.xxx
