@@ -292,13 +292,20 @@ sub defaults {
 sub groups_list {
  my $self = shift;
  my ($attr) = @_;
- my @list = ();
 
  my $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
  my $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+ undef @WHERE_RULES;
+ 
+ if ($attr->{GID}) {
+    push @WHERE_RULES, "g.gid='$attr->{GID}'";
+  }
+
+ my $WHERE = ($#WHERE_RULES > -1) ?  "WHERE " . join(' and ', @WHERE_RULES) : ''; 
  
  $self->query($db, "select g.gid, g.name, g.descr, count(u.uid) FROM groups g
         LEFT JOIN users u ON  (u.gid=g.gid) 
+        $WHERE
         GROUP BY g.gid
         ORDER BY $SORT $DESC");
 
