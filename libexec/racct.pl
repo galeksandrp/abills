@@ -109,7 +109,7 @@ if (! defined(%RAD_REQUEST)) {
    }
 
   if(defined($acct->{errno})) {
-	  log_print('LOG_ERR', "ACCT [$RAD->{USER_NAME}] $acct->{errstr}");
+	  log_print('LOG_ERR', "ACCT [$RAD->{USER_NAME}] $acct->{errstr} ($acct->{sql_errstr})");
    }
 
   #$db->disconnect();
