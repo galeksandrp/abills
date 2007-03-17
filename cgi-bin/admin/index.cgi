@@ -773,9 +773,14 @@ $html->tpl_show(templates('form_user'), $user_info);
 sub form_groups {
 
 if ($FORM{add}) {
-  $users->group_add( { %FORM });
-  if (! $users->{errno}) {
-    $html->message('info', $_ADDED, "$_ADDED [$users->{GID}]");
+  if ($LIST_PARAMS{GID}) {
+    $html->message('err', $_ERROR, "Access Deny");
+   }
+  else {
+    $users->group_add( { %FORM });
+    if (! $users->{errno}) {
+      $html->message('info', $_ADDED, "$_ADDED [$users->{GID}]");
+     }
    }
 }
 elsif($FORM{change}){
