@@ -2412,7 +2412,7 @@ sub snmputils_binding {
   }
 
   if ($Snmputils->{errno} == 7) {
-  	$html->message('err', $_ERROR, "$_EXIST '$FORM{ID}'"); 
+  	$html->message('err', $_ERROR, "$_EXIST '$FORM{BINDING}'"); 
    }
   elsif($Snmputils->{errno}) {
     $html->message('err', $_ERROR, "[$Snmputils->{errno}] $err_strs{$Snmputils->{errno}}"); 

@@ -28,6 +28,13 @@ sub new {
   my $self = { };
   bless($self, $class);
   #$self->{debug}=1;
+  
+  if ($CONF->{DELETE_USER}) {
+    $self->{UID}=$CONF->{DELETE_USER};
+    $self->snmp_binding_del({ UID => $CONF->{DELETE_USER} });
+   }
+
+  
   return $self;
 }
 
@@ -86,7 +93,15 @@ sub snmp_binding_add {
 sub snmp_binding_del {
 	my $self = shift;
 	my ($attr) = @_;
-  $self->query($db, "DELETE FROM snmputils_binding WHERE binding='$attr->{ID}'", 'do');
+  
+  if ($attr->{UID}) {
+  	$WHERE = "uid='$attr->{UID}'";
+   }
+  else {
+  	$WHERE = "binding='$attr->{ID}'";
+   }
+  
+  $self->query($db, "DELETE FROM snmputils_binding WHERE $WHERE", 'do');
 	return $self;
 }
 
