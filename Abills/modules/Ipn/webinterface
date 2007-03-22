@@ -21,8 +21,15 @@ my $sessions = Dv_Sessions->new($db, $admin, \%conf);
 #**********************************************************
 sub ipn_sessions2 {
 
-$LIST_PARAMS{UID}=$FORM{UID};
-$pages_qs.="&UID=$FORM{UID}";
+
+  if (! $user->{UID})  {
+    $LIST_PARAMS{UID}=$FORM{UID};
+   }
+  else {
+  	$LIST_PARAMS{UID}=$user->{UID};
+   }
+
+  $pages_qs.="&UID=$LIST_PARAMS{UID}";
 
  reports({ DATE      => $FORM{DATE}, 
   	       REPORT    => '',
@@ -38,7 +45,7 @@ my %AVG = (MONEY    => 0,
 my @type;
 
 $CHART{SUFFIX}='b';
-
+$Ipn->{debug}=1;
 my $graph_type='';
 #Day reposrt
 if (defined($FORM{DATE})) {
@@ -417,7 +424,7 @@ sub ipn_use_users {
   	        REPORT     => '',
   	        SHOW_HOURS => 'Y',
    	        EX_PARAMS  => { HOURS => "$_HOURS",
-            	             USERS => "$_USERS" } 
+            	              USERS => "$_USERS" } 
   	       });
 
  my %totals = ();

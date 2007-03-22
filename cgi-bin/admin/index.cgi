@@ -1388,18 +1388,19 @@ elsif (defined($FORM{TP_ID})) {
 my $nas = Nas->new($db, \%conf);
 
 
-my $table = $html->table( { width     => '100%',
-                           border     => 1,
-                           title      => ["$_ALLOW", "$_NAME", 'NAS-Identifier', "IP", "$_TYPE", "$_AUTH"],
-                           cols_align => ['center', 'left', 'left', 'right', 'left', 'left'],
-                           qs         => $pages_qs
+my $table = $html->table( { width      => '100%',
+                            caption    => "$_NAS",
+                            border     => 1,
+                            title      => ["$_ALLOW", "$_NAME", 'NAS-Identifier', "IP", "$_TYPE", "$_AUTH"],
+                            cols_align => ['right', 'left', 'left', 'right', 'left', 'left'],
+                            qs         => $pages_qs
                            });
 
 my $list = $nas->list();
 
 foreach my $line (@$list) {
   my $checked = (defined($allow_nas{$line->[0]}) || $allow_nas{all}) ? ' checked ' :  '';    
-  $table->addrow("<input type=checkbox name=ids value=$line->[0] $checked>", 
+  $table->addrow("$line->[0] <input type=checkbox name=ids value=$line->[0] $checked>", 
     $line->[1], 
     $line->[2],  
     $line->[3],  
