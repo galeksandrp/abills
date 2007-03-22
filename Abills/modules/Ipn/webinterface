@@ -45,7 +45,7 @@ my %AVG = (MONEY    => 0,
 my @type;
 
 $CHART{SUFFIX}='b';
-$Ipn->{debug}=1;
+
 my $graph_type='';
 #Day reposrt
 if (defined($FORM{DATE})) {
