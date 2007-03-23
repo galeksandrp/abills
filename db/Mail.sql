@@ -1,12 +1,12 @@
 CREATE TABLE `mail_spamassassin` (
-  `id` int(10) unsigned NOT NULL auto_increment default 0,
+  `prefid` int(10) unsigned NOT NULL auto_increment default 0,
   `username` varchar(128) NOT NULL default '',
   `preference` varchar(64) NOT NULL default '',
   `value` varchar(128) default NULL,
   `comments` varchar(128) NOT NULL default '',
   `create_date` datetime NOT NULL default '0000-00-00 00:00:00',
   `change_date` datetime NOT NULL default '0000-00-00 00:00:00',
-  UNIQUE KEY `id` (`id`),
+  PRIMARY KEY `prefid` (`prefid`),
   KEY `preference` (`preference`),
   KEY `username` (`username`),
   KEY `username_preference_value` (`username`,`preference`,`value`)

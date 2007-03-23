@@ -780,7 +780,7 @@ sub spam_del {
   	$WHERE="username='$attr->{USER_NAME}' and preference='$attr->{PREFERENCE}'";
    }
   else {
-    $WHERE="id='$id'";
+    $WHERE="prefid='$id'";
    }
    
 	$self->query($db, "DELETE FROM mail_spamassassin WHERE $WHERE;", 'do');
@@ -801,7 +801,7 @@ sub spam_change {
 	              VALUE              => 'value',
 	              COMMENTS           => 'comments',
 	              CHANGE_DATE        => 'change_date',
-	              ID                 => 'id'
+	              ID                 => 'prefid'
 	              );
 	
  	$self->changes($admin, { CHANGE_PARAM => 'ID',
@@ -823,7 +823,7 @@ sub spam_info {
 	
 	
   $self->query($db, "SELECT username, preference, value, comments, create_date, change_date
-   FROM mail_spamassassin WHERE id='$attr->{ID}';");
+   FROM mail_spamassassin WHERE prefid='$attr->{ID}';");
 
   if ($self->{TOTAL} < 1) {
      $self->{errno} = 2;
@@ -874,7 +874,7 @@ sub spam_list {
 
  $WHERE = "WHERE " . join(' and ', @WHERE_RULES) if($#WHERE_RULES > -1);
 	
-	$self->query($db, "SELECT username, preference, value, comments, change_date, id
+	$self->query($db, "SELECT username, preference, value, comments, change_date, prefid
         FROM mail_spamassassin
         $WHERE
         ORDER BY $SORT $DESC
