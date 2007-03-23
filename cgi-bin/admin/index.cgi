@@ -252,13 +252,17 @@ if ($FORM{qindex}) {
       my $realfilename = "$prefix/Abills/modules/$module{$index}/lng_$html->{language}.pl";
       if (-f $realfilename) {
         $lang_file =  $realfilename;
-        require $lang_file;
         last;
        }
+      elsif (-f "$prefix/Abills/modules/$module{$index}/lng_english.pl") {
+      	$lang_file = "$prefix/Abills/modules/$module{$index}/lng_english.pl";
+       }
+
      }
 
-    if ($lang_file eq '' && -f "Abills/modules/$module{$index}/lng_english.pl" ) {
-      require "Abills/modules/$module{$index}/lng_english.pl";
+
+    if ($lang_file ne '') {
+      require $lang_file;
      }
 
  	 	require "Abills/modules/$module{$index}/webinterface";
@@ -369,13 +373,15 @@ if ($functions{$index}) {
       my $realfilename = "$prefix/Abills/modules/$module{$index}/lng_$html->{language}.pl";
       if (-f $realfilename) {
         $lang_file =  $realfilename;
-        require $lang_file;
         last;
+       }
+      elsif (-f "$prefix/Abills/modules/$module{$index}/lng_english.pl") {
+      	$lang_file = "$prefix/Abills/modules/$module{$index}/lng_english.pl";
        }
      }
 
-    if ($lang_file eq '' && -f "Abills/modules/$module{$index}/lng_english.pl" ) {
-      require "Abills/modules/$module{$index}/lng_english.pl";
+    if ($lang_file ne '') {
+      require $lang_file;
      }
 
  	 	require "Abills/modules/$module{$index}/webinterface";
