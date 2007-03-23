@@ -396,6 +396,7 @@ CREATE TABLE `mail_boxes` (
   KEY `username_antispam` (`username`,`antispam`)
 )  ;
 
+
 CREATE TABLE `mail_domains` (
   `domain` varchar(255) NOT NULL default '',
   `create_date` datetime NOT NULL default '0000-00-00 00:00:00',

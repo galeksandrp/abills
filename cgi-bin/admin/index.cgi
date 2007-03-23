@@ -1399,8 +1399,12 @@ my $table = $html->table( { width      => '100%',
 my $list = $nas->list();
 
 foreach my $line (@$list) {
-  my $checked = (defined($allow_nas{$line->[0]}) || $allow_nas{all}) ? ' checked ' :  '';    
-  $table->addrow("$line->[0] <input type=checkbox name=ids value=$line->[0] $checked>", 
+
+  $table->addrow(" $line->[0]". $html->form_input('ids', "$line->[0]", 
+                                                       { TYPE          => 'checkbox',
+       	                                                 OUTPUT2RETURN => 1,
+       	                                                 STATE         => (defined($allow_nas{$line->[0]}) || $allow_nas{all}) ? 1 : undef
+       	                                                }), 
     $line->[1], 
     $line->[2],  
     $line->[3],  

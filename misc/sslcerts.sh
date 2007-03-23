@@ -64,7 +64,48 @@ else if [ w$1 = weap ]; then
   if [ ! -f ${CERT_EAP_PATH} ] ; then
     mkdir ${CERT_EAP_PATH};
   fi
-  cd ${CERT_EAP_PATH};
+
+  cd ${CERT_EAP_PATH}
+
+
+  if [ w$2 = wclient ]; then
+  echo "*********************************************************************************"
+  echo "Creating client private key and certificate"
+  echo "When prompted enter the client name in the Common Name field. This is the same"
+  echo " used as the Username in FreeRADIUS"
+  echo "*********************************************************************************"
+  echo
+
+  # Request a new PKCS#10 certificate.
+  # First, newreq.pem will be overwritten with the new certificate request
+  openssl req -new -keyout newreq.pem -out newreq.pem -days ${days} \
+   -passin pass:${password} -passout pass:${password}
+
+
+  # Sign the certificate request. The policy is defined in the openssl.cnf file.
+  # The request generated in the previous step is specified with the -infiles option and
+  # the output is in newcert.pem
+  # The -extensions option is necessary to add the OID for the extended key for client authentication
+  openssl ca -policy policy_anything -out newcert.pem -passin pass:${password} \
+    -key ${password} -extensions xpclient_ext -extfile xpextensions \
+    -infiles newreq.pem
+
+  # Create a PKCS#12 file from the new certificate and its private key found in newreq.pem
+  # and place in file cert-clt.p12
+  openssl pkcs12 -export -in newcert.pem -inkey newreq.pem -out cert-clt.p12 -clcerts \
+    -passin pass:${password} -passout pass:${password}
+
+  # parse the PKCS#12 file just created and produce a PEM format certificate and key in cert-clt.pem
+  openssl pkcs12 -in cert-clt.p12 -out cert-clt.pem \
+   -passin pass:${password} -passout pass:${password}
+
+  # Convert certificate from PEM format to DER format
+  openssl x509 -inform PEM -outform DER -in cert-clt.pem -out cert-clt.der
+
+  exit;
+
+  fi;
+
 
   echo "
 [ xpclient_ext]
@@ -131,41 +172,6 @@ extendedKeyUsage = 1.3.6.1.5.5.7.3.1
 
   # Convert root certificate from PEM format to DER format
   openssl x509 -inform PEM -outform DER -in root.pem -out root.der
-
-  echo "*********************************************************************************"
-  echo "Creating client private key and certificate"
-  echo "When prompted enter the client name in the Common Name field. This is the same"
-  echo " used as the Username in FreeRADIUS"
-  echo "*********************************************************************************"
-  echo
-
-  # Request a new PKCS#10 certificate.
-  # First, newreq.pem will be overwritten with the new certificate request
-  openssl req -new -keyout newreq.pem -out newreq.pem -days ${days} \
-   -passin pass:${password} -passout pass:${password}
-
-
-  # Sign the certificate request. The policy is defined in the openssl.cnf file.
-  # The request generated in the previous step is specified with the -infiles option and
-  # the output is in newcert.pem
-  # The -extensions option is necessary to add the OID for the extended key for client authentication
-  openssl ca -policy policy_anything -out newcert.pem -passin pass:${password} \
-    -key ${password} -extensions xpclient_ext -extfile xpextensions \
-    -infiles newreq.pem
-
-  # Create a PKCS#12 file from the new certificate and its private key found in newreq.pem
-  # and place in file cert-clt.p12
-  openssl pkcs12 -export -in newcert.pem -inkey newreq.pem -out cert-clt.p12 -clcerts \
-    -passin pass:${password} -passout pass:${password}
-
-  # parse the PKCS#12 file just created and produce a PEM format certificate and key in cert-clt.pem
-
-  openssl pkcs12 -in cert-clt.p12 -out cert-clt.pem \
-   -passin pass:${password} -passout pass:${password}
-
-# Convert certificate from PEM format to DER format
-openssl x509 -inform PEM -outform DER -in cert-clt.pem -out cert-clt.der
-
 
 echo "*********************************************************************************"
 echo "Creating server private key and certificate"

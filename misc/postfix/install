@@ -1,4 +1,4 @@
-#main.cf            >> [/usr/local/etc/postfix]/main.cf
+main.cf            >> [/usr/local/etc/postfix]/main.cf
 sql/aliases.cf         > [/usr/local/etc/postfix]/sql/aliases.cf              
 sql/virtual_domains.cf > [/usr/local/etc/postfix]/sql/virtual_domains.cf
 sql/relay_domains.cf   > [/usr/local/etc/postfix]/sql/relay_domains.cf

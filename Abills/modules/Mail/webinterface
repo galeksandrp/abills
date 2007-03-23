@@ -6,6 +6,334 @@ require "Mail.pm";
 Mails->import();
 my $Mail = Mail->new($db, $admin, \%conf);
 
+$Mail->{ACTION}='add';
+$Mail->{LNG_ACTION}=$_ADD;
+
+
+
+#**********************************************************
+#  Global spamassassin configuration
+#**********************************************************
+sub mail_spam_whitelist {
+	mail_spam_lists({ WHITE => 1 });
+	
+}
+
+#**********************************************************
+#  Global spamassassin configuration
+#**********************************************************
+sub mail_spam_blacklist {
+	mail_spam_lists({ BLACK => 1 });
+	
+}
+
+
+#**********************************************************
+#  Global spamassassin configuration
+#**********************************************************
+sub mail_spam_lists {
+	my ($attr) = @_;
+
+	my $CAPTION =  "$_BLACK_LIST";
+	
+	if ($attr->{WHITE}) {
+	  $LIST_PARAMS{PREFERENCE}='whitelist_from';
+	  $CAPTION = $_WHITE_LIST;
+   }
+	else {
+    $LIST_PARAMS{PREFERENCE}='blacklist_from';		
+	 }
+	
+	
+  if ($FORM{add}) {
+    $Mail->spam_add({ USER_NAME  => '$GLOBAL',
+    	                PREFERENCE => $LIST_PARAMS{PREFERENCE},
+    	                VALUE      => "$FORM{VALUE}" 
+    	              });
+    if (! $Mail->{errno}) {
+      $html->message('info', $_INFO, "$_ADDED");	
+     }
+   }
+	elsif($FORM{change}) {
+    $Mail->spam_change({ %FORM   });
+
+    if (! $Mail->{errno}) {
+      $html->message('info', $_INFO, "$_CHANGED");	
+     }
+   }
+	elsif($FORM{chg}) {
+    $Mail->spam_info({ ID => $FORM{chg}, %FORM });
+    if (! $Mail->{errno}) {
+      $html->message('info', $_INFO, "$_CHANGING");	
+     }
+    $Mail->{ACTION}='change';
+	  $Mail->{LNG_ACTION}=$_CHANGE;
+   }
+	elsif($FORM{del}) {
+    $Mail->spam_del($FORM{del});
+
+    if (! $Mail->{errno}) {
+      $html->message('info', $_INFO, "$_CHANGED");	
+     }
+	 }	
+	
+	
+ print $html->form_main({ CONTENT => "$_ADDRESS: ". $html->form_input('VALUE', "$Mail->{VALUE}"),
+	                        HIDDEN  => { index => $index,
+                                        ID    => "$FORM{chg}"
+                                      },
+	                        SUBMIT  => { $Mail->{ACTION}  => $Mail->{LNG_ACTION}
+	                       	            } 
+	                      });
+
+
+  my $list = $Mail->spam_list({ %LIST_PARAMS });
+  my $table = $html->table( { width      => '100%',
+                              caption    => "$CAPTION",
+                              border     => 1,
+                              title      => [$_USER, "$_OPTIONS", "$_VALUE", "$_COMMENTS", $_CHANGE,  '-', '-'],
+                              cols_align => ['left', 'left', 'left', 'left', 'left',  'right', 'center', 'center'],
+                              qs         => $pages_qs,
+                              pages      => $Mail->{TOTAL}
+                          } );
+
+  foreach my $line (@$list) {
+    $delete = $html->button($_DEL, "index=$index&del=$line->[5]", { MESSAGE => "$_DEL \"$line->[0]\"?" }); 
+
+    $table->addrow($line->[0], 
+     "$line->[1]", 
+     "$line->[2]",
+     "$line->[3]", 
+     "$line->[4]", 
+     $html->button($_CHANGE, "index=$index&chg=$line->[5]"),
+     $delete);
+   }
+  print $table->show();
+
+
+
+
+  $table = $html->table( { width      => '100%',
+                           cols_align => ['right', 'right'],
+                           rows       => [ [ "$_TOTAL:", "<b>$Mail->{TOTAL}</b>" ] ]
+                       } );
+  print $table->show();
+	
+}
+
+
+#**********************************************************
+#  Global spamassassin configuration
+#**********************************************************
+sub mail_spamassassin_conf {
+
+
+}
+
+#**********************************************************
+#  Global spamassassin configuration
+#**********************************************************
+sub mail_spamassassin {
+  
+  
+  
+  my %SpamAssasin_defaults = ( 
+'SKIP_RBL_CHECKS'   =>	 1,
+'RBL_TIMEOUT'	      => 30,
+'DNS_AVAILABLE'	    => 'no',
+'BAYES_AUTO_LEARN_THRESHOLD_NONSPAM'	=> 0.1,
+'BAYES_AUTO_LEARN_THRESHOLD_SPAM'	    => 12,
+'USE_AUTO_WHITELIST'	                => 1,
+'AUTO_WHITELIST_FACTOR'	              => 0.5,
+'REQUIRED_SCORE'	                    => 5,
+'REWRITE_HEADER'                      => 'Subject	*** SPAM: _HITS_ ***',
+'REPORT_SAFE'	                        => 1,
+'USER_IN_WHITELIST'	                  => -50,
+'USER_IN_BLACKLIST'	                  => 50,
+'BAYES_AUTO_LEARN'	                  => 1,
+'OK_LOCALES'	                        => 'all',
+'USE_BAYES'			                      => 1,
+'USE_RAZOR2'	                        => 1,
+'USE_DCC'	                            => 1,
+'USE_PYZOR'                           => 1
+);
+
+  my %SpamAssasin_params = ( 
+   SKIP_RBL_CHECKS   => 'skip_rbl_checks',
+   RBL_TIMEOUT       => 'rbl_timeout',
+   DNS_AVAILABLE     => 'dns_available',
+   BAYES_AUTO_LEARN_THRESHOLD_NONSPAM => 'bayes_auto_learn_threshold_nonspam',
+   BAYES_AUTO_LEARN_THRESHOLD_SPAM    => 'bayes_auto_learn_threshold_spam',
+   USE_AUTO_WHITELIST                 => 'use_auto_whitelist',
+   AUTO_WHITELIST_FACTOR              => 'auto_whitelist_factor',
+   REQUIRED_SCORE                     => 'required_score',
+   REWRITE_HEADER                     => 'rewrite_header Subject',
+   REPORT_SAFE                        => 'report_safe',
+   USER_IN_WHITELIST                  => 'score USER_IN_WHITELIST',
+   USER_IN_BLACKLIST                  => 'score USER_IN_BLACKLIST',
+   BAYES_AUTO_LEARN                   => 'bayes_auto_learn',
+   OK_LOCALES                         => 'ok_locales',
+   USE_BAYES                          => 'use_bayes',
+   USE_RAZOR2                         => 'use_razor2',
+   USE_DCC	                          => 'use_dcc',
+   USE_PYZOR                          => 'use_pyzor'
+);
+
+
+  $Mail->{ACTION}='change';
+  $Mail->{LNG_ACTION}=$_CHANGE;
+
+
+  if ($FORM{add}) {
+    $Mail->spam_add({ %FORM });
+    if (! $Mail->{errno}) {
+      $html->message('info', $_INFO, "$_ADDED");	
+     }
+   }
+	elsif($FORM{change}) {
+    while(my($key, $value) = each %SpamAssasin_params) {
+       $Mail->spam_replace({ USER_NAME  => '$GLOBAL',
+       	                     PREFERENCE => $value,  
+                             VALUE      => $FORM{$key}
+                           });
+      }                 
+
+    if (! $Mail->{errno}) {
+      $html->message('info', $_INFO, "$_CHANGED");	
+     }
+   }
+	elsif($FORM{chg}) {
+    $Mail->spam_info({ ID => $FORM{chg}, %FORM });
+    if (! $Mail->{errno}) {
+      $html->message('info', $_INFO, "$_CHANGING");	
+     }
+#    $Mail->{ACTION}='set';
+#	  $Mail->{LNG_ACTION}=$_CHANGE;
+   }
+	elsif($FORM{del}) {
+    $Mail->spam_del($FORM{del});
+
+    if (! $Mail->{errno}) {
+      $html->message('info', $_INFO, "$_CHANGED");	
+     }
+	 }
+
+
+# form_search({ SEARCH_FORM => $html->tpl_show(_include('mail_spam_search', 'Mail'), 
+#  	                                  { %$Mail, %FORM }, 
+#  	                                  { notprint => 1 })  
+#	            });
+
+
+  $LIST_PARAMS{USER_NAME}='$Global';
+  my $list = $Mail->spam_list({ %LIST_PARAMS });
+#  my $table = $html->table( { width      => '100%',
+#                              caption    => 'Spam filter',
+#                              border     => 1,
+#                              title      => [$_USER, "$_OPTIONS", "$_VALUE", "$_COMMENTS", $_CHANGE,  '-', '-'],
+#                              cols_align => ['left', 'left', 'left', 'left', 'left',  'right', 'center', 'center'],
+#                              qs         => $pages_qs,
+#                              pages      => $Mail->{TOTAL}
+#                          } );
+
+  my %db_hash = "";
+  my %SpamAssasin_params_rev = reverse %SpamAssasin_params;
+  foreach my $line (@$list) {
+    my $ID = $SpamAssasin_params_rev{"$line->[1]"};
+    $db_hash{$ID}=$line->[2];
+
+    #$delete = $html->button($_DEL, "index=$index&del=$line->[5]", { MESSAGE => "$_DEL \"$line->[0]\"?" }); 
+    #$table->addrow("$line->[0]", 
+    # "$line->[1]", 
+    # "$line->[2]",
+    # "$line->[3]", 
+    # "$line->[4]", 
+    # $html->button($_CHANGE, "index=$index&chg=$line->[5]"),
+    # $delete);
+   }
+  #print $table->show();
+
+
+
+#  $table = $html->table( { width      => '100%',
+#                           cols_align => ['right', 'right'],
+#                           rows       => [ [ "$_TOTAL:", "<b>$Mail->{TOTAL}</b>" ] ]
+#                       } );
+#  print $table->show();
+
+  #rating 
+  my @ten_arr = ();
+  for($i=0.1; $i<=10; $i+=0.1) {
+  	 push @ten_arr, sprintf("%.1f", $i);
+   }
+  
+
+  $db_hash{DISABLE}=' checked' if($db_hash{DISABLE} == 1);
+  $db_hash{SKIP_RBL_CHECKS}=' checked' if($db_hash{SKIP_RBL_CHECKS} == 1);
+  $db_hash{USE_AUTO_WHITELIST}=' checked' if($db_hash{USE_AUTO_WHITELIST} == 1);
+  $db_hash{BAYES_AUTO_LEARN}=' checked' if($db_hash{BAYES_AUTO_LEARN} == 1);
+
+  $db_hash{USE_BAYES}=' checked' if($db_hash{USE_BAYES} == 1);
+  $db_hash{USE_RAZOR2}=' checked' if($db_hash{USE_RAZOR2} == 1);
+  $db_hash{USE_DCC}=' checked' if($db_hash{USE_DCC} == 1);
+  $db_hash{USE_PYZOR}=' checked' if($db_hash{USE_PYZOR} == 1);
+
+
+  $Mail->{REPORT_SAFE_SEL} = $html->form_select('REPORT_SAFE', 
+                                { 
+ 	                                SELECTED     => $db_hash{REPORT_SAFE},
+ 	                                SEL_HASH     => { 
+ 	                                	  1 => 'As an attachment',
+                                      2 => 'Text/Plain',
+                                      0 => 'Do not modify'
+ 	                                	 },
+ 	                                NO_ID        => 1
+ 	                               });
+     
+  $Mail->{REQUIRED_SCORE_SEL} = $html->form_select('REQUIRED_SCORE', 
+                                { 
+ 	                                SELECTED     => $db_hash{REQUIRED_SCORE},
+ 	                                SEL_ARRAY    => \@ten_arr,
+ 	                                NO_ID        => 1
+ 	                               });
+  
+  $Mail->{BAYES_AUTO_LEARN_THRESHOLD_NONSPAM_SEL} = $html->form_select('BAYES_AUTO_LEARN_THRESHOLD_NONSPAM', 
+                                { 
+ 	                                SELECTED     => $db_hash{BAYES_AUTO_LEARN_THRESHOLD_NONSPAM},
+ 	                                SEL_ARRAY    => \@ten_arr,
+ 	                                NO_ID        => 1
+ 	                               });
+  
+  
+  for($i=$ten_arr[$#ten_arr]; $i<=30; $i+=0.1) {
+  	 push @ten_arr, sprintf("%.1f", $i);
+   }
+  
+  $Mail->{BAYES_AUTO_LEARN_THRESHOLD_SPAM_SEL} = $html->form_select('BAYES_AUTO_LEARN_THRESHOLD_SPAM', 
+                                { 
+ 	                                SELECTED     => $db_hash{BAYES_AUTO_LEARN_THRESHOLD_SPAM},
+ 	                                SEL_ARRAY    => \@ten_arr,
+ 	                                NO_ID        => 1
+ 	                               });
+  @ten_arr = ();
+  for($i=0.1; $i<=1.0; $i+=0.1) {
+  	 push @ten_arr, sprintf("%.1f", $i);
+   }
+ 	                               
+  $Mail->{AUTO_WHITELIST_FACTOR_SEL} = $html->form_select('AUTO_WHITELIST_FACTOR', 
+                                { 
+ 	                                SELECTED     => $db_hash{BAYES_AUTO_LEARN_THRESHOLD_NONSPAM},
+ 	                                SEL_ARRAY    => \@ten_arr,
+ 	                                NO_ID        => 1
+ 	                               }); 	                               
+  
+  
+  $html->tpl_show(_include('mail_spam', 'Mail'), { %$Mail, %db_hash });
+
+
+
+}
+
 
 #**********************************************************
 #  mail_users_list
@@ -342,9 +670,6 @@ sub mail_aliases {
 #**********************************************************
 sub mail_transport {
   
-  $Mail->{ACTION}='add';
-  $Mail->{LNG_ACTION}=$_ADD;
-
   if ($FORM{add}) {
     $Mail->transport_add({ %FORM });
     if (! $Mail->{errno}) {
