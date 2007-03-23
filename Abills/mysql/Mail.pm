@@ -850,7 +850,9 @@ sub spam_list {
 	my $self = shift;
 	my ($attr) = @_;
 	
- undef @WHERE_RULES; 
+ @WHERE_RULES = (); 
+ $WHERE = '';
+ 
  
  if ($attr->{USER_NAME}) {
     $attr->{USER_NAME} =~ s/\*/\%/ig;

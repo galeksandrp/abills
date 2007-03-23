@@ -127,7 +127,6 @@ sub mail_spam_lists {
 #**********************************************************
 sub mail_spamassassin_conf {
 
- 
   if ($FORM{add}) {
     $Mail->spam_add({ %FORM });
     if (! $Mail->{errno}) {
@@ -162,6 +161,7 @@ sub mail_spamassassin_conf {
   	                                  { %$Mail, %FORM }, 
   	                                  { notprint => 1 })  
 	            });
+
 
 
  my $list = $Mail->spam_list({ %LIST_PARAMS });
@@ -231,7 +231,7 @@ sub mail_spamassassin {
   my %SpamAssasin_params = ( 
    SKIP_RBL_CHECKS   => 'skip_rbl_checks',
    RBL_TIMEOUT       => 'rbl_timeout',
-   DNS_AVAILABLE     => 'dns_available',
+#   DNS_AVAILABLE     => 'dns_available',
    BAYES_AUTO_LEARN_THRESHOLD_NONSPAM => 'bayes_auto_learn_threshold_nonspam',
    BAYES_AUTO_LEARN_THRESHOLD_SPAM    => 'bayes_auto_learn_threshold_spam',
    USE_AUTO_WHITELIST                 => 'use_auto_whitelist',
