@@ -352,7 +352,6 @@ sub traffic_agregate_nets {
 	  	        print " $zid ". int2ip($DATA->{SRC_IP}) .":$DATA->{SRC_PORT} -> ". int2ip($DATA->{DST_IP}) .":$DATA->{DST_PORT}  $DATA->{SIZE} / $zones{$zid}{PriceOut}\n" if ($self->{debug});;
 		          last;
 		         }
-
 	         }
          
          }
@@ -474,10 +473,14 @@ sub get_zone {
    @{$intervals{$tariff}{ZONEIDS}}=@zoneids;
    %{$intervals{$tariff}{ZONES}}=%zones;
 
+   $self->{ZONES_IDS}=$intervals{$tariff}{ZONEIDS};
+   $self->{ZONES}=$intervals{$tariff}{ZONES};
+
 print " Tariff Interval: $tariff\n".
    " Zone Ids:". @{$intervals{$tariff}{ZONEIDS}}."\n".
    " Zones:". %{$intervals{$tariff}{ZONES}}."\n" if ($self->{debug}); 
 
+  return $self;
 }
 
 

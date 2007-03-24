@@ -1976,6 +1976,184 @@ sub ipn_use_allmonthes  {
 
 }
 
+
+sub ipn_getnet {
+
+my $ip    =  $FORM{IP}   || '0.0.0.0';
+my $port  =  $FORM{PORT} || '0'; 
+my $time  =  $FROM{TIME} || $TIME;
+my $date  =  $FROM{DATE} || $DATE;
+	
+	
+my $table = $html->table( { width       => '400',
+                            border      => 1,
+                            rows        => [['IP:',     $html->form_input('IP', "$ip")     ],
+                                            ["$_PORT:", $html->form_input('PORT', "$port") ],
+                                            ["$_DATE:", $html->form_input('DATE', "$date") ],
+                                            ["$_TIME:", $html->form_input('DATE', "$time") ]
+                                           ]
+                         } );
+
+	
+	 
+	print $html->form_main({ CONTENT => $table->show(),
+	                         HIDDEN  => { index => $index,
+                                        ID    => "$FORM{chg}",
+                                        UID   => "$FORM{UID}"
+                                      },
+	                         SUBMIT  => { show  => $_SHOW
+	                       	            } 
+	                       });
+	
+	
+	my $Dv = Dv->new($db, $admin, \%conf);
+	$Dv->info($FORM{UID});
+	
+	
+
+	require Billing;
+  Billing->import();
+  my $Billing = Billing->new($db, \%conf);
+
+  my ($TIME_INTERVALS,
+      $INTERVAL_TIME_TARIF,
+      $INTERVAL_TRAF_TARIF) = $Billing->time_intervals($Dv->{TP_ID});
+
+
+  my ($remaining_time, $ret_attr) = $Billing->remaining_time(0, {
+          TIME_INTERVALS      => $TIME_INTERVALS,
+          INTERVAL_TIME_TARIF => $INTERVAL_TIME_TARIF,
+          INTERVAL_TRAF_TARIF => $INTERVAL_TRAF_TARIF,
+          #SESSION_START       => $user->{SESSION_START},
+          #DAY_BEGIN           => $user->{DAY_BEGIN},
+          #DAY_OF_WEEK         => $user->{DAY_OF_WEEK},
+          #DAY_OF_YEAR         => $user->{DAY_OF_YEAR},
+          REDUCTION           => $user->{REDUCTION},
+          POSTPAID            => 1 
+         });
+
+       #$tp_interval{$TP_ID} = (defined($ret_attr->{TT}) && $ret_attr->{TT} > 0) ? $ret_attr->{TT} :  0;
+       
+  my $TP_INTERVAL = $tp_interval{$TP_ID} = ($ret_attr->{FIRST_INTERVAL}) ? $ret_attr->{FIRST_INTERVAL} :  0;
+
+	
+	print "TP: $Dv->{TP_ID} // Interval: $TP_INTERVAL // TIME_INTERVALS: $TIME_INTERVALS,
+      $INTERVAL_TIME_TARIF,
+      $INTERVAL_TRAF_TARIF<br>";
+	
+	
+	$Ipn->get_zone({ TP_INTERVAL => $TP_INTERVAL });
+
+
+  $table = $html->table( { width       => '100%',
+                            caption     => "$_TRAFIC_TARIFS",
+                            border      => 1,
+                            title_plain => ["ID", "IP", "$_PREPAID", "$_IN", "$_OUT",  '-' ],
+                            cols_align  => ['left', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'center'],
+                            qs          => $pages_qs,
+                       } );
+
+	my $zone = -1;
+	foreach my $zone_id (@{ $Ipn->{ZONES_IDS} }) {
+	  if(ip_in_zone(ip2int($ip), $port, $zone_id, $Ipn->{ZONES})) {
+		  $zone = $zone_id;
+      last;
+	   };
+	 }
+
+	foreach my $line ( @{ $Ipn->{ZONES_IDS} }) {
+		$last_byte = 0;
+		my $networks = '';
+		foreach my $address ( @{ $Ipn->{ZONES}{$line}{A} } ){
+			my $adr_hash = \%{ $address };
+
+      my $a_ip  = $$adr_hash{'IP'}; 
+      my $a_msk = $$adr_hash{'Mask'}; 
+      my $a_neg = $$adr_hash{'Neg'}; 
+      my $a_ports_ref = \@{$$adr_hash{'Ports'}};
+
+			$networks .= int2ip($a_ip)."/". int2ip($a_msk). ", $a_neg<br>";
+	   }
+
+
+    $table->{rowcolor} = ($zone == $line) ? $_COLORS[0] : undef;
+    $table->addrow($line, 
+      $networks,
+      $Ipn->{ZONES}{$line}{PREPAID_TSUM},
+      $Ipn->{ZONES}{$line}{PriceIn},
+      $Ipn->{ZONES}{$line}{PriceOut},
+      $last_byte);
+	}
+	
+	print $table->show();
+	
+}
+
+
+
+#**********************************************************
+# определяет принадлежность адреса зоне, зоны заданы СУПЕР-ПУПЕР-хэшем %zones
+#**********************************************************
+sub ip_in_zone($$$) {
+    my $self;
+    my ($ip_num, 
+        $port, 
+        $zoneid,
+        $zone_data) = @_;
+    
+    # изначально считаем, что адрес в зону не попадает
+    my $res = 0;
+    # debug
+    my %zones = %$zone_data;
+
+    if ($self->{debug}) { print "--- CALL ip_in_zone($ip_num, $port, $zoneid) -> \n"; }
+
+    # идем по списку адресов зоны
+    for (my $i=0; $i<=$#{$zones{$zoneid}{A}}; $i++) {
+	     
+	     my $adr_hash = \%{ $zones{$zoneid}{A}[$i] };
+       
+       my $a_ip  = $$adr_hash{'IP'}; 
+       my $a_msk = $$adr_hash{'Mask'}; 
+       my $a_neg = $$adr_hash{'Neg'}; 
+       my $a_ports_ref = \@{$$adr_hash{'Ports'}};
+       
+      
+       # если адрес попадает в подсеть
+       if ( (( $a_ip & $a_msk) == ($ip_num & $a_msk)) && # адрес совпадает
+              (is_exist($a_ports_ref, $port)) ) {       # И порт совпадает
+
+          #print ">>". int2ip($a_ip). " & $a_msk / ". int2ip($ip_num) ." $zoneid / $res\n";
+	        if ($a_neg) { # если установлен бит выбрасывания адреса
+		        $res = 0; # то выбрасываем найденный адрес из зоны
+	         } 
+	        else {
+		        $res = 1;
+            print ">>". int2ip($a_ip). " & ". int2ip($a_msk) ."/ ". int2ip($ip_num) ." $zoneid / $res<br>\n";
+		        next; #next
+	         }
+	      }
+    }
+    
+    #if ($self->{debug}) { print "IP is " . ($res ? "" : "not ") . "in zone $zoneid\n";  }
+    return $res;									  												      
+}
+
+
+sub is_exist($$) {
+    (my $arrayref, my $elem) = @_;
+    # если список пуст, считаем, что элемент в него попадает
+    if ($#{@$arrayref} == -1) { return 1; }
+    
+    foreach my $e (@$arrayref) {
+	    if ($e eq $elem) { return 1; }
+     }
+    
+    return 0;
+}
+
+
+
 1
 
 
