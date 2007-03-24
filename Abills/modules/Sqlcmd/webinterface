@@ -179,7 +179,7 @@ sub sqlcmd_tables {
 	#SHOW TABLE STATUS FROM abills;
   #$table{size} = Index_length + Data_length
   
-  my $list = $Sqlcmd->info({ TYPE => 'showtables', %LIST_PARAMS });
+  my $list = $Sqlcmd->info({ TYPE => 'showtables', %LIST_PARAMS, %FORM });
 
   if ($Sqlcmd->{errno}) {
     $html->message('err', $_ERROR, "[$Sqlcmd->{errno}] $err_strs{$Sqlcmd->{errno}}");	
