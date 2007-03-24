@@ -2072,7 +2072,7 @@ my $table = $html->table( { width       => '400',
       my $a_neg = $$adr_hash{'Neg'}; 
       my $a_ports_ref = \@{$$adr_hash{'Ports'}};
 
-			$networks .= int2ip($a_ip)."/". int2ip($a_msk). ", $a_neg<br>";
+			$networks .= int2ip($a_ip)."/". int2ip($a_msk).'<br>'; # ", $a_neg<br>";
 	   }
 
 
