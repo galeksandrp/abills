@@ -354,7 +354,10 @@ my $dms = $DMS_vals{SELECT} + $DMS_vals{INSERT} + $DMS_vals{REPLACE} + $DMS_vals
                            } );
 
 
- $table->addrow("MySQL: ".$vars->{'version'}, '', "UPTIME: ". sec2time($stats->{'Uptime'}, {str => 1}),'',  scalar localtime);
+ $table->addrow("MySQL: ".$vars->{'version'}.
+                "<br>version_comment:     $vars->{'version_comment'}". 
+                "<br>version_compile_os:  $vars->{'version_compile_os'}",
+                 '', "UPTIME: ". sec2time($stats->{'Uptime'}, {str => 1}),'',  scalar localtime);
  
  $table->{rowcolor}=$_COLORS[0];
  $table->{extra}="colspan='7'";
@@ -374,7 +377,9 @@ my $dms = $DMS_vals{SELECT} + $DMS_vals{INSERT} + $DMS_vals{REPLACE} + $DMS_vals
  undef($table->{extra});
  undef($table->{rowcolor});
 
- $table->addrow('Total', make_short($questions), t($questions, $stats->{'Uptime'}). '/s', '', '') ;
+ $table->addrow('Total', make_short($questions), t($questions, $stats->{'Uptime'}). '/s', 
+   t($questions, { PERIOD => 'min' }). '/min', 
+   t($questions, { PERIOD => 'hour' }). '/h' ) ;
  # Distribution of Total Questions invoked by -dtq or -all
 
  my %DTQ=();
@@ -512,7 +517,18 @@ $table->addrow('Opened', make_short($stats{'Opened_tables'}), t($stats{'Opened_t
  undef($table->{rowcolor});
 
 $table->addrow('Max used', $stats{'Max_used_connections'}, 'of '.  $vars{'max_connections'}, '%Max:',  perc($stats{'Max_used_connections'}, $vars{'max_connections'}));
-$table->addrow('Total', make_short($stats{'Connections'}), t($stats{'Connections'}).'/s', '', '');
+$table->addrow("$_TOTAL", make_short($stats{'Connections'}), t($stats{'Connections'}).'/s', 
+  t($stats{'Connections'}, { PERIOD => 'hour' }).'/h', '');
+#Aborted
+ $table->{rowcolor}=$_COLORS[0];
+ $table->{extra}="colspan='6'";
+ $table->addrow("Aborted");
+ undef($table->{extra});
+ undef($table->{rowcolor});
+
+$table->addrow('Clients', make_short($stats{'Aborted_clients'}), t($stats{'Aborted_clients'}).'/s', '', '');
+$table->addrow('Connects', make_short($stats{'Aborted_connects'}), t($stats{'Aborted_connects'}).'/s', '', '');
+
 
  $table->{rowcolor}=$_COLORS[0];
  $table->{extra}="colspan='6'";
@@ -542,22 +558,19 @@ $table->addrow('Slow', $stats{'Slow_launch_threads'}, t($stats{'Slow_launch_thre
 
  $table->{rowcolor}=$_COLORS[0];
  $table->{extra}="colspan='6'";
- $table->addrow("Aborted");
- undef($table->{extra});
- undef($table->{rowcolor});
-
-$table->addrow('Clients', make_short($stats{'Aborted_clients'}), t($stats{'Aborted_clients'}).'/s', '', '');
-$table->addrow('Connects', make_short($stats{'Aborted_connects'}), t($stats{'Aborted_connects'}).'/s', '', '');
-
- $table->{rowcolor}=$_COLORS[0];
- $table->{extra}="colspan='6'";
  $table->addrow("Bytes");
  undef($table->{extra});
  undef($table->{rowcolor});
 
-$table->addrow('Sent', make_short($stats{'Bytes_sent'}), make_short(t($stats{'Bytes_sent'})).'/s', '', '');
-$table->addrow('Received', make_short($stats{'Bytes_received'}), make_short(t($stats{'Bytes_received'})).'/s', '', '');
-
+$table->addrow($_SEND,  make_short($stats{'Bytes_sent'}), make_short(t($stats{'Bytes_sent'})).'/s', 
+  make_short(t($stats{'Bytes_sent'}, { PERIOD => 'min' } )).'/min',
+  make_short(t($stats{'Bytes_sent'}, { PERIOD => 'hour' } )).'/h');
+$table->addrow($_RECV,  make_short($stats{'Bytes_received'}), make_short(t($stats{'Bytes_received'})).'/s', 
+  make_short(t($stats{'Bytes_received'}, { PERIOD => 'min' } )).'/m',
+  make_short(t($stats{'Bytes_received'}, { PERIOD => 'hour' } )).'/h');
+$table->addrow($_TOTAL, make_short($stats{'Bytes_received'} + $stats{'Bytes_sent'}), make_short(t($stats{'Bytes_received'}+$stats{'Bytes_sent'})).'/s', 
+ make_short(t($stats{'Bytes_received'}+$stats{'Bytes_sent'}, { PERIOD => 'min' } )).'/m',
+ make_short(t($stats{'Bytes_received'}+$stats{'Bytes_sent'}, { PERIOD => 'hour' } )).'/h');
 
 
  print $table->show();
@@ -618,11 +631,29 @@ sub perc  {
 
 
 #**********************************************************
+# Make period statistic
 #
 #**********************************************************
 sub t  () {
-   my ($val) = @_;
-   return sprintf "%.2f", $val / $stats{'Uptime'};
+   my ($val, $attr) = @_;
+   my $result = '';
+   
+   my $second = $stats{'Uptime'};
+   
+   if ($attr->{PERIOD}) {
+     if($attr->{PERIOD} eq 'hour') {
+    	 $result = sprintf("%.2f", $val / ($second / 3600) );
+      }
+     elsif($attr->{PERIOD} eq 'min') {
+    	 $result = sprintf("%.2f", $val / ($second / 60) );
+      }
+    }
+   else {
+   	 $result = sprintf("%.2f", $val / $second);
+   	}
+   
+   
+   return $result;
 }
 
 1
