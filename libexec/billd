@@ -257,30 +257,39 @@ sub check_speed {
 	
 	my $result = `$IPFW show; $IPFW pipe show`;
 	my @rules = split(/\n/, $result);
+	# key1 interface; key2 rule number; value speed
 	my %rule_speed = ();
 	my %interfaces = ();
 	my %speeds_rotations = ('Kbit' => 1,
 	                        'Mbit' => 1000);
 	
+	#Parce all ipfw rules
 	foreach my $line (@rules) {
+     #Parce ipfw pipe rules
      if ($line =~ /(\d+):\s+(\S+) (\w+)/) {
        my $speed = $2 * $speeds_rotations{$3};
        if (defined($interfaces{$1})) {
          $rule_speed{$interfaces{$1}}{int($1)} = "$speed";
         }
      	}
+	   # parce ipfw show
 	   elsif ($line =~ /(\d+).+tun(\d+)/){
 	     $interfaces{$1}=$2;
 	    }
 	 }
 
-  while(my($iface, $rules)=each %rule_speed) {
-  	 print "$iface\n" if ($debug == 1);
-  	 foreach my $line ( sort keys %$rules ) {
-  	 	  print " $line -> $rules->{$line}\n" if ($debug == 2);
-  	  }
-   }
 
+  #debug 
+  if ($debug > 0) {
+    while(my($iface, $rules)=each %rule_speed) {
+  	  print "$iface\n" if ($debug > 1);
+  	  
+  	  foreach my $line ( sort keys %$rules ) {
+  	 	  # ID -> Speed
+  	 	  print " $line -> $rules->{$line}\n" if ($debug == 2);
+  	   }
+     }
+   }
 
 	$sessions->online( { %LIST_PARAMS, NAS_ID => $ARGV->{NAS_ID}, FIELDS => [0,2,11,13]   } );	
 	my $online = $sessions->{nas_sorted};
@@ -298,10 +307,13 @@ sub check_speed {
     my $l = $online->{$nas_row->[0]};
     foreach my $line (@$l) {
                            #IFACE : TP : SPEED  :IP
+       print"$line->[0] IF:$line->[1] TP:$line->[2] SPEED:$line->[3] IP:$line->[7]\n" if ($debug > 1);
        $IFACES{$line->[0]}="$line->[1]:$line->[2]:$line->[3]:$line->[7]";
        $TP_HASH{$line->[2]}=1;
      }
   }
+
+
 
   require Billing;
   Billing->import();

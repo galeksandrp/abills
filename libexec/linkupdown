@@ -381,3 +381,16 @@ foreach my $line (@FW_ACTIONS) {
 }
 
 
+#**********************************************************
+# Manage mikrotik bandwidth
+# 3 type of actions
+#  up
+#  down 
+#  check
+#**********************************************************
+sub mikrotik {
+	my ($attr)=@_;
+	
+	
+	
+}
