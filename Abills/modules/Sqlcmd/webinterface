@@ -252,6 +252,9 @@ sub sqlcmd_tables {
     	if ($l eq 'Size') {
     		$l = int2byte($line->{'Index_length'} + $line->{'Data_length'});
     	 }
+    	elsif($l eq 'Name') {
+    		$l = $html->form_input('TABLES', "$line->{$l}", { TYPE => 'checkbox' }).' '.$line->{$l} ;
+    	 }
     	else {
     		$l = $line->{$l};
     	 }
@@ -268,16 +271,16 @@ sub sqlcmd_tables {
     $tables_total++;
     $tables_size+=$line->{'Index_length'} + $line->{'Data_length'};
    }
-  print $table->show();
+  #print $table->show();
 
-  $table = $html->table( { width       => '100%',
+  my $table2 = $html->table( { width       => '100%',
                            cols_align  => ['right', 'right', 'right', 'right'],
                            rows        => [ [ "$_TOTAL:", "$tables_total", "$_SIZE:", int2byte("$tables_size") ] ]
                        } );
-  print $table->show();
+  #print $table2->show();
   
   
-my $table2 = $html->table({ width => '100%' });
+my $table3 = $html->table({ width => '100%' });
 my @arr = ();
 my $i=0;
 push @{ $Sqlcmd->{FIELD_NAMES} }, 'Size';
@@ -285,7 +288,7 @@ foreach my $name ( @{ $Sqlcmd->{FIELD_NAMES} } ) {
   push @arr, $html->form_input('fields', "$name", { TYPE => 'checkbox', STATE => (in_array($name, \@ACTIVE_FIELDS)) ? 1 : undef  }). " <b>$name</b>";
 
   if ($#arr > 2) {
-    $table2->addrow(@arr);
+    $table3->addrow(@arr);
     @arr = ();
    }
   $i++;
@@ -293,10 +296,26 @@ foreach my $name ( @{ $Sqlcmd->{FIELD_NAMES} } ) {
 
 
 if ($#arr > -1 ) {
-  $table2->addrow(@arr);
+  $table3->addrow(@arr);
  }
 
-print $html->form_main({ CONTENT => $table2->show(),
+
+$table3->addtd(  $table->td("$_ACTION:" .
+                 $html->form_select('ACTION', 
+                                    { 
+ 	                                   SELECTED    => $FORM{ACTION},
+ 	                                   SEL_ARRAY   => [ 'ANALYZE',  'BACKUP', 'CHECK', 'CHECKSUM', 'OPTIMIZE', 'REPAIR', 'RESTORE' ],
+                                     NO_ID       => 1,
+                                     SEL_OPTIONS => {'', ''}
+ 	                                  }), { colspan => 2} ),
+ 	               $table->td("$_VALUE:". $html->form_input('VALUE', "$FORM{VALUE}"), { colspan => 2 })
+               );
+
+
+
+print $html->form_main({ CONTENT => $table->show().
+	                                  $table2->show(). 
+	                                  $table3->show(),
                               HIDDEN  => { index =>  "$index" },
                               METHOD  => 'GET',
                               SUBMIT  => { $_SHOW    => "$_SHOW" }

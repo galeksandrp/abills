@@ -57,6 +57,7 @@ sub sql_connect {
 sub authorize {
   $begin_time = check_time();
   convert_radpairs();
+
   sql_connect();
  
   if ( get_nas_info(\%RAD_REQUEST) == 0 ) {
@@ -79,6 +80,7 @@ sub authorize {
 sub authenticate {
   
   sql_connect();
+  
   if ( get_nas_info(\%RAD_REQUEST) == 0 ) {
     if ( auth(\%RAD_REQUEST) == 0 ) {
     	return RLM_MODULE_OK;
