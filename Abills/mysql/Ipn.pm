@@ -90,6 +90,17 @@ sub user_ips {
   
   my $sql;
   
+  if ($DATA->{NAS_ID} =~ /(\d+)-(\d+)/) {
+  	my $first = $1;
+  	my $last = $2;
+  	my @nas_arr = ();
+  	for(my $i=$1; $i<=$2; $i++) {
+  	  push @nas_arr, $i;
+     }
+
+    $DATA->{NAS_ID} = join(',', @nas_arr);
+   }
+  
   if ( $CONF->{IPN_DEPOSIT_OPERATION} ) {
   	$sql="select u.uid, calls.framed_ip_address, calls.user_name,
       calls.acct_session_id,

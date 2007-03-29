@@ -32,3 +32,13 @@ INSERT INTO `mail_spamassassin` (username, preference, value, create_date) VALUE
 INSERT INTO `mail_spamassassin` (username, preference, value, create_date) VALUES ('$GLOBAL','use_dcc','1',now());
 INSERT INTO `mail_spamassassin` (username, preference, value, create_date) VALUES ('$GLOBAL','use_pyzor','1',now());
 UNLOCK TABLES;
+
+
+CREATE TABLE `mail_awl` (
+  `username` varchar(100) NOT NULL default '',
+  `email` varchar(200) NOT NULL default '',
+  `ip` varchar(10) NOT NULL default '',
+  `count` int(11) default '0',
+  `totscore` float default '0',
+  PRIMARY KEY  (`username`,`email`,`ip`)
+);

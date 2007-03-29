@@ -172,7 +172,7 @@ if ($FORM{AWEB_OPTIONS}) {
 #===========================================================
 
 
-my @actions = ([$_SA_ONLY, $_ADD, $_LIST, $_PASSWD, $_CHANGE, $_DEL, $_ALL, $_MULTIUSER_OP],  # Users
+my @actions = ([$_INFO, $_ADD, $_LIST, $_PASSWD, $_CHANGE, $_DEL, $_ALL, $_MULTIUSER_OP],  # Users
                [$_LIST, $_ADD, $_DEL, $_ALL],                                 # Payments
                [$_LIST, $_GET, $_DEL, $_ALL],                                 # Fees
                [$_LIST, $_DEL],                                               # reports view
@@ -4019,14 +4019,24 @@ sub form_dictionary {
 
   foreach my $k (sort keys %main_dictionary) {
   	 my $v = $main_dictionary{$k};
-  	 my $v2 = (defined($sub_dictionary{"$k"})) ? $sub_dictionary{"$k"} : '--';
+     my $v2 = '';
+  	 if (defined($sub_dictionary{"$k"})) {
+  	 	 $v2 = $sub_dictionary{"$k"}	;
+       $table->{rowcolor}=undef;
+  	  }
+  	 else {
+  	 	 $v2 = '--';
+  	 	 $table->{rowcolor}=$_COLORS[0];
+  	  }
      
      $table->addrow(
         $html->form_input('NAME', "$k"), 
         $html->form_input("$k", "$v"), 
-        $html->form_input($sub_dict ."_". $k, "$v2")); 
+        $html->form_input($sub_dict ."_". $k, "$v2")
+       ); 
    }
 
+   $table->{rowcolor}=$_COLORS[0];
    $table->addrow("$_TOTAL", "$i", ''); 
 
 
@@ -4069,7 +4079,7 @@ sub form_config {
 		                         width       => '600',
                              title_plain => ["$_NAME", "$_VALUE", "-"],
                              cols_align  => ['left', 'left', 'center']
-                                  } );
+                          } );
   my $i = 0;
   foreach my $k (sort keys %conf) {
      if ($k eq 'dbpasswd') {
@@ -4078,6 +4088,7 @@ sub form_config {
      $table->addrow($k, $conf{$k}, '');
      $i++;
    }
+
 	print $table->show();
 }
 

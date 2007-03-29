@@ -894,4 +894,107 @@ sub spam_list {
   return $list;
 }
 
+
+
+#**********************************************************
+#
+#**********************************************************
+sub spam_awl_del {
+  my $self = shift;
+  my ($attr) = @_;
+
+  if ($attr->{TYPE})  {
+    print "$attr->{TYPE} // $attr->{VALUE}";
+    if ($attr->{TYPE} eq 'USER') {
+      $attr->{VALUE} =~ s/\*/\%/ig;
+      $WHERE = "username LIKE '$attr->{VALUE}'";
+     }
+    elsif ($attr->{TYPE} eq 'EMAIL') {
+      $attr->{VALUE} =~ s/\*/\%/ig;
+      $WHERE = "email LIKE '$attr->{VALUE}'";
+     }
+    elsif ($attr->{TYPE} eq 'IP') {
+      $attr->{VALUE} =~ s/\*/\%/ig;
+      $WHERE = "IP LIKE $attr->{VALUE}";
+     }
+    elsif ($attr->{TYPE} eq 'COUNT') {
+      my $value = $self->search_expr($attr->{VALUE}, 'INT');
+      $WHERE = "count$value";
+     }
+    elsif ($attr->{TYPE} eq 'SCORE') {
+      my $value = $self->search_expr($attr->{VALUE}, 'INT');
+      $WHERE = "totscore$value";
+     }
+
+    $self->query($db, "DELETE FROM mail_awl WHERE $WHERE;", 'do');
+   }
+  else {
+    my @selected = split(/, /, $attr->{IDS});
+    
+    foreach my $line (@selected) {
+    	my ($username, $email) = split(/\|/, $line, 2);
+    	$self->query($db, "DELETE FROM mail_awl WHERE username='$username' and email='$email';", 'do');
+     }
+   }
+
+  return $self;
+}
+
+
+#**********************************************************
+#
+#**********************************************************
+sub spam_awl_list {
+	my $self = shift;
+	my ($attr) = @_;
+
+ $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+ $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+ $PG = ($attr->{PG}) ? $attr->{PG} : 0;
+ $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
+
+	
+ @WHERE_RULES = (); 
+ $WHERE = '';
+ 
+ 
+ if ($attr->{USER_NAME}) {
+    $attr->{USER_NAME} =~ s/\*/\%/ig;
+    push @WHERE_RULES, "username LIKE '$attr->{USER_NAME}'";
+  }
+
+ if ($attr->{EMAIL}) {
+    $attr->{EMAIL} =~ s/\*/\%/ig;
+    push @WHERE_RULES, "preference LIKE '$attr->{EMAIL}'";
+  }
+
+ if ($attr->{SCORE}) {
+    my $value = $self->search_expr($attr->{SCORE}, 'INT');
+    push @WHERE_RULES, "totscore$value";
+  }
+
+ if ($attr->{COUNT}) {
+    my $value = $self->search_expr($attr->{COUNT}, 'INT');
+    push @WHERE_RULES, "count$value";
+  }
+
+ $WHERE = "WHERE " . join(' and ', @WHERE_RULES) if($#WHERE_RULES > -1);
+ 	
+ $self->query($db, "SELECT username, email, ip, count, totscore
+        FROM mail_awl
+        $WHERE
+        ORDER BY $SORT $DESC
+        LIMIT $PG, $PAGE_ROWS;");
+ 
+  return $self if($self->{errno});
+
+  my $list = $self->{list};
+
+  if ($self->{TOTAL} >= $attr->{PAGE_ROWS} || $PG > 0) {
+    $self->query($db, "SELECT count(*) FROM mail_awl $WHERE");
+    ($self->{TOTAL}) = @{ $self->{list}->[0] };
+   }
+
+  return $list;
+}
 1

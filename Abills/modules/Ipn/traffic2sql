@@ -10,7 +10,7 @@ use strict;
 
 if ($#ARGV < 1) {
   print "traffic2sql [NAS_IDS] [Interface] [Options]
-   NAS_IDS    - Ids of NAS servers 1,2,3
+   NAS_IDS    - Ids of NAS servers 1,2,3 or 1-100
  Options:
    log        - Log file
    flowdir    - Folder where stored flow-capture result files

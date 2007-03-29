@@ -13,9 +13,10 @@ $web_interface    = 1;
 
 if ($conf{MAIL_SPAMD}) {
   $FUNCTIONS_LIST{"16:11:SpamAssassin:mail_spamassassin:"} = 5;
-  $FUNCTIONS_LIST{"17:16:Whitelist:mail_spam_whitelist:"} = 5;
-  $FUNCTIONS_LIST{"18:16:Blacklist:mail_spam_blacklist:"} = 5;
-  $FUNCTIONS_LIST{"19:16:$_ALL:mail_spamassassin_conf:"} = 5;
+  $FUNCTIONS_LIST{"17:16:Whitelist:mail_spam_whitelist:"}  = 5;
+  $FUNCTIONS_LIST{"18:16:Blacklist:mail_spam_blacklist:"}  = 5;
+  $FUNCTIONS_LIST{"19:16:$_ALL:mail_spamassassin_conf:"}   = 5;
+  $FUNCTIONS_LIST{"20:16:AWL:mail_spam_awl:"}   = 5;
 }
 
 if ($conf{MAIL_CHG_PASSWD}) {
