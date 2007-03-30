@@ -10,7 +10,7 @@ CREATE TABLE `mail_spamassassin` (
   KEY `preference` (`preference`),
   KEY `username` (`username`),
   KEY `username_preference_value` (`username`,`preference`,`value`)
-) TYPE=MyISAM COMMENT='Spamassassin Preferences';
+) COMMENT='Mail Spamassassin Preferences';
 
 LOCK TABLES `mail_spamassassin` WRITE;
 INSERT INTO `mail_spamassassin` (username, preference, value, create_date) VALUES ('$GLOBAL','skip_rbl_checks','1',now());
@@ -41,4 +41,4 @@ CREATE TABLE `mail_awl` (
   `count` int(11) default '0',
   `totscore` float default '0',
   PRIMARY KEY  (`username`,`email`,`ip`)
-) COMMENT='Auto whitelist';
+) COMMENT='Mail Auto whitelist';

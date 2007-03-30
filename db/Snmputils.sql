@@ -6,4 +6,4 @@ CREATE TABLE `snmputils_binding` (
   `id` int(11) unsigned NOT NULL auto_increment,
   UNIQUE KEY `binding` (`binding`),
   UNIQUE KEY `id` (`id`)
-) ;
+) COMMENT='Snmputils binding' ;

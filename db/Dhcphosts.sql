@@ -15,7 +15,7 @@ CREATE TABLE `dhcphosts_hosts` (
   PRIMARY KEY  (`id`),
   UNIQUE KEY `cid` (`ip`),
   UNIQUE KEY `mac` (`mac`)
-);
+) COMMENT='Dhcphosts hosts';
 
 
 CREATE TABLE `dhcphosts_routes` (
@@ -25,7 +25,7 @@ CREATE TABLE `dhcphosts_routes` (
   `mask` int(10) unsigned NOT NULL default '4294967294',
   `router` int(10) unsigned NOT NULL default '0',
   PRIMARY KEY  (`id`)
-);
+) COMMENT='Dhcphosts routes';
 
 CREATE TABLE `dhcphosts_networks` (
   `id` smallint(3) unsigned NOT NULL auto_increment,
@@ -41,4 +41,4 @@ CREATE TABLE `dhcphosts_networks` (
   `routers` int(11) unsigned NOT NULL default '0',
   PRIMARY KEY  (`id`),
   UNIQUE KEY `name` (`name`)
-);
+) COMMENT='Dhcphost networks';

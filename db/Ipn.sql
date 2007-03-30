@@ -8,7 +8,7 @@ CREATE TABLE `ipn_club_comps` (
   UNIQUE KEY `id` (`id`),
   UNIQUE KEY `ip` (`ip`),
   UNIQUE KEY `number` (`number`)
-);
+) COMMENT='Ipn club comps';
 
 CREATE TABLE `ipn_log` (
   `uid` int(11) unsigned NOT NULL default '0',
@@ -21,6 +21,7 @@ CREATE TABLE `ipn_log` (
   `ip` int(11) unsigned NOT NULL default '0',
   `interval_id` int(11) unsigned NOT NULL default '0',
   `sum` double(15,6) unsigned NOT NULL default '0.000000',
-  `session_id` char(25) NOT NULL default ''
-);
+  `session_id` char(25) NOT NULL default '',
+  KEY `uid` (`uid`)
+) COMMENT='Ipn log traffic class';
 
