@@ -41,4 +41,4 @@ CREATE TABLE `mail_awl` (
   `count` int(11) default '0',
   `totscore` float default '0',
   PRIMARY KEY  (`username`,`email`,`ip`)
-);
+) COMMENT='Auto whitelist';

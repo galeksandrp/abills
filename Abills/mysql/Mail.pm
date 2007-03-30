@@ -904,7 +904,6 @@ sub spam_awl_del {
   my ($attr) = @_;
 
   if ($attr->{TYPE})  {
-    print "$attr->{TYPE} // $attr->{VALUE}";
     if ($attr->{TYPE} eq 'USER') {
       $attr->{VALUE} =~ s/\*/\%/ig;
       $WHERE = "username LIKE '$attr->{VALUE}'";
