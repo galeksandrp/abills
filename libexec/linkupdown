@@ -444,8 +444,8 @@ sub mikrotik {
      }
 
     # Make marks
-    my $mark_name= $address_list_name. "_mark";
-    push @commands,  qq{ /ip firewall mangle add address-list=$address_list_name action=mark-connection new-connection-mark=$mark_name chain=prerouting };
+    my $mark_name=$address_list_name. "_mark";
+    push @commands,  qq{ /ip firewall mangle add address-list=$address_list_name action=mark-connection new-connection-mark=$mark_name chain=prerouting comment=$mark_name };
 
     push @commands,  qq{ /queue tree add name=$mark_name parent=$INTERFACE max-limit=$speed_in/$speed_out packet-mark=$mark_name priority=8 };
 
@@ -460,4 +460,36 @@ sub mikrotik {
 
  print $result;
  
+}
+
+
+
+#
+# get user info 
+# /queue simple print interface=<pptp-aa1>
+# /queue simple remove [ find  interface=<pptp-aa1> ]
+
+#*****************************************************
+# Parse fw params
+#*****************************************************
+sub parse_fw {
+  my ($part) = @_;
+  my $result = '';
+  my %params = ();
+
+  $part =~ s/"|//g;
+  if ($part =~ / (\d+)/) {
+    $params{item} = $1;
+   }
+
+  while($part =~ / ([a-zA-Z\-]+)=([a-zA-Z\-\.0-9\/<>_]+)/g) {
+    my $key = $1;
+    my $val = $2;
+    $result .= "$key // $val\n";
+    $params{"$key"}=$val;
+   }
+
+  print "\n---\n". $result if ($debug > 0);
+
+  return \%params;
 }

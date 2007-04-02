@@ -256,7 +256,6 @@ CREATE TABLE `groups` (
   `name` varchar(30) NOT NULL default '',
   `descr` varchar(200) NOT NULL default '',
   PRIMARY KEY  (`gid`),
-  UNIQUE KEY `gid` (`gid`),
   UNIQUE KEY `name` (`name`)
 ) ;
 
@@ -431,7 +430,8 @@ CREATE TABLE `msgs_messages` (
   `aid` smallint(6) unsigned NOT NULL default '0',
   `subject` varchar(40) NOT NULL default '',
   `gid` smallint(4) unsigned NOT NULL default '0',
-  PRIMARY KEY  (`id`)
+  PRIMARY KEY  (`id`),
+  KEY `uid` (`uid`)
 );
 
 CREATE TABLE `nas` (
