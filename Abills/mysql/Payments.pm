@@ -225,7 +225,8 @@ sub list {
   }
 
  if ($attr->{ID}) {
- 	 push @WHERE_RULES, "p.id='$attr->{ID}'";
+ 	 my $value = $self->search_expr("$attr->{ID}", 'INT');
+ 	 push @WHERE_RULES, "p.id$value";
   }
 
  # Show groups
@@ -243,8 +244,6 @@ sub list {
     $WHERE 
     GROUP BY p.id
     ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");
- 
-
 
  $self->{SUM}='0.00';
 
@@ -255,9 +254,8 @@ sub list {
   LEFT JOIN users u ON (u.uid=p.uid)
   LEFT JOIN admins a ON (a.aid=p.aid) $WHERE");
 
- my $ar = $self->{list}->[0];
  ( $self->{TOTAL},
-   $self->{SUM} )= @$ar;
+   $self->{SUM} )= @{ $self->{list}->[0] };
 
  return $list;
 }
@@ -333,10 +331,8 @@ sub reports {
       LEFT JOIN users u ON (u.uid=p.uid)
       $WHERE;");
 
- my $a_ref = $self->{list}->[0];
-
  ($self->{TOTAL}, 
-  $self->{SUM}) = @$a_ref;
+  $self->{SUM}) = @{ $self->{list}->[0] };
 
 	
 	return $list;

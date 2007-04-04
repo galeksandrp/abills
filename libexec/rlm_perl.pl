@@ -40,6 +40,8 @@ unshift(@INC, $Bin . '/../', $Bin . "/../Abills/$conf{dbtype}");
 require $Bin ."/racct.pl";
 require $Bin ."/rauth.pl";
 
+$db = undef;
+$nas = undef;
 
 #**********************************************************
 # Function to handle authenticate
@@ -48,6 +50,8 @@ require $Bin ."/rauth.pl";
 sub sql_connect {
 	my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
   $db  = $sql->{db};
+  $nas = Nas->new($db, \%conf);	
+  return $db;
 }
 
 #**********************************************************

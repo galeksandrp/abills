@@ -229,7 +229,7 @@ my %shedule_type = ('tp'      => $_VARIANT,
  	                           D => $D, 
  	                           PAGE_ROWS => 100000 });
 
- $ADMIN_REPORT{SHEDULE}=sprintf("%-14s| %-12s| %-8s| %-14s|\n", "$_LOGIN", "$_MODULES", "$_TYPE", "$_VALUE");
+ $ADMIN_REPORT{SHEDULE}=sprintf("%-14s| %-12s| %-8s| %-14s|%-14s|\n", "$_LOGIN", "$_MODULES", "$_TYPE", "$_VALUE", "$_ADMIN");
  $ADMIN_REPORT{SHEDULE}.= "---------------------------------------------------------\n";
  foreach my $line (@$list) {
    if ($line->[6] eq 'fees') {
@@ -245,7 +245,8 @@ my %shedule_type = ('tp'      => $_VARIANT,
      }
  	 $shedule->del({ ID => $line->[13] });
 
-	  $ADMIN_REPORT{SHEDULE}.=sprintf("%-14s| %-12s| %-8s| %-14s|\n", $line->[5], $line->[8], $line->[6], $line->[7]);
+	  $ADMIN_REPORT{SHEDULE}.=sprintf("%-14s| %-12s| %-8s| %-14s|\n", 
+	    $line->[5], $line->[8], $line->[6], $line->[7], $line->[9]);
   } 
 
 }

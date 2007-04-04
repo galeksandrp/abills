@@ -964,7 +964,7 @@ sub spam_awl_list {
 
  if ($attr->{EMAIL}) {
     $attr->{EMAIL} =~ s/\*/\%/ig;
-    push @WHERE_RULES, "preference LIKE '$attr->{EMAIL}'";
+    push @WHERE_RULES, "email LIKE '$attr->{EMAIL}'";
   }
 
  if ($attr->{SCORE}) {

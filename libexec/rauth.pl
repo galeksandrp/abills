@@ -26,7 +26,9 @@ require Abills::SQL;
 my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
 $db  = $sql->{db};
 require Nas;
-$nas = Nas->new($db, \%conf);	
+#$nas = Nas->new($db, \%conf);	
+$nas = undef;
+
 require Auth;
 Auth->import();
 $auth_mod{'default'} = Auth->new($db, \%conf);
@@ -43,7 +45,7 @@ my $rr  = '';
 
 # files auth section
 my $RAD;
-if (! defined(%RAD_REQUEST)) {
+if (scalar(keys %RAD_REQUEST ) < 0 ) {
   $RAD = get_radius_params();
   if (defined($ARGV[0]) && $ARGV[0] eq 'pre_auth') {
     auth($RAD, { pre_auth => 1 });
@@ -77,7 +79,9 @@ if (! defined(%RAD_REQUEST)) {
 #*******************************************************************
 sub get_nas_info {
  my ($RAD)=@_;
-
+ 
+ $nas = Nas->new($db, \%conf);	
+ 
  $RAD->{NAS_IP_ADDRESS}='' if (!defined($RAD->{NAS_IP_ADDRESS}));
  $RAD->{USER_NAME}='' if (!defined($RAD->{USER_NAME}));
 

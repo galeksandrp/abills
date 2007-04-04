@@ -85,7 +85,7 @@ my %ACCT_TERMINATE_CAUSES = (
 
 # Files account section
 my $RAD;
-if (! defined(%RAD_REQUEST)) {
+if (scalar(keys %RAD_REQUEST ) < 0) {
   $RAD = get_radius_params();
   if (! defined($RAD->{NAS_IP_ADDRESS})) {
     $RAD->{USER_NAME}='-' if (! defined($RAD->{USER_NAME}));

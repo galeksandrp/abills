@@ -478,11 +478,19 @@ while(my($ip_address, $info)=each %$ip_pid_hash) {
   if ($conf{DV_PPP_UNCHECKED}) {
     next if ($ip_address =~ /$conf{DV_PPP_UNCHECKED}/);
    }
-  print "Killed IP: $ip_address PID: $pid\n";
-  my $res = `/bin/kill -9 $pid; /sbin/ifconfig tun$iface delete`;
-  # /sbin/ifconfig tun$iface delete
-  $pid=~/(\d+)/;
-  get_pid_info($1);
+  
+  my $res = '';  
+  if ($pid > 0) {
+    $res = `/bin/kill -9 $pid; /sbin/ifconfig tun$iface delete`;
+    # /sbin/ifconfig tun$iface delete
+   }
+  else {
+    $res = `/sbin/ifconfig tun$iface delete`;
+   }
+
+  print "Killed IP: $ip_address PID: $pid -- $res\n";  
+
+  get_pid_info($pid);
 }
 
 }
@@ -532,28 +540,32 @@ sub get_if_info {
     }
  close(IFC);
 
- my ($tunnum, $addr, $pid);
- while($ifconfig =~ /tun(.+\n.+\n.+PID.+)/gi) {
-    my @ifs = split(/\n/, $1);
-    my $tunnum = 0;
-   
+
+ while($ifconfig =~ /tun(\d+): (.+\n\s.+\n\s.*[\n\sa-zA-Z0-9]+\n)/gi) {
+    my $tunnum = $1;
+    my $res    = $2;
+
+    my $pid    = 0;
+    my $addr   = '0.0.0.0';
+
+    my @ifs = split(/\n/, $res);
+
     foreach my $line (@ifs) {
-
       print $line."\n" if ($debug > 1);
-
-      if ($line =~ /:/) {
-         ($tunnum, undef)=split(/:/, $line);
+      if ($line =~ /^(\d+)/) {
+         $tunnum=$1;
         }
-      elsif ($line =~ m/\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3} --> \d{1,3}.\d{1,3}.\d{1,3}.\d{1,3}/g) {
-         (undef, undef, undef, $addr, undef) = split(/ +/, $line);
+      elsif ($line =~ m/\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3} --> (\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3})/g) {
+         $addr = $1;
         }
-      elsif ($line =~ /PID/gi) {
-         (undef, $pid) = split(/PID/, $line);
-         chomp($pid);
+      elsif ($line =~ /PID (\d+)/gi) {
+         $pid = $1;
+         #chomp($pid);
+         chop($pid);
        }
      }
     print "$tunnum $addr $pid\n" if ($debug == 1);
-    $ip_pid_hash{$addr}="$pid:$tunnum";
+    $ip_pid_hash{"$addr"}="$pid:$tunnum";
   }
 
   return \%ip_pid_hash;

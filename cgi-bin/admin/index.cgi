@@ -3588,7 +3588,8 @@ else {
 my $SEL_METHOD =  $html->form_select('METHOD', 
                                 { SELECTED      => $day_id,
  	                                SEL_ARRAY     => \@PAYMENT_METHODS,
- 	                                ARRAY_NUM_ID  => 'y'
+ 	                                ARRAY_NUM_ID  => 'y',
+                                  SEL_OPTIONS   => { '' => $_ALL }
  	                               });
 
 
@@ -3597,24 +3598,22 @@ my %search_form = (
 2 => "
 <!-- PAYMENTS -->
 <tr><td colspan=\"2\"><hr/></td></tr>
-<tr><td>$_OPERATOR:</td><td><input type='text' name='A_LOGIN' value='%A_LOGIN%'/></td></tr>
+<tr><td>$_OPERATOR (ID):</td><td><input type='text' name='A_LOGIN' value='%A_LOGIN%'/></td></tr>
 <tr><td>$_DESCRIBE (*):</td><td><input type='text' name='DESCRIBE' value='%DESCRIBE%'/></td></tr>
-<tr><td>$_SUM (&lt;):</td><td><input type='text' name='SUM' value='%SUM%'/></td></tr>
+<tr><td>$_SUM (&lt;, &gt;):</td><td><input type='text' name='SUM' value='%SUM%'/></td></tr>
 <tr><td>$_PAYMENT_METHOD:</td><td>$SEL_METHOD</td></tr>
-<tr><td>ID:</td><td><input type='text' name='ID' value='%ID%'/></td></tr>
+<tr><td>$_PAYMENTS ID (&lt;, &gt;):</td><td><input type='text' name='ID' value='%ID%'/></td></tr>
 <tr><td>EXT ID:</td><td><input type='text' name='EXT_ID' value='%EXT_ID%'/></td></tr>
 \n",
 
 3 => "
 <!-- FEES -->
 <tr><td colspan='2'><hr/></td></tr>
-<tr><td>$_OPERATOR (*):</td><td><input type=text name=A_LOGIN value='%A_LOGIN%'/></td></tr>
+<tr><td>$_OPERATOR (ID):</td><td><input type=text name=A_LOGIN value='%A_LOGIN%'/></td></tr>
 <tr><td>$_DESCRIBE (*):</td><td><input type=text name=DESCRIBE value='%DESCRIBE%'/></td></tr>
 <tr><td>$_SUM (<,>):</td><td><input type=text name=SUM value='%SUM%'/></td></tr>\n",
 
 11 => $html->tpl_show(templates('form_search_users'), { %info, %FORM, GROUPS_SEL => $group_sel }, { notprint => 1 })
- 
-
 
 );
 
