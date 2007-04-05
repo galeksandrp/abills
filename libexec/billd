@@ -488,7 +488,7 @@ while(my($ip_address, $info)=each %$ip_pid_hash) {
     $res = `/sbin/ifconfig tun$iface delete`;
    }
 
-  print "Killed IP: $ip_address PID: $pid -- $res\n";  
+  print "Killed IP: $ip_address PID: '$pid' -- $res\n";  
 
   get_pid_info($pid);
 }

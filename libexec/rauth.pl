@@ -45,7 +45,8 @@ my $rr  = '';
 
 # files auth section
 my $RAD;
-if (scalar(keys %RAD_REQUEST ) < 0 ) {
+
+if (scalar(keys %RAD_REQUEST ) < 1 ) {
   $RAD = get_radius_params();
   if (defined($ARGV[0]) && $ARGV[0] eq 'pre_auth') {
     auth($RAD, { pre_auth => 1 });
