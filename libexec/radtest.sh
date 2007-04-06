@@ -12,10 +12,12 @@ if [ t$1 = 'tauth' ] ; then
 
   ./rauth.pl \
         SERVICE_TYPE=VPN \
-        USER_NAME="aa1"\
-        USER_PASSWORD="test12345"\
-        NAS_IP_ADDRESS=192.168.202.13 \
-        CALLING_STATION_ID="00-0D-88-42-87-7E"
+        USER_NAME="andy"\
+        NAS_IP_ADDRESS=192.168.202.15 \
+        CALLING_STATION_ID="00-0D-88-42-87-7E"\
+        CHAP_PASSWORD="0x5acd1cc26b6f8bf084fb616925769362af"
+
+#        USER_PASSWORD="test12345"\
 #        CISCO_AVPAIR="connect-progress=LAN Ses Up" \
 #        CISCO_AVPAIR="client-mac-address=000f.ea3d.92ef"\
          CALLING_STATION_ID="00-0D-88-42-87-7E" 

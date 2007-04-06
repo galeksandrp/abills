@@ -1548,7 +1548,9 @@ if ($FORM{rows}) {
  }
 
 #online sessions
-my $list = $sessions->online( { USER_NAME => $LIST_PARAMS{LOGIN} } );
+
+my $list = $sessions->online( { USER_NAME => $LIST_PARAMS{LOGIN}, 
+	                              FIELDS    => [0, 3, 9, 4, 5, 6 ] } );
 if ($sessions->{TOTAL} > 0) {
   my $table = $html->table( { caption     => "Online",
 	                            width       => '100%',
@@ -1557,7 +1559,13 @@ if ($sessions->{TOTAL} > 0) {
                               rowcolor    => $_COLORS[1]
                             } );
   foreach my $line (@$list) {
-    $table->addrow($line->[0], int2ip($line->[3]), $line->[19], $line->[4], int2byte($line->[5]), int2byte($line->[6]));  	
+    $table->addrow($line->[0], 
+                   int2ip($line->[1]), 
+                   $line->[2], 
+                   $line->[3], 
+                   int2byte($line->[4]), 
+                   int2byte($line->[5])
+                  );  	
    }
   print $table->show();
 }

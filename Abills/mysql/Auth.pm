@@ -744,6 +744,7 @@ else {
 }
 
 
+
 if ($RAD->{CISCO_AVPAIR}) {
   if ($RAD->{CISCO_AVPAIR} =~ /client-mac-address=(\S+)/) {
     $RAD->{CALLING_STATION_ID}=$1;
