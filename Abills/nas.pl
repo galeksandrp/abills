@@ -87,7 +87,7 @@ sub get_stats {
  $nas_type = $NAS->{NAS_TYPE};
 
  if ($nas_type eq 'usr')       {
-    %stats = stats_usr($NAS, $PORT);
+    %stats = stats_usrns($NAS, $PORT);
   }
  elsif ($nas_type eq 'patton')   {
     %stats = stats_patton29xx($NAS, $PORT);
