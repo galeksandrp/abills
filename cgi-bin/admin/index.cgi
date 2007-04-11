@@ -2366,7 +2366,7 @@ if ($attr->{NAS}) {
   if ($FORM{add}) {
     $nas->ip_pools_add({
        NAS_IP_SIP   => $FORM{NAS_IP_SIP},
-       NAS_IP_COUNT => $FORM{NAS_IP_COUNT}
+       NAS_IP_COUNT => $FORM{NAS_IP_COUNT}-1
      });
 
     if (! $nas->{errno}) {
@@ -2418,6 +2418,7 @@ foreach my $line (@$list) {
     $line->[3],  
     $delete);
 }
+
 print $table->show();
 }
 
@@ -2613,43 +2614,51 @@ if ($attr->{FIELDS}) {
 
 
 if ($attr->{PERIOD_FORM}) {
+	
+	my @rows = ("$_FROM: ",   $html->date_fld('FROM_', { MONTHES => \@MONTHES} ),
+              "$_TO: ",    $html->date_fld('TO_', { MONTHES => \@MONTHES } ) );
+	
+	if (! $attr->{NO_GROUP}) {
+	  push @rows, "$_GROUP:",  sel_groups(),
+                "$_TYPE:",   $html->form_select('TYPE', 
+                                                     { SELECTED     => $FORM{TYPE},
+ 	                                                     SEL_HASH     => { DAYS  => $_DAYS, 
+ 	                                                                       USER  => $_USERS, 
+ 	                                                                       HOURS => $_HOURS,
+ 	                                                                       ($attr->{EXT_TYPE}) ? %{ $attr->{EXT_TYPE} } : ''
+ 	                                                                      },
+ 	                                                     NO_ID        => 1
+ 	                                                     });
+	}
+
+
 	$table = $html->table( { width    => '100%',
 	                         rowcolor => $_COLORS[1],
-                           rows     => [["$_FROM: ",   $html->date_fld('from', { MONTHES => \@MONTHES} ),
-                                          "$_TO: ",    $html->date_fld('to', { MONTHES => \@MONTHES } ), 
-                                          "$_GROUP:",  sel_groups(),
-                                          "$_TYPE:",   $html->form_select('TYPE', 
-                                                                 { SELECTED     => $FORM{TYPE},
- 	                                                                 SEL_HASH     => { DAYS  => $_DAYS, 
- 	                                                                                   USER  => $_USERS, 
- 	                                                                                   HOURS => $_HOURS,
- 	                                                                                   ($attr->{EXT_TYPE}) ? %{ $attr->{EXT_TYPE} } : ''
- 	                                                                                   
- 	                                                                                    },
- 	                                                                 NO_ID        => 1
- 	                                                                }) ,
+                           rows     => [[@rows, 
  	                                        ($attr->{XML}) ? 
- 	                                        $html->form_input('NO_MENU', 1, { TYPE => 'hidden' }).
- 	                                        $html->form_input('xml', 1, { TYPE => 'checkbox' })."XML" : '',
+ 	                                          $html->form_input('NO_MENU', 1, { TYPE => 'hidden' }).
+ 	                                          $html->form_input('xml', 1, { TYPE => 'checkbox' })."XML" : '',
 
                                           $html->form_input('show', $_SHOW, { TYPE => 'submit' }) ]
                                          ],                                   
                       });
  
+  
   print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }).$FIELDS,
 	                         HIDDEN  => { 
-	                                    index => "$index"
+	                                     ($attr->{HIDDEN}) ? %{ $attr->{HIDDEN} } : undef,
+	                                     index => "$index"
 	                                    }});
 
   if (defined($FORM{show})) {
-    $pages_qs .= "&show=y&fromD=$FORM{fromD}&fromM=$FORM{fromM}&fromY=$FORM{fromY}&toD=$FORM{toD}&toM=$FORM{toM}&toY=$FORM{toY}";
-    $FORM{fromM}++;
-    $FORM{toM}++;
-    $FORM{fromM} = sprintf("%.2d", $FORM{fromM}++);
-    $FORM{toM} = sprintf("%.2d", $FORM{toM}++);
+    $pages_qs .= "&show=y&FROM_D=$FORM{FROM_D}&FROM_M=$FORM{FROM_M}&FROM_Y=$FORM{FROM_Y}&TO_D=$FORM{TO_D}&TO_M=$FORM{TO_M}&TO_Y=$FORM{TO_Y}";
+    $FORM{FROM_M}++;
+    $FORM{TO_M}++;
+    $FORM{FROM_M} = sprintf("%.2d", $FORM{FROM_M}++);
+    $FORM{TO_M} = sprintf("%.2d", $FORM{TO_M}++);
 
     $LIST_PARAMS{TYPE}=$FORM{TYPE};
-    $LIST_PARAMS{INTERVAL} = "$FORM{fromY}-$FORM{fromM}-$FORM{fromD}/$FORM{toY}-$FORM{toM}-$FORM{toD}";
+    $LIST_PARAMS{INTERVAL} = "$FORM{FROM_Y}-$FORM{FROM_M}-$FORM{FROM_D}/$FORM{TO_Y}-$FORM{TO_M}-$FORM{TO_D}";
    }
 	
 }
@@ -2832,8 +2841,9 @@ sub report_payments {
   	$LIST_PARAMS{METHODS}=$FORM{FIELDS};
    }
 
-  $LIST_PARAMS{PAGE_ROWS}=1000;
+  $LIST_PARAMS{PAGE_ROWS}=10000;
   use Finance;
+  
   my $payments = Finance->payments($db, $admin, \%conf);
   
 if (defined($FORM{DATE})) {
@@ -2847,7 +2857,7 @@ if (defined($FORM{DATE})) {
 
   foreach my $line (@$list) {
    $table->addrow("<b>$line->[0]</b>", 
-      $html->button($line->[1], "index=15&subf=3&DATE=$line->[0]&UID=$line->[10]"),  
+      $html->button($line->[1], "index=15&DATE=$LIST_PARAMS{DATE}&UID=$line->[10]"),  
       $line->[2],
       $line->[3], 
       $line->[4],  
@@ -2863,6 +2873,14 @@ else{
   if ($FORM{TYPE} && $FORM{TYPE} eq 'PAYMENT_METHOD') {
   	$CAPTION[0]=$_PAYMENT_METHOD;
   }
+  elsif ($FORM{TYPE} && $FORM{TYPE} eq 'USER') {
+  	$CAPTION[0]=$_USERS;
+  	$type="search=1&LOGIN_EXPR";
+  	$index=2;
+   }
+  elsif ($FORM{TYPE} && $FORM{TYPE} eq 'HOURS')  {
+    $CAPTION[0]=$_HOURS;
+   }
   
   $table = $html->table({ width      => '100%',
 	                        caption    => $_PAYMENTS, 

@@ -20,9 +20,7 @@ my $sessions = Dv_Sessions->new($db, $admin, \%conf);
 # ipn_sessions()
 #**********************************************************
 sub ipn_sessions2 {
-
-
-  if (! $user->{UID})  {
+  if (! $user->{UID}) {
     $LIST_PARAMS{UID}=$FORM{UID};
    }
   else {
@@ -31,8 +29,11 @@ sub ipn_sessions2 {
 
   $pages_qs.="&UID=$LIST_PARAMS{UID}";
 
- reports({ DATE      => $FORM{DATE}, 
-  	       REPORT    => '',
+ reports({ DATE        => $FORM{DATE}, 
+  	       REPORT      => '',
+  	       PERIOD_FORM => 1,
+  	       NO_GROUP    => 1,
+  	       HIDDEN      => { UID => $LIST_PARAMS{UID} }
   	      });
 
  my %totals = ();
@@ -184,9 +185,9 @@ else {
       $DATA_HASH{TRAFFIC_OUT}[$num]=int($line->[2]/ (3600 * 24));
       $DATA_HASH{MONEY}[$num]=$line->[3];
 
-      $total_in      += $line->[1];   
-      $total_out     += $line->[2]; 
-      $total_sum     += $line->[3];
+      $totals{TRAFFIC_IN}  += $line->[1];   
+      $totals{TRAFFIC_OUT} += $line->[2]; 
+      $totals{SUM}     += $line->[3];
    }
 
   #@type = ('column', 'column', 'line');
@@ -427,7 +428,9 @@ sub ipn_use_users {
             	              USERS => "$_USERS" } 
   	       });
 
- my %totals = ();
+
+
+my %totals = ();
 
 my %DATA_HASH2= ();
 my %DATA_HASH = (  	 	             );

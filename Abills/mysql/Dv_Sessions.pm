@@ -207,9 +207,9 @@ sub online {
    dv.tp_id
    
  FROM dv_calls c
- LEFT JOIN users u     ON u.id=user_name
- LEFT JOIN dv_main dv  ON dv.uid=u.uid
- LEFT JOIN users_pi pi ON pi.uid=u.uid
+ LEFT JOIN users u     ON (u.id=user_name)
+ LEFT JOIN dv_main dv  ON (dv.uid=u.uid)
+ LEFT JOIN users_pi pi ON (pi.uid=u.uid)
 
  LEFT JOIN bills b ON (u.bill_id=b.id)
  LEFT JOIN companies company ON (u.company_id=company.id)
@@ -534,8 +534,7 @@ else {
       FROM s_detail 
      WHERE id='$attr->{LOGIN}' $WHERE ;");
     
-    my $a_ref = $self->{list}->[0];
-    ($self->{TOTAL}) = @$a_ref;
+    ($self->{TOTAL}) = @{ $self->{list}->[0] };
   }
 	
 	
@@ -576,7 +575,6 @@ sub periods_totals {
    sum(sent), sum(recv), SEC_TO_TIME(sum(duration))
    FROM dv_log $WHERE;");
 
-  my $ar = $self->{list}->[0];
   ($self->{sent_0}, 
       $self->{recv_0}, 
       $self->{duration_0}, 
@@ -591,13 +589,92 @@ sub periods_totals {
       $self->{duration_3}, 
       $self->{sent_4}, 
       $self->{recv_4}, 
-      $self->{duration_4}) =  @$ar;
+      $self->{duration_4}) =  @{ $self->{list}->[0] };
   
   for(my $i=0; $i<5; $i++) {
     $self->{'sum_'. $i } = $self->{'sent_' . $i } + $self->{'recv_' . $i};
   }
 
   return $self;	
+}
+
+
+#**********************************************************
+#
+#**********************************************************
+sub prepaid_rest {
+  my $self = shift;	
+  my ($attr) = @_;
+	
+	#Get User TP and intervals
+  $self->query($db, "select tt.id, i.begin, i.end, 
+    if(u.activate<>'0000-00-00', DATE_FORMAT(curdate(), '%Y-%m-01'), u.activate), 
+     tt.prepaid, 
+    u.id, u.uid, dv.tp_id, tp.name
+
+  from (users u,
+        dv_main dv,
+        tarif_plans tp,
+        intervals i,
+        trafic_tarifs tt)
+WHERE
+     u.uid=dv.uid
+ and dv.tp_id=tp.id
+ and tp.id=i.tp_id
+ and i.id=tt.interval_id
+ and u.uid='$attr->{UID}'
+ ORDER BY 1
+ ");
+
+ if($self->{TOTAL} < 1) {
+ 	  return 0;
+  }
+
+
+ my %rest = (0 => 
+             1 => );
+ 
+
+ 
+ foreach my $line (@{ $self->{list} } ) {
+   $rest{$line->[0]} = $line->[4];
+  }
+
+
+ $self->{INFO_LIST}=$self->{list};
+ my $login = $self->{INFO_LIST}->[0]->[5];
+ 
+ #Check sessions
+ #Get using traffic
+ $self->query($db, "select 
+  $rest{0} - sum(sent + recv) / 1048576,
+  $rest{1} - sum(sent2 +  recv2) / 1048576
+ FROM dv_log
+ WHERE uid='$attr->{UID}' and DATE_FORMAT(start, '%Y-%m-%d')>='$self->{INFO_LIST}->[0]->[3]'
+ GROUP BY uid
+ ;");
+
+ ($rest{0}, 
+  $rest{1} 
+  ) =  @{ $self->{list}->[0] };
+
+ #Check online
+ $self->query($db, "select 
+  $rest{0} - sum(acct_input_octets + acct_output_octets) / 1048576,
+  $rest{1} - sum(ex_input_octets + ex_output_octets) / 1048576
+ FROM dv_calls
+ WHERE user_name='$login' 
+ GROUP BY user_name ;");
+
+ if ($self->{TOTAL} > 0) {
+   ($rest{0}, 
+    $rest{1} 
+    ) =  @{ $self->{list}->[0] };
+  }
+ 
+ $self->{REST}=\%rest;
+  
+  return 1;
 }
 
 #**********************************************************
@@ -755,12 +832,11 @@ elsif($attr->{DATE}) {
       FROM (dv_log l, users u)
      $WHERE;");
 
-    my $a_ref = $self->{list}->[0];
     ($self->{TOTAL},
      $self->{DURATION},
      $self->{TRAFFIC},
      $self->{TRAFFIC2},
-     $self->{SUM}) = @$a_ref;
+     $self->{SUM}) = @{ $self->{list}->[0] };
   }
 
 #  $self->{list}=$list;

@@ -200,7 +200,7 @@ sub message_info {
   mc.name,
   m.gid,
   g.name
-    FROM msgs_messages m
+    FROM (msgs_messages m)
     LEFT JOIN msgs_chapters mc ON (m.chapter=mc.id)
     LEFT JOIN users u ON (m.uid=u.uid)
     LEFT JOIN admins a ON (m.aid=a.aid)
@@ -369,10 +369,9 @@ sub chapter_info {
      return $self;
    }
 
-  my $ar = $self->{list}->[0];
   ($self->{ID}, 
    $self->{NAME}
-  )= @$ar;
+  )= @{ $self->{list}->[0] };
 
 	return $self;
 }

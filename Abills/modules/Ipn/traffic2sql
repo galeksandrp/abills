@@ -280,7 +280,6 @@ if ($Ipn->{INTERIM}{$ip}) {
    }
  }
 elsif($total_user_sum > 0 && $uid > 0) {
-	print "aaaa0-000000000000000\n";
   $Ipn->traffic_add_user( {
    	        START					 => $attr->{START} || undef,
    	        STOP					 => $attr->{STOP} || undef,
@@ -299,9 +298,12 @@ elsif($total_user_sum > 0 && $uid > 0) {
 
   #Put user date to database  
   if ($uid > 0) {
+    $Ipn->{$ip}{IN}  = $Ipn->{$ip}{IN}+$total_in;
+    $Ipn->{$ip}{OUT} = $Ipn->{$ip}{OUT}+$total_out;
+
     %RAD = (  NAS_PORT          => 0,
-   	          INBYTE            => $Ipn->{$ip}{IN}+$total_in,
-   	          OUTBYTE           => $Ipn->{$ip}{OUT}+$total_out,
+   	          INBYTE            => $Ipn->{$ip}{IN},
+   	          OUTBYTE           => $Ipn->{$ip}{OUT},
    	          INBYTE2           => 0,
    	          OUTBYTE2          => 0,
               FRAMED_IP_ADDRESS => $ip_addr,

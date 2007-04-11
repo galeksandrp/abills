@@ -601,27 +601,17 @@ if ($attr->{PERIOD_FORM}) {
 	                         rowcolor => $_COLORS[1],
                            rows     => [["$_FROM: ",   $html->date_fld('from', { MONTHES => \@MONTHES} ),
                                           "$_TO: ",    $html->date_fld('to', { MONTHES => \@MONTHES } ), 
-                                          "$_GROUP:",  sel_groups(),
-                                          "$_TYPE:",   $html->form_select('TYPE', 
-                                                                 { SELECTED     => $FORM{TYPE},
- 	                                                                 SEL_HASH     => { DAYS  => $_DAYS, 
- 	                                                                                   USER  => $_USERS, 
- 	                                                                                   HOURS => $_HOURS,
- 	                                                                                   ($attr->{EXT_TYPE}) ? %{ $attr->{EXT_TYPE} } : ''
- 	                                                                                   
- 	                                                                                    },
- 	                                                                 NO_ID        => 1
- 	                                                                }) ,
  	                                        ($attr->{XML}) ? 
  	                                        $html->form_input('NO_MENU', 1, { TYPE => 'hidden' }).
  	                                        $html->form_input('xml', 1, { TYPE => 'checkbox' })."XML" : '',
 
-                                          $html->form_input('show', $_SHOW, { TYPE => 'submit' }) ]
+                                          $html->form_input('show', $_SHOW, { TYPE => 'submit', OUTPUT2RETURN => 1 }) ]
                                          ],                                   
                       });
  
   print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }).$FIELDS,
 	                         HIDDEN  => { 
+	                                    ($attr->{HIDDEN}) ? %{ $attr->{HIDDEN} } : undef,
 	                                    index => "$index"
 	                                    }});
 
