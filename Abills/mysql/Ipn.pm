@@ -1561,6 +1561,7 @@ sub prepaid_rest {
 
 
   #print $info->{INFO_LIST}->[0]->[3];
+ 
 
  $self->query($db, "SELECT l.traffic_class, (sum(l.traffic_in) + sum(l.traffic_out)) / 1048576
    from ipn_log l
