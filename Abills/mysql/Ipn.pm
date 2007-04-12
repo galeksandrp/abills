@@ -1199,10 +1199,7 @@ else {
 
 
  $self->query($db, "SELECT $lupdate
-   
-
    sum(l.traffic_in), sum(l.traffic_out), sum(sum),
-
    l.nas_id, l.uid
    from ipn_log l
    LEFT join  users u ON (l.uid=u.uid)
@@ -1222,10 +1219,8 @@ else {
   $WHERE
   ;");
 
-  my $a_ref = $self->{list}->[0];
   ($self->{COUNT},
-   $self->{SUM}) = @$a_ref;
-
+   $self->{SUM}) = @{ $self->{list}->[0] };
 
   return $list;
 }
@@ -1555,5 +1550,32 @@ sub log_del {
  return $self;
 }
 
+#*******************************************************************
+# Delete information from user log
+# log_del($i);
+#*******************************************************************
+sub prepaid_rest {
+	my $self = shift;
+	my ($attr) = @_;
+  my $info = $attr->{INFO};
+
+
+  #print $info->{INFO_LIST}->[0]->[3];
+
+ $self->query($db, "SELECT l.traffic_class, (sum(l.traffic_in) + sum(l.traffic_out)) / 1048576
+   from ipn_log l
+   WHERE l.uid='$attr->{UID}' and DATE_FORMAT(start, '%Y-%m-%d')>='$info->[0]->[3]'
+   GROUP BY l.traffic_class, l.uid ;");
+  #
+  
+ my %traffic = ();
+ foreach my $line (@{ $self->{list} }) {
+    $traffic{$line->[0]}=$line->[1];
+  }
+
+  $self->{TRAFFIC}=\%traffic;
+
+  return $info;
+}
 
 1

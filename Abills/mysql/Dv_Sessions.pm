@@ -643,6 +643,9 @@ WHERE
 
  $self->{INFO_LIST}=$self->{list};
  my $login = $self->{INFO_LIST}->[0]->[5];
+
+ return 1 if ($attr->{INFO_ONLY});
+ 
  
  #Check sessions
  #Get using traffic
@@ -674,7 +677,7 @@ WHERE
  
  $self->{REST}=\%rest;
   
-  return 1;
+ return 1;
 }
 
 #**********************************************************
