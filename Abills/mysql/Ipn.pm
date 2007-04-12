@@ -1559,15 +1559,10 @@ sub prepaid_rest {
 	my ($attr) = @_;
   my $info = $attr->{INFO};
 
-
-  #print $info->{INFO_LIST}->[0]->[3];
- 
-
  $self->query($db, "SELECT l.traffic_class, (sum(l.traffic_in) + sum(l.traffic_out)) / 1048576
    from ipn_log l
    WHERE l.uid='$attr->{UID}' and DATE_FORMAT(start, '%Y-%m-%d')>='$info->[0]->[3]'
    GROUP BY l.traffic_class, l.uid ;");
-  #
   
  my %traffic = ();
  foreach my $line (@{ $self->{list} }) {

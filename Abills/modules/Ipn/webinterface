@@ -151,7 +151,6 @@ else {
 if ($sessions->prepaid_rest({ UID => $LIST_PARAMS{UID}, INFO_ONLY => 1 })) {
 	#Prepaid: period, traffic_type
   
-  $Ipn->{debug}=1;
   my $list = $Ipn->prepaid_rest({ UID  => $LIST_PARAMS{UID}, 
   	                              INFO => $sessions->{INFO_LIST} });
 
