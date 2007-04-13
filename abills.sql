@@ -567,6 +567,8 @@ CREATE TABLE `tarif_plans` (
   `uplimit` double(14,2) NOT NULL default '0.00',
   `name` varchar(40) NOT NULL default '',
   `day_fee` double(14,2) unsigned NOT NULL default '0.00',
+  `reduction_fee` tinyint(1) unsigned NOT NULL default '0',
+  `postpaid_fee` tinyint(1) unsigned NOT NULL default '0',
   `logins` tinyint(4) NOT NULL default '0',
   `day_time_limit` int(10) unsigned NOT NULL default '0',
   `week_time_limit` int(10) unsigned NOT NULL default '0',
@@ -620,6 +622,7 @@ CREATE TABLE `trafic_tarifs` (
   `interval_id` smallint(6) unsigned NOT NULL default '0',
   `rad_pairs` text NOT NULL,
   `out_speed` int(10) unsigned NOT NULL default '0',
+  `expression` varchar(255) NOT NULL default '',
   UNIQUE KEY `id` (`id`,`interval_id`)
 ) ;
 
