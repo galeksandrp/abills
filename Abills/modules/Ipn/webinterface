@@ -50,10 +50,44 @@ $CHART{SUFFIX}='b';
 my $graph_type='';
 #Day reposrt
 if (defined($FORM{DATE})) {
-
    $LIST_PARAMS{INTERVAL_TYPE} = 2;
    $graph_type='day_stats';
-   
+}
+else {
+	if ($sessions->prepaid_rest({ UID => $LIST_PARAMS{UID}, INFO_ONLY => 1 })) {
+	#Prepaid: period, traffic_type
+  
+  my $list = $Ipn->prepaid_rest({ UID  => $LIST_PARAMS{UID}, 
+  	                              INFO => $sessions->{INFO_LIST} });
+
+
+
+
+  my $table = $html->table( { caption     => "$_PREPAID",
+	                          width       => '100%',
+                            title_plain => ["$_TRAFF $_TYPE", "$_BEGIN", "$_END", "$_START", "$_TOTAL (MB)", "$_REST (MB)", "$_OVERQUOTA (MB)"],
+                            cols_align  => ['left', 'right', 'right', 'right', 'right', 'right', 'right'],
+                            rowcolor    => $_COLORS[1]
+                           } );
+	
+	foreach my $line  (@$list) {
+	  $table->addrow($line->[0], 
+      $line->[1], 
+      $line->[2], 
+      $line->[3], 
+      $line->[4],
+      ($Ipn->{TRAFFIC}->{$line->[0]} && $line->[4] - $Ipn->{TRAFFIC}->{$line->[0]} > 0) ? $line->[4] - $Ipn->{TRAFFIC}->{$line->[0]} : 0,
+      ($Ipn->{TRAFFIC}->{$line->[0]} && $line->[4] - $Ipn->{TRAFFIC}->{$line->[0]} < 0) ? abs($line->[4] - $Ipn->{TRAFFIC}->{$line->[0]}) : 0
+     );
+   }
+
+  print $table->show();	 
+}
+	
+	
+}
+
+  
    my $list = $Ipn->reports_users({ %LIST_PARAMS });
    #Used Fraffic
    $table_sessions = $html->table( { width      => '100%',
@@ -68,7 +102,8 @@ if (defined($FORM{DATE})) {
     foreach my $line (@$list) {
        push  @{ $report{"$line->[0]"} }, [ @$line ];
      }
-    
+
+    my $num = 0;
     foreach my $k ( sort %report) {  
       my $v=$report{$k};
       
@@ -80,9 +115,14 @@ if (defined($FORM{DATE})) {
       my $user_total_in=0;
       my $user_total_out=0;
       my $user_traffic_sum=0;
+      
+      my $period = $stats_array[0][0];
+      if (! $FORM{DATE}) {
+      	$period = $html->button($stats_array[0][0], "index=$index&$type=$stats_array[0][0]$pages_qs");
+       }
 
       $table_sessions->addtd(
-                  $table->td($stats_array[0][0], { rowspan => ($#stats_array > 0) ? $#stats_array+2 : 2 } ),
+                  $table->td($period, { rowspan => ($#stats_array > 0) ? $#stats_array+2 : 2 } ),
                   $table->td($stats_array[0][1], { bgcolor => $TT_COLORS[$stats_array[0][1]] }), 
                   $table->td($stats_array[0][2], { bgcolor => $TT_COLORS[$stats_array[0][1]] }), 
                   $table->td(int2byte($stats_array[0][3]), { bgcolor => $TT_COLORS[$stats_array[0][1]] }), 
@@ -118,7 +158,8 @@ if (defined($FORM{DATE})) {
           $user_traffic_sum+=$stats_array[$i][3]+$stats_array[$i][4];
           $user_sum+=$stats_array[$i][5];
      }
-
+     
+     #Sub totals
      $table_sessions->{rowcolor}=$_COLORS[3];
      $table_sessions->addtd("<th colspan='2'>$_TOTAL:</th>", 
         "<th>". int2byte($user_total_in) ."</th>",
@@ -126,106 +167,137 @@ if (defined($FORM{DATE})) {
         "<th>". int2byte($user_traffic_sum). "</th>",
         "<th>". $user_sum . "</th>" );
 
-
+    #Bottom total
     $totals{SUM}+=$user_sum;
     $totals{TRAFFIC_IN}+=$user_total_in;
     $totals{TRAFFIC_OUT}+=$user_total_out;
-    
-    my($date, $h)=split(/ /, $stats_array[0][0], 2);
-
-    $h++;
-    $AVG{MONEY}        = $user_sum if ($AVG{TRAFFIC_IN} < $user_sum);
-    #$AVG{TRAFFIC_IN}   = $user_total_in if ($AVG{TRAFFIC_IN} < $user_total_in);
-    #$AVG{TRAFFIC_OUT}  = $user_total_out if ($AVG{TRAFFIC_OUT} < $user_total_out);
-
-    
-    $DATA_HASH{TRAFFIC_IN}[$h]=int($user_total_in / 3600) ;
-    $DATA_HASH{TRAFFIC_OUT}[$h]=int($user_total_out / 3600) ;
- 
-    $DATA_HASH{MONEY}[$h]=$user_sum;
-   }
-  @type = ('area', 'area', 'line');
- }
-else {
-#Show rest of prepaid traffic
-if ($sessions->prepaid_rest({ UID => $LIST_PARAMS{UID}, INFO_ONLY => 1 })) {
-	#Prepaid: period, traffic_type
-  
-  my $list = $Ipn->prepaid_rest({ UID  => $LIST_PARAMS{UID}, 
-  	                              INFO => $sessions->{INFO_LIST} });
 
 
 
-
-  my $table = $html->table( { caption     => "$_PREPAID",
-	                          width       => '100%',
-                            title_plain => ["$_TRAFF $_TYPE", "$_BEGIN", "$_END", "$_START", "$_TOTAL (MB)", "$_REST (MB)", "$_OVERQUOTA (MB)"],
-                            cols_align  => ['left', 'right', 'right', 'right', 'right', 'right', 'right'],
-                            rowcolor    => $_COLORS[1]
-                           } );
-	
-	foreach my $line  (@$list) {
-	  $table->addrow($line->[0], 
-      $line->[1], 
-      $line->[2], 
-      $line->[3], 
-      $line->[4],
-      ($Ipn->{TRAFFIC}->{$line->[0]} && $line->[4] - $Ipn->{TRAFFIC}->{$line->[0]} > 0) ? $line->[4] - $Ipn->{TRAFFIC}->{$line->[0]} : 0,
-      ($Ipn->{TRAFFIC}->{$line->[0]} && $line->[4] - $Ipn->{TRAFFIC}->{$line->[0]} < 0) ? abs($line->[4] - $Ipn->{TRAFFIC}->{$line->[0]}) : 0
-     );
-   }
-
-  print $table->show();	 
-}
-
-
-
-  #Used Traffic
-  $table_sessions = $html->table( { width      => '100%',
-	                                  caption    => "$_SESSIONS", 
-                                    title      => ["$_DATE", "IN", "OUT", "$_TOTAL",  $_SUM ],
-                                    cols_align => ['right', 'right', 'right', 'right', 'right', 'right'],
-                                    qs         => $pages_qs             
-                               } );
-
-  $LIST_PARAMS{INTERVAL_TYPE}=3;
-  my $list = $Ipn->reports_users({ %LIST_PARAMS });
-  $graph_type='month_stats';
-  
-  my $num = 0;
-
-  foreach my $line (@$list) {
-    $table_sessions->addrow($html->button($line->[0], "index=$index&$type=$line->[0]$pages_qs"), 
-       int2byte($line->[1]), 
-       int2byte($line->[2]),
-       int2byte($line->[1]+$line->[2]),
-       $line->[3]
-      );
+    if ($FORM{DATE}) {
    
-      $AVG{MONEY}    = $line->[3] if ($AVG{MONEY} < $line->[3]);
+      my($date, $h)=split(/ /, $stats_array[0][0], 2);
+
+      $h++;
+      #$AVG{TRAFFIC_IN}   = $user_total_in if ($AVG{TRAFFIC_IN} < $user_total_in);
+      #$AVG{TRAFFIC_OUT}  = $user_total_out if ($AVG{TRAFFIC_OUT} < $user_total_out);
+ 
+      $DATA_HASH{TRAFFIC_IN}[$h]=int($user_total_in / 3600) ;
+      $DATA_HASH{TRAFFIC_OUT}[$h]=int($user_total_out / 3600) ;
+ 
+      $DATA_HASH{MONEY}[$h]=$user_sum;
+      @type = ('area', 'area', 'line');
+     }
+    else {
       #$AVG{TRAFFIC_IN}  = $line->[1] if ($AVG{TRAFFIC_IN} < $line->[1]);
       #$AVG{TRAFFIC_OUT}  = $line->[2] if ($AVG{TRAFFIC_OUT} < $line->[2]);
 
-      if ($line->[0] =~ /(\d+)-(\d+)-(\d+)/) {
+      if ($stats_array[0][0] =~ /(\d+)-(\d+)-(\d+)/) {
       	 $num = $3;
         }
-      elsif ($line->[0] =~ /(\d+)-(\d+)/) {
-      	 $CHART{X_LINE}[$num]=$line->[0];
+      elsif ($stats_array[0][0] =~ /(\d+)-(\d+)/) {
+      	 $CHART{X_LINE}[$num]=$stats_array[0][0];
       	 $num++;
        }
 
-      $DATA_HASH{TRAFFIC_IN}[$num]=int($line->[1] / (3600 * 24));
-      $DATA_HASH{TRAFFIC_OUT}[$num]=int($line->[2]/ (3600 * 24));
-      $DATA_HASH{MONEY}[$num]=$line->[3];
 
-      $totals{TRAFFIC_IN}  += $line->[1];   
-      $totals{TRAFFIC_OUT} += $line->[2]; 
-      $totals{SUM}     += $line->[3];
-   }
 
-  #@type = ('column', 'column', 'line');
-  @type = ('area', 'area', 'line');
-}
+      $DATA_HASH{TRAFFIC_IN}[$num]=int($user_total_in / (3600 * 24));
+      $DATA_HASH{TRAFFIC_OUT}[$num]=int($user_total_out / (3600 * 24));
+      $DATA_HASH{MONEY}[$num]=$user_sum;
+
+#      print $num."// $DATA_HASH{TRAFFIC_IN}[$num] / $DATA_HASH{TRAFFIC_OUT}[$num] /  $DATA_HASH{MONEY}[$num]<br>";
+      
+      @type = ('area', 'area', 'line');
+     }
+
+    $AVG{MONEY}        = $user_sum if ($AVG{TRAFFIC_IN} < $user_sum);
+    
+ }
+ 
+ 
+# }
+
+#else {
+##Show rest of prepaid traffic
+#if ($sessions->prepaid_rest({ UID => $LIST_PARAMS{UID}, INFO_ONLY => 1 })) {
+#	#Prepaid: period, traffic_type
+#  
+#  my $list = $Ipn->prepaid_rest({ UID  => $LIST_PARAMS{UID}, 
+#  	                              INFO => $sessions->{INFO_LIST} });
+#
+#
+#
+#
+#  my $table = $html->table( { caption     => "$_PREPAID",
+#	                          width       => '100%',
+#                            title_plain => ["$_TRAFF $_TYPE", "$_BEGIN", "$_END", "$_START", "$_TOTAL (MB)", "$_REST (MB)", "$_OVERQUOTA (MB)"],
+#                            cols_align  => ['left', 'right', 'right', 'right', 'right', 'right', 'right'],
+#                            rowcolor    => $_COLORS[1]
+#                           } );
+#	
+#	foreach my $line  (@$list) {
+#	  $table->addrow($line->[0], 
+#      $line->[1], 
+#      $line->[2], 
+#      $line->[3], 
+#      $line->[4],
+#      ($Ipn->{TRAFFIC}->{$line->[0]} && $line->[4] - $Ipn->{TRAFFIC}->{$line->[0]} > 0) ? $line->[4] - $Ipn->{TRAFFIC}->{$line->[0]} : 0,
+#      ($Ipn->{TRAFFIC}->{$line->[0]} && $line->[4] - $Ipn->{TRAFFIC}->{$line->[0]} < 0) ? abs($line->[4] - $Ipn->{TRAFFIC}->{$line->[0]}) : 0
+#     );
+#   }
+#
+#  print $table->show();	 
+#}
+#
+#
+#
+#  #Used Traffic
+#  $table_sessions = $html->table( { width      => '100%',
+#	                                  caption    => "$_SESSIONS", 
+#                                    title      => ["$_DATE", "TT", "$_NAME", "IN", "OUT", "$_TOTAL",  $_SUM ],
+#                                    cols_align => ['right', 'rigth', 'left', 'right', 'right', 'right', 'right', 'right'],
+#                                    qs         => $pages_qs             
+#                               } );
+#
+#  $LIST_PARAMS{INTERVAL_TYPE}=3;
+#  my $list = $Ipn->reports_users({ %LIST_PARAMS });
+#  $graph_type='month_stats';
+#  
+#  my $num = 0;
+#
+#  foreach my $line (@$list) {
+#    $table_sessions->addrow($html->button($line->[0], "index=$index&$type=$line->[0]$pages_qs"), 
+#       int2byte($line->[1]), 
+#       int2byte($line->[2]),
+#       int2byte($line->[1]+$line->[2]),
+#       $line->[3]
+#      );
+#   
+#      $AVG{MONEY}    = $line->[3] if ($AVG{MONEY} < $line->[3]);
+#      #$AVG{TRAFFIC_IN}  = $line->[1] if ($AVG{TRAFFIC_IN} < $line->[1]);
+#      #$AVG{TRAFFIC_OUT}  = $line->[2] if ($AVG{TRAFFIC_OUT} < $line->[2]);
+#
+#      if ($line->[0] =~ /(\d+)-(\d+)-(\d+)/) {
+#      	 $num = $3;
+#        }
+#      elsif ($line->[0] =~ /(\d+)-(\d+)/) {
+#      	 $CHART{X_LINE}[$num]=$line->[0];
+#      	 $num++;
+#       }
+#
+#      $DATA_HASH{TRAFFIC_IN}[$num]=int($line->[1] / (3600 * 24));
+#      $DATA_HASH{TRAFFIC_OUT}[$num]=int($line->[2]/ (3600 * 24));
+#      $DATA_HASH{MONEY}[$num]=$line->[3];
+#
+#      $totals{TRAFFIC_IN}  += $line->[1];   
+#      $totals{TRAFFIC_OUT} += $line->[2]; 
+#      $totals{SUM}     += $line->[3];
+#   }
+#
+#  #@type = ('column', 'column', 'line');
+#  @type = ('area', 'area', 'line');
+#}
 
 
 $table = $html->table( { width => '100%',
@@ -691,7 +763,7 @@ else {
       );
    
       $AVG{MONEY}      = $line->[4] if ($AVG{MONEY} < $line->[4]);
-      #$AVG{TRAFFIC_IN}  = $line->[2] if ($AVG{TRAFFIC_IN} < $line->[2]);
+      #$AVG{TRAFFIC_IN}  = $line->[2] if ($AVG{TRAFF->[2] if ($AVG{TRAFF->[2] if ($AVG{TRAFF->[2] if ($AVG{TRAFF->[2] if ($AVG{TRAFF->[2] if ($AVG{TRAFF->[2] if ($AVG{TRAFF->[2] if ($AVG{TRAFF->[2] if ($AVG{TRAFFIC_IN} < $line->[2]);
       #$AVG{TRAFFIC_OUT} = $line->[3] if ($AVG{TRAFFIC_OUT} < $line->[3]);
       $AVG{USERS}      = $line->[1] if ($AVG{USERS} < $line->[1]);
 
@@ -703,7 +775,6 @@ else {
       	 $CHART{X_LINE}[$num]=$line->[0];
       	 $num++;
        }
-      
 
       $DATA_HASH2{USERS}[$num]=$line->[1];
       $DATA_HASH2{MONEY}[$num]=$line->[4];
