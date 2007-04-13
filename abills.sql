@@ -50,24 +50,23 @@ CREATE TABLE `bills` (
 ) ;
 
 # --------------------------------------------------------
-
 #
 # Структура таблиці `dv_calls`
 #
 
 CREATE TABLE `dv_calls` (
-  `status` int(3) default NULL,
-  `user_name` varchar(32) default NULL,
+  `status` int(3) NOT NULL default '0',
+  `user_name` varchar(32) NOT NULL default '',
   `started` datetime NOT NULL default '0000-00-00 00:00:00',
   `nas_ip_address` int(11) unsigned NOT NULL default '0',
-  `nas_port_id` int(6) unsigned default NULL,
+  `nas_port_id` int(6) unsigned NOT NULL default '0',
   `acct_session_id` varchar(25) NOT NULL default '',
   `acct_session_time` int(11) unsigned NOT NULL default '0',
   `acct_input_octets` int(11) unsigned NOT NULL default '0',
   `acct_output_octets` int(11) unsigned NOT NULL default '0',
   `ex_input_octets` int(11) unsigned NOT NULL default '0',
   `ex_output_octets` int(11) unsigned NOT NULL default '0',
-  `connect_term_reason` int(4) NOT NULL default '0',
+  `connect_term_reason` int(4) unsigned NOT NULL default '0',
   `framed_ip_address` int(11) unsigned NOT NULL default '0',
   `lupdated` int(11) unsigned NOT NULL default '0',
   `sum` double(14,6) NOT NULL default '0.000000',
@@ -75,9 +74,9 @@ CREATE TABLE `dv_calls` (
   `CONNECT_INFO` varchar(20) NOT NULL default '',
   `tp_id` smallint(5) unsigned NOT NULL default '0',
   `nas_id` smallint(6) unsigned NOT NULL default '0',
-  KEY `user_name` (`user_name`)
-) ;
-
+  KEY `user_name` (`user_name`),
+  KEY `acct_session_id` (`acct_session_id`)
+);
 
 
 CREATE TABLE `dv_log_intervals` (
@@ -415,7 +414,8 @@ CREATE TABLE `msgs_chapters` (
   PRIMARY KEY  (`id`),
   UNIQUE KEY `id` (`id`),
   UNIQUE KEY `name` (`name`)
-);
+) COMMENT='Msgs chapters';
+
 
 CREATE TABLE `msgs_messages` (
   `id` int(11) unsigned NOT NULL auto_increment,
@@ -432,7 +432,7 @@ CREATE TABLE `msgs_messages` (
   `gid` smallint(4) unsigned NOT NULL default '0',
   PRIMARY KEY  (`id`),
   KEY `uid` (`uid`)
-);
+) COMMENT='Msgs messages';
 
 CREATE TABLE `nas` (
   `id` smallint(5) unsigned NOT NULL auto_increment,
@@ -449,7 +449,7 @@ CREATE TABLE `nas` (
   `alive` smallint(6) unsigned NOT NULL default '0',
   `disable` tinyint(6) unsigned NOT NULL default '0',
   PRIMARY KEY  (`id`)
-)  ;
+) COMMENT='Nas servers list';
 
 # --------------------------------------------------------
 

@@ -510,6 +510,8 @@ return qq{
 <tr><td colspan='2'>$_DISABLE:</td><td><input type='checkbox' name='DISABLE' value='1'/></td></tr>
 <tr><td colspan='2'>$_CONTRACT_ID (*):</td><td><input type='text' name='CONTRACT_ID' value='%CONTRACT_ID%'/></td></tr>
 <tr><td colspan='2'>$_REGISTRATION (<>):</td><td><input type='text' name='REGISTRATION' value='%REGISTRATION%'/></td></tr>
+<tr><td colspan='2'>$_ACTIVATE (<>):</td><td><input type='text' name='ACTIVATE' value='%ACTIVATE%'/></td></tr>
+<tr><td colspan='2'>$_EXPIRE (<>):</td><td><input type='text' name='EXPIRE' value='%EXPIRE%'/></td></tr>
 </table>
 </td></tr>
 

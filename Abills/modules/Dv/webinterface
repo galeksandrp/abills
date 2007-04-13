@@ -767,7 +767,8 @@ foreach my $nas_row (@$nas_list) {
                            "CID: $line->[$#ACTIVE_FIELDS+14]\n".
                            "CONNECT_INFO: \n".
                            "UPDATES: $line->[$#ACTIVE_FIELDS+8]";
-    	  	$value = "<acronym title='$user_info'>".$html->button($line->[0], "index=11&UID=$line->[$#ACTIVE_FIELDS+3]")."</acronym>";
+
+    	  	$value = "<acronym title='$user_info'>".$html->button($line->[0], "index=15&UID=$line->[$#ACTIVE_FIELDS+3]")."</acronym>";
           #Dublicate logins
  	  	    if (defined($dub_logins->{$line->[0]}) && $dub_logins->{$line->[0]} > 1) { $table->{rowcolor}='#FFFF00'; }
     	   }	
@@ -1406,9 +1407,20 @@ if (! $LIST_PARAMS{UID} && $FORM{LOGIN_EXPR}) {
   my $list = $users->list( { LOGIN_EXPR => $FORM{LOGIN_EXPR} } );
   if ($users->{TOTAL} == 1) {
 	  $LIST_PARAMS{UID}=$list->[0]->[5+$users->{SEARCH_FIELDS_COUNT}];
+	  $FORM{UID}=$LIST_PARAMS{UID};
+	  $UID = $LIST_PARAMS{UID};
+	  $LIST_PARAMS{ACTIVATE}=$list->[0]->[8+$users->{SEARCH_FIELDS_COUNT}];
    }
+  else {
+  	$html->message('err', $_ERROR, "'$FORM{LOGIN_EXPR}' $_NOT_EXIST");
+  	return 0;
+   }
+
   $pages_qs .= "&UID=$LIST_PARAMS{UID}";
 }
+
+
+
 
 my $list = $sessions->periods_totals({ %LIST_PARAMS });
 my $table = $html->table( { caption     => "$_PERIOD",
@@ -1418,12 +1430,14 @@ my $table = $html->table( { caption     => "$_PERIOD",
                             rowcolor    => $_COLORS[1]
                            } );
 for(my $i = 0; $i < 5; $i++) {
-	  $table->addrow($html->button("$PERIODS[$i]", "index=$index&PERIOD=$i$pages_qs"), 
+	$table->addrow($html->button("$PERIODS[$i]", "index=$index&PERIOD=$i$pages_qs"), 
 	  "$sessions->{'duration_'. $i}",
 	  int2byte($sessions->{'sent_'. $i}), 
 	  int2byte($sessions->{'recv_'. $i}), 
-	  int2byte($sessions->{'sum_'. $i}));
+	  int2byte($sessions->{'sum_'. $i})
+	 );
  }
+
 print $table->show();
 
 
@@ -1465,6 +1479,35 @@ elsif($FORM{DATE}) {
 	$LIST_PARAMS{DATE} = $FORM{DATE}; 
 	$pages_qs .= "&DATE=$FORM{DATE}";
 }
+
+#Show rest of prepaid traffic
+if ($sessions->prepaid_rest({ UID => $LIST_PARAMS{UID} })) {
+	#Prepaid: period, traffic_type
+  
+
+  my $list = $sessions->{INFO_LIST};
+
+  my $table = $html->table( { caption     => "$_PREPAID",
+	                          width       => '100%',
+                            title_plain => ["$_TRAFF $_TYPE", "$_BEGIN", "$_END", "$_START", "$_TOTAL (MB)", "$_REST (MB)", "$_OVERQUOTA (MB)"],
+                            cols_align  => ['left', 'right', 'right', 'right', 'right', 'right', 'right'],
+                            rowcolor    => $_COLORS[1]
+                           } );
+	
+	foreach my $line  (@$list) {
+	  $table->addrow($line->[0], 
+      $line->[1], 
+      $line->[2], 
+      $line->[3], 
+      $line->[4],
+      ($sessions->{REST}->{$line->[0]} > 0) ? $sessions->{REST}->{$line->[0]} : 0,
+      ($sessions->{REST}->{$line->[0]} < 0) ? abs($sessions->{REST}->{$line->[0]}) : 0
+     );
+   }
+
+  print $table->show();	 
+}
+
 
 
 $pages_qs .= "&DIMENSION=$FORM{DIMENSION}"  if ($FORM{DIMENSION});
@@ -1551,6 +1594,7 @@ if ($FORM{rows}) {
 
 my $list = $sessions->online( { USER_NAME => $LIST_PARAMS{LOGIN}, 
 	                              FIELDS    => [0, 3, 9, 4, 5, 6 ] } );
+
 if ($sessions->{TOTAL} > 0) {
   my $table = $html->table( { caption     => "Online",
 	                            width       => '100%',
@@ -1558,6 +1602,7 @@ if ($sessions->{TOTAL} > 0) {
                               cols_align  => ['left', 'right', 'right', 'right', 'right', 'right' ],
                               rowcolor    => $_COLORS[1]
                             } );
+
   foreach my $line (@$list) {
     $table->addrow($line->[0], 
                    int2ip($line->[1]), 
@@ -1579,6 +1624,7 @@ my $table = $html->table( { caption     => "$_PERIOD",
                             cols_align  => ['left', 'right', 'right', 'right', 'right'],
                             rowcolor    => $_COLORS[1]
                           } );
+
 for(my $i = 0; $i < 5; $i++) {
 	  $table->addrow($html->button("$PERIODS[$i]", "index=$index&PERIOD=$i$pages_qs"), "$sessions->{'duration_'. $i}",
 	  int2byte($sessions->{'sent_'. $i}), int2byte($sessions->{'recv_'. $i}), int2byte($sessions->{'sum_'. $i}));
@@ -1598,7 +1644,7 @@ $table = $html->table({ width       => '100%',
                               	                             ),
                                          "$_ROWS: ", $html->form_input('rows', int($conf{list_max_recs}), { SIZE => 4, OUTPUT2RETURN => 1 } ),
                                          $html->form_input('show', $_SHOW, { TYPE => 'submit', OUTPUT2RETURN => 1 })
-                                    ],                                   
+                                        ],                                   
                         } );
 
 
@@ -1629,6 +1675,35 @@ elsif (defined($FORM{PERIOD})) {
 	$LIST_PARAMS{PERIOD} = int($FORM{PERIOD}); 
 	$pages_qs .= "&PERIOD=$FORM{PERIOD}";
 }
+
+#Show rest of prepaid traffic
+if ($sessions->prepaid_rest({ UID => $LIST_PARAMS{UID} })) {
+	#Prepaid: period, traffic_type
+  
+
+  my $list = $sessions->{INFO_LIST};
+
+  my $table = $html->table( { caption     => "$_PREPAID",
+	                          width       => '100%',
+                            title_plain => ["$_TRAFF $_TYPE", "$_BEGIN", "$_END", "$_START", "$_TOTAL (MB)", "$_REST (MB)", "$_OVERQUOTA (MB)"],
+                            cols_align  => ['left', 'right', 'right', 'right', 'right', 'right', 'right'],
+                            rowcolor    => $_COLORS[1]
+                           } );
+	
+	foreach my $line  (@$list) {
+	  $table->addrow($line->[0], 
+      $line->[1], 
+      $line->[2], 
+      $line->[3], 
+      $line->[4],
+      ($sessions->{REST}->{$line->[0]} > 0) ? $sessions->{REST}->{$line->[0]} : 0,
+      ($sessions->{REST}->{$line->[0]} < 0) ? abs($sessions->{REST}->{$line->[0]}) : 0
+     );
+   }
+
+  print $table->show();	 
+}
+
 
 $pages_qs .= "&DIMENSION=$FORM{DIMENSION}"  if ($FORM{DIMENSION});
 
