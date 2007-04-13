@@ -55,35 +55,35 @@ if (defined($FORM{DATE})) {
 }
 else {
 	if ($sessions->prepaid_rest({ UID => $LIST_PARAMS{UID}, INFO_ONLY => 1 })) {
-	#Prepaid: period, traffic_type
+	  #Prepaid: period, traffic_type
   
-  my $list = $Ipn->prepaid_rest({ UID  => $LIST_PARAMS{UID}, 
+    my $list = $Ipn->prepaid_rest({ UID  => $LIST_PARAMS{UID}, 
   	                              INFO => $sessions->{INFO_LIST} });
 
 
 
 
-  my $table = $html->table( { caption     => "$_PREPAID",
+    my $table = $html->table( { caption     => "$_PREPAID",
 	                          width       => '100%',
                             title_plain => ["$_TRAFF $_TYPE", "$_BEGIN", "$_END", "$_START", "$_TOTAL (MB)", "$_REST (MB)", "$_OVERQUOTA (MB)"],
                             cols_align  => ['left', 'right', 'right', 'right', 'right', 'right', 'right'],
                             rowcolor    => $_COLORS[1]
                            } );
 	
-	foreach my $line  (@$list) {
-	  $table->addrow($line->[0], 
-      $line->[1], 
-      $line->[2], 
-      $line->[3], 
-      $line->[4],
-      ($Ipn->{TRAFFIC}->{$line->[0]} && $line->[4] - $Ipn->{TRAFFIC}->{$line->[0]} > 0) ? $line->[4] - $Ipn->{TRAFFIC}->{$line->[0]} : 0,
-      ($Ipn->{TRAFFIC}->{$line->[0]} && $line->[4] - $Ipn->{TRAFFIC}->{$line->[0]} < 0) ? abs($line->[4] - $Ipn->{TRAFFIC}->{$line->[0]}) : 0
-     );
-   }
-
-  print $table->show();	 
-}
+ 	  foreach my $line  (@$list) {
+	     $table->addrow($line->[0], 
+         $line->[1], 
+         $line->[2], 
+         $line->[3], 
+         $line->[4],
+         ($Ipn->{TRAFFIC}->{$line->[0]} && $line->[4] - $Ipn->{TRAFFIC}->{$line->[0]} > 0) ? $line->[4] - $Ipn->{TRAFFIC}->{$line->[0]} : 0,
+         ($Ipn->{TRAFFIC}->{$line->[0]} && $line->[4] - $Ipn->{TRAFFIC}->{$line->[0]} < 0) ? abs($line->[4] - $Ipn->{TRAFFIC}->{$line->[0]}) : 0
+         );
+     }
+    print $table->show();	 
+  }
 	
+	$graph_type='month_stats';
 	
 }
 
