@@ -411,7 +411,7 @@ sub snmputils_dlink_pb {
   my $debug_output = '';
   
 #Get nas servers TYPE: dlink_pb
-  my $list = $nas->list({ PAGE_ROWS => 10000, TYPE => dlink_pb, DISABLE => 0 });
+  my $list = $nas->list({ PAGE_ROWS => 100000, TYPE => dlink_pb, DISABLE => 0 });
   foreach my $line (@$list) {
     $debug_output .= "NAS: $line->[0], $line->[9], $line->[11] $line->[12]\n" if ($debug > 1);
     #GET users for this NAS
@@ -2471,7 +2471,6 @@ sub snmputils_binding {
 #**********************************************************
 sub snmputils_binding_list {
 
-$Snmputils->{debug}=1;
 my $list = $Snmputils->snmputils_binding_list({ %LIST_PARAMS }); 
 
 $table = $html->table({ width       => '100%',
@@ -2508,7 +2507,7 @@ sub snmputils_get_users {
   my ($attr) = @_;
 
   my %user_hash = ();
-  my $list = $Snmputils->snmputils_binding_list({ IDS => $attr->{IDS} }); 
+  my $list = $Snmputils->snmputils_binding_list({ IDS => $attr->{IDS}, PAGE_ROWS => 100000  }); 
   foreach my $line (@$list) {
   	$user_hash{$line->[1]}="$line->[0]:$line->[5]";
    }
