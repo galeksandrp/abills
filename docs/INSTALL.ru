@@ -64,6 +64,7 @@
 
 
 
+
 =====MySQL=====
 Загрузить пакет MySQL можно по адресу [http://www.mysql.com]\\
 
@@ -79,7 +80,7 @@
 
   use mysql;
   INSERT INTO user (Host, User, Password) 
-    VALUES ('%','abills', password('sqlpassword'));
+    VALUES ('localhost','abills', password('sqlpassword'));
   
   INSERT INTO db (Host, Db, User, Select_priv, Insert_priv, Update_priv, 
     Delete_priv, Create_priv, Drop_priv, Index_priv, Alter_priv, 

@@ -74,6 +74,10 @@ CREATE TABLE `dv_calls` (
   `CONNECT_INFO` varchar(20) NOT NULL default '',
   `tp_id` smallint(5) unsigned NOT NULL default '0',
   `nas_id` smallint(6) unsigned NOT NULL default '0',
+  `acct_input_gigawords` smallint(4) unsigned NOT NULL default '0',
+  `acct_output_gigawords` smallint(4) unsigned NOT NULL default '0',
+  `ex_input_octets_gigawords` smallint(4) unsigned NOT NULL default '0',
+  `ex_output_octets_gigawords` smallint(4) unsigned NOT NULL default '0',
   KEY `user_name` (`user_name`),
   KEY `acct_session_id` (`acct_session_id`)
 );
@@ -326,6 +330,10 @@ CREATE TABLE `dv_log` (
   `bill_id` int(11) unsigned NOT NULL default '0',
   `uid` int(11) unsigned NOT NULL default '0',
   `terminate_cause` tinyint(4) unsigned NOT NULL default '0',
+  `acct_input_gigawords` smallint(4) unsigned NOT NULL default '0',
+  `acct_output_gigawords` smallint(4) unsigned NOT NULL default '0',
+  `ex_input_octets_gigawords` smallint(4) unsigned NOT NULL default '0',
+  `ex_output_octets_gigawords` smallint(4) unsigned NOT NULL default '0',
   KEY `uid` (`uid`,`start`)
 ) ;
 
