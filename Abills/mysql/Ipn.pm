@@ -1560,7 +1560,19 @@ sub prepaid_rest {
 	my ($attr) = @_;
   my $info = $attr->{INFO};
 
- $self->query($db, "SELECT l.traffic_class, (sum(l.traffic_in) + sum(l.traffic_out)) / 1048576
+ my $octets_direction = "l.traffic_in + l.traffic_out";
+ 
+ #Recv
+ if ($info->[0]->[5] == 1) {
+   $octets_direction = "l.traffic_in";
+  }
+ #sent
+ elsif ($info->[0]->[5] == 2) {
+   $octets_direction = "l.traffic_out";
+  }
+
+
+ $self->query($db, "SELECT l.traffic_class, (sum($octets_direction)) / 1048576
    from ipn_log l
    WHERE l.uid='$attr->{UID}' and DATE_FORMAT(start, '%Y-%m-%d')>='$info->[0]->[3]'
    GROUP BY l.traffic_class, l.uid ;");

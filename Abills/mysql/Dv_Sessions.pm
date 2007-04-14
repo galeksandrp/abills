@@ -610,8 +610,10 @@ sub prepaid_rest {
   $self->query($db, "select tt.id, i.begin, i.end, 
     if(u.activate<>'0000-00-00', u.activate, DATE_FORMAT(curdate(), '%Y-%m-01')), 
      tt.prepaid, 
-    u.id, u.uid, dv.tp_id, tp.name
-
+    u.id, tp.octets_direction, 
+    u.uid, 
+    dv.tp_id, 
+    tp.name
   from (users u,
         dv_main dv,
         tarif_plans tp,
@@ -646,12 +648,29 @@ WHERE
 
  return 1 if ($attr->{INFO_ONLY});
  
+ my $octets_direction = "sent + recv";
+ my $octets_direction2 = "sent2 + recv2";
+ my $octets_online_direction = "acct_input_octets + acct_output_octets";
+ my $octets_online_direction2 = "ex_input_octets + ex_output_octets";
+ 
+ if ($self->{INFO_LIST}->[0]->[5] == 1) {
+   $octets_direction = "recv";
+   $octets_direction2 = "recv2";
+   $octets_online_direction = "acct_input_octets";
+   $octets_online_direction2 = "ex_input_octets";
+  }
+ elsif ($self->{INFO_LIST}->[0]->[5] == 2) {
+   $octets_direction = "sent";
+   $octets_direction2 = "sent2";
+   $octets_online_direction = "acct_output_octets";
+   $octets_online_direction2 = "ex_output_octets";
+  }
  
  #Check sessions
  #Get using traffic
  $self->query($db, "select 
-  $rest{0} - sum(sent + recv) / 1048576,
-  $rest{1} - sum(sent2 +  recv2) / 1048576
+  $rest{0} - sum($octets_direction) / 1048576,
+  $rest{1} - sum($octets_direction2) / 1048576
  FROM dv_log
  WHERE uid='$attr->{UID}' and DATE_FORMAT(start, '%Y-%m-%d')>='$self->{INFO_LIST}->[0]->[3]'
  GROUP BY uid
@@ -665,8 +684,8 @@ WHERE
 
  #Check online
  $self->query($db, "select 
-  $rest{0} - sum(acct_input_octets + acct_output_octets) / 1048576,
-  $rest{1} - sum(ex_input_octets + ex_output_octets) / 1048576
+  $rest{0} - sum($octets_online_direction) / 1048576,
+  $rest{1} - sum($octets_online_direction2) / 1048576
  FROM dv_calls
  WHERE user_name='$login' 
  GROUP BY user_name ;");
