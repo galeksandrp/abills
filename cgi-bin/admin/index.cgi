@@ -2646,8 +2646,9 @@ if ($attr->{PERIOD_FORM}) {
   
   print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }).$FIELDS,
 	                         HIDDEN  => { 
-	                                     ($attr->{HIDDEN}) ? %{ $attr->{HIDDEN} } : undef,
-	                                     index => "$index"
+	                                     
+	                                     'index' => "$index",
+	                                     ($attr->{HIDDEN}) ? %{ $attr->{HIDDEN} } : undef
 	                                    }});
 
   if (defined($FORM{show})) {
