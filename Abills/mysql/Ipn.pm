@@ -1562,12 +1562,13 @@ sub prepaid_rest {
 
  my $octets_direction = "l.traffic_in + l.traffic_out";
  
+ 
  #Recv
- if ($info->[0]->[5] == 1) {
+ if ($info->[0]->[6] == 1) {
    $octets_direction = "l.traffic_in";
   }
  #sent
- elsif ($info->[0]->[5] == 2) {
+ elsif ($info->[0]->[6] == 2) {
    $octets_direction = "l.traffic_out";
   }
 

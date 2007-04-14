@@ -653,13 +653,13 @@ WHERE
  my $octets_online_direction = "acct_input_octets + acct_output_octets";
  my $octets_online_direction2 = "ex_input_octets + ex_output_octets";
  
- if ($self->{INFO_LIST}->[0]->[5] == 1) {
+ if ($self->{INFO_LIST}->[0]->[6] == 1) {
    $octets_direction = "recv";
    $octets_direction2 = "recv2";
    $octets_online_direction = "acct_input_octets";
    $octets_online_direction2 = "ex_input_octets";
   }
- elsif ($self->{INFO_LIST}->[0]->[5] == 2) {
+ elsif ($self->{INFO_LIST}->[0]->[6] == 2) {
    $octets_direction = "sent";
    $octets_direction2 = "sent2";
    $octets_online_direction = "acct_output_octets";
