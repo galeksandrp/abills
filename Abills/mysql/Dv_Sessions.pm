@@ -657,9 +657,11 @@ WHERE
  GROUP BY uid
  ;");
 
- ($rest{0}, 
-  $rest{1} 
-  ) =  @{ $self->{list}->[0] };
+ if ($self->{TOTAL} > 0) {
+   ($rest{0}, 
+    $rest{1} 
+    ) =  @{ $self->{list}->[0] };
+  }
 
  #Check online
  $self->query($db, "select 
