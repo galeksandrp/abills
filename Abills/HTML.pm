@@ -982,6 +982,20 @@ sub addtd {
 }
 
 
+
+
+#*******************************************************************
+# Extendet add rows
+# td()
+#
+#*******************************************************************
+sub th {
+	my $self = shift;
+	my ($value, $attr) = @_;
+	
+	return $self->td($value, { TH => 1, ($attr) ? %$attr : undef  } );
+}
+
 #*******************************************************************
 # Extendet add rows
 # td()
@@ -995,8 +1009,14 @@ sub td {
   while(my($k, $v)=each %$attr ) {
     $extra.=" $k=$v";
    }
+  my $td = '';
 
-  my $td = "<TD $extra>$value</TD>";
+  if ($attr->{TH}) {
+  	$td = "<TH $extra>$value</TH>";
+   }
+  else {
+    $td = "<TD $extra>$value</TD>";
+   }
 
   return $td;
 }
