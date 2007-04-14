@@ -202,7 +202,6 @@ else {
       $DATA_HASH{TRAFFIC_IN}[$num]=int($user_total_in / (3600 * 24));
       $DATA_HASH{TRAFFIC_OUT}[$num]=int($user_total_out / (3600 * 24));
       $DATA_HASH{MONEY}[$num]=$user_sum;
-#      print $num."// $DATA_HASH{TRAFFIC_IN}[$num] / $DATA_HASH{TRAFFIC_OUT}[$num] /  $DATA_HASH{MONEY}[$num]<br>";
      }
 
     $AVG{MONEY}        = $user_sum if ($AVG{TRAFFIC_IN} < $user_sum);
@@ -217,7 +216,6 @@ $table = $html->table( { width      => '100%',
 	                       cols_align => ['right', 'right', 'right', 'right', 'right'],
                       } );
 
-
   foreach my $tt (  sort keys %{ $totals{IN} } ) {
  	  $table->addrow("$tt", 
  	                 int2byte($totals{IN}{$tt}),
@@ -225,7 +223,7 @@ $table = $html->table( { width      => '100%',
  	                 int2byte($totals{OUT}{$tt} + $totals{IN}{$tt}),
  	                 $totals{SUM}{$tt}
  	                );
-  }
+   }
 
 print $table_sessions->show() . $table->show();
 
@@ -289,15 +287,12 @@ if (! $list) {
    }
   $SEL_NAS .= "</select>\n";
 
-  form_search({ SEARCH_FORM =>  	
-  	"<tr><td colspan=2><hr></td></tr>
-     <tr><td>SUM (>,<)</td><td><input type=text name=SUM value='%SUM%'></td></tr>
-     <tr><td>IP (>,<)</td><td><input type=text name=IP value='%IP%'></td></tr>
-     <tr><td>CID</td><td><input type=text name=CID value='%CID%'></td></tr>
-     <tr><td>NAS</td><td>$SEL_NAS</td></tr>
-     <tr><td>NAS Port</td><td><input type=text name=NAS_PORT value='%NAS_PORT%'></td></tr>\n"
-  	
- });
+
+  form_search({ SEARCH_FORM => $html->tpl_show(_include('ipn_seassion_search', 'Ipn'), 
+  	                                  { %$Ipn, %FORM }, 
+  	                                  { notprint => 1 }) 
+ 	
+             });
 
   $list = $Ipn->list({ %LIST_PARAMS, %FORM });	
 }

@@ -1129,13 +1129,14 @@ sub reports_users {
  
  
 my $lupdate = ""; 
-my $GROUP = '1, 2';
+my $GROUP = '1';
 
  
  undef @WHERE_RULES;  
  if ($attr->{UID}) {
    push @WHERE_RULES, "l.uid='$attr->{UID}'"; 	
    $lupdate = " DATE_FORMAT(start, '%Y-%m-%d'), l.traffic_class, tt.descr,";
+   $GROUP = '1, 2';
   }
  else {
    $lupdate = " DATE_FORMAT(start, '%Y-%m-%d'), count(DISTINCT l.uid), ";
