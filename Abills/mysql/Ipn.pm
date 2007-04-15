@@ -111,7 +111,8 @@ sub user_ips {
       if(c.name IS NULL, b.deposit, cb.deposit)+u.credit,
       tp.payment_type,
       UNIX_TIMESTAMP() - calls.lupdated,
-      calls.nas_id
+      calls.nas_id,
+      tp.octets_direction
     FROM (dv_calls calls, users u)
       LEFT JOIN companies c ON (u.company_id=c.id)
       LEFT JOIN bills b ON (u.bill_id=b.id)
@@ -131,7 +132,8 @@ sub user_ips {
     NULL,
     1,
     UNIX_TIMESTAMP() - calls.lupdated,
-    calls.nas_id
+    calls.nas_id,
+    0
     FROM (dv_calls calls, users u)
    WHERE u.id=calls.user_name
    and calls.nas_id IN ($DATA->{NAS_ID});";
@@ -158,6 +160,9 @@ sub user_ips {
      
      #user NAS
      $self->{$line->[1]}{NAS_ID} = $line->[11];
+     
+     #Octet direction
+     $self->{$line->[1]}{OCTET_DIRATION} = $line->[12];
      
   	 $users_info{TPS}{$line->[0]} = $line->[6];
    	 #User login
@@ -1095,7 +1100,7 @@ sub stats {
    sum(l.traffic_in), sum(l.traffic_out),
    sum(sum),
    l.nas_id
-   from ipn_log l
+   from (ipn_log l)
    LEFT join  users u ON (l.uid=u.uid)
    LEFT join  trafic_tarifs tt ON (l.interval_id=tt.interval_id and l.traffic_class=tt.id)
    $WHERE 
