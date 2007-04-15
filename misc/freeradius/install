@@ -1,0 +1,4 @@
+users            > [/usr/local/etc/raddb]/users
+acct_users       > [/usr/local/etc/raddb]/acct_users
+radiusd.conf      > [/usr/local/etc/raddb]/radiusd.conf  
+eap.conf         > [/usr/local/etc/raddb]/eap.conf 
