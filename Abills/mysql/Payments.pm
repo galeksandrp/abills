@@ -208,10 +208,6 @@ sub list {
     my $value = $self->search_expr("$attr->{MONTH}", 'INT');
     push @WHERE_RULES,  " date_format(p.date, '%Y-%m')$value ";
   }
-
-
- 
-
  # Date intervals
  elsif ($attr->{FROM_DATE}) {
     push @WHERE_RULES, "(date_format(p.date, '%Y-%m-%d')>='$attr->{FROM_DATE}' and date_format(p.date, '%Y-%m-%d')<='$attr->{TO_DATE}')";

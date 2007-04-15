@@ -186,9 +186,7 @@ sub list {
  if ($attr->{FROM_DATE}) {
     push @WHERE_RULES, "(date_format(f.date, '%Y-%m-%d')>='$attr->{FROM_DATE}' and date_format(f.date, '%Y-%m-%d')<='$attr->{TO_DATE}')";
   }
-
-
- if ($attr->{DATE}) {
+ elsif ($attr->{DATE}) {
     push @WHERE_RULES, "date_format(f.date, '%Y-%m-%d')='$attr->{DATE}'";
   }
  # Month

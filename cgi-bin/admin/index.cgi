@@ -2001,7 +2001,7 @@ my $table = $html->table( { width      => '100%',
                             cols_align => ['right', 'left', 'left', 'right', 'left', 'center', 'center', 'center', 'center', 'center', 'center'],
                          } );
 
-my $list = $admin_form->list();
+my $list = $admin_form->list({ %LIST_PARAMS });
 foreach my $line (@$list) {
   $table->addrow($line->[0], 
     $line->[1], 
@@ -2020,10 +2020,8 @@ print $table->show();
 $table = $html->table( { width      => '100%',
                          cols_align => ['right', 'right'],
                          rows       => [ [ "$_TOTAL:", "<b>$admin_form->{TOTAL}</b>" ] ]
-                               } );
+                     } );
 print $table->show();
-
-
 }
 
 
@@ -2759,7 +2757,7 @@ sub report_fees {
             PERIOD_FORM => 1
   	         });
 
-  $LIST_PARAMS{PAGE_ROWS}=1000;
+  $LIST_PARAMS{PAGE_ROWS}=10000;
   use Finance;
   my $fees = Finance->fees($db, $admin, \%conf);
 
@@ -2777,14 +2775,32 @@ if (defined($FORM{DATE})) {
    $table_fees->addrow("<b>$line->[0]</b>", 
      $html->button($line->[1], "index=15&subf=3&DATE=$line->[0]&UID=$line->[8]"),  
       $line->[2],
-      $line->[3], $line->[4],  "$line->[5]", "$line->[6]", "$line->[7]");
+      $line->[3], 
+      $line->[4],  
+      "$line->[5]", 
+      "$line->[6]", 
+      "$line->[7]");
     }
  }   
 else{ 
   #Fees###################################################
+  my @TITLE = ("$_DATE", "$_COUNT", $_SUM);
+  if ($FORM{TYPE} && $FORM{TYPE} eq 'PAYMENT_METHOD') {
+  	$TITLE[0]=$_PAYMENT_METHOD;
+  }
+  elsif ($FORM{TYPE} && $FORM{TYPE} eq 'USER') {
+  	$TITLE[0]=$_USERS;
+  	$type="search=1&LOGIN_EXPR";
+  	$index=3;
+   }
+  elsif ($FORM{TYPE} && $FORM{TYPE} eq 'HOURS')  {
+    $TITLE[0]=$_HOURS;
+   }
+
+
   $table_fees = $html->table({ width      => '100%',
 	                             caption    => $_FEES, 
-                               title      => ["$_DATE", "$_COUNT", $_SUM],
+                               title      => \@TITLE,
                                cols_align => ['right', 'right', 'right'],
                                qs         => $pages_qs
                                });

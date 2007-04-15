@@ -153,10 +153,17 @@ sub list {
  my $self = shift;
  my ($attr) = @_;
 
+ @WHERE_RULES = ();
+ if ($attr->{GID}) {
+    push @WHERE_RULES, "a.gid='$attr->{GID}'";
+  }
+ 
+ $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES) : '';
  
  $self->query($db, "select a.aid, a.id, a.name, a.regdate, a.disable, g.name 
  FROM admins a
   LEFT JOIN groups g ON (a.gid=g.gid) 
+ $WHERE
  ORDER BY $SORT $DESC;");
 
  return $self->{list};
@@ -273,7 +280,7 @@ sub action_list {
   if ($attr->{AID}) {
     push @WHERE_RULES, "aa.aid='$attr->{AID}'";
    }
-  elsif($attr->{ADMIN}){
+  elsif($attr->{ADMIN}) {
   	$attr->{ADMIN} =~ s/\*/\%/ig;
     push @WHERE_RULES, "a.id LIKE '$attr->{ADMIN}'";
    }
