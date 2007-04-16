@@ -221,25 +221,6 @@ elsif ($acct_status_type == 2) {
 }
 #Alive status 3
 elsif($acct_status_type eq 3) {
-
-## Experemental Linux alive hangup
-## Author: Wanger
-#if ($conf{experimentsl} eq 'yes') {
-#  my ($sum, $variant, $time_t, $traf_t) = session_sum("$RAD{USER_NAME}", $ACCT_INFO{SESSION_START}, $ACCT_INFO{ACCT_SESSION_TIME}, \%ACCT_INFO);
-#  if ($sum > 0) {
-#     $sql = "SELECT deposit, credit FROM users WHERE id=\"$RAD{USER_NAME}\";";
-#     log_print('LOG_SQL', "ACCT [$RAD{USER_NAME}] SQL: $sql");
-#     $q = $db->prepare("$sql") || die $db->errstr;
-#     $q -> execute();
-#     my ($deposit, $credir) = $q -> fetchrow();
-#      if (($deposit + $credir) - $sum) < 0) {
-#        log_print('LOG_WARNING', "ACCT [$RAD{USER_NAME}] Negative balance ($d - $sum) - kill session($RAD{ACCT_SESSION_ID})");
-#        system ($Bin ."/modules/hangup.pl $RAD{ACCT_SESSION_ID}");
-#       }
-#  }
-#}
-###
-  
   $self->{SUM}=0;
   if ($NAS->{NAS_TYPE} eq 'ipcad') {
     return $self;
@@ -357,10 +338,17 @@ sub rt_billing {
    $self->{TRAF_TARIF}) = $Billing->session_sum("$RAD->{USER_NAME}", 
                                                 $RAD->{INTERIUM_SESSION_START}, 
                                                 $RAD->{INTERIUM_ACCT_SESSION_TIME}, 
-                                                {  OUTBYTE  => $RAD->{INTERIUM_OUTBYTE},
-                                                   INBYTE   => $RAD->{INTERIUM_INBYTE},
-                                                   OUTBYTE2 => $RAD->{INTERIUM_OUTBYTE1},
-                                                   INBYTE2  => $RAD->{INTERIUM_INBYTE1}
+                                                {  
+                                                	 OUTBYTE  => $RAD->{OUTBYTE} - $RAD->{INTERIUM_OUTBYTE},
+                                                   INBYTE   => $RAD->{INBYTE} - $RAD->{INTERIUM_INBYTE},
+                                                   OUTBYTE2 => $RAD->{OUTBYTE2} - $RAD->{INTERIUM_OUTBYTE1},
+                                                   INBYTE2  => $RAD->{INBYTE2} - $RAD->{INTERIUM_INBYTE1},
+
+                                                	 INTERIUM_OUTBYTE  => $RAD->{INTERIUM_OUTBYTE},
+                                                   INTERIUM_INBYTE   => $RAD->{INTERIUM_INBYTE},
+                                                   INTERIUM_OUTBYTE2 => $RAD->{OUTBYTE2},
+                                                   INTERIUM_INBYTE2  => $RAD->{INBYTE2}
+                                                   
                                                 	},
                                                 { FULL_COUNT => 1 }
                                                 );

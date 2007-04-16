@@ -1578,7 +1578,7 @@ sub prepaid_rest {
   }
 
 
- $self->query($db, "SELECT l.traffic_class, (sum($octets_direction)) / 1048576
+ $self->query($db, "SELECT l.traffic_class, (sum($octets_direction)) / $CONF->{MB_SIZE}
    from ipn_log l
    WHERE l.uid='$attr->{UID}' and DATE_FORMAT(start, '%Y-%m-%d')>='$info->[0]->[3]'
    GROUP BY l.traffic_class, l.uid ;");

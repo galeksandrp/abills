@@ -229,7 +229,7 @@ sub networks_list {
 
  my $list = $self->{list};
 
- if ($self->{TOTAL} > 0) {
+ if ($self->{TOTAL} > 0 || $PG > 0) {
    $self->query($db, "SELECT count(*) FROM dhcphosts_networks $WHERE");
    ($self->{TOTAL}) = @{ $self->{list}->[0] };
   }

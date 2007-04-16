@@ -606,6 +606,8 @@ sub prepaid_rest {
   my $self = shift;	
   my ($attr) = @_;
 	
+	$CONF->{MB_SIZE} = $CONF->{KBYTE_SIZE} * $CONF->{KBYTE_SIZE};
+	
 	#Get User TP and intervals
   $self->query($db, "select tt.id, i.begin, i.end, 
     if(u.activate<>'0000-00-00', u.activate, DATE_FORMAT(curdate(), '%Y-%m-01')), 
@@ -669,8 +671,8 @@ WHERE
  #Check sessions
  #Get using traffic
  $self->query($db, "select 
-  $rest{0} - sum($octets_direction) / 1048576,
-  $rest{1} - sum($octets_direction2) / 1048576
+  $rest{0} - sum($octets_direction) / $CONF->{MB_SIZE},
+  $rest{1} - sum($octets_direction2) / $CONF->{MB_SIZE}
  FROM dv_log
  WHERE uid='$attr->{UID}' and DATE_FORMAT(start, '%Y-%m-%d')>='$self->{INFO_LIST}->[0]->[3]'
  GROUP BY uid
@@ -684,8 +686,8 @@ WHERE
 
  #Check online
  $self->query($db, "select 
-  $rest{0} - sum($octets_online_direction) / 1048576,
-  $rest{1} - sum($octets_online_direction2) / 1048576
+  $rest{0} - sum($octets_online_direction) / $CONF->{MB_SIZE},
+  $rest{1} - sum($octets_online_direction2) / $CONF->{MB_SIZE}
  FROM dv_calls
  WHERE user_name='$login' 
  GROUP BY user_name ;");

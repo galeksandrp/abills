@@ -485,7 +485,8 @@ sub dhcphosts_network_sel {
                                     {
     	                               SELECTED => $FORM{NETWORK},
 		                                 SEL_HASH => \%networks 
-		                            });
+		                                }
+		                        );
 }
 
 #**********************************************************

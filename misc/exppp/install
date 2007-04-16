@@ -1,4 +1,5 @@
 ppp.conf           > [/etc/ppp]/ppp.conf
 ppp.linkup         > [/etc/ppp]/ppp.linkup
 ppp.linkdown       > [/etc/ppp]/ppp.linkdown
+exppp              >> [/usr/local/etc/raddb/]dictionary
 

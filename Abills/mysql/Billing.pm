@@ -173,43 +173,66 @@ if ($prepaid{0} + $prepaid{1} > 0) {
    	                                       PERIOD => $traffic_period
    	                                    });
    
+   if ($CONF->{rt_billing}) {
+   	 $used_traffic->{TRAFFIC_IN}     += int($recv / $CONF->{MB_SIZE}); 
+   	 $used_traffic->{TRAFFIC_OUT}    += int($sent / $CONF->{MB_SIZE});
+   	 $used_traffic->{TRAFFIC_IN_2}   += int($recv2 / $CONF->{MB_SIZE}); 
+   	 $used_traffic->{TRAFFIC_OUT_2}  += int($sent2 / $CONF->{MB_SIZE});
+ 	 
+  	 $sent = $RAD->{INTERIUM_OUTBYTE} || 0; #from server
+     $recv = $RAD->{INTERIUM_INBYTE} || 0;  #to server
+     $sent2 = $RAD->{INTERIUM_OUTBYTE1} || 0; 
+     $recv2 = $RAD->{INTERIUM_INBYTE1} || 0;
+    }
    
+   
+   $used_traffic->{ONLINE}=0;
    #Recv / IN
    if($self->{OCTETS_DIRECTION}==1) {
      $used_traffic->{TRAFFIC_SUM}=$used_traffic->{TRAFFIC_IN};
+     $used_traffic->{TRAFFIC_SUM_2}=$used_traffic->{TRAFFIC_IN_2};
+     $used_traffic->{ONLINE}=$recv;
+     $used_traffic->{ONLINE2}=$recv2;
     }
    #Sent / Out
    elsif($self->{OCTETS_DIRECTION}==2) {
    	 $used_traffic->{TRAFFIC_SUM}=$used_traffic->{TRAFFIC_OUT};
+     $used_traffic->{TRAFFIC_SUM_2}=$used_traffic->{TRAFFIC_OUT_2};
+   	 $used_traffic->{ONLINE}=$sent;
+   	 $used_traffic->{ONLINE2}=$sent2;
     }
    else {
      $used_traffic->{TRAFFIC_SUM}=$used_traffic->{TRAFFIC_OUT} + $used_traffic->{TRAFFIC_IN};
+     $used_traffic->{TRAFFIC_SUM_2} = $used_traffic->{TRAFFIC_OUT_2} + $used_traffic->{TRAFFIC_IN_2};
+     $used_traffic->{ONLINE}="$sent + $recv";
+     $used_traffic->{ONLINE2}="$sent2 + $recv2";
     }
 
    # If left global prepaid traffic set traf price to 0
-   if ($used_traffic->{TRAFFIC_SUM} + ($sent + $recv) / $CONF->{MB_SIZE}  < $prepaid{0}) {
+   if ($used_traffic->{TRAFFIC_SUM} + ($used_traffic->{ONLINE}) / $CONF->{MB_SIZE}  < $prepaid{0}) {
      $traf_price{in}{0} = 0;
      $traf_price{out}{0} = 0;
     }
    # 
-   elsif ($used_traffic->{TRAFFIC_SUM} + ($sent + $recv) / $CONF->{MB_SIZE} > $prepaid{0} 
+   elsif ($used_traffic->{TRAFFIC_SUM} + ($used_traffic->{ONLINE}) / $CONF->{MB_SIZE} > $prepaid{0} 
             && $used_traffic->{TRAFFIC_SUM} < $prepaid{0}) {
-     my $not_prepaid = ($used_traffic->{TRAFFIC_SUM} * $CONF->{MB_SIZE} + $sent + $recv) - $prepaid{0} * $CONF->{MB_SIZE};
-     $sent = $not_prepaid / 2;
-     $recv = $not_prepaid / 2;
+     my $not_prepaid = ($used_traffic->{TRAFFIC_SUM} * $CONF->{MB_SIZE} + $used_traffic->{ONLINE}) - $prepaid{0} * $CONF->{MB_SIZE};
+    
+     $sent = ($self->{OCTETS_DIRECTION}==2) ?  $not_prepaid : $not_prepaid / 2;
+     $recv = ($self->{OCTETS_DIRECTION}==1) ?  $not_prepaid : $not_prepaid / 2;
     }
 
    # If left local prepaid traffic set traf price to 0
-   $used_traffic->{TRAFFIC_SUM_2} = $used_traffic->{TRAFFIC_OUT_2} + $used_traffic->{TRAFFIC_IN_2};
-   if ($used_traffic->{TRAFFIC_SUM_2} + ($sent2 + $recv2) / $CONF->{MB_SIZE} < $prepaid{1}) {
+
+   if ($used_traffic->{TRAFFIC_SUM_2} + ($used_traffic->{ONLINE2}) / $CONF->{MB_SIZE} < $prepaid{1}) {
      $traf_price{in}{1} = 0;
      $traf_price{out}{1} = 0;
     }
-   elsif ( ($used_traffic->{TRAFFIC_SUM_2} + ($sent2 + $recv2) / $CONF->{MB_SIZE} > $prepaid{1}) 
+   elsif ( ($used_traffic->{TRAFFIC_SUM_2} + ($used_traffic->{ONLINE2}) / $CONF->{MB_SIZE} > $prepaid{1}) 
       && ( $used_traffic->{TRAFFIC_SUM_2} / $CONF->{MB_SIZE} < $prepaid{1}) ) {
-     my $not_prepaid = ($used_traffic->{TRAFFIC_SUM_2} * $CONF->{MB_SIZE} + $sent2 + $recv2) - $prepaid{1} * $CONF->{MB_SIZE};
-     $sent2 = $not_prepaid / 2;
-     $recv2 = $not_prepaid / 2;
+     my $not_prepaid = ($used_traffic->{TRAFFIC_SUM_2} * $CONF->{MB_SIZE} + $used_traffic->{ONLINE2}) - $prepaid{1} * $CONF->{MB_SIZE};
+     $sent2 = ($self->{OCTETS_DIRECTION}==2) ?  $not_prepaid : $not_prepaid / 2;
+     $recv2 = ($self->{OCTETS_DIRECTION}==1) ?  $not_prepaid : $not_prepaid / 2;
     }
  }
 

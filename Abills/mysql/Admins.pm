@@ -313,6 +313,10 @@ sub action_list {
    push @WHERE_RULES, "aa.module='$attr->{MODULE}'";
   }
 
+ if ($attr->{GID}) {
+   push @WHERE_RULES, "a.gid='$attr->{GID}'";
+  }
+
 
   $WHERE = "WHERE " . join(' and ', @WHERE_RULES) if ($#WHERE_RULES > -1);
 
