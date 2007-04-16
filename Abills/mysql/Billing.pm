@@ -185,6 +185,7 @@ if ($prepaid{0} + $prepaid{1} > 0) {
      $recv2 = $RAD->{INTERIUM_INBYTE1} || 0;
     }
    
+   #print "$sent2 $recv2\n";
    
    $used_traffic->{ONLINE}=0;
    #Recv / IN
@@ -229,13 +230,17 @@ if ($prepaid{0} + $prepaid{1} > 0) {
      $traf_price{out}{1} = 0;
     }
    elsif ( ($used_traffic->{TRAFFIC_SUM_2} + ($used_traffic->{ONLINE2}) / $CONF->{MB_SIZE} > $prepaid{1}) 
-      && ( $used_traffic->{TRAFFIC_SUM_2} / $CONF->{MB_SIZE} < $prepaid{1}) ) {
+      && ( $used_traffic->{TRAFFIC_SUM_2}  < $prepaid{1}) ) {
      my $not_prepaid = ($used_traffic->{TRAFFIC_SUM_2} * $CONF->{MB_SIZE} + $used_traffic->{ONLINE2}) - $prepaid{1} * $CONF->{MB_SIZE};
+ 
+     #print "($used_traffic->{TRAFFIC_SUM_2} * $CONF->{MB_SIZE} + $used_traffic->{ONLINE2}) - $prepaid{1} * $CONF->{MB_SIZE};\n";
+ 
      $sent2 = ($self->{OCTETS_DIRECTION}==2) ?  $not_prepaid : $not_prepaid / 2;
      $recv2 = ($self->{OCTETS_DIRECTION}==1) ?  $not_prepaid : $not_prepaid / 2;
     }
  }
 
+#print "$sent2 $recv2\n";
 
 #####################################################################
 # TRafic payments
@@ -246,8 +251,9 @@ if ($prepaid{0} + $prepaid{1} > 0) {
  my $lo_in  = (defined($traf_price{in}{1})) ?  $recv2 / $CONF->{MB_SIZE} * $traf_price{in}{1} : 0;
  my $lo_out = (defined($traf_price{out}{1})) ?  $sent2 / $CONF->{MB_SIZE} * $traf_price{out}{1} : 0;
  $traf_sum  = $lo_in + $lo_out + $gl_in + $gl_out;
-
-
+ 
+ #print "$lo_in  = (defined($traf_price{in}{1})) ?  $recv2 / $CONF->{MB_SIZE} * $traf_price{in}{1} : 0;\n";
+ #print "$lo_out = (defined($traf_price{out}{1})) ?  $sent2 / $CONF->{MB_SIZE} * $traf_price{out}{1} : 0";
 
  return $traf_sum;
 }

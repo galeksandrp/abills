@@ -164,8 +164,6 @@ elsif ($acct_status_type == 2) {
                                                    $RAD->{ACCT_SESSION_TIME}, 
                                                    $RAD, 
                                                    \%EXT_ATTR );
-
-    
   #  return $self;
     if ($self->{UID} == -2) {
       $self->{errno}  = 1;   

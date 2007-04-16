@@ -80,26 +80,28 @@ elif [ t$1 = 'tacct' ]; then
    elif [ t$2 = 'tStop' ] ; then
       echo Stop;
       ./racct.pl \
-        USER_NAME="aa1" \
+        USER_NAME="10030010" \
         SERVICE_TYPE=Framed-User \
         FRAMED_PROTOCOL=PPP \
         FRAMED_IP_ADDRESS=10.0.0.1 \
         FRAMED_IP_NETMASK=0.0.0.0 \
         CALLING_STATION_ID="192.168.101.4" \
-        NAS_IP_ADDRESS=192.168.202.13 \
+        NAS_IP_ADDRESS=192.168.202.15 \
         NAS_IDENTIFIER="media.intranet" \
         NAS_PORT_TYPE=Virtual \
         ACCT_STATUS_TYPE=Stop \
         ACCT_SESSION_ID="83419_AA11118757979" \
-        USER_NAME="aa1" \
+        USER_NAME="10030010" \
         ACCT_DELAY_TIME=0 \
-        ACCT_INPUT_OCTETS=134332409 \
+        ACCT_INPUT_OCTETS=1000 \
         ACCT_INPUT_GIGAWORDS=0 \
         ACCT_INPUT_PACKETS=125 \
-        ACCT_OUTPUT_OCTETS=133334000 \
+        ACCT_OUTPUT_OCTETS=1000 \
+        EXPPP_ACCT_LOCALINPUT_OCTETS=12000000 \
+        EXPPP_ACCT_LOCALOUTPUT_OCTETS=13000000 \
         ACCT_OUTPUT_GIGAWORDS=0 \
         ACCT_OUTPUT_PACKETS=0 \
-        ACCT_SESSION_TIME=151200 \
+        ACCT_SESSION_TIME=100 \
 
 
 
