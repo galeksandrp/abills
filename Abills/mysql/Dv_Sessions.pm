@@ -852,16 +852,18 @@ elsif($attr->{DATE}) {
 
 
  if ($self->{TOTAL} > 0) {
-    $self->query($db, "SELECT count(l.uid), SEC_TO_TIME(sum(l.duration)), sum(l.sent + l.recv), 
-      sum(l.sent2 + l.recv2), 
+    $self->query($db, "SELECT count(l.uid), SEC_TO_TIME(sum(l.duration)), sum(l.sent), sum(l.recv), 
+      sum(l.sent2), sum(l.recv2), 
       sum(sum)  
       FROM (dv_log l, users u)
      $WHERE;");
 
     ($self->{TOTAL},
      $self->{DURATION},
-     $self->{TRAFFIC},
-     $self->{TRAFFIC2},
+     $self->{TRAFFIC_IN},
+     $self->{TRAFFIC_OUT},
+     $self->{TRAFFIC2_IN},
+     $self->{TRAFFIC2_OUT},
      $self->{SUM}) = @{ $self->{list}->[0] };
   }
 
