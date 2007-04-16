@@ -1715,18 +1715,22 @@ $pages_qs .= "&DIMENSION=$FORM{DIMENSION}"  if ($FORM{DIMENSION});
 #Session List
 $list = $sessions->list({ %LIST_PARAMS });	
 
-$table = $html->table( {  caption    => "$_SUM",
-	                        width      => '640',
-	                        rowcolor   => $_COLORS[1],
-                          title_plain=> ["$_SESSIONS", "$_DURATION", "$_TRAFFIC", "$_TRAFFIC 2", "$_SUM"],
-                          cols_align => ['right', 'right', 'right', 'right'],
-                          rows       => [ [  $sessions->{TOTAL}, 
-                                             $sessions->{DURATION}, 
-                                             int2byte($sessions->{TRAFFIC}, { DIMENSION => $FORM{DIMENSION} }), 
-                                             int2byte($sessions->{TRAFFIC2}, { DIMENSION => $FORM{DIMENSION} }),
-                                             $sessions->{SUM} 
-                                         ] ]
-                               } );
+$table = $html->table( {  caption     => "$_SUM",
+	                        width       => '100%',
+	                        rowcolor    => $_COLORS[1],
+                         title_plain => ["$_SESSIONS", "$_DURATION", "$_TRAFFIC $_RECV", "$_TRAFFIC $_SENT", "$_TRAFFIC $_SUM",
+                           "$_TRAFFIC 2 $_RECV", "$_TRAFFIC 2 $_SENT", "$_TRAFFIC $_SUM", "$_SUM"],
+
+                          cols_align  => ['right', 'right', 'right', 'right'],
+                          rows        => [ [ $sessions->{TOTAL}, $sessions->{DURATION}, 
+                                            int2byte($sessions->{TRAFFIC_IN}, { DIMENSION => $FORM{DIMENSION} }), 
+                                            int2byte($sessions->{TRAFFIC_OUT}, { DIMENSION => $FORM{DIMENSION} }), 
+                                            int2byte($sessions->{TRAFFIC_OUT}+$sessions->{TRAFFIC_IN}, { DIMENSION => $FORM{DIMENSION} }), 
+                                            int2byte($sessions->{TRAFFIC2_IN}, { DIMENSION => $FORM{DIMENSION} }),
+                                            int2byte($sessions->{TRAFFIC2_OUT}, { DIMENSION => $FORM{DIMENSION} }),
+                                            int2byte($sessions->{TRAFFIC2_OUT}+$sessions->{TRAFFIC2_IN}, { DIMENSION => $FORM{DIMENSION} }), 
+                                            $sessions->{SUM} ] ]                               
+                             } );
 print $table->show();	
 
 dv_sessions($list, $sessions) if ( $sessions->{TOTAL} > 0);
