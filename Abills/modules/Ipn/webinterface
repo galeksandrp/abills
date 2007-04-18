@@ -2005,16 +2005,16 @@ my $date  =  $FROM{DATE} || $DATE;
 	
 my $table = $html->table( { width       => '400',
                             border      => 1,
-                            rows        => [['IP:',     $html->form_input('IP', "$ip")     ],
-                                            ["$_PORT:", $html->form_input('PORT', "$port") ],
-                                            ["$_DATE:", $html->form_input('DATE', "$date") ],
-                                            ["$_TIME:", $html->form_input('DATE', "$time") ]
+                            rows        => [['IP:',     $html->form_input('IP', "$ip", { OUTPUT2RETURN => 1 })     ],
+                                            ["$_PORT:", $html->form_input('PORT', "$port", { OUTPUT2RETURN => 1 }) ],
+                                            ["$_DATE:", $html->form_input('DATE', "$date", { OUTPUT2RETURN => 1 }) ],
+                                            ["$_TIME:", $html->form_input('DATE', "$time", { OUTPUT2RETURN => 1 }) ]
                                            ]
                          } );
 
 	
 	 
-	print $html->form_main({ CONTENT => $table->show(),
+	print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
 	                         HIDDEN  => { index => $index,
                                         ID    => "$FORM{chg}",
                                         UID   => "$FORM{UID}"
@@ -2025,7 +2025,15 @@ my $table = $html->table( { width       => '400',
 	
 	
 	my $Dv = Dv->new($db, $admin, \%conf);
-	$Dv->info($FORM{UID});
+
+  if (! $user->{UID}) {
+    $LIST_PARAMS{UID}=$FORM{UID};
+   }
+  else {
+  	$LIST_PARAMS{UID}=$user->{UID};
+   }
+
+	$Dv->info($LIST_PARAMS{UID});
 	
 	
 
@@ -2055,9 +2063,9 @@ my $table = $html->table( { width       => '400',
   my $TP_INTERVAL = $tp_interval{$TP_ID} = ($ret_attr->{FIRST_INTERVAL}) ? $ret_attr->{FIRST_INTERVAL} :  0;
 
 	
-	print "TP: $Dv->{TP_ID} // Interval: $TP_INTERVAL // TIME_INTERVALS: $TIME_INTERVALS,
-      $INTERVAL_TIME_TARIF,
-      $INTERVAL_TRAF_TARIF<br>";
+#	print "TP: $Dv->{TP_ID} // Interval: $TP_INTERVAL // TIME_INTERVALS: $TIME_INTERVALS,
+#      $INTERVAL_TIME_TARIF,
+#      $INTERVAL_TRAF_TARIF<br>";
 	
 	
 	$Ipn->get_zone({ TP_INTERVAL => $TP_INTERVAL });
@@ -2108,67 +2116,6 @@ my $table = $html->table( { width       => '400',
 }
 
 
-
-#**********************************************************
-# определяет принадлежность адреса зоне, зоны заданы СУПЕР-ПУПЕР-хэшем %zones
-#**********************************************************
-sub ip_in_zone($$$) {
-    my $self;
-    my ($ip_num, 
-        $port, 
-        $zoneid,
-        $zone_data) = @_;
-    
-    # изначально считаем, что адрес в зону не попадает
-    my $res = 0;
-    # debug
-    my %zones = %$zone_data;
-
-    if ($self->{debug}) { print "--- CALL ip_in_zone($ip_num, $port, $zoneid) -> \n"; }
-
-    # идем по списку адресов зоны
-    for (my $i=0; $i<=$#{$zones{$zoneid}{A}}; $i++) {
-	     
-	     my $adr_hash = \%{ $zones{$zoneid}{A}[$i] };
-       
-       my $a_ip  = $$adr_hash{'IP'}; 
-       my $a_msk = $$adr_hash{'Mask'}; 
-       my $a_neg = $$adr_hash{'Neg'}; 
-       my $a_ports_ref = \@{$$adr_hash{'Ports'}};
-       
-      
-       # если адрес попадает в подсеть
-       if ( (( $a_ip & $a_msk) == ($ip_num & $a_msk)) && # адрес совпадает
-              (is_exist($a_ports_ref, $port)) ) {       # И порт совпадает
-
-          #print ">>". int2ip($a_ip). " & $a_msk / ". int2ip($ip_num) ." $zoneid / $res\n";
-	        if ($a_neg) { # если установлен бит выбрасывания адреса
-		        $res = 0; # то выбрасываем найденный адрес из зоны
-	         } 
-	        else {
-		        $res = 1;
-            print ">>". int2ip($a_ip). " & ". int2ip($a_msk) ."/ ". int2ip($ip_num) ." $zoneid / $res<br>\n";
-		        next; #next
-	         }
-	      }
-    }
-    
-    #if ($self->{debug}) { print "IP is " . ($res ? "" : "not ") . "in zone $zoneid\n";  }
-    return $res;									  												      
-}
-
-
-sub is_exist($$) {
-    (my $arrayref, my $elem) = @_;
-    # если список пуст, считаем, что элемент в него попадает
-    if ($#{@$arrayref} == -1) { return 1; }
-    
-    foreach my $e (@$arrayref) {
-	    if ($e eq $elem) { return 1; }
-     }
-    
-    return 0;
-}
 
 
 

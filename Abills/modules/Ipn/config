@@ -23,6 +23,7 @@
 if ($conf{IPN_USERMENU}) {
   $USER_FUNCTION_LIST{"01:0:IP Net:ipn_user_activate:defaultindex"} = 0;
   $USER_FUNCTION_LIST{"02:1:$_STATS:ipn_sessions2:"} = 0;
+  $USER_FUNCTION_LIST{"03:1:$_TRAFIC_TARIFS:ipn_getnet:"}   = 0;
 }
 
 if ($conf{IPN_CLUBMONITOR}) {

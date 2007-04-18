@@ -11,7 +11,12 @@ use vars qw(@ISA @EXPORT @EXPORT_OK %EXPORT_TAGS $VERSION
 use Exporter;
 $VERSION = 2.00;
 @ISA = ('Exporter');
-@EXPORT = qw();
+@EXPORT = qw(
+  &int2ip
+  &ip_in_zone
+  &is_exist
+
+);
 
 @EXPORT_OK = ();
 %EXPORT_TAGS = ();
@@ -1417,7 +1422,7 @@ sub is_client_ip($) {
 
 # определяет наличие элемента в массиве (массив по ссылке)
 sub is_exist($$) {
-    (my $arrayref, my $elem) = @_;
+    my ($arrayref, $elem) = @_;
     # если список пуст, считаем, что элемент в него попадает
     if ($#{@$arrayref} == -1) { return 1; }
     
