@@ -1,5 +1,5 @@
 CREATE TABLE `mail_spamassassin` (
-  `prefid` int(10) unsigned NOT NULL auto_increment default 0,
+  `prefid` int(10) unsigned NOT NULL auto_increment,
   `username` varchar(128) NOT NULL default '',
   `preference` varchar(64) NOT NULL default '',
   `value` varchar(128) default NULL,
