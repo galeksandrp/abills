@@ -57,3 +57,15 @@ newaliases_path = /usr/local/bin/newaliases
 mailq_path = /usr/local/bin/mailq
 queue_directory = /var/spool/postfix
 mail_owner = postfix
+
+# tls config
+smtp_use_tls = yes
+smtpd_use_tls = yes
+smtp_tls_note_starttls_offer = yes
+smtpd_tls_key_file = /usr/abills/Certs/smtpd.pem
+smtpd_tls_cert_file = /usr/abills/Certs/smtpd.pem
+smtpd_tls_CAfile = /usr/abills/Certs/smtpd.pem
+smtpd_tls_loglevel = 1
+smtpd_tls_received_header = yes
+smtpd_tls_session_cache_timeout = 3600s
+tls_random_source = dev:/dev/urandom
