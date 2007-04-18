@@ -58,7 +58,7 @@ else {
 	  #Prepaid: period, traffic_type
   
     my $list = $Ipn->prepaid_rest({ UID  => $LIST_PARAMS{UID}, 
-  	                              INFO => $sessions->{INFO_LIST} });
+  	                                INFO => $sessions->{INFO_LIST} });
 
 
 
@@ -76,8 +76,8 @@ else {
          $line->[2], 
          $line->[3], 
          $line->[4],
-         ($Ipn->{TRAFFIC}->{$line->[0]} && $line->[4] - $Ipn->{TRAFFIC}->{$line->[0]} > 0) ? $line->[4] - $Ipn->{TRAFFIC}->{$line->[0]} : 0,
-         ($Ipn->{TRAFFIC}->{$line->[0]} && $line->[4] - $Ipn->{TRAFFIC}->{$line->[0]} < 0) ? abs($line->[4] - $Ipn->{TRAFFIC}->{$line->[0]}) : 0
+         ($line->[4] > 0 && $Ipn->{TRAFFIC}->{$line->[0]} && $line->[4] - $Ipn->{TRAFFIC}->{$line->[0]} > 0) ? $line->[4] - $Ipn->{TRAFFIC}->{$line->[0]} : 0,
+         ($line->[4] > 0 && $Ipn->{TRAFFIC}->{$line->[0]} && $line->[4] - $Ipn->{TRAFFIC}->{$line->[0]} < 0) ? abs($line->[4] - $Ipn->{TRAFFIC}->{$line->[0]}) : 0
          );
      }
     print $table->show();	 

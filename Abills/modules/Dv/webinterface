@@ -1500,8 +1500,8 @@ if ($sessions->prepaid_rest({ UID => $LIST_PARAMS{UID} })) {
       $line->[2], 
       $line->[3], 
       $line->[4],
-      ($sessions->{REST}->{$line->[0]} > 0) ? $sessions->{REST}->{$line->[0]} : 0,
-      ($sessions->{REST}->{$line->[0]} < 0) ? abs($sessions->{REST}->{$line->[0]}) : 0
+      ($line->[4] > 0 && $sessions->{REST}->{$line->[0]} > 0) ? $sessions->{REST}->{$line->[0]} : 0,
+      ($line->[4] > 0 && $sessions->{REST}->{$line->[0]} < 0) ? abs($sessions->{REST}->{$line->[0]}) : 0
      );
    }
 
@@ -1701,8 +1701,8 @@ if ($sessions->prepaid_rest({ UID => $LIST_PARAMS{UID} })) {
       $line->[2], 
       $line->[3], 
       $line->[4],
-      ($sessions->{REST}->{$line->[0]} > 0) ? $sessions->{REST}->{$line->[0]} : 0,
-      ($sessions->{REST}->{$line->[0]} < 0) ? abs($sessions->{REST}->{$line->[0]}) : 0
+      ($line->[4] > 0 && $sessions->{REST}->{$line->[0]} > 0) ? $sessions->{REST}->{$line->[0]} : 0,
+      ($line->[4] > 0 && $sessions->{REST}->{$line->[0]} < 0) ? abs($sessions->{REST}->{$line->[0]}) : 0
      );
    }
 
