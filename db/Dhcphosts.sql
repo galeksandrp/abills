@@ -1,12 +1,11 @@
-
 CREATE TABLE `dhcphosts_hosts` (
   `id` int(11) unsigned NOT NULL auto_increment,
   `uid` int(11) NOT NULL default '0',
   `ip` int(10) unsigned NOT NULL default '0',
   `hostname` varchar(40) NOT NULL default '',
   `network` smallint(5) unsigned NOT NULL default '0',
-  `mac` varchar(17) default '00:00:00:00:00:00',
-  `disable` tinyint(1) unsigned NOT NULL default '1',
+  `mac` varchar(17) NOT NULL default '00:00:00:00:00:00',
+  `disable` tinyint(1) unsigned NOT NULL default '0',
   `forced` int(1) NOT NULL default '0',
   `blocktime` int(3) unsigned NOT NULL default '3',
   `block_date` datetime NOT NULL default '0000-00-00 00:00:00',

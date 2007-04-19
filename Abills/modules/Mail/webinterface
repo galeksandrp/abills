@@ -175,7 +175,7 @@ sub mail_spam_lists {
                           } );
 
   foreach my $line (@$list) {
-    $delete = $html->button($_DEL, "index=$index&del=$line->[5]", { MESSAGE => "$_DEL \"$line->[0]\"?" }); 
+    $delete = $html->button($_DEL, "index=$index&del=$line->[5]", { MESSAGE => "$_DEL \\'$line->[0]\\' ?" }); 
 
     $table->addrow($line->[0], 
      "$line->[1]", 

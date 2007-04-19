@@ -1164,7 +1164,7 @@ sub button {
   
   $ex_attr=" TITLE='$attr->{TITLE}'" if (defined($attr->{TITLE}));
   
-  my $message = (defined($attr->{MESSAGE})) ? "onclick=\"return confirmLink(this, '$attr->{MESSAGE}')\"" : '';
+  my $message = (defined($attr->{MESSAGE})) ? " onclick=\"return confirmLink(this, '$attr->{MESSAGE}')\"" : '';
   my $button = "<a href=\"$params\"$ex_attr$message>$name</a>";
 
   return $button;

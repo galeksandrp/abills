@@ -21,6 +21,68 @@ sub dhcphosts_periodic {
 	
 }
 
+
+#*******************************************************************
+# 
+#*******************************************************************
+sub dhcphosts_mac_block_show {
+   my ($attr) = @_;
+
+   my $ethers_content = "# $DATE $TIME\n";
+   my $list = $Dhcphosts->hosts_list({ %LIST_PARAMS, 
+   	                                   STATUS     => 0,
+   	                                   PAGE_ROWS  => 100000 });
+   
+	 foreach my $line (@$list) {
+	    next if ($line->[6] eq '');
+	    $ethers_content .= "$line->[6] $line->[2] # $line->[1]\n";
+    };
+
+
+	return  $ethers_content;
+}
+
+#*******************************************************************
+# 
+#*******************************************************************
+sub dhcphosts_mac_block_make {
+	my $ethers_content = shift;
+	
+	if ($ethers_content eq '') {
+	  $ethers_content = dhcphosts_mac_block_show();			
+	 }
+	
+	open(FILE, ">$var_dir/ipguard") || return "Can't open '$var_dir/ipguard' $!";
+	  print FILE "$ethers_content";
+	close(FILE);
+
+  
+	return 1;
+}
+
+#*******************************************************************
+# 
+#*******************************************************************
+sub dhcphosts_mac_block {
+  
+  
+  if ($FORM{MAKE}) {
+  	my $ret = dhcphosts_mac_block_make($FORM{ETHER_CONTENT});
+  	if ($ret eq '1') {
+  	  print $html->message('info', $_INFO, "$_CHANGED '$var_dir/ipguard'");
+  	 }
+    else {
+    	print $html->message('err', $_ERROR, "$ret");
+     }
+   }
+	
+	my $ethers_content = dhcphosts_mac_block_show();	
+  $html->tpl_show(_include('dhcphosts_ipguard', 'Dhcphosts'), { ETHER_CONTENT => "$ethers_content",
+	 	                                                            FILE          => "$var_dir/ipguard"
+	 	                                                           });
+	 
+}
+
 #*******************************************************************
 # Show dhcpd.leases information
 #*******************************************************************
@@ -260,7 +322,6 @@ sub dhcphosts_hosts {
   
   
   if (! $FORM{UID}) {
-    
     $Dhcphosts->{NETWORKS_SEL} = dhcphosts_network_sel();
     form_search({ SEARCH_FORM => $html->tpl_show(_include('dhcphosts_search', 'Dhcphosts'), 
   	                                  { %$Dhcphosts, %FORM }, 
@@ -300,7 +361,6 @@ sub dhcphosts_hosts {
 	    $line->[7],
 	    $html->button($_CHANGE, "index=$index&chg=$line->[0]&UID=$line->[12]"),
 	    $html->button($_DEL, "index=$index&del=$line->[0]&UID=$line->[12]", { MESSAGE => "$_DEL $line->[0]?" })
-
      );
 	   $i++;
    };
