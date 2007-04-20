@@ -11,4 +11,7 @@ authmysqlrc        > [/usr/local/etc/authlib/]/authmysqlrc
 smtpd.conf         > [/usr/local/lib/sasl2]/smtpd.conf 
 #SpamAssassin
 local.cf           > [/usr/local/etc/mail/spamassassin]/local.cf
+:PARAMS=FREEBSD:# Don't start sendmail\nsendmail_enable="NONE"\nmta_start_script=""\nsendmail_outbound_enable="NO"\nsendmail_submit_enable="NO"\nsendmail_msp_queue_enable="NO"\n# Startup postfix\npostfix_enable="YES" >> [/etc]/rc.conf
+#Make startup for courier_imap
+:PARAMS=FREEBSD:courier_authdaemond_enable="YES"\ncourier_imap_imapd_enable="YES"\ncourier_imap_pop3d_enable="YES"  >> [/etc]/rc.conf
 

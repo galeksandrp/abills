@@ -2089,6 +2089,16 @@ my $table = $html->table( { width       => '400',
 #      $INTERVAL_TIME_TARIF,
 #      $INTERVAL_TRAF_TARIF<br>";
 	
+	# Get names
+  use Tariffs;
+  my $tariffs = Tariffs->new($db, \%conf, $admin);
+  my $list_tt = $tariffs->tt_list({ TI_ID => $TP_INTERVAL });
+  my %tt_names = ();
+  foreach my $line (@$list_tt) {
+    $tt_names{$line->[0]}=$line->[6];
+   }
+
+	
 	
 	$Ipn->get_zone({ TP_INTERVAL => $TP_INTERVAL });
 
@@ -2096,7 +2106,7 @@ my $table = $html->table( { width       => '400',
   $table = $html->table( { width       => '100%',
                            caption     => "$_TRAFIC_TARIFS",
                            border      => 1,
-                           title_plain => ["ID", "IP", "$_PREPAID", "$_IN", "$_OUT",  '-' ],
+                           title_plain => ["ID", "$_TYPE", "IP", "$_PREPAID", "$_IN", "$_OUT",  '-' ],
                            cols_align  => ['left', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'center'],
                            qs          => $pages_qs,
                        } );
@@ -2127,6 +2137,7 @@ my $table = $html->table( { width       => '400',
 
     $table->{rowcolor} = ($zone == $line) ? $_COLORS[0] : undef;
     $table->addrow($line, 
+      $tt_names{$line},
       $networks,
       $Ipn->{ZONES}{$line}{PREPAID_TSUM},
       $Ipn->{ZONES}{$line}{PriceIn},

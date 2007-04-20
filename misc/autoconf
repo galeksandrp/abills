@@ -30,6 +30,9 @@ if ($ARGV->{help}) {
   print "Auto configuration script
    ./autoconf [parameters]
   PROGRAMS=[PROGRAMS,...] - Program names (postfix,freeradius,exppp)
+  -f                      - Force mode. Rewrite exists files withot prompt
+  PARAMS=                 - Extended parameters
+    FREEBSD               - OS FreeBSD make startup config
   debug                   - Debug level
                             1 short debug
                             2 full debug
@@ -68,13 +71,44 @@ sub check_install {
  close(FILE);
 
  foreach my $file (@files) {
- 	if($file =~ /^(\S+) +(>|>>) +\[(\S+)\]\/(.+)/) {
- 	  my $config = $1;
- 	  my $type   = $2;
- 	  my $folder = $3;
- 	  my $dest   = $4;
-    my $config_body = '';
+ 	
+ 	my $config_body = '';
+  my $type   = '';
+ 	my $folder = '';
+ 	my $dest   = '';
+
+ 	#Reg expression
+ 	print $file;
+ 	if ($file =~ /^:(\S{0,100}):(.+) (>{1,2}) +\[(\S+)\]\/(.+)/) {
+ 		my $param  = $1;
+ 		#my $param_value = $2;
+ 		my $param_name = '' ;
+ 		my $param_value = '';
+ 		my $value  = $2;
+ 		$type   = $3;
+ 	  $folder = $4;
+ 	  $dest   = $5;
     
+    $value =~ s/\\n/\n/g;
+    
+    if ($param) {
+      ($param_name, $param_value)=split(/=/, $param, 2);
+     }
+    if ((defined($ARGV->{$param_name}) && $ARGV->{$param_name} eq $param_value)) {
+      $config_body = "$value\n";
+     }  		
+    elsif (! $param) {
+    	$config_body = "$value\n";
+     }
+
+ 		print "$param_name | $param_value | $value | $type | $folder | $dest\n";
+ 	 }
+	elsif($file =~ /^(\S+) +([>]{1,2}) +\[(\S+)\]\/(.+)/) {
+ 	  my $config = $1;
+ 	  $type   = $2;
+ 	  $folder = $3;
+ 	  $dest   = $4;
+
     $config = $Bin."/$program/$config";
     print "$config $type $folder/$dest\n" if ($debug > 0);
     #Open local config
@@ -83,13 +117,32 @@ sub check_install {
  	     $config_body .= $_;
       }
     close(FILE);
+    }
+   else {
+   	 next;
+    }
 
-
+   
+   while($config_body =~ /%([A-Z\_0-9]+)%/g) {
+   	 my $VARIABLE = $1;
+   	 if (! $conf{$VARIABLE}) {
+   	   print " $VARIABLE: ";
+   	   my $read = '';
+       chop($read = <STDIN>);
+       $read =~ s/^\s*//;
+       $read =~ s/\s*$//;
+       #print "$VARIABLE  / $read\n";
+ 	     $conf{$VARIABLE}=$read;
+ 	    }
+    }
+   
     while(my($key, $val) = each %conf) {
-      $config_body =~ s/%$key%/$val/;
+      $config_body =~ s/%$key%/$val/g;
      }
 
     print "$config_body\n" if ($debug == 2); 	  
+
+next;
  	  #Copy config
     if (! -d $folder ) {
     	mkdir($folder);
@@ -97,16 +150,77 @@ sub check_install {
      }
 
     if ($debug == 3) {
-     
+      
      }
     else {
+      #print "$type$folder/$dest";
+      if($type eq '>>') {
+      	#Check fo existing record in file
+      	
+        my $dest_body = '';
+        open(FILE, "$folder/$dest") || die "Can't open file '$folder/$dest'  $!";
+ 	        while(<FILE>){
+ 	        	$dest_body .= $_;
+ 	         }
+        close(FILE);
+        
+        $dest_body =~ s/\n|\r//g;
+        my $check_body = $config_body;
+        $check_body =~ s/\n|\r//g; 
+        $check_body =~ s/\$/\\\$/g; 
+        
+        if($dest_body =~ m/$check_body/sg ) {
+        	print "File: $folder/$dest\n Skipp. Parameters exists\n\n";
+ 	      	next;
+         }
+
+        #print "$config_body \n $dest_body ";
+       }
+      elsif ( -e "$folder/$dest" && ! defined($ARGV->{'-f'}) ) {
+      	if (! confirm_yn("File: $folder/$dest exist oweride: ", "y")) {
+      		print "Skiped...\n";
+      		next;
+      	 }
+       }
+
       open(FILE, "$type$folder/$dest") || die "Can't open file '$type$folder/$dest'  $!";
  	      print FILE $config_body;
       close(FILE);
      }
 
-   }
  }
 
 
+}
+
+
+#********************************************************************
+# confirm_yn($message, $confirm)
+#********************************************************************
+sub confirm_yn {
+    my($message, $confirm) = @_;
+    my $yes = '^(yes|YES|y|Y)$';
+    my $no = '^(no|NO|n|N)$';
+    my $read;
+    my $c;
+
+    if ($confirm && ($confirm =~ "$yes" || $confirm == 1)) {
+        $confirm = "y";
+    } else {
+        $confirm = "n";
+    }
+    print "$message (y/n) [$confirm]: ";
+    chop($read = <STDIN>);
+    $read =~ s/^\s*//;
+    $read =~ s/\s*$//;
+    return 1 unless $read;
+
+    if (($confirm eq "y" && $read =~ "$yes") ||
+        ($confirm eq "n" && $read =~ "$no")) {
+        return 1;
+    }
+
+    if ($read !~ "$yes" && $read !~ "$no") {
+        warn "Wrong value. Enter again!\a\n";
+      }
 }

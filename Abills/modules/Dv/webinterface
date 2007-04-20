@@ -439,8 +439,6 @@ my $table = $html->table( { width      => '100%',
                             title      => ['#', $_NAME,  $_HOUR_TARIF, $_TRAFIC_TARIFS, $_PAYMENT_TYPE, $_DAY_FEE, $_MONTH_FEE, $_SIMULTANEOUSLY, $_AGE,
                                     '-', '-', '-'],
                             cols_align => ['right', 'left', 'center', 'center', 'center', 'right', 'right', 'right', 'right', 'center:noprint', 'center:noprint', 'center:noprint'],
-                                   
-                                   
                                   } );
 
 my ($delete, $change);
