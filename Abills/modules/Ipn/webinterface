@@ -1114,11 +1114,11 @@ sub ipn_stats_calculation  {
 $sessions->calculation({ %LIST_PARAMS }); 
 
 
-my $table = $html->table( { width => '640',
-	                              rowcolor => $_COLORS[1],
-                                title_plain => ["-", "$_MIN", "$_MAX", "$_AVG"],
-                                cols_align => ['left', 'right', 'right', 'right'],
-                                rows => [ [ $_DURATION,  $sessions->{min_dur}, $sessions->{max_dur}, $sessions->{avg_dur} ],
+my $table = $html->table( { width       => '640',
+	                          rowcolor    => $_COLORS[1],
+                            title_plain => ["-", "$_MIN", "$_MAX", "$_AVG"],
+                            cols_align  => ['left', 'right', 'right', 'right'],
+                            rows        => [ [ $_DURATION,  $sessions->{min_dur}, $sessions->{max_dur}, $sessions->{avg_dur} ],
                                           [ "$_TRAFFIC $_RECV", int2byte($sessions->{min_recv}), int2byte($sessions->{max_recv}), int2byte($sessions->{avg_recv}) ],
                                           [ "$_TRAFFIC $_SENT", int2byte($sessions->{min_sent}), int2byte($sessions->{max_sent}), int2byte($sessions->{avg_sent}) ],
                                           [ "$_TRAFFIC $_SUM",  int2byte($sessions->{min_sum}),  int2byte($sessions->{max_sum}),  int2byte($sessions->{avg_sum}) ]
@@ -1171,9 +1171,9 @@ print "<form action=$SELF_URL>
 <input type=hidden name=index value='$index'>
 <input type=hidden name=UID value='$UID'>\n";
 
-$table = $html->table( { width => '640',
-	                                 rowcolor => $_COLORS[0],
-                                   title_plain => [ "$_FROM: ", $html->date_fld('from', { MONTHES => \@MONTHES} ),
+$table = $html->table( { width       => '640',
+	                       rowcolor    => $_COLORS[0],
+                         title_plain => [ "$_FROM: ", $html->date_fld('from', { MONTHES => \@MONTHES} ),
                                    "$_TO: ", $html->date_fld('to', { MONTHES => \@MONTHES } ),
                                    "$_ROWS: ",  "<input type=text name=rows value='$conf{list_max_recs}' size=4>",
                                    "<input type=submit name=show value=$_SHOW>"
@@ -1205,13 +1205,13 @@ elsif ($FORM{period}) {
 #Session List
 $list = $sessions->list({ %LIST_PARAMS });	
 
-$table = $html->table( { width => '640',
-	                              caption => '',
-	                              rowcolor => $_COLORS[1],
-                                title_plain => ["$_SESSIONS", "$_DURATION", "$_TRAFFIC", "$_SUM"],
-                                cols_align => ['right', 'right', 'right', 'right'],
-                                rows => [ [ $sessions->{TOTAL}, $sessions->{DURATION}, int2byte($sessions->{TRAFFIC}), $sessions->{SUM} ] ],
-                               } );
+$table = $html->table( { width       => '640',
+	                       caption     => '',
+	                       rowcolor    => $_COLORS[1],
+                         title_plain => ["$_SESSIONS", "$_DURATION", "$_TRAFFIC", "$_SUM"],
+                         cols_align  => ['right', 'right', 'right', 'right'],
+                         rows        => [ [ $sessions->{TOTAL}, $sessions->{DURATION}, int2byte($sessions->{TRAFFIC}), $sessions->{SUM} ] ],
+                     } );
 print $table->show();	
 
 ipn_sessions($list, $sessions) if ( $sessions->{TOTAL} > 0);
@@ -1285,14 +1285,11 @@ my $table = $html->table({ width      => '100%',
  print $table->show();
 
 
-$table = $html->table( { width => '100%',
-                                cols_align => ['right', 'right'],
-                                rows => [ ["$_TOTAL:", "<b>$sessions->{TOTAL}</b>" ] ]
-                               } );
+$table = $html->table( { width      => '100%',
+                         cols_align => ['right', 'right'],
+                         rows       => [ ["$_TOTAL:", "<b>$sessions->{TOTAL}</b>" ] ]
+                     } );
 print $table->show();
-
-
-
 }
 
 
@@ -1989,12 +1986,16 @@ print	 $table->show();
 	
 }
 
-
+#**********************************************************
+#
+#**********************************************************
 sub ipn_use_allmonthes  {
 
 }
 
-
+#**********************************************************
+#
+#**********************************************************
 sub ipn_getnet {
 
 my $ip    =  $FORM{IP}   || '0.0.0.0';
@@ -2002,14 +2003,35 @@ my $port  =  $FORM{PORT} || '0';
 my $time  =  $FROM{TIME} || $TIME;
 my $date  =  $FROM{DATE} || $DATE;
 	
-	
+
+my @ARR = ( ["IP / HOST / URL:", $html->form_input('IP', "$ip", { OUTPUT2RETURN => 1 })     ],
+            ["$_PORT:", $html->form_input('PORT', "$port", { OUTPUT2RETURN => 1 }) ],
+            ["$_DATE:", $html->form_input('DATE', "$date", { OUTPUT2RETURN => 1 }) ],
+            ["$_TIME:", $html->form_input('DATE', "$time", { OUTPUT2RETURN => 1 }) ]
+          );
+
+	# Resolv if not ip
+	if ($ip !~  /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/) {
+		if ($ip =~ /^http:\/\/([0-9a-z\-\.]+)\/?/i || $ip =~ /(\S+)\//i) {
+      $ip = $1;
+		 }
+    use Socket;
+		use Sys::Hostname;
+		if (my $addr = gethostbyname($ip)) {
+		  $ip = inet_ntoa(scalar($addr));
+		 }
+		else {
+			 print $html->message('err', $_ERROR, "Can't resolv");
+			 $ip = '0.0.0.0';
+		 }
+		push @ARR, [ 'IP:', $ip ];
+	 }
+
+
+
 my $table = $html->table( { width       => '400',
                             border      => 1,
-                            rows        => [['IP:',     $html->form_input('IP', "$ip", { OUTPUT2RETURN => 1 })     ],
-                                            ["$_PORT:", $html->form_input('PORT', "$port", { OUTPUT2RETURN => 1 }) ],
-                                            ["$_DATE:", $html->form_input('DATE', "$date", { OUTPUT2RETURN => 1 }) ],
-                                            ["$_TIME:", $html->form_input('DATE', "$time", { OUTPUT2RETURN => 1 }) ]
-                                           ]
+                            rows        => \@ARR
                          } );
 
 	
@@ -2072,14 +2094,15 @@ my $table = $html->table( { width       => '400',
 
 
   $table = $html->table( { width       => '100%',
-                            caption     => "$_TRAFIC_TARIFS",
-                            border      => 1,
-                            title_plain => ["ID", "IP", "$_PREPAID", "$_IN", "$_OUT",  '-' ],
-                            cols_align  => ['left', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'center'],
-                            qs          => $pages_qs,
+                           caption     => "$_TRAFIC_TARIFS",
+                           border      => 1,
+                           title_plain => ["ID", "IP", "$_PREPAID", "$_IN", "$_OUT",  '-' ],
+                           cols_align  => ['left', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'center'],
+                           qs          => $pages_qs,
                        } );
 
 	my $zone = -1;
+
 	foreach my $zone_id (@{ $Ipn->{ZONES_IDS} }) {
 	  if(ip_in_zone(ip2int($ip), $port, $zone_id, $Ipn->{ZONES})) {
 		  $zone = $zone_id;
