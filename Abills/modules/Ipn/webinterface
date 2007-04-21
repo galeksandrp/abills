@@ -88,6 +88,7 @@ else {
 }
 
   
+   $Ipn->{debug}=1;
    my $list = $Ipn->reports_users({ %LIST_PARAMS });
    #Used Fraffic
    $table_sessions = $html->table( { width      => '100%',
@@ -127,7 +128,7 @@ else {
                   $table->td($stats_array[0][2], { bgcolor => $TT_COLORS[$stats_array[0][1]] }), 
                   $table->td(int2byte($stats_array[0][3]), { bgcolor => $TT_COLORS[$stats_array[0][1]] }), 
                   $table->td(int2byte($stats_array[0][4]), { bgcolor => $TT_COLORS[$stats_array[0][1]] }),
-                  $table->td(int2byte($stats_array[0][3]+$stats_array[0][5]), { bgcolor => $TT_COLORS[$stats_array[0][1]] }),
+                  $table->td(int2byte($stats_array[0][3]+$stats_array[0][4]), { bgcolor => $TT_COLORS[$stats_array[0][1]] }),
                   $table->td("$stats_array[0][5]", { bgcolor => $TT_COLORS[$stats_array[0][1]] })
       );
 

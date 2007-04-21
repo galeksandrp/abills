@@ -12,10 +12,8 @@ use Exporter;
 $VERSION = 2.00;
 @ISA = ('Exporter');
 @EXPORT = qw(
-  &int2ip
   &ip_in_zone
   &is_exist
-
 );
 
 @EXPORT_OK = ();
