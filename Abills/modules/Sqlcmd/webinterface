@@ -69,12 +69,29 @@ if ($FORM{WIZARD}) {
 
   #Syntax hightligth
   my @syntax = ('SELECT', 'FROM', 'WHERE', 'ORDER', 'LIMIT', 'MIN', 'MAX', 'AVG', 'SUM', 'IF',
-            'INSERT', 'UPDATE', 'INTO', 'VALUES', 'GROUP BY', 'DATE_FORMAT', 'LEFT JOIN', 'ON');
+            'INSERT', 'UPDATE', 'INTO', 'VALUES', 
+            'GROUP BY', 'ORDER BY', 'LIMIT',
+            'DATE_FORMAT', 'LEFT JOIN', 'ON', 'AND', 'EXPLAIN'
+            );
+
+  my @division = ('FROM', 'WHERE', 'LEFT JOIN', 'GROUP BY', 'ORDER BY', 'LIMIT');
 
   foreach my $query ( @{ $Sqlcmd->{EXECUTED_QUERY} } ) {
+    foreach my $s (@division) {
+      $query =~ s/$s | $s / <br>$s /ig;
+     }
+
     foreach my $s (@syntax) {
-      $query =~ s/^$s | $s/ <b>$s<\/b> /gi;
-      $query =~ s/ (\d+)|(\d+),/ <font color='red'>$1<\/font>/g;
+      #Simple 
+      #$query =~ s/$s/<b>$s<\/b>/ig;
+
+      #Extended
+      $query =~ s/$s | $s / <b>$s<\/b> /ig;
+      $query =~ s/$s\(/ <b>$s<\/b>\(/gi;
+      #if ($query =~ /'(\S+)'/);
+      $query =~ s/'(\S+)'/ <font color=\"#0000FF\">'$1'<\/font> /gi;
+      
+      $query =~ s/ (\d+)|(\d+),/ <font color=\"red\">$1<\/font>/g;
      }
     $table->addrow("$query", "Ok");
   }
