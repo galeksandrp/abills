@@ -1,0 +1,3 @@
+:PARAMS=FREEBSD:*/5     *       *       *       *       www  /usr/local/bin/mrtg /usr/local/etc/mrtg/mrtg.cfg  >> [/etc/]/etc/crontab
+mrtg.cfg > [/usr/local/etc/mrtg]/mrtg.cfg 
+

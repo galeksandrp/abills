@@ -94,7 +94,13 @@ sub check_install {
     if ($param) {
       ($param_name, $param_value)=split(/=/, $param, 2);
      }
-    if ((defined($ARGV->{$param_name}) && $ARGV->{$param_name} eq $param_value)) {
+    
+    if ($value =~ /^exec:/) {
+    	
+    	print "Execute \n" if ($debug > 1);
+    	next;
+     } 
+    elsif ((defined($ARGV->{$param_name}) && $ARGV->{$param_name} eq $param_value)) {
       $config_body = "$value\n";
      }  		
     elsif (! $param) {
@@ -140,9 +146,6 @@ sub check_install {
       $config_body =~ s/%$key%/$val/g;
      }
 
-    print "$config_body\n" if ($debug == 2); 	  
-
-next;
  	  #Copy config
     if (! -d $folder ) {
     	mkdir($folder);
