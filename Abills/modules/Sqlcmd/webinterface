@@ -69,7 +69,7 @@ if ($FORM{WIZARD}) {
 
   #Syntax hightligth
   my @syntax = ('SELECT', 'FROM', 'WHERE', 'ORDER', 'LIMIT', 'MIN', 'MAX', 'AVG', 'SUM', 'IF',
-            'INSERT', 'INTO', 'VALUES', 'GROUP BY', 'DATE_FORMAT');
+            'INSERT', 'UPDATE', 'INTO', 'VALUES', 'GROUP BY', 'DATE_FORMAT', 'LEFT JOIN', 'ON');
 
   foreach my $query ( @{ $Sqlcmd->{EXECUTED_QUERY} } ) {
     foreach my $s (@syntax) {

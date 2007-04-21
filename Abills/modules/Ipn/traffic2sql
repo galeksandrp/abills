@@ -194,8 +194,6 @@ foreach my $ip ( sort keys %$session_ids) {
        $interium_time,
        $total_user_sum
       );
-
-    
    }
  
   my $ip_addr = int2ip($ip);
