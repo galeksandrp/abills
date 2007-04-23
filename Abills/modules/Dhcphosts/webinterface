@@ -29,13 +29,22 @@ sub dhcphosts_mac_block_show {
    my ($attr) = @_;
 
    my $ethers_content = "# $DATE $TIME\n";
+   
+   $LIST_PARAMS{STATUS}=0 if (! $conf{DHCPHOSTS_IPGUARD_TYPE} || $conf{DHCPHOSTS_IPGUARD_TYPE} ne 'ipsentinel');
+   my @pair_status = ('ACCEPT', 'DENY');
+   
    my $list = $Dhcphosts->hosts_list({ %LIST_PARAMS, 
-   	                                   STATUS     => 0,
-   	                                   PAGE_ROWS  => 100000 });
+   	                                   PAGE_ROWS  => 1000000 });
    
 	 foreach my $line (@$list) {
 	    next if ($line->[6] eq '');
-	    $ethers_content .= "$line->[6] $line->[2] # $line->[1]\n";
+	    my $ip = ($conf{DHCPHOSTS_IPGUARD_FORMAT} && $conf{DHCPHOSTS_IPGUARD_FORMAT} eq 'MAC') ? '0.0.0.0' : $line->[2]; 
+      if ($conf{DHCPHOSTS_IPGUARD_TYPE} && $conf{DHCPHOSTS_IPGUARD_TYPE} eq 'ipsentinel') {
+	      $ethers_content .= "$ip $line->[6]  $pair_status[$line->[10]] \n";
+	     }
+	    else {
+	    	$ethers_content .= "$line->[6] $ip # $line->[1]\n";
+	     }
     };
 
 

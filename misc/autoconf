@@ -77,6 +77,8 @@ sub check_install {
  	my $folder = '';
  	my $dest   = '';
 
+  print $file;
+
  	#Reg expression
  	print $file if ($debug > 4);
  	
