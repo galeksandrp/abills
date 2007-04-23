@@ -15,7 +15,7 @@ $web_interface    = 1;
                    );
 
 %PERIODIC = (
-              daily   => [ 'dhcphosts_periodic' ]
+              daily   => [ 'dhcphosts_periodic', 'dhcphosts_mac_block_make' ]
              );
 
 

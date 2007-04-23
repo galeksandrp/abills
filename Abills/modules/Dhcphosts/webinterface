@@ -27,7 +27,7 @@ sub dhcphosts_periodic {
 #*******************************************************************
 sub dhcphosts_mac_block_show {
    my ($attr) = @_;
-
+   my $debug = $attr->{DEBUG} || 0;
    my $ethers_content = "# $DATE $TIME\n";
    
    $LIST_PARAMS{STATUS}=0 if (! $conf{DHCPHOSTS_IPGUARD_TYPE} || $conf{DHCPHOSTS_IPGUARD_TYPE} ne 'ipsentinel');
@@ -47,7 +47,6 @@ sub dhcphosts_mac_block_show {
 	     }
     };
 
-
 	return  $ethers_content;
 }
 
@@ -55,14 +54,14 @@ sub dhcphosts_mac_block_show {
 # 
 #*******************************************************************
 sub dhcphosts_mac_block_make {
-	my $ethers_content = shift;
-	
-	if ($ethers_content eq '') {
-	  $ethers_content = dhcphosts_mac_block_show();			
+	my ($attr) = shift;
+
+	if (! $attr->{ETHER_CONTENT}) {
+	  $attr->{ETHER_CONTENT} = dhcphosts_mac_block_show();			
 	 }
 	
 	open(FILE, ">$var_dir/ipguard") || return "Can't open '$var_dir/ipguard' $!";
-	  print FILE "$ethers_content";
+	  print FILE "$attr->{ETHER_CONTENT}";
 	close(FILE);
 
   
