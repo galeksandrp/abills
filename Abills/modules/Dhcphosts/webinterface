@@ -59,11 +59,21 @@ sub dhcphosts_mac_block_make {
 	if (! $attr->{ETHER_CONTENT}) {
 	  $attr->{ETHER_CONTENT} = dhcphosts_mac_block_show();			
 	 }
+
+	my $debug = $attr->{DEBUG} || 0;
+	my $debug_output = "$attr->{ETHER_CONTENT}\n" if ($debug > 1);
+	$DEBUG = $debug_output;
+	
+	if ($debug > 2) {
+		
+		return 1;
+	 }
 	
 	open(FILE, ">$var_dir/ipguard") || return "Can't open '$var_dir/ipguard' $!";
 	  print FILE "$attr->{ETHER_CONTENT}";
 	close(FILE);
 
+  $DEBUG = $debug_output;
   
 	return 1;
 }
