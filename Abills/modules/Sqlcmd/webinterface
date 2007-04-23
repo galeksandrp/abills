@@ -76,7 +76,7 @@ if ($FORM{WIZARD}) {
             
             );
  
-  my @types = ('INT', 'VARCHAR', 'CHAR', 'TINYINT', 'DOUBLE');
+  my @types = ('INT', 'VARCHAR', 'SMALLINT', 'CHAR', 'TINYINT', 'DOUBLE');
 
   my @division = ('FROM', 'WHERE', 'LEFT JOIN', 'GROUP BY', 'ORDER BY', 'LIMIT');
 
