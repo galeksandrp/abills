@@ -1427,6 +1427,8 @@ my $table = $html->table( { caption     => "$_PERIOD",
                             cols_align  => ['left', 'right', 'right', 'right', 'right'],
                             rowcolor    => $_COLORS[1]
                            } );
+
+
 for(my $i = 0; $i < 5; $i++) {
 	$table->addrow($html->button("$PERIODS[$i]", "index=$index&PERIOD=$i$pages_qs"), 
 	  "$sessions->{'duration_'. $i}",
@@ -1523,8 +1525,8 @@ $list = $sessions->list({ %LIST_PARAMS });
 $table = $html->table( { caption     => "$_SUM",
 	                       width       => '100%',
 	                       rowcolor    => $_COLORS[1],
-                         title_plain => ["$_SESSIONS", "$_DURATION", "$_TRAFFIC $_RECV", "$_TRAFFIC $_SENT", "$_TRAFFIC $_SUM",
-                           "$_TRAFFIC 2 $_RECV", "$_TRAFFIC 2 $_SENT", "$_TRAFFIC $_SUM", "$_SUM"],
+                         title_plain => ["$_SESSIONS", "$_DURATION", "$_TRAFFIC $_SENT", "$_TRAFFIC $_RECV", "$_TRAFFIC $_SUM",
+                           "$_TRAFFIC 2 $_SENT", "$_TRAFFIC 2 $_RECV",  "$_TRAFFIC $_SUM", "$_SUM"],
                          cols_align  => ['right', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'right'],
                          rows        => [ [ $sessions->{TOTAL}, $sessions->{DURATION}, 
                                             int2byte($sessions->{TRAFFIC_IN}, { DIMENSION => $FORM{DIMENSION} }), 
@@ -1716,8 +1718,8 @@ $list = $sessions->list({ %LIST_PARAMS });
 $table = $html->table( {  caption     => "$_SUM",
 	                        width       => '100%',
 	                        rowcolor    => $_COLORS[1],
-                         title_plain => ["$_SESSIONS", "$_DURATION", "$_TRAFFIC $_RECV", "$_TRAFFIC $_SENT", "$_TRAFFIC $_SUM",
-                           "$_TRAFFIC 2 $_RECV", "$_TRAFFIC 2 $_SENT", "$_TRAFFIC $_SUM", "$_SUM"],
+                         title_plain => ["$_SESSIONS", "$_DURATION", "$_TRAFFIC $_SENT", "$_TRAFFIC $_RECV",  "$_TRAFFIC $_SUM",
+                           "$_TRAFFIC 2 $_SENT", "$_TRAFFIC 2 $_RECV",  "$_TRAFFIC $_SUM", "$_SUM"],
 
                           cols_align  => ['right', 'right', 'right', 'right'],
                           rows        => [ [ $sessions->{TOTAL}, $sessions->{DURATION}, 
