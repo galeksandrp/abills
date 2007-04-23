@@ -199,10 +199,25 @@ sub show_log {
   my $PG = (defined($attr->{PG}))? $attr->{PG} : 1;
 
   open(FILE, "$logfile") || die "Can't open log file '$logfile' $!\n";
+   my($date, $time, $log_type, $action, $user, $message);
    while(<FILE>) {
 
-      my ($date, $time, $log_type, $action, $user, $message)=split(/ /, $_, 6);
-
+      #Old
+      #my ($date, $time, $log_type, $action, $user, $message)=split(/ /, $_, 6);
+      #new
+      
+      if (/(\d+\-\d+\-\d+) (\d+:\d+:\d+) ([A-Z_]+:) ([A-Z_]+) \[(.+)\] (.+)/) {
+      	$date     = $1;
+      	$time     = $2; 
+      	$log_type = $3;
+      	$action   = $4; 
+      	$user     = $5;  
+      	$message  = $6;
+       }
+      else {
+      	next;
+       }
+      
       if (defined($attr->{LOG_TYPE}) && $log_type ne $attr->{LOG_TYPE}) {
       	#print "0";
       	next;
@@ -213,9 +228,9 @@ sub show_log {
       	next;
        }
       
-      $user =~ s/\[|\]//g;
+      #$user =~ s/\[|\]//g;
       if ($login ne "") {
-      	if($login eq $user) {
+      	if($user =~ /\s{0,1}$login\s{0,1}/i ) {
      	    push @err_recs, $_;
      	    $types{$log_type}++;
          }

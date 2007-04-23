@@ -78,8 +78,33 @@ sub check_install {
  	my $dest   = '';
 
  	#Reg expression
- 	print $file;
- 	if ($file =~ /^:(\S{0,100}):(.+) (>{1,2}) +\[(\S+)\]\/(.+)/) {
+ 	print $file if ($debug > 4);
+ 	
+ 	#Execute some command
+ 	if ($file =~ /^:(\S{0,100}):exec:(.+)/) {
+ 		my $param  = $1;
+    my $value  = $2;
+ 		
+ 		my $param_name = '' ;
+ 		my $param_value = '';
+    if ($param) {
+      ($param_name, $param_value)=split(/=/, $param, 2);
+     }
+
+    if ((defined($ARGV->{$param_name}) && $ARGV->{$param_name} eq $param_value)) {
+      $config_body = "$value\n";
+     }  		
+    elsif (! $param) {
+    	$config_body = "$value\n";
+     }
+
+    #my $res = system("$config_body");
+    print "EXECUTE: $config_body\n" if ($debug > 1);
+    my $res = exec("$config_body");
+   	print "RESULT: $res\n" if ($debug > 1);
+    next;
+   } 
+ 	elsif ($file =~ /^:(\S{0,100}):(.+) (>{1,2}) +\[(\S+)\]\/(.+)/) {
  		my $param  = $1;
  		#my $param_value = $2;
  		my $param_name = '' ;
@@ -95,19 +120,14 @@ sub check_install {
       ($param_name, $param_value)=split(/=/, $param, 2);
      }
     
-    if ($value =~ /^exec:/) {
-    	
-    	print "Execute \n" if ($debug > 1);
-    	next;
-     } 
-    elsif ((defined($ARGV->{$param_name}) && $ARGV->{$param_name} eq $param_value)) {
+    if ((defined($ARGV->{$param_name}) && $ARGV->{$param_name} eq $param_value)) {
       $config_body = "$value\n";
      }  		
     elsif (! $param) {
     	$config_body = "$value\n";
      }
 
- 		print "$param_name | $param_value | $value | $type | $folder | $dest\n";
+ 		print "$param_name | $param_value | $value | $type | $folder | $dest\n" if ($debug > 4);
  	 }
 	elsif($file =~ /^(\S+) +([>]{1,2}) +\[(\S+)\]\/(.+)/) {
  	  my $config = $1;
