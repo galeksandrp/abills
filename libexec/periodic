@@ -77,8 +77,8 @@ if ($args->{SKIP_MODULES}) {
 
 if ($args->{DEBUG}) {
   $DEBUG = '';
-
 }
+
 
 
 
@@ -131,10 +131,15 @@ if ($args->{DEBUG}) {
 push  @daily_functions, 'sheduler';
 my($Y, $M, $D);
   if(defined($args->{DATE})) {
+     if ($args->{DATE} !~ /\d{4}\-\d{2}\-\d{2}/) {
+       print "Wrong date format. Format: YYYY-MM-DD\n";
+       exit;
+      }
      ($Y, $M, $D)=split(/-/, $args->{DATE}, 3);
-     $YESTERDAY = (strftime "%Y-%m-%d", localtime(POSIX::mktime( 0, 10, 1, $D, ($M-1), $Y-1900)- 86400));
-   	 $YESTERDAY=$args->{DATE};
-   	 $ADMIN_REPORT{DATE} = $args->{DATE};
+     $YESTERDAY = (strftime '%Y-%m-%d', localtime(POSIX::mktime( 0, 10, 1, $D, ($M-1), ($Y-1900)) - 86400));
+
+     #$YESTERDAY=$args->{DATE};
+     $ADMIN_REPORT{DATE} = $args->{DATE};
    }
   
   if (defined($args->{NO_USERS_WARNINGS})) {

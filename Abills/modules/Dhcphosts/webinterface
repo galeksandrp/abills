@@ -62,7 +62,7 @@ sub dhcphosts_mac_block_make {
 
 	my $debug = $attr->{DEBUG} || 0;
 	my $debug_output = "$attr->{ETHER_CONTENT}\n" if ($debug > 1);
-	$DEBUG = $debug_output;
+	$DEBUG .= $debug_output;
 	
 	if ($debug > 2) {
 		
@@ -73,7 +73,7 @@ sub dhcphosts_mac_block_make {
 	  print FILE "$attr->{ETHER_CONTENT}";
 	close(FILE);
 
-  $DEBUG = $debug_output;
+  $DEBUG .= $debug_output;
   
 	return 1;
 }

@@ -1978,13 +1978,13 @@ sub dv_periodic_logrotate {
 
   # Clean s_detail table
   my ($y, $m, $d)=split(/-/, $ADMIN_REPORT{DATE}, 3);
-  
-  if ($d == 1 && $conf{DV_LOG_CLEAR}) {
-    print "Make log rotate\n" if ($debug > 0);
-    $sessions->log_rotate({ TYPES  => [ 'SESSION_DETAILS', 'SESSION_INTERVALS'],
-  	                        PERIOD => $conf{DV_LOG_CLEAR} });
-   }
 
+  if ($d == 1 && $conf{DV_LOG_CLEAR_PERIOD}) {
+    $DEBUG .= "Make log rotate\n" if ($debug > 0);
+
+    $sessions->log_rotate({ TYPES  => [ 'SESSION_DETAILS', 'SESSION_INTERVALS'],
+  	                        PERIOD => $conf{DV_LOG_CLEAR_PERIOD} });
+   }
 }
 
 #**********************************************************
@@ -2056,7 +2056,7 @@ sub dv_daily_fees {
   }
 
 
-  $DEBUG = $debug_output;
+  $DEBUG .= $debug_output;
   return $debug_output;
 }
 
@@ -2161,7 +2161,7 @@ sub dv_monthly_fees {
   }
 }
 
-  $DEBUG = $debug_output;
+  $DEBUG .= $debug_output;
   return $debug_output;
 }
 
