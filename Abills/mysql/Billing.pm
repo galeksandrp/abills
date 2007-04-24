@@ -203,12 +203,15 @@ if ($prepaid{0} + $prepaid{1} > 0) {
    else {
      $used_traffic->{TRAFFIC_SUM}=$used_traffic->{TRAFFIC_OUT} + $used_traffic->{TRAFFIC_IN};
      $used_traffic->{TRAFFIC_SUM_2} = $used_traffic->{TRAFFIC_OUT_2} + $used_traffic->{TRAFFIC_IN_2};
-     $used_traffic->{ONLINE}="$sent + $recv";
-     $used_traffic->{ONLINE2}="$sent2 + $recv2";
+     $used_traffic->{ONLINE}=$sent + $recv;
+     $used_traffic->{ONLINE2}=$sent2 + $recv2;
     }
 
    # If left global prepaid traffic set traf price to 0
-   if ($used_traffic->{TRAFFIC_SUM} + ($used_traffic->{ONLINE}) / $CONF->{MB_SIZE}  < $prepaid{0}) {
+
+   
+#   print "$used_traffic->{TRAFFIC_SUM} + $used_traffic->{ONLINE} / $CONF->{MB_SIZE}";
+   if ((int($used_traffic->{TRAFFIC_SUM}) + int($used_traffic->{ONLINE}) / int($CONF->{MB_SIZE}))  < $prepaid{'0'}) {
      $traf_price{in}{0} = 0;
      $traf_price{out}{0} = 0;
     }

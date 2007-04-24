@@ -1973,28 +1973,17 @@ sub dv_user_info {
 # dv_periodic_logrotate
 #**********************************************************
 sub dv_periodic_logrotate {
-	
-#	$self->query($db, "CREATE TABLE `s_detail_$month` (
-#  `acct_session_id` varchar(25) NOT NULL default '',
-#  `nas_id` smallint(5) unsigned NOT NULL default '0',
-#  `acct_status` tinyint(2) unsigned NOT NULL default '0',
-#  `start` datetime default NULL,
-#  `last_update` int(11) unsigned NOT NULL default '0',
-#  `sent1` int(10) unsigned NOT NULL default '0',
-#  `recv1` int(10) unsigned NOT NULL default '0',
-#  `sent2` int(10) unsigned NOT NULL default '0',
-#  `recv2` int(10) unsigned NOT NULL default '0',
-#  `id` varchar(16) NOT NULL default '',
-#  KEY `sid` (`acct_session_id`)
-#  ) TYPE=MyISAM;", 'do');
+	my ($attr) = @_;
+  my $debug = $attr->{DEBUG} || 0;
 
   # Clean s_detail table
-  #Period 
-  # 1D - 1 day
-  # 2M - 2 Month
-  $sessions->log_rotate({ TYPE   => 'SESSION_DETAILS',
-  	                      PERIOD => '2M' });
-
+  my ($y, $m, $d)=split(/-/, $ADMIN_REPORT{DATE}, 3);
+  
+  if ($d == 1 && $conf{DV_LOG_CLEAR}) {
+    print "Make log rotate\n" if ($debug > 0);
+    $sessions->log_rotate({ TYPES  => [ 'SESSION_DETAILS', 'SESSION_INTERVALS'],
+  	                        PERIOD => $conf{DV_LOG_CLEAR} });
+   }
 
 }
 

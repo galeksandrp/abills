@@ -1,2 +1,2 @@
 MYADDR:
- !bg /home/asmodeus/abills3/libexec/linkupdown down INTERFACE USER HISADDR
+ !bg /usr/abills/libexec/linkupdown down INTERFACE USER HISADDR

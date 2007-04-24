@@ -1163,6 +1163,16 @@ sub log_rotate {
 	my $self = shift;
 	my ($attr)=@_;
 	
+  $self->query($db, "DELETE from s_detail
+            WHERE
+  last_update < UNIX_TIMESTAMP()- $attr->{PERIOD} * 24 * 60 * 60;", 'do');
+	
+
+  $self->query($db, "DELETE LOW_PRIORITY dv_log_intervals from dv_log dl, dv_log_intervals dli
+WHERE
+  dl.acct_session_id=dli.acct_session_id
+  and dl.start < curdate() - INTERVAL $attr->{PERIOD} DAY;", 'do');
+
 	
 	
 	return $self;
