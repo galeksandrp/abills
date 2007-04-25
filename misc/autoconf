@@ -120,7 +120,7 @@ sub check_install {
 
     #my $res = system("$config_body");
     print "EXECUTE: $config_body\n" if ($debug > 1);
-    my $res = exec("$config_body");
+    my $res = system("$config_body");
    	print "RESULT: $res\n" if ($debug > 1);
     next;
    } 
