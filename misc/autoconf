@@ -33,6 +33,8 @@ if ($ARGV->{help}) {
   -f                      - Force mode. Rewrite exists files withot prompt
   PARAMS=                 - Extended parameters
     FREEBSD               - OS FreeBSD make startup config
+  
+  FILES                   - Configure only selected files
   debug                   - Debug level
                             1 short debug
                             2 full debug
@@ -47,7 +49,7 @@ elsif ($ARGV->{PROGRAMS}) {
   		print "Can't find program configuration '$Bin/$program/install'\n";
   		exit 0;
   	 }
-  	elsif ($debug < 3) {
+  	elsif ($debug < 6) {
   	  check_install("$program");
   	 }
    }
@@ -59,7 +61,7 @@ elsif ($ARGV->{PROGRAMS}) {
 sub check_install {
  my ($program)=@_;
 
-
+ 
  my $install_file = $Bin . "/$program/install";
 
  my @files = ();
@@ -70,20 +72,36 @@ sub check_install {
     }
  close(FILE);
 
+ my %DEFAULT_VALUE = ();
+ my %DEFAULT_DESCRIBE = ();
+
  foreach my $file (@files) {
  	
  	my $config_body = '';
   my $type   = '';
  	my $folder = '';
  	my $dest   = '';
-
-  print $file;
-
  	#Reg expression
  	print $file if ($debug > 4);
  	
+
+ 	# :DEFAULT:DEFAULT_VALUE_NAME=DEFAULT_VALUE_VALUE:DESCRIBE
+ 	if ($file =~ /^:DEFAULT:(.+)/) {
+    my $value = $1;
+ 		if ($value =~ /(\S+)=(.+|):(.+)/) {
+ 			my $name     = $1;
+ 			my $value    = $2;
+ 			my $describe = $3;
+ 			
+ 			print "DEFAULT: $name / $value / $describe \n" if ($debug > 2);
+ 			$DEFAULT_DESCRIBE{"$name"}=$describe;
+ 			$DEFAULT_VALUE{"$name"}=$value;
+ 		 }
+ 	  next;
+ 	 }
  	#Execute some command
- 	if ($file =~ /^:(\S{0,100}):exec:(.+)/) {
+ 	#:PARAMS_NAME=PARAMS_VALUE:exec COMMAND
+ 	elsif ($file =~ /^:(\S{0,100}):exec:(.+)/) {
  		my $param  = $1;
     my $value  = $2;
  		
@@ -118,9 +136,12 @@ sub check_install {
     
     $value =~ s/\\n/\n/g;
     
+
     if ($param) {
       ($param_name, $param_value)=split(/=/, $param, 2);
      }
+
+    print "$param_name | $param_value | $value | $type | $folder | $dest\n" if ($debug > 4);
     
     if ((defined($ARGV->{$param_name}) && $ARGV->{$param_name} eq $param_value)) {
       $config_body = "$value\n";
@@ -128,8 +149,10 @@ sub check_install {
     elsif (! $param) {
     	$config_body = "$value\n";
      }
-
- 		print "$param_name | $param_value | $value | $type | $folder | $dest\n" if ($debug > 4);
+    else {
+    	next;
+     }
+ 		
  	 }
 	elsif($file =~ /^(\S+) +([>]{1,2}) +\[(\S+)\]\/(.+)/) {
  	  my $config = $1;
@@ -154,13 +177,21 @@ sub check_install {
    while($config_body =~ /%([A-Z\_0-9]+)%/g) {
    	 my $VARIABLE = $1;
    	 if (! $conf{$VARIABLE}) {
-   	   print " $VARIABLE: ";
+   	   print $DEFAULT_DESCRIBE{"$VARIABLE"}."\n" if ($DEFAULT_DESCRIBE{"$VARIABLE"});
+   	   print " $VARIABLE";
+   	   print ' ['. $DEFAULT_VALUE{"$VARIABLE"}. ']' if ($DEFAULT_VALUE{"$VARIABLE"});
+   	   print ": ";
    	   my $read = '';
        chop($read = <STDIN>);
        $read =~ s/^\s*//;
        $read =~ s/\s*$//;
        #print "$VARIABLE  / $read\n";
- 	     $conf{$VARIABLE}=$read;
+ 	     if ($read eq '' && $DEFAULT_VALUE{"$VARIABLE"}) {
+ 	     	 $conf{$VARIABLE} = $DEFAULT_VALUE{"$VARIABLE"};
+ 	      }
+ 	     else {
+ 	       $conf{$VARIABLE}=$read;
+ 	      }
  	    }
     }
    
@@ -198,8 +229,6 @@ sub check_install {
         	print "File: $folder/$dest\n Skipp. Parameters exists\n\n";
  	      	next;
          }
-
-        #print "$config_body \n $dest_body ";
        }
       elsif ( -e "$folder/$dest" && ! defined($ARGV->{'-f'}) ) {
       	if (! confirm_yn("File: $folder/$dest exist oweride: ", "y")) {
