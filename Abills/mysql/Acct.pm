@@ -76,7 +76,7 @@ if ($acct_status_type == 1) {
 
   $self->query($db, "SELECT count(user_name) FROM dv_calls 
     WHERE user_name='$RAD->{USER_NAME}' and acct_session_id='$RAD->{ACCT_SESSION_ID}';");
-
+    
   if ($self->{list}->[0]->[0] < 1) {
     #Get TP_ID
     $self->query($db, "SELECT dv.tp_id FROM (users u, dv_main dv)
@@ -113,8 +113,6 @@ elsif ($acct_status_type == 2) {
   my $Billing = Billing->new($db, $conf);	
 
   if ($NAS->{NAS_TYPE} eq 'ipcad') {
-   
-    
 #    $self->query($db, "INSERT INTO dv_log (uid, start, tp_id, duration, sent, recv, minp, kb,  sum, nas_id, port_id,
 #        ip, CID, sent2, recv2, acct_session_id, 
 #        bill_id,
@@ -130,8 +128,9 @@ elsif ($acct_status_type == 2) {
    }
   elsif ($conf->{rt_billing}) {
     $self->rt_billing($RAD, $NAS);
-    
-    $self->query($db, "INSERT INTO dv_log (uid, start, tp_id, duration, sent, recv, minp, kb,  sum, nas_id, port_id,
+
+    if (! $self->{errno} ) {
+      $self->query($db, "INSERT INTO dv_log (uid, start, tp_id, duration, sent, recv, minp, kb,  sum, nas_id, port_id,
         ip, CID, sent2, recv2, acct_session_id, 
         bill_id,
         terminate_cause) 
@@ -141,6 +140,13 @@ elsif ($acct_status_type == 2) {
         '$RAD->{OUTBYTE2}', '$RAD->{INBYTE2}',  \"$RAD->{ACCT_SESSION_ID}\", 
         '$self->{BILL_ID}',
         '$RAD->{ACCT_TERMINATE_CAUSE}');", 'do');
+     }      
+    else {
+      $self->{errstr}    = "ACCT [$RAD->{USER_NAME}] Can't find sessions";
+      $self->{sql_errstr}= '';
+      $self->{errno}     = 1;   
+      return $self;      
+     }     
    }
   else {
     my %EXT_ATTR = ();
@@ -285,6 +291,7 @@ sub rt_billing {
 	my $self = shift;
   my ($RAD, $NAS)=@_;
   
+
   $self->query($db, "SELECT lupdated, UNIX_TIMESTAMP()-lupdated, 
    if($RAD->{INBYTE} >= acct_input_octets, $RAD->{INBYTE} - acct_input_octets, acct_input_octets),
    if($RAD->{OUTBYTE} >= acct_output_octets, $RAD->{OUTBYTE}  - acct_output_octets, acct_output_octets),
@@ -294,6 +301,7 @@ sub rt_billing {
    sum
    FROM dv_calls 
   WHERE user_name='$RAD->{USER_NAME}' and acct_session_id='$RAD->{ACCT_SESSION_ID}';");
+
 
 
   if($self->{errno}) {
@@ -326,6 +334,7 @@ sub rt_billing {
   
   
   my $Billing = Billing->new($db, $conf);	
+
 
 
   ($self->{UID}, 

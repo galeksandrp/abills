@@ -166,24 +166,28 @@ foreach my $line (@$list) {
    $prepaid{$line->[0]}         = $line->[3];
 }
 
+  my $used_traffic;
+  if ($CONF->{rt_billing}) {
+  	$sent = $RAD->{INTERIUM_OUTBYTE} || 0; #from server
+    $recv = $RAD->{INTERIUM_INBYTE} || 0;  #to server
+    $sent2 = $RAD->{INTERIUM_OUTBYTE1} || 0; 
+    $recv2 = $RAD->{INTERIUM_INBYTE1} || 0;
+   }
+
 if ($prepaid{0} + $prepaid{1} > 0) {
    #Get traffic from begin of month
    
-   my $used_traffic = $self->get_traffic({ UID    => $self->{UID},
+   $used_traffic = $self->get_traffic({ UID    => $self->{UID},
    	                                       PERIOD => $traffic_period
    	                                    });
    
    if ($CONF->{rt_billing}) {
-   	 $used_traffic->{TRAFFIC_IN}     += int($recv / $CONF->{MB_SIZE}); 
-   	 $used_traffic->{TRAFFIC_OUT}    += int($sent / $CONF->{MB_SIZE});
-   	 $used_traffic->{TRAFFIC_IN_2}   += int($recv2 / $CONF->{MB_SIZE}); 
-   	 $used_traffic->{TRAFFIC_OUT_2}  += int($sent2 / $CONF->{MB_SIZE});
- 	 
-  	 $sent = $RAD->{INTERIUM_OUTBYTE} || 0; #from server
-     $recv = $RAD->{INTERIUM_INBYTE} || 0;  #to server
-     $sent2 = $RAD->{INTERIUM_OUTBYTE1} || 0; 
-     $recv2 = $RAD->{INTERIUM_INBYTE1} || 0;
+   	 $used_traffic->{TRAFFIC_IN}     += int($RAD->{INBYTE} / $CONF->{MB_SIZE}); 
+   	 $used_traffic->{TRAFFIC_OUT}    += int($RAD->{OUTBYTE} / $CONF->{MB_SIZE});
+   	 $used_traffic->{TRAFFIC_IN_2}   += int($RAD->{INBYTE2} / $CONF->{MB_SIZE}); 
+   	 $used_traffic->{TRAFFIC_OUT_2}  += int($RAD->{OUTBYTE2} / $CONF->{MB_SIZE});
     }
+
    
    $used_traffic->{ONLINE}=0;
    #Recv / IN

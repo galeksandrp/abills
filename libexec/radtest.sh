@@ -62,14 +62,14 @@ elif [ t$1 = 'tacct' ]; then
   if [ t$2 = 'tStart' ]; then
    echo Start;
    ./racct.pl \
-        USER_NAME="12333:aa1" \
+        USER_NAME="aa1" \
         SERVICE_TYPE=Framed-User \
         FRAMED_PROTOCOL=PPP \
         FRAMED_IP_ADDRESS=10.0.0.1 \
         FRAMED_IP_NETMASK=0.0.0.0 \
         CISCO_AVPAIR="connect-progress=LAN Ses Up"\
         CISCO_AVPAIR="client-mac-address=0001.29d2.2695"\
-        NAS_IP_ADDRESS=192.168.202.13 \
+        NAS_IP_ADDRESS=192.168.202.15 \
         NAS_IDENTIFIER="media.intranet" \
         NAS_PORT_TYPE=Virtual \
         ACCT_STATUS_TYPE=Start \
@@ -80,7 +80,7 @@ elif [ t$1 = 'tacct' ]; then
    elif [ t$2 = 'tStop' ] ; then
       echo Stop;
       ./racct.pl \
-        USER_NAME="10030010" \
+        USER_NAME="aa1" \
         SERVICE_TYPE=Framed-User \
         FRAMED_PROTOCOL=PPP \
         FRAMED_IP_ADDRESS=10.0.0.1 \
@@ -91,7 +91,6 @@ elif [ t$1 = 'tacct' ]; then
         NAS_PORT_TYPE=Virtual \
         ACCT_STATUS_TYPE=Stop \
         ACCT_SESSION_ID="83419_AA11118757979" \
-        USER_NAME="10030010" \
         ACCT_DELAY_TIME=0 \
         ACCT_INPUT_OCTETS=1000 \
         ACCT_INPUT_GIGAWORDS=0 \
@@ -124,7 +123,7 @@ elif [ t$1 = 'tvoip' ] ; then
  echo "Voip";
   if [ t$2 = 'tauth' ] ; then
    echo Auth;
-   ./rauth.pl NAS_IP_ADDRESS="192.168.202.13" \
+   ./rauth.pl NAS_IP_ADDRESS="192.168.202.15" \
      NAS_PORT_TYPE="Virtual" \
      NAS_IDENTIFIER="ASMODEUSGK" \
      CLIENT_IP_ADDRESS="192.168.101.17" \
