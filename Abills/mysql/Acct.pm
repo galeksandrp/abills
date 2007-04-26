@@ -142,7 +142,7 @@ elsif ($acct_status_type == 2) {
         '$RAD->{ACCT_TERMINATE_CAUSE}');", 'do');
      }      
     else {
-      $self->{errstr}    = "ACCT [$RAD->{USER_NAME}] Can't find sessions";
+      $self->{errstr}    = "ACCT [$RAD->{USER_NAME}] Can't find sessions $RAD->{ACCT_SESSION_ID}";
       $self->{sql_errstr}= '';
       $self->{errno}     = 1;   
       return $self;      

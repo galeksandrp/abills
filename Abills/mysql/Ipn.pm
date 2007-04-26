@@ -1208,7 +1208,7 @@ else {
 
 
  $self->query($db, "SELECT $lupdate
-   sum(l.traffic_in), sum(l.traffic_out), sum(sum),
+   sum(l.traffic_in), sum(l.traffic_out), sum(l.sum),
    l.nas_id, l.uid
    from ipn_log l
    LEFT join  users u ON (l.uid=u.uid)
