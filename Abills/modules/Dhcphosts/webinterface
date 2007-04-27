@@ -241,7 +241,7 @@ sub dhcphosts_networks {
   $Dhcphosts->{ACTION}='add';
   $Dhcphosts->{ACTION_LNG}=$_ADD;
 
-  if ($FORM{NAME} and $FORM{NAME} !~ /^[0-9a-zA-Z_]+$/) {
+  if ($FORM{NAME} and $FORM{NAME} !~ /^[0-9a-zA-Z_\-]+$/) {
   	print $html->message('err', $_ERROR, "$_HOSTS_NETWORKS_NAME - '$FORM{NAME}' $ERR_WRONG_DATA");
   	return 0;
    }
@@ -252,6 +252,7 @@ sub dhcphosts_networks {
   	return 0;
    }
   elsif ($FORM{add}) {
+    $FORM{ROUTERS}='0.0.0.0' if (! $FORM{ROUTERS}) ;
     $Dhcphosts->network_add({ %FORM });
     if (! $Dhcphosts->{errno}) {
 	    $html->message('info', $_ADDED, "$_HOSTS_NETWORKS_NAME [$FORM{NAME}] ");
@@ -450,10 +451,11 @@ sub dhcphosts_routes {
     my $table = $html->table( { width      => '100%',
 				caption    => "Routes",
 				title      => ['#', "$_HOSTS_NETWORKS_NAME", "$_HOSTS_NETWORKS_NET", "NETMASK","$_HOSTS_ROUTER" ,"-","-"],
-				cols_align => ['left', 'left', 'right','left', 'left', 'center:noprint','center:noprint'],
+				cols_align => ['left', 'left', 'right','right', 'right', 'center:noprint','center:noprint'],
 				qs         => $pages_qs,
 				pages      => $Dhcphosts->{TOTAL}
     });
+
 
     foreach my $line (@$list) {
       $table->addrow(

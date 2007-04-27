@@ -92,10 +92,11 @@ sub routes_list {
 sub network_add {
   my $self=shift;
   my ($attr)=@_;
-
+  
+  $self->{debug}=1;
 
   $self->query($db,"INSERT INTO dhcphosts_networks 
-     (name,network,mask, routers, coordinator,phone, dns, suffix) 
+     (name,network,mask, routers, coordinator, phone, dns, suffix) 
      VALUES('$attr->{NAME}', INET_ATON('$attr->{NETWORK}'), INET_ATON('$attr->{MASK}'), INET_ATON('$attr->{ROUTERS}'),
        '$attr->{COORDINATOR}', '$attr->{PHONE}', '$attr->{DNS}', '$attr->{DOMAINNAME}')", 'do');
 
