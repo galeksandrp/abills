@@ -168,10 +168,10 @@ foreach my $line (@$list) {
 
   my $used_traffic;
   if ($CONF->{rt_billing}) {
-  	$sent = $RAD->{INTERIUM_OUTBYTE} || 0; #from server
-    $recv = $RAD->{INTERIUM_INBYTE} || 0;  #to server
+  	$sent = $RAD->{INTERIUM_OUTBYTE}   || 0; #from server
+    $recv = $RAD->{INTERIUM_INBYTE}    || 0;  #to server
     $sent2 = $RAD->{INTERIUM_OUTBYTE1} || 0; 
-    $recv2 = $RAD->{INTERIUM_INBYTE1} || 0;
+    $recv2 = $RAD->{INTERIUM_INBYTE1}  || 0;
    }
 
 if ($prepaid{0} + $prepaid{1} > 0) {

@@ -212,19 +212,37 @@ if ($Ipn->{INTERIM}{$ip}) {
      my $sum_in  = 0;
      my $sum_out = 0;
      #Get price and calculate traffic
+     my $OCTETS_DIRECTION = $Ipn->{$ip}{OCTET_DIRATION};
      my $price_in =  ( defined($intervals->{$user_tp_interval}->{ZONES}->{$k}->{PriceIn}) ) ? $intervals->{$user_tp_interval}->{ZONES}->{$k}->{PriceIn} : 0;
      my $price_out = ( defined($intervals->{$user_tp_interval}->{ZONES}->{$k}->{PriceOut}) ) ? $intervals->{$user_tp_interval}->{ZONES}->{$k}->{PriceOut} : 0;
 
+
+
      # Work with prepaid traffic
      if ( defined($intervals->{$user_tp_interval}->{ZONES}->{$k}->{PREPAID_TSUM}) ) {
-     	  my($used_traffic) = $Ipn->traffic_user_get({ UID  => $uid
-     	  	                                  });
+     	  my($used_traffic) = $Ipn->traffic_user_get({ UID  => $uid   });
+
+        if($OCTETS_DIRECTION == 1) {
+          $used_traffic->{$k}{TRAFFIC_SUM}=$used_traffic->{$k}{TRAFFIC_IN} + $in / $conf{MB_SIZE};
+         }
+        #Sent / Out
+        elsif($OCTETS_DIRECTION == 2) {
+   	      $used_traffic->{$k}{TRAFFIC_SUM}=$used_traffic->{$k}{TRAFFIC_OUT} + $out / $conf{MB_SIZE};
+         }
+        else {
+          $used_traffic->{$k}{TRAFFIC_SUM}=$used_traffic->{$k}{TRAFFIC_OUT} + $used_traffic->{$k}{TRAFFIC_IN} + ($in + $out) / $conf{MB_SIZE};
+         } 
+
      	  my $prepaid = $intervals->{$user_tp_interval}->{ZONES}->{$k}->{PREPAID_TSUM};
      	  if ($debug > 1) {
           print "Prepaid traffic: $prepaid CLASS: $k USED: $used_traffic->{$k}{TRAFFIC_SUM}\n";
         }
-        
-        if ($used_traffic->{$k}{TRAFFIC_SUM} + ($in + $out) / $conf{MB_SIZE} < $prepaid) {
+
+# print "$used_traffic->{$k}{TRAFFIC_OUT} + $used_traffic->{$k}{TRAFFIC_IN} + ($in + $out) / $conf{MB_SIZE}\n";
+# print $OCTETS_DIRECTION."\n";
+# print "$used_traffic->{$k}{TRAFFIC_SUM} < $prepaid\n";
+
+        if ($used_traffic->{$k}{TRAFFIC_SUM} < $prepaid) {
            $price_in = 0;
            $price_out = 0;
          }

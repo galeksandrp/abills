@@ -633,7 +633,9 @@ sub traffic_user_get {
         GROUP BY uid, traffic_class;");
   
   foreach my $line (@{ $self->{list} }) {
-  	$result{$line->[0]}{TRAFFIC_SUM}=$line->[1]+$line->[2];
+    #Trffic class
+  	$result{$line->[0]}{TRAFFIC_IN}=$line->[1];
+  	$result{$line->[0]}{TRAFFIC_OUT}=$line->[2];
   	#$result{$line->[0]}{IN}=$line->[1];
   	#$result{$line->[0]}{OUT}=$line->[2];
    }
