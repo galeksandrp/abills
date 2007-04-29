@@ -9,12 +9,12 @@ password=whatever;
 days=730;
 
 if [ w$1 = w ] ; then
-  echo "sslcerts.sh [apache|eap|postfix_tls]";
+  echo "sslcerts.sh [apache|eap|postfix_tls|ssh]";
   exit;
 fi
 
 CERT_PATH=/usr/abills/Certs/
-if [ ! -f ${CERT_PATH} ] ; then
+if [ ! -d ${CERT_PATH} ] ; then
   mkdir ${CERT_PATH};
 fi
 
@@ -23,13 +23,23 @@ fi
 
 cd ${CERT_PATH};
 
+#SSH certs
+if [ w$1 = wssh ]; then
+  echo "*******************************************************************************"
+  echo "Creating SSH authentication"
+  echo " Make ssh-keygen with empty password."
+  echo "*******************************************************************************"
+  echo
 
-if [ w$1 = wapache ]; then
+  ssh-keygen -t dsa -f "${CERT_PATH}/id_dsa"
 
-  echo "*********************************************************************************"
+#Apache Certs
+else if [ w$1 = wapache ]; then
+
+  echo "*******************************************************************************"
   echo "Creating Apache server private key and certificate"
   echo "When prompted enter the server name in the Common Name field."
-  echo "*********************************************************************************"
+  echo "*******************************************************************************"
   echo
 
   APACHE_USER=www;
@@ -56,9 +66,9 @@ if [ w$1 = wapache ]; then
 
 
 else if [ w$1 = weap ]; then
-  echo "*********************************************************************************"
+  echo "*******************************************************************************"
   echo "Make RADIUS EAP"
-  echo "*********************************************************************************"
+  echo "*******************************************************************************"
 
   CERT_EAP_PATH=/usr/abills/Certs/eap
   if [ ! -f ${CERT_EAP_PATH} ] ; then
@@ -69,11 +79,11 @@ else if [ w$1 = weap ]; then
 
 
   if [ w$2 = wclient ]; then
-  echo "*********************************************************************************"
+  echo "*******************************************************************************"
   echo "Creating client private key and certificate"
   echo "When prompted enter the client name in the Common Name field. This is the same"
   echo " used as the Username in FreeRADIUS"
-  echo "*********************************************************************************"
+  echo "*******************************************************************************"
   echo
 
   # Request a new PKCS#10 certificate.
@@ -126,10 +136,10 @@ extendedKeyUsage = 1.3.6.1.5.5.7.3.1
 
   rm -rf demoCA
 
-  echo "*********************************************************************************"
+  echo "*******************************************************************************"
   echo "Creating self-signed private key and certificate"
   echo "When prompted override the default value for the Common Name field"
-  echo "*********************************************************************************"
+  echo "*******************************************************************************"
   echo
 
   # Generate a new self-signed certificate.
@@ -139,10 +149,10 @@ extendedKeyUsage = 1.3.6.1.5.5.7.3.1
    -passin pass:${password} -passout pass:${password}
 
 
-  echo "*********************************************************************************"
+  echo "*******************************************************************************"
   echo "Creating a new CA hierarchy (used later by the "ca" command) with the certificate"
   echo "and private key created in the last step"
-  echo "*********************************************************************************"
+  echo "*******************************************************************************"
   echo
 
   CA_pl=`which ${CA_pl}`;
@@ -153,9 +163,9 @@ extendedKeyUsage = 1.3.6.1.5.5.7.3.1
     exit;
   fi;
 
-  echo "*********************************************************************************"
+  echo "*******************************************************************************"
   echo "Creating ROOT CA"
-  echo "*********************************************************************************"
+  echo "*******************************************************************************"
   echo
 
 
@@ -173,10 +183,10 @@ extendedKeyUsage = 1.3.6.1.5.5.7.3.1
   # Convert root certificate from PEM format to DER format
   openssl x509 -inform PEM -outform DER -in root.pem -out root.der
 
-echo "*********************************************************************************"
+echo "*******************************************************************************"
 echo "Creating server private key and certificate"
 echo "When prompted enter the server name in the Common Name field."
-echo "*********************************************************************************"
+echo "*******************************************************************************"
 echo
 
 
@@ -224,6 +234,9 @@ else if [ w$1 = wpostfix_tls ]; then
   openssl req -new -x509 -nodes -out smtpd.pem -keyout smtpd.pem -days ${days} \
    -passin pass:${password} -passout pass:${password}
 
+
+
+fi;
 fi;
 fi;
 fi;
