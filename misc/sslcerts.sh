@@ -7,6 +7,7 @@ CA_pl=CA.pl;
 hostname=`hostname`;
 password=whatever;
 days=730;
+DATE=`date`;
 
 if [ w$1 = w ] ; then
   echo "sslcerts.sh [apache|eap|postfix_tls|ssh]";
@@ -31,7 +32,7 @@ if [ w$1 = wssh ]; then
   echo "*******************************************************************************"
   echo
 
-  ssh-keygen -t dsa -f "${CERT_PATH}/id_dsa"
+  ssh-keygen -t dsa -C "ABillS remote machine manage key (${DATE})" -f "${CERT_PATH}/id_dsa"
 
 #Apache Certs
 else if [ w$1 = wapache ]; then

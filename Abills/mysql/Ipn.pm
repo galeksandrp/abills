@@ -1186,7 +1186,7 @@ elsif($attr->{DATE}) {
 
    if ($attr->{UID}) {
    	 $GROUP = "1, 2";
-     push @WHERE_RULES, "l.uid='$attr->{UID}'"; 	
+     #push @WHERE_RULES, "l.uid='$attr->{UID}'"; 	
      $lupdate = " DATE_FORMAT(start, '%Y-%m-%d %H'), l.traffic_class, tt.descr,";
     }
    elsif($attr->{HOURS}) {
