@@ -88,7 +88,7 @@ else {
 	
 }
 
-   $Ipn->{debug}=1;
+#   $Ipn->{debug}=1;
    my $list = $Ipn->reports_users({ %LIST_PARAMS });
    #Used Fraffic
    $table_sessions = $html->table( { width      => '100%',
@@ -2152,6 +2152,13 @@ my $table = $html->table( { width       => '400',
 
 
 
+#**********************************************************
+#
+#**********************************************************
+sub ipn_recalculate {
+
+
+}
 
 
 1
