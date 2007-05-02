@@ -507,7 +507,7 @@ print " Tariff Interval: $tariff\n".
 
 
 #**********************************************************
-# определяет принадлежность адреса зоне, зоны заданы СУПЕР-ПУПЕР-хэшем %zones
+# ii?aaaeyao i?eiaaea?iinou aa?ana ciia, ciiu caaaiu NOIA?-IOIA?-oyoai %zones
 #**********************************************************
 sub ip_in_zone($$$) {
     my $self;
@@ -516,13 +516,13 @@ sub ip_in_zone($$$) {
         $zoneid,
         $zone_data) = @_;
     
-    # изначально считаем, что адрес в зону не попадает
+    # ecia?aeuii n?eoaai, ?oi aa?an a ciio ia iiiaaaao
     my $res = 0;
     # debug
     my %zones = %$zone_data;
 
     if ($self->{debug}) { print "--- CALL ip_in_zone($ip_num, $port, $zoneid) -> \n"; }
-    # идем по списку адресов зоны
+    # eaai ii nieneo aa?ania ciiu
     for (my $i=0; $i<=$#{$zones{$zoneid}{A}}; $i++) {
 	     
 	     my $adr_hash = \%{ $zones{$zoneid}{A}[$i] };
@@ -534,13 +534,13 @@ sub ip_in_zone($$$) {
        
        #print "AAAAAAAA:" . @$a_ports_ref . "\n";
        
-       # если адрес попадает в подсеть
-       if ( (( $a_ip & $a_msk) == ($ip_num & $a_msk)) && # адрес совпадает
-              (is_exist($a_ports_ref, $port)) ) {       # И порт совпадает
+       # anee aa?an iiiaaaao a iianaou
+       if ( (( $a_ip & $a_msk) == ($ip_num & $a_msk)) && # aa?an niaiaaaao
+              (is_exist($a_ports_ref, $port)) ) {       # E ii?o niaiaaaao
 
           #print ">>". int2ip($a_ip). " & $a_msk / ". int2ip($ip_num) ." $zoneid / $res\n";
-	        if ($a_neg) { # если установлен бит выбрасывания адреса
-		        $res = 0; # то выбрасываем найденный адрес из зоны
+	        if ($a_neg) { # anee onoaiiaeai aeo aua?anuaaiey aa?ana
+		        $res = 0; # oi aua?anuaaai iaeaaiiue aa?an ec ciiu
 	         } 
 	        else {
 		        $res = 1;
@@ -1412,7 +1412,7 @@ sub is_client_ip($) {
   my $ip = shift @_;
 
     if ($self->{debug}) { print "--- CALL is_client_ip($ip),\t\$#clients_lst = $#clients_lst\n"; }
-    if ($#clients_lst < 0) {return 0;} # список пуст!
+    if ($#clients_lst < 0) {return 0;} # nienie iono!
     foreach my $i (@clients_lst) {
 	    if ($i eq $ip) { return 1; }
      }
@@ -1420,10 +1420,10 @@ sub is_client_ip($) {
     return 0;
 }
 
-# определяет наличие элемента в массиве (массив по ссылке)
+# ii?aaaeyao iaee?ea yeaiaioa a ianneaa (iannea ii nnueea)
 sub is_exist($$) {
     my ($arrayref, $elem) = @_;
-    # если список пуст, считаем, что элемент в него попадает
+    # anee nienie iono, n?eoaai, ?oi yeaiaio a iaai iiiaaaao
     if ($#{@$arrayref} == -1) { return 1; }
     
     foreach my $e (@$arrayref) {
@@ -1599,3 +1599,4 @@ sub prepaid_rest {
 }
 
 1
+
