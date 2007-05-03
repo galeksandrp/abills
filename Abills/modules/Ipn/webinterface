@@ -22,6 +22,7 @@ my $sessions = Dv_Sessions->new($db, $admin, \%conf);
 sub ipn_sessions2 {
   if (! $user->{UID}) {
     $LIST_PARAMS{UID}=$FORM{UID};
+    ipn_recalculate();
    }
   else {
   	$LIST_PARAMS{UID}=$user->{UID};
@@ -230,7 +231,6 @@ print $table_sessions->show() . $table->show();
 
 
 
-
 $html->make_charts({  
 	 PERIOD => $graph_type,
 	 DATA   => \%DATA_HASH,
@@ -239,6 +239,7 @@ $html->make_charts({
 	 TRANSITION => 1,
 	 %CHART
   });
+
 
 
 }
@@ -1699,7 +1700,7 @@ print $table->show();
 $table = $html->table( { width       => '100%',
                          title_plain => [ 
                                              "$_REFRESH (sec): ".   $html->form_input('REFRESH', int($FORM{REFRESH}), { SIZE => 4 } ),
-                                             $html->form_input('SHOW',  $_SHOW, {TYPE => 'SUBMIT'})  
+                                             $html->form_input('SHOW',  $_SHOW, {  TYPE => 'SUBMIT' })  
                                             ],
                            });
 
@@ -2156,6 +2157,61 @@ my $table = $html->table( { width       => '400',
 #
 #**********************************************************
 sub ipn_recalculate {
+
+
+if ($FORM{RECALCULATE}) {
+  $FORM{FROM_M} = sprintf("%.2d", $FORM{FROM_M}+1);
+  $FORM{TO_M} = sprintf("%.2d", $FORM{TO_M}+1);
+  $LIST_PARAMS{INTERVAL} = "$FORM{FROM_Y}-$FORM{FROM_M}-$FORM{FROM_D}/$FORM{TO_Y}-$FORM{TO_M}-$FORM{TO_D}";
+
+  $Ipn->{debug}=1;
+	$Ipn->recalculate({ %LIST_PARAMS });
+	$Ipn->{debug}=undef;
+	
+	if ($Ipn->{TOTAL} > 0) {
+    $table = $html->table( { caption     => "$_STATS",
+    	                       width       => '100%',
+    	                       title       => [ $_START,  "$_TRAFFIC  ID", $_RECV, $_SEND,  'NAS',  'IP', $_INTERVAL, 
+    	                         $_SUM, 'SID' ],
+    	                       cols_align  => ['right', 'right', 'right', 'right', 'right', 'right', 'right', 'right' ]
+                         } );
+    foreach my $line (@{ $Ipn->{list} }) {
+    	 $table->addrow($line->[0], 
+    	   $line->[1], 
+    	   $line->[2], 
+    	   $line->[3], 
+    	   $line->[4], 
+    	   $line->[5], 
+    	   $line->[6], 
+    	   $line->[7], 
+    	   $line->[8]
+    	   );
+     }
+
+    print  $table->show();
+	  }
+
+}
+
+
+$table = $html->table( { width    => '100%',
+	                       rowcolor => $_COLORS[0],
+                         rows     => [ [  "$_RECALCULATE:",                                   "$_FROM: ", $html->date_fld('FROM_', { MONTHES => \@MONTHES} ),
+                                   "$_TO: ", $html->date_fld('TO_', { MONTHES => \@MONTHES } ),
+                                   $html->form_input('RECALCULATE', "RECALCULATE",  {  TYPE => 'SUBMIT', OUTPUT2RETURN => 1  })
+                                    ] ],                                   
+                     } );
+
+
+print $html->form_main({ CONTENT => $table->show(), 
+                         HIDDEN  => { index   => "$index",
+                        	            UID     => $LIST_PARAMS{UID},
+                     	           }
+    	                 });
+
+
+
+
 
 
 }

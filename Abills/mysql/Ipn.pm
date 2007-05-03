@@ -1598,5 +1598,40 @@ sub prepaid_rest {
   return $info;
 }
 
+#*******************************************************************
+# Delete information from user log
+# log_del($i);
+#*******************************************************************
+sub recalculate {
+  my $self = shift;
+	my ($attr) = @_;
+
+  my ($from, $to)=split(/\//, $attr->{INTERVAL}, 2);
+  #push @WHERE_RULES, "date_format(f_time, '%Y-%m-%d')>='$from' and date_format(f_time, '%Y-%m-%d')<='$to'";
+
+
+  $self->query($db, "SELECT start,
+   traffic_class,
+   traffic_in,
+   traffic_out,
+   nas_id,
+   INET_NTOA(ip),
+   interval_id,
+   sum,
+   session_id
+   from ipn_log l
+   WHERE l.uid='$attr->{UID}' and 
+     (
+      DATE_FORMAT(start, '%Y-%m-%d')>='$from'
+      and DATE_FORMAT(start, '%Y-%m-%d')<='$to'
+      )
+   ;");
+
+
+
+  return $self;	
+}
+
 1
+
 
