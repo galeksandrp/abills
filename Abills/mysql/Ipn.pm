@@ -627,17 +627,26 @@ sub traffic_user_get {
   my %result = ();
 
 
+  if ($attr->{DATE_TIME}) {
+  	$WHERE = "start>=$attr->{DATE_TIME}";
+   }
+  elsif ($attr->{ACTIVATE}) {
+  	$WHERE = "DATE_FORMAT(start, '%Y-%m-%d')>='$attr->{ACTIVATE}'";
+   }
+  else {
+    $WHERE = "DATE_FORMAT(start, '%Y-%m')>=DATE_FORMAT(curdate(), '%Y-%m')";
+   }
+
+
   $self->query($db, "SELECT traffic_class, sum(traffic_in) / $CONF->{MB_SIZE}, sum(traffic_out) / $CONF->{MB_SIZE}  from ipn_log
         WHERE uid='$uid'
-        and DATE_FORMAT(start, '%Y-%m')>=DATE_FORMAT(curdate(), '%Y-%m')
+        and $WHERE
         GROUP BY uid, traffic_class;");
   
   foreach my $line (@{ $self->{list} }) {
     #Trffic class
   	$result{$line->[0]}{TRAFFIC_IN}=$line->[1];
   	$result{$line->[0]}{TRAFFIC_OUT}=$line->[2];
-  	#$result{$line->[0]}{IN}=$line->[1];
-  	#$result{$line->[0]}{OUT}=$line->[2];
    }
 
   return \%result;

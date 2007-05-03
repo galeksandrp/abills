@@ -2171,7 +2171,7 @@ if ($FORM{RECALCULATE}) {
 	if ($Ipn->{TOTAL} > 0) {
     $table = $html->table( { caption     => "$_STATS",
     	                       width       => '100%',
-    	                       title       => [ $_START,  "$_TRAFFIC  ID", $_RECV, $_SEND,  'NAS',  'IP', $_INTERVAL, 
+    	                       title       => [ $_START,  "$_TRAFFIC  ID", $_RECV, $_SEND,  'NAS',  'IP', $_INTERVALS, 
     	                         $_SUM, 'SID' ],
     	                       cols_align  => ['right', 'right', 'right', 'right', 'right', 'right', 'right', 'right' ]
                          } );
