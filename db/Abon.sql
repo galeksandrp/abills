@@ -1,5 +1,5 @@
 CREATE TABLE `abon_tariffs` (
-  `id` smallint(6) unsigned NOT NULL auto_increment default '0',
+  `id` smallint(6) unsigned NOT NULL auto_increment,
   `name` varchar(20) NOT NULL default '',
   `period` tinyint(2) unsigned NOT NULL default '0',
   `price` double(14,2) unsigned NOT NULL default '0.00',
