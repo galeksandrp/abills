@@ -2191,9 +2191,10 @@ if ($FORM{RECALCULATE}) {
      }
 
       print  $table->show();
+      print $total_sum;
 	 }
 
-   print $total_sum;
+   
 
 }
 
