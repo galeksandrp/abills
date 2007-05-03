@@ -269,7 +269,8 @@ if ($Ipn->{INTERIM}{$ip}) {
      $sum_in = $in / $conf{MB_SIZE} * $price_in if ($price_in > 0); 
      $sum_out = $out / $conf{MB_SIZE} * $price_out if ($price_out > 0);
 
-     $total_user_sum+=$sum_in + $sum_out;
+     my $traf_class_sum = $sum_in + $sum_out;
+     $total_user_sum += $traf_class_sum ;
      
      
      
@@ -285,7 +286,7 @@ if ($Ipn->{INTERIM}{$ip}) {
             IP						 => $ip,
             INTERVAL       => $user_tp_interval,
             SESSION_ID     => $session_id,    
-            SUM						 => $total_user_sum
+            SUM						 => $traf_class_sum
    	      } );
       }
 
@@ -296,10 +297,8 @@ if ($Ipn->{INTERIM}{$ip}) {
        $price_out,
        $sum_in,
        $sum_out,
-       $sum_in + $sum_out
+       $traf_class_sum
        );
-
-
    }
  }
 elsif($total_user_sum > 0 && $uid > 0) {
@@ -321,8 +320,8 @@ elsif($total_user_sum > 0 && $uid > 0) {
 
   #Put user date to database  
   if ($uid > 0) {
-    $Ipn->{$ip}{IN}  = $Ipn->{$ip}{IN}+$total_in;
-    $Ipn->{$ip}{OUT} = $Ipn->{$ip}{OUT}+$total_out;
+    $Ipn->{$ip}{IN}  = $Ipn->{$ip}{IN} + $total_in;
+    $Ipn->{$ip}{OUT} = $Ipn->{$ip}{OUT}+ $total_out;
 
     %RAD = (  NAS_PORT          => 0,
    	          INBYTE            => $Ipn->{$ip}{IN},
@@ -336,7 +335,8 @@ elsif($total_user_sum > 0 && $uid > 0) {
             );
 
     #Make accounting
-    my $r = $Acct->accounting(\%RAD, { NAS_ID => $Ipn->{$ip}{NAS_ID}, NAS_TYPE => 'other' });
+    my $r = $Acct->accounting(\%RAD, { NAS_ID   => $Ipn->{$ip}{NAS_ID}, 
+    	                                 NAS_TYPE => 'other' });
     
     #Hangup users with negative deposit
     if (defined($Ipn->{USERS_INFO}->{DEPOSIT}->{$uid}) && $Ipn->{USERS_INFO}->{DEPOSIT}->{$uid} < 0) {
