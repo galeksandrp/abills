@@ -11,8 +11,11 @@ my @TT_COLORS = ("$_COLORS[1]", "#80FF80", "#FFFF80", "#BFBFFF");
 use Dv;
 use Dv_Sessions;
 use Nas;
+use Tariffs;
 
 my $sessions = Dv_Sessions->new($db, $admin, \%conf);
+my $tariffs = Tariffs->new($db, \%conf, $admin);
+
 
 
 #**********************************************************
@@ -1799,8 +1802,6 @@ print $table->show();
 #
 #**********************************************************
 sub ipn_user_add {
- use Tariffs;
- my $tariffs = Tariffs->new($db, \%conf, $admin);
  
  my $list = $Ipn->comps_list({ %LIST_PARAMS });
  my %allow_comps = ();
@@ -2092,8 +2093,6 @@ my $table = $html->table( { width       => '400',
 #      $INTERVAL_TRAF_TARIF<br>";
 	
 	# Get names
-  use Tariffs;
-  my $tariffs = Tariffs->new($db, \%conf, $admin);
   my $list_tt = $tariffs->tt_list({ TI_ID => $TP_INTERVAL });
   my %tt_names = ();
   foreach my $line (@$list_tt) {
@@ -2167,31 +2166,126 @@ if ($FORM{RECALCULATE}) {
   $Ipn->{debug}=1;
 	$Ipn->recalculate({ %LIST_PARAMS });
 	$Ipn->{debug}=undef;
+
+
 	
 	if ($Ipn->{TOTAL} > 0) {
-    $table = $html->table( { caption     => "$_STATS",
-    	                       width       => '100%',
-    	                       title       => [ $_START,  "$_TRAFFIC  ID", $_RECV, $_SEND,  'NAS',  'IP', $_INTERVALS, 
-    	                         $_SUM, 'SID' ],
-    	                       cols_align  => ['right', 'right', 'right', 'right', 'right', 'right', 'right', 'right' ]
+    my $table = $html->table( { caption     => "$_RECALCULATE",
+    	                          width       => '100%',
+    	                          title       => [ $_START,  "$_TRAFFIC  ID", $_RECV, $_SEND,  'NAS',  'IP', $_INTERVALS, 
+    	                          $_SUM, 'SID' ],
+    	                          cols_align  => ['right', 'right', 'right', 'right', 'right', 'right', 'right', 'right' ]
                          } );
     my $total_sum = 0;
+    my %TIME_INTERVALS = ();
+    
     foreach my $line (@{ $Ipn->{list} }) {
+    	my $time_interval = $line->[6];
+    	my $traffic_class = $line->[1];
+    	 if (! defined($TIME_INTERVALS{$line->[6]}) ) {
+    	   $tariffs->{debug}=1;
+    	   my $tt_list = $tariffs->tt_list({ TI_ID => $time_interval });
+
+         foreach my $tt_line ( @$tt_list ) {
+    	     $TIME_INTERVALS{$time_interval}{$tt_line->[0]}{PRICE_IN}  = $tt_line->[1];
+    	     $TIME_INTERVALS{$time_interval}{$tt_line->[0]}{PRICE_OUT} = $tt_line->[2];
+    	     $TIME_INTERVALS{$time_interval}{$tt_line->[0]}{PREPAID}   = $tt_line->[3];
+          }
+    	  }
+    	
+     my $recalculate_sum  = 0;
+     my $price_in  = $TIME_INTERVALS{$time_interval}{$traffic_class}{PRICE_IN};
+     my $price_out = $TIME_INTERVALS{$time_interval}{$traffic_class}{PRICE_OUT};
+     my $prepaid   = $TIME_INTERVALS{$time_interval}{$traffic_class}{PREPAID};
+     my $in        = $line->[2];
+     my $out       = $line->[3];
+
+     # Work with prepaid traffic
+     if ( $prepaid > 0 ) {
+     	  my($used_traffic) = $Ipn->traffic_user_get({ UID      => $LIST_PARAMS{UID}, 
+     	  	                                           INTERVAL => "0000-00-00/$line->[0]"   
+     	  	                                         });
+        my $online  = 0;
+
+        if($OCTETS_DIRECTION == 1) {
+          $used_traffic->{$traffic_class}{TRAFFIC_SUM}=($used_traffic->{$traffic_class}{TRAFFIC_IN}) ? $used_traffic->{$traffic_class}{TRAFFIC_IN} : 0;
+          $online = $in;
+         }
+        #Sent / Out
+        elsif($OCTETS_DIRECTION == 2) {
+   	      $used_traffic->{$traffic_class}{TRAFFIC_SUM}=($used_traffic->{$traffic_class}{TRAFFIC_OUT}) ? $used_traffic->{$traffic_class}{TRAFFIC_OUT} : 0;
+   	      $online = $out;
+         }
+        else {
+          $used_traffic->{$traffic_class}{TRAFFIC_SUM}=($used_traffic->{$traffic_class}{TRAFFIC_IN}) ? $used_traffic->{$traffic_class}{TRAFFIC_OUT} + $used_traffic->{$traffic_class}{TRAFFIC_IN} : 0;
+          $online =  ($in + $out);
+         } 
+
+ 	  
+     	  if ($debug > 1) {
+          print "Prepaid traffic: $prepaid CLASS: $traffic_class USED: $used_traffic->{$traffic_class}{TRAFFIC_SUM}\n";
+        }
+# print "$used_traffic->{$k}{TRAFFIC_OUT} + $used_traffic->{$k}{TRAFFIC_IN} + ($in + $out) / $conf{MB_SIZE}\n";
+# print $OCTETS_DIRECTION."\n";
+# print "$used_traffic->{$k}{TRAFFIC_SUM} < $prepaid\n";
+
+print "$used_traffic->{$traffic_class}{TRAFFIC_SUM} < $prepaid<br>";
+
+        if ($used_traffic->{$traffic_class}{TRAFFIC_SUM} < $prepaid) {
+           $price_in = 0;
+           $price_out = 0;
+         }
+        elsif ($used_traffic->{$traffic_class}{TRAFFIC_SUM} + $online / $conf{MB_SIZE} > $prepaid 
+            && $used_traffic->{$traffic_class}{TRAFFIC_SUM} < $prepaid) {
+          my $not_prepaid = ($used_traffic->{$traffic_class}{TRAFFIC_SUM} * $conf{MB_SIZE} + $online ) - $prepaid * $conf{MB_SIZE};
+
+          my $sent = ($OCTETS_DIRECTION == 2) ?  $not_prepaid : $not_prepaid / 2;
+          my $recv = ($OCTETS_DIRECTION == 1) ?  $not_prepaid : $not_prepaid / 2;
+
+          $sum_in    = $recv / $conf{MB_SIZE} * $price_in if ($price_in > 0); 
+          $sum_out   = $sent / $conf{MB_SIZE} * $price_out if ($price_out > 0);
+          $price_in  = 0;
+          $price_out = 0;
+         }
+       #exit;
+      }
+ 
+ print "$price_in / $price_out <br>";
+ 
+ 	      $sum_in = $in / $conf{MB_SIZE} * $price_in if ($price_in > 0); 
+        $sum_out = $out / $conf{MB_SIZE} * $price_out if ($price_out > 0);
+
+        my $recalculate_sum = $sum_in + $sum_out;
+
     	 $table->addrow($line->[0], 
     	   $line->[1], 
+    	   
     	   $line->[2], 
     	   $line->[3], 
+
     	   $line->[4], 
     	   $line->[5], 
     	   $line->[6], 
     	   $line->[7], 
-    	   $line->[8]
+    	   $line->[8],
+    	   
+    	   $recalculate_sum
     	   );
+       
+       
        $total_sum += $line->[7];
+       $recalculate_total_sum +=  $recalculate_sum;
      }
 
-      print  $table->show();
-      print $total_sum;
+      $table->{rowcolor}=$_COLORS[3];
+      $table->addtd(
+                  $table->td($_TOTAL, { colspan => 3 } ),
+                  $table->td($total_sum, { colspan => 2 } ),
+                  $table->td($_RECALCULATE, { colspan => 3 } ),
+                  $table->td($recalculate_total_sum, { colspan => 2 } )
+                  );
+      
+      print $table->show();
 	 }
 
    
@@ -2223,9 +2317,6 @@ print $html->form_main({ CONTENT => $table->show(),
 
 
 1
-
-
-
 
 
 

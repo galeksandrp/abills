@@ -62,7 +62,6 @@ sub new {
     $self->user_del({ UID => $CONF->{DELETE_USER} });
    }
   
-  #$self->{debug}  =1;
   $self->{TRAFFIC_ROWS}=0;
   $Billing = Billing->new($db, $CONF);
   return $self;
@@ -333,7 +332,6 @@ sub traffic_agregate_nets {
        $intervals{$tp_interval{$TP_ID}}{TIME_TARIFF} = ($ret_attr->{TIME_PRICE}) ? $ret_attr->{TIME_PRICE} :  0;
      }
 
-  #$self->{debug}=1;
   print "\nUID: $uid\n####TP $TP_ID Interval: $tp_interval{$TP_ID}  ####\n" if ($self->{debug}); 
 
 
@@ -630,6 +628,11 @@ sub traffic_user_get {
   if ($attr->{DATE_TIME}) {
   	$WHERE = "start>=$attr->{DATE_TIME}";
    }
+  elsif ($attr->{INTERVAL}) {
+  	my ($from, $to)=split(/\//, $attr->{INTERVAL});
+  	$from = ($from eq '0000-00-00') ? 'DATE_FORMAT(curdate(), \'%Y-%m\')' : "'$from'";
+  	$WHERE = "( DATE_FORMAT(start, '%Y-%m')>=$from AND start<'$to') ";
+   }
   elsif ($attr->{ACTIVATE}) {
   	$WHERE = "DATE_FORMAT(start, '%Y-%m-%d')>='$attr->{ACTIVATE}'";
    }
@@ -637,12 +640,13 @@ sub traffic_user_get {
     $WHERE = "DATE_FORMAT(start, '%Y-%m')>=DATE_FORMAT(curdate(), '%Y-%m')";
    }
 
-
+  #$self->{debug}=1;
   $self->query($db, "SELECT traffic_class, sum(traffic_in) / $CONF->{MB_SIZE}, sum(traffic_out) / $CONF->{MB_SIZE}  from ipn_log
         WHERE uid='$uid'
         and $WHERE
         GROUP BY uid, traffic_class;");
   
+ 
   foreach my $line (@{ $self->{list} }) {
     #Trffic class
   	$result{$line->[0]}{TRAFFIC_IN}=$line->[1];
@@ -1406,9 +1410,8 @@ else {
   $WHERE
   ;");
 
-  my $a_ref = $self->{list}->[0];
   ($self->{COUNT},
-   $self->{SUM}) = @$a_ref;
+   $self->{SUM}) = @$self->{list}->[0];
 
 
  return $list;
@@ -1484,12 +1487,11 @@ sub comps_info {
   FROM ipn_club_comps
   WHERE id='$id';");
 
-  my $a_ref = $self->{list}->[0];
   ($self->{NUMBER},
    $self->{NAME},
    $self->{IP},
    $self->{CID}
-   ) = @$a_ref;
+   ) = @{ $self->{list}->[0] };
  
  return $self;
 }

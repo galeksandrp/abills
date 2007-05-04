@@ -268,9 +268,10 @@ sub host_add {
 
   my %DATA = $self->get_data($attr); 
 
-  $self->query($db, "INSERT INTO dhcphosts_hosts (uid, hostname, network, ip, mac, blocktime, forced, disable, comments) 
+  $self->query($db, "INSERT INTO dhcphosts_hosts (uid, hostname, network, ip, mac, blocktime, forced, disable, expire, comments) 
     VALUES('$DATA{UID}', '$DATA{HOSTNAME}', '$DATA{NETWORK}',
       INET_ATON('$DATA{IP}'), '$DATA{MAC}', '$DATA{BLOCKTIME}', '$DATA{FORCED}', '$DATA{DISABLE}',
+      '$DATA{EXPIRE}',
       '$DATA{COMMENTS}');", 'do');
 
 
@@ -320,6 +321,7 @@ sub host_info {
    blocktime, 
    forced,
    disable,
+   expire,
    comments
   FROM dhcphosts_hosts
   WHERE id='$id';");
@@ -338,6 +340,7 @@ sub host_info {
    $self->{BLOCKTIME}, 
    $self->{FORCED},
    $self->{DISABLE},
+   $self->{EXPIRE},
    $self->{COMMENTS}
    ) = @{ $self->{list}->[0] };
   return $self;
@@ -361,7 +364,8 @@ sub host_change {
    BLOCKTIME   => 'blocktime', 
    FORCED      => 'forced',
    DISABLE     => 'disable',
-   COMMENTS    => 'comments'
+   COMMENTS    => 'comments',
+   EXPIRE      => 'expire'
   );
 
 
@@ -566,7 +570,7 @@ sub hosts_list {
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
 
  $self->query($db, "SELECT 
-    h.id, u.id, INET_NTOA(h.ip), h.hostname, n.name, h.network, h.mac, h.block_date, h.forced, 
+    h.id, u.id, INET_NTOA(h.ip), h.hostname, n.name, h.network, h.mac, h.expire, h.forced, 
       h.blocktime, h.disable, seen, h.uid
      FROM (dhcphosts_hosts h)
      left join dhcphosts_networks n on h.network=n.id
