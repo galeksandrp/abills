@@ -2202,6 +2202,8 @@ if ($FORM{RECALCULATE}) {
      my $prepaid   = $TIME_INTERVALS{$time_interval}{$traffic_class}{PREPAID};
      my $in        = $line->[2];
      my $out       = $line->[3];
+     my $sum_in    = 0;
+     my $sum_out   = 0;
 
      # Work with prepaid traffic
      if ( $prepaid > 0 ) {
