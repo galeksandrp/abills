@@ -61,7 +61,7 @@ else {
 	if ($sessions->prepaid_rest({ UID => $LIST_PARAMS{UID}, INFO_ONLY => 1 })) {
 	  #Prepaid: period, traffic_type
   
-    #$Ipn->{debug}=1;
+    
     my $list = $Ipn->prepaid_rest({ UID  => $LIST_PARAMS{UID}, 
   	                                INFO => $sessions->{INFO_LIST} });
 
@@ -2163,13 +2163,14 @@ if ($FORM{RECALCULATE}) {
 #  $FORM{TO_M} = sprintf("%.2d", $FORM{TO_M}+1);
   $LIST_PARAMS{INTERVAL} = "$FORM{FROM_Y}-". sprintf("%.2d", $FORM{FROM_M}+1) ."-$FORM{FROM_D}/$FORM{TO_Y}-". sprintf("%.2d", $FORM{TO_M}+1) ."-$FORM{TO_D}";
 
-  $Ipn->{debug}=1;
 	$Ipn->recalculate({ %LIST_PARAMS });
-	$Ipn->{debug}=undef;
-
-
 	
 	if ($Ipn->{TOTAL} > 0) {
+    my $Dv       = Dv->new($db, $admin, \%conf);    
+    $Dv->info($LIST_PARAMS{UID});
+    $tariffs->info( $Dv->{TP_ID} );
+    $OCTETS_DIRECTION = $tariffs->{OCTETS_DIRECTION};
+  
     my $table = $html->table( { caption     => "$_RECALCULATE",
     	                          width       => '100%',
     	                          title       => [ $_START,  "$_TRAFFIC  ID", $_RECV, $_SEND,  'NAS',  'IP', $_INTERVALS, 
@@ -2179,11 +2180,13 @@ if ($FORM{RECALCULATE}) {
     my $total_sum = 0;
     my %TIME_INTERVALS = ();
     
+    #Get user TP
+    
+    
     foreach my $line (@{ $Ipn->{list} }) {
     	my $time_interval = $line->[6];
     	my $traffic_class = $line->[1];
     	 if (! defined($TIME_INTERVALS{$line->[6]}) ) {
-    	   $tariffs->{debug}=1;
     	   my $tt_list = $tariffs->tt_list({ TI_ID => $time_interval });
 
          foreach my $tt_line ( @$tt_list ) {
@@ -2229,7 +2232,7 @@ if ($FORM{RECALCULATE}) {
 # print $OCTETS_DIRECTION."\n";
 # print "$used_traffic->{$k}{TRAFFIC_SUM} < $prepaid\n";
 
-print "$used_traffic->{$traffic_class}{TRAFFIC_SUM} < $prepaid<br>";
+#print "$used_traffic->{$traffic_class}{TRAFFIC_SUM} < $prepaid<br>";
 
         if ($used_traffic->{$traffic_class}{TRAFFIC_SUM} < $prepaid) {
            $price_in = 0;
@@ -2250,7 +2253,7 @@ print "$used_traffic->{$traffic_class}{TRAFFIC_SUM} < $prepaid<br>";
        #exit;
       }
  
- print "$price_in / $price_out <br>";
+ #print "$price_in / $price_out <br>";
  
  	      $sum_in = $in / $conf{MB_SIZE} * $price_in if ($price_in > 0); 
         $sum_out = $out / $conf{MB_SIZE} * $price_out if ($price_out > 0);
