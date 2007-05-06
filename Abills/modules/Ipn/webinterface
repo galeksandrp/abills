@@ -2273,11 +2273,20 @@ if ($FORM{RECALCULATE}) {
     	   $line->[6], 
     	   $line->[7], 
     	   $line->[8],
-    	   
+
     	   $recalculate_sum
     	   );
        
-       
+       if ($FORM{ACTION}) {
+          $Ipn->{debug}=1;
+          $Ipn->traffic_recalc({ UID           => "$LIST_PARAMS{UID}",
+                                  START         => "$line->[0]",
+                                  TRAFFIC_CLASS => "$traffic_class",
+                                  IN            => "$line->[2]",
+                                  OUT           => "$line->[3]",
+                                  SESSION_ID    => "$line->[8]",
+                                  SUM           => "$recalculate_sum" });
+        }
        $total_sum += $line->[7];
        $recalculate_total_sum +=  $recalculate_sum;
      }
@@ -2302,7 +2311,14 @@ $table = $html->table( { width    => '100%',
 	                       rowcolor => $_COLORS[0],
                          rows     => [ [  "$_RECALCULATE:",                                   "$_FROM: ", $html->date_fld('FROM_', { MONTHES => \@MONTHES} ),
                                    "$_TO: ", $html->date_fld('TO_', { MONTHES => \@MONTHES } ),
-                                   $html->form_input('RECALCULATE', "RECALCULATE",  {  TYPE => 'SUBMIT', OUTPUT2RETURN => 1  })
+                                   $html->form_select('ACTION', 
+                                    { 
+ 	                                   SELECTED          => $FORM{ACTION} || 0,
+ 	                                   SEL_ARRAY         => [$_SHOW, $_RECALCULATE],
+ 	                                   ARRAY_NUM_ID      => 1
+ 	                                  }),
+
+                                   $html->form_input('RECALCULATE', "$_RECALCULATE",  {  TYPE => 'SUBMIT', OUTPUT2RETURN => 1  })
                                     ] ],                                   
                      } );
 

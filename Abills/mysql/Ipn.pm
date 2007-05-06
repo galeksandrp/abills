@@ -611,6 +611,27 @@ sub traffic_add_user {
 }
 
 
+
+#**********************************************************
+# traffic_add_log
+#**********************************************************
+sub traffic_recalc {
+  my $self = shift;
+  my ($attr) = @_;
+ 
+  $self->query($db, "  UPDATE ipn_log SET
+     sum='$attr->{SUM}'
+   WHERE 
+         uid='$attr->{UID}' and 
+         start='$attr->{START}' and 
+         traffic_class='$attr->{TRAFFIC_CLASS}' and 
+         traffic_in='$attr->{IN}' and 
+         traffic_out='$attr->{OUT}' and
+         session_id='$attr->{SESSION_ID}';", 'do');
+
+  return $self;
+}
+
 #**********************************************************
 # traffic_user_get
 # Get used traffic from DB
