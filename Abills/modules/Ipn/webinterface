@@ -2278,7 +2278,6 @@ if ($FORM{RECALCULATE}) {
     	   );
        
        if ($FORM{ACTION}) {
-          $Ipn->{debug}=1;
           $Ipn->traffic_recalc({ UID           => "$LIST_PARAMS{UID}",
                                   START         => "$line->[0]",
                                   TRAFFIC_CLASS => "$traffic_class",
@@ -2290,6 +2289,11 @@ if ($FORM{RECALCULATE}) {
        $total_sum += $line->[7];
        $recalculate_total_sum +=  $recalculate_sum;
      }
+
+      if ($FORM{ACTION}) {
+       	my $recalculte = $total_sum -  $recalculate_total_sum;
+       	print $recalculte;
+       }
 
       $table->{rowcolor}=$_COLORS[3];
       $table->addtd(
