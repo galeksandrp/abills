@@ -633,6 +633,24 @@ sub traffic_recalc {
 }
 
 #**********************************************************
+# traffic_add_log
+#**********************************************************
+sub traffic_recalc_bill {
+  my $self = shift;
+  my ($attr) = @_;
+ 
+  if ($attr->{SUM} > 0) {
+   $self->query($db, "UPDATE bills SET
+      sum=sum - $attr->{SUM}
+    WHERE 
+    id='$attr->{BILL_ID}';", 'do');
+   }
+
+  return $self;
+}
+
+
+#**********************************************************
 # traffic_user_get
 # Get used traffic from DB
 #**********************************************************

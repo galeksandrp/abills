@@ -15,7 +15,7 @@ use Tariffs;
 
 my $sessions = Dv_Sessions->new($db, $admin, \%conf);
 my $tariffs = Tariffs->new($db, \%conf, $admin);
-
+my $users = Users->new($db, $admin, \%conf); 
 
 
 #**********************************************************
@@ -1324,7 +1324,6 @@ sub ipn_form_user {
 sub ipn_user_activate {
 
 
-  my $users = Users->new($db, $admin, \%conf); 
   my $nas  = Nas->new($db, \%conf);	
 
   my $ip = '0.0.0.0';
@@ -2166,7 +2165,8 @@ if ($FORM{RECALCULATE}) {
 	$Ipn->recalculate({ %LIST_PARAMS });
 	
 	if ($Ipn->{TOTAL} > 0) {
-    my $Dv       = Dv->new($db, $admin, \%conf);    
+    my $Dv    = Dv->new($db, $admin, \%conf);    
+    my $user  = $users->info( $LIST_PARAMS{UID} );
     $Dv->info($LIST_PARAMS{UID});
     $tariffs->info( $Dv->{TP_ID} );
     $OCTETS_DIRECTION = $tariffs->{OCTETS_DIRECTION};
@@ -2292,7 +2292,9 @@ if ($FORM{RECALCULATE}) {
 
       if ($FORM{ACTION}) {
        	my $recalculte = $total_sum -  $recalculate_total_sum;
-       	print $recalculte;
+       	print "$user->{BILL_ID} // ---- ". sprintf("%.5f", $recalculte);
+       	$Ipn->traffic_recalc_bill({ SUM     => $recalculte, 
+       		                          BILL_ID => $user->{BILL_ID} });
        }
 
       $table->{rowcolor}=$_COLORS[3];
