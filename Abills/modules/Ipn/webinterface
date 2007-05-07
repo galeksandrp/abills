@@ -2291,10 +2291,15 @@ if ($FORM{RECALCULATE}) {
      }
 
       if ($FORM{ACTION}) {
-       	my $recalculte = $total_sum -  $recalculate_total_sum;
-       	print "$user->{BILL_ID} // ---- ". sprintf("%.5f", $recalculte);
-       	$Ipn->traffic_recalc_bill({ SUM     => $recalculte, 
-       		                          BILL_ID => $user->{BILL_ID} });
+       	my $recalculte = sprintf("%.5f", $total_sum -  $recalculate_total_sum);
+       	print "$user->{BILL_ID} // ---- $recalculte";
+
+        if ($recalculte > 0) {
+       	  $Ipn->traffic_recalc_bill({ SUM     => $recalculte, 
+       		                            BILL_ID => $user->{BILL_ID} });
+
+          print $html->$message('info', $_RECALCULATE, "$_SUM: $recalculte");
+         }
        }
 
       $table->{rowcolor}=$_COLORS[3];
