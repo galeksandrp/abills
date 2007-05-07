@@ -641,7 +641,7 @@ sub traffic_recalc_bill {
  
   if ($attr->{SUM} > 0) {
    $self->query($db, "UPDATE bills SET
-      sum=sum - $attr->{SUM}
+      deposit=deposit - $attr->{SUM}
     WHERE 
     id='$attr->{BILL_ID}';", 'do');
    }
