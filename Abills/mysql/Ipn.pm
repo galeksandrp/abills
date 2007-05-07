@@ -257,11 +257,13 @@ sub traffic_agregate_users {
  
   if (defined($users_ips->{$DATA->{SRC_IP}})) {
  	  push @{ $self->{AGREGATE_USERS}{$users_ips->{$DATA->{SRC_IP}}}{OUT} }, { %$DATA };
+ 	  $DATA->{UID}=$users_ips->{$DATA->{SRC_IP}};
  		$y++;
    }
 
   if (defined($users_ips->{$DATA->{DST_IP}})) {
     push @{ $self->{AGREGATE_USERS}{$users_ips->{$DATA->{DST_IP}}}{IN} }, { %$DATA };
+    $DATA->{UID}=$users_ips->{$DATA->{DST_IP}};
 	  $y++;
    }
   #Unknow Ips
@@ -272,6 +274,20 @@ sub traffic_agregate_users {
    }
   
   $self->{TRAFFIC_ROWS}++;
+
+  #Make user detalization
+  if ($DATA->{UID} > 0) {
+  	  $self->traffic_add({ 
+        SRC_IP   => $DATA->{SRC_IP}, 
+        DST_IP   => $DATA->{DST_IP},
+        SRC_PORT => 0,
+        DST_PORT => 0,
+        PROTOCOL => 0,
+        SIZE     => $DATA->{SIZE},
+        NAS_ID   => 0,
+        UID      => $DATA->{UID}
+      });
+   }
 
   return $self;
 }
@@ -704,21 +720,10 @@ sub traffic_add {
   my $self = shift;
   my ($DATA) = @_;
 
- my $table_name = "ipn_traf_log_". $Y."_".$M;
+ #my $table_name = "ipn_traf_log_". $Y."_".$M;
 
- $self->query($db, "CREATE TABLE IF NOT EXISTS `$table_name`  (
-  `src_addr` int(11) unsigned NOT NULL default '0',
-  `dst_addr` int(11) unsigned NOT NULL default '0',
-  `src_port` smallint(5) unsigned NOT NULL default '0',
-  `dst_port` smallint(5) unsigned NOT NULL default '0',
-  `protocol` tinyint(3) unsigned default '0',
-  `size` bigint(20) unsigned default '0',
-  `f_time` datetime NOT NULL default '0000-00-00 00:00:00',
-  `s_time` datetime NOT NULL default '0000-00-00 00:00:00',
-  `nas_id` smallint(5) unsigned NOT NULL default 0
-  );", 'do');
-
-
+ my $table_name = 'ipn_traf_detail';
+ my $UID = $DATA->{UID} || 0;
 
   $self->query($db, "insert into $table_name (src_addr,
        dst_addr,
@@ -727,7 +732,8 @@ sub traffic_add {
        protocol,
        size,
        f_time,
-       nas_id)
+       nas_id,
+       uid)
      VALUES (
         $DATA->{SRC_IP},
         $DATA->{DST_IP},
@@ -736,8 +742,43 @@ sub traffic_add {
        '$DATA->{PROTOCOL}',
        '$DATA->{SIZE}',
         now(),
-        '$DATA->{NAS_ID}'
+        '$DATA->{NAS_ID}',
+        '$UID'
       );", 'do');
+
+
+# $self->query($db, "CREATE TABLE IF NOT EXISTS `$table_name`  (
+#  `src_addr` int(11) unsigned NOT NULL default '0',
+#  `dst_addr` int(11) unsigned NOT NULL default '0',
+#  `src_port` smallint(5) unsigned NOT NULL default '0',
+#  `dst_port` smallint(5) unsigned NOT NULL default '0',
+#  `protocol` tinyint(3) unsigned default '0',
+#  `size` bigint(20) unsigned default '0',
+#  `f_time` datetime NOT NULL default '0000-00-00 00:00:00',
+#  `s_time` datetime NOT NULL default '0000-00-00 00:00:00',
+#  `nas_id` smallint(5) unsigned NOT NULL default 0
+#  );", 'do');
+#
+#
+#
+#  $self->query($db, "insert into $table_name (src_addr,
+#       dst_addr,
+#       src_port,
+#       dst_port,
+#       protocol,
+#       size,
+#       f_time,
+#       nas_id)
+#     VALUES (
+#        $DATA->{SRC_IP},
+#        $DATA->{DST_IP},
+#       '$DATA->{SRC_PORT}',
+#       '$DATA->{DST_PORT}',
+#       '$DATA->{PROTOCOL}',
+#       '$DATA->{SIZE}',
+#        now(),
+#        '$DATA->{NAS_ID}'
+#      );", 'do');
 
  return $self;
 }
