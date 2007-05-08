@@ -631,6 +631,8 @@ foreach my $NET_ID (@networks) {
    }
 
 
+print $INFO{NET_ROUTES};
+
   $INFO->{NETWORK}='';
   $list = $Dhcphosts->hosts_list({ NETWORK => $NET_ID, STATUS => 0, PAGE_ROWS => 100000 });
   

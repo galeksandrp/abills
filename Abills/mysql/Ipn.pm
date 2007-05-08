@@ -544,7 +544,7 @@ sub ip_in_zone($$$) {
        my $a_ip  = $$adr_hash{'IP'}; 
        my $a_msk = $$adr_hash{'Mask'}; 
        my $a_neg = $$adr_hash{'Neg'}; 
-       my $a_ports_ref = \@{$$adr_hash{'Ports'}};
+       my $a_ports_ref = \@{ $$adr_hash{'Ports'} };
        
        #print "AAAAAAAA:" . @$a_ports_ref . "\n";
        
