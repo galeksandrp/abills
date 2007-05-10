@@ -160,9 +160,11 @@ sub dv_users_list {
  my $group_sel = sel_groups();
  form_search({ SEARCH_FORM =>  	
  	"<tr><td colspan=2><hr></td></tr>
-   <tr><td>$_GROUP</td><td>$group_sel</td></tr>
-   <tr><td>IP (>,<)</td><td><input type='text' name='IP' value='%IP%'></td></tr>
-   <tr><td>CID</td><td><input type='text' name='CID' value='%CID%'></td></tr>\n"
+   <tr><td>$_GROUP:</td><td>$group_sel</td></tr>
+   <tr><td>IP (>,<):</td><td><input type='text' name='IP' value='%IP%'></td></tr>
+   <tr><td>CID:</td><td><input type='text' name='CID' value='%CID%'></td></tr>
+   <tr><td>$_PORT (>,<):</td><td><input type='text' name='PORT' value='%PORT%'></td></tr>
+   \n"
   });
 
 
@@ -193,9 +195,6 @@ elsif ($Dv->{TOTAL} == 1) {
 	form_users({  USER => user_info($list->[0]->[6+$Dv->{SEARCH_FIELDS_COUNT}]) });
 	return 0;
 }
-
-
-
 
 
 

@@ -423,14 +423,22 @@ sub list {
     my $value = $self->search_expr($attr->{SPEED}, 'INT');
     push @WHERE_RULES, "u.speed$value";
 
-    $self->{SEARCH_FIELDS} = 'dv.speed, ';
+    $self->{SEARCH_FIELDS} .= 'dv.speed, ';
+    $self->{SEARCH_FIELDS_COUNT}++;
+  }
+
+ if ($attr->{PORT}) {
+    my $value = $self->search_expr($attr->{PORT}, 'INT');
+    push @WHERE_RULES, "dv.port$value";
+
+    $self->{SEARCH_FIELDS} .= 'dv.port, ';
     $self->{SEARCH_FIELDS_COUNT}++;
   }
 
  if ($attr->{CID}) {
     $attr->{CID} =~ s/\*/\%/ig;
     push @WHERE_RULES, "dv.cid LIKE '$attr->{CID}'";
-    $self->{SEARCH_FIELDS} = 'dv.cid, ';
+    $self->{SEARCH_FIELDS} .= 'dv.cid, ';
     $self->{SEARCH_FIELDS_COUNT}++;
   }
 
