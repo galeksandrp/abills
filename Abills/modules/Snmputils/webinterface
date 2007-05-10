@@ -2507,10 +2507,11 @@ sub snmputils_get_users {
   my ($attr) = @_;
 
   my %user_hash = ();
-  $Snmputils->{debug}=1;
   my $list = $Snmputils->snmputils_binding_list({ IDS => $attr->{IDS}, PAGE_ROWS => 100000  }); 
   foreach my $line (@$list) {
-  	$user_hash{$line->[1]}="$line->[0]:$line->[5]";
+  	$user_hash{"$line->[1]"}="$line->[0]:$line->[5]";
+  	
+  	print $user_hash{"$line->[1]"} . "$line->[0]:$line->[5]<br>";
    }
 
   return \%user_hash; 
