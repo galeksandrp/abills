@@ -2511,7 +2511,7 @@ sub snmputils_get_users {
   foreach my $line (@$list) {
   	$user_hash{"$line->[1]"}="$line->[0]:$line->[5]";
   	
-  	print $user_hash{"$line->[1]"} . "$line->[0]:$line->[5]<br>";
+  	print $line->[1] . "/$line->[0]:$line->[5]<br>";
    }
 
   return \%user_hash; 
