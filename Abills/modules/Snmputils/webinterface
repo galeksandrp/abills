@@ -1934,6 +1934,8 @@ sub snmp_info_form {
                                        NO_ID   => 1
                                      });
   
+  $nas->{debug}=1;
+  
   $info{NAS_SEL} = $html->form_select('NAS_ID', 
                                           { 
  	                                          SELECTED          => $FORM{NAS_ID},
