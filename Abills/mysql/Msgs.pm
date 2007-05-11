@@ -168,8 +168,6 @@ sub message_del {
   	
    }
 
-  $self->{debug}=1;
-
   $WHERE = ($#WHERE_RULES > -1) ? join(' and ', @WHERE_RULES)  : '';
   $self->query($db, "DELETE FROM msgs_messages WHERE $WHERE", 'do');
 
