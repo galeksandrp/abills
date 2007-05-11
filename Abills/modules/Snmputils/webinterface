@@ -493,7 +493,7 @@ sub snmputils_dlink_pb {
         	    SWITCH_INFO    => $SWITCH_INFO,
         	    ACL_IP_MAC     => 1
          	   });
-            $debug_output .= "$message\n";
+            $debug_output .= "! $message\n";
            }
        }
      #Active ports
