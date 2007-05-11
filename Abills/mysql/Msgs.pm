@@ -65,6 +65,10 @@ sub messages_list {
  	  my $value = $self->search_expr($attr->{REPLY}, '');
     push @WHERE_RULES, "m.reply$value";
   }
+
+ if ($attr->{GID}) {
+    push @WHERE_RULES, "m.gid='$attr->{GID}'";
+  }
  
  
  
