@@ -92,7 +92,7 @@ sub messages_list {
     m.subject, mc.name, m.date,  if(m.reply IS NULL, '', m.reply), 
     inet_ntoa(m.ip), a.id, m.uid, a.aid, m.state, m.gid
 
-    FROM msgs_messages m
+    FROM (msgs_messages m)
     LEFT JOIN msgs_chapters mc ON (m.chapter=mc.id)
     LEFT JOIN users u ON (m.uid=u.uid)
     LEFT JOIN admins a ON (m.aid=a.aid)

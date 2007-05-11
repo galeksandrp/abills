@@ -1937,7 +1937,7 @@ sub snmp_info_form {
   $info{NAS_SEL} = $html->form_select('NAS_ID', 
                                           { 
  	                                          SELECTED          => $FORM{NAS_ID},
- 	                                          SEL_MULTI_ARRAY   => [['', ''], @{ $nas->list({ sort => 2, PAGE_ROWS => 10000 }) } ],
+ 	                                          SEL_MULTI_ARRAY   => [['', ''], @{ $nas->list({ SORT => 2, PAGE_ROWS => 10000 }) } ],
  	                                          MULTI_ARRAY_KEY   => 0,
  	                                          MULTI_ARRAY_VALUE => 1,
  	                                        });
