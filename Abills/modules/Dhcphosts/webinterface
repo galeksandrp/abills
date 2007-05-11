@@ -193,7 +193,6 @@ sub leaseparse {
    my ( %list, $ip );
 
    if (-f $logfile ) {
-   	print "Can't read file '$logfile' $!";
    	return \%list; 
    }
 
