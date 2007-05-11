@@ -127,7 +127,7 @@ sub dhcphosts_monitor {
  #Get user info from DB
 
  my $hosts_list = $Dhcphosts->hosts_list({ IPS       => join(", ",  keys %$dhcp_hash), 
- 	                                         PAGE_ROWS => 10000 
+ 	                                         PAGE_ROWS => 100000 
  	                                       });
  
  my $table = $html->table({ width      => '100%',
@@ -192,6 +192,11 @@ sub leaseparse {
    my $logfile = shift;
    my ( %list, $ip );
 
+   if (-f $logfile ) {
+   	print "Can't read file '$logfile' $!";
+   	return \%list; 
+   }
+
    open (FILE, $logfile) or print "Can't read file '$logfile' $!";
    
    
@@ -213,18 +218,6 @@ sub leaseparse {
    }
 
    close FILE;
-
-# make all entries 74 characters long to format properly
-#   foreach (keys %list) {
-#     #$list{$_} = sprintf("%-74s", $list{$_}) if (length$list{$_} < 76);
-#     
-#     push @list_arr, [ $list{$_}{'ip'}, 
-#      $list{$_}{starts}, 
-#      $list{$_}{hardware},
-#      ($list{$_}{'client-hostname'}) ? $list{$_}{'client-hostname'} : '',
-#      ($list{$ip}{abandoned}) ? $list{$ip}{abandoned} : '',
-#       ] ;
-#   }
 
    return \%list;
 }
