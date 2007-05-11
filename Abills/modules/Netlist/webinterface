@@ -17,7 +17,24 @@ sub netlist_ip_calc {
                                           { 
  	                                          SELECTED    => $FORM{MASK},
  	                                          SEL_ARRAY   => [ 
- 	                                          '255.255.255.0',
+ 	                                          '255.0.0.0', 	            
+
+ 	                                          '255.128.0.0',
+ 	                                          '255.192.0.0',
+ 	                                          '255.224.0.0',
+ 	                                          '255.240.0.0',
+ 	                                          '255.248.0.0',
+ 	                                          '255.254.0.0',
+
+                                            '255.255.0.0',
+ 	                                          '255.255.128.0',
+ 	                                          '255.255.192.0',
+ 	                                          '255.255.224.0',
+ 	                                          '255.255.240.0',
+ 	                                          '255.255.248.0',
+ 	                                          '255.255.254.0',
+
+                                            '255.255.255.0',
  	                                          '255.255.255.128',
  	                                          '255.255.255.192',
  	                                          '255.255.255.224',
@@ -25,7 +42,7 @@ sub netlist_ip_calc {
  	                                          '255.255.255.248',
  	                                          '255.255.255.252',
  	                                          '255.255.255.254',
- 	                                          '255.255.255.255'
+ 	                                          '255.255.255.255',
                                             ],
  	                                        });
 
@@ -47,7 +64,7 @@ sub netlist_ip_calc {
   my @HOSTS_NUMBER  = ();
   my @MASK_BITS     = ();
   
-  for(my $i=0; $i<=8; $i++) {
+  for(my $i=0; $i<=16; $i++) {
   	
   	push @SUBNET_NUMBER, ($mask << $i);
   	push @HOSTS_NUMBER, sprintf("%d", 254 / ($mask << $i) - 1);
@@ -88,15 +105,27 @@ if ($FORM{SHOW}) {
   
   my $ip_prefix = "$FORM{IP_D1}\.$FORM{IP_D2}\.$FORM{IP_D3}";
   my $int = ip2int("$ip_prefix\.0");
+  
+  if ($FORM{MASK} =~ /\.0$/ && $FORM{MASK} !~ /255\.0$/) {
+  	$ip_prefix = "$FORM{IP_D1}\.$FORM{IP_D2}\.0";
+  	$int = ip2int("$ip_prefix\.0\.0");
+   }
+  elsif ($FORM{MASK} =~ /\.0\.0$/ && $FORM{MASK} !~ /\.255\.255\.0$/) {
+  	$ip_prefix = "$FORM{IP_D1}\.0\.0";
+  	$int = ip2int("$ip_prefix\.0\.0\.0");
+   }
+
+  
   my $addr_count = ip2int('255.255.255.255') - ip2int("$FORM{MASK}") - 1;
   my $count = 2;
+  
   for(my $i=0; $i<256 / ($addr_count + 2); $i++) {
   	my $sufix_ip = ($addr_count + 2) * $i;
   	$table->addrow("$ip_prefix".'.'. $sufix_ip,  
   	                "$FORM{MASK}",
   	                $addr_count,
-  	                "$_FROM: $ip_prefix.". (($addr_count + 2) * $i + 1) ." $_TO: $ip_prefix.". (($addr_count + 2) * $i  + $addr_count),
-  	                "$ip_prefix".'.'. ($sufix_ip + $addr_count + 1)
+  	                "$_FROM: $ip_prefix.". (($addr_count + 2) * $i + 1) ." $_TO: ". int2ip($int + $addr_count),
+  	                int2ip($int + $addr_count + 1)
   	               );
   	
    }
