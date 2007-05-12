@@ -93,7 +93,6 @@ sub network_add {
   my $self=shift;
   my ($attr)=@_;
   
-  $self->{debug}=1;
 
   $self->query($db,"INSERT INTO dhcphosts_networks 
      (name,network,mask, routers, coordinator, phone, dns, suffix) 
