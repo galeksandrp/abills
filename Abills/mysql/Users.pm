@@ -855,6 +855,11 @@ sub bruteforce_list {
 	my ($attr) = @_;
 	
 
+  $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+  $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+  $PG = ($attr->{PG}) ? $attr->{PG} : 0;
+  $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
+
 
 	my $GROUP = 'GROUP BY login';
   my $count='count(login)';	
@@ -881,7 +886,7 @@ sub bruteforce_list {
     $list = $self->{list};
   }
 
-  $self->query($db, "SELECT count(*) FROM users_bruteforce $WHERE;");
+  $self->query($db, "SELECT count(DISTINCT login) FROM users_bruteforce $WHERE;");
   ($self->{TOTAL}) = @{ $self->{list}->[0] };
 
 	

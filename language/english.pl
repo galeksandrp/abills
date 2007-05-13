@@ -320,3 +320,4 @@ $_SOLD='Sold';
 
 $_CASH='Cash';
 $_RECALCULATE='Recalculate';
+$_CONFIG='Configuration';

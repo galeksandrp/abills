@@ -4239,7 +4239,7 @@ if(defined($FORM{del}) && defined($FORM{is_js_confirmed})  && $permissions{0}{5}
    $html->message('info', $_INFO, "$_DELETED # $FORM{del}");
  }
 	
-  my $list = $users->bruteforce_list( { %LIST_PARAMS, %FORM } );
+  my $list = $users->bruteforce_list( { %LIST_PARAMS } );
   my $table = $html->table( { width      => '100%',
                               caption    => "$_BRUTE_ATACK",
                               border     => 1,
