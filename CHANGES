@@ -1,4 +1,24 @@
 =====0.36=====
+  * 4.07.2007
+
+  CREATE TABLE `ipn_traf_detail` (
+    `src_addr` int(11) unsigned NOT NULL default '0',
+    `dst_addr` int(11) unsigned NOT NULL default '0',
+    `src_port` smallint(5) unsigned NOT NULL default '0',
+    `dst_port` smallint(5) unsigned NOT NULL default '0',
+    `protocol` tinyint(3) unsigned default '0',
+    `size` int(10) unsigned NOT NULL default '0',
+    `f_time` datetime NOT NULL default '0000-00-00 00:00:00',
+    `s_time` datetime NOT NULL default '0000-00-00 00:00:00',
+    `nas_id` smallint(5) unsigned NOT NULL default '0',
+    `uid` int(11) unsigned NOT NULL default '0'
+  ) COMMENT='Ipn detail log traffic class';
+
+  * 4.05.2007
+''MySQL''
+  ALTER TABLE dhcphosts_hosts CHANGE column block_date expire date NOT NULL default '0000-00-00';
+
+
   * 31.03.2007 - Оптимизация
 ''MySQL''
   ALTER TABLE dv_calls ADD column `acct_input_gigawords` smallint(4) unsigned NOT NULL   default '0';
