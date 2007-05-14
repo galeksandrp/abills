@@ -886,6 +886,8 @@ sub table {
 
 
  if (defined($attr->{title})) {
+   #print "--- $SORT // | $FORM{sort} | $LIST_PARAMS{SORT} //";
+   $SORT = $LIST_PARAMS{SORT};
  	 $self->{table} .= $self->table_title($SORT, $DESC, $PG, $OP, $attr->{title}, $attr->{qs});
   }
  elsif(defined($attr->{title_plain})) {
