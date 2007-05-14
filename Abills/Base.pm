@@ -230,7 +230,7 @@ sub show_log {
       
       #$user =~ s/\[|\]//g;
       if ($login ne "") {
-      	if($user =~ /[ ]{0,1}$login[ ]{0,1}/i ) {
+      	if($user =~ /^[ ]{0,1}$login[ ]{0,1}$/i ) {
      	    push @err_recs, $_;
      	    $types{$log_type}++;
          }
