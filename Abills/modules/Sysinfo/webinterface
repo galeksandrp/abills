@@ -1,0 +1,493 @@
+#http://www.osix.net/modules/article/?id=156
+
+
+my $sysinfo_hash = ();
+my $os = sysinfo_get_os();
+
+#*******************************************************************
+# Show system info
+#*******************************************************************
+sub sysinfo_conf {
+  my ($attr) = @_;
+
+   my %CONFIG_HASH = ();
+
+
+  my $table = $html->table( { caption     => "$_CONFIG",
+	                          width       => '100%',
+                            title_plain => [$_PARAMS, $_VALUE,  '-', '-' ],
+                            cols_align  => ['left', 'left', 'center', 'center' ],
+                           } );
+
+  print $table->show();
+}
+
+#*******************************************************************
+# Show system info
+#*******************************************************************
+sub sysinfo_get_os {
+  my ($attr) = @_;
+
+  my $os_name = 'UNKNOWN';
+  my $os_full = `/usr/bin/uname -a`;
+
+  if ($os_full =~ /(\S+)/ ) {
+  	 $os_name = $1;
+   }
+
+  return $os_name;
+}
+
+
+#*******************************************************************
+# Show system info
+#*******************************************************************
+sub sysinfo_globals {
+  
+#Canonical Hostname localhost 
+#Listening IP 217.73.128.3 
+#Kernel Version 2.6.20.7 
+#Distro Name  CentOS release 4.4 (Final) 
+#Uptime 2 days 44 minutes 
+#Current Users 0 
+#Load Averages 
+}
+
+#*******************************************************************
+# Show system info
+#*******************************************************************
+sub sysinfo_main {
+  my ($attr) = @_;
+
+#OS version
+# uname -a
+
+
+# Network Usage
+
+# Memory Usage
+$sysinfo_hash{$os}{memory}->({ SHORT => 1 });
+# Mounted Filesystems
+sysinfo_disc();
+#Network
+sysinfo_network();
+
+# Check Running proccess
+
+
+# System Vital
+
+# Hardware Information
+
+}
+
+#*******************************************************************
+# Show system info
+#*******************************************************************
+sub sysinfo_memory {
+  $sysinfo_hash{$os}{memory}->();
+}
+
+
+#*******************************************************************
+# Show system info
+#*******************************************************************
+sub sysinfo_cpu {
+
+
+}
+
+
+#*******************************************************************
+# Show system info
+#*******************************************************************
+sub sysinfo_disc {
+
+my $table = $html->table( { caption     => "Disc usage",
+	                          width       => '100%',
+                            title_plain => ['Filesystem', 'Size',  'Used', 'Avail', 'Capacity', 'Mounted' ],
+                            cols_align  => ['left', 'right', 'right', 'right', 'right', 'left' ],
+                           } );
+
+my $info =  $sysinfo_hash{$os}{'disc'}->();
+my $i=0;
+my $total_size = 0;
+my $total_used = 0;
+foreach my $line ( @{ $info->{Filesystem} } ) {
+  if ($line =~ /^\//) {
+    $total_size += $info->{Size}->[$i];
+    $total_used += $info->{Used}->[$i];
+    my $width = 100;
+    if ($info->{Capacity}->[$i] =~ /(\d+)/) {
+    	$width = $1;
+     }
+
+    $table->addrow($line, 
+     int2byte($info->{Size}->[$i]),
+     int2byte($info->{Used}->[$i]),
+     int2byte($info->{Avail}->[$i]),
+     "<img src='../img/gorgreen.gif' height=10 width=$width> ". $info->{Capacity}->[$i],
+     $info->{Mounted}->[$i]
+    );
+   }
+  $i++;
+}
+$table->{rowcolor}=$_COLORS[4];
+$table->addrow("$_TOTAL:", int2byte($total_size), 
+ int2byte($total_used), 
+ int2byte($total_size - $total_used),
+ sprintf("<img src='../img/gorgreen.gif' height=10 width=%> %3d%%", ($total_used / $total_size) * 100, ($total_used / $total_size) * 100 ), ''  );
+print $table->show();
+}
+
+
+#*******************************************************************
+# Show system info
+#*******************************************************************
+sub sysinfo_network {
+
+my $table = $html->table( { caption     => "$_NETWORK",
+	                          width       => '100%',
+                            title_plain => ['INTERFACE', $_ADDRESS, $_RECV,  $_SENT, $_ERROR],
+                            cols_align  => ['left', 'right', 'right', 'right', 'right' ],
+                           } );
+
+my $info =  $sysinfo_hash{$os}{'network'}->();
+
+while(my ($k, $v) = each %{ $info } ) {
+    $table->addrow($k, 
+      $v->{ADDRESS}.'/'. $v->{IP},
+      int2byte($v->{IN} || 0),
+      int2byte($v->{OUT} || 0),
+      "$v->{IN_ERROR} / $v->{OUT_ERROR}"
+    );
+}
+
+print $table->show();
+}
+
+
+#*******************************************************************
+# Show system info
+#*******************************************************************
+sub sysinfo_processes {
+
+
+#watch section
+
+	
+#all 
+my $table = $html->table( { caption     => "$_PROCESSES",
+	                          width       => '100%',
+                            title       => ['USER', 'PID', '%CPU', '%MEM', 'VSZ', 'RSS', 'TT', 'STAT', 'STARTED', 'TIME',
+                             'COMMAND', '-' ],
+                            cols_align  => ['right', 'right', 'right', 'right', 'right' ],
+                           } );
+
+my $info =  $sysinfo_hash{$os}{'processes'}->();
+
+
+my $sorted = arr_hash_sort($info, $SORT - 1);
+
+foreach my $line ( @$sorted ) {
+  $table->addrow(
+     $line->{USER},
+     $line->{PID},
+     $line->{CPU},
+     $line->{MEM}, 
+     $line->{VSZ}, 
+     $line->{RSS},
+     $line->{TT},
+     $line->{STAT},
+     $line->{STARTED},
+     $line->{TIME},
+     $line->{COMMAND},
+     '-'
+   );
+
+}
+print $table->show();
+	
+}
+
+$sysinfo_hash{'FreeBSD'}{'processes'} = sub { 
+	
+	#USER       PID %CPU %MEM   VSZ   RSS  TT  STAT STARTED      TIME COMMAND
+	my $total_info  = `env COLUMNS=1000 /bin/ps aux`;
+ 
+  my @arr = split(/\n/, $total_info);
+  my @result_array = ();
+  
+  foreach my $line (@arr) {
+
+    if ($line =~ /(\S+) +(\d+) +(\S+) +(\S+) +(\d+) +(\d+) +(\S+) +(\S+) +(\S+) +(\S+) +(.+)/) {
+      my %info  = ();
+    	# print "$1, $2, $3, $4, $5 <br>";
+   	  $info{USER} =  $1;     
+   	  $info{PID}  =  $2;     
+
+   	  $info{CPU}    = $3;
+   	  $info{MEM}    = $4;     
+   	  $info{VSZ}    = $5;     
+   	  $info{RSS}    = $6;     
+
+  		$info{TT}     = $7;    
+  		$info{STAT}   = $8;
+  		$info{STARTED}= $9;
+  		$info{TIME}   = $10;
+  		$info{COMMAND}= $11;
+
+      push @result_array, \%info;
+     }
+
+    
+   }
+
+  return \@result_array;
+};
+
+$sysinfo_hash{'FreeBSD'}{'network'} = sub {
+	my $total_info  = `/usr/bin/netstat -in`;
+
+  my @arr = split(/\n/, $total_info);
+  my %info  = ();
+	
+	  foreach my $line (@arr) {
+  	if ($line =~ /(\S+) +(\S+) +(\S+) +(\S+) +(\d+) +(\d+) +(\d+) +(\d+) +(\d+)/) {
+  		my $iface = $1;
+  		$info{$iface}{MTU}      = $2;     
+  	  $info{$iface}{NETWORK}  = $3;     
+  		$info{$iface}{ADDRESS}  = $4;    
+  		$info{$iface}{IN}       = $5;
+  		$info{$iface}{IN_ERROR} = $6;
+  		$info{$iface}{OUT}      = $7;
+  		$info{$iface}{OUT_ERROR}= $8;
+  		$info{$iface}{COLL}     = $9;
+  	 }
+    elsif ($line =~ /(\S+) +(\S+) +(\S+) +(\S+) +(\d+) +- +(\d+) +- +-/) { 
+  		my $iface = $1;
+  		$info{$iface}{MTU}      = $2;     
+  	  $info{$iface}{MASK}     = $3;     
+  		$info{$iface}{IP}       = $4;    
+  		$info{$iface}{IP_IN}    = $5;
+  		$info{$iface}{IP_OUT}   = $6;
+    }
+   }
+
+  return \%info;
+};
+
+$sysinfo_hash{'FreeBSD'}{'disc'} = sub {
+	my $total_info  = `/bin/df `;
+
+  my @arr = split(/\n/, $total_info);
+  my %info  = ();
+  my $block = 1024;
+  
+  if ($total_info =~ /(\d+)-blocks/ ) {
+  	$block = $1;
+   }
+  
+  foreach my $line (@arr) {
+  	if ($line =~ /(\S+) +(\S+) +(\S+) +(\S+) +(\S+) +(\S+)/) {
+  		#print "$1; $2; $3; $4; $5";
+  	  push @{ $info{Filesystem} },$1;     
+  		push @{ $info{Size} },      $2 * $block;    
+  		push @{ $info{Used} },      $3 * $block;
+  		push @{ $info{Avail} },     $4 * $block;
+  		push @{ $info{Capacity}  }, $5;
+  		push @{ $info{Mounted}  },  $6;
+  	 }
+   }
+  return \%info;
+};
+
+
+
+#*******************************************************************
+# Show system info
+#*******************************************************************
+$sysinfo_hash{'FreeBSD'}{'memory'} = sub {
+  my ($attr) = @_;
+
+my $sysctl = {};
+my $sysctl_output = `/sbin/sysctl -a`;
+foreach my $line (split(/\n/, $sysctl_output)) {
+    if ($line =~ m/^([^:]+):\s+(.+)\s*$/s) {
+        $sysctl->{$1} = $2;
+    }
+}
+
+#   determine the individual known information
+#   NOTICE: forget hw.usermem, it is just (hw.physmem - vm.stats.vm.v_wire_count).
+#   NOTICE: forget vm.stats.misc.zero_page_count, it is just the subset of
+#           vm.stats.vm.v_free_count which is already pre-zeroed.
+my $mem_hw        = &mem_rounded_freebsd($sysctl->{"hw.physmem"});
+my $mem_phys      = $sysctl->{"hw.physmem"};
+my $mem_all       = $sysctl->{"vm.stats.vm.v_page_count"}      * $sysctl->{"hw.pagesize"};
+my $mem_wire      = $sysctl->{"vm.stats.vm.v_wire_count"}      * $sysctl->{"hw.pagesize"};
+my $mem_active    = $sysctl->{"vm.stats.vm.v_active_count"}    * $sysctl->{"hw.pagesize"};
+my $mem_inactive  = $sysctl->{"vm.stats.vm.v_inactive_count"}  * $sysctl->{"hw.pagesize"};
+my $mem_cache     = $sysctl->{"vm.stats.vm.v_cache_count"}     * $sysctl->{"hw.pagesize"};
+my $mem_free      = $sysctl->{"vm.stats.vm.v_free_count"}      * $sysctl->{"hw.pagesize"};
+
+#   determine the individual unknown information
+my $mem_gap_vm    = $mem_all - ($mem_wire + $mem_active + $mem_inactive + $mem_cache + $mem_free);
+my $mem_gap_sys   = $mem_phys - $mem_all;
+my $mem_gap_hw    = $mem_hw   - $mem_phys;
+
+#   determine logical summary information
+my $mem_total = $mem_hw;
+my $mem_avail = $mem_inactive + $mem_cache + $mem_free;
+my $mem_used  = $mem_total - $mem_avail;
+
+#   information annotations
+my $info = {
+    "mem_wire"     => 'Wired: disabled for paging out',
+    "mem_active"   => 'Active: recently referenced',
+    "mem_inactive" => 'Inactive: recently not referenced',
+    "mem_cache"    => 'Cached: almost avail. for allocation',
+    "mem_free"     => 'Free: fully available for allocation',
+    "mem_gap_vm"   => 'Memory gap: UNKNOWN',
+    "mem_all"      => 'Total real memory managed',
+    "mem_gap_sys"  => 'Memory gap: Kernel?!',
+    "mem_phys"     => 'Total real memory available',
+    "mem_gap_hw"   => 'Memory gap: Segment Mappings?!',
+    "mem_hw"       => 'Total real memory installed',
+    "mem_used"     => 'Logically used memory',
+    "mem_avail"    => 'Logically available memory',
+    "mem_total"    => 'Logically total memory',
+};
+
+
+my $table = $html->table( { caption     => "SYSTEM MEMORY INFORMATION",
+	                          width       => '100%',
+                            #title_plain => ["$_TRAFF $_TYPE", "$_BEGIN", "$_END", "$_START", "$_TOTAL (MB)", "$_REST (MB)", "$_OVERQUOTA (MB)"],
+                            cols_align  => ['left', 'right', 'right', 'right', 'left' ],
+                           } );
+
+
+if ( ! $attr->{SHORT}) {
+$table->{rowcolor}=$_COLORS[0];
+$table->{extra}="colspan='5' class='small'";
+$table->addrow("&nbsp;" );
+$table->{rowcolor}=undef;
+$table->{extra}=undef;
+
+$table->addrow("mem_wire:",       $mem_wire,     int2byte($mem_wire),     sprintf("%3d%%", ($mem_wire / $mem_all) * 100),     $info->{"mem_wire"}     );
+$table->addrow("mem_active:",     $mem_active,   int2byte($mem_active),   sprintf("%3d%%", ($mem_active   / $mem_all) * 100), $info->{"mem_active"}   );
+$table->addrow("mem_inactive:",   $mem_inactive, int2byte($mem_inactive), sprintf("%3d%%", ($mem_inactive / $mem_all) * 100), $info->{"mem_inactive"} );
+$table->addrow("mem_cache: ",     $mem_cache,    int2byte($mem_cache),    sprintf("%3d%%", ($mem_cache    / $mem_all) * 100), $info->{"mem_cache"}    );
+$table->addrow("mem_free:  ",     $mem_free,     int2byte($mem_free),     sprintf("%3d%%", ($mem_free     / $mem_all) * 100), $info->{"mem_free"}     );
+$table->addrow("mem_gap_vm:",     $mem_gap_vm,   int2byte($mem_gap_vm),   sprintf("%3d%%", ($mem_gap_vm   / $mem_all) * 100), $info->{"mem_gap_vm"}   );
+
+
+
+$table->{rowcolor}=$_COLORS[0];
+$table->{extra}="colspan='5' class='small'";
+$table->addrow("&nbsp;" );
+$table->{rowcolor}=undef;
+$table->{extra}=undef;
+$table->addrow("mem_all:",     $mem_all,      int2byte($mem_all),  '100%', $info->{"mem_all"});
+$table->addrow("mem_gap_sys:", $mem_gap_sys,  int2byte($mem_gap_sys), '',  $info->{"mem_gap_sys"});
+
+
+$table->{rowcolor}=$_COLORS[0];
+$table->{extra}="colspan='5' class='small'";
+$table->addrow("&nbsp;" );
+$table->{rowcolor}=undef;
+$table->{extra}=undef;
+
+$table->addrow("mem_phys:",    $mem_phys,     int2byte($mem_phys),   '', $info->{"mem_phys"});
+$table->addrow("mem_gap_hw:",  $mem_gap_hw,   int2byte($mem_gap_hw), '', $info->{"mem_gap_hw"});     
+
+$table->{rowcolor}=$_COLORS[0];
+$table->{extra}="colspan='5' class='small'";
+$table->addrow("&nbsp;" );
+$table->{rowcolor}=undef;
+$table->{extra}=undef;
+$table->addrow("mem_hw:",      $mem_hw,       int2byte($mem_hw),     '', $info->{"mem_hw"});
+}
+
+
+$table->{rowcolor}=$_COLORS[0];
+$table->{extra}="colspan='5' class='small'";
+$table->addrow("SYSTEM MEMORY SUMMARY:" );
+$table->{rowcolor}=undef;
+$table->{extra}=undef;
+$table->addrow("mem_used:",  $mem_used,  int2byte($mem_used),   sprintf("<img src='../img/gorred.gif' height=10 width=%3d> %3d%%", ($mem_used  / $mem_total) * 100, ($mem_used  / $mem_total) * 100), $info->{"mem_used"});
+$table->addrow("mem_avail:", $mem_avail, int2byte($mem_avail),  sprintf("<img src='../img/gorgreen.gif' height=10 width=%3d> %3d%%",  ($mem_avail / $mem_total) * 100, ($mem_avail / $mem_total) * 100), $info->{"mem_avail"});
+
+$table->{rowcolor}=$_COLORS[0];
+$table->{extra}="colspan='5' class='small'";
+$table->addrow("&nbsp;" );
+$table->{rowcolor}=undef;
+$table->{extra}=undef;
+$table->addrow("mem_total:", $mem_total, int2byte($mem_total),  '100%', $info->{"mem_total"});
+
+
+print $table->show();
+
+
+};
+
+
+
+
+
+#   round the physical memory size to the next power of two which is
+#   reasonable for memory cards. We do this by first determining the
+#   guessed memory card size under the assumption that usual computer
+#   hardware has an average of a maximally eight memory cards installed
+#   and those are usually of equal size.
+sub mem_rounded_freebsd {
+    my ($mem_size) = @_;
+    my $chip_size  = 1;
+    my $chip_guess = ($mem_size / 8) - 1;
+    while ($chip_guess != 0) {
+        $chip_guess >>= 1;
+        $chip_size  <<= 1;
+    }
+    my $mem_round = (int($mem_size / $chip_size) + 1) * $chip_size;
+    return $mem_round;
+}
+
+
+
+
+sub arr_hash_sort {
+	my ($array, 
+	    $sort,
+	    $attr) = @_;
+	
+	
+  my @ACTIVE_FIELDS = ('USER', 
+                       'PID', 'CPU', 'MEM', 'VSZ', 
+                       'RSS', 'TT', 'STAT', 'STARTED', 'TIME',
+                       'COMMAND');
+
+
+  my %SORT_HASH = ();
+  my $i=0;
+  
+  foreach my $line (@{ $array }) {
+ 	  $SORT_HASH{$i}=$SORT_HASH{$i}=$line->{$ACTIVE_FIELDS[$sort]};
+  	$i++;
+   }
+
+  #print $sorted[0]->{$ACTIVE_FIELDS[$FORM{sort}-1]} ;
+  my @sorted_ids = sort { 
+     	length($SORT_HASH{$a}) <=> length($SORT_HASH{$b})
+       ||
+  	   $SORT_HASH{$a} cmp $SORT_HASH{$b}
+ 	 } keys %SORT_HASH;  
+
+  my @sorted=();
+  foreach my $line (@sorted_ids) {
+    push @sorted, $array->[$line];
+   }
+
+	return \@sorted;
+}
+
+1
