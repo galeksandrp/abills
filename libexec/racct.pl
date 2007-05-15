@@ -109,7 +109,7 @@ if (scalar(keys %RAD_REQUEST ) < 1) {
    }
 
   if(defined($acct->{errno})) {
-	  log_print('LOG_ERR', "ACCT [$RAD->{USER_NAME}] $acct->{errstr} ($acct->{sql_errstr})");
+	  log_print('LOG_ERR', "ACCT [$RAD->{USER_NAME}] $acct->{errstr}". ( (defined($acct->{sql_errstr})) ? " ($acct->{sql_errstr})" : '' )  );
    }
 
   #$db->disconnect();

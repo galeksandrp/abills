@@ -561,7 +561,7 @@ sub get_if_info {
       elsif ($line =~ /PID (\d+)/gi) {
          $pid = $1;
          #chomp($pid);
-         chop($pid);
+         #chop($pid);
        }
      }
     print "$tunnum $addr $pid\n" if ($debug == 1);
