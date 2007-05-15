@@ -1,0 +1,17 @@
+pptp0:
+  set link type pptp
+
+pptp1:
+  set link type pptp
+
+pptp2:
+  set link type pptp
+
+pptp3:
+  set link type pptp
+
+pptp4:
+  set link type pptp
+
+pptp5:
+  set link type pptp
