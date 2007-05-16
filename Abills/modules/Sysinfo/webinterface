@@ -153,10 +153,16 @@ my $table = $html->table( { caption     => "$_NETWORK",
                            } );
 
 my $info =  $sysinfo_hash{$os}{'network'}->();
+my @states = ('Up', 'Down');
 
 while(my ($k, $v) = each %{ $info } ) {
+    my $state = 0;
+    if ($k =~ /\*$/) {
+    	$state = 1;
+     }
+    
     $table->addrow($k, 
-      '',
+      $states[$state],
       $v->{ADDRESS}.'/'. $v->{IP},
       int2byte($v->{IN} || 0),
       int2byte($v->{OUT} || 0),
@@ -187,8 +193,21 @@ my $table = $html->table( { caption     => "$_PROCESSES",
 
 my $info =  $sysinfo_hash{$os}{'processes'}->();
 
+my @active_fields = ('USER', 
+                       'PID', 
+                       'CPU', 
+                       'MEM', 
+                       'VSZ', 
+                       'RSS', 
+                       'TT', 
+                       'STAT', 
+                       'STARTED', 
+                       'TIME',
+                       'COMMAND');
 
-my $sorted = arr_hash_sort($info, $SORT - 1);
+
+my $sorted = arr_hash_sort($info, $SORT - 1, 
+                                            { ACTIVE_FIELDS => \@active_fields });
 
 foreach my $line ( @$sorted ) {
   $table->addrow(
@@ -463,25 +482,23 @@ sub mem_rounded_freebsd {
 }
 
 
-
-
+#**********************************************************
+#
+#**********************************************************
 sub arr_hash_sort {
 	my ($array, 
 	    $sort,
 	    $attr) = @_;
 	
 	
-  my @ACTIVE_FIELDS = ('USER', 
-                       'PID', 'CPU', 'MEM', 'VSZ', 
-                       'RSS', 'TT', 'STAT', 'STARTED', 'TIME',
-                       'COMMAND');
+  my $ACTIVE_FIELDS = ($attr->{ACTIVE_FIELDS}) : $attr->{ACTIVE_FIELDS} ? [0]; 
 
 
   my %SORT_HASH = ();
   my $i=0;
   
   foreach my $line (@{ $array }) {
- 	  $SORT_HASH{$i}=$SORT_HASH{$i}=$line->{$ACTIVE_FIELDS[$sort]};
+ 	  $SORT_HASH{$i}=$SORT_HASH{$i}=$line->{$ACTIVE_FIELDS->[$sort]};
   	$i++;
    }
 
