@@ -1412,7 +1412,7 @@ sub ipn_user_activate {
   	 	                   FRAMED_IP_ADDRESS     => $ip,
   	 	                   ACCT_TERMINATE_CAUSE  => 1
   	 	         	 	     });
-     $html->message('info', $_INFO, "$_DISABLE");
+     $html->message('info', $_INFO, "$_DISABLE IP: $ip");
    }
 
 #  my $nas_list = $html->form_select('NAS_ID', 
@@ -1474,7 +1474,7 @@ sub ipn_user_activate {
        $online_ip,  
        $line->[4], 
        int2byte($line->[5]), int2byte($line->[6]),
-       $html->button("$_HANGUP", "index=$index&UID=$LIST_PARAMS{UID}&LOGOUT=1&SESSION_ID=$line->[21]")
+       $html->button("$_HANGUP", "index=$index&UID=$LIST_PARAMS{UID}&LOGOUT=1&SESSION_ID=$line->[21]&REMOTE_ADDR=$online_ip")
        )  if ($line->[11] == $LIST_PARAMS{UID} );
     }
 
