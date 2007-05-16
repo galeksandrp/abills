@@ -506,7 +506,7 @@ sub multi_hash_sort {
 
   my %SORT_HASH = ();
   while(my ($k, $v) = each %{ $hash } ) {
-    print $k, $v->{$ACTIVE_FIELDS->[$sort]} . "// $ACTIVE_FIELDS->[$sort] / $sort]<br>";
+    #print $k, $v->{$ACTIVE_FIELDS->[$sort]} . "// $ACTIVE_FIELDS->[$sort] / $sort]<br>";
     $SORT_HASH{$k}=$v->{$ACTIVE_FIELDS->[$sort]};
   }
   
