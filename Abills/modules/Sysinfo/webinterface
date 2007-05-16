@@ -105,7 +105,7 @@ sub sysinfo_disc {
 
 my $table = $html->table( { caption     => "Disc usage",
 	                          width       => '100%',
-                            title       => ['Filesystem', 'Size',  'Used', 'Avail', 'Capacity', 'Mounted' ],
+                            title_plain => ['Filesystem', 'Size',  'Used', 'Avail', 'Capacity', 'Mounted' ],
                             cols_align  => ['left', 'right', 'right', 'right', 'left', 'left' ],
                            } );
 
@@ -148,7 +148,7 @@ sub sysinfo_network {
 
 my $table = $html->table( { caption     => "$_NETWORK",
 	                          width       => '100%',
-                            title_plain => ['INTERFACE', $_ADDRESS, $_RECV,  $_SENT, $_ERROR],
+                            title       => ['INTERFACE', $_STATE, $_ADDRESS, $_RECV,  $_SENT, $_ERROR],
                             cols_align  => ['left', 'right', 'right', 'right', 'right' ],
                            } );
 
@@ -156,6 +156,7 @@ my $info =  $sysinfo_hash{$os}{'network'}->();
 
 while(my ($k, $v) = each %{ $info } ) {
     $table->addrow($k, 
+      '',
       $v->{ADDRESS}.'/'. $v->{IP},
       int2byte($v->{IN} || 0),
       int2byte($v->{OUT} || 0),
@@ -264,7 +265,7 @@ $sysinfo_hash{'FreeBSD'}{'network'} = sub {
   		$info{$iface}{OUT_ERROR}= $8;
   		$info{$iface}{COLL}     = $9;
   	 }
-    elsif ($line =~ /(tun\d+)[*]{0,1} +(\d+) +<Link#\d+> +(\d+) +(\d+) +(\d+) +(\d+) +(\d+)/) {
+    elsif ($line =~ /(tun\d+[*]{0,1}) +(\d+) +<Link#\d+> +(\d+) +(\d+) +(\d+) +(\d+) +(\d+)/) {
       my $iface = $1;
   		$info{$iface}{MTU}      = $2;     
   		$info{$iface}{IN}       += $3;
