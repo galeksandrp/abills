@@ -264,6 +264,15 @@ $sysinfo_hash{'FreeBSD'}{'network'} = sub {
   		$info{$iface}{OUT_ERROR}= $8;
   		$info{$iface}{COLL}     = $9;
   	 }
+    elsif ($line =~ /(tun\d+) +(\d+) +<Link#\d+> +(\d+) +(\d+) +(\d+) +(\d+) +(\d+)/) {
+      my $iface = $1;
+  		$info{$iface}{MTU}      = $2;     
+  		$info{$iface}{IN}       = $3;
+  		$info{$iface}{IN_ERROR} = $4;
+  		$info{$iface}{OUT}      = $5;
+  		$info{$iface}{OUT_ERROR}= $6;
+  		$info{$iface}{COLL}     = $7;
+     }
     elsif ($line =~ /(\S+) +(\S+) +(\S+) +(\S+) +(\d+) +- +(\d+) +- +-/) { 
   		my $iface = $1;
   		$info{$iface}{MTU}      = $2;     
