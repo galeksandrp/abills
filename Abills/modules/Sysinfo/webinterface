@@ -513,8 +513,8 @@ sub multi_hash_sort {
 
   #print $sorted[0]->{$ACTIVE_FIELDS[$FORM{sort}-1]} ;
   my @sorted_ids = sort { 
-     	#length($SORT_HASH{$a}) <=> length($SORT_HASH{$b})
-      # ||
+     	length($SORT_HASH{$a}) <=> length($SORT_HASH{$b})
+       ||
   	  $SORT_HASH{$a} cmp $SORT_HASH{$b}
  	 } keys %SORT_HASH;  
   
