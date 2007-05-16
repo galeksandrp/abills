@@ -155,14 +155,16 @@ my $table = $html->table( { caption     => "$_NETWORK",
 my $info =  $sysinfo_hash{$os}{'network'}->();
 my @states = ('Up', 'Down');
 
-while(my ($k, $v) = each %{ $info } ) {
-    my $state = 0;
-    if ($k =~ /\*$/) {
-    	$state = 1;
-     }
-    
-    $table->addrow($k, 
-      $states[$state],
+my $sorted_arr = multi_hash_sort($info, $SORT-1, { ACTIVE_FIELDS => [
+  		'IF_NAME', 'STATE', 'NETWORK', 'IN', 'OUT', 'IN_ERROR', 'OUT_ERROR', 
+  	'COLL'] } );
+
+
+#while(my ($k, $v) = each %{ $info } ) {
+foreach my $iface ( @$sorted_arr ) {
+    my $v = $info->{$iface};
+    $table->addrow($iface, 
+      $states[$v->{STATE}],
       $v->{ADDRESS}.'/'. $v->{IP},
       int2byte($v->{IN} || 0),
       int2byte($v->{OUT} || 0),
@@ -283,6 +285,9 @@ $sysinfo_hash{'FreeBSD'}{'network'} = sub {
   		$info{$iface}{OUT}      = $7;
   		$info{$iface}{OUT_ERROR}= $8;
   		$info{$iface}{COLL}     = $9;
+  		
+  		$info{$iface}{IF_NAME}  = $iface; 
+  		$info{$iface}{STATE}    = ($iface =~ /\*$/) ? 1 : 0;
   	 }
     elsif ($line =~ /(tun\d+[*]{0,1}) +(\d+) +<Link#\d+> +(\d+) +(\d+) +(\d+) +(\d+) +(\d+)/) {
       my $iface = $1;
@@ -292,6 +297,9 @@ $sysinfo_hash{'FreeBSD'}{'network'} = sub {
   		$info{$iface}{OUT}      += $5;
   		$info{$iface}{OUT_ERROR}+= $6;
   		$info{$iface}{COLL}     += $7;
+  		
+  		$info{$iface}{IF_NAME}  = $iface; 
+  		$info{$iface}{STATE}    = ($iface =~ /\*$/) ? 1 : 0;
      }
     elsif ($line =~ /(\S+) +(\S+) +(\S+) +(\S+) +(\d+) +- +(\d+) +- +-/) { 
   		my $iface = $1;
@@ -300,6 +308,9 @@ $sysinfo_hash{'FreeBSD'}{'network'} = sub {
   		$info{$iface}{IP}       = $4;    
   		$info{$iface}{IP_IN}    = $5;
   		$info{$iface}{IP_OUT}   = $6;
+  		
+  		$info{$iface}{IF_NAME}  = $iface; 
+  		$info{$iface}{STATE}    = ($iface =~ /\*$/) ? 1 : 0;
     }
    }
 
@@ -482,6 +493,34 @@ sub mem_rounded_freebsd {
 }
 
 
+
+#**********************************************************
+#
+#**********************************************************
+sub multi_hash_sort {
+	my ($hash, 
+	    $sort,
+	    $attr) = @_;
+  my $ACTIVE_FIELDS = ($attr->{ACTIVE_FIELDS}) ? $attr->{ACTIVE_FIELDS} : [0]; 
+
+
+  my %SORT_HASH = ();
+  while(my ($k, $v) = each %{ $hash } ) {
+    print $k, $v->{$ACTIVE_FIELDS->[$sort]} . "// $ACTIVE_FIELDS->[$sort] / $sort]<br>";
+    $SORT_HASH{$k}=$v->{$ACTIVE_FIELDS->[$sort]};
+  }
+  
+
+  #print $sorted[0]->{$ACTIVE_FIELDS[$FORM{sort}-1]} ;
+  my @sorted_ids = sort { 
+     	length($SORT_HASH{$a}) <=> length($SORT_HASH{$b})
+       ||
+  	   $SORT_HASH{$a} cmp $SORT_HASH{$b}
+ 	 } keys %SORT_HASH;  
+  
+  return \@sorted_ids;
+}
+
 #**********************************************************
 #
 #**********************************************************
@@ -491,7 +530,7 @@ sub arr_hash_sort {
 	    $attr) = @_;
 	
 	
-  my $ACTIVE_FIELDS = ($attr->{ACTIVE_FIELDS}) : $attr->{ACTIVE_FIELDS} ? [0]; 
+  my $ACTIVE_FIELDS = ($attr->{ACTIVE_FIELDS}) ? $attr->{ACTIVE_FIELDS} : [0]; 
 
 
   my %SORT_HASH = ();
