@@ -106,7 +106,7 @@ sub sysinfo_disc {
 my $table = $html->table( { caption     => "Disc usage",
 	                          width       => '100%',
                             title_plain => ['Filesystem', 'Size',  'Used', 'Avail', 'Capacity', 'Mounted' ],
-                            cols_align  => ['left', 'right', 'right', 'right', 'right', 'left' ],
+                            cols_align  => ['left', 'right', 'right', 'right', 'left', 'left' ],
                            } );
 
 my $info =  $sysinfo_hash{$os}{'disc'}->();
@@ -363,7 +363,7 @@ my $info = {
 my $table = $html->table( { caption     => "SYSTEM MEMORY INFORMATION",
 	                          width       => '100%',
                             #title_plain => ["$_TRAFF $_TYPE", "$_BEGIN", "$_END", "$_START", "$_TOTAL (MB)", "$_REST (MB)", "$_OVERQUOTA (MB)"],
-                            cols_align  => ['left', 'right', 'right', 'right', 'left' ],
+                            cols_align  => ['left', 'right', 'right', 'left', 'left' ],
                            } );
 
 
