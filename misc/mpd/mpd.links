@@ -15,3 +15,22 @@ pptp4:
 
 pptp5:
   set link type pptp
+
+
+#Links for L2TP
+l2tp0:
+   set link type l2tp
+
+l2tp1:
+  set link type l2tp
+
+l2tp2:
+  set link type l2tp
+
+l2tp3:
+  set link type l2tp
+
+l2tp4:
+  set link type l2tp
+
+

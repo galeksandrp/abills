@@ -149,7 +149,7 @@ sub sysinfo_network {
 my $table = $html->table( { caption     => "$_NETWORK",
 	                          width       => '100%',
                             title       => ['INTERFACE', $_STATE, $_ADDRESS, $_RECV,  $_SENT, $_ERROR],
-                            cols_align  => ['left', 'right', 'right', 'right', 'right' ],
+                            cols_align  => ['left', 'right', 'right', 'right', 'right', 'right' ],
                            } );
 
 my $info =  $sysinfo_hash{$os}{'network'}->();
