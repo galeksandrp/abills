@@ -675,8 +675,7 @@ sub rp_list {
 
  if ($self->{TOTAL} >= 0) {
     $self->query($db, "SELECT count(route_id) FROM voip_route_prices rp $WHERE");
-    my $a_ref = $self->{list}->[0];
-    ($self->{TOTAL}) = @$a_ref;
+    ($self->{TOTAL}) = @{ $self->{list}->[0] };
    }
 
   return $list;
@@ -917,8 +916,7 @@ sub tp_info {
      return $self;
    }
 
-  my $ar = $self->{list}->[0];
-  
+ 
   ($self->{TP_ID}, 
    $self->{DAY_TIME_LIMIT}, 
    $self->{WEEK_TIME_LIMIT}, 
@@ -932,7 +930,7 @@ sub tp_info {
    $self->{NEXT_PERIOD_STEP},
    $self->{FREE_TIME}
 
-  ) = @$ar;
+  ) = @{ $self->{list}->[0] };
 
 
   return $self;
