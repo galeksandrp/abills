@@ -135,7 +135,8 @@ if (defined($FORM{SERIA})) {
   my @pin = ();
   @pin = ("PIN") if ($conf{CARDS_SHOW_PINS}) ;
 
-
+  
+  $Cards->{debug}=1;
   my $list = $Cards->cards_list({ %LIST_PARAMS, SERIA => $FORM{SERIA} });
   $table = $html->table( { width      => '100%',
                            caption    => "$_SERIAL: $FORM{SERIA}",
