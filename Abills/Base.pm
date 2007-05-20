@@ -448,6 +448,7 @@ if (!$count) {
   $first = $second = $array;
   $first =~ s/(.*)(\..*)/$1/;
   $second =~ s/(.*)(\.)(\d\d)(.*)/$3/;
+  $second .= "0" if (length $second < 2 );
 }
 
 $count = int ((length $first) / 3);

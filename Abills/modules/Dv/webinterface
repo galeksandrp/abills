@@ -509,11 +509,11 @@ elsif ($FORM{hangup}) {
     my $table = $html->table( { width   => '100%',
                                 caption => $_HANGUPED,
                                 rows    => [ 
-                                            [ "$_NAS ID",   $nas_id],
-                                            [ "$_NAS IP",   $nas->{NAS_IP} ],
-                                            [ "$_PORT",     $nas_port_id   ],
+                                            [ "$_NAS ID",   $nas_id          ],
+                                            [ "$_NAS IP",   $nas->{NAS_IP}   ],
+                                            [ "$_PORT",     $nas_port_id     ],
                                             [ "SESSION_ID", $acct_session_id ],
-                                            [ "", $ret ] 
+                                            [ "",           $ret             ] 
                                            ]
                                } );
 

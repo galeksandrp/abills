@@ -62,6 +62,9 @@ sub hangup {
  elsif ($nas_type eq 'mpd') {
     hangup_mpd($NAS, $PORT);
   }
+ elsif ($nas_type eq 'mpd4') {
+    hangup_mpd4($NAS, $PORT, $attr);
+  }
  elsif ($nas_type eq 'patton')  {
  	  hangup_patton29xx($NAS, $PORT, $attr);
   }
@@ -121,7 +124,6 @@ sub telnet_cmd {
  if ($hostname =~ /:/) {
    ($hostname, $port)=split(/:/, $hostname, 2);
  }
-
 
 # my $debug   = (defined($attr->{debug})) ? 1 : 0;
  my $timeout = defined($attr->{'TimeOut'}) ? $attr->{'TimeOut'} : 5;
@@ -454,9 +456,6 @@ sub hangup_mikrotik_telnet {
   my $result = telnet_cmd_new("$NAS->{NAS_IP}", \@commands);
  
   print $result;
-#  
-  #echo "User-Name = user" | radclient 10.0.0.219:3799 40 secret123
-  #Received response ID 219, code 41, length = 20 
 }
 
 
@@ -588,8 +587,33 @@ sub stats_exppp {
 }
 
 
-#####################################################################
-# MPD functions
+
+#*******************************************************************
+# HANGUP MPD
+# hangup_mpd4($SERVER, $PORT)
+#*******************************************************************
+sub hangup_mpd4 {
+  my ($NAS, $PORT, $attr) = @_;
+
+  my $ctl_port = "pptp$PORT";
+  if ($attr->{ACCT_SESION_ID}) {
+  	if($attr->{ACCT_SESION_ID} =~ /\d+\-(.+)/) {
+  	  $ctl_port = $1;
+
+  	 }
+   } 
+  
+  my @commands=("\t",
+                "Username: \t$NAS->{NAS_MNG_USER}",
+                "Password: \t$NAS->{NAS_MNG_PASSWORD}",
+                "\] \tbundle $ctl_port",
+                "\] \tclose",
+                "\] \texit");
+
+  my $result = telnet_cmd("$NAS->{NAS_MNG_IP_PORT}", \@commands);
+  return 0;
+}
+
 #*******************************************************************
 # HANGUP MPD
 # hangup_mpd($SERVER, $PORT)
