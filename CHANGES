@@ -1,3 +1,14 @@
+=====0.37=====
+  * 22.05.2007
+MYSQL
+   alter table nas add column ext_acct tinyint(1) unsigned NOT NULL default '0';
+
+  * 18.05.2007 
+MYSQL
+   alter table cards_users add   KEY `login` (`login`);
+
+
+
 =====0.36=====
   * 4.07.2007
 

@@ -226,7 +226,11 @@ elsif ($acct_status_type == 2) {
 #Alive status 3
 elsif($acct_status_type eq 3) {
   $self->{SUM}=0;
-  if ($NAS->{NAS_TYPE} eq 'ipcad') {
+ 
+  if ($NAS->{NAS_EXT_ACCT}) {
+  	return $self;
+   }
+  elsif ($NAS->{NAS_TYPE} eq 'ipcad') {
     return $self;
    }
   elsif ($conf->{rt_billing}) {

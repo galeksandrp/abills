@@ -2314,14 +2314,20 @@ if ($nas->{errno}) {
  	                                SORT_KEY   => 1 
  	                               });
 
-  $nas->{SEL_AUTH_TYPE} .= $html->form_select('NAS_AUTH_TYPE', 
+  $nas->{SEL_AUTH_TYPE} = $html->form_select('NAS_AUTH_TYPE', 
                                 { SELECTED     => $nas->{NAS_AUTH_TYPE},
  	                                SEL_ARRAY    => \@auth_types,
-                                  ARRAY_NUM_ID => 'y' 	                                
+                                  ARRAY_NUM_ID => 1 	                                
  	                               });
 
-$nas->{NAS_DISABLE} = ($nas->{NAS_DISABLE} > 0) ? ' checked' : '';
-$html->tpl_show(templates('form_nas'), $nas);
+  $nas->{NAS_EXT_ACCT} = $html->form_select('NAS_EXT_ACCT', 
+                                { SELECTED     => $nas->{NAS_EXT_ACCT},
+ 	                                SEL_ARRAY    => ['', 'IPN'],
+                                  ARRAY_NUM_ID => 1 	                                
+ 	                               });
+
+  $nas->{NAS_DISABLE} = ($nas->{NAS_DISABLE} > 0) ? ' checked' : '';
+  $html->tpl_show(templates('form_nas'), $nas);
 
 my $table = $html->table( { width      => '100%',
                             caption    => "$_NAS",
@@ -3789,6 +3795,34 @@ if ($FORM{create}) {
 	  close(FILE);
    }
  }
+elsif ($FORM{SHOW}){
+	print $html->header();
+
+  my ($module, $file)=split(/:/, $FORM{SHOW}, 2);
+  $file =~ s/.tpl//;
+
+  my $realfilename = "$prefix/Abills/modules/$module/lng_$html->{language}.pl";
+  my $lang_file;
+  my $prefix = '../..';
+  if (-f $realfilename) {
+    $lang_file =  $realfilename;
+   }
+  elsif (-f "$prefix/Abills/modules/$module/lng_english.pl") {
+   	$lang_file = "$prefix/Abills/modules/$module/lng_english.pl";
+   }
+
+  if ($lang_file ne '') {
+    require $lang_file;
+   }
+
+  
+  
+  print "<center>"; 
+  $html->tpl_show(_include("$file", "$module"), { LNG_ACTION => $_ADD },  ); 
+  print "</center>\n";
+	
+	return 0;
+}
 elsif ($FORM{change}) {
   my $FORM2  = ();
   my @pairs = split(/&/, $FORM{__BUFFER});
@@ -3806,7 +3840,6 @@ elsif ($FORM{change}) {
       $FORM2{$side} = $value;
      }
    }
-
 
   $info{TEMPLATE} = $FORM2{template};
   $info{TPL_NAME} = $FORM{tpl_name};
@@ -3859,14 +3892,14 @@ print << "[END]";
 
 
 my $table = $html->table( { width       => '600',
-                            title_plain => ["FILE", "$_SIZE", "-", "-"],
-                            cols_align  => ['left', 'left', 'center']
+                            title_plain => ["FILE", "$_SIZE", "-", "-", "-"],
+                            cols_align  => ['left', 'left', 'center', 'center', 'center']
                          } );
 
 
 foreach my $module (@MODULES) {
 	$table->{rowcolor}=$_COLORS[0];
-	$table->{extra}="colspan='4' class='small'";
+	$table->{extra}="colspan='5' class='small'";
 	
 	$table->addrow("$module ($sys_templates/$module/templates)");
 	if (-d "$sys_templates/$module/templates" ) {
@@ -3881,6 +3914,7 @@ foreach my $module (@MODULES) {
 
       my ($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size,$atime,$mtime,$ctime,$blksize,$blocks)=stat("$sys_templates/$module/templates/".$file);
       $table->addrow("$file", $size, 
+         $html->button($_SHOW, "index=$index#", { NEW_WINDOW => "$SELF_URL?qindex=$index&SHOW=$module:$file" }),
          (-f "$conf{TPL_DIR}/$module"."_$file") ? $html->button($_CHANGE, "index=$index&tpl_name=$module_$file") : $html->button($_CREATE, "index=$index&create=$module:$file"),
          (-f "$conf{TPL_DIR}/$module"."_$file") ? $html->button($_DEL, "index=$index&del=$module". "_$file", { MESSAGE => "$_DEL $file" }) : '');
      }

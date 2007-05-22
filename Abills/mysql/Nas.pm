@@ -114,7 +114,7 @@ sub info {
 
 
 $self->query($db, "SELECT id, name, nas_identifier, descr, ip, nas_type, auth_type, mng_host_port, mng_user, 
- DECODE(mng_password, '$SECRETKEY'), rad_pairs, alive, disable
+ DECODE(mng_password, '$SECRETKEY'), rad_pairs, alive, disable, ext_acct
  FROM nas
  WHERE $WHERE
  ORDER BY nas_identifier DESC;");
@@ -128,7 +128,6 @@ $self->query($db, "SELECT id, name, nas_identifier, descr, ip, nas_type, auth_ty
    return $self;
   }
 
- my $a_ref = $self->{list}->[0];
  ( $self->{NAS_ID},
    $self->{NAS_NAME}, 
    $self->{NAS_INDENTIFIER}, 
@@ -141,8 +140,8 @@ $self->query($db, "SELECT id, name, nas_identifier, descr, ip, nas_type, auth_ty
    $self->{NAS_MNG_PASSWORD}, 
    $self->{NAS_RAD_PAIRS},
    $self->{NAS_ALIVE},
-   $self->{NAS_DISABLE}) = @$a_ref;
-
+   $self->{NAS_DISABLE},
+   $self->{NAS_EXT_ACCT}) = @{ $self->{list}->[0] };
 
  return $self;
 }
@@ -168,14 +167,15 @@ sub change {
   NAS_INDENTIFIER     => 'nas_identifier', 
   NAS_DESCRIBE        => 'descr', 
   NAS_IP              => 'ip', 
-  NAS_TYPE => 'nas_type', 
-  NAS_AUTH_TYPE => 'auth_type', 
-  NAS_MNG_IP_PORT => 'mng_host_port', 
-  NAS_MNG_USER => 'mng_user', 
-  NAS_MNG_PASSWORD => 'mng_password', 
-  NAS_RAD_PAIRS => 'rad_pairs',
-  NAS_ALIVE => 'alive',
-  NAS_DISABLE => 'disable');
+  NAS_TYPE            => 'nas_type', 
+  NAS_AUTH_TYPE       => 'auth_type', 
+  NAS_MNG_IP_PORT     => 'mng_host_port', 
+  NAS_MNG_USER        => 'mng_user', 
+  NAS_MNG_PASSWORD    => 'mng_password', 
+  NAS_RAD_PAIRS       => 'rad_pairs',
+  NAS_ALIVE           => 'alive',
+  NAS_DISABLE         => 'disable',
+  NAS_EXT_ACCT        => 'ext_acct');
 
 
   	$self->changes($admin, { CHANGE_PARAM => 'NAS_ID',
@@ -201,10 +201,10 @@ sub add {
  %DATA = $self->get_data($attr); 
 
  $self->query($db, "INSERT INTO nas (name, nas_identifier, descr, ip, nas_type, auth_type, mng_host_port, mng_user, 
- mng_password, rad_pairs, alive, disable)
+ mng_password, rad_pairs, alive, disable, ext_acct)
  values ('$DATA{NAS_NAME}', '$DATA{NAS_INDENTIFIER}', '$DATA{NAS_DESCRIBE}', '$DATA{NAS_IP}', '$DATA{NAS_TYPE}', '$DATA{NAS_AUTH_TYPE}',
   '$DATA{NAS_MNG_IP_PORT}', '$DATA{NAS_MNG_USER}', ENCODE('$DATA{NAS_MNG_PASSWORD}', '$SECRETKEY'), '$DATA{NAS_RAD_PAIRS}',
-  '$DATA{NAS_ALIVE}', '$DATA{NAS_DISABLE}');", 'do');
+  '$DATA{NAS_ALIVE}', '$DATA{NAS_DISABLE}', '$DATA{NAS_EXT_ACCT}');", 'do');
 
 
  return 0;	

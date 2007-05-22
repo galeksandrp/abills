@@ -276,7 +276,7 @@ sub traffic_agregate_users {
   $self->{TRAFFIC_ROWS}++;
 
   #Make user detalization
-  if ($DATA->{UID} > 0) {
+  if ($CONF->{IPN_DETAIL} && $DATA->{UID} > 0) {
   	  $self->traffic_add({ 
         SRC_IP   => $DATA->{SRC_IP}, 
         DST_IP   => $DATA->{DST_IP},

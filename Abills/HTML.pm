@@ -1166,6 +1166,12 @@ sub button {
   
   $ex_attr=" TITLE='$attr->{TITLE}'" if (defined($attr->{TITLE}));
   
+  $ex_attr .= " onclick=\"window.open('$attr->{NEW_WINDOW}', null,
+            'toolbar=0,location=0,directories=0,status=1,menubar=0,'+
+            'scrollbars=1,resizable=1,'+
+            'width=640, height=480');\"" if ( $attr->{NEW_WINDOW} );
+
+  
   my $message = (defined($attr->{MESSAGE})) ? " onclick=\"return confirmLink(this, '$attr->{MESSAGE}')\"" : '';
   my $button = "<a href=\"$params\"$ex_attr$message>$name</a>";
 
