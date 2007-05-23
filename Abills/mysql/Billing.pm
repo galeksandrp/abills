@@ -439,6 +439,11 @@ sub session_sum {
 
  $self->{TP_ID}=$attr->{TP_ID} if (defined($attr->{TP_ID}));
 
+ if ($attr->{USER_INFO}) {
+ 	
+ 	 return $self->{UID}, $sum, $self->{BILL_ID}, $self->{TP_ID}, 0, 0;
+  }
+
 
  $tariffs = Tariffs->new($db, $CONF);
 

@@ -8,6 +8,7 @@ use strict;
 
 
 
+
 if ($#ARGV < 1) {
   print "traffic2sql [NAS_IDS] [Interface] [Options]
    NAS_IDS    - Ids of NAS servers 1,2,3 or 1-100
@@ -331,12 +332,16 @@ elsif($total_user_sum > 0 && $uid > 0) {
               FRAMED_IP_ADDRESS => $ip_addr,
               USER_NAME         => $login,
               ACCT_SESSION_ID   => $session_id,
+              ACCT_SESSION_TIME => 0,
               ACCT_STATUS_TYPE  => 'Alive'
             );
 
     #Make accounting
-    my $r = $Acct->accounting(\%RAD, { NAS_ID   => $Ipn->{$ip}{NAS_ID}, 
-    	                                 NAS_TYPE => 'other' });
+    $Acct->{SUM}=$total_user_sum;
+    my $r = $Acct->accounting(\%RAD, { NAS_ID       => $Ipn->{$ip}{NAS_ID}, 
+    	                                 NAS_TYPE     => 'other',
+    	                                 NAS_EXT_ACCT => 1 
+    	                                });
     
     #Hangup users with negative deposit
     if (defined($Ipn->{USERS_INFO}->{DEPOSIT}->{$uid}) && $Ipn->{USERS_INFO}->{DEPOSIT}->{$uid} < 0) {
