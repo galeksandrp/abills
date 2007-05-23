@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 # Accounting controll deamon
-# ~AsmodeuS~ (2006.02.03)
+# ~AsmodeuS~ (2007.05.23)
 # Work only with Dv module
 
 
@@ -273,7 +273,7 @@ sub check_speed {
         }
      	}
 	   # parce ipfw show
-	   elsif ($line =~ /(\d+).+tun(\d+)/){
+	   elsif ($line =~ /(\d+).+[tun|ng](\d+)/){
 	     $interfaces{$1}=$2;
 	    }
 	 }
@@ -281,8 +281,9 @@ sub check_speed {
 
   #debug 
   if ($debug > 0) {
+    print "Show rules\n" if ($debug > 1);
     while(my($iface, $rules)=each %rule_speed) {
-  	  print "$iface\n" if ($debug > 1);
+  	  print "Interface: $iface\n" if ($debug > 1);
   	  
   	  foreach my $line ( sort keys %$rules ) {
   	 	  # ID -> Speed
@@ -301,14 +302,17 @@ sub check_speed {
   my %IFACES=();
   my %TP_HASH = ();
 
+  my $NAS_TYPE = '';
   foreach my $nas_row (@$nas_list) {
     next if (! $online->{$nas_row->[0]});
+
+    $NAS_TYPE = $nas_row->[4];
 
     my $l = $online->{$nas_row->[0]};
     foreach my $line (@$l) {
                            #IFACE : TP : SPEED  :IP
-       print"$line->[0] IF:$line->[1] TP:$line->[2] SPEED:$line->[3] IP:$line->[7]\n" if ($debug > 1);
-       $IFACES{$line->[0]}="$line->[1]:$line->[2]:$line->[3]:$line->[7]";
+       print "$line->[0] IF:$line->[1] TP:$line->[2] SPEED:$line->[3] IP:$line->[5]\n" if ($debug > 1);
+       $IFACES{$line->[0]}="$line->[1]:$line->[2]:$line->[3]:$line->[5]";
        $TP_HASH{$line->[2]}=1;
      }
   }
@@ -396,8 +400,13 @@ sub check_speed {
      	                    " OUT: 0, $SPEED ipfw: ". $rule_speed{$IFACE}{$fw_num + 1} ."\n";
         
      	  if ($SPEED != $rule_speed{$IFACE}{$fw_num} || $SPEED != $rule_speed{$IFACE}{$fw_num + 1} ) {
-           my $cmd=`$Bin/linkupdown down tun$IFACE $user $IP $cmd_debug; $Bin/linkupdown up tun$IFACE $user $IP $cmd_debug`;
-           $debug_outputs .= $cmd;
+#           my $cmds = "$Bin/linkupdown down tun$IFACE $user $IP $cmd_debug; $Bin/linkupdown up tun$IFACE $user $IP $cmd_debug";
+#           if ($NAS_TYPE eq 'mpd4') {
+#           	  $cmds = "$Bin/linkupdown mpd down ng$IFACE proto 0.0.0.0 $IP $user $cmd_debug; $Bin/linkupdown up ng$IFACE proto 0.0.0.0 $IP $user $cmd_debug;";
+#            }
+#           
+#           my $cmd=`$cmds`;
+           $debug_outputs .= check_speed_change($user, $IFACE, $IP, { debug => ( $debug > 1) ? ' debug' : undef });
            next;
      	   }
 
@@ -464,6 +473,41 @@ sub check_speed {
 
 }
 
+#**********************************************************
+# check Active ppp session and disconnect unknown ip
+# Params 
+#   IFACE_ID
+#    USER_NAME
+#    USER_IP
+#
+#    NAS_TYPE    
+#    NAS_IP
+#**********************************************************
+sub check_speed_change {
+	my ( 
+	  $USER_NAME,
+	  $IFACE_ID,
+	  $USER_IP,
+
+	  $attr) = @_;
+
+	my $NAS_TYPE = ($attr->{NAS_TYPE}) ? $attr->{NAS_TYPE} : '';
+  my $cmd_debug = ($attr->{debug}) ? '' : '';
+  
+  
+  my $cmds = "$Bin/linkupdown down tun$IFACE_ID $USER_NAME $USER_IP $cmd_debug;".
+             "$Bin/linkupdown up tun$IFACE_ID $USER_NAME $USER_IP $cmd_debug";
+
+  if ($NAS_TYPE eq 'mpd4') {
+     $cmds = "$Bin/linkupdown mpd down ng$IFACE_ID proto 0.0.0.0 $USER_IP $USER_NAME $cmd_debug;".
+             "$Bin/linkupdown up ng$IFACE_ID proto 0.0.0.0 $USER_IP $USER_NAME $cmd_debug;";
+   }
+
+  my $cmd=`$cmds`;
+	
+	
+	return $cmd;
+}
 
 #**********************************************************
 # check Active ppp session and disconnect unknown ip
@@ -573,4 +617,5 @@ sub get_if_info {
 
 
 __END__
+
 
