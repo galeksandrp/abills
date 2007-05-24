@@ -563,14 +563,10 @@ sub snmputils_dlink_pb_version {
                     'MAC'    => '4.1.1.2',
                     'MAKE'   => '4.1.1.3',
                     'PORT'   => '4.1.1.4',
-                    #'ENABLE_MODE' => '3.1.0',
+
+                    'ENABLE_MODE' => '3.1.0',
                     'LOGIN_MODE'  => '1.1.0',
                     'ACL_IP_MAC'  => '1.2.0' };
-
-   #enable_mode  => $oid_prefix.'4.0',  # enable_mode
-   #                   loging_mode  => $oid_prefix.'5.0',  # Loging
-   #                   acl_ip_mac
-
      }
     elsif ($RESULT{version} =~ /DES-3828DC/) {
   	  $RESULT{oid_prefix} = '.1.3.6.1.4.1.171.11.69.2.2.7.';
