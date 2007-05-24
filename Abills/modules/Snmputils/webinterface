@@ -549,7 +549,7 @@ sub snmputils_dlink_pb_version {
     
     if ($RESULT{version} =~ /DES-3550/ ) {
       $RESULT{oid_prefix} = '.1.3.6.1.4.1.171.11.64.2.2.7.';
-      $RESULT{firmware}  = snmpget($SNMP_COMMUNITY, ".1.3.6.1.2.1.16.19.2.0");
+      $RESULT{firmware}   = snmpget($SNMP_COMMUNITY, ".1.3.6.1.2.1.16.19.2.0");
       $RESULT{firmware2}  = snmpget($SNMP_COMMUNITY, ".1.3.6.1.4.1.171.12.11.1.9.4.1.8.1");
      }
     elsif ($RESULT{version} =~ /DES-3828/) {
@@ -559,7 +559,15 @@ sub snmputils_dlink_pb_version {
   	                'IP'     => '4.1.1.1',
                     'MAC'    => '4.1.1.2',
                     'MAKE'   => '4.1.1.3',
-                    'PORT'   => '4.1.1.4' };
+                    'PORT'   => '4.1.1.4',
+                    #'ENABLE_MODE' => '3.1.0',
+                    'LOGIN_MODE'  => '1.1.0',
+                    'ACL_IP_MAC'  => '1.2.0' };
+
+   #enable_mode  => $oid_prefix.'4.0',  # enable_mode
+   #                   loging_mode  => $oid_prefix.'5.0',  # Loging
+   #                   acl_ip_mac
+
      }
     elsif ($RESULT{version} =~ /DES-3828DC/) {
   	  $RESULT{oid_prefix} = '.1.3.6.1.4.1.171.11.69.2.2.7.';
@@ -799,6 +807,7 @@ sub snmputils_dlink_pb_list {
   #Full list
   my @result = &snmpwalk("$SNMP_COMMUNITY", $SWITCH_INFO->{oid_prefix});
   print $SWITCH_INFO->{oid_prefix}." / $SWITCH_INFO->{oid_sufix}{STATE}" if ($debug > 0);
+
   my $expr_val = chr(0)."-".chr(255);                                            
   foreach my $line (@result) {
     print "$line<br>\n" if ($debug > 0);
@@ -875,9 +884,9 @@ sub snmputils_dlink_ip_mac_port{
   my $SWITCH_INFO = snmputils_dlink_pb_version({ SNMP_COMMUNITY => $SNMP_COMMUNITY });
 
   my $oid_prefix=$SWITCH_INFO->{oid_prefix};
-  my %MAIN_OPTIONS = (enable_mode  => $oid_prefix.'4.0',  # enable_mode
-                      loging_mode  => $oid_prefix.'5.0',  # Loging
-                      acl_ip_mac   => $oid_prefix.'6.0'   # ACL IP MAC 
+  my %MAIN_OPTIONS = (enable_mode  => $oid_prefix. ( ( $SWITCH_INFO->{oid_sufix}{ENABLE_MODE} ) ? $SWITCH_INFO->{oid_sufix}{ENABLE_MODE} : '4.0'),  # enable_mode
+                      loging_mode  => $oid_prefix. ( ( $SWITCH_INFO->{oid_sufix}{LOGIN_MODE} ) ? $SWITCH_INFO->{oid_sufix}{LOGIN_MODE} : '5.0'),  # Loging 
+                      acl_ip_mac   => $oid_prefix. ( ( $SWITCH_INFO->{oid_sufix}{ACL_IP_MAC} ) ? $SWITCH_INFO->{oid_sufix}{ACL_IP_MAC} : '6.0')   # ACL IP MAC 
                       );
 
   print "$SWITCH_INFO->{version}/$SWITCH_INFO->{firmware}/$SWITCH_INFO->{firmware2}";
