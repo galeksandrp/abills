@@ -634,7 +634,7 @@ sub authentication {
   	return 1, \%RAD_PAIRS;
    }
   elsif ($self->{TOTAL} < 1) {
-    $RAD_PAIRS{'Reply-Message'}="Login Not Exist";
+    $RAD_PAIRS{'Reply-Message'}="Login Not Exist or Expire";
     return 1, \%RAD_PAIRS;
    }
 
