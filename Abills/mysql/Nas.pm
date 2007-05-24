@@ -78,6 +78,11 @@ sub list {
   if(defined($attr->{DISABLE})) {
   	push @WHERE_RULES, "disable='$attr->{DISABLE}'";
   }
+
+  if($attr->{NAS_IDS}) {
+  	push @WHERE_RULES, "id IN ($attr->{NAS_IDS})";
+  }
+
  
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
  
