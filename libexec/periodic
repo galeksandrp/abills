@@ -57,7 +57,8 @@ my @daily_functions=(
 
 my @monthly_functions = ('admin_report_monthly',
                          'backup',
-                         'logrotate');
+                         'logrotate'
+                         );
 my @reports = ();
 
 #make periodic oparation only for selected modules
@@ -172,7 +173,7 @@ elsif (defined($args->{daily})) {
   for(my $i=$#daily_functions; $i>-1; $i--) {
         my $f = $daily_functions[$i];
         #print $f . "\n";
-        $f->({ DEBUG => $args->{DEBUG} });
+        $f->({ %$args });
    }
 
   if ($begin_time > 0)  {

@@ -411,7 +411,10 @@ sub snmputils_dlink_pb {
   my $debug_output = '';
   
 #Get nas servers TYPE: dlink_pb
-  my $list = $nas->list({ PAGE_ROWS => 100000, TYPE => dlink_pb, DISABLE => 0 });
+  my $list = $nas->list({ PAGE_ROWS => 100000, 
+  	                      TYPE      => dlink_pb, 
+  	                      DISABLE   => 0 });
+
   foreach my $line (@$list) {
     $debug_output .= "NAS: $line->[0], $line->[9], $line->[11] $line->[12]\n" if ($debug > 1);
     #GET users for this NAS
