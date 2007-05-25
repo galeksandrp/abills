@@ -164,7 +164,7 @@ else {
 
       $totals{IN}{$stats_array[$i][1]}  += $stats_array[$i][3];
       $totals{OUT}{$stats_array[$i][1]} += $stats_array[$i][4];
-      $totals{SUM}{$stats_array[$i][1]} += $stats_array[$i][5];
+      $totals{SUM}{$stats_array[$i][1]} = $totals{SUM}{$stats_array[$i][1]} + $stats_array[$i][5] if ($stats_array[$i][5] > 0);
 
       $user_total_in+=$stats_array[$i][3];
       $user_total_out+=$stats_array[$i][4];
@@ -226,7 +226,7 @@ $table = $html->table( { width      => '100%',
  	                 int2byte($totals{IN}{$tt}),
  	                 int2byte($totals{OUT}{$tt}),
  	                 int2byte($totals{OUT}{$tt} + $totals{IN}{$tt}),
- 	                 $totals{SUM}{$tt}
+ 	                 sprintf("%.6f", $totals{SUM}{$tt})
  	                );
    }
 
