@@ -25,7 +25,7 @@ my $Snmputils = Snmputils->new($db, $admin, \%conf);
 my $debug=0;
 $FORM{GET_USERS}=1;
 
-          my @association_state = ('initial',
+my @association_state = ('initial',
                          'authenNotAssociated',
                          'assocAndAuthenticated',
                          'assocNotAnuthenticated',
@@ -348,11 +348,11 @@ $info{NAS_TYPES} = $html->form_select('NAS_TYPE',
 
 
 my $table = $html->table( { width       => '100%',
-                            title_plain => [ "$_TYPE: ".      $info{NAS_TYPES},
-                                             "HOST: ".      $html->form_input('SNMP_HOST', "$FORM{SNMP_HOST}"),
-                                             "COMMUNITY: ".   $html->form_input('SNMP_COMMUNITY', "$FORM{SNMP_COMMUNITY}"),
-                                             "$_REFRESH (sec): ".   $html->form_input('REFRESH', int($FORM{REFRESH}), { SIZE => 4 } ),
-                                             $html->form_input('SHOW',  $_SHOW, {TYPE => 'SUBMIT'})  
+                            title_plain => [ "$_TYPE: ".               $info{NAS_TYPES},
+                                             "HOST: ".                 $html->form_input('SNMP_HOST', "$FORM{SNMP_HOST}"),
+                                             "COMMUNITY: ".            $html->form_input('SNMP_COMMUNITY', "$FORM{SNMP_COMMUNITY}"),
+                                             "$_REFRESH (sec): ".      $html->form_input('REFRESH', int($FORM{REFRESH}), { SIZE => 4 } ),
+                                             $html->form_input('SHOW', $_SHOW, {TYPE => 'SUBMIT'})  
                                             ],
                            });
 
@@ -1197,8 +1197,32 @@ sub snmputils_dlink_pb_monitor {
 #*******************************************************************
 sub snmputils_ciscoair {
 
+my $list;
 my $Nas = Nas->new($db, \%conf);
-my $list = $Nas->list({ TYPE => 'cisco_air', DISABLE => 0 });
+
+if ($FORM{'SNMP_HOST'} ne '') {
+ $list = [[ '1', 
+            '',
+            '',
+            $FORM{'SNMP_HOST'},
+            '',
+            '',
+            '',
+            '',
+            '',
+            '',
+            '',
+            $FORM{'SNMP_COMMUNITY'},
+            '',
+            '']];
+  }
+else {
+  $list = $Nas->list({ TYPE    => 'cisco_air', 
+	                     DISABLE => 0 });
+}
+
+
+
 
 my %fields = ( 
                 #Info
@@ -1268,13 +1292,28 @@ if ($FORM{Client}) {
   else {
 	  $info{LOGIN} = "Check binding";
 	 }
+
+  my $SNMP_COMMUNITY= '';
+  my $SNMP_HOST     = '';
+
+  if ($FORM{'SNMP_HOST'}) {
+   	$SNMP_HOST      = $FORM{'SNMP_HOST'};
+   	$SNMP_COMMUNITY = $FORM{'SNMP_COMMUNITY'};
+   }
+  else {
+    $Nas->info({ NAS_ID => $FORM{NAS_ID} });
+
+    $SNMP_COMMUNITY = $Nas->{NAS_MNG_PASSWORD};
+    $SNMP_HOST      = $Nas->{NAS_IP};
+   }
   
-  $Nas->info({ NAS_ID => $FORM{NAS_ID} });
+  
+  my $prefix_id =($FORM{PREFIX_ID}) ? '.'.$FORM{PREFIX_ID}.'.' : '.1.7.119.108.97.110.119.101.112.' ; 
   foreach my $key (keys %fields) {
-	 	$info{$key} = snmpget("$Nas->{NAS_MNG_PASSWORD}\@$Nas->{NAS_IP}", $fields{$key}. '.1.7.119.108.97.110.119.101.112.'. $FORM{Client});
-	
+	 	$info{$key} = snmpget("$SNMP_COMMUNITY\@$SNMP_HOST", $fields{$key}. $prefix_id . $FORM{Client});
+	$debug=1;
 	  if ($debug  > 0) {
-	 	  print "$key: $fields{$key}.1.7.119.108.97.110.119.101.112.$FORM{Client} = $info{$key}<br>";
+	 	  print "$key: $fields{$key}$prefix_id$FORM{Client} = $info{$key}<br>";
       if ($SNMP_Session::errmsg) {
         print "$SNMP_Session::errmsg<br>";
       }	 	
@@ -1318,21 +1357,23 @@ $table = $html->table({ width       => '100%',
                       });
 
 my $total_sessions = 0;
-my $oid_prefix = '\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}';
-
+my $oid_prefix = '\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\.?\d{0,3}\.{0,1}\d{0,3}';
+my $prefix_id = '';
 foreach my $line (@$list) {
   my %result = ();
-
 $debug=1;
   foreach my $field (@default_fields) {
     my @arr = snmpwalk("$line->[11]\@$line->[3]", $fields{$field});
     
     print "<b>$fields{$field}</b><br>" if ($debug == 1);
-    
+
     foreach my $line (@arr) {
-      if ('.'.$line =~ /^$oid_prefix\.(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(.+)/) {
-        $result{$field}{$1}=$2;
-        print "$field // $line<br> // $1 / $2 <br>" if ($debug == 1);
+      if ('.'.$line =~ /($oid_prefix)\.(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(.+)/) {
+        $prefix_id = $1;
+        my $sufix      = $2;
+        my $value      = $3;
+        $result{$field}{"$sufix"}=$value;
+        print "PREFIX: $oid_prefix <BR>\n NAME: $field // $line<br> // Sufix: $sufix / Result: $value<br>" if ($debug == 1);
        }
      }
    }
@@ -1368,7 +1409,7 @@ $debug=1;
       my @mac_arr = split(/\./, $k);
       for(my $i=0; $i<=$#mac_arr; $i++) {
      	  $mac_arr[$i] = sprintf("%.2X", $mac_arr[$i]);
-      }
+       }
       my $mac = join(':', @mac_arr);
 
       my @arr = ();
@@ -1379,7 +1420,16 @@ $debug=1;
        }
 
 
-     	unshift @arr, $html->button("<CODE>$mac</CODE>", "index=$index&NAS_TYPE=cisco_air&Client=$k&MAC=$mac&NAS_ID=$line->[0]");      
+      
+      my $page_params = "&NAS_ID=$line->[0]";
+      if ($FORM{'SNMP_HOST'}) {
+      	$page_params = "&SNMP_HOST=$FORM{'SNMP_HOST'}&SNMP_COMMUNITY=$FORM{'SNMP_COMMUNITY'}";
+       }
+      if ($prefix_id ne '') {
+      	$page_params .= "&PREFIX_ID=$prefix_id";
+       }
+      
+     	unshift @arr, $html->button("<CODE>$mac</CODE>", "index=$index&NAS_TYPE=cisco_air&Client=$k&MAC=$mac$page_params");
       #Get binding info    	
     	if ($FORM{GET_USERS}) {
     		if ($binding->{$mac}) {
