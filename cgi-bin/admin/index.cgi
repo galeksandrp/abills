@@ -1402,7 +1402,7 @@ my $table = $html->table( { width      => '100%',
                             qs         => $pages_qs
                            });
 
-my $list = $nas->list();
+my $list = $nas->list({ PAGE_ROWS => 1000 });
 
 foreach my $line (@$list) {
 
@@ -2300,7 +2300,8 @@ if ($nas->{errno}) {
   'mikrotik'  => 'Mikrotik (http://www.mikrotik.com)',
   'dlink_pb'  => 'Dlink IP-MAC-Port Binding',
   'other'     => 'Other nas server',
-  'chillispot'=> 'Chillispot (www.chillispot.org)'
+  'chillispot'=> 'Chillispot (www.chillispot.org)',
+  'vlan'      => 'Vlan managment'
  );
 
 

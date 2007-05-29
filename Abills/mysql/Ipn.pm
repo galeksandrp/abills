@@ -523,12 +523,13 @@ print " Tariff Interval: $tariff\n".
 #**********************************************************
 # ii?aaaeyao i?eiaaea?iinou aa?ana ciia, ciiu caaaiu NOIA?-IOIA?-oyoai %zones
 #**********************************************************
-sub ip_in_zone($$$) {
+sub ip_in_zone($$$$) {
     my $self;
     my ($ip_num, 
         $port, 
         $zoneid,
         $zone_data) = @_;
+    
     
     # ecia?aeuii n?eoaai, ?oi aa?an a ciio ia iiiaaaao
     my $res = 0;

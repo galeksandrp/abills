@@ -167,8 +167,21 @@ sub vlan_user {
 	  $Vlan->{LNG_ACTION}=$_CHANGE;
 	} 
 
+
+
   $user->{DISABLE}=($user->{DISABLE} == 1) ? ' checked' : '';
   $user->{DHCP}=($user->{DHCP} == 1) ? ' checked' : '';
+
+  my $nas = Nas->new($db, \%conf);
+  $user->{NAS_LIST} = $html->form_select('NAS_ID', 
+                                         { 
+ 	                                          SELECTED          => $FORM{NAS_ID},
+ 	                                          SEL_MULTI_ARRAY   => $nas->list({ TYPE      => 'vlan', 
+ 	                                          	                                PAGE_ROWS => 1000 }),
+ 	                                          MULTI_ARRAY_KEY   => 0,
+ 	                                          MULTI_ARRAY_VALUE => 1,
+ 	                                        });
+  
 
   $html->tpl_show(_include('vlan_user', 'Vlan'), $Vlan);
 }

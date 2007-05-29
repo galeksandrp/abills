@@ -2097,8 +2097,8 @@ my $table = $html->table( { width       => '400',
    }
 
 	
-	
-	$Ipn->get_zone({ TP_INTERVAL => $TP_INTERVAL });
+  $Ipn->get_zone({ TP_INTERVAL => $TP_INTERVAL });
+
 
 
   $table = $html->table( { width       => '100%',
@@ -2112,7 +2112,7 @@ my $table = $html->table( { width       => '400',
 	my $zone = -1;
 
 	foreach my $zone_id (@{ $Ipn->{ZONES_IDS} }) {
-	  if(ip_in_zone(ip2int($ip), $port, $zone_id, $Ipn->{ZONES})) {
+	  if( ip_in_zone(ip2int($ip), $port, $zone_id, $Ipn->{ZONES} ) ) {
 		  $zone = $zone_id;
       last;
 	   };

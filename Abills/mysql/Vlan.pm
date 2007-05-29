@@ -69,7 +69,8 @@ sub info {
    INET_NTOA(ip), 
    INET_NTOA(netmask), 
    disable, 
-   dhcp
+   dhcp,
+   nas_id
      FROM vlan_main
    $WHERE;");
 
@@ -83,7 +84,8 @@ sub info {
    $self->{IP}, 
    $self->{NETMASK}, 
    $self->{DISABLE},
-   $self->{DHCP}
+   $self->{DHCP},
+   $self->{NAS_ID}
   )= @{ $self->{list}->[0] };
 
   return $self;
@@ -102,7 +104,8 @@ sub defaults {
    DISABLE        => 0, 
    IP             => '0.0.0.0', 
    NETMASK        => '255.255.255.255', 
-   DHCP           => 0
+   DHCP           => 0,
+   NAS_ID         => 0
   );
 
   $self = \%DATA;
@@ -123,10 +126,13 @@ sub add {
              ip, 
              netmask, 
              disable, 
-             dhcp
+             dhcp,
+             nas_id
            )
         VALUES ('$DATA{UID}', '$DATA{VLAN_ID}', INET_ATON('$DATA{IP}'), 
-        INET_ATON('$DATA{NETMASK}'), '$DATA{DISABLE}', '$DATA{DHCP}');", 'do');
+        INET_ATON('$DATA{NETMASK}'), '$DATA{DISABLE}', 
+        '$DATA{DHCP}',
+        '$DATA{NAS_ID}');", 'do');
 
   return $self if ($self->{errno});
   $admin->action_add("$DATA{UID}", "ACTIVE");
@@ -149,7 +155,8 @@ sub change {
               NETMASK          => 'netmask',
               VLAN_ID          => 'vlan_id',
               DHCP             => 'dhcp',
-              UID              => 'uid'
+              UID              => 'uid',
+              NAS_ID           => 'nas_id'
              );
   
   $attr->{DHCP} = ($attr->{DHCP}) ? $attr->{DHCP} : 0;
