@@ -7,7 +7,7 @@
 :PARAMS=PPPOE:
 touch /var/log/pppoed.log
 :PARAMS=PPPOE:exec:touch /var/log/pppoed.log
-:PARAMS=PPPOE:!pppoed\n *.* /var/log/pppoed.log     >> [/etc]/syslog.conf 
+:PARAMS=PPPOE:!pppoed\n*.*   /var/log/pppoed.log     >> [/etc]/syslog.conf 
 :PARAMS=PPPOE:exec:killall -1 syslogd
 ppp.conf           > [/etc/ppp]/ppp.conf
 ppp.linkup         > [/etc/ppp]/ppp.linkup

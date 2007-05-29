@@ -691,4 +691,45 @@ sub t  () {
    return $result;
 }
 
+#**********************************************************
+# Make period statistic
+#**********************************************************
+sub sqlcmd_procs {
+
+
+  if ($FORM{del}) {
+  	$Sqlcmd->list({ QUERY => "kill $FORM{del}" });
+  	print $html->message('info', $_INFO, "$_DELETED [ $FORM{del} ]");
+   } 
+
+  my $list = $Sqlcmd->list({ QUERY => 'show full processlist;' });
+
+  my @CAPTION = ();
+  @CAPTION = @{ $Sqlcmd->{MYSQL_FIELDS_NAMES} } if ($Sqlcmd->{MYSQL_FIELDS_NAMES});
+ 
+  $table = $html->table( { width   => '100%',
+                           caption => $_PROCESSES,
+                           border  => 1,
+                           title   => [ @CAPTION, '-' ], 
+                           qs      => $pages_qs,
+                           pages   => $Sqlcmd->{TOTAL}
+                       } );
+
+  foreach my $line (@$list) {
+
+    $table->addrow($line->[0],
+                   $line->[1],
+                   $line->[2],
+                   $line->[3],
+                   $line->[4],
+                   sec2time($line->[5], {str => 1}),
+                   $line->[6],
+                   $line->[7],
+                   $html->button($_DEL, "index=$index&del=$line->[0]", 
+                      { MESSAGE => "$_DEL $line->[0] ?" }) );
+   }
+
+  print $table->show();
+}
+
 1

@@ -426,7 +426,7 @@ sub rt_billing {
                                                    INTERIUM_INBYTE   => $RAD->{INTERIUM_INBYTE},
                                                    INTERIUM_OUTBYTE2 => $RAD->{OUTBYTE2},
                                                    INTERIUM_INBYTE2  => $RAD->{INBYTE2}
-                                                   
+
                                                 	},
                                                 { FULL_COUNT => 1 }
                                                 );
@@ -460,6 +460,7 @@ sub rt_billing {
     }
 
    my @RAD_TRAFF_SUFIX = ('', '1');
+   $self->{SUM} = 0 if ($self->{SUM} < 0);
    
    for(my $traffic_type = 0; $traffic_type <= $#RAD_TRAFF_SUFIX; $traffic_type++) {
      next if ($RAD->{'INTERIUM_OUTBYTE'.$RAD_TRAFF_SUFIX[$traffic_type]} + $RAD->{'INTERIUM_INBYTE'.$RAD_TRAFF_SUFIX[$traffic_type]} < 1);

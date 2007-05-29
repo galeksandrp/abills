@@ -1,0 +1,314 @@
+# Vlans
+
+
+use Vlan;
+my $Vlan = Vlan->new($db, $admin, \%conf);
+
+
+
+
+#**********************************************************
+# user_vlan
+#**********************************************************
+sub vlan_users_list {
+ my ($attr)=@_;
+
+ #my $group_sel = sel_groups();
+ form_search({ SEARCH_FORM =>  	
+ 	"<tr><td colspan=2><hr></td></tr>
+   <tr><td>$_GROUP:</td><td>$group_sel</td></tr>
+   <tr><td>IP (>,<):</td><td><input type='text' name='IP' value='%IP%'></td></tr>
+   <tr><td>CID:</td><td><input type='text' name='CID' value='%CID%'></td></tr>
+   <tr><td>$VLAN_ID (>,<):</td><td><input type='text' name='PORT' value='%PORT%'></td></tr>
+   \n",
+   SIMPLE => { IP      => 'IP',
+   	           NETMASK => 'NETMASK',
+   	           VLAN_ID => 'VLAN_ID'
+   	            }
+  });
+
+
+ print $html->letters_list({ pages_qs => $pages_qs  }); 
+
+ if ($FORM{letter}) {
+   $LIST_PARAMS{FIRST_LETTER} = $FORM{letter};
+   $pages_qs .= "&letter=$FORM{letter}";
+  } 
+
+
+my $list = $Vlan->list( { %LIST_PARAMS } );
+
+my @TITLE = ($_LOGIN, $_FIO, $_DEPOSIT, $_CREDIT, 'VLAN ID', 
+"$_INTERFACE IP",
+"IP $_RANGE",
+"DHCP",
+$_STATUS);
+
+
+for(my $i=0; $i<$Vlan->{SEARCH_FIELDS_COUNT}; $i++){
+	push @TITLE, '-';
+	$TITLE[6+$i] = "$_SEARCH";
+}
+
+if ($Vlan->{errno}) {
+  $html->message('err', $_ERROR, "[$Vlan->{errno}] $err_strs{$Vlan->{errno}}");	
+  return 0;
+ }
+elsif ($Vlan->{TOTAL} == 1) {
+	form_users({  USER => user_info($list->[0]->[7+$Vlan->{SEARCH_FIELDS_COUNT}]) });
+	return 0;
+}
+
+
+
+my $table = $html->table( { width      => '100%',
+                            caption    => "Vlans",
+                            border     => 1,
+                            title      => \@TITLE,
+                            cols_align => ['left', 'left', 'right', 'right', 'left', 'center'],
+                            qs         => $pages_qs,
+                            pages      => $Vlan->{TOTAL}
+                           });
+
+foreach my $line (@$list) {
+  my $payments = ($permissions{1}) ?  $html->button("$_PAYMENTS", "index=2&UID=". $line->[6+$Vlan->{SEARCH_FIELDS_COUNT}]) : ''; 
+  
+  my @fields_array  = ();
+  for(my $i=0; $i<$Vlan->{SEARCH_FIELDS_COUNT}; $i++){
+     push @fields_array, $line->[6+$i];
+   }
+  
+  $table->addrow(
+   $html->button("$line->[0]", "index=15&UID=$line->[6+$Vlan->{SEARCH_FIELDS_COUNT}]"), 
+   "$line->[1]",
+   "$line->[2]", 
+   "$line->[3]", 
+   "$line->[4]", 
+   "$line->[5]",
+   "$line->[6]", 
+   $bool_vals[$line->[8]],
+   $status[$line->[7]]
+   
+   );
+}
+print $table->show();
+
+$table = $html->table( { width      => '100%',
+                         cols_align => ['right', 'right'],
+                         rows       => [ [ "$_TOTAL:", "<b>$Vlan->{TOTAL}</b>" ] ]
+                        } );
+print $table->show();
+
+  return 0;
+}
+
+
+#**********************************************************
+# user_vlan
+#**********************************************************
+sub vlan_user {
+ 	$Vlan->{UID}=$FORM{UID};	  
+  
+  if ($FORM{add}) {
+    if ($FORM{IP} ne '0.0.0.0') {
+      my $INFO = vlan_get_net($FORM{IP}, "$FORM{NETMASK}");
+      if ($FORM{IP} ne $INFO->{IF_IP}) {
+        print $html->message('info', $_CHANGE, "IP $FORM{IP} -> $INFO->{IF_IP}");
+        $FORM{IP} = $INFO->{IF_IP};
+       }
+     }
+    
+    $Vlan->add({ %FORM });
+    if (! $Vlan->{errno}) {
+      $html->message('info', $_INFO, "$_ADDED");	
+     }
+   }
+	elsif($FORM{set}) {
+    if ($FORM{IP} ne '0.0.0.0') {
+      my $INFO = vlan_get_net($FORM{IP}, "$FORM{NETMASK}");
+      if ($FORM{IP} ne $INFO->{IF_IP}) {
+        print $html->message('info', $_CHANGE, "IP $FORM{IP} -> $INFO->{IF_IP}");
+        $FORM{IP} = $INFO->{IF_IP};
+       }
+     }
+
+    $Vlan->change({ %FORM });
+    if (! $Vlan->{errno}) {
+      $html->message('info', $_INFO, "$_CHANGED");	
+     }
+   }
+	elsif($FORM{del}) {
+    $Vlan->del();
+    if (! $Vlan->{errno}) {
+      $html->message('info', $_INFO, "$_CHANGED");	
+     }
+	 }
+
+  if ($Vlan->{errno}) {
+    $html->message('err', $_ERROR, "[$Vlan->{errno}] $err_strs{$Vlan->{errno}}");
+   }
+
+  my $user = $Vlan->info($FORM{UID});
+
+  if ($Vlan->{IP} ne '0.0.0.0') {
+    my $INFO = vlan_get_net($Vlan->{IP}, "$Vlan->{NETMASK}");
+    $Vlan->{IP_RANGE} = "$INFO->{FIRST_IP} - $INFO->{LAST_IP}";
+   }
+
+  if($user->{TOTAL} < 1) {
+	  $html->message('info', $_INFO, $_NOT_ACTIVE);
+	  $Vlan = $Vlan->defaults();
+
+	  $Vlan->{ACTION}='add';
+	  $Vlan->{LNG_ACTION}=$_ACTIVATE;
+	 }
+	else {
+	  $Vlan->{ACTION}='set';
+	  $Vlan->{LNG_ACTION}=$_CHANGE;
+	} 
+
+  $user->{DISABLE}=($user->{DISABLE} == 1) ? ' checked' : '';
+  $user->{DHCP}=($user->{DHCP} == 1) ? ' checked' : '';
+
+  $html->tpl_show(_include('vlan_user', 'Vlan'), $Vlan);
+}
+
+
+#**********************************************************
+# vlan_get_net
+#**********************************************************
+sub vlan_get_net {
+  my ($ip, $netmask) = @_;
+  my %INFO = ();
+
+  if ($ip eq '0.0.0.0')  {
+  	print "IP not specify\n" if ($debug > 0);
+  	return -1;
+   }
+  #Set minimal mask to 255.255.255.252
+  elsif ($netmask eq '255.255.255.255') {
+  	$netmask = '255.255.255.252';
+   } 
+
+  my @ip_decs = split(/\./, $ip, 4);
+  #Make subnetworks
+
+  my $netip_num = ip2int("$ip_decs[0]\.$ip_decs[1]\.$ip_decs[2]\.0"); 
+  my $addr_count = ip2int('255.255.255.255') - ip2int($netmask) - 1;
+  my $user_ip_int = ip2int($ip);
+
+  while($user_ip_int + $addr_count + 2 > $netip_num ) {
+  	if ($user_ip_int > $netip_num && $user_ip_int < $netip_num + $addr_count + 2) {
+ 	    $INFO{NET_IP}   = int2ip($netip_num);
+      $INFO{IF_IP}    = int2ip($netip_num + 1);
+      $INFO{USER_IP}  = int2ip($netip_num + 2);
+      $INFO{FIRST_IP} = int2ip($netip_num + 2);
+      $INFO{LAST_IP}  = int2ip($netip_num + $addr_count);
+
+  	  print "> This net $INFO{NET_IP} / $netmask\n" if ($debug > 3);
+  	  last;
+     }
+ 	  $netip_num += $addr_count+2;
+   }
+
+  return \%INFO;
+}
+
+
+
+
+#**********************************************************
+# dv_user_info
+#**********************************************************
+sub vlan_user_info {
+  my $user = $Vlan->info($LIST_PARAMS{UID});
+  
+  if ($user->{TOTAL} < 1) {
+  	$html->message('info', $_INFO, "$_NOT_ACTIVE");
+    return 0;	
+  }
+  
+  $Vlan->{STATUS} = $status[$Vlan->{DISABLE}];
+  $html->tpl_show(_include('dv_user_info', 'Vlan'), $Vlan);
+}
+
+
+
+#**********************************************************
+# daily_fees
+#**********************************************************
+sub vlan_periodic {
+  my ($attr) =@_;
+
+	my $debug = $attr->{DEBUG} || 0;
+  my $debug_output = '';
+
+ $debug_output .= "Daily pariodic payments\n" if ($debug > 1);
+
+ my $list = $tariffs->list({ %LIST_PARAMS });
+ $ADMIN_REPORT{DATE}=$DATE if (! $ADMIN_REPORT{DATE});
+
+ foreach my $line (@$list) {
+ 	 if ($line->[5] > 0) {
+ 	   $debug_output .= "TP ID: $line->[0] DF: $line->[5] MF: $line->[6] POSTPAID: $line->[11] REDUCTION: $line->[10] \n" if ($debug > 1);
+ 	   $LIST_PARAMS{TP}=$line->[0];
+ 	   my $ulist = $Dv->list({
+         ACTIVATE  => "<='$ADMIN_REPORT{DATE}'",
+         EXPIRE    => ">'$ADMIN_REPORT{DATE}'",
+         DISABLE   => 0,
+         TP_ID     => $line->[0],
+         SORT      => 1,
+         PAGE_ROWS => 100000
+ 	   	 });
+
+#     .id, u.fio, if(acct.id IS NULL, u.deposit, acct.deposit), u.credit, tp.name, u.disable, 
+#      u.uid, u.account_id, u.email, u.tp_id
+     foreach my $u (@$ulist) {
+        if ($u->[12] > 0 && defined($u->[2])) {
+          my %user = (
+             ACCOUNT_ID => $u->[7],
+             UID        => $u->[6],
+             BILL_ID    => $u->[12],
+             REDUCTION  => $u->[13]  
+           );
+          
+
+          #print "  UID: $u->[0] / $line->[5] / DEPOSIT: $u->[2] / $u->[3] / BILL_ID: $u->[12]\n"; 	
+          #If deposit is above-zero or TARIF PALIN is POST PAID or PERIODIC PAYMENTS is POSTPAID
+          if($u->[2] + $u->[3] > 0 || $line->[4] == 1 || $line->[11] == 1 ) {
+             #print "  UID: $u->[0] / $line->[5] / DEPOSIT: $u->[2] / $u->[3] / BILL_ID: $u->[12]\n"; 	
+             my $sum = $line->[5];
+             # IF TP have PARIODIC PAYMENTS USER reduction
+             if ($line->[10] == 1 && $u->[13] > 0) {
+               $sum = $sum * (100 - $u->[13]) / 100;
+              }
+
+             my %PARAMS = ( DESCRIBE => "$_DAY_FEE" );
+             $PARAMS{DATE}=$DATE if ($DATE ne '');
+
+             if ($debug > 4) {
+                $debug_output .= " UID: $user{UID} SUM: $sum REDUCTION: $u->[13]\n";
+              }
+             else {
+               $fees->take(\%user, $sum, { %PARAMS } );
+              }
+           }
+        }
+       else {
+       	  print "[ $u->[6] ] $u->[0] - Don't have money account\n";
+        }
+
+      }
+ 	  }
+  }
+
+
+  $DEBUG .= $debug_output;
+  return $debug_output;
+}
+
+
+
+
+1
+

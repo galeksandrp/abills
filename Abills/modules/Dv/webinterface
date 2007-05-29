@@ -1818,7 +1818,7 @@ print $html->form_main({ CONTENT => $html->form_select('PERIOD',
                                           { 
                                           	SELECTED    => "$FORM{SESSION_ID}",
  	                                          SEL_OPTIONS => { $FORM{SESSION_ID} => "$FORM{SESSION_ID}",
- 	                                          	                '0' => "$_ALL" },
+ 	                                          	                             '0' => "$_ALL" },
  	                                          NO_ID       => 'y'
  	                                        })
  	                                        
@@ -1847,11 +1847,11 @@ if ($sessions->{TOTAL} > 0) {
 
   foreach my $line (@$list) {
     $table->addrow($line->[0],  
-    $line->[1],
-    int2byte($line->[2]), 
-    int2byte($line->[3]),  
-    $line->[4], 
-    $line->[5], 
+       $line->[1],
+       int2byte($line->[2]), 
+       int2byte($line->[3]),  
+       $line->[4], 
+       $line->[5] 
     );
   }
 

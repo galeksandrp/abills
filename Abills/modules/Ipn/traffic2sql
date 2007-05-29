@@ -213,7 +213,7 @@ if ($Ipn->{INTERIM}{$ip}) {
      my $sum_in  = 0;
      my $sum_out = 0;
      #Get price and calculate traffic
-     my $OCTETS_DIRECTION = $Ipn->{$ip}{OCTET_DIRATION};
+     my $OCTETS_DIRECTION = $Ipn->{$ip}{OCTET_DIRECTION};
      my $price_in =  ( defined($intervals->{$user_tp_interval}->{ZONES}->{$k}->{PriceIn}) ) ? $intervals->{$user_tp_interval}->{ZONES}->{$k}->{PriceIn} : 0;
      my $price_out = ( defined($intervals->{$user_tp_interval}->{ZONES}->{$k}->{PriceOut}) ) ? $intervals->{$user_tp_interval}->{ZONES}->{$k}->{PriceOut} : 0;
 

@@ -3,20 +3,18 @@
 
 
 
-require Ipn;
-Ipn->import();
-my $Ipn = Ipn->new($db, \%conf);
-my @TT_COLORS = ("$_COLORS[1]", "#80FF80", "#FFFF80", "#BFBFFF");
-
+use Ipn;
 use Dv;
 use Dv_Sessions;
 use Nas;
 use Tariffs;
 
+my $Ipn = Ipn->new($db, \%conf);
 my $sessions = Dv_Sessions->new($db, $admin, \%conf);
 my $tariffs = Tariffs->new($db, \%conf, $admin);
 my $users = Users->new($db, $admin, \%conf); 
 
+my @TT_COLORS = ("$_COLORS[1]", "#80FF80", "#FFFF80", "#BFBFFF");
 
 #**********************************************************
 # Whow sessions from log

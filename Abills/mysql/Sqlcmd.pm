@@ -189,7 +189,7 @@ sub list {
  	  @QUERY_ARRAY = split(/;/, $attr->{QUERY});
   }
  else {
-   push @QUERY_ARRAY, 	$attr->{QUERY};
+   push @QUERY_ARRAY, $attr->{QUERY};
  }
 
 

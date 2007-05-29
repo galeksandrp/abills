@@ -164,7 +164,7 @@ sub user_ips {
      $self->{$line->[1]}{NAS_ID} = $line->[11];
      
      #Octet direction
-     $self->{$line->[1]}{OCTET_DIRATION} = $line->[12];
+     $self->{$line->[1]}{OCTET_DIRECTION} = $line->[12];
      
   	 $users_info{TPS}{$line->[0]} = $line->[6];
    	 #User login
