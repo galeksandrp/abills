@@ -188,7 +188,12 @@ else {
    	  }
    	 else {
    	   my($left, $right)=split(/=/, $line, 2);
-   	   $RAD_REPLY{"$left"}="$right";
+   	   if ($left =~ s/^!//) {
+         delete $RAD_REPLY{"$left"};
+   	    }
+   	   else {  
+   	     $RAD_REPLY{"$left"}="$right";
+   	    }
    	  }
  	 $RAD_CHECK{'Auth-Type'} = 'Accept';
   }
