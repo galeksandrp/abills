@@ -18,7 +18,7 @@ use Carp;
 
 require "Abills/nas.pl";
 
-my $nas = Nas->new($db, \%conf);
+my $Nas = Nas->new($db, \%conf);
 my $Snmputils = Snmputils->new($db, $admin, \%conf);
 
 
@@ -411,14 +411,14 @@ sub snmputils_dlink_pb {
   my $debug_output = '';
   
 #Get nas servers TYPE: dlink_pb
-  my $list = $nas->list({ PAGE_ROWS => 100000, 
+  my $list = $Nas->list({ PAGE_ROWS => 100000, 
   	                      TYPE      => dlink_pb, 
   	                      DISABLE   => 0,
   	                      NAS_IDS   => ($attr->{NAS_IDS}) ? $attr->{NAS_IDS} : undef 
   	                    });
 
   foreach my $line (@$list) {
-    $debug_output .= "NAS: $line->[0], $line->[9], $line->[11] $line->[12]\n" if ($debug > 1);
+    $debug_output .= "NAS ID: $line->[0] MNG INFO: $line->[9]\@$line->[11] $line->[12]\n" if ($debug > 1);
     #GET users for this NAS
     my $list = $Snmputils->snmputils_nas_ipmac({ NAS_ID    => $line->[0], 
     	                                           PG        => 0, 
@@ -885,8 +885,8 @@ sub snmputils_dlink_ip_mac_port{
     return 0;
    }
   elsif($FORM{UPDATE}) {
-  	my $info = snmputils_dlink_pb({ NAS_ID => $FORM{NAS_ID}, 
-  		                              DEBUG  => 5 });
+  	my $info = snmputils_dlink_pb({ NAS_IDS => $FORM{NAS_ID}, 
+  		                              DEBUG   => 5 });
   	print "<pre>$info</pre>";
    }
 
@@ -1138,7 +1138,7 @@ sub snmputils_dlink_pb_monitor {
                              cols_align  => ['left', 'left', 'center', 'right', 'right', 'right', 'right', 'center', 'center', 'center'],
                            });
 
-  my $list = $nas->list({ PAGE_ROWS => 10000, 
+  my $list = $Nas->list({ PAGE_ROWS => 10000, 
   	                      SORT      => 2, 
   	                      TYPE      => dlink_pb, 
   	                      DISABLE   => 0 
@@ -1217,8 +1217,6 @@ sub snmputils_dlink_pb_monitor {
 sub snmputils_ciscoair {
 
 my $list;
-my $Nas = Nas->new($db, \%conf);
-
 if ($FORM{'SNMP_HOST'} ne '') {
  $list = [[ '1', 
             '',
@@ -1783,7 +1781,6 @@ $table = $html->table({ width       => '100%',
                       });
 
 
-my $Nas = Nas->new($db, \%conf);
 my $list = $Nas->list({ TYPE => $nas_type, DISABLE => 0 });
 
 foreach my $line (@$list) {
@@ -2033,7 +2030,7 @@ sub snmp_info_form {
   $info{NAS_SEL} = $html->form_select('NAS_ID', 
                                           { 
  	                                          SELECTED          => $FORM{NAS_ID},
- 	                                          SEL_MULTI_ARRAY   => [['', ''], @{ $nas->list({ SORT => 2, PAGE_ROWS => 10000 }) } ],
+ 	                                          SEL_MULTI_ARRAY   => [['', ''], @{ $Nas->list({ SORT => 2, PAGE_ROWS => 10000 }) } ],
  	                                          MULTI_ARRAY_KEY   => 0,
  	                                          MULTI_ARRAY_VALUE => 1,
  	                                        });
@@ -2048,16 +2045,16 @@ if ($FORM{change}) {
     my $SNMP_COMMUNITY = "$FORM{SNMP_COMMUNITY}\@$FORM{SNMP_HOST}";
    
     if ($FORM{NAS_ID}) {
-      $nas->info({ NAS_ID => $FORM{NAS_ID} });
-      if (! $nas->{NAS_MNG_PASSWORD}) {
+      $Nas->info({ NAS_ID => $FORM{NAS_ID} });
+      if (! $Nas->{NAS_MNG_PASSWORD}) {
    	     $html->message('err', $_ERROR, "NO SNMP COMMUNITY");
    	     return 0;
        }
-      elsif (! $nas->{NAS_MNG_IP_PORT}) {
+      elsif (! $Nas->{NAS_MNG_IP_PORT}) {
    	     $html->message('err', $_ERROR, "NO SNMP HOST");
    	     return 0;
        }
-      $SNMP_COMMUNITY = "$nas->{NAS_MNG_PASSWORD}\@$nas->{NAS_MNG_IP_PORT}";
+      $SNMP_COMMUNITY = "$Nas->{NAS_MNG_PASSWORD}\@$Nas->{NAS_MNG_IP_PORT}";
      }
 
 
@@ -2129,18 +2126,18 @@ if ($FORM{SHOW}) {
     my $SNMP_COMMUNITY = "$FORM{SNMP_COMMUNITY}\@$FORM{SNMP_HOST}";
 
     if ($FORM{NAS_ID}) {
-      $nas->info({ NAS_ID => $FORM{NAS_ID} });
-      if (! $nas->{NAS_MNG_PASSWORD}) {
+      $Nas->info({ NAS_ID => $FORM{NAS_ID} });
+      if (! $Nas->{NAS_MNG_PASSWORD}) {
    	     $html->message('err', $_ERROR, "NO SNMP COMMUNITY");
    	     return 0;
        }
-      elsif (! $nas->{NAS_MNG_IP_PORT}) {
+      elsif (! $Nas->{NAS_MNG_IP_PORT}) {
    	     $html->message('err', $_ERROR, "NO SNMP HOST");
    	     return 0;
        }
       
       $page_qs = "&NAS_ID=$FORM{NAS_ID}";
-      $SNMP_COMMUNITY = "$nas->{NAS_MNG_PASSWORD}\@$nas->{NAS_MNG_IP_PORT}";
+      $SNMP_COMMUNITY = "$Nas->{NAS_MNG_PASSWORD}\@$Nas->{NAS_MNG_IP_PORT}";
      }
     else {
     	$page_qs = "\&SNMP_COMMUNITY=$FORM{SNMP_COMMUNITY}\&SNMP_HOST=$FORM{SNMP_HOST}";

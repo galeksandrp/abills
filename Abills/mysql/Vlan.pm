@@ -285,6 +285,11 @@ sub list {
     push @WHERE_RULES, "u.gid='$attr->{GID}'";
   }
 
+ if ($attr->{NAS_ID}) {
+    push @WHERE_RULES, "vlan.nas_id='$attr->{NAS_ID}'";
+  }
+
+
  # Show groups
  if ($attr->{VLAN_ID}) {
     push @WHERE_RULES, "vlan.vlan_id='$attr->{VLAN_ID}'";
@@ -308,14 +313,12 @@ sub list {
       CONCAT(INET_NTOA(vlan.ip+1), ' - ',
         INET_NTOA(vlan.ip + 4294967294 - vlan.netmask - 1)),
       vlan.disable, 
-      vlan.dhcp,      
+      vlan.dhcp,
+      INET_NTOA(vlan.netmask),
       $self->{SEARCH_FIELDS}
       u.uid, 
-      u.company_id, 
       u.activate, 
-      u.expire, 
-      if(u.company_id > 0, company.bill_id, u.bill_id),
-      u.reduction
+      u.expire
      FROM (users u, vlan_main vlan)
      LEFT JOIN users_pi pi ON (u.uid = pi.uid)
      LEFT JOIN bills b ON (u.bill_id = b.id)
