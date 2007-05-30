@@ -885,7 +885,7 @@ sub snmputils_dlink_ip_mac_port{
     return 0;
    }
   elsif($FORM{UPDATE}) {
-  	my $info = snmputils_dlink_pb({ NAS_ID => $NAS_ID, 
+  	my $info = snmputils_dlink_pb({ NAS_ID => $FORM{NAS_ID}, 
   		                              DEBUG  => 5 });
   	print "<pre>$info</pre>";
    }

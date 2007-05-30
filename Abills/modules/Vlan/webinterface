@@ -322,11 +322,136 @@ sub vlan_periodic {
 #**********************************************************
 sub vlan_create {
 	
-	
+my @commands = ();
+my %NETWORKS_HASH = ();
+my %INFO = ();
+
+$Vlan->{debug}=1;
+my $list = $Vlan->list({ PAGE_ROWS => 100000 });
+my $vlans_info = vlan_info();
+
+foreach my $line (@$list) {
+#Port
+  print "LOGIN: '$line->[0]' DISABLE: $line->[4] IP: $line->[5]/$line->[6] PORT: $line->[7] CID: $line->[8] DHCP: \n" if ($debug > 0); 
+  $INFO{VLAN_ID}   = $line->[7];
+  $INFO{USER_IP}   = $line->[5];
+  $INFO{USER_MASK} = $line->[6];
+  $INFO{USER_NAME} = $line->[0];
+  $INFO{USER_MAC}  = $line->[8];
+  $INFO{COMMENTS}  = '';
+
+  if ($INFO{USER_IP} eq '0.0.0.0') {
+
+   }
+##  	print "LOGIN: '$line->[0]' IP not specify\n" if ($debug > 0);
+##  	next;
+##   }
+##  #Set minimal mask to 255.255.255.252
+##  elsif ($INFO{USER_MASK} eq '255.255.255.255') {
+##  	$INFO{USER_MASK} = '255.255.255.252';
+##   } 
+##
+##  my @ip_decs = split(/\./, $INFO{USER_IP}, 4);
+##  #Make subnetworks
+##
+##  my $netip_num = ip2int("$ip_decs[0]\.$ip_decs[1]\.$ip_decs[2]\.0"); 
+##  my $addr_count = ip2int('255.255.255.255') - ip2int($INFO{USER_MASK}) - 1;
+##  my $user_ip_int = ip2int($INFO{USER_IP});
+##  
+##  while($user_ip_int + $addr_count + 2 > $netip_num ) {
+##  	if ($user_ip_int > $netip_num && $user_ip_int < $netip_num + $addr_count + 2) {
+## 	    $INFO{NET_IP}   = int2ip($netip_num);
+##      $INFO{IF_IP}    = int2ip($netip_num + 1);
+##      $INFO{USER_IP}  = int2ip($netip_num + 2);
+##      $INFO{FIRST_IP} = int2ip($netip_num + 2);
+##      $INFO{LAST_IP}  = int2ip($netip_num + $addr_count);
+##
+##  	  print "> This net $INFO{NET_IP} / $INFO{USER_MASK}\n" if ($debug > 3);
+##  	  last;
+##     }
+## 	  $netip_num += $addr_count+2;
+##   }
+##
+##  if ($INFO{USER_MAC} ne '') {
+##  	$INFO{USER_MAC}="  hardware ethernet $INFO{USER_MAC};\n";
+##   }
+##
+##  $INFO{SUBNETS} .= $html->tpl_show($subnets, \%INFO, { notprint => 'yes' });
+#
+#if (! $vlans->{$INFO{VLAN_ID}}) {
+#  #push @commands, "$sudo $IFCONFIG vlan$INFO{VLAN_ID} destroy;";
+#  if ($NAS_ID > 0) {
+#    mk_acct({ ACCT_STATUS_TYPE => 1
+#  	        LOGIN    => "$line->[0]",
+#  	        IP       => $INFO{USER_IP},
+#  	        NAS_PORT => $INFO{VLAN_ID},
+#  	        NAS_ID   => $NAS_ID
+#  	      });
+#   }
+#
+#  push @commands, "$sudo $IFCONFIG vlan$INFO{VLAN_ID} create";
+#  push @commands, "$sudo $IFCONFIG vlan$INFO{VLAN_ID} inet $INFO{IF_IP} netmask $INFO{USER_MASK} vlan $INFO{VLAN_ID} vlandev $parent_interface";
+# }
+#elsif ($vlans->{$INFO{VLAN_ID}} && $vlans->{$INFO{VLAN_ID}} ne $INFO{IF_IP}) {
+#  push @commands, "$sudo $IFCONFIG vlan$INFO{VLAN_ID} destroy;";
+#  push @commands, "$sudo $IFCONFIG vlan$INFO{VLAN_ID} create";
+#  push @commands, "$sudo $IFCONFIG vlan$INFO{VLAN_ID} inet $INFO{IF_IP} netmask $INFO{USER_MASK} vlan $INFO{VLAN_ID} vlandev $parent_interface";
+# }
+#else {
+#	delete $vlans->{$INFO{VLAN_ID}};
+# }
+#
+#
 }
 
 
 
+# Delete vlans
+while(my($vlan_id, $ip) = each %$vlans) {
+	print "DELETED VLAN $vlan_id, $ip\n" if ($debug > 3);
+  if ($NAS_ID > 0) {
+    my $ACCT_TERMINATE_CAUSE = $attr->{ACCT_TERMINATE_CAUSE} || 6;
+    $Ipn->acct_stop({ SESSION_ID => '', 
+  	                ACCT_TERMINATE_CAUSE => $ACCT_TERMINATE_CAUSE });
+   }
+
+	push @commands, "$sudo $IFCONFIG vlan$vlan_id destroy;";
+}
+	
+}
+
+
+#**********************************************************
+#
+#**********************************************************
+sub vlan_info {
+
+	my %VLANS = ();
+	my $ifconfig = '';
+  my $IFCONFIG_CMD =  $IFCONFIG;
+
+  if ($remote_user_host ne '') {
+  	$IFCONFIG_CMD = "/usr/bin/ssh -i /usr/abills/Certs/id_dsa $remote_user_host \"$IFCONFIG\"";
+   }
+	
+	open(IFCONFIG, "$IFCONFIG_CMD |") || die "Can't open '$IFCONFIG' $!";
+    while (my $l = <IFCONFIG>) {
+      $ifconfig .= $l;
+     }  
+  close(IFCONFIG)	;
+
+
+ while($ifconfig =~ /vlan(\d+): .+\n\s+inet (\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}).+\n(\s.*[\n\sa-zA-Z0-9]+\n\s.*\n\s.*\n\s.*\n)/gi) {
+   my $if_num = $1;
+   my $ip    =  $2;
+   my $res    = $3;
+
+   $VLANS{$if_num}=$ip;
+   print "$if_num IP: $ip $res\n" if ($debug > 4);
+  }
+
+  return \%VLANS;
+}
 
 1
 
