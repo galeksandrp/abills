@@ -825,8 +825,8 @@ sub snmputils_dlink_pb_list {
       print "=> $1 / $2 / $3 <br>\n" if ($debug > 0);
       #Port
   	  if ($1 == 4) {
-  	    my $port = $3;
-        my $ip = $2;
+  	    my $port   = $3;
+        my $ip     = $2;
         my $string = unpack("B32",  $port);
         if ($debug > 0) {
        	  my $hex_val = join(':', unpack("H2H2H2H2", pack("B32", $string)));
@@ -884,6 +884,10 @@ sub snmputils_dlink_ip_mac_port{
     print "</pre>";
     return 0;
    }
+  elsif($FORM{UPDATE}) {
+  	print snmputils_dlink_pb({ NAS_ID => $NAS_ID, DEBUG => 1 });
+   }
+
 
   my $SWITCH_INFO = snmputils_dlink_pb_version({ SNMP_COMMUNITY => $SNMP_COMMUNITY });
 
@@ -1100,7 +1104,20 @@ sub snmputils_dlink_ip_mac_port{
   	$table->addrow(@arr);
    }
  print $table->show(); 
-  
+ 
+
+print $html->form_main({ CONTENT => '',
+	                       HIDDEN  => { index         =>  "$index",
+	                       	            TYPE          =>  $FORM{TYPE},
+	                       	            NAS_HOST      =>  $FORM{NAS_HOST},
+	                       	            NAS_COMMUNITY =>  $FORM{NAS_COMMUNITY},
+	                       	            NAS_ID        =>  $FORM{NAS_ID},
+	                       	            SHOW          =>  1
+	                                   	           },
+	                                    SUBMIT  => { UPDATE   => "$_REFRESH"
+	                       	           }
+                                   });
+ 
 }
 
 #*******************************************************************
