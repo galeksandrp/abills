@@ -503,6 +503,7 @@ sub snmputils_dlink_pb {
        }
      #Active ports
      
+     print "--- $ports ---";
      my @ports_arr = split(/,/, $ports);
      $debug_output .= "Active port: ";
      foreach my $port (@ports_arr) {

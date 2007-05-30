@@ -353,8 +353,8 @@ foreach my $line (@$list) {
   	next;
    }
   
-  my $nas_mng_ip_port = $line->[11];
-  my $nas_mng_user    = $line->[9];
+  my $nas_mng_ip_port = $line->[9];
+  my $nas_mng_user    = $line->[10];
 
   my $vlan_list = $Vlan->list({ DISABLE   => 0,
 	                              PAGE_ROWS => 100000,
@@ -362,21 +362,22 @@ foreach my $line (@$list) {
 
   my $sudo='';
   my $vlans_info = vlan_info({ NAS_MNG_IP_PORT => $nas_mng_ip_port,
-  	                           NAS_MNG_USER    => $nas_mng_user });
+  	                           NAS_MNG_USER    => $nas_mng_user 
+  	                          });
 
   foreach my $line (@$vlan_list) {
   #Port
      $debug_output .= "$line->[0]: VLAN ID: $line->[4] IP: $line->[5] NETMASK: $line->[9]".
        " USER IPs: $line->[6] DHCP: $line->[8]\n" if ($debug > 0); 
 
-    $INFO{VLAN_ID}    = $line->[5];
-    $INFO{VLAN_IF_IP} = $line->[6];
+    $INFO{VLAN_ID}    = $line->[4];
+    $INFO{VLAN_IF_IP} = $line->[5];
     $INFO{DHCP}       = $line->[8];
     $INFO{VLAN_IF_NETMASK} = $line->[9];
     
     
     if ($INFO{VLAN_IF_IP} eq '0.0.0.0') {
-    	print "!!! No IP for user '$line->[0]' Vlan [$INFO{VLAN_ID}] ";
+    	$debug_output .= "!!! No IP for user '$line->[0]' Vlan [$INFO{VLAN_ID}] ";
     	next;
      }
 
@@ -410,24 +411,44 @@ foreach my $line (@$list) {
         "vlan $INFO{VLAN_ID} vlandev $parent_interface";
     }
    else {
-	   delete $vlans->{$INFO{VLAN_ID}};
+	   delete $vlans_info->{$INFO{VLAN_ID}};
     }
 
    }
+
+
+  # Delete not allow vlans
+  while(my($vlan_id, $ip) = each %$vlans_info) {
+	  $debug_output .= "DELETED VLAN $vlan_id, $ip\n" if ($debug > 3);
+    if ($NAS_ID > 0) {
+      my $ACCT_TERMINATE_CAUSE = $attr->{ACCT_TERMINATE_CAUSE} || 6;
+      $Ipn->acct_stop({ SESSION_ID => '', 
+  	                ACCT_TERMINATE_CAUSE => $ACCT_TERMINATE_CAUSE });
+    }
+	  push @commands, "$sudo $IFCONFIG vlan$vlan_id destroy;";
+  }
+
+  #Make commands
+  if ($#commands > -1 ) {
+    my $cmds = '';
+    foreach my $cmd ( @commands ) {
+      $cmds .= "$cmd; ";
+     }
+
+    if ($nas_mng_ip_port ne '') {
+      $cmds = "/usr/bin/ssh -i $nas_mng_user". "ssh_key $nas_mng_user\@$nas_mng_ip_port \"$cmds\" ";
+     }
+
+   system($cmds) if ($debug < 5);
+   $debug_output .= "$cmds\n" if ($debug > 2);;
+  }
+
+
 }
 
 
-# Delete vlans
-#while(my($vlan_id, $ip) = each %$vlans) {
-#	print "DELETED VLAN $vlan_id, $ip\n" if ($debug > 3);
-#  if ($NAS_ID > 0) {
-#    my $ACCT_TERMINATE_CAUSE = $attr->{ACCT_TERMINATE_CAUSE} || 6;
-#    $Ipn->acct_stop({ SESSION_ID => '', 
-#  	                ACCT_TERMINATE_CAUSE => $ACCT_TERMINATE_CAUSE });
-#   }
-#
-#	push @commands, "$sudo $IFCONFIG vlan$vlan_id destroy;";
-#}
+
+
 
   $DEBUG = $debug_output;	
 	return $debug_output;
