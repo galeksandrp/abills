@@ -153,19 +153,6 @@ elsif ($acct_status_type == 2) {
                                                    $RAD, 
                                                    { USER_INFO => 1 } );
 
-   my $aaaaa = `echo "INSERT INTO dv_log (uid, start, tp_id, duration, sent, recv, minp,  
-        sum, nas_id, port_id,
-        ip, CID, sent2, recv2, acct_session_id, 
-        bill_id,
-        terminate_cause) 
-        VALUES ('$self->{UID}', FROM_UNIXTIME($RAD->{SESSION_START}), '$self->{TARIF_PLAN}', '$RAD->{ACCT_SESSION_TIME}', 
-        '$RAD->{OUTBYTE}', '$RAD->{INBYTE}', '$self->{TIME_TARIF}', '$self->{SUM}', '$NAS->{NAS_ID}',
-        '$RAD->{NAS_PORT}', INET_ATON('$RAD->{FRAMED_IP_ADDRESS}'), '$RAD->{CALLING_STATION_ID}',
-        '$RAD->{OUTBYTE2}', '$RAD->{INBYTE2}',  \"$RAD->{ACCT_SESSION_ID}\", 
-        '$self->{BILL_ID}',
-        '$RAD->{ACCT_TERMINATE_CAUSE}');" >> /tmp/ddddddddd`;
-
-
     $self->query($db, "INSERT INTO dv_log (uid, start, tp_id, duration, sent, recv, minp,  
         sum, nas_id, port_id,
         ip, CID, sent2, recv2, acct_session_id, 
@@ -373,8 +360,6 @@ sub rt_billing {
    FROM dv_calls 
   WHERE user_name='$RAD->{USER_NAME}' and acct_session_id='$RAD->{ACCT_SESSION_ID}';");
 
-
-
   if($self->{errno}) {
  	  return $self;
    }
@@ -383,8 +368,6 @@ sub rt_billing {
     $self->{errstr}="Session account Not Exist";
     return $self;
    }
-
-
 
 
   ($RAD->{INTERIUM_SESSION_START},
@@ -403,10 +386,7 @@ sub rt_billing {
   #	 return 0;
   # }
   
-  
   my $Billing = Billing->new($db, $conf);	
-
-
 
   ($self->{UID}, 
    $self->{SUM}, 
@@ -424,8 +404,8 @@ sub rt_billing {
 
                                                 	 INTERIUM_OUTBYTE  => $RAD->{INTERIUM_OUTBYTE},
                                                    INTERIUM_INBYTE   => $RAD->{INTERIUM_INBYTE},
-                                                   INTERIUM_OUTBYTE2 => $RAD->{OUTBYTE2},
-                                                   INTERIUM_INBYTE2  => $RAD->{INBYTE2}
+                                                   INTERIUM_OUTBYTE1 => $RAD->{INTERIUM_INBYTE1},
+                                                   INTERIUM_INBYTE1  => $RAD->{INTERIUM_OUTBYTE1}
 
                                                 	},
                                                 { FULL_COUNT => 1 }

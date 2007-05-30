@@ -178,8 +178,8 @@ if ($prepaid{0} + $prepaid{1} > 0) {
    #Get traffic from begin of month
    
    $used_traffic = $self->get_traffic({ UID    => $self->{UID},
-   	                                       PERIOD => $traffic_period
-   	                                    });
+   	                                    PERIOD => $traffic_period
+   	                                 });
    
    if ($CONF->{rt_billing}) {
    	 $used_traffic->{TRAFFIC_IN}     += int($RAD->{INBYTE} / $CONF->{MB_SIZE}); 
@@ -188,7 +188,6 @@ if ($prepaid{0} + $prepaid{1} > 0) {
    	 $used_traffic->{TRAFFIC_OUT_2}  += int($RAD->{OUTBYTE2} / $CONF->{MB_SIZE});
     }
 
-   
    $used_traffic->{ONLINE}=0;
    #Recv / IN
    if($self->{OCTETS_DIRECTION}==1) {

@@ -4,10 +4,7 @@
                    );
 
 
-# 
-#%PERIODIC = (daily   => [ 'dv_daily_fees', 'dv_users_warning_messages' ],
-#             monthly => [ 'dv_monthly_fees', 'dv_periodic_logrotate' ],
-#             report  => [ 'dv_report'       ]);
-
+ 
+%PERIODIC = (daily   => [ 'vlan_create' ] );
 
 1
