@@ -5,6 +5,8 @@ use Vlan;
 my $Vlan = Vlan->new($db, $admin, \%conf);
 my $Nas = Nas->new($db, \%conf);
 
+my $SUDO = '/usr/local/bin/sudo';
+
 
 #**********************************************************
 # user_vlan
@@ -331,7 +333,6 @@ my $debug = $attr->{DEBUG} || 0;
 my $debug_output = '';
   
 #Get nas servers TYPE: dlink_pb
-$Nas->{debug}=1;
 my $list = $Nas->list({ PAGE_ROWS => 100000, 
  	                      TYPE      => 'vlan', 
  	                      DISABLE   => 0,
@@ -339,7 +340,6 @@ my $list = $Nas->list({ PAGE_ROWS => 100000,
 	                    });
 
 
-$Vlan->{debug}=1;
 foreach my $line (@$list) {
   my $parent_interface = '';
   
@@ -360,7 +360,7 @@ foreach my $line (@$list) {
 	                              PAGE_ROWS => 100000,
 	                              NAS_ID    => $line->[0] });
 
-  my $sudo='';
+  my $sudo = ($nas_mng_ip_port ne '') ? $SUDO : '';
   my $vlans_info = vlan_info({ NAS_MNG_IP_PORT => $nas_mng_ip_port,
   	                           NAS_MNG_USER    => $nas_mng_user 
   	                          });
@@ -400,12 +400,12 @@ foreach my $line (@$list) {
     #  	      });
     #   }
     # 
-      push @commands, "$IFCONFIG vlan$INFO{VLAN_ID} vlan $INFO{VLAN_ID} vlandev $parent_interface";
+      push @commands, "$IFCONFIG vlan$INFO{VLAN_ID} create vlan $INFO{VLAN_ID} vlandev $parent_interface";
       push @commands, "$IFCONFIG vlan$INFO{VLAN_ID} inet $INFO{VLAN_IF_IP} netmask $INFO{VLAN_IF_NETMASK}";
      }
     elsif ($vlans_info->{$INFO{VLAN_ID}} && $vlans_info->{$INFO{VLAN_ID}} ne $INFO{VLAN_IF_IP}) {
-      push @commands, "$IFCONFIG vlan$INFO{VLAN_ID} vlan $INFO{VLAN_ID} vlandev $parent_interface";
-      push @commands, "$IFCONFIG vlan$INFO{VLAN_ID} create";
+      push @commands, "$IFCONFIG vlan$INFO{VLAN_ID} destroy ";
+      push @commands, "$IFCONFIG vlan$INFO{VLAN_ID} create vlan $INFO{VLAN_ID} vlandev $parent_interface";
       push @commands, "$IFCONFIG vlan$INFO{VLAN_ID} inet $INFO{VLAN_IF_IP} netmask $INFO{VLAN_IF_NETMASK}";
      }
     else {
@@ -423,8 +423,9 @@ foreach my $line (@$list) {
       $Ipn->acct_stop({ SESSION_ID => '', 
   	                ACCT_TERMINATE_CAUSE => $ACCT_TERMINATE_CAUSE });
     }
-	  push @commands, "$sudo $IFCONFIG vlan$vlan_id destroy;";
+	  push @commands, "$IFCONFIG vlan$vlan_id destroy;";
   }
+
 
   #Make commands
   if ($#commands > -1 ) {
