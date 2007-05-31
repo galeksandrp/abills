@@ -65,15 +65,14 @@ my $table = $html->table( { width      => '100%',
                            });
 
 foreach my $line (@$list) {
-  my $payments = ($permissions{1}) ?  $html->button("$_PAYMENTS", "index=2&UID=". $line->[6+$Vlan->{SEARCH_FIELDS_COUNT}]) : ''; 
   
   my @fields_array  = ();
   for(my $i=0; $i<$Vlan->{SEARCH_FIELDS_COUNT}; $i++){
-     push @fields_array, $line->[6+$i];
+     push @fields_array, $line->[7+$i];
    }
   
   $table->addrow(
-   $html->button("$line->[0]", "index=15&UID=$line->[6+$Vlan->{SEARCH_FIELDS_COUNT}]"), 
+   $html->button("$line->[0]", "index=15&UID=$line->[10+$Vlan->{SEARCH_FIELDS_COUNT}]"), 
    "$line->[1]",
    "$line->[2]", 
    "$line->[3]", 
@@ -399,16 +398,14 @@ foreach my $line (@$list) {
     #  	        NAS_ID   => $NAS_ID
     #  	      });
     #   }
-    #
-      push @commands, "$sudo $IFCONFIG vlan$INFO{VLAN_ID} create";
-      push @commands, "$sudo $IFCONFIG vlan$INFO{VLAN_ID} inet $INFO{VLAN_IF_IP} netmask $INFO{VLAN_IF_NETMASK} ".
-        "vlan $INFO{VLAN_ID} vlandev $parent_interface";
+    # 
+      push @commands, "$IFCONFIG vlan$INFO{VLAN_ID} vlan $INFO{VLAN_ID} vlandev $parent_interface";
+      push @commands, "$IFCONFIG vlan$INFO{VLAN_ID} inet $INFO{VLAN_IF_IP} netmask $INFO{VLAN_IF_NETMASK}";
     }
    elsif ($vlans_info->{$INFO{VLAN_ID}} && $vlans_info->{$INFO{VLAN_ID}} ne $INFO{VLAN_IF_IP}) {
-     push @commands, "$sudo $IFCONFIG vlan$INFO{VLAN_ID} destroy;";
-     push @commands, "$sudo $IFCONFIG vlan$INFO{VLAN_ID} create";
-     push @commands, "$sudo $IFCONFIG vlan$INFO{VLAN_ID} inet $INFO{VLAN_IF_IP} netmask $INFO{VLAN_IF_NETMASK} ".
-        "vlan $INFO{VLAN_ID} vlandev $parent_interface";
+     push @commands, "$IFCONFIG vlan$INFO{VLAN_ID} vlan $INFO{VLAN_ID} vlandev $parent_interface";
+     push @commands, "$IFCONFIG vlan$INFO{VLAN_ID} create";
+     push @commands, "$IFCONFIG vlan$INFO{VLAN_ID} inet $INFO{VLAN_IF_IP} netmask $INFO{VLAN_IF_NETMASK}";
     }
    else {
 	   delete $vlans_info->{$INFO{VLAN_ID}};
@@ -432,11 +429,11 @@ foreach my $line (@$list) {
   if ($#commands > -1 ) {
     my $cmds = '';
     foreach my $cmd ( @commands ) {
-      $cmds .= "$cmd; ";
+      $cmds .= ($sudo ne '') ? "$cmd; " : "$sudo $cmd; ";
      }
 
     if ($nas_mng_ip_port ne '') {
-      $cmds = "/usr/bin/ssh -i $nas_mng_user". "ssh_key $nas_mng_user\@$nas_mng_ip_port \"$cmds\" ";
+      $cmds = "/usr/bin/ssh -i id_dsa.$nas_mng_user $nas_mng_user\@$nas_mng_ip_port \"$cmds\" ";
      }
 
    system($cmds) if ($debug < 5);
