@@ -533,9 +533,9 @@ elsif ($acct_status_type == 2) {
 }
 #Alive status 3
 elsif($acct_status_type eq 3) {
+  #acct_session_time=UNIX_TIMESTAMP()-UNIX_TIMESTAMP(started),
   $self->query($db, "UPDATE voip_calls SET
     status='$acct_status_type',
-    acct_session_time=UNIX_TIMESTAMP()-UNIX_TIMESTAMP(started),
     client_ip_address=INET_ATON('$RAD->{FRAMED_IP_ADDRESS}'),
     lupdated=UNIX_TIMESTAMP()
    WHERE

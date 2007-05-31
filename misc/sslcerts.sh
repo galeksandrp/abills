@@ -10,7 +10,13 @@ days=730;
 DATE=`date`;
 
 if [ w$1 = w ] ; then
+  echo "Create SSL Certs and SSH keys ";
   echo "sslcerts.sh [apache|eap|postfix_tls|ssh]";
+  echo " apache      - Create apache SSL cert"
+  echo " eap         - Create Server and users SSL Certs"
+  echo " postfix_tls - Create postfix TLS Certs"
+  echo " ssh         - Create SSH DSA Keys"
+
   exit;
 fi
 
@@ -27,12 +33,22 @@ cd ${CERT_PATH};
 #SSH certs
 if [ w$1 = wssh ]; then
   echo "*******************************************************************************"
-  echo "Creating SSH authentication"
+  echo "Creating SSH authentication Key"
   echo " Make ssh-keygen with empty password."
   echo "*******************************************************************************"
   echo
 
-  ssh-keygen -t dsa -C "ABillS remote machine manage key (${DATE})" -f "${CERT_PATH}/id_dsa"
+  if [ w$2 = w ]; then
+    id_dsa_file=id_dsa;
+  else
+    id_dsa_file=id_dsa.$2;
+  fi; 
+   
+  ssh-keygen -t dsa -C "ABillS remote machine manage key (${DATE})" -f "${CERT_PATH}${id_dsa_file}"
+
+  echo 
+  echo "Copy ${CERT_PATH}${id_dsa_file}.pub to REMOTE_HOST User home dir (/home/username/.ssh/authorized_keys) "
+  echo 
 
 #Apache Certs
 else if [ w$1 = wapache ]; then

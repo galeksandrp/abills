@@ -325,6 +325,7 @@ my @commands = ();
 my %NETWORKS_HASH = ();
 my %INFO = ();
 
+my $subnets='';
 
 my $debug = $attr->{DEBUG} || 0;
 my $debug_output = '';
@@ -401,14 +402,14 @@ foreach my $line (@$list) {
     # 
       push @commands, "$IFCONFIG vlan$INFO{VLAN_ID} vlan $INFO{VLAN_ID} vlandev $parent_interface";
       push @commands, "$IFCONFIG vlan$INFO{VLAN_ID} inet $INFO{VLAN_IF_IP} netmask $INFO{VLAN_IF_NETMASK}";
-    }
-   elsif ($vlans_info->{$INFO{VLAN_ID}} && $vlans_info->{$INFO{VLAN_ID}} ne $INFO{VLAN_IF_IP}) {
-     push @commands, "$IFCONFIG vlan$INFO{VLAN_ID} vlan $INFO{VLAN_ID} vlandev $parent_interface";
-     push @commands, "$IFCONFIG vlan$INFO{VLAN_ID} create";
-     push @commands, "$IFCONFIG vlan$INFO{VLAN_ID} inet $INFO{VLAN_IF_IP} netmask $INFO{VLAN_IF_NETMASK}";
-    }
-   else {
-	   delete $vlans_info->{$INFO{VLAN_ID}};
+     }
+    elsif ($vlans_info->{$INFO{VLAN_ID}} && $vlans_info->{$INFO{VLAN_ID}} ne $INFO{VLAN_IF_IP}) {
+      push @commands, "$IFCONFIG vlan$INFO{VLAN_ID} vlan $INFO{VLAN_ID} vlandev $parent_interface";
+      push @commands, "$IFCONFIG vlan$INFO{VLAN_ID} create";
+      push @commands, "$IFCONFIG vlan$INFO{VLAN_ID} inet $INFO{VLAN_IF_IP} netmask $INFO{VLAN_IF_NETMASK}";
+     }
+    else {
+	    delete $vlans_info->{$INFO{VLAN_ID}};
     }
 
    }
@@ -433,11 +434,11 @@ foreach my $line (@$list) {
      }
 
     if ($nas_mng_ip_port ne '') {
-      $cmds = "/usr/bin/ssh -i id_dsa.$nas_mng_user $nas_mng_user\@$nas_mng_ip_port \"$cmds\" ";
+      $cmds = "/usr/bin/ssh -i $base_dir/Certs/id_dsa.$nas_mng_user $nas_mng_user\@$nas_mng_ip_port \"$cmds\" ";
      }
 
    system($cmds) if ($debug < 5);
-   $debug_output .= "$cmds\n" if ($debug > 2);;
+   $debug_output .= "$cmds\n" if ($debug > 2);
   }
 
 
@@ -463,7 +464,7 @@ sub vlan_info {
   my $IFCONFIG_CMD =  $IFCONFIG;
 
   if ($attr->{REMOTE_HOST}) {
-  	$IFCONFIG_CMD = "/usr/bin/ssh -i /usr/abills/Certs/id_dsa $attr->{REMOTE_USER}\@$attr->{REMOTE_HOST} \"$IFCONFIG\"";
+  	$IFCONFIG_CMD = "/usr/bin/ssh -i $base_dir/Certs/id_dsa $attr->{REMOTE_USER}\@$attr->{REMOTE_HOST} \"$IFCONFIG\"";
    }
 	
 	open(IFCONFIG, "$IFCONFIG_CMD |") || die "Can't open '$IFCONFIG' $!";
