@@ -343,7 +343,7 @@ my $list = $Nas->list({ PAGE_ROWS => 100000,
 foreach my $line (@$list) {
   my $parent_interface = '';
   
-  $debug_output .= "NAS ID: $line->[0] MNG_INFO: $line->[10]\@$line->[9] $line->[12]\n" if ($debug > 1);
+  $debug_output .= "NAS ID: $line->[0] MNG_INFO: $line->[10]\@$line->[9] $line->[12]\n" if ($debug > 2);
   
   if ( $line->[12]=~/IP-Interface-Name=\"(.+)\"/)  {
     $parent_interface = $1;
@@ -362,13 +362,14 @@ foreach my $line (@$list) {
 
   my $sudo = ($nas_mng_ip_port ne '') ? $SUDO : '';
   my $vlans_info = vlan_info({ NAS_MNG_IP_PORT => $nas_mng_ip_port,
-  	                           NAS_MNG_USER    => $nas_mng_user 
+  	                           NAS_MNG_USER    => $nas_mng_user,
+  	                           DEBUG           => $debug
   	                          });
 
   foreach my $line (@$vlan_list) {
   #Port
      $debug_output .= "$line->[0]: VLAN ID: $line->[4] IP: $line->[5] NETMASK: $line->[9]".
-       " USER IPs: $line->[6] DHCP: $line->[8]\n" if ($debug > 0); 
+       " USER IPs: $line->[6] DHCP: $line->[8]\n" if ($debug > 2); 
 
     $INFO{VLAN_ID}    = $line->[4];
     $INFO{VLAN_IF_IP} = $line->[5];
@@ -402,11 +403,13 @@ foreach my $line (@$list) {
     # 
       push @commands, "$IFCONFIG vlan$INFO{VLAN_ID} create vlan $INFO{VLAN_ID} vlandev $parent_interface";
       push @commands, "$IFCONFIG vlan$INFO{VLAN_ID} inet $INFO{VLAN_IF_IP} netmask $INFO{VLAN_IF_NETMASK}";
+      $debug_output .= "Vlan ID: $INFO{VLAN_ID} IP: $INFO{VLAN_IF_IP} Created\n" if ($debug > 0);
      }
     elsif ($vlans_info->{$INFO{VLAN_ID}} && $vlans_info->{$INFO{VLAN_ID}} ne $INFO{VLAN_IF_IP}) {
       push @commands, "$IFCONFIG vlan$INFO{VLAN_ID} destroy ";
       push @commands, "$IFCONFIG vlan$INFO{VLAN_ID} create vlan $INFO{VLAN_ID} vlandev $parent_interface";
       push @commands, "$IFCONFIG vlan$INFO{VLAN_ID} inet $INFO{VLAN_IF_IP} netmask $INFO{VLAN_IF_NETMASK}";
+      $debug_output .= "Vlan ID: $INFO{VLAN_ID} IP: $INFO{VLAN_IF_IP} Change\n" if ($debug > 0);
      }
     else {
 	    delete $vlans_info->{$INFO{VLAN_ID}};
@@ -426,12 +429,11 @@ foreach my $line (@$list) {
 	  push @commands, "$IFCONFIG vlan$vlan_id destroy;";
   }
 
-
   #Make commands
   if ($#commands > -1 ) {
     my $cmds = '';
     foreach my $cmd ( @commands ) {
-      $cmds .= ($sudo ne '') ? "$cmd; " : "$sudo $cmd; ";
+      $cmds .= ($sudo ne '') ? "$sudo $cmd; " : "$cmd; ";
      }
 
     if ($nas_mng_ip_port ne '') {
@@ -444,10 +446,6 @@ foreach my $line (@$list) {
 
 
 }
-
-
-
-
 
   $DEBUG = $debug_output;	
 	return $debug_output;
@@ -464,11 +462,12 @@ sub vlan_info {
 	my $ifconfig = '';
   my $IFCONFIG_CMD =  $IFCONFIG;
 
-  if ($attr->{REMOTE_HOST}) {
-  	$IFCONFIG_CMD = "/usr/bin/ssh -i $base_dir/Certs/id_dsa $attr->{REMOTE_USER}\@$attr->{REMOTE_HOST} \"$IFCONFIG\"";
+  if ($attr->{NAS_MNG_IP_PORT}) {
+  	$IFCONFIG_CMD = "/usr/bin/ssh -i $base_dir/Certs/id_dsa.$attr->{NAS_MNG_USER} $attr->{NAS_MNG_USER}\@$attr->{NAS_MNG_IP_PORT} \"$IFCONFIG\"";
    }
 	
-	open(IFCONFIG, "$IFCONFIG_CMD |") || die "Can't open '$IFCONFIG' $!";
+	print $IFCONFIG_CMD."\n" if ($attr->{DEBUG} && $attr->{DEBUG} > 4);
+	open(IFCONFIG, "$IFCONFIG_CMD |") || die "Can't open '$IFCONFIG_CMD' $!";
     while (my $l = <IFCONFIG>) {
       $ifconfig .= $l;
      }  
@@ -481,7 +480,7 @@ sub vlan_info {
    my $res    = $3;
 
    $VLANS{$if_num}=$ip;
-   print "$if_num IP: $ip $res\n" if ($debug > 4);
+   print "$if_num IP: $ip $res\n" if ($attr->{DEBUG} && $attr->{DEBUG} > 4);
   }
 
   return \%VLANS;
