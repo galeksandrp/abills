@@ -6,6 +6,23 @@ my $Vlan = Vlan->new($db, $admin, \%conf);
 my $Nas = Nas->new($db, \%conf);
 
 my $SUDO = '/usr/local/bin/sudo';
+my $debug = 0;
+
+my $subnets = qq{
+#Subnets %DESCRIBE%
+subnet %NET_IP% netmask %NETMASK% {
+  range %FIRST_IP% %LAST_IP%;
+  option routers %DEFAULT_GATEWAY%;
+  #Comments
+  # %COMMENTS%
+  host %LOGIN% {	
+    %FIXED_MAC%
+    #fixed-address %USER_IP%;
+    #next-server %IF_IP%;
+  }
+}
+};
+
 
 
 #**********************************************************
@@ -242,80 +259,6 @@ sub vlan_user_info {
 
 
 
-#**********************************************************
-# daily_fees
-#**********************************************************
-sub vlan_periodic {
-  my ($attr) =@_;
-
-	my $debug = $attr->{DEBUG} || 0;
-  my $debug_output = '';
-
- $debug_output .= "Daily pariodic payments\n" if ($debug > 1);
-
- my $list = $tariffs->list({ %LIST_PARAMS });
- $ADMIN_REPORT{DATE}=$DATE if (! $ADMIN_REPORT{DATE});
-
- foreach my $line (@$list) {
- 	 if ($line->[5] > 0) {
- 	   $debug_output .= "TP ID: $line->[0] DF: $line->[5] MF: $line->[6] POSTPAID: $line->[11] REDUCTION: $line->[10] \n" if ($debug > 1);
- 	   $LIST_PARAMS{TP}=$line->[0];
- 	   my $ulist = $Dv->list({
-         ACTIVATE  => "<='$ADMIN_REPORT{DATE}'",
-         EXPIRE    => ">'$ADMIN_REPORT{DATE}'",
-         DISABLE   => 0,
-         TP_ID     => $line->[0],
-         SORT      => 1,
-         PAGE_ROWS => 100000
- 	   	 });
-
-#     .id, u.fio, if(acct.id IS NULL, u.deposit, acct.deposit), u.credit, tp.name, u.disable, 
-#      u.uid, u.account_id, u.email, u.tp_id
-     foreach my $u (@$ulist) {
-        if ($u->[12] > 0 && defined($u->[2])) {
-          my %user = (
-             ACCOUNT_ID => $u->[7],
-             UID        => $u->[6],
-             BILL_ID    => $u->[12],
-             REDUCTION  => $u->[13]  
-           );
-          
-
-          #print "  UID: $u->[0] / $line->[5] / DEPOSIT: $u->[2] / $u->[3] / BILL_ID: $u->[12]\n"; 	
-          #If deposit is above-zero or TARIF PALIN is POST PAID or PERIODIC PAYMENTS is POSTPAID
-          if($u->[2] + $u->[3] > 0 || $line->[4] == 1 || $line->[11] == 1 ) {
-             #print "  UID: $u->[0] / $line->[5] / DEPOSIT: $u->[2] / $u->[3] / BILL_ID: $u->[12]\n"; 	
-             my $sum = $line->[5];
-             # IF TP have PARIODIC PAYMENTS USER reduction
-             if ($line->[10] == 1 && $u->[13] > 0) {
-               $sum = $sum * (100 - $u->[13]) / 100;
-              }
-
-             my %PARAMS = ( DESCRIBE => "$_DAY_FEE" );
-             $PARAMS{DATE}=$DATE if ($DATE ne '');
-
-             if ($debug > 4) {
-                $debug_output .= " UID: $user{UID} SUM: $sum REDUCTION: $u->[13]\n";
-              }
-             else {
-               $fees->take(\%user, $sum, { %PARAMS } );
-              }
-           }
-        }
-       else {
-       	  print "[ $u->[6] ] $u->[0] - Don't have money account\n";
-        }
-
-      }
- 	  }
-  }
-
-
-  $DEBUG .= $debug_output;
-  return $debug_output;
-}
-
-
 
 #**********************************************************
 #
@@ -323,13 +266,8 @@ sub vlan_periodic {
 sub vlan_create {
   my ($attr) = @_;	
 
-my @commands = ();
-my %NETWORKS_HASH = ();
-my %INFO = ();
 
-my $subnets='';
-
-my $debug = $attr->{DEBUG} || 0;
+$debug = $attr->{DEBUG} || 0;
 my $debug_output = '';
   
 #Get nas servers TYPE: dlink_pb
@@ -341,7 +279,9 @@ my $list = $Nas->list({ PAGE_ROWS => 100000,
 
 
 foreach my $line (@$list) {
+  my @commands = ();
   my $parent_interface = '';
+  my %INFO = ();
   
   $debug_output .= "NAS ID: $line->[0] MNG_INFO: $line->[10]\@$line->[9] $line->[12]\n" if ($debug > 2);
   
@@ -370,7 +310,7 @@ foreach my $line (@$list) {
   #Port
      $debug_output .= "$line->[0]: VLAN ID: $line->[4] IP: $line->[5] NETMASK: $line->[9]".
        " USER IPs: $line->[6] DHCP: $line->[8]\n" if ($debug > 2); 
-
+    $INFO{LOGIN}      = $line->[0];
     $INFO{VLAN_ID}    = $line->[4];
     $INFO{VLAN_IF_IP} = $line->[5];
     $INFO{DHCP}       = $line->[8];
@@ -387,6 +327,10 @@ foreach my $line (@$list) {
       my ($first_ip, $last_ip)=split(/ - /, $line->[6]);
       $INFO{FIRST_IP} = $first_ip;
       $INFO{LAST_IP}  = $last_ip;
+      $INFO{NET_IP}   = int2ip(ip2int($INFO{VLAN_IF_IP}) - 1);
+      $INFO{NETMASK}  = $INFO{VLAN_IF_NETMASK};
+      $INFO{DEFAULT_GATEWAY} = $INFO{VLAN_IF_IP};
+      $INFO{DESCRIBE} = "Vlan ID: $INFO{VLAN_ID} LOGIN: $INFO{LOGIN}";
       $INFO{SUBNETS} .= $html->tpl_show($subnets, \%INFO, { notprint => 'yes' });
      }
 
@@ -443,6 +387,8 @@ foreach my $line (@$list) {
    system($cmds) if ($debug < 5);
    $debug_output .= "$cmds\n" if ($debug > 2);
   }
+  
+  vlan_dhcp({ INFO => \%INFO  });
 
 
 }
@@ -484,6 +430,61 @@ sub vlan_info {
   }
 
   return \%VLANS;
+}
+
+
+#**********************************************************
+#
+#**********************************************************
+sub vlan_dhcp {
+  my ($attr) = @_;
+
+my $main_tpl = qq{
+option domain-name %DOMAINNAME%;
+option domain-name-servers %DNS_IP%;
+default-lease-time 86400;
+max-lease-time 172800;
+ddns-update-style none;
+#deny unknown-clients;
+#lease-file-name \"/var/db/dhcpd/dhcpd.leases\";
+log-facility local7;
+shared-network NETWORK_NAME {
+
+%SUBNETS%
+
+}
+
+};
+
+
+  # DHCP Section
+  my $DHCPCONF  = 'dhcpd.conf';
+  $attr->{INFO}{DATE}="DATE: $DATE $TIME";
+  my $dhcp_conf = $html->tpl_show($main_tpl, $attr->{INFO}, { notprint => 'yes' });
+  #Make dhcp conf and relaod DHCP
+  
+  print $dhcp_conf if ($debug > 4);
+  
+  open(FILE, ">$DHCPCONF") || die "Can't open file '$DHCP_CONF' $!\n";
+    print $dhcp_conf if ($debug > 2);
+    if ($debug < 5) {
+      print FILE $dhcp_conf;
+     }
+  close(FILE);
+
+
+
+ if ($attr->{NAS_MNG_IP_PORT}) {
+   system("/usr/bin/scp -i $base_dir/Certs/id_dsa.$attr->{NAS_MNG_USER}:$DHCP_CONF");
+   my $cmd =  "/usr/bin/ssh -i $base_dir/Certs/id_dsa.$attr->{NAS_MNG_USER} \"$sudo /usr/local/etc/rc.d/isc-dhcpd restart\";";
+   system("/usr/bin/ssh -i $base_dir/Certs/id_dsa.$attr->{NAS_MNG_USER} \"$sudo /usr/local/etc/rc.d/isc-dhcpd restart\";");
+   if ($debug > 2) {
+  	 print $cmd."\n";
+    }  
+  }
+
+  $DEBUG = $debug_output;	
+	return $debug_output;
 }
 
 1
