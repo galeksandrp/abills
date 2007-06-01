@@ -70,7 +70,7 @@ if ($Vlan->{errno}) {
   return 0;
  }
 elsif ($Vlan->{TOTAL} == 1) {
-	form_users({  USER => user_info($list->[0]->[7+$Vlan->{SEARCH_FIELDS_COUNT}]) });
+	form_users({  USER => user_info($list->[0]->[10+$Vlan->{SEARCH_FIELDS_COUNT}]) });
 	return 0;
 }
 
