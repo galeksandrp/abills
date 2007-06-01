@@ -396,10 +396,9 @@ foreach my $line (@$list) {
    $debug_output .= "$cmds\n" if ($debug > 2);
   }
   
-  print $INFO{NETWORKS};
-  
-  vlan_dhcp({ INFO => \%INFO  });
-
+  vlan_dhcp({ NAS_MNG_IP_PORT => $nas_mng_ip_port,
+  	          NAS_MNG_USER    => $nas_mng_user,
+  	          INFO => \%INFO  });
 
 }
 
@@ -458,15 +457,14 @@ my $main_tpl = $html->tpl_show(
 
 
   # DHCP Section
-  my $DHCPCONF  = 'dhcpd.conf';
+  my $DHCPCONF  = '/usr/local/etc/dhcpd.conf';
   $attr->{INFO}{DATETIME}="DATE: $DATE $TIME";
   my $dhcp_conf = $html->tpl_show($main_tpl, $attr->{INFO}, { notprint => 'yes' });
   #Make dhcp conf and relaod DHCP
   
-  print $dhcp_conf if ($debug > 4);
+  $debug_output .= $dhcp_conf if ($debug > 4);
   
   open(FILE, ">$DHCPCONF") || die "Can't open file '$DHCP_CONF' $!\n";
-    print $dhcp_conf if ($debug > 2);
     if ($debug < 5) {
       print FILE $dhcp_conf;
      }
@@ -475,9 +473,13 @@ my $main_tpl = $html->tpl_show(
 
 
  if ($attr->{NAS_MNG_IP_PORT}) {
-   system("/usr/bin/scp -i $base_dir/Certs/id_dsa.$attr->{NAS_MNG_USER}:$DHCP_CONF");
-   my $cmd =  "/usr/bin/ssh -i $base_dir/Certs/id_dsa.$attr->{NAS_MNG_USER} \"$sudo /usr/local/etc/rc.d/isc-dhcpd restart\";";
-   system("/usr/bin/ssh -i $base_dir/Certs/id_dsa.$attr->{NAS_MNG_USER} \"$sudo /usr/local/etc/rc.d/isc-dhcpd restart\";");
+   my $cmd = "/usr/bin/scp  -i $base_dir/Certs/id_dsa.$attr->{NAS_MNG_USER} $DHCPCONF ".
+      "$attr->{NAS_MNG_USER}\@$attr->{NAS_MNG_IP_PORT}:$DHCPCONF; ".
+             "/usr/bin/ssh -i $base_dir/Certs/id_dsa.$attr->{NAS_MNG_USER} ".
+      "$attr->{NAS_MNG_USER}\@$attr->{NAS_MNG_IP_PORT} \"sudo /usr/local/etc/rc.d/isc-dhcpd restart\"";   
+
+   system($cmd);
+   
    if ($debug > 2) {
   	 print $cmd."\n";
     }  
