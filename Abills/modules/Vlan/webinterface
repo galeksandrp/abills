@@ -283,7 +283,7 @@ my $list = $Nas->list({ PAGE_ROWS => 100000,
 foreach my $line (@$list) {
   my @commands = ();
   my $parent_interface = '';
-  my %INFO = ();
+  my %INFO = (SUBNETS => undef );
   
   $debug_output .= "NAS ID: $line->[0] MNG_INFO: $line->[10]\@$line->[9] $line->[12]\n" if ($debug > 2);
   
@@ -396,9 +396,12 @@ foreach my $line (@$list) {
    $debug_output .= "$cmds\n" if ($debug > 2);
   }
   
-  vlan_dhcp({ NAS_MNG_IP_PORT => $nas_mng_ip_port,
-  	          NAS_MNG_USER    => $nas_mng_user,
-  	          INFO => \%INFO  });
+  if ($attr->{SUBNETS}) {
+    vlan_dhcp({ NAS_MNG_IP_PORT => $nas_mng_ip_port,
+  	            NAS_MNG_USER    => $nas_mng_user,
+  	            INFO => \%INFO  });
+   }
+
 
 }
 
