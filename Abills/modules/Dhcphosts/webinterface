@@ -586,12 +586,12 @@ foreach my $NET_ID (@networks) {
   $INFO{ROUTERS}="option routers $Dhcphosts->{ROUTERS};" if ($Dhcphosts->{ROUTERS} ne '0.0.0.0');
   $INFO{DATETIME}="$DATE $TIME";
   
-  $INFO{NETWORK_NAME}=$Dhcphosts->{NAME};
-  $INFO{BLOCK_NETWORK}=$Dhcphosts->{BLOCK_NETWORK};
-  $INFO{BLOCK_MASK}=$Dhcphosts->{BLOCK_MASK};
-  $INFO{NETWORK}=$Dhcphosts->{NETWORK};
-  $INFO{NETWORK_MASK}=$Dhcphosts->{MASK};
-  
+  $INFO{NETWORK_NAME} = $Dhcphosts->{NAME};
+  $INFO{BLOCK_NETWORK}= $Dhcphosts->{BLOCK_NETWORK};
+  $INFO{BLOCK_MASK}   = $Dhcphosts->{BLOCK_MASK};
+  $INFO{NETWORK}      = $Dhcphosts->{NETWORK};
+  $INFO{NETWORK_MASK} = $Dhcphosts->{MASK};
+  $INFO{DESCRIBE}     = $Dhcphosts->{NAME};
 
   my $list = $Dhcphosts->routes_list({ NET_ID => $NET_ID });  
   
@@ -624,11 +624,13 @@ foreach my $NET_ID (@networks) {
    }
 
 
-print $INFO{NET_ROUTES};
 
   $INFO->{NETWORK}='';
-  $list = $Dhcphosts->hosts_list({ NETWORK => $NET_ID, STATUS => 0, PAGE_ROWS => 100000 });
-  
+  $list = $Dhcphosts->hosts_list({ NETWORK   => $NET_ID, 
+  	                               STATUS    => 0, 
+  	                               PAGE_ROWS => 100000 
+  	                             });
+
   foreach my $line (@$list) {
     $INFO{HOSTS} .= $html->tpl_show(_include('dhcphosts_dhcp_conf_host', 'Dhcphosts',), { 
     	  MAC      => $line->[6],
@@ -645,10 +647,18 @@ print $INFO{NET_ROUTES};
 
 if ($attr->{reconfig} || $FORM{reconfig} ) {
 	$conf{DHCPHOSTS_CONFIG} = "/usr/local/etc/dhcpd.conf" if (! $conf{DHCPHOSTS_CONFIG}) ;
+  
+  $INFO{SUBNETS} = $html->tpl_show(_include('dhcphosts_dhcp_conf_subnet', 'Dhcphosts'), 
+                                   \%INFO, 
+                                   { notprint => 'yes' });	 
+  
+  my $tpl = $html->tpl_show(_include('dhcphosts_dhcp_conf_main', 'Dhcphosts'), 
+                            \%INFO, 
+                            { notprint => 'yes' }
+                           );	 
 
-  my $tpl = $html->tpl_show(_include('dhcphosts_dhcp_conf_main', 'Dhcphosts'), \%INFO, { notprint => 'yes' });	 
 	open(FILE, ">$conf{DHCPHOSTS_CONFIG}") || print "Can't open file '$conf{DHCPHOSTS_CONFIG}' $!";
-	   print FILE $tpl;
+	  print FILE $tpl;
   close(FILE);
   
   dhcphosts_reconfigure({ DEBUG => $FORM{DEBUG} });
@@ -657,12 +667,16 @@ if ($attr->{reconfig} || $FORM{reconfig} ) {
  }
 else {
   print "<textarea cols=90 rows=20>";
+  $INFO{SUBNETS} = $html->tpl_show(_include('dhcphosts_dhcp_conf_subnet', 'Dhcphosts'), 
+                                   \%INFO,
+                                   { notprint => 1 } );	 
+
   $html->tpl_show(_include('dhcphosts_dhcp_conf_main', 'Dhcphosts'), \%INFO);
 	print "</textarea>";
 	print $html->form_main(	{  HIDDEN  => { index  => $index,
-		                                     IDS    => $FORM{IDS},
-		                                     config => 'dhcp.conf' },
-                            SUBMIT  => { reconfig => $_RECONFIGURE }
+		                                      IDS    => $FORM{IDS},
+		                                      config => 'dhcp.conf' },
+                             SUBMIT  => { reconfig => $_RECONFIGURE }
                          } );
 	
 }

@@ -8,21 +8,23 @@ my $Nas = Nas->new($db, \%conf);
 my $SUDO = '/usr/local/bin/sudo';
 my $debug = 0;
 
-my $subnets = qq{
-#Subnets %DESCRIBE%
-subnet %NET_IP% netmask %NETMASK% {
-  range %FIRST_IP% %LAST_IP%;
-  option routers %DEFAULT_GATEWAY%;
-  #Comments
-  # %COMMENTS%
-  host %LOGIN% {	
-    %FIXED_MAC%
-    #fixed-address %USER_IP%;
-    #next-server %IF_IP%;
-  }
-}
-};
 
+
+
+#my $subnets = qq{
+##Subnets %DESCRIBE%
+#subnet %NET_IP% netmask %NETMASK% {
+#  range %FIRST_IP% %LAST_IP%;
+#  %ROUTERS%
+#  #Comments
+#  # %COMMENTS%
+#  host %LOGIN% {	
+#    %FIXED_MAC%
+#    #fixed-address %USER_IP%;
+#    #next-server %IF_IP%;
+#  }
+#}
+#};
 
 
 #**********************************************************
@@ -325,13 +327,19 @@ foreach my $line (@$list) {
 
     if ($INFO{DHCP} == 1) {
       my ($first_ip, $last_ip)=split(/ - /, $line->[6]);
-      $INFO{FIRST_IP} = $first_ip;
-      $INFO{LAST_IP}  = $last_ip;
-      $INFO{NET_IP}   = int2ip(ip2int($INFO{VLAN_IF_IP}) - 1);
-      $INFO{NETMASK}  = $INFO{VLAN_IF_NETMASK};
-      $INFO{DEFAULT_GATEWAY} = $INFO{VLAN_IF_IP};
+      $INFO{NETWORK}  = int2ip(ip2int($INFO{VLAN_IF_IP}) - 1);
+      $INFO{NETWORK_MASK}  = $INFO{VLAN_IF_NETMASK};
+      $INFO{RANGE}    = "range $first_ip $last_ip";
+      $INFO{ROUTERS}  = "option routers $INFO{VLAN_IF_IP};";
       $INFO{DESCRIBE} = "Vlan ID: $INFO{VLAN_ID} LOGIN: $INFO{LOGIN}";
-      $INFO{SUBNETS} .= $html->tpl_show($subnets, \%INFO, { notprint => 'yes' });
+
+      $INFO{SUBNETS} .= $html->tpl_show(
+                               _include('dhcphosts_dhcp_conf_subnet', 'Dhcphosts'), 
+                               \%INFO,
+                               { notprint => 'yes' }
+                               );
+
+      #$INFO{SUBNETS} .= $html->tpl_show($subnets, \%INFO, { notprint => 'yes' });
      }
 
     if (! $vlans_info->{$INFO{VLAN_ID}}) {
@@ -388,6 +396,8 @@ foreach my $line (@$list) {
    $debug_output .= "$cmds\n" if ($debug > 2);
   }
   
+  print $INFO{NETWORKS};
+  
   vlan_dhcp({ INFO => \%INFO  });
 
 
@@ -439,27 +449,17 @@ sub vlan_info {
 sub vlan_dhcp {
   my ($attr) = @_;
 
-my $main_tpl = qq{
-option domain-name %DOMAINNAME%;
-option domain-name-servers %DNS_IP%;
-default-lease-time 86400;
-max-lease-time 172800;
-ddns-update-style none;
-#deny unknown-clients;
-#lease-file-name \"/var/db/dhcpd/dhcpd.leases\";
-log-facility local7;
-shared-network NETWORK_NAME {
+my $main_tpl = $html->tpl_show(
+                               _include('dhcphosts_dhcp_conf_main', 'Dhcphosts'), 
+                               $attr->{INFO},
+                               { notprint => 'yes' }
+                               );
 
-%SUBNETS%
-
-}
-
-};
 
 
   # DHCP Section
   my $DHCPCONF  = 'dhcpd.conf';
-  $attr->{INFO}{DATE}="DATE: $DATE $TIME";
+  $attr->{INFO}{DATETIME}="DATE: $DATE $TIME";
   my $dhcp_conf = $html->tpl_show($main_tpl, $attr->{INFO}, { notprint => 'yes' });
   #Make dhcp conf and relaod DHCP
   
