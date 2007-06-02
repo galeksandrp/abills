@@ -135,6 +135,7 @@ sub vlan_user {
     $Vlan->add({ %FORM });
     if (! $Vlan->{errno}) {
       $html->message('info', $_INFO, "$_ADDED");	
+      vlan_create();
      }
    }
 	elsif($FORM{set}) {
@@ -148,7 +149,9 @@ sub vlan_user {
 
     $Vlan->change({ %FORM });
     if (! $Vlan->{errno}) {
-      $html->message('info', $_INFO, "$_CHANGED");	
+    	my $message = vlan_create({ DEBUG => 1 });
+    	#print "<pre>$DEBUG</pre>";
+      $html->message('info', $_INFO, "$_CHANGED $message");	
      }
    }
 	elsif($FORM{del}) {
@@ -358,10 +361,11 @@ foreach my $line (@$list) {
       $debug_output .= "Vlan ID: $INFO{VLAN_ID} IP: $INFO{VLAN_IF_IP} Created\n" if ($debug > 0);
      }
     elsif ($vlans_info->{$INFO{VLAN_ID}} && $vlans_info->{$INFO{VLAN_ID}} ne $INFO{VLAN_IF_IP}) {
-      push @commands, "$IFCONFIG vlan$INFO{VLAN_ID} destroy ";
-      push @commands, "$IFCONFIG vlan$INFO{VLAN_ID} create vlan $INFO{VLAN_ID} vlandev $parent_interface";
+      #push @commands, "$IFCONFIG vlan$INFO{VLAN_ID} destroy";
+      #push @commands, "$IFCONFIG vlan$INFO{VLAN_ID} create vlan $INFO{VLAN_ID} vlandev $parent_interface";
       push @commands, "$IFCONFIG vlan$INFO{VLAN_ID} inet $INFO{VLAN_IF_IP} netmask $INFO{VLAN_IF_NETMASK}";
-      $debug_output .= "Vlan ID: $INFO{VLAN_ID} IP: $INFO{VLAN_IF_IP} Change\n" if ($debug > 0);
+      $debug_output .= "Vlan ID: $INFO{VLAN_ID} IP: $INFO{VLAN_IF_IP} Changed\n" if ($debug > 0);
+      delete $vlans_info->{$INFO{VLAN_ID}};
      }
     else {
 	    delete $vlans_info->{$INFO{VLAN_ID}};
@@ -378,7 +382,7 @@ foreach my $line (@$list) {
       $Ipn->acct_stop({ SESSION_ID => '', 
   	                ACCT_TERMINATE_CAUSE => $ACCT_TERMINATE_CAUSE });
     }
-	  push @commands, "$IFCONFIG vlan$vlan_id destroy;";
+	  push @commands, "$IFCONFIG vlan$vlan_id destroy";
   }
 
   #Make commands
@@ -424,7 +428,7 @@ sub vlan_info {
   	$IFCONFIG_CMD = "/usr/bin/ssh -i $base_dir/Certs/id_dsa.$attr->{NAS_MNG_USER} $attr->{NAS_MNG_USER}\@$attr->{NAS_MNG_IP_PORT} \"$IFCONFIG\"";
    }
 	
-	print $IFCONFIG_CMD."\n" if ($attr->{DEBUG} && $attr->{DEBUG} > 4);
+	print $IFCONFIG_CMD."\n" if ($attr->{DEBUG} && $attr->{DEBUG} > 2);
 	open(IFCONFIG, "$IFCONFIG_CMD |") || die "Can't open '$IFCONFIG_CMD' $!";
     while (my $l = <IFCONFIG>) {
       $ifconfig .= $l;
