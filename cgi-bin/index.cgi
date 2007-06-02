@@ -212,7 +212,7 @@ $OUTPUT{BODY}="$html->{OUTPUT}";
 print $html->tpl_show(templates('users_start'), \%OUTPUT);
 
 
-$html->test();
+$html->test() if ($conf{debugmods} =~ /LOG_DEBUG/);
 
 
 #==========================================================

@@ -149,7 +149,7 @@ sub vlan_user {
 
     $Vlan->change({ %FORM });
     if (! $Vlan->{errno}) {
-    	my $message = vlan_create({ DEBUG => 3 });
+    	my $message = vlan_create({ DEBUG => 4 });
     	#print "<pre>$DEBUG</pre>";
       $html->message('info', $_INFO, "$_CHANGED $message");	
      }
