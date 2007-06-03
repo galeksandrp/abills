@@ -332,7 +332,7 @@ foreach my $line (@$list) {
       my ($first_ip, $last_ip)=split(/ - /, $line->[6]);
       $INFO{NETWORK}  = int2ip(ip2int($INFO{VLAN_IF_IP}) - 1);
       $INFO{NETWORK_MASK}  = $INFO{VLAN_IF_NETMASK};
-      $INFO{RANGE}    = "range $first_ip $last_ip";
+      $INFO{RANGE}    = "range $first_ip $last_ip;";
       $INFO{ROUTERS}  = "option routers $INFO{VLAN_IF_IP};";
       $INFO{DESCRIBE} = "Vlan ID: $INFO{VLAN_ID} LOGIN: $INFO{LOGIN}";
 
