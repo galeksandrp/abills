@@ -3780,7 +3780,7 @@ sub form_templates {
                         'user_info'    => USER_INFO);
 
 
-$info{ACTION_LNG}=$_CREATE;
+$info{ACTION_LNG}=$_CHANGE;
 
 if ($FORM{create}) {
    $FORM{create} =~ s/ |\///g;
@@ -3850,7 +3850,7 @@ elsif ($FORM{change}) {
 	close(FILE);
 
 	$html->message('info', $_INFO, "$_CHANGED");
-}
+ }
 elsif ($FORM{del} && $FORM{is_js_confirmed} ) {
   $FORM{del} =~ s/ |\///g;
   if(unlink("$conf{TPL_DIR}/$FORM{del}") == 1 ) {	
@@ -3864,12 +3864,14 @@ elsif($FORM{tpl_name}) {
   if (-f  "$conf{TPL_DIR}/$FORM{tpl_name}" ) {
 	  open(FILE, "$conf{TPL_DIR}/$FORM{tpl_name}") || $html->message('err', $_ERROR, "Can't open file '$conf{TPL_DIR}/$FORM{tpl_name}' $!\n");;
   	  while(<FILE>) {
-	    	 $template .= $_;
+	    	 $info{TEMPLATE} .= $_;
 	    }	 
 	  close(FILE);
+
+    $html->message('info', $_CHAMGE, "$_CHANGE: $FORM{tpl_name}");
    }
 
-  $html->message('info', $_CHAMGE, "$_CHANGE: $templates{$FORM{tpl_name}}");
+  
 }
 
 
@@ -3916,7 +3918,7 @@ foreach my $module (@MODULES) {
       my ($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size,$atime,$mtime,$ctime,$blksize,$blocks)=stat("$sys_templates/$module/templates/".$file);
       $table->addrow("$file", $size, 
          $html->button($_SHOW, "index=$index#", { NEW_WINDOW => "$SELF_URL?qindex=$index&SHOW=$module:$file" }),
-         (-f "$conf{TPL_DIR}/$module"."_$file") ? $html->button($_CHANGE, "index=$index&tpl_name=$module_$file") : $html->button($_CREATE, "index=$index&create=$module:$file"),
+         (-f "$conf{TPL_DIR}/$module"."_$file") ? $html->button($_CHANGE, "index=$index&tpl_name=$module"."_$file") : $html->button($_CREATE, "index=$index&create=$module:$file"),
          (-f "$conf{TPL_DIR}/$module"."_$file") ? $html->button($_DEL, "index=$index&del=$module". "_$file", { MESSAGE => "$_DEL $file" }) : '');
      }
 
