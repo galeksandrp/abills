@@ -1,12 +1,11 @@
 
 # Base Templates
 
-
 #**********************************************************
 # templates
 #**********************************************************
 sub _include {
-  my ($tpl, $module) = @_;
+  my ($tpl, $module, $attr) = @_;
   my $result = '';
 
   
@@ -15,6 +14,9 @@ sub _include {
    }
   elsif (-f "../Abills/templates/$module". _. "$tpl".".tpl") {
     return tpl_content("../Abills/templates/$module". _. "$tpl".".tpl");
+   }
+  elsif (-f "$Bin/../Abills/templates/$module". _. "$tpl".".tpl") {
+    return tpl_content("$Bin/../Abills/templates/$module". _. "$tpl".".tpl");
    }
   elsif (defined($module)) {
     $tpl	= "modules/$module/templates/$tpl";

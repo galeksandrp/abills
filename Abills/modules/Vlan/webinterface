@@ -414,6 +414,8 @@ foreach my $line (@$list) {
 }
 
 
+
+
 #**********************************************************
 #
 #**********************************************************
@@ -494,6 +496,22 @@ my $main_tpl = $html->tpl_show(
 
   $DEBUG = $debug_output;	
 	return $debug_output;
+}
+
+
+#**********************************************************
+# Make PPPoE relay
+#**********************************************************
+sub vlan_pppoe_relay {
+  my($attr) = @_;
+
+  my @commands = ("killall pppoe-relay");
+  
+  my $client_interfaces = join(" -C ", @{ $attr->{LIENT_INTERFACES} } );
+  
+  @commands = ("pppoe-relay -S $attr->{PARENT_INTERFACE} $client_interfaces");
+
+  return ;
 }
 
 1

@@ -1,7 +1,12 @@
 #!/usr/bin/perl -w
 #Periodic process
 
-use vars  qw(%RAD %conf @MODULES $db $html $DATE $GZIP $MYSQLDUMP %ADMIN_REPORT $DEBUG);
+use vars  qw(%RAD %conf @MODULES $db $html $DATE $GZIP 
+$MYSQLDUMP 
+%ADMIN_REPORT 
+$DEBUG);
+
+
 #use strict;
 use FindBin '$Bin';
 use Sys::Hostname;
