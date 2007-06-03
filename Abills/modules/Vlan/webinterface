@@ -400,7 +400,7 @@ foreach my $line (@$list) {
    $debug_output .= "$cmds\n" if ($debug > 2);
   }
   
-  if ($attr->{SUBNETS}) {
+  if ($INFO{SUBNETS}) {
     vlan_dhcp({ NAS_MNG_IP_PORT => $nas_mng_ip_port,
   	            NAS_MNG_USER    => $nas_mng_user,
   	            INFO => \%INFO  });
