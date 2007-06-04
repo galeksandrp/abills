@@ -7,5 +7,6 @@ CREATE TABLE `vlan_main` (
   `dhcp` tinyint(1) unsigned NOT NULL default '0',
   `nas_id` smallint(6) unsigned NOT NULL default '0',
   `pppoe` tinyint(1) unsigned NOT NULL default '0',
-  PRIMARY KEY  (`uid`)
+  PRIMARY KEY  (`uid`),
+  UNIQUE KEY `nas_id` (`nas_id`,`vlan_id`)
 ) COMMENT='Vlan module';
