@@ -56,7 +56,7 @@ my $list = $Vlan->list( { %LIST_PARAMS } );
 my @TITLE = ($_LOGIN, $_FIO, $_DEPOSIT, $_CREDIT, 'VLAN ID', 
 "$_INTERFACE IP",
 "IP $_RANGE",
-"DHCP",
+"DHCP", "PPPoE",
 $_STATUS);
 
 
@@ -70,7 +70,7 @@ if ($Vlan->{errno}) {
   return 0;
  }
 elsif ($Vlan->{TOTAL} == 1) {
-	form_users({  USER => user_info($list->[0]->[10+$Vlan->{SEARCH_FIELDS_COUNT}]) });
+	form_users({  USER => user_info($list->[0]->[11+$Vlan->{SEARCH_FIELDS_COUNT}]) });
 	return 0;
 }
 
@@ -93,7 +93,7 @@ foreach my $line (@$list) {
    }
   
   $table->addrow(
-   $html->button("$line->[0]", "index=15&UID=$line->[10+$Vlan->{SEARCH_FIELDS_COUNT}]"), 
+   $html->button("$line->[0]", "index=15&UID=$line->[11+$Vlan->{SEARCH_FIELDS_COUNT}]"), 
    "$line->[1]",
    "$line->[2]", 
    "$line->[3]", 
@@ -101,6 +101,7 @@ foreach my $line (@$list) {
    "$line->[5]",
    "$line->[6]", 
    $bool_vals[$line->[8]],
+   $bool_vals[$line->[9]],
    $status[$line->[7]]
    
    );
@@ -187,7 +188,8 @@ sub vlan_user {
 
 
   $user->{DISABLE}=($user->{DISABLE} == 1) ? ' checked' : '';
-  $user->{DHCP}=($user->{DHCP} == 1) ? ' checked' : '';
+  $user->{DHCP}   =($user->{DHCP} == 1) ? ' checked' : '';
+  $user->{PPPOE}  =($user->{PPPOE} == 1) ? ' checked' : '';
 
   my $Nas = Nas->new($db, \%conf);
   $user->{NAS_LIST} = $html->form_select('NAS_ID', 
@@ -310,17 +312,20 @@ foreach my $line (@$list) {
   	                           NAS_MNG_USER    => $nas_mng_user,
   	                           DEBUG           => $debug
   	                          });
-
+  
+  my @client_interfaces = ();
+  
   foreach my $line (@$vlan_list) {
   #Port
      $debug_output .= "$line->[0]: VLAN ID: $line->[4] IP: $line->[5] NETMASK: $line->[9]".
-       " USER IPs: $line->[6] DHCP: $line->[8]\n" if ($debug > 2); 
+       " USER IPs: $line->[6] DHCP: $line->[8] PPPoE: $line->[9]\n" if ($debug > 2); 
     $INFO{LOGIN}      = $line->[0];
     $INFO{VLAN_ID}    = $line->[4];
     $INFO{VLAN_IF_IP} = $line->[5];
     $INFO{DHCP}       = $line->[8];
-    $INFO{VLAN_IF_NETMASK} = $line->[9];
-    
+    $INFO{VLAN_IF_NETMASK} = $line->[10];
+    $INFO{PPPOE}      = $line->[9];
+   
     
     if ($INFO{VLAN_IF_IP} eq '0.0.0.0') {
     	$debug_output .= "!!! No IP for user '$line->[0]' Vlan [$INFO{VLAN_ID}] ";
@@ -343,6 +348,10 @@ foreach my $line (@$list) {
                                );
 
       #$INFO{SUBNETS} .= $html->tpl_show($subnets, \%INFO, { notprint => 'yes' });
+     }
+
+    if ( $INFO{PPPOE} == 1 ) {
+      push @client_interfaces, "vlan$INFO{VLAN_ID}";
      }
 
     if (! $vlans_info->{$INFO{VLAN_ID}}) {
@@ -399,17 +408,25 @@ foreach my $line (@$list) {
    system($cmds) if ($debug < 5);
    $debug_output .= "$cmds\n" if ($debug > 2);
   }
-  
+
+  #Make DHCP Nets  
   if ($INFO{SUBNETS}) {
     vlan_dhcp({ NAS_MNG_IP_PORT => $nas_mng_ip_port,
   	            NAS_MNG_USER    => $nas_mng_user,
-  	            INFO => \%INFO  });
+  	            INFO            => \%INFO  });
    }
-
+  #Make PPPoE Realy
+  if ($#client_interfaces > -1) {
+    vlan_pppoe_relay({ CLIENT_INTERFACES => \@client_interfaces,
+  	                   NAS_MNG_IP_PORT   => $nas_mng_ip_port,
+  	                   NAS_MNG_USER      => $nas_mng_user,
+  	                   PARENT_INTERFACE  => $parent_interface
+  	                  });
+   }
 
 }
 
-  $DEBUG = $debug_output;	
+  $DEBUG .= $debug_output;	
 	return $debug_output;
 }
 
@@ -457,7 +474,7 @@ sub vlan_info {
 sub vlan_dhcp {
   my ($attr) = @_;
 
-my $main_tpl = $html->tpl_show(
+  my $main_tpl = $html->tpl_show(
                                _include('dhcphosts_dhcp_conf_main', 'Dhcphosts'), 
                                $attr->{INFO},
                                { notprint => 'yes' }
@@ -468,12 +485,13 @@ my $main_tpl = $html->tpl_show(
   # DHCP Section
   my $DHCPCONF  = '/usr/local/etc/dhcpd.conf';
   $attr->{INFO}{DATETIME}="DATE: $DATE $TIME";
+  my $debug_output='';
   my $dhcp_conf = $html->tpl_show($main_tpl, $attr->{INFO}, { notprint => 'yes' });
   #Make dhcp conf and relaod DHCP
   
   $debug_output .= $dhcp_conf if ($debug > 4);
   
-  open(FILE, ">$DHCPCONF") || die "Can't open file '$DHCP_CONF' $!\n";
+  open(FILE, ">$DHCPCONF") || die "Can't open file '$DHCPCONF' $!\n";
     if ($debug < 5) {
       print FILE $dhcp_conf;
      }
@@ -494,7 +512,7 @@ my $main_tpl = $html->tpl_show(
     }  
   }
 
-  $DEBUG = $debug_output;	
+  $DEBUG .= $debug_output;	
 	return $debug_output;
 }
 
@@ -506,12 +524,23 @@ sub vlan_pppoe_relay {
   my($attr) = @_;
 
   my @commands = ("killall pppoe-relay");
-  
-  my $client_interfaces = join(" -C ", @{ $attr->{LIENT_INTERFACES} } );
-  
-  @commands = ("pppoe-relay -S $attr->{PARENT_INTERFACE} $client_interfaces");
+  my $debug_output = '';
+  my $client_interfaces = join(" -C ", @{ $attr->{CLIENT_INTERFACES} } );
 
-  return ;
+ 
+  my $cmd = "pppoe-relay -S $attr->{PARENT_INTERFACE} $client_interfaces";
+
+   if ($attr->{NAS_MNG_IP_PORT}) {
+     my $cmd = "/usr/bin/ssh -o StrictHostKeyChecking=no -i $base_dir/Certs/id_dsa.$attr->{NAS_MNG_USER} ".
+       "$attr->{NAS_MNG_USER}\@$attr->{NAS_MNG_IP_PORT} \"sudo $cmd\"";
+    }
+  
+  $debug_output = $cmd."\n" if ($debug > 5);
+
+  system($cmd) if ($debug < 5);
+
+  $DEBUG .= $debug_output;	
+	return $debug_output;
 }
 
 1

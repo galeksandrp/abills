@@ -6,5 +6,6 @@ CREATE TABLE `vlan_main` (
   `disable` tinyint(1) unsigned NOT NULL default '0',
   `dhcp` tinyint(1) unsigned NOT NULL default '0',
   `nas_id` smallint(6) unsigned NOT NULL default '0',
+  `pppoe` tinyint(1) unsigned NOT NULL default '0',
   PRIMARY KEY  (`uid`)
 ) COMMENT='Vlan module';

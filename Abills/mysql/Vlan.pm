@@ -70,6 +70,7 @@ sub info {
    INET_NTOA(netmask), 
    disable, 
    dhcp,
+   pppoe,
    nas_id
      FROM vlan_main
    $WHERE;");
@@ -85,6 +86,7 @@ sub info {
    $self->{NETMASK}, 
    $self->{DISABLE},
    $self->{DHCP},
+   $self->{PPPOE},
    $self->{NAS_ID}
   )= @{ $self->{list}->[0] };
 
@@ -105,7 +107,8 @@ sub defaults {
    IP             => '0.0.0.0', 
    NETMASK        => '255.255.255.255', 
    DHCP           => 0,
-   NAS_ID         => 0
+   NAS_ID         => 0,
+   PPPOE          => 0
   );
 
   $self = \%DATA;
@@ -127,20 +130,19 @@ sub add {
              netmask, 
              disable, 
              dhcp,
+             pppoe,
              nas_id
            )
         VALUES ('$DATA{UID}', '$DATA{VLAN_ID}', INET_ATON('$DATA{IP}'), 
         INET_ATON('$DATA{NETMASK}'), '$DATA{DISABLE}', 
         '$DATA{DHCP}',
+        '$DATA{PPPOE}',
         '$DATA{NAS_ID}');", 'do');
 
   return $self if ($self->{errno});
   $admin->action_add("$DATA{UID}", "ACTIVE");
   return $self;
 }
-
-
-
 
 #**********************************************************
 # change()
@@ -155,11 +157,13 @@ sub change {
               NETMASK          => 'netmask',
               VLAN_ID          => 'vlan_id',
               DHCP             => 'dhcp',
+              PPPOE            => 'pppoe',
               UID              => 'uid',
               NAS_ID           => 'nas_id'
              );
   
   $attr->{DHCP} = ($attr->{DHCP}) ? $attr->{DHCP} : 0;
+  $attr->{PPPOE} = ($attr->{PPPOE}) ? $attr->{PPPOE} : 0;
   
   my $old_info = $self->info($attr->{UID});
   
@@ -258,11 +262,13 @@ sub list {
     $self->{SEARCH_FIELDS_COUNT}++;
   }
 
- if ($attr->{PHONE}) {
-    my $value = $self->search_expr($attr->{PHONE}, 'INT');
-    push @WHERE_RULES, "u.phone$value";
+ if ($attr->{PPPOE}) {
+    push @WHERE_RULES, "vlan.pppoe='$attr->{PPPOE}'";
   }
 
+ if ($attr->{DHCP}) {
+    push @WHERE_RULES, "vlan.dhcp='$attr->{DHCP}'";
+  }
 
  if ($attr->{DEPOSIT}) {
     my $value = $self->search_expr($attr->{DEPOSIT}, 'INT');
@@ -314,6 +320,7 @@ sub list {
         INET_NTOA(vlan.ip + 4294967294 - vlan.netmask - 1)),
       vlan.disable, 
       vlan.dhcp,
+      vlan.pppoe,
       INET_NTOA(vlan.netmask),
       $self->{SEARCH_FIELDS}
       u.uid, 

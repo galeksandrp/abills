@@ -35,7 +35,9 @@ if ($FORM{change}) {
 
   if (in_array('Docs', \@MODULES) && $FORM{INVOICE}) {
      require "Abills/modules/Docs/webinterface";
-     $list = $Cards->cards_list({ IDS => $FORM{IDS}, ROWS => 1000000 });
+     $list = $Cards->cards_list({ IDS  => $FORM{IDS}, 
+     	                            ROWS => 1000000 
+     	                          });
        my %DILLERS_LIST = ();
        foreach my $line (@$list) {
     	   $DILLERS_LIST{"$line->[7]"}{"$line->[1]:$line->[3]"}++ if ($line->[7] ne '') ;
@@ -172,8 +174,8 @@ if (defined($FORM{SERIA})) {
   $op_sid = mk_unique_value(8);
 
   print $html->form_main({ CONTENT => $table->show().
-                              "$_SOLD: ". $html->form_input('SOLD', 1, { TYPE => 'checkbox' }).
-                              " $_INVOICE ". $html->form_input('INVOICE', 1, { TYPE => 'checkbox' }).
+                              "$_SOLD: ".    $html->form_input('SOLD', 1, { TYPE => 'checkbox' }).
+                              "$_INVOICE ".  $html->form_input('INVOICE', 1, { TYPE => 'checkbox' }).
                               "$_DILLERS: ". $Cards->{DILLERS_SEL}.
                               "$_STATUS: ".  $Cards->{STATUS_SEL},
                               
@@ -239,13 +241,13 @@ else {
                           title_plain => [$_STATUS, "$_COUNT", "$_SUM" ],
                           cols_align  => ['right', 'right', 'right'],
                           rows        => [ \@total_arr,
-                                           [ "$_TOTAL:",   "<b>$Cards->{TOTAL}</b>", $Cards->{TOTAL_SUM}    ],
-                                           [ "$_USED",     $Cards->{USED}          , $Cards->{USED_SUM}     ],
-                                           [ "$_ENABLE:",  $Cards->{ENABLED}       , $Cards->{ENABLED_SUM}   ],
-                                           [ "$_DISABLE:", $Cards->{DISABLED}      , $Cards->{DISABLED_SUM} ],
-                                           [ "$_DELETED",  $Cards->{DELETED}       , $Cards->{DELETED_SUM}  ],
-                                           [ "$_RETURNED", $Cards->{RETURNED}      , $Cards->{RETURNED_SUM} ],
-                                           [ "$_SOLD",     $Cards->{DILLER_SOLD}, $Cards->{DILLER_SOLD_SUM} ]
+                                           [ "$_TOTAL:",   "<b>$Cards->{TOTAL}</b>", $Cards->{TOTAL_SUM}       ],
+                                           [ "$_USED",     $Cards->{USED}          , $Cards->{USED_SUM}        ],
+                                           [ "$_ENABLE:",  $Cards->{ENABLED}       , $Cards->{ENABLED_SUM}     ],
+                                           [ "$_DISABLE:", $Cards->{DISABLED}      , $Cards->{DISABLED_SUM}    ],
+                                           [ "$_DELETED",  $Cards->{DELETED}       , $Cards->{DELETED_SUM}     ],
+                                           [ "$_RETURNED", $Cards->{RETURNED}      , $Cards->{RETURNED_SUM}    ],
+                                           [ "$_SOLD",     $Cards->{DILLER_SOLD}   , $Cards->{DILLER_SOLD_SUM} ]
                                         ]
                         });
 
