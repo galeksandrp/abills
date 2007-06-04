@@ -528,17 +528,19 @@ sub vlan_pppoe_relay {
   my $client_interfaces = join(" -C ", @{ $attr->{CLIENT_INTERFACES} } );
 
  
-  my $cmd = "pppoe-relay -S $attr->{PARENT_INTERFACE} $client_interfaces";
+  my $cmd = "pppoe-relay -S $attr->{PARENT_INTERFACE} -C $client_interfaces";
 
    if ($attr->{NAS_MNG_IP_PORT}) {
-     my $cmd = "/usr/bin/ssh -o StrictHostKeyChecking=no -i $base_dir/Certs/id_dsa.$attr->{NAS_MNG_USER} ".
-       "$attr->{NAS_MNG_USER}\@$attr->{NAS_MNG_IP_PORT} \"sudo $cmd\"";
+     $cmd = "/usr/bin/ssh -o StrictHostKeyChecking=no -i $base_dir/Certs/id_dsa.$attr->{NAS_MNG_USER} ".
+       "$attr->{NAS_MNG_USER}\@$attr->{NAS_MNG_IP_PORT} \"sudo killall pppoe-relay; sudo $cmd\"";
     }
   
-  $debug_output = $cmd."\n" if ($debug > 5);
+  $debug_output = $cmd."\n" if ($debug > 3);
 
-  system($cmd) if ($debug < 5);
-
+  my $out = system($cmd) if ($debug < 5);
+  $debug_output .= $out."\n" if ($debug > 4);
+  
+  
   $DEBUG .= $debug_output;	
 	return $debug_output;
 }
