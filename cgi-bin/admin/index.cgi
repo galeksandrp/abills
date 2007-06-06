@@ -963,7 +963,7 @@ if(defined($attr->{USER})) {
   if ($FORM{change}) {
     $user_info->change($user_info->{UID}, { %FORM } );
     if ($user_info->{errno}) {
-      $html->message('err', $_ERROR, "[$user_info->{errno}] $err_strs{$user_info->{errno}}");	
+      $html->message('err', $_ERROR, "-- [$user_info->{errno}] $err_strs{$user_info->{errno}}");	
       user_form();    
       print "</td></table>\n";
       return 0;	
@@ -980,21 +980,23 @@ if(defined($attr->{USER})) {
      }
    }
   elsif ($FORM{del_user} && $FORM{is_js_confirmed} && $index == 15 && $permissions{0}{5} ) {
-    $user_info->del();
-    if ($user_info->{errno}) {
-      $html->message('err', $_ERROR, "[$user_info->{errno}] $err_strs{$user_info->{errno}}");	
-     }
-    else {
-      $html->message('info', $_DELETE, "$_DELETED <br>from tables<br>$users->{info}");
-     }
-    
-    $conf{DELETE_USER}=$user_info->{UID};
-    foreach my $mod (@MODULES) {
-    	print $mod . "<br>\n";
-    	require "Abills/modules/$mod/webinterface";
-     }
-    
-
+    user_del({ USER => $user_info });
+#    $user_info->del();
+#    if ($user_info->{errno}) {
+#      $html->message('err', $_ERROR, "[$user_info->{errno}] $err_strs{$user_info->{errno}}");	
+#     }
+#    else {
+#      $html->message('info', $_DELETE, "$_DELETED <br>from tables<br>$users->{info}");
+#     }
+#    
+#    $conf{DELETE_USER}=$user_info->{UID};
+#
+#    my $mods = '';
+#    foreach my $mod (@MODULES) {
+#    	$mods .= "$mod,";
+#    	require "Abills/modules/$mod/webinterface";
+#     }
+#
     print "</td></tr></table>\n";
     return 0;
    }
@@ -1240,6 +1242,35 @@ else {
 }
 
 
+}
+
+
+#**********************************************************
+# user_group
+#**********************************************************
+sub user_del {
+  my ($attr) = @_;
+  
+  my $user_info = $attr->{USER};
+  
+  $user_info->del();
+   
+  $conf{DELETE_USER}=$user_info->{UID};
+
+  my $mods = '';
+  foreach my $mod (@MODULES) {
+  	$mods .= "$mod,";
+  	require "Abills/modules/$mod/webinterface";
+   }
+
+  if ($user_info->{errno}) {
+    $html->message('err', $_ERROR, "[$user_info->{errno}] $err_strs{$user_info->{errno}}");	
+   }
+  else {
+    $html->message('info', $_DELETED, "UID: [$user_info->{UID}] $_DELETED $users->{info} $_MODULES: $mods");
+   }
+ 
+  return 0;
 }
 
 #**********************************************************
@@ -4148,11 +4179,14 @@ sub form_webserver_info {
 sub form_config {
 	
 
-	my $table = $html->table( {caption     => 'config',
+	my $table = $html->table( {caption     => 'config options',
 		                         width       => '600',
                              title_plain => ["$_NAME", "$_VALUE", "-"],
                              cols_align  => ['left', 'left', 'center']
                           } );
+  $table->addrow("Perl Version:", $], '');
+  
+  
   my $i = 0;
   foreach my $k (sort keys %conf) {
      if ($k eq 'dbpasswd') {
@@ -4161,6 +4195,8 @@ sub form_config {
      $table->addrow($k, $conf{$k}, '');
      $i++;
    }
+
+  
 
 	print $table->show();
 }

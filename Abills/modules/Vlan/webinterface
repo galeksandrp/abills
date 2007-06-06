@@ -11,22 +11,6 @@ my $debug = 0;
 
 
 
-#my $subnets = qq{
-##Subnets %DESCRIBE%
-#subnet %NET_IP% netmask %NETMASK% {
-#  range %FIRST_IP% %LAST_IP%;
-#  %ROUTERS%
-#  #Comments
-#  # %COMMENTS%
-#  host %LOGIN% {	
-#    %FIXED_MAC%
-#    #fixed-address %USER_IP%;
-#    #next-server %IF_IP%;
-#  }
-#}
-#};
-
-
 #**********************************************************
 # user_vlan
 #**********************************************************

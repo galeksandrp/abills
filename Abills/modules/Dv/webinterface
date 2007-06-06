@@ -352,8 +352,8 @@ elsif (defined($FORM{TP_ID})) {
  	                                          MULTI_ARRAY_KEY   => 0,
  	                                          MULTI_ARRAY_VALUE => 1,
  	                                        }),
-	                       HIDDEN  => { index => "$index" },
-	                       SUBMIT  => { show  => "$_SHOW" } 
+	                                          HIDDEN  => { index => "$index" },
+	                                          SUBMIT  => { show  => "$_SHOW" } 
 	                        });
   
   func_menu({ 
@@ -1278,7 +1278,6 @@ print $html->form_main({ CONTENT => "$_LOGIN (*): " . $html->form_input('LOGIN_E
 	                                    index => "$index",
 	                                    UID   => "$UID"   },
 	                       SUBMIT  => { show  => "$_SHOW" }
-	                      
 	                      });
 	                                                                   
 
@@ -2449,8 +2448,7 @@ sub dv_cards {
                                                    '3:' => '' } 
                               });
 
-
-	my $return = cards_users_add({ EXTRA_TPL    => $dv_tpl  });
+	my $return = cards_users_add({ EXTRA_TPL => $dv_tpl  });
   
 
   $FORM{add}=1;

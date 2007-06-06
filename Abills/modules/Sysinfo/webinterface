@@ -22,6 +22,91 @@ sub sysinfo_conf {
   print $table->show();
 }
 
+
+#*******************************************************************
+# Show system info
+#*******************************************************************
+sub sysinfo_os {
+  my ($attr) = @_;
+
+  my %INFO_HASH = ();
+
+  my $full_info = sysinfo_get_os({ FULL_INFO => 1 });
+
+  if ($os eq 'FreeBSD') {
+  	if($full_info =~ /(\S+) (\S+) (\S+).+#\d:(.+) (\S+\@\S+) +(\S+)/) {
+  		$INFO_HASH{OS}      = $1;
+  		$INFO_HASH{HOST}    = $2;
+  		$INFO_HASH{VERSION} = $3;
+  		$INFO_HASH{DATE}    = $4;
+  		$INFO_HASH{KERNEL}  = $5;
+  		$INFO_HASH{PLATFORM}= $6;
+  	 }
+  	
+  	if ($os eq 'FreeBSD') {
+  		if($INFO_HASH{KERNEL}=~/\/(\w+)$/) {
+  			my $file = $1;
+  			$INFO_HASH{KERNEL_FILE} = "/usr/src/sys/i386/conf/". $file if (-f "/usr/src/sys/i386/conf/". $file) ;
+  		 }
+  	 }
+   }
+  
+  if ($FORM{KERNEL}) {
+  	my $kern_file = '';
+  	open(FILE, "<$INFO_HASH{KERNEL_FILE}") || print $html->messages('err', $_ERROR, "Can't open '$INFO_HASH{KERNEL_FILE}' $!");
+  		while(<FILE>) {
+  			$kern_file .= $_;
+  		 } 
+    close(FILE);
+    
+    $kern_file =~ s/\n/<br>\n/g;
+
+    my $table = $html->table( { caption     => "$INFO_HASH{KERNEL_FILE}",
+	                              width       => '100%'
+                            } );
+    
+    my @division = ('device', 'options', 'machine', 'cpu', 'ident');
+    foreach my $s (@division) {
+      $kern_file =~ s/$s |$s\t/<b>$s<\/b> /ig;
+     }
+    $kern_file =~ s/ /&nbsp;/g;
+    $kern_file =~ s/#(.+)\n/<font color=#0000FF># $1<\/font>/g;
+   
+    $table->addtd(  
+                   $table->td($kern_file)
+                     );
+
+    print $table->show();
+   }
+  
+  
+  
+
+  my $table = $html->table( { caption     => "Operation System",
+	                            width       => '100%',
+                              title_plain => [$_PARAMS, $_VALUE ],
+                              cols_align  => ['left', 'left' ],
+                           } );
+
+  $table->addrow(OS,        $INFO_HASH{OS});
+  $table->addrow(HOST,      $INFO_HASH{HOST});
+  $table->addrow(VERSION,   $INFO_HASH{VERSION});
+  $table->addrow($_DATE,    $INFO_HASH{DATE});
+  $table->addrow(KERNEL,    ($INFO_HASH{KERNEL_FILE}) ? $html->button($INFO_HASH{KERNEL}, "index=$index&KERNEL=1") : $INFO_HASH{KERNEL});
+  $table->addrow(PLATFORM,  $INFO_HASH{PLATFORM});
+  
+  
+  print $table->show();
+  
+  
+  
+
+  
+  
+  
+}
+
+
 #*******************************************************************
 # Show system info
 #*******************************************************************
@@ -31,7 +116,10 @@ sub sysinfo_get_os {
   my $os_name = 'UNKNOWN';
   my $os_full = `/usr/bin/uname -a`;
 
-  if ($os_full =~ /(\S+)/ ) {
+  if ($attr->{FULL_INFO}) {
+  	$os_name = $os_full;
+   }
+  elsif ($os_full =~ /(\S+)/ ) {
   	 $os_name = $1;
    }
 
@@ -60,7 +148,7 @@ sub sysinfo_main {
   my ($attr) = @_;
 
 #OS version
-# uname -a
+sysinfo_os();
 
 
 # Network Usage
