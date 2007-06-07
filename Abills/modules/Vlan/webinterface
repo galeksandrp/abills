@@ -302,7 +302,7 @@ foreach my $line (@$list) {
   
   foreach my $line (@$vlan_list) {
   #Port
-     $debug_output .= "$line->[0]: VLAN ID: $line->[4] IP: $line->[5] NETMASK: $line->[9]".
+     $debug_output .= "$line->[0]: VLAN ID: $line->[4] IP: $line->[5] NETMASK: $line->[6]".
        " USER IPs: $line->[6] DHCP: $line->[8] PPPoE: $line->[9]\n" if ($debug > 2); 
     $INFO{LOGIN}      = $line->[0];
     $INFO{VLAN_ID}    = $line->[4];
@@ -518,7 +518,7 @@ sub vlan_pppoe_relay {
 # Delete unused
   my $cmd = '';
   foreach my $if ( @{ $attr->{CLIENT_INTERFACES_UNUSED} } ) {
-    $cmd .= "sudo kill `cat /var/run/pppoed_". $if .".pid`; ";
+    $cmd .= "sudo kill -9 \\`cat /var/run/pppoed_". $if .".pid\\`; ";
    }
 
 # Add interfaces
@@ -540,8 +540,9 @@ sub vlan_pppoe_relay {
 #    }
   
   $debug_output = $cmd."\n" if ($debug > 3);
-
-  my $out = system($cmd) if ($debug < 5);
+ 
+  my $out= '';
+  $out = system($cmd) if ($debug < 5);
   $debug_output .= $out."\n" if ($debug > 4);
   
   

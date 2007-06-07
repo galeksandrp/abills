@@ -270,11 +270,6 @@ sub list {
     push @WHERE_RULES, "vlan.dhcp='$attr->{DHCP}'";
   }
 
- if ($attr->{DEPOSIT}) {
-    my $value = $self->search_expr($attr->{DEPOSIT}, 'INT');
-    push @WHERE_RULES, "u.deposit$value";
-  }
-
  if ($attr->{COMMENTS}) {
    $attr->{COMMENTS} =~ s/\*/\%/ig;
    push @WHERE_RULES, "u.comments LIKE '$attr->{COMMENTS}'";
@@ -304,7 +299,7 @@ sub list {
 
 #DIsable
  if (defined($attr->{DISABLE})) {
-   push @WHERE_RULES, "u.disable='$attr->{DISABLE}'"; 
+   push @WHERE_RULES, "vlan.disable='$attr->{DISABLE}'"; 
  }
  
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
