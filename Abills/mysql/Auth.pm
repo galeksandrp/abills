@@ -732,6 +732,7 @@ elsif(defined($RAD->{MS_CHAP_CHALLENGE})) {
 elsif($NAS->{NAS_AUTH_TYPE} == 1) {
   if (check_systemauth("$RAD->{USER_NAME}", "$RAD->{USER_PASSWORD}") == 0) { 
     $RAD_PAIRS{'Reply-Message'}="Wrong password '$RAD->{USER_PASSWORD}' $NAS->{NAS_AUTH_TYPE}";
+    $RAD_PAIRS{'Reply-Message'} .=  " CID: ". $RAD->{'CALLING_STATION_ID'} if ( $RAD->{'CALLING_STATION_ID'} );
     return 1, \%RAD_PAIRS;
    }
  } 

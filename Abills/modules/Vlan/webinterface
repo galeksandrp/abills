@@ -509,15 +509,28 @@ sub vlan_pppoe_relay {
 
   my @commands = ("killall pppoe-relay");
   my $debug_output = '';
-  my $client_interfaces = join(" -C ", @{ $attr->{CLIENT_INTERFACES} } );
 
- 
-  my $cmd = "pppoe-relay -S $attr->{PARENT_INTERFACE} -C $client_interfaces";
 
-   if ($attr->{NAS_MNG_IP_PORT}) {
-     $cmd = "/usr/bin/ssh -o StrictHostKeyChecking=no -i $base_dir/Certs/id_dsa.$attr->{NAS_MNG_USER} ".
-       "$attr->{NAS_MNG_USER}\@$attr->{NAS_MNG_IP_PORT} \"sudo killall pppoe-relay; sudo $cmd\"";
-    }
+# PPPoE Server
+  
+# Add interfaces
+  my $cmd = '';
+  foreach my $if ( @{ $attr->{CLIENT_INTERFACES} } ) {
+    $cmd .= "sudo /usr/libexec/pppoed -P /var/run/pppoed_". $if .".pid -l pppoe-in -p \\* $if; ";
+   }
+
+  if ($attr->{NAS_MNG_IP_PORT}) {
+    $cmd = "/usr/bin/ssh -o StrictHostKeyChecking=no -i $base_dir/Certs/id_dsa.$attr->{NAS_MNG_USER} ".
+      "$attr->{NAS_MNG_USER}\@$attr->{NAS_MNG_IP_PORT} \"$cmd\"";
+   }
+
+# PPPoE Relay 
+#  my $cmd = "pppoe-relay -S $attr->{PARENT_INTERFACE} -C $client_interfaces";
+#
+#   if ($attr->{NAS_MNG_IP_PORT}) {
+#     $cmd = "/usr/bin/ssh -o StrictHostKeyChecking=no -i $base_dir/Certs/id_dsa.$attr->{NAS_MNG_USER} ".
+#       "$attr->{NAS_MNG_USER}\@$attr->{NAS_MNG_IP_PORT} \"sudo killall pppoe-relay; sudo $cmd\"";
+#    }
   
   $debug_output = $cmd."\n" if ($debug > 3);
 
