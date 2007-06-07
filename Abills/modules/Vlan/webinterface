@@ -523,7 +523,7 @@ sub vlan_pppoe_relay {
 
 # Add interfaces
   foreach my $if ( @{ $attr->{CLIENT_INTERFACES} } ) {
-    $cmd .= "sudo /usr/libexec/pppoed -P /var/run/pppoed_". $if .".pid -l pppoe-in -p \\* $if; ";
+    $cmd .= "if [ ! -f /var/run/pppoed_". $if .".pid ];  then sudo /usr/libexec/pppoed -P /var/run/pppoed_". $if .".pid -l pppoe-in -p \\* $if; fi; ";
    }
 
   if ($attr->{NAS_MNG_IP_PORT}) {
