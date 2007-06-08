@@ -10,6 +10,8 @@ use vars  qw(%RAD %conf @MODULES $db $DATE $GZIP $MYSQLDUMP %ADMIN_REPORT $IPFW
  @START_FW
  $SNMPWALK
  $SNMPSET
+ 
+ $base_dir
  );
 use strict;
 
@@ -24,6 +26,7 @@ Abills::Base->import();
 my $begin_time = check_time();
 
 my $debug=0;
+my $debug_output = '';
 my $ARGV = parse_arguments(\@ARGV);
 
 if (defined($ARGV->{debug})) {
@@ -32,7 +35,8 @@ if (defined($ARGV->{debug})) {
 }
 elsif(defined($ARGV->{help})){
   print "Help:
-  checkppp    - check Active ppp session and disconnect unknown ip
+  checkppp    - check Active ppp on FreeBSD session and disconnect unknown ip
+  checkmk     - check Active ppp on Mikrotik session and disconnect unknown ip.
   checkspeed  - check cure speed for user. Arguments NAS_ID=xx
   checklines  - 
   debug       - debug mode
@@ -78,6 +82,9 @@ if (defined($ARGV->{checkppp})) {
  }
 elsif (defined($ARGV->{checkspeed})){
 	check_speed();
+ }
+elsif (defined($ARGV->{checkmk})) {
+	check_checkmk();
  }
 else {
   check_lines();
@@ -622,6 +629,107 @@ sub get_if_info {
   return \%ip_pid_hash;
 }
 
+#**********************************************************
+#
+#**********************************************************
+#sub check_checkmk {
+#	my ($attr) = @_;
+#  
+#  my $ip_pid_hash = get_mikrotik_ppp();
+#  get_db_info($ip_pid_hash);
+#  
+#
+# 	
+#}
+
+#**********************************************************
+#
+#**********************************************************
+sub check_checkmk {
+  my ($attr) = @_;	
+	
+  #Get nas servers TYPE: dlink_pb
+  my $list = $nas->list({ PAGE_ROWS => 100000, 
+   	                      TYPE      => 'mikrotik', 
+ 	                        DISABLE   => 0,
+ 	                        NAS_IDS   => ($attr->{NAS_IDS}) ? $attr->{NAS_IDS} : undef 
+	                      });
+
+ 
+  foreach my $line (@$list) {
+    my %info_hash = ();
+    my %NAS       = ();
+
+    $debug_output .= "NAS ID: $line->[0] MNG_INFO: $line->[10]\@$line->[9] $line->[12]\n" if ($debug > 2);
+    
+    $NAS{NAS_ID}    = $line->[0];
+    $NAS{NAS_IP}    = $line->[3];
+    $NAS{NAS_TYPE}  = $line->[4];
+    $NAS{NAS_ALIVE} = $line->[8] || 0;
+    $NAS{NAS_MNG_IP_PORT}  = $line->[9];
+    $NAS{NAS_MNG_USER}     = $line->[10]; 
+    $NAS{NAS_MNG_PASSWORD} = $line->[11]; 
+   
+    if ($NAS{NAS_MNG_USER} eq '') {
+    	$debug_output .= "Skiped Not defined control user NAS_ID: $NAS{NAS_ID}\n" if ($debug > 1);
+    	next;
+     }
+   
+   
+   
+    my ($ip, $mng_port)=split(/:/, $NAS{NAS_MNG_IP_PORT}, 2);
+    my $cmds = "/usr/bin/ssh -o StrictHostKeyChecking=no -i $base_dir/Certs/id_dsa.$NAS{NAS_MNG_USER} ".
+      "$NAS{NAS_MNG_USER}\@$ip  \"/ppp active print\" ";
+
+    my $output = '';
+	  open(CMD, "$cmds |") || die "Can't open '$cmds' $!";
+      while (my $l = <CMD>) {
+        $output .= $l;
+       }   
+    close(CMD)	;
+
+    $debug_output .= $cmds if ($debug > 3);
+    #$debug_output .= $output if ($debug > 3);
+
+    #Analize MK otput
+    #
+    #   NAME         SERVICE CALLER-ID         ADDRESS         UPTIME   ENCODING
+    #0 R test         pptp    192.168.202.4     10.0.0.10       28m7s    MPPE128...
+
+    my @rows = split(/\n/, $output);
+    foreach my $line (@rows) {
+    	if ($line =~ / (\d+) (\S) (\S+)\s+(\S+)\s+(\S+)\s+(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\s+/) {
+    		my $iface = $1;
+    		my $state = $2;
+    		my $username  = $3;
+    		my $service   = $4;
+    		my $cid       = $5;
+    		my $ip        = $6;
+		
+    		$info_hash{$ip}=$username;
+    		
+    		print "IF: $iface:$state USERNAME: $username SERVICE: $service CID: $cid IP: $ip\n" if ($debug > 2);
+    	 }
+     }
+  
+    get_db_info(\%info_hash);
+    
+    while(my($ip, $user) = each %info_hash) {
+    	print "$ip, $user\n" if ($debug > 1);
+
+      my $ret = hangup(\%NAS, "0", "$user", { ACCT_SESSION_ID   => "",
+        	                                    FRAMED_IP_ADDRESS => $ip
+        	                                   });
+
+       print "Hangup '$user' IP: $ip Session-ID: \n"; 
+     }
+    
+  }  	
+	
+	print $debug_output;
+	
+	#return \%info_hash;
+}
 
 __END__
 
