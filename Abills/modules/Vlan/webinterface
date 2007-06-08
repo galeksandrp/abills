@@ -336,13 +336,6 @@ foreach my $line (@$list) {
       #$INFO{SUBNETS} .= $html->tpl_show($subnets, \%INFO, { notprint => 'yes' });
      }
 
-    if ( $INFO{PPPOE} == 1 ) {
-      push @client_interfaces, "vlan$INFO{VLAN_ID}";
-     }
-    else {
-    	push @client_interfaces_unused, "vlan$INFO{VLAN_ID}";
-     }
-
     if (! $vlans_info->{$INFO{VLAN_ID}}) {
       #push @commands, "$sudo $IFCONFIG vlan$INFO{VLAN_ID} destroy;";
     #  if ($NAS_ID > 0) {
@@ -355,9 +348,17 @@ foreach my $line (@$list) {
     #   }
     # 
       push @commands, "$IFCONFIG vlan$INFO{VLAN_ID} create vlan $INFO{VLAN_ID} vlandev $parent_interface up";
-
+     
       if ($INFO{VLAN_IF_IP} ne '0.0.0.0') {
         push @commands, "$IFCONFIG vlan$INFO{VLAN_ID} inet $INFO{VLAN_IF_IP} netmask $INFO{VLAN_IF_NETMASK}";
+       }
+
+      #Start PPPOE
+      if ( $INFO{PPPOE} == 1 ) {
+        push @client_interfaces, "vlan$INFO{VLAN_ID}";
+       }
+      else {
+    	  push @client_interfaces_unused, "vlan$INFO{VLAN_ID}";
        }
 
       $debug_output .= "Vlan ID: $INFO{VLAN_ID} IP: $INFO{VLAN_IF_IP} Created\n" if ($debug > 0);
@@ -374,6 +375,15 @@ foreach my $line (@$list) {
 
       $debug_output .= "Vlan ID: $INFO{VLAN_ID} IP: $INFO{VLAN_IF_IP} Changed\n" if ($debug > 0);
       delete $vlans_info->{$INFO{VLAN_ID}};
+      
+      #Start PPPOE
+      if ( $INFO{PPPOE} == 1 ) {
+        push @client_interfaces, "vlan$INFO{VLAN_ID}";
+       }
+      else {
+    	  push @client_interfaces_unused, "vlan$INFO{VLAN_ID}";
+       }
+
      }
     else {
 	    delete $vlans_info->{$INFO{VLAN_ID}};
@@ -390,6 +400,7 @@ foreach my $line (@$list) {
       $Ipn->acct_stop({ SESSION_ID => '', 
   	                ACCT_TERMINATE_CAUSE => $ACCT_TERMINATE_CAUSE });
     }
+
 	  push @commands, "$IFCONFIG vlan$vlan_id destroy";
 	  push @client_interfaces_unused, "vlan$INFO{VLAN_ID}";
   }
@@ -544,7 +555,9 @@ sub vlan_pppoe_relay {
 
 # Add interfaces
   foreach my $if ( @{ $attr->{CLIENT_INTERFACES} } ) {
-    $cmd .= "if [ ! -f /var/run/pppoed_". $if .".pid ]; then sudo /usr/libexec/pppoed -P /var/run/pppoed_". $if .".pid -l pppoe-in -p \\* $if; fi; ";
+    #$cmd .= "if [ ! -f /var/run/pppoed_". $if .".pid ]; then sudo /usr/libexec/pppoed -P /var/run/pppoed_". $if .".pid -l pppoe-in -p \\* $if; fi; ";
+    $cmd .= "if [ -f /var/run/pppoed_". $if .".pid ]; then sudo kill  \\`cat /var/run/pppoed_". $if .".pid\\`; fi; ".
+     " sudo /usr/libexec/pppoed -P /var/run/pppoed_". $if .".pid -l pppoe-in -p \\* $if; fi; ";
    }
 
   if ($attr->{NAS_MNG_IP_PORT}) {
