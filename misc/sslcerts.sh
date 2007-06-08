@@ -15,7 +15,8 @@ if [ w$1 = w ] ; then
   echo " apache      - Create apache SSL cert"
   echo " eap         - Create Server and users SSL Certs"
   echo " postfix_tls - Create postfix TLS Certs"
-  echo " ssh         - Create SSH DSA Keys"
+  echo " ssh [USER]  - Create SSH DSA Keys"
+  echo "                USER - SSH remote user"
 
   exit;
 fi
