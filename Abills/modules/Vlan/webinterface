@@ -530,7 +530,6 @@ sub vlan_dhcp {
 sub vlan_pppoe_relay {
   my($attr) = @_;
 
-  my @commands = ("killall pppoe-relay");
   my $debug_output = '';
 
 
@@ -554,6 +553,7 @@ sub vlan_pppoe_relay {
    }
 
 # PPPoE Relay 
+#   my @commands = ("killall pppoe-relay");
 #  my $cmd = "pppoe-relay -S $attr->{PARENT_INTERFACE} -C $client_interfaces";
 #
 #   if ($attr->{NAS_MNG_IP_PORT}) {
