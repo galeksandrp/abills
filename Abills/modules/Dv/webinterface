@@ -883,7 +883,7 @@ if (! $list) {
   }
 
   my $nas = Nas->new($db, \%conf);
-  $SEL_NAS = $html->form_select('NAS_ID', 
+  my $SEL_NAS = $html->form_select('NAS_ID', 
                                           { 
  	                                          SELECTED          => $FORM{NAS_ID},
  	                                          SEL_MULTI_ARRAY   => [['', $_ALL], @{ $nas->list({ %LIST_PARAMS }) } ],
@@ -891,17 +891,50 @@ if (! $list) {
  	                                          MULTI_ARRAY_VALUE => 1,
  	                                        });
 
+  my $TERMINATE_CAUSE_SEL = $html->form_select('TERMINATE_CAUSE', 
+                                          { 
+ 	                                          SELECTED          => $FORM{TERMINATE_CAUSE},
+ 	                                          SEL_HASH          => {
+                      '' => '',
+                      0  => 'Unknown',
+                      1  => 'User-Request',
+                      2  => ' Lost-Carrier',
+                      3  => 'Lost-Service',
+                      4  => 'Idle-Timeout',
+                      5  => 'Session-Timeout',
+                      6  => 'Admin-Reset',
+                      7  => 'Admin-Reboot',
+                      8  => 'Port-Error',
+                      9  => 'NAS-Error',
+                      10 => 'NAS-Request',
+                      11 => 'NAS-Reboot',
+                      12 => 'Port-Unneeded',
+                      13 => 'Port-Preempted',
+                      14 => 'Port-Suspended',
+                      15 => 'Service-Unavailable',
+                      16 => 'Callback',
+                      17 => 'User-Error',
+                      18 => 'Host-Request',
+                      19 => 'Supplicant-Restart',
+                      20 => 'Reauthentication-Failure',
+                      21 => 'Port-Reinit',
+                      22 => 'Port-Disabled'
+                    }
+
+ 	                                        });
+
+
   form_search({ SEARCH_FORM =>  	
   	"<tr><td colspan=2><hr></td></tr>
      <tr><td>SUM (>,<)</td><td><input type=text name=SUM value='%SUM%'></td></tr>
      <tr><td>IP (>,<)</td><td><input type=text name=IP value='%IP%'></td></tr>
      <tr><td>CID</td><td><input type=text name=CID value='%CID%'></td></tr>
      <tr><td>NAS</td><td>$SEL_NAS</td></tr>
-     <tr><td>NAS Port</td><td><input type=text name=NAS_PORT value='%NAS_PORT%'></td></tr>\n"
-  	
+     <tr><td>NAS Port</td><td><input type=text name=NAS_PORT value='%NAS_PORT%'></td></tr>
+  	 <tr><td>$_HANGUP $_STATUS:</td><td>$TERMINATE_CAUSE_SEL</td></tr>\n"
  });
 
-  $sessions = Dv_Sessions->new($db);
+  $sessions = Dv_Sessions->new($db, $admin, \%conf);
   $list = $sessions->list({ %LIST_PARAMS });	
 }
 
@@ -1493,7 +1526,8 @@ if ($sessions->prepaid_rest({ UID => $LIST_PARAMS{UID} })) {
                            } );
 	
 	foreach my $line  (@$list) {
-	  $table->addrow($line->[0], 
+	  $table->addrow(
+	    $line->[0], 
       $line->[1], 
       $line->[2], 
       $line->[3], 

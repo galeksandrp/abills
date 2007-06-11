@@ -631,7 +631,7 @@ WHERE
  ");
 
  if($self->{TOTAL} < 1) {
- 	  return 0;
+ 	  return 1;
   }
 
 
@@ -670,7 +670,7 @@ WHERE
  
  #Check sessions
  #Get using traffic
- $self->query($db, "select 
+ $self->query($db, "select  
   $rest{0} - sum($octets_direction) / $CONF->{MB_SIZE},
   $rest{1} - sum($octets_direction2) / $CONF->{MB_SIZE}
  FROM dv_log
@@ -788,7 +788,12 @@ if ($attr->{ACCT_SESSION_ID}) {
 
 if ($attr->{GID}) {
    push @WHERE_RULES, "u.gid='$attr->{GID}'";
-  }
+ }
+
+
+if ($attr->{TERMINATE_CAUSE}) {
+	push @WHERE_RULES, "l.terminate_cause='$attr->{TERMINATE_CAUSE}'";
+ }
 
 if ($attr->{FROM_DATE}) {
    push @WHERE_RULES, "(date_format(l.start, '%Y-%m-%d')>='$attr->{FROM_DATE}' and date_format(l.start, '%Y-%m-%d')<='$attr->{TO_DATE}')";
