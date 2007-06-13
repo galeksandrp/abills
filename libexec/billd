@@ -308,7 +308,7 @@ sub check_speed_mikro {
 
     foreach my $part (@parts) {
       my $params = parse_fw($part);
-      if ($params->{'limit-at'} =~ /(\d+)\/(\d+)/) {
+      if ($params->{'limit-at'} && $params->{'limit-at'} =~ /(\d+)\/(\d+)/) {
         $rule_speed{$params->{'item'}}{IN}=$1;
         $rule_speed{$params->{'item'}}{OUT}=$2;
        }

@@ -286,7 +286,12 @@ print "\nEND: =====================================\n" if ($debug > 0);
 
     #Linux tc shaper
     if ($ARGV[0] eq 'mikrotik' ) {
-    	mikrotik({ NETS => \@nets_arr });
+    	mikrotik({ 
+    		  SPEED_IN  => $speed_in,
+    		  SPEED_OUT => $speed_out,
+    		  NETS_ID   => undef,
+    		  NETS      => \@nets_arr 
+    		 });
      }
     elsif ($ARGV[0] eq 'pppd') {
        # In
@@ -397,6 +402,7 @@ foreach my $line (@FW_ACTIONS) {
 }
 
 
+
 #**********************************************************
 # Manage mikrotik bandwidth
 # 3 type of actions
@@ -405,6 +411,38 @@ foreach my $line (@FW_ACTIONS) {
 #  check
 #**********************************************************
 sub mikrotik {
+	my ($attr)=@_;
+
+  my $name = "ads-pptp-test";
+  my $interface = "<pptp-test>";
+  my $speed_in  = 512000;
+  my $speed_out = 512000;
+  my $cmd = '';
+
+if ($ACTION eq 'up') {
+  $cmd = "name=\"$name\" dst-address=0.0.0.0/0 interface=$interface
+      parent=none direction=both priority=8 queue=default-small/default-small
+      limit-at=$speed_in/$speed_out max-limit=$speed_in/$speed_out
+      total-queue=default-small";
+ }
+elsif($ACTION eq 'down') {
+  $cmd = "remove [ find name=$name ]";
+	
+}
+  
+
+
+  my $result .= `ssh admin_ssh\@192.168.101.10 "$cmd"`;
+}
+
+#**********************************************************
+# Manage mikrotik bandwidth
+# 3 type of actions
+#  up
+#  down 
+#  check
+#**********************************************************
+sub mikrotik_ext {
 	my ($attr)=@_;
 
 	
@@ -458,8 +496,8 @@ sub mikrotik {
     $result .= `ssh admin\@192.168.101.10 "$cmd"`;
 	 }
 
- print $result;
- 
+  print $result;
+
 }
 
 
