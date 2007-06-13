@@ -415,7 +415,8 @@ else {
 if ($begin_time > 0) {
   my $end_time = gettimeofday;
   my $gen_time = $end_time - $begin_time;
-  $conf{version} .= " (Generation time: $gen_time)";
+  my $uptime   = `uptime`;
+  $conf{version} .= " (GT: $gen_time) <b>UP: $uptime</b>";
 }
 
 print "</td></tr>
