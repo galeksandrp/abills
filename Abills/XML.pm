@@ -361,7 +361,7 @@ for(my $parent=1; $parent<$#menu_sorted; $parent++) {
 
   next if((! defined($attr->{ALL_PERMISSIONS})) && (! $permissions->{$parent-1}) && $parent == 0);
 #  next if (! defined($permissions->{($parent-1)}));  
-  $menu_text .= "<MENU NAME=\"$fl->{$ID}\" ID=\"$ID\" EX_ARGS=\"". link_former($EX_ARGS) ."\" DESCRIBE=\"$val\" TYPE=\"MAIN\"/>\n ";
+  $menu_text .= "<MENU NAME=\"$fl->{$ID}\" ID=\"$ID\" EX_ARGS=\"". $self->link_former($EX_ARGS) ."\" DESCRIBE=\"$val\" TYPE=\"MAIN\"/>\n ";
 
   #next;
   if (defined($new_hash{$ID})) {
@@ -371,7 +371,7 @@ for(my $parent=1; $parent<$#menu_sorted; $parent++) {
       my $mi = $new_hash{$ID};
 
       while(my($k, $val)=each %$mi) {
-         $menu_text .= "$prefix<MENU NAME=\"$fl->{$k}\" ID=\"$k\" EX_ARGS=\"". link_former("$EX_ARGS") ."\" DESCRIBE=\"$val\" TYPE=\"SUB\" PARENT=\"$ID\"/>\n ";
+         $menu_text .= "$prefix<MENU NAME=\"$fl->{$k}\" ID=\"$k\" EX_ARGS=\"". $self->link_former("$EX_ARGS") ."\" DESCRIBE=\"$val\" TYPE=\"SUB\" PARENT=\"$ID\"/>\n ";
 
         if (defined($new_hash{$k})) {
       	   $mi = $new_hash{$k};
@@ -417,7 +417,7 @@ sub menu2 () {
 #   my $qmenu_text = "<NAVIGATOR>\n";
 #  
 # 	 while(my($k, $v)=each %{ $attr->{FUNCTION_LIST} } ){
-# 	 	 $qmenu_text .= "<MENU NAME=\"$v\" ID=\"$k\" DESCRIBE=\"\" EX_ARGS=\"". link_former($EX_ARGS) ."\"/>\n";
+# 	 	 $qmenu_text .= "<MENU NAME=\"$v\" ID=\"$k\" DESCRIBE=\"\" EX_ARGS=\"". $self->link_former($EX_ARGS) ."\"/>\n";
 # 	  }
 #   $qmenu_text .= "</NAVIGATOR>\n";
 #
@@ -497,15 +497,15 @@ foreach my $ID (@s) {
 
        	   #my $link = $self->button($name, "index=$ID$ext_args");
     	       if($parent == 0) {
- 	        	   $menu_text .= "<ITEM NAME=\"$fl->{$ID}\" ID=\"$ID\" DESCRIBE=\"$name\" EX_ARGS=\"". link_former($EX_ARGS) ."\" TYPE=\"MAIN\" />\n";
+ 	        	   $menu_text .= "<ITEM NAME=\"$fl->{$ID}\" ID=\"$ID\" DESCRIBE=\"$name\" EX_ARGS=\"". $self->link_former($EX_ARGS) ."\" TYPE=\"MAIN\" />\n";
  	        	   #$menu_text .= "<ITEM NAME=\"$fl->{$ID}\" TYPE=\"MAIN\" ID=\"$ID\">$prefix$link</ITEM>\n";
 	            }
  	           elsif(defined($tree{$ID})) {
-   	           $menu_text .= "<ITEM NAME=\"$fl->{$ID}\" ID=\"$ID\" DESCRIBE=\"$name\" EX_ARGS=\"". link_former($EX_ARGS) ."\" TYPE=\"TREE\" />\n"; 
+   	           $menu_text .= "<ITEM NAME=\"$fl->{$ID}\" ID=\"$ID\" DESCRIBE=\"$name\" EX_ARGS=\"". $self->link_former($EX_ARGS) ."\" TYPE=\"TREE\" />\n"; 
 #   	           $menu_text .= "<ITEM TYPE=\"TREE\" ID=\"$ID\">$prefix$link</ITEM>\n";
  	            }
  	           else {
- 	             $menu_text .= "  <ITEM NAME=\"$fl->{$ID}\" ID=\"$ID\" DESCRIBE=\"$name\" EX_ARGS=\"". link_former($EX_ARGS) ."\" TYPE=\"SUB\" PARENT=\"$parent\" />\n"; 
+ 	             $menu_text .= "  <ITEM NAME=\"$fl->{$ID}\" ID=\"$ID\" DESCRIBE=\"$name\" EX_ARGS=\"". $self->link_former($EX_ARGS) ."\" TYPE=\"SUB\" PARENT=\"$parent\" />\n"; 
  	             #$menu_text .= "<ITEM TYPE=\"SUB\" PARENT=\"$parent\" ID=\"$ID\">$prefix$link</ITEM>\n";
  	            }
          }
@@ -934,9 +934,10 @@ sub show  {
 #
 #**********************************************************
 sub link_former {
-  my ($params) = @_;
+  my ($self) = shift;
+  my ($params, $attr) = @_;
 
-  $params =~ s/ /%20/g;
+  $params =~ s/ /%20/g if (! $attr->{SKIP_SPACE});
   $params =~ s/&/&amp;/g;
   $params =~ s/>/&gt;/g;
   $params =~ s/</&lt;/g;
@@ -960,7 +961,7 @@ sub button {
   $params = ($attr->{GLOBAL_URL})? $attr->{GLOBAL_URL} : "$params";
 
   $params = $attr->{JAVASCRIPT} if (defined($attr->{JAVASCRIPT}));
-  $params = link_former($params);
+  $params = $self->link_former($params);
   
 
  

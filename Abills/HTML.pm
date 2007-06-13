@@ -1134,10 +1134,11 @@ sub show  {
 #
 #**********************************************************
 sub link_former {
-  my ($params) = @_;
+  my ($self) = shift;
+  my ($params, $attr) = @_;
 
 
-  $params =~ s/ /%20/g;
+  $params =~ s/ /%20/g if (! $attr->{SKIP_SPACE});
   $params =~ s/&/&amp;/g;
   $params =~ s/>/&gt;/g;
   $params =~ s/</&lt;/g;
@@ -1161,7 +1162,7 @@ sub button {
   
   $params = ($attr->{GLOBAL_URL})? $attr->{GLOBAL_URL} : "$SELF_URL?$params";
   $params = $attr->{JAVASCRIPT} if (defined($attr->{JAVASCRIPT}));
-  $params = link_former($params);
+  $params = $self->link_former($params);
 
   
   $ex_attr=" TITLE='$attr->{TITLE}'" if (defined($attr->{TITLE}));

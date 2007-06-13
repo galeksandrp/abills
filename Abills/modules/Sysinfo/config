@@ -7,7 +7,8 @@
                    "4:1:_DISC:sysinfo_disc:"       => 90,
                    "5:1:_NETWORK:sysinfo_network:" => 90,
                    "6:1:$_PROCESSES:sysinfo_processes:" => 90,
-                   "7:1:$_CONFIG:sysinfo_conf:"    => 90
+                   "7:1:$_CONFIG:sysinfo_conf:"    => 90,
+                   "8:1:Perl:sysinfo_perl:"        => 90
                    );
 
 #%PERIODIC = (daily   => 'dv_daily_fees',
