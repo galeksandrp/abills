@@ -129,7 +129,7 @@ elsif ($acct_status_type == 2) {
      }
     elsif ($self->{TOTAL} < 1) {
       $self->{errno}=2;
-      $self->{errstr}="Session account Not Exist";
+      $self->{errstr}="Session account Not Exist '$RAD->{ACCT_SESSION_ID}'";
       return $self;
      }
 
@@ -365,7 +365,7 @@ sub rt_billing {
    }
   elsif ($self->{TOTAL} < 1) {
     $self->{errno}=2;
-    $self->{errstr}="Session account Not Exist";
+    $self->{errstr}="Session account Not Exist '$RAD->{ACCT_SESSION_ID}'";
     return $self;
    }
 
