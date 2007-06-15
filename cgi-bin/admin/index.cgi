@@ -1434,7 +1434,7 @@ my $table = $html->table( { width      => '100%',
                             qs         => $pages_qs
                            });
 
-my $list = $nas->list({ PAGE_ROWS => 1000 });
+my $list = $nas->list({ %LIST_PARAMS, PAGE_ROWS => 1000 });
 
 foreach my $line (@$list) {
 
@@ -1446,7 +1446,9 @@ foreach my $line (@$list) {
     $line->[1], 
     $line->[2],  
     $line->[3],  
-    $line->[4], $auth_types[$line->[5]]);
+    $line->[4], 
+    $auth_types[$line->[5]]
+    );
 }
 
 print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
