@@ -271,6 +271,7 @@ my $list = $Nas->list({ PAGE_ROWS => 100000,
 
 foreach my $line (@$list) {
   my @commands = ();
+  my %client_interfaces = ();
   my @client_interfaces_unused = ();
   my $parent_interface = '';
   my %INFO     = (SUBNETS => undef );
@@ -299,7 +300,7 @@ foreach my $line (@$list) {
   	                           DEBUG           => $debug
   	                          });
   
-  my @client_interfaces = ();
+
   
   foreach my $line (@$vlan_list) {
   #Port
@@ -355,7 +356,7 @@ foreach my $line (@$list) {
 
       #Start PPPOE
       if ( $INFO{PPPOE} == 1 ) {
-        push @client_interfaces, "vlan$INFO{VLAN_ID}";
+        $client_interfaces{"vlan$INFO{VLAN_ID}"}=1;
        }
       else {
     	  push @client_interfaces_unused, "vlan$INFO{VLAN_ID}";
@@ -378,7 +379,7 @@ foreach my $line (@$list) {
       
       #Start PPPOE
       if ( $INFO{PPPOE} == 1 ) {
-        push @client_interfaces, "vlan$INFO{VLAN_ID}";
+        $client_interfaces{"vlan$INFO{VLAN_ID}"}=1;
        }
       else {
     	  push @client_interfaces_unused, "vlan$INFO{VLAN_ID}";
@@ -427,8 +428,10 @@ foreach my $line (@$list) {
   	            INFO            => \%INFO  });
    }
   #Make PPPoE Realy
-  if ($#client_interfaces > -1) {
-    vlan_pppoe_relay({ CLIENT_INTERFACES => \@client_interfaces,
+  
+  
+  if (keys %client_interfaces > 0) {
+    vlan_pppoe_relay({ CLIENT_INTERFACES => \%client_interfaces,
   	                   NAS_MNG_IP_PORT   => $nas_mng_ip_port,
   	                   NAS_MNG_USER      => $nas_mng_user,
   	                   PARENT_INTERFACE  => $parent_interface,
@@ -554,7 +557,8 @@ sub vlan_pppoe_relay {
    }
 
 # Add interfaces
-  foreach my $if ( @{ $attr->{CLIENT_INTERFACES} } ) {
+
+  foreach my $if ( keys %{ $attr->{CLIENT_INTERFACES} } ) {
     #$cmd .= "if [ ! -f /var/run/pppoed_". $if .".pid ]; then sudo /usr/libexec/pppoed -P /var/run/pppoed_". $if .".pid -l pppoe-in -p \\* $if; fi; ";
     $cmd .= "if [ -f /var/run/pppoed_". $if .".pid ]; then sudo kill  \\`cat /var/run/pppoed_". $if .".pid\\`; fi; ".
      " sudo /usr/libexec/pppoed -P /var/run/pppoed_". $if .".pid -l pppoe-in -p \\* $if; ";

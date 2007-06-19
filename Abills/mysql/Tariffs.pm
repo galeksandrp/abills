@@ -197,11 +197,11 @@ sub  ti_defaults {
 	my $self = shift;
 	
 	my %TI_DEFAULTS = (
-            TI_DAY => 0,
+            TI_DAY   => 0,
             TI_BEGIN => '00:00:00',
-            TI_END => '24:00:00',
+            TI_END   => '24:00:00',
     	      TI_TARIF => 0
-    );
+           );
 	
   while(my($k, $v) = each %TI_DEFAULTS) {
     $self->{$k}=$v;
@@ -405,7 +405,7 @@ sub list {
     tp.rad_pairs,
     tp.reduction_fee,
     tp.postpaid_fee
-    FROM tarif_plans tp
+    FROM (tarif_plans tp)
     LEFT JOIN intervals i ON (i.tp_id=tp.id)
     LEFT JOIN trafic_tarifs tt ON (tt.interval_id=i.id)
     $WHERE
