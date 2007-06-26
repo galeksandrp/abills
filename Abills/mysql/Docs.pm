@@ -107,7 +107,7 @@ sub docs_invoice_list {
     LEFT JOIN users u ON (d.uid=u.uid)
     LEFT JOIN admins a ON (d.aid=a.aid)
     $WHERE
-    GROUP BY d.invoice_id 
+    GROUP BY d.id 
     ORDER BY $SORT $DESC
     LIMIT $PG, $PAGE_ROWS;");
 
@@ -121,9 +121,7 @@ sub docs_invoice_list {
     LEFT JOIN users u ON (d.uid=u.uid)
     $WHERE");
 
- my $a_ref = $self->{list}->[0];
-
- ($self->{TOTAL}) = @$a_ref;
+ ($self->{TOTAL}) = @{ $self->{list}->[0] };
 
 	return $list;
 }
@@ -162,8 +160,6 @@ sub docs_invoice_info {
      return $self;
    }
 
-  my $ar = $self->{list}->[0];
-
   ($self->{INVOICE_ID}, 
    $self->{DATE}, 
    $self->{CUSTOMER}, 
@@ -176,13 +172,13 @@ sub docs_invoice_info {
    $self->{BY_PROXY_SERIA},
    $self->{BY_PROXY_PERSON},
    $self->{BY_PROXY_DATE}
-  )= @$ar;
+  )= @{ $self->{list}->[0] };
 	
  
   $self->{NUMBER}=$self->{INVOICE_ID};
  
   $self->query($db, "SELECT invoice_id, orders, unit, counts, price
-   FROM docs_invoice_orders WHERE invoice_id='$self->{DOC_ID}'");
+   FROM docs_invoice_orders WHERE invoice_id='$id'");
 
   $self->{ORDERS}=$self->{list};
 
@@ -440,15 +436,13 @@ sub account_info {
      return $self;
    }
 
-  my $ar = $self->{list}->[0];
-
   ($self->{ACCT_ID}, 
    $self->{DATE}, 
    $self->{CUSTOMER}, 
    $self->{SUM},
    $self->{PHONE},
    $self->{VAT}
-  )= @$ar;
+  )= @{ $self->{list}->[0] };
 	
  
   $self->{NUMBER}=$self->{ACCT_ID};

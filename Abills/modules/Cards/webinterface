@@ -1,4 +1,3 @@
-#!/usr/bin/perl
 # Card System
 
 
@@ -54,8 +53,8 @@ if ($FORM{change}) {
          $FROM .= "$diller, ";
 
  		     #docs_invoice_add({ FROM      => $diller,
- 		     #	                  CUSTOMER  => $diller,
-         #                 	ORDERS    => [ @ORDERS ],
+ 		     #	                 CUSTOMER  => $diller,
+         #                 	 ORDERS    => [ @ORDERS ],
          #                 	CREATE    => 1
          #                 });
 

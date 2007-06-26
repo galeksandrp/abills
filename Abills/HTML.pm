@@ -107,6 +107,10 @@ sub new {
  	 	$PAGE_ROWS = 25;
    }
 
+  if ($attr->{PATH}) {
+ 	  $self->{PATH}=$attr->{PATH};
+   }
+
   $domain = $ENV{SERVER_NAME};
   $web_path = '';
   $secure = '';
@@ -708,6 +712,10 @@ sub header {
  	 $JAVASCRIPT = "$attr->{PATH}$JAVASCRIPT";
  	 $PRINTCSS = "$attr->{PATH}$PRINTCSS";
   }
+ elsif($self->{PATH}) {
+ 	 $JAVASCRIPT = "$self->{PATH}$JAVASCRIPT";
+ 	 $PRINTCSS = "$self->{PATH}$PRINTCSS";
+ }
 
  my $css = css();
 
@@ -1156,9 +1164,8 @@ sub button {
   my $self = shift;
   my ($name, $params, $attr)=@_;
 
-  my $ex_params = (defined($attr->{ex_params})) ? $attr->{ex_params} : '';
-  my $ex_attr = '';
-  
+  my $ex_attr = (defined($attr->{ex_params})) ? $attr->{ex_params} : '';
+
   
   $params = ($attr->{GLOBAL_URL})? $attr->{GLOBAL_URL} : "$SELF_URL?$params";
   $params = $attr->{JAVASCRIPT} if (defined($attr->{JAVASCRIPT}));

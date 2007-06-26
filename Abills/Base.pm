@@ -251,8 +251,8 @@ sub show_log {
 
   
 # my $output;
- my $i = 0;
- for ($i = $total - $PG; $i>=($total - $PG) - $PAGE_ROWS && $i >= 0; $i--) {
+ #my $i = 0;
+ for (my $i = $total - $PG; $i>=($total - $PG) - $PAGE_ROWS && $i >= 0; $i--) {
     push @list, "$err_recs[$i]";
 #    $output .= "$i / $err_recs[$i]<br>";
    }

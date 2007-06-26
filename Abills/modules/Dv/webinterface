@@ -1303,7 +1303,8 @@ if (defined($FORM{LOG_TYPE})) {
 my ($list, $types, $totals) = show_log("$login", "$conf{LOGFILE}", { DATE      => $FORM{DATE},
 	                                                                   LOG_TYPE  => $FORM{LOG_TYPE},
 	                                                                   PG        => $PG,
-	                                                                   PAGE_ROWS => $PAGE_ROWS });
+	                                                                   PAGE_ROWS => $PAGE_ROWS
+	                                                                 });
 	                                                                   
 
 print $html->form_main({ CONTENT => "$_LOGIN (*): " . $html->form_input('LOGIN_EXPR', "$FORM{LOGIN_EXPR}"),
@@ -1346,6 +1347,10 @@ $table->addrow($html->button("$_TOTAL", "index=$index&$pages_qs"), $totals);
 while(my($k,$v)=each %$types) {
   $table->addrow($html->button($k, "index=$index&LOG_TYPE=$k$pages_qs"), $v);
 }
+
+
+$table->addrow($_SIZE, int2byte((-s $conf{LOGFILE}))) if ($login eq '');
+
 print $table->show();
 
 }

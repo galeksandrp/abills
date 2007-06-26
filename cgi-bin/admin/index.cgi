@@ -101,7 +101,11 @@ else {
   check_permissions('$REMOTE_USER');
 }
 
-$html = Abills::HTML->new({ CONF => \%conf, NO_PRINT => 0, %{ $admin->{WEB_OPTIONS} } });
+$html = Abills::HTML->new({ CONF     => \%conf, 
+	                          NO_PRINT => 0, 
+	                          PATH     => '../',
+	                          %{ $admin->{WEB_OPTIONS} } });
+
 require "../../language/$html->{language}.pl";
 
 if ($admin->{errno}) {
@@ -238,7 +242,7 @@ foreach my $m (@MODULES) {
 }
 
 use Users;
-my $users = Users->new($db, $admin, \%conf); 
+$users = Users->new($db, $admin, \%conf); 
 
 
 #Quick index
@@ -362,7 +366,7 @@ if ($admin->{WEB_OPTIONS}{qm}) {
 
 print "<tr><td valign='top' width='18%' bgcolor='$_COLORS[2]' rowspan='2' class='noprint'>
 $menu_text
-</td><td bgcolor='$_COLORS[0]' height='50'>$navigat_menu</td></tr>
+</td><td bgcolor='$_COLORS[0]' height='50' class='noprint'>$navigat_menu</td></tr>
 <tr><td valign='top' align='center'>";
 
 
@@ -416,7 +420,7 @@ if ($begin_time > 0) {
   my $end_time = gettimeofday;
   my $gen_time = $end_time - $begin_time;
   my $uptime   = `uptime`;
-  $conf{version} .= " (GT: $gen_time) <b>UP: $uptime</b>";
+  $conf{version} .= " (GT: $gen_time) <b class='noprint'>UP: $uptime</b>";
 }
 
 print "</td></tr>
@@ -736,7 +740,7 @@ sub user_form {
  $index = 15;
  
  if (! defined($user_info->{UID})) {
-   my $user = Users->new($db, $admin); 
+   my $user = Users->new($db, $admin, \%conf); 
    $user_info = $user->defaults();
 
    if ($FORM{COMPANY_ID}) {
@@ -887,9 +891,9 @@ sub user_info {
   
   
   $table = $html->table({ width      => '100%',
-  	                      rowcolor   => $_COLORS[2],
-  	                      border     => 0,
-                          cols_align => ['left'],
+  	                  rowcolor   => $_COLORS[2],
+  	                  border     => 0,
+                          cols_align => ['left:noprint'],
                           rows       => [ [ "$_USER: ". $html->button("<b>$user_info->{LOGIN}</b>", "index=15&UID=$user_info->{UID}") ] ]
                         });
   print $table->show();
@@ -3586,15 +3590,14 @@ print $table->show();
 }
 
 #*******************************************************************
+#
+#*******************************************************************
 sub form_sendmail {
  my %MAIL_PRIORITY = (2 => 'High', 
                       3 => 'Normal', 
                       4 => 'Low');
 
-
-
- my $user = Users->new($db, $admin); 
- $user->info($FORM{UID});
+ my $user = $users->info($FORM{UID});
  $user->pi();
  
 
@@ -3602,7 +3605,6 @@ sub form_sendmail {
  $user->{FROM} = $FORM{FROM} || $conf{ADMIN_MAIL};
 
  if ($FORM{sent}) {
-   
    sendmail("$user->{FROM}", "$user->{EMAIL}", "$FORM{SUBJECT}", "$FORM{TEXT}", "$conf{MAIL_CHARSET}", "$FORM{PRIORITY} ($MAIL_PRIORITY{$FORM{PRIORITY}})");
    my $table = $html->table({ width    => '100%',
                               rows     => [ [ "$_USER:",    "$user->{LOGIN}" ],
