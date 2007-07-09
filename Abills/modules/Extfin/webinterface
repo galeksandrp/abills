@@ -1,0 +1,93 @@
+# Integration with external financial programs
+# 1C
+
+
+use Extfin;
+my $Extfin = Extfin->new($db, $admin, \%conf);
+
+
+
+
+#**********************************************************
+# docs_invoice_add
+# Order array format
+# NAME|UNIT|COUNT|PRICE
+#**********************************************************
+# Contragents
+# Nachisleniya
+# Snyatiya
+sub exfin_export_customers {
+	my ($attr) = @_;
+  
+  $Extfin->{ACTION}='get';
+  $Extfin->{ACTION_LNG}=$_GET;
+  
+  print "Content-Type: text/xml\n\n";
+  print "<?xml version=\"1.0\"  encoding=\"windows-1251\" ?>\n";
+ 
+  if ($FORM{TYPE} && $FORM{TYPE} eq 'CUSTOMERS') {
+
+    my $list = $Extfin->customers_list({ %LIST_PARAMS });
+    my $table = $html->table( { width      => '100%',
+                                caption    => "$_INVOICE",
+                                title      => ['ID', $_NAME, $_FIO, $_TYPE, $_ADDRESS, $_PHONE, $_CONTRACT_ID, "$_GROUP ID", "$_GROUP" ],
+  #                          cols_align => ['right', 'right', 'left', 'right', 'left', 'left', 'right', 'center'],
+  #                          qs         => $pages_qs,
+  #                          pages      => $Docs->{TOTAL}
+                          });
+
+    foreach my $line ( @$list ) {
+      # Group, Kod, Наименование, Вид контрагента, Полное наименование, Юредический адрес, Почтовый адрес, 
+      # номер телефона, ИНН, основной договор, основной счёт, 
+    	$table->addrow($line->[0],
+    	 $line->[1],
+    	 $line->[2],
+    	 $line->[3],
+    	 $line->[4],
+    	 $line->[5],
+    	 $line->[6],
+    	 $line->[7],
+    	 $line->[8],
+    	 $line->[9],
+    	 $line->[10]);
+     }
+
+     print $table->show();
+     
+     
+     return 0;
+   }
+  elsif ($FORM{get}) {
+    print "Content-Type: text/plain\n\n";
+    $Extfin->{debug}=1;
+    my $list = $Extfin->customers_list({ %LIST_PARAMS });
+    my $output = '';
+    foreach my $line (@$list) {
+      # Group, Kod, Наименование, Вид контрагента, Полное наименование, Юредический адрес, Почтовый адрес, 
+      # номер телефона, ИНН, основной договор, основной счёт, 
+    	$output .= "$line->[0]|-|$line->[1]|$line->[2]|$line->[3]|$line->[4]|$line->[5]|$line->[6]|$line->[7]|".
+    	 "$line->[8]|$line->[9]|$line->[10]|\n";
+     }
+
+  	print $output;
+
+  	return 0;
+   }
+  
+  $Extfin->{TYPE_SEL} = $html->form_select('TYPE', 
+                                    { 
+ 	                                   SELECTED    => $FORM{TYPE},
+ 	                                   SEL_HASH    => { CUSTOMERS => $_USERS },
+                                     NO_ID       => 1
+ 	                                  });
+  
+	$html->tpl_show(_include('extfin_export_customers', 'Extfin'), $Extfin);
+}
+
+
+
+
+
+
+1
+
