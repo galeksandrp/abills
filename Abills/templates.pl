@@ -62,8 +62,32 @@ sub templates {
     return tpl_content("../Abills/templates/_"."$tpl_name".".tpl");
    }
   
+if ($tpl_name eq 'header') {
 
-if ($tpl_name eq 'form_pi') {
+return qq{	
+<tr class='HEADER' bgcolor='$_COLORS[3]'><td colspan='2'>
+<div class='header'>
+<form action='$SELF_URL'>
+<table width='100%' border='0'>
+  <tr><th align='left'>$_DATE: %DATE% %TIME% Admin: <a href='$SELF_URL?index=53'>$admin->{A_LOGIN}</a> / Online: <abbr title=\"$online_users\"><a href='$SELF_URL?index=50' title='$online_users'>Online: $online_count</a></abbr></th>  <th align='right'><input type='hidden' name='index' value='7'/><input type='hidden' name='search' value='y'/>
+  Search: $SEL_TYPE <input type='text' name='LOGIN_EXPR' value='$FORM{LOGIN_EXPR}'/> 
+  (<b><a href='#' onclick=\"window.open('help.cgi?index=$index&amp;FUNCTION=$functions{$index}','help',
+    'height=550,width=450,resizable=0,scrollbars=yes,menubar=no, status=yes');\">?</a></b>)</th></tr>
+</table>
+</form>
+</div>
+</td></tr>
+%TECHWORK%
+
+}
+	
+}
+elsif ($tpl_name eq 'footer') {
+return qq{
+  <tr class=\"FOOTER\"><td colspan='2'><hr/> ABillS $conf{version}</td></tr>
+ };
+ }
+elsif ($tpl_name eq 'form_pi') {
 return qq{
 <form action='$SELF_URL' method='post'>
 <input type=hidden name=index value=$index>
@@ -391,6 +415,7 @@ return qq{
 <TR bgcolor=$_COLORS[1]><TD>$_BANK_NAME:</TD><TD><input type=text name=BANK_NAME value='%BANK_NAME%' size=60></TD></TR>
 <TR bgcolor=$_COLORS[1]><TD>$_COR_BANK_ACCOUNT:</TD><TD><input type=text name=COR_BANK_ACCOUNT value='%COR_BANK_ACCOUNT%' size=60></TD></TR>
 <TR bgcolor=$_COLORS[1]><TD>$_BANK_BIC:</TD><TD><input type=text name=BANK_BIC value='%BANK_BIC%' size=60></TD></TR>
+<TR><TD>$_CONTRACT_ID:</TD><TD><input type=text name=CONTRACT_ID value="%CONTRACT_ID%"></TD></TR>
 <TR bgcolor=$_COLORS[1]><TD>$_DISABLE:</TD><TD><input type=checkbox name=DISABLE value='1' %DISABLE%></TD></TR>
 </TABLE>
 <input type=submit name='%ACTION%' value='%LNG_ACTION%'>
@@ -507,7 +532,7 @@ return qq{
 <tr><td colspan='2'>$_PAYMENTS $_DATE ((>, <) YYYY-MM-DD):</td><td><input type='text' name='PAYMENTS' value='%PAYMENTS%'/></td></tr>
 
 <tr bgcolor=$_COLORS[2]><td rowspan=3>$_ADDRESS:</td><td>$_ADDRESS_STREET:</td><td><input type='text' name='ADDRESS_STREET' value='%ADDRESS_STREET%'/></td></tr>
-<tr bgcolor=$_COLORS[2]><td>$_ADDRESS_BUILD:</td><td><input type='text' name='ADDRESS_BUILD' value='%ADDRESS_BUILD%'/></td></tr>
+<tr bgcolor=$_COLORS[2]><td>$_ADDRESS_BUILD:</td><td><input type='text' nam' nam' nam' naminput type='text' naminput type='text' name='ADDRESS_BUILD' value='%ADDRESS_BUILD%'/></td></tr>
 <tr bgcolor=$_COLORS[2]><td>$_ADDRESS_FLAT:</td><td><input type='text' name='ADDRESS_FLAT' value='%ADDRESS_FLAT%'/></td></tr>
 
 <tr><td colspan='2'>$_DISABLE:</td><td><input type='checkbox' name='DISABLE' value='1'/></td></tr>

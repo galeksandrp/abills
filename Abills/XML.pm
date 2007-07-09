@@ -319,6 +319,7 @@ sub menu {
  my ($menu_items, $menu_args, $permissions, $attr) = @_;
  
 
+ return 0 if ($FORM{index} > 0);
  
  my $menu_navigator='';
  my $menu_text='';
@@ -691,16 +692,12 @@ sub table {
 
  bless($self);
 
-
  $self->{prototype} = $proto;
  $self->{NO_PRINT} = $proto->{NO_PRINT};
 
  my($attr)=@_;
  $self->{rows}='';
  
- my $width = (defined($attr->{width})) ? "width=\"$attr->{width}\"" : '';
- my $border = (defined($attr->{border})) ? "border=\"$attr->{border}\"" : '';
-
  if (defined($attr->{rowcolor})) {
      $self->{rowcolor} = $attr->{rowcolor};
    }  
@@ -713,11 +710,16 @@ sub table {
      }
   }
 
- $self->{table} = "<TABLE>\n";
+
  
+
+ $self->{table} = "<TABLE";
+
  if (defined($attr->{caption})) {
-   $self->{table} .= "<TABLE_CAPTION>$attr->{caption}</TABLE_CAPTION>\n";
+   $self->{table} .= " CAPTION=\"$attr->{caption}\" ";
   }
+  
+ $self->{table} .= ">\n";
 
  if (defined($attr->{title})) {
  	 $self->{table} .= $self->table_title($SORT, $DESC, $PG, $OP, $attr->{title}, $attr->{qs});
@@ -726,15 +728,6 @@ sub table {
    $self->{table} .= $self->table_title_plain($attr->{title_plain});
   }
 
-# if (defined($attr->{cols_align})) {
-#   $self->{table} .= "<COLGROUP>";
-#   my $cols_align = $attr->{cols_align};
-#   foreach my $line (@$cols_align) {
-#     $self->{table} .= " <COL align=\"$line\"/>\n";
-#    }
-#   $self->{table} .= "</COLGROUP>\n";
-#  }
- 
  if (defined($attr->{pages})) {
  	   my $op;
  	   if($FORM{index}) {
@@ -759,25 +752,17 @@ sub table {
 sub addrow {
   my $self = shift;
   my (@row) = @_;
-
-
-  if (defined($self->{rowcolor})) {
-    $bg = $self->{rowcolor};
-   }  
-  else {
-  	$bg = ($bg eq $_COLORS[1]) ? $_COLORS[2] : $_COLORS[1];
-   }
-  
-  my $extra=(defined($self->{extra})) ? $self->{extra} : '';
+ 
+  my $extra=(defined($self->{extra})) ? " $self->{extra}" : '';
 
   $row_number++;
   
-  $self->{rows} .= "<TR>";
+  $self->{rows} .= "  <ROW>";
   foreach my $val (@row) {
-     $self->{rows} .= "<TD $extra>$val</TD>";
+     $self->{rows} .= "<TD$extra>". $self->link_former($val, { SKIP_SPACE => 1 }) ."</TD>";
    }
 
-  $self->{rows} .= "</TR>\n";
+  $self->{rows} .= "</ROW>\n";
   return $self->{rows};
 }
 
@@ -787,23 +772,16 @@ sub addrow {
 sub addtd {
   my $self = shift;
   my (@row) = @_;
-
-  if (defined($self->{rowcolor})) {
-    $bg = $self->{rowcolor};
-   }  
-  else {
-  	$bg = ($bg eq $_COLORS[1]) ? $_COLORS[2] : $_COLORS[1];
-   }
-  
+ 
   my $extra=(defined($self->{extra})) ? $self->{extra} : '';
 
 
-  $self->{rows} .= "<TR bgcolor=\"$bg\">";
+  $self->{rows} .= "<ROW>";
   foreach my $val (@row) {
      $self->{rows} .= "$val";
    }
 
-  $self->{rows} .= "</TR>\n";
+  $self->{rows} .= "</ROW>\n";
 
   return $self->{rows};
 }
@@ -823,8 +801,7 @@ sub td {
     $extra.=" $k=\"$v\"";
    }
 
-  my $td = "<TD $extra>$value</TD>";
-
+  my $td = "<TD$extra>$value</TD>";
   return $td;
 }
 
@@ -837,13 +814,14 @@ sub table_title_plain {
   my $self = shift;
   my ($caption)=@_;
 
-#  $self->{table_title} = "<TR bgcolor=\"$_COLORS[0]\">";
-	
+  $self->{table_title} = "<TITLE columns=\"". ($#{ @$caption } + 1) ."\">\n";
+	my $i = 0;
   foreach my $line (@$caption) {
-    $self->{table_title} .= "<TABLE_TITLE>$line</TABLE_TITLE>";
+    $self->{table_title} .= "  <COLUMN_".$i." NAME=\"$line\" ";
+    $i++;
    }
 	
-#  $self->{table_title} .= "</TR>\n";
+  $self->{table_title} .= "</TITLE>\n";
   return $self->{table_title};
 }
 
@@ -864,10 +842,10 @@ sub table_title  {
 
 #  print "$sort, $desc, $pg, $op, $caption, $qs";
 
-  $self->{table_title} = "<TR bgcolor=\"$_COLORS[0]\">";
+  $self->{table_title} = "<TITLE columns=\"". ($#{ @$caption } + 1) ."\">\n";
   my $i=1;
   foreach my $line (@$caption) {
-     $self->{table_title} .= "<th  class=\"table_title\">$line ";
+     $self->{table_title} .= " <COLUMN_".$i." NAME=\"$line\" ";
      if ($line ne '-') {
          if ($sort != $i) {
              $img = 'sort_none.png';
@@ -887,17 +865,14 @@ sub table_title  {
          else {
          	  $op="op=$get_op";
           }
-         $self->{table_title} .= $self->button("<img src=\"$IMG_PATH/$img\" width=\"12\" height=\"10\" border=\"0\" alt=\"Sort\" title=\"sort\"/>", "$op$qs&pg=$pg&sort=$i&desc=$desc");
-       }
-     else {
-         $self->{table_title} .= "$line";
+
+         #$self->{table_title} .= $self->button("<img src=\"$IMG_PATH/$img\" width=\"12\" height=\"10\" border=\"0\" alt=\"Sort\" title=\"sort\"/>", "$op$qs&pg=$pg&sort=$i&desc=$desc");
        }
 
-     $self->{table_title} .= "</th>\n";
+     $self->{table_title} .= "/>\n";
      $i++;
    }
- $self->{table_title} .= "</TR>\n";
-
+ $self->{table_title} .= "</TITLE>\n";
  return $self->{table_title};
 }
 
@@ -911,11 +886,13 @@ sub show  {
   my ($attr) = @_;
   
   $self->{show} = $self->{table};
+  $self->{show} .= "<DATA>\n";
   $self->{show} .= $self->{rows}; 
+  $self->{show} .= "</DATA>\n"; 
   $self->{show} .= "</TABLE>\n";
 
   if (defined($self->{pages})) {
- 	   $self->{show} =  '<br/>' .$self->{show} . $self->{pages} .'<br/>';
+ 	   $self->{show} =  $self->{show} . $self->{pages}
  	 } 
 
   if ((defined($self->{NO_PRINT})) && ( !defined($attr->{OUTPUT2RETURN}) )) {
@@ -962,9 +939,6 @@ sub button {
 
   $params = $attr->{JAVASCRIPT} if (defined($attr->{JAVASCRIPT}));
   $params = $self->link_former($params);
-  
-
- 
   
   $ex_attr=" TITLE='$attr->{TITLE}'" if (defined($attr->{TITLE}));
   my $message = (defined($attr->{MESSAGE})) ? "onclick=\"return confirmLink(this, '$attr->{MESSAGE}')\"" : '';

@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/perl 
 # 
 # http://www.maani.us/charts/index.php
 #use vars qw($begin_time);
@@ -37,15 +37,21 @@ require "Abills/templates.pl";
 
 
 
-
-
-
-
-
-
-
-
-
+#use vars qw(%conf 
+#  %FUNCTIONS_LIST
+#  @PAYMENT_METHODS  
+#  
+#  @state_colors
+#  %permissions
+#
+#  $REMOTE_USER
+#  $REMOTE_PASSWD
+#
+#  $html
+# 
+#  $begin_time %LANG $CHARSET @MODULES $FUNCTIONS_LIST $USER_FUNCTION_LIST $UID $user $admin $sid);
+#
+#use strict;
 
 #use FindBin '$Bin2';
 use Abills::SQL;
@@ -198,7 +204,7 @@ my %menu_items  = ();
 my %menu_names  = ();
 my $maxnumber   = 0;
 my %uf_menus    = (); #User form menu list
-
+my %menu_args   = ();
 
 fl();
 my %USER_SERVICES = ();
@@ -311,35 +317,22 @@ my $SEL_TYPE = $html->form_select('type',
  	                               });
 
 
-print "
-<table width='100%'>
-<tr bgcolor='$_COLORS[3]'><td colspan='2'>
-<div class='header'>
-<form action='$SELF_URL'>
-<table width='100%' border='0'>
-  <tr><th align='left'>$_DATE: $DATE $TIME Admin: <a href='$SELF_URL?index=53'>$admin->{A_LOGIN}</a> / Online: <abbr title=\"$online_users\"><a href='$SELF_URL?index=50' title='$online_users'>Online: $online_count</a></abbr></th>
-  <th align='right'><input type='hidden' name='index' value='7'/><input type='hidden' name='search' value='y'/>
-  Search: $SEL_TYPE <input type='text' name=\"LOGIN_EXPR\" value='$FORM{LOGIN_EXPR}'/> 
-  (<b><a href='#' onclick=\"window.open('help.cgi?index=$index&amp;FUNCTION=$functions{$index}','help',
-    'height=550,width=450,resizable=0,scrollbars=yes,menubar=no, status=yes');\">?</a></b>)</th></tr>
-</table>
-</form>
-</div>
-</td></tr>\n";
-
-
-
+## Visualisation begin
+print "<table width='100%'>\n";
+$admin->{DATE}=$DATE;
+$admin->{TIME}=$TIME;
 if(defined($conf{tech_works})) {
-  print "<tr><th bgcolor='#FF0000' colspan='2'>$conf{tech_works}</th></tr>\n";
+  $admin->{TECHWORK} = "<tr><th bgcolor='#FF0000' colspan='2'>$conf{tech_works}</th></tr>\n";
 }
 
-if ($admin->{WEB_OPTIONS}{qm}) {
-  print "<tr><td colspan='2' class='noprint'>\n<table  width='100%' border='0'>\n";
+#Quick Menu
+if ($admin->{WEB_OPTIONS}{qm} && ! $FORM{xml}) {
+  $admin->{QUICK_MENU} = "<tr class='HEADER_QM'><td colspan='2' class='noprint'>\n<table  width='100%' border='0'><tr>\n";
 	my @a = split(/,/, $admin->{WEB_OPTIONS}{qm});
   my $i = 0;
 	foreach my $line (@a) {
-    if (  $i % 6 == 0) {
-      print "<tr>\n";
+    if (  $i % 6 == 0 && $i > 0) {
+      $admin->{QUICK_MENU} .= "</tr>\n<tr>\n";
      }
 
     my ($qm_id, $qm_name)=split(/:/, $line, 2);
@@ -347,27 +340,37 @@ if ($admin->{WEB_OPTIONS}{qm}) {
     
     $qm_name = $menu_names{$qm_id} if ($qm_name eq '');
     
-    print "  <th bgcolor='$color'>";
+    $admin->{QUICK_MENU} .= "  <th bgcolor='$color'>";
     if (defined($menu_args{$qm_id})) {
     	my $args = 'LOGIN_EXPR' if ($menu_args{$qm_id} eq 'UID');
-      print $html->button("$qm_name", '', 
-         { JAVASCRIPT => "javascript: Q=prompt('$menu_names{$qm_id}',''); if (Q != null) {  Q='". "&$args='+Q;  }else{Q = '';} this.location.href='$SELF_URL?index=$qm_id'+Q;" });
+      $admin->{QUICK_MENU} .= $html->button("$qm_name", '', 
+         { JAVASCRIPT => "javascript: Q=prompt('$menu_names{$qm_id}',''); ".
+         	               "if (Q != null) {  Q='". "&$args='+Q;  }else{Q = ''; } ".
+         	               " this.location.href='$SELF_URL?index=$qm_id'+Q;" 
+         	           });
      }
     else {
-      print $html->button($qm_name, "index=$qm_id");
+      $admin->{QUICK_MENU} .= $html->button($qm_name, "index=$qm_id");
      } 
      
-    print "  </th>\n";
+    $admin->{QUICK_MENU} .= "  </th>\n";
 	  $i++;
 	 }
   
-  print "</tr></table>\n</td></tr>\n";
+  $admin->{QUICK_MENU} .= "</tr></table>\n</td></tr>\n";
 }
 
-print "<tr><td valign='top' width='18%' bgcolor='$_COLORS[2]' rowspan='2' class='noprint'>
+
+#print "\n\n\n --------------\n$admin->{QUICK_MENU}\n\n\n --------------\n";
+
+$html->tpl_show(templates('header'), $admin);
+print $admin->{QUICK_MENU};
+
+
+print "<tr  class='MENU'><td valign='top' width='18%' bgcolor='$_COLORS[2]' rowspan='2' class='noprint'>
 $menu_text
 </td><td bgcolor='$_COLORS[0]' height='50' class='noprint'>$navigat_menu</td></tr>
-<tr><td valign='top' align='center'>";
+<tr class='CONTENT'><td valign='top' align='center'>";
 
 
 if ($functions{$index}) {
@@ -423,9 +426,9 @@ if ($begin_time > 0) {
   $conf{version} .= " (GT: $gen_time) <b class='noprint'>UP: $uptime</b>";
 }
 
-print "</td></tr>
-<tr><td colspan='2'><hr/> ABillS $conf{version}</td></tr>
-</table>\n";
+print "</td></tr>";
+$html->tpl_show(templates('footer'), $admin);
+print "</table>\n";
 #print ';
 $html->test();
 
@@ -506,16 +509,19 @@ sub check_permissions {
 
 
 #**********************************************************
-#
+# Quick start menu
 #**********************************************************
 sub form_start {
+
+return 0 if ($FORM{'xml'} == 1);
+
 my  %new_hash = ();
+
 while((my($findex, $hash)=each(%menu_items))) {
    while(my($parent, $val)=each %$hash) {
      $new_hash{$parent}{$findex}=$val;
     }
 }
-
 
 
 my $h = $new_hash{0};
@@ -529,10 +535,13 @@ my @menu_sorted = sort {
    $a cmp $b
 } keys %$h;
 
-my $table2 = $html->table({ width       => '100%',
-	                          border => 0 });
+my $table2 = $html->table({ width    => '100%',
+	                          border   => 0 
+	                        });
+
+
 my $table;
-my @rows;
+my @rows = ();
 
 for(my $parent=1; $parent<$#menu_sorted; $parent++) { 
   my $val = $h->{$parent};
@@ -547,7 +556,7 @@ for(my $parent=1; $parent<$#menu_sorted; $parent++) {
                             title_plain => [ $html->button("<b>$val</b>", "index=$parent") ],
                             border      => 1,
                             cols_align  => ['left']
-                         });
+                          });
    }
 
   if (defined($new_hash{$parent})) {
@@ -563,23 +572,21 @@ for(my $parent=1; $parent<$#menu_sorted; $parent++) {
       }
   }
 
-push @rows, $table->td($table->show(), { bgcolor => $_COLORS[1], valign => 'top', align => 'center' });
+  push @rows, $table->td($table->show(), { bgcolor => $_COLORS[1], valign => 'top', align => 'center' });
 
-if ($#rows > 1) {
-  $table2->addtd(@rows);
-  undef @rows;
-}
-
-
+  if ($#rows > 1) {
+    $table2->addtd(@rows);
+    undef @rows;
+   }
 }
 
 $table2->addtd(@rows);
 print $table2->show();
 # return 0;
-
-
-	
 }
+
+
+
 #**********************************************************
 #
 #**********************************************************
@@ -1195,9 +1202,9 @@ foreach my $line (@$list) {
 
 
 
-my $multiuser = ($permissions{0}{7}) ? $html->form_input('IDS', "$line->[5+$users->{SEARCH_FIELDS_COUNT}]", { TYPE => 'checkbox', }) : '';
+  my $multiuser = ($permissions{0}{7}) ? $html->form_input('IDS', "$line->[5+$users->{SEARCH_FIELDS_COUNT}]", { TYPE => 'checkbox', }) : '';
 
-$table->addtd(
+  $table->addtd(
                   $table->td(
                   $multiuser.$html->button($line->[0], "index=15&UID=$line->[5+$users->{SEARCH_FIELDS_COUNT}]") ), 
                   $table->td($line->[1]), 
@@ -1350,14 +1357,13 @@ print << "[END]";
 [END]
 
 
-my $table = $html->table( { width => '100%',
-                                   border => 1,
-                                   title => [$_SERVISE, $_DATE, $_DESCRIBE, '-', '-'],
-                                   cols_align => ['left', 'right', 'left', 'center', 'center'],
-                                   qs => $pages_qs,
-                                   pages => $users->{TOTAL}
-                                  } );
-
+my $table = $html->table( { width      => '100%',
+                            border     => 1,
+                            title      => [$_SERVISE, $_DATE, $_DESCRIBE, '-', '-'],
+                            cols_align => ['left', 'right', 'left', 'center', 'center'],
+                            qs         => $pages_qs,
+                            pages      => $users->{TOTAL}
+                        } );
 print $table->show();
 
 }
@@ -1680,7 +1686,7 @@ if(defined($attr->{TP})) {
      	 my $TI_ID = $line->[0];
      	 #Traffic tariff IN (1 Mb) Traffic tariff OUT (1 Mb) Prepaid (Mb) Speed (Kbits) Describe NETS 
 
-       my $table2 = $html->table( { width      => '100%',
+       my $table2 = $html->table({ width       => '100%',
                                    title_plain => ["#", "$_TRAFFIC_TARIFF In ", "$_TRAFFIC_TARIFF Out ", "$_PREPAID", "$_SPEED IN",  "$_SPEED OUT", "DESCRIBE", "NETS", "-", "-"],
                                    cols_align  => ['center', 'right', 'right', 'right', 'right', 'right', 'left', 'right', 'center', 'center', 'center'],
                                    caption     => "$_BYTE_TARIF"
@@ -1776,7 +1782,7 @@ for(my $i=0; $i<9; $i++) {
     }
   
   
-  $table->addtd("<td>$DAY_NAMES[$i]</td>", @hours);
+  $table->addtd($table->td($DAY_NAMES[$i]), @hours);
 }
 
 print $table->show();
@@ -2488,11 +2494,12 @@ else {
 
 
 my $table = $html->table( { width      => '100%',
-                                   caption    => "$_STATS",
-                                   border     => 1,
-                                   title      => ["NAS", "NAS_PORT", "$_SESSIONS", "$_LAST_LOGIN", "$_AVG", "$_MIN", "$_MAX"],
-                                   cols_align => ['left', 'right', 'right', 'right', 'right', 'right', 'right'],
-                                  } );
+                            caption    => "$_STATS",
+                            border     => 1,
+                            title      => ["NAS", "NAS_PORT", "$_SESSIONS", "$_LAST_LOGIN", "$_AVG", "$_MIN", "$_MAX"],
+                            cols_align => ['left', 'right', 'right', 'right', 'right', 'right', 'right'],
+                        } );
+
 my $list = $nas->stats({ %LIST_PARAMS });	
 
 foreach my $line (@$list) {
@@ -4182,7 +4189,6 @@ sub form_webserver_info {
 # Show system config
 #*******************************************************************
 sub form_config {
-	
 
 	my $table = $html->table( {caption     => 'config options',
 		                         width       => '600',
@@ -4192,16 +4198,12 @@ sub form_config {
   $table->addrow("Perl Version:", $], '');
   
   
-  my $i = 0;
   foreach my $k (sort keys %conf) {
      if ($k eq 'dbpasswd') {
       	$conf{$k}='*******';
       }
      $table->addrow($k, $conf{$k}, '');
-     $i++;
    }
-
-  
 
 	print $table->show();
 }
@@ -4263,15 +4265,12 @@ elsif($FORM{del}) {
   $html->message('info', $_INFO, "$_DELETED : $conf{BACKUP_DIR}/$FORM{del} [$status]");
 }
 
-
-
-
   my $table = $html->table( { width      => '600',
                               caption    => "$_SQL_BACKUP",
                               border     => 1,
                               title      => ["$_NAME", $_DATE, $_SIZE, '-'],
                               cols_align => ['left', 'right', 'right', 'center']
-                               } );
+                          } );
 
 
   opendir DIR, $conf{BACKUP_DIR} or $html->message('err', $_ERROR, "Can't open dir '$conf{BACKUP_DIR}' $!\n");
@@ -4288,7 +4287,6 @@ elsif($FORM{del}) {
 
  print  $table->show();
  print  $html->button($_CREATE, "index=$index&mk_backup=y");
-	
 }
 
 
@@ -4301,11 +4299,7 @@ sub weblog {
   open(FILE, ">>$conf{WEB_LOGFILE}") || die "Can't open file '$conf{WEB_LOGFILE}' $!\n";
     print FILE "$DATE $TIME $admin->{A_LOGIN} $admin->{SESSION_IP} $action:$value\n";
   close(FILE);
-	
 }
-
-
-
 
 #**********************************************************
 #
@@ -4371,5 +4365,4 @@ sub _external {
  	  $html->message('err', "_EXTERNAL $_ERROR", "[$num] $message");
     return 0;
    }
-	
 }
