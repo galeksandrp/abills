@@ -279,7 +279,7 @@ if (! $list) {
   }
 
   my $nas = Nas->new($db);
-  my $nas_list = $nas->list({ %LIST_PARAMS });
+  my $nas_list = $nas->list({ %LIST_PARAMS, PAGE_ROWS => 1000 });
 
   my $SEL_NAS = "<select name=NAS_ID>\n";
      $SEL_NAS .= "<option value=''>$_ALL\n";
@@ -1485,7 +1485,7 @@ sub ipn_user_activate {
 
   $HIDDEN{sid}=$html->{SID} if ($html->{SID});
 
-print $html->form_main({ CONTENT => "IP: $ip $IP_INPUT (". $nas_id .") ", 
+print $html->form_main({ CONTENT => "IP: $ip $IP_INPUT NAS: (". $nas_id .") ", 
                      HIDDEN  => { index   => "$index",
                      	            UID     => $LIST_PARAMS{UID},
                      	            %HIDDEN

@@ -29,7 +29,7 @@ sub exfin_export_customers {
 
     my $list = $Extfin->customers_list({ %LIST_PARAMS });
     my $table = $html->table( { width      => '100%',
-                                caption    => "$_INVOICE",
+                                caption    => "$_USERS",
                                 title      => ['ID', $_NAME, $_FIO, $_TYPE, $_ADDRESS, $_PHONE, $_CONTRACT_ID, "$_GROUP ID", "$_GROUP" ],
   #                          cols_align => ['right', 'right', 'left', 'right', 'left', 'left', 'right', 'center'],
   #                          qs         => $pages_qs,

@@ -227,8 +227,7 @@ sub customers_list {
       # номер телефона, ИНН, основной договор, основной счёт, 
 
 
- $PAGE_ROWS = 100;
- $SORT = 2;
+ #$PAGE_ROWS = 23000;
  
  $self->query($db, "SELECT  
                          u.uid, 
