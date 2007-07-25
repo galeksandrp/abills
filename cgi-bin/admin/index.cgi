@@ -3660,7 +3660,7 @@ if (defined($attr->{SIMPLE})) {
 
 	my $SEARCH_FIELDS = $attr->{SIMPLE};
 	while(my($k, $v)=each( %$SEARCH_FIELDS )) {
-	  $SEARCH_DATA{SEARCH_FORM}.="<tr><td>$k:</td><td><input type=text name=\"$v\" value=\"%". $v ."%\"></td></tr>\n";
+	  $SEARCH_DATA{SEARCH_FORM}.="<tr><td>$k:</td><td><input type=\"text\" name=\"$v\" value=\"%". $v ."%\"></td></tr>\n";
 	 }
 
   $html->tpl_show(templates('form_search_simple'), \%SEARCH_DATA);
@@ -3678,33 +3678,16 @@ my $SEL_METHOD =  $html->form_select('METHOD',
                                   SEL_OPTIONS   => { '' => $_ALL }
  	                               });
 
-
 my $group_sel = sel_groups();
 my %search_form = ( 
-2 => "
-<!-- PAYMENTS -->
-<tr><td colspan=\"2\"><hr/></td></tr>
-<tr><td>$_OPERATOR (ID):</td><td><input type='text' name='A_LOGIN' value='%A_LOGIN%'/></td></tr>
-<tr><td>$_DESCRIBE (*):</td><td><input type='text' name='DESCRIBE' value='%DESCRIBE%'/></td></tr>
-<tr><td>$_SUM (&lt;, &gt;):</td><td><input type='text' name='SUM' value='%SUM%'/></td></tr>
-<tr><td>$_PAYMENT_METHOD:</td><td>$SEL_METHOD</td></tr>
-<tr><td>$_PAYMENTS ID (&lt;, &gt;):</td><td><input type='text' name='ID' value='%ID%'/></td></tr>
-<tr><td>EXT ID:</td><td><input type='text' name='EXT_ID' value='%EXT_ID%'/></td></tr>
-\n",
-
-3 => "
-<!-- FEES -->
-<tr><td colspan='2'><hr/></td></tr>
-<tr><td>$_OPERATOR (ID):</td><td><input type=text name=A_LOGIN value='%A_LOGIN%'/></td></tr>
-<tr><td>$_DESCRIBE (*):</td><td><input type=text name=DESCRIBE value='%DESCRIBE%'/></td></tr>
-<tr><td>$_SUM (<,>):</td><td><input type=text name=SUM value='%SUM%'/></td></tr>\n",
-
-11 => $html->tpl_show(templates('form_search_users'), { %info, %FORM, GROUPS_SEL => $group_sel }, { notprint => 1 })
-
-);
+   2  => 'form_search_payments',
+   3  => 'form_search_fees',
+   11 => 'form_search_users'
+  );
 
 
-$SEARCH_DATA{SEARCH_FORM}=(defined($attr->{SEARCH_FORM})) ? $attr->{SEARCH_FORM} : $search_form{$FORM{type}};
+$SEARCH_DATA{SEARCH_FORM}=(defined($attr->{SEARCH_FORM})) ? $attr->{SEARCH_FORM} : $html->tpl_show(templates($search_form{$FORM{type}}), { %info, %FORM, GROUPS_SEL => $group_sel }, { notprint => 1 });
+
 $SEARCH_DATA{FROM_DATE} = $html->date_fld('FROM_', { MONTHES => \@MONTHES });
 $SEARCH_DATA{TO_DATE} = $html->date_fld('TO_', { MONTHES => \@MONTHES} );
 $SEARCH_DATA{SEL_TYPE}="<tr><td>WHERE:</td><td>$SEL_TYPE</td></tr>\n" if ($index == 7);
