@@ -249,7 +249,8 @@ sub customers_list {
      LEFT JOIN bills cb ON  (company.bill_id=cb.id)
      
      $WHERE 
-     ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");
+     ORDER BY $SORT $DESC ;");
+#LIMIT $PG, $PAGE_ROWS;");
 
   return $self if($self->{errno});
   my $list = $self->{list};
