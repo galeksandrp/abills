@@ -110,6 +110,7 @@ CREATE TABLE `companies` (
   `address` varchar(100) NOT NULL default '',
   `phone` varchar(20) NOT NULL default '',
   `vat` double(5,2) unsigned NOT NULL default '0.00',
+  contract_id` varchar(10) NOT NULL default '',
   PRIMARY KEY  (`id`),
   UNIQUE KEY `id` (`id`),
   UNIQUE KEY `name` (`name`)
@@ -456,6 +457,7 @@ CREATE TABLE `nas` (
   `rad_pairs` text NOT NULL,
   `alive` smallint(6) unsigned NOT NULL default '0',
   `disable` tinyint(6) unsigned NOT NULL default '0',
+  `ext_acct` tinyint(1) unsigned NOT NULL, 
   PRIMARY KEY  (`id`)
 ) COMMENT='Nas servers list';
 
