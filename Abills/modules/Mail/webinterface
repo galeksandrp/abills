@@ -570,7 +570,7 @@ sub mail_user_boxes {
       
       #Send test mail
       if ($FORM{SEND_MAIL}) {
-      	my $message =  $html->tpl_show(_include('mail_test_msg', 'Mail'), $Mail, { noprint => 1 });
+      	my $message =  $html->tpl_show(_include('mail_test_msg', 'Mail'), $Mail, { notprint => 1 });
       	sendmail("$conf{ADMIN_MAIL}", 
       	   "$Mail->{USER_EMAIL}", 
       	   "Test mail", 
@@ -610,6 +610,7 @@ sub mail_user_boxes {
     $FORM{UID}=$Mail->{UID};
 	  $Mail->{ACTION}='set';
 	  $Mail->{LNG_ACTION}=$_CHANGE;
+	  $Mail->{SEND_MAIL}=undef;
    }
 	elsif($FORM{del} && $FORM{is_js_confirmed}) {
     $Mail->mbox_del($FORM{del}, { %LIST_PARAMS });
