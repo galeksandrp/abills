@@ -559,6 +559,7 @@ sub mail_user_boxes {
   $Mail->defaults();
   $Mail->{ACTION}='add';
   $Mail->{LNG_ACTION}=$_ADD;
+  $Mail->{SEND_MAIL}='checked';
 
   
   if ($FORM{add}) {
@@ -566,6 +567,18 @@ sub mail_user_boxes {
     if (! $Mail->{errno}) {
     	#system("su -fm vmail -c 'maildirmake /var/spool/virtual/$FORM{USERNAME}@$Mail->{DOMAINNAME}' ;
       #        su -fm vmail -c 'maildirmake -f Spam /var/spool/virtual/$FORM{USERNAME}@$Mail->{DOMAINNAME}' ");
+      
+      #Send test mail
+      if ($FORM{SEND_MAIL}) {
+      	my $message =  $html->tpl_show(_include('mail_test_msg', 'Mail'), $Mail, { noprint => 1 });
+      	sendmail("$conf{ADMIN_MAIL}", 
+      	   "$Mail->{USER_EMAIL}", 
+      	   "Test mail", 
+      	   "$message", 
+      	   "$conf{MAIL_CHARSET}", 
+      	   "");
+        
+       }
 
       $html->message('info', $_INFO, "$_ADDED");	
      }

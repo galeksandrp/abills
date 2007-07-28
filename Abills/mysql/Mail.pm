@@ -73,6 +73,10 @@ sub mbox_add {
     ENCODE('$DATA{PASSWORD}', '$CONF->{secretkey}'));", 'do');
 	
 	
+	$self->domain_info({ MAIL_DOMAIN_ID => $DATA{DOMAIN_ID} });
+	
+	$self->{USER_EMAIL} = $DATA{USERNAME}.'@'.$self->{DOMAIN};
+	
   $admin->action_add($DATA{UID}, "ADD $DATA{USERNAME}");
 	
 	return $self;
