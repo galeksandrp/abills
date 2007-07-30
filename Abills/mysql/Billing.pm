@@ -273,7 +273,14 @@ sub get_traffic {
      TRAFFIC_IN_2  => 0
 	);
   
-  my $period = ($attr->{PERIOD}) ? $attr->{PERIOD} : "DATE_FORMAT(start, '%Y-%m')=DATE_FORMAT(curdate(), '%Y-%m')";
+  
+  my $period = "DATE_FORMAT(start, '%Y-%m')=DATE_FORMAT(curdate(), '%Y-%m')";
+  if ($attr->{PERIOD}) {
+    $period = $attr->{PERIOD};
+   }
+  elsif($attr->{INTERVAL}) {
+  	$period = $attr->{INTERVAL};
+   }
 
   $self->query($db, "SELECT sum(sent)  / $CONF->{MB_SIZE},  
                             sum(recv)  / $CONF->{MB_SIZE}, 
@@ -296,6 +303,46 @@ sub get_traffic {
 	return \%result;
 }
 
+#**********************************************************
+# Get traffic from some period
+# UID     - user id
+# PERIOD  - start period
+# 
+# Return traffic recalculation by MB 
+#
+#**********************************************************
+sub get_traffic_tt{
+	my ($self, $attr) = @_;
+
+	my %result = (
+	   TRAFFIC_OUT   => 0, 
+     TRAFFIC_IN    => 0,
+     TRAFFIC_OUT_2 => 0,
+     TRAFFIC_IN_2  => 0
+	);
+  
+  my $period = ($attr->{PERIOD}) ? $attr->{PERIOD} : "DATE_FORMAT(start, '%Y-%m')=DATE_FORMAT(curdate(), '%Y-%m')";
+
+  $self->query($db, "SELECT sum(sent)  / $CONF->{MB_SIZE},  
+                            sum(recv)  / $CONF->{MB_SIZE}, 
+                            sum(sent2) / $CONF->{MB_SIZE}, 
+                            sum(recv2) / $CONF->{MB_SIZE}
+       FROM dv_log 
+       WHERE uid='$attr->{UID}' and ($period)
+       GROUP BY uid;");
+
+  if ($self->{TOTAL} > 0) {
+    ($result{TRAFFIC_OUT}, 
+     $result{TRAFFIC_IN},
+     $result{TRAFFIC_OUT_2},
+     $result{TRAFFIC_IN_2}
+    )=@{ $self->{list}->[0] };
+  }
+  
+  $self->{PERIOD_TRAFFIC}=\%result;
+  
+	return \%result;
+}
 
 #**********************************************************
 # Calculate session sum
@@ -520,15 +567,15 @@ sub time_intervals {
    i.tarif,
    if(sum(tt.in_price+tt.out_price) IS NULL || sum(tt.in_price+tt.out_price)=0, 0, sum(tt.in_price+tt.out_price)),
    i.id
-   FROM intervals i
+   FROM (intervals i)
    LEFT JOIN  trafic_tarifs tt ON (tt.interval_id=i.id)
    WHERE i.tp_id='$TP_ID'
    GROUP BY i.id
    ORDER BY 1;");
 
  if ($self->{TOTAL} < 1) {
-     return 0;	
-   }
+   return 0;	
+  }
 
  my %time_periods = ();
  my %periods_time_tarif = (); 
@@ -617,13 +664,13 @@ if ($debug == 1) {
  while($duration > 0 && $count < 10) {
 
    if(defined($holidays{$day_of_year}) && defined($time_intervals->{8})) {
-    	$tarif_day = 8;
+     $tarif_day = 8;
     }
    elsif (defined($time_intervals->{$day_of_week})) {
-    	$tarif_day = $day_of_week;
+     $tarif_day = $day_of_week;
     }
    elsif(defined($time_intervals->{0})) {
-      $tarif_day = 0;
+     $tarif_day = 0;
     }
    else {
 #   	err();
@@ -1010,13 +1057,13 @@ sub remaining_time {
              }
            }
           # Check next traffic interval if the price is same add this interval to session timeout
-          elsif(defined($periods_traf_tarif->{$int_id}) 
-            && $periods_traf_tarif->{$int_id} > 0 
-            && ! $CONF->{rt_billing} 
-            && (($int_end - $int_begin < 86400) && $periods_traf_tarif->{$int_id} != $traf_price)
-            ) {
-            print "Next tarif with traffic counts (Remaining: $remaining_time) Day: $tarif_day Int Begin: $int_begin End: $int_end ID: $int_id\n" if ($debug == 1);
-            return int($remaining_time), \%ATTR;
+          elsif(defined($periods_traf_tarif->{$int_id})
+             && $periods_traf_tarif->{$int_id} > 0
+             && ! $CONF->{rt_billing}
+             && (($int_end - $int_begin < 86400) && $periods_traf_tarif->{$int_id} != $traf_price)
+             ) {
+             print "Next tarif with traffic counts (Remaining: $remaining_time) Day: $tarif_day Int Begin: $int_begin End: $int_end ID: $int_id\n" if ($debug == 1);
+             return int($remaining_time), \%ATTR;
            }
           elsif ($price > 0) {
             $int_prepaid = int($deposit / $price * 3600);

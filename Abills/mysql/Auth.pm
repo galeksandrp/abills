@@ -97,7 +97,8 @@ sub dv_auth {
   count(i.id),
   tp.age,
   dv.callback,
-  dv.port
+  dv.port,
+  tp.traffic_transfer_period
 
      FROM (dv_main dv, tarif_plans tp)
      LEFT JOIN users_nas un ON (un.uid = dv.uid)
@@ -139,7 +140,8 @@ sub dv_auth {
      $self->{INTERVALS},
      $self->{ACCOUNT_AGE},
      $self->{CALLBACK},
-     $self->{PORT}
+     $self->{PORT},
+     $self->{TRAFFIC_TRANSFER_PERIOD}
     ) = @{ $self->{list}->[0] };
 
 #DIsable
@@ -892,11 +894,12 @@ sub ex_traffic_params {
 # expresion exist
 if ((defined($prepaids{0}) && $prepaids{0} > 0 ) || (defined($prepaids{1}) && $prepaids{1}>0 ) || $expr{0} || $expr{1}) {
 
+#  my $start_period = undef; #($self->{ACCOUNT_ACTIVATE} ne '0000-00-00') ? "DATE_FORMAT(start, '%Y-%m-%d')>='$self->{ACCOUNT_ACTIVATE}'" : undef;
+#  my $used_traffic = undef;
+
   my $start_period = ($self->{ACCOUNT_ACTIVATE} ne '0000-00-00') ? "DATE_FORMAT(start, '%Y-%m-%d')>='$self->{ACCOUNT_ACTIVATE}'" : undef;
   my $used_traffic=$Billing->get_traffic({ UID    => $self->{UID},
                                            PERIOD => $start_period });
-
-
 
   #Make trafiic sum only for diration
   #Recv / IN
@@ -913,7 +916,49 @@ if ((defined($prepaids{0}) && $prepaids{0} > 0 ) || (defined($prepaids{1}) && $p
  	  $used_traffic->{TRAFFIC_COUNTER}   = $used_traffic->{TRAFFIC_IN}+$used_traffic->{TRAFFIC_OUT};
     $used_traffic->{TRAFFIC_COUNTER_2} = $used_traffic->{TRAFFIC_IN_2}+$used_traffic->{TRAFFIC_OUT_2};
    }   
-  
+
+  if ($self->{TRAFFIC_TRANSFER_PERIOD}) {
+    my $tp = $self->{TP_ID};
+    
+    #$prepaids{0} = $prepaids{0} * $self->{TRAFFIC_TRANSFER_PERIOD} ;
+    #$prepaids{1} = $prepaids{1} * $self->{TRAFFIC_TRANSFER_PERIOD} ;
+    my $interval = undef;
+  	if ($self->{ACCOUNT_ACTIVATE} ne '0000-00-00') {
+      $interval = "(DATE_FORMAT(start, '%Y-%m-%d')>='$self->{ACCOUNT_ACTIVATE}' - INTERVAL $self->{TRAFFIC_TRANSFER_PERIOD} * 30 DAY && 
+       DATE_FORMAT(start, '%Y-%m-%d')<='$self->{ACCOUNT_ACTIVATE}')";
+
+  	 }
+    else {
+    	$interval = "(DATE_FORMAT(start, '%Y-%m')>=DATE_FORMAT(curdate() - INTERVAL $self->{TRAFFIC_TRANSFER_PERIOD} MONTH, '%Y-%m') AND 
+    	 DATE_FORMAT(start, '%Y-%m')>=DATE_FORMAT(curdate(), '%Y-%m') ) ";
+     }
+    
+    # Traffic transfer
+    my $transfer_traffic=$Billing->get_traffic({ UID      => $self->{UID},
+                                                 INTERVAL => $interval,
+                                                 TP_ID    => $tp
+                                               });
+                                           
+     
+ #     print $prepaids{0}."\n";
+     
+     if($self->{OCTETS_DIRECTION} == 1) {
+ 	     $prepaids{0}   += $prepaids{0} - $transfer_traffic->{TRAFFIC_IN} if ( $prepaids{0} > $transfer_traffic->{TRAFFIC_IN} );
+       $prepaids{1} += $prepaids{1} - $transfer_traffic->{TRAFFIC_IN_2} if ( $prepaids{1} > $transfer_traffic->{TRAFFIC_IN_2} );
+      }
+     #Sent / OUT
+     elsif ($self->{OCTETS_DIRECTION} == 2 ) {
+ 	     $prepaids{0}   += $prepaids{0} - $transfer_traffic->{TRAFFIC_OUT} if ( $prepaids{0} > $transfer_traffic->{TRAFFIC_OUT} );
+       $prepaids{1} += $prepaids{1} - $transfer_traffic->{TRAFFIC_OUT_2} if ( $prepaids{1} > $transfer_traffic->{TRAFFIC_OUT_2} );
+      }
+     else {
+ 	     $prepaids{0}   += $prepaids{0} - ($transfer_traffic->{TRAFFIC_IN}+$transfer_traffic->{TRAFFIC_OUT}) if ($prepaids{0} > ($transfer_traffic->{TRAFFIC_IN}+$transfer_traffic->{TRAFFIC_OUT}));
+       $prepaids{1} += $prepaids{1} - ($transfer_traffic->{TRAFFIC_IN_2}+$transfer_traffic->{TRAFFIC_OUT_2}) if ( $prepaids{1} > ($transfer_traffic->{TRAFFIC_IN_2}+$transfer_traffic->{TRAFFIC_OUT_2}) );
+      }   
+   }
+
+  #print $prepaids{0}."\n";
+
   if ($self->{TOTAL} == 0) {
     $trafic_limits{0}=$prepaids{0} || 0;
     $trafic_limits{1}=$prepaids{1} || 0;
@@ -1307,3 +1352,18 @@ sub check_mschapv2 {
 
 
 1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

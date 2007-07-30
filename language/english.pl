@@ -323,3 +323,4 @@ $_RECALCULATE='Recalculate';
 $_CONFIG='Configuration';
 
 $_PROCESSES='Processes';
+$_TRAFFIC_TRANSFER_PERIOD='Traffic transfer period';

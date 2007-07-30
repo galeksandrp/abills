@@ -45,7 +45,8 @@ my %FIELDS = ( TP_ID            => 'id',
                FILTER_ID        => 'filter_id',
                PAYMENT_TYPE     => 'payment_type',
                MIN_SESSION_COST => 'min_session_cost',
-               RAD_PAIRS        => 'rad_pairs'
+               RAD_PAIRS        => 'rad_pairs',
+               TRAFFIC_TRANSFER_PERIOD => 'traffic_transfer_period'
              );
 
 #**********************************************************
@@ -139,7 +140,8 @@ sub ti_change {
     TI_ID    => 'id'
    );
 
-	$self->changes($admin, { CHANGE_PARAM => 'TI_ID',
+	$self->changes($admin, 
+	               { CHANGE_PARAM => 'TI_ID',
 		               TABLE        => 'intervals',
 		               FIELDS       => \%FIELDS,
 		               OLD_INFO     => $self->ti_info($ti_id),
@@ -241,7 +243,8 @@ sub defaults {
             FILTER_ID            => '',
             PAYMENT_TYPE         => 0,
             MIN_SESSION_COST     => '0.00000',
-            RAD_PAIRS            => ''
+            RAD_PAIRS            => '',
+            TRAFFIC_TRANSFER_PERIOD => 0
          );   
  
   $self = \%DATA;
@@ -266,7 +269,7 @@ sub add {
      day_time_limit, week_time_limit,  month_time_limit, 
      day_traf_limit, week_traf_limit,  month_traf_limit,
      activate_price, change_price, credit_tresshold, age, octets_direction,
-     max_session_duration, filter_id, payment_type, min_session_cost, rad_pairs)
+     max_session_duration, filter_id, payment_type, min_session_cost, rad_pairs, traffic_transfer_period)
     values ('$DATA{TP_ID}', '$DATA{TIME_TARIF}', '$DATA{ALERT}', \"$DATA{NAME}\", 
      '$DATA{MONTH_FEE}', '$DATA{DAY_FEE}', '$DATA{REDUCTION_FEE}', '$DATA{POSTPAID_FEE}', 
      '$DATA{SIMULTANEONSLY}', 
@@ -274,7 +277,7 @@ sub add {
      '$DATA{DAY_TRAF_LIMIT}', '$DATA{WEEK_TRAF_LIMIT}',  '$DATA{MONTH_TRAF_LIMIT}',
      '$DATA{ACTIV_PRICE}', '$DATA{CHANGE_PRICE}', '$DATA{CREDIT_TRESSHOLD}', '$DATA{AGE}', '$DATA{OCTETS_DIRECTION}',
      '$DATA{MAX_SESSION_DURATION}', '$DATA{FILTER_ID}',
-     '$DATA{PAYMENT_TYPE}', '$DATA{MIN_SESSION_COST}', '$DATA{RAD_PAIRS}');", 'do' );
+     '$DATA{PAYMENT_TYPE}', '$DATA{MIN_SESSION_COST}', '$DATA{RAD_PAIRS}', '$DATA{TRAFFIC_TRANSFER_PERIOD}');", 'do' );
 
 
   return $self;
@@ -340,7 +343,8 @@ sub info {
       filter_id,
       payment_type,
       min_session_cost,
-      rad_pairs
+      rad_pairs,
+      traffic_transfer_period
     FROM tarif_plans
     WHERE id='$id';");
 
@@ -375,7 +379,8 @@ sub info {
    $self->{FILTER_ID},
    $self->{PAYMENT_TYPE},
    $self->{MIN_SESSION_COST},
-   $self->{RAD_PAIRS}
+   $self->{RAD_PAIRS},
+   $self->{TRAFFIC_TRANSFER_PERIOD}
   ) = @{ $self->{list}->[0] };
 
 
