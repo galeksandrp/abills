@@ -164,13 +164,12 @@ elsif ($acct_status_type == 2) {
         '$RAD->{OUTBYTE2}', '$RAD->{INBYTE2}',  \"$RAD->{ACCT_SESSION_ID}\", 
         '$self->{BILL_ID}',
         '$RAD->{ACCT_TERMINATE_CAUSE}');", 'do');
-
    }
   elsif ($conf->{rt_billing}) {
     $self->rt_billing($RAD, $NAS);
 
     if (! $self->{errno} ) {
-      $self->query($db, "INSERT INTO dv_log (uid, start, tp_id, duration, sent, recv, minp, kb,  sum, nas_id, port_id,
+      $self->query($db, "INSERT INTO dv_log (uid, start, tp_id, duration, sent, recv, minp, kb, sum, nas_id, port_id,
         ip, CID, sent2, recv2, acct_session_id, 
         bill_id,
         terminate_cause) 

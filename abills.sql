@@ -577,8 +577,6 @@ CREATE TABLE `tarif_plans` (
   `uplimit` double(14,2) NOT NULL default '0.00',
   `name` varchar(40) NOT NULL default '',
   `day_fee` double(14,2) unsigned NOT NULL default '0.00',
-  `reduction_fee` tinyint(1) unsigned NOT NULL default '0',
-  `postpaid_fee` tinyint(1) unsigned NOT NULL default '0',
   `logins` tinyint(4) NOT NULL default '0',
   `day_time_limit` int(10) unsigned NOT NULL default '0',
   `week_time_limit` int(10) unsigned NOT NULL default '0',
@@ -597,10 +595,14 @@ CREATE TABLE `tarif_plans` (
   `payment_type` tinyint(1) NOT NULL default '0',
   `min_session_cost` double(14,5) unsigned NOT NULL default '0.00000',
   `rad_pairs` text NOT NULL,
+  `reduction_fee` tinyint(1) unsigned NOT NULL default '0',
+  `postpaid_fee` tinyint(1) unsigned NOT NULL default '0',
+  `module` varchar(12) default NULL,
+  `traffic_transfer` tinyint(4) unsigned NOT NULL default '0',
   PRIMARY KEY  (`id`),
   UNIQUE KEY `name` (`name`),
   UNIQUE KEY `id` (`id`)
-) ;
+) COMMENT='Dialup & VPN Tarif plans';
 
 # --------------------------------------------------------
 
