@@ -293,7 +293,9 @@ print $html->header({
 
 
 my ($menu_text, $navigat_menu) = mk_navigator();
-my ($online_users, $online_count) = $admin->online();
+($admin->{ONLINE_USERS}, $admin->{ONLINE_COUNT}) = $admin->online();
+
+
 
 
 my %SEARCH_TYPES = (11 => $_USERS,
@@ -365,7 +367,6 @@ if ($admin->{WEB_OPTIONS}{qm} && ! $FORM{xml}) {
 
 $html->tpl_show(templates('header'), $admin);
 print $admin->{QUICK_MENU};
-
 
 print "<tr  class='MENU'><td valign='top' width='18%' bgcolor='$_COLORS[2]' rowspan='2' class='noprint'>
 $menu_text
