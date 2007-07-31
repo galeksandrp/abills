@@ -32,7 +32,6 @@ sub new {
   ($db, $admin, $CONF) = @_;
   my $self = { };
   bless($self, $class);
-  #$self->{debug}=1;
   
   if ($CONF->{DELETE_USER}) {
     $self->del($CONF->{DELETE_USER}, '', '', '', { DELETE_USER => $CONF->{DELETE_USER} });
@@ -672,7 +671,6 @@ WHERE
  #Traffic transfert
  if ($traffic_transfert > 0) {
  	 #Get using traffic
-   $self->{debug}=1;
    $self->query($db, "select  
      if($rest{0} > sum($octets_direction) / $CONF->{MB_SIZE}, $rest{0} - sum($octets_direction) / $CONF->{MB_SIZE}, 0),
      if($rest{0} > sum($octets_direction) / $CONF->{MB_SIZE}, $rest{1} - sum($octets_direction2) / $CONF->{MB_SIZE}, 0)
