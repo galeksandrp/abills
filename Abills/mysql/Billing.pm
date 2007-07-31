@@ -320,6 +320,10 @@ sub get_traffic {
   elsif($attr->{INTERVAL}) {
   	$period = $attr->{INTERVAL};
    }
+  
+  if ($attr->{TP_ID}) {
+  	$period .= " AND tp_id='$attr->{TP_ID}'";
+   }
 
   $self->query($db, "SELECT sum(sent)  / $CONF->{MB_SIZE},  
                             sum(recv)  / $CONF->{MB_SIZE}, 
@@ -845,14 +849,12 @@ sub time_calculation() {
   #session devisions
   my @sd = $self->{TIME_DIVISIONS_ARR};
 
-$self->{debug} =1;
 
 if(! defined($self->{NO_TPINTERVALS})) {
   if($#sd < 0) {
    	$self->{errno} = 3;
    	$self->{errstr} = "Not allow start period";
    }
-  #$self->{debug}=1;
 
   foreach my $line (@sd) {
     my ($k, $v)=split(/,/,  $line);

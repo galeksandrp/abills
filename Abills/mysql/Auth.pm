@@ -941,20 +941,21 @@ if ((defined($prepaids{0}) && $prepaids{0} > 0 ) || (defined($prepaids{1}) && $p
                                            
      
  #     print $prepaids{0}."\n";
-     
-     if($self->{OCTETS_DIRECTION} == 1) {
- 	     $prepaids{0}   += $prepaids{0} - $transfer_traffic->{TRAFFIC_IN} if ( $prepaids{0} > $transfer_traffic->{TRAFFIC_IN} );
-       $prepaids{1} += $prepaids{1} - $transfer_traffic->{TRAFFIC_IN_2} if ( $prepaids{1} > $transfer_traffic->{TRAFFIC_IN_2} );
-      }
-     #Sent / OUT
-     elsif ($self->{OCTETS_DIRECTION} == 2 ) {
- 	     $prepaids{0}   += $prepaids{0} - $transfer_traffic->{TRAFFIC_OUT} if ( $prepaids{0} > $transfer_traffic->{TRAFFIC_OUT} );
-       $prepaids{1} += $prepaids{1} - $transfer_traffic->{TRAFFIC_OUT_2} if ( $prepaids{1} > $transfer_traffic->{TRAFFIC_OUT_2} );
-      }
-     else {
- 	     $prepaids{0}   += $prepaids{0} - ($transfer_traffic->{TRAFFIC_IN}+$transfer_traffic->{TRAFFIC_OUT}) if ($prepaids{0} > ($transfer_traffic->{TRAFFIC_IN}+$transfer_traffic->{TRAFFIC_OUT}));
-       $prepaids{1} += $prepaids{1} - ($transfer_traffic->{TRAFFIC_IN_2}+$transfer_traffic->{TRAFFIC_OUT_2}) if ( $prepaids{1} > ($transfer_traffic->{TRAFFIC_IN_2}+$transfer_traffic->{TRAFFIC_OUT_2}) );
-      }   
+    if ($Billing->{TOTAL} > 0) {
+      if($self->{OCTETS_DIRECTION} == 1) {
+ 	      $prepaids{0}   += $prepaids{0} - $transfer_traffic->{TRAFFIC_IN} if ( $prepaids{0} > $transfer_traffic->{TRAFFIC_IN} );
+        $prepaids{1} += $prepaids{1} - $transfer_traffic->{TRAFFIC_IN_2} if ( $prepaids{1} > $transfer_traffic->{TRAFFIC_IN_2} );
+       }
+      #Sent / OUT
+      elsif ($self->{OCTETS_DIRECTION} == 2 ) {
+ 	      $prepaids{0} += $prepaids{0} - $transfer_traffic->{TRAFFIC_OUT} if ( $prepaids{0} > $transfer_traffic->{TRAFFIC_OUT} );
+        $prepaids{1} += $prepaids{1} - $transfer_traffic->{TRAFFIC_OUT_2} if ( $prepaids{1} > $transfer_traffic->{TRAFFIC_OUT_2} );
+       }
+      else {
+ 	      $prepaids{0} += $prepaids{0} - ($transfer_traffic->{TRAFFIC_IN}+$transfer_traffic->{TRAFFIC_OUT}) if ($prepaids{0} > ($transfer_traffic->{TRAFFIC_IN}+$transfer_traffic->{TRAFFIC_OUT}));
+        $prepaids{1} += $prepaids{1} - ($transfer_traffic->{TRAFFIC_IN_2}+$transfer_traffic->{TRAFFIC_OUT_2}) if ( $prepaids{1} > ($transfer_traffic->{TRAFFIC_IN_2}+$transfer_traffic->{TRAFFIC_OUT_2}) );
+       }   
+     }
    }
 
   #print $prepaids{0}."\n";

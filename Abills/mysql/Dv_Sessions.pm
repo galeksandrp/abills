@@ -663,7 +663,7 @@ WHERE
    $octets_online_direction2 = "ex_input_octets";
   }
  elsif ($self->{INFO_LIST}->[0]->[6] == 2) {
-   $octets_direction = "sent";
+   $octets_direction  = "sent";
    $octets_direction2 = "sent2";
    $octets_online_direction = "acct_output_octets";
    $octets_online_direction2 = "ex_output_octets";
@@ -672,11 +672,12 @@ WHERE
  #Traffic transfert
  if ($traffic_transfert > 0) {
  	 #Get using traffic
+   $self->{debug}=1;
    $self->query($db, "select  
      if($rest{0} > sum($octets_direction) / $CONF->{MB_SIZE}, $rest{0} - sum($octets_direction) / $CONF->{MB_SIZE}, 0),
      if($rest{0} > sum($octets_direction) / $CONF->{MB_SIZE}, $rest{1} - sum($octets_direction2) / $CONF->{MB_SIZE}, 0)
    FROM dv_log
-   WHERE uid='$attr->{UID}' and 
+   WHERE uid='$attr->{UID}'  and tp_id='$self->{INFO_LIST}->[0]->[8]' and
     (
      DATE_FORMAT(start, '%Y-%m-%d')>='$self->{INFO_LIST}->[0]->[3]' - INTERVAL $traffic_transfert MONTH 
      and DATE_FORMAT(start, '%Y-%m-%d')<='$self->{INFO_LIST}->[0]->[3]'
@@ -696,7 +697,6 @@ WHERE
     $self->{INFO_LIST}->[0]->[4] += $in;
     $self->{INFO_LIST}->[0]->[4] += $out;
    }
-
  }
 
  
@@ -715,8 +715,6 @@ WHERE
     $rest{1} 
     ) =  @{ $self->{list}->[0] };
   }
-
-
 
 
  #Check online
