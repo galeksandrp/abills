@@ -168,8 +168,8 @@ foreach my $line (@$list) {
 
   my $used_traffic;
   if ($CONF->{rt_billing}) {
-  	$sent = $RAD->{INTERIUM_OUTBYTE}   || 0; #from server
-    $recv = $RAD->{INTERIUM_INBYTE}    || 0;  #to server
+  	$sent  = $RAD->{INTERIUM_OUTBYTE}  || 0; #from server
+    $recv  = $RAD->{INTERIUM_INBYTE}   || 0;  #to server
     $sent2 = $RAD->{INTERIUM_OUTBYTE1} || 0; 
     $recv2 = $RAD->{INTERIUM_INBYTE1}  || 0;
    }
@@ -179,8 +179,47 @@ if ($prepaid{0} + $prepaid{1} > 0) {
    
    $used_traffic = $self->get_traffic({ UID    => $self->{UID},
    	                                    PERIOD => $traffic_period
-   	                                 });
-   
+   	                                  });
+
+   #Traffic transfert function
+  if ($self->{TRAFFIC_TRANSFER_PERIOD}) {
+    my $tp = $self->{TP_ID};
+    
+    my $interval = undef;
+  	if ($self->{ACTIVATE} ne '0000-00-00') {
+      $interval = "(DATE_FORMAT(start, '%Y-%m-%d')>='$self->{ACTIVATE}' - INTERVAL $self->{TRAFFIC_TRANSFER_PERIOD} * 30 DAY && 
+       DATE_FORMAT(start, '%Y-%m-%d')<='$self->{ACTIVATE}')";
+
+  	 }
+    else {
+    	$interval = "(DATE_FORMAT(start, '%Y-%m')>=DATE_FORMAT(curdate() - INTERVAL $self->{TRAFFIC_TRANSFER_PERIOD} MONTH, '%Y-%m') AND 
+    	 DATE_FORMAT(start, '%Y-%m')>=DATE_FORMAT(curdate(), '%Y-%m') ) ";
+     }
+    
+    # Traffic transfer
+    my $transfer_traffic=$self->get_traffic({ UID      => $self->{UID},
+                                              INTERVAL => $interval,
+                                              TP_ID    => $tp
+                                            });
+                                           
+ #     print $prepaids{0}."\n";
+     
+     if($self->{OCTETS_DIRECTION} == 1) {
+ 	     $prepaid{0} += $prepaid{0} - $transfer_traffic->{TRAFFIC_IN} if ( $prepaid{0} > $transfer_traffic->{TRAFFIC_IN} );
+       $prepaid{1} += $prepaid{1} - $transfer_traffic->{TRAFFIC_IN_2} if ( $prepaid{1} > $transfer_traffic->{TRAFFIC_IN_2} );
+      }
+     #Sent / OUT
+     elsif ($self->{OCTETS_DIRECTION} == 2 ) {
+ 	     $prepaid{0} += $prepaid{0} - $transfer_traffic->{TRAFFIC_OUT} if ( $prepaid{0} > $transfer_traffic->{TRAFFIC_OUT} );
+       $prepaid{1} += $prepaid{1} - $transfer_traffic->{TRAFFIC_OUT_2} if ( $prepaid{1} > $transfer_traffic->{TRAFFIC_OUT_2} );
+      }
+     else {
+ 	     $prepaid{0}   += $prepaid{0} - ($transfer_traffic->{TRAFFIC_IN}+$transfer_traffic->{TRAFFIC_OUT}) if ($prepaid{0} > ($transfer_traffic->{TRAFFIC_IN}+$transfer_traffic->{TRAFFIC_OUT}));
+       $prepaid{1} += $prepaid{1} - ($transfer_traffic->{TRAFFIC_IN_2}+$transfer_traffic->{TRAFFIC_OUT_2}) if ( $prepaid{1} > ($transfer_traffic->{TRAFFIC_IN_2}+$transfer_traffic->{TRAFFIC_OUT_2}) );
+      }   
+   }
+
+ 
    if ($CONF->{rt_billing}) {
    	 $used_traffic->{TRAFFIC_IN}     += int($RAD->{INBYTE} / $CONF->{MB_SIZE}); 
    	 $used_traffic->{TRAFFIC_OUT}    += int($RAD->{OUTBYTE} / $CONF->{MB_SIZE});
@@ -413,13 +452,14 @@ sub session_sum {
    $self->{REDUCTION},
    $self->{BILL_ID}, 
    $self->{ACTIVATE},
-   $self->{COMPANY_ID},
+   $self->{COMPANY_ID}
   ) = @{ $self->{list}->[0] };	
  	
  	$self->query($db, "SELECT 
     tp.min_session_cost,
     tp.payment_type,
-    tp.octets_direction
+    tp.octets_direction,
+    tp.traffic_transfer_period
    FROM tarif_plans tp
    WHERE tp.id='$attr->{TP_ID}';");
 
@@ -433,9 +473,10 @@ sub session_sum {
 
   ($self->{MIN_SESSION_COST},
    $self->{PAYMENT_TYPE},
-   $self->{OCTETS_DIRECTION}
+   $self->{OCTETS_DIRECTION},
+   $self->{TRAFFIC_TRANSFER_PERIOD}
   ) = @{ $self->{list}->[0] };
- 	
+
   }
  else {
   $self->query($db, "SELECT 
@@ -451,7 +492,8 @@ sub session_sum {
     tp.min_session_cost,
     u.company_id,
     tp.payment_type,
-    tp.octets_direction
+    tp.octets_direction,
+    tp.traffic_transfer_period
    FROM (users u, 
       dv_main dv, 
       tarif_plans tp)
@@ -479,7 +521,8 @@ sub session_sum {
    $self->{MIN_SESSION_COST},
    $self->{COMPANY_ID},
    $self->{PAYMENT_TYPE},
-   $self->{OCTETS_DIRECTION}
+   $self->{OCTETS_DIRECTION},
+   $self->{TRAFFIC_TRANSFER_PERIOD}
   ) = @{ $self->{list}->[0] };
  }
 

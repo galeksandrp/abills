@@ -995,7 +995,6 @@ if ((defined($prepaids{0}) && $prepaids{0} > 0 ) || (defined($prepaids{1}) && $p
       elsif($in_prices{1} == 0 && $out_prices{1} > 0) {
         $trafic_limits{1} = ($deposit / $out_prices{1});
        }
-
      }
    }
   #Use expresion 

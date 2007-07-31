@@ -612,10 +612,12 @@ sub prepaid_rest {
   $self->query($db, "select tt.id, i.begin, i.end, 
     if(u.activate<>'0000-00-00', u.activate, DATE_FORMAT(curdate(), '%Y-%m-01')), 
      tt.prepaid, 
-    u.id, tp.octets_direction, 
+    u.id, 
+    tp.octets_direction, 
     u.uid, 
     dv.tp_id, 
-    tp.name
+    tp.name,
+    tp.traffic_transfer_period
   from (users u,
         dv_main dv,
         tarif_plans tp,
@@ -638,15 +640,14 @@ WHERE
  my %rest = (0 => 
              1 => );
  
-
- 
  foreach my $line (@{ $self->{list} } ) {
    $rest{$line->[0]} = $line->[4];
   }
 
-
+ 
  $self->{INFO_LIST}=$self->{list};
  my $login = $self->{INFO_LIST}->[0]->[5];
+ my $traffic_transfert = $self->{INFO_LIST}->[0]->[10];
 
  return 1 if ($attr->{INFO_ONLY});
  
@@ -667,6 +668,37 @@ WHERE
    $octets_online_direction = "acct_output_octets";
    $octets_online_direction2 = "ex_output_octets";
   }
+
+ #Traffic transfert
+ if ($traffic_transfert > 0) {
+ 	 #Get using traffic
+   $self->query($db, "select  
+     if($rest{0} > sum($octets_direction) / $CONF->{MB_SIZE}, $rest{0} - sum($octets_direction) / $CONF->{MB_SIZE}, 0),
+     if($rest{0} > sum($octets_direction) / $CONF->{MB_SIZE}, $rest{1} - sum($octets_direction2) / $CONF->{MB_SIZE}, 0)
+   FROM dv_log
+   WHERE uid='$attr->{UID}' and 
+    (
+     DATE_FORMAT(start, '%Y-%m-%d')>='$self->{INFO_LIST}->[0]->[3]' - INTERVAL $traffic_transfert MONTH 
+     and DATE_FORMAT(start, '%Y-%m-%d')<='$self->{INFO_LIST}->[0]->[3]'
+      ) 
+   GROUP BY uid
+   ;");
+
+
+  if ($self->{TOTAL} > 0) {
+
+    my ($in,
+        $out
+       ) =  @{ $self->{list}->[0] };
+    $rest{0} += $in;
+    $rest{1} += $out;
+
+    $self->{INFO_LIST}->[0]->[4] += $in;
+    $self->{INFO_LIST}->[0]->[4] += $out;
+   }
+
+ }
+
  
  #Check sessions
  #Get using traffic
@@ -683,6 +715,9 @@ WHERE
     $rest{1} 
     ) =  @{ $self->{list}->[0] };
   }
+
+
+
 
  #Check online
  $self->query($db, "select 
