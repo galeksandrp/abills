@@ -1,0 +1,16 @@
+#$web_interface    = 1;
+# Iner_ID : Main or Sub or if -1 user menu func list
+
+%FUNCTIONS_LIST = ("1:0:Sharing:sharing_users_list:"    => 11,
+                   "2:0:Sharing:sharing_user:UID"       => 20,
+                   "3:2:$_STATS:sharing_stats:UID"      => 20,
+                   "4:2:$_ERROR:sharing_error:UID"      => 20,
+                   "10:0:Sharing:sharing_sessions:"     => 4,
+                   "11:10:$_ERROR:sharing_error:"       => 4,
+                   "20:0:Sharing:sharing_online:"       => 8
+                   ); 
+
+%USER_FUNCTION_LIST = (
+                       );
+
+1
