@@ -277,8 +277,13 @@ if ($FORM{qindex}) {
 
  	 	require "Abills/modules/$module{$index}/webinterface";
    }
-
-  $functions{$index}->();
+  if ($functions{$index}) {
+    $functions{$index}->();
+   }
+  else {
+  	print "Content/type: text/html\n\n";
+  	print "Function not exist!";
+   }
   exit;
 }
 
