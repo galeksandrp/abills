@@ -329,7 +329,9 @@ sub form_main {
   my ($attr)	= @_;
 	
 	my $METHOD = ($attr->{METHOD}) ? $attr->{METHOD} : 'POST';
-	$self->{FORM}="<FORM action=\"$SELF_URL\" METHOD=\"$METHOD\">\n";
+	$self->{FORM} =  "<FORM ";
+	$self->{FORM} .= "name=\"$attr->{NAME}\" " if ($attr->{NAME});
+	$self->{FORM} .= "action=\"$SELF_URL\" METHOD=\"$METHOD\">\n";
 	
 
 	
@@ -889,9 +891,12 @@ sub table {
    $self->{table} .= "<TR><TD bgcolor=\"$_COLORS[1]\" align=\"right\" class=\"tcaption\"><b>$attr->{caption}</b></td></TR>\n";
   }
 
+ $self->{table} .= "<tr><td bgcolor=\"$_COLORS[1]\">$attr->{header}</td></tr>\n" if( $attr->{header});
+
  $self->{table} .= "<TR><TD bgcolor=\"$_COLORS[4]\">
                <TABLE width=\"100%\" cellspacing=\"1\" cellpadding=\"0\" border=\"0\">\n";
 
+ 
 
  if (defined($attr->{title})) {
    #print "--- $SORT // | $FORM{sort} | $LIST_PARAMS{SORT} //";

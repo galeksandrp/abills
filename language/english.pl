@@ -78,6 +78,7 @@ $_PAYMENT_NOTEXIST='Payment not exist';
 $_USER_EXIST='User exist';
 $_USER_NOT_EXIST='User not exist';
 $_SELECT_USER='SELECT user';
+$_SELECT_ALL='Select All';
 $_SELECTED='Selected';
 $_RECORDS='Records';
 $_WRONG_PASSWD='Wrong password ';

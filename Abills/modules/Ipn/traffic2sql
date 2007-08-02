@@ -344,7 +344,7 @@ elsif($total_user_sum > 0 && $uid > 0) {
     	                                });
     
     #Hangup users with negative deposit
-    if (defined($Ipn->{USERS_INFO}->{DEPOSIT}->{$uid}) && $Ipn->{USERS_INFO}->{DEPOSIT}->{$uid} < 0) {
+    if (! $Ipn->{USERS_INFO}->{PAYMENT_TYPE}->{$uid} && defined($Ipn->{USERS_INFO}->{DEPOSIT}->{$uid}) && $Ipn->{USERS_INFO}->{DEPOSIT}->{$uid} < 0) {
          my @ip_array = split(/\./, $ip_addr, 4);
          my $rule_num = $conf{IPN_FW_FIRST_RULE} + $ip_array[3];
 

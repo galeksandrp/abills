@@ -1191,10 +1191,23 @@ elsif ($users->{TOTAL} == 1) {
 
 #User list
 my $table = $html->table( { width      => '100%',
+                            caption    => $_USERS,
                             title      => \@TITLE,
                             cols_align => ['left', 'left', 'right', 'right', 'center', 'center:noprint', 'center:noprint'],
                             qs         => $pages_qs,
-                            pages      => $users->{TOTAL}
+                            pages      => $users->{TOTAL},
+                            header     => "<script language=\"JavaScript\" type=\"text/javascript\">
+<!-- 
+function CheckAllINBOX() {
+  for (var i = 0; i < document.users_list.elements.length; i++) {
+    if(document.users_list.elements[i].type == 'checkbox' && document.users_list.elements[i].name == 'IDS'){
+      document.users_list.elements[i].checked =         !(document.users_list.elements[i].checked);
+    }
+  }
+}
+//-->
+</script><a href=\"javascript:void(0)\" onClick=\"CheckAllINBOX();\">$_SELECT_ALL</a>\n"
+
                           });
 
 foreach my $line (@$list) {
@@ -1233,9 +1246,9 @@ my $table2 = $html->table( { width      => '100%',
 
 if ($permissions{0}{7}) {
   my $table3 = $html->table( { width      => '100%',
-  	                       caption    => "$_MULTIUSER_OP",
-                           cols_align => ['left', 'left'],
-                           rows       => [ [ $html->form_input('MU_GID', "1", { TYPE => 'checkbox', }). $_GROUP,    sel_groups()],
+  	                           caption    => "$_MULTIUSER_OP",
+                               cols_align => ['left', 'left'],
+                               rows       => [ [ $html->form_input('MU_GID', "1", { TYPE => 'checkbox', }). $_GROUP,    sel_groups()],
                                            [ $html->form_input('MU_DISABLE', "1", { TYPE => 'checkbox', }). $_DISABLE,  $html->form_input('DISABLE', "1", { TYPE => 'checkbox', }) ],
                                            [ $html->form_input('MU_DEL', "1", { TYPE => 'checkbox', }). $_DEL,      $html->form_input('DEL', "1", { TYPE => 'checkbox', }) ],
                                            [ $html->form_input('MU_ACTIVATE', "1", { TYPE => 'checkbox', }). $_ACTIVATE, $html->form_input('ACTIVATE', "0000-00-00") ], 
@@ -1249,7 +1262,8 @@ if ($permissions{0}{7}) {
    	                                   $table2->show({ OUTPUT2RETURN => 1 }).
    	                                   $table3->show({ OUTPUT2RETURN => 1 }),
 	                          HIDDEN  => { index => 11,
-	                       	          },
+	                       	              },
+	                       	  NAME    => 'users_list'
                        });
 
 
