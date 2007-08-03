@@ -34,16 +34,22 @@ sub dhcphosts_mac_block_show {
    my @pair_status = ('ACCEPT', 'DENY');
    
    my $list = $Dhcphosts->hosts_list({ %LIST_PARAMS, 
-   	                                   PAGE_ROWS  => 1000000 });
+   	                                   PAGE_ROWS     => 1000000
+                                     });
    
 	 foreach my $line (@$list) {
 	    next if ($line->[6] eq '');
 	    my $ip = ($conf{DHCPHOSTS_IPGUARD_FORMAT} && $conf{DHCPHOSTS_IPGUARD_FORMAT} eq 'MAC') ? '0.0.0.0' : $line->[2]; 
       if ($conf{DHCPHOSTS_IPGUARD_TYPE} && $conf{DHCPHOSTS_IPGUARD_TYPE} eq 'ipsentinel') {
-	      $ethers_content .= "$ip $line->[6]  $pair_status[$line->[10]] \n";
+	      
+	      my $status = ($line->[10] == 1 || $line->[13] == 1 ) ? 1 : 0;
+	      
+	      $ethers_content .= "$ip $line->[6]  $pair_status[$status]\n";
 	     }
 	    else {
-	    	$ethers_content .= "$line->[6] $ip # $line->[1]\n";
+	    	if ($line->[10] != 1 || $line->[13] != 1) {
+	    	  $ethers_content .= "$line->[6] $ip # $line->[1]\n";
+         }
 	     }
     };
 

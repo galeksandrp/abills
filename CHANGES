@@ -1,4 +1,23 @@
 =====0.37=====
+
+  * 30.07.2007
+  Возможность переноса неиспользованого трафика преведущих месяцев. Учитывается только трафик с тарифным планом текущего месяца.
+MYSQL
+  ALTER TABLE tarif_plans ADD COLUMN `traffic_transfer_period` tinyint(4) unsigned NOT NULL default '0';
+
+
+  * 25.06.2007
+MYSQL
+  ALTER TABLE  companies ADD COLUMN `contract_id` varchar(10) NOT NULL default '';
+
+
+  * 11.06.2007
+MYSQL
+  ALTER TABLE dv_calls change column acct_input_octets acct_input_octets bigint(14) unsigned NOT NULL default '0';
+  ALTER TABLE dv_calls change column acct_output_octets acct_output_octets bigint(14) unsigned NOT NULL default '0';
+  ALTER TABLE dv_calls change column ex_input_octets ex_input_octets bigint(14) unsigned NOT NULL default '0';
+  ALTER TABLE dv_calls change COLUMN ex_output_octets ex_output_octets bigint(14) UNSIGNED NOT NULL DEFAULT '0';
+
   * 22.05.2007
 MYSQL
    alter table nas add column ext_acct tinyint(1) unsigned NOT NULL default '0';

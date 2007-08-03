@@ -570,7 +570,8 @@ sub hosts_list {
 
  $self->query($db, "SELECT 
     h.id, u.id, INET_NTOA(h.ip), h.hostname, n.name, h.network, h.mac, h.expire, h.forced, 
-      h.blocktime, h.disable, seen, h.uid
+      h.blocktime, h.disable, seen, h.uid,
+      if ((u.expire <> '0000-00-00' && curdate() > u.expire) || (h.expire <> '0000-00-00' && curdate() > h.expire), 1, 0)
      FROM (dhcphosts_hosts h)
      left join dhcphosts_networks n on h.network=n.id
      left join users u on h.uid=u.uid
