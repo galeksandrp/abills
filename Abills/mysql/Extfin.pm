@@ -250,6 +250,7 @@ sub customers_list {
      LEFT JOIN groups g ON  (u.gid=g.gid)
      
      $WHERE
+     GROUP BY 10
      ORDER BY $SORT $DESC ;");
 #     LIMIT $PG, $PAGE_ROWS;");
 
