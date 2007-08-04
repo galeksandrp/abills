@@ -238,7 +238,7 @@ sub customers_list {
                          pi.phone,
                          if(u.company_id > 0, company.contract_id, pi.contract_id),
                          u.gid,
-                         '',
+                         g.name,
                          if(u.company_id > 0, company.bill_id, u.bill_id)
                          
      FROM users u
@@ -247,10 +247,11 @@ sub customers_list {
    
      LEFT JOIN bills b ON (u.bill_id = b.id)
      LEFT JOIN bills cb ON  (company.bill_id=cb.id)
+     LEFT JOIN groups g ON  (u.gid=g.gid)
      
-     $WHERE 
-     ORDER BY $SORT $DESC ;");
-#LIMIT $PG, $PAGE_ROWS;");
+     $WHERE
+     ORDER BY $SORT $DESC 
+     LIMIT $PG, $PAGE_ROWS;");
 
   return $self if($self->{errno});
   my $list = $self->{list};

@@ -3706,7 +3706,14 @@ my %search_form = (
   );
 
 
-$SEARCH_DATA{SEARCH_FORM}=(defined($attr->{SEARCH_FORM})) ? $attr->{SEARCH_FORM} : $html->tpl_show(templates($search_form{$FORM{type}}), { %info, %FORM, GROUPS_SEL => $group_sel }, { notprint => 1 });
+
+
+if (defined($attr->{SEARCH_FORM})) {
+	$SEARCH_DATA{SEARCH_FORM} = $attr->{SEARCH_FORM}
+ } 
+elsif($search_form{$FORM{type}}) {
+	$SEARCH_DATA{SEARCH_FORM} = $html->tpl_show(templates($search_form{$FORM{type}}), { %info, %FORM, GROUPS_SEL => $group_sel }, { notprint => 1 });
+ }
 
 $SEARCH_DATA{FROM_DATE} = $html->date_fld('FROM_', { MONTHES => \@MONTHES });
 $SEARCH_DATA{TO_DATE}   = $html->date_fld('TO_', { MONTHES => \@MONTHES} );

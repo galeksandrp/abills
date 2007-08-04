@@ -22,8 +22,13 @@ sub exfin_export_customers {
   $Extfin->{ACTION}='get';
   $Extfin->{ACTION_LNG}=$_GET;
   
-  print "Content-Type: text/xml\n\n";
-  print "<?xml version=\"1.0\"  encoding=\"windows-1251\" ?>\n";
+  if ($FORM{xml}) {
+    print "Content-Type: text/xml\n\n";
+    print "<?xml version=\"1.0\"  encoding=\"windows-1251\" ?>\n";
+   }
+  else {
+    print "Content-Type: text/html\n\n";
+   }
  
   if ($FORM{TYPE} && $FORM{TYPE} eq 'CUSTOMERS') {
 
