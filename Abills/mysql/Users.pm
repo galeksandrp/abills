@@ -454,8 +454,6 @@ sub list {
     $self->{SEARCH_FIELDS_COUNT}++;
   }
 
-
-
  if ($attr->{CONTRACT_ID}) {
     $attr->{CONTRACT_ID} =~ s/\*/\%/ig;
     push @WHERE_RULES, "pi.contract_id LIKE '$attr->{CONTRACT_ID}'";
@@ -486,6 +484,14 @@ sub list {
   	$attr->{COMMENTS} =~ s/\*/\%/ig;
  	  push @WHERE_RULES, "pi.comments LIKE '$attr->{COMMENTS}'";
     $self->{SEARCH_FIELDS} .= 'pi.comments, ';
+    $self->{SEARCH_FIELDS_COUNT}++;
+  }    
+
+ if ($attr->{BILL_ID}) {
+    my $value = $self->search_expr($attr->{BILL_ID}, 'INT');
+    push @WHERE_RULES, "if(company.id IS NULL, b.id, cb.id)$value";
+
+    $self->{SEARCH_FIELDS} .= 'if(company.id IS NULL, b.id, cb.id), ';
     $self->{SEARCH_FIELDS_COUNT}++;
   }    
 
@@ -540,7 +546,6 @@ sub list {
  $WHERE = ($#WHERE_RULES > -1) ?  "WHERE " . join(' and ', @WHERE_RULES) : '';
  
 #Show last paymenst
-
  if ($attr->{PAYMENTS}) {
 
     my $value = $self->search_expr($attr->{PAYMENTS}, 'INT');
@@ -551,7 +556,7 @@ sub list {
    my $HAVING = ($#WHERE_RULES > -1) ?  "HAVING " . join(' and ', @WHERE_RULES) : '';
 
    $self->query($db, "SELECT u.id, 
-       pi.fio, if(company.id IS NULL, b.deposit, b.deposit), u.credit, u.disable, 
+       pi.fio, if(company.id IS NULL, b.deposit, cb.deposit), u.credit, u.disable, 
        $self->{SEARCH_FIELDS}
        u.uid, 
        u.company_id, 
@@ -563,6 +568,7 @@ sub list {
      LEFT JOIN users_pi pi ON (u.uid = pi.uid)
      LEFT JOIN bills b ON u.bill_id = b.id
      LEFT JOIN companies company ON  (u.company_id=company.id) 
+     LEFT JOIN bills cb ON  (company.bill_id=cb.id)
      GROUP BY u.uid     
      $HAVING 
 
@@ -593,14 +599,14 @@ sub list {
   }
  
  $self->query($db, "SELECT u.id, 
-      pi.fio, if(company.id IS NULL, b.deposit, b.deposit), u.credit, u.disable, 
+      pi.fio, if(company.id IS NULL, b.deposit, cb.deposit), u.credit, u.disable, 
       $self->{SEARCH_FIELDS}
       u.uid, u.company_id, pi.email, u.activate, u.expire
      FROM users u
      LEFT JOIN users_pi pi ON (u.uid = pi.uid)
      LEFT JOIN bills b ON u.bill_id = b.id
      LEFT JOIN companies company ON  (u.company_id=company.id) 
-     
+     LEFT JOIN bills cb ON  (company.bill_id=cb.id)
      $WHERE ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");
 
  return $self if($self->{errno});
@@ -614,6 +620,7 @@ sub list {
      LEFT JOIN users_pi pi ON (u.uid = pi.uid)
      LEFT JOIN bills b ON u.bill_id = b.id
      LEFT JOIN companies company ON  (u.company_id=company.id) 
+     LEFT JOIN bills cb ON  (company.bill_id=cb.id)
     $WHERE");
     ($self->{TOTAL}) = @{ $self->{list}->[0] };
    }

@@ -528,11 +528,14 @@ return qq{
 <tr><td colspan='2'>$_COMMENTS (*):</td><td><input type='text' name='COMMENTS' value='%COMMENTS%'/></td></tr>
 <tr><td colspan='2'>$_GROUP:</td><td>%GROUPS_SEL%</td></tr>
 <tr><td colspan='2'>$_DEPOSIT (>, <):</td><td><input type='text' name='DEPOSIT' value='%DEPOSIT%'/></td></tr>
+
+<tr><td colspan='2'>BILL ID (>, <):</td><td><input type='text' name='BILL_ID' value='%BILL_ID%'/></td></tr>
+
 <tr><td colspan='2'>$_CREDIT (>, <):</td><td><input type='text' name='CREDIT' value='%CREDIT%'/></td></tr>
 <tr><td colspan='2'>$_PAYMENTS $_DATE ((>, <) YYYY-MM-DD):</td><td><input type='text' name='PAYMENTS' value='%PAYMENTS%'/></td></tr>
 
 <tr bgcolor=$_COLORS[2]><td rowspan=3>$_ADDRESS:</td><td>$_ADDRESS_STREET:</td><td><input type='text' name='ADDRESS_STREET' value='%ADDRESS_STREET%'/></td></tr>
-<tr bgcolor=$_COLORS[2]><td>$_ADDRESS_BUILD:</td><td><input type='text' nam' nam' nam' naminput type='text' naminput type='text' name='ADDRESS_BUILD' value='%ADDRESS_BUILD%'/></td></tr>
+<tr bgcolor=$_COLORS[2]><td>$_ADDRESS_BUILD:</td><td><input type='text' name='ADDRESS_BUILD' value='%ADDRESS_BUILD%'/></td></tr>
 <tr bgcolor=$_COLORS[2]><td>$_ADDRESS_FLAT:</td><td><input type='text' name='ADDRESS_FLAT' value='%ADDRESS_FLAT%'/></td></tr>
 
 <tr><td colspan='2'>$_DISABLE:</td><td><input type='checkbox' name='DISABLE' value='1'/></td></tr>
