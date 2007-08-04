@@ -250,8 +250,8 @@ sub customers_list {
      LEFT JOIN groups g ON  (u.gid=g.gid)
      
      $WHERE
-     ORDER BY $SORT $DESC 
-     LIMIT $PG, $PAGE_ROWS;");
+     ORDER BY $SORT $DESC ;");
+#     LIMIT $PG, $PAGE_ROWS;");
 
   return $self if($self->{errno});
   my $list = $self->{list};
