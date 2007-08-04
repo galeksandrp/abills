@@ -231,7 +231,7 @@ sub customers_list {
  
  $self->query($db, "SELECT  
                          u.uid, 
-                         u.id,
+                         if(u.company_id > 0, company.name, u.id),
                          pi.fio,
                          if(company.id IS NULL, 0, 1),
                          CONCAT(address_street,  address_build, address_flat),
