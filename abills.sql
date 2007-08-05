@@ -860,6 +860,7 @@ INSERT INTO `admin_permits` (`aid`, `section`, `actions`, `module`) VALUES
   (1,0,4,''),
   (1,0,5,''),
   (1,0,6,''),
+  (1,0,7,''),
   (1,1,0,''),
   (1,1,1,''),
   (1,1,2,''),

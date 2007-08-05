@@ -1196,7 +1196,7 @@ my $table = $html->table( { width      => '100%',
                             cols_align => ['left', 'left', 'right', 'right', 'center', 'center:noprint', 'center:noprint'],
                             qs         => $pages_qs,
                             pages      => $users->{TOTAL},
-                            header     => "<script language=\"JavaScript\" type=\"text/javascript\">
+                            header     => ($permissions{0}{7}) ? "<script language=\"JavaScript\" type=\"text/javascript\">
 <!-- 
 function CheckAllINBOX() {
   for (var i = 0; i < document.users_list.elements.length; i++) {
@@ -1206,7 +1206,7 @@ function CheckAllINBOX() {
   }
 }
 //-->
-</script><a href=\"javascript:void(0)\" onClick=\"CheckAllINBOX();\">$_SELECT_ALL</a>\n"
+</script><a href=\"javascript:void(0)\" onClick=\"CheckAllINBOX();\">$_SELECT_ALL</a>\n" : undef
 
                           });
 
