@@ -68,7 +68,6 @@ my $FLOW_CAT = $ARGV->{FLOW_CAT} || '/usr/local/bin/flow-cat';
 my $FLOW_PRINT = $ARGV->{FLOW_PRINT} || '/usr/local/bin/flow-print';
 
 $Ipn->{debug}=1 if ($debug > 2);
-
 $conf{MB_SIZE} = $conf{KBYTE_SIZE} * $conf{KBYTE_SIZE};
 
 
@@ -95,6 +94,9 @@ if (-f $log) {
 #
   my $flow_dir = ($ARGV->{flowdir}) ? $ARGV->{flowdir} : $var_dir."log/ipn/";
   $unknown_ip_log = "$flow_dir/unknown_ip.log";
+
+  exit if(make_pid($flow_dir."/traffic2sql_pid.pid") == 1);
+
   #Get flow tools files
   opendir DIR, $flow_dir or die "Can't open dir '$flow_dir' $!\n";
     my @contents = grep  /^ft*/, readdir DIR;
@@ -120,7 +122,7 @@ if (-f $log) {
      }
   }
 
-
+  make_pid($flow_dir."/traffic2sql_pid.pid", 'clean');
 #processing();
 
 
@@ -651,5 +653,53 @@ close(LOG);
 }
 
 
+#**********************************************************
+# Check running program
+#**********************************************************
+sub make_pid {
+  my ($pid_file, $attr) = @_;
+  
+  if ($attr && $attr eq 'clean') {
+  	unlink($pid_file);
+  	return 0;
+   }
+  
+  if (-f $pid_file) {
+  	open(PIDFILE, "$pid_file") || die "Can't open pid file '$pid_file' $!\n";
+  	  my @pids = <PIDFILE>;
+  	close(PIDFILE);
+    
+    my $pid = $pids[0];
+    if(verify($pid)) {
+     	print "Proccess running PID: $pid\n";
+   	  return 1;
+     }
+   }
+  
+  my $traffic2sql_pid = $$;  
+	open(PIDFILE, ">$pid_file") || die "Can't open pid file '$pid_file' $!\n";
+	  print PIDFILE $traffic2sql_pid;
+	close(PIDFILE);    
+  
+  return 0;
+}
 
+#**********************************************************
+# Check running program
+#**********************************************************
+sub verify {
+    my ($pid) = @_;
+
+    my $me = $$;  # = $self->{verify};
+
+    my @ps = split m|$/|, qx/ps -fp $pid/
+           || die "ps utility not available: $!";
+    s/^\s+// for @ps;   # leading spaces confuse us
+
+    no warnings;    # hate that deprecated @_ thing
+    my $n = split(/\s+/, $ps[0]);
+    @ps = split /\s+/, $ps[1], $n;
+
+    return ($ps[0]) ? 1 : 0;
+}
 
