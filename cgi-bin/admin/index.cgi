@@ -1206,7 +1206,7 @@ function CheckAllINBOX() {
   }
 }
 //-->
-</script><a href=\"javascript:void(0)\" onClick=\"CheckAllINBOX();\">$_SELECT_ALL</a>\n" : undef
+</script>\n::<a href=\"javascript:void(0)\" onClick=\"CheckAllINBOX();\">$_SELECT_ALL</a>::\n" : undef
 
                           });
 

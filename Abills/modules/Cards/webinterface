@@ -160,7 +160,18 @@ if (defined($FORM{SERIA})) {
                            cols_align => ['right', 'right','right','right', 'center', 'right', 'right', 'left', 
                              'right', 'right', 'left', 'right', 'center:noprint'],
                            qs         => $pages_qs,
-                           pages      => $Cards->{TOTAL}
+                           pages      => $Cards->{TOTAL},
+                           header     => "<script language=\"JavaScript\" type=\"text/javascript\">
+<!-- 
+function CheckAllINBOX() {
+  for (var i = 0; i < document.cards_list.elements.length; i++) {
+    if(document.cards_list.elements[i].type == 'checkbox' && document.cards_list.elements[i].name == 'IDS'){
+      document.cards_list.elements[i].checked =         !(document.cards_list.elements[i].checked);
+    }
+  }
+}
+//-->
+</script>\n::<a href=\"javascript:void(0)\" onClick=\"CheckAllINBOX();\">$_SELECT_ALL</a>::\n"
                          });
 
 
@@ -200,7 +211,8 @@ if (defined($FORM{SERIA})) {
   	                       	           },
 	                         SUBMIT  => { 
 	                         	            change  => "$_CHANGE" 
-	                         	           } 
+	                         	           },
+	                         NAME    => 'cards_list'
 	                        });
 
 
