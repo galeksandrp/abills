@@ -2343,6 +2343,8 @@ if ($nas->{errno}) {
  }
 
  my %nas_descr = (
+  '3com_ss'   => "3COM SuperStack Switch",
+  'nortel_bs' => "Nortel Baystack Switch",
   'asterisk'  => "Asterisk",
   'usr'       => "USR Netserver 8/16",
   'pm25'      => 'LIVINGSTON portmaster 25',
