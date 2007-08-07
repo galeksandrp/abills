@@ -15,7 +15,7 @@ CREATE TABLE `sharing_log` (
   `remoteip` int(10) unsigned NOT NULL default '0',
   `remoteport` smallint(6) unsigned NOT NULL default '0',
   `serverid` text,
-  `connectionstatus` char(1) default NULL,
+  `connectionstatus` char(3) default NULL,
   `username` varchar(20) default NULL,
   `identuser` varchar(40) default NULL,
   `start` datetime NOT NULL default '0000-00-00 00:00:00',
