@@ -290,13 +290,14 @@ sub dhcphosts_networks {
   }
 
 
+   $Dhcphosts->{DISABLE}=' checked' if($Dhcphosts->{DISABLE});
    $html->tpl_show(_include('dhcphosts_network', 'Dhcphosts'), $Dhcphosts);
    my $list = $Dhcphosts->networks_list({ %LIST_PARAMS });
 
    my $table = $html->table( { width      => '100%',
 				caption    => "$_HOSTS_NETWORKS",
 				title      => ['#', "$_HOSTS_NETWORKS_NAME", "$_HOSTS_NETWORKS_NET", "$_HOSTS_NETWORKS_COORDINATOR", 
-				  "$_HOSTS_NETWORKS_COORDINATOR_PHONE","-","-", '-'],
+				  "$_HOSTS_NETWORKS_COORDINATOR_PHONE", "$_STATUS", "-","-", '-'],
 				cols_align => ['left', 'left', 'left', 'left', 'left', 'center:noprint', 'center:noprint','center:noprint',
 				 'center:noprint' ],
 				qs         => $pages_qs,
@@ -310,6 +311,7 @@ sub dhcphosts_networks {
 	    $line->[2]."/". $line->[3],
 	    $line->[4],
 	    $line->[5],
+	    $status[$line->[6]],
 	    $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?" }),
 	    $html->button($_CHANGE, "index=$index&chg=$line->[0]"),
 	    $html->button("Routes", "index=".($index+1)."&NET_ID=$line->[0]") 	    	    
@@ -490,7 +492,9 @@ sub dhcphosts_user {
     $Dhcphosts->host_add({ %FORM });
     if (! $Dhcphosts->{errno}) {
 	    $html->message('info', $_ADDED, "$_ADDED [$FORM{HOSTNAME}] ");
-      dhcphosts_config({ NETWORKS => $FORM{NETWORK}, reconfig => 1 });
+      dhcphosts_config({ NETWORKS => $FORM{NETWORK}, 
+      	                 reconfig => 1 
+      	              });
 	   }
 	 }
   elsif ($FORM{change}) {
@@ -580,17 +584,22 @@ sub dhcphosts_config {
    }
 
   my %INFO = ();
-  my @networks = split(/, /, $attr->{NETWORKS});
 
-foreach my $NET_ID (@networks) {
+#  my @networks = split(/, /, $attr->{NETWORKS});
+#foreach my $NET_ID (@networks) {
+  my $list = $Dhcphosts->networks_list({ DISABLE => 0 });  
+  
+foreach my $line (@$list) {
+
+  my $NET_ID = $line->[0];
   my %curnet = ();
 
   $Dhcphosts->network_info($NET_ID);
 
-  $INFO{DNS}=$Dhcphosts->{DNS};
-  $INFO{DOMAINNAME}="\"$Dhcphosts->{DOMAINNAME}\"";    
-  $INFO{ROUTERS}="option routers $Dhcphosts->{ROUTERS};" if ($Dhcphosts->{ROUTERS} ne '0.0.0.0');
-  $INFO{DATETIME}="$DATE $TIME";
+  $INFO{DNS}        = $Dhcphosts->{DNS};
+  $INFO{DOMAINNAME} = "\"$Dhcphosts->{DOMAINNAME}\"";    
+  $INFO{ROUTERS}    = "option routers $Dhcphosts->{ROUTERS};" if ($Dhcphosts->{ROUTERS} ne '0.0.0.0');
+  $INFO{DATETIME}   = "$DATE $TIME";
   
   $INFO{NETWORK_NAME} = $Dhcphosts->{NAME};
   $INFO{BLOCK_NETWORK}= $Dhcphosts->{BLOCK_NETWORK};
@@ -599,8 +608,9 @@ foreach my $NET_ID (@networks) {
   $INFO{NETWORK_MASK} = $Dhcphosts->{MASK};
   $INFO{DESCRIBE}     = $Dhcphosts->{NAME};
 
+
+  #Add static route
   my $list = $Dhcphosts->routes_list({ NET_ID => $NET_ID });  
-  
   if ($Dhcphosts->{TOTAL} > 0) {
     my $routes="";
  
@@ -647,16 +657,18 @@ foreach my $NET_ID (@networks) {
     	}, { notprint => 1 });
    }
   
+    $INFO{SUBNETS} .= $html->tpl_show(_include('dhcphosts_dhcp_conf_subnet', 'Dhcphosts'), 
+                                   \%INFO, 
+                                   { notprint => 'yes' });	 
+
 }
+
 
 
 
 if ($attr->{reconfig} || $FORM{reconfig} ) {
 	$conf{DHCPHOSTS_CONFIG} = "/usr/local/etc/dhcpd.conf" if (! $conf{DHCPHOSTS_CONFIG}) ;
   
-  $INFO{SUBNETS} = $html->tpl_show(_include('dhcphosts_dhcp_conf_subnet', 'Dhcphosts'), 
-                                   \%INFO, 
-                                   { notprint => 'yes' });	 
   
   my $tpl = $html->tpl_show(_include('dhcphosts_dhcp_conf_main', 'Dhcphosts'), 
                             \%INFO, 
@@ -673,9 +685,9 @@ if ($attr->{reconfig} || $FORM{reconfig} ) {
  }
 else {
   print "<textarea cols=90 rows=20>";
-  $INFO{SUBNETS} = $html->tpl_show(_include('dhcphosts_dhcp_conf_subnet', 'Dhcphosts'), 
-                                   \%INFO,
-                                   { notprint => 1 } );	 
+  #$INFO{SUBNETS} = $html->tpl_show(_include('dhcphosts_dhcp_conf_subnet', 'Dhcphosts'), 
+  #                                 \%INFO,
+  #                                 { notprint => 1 } );	 
 
   $html->tpl_show(_include('dhcphosts_dhcp_conf_main', 'Dhcphosts'), \%INFO);
 	print "</textarea>";
