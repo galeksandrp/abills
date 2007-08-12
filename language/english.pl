@@ -325,3 +325,9 @@ $_CONFIG='Configuration';
 
 $_PROCESSES='Processes';
 $_TRAFFIC_TRANSFER_PERIOD='Traffic transfer period';
+
+$_ATTACHMENT='Attachment';
+$_PRIORITY='Priority';
+
+$_PASPORT='Pasport'; 
+$_GRANT='Grant';

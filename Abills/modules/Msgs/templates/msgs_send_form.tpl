@@ -14,6 +14,12 @@
 <tr><th bgcolor='$_COLORS[0]' colspan='2'>$_REPLY</th></tr>
 <tr><th colspan='2'><textarea name='REPLY' cols='70' rows='9'>%REPLY%</textarea></th></tr>
 
+%ATTACHMENT%
+<tr><td>$_ATTACHMENT:</td><td><input name='FILE_UPLOAD' type='file' size='40' class='fixed'>
+                  <input class='button' type='submit' name='AttachmentUpload' value='$_ADD'></td></tr>  
+<tr><td>$_STATE:</td><td>%STATE_SEL%</td></tr>  
+<tr><td>$_PRIORITY:</td><td>%PRIORITY_SEL%</td></tr>
+
 
 </table>
 <input type='submit' name='%ACTION%' value='%ACTION_LNG%'/>

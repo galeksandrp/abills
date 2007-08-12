@@ -100,6 +100,10 @@ return qq{
 <TR><TD>$_ADDRESS_FLAT:</TD><TD><input type=text name=ADDRESS_FLAT value="%ADDRESS_FLAT%"></TD></TR>
 <TR><TD>E-mail:</TD><TD><input type=text name=EMAIL value="%EMAIL%"></TD></TR>
 <TR><TD>$_CONTRACT_ID:</TD><TD><input type=text name=CONTRACT_ID value="%CONTRACT_ID%"></TD></TR>
+<TR><TH colspan='2' bgcolor='$_COLORS[2]'>$_PASPORT</TH></TR>
+<TR><TD>$_NUM:</TD><TD><input type=text name=PASPORT_NUM value="%PASPORT_NUM%"></TD></TR>
+<TR><TD>$_DATE:</TD><TD><input type=text name=PASPORT_DATE value="%PASPORT_DATE%"></TD></TR>
+<TR><TD>$_GRANT:</TD><TD><input type=text name=PASPORT_GRANT value="%PASPORT_GRANT%"></TD></TR>
 <TR><th colspan=2>:$_COMMENTS:</th></TR>
 <TR><th colspan=2><textarea name=COMMENTS rows=5 cols=45>%COMMENTS%</textarea></th></TR>
 </TABLE>

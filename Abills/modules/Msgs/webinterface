@@ -131,6 +131,34 @@ print $table->show();
 #*******************************************************************
 sub msgs_user {
 
+	 $Msgs->{STATE_SEL} =  $html->form_select('STATE', 
+                                          { 
+ 	                                          SELECTED          => $Msgs->{STATE},
+ 	                                          SEL_ARRAY   => [ 'closed successful',
+ 	                                                                 'closed unsuccessful',
+ 	                                                                 'open'
+ 	                                                                ],
+ 	                                          MULTI_ARRAY_KEY   => 0,
+ 	                                          MULTI_ARRAY_VALUE => 1,
+ 	                                        });
+
+
+
+	 $Msgs->{PRIORITY_SEL} =  $html->form_select('PRIORITY', 
+                                          { 
+ 	                                          SELECTED          => $Msgs->{STATE},
+ 	                                          SEL_ARRAY         => [ 'very low',
+ 	                                                                 'low',
+ 	                                                                 'normal',
+ 	                                                                 'high',
+ 	                                                                 'very high'
+ 	                                                                ],
+ 	                                          MULTI_ARRAY_KEY   => 0,
+ 	                                          MULTI_ARRAY_VALUE => 1,
+ 	                                        });
+
+
+
  if ($FORM{send}) {
    $Msgs->message_add({ UID => $user->{UID},  STATE => 1, %FORM });
    $html->message('info', $_INFO, "$_SENDED") if (! $Msgs->{errno});  	

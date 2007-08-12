@@ -274,7 +274,7 @@ foreach my $line (@$list) {
      $line->[6],
      $line->[7], 
      $line->[8], 
-     $line->[9], 
+     int2byte($line->[9]), 
      $delete);
 }
 
@@ -292,7 +292,6 @@ sub sharing_stats {
 	my $user_info = $users->info( $UID );
 	$LIST_PARAMS{LOGIN}=$user_info->{LOGIN};
   
-  $Sharing->{debug}=1;
 
 if (defined($attr->{USER}))	{
 	my $user = $attr->{USER};

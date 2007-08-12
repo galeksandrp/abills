@@ -148,6 +148,9 @@ sub defaults_pi {
    EMAIL          => '', 
    COMMENTS       => '',
    CONTRACT_ID    => '',
+   PASPORT_NUM    => '',
+   PASPORT_DATE   => '0000-00-00',
+   PASPORT_GRANT  => ''
   );
  
   $self = \%DATA;
@@ -173,11 +176,15 @@ sub pi_add {
    }
     
   $self->query($db,  "INSERT INTO users_pi (uid, fio, phone, address_street, address_build, address_flat, 
-          email, contract_id, comments)
+          email, contract_id, comments, pasport_num, pasport_date,  pasport_grant)
            VALUES ('$DATA{UID}', '$DATA{FIO}', '$DATA{PHONE}', \"$DATA{ADDRESS_STREET}\", 
             \"$DATA{ADDRESS_BUILD}\", \"$DATA{ADDRESS_FLAT}\",
             '$DATA{EMAIL}', '$DATA{CONTRACT_ID}',
-            '$DATA{COMMENTS}' );", 'do');
+            '$DATA{COMMENTS}',
+            '$DATA{PASPORT_NUM}',
+            '$DATA{PASPORT_DATE}',
+            '$DATA{PASPORT_GRANT}'
+             );", 'do');
   
   return $self if ($self->{errno});
   
@@ -205,7 +212,11 @@ sub pi {
   pi.address_flat,
   pi.email,  
   pi.contract_id,
-  pi.comments
+  pi.comments,
+  pi.pasport_num,
+  pi.pasport_date,
+  pi.pasport_grant
+  
     FROM users_pi pi
     WHERE pi.uid='$UID';");
 
@@ -224,7 +235,10 @@ sub pi {
    $self->{ADDRESS_FLAT}, 
    $self->{EMAIL}, 
    $self->{CONTRACT_ID},
-   $self->{COMMENTS}
+   $self->{COMMENTS},
+   $self->{PASPORT_NUM},
+   $self->{PASPORT_DATE},
+   $self->{PASPORT_GRANT}
   )= @{ $self->{list}->[0] };
 	
 	
@@ -248,7 +262,11 @@ my %FIELDS = (EMAIL          => 'email',
               ADDRESS_FLAT   => 'address_flat',
               COMMENTS       => 'comments',
               UID            => 'uid',
-              CONTRACT_ID    => 'contract_id'
+              CONTRACT_ID    => 'contract_id',
+              PASPORT_NUM    => 'pasport_num',
+              PASPORT_DATE   => 'pasport_date',
+              PASPORT_GRANT  => 'pasport_grant'
+              
              );
 
 	$self->changes($admin, { CHANGE_PARAM => 'UID',

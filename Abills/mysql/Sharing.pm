@@ -1445,7 +1445,6 @@ sub sessions_list {
  
  
  
- $self->{debug}=1;
  my @WHERE_RULES = ();
 
  # Show debeters

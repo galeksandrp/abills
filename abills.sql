@@ -35,7 +35,13 @@ CREATE TABLE `admins` (
   PRIMARY KEY  (`aid`),
   UNIQUE KEY `aid` (`aid`),
   UNIQUE KEY `id` (`id`)
-) ;
+);
+
+CREATE TABLE `admins_groups` (
+  `gid` smallint(6) unsigned NOT NULL default '0',
+  `aid` smallint(5) unsigned NOT NULL default '0',
+  KEY `gid` (`gid`,`aid`)
+);
 
 
 CREATE TABLE `bills` (
@@ -599,13 +605,23 @@ CREATE TABLE `tarif_plans` (
   `postpaid_fee` tinyint(1) unsigned NOT NULL default '0',
   `module` varchar(12) default NULL,
   `traffic_transfer` tinyint(4) unsigned NOT NULL default '0',
+  `gid` smallint(6) unsigned NOT NULL default '0',
+  `neg_deposit_filter_id` varchar(15) NOT NULL default '',
   PRIMARY KEY  (`id`),
   UNIQUE KEY `name` (`name`),
   UNIQUE KEY `id` (`id`)
 ) COMMENT='Dialup & VPN Tarif plans';
 
-# --------------------------------------------------------
+CREATE TABLE `tp_groups` (
+  `id` smallint(6) unsigned NOT NULL auto_increment,
+  `name` varchar(20) NOT NULL default '',
+  `user_chg_tp` tinyint(1) unsigned NOT NULL default '0',
+  PRIMARY KEY  (`id`),
+  UNIQUE KEY `id` (`id`),
+  UNIQUE KEY `name` (`name`)
+) COMMENT='Tarif Plans Groups';
 
+# --------------------------------------------------------
 #
 # Структура таблиці `tp_nas`
 #
@@ -694,6 +710,9 @@ CREATE TABLE `users_pi` (
   `address_flat` varchar(10) NOT NULL default '',
   `comments` text NOT NULL,
   `contract_id` varchar(10) NOT NULL default '',
+  `pasport_num` varchar(16) NOT NULL default '',
+  `pasport_date` date NOT NULL default '0000-00-00',
+  `pasport_grant` varchar(100) NOT NULL default '',
   PRIMARY KEY  (`uid`)
 ) ;
 
