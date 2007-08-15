@@ -373,7 +373,7 @@ foreach my $line (@periods) {
     }
   }
 
-  $RAD_PAIRS->{'Framed-IP-Netmask'} = "$self->{NETMASK}" if (defined( $RAD_PAIRS->{'Framed-IP-Address'} ));
+  $RAD_PAIRS->{'Framed-IP-Netmask'}="$self->{NETMASK}" if (defined( $RAD_PAIRS->{'Framed-IP-Address'} ));
   $RAD_PAIRS->{'Filter-Id'} = "$self->{FILTER}" if (length( $self->{FILTER} ) > 0); 
 
 
