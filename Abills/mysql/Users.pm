@@ -314,8 +314,11 @@ sub groups_list {
  my $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
  my $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
  undef @WHERE_RULES;
- 
- if ($attr->{GID}) {
+
+ if ($attr->{GIDS}) {
+    push @WHERE_RULES, "g.gid IN ($attr->{GIDS})";
+  }
+ elsif ($attr->{GID}) {
     push @WHERE_RULES, "g.gid='$attr->{GID}'";
   }
 
@@ -330,7 +333,7 @@ sub groups_list {
  my $list = $self->{list};
 
  if ($self->{TOTAL} > 0) {
-    $self->query($db, "SELECT count(*) FROM groups");
+    $self->query($db, "SELECT count(*) FROM groups g $WHERE");
     ($self->{TOTAL}) = @{ $self->{list}->[0] };
    }
 

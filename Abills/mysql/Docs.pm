@@ -92,6 +92,14 @@ sub docs_invoice_list {
     push @WHERE_RULES, "o.price * o.counts$value";
   }
 
+ # Show groups
+ if ($attr->{GIDS}) {
+   push @WHERE_RULES, "u.gid IN ($attr->{GIDS})"; 
+  }
+ elsif ($attr->{GID}) {
+   push @WHERE_RULES, "u.gid='$attr->{GID}'"; 
+  }
+
  
  #DIsable
  if ($attr->{UID}) {
@@ -288,6 +296,14 @@ sub accounts_list {
  if ($attr->{SUM}) {
  	  my $value = $self->search_expr($attr->{SUM}, 'INT');
     push @WHERE_RULES, "o.price * o.counts$value";
+  }
+
+ # Show groups
+ if ($attr->{GIDS}) {
+   push @WHERE_RULES, "u.gid IN ($attr->{GIDS})"; 
+  }
+ elsif ($attr->{GID}) {
+   push @WHERE_RULES, "u.gid='$attr->{GID}'"; 
   }
 
  

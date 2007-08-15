@@ -66,8 +66,12 @@ sub messages_list {
     push @WHERE_RULES, "m.reply$value";
   }
 
- if ($attr->{GID}) {
-    push @WHERE_RULES, "m.gid='$attr->{GID}'";
+ # Show groups
+ if ($attr->{GIDS}) {
+   push @WHERE_RULES, "u.gid IN ($attr->{GIDS})"; 
+  }
+ elsif ($attr->{GID}) {
+   push @WHERE_RULES, "u.gid='$attr->{GID}'"; 
   }
  
  

@@ -187,8 +187,11 @@ sub customers_list {
   }
 
  # Show groups
- if ($attr->{GID}) {
-    push @WHERE_RULES, "u.gid='$attr->{GID}'";
+ if ($attr->{GIDS}) {
+   push @WHERE_RULES, "u.gid IN ($attr->{GIDS})"; 
+  }
+ elsif ($attr->{GID}) {
+   push @WHERE_RULES, "u.gid='$attr->{GID}'"; 
   }
 
 

@@ -173,8 +173,12 @@ sub online {
  	 push @WHERE_RULES, "c.user_name='$attr->{USER_NAME}'";
   }
 
- if (defined($attr->{GID})) {
- 	 push @WHERE_RULES, "u.gid='$attr->{GID}'";
+ # Show groups
+ if ($attr->{GIDS}) {
+   push @WHERE_RULES, "u.gid IN ($attr->{GIDS})"; 
+  }
+ elsif ($attr->{GID}) {
+   push @WHERE_RULES, "u.gid='$attr->{GID}'"; 
   }
 
 

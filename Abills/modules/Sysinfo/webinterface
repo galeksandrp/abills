@@ -981,8 +981,8 @@ while(<MOD>) {
 close(MOD);
 local $name = $_[0]->{'mods'}->[$_[1]];
 $desc =~ s/^\s*$name\s+\-\s+// ||
-	$desc =~ s/^\s*\S*<$name>\s+\-\s+//;
-$desc =~ s/\$Id$//;
+$desc =~ s/^\s*\S*<$name>\s+\-\s+//;
+
 return wantarray ? ($desc, $ver) : $desc;
 }
 

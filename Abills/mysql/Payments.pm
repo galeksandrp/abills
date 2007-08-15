@@ -137,8 +137,8 @@ sub del {
      return $self;
    }
 
-  my $a_ref = $self->{list}->[0];
-  my($sum, $bill_id) = @$a_ref;
+
+  my($sum, $bill_id) = @{ $self->{list}->[0] };
 
   $Bill->action('take', $bill_id, $sum); 
   
@@ -227,7 +227,10 @@ sub list {
   }
 
  # Show groups
- if ($attr->{GID}) {
+ if ($attr->{GIDS}) {
+    push @WHERE_RULES, "u.gid IN ( $attr->{GIDS} )";
+  }
+ elsif ($attr->{GID}) {
     push @WHERE_RULES, "u.gid='$attr->{GID}'";
   }
 
@@ -271,8 +274,11 @@ sub reports {
  my $date = '';
  undef @WHERE_RULES;
  
- 
- if ($attr->{GID}) {
+
+ if ($attr->{GIDS}) {
+   push @WHERE_RULES, "u.gid IN ( $attr->{GIDS} )";
+  }
+ elsif ($attr->{GID}) {
    push @WHERE_RULES, "u.gid='$attr->{GID}'";
   }
 

@@ -7,7 +7,7 @@ use vars qw(@ISA @EXPORT @EXPORT_OK %EXPORT_TAGS $VERSION
 );
 
 use Exporter;
-$VERSION = 2.00;
+$VERSION = 3.00;
 @ISA = ('Exporter');
 
 @EXPORT = qw(
@@ -145,8 +145,6 @@ sub info {
      return $self;
    }
 
-  my $a_ref = $self->{list}->[0];
-
   ($self->{COMPANY_ID}, 
    $self->{COMPANY_NAME}, 
    $self->{CREDIT}, 
@@ -161,7 +159,7 @@ sub info {
    $self->{ADDRESS},
    $self->{PHONE},
    $self->{VAT}
-   ) = @$a_ref;
+   ) = @{ $self->{list}->[0] };
     
   return $self;
 }
@@ -197,8 +195,7 @@ sub list {
  my $list = $self->{list};
 
     $self->query($db, "SELECT count(c.id) FROM companies c $WHERE;");
-    my $a_ref = $self->{list}->[0];
-    ($self->{TOTAL}) = @$a_ref;
+    ($self->{TOTAL}) = @{ $self->{list}->[0] };
 
 #  $self->{list}=$list;
 

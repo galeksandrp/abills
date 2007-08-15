@@ -302,6 +302,94 @@ sub dv_user {
 }
 
 
+#**********************************************************
+# Tarif plans groups
+# form_tp
+#**********************************************************
+sub dv_tp_groups {
+
+ $tarrifs = $tariffs->tp_group_defaults();
+ $tariffs->{LNG_ACTION}=$_ADD;
+ $tariffs->{ACTION}='ADD';
+
+if($FORM{ADD}) {
+  $tariffs->tp_group_add({ %FORM });
+  if (! $tariffs->{errno}) {
+    $html->message('info', $_ADDED, "$_ADDED GID: $tariffs->{GID}");
+   }
+ }
+elsif($FORM{change}) {
+  $tariffs->tp_group_change({	%FORM  });
+  if (! $tariffs->{errno}) {
+    $html->message('info', $_CHANGED, "$_CHANGED ");	
+   }
+ }
+elsif($FORM{chg}) {
+  $tariffs->tp_group_info($FORM{chg});
+  if (! $tariffs->{errno}) {
+    $html->message('info', $_CHANGED, "$_CHANGED ");	
+   }
+
+  $tariffs->{ACTION}='change';
+  $tariffs->{LNG_ACTION}=$_CHANGE;
+ }
+elsif(defined($FORM{del}) && $FORM{is_js_confirmed}) {
+  $tariffs->tp_group_del($FORM{del});
+  if (! $tariffs->{errno}) {
+    $html->message('info', $_DELETE, "$_DELETED $FORM{del}");
+   }
+}
+
+
+if ($tariffs->{errno}) {
+    $html->message('err', $_ERROR, "[$tariffs->{errno}] $err_strs{$tariffs->{errno}}");	
+ }
+
+
+$tariffs->{USER_CHG_TP} = ($tarrifs->{USER_CHG_TP}) ? 'checked' : '';
+$html->tpl_show(_include('dv_tp_group', 'Dv'), $tarrifs);
+
+
+my $list = $tariffs->tp_group_list({ %LIST_PARAMS });	
+
+# Time tariff Name Begin END Day fee Month fee Simultaneously - - - 
+my $table = $html->table( { width      => '100%',
+                            caption    => "$_GROUPS",
+                            border     => 1,
+                            title      => ['#', $_NAME, $_USER_CHG_TP, $_COUNT, '-', '-' ],
+                            cols_align => ['right', 'left', 'center', 'right', 'center:noprint', 'center:noprint' ],
+                           } );
+
+my ($delete, $change);
+foreach my $line (@$list) {
+  if ($permissions{4}{1}) {
+    $delete = $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?" }); 
+    $change = $html->button($_CHANGE, "index=$index&chg=$line->[0]");
+   }
+  
+  if($FORM{TP_ID} eq $line->[0]) {
+  	$table->{rowcolor}=$_COLORS[0];
+   }
+  else {
+  	undef($table->{rowcolor});
+   }
+  
+  $table->addrow("$line->[0]", 
+   $line->[1],
+   $bool_vals[$line->[2]], 
+   $line->[3],
+   $change,
+   $delete);
+}
+
+print $table->show();
+
+$table = $html->table( { width      => '100%',
+                         cols_align => ['right', 'right'],
+                         rows       => [ [ "$_TOTAL:", "<b>$tariffs->{TOTAL}</b>" ] ]
+                               } );
+print $table->show();
+}
 
 #**********************************************************
 # Tarif plans
@@ -426,6 +514,15 @@ $tarif_info->{PAYMENT_TYPE_SEL} .= "</select>\n";
 $tarif_info->{REDUCTION_FEE} = ($tarif_info->{REDUCTION_FEE}) ? 'checked' : '';
 $tarif_info->{POSTPAID_FEE} = ($tarif_info->{POSTPAID_FEE}) ? 'checked' : '';
 
+$tarif_info->{GROUPS_SEL} = $html->form_select('TP_GID', 
+                                          { 
+ 	                                          SELECTED          => $tarif_info->{TP_GID},
+ 	                                          SEL_MULTI_ARRAY   => [[ '', ''],  @{ $tariffs->tp_group_list( ) } ],
+ 	                                          MULTI_ARRAY_KEY   => 0,
+ 	                                          MULTI_ARRAY_VALUE => 1,
+ 	                                        });
+
+
 $html->tpl_show(_include('dv_tp', 'Dv'), $tarif_info);
 
 
@@ -435,7 +532,8 @@ my $list = $tariffs->list({ %LIST_PARAMS });
 my $table = $html->table( { width      => '100%',
                             caption    => "$_TARIF_PLANS",
                             border     => 1,
-                            title      => ['#', $_NAME,  $_HOUR_TARIF, $_TRAFIC_TARIFS, $_PAYMENT_TYPE, $_DAY_FEE, $_MONTH_FEE, $_SIMULTANEOUSLY, $_AGE,
+                            title      => ['#', $_NAME,  $_HOUR_TARIF, $_TRAFIC_TARIFS, $_PAYMENT_TYPE, $_DAY_FEE, $_MONTH_FEE, $_SIMULTANEOUSLY, 
+                             $_AGE, $_GROUP,
                                     '-', '-', '-'],
                             cols_align => ['right', 'left', 'center', 'center', 'center', 'right', 'right', 'right', 'right', 'center:noprint', 'center:noprint', 'center:noprint'],
                                   } );
@@ -444,7 +542,7 @@ my ($delete, $change);
 foreach my $line (@$list) {
   if ($permissions{4}{1}) {
     $delete = $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?" }); 
-    $change = $html->button($_INFO, "index=$index&TP_ID=$line->[0]");
+    $change = $html->button($_CHANGE, "index=$index&TP_ID=$line->[0]");
    }
   
   if($FORM{TP_ID} eq $line->[0]) {
@@ -456,7 +554,12 @@ foreach my $line (@$list) {
   
   $table->addrow("<b>$line->[0]</b>", 
    $html->button($line->[1], "index=$index&TP_ID=$line->[0]"),
-   $bool_vals[$line->[2]], $bool_vals[$line->[3]], $Payment_Types[$line->[4]], $line->[5], $line->[6], $line->[7], $line->[8],
+   $bool_vals[$line->[2]], $bool_vals[$line->[3]], $Payment_Types[$line->[4]], 
+   $line->[5], 
+   $line->[6], 
+   $line->[7], 
+   $line->[8], 
+   $line->[9],
    $html->button($_INTERVALS, "index=". ($index+2) ."&subf=73&TP_ID=$line->[0]"),
    $change,
    $delete);
@@ -470,8 +573,10 @@ $table = $html->table( { width      => '100%',
                                } );
 print $table->show();
 
-	
 }
+
+
+
 
 #*******************************************************************
 # online users
@@ -598,6 +703,12 @@ elsif($FORM{tolog}) {
   require Acct;
   $ACCT_INFO->{INBYTE}           = $ACCT_INFO->{ACCT_INPUT_OCTETS};
   $ACCT_INFO->{OUTBYTE}          = $ACCT_INFO->{ACCT_OUTPUT_OCTETS},;
+  $ACCT_INFO->{INBYTE2}          = $ACCT_INFO->{ACCT_EX_INPUT_OCTETS} ;
+  $ACCT_INFO->{OUTBYTE2}         = $ACCT_INFACCT_INFO->{ACCT_OUTPUT_OCTETS},;
+  $ACCT_INFO->{INBYTE2}          = $ACCT_INFO->{ACCT_EX_INPUT_OCTETS} ;
+  $ACCT_INFO->{OUTBYTE2}         = $ACCT_INFACCT_INFO->{ACCT_OUTPUT_OCTETS},;
+  $ACCT_INFO->{INBYTE2}          = $ACCT_INFO->{ACCT_EX_INPUT_OCTETS} ;
+  $ACCT_INFO->{OUTBYTE2}         = $ACCT_INFACCT_INFO->{ACCT_OUTPUT_OCTETS},;
   $ACCT_INFO->{INBYTE2}          = $ACCT_INFO->{ACCT_EX_INPUT_OCTETS} ;
   $ACCT_INFO->{OUTBYTE2}         = $ACCT_INFO->{ACCT_EX_OUTPUT_OCTETS};
   $ACCT_INFO->{ACCT_STATUS_TYPE} = 'Stop';
@@ -865,6 +976,7 @@ else {
 print  $output;
 	
 }
+
 
 
 
@@ -1939,7 +2051,8 @@ sub dv_user_chg_tp {
  my $user;
 
  if (! $conf{DV_USER_CHG_TP}) {
-    messages('err', $_ERROR, "$_NOT_ALLOW");
+    $html->message('err', $_ERROR, "$_NOT_ALLOW");
+    return 0;
   }
 
  if(defined($LIST_PARAMS{UID})) {
@@ -1954,6 +2067,15 @@ sub dv_user_chg_tp {
  	 $html->message('err', $_ERROR, "$_USER_NOT_EXIST");
  	 return 0;
   }
+
+ #Get TP groups
+ $tariffs->tp_group_info($user->{TP_GID});
+ 
+ if (! $tariffs->{USER_CHG_TP}) {
+ 	  $html->message('err', $_ERROR, "$_NOT_ALLOW");
+ 	  return 0;
+  }
+
 
 if ($FORM{set}) {
     $FORM{UID}=$LIST_PARAMS{UID};
@@ -1972,7 +2094,7 @@ if ($FORM{set}) {
    $tariffs->{TARIF_PLAN_SEL}=$html->form_select('TP_ID', 
                                           { 
  	                                          SELECTED          => $user->{TP_ID},
- 	                                          SEL_MULTI_ARRAY   => $tariffs->list(),
+ 	                                          SEL_MULTI_ARRAY   => $tariffs->list({ TP_GID => $user->{TP_GID} }),
  	                                          MULTI_ARRAY_KEY   => 0,
  	                                          MULTI_ARRAY_VALUE => 1,
  	                                        });
@@ -2040,7 +2162,7 @@ sub dv_daily_fees {
 
  foreach my $line (@$list) {
  	 if ($line->[5] > 0) {
- 	   $debug_output .= "TP ID: $line->[0] DF: $line->[5] MF: $line->[6] POSTPAID: $line->[11] REDUCTION: $line->[10] \n" if ($debug > 1);
+ 	   $debug_output .= "TP ID: $line->[0] DF: $line->[5] MF: $line->[6] POSTPAID: $line->[12] REDUCTION: $line->[11] \n" if ($debug > 1);
  	   $LIST_PARAMS{TP}=$line->[0];
  	   my $ulist = $Dv->list({
          ACTIVATE  => "<='$ADMIN_REPORT{DATE}'",
@@ -2065,11 +2187,11 @@ sub dv_daily_fees {
 
           #print "  UID: $u->[0] / $line->[5] / DEPOSIT: $u->[2] / $u->[3] / BILL_ID: $u->[12]\n"; 	
           #If deposit is above-zero or TARIF PALIN is POST PAID or PERIODIC PAYMENTS is POSTPAID
-          if($u->[2] + $u->[3] > 0 || $line->[4] == 1 || $line->[11] == 1 ) {
+          if($u->[2] + $u->[3] > 0 || $line->[4] == 1 || $line->[12] == 1 ) {
              #print "  UID: $u->[0] / $line->[5] / DEPOSIT: $u->[2] / $u->[3] / BILL_ID: $u->[12]\n"; 	
              my $sum = $line->[5];
              # IF TP have PARIODIC PAYMENTS USER reduction
-             if ($line->[10] == 1 && $u->[13] > 0) {
+             if ($line->[11] == 1 && $u->[13] > 0) {
                $sum = $sum * (100 - $u->[13]) / 100;
               }
 
@@ -2125,7 +2247,7 @@ sub dv_monthly_fees {
 
  foreach my $line (@$list) {
  	 if ($line->[6] > 0) {
- 	   $debug_output .= "TP ID: $line->[0] MF: $line->[6] POSTPAID: $line->[11] REDUCTION: $line->[10] \n" if ($debug > 1);
+ 	   $debug_output .= "TP ID: $line->[0] MF: $line->[6] POSTPAID: $line->[12] REDUCTION: $line->[11] \n" if ($debug > 1);
 
 	   my $ulist = $Dv->list({ 
          ACTIVATE   => ">=$ADMIN_REPORT{DATE}",
@@ -2159,7 +2281,7 @@ sub dv_monthly_fees {
           
           
           #If deposit is above-zero or TARIF PALIN is POST PAID or PERIODIC PAYMENTS is POSTPAID
-          if($line->[4] == 1 || $u->[2] + $u->[3] > 0 || $line->[11] == 1) {
+          if($line->[4] == 1 || $u->[2] + $u->[3] > 0 || $line->[12] == 1) {
 #                print " $u->[0] $line->[6] $u->[2] $u->[3] $u->[10] - $u->[11] /$DATE $d == 1\n"; 	
             #take fees in first day of month
             if ($u->[10] eq '0000-00-00' and $d == 1) {
@@ -2521,8 +2643,9 @@ sub dv_cards {
   	 	  $FORM{'1.CREATE_BILL'}=1;
         
         $line->{UID} = dv_wizard_user({ SHORT_REPORT => 1 });
+       
   	 	  if ( $line->{UID} < 1) {
-  	 	  	 $html->message('err', $_ERROR, "$_LOGIN: $line->{LOGIN}");
+  	 	  	 $html->message('err', "$_ERROR", "$_LOGIN: '$line->{LOGIN}'");
   	 	  	 last;
   	 	   }
   	 	  else {
@@ -2535,8 +2658,6 @@ sub dv_cards {
   	 	  		}
   	 	   }
   	  }
-
-
 
    }
   
@@ -2555,9 +2676,9 @@ if ($added_count > 0) {
 sub dv_wizard_user {
 	my ($attr) = @_;
 
-  my $fees = Finance->fees($db, $admin, \%conf);
+  my $fees     = Finance->fees($db, $admin, \%conf);
   my $payments = Finance->payments($db, $admin, \%conf);
-  my $users = Users->new($db, $admin, \%conf); 
+  my $users    = Users->new($db, $admin, \%conf); 
 
   my %add_values = ();
 
@@ -2583,7 +2704,7 @@ sub dv_wizard_user {
       #2 
       if (defined($FORM{'2.newpassword'}) && $FORM{'2.newpassword'} ne '') {
         if (length($FORM{'2.newpassword'}) < $conf{PASSWD_LENGTH}) {
-          $html->message('err', $_ERROR, "$err_strs{6}");
+          $html->message('err', "$_PASSWD : $_ERROR", "$err_strs{6}");
          }
         elsif ($FORM{'2.newpassword'} eq $FORM{'2.confirm'}) {
           $add_values{2}{PASSWORD}=$FORM{'2.newpassword'};
@@ -2591,7 +2712,7 @@ sub dv_wizard_user {
           $add_values{2}{DISABLE}=$FORM{'1.DISABLE'};
          }
         elsif($FORM{'2.newpassword'} ne $FORM{'2.confirm'}) {
-          $html->message('err', $_ERROR, $err_strs{5});
+          $html->message('err', "$_PASSWD : $_ERROR", "$err_strs{5}");
          }
 
         $user->change($UID, { %{$add_values{2}} });
@@ -2612,7 +2733,7 @@ sub dv_wizard_user {
           my $er = ($FORM{'5.ER'}) ? $payments->exchange_info($FORM{'5.ER'}) : { ER_RATE => 1 } ;  
           $payments->add($user, { %{$add_values{5}}, ER => $er->{ER_RATE} } );  
           if ($payments->{errno}) {
-            $html->message('err', "$_ERROR:$_PAYMENTS", "[$payments->{errno}] $err_strs{$payments->{errno}}");	
+            $html->message('err', "-- $_PAYMENTS : $_ERROR", "[$payments->{errno}] $err_strs{$payments->{errno}}");	
             return 0;
            }
           else {
@@ -2626,7 +2747,7 @@ sub dv_wizard_user {
           $fees->take($user, abs($FORM{'5.SUM'}), { DESCRIBE => 'MIGRATION',  ER => $er->{ER_RATE} } );  
 
           if ($fees->{errno}) {
-            $html->message('err', "$_ERROR:$_FEES", "[$fees->{errno}] $err_strs{$fees->{errno}}");	
+            $html->message('err', "$_ERROR : $_FEES", "[$fees->{errno}] $err_strs{$fees->{errno}}");	
             return 0;
            }
           else {
@@ -2638,7 +2759,7 @@ sub dv_wizard_user {
       #4 Dv
    	  $Dv->add({ UID => $UID, %{$add_values{4}} });
       if ($Dv->{errno}) {
-        $html->message('err', $_ERROR, "[$Dv->{errno}] $err_strs{$Dv->{errno}}  Dv Modules");	
+        $html->message('err', "Dv:$_ERROR", "Dv Modules [$Dv->{errno}] $err_strs{$Dv->{errno}}");	
         return 0;
        }
       
@@ -2649,10 +2770,13 @@ sub dv_wizard_user {
         
         $FORM{'6.newpassword'} = $FORM{'6.PASSWORD'} if ($FORM{'6.PASSWORD'});
 
-        $Mail->mbox_add({ UID => "$UID", %{$add_values{6}}, PASSWORD => $FORM{'6.newpassword'} });
+        $Mail->mbox_add({ UID => "$UID", 
+        	                %{$add_values{6}}, 
+        	                PASSWORD => $FORM{'6.newpassword'} 
+        	             });
 
         if ($Mail->{errno}) {
-          $html->message('err', "$_ERROR : $_MAIL", "[$Mail->{errno}] $err_strs{$Mail->{errno}}");	
+          $html->message('err', "E-MAIL : $_ERROR", "[$Mail->{errno}] $err_strs{$Mail->{errno}}");	
           return 0;
          }
        }
@@ -2810,22 +2934,17 @@ sub dv_wizard_user {
 #**********************************************************
 sub dv_registration  {
 	my ($attr) = @_;
-	
 	if ($FORM{registration}) {
 		
 		
 	 }
 	else {
-		
 		$html->message('info', $_INFO, "$_REGISTRATION");
 
 		#$html->message('err', $_ERROR, "$_REGISTRATION");
 	 }
 	
   $html->tpl_show(_include('dv_registration', 'Dv'), $Dv);
-
-#  print $html->tpl_show(templates('chg_tp'), $Dv);	
-
 	return 0;
 }
 

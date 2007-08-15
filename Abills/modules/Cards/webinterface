@@ -13,10 +13,10 @@ else {
 
 use Payments;
 use Tariffs;
-my $tariffs = Tariffs->new($db, \%conf, $admin);
+my $tariffs  = Tariffs->new($db, \%conf, $admin);
 my $payments = Payments->new($db, $admin, \%conf);
 
-my $Cards = Cards->new($db, $admin, \%conf);
+my $Cards  = Cards->new($db, $admin, \%conf);
 my @status = ($_ENABLE, $_DISABLE, $_USED, $_DELETED, $_RETURNED);
 
 

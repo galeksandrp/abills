@@ -193,7 +193,14 @@ my @actions = ([$_INFO, $_ADD, $_LIST, $_PASSWD, $_CHANGE, $_DEL, $_ALL, $_MULTI
                [$_PROFILE],
                );
 
-$LIST_PARAMS{GID}=$admin->{GID} if ($admin->{GID} > 0);
+
+if ($admin->{GIDS}) {
+	$LIST_PARAMS{GIDS}=$admin->{GIDS} 
+ }
+elsif  ($admin->{GID} > 0) {
+  $LIST_PARAMS{GID}=$admin->{GID} 
+ }
+
 
 #Global Vars
 @action    = ('add', $_ADD);
@@ -507,8 +514,7 @@ sub check_permissions {
      }
    }
   
-  my $p_ref = $admin->get_permissions();
-  %permissions = %$p_ref;
+  %permissions = %{ $admin->get_permissions() };
 
   return 0;
 }
@@ -764,10 +770,16 @@ sub user_form {
      $user_info->{EXDATA} =  "<tr><td>$_COMPANY:</td><td>". $html->button($company->{COMPANY_NAME}, "index=13&COMPANY_ID=$company->{COMPANY_ID}"). "</td></tr>\n";
     }
    
-   $user_info->{GID} = sel_groups();
-   if ($admin->{GID}) {
+   if ($admin->{GIDS}) {
+   	 $user_info->{GID} = sel_groups();
+    }
+   elsif ($admin->{GID}) {
    	 $user_info->{GID} .= "<input type='hidden' name='GID' value='$admin->{GID}'>";
     }
+   else {
+   	 $user_info->{GID} = sel_groups();
+    }
+
    $user_info->{EXDATA} .=  $html->tpl_show(templates('form_user_exdata'), undef, { notprint => 'y' });
 
    $user_info->{DISABLE} = ($user_info->{DISABLE} > 0) ? ' checked' : '';
@@ -797,7 +809,7 @@ $html->tpl_show(templates('form_user'), $user_info);
 sub form_groups {
 
 if ($FORM{add}) {
-  if ($LIST_PARAMS{GID}) {
+  if ($LIST_PARAMS{GID} || $LIST_PARAMS{GIDS}) {
     $html->message('err', $_ERROR, "Access Deny");
    }
   else {
@@ -863,7 +875,7 @@ my $table = $html->table( { width      => '100%',
                             cols_align => ['right', 'left', 'left', 'right', 'center', 'center'],
                             qs         => $pages_qs,
                             pages      => $users->{TOTAL}
-                                  } );
+                       } );
 
 foreach my $line (@$list) {
   my $delete = (defined($permissions{0}{5})) ?  $html->button($_DEL, "index=27$pages_qs&del=$line->[0]", { MESSAGE => "$_DEL [$line->[0]]?" }) : ''; 
@@ -889,6 +901,9 @@ print $table->show();
 # add_groups()
 #**********************************************************
 sub add_groups {
+
+  return 0 if ($LIST_PARAMS{GID} || $LIST_PARAMS{GIDS});
+
   my $users;
   $users->{ACTION}='add';
   $users->{LNG_ACTION}=$_ADD;
@@ -2006,6 +2021,7 @@ if ($FORM{AID}) {
      $_PAYMENTS       => "2:AID=$admin_form->{AID}",
      $_PERMISSION     => "52:AID=$admin_form->{AID}",
      $_PASSWD         => "54:AID=$admin_form->{AID}",
+     $_GROUP          => "58:AID=$admin_form->{AID}",
   	 },
   	{
   		f_args => { ADMIN => $admin_form }
@@ -2060,19 +2076,27 @@ $admin_form->{GROUP_SEL} = sel_groups();
 $html->tpl_show(templates('form_admin'), $admin_form);
 
 my $table = $html->table( { width      => '100%',
+	                          caption    => $_ADMINS,
                             border     => 1,
                             title      => ['ID', $_NAME, $_FIO, $_CREATE, $_STATUS,  $_GROUPS, '-', '-', '-', '-', '-', '-'],
                             cols_align => ['right', 'left', 'left', 'right', 'left', 'center', 'center', 'center', 'center', 'center', 'center'],
                          } );
 
-my $list = $admin_form->list({ %LIST_PARAMS });
+my $list = $admin_form->admins_groups_list({ ALL => 1 });
+my %admin_groups=();
+foreach my $line ( @$list) {
+	$admin_groups{$line->[1]}.=", $line->[0]:$line->[2]";
+}
+
+
+$list = $admin_form->list({ %LIST_PARAMS });
 foreach my $line (@$list) {
   $table->addrow($line->[0], 
     $line->[1], 
     $line->[2], 
     $line->[3], 
     $status[$line->[4]], 
-    $line->[5], 
+    $line->[5] . $admin_groups{$line->[0]}, 
    $html->button($_PERMISSION, "index=$index&subf=52&AID=$line->[0]"),
    $html->button($_LOG, "index=$index&subf=51&AID=$line->[0]"),
    $html->button($_PASSWD, "index=$index&subf=54&AID=$line->[0]"),
@@ -2088,7 +2112,75 @@ $table = $html->table( { width      => '100%',
 print $table->show();
 }
 
+#**********************************************************
+# form_admins_group();
+#**********************************************************
+sub form_admins_groups {
+  my ($attr) = @_; 
 
+ 
+  if(! defined($attr->{ADMIN})) {
+    $FORM{subf}=52;
+    form_admins();
+    return 0;	
+   }
+  my $admin = $attr->{ADMIN};
+
+if ($FORM{change}) {
+	my $admin = $attr->{ADMIN};
+	$admin->admin_groups_change({ %FORM });
+  if ($admin->{errno}) {
+    $html->message('err', $_ERROR, "[$admin->{errno}] $err_strs{$admin->{errno}}");	
+   }
+  else {
+    $html->message('info', $_CHANGED, "$_CHENGED GID: [$FORM{GID}]");
+   }
+ }
+#elsif($FORM{AID} && ! defined($LIST_PARAMS{AID})) {
+#	$FORM{subf}=$index;
+#	form_admins();
+#	return 0;
+# }
+
+
+my $table = $html->table( { width      => '100%',
+                            caption    => $_GROUP,
+                            border     => 1,
+                            title      => ['ID', $_NAME, '-' ],
+                            cols_align => ['right', 'left', 'center' ],
+                        } );
+
+my $list = $admin->admins_groups_list({ AID => $LIST_PARAMS{AID}  });
+my %admins_group_hash = ();
+
+foreach my $line (@$list) {
+	print "$line->[0]";
+	$admins_group_hash{$line->[0]}=1;
+}
+
+$list = $users->groups_list();
+foreach my $line (@$list) {
+  $table->addrow(
+     $html->form_input('GID', "$line->[0]", { TYPE => 'checkbox', STATE => (defined($admins_group_hash{$line->[0]})) ? 'checked' : undef }) . $line->[0], 
+     $line->[1],
+     ''
+    );
+}
+
+
+print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
+	                       HIDDEN  => { index => $index,
+                                      AID   => "$FORM{AID}",
+                                      subf  => "$FORM{subf}"
+                                     },
+	                       SUBMIT  => { change   => "$_CHANGE"
+	                       	           } 
+	                     });
+
+
+
+
+}
 
 
 
@@ -2097,7 +2189,7 @@ print $table->show();
 #**********************************************************
 # permissions();
 #**********************************************************
-sub admin_permissions {
+sub form_admin_permissions {
  my ($attr) = @_;
  my %permits = ();
 
@@ -3047,11 +3139,12 @@ my @m = (
  "5:0:$_SYSTEM:null:::",
  "50:5:$_ADMINS:form_admins:::",
  "51:50:$_LOG:form_changes:AID::",
- "52:50:$_PERMISSION:admin_permissions:AID::",
+ "52:50:$_PERMISSION:form_admin_permissions:AID::",
  "54:50:$_PASSWD:form_passwd:AID::",
  "55:50:$_FEES:form_fees:AID::",
  "56:50:$_PAYMENTS:form_payments:AID::",
  "57:50:$_CHANGE:form_admins:AID::",
+
  
  "59:5:$_LOG:form_changes:::",
   
@@ -3082,6 +3175,7 @@ my @m = (
  );
 
 
+push @m, "58:50:$_GROUPS:form_admins_groups:AID::" if ($admin->{GID} == 0);
 
 foreach my $line (@m) {
 	my ($ID, $PARENT, $NAME, $FUNTION_NAME, $ARGS, $OP)=split(/:/, $line);
@@ -4242,7 +4336,7 @@ sub clearquotes {
 sub sel_groups {
   my $GROUPS_SEL = '';
 
-  if ($admin->{GID} > 0) {
+  if ($admin->{GID} > 0 && ! $admin->{GIDS}) {
   	$users->group_info($admin->{GID});
   	$GROUPS_SEL = "$admin->{GID}:$users->{G_NAME}";
    }
@@ -4250,10 +4344,10 @@ sub sel_groups {
     $GROUPS_SEL = $html->form_select('GID', 
                                 { 
  	                                SELECTED          => $FORM{GID},
- 	                                SEL_MULTI_ARRAY   => $users->groups_list(),
+ 	                                SEL_MULTI_ARRAY   => $users->groups_list({ GIDS => ($admin->{GIDS}) ? $admin->{GIDS} : undef }),
  	                                MULTI_ARRAY_KEY   => 0,
  	                                MULTI_ARRAY_VALUE => 1,
- 	                                SEL_OPTIONS       => { 0 => '-N/S-'}
+ 	                                SEL_OPTIONS       => ($admin->{GIDS}) ?  undef : { 0 => '-N/S-' }
  	                               });
    }
 

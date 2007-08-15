@@ -77,7 +77,7 @@ sub mbox_add {
 	
 	$self->{USER_EMAIL} = $DATA{USERNAME}.'@'.$self->{DOMAIN};
 	
-  $admin->action_add($DATA{UID}, "ADD $DATA{USERNAME}");
+  $admin->action_add($DATA{UID}, "ADD $DATA{USER_EMAIL}");
 	
 	return $self;
 }
@@ -229,6 +229,14 @@ sub mbox_list {
  
  if ($attr->{FIRST_LETTER}) {
     $WHERE .= ($WHERE ne '') ?  " and mb.username LIKE '$attr->{FIRST_LETTER}%' " : "WHERE mb.username LIKE '$attr->{FIRST_LETTER}%' ";
+  }
+
+ # Show groups
+ if ($attr->{GIDS}) {
+   push @WHERE_RULES, "u.gid IN ($attr->{GIDS})"; 
+  }
+ elsif ($attr->{GID}) {
+   push @WHERE_RULES, "u.gid='$attr->{GID}'"; 
   }
 	
 	

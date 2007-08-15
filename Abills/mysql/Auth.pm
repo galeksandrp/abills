@@ -98,7 +98,8 @@ sub dv_auth {
   tp.age,
   dv.callback,
   dv.port,
-  tp.traffic_transfer_period
+  tp.traffic_transfer_period,
+  tp.neg_deposit_filter_id
 
      FROM (dv_main dv, tarif_plans tp)
      LEFT JOIN users_nas un ON (un.uid = dv.uid)
@@ -141,7 +142,8 @@ sub dv_auth {
      $self->{ACCOUNT_AGE},
      $self->{CALLBACK},
      $self->{PORT},
-     $self->{TRAFFIC_TRANSFER_PERIOD}
+     $self->{TRAFFIC_TRANSFER_PERIOD},
+     $self->{NEG_DEPOSIT_FILTER_ID}
     ) = @{ $self->{list}->[0] };
 
 #DIsable
@@ -211,6 +213,33 @@ if ($self->{PAYMENT_TYPE} == 0) {
   #Check deposit
   if($self->{DEPOSIT} <= 0) {
     $RAD_PAIRS->{'Reply-Message'}="Negativ deposit '$self->{DEPOSIT}'. Rejected!";
+
+    #Filtering with negative deposit
+    if ($self->{NEG_DEPOSIT_FILTER_ID}) {
+      $RAD_PAIRS->{'Filter-Id'} = "$self->{NEG_DEPOSIT_FILTER_ID}";
+      
+      # Return radius attr    
+      if ($self->{IP} ne '0') {
+        $RAD_PAIRS->{'Framed-IP-Address'} = "$self->{IP}";
+       }
+      else {
+        my $ip = $self->get_ip($NAS->{NAS_ID}, "$RAD->{NAS_IP_ADDRESS}");
+        if ($ip eq '-1') {
+          $RAD_PAIRS->{'Reply-Message'}="Rejected! There is no free IPs in address pools (USED: $self->{USED_IPS})";
+          return 1, $RAD_PAIRS;
+         }
+        elsif($ip eq '0') {
+          #$RAD_PAIRS->{'Reply-Message'}="$self->{errstr} ($NAS->{NAS_ID})";
+          #return 1, $RAD_PAIRS;
+         }
+        else {
+          $RAD_PAIRS->{'Framed-IP-Address'} = "$ip";
+         }
+       }
+
+      return 0, $RAD_PAIRS;
+     }
+
     return 1, $RAD_PAIRS;
    }
 }
@@ -325,9 +354,8 @@ foreach my $line (@periods) {
    return 1, $RAD_PAIRS;
   }
 
-# Return radius attr    
+# Return radius attr
  if ($self->{IP} ne '0') {
-
    $RAD_PAIRS->{'Framed-IP-Address'} = "$self->{IP}";
   }
  else {

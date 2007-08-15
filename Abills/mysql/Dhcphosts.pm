@@ -506,6 +506,14 @@ sub hosts_list {
    push @WHERE_RULES, "u.id LIKE '$attr->{LOGIN_EXPR}'"; 
   }
 
+ if ($attr->{GIDS}) {
+   push @WHERE_RULES, "u.gid IN ($attr->{GIDS})"; 
+  }
+ elsif ($attr->{GID}) {
+   push @WHERE_RULES, "u.gid=$attr->{GID}"; 
+  }
+
+
  if ($attr->{HOSTNAME}) {
    $attr->{HOSTNAME} =~ s/\*/\%/g;
    push @WHERE_RULES, "h.hostname LIKE '$attr->{HOSTNAME}'"; 

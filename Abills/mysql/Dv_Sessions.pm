@@ -168,8 +168,12 @@ sub online {
  	 push @WHERE_RULES, "c.user_name='$attr->{USER_NAME}'";
   }
 
- if (defined($attr->{GID})) {
- 	 push @WHERE_RULES, "u.gid='$attr->{GID}'";
+ # Show groups
+ if ($attr->{GIDS}) {
+   push @WHERE_RULES, "u.gid IN ($attr->{GIDS})"; 
+  }
+ elsif ($attr->{GID}) {
+   push @WHERE_RULES, "u.gid='$attr->{GID}'"; 
   }
 
 
@@ -817,9 +821,13 @@ if ($attr->{ACCT_SESSION_ID}) {
    push @WHERE_RULES, "l.acct_session_id='$attr->{ACCT_SESSION_ID}'";
   }
 
-if ($attr->{GID}) {
-   push @WHERE_RULES, "u.gid='$attr->{GID}'";
- }
+ # Show groups
+ if ($attr->{GIDS}) {
+   push @WHERE_RULES, "u.gid IN ($attr->{GIDS})"; 
+  }
+ elsif ($attr->{GID}) {
+   push @WHERE_RULES, "u.gid='$attr->{GID}'"; 
+  }
 
 
 if ($attr->{TERMINATE_CAUSE}) {
@@ -1015,9 +1023,13 @@ sub reports {
                           };
  
 
- if ($attr->{GID}) {
- 	 push @WHERE_RULES, "u.gid='$attr->{GID}'";
-  } 
+ # Show groups
+ if ($attr->{GIDS}) {
+   push @WHERE_RULES, "u.gid IN ($attr->{GIDS})"; 
+  }
+ elsif ($attr->{GID}) {
+   push @WHERE_RULES, "u.gid='$attr->{GID}'"; 
+  }
  
  
  if(defined($attr->{DATE})) {
@@ -1046,8 +1058,12 @@ sub reports {
 
 
 
- if ($attr->{GID}) {
-   push @WHERE_RULES, "u.gid='$attr->{GID}'";
+ # Show groups
+ if ($attr->{GIDS}) {
+   push @WHERE_RULES, "u.gid IN ($attr->{GIDS})"; 
+  }
+ elsif ($attr->{GID}) {
+   push @WHERE_RULES, "u.gid='$attr->{GID}'"; 
   }
 
  my $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';

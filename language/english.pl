@@ -331,3 +331,7 @@ $_PRIORITY='Priority';
 
 $_PASPORT='Pasport'; 
 $_GRANT='Grant';
+
+$_NEG_DEPOSIT_FILTER_ID="Negative deposit filter ID";
+$_USER_CHG_TP='User change tarif plan';
+$_NOT_ALLOW='No Allow operation';
