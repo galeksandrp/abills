@@ -79,8 +79,6 @@ if ($index == 10) {
   exit;
 }
 
-print $html->header({ CHARSET => $CHARSET });
-
 my $maxnumber = 0;
 my $uid = 0;
 my $page_qs;
@@ -214,7 +212,7 @@ else {
 }
 
 
-
+print $html->header({ CHARSET => $CHARSET });
 $OUTPUT{BODY}="$html->{OUTPUT}";
 print $html->tpl_show(templates('users_start'), \%OUTPUT);
 
