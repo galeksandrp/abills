@@ -34,7 +34,7 @@
 
 <tr><th colspan=6><img src=/img/black.gif width=630 height=1></th></tr>
 <tr><td colspan=4 rowspan=3>&nbsp;</td><td><strong>Сума:</strong></td><td align=right>%SUM%<br>
-<tr><td><strong>ПДВ:</strong></td><td align=right>%VAT% грн.</td></tr>
+<tr><td><strong>ПДВ:</strong></td><td align=right>%VAT%</td></tr>
 <tr><td><strong>Всього на суму:</strong></td><td align=right>%SUM%</td></tr>
 <tr><td colspan=6 align=right>Прописом: <i>(%SUM_LIT%)</i></td></td>
 </table>
