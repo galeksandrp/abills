@@ -420,7 +420,7 @@ sub session_sum {
  if (! $attr->{FULL_COUNT} && 
      (
       (defined($CONF->{MINIMUM_SESSION_TIME}) && $SESSION_DURATION < $CONF->{MINIMUM_SESSION_TIME}) || 
-      (defined($CONF->{MINIMUM_SESSION_TRAF}) && $sent + $recv < $CONF->{MINIMUM_SESSION_TRAF})
+      (defined($CONF->{MINIMUM_SESSION_TRAF}) && $sent + $recv + $sent2 + $recv2 < $CONF->{MINIMUM_SESSION_TRAF})
      )
      ) {
     return -1, 0, 0, 0, 0, 0;
