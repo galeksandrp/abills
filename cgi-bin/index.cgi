@@ -3,7 +3,19 @@
 #
 #
 
-use vars qw($begin_time %LANG $CHARSET @MODULES $FUNCTIONS_LIST $USER_FUNCTION_LIST $UID $user $admin $sid);
+use vars qw($begin_time %LANG $CHARSET @MODULES $FUNCTIONS_LIST $USER_FUNCTION_LIST $UID $user $admin 
+$sid
+
+@ones
+@twos
+@fifth
+@one
+@onest
+@ten
+@tens
+@hundred
+@money_unit_names
+);
 
 BEGIN {
  my $libpath = '../';
@@ -179,6 +191,23 @@ if ($uid > 0) {
   $pages_qs="&UID=$user->{UID}&sid=$sid";
   $LIST_PARAMS{UID}=$user->{UID};
   $LIST_PARAMS{LOGIN}=$user->{LOGIN};
+
+  $index = $FORM{qindex} if ($FORM{qindex});
+  my $lang_file = '';
+  foreach my $prefix (@INC) {
+    my $realfilename = "$prefix/Abills/modules/$module{$index}/lng_$html->{language}.pl";
+    if (-f $realfilename) {
+      $lang_file =  $realfilename;
+      last;
+     }
+    elsif (-f "$prefix/Abills/modules/$module{$index}/lng_english.pl") {
+    	$lang_file = "$prefix/Abills/modules/$module{$index}/lng_english.pl";
+     }
+   }
+
+  if ($lang_file ne '') {
+    require $lang_file;
+   }
 
   if ($FORM{qindex}) {
     if(defined($module{$FORM{qindex}})) {

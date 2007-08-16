@@ -347,6 +347,8 @@ sub docs_print {
     $ATTR->{FROM_DATE_LIT} = "$d ". @MONTHES_LIT[int($m)-1] ." $y $_YEAR";
    }
 
+  
+
   $ATTR->{SUM_LIT} = int2ml("$ATTR->{SUM}", { 
   	 ONES             => \@ones,
      TWOS             => \@twos,

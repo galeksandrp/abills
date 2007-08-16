@@ -274,7 +274,6 @@ if ($FORM{qindex}) {
       elsif (-f "$prefix/Abills/modules/$module{$index}/lng_english.pl") {
       	$lang_file = "$prefix/Abills/modules/$module{$index}/lng_english.pl";
        }
-
      }
 
 
