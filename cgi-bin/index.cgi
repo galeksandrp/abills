@@ -95,12 +95,10 @@ my %OUTPUT = ();
 my $login = $FORM{user} || '';
 my $passwd = $FORM{passwd} || '';
 
- my @m = (
+my @m = (
    "10:0:$_LOGOUT:logout:::",
    "30:0:$_USER_INFO:form_info:::"
    );
-
-
 
 
 
@@ -184,10 +182,19 @@ if ($uid > 0) {
   $LIST_PARAMS{UID}=$user->{UID};
   $LIST_PARAMS{LOGIN}=$user->{LOGIN};
 
+  if ($FORM{qindex}) {
+    if(defined($module{$FORM{qindex}})) {
+ 	   	require "Abills/modules/$module{$FORM{qindex}}/webinterface";
+     }
+
+    $functions{$FORM{qindex}}->();
+    print "$html->{OUTPUT}";
+    exit;
+   }
+
   if(defined($module{$index})) {
  	 	require "Abills/modules/$module{$index}/webinterface";
    }
-
 
   if ($index != 0 && defined($functions{$index})) {
     $functions{$index}->();
