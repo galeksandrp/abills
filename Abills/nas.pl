@@ -169,7 +169,8 @@ foreach my $line (@$commands) {
   $input = '';
   
   if ($waitfor eq '-') {
-    send($sock, "$sendtext\r\n", 0, $dest) or die log_print('LOG_INFO', "Can't send: '$text' $!");
+    #send($sock, "$sendtext\r\n", 0, $dest) or die log_print('LOG_INFO', "Can't send: '$text' $!");
+    send($sock, "$sendtext\n", 0, $dest) or die log_print('LOG_INFO', "Can't send: '$text' $!");
    }
 
   do {
@@ -187,7 +188,8 @@ foreach my $line (@$commands) {
   if ($input =~ /$waitfor/ig){ # || $waitfor eq '') {
     $text = $sendtext;
     log_print('LOG_DEBUG', "Send: $text");
-    send($sock, "$text\r\n", 0, $dest) or die log_print('LOG_INFO', "Can't send: '$text' $!");
+    #send($sock, "$text\r\n", 0, $dest) or die log_print('LOG_INFO', "Can't send: '$text' $!");
+    send($sock, "$text\n", 0, $dest) or die log_print('LOG_INFO', "Can't send: '$text' $!");
     #"Can't send: $!\n";
    };
 
