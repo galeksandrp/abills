@@ -103,7 +103,7 @@ return qq{
 <TR><TH colspan='2' bgcolor='$_COLORS[2]'>$_PASPORT</TH></TR>
 <TR><TD>$_NUM:</TD><TD><input type=text name=PASPORT_NUM value="%PASPORT_NUM%"></TD></TR>
 <TR><TD>$_DATE:</TD><TD><input type=text name=PASPORT_DATE value="%PASPORT_DATE%"></TD></TR>
-<TR><TD>$_GRANT:</TD><TD><input type=text name=PASPORT_GRANT value="%PASPORT_GRANT%"></TD></TR>
+<TR><TD>$_GRANT:</TD><TD><textarea name=PASPORT_GRANT rows=3 cols=45>%PASPORT_GRANT%</textarea></TD></TR>
 <TR><th colspan=2>:$_COMMENTS:</th></TR>
 <TR><th colspan=2><textarea name=COMMENTS rows=5 cols=45>%COMMENTS%</textarea></th></TR>
 </TABLE>

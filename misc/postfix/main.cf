@@ -12,7 +12,8 @@ smtpd_helo_restrictions =       permit_mynetworks,
                       reject_unknown_hostname,
                       reject_non_fqdn_hostname
 
-smtpd_recipient_restrictions =  permit_mynetworks, 
+smtpd_recipient_restrictions = check_sender_access mysql:/usr/local/etc/postfix/sql/access.cf,
+                      permit_mynetworks, 
                       permit_sasl_authenticated, 
                       reject_unauth_destination, 
                       reject_unknown_recipient_domain, 

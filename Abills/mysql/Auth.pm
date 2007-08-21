@@ -242,7 +242,7 @@ if ($self->{PAYMENT_TYPE} == 0) {
 
     return 1, $RAD_PAIRS;
    }
-}
+ }
 else {
   $self->{DEPOSIT}=0;
 }
@@ -683,9 +683,6 @@ sub authentication {
     ) = @{ $self->{list}->[0] };
 
 
-#return 0, \%RAD_PAIRS;
-
-
 #Auth chap
 if (defined($RAD->{CHAP_PASSWORD}) && defined($RAD->{CHAP_CHALLENGE})) {
   if (check_chap("$RAD->{CHAP_PASSWORD}", "$self->{PASSWD}", "$RAD->{CHAP_CHALLENGE}", 0) == 0) {
@@ -889,8 +886,6 @@ sub ex_traffic_params {
  my %trafic_limits = ();
  my %expr          = ();
  
- #get traffic limits
-# if ($traf_tarif > 0) {
    my $nets = 0;
 
    $self->query($db, "SELECT id, in_price, out_price, prepaid, in_speed, out_speed, LENGTH(nets), expression
@@ -921,9 +916,6 @@ sub ex_traffic_params {
 #Get tarfic limit if prepaid > 0 or
 # expresion exist
 if ((defined($prepaids{0}) && $prepaids{0} > 0 ) || (defined($prepaids{1}) && $prepaids{1}>0 ) || $expr{0} || $expr{1}) {
-
-#  my $start_period = undef; #($self->{ACCOUNT_ACTIVATE} ne '0000-00-00') ? "DATE_FORMAT(start, '%Y-%m-%d')>='$self->{ACCOUNT_ACTIVATE}'" : undef;
-#  my $used_traffic = undef;
 
   my $start_period = ($self->{ACCOUNT_ACTIVATE} ne '0000-00-00') ? "DATE_FORMAT(start, '%Y-%m-%d')>='$self->{ACCOUNT_ACTIVATE}'" : undef;
   my $used_traffic=$Billing->get_traffic({ UID    => $self->{UID},
@@ -1212,7 +1204,6 @@ sub check_chap {
   }
 
 my ($given_password,$want_password,$given_chap_challenge,$debug) = @_;
-
         $given_password =~ s/^0x//;
         $given_chap_challenge =~ s/^0x//;
         my $chap_password = pack("H*", $given_password);
@@ -1224,7 +1215,6 @@ my ($given_password,$want_password,$given_chap_challenge,$debug) = @_;
         $md5->add($chap_challenge);
         my $digest = $md5->digest();
 
-
         if ($digest eq substr($chap_password, 1)) { 
            return 1; 
           }
@@ -1233,14 +1223,6 @@ my ($given_password,$want_password,$given_chap_challenge,$debug) = @_;
           }
 
 }
-
-
-
-
-
-
-
-
 
 #***********************************************************
 # bin2hex()
@@ -1347,7 +1329,7 @@ sub check_mschap {
 # $pw is the ascii plaintext version of the correct password if known
 # $sessionkeydest is a ref to a string where the sesiosn key for MPPE will be returned
 sub check_mschapv2 {
-    my ($username, $pw, $challenge, $peerchallenge, $response, $ident,
+  my ($username, $pw, $challenge, $peerchallenge, $response, $ident,
 	$usersessionkeydest, $lanmansessionkeydest,  $ms_chap2_success) = @_;
 
   use Abills::MSCHAP;
