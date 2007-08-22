@@ -132,7 +132,7 @@ sub check_install {
     next;
    } 
  	elsif ($file =~ /^:(\S{0,100}):(.+) (>{1,2}) +\[(\S+)\]\/(.+)/) {
- 		my $param  = $1;
+ 		my $params  = $1;
  		#my $param_value = $2;
  		my $param_name = '' ;
  		my $param_value = '';
@@ -143,10 +143,13 @@ sub check_install {
     
     $value =~ s/\\n/\n/g;
     
-
-    if ($param) {
-      
-      ($param_name, $param_value)=split(/=/, $param, 2);
+    my %PARAMS_HASH =  ();
+    if ($params) {
+      my @params_arr = split(/,/, $params);
+      foreach my $param ( @params_arr ) {
+        ($param_name, $param_value)=split(/=/, $param, 2);
+        $PARAMS_HASH{$param_name}=$param_value;
+       }
      }
 
     
@@ -160,7 +163,7 @@ sub check_install {
       	$config_body = "$value\n";
        }
      }  		
-    elsif (! $param) {
+    elsif (! $params) {
     	$config_body = "$value\n";
      }
     else {
@@ -234,6 +237,9 @@ sub check_install {
         
         if($dest_body =~ m/$check_body/sg ) {
         	print "File: $folder/$dest\n Skipp. Parameters exists\n\n";
+        	if ($debug == 2) {
+        	  print $config_body;
+        	 }
  	      	next;
          }
        }

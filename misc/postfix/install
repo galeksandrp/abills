@@ -29,7 +29,9 @@ local.cf           > [/usr/local/etc/mail/spamassassin]/local.cf
 :PARAMS=FREEBSD:courier_authdaemond_enable="YES"\ncourier_imap_imapd_enable="YES"\ncourier_imap_pop3d_enable="YES"  >> [/etc]/rc.conf
 
 #AMaViS config
+
 :AMAVIS=1:FILE=amavisd.conf       >> [/usr/local/etc]/amavisd.conf
 :AMAVIS=1:FILE=amavis_main.cf     >> [/usr/local/etc/postfix]/main.cf
 :AMAVIS=1:FILE=amavis_master.cf   >> [/usr/local/etc/postfix]/master.cf
+:PARAMS=FREEBSD,AMAVIS=1:amavisd_enable="YES"\namavisd_ram="512m" >> [/etc]/rc.conf
 

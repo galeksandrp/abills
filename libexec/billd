@@ -673,7 +673,7 @@ while(my($ip_address, $info)=each %$ip_pid_hash) {
 #**********************************************************
 sub get_db_info {
  my ($ip_pid_hash) = @_;
- my $list = $sessions->online( { FIELDS => [3] } );	
+ my $list = $sessions->online({ FIELDS => [3] });	
  foreach my $line (@$list) {
    delete $ip_pid_hash->{int2ip("$line->[0]")};
   }
