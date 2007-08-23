@@ -21,6 +21,7 @@ authmysqlrc        > [/usr/local/etc/authlib/]/authmysqlrc
 :PARAMS=FREEBSD:exec:chown vmail /var/run/authdaemond/
 :PARAMS=FREEBSD:saslauthd_enable="YES" >> [/etc]/rc.conf
 smtpd.conf         > [/usr/local/lib/sasl2]/smtpd.conf 
+
 #SpamAssassin
 local.cf           > [/usr/local/etc/mail/spamassassin]/local.cf
 #Autostart postfix
@@ -30,7 +31,7 @@ local.cf           > [/usr/local/etc/mail/spamassassin]/local.cf
 
 #AMaViS config
 
-:AMAVIS=1:FILE=amavisd.conf       >> [/usr/local/etc]/amavisd.conf
+:AMAVIS=1:FILE=amavisd.conf       > [/usr/local/etc]/amavisd.conf
 :AMAVIS=1:FILE=amavis_main.cf     >> [/usr/local/etc/postfix]/main.cf
 :AMAVIS=1:FILE=amavis_master.cf   >> [/usr/local/etc/postfix]/master.cf
 :PARAMS=FREEBSD,AMAVIS=1:amavisd_enable="YES"\namavisd_ram="512m" >> [/etc]/rc.conf
