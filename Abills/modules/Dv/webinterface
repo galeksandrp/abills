@@ -2470,20 +2470,20 @@ elsif($attr->{TP}) {
       TT_PRICE_OUT_0 => $FORM{TT_PRICE_OUT_0},
       TT_NETS_0      => $FORM{TT_NETS_0},
       TT_PREPAID_0   => $FORM{TT_PREPAID_0},
-      TT_SPEED_0    =>     $FORM{TT_SPEED_0},
+      TT_SPEED_0     =>     $FORM{TT_SPEED_0},
 
-      TT_DESCRIBE_1 => $FORM{'TT_DESCRIBE_1'},
-      TT_PRICE_IN_1 => $FORM{TT_PRICE_IN_1},
+      TT_DESCRIBE_1  => $FORM{'TT_DESCRIBE_1'},
+      TT_PRICE_IN_1  => $FORM{TT_PRICE_IN_1},
       TT_PRICE_OUT_1 => $FORM{TT_PRICE_OUT_1},
-      TT_NETS_1 => $FORM{TT_NETS_1},
-      TT_PREPAID_1 => $FORM{TT_PREPAID_1},
-      TT_SPEED_1 => $FORM{TT_SPEED_1},
+      TT_NETS_1      => $FORM{TT_NETS_1},
+      TT_PREPAID_1   => $FORM{TT_PREPAID_1},
+      TT_SPEED_1     => $FORM{TT_SPEED_1},
 
       TT_DESCRIBE_2 => $FORM{TT_DESCRIBE_2},
-      TT_NETS_2 => $FORM{TT_NETS_2},
-      TT_SPEED_2 => $FORM{TT_SPEED_2},
+      TT_NETS_2     => $FORM{TT_NETS_2},
+      TT_SPEED_2    => $FORM{TT_SPEED_2},
 
-      EX_FILE_PATH => "$conf{DV_EXPPP_NETFILES}"
+      EX_FILE_PATH  => "$conf{DV_EXPPP_NETFILES}"
     });
 
 
