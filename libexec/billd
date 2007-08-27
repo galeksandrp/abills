@@ -707,7 +707,7 @@ sub get_if_info {
 
  my %ip_pid_hash = ();
 
- open (IFC, "$IFCONFIG -u |") || die "Can't open file '$IFCONFIG' $!";
+ open (IFC, "$IFCONFIG |") || die "Can't open file '$IFCONFIG' $!";
   while (my $l = <IFC>) {
      $ifconfig .= $l;
     }
@@ -724,7 +724,7 @@ sub get_if_info {
     my @ifs = split(/\n/, $res);
 
     foreach my $line (@ifs) {
-      print $line."\n" if ($debug > 1);
+      print $tunnum.'-'.$line."\n" if ($debug > 1);
       if ($line =~ /^(\d+)/) {
          $tunnum=$1;
         }
