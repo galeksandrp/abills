@@ -153,7 +153,7 @@ return qq{
 <TR bgcolor="$_COLORS[1]"><TD><b>$_REDUCTION:</b></TD><TD>%REDUCTION% %</TD></TR>
 <TR bgcolor="$_COLORS[1]"><TD><b>$_FIO:</b></TD><TD>%FIO%</TD></TR>
 <TR bgcolor="$_COLORS[1]"><TD><b>$_PHONE:</b></TD><TD>%PHONE%</TD></TR>
-<TR bgcolor="$_COLORS[1]"><TD><b>$_ADDRESS:</b></TD><TD>%ADDRESS%</TD></TR>
+<TR bgcolor="$_COLORS[1]"><TD><b>$_ADDRESS:</b></TD><TD>%ADDRESS_STREET%, %ADDRESS_BUILD%/%ADDRESS_FLAT%</TD></TR>
 <TR bgcolor="$_COLORS[1]"><TD><b>E-mail:</b></TD><TD>%EMAIL%</TD></TR>
 <TR bgcolor="#DDDDDD"><TD colspan="2">&nbsp;</TD></TR>
 <TR bgcolor="$_COLORS[1]"><TD><b>$_ACTIVATE:</b></TD><TD>%ACTIVATE%</TD></TR>
