@@ -1288,7 +1288,6 @@ else {
   $graph_type='month_stats';
   my $num = 0;
   
-
   my $list = $sessions->reports({ %LIST_PARAMS });
   
   

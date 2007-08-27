@@ -817,7 +817,7 @@ sub table_title_plain {
   $self->{table_title} = "<TITLE columns=\"". ($#{ @$caption } + 1) ."\">\n";
 	my $i = 0;
   foreach my $line (@$caption) {
-    $self->{table_title} .= "  <COLUMN_".$i." NAME=\"$line\" ";
+    $self->{table_title} .= "  <COLUMN_".$i." NAME=\"$line\"/>\n";
     $i++;
    }
 	
