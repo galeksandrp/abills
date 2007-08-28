@@ -375,7 +375,7 @@ sub group_change {
  $self->changes($admin, { CHANGE_PARAM => 'GID',
 		               TABLE        => 'groups',
 		               FIELDS       => \%FIELDS,
-		               OLD_INFO     => $self->group_info($attr->{GID}),
+		               OLD_INFO     => $self->group_info($gid),
 		               DATA         => $attr
 		              } );
 
