@@ -366,13 +366,14 @@ sub group_info {
 sub group_change {
  my $self = shift;
  my ($gid, $attr) = @_;
- 
 
  my %FIELDS = (GID        => 'gid',
                G_NAME     => 'name',
-               G_DESCRIBE => 'descr');
+               G_DESCRIBE => 'descr',
+               CHG        => 'gid');
 
- $self->changes($admin, { CHANGE_PARAM => 'GID',
+ $attr->{CHG}=$gid;
+ $self->changes($admin, { CHANGE_PARAM => 'CHG',
 		               TABLE        => 'groups',
 		               FIELDS       => \%FIELDS,
 		               OLD_INFO     => $self->group_info($gid),
