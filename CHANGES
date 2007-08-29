@@ -1,4 +1,36 @@
 =====0.37=====
+  * 16.08.2007 
+ Смена тарифных  планов в приделах группы\\
+ Добавлена возможность включать администраторов в несколько груп\\
+ Фильтр негативного депозита. При негативном депозите пользователя пускает в систему но для NAS выдаётся фильтр.\\
+ Пперенос неиспользованного траффика с преведущего периода.\\
+
+  * 11.08.2007 
+MYSQL
+  CREATE TABLE `admins_groups` (
+    `gid` smallint(6) unsigned NOT NULL default '0',
+    `aid` smallint(5) unsigned NOT NULL default '0',
+    KEY `gid` (`gid`,`aid`)
+  );
+  
+  ALTER TABLE users_pi ADD COLUMN  `pasport_num` varchar(16) NOT NULL default '';
+  ALTER TABLE users_pi ADD COLUMN  `pasport_date` date NOT NULL default '0000-00-00';
+  ALTER TABLE users_pi ADD COLUMN  `pasport_grant` varchar(100) NOT NULL default '';
+  
+  ALTER TABLE tarif_plans ADD COLUMN `gid` smallint(6) unsigned NOT NULL default '0';
+  ALTER TABLE tarif_plans ADD COLUMN `neg_deposit_filter_id` varchar(15) NOT NULL default '';
+  
+  CREATE TABLE `tp_groups` (
+    `id` smallint(6) unsigned NOT NULL auto_increment,
+    `name` varchar(20) NOT NULL default '',
+    `user_chg_tp` tinyint(1) unsigned NOT NULL default '0',
+    PRIMARY KEY  (`id`),
+    UNIQUE KEY `id` (`id`),
+    UNIQUE KEY `name` (`name`)
+  ) COMMENT='Tarif Plans Groups';  
+  
+  ALTER TABLE dhcphosts_networks ADD COLUMN `disable` tinyint(1) unsigned NOT NULL default '0';
+
 
   * 30.07.2007
   Возможность переноса неиспользованого трафика преведущих месяцев. Учитывается только трафик с тарифным планом текущего месяца.
