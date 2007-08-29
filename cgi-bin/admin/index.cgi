@@ -4015,7 +4015,7 @@ elsif($FORM{tpl_name}) {
 	    	 $info{TEMPLATE} .= $_;
 	    }	 
 	  close(FILE);
-
+    $info{TPL_NAME} = $FORM{tpl_name};
     $html->message('info', $_CHAMGE, "$_CHANGE: $FORM{tpl_name}");
    }
 
