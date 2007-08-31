@@ -68,8 +68,8 @@ sub list {
 
   my @WHERE_RULES  = ();
 
-  $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
-  $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+  my $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+  my $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
 
   if(defined($attr->{TYPE})) {
   	push @WHERE_RULES, "nas_type='$attr->{TYPE}'";

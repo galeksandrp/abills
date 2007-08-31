@@ -1478,15 +1478,20 @@ my $table = $html->table( { width      => '100%',
                             qs         => $pages_qs
                            });
 
-my $list = $nas->list({ %LIST_PARAMS, PAGE_ROWS => 1000 });
+if (! defined($FORM{sort})) {
+  $LIST_PARAMS{SORT}=2;
+ }
+
+
+my $list = $nas->list({ %LIST_PARAMS, 
+	                      PAGE_ROWS => 1000 });
 
 foreach my $line (@$list) {
-
   $table->addrow(" $line->[0]". $html->form_input('ids', "$line->[0]", 
-                                                       { TYPE          => 'checkbox',
-       	                                                 OUTPUT2RETURN => 1,
-       	                                                 STATE         => (defined($allow_nas{$line->[0]}) || $allow_nas{all}) ? 1 : undef
-       	                                                }), 
+                                                   { TYPE          => 'checkbox',
+  	                                                 OUTPUT2RETURN => 1,
+       	                                             STATE         => (defined($allow_nas{$line->[0]}) || $allow_nas{all}) ? 1 : undef
+       	                                          }), 
     $line->[1], 
     $line->[2],  
     $line->[3],  
