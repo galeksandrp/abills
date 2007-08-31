@@ -322,7 +322,7 @@ elsif (! defined $FORM{type}) {
 	$FORM{type}=15;
 }
 
-my $SEL_TYPE = $html->form_select('type', 
+$admin->{SEL_TYPE} = $html->form_select('type', 
                                 { SELECTED   => $FORM{type},
  	                                SEL_HASH   => \%SEARCH_TYPES,
  	                                NO_ID      => 1
