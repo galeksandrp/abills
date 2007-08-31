@@ -24,7 +24,7 @@ use vars qw(@ISA @EXPORT @EXPORT_OK %EXPORT_TAGS $VERSION %h2
 );
 
 use Exporter;
-$VERSION = 2.00;
+$VERSION = 2.01;
 @ISA = ('Exporter');
 
 @EXPORT = qw(
@@ -353,7 +353,7 @@ my @menu_sorted = sort {
    $a cmp $b
 } keys %$h;
 
-for(my $parent=1; $parent<$#menu_sorted; $parent++) { 
+for(my $parent=1; $parent<$#menu_sorted + 1; $parent++) { 
   my $val = $h->{$menu_sorted[$parent]};
   my $level = 0;
   my $prefix = '';
