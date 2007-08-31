@@ -17,6 +17,10 @@
                    "32:30:IPFW:ipn_ipfw:"                    => 5
                    );
 
+if ($conf{IPN_DETAIL}) {
+  $FUNCTIONS_LIST{"14:10:$_DETAIL:ipn_detail:UID"}=20;
+}
+
 %USER_FUNCTION_LIST = (
                        );
 

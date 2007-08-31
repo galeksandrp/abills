@@ -189,6 +189,7 @@ sub message_info {
 	my $self = shift;
 	my ($id, $attr) = @_;
 
+  $WHERE = ($attr->{UID}) ? "and m.uid='$attr->{UID}'" : '';
 
   $self->query($db, "SELECT m.id,
   m.subject,
@@ -211,7 +212,7 @@ sub message_info {
     LEFT JOIN users u ON (m.uid=u.uid)
     LEFT JOIN admins a ON (m.aid=a.aid)
     LEFT JOIN groups g ON (m.gid=g.gid)
-  WHERE m.id='$id'
+  WHERE m.id='$id' $WHERE
   GROUP BY m.id;");
 
   if ($self->{TOTAL} < 1) {

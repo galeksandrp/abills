@@ -1728,6 +1728,93 @@ sub recalculate {
   return $self;	
 }
 
+#*******************************************************************
+# AMon Alive Check
+# online_alive($i);
+#*******************************************************************
+sub online_alive {
+  my $self = shift;
+	my ($attr) = @_;
+	
+  $self->query($db, "SELECT count(*) FROM dv_calls
+   WHERE  user_name = '$attr->{LOGIN}'  
+    and acct_session_id='$attr->{SESSION_ID}'
+    and framed_ip_address=INET_ATON('$attr->{REMOTE_ADDR}')
+    ;");
+  
+  if ($self->{TOTAL} > 0) {
+    $self->query($db, "UPDATE dv_calls SET  lupdated=UNIX_TIMESTAMP()
+     WHERE user_name = '$attr->{LOGIN}'  
+    and acct_session_id='$attr->{SESSION_ID}'
+    and framed_ip_address=INET_ATON('$attr->{REMOTE_ADDR}')", 'do' );
+    $self->{TOTAL} = 1;
+   }
+
+  return $self;	
+}
+
+#*******************************************************************
+# Delete information from user log
+# log_del($i);
+#*******************************************************************
+sub user_detail {
+  my $self = shift;
+	my ($attr) = @_;
+  my $list;
+
+ undef @WHERE_RULES; 
+
+if ($attr->{UID}) {
+   push @WHERE_RULES, "uid='$attr->{UID}'";
+ }
+
+if (defined($attr->{SRC_PORT}) && $attr->{SRC_PORT} =~ /^\d+$/) {
+   push @WHERE_RULES, "src_port='$attr->{SRC_PORT}'";
+ }
+
+if ($attr->{DST_ADDR}) {
+   push @WHERE_RULES, "dst_addr=INET_ATON('$attr->{DST_ADDR}')";
+ }
+
+if (defined($attr->{DST_PORT}) && $attr->{DST_PORT} =~ /^\d+$/ ) {
+   push @WHERE_RULES, "dst_port='$attr->{DST_PORT}'";
+ }
+
+my $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
+  
+  $self->{debug}=1;
+  
+  $self->query($db, "SELECT  s_time,	
+  INET_NTOA(src_addr),
+  src_port,
+  INET_NTOA(dst_addr),
+  dst_port,
+  protocol,
+  size,
+  nas_id,
+  f_time
+   FROM ipn_traf_detail
+
+  $WHERE
+  ORDER BY $SORT $DESC 
+  LIMIT $PG, $PAGE_ROWS
+   ;");
+
+  $list = $self->{list};
+
+  if ($self->{TOTAL} > 0) {
+     $self->query($db, "SELECT count(*) from ipn_traf_detail
+      $WHERE ;");
+	
+    ($self->{TOTAL},
+     $self->{SUM}) = @{ $self->{list}->[0] };
+   }
+
+
+  return $list;	
+}
+
+
 1
 
 

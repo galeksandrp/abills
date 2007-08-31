@@ -160,15 +160,20 @@ sub msgs_user {
 
 
  if ($FORM{send}) {
-   $Msgs->message_add({ UID => $user->{UID},  STATE => 1, %FORM });
+   $Msgs->message_add({ UID   => $user->{UID},  
+   	                    STATE => 1, 
+   	                    %FORM 
+   	                  });
    $html->message('info', $_INFO, "$_SENDED") if (! $Msgs->{errno});  	
  	}
  elsif ($FORM{ID}) {
- 	 $Msgs->message_info($FORM{ID});
+ 	 $Msgs->message_info($FORM{ID}, { UID => $LIST_PARAMS{UID} });
  	 
- 	 
- 	 $html->tpl_show(_include('msgs_show', 'Msgs'), $Msgs);
- 	 $Msgs->message_change({ ID => $FORM{ID}, STATE => 1 });
+ 	 if ($Msgs->{TOTAL} > 0) {
+ 	   $html->tpl_show(_include('msgs_show', 'Msgs'), $Msgs);
+ 	   $Msgs->message_change({ ID    => $FORM{ID}, 
+ 	 	                         STATE => 1 });
+ 	  }
  	 #return 0;
   }
  else {

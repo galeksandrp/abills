@@ -166,6 +166,7 @@ sub mbox_info {
 	my $self = shift;
 	my ($attr) = @_;
 	
+	$WHERE = ($attr->{UID}) ? "and mb.uid='$attr->{UID}'" : '';
 	
   $self->query($db, "SELECT mb.username,  mb.domain_id, md.domain, mb.descr, mb.maildir, mb.create_date, 
    mb.change_date, 
@@ -179,7 +180,7 @@ sub mbox_info {
    mb.id
    FROM mail_boxes mb
    LEFT JOIN mail_domains md ON  (md.id=mb.domain_id) 
-   WHERE mb.id='$attr->{MBOX_ID}';");
+   WHERE mb.id='$attr->{MBOX_ID}' $WHERE;");
 
   if ($self->{TOTAL} < 1) {
      $self->{errno} = 2;
@@ -203,9 +204,6 @@ sub mbox_info {
    $self->{EXPIRE},
    $self->{MBOX_ID}
   )= @{ $self->{list}->[0] };
-	
-  #$self->{QUOTA} =~ s/C|S//g;
-  #($self->{MAILS_LIMIT}, $self->{BOX_SIZE}) = split(/,/, $self->{QUOTA});
 
 	
 	return $self;
@@ -224,13 +222,11 @@ sub mbox_list {
  $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
 
  if (defined($attr->{UID})) {
- 	  $WHERE .= ($WHERE ne '') ?  " and mb.uid='$attr->{UID}' " : "WHERE mb.uid='$attr->{UID}' ";
+ 	  push @WHERE_RULES, "mb.uid='$attr->{UID}'";
   }
- 
  if ($attr->{FIRST_LETTER}) {
-    $WHERE .= ($WHERE ne '') ?  " and mb.username LIKE '$attr->{FIRST_LETTER}%' " : "WHERE mb.username LIKE '$attr->{FIRST_LETTER}%' ";
+    push @WHERE_RULES, "mb.username LIKE '$attr->{FIRST_LETTER}%'";
   }
-
  # Show groups
  if ($attr->{GIDS}) {
    push @WHERE_RULES, "u.gid IN ($attr->{GIDS})"; 
@@ -238,7 +234,8 @@ sub mbox_list {
  elsif ($attr->{GID}) {
    push @WHERE_RULES, "u.gid='$attr->{GID}'"; 
   }
-	
+
+	my $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
 	
 	$self->query($db, "SELECT mb.username, md.domain, u.id, mb.descr, mb.mails_limit, 
 	      mb.box_size,

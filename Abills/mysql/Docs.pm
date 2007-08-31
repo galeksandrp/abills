@@ -141,6 +141,7 @@ sub docs_invoice_info {
 	my $self = shift;
 	my ($id, $attr) = @_;
 
+  $WHERE = ($attr->{UID}) ? "and d.uid='$attr->{UID}'" : '';
 
   $self->query($db, "SELECT 
    d.invoice_id,
@@ -159,7 +160,7 @@ sub docs_invoice_info {
     FROM (docs_invoice d, docs_invoice_orders o)
     LEFT JOIN users u ON (d.uid=u.uid)
     LEFT JOIN admins a ON (d.aid=a.aid)
-    WHERE d.id=o.invoice_id and d.id='$id'
+    WHERE d.id=o.invoice_id and d.id='$id' $WHERE
     GROUP BY d.id;");
 
   if ($self->{TOTAL} < 1) {
@@ -182,13 +183,13 @@ sub docs_invoice_info {
    $self->{BY_PROXY_DATE}
   )= @{ $self->{list}->[0] };
 	
+  if ($self->{TOTAL} > 0) {
+    $self->{NUMBER}=$self->{INVOICE_ID};
  
-  $self->{NUMBER}=$self->{INVOICE_ID};
- 
-  $self->query($db, "SELECT invoice_id, orders, unit, counts, price
-   FROM docs_invoice_orders WHERE invoice_id='$id'");
-
-  $self->{ORDERS}=$self->{list};
+    $self->query($db, "SELECT invoice_id, orders, unit, counts, price
+      FROM docs_invoice_orders WHERE invoice_id='$id'");
+    $self->{ORDERS}=$self->{list};
+   }
 
 	return $self;
 }
@@ -427,6 +428,7 @@ sub account_info {
 	my $self = shift;
 	my ($id, $attr) = @_;
 
+  $WHERE = ($attr->{UID}) ? "and d.uid='$attr->{UID}'" : '';  
 
   $self->query($db, "SELECT d.acct_id, 
    d.date, 
@@ -443,7 +445,7 @@ sub account_info {
     FROM (docs_acct d, docs_acct_orders o)
     LEFT JOIN users u ON (d.uid=u.uid)
     LEFT JOIN admins a ON (d.aid=a.aid)
-    WHERE d.id=o.acct_id and d.id='$id'
+    WHERE d.id=o.acct_id and d.id='$id' $WHERE
     GROUP BY d.id;");
 
   if ($self->{TOTAL} < 1) {
@@ -460,13 +462,15 @@ sub account_info {
    $self->{VAT}
   )= @{ $self->{list}->[0] };
 	
- 
-  $self->{NUMBER}=$self->{ACCT_ID};
- 
-  $self->query($db, "SELECT acct_id, orders, counts, unit, price
-   FROM docs_acct_orders WHERE acct_id='$id'");
   
-  $self->{ORDERS}=$self->{list};
+  if ($self->{TOTAL} > 0) {
+    $self->{NUMBER}=$self->{ACCT_ID};
+ 
+    $self->query($db, "SELECT acct_id, orders, counts, unit, price
+     FROM docs_acct_orders WHERE acct_id='$id'");
+  
+    $self->{ORDERS}=$self->{list};
+   }
 
 	return $self;
 }
