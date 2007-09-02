@@ -21,6 +21,24 @@ sub dhcphosts_periodic {
 	
 }
 
+#*******************************************************************
+# 
+#*******************************************************************
+sub dhcphosts_mac_static {
+
+if ($FORM{MAKE}) {
+  #open(FILE, ">$var_dir/ipguard") || return "Can't open '$var_dir/ipguard' $!";
+	#  print FILE "$attr->{ETHER_CONTENT}";
+	#close(FILE);
+  print $html->message('info', $_INFO, "$_CHANGED");
+ }
+
+	my $ethers_content =  $html->tpl_show(_include('dhcphosts_ipguard_static', 'Dhcphosts'), 
+                                                           undef, { notprint => 1 });
+  $html->tpl_show(_include('dhcphosts_ipguard', 'Dhcphosts'), { ETHER_CONTENT => "$ethers_content",
+	 	                                                           });
+
+}
 
 #*******************************************************************
 # 
@@ -28,10 +46,14 @@ sub dhcphosts_periodic {
 sub dhcphosts_mac_block_show {
    my ($attr) = @_;
    my $debug = $attr->{DEBUG} || 0;
-   my $ethers_content = "# $DATE $TIME\n";
+
    
    $LIST_PARAMS{STATUS}=0 if (! $conf{DHCPHOSTS_IPGUARD_TYPE} || $conf{DHCPHOSTS_IPGUARD_TYPE} ne 'ipsentinel');
+
+   my $ethers_content = "# $DATE $TIME\n# CONFIG FOR: $conf{DHCPHOSTS_IPGUARD_TYPE}\n\n";
    my @pair_status = ('ACCEPT', 'DENY');
+
+
    
    my $list = $Dhcphosts->hosts_list({ %LIST_PARAMS, 
    	                                   PAGE_ROWS     => 1000000
@@ -44,7 +66,7 @@ sub dhcphosts_mac_block_show {
 	      
 	      my $status = ($line->[10] == 1 || $line->[13] == 1 ) ? 1 : 0;
 	      
-	      $ethers_content .= "$ip $line->[6]  $pair_status[$status]\n";
+	      $ethers_content .= "$ip $line->[6] # $pair_status[$status]\n";
 	     }
 	    else {
 	    	if ($line->[10] != 1 || $line->[13] != 1) {
@@ -52,6 +74,10 @@ sub dhcphosts_mac_block_show {
          }
 	     }
     };
+
+  $ethers_content .= $html->tpl_show(_include('dhcphosts_ipguard_static', 'Dhcphosts'), 
+                                                           undef, { notprint => 1 });
+
 
 	return  $ethers_content;
 }

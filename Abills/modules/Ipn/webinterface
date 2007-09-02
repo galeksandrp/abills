@@ -4,12 +4,14 @@
 
 
 use Ipn;
+use Ipn_Collector;
 use Dv;
 use Dv_Sessions;
 use Nas;
 use Tariffs;
 
 my $Ipn      = Ipn->new($db, \%conf);
+my $Ipn_Collector  = Ipn_Collector->new($db, \%conf);
 my $sessions = Dv_Sessions->new($db, $admin, \%conf);
 my $tariffs  = Tariffs->new($db, \%conf, $admin);
 my $users    = Users->new($db, $admin, \%conf); 
@@ -21,7 +23,6 @@ my @TT_COLORS = ("$_COLORS[1]", "#80FF80", "#FFFF80", "#BFBFFF");
 # ipn_detail()
 #**********************************************************
 sub ipn_detail {
-
 
  my $list = $Ipn->user_detail({ UID=> $user->{UID}, %LIST_PARAMS });
 
@@ -1410,6 +1411,11 @@ sub ipn_user_activate {
    }
 
   if ($FORM{ALIVE}) {
+  	if ($FORM{REMOTE_ADDR} !~ /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/) {
+  		$html->message('err', $_ERROR, "$ERR_WRONG_DATA");
+  		return 0;
+  	 }
+
   	$Ipn->online_alive({ %FORM, LOGIN => $LIST_PARAMS{LOGIN} });
   	if ($Ipn->{TOTAL} < 1) {
   		$html->message('err', $_ERROR, "$_NOT_ACTIVE");
@@ -2147,7 +2153,7 @@ my $table = $html->table( { width       => '400',
    }
 
 	
-  $Ipn->get_zone({ TP_INTERVAL => $TP_INTERVAL });
+  $Ipn_Collector->get_zone({ TP_INTERVAL => $TP_INTERVAL });
 
 
 
@@ -2161,17 +2167,17 @@ my $table = $html->table( { width       => '400',
 
 	my $zone = -1;
 
-	foreach my $zone_id (@{ $Ipn->{ZONES_IDS} }) {
-	  if( ip_in_zone(ip2int($ip), $port, $zone_id, $Ipn->{ZONES} ) ) {
+	foreach my $zone_id (@{ $Ipn_Collector->{ZONES_IDS} }) {
+	  if( ip_in_zone(ip2int($ip), $port, $zone_id, $Ipn_Collector->{ZONES} ) ) {
 		  $zone = $zone_id;
       last;
 	   };
 	 }
 
-	foreach my $line ( @{ $Ipn->{ZONES_IDS} }) {
+	foreach my $line ( @{ $Ipn_Collector->{ZONES_IDS} }) {
 		$last_byte = 0;
 		my $networks = '';
-		foreach my $address ( @{ $Ipn->{ZONES}{$line}{A} } ){
+		foreach my $address ( @{ $Ipn_Collector->{ZONES}{$line}{A} } ){
 			my $adr_hash = \%{ $address };
 
       my $a_ip  = $$adr_hash{'IP'}; 
@@ -2187,9 +2193,9 @@ my $table = $html->table( { width       => '400',
     $table->addrow($line, 
       $tt_names{$line},
       $networks,
-      $Ipn->{ZONES}{$line}{PREPAID_TSUM},
-      $Ipn->{ZONES}{$line}{PriceIn},
-      $Ipn->{ZONES}{$line}{PriceOut},
+      $Ipn_Collector->{ZONES}{$line}{PREPAID_TSUM},
+      $Ipn_Collector->{ZONES}{$line}{PriceIn},
+      $Ipn_Collector->{ZONES}{$line}{PriceOut},
       $last_byte);
 	}
 	
@@ -2255,9 +2261,9 @@ if ($FORM{RECALCULATE}) {
 
      # Work with prepaid traffic
      if ( $prepaid > 0 ) {
-     	  my($used_traffic) = $Ipn->traffic_user_get({ UID      => $LIST_PARAMS{UID}, 
-     	  	                                           INTERVAL => "0000-00-00/$line->[0]"   
-     	  	                                         });
+     	  my($used_traffic) = $Ipn_collector->traffic_user_get({ UID      => $LIST_PARAMS{UID}, 
+     	  	                                                     INTERVAL => "0000-00-00/$line->[0]"   
+     	  	                                                   });
         my $online  = 0;
 
         if($OCTETS_DIRECTION == 1) {
