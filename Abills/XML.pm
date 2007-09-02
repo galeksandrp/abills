@@ -718,6 +718,10 @@ sub table {
  if (defined($attr->{caption})) {
    $self->{table} .= " CAPTION=\"$attr->{caption}\" ";
   }
+
+ if (defined($attr->{ID})) {
+   $self->{table} .= " ID=\"$attr->{ID}\" ";
+  }
   
  $self->{table} .= ">\n";
 

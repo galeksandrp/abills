@@ -1056,15 +1056,16 @@ return 0 if ($sessions->{TOTAL} < 1);
 
 
 my $table = $html->table( { width   => '100%',
-                                caption    => "$_SESSIONS",
-                                border     => 1,
-                                title      => ["$_USER", "$_START", "$_DURATION", "$_TARIF_PLAN", "$_SENT", "$_RECV", 
-                                "CID", "NAS", "IP", "$_SUM", "-", "-"],
-                                cols_align => ['left', 'right', 'right', 'RIGHT', 'right', 'right', 'right', 'right', 'right', 'right', 'center:noprint', 'center:noprint'],
-                                qs         => $pages_qs,
-                                pages      => $sessions->{TOTAL},
-                                recs_on_page => $LIST_PARAMS{PAGE_ROWS}
-                               } );
+                            caption    => "$_SESSIONS",
+                            border     => 1,
+                            title      => ["$_USER", "$_START", "$_DURATION", "$_TARIF_PLAN", "$_SENT", "$_RECV", 
+                             "CID", "NAS", "IP", "$_SUM", "-", "-"],
+                            cols_align => ['left', 'right', 'right', 'RIGHT', 'right', 'right', 'right', 'right', 'right', 'right', 'center:noprint', 'center:noprint'],
+                            qs         => $pages_qs,
+                            pages      => $sessions->{TOTAL},
+                            recs_on_page => $LIST_PARAMS{PAGE_ROWS},
+                            ID         => 'DV_SESSIONS'
+                         } );
 
 my $delete = '';
 
@@ -1590,7 +1591,7 @@ print $table->show();
 
 $table = $html->table( { width       => '100%',
 	                       rowcolor    => $_COLORS[0],
-                         title_plain => [ "$_FROM: ",  $html->date_fld('from', { MONTHES => \@MONTHES} ),
+                         rows        => [[ "$_FROM: ",  $html->date_fld('from', { MONTHES => \@MONTHES} ),
                                           "$_TO: ",    $html->date_fld('to', { MONTHES => \@MONTHES } ),
                                           $html->form_select('DIMENSION', { SELECTED   => $FORM{DIMENSION},
  	                                                                          SEL_ARRAY  => ['', 'Kb', 'Mb', 'Gb']
@@ -1598,7 +1599,7 @@ $table = $html->table( { width       => '100%',
                               	                             ),
                                           "$_ROWS: ",  $html->form_input('rows', int($conf{list_max_recs}), { SIZE => 4 } ),
                                           $html->form_input('show', $_SHOW, { TYPE => 'submit' })
-                                         ],                                   
+                                         ]],                                   
                       });
 
 
@@ -1775,7 +1776,8 @@ my $table = $html->table( { caption     => "$_PERIOD",
 	                          width       => '100%',
                             title_plain => ["$_PERIOD", "$_DURATION", "$_SEND", "$_RECV", "$_SUM"],
                             cols_align  => ['left', 'right', 'right', 'right', 'right'],
-                            rowcolor    => $_COLORS[1]
+                            rowcolor    => $_COLORS[1],
+                            ID          => 'DV_STATS_PERIOD'
                           } );
 
 for(my $i = 0; $i < 5; $i++) {
@@ -1789,7 +1791,7 @@ print $table->show();
 
 $table = $html->table({ width       => '100%',
 	                      rowcolor    => $_COLORS[0],
-                        title_plain => [ "$_FROM: ", $html->date_fld('from', { MONTHES => \@MONTHES} ),
+                        rows        => [[ "$_FROM: ", $html->date_fld('from', { MONTHES => \@MONTHES} ),
                                          "$_TO: ",   $html->date_fld('to', { MONTHES => \@MONTHES } ),
                                           $html->form_select('DIMENSION', { SELECTED   => $FORM{DIMENSION},
  	                                                                          SEL_ARRAY  => ['', 'Kb', 'Mb', 'Gb']
@@ -1797,7 +1799,7 @@ $table = $html->table({ width       => '100%',
                               	                             ),
                                          "$_ROWS: ", $html->form_input('rows', int($conf{list_max_recs}), { SIZE => 4, OUTPUT2RETURN => 1 } ),
                                          $html->form_input('show', $_SHOW, { TYPE => 'submit', OUTPUT2RETURN => 1 })
-                                        ],                                   
+                                        ]],                                   
                         } );
 
 
@@ -1837,10 +1839,11 @@ if ($sessions->prepaid_rest({ UID => $LIST_PARAMS{UID} })) {
   my $list = $sessions->{INFO_LIST};
 
   my $table = $html->table( { caption     => "$_PREPAID",
-	                          width       => '100%',
-                            title_plain => ["$_TRAFF $_TYPE", "$_BEGIN", "$_END", "$_START", "$_TOTAL (MB)", "$_REST (MB)", "$_OVERQUOTA (MB)"],
-                            cols_align  => ['left', 'right', 'right', 'right', 'right', 'right', 'right'],
-                            rowcolor    => $_COLORS[1]
+	                            width       => '100%',
+                              title_plain => ["$_TRAFF $_TYPE", "$_BEGIN", "$_END", "$_START", "$_TOTAL (MB)", "$_REST (MB)", "$_OVERQUOTA (MB)"],
+                              cols_align  => ['left', 'right', 'right', 'right', 'right', 'right', 'right'],
+                              rowcolor    => $_COLORS[1],
+                              ID          => 'DV_STATS_PREPAID'
                            } );
 	
 	foreach my $line  (@$list) {
