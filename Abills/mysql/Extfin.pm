@@ -234,14 +234,17 @@ sub customers_list {
  
  $self->query($db, "SELECT  
                          u.uid, 
-                         if(u.company_id > 0, company.name, u.id),
-                         pi.fio,
-                         if(company.id IS NULL, 0, 1),
-                         CONCAT(address_street,  address_build, address_flat),
-                         pi.phone,
-                         if(u.company_id > 0, company.contract_id, pi.contract_id),
+                         if(u.company_id > 0, company.name, 
+                            if(pi.fio<>'', pi.fio, u.id)),
+                         if(u.company_id > 0, company.name, 
+                            if(pi.fio<>'', pi.fio, u.id)),
                          u.gid,
                          g.name,
+                         if(company.id IS NULL, 0, 1),
+                         if(u.company_id > 0, company.address, CONCAT(pi.address_street, pi.address_build, pi.address_flat)),
+                         pi.phone,
+                         if(u.company_id > 0, company.contract_id, pi.contract_id),
+                         if(u.company_id > 0, company.bank_account, ''),
                          if(u.company_id > 0, company.bill_id, u.bill_id)
                          
      FROM users u
@@ -253,7 +256,7 @@ sub customers_list {
      LEFT JOIN groups g ON  (u.gid=g.gid)
      
      $WHERE
-     GROUP BY 10
+     GROUP BY 11
      ORDER BY $SORT $DESC 
      LIMIT $PG, $PAGE_ROWS;");
 

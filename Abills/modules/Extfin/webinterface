@@ -37,7 +37,9 @@ sub exfin_export_customers {
     my $list = $Extfin->customers_list({ %LIST_PARAMS });
     my $table = $html->table( { width      => '100%',
                                 caption    => "$_USERS",
-                                title      => ['ID', $_NAME, $_FIO, $_TYPE, $_ADDRESS, $_PHONE, $_CONTRACT_ID, "$_GROUP ID", "$_GROUP" ],
+                                title      => ['ID', $_NAME, $_FIO, "$_GROUP ID", "$_GROUP", $_TYPE, $_ADDRESS, 
+                                  $_PHONE, $_CONTRACT_ID, "BANK ACCOUNT", 'BILL ID'  ],
+                                ID         => 'EXTFIN_CUSTOMERS'
   #                          cols_align => ['right', 'right', 'left', 'right', 'left', 'left', 'right', 'center'],
   #                          qs         => $pages_qs,
   #                          pages      => $Docs->{TOTAL}
@@ -56,7 +58,9 @@ sub exfin_export_customers {
     	 $line->[7],
     	 $line->[8],
     	 $line->[9],
-    	 $line->[10]);
+    	 $line->[10],
+    	 $line->[11]
+    	 );
      }
 
      print $table->show();
