@@ -244,8 +244,11 @@ sub customers_list {
                          if(u.company_id > 0, company.address, CONCAT(pi.address_street, pi.address_build, pi.address_flat)),
                          pi.phone,
                          if(u.company_id > 0, company.contract_id, pi.contract_id),
+                         if(u.company_id > 0, company.bill_id, u.bill_id),
                          if(u.company_id > 0, company.bank_account, ''),
-                         if(u.company_id > 0, company.bill_id, u.bill_id)
+                         if(u.company_id > 0, company.bank_name, ''),
+                         if(u.company_id > 0, company.cor_bank_account, '')
+                       
                          
      FROM users u
      LEFT JOIN users_pi pi ON (u.uid = pi.uid)
@@ -256,7 +259,7 @@ sub customers_list {
      LEFT JOIN groups g ON  (u.gid=g.gid)
      
      $WHERE
-     GROUP BY 11
+     GROUP BY 10
      ORDER BY $SORT $DESC 
      LIMIT $PG, $PAGE_ROWS;");
 

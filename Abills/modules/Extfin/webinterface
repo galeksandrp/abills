@@ -31,19 +31,21 @@ sub exfin_export_customers {
    }
  
   if ($FORM{TYPE} && $FORM{TYPE} eq 'CUSTOMERS') {
-    $LIST_PARAMS=$FORM{PAGE_ROWS} || 100000;
-    $LIST_PARAMS=$FORM{PG} || 0;
+    $LIST_PARAMS{PAGE_ROWS} = $FORM{PAGE_ROWS} || 100;
+    $LIST_PARAMS{PG}        = $FORM{PG}        || 0;
 
     my $list = $Extfin->customers_list({ %LIST_PARAMS });
     my $table = $html->table( { width      => '100%',
                                 caption    => "$_USERS",
                                 title      => ['ID', $_NAME, $_FIO, "$_GROUP ID", "$_GROUP", $_TYPE, $_ADDRESS, 
-                                  $_PHONE, $_CONTRACT_ID, "BANK ACCOUNT", 'BILL ID'  ],
+                                  $_PHONE, $_CONTRACT_ID, 'BILL ID', "BANK ACCOUNT", 'BANK NAME', 'COR ACCT' ],
                                 ID         => 'EXTFIN_CUSTOMERS'
   #                          cols_align => ['right', 'right', 'left', 'right', 'left', 'left', 'right', 'center'],
   #                          qs         => $pages_qs,
   #                          pages      => $Docs->{TOTAL}
                           });
+
+
 
     foreach my $line ( @$list ) {
       # Group, Kod, Наименование, Вид контрагента, Полное наименование, Юредический адрес, Почтовый адрес, 
@@ -59,7 +61,8 @@ sub exfin_export_customers {
     	 $line->[8],
     	 $line->[9],
     	 $line->[10],
-    	 $line->[11]
+    	 $line->[11],
+    	 $line->[12]
     	 );
      }
 
