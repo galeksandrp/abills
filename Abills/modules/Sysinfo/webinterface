@@ -247,7 +247,7 @@ sysinfo_os();
 # Memory Usage
 $sysinfo_hash{$os}{memory}->({ SHORT => 1 });
 # Mounted Filesystems
-sysinfo_disc();
+sysinfo_disk();
 #Network
 sysinfo_network();
 
@@ -280,15 +280,15 @@ sub sysinfo_cpu {
 #*******************************************************************
 # Show system info
 #*******************************************************************
-sub sysinfo_disc {
+sub sysinfo_disk {
 
-my $table = $html->table( { caption     => "Disc usage",
+my $table = $html->table( { caption     => "Disk usage",
 	                          width       => '100%',
                             title_plain => ['Filesystem', 'Size',  'Used', 'Avail', 'Capacity', 'Mounted' ],
                             cols_align  => ['left', 'right', 'right', 'right', 'left', 'left' ],
                            } );
 
-my $info =  $sysinfo_hash{$os}{'disc'}->();
+my $info =  $sysinfo_hash{$os}{'disk'}->();
 my $i=0;
 my $total_size = 0;
 my $total_used = 0;
@@ -496,7 +496,7 @@ $sysinfo_hash{'FreeBSD'}{'network'} = sub {
   return \%info;
 };
 
-$sysinfo_hash{'FreeBSD'}{'disc'} = sub {
+$sysinfo_hash{'FreeBSD'}{'disk'} = sub {
 	my $total_info  = `/bin/df `;
 
   my @arr = split(/\n/, $total_info);
