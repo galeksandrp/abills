@@ -1010,7 +1010,7 @@ if (! $list) {
                       '' => '',
                       0  => 'Unknown',
                       1  => 'User-Request',
-                      2  => ' Lost-Carrier',
+                      2  => 'Lost-Carrier',
                       3  => 'Lost-Service',
                       4  => 'Idle-Timeout',
                       5  => 'Session-Timeout',
