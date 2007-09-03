@@ -31,6 +31,8 @@ sub exfin_export_customers {
    }
  
   if ($FORM{TYPE} && $FORM{TYPE} eq 'CUSTOMERS') {
+    $LIST_PARAMS=$FORM{PAGE_ROWS} || 100000;
+    $LIST_PARAMS=$FORM{PG} || 0;
 
     my $list = $Extfin->customers_list({ %LIST_PARAMS });
     my $table = $html->table( { width      => '100%',

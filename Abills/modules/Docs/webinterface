@@ -201,7 +201,7 @@ my $table = $html->table( { width      => '100%',
 
 
 foreach my $line (@$list) {
-  my $delete = ($permissions{1}{2}) ?  $html->button($_DEL, "index=$index&del=$line->[8]&UID=$line->[7]", { MESSAGE => "$_DEL ID $line->[8]?" }) : ''; 
+  my $delete = ($permissions{1}{2}) ?  $html->button($_DEL, "index=$index&del=$line->[8]&UID=$line->[7]", { MESSAGE => "$_DEL ID $line->[8] ?" }) : ''; 
 
   $table->addrow("$line->[0]", 
    "$line->[1]",
@@ -210,7 +210,7 @@ foreach my $line (@$list) {
    $html->button($line->[4], "index=11&UID=$line->[7]"),
    "$line->[5]", 
    "$line->[6]", 
-   $html->button($_PRINT, "qindex=$index&print=$line->[8]&UID=$line->[7]", { ex_params => 'target=_new' }), 
+   $html->button($_PRINT, "qindex=$index&print=$line->[8]". (($pages_qs) ? $pages_qs : "&UID=$line->[7]"  ) , { ex_params => 'target=_new' }), 
    $delete);
 }
 print $table->show();

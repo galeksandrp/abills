@@ -84,8 +84,8 @@ sub customers_list {
 
  $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
  $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
- $PG = ($attr->{PG}) ? $attr->{PG} : 0;
- $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
+ my $PG   = ($attr->{PG}) ? $attr->{PG} : 0;
+ my $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 100000;
 
  $self->{SEARCH_FIELDS} = '';
  $self->{SEARCH_FIELDS_COUNT}=0;
@@ -254,8 +254,8 @@ sub customers_list {
      
      $WHERE
      GROUP BY 10
-     ORDER BY $SORT $DESC ;");
-#     LIMIT $PG, $PAGE_ROWS;");
+     ORDER BY $SORT $DESC 
+     LIMIT $PG, $PAGE_ROWS;");
 
   return $self if($self->{errno});
   my $list = $self->{list};
