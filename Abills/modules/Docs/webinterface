@@ -267,8 +267,16 @@ sub docs_account {
         }
 
        #print $html->header() if ($FORM{qindex});
+       if( $user->{UID} ) {
+         $FORM{qindex}=$index;
+         $html->{NO_PRINT}=undef;
+         docs_print('account', $Docs);
+         exit;
+        }
+       else {
+         docs_print('account', $Docs);
+        }
 
-       docs_print('account', $Docs);
        $FORM{'print'}=1;
        return 0;
       }

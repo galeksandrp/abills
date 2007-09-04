@@ -9,6 +9,7 @@ use Dv;
 use Dv_Sessions;
 use Nas;
 use Tariffs;
+use Socket;
 
 my $Ipn      = Ipn->new($db, \%conf);
 my $Ipn_Collector  = Ipn_Collector->new($db, \%conf);
@@ -24,24 +25,59 @@ my @TT_COLORS = ("$_COLORS[1]", "#80FF80", "#FFFF80", "#BFBFFF");
 #**********************************************************
 sub ipn_detail {
 
+  $FORM{DST_IP_GROUP} = ' checked' if($FORM{DST_IP_GROUP});
+  $FORM{SRC_IP_GROUP} = ' checked' if($FORM{SRC_IP_GROUP});
+  $FORM{RESOLVE} = ' checked'       if($FORM{RESOLVE});
+
+  form_search({ SEARCH_FORM    => $html->tpl_show(_include('ipn_detail_search', 'Ipn'), 
+  	                                  { %$Ipn, %FORM }, 
+  	                                  { notprint => 1 }),
+ 	              HIDDEN_FIELDS => { UID => $FORM{UID}  }
+  	          });
+
+ 
+
+ if (! $FORM{sort}) {
+ 	 $LIST_PARAMS{SORT}=1;
+ 	 $LIST_PARAMS{DESC}='DESC';
+  }
+if (defined($FORM{search})) {
+  $pages_qs .= "&search=1&FROM_D=$FORM{FROM_D}&FROM_M=$FORM{FROM_M}&FROM_Y=$FORM{FROM_Y}&toD=$FORM{TO_D}&TO_M=$FORM{TO_M}&TO_Y=$FORM{TO_Y}";
+  $FORM{FROM_M}++;
+  $FORM{TO_M}++;
+  $FORM{FROM_M} = sprintf("%.2d", $FORM{FROM_M}++);
+  $FORM{TO_M}   = sprintf("%.2d", $FORM{TO_M}++);
+  $LIST_PARAMS{INTERVAL} = "$FORM{FROM_Y}-$FORM{FROM_M}-$FORM{FROM_D}/$FORM{TO_Y}-$FORM{TO_M}-$FORM{TO_D}";
+ }
+
+
  my $list = $Ipn->user_detail({ UID=> $user->{UID}, %LIST_PARAMS });
 
  my $table = $html->table( { caption     => "$_DETAIL",
 	                           width       => '100%',
-                             title_plain => ["$_DATE", "SRC_ADDR", "SRC_PORT", "DST_ADDR", "DST_PORT",
-                               "PROTOCOL", "$_SIZE", 'NAS', "$_FINISH"],
+                             title       => ["$_BEGIN", "$_END", "SRC_ADDR", "SRC_PORT", "DST_ADDR", "DST_PORT",
+                               "PROTOCOL", "$_SIZE", 'NAS' ],
                              cols_align  => ['left', 'right', 'right', 'right', 'right', 'right', 'right'],
-                             pages       => $Ipn->{TOTAL}
+                             pages       => $Ipn->{TOTAL},
+                             qs          => $pages_qs
                            });
 
 
-	
+
  foreach my $line  (@$list) {
+   my $src_name;
+   my $dst_name;
+
+   if ($FORM{RESOLVE}) {
+     $src_name = gethostbyaddr(inet_aton("$line->[2]"), AF_INET);
+     $dst_name = gethostbyaddr($iaddr = inet_aton("$line->[4]"), AF_INET);
+    }
+  
    $table->addrow($line->[0], 
    $line->[1], 
-   $line->[2], 
+   $src_name || $line->[2], 
    $line->[3], 
-   $line->[4], 
+   $dst_name || $line->[4], 
    $line->[5], 
    $line->[6], 
    $line->[7], 
@@ -50,13 +86,11 @@ sub ipn_detail {
   }
   print $table->show();
 
-  $table = $html->table( { width      => '100%',
+  $table = $html->table( { width    => '100%',
                          cols_align => ['right', 'right'],
                          rows       => [ ["$_TOTAL:", "<b>$Ipn->{TOTAL}</b>" ] ]
-                     } );
+                       } );
   print $table->show();
-
-
 
 }
 
@@ -1314,7 +1348,7 @@ while(my($k, $v) = each %ORDERS ) {
 
 
 print "</select>
-<input type=submit name=SHOW value='$_SHOW'>";
+<input type=submit name=SHOW value='$_SHOW'>\n";
 
 
 my $list = $sessions->detail_list({ %LIST_PARAMS, %FORM });
@@ -2071,7 +2105,7 @@ my @ARR = ( ["IP / HOST / URL:", $html->form_input('IP', "$ip", { OUTPUT2RETURN 
 		if ($ip =~ /^http:\/\/([0-9a-z\-\.]+)\/?/i || $ip =~ /(\S+)\//i) {
       $ip = $1;
 		 }
-    use Socket;
+
 		use Sys::Hostname;
 		if (my $addr = gethostbyname($ip)) {
 		  $ip = inet_ntoa(scalar($addr));

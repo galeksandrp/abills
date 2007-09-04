@@ -314,7 +314,6 @@ elsif($total_user_sum > 0 && $uid > 0) {
             SESSION_ID     => $session_id,    
             SUM						 => $total_user_sum
    	      } );
-	
 }
 
   #Put user date to database  

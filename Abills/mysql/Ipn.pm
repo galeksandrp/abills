@@ -1131,7 +1131,20 @@ sub user_detail {
 	my ($attr) = @_;
   my $list;
 
- undef @WHERE_RULES; 
+ $PG = ($attr->{PG}) ? $attr->{PG} : 0;
+ $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
+ $SORT = ($attr->{SORT}) ? $attr->{SORT} : 2;
+ $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+
+
+  undef @WHERE_RULES; 
+  my @GROUP_RULES = (); 
+
+
+if ($attr->{INTERVAL}) {
+  my ($from, $to)=split(/\//, $attr->{INTERVAL}, 2);
+  push @WHERE_RULES, "date_format(s_time, '%Y-%m-%d')>='$from' and date_format(f_time, '%Y-%m-%d')<='$to'";
+ }
 
 if ($attr->{UID}) {
    push @WHERE_RULES, "uid='$attr->{UID}'";
@@ -1141,37 +1154,59 @@ if (defined($attr->{SRC_PORT}) && $attr->{SRC_PORT} =~ /^\d+$/) {
    push @WHERE_RULES, "src_port='$attr->{SRC_PORT}'";
  }
 
-if ($attr->{DST_ADDR}) {
-   push @WHERE_RULES, "dst_addr=INET_ATON('$attr->{DST_ADDR}')";
+if ($attr->{DST_IP}) {
+   push @WHERE_RULES, "dst_addr=INET_ATON('$attr->{DST_IP}')";
+ }
+
+if ($attr->{DST_IP}) {
+   push @WHERE_RULES, "dst_addr=INET_ATON('$attr->{DST_IP}')";
  }
 
 if (defined($attr->{DST_PORT}) && $attr->{DST_PORT} =~ /^\d+$/ ) {
    push @WHERE_RULES, "dst_port='$attr->{DST_PORT}'";
  }
 
-my $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
-  
-  $self->{debug}=1;
-  
-  $self->query($db, "SELECT  s_time,	
+if ($attr->{DST_IP_GROUP}) {
+   push @GROUP_RULES, 'dst_addr';
+ }
+
+if ($attr->{SRC_IP_GROUP}) {
+   push @GROUP_RULES, 'src_addr';
+ }
+
+
+my $GROUP_BY = '';
+my $size = 'size';
+
+my $WHERE    = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
+
+if ($#GROUP_RULES > -1) {
+  $GROUP_BY = "GROUP BY " . join(', ', @GROUP_RULES) ;
+  $size = 'sum(size)';
+ } 
+
+ $self->{debug}=1;
+ 
+ $self->query($db, "SELECT  s_time,	f_time,
   INET_NTOA(src_addr),
   src_port,
   INET_NTOA(dst_addr),
   dst_port,
   protocol,
-  size,
-  nas_id,
-  f_time
+  $size,
+  nas_id
+  
    FROM ipn_traf_detail
 
   $WHERE
+  $GROUP_BY
   ORDER BY $SORT $DESC 
   LIMIT $PG, $PAGE_ROWS
    ;");
 
   $list = $self->{list};
 
-  if ($self->{TOTAL} > 0) {
+  if ($self->{TOTAL} > 0 && $#GROUP_RULES < 0) {
      $self->query($db, "SELECT count(*) from ipn_traf_detail
       $WHERE ;");
 	

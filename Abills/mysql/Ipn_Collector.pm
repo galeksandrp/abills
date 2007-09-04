@@ -344,7 +344,9 @@ sub traffic_agregate_users {
         PROTOCOL => 0,
         SIZE     => $DATA->{SIZE},
         NAS_ID   => 0,
-        UID      => $DATA->{UID}
+        UID      => $DATA->{UID},
+        START    => $DATA->{START},
+        STOP     => $DATA->{STOP}
       });
    }
 
@@ -732,17 +734,19 @@ sub traffic_add {
   my $self = shift;
   my ($DATA) = @_;
 
- #my $table_name = "ipn_traf_log_". $Y."_".$M;
-
- my $table_name = 'ipn_traf_detail';
+ #my $table_name = 'ipn_traf_detail';
  my $UID = $DATA->{UID} || 0;
 
-  $self->query($db, "insert into $table_name (src_addr,
+ $DATA->{START} = (! $DATA->{START}) ? 'now()' : "'$DATA{START}'";
+ $DATA->{STOP}  = (! $DATA->{STOP}) ?  'now()' : "'$DATA{STOP}'";
+
+ $self->query($db, "insert into ipn_traf_detail (src_addr,
        dst_addr,
        src_port,
        dst_port,
        protocol,
        size,
+       s_time,
        f_time,
        nas_id,
        uid)
@@ -753,7 +757,8 @@ sub traffic_add {
        '$DATA->{DST_PORT}',
        '$DATA->{PROTOCOL}',
        '$DATA->{SIZE}',
-        now(),
+        $DATA->{START},
+        $DATA->{STOP},
         '$DATA->{NAS_ID}',
         '$UID'
       );", 'do');
