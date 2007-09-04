@@ -327,14 +327,20 @@ sub reports {
 
  my $list = $self->{list}; 
  
-
- $self->query($db, "SELECT count(*), sum(p.sum) 
+ if ($self->{TOTAL} > 0) {
+   $self->query($db, "SELECT count(*), sum(p.sum) 
       FROM payments p
       LEFT JOIN users u ON (u.uid=p.uid)
       $WHERE;");
 
- ($self->{TOTAL}, 
-  $self->{SUM}) = @{ $self->{list}->[0] };
+   ($self->{TOTAL}, 
+    $self->{SUM}) = @{ $self->{list}->[0] };
+  }
+ else {
+   $self->{TOTAL}=0; 
+   $self->{SUM}=0.00;
+  }
+ 
 
 	
 	return $list;

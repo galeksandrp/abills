@@ -90,7 +90,6 @@ if ($args->{DEBUG}) {
 
   foreach my $m (@MODULES) {
     next if(in_array($m, \@SKIP_MODULES));
-
   	require "Abills/modules/$m/config";
  
     my $i=0;
@@ -158,7 +157,8 @@ my($Y, $M, $D);
 if (defined($args->{monthly})) {
   for(my $i=$#monthly_functions; $i>-1; $i--) {
   	my $f = $monthly_functions[$i];
-  	#print $f . "\n";
+  	#$DEBUG .= 
+  	print "==> FUNCTION: ". $f ."\n" if ($args->{DEBUG} && $args->{DEBUG} > 4);
   	$f->({ DEBUG => $args->{DEBUG} });
   }
 
@@ -176,9 +176,9 @@ if (defined($args->{monthly})) {
  }
 elsif (defined($args->{daily})) {
   for(my $i=$#daily_functions; $i>-1; $i--) {
-        my $f = $daily_functions[$i];
-        #print $f . "\n";
-        $f->({ %$args });
+    my $f = $daily_functions[$i];
+    $DEBUG .= "==> FUNCTION: ". $f ."\n" if ($args->{DEBUG} && $args->{DEBUG} > 4);
+    $f->({ %$args });
    }
 
   if ($begin_time > 0)  {
@@ -401,7 +401,6 @@ $ADMIN_REPORT{PAYMENTS} .= "----------------------------------------------------
 $ADMIN_REPORT{PAYMENTS} .= sprintf("%-14s| %12s|\n%-14s| %12s|\n", 
   $_TOTAL, $payments->{TOTAL},
   $_SUM,   $payments->{SUM});
-
 
 
 #Fees

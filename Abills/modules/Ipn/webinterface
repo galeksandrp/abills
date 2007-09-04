@@ -2348,7 +2348,7 @@ if ($FORM{RECALCULATE}) {
  	      $sum_in = $in / $conf{MB_SIZE} * $price_in if ($price_in > 0); 
         $sum_out = $out / $conf{MB_SIZE} * $price_out if ($price_out > 0);
 
-        my $recalculate_sum = $sum_in + $sum_out;
+        $recalculate_sum = $sum_in + $sum_out;
 
     	 $table->addrow($line->[0], 
     	   $line->[1], 
@@ -2427,12 +2427,31 @@ print $html->form_main({ CONTENT => $table->show(),
                         	            UID     => $LIST_PARAMS{UID},
                      	           }
     	                 });
+}
 
 
+#**********************************************************
+# ipn_detail_rotate
+#**********************************************************
+sub ipn_detail_rotate {
+	my ($attr) = @_;
+  my $debug = $attr->{DEBUG} || 0;
+  my $debug_output = '';
+  
+  # Clean s_detail table
+  my ($y, $m, $d)=split(/-/, $ADMIN_REPORT{DATE}, 3);
 
+  if ($d == 1 && $conf{IPN_DETAIL_CLEAN_PERIOD}) {
+    $DEBUG .= "Make log rotate\n" if ($debug > 0);
 
+    $Ipn->ipn_detail_rotate({ 
+    	                        # TYPES  => [ 'SESSION_DETAILS', 'SESSION_INTERVALS'],
+  	                          PERIOD => $conf{IPN_DETAIL_CLEAN_PERIOD} });
+    $debug_output = "Make IPN details rotate\n" if ($debug > 0);
+   }
 
-
+  $DEBUG .= $debug_output;
+  return $debug_output;
 }
 
 

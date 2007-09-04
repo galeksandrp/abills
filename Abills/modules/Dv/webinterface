@@ -2263,7 +2263,7 @@ sub dv_monthly_fees {
 #      u.uid, u.account_id, u.email, u.tp_id, u.activate, u.expire
 
      foreach my $u (@$ulist) {
-       #print " Login: $u->[0] TP_ID: $u->[9] Fees: $line->[6] $u->[2] $u->[3] $u->[10] - $u->[11]\n"; 	
+       print " Login: $u->[0] TP_ID: $u->[9] Fees: $line->[6] REDUCTION: $u->[13]  $u->[2] $u->[3] $u->[10] - $u->[11]\n" if ($debug > 4); 	
        
        if ($u->[12] > 0 && defined($u->[2])) {
           my %user = (
@@ -2275,8 +2275,7 @@ sub dv_monthly_fees {
           #Make sum 
           my $sum = $line->[6];
 
-          #Use reduction
-          if ($line->[10] == 1 && $u->[13] > 0) {
+          if ($line->[11] == 1 && $u->[13] > 0) {
             $sum = $sum * (100 - $u->[13]) / 100;
            }
 

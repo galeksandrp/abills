@@ -1123,6 +1123,19 @@ sub online_alive {
 }
 
 #*******************************************************************
+# Delete information from detail table
+#*******************************************************************
+sub ipn_detail_rotate {
+  my $self = shift;
+	my ($attr) = @_;
+
+  $self->query($db, "DELETE LOW_PRIORITY  from ipn_traf_detail
+WHERE f_time - INTERVAL $attr->{PERIOD} DAY;", 'do');
+	
+	return $self;
+}
+
+#*******************************************************************
 # Delete information from user log
 # log_del($i);
 #*******************************************************************
