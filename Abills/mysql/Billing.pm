@@ -1063,7 +1063,7 @@ sub remaining_time {
              $price = $mainh_tarif  * ($tp / 100);
            }
           else {
-             $price = $periods_time_tarif->{$int_id};
+             $price = $periods_time_tarif->{$int_id} || 0;
            }
 
           if (! $ATTR{FIRST_INTERVAL}) {
