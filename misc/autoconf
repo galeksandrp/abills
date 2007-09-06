@@ -37,6 +37,7 @@ if ($ARGV->{help}) {
   -f                      - Force mode. Rewrite exists files withot prompt
   PARAMS=                 - Extended parameters
     FREEBSD               - OS FreeBSD make startup config
+  CHANGE_PATH             - Change path for instalation files.
   
   FILES                   - Configure only selected files
   debug                   - Debug level

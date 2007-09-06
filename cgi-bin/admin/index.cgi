@@ -4002,7 +4002,7 @@ elsif ($FORM{change}) {
 	  print FILE "$info{TEMPLATE}";
 	close(FILE);
 
-	$html->message('info', $_INFO, "$_CHANGED");
+	$html->message('info', $_INFO, "$_CHANGED '$FORM{tpl_name}'");
  }
 elsif ($FORM{del} && $FORM{is_js_confirmed} ) {
   $FORM{del} =~ s/ |\///g;

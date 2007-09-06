@@ -27,9 +27,10 @@ sub dhcphosts_periodic {
 sub dhcphosts_mac_static {
 
 if ($FORM{MAKE}) {
-  #open(FILE, ">$var_dir/ipguard") || return "Can't open '$var_dir/ipguard' $!";
-	#  print FILE "$attr->{ETHER_CONTENT}";
-	#close(FILE);
+  open(FILE, ">$conf{TPL_DIR}/Dhcphosts_dhcphosts_ipguard_static.tpl") || $html->message('err', $_ERROR, "Can't open file '$conf{TPL_DIR}/Dhcphosts_dhcphosts_ipguard_static.tpl' $!\n");
+	  print FILE "$FORM{ETHERS}";
+	close(FILE);
+
   print $html->message('info', $_INFO, "$_CHANGED");
  }
 
@@ -54,23 +55,29 @@ sub dhcphosts_mac_block_show {
    my @pair_status = ('ACCEPT', 'DENY');
 
 
-   
    my $list = $Dhcphosts->hosts_list({ %LIST_PARAMS, 
    	                                   PAGE_ROWS     => 1000000
                                      });
    
 	 foreach my $line (@$list) {
 	    next if ($line->[6] eq '');
-	    my $ip = ($conf{DHCPHOSTS_IPGUARD_FORMAT} && $conf{DHCPHOSTS_IPGUARD_FORMAT} eq 'MAC') ? '0.0.0.0' : $line->[2]; 
+	    
       if ($conf{DHCPHOSTS_IPGUARD_TYPE} && $conf{DHCPHOSTS_IPGUARD_TYPE} eq 'ipsentinel') {
-	      
+	      my $ip = $line->[2];   
 	      my $status = ($line->[10] == 1 || $line->[13] == 1 ) ? 1 : 0;
-	      
-	      $ethers_content .= "$ip $line->[6] # $pair_status[$status]\n";
+	      #Block
+	      if ($status == 1 ) {
+	        $ethers_content .= "$ip $line->[6] # $line->[1] $pair_status[$status]\n";
+	       }
+	      #Allow
+	      else {
+	      	$ethers_content .= "$ip\@!$line->[6] # $line->[1] $pair_status[$status]\n";
+	       }
 	     }
 	    else {
+	      my $ip = ($conf{DHCPHOSTS_IPGUARD_FORMAT} && $conf{DHCPHOSTS_IPGUARD_FORMAT} eq 'MAC') ? '0.0.0.0' : $line->[2]; 
 	    	if ($line->[10] != 1 || $line->[13] != 1) {
-	    	  $ethers_content .= "$line->[6] $ip # $line->[1]\n";
+	    	  $ethers_content .= "$line->[6] $ip #  $line->[1] $line->[1]\n";
          }
 	     }
     };
