@@ -31,7 +31,7 @@ if ($FORM{MAKE}) {
 	  print FILE "$FORM{ETHERS}";
 	close(FILE);
 
-  print $html->message('info', $_INFO, "$_CHANGED");
+  print $html->message('info', $_INFO, "$_CHANGED '$conf{TPL_DIR}/Dhcphosts_dhcphosts_ipguard_static.tpl'");
  }
 
 	my $ethers_content =  $html->tpl_show(_include('dhcphosts_ipguard_static', 'Dhcphosts'), 

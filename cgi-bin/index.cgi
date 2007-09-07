@@ -114,7 +114,9 @@ my @m = (
 
 
 $user=Users->new($db, $admin, \%conf); 
+
 ($uid, $sid, $login) = auth("$login", "$passwd", "$sid");
+
 my %uf_menus = ();
 
 if ($uid > 0) {
@@ -187,6 +189,7 @@ if ($uid > 0) {
 
   $OUTPUT{DATE}=$DATE;
   $OUTPUT{TIME}=$TIME;
+  $OUTPUT{LOGIN}=$login;
 
   $pages_qs="&UID=$user->{UID}&sid=$sid";
   $LIST_PARAMS{UID}=$user->{UID};
@@ -367,6 +370,24 @@ sub auth {
  my $HTTP_X_FORWARDED_FOR = $ENV{'HTTP_X_FORWARDED_FOR'} || '';
  my $ip = "$REMOTE_ADDR/$HTTP_X_FORWARDED_FOR";
 
+
+ if ($conf{PASSWORDLESS_ACCESS}) {
+    require  Dv_Sessions;
+    Dv_Sessions->import();
+    my $sessions = Dv_Sessions->new($db, $admin, \%conf);
+	  my $list = $sessions->online({ FRAMED_IP_ADDRESS => "$REMOTE_ADDR" });
+    
+    if ($sessions->{TOTAL} > 0) {
+      $ret = $list->[0]->[11];
+      $time = time;
+      $sid = mk_unique_value(14);
+      $h{$sid} = "$ret:$time:$login:$REMOTE_ADDR";
+      untie %h;
+      $action = 'Access';
+      return ($ret, $sid, $login);
+    }
+  }
+
  use DB_File; 
  tie %h, "DB_File",  "$sessions", O_RDWR|O_CREAT, 0640, $DB_HASH
          or die "Cannot open file '$sessions': $!\n";
@@ -408,6 +429,7 @@ elsif (length($sid) > 1) {
  }
 else {
 # print "$sid";
+
   return 0 if (! $login  || ! $password);
   
   if ($conf{wi_bruteforce}) {
@@ -566,6 +588,14 @@ sub bruteforce {
 	
 }
 
+
+#**********************************************************
+#
+#**********************************************************
+sub paswordless_access () {
+
+	
+}
 
 
 #**********************************************************
