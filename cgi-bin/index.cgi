@@ -378,12 +378,13 @@ sub auth {
 	  my $list = $sessions->online({ FRAMED_IP_ADDRESS => "$REMOTE_ADDR" });
     
     if ($sessions->{TOTAL} > 0) {
-      $ret = $list->[0]->[11];
-      $time = time;
-      $sid = mk_unique_value(14);
+      $login   = $list->[0]->[0];
+      $ret     = $list->[0]->[11];
+      $time    = time;
+      $sid     = mk_unique_value(14);
       $h{$sid} = "$ret:$time:$login:$REMOTE_ADDR";
       untie %h;
-      $action = 'Access';
+      $action  = 'Access';
       return ($ret, $sid, $login);
     }
   }
