@@ -429,6 +429,7 @@ sub account_info {
 	my ($id, $attr) = @_;
 
   $WHERE = ($attr->{UID}) ? "and d.uid='$attr->{UID}'" : '';  
+  
 
   $self->query($db, "SELECT d.acct_id, 
    d.date, 

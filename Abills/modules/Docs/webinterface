@@ -257,7 +257,7 @@ sub docs_account {
      if(! $Docs->{errno}) {
     
        $html->message('info', "$_ADDED", "$_NUM: [$Docs->{ACCT_ID}] $_DATE: $FORM{DATE}");
-       $Docs->account_info($Docs->{ACCT_ID}, { UID => $LIST_PARAMS{UID} });
+       $Docs->account_info($Docs->{DOC_ID}, { UID => $LIST_PARAMS{UID} });
        my $list = $Docs->{ORDERS};
        my $i=0;
 
@@ -274,7 +274,6 @@ sub docs_account {
          $html->{NO_PRINT}=undef;
 
          docs_print('account', $Docs);
-                  print "--- $Docs->{ACCT_ID}";
          exit;
         }
        else {
