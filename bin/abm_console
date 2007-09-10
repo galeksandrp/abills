@@ -47,7 +47,14 @@ sub ppp_log_parser {
  if ($attr->{USER}) {
    my %pid_list = ();
    foreach my $line (@content_arr) {
+      # If pap auth
+      # Phase: Pap Input: REQUEST (lemn)
       if ($line =~ /.+ppp\[(\d+)\].+REQUEST \($attr->{USER}\)/) {
+         push @{ $pid_list{$1} }, $line;
+       }
+      #CHAP AUTH
+      # Phase: Chap Input: RESPONSE (16 bytes from kolyan)
+      elsif ($line =~ /.+ppp\[(\d+)\].+RESPONSE \(16 bytes from $attr->{USER}\)/) {
          push @{ $pid_list{$1} }, $line;
        }
       elsif ($line =~ /.+ppp\[(\d+)\]/) {
@@ -59,7 +66,7 @@ sub ppp_log_parser {
 
    print "User: $attr->{USER}\n";
    while( my ($pid, $line_arr) = each %pid_list) {
-      print "$pid ===============================================\n";
+      print "PID: $pid ============================================\n";
       foreach my $line (@$line_arr) {
         print "$line\n";
        }
