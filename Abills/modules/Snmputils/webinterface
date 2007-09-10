@@ -1444,9 +1444,6 @@ foreach my $line (@$list) {
        }
       if ($prefix_id ne '') {
       	
-      	print "/// $prefix_id ///";
-      	
-      	
       	$page_params .= "&PREFIX_ID=$prefix_id";
        }
       
