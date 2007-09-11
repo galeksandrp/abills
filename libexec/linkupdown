@@ -20,11 +20,11 @@
 # set iface down-script "/usr/abills/libexec/linkupdown mpd down"
 #-------------------------------------------------------------
 # For Linux
-#
-# /etc/ppp/ip-up.local 
+# 
+# Add to /etc/ppp/ip-up.local 
 # /usr/abills/libexec/linkupdown pppd up $1 'username' $4
 #
-# /etc/ppp/ip-down.local 
+# Add to /etc/ppp/ip-down.local 
 # /usr/abills/libexec/linkupdown pppd down $1 'username' $4
 #
 
@@ -39,7 +39,12 @@ $debug=1 if ($ARGV[$#ARGV] eq 'debug');
 if ( $#ARGV < 3 ) {
  print qq{Not anought argumets:
  Example:
+----------------------------------------------------------------
+For IPN
+  $conf{IPN_FW_START_RULE}="/usr/abills/libexec/linkupdown ipn up INTERFACE %LOGIN% %IP%";
+  $conf{IPN_FW_STOP_RULE}="/usr/abills/libexec/linkupdown ipn down INTERFACE %LOGIN% %IP%";
 
+----------------------------------------------------------------
  /etc/ppp/ppp.linkup
  MYADDR:
    !bg /usr/abills/libexec/linkupdown up INTERFACE USER HISADDR
@@ -54,10 +59,10 @@ if ( $#ARGV < 3 ) {
    set iface down-script "/usr/abills/libexec/linkupdown mpd down"
 ----------------------------------------------------------------
  For Linux:
- /etc/ppp/ip-up.local 
+ Add to /etc/ppp/ip-up.local 
    /usr/abills/libexec/linkupdown pppd up \$1 'username' \$4
 
- /etc/ppp/ip-down.local 
+ Add to /etc/ppp/ip-down.local 
    /usr/abills/libexec/linkupdown pppd down \$1 'username' \$4
  
  For mikrotik:
@@ -104,14 +109,23 @@ my ($ACTION, $INTERFACE, $USER, $HISADDR, $inum);
 
 #MPD
 if ($ARGV[0] eq 'mpd') {
-  $ACTION=$ARGV[1];
-  $INTERFACE=$ARGV[2];
-  $USER=$ARGV[6];
-  $HISADDR=$ARGV[5];
-  $inum = $INTERFACE;
-  $inum =~ s/ng//;
+  $ACTION   = $ARGV[1];
+  $INTERFACE= $ARGV[2];
+  $USER     = $ARGV[6];
+  $HISADDR  = $ARGV[5];
+  $inum     = $INTERFACE;
+  $inum     =~ s/ng//;
 }
 #pppd
+elsif ($ARGV[0] eq 'ipn') {
+  $ACTION   = $ARGV[1];
+  $INTERFACE= $ARGV[2];
+  $USER     = $ARGV[3];
+  $HISADDR  = $ARGV[4];
+	
+	my ($n1, $n2, $n3, $n4) = split(/\./, $HISADDR, 4);
+  $inum  = $n4;
+}
 elsif($ARGV[0] eq 'pppd' || $ARGV[0] eq 'mikrotik') {
   $ACTION   =$ARGV[1];
   $INTERFACE=$ARGV[2];
