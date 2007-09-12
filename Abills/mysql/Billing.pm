@@ -853,8 +853,10 @@ sub time_calculation() {
 
 if(! defined($self->{NO_TPINTERVALS})) {
   if($#sd < 0) {
+   	my $test = join('!', @sd);
+   	my $z = `echo "--------- $test/\n" >> /tmp/voip`;
    	$self->{errno} = 3;
-   	$self->{errstr} = "Not allow start period";
+   	$self->{errstr} = "Not allow start period-";
    }
 
   foreach my $line (@sd) {

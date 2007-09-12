@@ -478,6 +478,8 @@ elsif ($acct_status_type == 2) {
          return 1, \%RAD_PAIRS;
         }
 
+my $we = `echo "($self->{SESSION_STOP} - $RAD->{ACCT_SESSION_TIME},)\n" >> /tmp/voip`;
+
        $Billing->time_calculation({
     	    REDUCTION           => $self->{REDUCTION},
     	    TIME_INTERVALS      => $self->{TIME_PERIODS},
