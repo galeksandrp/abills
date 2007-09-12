@@ -113,7 +113,6 @@ if ($ARGV[0] eq 'mpd') {
   $INTERFACE= $ARGV[2];
   $USER     = $ARGV[6];
   $HISADDR  = $ARGV[5];
-  $CLIENT_IP = $HISADDR;
   $inum     = $INTERFACE;
   $inum     =~ s/ng//;
 }
@@ -123,7 +122,7 @@ elsif ($ARGV[0] eq 'ipn') {
   $INTERFACE= $ARGV[2];
   $USER     = $ARGV[3];
   $HISADDR  = $ARGV[4];
-	
+  $CLIENT_IP = $HISADDR;	
 	my ($n1, $n2, $n3, $n4) = split(/\./, $HISADDR, 4);
   $inum  = $n4;
 }
