@@ -2449,6 +2449,7 @@ if ($nas->{errno}) {
   'dslmax'    => 'ASCEND DSLMax',
   'expppd'    => 'pppd deamon with extended futures',
   'radpppd'   => 'pppd version 2.3 patch level 5.radius.cbcp',
+  'lucent_max'=> 'Lucent MAX',
   'mpd'       => 'MPD with kha0s patch',
   'mpd4'      => 'MPD 4.xx',
   'ipcad'     => 'IP accounting daemon with Cisco-like ip accounting export',

@@ -111,7 +111,6 @@ sub user_info {
      return $self;
    }
 
-  my $ar = $self->{list}->[0];
 
   ($self->{UID},
    $self->{NUMBER},
@@ -125,7 +124,7 @@ sub user_info {
    $self->{SIMULTANEOUSLY},
    $self->{REGISTRATION}
 
-  )= @$ar;
+  )= @{ $self->{list}->[0] };
   
 
   
@@ -225,7 +224,6 @@ sub user_del {
   my ($attr) = @_;
 
   $self->query($db, "DELETE from voip_main WHERE uid='$self->{UID}';", 'do');
-
   $admin->action_add($self->{UID}, "DELETE $self->{UID}");
 
   return $self->{result};
@@ -423,8 +421,7 @@ sub user_list {
 
  if ($self->{TOTAL} >= 0) {
     $self->query($db, "SELECT count(u.id) FROM (users u, voip_main service) $WHERE");
-    my $a_ref = $self->{list}->[0];
-    ($self->{TOTAL}) = @$a_ref;
+    ($self->{TOTAL}) = @{ $self->{list}->[0] };
    }
 
   return $list;
@@ -499,8 +496,6 @@ sub route_info {
      return $self;
    }
 
-  my $ar = $self->{list}->[0];
-
   ($self->{ROUTE_ID},
    $self->{ROUTE_PREFIX}, 
    $self->{PARENT_ID}, 
@@ -509,7 +504,7 @@ sub route_info {
    $self->{DISABLE},
    $self->{DESCRIBE},
    $self->{GATEWAY_ID}
-  )= @$ar;
+  )= @{ $self->{list}->[0] };
   
   
   
@@ -602,8 +597,7 @@ sub routes_list {
 
  if ($self->{TOTAL} >= 0) {
     $self->query($db, "SELECT count(r.id) FROM voip_routes r $WHERE");
-    my $a_ref = $self->{list}->[0];
-    ($self->{TOTAL}) = @$a_ref;
+    ($self->{TOTAL}) = @{ $self->{list}->[0] };
    }
 
   return $list;

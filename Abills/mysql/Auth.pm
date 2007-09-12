@@ -150,8 +150,8 @@ sub dv_auth {
 if ($self->{DISABLE}) {
   $RAD_PAIRS->{'Reply-Message'}="Service Disable";
   return 1, $RAD_PAIRS;
-}
-elsif (defined($RAD_PAIRS->{'Callback-Number'}) && $self->{CALLBACK} != 1){
+ }
+elsif (( $RAD_PAIRS->{'Callback-Number'} || $RAD_PAIRS->{'Ascend-Callback'} ) && $self->{CALLBACK} != 1){
   $RAD_PAIRS->{'Reply-Message'}="Callback disabled";
   return 1, $RAD_PAIRS;
 }
@@ -634,8 +634,19 @@ sub authentication {
   
   #Get callback number
   if ($RAD->{USER_NAME} =~ /(\d+):(\S+)/) {
-    $RAD_PAIRS{'Callback-Number'}=$1;
-    $RAD->{USER_NAME}=$2;
+    my $number = $1;
+    my $login =  $2;
+
+    if ($NAS->{NAS_TYPE} eq 'lucent_max') {
+    	$RAD_PAIRS{'Ascend-Callback'}='Callback-Yes';
+    	$RAD_PAIRS{'Ascend-Dial-Number'}=$number;
+    	#$RAD_PAIRS{'Ascend-Send-Secret'}='';
+     }
+    else {
+      $RAD_PAIRS{'Callback-Number'}=$number;
+     }
+
+    $RAD->{USER_NAME}=$login;
    }
 
   $self->query($db, "select

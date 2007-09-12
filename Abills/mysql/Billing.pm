@@ -845,9 +845,10 @@ sub time_calculation() {
  );
  
  my $PRICE_UNIT = (defined($PRICE_UNITS{$attr->{PRICE_UNIT}})) ? 60 : 3600;
- 
-  #session devisions
-  my @sd = $self->{TIME_DIVISIONS_ARR};
+
+ #session devisions
+ my @sd = @{ $self->{TIME_DIVISIONS_ARR} };
+
 
 
 if(! defined($self->{NO_TPINTERVALS})) {
@@ -858,18 +859,19 @@ if(! defined($self->{NO_TPINTERVALS})) {
 
   foreach my $line (@sd) {
     my ($k, $v)=split(/,/,  $line);
-
+    
  	  #print "> $k, $v\n" if ($self->{debug});
     if(defined($periods_time_tarif->{$k})) {
    	   $sum += ($v * $periods_time_tarif->{$k}) / $PRICE_UNIT;
      }
    }
+
+
+
 }
 
-$sum = $sum * (100 - $attr->{REDUCTION}) / 100 if (defined($attr->{REDUCTION}) && $attr->{REDUCTION} > 0);
+  $sum = $sum * (100 - $attr->{REDUCTION}) / 100 if (defined($attr->{REDUCTION}) && $attr->{REDUCTION} > 0);
 #$sum = $CONF->{MIN_SESSION_COST} if ($sum < $self->{MIN_SESSION_COST} && $self->{MIN_SESSION_COST} > 0);
-
-  
 
   $self->{SUM}=$sum;
   return $self;

@@ -1,14 +1,11 @@
 #/usr/bin/perl
 # Voip web functions
 
-require "Voip.pm";
-Voip->import();
-my $Voip = Voip->new($db, $admin, \%conf);
-
+use Voip;
 use Voip_Sessions;
-my  $sessions = Voip_Sessions->new($db, \%conf);
 
-
+my $Voip = Voip->new($db, $admin, \%conf);
+my $sessions = Voip_Sessions->new($db, \%conf);
 
 
 my $MODULE = (defined($module{$index})) ? $module{$index} : 'Voip';
@@ -1338,8 +1335,7 @@ my $table = $html->table( { width        => '100%',
 my $delete = '';
 
 use Billing;
-my $Billing = Billing->new($db);	
-
+my $Billing = Billing->new($db, \%conf);	
 
 
 foreach my $line (@$list) {
