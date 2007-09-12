@@ -862,7 +862,7 @@ if(! defined($self->{NO_TPINTERVALS})) {
     
  	  #print "> $k, $v\n" if ($self->{debug});
     if(defined($periods_time_tarif->{$k})) {
-   	   $sum += ($v * $periods_time_tarif->{$k}) / $PRICE_UNIT;
+   	  $sum += ($v * $periods_time_tarif->{$k}) / $PRICE_UNIT;
      }
    }
 
@@ -925,6 +925,13 @@ sub remaining_time {
       $day_of_week,
       $day_of_year
      );
+
+  my %PRICE_UNITS = (
+   Hour => 3600,
+   Min  => 60
+  );
+
+ my $PRICE_UNIT = (defined($PRICE_UNITS{$attr->{PRICE_UNIT}})) ? 60 : 3600;
 
   
 
@@ -1097,7 +1104,7 @@ sub remaining_time {
             # 20.01.2007
             #$remaining_time += $int_duration;
             if ($price > 0) {
-              $int_prepaid = int($deposit / $price * 3600);
+              $int_prepaid = int($deposit / $price * $PRICE_UNIT);
              }
             else {
               $int_prepaid = $int_duration;		
@@ -1113,7 +1120,7 @@ sub remaining_time {
              return int($remaining_time), \%ATTR;
            }
           elsif ($price > 0) {
-            $int_prepaid = int($deposit / $price * 3600);
+            $int_prepaid = int($deposit / $price * $PRICE_UNIT);
            }
           else {
             $int_prepaid = $int_duration;	
@@ -1122,7 +1129,7 @@ sub remaining_time {
 
           #print "Int Begin: $int_begin Int duration: $int_duration Int prepaid: $int_prepaid Prise: $price\n";
           if ($int_prepaid >= $int_duration) {
-            $deposit -= ($int_duration / 3600 * $price);
+            $deposit -= ($int_duration / $PRICE_UNIT * $price);
             $session_start += $int_duration;
             $remaining_time += $int_duration;
             #print "DP $deposit ($int_prepaid > $int_duration) $session_start\n";

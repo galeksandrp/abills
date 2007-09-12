@@ -286,7 +286,8 @@ else {
           DAY_OF_WEEK         => $self->{DAY_OF_WEEK},
           DAY_OF_YEAR         => $self->{DAY_OF_YEAR},
           REDUCTION           => $self->{REDUCTION},
-          POSTPAID            => $self->{PAYMENT_TYPE}
+          POSTPAID            => $self->{PAYMENT_TYPE},
+          PRICE_UNIT          => 'Min'
          });
     
        if ($session_timeout > 0) {

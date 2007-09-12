@@ -316,7 +316,7 @@ else {
   my @interval_ids = ();
   my $intervals=0;
   foreach my $line (@$list) {
-     push @caption, "$line->[1] / $line->[2]-$line->[3]";
+     push @caption, "$_SUM (Min): $line->[1] / $line->[2]-$line->[3]";
      push @aligns,  'center';
      push @interval_ids, $line->[0];
    }
@@ -849,19 +849,8 @@ if ($Voip->{errno}) {
    return 0;
  }
 
-
-
-
-
-
-
 $Voip->{DISABLE}=' checked' if($Voip->{DISABLE} == 1);
 $html->tpl_show(_include('voip_route', 'Voip'), $Voip);
-
-
-
-
-
 
   my %SEARCH_FIELDS = ($_PREFIX   => "ROUTE_PREFIX",
                        $_NAME     => "ROUTE_NAME",
@@ -911,7 +900,8 @@ print $table->show();
 $table = $html->table( { width      => '100%',
                          cols_align => ['right', 'right'],
                          rows       => [ [ "$_TOTAL:", "<b>$Voip->{TOTAL}</b>" ] ]
-                               } );
+                     } );
+
 print $table->show();
 
 
@@ -1028,7 +1018,7 @@ if ($FORM{ping}) {
     $html->message('info', $_INFO,  "Ping  $FORM{ping}<br>Result:<br><pre>$res</pre>");
    }
   else {
-    $html->message('err', $_ERROR,  "_WRONG_DATA");
+    $html->message('err', $_ERROR,  "$ERR_WRONG_DATA");
    }
  }
 elsif ($FORM{hangup}) {
@@ -1094,9 +1084,9 @@ elsif($FORM{zap}) {
    }
   else {
   	$message = "$_EXIST";
-  	$sessions->online_del({ NAS_ID  => $nas_id,
+  	$sessions->online_del({ NAS_ID          => $nas_id,
                             ACCT_SESSION_ID => $acct_session_id
-                            });
+                         });
 
    }
 
@@ -1115,7 +1105,7 @@ elsif($FORM{tolog}) {
   require Voip_aaa;
   $ACCT_INFO->{ACCT_STATUS_TYPE} = 'Stop';
   
-  my $nas = Nas->new($db);	
+
   $nas->info({NAS_ID    => $ACCT_INFO->{NAS_ID},
               SECRETKEY => $conf{secretkey}});
 
@@ -1168,11 +1158,6 @@ elsif($FORM{del} || $FORM{dellist}) {
 
 
 
-
-
-
-
-
 $form_link = '';
 my $cure = '';
 
@@ -1187,7 +1172,6 @@ else {
  	$form_link = $html->button($_ZAPED, "index=$index&ZAPED=yes"). " ($sessions->{TOTAL})";
 	$cure = 'Online';
 }
-
 
 $sessions->online( { %LIST_PARAMS } );	
 my $dub_ports = $sessions->{dub_ports};
@@ -1228,10 +1212,10 @@ foreach my $nas_row (@$nas_list) {
 
     my $zap = "(". $html->button('Z', "index=$index&zap=$nas_row->[0]+$line->[9]", { TITLE => 'Zap'}). ")";
     my $hangup = ($FORM{ZAPED}) ? $html->form_input('dellist', "$line->[9]", { TYPE => 'checkbox' } ) : "(". $html->button('H', "index=$index&hangup=$nas_row->[0]+$line->[2]+$line->[9]+$line->[0]", { TITLE => 'Hangup'} ) .")";
-    my $user_info =  "$_FIO: $line->[1]\n$_PHONE: $line->[12]\n$_VARIANT: $line->[13]\n$_DEPOSIT: $line->[14]\n".
-     "$_CREDIT: $line->[15]\n$_SPEED: $line->[16]\nSESSION_ID: $line->[9]\nCID: $line->[17]\nCONNECT_INFO: $line->[18]";
+    my $user_info =  "$_FIO: $line->[1]\n$_PHONE: $line->[10]\n$_TARIF_PLAN: $line->[11]\n$_DEPOSIT: $line->[12]\n".
+     "$_CREDIT: $line->[13]\n$_SPEED: $line->[14]\nSESSION_ID: $line->[9]\nCID: $line->[15]\nCONNECT_INFO: $line->[16]";
 
-    $table->addrow($html->button($line->[0], "index=11&UID=$line->[10]", { TITLE => "$user_info"}), 
+    $table->addrow($html->button($line->[0], "index=11&UID=$line->[8]", { TITLE => "$user_info"}), 
       $line->[1], $line->[2],  $line->[3],  $line->[4], $line->[5], 
      "(". $html->button('P', "index=$index&ping=$line->[3]", { TITLE => 'Ping'}). ")",
      "$zap",
@@ -1242,7 +1226,7 @@ foreach my $nas_row (@$nas_list) {
 my $table2 = $html->table( { width      => '100%',
                              cols_align => ['right', 'right', 'right'],
                              rows       => [ [ "$_TOTAL:", "<b>$sessions->{TOTAL}</b>", "$form_link" ] ]
-                               } );
+                         } );
 
 
 my $total = $table2->show();
@@ -1270,7 +1254,7 @@ else {
 	                              METHOD  => 'GET'
                         });
 
-  $output .= $html->button('Zap All', "index=$index&zapall=y", { MESSAGE => "Do you realy want zap all sessions ?" });
+  $output .= $html->button('Zap All', "index=$index&zapall=1", { MESSAGE => "Do you realy want zap all sessions ?" });
  }
 
 

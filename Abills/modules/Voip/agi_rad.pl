@@ -194,7 +194,9 @@ send_radius_request(ACCOUNTING_REQUEST, \%rad_acct_attributes);
 my $rewrittennumber = $data{'called'};
 my $protocol = $conf{VOIP_AGI_PROTOCOL} || 'SIP';
 my $dialstring = "$protocol/".$rewrittennumber; #."\@";
-my %peer = ( 'host'    => '',
+
+my %peer = ( 'type'    => '',
+             'host'    => '',
              'peername'=> '');
 
 if ($peer{'type'} eq 'host') {
