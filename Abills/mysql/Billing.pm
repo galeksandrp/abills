@@ -701,6 +701,8 @@ my $tarif_day = 0;
 my $count = 0;
 $start = $start - $day_begin;
 
+my $cool = `echo "!!! $start = $start - $day_begin; !!!" >> /tmp/voip`;
+
 if ($debug == 1) {
   require Abills::Base;
   Abills::Base->import(); 
