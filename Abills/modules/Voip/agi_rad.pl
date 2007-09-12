@@ -192,11 +192,10 @@ $rad_acct_attributes{'Acct-Delay-Time'}  = 0;
 $rad_acct_attributes{'Acct-Session-Id'}  = $data{'sessionid'};
 send_radius_request(ACCOUNTING_REQUEST, \%rad_acct_attributes);
 my $rewrittennumber = $data{'called'};
-my  $dialstring = "SIP/".$rewrittennumber; #."\@";
-my $peername='';
-my %peer = ();
-$peer{'host'}='';
-$peer{'peername'}='';
+my $protocol = $conf{VOIP_AGI_PROTOCOL} || 'SIP';
+my $dialstring = "$protocol/".$rewrittennumber; #."\@";
+my %peer = ( 'host'    => '',
+             'peername'=> '');
 
 if ($peer{'type'} eq 'host') {
   $dialstring .= $peer{'host'};

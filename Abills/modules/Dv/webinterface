@@ -1070,7 +1070,7 @@ my $table = $html->table( { width   => '100%',
 my $delete = '';
 
 use Billing;
-my $Billing = Billing->new($db);	
+my $Billing = Billing->new($db, \%conf);	
 
 
 
