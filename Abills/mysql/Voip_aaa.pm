@@ -354,6 +354,13 @@ sub get_intervals {
          and rp.route_id = '$self->{ROUTE_ID}';");
 
 
+my $aa = `echo "select i.day, TIME_TO_SEC(i.begin), TIME_TO_SEC(i.end), rp.price, i.id, rp.route_id
+      from intervals i, voip_route_prices rp
+      where
+         i.id=rp.interval_id 
+         and i.tp_id  = '$self->{TP_ID}'
+         and rp.route_id = '$self->{ROUTE_ID}';" >> /tmp/voip`;
+
    my $list = $self->{list};
    my %time_periods = ();
    my %periods_time_tarif = ();
