@@ -130,11 +130,15 @@ sub accounting {
 # 
 #**********************************************************
 sub convert_radpairs {
+	my %r = ();
+
 	while(my($k, $v)=each %RAD_REQUEST) {
 		$k =~ s/-/_/g;
 		$k =~ tr/[a-z]/[A-Z]/;
-		$RAD_REQUEST{$k}=$v;
+		$r{$k}=$v;
 	 }
+
+  %RAD_REQUEST = %r;
 }
 
 
@@ -158,3 +162,6 @@ sub test_call {
   #print $test;
   my $a=`echo "$test" >> /tmp/perllog`;
 }
+
+
+1

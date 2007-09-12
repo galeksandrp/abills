@@ -97,7 +97,7 @@ my $Billing = Billing->new($db, \%conf);
 
 
 
-
+my $CLIENT_IP = 'any';
 
 
 
@@ -113,6 +113,7 @@ if ($ARGV[0] eq 'mpd') {
   $INTERFACE= $ARGV[2];
   $USER     = $ARGV[6];
   $HISADDR  = $ARGV[5];
+  $CLIENT_IP = $HISADDR;
   $inum     = $INTERFACE;
   $inum     =~ s/ng//;
 }
@@ -342,7 +343,7 @@ print "\nEND: =====================================\n" if ($debug > 0);
     	  #In;
         if ($traf_type == 0) {
           # In
-          push @FW_ACTIONS, "$IPFW add $fw_num_in pipe $pipe_num_in ip from any to any via $INTERFACE in";
+          push @FW_ACTIONS, "$IPFW add $fw_num_in pipe $pipe_num_in ip from $CLIENT_IP to any via $INTERFACE in";
           push @FW_ACTIONS, "$IPFW pipe $pipe_num_in config bw ". $speed_in ."Kbit/s queue 10Kbytes";
          }
         else {
@@ -356,10 +357,10 @@ print "\nEND: =====================================\n" if ($debug > 0);
                	  push @FW_ACTIONS, "$IPFW table $table_number add $line";
                 }
               }
-            push @FW_ACTIONS, "$IPFW add $fw_num_in pipe $pipe_num_in ip from any to table\\($table_number\\)  via $INTERFACE in";
+            push @FW_ACTIONS, "$IPFW add $fw_num_in pipe $pipe_num_in ip from $CLIENT_IP to table\\($table_number\\) via $INTERFACE in";
            }
           else {
-            push @FW_ACTIONS, "$IPFW add $fw_num_in pipe $pipe_num_in ip from any to $nets{$traf_type} via $INTERFACE in";
+            push @FW_ACTIONS, "$IPFW add $fw_num_in pipe $pipe_num_in ip from $CLIENT_IP to $nets{$traf_type} via $INTERFACE in";
            }
             push @FW_ACTIONS, "$IPFW pipe $pipe_num_in config bw ". $speed_in ."Kbit/s queue 10Kbytes";
          }
@@ -370,7 +371,7 @@ print "\nEND: =====================================\n" if ($debug > 0);
       
       if ($speed_out > 0) {
         if ($traf_type == 0) {
-          push @FW_ACTIONS, "$IPFW add $fw_num_out pipe $pipe_num_out ip from any to any via $INTERFACE out";
+          push @FW_ACTIONS, "$IPFW add $fw_num_out pipe $pipe_num_out ip from any to $CLIENT_IP via $INTERFACE out";
           push @FW_ACTIONS, "$IPFW pipe $pipe_num_out config bw ". $speed_out ."Kbit/s queue 10Kbytes";
          }
         else {
@@ -384,10 +385,10 @@ print "\nEND: =====================================\n" if ($debug > 0);
                	  push @FW_ACTIONS, "$IPFW table $table_number add $line";
                 }
               }
-            push @FW_ACTIONS, "$IPFW add $fw_num_out pipe $pipe_num_out ip from table\\($table_number\\) to any via $INTERFACE out";
+            push @FW_ACTIONS, "$IPFW add $fw_num_out pipe $pipe_num_out ip from table\\($table_number\\) to $CLIENT_IP via $INTERFACE out";
            }
           else {
-            push @FW_ACTIONS, "$IPFW add $fw_num_out pipe $pipe_num_out ip from $nets{$traf_type} to any via $INTERFACE out";
+            push @FW_ACTIONS, "$IPFW add $fw_num_out pipe $pipe_num_out ip from $nets{$traf_type} to $CLIENT_IP via $INTERFACE out";
            }
 
 
