@@ -353,14 +353,6 @@ sub get_intervals {
          and i.tp_id  = '$self->{TP_ID}'
          and rp.route_id = '$self->{ROUTE_ID}';");
 
-
-my $aa = `echo "select i.day, TIME_TO_SEC(i.begin), TIME_TO_SEC(i.end), rp.price, i.id, rp.route_id
-      from intervals i, voip_route_prices rp
-      where
-         i.id=rp.interval_id 
-         and i.tp_id  = '$self->{TP_ID}'
-         and rp.route_id = '$self->{ROUTE_ID}';" >> /tmp/voip`;
-
    my $list = $self->{list};
    my %time_periods = ();
    my %periods_time_tarif = ();
@@ -408,8 +400,10 @@ if ($acct_status_type == 1) {
  }
 # Stop status
 elsif ($acct_status_type == 2) {
-  #$self->{debug}=1;
-  $self->query($db, "SELECT 
+
+  if ($RAD->{ACCT_SESSION_TIME} > 0) {
+    #$self->{debug}=1;
+    $self->query($db, "SELECT 
       UNIX_TIMESTAMP(started),
       lupdated,
       acct_session_id,
@@ -429,56 +423,51 @@ elsif ($acct_status_type == 2) {
       UNIX_TIMESTAMP(DATE_FORMAT(FROM_UNIXTIME(UNIX_TIMESTAMP()), '%Y-%m-%d')),
       DAYOFWEEK(FROM_UNIXTIME(UNIX_TIMESTAMP())),
       DAYOFYEAR(FROM_UNIXTIME(UNIX_TIMESTAMP()))
-   FROM voip_calls 
-    WHERE 
+    FROM voip_calls 
+      WHERE 
       conf_id='$RAD->{H323_CONF_ID}'
       and call_origin='1';");
 
-  if ($self->{TOTAL} < 1) {
-   	$self->{errno}=1;
-  	$self->{errstr}="Call not exists";
-  	$self->{Q}->finish();
-  	return $self;
-   }
-  elsif ($self->{errno}){
-  	$self->{errno}=1;
-  	$self->{errstr}="SQL error";
-  	return $self;
-   }
-
-
-  ($self->{SESSION_START},
-   $self->{LAST_UPDATE},
-   $self->{ACCT_SESSION_ID}, 
-   $self->{CALLING_STATION_ID},
-   $self->{CALLED_STATION_ID},
-   $self->{NAS_ID},
-   $self->{CLIENT_IP_ADDRESS},
-   $self->{CONF_ID},
-   $self->{CALL_ORIGIN},
-   $self->{UID},
-   $self->{REDUCTION},
-   $self->{BILL_ID},
-   $self->{TP_ID},
-   $self->{ROUTE_ID},
-   
-   $self->{SESSION_STOP},
-   $self->{DAY_BEGIN},
-   $self->{DAY_OF_WEEK},
-   $self->{DAY_OF_YEAR}
-   
-  )= @{ $self->{list}->[0] };
+    if ($self->{TOTAL} < 1) {
+   	  $self->{errno}=1;
+  	  $self->{errstr}="Call not exists";
+  	  $self->{Q}->finish();
+  	  return $self;
+     }
+    elsif ($self->{errno}){
+  	  $self->{errno}=1;
+  	  $self->{errstr}="SQL error";
+  	  return $self;
+     }
   
-
-#get intervals
+    ($self->{SESSION_START},
+     $self->{LAST_UPDATE},
+     $self->{ACCT_SESSION_ID}, 
+     $self->{CALLING_STATION_ID},
+     $self->{CALLED_STATION_ID},
+     $self->{NAS_ID},
+     $self->{CLIENT_IP_ADDRESS},
+     $self->{CONF_ID},
+     $self->{CALL_ORIGIN},
+     $self->{UID},
+     $self->{REDUCTION},
+     $self->{BILL_ID},
+     $self->{TP_ID},
+     $self->{ROUTE_ID},
+   
+     $self->{SESSION_STOP},
+     $self->{DAY_BEGIN},
+     $self->{DAY_OF_WEEK},
+     $self->{DAY_OF_YEAR}
+    
+    )= @{ $self->{list}->[0] };
+  
 
        $self->get_intervals();
        if ($self->{TOTAL} < 1) {
          $RAD_PAIRS{'Reply-Message'}="No price for route prefix '$self->{PREFIX}' number '". $RAD->{'CALLED_STATION_ID'} ."'";
          return 1, \%RAD_PAIRS;
         }
-
-my $we = `echo "($self->{SESSION_STOP} - TIME: $RAD->{ACCT_SESSION_TIME},)\n" >> /tmp/voip`;
 
        $Billing->time_calculation({
     	    REDUCTION           => $self->{REDUCTION},
@@ -493,11 +482,11 @@ my $we = `echo "($self->{SESSION_STOP} - TIME: $RAD->{ACCT_SESSION_TIME},)\n" >>
          });
   
   
-  if ($Billing->{errno}) {
-   	$self->{errno}=$Billing->{errno};
-  	$self->{errstr}=$Billing->{errstr};
-  	return $self;
-   }
+    if ($Billing->{errno}) {
+   	  $self->{errno}=$Billing->{errno};
+  	  $self->{errstr}=$Billing->{errstr};
+  	  return $self;
+     }
   
     my $filename; 
 
@@ -522,14 +511,17 @@ my $we = `echo "($self->{SESSION_STOP} - TIME: $RAD->{ACCT_SESSION_TIME},)\n" >>
          $self->query($db, "UPDATE bills SET deposit=deposit-$Billing->{SUM} WHERE id='$self->{BILL_ID}';", 'do');
        }
      }
-
+   }
+  else {
+  	
+   }
 
   # Delete from session wtmp
   $self->query($db, "DELETE FROM voip_calls 
      WHERE acct_session_id='$RAD->{ACCT_SESSION_ID}' 
      and user_name='$RAD->{USER_NAME}' 
      and nas_id='$NAS->{NAS_ID}'
-     and conf_id='$self->{CONF_ID}';", 'do');
+     and conf_id='$RAD->{H323_CONF_ID}';", 'do');
  
 }
 #Alive status 3
