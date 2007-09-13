@@ -377,6 +377,9 @@ sub auth {
     my $sessions = Dv_Sessions->new($db, $admin, \%conf);
 	  my $list = $sessions->online({ FRAMED_IP_ADDRESS => "$REMOTE_ADDR" });
     
+#    print "Content-Type: text/html\n\n";
+#    print "$list->[0]->[11]";
+    
     if ($sessions->{TOTAL} > 0) {
       $login   = $list->[0]->[0];
       $ret     = $list->[0]->[11];
@@ -385,6 +388,7 @@ sub auth {
       $h{$sid} = "$ret:$time:$login:$REMOTE_ADDR";
       untie %h;
       $action  = 'Access';
+      $user->info($ret);
       return ($ret, $sid, $login);
     }
   }

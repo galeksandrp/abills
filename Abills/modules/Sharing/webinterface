@@ -39,7 +39,7 @@ sub sharing_error {
      		  if ($message =~ /user (\S+):/) {
    		   	  $user = $1;
 		       }
-          next if ($user !~ /^$LIST_PARAMS{LOGIN}$/i || $user eq '');
+          next if ($user !~ /^$LIST_PARAMS{LOGIN}$/i || $user eq '');f:
          }
 
         push @error_log_arr, $_;
@@ -153,7 +153,7 @@ elsif ($Sharing->{TOTAL} == 1) {
 
 
 my $table = $html->table( { width      => '100%',
-                            caption    => "Dialup / VPN",
+                            caption    => "Sharing",
                             border     => 1,
                             title      => \@TITLE,
                             cols_align => ['left', 'left', 'right', 'right', 'left', 'right', 'center', 'center:noprint', 'center:noprint'],
@@ -170,7 +170,7 @@ foreach my $line (@$list) {
    }
   
   $table->addrow(
-   $html->button("$line->[0]", "index=15&UID=$line->[6+$Sharing->{SEARCH_FIELDS_COUNT}]"), 
+   $html->button("$line->[0]", "index=15&UID=$line->[7+$Sharing->{SEARCH_FIELDS_COUNT}]"), 
    "$line->[1]",
    "$line->[2]", 
    "$line->[3]", 
