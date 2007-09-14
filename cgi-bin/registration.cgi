@@ -33,11 +33,6 @@ require "config.pl";
 require "Abills/templates.pl";
 require "Abills/defs.conf";
 
-if (! defined( @REGISTRATION ) ) {
-	
-	exit;
-}
-
 use Abills::Base;
 use Abills::SQL;
 use Abills::HTML;
@@ -63,6 +58,10 @@ my $payments = Finance->payments($db, $admin, \%conf);
 $users = Users->new($db, $admin, \%conf); 
 
 print "Content-Type: text/html\n\n";
+if (! defined( @REGISTRATION ) ) {
+
+	exit;
+}
 
 $html->{language}=$FORM{language} if (defined($FORM{language}));
 require "../language/$html->{language}.pl";
