@@ -33,6 +33,11 @@ require "config.pl";
 require "Abills/templates.pl";
 require "Abills/defs.conf";
 
+if (! defined( @REGISTRATION ) ) {
+	
+	exit;
+}
+
 use Abills::Base;
 use Abills::SQL;
 use Abills::HTML;
