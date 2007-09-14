@@ -690,7 +690,7 @@ sub add {
      $self->{errstr} = 'ERROR_WRONG_NAME';
      return $self; 	
    }
-  elsif($DATA{EMAIL} ne '') {
+  elsif($DATA{EMAIL} && $DATA{EMAIL} ne '') {
     if ($DATA{EMAIL} !~ /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/) {
       $self->{errno} = 11;
       $self->{errstr} = 'ERROR_WRONG_EMAIL';

@@ -488,7 +488,7 @@ if (! defined($FORM{sort})) {
 #dv_stats_calculation($Sharing);
 
 #Session List
-my $list = $Sharing->sessions_list({ %LIST_PARAMS });	
+$list = $Sharing->sessions_list({ %LIST_PARAMS });	
 
 
 $table = $html->table( { caption     => "$_SUM",
@@ -714,6 +714,88 @@ my %status_hash = (
 
 
 
+#**********************************************************
+#
+#**********************************************************
+sub sharing_registration  {
+	my ($attr) = @_;
+	
+	if ($FORM{reg}) {
+
+    if ($FORM{EMAIL} !~ /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/) {
+      $html->message('err', $_ERROR, "$_WRONG_EMAIL");		
+      return 0;
+     }
+
+    my $password = mk_unique_value(8);
+    
+    my $user=$users->add({ LOGIN       => $FORM{LOGIN}, 
+    	                     CREATE_BILL => 1,
+    	                     PASSWORD    => $password });
+    my $message = '';
+    if (! $user->{errno}) {
+   	  my $UID = $user->{UID};
+   	  $user = $user->info($UID);
+
+      #3 personal info
+      $user->pi_add({ UID   => "$UID", 
+      	              FIO   => "$FORM{FIO}",
+      	              EMAIL => "$FORM{EMAIL}" });
+
+      if ($user->{errno}) {
+	      $html->message('err', $_ERROR, "[$user->{errno}] $err_strs{$user->{errno}}");		
+	      return 0;
+       }
+
+      #4 Dv
+   	  $Sharing->add({ UID   => $UID, 
+   	  	              TP_ID => $FORM{TP_ID} 
+   	  	             });
+
+  		if (! $Sharing->{errno}) {
+	  	  $html->tpl_show(_include('sharing_reg_complete', 'Sharing'), { %$Sharing, %FORM });
+
+        #Send mail 
+  	    my $message = $html->tpl_show(_include('sharing_reg_complete_mail', 'Sharing'), { %$Sharing, %FORM, PASSWORD => "$password" }, { notprint => 1 });
+
+  	    sendmail("$conf{ADMIN_MAIL}", "$FORM{EMAIL}", "REGISTRATION", 
+              "$message", "$conf{MAIL_CHARSET}", '');
+
+       }
+      else {
+        $html->message('err', $_ERROR, "[$Sharing->{errno}] $err_strs{$Sharing->{errno}}");
+       }
+		  return 0;
+		 }
+		else {
+	    if ($user->{errno} == 7) {
+        $html->message('err', $_ERROR, "$_USER_EXIST");		
+	     }
+	    else {
+	      $html->message('err', $_ERROR, "[$user->{errno}] $err_strs{$user->{errno}}");		
+	     }
+		 }
+		
+
+
+	 }
+	else {
+
+		#$html->message('err', $_ERROR, "$_REGISTRATION");
+	 }
+
+	 $Sharing->{TP_SEL} = $html->form_select('TP_ID', 
+                                          { 
+ 	                                          SELECTED          => $FORM{TP_ID},
+ 	                                          SEL_MULTI_ARRAY   => $Tariffs->list({ %LIST_PARAMS, TP_GID => '>0' }),
+ 	                                          MULTI_ARRAY_KEY   => 0,
+ 	                                          MULTI_ARRAY_VALUE => 1,
+ 	                                        });
+	
+   $html->tpl_show(_include('sharing_registration', 'Sharing'), $Sharing);
+
+	return 0;
+}
 
 
 

@@ -8,7 +8,6 @@ sub _include {
   my ($tpl, $module, $attr) = @_;
   my $result = '';
 
-  
   if (-f "../../Abills/templates/$module". _. "$tpl".".tpl") {
     return tpl_content("../../Abills/templates/$module". _. "$tpl".".tpl");
    }

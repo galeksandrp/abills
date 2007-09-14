@@ -539,7 +539,8 @@ sub list {
   my @WHERE_RULES = ();
 
  if (defined($attr->{TP_GID})) {
-   push @WHERE_RULES, "tp.gid='$attr->{TP_GID}'"; 
+   my $value = $self->search_expr($attr->{TP_GID}, 'INT');
+   push @WHERE_RULES, "tp.gid$value"; 
   }
 
  my $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
