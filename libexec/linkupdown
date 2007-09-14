@@ -59,6 +59,7 @@ For IPN
    set iface down-script "/usr/abills/libexec/linkupdown mpd down"
 ----------------------------------------------------------------
  For Linux:
+ (Work only with user static IP address)
  Add to /etc/ppp/ip-up.local 
    /usr/abills/libexec/linkupdown pppd up \$1 'username' \$4
 
