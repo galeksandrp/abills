@@ -1243,7 +1243,7 @@ else {
 
 my %fields = ( 
                 #Info
-                cDot11ClientAddress           => '.1.3.6.1.4.1.9.9.273.1.2.1.1.1',
+                #cDot11ClientAddress           => '.1.3.6.1.4.1.9.9.273.1.2.1.1.1',
                 cDot11ClientParentAddress     => '.1.3.6.1.4.1.9.9.273.1.2.1.1.2',
                 cDot11ClientRoleClassType     => '.1.3.6.1.4.1.9.9.273.1.2.1.1.3',
                 cDot11ClientDevType           => '.1.3.6.1.4.1.9.9.273.1.2.1.1.4',
@@ -1324,13 +1324,13 @@ if ($FORM{Client}) {
     $SNMP_HOST      = $Nas->{NAS_IP};
    }
   
-  
+ 
   my $prefix_id =($FORM{PREFIX_ID}) ? '.'.$FORM{PREFIX_ID}.'.' : '.1.7.119.108.97.110.119.101.112.' ; 
   foreach my $key (keys %fields) {
 	 	$info{$key} = snmpget("$SNMP_COMMUNITY\@$SNMP_HOST", $fields{$key}. $prefix_id . $FORM{Client});
 
-	  if ($debug  > 0) {
-	 	  print "$key: $fields{$key}$prefix_id$FORM{Client} = $info{$key}<br>";
+ 	  if ($debug  > 0) {
+	 	  print "$key: $fields{$key} / $prefix_id / $FORM{Client} = $info{$key}<br>";
       if ($SNMP_Session::errmsg) {
         print "$SNMP_Session::errmsg<br>";
       }	 	
@@ -1374,46 +1374,60 @@ $table = $html->table({ width       => '100%',
                       });
 
 my $total_sessions = 0;
-my $oid_prefix = '\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\.?\d{0,3}\.{0,1}\d{0,3}';
-my $prefix_id = '';
+my $oid_prefix = '\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\.{0,1}\d{0,3}\.{0,1}\d{0,3}'.
+ '\.{0,1}\d{0,3}\.{0,1}\d{0,3}\.{0,1}\d{0,3}\.{0,1}\d{0,3}\.{0,1}\d{0,3}';
+
+
+#Nas list
 foreach my $line (@$list) {
   my %result = ();
+  my @MAC_ARR = ();
+  my $prefix_id = '';
+  my $serie = '';
+  my $version = snmpget("$line->[11]\@$line->[3]", '.1.3.6.1.2.1.47.1.1.1.1.7.1');
+  
+  if (! $SNMP_Session::errmsg) {
 
-  foreach my $field (@default_fields) {
-    my @arr = snmpwalk("$line->[11]\@$line->[3]", $fields{$field});
-    
-    print "<b>$fields{$field}</b><br>" if ($debug == 1);
+    $serie = snmpget("$line->[11]\@$line->[3]", '.1.2.840.10036.3.1.2.1.3.1');
+    foreach my $field (@default_fields) {
+      my @arr = snmpwalk("$line->[11]\@$line->[3]", $fields{$field});
+ 
+      print "<b>$fields{$field}</b><br>" if ($debug == 1);
 
-    foreach my $line (@arr) {
-      if ('.'.$line =~ /($oid_prefix)\.(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(.+)/) {
-        $prefix_id     = $1 if ($prefix_id eq '');
-        my $sufix      = $2;
-        my $value      = $3;
-        $result{$field}{"$sufix"}=$value;
-        print "PREFIX: $prefix_id <BR>\n NAME: $field // $line<br> // Sufix: $sufix / Result: $value<br>" if ($debug == 1);
+      foreach my $line (@arr) {
+        if ('.'.$line =~ /($oid_prefix)\.(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(.+)/) {
+          $prefix_id     = $1 if ($prefix_id eq '');
+          my $sufix      = $2;
+          my $value      = $3;
+          $result{$field}{"$sufix"}=$value;
+          print "Line: $line<br>PREFIX: $prefix_id <BR>\nNAME: $field // Sufix: $sufix / Result: $value<br>" if ($debug == 1);
+         }
        }
+     }
+
+    @MAC_ARR = keys %{ $result{ $default_fields[0] } } ;
+ 
+    if ($FORM{GET_USERS}) { 
+      my $IDS = '';
+      foreach my $mac (@MAC_ARR) {
+        my @mac_arr = split(/\./, $mac);
+        for(my $i=0; $i<=$#mac_arr; $i++) {
+       	  $mac_arr[$i] = sprintf("%.2X", $mac_arr[$i]);
+         }
+        my $mac = join(':', @mac_arr);
+     	  $IDS .= "'$mac',";    	
+       }
+   	  chop($IDS);
+      $binding = snmputils_get_users({ IDS => "$IDS" });
      }
    }
-
-  my @MAC_ARR = keys %{ $result{ $default_fields[0] } } ;
- 
-  if ($FORM{GET_USERS}) { 
-    my $IDS = '';
-    foreach my $mac (@MAC_ARR) {
-      my @mac_arr = split(/\./, $mac);
-      for(my $i=0; $i<=$#mac_arr; $i++) {
-     	  $mac_arr[$i] = sprintf("%.2X", $mac_arr[$i]);
-       }
-      my $mac = join(':', @mac_arr);
-     	$IDS .= "'$mac',";    	
-     }
-   	chop($IDS);
-    $binding = snmputils_get_users({ IDS => "$IDS" });
+  else {
+  	$version = 'No response...';
    }
 
   $table->{rowcolor}=$_COLORS[0];
   $table->{extra}="colspan='". ($#CAPTION + 2) ."' class='small'";
-  $table->addrow("$line->[0]:<b>$line->[1]</b>:$line->[3] (". 
+  $table->addrow("$line->[0]:<b>$line->[1]</b>/$version, $serie/:$line->[3] (". 
   $html->button('WEB', "", { GLOBAL_URL => "http://$line->[3]" }) 
    ."):$_TOTAL: ". ( $#MAC_ARR + 1 ) );
 
