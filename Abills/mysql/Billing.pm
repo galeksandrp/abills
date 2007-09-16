@@ -926,12 +926,15 @@ sub remaining_time {
       $day_of_year
      );
 
-  my %PRICE_UNITS = (
-   Hour => 3600,
-   Min  => 60
-  );
-
- my $PRICE_UNIT = (defined($PRICE_UNITS{$attr->{PRICE_UNIT}})) ? 60 : 3600;
+  my $PRICE_UNIT = 3600;
+  if ($attr->{PRICE_UNIT}) {
+    my %PRICE_UNITS = (
+     Hour => 3600,
+     Min  => 60
+    );
+    $PRICE_UNIT = $PRICE_UNITS{$attr->{PRICE_UNIT}} if  (defined($PRICE_UNITS{$attr->{PRICE_UNIT}}));
+   }
+   
 
   
 

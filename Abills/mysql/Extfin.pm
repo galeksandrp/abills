@@ -270,5 +270,44 @@ sub customers_list {
   return $list;
 }
 
+#**********************************************************
+#
+#**********************************************************
+sub payment_deed {
+	my $self = shift;
+	my ($attr) = @_;
+	
+	$self->query($db, "SELECT
+ if(u.company_id > 0, company.bill_id, u.bill_id),
+ sum(f.sum),
+ sum(dv.sum),
+     if(u.company_id > 0, company.name,
+          if(pi.fio<>'', pi.fio, u.id)),
+                         if(u.company_id > 0, company.name,
+                            if(pi.fio<>'', pi.fio, u.id)),
+  max(date),
+  u.uid
+
+     FROM (users u)
+     LEFT JOIN users_pi pi ON (u.uid = pi.uid)
+     LEFT JOIN companies company ON  (u.company_id=company.id)
+
+     LEFT JOIN bills b ON (u.bill_id = b.id)
+     LEFT JOIN bills cb ON  (company.bill_id=cb.id)
+
+     LEFT JOIN fees f ON  (u.uid=f.uid and DATE_FORMAT(f.date, '%Y')=DATE_FORMAT(curdate(), '%Y'))
+     LEFT JOIN dv_log dv ON  (u.uid=dv.uid and DATE_FORMAT(dv.start, '%Y')=DATE_FORMAT(curdate(), '%Y'))
+
+     GROUP BY 1
+     ORDER BY 2 DESC
+
+     LIMIT $PG, $PAGE_ROWS;");
+
+  return $self if($self->{errno});
+  my $list = $self->{list};
+	
+	
+	return $list;
+}
 
 1
