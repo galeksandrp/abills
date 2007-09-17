@@ -1,3 +1,4 @@
+#!/bin/sh
 #ABillS %DATE% %TIME%
 
 if [ -f /var/run/radattr.$1 ]
@@ -10,7 +11,8 @@ if [ -f /var/run/radattr.$1 ]
  #echo $FILTERS
     /sbin/tc qdisc del dev $1 root    > /dev/null
     /sbin/tc qdisc del dev $1 ingress > /dev/null
- ##### speed server->client
+
+##### speed server->client
    if [ "$UPSPEED" != "0" ] ;
    then
      /sbin/tc qdisc add dev $1 root handle 1: htb default 20 r2q 1
@@ -21,11 +23,11 @@ if [ -f /var/run/radattr.$1 ]
      /sbin/tc qdisc add dev $1 parent 1:20 handle 20: sfq perturb 10 quantum 1500
      /sbin/tc filter add dev $1 parent 1:0 protocol ip prio 10 u32 match ip tos 0x10 0xff flowid 1:10
      /sbin/tc filter add dev $1 parent 1:0 protocol ip prio 10 u32 match ip protocol 1 0xff flowid 1:10
-     /sbin/tc filter add dev $1 parent 1: protocol ip prio 10 u32 match ip protocol 6 0xff match u8 0x05 0x0f at 0 match u160x0000 0xffc0 at 2 match u8 0x10 0xff at 33 flowid 1:10
+
+#     /sbin/tc filter add dev $1 parent 1: protocol ip prio 10 u32 match ip protocol 6 0xff match u8 0x05 0x0f at 0 match u160x0000 0xffc0 at 2 match u8 0x10 0xff at 33 flowid 1:10
    fi 
 
 ##### speed client->server
-
    if [ "$DOWNSPEED" != "0" ] ;
    then
      /sbin/tc qdisc add dev $1 handle ffff: ingress

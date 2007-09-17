@@ -113,7 +113,7 @@ sub traffic_calculations {
      FROM dv_log WHERE uid='$self->{UID}' and start>'$self->{ACTIVATE}'";
 
     my $q = $db->prepare($sql) || die $db->errstr;
-    $q ->execute();
+    $q->execute();
 
 
     if ($q->rows() > 1) {
