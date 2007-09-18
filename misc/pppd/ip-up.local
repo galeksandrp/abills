@@ -1,14 +1,20 @@
 #!/bin/sh
 #ABillS %DATE% %TIME%
+debug=0;
 
 if [ -f /var/run/radattr.$1 ]
    then
    DOWNSPEED=`/bin/awk  '/PPPD-Downstream-Speed-Limit/ {print $2}'  /var/run/radattr.$1`
    UPSPEED=`/bin/awk  '/PPPD-Upstream-Speed-Limit/ {print $2}'  /var/run/radattr.$1`
    FILTERS=`/bin/awk  '/Filter-Id/ {print $2}'  /var/run/radattr.$1`
- #echo $DOWNSPEED
- #echo $UPSPEED
- #echo $FILTERS
+
+   if [ w${debug} = w1 ] ; then
+     echo "Debug mode"
+     echo $DOWNSPEED
+     echo $UPSPEED
+     echo $FILTERS
+   fi;
+
     /sbin/tc qdisc del dev $1 root    > /dev/null
     /sbin/tc qdisc del dev $1 ingress > /dev/null
 
@@ -33,4 +39,13 @@ if [ -f /var/run/radattr.$1 ]
      /sbin/tc qdisc add dev $1 handle ffff: ingress
      /sbin/tc filter add dev $1 parent ffff: protocol ip prio 50 u32 match ip src 0.0.0.0/0 police rate ${DOWNSPEED}kbit burst 12k drop flowid :1
    fi
+
+#### Filters
+  if [ w$FILTERS != w ] ;
+  then
+
+
+  fi;
+
  fi
+
