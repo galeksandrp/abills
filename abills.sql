@@ -732,7 +732,7 @@ CREATE TABLE `voip_calls` (
   `started` datetime NOT NULL default '0000-00-00 00:00:00',
   `nas_id` smallint(6) unsigned NOT NULL default '0',
   `client_ip_address` int(11) unsigned NOT NULL default '0',
-  `conf_id` varchar(32) NOT NULL default '',
+  `conf_id` varchar(64) NOT NULL default '',
   `call_origin` tinyint(1) unsigned NOT NULL default '0',
   `uid` int(11) unsigned NOT NULL default '0',
   `tp_id` smallint(5) unsigned NOT NULL default '0',
