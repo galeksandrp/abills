@@ -1,4 +1,3 @@
----
 %MESSAGE%
 <FORM action='$SELF_URL' METHOD=POST>
 <input type=hidden name=module value='Sharing'>

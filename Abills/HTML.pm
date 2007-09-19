@@ -1232,11 +1232,8 @@ $head
   	$self->{OUTPUT}.=$output;
   	#print "aaaaaa $self->{OUTPUT}";
   	return $output;
-  	
-
    }
 	else { 
-
  	  print $output;
 	 }
 

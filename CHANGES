@@ -1,4 +1,10 @@
 =====0.37=====
+  * 19.09.2007 
+ Проверка регистрированных сессий в Linux
+  # /usr/abills/libexec/billd checkpppd
+Изминение даты активизации на текущую при внесении денег на текущую. Дата изминяется только в случае если поле активизации не равно 0000-00-00. Дата закрытия акаунта (EXPIRE) устанавливается в 0000-00-00.
+  $conf{payment_chg_activate}=1;
+
   * 10.09.2007 
 MYSQL
   ALTER TABLE voip_calls CHANGE conf_id  conf_id varchar(64) NOT NULL default '';
