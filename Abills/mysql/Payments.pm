@@ -104,11 +104,19 @@ sub add {
     $Bill->info( { BILL_ID => $user->{BILL_ID} } );
     $Bill->action('add', $user->{BILL_ID}, $DATA{SUM});
     if($Bill->{errno}) {
-       return $self;
-      }
+      return $self;
+     }
     
     $self->query($db, "INSERT INTO payments (uid, bill_id, date, sum, dsc, ip, last_deposit, aid, method, ext_id) 
            values ('$user->{UID}', '$user->{BILL_ID}', now(), '$DATA{SUM}', '$DATA{DESCRIBE}', INET_ATON('$admin->{SESSION_IP}'), '$Bill->{DEPOSIT}', '$admin->{AID}', '$DATA{METHOD}', '$DATA{EXT_ID}');", 'do');
+    
+    if ($CONF->{payment_chg_activate} && $user->{ACTIVATE} ne '0000-00-00') {
+      $user->{debug}=1;
+      $user->change($user->{UID}, { UID => $user->{UID}, 
+      	                            ACTIVATE => "$admin->{DATE}",
+      	                            EXPIRE   => '0000-00-00' });
+     }
+    
   }
   else {
     $self->{errno}=14;
