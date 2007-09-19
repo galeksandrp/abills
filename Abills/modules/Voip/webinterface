@@ -1307,6 +1307,7 @@ if ($sessions->{errno})	 {
 
 return 0 if ($sessions->{TOTAL} < 1);
 my $table = $html->table( { width        => '100%',
+                            caption      => $_SESSIONS,
                             border       => 1,
                             title        => ["$_USER", "$_START", "$_DURATION", "$_TARIF_PLAN", "CALLING_STATION_ID", "CALLED_STATION_ID", 
                                      "NAS", "IP", "$_SUM", "-", "-"],
@@ -1689,13 +1690,14 @@ if ($FORM{rows}) {
 
 #PEriods totals
 my $list = $sessions->periods_totals({ %LIST_PARAMS });
-my $table = $html->table( { width => '100%',
-                                   title_plain => ["$_PERIOD", "$_DURATION", "$_SUM"],
-                                   cols_align => ['left', 'right', 'right'],
-                                   rowcolor => $_COLORS[1]
-                                  } );
+my $table = $html->table( { width       => '100%',
+                            caption     => $_PERIOD,
+                            title_plain => ["$_PERIOD", "$_DURATION", "$_SUM"],
+                            cols_align  => ['left', 'right', 'right'],
+                            rowcolor    => $_COLORS[1]
+                        } );
 
-if (! defined($sessions->{sum_5})) {
+if (! defined($sessions->{sum_4})) {
 	$html->message('info', $_INFO, $_NO_RECORD);
 	return 0;
 }
@@ -1711,8 +1713,8 @@ $table = $html->table( { width       => '100%',
 	                       rowcolor    => $_COLORS[0],
                          title_plain => [ "$_FROM: ",  $html->date_fld('from', { MONTHES => \@MONTHES} ),
                                           "$_TO: ",    $html->date_fld('to', { MONTHES => \@MONTHES } ),
-                                          "$_ROWS: ",  $html->form_input('rows', int($conf{list_max_recs}), { SIZE => 4 } ),
-                                          $html->form_input('show', $_SHOW,  { TYPE => 'submit' })
+                                          "$_ROWS: ",  $html->form_input('rows', int($conf{list_max_recs}), { SIZE => 4, OUTPUT2RETURN => 1 } ),
+                                          $html->form_input('show', $_SHOW,  { TYPE => 'submit', OUTPUT2RETURN => 1 })
                                          ],                                   
                       });
 
@@ -1746,7 +1748,7 @@ $table = $html->table( { width       => '640',
                          title_plain => ["$_SESSIONS", "$_DURATION", "$_SUM"],
                          cols_align  => ['right', 'right', 'right'],
                          rows        => [ [ $sessions->{TOTAL}, $sessions->{DURATION}, $sessions->{SUM} ] ],
-                               } );
+                     } );
 print $table->show();	
 
 
@@ -2105,11 +2107,11 @@ print  $html->form_main({ CONTENT => $html->form_input('command', "$FORM{command
 	                        SUBMIT  => { go   => "$_SHOW"} 
 	                        });
 
- $table = $html->table({ caption => 'Commands',
-  	                      width => '100%',
-                          border => 1,
-                          title => ["_COMMAND", "_HELP"],
-                          cols_align => ['left', 'left']
+ $table = $html->table({ caption    => 'Commands',
+  	                     width      => '100%',
+                         border     => 1,
+                         title      => ["_COMMAND", "_HELP"],
+                         cols_align => ['left', 'left']
                          });
     
   foreach my $k (sort keys %gk_commands) {
