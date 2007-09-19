@@ -37,6 +37,7 @@ elsif(defined($ARGV->{help})){
   print "Help:
 CHECK exist connections
   checkppp    - check Active ppp on FreeBSD session and disconnect unknown ip
+  checkpppd   - check Active pppd on Linux session and disconnect unknown ip
   checkmikro  - check Active ppp on Mikrotik session and disconnect unknown ip.
 CHECK speed
   checkspeed  - check cure speed for user on FreeBSD NAS. Arguments NAS_ID=xx
@@ -86,10 +87,11 @@ $LIST_PARAMS{NAS_IDS}   = $ARGV->{NAS_IDS} || undef;
 $LIST_PARAMS{PAGE_ROWS} = 100000;
 $LIST_PARAMS{DISABLE}   = 0;
 
-if (defined($ARGV->{checkppp}))     { check_ppp();          }
-elsif (defined($ARGV->{checkspeed})){	check_speed();        }
+if (defined($ARGV->{checkppp}))     { check_ppp();              }
+elsif (defined($ARGV->{checkpppd})){	check_ppp({ LINUX => 1 });}
+elsif (defined($ARGV->{checkspeed})){	check_speed();            }
 elsif (defined($ARGV->{checkspeed_mikro}))   { check_speed_mikro();  }
-elsif (defined($ARGV->{checkmikro})){	check_mikro();   }
+elsif (defined($ARGV->{checkmikro})){	check_mikro();            }
 else {
   check_lines();
 }
@@ -641,10 +643,11 @@ sub check_speed_change {
 }
 
 #**********************************************************
-# check Active ppp session and disconnect unknown ip
+# check Active FreeBSD ppp session and disconnect unknown ip
 #**********************************************************
 sub check_ppp {
-  my $ip_pid_hash = get_if_info();
+  my ($attr) = @_;
+  my $ip_pid_hash = get_if_info($attr);
   get_db_info($ip_pid_hash);
 
 
@@ -703,20 +706,40 @@ sub get_pid_info {
 # Get tun interface info
 #**********************************************************
 sub get_if_info {
- my $res = '';
- my $count = 0;
+ my ($attr)   =  shift;
+ my $res      = '';
+ my $count    = 0;
  my $ifconfig = '';
 
  my %ip_pid_hash = ();
 
- open (IFC, "$IFCONFIG |") || die "Can't open file '$IFCONFIG' $!";
-  while (my $l = <IFC>) {
-     $ifconfig .= $l;
-    }
- close(IFC);
+#For linux
+if ($attr->{LINUX}) {
+  open (IFC, "/sbin/ip addr list |") || die "Can't open file '/sbin/ip addr list' $!"; 
+    while (my $l = <IFC>) { 
+      if($l =~ /inet (\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3}) peer (\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3})\/\d+ scope global ppp(\d+)$/gi) { 
+        my $tunnum = $3; 
+        my $pid    = 0; 
+        my $addr   = $2; 
 
+        $pid = `cat /var/run/ppp$3.pid`; 
+        chomp($pid); 
 
- while($ifconfig =~ /tun(\d+): (.+\n\s.+\n\s.*[\n\sa-zA-Z0-9]+\n)/gi) {
+        print "$tunnum $addr $pid\n" if ($debug > 0); 
+        $ip_pid_hash{"$addr"}="$pid:$tunnum"; 
+      } 
+     }
+  close(IFC); 
+ }
+#For FreeBSD
+else {
+  open (IFC, "$IFCONFIG |") || die "Can't open file '$IFCONFIG' $!";
+    while (my $l = <IFC>) {
+      $ifconfig .= $l;
+     }
+  close(IFC);
+
+  while($ifconfig =~ /tun(\d+): (.+\n\s.+\n\s.*[\n\sa-zA-Z0-9]+\n)/gi) {
     my $tunnum = $1;
     my $res    = $2;
 
@@ -741,7 +764,8 @@ sub get_if_info {
      }
     print "$tunnum $addr $pid\n" if ($debug == 1);
     $ip_pid_hash{"$addr"}="$pid:$tunnum";
-  }
+   }
+ }
 
   return \%ip_pid_hash;
 }
