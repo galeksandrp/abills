@@ -773,7 +773,7 @@ sub user_form {
    	 $user_info->{GID} = sel_groups();
     }
    elsif ($admin->{GID}) {
-   	 $user_info->{GID} .= "<input type='hidden' name='GID' value='$admin->{GID}'>";
+   	 $user_info->{GID} .= "<input type='hidden' name='GID' value='$admin->{GID}'/>";
     }
    else {
    	 $user_info->{GID} = sel_groups();
@@ -2312,8 +2312,8 @@ my $SEL_LANGUAGE = $html->form_select('language',
 
 print << "[END]";
 <form action="$SELF_URL" METHOD="POST">
-<input type="hidden" name="index" value="$index">
-<input type="hidden" name="AWEB_OPTIONS" value="1">
+<input type="hidden" name="index" value="$index"/>
+<input type="hidden" name="AWEB_OPTIONS" value="1"/>
 <TABLE width="640" cellspacing="0" cellpadding="0" border="0"><tr><TD bgcolor="$_COLORS[4]">
 <TABLE width="100%" cellspacing="1" cellpadding="0" border="0"><tr bgcolor="$_COLORS[1]"><td colspan="2">$_LANGUAGE:</td>
 <td>$SEL_LANGUAGE</td></tr>
@@ -2333,13 +2333,13 @@ print "
 <br>
 <table width=\"100%\">
 <tr><td colspan=\"2\">&nbsp;</td></tr>
-<tr><td>$_REFRESH (sec.):</td><td><input type='input' name='REFRESH' value='$REFRESH'></td></tr>
-<tr><td>$_ROWS:</td><td><input type='input' name='PAGE_ROWS' value='$PAGE_ROWS'></td></tr>
+<tr><td>$_REFRESH (sec.):</td><td><input type='input' name='REFRESH' value='$REFRESH'/></td></tr>
+<tr><td>$_ROWS:</td><td><input type='input' name='PAGE_ROWS' value='$PAGE_ROWS'/></td></tr>
 </table>
 </td></tr></table>
 <br>
-<input type='submit' name='set' value='$_SET'> 
-<input type='submit' name='default' value='$_DEFAULT'>
+<input type='submit' name='set' value='$_SET'/> 
+<input type='submit' name='default' value='$_DEFAULT'/>
 </form><br>\n";
    
 my %profiles = ();
@@ -3781,7 +3781,7 @@ if (defined($attr->{SIMPLE})) {
 
 	my $SEARCH_FIELDS = $attr->{SIMPLE};
 	while(my($k, $v)=each( %$SEARCH_FIELDS )) {
-	  $SEARCH_DATA{SEARCH_FORM}.="<tr><td>$k:</td><td><input type=\"text\" name=\"$v\" value=\"%". $v ."%\"></td></tr>\n";
+	  $SEARCH_DATA{SEARCH_FORM}.="<tr><td>$k:</td><td><input type=\"text\" name=\"$v\" value=\"%". $v ."%\"/></td></tr>\n";
 	 }
 
   $html->tpl_show(templates('form_search_simple'), \%SEARCH_DATA);

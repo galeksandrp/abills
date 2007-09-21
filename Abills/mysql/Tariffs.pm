@@ -48,7 +48,8 @@ my %FIELDS = ( TP_ID            => 'id',
                RAD_PAIRS        => 'rad_pairs',
                TRAFFIC_TRANSFER_PERIOD => 'traffic_transfer_period',
                NEG_DEPOSIT_FILTER_ID   => 'neg_deposit_filter_id',
-               TP_GID           => 'gid'
+               TP_GID           => 'gid',
+               MODULE           => 'module'
              );
 
 #**********************************************************
@@ -376,7 +377,10 @@ sub defaults {
             RAD_PAIRS               => '',
             TRAFFIC_TRANSFER_PERIOD => 0,
             NEG_DEPOSUT_FILTER_ID   => '',
-            TP_GID           => 0
+            TP_GID           => 0,
+            MODULE           => ''
+            
+            
          );   
  
   $self = \%DATA;
@@ -400,7 +404,7 @@ sub add {
      day_traf_limit, week_traf_limit,  month_traf_limit,
      activate_price, change_price, credit_tresshold, age, octets_direction,
      max_session_duration, filter_id, payment_type, min_session_cost, rad_pairs, 
-     traffic_transfer_period, neg_deposit_filter_id, gid)
+     traffic_transfer_period, neg_deposit_filter_id, gid, module)
     values ('$DATA{TP_ID}', '$DATA{TIME_TARIF}', '$DATA{ALERT}', \"$DATA{NAME}\", 
      '$DATA{MONTH_FEE}', '$DATA{DAY_FEE}', '$DATA{REDUCTION_FEE}', '$DATA{POSTPAID_FEE}', 
      '$DATA{SIMULTANEONSLY}', 
@@ -411,7 +415,7 @@ sub add {
      '$DATA{PAYMENT_TYPE}', '$DATA{MIN_SESSION_COST}', '$DATA{RAD_PAIRS}', 
      '$DATA{TRAFFIC_TRANSFER_PERIOD}',
      '$DATA{NEG_DEPOSIT_FILTER_ID}',
-     '$DATA{TP_GID}');", 'do' );
+     '$DATA{TP_GID}', '$DATA{MODULE}');", 'do' );
 
 
   return $self;
@@ -518,7 +522,8 @@ sub info {
    $self->{RAD_PAIRS},
    $self->{TRAFFIC_TRANSFER_PERIOD},
    $self->{TP_GID},
-   $self->{NEG_DEPOSIT_FILTER_ID}
+   $self->{NEG_DEPOSIT_FILTER_ID},
+   $self->{MODULE}
   ) = @{ $self->{list}->[0] };
 
 
@@ -541,6 +546,10 @@ sub list {
  if (defined($attr->{TP_GID})) {
    my $value = $self->search_expr($attr->{TP_GID}, 'INT');
    push @WHERE_RULES, "tp.gid$value"; 
+  }
+
+ if (defined($attr->{MODULE})) {
+   push @WHERE_RULES, "tp.module='$attr->{MODULE}'"; 
   }
 
  my $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
@@ -869,6 +878,7 @@ sub holidays_list {
   my $format = (defined($attr->{format}) && $attr->{format} eq 'daysofyear') ? "DAYOFYEAR(CONCAT($year, '-', day)) as dayofyear" : 'day';
 
   $self->query($db, "SELECT $format, descr  FROM holidays ORDER BY $SORT $DESC;");
+
 	return $self->{list};
 }
 

@@ -263,7 +263,7 @@ sub form_info {
   $user->pi();
   
   use Finance;
-  my $payments = Finance->payments($db, $admin);
+  my $payments = Finance->payments($db, $admin, \%conf);
   $LIST_PARAMS{PAGE_ROWS}=1;
   $LIST_PARAMS{DESC}='desc';
   $LIST_PARAMS{SORT}=1;

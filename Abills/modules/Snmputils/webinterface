@@ -16,10 +16,24 @@ use BER;
 use Carp;
 
 
+my $threads = 0;
+
 require "Abills/nas.pl";
 
 my $Nas = Nas->new($db, \%conf);
 my $Snmputils = Snmputils->new($db, $admin, \%conf);
+
+
+eval { require threads; };
+if (! $@) {
+  threads->import();
+  $threads = 1;
+ }
+else {
+  #print "Can't load 'threads'\n";
+  #print $@ if ($conf{debugmods} =~ /LOG_DEBUG/);
+  #exit; #return 0;
+ }
 
 
 my $debug=0;
@@ -1216,6 +1230,9 @@ sub snmputils_dlink_pb_monitor {
 #*******************************************************************
 sub snmputils_ciscoair {
 
+
+
+
 my $list;
 if ($FORM{'SNMP_HOST'} ne '') {
  $list = [[ '1', 
@@ -1423,6 +1440,7 @@ foreach my $line (@$list) {
    }
   else {
   	$version = 'No response...';
+  	$SNMP_Session::errmsg=undef;
    }
 
   $table->{rowcolor}=$_COLORS[0];

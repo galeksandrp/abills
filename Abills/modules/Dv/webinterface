@@ -570,7 +570,7 @@ print $table->show();
 $table = $html->table( { width      => '100%',
                          cols_align => ['right', 'right'],
                          rows       => [ [ "$_TOTAL:", "<b>$tariffs->{TOTAL}</b>" ] ]
-                               } );
+                     } );
 print $table->show();
 
 }
@@ -1594,7 +1594,7 @@ $table = $html->table( { width       => '100%',
                          rows        => [[ "$_FROM: ",  $html->date_fld('from', { MONTHES => \@MONTHES} ),
                                           "$_TO: ",    $html->date_fld('to', { MONTHES => \@MONTHES } ),
                                           $html->form_select('DIMENSION', { SELECTED   => $FORM{DIMENSION},
- 	                                                                          SEL_ARRAY  => ['', 'Kb', 'Mb', 'Gb']
+ 	                                                                          SEL_ARRAY  => ['Auto', 'Kb', 'Mb', 'Gb']
                               	                                           }
                               	                             ),
                                           "$_ROWS: ",  $html->form_input('rows', int($conf{list_max_recs}), { SIZE => 4 } ),
@@ -1794,7 +1794,7 @@ $table = $html->table({ width       => '100%',
                         rows        => [[ "$_FROM: ", $html->date_fld('from', { MONTHES => \@MONTHES} ),
                                          "$_TO: ",   $html->date_fld('to', { MONTHES => \@MONTHES } ),
                                           $html->form_select('DIMENSION', { SELECTED   => $FORM{DIMENSION},
- 	                                                                          SEL_ARRAY  => ['', 'Kb', 'Mb', 'Gb']
+ 	                                                                          SEL_ARRAY  => ['Auto', 'Kb', 'Mb', 'Gb']
                               	                                           }
                               	                             ),
                                          "$_ROWS: ", $html->form_input('rows', int($conf{list_max_recs}), { SIZE => 4, OUTPUT2RETURN => 1 } ),
@@ -2249,7 +2249,7 @@ sub dv_monthly_fees {
 
  foreach my $line (@$list) {
  	 if ($line->[6] > 0) {
- 	   $debug_output .= "TP ID: $line->[0] MF: $line->[6] POSTPAID: $line->[12] REDUCTION: $line->[11] \n" if ($debug > 1);
+ 	   $debug_output .= "TP ID: $line->[0] MF: $line->[6] POSTPAID: $line->[12] REDUCTION: $line->[11]\n" if ($debug > 1);
 
 	   my $ulist = $Dv->list({ 
          ACTIVATE   => ">=$ADMIN_REPORT{DATE}",
@@ -2259,6 +2259,7 @@ sub dv_monthly_fees {
          SORT       => 1,
          PAGE_ROWS  => 100000
  	   	 });
+
 #u.id, u.fio, if(acct.id IS NULL, u.deposit, acct.deposit), u.credit, tp.name, u.disable, 
 #      u.uid, u.account_id, u.email, u.tp_id, u.activate, u.expire
 

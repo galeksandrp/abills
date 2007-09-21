@@ -336,3 +336,5 @@ $_NEG_DEPOSIT_FILTER_ID="Negative deposit filter ID";
 $_USER_CHG_TP='User change tarif plan';
 $_NOT_ALLOW='No Allow operation';
 $_IP_IN_USE='THIS IP IS CURRENTLY IN USE BY OTHER USER';
+$_EXPORT='Export';
+$_IMPORT='Import';
