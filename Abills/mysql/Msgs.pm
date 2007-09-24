@@ -128,7 +128,7 @@ sub messages_list {
 
 
 #**********************************************************
-# Bill
+# Message
 #**********************************************************
 sub message_add {
 	my $self = shift;
@@ -407,6 +407,133 @@ sub chapter_change {
 }
 
 
+#**********************************************************
+# accounts_list
+#**********************************************************
+sub chapters_list {
+  my $self = shift;
+  my ($attr) = @_;
+
+  $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+  $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+
+  @WHERE_RULES = ();
+ 
+ if($attr->{NAME}) {
+	 push @WHERE_RULES, "mc.name='$attr->{NAME}'"; 
+  }
+ 
+ $WHERE = ($#WHERE_RULES > -1) ? 'WHERE ' . join(' and ', @WHERE_RULES)  : '';
+
+
+  $self->query($db,   "SELECT mc.id, mc.name, count(*)
+    FROM msgs_chapters mc
+    LEFT JOIN msgs_messages m ON (mc.id=m.chapter)
+    $WHERE
+    GROUP BY mc.id 
+    ORDER BY $SORT $DESC;");
+
+ my $list = $self->{list};
+
+ if ($self->{TOTAL} > 0) {
+   $self->query($db, "SELECT count(*)
+     FROM msgs_chapters mc
+     $WHERE");
+
+   ($self->{TOTAL}) = @{ $self->{list}->[0] };
+  }
+ 
+ 
+	return $list;
+}
+
+
+#**********************************************************
+# chapter_add
+#**********************************************************
+sub chapter_add {
+	my $self = shift;
+	my ($attr) = @_;
+  
+ 
+  %DATA = $self->get_data($attr, { default => \%DATA }); 
+ 
+
+  $self->query($db, "insert into msgs_chapters (name)
+    values ('$DATA{NAME}');", 'do');
+
+	return $self;
+}
+
+
+
+
+#**********************************************************
+# chapter_del
+#**********************************************************
+sub chapter_del {
+	my $self = shift;
+	my ($attr) = @_;
+
+  @WHERE_RULES=();
+
+  if ($attr->{ID}) {
+  	 push @WHERE_RULES, "id='$attr->{ID}'";
+   }
+
+  $WHERE = ($#WHERE_RULES > -1) ? join(' and ', @WHERE_RULES)  : '';
+  $self->query($db, "DELETE FROM msgs_chapters WHERE $WHERE", 'do');
+
+	return $self;
+}
+
+#**********************************************************
+# Bill
+#**********************************************************
+sub chapter_info {
+	my $self = shift;
+	my ($id, $attr) = @_;
+
+
+  $self->query($db, "SELECT id,  name
+    FROM msgs_chapters 
+  WHERE id='$id'");
+
+  if ($self->{TOTAL} < 1) {
+     $self->{errno} = 2;
+     $self->{errstr} = 'ERROR_NOT_EXIST';
+     return $self;
+   }
+
+  ($self->{ID}, 
+   $self->{NAME}
+  )= @{ $self->{list}->[0] };
+
+	return $self;
+}
+
+
+#**********************************************************
+# change()
+#**********************************************************
+sub chapter_change {
+  my $self = shift;
+  my ($attr) = @_;
+  
+  my %FIELDS = (ID          => 'id',
+                NAME        => 'name'
+             );
+
+
+  $self->changes($admin,  { CHANGE_PARAM => 'ID',
+                   TABLE        => 'msgs_chapters',
+                   FIELDS       => \%FIELDS,
+                   OLD_INFO     => $self->chapter_info($attr->{ID}),
+                   DATA         => $attr
+                  } );
+
+  return $self->{result};
+}
 
 
 
