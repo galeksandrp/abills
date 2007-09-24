@@ -121,16 +121,12 @@ $table = $html->table({ width      => '100%',
                         rows       => [ [ "$_TOTAL:", "<b>$Msgs->{TOTAL}</b>" ] ]
                       });
 print $table->show();
-
-  
-  
 }
 
 #*******************************************************************
 #
 #*******************************************************************
 sub msgs_user {
-
 	 $Msgs->{STATE_SEL} =  $html->form_select('STATE', 
                                           { 
  	                                          SELECTED          => $Msgs->{STATE},

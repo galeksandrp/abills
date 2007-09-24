@@ -1,9 +1,11 @@
 #!/bin/sh
+# ABILLS Certificat creator
 
 SSL=/usr/local/openssl
 export PATH=/usr/src/crypto/openssl/apps/:${SSL}/bin/:${SSL}/ssl/misc:${PATH}
 export LD_LIBRARY_PATH=${SSL}/lib
 CA_pl=CA.pl;
+
 hostname=`hostname`;
 password=whatever;
 days=730;
@@ -73,7 +75,7 @@ else if [ w$1 = wapache ]; then
 
   chmod u=r,go= ${CERT_PATH}/server.key
   chmod u=r,go= ${CERT_PATH}/server.crt
-  chown www server.crt server.csr
+  chown ${APACHE_USER} server.crt server.csr
 
   cp server.key server.key.org
 
