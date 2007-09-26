@@ -277,6 +277,11 @@ sub payment_deed {
 	my $self = shift;
 	my ($attr) = @_;
  
+ my %PAYMENT_DEED = ();
+ my %NAMES=();
+ 
+ my $MONTH = $attr->{MONTH};
+ 
  #Get fees
  $self->query($db, "SELECT
  if(u.company_id > 0, company.bill_id, u.bill_id),
@@ -285,9 +290,9 @@ sub payment_deed {
           if(pi.fio<>'', pi.fio, u.id)),
                          if(u.company_id > 0, company.name,
                             if(pi.fio<>'', pi.fio, u.id)),
-  max(date),
-  u.uid
-
+  if(u.company_id > 0, 1, 0),
+  u.uid,
+  max(date)
      FROM (users u, fees f)
      LEFT JOIN users_pi pi ON (u.uid = pi.uid)
      LEFT JOIN companies company ON  (u.company_id=company.id)
@@ -295,43 +300,53 @@ sub payment_deed {
      LEFT JOIN bills b ON (u.bill_id = b.id)
      LEFT JOIN bills cb ON  (company.bill_id=cb.id)
 
-     WHERE u.uid=f.uid and DATE_FORMAT(f.date, '%Y-%m')=DATE_FORMAT(curdate(), '%Y-%m')
+     WHERE u.uid=f.uid and DATE_FORMAT(f.date, '%Y-%m')='$MONTH'
      GROUP BY 1
      ORDER BY $SORT $DESC 
    ;");
-	
-# $self->query($db, "SELECT
-# if(u.company_id > 0, company.bill_id, u.bill_id),
-# sum(f.sum),
-# sum(dv.sum),
-#     if(u.company_id > 0, company.name,
-#          if(pi.fio<>'', pi.fio, u.id)),
-#                         if(u.company_id > 0, company.name,
-#                            if(pi.fio<>'', pi.fio, u.id)),
-#  max(date),
-#  u.uid
-#
-#     FROM (users u)
-#     LEFT JOIN users_pi pi ON (u.uid = pi.uid)
-#     LEFT JOIN companies company ON  (u.company_id=company.id)
-#
-#     LEFT JOIN bills b ON (u.bill_id = b.id)
-#     LEFT JOIN bills cb ON  (company.bill_id=cb.id)
-#
-#     LEFT JOIN fees f ON  (u.uid=f.uid and DATE_FORMAT(f.date, '%Y')=DATE_FORMAT(curdate(), '%Y'))
-#     LEFT JOIN dv_log dv ON  (u.uid=dv.uid and DATE_FORMAT(dv.start, '%Y')=DATE_FORMAT(curdate(), '%Y'))
-#
-#     GROUP BY 1
-#     ORDER BY 2 DESC
-#
-#     LIMIT $PG, $PAGE_ROWS;");
 
-  return $self if($self->{errno});
-  my $list = $self->{list};
+  foreach my $line (@{ $self->{list} } ) {
+  	$PAYMENT_DEED{$line->[0]}=$line->[1];
+  	$NAMES{$line->[0]}=$line->[2];
+   }
+	
+ $self->query($db, "SELECT
+ if(u.company_id > 0, company.bill_id, u.bill_id),
+ sum(dv.sum),
+ if(u.company_id > 0, company.name,
+          if(pi.fio<>'', pi.fio, u.id)),
+                         if(u.company_id > 0, company.name,
+                            if(pi.fio<>'', pi.fio, u.id)),
+  if(u.company_id > 0, 1, 0),
+  u.uid
+     FROM (users u, dv_log dv)
+     LEFT JOIN users_pi pi ON (u.uid = pi.uid)
+     LEFT JOIN companies company ON  (u.company_id=company.id)
+
+     LEFT JOIN bills b ON (u.bill_id = b.id)
+     LEFT JOIN bills cb ON  (company.bill_id=cb.id)
+
+     WHERE u.uid=dv.uid and DATE_FORMAT(dv.start, '%Y-%m')='$MONTH'
+     GROUP BY 1
+     ORDER BY 2 DESC
+   ;");
+
+
+  foreach my $line (@{ $self->{list} } ) {
+    if (! $PAYMENT_DEED{$line->[0]}) {
+  	  $PAYMENT_DEED{$line->[0]}+=$line->[1];
+  	  $NAMES{$line->[0]}=$line->[2];
+  	 }
+   }
+
+
+  $self->{PAYMENT_DEED}=\%PAYMENT_DEED;
+  $self->{NAMES}=\%NAMES;
+
 	
 	
 	
-	return $list;
+	return $self;
 }
 
 1

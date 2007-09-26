@@ -604,7 +604,7 @@ CREATE TABLE `tarif_plans` (
   `reduction_fee` tinyint(1) unsigned NOT NULL default '0',
   `postpaid_fee` tinyint(1) unsigned NOT NULL default '0',
   `module` varchar(12) default NULL,
-  `traffic_transfer` tinyint(4) unsigned NOT NULL default '0',
+  `traffic_transfer_period` tinyint(4) unsigned NOT NULL default '0',
   `gid` smallint(6) unsigned NOT NULL default '0',
   `neg_deposit_filter_id` varchar(15) NOT NULL default '',
   PRIMARY KEY  (`id`),

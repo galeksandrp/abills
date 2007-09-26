@@ -73,28 +73,28 @@ sub exfin_export_customers {
    }
   elsif ($FORM{TYPE} && $FORM{TYPE} eq 'PAYMENT_DEED') {
 
-    my $list = $Extfin->payment_deed({ %LIST_PARAMS });
+    $LIST_PARAMS{MONTH}='2007-09';
+    $Extfin->{debug}=1;
+    
+    my $self = $Extfin->payment_deed({ %LIST_PARAMS });
 
-    my $table = $html->table( { width      => '100%',
-                                caption    => "PAYMENT_DEED",
-                                title      => ['ID', $_NAME, $_FIO, "$_GROUP ID", "$_GROUP", $_TYPE, $_ADDRESS, 
-                                  $_PHONE, $_CONTRACT_ID, 'BILL ID', "BANK ACCOUNT", 'BANK NAME', 'COR ACCT' ],
-                                ID         => 'EXTFIN_CUSTOMERS'
-  #                          cols_align => ['right', 'right', 'left', 'right', 'left', 'left', 'right', 'center'],
+    my $table = $html->table({ width      => '100%',
+                               caption    => "PAYMENT_DEED $LIST_PARAMS{MONTH}",
+                               title      => ['ID', $_NAME, "$_SUM" ],
+                               ID         => 'EXTFIN_CUSTOMERS',
+                               cols_align => ['right', 'left', 'left', 'left', 'right', 'center'],
   #                          qs         => $pages_qs,
   #                          pages      => $Docs->{TOTAL}
                           });
 
 
 
-    foreach my $line ( @$list ) {
-      $table->addrow($line->[0],
-       $line->[1],
-       $line->[2],
-       $line->[3],
-       $line->[4],
-       $line->[5],
-       $line->[6]);
+
+    foreach my $id ( keys %{ $Extfin->{PAYMENT_DEED} } ) {
+      $table->addrow($id,
+       $Extfin->{NAMES}{$id},
+       $Extfin->{PAYMENT_DEED}{$id},
+      );
      }
 
     print $table->show();
@@ -120,6 +120,15 @@ sub exfin_export_customers {
   $Extfin->{TYPE_SEL} = $html->form_select('TYPE', 
                                     { 
  	                                   SELECTED    => $FORM{TYPE},
+ 	                                   SEL_HASH    => { CUSTOMERS    => $_USERS,
+ 	                                   	                PAYMENT_DEED => '_PAYMENT_DEED'
+ 	                                   	               },
+                                     NO_ID       => 1
+ 	                                  });
+  
+  $Extfin->{DATE_SEL} = $html->form_select('TYPE', 
+                                    { 
+ 	                                   SELECTED    => $FORM{MONTH},
  	                                   SEL_HASH    => { CUSTOMERS    => $_USERS,
  	                                   	                PAYMENT_DEED => '_PAYMENT_DEED'
  	                                   	               },
