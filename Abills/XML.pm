@@ -791,6 +791,19 @@ sub addtd {
 }
 
 
+
+#*******************************************************************
+# Extendet add rows
+# th()
+#*******************************************************************
+sub th {
+	my $self = shift;
+	my ($value, $attr) = @_;
+	
+	return $self->td($value, { TH => 1 } );
+}
+
+
 #*******************************************************************
 # Extendet add rows
 # td()
@@ -805,7 +818,13 @@ sub td {
     $extra.=" $k=\"$v\"";
    }
 
-  my $td = "<TD$extra>$value</TD>";
+  my $td = '';
+  if ($attr->{TH}) {
+  	$td = "<TH $extra>$value</TH>";
+   }
+  else {
+    $td = "<TD$extra>$value</TD>";
+   }
   return $td;
 }
 
