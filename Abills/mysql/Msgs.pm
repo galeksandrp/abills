@@ -410,7 +410,7 @@ sub chapter_change {
 #**********************************************************
 # accounts_list
 #**********************************************************
-sub chapters_list {
+sub admin_list {
   my $self = shift;
   my ($attr) = @_;
 
@@ -426,7 +426,7 @@ sub chapters_list {
  $WHERE = ($#WHERE_RULES > -1) ? 'WHERE ' . join(' and ', @WHERE_RULES)  : '';
 
 
-  $self->query($db,   "SELECT mc.id, mc.name, count(*)
+  $self->query($db, "SELECT mc.id, mc.name, count(*)
     FROM msgs_chapters mc
     LEFT JOIN msgs_messages m ON (mc.id=m.chapter)
     $WHERE
@@ -451,7 +451,7 @@ sub chapters_list {
 #**********************************************************
 # chapter_add
 #**********************************************************
-sub chapter_add {
+sub admin_change {
 	my $self = shift;
 	my ($attr) = @_;
   
@@ -471,7 +471,7 @@ sub chapter_add {
 #**********************************************************
 # chapter_del
 #**********************************************************
-sub chapter_del {
+sub admin_del {
 	my $self = shift;
 	my ($attr) = @_;
 
@@ -490,7 +490,7 @@ sub chapter_del {
 #**********************************************************
 # Bill
 #**********************************************************
-sub chapter_info {
+sub admin_info {
 	my $self = shift;
 	my ($id, $attr) = @_;
 
@@ -513,27 +513,7 @@ sub chapter_info {
 }
 
 
-#**********************************************************
-# change()
-#**********************************************************
-sub chapter_change {
-  my $self = shift;
-  my ($attr) = @_;
-  
-  my %FIELDS = (ID          => 'id',
-                NAME        => 'name'
-             );
 
-
-  $self->changes($admin,  { CHANGE_PARAM => 'ID',
-                   TABLE        => 'msgs_chapters',
-                   FIELDS       => \%FIELDS,
-                   OLD_INFO     => $self->chapter_info($attr->{ID}),
-                   DATA         => $attr
-                  } );
-
-  return $self->{result};
-}
 
 
 

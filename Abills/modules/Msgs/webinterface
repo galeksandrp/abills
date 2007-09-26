@@ -15,6 +15,28 @@ my $users = Users->new($db, $admin, \%conf);
 sub msgs_admins {
 
 
+my $list = $Msgs->admin_list({ %LIST_PARAMS });
+  
+  
+  my $table = $html->table( { width      => '100%',
+                              caption    => "$_ADMINS",
+                              title      => [$_ADMIN, "$_CHAPTERS", "_PRIORITY", "-"],
+                              cols_align => ['left', 'left', 'right', 'center:noprint' ],
+                              qs         => $pages_qs,
+                           });
+
+
+foreach my $line (@$list) {
+  $table->addrow(
+     $line->[0], 
+     $line->[1], 
+     $line->[2],
+     $html->button("$_CHANGE", "index=$index&chg=$line->[3]"),
+   );
+}
+
+print $table->show();
+
 }
 
 #*******************************************************************

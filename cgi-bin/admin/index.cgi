@@ -963,7 +963,7 @@ sub user_pi {
   if($user_pi->{TOTAL} < 1) {
   	$user_pi->{ACTION}='add';
    	$user_pi->{LNG_ACTION}=$_ADD;
-    }
+   }
   else {
  	  $user_pi->{ACTION}='change';
 	  $user_pi->{LNG_ACTION}=$_CHANGE;
@@ -988,7 +988,16 @@ if(defined($attr->{USER})) {
    }
 
   print "<table width=\"100%\" border=\"0\" cellspacing=\"1\" cellpadding=\"2\"><tr><td valign=\"top\" align=\"center\">\n";
-  
+  #Make service menu
+  my $service_menu = '';
+  my $service_func_index = 0;
+  foreach my $key ( sort keys %menu_items) {
+	  if (defined($menu_items{$key}{20})) {
+	  	$service_func_index=$key if ($service_func_index == 0);
+		  $service_menu .= '<li>'. $html->button($menu_items{$key}{20}, "UID=$user_info->{UID}&index=$key");
+	   }
+   }
+  #
   
   form_passwd({ USER => $user_info}) if (defined($FORM{newpassword}));
 
@@ -1013,62 +1022,90 @@ if(defined($attr->{USER})) {
    }
   elsif ($FORM{del_user} && $FORM{is_js_confirmed} && $index == 15 && $permissions{0}{5} ) {
     user_del({ USER => $user_info });
-#    $user_info->del();
-#    if ($user_info->{errno}) {
-#      $html->message('err', $_ERROR, "[$user_info->{errno}] $err_strs{$user_info->{errno}}");	
-#     }
-#    else {
-#      $html->message('info', $_DELETE, "$_DELETED <br>from tables<br>$users->{info}");
-#     }
-#    
-#    $conf{DELETE_USER}=$user_info->{UID};
-#
-#    my $mods = '';
-#    foreach my $mod (@MODULES) {
-#    	$mods .= "$mod,";
-#    	require "Abills/modules/$mod/webinterface";
-#     }
-#
     print "</td></tr></table>\n";
     return 0;
    }
   else {
-
     @action = ('change', $_CHANGE);
     user_form($user_info);
     
-    user_pi({ USER => $user_info });
+    #$service_func_index
+    if ($functions{$service_func_index}) {
+      $index = $service_func_index;
+      if(defined($module{$service_func_index})) {
+        my $lang_file = '';
+        foreach my $prefix (@INC) {
+          my $realfilename = "$prefix/Abills/modules/$module{$service_func_index}/lng_$html->{language}.pl";
+          if (-f $realfilename) {
+            $lang_file =  $realfilename;
+            last;
+           }
+          elsif (-f "$prefix/Abills/modules/$module{$service_func_index}/lng_english.pl") {
+      	    $lang_file = "$prefix/Abills/modules/$module{$service_func_index}/lng_english.pl";
+           }
+         }
 
+        if ($lang_file ne '') {
+          require $lang_file;
+         }
+   	 	  require "Abills/modules/$module{$service_func_index}/webinterface";
+       }
+  
+    $functions{$service_func_index}->({ USER => $user_info });
+
+##  if(defined($FORM{UID}) && $FORM{UID} > 0) {
+##  	my $ui = user_info($FORM{UID});
+##  	if($ui->{errno}==2) {
+##  		$html->message('err', $_ERROR, "[$FORM{UID}] $_USER_NOT_EXIST")
+##  	 }
+##    elsif ($admin->{GID} > 0 && $ui->{GID} != $admin->{GID}) {
+##    	$html->message('err', $_ERROR, "[$FORM{UID}] $_USER_NOT_EXIST")
+##     }
+##  	else {
+##  	  $functions{$index}->({ USER => $ui });
+##  	  #$LIST_PARAMS{LOGIN} = '11111';
+##  	}
+##   }
+##  elsif ($index == 0) {
+##  	form_start();
+##   }
+##  else {
+##     $functions{$index}->();
+##   }
+}
+    
+    
+    
+    
+    
+    user_pi({ USER => $user_info });
    }
 
 
 
 
-my $payments = (defined($permissions{1})) ? '<li/>'. $html->button($_PAYMENTS, "UID=$user_info->{UID}&index=2") : '';
-my $fees = (defined($permissions{2})) ? '<li/>' .$html->button($_FEES, "UID=$user_info->{UID}&index=3") : '';
+my $payments = (defined($permissions{1})) ? '<li>'. $html->button($_PAYMENTS, "UID=$user_info->{UID}&index=2") : '';
+my $fees = (defined($permissions{2})) ? '<li>' .$html->button($_FEES, "UID=$user_info->{UID}&index=3") : '';
 
 print "
 </td><td bgcolor='$_COLORS[3]' valign='top' width='180'>
 <table width='100%' border='0'><tr><td><ul>
       $payments
       $fees
-      <li/>". $html->button($_SEND_MAIL, "UID=$user_info->{UID}&index=31").
+      <li>". 
+$html->button($_SEND_MAIL, "UID=$user_info->{UID}&index=31").
+
 "</ul>\n</td></tr>
 <tr><td> 
-  <ul>\n";
+  <ul>
+
+$service_menu
+
+</ul><ul>\n";
 
 
-#Show services
 
-while(my($k, $v)=each %menu_items) {
-	if (defined($menu_items{$k}{20})) {
-		print '<li/>'. $html->button($menu_items{$k}{20}, "UID=$user_info->{UID}&index=$k");
-	 }
-}
 
-#
-
-print  "</ul><ul>\n";
 my %userform_menus = (
              22 =>  $_LOG,
              17 =>  $_PASSWD,
@@ -1086,10 +1123,10 @@ while(my($k, $v)=each %uf_menus) {
 while(my($k, $v)=each (%userform_menus) ) {
   my $url =  "index=$k&UID=$user_info->{UID}";
   my $a = (defined($FORM{$k})) ? "<b>$v</b>" : $v;
-  print "<li/>" . $html->button($a,  "$url");
+  print "<li>" . $html->button($a,  "$url");
 }
 
-print "<li/>". $html->button($_DEL, "index=15&del_user=y&UID=$user_info->{UID}", { MESSAGE => "$_USER: $user_info->{LOGIN} / $user_info->{UID}" }) if (defined($permissions{0}{5}));
+print "<li>". $html->button($_DEL, "index=15&del_user=y&UID=$user_info->{UID}", { MESSAGE => "$_USER: $user_info->{LOGIN} / $user_info->{UID}" }) if (defined($permissions{0}{5}));
 
 print "</ul></td></tr>
 </table>
@@ -1626,7 +1663,6 @@ print $table->show();
 }
 
 
-
 #**********************************************************
 # Time intervals
 # form_intervals()
@@ -1871,6 +1907,8 @@ else {
 }
 
 }
+
+
 
 
 

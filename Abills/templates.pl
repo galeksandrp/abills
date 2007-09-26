@@ -88,6 +88,9 @@ return qq{
  }
 elsif ($tpl_name eq 'form_pi') {
 return qq{
+<TABLE width='100%'>
+<tr bgcolor='$_COLORS[0]'><TH align='right'>$_USER_INFO</TH></tr>
+</TABLE>
 <form action='$SELF_URL' method='post'>
 <input type=hidden name=index value=$index>
 <input type=hidden name=UID value="%UID%">
@@ -137,7 +140,6 @@ return qq{
 </TABLE>
 <input type=submit name='%ACTION%' value='%LNG_ACTION%'>
 </form>
-<hr\>
 };
 
  }
