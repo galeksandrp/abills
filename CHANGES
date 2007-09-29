@@ -1,4 +1,10 @@
 =====0.37=====
+  * 28.09.2007 
+MYSQL
+   ALTER TABLE tarif_plans DROP INDEX id;
+   ALTER TABLE tarif_plans ADD UNIQUE (id, module);
+   UPDATE tarif_plans SET module='Dv' WHERE module='';
+
   * 21.09.2007 
 MYSQL
   ALTER TABLE tarif_plans ADD COLUMN   `module` varchar(12) NOT NULL default '';
