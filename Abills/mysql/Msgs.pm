@@ -426,11 +426,12 @@ sub admin_list {
  $WHERE = ($#WHERE_RULES > -1) ? 'WHERE ' . join(' and ', @WHERE_RULES)  : '';
 
 
-  $self->query($db, "SELECT mc.id, mc.name, count(*)
-    FROM msgs_chapters mc
-    LEFT JOIN msgs_messages m ON (mc.id=m.chapter)
+  $self->query($db, "SELECT a.id, mc.name, ma.priority, a.aid
+    FROM admins a 
+    LEFT join msgs_admins ma ON (a.id=ma.aid)
+    LEFT join msgs_chapters mc ON (ma.chapter_id=mc.id)
     $WHERE
-    GROUP BY mc.id 
+    GROUP BY a.id 
     ORDER BY $SORT $DESC;");
 
  my $list = $self->{list};

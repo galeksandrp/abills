@@ -1,4 +1,8 @@
 =====0.37=====
+  * 21.09.2007 
+MYSQL
+  ALTER TABLE tarif_plans ADD COLUMN   `module` varchar(12) NOT NULL default '';
+
   * 19.09.2007 
  Проверка регистрированных сессий в Linux
   # /usr/abills/libexec/billd checkpppd

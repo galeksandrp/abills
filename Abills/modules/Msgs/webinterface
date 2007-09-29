@@ -15,6 +15,42 @@ my $users = Users->new($db, $admin, \%conf);
 sub msgs_admins {
 
 
+if ($FORM{change}) {
+	$Msgs->admin_change({ %FORM });
+  if (! $Msgs->{errno}) {
+    $html->message('info', $_INFO, "$_CHANGED");  	
+   }
+ }
+elsif ($FORM{chg}) {
+  
+  my $list = $Msgs->chapters_list();
+  if (! $Msgs->{errno}) {
+    $html->message('info', $_INFO, "$_CHANGE");  	
+   }
+
+  my $table = $html->table( { width      => '100%',
+                              title      => ['ID', "$_CHAPTERS", "_PRIORITY" ],
+                              cols_align => ['right', 'left', 'center' ],
+                              qs         => $pages_qs,
+                           });
+
+  foreach my $line (@$list) {
+    $table->addrow($line->[0] . $html->form_input('ID_'.$line->[0], "$line->[0]", {TYPE => 'checkbox' }),
+      $line->[1],
+      $html->form_input('PRIORITY_'. $line->[0], "$line->[2]")
+     );
+   }
+  
+  $Msgs->{CHAPTERS}=$table->show();
+
+  $html->tpl_show(_include('msgs_admin', 'Msgs'), $Msgs);
+} 
+
+if ($Msgs->{errno}) {
+  $html->message('err', $_ERROR, "[$Msgs->{errno}] $err_strs{$Msgs->{errno}}");
+ } 
+
+
 my $list = $Msgs->admin_list({ %LIST_PARAMS });
   
   
@@ -227,7 +263,8 @@ sub msgs_user {
                               title_plain  => ["$_SUBJECT", "$_CHAPTERS", "$_DATE", "-" ],
                               cols_align   => ['left', 'left', 'left', 'right', 'right', 'left', 'center'],
                               qs           => $pages_qs,
-                              pages        => $Msgs->{TOTAL}
+                              pages        => $Msgs->{TOTAL},
+                              ID           => 'MSGS_LIST'
                            });
 
 foreach my $line (@$list) {

@@ -279,9 +279,12 @@ sub payment_deed {
  
  my %PAYMENT_DEED = ();
  my %NAMES=();
- 
- my $MONTH = $attr->{MONTH};
- 
+ my $WHERE;
+
+ if($attr->{MONTH}) {
+    
+   }
+
  #Get fees
  $self->query($db, "SELECT
  if(u.company_id > 0, company.bill_id, u.bill_id),
@@ -291,23 +294,22 @@ sub payment_deed {
                          if(u.company_id > 0, company.name,
                             if(pi.fio<>'', pi.fio, u.id)),
   if(u.company_id > 0, 1, 0),
+  if(u.company_id > 0, company.vat, 0),
   u.uid,
   max(date)
      FROM (users u, fees f)
      LEFT JOIN users_pi pi ON (u.uid = pi.uid)
      LEFT JOIN companies company ON  (u.company_id=company.id)
 
-     LEFT JOIN bills b ON (u.bill_id = b.id)
-     LEFT JOIN bills cb ON  (company.bill_id=cb.id)
-
-     WHERE u.uid=f.uid and DATE_FORMAT(f.date, '%Y-%m')='$MONTH'
+     WHERE u.uid=f.uid and DATE_FORMAT(f.date, '%Y-%m')='$attr->{MONTH}'
      GROUP BY 1
      ORDER BY $SORT $DESC 
    ;");
 
   foreach my $line (@{ $self->{list} } ) {
   	$PAYMENT_DEED{$line->[0]}=$line->[1];
-  	$NAMES{$line->[0]}=$line->[2];
+ 	  #Name|Type|VAT
+ 	  $NAMES{$line->[0]}="$line->[2]|$line->[4]|$line->[5]";
    }
 	
  $self->query($db, "SELECT
@@ -318,15 +320,14 @@ sub payment_deed {
                          if(u.company_id > 0, company.name,
                             if(pi.fio<>'', pi.fio, u.id)),
   if(u.company_id > 0, 1, 0),
+  if(u.company_id > 0, company.vat, 0),
   u.uid
      FROM (users u, dv_log dv)
      LEFT JOIN users_pi pi ON (u.uid = pi.uid)
      LEFT JOIN companies company ON  (u.company_id=company.id)
 
-     LEFT JOIN bills b ON (u.bill_id = b.id)
-     LEFT JOIN bills cb ON  (company.bill_id=cb.id)
 
-     WHERE u.uid=dv.uid and DATE_FORMAT(dv.start, '%Y-%m')='$MONTH'
+     WHERE u.uid=dv.uid and DATE_FORMAT(dv.start, '%Y-%m')='$attr->{MONTH}'
      GROUP BY 1
      ORDER BY 2 DESC
    ;");
@@ -335,7 +336,8 @@ sub payment_deed {
   foreach my $line (@{ $self->{list} } ) {
     if (! $PAYMENT_DEED{$line->[0]}) {
   	  $PAYMENT_DEED{$line->[0]}+=$line->[1];
-  	  $NAMES{$line->[0]}=$line->[2];
+  	  #Name|Type|VAT
+  	  $NAMES{$line->[0]}="$line->[2]|$line->[4]|$line->[5]";
   	 }
    }
 

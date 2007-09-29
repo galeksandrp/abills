@@ -2131,6 +2131,13 @@ sub dv_user_info {
 }
 
 
+#**********************************************************
+# dv_periodic_ppp_clean
+# Kill ppp deamons fot down interfaces 
+#**********************************************************
+sub dv_periodic_ppp_clean {
+  #my $a = `count=\`ifconfig -d | grep PID | wc -l\`; if [ \${count} != 0 ]; thenecho \${count}; ifconfig -d | grep PID | awk '{ print \$4 }' | xargs kill -1; fi;`;
+}
 
 #**********************************************************
 # dv_periodic_logrotate

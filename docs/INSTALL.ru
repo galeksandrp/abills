@@ -199,6 +199,7 @@
 
 
 
+
 =====ABillS=====
 Загрузить пакет можно по адресу [http://sourceforge.net/projects/abills/]\\
 
@@ -226,16 +227,18 @@
 Вносим в ''cron'' периодические процессы
 **/etc/crontab**
 
-  \*/5  *      *    *     *   root   /usr/abills/libexec/billd -all
-  1     0     *    *     *   root    /usr/abills/libexec/periodic daily
-  1     0     *    *     *   root    /usr/abills/libexec/periodic monthly
+ */5  *      *    *     *   root   /usr/abills/libexec/billd -all\\
+ 1     0     *    *     *   root    /usr/abills/libexec/periodic daily\\
+ 1     0     *    *     *   root    /usr/abills/libexec/periodic monthly\\
 
 \\
 
 Установить права на чтение и запись вебсервером для файлов веб интерфейса \\
 
   # chown -Rf www /usr/abills/cgi-bin
-
+  # chown -Rf www /usr/abills/Abills/templates
+  # chown -Rf www /usr/abills/backup
+  
 Открываем веб интерфейс http://your.host/abills/admin/
 
 

@@ -22,6 +22,11 @@ sub exfin_export_customers {
   $Extfin->{ACTION}='get';
   $Extfin->{ACTION_LNG}=$_GET;
   
+#  $Extfin->{debug}=1;
+  
+  my ($Y, $M, $D)=split(/-/, $DATE);
+  $FORM{MONTH}="$Y-$M" if (! $FORM{MONTH});
+  
   if ($FORM{xml}) {
     print "Content-Type: text/xml\n\n";
     print "<?xml version=\"1.0\"  encoding=\"windows-1251\" ?>\n";
@@ -31,8 +36,8 @@ sub exfin_export_customers {
    }
  
   if ($FORM{TYPE} && $FORM{TYPE} eq 'CUSTOMERS') {
-    $LIST_PARAMS{PAGE_ROWS} = $FORM{PAGE_ROWS} || 100;
-    $LIST_PARAMS{PG}        = $FORM{PG}        || 0;
+    $LIST_PARAMS{PAGE_ROWS} = 100000;
+    $LIST_PARAMS{PG}        = $FORM{PG} || 0;
 
     my $list = $Extfin->customers_list({ %LIST_PARAMS });
     my $table = $html->table( { width      => '100%',
@@ -73,14 +78,14 @@ sub exfin_export_customers {
    }
   elsif ($FORM{TYPE} && $FORM{TYPE} eq 'PAYMENT_DEED') {
 
-    $LIST_PARAMS{MONTH}='2007-09';
-    $Extfin->{debug}=1;
+    $LIST_PARAMS{MONTH}=$FORM{MONTH};
+    #$Extfin->{debug}=1;
     
     my $self = $Extfin->payment_deed({ %LIST_PARAMS });
 
     my $table = $html->table({ width      => '100%',
                                caption    => "PAYMENT_DEED $LIST_PARAMS{MONTH}",
-                               title      => ['ID', $_NAME, "$_SUM" ],
+                               title      => ['ID', $_NAME, $_TYPE, "$_SUM", "$_VAT", "$_TOTAL" ],
                                ID         => 'EXTFIN_CUSTOMERS',
                                cols_align => ['right', 'left', 'left', 'left', 'right', 'center'],
   #                          qs         => $pages_qs,
@@ -91,9 +96,14 @@ sub exfin_export_customers {
 
 
     foreach my $id ( keys %{ $Extfin->{PAYMENT_DEED} } ) {
+      my($name, $type, $vat)=split(/\|/, $Extfin->{NAMES}{$id});
+      my $total = $Extfin->{PAYMENT_DEED}{$id} + $Extfin->{PAYMENT_DEED}{$id} * ($vat / 100);
       $table->addrow($id,
-       $Extfin->{NAMES}{$id},
+       $name,
+       $type,
        $Extfin->{PAYMENT_DEED}{$id},
+       $vat,
+       $total
       );
      }
 
@@ -126,12 +136,17 @@ sub exfin_export_customers {
                                      NO_ID       => 1
  	                                  });
   
-  $Extfin->{DATE_SEL} = $html->form_select('TYPE', 
+  my @monthes = ();
+  for(my $i=1; $i<13; $i++) {
+  	push @monthes, sprintf("%d-%02d", $Y, $i);
+   }
+  
+  
+  
+  $Extfin->{DATE_SEL} = $html->form_select('MONTH', 
                                     { 
  	                                   SELECTED    => $FORM{MONTH},
- 	                                   SEL_HASH    => { CUSTOMERS    => $_USERS,
- 	                                   	                PAYMENT_DEED => '_PAYMENT_DEED'
- 	                                   	               },
+ 	                                   SEL_ARRAY   => \@monthes,
                                      NO_ID       => 1
  	                                  });
   
