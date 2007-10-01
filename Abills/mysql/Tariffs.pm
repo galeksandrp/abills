@@ -60,6 +60,8 @@ sub new {
   my $self = { };
   bless($self, $class);
 
+  $self->{debug}=1;
+  
   return $self;
 }
 
