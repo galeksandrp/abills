@@ -1,6 +1,3 @@
-<TABLE width='100%'>
-<tr bgcolor='$_COLORS[0]'><TH align='right'>Dialup / Vpn</TH></tr>
-</TABLE>
 <form action='$SELF_URL' method='post'>
 <input type=hidden name='index' value='$index'>
 <input type=hidden name='UID' value='$FORM{UID}'>

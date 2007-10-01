@@ -1050,6 +1050,10 @@ if(defined($attr->{USER})) {
          }
    	 	  require "Abills/modules/$module{$service_func_index}/webinterface";
        }
+    
+    print "<TABLE width='100%'>
+      <tr bgcolor='$_COLORS[0]'><TH align='right'>$module{$service_func_index}</TH></tr>
+    </TABLE>\n";
   
     $functions{$service_func_index}->({ USER => $user_info });
 
