@@ -1211,7 +1211,7 @@ my %status_hash = (
 
  print $table->show();
 
-# print "<textarea cols=150 rows=10>$res</textarea>";
+print "<textarea cols=150 rows=10>$res</textarea>";
 
 #my $table = $html->table( { width      => '100%',
 #                            caption    => "Dialup / VPN",
