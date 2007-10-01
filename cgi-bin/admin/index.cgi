@@ -1404,7 +1404,7 @@ if ($FORM{add}) {
  my $variant_out = '';
  
  my $tariffs_list = $tariffs->list();
- $variant_out = "<select name=servise>";
+ $variant_out = "<select name='servise'>";
 
  foreach my $line (@$tariffs_list) {
      $variant_out .= "<option value=$line->[0]";
@@ -3434,11 +3434,12 @@ if (defined($attr->{USER})) {
 
 #exchange rate sel
 my $er = $payments->exchange_list();
-  $payments->{SEL_ER} = "<select name=ER>\n";
+  $payments->{SEL_ER} = "<select name='ER'>\n";
   $payments->{SEL_ER} .= "<option value=''>\n";
 foreach my $line (@$er) {
-  $payments->{SEL_ER} .= "<option value=$line->[4]";
-  $payments->{SEL_ER} .= ">$line->[1] : $line->[2]\n";
+  $payments->{SEL_ER} .= "<option value='$line->[4]'";
+  $payments->{SEL_ER} .= ">$line->[1] : $line->[2]";
+  $payments->{SEL_ER} .= "</option>\n";
 }
 $payments->{SEL_ER} .= "</select>\n";
 
@@ -3694,7 +3695,8 @@ if (defined($attr->{USER})) {
     $fees->{SEL_ER} .= "<option value=''>\n";
     foreach my $line (@$er) {
       $fees->{SEL_ER} .= "<option value='$line->[4]'";
-      $fees->{SEL_ER} .= ">$line->[1] : $line->[2]\n";
+      $fees->{SEL_ER} .= ">$line->[1] : $line->[2]";
+      $fees->{SEL_ER} .= "</option>\n";
     }
     $fees->{SEL_ER} .= "</select>\n";
 

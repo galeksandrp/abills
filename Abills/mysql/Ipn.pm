@@ -249,6 +249,17 @@ sub acct_stop {
   ) = @{ $self->{list}->[0] };
 
 
+  $self->{GW_INPUT_OCTETS}=0; 
+  $self->{GW_OUTPUT_OCTETS}=0;
+  if ($self->{INPUT_OCTETS} > 4294967294) {
+  	$self->{GW_INPUT_OCTETS} = int($self->{INPUT_OCTETS} / 4294967294);
+  	$self->{INPUT_OCTETS}=$self->{INPUT_OCTETS} % 4294967294;
+   }
+
+  if ($self->{OUTPUT_OCTETS} > 4294967294) {
+  	$self->{GW_OUTPUT_OCTETS} = int($self->{OUTPUT_OCTETS} / 4294967294);
+  	$self->{OUTPUT_OCTETS}=$self->{OUTPUT_OCTETS} % 4294967294;
+   }
 
   $self->query($db, "INSERT INTO dv_log (uid, 
     start, 
@@ -267,7 +278,10 @@ sub acct_stop {
     recv2, 
     acct_session_id, 
     bill_id,
-    terminate_cause) 
+    terminate_cause,
+    acct_input_gigawords,
+    acct_output_gigawords
+    ) 
         VALUES ('$self->{UID}', '$self->{START}', '$self->{TP_ID}', 
           '$self->{ACCT_SESSION_TIME}', 
           '$self->{OUTPUT_OCTETS}', '$self->{INPUT_OCTETS}', 
@@ -279,7 +293,10 @@ sub acct_stop {
           '0',  
           '$self->{ACCT_SESSION_ID}', 
           '$self->{BILL_ID}',
-          '$ACCT_TERMINATE_CAUSE');", 'do');
+          '$ACCT_TERMINATE_CAUSE',
+          '$self->{GW_INPUT_OCTETS}', 
+          '$self->{GW_OUTPUT_OCTETS}'
+       );", 'do');
 
   $self->query($db, "DELETE from dv_calls WHERE acct_session_id='$self->{ACCT_SESSION_ID}';", 'do');
 
@@ -1037,7 +1054,7 @@ sub prepaid_rest {
   }
 
 
- $self->query($db, "SELECT l.traffic_class, (sum($octets_direction)) / $CONF->{MB_SIZE}
+ $self->query($db, "SELECT l.trafrafraftrafT l.trafT l.traffic_class, (sum($octets_direction)) / $CONF->{MB_SIZE}
    from ipn_log l
    WHERE l.uid='$attr->{UID}' and DATE_FORMAT(start, '%Y-%m-%d')>='$info->[0]->[3]'
    GROUP BY l.traffic_class, l.uid ;");
