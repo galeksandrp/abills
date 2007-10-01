@@ -166,7 +166,8 @@ else {
     	 $auth_mod{"default"}->{errstr}=~s/\n//g;
     	 $message .= $auth_mod{"default"}->{errstr};
      }
-    access_deny("$RAD->{USER_NAME}", "$message", $nas->{NAS_ID});
+    my $CID = ($RAD->{CALLING_STATION_ID}) ? " CID: $RAD->{CALLING_STATION_ID} " : '';
+    access_deny("$RAD->{USER_NAME}", "$message$CID", $nas->{NAS_ID});
     return $r;
   }
  else {

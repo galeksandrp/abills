@@ -60,7 +60,7 @@ sub new {
   my $self = { };
   bless($self, $class);
 
-  $self->{debug}=1;
+#  $self->{debug}=1;
   
   return $self;
 }
@@ -537,7 +537,7 @@ sub info {
    $self->{TP_GID},
    $self->{NEG_DEPOSIT_FILTER_ID},
    $self->{MODULE},
-   $self->{TP_ID}
+   $self->{TP_ID_CTR}
   ) = @{ $self->{list}->[0] };
 
 
