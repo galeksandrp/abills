@@ -427,19 +427,20 @@ if (! $list) {
 #  	 <tr><td>$_HANGUP $_STATUS:</td><td>$TERMINATE_CAUSE_SEL</td></tr>\n"
 # });
 
- 
+  $Sharing->{debug}=1;
   $list = $Sharing->sessions_list({ %LIST_PARAMS });	
 }
 
-my $table = $html->table( { width   => '100%',
-                            caption     => "$_SESSIONS",
+my $table = $html->table( { width        => '100%',
+                            caption      => "$_SESSIONS",
                             border       => 1,
                             title        => ["$_USER", "$_START", "$_DURATION", "$_RECV", "$_SENT",  
                             "CID", "NAS", "$_STATUS", "$_FILE", "$_SIZE", "-"],
                             cols_align   => ['left', 'right', 'right', 'RIGHT', 'right', 'right', 'right', 'right', 'right', 'right', 'center:noprint', 'center:noprint'],
                             qs           => $pages_qs,
                             pages        => $Sharing->{TOTAL},
-                            recs_on_page => $LIST_PARAMS{PAGE_ROWS}
+                            recs_on_page => $LIST_PARAMS{PAGE_ROWS},
+                            ID           => 'SHARING_SESSIONS'
                          } );
 
 my $delete = '';
@@ -1138,8 +1139,8 @@ elsif ($Sharing->{TOTAL} == 1) {
  my $timeout = defined($attr->{'TimeOut'}) ? $attr->{'TimeOut'} : 5;
  my $port = defined($attr->{'Port'}) ? $attr->{'Port'} : 80;
 
- my $host = '127.0.0.1'; #'pick.intranet';
- my $request = "GET /server-status HTTP/1.0\r\n\r\n";
+ my $host = '127.0.0.1';
+ my $request = "GET /abills-status HTTP/1.0\r\n\r\n";
  
  my $socket = IO::Socket::INET->new(
                                 PeerAddr => $host,
@@ -1149,7 +1150,6 @@ elsif ($Sharing->{TOTAL} == 1) {
         ) or log_print('LOG_DEBUG', "ERR: Can't connect to '$host:$port' $!");
 
   return 0  if (! $socket) ;
-
 
   $socket->send("$request");
   my $res = '';
@@ -1178,7 +1178,8 @@ my $table = $html->table( { width      => '100%',
                             title      => ['IP', 'Request', "$_DURATION", 'IN/OUT (Mb)', 'Method', 'Proto', 'Pid', 'CPU', $_STATUS, 'HOST'],
                             cols_align => ['left', 'left', 'right', 'right', 'left', 'center', 'center:noprint', 'center:noprint'],
                             qs         => $pages_qs,
-                            pages      => $Sharing->{TOTAL}
+                            pages      => $Sharing->{TOTAL},
+                            ID         => 'SHARING_MONITOR'
                            });
 
 
