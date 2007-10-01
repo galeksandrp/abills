@@ -3435,7 +3435,7 @@ if (defined($attr->{USER})) {
 #exchange rate sel
 my $er = $payments->exchange_list();
   $payments->{SEL_ER} = "<select name='ER'>\n";
-  $payments->{SEL_ER} .= "<option value=''>\n";
+  $payments->{SEL_ER} .= "<option value=''></option>\n";
 foreach my $line (@$er) {
   $payments->{SEL_ER} .= "<option value='$line->[4]'";
   $payments->{SEL_ER} .= ">$line->[1] : $line->[2]";
@@ -3692,7 +3692,7 @@ if (defined($attr->{USER})) {
     #exchange rate sel
     my $er = $fees->exchange_list();
     $fees->{SEL_ER} = "<select name='ER'>\n";
-    $fees->{SEL_ER} .= "<option value=''>\n";
+    $fees->{SEL_ER} .= "<option value=''></option>\n";
     foreach my $line (@$er) {
       $fees->{SEL_ER} .= "<option value='$line->[4]'";
       $fees->{SEL_ER} .= ">$line->[1] : $line->[2]";
