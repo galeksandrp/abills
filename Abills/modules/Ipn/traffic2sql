@@ -14,6 +14,7 @@ if ($#ARGV < 1) {
    log        - Log file
    flowdir    - Folder where stored flow-capture result files
    debug      - Set debug mode (1,2)
+   detail     - Make IP detalisation only
    DISABLE_UNKNOWN_IP_LOG - Disabled unknown ip login
    daemon     - Deamon mode
 
@@ -128,7 +129,11 @@ if (-f $log) {
   }
 
 make_pid($flow_dir."/traffic2sql_pid.pid", 'clean');
-#processing();
+
+
+
+
+
 
 
 #**********************************************************
@@ -215,8 +220,6 @@ if ($Ipn->{INTERIM}{$ip}) {
      my $price_in =  ( defined($intervals->{$user_tp_interval}->{ZONES}->{$k}->{PriceIn}) ) ? $intervals->{$user_tp_interval}->{ZONES}->{$k}->{PriceIn} : 0;
      my $price_out = ( defined($intervals->{$user_tp_interval}->{ZONES}->{$k}->{PriceOut}) ) ? $intervals->{$user_tp_interval}->{ZONES}->{$k}->{PriceOut} : 0;
 
-
-
      # Work with prepaid traffic
      if ( defined($intervals->{$user_tp_interval}->{ZONES}->{$k}->{PREPAID_TSUM}) ) {
      	  my($used_traffic) = $Ipn->traffic_user_get({ UID  => $uid   });
@@ -244,7 +247,6 @@ if ($Ipn->{INTERIM}{$ip}) {
 # print "$used_traffic->{$k}{TRAFFIC_OUT} + $used_traffic->{$k}{TRAFFIC_IN} + ($in + $out) / $conf{MB_SIZE}\n";
 # print $OCTETS_DIRECTION."\n";
 # print "$used_traffic->{$k}{TRAFFIC_SUM} < $prepaid\n";
-
         if ($used_traffic->{$k}{TRAFFIC_SUM} < $prepaid) {
            $price_in = 0;
            $price_out = 0;
@@ -300,20 +302,21 @@ if ($Ipn->{INTERIM}{$ip}) {
        );
    }
  }
+#If user Don't have interium traffic
 elsif($total_user_sum > 0 && $uid > 0) {
-  $Ipn->traffic_add_user( {
-   	        START					 => $attr->{START} || undef,
-   	        STOP					 => $attr->{STOP} || undef,
-   	        UID            => "$uid",
-            TARFFIC_CLASS  => 0,
-            INBYTE         => 0,
-            OUTBYTE        => 0,
-            NAS_ID         => $Ipn->{$ip}{NAS_ID},
-            IP						 => $ip,
-            INTERVAL       => $user_tp_interval,
-            SESSION_ID     => $session_id,    
-            SUM						 => $total_user_sum
-   	      } );
+#  $Ipn->traffic_add_user( {
+#   	        START					 => $attr->{START} || undef,
+#   	        STOP					 => $attr->{STOP} || undef,
+#   	        UID            => "$uid",
+#            TARFFIC_CLASS  => 0,
+#            INBYTE         => 0,
+#            OUTBYTE        => 0,
+#            NAS_ID         => $Ipn->{$ip}{NAS_ID},
+#            IP						 => $ip,
+#            INTERVAL       => $user_tp_interval,
+#            SESSION_ID     => $session_id,    
+#            SUM						 => $total_user_sum
+#   	      } );
 }
 
   #Put user date to database  
@@ -333,15 +336,20 @@ elsif($total_user_sum > 0 && $uid > 0) {
               ACCT_STATUS_TYPE  => 'Alive'
             );
 
-    #Make accounting
-    $Acct->{SUM}=$total_user_sum;
-    my $r = $Acct->accounting(\%RAD, { NAS_ID       => $Ipn->{$ip}{NAS_ID}, 
+
+    if ($Ipn->{INTERIM}{$ip}) {
+      #Make accounting
+      $Acct->{SUM}=$total_user_sum;
+      my $r = $Acct->accounting(\%RAD, { NAS_ID       => $Ipn->{$ip}{NAS_ID}, 
     	                                 NAS_TYPE     => 'other',
     	                                 NAS_EXT_ACCT => 1 
     	                                });
-    
+     }
+
     #Hangup users with negative deposit
-    if (! $Ipn->{USERS_INFO}->{PAYMENT_TYPE}->{$uid} && defined($Ipn->{USERS_INFO}->{DEPOSIT}->{$uid}) && $Ipn->{USERS_INFO}->{DEPOSIT}->{$uid} < 0) {
+    if (! $Ipn->{USERS_INFO}->{PAYMENT_TYPE}->{$uid} && 
+           defined($Ipn->{USERS_INFO}->{DEPOSIT}->{$uid}) && 
+            $Ipn->{USERS_INFO}->{DEPOSIT}->{$uid} < 0)  {
          my @ip_array = split(/\./, $ip_addr, 4);
          my $rule_num = $conf{IPN_FW_FIRST_RULE} + $ip_array[3];
 
@@ -358,7 +366,7 @@ elsif($total_user_sum > 0 && $uid > 0) {
          $Ipn->acct_stop({ SESSION_ID           => $session_id,
          	                 ACCT_TERMINATE_CAUSE => 10 });
        }
-  }
+   }
   
   $registred .= sprintf("%6s| %14s| %10s| %10s| %10s| %10s| %5s|\n%s", 
        $uid, 

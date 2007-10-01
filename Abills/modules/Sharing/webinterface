@@ -27,6 +27,8 @@ sub sharing_tp {
  $tarif_info->{LNG_ACTION}=$_ADD;
  $tarif_info->{ACTION}='ADD_TP';
 
+ $Tariffs->{debug} = 1;
+
 if($FORM{ADD_TP}) {
   $FORM{TP_ID} = $FORM{CHG_TP_ID};
   
@@ -34,7 +36,7 @@ if($FORM{ADD_TP}) {
   	$html->message('err', $_ERROR, "$_ERROR ID = 0");
    }
   else {
-   $Tariffs->add( { %FORM });
+   $Tariffs->add({ MODULE => 'Sharing', %FORM });
    if (! $Tariffs->{errno}) {
      $html->message('info', $_ADDED, "$_ADDED $Tariffs->{TP_ID}");
     }
@@ -42,16 +44,16 @@ if($FORM{ADD_TP}) {
  }
 elsif (defined($FORM{TP_ID})) {
  
-  $tarif_info = $Tariffs->info( $FORM{TP_ID} );
+  $tarif_info = $Tariffs->info( $FORM{TP_ID}, { MODULE => 'Sharing' });
 
   if ($Tariffs->{errno}) {
-    $html->message('err', $_ERROR, "[$tariffs->{errno}] $err_strs{$tariffs->{errno}}");	
+    $html->message('err', $_ERROR, "[$Tariffs->{errno}] $err_strs{$Tariffs->{errno}}");	
     return 0;
    }
 
   $pages_qs .= "&TP_ID=$FORM{TP_ID}&subf=$FORM{subf}";
   $LIST_PARAMS{TP} = $FORM{TP_ID};
-  %F_ARGS = ( TP => $tariffs );
+  %F_ARGS = ( TP => $Tariffs );
   
   $Tariffs->{NAME_SEL} = $html->form_main({ CONTENT => $html->form_select('TP_ID', 
                                           { 
@@ -143,7 +145,7 @@ $tarif_info->{GROUPS_SEL} = $html->form_select('TP_GID',
  	                                        });
 
 
-$html->tpl_show(_include('dv_tp', 'Dv'), $tarif_info);
+$html->tpl_show(_include('sharing_tp', 'Sharing'), $tarif_info);
 
 
 $LIST_PARAMS{MODULE}='Sharing';
@@ -189,7 +191,7 @@ print $table->show();
 
 $table = $html->table( { width      => '100%',
                          cols_align => ['right', 'right'],
-                         rows       => [ [ "$_TOTAL:", "<b>$tariffs->{TOTAL}</b>" ] ]
+                         rows       => [ [ "$_TOTAL:", "<b>$Tariffs->{TOTAL}</b>" ] ]
                      } );
 
 print $table->show();
@@ -928,6 +930,127 @@ sub sharing_user_info {
 
 
 #*******************************************************************
+# Change user variant form
+# form_chg_vid()
+#*******************************************************************
+sub sharing_chg_tp {
+ my ($attr) = @_;
+
+ my $user;
+
+ if(defined($attr->{USER})) {
+   $user = $attr->{USER};
+   $user = $Sharing->info($user->{UID});
+   if($user->{TOTAL} < 1) {
+ 	   $html->message('info', $_INFO, "$_NOT_ACTIVE");
+ 	   return 0;
+    }
+  }
+ else {
+ 	 $html->message('err', $_ERROR, "$_USER_NOT_EXIST");
+ 	 return 0;
+  }
+
+ my $TARIF_PLAN = $FORM{tarif_plan} || $_DEFAULT_VARIANT;
+ my $period = $FORM{period} || 0;
+
+ my $shedule = Shedule->new($db, $admin);
+
+if ($FORM{set}) {
+  if ($period == 1) {
+    $FORM{date_M}++;
+    $shedule->add( {UID     => $user->{UID},
+                   TYPE     => 'tp',
+                   ACTION   => $FORM{TP_ID},
+    	             D        => $FORM{date_D},
+                   M        => $FORM{date_M},
+                   Y        => $FORM{date_Y},
+                   DESCRIBE => "$message<br>
+                   $_FROM: '$FORM{date_Y}-$FORM{date_M}-$FORM{date_D}'",
+                   MODULE   => 'Sharing'
+                    });
+
+    if ($shedule->{errno}) {
+      $html->message('err', $_ERROR, "[$shedule->{errno}] $err_strs{$shedule->{errno}}");	
+     }
+    else {
+      $html->message('info', $_CHANGED, "$_CHANGED");
+      $user->info($user->{UID});
+    }
+   }
+  else {
+    $user->change({ %FORM });
+
+    if ($user->{errno}) {
+      $html->message('err', $_ERROR, "[$user->{errno}] $err_strs{$user->{errno}}");	
+     }
+    else {
+      $html->message('info', $_CHANGED, "$_CHANGED");
+      $user->info($user->{UID});
+    }
+
+  }
+}
+elsif($FORM{del}) {
+  $shedule->del( { UID => $user->{UID},
+   	               ID  => $FORM{SHEDULE_ID}  } 
+   	            );
+
+  $html->message('info', $_DELETED, "$_DELETED [$FORM{SHEDULE_ID}]");
+}
+
+  $shedule->info( {UID      => $user->{UID},
+                   TYPE     => 'tp',
+                   DESCRIBE => "$message\n$_FROM: '$FORM{date_y}-$FORM{date_m}-$FORM{date_d}'",
+                   MODULE   => 'Sharing'
+                   });
+
+
+  if ($shedule->{TOTAL} > 0) {
+  	$table = $html->table( { width      => '100%',
+  		                       caption    => "$_SHEDULE",
+                             cols_align => ['left', 'left'],
+                             rows       => [ [ "$_TARIF_PLAN:", "$shedule->{ACTION}"   ],
+                                             [ "$_DATE:",   "$shedule->{D}-$shedule->{M}-$shedule->{Y}" ],
+                                             [ "$_ADMIN:",  "$shedule->{ADMIN_NAME}"   ],
+                                             [ "$_ADDED:",  "$shedule->{DATE}"         ],
+                                             [ "ID:",       "$shedule->{SHEDULE_ID}"   ]  
+                                            ]
+                               } );
+  	$Tariffs->{TARIF_PLAN_SEL} = $table->show(). $html->form_input('SHEDULE_ID', "$shedule->{SHEDULE_ID}", {TYPE => 'HIDDEN' });
+  	$Tariffs->{ACTION}='del';
+  	$Tariffs->{LNG_ACTION}=$_DEL;
+  }
+ else {
+   $Tariffs->{TARIF_PLAN_SEL}=$html->form_select('TP_ID', 
+                                          { 
+ 	                                          SELECTED          => $user->{TP_ID},
+ 	                                          SEL_MULTI_ARRAY   => $Tariffs->list({ MODULE => 'Sharing' }),
+ 	                                          MULTI_ARRAY_KEY   => 0,
+ 	                                          MULTI_ARRAY_VALUE => 1,
+ 	                                        });
+
+   $Tariffs->{PARAMS} .= form_period($period);	
+   $Tariffs->{ACTION}='set';
+   $Tariffs->{LNG_ACTION}=$_CHANGE;
+  }
+
+ 
+
+my $tp_index = $index + 4;
+
+$Tariffs->{UID}=$attr->{USER}->{UID};
+$Tariffs->{m}=$m;
+$Tariffs->{TP_ID} = $user->{TP_ID};
+$Tariffs->{TP_NAME} = "$user->{TP_ID}:$user->{TP_NAME} [". $html->button("$_VARIANTS", "index=$tp_index&TP_ID=$user->{TP_ID}", { TITLE => "$_TP" } ). "]";
+
+
+print $html->tpl_show(templates('chg_tp'), $Tariffs);
+
+
+}
+
+#*******************************************************************
 #  
 #*******************************************************************
 sub sharing_user  {
@@ -966,7 +1089,7 @@ sub sharing_user  {
     $Sharing->{TP_ID}=$html->form_select('TP_ID', 
                                          { 
  	                                          SELECTED          => $user->{TP_ID},
- 	                                          SEL_MULTI_ARRAY   => $Tariffs->list({ MODULE   => 'Reshare',
+ 	                                          SEL_MULTI_ARRAY   => $Tariffs->list({ MODULE   => 'Sharing',
  	                                          	                                    EX_TABLE => 'sharing_tp' }),
  	                                          MULTI_ARRAY_KEY   => 0,
  	                                          MULTI_ARRAY_VALUE => 1,
@@ -980,6 +1103,7 @@ sub sharing_user  {
 	else {
 	  $Sharing->{ACTION}='set';
 	  $Sharing->{LNG_ACTION}=$_CHANGE;
+	  $Sharing->{CHANGE_TP_BUTTON}='['. $html->button($_CHANGE, 'UID='.$FORM{UID}.'&index='. ($index + 4)) .']';
 	} 
 
   $user->{DISABLE}=($user->{DISABLE} == 1) ? ' checked' : '';
@@ -1224,6 +1348,7 @@ sub sharing_registration  {
 
 
 1
+
 
 
 

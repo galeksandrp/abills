@@ -10,8 +10,7 @@ use Exporter;
 $VERSION = 2.00;
 @ISA = ('Exporter');
 
-@EXPORT = qw(
-);
+@EXPORT = qw();
 
 @EXPORT_OK = ();
 %EXPORT_TAGS = ();
@@ -328,7 +327,7 @@ sub tp_group_info {
 #**********************************************************
 # tp_group_defaults
 #**********************************************************
-sub  tp_group_defaults {
+sub tp_group_defaults {
 	my $self = shift;
 	
 	my %TG_DEFAULTS = (
@@ -440,7 +439,7 @@ sub change {
 	$self->changes($admin, { CHANGE_PARAM => 'TP_ID',
 		                TABLE        => 'tarif_plans',
 		                FIELDS       => \%FIELDS,
-		                OLD_INFO     => $self->info($tp_id),
+		                OLD_INFO     => $self->info($tp_id, { MODULE => $attr->{MODULE} }),
 		                DATA         => $attr
 		              } );
 
@@ -448,7 +447,6 @@ sub change {
   if ($tp_id != $attr->{CHG_TP_ID}) {
   	 $attr->{TP_ID} = $attr->{CHG_TP_ID};
    }
-
 
   $self->info($attr->{TP_ID});
 	return $self;
@@ -471,7 +469,20 @@ sub del {
 #**********************************************************
 sub info {
   my $self = shift;
-  my ($id) = @_;
+  my ($id, $attr) = @_;
+
+  my @WHERE_RULES = ();
+
+  if ($attr->{MODULE}) {
+    push @WHERE_RULES, "module='$attr->{MODULE}'"; 
+   }
+
+  if (defined($attr->{TP_ID})) {
+    push @WHERE_RULES, "tp.tp_id='$attr->{TP_ID}'"; 
+   }
+
+  my $WHERE = ($#WHERE_RULES > -1) ? " and " . join(' and ', @WHERE_RULES)  : '';
+
 
   $self->query($db, "SELECT id, name, hourp, day_fee, month_fee, reduction_fee, postpaid_fee, logins, age,
       day_time_limit, week_time_limit,  month_time_limit, 
@@ -486,7 +497,7 @@ sub info {
       gid,
       neg_deposit_filter_id
     FROM tarif_plans
-    WHERE id='$id';");
+    WHERE id='$id'$WHERE;");
 
   if ($self->{TOTAL} < 1) {
      $self->{errno} = 2;
@@ -523,7 +534,8 @@ sub info {
    $self->{TRAFFIC_TRANSFER_PERIOD},
    $self->{TP_GID},
    $self->{NEG_DEPOSIT_FILTER_ID},
-   $self->{MODULE}
+   $self->{MODULE},
+   $self->{TP_ID}
   ) = @{ $self->{list}->[0] };
 
 

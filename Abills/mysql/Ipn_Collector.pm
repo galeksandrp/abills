@@ -637,8 +637,7 @@ sub traffic_add_user {
  
  
   if ($DATA->{INBYTE} + $DATA->{OUTBYTE} > 0) {
-
-   $self->query($db, "insert into ipn_log (
+    $self->query($db, "insert into ipn_log (
          uid,
          start,
          stop,

@@ -1062,7 +1062,7 @@ sub info {
    sharing.disable,
    sharing.type
      FROM sharing_main sharing
-     LEFT JOIN tarif_plans tp ON (sharing.tp_id=tp.id)
+     LEFT JOIN tarif_plans tp ON (sharing.tp_id=tp.id and tp.module='Sharing')
    $WHERE;");
 
   if ($self->{TOTAL} < 1) {

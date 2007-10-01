@@ -571,7 +571,6 @@ CREATE TABLE `shedule` (
 )  ;
 
 # --------------------------------------------------------
-
 #
 # Структура таблиці `tarif_plans`
 #
@@ -603,14 +602,16 @@ CREATE TABLE `tarif_plans` (
   `rad_pairs` text NOT NULL,
   `reduction_fee` tinyint(1) unsigned NOT NULL default '0',
   `postpaid_fee` tinyint(1) unsigned NOT NULL default '0',
-  `module` varchar(12) default NULL,
+  `module` varchar(12) NOT NULL default '',
   `traffic_transfer_period` tinyint(4) unsigned NOT NULL default '0',
   `gid` smallint(6) unsigned NOT NULL default '0',
   `neg_deposit_filter_id` varchar(15) NOT NULL default '',
-  PRIMARY KEY  (`id`),
-  UNIQUE KEY `name` (`name`),
-  UNIQUE KEY `id` (`id`)
-) COMMENT='Dialup & VPN Tarif plans';
+  `tp_id` int(11) unsigned NOT NULL auto_increment,
+  PRIMARY KEY  (`id`,`module`),
+  UNIQUE KEY `tp_id` (`tp_id`),
+  KEY `name` (`name`)
+) TYPE=MyISAM COMMENT='Dialup & VPN Tarif plans';
+
 
 CREATE TABLE `tp_groups` (
   `id` smallint(6) unsigned NOT NULL auto_increment,
