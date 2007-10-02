@@ -11,12 +11,12 @@ if ($#ARGV < 1) {
   traffic2sql [NAS_IDS] [Interface] [Options]
    NAS_IDS    - Ids of NAS servers 1,2,3 or 1-100
  Options:
-   log        - Log file
+   log        - Log file for trafd
    flowdir    - Folder where stored flow-capture result files
    debug      - Set debug mode (1,2)
    DETAIL_ONLY- Make IP detalisation only
    UNKNOWN_IP_LOG - Disabled unknown ip login
-   TCOLLECTOR - Total Collector Collect all data to SQL
+   TCOLLECTOR - Total Collector mode. Collect all data to SQL without analysetion
    daemon     - Deamon mode
 
 
@@ -93,6 +93,7 @@ $conf{MB_SIZE} = $conf{KBYTE_SIZE} * $conf{KBYTE_SIZE};
 my %PROTOCOLS = ('tcp'    => 1,
                  'udp'    => 2);
 my $PROTOCOL = 0; #(defined($PROTOCOLS{$PROTOCOL})) ? $PROTOCOLS{$PROTOCOL} : 0;
+
 
 #Get users info from online log
 $Ipn->user_ips({ NAS_ID => $NAS_IDS });

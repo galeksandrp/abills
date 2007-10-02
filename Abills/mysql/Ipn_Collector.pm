@@ -7,7 +7,7 @@ use vars qw(@ISA @EXPORT @EXPORT_OK %EXPORT_TAGS $VERSION
 );
 
 use Exporter;
-$VERSION = 2.00;
+$VERSION = 2.01;
 @ISA = ('Exporter');
 @EXPORT = qw(
   &ip_in_zone
@@ -203,91 +203,6 @@ sub user_ips {
   return $self;
 }
 
-
-#**********************************************************
-# user_ips static_dv
-#**********************************************************
-sub user_ips_static_dv {
-  my $self = shift;
-  my ($DATA) = @_;
-
-  my $sql;
-  
-  if ($DATA->{NAS_ID} =~ /(\d+)-(\d+)/) {
-  	my $first = $1;
-  	my $last = $2;
-  	my @nas_arr = ();
-  	for(my $i=$1; $i<=$2; $i++) {
-  	  push @nas_arr, $i;
-     }
-
-    $DATA->{NAS_ID} = join(',', @nas_arr);
-   }
-  
- if ( $CONF->{IPN_DEPOSIT_OPERATION} ) {
-	$sql="select u.uid, u.id, dv.tp_id, dv.ip,
-		 if (u.company_id > 0, cb.id, b.id),
-		 if (c.name IS NULL, b.deposit, cb.deposit)+u.credit,
-		 tp.payment_type,
-		 tp.octets_direction
-		 FROM (users u, dv_main dv)
-		 LEFT JOIN companies c ON (u.company_id=c.id)
-		 LEFT JOIN bills b ON (u.bill_id=b.id)
-		 LEFT JOIN bills cb ON (c.bill_id=cb.id)
-		 LEFT JOIN tarif_plans tp ON (tp.id=dv.tp_id)
-		 WHERE u.uid=dv.uid and dv.ip > 0;
-		";
-
-   }
-
-  $self->query($db, $sql);
-
-  my $list = $self->{list};
-  my %users_info  = ();
-  my %session_ids = ();
-  my %ips = ();
-  
-  $ips{0}='0';
-  $self->{0}{IN}=0;
- 	$self->{0}{OUT}=0;
-
-  foreach my $line (@$list) {
-     #UID
-     $ips{$line->[3]} = $line->[0];
-     
-     #user NAS, there is default #1
-     $self->{$line->[3]}{NAS_ID} = $DATA->{NAS_ID};
-     
-     #Octet direction
-     $self->{$line->[3]}{OCTET_DIRECTION} = $line->[7];
-     # tariff plan
-     $users_info{TPS}{$line->[0]} = $line->[2];
-     #User login
-     $users_info{LOGINS}{$line->[0]} = $line->[1];
-     #Session ID
-     $session_ids{$line->[3]} = $line->[1];
-     #$interim_times{$line->[3]}=$line->[10];
-     #$self->{INTERIM}{$line->[3]}{TIME}=$line->[10];
-
-    
-     #If post paid set deposit to 0
-     if (defined($line->[6]) && $line->[6] == 1) {
-  	   $users_info{DEPOSIT}{$line->[0]} = 0;
-     } else {
-  	   $users_info{DEPOSIT}{$line->[0]} = $line->[5];
-     }
-
-     $users_info{BILL_ID}{$line->[0]} = $line->[4];  	 
- 	 	
-     push @clients_lst, $line->[1];
-  }
- 
-  $self->{USERS_IPS_STATIC}     = \%ips;
-  $self->{USERS_INFO_STATIC}    = \%users_info;
-  $self->{SESSIONS_ID_STATIC}   = \%session_ids;
-  
-  return $self;
-}
 
 #**********************************************************
 #
@@ -889,6 +804,18 @@ sub acct_stop {
 
 }
 
+#*******************************************************************
+# Convert integer value to ip
+# int2ip($i);
+#*******************************************************************
+sub tcollector {
+ my $self = shift;
+ my ($attr) = @_;
+
+
+ return $self;
+}
+
 
 #**********************************************************
 #
@@ -918,7 +845,6 @@ sub is_exist($$) {
   foreach my $e (@$arrayref) {
     if ($e eq $elem) { return 1; }
    }
-    
  return 0;
 }
 
