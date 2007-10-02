@@ -324,7 +324,7 @@ sub traffic_agregate_users {
   #Unknow Ips
   elsif ($y < 1) {
   	$DATA->{UID}=0;
-    if (! $CONF->{DISABLE_UNKNOWN_IP_LOG}) {
+    if ($CONF->{UNKNOWN_IP_LOG}) {
   	  $self->{INTERIM}{$DATA->{UID}}{OUT}+=$DATA->{SIZE};
       push @{ $self->{IN} }, "$DATA->{SRC_IP}/$DATA->{DST_IP}/$DATA->{SIZE}";	
      }

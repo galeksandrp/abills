@@ -14,8 +14,9 @@ if ($#ARGV < 1) {
    log        - Log file
    flowdir    - Folder where stored flow-capture result files
    debug      - Set debug mode (1,2)
-   detail     - Make IP detalisation only
-   DISABLE_UNKNOWN_IP_LOG - Disabled unknown ip login
+   DETAIL_ONLY- Make IP detalisation only
+   UNKNOWN_IP_LOG - Disabled unknown ip login
+   TCOLLECTOR - Total Collector Collect all data to SQL
    daemon     - Deamon mode
 
 
@@ -50,11 +51,18 @@ elsif(defined($ARGV->{help})){
 	print "Help:\n";
 }
 
-if ($ARGV->{DISABLE_UNKNOWN_IP_LOG}) {
-  $conf{DISABLE_UNKNOWN_IP_LOG}=1;	
-  print "DISABLE_UNKNOWN_IP_LOG=$conf{DISABLE_UNKNOWN_IP_LOG}\n" if ($debug > 0);
+if ($ARGV->{UNKNOWN_IP_LOG}) {
+  $conf{UNKNOWN_IP_LOG}=1;	
+  print "UNKNOWN_IP_LOG=$conf{UNKNOWN_IP_LOG}\n" if ($debug > 0);
  }
-
+if ($ARGV->{DETAIL_ONLY}) {
+  $conf{IPN_DETAIL}=1;	
+  print "DETAIL_ONLY=$conf{IPN_DETAIL}\n" if ($debug > 0);
+ }
+if ($ARGV->{TCOLLECTOR}) {
+  $conf{IPN_TCOLLECTOR}=1;	
+  print "TCOLLECTOR=$conf{IPN_TCOLLECTOR}\n" if ($debug > 0);
+ }
 
 
 require Ipn_Collector;
@@ -88,7 +96,6 @@ my $PROTOCOL = 0; #(defined($PROTOCOLS{$PROTOCOL})) ? $PROTOCOLS{$PROTOCOL} : 0;
 
 #Get users info from online log
 $Ipn->user_ips({ NAS_ID => $NAS_IDS });
-#exit;
 
 if (-f $log) {
   get_collector_data($log);
@@ -96,6 +103,8 @@ if (-f $log) {
   my $status = unlink("$log");
   exit;
 }
+
+
 # GEt information from flowtools
 #
   my $flow_dir = ($ARGV->{flowdir}) ? $ARGV->{flowdir} : $var_dir."log/ipn/";
@@ -117,8 +126,11 @@ if (-f $log) {
       #print "Start: $start_date End: $end_date\n"; 
  
       get_collector_data("$FLOW_CAT $flow_dir/$log | $FLOW_PRINT |", { START => $start_date });
-      processing({ START => $start_date,
-  	               STOP  => $end_date });
+
+      if (! $ARGV->{DETAIL_ONLY}) {
+        processing({ START => $start_date,
+  	                 STOP  => $end_date });
+       }
 
       # Delete log file
       my $status = unlink("$flow_dir/$log");
