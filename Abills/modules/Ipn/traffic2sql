@@ -8,10 +8,11 @@ use strict;
 
 if ($#ARGV < 1) {
   print "ABillS IPN Traffic collector
-  traffic2sql [NAS_IDS] [Interface] [Options]
+  traffic2sql [NAS_IDS] [Options]
    NAS_IDS    - Ids of NAS servers 1,2,3 or 1-100
  Options:
    log        - Log file for trafd
+   INTERFACE  - Interface for trafd
    flowdir    - Folder where stored flow-capture result files
    debug      - Set debug mode (1,2)
    DETAIL_ONLY- Make IP detalisation only
@@ -27,7 +28,7 @@ if ($#ARGV < 1) {
 
 # Get nas servers is
 my $NAS_IDS=$ARGV[0];
-my $IF_NAME=$ARGV[1];
+
 my $debug = 0;
 
 use FindBin '$Bin';
@@ -42,6 +43,8 @@ my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $con
 my $db  = $sql->{db};
 
 my $ARGV = parse_arguments(\@ARGV);
+my $IF_NAME=($ARGV->{INTERFACE}) ? $ARGV->{INTERFACE} : '';
+
 
 if (defined($ARGV->{debug})) {
 	print "Debug mode on\n";
@@ -81,6 +84,7 @@ if ($NAS_IDS eq '') {
 }
 
 $log = $ARGV->{log} if ($ARGV->{log});
+
 my $FLOW_CAT = $ARGV->{FLOW_CAT} || '/usr/local/bin/flow-cat';
 my $FLOW_PRINT = $ARGV->{FLOW_PRINT} || '/usr/local/bin/flow-print';
 
