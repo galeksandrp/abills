@@ -112,18 +112,15 @@ sub user_status {
      INET_ATON('$DATA->{FRAMED_IP_ADDRESS}'), 
     '$DATA->{CALLING_STATION_ID}', 
     '$DATA->{CONNECT_INFO}', 
-    '$DATA->{NAS_ID}' );";
-
+    '$DATA->{NAS_ID}'
+  );";
 
   $self->query($db, "$sql", 'do');
-
+	
+	my $a = `echo "==ACTIVE $sql" >> /tmp/ipn.log`;
 	
  return $self;
 }
-
-
-
-
 
 
 #**********************************************************
@@ -1124,16 +1121,16 @@ sub online_alive {
     ;" >> /tmp/ipn.log`;
   
   if ($self->{TOTAL} > 0) {
-    $self->query($db, "UPDATE dv_calls SET  lupdated=UNIX_TIMESTAMP()
+    my $sql = "UPDATE dv_calls SET  lupdated=UNIX_TIMESTAMP(),
+    CONNECT_INFO='$attr->{CONNECT_INFO}'
      WHERE user_name = '$attr->{LOGIN}'  
     and acct_session_id='$attr->{SESSION_ID}'
-    and framed_ip_address=INET_ATON('$attr->{REMOTE_ADDR}')", 'do' );
+    and framed_ip_address=INET_ATON('$attr->{REMOTE_ADDR}')";
+
+    $self->query($db, $sql, 'do' );
     $self->{TOTAL} = 1;
     
-  my $a = `echo "-===========\n UPDATE dv_calls SET  lupdated=UNIX_TIMESTAMP()
-     WHERE user_name = '$attr->{LOGIN}'  
-    and acct_session_id='$attr->{SESSION_ID}'
-    and framed_ip_address=INET_ATON('$attr->{REMOTE_ADDR}')" >> /tmp/ipn.log`;
+    my $a = `echo "==ALIVE $sql" >> /tmp/ipn.log`;
    }
 
   return $self;	

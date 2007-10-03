@@ -18,6 +18,7 @@ if ($#ARGV < 1) {
    DETAIL_ONLY- Make IP detalisation only
    UNKNOWN_IP_LOG - Disabled unknown ip login
    TCOLLECTOR - Total Collector mode. Collect all data to SQL without analysetion
+   AMON_ALIVE - Second for Amon Alive Alive interval (default value 120).
    daemon     - Deamon mode
 
 
@@ -66,7 +67,10 @@ if ($ARGV->{TCOLLECTOR}) {
   $conf{IPN_TCOLLECTOR}=1;	
   print "TCOLLECTOR=$conf{IPN_TCOLLECTOR}\n" if ($debug > 0);
  }
-
+if ($ARGV->{AMON_ALIVE}) {
+  $conf{IPN_AMON_ALIVE}=$ARGV->{AMON_ALIVE};	
+  print "AMON_ALIVE=$conf{IPN_AMON_ALIVE}\n" if ($debug > 0);
+}
 
 require Ipn_Collector;
 Ipn_Collector->import();
@@ -358,8 +362,8 @@ elsif($total_user_sum > 0 && $uid > 0) {
       #Make accounting
       $Acct->{SUM}=$total_user_sum;
       my $r = $Acct->accounting(\%RAD, { NAS_ID       => $Ipn->{$ip}{NAS_ID}, 
-    	                                 NAS_TYPE     => 'other',
-    	                                 NAS_EXT_ACCT => 1 
+    	                                   NAS_TYPE     => 'other',
+    	                                   NAS_EXT_ACCT => 1 
     	                                });
      }
 
@@ -382,7 +386,29 @@ elsif($total_user_sum > 0 && $uid > 0) {
          system("$cmd");
          $Ipn->acct_stop({ SESSION_ID           => $session_id,
          	                 ACCT_TERMINATE_CAUSE => 10 });
-       }
+     }
+     
+    elsif($conf{IPN_AMON_ALIVE} && $Ipn->{CONNECT_INFO}{$session_id} && $Ipn->{CONNECT_INFO}{$session_id} =~ /^(\d{10})$/){
+    	my $cut_time = time();
+    	my $last_alive = $cut_time - $Ipn->{CONNECT_INFO}{$session_id};
+    	if ($last_alive > $conf{IPN_AMON_ALIVE} * 3) {
+        my @ip_array = split(/\./, $ip_addr, 4);
+        my $rule_num = $conf{IPN_FW_FIRST_RULE} + $ip_array[3];
+    		print "$DATE $TIME Hangup AMON ALIVE: $last_alive UID: $uid DEPOSIT: $Ipn->{USERS_INFO}->{DEPOSIT}->{$uid}\n" if ($debug > 0);
+
+        my $netmask = 32;
+
+        my $cmd = $conf{IPN_FW_STOP_RULE};
+        $cmd =~ s/\%IP/$ip_addr/g;
+        $cmd =~ s/\%NUM/$rule_num/g;
+        $cmd =~ s/\%MASK/$netmask/g;
+
+        print "$cmd" if ($debug>0); 
+        system("$cmd");
+        $Ipn->acct_stop({ SESSION_ID           => $session_id,
+         	                ACCT_TERMINATE_CAUSE => 10 });
+    	 }
+     }
    }
   
   $registred .= sprintf("%6s| %14s| %10s| %10s| %10s| %10s| %5s|\n%s", 

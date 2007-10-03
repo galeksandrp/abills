@@ -1449,6 +1449,7 @@ sub ipn_user_activate {
   		$html->message('err', $_ERROR, "$ERR_WRONG_DATA");
   		return 0;
   	 }
+    $FORM{CONNECT_INFO} = time() if($FORM{CONNECT_INFO} && $FORM{CONNECT_INFO} =~ /Amon/) ;
 
   	$Ipn->online_alive({ %FORM, LOGIN => $LIST_PARAMS{LOGIN} });
   	if ($Ipn->{TOTAL} < 1) {
@@ -1475,11 +1476,11 @@ sub ipn_user_activate {
                   SESSION_START      => 0, 
                   ACCT_SESSION_ID    => mk_unique_value(10), 
                   FRAMED_IP_ADDRESS  => $ip, 
-                  CONNECT_INFO       => '', 
                   NAS_ID             => $nas_id,
                   NAS_IP_ADDRESS     => $nas->{NAS_IP},
                   TP                 => 0,
-                  CALLING_STATION_ID => $ip
+                  CALLING_STATION_ID => $ip,
+                  CONNECT_INFO       => ($FORM{CONNECT_INFO} && $FORM{CONNECT_INFO} =~ /Amon/) ? time() : ''
                    );
 
     
@@ -1953,7 +1954,7 @@ sub ipn_user_add {
                    SESSION_START     => 0, 
                    ACCT_SESSION_ID   => mk_unique_value(10), 
                    FRAMED_IP_ADDRESS => $FORM{IP}, 
-                   CONNECT_INFO      => '', 
+                   CONNECT_INFO      => 'ADMIN_ACTIVATE',
                    NAS_ID            => $FORM{NAS_ID},
                    TP                => $FORM{TP_ID},
                    NAS_PORT          => $comp_number );

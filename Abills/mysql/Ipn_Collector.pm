@@ -97,7 +97,8 @@ sub user_ips {
 		 0,
 		 0,
 		 tp.octets_direction,
-		 u.reduction
+		 u.reduction,
+		 CONNECT_INFO
 		 FROM (users u, dv_main dv)
 		 LEFT JOIN companies c ON (u.company_id=c.id)
 		 LEFT JOIN bills b ON (u.bill_id=b.id)
@@ -118,7 +119,8 @@ sub user_ips {
       UNIX_TIMESTAMP() - calls.lupdated,
       calls.nas_id,
       tp.octets_direction,
-      u.reduction
+      u.reduction,
+      CONNECT_INFO
     FROM (dv_calls calls, users u)
       LEFT JOIN companies c ON (u.company_id=c.id)
       LEFT JOIN bills b ON (u.bill_id=b.id)
@@ -140,7 +142,8 @@ sub user_ips {
     UNIX_TIMESTAMP() - calls.lupdated,
     calls.nas_id,
     0,
-    u.reduction
+    u.reduction,
+    CONNECT_INFO
     FROM (dv_calls calls, users u)
    WHERE u.id=calls.user_name
    and calls.nas_id IN ($DATA->{NAS_ID});";
@@ -149,9 +152,10 @@ sub user_ips {
   $self->query($db, $sql);
 
   my $list = $self->{list};
-  my %session_ids = ();
-  my %users_info  = ();
+  my %session_ids    = ();
+  my %users_info     = ();
   my %interim_times  = ();
+  my %connect_info   = ();
   
   $ips{0}='0';
   $self->{0}{IN}=0;
@@ -177,6 +181,7 @@ sub user_ips {
      #Session ID
      $session_ids{$line->[1]} = $line->[3];
      $interim_times{$line->[3]}=$line->[10];
+     $connect_info{$line->[3]}=$line->[14];
      #$self->{INTERIM}{$line->[3]}{TIME}=$line->[10];
 
     
@@ -187,7 +192,7 @@ sub user_ips {
   	 #  $users_info{DEPOSIT}{$line->[0]} = 0;
   	 # } 
   	 #else {
-  	   $users_info{DEPOSIT}{$line->[0]} = $line->[8];
+  	 $users_info{DEPOSIT}{$line->[0]} = $line->[8];
   	 # }
      $users_info{REDUCTION}{$line->[0]} = $line->[13];
  	   $users_info{BILL_ID}{$line->[0]} = $line->[7];  	 
@@ -199,6 +204,7 @@ sub user_ips {
   $self->{USERS_INFO}    = \%users_info;
   $self->{SESSIONS_ID}   = \%session_ids;
   $self->{INTERIM_TIME}  = \%interim_times;
+  $self->{CONNECT_INFO}  = \%connect_info;
   
   return $self;
 }
