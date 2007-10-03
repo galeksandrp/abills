@@ -180,8 +180,6 @@ if ($FORM{AWEB_OPTIONS}) {
 
 
 #===========================================================
-
-
 my @actions = ([$_INFO, $_ADD, $_LIST, $_PASSWD, $_CHANGE, $_DEL, $_ALL, $_MULTIUSER_OP],  # Users
                [$_LIST, $_ADD, $_DEL, $_ALL],                                 # Payments
                [$_LIST, $_GET, $_DEL, $_ALL],                                 # Fees
@@ -3152,7 +3150,7 @@ sub fl {
 	# ID:PARENT:NAME:FUNCTION:SHOW SUBMENU:module:
 my @m = (
  "0:0::null:::",
- "1:0:$_CUSTOMERS:null:::",
+ "1:0:$_CUSTOMERS:form_users:::",
  "11:1:$_LOGINS:form_users:::",
  "24:11:$_ADD:user_form:::",
  "13:1:$_COMPANY:form_companies:::",
