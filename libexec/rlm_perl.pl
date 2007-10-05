@@ -50,6 +50,9 @@ $nas = undef;
 sub sql_connect {
 	my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
   $db  = $sql->{db};
+  
+  #$rc = $dbh->ping;
+  
   $nas = Nas->new($db, \%conf);	
   return $db;
 }
@@ -153,7 +156,7 @@ sub test_call {
 	while(my($k, $v)=each(%RAD_CHECK)){
 	  $test .= "$k, $v\n";
 	 }
- 
+
   #print $test;
   my $a=`echo "$test" >> /tmp/perllog`;
 }

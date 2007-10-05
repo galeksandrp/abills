@@ -61,22 +61,45 @@ if(!$dbh) {
 
 #Get User ID and pass check in db
 #Check cookie
+my %cookies = ();
+if ($COOKIE ne '') {
+  my(@rawCookies) = split (/; /, $COOKIE);
+  foreach(@rawCookies){
+    my ($key, $val) = split (/=/,$_);
+    $cookies{$key} = $val;
+  }
+ }
+my $sth;
 
+if ($cookies{sid}) {
+	$cookies{sid} = s/'//g;
+	$cookies{sid} = s/"//g;
+	my $query = "SELECT uid, 
+    datetime, 
+    login, 
+    INET_NTOA(remote_addr), 
+    UNIX_TIMESTAMP() - datetime,
+    sid
+     FROM web_users_sessions
+    WHERE sid='$cookies{sid}'";
+	
+	$sth = $dbh->prepare($query);
+  $sth->execute();
 
+  my ($uid, $datetime, $user, $remote_addr, $alived) = $sth->fetchrow_array();
+ }
+else {
 #check password
 my $query = "SELECT if(DECODE(password, '$conf{secretkey}')='$passwd', 1,0)
-  FROM (users u, sharing_main sharing)
-  WHERE u.id='$user'  AND u.uid=sharing.uid  
+   FROM (users u, sharing_main sharing)
+    WHERE u.id='$user'  AND u.uid=sharing.uid  
                     AND (u.disable=0 AND sharing.disable=0)
                     AND (sharing.cid='' OR sharing.cid='$ip')";
 
-
-
-my $sth = $dbh->prepare($query);
+$sth = $dbh->prepare($query);
 $sth->execute();
 
 my ($password, $deposit) = $sth->fetchrow_array();
-
 
 if ($sth->rows() < 1) {
   print STDERR "User not found '$user' - Rejected\n";
@@ -86,20 +109,19 @@ elsif ($password == 0) {
   print STDERR "Wrong user password '$user' - Rejected\n";
   exit 1;
  }
+}
 
 #Get file info
 # это позволяет по ид новости определить имена файлов и открытость-закрытость их для всех
-SELECT typo3.tx_t3labtvarchive_slideshow,
-       typo3.tx_t3labtvarchive_fullversion,
-       typo3.tx_t3labtvarchive_openslide,
-       typo3.tx_t3labtvarchive_openfull
-FROM  typo3.tt_news
-WHERE  typo3.uid = $news_id;
+#SELECT typo3.tx_t3labtvarchive_slideshow,
+#       typo3.tx_t3labtvarchive_fullversion,
+#       typo3.tx_t3labtvarchive_openslide,
+#       typo3.tx_t3labtvarchive_openfull
+#FROM  typo3.tt_news
+#WHERE  typo3.uid = $news_id;
 
 #  14:21:35: это позволяет определить сервер скачивания и путь до файла 
-$select * FROM tx_t3labtvarchive_files WHERE filename = $filename
-
-
+#$select * FROM tx_t3labtvarchive_files WHERE filename = $filename
 # Get month traffic
 
 $sth->finish();
