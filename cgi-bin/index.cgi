@@ -113,7 +113,7 @@ my @m = (
    "30:0:$_USER_INFO:form_info:::"
    );
 
-
+my $aaa = `echo "$ENV{HTTP_USER_AGENT}" >> /tmp/user_agent`;
 
 
 $user=Users->new($db, $admin, \%conf); 
