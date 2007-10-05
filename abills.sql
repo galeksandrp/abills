@@ -679,6 +679,17 @@ CREATE TABLE `users` (
 )  ;
 
 
+CREATE TABLE `users_web_sessions` (
+  `uid` int(11) unsigned NOT NULL default '0',
+  `datetime` int(11) unsigned NOT NULL default '0',
+  `login` varchar(20) NOT NULL default '',
+  `remote_addr` int(11) unsigned NOT NULL default '0',
+  `sid` varchar(32) NOT NULL default '',
+  PRIMARY KEY  (`sid`),
+  UNIQUE KEY `sid` (`sid`)
+) COMMENT='User Web Sessions';
+
+
 CREATE TABLE `users_bruteforce` (
   `login` varchar(20) NOT NULL default '',
   `password` blob NOT NULL,

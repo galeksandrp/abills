@@ -31,7 +31,7 @@ $a = `echo "$debug" >> /tmp/sharing_env`;
 my $user   = $ENV{USER} || '';
 my $passwd = $ENV{PASS} || '';
 my $ip     = $ENV{IP}   || '0.0.0.0';
-
+my $COOKIE = $ENV{COOKIE} || '';
 
 #**************************************************************
 # DECLARE VARIABLES                                                           #
@@ -60,6 +60,10 @@ if(!$dbh) {
 }
 
 #Get User ID and pass check in db
+#Check cookie
+
+
+#check password
 my $query = "SELECT if(DECODE(password, '$conf{secretkey}')='$passwd', 1,0)
   FROM (users u, sharing_main sharing)
   WHERE u.id='$user'  AND u.uid=sharing.uid  
@@ -84,7 +88,16 @@ elsif ($password == 0) {
  }
 
 #Get file info
+# это позволяет по ид новости определить имена файлов и открытость-закрытость их для всех
+SELECT typo3.tx_t3labtvarchive_slideshow,
+       typo3.tx_t3labtvarchive_fullversion,
+       typo3.tx_t3labtvarchive_openslide,
+       typo3.tx_t3labtvarchive_openfull
+FROM  typo3.tt_news
+WHERE  typo3.uid = $news_id;
 
+#  14:21:35: это позволяет определить сервер скачивания и путь до файла 
+$select * FROM tx_t3labtvarchive_files WHERE filename = $filename
 
 
 # Get month traffic

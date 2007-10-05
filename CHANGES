@@ -1,4 +1,20 @@
 =====0.37=====
+  * 05.10.2007 
+MYSQL
+  ALTER TABLE web_online ADD column page_index int unsigned NOT NULL Default 0;
+  CREATE TABLE `web_users_sessions` (
+    `uid` int(11) unsigned NOT NULL default '0',
+    `datetime` int(11) unsigned NOT NULL default '0',
+    `login` varchar(20) NOT NULL default '',
+    `remote_addr` int(11) unsigned NOT NULL default '0',
+    `sid` varchar(32) NOT NULL default '',
+    PRIMARY KEY  (`sid`),
+    UNIQUE KEY `sid` (`sid`)
+  ) COMMENT='User Web Sessions';
+
+
+  * 03.10.2007 
+ Доработан [[abills:docs:ipn:ru#traffic2sql|traffic2sql]]. Включена поддержка активности соединения через AMon.
   * 28.09.2007 
 MYSQL
    ALTER TABLE tarif_plans DROP PRIMARY KEY;

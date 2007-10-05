@@ -922,7 +922,6 @@ sub bruteforce_list {
 	return $list;
 }
 
-
 #**********************************************************
 #
 #**********************************************************
@@ -932,6 +931,130 @@ sub bruteforce_del {
 	
   $self->query($db,  "DELETE FROM users_bruteforce
 	 WHERE login='$attr->{LOGIN}';", 'do');
+
+	return $self;
+}
+
+
+
+#**********************************************************
+#
+#**********************************************************
+sub web_session_add {
+  my $self = shift;	
+  my ($attr) = @_;
+
+  $self->query($db, "DELETE  FROM web_users_sessions WHERE uid='$attr->{UID}';", 'do');	
+
+	$self->query($db, "INSERT INTO web_users_sessions 
+	      (uid, datetime, login, remote_addr, sid) VALUES 
+	      ('$attr->{UID}', UNIX_TIMESTAMP(), '$attr->{LOGIN}', INET_ATON('$attr->{REMOTE_ADDR}'), '$attr->{SID}');", 'do');	
+	
+	return $self;
+}
+
+#**********************************************************
+# User information
+# info()
+#**********************************************************
+sub web_session_info {
+  my $self = shift;
+  my ($attr) = @_;
+
+  my $WHERE;
+    
+  if($attr->{SID}) {
+    $WHERE = "WHERE sid='$attr->{SID}'";
+   }
+  else {
+    $self->{errno} = 2;
+    $self->{errstr} = 'ERROR_NOT_EXIST';
+    return $self;
+   }
+
+  $self->query($db, "SELECT uid, 
+    datetime, 
+    login, 
+    INET_NTOA(remote_addr), 
+    UNIX_TIMESTAMP() - datetime,
+    sid
+     FROM web_users_sessions
+     $WHERE;");
+
+  if ($self->{TOTAL} < 1) {
+     $self->{errno} = 2;
+     $self->{errstr} = 'ERROR_NOT_EXIST';
+     return $self;
+   }
+
+  
+  ($self->{UID},
+   $self->{DATETIME},
+   $self->{LOGIN},
+   $self->{REMOTE_ADDR}, 
+   $self->{ACTIVATE},
+   $self->{SID}
+   ) = @{ $self->{list}->[0] };
+ 
+  return $self;
+}
+
+#**********************************************************
+#
+#**********************************************************
+sub web_sessions_list {
+  my $self = shift;	
+	my ($attr) = @_;
+	
+
+  $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+  $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+  $PG = ($attr->{PG}) ? $attr->{PG} : 0;
+  $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
+
+
+	my $GROUP = 'GROUP BY login';
+  my $count='count(login)';	
+	
+	if ($attr->{AUTH_STATE}) {
+    push @WHERE_RULES, "auth_state='$attr->{AUTH_STATE}'";
+   }
+	
+	if ($attr->{LOGIN}) {
+		push @WHERE_RULES, "login='$attr->{LOGIN}'";
+  	$count='auth_state';
+  	$GROUP = '';
+	 }
+	
+  my $WHERE = "WHERE " . join(' and ', @WHERE_RULES) if($#WHERE_RULES > -1);
+	my $list;
+	
+	
+  if (! $attr->{CHECK}) {
+	  $self->query($db,  "SELECT uid, datetime, login, INET_NTOA(remote_addr), sid 
+	   FROM web_users_sessions
+	    $WHERE
+	    $GROUP
+	    ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");
+    $list = $self->{list};
+  }
+
+  $self->query($db, "SELECT count(DISTINCT login) FROM web_users_sessions $WHERE;");
+  ($self->{TOTAL}) = @{ $self->{list}->[0] };
+
+	
+	return $list;
+}
+
+#**********************************************************
+#
+#**********************************************************
+sub web_session_del {
+  my $self = shift;	
+	my ($attr) = @_;
+	
+  $self->query($db,  "DELETE FROM web_users_sessions
+	 WHERE sid='$attr->{SID}';", 'do');
 
 	return $self;
 }

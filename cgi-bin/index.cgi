@@ -60,6 +60,8 @@ $html->{language}=$FORM{language} if (defined($FORM{language}));
 require "../language/$html->{language}.pl";
 $sid = $FORM{sid} || ''; # Session ID
 if ((length($COOKIES{sid})>1) && (! $FORM{passwd})) {
+  $COOKIES{sid} =~ s/"//g;
+  $COOKIES{sid} =~ s/'//g;
   $sid = $COOKIES{sid};
 }
 elsif((length($COOKIES{sid})>1) && (defined($FORM{passwd}))){
@@ -82,9 +84,10 @@ if (defined($FORM{sid})) {
 
 #$html->setCookie('qm', "$FORM{qm_item}", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure) if (defined($FORM{quick_set}));
 #===========================================================
-my $sessions='admin/sessions.db';
+#my $sessions='admin/sessions.db';
 
 if ($index == 10) {
+  $user=Users->new($db, $admin, \%conf); 
   logout();
 
   print "Location: $SELF_URL". "\n\n";
@@ -357,6 +360,148 @@ sub auth_radius {
 	return $res;
 }
 
+##*******************************************************************
+## FTP authentification
+## auth($login, $pass)
+##*******************************************************************
+#sub auth { 
+# my ($login, $password, $sid) = @_;
+# my $uid = 0;
+# my $ret = 0;
+# my $res = 0;
+# my $REMOTE_ADDR = $ENV{'REMOTE_ADDR'} || '';
+# my $HTTP_X_FORWARDED_FOR = $ENV{'HTTP_X_FORWARDED_FOR'} || '';
+# my $ip = "$REMOTE_ADDR/$HTTP_X_FORWARDED_FOR";
+#
+#
+# if ($conf{PASSWORDLESS_ACCESS}) {
+#    require  Dv_Sessions;
+#    Dv_Sessions->import();
+#    my $sessions = Dv_Sessions->new($db, $admin, \%conf);
+#	  my $list = $sessions->online({ FRAMED_IP_ADDRESS => "$REMOTE_ADDR" });
+#    
+##    print "Content-Type: text/html\n\n";
+##    print "$list->[0]->[11]";
+#    
+#    if ($sessions->{TOTAL} > 0) {
+#      $login   = $list->[0]->[0];
+#      $ret     = $list->[0]->[11];
+#      $time    = time;
+#      $sid     = mk_unique_value(14);
+#      $h{$sid} = "$ret:$time:$login:$REMOTE_ADDR";
+#      untie %h;
+#      $action  = 'Access';
+#      $user->info($ret);
+#      return ($ret, $sid, $login);
+#    }
+#  }
+#
+# use DB_File; 
+# tie %h, "DB_File",  "$sessions", O_RDWR|O_CREAT, 0640, $DB_HASH
+#         or die "Cannot open file '$sessions': $!\n";
+# 
+#
+#
+#if (defined($FORM{op}) && $FORM{op} eq 'logout') {
+#  delete $h{$sid} ;
+#  untie %h;
+#  return 0;
+# }
+#elsif (length($sid) > 1) {
+#  if (defined($h{$sid})) {
+#    ($uid, $time, $login, $ip)=split(/:/, $h{$sid});
+#    my $cur_time = time;
+#    
+#    if ($cur_time - $time > $conf{web_session_timeout}) {
+#      #print "$cur_time - $time > '$conf{web_session_timeout}'";
+#      #web_session_timeout
+#      delete $h{$sid};
+#      $html->message('info', "$_INFO", 'timeout');	
+#      return 0; 
+#     }
+#    elsif($ip ne $REMOTE_ADDR) {
+#      $html->message('err', "$_ERROR", 'WRONG IP');	
+#      return 0; 
+#     }
+#
+#    $user->info($uid);
+#
+#    #print "'$uid', $time,  $ip<b>$_WELCOME</b> $uid \n";
+#    untie %h;
+#    return ($uid, $sid, $login);
+#   }
+#  else { 
+#    $html->message('err', "$_ERROR", "$_NOT_LOGINED");	
+#    return 0; 
+#   }
+# }
+#else {
+## print "$sid";
+#
+#  return 0 if (! $login  || ! $password);
+#  
+#  if ($conf{wi_bruteforce}) {
+#  	$user->bruteforce_list({ LOGIN    => $login,
+#  		                       PASSWORD => $password,
+#  		                       CHECK    => 1 });
+#  	if ($user->{TOTAL} > $conf{wi_bruteforce}) {
+#  		$OUTPUT{BODY} = $html->tpl_show(templates('form_bruteforce_message'), undef);
+#  		return 0;
+#  	 }
+#   }
+#  
+#  #check password from RADIUS SERVER if defined $conf{check_access}
+#  if (defined($conf{check_access})) {
+#    $res = auth_radius("$login", "$password")
+#   }
+#  #check password direct from SQL
+#  else {
+#    $res = auth_sql("$login", "$password") if ($res < 1);
+#   }
+#}
+##Get user ip
+#
+#if (defined($res) && $res > 0) {
+#  $user->info(0, { LOGIN => "$login" });
+#
+#  if ($user->{TOTAL} > 0) {
+#    $ret = $user->{UID};
+#    $time = time;
+#    $sid = mk_unique_value(14);
+#    $h{$sid} = "$ret:$time:$login:$REMOTE_ADDR";
+#    untie %h;
+#    $action = 'Access';
+#   }
+#  else {
+#    $html->message('err', "$_ERROR", "$_WRONG_PASSWD");
+#    $action = 'Error';
+#   }
+# }
+##elsif ($res == undef) {
+##   return ($pass eq $universal_pass) ? 0 : 1;
+##  }
+#else {
+#   $user->bruteforce_add({ LOGIN       => $login, 
+# 	                       PASSWORD    => $password,
+#    	                   REMOTE_ADDR => $REMOTE_ADDR,
+#    	                   AUTH_STATE  => $ret });
+#
+#   $html->message('err', "$_ERROR", "$_WRONG_PASSWD");
+#   $ret = 0;
+#   $action = 'Error';
+# }
+#
+#
+#
+#
+## open(FILE, ">>login.log") || die "can't open file 'login.log' $!";
+##   print FILE "$DATE $TIME $action:$login:$ip\n";
+## close(FILE);
+#
+# return ($ret, $sid, $login);
+#}
+
+
 #*******************************************************************
 # FTP authentification
 # auth($login, $pass)
@@ -371,7 +516,8 @@ sub auth {
  my $ip = "$REMOTE_ADDR/$HTTP_X_FORWARDED_FOR";
 
 
- if ($conf{PASSWORDLESS_ACCESS}) {
+#Passwordless Access
+if ($conf{PASSWORDLESS_ACCESS}) {
     require  Dv_Sessions;
     Dv_Sessions->import();
     my $sessions = Dv_Sessions->new($db, $admin, \%conf);
@@ -385,62 +531,52 @@ sub auth {
       $ret     = $list->[0]->[11];
       $time    = time;
       $sid     = mk_unique_value(14);
-      $h{$sid} = "$ret:$time:$login:$REMOTE_ADDR";
-      untie %h;
+      #$h{$sid} = "$ret:$time:$login:$REMOTE_ADDR";
+      #untie %h;
       $action  = 'Access';
       $user->info($ret);
       return ($ret, $sid, $login);
     }
   }
 
- use DB_File; 
- tie %h, "DB_File",  "$sessions", O_RDWR|O_CREAT, 0640, $DB_HASH
-         or die "Cannot open file '$sessions': $!\n";
- 
-
-
 if (defined($FORM{op}) && $FORM{op} eq 'logout') {
-  delete $h{$sid} ;
-  untie %h;
+  $user->web_session_del({ SID => $FORM{sid} });
   return 0;
  }
 elsif (length($sid) > 1) {
-  if (defined($h{$sid})) {
-    ($uid, $time, $login, $ip)=split(/:/, $h{$sid});
-    my $cur_time = time;
-    
-    if ($cur_time - $time > $conf{web_session_timeout}) {
-      #print "$cur_time - $time > '$conf{web_session_timeout}'";
-      #web_session_timeout
-      delete $h{$sid};
-      $html->message('info', "$_INFO", 'timeout');	
-      return 0; 
-     }
-    elsif($ip ne $REMOTE_ADDR) {
-      $html->message('err', "$_ERROR", 'WRONG IP');	
-      return 0; 
-     }
+  
+  $user->web_session_info({ SID => $sid });
 
-    $user->info($uid);
-
-    #print "'$uid', $time,  $ip<b>$_WELCOME</b> $uid \n";
-    untie %h;
-    return ($uid, $sid, $login);
-   }
-  else { 
+  if ($user->{TOTAL} < 1) { 
     $html->message('err', "$_ERROR", "$_NOT_LOGINED");	
     return 0; 
    }
+  elsif ($user->{errno}) {
+  	$html->message('err', "$_ERROR", "$_ERROR");
+  	return 0;
+   }
+  elsif ($conf{web_session_timeout} < $user->{ACTIVATE}) {
+  	$html->message('info', "$_INFO", 'Session Expire');	
+  	$user->web_session_del({ SID => $sid });
+  	return 0;
+   }
+  elsif($user->{REMOTE_ADDR} ne $REMOTE_ADDR) {
+    $html->message('err', "$_ERROR", 'WRONG IP');	
+    return 0; 
+   }
+  
+  $user->info($user->{UID});
+
+  return ($user->{UID}, $sid, $user->{LOGIN});
  }
 else {
-# print "$sid";
-
   return 0 if (! $login  || ! $password);
   
   if ($conf{wi_bruteforce}) {
   	$user->bruteforce_list({ LOGIN    => $login,
   		                       PASSWORD => $password,
   		                       CHECK    => 1 });
+
   	if ($user->{TOTAL} > $conf{wi_bruteforce}) {
   		$OUTPUT{BODY} = $html->tpl_show(templates('form_bruteforce_message'), undef);
   		return 0;
@@ -456,17 +592,20 @@ else {
     $res = auth_sql("$login", "$password") if ($res < 1);
    }
 }
-#Get user ip
 
+#Get user ip
 if (defined($res) && $res > 0) {
   $user->info(0, { LOGIN => "$login" });
 
   if ($user->{TOTAL} > 0) {
+    $sid = mk_unique_value(16);
     $ret = $user->{UID};
-    $time = time;
-    $sid = mk_unique_value(14);
-    $h{$sid} = "$ret:$time:$login:$REMOTE_ADDR";
-    untie %h;
+    $user->web_session_add({ UID         => $user->{UID},
+    	                       SID         => $sid,
+    	                       LOGIN       => $login,
+    	                       REMOTE_ADDR => $REMOTE_ADDR
+    	                     });
+
     $action = 'Access';
    }
   else {
@@ -474,30 +613,19 @@ if (defined($res) && $res > 0) {
     $action = 'Error';
    }
  }
-#elsif ($res == undef) {
-#   return ($pass eq $universal_pass) ? 0 : 1;
-#  }
 else {
    $user->bruteforce_add({ LOGIN       => $login, 
- 	                       PASSWORD    => $password,
-    	                   REMOTE_ADDR => $REMOTE_ADDR,
-    	                   AUTH_STATE  => $ret });
+ 	                         PASSWORD    => $password,
+    	                     REMOTE_ADDR => $REMOTE_ADDR,
+    	                     AUTH_STATE  => $ret });
 
    $html->message('err', "$_ERROR", "$_WRONG_PASSWD");
    $ret = 0;
    $action = 'Error';
  }
 
-
-
-
-# open(FILE, ">>login.log") || die "can't open file 'login.log' $!";
-#   print FILE "$DATE $TIME $action:$login:$ip\n";
-# close(FILE);
-
  return ($ret, $sid, $login);
 }
-
 
 #*******************************************************************
 # Authentification from SQL DB

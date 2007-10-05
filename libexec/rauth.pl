@@ -49,7 +49,7 @@ my $RAD;
 if (scalar(keys %RAD_REQUEST ) < 1 ) {
   $RAD = get_radius_params();
   if (defined($ARGV[0]) && $ARGV[0] eq 'pre_auth') {
-    auth($RAD, { pre_auth => 1 });
+    auth($db, $RAD, { pre_auth => 1 });
     exit 0;
    }
   elsif (defined($ARGV[0]) && $ARGV[0] eq 'post_auth') {
@@ -57,9 +57,9 @@ if (scalar(keys %RAD_REQUEST ) < 1 ) {
     exit 0;
    }
 
-  my $ret = get_nas_info($RAD);
+  my $ret = get_nas_info($db, $RAD);
   if($ret == 0) {
-    $ret = auth($RAD);
+    $ret = auth($db, $RAD);
   }
   #$db->disconnect();
   
@@ -79,7 +79,7 @@ if (scalar(keys %RAD_REQUEST ) < 1 ) {
 # get_nas_info();
 #*******************************************************************
 sub get_nas_info {
- my ($RAD)=@_;
+ my ($db, $RAD)=@_;
  
  $nas = Nas->new($db, \%conf);	
  
@@ -116,7 +116,7 @@ elsif($nas->{NAS_DISABLE} > 0) {
 # auth();
 #*******************************************************************
 sub auth {
- my ($RAD, $attr)=@_;
+ my ($db, $RAD, $attr)=@_;
  my ($r, $RAD_PAIRS);
 
  if(defined($conf{tech_works})) {

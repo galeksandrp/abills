@@ -62,12 +62,12 @@ sub authorize {
   $begin_time = check_time();
   convert_radpairs();
 
-  sql_connect();
+  my $db = sql_connect();
  
   if ( get_nas_info(\%RAD_REQUEST) == 0 ) {
   	
-  	if (auth(\%RAD_REQUEST, { pre_auth => 1 }) == 0) {
-      if ( auth(\%RAD_REQUEST) == 0 ) {
+  	if (auth($db, \%RAD_REQUEST, { pre_auth => 1 }) == 0) {
+      if ( auth($db, \%RAD_REQUEST) == 0 ) {
          #$RAD_CHECK{'User-Password'} = 'test12345';
     	   return RLM_MODULE_OK;
        }
@@ -83,10 +83,10 @@ sub authorize {
 #**********************************************************
 sub authenticate {
   
-  sql_connect();
+  my $db = sql_connect();
   
-  if ( get_nas_info(\%RAD_REQUEST) == 0 ) {
-    if ( auth(\%RAD_REQUEST) == 0 ) {
+  if ( get_nas_info($db, \%RAD_REQUEST) == 0 ) {
+    if ( auth($db, \%RAD_REQUEST) == 0 ) {
     	return RLM_MODULE_OK;
      }
    }
@@ -104,18 +104,13 @@ sub accounting {
   $begin_time = check_time();
   convert_radpairs();
 
-  sql_connect();
-  if ( get_nas_info(\%RAD_REQUEST) == 0 ) {
-     my $ret = acct(\%RAD_REQUEST, $nas);
+  my $db = sql_connect();
+  if ( get_nas_info($db, \%RAD_REQUEST) == 0 ) {
+     my $ret = acct($db, \%RAD_REQUEST, $nas);
    }
-
 
 	return RLM_MODULE_OK;
 }
-
-
-
-
 
 # Function to handle post_auth
 #sub post_auth {

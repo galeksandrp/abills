@@ -105,7 +105,7 @@ if (scalar(keys %RAD_REQUEST ) < 1) {
     #exit 1;
    }
   else {
-    $acct = acct($RAD, $nas);
+    $acct = acct($db, $RAD, $nas);
    }
 
   if(defined($acct->{errno})) {
@@ -121,7 +121,7 @@ if (scalar(keys %RAD_REQUEST ) < 1) {
 # acct();
 #*******************************************************************
 sub acct {
- my ($RAD, $nas) = @_;
+ my ($db, $RAD, $nas) = @_;
  my $GT = '';
  my $r = 0;
  
