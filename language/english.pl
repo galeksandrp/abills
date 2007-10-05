@@ -108,7 +108,6 @@ $_PER_MONTH='Per month';
 
 $_HOUR_TARIF='Time tariff';
 $_BYTE_TARIF='Traffic tariff';
-$_TRAFFIC='Traffic';
 $_MONTH_FEE='Month fee';
 $_DAY_FEE='Day fee';
 $_UPLIMIT='Alert';

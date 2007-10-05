@@ -2427,44 +2427,6 @@ if (defined($FORM{tt})) {
      }
   }
 
-#  else {
-    #$tarif_plan->tt_list( { TI_ID => $FORM{tt} });
-#    $tarif_plan->{TT_ID}=$tarif_plan->{TOTAL};
-#  }
-
-#  if ($FORM{change}) {
-#    $tarif_plan->tt_change( { 
-#      TI_ID          => $tarif_plan->{TI_ID},
-#      	
-#    	TT_DESCRIBE_0  => $FORM{TT_DESCRIBE_0},
-#      TT_PRICE_IN_0  => $FORM{TT_PRICE_IN_0},
-#      TT_PRICE_OUT_0 => $FORM{TT_PRICE_OUT_0},
-#      TT_NETS_0      => $FORM{TT_NETS_0},
-#      TT_PREPAID_0   => $FORM{TT_PREPAID_0},
-#      TT_SPEED_0     => $FORM{TT_SPEED_0},
-#      
-#      TT_DESCRIBE_1  => $FORM{'TT_DESCRIBE_1'},
-#      TT_PRICE_IN_1  => $FORM{TT_PRICE_IN_1},
-#      TT_PRICE_OUT_1 => $FORM{TT_PRICE_OUT_1},
-#      TT_NETS_1      => $FORM{TT_NETS_1},
-#      TT_PREPAID_1   => $FORM{TT_PREPAID_1},
-#      TT_SPEED_1     => $FORM{TT_SPEED_1},
-#
-#      TT_DESCRIBE_2 => $FORM{TT_DESCRIBE_2},
-#      TT_NETS_2 => $FORM{TT_NETS_2},
-#      TT_SPEED_2 => $FORM{TT_SPEED_2},
-#      EX_FILE_PATH => "$conf{DV_EXPPP_NETFILES}"
-#    });
-#
-#
-#    if ($tarif_plan->{errno}) {
-#      $html->message('err', $_ERROR, "[$tarif_plan->{errno}] $err_strs{$tarif_plan->{errno}}");	
-#     }
-#    else {
-#      $html->message('info', $_INFO, "$_INTERVALS");
-#     }
-#   }
-
    my $list = $tarif_plan->tt_list({ TI_ID => $FORM{tt}, form => 'yes' });
    $tarif_plan->{TT_ID}=$tarif_plan->{TOTAL} if (! defined($FORM{chg}));
    

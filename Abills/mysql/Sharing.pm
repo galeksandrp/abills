@@ -20,7 +20,7 @@ $VERSION = 2.00;
 use main;
 @ISA  = ("main");
 
-my $MODULE = 'Resshare';
+my $MODULE = 'Sharing';
 my $uid = 0;
 
 my $db;
@@ -628,7 +628,7 @@ sub prepaid_rest {
         sharing_main dv,
         tarif_plans tp,
         intervals i,
-        trafic_tarifs tt)
+        sharing_trafic_tarifs tt)
 WHERE
      u.uid=sharing.uid
  and sharing.tp_id=tp.id
@@ -1587,5 +1587,186 @@ elsif($attr->{DATE}) {
  
  return $list;
 }
+
+
+
+
+
+
+
+
+
+#**********************************************************
+# tt_defaults
+#**********************************************************
+sub  tt_defaults {
+	my $self = shift;
+	
+	my %TT_DEFAULTS = (
+      TT_DESCRIBE   => '',
+      TT_PRICE_IN   => '0.00000',
+      TT_PRICE_OUT  => '0.00000',
+      TT_NETS       => '',
+      TT_PREPAID    => 0,
+      TT_SPEED_IN   => 0,
+      TT_SPEED_OUT  => 0);
+	
+  while(my($k, $v) = each %TT_DEFAULTS) {
+    $self->{$k}=$v;
+   }	
+	
+  #$self = \%DATA;
+	return $self;
+}
+
+
+
+#**********************************************************
+# tt_info
+#**********************************************************
+sub  tt_list {
+	my $self = shift;
+	my ($attr) = @_;
+	
+	
+	if (defined( $attr->{TI_ID} )) {
+	  $self->query($db, "SELECT id, in_price, out_price, prepaid, in_speed, out_speed, descr, nets, expression
+     FROM sharing_trafic_tarifs WHERE interval_id='$attr->{TI_ID}'
+     ORDER BY id DESC;");
+   }	
+	else {
+	  $self->query($db, "SELECT id, in_price, out_price, prepaid, in_speed, out_speed, descr, nets, expression
+     FROM sharing_trafic_tarifs 
+     WHERE tp_id='$attr->{TP_ID}'
+     ORDER BY id;");
+   }
+
+
+if (defined($attr->{form})) {
+  my $a_ref = $self->{list};
+
+  foreach my $row (@$a_ref) {
+      my ($id, $tarif_in, $tarif_out, $prepaid, $speed_in, $speed_out, $describe, $nets) = @$row;
+      $self->{'TT_DESCRIBE_'. $id}   = $describe;
+      $self->{'TT_PRICE_IN_' . $id}  = $tarif_in;
+      $self->{'TT_PRICE_OUT_' . $id} = $tarif_out;
+      $self->{'TT_NETS_'.  $id}      = $nets;
+      $self->{'TT_PREPAID_' .$id}    = $prepaid;
+      $self->{'TT_SPEED_IN' .$id}    = $speed_in;
+      $self->{'TT_SPEED_OUT' .$id}   = $speed_out;
+   }
+
+  return $self;
+}
+
+	
+	return $self->{list};
+}
+
+
+
+#**********************************************************
+# tt_info
+#**********************************************************
+sub  tt_info {
+	my $self = shift;
+	my ($attr) = @_;
+	
+	
+  $self->query($db, "SELECT id, interval_id, in_price, out_price, prepaid, in_speed, out_speed, 
+	     descr, 
+	     nets,
+	     expression,
+	     tp_id
+     FROM sharing_trafic_tarifs 
+     WHERE 
+     tp_id='$attr->{TP_ID}'
+     and id='$attr->{TT_ID}';");
+
+  ($self->{TT_ID},
+   $self->{TI_ID},
+   $self->{TT_PRICE_IN},
+   $self->{TT_PRICE_OUT},
+   $self->{TT_PREPAID},
+   $self->{TT_SPEED_IN},
+   $self->{TT_SPEED_OUT},
+   $self->{TT_DESCRIBE},
+   $self->{TT_NETS},
+   $self->{TT_EXPRASSION},
+   $self->{TP_ID}
+  ) = @{ $self->{list}->[0] };
+
+	
+	return $self;
+}
+
+
+#**********************************************************
+# tt_add
+#**********************************************************
+sub  tt_add {
+  my $self = shift;
+	my ($attr) = @_; 
+  
+  %DATA = $self->get_data($attr, {default => $self->tt_defaults() }); 
+
+  $self->query($db, "INSERT INTO sharing_trafic_tarifs  
+    (tp_id, id, descr,  in_price,  out_price,  nets,  prepaid,  in_speed, out_speed, expression)
+    VALUES 
+    ('$DATA{TP_ID}', '$DATA{TT_ID}',   '$DATA{TT_DESCRIBE}', '$DATA{TT_PRICE_IN}',  '$DATA{TT_PRICE_OUT}',
+     '$DATA{TT_NETS}', '$DATA{TT_PREPAID}', '$DATA{TT_SPEED_IN}', '$DATA{TT_SPEED_OUT}', '$DATA{TT_EXPRASSION}')", 'do');
+
+  return $self;
+}
+
+
+
+#**********************************************************
+# tt_change
+#**********************************************************
+sub  tt_change {
+  my $self = shift;
+	my ($attr) = @_; 
+  
+  my %DATA = $self->get_data($attr, { default => $self->tt_defaults() }); 
+
+ 
+  $self->query($db, "UPDATE sharing_trafic_tarifs SET 
+    descr='". $DATA{TT_DESCRIBE} ."', 
+    in_price='". $DATA{TT_PRICE_IN}  ."',
+    out_price='". $DATA{TT_PRICE_OUT} ."',
+    nets='". $DATA{TT_NETS} ."',
+    prepaid='". $DATA{TT_PREPAID} ."',
+    in_speed='". $DATA{TT_SPEED_IN} ."',
+    out_speed='". $DATA{TT_SPEED_OUT} ."',
+    expression = '". $DATA{TT_EXPRASSION} ."'
+    WHERE 
+    TP_id='$attr->{TP_ID}' and id='$DATA{TT_ID}';", 'do');
+
+
+  if ($attr->{DV_EXPPP_NETFILES}) {
+    $self->create_nets({ TP_ID => $attr->{TP_ID} });
+   }
+
+  return $self;
+}
+
+#**********************************************************
+# Time_intervals
+# ti_add
+#**********************************************************
+sub tt_del {
+	my $self = shift;
+  my ($attr) = @_;
+
+  my %DATA = $self->get_data($attr, { default => $self->tt_defaults() }); 
+
+	$self->query($db, "DELETE FROM sharing_trafic_tarifs 
+	 WHERE  tp_id='$attr->{TI_ID}'  and id='$attr->{TT_ID}' ;", 'do');
+
+
+	return $self;
+}
+
 
 1

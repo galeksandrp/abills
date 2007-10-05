@@ -735,7 +735,7 @@ sub  tt_info {
      and id='$attr->{TT_ID}';");
 
   ($self->{TT_ID},
-   $self->{Ti_ID},
+   $self->{TI_ID},
    $self->{TT_PRICE_IN},
    $self->{TT_PRICE_OUT},
    $self->{TT_PREPAID},
@@ -838,6 +838,7 @@ sub create_nets {
 
   $self->create_tt_file("$attr->{TI_ID}.nets", "$body");
 }
+
 
 #**********************************************************
 # Time_intervals
