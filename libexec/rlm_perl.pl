@@ -4,7 +4,6 @@
 use strict;
 use vars qw(%RAD_REQUEST %RAD_REPLY %RAD_CHECK %conf 
  $begin_time
- $db
  $nas);
 #use Data::Dumper;
 
@@ -40,7 +39,6 @@ unshift(@INC, $Bin . '/../', $Bin . "/../Abills/$conf{dbtype}");
 require $Bin ."/racct.pl";
 require $Bin ."/rauth.pl";
 
-$db = undef;
 $nas = undef;
 
 #**********************************************************
@@ -49,7 +47,7 @@ $nas = undef;
 #**********************************************************
 sub sql_connect {
 	my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
-  $db  = $sql->{db};
+  my $db  = $sql->{db};
   
   #$rc = $dbh->ping;
   
@@ -67,7 +65,7 @@ sub authorize {
 
   my $db = sql_connect();
  
-  if ( get_nas_info(\%RAD_REQUEST) == 0 ) {
+  if ( get_nas_info($db, \%RAD_REQUEST) == 0 ) {
   	
   	if (auth($db, \%RAD_REQUEST, { pre_auth => 1 }) == 0) {
       if ( auth($db, \%RAD_REQUEST) == 0 ) {

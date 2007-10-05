@@ -24,9 +24,8 @@ my %auth_mod = ();
 
 require Abills::SQL;
 my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
-$db  = $sql->{db};
+my $db  = $sql->{db};
 require Nas;
-#$nas = Nas->new($db, \%conf);	
 $nas = undef;
 
 require Auth;

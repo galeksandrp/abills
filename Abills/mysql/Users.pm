@@ -972,6 +972,7 @@ sub web_session_info {
     return $self;
    }
 
+
   $self->query($db, "SELECT uid, 
     datetime, 
     login, 
