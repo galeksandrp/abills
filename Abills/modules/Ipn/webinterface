@@ -1401,7 +1401,12 @@ sub ipn_user_activate {
 
   my $ip = '0.0.0.0';
   my $IP_INPUT = '';
+
+  my $Dv       = Dv->new($db, $admin, \%conf);  
+  $Dv->info( $LIST_PARAMS{UID} );
+  
   if (! $user->{UID})  {
+     $ENV{REMOTE_ADDR} = $Dv->{IP} if ($Dv->{IP} ne '0.0.0.0');
      $IP_INPUT = $html->form_input('REMOTE_ADDR', "$ENV{REMOTE_ADDR}", { OUTPUT2RETURN => 1});
 
      $ip = ($FORM{REMOTE_ADDR}) ? $FORM{REMOTE_ADDR} : $ENV{REMOTE_ADDR};
@@ -1481,7 +1486,7 @@ sub ipn_user_activate {
                   TP                 => 0,
                   CALLING_STATION_ID => $ip,
                   CONNECT_INFO       => ($FORM{CONNECT_INFO} && $FORM{CONNECT_INFO} =~ /Amon/) ? time() : ''
-                   );
+                 );
 
     
     
