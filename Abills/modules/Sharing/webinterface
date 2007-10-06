@@ -27,7 +27,6 @@ sub sharing_tp {
  $tarif_info->{LNG_ACTION}=$_ADD;
  $tarif_info->{ACTION}='ADD_TP';
 
- $Tariffs->{debug} = 1;
 
 if($FORM{ADD_TP}) {
   $FORM{TP_ID} = $FORM{CHG_TP_ID};
@@ -85,7 +84,7 @@ elsif (defined($FORM{TP_ID})) {
   	return 0;
    }
   elsif($FORM{change}) {
-    $Tariffs->change( $FORM{TP_ID}, { %FORM  } );  
+    $Tariffs->change( $FORM{TP_ID}, { %FORM, MODULE => 'Sharing'  } );  
      
     if (! $Tariffs->{errno}) {
        $html->message('info', $_CHANGED, "$_CHANGED $Tariffs->{TP_ID}");
@@ -97,7 +96,7 @@ elsif (defined($FORM{TP_ID})) {
 
  }
 elsif(defined($FORM{del}) && $FORM{is_js_confirmed}) {
-  $Tariffs->del($FORM{del});
+  $Tariffs->del($FORM{del}, { MODULE => 'Sharing'});
 
   if (! $Tariffs->{errno}) {
     $html->message('info', $_DELETE, "$_DELETED $FORM{del}");
@@ -106,7 +105,7 @@ elsif(defined($FORM{del}) && $FORM{is_js_confirmed}) {
 
 
 if ($Tariffs->{errno}) {
-    $html->message('err', $_ERROR, "[$Tariffs->{errno}] $err_strs{$Tariffs->{errno}}");	
+   $html->message('err', $_ERROR, "[$Tariffs->{errno}] $err_strs{$Tariffs->{errno}}");	
  }
 
 my $i=0;
@@ -207,8 +206,6 @@ sub sharing_traffic_tariffs {
   $Sharing->{ACTION}='add';
   $Sharing->{LNG_ACTION}=$_ADD;
  
-  $Sharing->{debug}=1;
-
   
 if (defined($FORM{tt})) {
   #$Sharing = $attr->{TP};
@@ -222,7 +219,7 @@ if (defined($FORM{tt})) {
     if(! $Sharing->{errno}) {
       $html->message('info', $_INFO, "$_ADDED");
      }
-  }
+   }
   elsif($FORM{change}) {
     $FORM{TI_ID}=$FORM{tt};
     $Sharing->tt_change({ %FORM });
@@ -230,7 +227,7 @@ if (defined($FORM{tt})) {
     if(! $Sharing->{errno}) {
       $html->message('info', $_INFO, "$_CHANGED"); 
      }
-  }
+   }
  	elsif(defined($FORM{chg})) {
     $Sharing->tt_info({ TP_ID => $FORM{tt}, TT_ID => $FORM{chg} });
     if(! $Sharing->{errno}) {
@@ -238,13 +235,17 @@ if (defined($FORM{tt})) {
      }
     $Sharing->{ACTION}='change';
     $Sharing->{LNG_ACTION}=$_CHANGE;
-  }
+   }
   elsif(defined($FORM{del}) && defined($FORM{is_js_confirmed}) ) {
     $Sharing->tt_del({ TI_ID => $FORM{tt}, TT_ID => $FORM{del} });
     if(! $Sharing->{errno}) {
     	$html->message('info', $_INFO, "$_DELETED"); 
      }
-  }
+   }
+
+  if ($Sharing->{errno}) {
+    $html->message('err', $_ERROR, "[$Sharing->{errno}] $err_strs{$Sharing->{errno}}");	
+   }
 
    my $list = $Sharing->tt_list({ TP_ID => $FORM{TP_ID}, form => 'yes' });
    $Sharing->{TT_ID}=$Sharing->{TOTAL} if (! defined($FORM{chg}));
@@ -294,6 +295,10 @@ elsif (defined($FORM{TP_ID})) {
   sharing_tp();
   return 0;
  }
+
+
+
+
   
        my $table2 = $html->table({ width       => '100%',
                                    title_plain => ["#", "$_TRAFFIC_TARIFF In ", "$_TRAFFIC_TARIFF Out ", "$_PREPAID", "$_SPEED IN",  "$_SPEED OUT", "DESCRIBE", "NETS", "-", "-"],
@@ -566,7 +571,6 @@ if (! $list) {
 #  	 <tr><td>$_HANGUP $_STATUS:</td><td>$TERMINATE_CAUSE_SEL</td></tr>\n"
 # });
 
-  $Sharing->{debug}=1;
   $list = $Sharing->sessions_list({ %LIST_PARAMS });	
 }
 

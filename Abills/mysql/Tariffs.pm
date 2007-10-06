@@ -442,7 +442,8 @@ sub change {
 		                TABLE        => 'tarif_plans',
 		                FIELDS       => \%FIELDS,
 		                OLD_INFO     => $self->info($tp_id, { MODULE => $attr->{MODULE} }),
-		                DATA         => $attr
+		                DATA         => $attr,
+		                EXTENDED     => ($attr->{MODULE}) ? "and module='$attr->{MODULE}'" : undef
 		              } );
 
 
@@ -450,7 +451,7 @@ sub change {
   	 $attr->{TP_ID} = $attr->{CHG_TP_ID};
    }
 
-  $self->info($attr->{TP_ID});
+  $self->info($attr->{TP_ID}, { MODULE => $attr->{MODULE} });
 	return $self;
 }
 
@@ -459,9 +460,14 @@ sub change {
 #**********************************************************
 sub del {
   my $self = shift;
-  my ($id) = @_;
+  my ($id, $attr) = @_;
   	
-  $self->query($db, "DELETE FROM tarif_plans WHERE id='$id';", 'do');
+  my $WHERE = '';
+  if ($attr->{MODULE}) {
+  	$WHERE = " and module='$attr->{MODULE}'";
+   }
+  	
+  $self->query($db, "DELETE FROM tarif_plans WHERE id='$id'$WHERE;", 'do');
 
  return $self;
 }

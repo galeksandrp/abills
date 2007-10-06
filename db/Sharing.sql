@@ -36,3 +36,19 @@ CREATE TABLE `sharing_log` (
   `uniqueid` text,
   KEY `username` (`username`)
 ) COMMENT='Sharing log file';
+
+CREATE TABLE `sharing_trafic_tarifs` (
+ `id` tinyint(4) NOT NULL default '0',
+ `descr` varchar(30) default NULL,
+ `nets` text,
+ `tp_id` smallint(5) unsigned NOT NULL default '0',
+ `prepaid` int(11) unsigned default '0',
+ `in_price` double(13,5) unsigned NOT NULL default '0.00000',
+ `out_price` double(13,5) unsigned NOT NULL default '0.00000',
+ `in_speed` int(10) unsigned NOT NULL default '0',
+ `interval_id` smallint(6) unsigned NOT NULL default '0',
+ `rad_pairs` text NOT NULL,
+ `out_speed` int(10) unsigned NOT NULL default '0',
+ `expression` varchar(255) NOT NULL default '',
+  UNIQUE KEY `id` (`id`,`tp_id`)
+) COMMENT='Sharing Traffic Class';

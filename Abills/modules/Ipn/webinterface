@@ -1436,7 +1436,7 @@ sub ipn_user_activate {
   if ($nas_id < 1) {
   	$html->message('err', $_ERROR, "$_NOT_EXIST IP '$ip'");
   	if (! $user->{UID}) {
-      $IP_INPUT .= $html->form_select('NAS_ID', 
+      $IP_INPUT .= " NAS: ". $html->form_select('NAS_ID', 
                                     { 
  	                                   SELECTED          => $nas_id,
  	                                   SEL_MULTI_ARRAY   => $nas->list(),
@@ -1585,7 +1585,7 @@ sub ipn_user_activate {
 $HIDDEN{sid}=$html->{SID} if ($html->{SID});
 $HIDDEN{ACCT_INTERIUM_INTERVAL}=120;
 
-print $html->form_main({ CONTENT => "IP: $ip $IP_INPUT NAS: (". $nas_id .") ", 
+print $html->form_main({ CONTENT => "IP: $ip $IP_INPUT (". $nas_id .") ", 
                      HIDDEN  => { index   => "$index",
                      	            UID     => $LIST_PARAMS{UID},
                      	            %HIDDEN
