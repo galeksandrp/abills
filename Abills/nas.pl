@@ -462,6 +462,21 @@ sub hangup_mikrotik_telnet {
 
 
 #*******************************************************************
+# hangup_radius_disconnect
+# 
+# Radius-Disconnect messages
+# rfc2882
+#*******************************************************************
+sub hangup_ipcad {
+  my ($NAS_IP, $PORT, $USER) = @_;
+
+  my $result = ``; 
+ 
+  print $result;
+}
+
+
+#*******************************************************************
 # HANGUP Cisco
 # hangup_cisco($SERVER, $PORT)
 #

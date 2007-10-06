@@ -131,7 +131,9 @@ sub check_lines {
 
 
   foreach my $nas_row (@$nas_list) {
-
+    #If ipcad NAS all checks make in traff2sql 
+    next if ($nas_row->[4] eq 'ipcad');
+    
     my $l = $online->{$nas_row->[0]};
     print "NAS IP: $nas_row->[3]\n NAS_TYPE: $nas_row->[4]\n STATUS: $nas_row->[6]\n Alive: $nas_row->[8]/\n " if ($debug > 0);
     $NAS{NAS_ID}    = $nas_row->[0];
