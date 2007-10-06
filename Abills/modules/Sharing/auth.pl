@@ -69,7 +69,9 @@ if ($COOKIE ne '') {
     $cookies{$key} = $val;
   }
  }
+
 my $sth;
+my ($uid, $datetime, $remote_addr, $alived, $password);
 
 if ($cookies{sid}) {
 	$cookies{sid} = s/'//g;
@@ -86,11 +88,11 @@ if ($cookies{sid}) {
 	$sth = $dbh->prepare($query);
   $sth->execute();
 
-  my ($uid, $datetime, $user, $remote_addr, $alived) = $sth->fetchrow_array();
+  ($uid, $datetime, $user, $remote_addr, $alived) = $sth->fetchrow_array();
  }
 else {
 #check password
-my $query = "SELECT if(DECODE(password, '$conf{secretkey}')='$passwd', 1,0)
+my $query = "SELECT if(DECODE(u.password, '$conf{secretkey}')='$passwd', 1,0), u.uid
    FROM (users u, sharing_main sharing)
     WHERE u.id='$user'  AND u.uid=sharing.uid  
                     AND (u.disable=0 AND sharing.disable=0)
@@ -99,7 +101,7 @@ my $query = "SELECT if(DECODE(password, '$conf{secretkey}')='$passwd', 1,0)
 $sth = $dbh->prepare($query);
 $sth->execute();
 
-my ($password, $deposit) = $sth->fetchrow_array();
+($password, $uid) = $sth->fetchrow_array();
 
 if ($sth->rows() < 1) {
   print STDERR "User not found '$user' - Rejected\n";
@@ -110,6 +112,72 @@ elsif ($password == 0) {
   exit 1;
  }
 }
+
+
+#Get user info and ballance
+#check password
+my $query = "select
+  UNIX_TIMESTAMP(),
+  UNIX_TIMESTAMP(DATE_FORMAT(FROM_UNIXTIME(UNIX_TIMESTAMP()), '%Y-%m-%d')),
+  DAYOFWEEK(FROM_UNIXTIME(UNIX_TIMESTAMP())),
+  DAYOFYEAR(FROM_UNIXTIME(UNIX_TIMESTAMP())),
+  u.company_id,
+  u.disable,
+  u.bill_id,
+  u.credit,
+  u.activate,
+  u.reduction,
+  sharing.tp_id,
+  tp.payment_type,
+  tp.month_traf_limit
+     FROM (users u, sharing_main sharing, tarif_plans tp)
+     WHERE
+        u.uid=sharing.uid
+        AND sharing.tp_id=tp.id
+        AND u.uid='$uid'
+        AND (u.expire='0000-00-00' or u.expire > CURDATE())
+        AND (u.activate='0000-00-00' or u.activate <= CURDATE())
+       GROUP BY u.id";
+
+$sth = $dbh->prepare($query);
+$sth->execute();
+
+my (
+  $unix_date, 
+  $day_begin,
+  $day_of_week,
+  $day_of_year,
+  $company_id,
+  $disable,
+  $bill_id,
+  $credit,
+  $activate,
+  $reduction,
+  $tp_id,
+  $payment_type,
+  $month_traf_limit
+  ) = $sth->fetchrow_array();
+
+#Get Deposit
+$query = "select deposit 
+     FROM bills
+     WHERE
+        id='$bill_id'";
+
+$sth = $dbh->prepare($query);
+$sth->execute();
+
+my ( $deposit ) = $sth->fetchrow_array();
+
+#Get used traffic
+$query = "select sum(sent)
+     FROM sharing_log
+     WHERE username='$user'";
+
+$sth = $dbh->prepare($query);
+$sth->execute();
+my ( $sent ) = $sth->fetchrow_array();
+
 
 #Get file info
 # это позволяет по ид новости определить имена файлов и открытость-закрытость их для всех
