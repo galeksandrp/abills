@@ -460,8 +460,8 @@ sub admin_change {
   %DATA = $self->get_data($attr, { default => \%DATA }); 
  
 
-  $self->query($db, "insert into msgs_chapters (name)
-    values ('$DATA{NAME}');", 'do');
+  $self->query($db, "insert into msgs_admins (aid, chapter_id, priority)
+    values ('$DATA{AID}', '$DATA{CHAPTER_ID}','$DATA{PRIORITY}');", 'do');
 
 	return $self;
 }

@@ -15,11 +15,17 @@ my $users = Users->new($db, $admin, \%conf);
 sub msgs_admins {
 
 
+$Msgs->{debug}=1;
+
 if ($FORM{change}) {
-	$Msgs->admin_change({ %FORM });
-  if (! $Msgs->{errno}) {
-    $html->message('info', $_INFO, "$_CHANGED");  	
-   }
+	while(my($k, $v)=each %FORM) {
+		 print "$k / $v";
+	 }	
+	
+#	$Msgs->admin_change({ %FORM });
+#  if (! $Msgs->{errno}) {
+#    $html->message('info', $_INFO, "$_CHANGED");  	
+#   }
  }
 elsif ($FORM{chg}) {
   
@@ -37,7 +43,7 @@ elsif ($FORM{chg}) {
   foreach my $line (@$list) {
     $table->addrow($line->[0] . $html->form_input('ID_'.$line->[0], "$line->[0]", {TYPE => 'checkbox' }),
       $line->[1],
-      $html->form_input('PRIORITY_'. $line->[0], "$line->[2]")
+      $html->form_input('PRIORITY_'. $line->[0], "$line->[0]")
      );
    }
   
