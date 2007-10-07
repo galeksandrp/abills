@@ -410,7 +410,7 @@ sub chapter_change {
 #**********************************************************
 # accounts_list
 #**********************************************************
-sub admin_list {
+sub admins_list {
   my $self = shift;
   my ($attr) = @_;
 
@@ -426,12 +426,11 @@ sub admin_list {
  $WHERE = ($#WHERE_RULES > -1) ? 'WHERE ' . join(' and ', @WHERE_RULES)  : '';
 
 
-  $self->query($db, "SELECT a.id, mc.name, ma.priority, a.aid
+  $self->query($db, "SELECT a.id, mc.name, ma.priority, 0, a.aid, ma.chapter_id
     FROM admins a 
-    LEFT join msgs_admins ma ON (a.id=ma.aid)
+    LEFT join msgs_admins ma ON (a.aid=ma.aid)
     LEFT join msgs_chapters mc ON (ma.chapter_id=mc.id)
     $WHERE
-    GROUP BY a.id 
     ORDER BY $SORT $DESC;");
 
  my $list = $self->{list};
@@ -460,7 +459,7 @@ sub admin_change {
 
   $self->admin_del({ AID => $attr->{AID}});
   
-  my @chapters = slit(/, /, $attr->{IDS});
+  my @chapters = split(/, /, $attr->{IDS});
   foreach my $id (@chapters) {
     $self->query($db, "insert into msgs_admins (aid, chapter_id, priority)
       values ('$DATA{AID}', '$id','". $DATA{'PRIORITY_'. $id}."');", 'do');

@@ -25,21 +25,28 @@ if ($FORM{change}) {
  }
 elsif ($FORM{chg}) {
   
-  my $list = $Msgs->admins_list({ AID => $FORM{AID} });
+  my $a_list = $Msgs->admins_list({ AID => $FORM{AID} });
+  my %A_PRIVILEGES = ();
+  foreach my $line (@$a_list) {
+  	$A_PRIVILEGES{$line->[4]}=$line->[2];
+   }
+  
+  
   if (! $Msgs->{errno}) { 
     $html->message('info', $_INFO, "$_CHANGE");  	
    }
 
+  my $list = $Msgs->chapters_list({ AID => $FORM{AID} });
   my $table = $html->table( { width      => '100%',
                               title      => ['ID', "$_CHAPTERS", "_PRIORITY" ],
                               cols_align => ['right', 'left', 'center' ],
-                              qs         => $pages_qs,
                            });
 
   foreach my $line (@$list) {
-    $table->addrow($line->[0] . $html->form_input('IDS', "$line->[0]", {TYPE => 'checkbox' }),
+    $table->addrow($line->[0] . $html->form_input('IDS', "$line->[0]", { TYPE => 'checkbox', 
+    	  STATE => ($A_PRIVILEGES{$line->[0]}) ? 1 : undef }),
       $line->[1],
-      $html->form_input('PRIORITY_'. $line->[0], ($line->[2] || 0))
+      $html->form_input('PRIORITY_'. $line->[0], ($A_PRIVILEGES{$line->[0]} ? $A_PRIVILEGES{$line->[0]} : 0))
      );
    }
   
@@ -53,25 +60,50 @@ if ($Msgs->{errno}) {
  } 
 
 
-my $list = $Msgs->admin_list({ %LIST_PARAMS });
+my $list = $Msgs->admins_list({ %LIST_PARAMS });
   
   
   my $table = $html->table( { width      => '100%',
                               caption    => "$_ADMINS",
-                              title      => [$_ADMIN, "$_CHAPTERS", "_PRIORITY", "-"],
+                              title      => [$_ADMIN, "$_CHAPTERS", "_PRIORITY", "$_MESSAGES", "-"],
                               cols_align => ['left', 'left', 'right', 'center:noprint' ],
                               qs         => $pages_qs,
                            });
 
-
+my %A_PRIVILEGES = ();
 foreach my $line (@$list) {
-  $table->addrow(
-     $line->[0], 
-     $line->[1], 
-     $line->[2],
-     $html->button("$_CHANGE", "index=$index&chg=$line->[3]"),
-   );
+  push @{ $A_PRIVILEGES{$line->[0]} }, "$line->[1]|$line->[2]|$line->[3]|$line->[4]|$line->[5]";
 }
+
+foreach my $admin (sort keys %A_PRIVILEGES) {
+  my $rows = $#{ $A_PRIVILEGES{$admin} };
+  my @arr = @{ $A_PRIVILEGES{$admin} };
+
+  my ($chapter_name, $privilege, $msgs, $aid, $chapter_id) = split(/\|/, $arr[0] );
+
+  $table->addtd(
+                  $table->td($admin, { rowspan => ($rows > 0) ? $rows+1 : 1 } ),
+                  $table->td($chapter_name), 
+                  $table->td($privilege), 
+                  $table->td($msgs), 
+                  $table->td($html->button("$_CHANGE", "index=$index&chg=$aid&AID=$aid"))
+      );
+
+
+  if ($rows > 0) {
+    for(my $i=1; $i<=$rows; $i++) { 
+      my ($chapter_name, $privilege, $msgs, $aid, $chapter_id) = split(/\|/, $arr[$i] );
+      $table->addrow(
+       $chapter_name, 
+       $privilege,
+       $msgs,
+       '',
+      );
+    }
+   }
+
+}
+
 
 print $table->show();
 
