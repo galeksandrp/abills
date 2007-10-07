@@ -1342,11 +1342,13 @@ my %status_hash = (
 "." => 'open slot with no current process');
 
  my $not_expr  = '';
+ my $total = 0;
  foreach my $line (@content_arr) {
  	  $line =~ s/\n|\r|<b>|<\/b>//g;
  	  if ($line =~ /$pattern/ ) {
  	  	$res .= "$1 | PID: $2 | $3 | $4 | $5 | $6 | $7 | $8 | Transfer: $9 | $10 | IP: $11 | Host: $12 |Type: $13 | Request: $14 | Proto: $15\n";
  	  	$table->addrow($11, $14,  sec2time($6, { str => 1}), $9, $13, $15, $2, $5,  $status_hash{$4},  $12);
+      $total++;
  	   }
     else {
     	$not_expr .= $line."\n\n";
@@ -1354,49 +1356,21 @@ my %status_hash = (
    }
 
 
- print $table->show();
+print $table->show();
+
+$table = $html->table( { width      => '100%',
+                         cols_align => ['right', 'right'],
+                         rows       => [ [ "$_TOTAL:", "<b>$total</b>" ] ]
+                     } );
+
+print $table->show();
+
 
 if ($not_expr ne '') {
   print "<textarea cols=150 rows=10>$not_expr</textarea>";
 }
 
-#my $table = $html->table( { width      => '100%',
-#                            caption    => "Dialup / VPN",
-#                            border     => 1,
-#                            title      => \@TITLE,
-#                            cols_align => ['left', 'left', 'right', 'right', 'left', 'center', 'center:noprint', 'center:noprint'],
-#                            qs         => $pages_qs,
-#                            pages      => $Sharing->{TOTAL}
-#                           });
-#
-#foreach my $line (@$list) {
-#  my $payments = ($permissions{1}) ?  $html->button("$_PAYMENTS", "index=2&UID=". $line->[6+$Sharing->{SEARCH_FIELDS_COUNT}]) : ''; 
-#  
-#  my @fields_array  = ();
-#  for(my $i=0; $i<$Sharing->{SEARCH_FIELDS_COUNT}; $i++){
-#     push @fields_array, $line->[6+$i];
-#   }
-#  
-#  $table->addrow(
-#   $html->button("$line->[0]", "index=15&UID=$line->[6+$Sharing->{SEARCH_FIELDS_COUNT}]"), 
-#   "$line->[1]",
-#   "$line->[2]", 
-#   "$line->[3]", 
-#   "$line->[4]", 
-#   "$status[$line->[5]]",
-#   @fields_array, 
-#   $payments, 
-#   $html->button("$_STATS", "index=". ($index + 3) ."&UID=". $line->[6+$Sharing->{SEARCH_FIELDS_COUNT}])
-#
-#   );
-#}
-#print $table->show();
-#
-#$table = $html->table( { width      => '100%',
-#                         cols_align => ['right', 'right'],
-#                         rows       => [ [ "$_TOTAL:", "<b>$Sharing->{TOTAL}</b>" ] ]
-#                        } );
-#print $table->show();
+
 
 }
 
