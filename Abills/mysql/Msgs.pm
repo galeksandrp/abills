@@ -419,8 +419,8 @@ sub admin_list {
 
   @WHERE_RULES = ();
  
- if($attr->{NAME}) {
-	 push @WHERE_RULES, "mc.name='$attr->{NAME}'"; 
+ if($attr->{AID}) {
+	 push @WHERE_RULES, "a.aid='$attr->{AID}'"; 
   }
  
  $WHERE = ($#WHERE_RULES > -1) ? 'WHERE ' . join(' and ', @WHERE_RULES)  : '';
@@ -436,13 +436,13 @@ sub admin_list {
 
  my $list = $self->{list};
 
- if ($self->{TOTAL} > 0) {
-   $self->query($db, "SELECT count(*)
-     FROM msgs_chapters mc
-     $WHERE");
+# if ($self->{TOTAL} > 0) {
+#   $self->query($db, "SELECT count(*)
+#     FROM msgs_chapters mc
+#     $WHERE");
 
-   ($self->{TOTAL}) = @{ $self->{list}->[0] };
-  }
+#   ($self->{TOTAL}) = @{ $self->{list}->[0] };
+#  }
  
  
 	return $list;
@@ -456,12 +456,15 @@ sub admin_change {
 	my $self = shift;
 	my ($attr) = @_;
   
- 
-  %DATA = $self->get_data($attr, { default => \%DATA }); 
- 
+  my %DATA = $self->get_data($attr, { default => \%DATA }); 
 
-  $self->query($db, "insert into msgs_admins (aid, chapter_id, priority)
-    values ('$DATA{AID}', '$DATA{CHAPTER_ID}','$DATA{PRIORITY}');", 'do');
+  $self->admin_del({ AID => $attr->{AID}});
+  
+  my @chapters = slit(/, /, $attr->{IDS});
+  foreach my $id (@chapters) {
+    $self->query($db, "insert into msgs_admins (aid, chapter_id, priority)
+      values ('$DATA{AID}', '$id','". $DATA{'PRIORITY_'. $id}."');", 'do');
+   }
 
 	return $self;
 }
@@ -476,14 +479,7 @@ sub admin_del {
 	my $self = shift;
 	my ($attr) = @_;
 
-  @WHERE_RULES=();
-
-  if ($attr->{ID}) {
-  	 push @WHERE_RULES, "id='$attr->{ID}'";
-   }
-
-  $WHERE = ($#WHERE_RULES > -1) ? join(' and ', @WHERE_RULES)  : '';
-  $self->query($db, "DELETE FROM msgs_chapters WHERE $WHERE", 'do');
+  $self->query($db, "DELETE FROM msgs_admins WHERE aid='$attr->{AID}'", 'do');
 
 	return $self;
 }
