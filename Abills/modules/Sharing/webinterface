@@ -1312,8 +1312,10 @@ elsif ($Sharing->{TOTAL} == 1) {
                '<td>(\S+)<\/td>'.
                '<td>(\S+)<\/td>'.
                '<td nowrap>(\S+)</td>'.
-               '<td nowrap>(\S+) (\S+| )([!% \S]{0,10})</td>'
+               '<td nowrap>(\S+) ([a-zA-Z0-9\.\-\=\?\/\%!_ ]{1,100})([ HTTP\/\d\.\d]{0,10})</td>'
                ;               
+
+#               '<td nowrap>(\S+) (\S+| )([!% \S]{0,10})</td>'
 
 my $table = $html->table( { width      => '100%',
                             caption    => "$_SESSIONS",
