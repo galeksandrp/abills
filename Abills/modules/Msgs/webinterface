@@ -43,7 +43,7 @@ elsif ($FORM{chg}) {
   foreach my $line (@$list) {
     $table->addrow($line->[0] . $html->form_input('ID_'.$line->[0], "$line->[0]", {TYPE => 'checkbox' }),
       $line->[1],
-      $html->form_input('PRIORITY_'. $line->[0], "$line->[0]")
+      $html->form_input('PRIORITY_'. $line->[0], "$line->[2]")
      );
    }
   

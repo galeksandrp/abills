@@ -1301,9 +1301,6 @@ elsif ($Sharing->{TOTAL} == 1) {
    }
   close($socket);
 
- print "--- $res";
-
- 
  my @content_arr = split(/\n\n/, $res);
  $res = '';
  my $pattern = '<tr><td>(\S+)<\/td>'.
@@ -1315,7 +1312,7 @@ elsif ($Sharing->{TOTAL} == 1) {
                '<td>(\S+)<\/td>'.
                '<td>(\S+)<\/td>'.
                '<td nowrap>(\S+)</td>'.
-               '<td nowrap>(\S+) (\S+| )([!% \S]{0,10})</td>'
+               '<td nowrap>(\S+) (\S+)([!% \S]{0,10})</td>'
                ;               
 
 my $table = $html->table( { width      => '100%',
@@ -1342,19 +1339,24 @@ my %status_hash = (
 "I" => 'Idle cleanup of worker', 
 "." => 'open slot with no current process');
 
-
+ my $not_expr  = '';
  foreach my $line (@content_arr) {
  	  $line =~ s/\n|\r|<b>|<\/b>//g;
  	  if ($line =~ /$pattern/ ) {
  	  	$res .= "$1 | PID: $2 | $3 | $4 | $5 | $6 | $7 | $8 | Transfer: $9 | $10 | IP: $11 | Host: $12 |Type: $13 | Request: $14 | Proto: $15\n";
  	  	$table->addrow($11, $14,  sec2time($6, { str => 1}), $9, $13, $15, $2, $5,  $status_hash{$4},  $12);
  	   }
+    else {
+    	$not_expr .= $line."\n\n";
+     }
    }
 
 
  print $table->show();
 
-print "<textarea cols=150 rows=10>$res</textarea>";
+if ($not_expr ne '') {
+  print "<textarea cols=150 rows=10>$not_expr</textarea>";
+}
 
 #my $table = $html->table( { width      => '100%',
 #                            caption    => "Dialup / VPN",
