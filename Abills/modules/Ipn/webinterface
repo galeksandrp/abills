@@ -1449,12 +1449,21 @@ sub ipn_user_activate {
      }
    }
 
+  if($FORM{CONNECT_INFO} && $FORM{CONNECT_INFO} =~ /Amon/) {
+    $FORM{CONNECT_INFO} = time();
+    if ($ENV{HTTP_USER_AGENT} =~ /^AMon \[(\S+)\]/) {
+   	  $FORM{CONNECT_INFO} .= ":".$1;
+     }
+   }
+  else {
+  	$FORM{CONNECT_INFO} = '';
+   }
+
   if ($FORM{ALIVE}) {
   	if ($FORM{REMOTE_ADDR} !~ /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/) {
   		$html->message('err', $_ERROR, "$ERR_WRONG_DATA");
   		return 0;
   	 }
-    $FORM{CONNECT_INFO} = time() if($FORM{CONNECT_INFO} && $FORM{CONNECT_INFO} =~ /Amon/) ;
 
   	$Ipn->online_alive({ %FORM, LOGIN => $LIST_PARAMS{LOGIN} });
   	if ($Ipn->{TOTAL} < 1) {
@@ -1476,6 +1485,7 @@ sub ipn_user_activate {
     else {
       my $user  = $users->info( $LIST_PARAMS{UID} );
       $nas->info({ NAS_ID => $nas_id });
+      
       my %DATA = (ACCT_STATUS_TYPE   => 1, 
                   USER_NAME          => $user->{LOGIN}, 
                   SESSION_START      => 0, 
@@ -1485,7 +1495,7 @@ sub ipn_user_activate {
                   NAS_IP_ADDRESS     => $nas->{NAS_IP},
                   TP                 => 0,
                   CALLING_STATION_ID => $ip,
-                  CONNECT_INFO       => ($FORM{CONNECT_INFO} && $FORM{CONNECT_INFO} =~ /Amon/) ? time() : ''
+                  CONNECT_INFO       => $FORM{CONNECT_INFO}
                  );
 
     

@@ -65,6 +65,9 @@ sub hangup {
  elsif ($nas_type eq 'mpd4') {
     hangup_mpd4($NAS, $PORT, $attr);
   }
+ elsif ($nas_type eq 'ipcad') {
+    hangup_ipcad($NAS, $PORT, $USER, $attr);
+  }
  elsif ($nas_type eq 'patton')  {
  	  hangup_patton29xx($NAS, $PORT, $attr);
   }
@@ -468,9 +471,28 @@ sub hangup_mikrotik_telnet {
 # rfc2882
 #*******************************************************************
 sub hangup_ipcad {
-  my ($NAS_IP, $PORT, $USER) = @_;
+  my ($NAS_IP, $PORT, $USER_NAME, $attr) = @_;
 
-  my $result = ``; 
+  require Ipn;
+  Ipn->import();
+  my $Ipn      = Ipn->new($db, \%conf);
+  
+  $Ipn->acct_stop({ %$attr, SESSION_ID => $attr->{ACCT_SESION_ID} });
+
+  my $cmd = $conf{IPN_FW_STOP_RULE};
+
+  my $ip  = $attr->{FRAMED_IP_ADDRESS};
+  my @ip_array = split(/\./, $ip, 4);
+  my $rule_num = $conf{IPN_FW_FIRST_RULE} + $ip_array[3];
+
+  $cmd =~ s/\%IP/$ip/g;
+  #$cmd =~ s/\%MASK/$netmask/g;
+  $cmd =~ s/\%NUM/$rule_num/g;
+  $cmd =~ s/\%LOGIN/$USER_NAME/g;
+
+  log_print('LOG_DEBUG', "$cmd");
+  #my $result = system($cmd);
+ 
  
   print $result;
 }

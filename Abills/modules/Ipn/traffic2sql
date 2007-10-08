@@ -387,8 +387,9 @@ elsif($total_user_sum > 0 && $uid > 0) {
          $Ipn->acct_stop({ SESSION_ID           => $session_id,
          	                 ACCT_TERMINATE_CAUSE => 10 });
      }
-     
-    elsif($conf{IPN_AMON_ALIVE} && $Ipn->{CONNECT_INFO}{$session_id} && $Ipn->{CONNECT_INFO}{$session_id} =~ /^(\d{10})$/){
+    #AMon 
+    elsif($conf{IPN_AMON_ALIVE} && $Ipn->{CONNECT_INFO}{$session_id} && $Ipn->{CONNECT_INFO}{$session_id} =~ /^(\d{10}):\S+$/) {
+    	my $connect_update = $1;
     	my $cut_time = time();
     	my $last_alive = $cut_time - $Ipn->{CONNECT_INFO}{$session_id};
     	if ($last_alive > $conf{IPN_AMON_ALIVE} * 3) {

@@ -166,7 +166,7 @@ sub traffic_recalc_bill {
 sub acct_stop {
   my $self = shift;
   my ($attr) = @_;
-  my $session_id;
+  my $session_id='';
 
 
   if (defined($attr->{SESSION_ID})) {
