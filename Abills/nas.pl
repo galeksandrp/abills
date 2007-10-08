@@ -491,7 +491,7 @@ sub hangup_ipcad {
   $cmd =~ s/\%LOGIN/$USER_NAME/g;
 
   log_print('LOG_DEBUG', "$cmd");
-  #my $result = system($cmd);
+  my $result = system($cmd);
  
  
   print $result;
