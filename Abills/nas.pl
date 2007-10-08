@@ -491,6 +491,9 @@ sub hangup_ipcad {
   $cmd =~ s/\%LOGIN/$USER_NAME/g;
 
   log_print('LOG_DEBUG', "$cmd");
+  if ($attr->{debug} &&  $attr->{debug} > 4) {
+  	print $cmd."\n";
+   }
   my $result = system($cmd);
  
  
