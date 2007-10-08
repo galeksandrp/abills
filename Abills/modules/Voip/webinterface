@@ -231,6 +231,10 @@ sub voip_user {
     if (! $Voip->{errno}) {
       $html->message('info', $_INFO, "$_ADDED");	
      }
+
+    if ($conf{VOIP_ASTERISK_USERS}) {
+    	voip_mk_users_conf();
+     }
    }
 	elsif($FORM{set}) {
     $Voip->user_change({ %FORM });
@@ -2286,6 +2290,37 @@ sub voip_sheduler {
 }
 
 
+#***********************************************************
+# Add asterisk user
+#***********************************************************
+sub voip_mk_users_conf {
+ my ($attr) = @_;
+
+
+my %info = ();
+
+$info{NUMBER}    = 0;
+$info{PASSWORD}  = $attr->{PASSWORD};
+$info{CALLER_ID} = $attr->{LOGIN};
+$info{FIO} = $attr->{FIO};
+
+my $tpl = '
+[%NUMBER%] ; #%FIO%
+type=friend
+host=dynamic
+username=%NUMBER%
+secret=%PASSWORD%
+dtmfmode=rfc2833
+context=office
+callerid="%CALLER_ID%" <%NUMBER%>
+;allow-ulaw
+;allow-alaw
+
+
+';
+
+
+}
 
 #***********************************************************
 # voip_report
