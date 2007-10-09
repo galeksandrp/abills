@@ -494,6 +494,7 @@ sub hangup_ipcad {
   if ($attr->{debug} &&  $attr->{debug} > 4) {
   	print $cmd."\n";
    }
+  print $cmd."\n";
   my $result = system($cmd);
  
  
