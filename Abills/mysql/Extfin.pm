@@ -278,12 +278,22 @@ sub payment_deed {
 	my ($attr) = @_;
  
  my %PAYMENT_DEED = ();
+ my @WHERE_RULES_DV = ();
  my %NAMES=();
- my $WHERE;
 
- if($attr->{MONTH}) {
-    
+ if ($attr->{DATE_FROM}) {
+ 	  push @WHERE_RULES, "f.date>='$attr->{DATE_FROM}' AND f.date<='$attr->{DATE_TO}'";
+ 	  push @WHERE_RULES_DV, "dv.start>='$attr->{DATE_FROM}' AND dv.start<='$attr->{DATE_TO}'";
    }
+ elsif ($attr->{MONTH}) {
+   push @WHERE_RULES, "DATE_FORMAT(f.date, '%Y-%m')='$attr->{MONTH}'";
+   push @WHERE_RULES_DV, "DATE_FORMAT(dv.start, '%Y-%m')='$attr->{MONTH}'";
+  }
+ 
+ 
+ my $WHERE = ($#WHERE_RULES > -1) ? join(' and ', @WHERE_RULES)  : '';
+ my $WHERE_DV = ($#WHERE_RULES > -1) ? join(' and ', @WHERE_RULES_DV)  : '';
+
 
  #Get fees
  $self->query($db, "SELECT
@@ -301,9 +311,10 @@ sub payment_deed {
      LEFT JOIN users_pi pi ON (u.uid = pi.uid)
      LEFT JOIN companies company ON  (u.company_id=company.id)
 
-     WHERE u.uid=f.uid and DATE_FORMAT(f.date, '%Y-%m')='$attr->{MONTH}'
+     WHERE u.uid=f.uid and $WHERE
      GROUP BY 1
      ORDER BY $SORT $DESC 
+     LIMIT 10
    ;");
 
   foreach my $line (@{ $self->{list} } ) {
@@ -327,7 +338,7 @@ sub payment_deed {
      LEFT JOIN companies company ON  (u.company_id=company.id)
 
 
-     WHERE u.uid=dv.uid and DATE_FORMAT(dv.start, '%Y-%m')='$attr->{MONTH}'
+     WHERE u.uid=dv.uid and $WHERE_DV
      GROUP BY 1
      ORDER BY 2 DESC
    ;");

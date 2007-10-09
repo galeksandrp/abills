@@ -391,7 +391,7 @@ elsif($total_user_sum > 0 && $uid > 0) {
     elsif($conf{IPN_AMON_ALIVE} && $Ipn->{CONNECT_INFO}{$session_id} && $Ipn->{CONNECT_INFO}{$session_id} =~ /^(\d{10}):\S+$/) {
     	my $connect_update = $1;
     	my $cut_time = time();
-    	my $last_alive = $cut_time - $Ipn->{CONNECT_INFO}{$session_id};
+    	my $last_alive = $cut_time - $connect_update;
     	if ($last_alive > $conf{IPN_AMON_ALIVE} * 3) {
         my @ip_array = split(/\./, $ip_addr, 4);
         my $rule_num = $conf{IPN_FW_FIRST_RULE} + $ip_array[3];
