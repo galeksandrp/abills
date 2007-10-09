@@ -1614,10 +1614,8 @@ print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
 
 if (defined($FORM{show})) {
   $pages_qs .= "&show=y&fromD=$FORM{fromD}&fromM=$FORM{fromM}&fromY=$FORM{fromY}&toD=$FORM{toD}&toM=$FORM{toM}&toY=$FORM{toY}";
-  $FORM{fromM}++;
-  $FORM{toM}++;
-  $FORM{fromM} = sprintf("%.2d", $FORM{fromM}++);
-  $FORM{toM}   = sprintf("%.2d", $FORM{toM}++);
+  $FORM{fromM} = sprintf("%.2d", $FORM{fromM}+1);
+  $FORM{toM}   = sprintf("%.2d", $FORM{toM}+1);
   $LIST_PARAMS{INTERVAL} = "$FORM{fromY}-$FORM{fromM}-$FORM{fromD}/$FORM{toY}-$FORM{toM}-$FORM{toD}";
  }
 elsif (defined($FORM{PERIOD})) {
@@ -1821,10 +1819,8 @@ print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
 
 if (defined($FORM{show})) {
   $pages_qs .= "&show=y&fromD=$FORM{fromD}&fromM=$FORM{fromM}&fromY=$FORM{fromY}&toD=$FORM{toD}&toM=$FORM{toM}&toY=$FORM{toY}";
-  $FORM{fromM}++;
-  $FORM{toM}++;
-  $FORM{fromM} = sprintf("%.2d", $FORM{fromM}++);
-  $FORM{toM} = sprintf("%.2d", $FORM{toM}++);
+  $FORM{fromM} = sprintf("%.2d", $FORM{fromM}+1);
+  $FORM{toM} = sprintf("%.2d", $FORM{toM}+1);
   $LIST_PARAMS{INTERVAL} = "$FORM{fromY}-$FORM{fromM}-$FORM{fromD}/$FORM{toY}-$FORM{toM}-$FORM{toD}";
  }
 elsif (defined($FORM{PERIOD})) {

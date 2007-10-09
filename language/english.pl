@@ -337,3 +337,4 @@ $_NOT_ALLOW='No Allow operation';
 $_IP_IN_USE='THIS IP IS CURRENTLY IN USE BY OTHER USER';
 $_EXPORT='Export';
 $_IMPORT='Import';
+$_PAYMENT_DEED='Payment Deed';
