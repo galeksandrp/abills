@@ -637,6 +637,14 @@ sub authentication {
     my $number = $1;
     my $login =  $2;
 
+    if ($CONF->{DV_CALLBACK_DENYNUMS} && $number=~/$CONF->{DV_CALLBACK_DENYNUMS}/) {
+ 	    $RAD_PAIRS{'Reply-Message'}="Forbidden Number '$number'";
+      return 1, \%RAD_PAIRS;
+     }
+
+    if ($CONF->{DV_CALLBACK_PREFIX}) {
+    	$number = $CONF->{DV_CALLBACK_PREFIX}.$number;
+     }
     if ($NAS->{NAS_TYPE} eq 'lucent_max') {
     	$RAD_PAIRS{'Ascend-Callback'}='Callback-Yes';
     	$RAD_PAIRS{'Ascend-Dial-Number'}=$number;

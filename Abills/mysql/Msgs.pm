@@ -93,8 +93,13 @@ sub messages_list {
 
   $self->query($db,   "SELECT m.id, 
     if(m.uid>0, u.id, g.name),
-    m.subject, mc.name, m.date,  if(m.reply IS NULL, '', m.reply), 
-    inet_ntoa(m.ip), a.id, m.uid, a.aid, m.state, m.gid
+    m.subject, mc.name, m.date,  
+    if(m.reply IS NULL, '', m.reply), 
+    inet_ntoa(m.ip), 
+    a.id,
+    m.priority,
+    m.uid, 
+    a.aid, m.state, m.gid
 
     FROM (msgs_messages m)
     LEFT JOIN msgs_chapters mc ON (m.chapter=mc.id)
@@ -137,17 +142,46 @@ sub message_add {
  
   %DATA = $self->get_data($attr, { default => \%DATA }); 
 
-  $self->query($db, "insert into msgs_messages (uid, subject, chapter, message, ip, date, reply, aid, state, gid)
+  $self->query($db, "insert into msgs_messages (uid, subject, chapter, message, ip, date, reply, aid, state, gid,
+   priority, lock)
     values ('$DATA{UID}', '$DATA{SUBJECT}', '$DATA{CHAPTER}', '$DATA{MESSAGE}', INET_ATON('$DATA{IP}'), now(), 
         '$DATA{REPLY}',
         '$admin->{AID}',
         '$DATA{STATE}', 
-        '$DATA{GID}');", 'do');
+        '$DATA{GID}',
+        '$DATA{PRIORITY}',
+        '$DATA{LOCK}');", 'do');
 
 	return $self;
 }
 
 
+#**********************************************************
+# Message
+#**********************************************************
+sub message_reply_add {
+	my $self = shift;
+	my ($attr) = @_;
+  
+ 
+  %DATA = $self->get_data($attr, { default => \%DATA }); 
+
+  $self->query($db, "insert into msgs_reply (par,
+   main_msg,
+   text,
+   datetime,
+   aid,
+   status)
+    values ('$DATA{UID}', '$DATA{SUBJECT}', '$DATA{CHAPTER}', '$DATA{MESSAGE}', INET_ATON('$DATA{IP}'), now(), 
+        '$DATA{REPLY}',
+        '$admin->{AID}',
+        '$DATA{STATE}', 
+        '$DATA{GID}',
+        '$DATA{PRIORITY}',
+        '$DATA{LOCK}');", 'do');
+
+	return $self;
+}
 
 
 
@@ -206,7 +240,9 @@ sub message_info {
   a.id,
   mc.name,
   m.gid,
-  g.name
+  g.name,
+  m.priority,
+  m.lock
     FROM (msgs_messages m)
     LEFT JOIN msgs_chapters mc ON (m.chapter=mc.id)
     LEFT JOIN users u ON (m.uid=u.uid)
@@ -236,7 +272,9 @@ sub message_info {
    $self->{A_NAME},
    $self->{CHAPTER_NAME},
    $self->{GID},
-   $self->{G_NAME}
+   $self->{G_NAME},
+   $self->{PRIORITY},
+   $self->{LOCK}
   )= @{ $self->{list}->[0] };
 	
 	return $self;
@@ -260,7 +298,9 @@ sub message_change {
                 DATE        => 'date',
                 STATE			  => 'state',
                 AID         => 'aid',
-                GID         => 'gid'
+                GID         => 'gid',
+                PRIORITY    => 'priority',
+                LOCK        => 'lock'
              );
 
 
