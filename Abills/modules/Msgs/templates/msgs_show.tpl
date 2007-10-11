@@ -5,7 +5,7 @@
 <tr bgcolor=$_COLORS[1]><td>$_DATE:</td><td>%DATE%</td><td>$_CHAPTERS:</td><td>%CHAPTER_NAME%</td></tr>
 
 <tr><td bgcolor='$_COLORS[1]' colspan='4'>%MESSAGE%</td></tr>
-<tr><td colspan='4' bgcolor='$_COLORS[2]'>%REPLY%</td></tr>
+<tr><td colspan='4' bgcolor='$_COLORS[2]' align=center>%REPLY%</td></tr>
 </TABLE>
 
 </TD><td width='200' valign=top bgcolor=$_COLORS[2]>

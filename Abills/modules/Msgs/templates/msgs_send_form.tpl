@@ -2,6 +2,8 @@
 <input type='hidden' name='index' value='$index'/>
 <input type='hidden' name='UID' value='$FORM{UID}'/>
 <input type='hidden' name='ID' value='%ID%'/>
+<input type='hidden' name='PARENT' value='%PARENT%'/>
+
 <table>
 <tr><td>$_DATE:</td><td>%DATE%</td></tr>
 <tr><td>$_SUBJECT:</td><td><input type='text' name='SUBJECT' value='%SUBJECT%'/></td></tr>
@@ -20,6 +22,7 @@
 <tr><td>$_STATE:</td><td>%STATE_SEL%</td></tr>  
 <tr><td>$_PRIORITY:</td><td>%PRIORITY_SEL%</td></tr>
 
+<tr><td>$_LOCK:</td><td><input type=checkbox name=LOCK value=1 %LOCK%></td></tr>
 
 </table>
 <input type='submit' name='%ACTION%' value='%ACTION_LNG%'/>

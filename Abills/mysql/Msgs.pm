@@ -33,7 +33,7 @@ sub new {
 
 
 #**********************************************************
-# accounts_list
+# messages_list
 #**********************************************************
 sub messages_list {
   my $self = shift;
@@ -156,32 +156,6 @@ sub message_add {
 }
 
 
-#**********************************************************
-# Message
-#**********************************************************
-sub message_reply_add {
-	my $self = shift;
-	my ($attr) = @_;
-  
- 
-  %DATA = $self->get_data($attr, { default => \%DATA }); 
-
-  $self->query($db, "insert into msgs_reply (par,
-   main_msg,
-   text,
-   datetime,
-   aid,
-   status)
-    values ('$DATA{UID}', '$DATA{SUBJECT}', '$DATA{CHAPTER}', '$DATA{MESSAGE}', INET_ATON('$DATA{IP}'), now(), 
-        '$DATA{REPLY}',
-        '$admin->{AID}',
-        '$DATA{STATE}', 
-        '$DATA{GID}',
-        '$DATA{PRIORITY}',
-        '$DATA{LOCK}');", 'do');
-
-	return $self;
-}
 
 
 
@@ -551,6 +525,114 @@ sub admin_info {
 
 
 
+#**********************************************************
+# messages_list
+#**********************************************************
+sub messages_reply_list {
+  my $self = shift;
+  my ($attr) = @_;
+
+
+ $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
+ $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+ $DESC = (defined($attr->{DESC})) ? $attr->{DESC} : 'DESC';
+
+
+ @WHERE_RULES = ();
+ 
+ if($attr->{LOGIN_EXPR}) {
+	 push @WHERE_RULES, "u.id='$attr->{LOGIN_EXPR}'"; 
+  }
+ 
+ if ($attr->{FROM_DATE}) {
+    push @WHERE_RULES, "(date_format(m.date, '%Y-%m-%d')>='$attr->{FROM_DATE}' and date_format(m.date, '%Y-%m-%d')<='$attr->{TO_DATE}')";
+  }
+
+ if ($attr->{MSG_ID}) {
+ 	  my $value = $self->search_expr($attr->{MSG_ID}, 'INT');
+    push @WHERE_RULES, "m.id$value";
+  }
+
+
+ if (defined($attr->{REPLY})) {
+ 	  my $value = $self->search_expr($attr->{REPLY}, '');
+    push @WHERE_RULES, "m.reply$value";
+  }
+
+ # Show groups
+ if ($attr->{GIDS}) {
+   push @WHERE_RULES, "u.gid IN ($attr->{GIDS})"; 
+  }
+ elsif ($attr->{GID}) {
+   push @WHERE_RULES, "u.gid='$attr->{GID}'"; 
+  }
+ 
+ 
+ 
+ #DIsable
+ if ($attr->{UID}) {
+   push @WHERE_RULES, "m.uid='$attr->{UID}'"; 
+ }
+
+ #DIsable
+ if ($attr->{STATE}) {
+   my $value = $self->search_expr($attr->{STATE}, 'INT');
+   push @WHERE_RULES, "m.state$value"; 
+  }
+ 
+
+ $WHERE = ($#WHERE_RULES > -1) ? 'WHERE ' . join(' and ', @WHERE_RULES)  : '';
+
+
+  $self->query($db,   "SELECT mr.id,
+    mr.datetime,
+    mr.text,
+    a.id,
+    mr.status,
+    mr.caption,
+    INET_NTOA(mr.ip)
+
+    FROM (msgs_reply mr)
+    LEFT JOIN users u ON (mr.uid=u.uid)
+    LEFT JOIN admins a ON (mr.aid=a.aid)
+    WHERE main_msg='$attr->{MSG_ID}'
+    GROUP BY mr.id 
+    ORDER BY $SORT $DESC
+    LIMIT $PG, $PAGE_ROWS;");
+
+ 
+ return $self->{list};
+}
+
+
+#**********************************************************
+# Reply ADD
+#**********************************************************
+sub message_reply_add {
+	my $self = shift;
+	my ($attr) = @_;
+  
+  %DATA = $self->get_data($attr, { default => \%DATA }); 
+
+  $self->{debug}=1;
+
+  $self->query($db, "insert into msgs_reply (main_msg,
+   caption,
+   text,
+   datetime,
+   ip,
+   aid,
+   status
+   )
+    values ('$DATA{ID}', '$DATA{SUBJECT}', '$DATA{REPLY}',  now(),
+        INET_ATON('$DATA{IP}'), 
+        '$admin->{AID}',
+        '$DATA{STATE}'
+    );", 'do');
+
+
+  return $self;	
+}
 
 
 

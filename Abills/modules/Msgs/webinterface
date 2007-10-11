@@ -9,6 +9,16 @@ my $Msgs=Msgs->new($db, $admin, \%conf);
 my $users = Users->new($db, $admin, \%conf); 
 
 
+my @priority = ( 'very low',
+'low',
+'normal',
+'high',
+'very high');
+
+my @msg_status = ('open',
+    'closed unsuccessful',
+    'closed successful');
+
 #*******************************************************************
 # Message system admins
 #*******************************************************************
@@ -53,7 +63,7 @@ elsif ($FORM{chg}) {
   $Msgs->{CHAPTERS}=$table->show();
 
   $html->tpl_show(_include('msgs_admin', 'Msgs'), $Msgs);
-} 
+}
 
 if ($Msgs->{errno}) {
   $html->message('err', $_ERROR, "[$Msgs->{errno}] $err_strs{$Msgs->{errno}}");
@@ -117,6 +127,34 @@ sub msgs_admin {
   $Msgs->{ACTION}='send';
   $Msgs->{ACTION_LNG}=$_SEND;
 
+  $Msgs->{CHAPTER_SEL} = $html->form_select('CHAPTER', 
+                                          { 
+ 	                                          SELECTED          => $Msgs->{CHAPTER},
+ 	                                          SEL_MULTI_ARRAY   => $Msgs->chapters_list(),
+ 	                                          MULTI_ARRAY_KEY   => 0,
+ 	                                          MULTI_ARRAY_VALUE => 1,
+ 	                                        });
+
+
+  $Msgs->{STATE_SEL} =  $html->form_select('STATE', 
+                                          { 
+ 	                                          SELECTED          => $Msgs->{STATE},
+ 	                                          SEL_ARRAY         => \@msg_status,
+ 	                                          MULTI_ARRAY_KEY   => 0,
+ 	                                          MULTI_ARRAY_VALUE => 1,
+ 	                                        });
+
+
+
+	$Msgs->{PRIORITY_SEL} =  $html->form_select('PRIORITY', 
+                                          { 
+ 	                                          SELECTED          => $Msgs->{STATE},
+ 	                                          SEL_ARRAY         => \@priority,
+ 	                                          MULTI_ARRAY_KEY   => 0,
+ 	                                          MULTI_ARRAY_VALUE => 1,
+ 	                                        });
+
+
   if ($FORM{send}) {
     #Add group 
     my $message='';
@@ -137,15 +175,57 @@ sub msgs_admin {
    
     $html->message('info', $_INFO, "$_SENDED $message") if (! $Msgs->{errno});  	
    }
+  elsif ($FORM{change}) {
+
+   }
   elsif ($FORM{reply}) {
-    $Msgs->message_change({ STATE => 0, %FORM });
+    $Msgs->message_reply_add({ %FORM, IP => $admin->{SESSION_IP} });
     $html->message('info', $_INFO, "$_REPLY") if (! $Msgs->{errno});  	
    }
   elsif ($FORM{chg}) {
     $Msgs->message_info($FORM{chg});
     $Msgs->{ACTION}='reply';
     $Msgs->{ACTION_LNG}=$_REPLY;
-    $html->message('info', $_INFO, "$_CHANGING") if (! $Msgs->{errno});  	
+    
+
+    $Msgs->{EXT_INFO}="<b>$_DATE:</b> $Msgs->{DATE}
+    <b>$_USER:</b> $Msgs->{LOGIN}<br><br>
+    $_STATE:<BR> $Msgs->{STATE_SEL} <br>
+    $_PRIORITY:<BR> $Msgs->{PRIORITY_SEL}<br>
+    $_CHAPTERS:<BR> $Msgs->{CHAPTER_SEL}
+    <BR>
+    <b>_EXECUTION $_DATE:</b><br>
+     <input type=text value='' name='EXEC_DATE'>
+    <BR>
+    <b>$_CLOSED $_DATE:</b><br>
+     CLOSED_DATE
+    ";
+
+    #$Msgs->{THREADS} = $html->button($Msgs->{SUBJECT}. " ($_DATE: $Msgs->{DATE}) ", "");
+    
+    #if ($Msgs->{REPLIES_COUNT} > 0) {
+    #	foreach my $line (@{ $Msgs->{REPLIES_COUNT} }) {
+    #	 	my ($id, $caption, $date, $person)=split(/|/, $line);
+    #	 }
+    # }
+    
+    foreach my $line (@{ $Msgs->messages_reply_list({ MSG_ID => $Msgs->{ID}  })   }) {
+      $Msgs->{REPLY} .= $html->tpl_show(_include('msgs_reply_show', 'Msgs'), {
+          DATE     => $line->[1],
+          CAPTION  => $line->[5],
+          PERSON   =>	$line->[3],
+      	  MESSAGE  => $line->[2]
+      	  }, { notprint => 1 });
+      
+     }
+
+
+    $Msgs->{REPLY} .= $html->tpl_show(_include('msgs_reply', 'Msgs'), $Msgs, { notprint => 1 });
+    
+    $html->tpl_show(_include('msgs_show', 'Msgs'), $Msgs);
+    
+    return 0;
+    #$html->message('info', $_INFO, "$_CHANGING") if (! $Msgs->{errno});  	
    }
   elsif ($FORM{del}) {
     $Msgs->message_del({ ID => $FORM{del}, UID => $UID  });
@@ -157,13 +237,6 @@ sub msgs_admin {
      $html->message('err', $_ERROR, "[$Msgs->{errno}] $err_strs{$Msgs->{errno}}");
    } 
 
-  $Msgs->{CHAPTER_SEL} = $html->form_select('CHAPTER', 
-                                          { 
- 	                                          SELECTED          => $Msgs->{CHAPTER},
- 	                                          SEL_MULTI_ARRAY   => $Msgs->chapters_list(),
- 	                                          MULTI_ARRAY_KEY   => 0,
- 	                                          MULTI_ARRAY_VALUE => 1,
- 	                                        });
   
   if (! $FORM{UID}) {
     $Msgs->{USER} = $html->form_select('GID', 
@@ -178,20 +251,24 @@ sub msgs_admin {
   
   $html->tpl_show(_include('msgs_send_form', 'Msgs'), $Msgs);
   
-  $list = $Msgs->messages_list({ %LIST_PARAMS, DESC => (! $FORM{sort}) ? 'DESC' : $FORM{desc} });
+  $Msgs->{debug}=1;
+  my $list = $Msgs->messages_list({ %LIST_PARAMS, DESC => (! $FORM{sort}) ? 'DESC' : $FORM{desc} });
   
   
   
   my $table = $html->table( { width      => '100%',
                               caption    => "$_MESSAGES",
-                              title      => ['#', "$_USER", "$_SUBJECT", "$_CHAPTERS", "$_DATE", "$_STATUS", "IP", "$_ADMIN", "-", "-"],
+                              title      => ['#', "$_USER", "$_SUBJECT", "$_CHAPTERS", "$_DATE", "$_STATUS", "IP", 
+                               "$_ADMIN", "$_PRIORITY", "-", "-"],
                               cols_align => ['right', 'left', 'left', 'right', 'right', 'left', 'center', 'right', 'left', 'center:noprint', 'center:noprint'],
                               qs         => $pages_qs,
                               pages      => $Msgs->{TOTAL}
                            });
 
 foreach my $line (@$list) {
-  my $state = '<img src="../img/red_dot.gif" border="0" alt="No reply"/>' if ($line->[5] eq '');
+  #my $state = '<img src="../img/red_dot.gif" border="0" alt="No reply"/>' if ($line->[5] eq '');
+  my $state = $msg_status[$line->[5]];
+  
 
   $table->addrow(
    $line->[0] . $html->form_input('del', "$line->[0]", {TYPE => 'checkbox' }), 
@@ -202,7 +279,8 @@ foreach my $line (@$list) {
    $state,
    $line->[6],      
    $line->[7],      
-   $html->button("$_REPLY", "index=$index&chg=$line->[0]&UID=$line->[8]"),
+   $priority[$line->[8]],      
+   $html->button("$_REPLY", "index=$index&chg=$line->[0]&UID=$line->[9]"),
    $html->button($_DEL, "index=$index&del=$line->[0]$pages_qs", { MESSAGE => "$_DEL $line->[0]?" }) 
 
   );
@@ -230,10 +308,7 @@ sub msgs_user {
 	 $Msgs->{STATE_SEL} =  $html->form_select('STATE', 
                                           { 
  	                                          SELECTED          => $Msgs->{STATE},
- 	                                          SEL_ARRAY   => [ 'closed successful',
- 	                                                                 'closed unsuccessful',
- 	                                                                 'open'
- 	                                                                ],
+ 	                                          SEL_ARRAY         => \@msg_status,
  	                                          MULTI_ARRAY_KEY   => 0,
  	                                          MULTI_ARRAY_VALUE => 1,
  	                                        });
@@ -243,12 +318,7 @@ sub msgs_user {
 	 $Msgs->{PRIORITY_SEL} =  $html->form_select('PRIORITY', 
                                           { 
  	                                          SELECTED          => $Msgs->{STATE},
- 	                                          SEL_ARRAY         => [ 'very low',
- 	                                                                 'low',
- 	                                                                 'normal',
- 	                                                                 'high',
- 	                                                                 'very high'
- 	                                                                ],
+ 	                                          SEL_ARRAY         => \@priority,
  	                                          MULTI_ARRAY_KEY   => 0,
  	                                          MULTI_ARRAY_VALUE => 1,
  	                                        });

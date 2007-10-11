@@ -648,6 +648,11 @@ sub authentication {
     if ($NAS->{NAS_TYPE} eq 'lucent_max') {
     	$RAD_PAIRS{'Ascend-Callback'}='Callback-Yes';
     	$RAD_PAIRS{'Ascend-Dial-Number'}=$number;
+    	
+    	$RAD_PAIRS{'Ascend-CBCP-Enable'}='CBCP-Enabled';
+      $RAD_PAIRS{'Ascend-CBCP-Mode=CBCP'}='Profile-Callback';
+      $RAD_PAIRS{'Ascend-Callback-Delay'}=30;
+    	
     	#$RAD_PAIRS{'Ascend-Send-Secret'}='';
      }
     else {
