@@ -239,6 +239,15 @@ if ($uid > 0) {
 
   $OUTPUT{BODY}=$html->{OUTPUT};
   $html->{OUTPUT}='';
+  if ($conf{AMON_UPDATE}  && $ENV{HTTP_USER_AGENT} =~ /AMon \[(\S+)\]/) {
+  	$user_version = $1;
+  	my ($u_url, $u_version, $u_checksum)=split(/\|/, $conf{AMON_UPDATE}, 3);
+    if ($u_version > $user_version) {
+    	$OUTPUT{BODY} = "<AMON_UPDATE url=\"$u_url\" version=\"$u_version\" checksum=\"$u_checksum\" />\n". $OUTPUT{BODY};
+     }
+   }
+  
+  
   $OUTPUT{BODY}=$html->tpl_show(templates('users_main'), \%OUTPUT);
 
 }
