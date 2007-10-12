@@ -649,8 +649,13 @@ sub authentication {
     	$RAD_PAIRS{'Ascend-Callback'}='Callback-Yes';
     	$RAD_PAIRS{'Ascend-Dial-Number'}=$number;
     	
-    	$RAD_PAIRS{'Ascend-CBCP-Enable'}='CBCP-Enabled';
-      $RAD_PAIRS{'Ascend-CBCP-Mode=CBCP'}='Profile-Callback';
+    	
+    	
+    	$RAD_PAIRS{'Ascend-Data-Svc'}='Switched-modem';
+      $RAD_PAIRS{'Ascend-Send-Auth'}='Send-Auth-None';
+      $RAD_PAIRS{'Ascend-CBCP-Enable'}='CBCP-Enabled';
+      $RAD_PAIRS{'Ascend-CBCP-Mode'}='CBCP-Profile-Callback';
+      $RAD_PAIRS{'Ascend-CBCP-Trunk-Group'}=5;
       $RAD_PAIRS{'Ascend-Callback-Delay'}=30;
     	
     	#$RAD_PAIRS{'Ascend-Send-Secret'}='';

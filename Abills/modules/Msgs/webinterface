@@ -140,8 +140,7 @@ sub msgs_admin {
                                           { 
  	                                          SELECTED          => $Msgs->{STATE},
  	                                          SEL_ARRAY         => \@msg_status,
- 	                                          MULTI_ARRAY_KEY   => 0,
- 	                                          MULTI_ARRAY_VALUE => 1,
+ 	                                          ARRAY_NUM_ID      => 0
  	                                        });
 
 
@@ -150,8 +149,7 @@ sub msgs_admin {
                                           { 
  	                                          SELECTED          => $Msgs->{STATE},
  	                                          SEL_ARRAY         => \@priority,
- 	                                          MULTI_ARRAY_KEY   => 0,
- 	                                          MULTI_ARRAY_VALUE => 1,
+ 	                                          ARRAY_NUM_ID      => 1
  	                                        });
 
 
@@ -209,18 +207,19 @@ sub msgs_admin {
     #	 }
     # }
     
-    foreach my $line (@{ $Msgs->messages_reply_list({ MSG_ID => $Msgs->{ID}  })   }) {
+    my $list = $Msgs->messages_reply_list({ MSG_ID => $Msgs->{ID} });
+
+    foreach my $line (@$list) {
       $Msgs->{REPLY} .= $html->tpl_show(_include('msgs_reply_show', 'Msgs'), {
           DATE     => $line->[1],
           CAPTION  => $line->[5],
           PERSON   =>	$line->[3],
       	  MESSAGE  => $line->[2]
-      	  }, { notprint => 1 });
-      
+      	  }, { notprint => 1 } );
      }
 
 
-    $Msgs->{REPLY} .= $html->tpl_show(_include('msgs_reply', 'Msgs'), $Msgs, { notprint => 1 });
+    $Msgs->{REPLY} .= $html->tpl_show(_include('msgs_reply', 'Msgs'), { %$Msgs, REPLY => '' }, { notprint => 1 });
     
     $html->tpl_show(_include('msgs_show', 'Msgs'), $Msgs);
     
@@ -309,8 +308,7 @@ sub msgs_user {
                                           { 
  	                                          SELECTED          => $Msgs->{STATE},
  	                                          SEL_ARRAY         => \@msg_status,
- 	                                          MULTI_ARRAY_KEY   => 0,
- 	                                          MULTI_ARRAY_VALUE => 1,
+ 	                                          ARRAY_NUM_ID      => 1
  	                                        });
 
 
@@ -319,8 +317,7 @@ sub msgs_user {
                                           { 
  	                                          SELECTED          => $Msgs->{STATE},
  	                                          SEL_ARRAY         => \@priority,
- 	                                          MULTI_ARRAY_KEY   => 0,
- 	                                          MULTI_ARRAY_VALUE => 1,
+ 	                                          ARRAY_NUM_ID      => 1
  	                                        });
 
 
@@ -364,8 +361,8 @@ sub msgs_user {
 
   my $table = $html->table( { width        => '100%',
                               caption      => "$_MESSAGES",
-                              title_plain  => ["$_SUBJECT", "$_CHAPTERS", "$_DATE", "-" ],
-                              cols_align   => ['left', 'left', 'left', 'right', 'right', 'left', 'center'],
+                              title_plain  => ["$_SUBJECT", "$_CHAPTERS", "$_DATE", "$_STATUS", "-" ],
+                              cols_align   => ['left', 'left', 'left', 'right', 'right', 'left', 'center', 'center'],
                               qs           => $pages_qs,
                               pages        => $Msgs->{TOTAL},
                               ID           => 'MSGS_LIST'
@@ -378,6 +375,7 @@ foreach my $line (@$list) {
     ($line->[10] == 1) ? $line->[2] : "<b>$line->[2]</b>", 
     $line->[3],
     $line->[4],
+    $msg_status[$line->[5]],
     $html->button($_SHOW, "index=$index&ID=$line->[0]&sid=$sid")
   );
 }

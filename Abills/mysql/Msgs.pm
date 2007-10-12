@@ -143,7 +143,7 @@ sub message_add {
   %DATA = $self->get_data($attr, { default => \%DATA }); 
 
   $self->query($db, "insert into msgs_messages (uid, subject, chapter, message, ip, date, reply, aid, state, gid,
-   priority, lock)
+   priority, lock_msg)
     values ('$DATA{UID}', '$DATA{SUBJECT}', '$DATA{CHAPTER}', '$DATA{MESSAGE}', INET_ATON('$DATA{IP}'), now(), 
         '$DATA{REPLY}',
         '$admin->{AID}',
@@ -216,7 +216,7 @@ sub message_info {
   m.gid,
   g.name,
   m.priority,
-  m.lock
+  m.lock_msg
     FROM (msgs_messages m)
     LEFT JOIN msgs_chapters mc ON (m.chapter=mc.id)
     LEFT JOIN users u ON (m.uid=u.uid)
@@ -274,7 +274,7 @@ sub message_change {
                 AID         => 'aid',
                 GID         => 'gid',
                 PRIORITY    => 'priority',
-                LOCK        => 'lock'
+                LOCK        => 'lock_msg'
              );
 
 
