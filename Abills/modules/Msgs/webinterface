@@ -47,8 +47,8 @@ elsif ($FORM{chg}) {
    }
 
   my $list = $Msgs->chapters_list({ AID => $FORM{AID} });
-  my $table = $html->table( { width      => '100%',
-                              title      => ['ID', "$_CHAPTERS", "_PRIORITY" ],
+  my $table = $html->table({ width      => '100%',
+                             title      => ['ID', "$_CHAPTERS", "_PRIORITY" ],
                               cols_align => ['right', 'left', 'center' ],
                            });
 

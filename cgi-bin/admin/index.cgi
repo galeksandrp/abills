@@ -3860,6 +3860,13 @@ elsif($search_form{$FORM{type}}) {
 
 $SEARCH_DATA{FROM_DATE} = $html->date_fld('FROM_', { MONTHES => \@MONTHES });
 $SEARCH_DATA{TO_DATE}   = $html->date_fld('TO_', { MONTHES => \@MONTHES} );
+
+my $SEL_TYPE = $html->form_select('type', 
+                                { SELECTED   => $FORM{type},
+ 	                                SEL_HASH   => \%SEARCH_TYPES,
+ 	                                NO_ID      => 1
+ 	                                #EX_PARAMS => 'onChange="selectstype()"'
+ 	                               });
 $SEARCH_DATA{SEL_TYPE}  = "<tr><td>WHERE:</td><td>$SEL_TYPE</td></tr>\n" if ($index == 7);
 
 $html->tpl_show(templates('form_search'), \%SEARCH_DATA);
