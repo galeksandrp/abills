@@ -99,7 +99,8 @@ sub messages_list {
     a.id,
     m.priority,
     m.uid, 
-    a.aid, m.state, m.gid
+    a.aid, m.state, m.gid,
+    m.user_read
 
     FROM (msgs_messages m)
     LEFT JOIN msgs_chapters mc ON (m.chapter=mc.id)
@@ -216,7 +217,12 @@ sub message_info {
   m.gid,
   g.name,
   m.priority,
-  m.lock_msg
+  m.lock_msg,
+  m.plan_date,
+  m.closed_date,
+  m.done_date,
+  m.user_read,
+  m.admin_read
     FROM (msgs_messages m)
     LEFT JOIN msgs_chapters mc ON (m.chapter=mc.id)
     LEFT JOIN users u ON (m.uid=u.uid)
@@ -248,7 +254,12 @@ sub message_info {
    $self->{GID},
    $self->{G_NAME},
    $self->{PRIORITY},
-   $self->{LOCK}
+   $self->{LOCK},
+   $self->{PLAN_DATE},
+   $self->{CLOSED_DATE},
+   $self->{DONE_DATE},
+   $self->{USER_READ},
+ 	 $self->{ADMIN_READ}
   )= @{ $self->{list}->[0] };
 	
 	return $self;
@@ -274,7 +285,13 @@ sub message_change {
                 AID         => 'aid',
                 GID         => 'gid',
                 PRIORITY    => 'priority',
-                LOCK        => 'lock_msg'
+                LOCK        => 'lock_msg',
+                PLAN_DATE   => 'plan_date',
+                CLOSED_DATE => 'closed_date',
+                DONE_DATE   => 'dane_date',
+                USER_READ   => 'user_read',
+ 	              ADMIN_READ  => 'admin_read'
+
              );
 
 
@@ -523,6 +540,26 @@ sub admin_info {
 }
 
 
+#**********************************************************
+# message_reply_del
+#**********************************************************
+sub message_reply_del {
+	my $self = shift;
+	my ($attr) = @_;
+
+  @WHERE_RULES=();
+
+
+  if ($attr->{ID}) {
+  	 push @WHERE_RULES, "id='$attr->{ID}'";
+   }
+
+  my $WHERE = ($#WHERE_RULES > -1) ? join(' and ', @WHERE_RULES)  : '';
+  $self->query($db, "DELETE FROM msgs_reply WHERE $WHERE", 'do');
+
+	return $self;
+}
+
 
 
 #**********************************************************
@@ -597,8 +634,8 @@ sub messages_reply_list {
     LEFT JOIN admins a ON (mr.aid=a.aid)
     WHERE main_msg='$attr->{MSG_ID}'
     GROUP BY mr.id 
-    ORDER BY $SORT $DESC
-    LIMIT $PG, $PAGE_ROWS;");
+    ORDER BY datetime ASC
+    LIMIT $PG, $PAGE_ROWS    ;");
 
  
  return $self->{list};
@@ -624,7 +661,7 @@ sub message_reply_add {
    aid,
    status
    )
-    values ('$DATA{ID}', '$DATA{SUBJECT}', '$DATA{REPLY}',  now(),
+    values ('$DATA{ID}', '$DATA{REPLY_SUBJECT}', '$DATA{REPLY_TEXT}',  now(),
         INET_ATON('$DATA{IP}'), 
         '$admin->{AID}',
         '$DATA{STATE}'

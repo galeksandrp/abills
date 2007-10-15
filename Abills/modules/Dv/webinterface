@@ -2398,15 +2398,15 @@ if (defined($FORM{tt})) {
     if(! $tarif_plan->{errno}) {
       $html->message('info', $_INFO, "$_ADDED");
      }
-  }
+   }
   elsif($FORM{change}) {
     $FORM{TI_ID}=$FORM{tt};
     $tarif_plan->tt_change({ %FORM });
-
+    
     if(! $tarif_plan->{errno}) {
       $html->message('info', $_INFO, "$_CHANGED"); 
      }
-  }
+   }
  	elsif(defined($FORM{chg})) {
     $tarif_plan->tt_info({ TI_ID => $FORM{tt}, TT_ID => $FORM{chg} });
     if(! $tarif_plan->{errno}) {
@@ -2414,7 +2414,7 @@ if (defined($FORM{tt})) {
      }
     $tarif_plan->{ACTION}='change';
     $tarif_plan->{LNG_ACTION}=$_CHANGE;
-  }
+   }
   elsif(defined($FORM{del}) && defined($FORM{is_js_confirmed}) ) {
     $tarif_plan->tt_del({ TI_ID => $FORM{tt}, TT_ID => $FORM{del} });
     if(! $tarif_plan->{errno}) {
@@ -2422,8 +2422,17 @@ if (defined($FORM{tt})) {
      }
   }
 
-   my $list = $tarif_plan->tt_list({ TI_ID => $FORM{tt}, form => 'yes' });
-   $tarif_plan->{TT_ID}=$tarif_plan->{TOTAL} if (! defined($FORM{chg}));
+
+  if ($tarif_plan->{errno}) {
+    my $messages = "($tarif_plan->{errstr})" if($tarif_plan->{errstr});
+    $html->message('err', $_ERROR, "[$tarif_plan->{errno}] $err_strs{$tarif_plan->{errno}} $messages");	
+   }
+
+
+  my $list = $tarif_plan->tt_list({ TI_ID => $FORM{tt}, form => 'yes' });
+  $tarif_plan->{TT_ID}=$tarif_plan->{TOTAL} if (! defined($FORM{chg}));
+  
+ 
    
  }
 elsif($attr->{TP}) {
@@ -2458,7 +2467,7 @@ elsif($attr->{TP}) {
 
     if ($tarif_plan->{errno}) {
       my $messages = "($tarif_plan->{errstr})" if($tarif_plan->{errstr});
-      $html->message('err', $_ERROR, "[$tarif_plan->{errno}] $err_strs{$tarif_plan->{errno}} $message");	
+      $html->message('err', $_ERROR, "[$tarif_plan->{errno}] $err_strs{$tarif_plan->{errno}} $messages");	
      }
     else {
       $html->message('info', $_INFO, "$_INTERVALS");

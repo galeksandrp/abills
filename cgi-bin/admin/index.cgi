@@ -655,7 +655,7 @@ elsif($FORM{COMPANY_ID}) {
   }
 
  }
-elsif(defined($FORM{del}) && defined($FORM{is_js_confirmed})  && $permissions{0}{5} ) {
+elsif($FORM{del} && $FORM{is_js_confirmed}  && $permissions{0}{5} ) {
    $company->del( $FORM{del} );
    $html->message('info', $_INFO, "$_DELETED # $FORM{del}");
  }
@@ -667,8 +667,10 @@ else {
                               title      => [$_NAME, $_DEPOSIT, $_REGISTRATION, $_USERS, $_STATUS, '-', '-'],
                               cols_align => ['left', 'right', 'right', 'right', 'center', 'center'],
                               pages      => $company->{TOTAL},
-                              qs         => $pages_qs
-                                  } );
+                              qs         => $pages_qs,
+                              ID         => 'COMPANY_ID'
+                                 } );
+
 
   foreach my $line (@$list) {
     $table->addrow($line->[0],  

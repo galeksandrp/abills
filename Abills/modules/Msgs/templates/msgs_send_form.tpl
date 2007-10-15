@@ -6,15 +6,12 @@
 
 <table>
 <tr><td>$_DATE:</td><td>%DATE%</td></tr>
-<tr><td>$_SUBJECT:</td><td><input type='text' name='SUBJECT' value='%SUBJECT%'/></td></tr>
 <tr><td>$_CHAPTERS:</td><td>%CHAPTER_SEL%</td></tr>
+<tr><td>$_SUBJECT:</td><td><input type='text' name='SUBJECT' value='%SUBJECT%' size='50'/></td></tr>
 
-<tr><td>$_USER / $_GROUP:</td><td>%USER%</td></tr>
+<tr><td>$_LOGIN / $_GROUP:</td><td>%USER%</td></tr>
 <tr><th bgcolor='$_COLORS[0]' colspan='2'>$_MESSAGE</th></tr>
-<tr><td bgcolor='$_COLORS[2]' colspan='2'>%MESSAGE%</td></tr>
-
-<tr><th bgcolor='$_COLORS[0]' colspan='2'>$_REPLY</th></tr>
-<tr><th colspan='2'><textarea name='REPLY' cols='70' rows='9'>%REPLY%</textarea></th></tr>
+<tr><th colspan='2'><textarea name='MESSAGE' cols='70' rows='9'>%MESSAGE%</textarea></th></tr>
 
 %ATTACHMENT%
 <tr><td>$_ATTACHMENT:</td><td><input name='FILE_UPLOAD' type='file' size='40' class='fixed'>

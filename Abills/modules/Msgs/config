@@ -5,7 +5,6 @@ $web_interface    = 1;
                    "02:0:$_MESSAGES $count:msgs_admin:" => 5,
                    "03:2:$_CHAPTERS:msgs_chapters:"     => 5,
                    "04:2:$_ADMINS:msgs_admins:"         => 5,
-                   "10:0:$_MESSAGES:msgs_admin:"        => 6
                     );
 
 %USER_FUNCTION_LIST = ();

@@ -829,7 +829,7 @@ sub create_nets {
   my $body = '';
 
 
-  my $list = $self->tt_list({TI_ID => $attr->{TI_ID}});
+  my $list = $self->tt_list({ TI_ID => $attr->{TI_ID} });
 
   $/ = chr(0x0d);
   
@@ -837,10 +837,17 @@ sub create_nets {
      my @n = split(/\n|;/, $line->[7]);
      foreach my $ip (@n) {
        chomp($ip);
-       next if ($ip eq "");
+       $ip =~ s/ //g;
+       if ($ip !~ /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/\d{1,2}$/) {
+       	 $self->{errno} = 1;
+       	 $self->{errstr} .= "Wrong Exppp date '$ip';\n";
+       	 next;
+        }
+
        $body .= "$ip $line->[0]\n";
      }
    }
+
 
   $self->create_tt_file("$attr->{TI_ID}.nets", "$body");
 }
