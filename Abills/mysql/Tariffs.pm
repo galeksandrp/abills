@@ -838,7 +838,10 @@ sub create_nets {
      foreach my $ip (@n) {
        chomp($ip);
        $ip =~ s/ //g;
-       if ($ip !~ /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/\d{1,2}$/) {
+       if ($ip eq '') {
+       	 next;
+        }
+       elsif ($ip !~ /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/\d{1,2}$/) {
        	 $self->{errno} = 1;
        	 $self->{errstr} .= "Wrong Exppp date '$ip';\n";
        	 next;
