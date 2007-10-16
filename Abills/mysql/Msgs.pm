@@ -73,7 +73,20 @@ sub messages_list {
  elsif ($attr->{GID}) {
    push @WHERE_RULES, "u.gid='$attr->{GID}'"; 
   }
+
+
+ if ($attr->{USER_READ}) {
+   push @WHERE_RULES, "m.user_read='$attr->{USER_READ}'"; 
+  }
  
+ if ($attr->{ADMIN_READ}) {
+   push @WHERE_RULES, "m.admin_read='$attr->{ADMIN_READ}'";
+  }
+ 
+
+ if ($attr->{REPLY_COUNT}) {
+   #push @WHERE_RULES, "r.admin_read='$attr->{ADMIN_READ}'";
+  }
  
  
  #DIsable
@@ -100,14 +113,17 @@ sub messages_list {
     m.priority,
     m.uid, 
     a.aid, m.state, m.gid,
-    m.user_read
+    m.user_read,
+    m.admin_read,
+    count(r.id)
 
     FROM (msgs_messages m)
     LEFT JOIN msgs_chapters mc ON (m.chapter=mc.id)
     LEFT JOIN users u ON (m.uid=u.uid)
     LEFT JOIN admins a ON (m.aid=a.aid)
     LEFT JOIN groups g ON (m.gid=g.gid)
-    $WHERE
+    LEFT JOIN msgs_reply r ON (m.id=r.main_msg)
+    $WHERE 
     GROUP BY m.id 
     ORDER BY $SORT $DESC
     LIMIT $PG, $PAGE_ROWS;");
@@ -188,6 +204,8 @@ sub message_del {
   $WHERE = ($#WHERE_RULES > -1) ? join(' and ', @WHERE_RULES)  : '';
   $self->query($db, "DELETE FROM msgs_messages WHERE $WHERE", 'do');
 
+  $self->message_reply_del({ MAIN_MSG => $attr->{ID} });
+
 	return $self;
 }
 
@@ -216,6 +234,7 @@ sub message_info {
   mc.name,
   m.gid,
   g.name,
+  m.state,
   m.priority,
   m.lock_msg,
   m.plan_date,
@@ -253,6 +272,7 @@ sub message_info {
    $self->{CHAPTER_NAME},
    $self->{GID},
    $self->{G_NAME},
+   $self->{STATE},
    $self->{PRIORITY},
    $self->{LOCK},
    $self->{PLAN_DATE},
@@ -273,6 +293,7 @@ sub message_change {
   my $self = shift;
   my ($attr) = @_;
   
+ 
   my %FIELDS = (ID          => 'id',
                 PARENT_ID   => 'par',
                 UID			    => 'uid',
@@ -291,9 +312,9 @@ sub message_change {
                 DONE_DATE   => 'dane_date',
                 USER_READ   => 'user_read',
  	              ADMIN_READ  => 'admin_read'
-
              );
 
+  $self->{debug}=1;
 
   $self->changes($admin,  { CHANGE_PARAM => 'ID',
                    TABLE        => 'msgs_messages',
@@ -552,6 +573,14 @@ sub message_reply_del {
 
   if ($attr->{ID}) {
   	 push @WHERE_RULES, "id='$attr->{ID}'";
+   }
+  elsif($attr->{MAIN_MSG}) {
+    if ($attr->{ID} =~ /,/) {
+    	push @WHERE_RULES, "main_msg IN ($attr->{ID})";
+     }
+  	else {
+  		push @WHERE_RULES, "main_msg='$attr->{ID}'";
+  	 }
    }
 
   my $WHERE = ($#WHERE_RULES > -1) ? join(' and ', @WHERE_RULES)  : '';

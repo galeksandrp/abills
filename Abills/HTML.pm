@@ -1380,8 +1380,11 @@ sub tpl_show {
   }
 
 
-  if (defined($attr->{notprint}) || ($self->{NO_PRINT} && $self->{NO_PRINT} == 1)) {
-  	$self->{OUTPUT}.=$tpl;
+  if($attr->{OUTPUT2RETURN}) {
+		return $tpl;
+	 }
+  elsif (defined($attr->{notprint}) || ($self->{NO_PRINT} && $self->{NO_PRINT} == 1)) {
+  	$self->{OUTPUT} .= $tpl;
   	return $tpl;
    }
 	else { 

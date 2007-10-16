@@ -136,22 +136,6 @@ sub msgs_admin {
  	                                        });
 
 
-  $Msgs->{STATE_SEL} =  $html->form_select('STATE', 
-                                          { 
- 	                                          SELECTED          => $Msgs->{STATE},
- 	                                          SEL_ARRAY         => \@msg_status,
- 	                                          ARRAY_NUM_ID      => 0
- 	                                        });
-
-
-
-	$Msgs->{PRIORITY_SEL} =  $html->form_select('PRIORITY', 
-                                          { 
- 	                                          SELECTED          => $Msgs->{STATE},
- 	                                          SEL_ARRAY         => \@priority,
- 	                                          ARRAY_NUM_ID      => 1
- 	                                        });
-
 
   if ($FORM{send}) {
     #Add group 
@@ -174,10 +158,15 @@ sub msgs_admin {
     $html->message('info', $_INFO, "$_SENDED $message") if (! $Msgs->{errno});  	
    }
   elsif ($FORM{change}) {
-
+    $Msgs->message_change({ %FORM });
+    $html->message('info', $_INFO, "$_REPLY") if (! $Msgs->{errno});
    }
   elsif ($FORM{reply}) {
     $Msgs->message_reply_add({ %FORM, IP => $admin->{SESSION_IP} });
+ 	  $Msgs->message_change({ UID       => $LIST_PARAMS{UID},
+ 	 	               ID        => $FORM{ID},
+ 	 	               USER_READ => "0000-00-00 00:00:00"});
+
     $html->message('info', $_INFO, "$_REPLY") if (! $Msgs->{errno});  	
    }
   elsif ($FORM{chg}) {
@@ -191,6 +180,22 @@ sub msgs_admin {
     $Msgs->{ACTION}='reply';
     $Msgs->{ACTION_LNG}=$_REPLY;
 
+  $Msgs->{STATE_SEL} =  $html->form_select('STATE', 
+                                          { 
+ 	                                          SELECTED          => $Msgs->{STATE},
+ 	                                          SEL_ARRAY         => \@msg_status,
+ 	                                          ARRAY_NUM_ID      => 0
+ 	                                        });
+
+
+
+	$Msgs->{PRIORITY_SEL} =  $html->form_select('PRIORITY', 
+                                          { 
+ 	                                          SELECTED          => $Msgs->{STATE},
+ 	                                          SEL_ARRAY         => \@priority,
+ 	                                          ARRAY_NUM_ID      => 1
+ 	                                        });
+
     $Msgs->{CHAPTER_NAME}=$html->form_select('CHAPTER', 
                                           { 
  	                                          SELECTED          => $Msgs->{CHAPTER},
@@ -199,6 +204,14 @@ sub msgs_admin {
  	                                          MULTI_ARRAY_VALUE => 1,
  	                                        });    
 
+    $Msgs->{RESPOSIBLE}=$html->form_select('RESPOSIBLE', 
+                                          { 
+ 	                                          SELECTED          => $Msgs->{RESPOSIBLE},
+ 	                                          SEL_MULTI_ARRAY   => undef,
+ 	                                          MULTI_ARRAY_KEY   => 0,
+ 	                                          MULTI_ARRAY_VALUE => 1,
+ 	                                        }); 
+    
     $Msgs->{MSG_CLOSED_DATE}=$html->form_input('MSG_CLOSED_DATE', "");
     $Msgs->{EXT_INFO}=$html->tpl_show(_include('msgs_managment', 'Msgs'), 
       $Msgs, { notprint => 1 } );
@@ -231,6 +244,11 @@ sub msgs_admin {
       { %$Msgs, REPLY => '' }, { notprint => 1 });
     
     $html->tpl_show(_include('msgs_show', 'Msgs'), $Msgs);
+    
+ 	  $Msgs->message_change({ 
+ 	 	               ID        => $FORM{chg},
+ 	 	               ADMIN_READ => "$DATE $TIME"});
+
     
     return 0;
     #$html->message('info', $_INFO, "$_CHANGING") if (! $Msgs->{errno});  	
@@ -277,8 +295,9 @@ sub msgs_admin {
                            });
 
 foreach my $line (@$list) {
-  #my $state = '<img src="../img/red_dot.gif" border="0" alt="No reply"/>' if ($line->[5] eq '');
   my $state = $msg_status[$line->[5]];
+  $state .= '<img src="../img/red_dot.gif" border="0" alt="No reply"/>' if ($line->[14] eq '0000-00-00 00:00:00');
+  
   
 
   $table->addrow(
@@ -332,6 +351,8 @@ sub msgs_user {
  	                                          ARRAY_NUM_ID      => 1
  	                                        });
 
+  print "Content-TYpe: text/html\n\n";
+  $Msgs->{debug}=1;
 
 
  if ($FORM{send}) {
@@ -345,14 +366,33 @@ sub msgs_user {
  	 $Msgs->message_info($FORM{ID}, { UID => $LIST_PARAMS{UID} });
 
  	 if ($Msgs->{TOTAL} > 0) {
- 	   $html->tpl_show(_include('msgs_show', 'Msgs'), $Msgs);
- 	   $Msgs->message_change({ ID    => $FORM{ID}, 
- 	 	                         STATE => 1 });
- 	  }
+ 	   
+ 	  my $list = $Msgs->messages_reply_list({ MSG_ID => $Msgs->{ID} });
 
- 	 $Msgs->message_change({ UID       => $LIST_PARAMS{UID},
+    foreach my $line (@$list) {
+      $Msgs->{REPLY} .= $html->tpl_show(_include('msgs_reply_show', 'Msgs'), {
+          DATE     => $line->[1],
+          CAPTION  => $line->[5],
+          PERSON   =>	$line->[3],
+      	  MESSAGE  => $line->[2]
+      	  }, { OUTPUT2RETURN => 1 } );
+     }
+    
+
+    if ($self->{STATE} < 2) {
+      $Msgs->{REPLY} .= $html->tpl_show(_include('msgs_reply', 'Msgs'), 
+       { %$Msgs, REPLY => '' }, { OUTPUT2RETURN => 1 });
+
+    }
+     
+     $html->tpl_show(_include('msgs_show', 'Msgs'), $Msgs);
+  	 $Msgs->message_change({ UID       => $LIST_PARAMS{UID},
  	 	               ID        => $FORM{ID},
  	 	               USER_READ => "$DATE $TIME"});
+
+ 	 	 
+ 	  }
+
 
  	 #return 0;
   }
@@ -369,13 +409,11 @@ sub msgs_user {
   }
 
   if ($Msgs->{errno}) {
-     $html->message('err', $_ERROR, "[$Msgs->{errno}] $err_strs{$Msgs->{errno}}");
+    $html->message('err', $_ERROR, "[$Msgs->{errno}] $err_strs{$Msgs->{errno}}");
    } 
 
   
   
-  print "Content-TYpe: text/html\n\n";
-  $Msgs->{debug}=1;
   my  $list = $Msgs->messages_list({ %LIST_PARAMS, SORT => '11, 5 DESC' });  
 
   my $table = $html->table( { width        => '100%',
@@ -390,8 +428,11 @@ sub msgs_user {
 foreach my $line (@$list) {
 #  my $state = '<img src="img/red_dot.gif" border="0" alt="No reply"/>' if ($line->[5] eq '');
 
+  print "$line->[13] /";
+  
+  
   $table->addrow(
-    ($line->[10] == 1) ? $line->[2] : "<b>$line->[2]</b>", 
+    ($line->[13] ne '0000-00-00 00:00:00') ? $line->[2] : "<b>$line->[2]</b>", 
     $line->[3],
     $line->[4],
     $msg_status[$line->[5]],
@@ -488,11 +529,11 @@ sub msgs_new {
   my   %SHOW_PARAMS = ();
 
   if ($attr->{UID}) {
-    %SHOW_PARAMS = (UID   => $UID, 
-                    STATE => '<>1');
+    %SHOW_PARAMS = (UID       => $UID, 
+                    USER_READ => '0000-00-00 00:00:00');
    }
   elsif ($attr->{AID}) {
-    %SHOW_PARAMS = (REPLY => '');
+    %SHOW_PARAMS = (ADMIN_READ => '0000-00-00 00:00:00');
    }
 
   $Msgs->messages_list({ %SHOW_PARAMS });
