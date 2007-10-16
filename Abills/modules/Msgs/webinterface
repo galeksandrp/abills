@@ -135,8 +135,6 @@ sub msgs_admin {
   $Msgs->{ACTION}='send';
   $Msgs->{ACTION_LNG}=$_SEND;
   
-  $Msgs->{debug}=1;
-
   if ($FORM{send}) {
     #Add group 
     my $message='';
@@ -413,9 +411,7 @@ sub msgs_user {
  	                                          ARRAY_NUM_ID      => 1
  	                                        });
 
-  print "Content-TYpe: text/html\n\n";
-  $Msgs->{debug}=1;
-
+#  print "Content-TYpe: text/html\n\n";
 
  if ($FORM{send}) {
    $Msgs->message_add({ UID   => $user->{UID},  

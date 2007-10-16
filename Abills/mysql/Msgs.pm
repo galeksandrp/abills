@@ -333,8 +333,6 @@ sub message_change {
  	              ADMIN_READ  => 'admin_read'
              );
 
-  $self->{debug}=1;
-
   $self->changes($admin,  { CHANGE_PARAM => 'ID',
                    TABLE        => 'msgs_messages',
                    FIELDS       => \%FIELDS,
@@ -703,7 +701,6 @@ sub message_reply_add {
   
   %DATA = $self->get_data($attr, { default => \%DATA }); 
 
-  $self->{debug}=1;
 
   $self->query($db, "insert into msgs_reply (main_msg,
    caption,

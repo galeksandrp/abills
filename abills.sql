@@ -421,7 +421,14 @@ CREATE TABLE `mail_domains` (
   `comments` varchar(255) NOT NULL default '',
   PRIMARY KEY  (`domain`),
   UNIQUE KEY `id` (`id`)
-)  ;
+) ;
+
+CREATE TABLE `msgs_admins` (
+  `aid` smallint(6) unsigned NOT NULL default '0',
+  `chapter_id` int(11) unsigned NOT NULL default '0',
+  `priority` tinyint(4) unsigned NOT NULL default '0',
+  UNIQUE KEY `aid` (`aid`,`chapter_id`)
+) COMMENT='Msgs admins';
 
 CREATE TABLE `msgs_chapters` (
   `id` int(11) unsigned NOT NULL auto_increment,
@@ -439,15 +446,38 @@ CREATE TABLE `msgs_messages` (
   `chapter` smallint(6) unsigned NOT NULL default '0',
   `message` text,
   `reply` text,
-  `ip` int(11) unsigned default '0',
+  `ip` int(11) unsigned NOT NULL default '0',
   `date` datetime NOT NULL default '0000-00-00 00:00:00',
   `state` tinyint(2) unsigned default '0',
   `aid` smallint(6) unsigned NOT NULL default '0',
   `subject` varchar(40) NOT NULL default '',
   `gid` smallint(4) unsigned NOT NULL default '0',
+  `priority` tinyint(4) unsigned NOT NULL default '0',
+  `lock_msg` tinyint(1) unsigned NOT NULL default '0',
+  `closed_date` date NOT NULL default '0000-00-00',
+  `done_date` date NOT NULL default '0000-00-00',
+  `plan_date` datetime NOT NULL default '0000-00-00 00:00:00',
+  `user_read` datetime NOT NULL default '0000-00-00 00:00:00',
+  `admin_read` datetime NOT NULL default '0000-00-00 00:00:00',
   PRIMARY KEY  (`id`),
-  KEY `uid` (`uid`)
-) COMMENT='Msgs messages';
+  KEY `uid` (`uid`),
+  KEY `chapter` (`chapter`)
+) COMMENT='Msgs Messages';
+
+CREATE TABLE `msgs_reply` (
+  `id` int(11) unsigned NOT NULL auto_increment,
+  `main_msg` int(11) unsigned NOT NULL default '0',
+  `text` blob NOT NULL,
+  `datetime` datetime NOT NULL default '0000-00-00 00:00:00',
+  `aid` smallint(6) unsigned NOT NULL default '0',
+  `status` tinyint(4) unsigned NOT NULL default '0',
+  `caption` varchar(40) NOT NULL default '',
+  `ip` int(11) unsigned NOT NULL default '0',
+  `uid` int(11) unsigned NOT NULL default '0',
+  PRIMARY KEY  (`id`),
+  UNIQUE KEY `id` (`id`),
+  KEY `main_msg` (`main_msg`)
+) COMMENT='Msgs replies';
 
 CREATE TABLE `nas` (
   `id` smallint(5) unsigned NOT NULL auto_increment,
