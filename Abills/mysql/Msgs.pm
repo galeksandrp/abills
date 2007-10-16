@@ -133,7 +133,8 @@ m.state,
 m.gid,
 m.user_read,
 m.admin_read,
-if(r.id IS NULL, 0, count(r.id))
+if(r.id IS NULL, 0, count(r.id)),
+m.chapter
 
 FROM (msgs_messages m, msgs_chapters mc)
 LEFT JOIN users u ON (m.uid=u.uid)
@@ -177,14 +178,15 @@ sub message_add {
   %DATA = $self->get_data($attr, { default => \%DATA }); 
 
   $self->query($db, "insert into msgs_messages (uid, subject, chapter, message, ip, date, reply, aid, state, gid,
-   priority, lock_msg)
-    values ('$DATA{UID}', '$DATA{SUBJECT}', '$DATA{CHAPTER}', '$DATA{MESSAGE}', INET_ATON('$DATA{IP}'), now(), 
+   priority, lock_msg, plan_date)
+    values ('$DATA{UID}', '$DATA{SUBJECT}', '$DATA{CHAPTER}', '$DATA{MESSAGE}', INET_ATON('$admin->{SESSION_IP}'), now(), 
         '$DATA{REPLY}',
         '$admin->{AID}',
         '$DATA{STATE}', 
         '$DATA{GID}',
         '$DATA{PRIORITY}',
-        '$DATA{LOCK}');", 'do');
+        '$DATA{LOCK}',
+        '$DATA{PLAN_DATE}');", 'do');
 
 	return $self;
 }
@@ -361,6 +363,10 @@ sub chapters_list {
  
  if($attr->{NAME}) {
 	 push @WHERE_RULES, "mc.name='$attr->{NAME}'"; 
+  }
+
+ if($attr->{CHAPTERS}) {
+	 push @WHERE_RULES, "mc.id IN ($attr->{CHAPTERS})"; 
   }
  
  $WHERE = ($#WHERE_RULES > -1) ? 'WHERE ' . join(' and ', @WHERE_RULES)  : '';

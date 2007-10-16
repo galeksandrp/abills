@@ -918,8 +918,8 @@ sub user_info {
   
   
   $table = $html->table({ width      => '100%',
-  	                  rowcolor   => $_COLORS[2],
-  	                  border     => 0,
+  	                      rowcolor   => $_COLORS[2],
+  	                      border     => 0,
                           cols_align => ['left:noprint'],
                           rows       => [ [ "$_USER: ". $html->button("<b>$user_info->{LOGIN}</b>", "index=15&UID=$user_info->{UID}") ] ]
                         });
