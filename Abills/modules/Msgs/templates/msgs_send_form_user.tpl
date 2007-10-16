@@ -1,4 +1,4 @@
-<FORM action='$SELF_URL' METHOD='POST'>
+<FORM action='$SELF_URL' METHOD='POST'  enctype='multipart/form-data'>
 <input type='hidden' name='index' value='$index'/>
 <input type='hidden' name='sid' value='$sid'/>
 <input type='hidden' name='ID' value='%ID%'/>
