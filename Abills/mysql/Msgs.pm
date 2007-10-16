@@ -78,9 +78,22 @@ sub messages_list {
  if ($attr->{USER_READ}) {
    push @WHERE_RULES, "m.user_read='$attr->{USER_READ}'"; 
   }
+
+ if ($attr->{CHAPTERS}) {
+   push @WHERE_RULES, "m.chapter IN ($attr->{CHAPTERS})"; 
+  }
+
  
  if ($attr->{ADMIN_READ}) {
    push @WHERE_RULES, "m.admin_read='$attr->{ADMIN_READ}'";
+  }
+
+ if ($attr->{CLOSED_DATE}) {
+   push @WHERE_RULES, "m.closed_date='$attr->{CLOSED_DATE}'";
+  }
+
+ if ($attr->{DONE_DATE}) {
+   push @WHERE_RULES, "m.done_date='$attr->{DONE_DATE}'";
   }
  
 
@@ -101,30 +114,34 @@ sub messages_list {
   }
  
 
- $WHERE = ($#WHERE_RULES > -1) ? 'WHERE ' . join(' and ', @WHERE_RULES)  : '';
+ $WHERE = ($#WHERE_RULES > -1) ? ' and '. join(' and ', @WHERE_RULES)  : '';
 
 
-  $self->query($db,   "SELECT m.id, 
-    if(m.uid>0, u.id, g.name),
-    m.subject, mc.name, m.date,  
-    if(m.reply IS NULL, '', m.reply), 
-    inet_ntoa(m.ip), 
-    a.id,
-    m.priority,
-    m.uid, 
-    a.aid, m.state, m.gid,
-    m.user_read,
-    m.admin_read,
-    count(r.id)
+  $self->query($db,   "SELECT m.id,
+if(m.uid>0, u.id, g.name),
+m.subject,
+mc.name,
+m.date,
+m.state,
+inet_ntoa(m.ip),
+a.id,
+m.priority,
+m.plan_date,
+m.uid,
+a.aid,
+m.state,
+m.gid,
+m.user_read,
+m.admin_read,
+if(r.id IS NULL, 0, count(r.id))
 
-    FROM (msgs_messages m)
-    LEFT JOIN msgs_chapters mc ON (m.chapter=mc.id)
-    LEFT JOIN users u ON (m.uid=u.uid)
-    LEFT JOIN admins a ON (m.aid=a.aid)
-    LEFT JOIN groups g ON (m.gid=g.gid)
-    LEFT JOIN msgs_reply r ON (m.id=r.main_msg)
-    $WHERE 
-    GROUP BY m.id 
+FROM (msgs_messages m, msgs_chapters mc)
+LEFT JOIN users u ON (m.uid=u.uid)
+LEFT JOIN admins a ON (m.aid=a.aid)
+LEFT JOIN groups g ON (m.gid=g.gid)
+LEFT JOIN msgs_reply r ON (m.id=r.main_msg)
+WHERE m.chapter=mc.id $WHERE
+GROUP BY m.id 
     ORDER BY $SORT $DESC
     LIMIT $PG, $PAGE_ROWS;");
 
@@ -309,7 +326,7 @@ sub message_change {
                 LOCK        => 'lock_msg',
                 PLAN_DATE   => 'plan_date',
                 CLOSED_DATE => 'closed_date',
-                DONE_DATE   => 'dane_date',
+                DONE_DATE   => 'done_date',
                 USER_READ   => 'user_read',
  	              ADMIN_READ  => 'admin_read'
              );

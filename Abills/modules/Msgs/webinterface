@@ -26,7 +26,9 @@ sub msgs_admins {
 
 
 $Msgs->{debug}=1;
-
+my @privilages_arr = ('READ', 'WRITE', 'ALL');
+  
+  
 if ($FORM{change}) {
 	$Msgs->admin_change({ %FORM });
   if (! $Msgs->{errno}) {
@@ -38,7 +40,7 @@ elsif ($FORM{chg}) {
   my $a_list = $Msgs->admins_list({ AID => $FORM{AID} });
   my %A_PRIVILEGES = ();
   foreach my $line (@$a_list) {
-  	$A_PRIVILEGES{$line->[4]}=$line->[2];
+  	$A_PRIVILEGES{$line->[5]}=$line->[2];
    }
   
   
@@ -49,14 +51,22 @@ elsif ($FORM{chg}) {
   my $list = $Msgs->chapters_list({ AID => $FORM{AID} });
   my $table = $html->table({ width      => '100%',
                              title      => ['ID', "$_CHAPTERS", "_PRIORITY" ],
-                              cols_align => ['right', 'left', 'center' ],
+                             cols_align => ['right', 'left', 'center' ],
                            });
-
+  
+ 
   foreach my $line (@$list) {
+    $privileges =  $html->form_select('PRIORITY_'. $line->[0], 
+                                          { 
+ 	                                          SELECTED          => (defined($A_PRIVILEGES{$line->[0]})) ? $A_PRIVILEGES{$line->[0]} : 0 ,
+ 	                                          SEL_ARRAY         => \@privilages_arr,
+ 	                                          ARRAY_NUM_ID      => 1
+ 	                                        });
+    
     $table->addrow($line->[0] . $html->form_input('IDS', "$line->[0]", { TYPE => 'checkbox', 
-    	  STATE => ($A_PRIVILEGES{$line->[0]}) ? 1 : undef }),
+    	  STATE => (defined($A_PRIVILEGES{$line->[0]})) ? 1 : undef }),
       $line->[1],
-      $html->form_input('PRIORITY_'. $line->[0], ($A_PRIVILEGES{$line->[0]} ? $A_PRIVILEGES{$line->[0]} : 0))
+      $privileges
      );
    }
   
@@ -94,9 +104,9 @@ foreach my $admin (sort keys %A_PRIVILEGES) {
   $table->addtd(
                   $table->td($admin, { rowspan => ($rows > 0) ? $rows+1 : 1 } ),
                   $table->td($chapter_name), 
-                  $table->td($privilege), 
+                  $table->td($privilages_arr[$privilege]), 
                   $table->td($msgs), 
-                  $table->td($html->button("$_CHANGE", "index=$index&chg=$aid&AID=$aid"))
+                  $table->td($html->button("$_CHANGE", "index=$index&chg=$aid&AID=$aid"), { rowspan => ($rows > 0) ? $rows+1 : 1 })
       );
 
 
@@ -105,9 +115,9 @@ foreach my $admin (sort keys %A_PRIVILEGES) {
       my ($chapter_name, $privilege, $msgs, $aid, $chapter_id) = split(/\|/, $arr[$i] );
       $table->addrow(
        $chapter_name, 
-       $privilege,
+       $privilages_arr[$privilege],
        $msgs,
-       '',
+       
       );
     }
    }
@@ -140,7 +150,7 @@ sub msgs_admin {
   if ($FORM{send}) {
     #Add group 
     my $message='';
-    if  ($FORM{GID} || ($FORM{GID} == 0 && $FORM{UID} == 0 )) {
+    if  (! $FORM{INNER_MSG} && ( $FORM{GID} || ($FORM{GID} == 0 && $FORM{UID} == 0 ) ) ) {
        my $list = $users->list({ GID => $FORM{GID}, PAGE_ROWS => 100000 });
        foreach my $line (@$list) {
           $FORM{UID}=$line->[5+$users->{SEARCH_FIELDS_COUNT}];
@@ -158,7 +168,13 @@ sub msgs_admin {
     $html->message('info', $_INFO, "$_SENDED $message") if (! $Msgs->{errno});  	
    }
   elsif ($FORM{change}) {
+    if ($FORM{STATE} > 0) {
+      $FORM{DONE_DATE}="$DATE" if ($FORM{STATE} == 2); 
+      $FORM{CLOSED_DATE}="$DATE"; 
+     }
+
     $Msgs->message_change({ %FORM });
+    
     $html->message('info', $_INFO, "$_REPLY") if (! $Msgs->{errno});
    }
   elsif ($FORM{reply}) {
@@ -180,7 +196,7 @@ sub msgs_admin {
     $Msgs->{ACTION}='reply';
     $Msgs->{ACTION_LNG}=$_REPLY;
 
-  $Msgs->{STATE_SEL} =  $html->form_select('STATE', 
+   $Msgs->{STATE_SEL} =  $html->form_select('STATE', 
                                           { 
  	                                          SELECTED          => $Msgs->{STATE},
  	                                          SEL_ARRAY         => \@msg_status,
@@ -189,7 +205,7 @@ sub msgs_admin {
 
 
 
-	$Msgs->{PRIORITY_SEL} =  $html->form_select('PRIORITY', 
+	  $Msgs->{PRIORITY_SEL} =  $html->form_select('PRIORITY', 
                                           { 
  	                                          SELECTED          => $Msgs->{STATE},
  	                                          SEL_ARRAY         => \@priority,
@@ -219,7 +235,6 @@ sub msgs_admin {
 
     
     #$Msgs->{THREADS} = $html->button($Msgs->{SUBJECT}. " ($_DATE: $Msgs->{DATE}) ", "");
-    
     #if ($Msgs->{REPLIES_COUNT} > 0) {
     #	foreach my $line (@{ $Msgs->{REPLIES_COUNT} }) {
     #	 	my ($id, $caption, $date, $person)=split(/|/, $line);
@@ -277,10 +292,26 @@ sub msgs_admin {
   
   
   $Msgs->{DATE}=$html->form_input('MSG_DATE', "$DATE");
-  
+
+  $Msgs->{INNER_MSG}=' checked';
   $html->tpl_show(_include('msgs_send_form', 'Msgs'), $Msgs);
   
   $Msgs->{debug}=1;
+
+  my $a_list = $Msgs->admins_list({ AID => $admin->{AID} });
+  
+  my @A_CHAPTER = ();
+  foreach my $line (@$a_list) {
+  	push @A_CHAPTER, "$line->[5]";
+   }
+
+  if ($#A_CHAPTER > -1) {
+    $LIST_PARAMS{CHAPTERS} = join(', ', @A_CHAPTER);
+    $LIST_PARAMS{DONE_DATE}='0000-00-00'; 
+    $LIST_PARAMS{CLOSED_DATE}='0000-00-00'; 
+    $LIST_PARAMS{UID}=undef; 
+   }
+
   my $list = $Msgs->messages_list({ %LIST_PARAMS, DESC => (! $FORM{sort}) ? 'DESC' : $FORM{desc} });
   
   
@@ -288,7 +319,7 @@ sub msgs_admin {
   my $table = $html->table( { width      => '100%',
                               caption    => "$_MESSAGES",
                               title      => ['#', "$_USER", "$_SUBJECT", "$_CHAPTERS", "$_DATE", "$_STATUS", "IP", 
-                               "$_ADMIN", "$_PRIORITY", "-", "-"],
+                               "$_ADMIN", "$_PRIORITY", "$_EXECUTION", "-", "-"],
                               cols_align => ['right', 'left', 'left', 'right', 'right', 'left', 'center', 'right', 'left', 'center:noprint', 'center:noprint'],
                               qs         => $pages_qs,
                               pages      => $Msgs->{TOTAL}
@@ -302,15 +333,16 @@ foreach my $line (@$list) {
 
   $table->addrow(
    $line->[0] . $html->form_input('del', "$line->[0]", {TYPE => 'checkbox' }), 
-   ($line->[11] > 0)  ? $html->button($line->[1], "index=11&UID=$line->[8]") :  $line->[1],
+   ($line->[12] > 0)  ? $html->button($line->[1], "index=11&UID=$line->[10]") :  $line->[1],
    $html->button($line->[2], "index=$index&UID=$line->[8]&chg=$line->[0]"), 
    $line->[3],
    $line->[4],
    $state,
    $line->[6],      
    $line->[7],      
-   $priority[$line->[8]],      
-   $html->button("$_SHOW", "index=$index&chg=$line->[0]&UID=$line->[9]"),
+   $priority[$line->[8]],
+   $line->[9],
+   $html->button("$_SHOW", "index=$index&chg=$line->[0]&UID=$line->[10]"),
    $html->button($_DEL, "index=$index&del=$line->[0]$pages_qs", { MESSAGE => "$_DEL $line->[0]?" }) 
 
   );

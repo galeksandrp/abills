@@ -21,8 +21,9 @@ if (defined($user->{UID})) {
    }
  }
 elsif(defined($admin->{AID})) {
-  my $count=msgs_new({ AID => $admin->{AID} });
-  $FUNCTIONS_LIST{"02:0:$_MESSAGES $count:msgs_admin:"}=6;
+  my $count=0; #msgs_new({ AID => $admin->{AID} });
+  $FUNCTIONS_LIST{"10:0:$_MESSAGES $count:msgs_admin:"}=6;
+  $FUNCTIONS_LIST{"11:10:$_ADD $count:msgs_admin_add:"}=6;
  }   
 
 #%QUICK_SHOW=();
