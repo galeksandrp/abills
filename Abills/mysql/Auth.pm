@@ -713,7 +713,10 @@ sub authentication {
 
 
 #Auth chap
-if (defined($RAD->{CHAP_PASSWORD}) && defined($RAD->{CHAP_CHALLENGE})) {
+if($RAD->{'HINT'} && $RAD->{'HINT'} eq 'NOPASS') {
+
+ } 
+elsif (defined($RAD->{CHAP_PASSWORD}) && defined($RAD->{CHAP_CHALLENGE})) {
   if (check_chap("$RAD->{CHAP_PASSWORD}", "$self->{PASSWD}", "$RAD->{CHAP_CHALLENGE}", 0) == 0) {
     $RAD_PAIRS{'Reply-Message'}="Wrong CHAP password";
     return 1, \%RAD_PAIRS;
