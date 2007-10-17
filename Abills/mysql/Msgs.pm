@@ -35,6 +35,45 @@ sub new {
 #**********************************************************
 # messages_list
 #**********************************************************
+sub messages_new {
+  my $self = shift;
+  my ($attr) = @_;
+
+ my @WHERE_RULES = ();
+
+ if ($attr->{USER_READ}) {
+   push @WHERE_RULES, "m.user_read='$attr->{USER_READ}'"; 
+  }
+
+ 
+ if ($attr->{ADMIN_READ}) {
+   push @WHERE_RULES, "m.admin_read='$attr->{ADMIN_READ}'";
+  }
+
+ if ($attr->{UID}) {
+   push @WHERE_RULES, "m.uid='$attr->{UID}'"; 
+ }
+
+ if ($attr->{CHAPTERS}) {
+   push @WHERE_RULES, "m.chapter IN ($attr->{CHAPTERS})"; 
+  }
+
+
+ $WHERE = ($#WHERE_RULES > -1) ? 'WHERE '. join(' and ', @WHERE_RULES)  : '';
+
+
+  $self->query($db,   "SELECT count(*)
+ FROM (msgs_messages m)
+ LEFT JOIN msgs_reply r ON (m.id=r.main_msg)
+ $WHERE
+ GROUP BY m.id;");
+
+  return $self;	
+}
+
+#**********************************************************
+# messages_list
+#**********************************************************
 sub messages_list {
   my $self = shift;
   my ($attr) = @_;
@@ -76,17 +115,21 @@ sub messages_list {
 
 
  if ($attr->{USER_READ}) {
-   push @WHERE_RULES, "m.user_read='$attr->{USER_READ}'"; 
+   my $value = $self->search_expr($attr->{USER_READ}, 'INT');
+   push @WHERE_RULES, "m.user_read$value"; 
   }
+
+ if ($attr->{ADMIN_READ}) {
+   my $value = $self->search_expr($attr->{ADMIN_READ}, 'INT');
+   push @WHERE_RULES, "m.admin_read$value";
+  }
+
 
  if ($attr->{CHAPTERS}) {
    push @WHERE_RULES, "m.chapter IN ($attr->{CHAPTERS})"; 
   }
 
  
- if ($attr->{ADMIN_READ}) {
-   push @WHERE_RULES, "m.admin_read='$attr->{ADMIN_READ}'";
-  }
 
  if ($attr->{CLOSED_DATE}) {
    push @WHERE_RULES, "m.closed_date='$attr->{CLOSED_DATE}'";
@@ -149,10 +192,12 @@ GROUP BY m.id
 
  my $list = $self->{list};
 
- if ($self->{TOTAL} > 0  || $PG > 0) {
-   $self->query($db, "SELECT count(*)
-    FROM msgs_messages m
+ if ($self->{TOTAL} >= $PAGE_ROWS  || $PG > 0) {
+   
+   $self->query($db, "SELECT count(DISTINCT m.id)
+    FROM (msgs_messages m, msgs_chapters mc)
     LEFT JOIN users u ON (m.uid=u.uid)
+    WHERE m.chapter=mc.id
     $WHERE");
 
    ($self->{TOTAL}) = @{ $self->{list}->[0] };
@@ -178,15 +223,18 @@ sub message_add {
   %DATA = $self->get_data($attr, { default => \%DATA }); 
 
   $self->query($db, "insert into msgs_messages (uid, subject, chapter, message, ip, date, reply, aid, state, gid,
-   priority, lock_msg, plan_date)
-    values ('$DATA{UID}', '$DATA{SUBJECT}', '$DATA{CHAPTER}', '$DATA{MESSAGE}', INET_ATON('$admin->{SESSION_IP}'), now(), 
+   priority, lock_msg, plan_date, user_read, admin_read)
+    values ('$DATA{UID}', '$DATA{SUBJECT}', '$DATA{CHAPTER}', '$DATA{MESSAGE}', INET_ATON('$DATA{IP}'), now(), 
         '$DATA{REPLY}',
         '$admin->{AID}',
         '$DATA{STATE}', 
         '$DATA{GID}',
         '$DATA{PRIORITY}',
         '$DATA{LOCK}',
-        '$DATA{PLAN_DATE}');", 'do');
+        '$DATA{PLAN_DATE}',
+        '$DATA{USER_READ}',
+        '$DATA{ADMIN_READ}'
+        );", 'do');
 
 	return $self;
 }
@@ -379,13 +427,13 @@ sub chapters_list {
 
  my $list = $self->{list};
 
- if ($self->{TOTAL} > 0) {
-   $self->query($db, "SELECT count(*)
-     FROM msgs_chapters mc
-     $WHERE");
-
-   ($self->{TOTAL}) = @{ $self->{list}->[0] };
-  }
+# if ($self->{TOTAL} > 0 ) {
+#   $self->query($db, "SELECT count(*)
+#     FROM msgs_chapters mc
+#     $WHERE");
+#
+#   ($self->{TOTAL}) = @{ $self->{list}->[0] };
+#  }
  
  
 	return $list;

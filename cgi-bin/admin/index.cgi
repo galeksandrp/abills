@@ -1628,7 +1628,7 @@ $search_params{MODULES_SEL} = $html->form_select('MODULE',
 
 
 form_search({ HIDDEN_FIELDS => $LIST_PARAMS{AID},
-	            SEARCH_FORM   => $html->tpl_show(templates('history_search'), \%search_params, { notprint => 'y' })
+	            SEARCH_FORM   => $html->tpl_show(templates('history_search'), \%search_params, { notprint => 1 })
 	           });
 
 

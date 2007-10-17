@@ -20,9 +20,9 @@
                   <input class='button' type='submit' name='AttachmentUpload' value='$_ADD'></td></tr>  
 <tr><td>$_STATE:</td><td>%STATE_SEL%</td></tr>  
 <tr><td>$_PRIORITY:</td><td>%PRIORITY_SEL%</td></tr>
-<TR><TD>$_EXECUTION $_DATE</TD><TD><input type=text value='%PLAN_DATE%' name='PLAN_DATE'></TD></TR>
+<TR><TD>$_EXECUTION $_DATE</TD><TD><input type=text value='%PLAN_DATE%' name='PLAN_DATE' size=30></TD></TR>
 <tr><td>$_LOCK:</td><td><input type=checkbox name=LOCK value=1 %LOCK%></td></tr>
-
+%SEND_EMAIL%
 </table>
 <input type='submit' name='%ACTION%' value='%ACTION_LNG%'/>
 </FORM>
