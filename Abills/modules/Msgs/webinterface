@@ -688,8 +688,18 @@ sub msgs_new {
   if ($attr->{UID}) {
     %SHOW_PARAMS = (UID       => $UID, 
                     USER_READ => '0000-00-00 00:00:00');
+
+    $Msgs->messages_new({ %SHOW_PARAMS });
+
+    if ($Msgs->{TOTAL} > 0) {
+      return "($self->{UNREAD})";
+     }
+
    }
   elsif ($attr->{AID}) {
+    
+#    print "Content-Type: text/html\n\n";
+   
     %SHOW_PARAMS = (ADMIN_READ => '0000-00-00 00:00:00');
     my $a_list = $Msgs->admins_list({ AID => $attr->{AID} });
     my @A_CHAPTER = ();
@@ -702,14 +712,13 @@ sub msgs_new {
       $SHOW_PARAMS{CHAPTERS} = join(', ', @A_CHAPTER);
      }
 
+    $Msgs->messages_new({ %SHOW_PARAMS });
 
+    if ($Msgs->{TOTAL} > 0) {
+      return "($Msgs->{UNREAD}/$Msgs->{TODAY}/$Msgs->{OPENED})";
+     }
    }
 
-  $Msgs->messages_new({ %SHOW_PARAMS });
-
-  if ($Msgs->{TOTAL} > 0) {
-     return "($Msgs->{TOTAL})";
-   }
 
   return '';
 }

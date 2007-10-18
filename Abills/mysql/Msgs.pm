@@ -40,14 +40,19 @@ sub messages_new {
   my ($attr) = @_;
 
  my @WHERE_RULES = ();
-
+ my $fields = '';
+ 
  if ($attr->{USER_READ}) {
    push @WHERE_RULES, "m.user_read='$attr->{USER_READ}'"; 
+   $fields='count(*)';
   }
-
  
  if ($attr->{ADMIN_READ}) {
-   push @WHERE_RULES, "m.admin_read='$attr->{ADMIN_READ}'";
+ 	 $fields = "sum(if(admin_read='0000-00-00 00:00:00', 1, 0)), 
+ 	  sum(if(plan_date=curdate(), 1, 0)),
+ 	  sum(if(state = 0, 1, 0))
+ 	   ";
+   push @WHERE_RULES, "m.state=0";
   }
 
  if ($attr->{UID}) {
@@ -62,11 +67,12 @@ sub messages_new {
  $WHERE = ($#WHERE_RULES > -1) ? 'WHERE '. join(' and ', @WHERE_RULES)  : '';
 
 
- $self->query($db,   "SELECT count(*)
+
+ $self->query($db,   "SELECT $fields 
   FROM (msgs_messages m)
  $WHERE;");
 
- $self->{TOTAL} = @{ $self->{list} }->[0][0];
+ ($self->{UNREAD}, $self->{TODAY}, $self->{OPENED}) = @{ $self->{list}->[0] };
 
   return $self;	
 }

@@ -3,7 +3,9 @@
 
 MYSQL
   ALTER TABLE `msgs_messages` CHANGE COLUMN plan_date  `plan_date` date NOT NULL default '0000-00-00';
-  ALTER TABLE `msgs_messages` ADD COLUMN  `plan_time` date NOT NULL default '00:00:00';
+  ALTER TABLE `msgs_messages` ADD COLUMN  `plan_time` time NOT NULL default '00:00:00';
+  ALTER TABLE `msgs_chapters` CHANGE `id` `id` smallint(6) unsigned NOT NULL auto_increment;
+  ALTER TABLE `msgs_chapters` DROP INDEX chapter;
 
   * 16.10.2007 
 MYSQL

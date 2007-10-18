@@ -457,7 +457,7 @@ CREATE TABLE `msgs_messages` (
   `closed_date` date NOT NULL default '0000-00-00',
   `done_date` date NOT NULL default '0000-00-00',
   `plan_date` date NOT NULL default '0000-00-00',
-  `plan_time` date NOT NULL default '00:00:00', 
+  `plan_time` time NOT NULL default '00:00:00', 
   `user_read` datetime NOT NULL default '0000-00-00 00:00:00',
   `admin_read` datetime NOT NULL default '0000-00-00 00:00:00',
   PRIMARY KEY  (`id`),
