@@ -49,7 +49,7 @@ sub dhcphosts_mac_block_show {
    my $debug = $attr->{DEBUG} || 0;
 
    
-   $LIST_PARAMS{STATUS}=0 if (! $conf{DHCPHOSTS_IPGUARD_TYPE} || $conf{DHCPHOSTS_IPGUARD_TYPE} ne 'ipsentinel');
+   $LIST_PARAMS{STATUS}=0 if (! $conf{DHCPHOSTS_IPGUARD_TYPE} || ($conf{DHCPHOSTS_IPGUARD_TYPE} && $conf{DHCPHOSTS_IPGUARD_TYPE} ne 'ipsentinel' ));
 
    my $ethers_content = "# $DATE $TIME\n# CONFIG FOR: $conf{DHCPHOSTS_IPGUARD_TYPE}\n\n";
    my @pair_status = ('ACCEPT', 'DENY');

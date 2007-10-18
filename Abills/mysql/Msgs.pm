@@ -62,11 +62,11 @@ sub messages_new {
  $WHERE = ($#WHERE_RULES > -1) ? 'WHERE '. join(' and ', @WHERE_RULES)  : '';
 
 
-  $self->query($db,   "SELECT count(*)
- FROM (msgs_messages m)
- LEFT JOIN msgs_reply r ON (m.id=r.main_msg)
- $WHERE
- GROUP BY m.id;");
+ $self->query($db,   "SELECT count(*)
+  FROM (msgs_messages m)
+ $WHERE;");
+
+ $self->{TOTAL} = @{ $self->{list} }->[0][0];
 
   return $self;	
 }
@@ -75,8 +75,8 @@ sub messages_new {
 # messages_list
 #**********************************************************
 sub messages_list {
-  my $self = shift;
-  my ($attr) = @_;
+ my $self = shift;
+ my ($attr) = @_;
 
  
  $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
@@ -99,10 +99,9 @@ sub messages_list {
     push @WHERE_RULES, "m.id$value";
   }
 
-
  if (defined($attr->{REPLY})) {
- 	  my $value = $self->search_expr($attr->{REPLY}, '');
-    push @WHERE_RULES, "m.reply$value";
+ 	 my $value = $self->search_expr($attr->{REPLY}, '');
+   push @WHERE_RULES, "m.reply$value";
   }
 
  # Show groups
@@ -112,7 +111,6 @@ sub messages_list {
  elsif ($attr->{GID}) {
    push @WHERE_RULES, "u.gid='$attr->{GID}'"; 
   }
-
 
  if ($attr->{USER_READ}) {
    my $value = $self->search_expr($attr->{USER_READ}, 'INT');
@@ -124,13 +122,6 @@ sub messages_list {
    push @WHERE_RULES, "m.admin_read$value";
   }
 
-
- if ($attr->{CHAPTERS}) {
-   push @WHERE_RULES, "m.chapter IN ($attr->{CHAPTERS})"; 
-  }
-
- 
-
  if ($attr->{CLOSED_DATE}) {
    push @WHERE_RULES, "m.closed_date='$attr->{CLOSED_DATE}'";
   }
@@ -138,26 +129,42 @@ sub messages_list {
  if ($attr->{DONE_DATE}) {
    push @WHERE_RULES, "m.done_date='$attr->{DONE_DATE}'";
   }
- 
 
  if ($attr->{REPLY_COUNT}) {
    #push @WHERE_RULES, "r.admin_read='$attr->{ADMIN_READ}'";
   }
- 
+
+ if ($attr->{CHAPTERS}) {
+   push @WHERE_RULES, "m.chapter IN ($attr->{CHAPTERS})"; 
+  }
  
  #DIsable
  if ($attr->{UID}) {
    push @WHERE_RULES, "m.uid='$attr->{UID}'"; 
  }
 
- #DIsable
  if ($attr->{STATE}) {
    my $value = $self->search_expr($attr->{STATE}, 'INT');
    push @WHERE_RULES, "m.state$value"; 
   }
+
+ if ($attr->{PRIORITY}) {
+   my $value = $self->search_expr($attr->{PRIORITY}, 'INT');
+   push @WHERE_RULES, "m.state$value"; 
+  }
+
+ if ($attr->{PLAN_DATE}) {
+   my $value = $self->search_expr($attr->{PLAN_DATE}, 'INT');
+   push @WHERE_RULES, "m.plan_date$value"; 
+  }
+
+ if ($attr->{PLAN_TIME}) {
+   my $value = $self->search_expr($attr->{PLAN_TIME}, 'INT');
+   push @WHERE_RULES, "m.plan_time$value"; 
+  }
  
 
- $WHERE = ($#WHERE_RULES > -1) ? ' and '. join(' and ', @WHERE_RULES)  : '';
+ $WHERE = ($#WHERE_RULES > -1) ? 'WHERE '. join(' and ', @WHERE_RULES)  : '';
 
 
   $self->query($db,   "SELECT m.id,
@@ -169,7 +176,7 @@ m.state,
 inet_ntoa(m.ip),
 a.id,
 m.priority,
-m.plan_date,
+CONCAT(m.plan_date, ' ', m.plan_time),
 m.uid,
 a.aid,
 m.state,
@@ -179,12 +186,13 @@ m.admin_read,
 if(r.id IS NULL, 0, count(r.id)),
 m.chapter
 
-FROM (msgs_messages m, msgs_chapters mc)
+FROM (msgs_messages m)
 LEFT JOIN users u ON (m.uid=u.uid)
 LEFT JOIN admins a ON (m.aid=a.aid)
 LEFT JOIN groups g ON (m.gid=g.gid)
 LEFT JOIN msgs_reply r ON (m.id=r.main_msg)
-WHERE m.chapter=mc.id $WHERE
+LEFT JOIN msgs_chapters mc ON (m.chapter=mc.id)
+ $WHERE
 GROUP BY m.id 
     ORDER BY $SORT $DESC
     LIMIT $PG, $PAGE_ROWS;");
@@ -195,9 +203,9 @@ GROUP BY m.id
  if ($self->{TOTAL} >= $PAGE_ROWS  || $PG > 0) {
    
    $self->query($db, "SELECT count(DISTINCT m.id)
-    FROM (msgs_messages m, msgs_chapters mc)
+    FROM (msgs_messages m)
     LEFT JOIN users u ON (m.uid=u.uid)
-    WHERE m.chapter=mc.id
+    LEFT JOIN msgs_chapters mc ON (m.chapter=mc.id)
     $WHERE");
 
    ($self->{TOTAL}) = @{ $self->{list}->[0] };
@@ -223,7 +231,7 @@ sub message_add {
   %DATA = $self->get_data($attr, { default => \%DATA }); 
 
   $self->query($db, "insert into msgs_messages (uid, subject, chapter, message, ip, date, reply, aid, state, gid,
-   priority, lock_msg, plan_date, user_read, admin_read)
+   priority, lock_msg, plan_date, plan_time, user_read, admin_read)
     values ('$DATA{UID}', '$DATA{SUBJECT}', '$DATA{CHAPTER}', '$DATA{MESSAGE}', INET_ATON('$DATA{IP}'), now(), 
         '$DATA{REPLY}',
         '$admin->{AID}',
@@ -232,6 +240,7 @@ sub message_add {
         '$DATA{PRIORITY}',
         '$DATA{LOCK}',
         '$DATA{PLAN_DATE}',
+        '$DATA{PLAN_TIME}',
         '$DATA{USER_READ}',
         '$DATA{ADMIN_READ}'
         );", 'do');
@@ -305,6 +314,7 @@ sub message_info {
   m.priority,
   m.lock_msg,
   m.plan_date,
+  m.plan_time,
   m.closed_date,
   m.done_date,
   m.user_read,
@@ -343,6 +353,7 @@ sub message_info {
    $self->{PRIORITY},
    $self->{LOCK},
    $self->{PLAN_DATE},
+   $self->{PLAN_TIME},
    $self->{CLOSED_DATE},
    $self->{DONE_DATE},
    $self->{USER_READ},
@@ -375,6 +386,7 @@ sub message_change {
                 PRIORITY    => 'priority',
                 LOCK        => 'lock_msg',
                 PLAN_DATE   => 'plan_date',
+                PLAN_TIME   => 'plan_time',
                 CLOSED_DATE => 'closed_date',
                 DONE_DATE   => 'done_date',
                 USER_READ   => 'user_read',
@@ -640,16 +652,16 @@ sub message_reply_del {
   @WHERE_RULES=();
 
 
-  if ($attr->{ID}) {
-  	 push @WHERE_RULES, "id='$attr->{ID}'";
-   }
-  elsif($attr->{MAIN_MSG}) {
-    if ($attr->{ID} =~ /,/) {
-    	push @WHERE_RULES, "main_msg IN ($attr->{ID})";
+  if($attr->{MAIN_MSG}) {
+    if ($attr->{MAIN_MSG} =~ /,/) {
+    	push @WHERE_RULES, "main_msg IN ($attr->{MAIN_MSG})";
      }
   	else {
-  		push @WHERE_RULES, "main_msg='$attr->{ID}'";
+  		push @WHERE_RULES, "main_msg='$attr->{MAIN_MSG}'";
   	 }
+   }
+  elsif ($attr->{ID}) {
+  	 push @WHERE_RULES, "id='$attr->{ID}'";
    }
 
   my $WHERE = ($#WHERE_RULES > -1) ? join(' and ', @WHERE_RULES)  : '';

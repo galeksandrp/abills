@@ -1,4 +1,74 @@
 =====0.37=====
+  * 18.10.2007 
+
+MYSQL
+  ALTER TABLE `msgs_messages` CHANGE COLUMN plan_date  `plan_date` date NOT NULL default '0000-00-00';
+  ALTER TABLE `msgs_messages` ADD COLUMN  `plan_time` date NOT NULL default '00:00:00';
+
+  * 16.10.2007 
+MYSQL
+
+  CREATE TABLE `msgs_admins` (
+    `aid` smallint(6) unsigned NOT NULL default '0',
+    `chapter_id` int(11) unsigned NOT NULL default '0',
+    `priority` tinyint(4) unsigned NOT NULL default '0',
+    UNIQUE KEY `aid` (`aid`,`chapter_id`)
+  ) TYPE=MyISAM;
+  
+  CREATE TABLE `msgs_reply` (
+    `id` int(11) unsigned NOT NULL auto_increment,
+    `main_msg` int(11) unsigned NOT NULL default '0',
+    `text` blob NOT NULL,
+    `datetime` datetime NOT NULL default '0000-00-00 00:00:00',
+    `aid` smallint(6) unsigned NOT NULL default '0',
+    `status` tinyint(4) unsigned NOT NULL default '0',
+    `caption` varchar(40) NOT NULL default '',
+    `ip` int(11) unsigned NOT NULL default '0',
+    `uid` int(11) unsigned NOT NULL default '0',
+    PRIMARY KEY  (`id`),
+    UNIQUE KEY `id` (`id`),
+    KEY `main_msg` (`main_msg`)
+  ) TYPE=MyISAM;
+  
+  
+  ALTER TABLE `msgs_messages` ADD COLUMN `priority` TINYINT(4) UNSIGNED NOT NULL DEFAULT '0';
+  ALTER TABLE `msgs_messages` ADD COLUMN `lock_msg` TINYINT(1) UNSIGNED NOT NULL DEFAULT '0';
+  ALTER TABLE `msgs_messages` ADD COLUMN `closed_date` DATE NOT NULL DEFAULT '0000-00-00';
+  ALTER TABLE `msgs_messages` ADD COLUMN `done_date` DATE NOT NULL DEFAULT '0000-00-00';
+  ALTER TABLE `msgs_messages` ADD COLUMN `plan_date` DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00';
+  ALTER TABLE `msgs_messages` ADD COLUMN `user_read` DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00';
+  ALTER TABLE `msgs_messages` ADD COLUMN `admin_read` DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00';
+  
+  ALTER TABLE `msgs_messages` ADD KEY `uid` (`uid`);
+  ALTER TABLE `msgs_messages` ADD KEY `chapter` (`chapter`);
+
+
+
+  * 10.10.2007
+Новые опции:
+  $conf{DV_CALLBACK_PREFIX}='4' ;
+  $conf{DV_CALLBACK_DENYNUMS}='800'; 
+Подробно [[abills:docs:modules:dv:ru|Dv]]
+
+  * 06.10.2007 
+MYSQL
+  CREATE TABLE `sharing_trafic_tarifs` (
+   `id` tinyint(4) NOT NULL default '0',
+   `descr` varchar(30) default NULL,
+   `nets` text,
+   `tp_id` smallint(5) unsigned NOT NULL default '0',
+   `prepaid` int(11) unsigned default '0',
+   `in_price` double(13,5) unsigned NOT NULL default '0.00000',
+   `out_price` double(13,5) unsigned NOT NULL default '0.00000',
+   `in_speed` int(10) unsigned NOT NULL default '0',
+   `interval_id` smallint(6) unsigned NOT NULL default '0',
+   `rad_pairs` text NOT NULL,
+   `out_speed` int(10) unsigned NOT NULL default '0',
+   `expression` varchar(255) NOT NULL default '',
+     UNIQUE KEY `id` (`id`,`tp_id`)
+  ) COMMENT='Sharing Traffic Class';
+
+
   * 05.10.2007 
 MYSQL
   ALTER TABLE web_online ADD column page_index int unsigned NOT NULL Default 0;

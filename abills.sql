@@ -431,7 +431,7 @@ CREATE TABLE `msgs_admins` (
 ) COMMENT='Msgs admins';
 
 CREATE TABLE `msgs_chapters` (
-  `id` int(11) unsigned NOT NULL auto_increment,
+  `id` smallint(6) unsigned NOT NULL auto_increment,
   `name` varchar(20) NOT NULL default '',
   PRIMARY KEY  (`id`),
   UNIQUE KEY `id` (`id`),
@@ -456,12 +456,12 @@ CREATE TABLE `msgs_messages` (
   `lock_msg` tinyint(1) unsigned NOT NULL default '0',
   `closed_date` date NOT NULL default '0000-00-00',
   `done_date` date NOT NULL default '0000-00-00',
-  `plan_date` datetime NOT NULL default '0000-00-00 00:00:00',
+  `plan_date` date NOT NULL default '0000-00-00',
+  `plan_time` date NOT NULL default '00:00:00', 
   `user_read` datetime NOT NULL default '0000-00-00 00:00:00',
   `admin_read` datetime NOT NULL default '0000-00-00 00:00:00',
   PRIMARY KEY  (`id`),
   KEY `uid` (`uid`),
-  KEY `chapter` (`chapter`)
 ) COMMENT='Msgs Messages';
 
 CREATE TABLE `msgs_reply` (

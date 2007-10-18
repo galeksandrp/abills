@@ -8,7 +8,6 @@ use Msgs;
 my $Msgs=Msgs->new($db, $admin, \%conf);
 my $users = Users->new($db, $admin, \%conf); 
 
-
 my @priority = ( 'very low',
 'low',
 'normal',
@@ -184,14 +183,15 @@ sub msgs_admin_add {
 
   if ($#A_CHAPTER > -1) {
     $LIST_PARAMS{CHAPTERS} = join(', ', @A_CHAPTER);
-    $LIST_PARAMS{DONE_DATE}='0000-00-00'; 
-    $LIST_PARAMS{CLOSED_DATE}='0000-00-00'; 
+    #$LIST_PARAMS{DONE_DATE}='0000-00-00'; 
+    #$LIST_PARAMS{CLOSED_DATE}='0000-00-00'; 
     $LIST_PARAMS{UID}=undef; 
    }
 
   $Msgs->{DATE}=$html->form_input('MSG_DATE', "$DATE");
   $Msgs->{INNER_MSG}=' checked';
-  $Msgs->{PLAN_DATE}="$DATE $TIME";
+  $Msgs->{PLAN_DATE}="$DATE";
+  $Msgs->{PLAN_TIME}="$TIME";
   
   if (! $FORM{UID}) {
     $Msgs->{USER} = $html->form_select('GID', 
@@ -238,7 +238,7 @@ sub msgs_admin {
 
   $Msgs->{ACTION}='send';
   $Msgs->{ACTION_LNG}=$_SEND;
-  
+
  
   if ($FORM{reply}) {
     $Msgs->message_reply_add({ %FORM, IP => $admin->{SESSION_IP} });
@@ -358,7 +358,7 @@ sub msgs_admin {
 
   if ($#A_CHAPTER > -1) {
     $LIST_PARAMS{CHAPTERS} = join(', ', @A_CHAPTER);
-    $LIST_PARAMS{DONE_DATE}='0000-00-00'; 
+    #$LIST_PARAMS{DONE_DATE}='0000-00-00'; 
     $LIST_PARAMS{CLOSED_DATE}='0000-00-00'; 
     $LIST_PARAMS{UID}=undef; 
    }
@@ -366,16 +366,16 @@ sub msgs_admin {
   if (! $FORM{UID}) {
     $Msgs->{STATE_SEL} =  $html->form_select('STATE', 
                                           { 
- 	                                          SELECTED          => $Msgs->{STATE} || 0,
- 	                                          SEL_ARRAY         => \@msg_status,
+ 	                                          SELECTED          => $FORM{STATE} || 3,
+ 	                                          SEL_ARRAY         => [@msg_status, "$_ALL" ],
  	                                          ARRAY_NUM_ID      => 0
  	                                        });
 
 
 	  $Msgs->{PRIORITY_SEL} =  $html->form_select('PRIORITY', 
                                           { 
- 	                                          SELECTED          => $Msgs->{PRIORITY} || 2,
- 	                                          SEL_ARRAY         => \@priority,
+ 	                                          SELECTED          => $FORM{PRIORITY} || 5,
+ 	                                          SEL_ARRAY         => [@priority,  "$_ALL" ],
  	                                          ARRAY_NUM_ID      => 1
  	                                        });
 
@@ -387,16 +387,24 @@ sub msgs_admin {
  	                                          MULTI_ARRAY_VALUE => 1,
  	                                        }); 
 
-  form_search({ SEARCH_FORM => $html->tpl_show(_include('msgs_search', 'Msgs'),
+    $Msgs->{PLAN_DATE}="0000-00-00";
+    $Msgs->{PLAN_TIME}="00:00:00";
+
+    form_search({ SEARCH_FORM => $html->tpl_show(_include('msgs_search', 'Msgs'),
                                           { %$Msgs, %FORM },
                                           { notprint => 1 })
-             });
+                          });
    }
   else {
   	msgs_admin_add();
    } 
 
-  my $list = $Msgs->messages_list({ %LIST_PARAMS, DESC => (! $FORM{sort}) ? 'DESC' : $FORM{desc} });
+  $LIST_PARAMS{STATE}=undef if ($FORM{STATE} == 3);
+  $LIST_PARAMS{PRIORITY}=undef if ($FORM{PRIORITY} == 5);
+
+  my $list = $Msgs->messages_list({ %LIST_PARAMS, 
+  	                                DESC => (! $FORM{sort}) ? 'DESC' : $FORM{desc} 
+  	                               });
   
   
   
@@ -670,6 +678,18 @@ sub msgs_new {
    }
   elsif ($attr->{AID}) {
     %SHOW_PARAMS = (ADMIN_READ => '0000-00-00 00:00:00');
+    my $a_list = $Msgs->admins_list({ AID => $attr->{AID} });
+    my @A_CHAPTER = ();
+    foreach my $line (@$a_list) {
+  	  if ($line->[5] > 0) {
+  	    push @A_CHAPTER, "$line->[5]";
+  	   }
+     }
+    if ($#A_CHAPTER > -1) {
+      $SHOW_PARAMS{CHAPTERS} = join(', ', @A_CHAPTER);
+     }
+
+
    }
 
   $Msgs->messages_new({ %SHOW_PARAMS });
