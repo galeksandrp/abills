@@ -26,6 +26,8 @@ sub msgs_admins {
 my @privilages_arr = ('READ', 'WRITE', 'ADD', 'ALL');
   
 if ($FORM{change}) {
+	
+	
 	$Msgs->admin_change({ %FORM });
   if (! $Msgs->{errno}) {
     $html->message('info', $_INFO, "$_CHANGED");  	
@@ -240,7 +242,17 @@ sub msgs_admin {
   $Msgs->{ACTION_LNG}=$_SEND;
 
  
-  if ($FORM{reply}) {
+  if ($FORM{change}) {
+    if ($FORM{STATE} > 0) {
+      $FORM{DONE_DATE}="$DATE" if ($FORM{STATE} == 2); 
+      $FORM{CLOSED_DATE}="$DATE"; 
+     }
+
+    $Msgs->message_change({ %FORM });
+    
+    $html->message('info', $_INFO, "$_REPLY") if (! $Msgs->{errno});
+   }
+  elsif ($FORM{reply}) {
     $Msgs->message_reply_add({ %FORM, IP => $admin->{SESSION_IP} });
  	  $Msgs->message_change({ UID       => $LIST_PARAMS{UID},
  	 	                        ID        => $FORM{ID},
@@ -604,6 +616,7 @@ sub msgs_chapters {
     $html->message('info', $_INFO, "$_ADDED") if (! $Msgs->{errno});  	
    }
   elsif ($FORM{change}) {
+    
     $Msgs->chapter_change({ %FORM });
 
     $html->message('info', $_INFO, "$_CHANGED") if (! $Msgs->{errno});  	
