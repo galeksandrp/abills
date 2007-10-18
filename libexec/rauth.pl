@@ -175,13 +175,14 @@ else {
 
    my @pairs_arr = split(/,/, $nas->{NAS_RAD_PAIRS});
    foreach my $line (@pairs_arr) {
-   	 if ($line =~ /\+\=/ ) {
-   	 	 my($left, $right)=split(/\+\=/, $line, 2);
+     if ($line =~ /\+\=/ ) {
+       my($left, $right)=split(/\+\=/, $line, 2);
        $right =~ s/"//g;
-   	 	 if (defined($RAD_REPLY{"$left"})) {
-   	 	 	 $RAD_REPLY{"$left"} =~ s/\"//g;
-   	 	 	 $RAD_REPLY{"$left"}="\"". $RAD_REPLY{"$left"} .",$right\"";
-   	 	  }
+
+       if (defined($RAD_REPLY{"$left"})) {
+   	 $RAD_REPLY{"$left"} =~ s/\"//g;
+   	 $RAD_REPLY{"$left"}="\"". $RAD_REPLY{"$left"} .",$right\"";
+        }
        else {
        	 $RAD_REPLY{"$left"}="$right";
         }

@@ -646,7 +646,7 @@ sub authentication {
     	$number = $CONF->{DV_CALLBACK_PREFIX}.$number;
      }
     if ($NAS->{NAS_TYPE} eq 'lucent_max') {
-    	$RAD_PAIRS{'Ascend-Callback'}='Callback-Yes';
+    #	$RAD_PAIRS{'Ascend-Callback'}='Callback-Yes';
     	$RAD_PAIRS{'Ascend-Dial-Number'}=$number;
     	
     	
