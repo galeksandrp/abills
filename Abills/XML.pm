@@ -239,15 +239,61 @@ sub form_select {
   my ($name, $attr)	= @_;
 	
 	my $ex_params =  (defined($attr->{EX_PARAMS})) ? $attr->{EX_PARAMS} : '';
-	
-	$self->{SELECT} = "<select name=\"$name\">\n";
-
-  if (defined($attr->{SEL_HASH})) {
-	  my $H = $attr->{SEL_HASH};
+			
+	$self->{SELECT} = "<select name=\"$name\" $ex_params>\n";
+  
+  if (defined($attr->{SEL_OPTIONS})) {
+ 	  my $H = $attr->{SEL_OPTIONS};
 	  while(my($k, $v) = each %$H) {
-     $self->{SELECT} .= "<option value=\"$k\"";
+     $self->{SELECT} .= "<option value='$k'";
      $self->{SELECT} .=' selected="1"' if ($k eq $attr->{SELECTED});
      $self->{SELECT} .= ">$v</option>\n";	
+     }
+   }
+  
+  
+  if (defined($attr->{SEL_ARRAY})){
+	  my $H = $attr->{SEL_ARRAY};
+	  my $i=0;
+	  foreach my $v (@$H) {
+      my $id = (defined($attr->{ARRAY_NUM_ID})) ? $i : $v;
+      $self->{SELECT} .= "<option value='$id'";
+      $self->{SELECT} .= ' selected="1"' if (($i eq $attr->{SELECTED}) || ($v eq $attr->{SELECTED}) );
+      $self->{SELECT} .= ">$v</option>\n";
+      $i++;
+     }
+   }
+  elsif (defined($attr->{SEL_MULTI_ARRAY})){
+    my $key   = $attr->{MULTI_ARRAY_KEY};
+    my $value = $attr->{MULTI_ARRAY_VALUE};
+	  my $H = $attr->{SEL_MULTI_ARRAY};
+
+	  foreach my $v (@$H) {
+      $self->{SELECT} .= "<option value='$v->[$key]'";
+      $self->{SELECT} .= ' selected="1"' if (defined($attr->{SELECTED}) && $v->[$key] eq $attr->{SELECTED});
+      $self->{SELECT} .= '>';
+      $self->{SELECT} .= "$v->[$key]:" if (! $attr->{NO_ID});
+      $self->{SELECT} .= "$v->[$value]</option>\n";
+     }
+   }
+  elsif (defined($attr->{SEL_HASH})) {
+    my @H = ();
+
+	  if ($attr->{SORT_KEY}) {
+	  	@H = sort keys %{ $attr->{SEL_HASH} };
+	  }
+	  else {
+	    @H = keys %{ $attr->{SEL_HASH} };
+     }
+    
+    
+    foreach my $k (@H) {
+      $self->{SELECT} .= "<option value='$k'";
+      $self->{SELECT} .=' selected="1"' if (defined($attr->{SELECTED}) && $k eq $attr->{SELECTED});
+
+      $self->{SELECT} .= ">";
+      $self->{SELECT} .= "$k:" if (! $attr->{NO_ID});
+      $self->{SELECT} .= "$attr->{SEL_HASH}{$k}</option>\n";	
      }
    }
 	
@@ -257,6 +303,9 @@ sub form_select {
 }
 
 
+#**********************************************************
+#
+#**********************************************************
 sub dirname {
     my($x) = @_;
     #print STDERR "dirname('$x') = ";
