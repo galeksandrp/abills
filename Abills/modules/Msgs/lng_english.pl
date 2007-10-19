@@ -1,4 +1,3 @@
-
 $_LOCK='Lock';
 $_DONE='Done';
 $_EXECUTION='Execution';
@@ -15,4 +14,4 @@ $_VERY_HIGH='very high';
 
 $_OPEN='open';
 $_CLOSED_UNSUCCESSFUL='closed unsuccessful';
-$_CLOSED='closed successful';
+$_CLOSED_SUCCESSFUL='closed successful';

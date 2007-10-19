@@ -221,6 +221,8 @@ sub mbox_list {
  $PG = ($attr->{PG}) ? $attr->{PG} : 0;
  $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
 
+ @WHERE_RULES = ();
+
  if (defined($attr->{UID})) {
  	  push @WHERE_RULES, "mb.uid='$attr->{UID}'";
   }

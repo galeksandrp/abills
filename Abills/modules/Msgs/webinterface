@@ -8,15 +8,15 @@ use Msgs;
 my $Msgs=Msgs->new($db, $admin, \%conf);
 my $users = Users->new($db, $admin, \%conf); 
 
-my @priority = ( 'very low',
-'low',
-'normal',
-'high',
-'very high');
+my @priority = ("$_VERY_LOW",
+  "$_LOW",
+  "$_NORMAL",
+  "$_HIGH",
+  "$_VERY_HIGH");
 
-my @msg_status = ('open',
-    'closed unsuccessful',
-    'closed successful');
+my @msg_status = ("$_OPEN",
+ "$_CLOSED_UNSUCCESSFUL",
+ "$_CLOSED_SUCCESSFUL");
 
 #*******************************************************************
 # Message system admins
@@ -240,6 +240,7 @@ sub msgs_admin {
 
   $Msgs->{ACTION}='send';
   $Msgs->{ACTION_LNG}=$_SEND;
+
 
  
   if ($FORM{change}) {
@@ -493,6 +494,7 @@ sub msgs_user {
  	                                        });
 
 
+   
 
 	 $Msgs->{PRIORITY_SEL} =  $html->form_select('PRIORITY', 
                                           { 
@@ -540,10 +542,13 @@ sub msgs_user {
      }
     
 
-    if ($self->{STATE} < 2) {
+    if ($Msgs->{STATE} < 2) {
       $Msgs->{REPLY} .= $html->tpl_show(_include('msgs_reply', 'Msgs'), 
        { %$Msgs, REPLY => '' }, { OUTPUT2RETURN => 1 });
 
+      }
+    else {
+      $html->message('info', $_INFO, "$msg_status[$Msgs->{STATE}] $_DATE: $Msgs->{CLOSED_DATE}");  	
      }
      
      $html->tpl_show(_include('msgs_show', 'Msgs'), $Msgs);

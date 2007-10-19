@@ -565,7 +565,7 @@ sub admins_list {
  $WHERE = ($#WHERE_RULES > -1) ? 'WHERE ' . join(' and ', @WHERE_RULES)  : '';
 
 
-  $self->query($db, "SELECT a.id, mc.name, ma.priority, 0, a.aid, ma.chapter_id
+  $self->query($db, "SELECT a.id, mc.name, ma.priority, 0, a.aid, if(ma.chapter_id IS NULL, 0, ma.chapter_id)
     FROM admins a 
     LEFT join msgs_admins ma ON (a.aid=ma.aid)
     LEFT join msgs_chapters mc ON (ma.chapter_id=mc.id)
