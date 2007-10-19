@@ -296,3 +296,14 @@ $_PAYMENT_DELETED="Оплата удалена";
 $_COR_BANK_ACCOUNT="Коресп. счет";
 $_MAX_SESSION_DURATION="Макc время сесии";
 $_HANGUPED="Отключен";
+
+
+$_VERY_LOW='Очень низкий';
+$_LOW='Низкий';
+$_NORMAL='Нормальный';
+$_HIGH='Высокий';
+$_VERY_HIGH='Очень высокий';
+
+$_OPEN='Открыта';
+$_CLOSED_UNSUCCESSFUL='Не выполнена и закрыта';
+$_CLOSED_SUCCESSFUL='Выполнена и закрыта';

@@ -338,3 +338,14 @@ $_IP_IN_USE='THIS IP IS CURRENTLY IN USE BY OTHER USER';
 $_EXPORT='Export';
 $_IMPORT='Import';
 $_PAYMENT_DEED='Payment Deed';
+
+
+$_VERY_LOW='very low';
+$_LOW='low';
+$_NORMAL='normal';
+$_HIGH='high';
+$_VERY_HIGH='very high';
+
+$_OPEN='open';
+$_CLOSED_UNSUCCESSFUL='closed unsuccessful';
+$_CLOSED_SUCCESSFUL='closed successful';

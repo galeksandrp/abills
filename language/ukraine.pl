@@ -296,3 +296,14 @@ $_NEG_DEPOSIT_FILTER_ID="Фільтр негативного депозита";
 $_RELAYS="Relay,";
 $_DEPOSIT="Депозит";
 $_BILLS="Грошові рахунки";
+
+
+$_VERY_LOW='Дуже низький';
+$_LOW='Низький';
+$_NORMAL='Нормальний';
+$_HIGH='Високий';
+$_VERY_HIGH='Дуже високий';
+
+$_OPEN='Відкрито';
+$_CLOSED_UNSUCCESSFUL='Не виконано і закрито';
+$_CLOSED_SUCCESSFUL='Виконано і закрито';
