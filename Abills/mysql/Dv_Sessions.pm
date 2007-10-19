@@ -750,7 +750,7 @@ sub list {
  $SORT = ($attr->{SORT}) ? $attr->{SORT} : 2;
  $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
  
- undef @WHERE_RULES; 
+ @WHERE_RULES = (); 
  
   %{$self->{SESSIONS_FIELDS}} = (LOGIN           => 'u.id', 
                                  START           => 'l.start', 
@@ -925,7 +925,7 @@ sub calculation {
 	my ($self) = shift;
 	my ($attr) = @_;
 
-
+  @WHERE_RULES = ();
 #Login
   if ($attr->{UID}) {
   	push @WHERE_RULES, "l.uid='$attr->{UID}'";
@@ -960,8 +960,6 @@ elsif (defined($attr->{PERIOD}) ) {
   min(l.recv+l.sent), max(l.recv+l.sent), avg(l.recv+l.sent), sum(l.recv+l.sent)
   FROM dv_log l $WHERE");
 
-  my $ar = $self->{list}->[0];
-
   ($self->{min_dur}, 
    $self->{max_dur}, 
    $self->{avg_dur}, 
@@ -980,7 +978,7 @@ elsif (defined($attr->{PERIOD}) ) {
    $self->{min_sum}, 
    $self->{max_sum}, 
    $self->{avg_sum},
-   $self->{total_sum}) =  @$ar;
+  $self->{total_sum}) =  @{ $self->{list}->[0] };
 
 	return $self;
 }
@@ -1082,8 +1080,6 @@ if ($attr->{FIELDS}) {
 	my @show_fields = ();
   my %get_fields_hash = ();
 
-#  foreachsh = ();
-
 
   foreach my $line (@fields_array) {
   	$get_fields_hash{$line}=1;
@@ -1150,14 +1146,13 @@ if ($attr->{FIELDS}) {
        LEFT JOIN users u ON (u.uid=l.uid)
        $WHERE;");
 
-   my $a_ref = $self->{list}->[0];
  
   ($self->{USERS}, 
    $self->{SESSIONS}, 
    $self->{TRAFFIC}, 
    $self->{TRAFFIC_2}, 
    $self->{DURATION}, 
-   $self->{SUM}) = @$a_ref;
+   $self->{SUM}) = @{ $self->{list}->[0] };
 
 
 
