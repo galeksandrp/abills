@@ -105,6 +105,18 @@ sub messages_list {
     push @WHERE_RULES, "m.id$value";
   }
 
+ if ($attr->{PLAN_FROM_DATE}) {
+    push @WHERE_RULES, "(date_format(m.plan_date, '%Y-%m-%d')>='$attr->{PLAN_FROM_DATE}' and date_format(m.plan_date, '%Y-%m-%d')<='$attr->{PLAN_TO_DATE}')";
+  }
+
+
+
+ if ($attr->{MSG_ID}) {
+ 	  my $value = $self->search_expr($attr->{MSG_ID}, 'INT');
+    push @WHERE_RULES, "m.id$value";
+  }
+
+
  if (defined($attr->{REPLY})) {
  	 my $value = $self->search_expr($attr->{REPLY}, '');
    push @WHERE_RULES, "m.reply$value";
@@ -149,7 +161,7 @@ sub messages_list {
    push @WHERE_RULES, "m.uid='$attr->{UID}'"; 
  }
 
- if ($attr->{STATE}) {
+ if (defined($attr->{STATE})) {
    my $value = $self->search_expr($attr->{STATE}, 'INT');
    push @WHERE_RULES, "m.state$value"; 
   }
@@ -324,7 +336,8 @@ sub message_info {
   m.closed_date,
   m.done_date,
   m.user_read,
-  m.admin_read
+  m.admin_read,
+  m.resposible
     FROM (msgs_messages m)
     LEFT JOIN msgs_chapters mc ON (m.chapter=mc.id)
     LEFT JOIN users u ON (m.uid=u.uid)
@@ -363,7 +376,8 @@ sub message_info {
    $self->{CLOSED_DATE},
    $self->{DONE_DATE},
    $self->{USER_READ},
- 	 $self->{ADMIN_READ}
+ 	 $self->{ADMIN_READ},
+ 	 $self->{RESPOSIBLE}
   )= @{ $self->{list}->[0] };
 	
 	return $self;
@@ -396,7 +410,8 @@ sub message_change {
                 CLOSED_DATE => 'closed_date',
                 DONE_DATE   => 'done_date',
                 USER_READ   => 'user_read',
- 	              ADMIN_READ  => 'admin_read'
+ 	              ADMIN_READ  => 'admin_read',
+ 	              RESPOSIBLE  => 'resposible'
              );
 
   $self->changes($admin,  { CHANGE_PARAM => 'ID',

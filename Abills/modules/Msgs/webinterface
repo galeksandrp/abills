@@ -299,8 +299,8 @@ sub msgs_admin {
 
     $Msgs->{RESPOSIBLE}=$html->form_select('RESPOSIBLE', 
                                           { 
- 	                                          SELECTED          => $Msgs->{RESPOSIBLE},
- 	                                          SEL_MULTI_ARRAY   => undef,
+ 	                                          SELECTED          => $Msgs->{RESPOSIBLE} || undef,
+ 	                                          SEL_MULTI_ARRAY   => $admin->list(),
  	                                          MULTI_ARRAY_KEY   => 0,
  	                                          MULTI_ARRAY_VALUE => 1,
  	                                        }); 
@@ -451,7 +451,7 @@ foreach my $line (@$list) {
 
   $table->addrow(
    $line->[0] . ( ($A_PRIVILEGES{$line->[17]} > 2 || $#A_CHAPTER == -1) ? $html->form_input('del', "$line->[0]", {TYPE => 'checkbox' }) : '' ), 
-   ($line->[12] > 0)  ? $html->button($line->[1], "index=11&UID=$line->[10]") :  $line->[1],
+   ($line->[10] > 0)  ? $html->button($line->[1], "index=11&UID=$line->[10]") :  $line->[1],
    $html->button($line->[2], "index=$index&UID=$line->[8]&chg=$line->[0]"), 
    $line->[3],
    $line->[4],
@@ -702,9 +702,6 @@ sub msgs_new {
 
    }
   elsif ($attr->{AID}) {
-    
-#    print "Content-Type: text/html\n\n";
-   
     %SHOW_PARAMS = (ADMIN_READ => '0000-00-00 00:00:00');
     my $a_list = $Msgs->admins_list({ AID => $attr->{AID} });
     my @A_CHAPTER = ();
@@ -719,7 +716,7 @@ sub msgs_new {
 
     $Msgs->messages_new({ %SHOW_PARAMS });
 
-    if ($Msgs->{TOTAL} > 0) {
+    if ($Msgs->{OPENED} > 0) {
       return "($Msgs->{UNREAD}/$Msgs->{TODAY}/$Msgs->{OPENED})";
      }
    }
@@ -732,6 +729,118 @@ sub msgs_new {
 # Count New messages for user
 #*******************************************************************
 sub msgs_shedule {
+	
+my %MSGS_PERIOD = (0 => $_DAY,
+	                 1 => "5 $_DAYS",
+	                 2 => "$_WEEK",
+	                 3 => "$_MONTH",
+	                 4 => "3 $_MONTH");
+
+
+my @rows = ();
+my $period = $FORM{PERIOD} || 0;
+
+
+
+
+my $table = $html->table( { width        => '100%',
+                            caption      => "$_PERIOD",
+                            ID           => 'MSGS_SHEDULER_PERIOD',
+#                            rows         => [ \@rows ]
+                          });
+
+foreach my $id ( sort keys %MSGS_PERIOD) {
+	if ($period == $id) {
+    push @rows, $table->th($MSGS_PERIOD{$id}, { bgcolor => $_COLORS[1] });
+	 }
+	else {
+	  push @rows,  $table->th($html->button("$MSGS_PERIOD{$id}", "index=$index&PERIOD=$id"), { bgcolor => $_COLORS[0] })
+	 }
+}
+
+
+$table->addtd(@rows);
+print $table->show();
+
+if ($period == 1) {
+  $LIST_PARAMS{PLAN_FROM_DATE} = $DATE;
+  $LIST_PARAMS{PLAN_TO_DATE} = strftime "%Y-%m-%d", localtime(time + 86400 * 5);
+ }
+elsif ($period == 2) {
+
+ }
+else {
+  $LIST_PARAMS{PLAN_FROM_DATE}=$DATE;
+	$LIST_PARAMS{PLAN_TO_DATE}=$DATE;
+}
+
+#$Msgs->{debug}=1;
+my $list = $Msgs->messages_list({ %LIST_PARAMS, 
+  	                              DESC  => (! $FORM{sort}) ? 'DESC' : $FORM{desc},
+  	                              STATE => 0
+	                               });
+
+
+$table = $html->table( { 
+                         width      => '300',
+                         caption    => "$_SHEDULE",
+                         ID         => 'SHEDULE_LIST',
+                      } );
+
+
+
+my %dates = ();
+my $table2;
+my @main_table_rows = ();
+
+foreach my $line (@$list) {
+  #my $state = $msg_status[$line->[5]];
+  my ($date, $time) = split(/ /, $line->[9]);
+
+if (! $dates{$date})  {
+  push @main_table_rows, $table2->show({ OUTPUT2RETURN => 1 }) if (keys %dates  > 0);
+
+  $table2 = $html->table( { 
+                         width      => '300',
+                         caption    => "$date",
+                         title      => ['#', "$_TIME", "$_SUBJECT"],
+                         cols_align => ['right', 'left', 'left'],
+                         pages      => $Msgs->{TOTAL},
+                         ID         => 'SHEDULE_LIST',
+                      } );
+  $dates{$date}=1;
+ }
+
+ $table2->addrow(
+   $html->button("$line->[0]", "index=". ($index-2) ."&chg=$line->[0]&UID=$line->[11]") ,
+   $time,
+   $line->[2]
+  );
+}
+
+
+push @main_table_rows, $table2->show({ OUTPUT2RETURN => 1 });
+
+my $i =  0;
+my @table_rows = ();
+$table->{rowcolor}=$_COLORS[1];
+foreach my $line (@main_table_rows) {
+  push @table_rows, $table->td($line, { valign=>'top' });
+  if ($i>1) {
+    $table->addtd(@table_rows);
+    @table_rows = ();
+    $i=0;
+   }
+  $i++;
+}
+
+if ($#table_rows > -1) {
+	$table->addtd(@table_rows);
+}
+
+print $table->show();
+
+
 	
 	
 }

@@ -1020,6 +1020,7 @@ sub td {
   my $extra='';
   
   while(my($k, $v)=each %$attr ) {
+    next if ($k eq 'TH');
     $extra.=" $k=$v";
    }
   my $td = '';
