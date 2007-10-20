@@ -734,7 +734,7 @@ my %MSGS_PERIOD = (0 => $_DAY,
 	                 1 => "5 $_DAYS",
 	                 2 => "$_WEEK",
 	                 3 => "$_MONTH",
-	                 4 => "3 $_MONTH");
+	                 4 => "$_TOTAL");
 
 
 my @rows = ();
@@ -767,27 +767,24 @@ if ($period == 1) {
   $LIST_PARAMS{PLAN_TO_DATE} = strftime "%Y-%m-%d", localtime(time + 86400 * 5);
  }
 elsif ($period == 2) {
-  $LIST_PARAMS{PLAN_FROM_DATE} = $DATE;
-  $LIST_PARAMS{PLAN_TO_DATE} = strftime "%Y-%m-%d", localtime(time + 86400 * 5);
+  $LIST_PARAMS{PLAN_WEEK} = 1; 
  }
 elsif ($period == 3) {
-  $LIST_PARAMS{PLAN_FROM_DATE} = $DATE;
-  $LIST_PARAMS{PLAN_TO_DATE} = strftime "%Y-%m-%d", localtime(time + 86400 * 5);
+  $LIST_PARAMS{PLAN_MONTH} = 1;
  }
 elsif ($period == 4) {
-  $LIST_PARAMS{PLAN_FROM_DATE} = $DATE;
-  $LIST_PARAMS{PLAN_TO_DATE} = strftime "%Y-%m-%d", localtime(time + 86400 * 5);
-
+  
  }
 else {
   $LIST_PARAMS{PLAN_FROM_DATE}=$DATE;
 	$LIST_PARAMS{PLAN_TO_DATE}=$DATE;
 }
 
-#$Msgs->{debug}=1;
 my $list = $Msgs->messages_list({ %LIST_PARAMS, 
-  	                              DESC  => (! $FORM{sort}) ? 'DESC' : $FORM{desc},
-  	                              STATE => 0
+  	                              DESC  => '',
+  	                              SORT  => 10,
+  	                              STATE => 0,
+  	                              PAGE_ROWS => 1000
 	                               });
 
 
@@ -815,7 +812,6 @@ if (! $dates{$date})  {
                          caption    => "$date",
                          title      => ['#', "$_TIME", "$_SUBJECT"],
                          cols_align => ['right', 'left', 'left'],
-                         pages      => $Msgs->{TOTAL},
                          ID         => 'SHEDULE_LIST',
                       } );
   $dates{$date}=1;
@@ -828,20 +824,25 @@ if (! $dates{$date})  {
   );
 }
 
+if ($table2) {
+  push @main_table_rows, $table2->show({ OUTPUT2RETURN => 1 });
+ }
+else {
+	print $html->message('info', $_INFO, "$_NO_RECORD");
+	return 0;
+}
 
-push @main_table_rows, $table2->show({ OUTPUT2RETURN => 1 });
-
-my $i =  0;
+my $i=0;
 my @table_rows = ();
 $table->{rowcolor}=$_COLORS[1];
 foreach my $line (@main_table_rows) {
+  $i++;
   push @table_rows, $table->td($line, { valign=>'top' });
-  if ($i>1) {
+  if ($i>2) {
     $table->addtd(@table_rows);
     @table_rows = ();
     $i=0;
    }
-  $i++;
 }
 
 if ($#table_rows > -1) {

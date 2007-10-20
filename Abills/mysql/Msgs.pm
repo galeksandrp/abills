@@ -100,14 +100,22 @@ sub messages_list {
     push @WHERE_RULES, "(date_format(m.date, '%Y-%m-%d')>='$attr->{FROM_DATE}' and date_format(m.date, '%Y-%m-%d')<='$attr->{TO_DATE}')";
   }
 
+ if ($attr->{PLAN_FROM_DATE}) {
+    push @WHERE_RULES, "(date_format(m.plan_date, '%Y-%m-%d')>='$attr->{PLAN_FROM_DATE}' and date_format(m.plan_date, '%Y-%m-%d')<='$attr->{PLAN_TO_DATE}')";
+  }
+ elsif ($attr->{PLAN_WEEK}) {
+    push @WHERE_RULES, "(WEEK(m.plan_date)=WEEK(curdate()) and date_format(m.plan_date, '%Y')=date_format(curdate(), '%Y'))";
+  }
+ elsif ($attr->{PLAN_MONTH}) {
+    push @WHERE_RULES, "date_format(m.plan_date, '%Y-%m')=date_format(curdate(), '%Y-%m')";
+  }
+
+
  if ($attr->{MSG_ID}) {
  	  my $value = $self->search_expr($attr->{MSG_ID}, 'INT');
     push @WHERE_RULES, "m.id$value";
   }
 
- if ($attr->{PLAN_FROM_DATE}) {
-    push @WHERE_RULES, "(date_format(m.plan_date, '%Y-%m-%d')>='$attr->{PLAN_FROM_DATE}' and date_format(m.plan_date, '%Y-%m-%d')<='$attr->{PLAN_TO_DATE}')";
-  }
 
 
 
