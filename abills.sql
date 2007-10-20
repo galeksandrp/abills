@@ -710,7 +710,7 @@ CREATE TABLE `users` (
 )  ;
 
 
-CREATE TABLE `users_web_sessions` (
+CREATE TABLE `web_users_sessions` (
   `uid` int(11) unsigned NOT NULL default '0',
   `datetime` int(11) unsigned NOT NULL default '0',
   `login` varchar(20) NOT NULL default '',
