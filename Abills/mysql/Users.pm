@@ -883,6 +883,7 @@ sub bruteforce_list {
   my $self = shift;	
 	my ($attr) = @_;
 	
+	@WHERE_RULES = ();
 
   $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
   $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
