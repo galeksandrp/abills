@@ -452,7 +452,7 @@ foreach my $line (@$list) {
   $table->addrow(
    $line->[0] . ( ($A_PRIVILEGES{$line->[17]} > 2 || $#A_CHAPTER == -1) ? $html->form_input('del', "$line->[0]", {TYPE => 'checkbox' }) : '' ), 
    ($line->[10] > 0)  ? $html->button($line->[1], "index=11&UID=$line->[10]") :  $line->[1],
-   $html->button($line->[2], "index=$index&UID=$line->[8]&chg=$line->[0]"), 
+   $html->button($line->[2], "index=$index&UID=$line->[10]&chg=$line->[0]"), 
    $line->[3],
    $line->[4],
    $state,
