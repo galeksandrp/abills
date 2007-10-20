@@ -1,3 +1,4 @@
+<div class='noprint'>
 <table width=100%>
 <tr><th bgcolor='$_COLORS[0]' colspan='2'>$_REPLY</th></tr>
 <tr><td>$_SUBJECT:</td><td><input type='text' name='REPLY_SUBJECT' value='%REPLY_SUBJECT%' size=40/></td></tr>
@@ -10,3 +11,4 @@
 <input type='submit' name='%ACTION%' value='  %ACTION_LNG%  '/>
 <br>
 <br>
+</div>

@@ -8,10 +8,10 @@
 <TABLE width='100%' cellspacing='1' cellpadding='0' border='0' style='height: 100%'>
 <!-- <tr bgcolor=$_COLORS[1]><TD>%THREADS%</td></tr> -->
 
-<tr bgcolor=$_COLORS[3]><td colspan='4'>%ID%: <b>%SUBJECT%</b></td></tr>
+<tr bgcolor=$_COLORS[3]><td colspan='4'># %ID%: <b>%SUBJECT%</b></td></tr>
 <tr bgcolor=$_COLORS[1]><td>$_DATE:</td><td>%DATE%</td><td>$_CHAPTERS:</td><td>%CHAPTER_NAME%</td></tr>
 
-<tr><td bgcolor='$_COLORS[1]' colspan='4'>%MESSAGE%</td></tr>
+<tr><td bgcolor='$_COLORS[1]' colspan='4'>%MESSAGE%<hr></td></tr>
 <tr><td colspan='4' bgcolor='$_COLORS[1]'>%REPLY%</td></tr>
 </TABLE>
 
