@@ -1205,14 +1205,13 @@ sub sharing_user  {
     if (! $Sharing->{errno}) {
       $html->message('info', $_INFO, "$_ADDED");
       if($conf{SHARING_SAMBA_ADD}) {
-      	$users->{debug}=1;
       	$users->info($FORM{UID}, { SHOW_PASSWORD => 1 });
       	
       	my $cmd = $conf{SHARING_SAMBA_ADD};
       	$cmd =~ s/\%USERNAME\%/$users->{LOGIN}/;
       	$cmd =~ s/\%PASSWORD\%/$users->{PASSWORD}/;
-      	print "$cmd";
       	my $a = `$cmd`;
+      	print "<textarea rows=6 cols=70>$a</textarea>\n";
        }
      }
    }
