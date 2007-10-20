@@ -84,6 +84,11 @@ sub info {
     $WHERE = "WHERE u.uid='$uid'";
    }
 
+  my $password="''";
+  if ($attr->{SHOW_PASSWORD}) {
+  	$password="DECODE(u.password, '$CONF->{secretkey}')";
+   }
+
   $self->query($db, "SELECT u.uid,
    u.gid, 
    g.name,
@@ -95,7 +100,8 @@ sub info {
    u.company_id,
    if(c.name IS NULL, 'N/A', c.name), 
    if(c.name IS NULL, 0, c.vat),
-   if(c.name IS NULL, b.uid, cb.uid)
+   if(c.name IS NULL, b.uid, cb.uid),
+   $password
      FROM users u
      LEFT JOIN bills b ON (u.bill_id=b.id)
      LEFT JOIN groups g ON (u.gid=g.gid)
@@ -125,7 +131,8 @@ sub info {
    $self->{COMPANY_ID},
    $self->{COMPANY_NAME},
    $self->{COMPANY_VAT},
-   $self->{BILL_OWNER}
+   $self->{BILL_OWNER},
+   $self->{PASSWORD}
  )= @{ $self->{list}->[0] };
   
  

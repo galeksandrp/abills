@@ -1203,7 +1203,17 @@ sub sharing_user  {
   if ($FORM{add}) {
     $Sharing->add({ %FORM });
     if (! $Sharing->{errno}) {
-      $html->message('info', $_INFO, "$_ADDED");	
+      $html->message('info', $_INFO, "$_ADDED");
+      if($conf{SHARING_SAMBA_ADD}) {
+      	$users->{debug}=1;
+      	$users->info($FORM{UID}, { SHOW_PASSWORD => 1 });
+      	
+      	my $cmd = $conf{SHARING_SAMBA_ADD};
+      	$cmd =~ s/\%USERNAME\%/$users->{LOGIN}/;
+      	$cmd =~ s/\%PASSWORD\%/$users->{PASSWORD}/;
+      	print "$cmd";
+      	my $a = `$cmd`;
+       }
      }
    }
 	elsif($FORM{set}) {
@@ -1232,7 +1242,7 @@ sub sharing_user  {
 	  
     $Sharing->{TP_ID}=$html->form_select('TP_ID', 
                                          { 
- 	                                          SELECTED          => $user->{TP_ID},
+ 	                                          SELECTED          => $Sharing->{TP_ID},
  	                                          SEL_MULTI_ARRAY   => $Tariffs->list({ MODULE   => 'Sharing',
  	                                          	                                    EX_TABLE => 'sharing_tp' }),
  	                                          MULTI_ARRAY_KEY   => 0,
@@ -1250,8 +1260,8 @@ sub sharing_user  {
 	  $Sharing->{CHANGE_TP_BUTTON}='['. $html->button($_CHANGE, 'UID='.$FORM{UID}.'&index='. ($index + 4)) .']';
 	} 
 
-  $user->{DISABLE}=($user->{DISABLE} == 1) ? ' checked' : '';
- 
+  $Sharing->{DISABLE}=($Sharing->{DISABLE} == 1) ? ' checked' : '';
+  $Sharing->{SAMBA_ADD} = "<tr><td>SAMBA:</td><td><input type=checkbox name=SAMBA value=1 checked></td></tr>\n" if ($conf{SHARING_SAMBA_ADD});
 
   $html->tpl_show(_include('sharing_user', 'Sharing'), $Sharing);
 

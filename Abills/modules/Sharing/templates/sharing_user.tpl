@@ -10,6 +10,7 @@
 <tr><td>CID:</td><td><input type=text name='CID' value='%CID%'>
 <tr><td>$_DISABLE:</td><td><input type='checkbox' name='DISABLE' value='1' %DISABLE%></td></tr>
 <tr><td>$_TYPE:</td><td>%TYPE_SEL%</td></tr>
+%SAMBA_ADD%
 </table>
 <input type=submit name='%ACTION%' value='%LNG_ACTION%' class='noprint'>
 </form>
