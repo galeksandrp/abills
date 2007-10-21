@@ -672,10 +672,10 @@ foreach my $line (@$list) {
     $routes.=";";
   
     # MS routes: adds extras to supplement routers option
-    $INFO{NET_ROUTES}="option ms-classless-static-routes $routes\n";
+    $INFO{NET_ROUTES}="option ms-classless-static-routes $routes;\n";
     # RFC3442 routes: overrides routers option
     $INFO{NET_ROUTES}.="option rfc3442-classless-static-routes code 121 = array of unsigned integer 8;\n";
-    $INFO{NET_ROUTES}.="option rfc3442-classless-static-routes $routes;\n";
+    $INFO{NET_ROUTES}.="option rfc3442-classless-static-routes $routes";
    }
 
 
