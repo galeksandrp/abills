@@ -1333,7 +1333,7 @@ else {
 
 
 #**********************************************************
-# user_group
+# user_del
 #**********************************************************
 sub user_del {
   my ($attr) = @_;
@@ -1341,13 +1341,13 @@ sub user_del {
   my $user_info = $attr->{USER};
   
   $user_info->del();
-   
   $conf{DELETE_USER}=$user_info->{UID};
 
   my $mods = '';
   foreach my $mod (@MODULES) {
   	$mods .= "$mod,";
   	require "Abills/modules/$mod/webinterface";
+  	
    }
 
   if ($user_info->{errno}) {

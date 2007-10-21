@@ -363,6 +363,7 @@ sub domain_list {
 	my $self = shift;
 	my ($attr) = @_;
 
+ 
  $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
  $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
  $PG = ($attr->{PG}) ? $attr->{PG} : 0;
@@ -491,6 +492,9 @@ sub alias_info {
 sub alias_list {
 	my $self = shift;
 	my ($attr) = @_;
+
+	@WHERE_RULES = ();
+	$WHERE = '';
 	
 	$self->query($db, "SELECT ma.address, ma.goto, ma.comments, ma.status, ma.create_date, 
 	    ma.change_date, ma.id
@@ -503,7 +507,7 @@ sub alias_list {
 
   my $list = $self->{list};
 
-  if ($self->{TOTAL} >= $attr->{PAGE_ROWS}) {
+  if ($self->{TOTAL} >= $attr->{PAGE_ROWS} || $PG > 0) {
     $self->query($db, "SELECT count(*) FROM mail_aliases $WHERE");
     ($self->{TOTAL}) = @{ $self->{list}->[0] };
    }
@@ -620,6 +624,8 @@ sub access_list {
 	my $self = shift;
 	my ($attr) = @_;
 	
+	$WHERE = '';
+	
 	$self->query($db, "SELECT pattern, action, comments, status, change_date, id
         FROM mail_access
         $WHERE
@@ -726,6 +732,7 @@ sub transport_list {
 	my $self = shift;
 	my ($attr) = @_;
 	
+	$WHERE = '';
 	
 	$self->query($db, "SELECT domain, transport, comments, change_date, id
         FROM mail_transport
@@ -737,7 +744,7 @@ sub transport_list {
 
   my $list = $self->{list};
 
-  if ($self->{TOTAL} >= $attr->{PAGE_ROWS}) {
+  if ($self->{TOTAL} >= $attr->{PAGE_ROWS} || $PG > 0) {
     $self->query($db, "SELECT count(*) FROM mail_transport $WHERE");
     ($self->{TOTAL}) = @{ $self->{list}->[0] };
    }
@@ -965,8 +972,6 @@ sub spam_awl_list {
 
 	
  @WHERE_RULES = (); 
- $WHERE = '';
- 
  
  if ($attr->{USER_NAME}) {
     $attr->{USER_NAME} =~ s/\*/\%/ig;
@@ -988,7 +993,7 @@ sub spam_awl_list {
     push @WHERE_RULES, "count$value";
   }
 
- $WHERE = "WHERE " . join(' and ', @WHERE_RULES) if($#WHERE_RULES > -1);
+ $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES) : '';
  	
  $self->query($db, "SELECT username, email, ip, count, totscore
         FROM mail_awl

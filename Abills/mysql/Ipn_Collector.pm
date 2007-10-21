@@ -50,10 +50,6 @@ sub new {
    }
 
   $CONF->{MB_SIZE} = $CONF->{KBYTE_SIZE} * $CONF->{KBYTE_SIZE};
-
-  if ($CONF->{DELETE_USER}) {
-    $self->user_del({ UID => $CONF->{DELETE_USER} });
-   }
   
   $self->{TRAFFIC_ROWS}=0;
   $self->{UNKNOWN_TRAFFIC_ROWS}=0;

@@ -523,14 +523,18 @@ elsif ($Mail->{TOTAL} == 1) {
   foreach my $line (@$list) {
     
     if (! $user->{UID} || $conf{MAIL_USER_FULL_CONTROL}) {
-      $delete = $html->button($_DEL, "index=$index&del=$line->[14]&UID=$line->[13]", { MESSAGE => "$_DEL ?" }); 
+      $delete = $html->button($_DEL, "index=$index&del=$line->[14]&UID=$line->[13]", { MESSAGE => "$_DEL \\'$line->[0]\@$line->[1] \\'?" }); 
      }
 
     $table->addrow($html->button($line->[0], "index=$index&MBOX_ID=$line->[14]&UID=$line->[13]"), 
        "$line->[1]",
        $html->button($line->[2], "index=11&UID=$line->[13]"),
-      "$line->[3]", "$line->[4]", "$line->[5]", 
-      "$status[$line->[6]]", "$status[$line->[7]]", "$status[$line->[8]]", 
+      "$line->[3]", 
+      "$line->[4]", 
+      "$line->[5]", 
+      "$status[$line->[6]]", 
+      "$status[$line->[7]]", 
+      "$status[$line->[8]]", 
       $html->button($_CHANGE, "index=$index&MBOX_ID=$line->[14]&UID=$line->[13]"),
       $delete);
    }
@@ -699,7 +703,7 @@ sub mail_domains {
     $Mail->{ACTION}='set';
 	  $Mail->{LNG_ACTION}=$_CHANGE;
    }
-	elsif($FORM{del}) {
+	elsif($FORM{del} && $FORM{is_js_confirmed}) {
     $Mail->domain_del($FORM{del});
 
     if (! $Mail->{errno}) {
@@ -714,11 +718,12 @@ sub mail_domains {
                               title      => [$_DOMAIN, "$_DESC", $_STATUS, 'Backup_MX', $_TRANSPORT, $_CREATE, $_CHANGE,  '-', '-'],
                               cols_align => ['left', 'left', 'center', 'right', 'right',  'center', 'center'],
                               qs         => $pages_qs,
-                              pages      => $Mail->{TOTAL}
+                              pages      => $Mail->{TOTAL},
+                              ID         => 'MAIL_DOMAINS'
                            } );
 
   foreach my $line (@$list) {
-    $delete = $html->button($_DEL, "index=$index&del=$line->[8]", { MESSAGE => "$_DEL \"$line->[0]\"?" }); 
+    $delete = $html->button($_DEL, "index=$index&del=$line->[8]", { MESSAGE => "$_DEL \\'$line->[0]\\'?" }); 
     $table->addrow("<b>$line->[0]</b>", "$line->[1]",
      "$status[$line->[2]]", 
      "$bool_vals[$line->[3]]", 
@@ -774,7 +779,7 @@ sub mail_aliases {
     $Mail->{ACTION}='set';
 	  $Mail->{LNG_ACTION}=$_CHANGE;
    }
-	elsif($FORM{del}) {
+	elsif($FORM{del} && $FORM{is_js_confirmed} ) {
     $Mail->alias_del($FORM{del});
 
     if (! $Mail->{errno}) {
@@ -792,7 +797,7 @@ sub mail_aliases {
                                   } );
 
   foreach my $line (@$list) {
-    $delete = $html->button($_DEL, "index=$index&del=$line->[6]", { MESSAGE => "$_DEL \"$line->[0]\"?" }); 
+    $delete = $html->button($_DEL, "index=$index&del=$line->[6]", { MESSAGE => "$_DEL \\'$line->[0]\\'?" }); 
     $table->addrow("$line->[0]", "$line->[1]", "$line->[2]",
      "$status[$line->[3]]", "$line->[4]", "$line->[5]",  
      $html->button($_CHANGE, "index=$index&MAIL_ALIAS_ID=$line->[6]"),
@@ -841,7 +846,7 @@ sub mail_transport {
     $Mail->{ACTION}='set';
 	  $Mail->{LNG_ACTION}=$_CHANGE;
    }
-	elsif($FORM{del}) {
+	elsif($FORM{del} && $FORM{is_js_confirmed}) {
     $Mail->transport_del($FORM{del});
 
     if (! $Mail->{errno}) {
@@ -859,7 +864,7 @@ sub mail_transport {
                           } );
 
   foreach my $line (@$list) {
-    $delete = $html->button($_DEL, "index=$index&del=$line->[4]", { MESSAGE => "$_DEL \"$line->[0]\"?" }); 
+    $delete = $html->button($_DEL, "index=$index&del=$line->[4]", { MESSAGE => "$_DEL \\'$line->[0]\\'?" }); 
     $table->addrow("$line->[0]", "$line->[1]", "$line->[2]",
      "$line->[3]", 
      $html->button($_CHANGE, "index=$index&MAIL_TRANSPORT_ID=$line->[4]"),
@@ -909,7 +914,7 @@ sub mail_access {
     $Mail->{ACTION}='set';
 	  $Mail->{LNG_ACTION}=$_CHANGE;
    }
-	elsif($FORM{del}) {
+	elsif($FORM{del} && $FORM{is_js_confirmed} ) {
     $Mail->access_del($FORM{del});
 
     if (! $Mail->{errno}) {
@@ -927,7 +932,7 @@ sub mail_access {
                                   } );
 
   foreach my $line (@$list) {
-    $delete = $html->button($_DEL, "index=$index&del=$line->[5]", { MESSAGE => "$_DEL \"$line->[0]\"?" }); 
+    $delete = $html->button($_DEL, "index=$index&del=$line->[5]", { MESSAGE => "$_DEL \\'$line->[0]\\'?" }); 
     $table->addrow("$line->[0]", "$line->[1]", "$line->[2]",
      "$line->[3]", 
      $html->button($_CHANGE, "index=$index&MAIL_ACCESS_ID=$line->[5]"),
@@ -935,10 +940,10 @@ sub mail_access {
    }
   print $table->show();
 
-  $table = $html->table( { width => '100%',
-                                cols_align => ['right', 'right'],
-                                rows => [ [ "$_TOTAL:", "<b>$Mail->{TOTAL}</b>" ] ]
-                               } );
+  $table = $html->table( { width      => '100%',
+                           cols_align => ['right', 'right'],
+                           rows       => [ [ "$_TOTAL:", "<b>$Mail->{TOTAL}</b>" ] ]
+                       } );
   print $table->show();
 
 
