@@ -446,9 +446,9 @@ sub dhcphosts_routes {
 	   }
 	 }
   elsif ($FORM{change}) {
-	  $FORM{SRC}     = ip2int($FORM{SRC});
-	  $FORM{MASK} = ip2int($FORM{MASK});
-	  $FORM{ROUTER}  = ip2int($FORM{ROUTER});
+	  $FORM{SRC}    = ip2int($FORM{SRC});
+	  $FORM{MASK}   = ip2int($FORM{MASK});
+	  $FORM{ROUTER} = ip2int($FORM{ROUTER});
 
 	  $Dhcphosts->route_change({ %FORM });
     
@@ -651,8 +651,8 @@ foreach my $line (@$list) {
  
     foreach my $line (@$list) {
       #($src,$mask,$router)=$sth->fetchrow_array()){
-      my $src = $line->[2];
-      my $mask = $line->[3]; 
+      my $src    = $line->[2];
+      my $mask   = $line->[3]; 
       my $router = $line->[4];
       #print "// $src,$mask,$router\n";
       
@@ -671,7 +671,11 @@ foreach my $line (@$list) {
     chop $routes;
     $routes.=";";
   
-    $INFO{NET_ROUTES}="option ms-classless-static-routes $routes";
+    # MS routes: adds extras to supplement routers option
+    $INFO{NET_ROUTES}="option ms-classless-static-routes $routes\n";
+    # RFC3442 routes: overrides routers option
+    $INFO{NET_ROUTES}.="option rfc3442-classless-static-routes code 121 = array of unsigned integer 8;\n";
+    $INFO{NET_ROUTES}.="option rfc3442-classless-static-routes $routes;\n";
    }
 
 
@@ -719,16 +723,16 @@ if ($attr->{reconfig} || $FORM{reconfig} ) {
   print $html->message('info', $_INFO, "DHCP $_RECONFIGURE '$conf{DHCPHOSTS_CONFIG}'");
  }
 else {
-  print "<textarea cols=90 rows=20>";
+  print "<textarea cols=90 rows=20>\n";
   #$INFO{SUBNETS} = $html->tpl_show(_include('dhcphosts_dhcp_conf_subnet', 'Dhcphosts'), 
   #                                 \%INFO,
   #                                 { notprint => 1 } );	 
 
   $html->tpl_show(_include('dhcphosts_dhcp_conf_main', 'Dhcphosts'), \%INFO);
-	print "</textarea>";
-	print $html->form_main(	{  HIDDEN  => { index  => $index,
-		                                      IDS    => $FORM{IDS},
-		                                      config => 'dhcp.conf' },
+	print "</textarea>\n";
+	print $html->form_main(	{  HIDDEN  => { index    => $index,
+		                                      IDS      => $FORM{IDS},
+		                                      config   => 'dhcp.conf' },
                              SUBMIT  => { reconfig => $_RECONFIGURE }
                          } );
 	
@@ -785,21 +789,58 @@ sub convert_ip {
 sub mask2bitlen {
   my ($netmask) = @_;
 
-  my @mask = split(/\./, $netmask);
+  my @mask = split(/\./, $netmask, 4);
   my $bitlen = 0;
   foreach my $line (@mask) {
-    if ($line == 255) {
-      $bitlen += 8;
-     }
-    else {
-      last;
-     }
+      my $bits = sprintf("%b", $line);
+      $bits =~ s/0//g;
+      $bitlen += length($bits);
    }
   return $bitlen;
 }
 
 
+#**********************************************************
+# http://rfc3442svc.sourceforge.net/isc-dhcpd-configuration.html
+#
+# For isc-dhcpd
+#  dhcpd.conf
+#
+#  option classless-route code 121 = string;
+#  option classless-route-xp code 249 = string;
+#  option classless-route  16:0a:0b:00:c0:a8:32:01:14:c0:a8:50:c0:a8:32:01:17:c0:a8:5a:c0:a8:32:01:20:0a:0a:0a:0a:c0:a8:32:02:14:c0:a8:00:c0:a8:32:01;
+#  option classless-route-xp 16:0a:0b:00:c0:a8:32:01:14:c0:a8:50:c0:a8:32:01:17:c0:a8:5a:c0:a8:32:01:20:0a:0a:0a:0a:c0:a8:32:02:14:c0:a8:00:c0:a8:32:01;
+# make_classless_option({
+#        "172.16.0.0/12" => "10.0.0.1",
+#        "10.0.0.0/8" => "10.0.0.1",
+#        "0.0.0.0/0" => "192.168.0.1",
+#        "192.168.234.0/24" => "192.168.0.5"
+#        });
+#**********************************************************
+sub make_classless_option {
+    my $routes = shift;
+    my ($s1, $s2, $s3, $s4, $len, @bytes, $net, $mask, $destination, $router);
 
+    $len = 2;
+    @bytes = ();
+    foreach $destination(keys %{$routes}) {
+        ($net, $mask) = split('/', $destination);
+        $router = $routes->{$destination};
+        ($s1, $s2, $s3, $s4) = split(/\./, $net);
+        push(@bytes, sprintf('%02x', $mask));
+        push(@bytes, sprintf('%02x', $s1));
+        push(@bytes, sprintf('%02x', $s2)) if($mask > 8);
+        push(@bytes, sprintf('%02x', $s3)) if($mask > 16);
+        push(@bytes, sprintf('%02x', $s4)) if($mask > 24);
+        ($s1, $s2, $s3, $s4) = split(/\./, $router);
+        push(@bytes, sprintf('%02x', $s1));
+        push(@bytes, sprintf('%02x', $s2));
+        push(@bytes, sprintf('%02x', $s3));
+        push(@bytes, sprintf('%02x', $s4));
+    }
+
+    return join(':', @bytes);
+}
 
 
 1
