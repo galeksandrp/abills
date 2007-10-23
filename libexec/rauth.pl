@@ -184,7 +184,7 @@ else {
    	 $RAD_REPLY{"$left"}="\"". $RAD_REPLY{"$left"} .",$right\"";
         }
        else {
-       	 $RAD_REPLY{"$left"}="$right";
+       	 $RAD_REPLY{"$left"}="\"$right\"";
         }
    	  }
    	 else {
