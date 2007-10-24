@@ -177,27 +177,27 @@ else {
    foreach my $line (@pairs_arr) {
      if ($line =~ /\+\=/ ) {
        my($left, $right)=split(/\+\=/, $line, 2);
-       $right =~ s/"//g;
+       $right =~ s/\"//g;
 
        if (defined($RAD_REPLY{"$left"})) {
-   	 $RAD_REPLY{"$left"} =~ s/\"//g;
-   	 $RAD_REPLY{"$left"}="\"". $RAD_REPLY{"$left"} .",$right\"";
+   	     $RAD_REPLY{"$left"} =~ s/\"//g;
+   	     $RAD_REPLY{"$left"}="\"". $RAD_REPLY{"$left"} .",$right\"";
         }
        else {
-       	 $RAD_REPLY{"$left"}="\"$right\"";
+     	   $RAD_REPLY{"$left"}="\"$right\"";
         }
-   	  }
-   	 else {
-   	   my($left, $right)=split(/=/, $line, 2);
-   	   if ($left =~ s/^!//) {
-         delete $RAD_REPLY{"$left"};
-   	    }
-   	   else {  
-   	     $RAD_REPLY{"$left"}="$right";
-   	    }
-   	  }
- 	 $RAD_CHECK{'Auth-Type'} = 'Accept';
-  }
+       }
+      else {
+         my($left, $right)=split(/=/, $line, 2);
+         if ($left =~ s/^!//) {
+           delete $RAD_REPLY{"$left"};
+   	      }
+   	     else {  
+   	       $RAD_REPLY{"$left"}="$right";
+   	      }
+       }
+      $RAD_CHECK{'Auth-Type'} = 'Accept';
+     }
    
    #$RAD_REPLY{'cisco-avpair'}="\"tunnel-type=VLAN,tunnel-medium-type==IEEE-802,tunnel-private-group-id=1, ip:inacl#1=deny ip 10.10.10.10 0.0.255.255 20.20.20.20 255.255.0.0\"";
 

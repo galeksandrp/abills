@@ -55,7 +55,7 @@ my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $con
   { CHARSET => ($conf{dbcharset}) ? $conf{dbcharset} : undef });
 my $db = $sql->{db};
 
-$html->{language}=$FORM{language} if (defined($FORM{language}));
+$html->{language}=$FORM{language} if (defined($FORM{language}) && $FORM{language} =~ /[a-z_]/);
 
 require "../language/$html->{language}.pl";
 $sid = $FORM{sid} || ''; # Session ID

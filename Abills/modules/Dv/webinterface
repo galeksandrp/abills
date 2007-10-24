@@ -1181,7 +1181,7 @@ my $graph_type='';
 
 #Day reposrt
 if (defined($FORM{DATE})) {
-  #Used Fraffic
+  #Used Traffic
   $table_sessions = $html->table({ width      => '100%',
 	                                 caption    => "$_SESSIONS", 
                                    title      => ["$_DATE", "$_USERS", "$_SESSIONS", "$_TRAFFIC ", "$_TRAFFIC 2", $_DURATION, $_SUM],
@@ -1299,6 +1299,7 @@ else {
     if ($FORM{FIELDS}) {
       for(my $i=0; $i<=$#caption; $i++) {
         push @rows, $line->[$i];
+        #print $fields_hash{}
       }
      }
     else {
@@ -1357,8 +1358,16 @@ $table = $html->table( { width      => '100%',
                          cols_align => ['right', 'right', 'right', 'right', 'right', 'right'],
                          rows       => [ [ "$_USERS: <b>$sessions->{USERS}</b>",
                                            "$_SESSIONS: <b>$sessions->{SESSIONS}</b>", 
-                                           "$_TRAFFIC: <b>". int2byte($sessions->{TRAFFIC}) ."</b>", 
-                                           "$_TRAFFIC 2: <b>". int2byte($sessions->{TRAFFIC_2}) ."</b>", 
+                                           "$_TRAFFIC: <b>". int2byte($sessions->{TRAFFIC}) ."</b><BR>".
+                                           "$_TRAFFIC IN: <b>". int2byte($sessions->{TRAFFIC_IN}) ."</b><BR>".
+                                           "$_TRAFFIC OUT: <b>". int2byte($sessions->{TRAFFIC_OUT}) ."</b>"
+                                           , 
+                                           
+                                           "$_TRAFFIC 2: <b>". int2byte($sessions->{TRAFFIC_2}) ."</b><br>".
+                                           "$_TRAFFIC 2 IN: <b>". int2byte($sessions->{TRAFFIC_2_IN}) ."</b><BR>".
+                                           "$_TRAFFIC 2 OUT: <b>". int2byte($sessions->{TRAFFIC_2_OUT}) ."</b>"
+                                           , 
+                                           
                                            "$_DURATION: <b>$sessions->{DURATION}</b>", 
                                            "$_SUM: <b>$sessions->{SUM}</b>" ] ],
                          rowcolor   => $_COLORS[2]

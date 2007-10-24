@@ -549,10 +549,29 @@ if( $self->{ACCOUNT_AGE} > 0 && $self->{ACCOUNT_ACTIVATE} eq '0000-00-00') {
 
 
   if ($self->{TP_RAD_PAIRS}) {
-  	my @p = split(/,/, $self->{TP_RAD_PAIRS});
+    my @p = split(/,/, $self->{TP_RAD_PAIRS});
     foreach my $line (@p) {
-    	my ($rk, $lk)=split(/=/, $line);
-    	$RAD_PAIRS->{$rk}="$lk";
+     if ($line =~ /\+\=/ ) {
+       my($left, $right)=split(/\+\=/, $line, 2);
+       $right =~ s/\"//g;
+
+       if (defined($RAD_PAIRS->{"$left"})) {
+   	     $RAD_PAIRS->{"$left"} =~ s/\"//g;
+   	     $RAD_PAIRS->{"$left"}="\"". $RAD_PAIRS->{"$left"} .",$right\"";
+        }
+       else {
+     	   $RAD_PAIRS->{"$left"}="\"$right\"";
+        }
+       }
+      else {
+         my($left, $right)=split(/=/, $line, 2);
+         if ($left =~ s/^!//) {
+           delete $RAD_PAIRS->{"$left"};
+   	      }
+   	     else {  
+   	       $RAD_PAIRS->{"$left"}="$right";
+   	      }
+       }
      }
    }
 #OK

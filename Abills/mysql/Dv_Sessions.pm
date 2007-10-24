@@ -1138,8 +1138,10 @@ if ($attr->{FIELDS}) {
 
   $self->query($db, "select count(DISTINCT l.uid), 
       count(l.uid),
-      sum(l.sent + l.recv), 
-      sum(l.sent2 + l.recv2),
+      sum(l.sent),
+      sum(l.recv), 
+      sum(l.sent2),
+      sum(l.recv2),
       sec_to_time(sum(l.duration)), 
       sum(l.sum)
        FROM dv_log l
@@ -1149,12 +1151,15 @@ if ($attr->{FIELDS}) {
  
   ($self->{USERS}, 
    $self->{SESSIONS}, 
-   $self->{TRAFFIC}, 
-   $self->{TRAFFIC_2}, 
+   $self->{TRAFFIC_OUT}, 
+   $self->{TRAFFIC_IN},
+   $self->{TRAFFIC_2_OUT}, 
+   $self->{TRAFFIC_2_IN}, 
    $self->{DURATION}, 
    $self->{SUM}) = @{ $self->{list}->[0] };
 
-
+   $self->{TRAFFIC} = $self->{TRAFFIC_OUT} + $self->{TRAFFIC_IN};
+   $self->{TRAFFIC_2} = $self->{TRAFFIC_2_OUT} + $self->{TRAFFIC_2_IN};
 
 	return $list;
 }
