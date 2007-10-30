@@ -74,8 +74,8 @@ my $sth;
 my ($uid, $datetime, $remote_addr, $alived, $password);
 
 if ($cookies{sid}) {
-	$cookies{sid} = s/'//g;
-	$cookies{sid} = s/"//g;
+	$cookies{sid} = s/\'//g;
+	$cookies{sid} = s/\"//g;
 	my $query = "SELECT uid, 
     datetime, 
     login, 
@@ -187,10 +187,48 @@ my ( $sent ) = $sth->fetchrow_array();
 #       typo3.tx_t3labtvarchive_openfull
 #FROM  typo3.tt_news
 #WHERE  typo3.uid = $news_id;
-
 #  14:21:35: это позволяет определить сервер скачивания и путь до файла 
 #$select * FROM tx_t3labtvarchive_files WHERE filename = $filename
+
+
+# /vids/video_506/video/200704/rtr20070403-2315_c.avi
+my $URL = $ENV{URI};
+my $request_path = '';
+my $request_file = '';
+
+if ($URL =~ /\/vids(\S+)\/(\S+)$/) {
+ $request_path = $1;
+ $request_file = $2;
+}
+
+$query  = "select server, priority, size from leta.tx_t3labtvarchive_files 
+ WHERE path='$request_path' and filename='$request_file';";
+
+$sth = $dbh->prepare($query);
+$sth->execute();
+if ($sth->rows() > 0) {
+  my ( $server, $priority, $size  ) = $sth->fetchrow_array();
+  if ($priority == 0) {
+  	
+  }
+  elsif($priority == 1) {
+  	
+   }	
+  	
+}
+#| uid  | pid | tstamp | crdate | cruser_id | server                   | path
+#                | filename               | filesize | priority |
+
+
+
+
+
+
+
+
 # Get month traffic
+
+
 
 $sth->finish();
 $dbh->disconnect();

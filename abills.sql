@@ -32,6 +32,7 @@ CREATE TABLE `admins` (
   `disable` tinyint(1) unsigned NOT NULL default '0',
   `phone` varchar(16) NOT NULL default '',
   `web_options` text NOT NULL,
+  `email` varchar(35) NOT NULL default '',
   PRIMARY KEY  (`aid`),
   UNIQUE KEY `aid` (`aid`),
   UNIQUE KEY `id` (`id`)

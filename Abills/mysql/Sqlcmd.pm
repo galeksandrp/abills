@@ -86,6 +86,9 @@ sub info {
 
 
     $list = \@rows;
+    #show indexes
+    # SHOW INDEX FROM $row_array[0];
+
     return $list;
   }
 

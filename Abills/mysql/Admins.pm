@@ -152,6 +152,7 @@ sub info {
   $IP = (defined($attr->{IP}))? $attr->{IP} : '0.0.0.0';
   $self->query($db, "SELECT a.aid, a.id, a.name, a.regdate, a.phone, a.disable, a.web_options, a.gid, 
      count(ag.aid),
+     email,
      $PASSWORD
      FROM 
       admins a
@@ -166,7 +167,7 @@ sub info {
    }
 
   my $a_ref = $self->{list}->[0];
-  if ($a_ref->[9] == 1) {
+  if ($a_ref->[10] == 1) {
      $self->{errno} = 4;
      $self->{errstr} = 'ERROR_WRONG_PASSWORD';
      return $self;
@@ -180,7 +181,8 @@ sub info {
    $self->{DISABLE},
    $self->{WEB_OPTIONS},
    $self->{GID},
-   $self->{GIDS}
+   $self->{GIDS},
+   $self->{EMAIL}
     )= @$a_ref;
   
   if ($self->{GIDS} > 0) {
@@ -237,7 +239,8 @@ sub change {
            DISABLE     => 'disable',
            PASSWORD    => 'password',
            WEB_OPTIONS => 'web_options',
-           GID         => 'gid'
+           GID         => 'gid',
+           EMAIL       => 'email'
    );
 
 
@@ -267,8 +270,8 @@ sub add {
   my ($attr) = @_;
   %DATA = $self->get_data($attr); 
 
-  $self->query($db, "INSERT INTO admins (id, name, regdate, phone, disable, gid) 
-   VALUES ('$DATA{A_LOGIN}', '$DATA{A_FIO}', now(),  '$DATA{A_PHONE}', '$DATA{DISABLE}', '$DATA{GID}');", 'do');
+  $self->query($db, "INSERT INTO admins (id, name, regdate, phone, disable, gid, email) 
+   VALUES ('$DATA{A_LOGIN}', '$DATA{A_FIO}', now(),  '$DATA{A_PHONE}', '$DATA{DISABLE}', '$DATA{GID}', '$DATA{EMAIL}');", 'do');
 
   return $self;
 }
