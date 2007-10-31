@@ -540,6 +540,7 @@ sub msgs_user {
 
     foreach my $line (@$list) {
       $Msgs->{REPLY} .= $html->tpl_show(_include('msgs_reply_show', 'Msgs'), {
+          REPLY_ID => $line->[0],
           DATE     => $line->[1],
           CAPTION  => convert($line->[5], { text2html => 1 }),
           PERSON   =>	$line->[3],

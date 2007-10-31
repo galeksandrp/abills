@@ -8,6 +8,7 @@
 <tr><td>$_ATTACHMENT:</td><td><input name='FILE_UPLOAD' type='file' size='40' class='fixed'>
    <input class='button' type='submit' name='AttachmentUpload' value='$_ADD'></td></tr>  
 </table>
+<input type='hidden' name='sid' value='$sid'/>
 <input type='submit' name='%ACTION%' value='  %ACTION_LNG%  '/>
 <br>
 <br>
