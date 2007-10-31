@@ -1185,11 +1185,11 @@ sub tpl_show {
   $tpl =~ s/&nbsp;/&#160;/g;
 
   $xml_tpl .= "</INFO>\n";
-
   if($attr->{OUTPUT2RETURN}) {
-		return $tpl;
+		return $xml_tpl;
 	 }
-  elsif (defined($attr->{notprint}) || ($self->{NO_PRINT} && $self->{NO_PRINT} == 1)) {
+#  elsif (defined($attr->{notprint}) || ($self->{NO_PRINT} && $self->{NO_PRINT} == 1)) {
+  elsif ($attr->{notprint} || defined($self->{NO_PRINT})) {
   	$self->{OUTPUT}.=$xml_tpl;
   	return $xml_tpl;
    }
