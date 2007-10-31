@@ -920,24 +920,16 @@ sub table_title  {
      $self->{table_title} .= " <COLUMN_".$i." NAME=\"$line\" ";
      if ($line ne '-') {
          if ($sort != $i) {
-             $img = 'sort_none.png';
            }
          elsif ($desc eq 'DESC') {
-             $img = 'down_pointer.png';
              $desc='';
+             $self->{table_title} .= " SORT=\"ASC\"";
            }
          elsif($sort > 0) {
-             $img = 'up_pointer.png';
+             $self->{table_title} .= " SORT=\"DESC\"";
              $desc='DESC';
            }
          
-         if ($FORM{index}) {
-         	  $op="index=$FORM{index}";
-         	}
-         else {
-         	  $op="op=$get_op";
-          }
-
          #$self->{table_title} .= $self->button("<img src=\"$IMG_PATH/$img\" width=\"12\" height=\"10\" border=\"0\" alt=\"Sort\" title=\"sort\"/>", "$op$qs&pg=$pg&sort=$i&desc=$desc");
        }
 
@@ -1056,6 +1048,7 @@ sub pages {
 
  my $begin=0;   
 
+ return '' if ($count < $PAGE_ROWS);
 
  $self->{pages} = '';
  $begin = ($PG - $PAGE_ROWS * 3 < 0) ? 0 : $PG - $PAGE_ROWS * 3;
@@ -1133,24 +1126,9 @@ sub log_print {
   }
 
 print << "[END]";
-<TABLE width="640" border="0" cellpadding="0" cellspacing="0">
-<TR><TD bgcolor="#00000">
-<TABLE width="100%" border="0" cellpadding="2" cellspacing="1">
-<TR><TD bgcolor="#FFFFFF">
-
-<TABLE width="100%">
-<TR bgcolor="$_COLORS[3]"><th>
-$level
-</th></TR>
-<TR><TD>
+<LOG_PRINT level="$level">
 $text
-</TD></TR>
-</TABLE>
-
-</TD></TR>
-</TABLE>
-</TD></TR>
-</TABLE>
+</LOG_PRINT>
 [END]
 }
 
@@ -1209,54 +1187,16 @@ sub tpl_show {
 # 
 #**********************************************************
 sub test {
-
  my $output = '';
 
-#print "<TABLE border=1>
-#<TR><TD colspan=2>FORM</TD></TR>
-#<TR><TD>index</TD><TD>$index</TD></TD></TR>
-#<TR><TD>root_index</TD><TD>root_index</TD></TD></TR>\n";	
-  while(my($k, $v)=each %FORM) {
+ while(my($k, $v)=each %FORM) {
   	$output .= "$k | $v\n" if ($k ne '__BUFFER');
-    #print "<TR><TD>$k</TD><TD>$v</TD></TR>\n";	
-   }
-#print "</TABLE>\n";
+  }
+
  $output .= "\n";
-#print "<br><TABLE border=1>
-#<TR><TD colspan=2>COOKIES</TD></TR>
-#<TR><TD>index</TD><TD>$index</TD></TD></TR>\n";	
   while(my($k, $v)=each %COOKIES) {
     $output .= "$k | $v\n";
-    #print "<TR><TD>$k</TD><TD>$v</TD></TR>\n";	
    }
-#print "</TABLE>\n";
-
-
-#print "<br><TABLE border=1>\n";
-#  while(my($k, $v)=each %ENV) {
-#    print "<TR><TD>$k</TD><TD>$v</TD></TR>\n";	
-#   }
-#print "</TABLE>\n";
-
-#print "<br><TABLE border=1>\n";
-#  while(my($k, $v)=each %conf) {
-#    print "<TR><TD>$k</TD><TD>$v</TD></TR>\n";	
-#   }
-#print "</TABLE>\n";
-#
-
-#print "<a href='#' onclick=\"document.write ( 'answer' )\">aaa</a>";
-
-#print "<a href='#' onclick=\"open('aaa','help', 
-# 'height=550,width=450,resizable=0, scrollbars=yes, menubar=no, status=yes');\"><font color=$_COLORS[1]>Debug</font></a>";
-
-#print "<a href='#' title='$output'><font color=$_COLORS[1]>Debug</font></a>\n";
-
-#}
-#>Debug</font></a>";
-
-#print "<a href='#' title='$output'><font color=$_COLORS[1]>Debug</font></a>\n";
-
 }
 
 
