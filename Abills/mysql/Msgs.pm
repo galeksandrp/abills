@@ -110,20 +110,10 @@ sub messages_list {
     push @WHERE_RULES, "date_format(m.plan_date, '%Y-%m')=date_format(curdate(), '%Y-%m')";
   }
 
-
  if ($attr->{MSG_ID}) {
  	  my $value = $self->search_expr($attr->{MSG_ID}, 'INT');
     push @WHERE_RULES, "m.id$value";
   }
-
-
-
-
- if ($attr->{MSG_ID}) {
- 	  my $value = $self->search_expr($attr->{MSG_ID}, 'INT');
-    push @WHERE_RULES, "m.id$value";
-  }
-
 
  if (defined($attr->{REPLY})) {
  	 my $value = $self->search_expr($attr->{REPLY}, '');
@@ -742,8 +732,6 @@ sub messages_reply_list {
  elsif ($attr->{GID}) {
    push @WHERE_RULES, "u.gid='$attr->{GID}'"; 
   }
- 
- 
  
  #DIsable
  if ($attr->{UID}) {
