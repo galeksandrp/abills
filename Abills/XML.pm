@@ -1172,12 +1172,15 @@ sub tpl_show {
   
   while($tpl =~ /\%(\w+)\%/g) {
     my $var = $1;
-    if (defined($variables_ref->{$var})) {
+    if ($var =~ /ACTION_LNG/) {
+       next;
+     }
+    elsif (defined($variables_ref->{$var})) {
  	   	$xml_tpl .= "<$var>$variables_ref->{$var}</$var>\n";
-    }
+     }
     else {
       $xml_tpl .= "<$var/>";
-    }
+     }
 
 
   }
