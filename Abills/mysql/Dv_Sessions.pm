@@ -1220,10 +1220,10 @@ sub log_rotate {
   last_update < UNIX_TIMESTAMP()- $attr->{PERIOD} * 24 * 60 * 60;", 'do');
 	
 
-  $self->query($db, "DELETE LOW_PRIORITY dv_log_intervals from dv_log dl, dv_log_intervals dli
+  $self->query($db, "DELETE LOW_PRIORITY dv_log_intervals from dv_log, dv_log_intervals
 WHERE
-  dl.acct_session_id=dli.acct_session_id
-  and dl.start < curdate() - INTERVAL $attr->{PERIOD} DAY;", 'do');
+  dv_log.acct_session_id=dv_log_intervals.acct_session_id
+  and dv_log.start < curdate() - INTERVAL $attr->{PERIOD} DAY;", 'do');
 
 	
 	

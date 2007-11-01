@@ -1380,7 +1380,6 @@ sub tpl_show {
     }
   }
 
-
   if($attr->{OUTPUT2RETURN}) {
 		return $tpl;
 	 }
