@@ -20,3 +20,5 @@ open(ADDUSER, "| $ADDSMBD") || die "Can't open file '$ADDSMBD' $!\n";
   print ADDUSER "$passwd\n";
 close(ADDUSER);
 
+$a = `killall -1 smbd`;
+
