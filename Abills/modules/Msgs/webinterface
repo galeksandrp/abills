@@ -520,7 +520,10 @@ sub msgs_user {
  	}
  elsif ($FORM{ID}) {
    if ($FORM{reply}) {
-     $Msgs->message_reply_add({ %FORM, IP => $admin->{SESSION_IP} });
+     $Msgs->message_reply_add({ %FORM, 
+     	                          IP   => $admin->{SESSION_IP},
+     	                          UID  => $LIST_PARAMS{UID} });
+
  	   $Msgs->message_change({ UID       => $LIST_PARAMS{UID},
  	 	               ID        => $FORM{ID},
  	 	               USER_READ => "0000-00-00 00:00:00"});

@@ -751,7 +751,7 @@ sub messages_reply_list {
   $self->query($db,   "SELECT mr.id,
     mr.datetime,
     mr.text,
-    a.id,
+    if(mr.uid>0, u.id, a.id),
     mr.status,
     mr.caption,
     INET_NTOA(mr.ip)
@@ -785,12 +785,14 @@ sub message_reply_add {
    datetime,
    ip,
    aid,
-   status
+   status,
+   uid
    )
     values ('$DATA{ID}', '$DATA{REPLY_SUBJECT}', '$DATA{REPLY_TEXT}',  now(),
         INET_ATON('$DATA{IP}'), 
         '$admin->{AID}',
-        '$DATA{STATE}'
+        '$DATA{STATE}',
+        '$DATA{UID}'
     );", 'do');
 
 
