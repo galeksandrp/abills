@@ -431,6 +431,7 @@ return qq{
 elsif ($tpl_name eq 'chg_tp') {
 return qq{
 <form action="$SELF_URL" METHOD="POST">
+<input type=hidden name=sid value='$sid'>
 <input type=hidden name=UID value='%UID%'>
 <input type=hidden name=m value='%m%'>
 <input type=hidden name='index' value='$index'>
