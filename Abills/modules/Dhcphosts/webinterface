@@ -51,7 +51,9 @@ sub dhcphosts_mac_block_show {
    
    $LIST_PARAMS{STATUS}=0 if (! $conf{DHCPHOSTS_IPGUARD_TYPE} || ($conf{DHCPHOSTS_IPGUARD_TYPE} && $conf{DHCPHOSTS_IPGUARD_TYPE} ne 'ipsentinel' ));
 
-   my $ethers_content = "# $DATE $TIME\n# CONFIG FOR: $conf{DHCPHOSTS_IPGUARD_TYPE}\n\n";
+   my $ethers_content = "# $DATE $TIME\n# CONFIG FOR: ".
+   $ethers_content .= "$conf{DHCPHOSTS_IPGUARD_TYPE}\n\n" ($conf{DHCPHOSTS_IPGUARD_TYPE});
+
    my @pair_status = ('ACCEPT', 'DENY');
    my $list = $Dhcphosts->hosts_list({ %LIST_PARAMS, 
    	                                   PAGE_ROWS     => 1000000

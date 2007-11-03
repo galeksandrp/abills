@@ -15,6 +15,8 @@ while(my ($k, $v)=each %ENV) {
   $aa .= "$k - $v\n";
 }
 
+web_auth(\@ARGV);
+
 my $debug = " URI: $ENV{URI}
  USER:      $ENV{USER}
  Password:  $ENV{PASS}
@@ -201,7 +203,7 @@ if ($URL =~ /\/vids(\S+)\/(\S+)$/) {
  $request_file = $2;
 }
 
-$query  = "select server, priority, size from leta.tx_t3labtvarchive_files 
+$query  = "select server, priority, size from lenta.tx_t3labtvarchive_files 
  WHERE path='$request_path' and filename='$request_file';";
 
 $sth = $dbh->prepare($query);
@@ -233,6 +235,37 @@ if ($sth->rows() > 0) {
 $sth->finish();
 $dbh->disconnect();
 
+#**********************************************************
+# Web auth and add url to allow download URL
+#**********************************************************
+sub web_auth {
+	my ($argv) = @_;
+	
+ print "Content-Type: text/html\n\n";
+ my $request_file =	$argv->[0];
 
+ # path='$request_path' and
+
+ my $query  = "select server, priority, size from lenta.tx_t3labtvarchive_files 
+   WHERE filename='$request_file';";
+
+ $sth = $dbh->prepare($query);
+ $sth->execute();
+
+ if ($sth->rows() > 0) {
+   my ( $server, $priority, $size  ) = $sth->fetchrow_array();
+   print "$server, $priority, $size";
+   
+   if ($priority == 0) {
+  	
+    }
+   elsif($priority == 1) {
+  	
+    }	
+  }
+	
+	
+	return 0;
+}
 
 exit 0;
