@@ -526,13 +526,19 @@ sub dhcphosts_user {
 
 
   if ($FORM{add}) {
-    $Dhcphosts->host_add({ %FORM });
-    if (! $Dhcphosts->{errno}) {
-	    $html->message('info', $_ADDED, "$_ADDED [$FORM{HOSTNAME}] ");
-      dhcphosts_config({ NETWORKS => $FORM{NETWORK}, 
+    if ($FORM{MAC} ~= /[0-9a-f]:[0-9a-f]:[0-9a-f]:[0-9a-f]:[0-9a-f]:[0-9a-f]/i) {
+      $html->message('err', $_ERROR, "WRONG MAC ");
+      #00:19:5b:4f:98:7a	
+     }	
+    else {
+      $Dhcphosts->host_add({ %FORM });
+      if (! $Dhcphosts->{errno}) {
+	      $html->message('info', $_ADDED, "$_ADDED [$FORM{HOSTNAME}] ");
+        dhcphosts_config({ NETWORKS => $FORM{NETWORK}, 
       	                 reconfig => 1 
       	              });
-	   }
+	     }
+    }
 	 }
   elsif ($FORM{change}) {
 	  $Dhcphosts->host_change({ %FORM });
