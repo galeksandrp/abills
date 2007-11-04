@@ -9,9 +9,8 @@ my $Dhcphosts = Dhcphosts->new($db, $admin, \%conf);
 use Abills::Base;
 use Socket;
 
-#use Spreadsheet::WriteExcel::Simple;
-#use Switch;
 
+my $Nas = Nas->new($db, \%conf);
 
 #*******************************************************************
 # 
@@ -51,7 +50,7 @@ sub dhcphosts_mac_block_show {
    
    $LIST_PARAMS{STATUS}=0 if (! $conf{DHCPHOSTS_IPGUARD_TYPE} || ($conf{DHCPHOSTS_IPGUARD_TYPE} && $conf{DHCPHOSTS_IPGUARD_TYPE} ne 'ipsentinel' ));
 
-   my $ethers_content = "# $DATE $TIME\n# CONFIG FOR: ".
+   my $ethers_content = "# $DATE $TIME\n# CONFIG FOR: ";
    $ethers_content .= "$conf{DHCPHOSTS_IPGUARD_TYPE}\n\n" if ($conf{DHCPHOSTS_IPGUARD_TYPE});
 
    my @pair_status = ('ACCEPT', 'DENY');
@@ -526,7 +525,7 @@ sub dhcphosts_user {
 
 
   if ($FORM{add}) {
-    if ($FORM{MAC} ~= /[0-9a-f]:[0-9a-f]:[0-9a-f]:[0-9a-f]:[0-9a-f]:[0-9a-f]/i) {
+    if ($FORM{MAC} !~ /[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}/i) {
       $html->message('err', $_ERROR, "WRONG MAC ");
       #00:19:5b:4f:98:7a	
      }	
@@ -535,18 +534,24 @@ sub dhcphosts_user {
       if (! $Dhcphosts->{errno}) {
 	      $html->message('info', $_ADDED, "$_ADDED [$FORM{HOSTNAME}] ");
         dhcphosts_config({ NETWORKS => $FORM{NETWORK}, 
-      	                 reconfig => 1 
-      	              });
+      	                   reconfig => 1 
+      	                });
 	     }
     }
 	 }
   elsif ($FORM{change}) {
-	  $Dhcphosts->host_change({ %FORM });
+    if ($FORM{MAC} !~ /[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}/i) {
+      $html->message('err', $_ERROR, "WRONG MAC ");
+      #00:19:5b:4f:98:7a	
+     }	
+    else {
+	    $Dhcphosts->host_change({ %FORM });
     
-    if (! $Dhcphosts->{errno}) {
-	    $html->message('info', $_CHANGED, "$_CHANGED [$FORM{ID}] $FORM{NAME} ");
-	    dhcphosts_config({ NETWORKS => $FORM{NETWORK}, reconfig => 1 });
-	   }
+      if (! $Dhcphosts->{errno}) {
+	      $html->message('info', $_CHANGED, "$_CHANGED [$FORM{ID}] $FORM{NAME} ");
+	      dhcphosts_config({ NETWORKS => $FORM{NETWORK}, reconfig => 1 });
+	     }
+     }
 	 }
   elsif ($FORM{chg}) {
 	  $Dhcphosts->host_info( $FORM{chg} );
@@ -584,6 +589,15 @@ sub dhcphosts_user {
                                           });
 
   $Dhcphosts->{DISABLE}=' checked' if($Dhcphosts->{DISABLE});
+  
+  $Dhcphosts->{SWITCH_SEL} = $html->form_select('NAS_ID',
+                                          {
+                                                  SELECTED          => $FORM{NAS_ID},
+                                                  SEL_MULTI_ARRAY   => [['', $_ALL], @{ $Nas->list() } ],
+                                                  MULTI_ARRAY_KEY   => 0,
+                                                  MULTI_ARRAY_VALUE => 1,
+                                           });
+
 
   $html->tpl_show(_include('dhcphosts_host', 'Dhcphosts'), { %{ $Dhcphosts->host_defaults() },  %$Dhcphosts }); 
   dhcphosts_hosts();
