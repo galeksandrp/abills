@@ -1181,7 +1181,7 @@ elsif($FORM{del}) {
 
  
 
-my $tp_index = $index + 4;
+my $tp_index = $index - 6;
 
 $Tariffs->{UID}=$attr->{USER}->{UID};
 $Tariffs->{m}=$m;

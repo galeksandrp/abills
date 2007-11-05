@@ -265,9 +265,9 @@ sub web_auth {
   	
     }	
   }
-else {
-  print "not found";
-}
+ else {
+    print "Not found\n";
+  }
 	
 	
 	return 0;
