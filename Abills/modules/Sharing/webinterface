@@ -1179,6 +1179,7 @@ elsif($FORM{del}) {
    $Tariffs->{LNG_ACTION}=$_CHANGE;
   }
 
+
  
 
 my $tp_index = $index - 6;

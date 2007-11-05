@@ -10,23 +10,39 @@ hostname=`hostname`;
 password=whatever;
 days=730;
 DATE=`date`;
+CERT_TYPE=$1;
 
 if [ w$1 = w ] ; then
   echo "Create SSL Certs and SSH keys ";
-  echo "sslcerts.sh [apache|eap|postfix_tls|ssh]";
+  echo "sslcerts.sh [apache|eap|postfix_tls|ssh] -D";
   echo " apache      - Create apache SSL cert"
   echo " eap         - Create Server and users SSL Certs"
   echo " postfix_tls - Create postfix TLS Certs"
   echo " ssh [USER]  - Create SSH DSA Keys"
   echo "                USER - SSH remote user"
+  echo " -D [PATH]   - Path for ssl certs"
 
   exit;
 fi
 
 CERT_PATH=/usr/abills/Certs/
+
+# Proccess command-line options
+#
+for _switch ; do
+        case $_switch in
+        -D)
+                CERT_PATH="$3"
+                shift; shift
+                ;;
+        esac
+done
+
+
 if [ ! -d ${CERT_PATH} ] ; then
   mkdir ${CERT_PATH};
 fi
+
 
 
 
@@ -41,7 +57,7 @@ if [ w$1 = wssh ]; then
   echo "*******************************************************************************"
   echo
 
-  if [ w$2 = w ]; then
+  if [ w${CERT_TYPE} = w ]; then
     id_dsa_file=id_dsa;
   else
     id_dsa_file=id_dsa.$2;
@@ -54,7 +70,7 @@ if [ w$1 = wssh ]; then
   echo 
 
 #Apache Certs
-else if [ w$1 = wapache ]; then
+else if [ w${CERT_TYPE} = wapache ]; then
 
   echo "*******************************************************************************"
   echo "Creating Apache server private key and certificate"
@@ -85,7 +101,7 @@ else if [ w$1 = wapache ]; then
   chmod 400 server.key
 
 
-else if [ w$1 = weap ]; then
+else if [ w${CERT_TYPE} = weap ]; then
   echo "*******************************************************************************"
   echo "Make RADIUS EAP"
   echo "*******************************************************************************"
@@ -244,7 +260,7 @@ openssl x509 -inform PEM -outform DER -in cert-srv.pem -out cert-srv.der
 rm newcert.pem newreq.pem
 
 
-else if [ w$1 = wpostfix_tls ]; then
+else if [ w${CERT_TYPE} = wpostfix_tls ]; then
   echo "******************************************************************************"
   echo "Make POSTFIX TLS sertificats"
   echo "******************************************************************************"
@@ -261,5 +277,5 @@ fi;
 fi;
 fi;
 
-echo "$1 Done...";
+echo "${CERT_TYPE} Done...";
 
