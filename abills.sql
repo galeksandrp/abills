@@ -909,8 +909,8 @@ CREATE TABLE `web_online` (
     
 
 
-INSERT INTO admins VALUES ('abills','abills','2005-06-16', ENCODE('abills', 'test12345678901234567890'), 0, 1,0,'', '');
-INSERT INTO admins VALUES ('system','System user','2005-07-07', ENCODE('test', 'test12345678901234567890'), 0, 2, 0,'', '');
+INSERT INTO admins (id, name, regdate, password, gid, aid, disable, phone, web_options) VALUES ('abills','abills','2005-06-16', ENCODE('abills', 'test12345678901234567890'), 0, 1,0,'', '');
+INSERT INTO admins (id, name, regdate, password, gid, aid, disable, phone, web_options) VALUES ('system','System user','2005-07-07', ENCODE('test', 'test12345678901234567890'), 0, 2, 0,'', '');
 
 
 
