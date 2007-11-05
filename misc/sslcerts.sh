@@ -11,16 +11,19 @@ password=whatever;
 days=730;
 DATE=`date`;
 CERT_TYPE=$1;
+CERT_USER="";
 
 if [ w$1 = w ] ; then
   echo "Create SSL Certs and SSH keys ";
   echo "sslcerts.sh [apache|eap|postfix_tls|ssh] -D";
-  echo " apache      - Create apache SSL cert"
-  echo " eap         - Create Server and users SSL Certs"
-  echo " postfix_tls - Create postfix TLS Certs"
-  echo " ssh [USER]  - Create SSH DSA Keys"
+  echo " apache        - Create apache SSL cert"
+  echo " eap           - Create Server and users SSL Certs"
+  echo " postfix_tls   - Create postfix TLS Certs"
+  echo " info [file]   - Get info from SSL cert"
+  echo " ssh [USER]    - Create SSH DSA Keys"
   echo "                USER - SSH remote user"
-  echo " -D [PATH]   - Path for ssl certs"
+  echo " -D [PATH]     - Path for ssl certs"
+  echo " -U [username] - Cert owner (Default: apache=www, postfix=vmail)"
 
   exit;
 fi
@@ -33,6 +36,10 @@ for _switch ; do
         case $_switch in
         -D)
                 CERT_PATH="$3"
+                shift; shift
+                ;;
+        -U)
+                CERT_USER="$3"
                 shift; shift
                 ;;
         esac
@@ -50,7 +57,7 @@ fi
 cd ${CERT_PATH};
 
 #SSH certs
-if [ w$1 = wssh ]; then
+if [ w${CERT_TYPE} = wssh ]; then
   echo "*******************************************************************************"
   echo "Creating SSH authentication Key"
   echo " Make ssh-keygen with empty password."
@@ -77,8 +84,11 @@ else if [ w${CERT_TYPE} = wapache ]; then
   echo "When prompted enter the server name in the Common Name field."
   echo "*******************************************************************************"
   echo
-
-  APACHE_USER=www;
+  if [ w${CERT_USER} = w ];  then
+    APACHE_USER=www;
+  else 
+    APACHE_USER=${CERT_USER};
+  fi;
   cd ${CERT_PATH};
 
   openssl genrsa -des3 -passout pass:${password} -out server.key 1024 
@@ -98,6 +108,9 @@ else if [ w${CERT_TYPE} = wapache ]; then
   openssl rsa -in server.key.org -out server.key \
    -passin pass:${password} -passout pass:${password}
 
+  #Cert info
+  openssl x509 -in server.crt -noout -subject
+
   chmod 400 server.key
 
 
@@ -106,7 +119,7 @@ else if [ w${CERT_TYPE} = weap ]; then
   echo "Make RADIUS EAP"
   echo "*******************************************************************************"
 
-  CERT_EAP_PATH=/usr/abills/Certs/eap
+  CERT_EAP_PATH=${CERT_PATH}/eap
   if [ ! -f ${CERT_EAP_PATH} ] ; then
     mkdir ${CERT_EAP_PATH};
   fi
@@ -270,8 +283,22 @@ else if [ w${CERT_TYPE} = wpostfix_tls ]; then
   openssl req -new -x509 -nodes -out smtpd.pem -keyout smtpd.pem -days ${days} \
    -passin pass:${password} -passout pass:${password}
 
+else if [ w${CERT_TYPE} = winfo ]; then
+
+  echo "******************************************************************************"
+  echo "Cert info $2"
+  echo "******************************************************************************"
+  FILENAME=$2; 
+  if [ w$FILENAME = w ] ; then 
+    echo "Select Cert file";
+    exit;
+  fi;
+
+  openssl x509 -in ${FILENAME} -noout -subject
+   
 
 
+fi;
 fi;
 fi;
 fi;
