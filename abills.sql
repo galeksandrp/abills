@@ -757,6 +757,8 @@ CREATE TABLE `users_pi` (
   `pasport_num` varchar(16) NOT NULL default '',
   `pasport_date` date NOT NULL default '0000-00-00',
   `pasport_grant` varchar(100) NOT NULL default '',
+  `zip` varchar(7) NOT NULL default '',
+  `city` varchar(20) NOT NULL default '',
   PRIMARY KEY  (`uid`)
 ) ;
 

@@ -100,6 +100,7 @@ return qq{
 <TR><TD>$_ADDRESS_STREET:</TD><TD><input type=text name=ADDRESS_STREET value="%ADDRESS_STREET%"></TD></TR>
 <TR><TD>$_ADDRESS_BUILD:</TD><TD><input type=text name=ADDRESS_BUILD value="%ADDRESS_BUILD%"></TD></TR>
 <TR><TD>$_ADDRESS_FLAT:</TD><TD><input type=text name=ADDRESS_FLAT value="%ADDRESS_FLAT%"></TD></TR>
+<TR><TD>$_CITY:</TD><TD><input type=text name=CITY value="%CITY%"> $_ZIP: <input type=text name=ZIP value="%ZIP%" size=8></TD></TR>
 <TR><TD>E-mail:</TD><TD><input type=text name=EMAIL value="%EMAIL%"></TD></TR>
 <TR><TD>$_CONTRACT_ID:</TD><TD><input type=text name=CONTRACT_ID value="%CONTRACT_ID%"></TD></TR>
 <TR><TH colspan='2' bgcolor='$_COLORS[2]'>$_PASPORT</TH></TR>

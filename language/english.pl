@@ -349,3 +349,5 @@ $_VERY_HIGH='very high';
 $_OPEN='open';
 $_CLOSED_UNSUCCESSFUL='closed unsuccessful';
 $_CLOSED_SUCCESSFUL='closed successful';
+$_CITY='City';
+$_ZIP='Zip';

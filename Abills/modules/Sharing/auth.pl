@@ -15,7 +15,6 @@ while(my ($k, $v)=each %ENV) {
   $aa .= "$k - $v\n";
 }
 
-web_auth(\@ARGV);
 
 my $debug = " URI: $ENV{URI}
  USER:      $ENV{USER}
@@ -73,6 +72,9 @@ if ($COOKIE ne '') {
  }
 
 my $sth;
+
+web_auth(\@ARGV);
+exit;
 my ($uid, $datetime, $remote_addr, $alived, $password);
 
 if ($cookies{sid}) {
@@ -246,7 +248,7 @@ sub web_auth {
 
  # path='$request_path' and
 
- my $query  = "select server, priority, size from lenta.tx_t3labtvarchive_files 
+ my $query  = "select server, priority, filesize from lenta.tx_t3labtvarchive_files 
    WHERE filename='$request_file';";
 
  $sth = $dbh->prepare($query);
@@ -263,6 +265,9 @@ sub web_auth {
   	
     }	
   }
+else {
+  print "not found";
+}
 	
 	
 	return 0;

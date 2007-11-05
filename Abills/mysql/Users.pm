@@ -149,15 +149,17 @@ sub defaults_pi {
   %DATA = (
    FIO            => '', 
    PHONE          => 0, 
-   ADDRESS_STREET => 0, 
-   ADDRESS_BUILD  => 0, 
-   ADDRESS_FLAT   => 0, 
+   ADDRESS_STREET => '', 
+   ADDRESS_BUILD  => '', 
+   ADDRESS_FLAT   => '', 
    EMAIL          => '', 
    COMMENTS       => '',
    CONTRACT_ID    => '',
    PASPORT_NUM    => '',
    PASPORT_DATE   => '0000-00-00',
-   PASPORT_GRANT  => ''
+   PASPORT_GRANT  => '',
+   ZIP            => '',
+   CITY           => ''
   );
  
   $self = \%DATA;
@@ -183,14 +185,16 @@ sub pi_add {
    }
     
   $self->query($db,  "INSERT INTO users_pi (uid, fio, phone, address_street, address_build, address_flat, 
-          email, contract_id, comments, pasport_num, pasport_date,  pasport_grant)
+          email, contract_id, comments, pasport_num, pasport_date,  pasport_grant, zip, city)
            VALUES ('$DATA{UID}', '$DATA{FIO}', '$DATA{PHONE}', \"$DATA{ADDRESS_STREET}\", 
             \"$DATA{ADDRESS_BUILD}\", \"$DATA{ADDRESS_FLAT}\",
             '$DATA{EMAIL}', '$DATA{CONTRACT_ID}',
             '$DATA{COMMENTS}',
             '$DATA{PASPORT_NUM}',
             '$DATA{PASPORT_DATE}',
-            '$DATA{PASPORT_GRANT}'
+            '$DATA{PASPORT_GRANT}',
+            '$DATA{ZIP}',
+            '$DATA{CITY}'
              );", 'do');
   
   return $self if ($self->{errno});
@@ -222,8 +226,9 @@ sub pi {
   pi.comments,
   pi.pasport_num,
   pi.pasport_date,
-  pi.pasport_grant
-  
+  pi.pasport_grant,
+  pi.zip,
+  pi.city
     FROM users_pi pi
     WHERE pi.uid='$UID';");
 
@@ -245,7 +250,9 @@ sub pi {
    $self->{COMMENTS},
    $self->{PASPORT_NUM},
    $self->{PASPORT_DATE},
-   $self->{PASPORT_GRANT}
+   $self->{PASPORT_GRANT},
+   $self->{ZIP},
+   $self->{CITY}
   )= @{ $self->{list}->[0] };
 	
 	
@@ -272,7 +279,9 @@ my %FIELDS = (EMAIL          => 'email',
               CONTRACT_ID    => 'contract_id',
               PASPORT_NUM    => 'pasport_num',
               PASPORT_DATE   => 'pasport_date',
-              PASPORT_GRANT  => 'pasport_grant'
+              PASPORT_GRANT  => 'pasport_grant',
+              ZIP            => 'zip',
+              CITY           => 'city'
               
              );
 
