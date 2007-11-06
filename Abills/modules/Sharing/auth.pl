@@ -16,19 +16,7 @@ while(my ($k, $v)=each %ENV) {
 }
 
 
-my $debug = " URI: $ENV{URI}
- USER:      $ENV{USER}
- Password:  $ENV{PASS}
- IP         $ENV{IP}
- HTTP_HOST: $ENV{HTTP_HOST}
- ===PIPE
- $prog
- ===EXT
- $aa
- === \n";
-$a = `echo "$debug" >> /tmp/sharing_env`;
 #***************************************************
-
 my $user   = $ENV{USER} || '';
 my $passwd = $ENV{PASS} || '';
 my $ip     = $ENV{IP}   || '0.0.0.0';
@@ -77,6 +65,19 @@ if ($ENV{HTTP_HOST}) {
 	web_auth();
  }
 else {
+my $debug = " URI: $ENV{URI}
+ USER:      $ENV{USER}
+ Password:  $ENV{PASS}
+ IP         $ENV{IP}
+ HTTP_HOST: $ENV{HTTP_HOST}
+ ===PIPE
+ $prog
+ ===EXT
+ $aa
+ === \n";
+$a = `echo "$debug" >> /tmp/sharing_env`;
+
+
   if (auth()) {
     exit 0;	
    }
