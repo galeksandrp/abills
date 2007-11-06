@@ -574,11 +574,13 @@ if (! $list) {
   $list = $Sharing->sessions_list({ %LIST_PARAMS });	
 }
 
+@PRIORITY = ('P', 'F');
+
 my $table = $html->table( { width        => '100%',
                             caption      => "$_SESSIONS",
                             border       => 1,
                             title        => ["$_USER", "$_START", "$_DURATION", "$_RECV", "$_SENT",  
-                            "CID", "NAS", "$_STATUS", "$_FILE", "$_SIZE", "-"],
+                            "CID", "NAS", "$_STATUS", "$_FILE", "$_SIZE", "$_PRIORITY", "-"],
                             cols_align   => ['left', 'right', 'right', 'RIGHT', 'right', 'right', 'right', 'right', 'right', 'right', 'center:noprint', 'center:noprint'],
                             qs           => $pages_qs,
                             pages        => $Sharing->{TOTAL},
@@ -608,6 +610,7 @@ foreach my $line (@$list) {
      $line->[7], 
      $line->[8], 
      int2byte($line->[9]), 
+     $line->[10],
      $delete);
 }
 

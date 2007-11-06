@@ -1453,7 +1453,7 @@ sub sessions_list {
 
  # Show debeters
  if ($attr->{LOGIN}) {
-    push @WHERE_RULES, "l.username='$attr->{LOGIN}'";
+    push @WHERE_RULES, "sl.username='$attr->{LOGIN}'";
    }
  elsif ($attr->{LOGIN_EXPR}) {
     $attr->{LOGIN_EXPR} =~ s/\*/\%/ig;
@@ -1463,23 +1463,23 @@ sub sessions_list {
 
 #NAS ID
  if ($attr->{NAS_ID}) {
-   push @WHERE_RULES, "l.nas_id='$attr->{NAS_ID}'";
+   push @WHERE_RULES, "sl.nas_id='$attr->{NAS_ID}'";
   }
 
 #NAS ID
  if ($attr->{CID}) {
    if($attr->{CID}) {
      $attr->{CID} =~ s/\*/\%/ig;
-     push @WHERE_RULES, "l.cid LIKE '$attr->{CID}'";
+     push @WHERE_RULES, "sl.cid LIKE '$attr->{CID}'";
     }
    else {
-     push @WHERE_RULES, "l.cid='$attr->{CID}'";
+     push @WHERE_RULES, "sl.cid='$attr->{CID}'";
     }
   }
 
 #TARIF_PLAN
  if ($attr->{TARIF_PLAN}) {
-   push @WHERE_RULES, "l.tp_id='$attr->{TARIF_PLAN}'";
+   push @WHERE_RULES, "sl.tp_id='$attr->{TARIF_PLAN}'";
   }
 
 if ($attr->{GID}) {
@@ -1487,19 +1487,19 @@ if ($attr->{GID}) {
  }
 
 if ($attr->{TERMINATE_CAUSE}) {
-	push @WHERE_RULES, "l.terminate_cause='$attr->{TERMINATE_CAUSE}'";
+	push @WHERE_RULES, "sl.terminate_cause='$attr->{TERMINATE_CAUSE}'";
  }
 
 if ($attr->{FROM_DATE}) {
-   push @WHERE_RULES, "(date_format(l.start, '%Y-%m-%d')>='$attr->{FROM_DATE}' and date_format(l.start, '%Y-%m-%d')<='$attr->{TO_DATE}')";
+   push @WHERE_RULES, "(date_format(sl.start, '%Y-%m-%d')>='$attr->{FROM_DATE}' and date_format(sl.start, '%Y-%m-%d')<='$attr->{TO_DATE}')";
  }
 
 if ($attr->{DATE}) {
-   push @WHERE_RULES, "date_format(l.start, '%Y-%m-%d')>='$attr->{DATE}'";
+   push @WHERE_RULES, "date_format(sl.start, '%Y-%m-%d')>='$attr->{DATE}'";
  }
 
 if ($attr->{MONTH}) {
-   push @WHERE_RULES, "date_format(l.start, '%Y-%m')>='$attr->{MONTH}'";
+   push @WHERE_RULES, "date_format(sl.start, '%Y-%m')>='$attr->{MONTH}'";
  }
 
 
@@ -1531,38 +1531,39 @@ elsif($attr->{DATE}) {
 #From To
 
 
- 
 
- $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
+ $WHERE = "WHERE " . join(' and ', @WHERE_RULES) if ($#WHERE_RULES > -1);
  
  $self->query($db, "select 
-  username,
-  start,
-  SEC_TO_TIME(duration),
-  sent,
-  recv,  
-  INET_NTOA(remoteip),
-  virtualhost,
-  connectionstatus,
-  url,
-  bytescontent,
-  statusbeforeredir,
-  statusafterredir,
-  remoteport,
-  serverid,  
-  requestmethod,
+  sl.username,
+  sl.start,
+  SEC_TO_TIME(sl.duration),
+  sl.sent,
+  sl.recv,  
+  INET_NTOA(sl.remoteip),
+  sl.virtualhost,
+  sl.connectionstatus,
+  sl.url,
+  sl.bytescontent,
+  if(sp.priority IS NULL, 0, 1),
+  sl.statusbeforeredir,
+  sl.statusafterredir,
+  sl.remoteport,
+  sl.serverid,  
+  sl.requestmethod,
 
-  protocol,
-  processid,
-  threadid,
-  useragent,
-  referer,
-  uniqueid,
+  sl.protocol,
+  sl.processid,
+  sl.threadid,
+  sl.useragent,
+  sl.referer,
+  sl.uniqueid,
   
-  identuser,
-  microseconds
+  sl.identuser,
+  sl.microseconds
   
-  FROM (sharing_log l)
+  FROM (sharing_log sl)
+  LEFT join  sharing_priority sp ON (sl.url = sp.file)
   $WHERE
   ORDER BY $SORT $DESC
  ;");
@@ -1572,8 +1573,10 @@ elsif($attr->{DATE}) {
  my $list = $self->{list};
  
   if ($self->{TOTAL} > 0) {
-    $self->query($db, "SELECT count(l.username), SEC_TO_TIME(sum(l.duration)), sum(l.sent), sum(l.recv) 
-      FROM (sharing_log l)
+    $self->query($db, "SELECT count(sl.username), 
+     SEC_TO_TIME(sum(sl.duration)), sum(sl.sent), sum(sl.recv) 
+      FROM (sharing_log sl)
+     LEFT join  sharing_priority sp ON (sl.url = sp.file)
      $WHERE;");
 
     ($self->{TOTAL},

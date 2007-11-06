@@ -64,6 +64,8 @@ my $MESSAGE = '';
 
 if ( $#ARGV > -1 ) {
 	web_auth();
+	
+	exit 1;
  }
 else {
 my $debug = " URI: $ENV{URI}
@@ -88,6 +90,8 @@ $a = `echo "$debug" >> /tmp/sharing_env`;
   }
 }
 
+
+exit 1;
 
 #**********************************************************
 #
