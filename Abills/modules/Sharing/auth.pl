@@ -110,12 +110,13 @@ if ($cookies{sid}) {
 	
 	$sth = $dbh->prepare($query);
 	
+	
+  $sth->execute();
 	if ($dbh->rows() == -1) {
     $MESSAGE = "Wrong SID for '$user' - Rejected\n";
     return 0;
    }
-	
-  $sth->execute();
+
 
   ($uid, $datetime, $user, $remote_addr, $alived) = $sth->fetchrow_array();
  }
@@ -132,7 +133,7 @@ $sth->execute();
 
 ($password, $uid) = $sth->fetchrow_array();
 
-if ($sth->rows() < 1) {
+if ($sth->rows() < 0) {
   $MESSAGE = "User not found '$user' - Rejected\n";
   return 0;
  }
