@@ -285,7 +285,7 @@ if ($sth->rows() > 0) {
   	
 }
 
-  return 0;
+  return 1;
 }
 # Get month traffic
 
