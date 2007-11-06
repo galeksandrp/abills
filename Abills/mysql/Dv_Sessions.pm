@@ -391,6 +391,8 @@ sub zap {
   my $self=shift;
   my ($nas_id, $nas_port_id, $acct_session_id, $attr)=@_;
   
+  my $WHERE = '';
+  
   if (! defined($attr->{ALL})) {
     $WHERE = "WHERE nas_id='$nas_id' and nas_port_id='$nas_port_id' and acct_session_id='$acct_session_id'";
    }
