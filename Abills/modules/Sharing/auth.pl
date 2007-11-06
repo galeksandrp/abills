@@ -73,13 +73,19 @@ if ($COOKIE ne '') {
 my $sth;
 my $MESSAGE = '';
 
-if (auth()) {
-  exit 0;	
-}
+if ($ENV{HTTP_HOST}) {
+	web_auth();
+ }
 else {
-  print STDERR $MESSAGE;
-  exit 1;
+  if (auth()) {
+    exit 0;	
+   }
+  else {
+    print STDERR $MESSAGE;
+    exit 1;
+  }
 }
+
 
 #**********************************************************
 #
