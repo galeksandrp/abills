@@ -215,6 +215,8 @@ $sth->execute();
 my ( $used_traffic ) = $sth->fetchrow_array();
 
 
+$prepaid_traffic = $prepaid_traffic * 1024 * 1024;
+
 my $rest_traffic = 0;
 if ($deposit < 0 && $used_traffic > $prepaid_traffic) {
   $MESSAGE = "[$user] Use all prepaid traffic - Rejected\n";
