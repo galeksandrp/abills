@@ -221,7 +221,7 @@ if ($prepaid_traffic > 0) {
   $rest_traffic = $prepaid_traffic - $used_traffic;
 }
 if ($deposit > 0) {
-	$rest_traffic += $deposit * $in_price * 1024 * 1024;
+	$rest_traffic = $rest_traffic + $deposit * $in_price * 1024 * 1024;
 }
 
 #Get file info
