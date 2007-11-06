@@ -71,14 +71,21 @@ if ($COOKIE ne '') {
   }
  }
 my $sth;
+my $MESSAGE = '';
 
-auth();
+if (auth()) {
+  exit 0;	
+}
+else {
+  print STDERR $MESSAGE;
+  exit 1;
+}
 
 #**********************************************************
 #
 #**********************************************************
 sub auth {
-
+  
 my ($uid, $datetime, $remote_addr, $alived, $password);
 
 if ($cookies{sid}) {
@@ -112,12 +119,12 @@ $sth->execute();
 ($password, $uid) = $sth->fetchrow_array();
 
 if ($sth->rows() < 1) {
-  print STDERR "User not found '$user' - Rejected\n";
-  exit 1;
+  $MESSAGE = "User not found '$user' - Rejected\n";
+  return 0;
  }
 elsif ($password == 0) {
-  print STDERR "Wrong user password '$user' - Rejected\n";
-  exit 1;
+  $MESSAGE = "Wrong user password '$user' - Rejected\n";
+  return 0;
  }
 }
 
@@ -202,12 +209,12 @@ my ( $used_traffic ) = $sth->fetchrow_array();
 
 my $rest_traffic = 0;
 if ($deposit < 0 && $used_traffic > $prepaid_traffic) {
-  print STDERR "[$user] Use all prepaid traffic - Rejected\n";
-  exit 1;
+  $MESSAGE = "[$user] Use all prepaid traffic - Rejected\n";
+  return 0;
  }
 elsif ($deposit < 0) {
-  print STDERR "[$user] Negtive deposit '$deposit' - Rejected\n";
-  exit 1;
+  $MESSAGE = "[$user] Negtive deposit '$deposit' - Rejected\n";
+  return 0;
  }
 
 if ($prepaid_traffic > 0) {
@@ -248,8 +255,8 @@ if ($sth->rows() > 0) {
   my ( $server, $priority, $size  ) = $sth->fetchrow_array();
   
   if ($size > $rest_traffic) {
- 	  print STDERR "[$user] Download file too large (Rest: $rest_traffic b) - Rejected\n";
-    exit 1;
+ 	  $MESSAGE = "[$user] Download file too large (Rest: $rest_traffic b) - Rejected\n";
+    return 0;
    }
   
   if ($priority == 0) {
@@ -261,6 +268,7 @@ if ($sth->rows() > 0) {
   	
 }
 
+  return 0;
 }
 # Get month traffic
 
@@ -275,10 +283,17 @@ $dbh->disconnect();
 sub web_auth {
 	my ($argv) = @_;
 	
- print "Content-Type: text/html\n\n";
+
  my $request_file =	$argv->[0];
  
- auth();
+ if (auth()) {
+   print "Location: $request_file\n\n";
+  }
+ else {
+   print "Content-Type: text/html\n\n";
+   print "$MESSAGE";
+ 	 return 0;
+  }	
 	
  return 0;
 }
