@@ -61,6 +61,7 @@ if ($COOKIE ne '') {
 my $sth;
 my $MESSAGE = '';
 
+
 if (! $ENV{URI}) {
 	web_auth();
  }
