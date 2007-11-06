@@ -70,11 +70,15 @@ if ($COOKIE ne '') {
     $cookies{$key} = $val;
   }
  }
-
 my $sth;
 
-web_auth(\@ARGV);
-exit;
+auth();
+
+#**********************************************************
+#
+#**********************************************************
+sub auth {
+
 my ($uid, $datetime, $remote_addr, $alived, $password);
 
 if ($cookies{sid}) {
@@ -162,26 +166,56 @@ my (
   $month_traf_limit
   ) = $sth->fetchrow_array();
 
-#Get Deposit
-$query = "select deposit 
-     FROM bills
-     WHERE
-        id='$bill_id'";
 
+#Get Deposit
+$query = "select deposit FROM bills WHERE   id='$bill_id'";
 $sth = $dbh->prepare($query);
 $sth->execute();
-
 my ( $deposit ) = $sth->fetchrow_array();
 
+
+#Get prepaid traffic and price
+$sth = $dbh->prepare( "SELECT prepaid, in_price, out_price, prepaid, in_speed, out_speed
+     FROM sharing_trafic_tarifs 
+     WHERE tp_id='$tp_id'
+     ORDER BY id;");
+
+$sth->execute();
+my ( $prepaid_traffic,
+     $in_price,  
+     $out_price,
+     $in_speed, 
+     $out_speed
+     ) = $sth->fetchrow_array();
+
 #Get used traffic
-$query = "select sum(sent)
-     FROM sharing_log
-     WHERE username='$user'";
+$query = "select sum(sl.sent)
+     FROM sharing_log sl, sharing_priority sp
+     WHERE 
+     sl.url=sp.file
+     and sl.username='$user'";
 
 $sth = $dbh->prepare($query);
 $sth->execute();
-my ( $sent ) = $sth->fetchrow_array();
+my ( $used_traffic ) = $sth->fetchrow_array();
 
+
+my $rest_traffic = 0;
+if ($deposit < 0 && $used_traffic > $prepaid_traffic) {
+  print STDERR "[$user] Use all prepaid traffic - Rejected\n";
+  exit 1;
+ }
+elsif ($deposit < 0) {
+  print STDERR "[$user] Negtive deposit '$deposit' - Rejected\n";
+  exit 1;
+ }
+
+if ($prepaid_traffic > 0) {
+  $rest_traffic = $prepaid_traffic - $used_traffic;
+}
+if ($deposit > 0) {
+	$rest_traffic += $deposit * $in_price * 1024 * 1024;
+}
 
 #Get file info
 # это позволяет по ид новости определить имена файлов и открытость-закрытость их для всех
@@ -212,24 +246,22 @@ $sth = $dbh->prepare($query);
 $sth->execute();
 if ($sth->rows() > 0) {
   my ( $server, $priority, $size  ) = $sth->fetchrow_array();
+  
+  if ($size > $rest_traffic) {
+ 	  print STDERR "[$user] Download file too large (Rest: $rest_traffic b) - Rejected\n";
+    exit 1;
+   }
+  
   if ($priority == 0) {
   	
-  }
+   }
   elsif($priority == 1) {
   	
    }	
   	
 }
-#| uid  | pid | tstamp | crdate | cruser_id | server                   | path
-#                | filename               | filesize | priority |
 
-
-
-
-
-
-
-
+}
 # Get month traffic
 
 
@@ -245,32 +277,20 @@ sub web_auth {
 	
  print "Content-Type: text/html\n\n";
  my $request_file =	$argv->[0];
-
- # path='$request_path' and
-
- my $query  = "select server, priority, filesize from lenta.tx_t3labtvarchive_files 
-   WHERE filename='$request_file';";
-
- $sth = $dbh->prepare($query);
- $sth->execute();
-
- if ($sth->rows() > 0) {
-   my ( $server, $priority, $size  ) = $sth->fetchrow_array();
-   print "$server, $priority, $size";
-   
-   if ($priority == 0) {
-  	
-    }
-   elsif($priority == 1) {
-  	
-    }	
-  }
- else {
-    print "Not found\n";
-  }
+ 
+ auth();
 	
-	
-	return 0;
+ return 0;
 }
+
+#INSERT INTO sharing_priority
+#(server,
+# file,
+# size,
+# priority
+# )
+#SELECT
+# server,  CONCAT(path, filename ),  filesize,  priority
+#FROM lenta.tx_t3labtvarchive_files
 
 exit 0;
