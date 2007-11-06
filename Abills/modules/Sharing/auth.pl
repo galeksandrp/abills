@@ -62,7 +62,7 @@ my $sth;
 my $MESSAGE = '';
 
 
-if ($ENV{HTTP_HOST}) {
+if ( $#ARGV > -1 ) {
 	web_auth();
  }
 else {
