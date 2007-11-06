@@ -1566,6 +1566,7 @@ elsif($attr->{DATE}) {
   LEFT join  sharing_priority sp ON (sl.url = sp.file)
   $WHERE
   ORDER BY $SORT $DESC
+  LIMIT $PG, $PAGE_ROWS;
  ;");
 
  return $self if($self->{errno});

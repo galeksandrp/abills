@@ -1072,7 +1072,15 @@ $table = $html->table( { caption     => "$_SUM",
 #
 #**********************************************************
 sub sharing_user_info {
-	
+	my $user = $Sharing->info($LIST_PARAMS{UID});
+  
+  if ($user->{TOTAL} < 1) {
+  	$html->message('info', $_INFO, "$_NOT_ACTIVE");
+    return 0;	
+  }
+  
+  $Dv->{STATUS} = $status[$Dv->{DISABLE}];
+  $html->tpl_show(_include('sharing_user_info', 'Sharing'), $Sharing);
 }
 
 
