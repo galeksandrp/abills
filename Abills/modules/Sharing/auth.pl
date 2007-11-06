@@ -246,7 +246,7 @@ if ($URL =~ /\/vids(\S+)\/(\S+)$/) {
  $request_file = $2;
 }
 
-$query  = "select server, priority, size from lenta.tx_t3labtvarchive_files 
+$query  = "select server, priority, filesize from lenta.tx_t3labtvarchive_files 
  WHERE path='$request_path' and filename='$request_file';";
 
 $sth = $dbh->prepare($query);
@@ -291,7 +291,7 @@ sub web_auth {
   }
  else {
    print "Content-Type: text/html\n\n";
-   print "$MESSAGE";
+   print "$MESSAGE\n";
  	 return 0;
   }	
 	
