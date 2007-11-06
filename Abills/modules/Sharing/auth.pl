@@ -62,7 +62,7 @@ my $sth;
 my $MESSAGE = '';
 
 
-if (! $ENV{URI}) {
+if ($ENV{HTTP_HOST}) {
 	web_auth();
  }
 else {
