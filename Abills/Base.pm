@@ -385,6 +385,7 @@ sub int2byte {
  $KBYTE_SIZE = int($attr->{KBYTE_SIZE}) if (defined($attr->{KBYTE_SIZE}));
  my $MEGABYTE = $KBYTE_SIZE * $KBYTE_SIZE;
  my $GIGABYTE = $KBYTE_SIZE * $KBYTE_SIZE * $KBYTE_SIZE;
+ $val = int($val);
 
  if ($attr->{DIMENSION}) {
  	 if ($attr->{DIMENSION} eq 'Mb') {

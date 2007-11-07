@@ -557,11 +557,14 @@ return $list;
 sub periods_totals {
  my $self = shift;
  my ($attr) = @_;
+
  my $WHERE = '';
  
  if($attr->{LOGIN})  {
-   $WHERE .= ($WHERE ne '') ?  " and username='$attr->{LOGIN}' " : "WHERE username='$attr->{LOGIN}'";
+   $WHERE .= " and username='$attr->{LOGIN}' " if ($WHERE ne '');
   }
+
+ $self->{debug}=1;
 
  $self->query($db, "SELECT  
    sum(if(date_format(start, '%Y-%m-%d')=curdate(), sent, 0)), 
@@ -581,7 +584,9 @@ sub periods_totals {
    SEC_TO_TIME(sum(if(date_format(start, '%Y-%m')=date_format(curdate(), '%Y-%m'), duration, 0))),
   
    sum(sent), sum(recv), SEC_TO_TIME(sum(duration))
-   FROM sharing_log $WHERE;");
+   FROM (sharing_log sl,  sharing_priority sp)
+   WHERE sl.url = sp.file
+   $WHERE;");
 
   ($self->{sent_0}, 
    $self->{recv_0}, 
@@ -1576,8 +1581,8 @@ elsif($attr->{DATE}) {
   if ($self->{TOTAL} > 0) {
     $self->query($db, "SELECT count(sl.username), 
      SEC_TO_TIME(sum(sl.duration)), sum(sl.sent), sum(sl.recv) 
-      FROM (sharing_log sl)
-     LEFT join  sharing_priority sp ON (sl.url = sp.file)
+     FROM (sharing_log sl)
+     INNER join  sharing_priority sp ON (sl.url=sp.file)
      $WHERE;");
 
     ($self->{TOTAL},
