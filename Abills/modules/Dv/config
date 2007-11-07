@@ -36,7 +36,7 @@ if (in_array('Cards', \@MODULES)) {
                       );
 
 
-$USER_FUNCTION_LIST{"04:1:$_TARIF_PLAN:dv_user_chg_tp:"}=0 if (defined($conf{DV_USER_CHG_TP}) && $conf{DV_USER_CHG_TP} ne '0');
+$USER_FUNCTION_LIST{"04:1:$_TARIF_PLAN:dv_user_chg_tp:"}=0 if ($conf{DV_USER_CHG_TP});
 
 
 # 

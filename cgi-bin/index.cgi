@@ -911,3 +911,34 @@ if (defined($FORM{DATE})) {
 }
 
 }
+
+
+#*******************************************************************
+# form_period
+#*******************************************************************
+sub form_period  {
+ my ($period) = @_;
+
+
+ my @periods = ("$_NOW", "$_DATE");
+ my $date_fld = $html->date_fld('date_', { MONTHES => \@MONTHES });
+ my $form_period='';
+
+
+ $form_period .= "<tr><td>$_DATE:</td><td>";
+
+ my $i=0;
+ foreach my $t (@periods) {
+   $form_period .= "<br><br><input type=radio name=period value=$i";
+   $form_period .= " checked" if ($i eq $period);
+   $form_period .= "> $t\n";	
+   $i++;
+ }
+ $form_period .= "$date_fld</td></tr>\n";
+
+
+ return $form_period;	
+}
+
+
+1

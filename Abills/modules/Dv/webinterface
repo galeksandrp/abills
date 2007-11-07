@@ -44,9 +44,18 @@ sub dv_chg_tp {
  my $TARIF_PLAN = $FORM{tarif_plan} || $_DEFAULT_VARIANT;
  my $period = $FORM{period} || 0;
 
- my $shedule = Shedule->new($db, $admin);
+ my $shedule = Shedule->new($db, $admin, \%conf);
 
 if ($FORM{set}) {
+ 	use POSIX;
+
+  my $seltime = POSIX::mktime(0, 0, 0, $FORM{date_D}, $FORM{date_M}, ($FORM{date_Y} - 1900));
+    
+  if ($seltime <= time()) {
+    $html->message('info', $_INFO, "$ERR_WRONG_DATA ($FORM{date_D}, $FORM{date_M}, $FORM{date_Y}  )/". $seltime . "-" . time());
+    return 0;
+   }
+
   if ($period == 1) {
     $FORM{date_M}++;
     $shedule->add( {UID     => $user->{UID},
@@ -2057,7 +2066,9 @@ print $table->show();
 sub dv_user_chg_tp {
 
  my $user;
-
+ my $shedule = Shedule->new($db, $admin, \%conf);
+ my $period = $FORM{period} || 0;
+ 
  if (! $conf{DV_USER_CHG_TP}) {
     $html->message('err', $_ERROR, "$_NOT_ALLOW");
     return 0;
@@ -2086,8 +2097,38 @@ sub dv_user_chg_tp {
 
 
 if ($FORM{set}) {
-    $FORM{UID}=$LIST_PARAMS{UID};
+  if ($period == 1) {
+  	use POSIX;
 
+    my $seltime = POSIX::mktime(0, 0, 0, $FORM{date_D}, $FORM{date_M}, ($FORM{date_Y} - 1900));
+    
+    if ($seltime <= time()) {
+      $html->message('info', $_INFO, "$ERR_WRONG_DATA ($FORM{date_D}, $FORM{date_M}, $FORM{date_Y}  )/". $seltime . "-" . time());
+      return 0;
+     }
+
+    $FORM{date_M}++;    
+    $shedule->add( {UID     => $LIST_PARAMS{UID},
+                   TYPE     => 'tp',
+                   ACTION   => $FORM{TP_ID},
+    	             D        => $FORM{date_D},
+                   M        => $FORM{date_M},
+                   Y        => $FORM{date_Y},
+                   DESCRIBE => "$message<br>
+                   $_FROM: '$FORM{date_Y}-$FORM{date_M}-$FORM{date_D}'",
+                   MODULE   => 'Dv'
+                    });
+
+    if ($shedule->{errno}) {
+      $html->message('err', $_ERROR, "[$shedule->{errno}] $err_strs{$shedule->{errno}}");	
+     }
+    else {
+      $html->message('info', $_CHANGED, "$_CHANGED");
+      $user->info($user->{UID});
+    }
+   }
+  else {
+    $FORM{UID}=$LIST_PARAMS{UID};
     $user->change({ %FORM });
 
     if ($user->{errno}) {
@@ -2097,8 +2138,41 @@ if ($FORM{set}) {
       $html->message('info', $_CHANGED, "$_CHANGED");
       $user->info($user->{UID});
     }
+  }
+}
+elsif($FORM{del}) {
+  $shedule->del( { UID => $LIST_PARAMS{UID},
+   	               ID  => $FORM{SHEDULE_ID}  } 
+   	            );
+
+  $html->message('info', $_DELETED, "$_DELETED [$FORM{SHEDULE_ID}]");
 }
 
+
+
+  $shedule->info( {UID      => $user->{UID},
+                   TYPE     => 'tp',
+                   DESCRIBE => "$message\n$_FROM: '$FORM{date_y}-$FORM{date_m}-$FORM{date_d}'",
+                   MODULE   => 'Dv'
+                   });
+
+
+  if ($shedule->{TOTAL} > 0) {
+  	$table = $html->table( { width      => '100%',
+  		                       caption    => "$_SHEDULE",
+                             cols_align => ['left', 'left'],
+                             rows       => [ [ "$_TARIF_PLAN:", "$shedule->{ACTION}"   ],
+                                             [ "$_DATE:",   "$shedule->{D}-$shedule->{M}-$shedule->{Y}" ],
+                                             [ "$_ADMIN:",  "$shedule->{ADMIN_NAME}"   ],
+                                             [ "$_ADDED:",  "$shedule->{DATE}"         ],
+                                             [ "ID:",       "$shedule->{SHEDULE_ID}"   ]  
+                                            ]
+                               } );
+  	$tariffs->{TARIF_PLAN_SEL} = $table->show({ OUTPUT2RETURN => 1 }). $html->form_input('SHEDULE_ID', "$shedule->{SHEDULE_ID}", { TYPE => 'HIDDEN', OUTPUT2RETURN => 1 });
+  	$tariffs->{ACTION}='del';
+  	$tariffs->{LNG_ACTION}=$_DEL;
+  }
+ else {
    $tariffs->{TARIF_PLAN_SEL}=$html->form_select('TP_ID', 
                                           { 
  	                                          SELECTED          => $user->{TP_ID},
@@ -2107,8 +2181,10 @@ if ($FORM{set}) {
  	                                          MULTI_ARRAY_VALUE => 1,
  	                                        });
 
+   $tariffs->{PARAMS} .= form_period($period);	
    $tariffs->{ACTION}='set';
    $tariffs->{LNG_ACTION}=$_CHANGE;
+  }
 
    $tariffs->{UID}=$attr->{USER}->{UID};
    $tariffs->{m}=$m;
@@ -2130,7 +2206,10 @@ sub dv_user_info {
     return 0;	
   }
   
-  $Dv->{STATUS} = $status[$Dv->{DISABLE}];
+  $Dv->{STATUS}    = $status[$Dv->{DISABLE}];
+  if ($conf{DV_USER_CHG_TP}) {
+    $Dv->{TP_CHANGE} = $html->button("$_CHANGE", 'index='. ($index+2).'&sid='.$sid );
+   }
   $html->tpl_show(_include('dv_user_info', 'Dv'), $Dv);
 }
 
