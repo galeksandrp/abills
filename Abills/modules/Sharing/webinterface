@@ -85,7 +85,7 @@ elsif (defined($FORM{TP_ID})) {
    }
   elsif($FORM{change}) {
     $Tariffs->change( $FORM{TP_ID}, { %FORM, MODULE => 'Sharing'  } );  
-     
+      
     if (! $Tariffs->{errno}) {
        $html->message('info', $_CHANGED, "$_CHANGED $Tariffs->{TP_ID}");
      }

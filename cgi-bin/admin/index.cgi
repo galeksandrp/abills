@@ -4498,6 +4498,98 @@ if(defined($FORM{del}) && defined($FORM{is_js_confirmed})  && $permissions{0}{5}
 }
 
 #**********************************************************
+# Tarif plans groups
+# form_tp
+#**********************************************************
+sub tp_groups {
+
+ use Tariffs;
+ my $Tariffs = Tariffs->new($db, \%conf);
+
+ $Tarrifs = $Tariffs->tp_group_defaults();
+ $Tariffs->{LNG_ACTION}=$_ADD;
+ $Tariffs->{ACTION}='ADD';
+
+if($FORM{ADD}) {
+  $Tariffs->tp_group_add({ %FORM });
+  if (! $Tariffs->{errno}) {
+    $html->message('info', $_ADDED, "$_ADDED GID: $Tariffs->{GID}");
+   }
+ }
+elsif($FORM{change}) {
+  $Tariffs->tp_group_change({	%FORM  });
+  if (! $Tariffs->{errno}) {
+    $html->message('info', $_CHANGED, "$_CHANGED ");	
+   }
+ }
+elsif($FORM{chg}) {
+  $Tariffs->tp_group_info($FORM{chg});
+  if (! $Tariffs->{errno}) {
+    $html->message('info', $_CHANGED, "$_CHANGED ");	
+   }
+
+  $Tariffs->{ACTION}='change';
+  $Tariffs->{LNG_ACTION}=$_CHANGE;
+ }
+elsif(defined($FORM{del}) && $FORM{is_js_confirmed}) {
+  $Tariffs->tp_group_del($FORM{del});
+  if (! $Tariffs->{errno}) {
+    $html->message('info', $_DELETE, "$_DELETED $FORM{del}");
+   }
+}
+
+
+if ($Tariffs->{errno}) {
+    $html->message('err', $_ERROR, "[$Tariffs->{errno}] $err_strs{$Tariffs->{errno}}");	
+ }
+
+
+$Tariffs->{USER_CHG_TP} = ($tarrifs->{USER_CHG_TP}) ? 'checked' : '';
+$html->tpl_show(_include('dv_tp_group', 'Dv'), $Tarrifs);
+
+
+my $list = $Tariffs->tp_group_list({ %LIST_PARAMS });	
+
+# Time tariff Name Begin END Day fee Month fee Simultaneously - - - 
+my $table = $html->table( { width      => '100%',
+                            caption    => "$_GROUPS",
+                            border     => 1,
+                            title      => ['#', $_NAME, $_USER_CHG_TP, $_COUNT, '-', '-' ],
+                            cols_align => ['right', 'left', 'center', 'right', 'center:noprint', 'center:noprint' ],
+                           } );
+
+my ($delete, $change);
+foreach my $line (@$list) {
+  if ($permissions{4}{1}) {
+    $delete = $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?" }); 
+    $change = $html->button($_CHANGE, "index=$index&chg=$line->[0]");
+   }
+  
+  if($FORM{TP_ID} eq $line->[0]) {
+  	$table->{rowcolor}=$_COLORS[0];
+   }
+  else {
+  	undef($table->{rowcolor});
+   }
+  
+  $table->addrow("$line->[0]", 
+   $line->[1],
+   $bool_vals[$line->[2]], 
+   $line->[3],
+   $change,
+   $delete);
+}
+
+print $table->show();
+
+$table = $html->table( { width      => '100%',
+                         cols_align => ['right', 'right'],
+                         rows       => [ [ "$_TOTAL:", "<b>$Tariffs->{TOTAL}</b>" ] ]
+                               } );
+print $table->show();
+}
+
+#**********************************************************
 # Make external operations
 #**********************************************************
 sub _external {
