@@ -1065,7 +1065,8 @@ sub info {
    sharing.filter_id, 
    sharing.cid,
    sharing.disable,
-   sharing.type
+   sharing.type,
+   tp.gid
      FROM sharing_main sharing
      LEFT JOIN tarif_plans tp ON (sharing.tp_id=tp.id and tp.module='Sharing')
    $WHERE;");
@@ -1085,7 +1086,8 @@ sub info {
    $self->{FILTER_ID}, 
    $self->{CID},
    $self->{DISABLE},
-   $self->{TYPE}
+   $self->{TYPE},
+   $self->{TP_GID}
   )= @{ $self->{list}->[0] };
   
   

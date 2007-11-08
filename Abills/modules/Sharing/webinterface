@@ -1,10 +1,10 @@
-#/usr/bin/perl
 # Sharing web functions
 
 
 
 use Sharing;
 use Tariffs;
+use Shedule;
 #use Nas;
 
 
@@ -1079,7 +1079,12 @@ sub sharing_user_info {
     return 0;	
   }
   
-  $Dv->{STATUS} = $status[$Dv->{DISABLE}];
+  if ($conf{SHARING_USER_CHG_TP}) {
+    $Sharing->{TP_CHANGE} = $html->button("$_CHANGE", 'index='. ($index+1).'&sid='.$sid );
+   }
+
+  
+  $Sharing->{STATUS} = $status[$Sharing->{DISABLE}];
   $html->tpl_show(_include('sharing_user_info', 'Sharing'), $Sharing);
 }
 
@@ -1109,7 +1114,7 @@ sub sharing_chg_tp {
  my $TARIF_PLAN = $FORM{tarif_plan} || $_DEFAULT_VARIANT;
  my $period = $FORM{period} || 0;
 
- my $shedule = Shedule->new($db, $admin);
+ my $shedule = Shedule->new($db, $admin, \%conf);
 
 if ($FORM{set}) {
   if ($period == 1) {
@@ -1202,8 +1207,142 @@ $Tariffs->{TP_NAME} = "$user->{TP_ID}:$user->{TP_NAME} [". $html->button("$_VARI
 
 
 print $html->tpl_show(templates('chg_tp'), $Tariffs);
+}
 
 
+#**********************************************************
+# sharing_user_info
+#**********************************************************
+sub sharing_user_chg_tp {
+
+ my $user;
+ my $shedule = Shedule->new($db, $admin, \%conf);
+ my $period = $FORM{period} || 0;
+ 
+ if (! $conf{SHARING_USER_CHG_TP}) {
+    $html->message('err', $_ERROR, "$_NOT_ALLOW");
+    return 0;
+  }
+
+ if(defined($LIST_PARAMS{UID})) {
+   $user = $attr->{USER};
+   $user = $Sharing->info($LIST_PARAMS{UID});
+   if($user->{TOTAL} < 1) {
+ 	   $html->message('info', $_INFO, "$_NOT_ACTIVE");
+ 	   return 0;
+    }
+  }
+ else {
+ 	 $html->message('err', $_ERROR, "$_USER_NOT_EXIST");
+ 	 return 0;
+  }
+
+ #Get TP groups
+ $Tariffs->tp_group_info($user->{TP_GID});
+ 
+ if (! $Tariffs->{USER_CHG_TP}) {
+ 	  $html->message('err', $_ERROR, "$_NOT_ALLOW / $Tariffs->{USER_CHG_TP} /");
+ 	  return 0;
+  }
+
+
+if ($FORM{set}) {
+  if ($period == 1 && $conf{SHARING_USER_CHG_TP_SHEDULE}) {
+  	use POSIX;
+    
+    my $seltime = POSIX::mktime(0, 0, 0, $FORM{date_D}, $FORM{date_M}, ($FORM{date_Y} - 1900));
+    
+    if ($seltime <= time()) {
+      $html->message('info', $_INFO, "$ERR_WRONG_DATA ($FORM{date_D}, $FORM{date_M}, $FORM{date_Y}  )/". $seltime . "-" . time());
+      return 0;
+     }
+
+    $FORM{date_M}++;    
+    $shedule->add( {UID     => $LIST_PARAMS{UID},
+                   TYPE     => 'tp',
+                   ACTION   => $FORM{TP_ID},
+    	             D        => $FORM{date_D},
+                   M        => $FORM{date_M},
+                   Y        => $FORM{date_Y},
+                   DESCRIBE => "$message<br>
+                   $_FROM: '$FORM{date_Y}-$FORM{date_M}-$FORM{date_D}'",
+                   MODULE   => 'Dv'
+                    });
+
+    if ($shedule->{errno}) {
+      $html->message('err', $_ERROR, "[$shedule->{errno}] $err_strs{$shedule->{errno}}");	
+     }
+    else {
+      $html->message('info', $_CHANGED, "$_CHANGED");
+      $user->info($user->{UID});
+    }
+   }
+  else {
+    $FORM{UID}=$LIST_PARAMS{UID};
+    $user->change({ %FORM });
+
+    if ($user->{errno}) {
+      $html->message('err', $_ERROR, "[$user->{errno}] $err_strs{$user->{errno}}");
+     }
+    else {
+      $html->message('info', $_CHANGED, "$_CHANGED");
+      $user->info($user->{UID});
+    }
+  }
+}
+elsif($FORM{del}) {
+  $shedule->del( { UID => $LIST_PARAMS{UID},
+   	               ID  => $FORM{SHEDULE_ID}  } 
+   	            );
+
+  $html->message('info', $_DELETED, "$_DELETED [$FORM{SHEDULE_ID}]");
+}
+
+
+
+  $shedule->info( {UID      => $user->{UID},
+                   TYPE     => 'tp',
+                   DESCRIBE => "$message\n$_FROM: '$FORM{date_y}-$FORM{date_m}-$FORM{date_d}'",
+                   MODULE   => 'Dv'
+                   });
+
+
+  if ($shedule->{TOTAL} > 0) {
+  	$table = $html->table( { width      => '100%',
+  		                       caption    => "$_SHEDULE",
+                             cols_align => ['left', 'left'],
+                             rows       => [ [ "$_TARIF_PLAN:", "$shedule->{ACTION}"   ],
+                                             [ "$_DATE:",   "$shedule->{D}-$shedule->{M}-$shedule->{Y}" ],
+                                             [ "$_ADMIN:",  "$shedule->{ADMIN_NAME}"   ],
+                                             [ "$_ADDED:",  "$shedule->{DATE}"         ],
+                                             [ "ID:",       "$shedule->{SHEDULE_ID}"   ]  
+                                            ]
+                               } );
+  	$Tariffs->{TARIF_PLAN_SEL} = $table->show({ OUTPUT2RETURN => 1 }). $html->form_input('SHEDULE_ID', "$shedule->{SHEDULE_ID}", { TYPE => 'HIDDEN', OUTPUT2RETURN => 1 });
+  	$Tariffs->{ACTION}='del';
+  	$Tariffs->{LNG_ACTION}=$_DEL;
+  }
+ else {
+   $Tariffs->{TARIF_PLAN_SEL}=$html->form_select('TP_ID', 
+                                          { 
+ 	                                          SELECTED          => $user->{TP_ID},
+ 	                                          SEL_MULTI_ARRAY   => $Tariffs->list({ TP_GID => $user->{TP_GID} }),
+ 	                                          MULTI_ARRAY_KEY   => 0,
+ 	                                          MULTI_ARRAY_VALUE => 1,
+ 	                                        });
+
+   $Tariffs->{PARAMS} .= form_period($period) if ($conf{SHARING_USER_CHG_TP_SHEDULE});	
+   $Tariffs->{ACTION}='set';
+   $Tariffs->{LNG_ACTION}=$_CHANGE;
+  }
+   
+
+   $Tariffs->{UID}=$attr->{USER}->{UID};
+   $Tariffs->{m}=$m;
+   $Tariffs->{TP_ID}   = $user->{TP_ID};
+   $Tariffs->{TP_NAME} = "$user->{TP_ID}:$user->{TP_NAME}";
+
+   $html->tpl_show(templates('chg_tp'), $Tariffs);
 }
 
 #*******************************************************************
@@ -1480,7 +1619,7 @@ sub sharing_registration  {
 	 $Sharing->{TP_SEL} = $html->form_select('TP_ID', 
                                           { 
  	                                          SELECTED          => $FORM{TP_ID},
- 	                                          SEL_MULTI_ARRAY   => $Tariffs->list({ %LIST_PARAMS, MODULE => 'Sharing' }),
+ 	                                          SEL_MULTI_ARRAY   => $Tariffs->list({ %LIST_PARAMS, MODULE => 'Sharing', TP_GID > 0 }),
  	                                          MULTI_ARRAY_KEY   => 0,
  	                                          MULTI_ARRAY_VALUE => 1,
  	                                        });
@@ -1494,7 +1633,6 @@ sub sharing_registration  {
 
 
 1
-
 
 
 
