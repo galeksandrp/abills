@@ -100,7 +100,7 @@ sub auth {
   
 my ($uid, $datetime, $remote_addr, $alived, $password);
 
-if ($cookies{sid}) {
+if ($cookies{sid} && length($cookies{sid}) > 5) {
 	$cookies{sid} = s/\'//g;
 	$cookies{sid} = s/\"//g;
 	my $query = "SELECT uid, 
