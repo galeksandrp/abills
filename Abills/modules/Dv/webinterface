@@ -46,16 +46,18 @@ sub dv_chg_tp {
  my $shedule = Shedule->new($db, $admin, \%conf);
 
 if ($FORM{set}) {
- 	use POSIX;
-
-  my $seltime = POSIX::mktime(0, 0, 0, $FORM{date_D}, $FORM{date_M}, ($FORM{date_Y} - 1900));
-    
-  if ($seltime <= time()) {
-    $html->message('info', $_INFO, "$ERR_WRONG_DATA ($FORM{date_D}, $FORM{date_M}, $FORM{date_Y}  )/". $seltime . "-" . time());
-    return 0;
-   }
 
   if ($period == 1) {
+
+ 	  use POSIX;
+
+    my $seltime = POSIX::mktime(0, 0, 0, $FORM{date_D}, $FORM{date_M}, ($FORM{date_Y} - 1900));
+    
+    if ($seltime <= time()) {
+      $html->message('info', $_INFO, "$ERR_WRONG_DATA ($FORM{date_D}, $FORM{date_M}, $FORM{date_Y}  )/". $seltime . "-" . time());
+      return 0;
+     }
+
     $FORM{date_M}++;
     $shedule->add( {UID     => $user->{UID},
                    TYPE     => 'tp',
@@ -2014,7 +2016,7 @@ if ($FORM{set}) {
     my $seltime = POSIX::mktime(0, 0, 0, $FORM{date_D}, $FORM{date_M}, ($FORM{date_Y} - 1900));
     
     if ($seltime <= time()) {
-      $html->message('info', $_INFO, "$ERR_WRONG_DATA ($FORM{date_D}, $FORM{date_M}, $FORM{date_Y}  )/". $seltime . "-" . time());
+      $html->message('info', $_INFO, "$ERR_WRONG_DATA");
       return 0;
      }
 
