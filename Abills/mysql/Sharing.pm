@@ -1071,6 +1071,8 @@ sub info {
      LEFT JOIN tarif_plans tp ON (sharing.tp_id=tp.id and tp.module='Sharing')
    $WHERE;");
 
+  $self->{TP_GID} = 0;
+
   if ($self->{TOTAL} < 1) {
      $self->{errno} = 2;
      $self->{errstr} = 'ERROR_NOT_EXIST';
