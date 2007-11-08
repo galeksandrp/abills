@@ -57,7 +57,8 @@ if ($COOKIE ne '') {
     my ($key, $val) = split (/=/,$_);
     $cookies{$key} = $val;
   }
- }
+}
+
 my $sth;
 my $MESSAGE = '';
 
@@ -100,7 +101,7 @@ sub auth {
   
 my ($uid, $datetime, $remote_addr, $alived, $password);
 
-if ($cookies{sid} && length($cookies{sid}) > 5) {
+if (defined($cookies{sid}) && length($cookies{sid}) > 5) {
 	$cookies{sid} = s/\'//g;
 	$cookies{sid} = s/\"//g;
 	my $query = "SELECT uid, 
