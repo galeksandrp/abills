@@ -933,6 +933,7 @@ sub form_period  {
    	                                                   STATE         => ($i eq $period) ? 1 : undef, 
    	                                                   OUTPUT2RETURN => 1
    	                                                  });
+   $form_period .= $t;       
    $i++;
  }
  $form_period .= "$date_fld</td></tr>\n";
