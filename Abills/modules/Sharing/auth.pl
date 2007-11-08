@@ -236,11 +236,6 @@ $sth->execute();
 if ($sth->rows() > 0) {
   my ( $server, $priority, $size  ) = $sth->fetchrow_array();
   
-  if ($size > $rest_traffic) {
- 	  $MESSAGE = "[$user] Download file too large (Rest: $rest_traffic b) - Rejected\n";
-    return 0;
-   }
-  
   # Payment traffic
   if ($priority == 0) {
   	#Get prepaid traffic and price
@@ -290,6 +285,12 @@ if ($sth->rows() > 0) {
     if ($deposit > 0) {
     	$rest_traffic = $rest_traffic + $deposit * $in_price * 1024 * 1024;
      }
+
+    if ($size > $rest_traffic) {
+ 	    $MESSAGE = "[$user] Download file too large (Rest: $rest_traffic b) - Rejected\n";
+      return 0;
+     }
+
    }
   # Free
   elsif($priority == 1) {
