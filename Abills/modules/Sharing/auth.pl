@@ -193,6 +193,11 @@ my (
   ) = $sth->fetchrow_array();
 
 
+if ($disable) {
+  $MESSAGE = "[$user] Disabled - Rejected\n";
+  return 0;
+}
+
 #Get Deposit
 $query = "select deposit FROM bills WHERE   id='$bill_id'";
 $sth = $dbh->prepare($query);
@@ -200,52 +205,6 @@ $sth->execute();
 my ( $deposit ) = $sth->fetchrow_array();
 
 
-#Get prepaid traffic and price
-$sth = $dbh->prepare( "SELECT prepaid, in_price, out_price, prepaid, in_speed, out_speed
-     FROM sharing_trafic_tarifs 
-     WHERE tp_id='$tp_id'
-     ORDER BY id;");
-
-$sth->execute();
-my ( $prepaid_traffic,
-     $in_price,  
-     $out_price,
-     $in_speed, 
-     $out_speed
-     ) = $sth->fetchrow_array();
-
-#Get used traffic
-$query = "select sum(sl.sent)
-     FROM sharing_log sl, sharing_priority sp
-     WHERE 
-     sl.url=sp.file
-     and sl.username='$user'";
-
-$sth = $dbh->prepare($query);
-$sth->execute();
-my ( $used_traffic ) = $sth->fetchrow_array();
-
-
-$prepaid_traffic = $prepaid_traffic * 1024 * 1024;
-
-$deposit = $deposit +  $credit;
-
-my $rest_traffic = 0;
-if ($deposit < 0 && $used_traffic > $prepaid_traffic) {
-  $MESSAGE = "[$user] Use all prepaid traffic - Rejected\n";
-  return 0;
- }
-elsif ($deposit < 0) {
-  $MESSAGE = "[$user] Negtive deposit '$deposit' - Rejected\n";
-  return 0;
- }
-
-if ($prepaid_traffic > 0) {
-  $rest_traffic = $prepaid_traffic - $used_traffic;
-}
-if ($deposit > 0) {
-	$rest_traffic = $rest_traffic + $deposit * $in_price * 1024 * 1024;
-}
 
 #Get file info
 # это позволяет по ид новости определить имена файлов и открытость-закрытость их для всех
@@ -282,10 +241,59 @@ if ($sth->rows() > 0) {
     return 0;
    }
   
+  # Payment traffic
   if ($priority == 0) {
-  	
+  	#Get prepaid traffic and price
+    $sth = $dbh->prepare( "SELECT prepaid, in_price, out_price, prepaid, in_speed, out_speed
+     FROM sharing_trafic_tarifs 
+     WHERE tp_id='$tp_id'
+     ORDER BY id;");
+
+    $sth->execute();
+    my ( $prepaid_traffic,
+     $in_price,  
+     $out_price,
+     $in_speed, 
+     $out_speed
+     ) = $sth->fetchrow_array();
+
+    #Get used traffic
+    $query = "select sum(sl.sent)
+     FROM sharing_log sl, sharing_priority sp
+     WHERE 
+     sl.url=sp.file
+     and sl.username='$user'";
+
+    $sth = $dbh->prepare($query);
+    $sth->execute();
+    my ( $used_traffic ) = $sth->fetchrow_array();
+
+
+    $prepaid_traffic = $prepaid_traffic * 1024 * 1024;
+
+    $deposit = $deposit +  $credit;
+
+    my $rest_traffic = 0;
+    if ($deposit < 0 && $used_traffic > $prepaid_traffic) {
+      $MESSAGE = "[$user] Use all prepaid traffic - Rejected\n";
+      return 0;
+     }
+    elsif ($deposit < 0) {
+      $MESSAGE = "[$user] Negtive deposit '$deposit' - Rejected\n";
+      return 0;
+     }
+
+    if ($prepaid_traffic > 0) {
+      $rest_traffic = $prepaid_traffic - $used_traffic;
+     }
+
+    if ($deposit > 0) {
+    	$rest_traffic = $rest_traffic + $deposit * $in_price * 1024 * 1024;
+     }
    }
+  # Free
   elsif($priority == 1) {
+  	
   	
    }	
   	

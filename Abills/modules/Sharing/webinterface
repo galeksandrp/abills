@@ -1311,9 +1311,8 @@ elsif($FORM{del}) {
   	$table = $html->table( { width      => '100%',
   		                       caption    => "$_SHEDULE",
                              cols_align => ['left', 'left'],
-                             rows       => [ [ "$_TARIF_PLAN:", "$shedule->{ACTION}"   ],
+                             rows       => [ [ "$_TARIF_PLAN:", "# $shedule->{ACTION}"   ],
                                              [ "$_DATE:",   "$shedule->{D}-$shedule->{M}-$shedule->{Y}" ],
-                                             [ "$_ADMIN:",  "$shedule->{ADMIN_NAME}"   ],
                                              [ "$_ADDED:",  "$shedule->{DATE}"         ],
                                              [ "ID:",       "$shedule->{SHEDULE_ID}"   ]  
                                             ]
