@@ -924,14 +924,15 @@ sub form_period  {
  my $date_fld = $html->date_fld('date_', { MONTHES => \@MONTHES });
  my $form_period='';
 
-
  $form_period .= "<tr><td>$_DATE:</td><td>";
 
  my $i=0;
  foreach my $t (@periods) {
-   $form_period .= "<br><br><input type=radio name=period value=$i";
-   $form_period .= " checked" if ($i eq $period);
-   $form_period .= "> $t\n";	
+   $form_period .= "<BR/><BR/>";
+   $form_period .= $html->form_input('period', "$i", { TYPE          => "radio", 
+   	                                                   STATE         => ($i eq $period) ? 1 : undef, 
+   	                                                   OUTPUT2RETURN => 1
+   	                                                  });
    $i++;
  }
  $form_period .= "$date_fld</td></tr>\n";

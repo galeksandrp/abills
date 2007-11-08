@@ -2097,9 +2097,9 @@ sub dv_user_chg_tp {
 
 
 if ($FORM{set}) {
-  if ($period == 1) {
+  if ($period == 1 && $conf{DV_USER_CHG_TP_SHEDULE}) {
   	use POSIX;
-
+    
     my $seltime = POSIX::mktime(0, 0, 0, $FORM{date_D}, $FORM{date_M}, ($FORM{date_Y} - 1900));
     
     if ($seltime <= time()) {
@@ -2181,7 +2181,7 @@ elsif($FORM{del}) {
  	                                          MULTI_ARRAY_VALUE => 1,
  	                                        });
 
-   $tariffs->{PARAMS} .= form_period($period);	
+   $tariffs->{PARAMS} .= form_period($period) if ($conf{DV_USER_CHG_TP_SHEDULE});	
    $tariffs->{ACTION}='set';
    $tariffs->{LNG_ACTION}=$_CHANGE;
   }
