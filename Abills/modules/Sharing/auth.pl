@@ -117,7 +117,7 @@ if ($cookies{sid} && length($cookies{sid}) > 5) {
 	
   $sth->execute();
 	if ($dbh->rows() == -1) {
-    $MESSAGE = "Wrong SID for '$user' - Rejected\n";
+    $MESSAGE = "Wrong SID for '$user' '$cookies{sid}' - Rejected\n";
     return 0;
    }
 
