@@ -1240,7 +1240,7 @@ sub sharing_user_chg_tp {
  #Get TP groups
  $Tariffs->tp_group_info($user->{TP_GID});
  
- if (! $Tariffs->{USER_CHG_TP}) {
+ if (! $Tariffs->{USER_CHG_TP} && $Tariffs->{TOTAL} > 0) {
  	  $html->message('err', $_ERROR, "$_NOT_ALLOW / $Tariffs->{USER_CHG_TP} /");
  	  return 0;
   }

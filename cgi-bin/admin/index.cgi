@@ -4501,7 +4501,7 @@ if(defined($FORM{del}) && defined($FORM{is_js_confirmed})  && $permissions{0}{5}
 # Tarif plans groups
 # form_tp
 #**********************************************************
-sub tp_groups {
+sub form_tp_groups {
 
  use Tariffs;
  my $Tariffs = Tariffs->new($db, \%conf);
@@ -4545,7 +4545,7 @@ if ($Tariffs->{errno}) {
 
 
 $Tariffs->{USER_CHG_TP} = ($tarrifs->{USER_CHG_TP}) ? 'checked' : '';
-$html->tpl_show(_include('dv_tp_group', 'Dv'), $Tarrifs);
+$html->tpl_show(templates('form_tp_group'), $Tarrifs);
 
 
 my $list = $Tariffs->tp_group_list({ %LIST_PARAMS });	
