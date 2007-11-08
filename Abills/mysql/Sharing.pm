@@ -564,7 +564,7 @@ sub periods_totals {
    $WHERE .= " and username='$attr->{LOGIN}' " if ($WHERE ne '');
   }
 
- $self->{debug}=1;
+ #$self->{debug}=1;
 
  $self->query($db, "SELECT  
    sum(if(date_format(start, '%Y-%m-%d')=curdate(), sent, 0)), 
