@@ -103,7 +103,7 @@ my ($uid, $datetime, $remote_addr, $alived, $password);
 my $auth = 0;
 
 #Cookie auth
-if (defined($cookies{sid}) && length($cookies{sid}) > 5) {
+if ($cookies{sid}) {
 	$cookies{sid} =~ s/\'//g;
 	$cookies{sid} =~ s/\"//g;
 	my $query = "SELECT uid, 
@@ -121,7 +121,6 @@ if (defined($cookies{sid}) && length($cookies{sid}) > 5) {
   $sth->execute();
 	if ($dbh->rows() == -1) {
     $MESSAGE = "Wrong SID for '$user' '$cookies{sid}' - Rejected\n";
-    return 0;
    }
   else {
     $auth = 1;
