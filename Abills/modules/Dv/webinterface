@@ -2071,10 +2071,12 @@ elsif($FORM{del}) {
 
 
   if ($shedule->{TOTAL} > 0) {
+  	$tariffs->info($shedule->{ACTION});
+  	
   	$table = $html->table( { width      => '100%',
   		                       caption    => "$_SHEDULE",
                              cols_align => ['left', 'left'],
-                             rows       => [ [ "$_TARIF_PLAN:", "# $shedule->{ACTION}"   ],
+                             rows       => [ [ "$_TARIF_PLAN:", "$shedule->{ACTION} : $tariffs->{NAME}"   ],
                                              [ "$_DATE:",   "$shedule->{Y}-$shedule->{M}-$shedule->{D}" ],
                                              [ "$_ADDED:",  "$shedule->{DATE}"         ],
                                              [ "ID:",       "$shedule->{SHEDULE_ID}"   ]  

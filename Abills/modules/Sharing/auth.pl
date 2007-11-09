@@ -100,10 +100,12 @@ exit 1;
 sub auth {
   
 my ($uid, $datetime, $remote_addr, $alived, $password);
+my $auth = 0;
 
+#Cookie auth
 if (defined($cookies{sid}) && length($cookies{sid}) > 5) {
-	$cookies{sid} = s/\'//g;
-	$cookies{sid} = s/\"//g;
+	$cookies{sid} =~ s/\'//g;
+	$cookies{sid} =~ s/\"//g;
 	my $query = "SELECT uid, 
     datetime, 
     login, 
@@ -121,11 +123,15 @@ if (defined($cookies{sid}) && length($cookies{sid}) > 5) {
     $MESSAGE = "Wrong SID for '$user' '$cookies{sid}' - Rejected\n";
     return 0;
    }
-
-
-  ($uid, $datetime, $user, $remote_addr, $alived) = $sth->fetchrow_array();
+  else {
+    $auth = 1;
+    ($uid, $datetime, $user, $remote_addr, $alived) = $sth->fetchrow_array();
+   }
  }
-else {
+
+
+#Passwd Auth
+if ( $auth == 0 ) {
 #check password
 my $query = "SELECT if(DECODE(u.password, '$conf{secretkey}')='$passwd', 1,0), u.uid
    FROM (users u, sharing_main sharing)
