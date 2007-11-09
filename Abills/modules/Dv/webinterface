@@ -2010,7 +2010,29 @@ sub dv_user_chg_tp {
 
 
 if ($FORM{set}) {
-  if ($period == 1 && $conf{DV_USER_CHG_TP_SHEDULE}) {
+  if ($conf{DV_USER_CHG_TP_NPERIOD}) {
+  	 # Get next month
+  	 my ($Y, $M,$D)=split(/-/, $DATE, 3);
+     $M++;
+     if ($M == 13) {
+       $M = 1;
+       $Y++;
+      }
+
+    $FORM{date_M}++;    
+    $shedule->add( {UID     => $LIST_PARAMS{UID},
+                   TYPE     => 'tp',
+                   ACTION   => $FORM{TP_ID},
+    	             D        => '01',
+                   M        => $M,
+                   Y        => $Y,
+                   DESCRIBE => "$message<br>
+                   $_FROM: '$Y-$M-$D'",
+                   MODULE   => 'Dv'
+                 } );
+  	
+   }
+  elsif ($period == 1 && $conf{DV_USER_CHG_TP_SHEDULE}) {
   	use POSIX;
     
     my $seltime = POSIX::mktime(0, 0, 0, $FORM{date_D}, $FORM{date_M}, ($FORM{date_Y} - 1900));
@@ -2030,7 +2052,7 @@ if ($FORM{set}) {
                    DESCRIBE => "$message<br>
                    $_FROM: '$FORM{date_Y}-$FORM{date_M}-$FORM{date_D}'",
                    MODULE   => 'Dv'
-                    });
+                 } );
 
     if ($shedule->{errno}) {
       $html->message('err', $_ERROR, "[$shedule->{errno}] $err_strs{$shedule->{errno}}");	
@@ -2095,7 +2117,7 @@ elsif($FORM{del}) {
  	                                          MULTI_ARRAY_VALUE => 1,
  	                                        });
 
-   $tariffs->{PARAMS} .= form_period($period) if ($conf{DV_USER_CHG_TP_SHEDULE});	
+   $tariffs->{PARAMS} .= form_period($period) if ($conf{DV_USER_CHG_TP_SHEDULE} && ! $conf{DV_USER_CHG_TP_NPERIOD});	
    $tariffs->{ACTION}='set';
    $tariffs->{LNG_ACTION}=$_CHANGE;
   }
