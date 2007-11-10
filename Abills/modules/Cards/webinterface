@@ -7,7 +7,7 @@ if (! $@) {
   Cards->import();
  }
 else {
-  print "Can't load 'Cards'. Purchase this module http://abills.asmodeus.com.ua $@";
+  print "Can't load 'Cards'. Purchase this module http://abills.net.ua $@";
   exit; #return 0;
  }
 

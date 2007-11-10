@@ -278,7 +278,7 @@ $info{ACCOUNTS_SEL}=$html->form_select('LMI_PAYEE_PURSE',
                                       { 
  	                                      SELECTED  => $FORM{sum_val},
  	                                      SEL_ARRAY => \@ACCOUNTS,
- 	                                      NO_ID     => 'y'
+ 	                                      NO_ID     => 1
                                        });
 
 $info{LMI_PAYMENT_AMOUNT}=$FORM{SUM};
