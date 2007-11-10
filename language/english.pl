@@ -351,3 +351,4 @@ $_CLOSED_UNSUCCESSFUL='closed unsuccessful';
 $_CLOSED_SUCCESSFUL='closed successful';
 $_CITY='City';
 $_ZIP='Zip';
+$_FINANCES='Finances'

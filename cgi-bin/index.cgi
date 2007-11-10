@@ -43,7 +43,7 @@ use Abills::Base;
 use Abills::SQL;
 use Abills::HTML;
 use Users;
-
+use Finance;
 
 
 $html = Abills::HTML->new( { IMG_PATH => 'img/',
@@ -110,11 +110,10 @@ my $passwd = $FORM{passwd} || '';
 
 my @m = (
    "10:0:$_LOGOUT:logout:::",
-   "30:0:$_USER_INFO:form_info:::"
+   "30:0:$_USER_INFO:form_info:::",
+   "40:0:$_FINANCES:form_payments:::",
+   "41:40:$_FEES:form_fees:::"
    );
-
-my $aaa = `echo "$ENV{HTTP_USER_AGENT}" >> /tmp/user_agent`;
-
 
 $user=Users->new($db, $admin, \%conf); 
 
@@ -122,10 +121,12 @@ $user=Users->new($db, $admin, \%conf);
 
 my %uf_menus = ();
 
+#print "Content-Type: text/html\n\n";
+
 if ($uid > 0) {
   $UID = $uid;
   my $default_index = 30;
-  push @m, "17:0:$_PASSWD:form_passwd:::"   if($conf{user_chg_passwd} eq 'yes');
+  push @m, "17:0:$_PASSWD:form_passwd:::" if($conf{user_chg_passwd});
 
   foreach my $line (@m) {
 	  my ($ID, $PARENT, $NAME, $FUNTION_NAME, $SHOW_SUBMENU, $OP)=split(/:/, $line);
@@ -146,7 +147,7 @@ if ($uid > 0) {
       $maxnumber++;
       my($ID, $SUB, $NAME, $FUNTION_NAME, $ARGS)=split(/:/, $line, 5);
       $ID = int($ID);
-      my $v = $FUNCTIONS_LIST{$line};
+      my $v = $USER_FUNCTION_LIST{$line};
 
       $module_fl{"$ID"}=$maxnumber;
       #$fl .= "$FUNTION_NAME $maxnumber\n";
@@ -158,13 +159,13 @@ if ($uid > 0) {
       elsif ($ARGS ne '' && $ARGS ne 'defaultindex') {
         $menu_args{$maxnumber}=$ARGS;
        }
-      #print "$line -- $ID, $SUB, $NAME, $FUNTION_NAME  // $module_fl{$SUB}<br/>";
+      #print "$line -- $ID, $SUB, $NAME, $FUNTION_NAME  // $module_fl{$SUB} PARENT: $v<br/>";
      
       if($SUB > 0) {
         $menu_items{$maxnumber}{$module_fl{$SUB}}=$NAME;
        } 
       else {
-        $menu_items{$maxnumber}{0}=$NAME;
+        $menu_items{$maxnumber}{$v}=$NAME;
         if ($SUB == -1) {
           $uf_menus{$maxnumber}=$NAME;
          }
@@ -181,7 +182,7 @@ if ($uid > 0) {
   $html->{SID}=$sid;
   (undef, $OUTPUT{MENU}) = $html->menu(\%menu_items, \%menu_args, undef, 
      { EX_ARGS         => "&sid=$sid", 
-     	 ALL_PERMISSIONS => 'y',
+     	 ALL_PERMISSIONS => 1,
      	 FUNCTION_LIST   => \%functions
      });
   
@@ -912,7 +913,86 @@ if (defined($FORM{DATE})) {
 
 }
 
+#*******************************************************************
+# form_period
+#*******************************************************************
+sub form_fees {
+	
+my $fees = Finance->fees($db, $admin, \%conf);
+my $list = $fees->list( { %LIST_PARAMS } );
+my $table = $html->table( { width      => '100%',
+                            caption    => "$_FEES",
+                            border     => 1,
+                            title      => ['ID', $_LOGIN, $_DATE, $_SUM, $_DESCRIBE, $_ADMINS, 'IP',  $_DEPOSIT],
+                            cols_align => ['right', 'left', 'right', 'right', 'left', 'left', 'right', 'right'],
+                            qs         => $pages_qs,
+                            pages      => $fees->{TOTAL}
+                        } );
 
+
+$pages_qs .= "&subf=2" if (! $FORM{subf});
+foreach my $line (@$list) {
+
+  $table->addrow("<b>$line->[0]</b>", $html->button($line->[1], "index=15&UID=$line->[8]"), $line->[2], 
+   $line->[3], $line->[4],  "$line->[5]", "$line->[6]", "$line->[7]");
+}
+
+print $table->show();
+
+$table = $html->table( { width      => '100%',
+                         cols_align => ['right', 'right', 'right', 'right'],
+                         rows       => [ [ "$_TOTAL:", "<b>$fees->{TOTAL}</b>", "$_SUM:", "<b>$fees->{SUM}</b>" ] ],
+                         rowcolor   => $_COLORS[2]
+                      } );
+print $table->show();
+
+}
+
+
+#*******************************************************************
+# form_period
+#*******************************************************************
+sub form_payments {
+	
+my @PAYMENT_METHODS = ('Cash', 'Bank', 'Internet Card', 'Credit Card', 'Bonus');
+my $payments = Finance->payments($db, $admin, \%conf);
+
+
+my $list = $payments->list( { %LIST_PARAMS } );
+my $table = $html->table( { width      => '100%',
+                            caption    => "$_PAYMENTS",
+                            border     => 1,
+                            title      => ['ID', $_LOGIN, $_DATE, $_SUM, $_DESCRIBE, $_ADMINS, 'IP',  $_DEPOSIT, $_PAYMENT_METHOD, 'EXT ID'],
+                            cols_align => ['right', 'left', 'right', 'right', 'left', 'left', 'right', 'right', 'left', 'left'],
+                            qs         => $pages_qs,
+                            pages      => $payments->{TOTAL}
+                           } );
+
+$pages_qs .= "&subf=2" if (! $FORM{subf});
+
+foreach my $line (@$list) {
+  $table->addrow("<b>$line->[0]</b>", 
+  $html->button($line->[1], "index=15&UID=$line->[10]"), 
+  $line->[2], 
+  $line->[3], 
+  $line->[4],  
+  "$line->[5]", 
+  "$line->[6]", 
+  "$line->[7]", 
+  $PAYMENT_METHODS[$line->[8]], 
+  "$line->[9]", 
+  );
+}
+
+print $table->show();
+
+$table = $html->table({ width      => '100%',
+                        cols_align => ['right', 'right', 'right', 'right'],
+                        rows       => [ [ "$_TOTAL:", "<b>$payments->{TOTAL}</b>", "$_SUM", "<b>$payments->{SUM}</b>" ] ],
+                        rowcolor   => $_COLORS[2]
+                      });
+print $table->show();
+}
 #*******************************************************************
 # form_period
 #*******************************************************************

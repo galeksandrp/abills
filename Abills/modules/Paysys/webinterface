@@ -51,7 +51,7 @@ sub paysys_payment {
                                           { 
  	                                          SELECTED  => $FORM{PAYMENT_SYSTEM},
  	                                          SEL_HASH  => \%PAY_SYSTEMS,
- 	                                          NO_ID     => 'y'
+ 	                                          NO_ID     => 1
  	                                        });
 
 	  $html->tpl_show(_include('paysys_main', 'Paysys'), \%info);
@@ -319,7 +319,7 @@ $info{SUM_VAL_SEL}=$html->form_select('sum_val',
                                     { 
  	                                      SELECTED  => $FORM{sum_val},
  	                                      SEL_ARRAY => [USD, EUR, UAH, RUR],
- 	                                      NO_ID     => 'y'
+ 	                                      NO_ID     => 1
                                      });
 
 	$info{OPERATION_ID}  = $FORM{OPERATION_ID};  
@@ -330,8 +330,9 @@ $info{SUM_VAL_SEL}=$html->form_select('sum_val',
 }
 
 
-
-
+#**********************************************************
+# 
+#**********************************************************
 sub wm_validate {
 	
 	

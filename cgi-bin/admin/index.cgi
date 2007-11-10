@@ -3461,7 +3461,7 @@ $payments->{SEL_ER} .= "</select>\n";
 $payments->{SEL_METHOD} =  $html->form_select('METHOD', 
                                 { SELECTED      => $day_id,
  	                                SEL_ARRAY     => \@PAYMENT_METHODS,
- 	                                ARRAY_NUM_ID  => 'y'
+ 	                                ARRAY_NUM_ID  => 1
  	                               });
 
 
