@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# Card System
+# Paysys System
 
 
 
@@ -21,6 +21,8 @@ else {
 my $Paysys = Paysys->new($db, $admin, \%conf);
 my %PAY_SYSTEMS = (1 => "Webmoney",
                    2 => "RUpay");
+
+
 my @status = ('ENABLE', 'DISABLE', 'USED');
 
 
@@ -284,7 +286,7 @@ $info{ACCOUNTS_SEL}=$html->form_select('LMI_PAYEE_PURSE',
 $info{LMI_PAYMENT_AMOUNT}=$FORM{SUM};
 
 
-$conf{PAYSYS_LMI_RESULT_URL} = "http://$ENV{SERVER_NAME}". ( ($ENV{SERVER_PORT}) ? ":$ENV{SERVER_PORT}" : '' ) ."$ENV{REQUEST_URI}" if (! $conf{PAYSYS_LMI_RESULT_URL});
+$conf{PAYSYS_LMI_RESULT_URL} = "http://$ENV{SERVER_NAME}". ( ($ENV{SERVER_PORT} != 80) ? ":$ENV{SERVER_PORT}" : '' ) ."$ENV{REQUEST_URI}" if (! $conf{PAYSYS_LMI_RESULT_URL});
 
 
 
