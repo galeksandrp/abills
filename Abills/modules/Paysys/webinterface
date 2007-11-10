@@ -11,7 +11,7 @@ if (! $@) {
    Paysys->import();
   }
 else {
-   print "Can't load 'Paysys'. Purchase this module http://abills.asmodeus.com.ua";
+   print "Can't load 'Paysys'. Purchase this module http://abills.net.ua";
    return 0;
  }
 
@@ -284,7 +284,10 @@ $info{ACCOUNTS_SEL}=$html->form_select('LMI_PAYEE_PURSE',
 $info{LMI_PAYMENT_AMOUNT}=$FORM{SUM};
 
 
-$conf{PAYSYS_LMI_RESULT_URL} = "http://$ENV{SERVER_NAME}$ENV{REQUEST_URI}" if (! $conf{PAYSYS_LMI_RESULT_URL});
+$conf{PAYSYS_LMI_RESULT_URL} = "http://$ENV{SERVER_NAME}". ( ($ENV{SERVER_PORT}) ? ":$ENV{SERVER_PORT}" : '' ) ."$ENV{REQUEST_URI}" if (! $conf{PAYSYS_LMI_RESULT_URL});
+
+
+
 $html->tpl_show(_include('paysys_webmoney_add', 'Paysys'), \%info);
 
 
