@@ -261,6 +261,19 @@ elsif ($FORM{LMI_PAYMENT_NO}) {
 
       if ($Paysys->{TOTAL} > 0) {
 	      $html->message('info', $_INFO, "$_ADDED $_SUM: $list->[0][3] ID: $FORM{LMI_PAYMENT_NO}");
+	      if ($conf{PAYSYS_EMAIL_NOTICE}) {
+	      	my $message = "\n".
+	      	 "$_DATE: $DATE $TIME\n".
+	      	 "$_LOGIN: $user->{LOGIN} [$LIST_PARAMS{UID}]\n".
+	      	 "\n".
+       	   "\n".
+	      	 "ID: $FORM{LMI_PAYMENT_NO}\n".
+	      	 "$_SUM: $list->[0][3]\n";
+
+          sendmail("$conf{ADMIN_MAIL}", "$conf{ADMIN_MAIL}", "Paysys Webmoney Add", 
+              "$message", "$conf{MAIL_CHARSET}", "2 (High)");
+	      	
+	       }
 	     }
       else {
     	  $html->message('err', $_ERROR, "$_FAILED ID: $FORM{LMI_PAYMENT_NO} $_ERR_NO_TRANSACTION");
