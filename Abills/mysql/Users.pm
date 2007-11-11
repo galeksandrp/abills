@@ -471,6 +471,13 @@ sub list {
     $self->{SEARCH_FIELDS_COUNT}++;
   }
 
+ if ($attr->{EMAIL}) {
+    push @WHERE_RULES, "pi.email='$attr->{EMAIL}'";
+    #$self->{SEARCH_FIELDS} = 'pi.phone, ';
+    #$self->{SEARCH_FIELDS_COUNT}++;
+  }
+
+
  if ($attr->{ADDRESS_STREET}) {
     $attr->{ADDRESS_STREET} =~ s/\*/\%/ig;
     push @WHERE_RULES, "pi.address_street LIKE '$attr->{ADDRESS_STREET}' ";
@@ -491,6 +498,22 @@ sub list {
     $self->{SEARCH_FIELDS} .= 'pi.address_flat, ';
     $self->{SEARCH_FIELDS_COUNT}++;
   }
+
+ if ($attr->{CITY}) {
+    $attr->{CITY} =~ s/\*/\%/ig;
+    push @WHERE_RULES, "pi.city LIKE '$attr->{CITY}'";
+    $self->{SEARCH_FIELDS} .= 'pi.city, ';
+    $self->{SEARCH_FIELDS_COUNT}++;
+  }
+
+ if ($attr->{ZIP}) {
+    $attr->{ZIP} =~ s/\*/\%/ig;
+    push @WHERE_RULES, "pi.zip LIKE '$attr->{ZIP}'";
+    $self->{SEARCH_FIELDS} .= 'pi.zip, ';
+    $self->{SEARCH_FIELDS_COUNT}++;
+  }
+
+
 
  if ($attr->{CONTRACT_ID}) {
     $attr->{CONTRACT_ID} =~ s/\*/\%/ig;

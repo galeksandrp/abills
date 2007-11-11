@@ -79,6 +79,8 @@ if ($FORM{module}) {
  }
 elsif ($FORM{FORGOT_PASSWD}) {
 	password_recovery();
+	
+	exit;
  }
 elsif($#REGISTRATION == 0) {
 	my $m = $REGISTRATION[0];
@@ -103,13 +105,35 @@ foreach my $m (@REGISTRATION) {
 # Password recovery
 #**********************************************************
 sub password_recovery {
-  my $list = $users->list({ %FORM });
+  
+  if ($FORM{EMAIL}) {
+    
+    my $list = $users->list({ %FORM });
 	
-	if ($users->{TOTAL} > 0) {
-		
-	 }
-	else {
-		
-	 }
+  	if ($users->{TOTAL} > 0) {
+  		my @u = @$list;
+	    my $message = '';
+	    foreach my $line (@u) {
+	       $users->info($line->[5], { SHOW_PASSWORD => 1 });
+    	   $message .= "$_LOGIN:   $users->{LOGIN}\n".
+	                     "$_PASSWD: $users->{PASSWORD}\n";
+	                  
+#	       print $message."\n\n";            
+
+	     }
+	    
+     sendmail("$conf{ADMIN_MAIL}", "$FORM{EMAIL}", "$ADMIN_REPORT{HOSTNAME} Password Repair", 
+              "$message", "$conf{MAIL_CHARSET}", "");
+
 	
+	
+		  $html->message('info', $_INFO, "$_SENDED");
+		  return 0;
+	   }
+	  else {
+		  $html->message('err', $_ERROR, "$_NOT_FOUND");
+	   }
+	}
+	
+	$html->tpl_show(templates('forgot_passwd'), undef);
 }

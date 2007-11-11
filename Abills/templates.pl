@@ -871,8 +871,23 @@ return qq{
 
 }
 }
+elsif ($tpl_name eq 'forgot_passwd') {
+return qq{
+<FORM action='$SELF_URL' METHOD=POST>
+<input type=hidden name=FORGOT_PASSWD value=1>
+<TABLE width="400" cellspacing="0" cellpadding="0" border="0"><TR><TD bgcolor="#E1E1E1">
+<TABLE width="100%" cellspacing="1" cellpadding="0" border="0">
+
+<tr bgcolor="$_COLORS[1]"><th align="left">E-Mail: <input type=text name=EMAIL value='' size=30> <input type=submit name=send value=$_SEND></th></tr>
 
 
+</table>
+</td></tr></table>
+
+</FORM>
+
+}
+}
 
 return "No such template [$tpl_name]";
 
