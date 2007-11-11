@@ -263,6 +263,7 @@ elsif ($FORM{LMI_PAYMENT_NO}) {
 	      $html->message('info', $_INFO, "$_ADDED $_SUM: $list->[0][3] ID: $FORM{LMI_PAYMENT_NO}");
 	      if ($conf{PAYSYS_EMAIL_NOTICE}) {
 	      	my $message = "\n".
+	      	 "System: Webmoney\n".
 	      	 "$_DATE: $DATE $TIME\n".
 	      	 "$_LOGIN: $user->{LOGIN} [$LIST_PARAMS{UID}]\n".
 	      	 "\n".
