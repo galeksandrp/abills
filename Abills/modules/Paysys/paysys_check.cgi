@@ -86,7 +86,7 @@ print "//".$output2;
 #**********************************************************
 sub payments {
 
-  if ($FORM{LMI_HASH}) {
+  if ($FORM{LMI_PAYMENT_NO} || $FORM{LMI_HASH}) {
   	wm_payments();
    }
   elsif($FORM{rupay_action}) {
