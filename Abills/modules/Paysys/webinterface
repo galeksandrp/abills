@@ -112,11 +112,13 @@ $info{PAY_SYSTEMS_SEL}=$html->form_select('PAYMENT_SYSTEM',
                                           { 
  	                                          SELECTED  => $FORM{PAYMENT_SYSTEM},
  	                                          SEL_HASH  => \%PAY_SYSTEMS,
- 	                                          NO_ID     => 'y'
+ 	                                          NO_ID     => 1
  	                                        });
 
 
-form_search({ SEARCH_FORM => $html->tpl_show(_include('paysys_search', 'Paysys'), { %info, %FORM }, { notprint => 1 })  
+form_search({ SEARCH_FORM => $html->tpl_show(_include('paysys_search', 'Paysys'), 
+	                         { %info, %FORM }, 
+	                         { notprint => 1 })  
 	            });
 
 
@@ -251,13 +253,18 @@ elsif ($FORM{LMI_PAYMENT_NO}) {
 		$html->message('err', $_ERROR, "$_NOT_EXIST");
 	 }
 	else {
-    my $list = $Paysys->list({ TRANSACTION_ID => "$FORM{'LMI_PAYMENT_NO'}", UID => $LIST_PARAMS{UID} });
-
-    if ($Paysys->{TOTAL} > 0) {
-	    $html->message('info', $_INFO, "$_ADDED $_SUM: $list->[0][3] ID: $FORM{LMI_PAYMENT_NO}");
-	   }
+    if ($conf{PAYSYS_LMI_RESULT_URL}) {
+    	$html->message('info', $_INFO, "$_ADDED ID: $FORM{LMI_PAYMENT_NO}");
+     }
     else {
-    	$html->message('err', $_ERROR, "$_FAILED ID: $FORM{LMI_PAYMENT_NO} $_ERR_NO_TRANSACTION");
+      my $list = $Paysys->list({ TRANSACTION_ID => "$FORM{'LMI_PAYMENT_NO'}", UID => $LIST_PARAMS{UID} });
+
+      if ($Paysys->{TOTAL} > 0) {
+	      $html->message('info', $_INFO, "$_ADDED $_SUM: $list->[0][3] ID: $FORM{LMI_PAYMENT_NO}");
+	     }
+      else {
+    	  $html->message('err', $_ERROR, "$_FAILED ID: $FORM{LMI_PAYMENT_NO} $_ERR_NO_TRANSACTION");
+       }
      }
 	 }
 
