@@ -307,8 +307,9 @@ $info{ACCOUNTS_SEL}=$html->form_select('LMI_PAYEE_PURSE',
 $info{LMI_PAYMENT_AMOUNT}=$FORM{SUM};
 
 
-$conf{PAYSYS_LMI_RESULT_URL} = "http://$ENV{SERVER_NAME}". ( ($ENV{SERVER_PORT} != 80) ? ":$ENV{SERVER_PORT}" : '' ) ."$ENV{REQUEST_URI}" if (! $conf{PAYSYS_LMI_RESULT_URL});
+#$conf{PAYSYS_LMI_RESULT_URL} = "http://$ENV{SERVER_NAME}". ( ($ENV{SERVER_PORT} != 80) ? ":$ENV{SERVER_PORT}" : '' ) ."$ENV{REQUEST_URI}" if (! $conf{PAYSYS_LMI_RESULT_URL});
 
+$conf{PAYSYS_LMI_RESULT_URL} = "http://$ENV{SERVER_NAME}". ( ($ENV{SERVER_PORT} != 80) ? ":$ENV{SERVER_PORT}" : '' ) ."/paysys_check.cgi" if (! $conf{PAYSYS_LMI_RESULT_URL});
 
 
 $html->tpl_show(_include('paysys_webmoney_add', 'Paysys'), \%info);

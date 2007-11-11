@@ -396,6 +396,8 @@ sub zap {
   my $self=shift;
   my ($nas_id, $nas_port_id, $acct_session_id, $attr)=@_;
   
+  $WHERE = '';
+  
   if (! defined($attr->{ALL})) {
     $WHERE = "WHERE nas_id='$nas_id' and nas_port_id='$nas_port_id' and acct_session_id='$acct_session_id'";
    }
@@ -728,7 +730,7 @@ sub calculation {
 	my ($self) = shift;
 	my ($attr) = @_;
 
-
+  @WHERE_RULES = ();
 #Login
   if ($attr->{UID}) {
   	push @WHERE_RULES, "l.uid='$attr->{UID}'";
@@ -945,14 +947,13 @@ if ($attr->{FIELDS}) {
        LEFT JOIN users u ON (u.uid=l.uid)
        $WHERE;");
 
-   my $a_ref = $self->{list}->[0];
  
   ($self->{USERS}, 
    $self->{SESSIONS}, 
    $self->{TRAFFIC}, 
    $self->{TRAFFIC_2}, 
    $self->{DURATION}, 
-   $self->{SUM}) = @$a_ref;
+   $self->{SUM}) = @{ $self->{list}->[0] };
 
 
 
@@ -1457,7 +1458,7 @@ sub sessions_list {
 
  
  
- 
+ $WHERE = '';
  my @WHERE_RULES = ();
 
  # Show debeters
