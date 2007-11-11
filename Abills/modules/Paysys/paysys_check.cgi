@@ -78,7 +78,7 @@ payments();
 
 #debug
 my $a=`echo "-----\n$output2\n-$status \n"  >> /tmp/test_paysys`;
-print "//".$output2;
+#print "//".$output2;
 
 
 #**********************************************************
@@ -86,7 +86,7 @@ print "//".$output2;
 #**********************************************************
 sub payments {
 
-  if ($FORM{LMI_PAYMENT_NO} || $FORM{LMI_HASH}) {
+  if ($FORM{LMI_PAYMENT_NO}) { # || $FORM{LMI_HASH}) {
   	wm_payments();
    }
   elsif($FORM{rupay_action}) {
