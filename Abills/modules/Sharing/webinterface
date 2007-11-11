@@ -538,7 +538,8 @@ if (! $list) {
 	  $LIST_PARAMS{SORT} = 2;
 	  $LIST_PARAMS{DESC} = 'DESC';
   }
-
+  
+  use Nas;
   my $nas = Nas->new($db, \%conf);
   my $SEL_NAS = $html->form_select('NAS_ID', 
                                           { 
@@ -826,7 +827,7 @@ if (! defined($FORM{sort})) {
 $list = $Sharing->sessions_list({ %LIST_PARAMS });	
 
 
-$table = $html->table( { caption     => "$_SUM",
+ $table = $html->table( { caption     => "$_SUM",
 	                       width       => '100%',
 	                       rowcolor    => $_COLORS[1],
                          title_plain => ["$_SESSIONS", "$_DURATION", "$_TRAFFIC $_RECV", "$_TRAFFIC $_SENT", "$_TRAFFIC $_SUM" ],

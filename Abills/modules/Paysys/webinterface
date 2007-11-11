@@ -240,7 +240,7 @@ sub paysys_webmoney () {
 
 
 if ($FORM{FALSE}) {
-	$html->message('err', $_ERROR, "$_FAILED ID: $FORM{LMI_PAYMENT_NO}");
+	$html->message('err', $_ERROR, "$_FAILED $_TRANSACTION ID: $FORM{LMI_PAYMENT_NO}");
  }
 elsif ($FORM{LMI_PAYMENT_NO}) {
 	my $users = Users->new($db, $admin, \%conf); 
@@ -261,6 +261,7 @@ elsif ($FORM{LMI_PAYMENT_NO}) {
 
       if ($Paysys->{TOTAL} > 0) {
 	      $html->message('info', $_INFO, "$_ADDED $_SUM: $list->[0][3] ID: $FORM{LMI_PAYMENT_NO}");
+
 	      if ($conf{PAYSYS_EMAIL_NOTICE}) {
 	      	my $message = "\n".
 	      	 "System: Webmoney\n".

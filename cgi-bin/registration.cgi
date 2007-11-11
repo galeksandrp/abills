@@ -76,7 +76,10 @@ if ($FORM{module}) {
   $function->();
   
   exit;
-}
+ }
+elsif ($FORM{FORGOT_PASSWD}) {
+	password_recovery();
+ }
 elsif($#REGISTRATION == 0) {
 	my $m = $REGISTRATION[0];
 	require "Abills/modules/$m/config";
@@ -96,3 +99,17 @@ foreach my $m (@REGISTRATION) {
 
 
 
+#**********************************************************
+# Password recovery
+#**********************************************************
+sub password_recovery {
+  my $list = $users->list({ %FORM });
+	
+	if ($users->{TOTAL} > 0) {
+		
+	 }
+	else {
+		
+	 }
+	
+}
