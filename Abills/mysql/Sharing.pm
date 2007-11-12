@@ -1219,6 +1219,17 @@ sub change {
        $fees->take($user, $tariffs->{CHANGE_PRICE}, { DESCRIBE  => "CHANGE TP" });  
       }
 
+     if ($tariffs->{AGE} > 0) {
+       my $user = Users->new($db, $admin, $CONF);
+
+       use POSIX qw(strftime);
+       my $EXPITE_DATE = strftime( "%Y-%m-%d", localtime(time + 86400 * $tariffs->{AGE}) );
+       #"curdate() + $tariffs->{AGE} days";
+       $user->{debug}=1;
+       $user->change($attr->{UID}, { EXPIRE => $EXPITE_DATE, UID => $attr->{UID} });
+     }
+
+
    }
 
   $admin->{MODULE}=$MODULE;
