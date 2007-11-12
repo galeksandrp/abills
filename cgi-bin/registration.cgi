@@ -106,28 +106,40 @@ foreach my $m (@REGISTRATION) {
 #**********************************************************
 sub password_recovery {
   
-  if ($FORM{EMAIL}) {
-    
+  if ($FORM{SEND}) {
     my $list = $users->list({ %FORM });
 	
   	if ($users->{TOTAL} > 0) {
   		my @u = @$list;
 	    my $message = '';
+	    my $email = $FORM{EMAIL} || '';
+      if ($FORM{LOGIN}) {
+      	$email = @u->[0]->[7];
+       }
+
 	    foreach my $line (@u) {
 	       $users->info($line->[5], { SHOW_PASSWORD => 1 });
     	   $message .= "$_LOGIN:   $users->{LOGIN}\n".
-	                     "$_PASSWD: $users->{PASSWORD}\n";
-	                  
+	                   "$_PASSWD: $users->{PASSWORD}\n".
+	                   "================================================\n";
+
 #	       print $message."\n\n";            
 
 	     }
-	    
-     sendmail("$conf{ADMIN_MAIL}", "$FORM{EMAIL}", "$ADMIN_REPORT{HOSTNAME} Password Repair", 
-              "$message", "$conf{MAIL_CHARSET}", "");
+	   
+	   $message = $html->tpl_show(templates('passwd_recovery'), 
+	                                                    { MESSAGE => $message }, 
+	                                                    { OUTPUT2RETURN => 1 });
 
+     if ($email ne '') {
+       sendmail("$conf{ADMIN_MAIL}", "$email", "$ADMIN_REPORT{HOSTNAME} Password Repair", 
+              "$message", "$conf{MAIL_CHARSET}", "");
+ 		   $html->message('info', $_INFO, "$_SENDED");
+      }
+	   else {
+	   	 $html->message('info', $_INFO, "$_NOT_EXIST");
+	    }
 	
-	
-		  $html->message('info', $_INFO, "$_SENDED");
 		  return 0;
 	   }
 	  else {

@@ -303,7 +303,7 @@ elsif (defined($FORM{TP_ID})) {
        my $table2 = $html->table({ width       => '100%',
                                    title_plain => ["#", "$_TRAFFIC_TARIFF In ", "$_TRAFFIC_TARIFF Out ", "$_PREPAID", "$_SPEED IN",  "$_SPEED OUT", "DESCRIBE", "NETS", "-", "-"],
                                    cols_align  => ['center', 'right', 'right', 'right', 'right', 'right', 'left', 'right', 'center', 'center', 'center'],
-                                   caption     => "$_BYTE_TARIF"
+                                   caption     => "$_TRAFIC_TARIFS"
                                   } );
 
        my $list_tt = $Sharing->tt_list({ TP_ID => $FORM{TP_ID} });
@@ -1112,7 +1112,7 @@ sub sharing_chg_tp {
  	 return 0;
   }
 
- my $TARIF_PLAN = $FORM{tarif_plan} || $_DEFAULT_VARIANT;
+ my $TARIF_PLAN = $FORM{tarif_plan} || $_DEFAULT_TARIF_PLAN;
  my $period = $FORM{period} || 0;
 
  my $shedule = Shedule->new($db, $admin, \%conf);
@@ -1204,7 +1204,7 @@ my $tp_index = $index - 6;
 $Tariffs->{UID}=$attr->{USER}->{UID};
 $Tariffs->{m}=$m;
 $Tariffs->{TP_ID} = $user->{TP_ID};
-$Tariffs->{TP_NAME} = "$user->{TP_ID}:$user->{TP_NAME} [". $html->button("$_VARIANTS", "index=$tp_index&TP_ID=$user->{TP_ID}", { TITLE => "$_TP" } ). "]";
+$Tariffs->{TP_NAME} = "$user->{TP_ID}:$user->{TP_NAME} [". $html->button("$_TARIF_PLANS", "index=$tp_index&TP_ID=$user->{TP_ID}", { TITLE => "$_TP" } ). "]";
 
 
 print $html->tpl_show(templates('chg_tp'), $Tariffs);

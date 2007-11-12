@@ -131,7 +131,7 @@ my $tp_index = $index + 4;
 $tariffs->{UID}=$attr->{USER}->{UID};
 $tariffs->{m}=$m;
 $tariffs->{TP_ID} = $user->{TP_ID};
-$tariffs->{TP_NAME} = "$user->{TP_ID}:$user->{TP_NAME} [". $html->button("$_VARIANTS", "index=$tp_index&TP_ID=$user->{TP_ID}", { TITLE => "$_TP" } ). "]";
+$tariffs->{TP_NAME} = "$user->{TP_ID}:$user->{TP_NAME} [". $html->button("$_TARIF_PLANS", "index=$tp_index&TP_ID=$user->{TP_ID}", { TITLE => "$_TP" } ). "]";
 
 
 print $html->tpl_show(templates('chg_tp'), $tariffs);
@@ -2056,7 +2056,7 @@ sub voip_users_warning_messages {
 my %LIST_PARAMS = (USERS_WARNINGS => 'y' ) ;
 my $list = $Voip->list( { %LIST_PARAMS } );
 
-$ADMIN_REPORT{USERS_WARNINGS} = sprintf("%-14s| %4s|%-20s| %9s| %8s|\n", $_LOGIN, 'TP', $_VARIANT, $_DEPOSIT, $_CREDIT).
+$ADMIN_REPORT{USERS_WARNINGS} = sprintf("%-14s| %4s|%-20s| %9s| %8s|\n", $_LOGIN, 'TP', $_TARIF_PLAN, $_DEPOSIT, $_CREDIT).
    "---------------------------------------------------------------\n";
 return 0 if ($Dv->{TOTAL} < 1);
 my %USER_INFO = ();

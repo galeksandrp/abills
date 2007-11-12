@@ -1768,7 +1768,7 @@ if(defined($attr->{TP})) {
        my $table2 = $html->table({ width       => '100%',
                                    title_plain => ["#", "$_TRAFFIC_TARIFF In ", "$_TRAFFIC_TARIFF Out ", "$_PREPAID", "$_SPEED IN",  "$_SPEED OUT", "DESCRIBE", "NETS", "-", "-"],
                                    cols_align  => ['center', 'right', 'right', 'right', 'right', 'right', 'left', 'right', 'center', 'center', 'center'],
-                                   caption     => "$_BYTE_TARIF"
+                                   caption     => "$_TRAFIC_TARIFS"
                                   } );
 
        my $list_tt = $tarif_plan->tt_list({ TI_ID => $line->[0] });

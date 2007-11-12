@@ -40,7 +40,7 @@ sub dv_chg_tp {
  	 return 0;
   }
 
- my $TARIF_PLAN = $FORM{tarif_plan} || $_DEFAULT_VARIANT;
+ my $TARIF_PLAN = $FORM{tarif_plan} || $_DEFAULT_TARIF_PLAN;
  my $period = $FORM{period} || 0;
 
  my $shedule = Shedule->new($db, $admin, \%conf);
@@ -142,7 +142,7 @@ my $tp_index = $index + 4;
 $tariffs->{UID}=$attr->{USER}->{UID};
 $tariffs->{m}=$m;
 $tariffs->{TP_ID} = $user->{TP_ID};
-$tariffs->{TP_NAME} = "$user->{TP_ID}:$user->{TP_NAME} [". $html->button("$_VARIANTS", "index=$tp_index&TP_ID=$user->{TP_ID}", { TITLE => "$_TP" } ). "]";
+$tariffs->{TP_NAME} = "$user->{TP_ID}:$user->{TP_NAME} [". $html->button("$_TARIF_PLANS", "index=$tp_index&TP_ID=$user->{TP_ID}", { TITLE => "$_TP" } ). "]";
 
 
 print $html->tpl_show(templates('chg_tp'), $tariffs);
@@ -2360,7 +2360,7 @@ sub dv_monthly_fees {
 #**********************************************************
 sub dv_users_warning_messages {
 
- $ADMIN_REPORT{USERS_WARNINGS} = sprintf("%-14s| %4s|%-20s| %9s| %8s|\n", $_LOGIN, 'TP', $_VARIANT, $_DEPOSIT, $_CREDIT).
+ $ADMIN_REPORT{USERS_WARNINGS} = sprintf("%-14s| %4s|%-20s| %9s| %8s|\n", $_LOGIN, 'TP', $_TARIF_PLAN, $_DEPOSIT, $_CREDIT).
    "---------------------------------------------------------------\n";
  if (defined($ADMIN_REPORT{NO_USERS_WARNINGS})) {
     return 0;

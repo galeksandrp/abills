@@ -309,7 +309,7 @@ return qq{
 #
 #<TABLE BORDER=0 CELLSPACING=1 CELLPADDING=0>
 #<TR bgcolor=$_COLORS[1]><th colspan=7 align=right>$_TRAFIC_TARIFS</th></TR>
-#<TR bgcolor=$_COLORS[0]><th>#</th><th>$_BYTE_TARIF IN (1 Mb)</th><th>$_BYTE_TARIF OUT (1 Mb)</th><th>$_PREPAID (Mb)</th><th>$_SPEED (Kbits)</th><th>$_DESCRIBE</th><th>NETS</th></TR>
+#<TR bgcolor=$_COLORS[0]><th>#</th><th>$_TRAFIC_TARIFS IN (1 Mb)</th><th>$_TRAFIC_TARIFS OUT (1 Mb)</th><th>$_PREPAID (Mb)</th><th>$_SPEED (Kbits)</th><th>$_DESCRIBE</th><th>NETS</th></TR>
 #<TR><TD bgcolor=$_COLORS[0]>0</TD>
 #<TD valign=top><input type=text name='TT_PRICE_IN_0' value='%TT_PRICE_IN_0%'></TD>
 #<TD valign=top><input type=text name='TT_PRICE_OUT_0' value='%TT_PRICE_OUT_0%'></TD>
@@ -878,7 +878,10 @@ return qq{
 <TABLE width="400" cellspacing="0" cellpadding="0" border="0"><TR><TD bgcolor="#E1E1E1">
 <TABLE width="100%" cellspacing="1" cellpadding="0" border="0">
 
-<tr bgcolor="$_COLORS[1]"><th align="left">E-Mail: <input type=text name=EMAIL value='' size=30> <input type=submit name=send value=$_SEND></th></tr>
+<tr bgcolor="$_COLORS[0]"><th align="right" colspan="2">$_PASSWORD_RECOVERY</th></tr>
+<tr bgcolor="$_COLORS[1]"><th align="left">$_LOGIN:</th><th> <input type=text name=LOGIN value='' size=30> </th></tr>
+<tr bgcolor="$_COLORS[1]"><th align="left">E-Mail:</th><th> <input type=text name=EMAIL value='' size=30> </th></tr>
+<tr bgcolor="$_COLORS[1]"><th align="center" colspan="2"><input type=submit name="SEND" value=$_SEND></th></tr>
 
 
 </table>
@@ -886,6 +889,18 @@ return qq{
 
 </FORM>
 
+}
+}
+elsif ($tpl_name eq 'passwd_recovery') {
+return qq{
+Password Recovery:
+===========================================================
+  %MESSAGE%
+
+
+DATE: $DATE
+===========================================================
+$PROGRAM
 }
 }
 

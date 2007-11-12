@@ -483,7 +483,7 @@ sub auth_radius {
 #    $action = 'Access';
 #   }
 #  else {
-#    $html->message('err', "$_ERROR", "$_WRONG_PASSWD");
+#    $html->message('err', "$_ERROR", "$ERR_WRONG_PASSWD");
 #    $action = 'Error';
 #   }
 # }
@@ -496,7 +496,7 @@ sub auth_radius {
 #    	                   REMOTE_ADDR => $REMOTE_ADDR,
 #    	                   AUTH_STATE  => $ret });
 #
-#   $html->message('err', "$_ERROR", "$_WRONG_PASSWD");
+#   $html->message('err', "$_ERROR", "$ERR_WRONG_PASSWD");
 #   $ret = 0;
 #   $action = 'Error';
 # }
@@ -619,7 +619,7 @@ if (defined($res) && $res > 0) {
     $action = 'Access';
    }
   else {
-    $html->message('err', "$_ERROR", "$_WRONG_PASSWD");
+    $html->message('err', "$_ERROR", "$ERR_WRONG_PASSWD");
     $action = 'Error';
    }
  }
@@ -629,7 +629,7 @@ else {
     	                     REMOTE_ADDR => $REMOTE_ADDR,
     	                     AUTH_STATE  => $ret });
 
-   $html->message('err', "$_ERROR", "$_WRONG_PASSWD");
+   $html->message('err', "$_ERROR", "$ERR_WRONG_PASSWD");
    $ret = 0;
    $action = 'Error';
  }
@@ -661,7 +661,7 @@ else {
 }
 
 #else {
-#  $html->message('err', "$_ERROR", "$_WRONG_PASSWD");
+#  $html->message('err', "$_ERROR", "$ERR_WRONG_PASSWD");
 #  $action = 'Error';
 #  $ret = -1;
 #}

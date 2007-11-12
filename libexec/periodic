@@ -223,7 +223,7 @@ if ($args->{DEBUG}) {
 sub sheduler {
 	
 	
-my %shedule_type = ('tp'      => $_VARIANT, 
+my %shedule_type = ('tp'      => $_TARIF_PLAN, 
                     'fees'    => $_FEES,
                     'message' => $_MESSAGES
  );
