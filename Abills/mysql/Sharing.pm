@@ -562,8 +562,10 @@ sub periods_totals {
 
  my $WHERE = '';
  
+
+ 
  if($attr->{LOGIN})  {
-   $WHERE .= " and username='$attr->{LOGIN}' " if ($WHERE ne '');
+   $WHERE .= " and username='$attr->{LOGIN}' ";
   }
 
  #$self->{debug}=1;

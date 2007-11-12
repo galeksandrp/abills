@@ -852,7 +852,7 @@ sub sharing_user_stats {
 	my $user_info = $user->info( $UID );
 	$LIST_PARAMS{LOGIN}=$user_info->{LOGIN};
   
-
+ 
 if (defined($attr->{USER}))	{
 	my $user = $attr->{USER};
 
@@ -947,7 +947,7 @@ if (! $LIST_PARAMS{UID} && $FORM{LOGIN_EXPR}) {
 
 
 
-my $list =  $Sharing->periods_totals({ %LIST_PARAMS });
+my $list =  $Sharing->periods_totals({ LOGIN => $user->{LOGIN} });
 my $table = $html->table( { caption     => "$_PERIOD",
 	                          width       => '100%',
                             title_plain => ["$_PERIOD", "$_DURATION", "$_RECV", "$_SEND",  "$_SUM"],
