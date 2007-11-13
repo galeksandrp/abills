@@ -115,7 +115,7 @@ sub password_recovery {
 	    my $message = '';
 	    my $email = $FORM{EMAIL} || '';
       if ($FORM{LOGIN}) {
-      	$email = @u[0]->[7];
+      	$email = $u[0][7];
        }
 
 	    foreach my $line (@u) {

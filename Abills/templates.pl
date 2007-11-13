@@ -8,14 +8,14 @@ sub _include {
   my ($tpl, $module, $attr) = @_;
   my $result = '';
 
-  if (-f "../../Abills/templates/$module". _. "$tpl".".tpl") {
-    return tpl_content("../../Abills/templates/$module". _. "$tpl".".tpl");
+  if (-f '../../Abills/templates/'. $module . '_' . $tpl . '.tpl') {
+    return tpl_content('../../Abills/templates/'. $module . '_' . $tpl . '.tpl');
    }
-  elsif (-f "../Abills/templates/$module". _. "$tpl".".tpl") {
-    return tpl_content("../Abills/templates/$module". _. "$tpl".".tpl");
+  elsif (-f '../Abills/templates/'. $module . '_' . $tpl .'.tpl') {
+    return tpl_content('../Abills/templates/'. $module . '_' . $tpl. '.tpl');
    }
-  elsif (-f "$Bin/../Abills/templates/$module". _. "$tpl".".tpl") {
-    return tpl_content("$Bin/../Abills/templates/$module". _. "$tpl".".tpl");
+  elsif (-f $Bin .'/../Abills/templates/'. $module . '_' . $tpl .'.tpl') {
+    return tpl_content($Bin .'/../Abills/templates/'. $module . '_' . $tpl .'.tpl');
    }
   elsif (defined($module)) {
     $tpl	= "modules/$module/templates/$tpl";
@@ -28,7 +28,7 @@ sub _include {
       }
    }
 
-  return "No such template [$tpl]";
+  return "No such template [$tpl]\n";
 }
 
 

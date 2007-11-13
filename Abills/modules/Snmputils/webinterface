@@ -1504,7 +1504,7 @@ print $html->form_main({ CONTENT => '',
 # 
 #*******************************************************************
 sub snmputils_ciscoair {
-
+  my ($attr) = @_;
 
 
 
@@ -1525,11 +1525,32 @@ if ($FORM{'SNMP_HOST'} ne '') {
             '',
             '']];
   }
+elsif($attr->{SNMP_COMMUNITY}) {
+  print $attr->{SNMP_COMMUNITY};
+
+  my ($community, $host) = split(/@/, $attr->{SNMP_COMMUNITY}, 2);
+  $FORM{'SNMP_HOST'}=$host;
+  $FORM{'SNMP_COMMUNITY'}=$community;
+
+  $list = [[ ($FORM{NAS_ID}) ? $FORM{NAS_ID} : '1', 
+            '',
+            '',
+            $host,
+            '',
+            '',
+            '',
+            '',
+            '',
+            '',
+            '',
+            $community,
+            '',
+            '']];
+ }
 else {
   $list = $Nas->list({ TYPE    => 'cisco_air', 
 	                     DISABLE => 0 });
 }
-
 
 
 
@@ -1591,6 +1612,9 @@ my %fields = (
 #              'MAC                    => '.1.3.6.1.2.1.17.4.3.1.1.'
               );
 
+
+
+
 if ($FORM{Client}) {
 	my %info = ();
   my $list = $Snmputils->snmputils_binding_list({ BINDING => $FORM{MAC}, PAGE_ROWS => 100000 }); 
@@ -1630,6 +1654,7 @@ if ($FORM{Client}) {
 
 	 	$info{$key} = data_convert($key, $info{$key});
 	 }
+
   $info{MAC}=$FORM{MAC};
 	$html->tpl_show(_include('snmputils_cisco_air_client_info', 'Snmputils'), \%info);
 	return 0;
@@ -1676,11 +1701,14 @@ foreach my $line (@$list) {
   my @MAC_ARR = ();
   my $prefix_id = '';
   my $serie = '';
-  my $version = snmpget("$line->[11]\@$line->[3]", '.1.3.6.1.2.1.47.1.1.1.1.7.1');
+  my $firmware = '';
+  my $version  = snmpget("$line->[11]\@$line->[3]", '.1.3.6.1.2.1.47.1.1.1.1.7.1');
+
   
   if (! $SNMP_Session::errmsg) {
-
+    $firmware = snmpget("$line->[11]\@$line->[3]", '.1.3.6.1.4.1.9.9.25.1.1.1.2.5');
     $serie = snmpget("$line->[11]\@$line->[3]", '.1.2.840.10036.3.1.2.1.3.1');
+
     foreach my $field (@default_fields) {
       my @arr = snmpwalk("$line->[11]\@$line->[3]", $fields{$field});
  
@@ -1720,7 +1748,7 @@ foreach my $line (@$list) {
 
   $table->{rowcolor}=$_COLORS[0];
   $table->{extra}="colspan='". ($#CAPTION + 2) ."' class='small'";
-  $table->addrow("$line->[0]:<b>$line->[1]</b>/$version, $serie/:$line->[3] (". 
+  $table->addrow("$line->[0]:<b>$line->[1]</b>/$version, $serie, $firmware/:$line->[3] (". 
   $html->button('WEB', "", { GLOBAL_URL => "http://$line->[3]" }) 
    ."):$_TOTAL: ". ( $#MAC_ARR + 1 ) );
 
@@ -1749,8 +1777,11 @@ foreach my $line (@$list) {
       	$page_params = "&SNMP_HOST=$FORM{'SNMP_HOST'}&SNMP_COMMUNITY=$FORM{'SNMP_COMMUNITY'}";
        }
       if ($prefix_id ne '') {
-      	
       	$page_params .= "&PREFIX_ID=$prefix_id";
+       }
+
+      if ($FORM{TYPE}) {
+        $page_params .= "&TYPE=$FORM{TYPE}&SHOW=1";
        }
       
      	unshift @arr, $html->button("<CODE>$mac</CODE>", "index=$index&NAS_TYPE=cisco_air&Client=$k&MAC=$mac$page_params");
@@ -2329,7 +2360,8 @@ sub snmp_info_form {
                                                             'tcpConnTable'      => 'RFC1213-MIB:tcpConnTable',
                                                             'udpTable'          => 'RFC1213-MIB:udpTable',
                                                             'dlink_ip_mac_port' => 'D-Link IP MAC Port Binding',
-                                                            'zyxel_smf'         => 'Zyxel Static MAC Forwarding '
+                                                            'zyxel_smf'         => 'Zyxel Static MAC Forwarding ',
+                                                            'cisco_air'         => 'Cisco Aironet Asociation'
  	                                          	              },
                                        NO_ID   => 1
                                      });
@@ -2353,6 +2385,7 @@ if ($FORM{change}) {
     my $SNMP_COMMUNITY = "$FORM{SNMP_COMMUNITY}\@$FORM{SNMP_HOST}";
    
     if ($FORM{NAS_ID}) {
+      $Nas->{debug}=1;
       $Nas->info({ NAS_ID => $FORM{NAS_ID} });
       if (! $Nas->{NAS_MNG_PASSWORD}) {
    	     $html->message('err', $_ERROR, "NO SNMP COMMUNITY");
@@ -2456,6 +2489,14 @@ if ($FORM{SHOW}) {
     if($FORM{TYPE} eq 'dlink_ip_mac_port') {
       snmputils_dlink_ip_mac_port({ SNMP_COMMUNITY => $SNMP_COMMUNITY });
       return 0;
+     }
+    elsif ($FORM{TYPE} eq 'zyxel_smf') {
+      snmputils_zyxel_smf({ SNMP_COMMUNITY => $SNMP_COMMUNITY });
+    	return 0;
+     }
+    elsif ($FORM{TYPE} eq 'cisco_air') {
+      snmputils_ciscoair({ SNMP_COMMUNITY => $SNMP_COMMUNITY });
+    	return 0;
      }
 
     my %result = &snmpwalkhash("$SNMP_COMMUNITY", \&my_simple_hash, $FORM{TYPE});
