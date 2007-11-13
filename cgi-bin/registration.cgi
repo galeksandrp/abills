@@ -6,6 +6,7 @@
 use vars qw($begin_time %FORM %LANG $CHARSET 
   @MODULES
   @REGISTRATION
+  $PROGRAM
   $html
   $users
   $Bin
@@ -114,7 +115,7 @@ sub password_recovery {
 	    my $message = '';
 	    my $email = $FORM{EMAIL} || '';
       if ($FORM{LOGIN}) {
-      	$email = @u->[0]->[7];
+      	$email = @u[0]->[7];
        }
 
 	    foreach my $line (@u) {
@@ -132,7 +133,7 @@ sub password_recovery {
 	                                                    { OUTPUT2RETURN => 1 });
 
      if ($email ne '') {
-       sendmail("$conf{ADMIN_MAIL}", "$email", "$ADMIN_REPORT{HOSTNAME} Password Repair", 
+       sendmail("$conf{ADMIN_MAIL}", "$email", "$PROGRAM Password Repair", 
               "$message", "$conf{MAIL_CHARSET}", "");
  		   $html->message('info', $_INFO, "$_SENDED");
       }

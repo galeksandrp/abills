@@ -568,7 +568,6 @@ sub periods_totals {
    $WHERE .= " and username='$attr->{LOGIN}' ";
   }
 
- #$self->{debug}=1;
 
  $self->query($db, "SELECT  
    sum(if(date_format(start, '%Y-%m-%d')=curdate(), sent, 0)), 
@@ -1227,7 +1226,6 @@ sub change {
        use POSIX qw(strftime);
        my $EXPITE_DATE = strftime( "%Y-%m-%d", localtime(time + 86400 * $tariffs->{AGE}) );
        #"curdate() + $tariffs->{AGE} days";
-       $user->{debug}=1;
        $user->change($attr->{UID}, { EXPIRE => $EXPITE_DATE, UID => $attr->{UID} });
      }
 
