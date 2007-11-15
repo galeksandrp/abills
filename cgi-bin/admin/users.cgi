@@ -4038,7 +4038,7 @@ sub sql_online {
     message('info', $_INFO,  "Ping  $FORM{ping}<br>Result:<br><pre>$res</pre>");
    }
  elsif ($FORM{hangup}) {
-     my ($nas_ip_address, $nas_port_id, $acct_session_id, $user) = split(/ /, $FORM{hangup}, 4);
+     my ($nas_ip_address, $nas_port_id, $acct_session_id) = split(/ /, $FORM{hangup}, 3);
 
      require "nas.pl";
      my $ret = hangup("$nas_ip_address", "$nas_port_id", "", "$acct_session_id");
@@ -4051,10 +4051,6 @@ sub sql_online {
          "<tr><td>SESSION_ID:</td><td>$acct_session_id</td></tr>".
          "</table>\n";
          sleep 3;
-        open(FILE, ">>$conf{hanguplog}" ) || print "Can't open file '$conf{hanguplog}' $!";
-          print FILE "$DATE:$admin_name:$admin_ip:$user\n";
-        close(FILE);
-        
       }
      elsif ($ret == 1) {
      	$msg = 'NOT supported yet';
@@ -4142,44 +4138,41 @@ sub sql_online {
         <tr><td>DURATION:</td><td> $duration</td></tr>
         <tr><td>INPUT:</td><td> $input_octets</td></tr>
         <tr><td>OUTPUT:</td><td> $output_octets</td></tr>
-     	<tr><td>EX_INPUT:</td><td> $ex_input_octets</td></tr>
-     	<tr><td>EX_OUTPUT:</td><td>$ex_output_octets</td></tr>
-     	<tr><td>IP:</td><td> $framed_ip_address</td></tr>
-     	<tr><td>LAST_UPDATES:</td><td> $lupdated</td></tr>
-  	<tr><td>PORT_ID:</td><td> $nas_port_id</td></tr>
-  	<tr><td>NAS_IP:</td><td> $nas_ip_address</td></tr>
-  	<tr><td>CID:</td><td> $CID</td></tr>
+     	  <tr><td>EX_INPUT:</td><td> $ex_input_octets</td></tr>
+     	  <tr><td>EX_OUTPUT:</td><td>$ex_output_octets</td></tr>
+     	  <tr><td>IP:</td><td> $framed_ip_address</td></tr>
+     	  <tr><td>LAST_UPDATES:</td><td> $lupdated</td></tr>
+  	    <tr><td>PORT_ID:</td><td> $nas_port_id</td></tr>
+  	    <tr><td>NAS_IP:</td><td> $nas_ip_address</td></tr>
+  	    <tr><td>CID:</td><td> $CID</td></tr>
         <tr><td>$_SUM:</td><td>$sum</td></tr>
         <tr><td>$_TARIF_PLAN:</td><td>$variant</td></tr>
        </table>\n";
         
-        if($sum == -1) {
-           message('info', $_INFO, 'Short session');
-         }
-        elsif ($sum < 0) {
+        
+        if ($sum < 0) {
         	 message('err', 'Error', 'Wrong end data. Contact admin<br>'. $session_info);
         	 return 0;
          }
-        else {
-          log_print('LOG_SQL', "$sql");
-          $nas_num = $NAS_INFO->{$nas_ip_address};
-          $sql = "INSERT INTO log (id, login, variant, duration, sent, recv, minp, kb,  sum, nas_id, port_id, ".
-            "ip, CID, sent2, recv2, acct_session_id) VALUES ('$username', FROM_UNIXTIME($started), ".
-            "'$variant', '$ACCT_INFO{ACCT_SESSION_TIME}', '$ACCT_INFO{OUTBYTE}', '$ACCT_INFO{INBYTE}', ".
-            "'$time_t', '$traf_t', '$sum', '$nas_num', ".
-            "'$nas_port_id', INET_ATON('$framed_ip_address'), '$CID', ".
-            "'$ACCT_INFO{OUTBYTE2}', '$ACCT_INFO{INBYTE2}',  \"$FORM{tolog}\");";
+        
+        log_print('LOG_SQL', "$sql");
+        $nas_num = $NAS_INFO->{$nas_ip_address};
+        $sql = "INSERT INTO log (id, login, variant, duration, sent, recv, minp, kb,  sum, nas_id, port_id, ".
+          "ip, CID, sent2, recv2, acct_session_id) VALUES ('$username', FROM_UNIXTIME($started), ".
+          "'$variant', '$ACCT_INFO{ACCT_SESSION_TIME}', '$ACCT_INFO{OUTBYTE}', '$ACCT_INFO{INBYTE}', ".
+          "'$time_t', '$traf_t', '$sum', '$nas_num', ".
+          "'$nas_port_id', INET_ATON('$framed_ip_address'), '$CID', ".
+          "'$ACCT_INFO{OUTBYTE2}', '$ACCT_INFO{INBYTE2}',  \"$FORM{tolog}\");";
 
-          log_print('LOG_SQL', "$sql");
-          $q = $db->do($sql) || die $db->errstr;
-         } 
-
-         if ($sum > 0) {
-           $sql = "UPDATE users SET deposit=deposit-$sum WHERE id='$username';";
-           log_print('LOG_SQL', "$sql");
-           $q = $db->do($sql) || die $db->errstr;
-          }
-
+       log_print('LOG_SQL', "$sql");
+       $q = $db->do($sql) || die $db->errstr;
+       
+ 
+       if ($sum > 0) {
+         $sql = "UPDATE users SET deposit=deposit-$sum WHERE id='$username';";
+         log_print('LOG_SQL', "$sql");
+         $q = $db->do($sql) || die $db->errstr;
+        }
 
        $message = "$_ADED to log $session_info";
        message('info', $_INFO, $message);
@@ -4261,7 +4254,7 @@ sub sql_online {
      my $zap_button = "<a href='$SELF?op=sql_online&zap=$nas_ip_address+$nas_port_id+$acct_session_id' title='Radzap $user_name'>Z</a>";
      $nas{$nas_ip_address} .= "<th>(<a href='$SELF?op=sql_online&ping=$framed_ip_address' title='ping'>P</a>)</th>".
       "<th>($zap_button)</th>".
-      "<th>(<a href='$SELF?op=sql_online&hangup=$nas_ip_address+$nas_port_id+$acct_session_id+$user_name' title='hangup'>H</a>)</th></tr>\n";
+      "<th>(<a href='$SELF?op=sql_online&hangup=$nas_ip_address+$nas_port_id+$acct_session_id' title='hangup'>H</a>)</th></tr>\n";
      $users_count{$nas_ip_address}++ ; # = (defined($users{$nas_ip_address})) ? $users_count{$nas_ip_address}+1 : 1;
     }
 
@@ -4304,9 +4297,8 @@ print << "[END]";
 <tr><td bgcolor=#FFFF00 width=16>&nbsp;</td><td>Simultaneously logins</td></tr>
 </table> 
 [END]
+
 }
-
-
 
 #*******************************************************************
 # Internet card manager
