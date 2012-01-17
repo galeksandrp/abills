@@ -581,7 +581,8 @@ for(my $parent=1; $parent<$#menu_sorted; $parent++) {
     $table = $html->table({ width       => '200',
                             title_plain => [ $html->button($html->b($val), "index=$parent") ],
                             border      => 1,
-                            cols_align  => ['left']
+                            cols_align  => ['left'],
+                            class       => 'form'
                           });
    }
 
