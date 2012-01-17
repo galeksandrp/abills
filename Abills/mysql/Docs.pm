@@ -1410,7 +1410,9 @@ sub user_info {
    service.send_docs, 
    service.periodic_create_docs, 
    service.email, 
-   service.comments 
+   service.comments,
+   service.personal_delivery,
+   service.invoicing_period 
      FROM docs_main service
    $WHERE;");
 
@@ -1420,14 +1422,14 @@ sub user_info {
      return $self;
    }
 
-
   ($self->{UID},
    $self->{SEND_DOCS}, 
    $self->{PERIODIC_CREATE_DOCS}, 
    $self->{EMAIL}, 
-   $self->{COMMENTS}
-  )= @{ $self->{list}->[0] };
-  
+   $self->{COMMENTS},
+   $self->{PERSONAL_DELIVERY},
+   $self->{INVOICE_PERIOD}   
+  )= @{ $self->{list}->[0] };  
   
   return $self;
 }
@@ -1465,12 +1467,17 @@ sub user_add {
      send_docs, 
      periodic_create_docs, 
      email, 
-     comments)
+     comments,
+     personal_delivery,
+     invoicing_period
+     )
         VALUES ('$DATA{UID}',
         '$DATA{SEND_DOCS}', 
         '$DATA{PERIODIC_CREATE_DOCS}',
         '$DATA{EMAIL}',
-        '$DATA{COMMENTS}'
+        '$DATA{COMMENTS}',
+        '$DATA{PERSONAL_DELIVERY}',
+        '$DATA{INVOICE_PERIOD}'
          );", 'do');
 
   return $self if ($self->{errno});
@@ -1492,11 +1499,15 @@ sub user_change {
                  PERIODIC_CREATE_DOCS => 'periodic_create_docs',
                  EMAIL       => 'email',
                  COMMENTS    => 'comments',
-                 UID         => 'uid'
+                 UID         => 'uid',
+                 PERSONAL_DELIVERY => 'personal_delivery',
+                 INVOICE_PERIOD    => 'invoicing_period' 
+                 
                 );
  
   $attr->{SEND_DOCS} = (! defined($attr->{SEND_DOCS})) ? 0 : 1;
   $attr->{PERIODIC_CREATE_DOCS} = (! defined($attr->{PERIODIC_CREATE_DOCS})) ? 0 : 1;
+  $attr->{PERSONAL_DELIVERY} = (! defined($attr->{PERSONAL_DELIVERY})) ? 0 : 1;
 
   $admin->{MODULE}=$MODULE;
   $self->changes($admin, { CHANGE_PARAM => 'UID',

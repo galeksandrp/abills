@@ -32,3 +32,12 @@ $_AMOUNT_FOR_PAY='Сума для оплати';
 $_ACTIVATE_NEXT_PERIOD='Для активації наступного облікового періода потрібно сплатити';
 $_CURENT_BILLING_PERIOD='Поточний обрахунковий період';
 $_NEXT_PERIODS='Наступні обрахункові періоди';
+
+
+$_INCLUDE_CUR_BILLING_PERIOD='Включити рахунки за поточний період';
+$_NOT_INCLUDE_CUR_BILLING_PERIOD='Не включати рахунки за поточний період';
+
+
+$_INVOICE_AUTO_GEN='Автоматичне створення рахунку';
+$_INVOICING_PERIOD='Період виписки рахунку';
+$_PERSONAL_DELIVERY='Персональна доставка';

@@ -280,6 +280,8 @@ CREATE TABLE `docs_invoice_orders` (
 CREATE TABLE `docs_main` (
   `uid` int(11) unsigned NOT NULL default '0' PRIMARY KEY,
   `send_docs` tinyint(1) unsigned NOT NULL default '0',
+  `personal_delivery` tinyint(1) unsigned NOT NULL default '0',
+  `invoicing_period` tinyint(3) unsigned NOT NULL default '0',
   `periodic_create_docs` tinyint(1) unsigned NOT NULL default '0',
   `email` varchar(200) NOT NULL default '',
   `comments` text not null
