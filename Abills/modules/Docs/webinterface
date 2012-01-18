@@ -335,8 +335,6 @@ sub docs_invoice {
 
         ($Y, $M, $D)=split(/-/, strftime "%Y-%m-%d", localtime( (mktime(0, 0, 0, $D, ($M-1), ($Y-1900), 0, 0, 0) + (30 * (($FORM{NEXT_PERIOD}==-1) ? 1 : $next_period) )  * 86400) )); 
         $FORM{TO_DATE}="$Y-$M-$D";
-        
-        ($Y, $M, $D)=split(/-/, strftime "%Y-%m-%d", localtime( (mktime(0, 0, 0, $D, ($M-1), ($Y-1900), 0, 0, 0) + 86400 )));
        }
       else { 
         $M+=1;
@@ -383,6 +381,7 @@ sub docs_invoice {
  	 	 	     my ($name, $describe, $sum)=split(/\|/, $line);
  	 	 	 	   next if ($sum <= 0);
  	 	 	   	 
+ 	 	 	   	 $period_from = strftime "%Y-%m-%d", localtime( (mktime(0, 0, 0, $D, ($M-1), ($Y-1900), 0, 0, 0) + 1 * 86400) ); 
  	 	 	   	 $period_from=$FORM{FROM_DATE};
  	 	 	   	 
  	 	 	   	 for (my $i=($FORM{NEXT_PERIOD}==-1) ? -2 : 0; $i<int($FORM{NEXT_PERIOD}); $i++) {
@@ -395,7 +394,7 @@ sub docs_invoice {
 
              my ($Y, $M, $D) = split(/-/, $period_from, 3);
              if ($users->{ACTIVATE} ne '0000-00-00') {
-  	 	         ($Y, $M, $D)=split(/-/, strftime "%Y-%m-%d", localtime( (mktime(0, 0, 0, $D, ($M-1), ($Y-1900), 0, 0, 0) ))); #+ (31 * $i) * 86400) )); 
+  	 	         ($Y, $M, $D)=split(/-/, strftime "%Y-%m-%d", localtime( (mktime(0, 0, 0, $D, ($M-1), ($Y-1900), 0, 0, 0)))); #+ (31 * $i) * 86400) )); 
                $period_from="$Y-$M-$D";
 
                ($Y, $M, $D)=split(/-/, strftime "%Y-%m-%d", localtime( (mktime(0, 0, 0, $D, ($M-1), ($Y-1900), 0, 0, 0) + (30-1) * 86400) )); 
@@ -445,7 +444,6 @@ sub docs_invoice {
  	 	                    $sum );
 
  	 	         $total_sum	+= $sum if (! $current_invoice{$order}); 	 	         
- 	 	         $period_from = strftime "%Y-%m-%d", localtime( (mktime(0, 0, 0, $D, ($M-1), ($Y-1900), 0, 0, 0) + 1 * 86400) ); 
            }
  	 	      } 
  	 	    }
