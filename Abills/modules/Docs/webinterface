@@ -381,8 +381,8 @@ sub docs_invoice {
  	 	 	     my ($name, $describe, $sum)=split(/\|/, $line);
  	 	 	 	   next if ($sum <= 0);
  	 	 	   	 
+ 	 	 	   	 my ($Y, $M, $D) = split(/-/, $FORM{FROM_DATE}, 3);
  	 	 	   	 $period_from = strftime "%Y-%m-%d", localtime( (mktime(0, 0, 0, $D, ($M-1), ($Y-1900), 0, 0, 0) + 1 * 86400) ); 
- 	 	 	   	 $period_from=$FORM{FROM_DATE};
  	 	 	   	 
  	 	 	   	 for (my $i=($FORM{NEXT_PERIOD}==-1) ? -2 : 0; $i<int($FORM{NEXT_PERIOD}); $i++) {
  	 	 	 	     $sum = sprintf("%.2f", $sum); # * ($FORM{NEXT_PERIOD}));
@@ -444,6 +444,7 @@ sub docs_invoice {
  	 	                    $sum );
 
  	 	         $total_sum	+= $sum if (! $current_invoice{$order}); 	 	         
+ 	 	         $period_from = strftime "%Y-%m-%d", localtime( (mktime(0, 0, 0, $D, ($M-1), ($Y-1900), 0, 0, 0) + 1 * 86400) ); 
            }
  	 	      } 
  	 	    }
