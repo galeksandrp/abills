@@ -4152,7 +4152,8 @@ if ($nas->{errno}) {
   'qbridge'   => 'Q-BRIDGE',
   'dhcp'      => 'DHCP FreeRadius in DHCP mode',
   'ls_pap2t'  => 'Linksys pap2t',
-  'ls_spa8000'=> 'Linksys spa8000'
+  'ls_spa8000'=> 'Linksys spa8000',
+  'redback'   => 'Ericson CE1000 Redback'
  );
 
 
