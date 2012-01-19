@@ -592,7 +592,6 @@ if ($NAS->{NAS_TYPE} eq 'mpd5') {
    }
   }
 	#$RAD_PAIRS->{'Session-Timeout'}=604800;
-$RAD_PAIRS->{'Acct-Interim-Interval'}=$NAS->{NAS_ALIVE} if ($NAS->{NAS_ALIVE});
  }
 elsif($CONF->{cisco_shaper} && $NAS->{NAS_TYPE} eq 'cisco') {
   #$traf_tarif 
@@ -674,8 +673,6 @@ elsif ($NAS->{NAS_TYPE} eq 'mikrotik') {
     #$RAD_PAIRS->{'Ascend-Xmit-Rate'} = int($EX_PARAMS->{speed}->{0}->{IN}) * $CONF->{KBYTE_SIZE};
     #$RAD_PAIRS->{'Ascend-Data-Rate'} = int($EX_PARAMS->{speed}->{0}->{OUT})* $CONF->{KBYTE_SIZE};
    }
-
-  $RAD_PAIRS->{'Acct-Interim-Interval'}=$NAS->{NAS_ALIVE} if ($NAS->{NAS_ALIVE});
  }
 # MPD4
 elsif ($NAS->{NAS_TYPE} eq 'mpd4' && $RAD_PAIRS->{'Session-Timeout'} > 604800) {
@@ -723,7 +720,6 @@ elsif ($NAS->{NAS_TYPE} eq 'accel_pptp' or ($NAS->{NAS_TYPE} eq 'lepppd') or
     $RAD_PAIRS->{'PPPD-Downstream-Speed-Limit'} = int($EX_PARAMS->{speed}->{0}->{OUT}); 
     $RAD_PAIRS->{'PPPD-Upstream-Speed-Limit'} = int($EX_PARAMS->{speed}->{0}->{IN}); 
    }
-  $RAD_PAIRS->{'Acct-Interim-Interval'}=$NAS->{NAS_ALIVE} if ($NAS->{NAS_ALIVE});
  }
 #Chillispot
 elsif ($NAS->{NAS_TYPE} eq 'chillispot') {
@@ -744,7 +740,6 @@ elsif ($NAS->{NAS_TYPE} eq 'chillispot') {
      $RAD_PAIRS->{'WISPr-Bandwidth-Max-Down'} = int($EX_PARAMS->{speed}->{0}->{IN}) * $CONF->{KBYTE_SIZE}; 
      $RAD_PAIRS->{'WISPr-Bandwidth-Max-Up'} = int($EX_PARAMS->{speed}->{0}->{OUT}) * $CONF->{KBYTE_SIZE}; 
    } 
-   $RAD_PAIRS->{'Acct-Interim-Interval'}=$NAS->{NAS_ALIVE} if ($NAS->{NAS_ALIVE});	
 }
 
 #Auto assing MAC in first connect
@@ -762,6 +757,8 @@ if( $self->{ACCOUNT_AGE} > 0 && $self->{ACCOUNT_ACTIVATE} eq '0000-00-00') {
   $self->query($db, "UPDATE users SET  activate=curdate(), expire=curdate() + INTERVAL $self->{ACCOUNT_AGE} day 
      WHERE uid='$self->{UID}';", 'do');
  }
+
+$RAD_PAIRS->{'Acct-Interim-Interval'}=$NAS->{NAS_ALIVE} if ($NAS->{NAS_ALIVE});
 
 #check TP Radius Pairs
   if ($self->{TP_RAD_PAIRS}) {
