@@ -2558,7 +2558,8 @@ if($conf{IPN_DHCP_ACTIVE}) {
 	                  ALL_FILTER_ID=> '*',
 	                  PAGE_ROWS    => 1000000,
 	                  TP_ID        => $attr->{TP_IDS} || '>0',
-	                  PORT         => '>=0'
+	                  PORT         => '>=0',
+	                  TP_CREDIT    => '>=0',
                  });
 
 
@@ -2571,7 +2572,8 @@ foreach my $line (@$list) {
   my $nas_id       = 0;
   my $tp_id        = $line->[9 + $Dv->{SEARCH_FIELDS_COUNT}];
   my $port         = $line->[7];
-  
+  my $deposit      = $line->[2];
+  my $credit       = ($line->[3] > 0) ? $line->[3] : ($conf{user_credit_change}) ? 0 : $line->[5 + $Dv->{SEARCH_FIELDS_COUNT}];
  
   DHCP_IP_ASSIGN:
   if($conf{IPN_DHCP_ACTIVE} && $#{ $DHCP_IPS{$uid} } > -1) {
@@ -2587,11 +2589,11 @@ foreach my $line (@$list) {
   	print "$login Online\n" if ($debug > 3);
   	next;
    }
-  elsif (! $line->[2]) {
+  elsif (! $deposit) {
   	print "Error: Can't finde bills  UID: '$uid'\n";
   	next;
    }
-  elsif ($line->[2]+$line->[3] <= 0 && !  $TPS{$tp_id}) {
+  elsif ($deposit+$credit <= 0 && !  $TPS{$tp_id}) {
   	print "$login Small deposit or TP not defined\n" if ($debug > 3);
   	next;
    }
