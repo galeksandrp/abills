@@ -2548,6 +2548,7 @@ if($conf{IPN_DHCP_ACTIVE}) {
    }
  }
 
+  $Dv->{debug}=1 if ($debug > 5);
   $list = $Dv->list({ LOGIN      => $attr->{LOGINS} || undef,
                     ACTIVATE     => "<='$DATE'",
                     EXPIRE       => ">'$DATE'",
@@ -2591,7 +2592,7 @@ foreach my $line (@$list) {
   	next;
    }
   elsif ($line->[2]+$line->[3] <= 0 && !  $TPS{$tp_id}) {
-  	print "Small deposit or TP not defined\n" if ($debug > 3);
+  	print "$login Small deposit or TP not defined\n" if ($debug > 3);
   	next;
    }
    
