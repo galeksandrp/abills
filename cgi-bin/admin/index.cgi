@@ -6806,7 +6806,7 @@ my $table = $html->table( { width      => '100%',
 my ($y, $m, $d)=split(/-/, $DATE, 3);
 foreach my $line (@$list) {
   my $delete = ($permissions{4}{3}) ?  $html->button($_DEL, "index=$index&del=$line->[14]", { MESSAGE =>  "$_DEL [$line->[14]]?",  CLASS => 'del' }) : '-'; 
-  my $value = "$line->[7]";
+  my $value = convert("$line->[7]", { text2html => 1 });
   
   if ($line->[6] eq 'status') {
   	my @service_status_colors = ("$_COLORS[9]", "$_COLORS[6]", '#808080', '#0000FF', '#FF8000', '#009999');
@@ -6821,7 +6821,7 @@ foreach my $line (@$list) {
   else {
   	$table->{rowcolor}=undef;
    }
-  
+
   $table->addrow($html->b($line->[0]), $line->[1], $line->[2], 
     $line->[3],  $line->[4],  
     $html->button($line->[5], "index=15&UID=$line->[13]"), 

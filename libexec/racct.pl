@@ -319,7 +319,7 @@ sub acct {
     $RAD->{CALLING_STATION_ID} = '';
    }
 # Make accounting with external programs
-if (-d $conf{extern_acct_dir}) {
+if ($conf{extern_acct_dir} && -d $conf{extern_acct_dir}) {
   opendir DIR, $conf{extern_acct_dir} or die "Can't open dir '$conf{extern_acct_dir}' $!\n";
     my @contents = grep  !/^\.\.?$/  , readdir DIR;
   closedir DIR;
