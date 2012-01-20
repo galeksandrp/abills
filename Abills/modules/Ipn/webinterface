@@ -2583,7 +2583,7 @@ foreach my $line (@$list) {
   	next;
    }
   elsif ($online_uids{$uid}) {
-  	print "Account Online\n" if ($debug > 3);
+  	print "$login Online\n" if ($debug > 3);
   	next;
    }
   elsif (! $line->[2]) {
