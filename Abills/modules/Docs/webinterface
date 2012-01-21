@@ -279,7 +279,7 @@ sub docs_invoice {
                            });
 
     my $num       = 0;
-    my $total_sum = 0;
+    my $total_sum = ($users->{DEPOSIT}<0) ? abs($users->{DEPOSIT}) : 0 - $users->{DEPOSIT};
     my $amount_for_pay = 0;
     foreach my $line (@$list) {
       next if ($line->[5]);
@@ -294,7 +294,7 @@ sub docs_invoice {
         "$line->[3]", 
         "$line->[4]"
          );      
-      $total_sum+=$line->[4]; 
+      #$total_sum+=$line->[4]; 
      }
 
     my $date = $DATE;
@@ -522,6 +522,8 @@ elsif($FORM{print}) {
 		my $i = 1;
 		my @ORDERS = @{ $Docs->{ORDERS} };
 		$Docs->{ORDER}='';
+	  $Docs->{AMOUNT_FOR_PAY}=($Docs->{DEPOSIY}<0) ? abs($Docs->{DEPOSIT}) : 0-$Docs->{DEPOSIT};
+
 		foreach my $line (@ORDERS) {
 			
 			my $sum = sprintf("%.2f", $line->[3] * $line->[4]);
@@ -530,17 +532,20 @@ elsif($FORM{print}) {
 		  
    	  $Docs->{'ORDER_NUM_'.$i}   = $i;
       $Docs->{'ORDER_NAME_'.$i}  = $line->[1];
-      $Docs->{'ORDER_COUNT_'.$i} = $line->[3];
+      $Docs->{'ORDER_COUNT_'.$i} = $line->[3] || 1;
       $Docs->{'ORDER_PRICE_'.$i} = $line->[4];
       $Docs->{'LOGIN_'.$i}       = $line->[6];
       $Docs->{'ORDER_SUM_'.$i}   = $sum;       
       $Docs->{'ORDER_PRICE_WITHOUT_VAT_'.$i} = sprintf("%.2f", ($conf{DOCS_VAT_INCLUDE}) ? $line->[4] - $line->[4] / ((100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE}) : $line->[4]);
       $Docs->{'ORDER_SUM_WITHOUT_VAT_'.$i}   = sprintf("%.2f", ($conf{DOCS_VAT_INCLUDE}) ? $sum - $sum / ((100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE}) : $sum);
 		  $Docs->{TOTAL_SUM}+=$sum;
+		  $Docs->{AMOUNT_FOR_PAY}+=$Docs->{'ORDER_COUNT_'.$i}*$Docs->{'ORDER_PRICE_'.$i} if ($line->[5] == 0);
+		  
 		  $i++;
    	 }
 	 }
 
+  $Docs->{AMOUNT_FOR_PAY} = sprintf("%.2f", $Docs->{AMOUNT_FOR_PAY});
   $Docs->{TOTAL_SUM} = sprintf("%.2f", $Docs->{TOTAL_SUM});
 
   if ($Docs->{PAYMENT_ID}) {
@@ -708,7 +713,7 @@ my $table = $html->table( { width      => '100%',
                             pages      => $Docs->{TOTAL},
                             ID         => 'DOCS_INVOCE',
                             EXPORT     => ' XML:&xml=1',
-                            MENU    => (($FORM{UID}) ? "$_ADD:index=$index&UID=$FORM{UID}:add" : '').                            
+                            MENU    => (($FORM{UID}) ? "$_ADD:index=". get_function_index('docs_invoice', { ARGS => UID }) ."&UID=$FORM{UID}:add" : '').                            
                             ";$_SEARCH:index=".get_function_index('docs_invoice_list')."&search=1:search"
                           });
 

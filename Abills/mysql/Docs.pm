@@ -348,12 +348,12 @@ sub docs_invoice_info {
    $self->{DELIVERY_STATUS},
   )= @{ $self->{list}->[0] };
 	
-	$self->{AMOUNT_FOR_PAY}=sprintf("%.2f", (($self->{DEPOSIT}>0) ? $self->{TOTAL_SUM}-$self->{DEPOSIT} : $self->{TOTAL_SUM}+$self->{DEPOSIT}));
+	$self->{AMOUNT_FOR_PAY}=  ($self->{DEPOSIT}<0) ? abs($self->{DEPOSIT}) : 0 - $self->{DEPOSIT};
 	
   if ($self->{TOTAL} > 0) {
     $self->{NUMBER}=$self->{INVOICE_ID};
  
-    $self->query($db, "SELECT invoice_id, orders, unit, counts, price, fees_id, $self->{LOGIN}
+    $self->query($db, "SELECT invoice_id, orders, unit, counts, price, fees_id, '$self->{LOGIN}'
       FROM docs_invoice_orders WHERE invoice_id='$id'");
     $self->{ORDERS}=$self->{list};
    }
