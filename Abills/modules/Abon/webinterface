@@ -104,7 +104,7 @@ sub abon_user {
             $Abon->{ACTIVATE}=$users->{ACTIVATE};
             $message .= abon_get_month_fee($Abon);
            }
-          else {
+          elsif($users->{REDUCTION} < 100) {
             $fees->take($users, $Abon->{TP_INFO}->{MONTH_FEE}, { %PARAMS } ); 
             if ($fees->{errno}) {
         	    $html->message('err', "$_FEES : $_ERROR", "[$fees->{errno}] $fees->{errstr}");	
@@ -558,11 +558,10 @@ sub abon_periodic {
       if($line->[8] && ($info{DEPOSIT} + $info{CREDIT} > 0 || $line->[11] == 1) && $line->[9] == 0) {
       	
 
-         $fees->take(\%user, $info{SUM}, { %PARAMS } ); 
+         $fees->take(\%user, $info{SUM}, { %PARAMS } ) if ($info{DISCOUNT} < 100); 
          $Abon->user_tariff_update({ UID   => "$info{UID}", 
          	                           DATE  => $ADMIN_REPORT{DATE}, 
          	                           TP_ID => "$info{TP_ID}" });
-
 
          if ($info{CREATE_ACCOUNT} && $info{CREATE_DOCS}) {
          	 $FORM{SUM}       = $info{SUM};

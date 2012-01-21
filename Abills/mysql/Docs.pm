@@ -167,7 +167,7 @@ sub docs_invoice_list {
  return $self->{list}  if ($self->{TOTAL} < 1);
  my $list = $self->{list};
 
- $self->query($db, "SELECT count(*)
+ $self->query($db, "SELECT count(DISTINCT d.invoice_id)
     FROM (docs_invoice d, docs_invoice_orders o)
     LEFT JOIN users u ON (d.uid=u.uid)
     LEFT JOIN admins a ON (d.aid=a.aid)
@@ -348,12 +348,12 @@ sub docs_invoice_info {
    $self->{DELIVERY_STATUS},
   )= @{ $self->{list}->[0] };
 	
-	$self->{AMOUNT_FOR_PAY}=($self->{DEPOSIT}>0) ? $self->{TOTAL_SUM}-$self->{DEPOSIT} : $self->{TOTAL_SUM}+$self->{DEPOSIT};
+	$self->{AMOUNT_FOR_PAY}=sprintf("%.2f", (($self->{DEPOSIT}>0) ? $self->{TOTAL_SUM}-$self->{DEPOSIT} : $self->{TOTAL_SUM}+$self->{DEPOSIT}));
 	
   if ($self->{TOTAL} > 0) {
     $self->{NUMBER}=$self->{INVOICE_ID};
  
-    $self->query($db, "SELECT invoice_id, orders, unit, counts, price, fees_id
+    $self->query($db, "SELECT invoice_id, orders, unit, counts, price, fees_id, $self->{LOGIN}
       FROM docs_invoice_orders WHERE invoice_id='$id'");
     $self->{ORDERS}=$self->{list};
    }
@@ -408,7 +408,7 @@ sub docs_invoice_add {
     foreach my $line (@{ $attr->{ORDERS} }) {
       my ($order, $unit, $count,  $sum, $fees_id)=split(/\|/, $line, 4);
       $self->query($db, "INSERT INTO docs_invoice_orders (invoice_id, orders, counts, unit, price, fees_id)
-        values ($self->{DOC_ID}, '$order', '$count', '$unit', '$sum', '$fees_id')", 'do');
+        values ('$self->{DOC_ID}', '$order', '$count', '$unit', '$sum', '$fees_id')", 'do');
     }
    }
   else {

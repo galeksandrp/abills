@@ -261,7 +261,7 @@ sub paysys_import_form {
              if ($binding_hash{lc($DATA_ARR->[$i]->{$BINDING_FIELD})}) {
                 my($uid, $login, $fio)=split(/:/, $binding_hash{lc($DATA_ARR->[$i]->{$BINDING_FIELD})});
                 my $user   = $users->info($uid);
-                my $ext_id = $DATA_ARR->[$i]->{EXT_ID} || "$DATA_ARR->[$i]->{DATE}.$FORM{IMPORT_TYPE}.$ID";
+                my $ext_id = $DATA_ARR->[$i]->{EXT_ID} || "$DATA_ARR->[$i]->{DATE}_$FORM{IMPORT_TYPE}.$ID";
                 $payments->add($user, { SUM  => $DATA_ARR->[$i]->{SUM},
  	                     DESCRIBE     => $DATA_ARR->[$i]->{DESCRIBE} || '', 
  	                     METHOD       => $DATA_ARR->[$i]->{PAYMENT_METHOD} || 1, 
@@ -331,20 +331,24 @@ sub paysys_import_form {
               }
           }
 
-          my $list = $payments->list({ EXT_ID    => join(';', @payments_arr), 
-          	                           PAGE_ROWS => 1000000 
+         if ($#payments_arr == -1) {
+           $html->message('err', $_ERROR, "_NO_DATA");
+           return 0;         	
+          }
+
+         my $list = $payments->list({ EXT_ID    => join(';', @payments_arr), 
+          	                          PAGE_ROWS => 1000000 
           	                          });
           
-          foreach my $line (@$list) {
+
+         foreach my $line (@$list) {
           	$payments->del({UID => $line->[11] }, $line->[0]);
-          	#if ($payments->{TOTAL} > 0) {
-          	  $total_count++;
-          	  $total_sum += $line->[4];
-          	# }
-           }
+         	  $total_count++;
+         	  $total_sum += $line->[4];
+          }
           
-          print $html->message('info', $_DELETED, "\n$_TOTAL: $total_count $_SUM: $total_sum");
-          return 0;
+         $html->message('info', $_DELETED, "\n$_TOTAL: $total_count $_SUM: $total_sum");
+         return 0;
      	  }
      	 else {
 
@@ -392,21 +396,21 @@ function CheckAllINBOX() {
        	    }
       	
       	   #print "$DATA_ARR->[$i]->{TERMINAL_ID}, $DATA_ARR->[$i]->{NUM_AGENT}<br>";
-      	
+      	   my $date = $DATA_ARR->[$i]->{DATE} || $FORM{DATE};
            $table->addrow(
               $html->form_input(IDS, $ID, { TYPE => 'checkbox' }) .  $ID,
               $html->form_input('FIO_'.$ID, $DATA_ARR->[$i]->{FIO} || '', { SIZE => 40}) . "$info", 
               $html->form_input('PHONE_'.$ID, $DATA_ARR->[$i]->{PHONE} || '', { SIZE => 12}),
               ($BINDING_FIELD eq 'CONTRACT_ID') ? $DATA_ARR->[$i]->{CONTRACT_ID} : $html->form_input('CONTRACT_ID_'. $ID, $DATA_ARR->[$i]->{CONTRACT_ID} || '', { SIZE => 12 }),
               $DATA_ARR->[$i]->{SUM},
-              $DATA_ARR->[$i]->{DATE} || $FORM{DATE},
+              $date,
               $DATA_ARR->[$i]->{BANK_ACCOUNT},
               $PAYMENT_METHOD_SEL,
               $DATA_ARR->[$i]->{ADDRESS},
               $html->form_input('DESCRIBE_'.$ID, $DATA_ARR->[$i]->{DESCRIBE} || ''),
               $html->form_input('INNER_DESCRIBE_'.$ID, $DATA_ARR->[$i]->{INNER_DESCRIBE} || ''),
               $html->form_input($BINDING_FIELD.'_'.$ID, $DATA_ARR->[$i]->{$BINDING_FIELD} || ''),
-              $html->form_input('EXT_ID_'.$ID, $DATA_ARR->[$i]->{EXT_ID} || ''),
+              $html->form_input('EXT_ID_'.$ID, $DATA_ARR->[$i]->{EXT_ID} || $date.'_'.$FORM{IMPORT_TYPE}.$ID),
              );
           
            $HIDDEN_HASH{'SUM_'.$ID}         = $DATA_ARR->[$i]->{SUM};

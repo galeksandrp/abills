@@ -5976,8 +5976,8 @@ if ($FORM{add}) {
       next   
      }    
 
-    $fees->take($attr->{USER_INFO}, $FORM{'SUM_'.$i}, { DESCRIBE       => $FORM{'DESCRIBE_'.$i},
-    	                                     INNER_DESCRIBE => $FORM{'INNER_DESCRIBE_'.$i} } );      
+    $fees->take($attr->{USER_INFO}, $FORM{'SUM_'.$i}, { DESCRIBE       => $FORM{'DESCRIBE_'.$i} || $FEES_METHODS{$FORM{'METHOD_'.$i}},
+    	                                                  INNER_DESCRIBE => $FORM{'INNER_DESCRIBE_'.$i} } );      
 
 
     $message .= "$type_describe $_SUM: ". sprintf('%.2f', $FORM{'SUM_'.$i}) .", ". $FORM{'DESCRIBE_'.$i}."\n";
