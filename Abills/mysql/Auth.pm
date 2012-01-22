@@ -163,6 +163,7 @@ sub dv_auth {
    $self->{NEG_DEPOSIT_IP_POOL},
     ) = @{ $self->{list}->[0] };
 
+
 #DIsable
 if ($self->{DISABLE}) {
 	if ($self->{DISABLE} == 2) {
@@ -364,6 +365,7 @@ else {
   $self->{DEPOSIT}=0;
  }
 
+
   if ($self->{INTERVALS} > 0 && ($self->{DEPOSIT} > 0 || $self->{PAYMENT_TYPE} > 0))  {
      ($self->{TIME_INTERVALS}, $self->{INTERVAL_TIME_TARIF}, $self->{INTERVAL_TRAF_TARIF}) = $Billing->time_intervals($self->{TP_ID});
      ($remaining_time, $ATTR) = $Billing->remaining_time($self->{DEPOSIT}, {
@@ -387,6 +389,8 @@ if (defined($ATTR->{TT})) {
 else {
   $self->{TT_INTERVAL} = 0;
  }
+
+
 
 #check allow period and time out
  if ($remaining_time == -1) {
@@ -499,8 +503,14 @@ if ($self->{ACTIVE_DAY_FEE}) {
   }
 
 if ($NAS->{NAS_TYPE} && $NAS->{NAS_TYPE} eq 'ipcad') {
+	# SET ACCOUNT expire date
+  if( $self->{ACCOUNT_AGE} > 0 && $self->{ACCOUNT_ACTIVATE} eq '0000-00-00') {
+    $self->query($db, "UPDATE users SET  activate=curdate(), expire=curdate() + INTERVAL $self->{ACCOUNT_AGE} day 
+      WHERE uid='$self->{UID}';", 'do');
+   }
 	return 0, $RAD_PAIRS, '';
  }
+
 
 # Return radius attr
  if ($self->{IP} ne '0') {
@@ -741,6 +751,8 @@ elsif ($NAS->{NAS_TYPE} eq 'chillispot') {
      $RAD_PAIRS->{'WISPr-Bandwidth-Max-Up'} = int($EX_PARAMS->{speed}->{0}->{OUT}) * $CONF->{KBYTE_SIZE}; 
    } 
 }
+
+
 
 #Auto assing MAC in first connect
 if( $CONF->{MAC_AUTO_ASSIGN} && 

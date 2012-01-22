@@ -6,6 +6,7 @@
 <Table>
 <TR><TD>$_GROUP:</TD><TD>%GID%:%G_NAME%</TD></TR>
 <TR><TD>$_TO:</TD><TD>%SEL_GROUPS%</TD></TR>
+<tr><th colspan=2 class=even><input type='submit' name='change' value='$_CHANGE' class='button'></th></tr>
 </TABLE>
-<input type='submit' name='change' value='$_CHANGE' class='button'>
+
 </form>

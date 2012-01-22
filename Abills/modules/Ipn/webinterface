@@ -1310,6 +1310,7 @@ sub ipn_user_activate {
 
 
         my $Auth = Auth->new($db, \%conf);
+        #$Auth->{debug}=1;
         my ($r, $RAD_PAIRS) = $Auth->dv_auth(\%DATA, $Nas, { SECRETKEY => $conf{secretkey} });
         if ($RAD_PAIRS->{'Filter-Id'}) {
           $DATA{FILTER_ID} = $RAD_PAIRS->{'Filter-Id'} 
@@ -1327,6 +1328,7 @@ sub ipn_user_activate {
                        ACTION   => 'AUTH', 
                        USER_NAME=> $user->{LOGIN} || '-',
                        MESSAGE  => "$RAD_PAIRS->{'Reply-Message'}",
+                       NAS_ID   => $nas_id
                       });
        }
       else {
@@ -1505,6 +1507,7 @@ sub ipn_change_status {
                     ACTION   => 'AUTH', 
                     USER_NAME=> $USER_NAME || '-',
                     MESSAGE  => "IP: $ip",
+                    NAS_ID   => $attr->{NAS_ID}
                    });
 
      
