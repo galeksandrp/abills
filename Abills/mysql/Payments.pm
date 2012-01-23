@@ -246,6 +246,10 @@ sub list {
    push @WHERE_RULES, @{ $self->search_expr(">=$attr->{FROM_DATE}", 'DATE', 'date_format(p.date, \'%Y-%m-%d\')') },
    @{ $self->search_expr("<=$attr->{TO_DATE}", 'DATE', 'date_format(p.date, \'%Y-%m-%d\')') };
   }
+ elsif ($attr->{FROM_DATE_TIME}) {
+   push @WHERE_RULES, @{ $self->search_expr(">=$attr->{FROM_DATE_TIME}", 'DATE', 'p.date') },
+   @{ $self->search_expr("<=$attr->{TO_DATE_TIME}", 'DATE', 'p.date') };
+  }
  elsif ($attr->{PAYMENT_DAYS}) {
  	 my $expr = '=';
  	 if ($attr->{PAYMENT_DAYS} =~ s/^(<|>)//) {

@@ -50,11 +50,11 @@ use Paysys;
 use Finance;
 use Admins;
 
-$debug     = $conf{PAYSYS_DEBUG} || 0;
-$html   = Abills::HTML->new();
-my $sql    = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser},
+$debug   = $conf{PAYSYS_DEBUG} || 0;
+$html    = Abills::HTML->new();
+my $sql  = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser},
     $conf{dbpasswd}, { CHARSET => ($conf{dbcharset}) ? $conf{dbcharset} : undef  });
-my $db     = $sql->{db};
+my $db   = $sql->{db};
 #Operation status
 my $status = '';
 
@@ -184,19 +184,13 @@ if ($conf{PAYSYS_SUCCESSIONS}) {
 
 
 
-
-my $ip_num   = unpack("N", pack("C4", split( /\./, $ENV{REMOTE_ADDR})));
-if ($ip_num >= ip2int('213.186.115.164') && $ip_num <= ip2int('213.186.115.190')) {
+if (check_ip($ENV{REMOTE_ADDR}, '213.186.115.164/24')) {
   require "Ibox.pm";
 	exit;
  }
-elsif ($ip_num >= ip2int('217.117.64.232') && $ip_num <= ip2int('217.117.64.238')) {
-  require "Privat_terminal.pm";
-	exit;
- }
 # Privat bank terminal interface
-elsif ('75.101.163.115,213.154.214.76' =~ /$ENV{REMOTE_ADDR}/) {
-	require "Privat_terminal.pm";
+elsif (check_ip($ENV{REMOTE_ADDR}, '217.117.64.232/28,75.101.163.115,213.154.214.76')) {
+  require "Privat_terminal.pm";
 	exit;
  }
 elsif( $FORM{signature} && $FORM{operation_xml}) {
@@ -253,15 +247,15 @@ elsif(	$conf{PAYSYS_GAZPROMBANK_ACCOUNT_KEY} &&
 	require "Gazprombank.pm";
 	exit;
  }
-elsif ($ENV{REMOTE_ADDR} =~ /^193\.110\.17\.230$/) {
+elsif (check_ip($ENV{REMOTE_ADDR}, '193.110.17.230')) {
  	require "Zaplati_sumy.pm";
  	exit;
  }
-elsif ($ENV{REMOTE_ADDR} =~ /^77\.222\.134\.205$/) {
+elsif (check_ip($ENV{REMOTE_ADDR}, '77.222.134.205')) {
   require "Ipay.pm";
   exit;
 }
-elsif ($ENV{REMOTE_ADDR} =~ /^192\.168\.1\.102$/) {
+elsif (check_ip($ENV{REMOTE_ADDR}, '213.230.106.112/28,213.230.65.85/28,192.168.1.102/24')) {
   require "Paynet.pm";
   exit;
 }
@@ -269,21 +263,11 @@ elsif ($ENV{REMOTE_ADDR} =~ /^192\.168\.1\.102$/) {
 
 
 #Check payment system by IP
-
-#OSMP
-my $first_ip = unpack("N", pack("C4", split( /\./, '79.142.16.0')));
-my $mask_ips = unpack("N", pack("C4", split( /\./, '255.255.255.255'))) - unpack("N", pack("C4", split( /\./,'255.255.240.0')));
-my $last_ip  = $first_ip + $mask_ips;
-
-
-if ($ENV{REMOTE_ADDR} =~ /^92\.125\./) {
+if (check_ip($ENV{REMOTE_ADDR}, '92.125.0.0/24')) {
 	osmp_payments_v4();
 	exit;
  }
-elsif ($ENV{REMOTE_ADDR} =~ /^93\.183\.196\.26$/ ||
-       $ENV{REMOTE_ADDR} =~ /^195\.230\.131\.50$/||
-       $ENV{REMOTE_ADDR} =~ /^93\.183\.196\.28$/
-        ) {
+elsif (check_ip($ENV{REMOTE_ADDR}, '93.183.196.26,195.230.131.50,93.183.196.28')){
  	require "Easysoft.pm";
  	exit;
  }
@@ -291,7 +275,7 @@ elsif ($conf{PAYSYS_ERIPT_IPS} =~ /$ENV{REMOTE_ADDR}/) {
  	require "Erip.pm";
  	exit;
  }
-elsif ($ip_num > $first_ip && $ip_num < $last_ip) {
+elsif (check_ip($ENV{REMOTE_ADDR}, '79.142.16.0/21')) {
   print "Content-Type: text/xml\n\n"
      . "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
      . "<response>\n"
@@ -301,7 +285,7 @@ elsif ($ip_num > $first_ip && $ip_num < $last_ip) {
         exit;
  }
 #USMP
-elsif('77.222.138.142,78.30.232.14' =~ /$ENV{REMOTE_ADDR}/) {
+elsif(check_ip($ENV{REMOTE_ADDR}, '77.222.138.142,78.30.232.14')) {
   require "Usmp.pm";
   exit;
  }
@@ -401,6 +385,39 @@ sub payments {
     }
    }
 }
+
+#**********************************************************
+# Check ip
+#**********************************************************
+sub check_ip {
+	my ($require_ip, $ips)=@_;
+	
+	$ips =~ s/ //g;
+	my $mask = 0b0000000000000000000000000000001;
+	my @ip_arr = split(/,/, $ips);
+	my $require_ip_num = ip2int($require_ip);
+	foreach my $ip (@ip_arr) {
+		if ($ip =~ /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/) {
+			if ($require_ip eq "$ip") {
+			  return 1;
+			 }
+		 }
+	  elsif ($ip =~ /^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\/(\d+)/) {
+	  	$ip = $1;
+	  	my $bit_mask = $2;
+	  	my $first_ip = ip2int($ip); 	  	
+	  	my $last_ip = ip2int($ip) + sprintf("%d", $mask << (32  - $bit_mask));
+	  	
+  	
+	  	if ($require_ip_num >= $first_ip && $ip_num <= $last_ip) {
+         return 1;
+	  	 }	  	
+	   }
+	 }
+
+	return 0;
+}
+
 
 #**********************************************************
 #
