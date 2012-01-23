@@ -72,10 +72,10 @@ For IPN
  For Linux:
  (Work only with user static IP address)
  Add to /etc/ppp/ip-up.local 
-   /usr/abills/libexec/linkupdown pppd up \$1 'username' \$4
+   /usr/abills/libexec/linkupdown pppd up \$1 \${USER_NAME} \$4
 
  Add to /etc/ppp/ip-down.local 
-   /usr/abills/libexec/linkupdown pppd down \$1 'username' \$4
+   /usr/abills/libexec/linkupdown pppd down \$1 \${USER_NAME}  \$4
  
  For mikrotik (use it as acct external cmd /usr/abills/libexec/acct_ext):
  
@@ -414,7 +414,7 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
       if ($argv->{LINUX_NEW_MODEL}) {
         push @FW_ACTIONS, "$tc class add dev $INTERFACE parent 1: classid 1:".(10+10*$traf_type)." htb rate ".$speed_out."kbit burst 8k prio ".($traf_type+1);
         push @FW_ACTIONS, "$tc qdisc add dev $INTERFACE parent 1:".(10+10*$traf_type)." handle ".(10+10*$traf_type).": sfq perturb 10 quantum 1500";
-        push @FW_ACTIONS, "$tc filter add dev $INTERFACE protocol ip parent 1:0 prio 1 handle $traf_type fw classid 1:".(10+10*$traf_type);
+        push @FW_ACTIONS, "$tc filter add dev $INTERFACE protocol ip parent 1:0 prio 1 handle ". ($traf_type+1) ." fw classid 1:".(10+10*$traf_type);
         push @FW_ACTIONS, "$tc filter add dev $INTERFACE protocol ip parent ffff: prio $fw_num_in u32 match ip src $CLIENT_IP $drop flowid 1:";
         next;
        }
