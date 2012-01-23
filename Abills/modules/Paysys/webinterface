@@ -639,7 +639,6 @@ if ($FORM{info}) {
     $table->addrow($k, $v);
    }
 
-  $Paysys->{debug}=1;
   $Paysys->{INFO}=$table->show();
   $table = $html->table( { width   => '500',
   	                       caption => $_INFO,
