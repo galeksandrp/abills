@@ -6097,7 +6097,7 @@ if ($attr->{USER_INFO}) {
       my $er     = $fees->exchange_info($FORM{ER});
       $FORM{ER}  = $er->{ER_RATE};
       $FORM{SUM} = $FORM{SUM} / $FORM{ER};
-    }
+     }
 
     if ($period == 2) {
   	  use POSIX;
@@ -6133,7 +6133,7 @@ if ($attr->{USER_INFO}) {
          }
       }
      }
-    #Add now
+    #take now
     else {
     	delete $FORM{DATE};
       $fees->take($user, $FORM{SUM}, { %FORM } );  

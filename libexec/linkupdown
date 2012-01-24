@@ -412,10 +412,11 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
     	
       # new linux shapper
       if ($argv->{LINUX_NEW_MODEL}) {
+      	my $action = ($ACTION eq 'down') ? 'del' : 'add';
         push @FW_ACTIONS, "$tc class add dev $INTERFACE parent 1: classid 1:".(10+10*$traf_type)." htb rate ".$speed_out."kbit burst 8k prio ".($traf_type+1);
         push @FW_ACTIONS, "$tc qdisc add dev $INTERFACE parent 1:".(10+10*$traf_type)." handle ".(10+10*$traf_type).": sfq perturb 10 quantum 1500";
         push @FW_ACTIONS, "$tc filter add dev $INTERFACE protocol ip parent 1:0 prio 1 handle ". ($traf_type+1) ." fw classid 1:".(10+10*$traf_type);
-        push @FW_ACTIONS, "$tc filter add dev $INTERFACE protocol ip parent ffff: prio $fw_num_in u32 match ip src $CLIENT_IP $drop flowid 1:";
+        push @FW_ACTIONS, "$tc filter add $action $INTERFACE protocol ip parent ffff: prio $fw_num_in u32 match ip src $CLIENT_IP $drop flowid 1:";
         next;
        }
 
