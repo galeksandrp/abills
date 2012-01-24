@@ -307,11 +307,8 @@ sub docs_invoice {
     my $start_period_unixtime;
     if ($users->{ACTIVATE} ne '0000-00-00') {
     	$start_period_unixtime =  (mktime(0, 0, 0, $D, ($M-1), ($Y-1900), 0, 0, 0) ) ;
-    	
-    	#$FORM{NEXT_PERIOD}-- if($start_period_unixtime > time);
-    	
     	$Docs->{CURENT_BILLING_PERIOD_START}=$users->{ACTIVATE};
-    	$Docs->{CURENT_BILLING_PERIOD_STOP}=strftime "%Y-%m-%d",  localtime( (mktime(0, 0, 0, $D, ($M-1), ($Y-1900), 0, 0, 0) + 31 * 86400) );
+    	$Docs->{CURENT_BILLING_PERIOD_STOP}=strftime "%Y-%m-%d",  localtime( (mktime(0, 0, 0, $D, ($M-1), ($Y-1900), 0, 0, 0) + 30 * 86400) );
      }
     else {
     	$D   = '01';
@@ -384,17 +381,17 @@ sub docs_invoice {
 
  	 	 	   foreach my $line ( @{ $cross_modules_return->{$module} } ) {
  	 	 	     my ($name, $describe, $sum)=split(/\|/, $line);
- 	 	 	 	   next if ($sum <= 0);
+ 	 	 	 	   next if ($sum < 0);
  	 	 	   	 
  	 	 	   	 #my ($Y, $M, $D) = split(/-/, $FORM{FROM_DATE}, 3);
  	 	 	   	 #$period_from = strftime "%Y-%m-%d", localtime( (mktime(0, 0, 0, $D, ($M-1), ($Y-1900), 0, 0, 0) + 1 * 86400) ); 
  	 	 	   	 $period_from = $FORM{FROM_DATE};
  	 	 	   	 
  	 	 	   	 for (my $i=($FORM{NEXT_PERIOD}==-1) ? -2 : 0; $i<int($FORM{NEXT_PERIOD}); $i++) {
- 	 	 	 	     $sum = sprintf("%.2f", $sum); # * ($FORM{NEXT_PERIOD}));
+ 	 	 	 	     $result_sum = sprintf("%.2f", $sum);
  	 	 	 	   
  	 	 	 	     if ($users->{REDUCTION} && $module ne 'Abon') {
- 	 	 	 	   	   $sum = sprintf("%.2f",  $sum * (100 - $users->{REDUCTION}) / 100);
+ 	 	 	 	   	   $result_sum = sprintf("%.2f",  $sum * (100 - $users->{REDUCTION}) / 100);
  	 	 	 	      }
  	 	 	 	     
 
@@ -436,7 +433,7 @@ sub docs_invoice {
                $period_to = "$Y-$M-$TO_D";
               }
  	 	 	 	     
- 	 	 	 	     my $order = "$name $describe $_PERIOD: $period_from - $period_to";
+ 	 	 	 	     my $order = "$name $describe ($period_from-$period_to)";
 
  	 	 	   	   $num++ if (! $current_invoice{$order});
  	 	         $table->addrow(((! $current_invoice{$order}) ?
@@ -447,7 +444,7 @@ sub docs_invoice {
  	 	                    $users->{LOGIN},
  	 	                    $period_from,
  	 	                    $order. (($current_invoice{$order}) ? ' '. $html->color_mark($_EXIST, 'red'): ''),
- 	 	                    $sum );
+ 	 	                    $result_sum );
 
  	 	         $total_sum	+= $sum if (! $current_invoice{$order}); 	 	         
  	 	         $period_from = strftime "%Y-%m-%d", localtime( (mktime(0, 0, 0, $D, ($M-1), ($Y-1900), 0, 0, 0) + 1 * 86400) ); 

@@ -87,7 +87,7 @@ sub abon_user {
             next;
            }
 
-          my %PARAMS = ( DESCRIBE => "$_ABON: [$line->[7]]" . (($FORM{'COMMENTS_'.$line->[7]})? $FORM{'COMMENTS_'.$line->[7]} : "$line->[0]"),
+          my %PARAMS = ( DESCRIBE => "$_ABON: ($line->[7]) " . (($FORM{'COMMENTS_'.$line->[7]})? $FORM{'COMMENTS_'.$line->[7]} : "$line->[0]"),
                          METHOD   => $Abon->{TP_INFO}->{FEES_TYPE}  );
 
           if ($FORM{'DISCOUNT_'.$Abon->{TP_INFO}->{TP_ID}}) {
@@ -104,7 +104,7 @@ sub abon_user {
             $Abon->{ACTIVATE}=$users->{ACTIVATE};
             $message .= abon_get_month_fee($Abon);
            }
-          elsif($users->{REDUCTION} < 100) {
+          elsif($Abon->{TP_INFO}->{DISCOUNT} < 100) {
             $fees->take($users, $Abon->{TP_INFO}->{MONTH_FEE}, { %PARAMS } ); 
             if ($fees->{errno}) {
         	    $html->message('err', "$_FEES : $_ERROR", "[$fees->{errno}] $fees->{errstr}");	
@@ -544,7 +544,7 @@ sub abon_periodic {
        BILL_ID => $info{BILL_ID}
       );
 
-     my %PARAMS = ( DESCRIBE  => "$_ABON: [$info{TP_ID}] $info{TP_NAME}",
+     my %PARAMS = ( DESCRIBE  => "$_ABON: ($info{TP_ID}) $info{TP_NAME}",
                     METHOD    => $info{FEES_TYPE},
                     DATE      => $ADMIN_REPORT{DATE}
                    );
@@ -813,7 +813,7 @@ sub abon_docs {
     		$line->[3] = $line->[3] * ((100 - $line->[7]) / 100);
     	 }
     	# NAME| ID | SUM 
-      push @services, "$line->[1]|$line->[2]|$line->[3]";
+      push @services, "$_ABON: ($line->[0]) " . "$line->[1]". "|$line->[2]|$line->[3]";
      }
    }
 	
