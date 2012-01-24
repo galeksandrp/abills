@@ -263,7 +263,7 @@ $tariffs->{m}       = $m;
 $tariffs->{TP_ID}   = $Dv->{TP_NUM};
 
 $tariffs->{TP_NAME} = "$Dv->{TP_ID}:$Dv->{TP_NAME} "; #. $html->button("$_TARIF_PLANS", "index=". get_function_index('dv_tp') ."&TP_ID=$Dv->{TP_NUM}", { TITLE => "$_TP", CLASS => 'show rightAlignText' });
-print $html->tpl_show(templates('form_chg_tp'), $tariffs);
+$html->tpl_show(templates('form_chg_tp'), $tariffs);
 }
 
 
@@ -6587,16 +6587,18 @@ sub dv_get_month_fee {
        
         return \%total_sum if ($sum == 0);
         
-        
         my $periods = 0;
-        if ($active_m > 0 && $active_m < $m) {
+        if (int($active_m) > 0 && int($active_m) < $m) {
         	$periods = $m - $active_m;
-        	if ($active_d > $d) {
+        	if (int($active_d) > int($d)) {
         		$periods--;
         	 };
          }
-        elsif ($active_m > 0 && ( $active_m >= $m  && $active_y < $y)) {
+        elsif (int($active_m) > 0 && ( int($active_m) >= int($m)  && int($active_y) < int($y))) {
         	$periods = 12 - $active_m + $m; 
+        	if (int($active_d) > int($d)) {
+        		$periods--;
+        	 };
          }
         
         #Make reduction
