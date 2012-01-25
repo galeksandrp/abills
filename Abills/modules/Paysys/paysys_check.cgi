@@ -1688,6 +1688,7 @@ sub mk_log {
 #**********************************************************
 sub cross_modules_call  {
   my ($function_sufix, $attr) = @_;
+  my $timeout = $attr->{timeout} || 3;
 
 eval {
   my %full_return  = ();
@@ -1704,6 +1705,9 @@ eval {
   	@skip_modules=split(/,/, $attr->{SKIP_MODULES});
    }
  
+  local $SIG{ALRM} = sub { die "alarm\n" }; # NB: \n required
+  alarm $timeout;
+ 
   foreach my $mod (@MODULES) {
   	if (in_array($mod, \@skip_modules)) {
   		next;
@@ -1716,9 +1720,9 @@ eval {
      }
     $full_return{$mod}=$return;
    }
-  open (STDOUT, ">&", $SAVEOUT); 
 };
 
+  open (STDOUT, ">&", $SAVEOUT); 
   return \%full_return;
 }
 
