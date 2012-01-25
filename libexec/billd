@@ -559,13 +559,14 @@ sub check_speed_mikro {
   
   
   if ($attr->{NAS_IDS}) {
-  	$LIST_PARAMS{NAS_IDS}=$attr->{NAS_IDS};
+    $LIST_PARAMS{NAS_IDS}=$attr->{NAS_IDS};
+   }
+  else {
+    $LIST_PARAMS{TYPE}    = 'mikrotik';
    }
   
   
   my %nas_speeds         = ();
-  
-  $LIST_PARAMS{TYPE}    = 'mikrotik';
   my $list = $nas->list({ %LIST_PARAMS });
 
   foreach my $line (@$list) {
@@ -2039,6 +2040,7 @@ sub check_mikro {
   my ($attr) = @_;	
 
   if (! $LIST_PARAMS{NAS_IDS}) {
+    print "//  $LIST_PARAMS{NAS_IDS} //";
     $LIST_PARAMS{TYPE}    ='mikrotik';
    }
 
@@ -2307,7 +2309,13 @@ sub speed_expr {
 sub check_speed_mikrotik {
 	my ($attr)=@_;
 
-  
+  if ($LIST_PARAMS{NAS_IDS}) {
+    $LIST_PARAMS{NAS_IDS}=$attr->{NAS_IDS};
+   }
+  else {
+    $LIST_PARAMS{TYPE}    = 'mikrotik';
+   }
+
 
 
   my $result = '';
@@ -2322,7 +2330,7 @@ sub check_speed_mikrotik {
    }
 
   $nas->{debug}=1 if ($debug > 5);
-  my $nas_list = $nas->list({ %LIST_PARAMS, TYPE => 'mikrotik' });
+  my $nas_list = $nas->list({ %LIST_PARAMS });
  	my @commands  = ();
   foreach my $nas_row (@$nas_list) {
     if ($debug > 0) {
