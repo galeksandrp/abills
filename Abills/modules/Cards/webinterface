@@ -174,7 +174,6 @@ else {
   $Cards->{DOMAIN_SEL}='';	
 }
 
-$Cards->{debug}=1;
 
 my $table;
   $Cards->{SUM}   =undef if (! $FORM{SUM});
