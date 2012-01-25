@@ -2037,8 +2037,11 @@ else {
 #**********************************************************
 sub check_mikro {
   my ($attr) = @_;	
-	
-  $LIST_PARAMS{TYPE}    ='mikrotik';
+
+  if (! $LIST_PARAMS{NAS_IDS}) {
+    $LIST_PARAMS{TYPE}    ='mikrotik';
+   }
+
   my $list = $nas->list({ %LIST_PARAMS });
 
   foreach my $line (@$list) {

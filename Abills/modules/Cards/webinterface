@@ -173,6 +173,8 @@ else {
   $Cards->{DOMAIN_SEL}='';	
 }
 
+$Cards->{debug}=1;
+
 my $table;
   $Cards->{SUM}   =undef if (! $FORM{SUM});
   $Cards->{EXPIRE}=undef if (! $FORM{EXPIRE});
@@ -817,9 +819,10 @@ sub cards_user_payment () {
                                 });
          }
         }
-       $db->commit();
 
-       
+       # Check if not card exist
+       $db->commit();
+      
 
        if ($conf{CARDS_DEBUG}) {
        	 my $gt = '';
