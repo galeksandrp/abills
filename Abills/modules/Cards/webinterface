@@ -64,6 +64,7 @@ sub cards_main {
   	return 0;
    }
 
+
 if ($FORM{change}) {
   my @ORDERS  = ();    
   my $list;  
@@ -821,8 +822,10 @@ sub cards_user_payment () {
         }
 
        # Check if not card exist
-       $db->commit();
-      
+       $payments->list({ EXT_ID  => "$Cards->{SERIAL}$Cards->{NUMBER}" });
+       if ($payments->{TOTAL} <= 1) {       
+         $db->commit();
+        }      
 
        if ($conf{CARDS_DEBUG}) {
        	 my $gt = '';
