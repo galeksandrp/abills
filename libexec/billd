@@ -2309,10 +2309,7 @@ sub speed_expr {
 sub check_speed_mikrotik {
 	my ($attr)=@_;
 
-  if ($LIST_PARAMS{NAS_IDS}) {
-    $LIST_PARAMS{NAS_IDS}=$attr->{NAS_IDS};
-   }
-  else {
+  if (! $LIST_PARAMS{NAS_IDS}) {
     $LIST_PARAMS{TYPE}    = 'mikrotik';
    }
 
