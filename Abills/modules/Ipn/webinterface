@@ -462,18 +462,10 @@ sub ipn_use_users_allmonthes {
 #**********************************************************
 sub ipn_use {
 
-#  reports({ DATE       => $FORM{DATE}, 
-#  	        REPORT     => '',
-#  	        SHOW_HOURS => 1,
-#   	        EX_PARAMS  => { HOURS => "$_HOURS",
-#            	              USERS => "$_USERS" } 
-#  	       });
-
 my %HIDDEN = ();
 
-  $HIDDEN{COMPANY_ID}=$FORM{COMPANY_ID} if ($FORM{COMPANY_ID});
-  $HIDDEN{sid}=$sid if ($FORM{sid}); 
-
+$HIDDEN{COMPANY_ID}=$FORM{COMPANY_ID} if ($FORM{COMPANY_ID});
+$HIDDEN{sid}=$sid if ($FORM{sid}); 
 
   reports({ DATE          => $FORM{DATE}, 
   	        REPORT        => '',
@@ -499,6 +491,9 @@ my %HIDDEN = ();
                                                                 } )
                                ]
   	       });
+
+
+
 
 
 my %totals = ();
@@ -744,6 +739,10 @@ else {
   elsif ($FORM{TYPE} eq 'HOURS')  {
   	$caption[1]="$_HOURS";
    } 
+  elsif ($FORM{TYPE} eq 'USER')  {
+  	$caption[0]="$_USERS";
+  	$caption[1]="UID";
+   } 
   
   $table_sessions = $html->table( { width      => '100%',
 	                                  caption    => "$_SESSIONS", 
@@ -755,20 +754,26 @@ else {
                                } );
 
   $LIST_PARAMS{INTERVAL_TYPE}=3;
-
-  my $list = $Ipn->reports_users({ %LIST_PARAMS });
-  $graph_type='month_stats';
+  my $list    = $Ipn->reports_users({ %LIST_PARAMS });
+  $graph_type = 'month_stats';
   
-  my $num = 0;
-  
+  my $num = 0; 
 
 
   foreach my $line (@$list) {
   	if ($FORM{TYPE} eq 'DAYS' ||  $FORM{TYPE} eq 'DAYS_TCLASS') {
-  		$pages_qs = ''; #"&DATE=$line->[0]";
+  		$pages_qs = ''; 
+  	 }
+  	elsif($FORM{TYPE} eq 'USER') {
+  		$index    = get_function_index('ipn_sessions2');
+  		$pages_qs = "&UID=$line->[1]"; 
+      $totals{USERS}++;
+  	 }
+  	else {
+  		$pages_qs = "$type=$line->[0]"
   	 }
   	
-    $table_sessions->addrow($html->button($line->[0], "index=$index&$type=$line->[0]$pages_qs"), 
+    $table_sessions->addrow($html->button($line->[0], "index=$index&$pages_qs"), 
        $line->[1],   
        int2byte($line->[2], { DIMENSION => $FORM{DIMENSION} }), 
        int2byte($line->[3], { DIMENSION => $FORM{DIMENSION} }),
@@ -776,11 +781,11 @@ else {
        $line->[4]
       );
    
-      $AVG{MONEY}      = $line->[4] if ($AVG{MONEY} < $line->[4]);
-      $AVG{USERS}      = $line->[1] if ($AVG{USERS} < $line->[1]);
+    $AVG{MONEY}      = $line->[4] if ($AVG{MONEY} < $line->[4]);
+    $AVG{USERS}      = $line->[1] if ($AVG{USERS} < $line->[1]);
 
       if ($line->[0] =~ /(\d+)-(\d+)-(\d+)/) {
-      	 $num = $3;
+      	$num = $3;
        }
       elsif ($line->[0] =~ /(\d+)-(\d+)/) {
       	$CHART{X_LINE}[$num]=$line->[0];
@@ -798,28 +803,28 @@ else {
       $totals{TRAFFIC_IN} += $line->[2];
       $totals{TRAFFIC_OUT}+= $line->[3];
       $totals{SUM}        += $line->[4];
-
+   }
+  
+  
+  if ($num > 0) {
+    $out = $html->make_charts({  
+	   PERIOD        => $graph_type,
+	   DATA          => \%DATA_HASH2,
+	   AVG           => \%AVG,
+	   TYPE          => ['column', 'line'],
+	   TRANSITION    => 1,
+	   %CHART,
+     OUTPUT2RETURN => 1	 
+    });
    }
 
-  $out = $html->make_charts({  
-	 PERIOD        => $graph_type,
-	 DATA          => \%DATA_HASH2,
-	 AVG           => \%AVG,
-	 TYPE          => ['column', 'line'],
-	 TRANSITION    => 1,
-	 %CHART,
-   OUTPUT2RETURN => 1	 
-  });
-
-
  @type = ('area', 'area');
-
 }
 
 
 $table = $html->table( { width => '100%',
 	    cols_align => ['right', 'right', 'right', 'right', 'right'],
-	          rows => [ [ '$_USERS: '. $html->b(int2byte($total_tunnel, { DIMENSION => $FORM{DIMENSION} })), 
+	          rows => [ [ "$_USERS: ". $html->b($totals{USERS}), 
 	                      'IN: '     . $html->b(int2byte($totals{TRAFFIC_IN}, { DIMENSION => $FORM{DIMENSION} })),
                         'OUT: '    . $html->b(int2byte($totals{TRAFFIC_OUT}, { DIMENSION => $FORM{DIMENSION} })), 
                         'TRAFFIC: '. $html->b(int2byte($totals{TRAFFIC_IN}+$totals{TRAFFIC_OUT}, { DIMENSION => $FORM{DIMENSION} })), 
@@ -831,7 +836,8 @@ $table = $html->table( { width => '100%',
 
 print $table_sessions->show() . $table->show() . $out;
 
-$html->make_charts({  
+if ($#{ keys %DATA_HASH } > -1) {
+  $html->make_charts({  
 	 PERIOD => $graph_type,
 	 DATA   => \%DATA_HASH,
 	 AVG    => \%AVG,
@@ -839,6 +845,8 @@ $html->make_charts({
 	 TRANSITION => 1,
 	 %CHART
   });
+}
+
 }
 
 
@@ -1310,7 +1318,6 @@ sub ipn_user_activate {
 
 
         my $Auth = Auth->new($db, \%conf);
-        #$Auth->{debug}=1;
         my ($r, $RAD_PAIRS) = $Auth->dv_auth(\%DATA, $Nas, { SECRETKEY => $conf{secretkey} });
         if ($RAD_PAIRS->{'Filter-Id'}) {
           $DATA{FILTER_ID} = $RAD_PAIRS->{'Filter-Id'} 

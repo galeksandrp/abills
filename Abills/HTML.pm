@@ -1045,7 +1045,7 @@ sub table {
 
  if (defined($attr->{title})) {
    $SORT = $LIST_PARAMS{SORT};
-   $self->{table} .= $self->table_title($SORT, $DESC, $PG, $attr->{title}, $attr->{qs});
+   $self->{table} .= $self->table_title($SORT, $FORM{desc}, $PG, $attr->{title}, $attr->{qs});
    $self->{title_arr} = $attr->{title};
   }
  elsif(defined($attr->{title_plain})) {
@@ -1227,7 +1227,7 @@ sub table_title  {
   my ($op);
   my $img='';
 
-  $self->{table_title} = "<tr bgcolor=\"$_COLORS[0]\">";
+  $self->{table_title} = "<tr>";
   my $i=1;
   foreach my $line (@$caption) {
      $self->{table_title} .= "<th class='table_title'>$line ";

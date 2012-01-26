@@ -507,6 +507,13 @@ sub reports_users {
  my $self=shift;
  my ($attr) = @_;
  
+ $PG = ($attr->{PG}) ? $attr->{PG} : 0;
+ $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
+ $SORT = ($attr->{SORT}) ? $attr->{SORT} : 2;
+ $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+
+
+ 
  $self->query($db, "SET SQL_BIG_SELECTS=1;");
 
 my $GROUP   = '1';
@@ -551,6 +558,10 @@ if ($attr->{INTERVAL}) {
    elsif ($attr->{TYPE} eq 'GID') {
      $date = "u.gid"
     }
+   elsif ($attr->{TYPE} eq 'USER') {
+     $date = "u.id, u.uid"
+    }
+
 #   elsif ($attr->{GID} eq 'GID') {
 #   	 $date = "u.gid"
 #    }
@@ -634,6 +645,7 @@ if ($attr->{FROM_TIME} && $attr->{TO_TIME}) {
    LEFT join  trafic_tarifs tt ON (l.interval_id=tt.interval_id and l.traffic_class=tt.id)
    $WHERE 
    GROUP BY $GROUP
+   ORDER BY $SORT $DESC 
   ;");
   #
 
