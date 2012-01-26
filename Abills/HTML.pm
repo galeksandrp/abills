@@ -540,6 +540,43 @@ sub form_select {
 }
 
 
+#**********************************************************
+#
+#**********************************************************
+sub form_window {
+  my $self = shift;
+  my ($name, $attr)       = @_;
+
+  my $ex_params =  (defined($attr->{EX_PARAMS})) ? $attr->{EX_PARAMS} : '';
+
+  my $action              = $attr->{ACTION} || $SELF_URL;
+  my $window_width        = $attr->{WIDTH} || 600;
+  my $form_id             = $attr->{FORM_ID} || 'POPUP_FORM';
+  my $template            = $attr->{TEMPLATE} || 'form_popup_window';
+  my $js_script           = $attr->{JS} || 'nas_search';
+
+
+  $self->{WINDOW} = "
+                <input type='text' value='' name='" . $name . "1'/>
+                <input type='hidden' value='' name='$name'/>
+                <span>  </span>
+
+                <div style='display:none'>
+                        <span id='popup_info_url'>$action</span>
+                        <span id='popup_info_width'>$window_width</span>
+                        <span id='popup_info_name'>$name</span>
+                        <span id='popup_info_form_id'>$form_id</span>
+                        <span id='popup_info_template'>$template</span>
+                </div>
+                <a class=\"popclick\" href=\"#\">
+                        <img src=\"/img/search.png\"/>
+                </a>
+                <script type=\"text/javascript\" src=\"../js/" . $js_script .".js\"></script> \n";
+
+   return $self->{WINDOW};
+}
+
+
 sub dirname {
   my($x) = @_;
   if ( $x !~ s@[/\\][^/\\]+$@@ ) {
@@ -547,6 +584,7 @@ sub dirname {
    }
   $x;
 }
+
 
 
 #*******************************************************************
