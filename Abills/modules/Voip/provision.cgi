@@ -88,8 +88,7 @@ if (! $Nas->{NAS_INDENTIFIER} || ! $FORM{SN} ) {
 	exit;
 }
 
-print "Content-Type: text/plain\n\n";
-$Voip->{debug}=1;
+print "Content-Type: text/xml\n\n";
 my $list = $Voip->user_list({ PROVISION_NAS_ID => $Nas->{NAS_ID},
                               PROVISION_PORT   => '>0',
                               SHOW_PASSWORD    => '*',
