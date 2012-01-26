@@ -25,7 +25,7 @@
 #
 
 CLASSES_NUMS='2 3'
-VERSION=5.5
+VERSION=5.6
 
 
 name="abills_shaper"
@@ -44,6 +44,10 @@ rcvar=`set_rcvar`
 
 load_rc_config $name
 #run_rc_command "$1"
+
+IPFW=/sbin/ipfw
+SED=/usr/bin/sed
+BILLING_DIR=/usr/abills
 
 
 if [ x${abills_mikrotik_shaper} != x ]; then
@@ -66,9 +70,6 @@ USER_PORTAL_IP=${abills_portal_ip}
 #Session Limit per IP
 SESSION_LIMIT=${abills_ip_sessions}
 
-IPFW=/sbin/ipfw
-SED=/usr/bin/sed
-BILLING_DIR=/usr/abills
 
 if [ w${abills_shaper_if} != w ]; then
   INTERNAL_INTERFACE=${abills_shaper_if}
