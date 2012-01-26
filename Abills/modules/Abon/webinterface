@@ -97,6 +97,8 @@ sub abon_user {
             $Abon->{TP_INFO}->{MONTH_FEE} = $Abon->{TP_INFO}->{MONTH_FEE} * ((100 - $users->{REDUCTION}) / 100);          	
            }
 
+
+
           if (time() < $seltime) {
 
            }
@@ -104,10 +106,10 @@ sub abon_user {
             $Abon->{ACTIVATE}=$users->{ACTIVATE};
             $message .= abon_get_month_fee($Abon);
            }
-          elsif($Abon->{TP_INFO}->{DISCOUNT} < 100) {
+          elsif($FORM{'DISCOUNT_'.$Abon->{TP_INFO}->{TP_ID}} < 100) {
             $fees->take($users, $Abon->{TP_INFO}->{MONTH_FEE}, { %PARAMS } ); 
             if ($fees->{errno}) {
-        	    $html->message('err', "$_FEES : $_ERROR", "[$fees->{errno}] $fees->{errstr}");	
+        	    $html->message('err', "$_FEES : $_ERROR", "-[$fees->{errno}] $fees->{errstr}");	
              }
             else {
             	$message .= "$_ABON: $Abon->{TP_INFO}->{MONTH_FEE} ($Abon->{TP_INFO}->{TP_ID})\n";
