@@ -20,10 +20,12 @@
 #
 #   abills_dhcp_shaper=""  (bool) :  Set to "NO" by default.
 #                                    Enable ipoe_shaper
+#   abills_mikrotik_shaper=""  :  NAS IDS
+#                                    
 #
 
 CLASSES_NUMS='2 3'
-VERSION=5.4
+VERSION=5.5
 
 
 name="abills_shaper"
@@ -38,14 +40,19 @@ rcvar=`set_rcvar`
 : ${abills_dhcp_shaper="NO"}
 : ${abills_neg_deposit=""}
 : ${abills_portal_ip="me"}
+: ${abills_mikrotik_shaper=""}
 
 load_rc_config $name
 #run_rc_command "$1"
 
 
+if [ x${abills_mikrotik_shaper} != x ]; then
+  ${BILLING_DIR}/libexec/billd checkspeed mikrotik NAS_IDS="${abills_mikrotik_shaper}" RECONFIGURE=1
+fi;
+
+
 if [ x${abills_shaper_enable} = xNO ]; then
   exit;
-
 fi;
 
 
@@ -85,7 +92,7 @@ fi;
 
 
 #Enable NG shapper
-if [ w != w`grep '^\$conf{ng_car}=1;' /usr/abills/libexec/config.pl` ]; then
+if [ w != w`grep '^\$conf{ng_car}=1;' ${BILLING_DIR}/libexec/config.pl` ]; then
   NG_SHAPPER=1
 fi;
 
@@ -150,7 +157,7 @@ else
     abills_nas_id=1;
   fi;
 
-  /usr/abills/libexec/billd checkspeed NAS_IDS=${abills_nas_id} RECONFIGURE=1 FW_DIRECTION_OUT="${OUT_DIRECTION}" FW_DIRECTION_IN="${IN_DIRECTION}";
+  ${BILLING_DIR}/libexec/billd checkspeed NAS_IDS=${abills_nas_id} RECONFIGURE=1 FW_DIRECTION_OUT="${OUT_DIRECTION}" FW_DIRECTION_IN="${IN_DIRECTION}";
   if [ ${firewall_type} = "/etc/fw.conf" ]; then
     ${IPFW} ${firewall_type}
   fi;
@@ -162,10 +169,10 @@ fi;
 
 #IPoE Shapper for dhcp connections
 if [ x${abills_dhcp_shaper} != xNO ]; then
-  if [ -f /usr/abills/libexec/ipoe_shapper.pl ]; then
-    /usr/abills/libexec/ipoe_shapper.pl -d
+  if [ -f ${BILLING_DIR}/libexec/ipoe_shapper.pl ]; then
+    ${BILLING_DIR}/libexec/ipoe_shapper.pl -d
   else
-    echo "Can't find 'ipoe_shapper.pl' "
+    echo "Can\'t find 'ipoe_shapper.pl' "
   fi;
 fi;
 
