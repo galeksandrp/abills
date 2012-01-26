@@ -976,6 +976,18 @@ sub dhcphosts_user {
                                                   MULTI_ARRAY_KEY   => 0,
                                                   MULTI_ARRAY_VALUE => 1,
                                            });
+  
+  
+   $Dhcphosts->{NAS_SEL} = $html->form_select('NAS_ID',
+                                          {
+                                                  POPUP_WINDOW      => 'form_nas_search',
+                                                  SELECTED          => $Dhcphosts->{NAS_ID} || $FORM{NAS_ID},
+                                                  SEL_MULTI_ARRAY   => [['', $_ALL], @{ $Nas->list() } ],
+                                                  MULTI_ARRAY_KEY   => 0,
+                                                  MULTI_ARRAY_VALUE => 1,
+                                           });
+  
+  
   dhcphosts_hosts();
 
   my $nas_index = get_function_index('form_nas');
@@ -988,6 +1000,8 @@ sub dhcphosts_user {
   	$Dhcphosts->{NETWORK_BUTTON} = $html->button($_INFO, "&index=$network_index&chg=$Dhcphosts->{NETWORK}", { CLASS => 'show rightAlignText' });
    }
 
+
+  
 
   $html->tpl_show(_include('dhcphosts_host', 'Dhcphosts'), { %{ $Dhcphosts->host_defaults() }, 
   	    HOSTNAME => $users->{LOGIN} . (($Dhcphosts->{TOTAL}) ? '_'.($Dhcphosts->{TOTAL}+1) : ''),  

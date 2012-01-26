@@ -418,6 +418,13 @@ sub form_select {
   my $self = shift;
   my ($name, $attr)	= @_;
 	
+	
+	
+	if ($attr->{POPUP_WINDOW}) {		
+		return $self->form_window($attr->{POPUP_WINDOW});
+	 }
+	
+	
 	my $ex_params =  (defined($attr->{EX_PARAMS})) ? $attr->{EX_PARAMS} : '';
 			
 	$self->{SELECT} = "<select name=\"$name\" $ex_params ID=\"$name\">\n";
@@ -532,7 +539,7 @@ sub form_select {
 
 	$self->{SELECT} .= "</select>\n";
 	
-	if ($attr->{MAIN_MENU}){
+	if ($attr->{MAIN_MENU}) {
 		$self->{SELECT} .= ' '. $self->button('info', "index=$attr->{MAIN_MENU}". (($attr->{MAIN_MENU_AGRV}) ? "&$attr->{MAIN_MENU_AGRV}" : ''), { CLASS=>'show rightAlignText' });
 	 }
 	
@@ -569,9 +576,9 @@ sub form_window {
                         <span id='popup_info_template'>$template</span>
                 </div>
                 <a class=\"popclick\" href=\"#\">
-                        <img src=\"/img/search.png\"/>
+                        <img src=\"/img/button_search.png\" border=0/>
                 </a>
-                <script type=\"text/javascript\" src=\"../js/" . $js_script .".js\"></script> \n";
+                <script type=\"text/javascript\" src=\"/js/" . $js_script .".js\"></script> \n";
 
    return $self->{WINDOW};
 }

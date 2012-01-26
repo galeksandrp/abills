@@ -316,6 +316,11 @@ if ($FORM{qindex}) {
 }
 
 
+if($FORM{POPUP} == 1) {
+  print "Content/type: text/html\n\n";
+  get_popup_info();
+  exit;
+ }
 
 #Make active lang list
 if ($conf{LANGS}) {
@@ -8534,6 +8539,107 @@ sub load_module {
 
 	return 0;
 }
+
+
+sub form_nas_search {
+
+
+
+        if($FORM{NAS_SEARCH} == 1) {
+                my $nas = Nas->new($db, \%conf);
+                #$nas->{debug}=1;
+
+                my $table = $html->table({ width           => '100%',
+                                           border          => 1,
+                                           title           => ['ID', $_NAME,  'IP', $_TYPE, 'mac' ],
+                                           cols_align      => ['left', 'right', 'center'],
+                                           pages  => $nas->{TOTAL},
+                                           ID                      => 'NAS_SEARCH'
+                });
+
+                $list = $nas->search_list({ IP => $FORM{NAS_IP},
+                                                                        NAME => $FORM{NAS_NAME},
+                                                                        NAS_TYPE => $FORM{NAS_TYPE},
+                                                                        NAS_MAC => $FORM{NAS_MAC},
+                                                                        NAS_IDENTIFIER => $FORM{NAS_IDENTIFIER},
+                });
+
+  foreach my $line ( @$list ) {
+        $table->addrow( $line->[0],
+            "<a href='#' class='nasClick' name='$line->[1]' >$line->[1]</a>",
+                                                                $line->[2],
+                                                                $line->[3],
+                                                                $line->[4],
+
+                                );
+    }
+
+  print $table->show();
+  exit;
+
+  } else {
+   my %nas_descr = (            
+                        '3com_ss'   => "3COM SuperStack Switch",
+                        'nortel_bs' => "Nortel Baystack Switch",
+                        'asterisk'  => "Asterisk",
+                        'usr'       => "USR Netserver 8/16",
+                        'pm25'      => 'LIVINGSTON portmaster 25',
+                        'ppp'       => 'FreeBSD ppp demon',
+                        'exppp'     => 'FreeBSD ppp demon with extended futures',
+                        'dslmax'    => 'ASCEND DSLMax',
+                        'celan'     => 'CeLAN Switch',
+                        'expppd'    => 'pppd deamon with extended futures',
+                        'edge_core' => 'EdgeCore Switch',
+                        'radpppd'   => 'pppd version 2.3 patch level 5.radius.cbcp',
+                        'lucent_max'=> 'Lucent MAX',
+                        'mac_auth'  => 'MAC auth',
+                        'mpd'       => 'MPD with kha0s patch',
+                        'mpd4'      => 'MPD 4.xx',
+                        'mpd5'      => 'MPD 5.xx',
+                        'ipcad'     => 'IP accounting daemon with Cisco-like ip accounting export',
+                        'lepppd'    => 'Linux PPPD IPv4 zone counters',
+                        'pppd'      => 'pppd + RADIUS plugin (Linux)',
+                        'dhcp'      => 'DHCP FreeRadius in DHCP mode',
+                        'ls_pap2t'  => 'Linksys pap2t',
+                        'ls_spa8000'=> 'Linksys spa8000'
+                );
+
+                if (defined($conf{nas_servers})) {
+                                %nas_descr = ( %nas_descr,  %{$conf{nas_servers}} );
+                }
+
+                $nas->{SEL_TYPE} = $html->form_select('NAS_TYPE', {
+                                SELECTED   => $nas->{NAS_TYPE},
+                                SEL_HASH   => \%nas_descr,
+                                SORT_KEY   => 1
+                        }
+                );
+
+
+                $sub_template = $html->tpl_show(templates('form_search_nas'), { SEL_TYPE => $nas->{SEL_TYPE}}, { OUTPUT2RETURN => 1 });
+
+        }
+
+	return $html->tpl_show(templates($FORM{TEMPLATE}), { SUB_TEMPLATE => $sub_template} );
+}
+
+
+#**********************************************************
+# Popup window
+#**********************************************************
+sub get_popup_info {
+
+my $sub_template = '';
+
+if (defined($FORM{NAS_SEARCH})) {
+  form_nas_search();
+ }
+ 
+}
+
+
+
+
 
 
 1
