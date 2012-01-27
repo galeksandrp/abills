@@ -6667,19 +6667,21 @@ sub dv_get_month_fee {
           	 }
            }
 
-          $fees->take($users, $sum, { DESCRIBE  => $message, 
+          if ($sum > 0) {
+            $fees->take($users, $sum, { DESCRIBE  => $message, 
         	                            METHOD    => ($Dv->{TP_INFO}->{FEES_METHOD}) ? $Dv->{TP_INFO}->{FEES_METHOD} : 1, 
         	                            DATE      => "$DATE $TIME"
         	                           });  
         
-          $total_sum{MONTH_FEE} += $sum;
-        
-          if ($fees->{errno}) {
-        	  $html->message('err', $_ERROR, "[$fees->{errno}] $fees->{errstr}") if (! $attr->{QUITE});	
+            $total_sum{MONTH_FEE} += $sum;
+            if ($fees->{errno}) {
+        	    $html->message('err', $_ERROR, "[$fees->{errno}] $fees->{errstr}") if (! $attr->{QUITE});	
+             }
+            else {
+              $html->message('info', $_INFO, $message) if ($html && ! $attr->{QUITE});
+             }
            }
-          else {
-            $html->message('info', $_INFO, $message) if ($html && ! $attr->{QUITE});
-           }
+
           $m++;
          }
       }
