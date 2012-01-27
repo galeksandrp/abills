@@ -151,12 +151,25 @@ require "Abills/templates.pl";
 #Operation system ID
 if ($FORM{OP_SID}) {
   $html->setCookie('OP_SID', $FORM{OP_SID}, "Fri, 1-Jan-2038 00:00:01", '', $domain, $secure);
+  
+  if ($index == 2) {
+	if ($FORM{hold_date}) {
+	  $html->setCookie('hold_date', "$FORM{DATE}", "Fri, 1-Jan-2038 00:00:01", '', $domain, $secure);
+	  $COOKIES{hold_date}=$FORM{DATE};
+	 }
+  else {
+  	$html->setCookie('hold_date', "", "Fri, 1-Jan-2038 00:00:01", '', $domain, $secure);
+  	$COOKIES{hold_date}=undef;
+  	$FORM{DATE}=undef;
+   }
+  }  
 }
 
 if (defined($FORM{DOMAIN_ID})) {
   $html->setCookie('DOMAIN_ID', "$FORM{DOMAIN_ID}", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure);
   $COOKIES{DOMAIN_ID}=$FORM{DOMAIN_ID};
  }
+
 
 #Admin Web_options
 if ($FORM{AWEB_OPTIONS}) {
@@ -3172,7 +3185,8 @@ if(defined($attr->{TP})) {
        my $list_tt = $tarif_plan->tt_list({ TI_ID => $line->[0] });
        foreach my $line (@$list_tt) {
           $max_traffic_class_id=$line->[0] if ($line->[0] > $max_traffic_class_id);
-          $table2->addrow($line->[0], 
+          $table2->addrow(
+           ($line->[0] != 0) ? $html->color_mark($line->[0], 'red') :  $line->[0], 
            $line->[1], 
            $line->[2], 
            $line->[3], 
@@ -5657,7 +5671,8 @@ $payments->{SEL_ER}=$html->form_select('ER',
  	                                SEL_MULTI_ARRAY   => [ ['', '', '', '', ''], @{ $payments->exchange_list() } ],
  	                                MULTI_ARRAY_KEY   => 4,
  	                                MULTI_ARRAY_VALUE => '1,2',
- 	                                NO_ID             => 1
+ 	                                NO_ID             => 1,
+ 	                                MAIN_MENU         => get_function_index('form_er'),
  	                               });
 
 
@@ -5693,8 +5708,14 @@ if ($permissions{1} && $permissions{1}{1}) {
     }
    
   if ($permissions{1}{4}) {
+  	if ($COOKIES{hold_date}) {
+  		$payments->{INNER_DESCRIBE}.="$DATE $TIME";
+  		($DATE, $TIME) = split(/ /, $COOKIES{hold_date}, 2);
+  	 }
     my $date_field = $html->date_fld2('DATE', { DATE=>$DATE, TIME => $TIME, MONTHES => \@MONTHES, FORM_NAME => 'user', WEEK_DAYS => \@WEEKDAYS });
-    $payments->{DATE} = "<tr><td colspan=2>$_DATE:</td><td>$date_field</td></tr>\n";
+    $payments->{DATE} = "<tr><td colspan=2>$_DATE:</td><td>$date_field  $_HOLD: <input type=checkbox name=hold_date value=1 ". 
+    (($COOKIES{hold_date}) ? 'checked' : '' )
+     ."> </td></tr>\n";
    }
 
   if (in_array('Docs', \@MODULES) ) {

@@ -108,7 +108,7 @@ sub docs_invoice_add  {
 
          
          delete($FORM{create});
-         docs_invoice_list();
+         docs_invoice_list() if ($index != 2);
 
          $FORM{print} = $Docs->{DOC_ID};
          $FORM{pdf}   = 1;

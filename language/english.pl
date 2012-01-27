@@ -488,4 +488,4 @@ $_STEP='Step';
 $_FINISH='Finish';
 $_HELP='Help';
 $_NEXT_FEES_THROUGHT='Next periodic payments throught %DAY% days';
-
+$_HOLD='Hold';
