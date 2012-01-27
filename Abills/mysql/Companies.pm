@@ -135,10 +135,7 @@ sub add {
    }
 
 
-  print "$attr->{COMPANY_ID}!!!!!!";
-
   my %DATA = $self->get_data($attr, { default => defaults() }); 
-  $self->{debug}=1;
   $self->query($db, "INSERT INTO companies (id, name, tax_number, bank_account, bank_name, cor_bank_account, 
      bank_bic, disable, credit, credit_date, address, phone, vat, contract_id, contract_date,
      bill_id, ext_bill_id, registration, domain_id, representative, contract_sufix
