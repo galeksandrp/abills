@@ -981,10 +981,10 @@ sub dhcphosts_user {
    $Dhcphosts->{NAS_SEL} = $html->form_select('NAS_ID',
                                           {
                                                   POPUP_WINDOW      => 'form_nas_search',
-                                                  SELECTED          => $Dhcphosts->{NAS_ID} || $FORM{NAS_ID},
-                                                  SEL_MULTI_ARRAY   => [['', $_ALL], @{ $Nas->list() } ],
-                                                  MULTI_ARRAY_KEY   => 0,
-                                                  MULTI_ARRAY_VALUE => 1,
+                                                  #SELECTED          => $Dhcphosts->{NAS_ID} || $FORM{NAS_ID},
+                                                  #SEL_MULTI_ARRAY   => [['', $_ALL], @{ $Nas->list() } ],
+                                                  #MULTI_ARRAY_KEY   => 0,
+                                                  #MULTI_ARRAY_VALUE => 1,
                                            });
   
   

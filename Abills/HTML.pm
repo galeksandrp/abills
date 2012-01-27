@@ -560,12 +560,12 @@ sub form_window {
   my $window_width   = $attr->{WIDTH}    || 600;
   my $form_id        = $attr->{FORM_ID}  || 'POPUP_FORM';
   my $template       = $attr->{TEMPLATE} || 'form_popup_window';
-  my $js_script      = $attr->{JS}       || 'nas_search';
+  my $js_script      = $attr->{JS}       || 'search';
 
 
   $self->{WINDOW} = "
-        <input type='text' value='' name='" . $name . "1'/>
-        <input type='hidden' value='' name='$name'/>
+        <input type='text' value='". (($attr->{VALUE}) ? $attr->{VALUE} : '%'.$name.'%' ) ."' name='" . $name . "1'/>
+        <input type='hidden' value='%". $name ."%' name='$name'/>
         <span>  </span>
 
         <div style='display:none'>
