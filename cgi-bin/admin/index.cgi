@@ -850,7 +850,7 @@ elsif ($FORM{import}) {
 
            next if ($USER_HASH{COMPANY_NAME} eq '');
             
-           for(my $i=1; $i<=$#params; $i++) {
+           for(my $i=0; $i<=$#params; $i++) {
            	 my($k, $v)=split(/=/, $params[$i], 2);
            	 $v =~ s/\"//g;
            	 $USER_HASH{$k}=$v;
@@ -861,7 +861,15 @@ elsif ($FORM{import}) {
           
           $company->add({ %USER_HASH });
           if ($company->{errno}) {
-            $html->message('err', $_ERROR, "Line:$impoted_named  '$USER_HASH{COMPANY_NAME}' [$company->{errno}] $err_strs{$company->{errno}}");
+       	  	my $message = "Line:$impoted_named\n $_COMPANY: '$USER_HASH{COMPANY_NAME}'"; 
+       	  	if ($company->{errno} == 7) {
+  		        $message .= "\n$_EXIST";
+  	         }
+          	else {
+          		$message .= "\n[$company->{errno}] $err_strs{$company->{errno}}";
+          	 }
+          	
+            $html->message('err', $_ERROR, $message);
             return 0;
            }
          }         
@@ -1009,8 +1017,7 @@ elsif($FORM{del} && $FORM{is_js_confirmed}  && $permissions{0}{5} ) {
    $company->del( $FORM{del} );
    $html->message('info', $_INFO, "$_DELETED # $FORM{del}");
  }
-else {
-	
+else {	
 	if ($FORM{letter}) {
     $LIST_PARAMS{COMPANY_NAME} = "$FORM{letter}*";
     $pages_qs .= "&letter=$FORM{letter}";
@@ -1061,7 +1068,12 @@ else {
    }
 }
   if ($company->{errno}) {
-    $html->message('info', $_ERROR, "[$company->{errno}] $err_strs{$company->{errno}}");
+  	if ($company->{errno} == 7) {
+  		$html->message('info', $_ERROR, "$_COMPANY $_EXIST");
+  	 }
+  	else {
+      $html->message('info', $_ERROR, "[$company->{errno}] $err_strs{$company->{errno}}");
+     }
    }
 
 }
