@@ -4501,8 +4501,8 @@ print $html->form_main({  CONTENT => $table->show(),
 	                        HIDDEN  => { index  => "62",
                                        NAS_ID => "$FORM{NAS_ID}",
                                      },
-	                        SUBMIT  => { set   => "$_SET"
-	                       	           } });
+                          ($FORM{NAS_ID}) ? ( SUBMIT  => {  set   => "$_SET" } ) : undef
+	                        });
 
 
 return 0;
@@ -7629,9 +7629,10 @@ elsif($FORM{del} && $FORM{is_js_confirmed}) {
   my $table = $html->table( { width      => '600',
                               caption    => "$_SQL_BACKUP",
                               border     => 1,
-                              title      => ["$_NAME", $_DATE, $_SIZE, '-'],
+                              title_plain=> ["$_NAME", $_DATE, $_SIZE, '-'],
                               cols_align => ['left', 'right', 'right', 'center'],
-                              ID         => 'SQL_BACKUP_LIST'
+                              ID         => 'SQL_BACKUP_LIST',
+                              class      => 'form'
                           } );
 
 
@@ -7643,12 +7644,12 @@ elsif($FORM{del} && $FORM{is_js_confirmed}) {
   foreach my $filename (@contents) {
     my ($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size,$atime,$mtime,$ctime,$blksize,$blocks)=stat("$conf{BACKUP_DIR}/$filename");
     my $date = strftime "%Y-%m-%d %H:%M:%S", localtime($mtime);
-    $table->addrow($filename,  $date, $size, $html->button($_DEL, "index=$index&del=$filename", { MESSAGE => "$_DEL $filename?",  CLASS => 'del' })
+    $table->addrow($filename,  $date, int2byte($size), $html->button($_DEL, "index=$index&del=$filename", { MESSAGE => "$_DEL $filename?",  CLASS => 'del' })
     );
    }
 
- print  $table->show();
- print  $html->button($_CREATE, "index=$index&mk_backup=1", { BUTTON => 1 });
+ print  $table->show().
+ $html->button($_CREATE, "index=$index&mk_backup=1", { BUTTON => 1 });
 }
 
 

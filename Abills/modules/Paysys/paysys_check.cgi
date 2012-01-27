@@ -183,7 +183,6 @@ if ($conf{PAYSYS_SUCCESSIONS}) {
 }
 
 
-
 if (check_ip($ENV{REMOTE_ADDR}, '213.186.115.164/24')) {
   require "Ibox.pm";
 	exit;
@@ -255,12 +254,10 @@ elsif (check_ip($ENV{REMOTE_ADDR}, '77.222.134.205')) {
   require "Ipay.pm";
   exit;
 }
-elsif (check_ip($ENV{REMOTE_ADDR}, '213.230.106.112/28,213.230.65.85/28,192.168.1.102/24')) {
+elsif (check_ip($ENV{REMOTE_ADDR}, '213.230.106.112/28,213.230.65.85/28')) {
   require "Paynet.pm";
   exit;
 }
-
-
 
 #Check payment system by IP
 if (check_ip($ENV{REMOTE_ADDR}, '92.125.0.0/24')) {
@@ -271,7 +268,7 @@ elsif (check_ip($ENV{REMOTE_ADDR}, '93.183.196.26,195.230.131.50,93.183.196.28')
  	require "Easysoft.pm";
  	exit;
  }
-elsif ($conf{PAYSYS_ERIPT_IPS} =~ /$ENV{REMOTE_ADDR}/) {
+elsif (check_ip($ENV{REMOTE_ADDR}, "$conf{PAYSYS_ERIPT_IPS}")) {
  	require "Erip.pm";
  	exit;
  }
@@ -282,7 +279,7 @@ elsif (check_ip($ENV{REMOTE_ADDR}, '79.142.16.0/21')) {
      . "<result>300</result>\n"
      . "<result1>$ENV{REMOTE_ADDR}</result1>\n"
      . " </response>\n";
-        exit;
+  exit;
  }
 #USMP
 elsif(check_ip($ENV{REMOTE_ADDR}, '77.222.138.142,78.30.232.14')) {
@@ -294,6 +291,7 @@ elsif ($FORM{payment} && $FORM{payment}=~/pay_way/) {
  	p24_payments();
  	exit;
  }
+
 
 
 print "Content-Type: text/html\n\n";
@@ -409,7 +407,7 @@ sub check_ip {
 	  	my $last_ip = ip2int($ip) + sprintf("%d", $mask << (32  - $bit_mask));
 	  	
   	
-	  	if ($require_ip_num >= $first_ip && $ip_num <= $last_ip) {
+	  	if ($require_ip_num >= $first_ip && $require_ip_num <= $last_ip) {
          return 1;
 	  	 }	  	
 	   }
