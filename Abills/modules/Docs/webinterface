@@ -438,7 +438,7 @@ sub docs_invoice {
  	 	 	   	   $num++ if (! $current_invoice{$order});
  	 	         $table->addrow(((! $current_invoice{$order}) ?
  	 	                    $html->form_input('ORDER_'.$num, "$order", { TYPE => 'hidden', OUTPUT2RETURN => 1 }).
-                        $html->form_input('SUM_'.$num, $sum, { TYPE => 'hidden', OUTPUT2RETURN => 1 }).
+                        $html->form_input('SUM_'.$num, $result_sum, { TYPE => 'hidden', OUTPUT2RETURN => 1 }).
  	 	                    $html->form_input('IDS', "$num", { TYPE => ($user->{UID}) ? 'hidden' : 'checkbox', STATE => 'checked', OUTPUT2RETURN => 1 }). $num : ''  ) 
  	 	                    , 
  	 	                    $users->{LOGIN},

@@ -8553,13 +8553,13 @@ sub load_module {
 }
 
 
+#**********************************************************
+#
+#**********************************************************
 sub form_nas_search {
-
-
-
-        if($FORM{NAS_SEARCH} == 1) {
-                my $nas = Nas->new($db, \%conf);
-                #$nas->{debug}=1;
+  if($FORM{NAS_SEARCH} == 1) {
+    my $nas = Nas->new($db, \%conf);
+    #$nas->{debug}=1;
 
                 my $table = $html->table({ width           => '100%',
                                            border          => 1,
