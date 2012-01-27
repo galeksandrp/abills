@@ -126,6 +126,7 @@ CREATE TABLE `dv_calls` (
   `uid` int(11) unsigned NOT NULL default '0',
   `join_service` int(11) unsigned NOT NULL default '0',
   `turbo_mode` varchar(30) NOT NULL default '',
+  `guest` tinyint(1) unsigned NOT NULL default '0',
   KEY `user_name` (`user_name`),
   KEY `acct_session_id` (`acct_session_id`),
   KEY `uid` (`uid`)

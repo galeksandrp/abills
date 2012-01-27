@@ -8557,40 +8557,36 @@ sub load_module {
 #
 #**********************************************************
 sub form_nas_search {
-  if($FORM{NAS_SEARCH} == 1) {
-    my $nas = Nas->new($db, \%conf);
-    #$nas->{debug}=1;
 
-                my $table = $html->table({ width           => '100%',
-                                           border          => 1,
-                                           title           => ['ID', $_NAME,  'IP', $_TYPE, 'mac' ],
-                                           cols_align      => ['left', 'right', 'center'],
-                                           pages  => $nas->{TOTAL},
-                                           ID                      => 'NAS_SEARCH'
-                });
+  my $sub_template = '';
 
-                $list = $nas->search_list({ IP => $FORM{NAS_IP},
-                                                                        NAME => $FORM{NAS_NAME},
-                                                                        NAS_TYPE => $FORM{NAS_TYPE},
-                                                                        NAS_MAC => $FORM{NAS_MAC},
-                                                                        NAS_IDENTIFIER => $FORM{NAS_IDENTIFIER},
-                });
-
+if($FORM{NAS_SEARCH} == 1) {
+  my $nas = Nas->new($db, \%conf);
+  #$nas->{debug}=1;
+  my $table = $html->table({ width           => '100%',
+                               border          => 1,
+                               title           => ['ID', $_NAME,  'IP', $_TYPE, 'mac' ],
+                               cols_align      => ['left', 'right', 'center'],
+                               pages           => $nas->{TOTAL},
+                               ID              => 'NAS_SEARCH'
+                              });
+  $list = $nas->list({ %FORM });
   foreach my $line ( @$list ) {
         $table->addrow( $line->[0],
-            "<a href='#' class='nasClick' name='$line->[1]' >$line->[1]</a>",
-                                                                $line->[2],
-                                                                $line->[3],
-                                                                $line->[4],
-
-                                );
+          $html->button("$line->[1]", "#", { GLOBAL_URL => '#', 
+          	                                 ex_params => "class='nasClick' name='$line->[1]'" 
+          	                                }),
+                         $line->[3],
+                         $line->[4],
+                         $line->[5],
+                      );
     }
 
   print $table->show();
-  exit;
-
-  } else {
-   my %nas_descr = (            
+  return 0;
+ } 
+else {
+  my %nas_descr = (            
                         '3com_ss'   => "3COM SuperStack Switch",
                         'nortel_bs' => "Nortel Baystack Switch",
                         'asterisk'  => "Asterisk",
@@ -8616,21 +8612,20 @@ sub form_nas_search {
                         'ls_spa8000'=> 'Linksys spa8000'
                 );
 
-                if (defined($conf{nas_servers})) {
-                                %nas_descr = ( %nas_descr,  %{$conf{nas_servers}} );
-                }
+  if ($conf{nas_servers}) {
+    %nas_descr = ( %nas_descr,  %{$conf{nas_servers}} );
+    }
 
-                $nas->{SEL_TYPE} = $html->form_select('NAS_TYPE', {
+  $nas->{SEL_TYPE} = $html->form_select('NAS_TYPE', {
                                 SELECTED   => $nas->{NAS_TYPE},
-                                SEL_HASH   => \%nas_descr,
+                                SEL_HASH   => {'' => $_ALL, %nas_descr},
                                 SORT_KEY   => 1
-                        }
-                );
+                              }
+                  );
 
-
-                $sub_template = $html->tpl_show(templates('form_search_nas'), { SEL_TYPE => $nas->{SEL_TYPE}}, { OUTPUT2RETURN => 1 });
-
-        }
+  $nas->{NAS_GROUPS_SEL}= sel_nas_groups({ GID => $nas->{GID} });
+  $sub_template = $html->tpl_show(templates('form_search_nas'), { %$nas }, { OUTPUT2RETURN => 1 });
+ }
 
 	return $html->tpl_show(templates($FORM{TEMPLATE}), { SUB_TEMPLATE => $sub_template} );
 }
@@ -8641,7 +8636,7 @@ sub form_nas_search {
 #**********************************************************
 sub get_popup_info {
 
-my $sub_template = '';
+
 
 if (defined($FORM{NAS_SEARCH})) {
   form_nas_search();

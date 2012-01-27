@@ -487,11 +487,11 @@ sub check_lines {
            $RAD{OUTBYTE}= $JOIN_SERVICE_STATS{$join_service}{OUTBYTE} || 0;
          }
 
-         #if ($session_sum > 0)
-         #Check active sessions
-         $Billing->{CHECK_SESSION}=1;
+        #if ($session_sum > 0)
+        #Check active sessions
+        $Billing->{CHECK_SESSION}=1;
 
-         ($Billing->{UID}, 
+        ($Billing->{UID}, 
           $Billing->{SUM}, 
           $Billing->{BILL_ID}, 
           $Billing->{TARIF_PLAN}, 
@@ -505,13 +505,13 @@ sub check_lines {
 
          $Billing->{SUM}=0 if ($conf{rt_billing});
         
-         if ($Billing->{UID} < 1 && ! $Billing->{HANGUP}) {
+        if ($Billing->{UID} < 1 && ! $Billing->{HANGUP}) {
         	if ($Billing->{UID} == -1) {
         		print "Less than minimun session trafic and time\n" if ($debug > 2);
         	 }
         	elsif ($Billing->{UID} == -2) {
         	  print "Can't find user account '$RAD{USER_NAME}'\n";
-                  next;
+            next;
         	 }
         	elsif ($Billing->{UID} == -3) {
         	  print "Sql error '$RAD{USER_NAME}'\n";
@@ -529,7 +529,7 @@ sub check_lines {
              ) {
            #Neg deposit filter
 
-           if ($Billing->{NEG_DEPOSIT_FILTER} && $deposit + $credit + $session_sum <= 0) {
+           if ($Billing->{NEG_DEPOSIT_FILTER} && $deposit + $credit <= 0 && $session_sum == 0) {
              print "Skip with neg deposit filter '$Billing->{NEG_DEPOSIT_FILTER}'\n" if ($debug > 1);
              next;
            	}
