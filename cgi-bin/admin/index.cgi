@@ -151,19 +151,30 @@ require "Abills/templates.pl";
 #Operation system ID
 if ($FORM{OP_SID}) {
   $html->setCookie('OP_SID', $FORM{OP_SID}, "Fri, 1-Jan-2038 00:00:01", '', $domain, $secure);
-  
-  if ($index == 2) {
+}
+
+if ($index == 2) {
 	if ($FORM{hold_date}) {
 	  $html->setCookie('hold_date', "$FORM{DATE}", "Fri, 1-Jan-2038 00:00:01", '', $domain, $secure);
 	  $COOKIES{hold_date}=$FORM{DATE};
 	 }
-  else {
+  elsif($FORM{OP_SID}) {
   	$html->setCookie('hold_date', "", "Fri, 1-Jan-2038 00:00:01", '', $domain, $secure);
   	$COOKIES{hold_date}=undef;
   	$FORM{DATE}=undef;
    }
-  }  
-}
+  
+  if($FORM{OP_SID}) {
+	  $html->setCookie('INNER_DESCRIBE', "$FORM{INNER_DESCRIBE}", "Fri, 1-Jan-2038 00:00:01", '', $domain, $secure);
+	  delete $COOKIES{INNER_DESCRIBE} if (! $FORM{INNER_DESCRIBE});
+	 }
+	
+	if (!$FORM{INNER_DESCRIBE} && $COOKIES{INNER_DESCRIBE}) {
+		$FORM{INNER_DESCRIBE} = $COOKIES{INNER_DESCRIBE};
+	 }
+ 
+ }
+
 
 if (defined($FORM{DOMAIN_ID})) {
   $html->setCookie('DOMAIN_ID', "$FORM{DOMAIN_ID}", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure);
@@ -5582,10 +5593,6 @@ if ($attr->{USER_INFO}) {
      }
    }
 
-  if ($FORM{DATE}) {
-    ($DATE, $TIME)=split(/ /, $FORM{DATE});
-   }
-
   if (defined($FORM{OP_SID}) and $FORM{OP_SID} eq $COOKIES{OP_SID}) {
  	  $html->message('err', $_ERROR, "$_EXIST");
    }
@@ -5620,7 +5627,11 @@ if ($attr->{USER_INFO}) {
       else {
         my $er = $payments->exchange_info($FORM{ER});
         $FORM{ER} = $er->{ER_RATE};
-        $payments->add($user, { %FORM } );  
+       
+        $payments->add($user, { %FORM,
+        	INNER_DESCRIBE => $FORM{INNER_DESCRIBE}. (($FORM{DATE} && $COOKIES{hold_date}) ? " $DATE $TIME" : '' )        	
+        	  } );  
+
         if ($payments->{errno}) {
       	  if ($payments->{errno}==12) {
       		  $html->message('err', $_ERROR, "$ERR_WRONG_SUM");	
@@ -5707,11 +5718,17 @@ if ($permissions{1} && $permissions{1}{1}) {
  	                             "</td></tr>\n";
     }
    
+   
+   
   if ($permissions{1}{4}) {
   	if ($COOKIES{hold_date}) {
-  		$payments->{INNER_DESCRIBE}.="$DATE $TIME";
   		($DATE, $TIME) = split(/ /, $COOKIES{hold_date}, 2);
   	 }
+
+    if ($FORM{DATE}) {
+      ($DATE, $TIME)=split(/ /, $FORM{DATE});
+     }
+
     my $date_field = $html->date_fld2('DATE', { DATE=>$DATE, TIME => $TIME, MONTHES => \@MONTHES, FORM_NAME => 'user', WEEK_DAYS => \@WEEKDAYS });
     $payments->{DATE} = "<tr><td colspan=2>$_DATE:</td><td>$date_field  $_HOLD: <input type=checkbox name=hold_date value=1 ". 
     (($COOKIES{hold_date}) ? 'checked' : '' )
