@@ -284,14 +284,16 @@ sub docs_invoice {
     foreach my $line (@$list) {
       next if ($line->[5]);
       $num++;
+      my $date = $line->[2];
+      $date =~ s/ \d+:\d+:\d+//g;
       $table->addrow(
-        $html->form_input("ORDER_".$line->[0], "$line->[3] $line->[2]", { TYPE => 'hidden', OUTPUT2RETURN => 1 }).
+        $html->form_input("ORDER_".$line->[0], "$line->[3] $date", { TYPE => 'hidden', OUTPUT2RETURN => 1 }).
         $html->form_input("SUM_".$line->[0], "$line->[4]", { TYPE => 'hidden', OUTPUT2RETURN => 1 }).
         $html->form_input("FEES_ID_".$line->[0], "$line->[0]", { TYPE => 'hidden', OUTPUT2RETURN => 1 }).
         $html->form_input("IDS", "$line->[0]", { TYPE => 'checkbox', STATE => 1, OUTPUT2RETURN => 1 }). "$num", 
         "$line->[1]",
         "$line->[2]", 
-        "$line->[3]", 
+        "$line->[3] $date", 
         "$line->[4]"
          );      
       #$total_sum+=$line->[4]; 
@@ -729,8 +731,8 @@ foreach my $line (@$list) {
    "$line->[5]", 
    "$line->[6]", 
    $PAYMENTS_METHODS{"$line->[7]"}, 
-   $html->button($_SEND_MAIL, "qindex=$index&sendmail=$line->[9]&UID=$line->[8]", { ex_params => 'target=_new', CLASS => 'sendmail' }) ,
-   $html->button($_PRINT, "qindex=$index&print=$line->[9]&UID=$line->[8]$pages_qs", { ex_params => 'target=_new', CLASS => 'print' }) ,
+   $html->button($_SEND_MAIL, "qindex=". get_function_index('docs_invoice_list') ."&sendmail=$line->[9]&UID=$line->[8]", { ex_params => 'target=_new', CLASS => 'sendmail' }) ,
+   $html->button($_PRINT, "qindex=". get_function_index('docs_invoice_list') ."&print=$line->[9]&UID=$line->[8]$pages_qs", { ex_params => 'target=_new', CLASS => 'print' }) ,
    $delete);
 }
 print $table->show();

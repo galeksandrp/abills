@@ -489,3 +489,5 @@ $_FINISH='Finish';
 $_HELP='Help';
 $_NEXT_FEES_THROUGHT='Next periodic payments throught %DAY% days';
 $_HOLD='Hold';
+$_MONTH_FEE_SHORT='M/F';
+$_DAY_FEE_SHORT='D/F';
