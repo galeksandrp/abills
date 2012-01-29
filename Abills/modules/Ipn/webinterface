@@ -155,7 +155,8 @@ else {
 	
 	$graph_type='month_stats';
 }
-
+   
+   $LIST_PARAMS{CUR_DATE}=$DATE;
    my $list = $Ipn->reports_users({ %LIST_PARAMS });
    #Used Fraffic
    $table_sessions = $html->table( { width      => '100%',
@@ -514,6 +515,8 @@ my %TRAFFIC_CLASS = ();
 
 if ($FORM{DATE} || ($FORM{TYPE} && $FORM{TYPE} eq 'DAYS_TCLASS')) {
    $LIST_PARAMS{INTERVAL_TYPE} = 2;
+
+   $LIST_PARAMS{CUR_DATE}=$DATE;
    my $list = $Ipn->reports_users({ %LIST_PARAMS });
    #Used Fraffic
    $table_sessions = $html->table( { width      => '100%',
@@ -754,6 +757,7 @@ else {
                                } );
 
   $LIST_PARAMS{INTERVAL_TYPE}=3;
+  $LIST_PARAMS{CUR_DATE}=$DATE;
   my $list    = $Ipn->reports_users({ %LIST_PARAMS });
   $graph_type = 'month_stats';
   
@@ -1231,7 +1235,7 @@ sub ipn_user_activate {
   if ($nas_id < 1) {
   	$html->message('err', $_ERROR, "$_NOT_EXIST IP '$ip' ", { ID => 161 });
   	if (! $user->{UID}) {
-      $IP_INPUT .= " $_NAS: ". $html->form_select('NAS_ID', 
+      $Ipn->{NAS_SEL} = $html->form_select('NAS_ID', 
                                     { 
  	                                   SELECTED          => $nas_id,
  	                                   SEL_MULTI_ARRAY   => $Nas->list({ DISABLE => 0  }),
@@ -1460,6 +1464,7 @@ $html->tpl_show(_include('ipn_form_active', 'Ipn'), { IP             => (! $IP_I
 	                                                    ACTION_LNG     => $ACTION[1],
 	                                                    ONLINE         => $online_session,
 	                                                    INDEX          => get_function_index('ipn_user_activate'),
+	                                                    NAS_SEL        => $Ipn->{NAS_SEL},
 	                                                    %HIDDEN
 	                                                    });
 }
