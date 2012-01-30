@@ -6,11 +6,15 @@
 		var popup_name = $("#popup_info_name").html();
 		var form_id = '#' + $("#popup_info_form_id").html();
 		var template = $("#popup_info_template").html();
+		var result_field = $("#popup_info_result_field").html();
 		
+		
+
+ 
 		
 		//alert(popup_width);
 		
-		$('a.popclick').click(function(event){
+		$('#popclick').click(function(event){
 			change_tab_color_window();
 			//if ($('#result_window').is('.search_window_colors')) {
 			$('#search_window').addClass(".search_window_colors");			
@@ -19,6 +23,12 @@
 			$('#loading').hide();
 			$('#result').hide();			
 		});
+		
+		$('#clear_results').click(function(event){				
+			$("input[name|='" + popup_name + "']").val('');
+			$("input[name|='" + popup_name + "1']").val('');
+		});
+		
 
 		$('#search_window').live('click', function() {				
 			change_tab_color_window();
@@ -33,12 +43,15 @@
 			$('#result').show();    	 
 		});
 
-		$('a.nasClick').live('click', function() { 
+
 		
-			$("input[name|='" + popup_name + "']").val($(this).parent().prev().text());
-			$("input[name|='" + popup_name + "1']").val($(this).text());
+		$('#result > table > tbody > tr > td > table > tbody > tr').live('click', function() { 
+			//alert($(this).find('.nasClick').text());
+			$("input[name|='" + popup_name + "']").val($(this).find('.clickSearchResult').parent().prev().text());
+			$("input[name|='" + popup_name + "1']").val($(this).find('.clickSearchResult').text());
 			close_window();
-		});
+
+		});		
 		
 		$('#search_nas').live('click', function() {
 			$('#nas_ajax_content').slideUp();	
@@ -79,7 +92,11 @@
 			
 		}
 		
+		$('body').append('<div id="shadow"></div>');
 		
+		
+		
+		 
 		$.post(formUrl,	{
 			POPUP : 1,
 			NAS_SEARCH : 2,
@@ -87,9 +104,22 @@
 		}, function(data){
 				if (data.length>0) {		 
 					$('#popup_window').empty().append(data);
-					$('#open_popup_block_middle').width(popup_width);			
+					$('#open_popup_block_middle').width(popup_width);
+					
+					//alert(-(($('#open_popup_block_middle').width()) / 2));
+					
+					
+					$('#open_popup_block_middle').css({
+	        			'margin-top' : -(($('#open_popup_block_middle').height()) / 2),
+	        			'margin-left' : -(($('#open_popup_block_middle').width()) / 2)
+    	});
+					
+								
 				}
 			}); 
+		
+		
+		
 		
 				 
 	});

@@ -8603,18 +8603,19 @@ if($FORM{NAS_SEARCH} == 1) {
   my $nas = Nas->new($db, \%conf);
   #$nas->{debug}=1;
   my $table = $html->table({ width           => '100%',
-                               border          => 1,
-                               title           => ['ID', $_NAME,  'IP', $_TYPE, 'mac' ],
-                               cols_align      => ['left', 'right', 'center'],
-                               pages           => $nas->{TOTAL},
-                               ID              => 'NAS_SEARCH'
-                              });
+                             border          => 1,
+                             title           => ['ID', $_NAME,  'IP', $_TYPE, 'mac' ],
+                             cols_align      => ['left', 'right', 'center'],
+                             pages           => $nas->{TOTAL},
+                             ID              => 'NAS_SEARCH'
+                           });
   $list = $nas->list({ %FORM });
   foreach my $line ( @$list ) {
         $table->addrow( $line->[0],
-          $html->button("$line->[1]", "#", { GLOBAL_URL => '#', 
-          	                                 ex_params => "class='nasClick' name='$line->[1]'" 
-          	                                }),
+          "<div class='clickSearchResult' name='$line->[1]'>$line->[1]</div>",
+          #$html->button("$line->[1]", "#", { GLOBAL_URL => '#', 
+          #	                                 ex_params => "class='nasClick' name='$line->[1]'" 
+          #	                                }),
                          $line->[3],
                          $line->[4],
                          $line->[5],
@@ -8675,11 +8676,9 @@ else {
 #**********************************************************
 sub get_popup_info {
 
-
-
-if (defined($FORM{NAS_SEARCH})) {
-  form_nas_search();
- }
+ if (defined($FORM{NAS_SEARCH})) {
+   form_nas_search();
+  }
  
 }
 

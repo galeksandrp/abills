@@ -13,7 +13,7 @@
  <link rel=\"stylesheet\" media=\"print\" type=\"text/css\" href=\"%PRINTCSS%\" >
  <script src='%JAVASCRIPT%' type='text/javascript' language='javascript'></script>
  <script src='/calendar.js' type='text/javascript' language='javascript'></script>
-<script type=\"text/javascript\" src=\"/js/jquery.js\"></script>
+<script type='text/javascript' src='/js/jquery.js'></script>
 
 <style type=\"text/css\">
 
@@ -1024,11 +1024,10 @@ TABLE.border {
 
 
 #shadow {
-        position:absolute;
+        position:fixed;
         top:0px;
-        left:0px;
         width:100%;
-        height:135%;
+        height:100%;
         background-color:black;
         opacity:0.6;
         filter:alpha(opacity=60);
@@ -1036,13 +1035,13 @@ TABLE.border {
 }
 
 #open_popup_block_middle {
-        position: absolute;
-        left: 30%;
-        top: 100px;
+        position: fixed;
+                top: 50%;
+                left: 50%;
         display: none;
         z-index: 10;
         overflow: hidden;
-    background: #f6f6f6;
+        background: #f6f6f6;
 }
 #popup_window_content {
         padding:30px 20px 20px;
@@ -1075,15 +1074,10 @@ TABLE.border {
         padding-top:20px;
 }
 
-
-
-
-
-
 </style>
 
 <title>%title%</title>
 </head>
-<body style=\"margin: 0\" bgcolor=\"%_COLOR_10%\" text=\"%_COLOR_9%\" link=\"%_COLOR_8%\"  vlink=\"%_COLOR_7%\">
+<body style="margin: 0\" bgcolor='%_COLOR_10%' text='%_COLOR_9%' link='%_COLOR_8%'  vlink='%_COLOR_7%'>
 
-<div id=\"popup_window\"></div>
+<div id='popup_window'></div>
