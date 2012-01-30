@@ -1345,22 +1345,27 @@ $info{SUM_VAL_SEL}=$html->form_select('sum_val',
 # vadim.ignatkin@pbank.com.ua
 #**********************************************************
 sub paysys_privatbank {
-my %info = ();
+  my %info = ();
+	
+  my $payment_system    = 'PBANK';
+  my $payment_system_id = 48;
+  my $order_id = $FORM{orderid};
+
 	
 if ($FORM{FALSE}) {
-	if ($FORM{ReasonCode} == 11 ) {
-    $FORM{ReasonCodeDesc}="$ERR_INVALID_SIGNATURE";
+	if ($FORM{reasoncode} == 11 ) {
+    $FORM{reasoncodedesc}="$ERR_INVALID_SIGNATURE";
 	 }
-	elsif ($FORM{ReasonCode} == 2 ) {
-    $FORM{ReasonCodeDesc}="$ERR_TRANSACTION_DECLINED";
+	elsif ($FORM{reasoncode} == 2 ) {
+    $FORM{reasoncodedesc}="$ERR_TRANSACTION_DECLINED";
 	 }
-	$html->message('err', $_ERROR, "$_FAILED ID: $FORM{OrderID} [$FORM{ReasonCode}/$FORM{ResponseCode}] $FORM{ReasonCodeDesc} ");
+	$html->message('err', $_ERROR, "$_FAILED ID: $FORM{orderid} [$FORM{reasoncode}/$FORM{responsecode}] $FORM{reasoncodedesc} ");
 	$html->setCookie('lastindex', "", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure);
 
 	return 0;
  }
 elsif ($FORM{TRUE}) {
-   my $list = $Paysys->list({ TRANSACTION_ID => "$FORM{OrderID}", 
+   my $list = $Paysys->list({ TRANSACTION_ID => "$FORM{orderid}", 
    	                          UID => $LIST_PARAMS{UID} });
 
    if ($Paysys->{TOTAL} > 0) {
@@ -1380,7 +1385,7 @@ else {
 	 }
 	
 	#Info section  
-  $Paysys->add({ SYSTEM_ID      => 48, 
+  $Paysys->add({ SYSTEM_ID      => $payment_system_id, 
   	             DATETIME       => "'$DATE $TIME'", 
   	             SUM            => $FORM{SUM},
   	             UID            => $user->{UID}, 

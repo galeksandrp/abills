@@ -221,7 +221,7 @@ elsif( $FORM{txn_id} || $FORM{prv_txn} || defined($FORM{prv_id}) || ( $FORM{comm
 elsif ($FORM{SHOPORDERNUMBER}) {
   portmone_payments();
  }
-elsif($FORM{AcqID}) {
+elsif($FORM{acqid}) {
 	privatbank_payments();
  }
 elsif($FORM{operation} || $ENV{'QUERY_STRING'} =~ /operation=/) {
@@ -517,8 +517,11 @@ sub portmone_payments {
 sub privatbank_payments {
   #Get order
   my $status = 0;
-
-  my $list = $Paysys->list({ TRANSACTION_ID => "$FORM{'OrderID'}",
+  my $payment_system    = 'PBANK';
+  my $payment_system_id = 48;
+  my $order_id = $FORM{orderid};
+  
+  my $list = $Paysys->list({ TRANSACTION_ID => "$order_id",
       	                     INFO           => '-',
   	                         });
 
@@ -529,10 +532,10 @@ sub privatbank_payments {
 	      my $sum = $list->[0][3];
         my $user = $users->info($uid);
         $payments->add($user, {SUM      => $sum,
-    	                     DESCRIBE     => 'PBANK',
-    	                     METHOD       => ($conf{PAYSYS_PAYMENTS_METHODS} && $PAYSYS_PAYMENTS_METHODS{48}) ? 48 : '2', 
-  	                       EXT_ID       => "PBANK:$FORM{OrderID}",
-  	                       CHECK_EXT_ID => "PBANK:$FORM{OrderID}" } ); 
+    	                     DESCRIBE     => $payment_system,
+    	                     METHOD       => ($conf{PAYSYS_PAYMENTS_METHODS} && $PAYSYS_PAYMENTS_METHODS{$payment_system_id}) ? $payment_system_id : '2', 
+  	                       EXT_ID       => "PBANK:$order_id",
+  	                       CHECK_EXT_ID => "PBANK:$order_id" } ); 
 
 
         #Exists
@@ -545,7 +548,7 @@ sub privatbank_payments {
         else{
    	      $Paysys->change({ ID        => $list->[0][0],
    	      	                PAYSYS_IP => $ENV{'REMOTE_ADDR'},
- 	                          INFO      => "ReasonCode: $FORM{ReasonCode}\n Authcode: $FORM{AuthCode}\n PaddedCardNo:$FORM{PaddedCardNo}\n ResponseCode: $FORM{ResponseCode}\n ReasonCodeDesc: $FORM{ReasonCodeDesc}\n IP: $FORM{IP}\n Signature:$FORM{Signature}"
+ 	                          INFO      => "ReasonCode: $FORM{reasoncode}\n Authcode: $FORM{authcode}\n PaddedCardNo:$FORM{paddedcardno}\n ResponseCode: $FORM{responsecode}\n ReasonCodeDesc: $FORM{reasoncodedesc}\n IP: $FORM{IP}\n Signature:$FORM{signature}"
  	                  });
          }
 
@@ -568,7 +571,7 @@ sub privatbank_payments {
    else {
      $Paysys->change({ ID        => $list->[0][0],
      	                 PAYSYS_IP => $ENV{'REMOTE_ADDR'},
- 	                     INFO      => "ReasonCode: $FORM{ReasonCode}. $FORM{ReasonCodeDesc}"
+ 	                     INFO      => "ReasonCode: $FORM{reasoncode}. $FORM{reasoncodedesc} responsecode: $FORM{responsecode}"
  	                 });
   	}
 
