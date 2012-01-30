@@ -526,7 +526,7 @@ sub privatbank_payments {
   	                         });
 
  if ($Paysys->{TOTAL} > 0) {
-   if (	$FORM{ReasonCode} == 1 ) {    
+   if (	$FORM{reasoncode} == 1 ) {    
 	      #$html->message('info', $_INFO, "$_ADDED $_SUM: $list->[0][3] ID: $FORM{SHOPORDERNUMBER }");
 	      my $uid = $list->[0][8];
 	      my $sum = $list->[0][3];
@@ -583,12 +583,12 @@ sub privatbank_payments {
   $home_url =~ s/paysys_check.cgi/index.cgi/;
  
 	if ($FORM{ResponseCode} == 1) {
-	  print "Location: $home_url?PAYMENT_SYSTEM=48&OrderID=$FORM{OrderID}&TRUE=1". "\n\n";
+	  print "Location: $home_url?PAYMENT_SYSTEM=48&orderid=$FORM{orderid}&TRUE=1". "\n\n";
 	 }
 	else {
 		#print "Content-Type: text/html\n\n";
 		#print "FAILED PAYSYS: Portmone SUM: $FORM{BILL_AMOUNT} ID: $FORM{SHOPORDERNUMBER} STATUS: $status";
-		print "Location:$home_url?PAYMENT_SYSTEM=48&OrderID=$FORM{OrderID}&FALSE=1&ReasonCodeDesc=$FORM{ReasonCodeDesc}&ReasonCode=$FORM{ReasonCode}&ResponseCode=$FORM{ResponseCode}". "\n\n";
+		print "Location:$home_url?PAYMENT_SYSTEM=48&orderid=$FORM{orderid}&FALSE=1&reasoncodedesc=$FORM{reasoncodedesc}&reasoncode=$FORM{reasoncode}&responsecode=$FORM{responsecode}". "\n\n";
 	 }
 
 
