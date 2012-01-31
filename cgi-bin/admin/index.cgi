@@ -6622,7 +6622,7 @@ elsif($search_form{$FORM{type}}) {
  	                                SEL_HASH   => {'' => '', %countries_hash },
  	                                NO_ID      => 1
  	                               });
-      $info{ADDRESS_FORM} = $html->tpl_show(templates('form_address'), $user_pi, { OUTPUT2RETURN => 1 });	
+      $info{ADDRESS_FORM} = $html->tpl_show(templates('form_address'), { %FORM, %$user_pi }, { OUTPUT2RETURN => 1 });	
      }
    }
   elsif ($FORM{type} == 13) {

@@ -147,8 +147,8 @@ if [ x${RADIUS_ACTION} = x1 ]; then
   if [ x${RADIUS_IP} = x ]; then
     RADIUS_IP=127.0.0.1;
   else 
-    RADIUS_IP=`echo ${RADIUS_IP}  | awk -F : '{ print $1 }'`
     PORT=`echo ${RADIUS_IP}  | awk -F : '{ print $2 }'`
+    RADIUS_IP=`echo ${RADIUS_IP}  | awk -F : '{ print $1 }'`
   fi;
 
   echo "RAD FILE: ${RAD_FILE}";
