@@ -1078,6 +1078,6 @@ TABLE.border {
 
 <title>%title%</title>
 </head>
-<body style="margin: 0\" bgcolor='%_COLOR_10%' text='%_COLOR_9%' link='%_COLOR_8%'  vlink='%_COLOR_7%'>
+<body style=\"margin: 0\" bgcolor='%_COLOR_10%' text='%_COLOR_9%' link='%_COLOR_8%'  vlink='%_COLOR_7%'>
 
 <div id='popup_window'></div>
