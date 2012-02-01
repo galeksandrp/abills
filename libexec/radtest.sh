@@ -160,8 +160,8 @@ if [ x${RADIUS_ACTION} = x1 ]; then
       fi;
     fi;
     
-    radclient -f ${RAD_FILE}  ${RADIUS_IP}:${PORT} ${ACTION} ${RADIUS_SECRET}
-    echo "radclient -f ${RAD_FILE}  ${RADIUS_IP}:${PORT} ${ACTION} ${RADIUS_SECRET}";
+    radclient -x -f ${RAD_FILE}  ${RADIUS_IP}:${PORT} ${ACTION} ${RADIUS_SECRET}
+    echo "radclient -x -f ${RAD_FILE}  ${RADIUS_IP}:${PORT} ${ACTION} ${RADIUS_SECRET}";
   else
      if [ x${PORT} = x ]; then      
         PORT=1812;

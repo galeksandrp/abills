@@ -320,7 +320,7 @@ sub acct {
   $RAD->{SESSION_START}      = (defined($RAD->{ACCT_SESSION_TIME})) ?  time - $RAD->{ACCT_SESSION_TIME} : 0;
   $RAD->{NAS_PORT}           = 0  if  (! defined($RAD->{NAS_PORT}));
   $RAD->{CONNECT_INFO}       = '' if  (! defined($RAD->{CONNECT_INFO}));
-  $RAD->{ACCT_TERMINATE_CAUSE} =  (defined($RAD->{ACCT_TERMINATE_CAUSE}) && defined($ACCT_TERMINATE_CAUSES{"$RAD->{ACCT_TERMINATE_CAUSE}"})) ? $ACCT_TERMINATE_CAUSES{"$RAD->{ACCT_TERMINATE_CAUSE}"} : 0;
+  $RAD->{ACCT_TERMINATE_CAUSE} =  ($RAD->{ACCT_TERMINATE_CAUSE} && defined($ACCT_TERMINATE_CAUSES{"$RAD->{ACCT_TERMINATE_CAUSE}"})) ? $ACCT_TERMINATE_CAUSES{"$RAD->{ACCT_TERMINATE_CAUSE}"} : 0;
 
   if ($RAD->{'TUNNEL_CLIENT_ENDPOINT'} && ! $RAD->{CALLING_STATION_ID}) { 
     $RAD->{CALLING_STATION_ID}=$RAD->{'TUNNEL_CLIENT_ENDPOINT'}; 
@@ -363,7 +363,7 @@ if(defined($ACCT{$nas->{NAS_TYPE}})) {
    }
 
   $acct_mod{"$nas->{NAS_TYPE}"} = $ACCT{$nas->{NAS_TYPE}}->new($db, \%conf);  
-  $r = $acct_mod{"$nas->{NAS_TYPE}"}->accounting($RAD, $nas);
+  $r = $acct_mod{"$nas->{NAS_TYPE}"}->accounting($RAD, $nas, { RAD_REQUEST => \%RAD_REQUEST });
 }
 else {
   $acct_mod{'default'} = Acct->new($db, \%conf);
