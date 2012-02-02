@@ -464,6 +464,8 @@ sub check_lines {
        }
       #ENDCOA Section
 
+        if (! $uid) {  next; }
+
         # periodic check deposit, stats and statu
         my %RAD = (USER_NAME         => "$user_name",
                    SESSION_START     => time - $acct_session_time,
