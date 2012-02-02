@@ -279,9 +279,9 @@ sub check_lines {
       my $last_alive              = $line->[12];
       my $acct_session_time       = $line->[13];
       my $duration_sec            = $line->[14];
-      my $deposit                 = $line->[15];
+      my $deposit                 = $line->[15] || 0;
       my $credit                  = ($line->[16] && $line->[16] > 0) ? $line->[16] : (( $line->[17] ) ? $TP_CREDITS{$line->[17]} : 0 ); 
-      my $tp_num                  = $line->[17];
+      my $tp_num                  = $line->[17] || 0;
       my $state                   = (defined($line->[18])) ? $line->[18]+$line->[19] : 0;
       my $session_sum             = $line->[20];
       my $calls_tp_id             = $line->[21];
@@ -293,7 +293,8 @@ sub check_lines {
         printf("%-14s|%16s|%8s|%10s|%10s|%12s|\n", $user_name, int2ip($client_ip), $duration, $acct_input_octets, $acct_output_octets, $deposit);
        } 
 
-      if (($calls_tp_id ne $tp_num || 
+
+      if (($uid && $calls_tp_id ne $tp_num || 
            $state 
 #           || ($POSTPAIDS{$tp_num} == 0 && $deposit+$credit <= 0 && ! $Billing->{NEG_DEPOSIT_FILTER}) # && $bill_priority == 0)
            ) 

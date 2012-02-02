@@ -1893,6 +1893,10 @@ sub paysys_qiwi {
   my %info = ();
 	require "modules/Paysys/Qiwi.pm";
 
+	my $payment_system    = 'QIWI';
+	my $payment_system_id = 59;
+
+
 if ($FORM{send_invoice}) {
 	$FORM{COMMENT}=$user->{LOGIN};
   my $result = qiwi_invoice_request(\%FORM);
@@ -1900,20 +1904,21 @@ if ($FORM{send_invoice}) {
   if ($result->{'result-code'}->[0]->{fatal} eq 'true') {
   	my $error = "$result->{'result-code'}->[0]->{content}";
   	if ($result->{'result-code'}->[0]->{content} == 150) {
-  	   $error .= 'Ошибка на терминале';
+  	   $error .= "$ERR_TERMINAL";
   	 }
   	$html->message('err', "$_ERROR", "$_ERROR: $error");
    }
   else {
  	  $html->message('info', "$_INFO", "$_INVOICE_SENDED ID: '$FORM{OPERATION_ID}' $_PHONE: $FORM{PHONE}");
- 	  $Paysys->add({ SYSTEM_ID    => 59, 
+ 	  $Paysys->add({ SYSTEM_ID    => $payment_system_id, 
   	             DATETIME       => "'$DATE $TIME'", 
   	             SUM            => $FORM{SUM},
   	             UID            => $user->{UID}, 
                  IP             => "$ENV{'REMOTE_ADDR'}",
                  TRANSACTION_ID => "$FORM{OPERATION_ID}",
                  INFO           => '-',
-                 PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}"
+                 PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}",
+                 STATUS         => 1,
                });
  	 }
 
