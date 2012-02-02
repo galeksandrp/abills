@@ -2327,10 +2327,10 @@ if ($attr->{USER_INFO}) {
   $login   = $user->{LOGIN};
   $LIST_PARAMS{LOGIN_EXPR} = $user->{LOGIN};
 }
-elsif ($FORM{LOGIN_EXPR}) {
-  $login     = $FORM{LOGIN_EXPR};
-  $LIST_PARAMS{LOGIN_EXPR} = $FORM{LOGIN_EXPR};
-  $pages_qs .= "&LOGIN_EXPR=$FORM{LOGIN_EXPR}";
+elsif ($FORM{LOGIN}) {
+  $login     = $FORM{LOGIN};
+  $LIST_PARAMS{LOGIN_EXPR} = $FORM{LOGIN};
+  $pages_qs .= "&LOGIN=$FORM{LOGIN}";
  }
 elsif($FORM{UID}) {
   dv_users();
