@@ -616,11 +616,26 @@ if ($conf{PASSWORDLESS_ACCESS}) {
       $ret     = $list->[0]->[11];
       #$time    = time;
       $sid     = mk_unique_value(14);
-      $action  = 'Access';
       $user->info($ret);
 
       $user->{REMOTE_ADDR}=$REMOTE_ADDR;
       return ($ret, $sid, $login);
+    }
+   else {
+     require  Dv;
+     Dv->import();
+     my $Dv   = Dv->new($db, $admin, \%conf);
+	   my $list = $Dv->INFO({ IP => "$REMOTE_ADDR" });
+
+     if ($sessions->{TOTAL} == 1) {
+       $login   = $Dv->{LOGIN} || '';
+       $ret     = $Dv->{UID};
+       #$time    = time;
+       $sid     = mk_unique_value(14);
+       $user->info($ret);
+       $user->{REMOTE_ADDR}=$REMOTE_ADDR;
+       return ($ret, $sid, $user->{LOGIN});      
+      }
     }
   }
 
@@ -692,12 +707,9 @@ if (defined($res) && $res > 0) {
     	                       REMOTE_ADDR => $REMOTE_ADDR,
     	                       EXT_INFO    => $ENV{HTTP_USER_AGENT}
     	                     });
-
-    $action = 'Access';
    }
   else {
     $html->message('err', "$_ERROR", "$ERR_WRONG_PASSWD");
-    $action = 'Error';
    }
  }
 else {
@@ -708,7 +720,6 @@ else {
 
    $html->message('err', "$_ERROR", "$ERR_WRONG_PASSWD");
    $ret = 0;
-   $action = 'Error';
  }
 
  return ($ret, $sid, $login);
