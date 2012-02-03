@@ -22,10 +22,18 @@
 #                                    Enable ipoe_shaper
 #   abills_mikrotik_shaper=""  :  NAS IDS
 #                                    
+#  IPN Section
 #
+# abills_ipn_nas_id="" ABillS IPN NAS ids, Enable IPN firewall functions
+#
+# abills_ipn_if="" IPN Shapper interface
+#
+# abills_ipn_allow_ip="" IPN Allow unauth ip
+
+
 
 CLASSES_NUMS='2 3'
-VERSION=5.6
+VERSION=5.7
 
 
 name="abills_shaper"
@@ -41,6 +49,11 @@ rcvar=`set_rcvar`
 : ${abills_neg_deposit=""}
 : ${abills_portal_ip="me"}
 : ${abills_mikrotik_shaper=""}
+
+: ${abills_ipn_nas_id=""}
+: ${abills_ipn_if=""}
+: ${abills_ipn_allow_ip=""}
+
 
 load_rc_config $name
 #run_rc_command "$1"
@@ -177,13 +190,37 @@ if [ x${abills_dhcp_shaper} != xNO ]; then
   fi;
 fi;
 
+#Ipn Sections
+# Enable IPN
+if [ x${abills_ipn_nas_id} != x ]; then
+  if [ w${abills_ipn_if} != w ]; then
+    IFACE=" via ${abills_ipn_if}"
+  fi;
 
-#ipfw 10 add divert 8668 ip from 3.3.3.0/24 to any
-#ipfw 20 add divert 8778 ip from 4.4.4.0/24 to any
-#ipfw 30 add fwd 1.1.1.254 ip from 1.1.1.1 to any
-#ipfw 40 add fwd 2.2.2.254 ip from 2.2.2.2 to any
-#ipfw 50 add divert 8668 ip from any to 1.1.1.1
-#ipfw 60 add divert 8778 ip from any to 2.2.2.2 
+  #Перенаправить все запросы неавторизированых клиентов на авторизатор
+  ${IPFW} add 64000 fwd 127.0.0.1,80 tcp from any to any dst-port 80 ${IFACE}
+
+  # Разрешить ping к серверу доступа
+  ${IPFW} add 64100 allow icmp from any to me  ${IFACE}
+  ${IPFW} add 64101 allow icmp from me to any  ${IFACE}
+
+  if [ x${abills_ipn_allow_ip} != x ]; then
+    # Доступ к странице авторизации  
+    ${IPFW} add 10 allow tcp from any to ${abills_ipn_allow_ip} 9443  ${IFACE}
+    ${IPFW} add 11 allow tcp from ${abills_ipn_allow_ip} 9443 to any  ${IFACE}
+    ${IPFW} add 12 allow tcp from any to ${abills_ipn_allow_ip} 80  ${IFACE}
+    ${IPFW} add 13 allow tcp from ${abills_ipn_allow_ip} 80 to any  ${IFACE}
+  
+    # Разрешить ДНС запросы к серверу
+    ${IPFW} add 64400 allow udp from any to ${abills_ipn_allow_ip} 53
+    ${IPFW} add 64450 allow udp from ${abills_ipn_allow_ip} 53 to any
+  fi;  
+  
+  # Закрыть доступ неактивизированым хостам
+  ${IPFW} add 65000 deny ip from not table\(10\) to any ${IFACE} in
+fi;
+
+
 
 #NAT Section
 # options         IPFIREWALL_FORWARD

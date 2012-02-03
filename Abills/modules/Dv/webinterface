@@ -2385,7 +2385,6 @@ if ($conf{ERROR2DB}) {
     $LIST_PARAMS{INTERVAL} = "$FORM{FROM_DATE}/$FORM{TO_DATE}";
    }
 
-  
   $list = $Log->log_list({ %LIST_PARAMS  });
   my $table = $html->table( { 
   	                    caption    => $_TOTAL,

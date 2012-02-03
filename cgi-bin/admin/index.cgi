@@ -1636,6 +1636,11 @@ sub user_info {
   my ($UID)=@_;
 
 	my $user_info = $users->info( $UID , { %FORM });
+	
+	if ($users->{TOTAL} == 0 && ! $FORM{UID}) {
+		return 0;
+	 }
+	
   my $deleted   = ($user_info->{DELETED}) ? $html->color_mark($html->b($_DELETED), '#FF0000') : '';
   my $ext_menu  = user_ext_menu($user_info->{UID}, $user_info->{LOGIN}, { SHOW_UID => 1 });
   
