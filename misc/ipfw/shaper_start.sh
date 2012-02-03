@@ -22,18 +22,18 @@
 #                                    Enable ipoe_shaper
 #   abills_mikrotik_shaper=""  :  NAS IDS
 #                                    
-#  IPN Section
+#IPN Section
 #
-# abills_ipn_nas_id="" ABillS IPN NAS ids, Enable IPN firewall functions
+#   abills_ipn_nas_id="" ABillS IPN NAS ids, Enable IPN firewall functions
 #
-# abills_ipn_if="" IPN Shapper interface
+#   abills_ipn_if="" IPN Shapper interface
 #
-# abills_ipn_allow_ip="" IPN Allow unauth ip
+#   abills_ipn_allow_ip="" IPN Allow unauth ip
 
 
 
 CLASSES_NUMS='2 3'
-VERSION=5.7
+VERSION=5.8
 
 
 name="abills_shaper"

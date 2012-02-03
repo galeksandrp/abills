@@ -53,6 +53,7 @@ my %PAY_SYSTEMS = (41 => "Webmoney",
                    74 => 'Alpha-pay',
                    75 => 'Zaplati',
                    76 => 'Paynet',
+                   77 => 'CyberPlat Visa/Master cards'
                   );
 
 my %CONF_OPTIONS = (PAYSYS_WEBMONEY_ACCOUNTS => 41,
@@ -91,6 +92,7 @@ my %CONF_OPTIONS = (PAYSYS_WEBMONEY_ACCOUNTS => 41,
                    PAYSYS_ALFA_PAY_ACCOUNT_KEY  => 74,
                    PAYSYS_ZAPLATI_SUMY_ACCOUNT_KEY => 75,
                    PAYSYS_USMP_ACCOUNT_KEY      => 76,
+                   PAYSYS_CP_VISA               => 77
                   );
 
 
@@ -584,6 +586,9 @@ sub paysys_payment {
 	 }
 	elsif($FORM{PAYMENT_SYSTEM} == 73) {
      paysys_yandex();
+	 }
+  elsif($FORM{PAYMENT_SYSTEM} == 77 or defined($FORM{abillserrormsg}) ) {
+    paysys_cp_visa();
 	 }
 	else {
 		PRE_LABEL:
@@ -2194,6 +2199,62 @@ else {
   #$conf{PAYSYS_LMI_RESULT_URL} = "http://$ENV{SERVER_NAME}". ( ($ENV{SERVER_PORT}!= 80) ? ":$ENV{SERVER_PORT}" : '' ) ."/paysys_check.cgi" if (! $conf{PAYSYS_LMI_RESULT_URL});
   return $html->tpl_show(_include('paysys_ipay_add', 'Paysys'), \%info,  { OUTPUT2RETURN => $attr->{OUTPUT2RETURN} });
  }
+}
+
+
+#**********************************************************
+# User portal payments system with Cyberplat Visa
+#**********************************************************
+sub paysys_cp_visa () {
+
+if(defined($FORM{abillserrormsg})) {
+	my @AbillsErrorMsg = (
+		'Transaction successfuly added',
+		'User not found',
+		'Billing system error',
+		'Dublicate payment',
+		'Transaction error'		
+	);
+
+	$html->message('err', $_ERROR, "$_FAILED - $AbillsErrorMsg[$FORM{abillserrormsg}]");
+	#print 'lol';
+}
+else {
+  my @fio;
+  my $users = Users->new($db, $admin, \%conf); 		
+  $user = $users->info($LIST_PARAMS{UID});
+  $users->pi({ UID => $LIST_PARAMS{UID} });
+  (@fio) = split(' ', $users->{FIO});	
+
+
+  my %info = ();
+  my $sum;
+  $info{PAYMENT_NO} = $FORM{OPERATION_ID};
+
+  if ($FORM{SUM} =~ /^(\d+)\.?(\d+)?$/) {
+    $sum = "$1$2"
+  }
+  $info{amount_with_point} = $FORM{SUM};
+  $info{desc} = $FORM{DESCRIBE};	
+	
+if($conf{PAYSYS_CP_VISA_TEST_MODE} == 1) {	
+  $info{lastname}   = 'Ivanov';
+  $info{firstname}  = 'Ivan';
+  $info{middlename} = 'Ivanovich';
+  $info{email}      = 'support@cyberplat.com';
+  $info{phone}      = 7445-4060;
+} 
+else {
+  $info{lastname}    = $fio[0] || '';
+  $info{firstname}   = $fio[1] || '';
+  $info{middlename}  = $fio[2] || '';
+  $info{email}       = $users->{EMAIL} || '';
+  $info{phone}       = $users->{PHONE} || ''; 	
+ 	
+}
+
+  return $html->tpl_show(_include('paysys_cyberplat_visa', 'Paysys'), \%info,  { OUTPUT2RETURN => $attr->{OUTPUT2RETURN} });
+}
 }
 
 1
