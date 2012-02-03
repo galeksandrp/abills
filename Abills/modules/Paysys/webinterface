@@ -607,6 +607,7 @@ sub paysys_payment {
 	                             66 => 'PAYSYS_PAYPAL_RECIEVER_EMAIL',
                                72 => 'PAYSYS_IPAY_MERCHANT_ID',
                                73 => 'PAYSYS_YANDEX_ID',
+                               77 => 'PAYSYS_CP_VISA'
 
 	                              );
 	  
