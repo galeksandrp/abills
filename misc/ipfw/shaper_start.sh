@@ -20,6 +20,9 @@
 #
 #   abills_dhcp_shaper=""  (bool) :  Set to "NO" by default.
 #                                    Enable ipoe_shaper
+#
+#   abills_dhcp_shaper_nas_ids="" : Set nas ids for shapper, Default: all nas servers
+#
 #   abills_mikrotik_shaper=""  :  NAS IDS
 #                                    
 #IPN Section
@@ -46,6 +49,7 @@ rcvar=`set_rcvar`
 : ${abills_ip_sessions=""}
 : ${abills_nat=""}
 : ${abills_dhcp_shaper="NO"}
+: ${abills_dhcp_shaper_nas_ids=""}
 : ${abills_neg_deposit=""}
 : ${abills_portal_ip="me"}
 : ${abills_mikrotik_shaper=""}
@@ -184,7 +188,11 @@ fi;
 #IPoE Shapper for dhcp connections
 if [ x${abills_dhcp_shaper} != xNO ]; then
   if [ -f ${BILLING_DIR}/libexec/ipoe_shapper.pl ]; then
-    ${BILLING_DIR}/libexec/ipoe_shapper.pl -d
+    if x${abills_dhcp_shaper_nas_ids} != x ]; then
+      NAS_IDS="NAS_IDS=${abills_dhcp_shaper_nas_ids}"
+    fi;
+     
+    ${BILLING_DIR}/libexec/ipoe_shapper.pl -d ${NAS_IDS}
   else
     echo "Can\'t find 'ipoe_shapper.pl' "
   fi;
