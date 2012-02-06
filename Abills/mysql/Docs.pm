@@ -747,7 +747,6 @@ sub account_add {
  
   return $self if($self->{errno});
   $self->{DOC_ID}=$self->{INSERT_ID};
-  $self->{debug}=1;
 
   if ($attr->{IDS}) {
   	my @ids_arr = split(/, /, $attr->{IDS});
