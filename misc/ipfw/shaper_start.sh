@@ -36,7 +36,7 @@
 
 
 CLASSES_NUMS='2 3'
-VERSION=5.8
+VERSION=5.81
 
 
 name="abills_shaper"
@@ -188,7 +188,7 @@ fi;
 #IPoE Shapper for dhcp connections
 if [ x${abills_dhcp_shaper} != xNO ]; then
   if [ -f ${BILLING_DIR}/libexec/ipoe_shapper.pl ]; then
-    if x${abills_dhcp_shaper_nas_ids} != x ]; then
+    if [ x${abills_dhcp_shaper_nas_ids} != x ]; then
       NAS_IDS="NAS_IDS=${abills_dhcp_shaper_nas_ids}"
     fi;
      

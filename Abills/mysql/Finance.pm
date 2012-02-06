@@ -94,11 +94,19 @@ sub exchange_add {
   $self->query($db, "INSERT INTO exchange_rate (money, short_name, rate, iso, changed) 
    values ('$money', '$short_name', '$rate', '$attr->{ISO}', now());", 'do');
 
+  $self->exchange_log_add({ RATE_ID => $self->{INSERT_ID}, 
+  	                        RATE    => $rate
+  	                       });
+
+
+
   $admin->{MODULE}='';
   $admin->system_action_add("$money/$short_name/$rate", { TYPE => 41 });
 
 	return $self;
 }
+
+
 
 
 #**********************************************************
@@ -133,6 +141,10 @@ sub exchange_change {
     iso='$attr->{ISO}',
     changed=now()
    WHERE id='$id';", 'do');
+
+  $self->exchange_log_add({ RATE_ID => $id, 
+  	                        RATE    => $rate
+  	                       });
 
   $admin->system_action_add("$money/$short_name/$rate", { TYPE => 41 });
 
@@ -169,5 +181,60 @@ sub exchange_info {
 
 	return $self;
 }
+
+
+
+
+
+
+
+#**********************************************************
+# exchange_log_list
+#**********************************************************
+sub exchange_log_list {
+	my $self = shift;
+  my ($attr) = @_;
+  
+ my $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+ my $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+ my $PG = ($attr->{PG}) ? $attr->{PG} : 0;
+ my $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
+
+
+ $self->query($db, "SELECT rl.date, r.money, rl.rate, rl.id
+    FROM exchange_rate_log rl
+    LEFT JOIN exchange_rate  r ON (r.id=rl.exchange_rate_id)
+    ORDER BY $SORT $DESC
+    LIMIT $PG, $PAGE_ROWS;");
+
+ return $self->{list};
+}
+
+
+#**********************************************************
+# exchange_add
+#**********************************************************
+sub exchange_log_add {
+	my $self = shift;
+  my ($attr) = @_;  
+ 
+  $self->query($db, "INSERT INTO exchange_rate_log (date, exchange_rate_id, rate) 
+   values (now(), $attr->{RATE_ID}, '$attr->{RATE}');", 'do');
+
+	return $self;
+}
+
+#**********************************************************
+# exchange_del
+#**********************************************************
+sub exchange_log_del {
+	my $self = shift;
+  my ($id) = @_;
+  $self->query($db, "DELETE FROM exchange_rate_log WHERE id='$id';", 'do');
+
+  $admin->system_action_add("$id", { TYPE => 42 });
+	return $self;
+}
+
 
 1

@@ -5749,6 +5749,8 @@ if ($permissions{1} && $permissions{1}{1}) {
  	                                MULTI_ARRAY_VALUE_PREFIX => "$_NUM: ,$_DATE: ,$_SUM:",
  	                                SEL_OPTIONS       => { 0 => '', create => $_CREATE },
  	                                NO_ID             => 1,
+ 	                                MAIN_MENU         => get_function_index('docs_accounts_list'),
+ 	                                MAIN_MENU_AGRV    => "UID=$FORM{UID}&ACCOUNT_ID=$FORM{ACCOUNT_ID}"
  	                               });
 
     $payments->{DOCS_ACCOUNT_ELEMENT}="<tr><th colspan=3 class='form_title'>$_DOCS</th></tr>\n".
@@ -5898,12 +5900,25 @@ elsif($FORM{del} && $FORM{is_js_confirmed}) {
     $html->message('info', $_EXCHANGE_RATE, "$_DELETED");
    }
 }
+elsif($FORM{log_del} && $FORM{is_js_confirmed}) {
+	$finance->exchange_log_del("$FORM{log_del}");
+  if ($finance->{errno}) {
+    $html->message('err', $_ERROR, "[$finance->{errno}] $err_strs{$finance->{errno}}");	
+   }
+  else {
+    $html->message('info', $_EXCHANGE_RATE, "$_LOG $_DELETED");
+   }
+}
+
+
+
 	
 
 $html->tpl_show(templates('form_er'), $finance);
 my $table = $html->table({ width      => '640',
                            title      => ["$_MONEY", "$_SHORT_NAME", "$_EXCHANGE_RATE (1 unit =)", "$_CHANGED", '-', '-'],
                            cols_align => ['left', 'left', 'right', 'center', 'center'],
+                           ID         => 'EXCHANGE_RATE'
                           });
 
 my $list = $finance->exchange_list( {%LIST_PARAMS} );
@@ -5912,11 +5927,34 @@ foreach my $line (@$list) {
      $line->[1], 
      $line->[2], 
      $line->[3], 
-     $html->button($_CHANGE, "index=65&chg=$line->[4]", { CLASS => 'change' }), 
-     $html->button($_DEL, "index=65&del=$line->[4]", { MESSAGE => "$_DEL [$line->[0]]?", CLASS => 'del' } ));
+     $html->button($_CHANGE, "index=$index&chg=$line->[4]", { CLASS => 'change' }), 
+     $html->button($_DEL, "index=$index&del=$line->[4]", { MESSAGE => "$_DEL [$line->[0]]?", CLASS => 'del' } ));
 }
 
 print $table->show();
+
+
+$table = $html->table({ caption    => "$_LOG",
+	                      width      => '640',
+                        title      => ["$_MONEY", "$_SHORT_NAME", "$_EXCHANGE_RATE (1 unit =)", '-'],
+                        cols_align => ['left', 'left', 'right', 'center', 'center'],
+                        ID         => 'EXCHANGE_RATE_LOG',
+                        EXPORT     => $_EXPORT .' XML:&xml=1',                          
+                          });
+
+$list = $finance->exchange_log_list( { %LIST_PARAMS } );
+
+foreach my $line (@$list) {
+  $table->addrow($line->[0], 
+     $line->[1], 
+     $line->[2], 
+     $html->button($_DEL, "index=$index&log_del=$line->[3]", { MESSAGE => "$_DEL [$line->[0]]?", CLASS => 'del' } ));
+}
+
+print $table->show();
+
+
+
 }
 
 

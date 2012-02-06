@@ -227,6 +227,7 @@ CREATE TABLE `docs_acct_orders` (
   `counts` int(10) unsigned NOT NULL default '0',
   `unit` tinyint(3) unsigned NOT NULL default '0',
   `price` double(10,2) unsigned NOT NULL default '0.00',
+  `fees_id` int(11) unsigned NOT NULL default 0,
   KEY `aid` (`acct_id`)
 )  COMMENT='Docs Accounts Orders' ;
 
@@ -354,6 +355,7 @@ CREATE TABLE `exchange_rate_log` (
   `date` datetime NOT NULL default '0000-00-00 00:00:00',
   `exchange_rate_id` smallint unsigned  NOT NULL default 0,
   `rate` double(12,4) NOT NULL default '0.0000',
+  `id`  int(10) unsigned NOT NULL auto_increment primary key,
   KEY `date` (`date`) 
 ) COMMENT='Exchange rate log';
 
