@@ -625,9 +625,9 @@ if ($conf{PASSWORDLESS_ACCESS}) {
      require  Dv;
      Dv->import();
      my $Dv   = Dv->new($db, $admin, \%conf);
-	   my $list = $Dv->info({ IP => "$REMOTE_ADDR" });
+	   my $list = $Dv->info(0, { IP => "$REMOTE_ADDR" });
 
-     if ($sessions->{TOTAL} == 1) {
+     if ($Dv->{TOTAL} == 1) {
        $login   = $Dv->{LOGIN} || '';
        $ret     = $Dv->{UID};
        #$time    = time;

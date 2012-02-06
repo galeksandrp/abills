@@ -739,9 +739,11 @@ sub account_add {
   $DATA{VAT}     = '' if (! $DATA{VAT});
   $DATA{PAYMENT_ID} = 0 if (!  $DATA{PAYMENT_ID});
 
-  $self->query($db, "insert into docs_acct (acct_id, date, created, customer, phone, aid, uid, payment_id, vat, deposit, delivery_status)
+  $self->query($db, "insert into docs_acct (acct_id, date, created, customer, phone, aid, uid, payment_id, vat, deposit, 
+    delivery_status, exchange_rate, currency)
       values ('$DATA{ACCT_ID}', $DATA{DATE}, now(), \"$DATA{CUSTOMER}\", \"$DATA{PHONE}\", 
-      '$admin->{AID}', '$DATA{UID}', '$DATA{PAYMENT_ID}', '$DATA{VAT}', '$DATA{DEPOSIT}', '$DATA{DELIVERY_STATUS}');", 'do');
+      '$admin->{AID}', '$DATA{UID}', '$DATA{PAYMENT_ID}', '$DATA{VAT}', '$DATA{DEPOSIT}', 
+      '$DATA{DELIVERY_STATUS}', '$DATA{EXCHANGE_RATE}', '$DATA{CURRENCY}');", 'do');
  
   return $self if($self->{errno});
   $self->{DOC_ID}=$self->{INSERT_ID};
@@ -828,7 +830,9 @@ sub account_info {
    p.method,
    p.ext_id,
    d.deposit,
-   d.delivery_status
+   d.delivery_status,
+   d.exchange_rate,
+   d.currency
     FROM (docs_acct d, docs_acct_orders o)
     LEFT JOIN users u ON (d.uid=u.uid)
     LEFT JOIN companies c ON (u.company_id=c.id)
@@ -869,6 +873,8 @@ sub account_info {
    $self->{EXT_ID},
    $self->{DEPOSIT},
    $self->{DELIVERY_STATUS},
+   $self->{EXCHANGE_RATE}, 
+   $self->{CURRENCY}
   )= @{ $self->{list}->[0] };
 
   

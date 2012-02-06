@@ -216,6 +216,8 @@ CREATE TABLE `docs_acct` (
   `payment_id` int(11) unsigned NOT NULL default 0,
   `deposit` double(15,6) NOT NULL default '0.000000',
   `delivery_status` tinyint(2) unsigned NOT NULL default '0',
+  `exchange_rate` double(12,4) NOT NULL default '0.0000',
+  `currency` smallint unsigned  NOT NULL default 0,  
   PRIMARY KEY  (`id`),
   KEY `payment_id` (`payment_id`),
   KEY `domain_id` (`domain_id`)
