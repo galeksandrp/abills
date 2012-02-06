@@ -567,7 +567,7 @@ sub accounts_list {
 
 
  if ($attr->{ORDERS_LIST}) {
-   $self->query($db, "SELECT  o.invoice_id,  o.orders,  o.unit,  o.counts,  o.price,  o.fees_id
+   $self->query($db, "SELECT  o.acct_id,  o.orders,  o.unit,  o.counts,  o.price,  o.fees_id
       FROM  (docs_acct d, docs_acct_orders o) 
      $WHERE;");
 
@@ -753,7 +753,7 @@ sub account_add {
 
   	foreach my $id (@ids_arr) {
       $DATA{'COUNTS_'.$id} = 1 if (! $DATA{'COUNTS_'.$id});
-      next if (! $DATA{'SUM_'.$id} || $DATA{'SUM_'.$id} <= 0);
+      #next if (! $DATA{'SUM_'.$id} || $DATA{'SUM_'.$id} <= 0);
       $DATA{'SUM_'.$id} =~ s/\,/\./g;
       $self->query($db, "INSERT INTO docs_acct_orders (acct_id, orders, counts, unit, price, fees_id)
          values (". $self->{'DOC_ID'}.", \"". $DATA{'ORDER_'. $id}."\", '". $DATA{'COUNTS_'.$id}."', '". $DATA{'UNIT_'.$id} ."',
@@ -769,7 +769,7 @@ sub account_add {
    } 
 
   return $self if($self->{errno});
-  
+
   $self->{ACCT_ID}=$DATA{ACCT_ID};
   $self->account_info($self->{DOC_ID});
 
@@ -804,7 +804,7 @@ sub account_info {
 	my ($id, $attr) = @_;
 
   $WHERE = ($attr->{UID}) ? "and d.uid='$attr->{UID}'" : '';
-
+  $CONF->{DOCS_ACCOUNT_EXPIRE_PERIOD}=30 if (! $CONF->{DOCS_ACCOUNT_EXPIRE_PERIOD});
   $self->query($db, "SELECT d.acct_id, 
    d.date, 
    d.customer,  

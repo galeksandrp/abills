@@ -164,6 +164,9 @@ sub exchange_info {
   if ($attr->{SHORT_NAME}) {
   	$WHERE = "short_name='$attr->{SHORT_NAME}'";
    }
+  elsif ($attr->{ISO}) {
+  	$WHERE = "iso='$attr->{ISO}'";
+   }
   else {
   	$WHERE = "id='$id'";
    }

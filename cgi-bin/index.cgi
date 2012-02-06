@@ -507,12 +507,10 @@ sub form_info {
 sub form_login {
  my %first_page = ();
 
-
  if ($conf{tech_works}) {
  	  $html->message('info', $_INFO, "$conf{tech_works}");
  	  return 0;
   }
-
  
 #Make active lang list
 if ($conf{LANGS}) {
@@ -523,7 +521,7 @@ if ($conf{LANGS}) {
 		my ($lang, $lang_name)=split(/:/, $l);
 		$lang =~ s/^\s+//;
 		$LANG{$lang}=$lang_name;
-	 } 
+	 }
 }
  
  my %QT_LANG = (
