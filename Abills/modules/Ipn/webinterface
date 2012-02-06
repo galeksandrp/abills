@@ -2346,6 +2346,12 @@ sub ipn_periodic_session_restart {
 	  $DEBUG .= $debug_output;
     return $debug_output;
    }
+  
+  if ($attr->{LOG_ROTATE}) {
+	  $DEBUG .= $debug_output;
+    return $debug_output;
+   }
+
 
 
 #Get online
@@ -2490,6 +2496,12 @@ sub ipn_start_active {
 	  $DEBUG .= $debug_output;
     return $debug_output;
    }
+
+  if ($attr->{LOG_ROTATE}) {
+	  $DEBUG .= $debug_output;
+    return $debug_output;
+   }
+
 
   my @nas_types = ('ipcad', 'dhcp');
 
