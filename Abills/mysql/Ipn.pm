@@ -1118,9 +1118,6 @@ sub ipn_log_rotate {
   
   my ($Y, $M, $D)=split(/_/, $DATE);
   
-   
-  print "!!!!!!! ($attr->{DETAIL} ";
-  
  my @rq = (); 
  my $version = $self->db_version();
 

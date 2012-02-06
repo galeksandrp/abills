@@ -2307,6 +2307,7 @@ sub ipn_detail_rotate {
   my $debug_output = '';
   return '' if ($attr->{SRESTART});
 
+  $Ipn->{debug}=1 if ($debug>6);
   # Clean s_detail table
   my ($y, $m, $d)=split(/-/, $ADMIN_REPORT{DATE}, 3);
   if ($d == 1) {
