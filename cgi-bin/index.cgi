@@ -417,10 +417,12 @@ sub form_info {
      form_neg_deposit($user) ;
     }
   else {
-  	if (in_array('Docs', \@MODULES) ) {
-    	$FORM{ALL_SERVICES}=1;
-    	load_module('Docs', $html);
-    	docs_account();
+  	if (! $conf{DOCS_SKIP_NEXT_PERIOD_ACCOUNT}) {
+  	  if (in_array('Docs', \@MODULES) ) {
+    	  $FORM{ALL_SERVICES}=1;
+    	  load_module('Docs', $html);
+    	  docs_account();
+       }
      }
    }
   
