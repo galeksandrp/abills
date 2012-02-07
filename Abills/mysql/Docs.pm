@@ -535,9 +535,10 @@ sub accounts_list {
 
  $WHERE = ($#WHERE_RULES > -1) ? 'WHERE ' . join(' and ', @WHERE_RULES)  : '';
 
- $self->query($db,   "SELECT d.acct_id, d.date, if(d.customer='-' or d.customer='', pi.fio, d.customer),  sum(o.price * o.counts), 
-     d.payment_id, u.id, a.name, d.created, p.method, p.ext_id, g.name, d.uid, d.id, 
-     u.company_id, c.name, if(u.company_id=0, concat(pi.contract_sufix,pi.contract_id), concat(c.contract_sufix,c.contract_id))
+ $self->query($db,   "SELECT d.acct_id, d.date, if(d.customer='-' or d.customer='', pi.fio, d.customer),sum(o.price * o.counts), 
+     d.payment_id, u.id, a.name, d.created, p.method, p.ext_id, g.name, 
+     if (d.exchange_rate>0, sum(o.price * o.counts) * d.exchange_rate, 0.00),
+     d.uid, d.id, u.company_id, c.name, if(u.company_id=0, concat(pi.contract_sufix,pi.contract_id), concat(c.contract_sufix,c.contract_id))
      $self->{EXT_FIELDS}
     FROM (docs_acct d, docs_acct_orders o)
     LEFT JOIN users u ON (d.uid=u.uid)

@@ -36,3 +36,5 @@ $_NOT_INCLUDE_CUR_BILLING_PERIOD='Не включать неинвойсиров
 $_INVOICE_AUTO_GEN='Автоматическая генерерация счёта';
 $_INVOICING_PERIOD='Период выписка счёта';
 $_PERSONAL_DELIVERY='Персональная доставка';
+$_ALT='Альтернативная';
+$_CURRENCY='Валюта';

@@ -38,3 +38,5 @@ $_NOT_INCLUDE_CUR_BILLING_PERIOD='Not include fees for the  current period';
 $_INVOICE_AUTO_GEN='Generate invoices automatically';
 $_INVOICING_PERIOD='Periods for invoicing';
 $_PERSONAL_DELIVERY='Personal invoice delivery';
+$_ALT='Alt.';
+$_CURRENCY='currency';

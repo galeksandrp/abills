@@ -41,3 +41,5 @@ $_NOT_INCLUDE_CUR_BILLING_PERIOD='Не включати рахунки за по
 $_INVOICE_AUTO_GEN='Автоматичне створення рахунку';
 $_INVOICING_PERIOD='Період виписки рахунку';
 $_PERSONAL_DELIVERY='Персональна доставка';
+$_ALT='Альтернативная';
+$_CURRENCY='Валюта';
