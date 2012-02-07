@@ -5566,11 +5566,6 @@ if ($attr->{USER_INFO}) {
     $BILL_ACCOUNTS{$user->{EXT_BILL_ID}} = "$_EXTRA : $user->{EXT_BILL_ID}" if ($user->{EXT_BILL_ID}); 
    }
 
-  if (in_array('Docs', \@MODULES) ) {
-    $FORM{QUICK}=1;
-  	load_module('Docs', $html);
-   }
-
   if(! $attr->{REGISTRATION}) {
     if($user->{BILL_ID} < 1) {
       form_bills({ USER_INFO => $user });
@@ -5589,22 +5584,8 @@ if ($attr->{USER_INFO}) {
       return 1 if ($attr->{REGISTRATION});
   	 }
   	else {
-      if( $FORM{ACCOUNT_ID} && $FORM{ACCOUNT_ID} eq 'create') {
-    	  $LIST_PARAMS{UID}= $FORM{UID};
-    	  $FORM{create}    = 1;
-    	  $FORM{CUSTOMER}  = '-';
-    	  $FORM{ORDER}     = $FORM{DESCRIBE};
-    	  docs_account();    	
-       }
-      elsif($FORM{ACCOUNT_ID}) {
-    	  $Docs->account_info($FORM{ACCOUNT_ID});
-        if ($Docs->{TOTAL} == 0) {
-      	  $FORM{ACCOUNT_SUM}=0;
-         }
-        else {
-      	  $FORM{ACCOUNT_SUM} = $Docs->{TOTAL_SUM};
-         }
-       }
+      #Make pre payments functions in all modules 
+      cross_modules_call('_pre_payment', { %$attr });
 
    	  if ($FORM{ACCOUNT_SUM} && $FORM{ACCOUNT_SUM} != $FORM{SUM})  {
         $html->message('err', "$_PAYMENTS: $ERR_WRONG_SUM", "$_ACCOUNT $_SUM: $Docs->{TOTAL_SUM} / $_PAYMENTS $_SUM: $FORM{SUM}");
@@ -8470,7 +8451,6 @@ sub cross_modules_call {
   	@skip_modules=split(/,/, $attr->{SKIP_MODULES});
    }
 
-
   foreach my $mod (@MODULES) {
     load_module("$mod", $html);
 
@@ -8479,6 +8459,7 @@ sub cross_modules_call {
   	 }
 
     my $function = lc($mod).$function_sufix;
+    
     my $return;
     if (defined(&$function)) {
      	$return = $function->($attr);

@@ -675,14 +675,14 @@ sub parse_fw {
 
 
 #**********************************************************
-#
+# checkspeed for pppd interfaces
 #**********************************************************
 sub check_speed_linux {
 	my ($attr) = @_;
   
-  my $NAS_TYPE = '';
+  my $NAS_TYPE      = '';
   my $debug_outputs = '';
-  my $cmd_debug='';
+  my $cmd_debug     = '';
 
   if ($debug > 1) {
   	$cmd_debug='debug';
@@ -703,7 +703,7 @@ sub check_speed_linux {
           $PORTS_SPEEDS{$iface}{0}{IN}=$speed;
 		    }
 		  }
-	 close(PROCS);
+	close(PROCS);
 
   #out
   #ppp15 police 0x2e28 rate 2048Kbit burst 12Kb mtu 2Kb action drop 

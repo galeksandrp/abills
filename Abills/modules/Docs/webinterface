@@ -2881,4 +2881,33 @@ sub docs_user {
 }
 
 
+
+
+#**********************************************************
+#
+#**********************************************************
+sub docs_pre_payment {
+	my ($attr) = @_;
+
+  if( $FORM{ACCOUNT_ID} && $FORM{ACCOUNT_ID} eq 'create') {
+    #$FORM{ACCOUNT_ID}= undef;
+    $LIST_PARAMS{UID}= $FORM{UID};
+    $FORM{create}    = 1;
+    $FORM{CUSTOMER}  = '-';
+    $FORM{ORDER}     = $FORM{DESCRIBE};
+    docs_account();
+   }
+  elsif($FORM{ACCOUNT_ID}) {
+    $Docs->account_info($FORM{ACCOUNT_ID});
+    if ($Docs->{TOTAL} == 0) {
+   	  $FORM{ACCOUNT_SUM}=0;
+     }
+    else {
+  	  $FORM{ACCOUNT_SUM} = $Docs->{TOTAL_SUM};
+     }
+   }
+
+  return 1;
+}
+
 1
