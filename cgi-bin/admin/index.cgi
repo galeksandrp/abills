@@ -2949,6 +2949,8 @@ sub form_changes {
  my ($attr) = @_; 
  my %search_params = ();
  
+ my @service_status = ( "$_ENABLE", "$_DISABLE", "$_NOT_ACTIVE", "$_HOLD_UP", "$_DISABLE: $_NON_PAYMENT", "$ERR_SMALL_DEPOSIT");
+ 
  my %action_types = ( 0  => 'Unknown', 
                    1  => "$_ADDED",
                    2  => "$_CHANGED",
@@ -2966,8 +2968,8 @@ sub form_changes {
                    14 => "$_HOLD_UP",
                    15 => "$_HANGUP",
                    26 => "$_CHANGE $_GROUP",
-                   27 => "$_SHEDULE $_ADD",
-                   28 => "$_SHEDULE $_DEL",
+                   27 => "$_SHEDULE $_ADDED",
+                   28 => "$_SHEDULE $_DELETED",
                    31 => "$_CARDS $_USED"
                    );
  
@@ -3038,10 +3040,16 @@ foreach my $line (@$list) {
   else {
   	$table->{rowcolor}=undef;
    }
+  
+  my $message = $line->[3];
+  if ($line->[7] == 4) {
+  	$message = $service_status[$message];
+   }
+
   $table->addrow($html->b($line->[0]),
     $html->button($line->[1], "index=15&UID=$line->[8]"), 
     $html->color_mark($line->[2], $color), 
-    $html->color_mark($line->[3], $color), 
+    $html->color_mark($message, $color), 
     $line->[4],  
     $line->[5], 
     $line->[6], 
@@ -5566,6 +5574,11 @@ if ($attr->{USER_INFO}) {
     $BILL_ACCOUNTS{$user->{EXT_BILL_ID}} = "$_EXTRA : $user->{EXT_BILL_ID}" if ($user->{EXT_BILL_ID}); 
    }
 
+  if (in_array('Docs', \@MODULES) ) {
+    $FORM{QUICK}=1;
+        load_module('Docs', $html);
+   }
+
   if(! $attr->{REGISTRATION}) {
     if($user->{BILL_ID} < 1) {
       form_bills({ USER_INFO => $user });
@@ -6864,7 +6877,7 @@ my $table = $html->table( { width      => '100%',
                           });
 my ($y, $m, $d)=split(/-/, $DATE, 3);
 foreach my $line (@$list) {
-  my $delete = ($permissions{4}{3}) ?  $html->button($_DEL, "index=$index&del=$line->[14]", { MESSAGE =>  "$_DEL [$line->[14]]?",  CLASS => 'del' }) : '-'; 
+  my $delete = ($permissions{4}{3} || $permissions{0}{4}) ?  $html->button($_DEL, "index=$index&del=$line->[14]", { MESSAGE =>  "$_DEL [$line->[14]]?",  CLASS => 'del' }) : '-'; 
   my $value = convert("$line->[7]", { text2html => 1 });
   
   if ($line->[6] eq 'status') {

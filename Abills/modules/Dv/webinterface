@@ -6582,7 +6582,7 @@ sub dv_get_month_fee {
      	  return \%total_sum;
       }
 
-        if ($Dv->{TP_INFO}->{PERIOD_ALIGNMENT} && ! $Dv->{TP_INFO}->{ABON_DISTRIBUTION}) {
+     if ($Dv->{TP_INFO}->{PERIOD_ALIGNMENT} && ! $Dv->{TP_INFO}->{ABON_DISTRIBUTION}) {
         	$message = "$_MONTH_ALIGNMENT, ";
           my $days_in_month=($m!=2?(($m%2)^($m>7))+30:(!($y%400)||!($y%4)&&($y%25)?29:28));
 
@@ -6593,9 +6593,9 @@ sub dv_get_month_fee {
 
           $conf{START_PERIOD_DAY} = 1 if (! $conf{START_PERIOD_DAY});
           $sum = sprintf("%.5f", ($sum / $days_in_month) * ($days_in_month - $d + $conf{START_PERIOD_DAY}));
-         }
+      }
        
-        return \%total_sum if ($sum == 0);
+     return \%total_sum if ($sum == 0);
         
         my $periods = 0;
         if (int($active_m) > 0 && int($active_m) < $m) {
@@ -6650,9 +6650,21 @@ sub dv_get_month_fee {
              }          
             #$message = "$_MONTH_FEE: $sum ($Dv->{TP_INFO}->{ID})";
             $message = "Internet: $_MONTH_FEE_SHORT $Dv->{TP_INFO}->{NAME} ($Dv->{TP_INFO}->{ID})";
-            $DATE    = "$active_y-$m-01";
-            my $days_in_month=($m!=2?(($m%2)^($m>7))+30:(!($active_y%400)||!($active_y%4)&&($active_y%25)?29:28));
-            $message .= " ($active_y-$m-01-$active_y-$m-$days_in_month)";
+
+            if ($Dv->{ACCOUNT_ACTIVATE}) {
+            	$DATE    = $Dv->{ACCOUNT_ACTIVATE};
+            	my $end_period =  strftime "%Y-%m-%d", localtime(  (mktime(0, 0, 0, $active_d, ($m-1), ($active_y-1900), 0, 0, 0)  + 30 * 86400 ) );
+            	$message .= " ($DATE-$end_period)";
+            	
+              $users->change($Dv->{UID}, { ACTIVATE => "$DATE",
+              	                           UID      => $Dv->{UID} });
+            	
+             }
+            else {
+              $DATE    = "$active_y-$m-01";
+              my $days_in_month=($m!=2?(($m%2)^($m>7))+30:(!($active_y%400)||!($active_y%4)&&($active_y%25)?29:28));
+              $message .= " ($active_y-$m-01-$active_y-$m-$days_in_month)";
+             }
            }
           elsif ($Dv->{ACCOUNT_ACTIVATE} && $Dv->{ACCOUNT_ACTIVATE} ne '0000-00-00'){
             if ($Dv->{TP_INFO}->{PERIOD_ALIGNMENT}) {
@@ -6664,9 +6676,10 @@ sub dv_get_month_fee {
               	                           UID      => $Dv->{UID} });
              } 
             else {
-            	$DATE    = "$active_y-$m-$active_d";            
+            	$DATE    = "$active_y-$m-$active_d";
              }
-            my $end_period =  strftime "%Y-%m-%d", localtime(  (mktime(0, 0, 0, $active_d, $m, ($active_y-1900), 0, 0, 0)  + 30 * 86400 ) );
+            my $end_period =  strftime "%Y-%m-%d", localtime(  (mktime(0, 0, 0, $active_d, ($m-1), ($active_y-1900), 0, 0, 0)  + 30 * 86400 ) );
+            $Dv->{ACCOUNT_ACTIVATE}=strftime "%Y-%m-%d", localtime(  (mktime(0, 0, 0, $active_d, ($m-1), ($active_y-1900), 0, 0, 0)  + 31 * 86400 ) );
             $message .= " ($active_y-$m-$active_d-$end_period)";
            }
           else {
@@ -7049,7 +7062,7 @@ elsif ($FORM{del} && $FORM{is_js_confirmed}) {
                           });
 
 foreach my $line (@$list) {
-  my $delete = ($permissions{4}{3}) ?  $html->button($_DEL, "index=$index&del=$line->[14]&UID=$line->[13]", { MESSAGE =>  "$_DEL [$line->[13]]?", CLASS => 'del', TEXT => $_DEL }) : '-'; 
+  my $delete = ($permissions{0}{4}) ?  $html->button($_DEL, "index=$index&del=$line->[14]&UID=$line->[13]", { MESSAGE =>  "$_DEL [$line->[13]]?", CLASS => 'del', TEXT => $_DEL }) : '-'; 
 
 
   $table->addrow($html->b($line->[0]), $line->[1], $line->[2], 
