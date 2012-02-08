@@ -6657,13 +6657,14 @@ sub dv_get_month_fee {
             	$message .= " ($DATE-$end_period)";
             	
               $users->change($Dv->{UID}, { ACTIVATE => "$DATE",
-              	                           UID      => $Dv->{UID} });
+              	                           UID      => $Dv->{UID} 
+              	                          });
             	
              }
             else {
               $DATE    = "$active_y-$m-01";
               my $days_in_month=($m!=2?(($m%2)^($m>7))+30:(!($active_y%400)||!($active_y%4)&&($active_y%25)?29:28));
-              $message .= " ($active_y-$m-01-$active_y-$m-$days_in_month)";
+              $message .= " ($DATE-$active_y-$m-$days_in_month)";
              }
            }
           elsif ($Dv->{ACCOUNT_ACTIVATE} && $Dv->{ACCOUNT_ACTIVATE} ne '0000-00-00'){
