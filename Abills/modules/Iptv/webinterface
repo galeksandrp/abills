@@ -2554,8 +2554,8 @@ my $list = $Iptv->reports_channels_use({ %LIST_PARAMS  });
 my $table = $html->table( { width      => '100%',
                             caption    => $_CHANNELS,
                             border     => 1,
-                            title      => [$_NUM, $_NAME, $_USERS, ],
-                            cols_align => ['right', 'left', 'right' ],
+                            title      => [$_NUM, $_NAME, $_USERS, $_DEBETORS ],
+                            cols_align => ['right', 'left', 'right', 'right' ],
                             qs         => $pages_qs,
                             pages      => $Iptv->{TOTAL},
                             ID         => 'IPTV_CHANNELS',
@@ -2565,6 +2565,7 @@ foreach my $line (@$list) {
   $table->addrow($html->b($line->[0]), 
      $line->[1],
      $line->[2], 
+     $line->[3], 
    );
 }
 print $table->show();

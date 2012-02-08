@@ -598,9 +598,9 @@ div#tcal td:hover {
 .top_result_baloon {
   color: #FFF;
   cursor: pointer;
-  background: url('/img/mv_bg.png');
+  //background: url('/img/mv_bg.png');
   background: rgba(0, 0, 0, 0.75);
-	margin: 0 auto;
+  margin: 0 auto;
   -moz-border-radius: 5px;
   -webkit-border-radius: 5px;
   border-radius: 5px;

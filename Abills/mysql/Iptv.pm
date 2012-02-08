@@ -897,11 +897,17 @@ sub reports_channels_use  {
  $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
  $PG = ($attr->{PG}) ? $attr->{PG} : 0;
  $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
-	my $sql = "SELECT c.num,  c.name, count(uc.uid)
-FROM `iptv_channels`c
+	my $sql = "SELECT c.num,  c.name, count(uc.uid), sum(if(if(company.id IS NULL, b.deposit, cb.deposit)>0, 0, 1))
+FROM iptv_channels c
 LEFT JOIN iptv_users_channels uc ON (c.id=uc.channel_id)
+LEFT JOIN users u ON (uc.uid=u.uid)
+LEFT JOIN bills b ON (u.bill_id = b.id)
+LEFT JOIN companies company ON  (u.company_id=company.id) 
+LEFT JOIN bills cb ON  (company.bill_id=cb.id)
 GROUP BY c.id
 ORDER BY $SORT $DESC ";
+
+
 #	$sql = "select c.num, c.name, count(*), c.id
 #FROM iptv_channels c 
 #LEFT JOIN iptv_ti_channels ic  ON (c.id=ic.channel_id)
