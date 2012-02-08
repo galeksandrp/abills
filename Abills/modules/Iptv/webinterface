@@ -339,9 +339,7 @@ return 0;
 sub iptv_user {
  	my ($attr)=@_;
  	$Iptv->{UID}=$FORM{UID};	  
-  
-  $Iptv->{debug}=1;
-  
+
   if ($FORM{add}) {
     $Iptv->user_add({ %FORM });
     if (! $Iptv->{errno}) {
@@ -1652,7 +1650,7 @@ sub iptv_user_channels {
   	$select_channels{$line->[2]}=$line->[3];
    }
 
-  my @mandatory_arr = '';
+  my @mandatory_arr = ();
 
   #LIst channels
   $list = $Iptv->channel_ti_list({ %LIST_PARAMS, MANDATORY => 1 });	
@@ -1676,7 +1674,7 @@ sub iptv_user_channels {
           else {
             $Fees->take($users, $Iptv->{TP_INFO}->{DAY_FEE}, { %PARAMS } ); 
            }
-
+          
           push @mandatory_arr, $line->[9];  
          }
         else {
@@ -1794,8 +1792,6 @@ sub iptv_user_channels {
 
       delete $FORM{IDS};
       push @add_arr, @mandatory_arr;
-      
-      print "";
       $Iptv->user_channels({  UID   => $Iptv->{UID}, 
                               TP_ID => $Iptv->{TP_ID},
                               IDS   => join(', ', @add_arr) 
@@ -2553,22 +2549,32 @@ foreach my $line (@$tp_list) {
 #**********************************************************
 sub iptv_reports_channels {
 	my ($attr)=@_;
-	
+
+my $list = $Iptv->reports_channels_use({ %LIST_PARAMS  });
 my $table = $html->table( { width      => '100%',
                             caption    => $_CHANNELS,
                             border     => 1,
-                            title      => ['#', $_NUM, $_NAME, $_DESCRIBE, "$_MONTH $_PRICE", "$_DAY $_PRICE", "$_MANDATORY", "$_PORT" ],
-                            cols_align => ['right', 'left', 'left', 'right'],
+                            title      => [$_NUM, $_NAME, $_USERS, ],
+                            cols_align => ['right', 'left', 'right' ],
                             qs         => $pages_qs,
                             pages      => $Iptv->{TOTAL},
                             ID         => 'IPTV_CHANNELS',
-                         } );
-	
+                         } );	
 
+foreach my $line (@$list) {
+  $table->addrow($html->b($line->[0]), 
+     $line->[1],
+     $line->[2], 
+   );
+}
+print $table->show();
 
+#$table = $html->table( { width      => '100%',
+#                         cols_align => ['right', 'right'],
+#                         rows       => [ [ "$_TOTAL:", $html->b($Iptv->{TOTAL}) ] ]
+#                     } );
+#print $table->show();
 
-	
-	
 }
 
 1

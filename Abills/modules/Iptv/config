@@ -14,7 +14,7 @@
                    "15:6:DVCrypt:dv_crypt:"                  => 5,
                    "20:0:$_TV:iptv_online:"                  => 6,
                    "30:0:$_TV:iptv_report:"                  => 4,
-                   "31:30:$_CHANNELS:iptv_reports_channels:" => 4,
+                   "31:30:$_CHANNELS $_USED:iptv_reports_channels:" => 4,
                    );
 
 
