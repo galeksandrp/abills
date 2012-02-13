@@ -123,6 +123,9 @@ my %LIST_PARAMS = ();
 if ($ARGV->{POSTPAID_ACCOUNT}) {
 	postpaid_accounts();
  }
+elsif($ARGV->{PERIODIC_INVOICE}) {
+	periodic_invoice();
+ }
 elsif ($ARGV->{PREPAID_ACCOUNTS}) {
 	prepaid_accounts() if (! $ARGV->{COMPANY_ID});
 	prepaid_accounts_company() if (! $ARGV->{LOGIN});
@@ -145,16 +148,17 @@ if ($begin_time > 0)  {
 #**********************************************************
 #
 #**********************************************************
-sub create_invoice {
+sub periodic_invoice {
 	my ($attr) = @_;
 	
 	
-	my $list = $Docs->user_List({  });
+	$Docs->{debug}=1;
+	my $list = $Docs->user_List({ INVOICE_PERIOD => 1  });
 	foreach my $line ( @$list ) {
 		
 	 }
-
 }
+
 
 
 
@@ -552,6 +556,7 @@ sub help {
 
 print << "[END]";
 Multi documents creator	
+  PERIODIC_INVOICE - Create periodic invoice for clients
   POSTPAID_ACCOUNT - Created for previe month debetors
   PREPAID_ACCOUNTS - Create cridit account and next month payments account
   

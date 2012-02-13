@@ -27,4 +27,5 @@ clients.conf     > [/usr/local/etc/raddb]/clients.conf
 
 
 #:OS=FREEBSD:exec: LD_P=`grep -c LD_PRELOAD /usr/local/etc/rc.d/radiusd`; if [ w$LD_P = w0 ]; then  PERL_VERSION=`pkg_info | grep perl- | sed "s/.*-\([0-9\.]*\).*/\1/g"`; sed -i '' -e "s,run_rc_command,start_precmd=\\\"export LD_PRELOAD=/usr/local/lib/perl5/${PERL_VERSION}/mach/CORE/libperl.so\\\"; run_rc_command,g" "/usr/local/etc/rc.d/radiusd"; fi; /usr/local/etc/rc.d/radiusd restart
+:OS=FREEBSD:exec:/usr/local/etc/rc.d/radiusd restart
 

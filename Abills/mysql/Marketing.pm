@@ -724,9 +724,15 @@ sub triplay_stats {
  $self->{SEARCH_FIELDS_COUNT}= 0;
 
  @WHERE_RULES = ();
- my $WHERE  = '';
 
- $self->query($db, "SELECT CONCAT(s.name, ', ', b.number), pi.address_flat, pi.contract_id,
+ if ($attr->{LOCATION_ID}) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{LOCATION_ID}, 'INT', 'pi.location_id') };
+  }
+
+
+ my $WHERE = ($#WHERE_RULES > -1) ? 'WHERE '. join(' and ', @WHERE_RULES)  : '';
+
+ $self->query($db, "SELECT CONCAT(s.name, ', ', b.number), pi.address_flat,  u.id,
    
    dv_tp.name,
    voip_tp.name,
@@ -745,6 +751,8 @@ sub triplay_stats {
    LEFT JOIN tarif_plans voip_tp ON (voip_tp.tp_id=voip.tp_id)
   LEFT JOIN iptv_main iptv ON (pi.uid=iptv.uid)
    LEFT JOIN tarif_plans iptv_tp ON (iptv_tp.tp_id=iptv.tp_id)
+  
+  LEFT JOIN users u ON (u.uid=pi.uid)  
 $WHERE  
    GROUP BY pi.uid
    ORDER BY $SORT $DESC 

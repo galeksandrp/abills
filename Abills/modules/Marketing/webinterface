@@ -597,7 +597,15 @@ print $table->show();
 sub marketing_triplay_stats {
  my ($attr)=@_;
 
-my $list = $Marketing->triplay_stats({ %LIST_PARAMS  });
+if (! $conf{ADDRESS_REGISTER} ) {
+	$html->message('err', "INFO", "Turn on address register");
+	return 0;
+}
+
+my $address =  $html->tpl_show(templates('form_address_sel'), { %FORM }, { OUTPUT2RETURN => 1 });
+$html->tpl_show(_include('marketing_search', 'Marketing'), { %$Marketing, %FORM, ADDRESS => $address } ),
+
+my $list = $Marketing->triplay_stats({ %FORM, %LIST_PARAMS  });
 #адрес, № квратиры, договор, Тариф Интернет, Тариф телевилиния, тариф телефонии, ФИО, телефон
 my $table = $html->table( { width      => '100%',
                             caption    => $_CHANNELS,
@@ -635,8 +643,6 @@ $table = $html->table( { width      => '100%',
                                            ] ]
                      } );
 print $table->show();
-
-
 }
 
 

@@ -1676,7 +1676,7 @@ sub form_show_attach {
 sub form_address_sel {
 
    print "Content-Type: text/html\n\n";
-   my $js_list = ''; 	
+   my $js_list   = ''; 	
  	 my $id        =   $FORM{'JsHttpRequest'};
    my $jsrequest =   $FORM{'jsrequest'};
    ($id, undef)  = split(/-/,$id);   	
@@ -1739,10 +1739,6 @@ sub form_address_sel {
         "text": "" }) };
     }
  	 exit;
-
-
-
-
 }
 
 #**********************************************************
