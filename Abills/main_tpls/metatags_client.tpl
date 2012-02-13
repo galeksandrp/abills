@@ -522,7 +522,7 @@ div#tcal td:hover {
 #mail_users_list {
 	background-image:url(/img/mail5.png);
 }
-#docs_accounts_list {
+#docs_invoices_list {
 	background-image:url(/img/documents.png);
 }
 #cards_user_payment {
@@ -560,7 +560,7 @@ div#tcal td:hover {
 #ashield_user,
 #msgs_user,
 #mail_users_list,
-#docs_accounts_list,
+#docs_invoices_list,
 #cards_user_payment,
 #voip_user_info,
 #logout,

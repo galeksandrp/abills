@@ -295,7 +295,7 @@ sub check_lines {
 
 
       if (($uid && $calls_tp_id ne $tp_num || 
-           $state 
+           ($state && ! $conf{DV_STATUS_NEG_DEPOSIT})
 #           || ($POSTPAIDS{$tp_num} == 0 && $deposit+$credit <= 0 && ! $Billing->{NEG_DEPOSIT_FILTER}) # && $bill_priority == 0)
            ) 
            && $online_state != 2 ) {
@@ -689,6 +689,11 @@ sub check_speed_linux {
    }
 
   #$conf{KBYTE_SIZE} = 1024 if (! $conf{KBYTE_SIZE});
+  
+  # ether speed
+  # tc class show dev eth0 classid 1:10
+  # tc filter show dev eth0 parent ffff:
+  
 	my %PORTS_SPEEDS = ();
 	my $cmd = 'for if in `/sbin/ifconfig | grep ppp | awk \'{print $1}\'`; do echo $if `tc class show dev $if | grep root`; done;';
 	print "$cmd\n" if ($debug > 5);
@@ -865,7 +870,7 @@ sub check_speed_linux {
   	 $debug_outputs = "$user IF: $IFACE TP: $TP IP: $IP SPEED: $SPEED JOIN SERVICE: $JOIN_SERVICE DURATION: $DURATION ($STARTED)\n";
 
   	 if ( $ARGV->{SHOW_SPEED} ) {
-        print "$user -> IN: $PORTS_SPEEDS{$IFACE}{0}{IN} OUT: $PORTS_SPEEDS{$IFACE}{0}{OUT}\n";
+        print "$user -> IN: ". ($PORTS_SPEEDS{$IFACE}{0}{IN}|| 'Not set'). " OUT: ". ($PORTS_SPEEDS{$IFACE}{0}{OUT} || 'Not set'). "\n";
   	 	  next;
   	  }
 

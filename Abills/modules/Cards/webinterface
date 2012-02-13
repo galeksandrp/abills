@@ -85,7 +85,7 @@ if ($FORM{change}) {
      }
    }
 
-  #Add invoice for diller
+  #Add receipt for diller
   if ($FORM{DILLER_ID}) {
   	$Cards->cards_diller_info({ ID => $FORM{DILLER_ID} });
 
@@ -106,7 +106,7 @@ if ($FORM{change}) {
          push @ORDERS, "$_ICARDS $_SERIAL: $seria |0|$v|$price";
         }
        
- 		   docs_invoice_add({ #CUSTOMER  => $Cards->{NAME},
+ 		   docs_receipt_add({ #CUSTOMER  => $Cards->{NAME},
                          	ORDERS    => [ @ORDERS ],
                          	create    => 1,
                          	FROM      => $FROM,

@@ -803,7 +803,7 @@ elsif ($FORM{update}) {
  	  	      REGISTRATION=> 1,
  	  	      #USER        => \%FORM,
  	  	      USER_INFO   => ($FORM{UID}) ? $users : undef,
- 	  	      LNG_ACTION  => ($steps{$FORM{step}}) ? "$_NEXT " : "$_REGISTRATION_COMPLETE",
+ 	  	      LNG_ACTION  => ($steps{$FORM{step}}) ? "$_NEXT - $steps{$FORM{step}}" : "$_REGISTRATION_COMPLETE",
  	  	      BACK_BUTTON => ($FORM{step} > 2) ? $html->form_input('finish', "$_FINISH", {  TYPE => 'submit' }).' '. $html->form_input('back', "$_BACK", {  TYPE => 'submit' }) : (! $FORM{back}) ? $html->form_input('add', "$_FINISH", {  TYPE => 'submit' }) : $html->form_input('change', "$_FINISH", {  TYPE => 'submit' }),
  	  	      UID         => $FORM{UID},
  	  	      SUBJECT     => $_REGISTRATION
@@ -4490,7 +4490,7 @@ my $table = $html->table( { width      => '100%',
                             title      => ['', "NAS", "$_NAME", "$_BEGIN", "$_END", "$_COUNT", "$_PRIORITY", "$_SPEED (Kbits)", '-', '-'],
                             cols_align => ['right', 'left', 'right', 'right', 'right', 'right', 'center', 'center'],
                             qs         => $pages_qs,
-                            pages      => $payments->{TOTAL},
+                            pages      => $nas->{TOTAL},
                             ID         => 'NAS_IP_POOLS'
                            });
 
@@ -5134,12 +5134,17 @@ sub report_payments {
  
 if ($FORM{DATE}) {
 	$graph_type = '';
+  my @caption = ('ID', $_LOGIN, $_DATE, $_DESCRIBE, $_SUM, $_DEPOSIT, 
+                                   $_PAYMENT_METHOD, 'EXT ID', "$_BILL", $_ADMINS, 'IP');
 
+  if ($conf{SYSTEM_CURRENCY}) {
+  	push @caption, "$_ALT $_SUM", "$_CURRENCY";
+   }
+                                     
   $list = $payments->list( { %LIST_PARAMS } );
   $table = $html->table( { width      => '100%',
                            caption    => "$_PAYMENTS",
-                              title    => ['ID', $_LOGIN, $_DATE, $_DESCRIBE, $_SUM, $_DEPOSIT, 
-                                   $_PAYMENT_METHOD, 'EXT ID', "$_BILL", $_ADMINS, 'IP'],
+                           title      => \@captions,
                            cols_align => ['right', 'left', 'right', 'right', 'left', 'left', 'right', 'right', 'left', 'left', 'center:noprint'],
                            qs         => $pages_qs,
                            pages      => $payments->{TOTAL},
@@ -5149,18 +5154,24 @@ if ($FORM{DATE}) {
 
   my $pages_qs .= "&subf=2" if (! $FORM{subf});
   foreach my $line (@$list) {
-    $table->addrow($html->b($line->[0]), 
-    $html->button($line->[1], "index=15&UID=$line->[11]"), 
+    my @rows = (    
+    $html->b($line->[0]), 
+    $html->button($line->[1], "index=15&UID=$line->[13]"), 
     $line->[2], 
     $line->[3], 
-    $line->[4] . ( ($line->[12] ) ? ' ('. $html->b($line->[12]) .') ' : '' ), 
+    $line->[4] . ( ($line->[14] ) ? ' ('. $html->b($line->[14]) .') ' : '' ), 
     "$line->[5]", 
     $PAYMENTS_METHODS{$line->[6]}, 
     "$line->[7]", 
     ($conf{EXT_BILL_ACCOUNT} && $attr->{USER_INFO}) ? $BILL_ACCOUNTS{$line->[8]} : "$line->[8]",
     "$line->[9]", 
-    "$line->[10]", 
-    );
+    "$line->[10]");
+    
+    if ($conf{SYSTEM_CURRENCY}) {
+    	push @rows, $line->[11], $line->[12];
+     }
+    
+    $table->addrow(@rows);
   }
  }   
 else { 
@@ -5555,11 +5566,11 @@ sub form_payments () {
 
  if ($FORM{print}) {
    load_module('Docs', $html);
-   if ($FORM{ACCOUNT_ID}) {
-   	 docs_account({ %FORM  });
+   if ($FORM{INVOICE_ID}) {
+   	 docs_invoice({ %FORM  });
     }
    else {
-     docs_invoice({ %FORM  });
+     docs_receipt({ %FORM  });
     }
    exit;
   }
@@ -5596,17 +5607,30 @@ if ($attr->{USER_INFO}) {
   	  $html->message('err', $_ERROR, "$ERR_WRONG_SUM");	
       return 1 if ($attr->{REGISTRATION});
   	 }
-  	else {
-      #Make pre payments functions in all modules 
-      cross_modules_call('_pre_payment', { %$attr });
-
-   	  if ($FORM{ACCOUNT_SUM} && $FORM{ACCOUNT_SUM} != $FORM{SUM})  {
-        $html->message('err', "$_PAYMENTS: $ERR_WRONG_SUM", "$_ACCOUNT $_SUM: $Docs->{TOTAL_SUM} / $_PAYMENTS $_SUM: $FORM{SUM}");
+  	else {  		
+  		$FORM{CURRENCY}=$conf{SYSTEM_CURRENCY};
+  		
+  		if ($FORM{ER}) {
+        my $er = $payments->exchange_info($FORM{ER});
+        $FORM{ER}       = $er->{ER_RATE};
+        $FORM{CURRENCY} = $er->{ISO};
+       }
+      
+            
+      if ($FORM{ER} && $FORM{ER} != 1) {
+      	#$FORM{MAIN_SUM} = $FORM{SUM};
+        $FORM{PAYMENT_SUM} = sprintf("%.2f", $FORM{SUM} / $FORM{ER});
        }
       else {
-        my $er = $payments->exchange_info($FORM{ER});
-        $FORM{ER} = $er->{ER_RATE};
-       
+      	$FORM{PAYMENT_SUM} = $FORM{SUM};
+       }
+      
+      #Make pre payments functions in all modules 
+      cross_modules_call('_pre_payment', { %$attr });
+   	  if ($FORM{INVOICE_SUM} && $FORM{INVOICE_SUM} != $FORM{PAYMENT_SUM} )  {
+        $html->message('err', "$_PAYMENTS: $ERR_WRONG_SUM", " $_INVOICE $_SUM: $Docs->{TOTAL_SUM}\n $_PAYMENTS $_SUM: $FORM{SUM}");
+       }
+      else {
         $payments->add($user, { %FORM,
         	INNER_DESCRIBE => $FORM{INNER_DESCRIBE}. (($FORM{DATE} && $COOKIES{hold_date}) ? " $DATE $TIME" : '' )        	
         	  } );  
@@ -5621,6 +5645,7 @@ if ($attr->{USER_INFO}) {
           return 1 if ($attr->{REGISTRATION});
          }
         else {
+        	$FORM{SUM}=$payments->{SUM};
           $html->message('info', $_PAYMENTS, "$_ADDED $_SUM: $FORM{SUM} $er->{ER_SHORT_NAME}");
         
           if ($conf{external_payments}) {
@@ -5632,7 +5657,7 @@ if ($attr->{USER_INFO}) {
           $attr->{USER_INFO}->{DEPOSIT}+=$FORM{SUM};
           $FORM{PAYMENTS_ID} = $payments->{PAYMENT_ID};
           cross_modules_call('_payments_maked', { %$attr, PAYMENT_ID => $payments->{PAYMENT_ID} });
-        }
+         }
        }
      }
    }
@@ -5655,14 +5680,25 @@ if ($attr->{USER_INFO}) {
 
 return 0 if ($attr->{REGISTRATION} && $FORM{add});
 #exchange rate sel
+my  $er_list = $payments->exchange_list({ %FORM });
+my %ER_ISO2ID = ();
+foreach my $line (@$er_list) {
+	$ER_ISO2ID{$line->[3]}=$line->[5];
+}
+
+if (! $FORM{ER} && $FORM{ISO}) {
+	$FORM{ER}=$ER_ISO2ID{$FORM{ISO}};
+}
+
 $payments->{SEL_ER}=$html->form_select('ER', 
                                 { 
- 	                                SELECTED          => undef,
- 	                                SEL_MULTI_ARRAY   => [ ['', '', '', '', ''], @{ $payments->exchange_list() } ],
- 	                                MULTI_ARRAY_KEY   => 4,
+ 	                                SELECTED          => $FORM{ER},
+ 	                                SEL_MULTI_ARRAY   => [ ['', '', '', '', '', ''], @{ $er_list } ],
+ 	                                MULTI_ARRAY_KEY   => 5,
  	                                MULTI_ARRAY_VALUE => '1,2',
  	                                NO_ID             => 1,
- 	                                MAIN_MENU         => get_function_index('form_er'),
+ 	                                MAIN_MENU         => get_function_index('form_exchange_rate'),
+ 	                                MAIN_MENU_AGRV    => "chg=$FORM{ER}"
  	                               });
 
 
@@ -5715,16 +5751,16 @@ if ($permissions{1} && $permissions{1}{1}) {
    }
 
   if (in_array('Docs', \@MODULES) ) {
-  	my $ACCOUNTS_SEL = $html->form_select("ACCOUNT_ID", 
-                                { SELECTED          => $FORM{ACCOUNT_ID},
- 	                                SEL_MULTI_ARRAY   => $Docs->accounts_list({ UID => $user->{UID}, PAYMENT_ID => 0, PAGE_ROWS => 100, SORT => 2, DESC => 'DESC' }), 
+  	my $ACCOUNTS_SEL = $html->form_select("INVOICE_ID", 
+                                { SELECTED          => $FORM{INVOICE_ID},
+ 	                                SEL_MULTI_ARRAY   => $Docs->invoices_list({ UID => $user->{UID}, PAYMENT_ID => 0, PAGE_ROWS => 100, SORT => 2, DESC => 'DESC' }), 
  	                                MULTI_ARRAY_KEY   => 13,
  	                                MULTI_ARRAY_VALUE => '0,1,3',
  	                                MULTI_ARRAY_VALUE_PREFIX => "$_NUM: ,$_DATE: ,$_SUM:",
  	                                SEL_OPTIONS       => { 0 => '', create => $_CREATE },
  	                                NO_ID             => 1,
- 	                                MAIN_MENU         => get_function_index('docs_accounts_list'),
- 	                                MAIN_MENU_AGRV    => "UID=$FORM{UID}&ACCOUNT_ID=$FORM{ACCOUNT_ID}"
+ 	                                MAIN_MENU         => get_function_index('docs_invoices_list'),
+ 	                                MAIN_MENU_AGRV    => "UID=$FORM{UID}&INVOICE_ID=$FORM{INVOICE_ID}"
  	                               });
 
     $payments->{DOCS_ACCOUNT_ELEMENT}="<tr><th colspan=3 class='form_title'>$_DOCS</th></tr>\n".
@@ -5778,12 +5814,21 @@ if (! defined($FORM{sort})) {
 
 $LIST_PARAMS{ID}=$FORM{ID} if ($FORM{ID});
 
+my @caption = ('ID', $_LOGIN, $_DATE, $_DESCRIBE,  $_SUM, $_DEPOSIT, 
+                                   $_PAYMENT_METHOD, 'EXT ID', "$_BILL", $_ADMINS, 'IP');
+
+if ($conf{SYSTEM_CURRENCY}) {
+	push @caption, "$_ALT $_SUM", "$_CURRENCY";
+ }
+              
+
+push @caption,  '-';                                   
+
 my $list = $payments->list( { %LIST_PARAMS } );
 my $table = $html->table( { width      => '100%',
                             caption    => "$_PAYMENTS",
                             border     => 1,
-                            title      => ['ID', $_LOGIN, $_DATE, $_DESCRIBE,  $_SUM, $_DEPOSIT, 
-                                   $_PAYMENT_METHOD, 'EXT ID', "$_BILL", $_ADMINS, 'IP', '-'],
+                            title      => \@caption,
                             cols_align => ['right', 'left', 'right', 'right', 'left', 'left', 'right', 'right', 'left', 'left', 'center:noprint'],
                             qs         => $pages_qs,
                             pages      => $payments->{TOTAL},
@@ -5794,20 +5839,26 @@ my $table = $html->table( { width      => '100%',
 
 my $pages_qs .= "&subf=2" if (! $FORM{subf});
 foreach my $line (@$list) {
-  my $delete = ($permissions{1}{2}) ?  $html->button($_DEL, "index=2&del=$line->[0]&UID=". $line->[11] ."$pages_qs", { MESSAGE => "$_DEL [$line->[0]] ?", CLASS => 'del' }) : ''; 
+  my $delete = ($permissions{1}{2}) ?  $html->button($_DEL, "index=2&del=$line->[0]&UID=". $line->[13] ."$pages_qs", { MESSAGE => "$_DEL [$line->[0]] ?", CLASS => 'del' }) : ''; 
 
-  $table->addrow($html->b($line->[0]), 
-  $html->button($line->[1], "index=15&UID=$line->[11]"), 
+  my @rows = ( $html->b($line->[0]), 
+  $html->button($line->[1], "index=15&UID=$line->[13]"), 
   $line->[2], 
-  $line->[3].( ($line->[12] ) ? $html->br(). $html->b($line->[12]) : '' ), 
+  $line->[3].( ($line->[14] ) ? $html->br(). $html->b($line->[14]) : '' ), 
   $line->[4], 
   "$line->[5]", 
   $PAYMENTS_METHODS{$line->[6]}, 
   "$line->[7]", 
   ($conf{EXT_BILL_ACCOUNT} && $attr->{USER_INFO}) ? $BILL_ACCOUNTS{$line->[8]} : "$line->[8]",
   "$line->[9]", 
-  "$line->[10]",   
-  $delete);
+  "$line->[10]");
+
+  if ($conf{SYSTEM_CURRENCY}) {
+    push @rows, $line->[11], $line->[12];
+   }
+
+  push @rows, $delete;
+  $table->addrow(@rows);
 }
 
 print $table->show();
@@ -5889,8 +5940,9 @@ elsif($FORM{log_del} && $FORM{is_js_confirmed}) {
 	
 
 $html->tpl_show(templates('form_er'), $finance);
-my $table = $html->table({ width      => '640',
-                           title      => ["$_MONEY", "$_SHORT_NAME", "$_EXCHANGE_RATE (1 unit =)", "$_CHANGED", '-', '-'],
+my $table = $html->table({ caption    => $_EXCHANGE_RATE,
+	                         width      => '640',
+                           title      => ["$_MONEY", "$_SHORT_NAME", "$_EXCHANGE_RATE (1 unit =)", 'ISO', "$_CHANGED", '-', '-'],
                            cols_align => ['left', 'left', 'right', 'center', 'center'],
                            ID         => 'EXCHANGE_RATE'
                           });
@@ -5901,8 +5953,9 @@ foreach my $line (@$list) {
      $line->[1], 
      $line->[2], 
      $line->[3], 
-     $html->button($_CHANGE, "index=$index&chg=$line->[4]", { CLASS => 'change' }), 
-     $html->button($_DEL, "index=$index&del=$line->[4]", { MESSAGE => "$_DEL [$line->[0]]?", CLASS => 'del' } ));
+     $line->[4], 
+     $html->button($_CHANGE, "index=$index&chg=$line->[5]", { CLASS => 'change' }), 
+     $html->button($_DEL, "index=$index&del=$line->[5]", { MESSAGE => "$_DEL [$line->[0]]?", CLASS => 'del' } ));
 }
 
 print $table->show();
@@ -8618,7 +8671,6 @@ sub form_nas_search {
 
 if($FORM{NAS_SEARCH} == 1) {
   my $nas = Nas->new($db, \%conf);
-  #$nas->{debug}=1;
   my $table = $html->table({ width           => '100%',
                              border          => 1,
                              title           => ['ID', $_NAME,  'IP', $_TYPE, 'mac' ],

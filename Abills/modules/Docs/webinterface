@@ -79,58 +79,58 @@ sub docs_contract {
 
 
 #**********************************************************
-# docs_invoice_add
+# docs_receipt_add
 # Order array format
 # NAME|UNIT|COUNT|PRICE
 #**********************************************************
-sub docs_invoice_add  {
+sub docs_receipt_add  {
 	my ($attr) = @_;
 
   if ($attr->{create}) {
    if (defined($FORM{OP_SID}) and $FORM{OP_SID} eq $COOKIES{OP_SID}) {
- 	   $html->message('err', $_ERROR, "$_INVOICE $_EXIST");
+ 	   $html->message('err', $_ERROR, "$_RECEIPT $_EXIST");
  	   return 0;
     }
    elsif($FORM{PREVIEW}) {
-     docs_preview('invoice', { %FORM });
+     docs_preview('receipt', { %FORM });
      return 0;
     }
    else {
      $Docs->{FROM} = $attr->{FROM} if ($attr->{FROM});
-     $Docs->docs_invoice_add({ %$attr, DEPOSIT => $users->{DEPOSIT} });
+     $Docs->docs_receipt_add({ %$attr, DEPOSIT => $users->{DEPOSIT} });
 
      my $date = $FORM{DATE} || $DATE;
      if(! $Docs->{errno}) {
        if ($conf{DOCS_PDF_PRINT}) {
-  	     $html->message('info', "$_INVOICE $_ADDED", "$_INVOICE $_NUM: [$Docs->{DOC_ID}]\n $_DATE: $date\n ". 
-  	     $html->button($_PRINT, "qindex=". get_function_index('docs_invoice_list') ."&sendmail=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}", { ex_params => 'target=_new', CLASS => 'sendmail rightAlignText' }).' '.
-  	     $html->button($_PRINT, "qindex=". get_function_index('docs_invoice_list') ."&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}&pdf=1", { ex_params => 'target=_new', CLASS => 'print rightAlignText' }));
+  	     $html->message('info', "$_RECEIPT $_ADDED", "$_RECEIPT $_NUM: [$Docs->{DOC_ID}]\n $_DATE: $date\n ". 
+  	     $html->button($_PRINT, "qindex=". get_function_index('docs_receipt_list') ."&sendmail=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}", { ex_params => 'target=_new', CLASS => 'sendmail rightAlignText' }).' '.
+  	     $html->button($_PRINT, "qindex=". get_function_index('docs_receipt_list') ."&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}&pdf=1", { ex_params => 'target=_new', CLASS => 'print rightAlignText' }));
 
          
          delete($FORM{create});
-         docs_invoice_list() if ($index != 2);
+         docs_receipt_list() if ($index != 2);
 
          $FORM{print} = $Docs->{DOC_ID};
          $FORM{pdf}   = 1;
-         return  docs_invoice({ GET_EMAIL_INFO    => 1,
+         return  docs_receipt({ GET_EMAIL_INFO    => 1,
          	                      SEND_EMAIL        => $FORM{SEND_EMAIL},
             	                  %$attr
             	                });
         }
        else {
-         $html->message('info', "$_INVOICE $_ADDED", "$_INVOICE $_NUM: [$Docs->{DOC_ID}]\n $_DATE: $date". 
-           $html->button($_SEND_MAIL, "qindex=". get_function_index('docs_invoice_list') ."&sendmail=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}", { ex_params => 'target=_new', CLASS => 'sendmail' }) .' '.
-           $html->button($_PRINT, "qindex=". get_function_index('docs_invoice_list') ."&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}", { ex_params => 'target=_new', CLASS => 'print' }) );
-         #$Docs->docs_invoice_info($Docs->{DOC_ID});
+         $html->message('info', "$_RECEIPT $_ADDED", "$_RECEIPT $_NUM: [$Docs->{DOC_ID}]\n $_DATE: $date". 
+           $html->button($_SEND_MAIL, "qindex=". get_function_index('docs_receipt_list') ."&sendmail=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}", { ex_params => 'target=_new', CLASS => 'sendmail' }) .' '.
+           $html->button($_PRINT, "qindex=". get_function_index('docs_receipt_list') ."&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}", { ex_params => 'target=_new', CLASS => 'print' }) );
+         #$Docs->docs_receipt_info($Docs->{DOC_ID});
         }
        
       }
      elsif ($Docs->{errno} ) {
      	 if( $Docs->{errno} == 1) {
-     	   $html->message('err', "$_INVOICE:$_ERROR", "$ERR_NO_ORDERS");	
+     	   $html->message('err', "$_RECEIPT:$_ERROR", "$ERR_NO_ORDERS");	
      	  }
        else {
-         $html->message('err', "$_INVOICE:$_ERROR", "[$Docs->{errno}] $err_strs{$Docs->{errno}} $Docs->{errstr}");
+         $html->message('err', "$_RECEIPT:$_ERROR", "[$Docs->{errno}] $err_strs{$Docs->{errno}} $Docs->{errstr}");
         }
        return 0;
       }
@@ -161,11 +161,11 @@ sub docs_invoice_add  {
 	 }
 
   if ($Docs->{PAYMENT_ID}) {
-    my $list = $Docs->accounts_list({ PAYMENT_ID => $Docs->{PAYMENT_ID} });
+    my $list = $Docs->invoices_list({ PAYMENT_ID => $Docs->{PAYMENT_ID} });
     if ($Docs->{TOTAL} > 0) {
-      $Docs->account_info($list->[0]->[9]);	
+      $Docs->invoice_info($list->[0]->[9]);	
      }
-    $Docs->{ACCOUNT_ID}=$Docs->{ACCT_ID};
+    $Docs->{INVOICE_ID}=$Docs->{INVOICE_ID};
     
     push @PAYMENT_METHODS, @EX_PAYMENT_METHODS if (@EX_PAYMENT_METHODS);
 
@@ -204,31 +204,31 @@ sub docs_invoice_add  {
   $Docs->{'TOTAL_SUM_WITHOUT_VAT'}= sprintf("%.2f", ($conf{DOCS_VAT_INCLUDE}) ? $Docs->{TOTAL_SUM} - ($Docs->{TOTAL_SUM}) / ((100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE}) : $Docs->{TOTAL_SUM} );
   $Docs->{'TOTAL_SUM_VAT'}        = sprintf("%.2f", $Docs->{TOTAL_SUM}-$Docs->{'TOTAL_SUM_WITHOUT_VAT'});
   
-#  my $invoice_file = 'invoice';
+#  my $receipt_file = 'receipt';
 #  if ($Docs->{PAYMENT_METHOD_ID}) {
-#    $invoice_file =  'docs_invoice_'.$Docs->{PAYMENT_METHOD_ID};
-#    my $invoice_content = _include($invoice_file, 'Docs', { $FORM{pdf} => 1 });
-#    if (  $invoice_content =~ /No such tem/ || $invoice_content eq ''  ) {
-#      $invoice_file = 'invoice';
+#    $receipt_file =  'docs_receipt_'.$Docs->{PAYMENT_METHOD_ID};
+#    my $receipt_content = _include($receipt_file, 'Docs', { $FORM{pdf} => 1 });
+#    if (  $receipt_content =~ /No such tem/ || $receipt_content eq ''  ) {
+#      $receipt_file = 'receipt';
 #     }
 #    else {
-#      $invoice_file = 'invoice_'.$Docs->{PAYMENT_METHOD_ID};
+#      $receipt_file = 'receipt_'.$Docs->{PAYMENT_METHOD_ID};
 #     }
 #   }  
 
-  docs_print("invoice", $Docs) if (! $FORM{QUICK});
+  docs_print("receipt", $Docs) if (! $FORM{QUICK});
 }
 
 
 
 #**********************************************************
-# docs_invoice_list
+# docs_receipt_list
 #**********************************************************
-sub docs_invoice {
+sub docs_receipt {
   my ($attr) = @_;
 
   if ($FORM{create}) {
-    docs_invoice_add({ %FORM }); 
+    docs_receipt_add({ %FORM }); 
     return 0;
    }
   elsif ($FORM{skip}) {
@@ -245,14 +245,14 @@ sub docs_invoice {
     $users->pi({ UID => $users->{UID} });
     $Docs->{OP_SID}    = mk_unique_value(16);
     $Docs->{CUSTOMER}  = $users->{FIO} || '-';
-    $Docs->{CAPTION}   = $_INVOICE;
-    $Docs->{DATE}      = $html->date_fld2('DATE', { MONTHES => \@MONTHES, FORM_NAME => 'invoice_add', WEEK_DAYS => \@WEEKDAYS });
+    $Docs->{CAPTION}   = $_RECEIPT;
+    $Docs->{DATE}      = $html->date_fld2('DATE', { MONTHES => \@MONTHES, FORM_NAME => 'receipt_add', WEEK_DAYS => \@WEEKDAYS });
     
     # Get docs info
     $Docs->user_info($FORM{UID});
     if ($Docs->{TOTAL}) {
     	if (! $FORM{NEXT_PERIOD}) {
-    		$FORM{NEXT_PERIOD}=$Docs->{INVOICE_PERIOD} if ($Docs->{INVOICE_PERIOD} > 1);
+    		$FORM{NEXT_PERIOD}=$Docs->{RECEIPT_PERIOD} if ($Docs->{RECEIPT_PERIOD} > 1);
     	 }
      }
 
@@ -261,7 +261,7 @@ sub docs_invoice {
   		$FORM{FROM_DATE}="$Y-01-01";
   	 }
 
-    my $list = $Docs->docs_invoice_new({ FROM_DATE => $FORM{FROM_DATE} || $html->{FROM_DATE},
+    my $list = $Docs->docs_receipt_new({ FROM_DATE => $FORM{FROM_DATE} || $html->{FROM_DATE},
     	                       TO_DATE   => $FORM{TO_DATE} || $html->{TO_DATE} || $DATE,
     	                       PAGE_ROWS => 500,
     	                       UID       => $users->{UID}
@@ -321,11 +321,11 @@ sub docs_invoice {
     #Next period payments
     if ($FORM{NEXT_PERIOD}) {
   	  # Get invoces
-   	  my %current_invoice = ();
- 	    my $list = $Docs->docs_invoice_list({ UID => $FORM{UID}, PAYMENT_ID => 0, ORDERS_LIST => 1 });
+   	  my %current_receipt = ();
+ 	    my $list = $Docs->docs_receipt_list({ UID => $FORM{UID}, PAYMENT_ID => 0, ORDERS_LIST => 1 });
     	
    	  foreach my $line (@$list) {
-    		$current_invoice{$line->[1]}=$line->[0];
+    		$current_receipt{$line->[1]}=$line->[0];
  	     }
 
 
@@ -436,18 +436,18 @@ sub docs_invoice {
  	 	 	 	     
  	 	 	 	     my $order = "$name $describe ($period_from-$period_to)";
 
- 	 	 	   	   $num++ if (! $current_invoice{$order});
- 	 	         $table->addrow(((! $current_invoice{$order}) ?
+ 	 	 	   	   $num++ if (! $current_receipt{$order});
+ 	 	         $table->addrow(((! $current_receipt{$order}) ?
  	 	                    $html->form_input('ORDER_'.$num, "$order", { TYPE => 'hidden', OUTPUT2RETURN => 1 }).
                         $html->form_input('SUM_'.$num, $result_sum, { TYPE => 'hidden', OUTPUT2RETURN => 1 }).
  	 	                    $html->form_input('IDS', "$num", { TYPE => ($user->{UID}) ? 'hidden' : 'checkbox', STATE => 'checked', OUTPUT2RETURN => 1 }). $num : ''  ) 
  	 	                    , 
  	 	                    $users->{LOGIN},
  	 	                    $period_from,
- 	 	                    $order. (($current_invoice{$order}) ? ' '. $html->color_mark($_EXIST, 'red'): ''),
+ 	 	                    $order. (($current_receipt{$order}) ? ' '. $html->color_mark($_EXIST, 'red'): ''),
  	 	                    $result_sum );
 
- 	 	         $total_sum	+= $sum if (! $current_invoice{$order}); 	 	         
+ 	 	         $total_sum	+= $sum if (! $current_receipt{$order}); 	 	         
  	 	         $period_from = strftime "%Y-%m-%d", localtime( (mktime(0, 0, 0, $D, ($M-1), ($Y-1900), 0, 0, 0) + 1 * 86400) ); 
            }
  	 	      } 
@@ -468,25 +468,25 @@ sub docs_invoice {
     $table->addrow($html->b("$_DEPOSIT:"), $html->b(sprintf("%.2f", $users->{DEPOSIT})));
     $table->addrow($html->b("$_AMOUNT_FOR_PAY:"), $html->b(sprintf("%.2f", $amount_for_pay)));
     $Docs->{ORDERS}    = $table->show({ OUTPUT2RETURN => 1 });
-    $Docs->{FROM_DATE} = $html->date_fld2('FROM_DATE', { MONTHES => \@MONTHES, FORM_NAME => 'invoice_add', WEEK_DAYS => \@WEEKDAYS });
-    $Docs->{TO_DATE}   = $html->date_fld2('TO_DATE', { MONTHES => \@MONTHES, FORM_NAME => 'invoice_add', WEEK_DAYS => \@WEEKDAYS });
+    $Docs->{FROM_DATE} = $html->date_fld2('FROM_DATE', { MONTHES => \@MONTHES, FORM_NAME => 'receipt_add', WEEK_DAYS => \@WEEKDAYS });
+    $Docs->{TO_DATE}   = $html->date_fld2('TO_DATE', { MONTHES => \@MONTHES, FORM_NAME => 'receipt_add', WEEK_DAYS => \@WEEKDAYS });
     $FORM{NEXT_PERIOD} = 0 if ($FORM{NEXT_PERIOD} < 0);
     if ($attr->{REGISTRATION}) {
       $Docs->{BACK}      = $html->form_input('back', "$_BACK", {  TYPE => 'submit' });
       $Docs->{NEXT}      = $html->form_input('skip', "$_NEXT", {  TYPE => 'submit' });
      }
     
-    $html->tpl_show(_include('docs_invoice_add', 'Docs'), { %FORM, %$attr, %$Docs, %$users }) if (! $FORM{pdf});
+    $html->tpl_show(_include('docs_receipt_add', 'Docs'), { %FORM, %$attr, %$Docs, %$users }) if (! $FORM{pdf});
    }
 
-  docs_invoice_list($attr);
+  docs_receipt_list($attr);
   return 0;
 }
 
 #**********************************************************
-# docs_invoice_list
+# docs_receipt_list
 #**********************************************************
-sub docs_invoice_list {
+sub docs_receipt_list {
   my ($attr)=@_;
 
 push @PAYMENT_METHODS, @EX_PAYMENT_METHODS if (@EX_PAYMENT_METHODS);
@@ -502,7 +502,7 @@ while(my($k, $v) = each %PAYSYS_PAYMENT_METHODS ) {
 
 
 if($FORM{del} && $FORM{is_js_confirmed}) {
-  $Docs->docs_invoice_del($FORM{del});
+  $Docs->docs_receipt_del($FORM{del});
   if(! $Docs->{errno}) {
     $html->message('info', "$_INFO", "$_DELETED N: [$FORM{del}]");
    }
@@ -512,7 +512,7 @@ if($FORM{del} && $FORM{is_js_confirmed}) {
    }
  }
 elsif($FORM{print}) {
-  $Docs->docs_invoice_info($FORM{print}, { UID => $LIST_PARAMS{UID} });
+  $Docs->docs_receipt_info($FORM{print}, { UID => $LIST_PARAMS{UID} });
   ($Docs->{SUM_MAIN}, $Docs->{SUM_SUB})=split(/\./, $Docs->{TOTAL_SUM});
   $Docs->{TOTAL_SUM}=0.00;
    
@@ -538,7 +538,16 @@ elsif($FORM{print}) {
       $Docs->{'ORDER_SUM_WITHOUT_VAT_'.$i}   = sprintf("%.2f", ($conf{DOCS_VAT_INCLUDE}) ? $sum - $sum / ((100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE}) : $sum);
 		  $Docs->{TOTAL_SUM}+=$sum;
 		  $Docs->{AMOUNT_FOR_PAY}+=$Docs->{'ORDER_COUNT_'.$i}*$Docs->{'ORDER_PRICE_'.$i} if ($line->[5] == 0);
-		  
+
+
+       #alternative currancy sum
+       if ($Docs->{EXCHANGE_RATE} > 0) {
+         $Docs->{'ORDER_ALT_SUM_'.$i}     = sprintf("%.2f", $Docs->{'ORDER_SUM_'.$i} * $Docs->{EXCHANGE_RATE});
+         $Docs->{'ORDER_ALT_PRICE_'.$i}   = sprintf("%.2f", $Docs->{'ORDER_PRICE_'.$i} * $Docs->{EXCHANGE_RATE});
+         $Docs->{'ORDER_ALT_VAT_'.$i}     = sprintf("%.2f", $Docs->{'ORDER_VAT_'.$i} * $Docs->{EXCHANGE_RATE});
+         $Docs->{'ORDER_ALT_PRICE_WITHOUT_VAT_'.$i} = sprintf("%.2f", $Docs->{'ORDER_PRICE_WITHOUT_VAT_'.$i} * $Docs->{EXCHANGE_RATE} );
+         $Docs->{'ORDER_ALT_SUM_WITHOUT_VAT_'.$i}   = sprintf("%.2f", $Docs->{'ORDER_SUM_WITHOUT_VAT_'.$i} * $Docs->{EXCHANGE_RATE}  );
+        }
 		  $i++;
    	 }
 	 }
@@ -546,12 +555,18 @@ elsif($FORM{print}) {
   $Docs->{AMOUNT_FOR_PAY} = sprintf("%.2f", $Docs->{AMOUNT_FOR_PAY});
   $Docs->{TOTAL_SUM} = sprintf("%.2f", $Docs->{TOTAL_SUM});
 
+  if ($Docs->{EXCHANGE_RATE} > 0) {
+ 	  $Docs->{TOTAL_ALT_SUM}      = sprintf("%.2f", $Docs->{TOTAL_SUM} * $Docs->{EXCHANGE_RATE});
+ 	  $Docs->{AMOUNT_FOR_PAY_ALT} = sprintf("%.2f", $Docs->{AMOUNT_FOR_PAY} * $Docs->{EXCHANGE_RATE} );
+   } 
+
+
   if ($Docs->{PAYMENT_ID}) {
-    my $list = $Docs->accounts_list({ PAYMENT_ID => $Docs->{PAYMENT_ID} });
+    my $list = $Docs->invoices_list({ PAYMENT_ID => $Docs->{PAYMENT_ID} });
     if ($Docs->{TOTAL} > 0) {
-      $Docs->account_info($list->[0]->[10]);	
+      $Docs->invoice_info($list->[0]->[10]);	
      }
-    $Docs->{ACCOUNT_ID}=$Docs->{ACCT_ID};
+    $Docs->{INVOICE_ID}=$Docs->{INVOICE_ID};
 
     push @PAYMENT_METHODS, @EX_PAYMENT_METHODS if (@EX_PAYMENT_METHODS);
 
@@ -594,18 +609,18 @@ elsif($FORM{print}) {
 
 
   if ($attr->{GET_EMAIL_INFO}) {
-    $attr->{EMAIL_MSG_TEXT}        = "$_INVOICE:  $Docs->{ACCT_ID}\n $_DATE: $Docs->{DATE}\n $_SUM: $Docs->{TOTAL_SUM}\n" if (! $attr->{EMAIL_MSG_TEXT});
-    $attr->{EMAIL_ATTACH_FILENAME} = 'invoice_'. $Docs->{ACCT_ID} .'.pdf' if (! $attr->{EMAIL_ATTACH_FILENAME});
-    $attr->{EMAIL_MSG_SUBJECT}     = "ABillS - $_INVOICE / $Docs->{ACCT_ID}" if (! $attr->{EMAIL_MSG_SUBJECT});
+    $attr->{EMAIL_MSG_TEXT}        = "$_RECEIPT:  $Docs->{INVOICE_ID}\n $_DATE: $Docs->{DATE}\n $_SUM: $Docs->{TOTAL_SUM}\n" if (! $attr->{EMAIL_MSG_TEXT});
+    $attr->{EMAIL_ATTACH_FILENAME} = 'receipt_'. $Docs->{INVOICE_ID} .'.pdf' if (! $attr->{EMAIL_ATTACH_FILENAME});
+    $attr->{EMAIL_MSG_SUBJECT}     = "ABillS - $_RECEIPT / $Docs->{INVOICE_ID}" if (! $attr->{EMAIL_MSG_SUBJECT});
    }
 
-  docs_print('invoice', { %$Docs, %$attr });
+  docs_print('receipt', { %$Docs, %$attr });
   return 0;
  }
 elsif($FORM{sendmail}) {
   $FORM{print}= $FORM{sendmail};
   $FORM{pdf}  = $conf{DOCS_PDF_PRINT};
-	docs_invoice_list({ SEND_EMAIL => 1 });
+	docs_receipt_list({ SEND_EMAIL => 1 });
   $html->message('info', "$_INFO", "E-Mail $_SENDED ");
 	return 0;
  }
@@ -617,7 +632,7 @@ elsif (! $LIST_PARAMS{UID}) {
  	                                SORT_KEY     => 1
  	                               });
 
-  form_search({ SEARCH_FORM => ($FORM{pdf}) ? '' : $html->tpl_show(_include('docs_invoice_search', 'Docs'), 
+  form_search({ SEARCH_FORM => ($FORM{pdf}) ? '' : $html->tpl_show(_include('docs_receipt_search', 'Docs'), 
   	                                  { %info, %FORM }, 
   	                                  { notprint => 1 })  
 	            });
@@ -629,21 +644,21 @@ if (! $FORM{sort}) {
 }
 
 if ($FORM{print_list}) {
-	my $list = $Docs->docs_invoice_list( { %FORM, %LIST_PARAMS, 
+	my $list = $Docs->docs_receipt_list( { %FORM, %LIST_PARAMS, 
                                          FULL_INFO  => 1 } );
   my @MULTI_ARR = ();
   my $doc_num   = 0;
   
   foreach my $line (@$list) {
     my %D = ();
-    $D{INVOICE_ID}   = $line->[0];
+    $D{RECEIPT_ID}   = $line->[0];
     $D{DATE}         = $line->[1];
     my ($y, $m, $d)=split(/-/, $line->[1], 3);
     $D{FROM_DATE_LIT} = "$d ". $MONTHES_LIT[int($m)-1] ." $y $_YEAR";
     $D{DATE_EURO_STANDART} = "$d.$m.$y";
     $D{FIO}           = $line->[2];
     $D{LOGIN}         = $line->[15];
-    $D{ACCOUNT_ID}    = $line->[8];
+    $D{INVOICE_ID}    = $line->[8];
     $D{FIO}           = $line->[2];
     $D{ADDRESS_FULL}  = "$line->[10], $line->[11], $line->[12]";
     $D{TOTAL_SUM}     = sprintf("%.2f", $line->[3]);
@@ -684,14 +699,14 @@ if ($FORM{print_list}) {
 	 }
 
   print $html->header() if ($FORM{qindex});  
-  my $invoice_file = ($D{PAYMENT_METHOD}) ?  'docs_invoice_'.$D{PAYMENT_METHOD} : 'docs_invoice';
-  my $invoice_content = _include($invoice_file, 'Docs', { pdf => $FORM{pdf} });
+  my $receipt_file = ($D{PAYMENT_METHOD}) ?  'docs_receipt_'.$D{PAYMENT_METHOD} : 'docs_receipt';
+  my $receipt_content = _include($receipt_file, 'Docs', { pdf => $FORM{pdf} });
 
-  if ($invoice_content =~ /No such t/) {
-	  $invoice_content = _include('docs_invoice', 'Docs', { pdf => $FORM{pdf} });
+  if ($receipt_content =~ /No such t/) {
+	  $receipt_content = _include('docs_receipt', 'Docs', { pdf => $FORM{pdf} });
    }
   
-  my $single_tpl = $html->tpl_show( $invoice_content, undef, 
+  my $single_tpl = $html->tpl_show( $receipt_content, undef, 
                                            { MULTI_DOCS   => \@MULTI_ARR, 
   	                                         #SAVE_AS      => $save_filename,
   	                                         #DOCS_IN_FILE => $docs_in_file,
@@ -700,10 +715,10 @@ if ($FORM{print_list}) {
 	return 0;
 }
 
-my $list = $Docs->docs_invoice_list( { %LIST_PARAMS } );
+my $list = $Docs->docs_receipt_list( { %LIST_PARAMS } );
 
 my $table = $html->table( { width      => '100%',
-                            caption    => "$_INVOICE",
+                            caption    => "$_RECEIPT",
                             border     => 1,
                             title      => ['#', $_DATE, $_CUSTOMER, $_SUM, $_USER, $_ADMIN, $_TIME, $_PAYMENT_METHOD, '-', '-', '-'],
                             cols_align => ['right', 'right', 'left', 'right', 'left', 'left', 'right', 'center', 'center', 'center'],
@@ -711,8 +726,8 @@ my $table = $html->table( { width      => '100%',
                             pages      => $Docs->{TOTAL},
                             ID         => 'DOCS_INVOCE',
                             EXPORT     => ' XML:&xml=1',
-                            MENU    => (($FORM{UID}) ? "$_ADD:index=". get_function_index('docs_invoice', { ARGS => UID }) ."&UID=$FORM{UID}:add" : '').                            
-                            ";$_SEARCH:index=".get_function_index('docs_invoice_list')."&search=1:search"
+                            MENU    => (($FORM{UID}) ? "$_ADD:index=". get_function_index('docs_receipt', { ARGS => UID }) ."&UID=$FORM{UID}:add" : '').                            
+                            ";$_SEARCH:index=".get_function_index('docs_receipt_list')."&search=1:search"
                           });
 
 if ($conf{DOCS_PDF_PRINT}) {
@@ -729,9 +744,9 @@ foreach my $line (@$list) {
    $html->button($line->[4], "index=11&UID=$line->[8]"),
    "$line->[5]", 
    "$line->[6]", 
-   $PAYMENTS_METHODS{"$line->[7]"}, 
-   $html->button($_SEND_MAIL, "qindex=". get_function_index('docs_invoice_list') ."&sendmail=$line->[9]&UID=$line->[8]", { ex_params => 'target=_new', CLASS => 'sendmail' }) ,
-   $html->button($_PRINT, "qindex=". get_function_index('docs_invoice_list') ."&print=$line->[9]&UID=$line->[8]$pages_qs", { ex_params => 'target=_new', CLASS => 'print' }) ,
+   (defined($line->[7]) && $line->[7] ne '') ? $html->button($PAYMENTS_METHODS{"$line->[7]"}, "index=2&ID=$line->[10]&UID=$line->[8]") : '', 
+   $html->button($_SEND_MAIL, "qindex=". get_function_index('docs_receipt_list') ."&sendmail=$line->[9]&UID=$line->[8]", { ex_params => 'target=_new', CLASS => 'sendmail' }) ,
+   $html->button($_PRINT, "qindex=". get_function_index('docs_receipt_list') ."&print=$line->[9]&UID=$line->[8]$pages_qs", { ex_params => 'target=_new', CLASS => 'print' }) ,
    $delete);
 }
 print $table->show();
@@ -746,9 +761,9 @@ print $table->show();
 }
 
 #**********************************************************
-# docs_accounts_list
+# docs_invoices_list
 #**********************************************************
-sub docs_accounts_list {
+sub docs_invoices_list {
   my ($attr)=@_;
 
 
@@ -781,11 +796,11 @@ if ($conf{PAYSYS_PAYMENTS_METHODS}) {
 
 
 if ($LIST_PARAMS{UID} || $FORM{UID}) {
-	docs_account();
+	docs_invoice();
 	return 0 if ($FORM{'print'});
  }
 elsif(defined($FORM{del}) && $FORM{is_js_confirmed} ) {
-  $Docs->account_del($FORM{del});
+  $Docs->invoice_del($FORM{del});
   
   if(! $Docs->{errno}) {
     $html->message('info', "$_INFO", "$_DELETED N: [$FORM{del}]");
@@ -822,7 +837,7 @@ else {
  	                               });
 
 
-  form_search({ SEARCH_FORM => ($FORM{pdf}) ? '' : $html->tpl_show(_include('docs_account_search', 'Docs'), 
+  form_search({ SEARCH_FORM => ($FORM{pdf}) ? '' : $html->tpl_show(_include('docs_invoice_search', 'Docs'), 
   	                                  { %info, %FORM }, 
   	                                  { notprint => 1 })  
 	            });
@@ -836,7 +851,7 @@ if (! $FORM{sort}) {
 }
 
 if ($FORM{print_list}) {
-	my $list = $Docs->accounts_list( { %FORM, %LIST_PARAMS, 
+	my $list = $Docs->invoices_list( { %FORM, %LIST_PARAMS, 
                                      FULL_INFO  => 1 } );
 
   my @MULTI_ARR = ();
@@ -912,7 +927,7 @@ if ($FORM{print_list}) {
 	 }
 
   print $html->header() if ($FORM{qindex});  
-  my $tpl = ($FORM{COMPANY_ID}) ? 'docs_account_company' : 'docs_account';
+  my $tpl = ($FORM{COMPANY_ID}) ? 'docs_invoice_company' : 'docs_invoice';
   my $single_tpl = $html->tpl_show(_include($tpl, 'Docs', { pdf => $FORM{pdf} }), undef, 
                                            { MULTI_DOCS   => \@MULTI_ARR, 
   	                                         debug        => $debug
@@ -932,20 +947,20 @@ if ( $user->{UID} ) {
 	@CAPTION = ('#', $_DATE, $_CUSTOMER, $_SUM, $_STATUS);
 }
 else {
-	push @CAPTION, '-', '-', '-';
+	push @CAPTION, '-', '-', '-', '-';
 }
 
-my $list = $Docs->accounts_list( { %LIST_PARAMS } );
+my $list = $Docs->invoices_list( { %LIST_PARAMS } );
 my $table = $html->table( { width      => '100%',
                             border     => 1,
-                            caption    => "$_ACCOUNTS",
+                            caption    => "$_INVOICES",
                             title      => \@CAPTION,
                             cols_align => ['right', 'right', 'left', 'right', 'left', 'left', 'right', 'center:noprint', 'center:noprint', 'center:noprint'],
                             qs         => $pages_qs,
                             pages      => $Docs->{TOTAL},
                             EXPORT     => ' XML:&xml=1',
-                            ID         => 'DOCS_ACCOUNTS_LIST',
-                            header     => ($FORM{UID}) ? $html->button("$_NEXT_PERIOD $_ACCOUNT", "index=$index&ALL_SERVICES=1&UID=$FORM{UID}") : undef
+                            ID         => 'DOCS_INVOICES_LIST',
+                            header     => ($FORM{UID}) ? $html->button("$_NEXT_PERIOD $_INVOICE", "index=$index&ALL_SERVICES=1&UID=$FORM{UID}") : undef
                           });
 
 my @rows = ();
@@ -975,7 +990,11 @@ foreach my $line (@$list) {
     	push @rows, sprintf("%.2f", $line->[11]);
      }
      
-    push @rows, $html->button($_PAYMENTS, "index=2&ACCOUNT_ID=$line->[13]&UID=$line->[12]", { CLASS => 'payments' }),
+     
+    my $payments_info = ($line->[17] > 0) ? "&SUM=$line->[11]&ISO=$line->[17]" : "&SUM=$line->[3]";
+     
+    push @rows, $html->button($_PAYMENTS, "index=2&INVOICE_ID=$line->[13]&UID=$line->[12]$payments_info", { CLASS => 'payments' }),
+    $html->button($_SEND_MAIL, "qindex=". get_function_index('docs_invoices_list') ."&sendmail=$line->[13]&UID=$line->[12]", { ex_params => 'target=_new', CLASS => 'sendmail' }) ,
     $html->button($_PRINT, "qindex=$index&print=$line->[13]&UID=$line->[12]". ( ($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : '' ), { ex_params => 'target=_new', CLASS => 'print' }), 
     $delete;
    }
@@ -1339,7 +1358,7 @@ sub docs_tax_invoice {
   }
 	
 	if(! $user->{UID}  ) {
-  	$Docs->{FORM_ACCT_ID} = "<tr><td>$_TAX_INVOICE $_NUM:</td><td><input type='text' name='ACCT_ID' value='%ACCT_ID%'></td></tr>\n";
+  	$Docs->{FORM_INVOICE_ID} = "<tr><td>$_TAX_INVOICE $_NUM:</td><td><input type='text' name='INVOICE_ID' value='%INVOICE_ID%'></td></tr>\n";
    }
 
   $Docs->{SEL_ORDER} .= $html->form_select('ORDER', 
@@ -1354,7 +1373,7 @@ sub docs_tax_invoice {
   $users->pi({  UID => $users->{UID} });
 
   $Docs->{CUSTOMER}=  $users->{FIO} || '-';
-  $Docs->{CAPTION} =  $_ACCOUNT;
+  $Docs->{CAPTION} =  $_INVOICE;
 
   my ($Y, $M, $D)=split(/-/, $DATE, 3);  
   my @MONTH_ARR = ('');
@@ -1395,7 +1414,7 @@ sub docs_tax_invoice {
 
 
 #**********************************************************
-# docs_account
+# docs_invoice
 #**********************************************************
 sub docs_reports {
 	my ($attr) = @_;
@@ -1405,9 +1424,9 @@ sub docs_reports {
 
 
 #**********************************************************
-# docs_accounts_multi_create
+# docs_invoices_multi_create
 #**********************************************************
-sub docs_accounts_multi_create {
+sub docs_invoices_multi_create {
 	my ($attr) = @_;
 
   if ($FORM{create}) {
@@ -1424,7 +1443,7 @@ sub docs_accounts_multi_create {
     foreach my $uid (@uids_arr) {      	
     	$count++;
       $FORM{UID}=$uid;
-      $Docs->account_add({ %FORM });
+      $Docs->invoice_add({ %FORM });
       delete($FORM{create});
       if(! $Docs->{errno}) {
         if ($conf{DOCS_PDF_PRINT}) {
@@ -1432,7 +1451,7 @@ sub docs_accounts_multi_create {
           	$FORM{pdf}   = 1;
           	$FORM{print} = $Docs->{DOC_ID};
           
-            docs_account({ GET_EMAIL_INFO    => 1,
+            docs_invoice({ GET_EMAIL_INFO    => 1,
             	             SEND_EMAIL        => 1,
             	             EMAIL             => $FORM{EMAIL},
             	             %$attr
@@ -1440,19 +1459,19 @@ sub docs_accounts_multi_create {
            }
         }
        #else {
-       #  $html->message('info', "$_ACCOUNT $_CREATED", "$_ACCOUNT $_NUM: [$Docs->{ACCT_ID}] $_DATE: $FORM{DATE} ");
+       #  $html->message('info', "$_INVOICE $_CREATED", "$_INVOICE $_NUM: [$Docs->{INVOICE_ID}] $_DATE: $FORM{DATE} ");
        # }
        }
      }
 
   	$total_sum = $count * $FORM{SUM};
-  	$html->message('info', "$_ACCOUNT $_CREATED", "$_ACCOUNT $_CREATED\n $_COUNT: $count \n $_SUM: $total_sum");
+  	$html->message('info', "$_INVOICE $_CREATED", "$_INVOICE $_CREATED\n $_COUNT: $count \n $_SUM: $total_sum");
   	return 0;
    }
 
 
   $FORM{GROUP_SEL}=sel_groups();
-  $html->tpl_show(_include('docs_account_multi_sel', 'Docs'), { %FORM	});
+  $html->tpl_show(_include('docs_invoice_multi_sel', 'Docs'), { %FORM	});
   my $list = $users->list( { %LIST_PARAMS, %FORM  } );
   
  
@@ -1463,7 +1482,7 @@ sub docs_accounts_multi_create {
                             cols_align => ['left', 'left', 'right', 'right', 'left', 'left', 'right'],
                             qs         => $pages_qs,
                             pages      => $users->{TOTAL},
-                            ID         => 'DOCS_ACCOUNT_USERS'
+                            ID         => 'DOCS_INVOICE_USERS'
                           });
 
   foreach my $line (@$list) {
@@ -1484,17 +1503,17 @@ sub docs_accounts_multi_create {
   	                                                            });
 	$Docs->{SUM}=$FORM{SUM} || 0.00;
 	
-  $html->tpl_show(_include('docs_account_multi_add', 'Docs'), $Docs);
+  $html->tpl_show(_include('docs_invoice_multi_add', 'Docs'), $Docs);
 }
 
 #**********************************************************
-# docs_account
+# docs_invoice
 #**********************************************************
-sub docs_account {
+sub docs_invoice {
  my ($attr) = @_;
  
  $users = $user if ($user->{UID});
- $Docs->account_defaults();		
+ $Docs->invoice_defaults();		
  $Docs->{DATE}= $DATE;
  $FORM{UID}   = $LIST_PARAMS{UID} if (! $FORM{UID}); 
 
@@ -1513,7 +1532,7 @@ sub docs_account {
    #  $html->message('err', "$_DOCS : $_ERROR", "$_ORG_NAME");
    # }
    elsif($FORM{PREVIEW}) {
-     docs_preview('account', { %FORM });
+     docs_preview('invoice', { %FORM });
      return 0;
     }
    else {   	
@@ -1521,20 +1540,31 @@ sub docs_account {
      	 $FORM{VAT} = $conf{DOCS_VAT_INCLUDE};
       }
      
-     if ($conf{SYSTEM_CURRENCY} && $conf{DOCS_CURRENCY} && $conf{SYSTEM_CURRENCY} ne $conf{DOCS_CURRENCY}) {
+     if (($conf{SYSTEM_CURRENCY} && $conf{DOCS_CURRENCY}) 
+         && $conf{SYSTEM_CURRENCY} ne $conf{DOCS_CURRENCY}) {
      	 use Finance;
        my $Finance = Finance->new($db, $admin);
-       $Finance->exchange_info(0, {  ISO => $conf{DOCS_CURRENCY} || $FORM{ISO} });
-     	 $FORM{EXCHANGE_RATE}=$Finance->{ER_RATE};
-     	 $FORM{CURRENCY}     =$Finance->{ISO};
+       
+       #if ($FORM{CURRENCY} == $conf{DOCS_CURRENCY}) {
+         $Finance->exchange_info(0, {  ISO => $FORM{DOCS_CURRENCY} || $conf{DOCS_CURRENCY} });
+     	   $FORM{EXCHANGE_RATE}=$Finance->{ER_RATE};
+     	   $FORM{DOCS_CURRENCY}=$Finance->{ISO};
+     	 # }
       }
      
 
-     
-     $Docs->account_add({ %FORM, DEPOSIT => $users->{DEPOSIT} });
+     $Docs->invoice_add({ %FORM, 
+     	                    DEPOSIT => $users->{DEPOSIT} });
      if(! $Docs->{errno}) {
-       $FORM{ACCOUNT_ID} =$Docs->{DOC_ID};
-       $Docs->account_info($Docs->{DOC_ID}, { UID => $LIST_PARAMS{UID} });
+     	 #if ($attr->{PERIODIC_INVOICE}) {
+     	 #Add date of last invoice
+       $Docs->user_change({ UID          => $FORM{UID},
+       	                    INVOICE_DATE => $DATE 
+       	                   });
+     	 #  }
+     	
+       $FORM{INVOICE_ID} =$Docs->{DOC_ID};
+       $Docs->invoice_info($Docs->{DOC_ID}, { UID => $LIST_PARAMS{UID} });
        $Docs->{CUSTOMER} = $self->{COMPANY_NAME} || $Docs->{FIO} || '-';
        ($Docs->{SUM_MAIN}, $Docs->{SUM_SUB})=split(/\./, $Docs->{TOTAL_SUM});
 
@@ -1545,7 +1575,7 @@ sub docs_account {
    	     $i++;
    	     my $sum = sprintf("%.2f", $line->[3]*$line->[4]);
    	     if (! $FORM{pdf}) {
-   	       $Docs->{ORDER} .= $html->tpl_show(_include('docs_account_order_row', 'Docs'), 
+   	       $Docs->{ORDER} .= $html->tpl_show(_include('docs_invoice_order_row', 'Docs'), 
    	        { NUMBER => $i,
    	        	NAME   => $line->[1],
    	        	COUNT  => $line->[3],
@@ -1561,16 +1591,16 @@ sub docs_account {
 
        if ($conf{DOCS_PDF_PRINT}) {
          if (! $attr->{QUITE}) {
-       	   $html->message('info', "$_ACCOUNT $_CREATED", "$_ACCOUNT $_NUM: [$Docs->{ACCT_ID}]\n $_DATE: $FORM{DATE}\n $_TOTAL $_SUM: $Docs->{TOTAL_SUM} \n". $html->button($_PRINT, "qindex=". get_function_index('docs_accounts_list') ."&ACCOUNT_ID=$Docs->{DOC_ID}&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}&pdf=1", { ex_params => 'target=_new', CLASS => 'print' }));
+       	   $html->message('info', "$_INVOICE $_CREATED", "$_INVOICE $_NUM: [$Docs->{INVOICE_NUM}]\n $_DATE: $Docs->{DATE}\n $_TOTAL $_SUM: $Docs->{TOTAL_SUM} \n". $html->button($_PRINT, "qindex=". get_function_index('docs_invoices_list') ."&INVOICE_ID=$Docs->{DOC_ID}&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}&pdf=1", { ex_params => 'target=_new', CLASS => 'print' }));
        	   return 0;
        	  }
        	 
 
-         $FORM{print} = $FORM{ACCOUNT_ID};
+         $FORM{print} = $FORM{INVOICE_ID};
          $FORM{pdf}   = 1;
          delete($FORM{create});
 
-         return  docs_account({ GET_EMAIL_INFO    => 1,
+         return  docs_invoice({ GET_EMAIL_INFO    => 1,
             	             SEND_EMAIL        => $FORM{SEND_EMAIL},
             	             EMAIL             => $FORM{EMAIL}, 
             	             %$attr
@@ -1578,8 +1608,8 @@ sub docs_account {
        	 
         }
        else {
-         $html->message('info', "$_ACCOUNT $_CREATED", "$_ACCOUNT $_NUM: [$Docs->{ACCT_ID}]\n $_DATE: $FORM{DATE} ".
-         $html->button($_PRINT, "qindex=$index&ACCOUNT_ID=$Docs->{DOC_ID}&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}", { ex_params => 'target=_new', CLASS => 'print' }) );
+         $html->message('info', "$_INVOICE $_CREATED", "$_INVOICE $_NUM: [$Docs->{INVOICE_ID}]\n $_DATE: $FORM{DATE} ".
+         $html->button($_PRINT, "qindex=$index&INVOICE_ID=$Docs->{DOC_ID}&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}", { ex_params => 'target=_new', CLASS => 'print' }) );
          #return 0;
         }
       
@@ -1589,10 +1619,10 @@ sub docs_account {
 
          if ($Docs->{COMPANY_ID}) {
          	 $Company->info($Docs->{COMPANY_ID});
-         	 docs_print('account_company', { %$Docs, %$Company, SUFIX => ($Docs->{VAT} > 0) ? 'vat' : '' });
+         	 docs_print('invoice_company', { %$Docs, %$Company, SUFIX => ($Docs->{VAT} > 0) ? 'vat' : '' });
           }
          else {
-           docs_print('account', { %$Docs, %$attr });
+           docs_print('invoice', { %$Docs, %$attr });
           }
 
          exit;
@@ -1600,10 +1630,10 @@ sub docs_account {
        else {
          if ($Docs->{COMPANY_ID}) {
          	 $Company->info($Docs->{COMPANY_ID});
-         	 docs_print('account_company', { %$Docs, %$Company, %$attr, SUFIX => ($Docs->{VAT} > 0) ? 'vat' : '' });
+         	 docs_print('invoice_company', { %$Docs, %$Company, %$attr, SUFIX => ($Docs->{VAT} > 0) ? 'vat' : '' });
           }
          else {
-           docs_print('account', { %$Docs, %$attr }) if (! $FORM{QUICK});;
+           docs_print('invoice', { %$Docs, %$attr }) if (! $FORM{QUICK});;
           }
         }
 
@@ -1618,7 +1648,7 @@ sub docs_account {
  
   }
  elsif($FORM{print}){
-   $Docs->account_info($FORM{print}, { UID => $LIST_PARAMS{UID} });
+   $Docs->invoice_info($FORM{print}, { UID => $LIST_PARAMS{UID} });
 
    if ($conf{DOCS_VAT_INCLUDE}) {
    	 $Docs->{ORDER_TOTAL_SUM_VAT}  = sprintf("%.2f", $Docs->{TOTAL_SUM} / ((100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE}));
@@ -1637,12 +1667,12 @@ sub docs_account {
       $Docs->{FROM_DATE_LIT}='';
       
      (undef, $Docs->{TIME}) = split(/ /,  $Docs->{CREATED}, 2);
-
+     $Docs->{AMOUNT_FOR_PAY}=($Docs->{DEPOSIY}<0) ? abs($Docs->{DEPOSIT}) : 0-$Docs->{DEPOSIT};
      my $list = $Docs->{ORDERS};
      my $i=0;
      foreach my $line (@$list) {
    	   $i++;
- 	     $Docs->{ORDER} .= $html->tpl_show(_include('docs_account_order_row', 'Docs'), 
+ 	     $Docs->{ORDER} .= $html->tpl_show(_include('docs_invoice_order_row', 'Docs'), 
    	        { NUMBER => $i,
    	        	NAME   => $line->[1],
    	        	COUNT  => $line->[3],
@@ -1664,6 +1694,8 @@ sub docs_account {
        $Docs->{'ORDER_PRICE_WITHOUT_VAT_'.$i} = sprintf("%.2f", ( $Docs->{'ORDER_VAT_'.$i} ) ? $line->[4] -  $Docs->{'ORDER_VAT_'.$i} : $line->[3]);
        $Docs->{'ORDER_SUM_WITHOUT_VAT_'.$i}   = sprintf("%.2f", ($conf{DOCS_VAT_INCLUDE}) ? $sum - ($sum) / ((100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE}) : $sum );
 
+       $Docs->{AMOUNT_FOR_PAY}+=$Docs->{'ORDER_COUNT_'.$i}*$Docs->{'ORDER_PRICE_'.$i} if ($line->[5] == 0);
+
        #alternative currancy sum
        if ($Docs->{EXCHANGE_RATE} > 0) {
          $Docs->{'ORDER_ALT_SUM_'.$i}     = sprintf("%.2f", $Docs->{'ORDER_SUM_'.$i} * $Docs->{EXCHANGE_RATE});
@@ -1675,22 +1707,32 @@ sub docs_account {
       }
 
      $Docs->{TOTAL_SUM} = sprintf("%.2f", $Docs->{TOTAL_SUM});
+     $Docs->{AMOUNT_FOR_PAY} = sprintf("%.2f", $Docs->{AMOUNT_FOR_PAY});
+     
      if ($Docs->{EXCHANGE_RATE} > 0) {
      	 $Docs->{TOTAL_ALT_SUM} = sprintf("%.2f", $Docs->{TOTAL_SUM} * $Docs->{EXCHANGE_RATE});
+     	 $Docs->{AMOUNT_FOR_PAY_ALT} = sprintf("%.2f", $Docs->{AMOUNT_FOR_PAY} * $Docs->{EXCHANGE_RATE} );
       } 
 
      if ($attr->{GET_EMAIL_INFO}) {
-        $attr->{EMAIL_MSG_TEXT}        = "$_ACCOUNT:  $Docs->{ACCT_ID}\n $_DATE: $Docs->{DATE}\n $_SUM: $Docs->{TOTAL_SUM}\n" if (! $attr->{EMAIL_MSG_TEXT});
-        $attr->{EMAIL_ATTACH_FILENAME} = 'account_'. $Docs->{ACCT_ID} .'.pdf' if (! $attr->{EMAIL_ATTACH_FILENAME});
-        $attr->{EMAIL_MSG_SUBJECT}     = "ABillS - $_ACCOUNT /$Docs->{ACCT_ID}" if (! $attr->{EMAIL_MSG_SUBJECT});
+        $attr->{EMAIL_MSG_TEXT}        = "$_INVOICE:  $Docs->{INVOICE_ID}\n $_DATE: $Docs->{DATE}\n $_SUM: $Docs->{TOTAL_SUM}\n" if (! $attr->{EMAIL_MSG_TEXT});
+        $attr->{EMAIL_ATTACH_FILENAME} = 'invoice_'. $Docs->{INVOICE_ID} .'.pdf' if (! $attr->{EMAIL_ATTACH_FILENAME});
+        $attr->{EMAIL_MSG_SUBJECT}     = "ABillS - $_INVOICE /$Docs->{INVOICE_ID}" if (! $attr->{EMAIL_MSG_SUBJECT});
       }
 
+     
+          
+
+
+     
+          
+     
      if ($Docs->{COMPANY_ID}) {
        $Company->info($Docs->{COMPANY_ID});
-       return docs_print('account_company', { %$Docs, %$Company, %$attr, SUFIX => ($Docs->{VAT} > 0) ? 'vat' : '' });
+       return docs_print('invoice_company', { %$Docs, %$Company, %$attr, SUFIX => ($Docs->{VAT} > 0) ? 'vat' : '' });
       }
      else {
-       return docs_print('account', { %$Docs, %$attr });
+       return docs_print('invoice', { %$Docs, %$attr });
       }
     }
    else {
@@ -1698,28 +1740,35 @@ sub docs_account {
     }
    return 0;
   }
+  elsif($FORM{sendmail}) {
+    $FORM{print}= $FORM{sendmail};
+    $FORM{pdf}  = $conf{DOCS_PDF_PRINT};
+	  docs_invoice({ SEND_EMAIL => 1 });
+    $html->message('info', "$_INFO", "E-Mail $_SENDED ");
+	  return 0;
+  }
  elsif(defined($FORM{change})) {
-   $Docs->account_change({ %FORM, UID => $users->{UID} });
+   $Docs->invoice_change({ %FORM, UID => $users->{UID} });
    if(! $Docs->{errno}) {
      $html->message('info', "$_INFO", "$_CHANGED N: [$FORM{DOC_ID}]");
     }
   }
  elsif(defined($FORM{chg})) {
-   $Docs->account_info($FORM{chg});
+   $Docs->invoice_info($FORM{chg});
    if(! $Docs->{errno}) {
      $html->message('info', "$_INFO", "$_CHANGING N: [$FORM{chg}]");
     }
   }
  elsif(defined($FORM{del}) && $FORM{is_js_confirmed}) {
-   $Docs->account_del($FORM{del});
+   $Docs->invoice_del($FORM{del});
    if(! $Docs->{errno}) {
      $html->message('info', "$_INFO", "$_DELETED N: [$FORM{del}]");
     }
   }
 	
 	if(! $user->{UID}  ) {
-  	$Docs->{FORM_ACCT_ID} = "<tr><td>$_ACCOUNT $_NUM:</td><td><input type='text' name='ACCT_ID' value='%ACCT_ID%' size=12></td></tr>\n";
-    $Docs->{DATE_FIELD}=$html->date_fld2('DATE', { MONTHES => \@MONTHES, FORM_NAME => 'account_add', WEEK_DAYS => \@WEEKDAYS });    
+  	$Docs->{FORM_INVOICE_ID} = "<tr><td>$_INVOICE $_NUM:</td><td><input type='text' name='INVOICE_ID' value='%INVOICE_ID%' size=12></td></tr>\n";
+    $Docs->{DATE_FIELD}=$html->date_fld2('DATE', { MONTHES => \@MONTHES, FORM_NAME => 'invoice_add', WEEK_DAYS => \@WEEKDAYS });    
    }
   else {
   	$Docs->{DATE_FIELD}="$DATE";
@@ -1738,12 +1787,12 @@ sub docs_account {
   $users->pi({  UID => $users->{UID} || $FORM{UID} });
   $Docs->{OP_SID}  = mk_unique_value(16);
   $Docs->{CUSTOMER}= $self->{COMPANY_NAME} || $users->{FIO} || '-';
-  $Docs->{CAPTION} = $_ACCOUNT;  
+  $Docs->{CAPTION} = $_INVOICE;  
   if (! $FORM{pdf}) {
     my ($Y, $M, $D)=split(/-/, $DATE);
 
  if ($attr->{REGISTRATION} || $FORM{ALL_SERVICES}) {
- 	  $Docs->{DATE}      = $html->date_fld2('DATE', { MONTHES => \@MONTHES, FORM_NAME => 'invoice_add', WEEK_DAYS => \@WEEKDAYS });
+ 	  $Docs->{DATE}      = $html->date_fld2('DATE', { MONTHES => \@MONTHES, FORM_NAME => 'receipt_add', WEEK_DAYS => \@WEEKDAYS });
     
     # Get docs info
     $Docs->user_info($FORM{UID});
@@ -1765,7 +1814,7 @@ sub docs_account {
 
 
     my $table = $html->table( { width      => ($user->{UID}) ? '600' : '100%',
-                                caption    => ($user->{UID}) ? $_ACTIVATE_NEXT_PERIOD : "$_ACCOUNT $_PERIOD: $Y-$M",
+                                caption    => ($user->{UID}) ? $_ACTIVATE_NEXT_PERIOD : "$_INVOICE $_PERIOD: $Y-$M",
                                 border     => 1,
                                 title_plain=> ['#', "$_LOGIN", "$_DATE", "$_DESCRIBE", $_SUM ],
                                 cols_align => ['right', 'left', 'right', 'left' ],
@@ -1777,7 +1826,7 @@ sub docs_account {
     
 
     if (! $user->{UID}) {
-      my $list = $Docs->account_new({ FROM_DATE => $FORM{FROM_DATE} || $html->{FROM_DATE},
+      my $list = $Docs->invoice_new({ FROM_DATE => $FORM{FROM_DATE} || $html->{FROM_DATE},
     	                       TO_DATE   => $FORM{TO_DATE} || $html->{TO_DATE} || $DATE,
     	                       PAGE_ROWS => 500,
     	                       UID       => $users->{UID}
@@ -1807,7 +1856,7 @@ sub docs_account {
     	$FORM{NEXT_PERIOD}=1;
      } 
 
-    my $total_sum = ($users->{DEPOSIT}<0) ? abs($users->{DEPOSIT}) : 0 - $users->{DEPOSIT}; 
+    my $total_sum = ($users->{DEPOSIT}<0) ? abs($users->{DEPOSIT}) : 0; 
     my $date = $DATE;
     if ($users->{ACTIVATE}ne '0000-00-00') {
       $date = $users->{ACTIVATE};
@@ -1832,7 +1881,7 @@ sub docs_account {
     if ($FORM{NEXT_PERIOD}) {
   	  # Get invoces
    	  my %current_invoice = ();
- 	    my $list = $Docs->accounts_list({ UID         => $FORM{UID}, 
+ 	    my $list = $Docs->invoices_list({ UID         => $FORM{UID}, 
  	    	                               PAYMENT_ID  => 0, 
  	    	                               ORDERS_LIST => 1 
  	    	                              });
@@ -1840,7 +1889,6 @@ sub docs_account {
    	  foreach my $line (@$list) {
     		$current_invoice{$line->[1]}=$line->[0];
  	     }
-
 
  	    my $cross_modules_return = cross_modules_call('_docs');
       my $next_period = $FORM{NEXT_PERIOD};
@@ -1885,7 +1933,7 @@ sub docs_account {
 
  	 	 	my $period_from = $FORM{FROM_DATE};
       my $period_to   = $FORM{FROM_DATE}; 
-      
+     
  	    foreach my $module (sort keys %$cross_modules_return) {
  	 	   if (ref $cross_modules_return->{$module} eq 'ARRAY') {
  	 	 	   next if ( $#{ $cross_modules_return->{$module} } == -1 );
@@ -1961,6 +2009,7 @@ sub docs_account {
  	 	                    $result_sum );
 
  	 	         $total_sum	+= $sum if (! $current_invoice{$order}); 	 	         
+ 	 	         
  	 	         $period_from = strftime "%Y-%m-%d", localtime( (mktime(0, 0, 0, $D, ($M-1), ($Y-1900), 0, 0, 0) + 1 * 86400) ); 
            }
  	 	      } 
@@ -1969,6 +2018,7 @@ sub docs_account {
      }
 
     if ($users->{DEPOSIT}>0) {
+
  	    $amount_for_pay    = ($total_sum<$users->{DEPOSIT}) ? 0 : $total_sum-$users->{DEPOSIT};
  	   }
     else {
@@ -1986,19 +2036,20 @@ sub docs_account {
     $Docs->{TO_DATE}   = $html->date_fld2('TO_DATE', { MONTHES => \@MONTHES, FORM_NAME => 'invoice_add', WEEK_DAYS => \@WEEKDAYS });
     $FORM{NEXT_PERIOD} = 0 if ($FORM{NEXT_PERIOD} < 0);
     if ($attr->{REGISTRATION}) {
+    	return 0 if (! $attr->{ACTION});
       $Docs->{BACK}      = $html->form_input('back', "$_BACK", {  TYPE => 'submit' });
-      $Docs->{NEXT}      = $html->form_input('skip', "$_NEXT", {  TYPE => 'submit' });
+      $Docs->{NEXT}      = $html->form_input($attr->{ACTION}, "$attr->{LNG_ACTION}", {  TYPE => 'submit' });
      }
     
-    
+
     if ($user->{UID}) {
     	return 0 if (! $num);
     	
-	    $action = $html->form_input('make', "$_CREATE $_ACCOUNT", {  TYPE => 'submit', OUTPUT2RETURN => 1 });
+	    $action = $html->form_input('make', "$_CREATE $_INVOICE", {  TYPE => 'submit', OUTPUT2RETURN => 1 });
       $table->{rowcolor}='even';
       $table->{extra}=' colspan=5 align=center';
       $table->addrow($action);
-     
+
     	my $content = $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN=>1  }),
                  HIDDEN  => { index          => "$index",
 	                 	            UID            => $FORM{UID},
@@ -2008,14 +2059,16 @@ sub docs_account {
 	                 	            step           => $FORM{step},
 	                 	            #ALL_SERVICES   => 1
 	                 	           },
-	                 NAME    => 'DOCS_SERVICES_ACCOUNT',
+	                 NAME    => 'DOCS_SERVICES_INVOICE',
 	                });
 
       #print $content;
      }
     else {
+    	         	
     	$Docs->{ORDERS}    = $table->show({ OUTPUT2RETURN => 1 });
-      $html->tpl_show(_include('docs_invoice_add', 'Docs'), { %FORM, %$attr, %$Docs, %$users }) if (! $FORM{pdf});   
+      $html->tpl_show(_include('docs_receipt_add', 'Docs'), { %FORM, %$attr, %$Docs, %$users }) if (! $FORM{pdf});   
+      
      }
 
      
@@ -2030,11 +2083,11 @@ sub docs_account {
 # 	
 #   my $table = $html->table( { width      => '600',
 #                            border     => 1,
-#                            caption    => ($user->{UID}) ? $_ACTIVATE_NEXT_PERIOD : "$_ACCOUNT $_PERIOD: $Y-$M",
+#                            caption    => ($user->{UID}) ? $_ACTIVATE_NEXT_PERIOD : "$_INVOICE $_PERIOD: $Y-$M",
 #                            title_plain=> ['#', $_SERVICE, $_SUM ],
 #                            cols_align => ['right', 'left', 'right'],
 #                            qs         => $pages_qs,
-#                            ID         => 'DOCS_SERVICE_ACCOUNTS',
+#                            ID         => 'DOCS_SERVICE_INVOICES',
 #                            class      => 'form',
 #                          });
 #
@@ -2097,7 +2150,7 @@ sub docs_account {
 #	             $html->form_input('make', "$attr->{LNG_ACTION}", {  TYPE => 'submit' });
 #    }
 #   else{
-#	   $action = $html->form_input('make', "$_CREATE $_ACCOUNT", {  TYPE => 'submit', OUTPUT2RETURN => 1 });
+#	   $action = $html->form_input('make', "$_CREATE $_INVOICE", {  TYPE => 'submit', OUTPUT2RETURN => 1 });
 #    }
 #
 #   $table->{rowcolor}='even';
@@ -2113,20 +2166,20 @@ sub docs_account {
 #	                 	            step           => $FORM{step},
 #	                 	            #ALL_SERVICES   => 1
 #	                 	           },
-#	                 NAME    => 'DOCS_SERVICES_ACCOUNT',
+#	                 NAME    => 'DOCS_SERVICES_INVOICE',
 #	                });
 #  
 #   print $content;
   }
 #
  else {
-  	$Docs->{ORDERS} = $html->tpl_show(_include('docs_account_orders', 'Docs'), { %$Docs, 
+  	$Docs->{ORDERS} = $html->tpl_show(_include('docs_invoice_orders', 'Docs'), { %$Docs, 
   		   %$users, 
   		   MONTH => $MONTHES[int($M-1)], 
   		   DATE  => $DATE,
   		   TIME  => $TIME,
   		   %FORM }, { OUTPUT2RETURN => 1 }) ;
-    $html->tpl_show(_include('docs_account_add', 'Docs'), { %$Docs, %$users, %FORM }) ;
+    $html->tpl_show(_include('docs_invoice_add', 'Docs'), { %$Docs, %$users, %FORM }) ;
   }
 
    }
@@ -2319,7 +2372,7 @@ sub docs_summary {
 }
 
 #**********************************************************
-# docs_tax_invoice_list
+# docs_acts_list
 #**********************************************************
 sub docs_acts_list {
   my ($attr) = @_;
@@ -2404,7 +2457,7 @@ return 0;
 
 
 #**********************************************************
-# docs_tax_invoice
+# docs_acts
 #**********************************************************
 sub docs_acts {
 	my ($attr) = @_;
@@ -2543,14 +2596,14 @@ my $Sessions = Dv_Sessions->new($db, $admin, \%conf);
   }
 	
 	if(! $user->{UID}  ) {
-  	$Docs->{FORM_ACCT_ID} = "<tr><td>$_TAX_INVOICE $_NUM:</td><td><input type='text' name='ACCT_ID' value='%ACCT_ID%'></td></tr>\n";
+  	$Docs->{FORM_INVOICE_ID} = "<tr><td>$_TAX_INVOICE $_NUM:</td><td><input type='text' name='INVOICE_ID' value='%INVOICE_ID%'></td></tr>\n";
    }
 
   #$Docs->{COMPANY_VAT}=$user->{COMPANY_VAT}.' %';
   
   $users->pi({  UID => $users->{UID} });
   $Docs->{CUSTOMER}=  $users->{FIO} || '-';
-  $Docs->{CAPTION} =  $_ACCOUNT;
+  $Docs->{CAPTION} =  $_INVOICE;
   $Docs->{OP_SID}  = mk_unique_value(16);
   
   my ($Y, $M, $D)=split(/-/, $DATE, 3);  
@@ -2748,30 +2801,30 @@ for (my $year=2009; $year<=$Y; $year++) {
 #**********************************************************
 sub docs_payments_maked {
 	my ($attr) = @_;
-#Add account number 
+#Add invoice number 
 
 
-if ($FORM{ACCOUNT_ID}) {
- 	$Docs->account_change({ ID         => $FORM{ACCOUNT_ID},
+if ($FORM{INVOICE_ID}) {
+ 	$Docs->invoice_change({ ID         => $FORM{INVOICE_ID},
  		                      UID        => $FORM{UID},
  		                      PAYMENT_ID => $attr->{PAYMENT_ID}
                        });
 
  	if ($Docs->{errno}) {
  		if ($Docs->{errno} == 2) {
- 		  $html->message('err', "$_ACCOUNT $_ERROR", "$_ACCOUNT $_NOT_EXIST ID: $FORM{ACCOUNT_ID}");	
+ 		  $html->message('err', "$_INVOICE $_ERROR", "$_INVOICE $_NOT_EXIST ID: $FORM{INVOICE_ID}");	
  		 }
  		else {
- 			$html->message('err', "$_ACCOUNT $_ERROR", "[$Docs->{errno}] $err_strs{$Docs->{errno}}");	
+ 			$html->message('err', "$_INVOICE $_ERROR", "[$Docs->{errno}] $err_strs{$Docs->{errno}}");	
  		 }
    }
   elsif ($Docs->{TOTAL_SUM} != $FORM{SUM})  {
-    $html->message('err', $_ERROR, "$_ACCOUNT $_SUM: $Docs->{TOTAL_SUM} / $_PAYMENTS $_SUM: $FORM{SUM}");
+    $html->message('err', $_ERROR, "$_INVOICE $_SUM: $Docs->{TOTAL_SUM} \n$_PAYMENTS $_SUM: $FORM{SUM}");
    }
  }
       
 if ($FORM{CREATE_INVOICE}) {
-  docs_invoice_add({
+  docs_receipt_add({
         	DATE       => $DATE,
         	CUSTOMER   => '-', 
         	PHONE      => '',
@@ -2889,21 +2942,22 @@ sub docs_user {
 sub docs_pre_payment {
 	my ($attr) = @_;
 
-  if( $FORM{ACCOUNT_ID} && $FORM{ACCOUNT_ID} eq 'create') {
-    #$FORM{ACCOUNT_ID}= undef;
+  if( $FORM{INVOICE_ID} && $FORM{INVOICE_ID} eq 'create') {
+    $FORM{INVOICE_ID}= undef;
     $LIST_PARAMS{UID}= $FORM{UID};
     $FORM{create}    = 1;
     $FORM{CUSTOMER}  = '-';
     $FORM{ORDER}     = $FORM{DESCRIBE};
-    docs_account();
+    
+    docs_invoice();
    }
-  elsif($FORM{ACCOUNT_ID}) {
-    $Docs->account_info($FORM{ACCOUNT_ID});
+  elsif($FORM{INVOICE_ID}) {
+    $Docs->invoice_info($FORM{INVOICE_ID});
     if ($Docs->{TOTAL} == 0) {
-   	  $FORM{ACCOUNT_SUM}=0;
+   	  $FORM{INVOICE_SUM}=0;
      }
     else {
-  	  $FORM{ACCOUNT_SUM} = $Docs->{TOTAL_SUM};
+  	  $FORM{INVOICE_SUM} = $Docs->{TOTAL_SUM};
      }
    }
 

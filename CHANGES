@@ -1,5 +1,61 @@
 =====0.54=====
 
+12.02.2012\\
+  * ''Docs'' Изменена структура базы данных для модуля документов. внимательно при обновлении! таблица docs_invoice переименована в docs_receipts, таблица docs_accounts в docs_invoices, также изменились шаблоны: с invoice на  receipt,  account   на invoice
+  * При оплате в валюте отличающейся от системной сума валюты оплаты и код валюты  вносится в журнал платежей 
+  * ''Docs'' Добавлено поле для регистрации последнего периодического счета
+
+
+MySQL:\\
+
+  RENAME TABLE docs_invoice TO docs_receipts;
+  RENAME TABLE docs_invoice_orders TO docs_receipt_orders;
+  ALTER TABLE docs_receipts CHANGE COLUMN invoice_id receipt_num int(10) unsigned NOT NULL default '0';
+  ALTER TABLE docs_receipt_orders CHANGE COLUMN invoice_id receipt_id int(11) unsigned NOT NULL default '0';
+  ALTER TABLE docs_receipt_orders DROP KEY invoice_id;
+  ALTER TABLE docs_receipt_orders ADD KEY receipt_id (receipt_id);
+  
+  RENAME TABLE docs_acct TO docs_invoices;
+  RENAME TABLE docs_acct_orders TO docs_invoice_orders;
+  ALTER TABLE docs_invoices CHANGE COLUMN acct_id invoice_num int(10) unsigned NOT NULL default '0';
+  ALTER TABLE docs_invoice_orders CHANGE COLUMN acct_id invoice_id int(10) unsigned NOT NULL default '0';
+  ALTER TABLE docs_invoice_orders DROP KEY aid;
+  ALTER TABLE docs_invoice_orders ADD KEY invoice_id (invoice_id);
+  
+  ALTER TABLE payments ADD COLUMN currency smallint unsigned not null default 0;
+  ALTER TABLE payments ADD COLUMN amount double(10,2) NOT NULL default '0.00';
+  
+  ALTER TABLE `docs_main` ADD COLUMN  `invoice_date` date NOT NULL default '0000-00-00';
+  ALTER TABLE `docs_receipts` ADD COLUMN  `exchange_rate` double(12,4) NOT NULL default '0.0000';
+  ALTER TABLE `docs_receipts` ADD COLUMN  `currency` smallint(6) unsigned  NOT NULL default 0;
+
+
+6.02.2012\\
+  * ''Docs'' добавлен флаг персональной доставки документов
+  * ''Docs'' добавлен период инвойсирования 
+  * ''Docs'' выписка счетов по начисленным услугам
+  * ''Docs'' Выписка счетов в валюте билинговой системы и в параллельной валюте с учётом курса обмена
+  * ''Docs''  валюта документов $conf{DOCS_CURRENCY}
+  * Возврат при пополнении счета должников в преведущую группу
+  * Возможность задать дату оплаты и все пополнения делать заданным числом. Дата пополнения и внутренние комментарии сохраняется до конца сеанса
+  * ''Dv'' Изменилась детализация начинаний абон. платы
+  * Добавлен новый интерфейсный элемент поиска для серверов доступа
+  * ''Paysys'' новые платёжные системы: Ipay, CyberPlat, Cyberplat VISA, PayNET, Zaplati Summy, Газпромбанк, TellCell
+  * Добавлена опция $conf{SYSTEM_CURRENCY}  задающая валюту системы
+
+
+MySQL:\\
+
+  ALTER TABLE `docs_main` ADD COLUMN  `personal_delivery` tinyint(1) unsigned NOT NULL default '0';
+  ALTER TABLE `docs_main` ADD COLUMN  `invoicing_period` tinyint(3) unsigned NOT NULL default '0';
+  ALTER TABLE `docs_acct` ADD COLUMN  `exchange_rate` double(12,4) NOT NULL default '0.0000';
+  ALTER TABLE `docs_acct` ADD COLUMN  `currency` smallint unsigned  NOT NULL default 0;
+  ALTER TABLE `docs_acct_orders` ADD COLUMN `fees_id` int(11) unsigned NOT NULL default 0;
+  ALTER TABLE `exchange_rate_log` ADD COLUMN `id`  int(10) unsigned NOT NULL auto_increment primary key;
+  ALTER TABLE `dv_calls` ADD COLUMN `guest` tinyint(1) unsigned NOT NULL default '0';
+  ALTER TABLE `dv_calls` CHANGE COLUMN  CONNECT_INFO `CONNECT_INFO` varchar(30) NOT NULL default '';
+
+
 
 
 17.12.2012\\

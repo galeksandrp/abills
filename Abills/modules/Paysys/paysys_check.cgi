@@ -599,7 +599,8 @@ sub privatbank_payments {
 # OSMP / Pegas
 #**********************************************************
 sub osmp_payments {
-
+ my ($attr)=@_;
+ 
  if ($conf{PAYSYS_PEGAS_PASSWD}) {
    my($user, $password)=split(/:/, $conf{PAYSYS_PEGAS_PASSWD});
 	
@@ -618,11 +619,13 @@ sub osmp_payments {
  }
 
  print "Content-Type: text/xml\n\n";
- my $txn_id            = 'osmp_txn_id';
- my $payment_system    = 'OSMP';
- my $payment_system_id = 44;
- my $CHECK_FIELD       = $conf{PAYSYS_OSMP_ACCOUNT_KEY} || 'UID';
+ 
+ my $payment_system    = $attr->{SYSTEM_ID} || 'OSMP';
+ my $payment_system_id = $attr->{SYSTEM_SHORT_NAME} || 44;
+ my $CHECK_FIELD       = $conf{PAYSYS_OSMP_ACCOUNT_KEY} || $attr->{CHECK_FIELDS} || 'UID';
 
+ my $txn_id            = 'osmp_txn_id';
+ 
 my %status_hash = (0	=> 'Success',
   1   => 'Temporary DB error',
   4	  => 'Wrong client indentifier',

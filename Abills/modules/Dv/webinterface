@@ -5840,7 +5840,7 @@ sub dv_wizard_user {
       docs_contract({ %$Dv });
     } 
    else {
-     docs_account();
+     docs_invoice();
     }
    return 0;
   }
@@ -6105,7 +6105,7 @@ sub dv_wizard_user {
              }
 
             $FORM{'create'}  = 1;
-        	  docs_account();
+        	  docs_invoice();
         	}
         }
        }

@@ -421,7 +421,7 @@ sub form_info {
   	  if (in_array('Docs', \@MODULES) ) {
     	  $FORM{ALL_SERVICES}=1;
     	  load_module('Docs', $html);
-    	  docs_account();
+    	  docs_invoice();
        }
      }
    }
@@ -462,7 +462,7 @@ sub form_info {
   my $sum  = ($user->{DEPOSIT} < 0) ? abs($user->{DEPOSIT}*2) : 0;
   $pages_qs = "&SUM=$sum&sid=$sid";
   if (in_array('Docs', \@MODULES) ) {
-  	my $fn_index = get_function_index('docs_accounts_list');
+  	my $fn_index = get_function_index('docs_invoices_list');
     $user->{DOCS_ACCOUNT} = $html->button("$_INVOICE_CREATE", "index=$fn_index$pages_qs", { BUTTON => 1} );
    }
 
@@ -1299,7 +1299,7 @@ sub form_neg_deposit {
   my ($user, $attr)=@_;
 
   if (in_array('Docs', \@MODULES) ) {
-   	my $fn_index = get_function_index('docs_accounts_list');
+   	my $fn_index = get_function_index('docs_invoices_list');
     $user->{DOCS_BUTTON} = $html->button("$_INVOICE_CREATE", "index=$fn_index$pages_qs", { BUTTON => 1} );
    }
 

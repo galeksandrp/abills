@@ -131,7 +131,7 @@ sub abon_user {
    	        $FORM{CUSTOMER}  = '-';
    	        $FORM{ORDER}     = "[$Abon->{TP_INFO}->{TP_ID}] $Abon->{TP_INFO}->{NAME} $Abon->{COMMENTS}";
     	      $FORM{SEND_EMAIL}= $FORM{'SEND_DOCS_'.$Abon->{TP_INFO}->{TP_ID}} || undef;
-    	      docs_account({ QUITE => 1 });    	
+    	      docs_invoice({ QUITE => 1 });    	
            }
 
           if ($activate_notification) {
@@ -572,7 +572,7 @@ sub abon_periodic {
    	       $FORM{CUSTOMER}  = '-';
    	       $FORM{ORDER}     = "$info{TP_NAME} $info{COMMENT}";
    	       $FORM{SEND_EMAIL}= $info{SEND_DOCS} || 0;
-   	       docs_account({ QUITE => 1 });
+   	       docs_invoice({ QUITE => 1 });
           }
 
          if ($ext_cmd) {
@@ -602,12 +602,12 @@ sub abon_periodic {
    	       $FORM{create}    = 1;
    	       $FORM{CUSTOMER}  = '-';
    	       $FORM{ORDER}     = "$info{TP_NAME} $info{COMMENT}";
-   	       my $content = docs_account({ QUITE => 1, OUTPUT2RETURN => 1 });
+   	       my $content = docs_invoice({ QUITE => 1, OUTPUT2RETURN => 1 });
    	       
    	       if ($info{SEND_DOCS}) {
    	         $attach = [ { CONTENT      => $content,
        	  	             CONTENT_TYPE => 'Content-type: application/pdf',
-       	  	             FILENAME     => 'account.pdf' }
+       	  	             FILENAME     => 'invoice.pdf' }
 	  	                 ];
     	      }
 
@@ -646,10 +646,10 @@ sub abon_periodic {
    	       $FORM{ORDER}     = "$info{TP_NAME} $info{COMMENT}";
    	       $FORM{SEND_EMAIL}= $info{SEND_DOCS} || undef;
    	       $FORM{pdf}       = $conf{DOCS_PDF_PRINT};
-   	       my $content      = docs_account({ QUITE => 1, OUTPUT2RETURN => 1 });
+   	       my $content      = docs_invoice({ QUITE => 1, OUTPUT2RETURN => 1 });
    	       $attach = [ { CONTENT      => $content,
        	  	             CONTENT_TYPE => 'Content-type: application/pdf',
-       	  	             FILENAME     => 'account.pdf' }
+       	  	             FILENAME     => 'invoice.pdf' }
 	  	                 ];
 	  	                 
       	  	                 
@@ -678,11 +678,11 @@ sub abon_periodic {
    	     $FORM{print}            = $notification1_account_id;
    	     $FORM{CHECK_PEYMENT_ID} = 1;
    	     $FORM{pdf}              = $conf{DOCS_PDF_PRINT};
-   	     my $content = docs_account({ QUITE => 1, OUTPUT2RETURN => 1  });
+   	     my $content = docs_invoice({ QUITE => 1, OUTPUT2RETURN => 1  });
    	     if ($content) {
    	       $attach = [ { CONTENT      => $content,
        	  	             CONTENT_TYPE => 'Content-type: application/pdf',
-       	  	             FILENAME     => 'account.pdf' }
+       	  	             FILENAME     => 'invoice.pdf' }
 	  	                 ];
    	      }
     	 }

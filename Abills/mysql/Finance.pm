@@ -72,7 +72,7 @@ sub exchange_list {
  my $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
  my $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
 
- $self->query($db, "SELECT money, short_name, rate, changed, id 
+ $self->query($db, "SELECT money, short_name, rate, iso, changed, id 
     FROM exchange_rate
     ORDER BY $SORT $DESC;");
 
