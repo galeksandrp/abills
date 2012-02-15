@@ -520,6 +520,7 @@ sub invoices_list {
    push @WHERE_RULES, "d.uid='$attr->{UID}'"; 
  }
  
+ $self->{EXT_FIELDS}='';
  if ($attr->{FULL_INFO}) {
    $self->{EXT_FIELDS}=",
  	 pi.address_street,
@@ -543,7 +544,6 @@ sub invoices_list {
 
 
  $WHERE = ($#WHERE_RULES > -1) ? 'WHERE ' . join(' and ', @WHERE_RULES)  : '';
-
  $self->query($db,   "SELECT d.invoice_num, d.date, if(d.customer='-' or d.customer='', pi.fio, d.customer),sum(o.price * o.counts), 
      d.payment_id, u.id, a.name, d.created, p.method, p.ext_id, g.name, 
      if (d.exchange_rate>0, sum(o.price * o.counts) * d.exchange_rate, 0.00),
@@ -638,6 +638,8 @@ sub invoice_new {
 
  $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
  $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+ $PG = ($attr->{PG}) ? $attr->{PG} : 0;
+ $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
 
  undef @WHERE_RULES;
 
@@ -1738,12 +1740,19 @@ sub user_list {
 
 
  if ($attr->{INVOICE_DATE}) {
-   push @WHERE_RULES, @{ $self->search_expr("$attr->{INVOICE_DATE}", 'DATE', 'ti_c.month_price') };
+   push @WHERE_RULES, @{ $self->search_expr("$attr->{INVOICE_DATE}", 'DATE', 'service.invoice_date') };
   }
+
+
+ if ($attr->{PRE_INVOICE_DATE}) {
+   push @WHERE_RULES, @{ $self->search_expr("$attr->{PRE_INVOICE_DATE}", 'DATE', '((service.invoice_date + INTERVAL service.invoicing_period MONTH) - INTERVAL 10 day)') };
+  }
+
 
  if ($attr->{PERIODIC_CREATE_DOCS}) {
    push @WHERE_RULES, @{ $self->search_expr("$attr->{PERIODIC_CREATE_DOCS}", 'INT', 'd.periodic_create_docs') };
   }
+
 
 
 
@@ -1752,11 +1761,24 @@ sub user_list {
 
 my $list;
 
- $self->query($db, "select uid, invoice_date, invoicing_period, 
-    (invoice_date + INTERVAL invoicing_period MONTH) - INTERVAL 10 day AS PRE_INVOICE_DATE , 
-      email, send_docs
-   FROM (users, docs_main)
-   WHERE u.uid=d.uid
+ $self->query($db, "select u.id, pi.fio, 
+     if(company.id IS NULL, b.deposit, cb.deposit), 
+     if(u.company_id=0, u.credit, 
+          if (u.credit=0, company.credit, u.credit)), u.disable, 
+     service.invoice_date, service.invoicing_period,    
+     service.email, 
+     service.send_docs,
+     service.uid,
+     u.activate,
+     (service.invoice_date + INTERVAL service.invoicing_period MONTH) - INTERVAL 10 day AS PRE_INVOICE_DATE 
+   FROM (users u, docs_main service)
+   
+   LEFT JOIN users_pi pi ON (u.uid = pi.uid)
+   LEFT JOIN bills b ON (u.bill_id = b.id)
+   LEFT JOIN companies company ON  (u.company_id=company.id) 
+   LEFT JOIN bills cb ON  (company.bill_id=cb.id)
+  
+   WHERE u.uid=service.uid AND
 
    $WHERE 
    ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");
@@ -1766,7 +1788,8 @@ my $list;
  $list = $self->{list};
 
  if ($self->{TOTAL} >= 0) {
-    $self->query($db, "SELECT count(u.id) FROM (users u, iptv_main service) $WHERE");
+    $self->query($db, "SELECT count(u.id)  FROM users u, docs_main service
+   WHERE u.uid=service.uid AND $WHERE");
     ($self->{TOTAL}) = @{ $self->{list}->[0] };
    }
 

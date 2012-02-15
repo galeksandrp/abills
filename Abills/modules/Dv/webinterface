@@ -7249,7 +7249,9 @@ sub dv_pay_to {
 sub dv_docs {
 	my ($attr)=@_;
 	
-	$Dv->info($FORM{UID});
+	my $uid = $attr->{UID} || $FORM{UID};
+
+	$Dv->info($uid);
   my @services = ();
   if ($Dv->{MONTH_ABON} > 0) {
     push @services, "Internet: $_MONTH_FEE_SHORT $Dv->{TP_NAME} ($Dv->{TP_ID})||$Dv->{MONTH_ABON}";
@@ -7267,8 +7269,6 @@ sub dv_docs {
      }
      
 		my $days_in_month = ($M!=2?(($M%2)^($M>7))+30:(!($Y%400)||!($Y%4)&&($Y%25)?29:28));
-		
-		
 		
     push @services, "Internet: $_DAY_FEE_SHORT: $Dv->{TP_NAME} ($Dv->{TP_ID})|$days_in_month $_DAY|". sprintf("%.2f", ($Dv->{DAY_ABON}*$days_in_month));
    }

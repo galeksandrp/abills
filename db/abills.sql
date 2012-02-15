@@ -1221,9 +1221,7 @@ CREATE TABLE `streets` (
   `district_id` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   UNIQUE KEY `id` (`id`),
-  UNIQUE KEY `name` (`name`),
   UNIQUE KEY `name_district` (`name`, `district_id`),
-  UNIQUE KEY `name_2` (`name`)
 ) COMMENT='Locations streets';
 
 
