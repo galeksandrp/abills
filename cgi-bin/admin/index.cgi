@@ -803,7 +803,7 @@ elsif ($FORM{update}) {
  	  	      REGISTRATION=> 1,
  	  	      #USER        => \%FORM,
  	  	      USER_INFO   => ($FORM{UID}) ? $users : undef,
- 	  	      LNG_ACTION  => ($steps{$FORM{step}}) ? "$_NEXT - $steps{$FORM{step}}" : "$_REGISTRATION_COMPLETE",
+ 	  	      LNG_ACTION  => ($steps{$FORM{step}}) ? "$_NEXT" : "$_REGISTRATION_COMPLETE",
  	  	      BACK_BUTTON => ($FORM{step} > 2) ? $html->form_input('finish', "$_FINISH", {  TYPE => 'submit' }).' '. $html->form_input('back', "$_BACK", {  TYPE => 'submit' }) : (! $FORM{back}) ? $html->form_input('add', "$_FINISH", {  TYPE => 'submit' }) : $html->form_input('change', "$_FINISH", {  TYPE => 'submit' }),
  	  	      UID         => $FORM{UID},
  	  	      SUBJECT     => $_REGISTRATION
@@ -5747,7 +5747,7 @@ if ($permissions{1} && $permissions{1}{1}) {
    }
 
   if (in_array('Docs', \@MODULES) ) {
-  	my $ACCOUNTS_SEL = $html->form_select("INVOICE_ID", 
+  	my $INVOICE_SEL = $html->form_select("INVOICE_ID", 
                                 { SELECTED          => $FORM{INVOICE_ID},
  	                                SEL_MULTI_ARRAY   => $Docs->invoices_list({ UID => $user->{UID}, PAYMENT_ID => 0, PAGE_ROWS => 100, SORT => 2, DESC => 'DESC' }), 
  	                                MULTI_ARRAY_KEY   => 13,
@@ -5760,12 +5760,12 @@ if ($permissions{1} && $permissions{1}{1}) {
  	                               });
 
     $payments->{DOCS_ACCOUNT_ELEMENT}="<tr><th colspan=3 class='form_title'>$_DOCS</th></tr>\n".
-    "<tr><td colspan=2>$_ACCOUNT:</td><td>$ACCOUNTS_SEL</td></tr>";
+    "<tr><td colspan=2>$_INVOICE:</td><td>$INVOICE_SEL</td></tr>";
    }
 
 
    if (in_array('Docs', \@MODULES) ) {
-     $payments->{DOCS_ACCOUNT_ELEMENT} .= "<tr><td colspan=2>$_INVOICE:</td><td>". $html->form_input('CREATE_INVOICE', '1', { TYPE => 'checkbox', STATE => 1 }). "</td></tr>\n";
+     $payments->{DOCS_ACCOUNT_ELEMENT} .= "<tr><td colspan=2>$_RECEIPT:</td><td>". $html->form_input('CREATE_RECEIPT', '1', { TYPE => 'checkbox', STATE => 1 }). "</td></tr>\n";
     }   
    
    

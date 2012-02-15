@@ -42,9 +42,17 @@ sub new {
 sub invoice_defaults {
   my $self = shift;
 
-  %DATA = ( SUM    => '0.00',
-            COUNTS => 1,
-            UNIT   => 1
+  %DATA = ( SUM        => '0.00',
+            COUNTS     => 1,
+            UNIT       => 1,
+            PAYMENT_ID => 0,
+            PHONE      => '',
+            VAT        => '',
+            DEPOSIT    => 0,
+            DELIVERY_STATUS => 0,
+            EXCHANGE_RATE   => 0,
+            DOCS_CURRENCY   => 0,
+            CUSTOMER        => '',
           );   
  
   $self = \%DATA;
@@ -743,6 +751,8 @@ sub invoice_add {
 	my $self = shift;
 	my ($attr) = @_;
  
+  invoice_defaults();
+ 
   %DATA          = $self->get_data($attr, { default => \%DATA }); 
   $DATA{DATE}    = ($attr->{DATE})    ? "'$attr->{DATE}'" : 'now()';
   $DATA{CUSTOMER}= '' if (! $DATA{CUSTOMER});
@@ -753,6 +763,7 @@ sub invoice_add {
   $DATA{INVOICE_NUM} = ($attr->{INVOICE_NUM}) ? $attr->{INVOICE_NUM}  : $self->docs_nextid({ TYPE => 'INVOICE' });
   return $self if($self->{errno});
 
+  $self->{debug}=1;
   $self->query($db, "insert into docs_invoices (invoice_num, date, created, customer, phone, aid, uid, payment_id, vat, deposit, 
     delivery_status, exchange_rate, currency)
       values ('$DATA{INVOICE_NUM}', $DATA{DATE}, now(), \"$DATA{CUSTOMER}\", \"$DATA{PHONE}\", 
@@ -770,14 +781,14 @@ sub invoice_add {
       $DATA{'COUNTS_'.$id} = 1 if (! $DATA{'COUNTS_'.$id});
       #next if (! $DATA{'SUM_'.$id} || $DATA{'SUM_'.$id} <= 0);
       $DATA{'SUM_'.$id} =~ s/\,/\./g;
-     
       if ($DATA{ER} && $DATA{ER} != 1) {
         $DATA{'SUM_'.$id} = $DATA{'SUM_'.$id} / $DATA{ER};
        }
       
       $self->query($db, "INSERT INTO docs_invoice_orders (invoice_id, orders, counts, unit, price, fees_id)
-         values (". $self->{'DOC_ID'}.", \"". $DATA{'ORDER_'. $id}."\", '". $DATA{'COUNTS_'.$id}."', '". $DATA{'UNIT_'.$id} ."',
-       '". $DATA{'SUM_'.$id}."','". $DATA{'FEES_ID_'.$id} ."')", 'do');
+         values (". $self->{'DOC_ID'}.", \"". $DATA{'ORDER_'. $id}."\", '". $DATA{'COUNTS_'.$id}."', '". 
+         ( $DATA{'UNIT_'.$id} || 0 ) ."',
+       '". $DATA{'SUM_'.$id}."','". ($DATA{'FEES_ID_'.$id} || 0) ."')", 'do');
   	 }
    }
   else {
@@ -786,8 +797,7 @@ sub invoice_add {
           
       
     if ($DATA{ER} && $DATA{ER} != 1) {
-        $DATA{'SUM'} = $DATA{'SUM'} / $DATA{ER};
-        print "// $DATA{ER} / $DATA{'SUM'} //";
+      $DATA{'SUM'} = $DATA{'SUM'} / $DATA{ER};
      }
 
     $self->query($db, "INSERT INTO docs_invoice_orders (invoice_id, orders, counts, unit, price)
@@ -1765,7 +1775,9 @@ my $list;
      if(company.id IS NULL, b.deposit, cb.deposit), 
      if(u.company_id=0, u.credit, 
           if (u.credit=0, company.credit, u.credit)), u.disable, 
-     service.invoice_date, service.invoicing_period,    
+     service.invoice_date, 
+     (service.invoice_date + INTERVAL service.invoicing_period MONTH) AS NEXT_INVOICE_DATE,
+     service.invoicing_period,    
      service.email, 
      service.send_docs,
      service.uid,

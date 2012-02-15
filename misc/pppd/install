@@ -24,3 +24,7 @@ pppoe-server-options > [/etc/ppp]/pppoe-server-options
 exec:mkdir ~/src/ && cd ~/src && wget ftp://ftp.samba.org/pub/ppp/ppp-2.4.4.tar.gz && wget http://bugs.gentoo.org/attachment.cgi?id=102981 -O radius-gigawords.patch
 exec:tar zxvf ppp-2.4.4.tar.gz && cd ppp-2.4.4 && patch -p1 -l < ../radius-gigawords.patch && ./configure --prefix=/usr && make && make install
 
+#Accel-pptp
+:ACCEL_PPTP=1:accel-pptp > /etc/init.d/accel-pptp
+:ACCEL_PPTP=1:accel-pptp.conf /etc/accel-pptp.conf
+

@@ -164,8 +164,8 @@ if ($conf{PAYSYS_SUCCESSIONS}) {
   foreach my $line ( @systems_arr ) {
   	my ($ips, $id, $name, $short_name, $function)=split(/:/, $line);
   	
-  	%system_params = ( SYSTEM_SHORT_NAME => $id, 
-                       SYSTEM_ID         => $short_name
+  	%system_params = ( SYSTEM_SHORT_NAME => $short_name, 
+                       SYSTEM_ID         => $id
                       );
   	
   	my @ips_arr = split(/,/, $ips);
@@ -254,7 +254,7 @@ elsif (check_ip($ENV{REMOTE_ADDR}, '77.222.134.205')) {
   require "Ipay.pm";
   exit;
 }
-elsif (check_ip($ENV{REMOTE_ADDR}, '213.230.106.112/28,213.230.65.85/28')) {
+elsif (check_ip($ENV{REMOTE_ADDR}, '213.230.106.112/28,213.230.65.85/28,192.168.1.102')) {
   require "Paynet.pm";
   exit;
 }
@@ -620,8 +620,8 @@ sub osmp_payments {
 
  print "Content-Type: text/xml\n\n";
  
- my $payment_system    = $attr->{SYSTEM_ID} || 'OSMP';
- my $payment_system_id = $attr->{SYSTEM_SHORT_NAME} || 44;
+ my $payment_system    = $attr->{SYSTEM_SHORT_NAME} || 'OSMP';
+ my $payment_system_id = $attr->{SYSTEM_ID} || 44;
  my $CHECK_FIELD       = $conf{PAYSYS_OSMP_ACCOUNT_KEY} || $attr->{CHECK_FIELDS} || 'UID';
 
  my $txn_id            = 'osmp_txn_id';
@@ -1428,6 +1428,12 @@ elsif ($FORM{rupay_action} eq 'update') {
 #
 #**********************************************************
 sub wm_payments {
+  my ($attr)=@)=@_;
+
+  my $payment_system    = $attr->{SYSTEM_SHORT_NAME} || 'WM';
+  my $payment_system_id = $attr->{SYSTEM_ID} || 41;
+	
+	
 #Pre request section
 if($FORM{'LMI_PREREQUEST'} && $FORM{'LMI_PREREQUEST'} == 1) {
 
@@ -1474,7 +1480,7 @@ elsif($FORM{LMI_HASH}) {
     my $pay_describe = ($FORM{LMI_PAYMENT_DESC} && $conf{dbcharset} eq 'utf8') ? convert($FORM{LMI_PAYMENT_DESC}, { win2utf8 =>1 }) : 'Webmoney';
     $payments->add($user, {SUM          => $FORM{LMI_PAYMENT_AMOUNT},
     	                     DESCRIBE     => $pay_describe,
-    	                     METHOD       => ($conf{PAYSYS_PAYMENTS_METHODS} && $PAYSYS_PAYMENTS_METHODS{41}) ? 41 : '2',
+    	                     METHOD       => ($conf{PAYSYS_PAYMENTS_METHODS} && $PAYSYS_PAYMENTS_METHODS{$payment_system_id}) ? $payment_system_id : '2',
   	                       EXT_ID       => $FORM{LMI_PAYMENT_NO},
   	                       ER           => $er
   	                       } ); 
@@ -1492,7 +1498,7 @@ elsif($FORM{LMI_HASH}) {
    }
 
   #Info section 
-  $Paysys->add({ SYSTEM_ID      => 41,
+  $Paysys->add({ SYSTEM_ID      => $payment_system_id,
   	             DATETIME       => '',
   	             SUM            => $FORM{LMI_PAYMENT_AMOUNT},
   	             UID            => $FORM{UID},

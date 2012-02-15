@@ -31,6 +31,9 @@ use vars  qw(%RAD %conf @MODULES $db $html $DATE $TIME $GZIP $TAR
   $_DEBT
   $_TARIF_PLAN
   $_ACCOUNT
+  @WEEKDAYS
+
+  @MONTHES
  );
 
 
@@ -125,6 +128,10 @@ if (! -d $pdf_result_path) {
 
 my %LIST_PARAMS = ();
 
+if ($ARGV->{LOGIN}) {
+	$LIST_PARAMS{LOGIN}=$ARGV->{LOGIN};
+}
+
 if ($ARGV->{POSTPAID_ACCOUNT}) {
 	postpaid_accounts();
  }
@@ -156,6 +163,7 @@ if ($begin_time > 0)  {
 sub periodic_invoice {
 	my ($attr) = @_;
 	
+	my @ids = ();
 	
 	$Docs->{debug}=1 if ($debug > 6);
 
@@ -164,8 +172,9 @@ sub periodic_invoice {
   #Get period intervals for users with activate 0000-00-00	
 	if (! $FORM{INCLUDE_CUR_BILLING_PERIOD}) {
  		my ($Y, $M, $D)=split(/-/, $DATE, 3);
- 		$FORM{FROM_DATE}="$Y-01-01";
+ 		$FORM{FROM_DATE}="$DATE";
  	 }
+  
   my $date = $DATE;
   my ($Y, $M, $D)=split(/-/, $date);
   my $start_period_unixtime;
@@ -177,7 +186,20 @@ sub periodic_invoice {
   $Docs->{CURENT_BILLING_PERIOD_STOP}="$Y-$M-$TO_D";
 
 
-	my $list = $Docs->user_list({ PRE_INVOICE_DATE => $DATE  });
+  if (($conf{SYSTEM_CURRENCY} && $conf{DOCS_CURRENCY}) 
+         && $conf{SYSTEM_CURRENCY} ne $conf{DOCS_CURRENCY}) {
+    my $Finance = Finance->new($db, $admin);
+       
+    #if ($FORM{CURRENCY} == $conf{DOCS_CURRENCY}) {
+       $Finance->exchange_info(0, {  ISO => $FORM{DOCS_CURRENCY} || $conf{DOCS_CURRENCY} });
+       $FORM{EXCHANGE_RATE}=$Finance->{ER_RATE};
+       $FORM{DOCS_CURRENCY}=$Finance->{ISO};
+    # }
+  }
+
+
+	my $list = $Docs->user_list({ %LIST_PARAMS,
+		                            PRE_INVOICE_DATE => $DATE  });
 	
 	    
 	foreach my $line ( @$list ) {
@@ -187,24 +209,25 @@ sub periodic_invoice {
                  CREDIT         => $line->[3],
                  STATUS         => $line->[3],
                  INVOICE_DATE   => $line->[5],
-                 INVOICE_PERIOD => $line->[6],
-                 EMAIL          => $line->[7],
-                 SEND_DOCS      => $line->[8],
-                 UID            => $line->[9],
-                 ACTIVATE       => $line->[10]
+                 NEXT_INVOICE_DATE   => $line->[6],
+                 INVOICE_PERIOD => $line->[7],
+                 EMAIL          => $line->[8],
+                 SEND_DOCS      => $line->[9],
+                 UID            => $line->[10],
+                 ACTIVATE       => $line->[11],
+                 REDUCTION      => $line->[13] || 0,
+                 DOCS_CURRENCY  => $conf{DOCS_CURRENCY},
+                 EXCHANGE_RATE  => $FORM{EXCHANGE_RATE}
                 );
 
     $FORM{NEXT_PERIOD}=$user{INVOICE_PERIOD};
     
     if ($debug > 0) {
-    	print "$user{LOGIN} [$user{UID}] DEPOSIT: $user{DEPOSIT} INVOICE_DATE: $user{INVOICE_DATE} SEND_DOCS: $user{SEND_DOCS} EMAIL: $user{EMAIL}\n";
+    	print "$user{LOGIN} [$user{UID}] DEPOSIT: $user{DEPOSIT} INVOICE_DATE: $user{INVOICE_DATE} NEXT: $user{NEXT_INVOICE_DATE} SEND_DOCS: $user{SEND_DOCS} EMAIL: $user{EMAIL}\n";
      } 
 
     my $num         = 0;
     my %ORDERS_HASH = ();
-    #if($user->{DEPOSIT}>0) {
-    #	return 0;
-    # }
     # No invoicing service from last invoice
     my $list = $Docs->invoice_new({ FROM_DATE => $user{INVOICE_DATE},
    	                                TO_DATE   => $DATE,
@@ -212,24 +235,27 @@ sub periodic_invoice {
     	                              UID       => $user{UID}
     	                            });
 
+    my $total_sum      = 0;
     my $amount_for_pay = 0;
     foreach my $line (@$list) {
-        next if ($line->[5]);
-        $num++;
-        my $date = $line->[2];
-        $date =~ s/ \d+:\d+:\d+//g;
-        $ORDERS_HASH{"ORDER_".$line->[0]}   = "$line->[3]";
-        $ORDERS_HASH{"SUM_".$line->[0]}     = "$line->[4]";
-        $ORDERS_HASH{"FEES_ID_".$line->[0]} = "$line->[0]";
-        $ORDERS_HASH{"IDS"}                 = "$line->[0]";
-        #$total_sum+=$line->[4]; 
+       next if ($line->[5]);
+       $num++;
+       push @ids, $num;
+       my $date = $line->[2];
+       $date =~ s/ \d+:\d+:\d+//g;
+       $ORDERS_HASH{"ORDER_".$num}   = "$line->[3]";
+       $ORDERS_HASH{"SUM_".$num}     = "$line->[4]";
+       $ORDERS_HASH{"FEES_ID_".$num} = "$line->[0]";
+       $total_sum+=$line->[4]; 
      }
 
-    my $total_sum = ($user{DEPOSIT}<0) ? abs($user{DEPOSIT}) : 0; 
+    
+    #($user{DEPOSIT}<0) ? abs($user{DEPOSIT}) : 0; 
 
     if ($user{ACTIVATE} ne '0000-00-00') {
       $date                                = $user{ACTIVATE};
-      $FORM{FROM_DATE}                     = $user{ACTIVATE};
+      $FORM{FROM_DATE}                     = $user{NEXT_INVOICE_DATE};
+      ($Y, $M, $D)=split(/-/, $FORM{FROM_DATE}, 3);
     	$start_period_unixtime               =  (mktime(0, 0, 0, $D, ($M-1), ($Y-1900), 0, 0, 0) ) ;
     	$Docs->{CURENT_BILLING_PERIOD_START} = $user{ACTIVATE};
     	$Docs->{CURENT_BILLING_PERIOD_STOP}  = strftime '%Y-%m-%d',  localtime( (mktime(0, 0, 0, $D, ($M-1), ($Y-1900), 0, 0, 0) + 30 * 86400) );
@@ -250,7 +276,7 @@ sub periodic_invoice {
 
       $FORM{UID}=$user{UID};
       
- 	    my $cross_modules_return = cross_modules_call('_docs', { %user, SKIP_MODULES => 'Docs,Multidoms' });
+ 	    my $cross_modules_return = cross_modules_call('_docs', { %user, SKIP_MODULES => 'Docs,Multidoms,BSR1000,Snmputils,Ipn' });
       my $next_period = $FORM{NEXT_PERIOD};
       if ($user{ACTIVATE} ne '0000-00-00') {
   	 	  ($Y, $M, $D)=split(/-/, strftime "%Y-%m-%d", localtime( (mktime(0, 0, 0, $D, ($M-1), ($Y-1900), 0, 0, 0) + 
@@ -261,7 +287,7 @@ sub periodic_invoice {
         ( (($start_period_unixtime > time) ? 1 : ( 1*$next_period-1 )) +  30 * (($start_period_unixtime > time) ? 1 : $next_period) )  * 86400) )); 
         $FORM{TO_DATE}="$Y-$M-$D";
        }
-#      else {
+      else {
 #        $M+=1;
 # 	      if ($M < 12) {
 #  	      $M=sprintf("%02d", $M);
@@ -289,148 +315,114 @@ sub periodic_invoice {
 #        }
 #
 #       $FORM{TO_DATE} = "$Y-$M-$TO_D";
-#      }
+      }
 #
-# 	 	 	my $period_from = $FORM{FROM_DATE};
-#      my $period_to   = $FORM{FROM_DATE}; 
-#     
-# 	    foreach my $module (sort keys %$cross_modules_return) {
-# 	 	   if (ref $cross_modules_return->{$module} eq 'ARRAY') {
-# 	 	 	   next if ( $#{ $cross_modules_return->{$module} } == -1 );
-# 	 	 	   $table->{extra}="colspan='5' class='small'";
-#         $table->addrow("$module");
-# 	 	 	   $table->{extra}=undef;
-#
-# 	 	 	   foreach my $line ( @{ $cross_modules_return->{$module} } ) {
-# 	 	 	     my ($name, $describe, $sum)=split(/\|/, $line);
-# 	 	 	 	   next if ($sum < 0);
-# 	 	 	   	 
-# 	 	 	   	 #my ($Y, $M, $D) = split(/-/, $FORM{FROM_DATE}, 3);
-# 	 	 	   	 #$period_from = strftime "%Y-%m-%d", localtime( (mktime(0, 0, 0, $D, ($M-1), ($Y-1900), 0, 0, 0) + 1 * 86400) ); 
-# 	 	 	   	 $period_from = $FORM{FROM_DATE};
-# 	 	 	   	 
-# 	 	 	   	 for (my $i=($FORM{NEXT_PERIOD}==-1) ? -2 : 0; $i<int($FORM{NEXT_PERIOD}); $i++) {
-# 	 	 	 	     $result_sum = sprintf("%.2f", $sum);
-# 	 	 	 	   
-# 	 	 	 	     if ($users->{REDUCTION} && $module ne 'Abon') {
-# 	 	 	 	   	   $result_sum = sprintf("%.2f",  $sum * (100 - $users->{REDUCTION}) / 100);
-# 	 	 	 	      }
-# 	 	 	 	     
-#
-#             my ($Y, $M, $D) = split(/-/, $period_from, 3);
-#             if ($users->{ACTIVATE} ne '0000-00-00') {
-#  	 	         ($Y, $M, $D)=split(/-/, strftime "%Y-%m-%d", localtime( (mktime(0, 0, 0, $D, ($M-1), ($Y-1900), 0, 0, 0)))); #+ (31 * $i) * 86400) )); 
-#               $period_from="$Y-$M-$D";
-#
-#               ($Y, $M, $D)=split(/-/, strftime "%Y-%m-%d", localtime( (mktime(0, 0, 0, $D, ($M-1), ($Y-1900), 0, 0, 0) + (30) * 86400) )); 
-#               $period_to="$Y-$M-$D";
-#              }
-#             else { 
-#               $M+=1 if ($i>0);
-# 	             if ($M < 12) {
-#  	             $M=sprintf("%02d", $M);
-#  	            }
-#               else {
-#                 $M = sprintf("%02d", $M-12);
-#                 $Y++;
-#                } 
-#               $period_from = "$Y-$M-01";
-#
-#               #$M+=1;
-# 	             if ($M < 12) {
-#  	             $M=sprintf("%02d", $M);
-#  	            }
-#               else {
-#                 $M = sprintf("%02d", $M-13);
-#                 $Y++;
-#                }
-#      
-#               if ($users->{ACTIVATE} eq '0000-00-00') {      
-#                 $TO_D=($M!=2?(($M%2)^($M>7))+30:(!($Y%400)||!($Y%4)&&($Y%25)?29:28));
-#                }
-#               else {
-#     	           $TO_D=$D;
-#                }
-#
-#               $period_to = "$Y-$M-$TO_D";
-#              }
-# 	 	 	 	     
-# 	 	 	 	     my $order = "$name $describe ($period_from-$period_to)";
-#
-# 	 	 	   	   $num++ if (! $current_invoice{$order});
-# 	 	         $table->addrow(((! $current_invoice{$order}) ?
-# 	 	                    $html->form_input('ORDER_'.$num, "$order", { TYPE => 'hidden', OUTPUT2RETURN => 1 }).
-#                        $html->form_input('SUM_'.$num, $result_sum, { TYPE => 'hidden', OUTPUT2RETURN => 1 }).
-# 	 	                    $html->form_input('IDS', "$num", { TYPE => ($user->{UID}) ? 'hidden' : 'checkbox', STATE => 'checked', OUTPUT2RETURN => 1 }). $num : ''  ) 
-# 	 	                    , 
-# 	 	                    $users->{LOGIN},
-# 	 	                    $period_from,
-# 	 	                    $order. (($current_invoice{$order}) ? ' '. $html->color_mark($_EXIST, 'red'): ''),
-# 	 	                    $result_sum );
-#
-# 	 	         $total_sum	+= $sum if (! $current_invoice{$order}); 	 	         
-# 	 	         
-# 	 	         $period_from = strftime "%Y-%m-%d", localtime( (mktime(0, 0, 0, $D, ($M-1), ($Y-1900), 0, 0, 0) + 1 * 86400) ); 
-#           }
-# 	 	      } 
-# 	 	    }
-# 	     }
-     }
+ 	 	 	my $period_from = $FORM{FROM_DATE};
+      my $period_to   = $FORM{FROM_DATE}; 
+     
+ 	    foreach my $module (sort keys %$cross_modules_return) {
+ 	 	   if (ref $cross_modules_return->{$module} eq 'ARRAY') {
+ 	 	 	   next if ( $#{ $cross_modules_return->{$module} } == -1 );
 
+ 	 	 	   foreach my $line ( @{ $cross_modules_return->{$module} } ) {
+ 	 	 	     my ($name, $describe, $sum)=split(/\|/, $line);
+ 	 	 	 	   next if ($sum < 0);
+ 	 	 	   	 
+ 	 	 	   	 #my ($Y, $M, $D) = split(/-/, $FORM{FROM_DATE}, 3);
+ 	 	 	   	 #$period_from = strftime "%Y-%m-%d", localtime( (mktime(0, 0, 0, $D, ($M-1), ($Y-1900), 0, 0, 0) + 1 * 86400) ); 
+ 	 	 	   	 $period_from = $FORM{FROM_DATE};
+ 	 	 	   	 
+ 	 	 	   	 for (my $i=($FORM{NEXT_PERIOD}==-1) ? -2 : 0; $i<int($FORM{NEXT_PERIOD}); $i++) {
+ 	 	 	 	     my $result_sum = sprintf("%.2f", $sum);
+ 	 	 	 	   
+ 	 	 	 	     if ($user{REDUCTION} && $module ne 'Abon') {
+ 	 	 	 	   	   $result_sum = sprintf("%.2f",  $sum * (100 - $user{REDUCTION}) / 100);
+ 	 	 	 	      }
+ 	 	 	 	     
+
+             my ($Y, $M, $D) = split(/-/, $period_from, 3);
+             if ($user{ACTIVATE} ne '0000-00-00') {
+  	 	         ($Y, $M, $D)=split(/-/, strftime "%Y-%m-%d", localtime( (mktime(0, 0, 0, $D, ($M-1), ($Y-1900), 0, 0, 0)))); #+ (31 * $i) * 86400) )); 
+               $period_from="$Y-$M-$D";
+
+               ($Y, $M, $D)=split(/-/, strftime "%Y-%m-%d", localtime( (mktime(0, 0, 0, $D, ($M-1), ($Y-1900), 0, 0, 0) + (30) * 86400) )); 
+               $period_to="$Y-$M-$D";
+              }
+             else { 
+               $M+=1 if ($i>0);
+ 	             if ($M < 12) {
+  	             $M=sprintf("%02d", $M);
+  	            }
+               else {
+                 $M = sprintf("%02d", $M-12);
+                 $Y++;
+                } 
+               $period_from = "$Y-$M-01";
+
+               #$M+=1;
+ 	             if ($M < 12) {
+  	             $M=sprintf("%02d", $M);
+  	            }
+               else {
+                 $M = sprintf("%02d", $M-13);
+                 $Y++;
+                }
+      
+               if ($user{ACTIVATE} eq '0000-00-00') {      
+                 $TO_D=($M!=2?(($M%2)^($M>7))+30:(!($Y%400)||!($Y%4)&&($Y%25)?29:28));
+                }
+               else {
+     	           $TO_D=$D;
+                }
+
+               $period_to = "$Y-$M-$TO_D";
+              }
+ 	 	 	 	     
+ 	 	 	 	     my $order = "$name $describe($period_from-$period_to)";
+	 	 	   	   
+ 	 	         if ( ! $current_invoice{$order}) {
+ 	 	         	 $num++;
+ 	 	         	 push @ids, $num;
+ 	 	           $ORDERS_HASH{'ORDER_'.$num}= $order;
+ 	           	 $ORDERS_HASH{'SUM_'.$num}  = $result_sum;
+ 	           	 $total_sum	+= $result_sum;
+ 	 	          }
+
+ 	 	         $period_from = strftime "%Y-%m-%d", localtime( (mktime(0, 0, 0, $D, ($M-1), ($Y-1900), 0, 0, 0) + 1 * 86400) );
+           }
+ 	 	      } 
+ 	 	    }
+ 	     }
+    }
+
+    
+    #Debug output
     if ($user{DEPOSIT}>0) {
- 	    $amount_for_pay    = ($total_sum<$user{DEPOSIT}) ? 0 : $total_sum-$user{DEPOSIT};
-	   }
-    else {
-   	  $amount_for_pay    = $total_sum;
+	    $amount_for_pay    = ($total_sum<$user{DEPOSIT}) ? 0 : $total_sum-$user{DEPOSIT};
      }
-#
-#
-#
-#    $table->{extra}    = " colspan=4 class=total ";
-#    $table->addrow("$_COUNT: $num $_TOTAL $_SUM: ", sprintf("%.2f", $total_sum));
-#    $table->addrow($html->b("$_DEPOSIT:"), $html->b(sprintf("%.2f", $users->{DEPOSIT})));
-#    $table->addrow($html->b("$_AMOUNT_FOR_PAY:"), $html->b(sprintf("%.2f", $amount_for_pay)));
-#
-#    $Docs->{FROM_DATE} = $html->date_fld2('FROM_DATE', { MONTHES => \@MONTHES, FORM_NAME => 'invoice_add', WEEK_DAYS => \@WEEKDAYS });
-#    $Docs->{TO_DATE}   = $html->date_fld2('TO_DATE', { MONTHES => \@MONTHES, FORM_NAME => 'invoice_add', WEEK_DAYS => \@WEEKDAYS });
-#    $FORM{NEXT_PERIOD} = 0 if ($FORM{NEXT_PERIOD} < 0);
-#    if ($attr->{REGISTRATION}) {
-#    	return 0 if (! $attr->{ACTION});
-#      $Docs->{BACK}      = $html->form_input('back', "$_BACK", {  TYPE => 'submit' });
-#      $Docs->{NEXT}      = $html->form_input($attr->{ACTION}, "$attr->{LNG_ACTION}", {  TYPE => 'submit' });
-#     }
-#    
-#
-#    if ($user->{UID}) {
-#    	return 0 if (! $num);
-#    	
-#	    $action = $html->form_input('make', "$_CREATE $_INVOICE", {  TYPE => 'submit', OUTPUT2RETURN => 1 });
-#      $table->{rowcolor}='even';
-#      $table->{extra}=' colspan=5 align=center';
-#      $table->addrow($action);
-#
-#    	my $content = $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN=>1  }),
-#                 HIDDEN  => { index          => "$index",
-#	                 	            UID            => $FORM{UID},
-#	                 	            DATE           => $DATE,
-#	                 	            create         => 1,
-#	                 	            CUSTOMER       => $Docs->{CUSTOMER},
-#	                 	            step           => $FORM{step},
-#	                 	            #ALL_SERVICES   => 1
-#	                 	           },
-#	                 NAME    => 'DOCS_SERVICES_INVOICE',
-#	                });
-#
-#      #print $content;
-#     }
-#    else {    	         	
-#    	$Docs->{ORDERS}    = $table->show({ OUTPUT2RETURN => 1 });
-#      $html->tpl_show(_include('docs_receipt_add', 'Docs'), { %FORM, %$attr, %$Docs, %$users }) if (! $FORM{pdf});         
-#   }
+    else {
+  	  $amount_for_pay    = $total_sum;
+     }
+    
+    $ORDERS_HASH{IDS}=join(', ', @ids);
+
+    if ($debug > 1) {
+      print "$user{LOGIN}: Invoice period: $user{INVOICE_DATE} - $DATE\n";
+      for (my $i=1; $i<=$num; $i++) {
+        print "$i|".  $ORDERS_HASH{'ORDER_'.$i} ."|". $ORDERS_HASH{'SUM_'.$i} ."| ". ($ORDERS_HASH{'FEES_ID_'.$i} || '') ."\n";
+       }
+      print "Total: $num  SUM: $total_sum Amount to pay: $amount_for_pay\n";
+     }
 
 
-		
-		
+    $Docs->{FROM_DATE} = $html->date_fld2('FROM_DATE', { MONTHES => \@MONTHES, FORM_NAME => 'invoice_add', WEEK_DAYS => \@WEEKDAYS });
+    $Docs->{TO_DATE}   = $html->date_fld2('TO_DATE', { MONTHES => \@MONTHES, FORM_NAME => 'invoice_add', WEEK_DAYS => \@WEEKDAYS });
+    $FORM{NEXT_PERIOD} = 0 if ($FORM{NEXT_PERIOD} < 0);
+
+#Add to DB
+    if ($num > 0) {
+		  $Docs->invoice_add({ %user, %ORDERS_HASH });		
+		 }
 	 }
 }
 

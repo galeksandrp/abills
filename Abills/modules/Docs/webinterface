@@ -1780,9 +1780,7 @@ sub docs_invoice {
  	                                   SELECTED    => $FORM{ORDER},
  	                                   SEL_ARRAY   => ($conf{DOCS_ORDERS})? $conf{DOCS_ORDERS} : [$_DV],
                                      NO_ID       => 1
- 	                                  });
-
-  
+ 	                                  });  
 
   $users->pi({  UID => $users->{UID} || $FORM{UID} });
   $Docs->{OP_SID}  = mk_unique_value(16);
@@ -1823,7 +1821,7 @@ sub docs_invoice {
                                 class      => 'form'
                               });
     
-    
+    my $total_sum = 0;
 
     if (! $user->{UID}) {
       my $list = $Docs->invoice_new({ FROM_DATE => $FORM{FROM_DATE} || $html->{FROM_DATE},
@@ -1848,7 +1846,7 @@ sub docs_invoice {
            "$line->[3] $date", 
            "$line->[4]"
          );      
-        #$total_sum+=$line->[4]; 
+        $total_sum+=$line->[4]; 
        }
      }
     else {
@@ -1856,7 +1854,7 @@ sub docs_invoice {
     	$FORM{NEXT_PERIOD}=1;
      } 
 
-    my $total_sum = ($users->{DEPOSIT}<0) ? abs($users->{DEPOSIT}) : 0; 
+    #($users->{DEPOSIT}<0) ? abs($users->{DEPOSIT}) : 0; 
     my $date = $DATE;
     if ($users->{ACTIVATE}ne '0000-00-00') {
       $date = $users->{ACTIVATE};
@@ -2801,9 +2799,8 @@ for (my $year=2009; $year<=$Y; $year++) {
 #**********************************************************
 sub docs_payments_maked {
 	my ($attr) = @_;
+
 #Add invoice number 
-
-
 if ($FORM{INVOICE_ID}) {
  	$Docs->invoice_change({ ID         => $FORM{INVOICE_ID},
  		                      UID        => $FORM{UID},
@@ -2823,7 +2820,7 @@ if ($FORM{INVOICE_ID}) {
    }
  }
       
-if ($FORM{CREATE_INVOICE}) {
+if ($FORM{CREATE_RECEIPT}) {
   docs_receipt_add({
         	DATE       => $DATE,
         	CUSTOMER   => '-', 
@@ -2834,13 +2831,57 @@ if ($FORM{CREATE_INVOICE}) {
           create     => 1,
           PAYMENT_ID => $attr->{PAYMENT_ID}
       	  });
-}	
+ }	
+
 }
 
 
 
 #**********************************************************
-# docs_dv
+# docs_user
+#**********************************************************
+sub docs_users_list {
+ 	my ($attr) = @_;
+
+
+my $list = $Docs->user_list({ %LIST_PARAMS });   
+my $table = $html->table( { width      => '100%',
+                            caption    => "$_ORDERS",
+                            border     => 1,
+                            title       => ["$_LOGIN", "$_FIO", "$_DEPOSIT", "$_CREDIT", "$_STATUS", "$_LAST_INVOICE_DATE", 
+                              "$_NEXT_INVOICE_DATE", "$_PERIOD ($_MONTH)" ],
+                            cols_align => ['left', 'left', 'right', 'left', 'right', 'left' ],
+                            pages      => $Docs->{TOTAL},
+                            ID         => 'DOCS_USERS',
+                           });
+
+ foreach my $line (@$list) {
+      $table->addrow(
+        $html->button($line->[0], "index=15&UID=$line->[14]"),
+        "$line->[1]",
+        "$line->[2]", 
+        "$line->[3]", 
+        "$line->[4]",
+        "$line->[5]",
+        "$line->[6]",
+        "$line->[7]",
+       );      
+      #$total_sum+=$line->[4]; 
+  }
+
+print $table->show();
+
+$table = $html->table( { width      => '100%',
+                         cols_align => ['right', 'right'],
+                         rows       => [ [ "$_TOTAL: ". $html->b($Docs->{TOTAL}) ] ]
+                      } );
+
+print $table->show();
+
+}
+
+#**********************************************************
+# docs_user
 #**********************************************************
 sub docs_user {
  	my ($attr) = @_;
