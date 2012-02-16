@@ -5598,12 +5598,11 @@ if ($attr->{USER_INFO}) {
    }
   elsif ($FORM{add} && $FORM{SUM}) {
   	$FORM{SUM} =~ s/,/\./g;
-  	
   	if ($FORM{SUM}!~/[0-9\.]+/) {
   	  $html->message('err', $_ERROR, "$ERR_WRONG_SUM");	
       return 1 if ($attr->{REGISTRATION});
   	 }
-  	else {  		
+  	else {
   		$FORM{CURRENCY}=$conf{SYSTEM_CURRENCY};
   		
   		if ($FORM{ER}) {
@@ -5623,6 +5622,7 @@ if ($attr->{USER_INFO}) {
       
       #Make pre payments functions in all modules 
       cross_modules_call('_pre_payment', { %$attr });
+      
    	  if ($FORM{INVOICE_SUM} && $FORM{INVOICE_SUM} != $FORM{PAYMENT_SUM} )  {
         $html->message('err', "$_PAYMENTS: $ERR_WRONG_SUM", " $_INVOICE $_SUM: $Docs->{TOTAL_SUM}\n $_PAYMENTS $_SUM: $FORM{SUM}");
        }

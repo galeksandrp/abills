@@ -424,6 +424,15 @@ sub periodic_invoice {
     	if ($debug < 5) {
 		    $Docs->invoice_add({ %user, %ORDERS_HASH });		
 		    $Docs->user_change({ UID => $user{UID}, INVOICE_DATE => $DATE });
+		    #Sendemail
+		    
+        $FORM{print} = $Docs->{DOC_ID};
+        $FORM{pdf}   = 1;
+         
+        docs_receipt({ GET_EMAIL_INFO    => 1,
+                       SEND_EMAIL        => $user{SEND_EMAIL},
+            	         %$attr
+            	       });
 		   }
 		 }
 	 }

@@ -555,7 +555,7 @@ if ($NAS->{NAS_TYPE} eq 'mpd5') {
   	my $class_id    = $line->[0];
     my $filter_name = 'flt';
 
-    if ($class_id == 0 && $line->[1] && $line->[1] =~ /0.0.0.0/) {
+    if ($self->{TOTAL} == 1 || ($class_id == 0 && $line->[1] && $line->[1] =~ /0.0.0.0/)) {
          my $shapper_type = ($line->[2] > 4048) ? 'rate-limit' : 'shape';         
          
          if ( $line->[2] == 0 || $CONF->{ng_car}) {

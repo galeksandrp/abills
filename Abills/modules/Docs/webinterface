@@ -34,9 +34,9 @@ sub docs_user_del {
 sub docs_contract {
   my ($attr) = @_;
 
-  $conf{DOCS_LANGUAGE} = $conf{default_language} if (! $conf{DOCS_LANGUAGE});
-	require "../../language/$conf{DOCS_LANGUAGE}.pl";
-  require "../../Abills/modules/Docs/lng_$conf{DOCS_LANGUAGE}.pl";
+  #$conf{DOCS_LANGUAGE} = $conf{default_language} if (! $conf{DOCS_LANGUAGE});
+	#require "../../language/$conf{DOCS_LANGUAGE}.pl";
+  #require "../../Abills/modules/Docs/lng_$conf{DOCS_LANGUAGE}.pl";
 
 	
 	if ($FORM{UID}) {
@@ -100,22 +100,28 @@ sub docs_receipt_add  {
      $Docs->docs_receipt_add({ %$attr, DEPOSIT => $users->{DEPOSIT} });
 
      my $date = $FORM{DATE} || $DATE;
+     
+
+     
      if(! $Docs->{errno}) {
        if ($conf{DOCS_PDF_PRINT}) {
   	     $html->message('info', "$_RECEIPT $_ADDED", "$_RECEIPT $_NUM: [$Docs->{DOC_ID}]\n $_DATE: $date\n ". 
   	     $html->button($_PRINT, "qindex=". get_function_index('docs_receipt_list') ."&sendmail=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}", { ex_params => 'target=_new', CLASS => 'sendmail rightAlignText' }).' '.
   	     $html->button($_PRINT, "qindex=". get_function_index('docs_receipt_list') ."&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}&pdf=1", { ex_params => 'target=_new', CLASS => 'print rightAlignText' }));
 
-         
+
+        
          delete($FORM{create});
          docs_receipt_list() if ($index != 2);
 
          $FORM{print} = $Docs->{DOC_ID};
          $FORM{pdf}   = 1;
+         
          return  docs_receipt({ GET_EMAIL_INFO    => 1,
          	                      SEND_EMAIL        => $FORM{SEND_EMAIL},
             	                  %$attr
             	                });
+
         }
        else {
          $html->message('info', "$_RECEIPT $_ADDED", "$_RECEIPT $_NUM: [$Docs->{DOC_ID}]\n $_DATE: $date". 
@@ -123,7 +129,7 @@ sub docs_receipt_add  {
            $html->button($_PRINT, "qindex=". get_function_index('docs_receipt_list') ."&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}", { ex_params => 'target=_new', CLASS => 'print' }) );
          #$Docs->docs_receipt_info($Docs->{DOC_ID});
         }
-       
+
       }
      elsif ($Docs->{errno} ) {
      	 if( $Docs->{errno} == 1) {
@@ -560,7 +566,6 @@ elsif($FORM{print}) {
  	  $Docs->{AMOUNT_FOR_PAY_ALT} = sprintf("%.2f", $Docs->{AMOUNT_FOR_PAY} * $Docs->{EXCHANGE_RATE} );
    } 
 
-
   if ($Docs->{PAYMENT_ID}) {
     my $list = $Docs->invoices_list({ PAYMENT_ID => $Docs->{PAYMENT_ID} });
     if ($Docs->{TOTAL} > 0) {
@@ -609,10 +614,11 @@ elsif($FORM{print}) {
 
 
   if ($attr->{GET_EMAIL_INFO}) {
-    $attr->{EMAIL_MSG_TEXT}        = "$_RECEIPT:  $Docs->{INVOICE_ID}\n $_DATE: $Docs->{DATE}\n $_SUM: $Docs->{TOTAL_SUM}\n" if (! $attr->{EMAIL_MSG_TEXT});
+    $attr->{EMAIL_MSG_TEXT}        = $html->tpl_show(_include('docs_receipt_email', 'Docs'), { %FORM, %$attr, %$Docs, %$users }, { OUTPUT2RETURN => 1 });
     $attr->{EMAIL_ATTACH_FILENAME} = 'receipt_'. $Docs->{INVOICE_ID} .'.pdf' if (! $attr->{EMAIL_ATTACH_FILENAME});
-    $attr->{EMAIL_MSG_SUBJECT}     = "ABillS - $_RECEIPT / $Docs->{INVOICE_ID}" if (! $attr->{EMAIL_MSG_SUBJECT});
+    $attr->{EMAIL_MSG_SUBJECT}     = "ABillS - $_RECEIPT: $Docs->{RECEIPT_NUM}" if (! $attr->{EMAIL_MSG_SUBJECT});
    }
+
 
   docs_print('receipt', { %$Docs, %$attr });
   return 0;
@@ -1717,9 +1723,9 @@ sub docs_invoice {
       } 
 
      if ($attr->{GET_EMAIL_INFO}) {
-        $attr->{EMAIL_MSG_TEXT}        = "$_INVOICE:  $Docs->{INVOICE_ID}\n $_DATE: $Docs->{DATE}\n $_SUM: $Docs->{TOTAL_SUM}\n" if (! $attr->{EMAIL_MSG_TEXT});
+        $attr->{EMAIL_MSG_TEXT}        = $html->tpl_show(_include('docs_invoice_email', 'Docs'), { %FORM, %$attr, %$Docs, %$users }, { OUTPUT2RETURN => 1 });
         $attr->{EMAIL_ATTACH_FILENAME} = 'invoice_'. $Docs->{INVOICE_ID} .'.pdf' if (! $attr->{EMAIL_ATTACH_FILENAME});
-        $attr->{EMAIL_MSG_SUBJECT}     = "ABillS - $_INVOICE /$Docs->{INVOICE_ID}" if (! $attr->{EMAIL_MSG_SUBJECT});
+        $attr->{EMAIL_MSG_SUBJECT}     = "ABillS - $_INVOICE: $Docs->{INVOICE_NUM}" if (! $attr->{EMAIL_MSG_SUBJECT});
       }
 
      
@@ -2065,10 +2071,8 @@ sub docs_invoice {
       #print $content;
      }
     else {
-    	         	
     	$Docs->{ORDERS}    = $table->show({ OUTPUT2RETURN => 1 });
-      #$html->tpl_show(_include('docs_receipt_add', 'Docs'), { %FORM, %$attr, %$Docs, %$users }) if (! $FORM{pdf});   
-      
+      $html->tpl_show(_include('docs_receipt_add', 'Docs'), { %FORM, %$attr, %$Docs, %$users }) if (! $FORM{pdf});   
      }
 
      
@@ -2206,18 +2210,20 @@ sub docs_print {
 	my ($type, $attr)=@_;
 
   $conf{DOCS_LANGUAGE} = $conf{default_language} if (! $conf{DOCS_LANGUAGE});
-
-  if (-f "../Abills/modules/Docs/lng_$conf{DOCS_LANGUAGE}.pl") {
-    require "../language/$conf{DOCS_LANGUAGE}.pl";
-    require "../Abills/modules/Docs/lng_$conf{DOCS_LANGUAGE}.pl";
-   }
-  elsif (-f $Bin."/../Abills/modules/Docs/lng_$conf{DOCS_LANGUAGE}.pl") {
-    require $Bin."/../language/$conf{DOCS_LANGUAGE}.pl";
-    require $Bin."/../Abills/modules/Docs/lng_$conf{DOCS_LANGUAGE}.pl";
-   }
-  else {
-    require "../../language/$conf{DOCS_LANGUAGE}.pl";
-    require "../../Abills/modules/Docs/lng_$conf{DOCS_LANGUAGE}.pl";
+  
+  if ($conf{DOCS_LANGUAGE} && $html->{language} ne $conf{DOCS_LANGUAGE}) {
+    if (-f "../Abills/modules/Docs/lng_$conf{DOCS_LANGUAGE}.pl") {
+      require "../language/$conf{DOCS_LANGUAGE}.pl";
+      require "../Abills/modules/Docs/lng_$conf{DOCS_LANGUAGE}.pl";
+     }
+    elsif (-f $Bin."/../Abills/modules/Docs/lng_$conf{DOCS_LANGUAGE}.pl") {
+      require $Bin."/../language/$conf{DOCS_LANGUAGE}.pl";
+      require $Bin."/../Abills/modules/Docs/lng_$conf{DOCS_LANGUAGE}.pl";
+     }
+    else {
+      require "../../language/$conf{DOCS_LANGUAGE}.pl";
+      require "../../Abills/modules/Docs/lng_$conf{DOCS_LANGUAGE}.pl";
+     }
    }
 
 	if (defined(@MONTHES_LIT) && $attr->{DATE}) {
@@ -2321,6 +2327,22 @@ sub docs_print {
 	$html = $html_old if ($html_old);
   delete $FORM{pdf};
 
+  if ($conf{DOCS_LANGUAGE} && $html->{language} ne $conf{DOCS_LANGUAGE}) {
+    if (-f "../Abills/modules/Docs/lng_$html->{language}.pl") {
+      require "../language/$html->{language}.pl";
+      require "../Abills/modules/Docs/lng_$html->{language}.pl";
+     }
+    elsif (-f $Bin."/../Abills/modules/Docs/lng_$html->{language}.pl") {
+      require $Bin."/../language/$html->{language}.pl";
+      require $Bin."/../Abills/modules/Docs/lng_$html->{language}.pl";
+     }
+    else {
+    	delete $INC{"../../language/$html->{language}.pl"};
+      require "../../language/$html->{language}.pl";
+      require "../../Abills/modules/Docs/lng_$html->{language}.pl";
+     }
+   }
+
   if ($attr->{SEND_EMAIL} && ! $attr->{OUTPUT2RETURN}) {
     # Email not specified
     if (! $attr->{EMAIL} && ! $users->{EMAIL}) {
@@ -2339,6 +2361,7 @@ sub docs_print {
        	  	                       }
        	  	                    ],
        	  	   });
+
    }
 	else {
 	  return $content;
@@ -2821,7 +2844,7 @@ if ($FORM{INVOICE_ID}) {
     $html->message('err', $_ERROR, "$_INVOICE $_SUM: $Docs->{TOTAL_SUM} \n$_PAYMENTS $_SUM: $FORM{SUM}");
    }
  }
-      
+
 if ($FORM{CREATE_RECEIPT}) {
   docs_receipt_add({
         	DATE       => $DATE,
