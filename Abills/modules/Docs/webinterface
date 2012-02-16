@@ -476,7 +476,7 @@ sub docs_receipt {
       $Docs->{NEXT}      = $html->form_input('skip', "$_NEXT", {  TYPE => 'submit' });
      }
     
-    $html->tpl_show(_include('docs_receipt_add', 'Docs'), { %FORM, %$attr, %$Docs, %$users }) if (! $FORM{pdf});
+    #$html->tpl_show(_include('docs_receipt_add', 'Docs'), { %FORM, %$attr, %$Docs, %$users }) if (! $FORM{pdf});
    }
 
   docs_receipt_list($attr);
@@ -726,8 +726,10 @@ my $table = $html->table( { width      => '100%',
                             pages      => $Docs->{TOTAL},
                             ID         => 'DOCS_INVOCE',
                             EXPORT     => ' XML:&xml=1',
-                            MENU    => (($FORM{UID}) ? "$_ADD:index=". get_function_index('docs_receipt', { ARGS => UID }) ."&UID=$FORM{UID}:add" : '').                            
-                            ";$_SEARCH:index=".get_function_index('docs_receipt_list')."&search=1:search"
+                            MENU    => ($FORM{UID}) ? "$_SEARCH:index=".get_function_index('docs_receipt_list')."&search=1:search" : ''
+
+                            #MENU    => (($FORM{UID}) ? "$_ADD:index=". get_function_index('docs_receipt', { ARGS => UID }) ."&UID=$FORM{UID}:add" : '').
+                            #";$_SEARCH:index=".get_function_index('docs_receipt_list')."&search=1:search"
                           });
 
 if ($conf{DOCS_PDF_PRINT}) {
@@ -2065,7 +2067,7 @@ sub docs_invoice {
     else {
     	         	
     	$Docs->{ORDERS}    = $table->show({ OUTPUT2RETURN => 1 });
-      $html->tpl_show(_include('docs_receipt_add', 'Docs'), { %FORM, %$attr, %$Docs, %$users }) if (! $FORM{pdf});   
+      #$html->tpl_show(_include('docs_receipt_add', 'Docs'), { %FORM, %$attr, %$Docs, %$users }) if (! $FORM{pdf});   
       
      }
 
@@ -2846,7 +2848,7 @@ sub docs_users_list {
 
 my $list = $Docs->user_list({ %LIST_PARAMS });   
 my $table = $html->table( { width      => '100%',
-                            caption    => "$_ORDERS",
+                            caption    => "$_USERS",
                             border     => 1,
                             title       => ["$_LOGIN", "$_FIO", "$_DEPOSIT", "$_CREDIT", "$_STATUS", "$_LAST_INVOICE_DATE", 
                               "$_NEXT_INVOICE_DATE", "$_PERIOD ($_MONTH)" ],
@@ -2857,7 +2859,7 @@ my $table = $html->table( { width      => '100%',
 
  foreach my $line (@$list) {
       $table->addrow(
-        $html->button($line->[0], "index=15&UID=$line->[14]"),
+        $html->button($line->[0], "index=15&UID=$line->[10]"),
         "$line->[1]",
         "$line->[2]", 
         "$line->[3]", 

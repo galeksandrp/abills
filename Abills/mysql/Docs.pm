@@ -763,7 +763,6 @@ sub invoice_add {
   $DATA{INVOICE_NUM} = ($attr->{INVOICE_NUM}) ? $attr->{INVOICE_NUM}  : $self->docs_nextid({ TYPE => 'INVOICE' });
   return $self if($self->{errno});
 
-  $self->{debug}=1;
   $self->query($db, "insert into docs_invoices (invoice_num, date, created, customer, phone, aid, uid, payment_id, vat, deposit, 
     delivery_status, exchange_rate, currency)
       values ('$DATA{INVOICE_NUM}', $DATA{DATE}, now(), \"$DATA{CUSTOMER}\", \"$DATA{PHONE}\", 

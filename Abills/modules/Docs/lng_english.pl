@@ -39,4 +39,7 @@ $_INVOICE_AUTO_GEN='Generate invoices automatically';
 $_INVOICING_PERIOD='Periods for invoicing';
 $_PERSONAL_DELIVERY='Personal invoice delivery';
 $_ALT='Alt.';
-$_CURRENCY='currency';
+$_CURRENCY='Currency';
+
+$_LAST_INVOICE_DATE='Last Invoice date';
+$_NEXT_INVOICE_DATE='Next Invoice Date';

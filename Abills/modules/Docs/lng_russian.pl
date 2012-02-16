@@ -38,3 +38,6 @@ $_INVOICING_PERIOD='Период выписка счёта';
 $_PERSONAL_DELIVERY='Персональная доставка';
 $_ALT='Альтернативная';
 $_CURRENCY='Валюта';
+
+$_LAST_INVOICE_DATE='Дата последнего счета';
+$_NEXT_INVOICE_DATE='Дата следующего счета';

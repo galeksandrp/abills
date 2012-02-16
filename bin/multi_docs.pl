@@ -421,7 +421,10 @@ sub periodic_invoice {
 
 #Add to DB
     if ($num > 0) {
-		  $Docs->invoice_add({ %user, %ORDERS_HASH });		
+    	if ($debug < 5) {
+		    $Docs->invoice_add({ %user, %ORDERS_HASH });		
+		    $Docs->user_change({ UID => $user{UID}, INVOICE_DATE => $DATE });
+		   }
 		 }
 	 }
 }
@@ -670,7 +673,6 @@ sub prepaid_accounts_company {
  my $TP_LIST = get_tps();
  my @accounts_ids = ();
 
- #$Company->{debug}=1;
  my $list = $Company->list({ 
 		                        DISABLE       => 0,
 		                        PAGE_ROWS     => 1000000,

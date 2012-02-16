@@ -37,6 +37,9 @@ $_NEXT_PERIODS='Наступні обрахункові періоди';
 $_INCLUDE_CUR_BILLING_PERIOD='Включити рахунки за поточний період';
 $_NOT_INCLUDE_CUR_BILLING_PERIOD='Не включати рахунки за поточний період';
 
+$_LAST_INVOICE_DATE='Дата останього рахунку';
+$_NEXT_INVOICE_DATE='Дата наступного рахунку';
+
 
 $_INVOICE_AUTO_GEN='Автоматичне створення рахунку';
 $_INVOICING_PERIOD='Період виписки рахунку';
