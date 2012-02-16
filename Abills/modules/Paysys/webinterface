@@ -228,7 +228,20 @@ sub paysys_import_form {
         print $table2->show();
        }
 
+
        push @PAYMENT_METHODS, @EX_PAYMENT_METHODS if (@EX_PAYMENT_METHODS);
+
+       for(my $i=0; $i<=$#PAYMENT_METHODS; $i++) {
+	       $PAYMENTS_METHODS{"$i"}="$PAYMENT_METHODS[$i]";
+        }
+
+       my %PAYSYS_PAYMENT_METHODS = %{ cfg2hash($conf{PAYSYS_PAYMENTS_METHODS}) };
+
+       while(my($k, $v) = each %PAYSYS_PAYMENT_METHODS ) {
+	       $PAYMENTS_METHODS{$k}=$v;
+        }
+
+
        my $ids = join(';', @$BINDING_IDS);
 
        if ($ids eq '') {
@@ -383,8 +396,9 @@ function CheckAllINBOX() {
   
        	   my $PAYMENT_METHOD_SEL =  $html->form_select('PAYMENT_METHOD_'.$ID, 
                                 { SELECTED      => $DATA_ARR->[$i]->{PAYMENT_METHOD} || '',
- 	                                SEL_ARRAY     => \@PAYMENT_METHODS,
- 	                                ARRAY_NUM_ID  => 1
+ 	                                SEL_HASH     => \%PAYMENTS_METHODS,
+ 	                                NO_ID        => 1,
+ 	                                SORT_KEY     => 1 	                                
  	                               });
            my $info = ''; 
 
