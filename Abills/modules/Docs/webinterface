@@ -999,7 +999,7 @@ foreach my $line (@$list) {
      }
      
      
-    my $payments_info = ($line->[17] > 0) ? "&SUM=$line->[11]&ISO=$line->[17]" : "&SUM=$line->[3]";
+    my $payments_info = ($line->[17] > 0 && ! $conf{DOCS_PAYMENT_SYSTEM_CURRENCY}) ? "&SUM=$line->[11]&ISO=$line->[17]" : "&SUM=$line->[3]";
      
     push @rows, $html->button($_PAYMENTS, "index=2&INVOICE_ID=$line->[13]&UID=$line->[12]$payments_info", { CLASS => 'payments' }),
     $html->button($_SEND_MAIL, "qindex=". get_function_index('docs_invoices_list') ."&sendmail=$line->[13]&UID=$line->[12]", { ex_params => 'target=_new', CLASS => 'sendmail' }) ,
