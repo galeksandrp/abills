@@ -1829,7 +1829,9 @@ sub docs_invoice {
                                 class      => 'form'
                               });
     
-    my $total_sum = 0;
+    my $total_sum         = 0;
+    my $total_not_invoice = 0;
+    my $amount_for_pay    = 0;
 
     if (! $user->{UID}) {
       my $list = $Docs->invoice_new({ FROM_DATE => $FORM{FROM_DATE} || $html->{FROM_DATE},
@@ -1838,7 +1840,6 @@ sub docs_invoice {
     	                       UID       => $users->{UID}
     	                      });   
 
-      my $amount_for_pay = 0;
       foreach my $line (@$list) {
         next if ($line->[5]);
         $num++;
@@ -1854,7 +1855,7 @@ sub docs_invoice {
            "$line->[3] $date", 
            "$line->[4]"
          );      
-        $total_sum+=$line->[4]; 
+        $total_not_invoice+=$line->[4]; 
        }
      }
     else {
@@ -2023,15 +2024,8 @@ sub docs_invoice {
  	     }
      }
 
-    if ($users->{DEPOSIT}>0) {
-
- 	    $amount_for_pay    = ($total_sum<$users->{DEPOSIT}) ? 0 : $total_sum-$users->{DEPOSIT};
- 	   }
-    else {
-   	  $amount_for_pay    = $total_sum;
-     }
-
-
+    $amount_for_pay    = ($total_sum<$users->{DEPOSIT}) ? 0 : $total_sum-$users->{DEPOSIT};
+    $total_sum += $total_not_invoice;
 
     $table->{extra}    = " colspan=4 class=total ";
     $table->addrow("$_COUNT: $num $_TOTAL $_SUM: ", sprintf("%.2f", $total_sum));
