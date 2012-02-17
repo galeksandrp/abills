@@ -2015,7 +2015,7 @@ sub docs_invoice {
  	 	                    $order. (($current_invoice{$order}) ? ' '. $html->color_mark($_EXIST, 'red'): ''),
  	 	                    $result_sum );
 
- 	 	         $total_sum	+= $sum if (! $current_invoice{$order}); 	 	         
+ 	 	         $total_sum	+= $result_sum if (! $current_invoice{$order}); 	 	         
  	 	         
  	 	         $period_from = strftime "%Y-%m-%d", localtime( (mktime(0, 0, 0, $D, ($M-1), ($Y-1900), 0, 0, 0) + 1 * 86400) ); 
            }
@@ -2051,7 +2051,7 @@ sub docs_invoice {
       $table->addrow($action);
 
     	my $content = $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN=>1  }),
-                 HIDDEN  => { index          => "$index",
+                    HIDDEN  => { index          => "$index",
 	                 	            UID            => $FORM{UID},
 	                 	            DATE           => $DATE,
 	                 	            create         => 1,
