@@ -603,7 +603,12 @@ if (! $conf{ADDRESS_REGISTER} ) {
 }
 
 my $address =  $html->tpl_show(templates('form_address_sel'), { %FORM }, { OUTPUT2RETURN => 1 });
-$html->tpl_show(_include('marketing_search', 'Marketing'), { %$Marketing, %FORM, ADDRESS => $address } ),
+$html->tpl_show(_include('marketing_search', 'Marketing'), { %$Marketing, %FORM, ADDRESS => $address } );
+
+
+if (! $FORM{show} ) {
+	return 0;
+}
 
 my $list = $Marketing->triplay_stats({ %FORM, %LIST_PARAMS  });
 #адрес, № квратиры, договор, Тариф Интернет, Тариф телевилиния, тариф телефонии, ФИО, телефон
