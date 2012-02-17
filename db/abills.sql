@@ -230,7 +230,7 @@ CREATE TABLE `docs_invoice_orders` (
   `unit` tinyint(3) unsigned NOT NULL default '0',
   `price` double(10,2) unsigned NOT NULL default '0.00',
   `fees_id` int(11) unsigned NOT NULL default 0,
-  KEY `aid` (`acct_id`)
+  KEY `invoice_id` (`invoice_id`)
 )  COMMENT='Docs Invoice Orders' ;
 
 CREATE TABLE `docs_acts` (
