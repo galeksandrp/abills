@@ -282,7 +282,7 @@ CREATE TABLE `docs_receipt_orders` (
   `unit` tinyint(3) unsigned NOT NULL default '0',
   `price` double(10,2) unsigned NOT NULL default '0.00',
   `fees_id` int(11) unsigned NOT NULL default 0,
-  KEY `invoice_id` (`invoice_id`)
+  KEY `receipt_id` (`receipt_id`)
 ) COMMENT='Docs receipt orders';
 
 CREATE TABLE `docs_main` (
@@ -1221,7 +1221,7 @@ CREATE TABLE `streets` (
   `district_id` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   UNIQUE KEY `id` (`id`),
-  UNIQUE KEY `name_district` (`name`, `district_id`),
+  UNIQUE KEY `name_district` (`name`, `district_id`)
 ) COMMENT='Locations streets';
 
 
