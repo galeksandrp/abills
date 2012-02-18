@@ -467,6 +467,10 @@ sub invoices_list {
  $PG   = ($attr->{PG}) ? $attr->{PG} : 0;
  $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
 
+ $self->{SEARCH_FIELDS}      = '';
+ $self->{SEARCH_FIELDS_COUNT}= 0;
+
+
  @WHERE_RULES = ("d.id=o.invoice_id");
 
  if ($SORT == 1) {
@@ -499,6 +503,10 @@ sub invoices_list {
 
  if ($attr->{DOC_ID}) {
     push @WHERE_RULES, @{ $self->search_expr($attr->{DOC_ID}, 'INT', 'd.invoice_num') };
+  }
+
+ if ($attr->{BILL_ID}) {
+    push @WHERE_RULES, @{ $self->search_expr($attr->{BIL_ID}, 'INT', 'p.bill_id', { EXT_FIELDS => 1 } ) };
   }
 
 
@@ -556,6 +564,7 @@ sub invoices_list {
      d.payment_id, u.id, a.name, d.created, p.method, p.ext_id, g.name, 
      if (d.exchange_rate>0, sum(o.price * o.counts) * d.exchange_rate, 0.00),
      d.uid, d.id, u.company_id, c.name, if(u.company_id=0, concat(pi.contract_sufix,pi.contract_id), concat(c.contract_sufix,c.contract_id)), d.currency
+     $self->{SEARCH_FIELDS}
      $self->{EXT_FIELDS}
     FROM (docs_invoices d, docs_invoice_orders o)
     LEFT JOIN users u ON (d.uid=u.uid)
@@ -823,7 +832,7 @@ sub invoice_del {
   if ($id == 0 && $attr->{UID}) {
    }
   else {
-    $self->query($db, "DELETE FROM docs_invoices_orders WHERE acct_id='$id'", 'do');
+    $self->query($db, "DELETE FROM docs_invoice_orders WHERE invoice_id='$id'", 'do');
     $self->query($db, "DELETE FROM docs_invoices WHERE id='$id'", 'do');
    }
 
@@ -1556,7 +1565,9 @@ sub user_info {
    service.comments,
    service.personal_delivery,
    service.invoicing_period,
-   service.invoice_date 
+   service.invoice_date,
+   (service.invoice_date + INTERVAL service.invoicing_period MONTH) - INTERVAL 10 day AS PRE_INVOICE_DATE
+
      FROM docs_main service
    $WHERE;");
 
@@ -1573,7 +1584,8 @@ sub user_info {
    $self->{COMMENTS},
    $self->{PERSONAL_DELIVERY},
    $self->{INVOICE_PERIOD},
-   $self->{INVOICE_DATE}   
+   $self->{INVOICE_DATE},
+   $self->{NEXT_INVOICE_DATE}   
   )= @{ $self->{list}->[0] };  
   
   return $self;
@@ -1709,13 +1721,15 @@ sub user_list {
   }
 
  if ($attr->{DEPOSIT}) {
-    my $value = $self->search_expr($attr->{DEPOSIT}, 'INT');
-    push @WHERE_RULES, "u.deposit$value";
+   push @WHERE_RULES, @{ $self->search_expr($attr->{DEPOSIT}, 'INT',  'u.deposit') };    
+  }
+
+ if ($attr->{DISCOUNT}) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{DISCOUNT}, 'INT',  'u.reduction', { EXT_FIELD => 1 }) };    
   }
 
  if ($attr->{FIO}) {
-    $attr->{FIO} =~ s/\*/\%/ig;
-    push @WHERE_RULES, "u.fio LIKE '$attr->{FIO}'";
+    push @WHERE_RULES, @{ $self->search_expr($attr->{FIO}, 'STR', 'pi.fiio') };
   }
 
  if ($attr->{COMMENTS}) {
@@ -1754,7 +1768,8 @@ sub user_list {
 
 
  if ($attr->{PRE_INVOICE_DATE}) {
-   push @WHERE_RULES, @{ $self->search_expr("$attr->{PRE_INVOICE_DATE}", 'DATE', '((service.invoice_date + INTERVAL service.invoicing_period MONTH) - INTERVAL 10 day)') };
+   push @WHERE_RULES,  "(u.activate='0000-00-00' AND service.invoice_date + INTERVAL service.invoicing_period MONTH - INTERVAL 10 day='$attr->{PRE_INVOICE_DATE}') 
+   OR (u.activate<>'0000-00-00' AND service.invoice_date + INTERVAL 30*service.invoicing_period+service.invoicing_period-1 DAY   - INTERVAL 10 day='$attr->{PRE_INVOICE_DATE}')";
   }
 
 
@@ -1781,7 +1796,10 @@ my $list;
      service.send_docs,
      service.uid,
      u.activate,
-     (service.invoice_date + INTERVAL service.invoicing_period MONTH) - INTERVAL 10 day AS PRE_INVOICE_DATE 
+     $self->{SEARCH_FIELDS}
+     if(u.activate='0000-00-00', 
+     service.invoice_date + INTERVAL service.invoicing_period MONTH,  
+     service.invoice_date + INTERVAL 30*service.invoicing_period+service.invoicing_period-1 DAY)   - INTERVAL 10 day AS PRE_INVOICE_DATE 
    FROM (users u, docs_main service)
    
    LEFT JOIN users_pi pi ON (u.uid = pi.uid)

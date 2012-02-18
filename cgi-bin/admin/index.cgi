@@ -5753,7 +5753,7 @@ if ($permissions{1} && $permissions{1}{1}) {
  	                                MULTI_ARRAY_KEY   => 13,
  	                                MULTI_ARRAY_VALUE => '0,1,3',
  	                                MULTI_ARRAY_VALUE_PREFIX => "$_NUM: ,$_DATE: ,$_SUM:",
- 	                                SEL_OPTIONS       => { 0 => '', create => $_CREATE },
+ 	                                SEL_OPTIONS       => { 0 => '', (! $conf{PAYMENTS_NOT_CREATE_INVOICE}) ? ( create => $_CREATE ) : undef },
  	                                NO_ID             => 1,
  	                                MAIN_MENU         => get_function_index('docs_invoices_list'),
  	                                MAIN_MENU_AGRV    => "UID=$FORM{UID}&INVOICE_ID=$FORM{INVOICE_ID}"
