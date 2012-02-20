@@ -327,7 +327,7 @@ sub docs_receipt_info {
      return $self;
    }
 
-  ($self->{RECEIPT_ID}, 
+  ($self->{RECEIPT_NUM}, 
    $self->{DATE}, 
    $self->{CUSTOMER}, 
    $self->{TOTAL_SUM},
@@ -352,7 +352,7 @@ sub docs_receipt_info {
 	$self->{AMOUNT_FOR_PAY}=  ($self->{DEPOSIT}<0) ? abs($self->{DEPOSIT}) : 0 - $self->{DEPOSIT};
 	
   if ($self->{TOTAL} > 0) {
-    $self->{NUMBER}=$self->{RECEIPT_ID}; 
+    $self->{NUMBER}=$self->{RECEIPT_NUM}; 
     $self->query($db, "SELECT receipt_id, orders, unit, counts, price, fees_id, '$self->{LOGIN}'
       FROM docs_receipt_orders WHERE receipt_id='$id'");
     $self->{ORDERS}=$self->{list};
@@ -384,7 +384,7 @@ sub docs_receipt_add {
  
 
   $DATA{DATE}       = ($attr->{DATE})    ? "'$attr->{DATE}'" : 'now()';
-  $DATA{RECEIPT_ID} = ($attr->{RECEIPT_ID}) ? $attr->{RECEIPT_ID}  : $self->docs_nextid({ TYPE => 'RECEIPT' });
+  $DATA{RECEIPT_NUM} = ($attr->{RECEIPT_NUM}) ? $attr->{RECEIPT_NUM}  : $self->docs_nextid({ TYPE => 'RECEIPT' });
 
   $self->query($db, "insert into docs_receipts (receipt_num, date, created, customer, phone, aid, uid,
     by_proxy_seria,
@@ -394,7 +394,7 @@ sub docs_receipt_add {
     deposit,
     delivery_status,
     exchange_rate, currency)
-      values ('$DATA{RECEIPT_ID}', $DATA{DATE}, now(), '$DATA{CUSTOMER}', '$DATA{PHONE}', 
+      values ('$DATA{RECEIPT_NUM}', $DATA{DATE}, now(), '$DATA{CUSTOMER}', '$DATA{PHONE}', 
       '$admin->{AID}', '$DATA{UID}',
       '$DATA{BY_PROXY_SERIA}',
       '$DATA{BY_PROXY_PERSON}',
@@ -429,7 +429,6 @@ sub docs_receipt_add {
    } 
 
   return $self if($self->{errno});
-  $self->{INVOICE_ID}=$DATA{INVOICE_ID};
   $self->docs_receipt_info($self->{DOC_ID});
 	return $self;
 }
@@ -815,7 +814,6 @@ sub invoice_add {
 
   return $self if($self->{errno});
 
-  $self->{INVOICE_ID}=$DATA{INVOICE_ID};
   $self->invoice_info($self->{DOC_ID});
 
 	return $self;
@@ -889,7 +887,7 @@ sub invoice_info {
      $self->{errstr} = 'ERROR_NOT_EXIST';
      return $self;
    }
-  ($self->{INVOICE_ID}, 
+  ($self->{INVOICE_NUM}, 
    $self->{DATE}, 
    $self->{CUSTOMER}, 
    $self->{TOTAL_SUM},
@@ -1297,7 +1295,7 @@ sub tax_invoice_info {
 	
   
   if ($self->{TOTAL} > 0) {
-    $self->{NUMBER}=$self->{INVOICE_ID};
+    $self->{NUMBER}=$self->{INVOICE_NUM};
  
     $self->query($db, "SELECT tax_invoice_id, orders, counts, unit, price
      FROM docs_tax_invoice_orders WHERE tax_invoice_id='$id'");

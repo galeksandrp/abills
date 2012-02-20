@@ -5,7 +5,9 @@ From: $conf{ADMIN_MAIL}
 #To: mail\@host.com
 
 %FIO%
+-----------------------------------------
+$_INVOICE: %INVOICE_NUM% 
+$_DATE: %DATE%
 
-Invoice: %INVOICE_NUM% %DATE%
-
+-----------------------------------------
 $_SUM: %TOTAL_SUM%

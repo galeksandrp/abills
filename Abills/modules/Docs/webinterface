@@ -106,7 +106,7 @@ sub docs_receipt_add  {
      if(! $Docs->{errno}) {
        if ($conf{DOCS_PDF_PRINT}) {
   	     $html->message('info', "$_RECEIPT $_ADDED", "$_RECEIPT $_NUM: [$Docs->{DOC_ID}]\n $_DATE: $date\n ". 
-  	     $html->button($_PRINT, "qindex=". get_function_index('docs_receipt_list') ."&sendmail=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}", { ex_params => 'target=_new', CLASS => 'sendmail rightAlignText' }).' '.
+  	     $html->button("$_SEND $_EMAIL", "qindex=". get_function_index('docs_receipt_list') ."&sendmail=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}", { ex_params => 'target=_new', CLASS => 'sendmail rightAlignText' }).' '.
   	     $html->button($_PRINT, "qindex=". get_function_index('docs_receipt_list') ."&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}&pdf=1", { ex_params => 'target=_new', CLASS => 'print rightAlignText' }));
 
 
@@ -124,9 +124,9 @@ sub docs_receipt_add  {
 
         }
        else {
-         $html->message('info', "$_RECEIPT $_ADDED", "$_RECEIPT $_NUM: [$Docs->{DOC_ID}]\n $_DATE: $date". 
-           $html->button($_SEND_MAIL, "qindex=". get_function_index('docs_receipt_list') ."&sendmail=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}", { ex_params => 'target=_new', CLASS => 'sendmail' }) .' '.
-           $html->button($_PRINT, "qindex=". get_function_index('docs_receipt_list') ."&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}", { ex_params => 'target=_new', CLASS => 'print' }) );
+         $html->message('info', "$_RECEIPT $_ADDED", "$_RECEIPT $_NUM: [$Docs->{DOC_ID}]\n $_DATE: $date\n". 
+           $html->button("$_SEND_MAIL", "qindex=". get_function_index('docs_receipt_list') ."&sendmail=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}", { ex_params => 'target=_new', CLASS => 'sendmail rightAlignText' }) .' '.
+           $html->button($_PRINT, "qindex=". get_function_index('docs_receipt_list') ."&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}", { ex_params => 'target=_new', CLASS => 'print rightAlignText' }) );
          #$Docs->docs_receipt_info($Docs->{DOC_ID});
         }
 
@@ -612,11 +612,12 @@ elsif($FORM{print}) {
    	 $Docs->{VAT}                  = sprintf("%.2f", $conf{DOCS_VAT_INCLUDE});
    }
 
-
   if ($attr->{GET_EMAIL_INFO}) {
     $attr->{EMAIL_MSG_TEXT}        = $html->tpl_show(_include('docs_receipt_email', 'Docs'), { %FORM, %$attr, %$Docs, %$users }, { OUTPUT2RETURN => 1 });
-    $attr->{EMAIL_ATTACH_FILENAME} = 'receipt_'. $Docs->{INVOICE_ID} .'.pdf' if (! $attr->{EMAIL_ATTACH_FILENAME});
+    $attr->{EMAIL_ATTACH_FILENAME} = 'receipt_'. $Docs->{RECEIPT_NUM} .'.pdf' if (! $attr->{EMAIL_ATTACH_FILENAME});
     $attr->{EMAIL_MSG_SUBJECT}     = "ABillS - $_RECEIPT: $Docs->{RECEIPT_NUM}" if (! $attr->{EMAIL_MSG_SUBJECT});
+  	$attr->{OUTPUT2RETURN}         = undef;
+  	$FORM{pdf}                     = $conf{DOCS_PDF_PRINT};
    }
 
 
@@ -625,9 +626,14 @@ elsif($FORM{print}) {
  }
 elsif($FORM{sendmail}) {
   $FORM{print}= $FORM{sendmail};
-  $FORM{pdf}  = $conf{DOCS_PDF_PRINT};
-	docs_receipt_list({ SEND_EMAIL => 1 });
-  $html->message('info', "$_INFO", "E-Mail $_SENDED ");
+	if(docs_receipt_list({ SEND_EMAIL     => 1,
+		                     GET_EMAIL_INFO => 1 
+		                 })) {
+    $html->message('info', "$_INFO", "E-Mail $_SENDED ");
+   }
+  else {
+  	$html->message('info', "$_ERROR", "E-Mail $_SENDED Error: $FORM{ERR_MESSAGE} ");
+   }
 	return 0;
  }
 elsif (! $LIST_PARAMS{UID}) {
@@ -1151,7 +1157,6 @@ if ($FORM{print_list}) {
     print "UID: LOGIN: $line->[0] FIO: $line->[1] SUM: $line->[2]\n" if ($debug > 2);
 	 }
 
-  #print "Content-Type: text/html\n\n";
   print $html->header() if ($FORM{qindex});  
   my $single_tpl = $html->tpl_show(_include('docs_tax_invoice', 'Docs', { pdf => $FORM{pdf} }), undef, 
                                            { MULTI_DOCS   => \@MULTI_ARR, 
@@ -1621,7 +1626,9 @@ sub docs_invoice {
 
        if ($conf{DOCS_PDF_PRINT}) {
          if (! $attr->{QUITE}) {
-       	   $html->message('info', "$_INVOICE $_CREATED", "$_INVOICE $_NUM: [$Docs->{INVOICE_NUM}]\n $_DATE: $Docs->{DATE}\n $_TOTAL $_SUM: $Docs->{TOTAL_SUM} \n". $html->button($_PRINT, "qindex=". get_function_index('docs_invoices_list') ."&INVOICE_ID=$Docs->{DOC_ID}&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}&pdf=1", { ex_params => 'target=_new', CLASS => 'print' }));
+       	   $html->message('info', "$_INVOICE $_CREATED", "$_INVOICE $_NUM: [$Docs->{INVOICE_NUM}]\n $_DATE: $Docs->{DATE}\n $_TOTAL $_SUM: $Docs->{TOTAL_SUM} \n". 
+           $html->button("$_SEND $_EMAIL", "qindex=". get_function_index('docs_invoices_list') ."&INVOICE_ID=$Docs->{DOC_ID}&sendmail=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}", { ex_params => 'target=_new', CLASS => 'sendmail rightAlignText' }).
+       	   $html->button($_PRINT, "qindex=". get_function_index('docs_invoices_list') ."&INVOICE_ID=$Docs->{DOC_ID}&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}&pdf=1", { ex_params => 'target=_new', CLASS => 'print rightAlignText' }));
        	   return 0;
        	  }
        	 
@@ -1631,15 +1638,16 @@ sub docs_invoice {
          delete($FORM{create});
 
          return  docs_invoice({ GET_EMAIL_INFO    => 1,
-            	             SEND_EMAIL        => $FORM{SEND_EMAIL},
-            	             EMAIL             => $FORM{EMAIL}, 
-            	             %$attr
-            	           });
+            	                  SEND_EMAIL        => $FORM{SEND_EMAIL},
+            	                  EMAIL             => $FORM{EMAIL}, 
+            	                  %$attr
+            	                });
        	 
         }
        else {
-         $html->message('info', "$_INVOICE $_CREATED", "$_INVOICE $_NUM: [$Docs->{INVOICE_ID}]\n $_DATE: $FORM{DATE} ".
-         $html->button($_PRINT, "qindex=$index&INVOICE_ID=$Docs->{DOC_ID}&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}", { ex_params => 'target=_new', CLASS => 'print' }) );
+         $html->message('info', "$_INVOICE $_CREATED", "$_INVOICE $_NUM: [$Docs->{INVOICE_ID}]\n $_DATE: $FORM{DATE} \n".
+         $html->button("$_SEND $_EMAIL", "qindex=$index&INVOICE_ID=$Docs->{DOC_ID}&sendmail=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}", { ex_params => 'target=_new', CLASS => 'sendmail rightAlignText' }).
+         $html->button($_PRINT, "qindex=$index&INVOICE_ID=$Docs->{DOC_ID}&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}", { ex_params => 'target=_new', CLASS => 'print rightAlignText' }) );
          #return 0;
         }
       
@@ -1740,23 +1748,17 @@ sub docs_invoice {
      $Docs->{AMOUNT_FOR_PAY} = sprintf("%.2f", $Docs->{AMOUNT_FOR_PAY});
      
      if ($Docs->{EXCHANGE_RATE} > 0) {
-     	 $Docs->{TOTAL_ALT_SUM} = sprintf("%.2f", $Docs->{TOTAL_SUM} * $Docs->{EXCHANGE_RATE});
+     	 $Docs->{TOTAL_ALT_SUM}      = sprintf("%.2f", $Docs->{TOTAL_SUM} * $Docs->{EXCHANGE_RATE});
      	 $Docs->{AMOUNT_FOR_PAY_ALT} = sprintf("%.2f", $Docs->{AMOUNT_FOR_PAY} * $Docs->{EXCHANGE_RATE} );
       } 
 
      if ($attr->{GET_EMAIL_INFO}) {
         $attr->{EMAIL_MSG_TEXT}        = $html->tpl_show(_include('docs_invoice_email', 'Docs'), { %FORM, %$attr, %$Docs, %$users }, { OUTPUT2RETURN => 1 });
-        $attr->{EMAIL_ATTACH_FILENAME} = 'invoice_'. $Docs->{INVOICE_ID} .'.pdf' if (! $attr->{EMAIL_ATTACH_FILENAME});
+        $attr->{EMAIL_ATTACH_FILENAME} = 'invoice_'. $Docs->{INVOICE_NUM} .'.pdf' if (! $attr->{EMAIL_ATTACH_FILENAME});
         $attr->{EMAIL_MSG_SUBJECT}     = "ABillS - $_INVOICE: $Docs->{INVOICE_NUM}" if (! $attr->{EMAIL_MSG_SUBJECT});
       }
 
-     
-          
-
-
-     
-          
-     
+     $FORM{pdf}  = $conf{DOCS_PDF_PRINT};     
      if ($Docs->{COMPANY_ID}) {
        $Company->info($Docs->{COMPANY_ID});
        return docs_print('invoice_company', { %$Docs, %$Company, %$attr, SUFIX => ($Docs->{VAT} > 0) ? 'vat' : '' });
@@ -1770,11 +1772,17 @@ sub docs_invoice {
     }
    return 0;
   }
-  elsif($FORM{sendmail}) {
+ elsif($FORM{sendmail}) {
     $FORM{print}= $FORM{sendmail};
-    $FORM{pdf}  = $conf{DOCS_PDF_PRINT};
-	  docs_invoice({ SEND_EMAIL => 1 });
-    $html->message('info', "$_INFO", "E-Mail $_SENDED ");
+	  if(docs_invoice({ SEND_EMAIL     => 1,
+		                     GET_EMAIL_INFO => 1 
+		                 })) {
+      $html->message('info', "$_INFO", "E-Mail $_SENDED ");
+     }
+    else {
+  	  $html->message('info', "$_ERROR", "E-Mail $_SENDED Error: $FORM{ERR_MESSAGE} ");
+     }
+
 	  return 0;
   }
  elsif(defined($FORM{change})) {
@@ -2359,9 +2367,13 @@ sub docs_print {
      }
    }
 
+
+
+
   if ($attr->{SEND_EMAIL} && ! $attr->{OUTPUT2RETURN}) {
     # Email not specified
     if (! $attr->{EMAIL} && ! $users->{EMAIL}) {
+    	$FORM{ERR_MESSAGE}="Email $_NOT_EXIST";
     	return 0;
      }
 
@@ -2373,9 +2385,10 @@ sub docs_print {
          	    '',       	  
            	  { ATTACHMENTS => [ { CONTENT      => $content,
        	  	                       CONTENT_TYPE => 'Content-type: application/pdf',
-       	  	                       FILENAME     => ($attr->{EMAIL_ATTACH_FILENAME}) ? $attr->{EMAIL_ATTACH_FILENAME} : $template.'.pdf' 
+       	  	                       FILENAME     => ($attr->{EMAIL_ATTACH_FILENAME}) ? $attr->{EMAIL_ATTACH_FILENAME} : $template.'.pdf',
        	  	                       }
        	  	                    ],
+       	  	    TEST        => $FORM{DEBUG} || undef
        	  	   });
 
    }
