@@ -1549,6 +1549,7 @@ sub docs_invoice {
  $Docs->{DATE}= $DATE;
  $FORM{UID}   = $LIST_PARAMS{UID} if (! $FORM{UID}); 
 
+ 
  if ($FORM{create}) {
    $FORM{SUM} =~ s/\,/\./g;
    if ($FORM{OP_SID} and $FORM{OP_SID} eq $COOKIES{OP_SID}) {
@@ -1695,7 +1696,7 @@ sub docs_invoice {
     }
 
    $Docs->{CUSTOMER}= $self->{COMPANY_NAME} || $Docs->{FIO} || '-' if (! $Docs->{CUSTOMER});
-   $Docs->{DEPOSIT} = sprintf("%.2f", Docs->{DEPOSIT});
+   $Docs->{DEPOSIT} = sprintf("%.2f", $Docs->{DEPOSIT});
 
    if ($FORM{CHECK_PEYMENT_ID} && $Docs->{PAYMENT_ID}) {
    	  return 0;
@@ -1746,7 +1747,7 @@ sub docs_invoice {
         }
       }
 
-     $Docs->{TOTAL_SUM} = sprintf("%.2f", $Docs->{TOTAL_SUM});
+     $Docs->{TOTAL_SUM}      = sprintf("%.2f", $Docs->{TOTAL_SUM});
      $Docs->{AMOUNT_FOR_PAY} = sprintf("%.2f", $Docs->{AMOUNT_FOR_PAY});
      
      if ($Docs->{EXCHANGE_RATE} > 0) {
@@ -1754,6 +1755,7 @@ sub docs_invoice {
      	 $Docs->{AMOUNT_FOR_PAY_ALT} = sprintf("%.2f", $Docs->{AMOUNT_FOR_PAY} * $Docs->{EXCHANGE_RATE} );
      	 $Docs->{DEPOSIT_ALT}        = sprintf("%.2f", $Docs->{DEPOSIT} * $Docs->{EXCHANGE_RATE} );
       } 
+ 
 
      if ($attr->{GET_EMAIL_INFO}) {
         $attr->{EMAIL_MSG_TEXT}        = $html->tpl_show(_include('docs_invoice_email', 'Docs'), { %FORM, %$attr, %$Docs, %$users }, { OUTPUT2RETURN => 1 });
@@ -1764,6 +1766,7 @@ sub docs_invoice {
      $FORM{pdf}  = $conf{DOCS_PDF_PRINT};     
      if ($Docs->{COMPANY_ID}) {
        $Company->info($Docs->{COMPANY_ID});
+       delete $Company->{DEPOSIT};
        return docs_print('invoice_company', { %$Docs, %$Company, %$attr, SUFIX => ($Docs->{VAT} > 0) ? 'vat' : '' });
       }
      else {
