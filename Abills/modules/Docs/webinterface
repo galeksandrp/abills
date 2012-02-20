@@ -1695,6 +1695,7 @@ sub docs_invoice {
     }
 
    $Docs->{CUSTOMER}= $self->{COMPANY_NAME} || $Docs->{FIO} || '-' if (! $Docs->{CUSTOMER});
+   $Docs->{DEPOSIT} = sprintf("%.2f", Docs->{DEPOSIT});
 
    if ($FORM{CHECK_PEYMENT_ID} && $Docs->{PAYMENT_ID}) {
    	  return 0;
@@ -1723,6 +1724,7 @@ sub docs_invoice {
    	   my $count = $line->[2] || 1;
    	   my $sum   = sprintf("%.2f", $count*$line->[4]);
    	   
+   	   $Docs->{'LOGIN_'.$i}       = $line->[6];
    	   $Docs->{'ORDER_NUM_'.$i}   = $i;
        $Docs->{'ORDER_NAME_'.$i}  = $line->[1];
        $Docs->{'ORDER_COUNT_'.$i} = $count;
@@ -3023,7 +3025,8 @@ sub docs_user {
   $Docs->{PERIODIC_CREATE_DOCS}=($Docs->{PERIODIC_CREATE_DOCS}) ? 'checked' : '';
 	$Docs->{SEND_DOCS}=($Docs->{SEND_DOCS}) ? 'checked' : '';
   $Docs->{PERSONAL_DELIVERY}=($Docs->{PERSONAL_DELIVERY}) ? 'checked' : '';
-  $Docs->{INVOICE_DATE} = $html->date_fld2('INVOICE_DATE', { MONTHES => \@MONTHES, FORM_NAME => 'receipt_add', WEEK_DAYS => \@WEEKDAYS, DATE => $Docs->{INVOICE_DATE} });
+  $Docs->{INVOICE_DATE} = $html->date_fld2('INVOICE_DATE', { MONTHES => \@MONTHES, FORM_NAME => 'receipt_add', WEEK_DAYS => \@WEEKDAYS, DATE => $users->{ACTIVATE} || $Docs->{INVOICE_DATE} 
+  });
   
   $html->tpl_show(_include('docs_user', 'Docs'), { %$attr, %$Docs }, {  });
   return 0; 

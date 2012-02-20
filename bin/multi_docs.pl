@@ -434,7 +434,7 @@ sub periodic_invoice {
         $FORM{pdf}   = 1;
          
         docs_receipt({ GET_EMAIL_INFO    => 1,
-                       SEND_EMAIL        => $user{SEND_EMAIL},
+                       SEND_EMAIL        => $user{SEND_EMAIL} || 0, 
             	         %$attr
             	       });
 		   }
