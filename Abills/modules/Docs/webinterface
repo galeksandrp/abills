@@ -1752,6 +1752,7 @@ sub docs_invoice {
      if ($Docs->{EXCHANGE_RATE} > 0) {
      	 $Docs->{TOTAL_ALT_SUM}      = sprintf("%.2f", $Docs->{TOTAL_SUM} * $Docs->{EXCHANGE_RATE});
      	 $Docs->{AMOUNT_FOR_PAY_ALT} = sprintf("%.2f", $Docs->{AMOUNT_FOR_PAY} * $Docs->{EXCHANGE_RATE} );
+     	 $Docs->{DEPOSIT_ALT}        = sprintf("%.2f", $Docs->{DEPOSIT} * $Docs->{EXCHANGE_RATE} );
       } 
 
      if ($attr->{GET_EMAIL_INFO}) {
