@@ -1945,7 +1945,7 @@ if ($FORM{send_invoice}) {
   	$html->message('err', "$_ERROR", "$_ERROR: $error");
    }
   else {
- 	  $html->message('info', "$_INFO", "$_INVOICE_SENDED ID: '$FORM{OPERATION_ID}' $_PHONE: $FORM{PHONE}");
+ 	  $html->message('info', "$_INFO", "$_INVOICE_SENDED ID: '$FORM{OPERATION_ID}'\n$_PHONE: $FORM{PHONE}");
  	  $Paysys->add({ SYSTEM_ID    => $payment_system_id, 
   	             DATETIME       => "'$DATE $TIME'", 
   	             SUM            => $FORM{SUM},
@@ -2015,7 +2015,7 @@ my %status_hash = (
 130 => 'Отказ от провайдера',
 148 => 'Не прошел фин. контроль',
 149 => 'Не прошел фин. контроль',
-150 => 'Ошибка на терминале',
+150 => 'Ошибка авторизации (неверный логин/пароль)',
 160 => 'Не проведена',
 );
 

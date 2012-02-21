@@ -111,7 +111,7 @@ if(! -f $config_file ) {
 
          # Check /etc/my.cnf
          if (! -f '/etc/my.cnf') {
-         	 my $res = `cp mysq/my.cnf /etc/`;
+         	 my $res = `cp mysql/my.cnf /etc/`;
           }
 
          if ($proc_list !~  /mysqld/) {

@@ -518,7 +518,8 @@ if($FORM{del} && $FORM{is_js_confirmed}) {
    }
  }
 elsif($FORM{print}) {
-  $Docs->docs_receipt_info($FORM{print}, { UID => $LIST_PARAMS{UID} });
+	$Docs->{debug}=1;
+  $Docs->docs_receipt_info($FORM{print}, { UID => $LIST_PARAMS{UID} || $attr->{UID} });
   ($Docs->{SUM_MAIN}, $Docs->{SUM_SUB})=split(/\./, $Docs->{TOTAL_SUM});
   $Docs->{TOTAL_SUM}=0.00;
    
@@ -1594,7 +1595,8 @@ sub docs_invoice {
      	 if ($attr->{REGISTRATION}) {
      	 	 my ($Y,$M, $D)=split(/-/, $DATE, 3);
          $Docs->user_change({ UID          => $FORM{UID},
-       	                      INVOICE_DATE => ($users->{ACTIVATE} ne '0000-00-00') ? $DATE : "$Y-$M-01" 
+       	                      INVOICE_DATE => ($users->{ACTIVATE} ne '0000-00-00') ? $DATE : "$Y-$M-01",
+       	                      CHANGE_DATE  => 1  
        	                     });
      	  }
 
@@ -1639,7 +1641,7 @@ sub docs_invoice {
          delete($FORM{create});
 
          return  docs_invoice({ GET_EMAIL_INFO    => 1,
-            	                  SEND_EMAIL        => $FORM{SEND_EMAIL},
+            	                  SEND_EMAIL        => $FORM{SEND_EMAIL} || $attr->{SEND_EMAIL},
             	                  EMAIL             => $FORM{EMAIL}, 
             	                  %$attr
             	                });
@@ -1707,7 +1709,7 @@ sub docs_invoice {
       $Docs->{FROM_DATE_LIT}='';
       
      (undef, $Docs->{TIME}) = split(/ /,  $Docs->{CREATED}, 2);
-     $Docs->{AMOUNT_FOR_PAY}=($Docs->{DEPOSIY}<0) ? abs($Docs->{DEPOSIT}) : 0-$Docs->{DEPOSIT};
+     $Docs->{AMOUNT_FOR_PAY}=($Docs->{DEPOSIT}<0) ? abs($Docs->{DEPOSIT}) : 0-$Docs->{DEPOSIT};
      my $list = $Docs->{ORDERS};
      my $i=0;
      foreach my $line (@$list) {
@@ -1739,9 +1741,9 @@ sub docs_invoice {
 
        #alternative currancy sum
        if ($Docs->{EXCHANGE_RATE} > 0) {
-         $Docs->{'ORDER_ALT_SUM_'.$i}     = sprintf("%.2f", $Docs->{'ORDER_SUM_'.$i} * $Docs->{EXCHANGE_RATE});
-         $Docs->{'ORDER_ALT_PRICE_'.$i}   = sprintf("%.2f", $Docs->{'ORDER_PRICE_'.$i} * $Docs->{EXCHANGE_RATE});
-         $Docs->{'ORDER_ALT_VAT_'.$i}     = sprintf("%.2f", $Docs->{'ORDER_VAT_'.$i} * $Docs->{EXCHANGE_RATE});
+         $Docs->{'ORDER_ALT_SUM_'.$i}               = sprintf("%.2f", $Docs->{'ORDER_SUM_'.$i} * $Docs->{EXCHANGE_RATE});
+         $Docs->{'ORDER_ALT_PRICE_'.$i}             = sprintf("%.2f", $Docs->{'ORDER_PRICE_'.$i} * $Docs->{EXCHANGE_RATE});
+         $Docs->{'ORDER_ALT_VAT_'.$i}               = sprintf("%.2f", $Docs->{'ORDER_VAT_'.$i} * $Docs->{EXCHANGE_RATE});
          $Docs->{'ORDER_ALT_PRICE_WITHOUT_VAT_'.$i} = sprintf("%.2f", $Docs->{'ORDER_PRICE_WITHOUT_VAT_'.$i} * $Docs->{EXCHANGE_RATE} );
          $Docs->{'ORDER_ALT_SUM_WITHOUT_VAT_'.$i}   = sprintf("%.2f", $Docs->{'ORDER_SUM_WITHOUT_VAT_'.$i} * $Docs->{EXCHANGE_RATE}  );
         }
@@ -1756,7 +1758,6 @@ sub docs_invoice {
      	 $Docs->{DEPOSIT_ALT}        = sprintf("%.2f", $Docs->{DEPOSIT} * $Docs->{EXCHANGE_RATE} );
       } 
  
-
      if ($attr->{GET_EMAIL_INFO}) {
         $attr->{EMAIL_MSG_TEXT}        = $html->tpl_show(_include('docs_invoice_email', 'Docs'), { %FORM, %$attr, %$Docs, %$users }, { OUTPUT2RETURN => 1 });
         $attr->{EMAIL_ATTACH_FILENAME} = 'invoice_'. $Docs->{INVOICE_NUM} .'.pdf' if (! $attr->{EMAIL_ATTACH_FILENAME});
@@ -3029,8 +3030,11 @@ sub docs_user {
   $Docs->{PERIODIC_CREATE_DOCS}=($Docs->{PERIODIC_CREATE_DOCS}) ? 'checked' : '';
 	$Docs->{SEND_DOCS}=($Docs->{SEND_DOCS}) ? 'checked' : '';
   $Docs->{PERSONAL_DELIVERY}=($Docs->{PERSONAL_DELIVERY}) ? 'checked' : '';
-  $Docs->{INVOICE_DATE} = $html->date_fld2('INVOICE_DATE', { MONTHES => \@MONTHES, FORM_NAME => 'receipt_add', WEEK_DAYS => \@WEEKDAYS, DATE => $users->{ACTIVATE} || $Docs->{INVOICE_DATE} 
-  });
+  $Docs->{INVOICE_DATE} = $html->date_fld2('INVOICE_DATE', { MONTHES   => \@MONTHES, 
+  	                                                         FORM_NAME => 'receipt_add', 
+  	                                                         WEEK_DAYS => \@WEEKDAYS, 
+  	                                                         DATE => $Docs->{INVOICE_DATE}  || $users->{ACTIVATE} 
+  	                                                       });
   
   $html->tpl_show(_include('docs_user', 'Docs'), { %$attr, %$Docs }, {  });
   return 0; 

@@ -1663,9 +1663,11 @@ sub user_change {
                  INVOICE_DATE      => 'invoice_date'
                 );
  
-  $attr->{SEND_DOCS} = (! defined($attr->{SEND_DOCS})) ? 0 : 1;
-  $attr->{PERIODIC_CREATE_DOCS} = (! defined($attr->{PERIODIC_CREATE_DOCS})) ? 0 : 1;
-  $attr->{PERSONAL_DELIVERY} = (! defined($attr->{PERSONAL_DELIVERY})) ? 0 : 1;
+  if (! $attr->{CHANGE_DATE} ) {
+    $attr->{SEND_DOCS}            = (! defined($attr->{SEND_DOCS})) ? 0 : 1;
+    $attr->{PERIODIC_CREATE_DOCS} = (! defined($attr->{PERIODIC_CREATE_DOCS})) ? 0 : 1;
+    $attr->{PERSONAL_DELIVERY}    = (! defined($attr->{PERSONAL_DELIVERY})) ? 0 : 1;
+   }
 
   $admin->{MODULE}=$MODULE;
   $self->changes($admin, { CHANGE_PARAM => 'UID',

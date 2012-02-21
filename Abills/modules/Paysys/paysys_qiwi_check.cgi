@@ -112,7 +112,7 @@ my %status_hash = (
 130 => 'Отказ от провайдера',
 148 => 'Не прошел фин. контроль',
 149 => 'Не прошел фин. контроль',
-150 => 'Ошибка на терминале',
+150 => 'Ошибка авторизации (неверный логин/пароль)',
 160 => 'Не проведена',
 161 => 'Отменен (Истекло время)'
 );
@@ -132,7 +132,8 @@ my $result = qiwi_status({ IDS   => \@ids_arr,
 
 
 if ($result->{'result-code'}->[0]->{fatal} && $result->{'result-code'}->[0]->{fatal} eq 'true') {
-	print "Error: ".  $result->{'result-code'}->[0]->{content} ."\n";
+	print "Error: ".  $result->{'result-code'}->[0]->{content} .
+	 ' '.  $status_hash{$result->{'result-code'}->[0]->{content}} ."\n";
 	exit;
 } 
 
@@ -214,9 +215,9 @@ print << "[END]";
 #**********************************************************
 sub cross_modules_call  {
   my ($function_sufix, $attr) = @_;
+  my %full_return  = ();
 
 eval {
-  my %full_return  = ();
   my @skip_modules = ();
  
   if ($attr->{SKIP_MODULES}) {

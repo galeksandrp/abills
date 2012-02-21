@@ -1,7 +1,8 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl 
 #
 #
-use strict;
+
+#use strict;
 
 my $tmp_path        = '/tmp/';
 my $pdf_result_path = '../cgi-bin/admin/pdf/';
@@ -71,7 +72,9 @@ Dv->import();
 
 require Abills::HTML;
 Abills::HTML->import();
-$html = Abills::HTML->new({ CONF => \%conf, pdf => 1 });
+$html = Abills::HTML->new({ CONF => \%conf, 
+	                          # pdf => 1 
+	                        });
 
 my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd}, { CHARSET => ($conf{dbcharset}) ? $conf{dbcharset} : undef });
 my $db = $sql->{db};
@@ -229,9 +232,6 @@ sub periodic_invoice {
                 );
 
     $FORM{NEXT_PERIOD}=$user{INVOICE_PERIOD};
-    
-
-    
     if ($debug > 0) {
     	print "$user{LOGIN} [$user{UID}] DEPOSIT: $user{DEPOSIT} INVOICE_DATE: $user{INVOICE_DATE} NEXT: $user{NEXT_INVOICE_DATE} SEND_DOCS: $user{SEND_DOCS} EMAIL: $user{EMAIL}\n";
      } 
@@ -404,9 +404,8 @@ sub periodic_invoice {
     }
 
     
-    $amount_for_pay    = ($total_sum<$user{DEPOSIT}) ? 0 : $total_sum-$user{DEPOSIT};
-    $total_sum += $total_not_invoice;
-    
+    $amount_for_pay  = ($total_sum<$user{DEPOSIT}) ? 0 : $total_sum-$user{DEPOSIT};
+    $total_sum      += $total_not_invoice;
     $ORDERS_HASH{IDS}=join(', ', @ids);
 
     if ($debug > 1) {
@@ -427,16 +426,19 @@ sub periodic_invoice {
     	if ($debug < 5) {
 		    $Docs->invoice_add({ %user, %ORDERS_HASH });		
 		    $Docs->user_change({ UID          => $user{UID}, 
-		    	                   INVOICE_DATE => $user{INVOICE_PERIOD_START} 
+		    	                   INVOICE_DATE => $user{INVOICE_PERIOD_START}, 
+		    	                   CHANGE_DATE  => 1
 		    	                  });
 		    #Sendemail		    
-        $FORM{print} = $Docs->{DOC_ID};
-        $FORM{pdf}   = 1;
-         #print $user{SEND_EMAIL}
-        docs_receipt({ GET_EMAIL_INFO    => 1,
-                       SEND_EMAIL        => $user{SEND_EMAIL} || 0, 
-            	         %$attr
-            	       });
+        
+        if ($user{SEND_DOCS}) {
+        	$FORM{print} = $Docs->{DOC_ID};
+          docs_invoice({ GET_EMAIL_INFO    => 1,
+                         SEND_EMAIL        => $user{SEND_DOCS} || 0, 
+                         UID               => $user{UID}
+              	         #%$attr
+            	         });
+         }
 		   }
 		 }
 	 }
