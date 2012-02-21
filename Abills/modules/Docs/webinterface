@@ -518,7 +518,6 @@ if($FORM{del} && $FORM{is_js_confirmed}) {
    }
  }
 elsif($FORM{print}) {
-	$Docs->{debug}=1;
   $Docs->docs_receipt_info($FORM{print}, { UID => $LIST_PARAMS{UID} || $attr->{UID} });
   ($Docs->{SUM_MAIN}, $Docs->{SUM_SUB})=split(/\./, $Docs->{TOTAL_SUM});
   $Docs->{TOTAL_SUM}=0.00;
