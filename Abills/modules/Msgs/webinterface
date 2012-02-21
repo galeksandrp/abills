@@ -2173,7 +2173,7 @@ if ($FORM{DATE}) {
 
 
     $table_sessions->addrow($html->b($line->[0]), 
-     $html->button($line->[1], "index=15&UID=$line->[11]"),
+     $html->button($line->[1], "index=15&UID=$line->[12]"),
      $line->[2], 
      $line->[3],
      $line->[4], 

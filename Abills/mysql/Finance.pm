@@ -203,10 +203,24 @@ sub exchange_log_list {
  my $PG = ($attr->{PG}) ? $attr->{PG} : 0;
  my $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
 
+ my $WHERE = '';
+ undef @WHERE_RULES;
+ 
+  if ($attr->{DATE}) { 
+ 	 push @WHERE_RULES, @{ $self->search_expr($attr->{DATE}, 'DATE', 'rl.date') }; 
+ 	}
 
- $self->query($db, "SELECT rl.date, r.money, rl.rate, rl.id
+  if ($attr->{ID}) { 
+ 	 push @WHERE_RULES, @{ $self->search_expr($attr->{ID}, 'INT', 'r.id') }; 
+ 	}
+
+
+ $WHERE = ($#WHERE_RULES > -1) ?  "WHERE " . join(' and ', @WHERE_RULES) : '';
+
+ $self->query($db, "SELECT rl.date, r.money, rl.rate, rl.id, r.iso
     FROM exchange_rate_log rl
     LEFT JOIN exchange_rate  r ON (r.id=rl.exchange_rate_id)
+    $WHERE
     ORDER BY $SORT $DESC
     LIMIT $PG, $PAGE_ROWS;");
 

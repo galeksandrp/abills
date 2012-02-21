@@ -161,18 +161,17 @@ if ($index == 2) {
   elsif($FORM{OP_SID}) {
   	$html->setCookie('hold_date', "", "Fri, 1-Jan-2038 00:00:01", '', $domain, $secure);
   	$COOKIES{hold_date}=undef;
-  	$FORM{DATE}=undef;
+  	#$FORM{DATE}=undef;
    }
   
-  if($FORM{OP_SID}) {
-	  $html->setCookie('INNER_DESCRIBE', "$FORM{INNER_DESCRIBE}", "Fri, 1-Jan-2038 00:00:01", '', $domain, $secure);
-	  delete $COOKIES{INNER_DESCRIBE} if (! $FORM{INNER_DESCRIBE});
-	 }
+    if($FORM{OP_SID}) {
+	    $html->setCookie('INNER_DESCRIBE', "$FORM{INNER_DESCRIBE}", "Fri, 1-Jan-2038 00:00:01", '', $domain, $secure);
+	    delete $COOKIES{INNER_DESCRIBE} if (! $FORM{INNER_DESCRIBE});
+	   }
 	
-	if (!$FORM{INNER_DESCRIBE} && $COOKIES{INNER_DESCRIBE}) {
-		$FORM{INNER_DESCRIBE} = $COOKIES{INNER_DESCRIBE};
-	 }
- 
+	  if (!$FORM{INNER_DESCRIBE} && $COOKIES{INNER_DESCRIBE} && $conf{PAYMENTS_INNER_DESCRIBE_AUTOCOMPLETE}) {
+		  $FORM{INNER_DESCRIBE} = $COOKIES{INNER_DESCRIBE};
+	   }
  }
 
 
@@ -4493,8 +4492,8 @@ my $table = $html->table( { width      => '100%',
 
 
 foreach my $line (@$list) {
-  my $delete = $html->button($_DEL, "index=62$pages_qs&del=$line->[10]", { MESSAGE => "$_DEL POOL $line->[10]?", CLASS => 'del' }); 
-  my $change = $html->button($_CHANGE, "index=62$pages_qs&chg=$line->[10]", { CLASS => 'change' }); 
+  my $delete = ($FORM{NAS_ID}) ? $html->button($_DEL, "index=62$pages_qs&del=$line->[10]", { MESSAGE => "$_DEL POOL $line->[10]?", CLASS => 'del' }) : ''; 
+  my $change = ($FORM{NAS_ID}) ? $html->button($_CHANGE, "index=62$pages_qs&chg=$line->[10]", { CLASS => 'change' }) : ''; 
   $table->{rowcolor} = ($line->[10] eq $FORM{chg}) ? 'row_active' : undef;
 
   $table->addrow(
@@ -5605,10 +5604,20 @@ if ($attr->{USER_INFO}) {
   	else {
   		$FORM{CURRENCY}=$conf{SYSTEM_CURRENCY};
   		
+  		
   		if ($FORM{ER}) {
-        my $er = $payments->exchange_info($FORM{ER});
-        $FORM{ER}       = $er->{ER_RATE};
-        $FORM{CURRENCY} = $er->{ISO};
+  			if ($FORM{DATE}) {
+  				my $list = $payments->exchange_log_list({ DATE      => "<=$FORM{DATE}",
+  					                                        ID        => $FORM{ER},
+  					                                        PAGE_ROWS => 1 });
+          $FORM{ER}       = $list->[0]->[2] || 1;
+          $FORM{CURRENCY} = $list->[0]->[4] || 0;
+  			 }
+  			else {
+          my $er = $payments->exchange_info($FORM{ER});
+          $FORM{ER}       = $er->{ER_RATE};
+          $FORM{CURRENCY} = $er->{ISO};
+         }
        }
       
             
@@ -5676,6 +5685,9 @@ if ($attr->{USER_INFO}) {
 
 return 0 if ($attr->{REGISTRATION} && $FORM{add});
 #exchange rate sel
+
+
+
 my  $er_list = $payments->exchange_list({ %FORM });
 my %ER_ISO2ID = ();
 foreach my $line (@$er_list) {

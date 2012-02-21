@@ -206,6 +206,7 @@ sub paysys_import_form {
        	 	   DATE           => $FORM{'DATE_'.$ID},
        	 	   TYPE           => $FORM{'TYPE_'.$ID},
        	 	   PAYMENT_METHOD => $FORM{'PAYMENT_METHOD_'.$ID},
+       	 	   METHOD         => $FORM{'METHOD_'.$ID},
        	 	   DESCRIBE       => $FORM{'DESCRIBE_'.$ID},
        	 	   INNER_DESCRIBE => $FORM{'INNER_DESCRIBE_'.$ID},
        	 	   ADDRESS        => $FORM{'ADDRESS_'.$ID},
@@ -310,11 +311,11 @@ sub paysys_import_form {
                 my($uid, $login, $fio)=split(/:/, $binding_hash{$DATA_ARR->[$i]->{$BINDING_FIELD}});
                 my $user = $users->info($uid);
                 $fees->take($user, $DATA_ARR->[$i]->{SUM}, { 
- 	                     DESCRIBE      => $DATA_ARR->[$i]->{DESCRIBE} || '', 
+ 	                     DESCRIBE       => $DATA_ARR->[$i]->{DESCRIBE} || '', 
  	                     INNER_DESCRIBE => $DATA_ARR->[$i]->{EXT_ID} || '', 
- 	                     DATE          => $DATA_ARR->[$i]->{DATE} || undef, 
+ 	                     DATE           => $DATA_ARR->[$i]->{DATE} || undef, 
  	                     INNER_DESCRIBE => $DATA_ARR->[$i]->{INNER_DESCRIBE} || '',
- 	                 #    METHOD       => $DATA_ARR->[$i]->{PAYMENT_METHOD}, 
+ 	                     METHOD         => $DATA_ARR->[$i]->{METHOD}, 
                    #    EXT_ID       => "$DATA_ARR->[$i]->{DATE}.$FORM{IMPORT_TYPE}.$ID",
                    #    CHECK_EXT_ID => "$DATA_ARR->[$i]->{DATE}.$FORM{IMPORT_TYPE}.$ID"
                         } );
@@ -394,12 +395,27 @@ function CheckAllINBOX() {
          for ( my $i = 0; $i<=$#{ $DATA_ARR }; $i++) {
        	   my $ID = $DATA_ARR->[$i]->{PAYSYS_EXT_ID} || $i;
   
-       	   my $PAYMENT_METHOD_SEL =  $html->form_select('PAYMENT_METHOD_'.$ID, 
-                                { SELECTED      => $DATA_ARR->[$i]->{PAYMENT_METHOD} || '',
+       	   my $PAYMENT_METHOD_SEL = '';
+       	   
+       	   if ($attr->{TYPE} eq 'PAYMENTS') {
+       	     $html->form_select('PAYMENT_METHOD_'.$ID, 
+                                { SELECTED     => $DATA_ARR->[$i]->{PAYMENT_METHOD} || '',
  	                                SEL_HASH     => \%PAYMENTS_METHODS,
  	                                NO_ID        => 1,
  	                                SORT_KEY     => 1 	                                
  	                               });
+            }
+           elsif($attr->{TYPE} eq 'FEES') {
+             %FEES_METHODS = %{ get_fees_types({ SHORT => 1 }) };
+             
+             $PAYMENT_METHOD_SEL =  $html->form_select('METHOD_'.$ID, 
+                                { SELECTED     => $FORM{'METHOD_'.$ID},
+ 	                                SEL_HASH     => { %FEES_METHODS },
+ 	                                NO_ID        => 1,
+ 	                                SORT_KEY     => 1
+ 	                               });
+            }
+           
            my $info = ''; 
 
            if ($binding_hash{lc($DATA_ARR->[$i]->{$BINDING_FIELD})}) {

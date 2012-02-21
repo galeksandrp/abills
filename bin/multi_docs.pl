@@ -432,7 +432,7 @@ sub periodic_invoice {
 		    #Sendemail		    
         $FORM{print} = $Docs->{DOC_ID};
         $FORM{pdf}   = 1;
-         
+         #print $user{SEND_EMAIL}
         docs_receipt({ GET_EMAIL_INFO    => 1,
                        SEND_EMAIL        => $user{SEND_EMAIL} || 0, 
             	         %$attr
