@@ -609,6 +609,38 @@ sub bonus_report {
 	return $REPORT;
 }
 
+#**********************************************************
+#
+#**********************************************************
+sub bonus_service_discount {
+	my ($attr)=@_;
+	my $REPORT = '';
+	
+	
+	$html->tpl_show(_include('bonus_ervice_discount', 'Bonus'), $Bonus);
+	
+	my $table = $html->table( { width      => '100%',
+                            caption    => "$_BONUS",
+                            border     => 1,
+                            title      => ["$_SERVICE $_PERIOD", "$_REGISTRATION $_DAYS", "$_REDUCTION %", "$_REDUCTION $_DAYS", '-'],
+                            cols_align => ['right', 'right', 'right', 'right', 'center:noprint'],
+                            qs         => $pages_qs,
+                            pages      => $Bonus->{TOTAL},
+                            ID         => 'BONUX_SERVICE_DISCOUNT'
+                           } );
+
+my $delete = '';
+foreach my $line (@$list) {	
+
+}
+
+print $table->show();
+	
+	
+	
+	return $REPORT;
+}
+
 
 1
 

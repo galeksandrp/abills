@@ -5977,6 +5977,11 @@ $table = $html->table({ caption    => "$_LOG",
                         EXPORT     => $_EXPORT .' XML:&xml=1',                          
                           });
 
+if(! $FORM{sort}) {
+	$LIST_PARAMS{SORT}=1;
+	$LIST_PARAMS{DESC}='desc';
+}
+
 $list = $finance->exchange_log_list( { %LIST_PARAMS } );
 
 foreach my $line (@$list) {
