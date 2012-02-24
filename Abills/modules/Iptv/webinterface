@@ -403,6 +403,22 @@ sub iptv_user {
  	                                          SEL_ARRAY    => \@service_status,
  	                                          ARRAY_NUM_ID => 1
  	                                        });
+
+   eval { require Iptv_stalker; };
+   if (! $@) {
+     Iptv_stalker->import();
+     my $Iptv_stalker    = Iptv_stalker->new($db, $admin, \%conf);
+     
+     $user->{MODEMS}= $html->form_select('CID', 
+                                          { 
+ 	                                          SELECTED          => $FORM{TP_ID},
+ 	                                          SEL_MULTI_ARRAY   => $Iptv_stalker->stalker_users_list({ UNREGISTER => 1 }),
+ 	                                          MULTI_ARRAY_KEY   => 0,
+ 	                                          MULTI_ARRAY_VALUE => 1,
+ 	                                        });
+    
+     $user->{IPTV_MODEMS}=$html->tpl_show(_include('iptv_modems', 'Iptv'), { %$attr, %$user }, { OUTPUT2RETURN => 1 });    
+    }
  
   $html->tpl_show(_include('iptv_user', 'Iptv'), { %$attr, %$user });
 

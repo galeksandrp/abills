@@ -615,9 +615,45 @@ sub bonus_report {
 sub bonus_service_discount {
 	my ($attr)=@_;
 	my $REPORT = '';
+
+  $Bonus->{ACTION}='add';
+  $Bonus->{LNG_ACTION}=$_ADD;
+
+
+  if ($FORM{add}) {
+ 	  $Bonus->service_discount_add({ %FORM });
+    if(! $Bonus->{errno}) {
+       $html->message('info', $_INFO, "$_ADDED");
+     }
+   }
+  elsif ($FORM{change}) {
+    $Bonus->service_discount_change({ %FORM });
+   
+    if(! $Bonus->{errno}) {
+      $html->message('info', $_INFO, "$_CHANGED ID: $FORM{ID}");
+     }
+   }
+  elsif ($FORM{chg}) {
+    $Bonus->service_discount_info($FORM{chg});
+
+    $Bonus->{ACTION}='change';
+    $Bonus->{LNG_ACTION}=$_CHANGE;
+
+    if(! $Bonus->{errno}) {
+      $html->message('info', $_INFO, "$_CHANGING");
+     }
+  	}
+  elsif ($FORM{del}  && $FORM{is_js_confirmed}) {
+    $Bonus->service_discount_del({ ID => $FORM{del} });
+
+    if(! $Bonus->{errno}) {
+      $html->message('info', $_INFO, "$_DELETED ID: $FORM{del}");
+     }
+   }	
 	
+	$html->tpl_show(_include('bonus_service_discount', 'Bonus'), $Bonus);
 	
-	$html->tpl_show(_include('bonus_ervice_discount', 'Bonus'), $Bonus);
+	my $list = $Bonus->service_discount_list({ %LIST_PARAMS });
 	
 	my $table = $html->table( { width      => '100%',
                             caption    => "$_BONUS",
@@ -629,9 +665,15 @@ sub bonus_service_discount {
                             ID         => 'BONUX_SERVICE_DISCOUNT'
                            } );
 
-my $delete = '';
-foreach my $line (@$list) {	
 
+foreach my $line (@$list) {
+  my $delete = $html->button($_DEL, "index=$index&del=$line->[4]", { MESSAGE => "$_DEL [$line->[0]] ?", BUTTON => 1 });
+  $table->addrow($line->[0], 
+    $line->[1], 
+    $line->[2], 
+    $line->[3], 
+    $delete
+	 )
 }
 
 print $table->show();
