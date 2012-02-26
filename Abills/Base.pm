@@ -937,7 +937,10 @@ sub tpl_parse {
 	my ($string, $HASH_REF) = @_;
 	
 	while(my($k, $v)= each %$HASH_REF) {
-		$string =~ s/\%$k\%/$v/g;
+          if(! defined($v)) {
+            $v='';
+           }
+     	  $string =~ s/\%$k\%/$v/g;
 	 }
 
 	return $string;

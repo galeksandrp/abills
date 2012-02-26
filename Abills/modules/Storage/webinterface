@@ -1822,8 +1822,8 @@ sub storage_hardware {
 		
 		
 		foreach my $line ( @$list ) {
-			
-			$line->[26] =~ s/\r\n/<br>/g;
+			my $br = $html->br();
+			$line->[26] =~ s/\r\n/$br/g;
 			my $dhcp_index = get_function_index('dhcphosts_user');			
 			$table->addrow(	
 				($line->[25] == 4) ? '' : $html->button($_INFO, "index=$index&chg=$line->[0]&UID=$FORM{UID}", { CLASS => 'change' }),  
@@ -1890,13 +1890,13 @@ sub storage_hardware {
 			
 			
 			foreach my $line ( @$list ) {
-				
-				$line->[26] =~ s/\r\n/<br>/g;
+				my $br = $html->br();
+			  $line->[26] =~ s/[\r\n]+/$br/g;
 				$dhcp_index = get_function_index('dhcphosts_user');			
 				$table->addrow(	
 					$line->[14],  
 					$line->[9], 
-					$html->button("$line->[15]", "index=$dhcp_index&UID=$FORM{UID}", { BUTTON => 1 });		
+					$html->button("$line->[15]", "index=$dhcp_index&UID=$FORM{UID}", { BUTTON => 1 }),		
 					$line->[20],  
 					$line->[19],
 					$action[$line->[22]] . $html->br() . $_AUTHOR . $line->[8],
@@ -1904,7 +1904,6 @@ sub storage_hardware {
 					$line->[21],
 					$line->[23],
 					$line->[16]
-		
 				);
 			}
 			
