@@ -2491,7 +2491,7 @@ sub iptv_get_month_fee {
          }
       }
 
-  $html->message('info', $_INFO, $info_message) if (! $attr->{QUIET});;	
+  $html->message('info', $_INFO, $info_message) if ($info_message && ! $attr->{QUIET});;	
 }
 
 
