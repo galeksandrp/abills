@@ -198,12 +198,16 @@ sub form_parse {
   return %FORM if (! defined($ENV{'REQUEST_METHOD'}));
 
 
-if ($ENV{'REQUEST_METHOD'} eq "GET") {
-   $buffer= $ENV{'QUERY_STRING'};
+if ($ENV{HTTP_TRANSFER_ENCODING} &&  $ENV{HTTP_TRANSFER_ENCODING} eq 'chunked') {
+	read(STDIN, $buffer, $ENV{'CONTENT_LENGTH'}); 
+ }
+elsif ($ENV{'REQUEST_METHOD'} eq "GET") {
+  $buffer= $ENV{'QUERY_STRING'};
  }
 elsif ($ENV{'REQUEST_METHOD'} eq "POST") {
-   read(STDIN, $buffer, $ENV{'CONTENT_LENGTH'});
+  read(STDIN, $buffer, $ENV{'CONTENT_LENGTH'});
  }
+
 
 if (! defined($ENV{CONTENT_TYPE}) || $ENV{CONTENT_TYPE} !~ /boundary/ ) {
   @pairs = split(/&/, $buffer);

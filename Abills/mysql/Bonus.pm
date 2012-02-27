@@ -1015,12 +1015,25 @@ sub service_discount_list {
   }
 
 
+ if ($attr->{REGISTRATION_DAYS}) {
+ 	 push @WHERE_RULES, @{ $self->search_expr("$attr->{REGISTRATION_DAYS}", 'INT', 'registration_days') };
+  }
+
+ if ($attr->{PERIODS}) {
+ 	 push @WHERE_RULES, @{ $self->search_expr("$attr->{PERIODS}", 'INT', 'service_period') };
+  }
+
+
+
+
+
  
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
  
  $self->query($db, "SELECT service_period, registration_days, discount, discount_days, id
      FROM bonus_service_discount
      $WHERE 
+     ORDER BY $SORT $DESC
      LIMIT $PG, $PAGE_ROWS;");
 
  return $self if($self->{errno});
