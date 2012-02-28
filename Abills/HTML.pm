@@ -199,7 +199,12 @@ sub form_parse {
 
 
 if ($ENV{HTTP_TRANSFER_ENCODING} &&  $ENV{HTTP_TRANSFER_ENCODING} eq 'chunked') {
-	read(STDIN, $buffer, $ENV{'CONTENT_LENGTH'}); 
+	my $newtext;
+	while (read (STDIN, $newtext, 10)) {
+     $buffer .= $newtext;
+   }
+  my($prefix, $buffer)=split(/[\r\n]+/, $buffer);
+  substr($buffer, 0, hex("0x$prefix"));
  }
 elsif ($ENV{'REQUEST_METHOD'} eq "GET") {
   $buffer= $ENV{'QUERY_STRING'};
@@ -431,7 +436,7 @@ sub form_select {
 	
 	my $ex_params =  (defined($attr->{EX_PARAMS})) ? $attr->{EX_PARAMS} : '';
 			
-	$self->{SELECT} = "<select name=\"$name\" $ex_params ID=\"$name\">\n";
+	$self->{SELECT} = "<select name='$name' $ex_params ID='$name'>\n";
   
   if (defined($attr->{SEL_OPTIONS})) {
     foreach my $k (keys ( %{ $attr->{SEL_OPTIONS} } ) ) {
@@ -504,7 +509,7 @@ sub form_select {
     
     foreach my $k (@H) {
       if(ref $attr->{SEL_HASH}->{$k} eq 'ARRAY') {
-        $self->{SELECT}.="<optgroup label=\"$k\" title=\"$k\">\n";
+        $self->{SELECT}.="<optgroup label='$k' title='$k'>\n";
 
         foreach my $val ( @{ $attr->{SEL_HASH}->{$k} } ) {
           $self->{SELECT} .= "<option value='$val'";
