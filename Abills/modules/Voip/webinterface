@@ -98,7 +98,6 @@ sub voip_chg_tp {
   }
 
  my $period = $FORM{period} || 0;
-
  use Shedule;
  $shedule = Shedule->new($db, $admin);
 
@@ -144,7 +143,7 @@ if ($FORM{set}) {
     }
 
   }
-}
+ }
 elsif($FORM{del}) {
   $shedule->del( { UID => $user->{UID},
    	               ID  => $FORM{SHEDULE_ID}  } 
@@ -381,19 +380,19 @@ sub voip_user {
  	                                          SEL_MULTI_ARRAY   => $Voip->tp_list(),
  	                                          MULTI_ARRAY_KEY   => 8,
  	                                          MULTI_ARRAY_VALUE => '0,1',
- 	                                          NO_ID             => 1
+ 	                                          NO_ID             => 1,
+ 	                                          MENU              => get_function_index('voip_tp')
  	                                        });
 	  
 	 }
 	else {
-		$user->{CHANGE_TP_BUTTON}=$html->button($_CHANGE, 'UID='.$user->{UID}.'&index='.  get_function_index('voip_chg_tp'), { CLASS => 'change rightAlignText' });
-	  $user->{DEL_BUTTON}= "$_CONFIRM:".$html->form_input('is_js_confirmed', "1", { TYPE => 'checkbox' }).
+		$user->{CHANGE_TP_BUTTON}= $html->button($_CHANGE, 'UID='.$user->{UID}.'&index='.  get_function_index('voip_chg_tp'), { CLASS => 'change rightAlignText' });
+	  $user->{DEL_BUTTON}      = "$_CONFIRM:".$html->form_input('is_js_confirmed', "1", { TYPE => 'checkbox' }).
 	  $html->form_input('del', "$_DEL", { TYPE => 'submit' });
-	  $user->{ACTION}    = 'set';
-	  $user->{LNG_ACTION}= $_CHANGE;
+	  $user->{ACTION}          = 'set';
+	  $user->{LNG_ACTION}      = $_CHANGE;
 	 }
 
-  #$user->{DISABLE}     = ($user->{DISABLE} == 1) ?  ' checked' : '';
   $user->{ALLOW_ANSWER}= ' checked' if($user->{ALLOW_ANSWER} == 1);
   $user->{ALLOW_CALLS} = ' checked' if($user->{ALLOW_CALLS} == 1);
   
@@ -413,10 +412,6 @@ sub voip_user {
   if ($user->{DISABLE} > 0) { 
     $user->{STATUS_COLOR} = $service_status_colors[$user->{DISABLE}] ;
    }
-  
-  
-  
-
   
   $user->{NAS_SEL} = $html->form_select('PROVISION_NAS_ID', 
                                          { 

@@ -1,10 +1,6 @@
 #!/usr/bin/perl -w
 # Provision 
 
-
-
-
-
 use vars qw( $db $DATE $TIME $var_dir %log_levels $domain_path $html);
 #use strict;
 
