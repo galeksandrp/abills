@@ -102,7 +102,7 @@ foreach my $line (@$list) {
   $info{'Password_'. $line->[9] .'_'}  = $line->[10];
   $info{'Auth_ID_'. $line->[9] .'_'}   = $line->[6];
   $info{'Caller_ID_'. $line->[9] .'_'} = $line->[7];
-  $info{'Line_'. $line->[9] .'_Status'}= ($line->[5]) ? 'yes' : 'no'; 
+  $info{'Line_'. $line->[9] .'_Status'}= ($line->[5]) ? 'no' : 'yes'; 
 }
 
 
