@@ -204,7 +204,7 @@ if ($ENV{HTTP_TRANSFER_ENCODING} &&  $ENV{HTTP_TRANSFER_ENCODING} eq 'chunked') 
      $buffer .= $newtext;
    }
     my($prefix, $buffer)=split(/[\r\n]+/, $buffer);
-  if ($buffer) {
+  if ($buffer && hex("0x$prefix") > 0) {
     substr($buffer, 0, hex("0x$prefix"));
   }
  }
