@@ -681,7 +681,11 @@ sub cards_users_gen_confim {
 sub cards_user_payment () {
   
   my $begin_time = check_time();
-  
+  if ($conf{CARDS_SKIP_COMPANY} && $user->{COMPANY_ID}) {
+  	$html->message('err', $_INFO, "$ERR_COMPANY_DISABLE");	
+  	return 0;
+   }
+
  	$user = Users->new($db, $admin, \%conf);
 	if (($FORM{PIN} && $FORM{SERIAL}) || ($FORM{PIN} && $conf{CARDS_PIN_ONLY})) {
 		$db->{AutoCommit} =0;
@@ -754,7 +758,6 @@ sub cards_user_payment () {
      	 while(my($k, $v)=each %FORM) {
      	 	 $output .="$k=$v;" if ($FORM{$k} ne '__BUFFER');
      	  }
-
 
        my $test = `echo "$DATE $TIME $user->{LOGIN}  $Cards->{SERIAL}$Cards->{NUMBER} A:$ENV{HTTP_USER_AGENT} QS:$ENV{QUERY_STRING} RA:$ENV{REMOTE_ADDR} $output  ($gt)"  >> /tmp/cards_debug`;	
       }
