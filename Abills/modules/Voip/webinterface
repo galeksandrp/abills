@@ -103,17 +103,25 @@ sub voip_chg_tp {
  $shedule = Shedule->new($db, $admin);
 
 if ($FORM{set}) {
-  if ($period == 1) {
-    $FORM{date_M}++;
-    $shedule->add( {UID => $user->{UID},
-                   TYPE => 'tp',
-                   ACTION => $FORM{TP_ID},
-    	             D => $FORM{date_D},
-                   M => $FORM{date_M},
-                   Y => $FORM{date_Y},
+  if ($period > 0) {
+
+    my ($year, $month, $day);
+    if ($period == 1) {
+      ($year, $month, $day)=split(/-/, $Voip->{ABON_DATE}, 3);
+     }
+    else {
+    	($year, $month, $day)=split(/-/, $FORM{DATE}, 3);
+     }
+
+    $shedule->add( {UID     => $user->{UID},
+                   TYPE     => 'tp',
+                   ACTION   => $FORM{TP_ID},
+    	             D        => $day,
+                   M        => $month,
+                   Y        => $year,
                    DESCRIBE => "$message<br>
-                   $_FROM: '$FORM{date_Y}-$FORM{date_M}-$FORM{date_D}'",
-                   MODULE => 'Voip'
+                   $_FROM: '$year-$month-$day'",
+                   MODULE   => 'Voip'
                     });
 
     if ($shedule->{errno}) {
@@ -137,7 +145,7 @@ if ($FORM{set}) {
 
   }
 }
-elsif($FORM{del} && $FORM{is_js_confirmed}) {
+elsif($FORM{del}) {
   $shedule->del( { UID => $user->{UID},
    	               ID  => $FORM{SHEDULE_ID}  } 
    	            );
@@ -145,10 +153,7 @@ elsif($FORM{del} && $FORM{is_js_confirmed}) {
   $html->message('info', $_DELETED, "$_DELETED [$FORM{SHEDULE_ID}]");
 }
 
-my $tariffs;
-
-
-
+  my $tariffs;
   $shedule->info( {UID     => $user->{UID},
                    TYPE    => 'tp',
                    MODULE  => 'Voip'
@@ -167,8 +172,8 @@ my $tariffs;
                                       ]
                                } );
   	$tariffs->{TARIF_PLAN_SEL} = $table->show(). $html->form_input('SHEDULE_ID', "$shedule->{SHEDULE_ID}", {TYPE => 'HIDDEN' });
-  	$tariffs->{ACTION}='del';
-  	$tariffs->{LNG_ACTION}=$_DEL;
+  	$tariffs->{ACTION}         = 'del';
+  	$tariffs->{LNG_ACTION}     = $_DEL;
   }
  else {
    $tariffs->{TARIF_PLAN_SEL}=$html->form_select('TP_ID', 
@@ -177,12 +182,13 @@ my $tariffs;
  	                                          SEL_MULTI_ARRAY   => $Voip->tp_list(),
  	                                          MULTI_ARRAY_KEY   => 8,
  	                                          MULTI_ARRAY_VALUE => '0,1',
- 	                                          NO_ID             => 1
+ 	                                          NO_ID             => 1,
+ 	                                          MAIN_MENU         => get_function_index('voip_tp'),
  	                                        });
 
-   $tariffs->{PARAMS} .= form_period($period);	
-   $tariffs->{ACTION}='set';
-   $tariffs->{LNG_ACTION}=$_CHANGE;
+   $tariffs->{PARAMS}    .= form_period($period);	
+   $tariffs->{ACTION}    = 'set';
+   $tariffs->{LNG_ACTION}= $_CHANGE;
   }
 
  
@@ -190,9 +196,8 @@ my $tariffs;
 my $tp_index = get_function_index('voip_tp');
 
 $tariffs->{UID}     = $attr->{USER_INFO}->{UID};
-$tariffs->{m}       = $m;
 $tariffs->{TP_ID}   = $user->{TP_NUM};
-$tariffs->{TP_NAME} = "$user->{TP_ID}:$user->{TP_NAME} ". $html->button("$_TARIF_PLANS", "index=$tp_index&TP_ID=$user->{TP_ID}", { TITLE => "$_TP", CLASS => 'show rightAlignText' } ). "";
+$tariffs->{TP_NAME} = "$user->{TP_NUM}:$user->{TP_NAME} ";
 
 print $html->tpl_show(templates('form_chg_tp'), $tariffs);
 }
