@@ -219,8 +219,8 @@ sub voip_users_list {
 
   $Voip->{STATUS_SEL}   = $html->form_select('DISABLE', 
                                           { 
- 	                                          SELECTED     => $user->{DISABLE} || 0,
- 	                                          SEL_HASH     => { 
+ 	                                          SELECTED     => $FORM{DISABLE} || '',
+ 	                                          SEL_HASH     => { '' => $_ALL,
  	                                          	                0  => $service_status[0],
  	                                          	                1  => $service_status[1],
  	                                          	                2  => $service_status[2],
@@ -234,7 +234,7 @@ sub voip_users_list {
   $Voip->{TP_SEL}     = $html->form_select('TP_ID', 
                                           { 
  	                                          SELECTED          => $FORM{TP_ID},
- 	                                          SEL_MULTI_ARRAY   => $Voip->tp_list(),
+ 	                                          SEL_MULTI_ARRAY   => [[ '', '' ],  @{ $Voip->tp_list() } ],
  	                                          MULTI_ARRAY_KEY   => 8,
  	                                          MULTI_ARRAY_VALUE => '0,1',
  	                                          NO_ID             => 1
