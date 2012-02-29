@@ -203,8 +203,8 @@ if ($ENV{HTTP_TRANSFER_ENCODING} &&  $ENV{HTTP_TRANSFER_ENCODING} eq 'chunked') 
   while (read (STDIN, $newtext, 1)) {
      $buffer .= $newtext;
    }
-  if ($buffer) {
     my($prefix, $buffer)=split(/[\r\n]+/, $buffer);
+  if ($buffer) {
     substr($buffer, 0, hex("0x$prefix"));
   }
  }
