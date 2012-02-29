@@ -237,7 +237,8 @@ sub voip_users_list {
  	                                          SEL_MULTI_ARRAY   => [[ '', '' ],  @{ $Voip->tp_list() } ],
  	                                          MULTI_ARRAY_KEY   => 8,
  	                                          MULTI_ARRAY_VALUE => '0,1',
- 	                                          NO_ID             => 1
+ 	                                          NO_ID             => 1,
+ 	                                          MAIN_MENU         => get_function_index('voip_tp'),
  	                                        });
 
   
@@ -278,6 +279,7 @@ elsif ($Voip->{TOTAL} == 1) {
 
 
 my $table = $html->table( { width      => '100%',
+                            caption    => "Voip $_USERS",
                             border     => 1,
                             title      => \@TITLE,
                             cols_align => ['left', 'left', 'right', 'right', 'left', 'center', 'left', 'center', 'center', 'center'],
