@@ -398,7 +398,7 @@ function CheckAllINBOX() {
        	   my $PAYMENT_METHOD_SEL = '';
        	   
        	   if ($attr->{TYPE} eq 'PAYMENTS') {
-       	     $html->form_select('PAYMENT_METHOD_'.$ID, 
+       	     $PAYMENT_METHOD_SEL = $html->form_select('PAYMENT_METHOD_'.$ID, 
                                 { SELECTED     => $DATA_ARR->[$i]->{PAYMENT_METHOD} || '',
  	                                SEL_HASH     => \%PAYMENTS_METHODS,
  	                                NO_ID        => 1,

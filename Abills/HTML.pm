@@ -199,12 +199,14 @@ sub form_parse {
 
 
 if ($ENV{HTTP_TRANSFER_ENCODING} &&  $ENV{HTTP_TRANSFER_ENCODING} eq 'chunked') {
-	my $newtext;
-	while (read (STDIN, $newtext, 10)) {
+  my $newtext;
+  while (read (STDIN, $newtext, 1)) {
      $buffer .= $newtext;
    }
-  my($prefix, $buffer)=split(/[\r\n]+/, $buffer);
-  substr($buffer, 0, hex("0x$prefix"));
+  if ($buffer) {
+    my($prefix, $buffer)=split(/[\r\n]+/, $buffer);
+    substr($buffer, 0, hex("0x$prefix"));
+  }
  }
 elsif ($ENV{'REQUEST_METHOD'} eq "GET") {
   $buffer= $ENV{'QUERY_STRING'};

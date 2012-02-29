@@ -36,7 +36,7 @@
 
 
 CLASSES_NUMS='2 3'
-VERSION=5.83
+VERSION=5.84
 
 
 name="abills_shaper"
@@ -219,6 +219,8 @@ if [ x${abills_ipn_nas_id} != x ]; then
   
   # Закрыть доступ неактивизированым хостам
   ${IPFW} add 65000 deny ip from not table\(10\) to any ${IFACE} in
+
+  /usr/abills/libexec/periodic monthly MODULES=Ipn SRESTART=1 NO_ADM_REPORT=1 NAS_IDS="${abills_ipn_nas_id}"
 fi;
 
 
