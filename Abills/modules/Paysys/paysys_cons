@@ -319,7 +319,7 @@ sub payasys_import_parse {
   $import_expr=~s/\n//g;
   my ($expration, $columns)=split(/:/, $import_expr);
   my @EXPR_IDS = split(/,/, $columns);
-  print "Expration: $expration\nColumns: $columns\n" if ($debug > 0);
+  print "EXPRESSION: $expration\nColumns: $columns\n" if ($debug > 0);
   my @rows = split(/[\r]{0,1}\n/, $content);
 
         foreach my $line (@rows) {

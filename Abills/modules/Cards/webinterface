@@ -59,10 +59,12 @@ sub cards_card_info {
 #
 #**********************************************************
 sub cards_main {
-  if ($Cards::VERSION < 5.42) {
+  if ($Cards::VERSION < 5.45) {
   	$html->message('info', "UPDATE", "Please update module 'Cards' to version 5.42 or higher. http://abills.net.ua/");
   	return 0;
    }
+
+
 
 
 if ($FORM{change}) {
@@ -74,6 +76,7 @@ if ($FORM{change}) {
   if (! $Cards->{errno}) {
     $html->message('info', $_CHANGED.':'.$status[($FORM{STATUS}-1)], "$_CHANGED: $FORM{IDS} ");
    }
+  
   
   #Delete users accounts
   if ($Cards->{CARDS_INFO}) {
@@ -237,7 +240,7 @@ $html->button("$_PRINT PDF", "qindex=$index&pdf=1&print_cards=1&$pages_qs" . (($
   foreach $line (@$list) {
    	@pin = ("$line->[15]") if ($conf{CARDS_SHOW_PINS}) ;
    	$table->addrow(
-   	    $html->form_input("IDS", "$line->[0]:$line->[1]", {TYPE => 'checkbox'}). $html->b($line->[0]) , 
+   	    $html->form_input("IDS", "$line->[17]", {TYPE => 'checkbox'}). $html->b($line->[0]) , 
   	    ($line->[4] == 2) ? $html->button($line->[1], "index=2&search=1&EXT_ID=$line->[0]$line->[1]") : $line->[1],
   	    (($line->[2]) ? $html->button($line->[2], "&index=11&UID=$line->[14]") : ''),
   		  $line->[3],
@@ -259,7 +262,7 @@ $html->button("$_PRINT PDF", "qindex=$index&pdf=1&print_cards=1&$pages_qs" . (($
 
   print $html->form_main({ CONTENT => $table->show().
                               "$_SOLD: ".    $html->form_input('SOLD', 1, { TYPE => 'checkbox' }).
-                              "$_INVOICE ".  $html->form_input('INVOICE', 1, { TYPE => 'checkbox' }).
+                              "$_CREATE $_INVOICE ".  $html->form_input('INVOICE', 1, { TYPE => 'checkbox' }).
                               "$_DILLERS: ". $Cards->{DILLERS_SEL}.
                               "$_STATUS: ".  $Cards->{STATUS_SEL},
                               
@@ -867,11 +870,12 @@ sub cards_dillers_sel {
   my $dillers_sel = '';
 
   $dillers_sel=$html->form_select('DILLER_ID', { 
- 	                                         SELECTED          => $FORM{DILLER_ID},
- 	                                         SEL_MULTI_ARRAY   => [['', ''] , @{ $Cards->cards_dillers_list({ DISABLE => 0, SORT => 2,  PAGE_ROWS => 10000 }) }],
- 	                                         MULTI_ARRAY_KEY   => 0,
- 	                                         MULTI_ARRAY_VALUE => 2,
- 	                                        });
+ 	                                   SELECTED          => $FORM{DILLER_ID},
+ 	                                   SEL_MULTI_ARRAY   => [['', ''] , @{ $Cards->cards_dillers_list({ DISABLE => 0, SORT => 2,  PAGE_ROWS => 10000 }) }],
+ 	                                   MULTI_ARRAY_KEY   => 0,
+ 	                                   MULTI_ARRAY_VALUE => '2,1',
+ 	                                   MENU              => get_function_index('cards_dillers_list')
+ 	                                 });
 
   return $dillers_sel;
 }
@@ -1129,17 +1133,19 @@ elsif ($FORM{SERIAL}) {
 }	
 
   if (! $FORM{DATE}) {
-	 reports({ DATE      => $FORM{DATE}, 
+	  reports({ DATE      => $FORM{DATE}, 
  	         REPORT      => '',
  	         EX_PARAMS   => { 1 => $_DILLERS, 2 => $_ICARDS },
            PERIOD_FORM => 1
   	     });
-  }
+  	delete $LIST_PARAMS{MONTH};
+   }
+
 
 	
   my $list = $Cards->cards_report_dillers({ %LIST_PARAMS });
 	$table = $html->table( { width      => '100%',
-                           caption    =>  $attr->{CAPTION},
+                           caption    =>  $attr->{CAPTION} || $_DILLERS,
                            cols_align => ['left', 'right', 'right','right','right','right','right','right','right'
                             ,'right','right'],
                            qs         => $pages_qs,
@@ -1149,12 +1155,12 @@ elsif ($FORM{SERIAL}) {
 
 
    $table->addtd(
-             $table->td($attr->{CAPTION}, { bgcolor => $_COLORS[0], rowspan => 2 }),
-             $table->td($_ENABLE, { bgcolor => $_COLORS[0], colspan => 2 } ), 
+             $table->td($attr->{CAPTION}, { bgcolor => 'title_color', rowspan => 2 }),
+             $table->td($_ENABLE, { bgcolor => 'title_color', colspan => 2 } ), 
              $table->td($_DISABLE, { bgcolor => $_COLORS[0], colspan => 2 } ), 
              $table->td($_PAYMENTS, { bgcolor => $_COLORS[0], colspan => 2 }), 
              $table->td($_LOGIN, { bgcolor => $_COLORS[0], colspan => 2 } ), 
-             $table->td($_TAKE, { bgcolor => $_COLORS[0], colspan => 2 } ), 
+             #$table->td($_TAKE, { bgcolor => $_COLORS[0], colspan => 2 } ), 
              $table->td($_SOLD, { bgcolor => $_COLORS[0], colspan => 3 } ), 
              $table->td($_RETURNED, { bgcolor => $_COLORS[0], colspan => 2 } ), 
              $table->td($_TOTAL, { bgcolor => $_COLORS[0], colspan => 2 } )
@@ -1166,7 +1172,7 @@ elsif ($FORM{SERIAL}) {
     	  "$_COUNT", "$_SUM",
     	  "$_COUNT", "$_SUM",
      	  "$_COUNT", "$_SUM",
-    	  "$_COUNT", "$_SUM",
+    	  #"$_COUNT", "$_SUM",
     	  "$_COUNT", "$_SUM", "$_PERCENTAGE",
      	  "$_COUNT", "$_SUM", 
     	  "$_COUNT", "$_SUM"
@@ -1176,7 +1182,7 @@ elsif ($FORM{SERIAL}) {
 
 
   foreach $line (@$list) {
-   	my $button = ($LIST_PARAMS{GROUP}) ? $html->button($line->[0], "index=$index&SERIAL=$line->[0]$pages_qs") : $html->button($line->[0], "index=$index&DILLER_ID=$line->[18]$pages_qs");
+   	my $button = ($LIST_PARAMS{GROUP}) ? $html->button($line->[0], "index=$index&SERIAL=$line->[0]$pages_qs") : $html->button($line->[0], "index=". get_function_index('cards_diller') ."&UID=$line->[19]$pages_qs");
 
    	$table->addrow(
    	    $button,
@@ -1188,8 +1194,8 @@ elsif ($FORM{SERIAL}) {
   		  $line->[6],
   		  $line->[7],
   		  $line->[8],
-  		  $line->[9],
-  		  $line->[10],
+  		  #$line->[9],
+  		  #$line->[10],
    		  $line->[11],
    		  $line->[12],
    		  $line->[13],
@@ -1210,8 +1216,8 @@ $table->{rowcolor} = $_COLORS[3];
      $Cards->{PAYMENT_TOTAL_SUM}, 
      $Cards->{LOGIN_TOTAL},  
      $Cards->{LOGIN_TOTAL_SUM},
-     $Cards->{TAKE_TOTAL},  
-     $Cards->{TAKE_TOTAL_SUM},
+     #$Cards->{TAKE_TOTAL},  
+     #$Cards->{TAKE_TOTAL_SUM},
      $Cards->{SOLD_TOTAL},  
      $Cards->{SOLD_TOTAL_SUM},
      $Cards->{SOLD_TOTAL_PERCENTAGE},
@@ -1329,15 +1335,19 @@ if ($Cards->{errno}) {
  }
 
   $Cards->cards_diller_info({ %FORM });
+  my $diller_id=0;
   if ($Cards->{TOTAL} > 0) {
  	  $Cards->{ACTION}='change';
  	  $Cards->{LNG_ACTION}=$_CHANGE;
- 	  
+ 	  $diller_id= $Cards->{ID};
     $pages_qs = "&UID=$FORM{UID}&DILLER_ID=$Cards->{ID}";
     $LIST_PARAMS{DILLER_ID}=$Cards->{ID};
 
     cards_main();
    }
+
+
+
 
 $Cards->{TARIF_PLAN_SEL}=$html->form_select('TP_ID', 
                                           { 
@@ -1350,7 +1360,7 @@ $Cards->{TARIF_PLAN_SEL}=$html->form_select('TP_ID',
 
 
 	$Cards->{DISABLE} = ($Cards->{DISABLE} == 1)? 'checked' : '';
-	$html->tpl_show(_include('cards_dillers', 'Cards'), $Cards);
+	$html->tpl_show(_include('cards_dillers', 'Cards'), {%$Cards, ID => $diller_id });
 	
 	if (in_array('Multidoms', \@MODULES) && $LIST_PARAMS{DILLER_ID}) {
 		my %ACTIONS = ( $_ICARDS      => 1,

@@ -515,7 +515,7 @@ sub paysys_import_parse {
   my ($expration, $columns)=split(/:/, $import_expr);
   my @EXPR_IDS = split(/,/, $columns);
   
-  print "Expration: $expration ". $html->br() ."$_INFO_FIELDS: $columns".$html->br();
+  print "$_EXPRESSION: $expration ". $html->br() ."$_INFO_FIELDS: $columns".$html->br();
   my @rows = split(/[\r]{0,1}\n/, $content);
   my $line_count = 1;
        

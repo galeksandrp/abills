@@ -157,7 +157,7 @@ $_NO_RECORD='Record does not exist';
 
 $_TIME_LIMIT='Time limit';
 $_TRAF_LIMIT='Traffic limit';
-$_EXPRASSION='Expressions';
+$_EXPRESSION='Expressions';
 
 $_LIMIT = 'Limit';
 $_SPEED = 'Speed';
