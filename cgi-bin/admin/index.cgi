@@ -5609,6 +5609,8 @@ if ($attr->{USER_INFO}) {
   			if ($FORM{DATE}) {
   				my $list = $payments->exchange_log_list({ DATE      => "<=$FORM{DATE}",
   					                                        ID        => $FORM{ER},
+  					                                        SORT      => 'date',
+  					                                        DESC      => 'desc',
   					                                        PAGE_ROWS => 1 });
           $FORM{ER}       = $list->[0]->[2] || 1;
           $FORM{CURRENCY} = $list->[0]->[4] || 0;
