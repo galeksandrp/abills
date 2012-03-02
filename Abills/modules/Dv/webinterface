@@ -559,7 +559,7 @@ sub dv_user {
     	return 1 if ($attr->{REGISTRATION});	
      }
     else {
- 	    $html->message('err', "$Dv->{errno} $Dv->{err_str}!!!!!!!! Internet:$_ERROR", "[$Dv->{errno}] $err_strs{$Dv->{errno}}");
+ 	    $html->message('err', "$Dv->{errno} $Dv->{err_str} Internet:$_ERROR", "[$Dv->{errno}] $err_strs{$Dv->{errno}}");
       return 1 if ($attr->{REGISTRATION});	
      } 
    }
@@ -4207,16 +4207,30 @@ elsif ($conf{DV_IP_DISCOVERY}) {
 
   my ($from_year, $from_month, $from_day)=split(/-/, $DATE, 3);
   my ($to_year, $to_month, $to_day)=split(/-/, $Dv->{ABON_DATE}, 3);
-  my $from_seltime = POSIX::mktime(0, 0, 0, $from_day, ($from_month-1), ($from_year - 1900));
-  my $to_seltime   = POSIX::mktime(0, 0, 0, $to_day, ($to_month-1), ($to_year - 1900));
-  my $days_to_fees = int(($to_seltime - $from_seltime) / 86400);
+  
+  if ($Dv->{ABON_DISTRIBUTION} && $Dv->{MONTH_ABON} > 0) {
+  	my $days_to_fees = int(($user->{DEPOSIT} + $user->{CREDIT}) / ($Dv->{MONTH_ABON} / 30));
 
-  $Dv->{NEXT_FEES_WARNING}="$_NEXT_FEES_THROUGHT";
-  $Dv->{NEXT_FEES_WARNING}=~s/\%DAYS\%/$days_to_fees/g;
-  if ($days_to_fees < 5) {
-  	$Dv->{NEXT_FEES_WARNING}=$html->color_mark($Dv->{NEXT_FEES_WARNING}, "red");
+    $Dv->{NEXT_FEES_WARNING}="$_SERVICE_ENDED";
+    $Dv->{NEXT_FEES_WARNING}=~s/\%DAYS\%/$days_to_fees/g;
+    if ($days_to_fees < 5) {
+  	  $Dv->{NEXT_FEES_WARNING}=$html->color_mark($Dv->{NEXT_FEES_WARNING}, "red");
+     }
+   }
+  else {
+    my $from_seltime = POSIX::mktime(0, 0, 0, $from_day, ($from_month-1), ($from_year - 1900));
+    my $to_seltime   = POSIX::mktime(0, 0, 0, $to_day, ($to_month-1), ($to_year - 1900));
+
+    my $days_to_fees = int(($to_seltime - $from_seltime) / 86400);
+    
+    $Dv->{NEXT_FEES_WARNING}="$_NEXT_FEES_THROUGHT";
+    $Dv->{NEXT_FEES_WARNING}=~s/\%DAYS\%/$days_to_fees/g;
+    if ($days_to_fees < 5) {
+  	  $Dv->{NEXT_FEES_WARNING}=$html->color_mark($Dv->{NEXT_FEES_WARNING}, "red");
+     }
    }
   }
+
 
   if ($Dv->{STATUS} == 2) {
     $Dv->{STATUS}   = $html->color_mark($service_status[$Dv->{STATUS}], $service_status_colors[$Dv->{STATUS}]). ' ';
@@ -5146,6 +5160,7 @@ sub dv_monthly_fees {
              $sum = $sum * (100 - $user{REDUCTION}) / 100;
             }
           
+         
            my ($activate_y, $activate_m, $activate_d);
            my $active_unixtime=0;
            if ($user{ACTIVATE} ne '0000-00-00') {
@@ -5216,6 +5231,8 @@ sub dv_monthly_fees {
                if ($small_deposit_block && $sum > $user{DEPOSIT}+$user{CREDIT} && $date_unixtime - $active_unixtime > 30 * 86400) {
    	             SMALL_DEPOSIT_LABEL:
 
+print "// $sum > $user{DEPOSIT}+$user{CREDIT}  //";
+
      	           if ($small_deposit_block == -1) {
      	             $Dv->change({ UID    => $user{UID}, 
             	                   STATUS => 5 });
@@ -5270,7 +5287,7 @@ sub dv_monthly_fees {
                }
               elsif (($user{ACTIVATE} eq '0000-00-00' and $d == $START_PERIOD_DAY) || $abon_distrib) {
                 #Block small deposit
-                if ($small_deposit_block && $month_fee > $user{DEPOSIT}+$user{CREDIT}) {
+                if ($small_deposit_block && $sum > $user{DEPOSIT}+$user{CREDIT}) {
      	            if ($small_deposit_block == -1) {
      	              $Dv->change({ UID    => $user{UID}, 
             	                    STATUS => 5 });

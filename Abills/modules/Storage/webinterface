@@ -318,7 +318,7 @@ sub suppliers_main {
 	my $table = $html->table(	{	width      => '100%',
 									caption    => $_SUPPLIERS,
 									border     => 1,
-									title      => [$_NAME, $_PHONE, email, icq, $_SITE, $_DIRECTOR, $_BILL,'-', '-'],
+									title      => [$_NAME, $_PHONE, 'email', 'icq', $_SITE, $_DIRECTOR, $_BILL,'-', '-'],
 									cols_align => ['left', 'right', 'right', 'right', 'center', 'center'],
 									pages      => $Storage->{TOTAL},
 									ID         => 'STORAGE_ID'
