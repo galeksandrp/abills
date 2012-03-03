@@ -27,11 +27,10 @@ function postthread(param) {
 <TR><TD colspan=2>$_PAYMENT_METHOD:</TD><TD>%SEL_METHOD%</TD></TR>
 <TR><TD colspan=2>EXT ID:</TD><TD><input type=text name='EXT_ID' value='%EXT_ID%'></TD></TR>
 %DATE%
+
 %EXT_DATA%
 
-
-
-%DOCS_ACCOUNT_ELEMENT%
+%DOCS_INVOICE_RECEIPT_ELEMENT%
 
 <TR><TH class='even' colspan=3>%BACK_BUTTON% <input type=submit name=%ACTION% value='%LNG_ACTION%' ID='submitbutton'></TH></TR>
 </TABLE>

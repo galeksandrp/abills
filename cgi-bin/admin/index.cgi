@@ -5634,7 +5634,7 @@ if ($attr->{USER_INFO}) {
       #Make pre payments functions in all modules 
       cross_modules_call('_pre_payment', { %$attr  });
       
-   	  if ($FORM{INVOICE_SUM} && $FORM{INVOICE_SUM} != $FORM{PAYMENT_SUM} )  {
+   	  if (! $oonf{PAYMENTS_NOT_CHECK_INVOICE_SUM} && $FORM{INVOICE_SUM} && $FORM{INVOICE_SUM} != $FORM{PAYMENT_SUM} )  {
         $html->message('err', "$_PAYMENTS: $ERR_WRONG_SUM", " $_INVOICE $_SUM: $Docs->{TOTAL_SUM}\n $_PAYMENTS $_SUM: $FORM{SUM}");
        }
       else {
@@ -5761,7 +5761,7 @@ if ($permissions{1} && $permissions{1}{1}) {
    }
 
   if (in_array('Docs', \@MODULES) ) {
-  	my $INVOICE_SEL = $html->form_select("INVOICE_ID", 
+  	$payments->{INVOICE_SEL} = $html->form_select("INVOICE_ID", 
                                 { SELECTED          => $FORM{INVOICE_ID},
  	                                SEL_MULTI_ARRAY   => $Docs->invoices_list({ UID => $user->{UID}, PAYMENT_ID => 0, PAGE_ROWS => 100, SORT => 2, DESC => 'DESC' }), 
  	                                MULTI_ARRAY_KEY   => 13,
@@ -5773,14 +5773,10 @@ if ($permissions{1} && $permissions{1}{1}) {
  	                                MAIN_MENU_AGRV    => "UID=$FORM{UID}&INVOICE_ID=$FORM{INVOICE_ID}"
  	                               });
 
-    $payments->{DOCS_ACCOUNT_ELEMENT}="<tr><th colspan=3 class='form_title'>$_DOCS</th></tr>\n".
-    "<tr><td colspan=2>$_INVOICE:</td><td>$INVOICE_SEL</td></tr>";
+    $payments->{DOCS_INVOICE_RECEIPT_ELEMENT} = $html->tpl_show(_include('docs_create_invoice_receipt', 'Docs'), 
+                                            { %$payments }, 
+                                            { OUTPUT2RETURN => 1 });
    }
-
-
-   if (in_array('Docs', \@MODULES) ) {
-     $payments->{DOCS_ACCOUNT_ELEMENT} .= "<tr><td colspan=2>$_RECEIPT:</td><td>". $html->form_input('CREATE_RECEIPT', '1', { TYPE => 'checkbox', STATE => 1 }). "</td></tr>\n";
-    }   
    
    
    if ($attr->{ACTION}) {

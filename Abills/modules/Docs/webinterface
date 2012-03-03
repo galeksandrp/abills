@@ -823,7 +823,7 @@ if ($conf{PAYSYS_PAYMENTS_METHODS}) {
 
 if ($LIST_PARAMS{UID} || $FORM{UID}) {
 	docs_invoice();
-	return 0 if ($FORM{'print'});
+	return 0 if ($FORM{'print'} || $FORM{SHOW_ORDERS});
  }
 elsif(defined($FORM{del}) && $FORM{is_js_confirmed} ) {
   $Docs->invoice_del($FORM{del});
@@ -1808,6 +1808,35 @@ sub docs_invoice {
    if(! $Docs->{errno}) {
      $html->message('info', "$_INFO", "$_DELETED N: [$FORM{del}]");
     }
+  }
+ elsif ($FORM{SHOW_ORDERS}) {
+   $Docs->invoice_info($FORM{SHOW_ORDERS}, { UID => $LIST_PARAMS{UID} });
+
+   my $table = $html->table( { width      => ($user->{UID}) ? '600' : '100%',
+                               caption    => $_ORDERS,
+                               border     => 1,
+                               title_plain=> ['#', "$_NAME", "$_COUNT", "$_UNIT", "$_PRICE", $_SUM ],
+                               ID         => 'DOCS_INVOCE_ORDERS',
+                            });
+
+   if ($Docs->{TOTAL} > 0) {
+     my $list = $Docs->{ORDERS};
+     foreach my $line (@$list) {
+   	   $i++;
+   	   
+   	   $table->addrow($i, 
+   	               $line->[1],
+   	               $line->[2],
+   	               $line->[3],
+   	               $line->[4],
+   	               sprintf("%.2f", $line->[3]*$line->[4])
+   	               );
+      }
+	  }
+   
+   print $table->show();
+
+   return 0;
   }
 	
 	if(! $user->{UID}  ) {
@@ -2855,7 +2884,7 @@ for (my $year=2009; $year<=$Y; $year++) {
 #**********************************************************
 #
 #**********************************************************
-sub docs_payments_maked {
+ sub docs_payments_maked {
 	my ($attr) = @_;
 
 #Add invoice number 

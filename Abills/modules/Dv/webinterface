@@ -6949,34 +6949,42 @@ if ($FORM{add}) {
                             ID         => 'DV_COMPENSATION_DESCRIBE'
                           });
 
-	if ("$FROM_Y-$FROM_M" eq "$TO_Y-$TO_M") {
-		$days          = $TO_D-$FROM_D;
-		$days_in_month = ($FROM_M!=2?(($FROM_M%2)^($FROM_M>7))+30:(!($FROM_Y%400)||!($FROM_Y%4)&&($FROM_Y%25)?29:28));
-		$sum           = sprintf("%.2f", $days * $Dv->{DAY_ABON} + $days * ($Dv->{MONTH_ABON} / $days_in_month));
-
-		$table->addrow("$FROM_Y-$FROM_M", $days, $sum);
+	if ($users->{ACTIVATE} ne '0000-00-00') {
+    my $from_seltime = POSIX::mktime(0, 0, 0, $FROM_D, ($FROM_M-1), ($FROM_Y - 1900));
+    my $to_seltime   = POSIX::mktime(0, 0, 0, $TO_D, ($TO_M-1), ($TO_Y - 1900));		
+		$days            = int(($to_seltime - $from_seltime) / 86400);
+		$sum             = $days * ($Dv->{MONTH_ABON} / 30);
 	 }
-  elsif ("$FROM_Y-$FROM_M" ne "$TO_Y-$TO_M") {
-  	$FROM_D--;
-  	do {  		
-  		$days_in_month = ($FROM_M!=2?(($FROM_M%2)^($FROM_M>7))+30:(!($FROM_Y%400)||!($FROM_Y%4)&&($FROM_Y%25)?29:28));  		
-  		my $month_days = ($FROM_M == $TO_M) ? $TO_D : $days_in_month-$FROM_D;
-  		$FROM_D=0;
-  		my $month_sum = sprintf("%.2f", $month_days * $Dv->{DAY_ABON} + $month_days * ($Dv->{MONTH_ABON} / $days_in_month));
-  		$sum  += $month_sum;
-  		$days += $month_days;
-      $table->addrow("$FROM_Y-$FROM_M", $month_days, $month_sum);
+	else {
+  	if ("$FROM_Y-$FROM_M" eq "$TO_Y-$TO_M") {
+	  	$days          = $TO_D-$FROM_D;
+		  $days_in_month = ($FROM_M!=2?(($FROM_M%2)^($FROM_M>7))+30:(!($FROM_Y%400)||!($FROM_Y%4)&&($FROM_Y%25)?29:28));
+		  $sum           = sprintf("%.2f", $days * $Dv->{DAY_ABON} + $days * ($Dv->{MONTH_ABON} / $days_in_month));
 
-  		if ($FROM_M < 12) {
-  		  $FROM_M=sprintf("%02d", $FROM_M+1);
-  		 }
-      else {
-      	$FROM_M = sprintf("%02d", 1);
-      	$FROM_Y+=1;
-       }
-  	 } while(($FROM_Y < $TO_Y) || ($FROM_M <= $TO_M && $FROM_Y == $TO_Y));
-   }
-  
+		  $table->addrow("$FROM_Y-$FROM_M", $days, $sum);
+	   }
+    elsif ("$FROM_Y-$FROM_M" ne "$TO_Y-$TO_M") {
+  	  $FROM_D--;
+  	  do {  		
+  		  $days_in_month = ($FROM_M!=2?(($FROM_M%2)^($FROM_M>7))+30:(!($FROM_Y%400)||!($FROM_Y%4)&&($FROM_Y%25)?29:28));  		
+  		  my $month_days = ($FROM_M == $TO_M) ? $TO_D : $days_in_month-$FROM_D;
+  		  $FROM_D=0;
+    		my $month_sum = sprintf("%.2f", $month_days * $Dv->{DAY_ABON} + $month_days * ($Dv->{MONTH_ABON} / $days_in_month));
+    		$sum  += $month_sum;
+  	  	$days += $month_days;
+        $table->addrow("$FROM_Y-$FROM_M", $month_days, $month_sum);
+
+    		if ($FROM_M < 12) {
+    		  $FROM_M=sprintf("%02d", $FROM_M+1);
+  	  	 }
+        else {
+        	$FROM_M = sprintf("%02d", 1);
+        	$FROM_Y+=1;
+         }
+  	   } while(($FROM_Y < $TO_Y) || ($FROM_M <= $TO_M && $FROM_Y == $TO_Y));
+     }
+    }
+
   $table->{color}=$_COLORS[3];
   
   $table->addrow($html->b("$_TOTAL:"), $html->b("$days"), $html->b("$sum"));
