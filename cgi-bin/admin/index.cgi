@@ -6537,7 +6537,7 @@ if (defined($attr->{HIDDEN_FIELDS})) {
 	 }
 }
 
- $SEARCH_DATA{HIDDEN_FIELDS}.=$html->form_input("GID", "$FORM{GID}", { TYPE => 'hidden', OUTPUT2RETURN => 1 })  if ($FORM{GID});
+ #$SEARCH_DATA{HIDDEN_FIELDS}.=$html->form_input("GID", "$FORM{GID}", { TYPE => 'hidden', OUTPUT2RETURN => 1 })  if ($FORM{GID});
 
 
 if (defined($attr->{SIMPLE})) {
