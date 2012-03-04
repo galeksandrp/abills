@@ -14,7 +14,7 @@
 
   <tr><th colspan=2 class=form_title>$_COMMENTS</th></tr>
   <tr><th colspan=2><textarea cols=50 rows=5 name=COMMENTS>%COMMENTS%</textarea></th></tr>
-  <tr><th colspan='2' class=form_title><input type=submit name='%ACTION%' value='%LNG_ACTION%'></th></tr>  
+  <tr><th colspan='2' class=even><input type=submit name='%ACTION%' value='%LNG_ACTION%'></th></tr>  
 </table>
 
 </form>

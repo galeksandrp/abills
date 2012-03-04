@@ -5570,7 +5570,6 @@ sub form_payments () {
    exit;
   }
 
-
 if ($attr->{USER_INFO}) {
   my $user = $attr->{USER_INFO};
   $payments->{UID} = $user->{UID};

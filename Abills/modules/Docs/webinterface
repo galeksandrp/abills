@@ -14,10 +14,10 @@ my $Company  = $Customer->company();
 $conf{DOCS_VAT_INCLUDE}=20 if (! defined($conf{DOCS_VAT_INCLUDE}));
 
 
-#*******************************************************************
+#***********************************************************
 # Delete user from module
 # docs_user_del()
-#*******************************************************************
+#***********************************************************
 sub docs_user_del {
  my ($uid, $attr) = @_;
 
@@ -2754,7 +2754,7 @@ foreach my $line ( @$list ) {
 	push @{ $invoice_hash{T1RXXXXG1}   }, $num;
   push @{ $invoice_hash{T1RXXXXG2D}  }, $line->[1];
   push @{ $invoice_hash{T1RXXXXG3S}  }, $line->[2];
-  push @{ $invoice_hash{T1RXXXXG4S}  }, 'ÏÍ02';
+  push @{ $invoice_hash{T1RXXXXG4S}  }, 'ÐŸÐ02';
   push @{ $invoice_hash{T1RXXXXG5S}  }, $line->[3];
 
   push @{ $invoice_hash{T1RXXXXG6}   }, ''; # | $line->[3];
