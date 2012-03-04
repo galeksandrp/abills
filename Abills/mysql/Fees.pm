@@ -478,8 +478,17 @@ sub fees_type_list {
   $WHERE 
   ORDER BY $SORT $DESC
   LIMIT $PG, $PAGE_ROWS;");
+ my $list = $self->{list};
+if ($self->{TOTAL} > 0 || $PG > 0 ) {
+ $self->query($db, "SELECT count(*) FROM fees_types $WHERE ;");
 
- return $self->{list};
+ ($self->{TOTAL}, 
+  $self->{SUM},
+  $self->{TOTAL_USERS}) = @{ $self->{list}->[0] };
+}
+
+
+ return $list;
 }
 
 

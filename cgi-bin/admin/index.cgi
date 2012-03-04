@@ -5724,10 +5724,10 @@ while(my($k, $v) = each %PAYSYS_PAYMENT_METHODS ) {
 }
 
 $payments->{SEL_METHOD} = $html->form_select('METHOD', 
-                                { SELECTED     => (defined($FORM{METHOD}) && $FORM{METHOD} ne '') ? $FORM{METHOD} : '',
+                                { SELECTED     => (defined($FORM{METHOD}) && $FORM{METHOD} ne '') ? $FORM{METHOD} : 0,
  	                                SEL_HASH     => \%PAYMENTS_METHODS,
  	                                NO_ID        => 1,
- 	                                SORT_KEY     => 1
+ 	                                #SORT_KEY     => 1
  	                               });
 
 if ($permissions{1} && $permissions{1}{1}) {
@@ -5825,7 +5825,8 @@ my @caption = ('ID', $_LOGIN, $_DATE, $_DESCRIBE,  $_SUM, $_DEPOSIT,
 if ($conf{SYSTEM_CURRENCY}) {
 	push @caption, "$_ALT $_SUM", "$_CURRENCY";
  }
-              
+
+          
 
 push @caption,  '-';                                   
 
@@ -6039,6 +6040,10 @@ if ($fees->{errno}) {
 
 $html->tpl_show(templates('form_fees_types'), $fees);
 
+if (! defined($FORM{sort})) {
+  $LIST_PARAMS{SORT}=2;
+ }
+
 my $list =  $fees->fees_type_list({ %LIST_PARAMS });
 my $table = $html->table( { width      => '100%',
                             caption    => "$_FEES $_TYPES",
@@ -6046,7 +6051,7 @@ my $table = $html->table( { width      => '100%',
                             title      => ['#', $_NAME, $_COMMENTS, $_SUM, '-', '-'],
                             cols_align => ['right', 'left', 'left', 'center', 'center:noprint'],
                             qs         => $pages_qs,
-                            pages      => $nas->{TOTAL}
+                            pages      => $fees->{TOTAL}
                        } );
 
 foreach my $line (@$list) {
@@ -6350,10 +6355,10 @@ if ($attr->{USER_INFO}) {
       }
 
     $fees->{SEL_METHOD} = $html->form_select('METHOD', 
-                                { SELECTED     => (defined($FORM{METHOD}) && $FORM{METHOD} ne '') ? $FORM{METHOD} : '',
+                                { SELECTED     => (defined($FORM{METHOD}) && $FORM{METHOD} ne '') ? $FORM{METHOD} : 0,
  	                                SEL_HASH     => \%FEES_METHODS,
  	                                NO_ID        => 1,
- 	                                SORT_KEY     => 1,
+ 	                                #SORT_KEY     => 1,
                                   MAIN_MENU    => get_function_index('form_fees_types'),
  	                               });
 

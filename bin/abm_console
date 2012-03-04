@@ -13,7 +13,7 @@ use vars  qw($db %AUTH %conf $sql $DATE $TIME $ENV
 
 #use strict;
 
-my $version = 0.14;
+my $version = 0.15;
 my $debug   = 0;
 
 use FindBin '$Bin';
@@ -55,6 +55,11 @@ else {
  }
 
 chomp($ip);
+
+if (! $ip) {
+  $ip='127.0.0.1';
+}
+
 
 $admin->{SESSION_IP}=$ip;
 
@@ -101,6 +106,7 @@ $LIST_PARAMS{DATE}      = $ARGV->{DATE} || '';
 $LIST_PARAMS{SORT}      = $ARGV->{SORT} || 1;
 $LIST_PARAMS{DESC}      = $ARGV->{DESC} || undef;
 $LIST_PARAMS{ID}        = $ARGV->{ID} || undef;
+$LIST_PARAMS{LOGIN}     = $ARGV->{LOGIN} || undef;
 
 #Intercat mode
 my $interact = 0;
@@ -119,7 +125,7 @@ if ($#ARGV == -1) {
   		exit;
   	 }
     else {
-    	$LIST_PARAMS{LOGIN_EXPR}=$input;
+    	$LIST_PARAMS{LOGIN}=$input;
       form_users();
      }
    }
@@ -136,15 +142,14 @@ elsif ($ARGV->{FEES}) {
   form_fees();
  }
 elsif ($ARGV->{LOGIN}) {
-  $LIST_PARAMS{LOGIN}=$ARGV->{LOGIN} ;
   form_users({ %$ARGV });
  }
 elsif ($ARGV->{PI}) {
-  $LIST_PARAMS{LOGIN_EXPR}=$ARGV->{PI} ;
+  $LIST_PARAMS{LOGIN}=$ARGV->{PI} ;
   form_users({ %$ARGV });
  }
 elsif ($ARGV->{LOGIN_CHANGE}) {
-  $LIST_PARAMS{LOGIN_EXPR}=$ARGV->{LOGIN_CHANGE} ;
+  $LIST_PARAMS{LOGIN}=$ARGV->{LOGIN_CHANGE} ;
   form_users({ %$ARGV });
  }
 elsif ($ARGV->{LOGPARSE}) {
@@ -694,7 +699,7 @@ if ($interact) {
      }
    }
   elsif ($users->{TOTAL} < 1) {
-  	print "$_ERROR: '$LIST_PARAMS{LOGIN_EXPR}' $_NOT_EXIST\n";
+  	print "$_ERROR: '$LIST_PARAMS{LOGIN}' $_NOT_EXIST\n";
    }
   else {
     foreach my $line (@$list) {
@@ -713,7 +718,7 @@ if ($interact) {
       
      }
   	else {
-  		print "User not found. LOGIN: '$LIST_PARAMS{LOGIN_EXPR}'\n";
+  		print "User not found. LOGIN: '$LIST_PARAMS{LOGIN}'\n";
   		return 0;
   	 }
    }
@@ -804,6 +809,7 @@ foreach my $a (@args) {
    }
 }
 
+$fees->{debug}=1;
 my $list = $fees->list({ %LIST_PARAMS });
 foreach my $line (@$list) {
 	printf("%-5d| %-16s|%19s|%11f|%-20s|\n", 
@@ -815,7 +821,8 @@ foreach my $line (@$list) {
   );
 
   if ($ARGV->{DEL}) {
-  	$fees->del({ UID => $line->[11] }, $line->[0]);
+  	$fees->{debug}=1;
+  	$fees->del({ UID => $line->[10] }, $line->[0]);
   	print "$_DEL\n";
    }
 }
@@ -906,6 +913,7 @@ foreach my $a (@args) {
    }
 }
 
+
 my $list = $payments->list({ %LIST_PARAMS });
 foreach my $line (@$list) {
 	printf("%-5d| %-16s|%19s|%11f|%-20s|\n", 
@@ -917,7 +925,7 @@ foreach my $line (@$list) {
   );
 
   if ($ARGV->{DEL}) {
-  	$payments->del({ UID => $line->[11] }, $line->[0]);
+  	$payments->del({ UID => $line->[13] }, $line->[0]);
   	print "$_DEL\n";
    }
 }
