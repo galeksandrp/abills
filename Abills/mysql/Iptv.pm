@@ -330,7 +330,6 @@ sub user_list {
   }
 
  if ($attr->{FIO}) {
-    $attr->{FIO} =~ s/\*/\%/ig;
     push @WHERE_RULES, @{ $self->search_expr($attr->{FIO}, 'STR', 'u.fio') };
   }
 
