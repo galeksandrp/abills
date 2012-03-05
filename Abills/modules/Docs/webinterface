@@ -613,7 +613,8 @@ elsif($FORM{print}) {
    }
 
   if ($attr->{GET_EMAIL_INFO}) {
-    $attr->{EMAIL_MSG_TEXT}        = $html->tpl_show(_include('docs_receipt_email', 'Docs'), { %FORM, %$attr, %$Docs, %$users }, { OUTPUT2RETURN => 1 });
+    delete $FORM{pdf};  	
+    $attr->{EMAIL_MSG_TEXT}        = $html->tpl_show(_include('docs_receipt_email', 'Docs'), { %$Docs, %$users }, { OUTPUT2RETURN => 1 });
     $attr->{EMAIL_ATTACH_FILENAME} = 'receipt_'. $Docs->{RECEIPT_NUM} .'.pdf' if (! $attr->{EMAIL_ATTACH_FILENAME});
     $attr->{EMAIL_MSG_SUBJECT}     = "ABillS - $_RECEIPT: $Docs->{RECEIPT_NUM}" if (! $attr->{EMAIL_MSG_SUBJECT});
   	$attr->{OUTPUT2RETURN}         = undef;
@@ -622,7 +623,7 @@ elsif($FORM{print}) {
 
 
   docs_print('receipt', { %$Docs, %$attr });
-  return 0;
+  return 1;
  }
 elsif($FORM{sendmail}) {
   $FORM{print}= $FORM{sendmail};
