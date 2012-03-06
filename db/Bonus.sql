@@ -25,5 +25,8 @@ CREATE TABLE `bonus_service_discount` (
   `registration_days` smallint(4) unsigned NOT NULL default '0',
   `discount` double(10,2) NOT NULL default '0.00',
   `discount_days` smallint(4) unsigned NOT NULL default '0',
+  `total_payments_sum` double(10,2) NOT NULL default '0.00',
+  `bonus_sum` double(10,2) NOT NULL default '0.00',
+  `ext_account` tinyint(1) unsigned NOT NULL default '0',
   PRIMARY KEY  (`id`)
 ) COMMENT "Bonus service discount"  ;

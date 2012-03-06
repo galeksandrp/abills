@@ -173,26 +173,32 @@ my $dialstring      = '';
 #374832595002 = 3;
 #";
 
+
+my %extNums=();
 if ($conf{VOIP_MULTIPLE_NUMS}) {
   $conf{VOIP_MULTIPLE_NUMS}=~s/[\n ]+//g;
   my @arr = split(/;/, $conf{VOIP_MULTIPLE_NUMS});
-  my %extNums;
+  
 
   foreach my $line (@arr) {
   	my ($key, $val)=split(/=/, $line);
   	$extNums{$key} = $val;
    }
-
-  if ( defined $extNums{$rewrittennumber} ) {
-    $agi->verbose("EXTENDED NUMBER: $rewrittennumber; EXTENDED LINES:$extNums{$rewrittennumber}");
-    my @dialnums;
-    push (@dialnums, "$protocol/$rewrittennumber");
-    for (my $i = 1; $i <= $extNums{$rewrittennumber}; $i++) {
+ }
+ 
+if ( defined $extNums{$rewrittennumber} ) {
+  $agi->verbose("EXTENDED NUMBER: $rewrittennumber; EXTENDED LINES:$extNums{$rewrittennumber}");
+  my @dialnums;
+  push (@dialnums, "$protocol/$rewrittennumber");
+  for (my $i = 1; $i <= $extNums{$rewrittennumber}; $i++) {
       push (@dialnums, "$protocol/".$rewrittennumber."l$i");
-     }
-    $dialstring      = join('&', @dialnums);
    }
- } 
+  $dialstring      = join('&', @dialnums);
+ }
+elsif ( ($data{'caller'} == '0074832599178') && ($rewrittennumber =~ /^8/) && (length($rewrittennumber)>6) ) {
+  $rewrittennumber = ('0008' . substr $rewrittennumber,1,length($rewrittennumber)-1);
+  $dialstring      = "$protocol/".$rewrittennumber.'@cisco-out';
+ }
 else {
   $dialstring      = "$protocol/".$rewrittennumber; #."\@";
   $dialstring         = $rad_response{'next-hop-ip'} if ($rad_response{'next-hop-ip'});

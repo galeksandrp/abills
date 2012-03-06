@@ -535,7 +535,6 @@ sub bonus_periodic_daily {
    #del expired bonus
    #list expire
 
-#$Bonus->{debug}=1;
 my $list = $Bonus->bonus_operation_list({ EXPIRE      => $ADMIN_REPORT{DATE},
 	                                        DEPOSIT     => '>0',
 	                                        PAGE_ROWS   => 1000000, } );
@@ -687,7 +686,6 @@ sub bonus_service_discount {
   $Bonus->{ACTION}='add';
   $Bonus->{LNG_ACTION}=$_ADD;
 
-
   if ($FORM{add}) {
  	  $Bonus->service_discount_add({ %FORM });
     if(! $Bonus->{errno}) {
@@ -719,6 +717,8 @@ sub bonus_service_discount {
      }
    }	
 	
+	$Bonus->{EXT_ACCOUNT}='checked' if ($Bonus->{EXT_ACCOUNT});
+
 	$html->tpl_show(_include('bonus_service_discount', 'Bonus'), $Bonus);
 	
 	my $list = $Bonus->service_discount_list({ %LIST_PARAMS });
@@ -726,7 +726,8 @@ sub bonus_service_discount {
 	my $table = $html->table( { width      => '100%',
                             caption    => "$_BONUS",
                             border     => 1,
-                            title      => ["$_SERVICE $_PERIOD ($_MONTH)", "$_REGISTRATION $_DAYS", "$_REDUCTION %", "$_REDUCTION $_DAYS", '-'],
+                            title      => ["$_SERVICE $_PERIOD ($_MONTH)", "$_REGISTRATION $_DAYS", "$_TOTAL $_PAYMENTS ($_SUM)",
+                            "$_REDUCTION %", "$_REDUCTION $_DAYS",  "$_BONUS $_SUM", "$_EXTRA $_ACCOUNT", '-', '-'],
                             cols_align => ['right', 'right', 'right', 'right', 'center:noprint'],
                             qs         => $pages_qs,
                             pages      => $Bonus->{TOTAL},
@@ -735,11 +736,16 @@ sub bonus_service_discount {
 
 
 foreach my $line (@$list) {
-  my $delete = $html->button($_DEL, "index=$index&del=$line->[4]", { MESSAGE => "$_DEL [$line->[0]] ?", CLASS => 'del' });
+  my $delete = $html->button($_DEL, "index=$index&del=$line->[7]", { MESSAGE => "$_DEL [$line->[0]] ?", CLASS => 'del' });
   $table->addrow($line->[0], 
     $line->[1], 
     $line->[2], 
-    $line->[3], 
+    $line->[3],
+    $line->[4], 
+    $line->[5], 
+    ($line->[6]) ? $_YES : $_NO,
+
+    $html->button($_DEL, "index=$index&chg=$line->[7]", { CLASS => 'change' }),
     $delete
 	 )
 }

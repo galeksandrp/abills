@@ -906,13 +906,16 @@ sub service_discount_info {
   my $self = shift;
   my ($id) = @_;
   
-  my $WHERE = "WHERE uid='$id'";
+  my $WHERE = "WHERE id='$id'";
 
   $self->query($db, "SELECT id,
     service_period,
     registration_days,
     discount,
-    discount_days
+    discount_days,
+    total_payments_sum,
+    bonus_sum,
+    ext_account
      FROM bonus_service_discount
    $WHERE;");
 
@@ -925,9 +928,12 @@ sub service_discount_info {
   (
    $self->{ID}, 
    $self->{SERVICE_PERIOD}, 
-   $self->{REGISTRATION_DAY}, 
+   $self->{REGISTRATION_DAYS}, 
    $self->{DISCOUNT}, 
-   $self->{DISCOUNT_DAYS}
+   $self->{DISCOUNT_DAYS},
+   $self->{TOTAL_PAYMENTS_SUM},  
+   $self->{BONUS_SUM},
+   $self->{EXT_ACCOUNT}
   )= @{ $self->{list}->[0] };
 
   return $self;
@@ -943,11 +949,11 @@ sub service_discount_add {
   my ($attr) = @_;
   my %DATA = $self->get_data($attr); 
 
-
-  $self->{debug}=1;
   
-  $self->query($db,  "INSERT INTO bonus_service_discount (service_period, registration_days, discount, discount_days)
-        VALUES ('$DATA{SERVICE_PERIOD}', '$DATA{REGISTRATION_DAYS}', '$DATA{DISCOUNT}', '$DATA{DISCOUNT_DAYS}');", 'do');
+  $self->query($db,  "INSERT INTO bonus_service_discount (service_period, registration_days, discount, discount_days,
+    total_payments_sum, bonus_sum, ext_account)
+        VALUES ('$DATA{SERVICE_PERIOD}', '$DATA{REGISTRATION_DAYS}', '$DATA{DISCOUNT}', '$DATA{DISCOUNT_DAYS}',
+    '$DATA{TOTAL_PAYMENTS_SUM}', '$DATA{BONUS_SUM}', '$DATA{EXT_ACCOUNT}');", 'do');
 
   return $self;
 }
@@ -966,7 +972,10 @@ sub service_discount_change {
                  SERVICE_PERIOD   => 'service_period', 
                  REGISTRATION_DAY => 'registration_day', 
                  DISCOUNT         => 'discount', 
-                 DISCOUNT_DAYS    => 'discount_days'
+                 DISCOUNT_DAYS    => 'discount_days',
+                 TOTAL_PAYMENTS_SUM=>'total_payments_sum',  
+                 BONUS_SUM        => 'bonus_sum',
+                 EXT_ACCOUNT      => 'ext_account'
                );
   
   $attr->{STATE} = ($attr->{STATE}) ? 1 : 0;
@@ -977,6 +986,8 @@ sub service_discount_change {
                    OLD_INFO     => $self->service_discount_info($attr->{ID}),
                    DATA         => $attr
                   } );
+
+  $self->service_discount_info($attr->{ID});
 
   return $self;
 }
@@ -1030,7 +1041,8 @@ sub service_discount_list {
  
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
  
- $self->query($db, "SELECT service_period, registration_days, discount, discount_days, id
+ $self->query($db, "SELECT service_period, registration_days, total_payments_sum,
+  discount, discount_days,  bonus_sum,  ext_account, id
      FROM bonus_service_discount
      $WHERE 
      ORDER BY $SORT $DESC
