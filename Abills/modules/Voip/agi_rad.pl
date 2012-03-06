@@ -166,8 +166,37 @@ if ($debug > 0) {
 my $rewrittennumber = $data{'called'};
 my $protocol        = $conf{VOIP_AGI_PROTOCOL} || 'SIP';
 $protocol           = $rad_response{'session-protocol'} if ($rad_response{'session-protocol'});
-my $dialstring      = "$protocol/".$rewrittennumber; #."\@";
-$dialstring         = $rad_response{'next-hop-ip'} if ($rad_response{'next-hop-ip'});
+my $dialstring      = '';
+
+#$conf{VOIP_MULTIPLE_NUMS}="74832595000 = 1;
+#74832595001 = 1;
+#374832595002 = 3;
+#";
+
+if ($conf{VOIP_MULTIPLE_NUMS}) {
+  $conf{VOIP_MULTIPLE_NUMS}=~s/[\n ]+//g;
+  my @arr = split(/;/, $conf{VOIP_MULTIPLE_NUMS});
+  my %extNums;
+
+  foreach my $line (@arr) {
+  	my ($key, $val)=split(/=/, $line);
+  	$extNums{$key} = $val;
+   }
+
+  if ( defined $extNums{$rewrittennumber} ) {
+    $agi->verbose("EXTENDED NUMBER: $rewrittennumber; EXTENDED LINES:$extNums{$rewrittennumber}");
+    my @dialnums;
+    push (@dialnums, "$protocol/$rewrittennumber");
+    for (my $i = 1; $i <= $extNums{$rewrittennumber}; $i++) {
+      push (@dialnums, "$protocol/".$rewrittennumber."l$i");
+     }
+    $dialstring      = join('&', @dialnums);
+   }
+ } 
+else {
+  $dialstring      = "$protocol/".$rewrittennumber; #."\@";
+  $dialstring         = $rad_response{'next-hop-ip'} if ($rad_response{'next-hop-ip'});
+ }
 
 $agi->set_variable('LCRSTRING1', $dialstring);
 $agi->set_variable('TIMELIMIT', $data{'session_timeout'});
