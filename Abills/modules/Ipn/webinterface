@@ -2512,6 +2512,7 @@ sub ipn_start_active {
 
 #Get online
 my $Dv  = Dv->new($db, $admin, \%conf);  
+$Nas->{debug}=1 if ($debug > 6);
 my $nas_list = $Nas->list({ NAS_IDS   => $attr->{NAS_IDS}, 
 	                          PAGE_ROWS => 10000 });
 
@@ -2529,6 +2530,7 @@ foreach my $line (@$nas_list) {
 my @nas_ids_arr = keys %nas_info;
 
 if ($#nas_ids_arr < 0) {
+	$debug_output .= "Not found nas for user activation\n";
   $DEBUG .= $debug_output;
   return $debug_output;
  }
