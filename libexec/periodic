@@ -409,12 +409,13 @@ foreach my $line (@$list) {
   $ADMIN_REPORT{FEES} .= sprintf ("%-14s|%-28s| %20s| %8.4f| %12s | %12s| %15s| %8.4f\n", 
     ($line->[1]) ? $line->[1] : "!Unknown", 
     ($line->[2]) ? $line->[2] : "", 
-    $line->[4],
-    $line->[5], 
-    $line->[6], 
-    $line->[9], 
-    $line->[10],
-    $line->[7]);
+    $line->[4] || '',
+    $line->[5] || '', 
+    $line->[6] || '', 
+    $line->[9] || '', 
+    $line->[10] || '',
+    $line->[7] ||'' 
+   );
 }
 
 $ADMIN_REPORT{FEES} .= "---------------------------------------------------------\n";
