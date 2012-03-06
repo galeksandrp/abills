@@ -617,8 +617,8 @@ sub bonus_pre_payment {
 	my($attr)=@_;
 	my $REPORT = '';
 	
-	
-	if ($conf{BONUS_SERVICE_DISCOUNT}) {
+
+	if ($conf{BONUS_SERVICE_DISCOUNT} && $FROM{SUM}>0) {
     bonus_service_discount_mk($attr);
    }
 	
