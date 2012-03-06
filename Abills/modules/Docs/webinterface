@@ -1761,10 +1761,12 @@ sub docs_invoice {
      	 $Docs->{DEPOSIT_ALT}        = sprintf("%.2f", $Docs->{DEPOSIT} * $Docs->{EXCHANGE_RATE} );
       } 
  
+     $attr->{SEND_EMAIL}=0 if (! defined($attr->{SEND_EMAIL}));
      if ($attr->{GET_EMAIL_INFO}) {
         $attr->{EMAIL_MSG_TEXT}        = $html->tpl_show(_include('docs_invoice_email', 'Docs'), { %FORM, %$attr, %$Docs, %$users }, { OUTPUT2RETURN => 1 });
         $attr->{EMAIL_ATTACH_FILENAME} = 'invoice_'. $Docs->{INVOICE_NUM} .'.pdf' if (! $attr->{EMAIL_ATTACH_FILENAME});
         $attr->{EMAIL_MSG_SUBJECT}     = "ABillS - $_INVOICE: $Docs->{INVOICE_NUM}" if (! $attr->{EMAIL_MSG_SUBJECT});
+        $attr->{SEND_EMAIL}=1;
       }
 
      $FORM{pdf}  = $conf{DOCS_PDF_PRINT};     
