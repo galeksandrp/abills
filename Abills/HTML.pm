@@ -203,9 +203,10 @@ if ($ENV{HTTP_TRANSFER_ENCODING} &&  $ENV{HTTP_TRANSFER_ENCODING} eq 'chunked') 
   while (read (STDIN, $newtext, 1)) {
      $buffer .= $newtext;
    }
-  my $prefix; 
-  ($prefix, $buffer)=split(/[\r\n]+/, $buffer);
-  my $ret = substr($buffer, 0, hex("0x$prefix"));
+  my ($prefix, $buffer)=split(/[\r\n]+/, $buffer);
+  if ($buffer && hex("0x$prefix") > 0) {
+    my $ret = substr($buffer, 0, hex("0x$prefix"));
+   }
  }
 elsif ($ENV{'REQUEST_METHOD'} eq "GET") {
   $buffer= $ENV{'QUERY_STRING'};
