@@ -5,14 +5,15 @@ use Bonus;
 use Finance;
 use Tariffs;
 
-my $Bonus   = Bonus->new($db, $admin, \%conf);
-my $Fees    = Fees->new($db, $admin, \%conf);
-my $Tariffs = Tariffs->new($db, \%conf, $admin);
+my $Bonus    = Bonus->new($db, $admin, \%conf);
+my $Fees     = Fees->new($db, $admin, \%conf);
+my $Payments = Payments->new($db, $admin, \%conf);
+my $Tariffs  = Tariffs->new($db, \%conf, $admin);
 
 
 
 #*******************************************************************
-# bonus payments
+# bonus user log
 #*******************************************************************
 sub bonus_user_log {
 	my ($attr)=@_;
@@ -633,43 +634,115 @@ sub bonus_service_discount_mk {
 	my ($attr)=@_;
 	my $return = 0;
 	
-	use Dv;
-	$Dv = Dv->new($db, $admin, \%conf);
-	$Dv->info($attr->{USER_INFO}->{UID});
 	
-	my $periods           = 0;
-	my $registration_days = 0;
+	my %RULES = ();
+	my $list = $Bonus->service_discount_list({ PAGE_ROWS => 1000   });
+	foreach my $line (@$list) {
+		if ($line->[1] > 0) {
+			$RULES{PERIOD}=1;
+		 }
+		elsif ($line->[2]>0) {
+			$RULES{TOTAL_PAYMENT}=1;
+		 }
+	 }
 
-	if($Dv->{MONTH_ABON} > 0) {
-	  $periods = int($FORM{SUM} / $Dv->{MONTH_ABON});
+  use Dv;
+  $Dv = Dv->new($db, $admin, \%conf);
+  $Dv->info($attr->{USER_INFO}->{UID});
+	
+  my $periods           = 0;
+  my $registration_days = 0;
+
+  if($Dv->{MONTH_ABON} > 0) {
+    $periods = int($FORM{SUM} / $Dv->{MONTH_ABON});
    }
 
-
+	my %RESULT=();
   if($periods > 0) {
-    my ($year, $month, $day)=split(/-/, $attr->{USER_INFO}->{REGISTRATION}, 3);
-    my $seltime = POSIX::mktime(0, 0, 0, $day, ($month - 1), ($year - 1900));
-    $registration_days= int((time() -  $seltime) / 86400 );
-    my $list = $Bonus->service_discount_list({ REGISTRATION_DAYS => "<=$registration_days",
+  	if ($RULES{PERIOD}) {
+
+       my ($year, $month, $day)=split(/-/, $attr->{USER_INFO}->{REGISTRATION}, 3);
+       my $seltime = POSIX::mktime(0, 0, 0, $day, ($month - 1), ($year - 1900));
+       $registration_days= int((time() -  $seltime) / 86400 );
+       my $list = $Bonus->service_discount_list({ REGISTRATION_DAYS => "<=$registration_days,>0",
     	                                         PERIODS           => "<=$periods",
     	                                         PAGE_ROWS         => 1,
     	                                         SORT              => "1 DESC, 2 DESC"
     	                                          });
     
-    if ($Bonus->{TOTAL} > 0) {
-    	my $discount         = $list->[0]->[2];
-    	my $discount_period  = $list->[0]->[3];
+      if ($Bonus->{TOTAL} > 0) {
+      	$RESULT{DISCOUNT}           = $list->[0]->[3];
+      	$RESULT{DISCOUNT_PERIOD}    = $list->[0]->[4];
+      	$RESULT{BONUS_SUM}          = $list->[0]->[5];
+      	$RESULT{BONUS_EXT_ACCOUNT}  = $list->[0]->[6];
     	
-    	if ($discount_period>0) {
-    	  $discount_period =  strftime "%Y-%m-%d", localtime(time + 86400 * $discount_period)
-    	 }
-    	
-    	$users->change($attr->{USER_INFO}->{UID}, { REDUCTION      => $discount,
-    		                                          REDUCTION_DATE => $discount_period,
-    		                                          UID            => $attr->{USER_INFO}->{UID}
-    		                                                    });
+    	  if ($RESULT{DISCOUNT_PERIOD}>0) {
+    	    $RESULT{DISCOUNT_PERIOD} =  strftime "%Y-%m-%d", localtime(time + 86400 * $RESULT{DISCOUNT_PERIOD})
+    	   }
+       }
      }
+
+	  if ($RULES{TOTAL_PAYMENT}) {
+		  my $list = $Payments->list({ UID => $attr->{USER_INFO}->{UID}, TOTAL_ONLY => 1 });
+		  my $payments_sum = $Payments->{SUM};
+
+      my $list = $Bonus->service_discount_list({
+      	                                       TOTAL_PAYMENTS_SUM=> "<=$payments_sum,>0",
+    	                                         PERIODS           => "<=$periods",
+    	                                         PAGE_ROWS         => 1,
+    	                                         SORT              => "1 DESC, 2 DESC"
+    	                                          });
     
-   }
+      if ($Bonus->{TOTAL} > 0) {
+      	$RESULT{DISCOUNT}           = $list->[0]->[3];
+      	$RESULT{DISCOUNT_PERIOD}    = $list->[0]->[4];
+      	$RESULT{BONUS_SUM}          = $list->[0]->[5];
+      	$RESULT{BONUS_EXT_ACCOUNT}  = $list->[0]->[6];
+    	
+    	  if ($RESULT{DISCOUNT_PERIOD}>0) {
+    	    $RESULT{DISCOUNT_PERIOD} =  strftime "%Y-%m-%d", localtime(time + 86400 * $RESULT{DISCOUNT_PERIOD})
+    	   }
+       }		
+	   }
+
+	  #Result
+    if ($RESULT{DISCOUNT} && $RESULT{DISCOUNT} > 0) {
+       $users->change($attr->{USER_INFO}->{UID}, { REDUCTION      => $RESULT{DISCOUNT},
+    		                                         REDUCTION_DATE => $RESULT{DISCOUNT_PERIOD},
+    		                                         UID            => $attr->{USER_INFO}->{UID}
+    		                                       });
+       $html->message('info', $_INFO, "$_BONUS: \n $_REDUCTION: $RESULT{DISCOUNT}\n  $_DATE: $RESULT{DISCOUNT_PERIOD}");
+	   }
+	  
+	  if($RESULT{BONUS_SUM} && $RESULT{BONUS_SUM} > 0) {
+		  my $bill_id =  ($RESULT{BONUS_EXT_ACCOUNT}) ? $attr->{USER_INFO}->{EXT_BILL_ID} : $attr->{USER_INFO};
+		  $Payments->add({ %{ $attr->{USER_INFO} },
+			                 BILL_ID  => $bill_id,
+			                }, 
+			                                { SUM      => $RESULT{BONUS_SUM},
+			                                  METHOD   => 4,
+			                                  DESCRIBE => "$_BONUS"
+			                                });
+      if ($Payments->{errno}) {
+     	  if ($Payments->{errno}==12) {
+      		  $html->message('err', $_ERROR, "$ERR_WRONG_SUM");	
+      	  }
+        elsif ($Payments->{errno}==14) {
+      	  $html->message('err', $_ERROR, "$_BILLS $_NOT_EXIST $bill_id");	
+      	 }
+      	else {
+          $html->message('err', $_ERROR, "[$Payments->{errno}] $err_strs{$Payments->{errno}}");	
+         }
+       }
+			else {
+			  $html->message('info', $_INFO, "$_BONUS $_SUM: $RESULT{BONUS_SUM}");
+			 }
+	   }
+
+	}
+	
+	
+
 	
 	return $return;
 }

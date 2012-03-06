@@ -309,8 +309,9 @@ sub list {
   }
 
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
- 
- $self->query($db, "SELECT p.id, u.id, $login_field p.date, p.dsc, p.sum, p.last_deposit, p.method, 
+ my $list;
+ if (! $attr->{TOTAL_ONLY}) {
+   $self->query($db, "SELECT p.id, u.id, $login_field p.date, p.dsc, p.sum, p.last_deposit, p.method, 
       p.ext_id, p.bill_id, 
       if(a.name is null, 'Unknown', a.name),  
       INET_NTOA(p.ip), 
@@ -326,10 +327,11 @@ sub list {
     GROUP BY p.id
     ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");
 
- $self->{SUM}='0.00';
+   $self->{SUM}='0.00';
 
- return $self->{list}  if ($self->{TOTAL} < 1);
- my $list = $self->{list};
+   return $self->{list}  if ($self->{TOTAL} < 1);
+   $list = $self->{list};
+  }
 
  $self->query($db, "SELECT count(p.id), sum(p.sum), count(DISTINCT p.uid) FROM payments p
   LEFT JOIN users u ON (u.uid=p.uid)

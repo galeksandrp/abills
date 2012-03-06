@@ -5645,6 +5645,9 @@ if ($attr->{USER_INFO}) {
       	  if ($payments->{errno}==12) {
       		  $html->message('err', $_ERROR, "$ERR_WRONG_SUM");	
       	   }
+      	  elsif ($payments->{errno}==14) {
+      		  $html->message('err', $_ERROR, "$_BILLS $_NOT_EXIST");	
+      	   }
       	  else {
             $html->message('err', $_ERROR, "[$payments->{errno}] $err_strs{$payments->{errno}}");	
            }

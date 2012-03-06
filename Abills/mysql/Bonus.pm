@@ -1034,10 +1034,9 @@ sub service_discount_list {
  	 push @WHERE_RULES, @{ $self->search_expr("$attr->{PERIODS}", 'INT', 'service_period') };
   }
 
-
-
-
-
+ if ($attr->{TOTAL_PAYMENTS_SUM}) {
+ 	 push @WHERE_RULES, @{ $self->search_expr("$attr->{TOTAL_PAYMENTS_SUM}", 'INT', 'total_payments_sum') };
+  }
  
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
  
