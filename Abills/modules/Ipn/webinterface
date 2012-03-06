@@ -2518,7 +2518,7 @@ my $nas_list = $Nas->list({ NAS_IDS   => $attr->{NAS_IDS},
 
 my %nas_info = ();
 foreach my $line (@$nas_list) {
-	if (in_array($line->[4], \@nas_types)) {
+	if (in_array($line->[4], \@nas_types) || $attr->{NAS_IDS}) {
 	  $nas_info{$line->[0]}{NAS_ID}         = $line->[0];
 	  $nas_info{$line->[0]}{NAS_TYPE}       = $line->[4];
 	  $nas_info{$line->[0]}{NAS_IP_ADDRESS} = $line->[3];
