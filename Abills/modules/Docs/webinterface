@@ -612,6 +612,8 @@ elsif($FORM{print}) {
    	 $Docs->{VAT}                  = sprintf("%.2f", $conf{DOCS_VAT_INCLUDE});
    }
 
+  $attr->{SEND_EMAIL}=0 if (! defined($attr->{SEND_EMAIL}));
+
   if ($attr->{GET_EMAIL_INFO}) {
     delete $FORM{pdf};  	
     $attr->{EMAIL_MSG_TEXT}        = $html->tpl_show(_include('docs_receipt_email', 'Docs'), { %$Docs, %$users }, { OUTPUT2RETURN => 1 });
@@ -619,6 +621,7 @@ elsif($FORM{print}) {
     $attr->{EMAIL_MSG_SUBJECT}     = "ABillS - $_RECEIPT: $Docs->{RECEIPT_NUM}" if (! $attr->{EMAIL_MSG_SUBJECT});
   	$attr->{OUTPUT2RETURN}         = undef;
   	$FORM{pdf}                     = $conf{DOCS_PDF_PRINT};
+  	$attr->{SEND_EMAIL}            = 1;
    }
 
 
