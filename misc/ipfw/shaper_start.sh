@@ -36,7 +36,7 @@
 
 
 CLASSES_NUMS='2 3'
-VERSION=5.84
+VERSION=5.85
 
 
 name="abills_shaper"
@@ -238,6 +238,15 @@ if [ x"${abills_nat}" != x ] ; then
   #NAT IF
   NAT_IF=`echo ${abills_nat} | awk -F: '{ print $3 }'`;
 
+  if [ x${NAT_IPS} = x ]; then    
+    if [ x${NAT_IF} = x  ]; then
+      NAT_INTERFACE=`route get default | grep interfa | awk '{print $2 }'`;
+    else 
+      NAT_INTERFACE=${NAT_IF}
+    fi;
+    
+    NAT_IPS=`ifconfig ${NAT_INTERFACE} | grep inet | awk '{ print $2 }'`;
+  fi;
 
   echo -n " NAT "
   NAT_TABLE=20
