@@ -1700,6 +1700,9 @@ sub cross_modules_call  {
   my ($function_sufix, $attr) = @_;
   my $timeout = $attr->{timeout} || 3;
 
+  $attr->{USER_INFO}->{DEPOSIT}+=$attr->{SUM} if ($attr->{SUM});
+
+
 eval {
   my %full_return  = ();
   my @skip_modules = ();
