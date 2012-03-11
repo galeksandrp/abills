@@ -126,7 +126,6 @@ CREATE TABLE `dv_calls` (
   `uid` int(11) unsigned NOT NULL default '0',
   `join_service` int(11) unsigned NOT NULL default '0',
   `turbo_mode` varchar(30) NOT NULL default '',
-  `free_turbo_mode` smallint(6) unsigned NOT NULL default '0',
   `guest` tinyint(1) unsigned NOT NULL default '0',
   KEY `user_name` (`user_name`),
   KEY `acct_session_id` (`acct_session_id`),
@@ -339,6 +338,7 @@ CREATE TABLE `dv_main` (
   `port` int(11) unsigned NOT NULL default '0',
   `join_service` int(11) unsigned NOT NULL DEFAULT '0',
   `turbo_mode` tinyint(1) unsigned NOT NULL default '0',
+  `free_turbo_mode` smallint(6) unsigned NOT NULL default '0',
   PRIMARY KEY  (`uid`),
   KEY `tp_id` (`tp_id`),
   KEY CID (CID)

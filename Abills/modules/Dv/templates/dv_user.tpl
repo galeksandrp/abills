@@ -39,6 +39,7 @@ function check_status(object, text) {
 <tr><td>$_STATUS:</td><td bgcolor=%STATUS_COLOR%>%STATUS_SEL% <span style='background:$_COLORS[1]'>&nbsp; %SHEDULE% &nbsp;<br><i>%STATUS_INFO%</i></span>
 </td></tr>
 <tr><td>TURBO:</td><td>%TURBO_MODE_SEL%</td></tr>
+<tr><td>TURBO $_COUNT:</td><td><input type=text name=FREE_TURBO_MODE value='%FREE_TURBO_MODE%'></td></tr>
 <tr><td>%NEXT_FEES_WARNING%:</td><td>%ABON_DATE%</td></tr>
 <tr><td colspan='2'>%REGISTRATION_INFO%  %REGISTRATION_INFO_PDF%</td></tr>
 <tr><th colspan='2' class=even>%BACK_BUTTON%
