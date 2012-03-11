@@ -91,7 +91,7 @@ sub take {
    }
 
  
-  $sum = sprintf("%.6f", $sum);
+  $sum = sprintf("%.2f", $sum);
   $db->{AutoCommit}=0;
   if ($attr->{BILL_ID}) {
     $user->{BILL_ID} = $attr->{BILL_ID}

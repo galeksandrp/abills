@@ -7,6 +7,10 @@
                    );
 
 
+if($conf{BONUS_SERVICE_DISCOUNT}) {
+  %USER_FUNCTION_LIST = ("01:0:$_BONUS:bonus_service_discount_client:"     => 0);
+ }
+
 # 
 %PERIODIC = (daily   => [ 'bonus_periodic_daily'   ],
              monthly => [ 'bonus_periodic_monthly' ],

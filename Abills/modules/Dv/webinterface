@@ -6622,7 +6622,7 @@ sub dv_get_month_fee {
            }
 
           $conf{START_PERIOD_DAY} = 1 if (! $conf{START_PERIOD_DAY});
-          $sum = sprintf("%.5f", ($sum / $days_in_month) * ($days_in_month - $d + $conf{START_PERIOD_DAY}));
+          $sum = sprintf("%.2f", ($sum / $days_in_month) * ($days_in_month - $d + $conf{START_PERIOD_DAY}));
       }
        
      return \%total_sum if ($sum == 0);

@@ -625,7 +625,16 @@ sub bonus_pre_payment {
 	return $REPORT;
 }
 
+#**********************************************************
+#
+#**********************************************************
+sub bonus_service_discount_client {
+	my ($attr) = @_;
 
+	
+	$html->tpl_show(_include('bonus_service_discount_client', 'Bonus'), $Bonus);
+	
+}
 
 #**********************************************************
 #

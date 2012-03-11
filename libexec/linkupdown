@@ -182,7 +182,7 @@ if ($INTERFACE eq 'getif') {
 
 if ($inum == 0) {
 	$inum      = $INTERFACE;
-  $inum      =~ s/^[a-z]+//;
+  $inum      =~ s/[a-z\.]+//;
 }
 
 
@@ -321,48 +321,14 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
     push @FW_ACTIONS, "$tc qdisc add dev $INTERFACE root handle 1: htb default 10 r2q 1";
    }
 
-
-
-#######################
-#UPSPEED1=2048
-#UPSPEED2=4096
-#DOWNSPEED1=512
-#DOWNSPEED2=1024
-#######################
-#
-#NET0=0.0.0.0/0          # WORLD (UPSPEED1/DOWNSPEED1)
-#NET1=91.206.218.0/24    # EXAMPLE HOST/NET (UPSPEED2/DOWNSPEED2)
-#NET2=212.66.35.233/32   # CLIENT IP
-#
-#IF1=eth1    # WAN
-#IF2=ppp0    # CLIENT
-#
-### CLEAR
-#
-### UP TO CLIENT
-## внешний интерфейс в примере инициализируется здесь,
-## но в жизни надо только добавлять и удалять фильтры при установке 
-#ppp-сессии
-### DOWN FROM CLIENT
-
-#/sbin/tc class add dev ${IF1} parent 1: classid 1:10 htb rate ${DOWNSPEED1}kbit burst 8k prio 1
-#/sbin/tc class add dev ${IF1} parent 1: classid 1:20 htb rate ${DOWNSPEED2}kbit burst 8k prio 2
-#/sbin/tc qdisc add dev ${IF1} parent 1:10 handle 10: sfq perturb 10 quantum 1500
-#/sbin/tc qdisc add dev ${IF1} parent 1:20 handle 20: sfq perturb 10 quantum 1500
-##
-#/sbin/tc filter del dev ${IF1} protocol ip parent 1:0 prio 1 u32 match ip src ${NET2} > /dev/null 2>&1
-#/sbin/tc filter add dev ${IF1} protocol ip parent 1:0 prio 1 u32 match ip src ${NET2} match ip dst ${NET1} flowid 1:20
-#/sbin/tc filter add dev ${IF1} protocol ip parent 1:0 prio 1 u32 match ip src ${NET2} match ip dst ${NET0} flowid 1:10
-
-
-
+  #Traf type shapper
   foreach my $traf_type (sort keys %speeds) {
     my $speed ;
     if ($Billing->{RESULT}{$traf_type}->{SPEED_IN}) {
       $speed->{IN}  = $Billing->{RESULT}{$traf_type}->{SPEED_IN};
     	$speed->{OUT} = $Billing->{RESULT}{$traf_type}->{SPEED_OUT};
      }
-    else {	
+    else {
       $speed = $speeds{$traf_type};
      }
 
@@ -394,37 +360,28 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
      }
 
     #Mikrotik shaper
-#    if ($ARGV[0] eq 'mikrotik' ) {
-#    	mikrotik_ext2({ 
-#    		  SPEED_IN  => $speed_in,
-#    		  SPEED_OUT => $speed_out,
-#    		  NETS_ID   => undef,
-#    		  TRAFFIC_CLASS => $traf_type,
-#    		  NETS      => \@nets_arr 
-#    		 });
-#     }
-#    #Linux shaper
-    #els
-    if ($OS eq 'Linux') {    	
-      my $prefix=10000;
+    #Linux shaper
+    if ($OS eq 'Linux') {
+      my $prefix = 10000;
+      my $burst  = ($speed_in/16);
       my $flowid = ($speed_in > 0) ? sprintf("%x", $user->{UID} + $prefix * 2) : '';
-      my $drop   = $speed_out > 0 ? "police rate $speed_out"."Kbit burst 12k drop" : '';
+      my $drop   = ($speed_out > 0) ? "police rate $speed_out Kbit burst $burst".'k drop' : '';
     	
       # new linux shapper
       if ($argv->{LINUX_NEW_MODEL}) {
       	my $action = ($ACTION eq 'down') ? 'del' : 'add';
-        push @FW_ACTIONS, "$tc class add dev $INTERFACE parent 1: classid 1:".(10+10*$traf_type)." htb rate ".$speed_out."kbit burst 8k prio ".($traf_type+1);
+        push @FW_ACTIONS, "$tc class add dev $INTERFACE parent 1: classid 1:".(10+10*$traf_type)." htb rate ".$speed_out."kbit burst ". $burst ."k prio ".($traf_type+1);
         push @FW_ACTIONS, "$tc qdisc add dev $INTERFACE parent 1:".(10+10*$traf_type)." handle ".(10+10*$traf_type).": sfq perturb 10 quantum 1500";
         push @FW_ACTIONS, "$tc filter add dev $INTERFACE protocol ip parent 1:0 prio 1 handle ". ($traf_type+1) ." fw classid 1:".(10+10*$traf_type);
         push @FW_ACTIONS, "$tc filter $action dev $INTERFACE protocol ip parent ffff: prio $fw_num_in u32 match ip src $CLIENT_IP $drop flowid 1:";
-        next;
+        next; 
        }
 
-      push @FW_ACTIONS, "$tc filter del dev $INTERFACE protocol ip parent 1: prio $fw_num_out";
-      push @FW_ACTIONS, "$tc filter del dev $INTERFACE protocol ip parent ffff: prio $fw_num_in";
+      push @FW_ACTIONS, "$tc filter del dev $INTERFACE protocol ip parent 1: prio $fw_num_out > /dev/null 2>&1";
+      push @FW_ACTIONS, "$tc filter del dev $INTERFACE protocol ip parent ffff: prio $fw_num_in > /dev/null 2>&1";
 
       if ($flowid) {
-        push @FW_ACTIONS, "$tc class del dev $INTERFACE parent 1: classid 1:$flowid";
+        push @FW_ACTIONS, "$tc class del dev $INTERFACE parent 1: classid 1:$flowid > /dev/null 2>&1";
         if ($ACTION eq 'up') {
           push @FW_ACTIONS, "$tc class add dev $INTERFACE parent 1: classid 1:$flowid htb rate $speed_in"."Kbit";
          }
@@ -439,7 +396,7 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
              push @FW_ACTIONS, "$tc filter add dev $INTERFACE protocol ip parent ffff: prio $fw_num_in u32 match ip src $CLIENT_IP match ip dst $2/$3 $drop flowid 1:";
            }
          }
-      }
+       }
    }
 
     #FreeBSD ipfw pipe shaper
