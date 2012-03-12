@@ -631,8 +631,6 @@ sub bonus_pre_payment {
 sub bonus_service_discount_client {
 	my ($attr) = @_;
   
-  print "Content-Type: text/html\n\n";
-
   my ($year, $month, $day)=split(/-/, $user->{REGISTRATION}, 3);
   my $seltime = POSIX::mktime(0, 0, 0, $day, ($month - 1), ($year - 1900));
   $registration_days= int((time() -  $seltime) / 86400 );

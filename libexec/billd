@@ -294,7 +294,7 @@ sub check_lines {
        } 
 
 
-      if (($uid && $calls_tp_id ne $tp_num || 
+      if (($uid && ($calls_tp_id && $calls_tp_id ne $tp_num) || 
            ($state && ! $conf{DV_STATUS_NEG_DEPOSIT})
 #           || ($POSTPAIDS{$tp_num} == 0 && $deposit+$credit <= 0 && ! $Billing->{NEG_DEPOSIT_FILTER}) # && $bill_priority == 0)
            ) 
