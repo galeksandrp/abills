@@ -1547,6 +1547,8 @@ sub docs_invoices_multi_create {
 #**********************************************************
 sub docs_invoice {
  my ($attr) = @_;
+
+ use POSIX;
  
  $users = $user if ($user->{UID});
  $Docs->invoice_defaults();		
