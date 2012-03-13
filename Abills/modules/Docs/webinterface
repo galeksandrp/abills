@@ -112,7 +112,7 @@ sub docs_receipt_add  {
 
         
          delete($FORM{create});
-         docs_receipt_list() if ($index != 2);
+         docs_receipt_list() if ($index != 2 && ! $attr->{SKIP_LIST});
 
          $FORM{print} = $Docs->{DOC_ID};
          $FORM{pdf}   = 1;
@@ -228,7 +228,7 @@ sub docs_receipt_add  {
 
 
 #**********************************************************
-# docs_receipt_list
+# docs_receipt
 #**********************************************************
 sub docs_receipt {
   my ($attr) = @_;

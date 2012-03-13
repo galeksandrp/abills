@@ -108,13 +108,14 @@ if ($FORM{change}) {
          $price = $price / $v;
          push @ORDERS, "$_ICARDS $_SERIAL: $seria |0|$v|$price";
         }
-
+       
  		   docs_receipt_add({ #CUSTOMER  => $Cards->{NAME},
                          	ORDERS    => [ @ORDERS ],
                          	create    => 1,
                          	FROM      => $FROM,
                          	DATE      => $DATE,
-                         	UID       => $Cards->{UID}
+                         	UID       => $Cards->{UID},
+                         	SKIP_LIST => 1
                        });
    	 }
     return 0;
