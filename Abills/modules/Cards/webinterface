@@ -59,8 +59,8 @@ sub cards_card_info {
 #
 #**********************************************************
 sub cards_main {
-  if ($Cards::VERSION < 5.45) {
-  	$html->message('info', "UPDATE", "Please update module 'Cards' to version 5.42 or higher. http://abills.net.ua/");
+  if ($Cards::VERSION < 5.46) {
+  	$html->message('info', "UPDATE", "Please update module 'Cards' to version 5.46 or higher. http://abills.net.ua/");
   	return 0;
    }
 
@@ -108,7 +108,7 @@ if ($FORM{change}) {
          $price = $price / $v;
          push @ORDERS, "$_ICARDS $_SERIAL: $seria |0|$v|$price";
         }
-       
+
  		   docs_receipt_add({ #CUSTOMER  => $Cards->{NAME},
                          	ORDERS    => [ @ORDERS ],
                          	create    => 1,

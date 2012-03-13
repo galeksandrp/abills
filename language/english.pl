@@ -495,3 +495,4 @@ $_HOLD='Hold';
 $_MONTH_FEE_SHORT='M/F';
 $_DAY_FEE_SHORT='D/F';
 $_CURRENCY='Currency';
+
