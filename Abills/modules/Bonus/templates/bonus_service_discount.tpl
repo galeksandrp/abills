@@ -13,6 +13,7 @@
 <tr class=even><td rowspan=2>$_REDUCTION </td><td>%:</td><td><input type=text name='DISCOUNT' value='%DISCOUNT%'></td></tr>
 <tr class=even><td> ($_DAYS):</td><td><input type=text name='DISCOUNT_DAYS' value='%DISCOUNT_DAYS%'></td></tr>
 <tr><td colspan=2>$_BONUS $_SUM: </td></td><td><input type=text name='BONUS_SUM' value='%BONUS_SUM%'></td></tr>
+<tr><td colspan=2>$_BONUS_PERCENT:</td><td><input type=text name='BONUS_PERCENT' value='%BONUS_PERCENT%'></td></tr>
 <tr><td colspan=2>$_EXTRA $_ACCOUNT: </td></td><td><input type=checkbox name='EXT_ACCOUNT' value='1' %EXT_ACCOUNT%></td></tr>
 
 

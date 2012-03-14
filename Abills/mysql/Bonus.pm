@@ -915,6 +915,7 @@ sub service_discount_info {
     discount_days,
     total_payments_sum,
     bonus_sum,
+    bonus_percent,
     ext_account
      FROM bonus_service_discount
    $WHERE;");
@@ -933,6 +934,7 @@ sub service_discount_info {
    $self->{DISCOUNT_DAYS},
    $self->{TOTAL_PAYMENTS_SUM},  
    $self->{BONUS_SUM},
+   $self->{BONUS_PERCENT},
    $self->{EXT_ACCOUNT}
   )= @{ $self->{list}->[0] };
 
@@ -951,9 +953,9 @@ sub service_discount_add {
 
   
   $self->query($db,  "INSERT INTO bonus_service_discount (service_period, registration_days, discount, discount_days,
-    total_payments_sum, bonus_sum, ext_account)
+    total_payments_sum, bonus_sum, ext_account, bonus_percent)
         VALUES ('$DATA{SERVICE_PERIOD}', '$DATA{REGISTRATION_DAYS}', '$DATA{DISCOUNT}', '$DATA{DISCOUNT_DAYS}',
-    '$DATA{TOTAL_PAYMENTS_SUM}', '$DATA{BONUS_SUM}', '$DATA{EXT_ACCOUNT}');", 'do');
+    '$DATA{TOTAL_PAYMENTS_SUM}', '$DATA{BONUS_SUM}', '$DATA{EXT_ACCOUNT}', '$DATA{BONUS_PERCENT}');", 'do');
 
   return $self;
 }
@@ -975,7 +977,8 @@ sub service_discount_change {
                  DISCOUNT_DAYS    => 'discount_days',
                  TOTAL_PAYMENTS_SUM=>'total_payments_sum',  
                  BONUS_SUM        => 'bonus_sum',
-                 EXT_ACCOUNT      => 'ext_account'
+                 EXT_ACCOUNT      => 'ext_account',
+                 BONUS_PERCENT    => 'bonus_percent'
                );
   
   $attr->{STATE} = ($attr->{STATE}) ? 1 : 0;
@@ -1041,7 +1044,7 @@ sub service_discount_list {
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
  
  $self->query($db, "SELECT service_period, registration_days, total_payments_sum,
-  discount, discount_days,  bonus_sum,  ext_account, id
+  discount, discount_days,  bonus_sum,  bonus_percent, ext_account, id
      FROM bonus_service_discount
      $WHERE 
      ORDER BY $SORT $DESC

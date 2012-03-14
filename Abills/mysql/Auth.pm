@@ -193,8 +193,7 @@ elsif (( $RAD_PAIRS->{'Callback-Number'} || $RAD_PAIRS->{'Ascend-Callback'} ) &&
 
 # Make join service operations
 if ($self->{JOIN_SERVICE}) {
- if ($self->{JOIN_SERVICE} > 1) {
-  
+ if ($self->{JOIN_SERVICE} > 1) {  
   $self->query($db, "select  
   if ($self->{LOGINS}>0, $self->{LOGINS}, tp.logins) AS logins,
   if('$self->{FILTER}' != '', '$self->{FILTER}', tp.filter_id),
