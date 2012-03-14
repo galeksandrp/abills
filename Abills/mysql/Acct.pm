@@ -89,34 +89,36 @@ elsif ($RAD->{USER_NAME} =~ /(\d+):(\S+)/) {
 
 #Start
 if ($acct_status_type == 1) {
-  $self->query($db, "SELECT count(uid) FROM dv_calls 
-    WHERE user_name='$RAD->{USER_NAME}' and acct_session_id='$RAD->{ACCT_SESSION_ID}';");
+  $self->query($db, "SELECT acct_session_id FROM dv_calls 
+    WHERE user_name='$RAD->{USER_NAME}' AND nas_id='$NAS->{NAS_ID}' AND framed_ip_address=INET_ATON('$RAD->{FRAMED_IP_ADDRESS}');");
+
+  #Get connection speed 
+  if ($RAD->{X_ASCEND_DATA_RATE} && $RAD->{X_ASCEND_XMIT_RATE}) {
+    $RAD->{CONNECT_INFO}="$RAD->{X_ASCEND_DATA_RATE} / $RAD->{X_ASCEND_XMIT_RATE}";
+   }
+  elsif ($RAD->{CISCO_SERVICE_INFO}) {
+    $RAD->{CONNECT_INFO}="$RAD->{CISCO_SERVICE_INFO}";
+   }
     
-  if ($self->{list}->[0]->[0] < 1) {
-    $self->query($db, "SELECT count(uid) FROM dv_calls 
-      WHERE user_name='$RAD->{USER_NAME}' AND nas_id='$NAS->{NAS_ID}' AND acct_session_id='IP' AND framed_ip_address=INET_ATON('$RAD->{FRAMED_IP_ADDRESS}');");
-    
-    #Get connection speed 
-    if ($RAD->{X_ASCEND_DATA_RATE} && $RAD->{X_ASCEND_XMIT_RATE}) {
-        $RAD->{CONNECT_INFO}="$RAD->{X_ASCEND_DATA_RATE} / $RAD->{X_ASCEND_XMIT_RATE}";
-     }
-    elsif ($RAD->{CISCO_SERVICE_INFO}) {
-      $RAD->{CONNECT_INFO}="$RAD->{CISCO_SERVICE_INFO}";
-     }
-    
-    if ($self->{list}->[0]->[0] == 1) {
-      my $sql = "UPDATE dv_calls SET
-       status='$acct_status_type',
-       started=$SESSION_START, 
-       lupdated=UNIX_TIMESTAMP(), 
-       nas_port_id='$RAD->{NAS_PORT}', 
-       acct_session_id='$RAD->{ACCT_SESSION_ID}', 
-       CID='$RAD->{CALLING_STATION_ID}', 
-       CONNECT_INFO='$RAD->{CONNECT_INFO}',   
-       );";
-      $self->query($db, "$sql", 'do');
-     }
-    else {
+  if ($self->{TOTAL} > 0) {
+  	foreach my $line (@{ $self->{list} }) {
+      if ($line->[0] eq 'IP') {
+        my $sql = "UPDATE dv_calls SET
+         status='$acct_status_type',
+         started=$SESSION_START, 
+         lupdated=UNIX_TIMESTAMP(), 
+         nas_port_id='$RAD->{NAS_PORT}', 
+         acct_session_id='$RAD->{ACCT_SESSION_ID}', 
+         CID='$RAD->{CALLING_STATION_ID}', 
+         CONNECT_INFO='$RAD->{CONNECT_INFO}'
+         WHERE user_name='$RAD->{USER_NAME}' AND nas_id='$NAS->{NAS_ID}' AND acct_session_id='IP' AND framed_ip_address=INET_ATON('$RAD->{FRAMED_IP_ADDRESS}');";
+        $self->query($db, "$sql", 'do');
+        last;
+       }
+    }
+   }
+  # If not found auth records
+  else {
       #Get TP_ID
       $self->query($db, "SELECT u.uid, dv.tp_id, dv.join_service FROM (users u, dv_main dv)
        WHERE u.uid=dv.uid and u.id='$RAD->{USER_NAME}';");
@@ -135,7 +137,7 @@ if ($acct_status_type == 1) {
       else {
     	  $RAD->{USER_NAME}='! '.$RAD->{USER_NAME};
        }
-
+    
       my $sql = "INSERT INTO dv_calls
        (status, user_name, started, lupdated, nas_ip_address, nas_port_id, acct_session_id, framed_ip_address, CID, CONNECT_INFO,   nas_id, tp_id,
         uid, join_service)
@@ -155,8 +157,7 @@ if ($acct_status_type == 1) {
       $self->query($db, "$sql", 'do');
 
       $self->query($db, "DELETE FROM dv_calls WHERE nas_id='$NAS->{NAS_ID}' AND acct_session_id='IP' AND (framed_ip_address=INET_ATON('$RAD->{FRAMED_IP_ADDRESS}') or UNIX_TIMESTAMP()-UNIX_TIMESTAMP(started) > 120 );", 'do');
-     }
-  }
+   }
  }
 # Stop status
 elsif ($acct_status_type == 2) {

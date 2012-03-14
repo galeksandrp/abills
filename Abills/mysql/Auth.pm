@@ -1474,8 +1474,8 @@ sub get_ip {
 
  if ($assign_ip) {
    # Make reserv ip
-   $self->query($db, "INSERT INTO dv_calls (started, user_name, uid, framed_ip_address, nas_id, nas_ip_address, status, acct_session_id, tp_id, join_service)
-      VALUES (now(), '$self->{USER_NAME}', '$self->{UID}', '$assign_ip', '$nas_num', INET_ATON('$nas_ip'), '11', 'IP', '$self->{TP_ID}', '$self->{JOIN_SERVICE}');", 'do');
+   $self->query($db, "INSERT INTO dv_calls (started, user_name, uid, framed_ip_address, nas_id, nas_ip_address, status, acct_session_id, tp_id, join_service, guest)
+      VALUES (now(), '$self->{USER_NAME}', '$self->{UID}', '$assign_ip', '$nas_num', INET_ATON('$nas_ip'), '11', 'IP', '$self->{TP_ID}', '$self->{JOIN_SERVICE}', ". (($attr->{GUEST}) ? 1 : 0) .");", 'do');
  
    $assign_ip = int2ip($assign_ip);
    return $assign_ip;
@@ -1647,11 +1647,11 @@ sub neg_deposit_filter_former () {
     # Return radius attr    
       if ($self->{IP} ne '0' && ! $self->{NEG_DEPOSIT_IP_POOL}) {
         $RAD_PAIRS->{'Framed-IP-Address'} = "$self->{IP}";
-        $self->query($db, "INSERT INTO dv_calls (started, user_name, uid, framed_ip_address, nas_id, nas_ip_address, status, acct_session_id, tp_id, join_service)
-      VALUES (now(), '$self->{USER_NAME}', '$self->{UID}', '$self->{IP}', '$NAS->{NAS_ID}', INET_ATON('$RAD->{NAS_IP_ADDRESS}'), '11', 'IP', '$self->{TP_ID}', '$self->{JOIN_SERVICE}');", 'do');
+        $self->query($db, "INSERT INTO dv_calls (started, user_name, uid, framed_ip_address, nas_id, nas_ip_address, status, acct_session_id, tp_id, join_service, guest)
+      VALUES (now(), '$self->{USER_NAME}', '$self->{UID}', '$self->{IP}', '$NAS->{NAS_ID}', INET_ATON('$RAD->{NAS_IP_ADDRESS}'), '11', 'IP', '$self->{TP_ID}', '$self->{JOIN_SERVICE}', 1);", 'do');
        }
       else {
-        my $ip = $self->get_ip($NAS->{NAS_ID}, "$RAD->{NAS_IP_ADDRESS}", { TP_IPPOOL => $self->{NEG_DEPOSIT_IP_POOL} || $self->{TP_IPPOOL} });
+        my $ip = $self->get_ip($NAS->{NAS_ID}, "$RAD->{NAS_IP_ADDRESS}", { TP_IPPOOL => $self->{NEG_DEPOSIT_IP_POOL} || $self->{TP_IPPOOL}, GUEST => 1 });
         if ($ip eq '-1') {
           $RAD_PAIRS->{'Reply-Message'}="Rejected! There is no free IPs in address pools (USED: $self->{USED_IPS}) ". (($self->{TP_IPPOOL}) ? " TP_IPPOOL: $self->{TP_IPPOOL}" : '' );
           return 1, $RAD_PAIRS;

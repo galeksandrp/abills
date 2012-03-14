@@ -640,6 +640,7 @@ sub bonus_service_discount_client {
     
   my %RESULT = ();  
   if ($Bonus->{TOTAL} > 0) {
+  	$RESULT{TOTAL_PAYMENT}      = $list->[0]->[2];
     $RESULT{DISCOUNT}           = $list->[0]->[3];
     $RESULT{DISCOUNT_PERIOD}    = $list->[0]->[4];
     $RESULT{BONUS_SUM}          = $list->[0]->[5];
@@ -647,6 +648,17 @@ sub bonus_service_discount_client {
     $RESULT{BONUS_EXT_ACCOUNT}  = $list->[0]->[7];
    }
  
+  if($RESULT{TOTAL_PAYMENT} > 0)  {
+	  my $list = $Payments->list({ UID        => $attr->{USER_INFO}->{UID}, 
+  	                             TOTAL_ONLY => 1,
+		  	                         METHOD     => '!4' 
+		  	                       });
+  	
+  	$RESULT{TOTAL_PAYMENT} = "$_TOTAL $_PAYMENTS: $Payments->{SUM}";
+   }
+	else {
+		$RESULT{TOTAL_PAYMENT}='';
+	 }
 	
 	$html->tpl_show(_include('bonus_service_discount_client', 'Bonus'), { %$Bonus,  %RESULT });	
 }
