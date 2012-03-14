@@ -635,7 +635,7 @@ sub bonus_service_discount_client {
   $registration_days= int((time() -  $seltime) / 86400 );
   my $list = $Bonus->service_discount_list({ REGISTRATION_DAYS => "<=$registration_days,>=0",
    	                                         PAGE_ROWS         => 1,
-   	                                         SORT              => "1 DESC, 2 DESC"
+   	                                         SORT              => "1 DESC, 2 DESC, 3 DESC"
     	                                     });
     
   my %RESULT = ();  
