@@ -244,7 +244,8 @@ sub list {
 
 
  if (defined($attr->{METHOD})) {
-   push @WHERE_RULES, "p.method IN ($attr->{METHOD}) ";
+#   push @WHERE_RULES, "p.method IN ($attr->{METHOD}) ";
+   push @WHERE_RULES, @{ $self->search_expr($attr->{METHOD}, 'INT', 'p.method') };
   }
 
  if ($attr->{DOMAIN_ID}) {
