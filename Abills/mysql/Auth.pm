@@ -515,7 +515,7 @@ if ($NAS->{NAS_TYPE} && $NAS->{NAS_TYPE} eq 'ipcad') {
  if ($self->{IP} ne '0') {
    $RAD_PAIRS->{'Framed-IP-Address'} = "$self->{IP}";
    $self->query($db, "INSERT INTO dv_calls (started, user_name, uid, framed_ip_address, nas_id, nas_ip_address, status, acct_session_id, tp_id, join_service, guest)
-      VALUES (now(), '$self->{USER_NAME}', '$self->{UID}', '$self->{IP}', '$NAS->{NAS_ID}', INET_ATON('$RAD->{NAS_IP_ADDRESS}'), '11', 'IP', '$self->{TP_ID}', '$self->{JOIN_SERVICE}', 1);", 'do');
+      VALUES (now(), '$self->{USER_NAME}', '$self->{UID}', INET_ATON('$self->{IP}'), '$NAS->{NAS_ID}', INET_ATON('$RAD->{NAS_IP_ADDRESS}'), '11', 'IP', '$self->{TP_ID}', '$self->{JOIN_SERVICE}', 1);", 'do');
   }
  else {
    my $ip = $self->get_ip($NAS->{NAS_ID}, "$RAD->{NAS_IP_ADDRESS}", { TP_IPPOOL => $self->{TP_IPPOOL} });
@@ -1650,7 +1650,7 @@ sub neg_deposit_filter_former () {
       if ($self->{IP} ne '0' && ! $self->{NEG_DEPOSIT_IP_POOL}) {
         $RAD_PAIRS->{'Framed-IP-Address'} = "$self->{IP}";
         $self->query($db, "INSERT INTO dv_calls (started, user_name, uid, framed_ip_address, nas_id, nas_ip_address, status, acct_session_id, tp_id, join_service, guest)
-      VALUES (now(), '$self->{USER_NAME}', '$self->{UID}', '$self->{IP}', '$NAS->{NAS_ID}', INET_ATON('$RAD->{NAS_IP_ADDRESS}'), '11', 'IP', '$self->{TP_ID}', '$self->{JOIN_SERVICE}', 1);", 'do');
+      VALUES (now(), '$self->{USER_NAME}', '$self->{UID}', INET_ATON('$self->{IP}'), '$NAS->{NAS_ID}', INET_ATON('$RAD->{NAS_IP_ADDRESS}'), '11', 'IP', '$self->{TP_ID}', '$self->{JOIN_SERVICE}', 1);", 'do');
        }
       else {
         my $ip = $self->get_ip($NAS->{NAS_ID}, "$RAD->{NAS_IP_ADDRESS}", { TP_IPPOOL => $self->{NEG_DEPOSIT_IP_POOL} || $self->{TP_IPPOOL}, GUEST => 1 });
