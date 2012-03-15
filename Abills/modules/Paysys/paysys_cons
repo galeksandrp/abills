@@ -126,6 +126,7 @@ sub paysys_import_form {
   if (defined($attr->{IMPORT_RULE})) {
    	$import_expr   = $conf{'PAYSYS_IMPORT_EXPRATION_'. $attr->{IMPORT_RULE}};
    	$BINDING_FIELD = $conf{'PAYSYS_IMPORT_BINDING_'.$attr->{IMPORT_RULE}} if ($conf{'PAYSYS_IMPORT_BINDING_'.$attr->{IMPORT_RULE}});
+   	$FORM{IMPORT_TYPE} = $attr->{IMPORT_RULE};
    }
 
   my ($DATA_ARR, $BINDING_IDS);
@@ -200,10 +201,11 @@ for ( my $i = 0; $i<=$#{ $DATA_ARR }; $i++) {
        	   	  	$DATA_ARR->[$i]->{DATE_DMY}=~/(\d{2})(\d{2})(\d{4})/;
        	   	  	$DATA_ARR->[$i]->{DATE}="$3-$2-$1";
        	   	   }
-       	   	  $ext_id = $DATA_ARR->[$i]->{EXT_ID} || "$DATA_ARR->[$i]->{DATE}_$FORM{IMPORT_TYPE}.$ID"; 
+       	   	  my $method = $DATA_ARR->[$i]->{PAYMENT_METHOD} || $ARGV->{METHOD} || 2;
+       	   	  $ext_id    = $DATA_ARR->[$i]->{EXT_ID} || "$DATA_ARR->[$i]->{DATE}_$FORM{IMPORT_TYPE}.$ID"; 
               $payments->add($user, { SUM  => $DATA_ARR->[$i]->{SUM},
                        DESCRIBE     => $describe, 
- 	                     METHOD       => $DATA_ARR->[$i]->{PAYMENT_METHOD} || $ARGV->{METHOD} || 2, 
+ 	                     METHOD       => $method, 
  	                     DATE         => $DATA_ARR->[$i]->{DATE}, 
                        EXT_ID       => $ext_id,
                        CHECK_EXT_ID => $ext_id,
