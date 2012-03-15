@@ -649,7 +649,7 @@ sub bonus_service_discount_client {
    }
  
   if($RESULT{TOTAL_PAYMENT} > 0)  {
-	  my $list = $Payments->list({ UID        => $attr->{USER_INFO}->{UID}, 
+	  my $list = $Payments->list({ UID        => $user->{UID}, 
   	                             TOTAL_ONLY => 1,
 		  	                         METHOD     => '!4' 
 		  	                       });

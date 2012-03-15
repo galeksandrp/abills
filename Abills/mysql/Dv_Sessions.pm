@@ -250,6 +250,7 @@ sub online {
    TP_NAME            => 'tp.tp_name',
    TP_BILLS_PRIORITY  => 'tp.bills_priority',
    TP_CREDIT          => 'tp.credit',
+   NAS_NAME           => 'nas.name'
   );
 
 
@@ -289,6 +290,9 @@ sub online {
   	  $fields .= "$FIELDS_NAMES_HASH{$field},\n ";	
   	  if ($field =~ /TP_BILLS_PRIORITY|TP_NAME|FILTER_ID|TP_CREDIT/ && $EXT_TABLE !~ /tarif_plans/) {
   	  	$EXT_TABLE .= "LEFT JOIN tarif_plans tp ON (tp.id=dv.tp_id AND tp.module='Dv')";
+  	   }
+  	  elsif ($field =~ /NAS_NAME/ && $EXT_TABLE !~ / nas /) {
+  	  	$EXT_TABLE .= "LEFT JOIN nas ON (nas.id=c.nas_id)";
   	   }
   	  $RES_FIELDS_COUNT++;
   	 }

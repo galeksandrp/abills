@@ -12,6 +12,6 @@
 <tr><td>$_NAS: </td><td> %NAS_ID% %NAS_SEL%</td></tr>
 
 <tr><th colspan=2 class=even><input type='submit' name='%ACTION%' value='%ACTION_LNG% Internet' class='button'></th></tr>
-<table>
+</table>
 </form>
 %ONLINE%

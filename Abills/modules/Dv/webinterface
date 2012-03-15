@@ -656,7 +656,20 @@ sub dv_user {
     my $shedule_index = get_function_index('dv_sheduler');
     $Dv->{SHEDULE}=$html->button("$_SHEDULE", "UID=$FORM{UID}&Shedule=status&index=". (($shedule_index)? $shedule_index : $index + 4), { CLASS => 'shedule rightAlignText' });
 
-    my $list = $sessions->online({ UID => $Dv->{UID} });
+    my $list = $sessions->online({ UID          => $Dv->{UID},
+    	                             FIELDS_NAMES => [ 
+    	                                   CLIENT_IP_NUM,
+    	                                   DURATION,
+    	                                   INPUT_OCTETS,
+    	                                   OUTPUT_OCTETS,
+    	                                   NAS_NAME,
+    	                                   UID,
+    	                                   NAS_ID,
+    	                                   NAS_PORT_ID,
+    	                                   ACCT_SESSION_ID,
+    	                                   USER_NAME
+    	                                  ] 
+    	                           });
     
     if ($sessions->{TOTAL} > 0) {
     	 my $online_index = get_function_index('dv_online');
@@ -664,12 +677,13 @@ sub dv_user {
        my $table = $html->table( { width      => '450',
                                    caption    => "Online",
                                   } );
+
        foreach my $line (@$list) {
          my ($nas_id, $nas_port_id, $acct_session_id, $user_name) = split(/ /, $FORM{hangup}, 4);
-       	 $table->addrow(int2ip($line->[3]), $line->[4], int2byte($line->[5]), int2byte($line->[6]), 
-       	   $html->button("$_NAS: $line->[18]", "index=$online_index&NAS_ID=$line->[18]"),
-       	   $html->button('Z', "index=$online_index&zap=$Dv->{UID}".'+'.$line->[18].'+'.$line->[20].'+'.$line->[21].$pages_qs, { TITLE => 'Zap', CLASS => 'del', NO_LINK_FORMER => 1   }),
-       	   $html->button('H', "index=$online_index&FRAMED_IP_ADDRESS=$line->[10]&hangup=$line->[18]+$line->[20]+$line->[21]+$line->[19]&$pages_qs", { TITLE => 'Hangup', CLASS => 'off', NO_LINK_FORMER => 1 })
+       	 $table->addrow(int2ip($line->[0]), $line->[1], int2byte($line->[2]), int2byte($line->[3]), 
+       	   $html->button("$line->[4]", "index=$online_index&NAS_ID=$line->[6]"),
+       	   $html->button('Z', "index=$online_index&zap=$Dv->{UID}".'+'.$line->[6].'+'.$line->[7].'+'.$line->[8].$pages_qs, { TITLE => 'Zap', CLASS => 'del', NO_LINK_FORMER => 1   }),
+       	   $html->button('H', "index=$online_index&FRAMED_IP_ADDRESS=". int2ip($line->[0]) ."&hangup=$line->[6]+$line->[7]+$line->[8]+$line->[9]&$pages_qs", { TITLE => 'Hangup', CLASS => 'off', NO_LINK_FORMER => 1 })
         	 );
         }
 
