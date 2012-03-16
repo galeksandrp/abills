@@ -36,7 +36,6 @@ sub new {
   # }
 
   my $self = { };
-
   bless($self, $class);
 
   return $self;
@@ -107,6 +106,8 @@ sub customers_list {
  	 push @WHERE_RULES, @{ $self->search_expr($attr->{ADDRESS_BUILD}, 'STR', 'pi.address_build', { EXT_FIELD => 1 }) };
   }
 
+
+
  if ($attr->{ADDRESS_FLAT}) {
  	 push @WHERE_RULES, @{ $self->search_expr($attr->{ADDRESS_FLAT}, 'STR', 'pi.address_flat', { EXT_FIELD => 1 }) };
   }
@@ -136,6 +137,7 @@ sub customers_list {
   }
 
 
+
  if ($attr->{INFO_FIELDS}) {
   	my @info_arr = split(/, /, $attr->{INFO_FIELDS});
     $self->{SEARCH_FIELDS} .= ', pi.'. join(', pi.', @info_arr);
@@ -149,6 +151,7 @@ sub customers_list {
   }
 
 
+
  # Show debeters
  if ($attr->{DEBETERS}) {
    push @WHERE_RULES, "b.deposit<0";
@@ -160,13 +163,15 @@ sub customers_list {
 
  # Show groups
  if ($attr->{GIDS}) {
- 	 push @WHERE_RULES, @{ $self->search_expr($attr->{ADDRESS_BUILD}, 'STR', 'pi.address_build', { EXT_FIELD => 1 }) };
+# 	 push @WHERE_RULES, @{ $self->search_expr($attr->{ADDRESS_BUILD}, 'STR', 'pi.address_build', { EXT_FIELD => 1 }) };
    push @WHERE_RULES, "u.gid IN ($attr->{GIDS})"; 
   }
  elsif ($attr->{GID}) {
- 	push @WHERE_RULES, @{ $self->search_expr($attr->{ADDRESS_BUILD}, 'STR', 'pi.address_build', { EXT_FIELD => 1 }) };
+# 	 push @WHERE_RULES, @{ $self->search_expr($attr->{ADDRESS_BUILD}, 'STR', 'pi.address_build', { EXT_FIELD => 1 }) };
    push @WHERE_RULES, "u.gid='$attr->{GID}'"; 
   }
+
+
 
   if (defined($attr->{USER_TYPE}) && $attr->{USER_TYPE} ne '') {
     push @WHERE_RULES, ($attr->{USER_TYPE} == 1) ? "u.company_id>'0'" : "u.company_id='0'"; 
@@ -188,6 +193,8 @@ sub customers_list {
   }
  
  $WHERE = ($#WHERE_RULES > -1) ?  "WHERE " . join(' and ', @WHERE_RULES) : '';
+
+
 
 #Show last paymenst
        # Group, Kod, Наименование, Вид контрагента, Полное наименование, Юредический адрес, Почтовый адрес, 
