@@ -37,7 +37,6 @@ sub docs_contract {
   #$conf{DOCS_LANGUAGE} = $conf{default_language} if (! $conf{DOCS_LANGUAGE});
 	#require "../../language/$conf{DOCS_LANGUAGE}.pl";
   #require "../../Abills/modules/Docs/lng_$conf{DOCS_LANGUAGE}.pl";
-
 	
 	if ($FORM{UID}) {
 		my $user_main_info = $users->info($FORM{UID}, { SHOW_PASSWORD => 1 });
@@ -117,7 +116,7 @@ sub docs_receipt_add  {
          $FORM{print} = $Docs->{DOC_ID};
          $FORM{pdf}   = 1;
          
-         return  docs_receipt({ GET_EMAIL_INFO    => 1,
+         return  docs_receipt({ GET_EMAIL_INFO    => $FORM{SEND_EMAIL},
          	                      SEND_EMAIL        => $FORM{SEND_EMAIL},
             	                  %$attr
             	                });
@@ -621,7 +620,7 @@ elsif($FORM{print}) {
     $attr->{EMAIL_MSG_SUBJECT}     = "ABillS - $_RECEIPT: $Docs->{RECEIPT_NUM}" if (! $attr->{EMAIL_MSG_SUBJECT});
   	$attr->{OUTPUT2RETURN}         = undef;
   	$FORM{pdf}                     = $conf{DOCS_PDF_PRINT};
-  	$attr->{SEND_EMAIL}            = 1;
+  	$attr->{SEND_EMAIL}            = 1;  	
    }
 
 
@@ -2924,7 +2923,8 @@ if ($FORM{CREATE_RECEIPT}) {
           ORDER      => "$FORM{DESCRIBE}" || '-',
           SUM        => $FORM{SUM},
           create     => 1,
-          PAYMENT_ID => $attr->{PAYMENT_ID}
+          PAYMENT_ID => $attr->{PAYMENT_ID},
+          SEND_EMAIL => $FORM{SEND_EMAIL}
       	  });
  }	
 
