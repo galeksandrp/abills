@@ -1336,6 +1336,15 @@ sub user_form {
  	 $FORM{UID} = $user_info->{UID};
    $user_info->{COMPANY_NAME}=$html->color_mark("$_NOT_EXIST ID: $user_info->{COMPANY_ID}", $_COLORS[6]) if ($user_info->{COMPANY_ID} && ! $user_info->{COMPANY_NAME}) ;
 
+   if ($permissions{1}) {
+     $user_info->{PAYMENTS_BUTTON} = $html->button($_PAYMENTS, "index=2&UID=$LIST_PARAMS{UID}", { CLASS => 'payments rightAlignText' });
+    }
+
+   if ($permissions{2}) {
+     $user_info->{FEES_BUTTON} = $html->button($_FEES, "index=2&UID=$LIST_PARAMS{UID}", { CLASS => 'fees rightAlignText' });
+    }
+
+
    $user_info->{EXDATA} = $html->tpl_show(templates('form_user_exdata'), 
                                           $user_info, { OUTPUT2RETURN => 1 });
    if ($conf{EXT_BILL_ACCOUNT} && $user_info->{EXT_BILL_ID}) {
@@ -1361,9 +1370,9 @@ sub user_form {
    	 $user_info->{DISABLE} = '';
     }
 
-
-   $user_info->{ACTION}='change';
-   $user_info->{LNG_ACTION}=$_CHANGE;
+   
+   $user_info->{ACTION}          = 'change';
+   $user_info->{LNG_ACTION}      = $_CHANGE;
 
    if ($permissions{5}) {
      my $info_field_index = get_function_index('form_info_fields');

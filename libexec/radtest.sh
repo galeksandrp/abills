@@ -16,6 +16,7 @@ VOIP_NAS_IP_ADDRESS=192.168.202.15
 VOIP_USER_NAME=200
 VOIP_CHAP_PASSWORD=''; #123456
 
+PATH=${PATH}:/usr/local/freeradius/
 RAUTH="./rauth.pl";
 RACCT="./racct.pl";
 RADTEST=radtest
