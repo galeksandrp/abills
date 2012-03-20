@@ -933,7 +933,6 @@ sub help {
 print << "[END]";
 Multi documents creator	
   PERIODIC_INVOICE - Create periodic invoice for clients
-    PERIOD=[dates] - Period for create invoices ("YYYY-MM-DD/YYYY-MM-DD")
   POSTPAID_INVOICES- Created for previe month debetors
   PREPAID_INVOICES - Create cridit invoice and next month payments invoice
   
@@ -944,7 +943,7 @@ Multi documents creator
   RESULT_DIR=      - Output dir (default: abills/cgi-bin/admin/pdf)
   DOCS_IN_FILE=    - docs in single file (default: $docs_in_file)
   ADDRESS2         - User second address (fields: _c_address, _c_build, _c_flat)
-  DATE=YYYY-MM-DD  - Dococument create date
+  DATE=YYYY-MM-DD  - Dococument create date of period "YYYY-MM-DD/YYYY-MM-DD"
   SORT=            - Sort by 
   DEBUG=[1..5]     - Debug mode
 [END]
