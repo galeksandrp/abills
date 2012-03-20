@@ -31,7 +31,7 @@ use vars  qw(%RAD %conf @MODULES $db $html $DATE $TIME $GZIP $TAR
 
   $_DEBT
   $_TARIF_PLAN
-  $_ACCOUNT
+  $_INVOICE
   @WEEKDAYS
 
   @MONTHES
@@ -135,15 +135,15 @@ if ($ARGV->{LOGIN}) {
 	$LIST_PARAMS{LOGIN}=$ARGV->{LOGIN};
 }
 
-if ($ARGV->{POSTPAID_ACCOUNT}) {
-	postpaid_accounts();
+if ($ARGV->{POSTPAID_INVOICE}) {
+	postpaid_invoices();
  }
 elsif($ARGV->{PERIODIC_INVOICE}) {
 	periodic_invoice();
  }
-elsif ($ARGV->{PREPAID_ACCOUNTS}) {
-	prepaid_accounts() if (! $ARGV->{COMPANY_ID});
-	prepaid_accounts_company() if (! $ARGV->{LOGIN});
+elsif ($ARGV->{PREPAID_INVOICES}) {
+	prepaid_invoices() if (! $ARGV->{COMPANY_ID});
+	prepaid_invoices_company() if (! $ARGV->{LOGIN});
  }
 else {
 	help();
@@ -209,7 +209,8 @@ sub periodic_invoice {
 
 	my $list = $Docs->user_list({ %LIST_PARAMS,
 		                            PRE_INVOICE_DATE => $DATE,
-		                            DISCOUNT         => '>=0'  
+		                            DISCOUNT         => '>=0',
+		                            PAGE_ROWS        => 1000000 
 		                           });
 	
 	    
@@ -544,14 +545,14 @@ sub load_module {
 #**********************************************************
 #
 #**********************************************************
-sub send_accounts {
+sub send_invoices {
   my ($attr) = @_;
 
-  foreach my $id ( @{ $attr->{ACCOUNTS_IDS} } ) {
+  foreach my $id ( @{ $attr->{INVOICES_IDS} } ) {
    	$FORM{pdf}   = 1;
    	$FORM{print} = $id;
 
-    docs_account({ GET_EMAIL_INFO    => 1,
+    docs_invoices({ GET_EMAIL_INFO    => 1,
             	     SEND_EMAIL        => 1,
             	     %$attr
                  });
@@ -567,7 +568,7 @@ sub send_accounts {
 #**********************************************************
 #
 #**********************************************************
-sub prepaid_accounts {
+sub prepaid_invoices {
  # Modules
  #Dv
  my @MODULES = ('Dv');
@@ -629,16 +630,16 @@ foreach my $line (@$list) {
 		print "  DEPOSIT: $line->[2]\n" if ($debug > 2);
 		$FORM{SUM}  =abs($line->[2]);
     $FORM{ORDER}="$_DEBT";
-    docs_account({ QUITE => 1 });
+    docs_invoices({ QUITE => 1 });
 	 } 
 	
-	#add  tp account
+	#add  tp invoice
   if ($TP_LIST->{$tp_id}) {
   	my ($tp_name, $fees_sum)=split(/;/, $TP_LIST->{$tp_id});
     print "  TP_ID: $tp_id FEES: $fees_sum\n" if ($debug > 2);
 		$FORM{SUM}  =$fees_sum;
     $FORM{ORDER}="$_TARIF_PLAN";
-    docs_account({ QUITE => 1 });	         
+    docs_invoice({ QUITE => 1 });	         
    }
 
  }
@@ -670,7 +671,7 @@ sub get_tps {
 #**********************************************************
 #
 #**********************************************************
-sub prepaid_accounts_company {
+sub prepaid_invoices_company {
  # Modules
  #Dv
  require Customers;
@@ -686,7 +687,7 @@ sub prepaid_accounts_company {
  $LIST_PARAMS{COMPANY_ID} = $ARGV->{COMPANY_ID} if ($ARGV->{COMPANY_ID});
 
  my $TP_LIST = get_tps();
- my @accounts_ids = ();
+ my @invoices_ids = ();
 
  my $list = $Company->list({ 
 		                        DISABLE       => 0,
@@ -737,11 +738,11 @@ foreach my $line (@$list) {
    	      );
 
    
-  # make debt account
+  # make debt invoice
   if ($deposit < 0) {
     $FORM{SUM}= abs($deposit);
     $FORM{ORDER}="$_DEBT";
-    docs_account({ QUITE => 1 });
+    docs_invoice({ QUITE => 1 });
    }
 
   #Get company users
@@ -770,12 +771,12 @@ foreach my $line (@$list) {
 		  $doc_num++		  
 	   }
    }
-  # make tps account
+  # make tps invoice
   if ($tp_sum > 0) {
   	print "TP SUM: $tp_sum\n";
     $FORM{SUM}= $tp_sum;
     $FORM{ORDER}="$_TARIF_PLAN";
-    docs_account({ QUITE => 1 });	         
+    docs_invoice({ QUITE => 1 });	         
    }
  }
 
@@ -788,8 +789,8 @@ print "TOTAL USERS: $Company->{TOTAL} DOCS: $doc_num\n";
 #**********************************************************
 #
 #**********************************************************
-sub postpaid_accounts {
-  $save_filename = $pdf_result_path .'/multidoc_postpaid_accounts.pdf';
+sub postpaid_invoices {
+  $save_filename = $pdf_result_path .'/multidoc_postpaid_invoices.pdf';
   $Fees->{debug}=1 if ($debug > 6);
   #Fees get month fees - abon. payments
   my $fees_list = $Fees->reports({ INTERVAL => "$Y-$m-01/$DATE",  
@@ -932,17 +933,18 @@ sub help {
 print << "[END]";
 Multi documents creator	
   PERIODIC_INVOICE - Create periodic invoice for clients
-  POSTPAID_ACCOUNT - Created for previe month debetors
-  PREPAID_ACCOUNTS - Create cridit account and next month payments account
+    PERIOD=[dates] - Period for create invoices ("YYYY-MM-DD/YYYY-MM-DD")
+  POSTPAID_INVOICES- Created for previe month debetors
+  PREPAID_INVOICES - Create cridit invoice and next month payments invoice
   
   LOGIN            - User login
   TP_ID            - Tariff Plan
-  COMPANY_ID       - Company id. if defined company id generated only companies accounts. U can use wilde card *
+  COMPANY_ID       - Company id. if defined company id generated only companies invoicess. U can use wilde card *
   
   RESULT_DIR=      - Output dir (default: abills/cgi-bin/admin/pdf)
   DOCS_IN_FILE=    - docs in single file (default: $docs_in_file)
   ADDRESS2         - User second address (fields: _c_address, _c_build, _c_flat)
-  DATE=YYYY-MM-DD  - Accounts create date
+  DATE=YYYY-MM-DD  - Dococument create date
   SORT=            - Sort by 
   DEBUG=[1..5]     - Debug mode
 [END]
