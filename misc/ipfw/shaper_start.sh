@@ -36,7 +36,7 @@
 
 
 CLASSES_NUMS='2 3'
-VERSION=5.85
+VERSION=5.86
 
 
 name="abills_shaper"
@@ -85,10 +85,15 @@ if [ w${ACTION} = wfaststart ]; then
   ACTION=start
 fi;
 
+#make at ipfw -q flush
+if [ w${ACTION} = wtest ]; then
+  ACTION=start
+  echo "${IPFW} -q flush" | at +10 minutes
+fi;
 
 if [ x${abills_shaper_enable} != xNO ]; then
   #Get external interface
-  if [ w${abills_shaper_if} != w ]; then
+  if [ x${abills_shaper_if} != x ]; then
     INTERNAL_INTERFACE=${abills_shaper_if}
   else 
     EXTERNAL_INTERFACE=`/sbin/route get default | grep interface: | awk '{ print $2 }'`
@@ -348,8 +353,8 @@ if [ w${SESSION_LIMIT} != w ]; then
     ${IPFW} add 64002   allow udp from table\(34\) to any via ${INTERNAL_INTERFACE} in limit src-addr ${SESSION_LIMIT}
     ${IPFW} add 64003   allow icmp from table\(34\) to any via ${INTERNAL_INTERFACE} in limit src-addr ${SESSION_LIMIT}
   else if [ w${ACTION} = wstop ]; then
-    ${IPFW} delete 00400 00401 00402 64001 64002 64003
-   fi; 
-  fi;
+         ${IPFW} delete 00400 00401 00402 64001 64002 64003
+       fi; 
+ fi;
 fi;
 

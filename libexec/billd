@@ -708,7 +708,6 @@ sub check_speed_linux {
   }
 
   #$conf{KBYTE_SIZE} = 1024 if (! $conf{KBYTE_SIZE});
-
   # ether speed
   # tc class show dev eth0 classid 1:10
   # tc filter show dev eth0 parent ffff:
@@ -737,8 +736,6 @@ sub check_speed_linux {
   print "$cmd\n" if ($debug > 5);
   open(PROCS, "$cmd |") || die "Can't open file '$cmd' $!\n";
   while (<PROCS>) {
-
-    #
     if (/ppp(\d+)\spolice\s[a-fx0-9]+\srate\s(\d+)(\S+)/) {
       my $iface = $1;
       my $sufix = $3;
