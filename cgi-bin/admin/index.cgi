@@ -5642,6 +5642,7 @@ if ($attr->{USER_INFO}) {
       #Make pre payments functions in all modules 
       cross_modules_call('_pre_payment', { %$attr  });
       
+     
    	  if (! $oonf{PAYMENTS_NOT_CHECK_INVOICE_SUM} && $FORM{INVOICE_SUM} && $FORM{INVOICE_SUM} != $FORM{PAYMENT_SUM} )  {
         $html->message('err', "$_PAYMENTS: $ERR_WRONG_SUM", " $_INVOICE $_SUM: $Docs->{TOTAL_SUM}\n $_PAYMENTS $_SUM: $FORM{SUM}");
        }
@@ -8554,6 +8555,7 @@ sub cross_modules_call {
     my $function = lc($mod).$function_sufix;
     
     my $return;
+    
     if (defined(&$function)) {
      	$return = $function->($attr);
      }

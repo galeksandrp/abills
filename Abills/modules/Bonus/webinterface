@@ -795,7 +795,8 @@ sub bonus_service_discount_mk {
           $html->message('err', $_ERROR, "$ERR_WRONG_SUM");
         }
         elsif ($Payments->{errno} == 14) {
-          $html->message('err', $_ERROR, "$_BILLS $_NOT_EXIST $bill_id");
+        	my $message = ($RESULT{BONUS_EXT_ACCOUNT}) ? "$_EXTRA" : '';
+          $html->message('err', $_ERROR, "$message $_BILL $_NOT_EXIST $bill_id");
         }
         else {
           $html->message('err', $_ERROR, "[$Payments->{errno}] $err_strs{$Payments->{errno}}");
