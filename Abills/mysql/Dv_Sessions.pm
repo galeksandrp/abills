@@ -282,7 +282,8 @@ sub online {
    }
 
   my $RES_FIELDS_COUNT = $#RES_FIELDS;
-
+  my $ext_fields       = '';
+  
   if ($attr->{FIELDS_NAMES}) {
   	$fields='';
     $RES_FIELDS_COUNT = 0;
@@ -294,9 +295,34 @@ sub online {
   	  elsif ($field =~ /NAS_NAME/ && $EXT_TABLE !~ / nas /) {
   	  	$EXT_TABLE .= "LEFT JOIN nas ON (nas.id=c.nas_id)";
   	   }
+  	  elsif ($field =~ /FIO|PHONE/ && $EXT_TABLE !~ / users_pi /) {
+  	  	$EXT_TABLE .= "LEFT JOIN users_pi pi ON (pi.uid=u.uid)";
+  	   }
+
   	  $RES_FIELDS_COUNT++;
   	 }
     $RES_FIELDS_COUNT--;
+    $fields .= ' c.nas_id';
+   }
+  else {
+  	$ext_fields = "
+   pi.phone,
+   INET_NTOA(c.framed_ip_address),
+   u.uid,
+   INET_NTOA(c.nas_ip_address),
+   if(company.name IS NULL, b.deposit, cb.deposit),
+   if(u.company_id=0, u.credit,
+          if (u.credit=0, company.credit, u.credit)),
+   if(date_format(c.started, '%Y-%m-%d')=curdate(), date_format(c.started, '%H:%i:%s'), c.started),
+   UNIX_TIMESTAMP()-c.lupdated,
+   c.status,
+   c.nas_id,
+   c.user_name,
+   c.nas_port_id,
+   c.acct_session_id,
+   c.CID,
+   dv.tp_id";
+   $EXT_TABLE .= "LEFT JOIN users_pi pi ON (pi.uid=u.uid)";
    }
 
  $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
@@ -387,27 +413,11 @@ sub online {
  
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
  
- $self->query($db, "SELECT $fields
-   pi.phone,
-   INET_NTOA(c.framed_ip_address),
-   u.uid,
-   INET_NTOA(c.nas_ip_address),
-   if(company.name IS NULL, b.deposit, cb.deposit),
-   if(u.company_id=0, u.credit,
-          if (u.credit=0, company.credit, u.credit)),
-   if(date_format(c.started, '%Y-%m-%d')=curdate(), date_format(c.started, '%H:%i:%s'), c.started),
-   UNIX_TIMESTAMP()-c.lupdated,
-   c.status,
-   c.nas_id,
-   c.user_name,
-   c.nas_port_id,
-   c.acct_session_id,
-   c.CID,
-   dv.tp_id
+ $self->query($db, "SELECT $fields 
+  $ext_fields
  FROM dv_calls c
  LEFT JOIN users u     ON (u.uid=c.uid)
  LEFT JOIN dv_main dv  ON (dv.uid=u.uid)
- LEFT JOIN users_pi pi ON (pi.uid=u.uid)
 
  LEFT JOIN bills b ON (u.bill_id=b.id)
  LEFT JOIN companies company ON (u.company_id=company.id)
@@ -431,7 +441,7 @@ sub online {
 
 
  my $list = $self->{list};
- my $nas_id_field = $RES_FIELDS_COUNT+10;
+ my $nas_id_field = ($attr->{FIELDS_NAMES}) ? $RES_FIELDS_COUNT+1 : $RES_FIELDS_COUNT+10;
  foreach my $line (@$list) {
  	  $dub_logins{$line->[0]}++;
  	  $dub_ports{$line->[$nas_id_field]}{$line->[$port_id]}++;
