@@ -681,6 +681,10 @@ sub bonus_service_discount_mk {
   my ($attr) = @_;
   my $return = 0;
 
+  if ($FORM{METHOD} == 4 || $FORM{METHOD} == 6) {
+  	return 0;
+   }
+
   my %RULES = ();
   my $list = $Bonus->service_discount_list({ PAGE_ROWS => 1000 });
   foreach my $line (@$list) {
@@ -737,7 +741,7 @@ sub bonus_service_discount_mk {
         {
           UID        => $attr->{USER_INFO}->{UID},
           TOTAL_ONLY => 1,
-          METHOD     => '!4'
+          METHOD     => '!4,!6'
         }
       );
       my $payments_sum = $Payments->{SUM};
