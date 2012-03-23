@@ -477,6 +477,11 @@ sub online_del {
   if ($attr->{SESSIONS_LIST}) {
   	my $session_list = join("', '", @{$attr->{SESSIONS_LIST}});
   	$WHERE = "acct_session_id in ( '$session_list' )";
+  	
+  	if ($attr->{QUICK}) {
+  		$self->query($db, "DELETE FROM dv_calls WHERE $WHERE;", 'do');
+  		return $self;
+  	 }  	
    }
   else {
     my $NAS_ID  = (defined($attr->{NAS_ID})) ? $attr->{NAS_ID} : '';
