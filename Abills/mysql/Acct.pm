@@ -57,8 +57,8 @@ sub accounting {
 
   $RAD->{FRAMED_IP_ADDRESS} = '0.0.0.0' if (!defined($RAD->{FRAMED_IP_ADDRESS}));
 
-  if (length($RAD->{ACCT_SESSION_ID}) > 25) {
-    $RAD->{ACCT_SESSION_ID} = substr($RAD->{ACCT_SESSION_ID}, 0, 24);
+  if (length($RAD->{ACCT_SESSION_ID}) > 32) {
+    $RAD->{ACCT_SESSION_ID} = substr($RAD->{ACCT_SESSION_ID}, 0, 32);
   }
 
   if ($NAS->{NAS_TYPE} eq 'cid_auth') {
@@ -110,7 +110,8 @@ sub accounting {
          acct_session_id='$RAD->{ACCT_SESSION_ID}', 
          CID='$RAD->{CALLING_STATION_ID}', 
          CONNECT_INFO='$RAD->{CONNECT_INFO}'
-         WHERE user_name='$RAD->{USER_NAME}' AND nas_id='$NAS->{NAS_ID}' AND acct_session_id='IP' AND framed_ip_address=INET_ATON('$RAD->{FRAMED_IP_ADDRESS}');";
+         WHERE user_name='$RAD->{USER_NAME}' AND nas_id='$NAS->{NAS_ID}' AND acct_session_id='IP' AND framed_ip_address=INET_ATON('$RAD->{FRAMED_IP_ADDRESS}')
+         LIMIT 1;";
           $self->query($db, "$sql", 'do');
           last;
         }
