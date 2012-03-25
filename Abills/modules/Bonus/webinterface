@@ -745,7 +745,7 @@ sub bonus_service_discount_mk {
         }
       );
       my $payments_sum = $Payments->{SUM};
-      my $list         = $Bonus->service_discount_list(
+      $list         = $Bonus->service_discount_list(
         {
           TOTAL_PAYMENTS_SUM => "<=$payments_sum,>=0",
           PERIODS            => "<=$periods",

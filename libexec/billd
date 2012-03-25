@@ -193,7 +193,6 @@ sub check_lines {
       ALL          => 1,
       FIELDS_NAMES => [
         'USER_NAME',      
-        'FIO',             
         'NAS_PORT_ID', 
         'CLIENT_IP_NUM', 
         'DURATION',   
@@ -229,7 +228,7 @@ sub check_lines {
 
   foreach my $line (@$list) {
     $TP_CREDITS{ $line->[0] } = (!$conf{user_credit_change}) ? $line->[15] : 0;
-    $POSTPAIDS{ $line->[0] } = $line->[4];
+    $POSTPAIDS{ $line->[0] }  = $line->[4];
   }
 
   my $online   = $sessions->{nas_sorted};
@@ -265,28 +264,28 @@ sub check_lines {
 
     foreach my $line (@$l) {
       my $user_name              = $line->[0];
-      my $nas_port_id            = $line->[2];
-      my $client_ip              = $line->[3];
-      my $duration               = $line->[4];
-      my $acct_input_octets      = $line->[5];
-      my $acct_output_octets     = $line->[6];
-      my $acct_input_octets_ext  = $line->[7];
-      my $acct_output_octets_ext = $line->[8];
-      my $acct_session_id        = $line->[9];
-      my $uid                    = $line->[10];
-      my $join_service           = $line->[11];
-      my $last_alive             = $line->[12];
-      my $acct_session_time      = $line->[13];
-      my $duration_sec           = $line->[14];
-      my $deposit                = $line->[15] || 0;
-      my $credit                 = ($line->[16] && $line->[16] > 0) ? $line->[16] : (($line->[17]) ? $TP_CREDITS{ $line->[17] } : 0);
-      my $tp_num                 = $line->[17] || 0;
-      my $state                  = (defined($line->[18])) ? $line->[18] + $line->[19] : 0;
-      my $session_sum            = $line->[20];
-      my $calls_tp_id            = $line->[21];
-      my $online_state           = $line->[22];
-      my $filter_id              = $line->[23];
-      my $bill_priority          = $line->[24];
+      my $nas_port_id            = $line->[1];
+      my $client_ip              = $line->[2];
+      my $duration               = $line->[3];
+      my $acct_input_octets      = $line->[4];
+      my $acct_output_octets     = $line->[5];
+      my $acct_input_octets_ext  = $line->[6];
+      my $acct_output_octets_ext = $line->[7];
+      my $acct_session_id        = $line->[8];
+      my $uid                    = $line->[9];
+      my $join_service           = $line->[10];
+      my $last_alive             = $line->[11];
+      my $acct_session_time      = $line->[12];
+      my $duration_sec           = $line->[13];
+      my $deposit                = $line->[14] || 0;
+      my $credit                 = ($line->[15] && $line->[15] > 0) ? $line->[15] : (($line->[16]) ? $TP_CREDITS{ $line->[16] } : 0);
+      my $tp_num                 = $line->[16] || 0;
+      my $state                  = (defined($line->[17])) ? $line->[17] + $line->[18] : 0;
+      my $session_sum            = $line->[19];
+      my $calls_tp_id            = $line->[20];
+      my $online_state           = $line->[21];
+      my $filter_id              = $line->[22];
+      my $bill_priority          = $line->[23];
 
       if ($debug > 1) {
         printf("%-14s|%16s|%8s|%10s|%10s|%12s|\n", $user_name, int2ip($client_ip), $duration, $acct_input_octets, $acct_output_octets, $deposit);

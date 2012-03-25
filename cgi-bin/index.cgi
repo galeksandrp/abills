@@ -60,6 +60,7 @@ my $db = $sql->{db};
 $html->{language} = $FORM{language} if (defined($FORM{language}) && $FORM{language} =~ /[a-z_]/);
 
 require "../language/$html->{language}.pl";
+require "Misc.pm";
 $sid = $FORM{sid} || '';    # Session ID
 $html->{CHARSET} = $CHARSET if ($CHARSET);
 
@@ -1321,55 +1322,8 @@ sub form_money_transfer {
 }
 
 #**********************************************************
-# Calls function for all registration modules if function exist
 #
-# cross_modules_call(function_sufix, attr)
-#**********************************************************
-sub cross_modules_call {
-  my ($function_sufix, $attr) = @_;
-
-  my %full_return = '';
-
-  foreach my $mod (@MODULES) {
-    require "Abills/modules/$mod/webinterface";
-    my $function = lc($mod) . $function_sufix;
-    my $return;
-    if (defined(&$function)) {
-      $return = $function->($attr);
-    }
-    $full_return{$mod} = $return;
-  }
-
-  return \%full_return;
-}
-
-#**********************************************************
-# Get function index
-#
-# get_function_index($function_name, $attr)
-#**********************************************************
-sub get_function_index {
-  my ($function_name, $attr) = @_;
-  my $function_index = 0;
-
-  foreach my $k (keys %functions) {
-    my $v = $functions{$k};
-    if ($v eq "$function_name") {
-      $function_index = $k;
-      if ($attr->{ARGS} && $attr->{ARGS} ne $menu_args{$k}) {
-        next;
-      }
-      last;
-    }
-  }
-
-  return $function_index;
-}
-
-#**********************************************************
-# Get function index
-#
-# get_function_index($function_name, $attr)
+# form_neg_deposit($user, $attr)
 #**********************************************************
 sub form_neg_deposit {
   my ($user, $attr) = @_;
@@ -1418,31 +1372,5 @@ sub _external {
   }
 }
 
-#**********************************************************
-# load_module($string, \%HASH_REF);
-#**********************************************************
-sub load_module {
-  my ($module, $attr) = @_;
-
-  my $lang_file = '';
-  foreach my $prefix (@INC) {
-    my $realfilename = "$prefix/Abills/modules/$module/lng_$attr->{language}.pl";
-    if (-f $realfilename) {
-      $lang_file = $realfilename;
-      last;
-    }
-    elsif (-f "$prefix/Abills/modules/$module/lng_english.pl") {
-      $lang_file = "$prefix/Abills/modules/$module/lng_english.pl";
-    }
-  }
-
-  if ($lang_file ne '') {
-    require $lang_file;
-  }
-
-  require "Abills/modules/$module/webinterface";
-
-  return 0;
-}
 
 1

@@ -1699,7 +1699,7 @@ sub storage_hardware {
 
 	}
 	
-	defined($Storage->{DISABLE})  ? $Storage->{DISABLE} : '';
+	#defined($Storage->{DISABLE})  ? $Storage->{DISABLE} : '';
 
 	$Storage->{ARTICLE_TYPES}=$html->form_select("ARTICLE_TYPE_ID", 
 									{	SELECTED          => defined($FORM{ARTICLE_TYPE_ID}) ? $FORM{ARTICLE_TYPE_ID} : $Storage->{ARTICLE_TYPE_ID},
