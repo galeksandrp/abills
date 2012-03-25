@@ -7125,7 +7125,8 @@ sub dv_get_month_fee {
       }
       else {
         my $days_in_month = ($m != 2 ? (($m % 2) ^ ($m > 7)) + 30 : (!($active_y % 400) || !($active_y % 4) && ($active_y % 25) ? 29 : 28));
-        $message .= " ($y-$m-01-$y-$m-$days_in_month)";
+        my $start_date = ($Dv->{TP_INFO}->{PERIOD_ALIGNMENT}) ? (($Dv->{ACCOUNT_ACTIVATE}) ? $Dv->{ACCOUNT_ACTIVATE} : $DATE) : "$y-$m-01";
+        $message .= " ($start_date-$y-$m-$days_in_month)";
       }
 
       $TIME = "00:00:00";
