@@ -626,6 +626,10 @@ sub bonus_pre_payment {
     bonus_service_discount_mk($attr);
   }
 
+  if ($conf{BONUS_TURBO} && $FORM{SUM} > 0) {
+    bonus_turbo_mk($attr);
+  }
+
   return $REPORT;
 }
 
@@ -895,9 +899,136 @@ sub bonus_service_discount {
 sub bonus_turbo {
   my ($attr)=@_;
   
-  
+  my $REPORT = '';
+
+  $Bonus->{ACTION}     = 'add';
+  $Bonus->{LNG_ACTION} = $_ADD;
+
+  if ($FORM{add}) {
+    $Bonus->bonus_turbo_add({%FORM});
+    if (!$Bonus->{errno}) {
+      $html->message('info', $_INFO, "$_ADDED");
+    }
+  }
+  elsif ($FORM{change}) {
+    $Bonus->bonus_turbo_change({%FORM});
+
+    if (!$Bonus->{errno}) {
+      $html->message('info', $_INFO, "$_CHANGED ID: $FORM{ID}");
+    }
+  }
+  elsif ($FORM{chg}) {
+    $Bonus->bonus_turbo_info($FORM{chg});
+
+    $Bonus->{ACTION}     = 'change';
+    $Bonus->{LNG_ACTION} = $_CHANGE;
+
+    if (!$Bonus->{errno}) {
+      $html->message('info', $_INFO, "$_CHANGING");
+    }
+  }
+  elsif ($FORM{del} && $FORM{is_js_confirmed}) {
+    $Bonus->bonus_turbo_del({ ID => $FORM{del} });
+
+    if (!$Bonus->{errno}) {
+      $html->message('info', $_INFO, "$_DELETED ID: $FORM{del}");
+    }
+  }
+
+  if ($Bonus->{errno}) {
+    $html->message('err', $_ERROR, "[$Bonus->{errno}] $err_strs{$Bonus->{errno}}");
+  }
+
+
+  $html->tpl_show(_include('bonus_turbo', 'Bonus'), $Bonus);
+
+  my $list = $Bonus->bonus_turbo_list({%LIST_PARAMS});
+
+  my $table = $html->table(
+    {
+      width   => '100%',
+      caption => "$_BONUS Turbo",
+      border  => 1,
+      title   => [ "$_SERVICE $_PERIOD ($_MONTH)", "$_REGISTRATION $_DAYS", "$_TURBO $_COUNT", '-', '-' ],
+      cols_align => [ 'right', 'right', 'right', 'center:noprint', 'center:noprint' ],
+      qs         => $pages_qs,
+      pages      => $Bonus->{TOTAL},
+      ID         => 'BONUX_TURBO'
+    }
+  );
+
+  foreach my $line (@$list) {
+    my $delete = $html->button($_DEL, "index=$index&del=$line->[3]", { MESSAGE => "$_DEL [$line->[0]] ?", CLASS => 'del' });
+    $table->addrow($line->[0], 
+      $line->[1], 
+      $line->[2], 
+      $html->button($_DEL, "index=$index&chg=$line->[3]", { CLASS => 'change' }), 
+      $delete
+    );
+  }
+
+  print $table->show();
+  return $REPORT;
 }
 
 
+#**********************************************************
+#
+#**********************************************************
+sub bonus_turbo_mk {
+  my ($attr) = @_;
+  my $return = 0;
+
+  if ($FORM{METHOD} == 4 || $FORM{METHOD} == 6) {
+  	return 0;
+   }
+
+  my %RULES = ();
+
+
+  use Dv;
+  $Dv = Dv->new($db, $admin, \%conf);
+  $Dv->info($attr->{USER_INFO}->{UID});
+
+  my $periods           = 0;
+  my $registration_days = 0;
+
+  if ($Dv->{MONTH_ABON} > 0) {
+    $periods = int($FORM{SUM} / $Dv->{MONTH_ABON});
+  }
+
+  my %RESULT = ();
+  if ($periods > 0) {
+    my ($year, $month, $day) = split(/-/, $attr->{USER_INFO}->{REGISTRATION}, 3);
+    my $seltime = POSIX::mktime(0, 0, 0, $day, ($month - 1), ($year - 1900));
+    $registration_days = int((time() - $seltime) / 86400);
+    my $list = $Bonus->bonus_turbo_list(
+      {
+        REGISTRATION_DAYS => "<=$registration_days,>=0",
+        PERIODS           => "<=$periods",
+        PAGE_ROWS         => 1,
+        SORT              => "1 DESC, 2 DESC"
+      }
+    );
+
+    if ($Bonus->{TOTAL} > 0) {
+      $RESULT{TURBO_COUNT}          = $list->[0]->[3];
+     }
+
+
+    #Result
+    if ($RESULT{TURBO_COUNT} && $RESULT{TURBO_COUNT} > 0) {
+      $Dv->change(        
+        { 
+        	UID                   => $attr->{USER_INFO}->{UID}, 
+          FREE_TURBO_MODE       => $RESULT{TURBO_COUNT}
+        }
+      );
+      $html->message('info', $_INFO, "$_BONUS: \n Turbo: $RESULT{TURBO_COUNT}");
+    }
+  }
+
+  return $return;
+}
 1
 

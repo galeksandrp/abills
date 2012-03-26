@@ -31,3 +31,12 @@ CREATE TABLE `bonus_service_discount` (
   `ext_account` tinyint(1) unsigned NOT NULL default '0',
   PRIMARY KEY  (`id`)
 ) COMMENT "Bonus service discount"  ;
+
+CREATE TABLE `bonus_turbo` (
+  `id` int(11) unsigned NOT NULL auto_increment,
+  `service_period` smallint(4) unsigned NOT NULL default '0',
+  `registration_days` smallint(4) unsigned NOT NULL default '0',
+  `turbo_count` smallint(4) unsigned NOT NULL default '0',
+  `comments` text not null default '',
+  PRIMARY KEY  (`id`)
+) COMMENT "Bonus turbo"  ;
