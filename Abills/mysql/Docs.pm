@@ -1728,7 +1728,7 @@ sub user_list {
            AND service.invoice_date + INTERVAL service.invoicing_period MONTH - INTERVAL 10 day>='$from_date'
            AND service.invoice_date + INTERVAL service.invoicing_period MONTH - INTERVAL 10 day<='$to_date'
       )
-      OR ( u.activate='0000-00-00'
+      OR ( u.activate<>'0000-00-00'
            AND service.invoice_date + INTERVAL 30*service.invoicing_period+service.invoicing_period-1 DAY - INTERVAL 10 day>='$from_date' 
            AND service.invoice_date + INTERVAL 30*service.invoicing_period+service.invoicing_period-1 DAY - INTERVAL 10 day<='$to_date' 
       ))";  		
