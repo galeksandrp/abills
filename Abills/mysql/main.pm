@@ -159,8 +159,6 @@ sub query {
     }
     $self->{Q} = $q;
     $self->{QS}++;
-
-    #  $self->{NUM_OF_FIELDS} = $q->{NUM_OF_FIELDS};
   }
 
   if ($db->err) {
@@ -182,20 +180,9 @@ sub query {
 
   if ($self->{TOTAL} > 0) {
     my @rows;
-
-    #  if ($type && $type eq 'fields_list') {
-    #    my @rows_h = ();
-    #    while(my $row_hashref = $q->fetchrow_hashref()) {
-    #      push @rows_h, $row_hashref;
-    #     }
-    #  	$self->{list_hash} = \@rows_h;
-    #   }
-    #  else {
     while (my @row = $q->fetchrow()) {
       push @rows, \@row;
     }
-
-    #   }
     $self->{list} = \@rows;
   }
   else {
@@ -244,7 +231,7 @@ sub search_expr {
     $self->{SEARCH_FIELDS_COUNT}++;
   }
 
-  if (defined($value) && $value =~ s/;/,/g) {
+  if (defined($value) && $value =~ s/;/,/g && $value !~ /[<>=]+/) {
     my @val_arr = split(/,/, $value);
     $value = "'" . join("', '", @val_arr) . "'";
     return ["$field IN ($value)"];
@@ -307,6 +294,9 @@ sub search_expr {
   if ($field) {
     if ($type ne 'INT' && $type ne 'DATE') {
       return [ '(' . join(' or ', @result_arr) . ')' ];
+    }
+    else {
+    	return [ '(' . join(' or ', @result_arr) . ')' ];
     }
     return \@result_arr;
   }
@@ -406,7 +396,6 @@ sub changes {
           $self->{CHG_CREDIT} = $OLD_DATA->{$k} . '->' . $DATA{$k};
         }
         else {
-
           $CHANGES_LOG .= "$k $OLD_DATA->{$k}->$DATA{$k};";
         }
 
@@ -503,5 +492,149 @@ sub attachment_add () {
 
   return $self;
 }
+
+#**********************************************************
+#
+#**********************************************************
+sub search_expr_users () {
+  my $self = shift;
+  my ($attr) = @_;
+  my @fields = ();
+
+  #ID:type:Field name
+  my %users_fields_hash = (
+    LOGIN        => 'STR:u.id',
+    UID          => 'INT:u.uid',
+    DEPOSIT      => 'INT:b.deposit',
+    COMPANY_ID   => 'INT:u.company_id',
+    REGISTRATION => 'INT:u.registration',
+
+    COMMENTS     => 'STR:pi.comments',
+    FIO          => 'STR:pi.fio',
+    PHONE        => 'STR:pi.phone',
+    EMAIL        => 'STR:pi.email',
+
+
+    PASPORT_DATE  => 'DATE:pi.pasport_date',
+    PASPORT_NUM   => 'STR:pi.pasport_num', 
+    PASPORT_GRANT => 'STR:pi.pasport_grant',
+    CITY          => 'STR:pi.city', 
+    ZIP           => 'STR:pi.zip',
+    CONTRACT_ID   => 'STR:pi.contract_id',
+    CONTRACT_SUFIX=> 'STR:pi.contract_sufix',
+    CONTRACT_DATE => 'DATE:pi.contract_date',
+    LOGIN_STATUS  => 'INT:u.disable',
+
+    ACTIVATE      => 'DATE:u.activate',
+    EXPIRE        => 'DATE:u.expire',
+    
+    DEPOSIT       => 'INT:b.deposit',
+    CREDIT        => 'INT:u.credit',
+    CREDIT_DATE   => 'DATE:u.credit_date', 
+    REDUCTION     => 'INT:u.reduction',
+    REDUCTION_DATE=> 'INT:u.reduction_date',
+    COMMENTS      => 'STR:pi.comments',
+    BILL_ID       => 'INT:if(company.id IS NULL,b.id,cb.id)',
+
+    #ADDRESS_FLAT  => 'STR:pi.address_flat', 
+  );
+
+  if ($attr->{CONTRACT_SUFIX}) {
+    $attr->{CONTRACT_SUFIX} =~ s/\|//g;
+  }
+
+  my %ext_fields = ();
+  foreach my $id (@{ $attr->{EXT_FIELDS} }) {
+    $ext_fields{$id}=1;
+  }
+
+
+  foreach my $key (keys %{ $attr }) {
+  	if ($users_fields_hash{$key}) {
+  		my ($type, $field) = split(/:/, $users_fields_hash{$key});
+  		next if ($type eq 'STR' && ! $attr->{$key});
+  		push @fields, @{ $self->search_expr($attr->{$key}, $type, "$field", { EXT_FIELD => $ext_fields{$key} }) };
+    }
+  }
+
+
+
+  if ($attr->{GIDS}) {
+    push @WHERE_RULES, "u.gid IN ($attr->{GIDS})";
+  }
+  elsif ($attr->{GID}) {
+    push @WHERE_RULES, "u.gid='$attr->{GID}'";
+  }
+
+  if ($CONF->{EXT_BILL_ACCOUNT}) {
+    $self->{SEARCH_FIELDS} .= 'if(company.id IS NULL,ext_b.deposit,ext_cb.deposit), ';
+    $self->{SEARCH_FIELDS_COUNT}++;
+    if ($attr->{EXT_BILL_ID}) {
+      my $value = $self->search_expr($attr->{EXT_BILL_ID}, 'INT');
+      push @WHERE_RULES, "if(company.id IS NULL,ext_b.id,ext_cb.id)$value";
+    }
+    $self->{EXT_TABLES} = "
+            LEFT JOIN bills ext_b ON (u.ext_bill_id = ext_b.id)
+            LEFT JOIN bills ext_cb ON  (company.ext_bill_id=ext_cb.id) ";
+  }
+
+
+  if ($attr->{NOT_FILLED}) {
+    push @WHERE_RULES, "builds.id IS NULL";
+    $self->{EXT_TABLES} .= "LEFT JOIN builds ON (builds.id=pi.location_id)";
+  }
+  elsif ($attr->{LOCATION_ID}) {
+    push @WHERE_RULES, @{ $self->search_expr($attr->{LOCATION_ID}, 'INT', 'pi.location_id', { EXT_FIELD => 'streets.name, builds.number, pi.address_flat, builds.id' }) };
+    $self->{EXT_TABLES} .= "LEFT JOIN builds ON (builds.id=pi.location_id)
+   LEFT JOIN streets ON (streets.id=builds.street_id)";
+    $self->{SEARCH_FIELDS_COUNT} += 3;
+  }
+  else {
+    if ($attr->{STREET_ID}) {
+      push @WHERE_RULES, @{ $self->search_expr($attr->{STREET_ID}, 'INT', 'builds.street_id', { EXT_FIELD => 'streets.name, builds.number' }) };
+      $self->{EXT_TABLES} .= "LEFT JOIN builds ON (builds.id=pi.location_id)
+     LEFT JOIN streets ON (streets.id=builds.street_id)";
+      $self->{SEARCH_FIELDS_COUNT} += 1;
+    }
+    elsif ($attr->{DISTRICT_ID}) {
+      push @WHERE_RULES, @{ $self->search_expr($attr->{DISTRICT_ID}, 'INT', 'streets.district_id', { EXT_FIELD => 'districts.name' }) };
+      $self->{EXT_TABLES} .= "LEFT JOIN builds ON (builds.id=pi.location_id)
+      LEFT JOIN streets ON (streets.id=builds.street_id)
+      LEFT JOIN districts ON (districts.id=streets.district_id) ";
+    }
+    elsif ($CONF->{ADDRESS_REGISTER}) {
+      if ($attr->{ADDRESS_STREET}) {
+        push @WHERE_RULES, @{ $self->search_expr($attr->{ADDRESS_STREET}, 'STR', 'streets.name', { EXT_FIELD => 'streets.name' }) };
+        $self->{EXT_TABLES} .= "INNER JOIN builds ON (builds.id=pi.location_id)
+        INNER JOIN streets ON (streets.id=builds.street_id)";
+      }
+    }
+    elsif ($attr->{ADDRESS_STREET}) {
+      push @WHERE_RULES, @{ $self->search_expr($attr->{ADDRESS_STREET}, 'STR', 'pi.address_street', { EXT_FIELD => 1 }) };
+    }
+
+    if ($CONF->{ADDRESS_REGISTER}) {
+      if ($attr->{ADDRESS_BUILD}) {
+        push @WHERE_RULES, @{ $self->search_expr($attr->{ADDRESS_BUILD}, 'STR', 'builds.number', { EXT_FIELD => 'builds.number' }) };
+        $self->{EXT_TABLES} .= "INNER JOIN builds ON (builds.id=pi.location_id)" if ($self->{EXT_TABLES} !~ /builds/);
+      }
+    }
+    elsif ($attr->{ADDRESS_BUILD}) {
+      push @WHERE_RULES, @{ $self->search_expr($attr->{ADDRESS_BUILD}, 'STR', 'pi.address_build', { EXT_FIELD => 1 }) };
+    }
+
+    if ($attr->{COUNTRY_ID}) {
+      push @WHERE_RULES, @{ $self->search_expr($attr->{COUNTRY_ID}, 'STR', 'pi.country_id', { EXT_FIELD => 1 }) };
+    }
+  }
+
+  if ($attr->{ADDRESS_FLAT}) {
+    push @WHERE_RULES, @{ $self->search_expr($attr->{ADDRESS_FLAT}, 'STR', 'pi.address_flat', { EXT_FIELD => 1 }) };
+  }
+
+
+  return \@fields;
+}
+
 
 1

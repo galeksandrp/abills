@@ -4878,10 +4878,11 @@ sub dv_daily_fees {
         }
       }
 
+      $Dv->{debug} = 1 if ($debug > 6);
       my $ulist = $Dv->list(
         {
-          ACTIVATE     => "<='$ADMIN_REPORT{DATE}'",
-          EXPIRE       => ">'$ADMIN_REPORT{DATE}'",
+          ACTIVATE     => "0000-00-00;<=$ADMIN_REPORT{DATE}",
+          EXPIRE       => "0000-00-00;>$ADMIN_REPORT{DATE}",
           STATUS       => "0;5",
           LOGIN_STATUS => 0,
           TP_ID        => $TP_ID,
@@ -4894,7 +4895,6 @@ sub dv_daily_fees {
       );
 
       foreach my $u (@$ulist) {
-
         #Check bill id and deposit
         my %user = (
           LOGIN => $u->[0],
@@ -4908,6 +4908,7 @@ sub dv_daily_fees {
           CREDIT    => ($u->[3] > 0) ? $u->[3] : ($CONF->{user_credit_change}) ? 0 : $line->[15],
           DV_STATUS => $u->[5],
         );
+
 
         if (defined($user{BILL_ID}) && $user{BILL_ID} > 0 && defined($user{DEPOSIT})) {
 
@@ -5019,8 +5020,8 @@ sub dv_daily_fees {
         #Ipn users for daily payments
         $ulist = $Dv->list(
           {
-            ACTIVATE     => "<='$ADMIN_REPORT{DATE}'",
-            EXPIRE       => ">'$ADMIN_REPORT{DATE}'",
+            ACTIVATE     => "!0000-00-00,<=$ADMIN_REPORT{DATE}",
+            EXPIRE       => ">$ADMIN_REPORT{DATE}",
             STATUS       => 0,
             LOGIN_STATUS => 0,
             TP_ID        => $tp_line->[0],
@@ -5125,7 +5126,7 @@ sub dv_holdup_fees {
   my $ulist = $Dv->list(
     {
       ACTIVATE     => $activate_date,
-      EXPIRE       => ">'$ADMIN_REPORT{DATE}'",
+      EXPIRE       => ">$ADMIN_REPORT{DATE}",
       STATUS       => "3",
       LOGIN_STATUS => 0,
       SORT         => 1,
@@ -5200,11 +5201,11 @@ sub dv_monthly_next_tp {
       NEXT_TP_ID => $line->[22]
     );
 
-    $Dv->{debug} = 1 if ($debug > 5);
+    $Dv->{debug} = 1 if ($debug > 6);
     my $ulist = $Dv->list(
       {
         ACTIVATE     => $activate_date,
-        EXPIRE       => ">'$ADMIN_REPORT{DATE}'",
+        EXPIRE       => ">$ADMIN_REPORT{DATE}",
         STATUS       => "0",
         LOGIN_STATUS => 0,
         TP_ID        => $TP_INFO{TP_ID},
@@ -5312,7 +5313,7 @@ sub dv_monthly_fees {
     my $abon_distrib        = $line->[17];
     my $postpaid            = $line->[4];
     my $month_fee           = $line->[6];
-    my $activate_date       = "<='$ADMIN_REPORT{DATE}'";
+    my $activate_date       = "!0000-00-00,<=$ADMIN_REPORT{DATE}";
     my $tp_ext_deposit_op   = $line->[14];
     my $small_deposit_block = $line->[19];
     my $fine                = $line->[21];
@@ -5334,7 +5335,7 @@ sub dv_monthly_fees {
         if ($conf{DV_MIN_USER_FULLPERIOD}) {
           $activate_date = strftime "%Y-%m-%d", localtime($date_unixtime - 86400 * 30);
           $interval      = "$activate_date/$ADMIN_REPORT{DATE}";
-          $activate_date = "='$activate_date'";
+          $activate_date = "=$activate_date";
         }
 
         my $report_list = $sessions->reports(
@@ -5356,7 +5357,7 @@ sub dv_monthly_fees {
       my $ulist = $Dv->list(
         {
           ACTIVATE     => $activate_date,
-          EXPIRE       => ">'$ADMIN_REPORT{DATE}'",
+          EXPIRE       => ">$ADMIN_REPORT{DATE}",
           STATUS       => "0;5",
           LOGIN_STATUS => 0,
           TP_ID        => $TP_ID,
@@ -5776,8 +5777,8 @@ sub dv_monthly_fees {
 
         $ulist = $Dv->list(
           {
-            ACTIVATE     => "<='$ADMIN_REPORT{DATE}'",
-            EXPIRE       => ">'$ADMIN_REPORT{DATE}'",
+            ACTIVATE     => "!0000-00-00,$ADMIN_REPORT{DATE}",
+            EXPIRE       => ">$ADMIN_REPORT{DATE}",
             STATUS       => 0,
             LOGIN_STATUS => 0,
             TP_ID        => $tp_line->[0],

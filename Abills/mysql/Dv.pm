@@ -404,7 +404,8 @@ sub list {
 
   $self->{SEARCH_FIELDS}       = '';
   $self->{SEARCH_FIELDS_COUNT} = 0;
-
+  
+ 
   @WHERE_RULES = ("u.uid = dv.uid");
 
   if ($attr->{USERS_WARNINGS}) {
@@ -457,36 +458,11 @@ sub list {
     my $list = $self->{list};
     return $list;
   }
-
-  if ($attr->{LOGIN}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{LOGIN}, 'STR', 'u.id') };
-  }
+  
+  push @WHERE_RULES, @{ $self->search_expr_users($attr) };
 
   if ($attr->{IP}) {
-    if ($attr->{IP} =~ m/\*/g) {
-      my ($i, $first_ip, $last_ip);
-      my @p = split(/\./, $attr->{IP});
-      for ($i = 0 ; $i < 4 ; $i++) {
-
-        if ($p[$i] eq '*') {
-          $first_ip .= '0';
-          $last_ip  .= '255';
-        }
-        else {
-          $first_ip .= $p[$i];
-          $last_ip  .= $p[$i];
-        }
-        if ($i != 3) {
-          $first_ip .= '.';
-          $last_ip  .= '.';
-        }
-      }
-      push @WHERE_RULES, "(dv.ip>=INET_ATON('$first_ip') and dv.ip<=INET_ATON('$last_ip'))";
-    }
-    else {
-      push @WHERE_RULES, @{ $self->search_expr($attr->{IP}, 'IP', 'dv.ip') };
-    }
-
+    push @WHERE_RULES, @{ $self->search_expr($attr->{IP}, 'IP', 'dv.ip') };
     $self->{SEARCH_FIELDS} = 'INET_NTOA(dv.ip), ';
     $self->{SEARCH_FIELDS_COUNT}++;
   }
@@ -503,10 +479,6 @@ sub list {
 
   if ($attr->{NETMASK}) {
     push @WHERE_RULES, @{ $self->search_expr($attr->{NETMASK}, 'IP', 'INET_NTOA(dv.netmask)', { EXT_FIELD => 1 }) };
-  }
-
-  if ($attr->{DEPOSIT}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{DEPOSIT}, 'INT', 'b.deposit') };
   }
 
   if ($attr->{JOIN_SERVICE}) {
@@ -536,16 +508,6 @@ sub list {
     push @WHERE_RULES, @{ $self->search_expr($attr->{FILTER_ID}, 'STR', 'dv.filter_id', { EXT_FIELD => 1 }) };
   }
 
-  if ($attr->{COMMENTS}) {
-    $attr->{COMMENTS} =~ s/\*/\%/ig;
-    push @WHERE_RULES, "u.comments LIKE '$attr->{COMMENTS}'";
-  }
-
-  if ($attr->{FIO}) {
-    $attr->{FIO} =~ s/\*/\%/ig;
-    push @WHERE_RULES, "u.fio LIKE '$attr->{FIO}'";
-  }
-
   # Show users for spec tarifplan
   if (defined($attr->{TP_ID})) {
     push @WHERE_RULES, @{ $self->search_expr($attr->{TP_ID}, 'INT', 'dv.tp_id') };
@@ -561,45 +523,13 @@ sub list {
     push @WHERE_RULES, @{ $self->search_expr($attr->{PAYMENT_TYPE}, 'INT', 'tp.payment_type', { EXT_FIELD => 1 }) };
   }
 
-  # Show debeters
-  if ($attr->{DEBETERS}) {
-    push @WHERE_RULES, "u.id LIKE '$attr->{FIRST_LETTER}%'";
-  }
-
-  if (defined($attr->{COMPANY_ID}) && $attr->{COMPANY_ID} ne '') {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{COMPANY_ID}, 'INT', 'u.company_id') };
-  }
-
-  # Show groups
-  if ($attr->{GIDS}) {
-    push @WHERE_RULES, "u.gid IN ($attr->{GIDS})";
-  }
-  elsif ($attr->{GID}) {
-    push @WHERE_RULES, "u.gid='$attr->{GID}'";
-  }
-
-  #Activate
-  if ($attr->{ACTIVATE}) {
-    my $value = $self->search_expr("$attr->{ACTIVATE}", 'INT');
-    push @WHERE_RULES, "(u.activate='0000-00-00' or u.activate$attr->{ACTIVATE})";
-  }
-
-  #Expire
-  if ($attr->{EXPIRE}) {
-    my $value = $self->search_expr("$attr->{EXPIRE}", 'INT');
-    push @WHERE_RULES, "(u.expire='0000-00-00' or u.expire$attr->{EXPIRE})";
-  }
-
   #DIsable
   if (defined($attr->{STATUS}) && $attr->{STATUS} ne '') {
     push @WHERE_RULES, @{ $self->search_expr($attr->{STATUS}, 'INT', 'dv.disable') };
   }
 
-  if (defined($attr->{LOGIN_STATUS})) {
-    push @WHERE_RULES, "u.disable='$attr->{LOGIN_STATUS}'";
-  }
+  my $EXT_TABLE = $self->{EXT_TABLES};
 
-  my $EXT_TABLE = '';
   if ($attr->{EXT_BILL}) {
     $self->{SEARCH_FIELDS} .= 'if(u.company_id > 0, ext_cb.deposit, ext_b.deposit), ';
     $self->{SEARCH_FIELDS_COUNT}++;
