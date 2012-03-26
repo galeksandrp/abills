@@ -93,7 +93,7 @@ require $Bin . "/../Abills/modules/Docs/lng_$conf{default_language}.pl";
 require "language/$conf{default_language}.pl";
 
 $html->{language} = $conf{default_language};
-require "Misc.pl";
+require "Abills/Misc.pm";
 
 my $ARGV = parse_arguments(\@ARGV);
 if (defined($ARGV->{help})) {
@@ -422,7 +422,7 @@ sub periodic_invoice {
   }
 }
 
-1
+
 
 #**********************************************************
 #
