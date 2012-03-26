@@ -1723,11 +1723,15 @@ sub user_list {
       my $from_date = $1;
       my $to_date   = $2;
 
-      push @WHERE_RULES, "(u.activate='0000-00-00' 
-      AND (( service.invoice_date + INTERVAL service.invoicing_period MONTH - INTERVAL 10 day>='$from_date'
-           AND service.invoice_date + INTERVAL service.invoicing_period MONTH - INTERVAL 10 day<='$to_date'  )
-      OR   (service.invoice_date + INTERVAL 30*service.invoicing_period+service.invoicing_period-1 DAY - INTERVAL 10 day>='$from_date' 
-           AND service.invoice_date + INTERVAL 30*service.invoicing_period+service.invoicing_period-1 DAY - INTERVAL 10 day<='$to_date' )))";  		
+      push @WHERE_RULES, "( 
+      (u.activate='0000-00-00'
+           AND service.invoice_date + INTERVAL service.invoicing_period MONTH - INTERVAL 10 day>='$from_date'
+           AND service.invoice_date + INTERVAL service.invoicing_period MONTH - INTERVAL 10 day<='$to_date'
+      )
+      OR ( u.activate='0000-00-00'
+           AND service.invoice_date + INTERVAL 30*service.invoicing_period+service.invoicing_period-1 DAY - INTERVAL 10 day>='$from_date' 
+           AND service.invoice_date + INTERVAL 30*service.invoicing_period+service.invoicing_period-1 DAY - INTERVAL 10 day<='$to_date' 
+      ))";  		
   	}
     else {
       push @WHERE_RULES, "(u.activate='0000-00-00' AND service.invoice_date + INTERVAL service.invoicing_period MONTH - INTERVAL 10 day='$attr->{PRE_INVOICE_DATE}') 

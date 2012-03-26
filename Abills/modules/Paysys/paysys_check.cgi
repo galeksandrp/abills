@@ -1508,6 +1508,8 @@ elsif($FORM{LMI_HASH}) {
                  PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}"
                });
 
+  cross_modules_call('_payments_maked', { USER_INFO => $user, QUITE => 1 });
+
   $output2 .= "Paysys:".$Paysys->{errno} if ($Paysys->{errno});
   $output2 .= "CHECK_SUM: $checksum\n";
 }
@@ -1706,8 +1708,9 @@ sub cross_modules_call  {
 eval {
   my %full_return  = ();
   my @skip_modules = ();
-  open($SAVEOUT, ">&", STDOUT) or die "XXXX: $!";
 
+  #disable stdout output
+  open($SAVEOUT, ">&", STDOUT) or die "XXXX: $!";
   #Reset out
   open STDIN, '/dev/null';
   open STDOUT, '/dev/null';
@@ -1735,6 +1738,7 @@ eval {
    }
 };
 
+  # off disable stdout output
   open (STDOUT, ">&", $SAVEOUT); 
   return \%full_return;
 }
