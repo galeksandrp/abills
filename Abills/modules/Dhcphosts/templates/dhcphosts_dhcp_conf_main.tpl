@@ -6,7 +6,7 @@ ddns-update-style none;
 one-lease-per-client true;
 deny duplicates;
 
-lease-file-name \"/var/db/dhcpd/dhcpd.leases\";
+%LEASES_FILE%
 
 
 #Static route

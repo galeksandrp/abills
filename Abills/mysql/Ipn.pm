@@ -1094,6 +1094,7 @@ sub ipn_log_rotate {
   my $self = shift;
   my ($attr) = @_;
 
+  #yesterday date
   my $DATE = (strftime "%Y_%m_%d", localtime(time - 86400));
 
   my ($Y, $M, $D) = split(/_/, $DATE);
@@ -1119,6 +1120,51 @@ sub ipn_log_rotate {
     }
   }
 
+  if($attr->{DAILY_LOG}) {
+    push @rq, 'DROP TABLE IF EXISTS ipn_log_new;',
+    'CREATE TABLE ipn_log_new LIKE ipn_log;',
+    'DROP TABLE IF EXISTS ipn_log_backup;',
+    'RENAME TABLE ipn_log TO ipn_log_backup, ipn_log_new TO ipn_log;',
+    'CREATE TABLE IF NOT EXISTS ipn_log_' . $Y . '_' . $M . '_'. $D .' LIKE ipn_log;',
+    'INSERT INTO ipn_log_' . $Y . '_' . $M . '_' . $D ." (
+        uid, 
+        start,
+        stop,
+        traffic_class, 
+        traffic_in,
+        traffic_out,
+        nas_id, ip, 
+        interval_id, 
+        sum, 
+        session_id
+         )
+       SELECT 
+        uid, DATE_FORMAT(start, '%Y-%m-%d %H'), DATE_FORMAT(stop, '%Y-%m-%d %H'), traffic_class, 
+        sum(traffic_in), sum(traffic_out), 
+        nas_id, ip, interval_id, sum(sum), session_id
+        FROM ipn_log_backup
+        WHERE DATE_FORMAT(start, '%Y-%m-%d')='$Y-$M-$D'
+        GROUP BY 2, traffic_class, ip, session_id;", "INSERT INTO ipn_log (
+        uid, 
+        start,
+        stop,
+        traffic_class, 
+        traffic_in,
+        traffic_out,
+        nas_id, ip, 
+        interval_id, 
+        sum, 
+        session_id
+         )
+       SELECT 
+        uid, DATE_FORMAT(start, '%Y-%m-%d'), DATE_FORMAT(stop, '%Y-%m-%d'), traffic_class, 
+        sum(traffic_in), sum(traffic_out), 
+        nas_id, ip, interval_id, sum(sum), session_id
+        FROM ipn_log_backup
+        WHERE DATE_FORMAT(start, '%Y-%m-%d')>'$Y-$M-$D'
+        GROUP BY 2, traffic_class, ip, session_id;";
+   }
+
   #IPN log rotate
   if ($attr->{LOG} && $version > 4.1) {
     push @rq, 'DROP TABLE IF EXISTS ipn_log_new;',
@@ -1143,7 +1189,7 @@ sub ipn_log_rotate {
         sum(traffic_in), sum(traffic_out), 
         nas_id, ip, interval_id, sum(sum), session_id
         FROM ipn_log_backup
-        WHERE DATE_FORMAT(start, '%Y-%m')<'$Y-$M'
+        WHERE DATE_FORMAT(start, '%Y-%m')='$Y-$M'
         GROUP BY 2, traffic_class, ip, session_id;", "INSERT INTO ipn_log (
         uid, 
         start,
@@ -1161,7 +1207,7 @@ sub ipn_log_rotate {
         sum(traffic_in), sum(traffic_out), 
         nas_id, ip, interval_id, sum(sum), session_id
         FROM ipn_log_backup
-        WHERE DATE_FORMAT(start, '%Y-%m')='$Y-$M'
+        WHERE DATE_FORMAT(start, '%Y-%m')>'$Y-$M'
         GROUP BY 2, traffic_class, ip, session_id;";
   }
 

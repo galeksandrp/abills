@@ -1,7 +1,7 @@
 <form action='$SELF_URL' METHOD=POST>
 <input type=hidden name=index value=$index>
 <input type=hidden name=ID value='$FORM{chg}'>
-<table>
+<table class=form>
 <tr><th class=form_title colspan=3>$_NETWORKS</th><tr>
 <tr><td>$_HOSTS_NETWORKS_NAME:</td><td colspan=2><input type=text name='NAME' value='%NAME%'></td></tr>
 <tr><td>$_COMMENTS:</td><td colspan=2><input type=text name='COMMENTS' value='%COMMENTS%' size=50></td></tr>
@@ -22,6 +22,6 @@
 <tr><td>$_DISABLE:</td><td colspan=2><input type=checkbox name='DISABLE' value=1 %DISABLE%></td></tr>
 <tr><td>$_TYPE:</td><td colspan=2>%PARENT_SEL%</td></tr>
 <tr><td>GUEST VLAN:</td><td colspan=2><input type=text name='GUEST_VLAN' value='%GUEST_VLAN%'></td></tr>
+<tr><th colspan=3 class=even><input type=submit name=%ACTION% value='%ACTION_LNG%'></th></tr>
 </table>
-<input type=submit name=%ACTION% value='%ACTION_LNG%'>
 </form>
