@@ -399,7 +399,6 @@ TABLE.border {
 }
 
 .MENU_BACK {
-  background:#CECECE;
   width:260px;
 }
 
@@ -598,7 +597,6 @@ div#tcal td:hover {
 .top_result_baloon {
   color: #FFF;
   cursor: pointer;
-/* background: url('/img/mv_bg.png'); */
   background: rgba(0, 0, 0, 0.75);
   margin: 0 auto;
   -moz-border-radius: 5px;

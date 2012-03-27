@@ -127,7 +127,7 @@ sub internet_fees_monitor {
   $PG        = ($attr->{PG})        ? $attr->{PG}        : 0;
   $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
 
-  @WHERE_RULES =  @{ $self->search_expr_users($attr) };
+  @WHERE_RULES = @{ $self->search_expr_users($attr) };
 
   if ($attr->{TP_ID}) {
     push @WHERE_RULES, @{ $self->search_expr($attr->{TP_ID}, 'INT', 'tp.id') };
