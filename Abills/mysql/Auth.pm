@@ -305,7 +305,6 @@ sub dv_auth {
 
   #Chack Company account if ACCOUNT_ID > 0
   if ($self->{PAYMENT_TYPE} == 0) {
-
     #if not defined user credit use TP credit
     $self->{CREDIT} = $self->{TP_CREDIT} if ($self->{CREDIT} == 0 && !$CONF->{user_credit_change});
     $self->{DEPOSIT} = $self->{DEPOSIT} + $self->{CREDIT} - $self->{CREDIT_TRESSHOLD};
