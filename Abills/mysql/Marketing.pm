@@ -115,7 +115,7 @@ sub report1 {
 }
 
 #**********************************************************
-# report1()
+# internet_fees_monitor()
 #**********************************************************
 sub internet_fees_monitor {
   my $self   = shift;
@@ -127,29 +127,7 @@ sub internet_fees_monitor {
   $PG        = ($attr->{PG})        ? $attr->{PG}        : 0;
   $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
 
-  $self->{SEARCH_FIELDS}       = '';
-  $self->{SEARCH_FIELDS_COUNT} = 0;
-
-  @WHERE_RULES = ();
-
-  # Start letter
-  if ($attr->{FIRST_LETTER}) {
-    push @WHERE_RULES, "u.id LIKE '$attr->{FIRST_LETTER}%'";
-  }
-  elsif ($attr->{LOGIN}) {
-    $attr->{LOGIN_EXPR} =~ s/\*/\%/ig;
-    push @WHERE_RULES, "u.id='$attr->{LOGIN}'";
-  }
-
-  # Login expresion
-  elsif ($attr->{LOGIN_EXPR}) {
-    $attr->{LOGIN_EXPR} =~ s/\*/\%/ig;
-    push @WHERE_RULES, "u.id LIKE '$attr->{LOGIN_EXPR}'";
-  }
-
-  if ($attr->{DEPOSIT}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{DEPOSIT}, 'INT', 'u.deposit') };
-  }
+  @WHERE_RULES =  @{ $self->search_expr_users($attr) };
 
   if ($attr->{TP_ID}) {
     push @WHERE_RULES, @{ $self->search_expr($attr->{TP_ID}, 'INT', 'tp.id') };

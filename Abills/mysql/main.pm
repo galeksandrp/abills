@@ -501,6 +501,10 @@ sub search_expr_users () {
   my ($attr) = @_;
   my @fields = ();
 
+  $self->{SEARCH_FIELDS}       = '';
+  $self->{SEARCH_FIELDS_COUNT} = 0;
+
+
   #ID:type:Field name
   my %users_fields_hash = (
     LOGIN        => 'STR:u.id',
@@ -548,16 +552,63 @@ sub search_expr_users () {
     $ext_fields{$id}=1;
   }
 
-
+  my $info_field = 0;
   foreach my $key (keys %{ $attr }) {
   	if ($users_fields_hash{$key}) {
   		my ($type, $field) = split(/:/, $users_fields_hash{$key});
   		next if ($type eq 'STR' && ! $attr->{$key});
   		push @fields, @{ $self->search_expr($attr->{$key}, $type, "$field", { EXT_FIELD => $ext_fields{$key} }) };
     }
+    elsif (! $info_field && $key =~ /^_/) {
+    	$info_field=1;
+    }
   }
 
 
+  #Info fields
+  if ($info_field) {
+    my $list = $self->config_list({ PARAM => 'ifu*', SORT => 2 });
+
+    if ($self->{TOTAL} > 0) {
+      foreach my $line (@$list) {
+        if ($line->[0] =~ /ifu(\S+)/) {
+          my $field_name = $1;
+          my ($position, $type, $name) = split(/:/, $line->[1]);
+
+          if (defined($attr->{$field_name}) && $type == 4) {
+            push @WHERE_RULES, 'pi.' . $field_name . "='$attr->{$field_name}'";
+          }
+
+          #Skip for bloab
+          elsif ($type == 5) {
+            next;
+          }
+          elsif ($attr->{$field_name}) {
+            if ($type == 1) {
+              my $value = $self->search_expr("$attr->{$field_name}", 'INT');
+              push @WHERE_RULES, "(pi." . $field_name . "$value)";
+            }
+            elsif ($type == 2) {
+              push @WHERE_RULES, "(pi.$field_name='$attr->{$field_name}')";
+              $self->{SEARCH_FIELDS} .= "$field_name" . '_list.name, ';
+              $self->{SEARCH_FIELDS_COUNT}++;
+
+              $self->{EXT_TABLES} .= "
+              LEFT JOIN $field_name" . "_list ON (pi.$field_name = $field_name" . "_list.id)";
+              next;
+            }
+            else {
+              $attr->{$field_name} =~ s/\*/\%/ig;
+              push @WHERE_RULES, "pi.$field_name LIKE '$attr->{$field_name}'";
+            }
+            $self->{SEARCH_FIELDS} .= "pi.$field_name, ";
+            $self->{SEARCH_FIELDS_COUNT}++;
+          }
+        }
+      }
+      $self->{EXTRA_FIELDS} = $list;
+    }
+  }
 
   if ($attr->{GIDS}) {
     push @WHERE_RULES, "u.gid IN ($attr->{GIDS})";

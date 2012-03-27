@@ -402,10 +402,6 @@ sub list {
     $GROUP_BY = $attr->{GROUP_BY};
   }
 
-  $self->{SEARCH_FIELDS}       = '';
-  $self->{SEARCH_FIELDS_COUNT} = 0;
-  
- 
   @WHERE_RULES = ("u.uid = dv.uid");
 
   if ($attr->{USERS_WARNINGS}) {
@@ -612,6 +608,10 @@ sub report_debetors {
   
   my @WHERE_RULES  = ();
 
+  if (! $attr->{PERIOD}) {
+    $attr->{PERIOD} = 1;
+  }
+
   $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES) : '';
 
   $self->query($db, "SELECT u.id, 
@@ -638,7 +638,7 @@ sub report_debetors {
      LEFT JOIN tarif_plans tp ON (tp.id=dv.tp_id) 
      LEFT JOIN companies company ON  (u.company_id=company.id) 
      LEFT JOIN bills cb ON  (company.bill_id=cb.id)
-     WHERE if(u.company_id > 0, cb.deposit, b.deposit) < 0 - tp.month_fee $WHERE 
+     WHERE if(u.company_id > 0, cb.deposit, b.deposit) < 0 - tp.month_fee*$attr->{PERIOD} $WHERE 
      GROUP BY u.id
      ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;"
   );
