@@ -1,5 +1,30 @@
 =====0.54=====
 
+20.03.2012\\
+
+  * ''Iptv'' Отчёт использования каналов пользователями
+  * ''Marketing'' Отчёт по использованию Triplay  услуг провайдера
+  * ''Docs'' усовершенствована программа генерации переодических счетов на оплату
+  * ''Docs'' Признак счета 'удалён'
+  * $conf{PAYMENTS_NOT_CREATE_INVOICE} Не создавать счет при оплате, выбор только из списка счетов
+  * ''Dv'' $conf{DV_TP_CHG_FREE}='360'; Бесплатная смена тарифного плана для абонента являющегося пользователям больше указанного периода времени. Указывается в днях.
+  * ''Bonus'' установка скидки при оплате на определённый период
+  * ''Iptv'' Добавлена возможность запускать внешние программы при изменении и обалдении сервиса  $conf{IPTV_USER_EXT_CMD} 
+  * ''Iptv'' iptv_access_ctl.pl  программа контроля доступа абонентов 
+  * ''Voip'' Добавлена опция NAT
+  * ''Cards'' Запрет пополнения пользователям прикреплённым к компаниям $conf{CARDS_SKIP_COMPANY}
+  * ''Cards'' Расширенный отчет по дилерам
+  * $oonf{PAYMENTS_NOT_CHECK_INVOICE_SUM}=1  отключить при пополнении проверку на точность сумы оплаты и счета 
+
+
+MySQL:\\
+  ALTER TABLE `voip_main` ADD COLUMN `nat` tinyint(1) unsigned NOT NULL default '1';
+  ALTER TABLE `docs_invoices` ADD COLUMN `deleted` tinyint(1) unsigned NOT NULL default '1';
+  ALTER TABLE `dv_main` ADD COLUMN `free_turbo_mode` smallint(6) unsigned NOT NULL default '0';
+
+
+
+
 12.02.2012\\
   * ''Docs'' Изменена структура базы данных для модуля документов. внимательно при обновлении! таблица docs_invoice переименована в docs_receipts, таблица docs_accounts в docs_invoices, также изменились шаблоны: с invoice на  receipt,  account   на invoice
   * При оплате в валюте отличающейся от системной сума валюты оплаты и код валюты  вносится в журнал платежей 
@@ -28,7 +53,9 @@ MySQL:\\
   ALTER TABLE `docs_main` ADD COLUMN  `invoice_date` date NOT NULL default '0000-00-00';
   ALTER TABLE `docs_receipts` ADD COLUMN  `exchange_rate` double(12,4) NOT NULL default '0.0000';
   ALTER TABLE `docs_receipts` ADD COLUMN  `currency` smallint(6) unsigned  NOT NULL default 0;
-
+  
+  ALTER TABLE `docs_invoices` ADD COLUMN  `exchange_rate` double(12,4) NOT NULL default '0.0000';
+  ALTER TABLE `docs_invoices` ADD COLUMN  `currency` smallint unsigned  NOT NULL default 0;
 
 6.02.2012\\
   * ''Docs'' добавлен флаг персональной доставки документов
@@ -128,8 +155,8 @@ MySQL:\\
 
   ALTER TABLE `docs_invoice_orders` ADD COLUMN `fees_id` int(11) unsigned NOT NULL default 0;
   ALTER TABLE `docs_invoice_orders` ADD key fees_id (fees_id);
-  ALTER TABLE `docs_invoice` ADD COLUMN `deposit` double(15,6) NOT NULL default '0.000000';
-  ALTER TABLE `docs_invoice` ADD COLUMN `delivery_status` tinyint(2) unsigned NOT NULL default '0';
+  ALTER TABLE `docs_invoices` ADD COLUMN `deposit` double(15,6) NOT NULL default '0.000000';
+  ALTER TABLE `docs_invoices` ADD COLUMN `delivery_status` tinyint(2) unsigned NOT NULL default '0';
 
 
 28.11.2011\\

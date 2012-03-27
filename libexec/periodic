@@ -802,7 +802,7 @@ sub debetors_group_create {
       my $last_payments = $line->[ 4 + $users->{SEARCH_FIELDS_COUNT} ];
       $DEBUG .= "$line->[0] ($uid) DEPOSIT: $line->[2] CREDIT: $line->[3] LAST_PAYMENT: $last_payments GID: $gid -> $GID\n" if ($debug > 0);
 
-      my $comments = "$line->[6]";
+      my $comments = $line->[6] || '';
       if ($debug < 5) {
 
         #Check group if not exist create it

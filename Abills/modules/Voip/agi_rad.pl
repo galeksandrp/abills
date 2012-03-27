@@ -27,7 +27,7 @@ Abills::Radius->import();
 
 my $debug = 1;
 
-$conf{'VOIP_DEFAULTDIALTIMEOUT'}=20 if (! $conf{'VOIP_DEFAULTDIALTIMEOUT'});
+$conf{'VOIP_DEFAULTDIALTIMEOUT'}=120 if (! $conf{'VOIP_DEFAULTDIALTIMEOUT'});
 #Max session time (sec)
 #default 10800 (3hrs)
 $conf{'VOIP_MAX_SESSION_TIME'}=10800 if (! $conf{'VOIP_MAX_SESSION_TIME'});

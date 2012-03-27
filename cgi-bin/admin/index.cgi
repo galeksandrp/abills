@@ -6268,7 +6268,7 @@ sub get_fees_types {
   use Finance;
   my %FEES_METHODS = ();
   my $fees         = Finance->fees($db, $admin, \%conf);
-  my $list         = $fees->fees_type_list({});
+  my $list         = $fees->fees_type_list({ PAGE_ROWS => 10000 });
   foreach my $line (@$list) {
     if ($FORM{METHOD} && $FORM{METHOD} == $line->[0]) {
       $FORM{SUM}      = $line->[3] if ($line->[3] > 0);
@@ -6828,8 +6828,8 @@ sub form_search {
         $info{SEL_METHOD} = $html->form_select(
           'METHOD',
           {
-            SELECTED => (defined($FORM{METHOD}) && $FORM{METHOD} ne '') ? $FORM{METHOD} : '',
-            SEL_HASH => get_fees_types(),
+            SELECTED     => (defined($FORM{METHOD}) && $FORM{METHOD} ne '') ? $FORM{METHOD} : '',
+            SEL_HASH     => get_fees_types(),
             ARRAY_NUM_ID => 1,
             SEL_OPTIONS  => { '' => $_ALL }
           }

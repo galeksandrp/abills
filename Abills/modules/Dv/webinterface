@@ -7820,8 +7820,6 @@ $table = $html->table(
 );
 
 print $table->show();
-
-
 }
 
 1

@@ -22,7 +22,7 @@
                             );
 
 
-%PERIODIC = (daily   => [ 'cards_bruteforce_clean' ] );
+%PERIODIC = (daily   => [ 'cards_bruteforce_clean', 'cards_periodic' ] );
 
 
 1

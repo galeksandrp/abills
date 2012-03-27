@@ -1058,22 +1058,17 @@ sub log_list {
 
   $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES) : '';
 
-  $self->query(
-    $db, "SELECT l.datetime, l.hostname, l.message_type, l.message
+  $self->query($db, "SELECT l.datetime, l.hostname, l.message_type, l.message
      FROM (dhcphosts_log l)
      $WHERE
-     ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;"
-  );
+     ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");
 
   return $self if ($self->{errno});
 
   my $list = $self->{list};
 
   if ($self->{TOTAL} > 0) {
-    $self->query(
-      $db, "SELECT count(*) FROM dhcphosts_log l
-     $WHERE"
-    );
+    $self->query($db, "SELECT count(*) FROM dhcphosts_log l $WHERE");
     ($self->{TOTAL}) = @{ $self->{list}->[0] };
   }
 
