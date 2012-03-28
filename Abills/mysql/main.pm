@@ -142,7 +142,6 @@ sub query {
         $q->execute(@$line);
         if ($db->err) {
           $self->{errno} = 3;
-
           $self->{sql_errno}  = $db->err;
           $self->{sql_errstr} = $db->errstr;
           $self->{errstr}     = $db->errstr;
@@ -562,6 +561,7 @@ sub search_expr_users () {
   my $info_field = 0;
   foreach my $key (keys %{ $attr }) {
   	if ($users_fields_hash{$key}) {
+  		next if ($ext_fields{$key.':skip'});
   		my ($type, $field) = split(/:/, $users_fields_hash{$key});
   		next if ($type eq 'STR' && ! $attr->{$key});
   		push @fields, @{ $self->search_expr($attr->{$key}, $type, "$field", { EXT_FIELD => $ext_fields{$key} }) };
@@ -622,19 +622,6 @@ sub search_expr_users () {
   elsif ($attr->{GID}) {
     push @fields,  @{ $self->search_expr($attr->{GID}, 'INT', 'u.gid', { EXT_FIELD => $ext_fields{GID} }) };
   }
-
-  if ($CONF->{EXT_BILL_ACCOUNT}) {
-    $self->{SEARCH_FIELDS} .= 'if(company.id IS NULL,ext_b.deposit,ext_cb.deposit), ';
-    $self->{SEARCH_FIELDS_COUNT}++;
-    if ($attr->{EXT_BILL_ID}) {
-      my $value = $self->search_expr($attr->{EXT_BILL_ID}, 'INT');
-      push @fields, "if(company.id IS NULL,ext_b.id,ext_cb.id)$value";
-    }
-    $self->{EXT_TABLES} = "
-            LEFT JOIN bills ext_b ON (u.ext_bill_id = ext_b.id)
-            LEFT JOIN bills ext_cb ON  (company.ext_bill_id=ext_cb.id) ";
-  }
-
 
   if ($attr->{NOT_FILLED}) {
     push @fields, "builds.id IS NULL";

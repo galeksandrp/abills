@@ -668,8 +668,6 @@ sub list {
   $PG        = ($attr->{PG})        ? $attr->{PG}        : 0;
   $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
 
-  my $search_fields = '';
-
   @WHERE_RULES = @{ $self->search_expr_users({ %$attr, 
   	                         EXT_FIELDS => [ 'UID',
   	                                        'PHONE',
@@ -704,6 +702,18 @@ sub list {
   }
   elsif (defined($admin->{DOMAIN_ID})) {
     push @WHERE_RULES, @{ $self->search_expr("$admin->{DOMAIN_ID}", 'INT', 'u.domain_id', { EXT_FIELD => 0 }) };
+  }
+
+  if ($CONF->{EXT_BILL_ACCOUNT}) {
+    $self->{SEARCH_FIELDS} .= 'if(company.id IS NULL,ext_b.deposit,ext_cb.deposit), ';
+    $self->{SEARCH_FIELDS_COUNT}++;
+    if ($attr->{EXT_BILL_ID}) {
+      my $value = $self->search_expr($attr->{EXT_BILL_ID}, 'INT');
+      push @WHERE_RULES, "if(company.id IS NULL,ext_b.id,ext_cb.id)$value";
+    }
+    $self->{EXT_TABLES} = "
+            LEFT JOIN bills ext_b ON (u.ext_bill_id = ext_b.id)
+            LEFT JOIN bills ext_cb ON  (company.ext_bill_id=ext_cb.id) ";
   }
 
   # Show debeters
@@ -910,7 +920,7 @@ sub list {
      $EXT_TABLES
      $WHERE ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;",
      undef,
-     { COLS_NAME => $attr->{COLS_NAME} }
+     $attr 
   );
 
   return $self if ($self->{errno});

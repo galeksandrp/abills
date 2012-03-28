@@ -359,7 +359,7 @@ sub admin_report_daily {
   #Payments
   require Finance;
   Finance->import();
-  my $payments = Finance->payments($db, $admin, \%conf);
+  my $Payments = Finance->payments($db, $admin, \%conf);
 
   $ADMIN_REPORT{PAYMENTS} = sprintf("%-14s|%-28s| %20s| %8s| %12s| %15s| %19s|\n", $_LOGIN, "$_FIO", $_DESCRIBE, $_SUM, 'Admins.', 'IP', $_DATE);
   $ADMIN_REPORT{PAYMENTS} .= "---------------------------------------------------------\n";
@@ -369,39 +369,51 @@ sub admin_report_daily {
   $LIST_PARAMS{DESC}      = 'DESC';
   $LIST_PARAMS{PAGE_ROWS} = 1000000;
 
-  $list = $payments->list({ %LIST_PARAMS, FIO => '*' });
+  $list = $Payments->list({ %LIST_PARAMS, 
+  	                        FIO       => '*',
+  	                        COLS_NAME => 1 
+  	                      });
 
   foreach my $line (@$list) {
-    $ADMIN_REPORT{PAYMENTS} .= sprintf("%-14s|%-28s| %20s| %8.4f| %12s| %15s| %19s|\n", $line->[1] || '', $line->[2] || '', $line->[4] || '', $line->[5] || '', $line->[6] || '', $line->[7] || '', $line->[3] || '');
+    $ADMIN_REPORT{PAYMENTS} .= sprintf("%-14s|%-28s| %20s| %8.4f| %12s| %15s| %19s|\n", 
+     $line->{id}  || '', 
+     $line->{fio} || '', 
+     $line->{dsc} || '', 
+     $line->{sum} || '', 
+     $line->{admin_name} || '', 
+     $line->{ip}  || '',
+     $line->{date}|| ''
+    );
   }
 
   $ADMIN_REPORT{PAYMENTS} .= "---------------------------------------------------------\n";
-  $ADMIN_REPORT{PAYMENTS} .= sprintf("%-14s| %8s|\n%-14s| %8s|\n", $_TOTAL, $payments->{TOTAL}, $_SUM, $payments->{SUM});
+  $ADMIN_REPORT{PAYMENTS} .= sprintf("%-14s| %8s|\n%-14s| %8s|\n", $_TOTAL, $Payments->{TOTAL}, $_SUM, $Payments->{SUM});
 
   #Fees
-  my $fees = Finance->fees($db, $admin, \%conf);
+  my $Fees = Finance->fees($db, $admin, \%conf);
 
   # Daily fees report
   $ADMIN_REPORT{FEES} .= sprintf("%-14s|%-28s| %8s| %20s| %12s| %15s| %8s\n", $_LOGIN, $_FIO, $_DESCRIBE, $_SUM, $_TYPE, $_ADMINS, 'IP', $_DEPOSIT);
   $ADMIN_REPORT{FEES} .= "---------------------------------------------------------\n";
 
-  $list = $fees->list({ %LIST_PARAMS, FIO => '*' });
+  $list = $Fees->list({ %LIST_PARAMS, 
+  	                    FIO       => '*',
+  	                    COLS_NAME => 1 });
   foreach my $line (@$list) {
-
     $ADMIN_REPORT{FEES} .= sprintf("%-14s|%-28s| %20s| %8.4f| %12s | %12s| %15s| %8.4f\n", 
-      ($line->[1]) ? $line->[1] : "!Unknown", 
-      ($line->[2]) ? $line->[2] : "", 
-      $line->[4] || '', 
-      $line->[5] || 0, 
-      $line->[6] || '', 
-      $line->[9] || '', 
-      $line->[10] || '', 
-      $line->[7] || 0
+      ($line->{id}) ? $line->{id} : "!Unknown", 
+      ($line->{fio}) ? $line->{fio} : "", 
+      $line->{dsc}       || '', 
+      $line->{sum}       || 0, 
+      $line->{method}    || '', 
+      $line->{admin_name}|| '', 
+      $line->{ip}        || '', 
+      $line->{deposit}   || 0
     );
   }
 
   $ADMIN_REPORT{FEES} .= "---------------------------------------------------------\n";
-  $ADMIN_REPORT{FEES} .= sprintf("%-14s| %8s|\n%-14s| %8s|\n", $_TOTAL, $fees->{TOTAL}, $_SUM, $fees->{SUM});
+  $ADMIN_REPORT{FEES} .= sprintf("%-14s| %8s|\n%-14s| %8s|\n", $_TOTAL, $Fees->{TOTAL}, $_SUM, $Fees->{SUM});
 
   #Module report functions
   foreach my $function (@reports) {
@@ -782,7 +794,6 @@ sub debetors_group_create {
       $LIST_PARAMS{PAYMENT_DAYS} = "<$LAST_PAYMENTS_DAYS";
     }
 
-    $users->{debug}=1;
     my $list = $users->list(
       {
         GID       => ($USER_GID == -1 && $#DEBETORS_GROUP == 0) ? "!$GID" : $USER_GID,
