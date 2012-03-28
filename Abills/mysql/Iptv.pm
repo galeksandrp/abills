@@ -350,18 +350,6 @@ sub user_list {
     push @WHERE_RULES, "u.id LIKE '$attr->{FIRST_LETTER}%'";
   }
 
-  #Activate
-  if ($attr->{ACTIVATE}) {
-    my $value = $self->search_expr("$attr->{ACTIVATE}", 'INT');
-    push @WHERE_RULES, "(u.activate='0000-00-00' or u.activate$attr->{ACTIVATE})";
-  }
-
-  #Expire
-  if ($attr->{EXPIRE}) {
-    my $value = $self->search_expr("$attr->{EXPIRE}", 'INT');
-    push @WHERE_RULES, "(u.expire='0000-00-00' or u.expire$attr->{EXPIRE})";
-  }
-
   #DIsable
   if (defined($attr->{STATUS})) {
     push @WHERE_RULES, "service.disable='$attr->{STATUS}'";
@@ -378,7 +366,6 @@ sub user_list {
 
     $self->{SEARCH_FIELDS} = "nas.ip, dhcp.ports, nas.nas_type, nas.mng_user, DECODE(nas.mng_password, '$CONF->{secretkey}'),";
     $self->{SEARCH_FIELDS_COUNT} += 5;
-
   }
 
   $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES) : '';
@@ -423,7 +410,9 @@ $WHERE
   AND u.uid=uc.uid
   AND ti_c.channel_id=uc.channel_id
 GROUP BY uc.uid, channel_id
-ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;"
+ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;",
+     undef,
+     $attr
     );
 
     $list = $self->{list};
@@ -455,7 +444,9 @@ ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;"
      $EXT_TABLE
      $WHERE 
      GROUP BY u.uid
-     ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;"
+     ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;",
+     undef,
+     $attr
     );
 
     return $self if ($self->{errno});

@@ -537,10 +537,11 @@ sub list {
   $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES) : '';
 
   $self->query($db, "SELECT u.id, 
-      pi.fio, if(u.company_id > 0, cb.deposit, b.deposit), 
+      pi.fio, 
+      if(u.company_id > 0, cb.deposit, b.deposit) AS deposit, 
       u.credit, 
       tp.name, 
-      dv.disable, 
+      dv.disable AS dv_status, 
       $self->{SEARCH_FIELDS}
       u.uid, 
       u.company_id, 
@@ -560,7 +561,9 @@ sub list {
      $EXT_TABLE
      $WHERE 
      GROUP BY $GROUP_BY
-     ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;"
+     ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;",
+     undef,
+     $attr
   );
 
   return $self if ($self->{errno});

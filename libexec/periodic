@@ -860,7 +860,7 @@ sub debetors_group_create {
     foreach my $line (@$list) {
       my $uid           = $line->{uid};
       my $gid           = $line->{gid};
-      my $last_payments = $line->{last_payments};
+      my $last_payments = $line->{last_payments} || '';
 
       $DEBUG .= "$line->{id} ($uid) DEPOSIT: $line->{deposit} CREDIT: $line->{credit} LAST_PAYMENT: $last_payments GID: $gid -> $DEBETORS_GIDS{$DEBETOR_GID}\n" if ($debug > 0);
 

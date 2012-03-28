@@ -2422,6 +2422,7 @@ sub form_users {
     $i++;
   }
 
+
   my $list = $users->list({ %LIST_PARAMS, FULL_LIST => 1 });
 
   if ($users->{errno}) {
@@ -2448,7 +2449,6 @@ sub form_users {
   }
 
   print $html->letters_list({ pages_qs => $pages_qs });
-
   my @TITLE = ($_LOGIN, $_FIO, $_DEPOSIT, $_CREDIT, $_STATUS, '-', '-');
   my %SEARCH_TITLES = (
     'if(company.id IS NULL,ext_b.deposit,ext_cb.deposit)' => "$_EXTRA $_DEPOSIT",
@@ -6778,7 +6778,6 @@ sub form_search {
     $html->tpl_show(templates('form_search_simple'), \%SEARCH_DATA);
   }
   elsif ($attr->{TPL}) {
-
     #defined();
   }
   elsif (!$FORM{pdf}) {

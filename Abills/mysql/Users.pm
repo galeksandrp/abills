@@ -705,13 +705,13 @@ sub list {
   }
 
   if ($CONF->{EXT_BILL_ACCOUNT}) {
-    $self->{SEARCH_FIELDS} .= 'if(company.id IS NULL,ext_b.deposit,ext_cb.deposit), ';
+    $self->{SEARCH_FIELDS} .= 'if(company.id IS NULL,ext_b.deposit,ext_cb.deposit) AS ext_deposit, ';
     $self->{SEARCH_FIELDS_COUNT}++;
     if ($attr->{EXT_BILL_ID}) {
       my $value = $self->search_expr($attr->{EXT_BILL_ID}, 'INT');
       push @WHERE_RULES, "if(company.id IS NULL,ext_b.id,ext_cb.id)$value";
     }
-    $self->{EXT_TABLES} = "
+    $self->{EXT_TABLES} .= "
             LEFT JOIN bills ext_b ON (u.ext_bill_id = ext_b.id)
             LEFT JOIN bills ext_cb ON  (company.ext_bill_id=ext_cb.id) ";
   }
@@ -746,7 +746,7 @@ sub list {
       my $value = $self->search_expr($attr->{PAYMENTS}, 'INT');
       push @WHERE_RULES,  "p.date$value";
       push @HAVING_RULES, "max(p.date)$value";
-      $self->{SEARCH_FIELDS} .= 'max(p.date), ';
+      $self->{SEARCH_FIELDS} .= 'max(p.date) AS last_payments, ';
       $self->{SEARCH_FIELDS_COUNT}++;
     }
     elsif ($attr->{PAYMENT_DAYS}) {
@@ -828,7 +828,7 @@ sub list {
       my $value = $self->search_expr($attr->{FEES}, 'INT');
       push @WHERE_RULES,  "f.date$value";
       push @HAVING_RULES, "max(f.date)$value";
-      $self->{SEARCH_FIELDS} .= 'max(f.date), ';
+      $self->{SEARCH_FIELDS} .= 'max(f.date) AS last_fees, ';
       $self->{SEARCH_FIELDS_COUNT}++;
     }
     elsif ($attr->{FEES_DAYS}) {

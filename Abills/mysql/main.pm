@@ -599,8 +599,7 @@ sub search_expr_users () {
               $self->{SEARCH_FIELDS} .= "$field_name" . '_list.name, ';
               $self->{SEARCH_FIELDS_COUNT}++;
 
-              $self->{EXT_TABLES} .= "
-              LEFT JOIN $field_name" . "_list ON (pi.$field_name = $field_name" . "_list.id)";
+              $self->{EXT_TABLES} .= "LEFT JOIN $field_name" . "_list ON (pi.$field_name = $field_name" . "_list.id)";
               next;
             }
             else {
