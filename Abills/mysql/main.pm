@@ -517,7 +517,7 @@ sub search_expr_users () {
     UID          => 'INT:u.uid',
     DEPOSIT      => 'INT:b.deposit',
     COMPANY_ID   => 'INT:u.company_id',
-    REGISTRATION => 'INT:u.registration',
+    REGISTRATION => 'DATE:u.registration',
 
     COMMENTS     => 'STR:pi.comments',
     FIO          => 'STR:pi.fio',
