@@ -459,7 +459,7 @@ sub list {
 
   if ($attr->{IP}) {
     push @WHERE_RULES, @{ $self->search_expr($attr->{IP}, 'IP', 'dv.ip') };
-    $self->{SEARCH_FIELDS} = 'INET_NTOA(dv.ip), ';
+    $self->{SEARCH_FIELDS} = 'INET_NTOA(dv.ip) AS ip, ';
     $self->{SEARCH_FIELDS_COUNT}++;
   }
 
@@ -474,7 +474,7 @@ sub list {
   }
 
   if ($attr->{NETMASK}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{NETMASK}, 'IP', 'INET_NTOA(dv.netmask)', { EXT_FIELD => 1 }) };
+    push @WHERE_RULES, @{ $self->search_expr($attr->{NETMASK}, 'IP', 'INET_NTOA(dv.netmask) AS netmask', { EXT_FIELD => 1 }) };
   }
 
   if ($attr->{JOIN_SERVICE}) {
@@ -507,12 +507,12 @@ sub list {
   # Show users for spec tarifplan
   if (defined($attr->{TP_ID})) {
     push @WHERE_RULES, @{ $self->search_expr($attr->{TP_ID}, 'INT', 'dv.tp_id') };
-    $self->{SEARCH_FIELDS} .= 'tp.name, ';
-    $self->{SEARCH_FIELDS_COUNT}++;
+    #$self->{SEARCH_FIELDS} .= 'tp.name AS tp_name, ';
+    #$self->{SEARCH_FIELDS_COUNT}++;
   }
 
   if (defined($attr->{TP_CREDIT})) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{TP_CREDIT}, 'INT', 'tp.credit', { EXT_FIELD => 1 }) };
+    push @WHERE_RULES, @{ $self->search_expr($attr->{TP_CREDIT}, 'INT', 'tp.credit AS tp_credit', { EXT_FIELD => 1 }) };
   }
 
   if (defined($attr->{PAYMENT_TYPE})) {
@@ -534,13 +534,13 @@ sub list {
      LEFT JOIN bills ext_cb ON  (company.ext_bill_id=ext_cb.id) ";
   }
 
-  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES) : '';
 
+  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES) : '';
   $self->query($db, "SELECT u.id, 
       pi.fio, 
       if(u.company_id > 0, cb.deposit, b.deposit) AS deposit, 
       u.credit, 
-      tp.name, 
+      tp.name AS tp_name, 
       dv.disable AS dv_status, 
       $self->{SEARCH_FIELDS}
       u.uid, 

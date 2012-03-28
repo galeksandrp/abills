@@ -62,7 +62,6 @@ use Admins;
 my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd}, { CHARSET => ($conf{dbcharset}) ? $conf{dbcharset} : undef });
 
 $db                 = $sql->{db};
-$sql->{db}->{debug} = 1;
 $admin              = Admins->new($db, \%conf);
 use Abills::Base;
 
@@ -2423,7 +2422,10 @@ sub form_users {
   }
 
 
-  my $list = $users->list({ %LIST_PARAMS, FULL_LIST => 1 });
+  my $list = $users->list({ %LIST_PARAMS, 
+  	                        FULL_LIST => 1,  
+  	                        COLS_NAME => 1,
+  	                      });
 
   if ($users->{errno}) {
     $html->message('err', $_ERROR, "[$users->{errno}] $err_strs{$users->{errno}}");
@@ -2432,7 +2434,7 @@ sub form_users {
   elsif ($users->{TOTAL} == 1) {
     $FORM{index} = 15;
     if (!$FORM{UID}) {
-      $FORM{UID} = $list->[0]->[ 5 + $users->{SEARCH_FIELDS_COUNT} ];
+      $FORM{UID} = $list->[0]->{uid};
       if ($FORM{LOGIN} =~ /\*/ || $FORM{LOGIN} eq '') {
         delete $FORM{LOGIN};
         $ui = user_info($FORM{UID});
@@ -2449,66 +2451,19 @@ sub form_users {
   }
 
   print $html->letters_list({ pages_qs => $pages_qs });
-  my @TITLE = ($_LOGIN, $_FIO, $_DEPOSIT, $_CREDIT, $_STATUS, '-', '-');
-  my %SEARCH_TITLES = (
-    'if(company.id IS NULL,ext_b.deposit,ext_cb.deposit)' => "$_EXTRA $_DEPOSIT",
-    'max(p.date)'                                         => "$_PAYMENTS $_DATE",
-    'pi.email'                                            => 'E-Mail',
-    'pi.address_street'                                   => $_ADDRESS,
-    'pi.pasport_date'                                     => "$_PASPORT $_DATE",
-    'pi.pasport_num'                                      => "$_PASPORT $_NUM",
-    'pi.pasport_grant'                                    => "$_PASPORT $_GRANT",
-    'pi.address_build'                                    => "$_ADDRESS_BUILD",
-    'pi.address_flat'                                     => "$_ADDRESS_FLAT",
-    'pi.city'                                             => "$_CITY",
-    'pi.zip'                                              => "$_ZIP",
-    'pi.contract_id'                                      => "$_CONTRACT_ID",
-    'u.registration'                                      => "$_REGISTRATION",
-    'pi.phone'                                            => "$_PHONE",
-    'pi.comments'                                         => "$_COMMENTS",
-    'if(company.id IS NULL,b.id,cb.id)'                   => 'BILL ID',
-    'u.activate'                                          => "$_ACTIVATE",
-    'u.expire'                                            => "$_EXPIRE",
-    'u.credit_date'                                       => "$_CREDIT $_DATE",
-    'u.reduction'                                         => "$_REDUCTION",
-    'u.domain_id'                                         => 'DOMAIN ID',
-    'builds.number'                                       => "$_BUILDS",
-    'streets.name'                                        => "$_STREETS",
-    'districts.name'                                      => "$_DISTRICTS",
-    'u.deleted'                                           => "$_DELETED",
-    'u.gid'                                               => "$_GROUP",
-    'builds.id'                                           => 'Location ID',
-    'uid'                                                 => 'UID'
-  );
 
-  if ($users->{EXTRA_FIELDS}) {
-    foreach my $line (@{ $users->{EXTRA_FIELDS} }) {
-      if ($line->[0] =~ /ifu(\S+)/) {
-        my $field_id = $1;
-        my ($position, $type, $name, $user_portal) = split(/:/, $line->[1]);
-        if ($type == 2) {
-          $SEARCH_TITLES{ $field_id . '_list.name' } = eval "\"$name\"";
-        }
-        else {
-          $SEARCH_TITLES{ 'pi.' . $field_id } = eval "\"$name\"";
-        }
-      }
-    }
-  }
-
-  my @EX_TITLE_ARR = split(/, /, $users->{SEARCH_FIELDS});
-
-  for (my $i = 0 ; $i < $users->{SEARCH_FIELDS_COUNT} ; $i++) {
-    push @TITLE, '-';
-    $TITLE[ 5 + $i ] = $SEARCH_TITLES{ $EX_TITLE_ARR[$i] } || "$_SEARCH";
-  }
+  my $TITLE = title_former({
+     INPUT_DATA      => $users,
+  	 BASE_FIELDS     => 5,
+  	 FUNCTION_FIELDS => 'payments, fees',
+    });
 
   #User list
   my $table = $html->table(
     {
       width      => '100%',
       caption    => "$_USERS - " . $statuses[$users_status],
-      title      => \@TITLE,
+      title      => $TITLE,
       cols_align => [ 'left', 'left', 'right', 'right', 'center', 'right', 'center:noprint', 'center:noprint' ],
       qs         => $pages_qs,
       pages      => $users->{TOTAL},
@@ -2531,37 +2486,34 @@ function CheckAllINBOX() {
       MENU   => "$_ADD:index=" . get_function_index('form_wizard') . ':add' . ";$_SEARCH:index=" . get_function_index('form_search') . ":search"
     }
   );
-
+  my $base_fields = 5;
   foreach my $line (@$list) {
-    my $uid      = $line->[ 5 + $users->{SEARCH_FIELDS_COUNT} ];
+    my $uid      = $line->{uid};
     my $payments = ($permissions{1}) ? $html->button($_PAYMENTS, "index=2&UID=$uid", { CLASS => 'payments' }) : '';
     my $fees     = ($permissions{2}) ? $html->button($_FEES, "index=3&UID=$uid", { CLASS => 'fees' }) : '';
 
     my @fields_array = ();
-    for (my $i = 0 ; $i < $users->{SEARCH_FIELDS_COUNT} ; $i++) {
-      if ($conf{EXT_BILL_ACCOUNT} && $i == 0) {
-        $line->[5] = ($line->[5] < 0) ? $html->color_mark($line->[5], $_COLORS[6]) : $line->[5];
+    for (my $i = $base_fields; $i < $base_fields+$users->{SEARCH_FIELDS_COUNT}; $i++) {
+      if ($conf{EXT_BILL_ACCOUNT} && $users->{COL_NAMES_ARR}->[$i] eq 'ext_bill_deposit') {
+        $line->{ext_bill_deposit} = ($line->{ext_bill_deposit} < 0) ? $html->color_mark($line->{ext_bill_deposit}, $_COLORS[6]) : $line->{ext_bill_deposit};
       }
-      elsif ($EX_TITLE_ARR[$i] eq 'u.deleted') {
-        $line->[ 5 + $i ] = $html->color_mark($bool_vals[ $line->[ 5 + $i ] ], ($line->[ 5 + $i ] == 1) ? $state_colors[ $line->[ 5 + $i ] ] : '');
+      elsif ($users->{COL_NAMES_ARR}->[$i] eq 'deleted') {
+        $line->{deleted} = $html->color_mark($bool_vals[ $line->{deleted} ], ($line->{deleted} == 1) ? $state_colors[ $line->{deleted} ] : '');
       }
-      push @fields_array, $table->td($line->[ 5 + $i ]);
+      push @fields_array, $table->td($line->{$users->{COL_NAMES_ARR}->[$i]});
     }
 
     my $multiuser = ($permissions{0}{7}) ? $html->form_input('IDS', "$uid", { TYPE => 'checkbox', }) : '';
     $table->addtd(
-      $table->td($multiuser . user_ext_menu($uid, $line->[0])),    #.$html->button($line->[0], "index=15&UID=$uid") ),
-      $table->td($line->[1]),
-      $table->td(($line->[2] + $line->[3] < 0) ? $html->color_mark($line->[2], $_COLORS[6]) : $line->[2]),
-      $table->td($line->[3]),
-      $table->td($status[ $line->[4] ], { bgcolor => $state_colors[ $line->[4] ], align => 'center' }),
-
-      #$table->td($html->img((($line->[4]) ? '/img/button_off.png' : '/img/button_activate.png'), $status[$line->[4]]), { align=>'center' }),
+      $table->td($multiuser . user_ext_menu($uid, $line->{id})),
+      $table->td($line->{fio}),
+      $table->td(($line->{deposit} + $line->{credit} < 0) ? $html->color_mark($line->{deposit}, $_COLORS[6]) : $line->{deposit}),
+      $table->td($line->{credit}),
+      $table->td($status[ $line->{disable} ], { bgcolor => $state_colors[ $line->{disable} ], align => 'center' }),
       @fields_array,
       $table->td($payments),
       $table->td($fees),
     );
-
   }
 
   my @totals_rows =
@@ -8961,6 +8913,85 @@ sub get_popup_info {
     form_nas_search();
   }
 
+}
+
+#**********************************************************
+# title_former
+#**********************************************************
+sub title_former {
+	my ($attr)=@_;
+	my @title = ();
+
+	my $data = $attr->{INPUT_DATA};
+
+	my %SEARCH_TITLES = (
+    'disable'       => "$_STATUS",
+    'deposit'       => "$_DEPOSIT",
+    'credit'        => "$_CREDIT",
+    'id'            => "$_LOGIN",
+    'fio'           => "$_FIO",
+    'ext_deposit'   => "$_EXTRA $_DEPOSIT",
+    'last_payment'  => "$_PAYMENTS $_DATE",
+    'email'         => 'E-Mail',
+    'address_street'=> $_ADDRESS,
+    'pasport_date'  => "$_PASPORT $_DATE",
+    'pasport_num'   => "$_PASPORT $_NUM",
+    'pasport_grant' => "$_PASPORT $_GRANT",
+    'address_build' => "$_ADDRESS_BUILD",
+    'address_flat'  => "$_ADDRESS_FLAT",
+    'city'          => "$_CITY",
+    'zip'           => "$_ZIP",
+    'contract_id'   => "$_CONTRACT_ID",
+    'registration'  => "$_REGISTRATION",
+    'phone'         => "$_PHONE",
+    'comments'      => "$_COMMENTS",
+    'company_id'    => '$_COMPANY_ID',
+    'bill_id'       => '$_BILLS',
+    'activate'      => "$_ACTIVATE",
+    'expire'        => "$_EXPIRE",
+    'credit_date'   => "$_CREDIT $_DATE",
+    'reduction'     => "$_REDUCTION",
+    'domain_id'     => 'DOMAIN ID',
+    'build_number'  => "$_BUILDS",
+    'streets_name'  => "$_STREETS",
+    'district_name' => "$_DISTRICTS",
+    'u.deleted'     => "$_DELETED",
+    'u.gid'         => "$_GROUP",
+    'builds.id'     => 'Location ID',
+    'uid'           => 'UID',
+    'if(company.id IS NULL,b.id,cb.id)' => "_BILL"
+  );
+
+  if ($data->{EXTRA_FIELDS}) {
+    foreach my $line (@{ $data->{EXTRA_FIELDS} }) {
+      if ($line->[0] =~ /ifu(\S+)/) {
+        my $field_id = $1;
+        my ($position, $type, $name, $user_portal) = split(/:/, $line->[1]);
+        if ($type == 2) {
+          $SEARCH_TITLES{ $field_id . '_list_name' } = eval "\"$name\"";
+        }
+        else {
+          $SEARCH_TITLES{ $field_id } = eval "\"$name\"";
+        }
+      }
+    }
+  }
+
+  %SEARCH_TITLES = ( %SEARCH_TITLES, %{ $attr->{EXT_TITLES} } );
+
+  my $base_fields  = $attr->{BASE_FIELDS};
+  my @EX_TITLE_ARR = @{ $data->{COL_NAMES_ARR} };
+  my @title        = ();
+
+  for (my $i = 0 ; $i < $base_fields+$data->{SEARCH_FIELDS_COUNT} ; $i++) {
+    $title[$i] = $SEARCH_TITLES{ $EX_TITLE_ARR[$i] } || "$_SEARCH";
+  }
+	
+	foreach my $function_fld_name ( split(/,/, $attr->{FUNCTION_FIELDS} ) ) {
+		$title[$#title+1]='-';
+	}
+	
+	return \@title;
 }
 
 1

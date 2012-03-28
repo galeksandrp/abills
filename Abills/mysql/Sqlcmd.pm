@@ -187,7 +187,7 @@ sub list {
       $self->{MYSQL_TYPE_NAME}      = $q->{mysql_type_name};
 
       $self->{TOTAL} = $q->rows;
-      if ($query !~ /INSERT |UPDATE |CREATE |DELETE /i) {
+      if ($query !~ /INSERT |UPDATE |CREATE |DELETE |ALTER |DROP /i) {
         while (my @row = $q->fetchrow()) {
           push @rows, \@row;
         }

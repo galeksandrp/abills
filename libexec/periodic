@@ -848,8 +848,8 @@ sub debetors_group_create {
     my ($GID, $DEPOSIT, $LAST_PAYMENTS_DAYS) = split(/:/, $val);
     $list = $users->list(
       {
-        GID     => $DEBETOR_GID,
-        DEPOSIT => ">$DEPOSIT",
+        GID       => $DEBETOR_GID,
+        DEPOSIT   => ">$DEPOSIT",
         #COMMENTS     => "*$_DEBETORS:*",
         #PAYMENT_DAYS => ">$LAST_PAYMENTS_DAYS",
         PAGE_ROWS => 100000,

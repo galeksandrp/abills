@@ -156,8 +156,8 @@ sub query {
       }
       $self->{TOTAL} = $q->rows;
     }
-    $self->{Q} = $q;
-    $self->{QS}++;
+    #$self->{Q} = $q;
+    #$self->{QS}++;
   }
 
   if ($db->err) {
@@ -180,6 +180,7 @@ sub query {
   if ($self->{TOTAL} > 0) {
     my @rows;
     if ($attr->{COLS_NAME}) {
+     	push @{ $self->{COL_NAMES_ARR} }, @{ $q->{NAME} };        	
       while (my $row = $q->fetchrow_hashref()) {
         push @rows, $row;
       }      
@@ -194,6 +195,7 @@ sub query {
   else {
     delete $self->{list};
   }
+
 
   $self->{query_count}++;
   return $self;
@@ -596,7 +598,7 @@ sub search_expr_users () {
             }
             elsif ($type == 2) {
               push @fields, "(pi.$field_name='$attr->{$field_name}')";
-              $self->{SEARCH_FIELDS} .= "$field_name" . '_list.name, ';
+              $self->{SEARCH_FIELDS} .= "$field_name" . '_list.name AS '. $field_name. '_list_name, ';
               $self->{SEARCH_FIELDS_COUNT}++;
 
               $self->{EXT_TABLES} .= "LEFT JOIN $field_name" . "_list ON (pi.$field_name = $field_name" . "_list.id)";
@@ -627,20 +629,20 @@ sub search_expr_users () {
     $self->{EXT_TABLES} .= "LEFT JOIN builds ON (builds.id=pi.location_id)";
   }
   elsif ($attr->{LOCATION_ID}) {
-    push @fields, @{ $self->search_expr($attr->{LOCATION_ID}, 'INT', 'pi.location_id', { EXT_FIELD => 'streets.name, builds.number, pi.address_flat, builds.id' }) };
+    push @fields, @{ $self->search_expr($attr->{LOCATION_ID}, 'INT', 'pi.location_id', { EXT_FIELD => 'streets.name AS street_name, builds.number AS build_number, pi.address_flat, builds.id AS build_id' }) };
     $self->{EXT_TABLES} .= "LEFT JOIN builds ON (builds.id=pi.location_id)
    LEFT JOIN streets ON (streets.id=builds.street_id)";
     $self->{SEARCH_FIELDS_COUNT} += 3;
   }
   else {
     if ($attr->{STREET_ID}) {
-      push @fields, @{ $self->search_expr($attr->{STREET_ID}, 'INT', 'builds.street_id', { EXT_FIELD => 'streets.name, builds.number' }) };
+      push @fields, @{ $self->search_expr($attr->{STREET_ID}, 'INT', 'builds.street_id', { EXT_FIELD => 'streets.name AS street_name, builds.number AS build_number' }) };
       $self->{EXT_TABLES} .= "LEFT JOIN builds ON (builds.id=pi.location_id)
      LEFT JOIN streets ON (streets.id=builds.street_id)";
       $self->{SEARCH_FIELDS_COUNT} += 1;
     }
     elsif ($attr->{DISTRICT_ID}) {
-      push @fields, @{ $self->search_expr($attr->{DISTRICT_ID}, 'INT', 'streets.district_id', { EXT_FIELD => 'districts.name' }) };
+      push @fields, @{ $self->search_expr($attr->{DISTRICT_ID}, 'INT', 'streets.district_id', { EXT_FIELD => 'districts.name AS district_name' }) };
       $self->{EXT_TABLES} .= "LEFT JOIN builds ON (builds.id=pi.location_id)
       LEFT JOIN streets ON (streets.id=builds.street_id)
       LEFT JOIN districts ON (districts.id=streets.district_id) ";

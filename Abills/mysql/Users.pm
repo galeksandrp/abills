@@ -923,8 +923,8 @@ sub list {
      $attr 
   );
 
-  return $self if ($self->{errno});
 
+  return $self if ($self->{errno});
   my $list = $self->{list};
 
   if ($self->{TOTAL} == $PAGE_ROWS || $PG > 0 || $attr->{FULL_LIST}) {

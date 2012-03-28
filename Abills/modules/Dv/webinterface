@@ -342,25 +342,23 @@ sub dv_users_list {
     $pages_qs .= "&letter=$FORM{letter}";
   }
 
-  my $list = $Dv->list({%LIST_PARAMS});
+  my $list = $Dv->list({%LIST_PARAMS, COLS_NAME => 1 });
+  my $TITLE = title_former({ 
+     INPUT_DATA      => $Dv, 
+  	 BASE_FIELDS     => 6,
+  	 FUNCTION_FIELDS => 'payments, stats',
+  	 EXT_TITLES      => {
+       'ip'          => 'IP',
+       'netmask'     => 'NETMASK',
+       'speed'       => $_SPEED,
+       'port'        => $_PORT,
+       'cid'         => 'CID',
+       'filter_id'   => 'Filter ID',
+       'tp_name'     => "$_TARIF_PLAN",
+       'dv_status'   => "$_STATUS"
+         }
+    });
 
-  my @TITLE = ($_LOGIN, $_FIO, $_DEPOSIT, $_CREDIT, $_TARIF_PLANS, $_STATUS, '-', '-');
-  my @EX_TITLE_ARR = split(/, /, $Dv->{SEARCH_FIELDS});
-
-  my %SEARCH_TITLES = (
-    'INET_NTOA(dv.ip)'      => 'IP',
-    'INET_NTOA(dv.netmask)' => 'NETMASK',
-    'dv.speed'              => $_SPEED,
-    'dv.port'               => $_PORT,
-    'dv.cid'                => 'CID',
-    'dv.filter_id'          => 'Filter ID',
-    'tp.name'               => "$_TARIF_PLAN"
-  );
-
-  for (my $i = 0 ; $i < $Dv->{SEARCH_FIELDS_COUNT} ; $i++) {
-    push @TITLE, '-';
-    $TITLE[ 6 + $i ] = $SEARCH_TITLES{ $EX_TITLE_ARR[$i] } || "$_SEARCR";
-  }
 
   if ($Dv->{errno}) {
     $html->message('err', $_ERROR, "[$Dv->{errno}] $err_strs{$Dv->{errno}}");
@@ -368,7 +366,7 @@ sub dv_users_list {
   }
   elsif ($Dv->{TOTAL} == 1) {
     delete $FORM{LOGIN};
-    $ui = user_info($list->[0]->[ 6 + $Dv->{SEARCH_FIELDS_COUNT} ]);
+    $ui = user_info($list->{uid});
     print $ui->{TABLE_SHOW};
     form_users({ USER_INFO => $ui });
     return 0;
@@ -379,7 +377,7 @@ sub dv_users_list {
       width      => '100%',
       caption    => "Internet - $_USERS",
       border     => 1,
-      title      => \@TITLE,
+      title      => $TITLE,
       cols_align => [ 'left', 'left', 'right', 'right', 'left', 'center', 'center:noprint', 'center:noprint' ],
       qs         => $pages_qs,
       pages      => $Dv->{TOTAL},
@@ -389,24 +387,23 @@ sub dv_users_list {
   );
 
   foreach my $line (@$list) {
-    my $payments = ($permissions{1}) ? $html->button("$_PAYMENTS", "index=2&UID=" . $line->[ 6 + $Dv->{SEARCH_FIELDS_COUNT} ], { CLASS => 'payments' }) : '';
+    my $payments = ($permissions{1}) ? $html->button("$_PAYMENTS", "index=2&UID=" . $line->{uid}, { CLASS => 'payments' }) : '';
 
     my @fields_array = ();
-    for (my $i = 0 ; $i < $Dv->{SEARCH_FIELDS_COUNT} ; $i++) {
-      push @fields_array, $line->[ 6 + $i ];
+    for (my $i = 6; $i < 6+$Dv->{SEARCH_FIELDS_COUNT} ; $i++) {
+      push @fields_array, $line->{$Dv->{COL_NAMES_ARR}->[$i]};
     }
 
     $table->addrow(
-      user_ext_menu($line->[ 6 + $Dv->{SEARCH_FIELDS_COUNT} ], $line->[0]),
-      "$line->[1]",
-      "$line->[2]",
-      "$line->[3]",
-      "$line->[4]",
-      ($line->[5] > 0) ? $html->color_mark($service_status[ $line->[5] ], $service_status_colors[ $line->[5] ]) : "$service_status[$line->[5]]",
+      user_ext_menu($line->{uid}, $line->{id}),
+      "$line->{fio}",
+      "$line->{deposit}",
+      "$line->{credit}",
+      "$line->{tp_name}",
+      ($line->{status} > 0) ? $html->color_mark($service_status[ $line->{status} ], $service_status_colors[ $line->{status} ]) : "$service_status[$line->{status}]",
       @fields_array,
       $payments,
-      $html->button("$_STATS", "index=" . ((!$FORM{TP_SHOW}) ? $index + 3 : $index - 9) . "&UID=" . $line->[ 6 + $Dv->{SEARCH_FIELDS_COUNT} ], { CLASS => 'stats' })
-
+      $html->button("$_STATS", "index=" . get_function_index('dv_stats') . "&UID=" . $line->{uid}, { CLASS => 'stats' })
     );
   }
   print $table->show();
