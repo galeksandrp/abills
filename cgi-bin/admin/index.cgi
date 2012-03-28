@@ -2477,7 +2477,8 @@ sub form_users {
     'districts.name'                                      => "$_DISTRICTS",
     'u.deleted'                                           => "$_DELETED",
     'u.gid'                                               => "$_GROUP",
-    'builds.id'                                           => 'Location ID'
+    'builds.id'                                           => 'Location ID',
+    'uid'                                                 => 'UID'
   );
 
   if ($users->{EXTRA_FIELDS}) {

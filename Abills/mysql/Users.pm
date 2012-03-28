@@ -680,6 +680,7 @@ sub list {
                                             'PASPORT_GRANT',
                                             'CITY', 
                                             'ZIP',
+                                            'GID',
                                             'CONTRACT_ID',
                                             'CONTRACT_SUFIX',
                                             'CONTRACT_DATE',
@@ -688,6 +689,7 @@ sub list {
                                             'CREDIT',
                                             'CREDIT_DATE', 
                                             'REDUCTION',
+                                            'REGISTRATION',
                                             'REDUCTION_DATE',
                                             'COMMENTS',
                                             'BILL_ID',
@@ -744,7 +746,7 @@ sub list {
 
       push @WHERE_RULES,  "p.date$value";
       push @HAVING_RULES, "max(p.date)$value";
-      $self->{SEARCH_FIELDS} .= 'max(p.date), ';
+      $self->{SEARCH_FIELDS} .= 'max(p.date) AS last_payments, ';
       $self->{SEARCH_FIELDS_COUNT}++;
     }
 
@@ -753,9 +755,9 @@ sub list {
     $self->query(
       $db, "SELECT u.id, 
        pi.fio, 
-       if(company.id IS NULL, b.deposit, cb.deposit), 
+       if(company.id IS NULL, b.deposit, cb.deposit) AS deposit, 
        if(u.company_id=0, u.credit, 
-          if (u.credit=0, company.credit, u.credit)), u.disable, 
+          if (u.credit=0, company.credit, u.credit)) AS credit, u.disable, 
        $self->{SEARCH_FIELDS}
        u.uid, 
        u.company_id, 
@@ -826,7 +828,7 @@ sub list {
 
       push @WHERE_RULES,  "p.date$value";
       push @HAVING_RULES, "max(f.date)$value";
-      $self->{SEARCH_FIELDS} .= 'max(f.date), ';
+      $self->{SEARCH_FIELDS} .= 'max(f.date) AS last_fees, ';
       $self->{SEARCH_FIELDS_COUNT}++;
     }
 
@@ -894,9 +896,9 @@ sub list {
   $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES) : '';
   $self->query(
     $db, "SELECT u.id, 
-      pi.fio, if(company.id IS NULL,b.deposit,cb.deposit), 
+      pi.fio, if(company.id IS NULL,b.deposit,cb.deposit) AS deposit, 
              if(u.company_id=0, u.credit,
-      if (u.credit=0, company.credit, u.credit)),
+      if (u.credit=0, company.credit, u.credit)) AS credit,
       u.disable, 
       $self->{SEARCH_FIELDS}
       u.uid, u.company_id, pi.email, u.activate, u.expire
@@ -906,7 +908,9 @@ sub list {
      LEFT JOIN companies company ON  (u.company_id=company.id) 
      LEFT JOIN bills cb ON  (company.bill_id=cb.id)
      $EXT_TABLES
-     $WHERE ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;"
+     $WHERE ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;",
+     undef,
+     { COLS_NAME => $attr->{COLS_NAME} }
   );
 
   return $self if ($self->{errno});

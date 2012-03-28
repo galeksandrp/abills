@@ -180,8 +180,15 @@ sub query {
 
   if ($self->{TOTAL} > 0) {
     my @rows;
-    while (my @row = $q->fetchrow()) {
-      push @rows, \@row;
+    if ($attr->{COLS_NAME}) {
+      while (my $row = $q->fetchrow_hashref()) {
+        push @rows, $row;
+      }      
+    }
+    else {
+      while (my @row = $q->fetchrow()) {
+        push @rows, \@row;
+      }
     }
     $self->{list} = \@rows;
   }
@@ -503,7 +510,7 @@ sub search_expr_users () {
 
   $self->{SEARCH_FIELDS}       = '';
   $self->{SEARCH_FIELDS_COUNT} = 0;
-
+  $self->{EXT_TABLES}          = '';
 
   #ID:type:Field name
   my %users_fields_hash = (
@@ -564,7 +571,6 @@ sub search_expr_users () {
     }
   }
 
-
   #Info fields
   if ($info_field) {
     my $list = $self->config_list({ PARAM => 'ifu*', SORT => 2 });
@@ -576,7 +582,7 @@ sub search_expr_users () {
           my ($position, $type, $name) = split(/:/, $line->[1]);
 
           if (defined($attr->{$field_name}) && $type == 4) {
-            push @WHERE_RULES, 'pi.' . $field_name . "='$attr->{$field_name}'";
+            push @fields, 'pi.' . $field_name . "='$attr->{$field_name}'";
           }
 
           #Skip for bloab
@@ -586,10 +592,10 @@ sub search_expr_users () {
           elsif ($attr->{$field_name}) {
             if ($type == 1) {
               my $value = $self->search_expr("$attr->{$field_name}", 'INT');
-              push @WHERE_RULES, "(pi." . $field_name . "$value)";
+              push @fields, "(pi." . $field_name . "$value)";
             }
             elsif ($type == 2) {
-              push @WHERE_RULES, "(pi.$field_name='$attr->{$field_name}')";
+              push @fields, "(pi.$field_name='$attr->{$field_name}')";
               $self->{SEARCH_FIELDS} .= "$field_name" . '_list.name, ';
               $self->{SEARCH_FIELDS_COUNT}++;
 
@@ -599,7 +605,7 @@ sub search_expr_users () {
             }
             else {
               $attr->{$field_name} =~ s/\*/\%/ig;
-              push @WHERE_RULES, "pi.$field_name LIKE '$attr->{$field_name}'";
+              push @fields, "pi.$field_name LIKE '$attr->{$field_name}'";
             }
             $self->{SEARCH_FIELDS} .= "pi.$field_name, ";
             $self->{SEARCH_FIELDS_COUNT}++;
@@ -611,10 +617,10 @@ sub search_expr_users () {
   }
 
   if ($attr->{GIDS}) {
-    push @WHERE_RULES, "u.gid IN ($attr->{GIDS})";
+    push @fields, "u.gid IN ($attr->{GIDS})";
   }
   elsif ($attr->{GID}) {
-    push @WHERE_RULES, "u.gid='$attr->{GID}'";
+    push @fields,  @{ $self->search_expr($attr->{GID}, 'INT', 'u.gid', { EXT_FIELD => $ext_fields{GID} }) };
   }
 
   if ($CONF->{EXT_BILL_ACCOUNT}) {
@@ -622,7 +628,7 @@ sub search_expr_users () {
     $self->{SEARCH_FIELDS_COUNT}++;
     if ($attr->{EXT_BILL_ID}) {
       my $value = $self->search_expr($attr->{EXT_BILL_ID}, 'INT');
-      push @WHERE_RULES, "if(company.id IS NULL,ext_b.id,ext_cb.id)$value";
+      push @fields, "if(company.id IS NULL,ext_b.id,ext_cb.id)$value";
     }
     $self->{EXT_TABLES} = "
             LEFT JOIN bills ext_b ON (u.ext_bill_id = ext_b.id)
@@ -631,56 +637,56 @@ sub search_expr_users () {
 
 
   if ($attr->{NOT_FILLED}) {
-    push @WHERE_RULES, "builds.id IS NULL";
+    push @fields, "builds.id IS NULL";
     $self->{EXT_TABLES} .= "LEFT JOIN builds ON (builds.id=pi.location_id)";
   }
   elsif ($attr->{LOCATION_ID}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{LOCATION_ID}, 'INT', 'pi.location_id', { EXT_FIELD => 'streets.name, builds.number, pi.address_flat, builds.id' }) };
+    push @fields, @{ $self->search_expr($attr->{LOCATION_ID}, 'INT', 'pi.location_id', { EXT_FIELD => 'streets.name, builds.number, pi.address_flat, builds.id' }) };
     $self->{EXT_TABLES} .= "LEFT JOIN builds ON (builds.id=pi.location_id)
    LEFT JOIN streets ON (streets.id=builds.street_id)";
     $self->{SEARCH_FIELDS_COUNT} += 3;
   }
   else {
     if ($attr->{STREET_ID}) {
-      push @WHERE_RULES, @{ $self->search_expr($attr->{STREET_ID}, 'INT', 'builds.street_id', { EXT_FIELD => 'streets.name, builds.number' }) };
+      push @fields, @{ $self->search_expr($attr->{STREET_ID}, 'INT', 'builds.street_id', { EXT_FIELD => 'streets.name, builds.number' }) };
       $self->{EXT_TABLES} .= "LEFT JOIN builds ON (builds.id=pi.location_id)
      LEFT JOIN streets ON (streets.id=builds.street_id)";
       $self->{SEARCH_FIELDS_COUNT} += 1;
     }
     elsif ($attr->{DISTRICT_ID}) {
-      push @WHERE_RULES, @{ $self->search_expr($attr->{DISTRICT_ID}, 'INT', 'streets.district_id', { EXT_FIELD => 'districts.name' }) };
+      push @fields, @{ $self->search_expr($attr->{DISTRICT_ID}, 'INT', 'streets.district_id', { EXT_FIELD => 'districts.name' }) };
       $self->{EXT_TABLES} .= "LEFT JOIN builds ON (builds.id=pi.location_id)
       LEFT JOIN streets ON (streets.id=builds.street_id)
       LEFT JOIN districts ON (districts.id=streets.district_id) ";
     }
     elsif ($CONF->{ADDRESS_REGISTER}) {
       if ($attr->{ADDRESS_STREET}) {
-        push @WHERE_RULES, @{ $self->search_expr($attr->{ADDRESS_STREET}, 'STR', 'streets.name', { EXT_FIELD => 'streets.name' }) };
+        push @fields, @{ $self->search_expr($attr->{ADDRESS_STREET}, 'STR', 'streets.name', { EXT_FIELD => 'streets.name' }) };
         $self->{EXT_TABLES} .= "INNER JOIN builds ON (builds.id=pi.location_id)
         INNER JOIN streets ON (streets.id=builds.street_id)";
       }
     }
     elsif ($attr->{ADDRESS_STREET}) {
-      push @WHERE_RULES, @{ $self->search_expr($attr->{ADDRESS_STREET}, 'STR', 'pi.address_street', { EXT_FIELD => 1 }) };
+      push @fields, @{ $self->search_expr($attr->{ADDRESS_STREET}, 'STR', 'pi.address_street', { EXT_FIELD => 1 }) };
     }
 
     if ($CONF->{ADDRESS_REGISTER}) {
       if ($attr->{ADDRESS_BUILD}) {
-        push @WHERE_RULES, @{ $self->search_expr($attr->{ADDRESS_BUILD}, 'STR', 'builds.number', { EXT_FIELD => 'builds.number' }) };
+        push @fields, @{ $self->search_expr($attr->{ADDRESS_BUILD}, 'STR', 'builds.number', { EXT_FIELD => 'builds.number' }) };
         $self->{EXT_TABLES} .= "INNER JOIN builds ON (builds.id=pi.location_id)" if ($self->{EXT_TABLES} !~ /builds/);
       }
     }
     elsif ($attr->{ADDRESS_BUILD}) {
-      push @WHERE_RULES, @{ $self->search_expr($attr->{ADDRESS_BUILD}, 'STR', 'pi.address_build', { EXT_FIELD => 1 }) };
+      push @fields, @{ $self->search_expr($attr->{ADDRESS_BUILD}, 'STR', 'pi.address_build', { EXT_FIELD => 1 }) };
     }
 
     if ($attr->{COUNTRY_ID}) {
-      push @WHERE_RULES, @{ $self->search_expr($attr->{COUNTRY_ID}, 'STR', 'pi.country_id', { EXT_FIELD => 1 }) };
+      push @fields, @{ $self->search_expr($attr->{COUNTRY_ID}, 'STR', 'pi.country_id', { EXT_FIELD => 1 }) };
     }
   }
 
   if ($attr->{ADDRESS_FLAT}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{ADDRESS_FLAT}, 'STR', 'pi.address_flat', { EXT_FIELD => 1 }) };
+    push @fields, @{ $self->search_expr($attr->{ADDRESS_FLAT}, 'STR', 'pi.address_flat', { EXT_FIELD => 1 }) };
   }
 
 
