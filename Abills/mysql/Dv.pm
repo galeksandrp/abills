@@ -659,7 +659,7 @@ sub report_debetors {
     LEFT JOIN tarif_plans tp ON (tp.id=dv.tp_id) 
     LEFT JOIN companies company ON  (u.company_id=company.id) 
     LEFT JOIN bills cb ON  (company.bill_id=cb.id)
-    WHERE if(u.company_id > 0, cb.deposit, b.deposit) < 0 - tp.month_fee"
+    WHERE if(u.company_id > 0, cb.deposit, b.deposit) < 0 - tp.month_fee*$attr->{PERIOD}"
     );
     ($self->{TOTAL}) = @{ $self->{list}->[0] };
   }
