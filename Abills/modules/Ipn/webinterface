@@ -458,7 +458,7 @@ sub ipn_use {
   my %HIDDEN = ();
 
   $HIDDEN{COMPANY_ID} = $FORM{COMPANY_ID} if ($FORM{COMPANY_ID});
-  $HIDDEN{sid} = $sid if ($FORM{sid});
+  $HIDDEN{sid}        = $sid if ($FORM{sid});
 
   reports(
     {

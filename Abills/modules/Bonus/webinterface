@@ -641,8 +641,8 @@ sub bonus_service_discount_client {
 
   my ($year, $month, $day) = split(/-/, $user->{REGISTRATION}, 3);
   my $seltime              = POSIX::mktime(0, 0, 0, $day, ($month - 1), ($year - 1900));
-  $registration_days       = int((time() - $seltime) / 86400);
-
+  my $registration_days    = int((time() - $seltime) / 86400);
+  my $payments_sum         = 0;
 
   my %RULES = ();
   my $list = $Bonus->service_discount_list({ PAGE_ROWS => 1000 });
@@ -655,6 +655,21 @@ sub bonus_service_discount_client {
     }
   }
 
+  my %RESULT = ();
+  if ($RULES{TOTAL_PAYMENT} > 0) {
+    my $list = $Payments->list(
+      {
+        UID        => $user->{UID} || $FORM{UID},
+        TOTAL_ONLY => 1,
+        METHOD     => $conf{BONUS_SERVICE_EXCLUDE} || '!4' 
+      }
+    );
+    $payments_sum = $Payments->{SUM} || '0.00';
+    $RESULT{TOTAL_PAYMENT} = $html->b("$_TOTAL $_PAYMENTS: ". $payments_sum );
+  }
+  else {
+    $RESULT{TOTAL_PAYMENT} = '';
+  }
 
   my $list = $Bonus->service_discount_list(
     {
@@ -665,29 +680,13 @@ sub bonus_service_discount_client {
     }
   );
 
-  my %RESULT = ();
   if ($Bonus->{TOTAL} > 0) {
-    $RESULT{TOTAL_PAYMENT}     = $list->[0]->[2] || 0;
+    #$RESULT{TOTAL_PAYMENT}     = $list->[0]->[2] || 0;
     $RESULT{DISCOUNT}          = $list->[0]->[3] || 0;
     $RESULT{DISCOUNT_PERIOD}   = $list->[0]->[4] || 0;
     $RESULT{BONUS_SUM}         = $list->[0]->[5] || 0;
     $RESULT{BONUS_PERCENT}     = $list->[0]->[6] || 0;
     $RESULT{BONUS_EXT_ACCOUNT} = $list->[0]->[7] || 0;
-  }
-
-  if ($RULES{TOTAL_PAYMENT} > 0) {
-    my $list = $Payments->list(
-      {
-        UID        => $user->{UID} || $FORM{UID},
-        TOTAL_ONLY => 1,
-        METHOD     => $conf{BONUS_SERVICE_EXCLUDE} || '!4' 
-      }
-    );
-
-    $RESULT{TOTAL_PAYMENT} = $html->b("$_TOTAL $_PAYMENTS: ". ($Payments->{SUM} || 0.00));
-  }
-  else {
-    $RESULT{TOTAL_PAYMENT} = '';
   }
 
   $html->tpl_show(_include('bonus_service_discount_client', 'Bonus'), { %$Bonus, %RESULT });
