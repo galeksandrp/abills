@@ -254,7 +254,7 @@ sub online {
     NAS_NAME          => 'nas.name'
   );
 
-  my @RES_FIELDS = (0, 1, 2, 3, 4, 5, 6, 7, 8);
+  my @RES_FIELDS = ($attr->{FIELDS_NAMES}) ? () : (0, 1, 2, 3, 4, 5, 6, 7, 8);
 
   if ($attr->{FIELDS}) {
     @RES_FIELDS = @{ $attr->{FIELDS} };
@@ -443,7 +443,9 @@ sub online {
   my $nas_id_field = ($attr->{FIELDS_NAMES}) ? $RES_FIELDS_COUNT + 1 : $RES_FIELDS_COUNT + 10;
   foreach my $line (@$list) {
     $dub_logins{ $line->[0] }++;
-    $dub_ports{ $line->[$nas_id_field] }{ $line->[$port_id] }++;
+    $dub_ports{ $line->[$nas_id_field] }{ $line->[$port_id] }++ if ($port_id);
+
+
 
     my @fields = ();
     for (my $i = 0 ; $i <= $RES_FIELDS_COUNT + 15 ; $i++) {

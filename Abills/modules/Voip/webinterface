@@ -23,6 +23,7 @@ my @service_status = ("$_ENABLE", "$_DISABLE", "$_ALLOW_ANSWER", "$_DISABLE: $_N
 
 $conf{VOIP_ASTERISK_USERS} = '' if (!$conf{VOIP_ASTERISK_USERS});
 
+
 =comments
 h323-disconnect-cause for CISCO of Radius Server
 In case of CISCO router, from the Radius server h323-disconnect-cause with code is returned. Like h323-disconnect-cause=4 or h323-disconnect-cause=7. In the following mini dictionary disconnect cause along description corresponding code is shown which will help instantly to identify disconnect issue if we find any code.

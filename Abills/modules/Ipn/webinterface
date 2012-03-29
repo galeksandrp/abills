@@ -2625,8 +2625,6 @@ sub ipn_start_active {
     {
       NAS_ID       => join(', ', @nas_ids_arr),
       FIELDS_NAMES => ['UID'],
-
-      #FIELDS => [ 0, 21, 27, 23, 12, 22, 10 ]
     }
   );
 
@@ -2644,44 +2642,46 @@ sub ipn_start_active {
         PAGE_ROWS    => 1000000,
         IPN_ACTIVATE => 1,
         DISABLE      => 0,
-        USER_DISABLE => 0
+        USER_DISABLE => 0,
+        COLS_NAME    => 1        
       }
     );
 
     foreach my $line (@$list) {
-      my $uid = $line->[ 13 + $Dhcphosts->{SEARCH_FIELDS_COUNT} ];
-      push @{ $DHCP_IPS{$uid} }, $line->[11];
+      my $uid = $line->{uid};
+      push @{ $DHCP_IPS{$uid} }, $line->{ip};
     }
   }
 
   $Dv->{debug} = 1 if ($debug > 5);
   $list = $Dv->list(
     {
-      LOGIN => $attr->{LOGINS} || undef,
-      ACTIVATE      => "<='$DATE'",
-      EXPIRE        => ">'$DATE'",
+      LOGIN         => $attr->{LOGINS} || undef,
+      ACTIVATE      => "0000-00-00,>=$DATE",
+      EXPIRE        => "<$DATE",
       IP            => '>' . (($conf{IPN_DHCP_ACTIVE}) ? '=' : '') . '0.0.0.0',
       STATUS        => 0,
       LOGIN_STATUS  => 0,
       ALL_FILTER_ID => '*',
       PAGE_ROWS     => 1000000,
-      TP_ID => $attr->{TP_IDS} || '>0',
-      PORT => '>=0',
-      TP_CREDIT => '>=0',
+      TP_ID         => $attr->{TP_IDS} || '>0',
+      PORT          => '>=0',
+      TP_CREDIT     => '>=0',
+      COLS_NAME     => 1
     }
   );
 
-  foreach my $line (@$list) {
-    my $filter_id    = $line->[9];
-    my $login        = $line->[0];
-    my $ip           = $line->[6];
+  foreach my $dv_user (@$list) {
+    my $filter_id    = $dv_user->{filter_id};
+    my $login        = $dv_user->{id};
+    my $ip           = $dv_user->{ip};
     my $connect_info = '';
-    my $uid          = $line->[ 6 + $Dv->{SEARCH_FIELDS_COUNT} ];
+    my $uid          = $dv_user->{uid};
     my $nas_id       = 0;
-    my $tp_id        = $line->[ 9 + $Dv->{SEARCH_FIELDS_COUNT} ];
-    my $port         = $line->[7];
-    my $deposit      = $line->[2];
-    my $credit       = ($line->[3] > 0) ? $line->[3] : ($conf{user_credit_change}) ? 0 : $line->[ 5 + $Dv->{SEARCH_FIELDS_COUNT} ];
+    my $tp_id        = $dv_user->{tp_id};
+    my $port         = $dv_user->{port};
+    my $deposit      = $dv_user->{deposit};
+    my $credit       = ($dv_user->{credit} > 0) ? $dv_user->{credit} : ($conf{user_credit_change}) ? 0 : $dv_user->{credit};
 
     DHCP_IP_ASSIGN:
     if ($conf{IPN_DHCP_ACTIVE} && $#{ $DHCP_IPS{$uid} } > -1) {
@@ -2789,7 +2789,11 @@ sub ipn_unknow_ips {
   );
 
   foreach my $line (@$list) {
-    $table->addrow($line->[0], $line->[1], $line->[2], $line->[3], $line->[4],);
+    $table->addrow($line->[0], 
+    $line->[1], 
+    $line->[2], 
+    $line->[3], 
+    $line->[4],);
   }
   print $table->show();
 

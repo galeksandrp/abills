@@ -668,29 +668,7 @@ sub hosts_list {
     push @WHERE_RULES, "h.ip IN ($attr->{IPS})";
   }
   elsif ($attr->{IP}) {
-    if ($attr->{IP} =~ m/\*/g) {
-      my ($i, $first_ip, $last_ip);
-      my @p = split(/\./, $attr->{IP});
-      for ($i = 0 ; $i < 4 ; $i++) {
-
-        if ($p[$i] eq '*') {
-          $first_ip .= '0';
-          $last_ip  .= '255';
-        }
-        else {
-          $first_ip .= $p[$i];
-          $last_ip  .= $p[$i];
-        }
-        if ($i != 3) {
-          $first_ip .= '.';
-          $last_ip  .= '.';
-        }
-      }
-      push @WHERE_RULES, "(h.ip>=INET_ATON('$first_ip') and h.ip<=INET_ATON('$last_ip'))";
-    }
-    else {
-      push @WHERE_RULES, @{ $self->search_expr("$attr->{IP}", 'IP', 'h.ip') };
-    }
+    push @WHERE_RULES, @{ $self->search_expr("$attr->{IP}", 'IP', 'h.ip') };
   }
 
   if ($attr->{EXPIRE}) {
@@ -756,22 +734,27 @@ sub hosts_list {
 
   $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES) : '';
 
-  my $fields = "h.id, u.id, h.ip, h.hostname, n.name, h.network, h.mac, h.disable, h.expire, h.forced,  h.blocktime,";
+  my $fields = "h.id, u.id, h.ip AS ip_num, h.hostname, n.name, h.network, h.mac, h.disable, h.expire, h.forced,  h.blocktime,";
 
   if ($attr->{VIEW}) {
-    $fields = "h.id, u.id, h.ip, h.hostname, concat(n.name, ' : ', h.network), h.mac, h.disable, h.nas, h.vid, h.ports,";
+    $fields = "h.id, u.id, h.ip AS ip_num, h.hostname, concat(n.name, ' : ', h.network), h.mac, h.disable, h.nas, h.vid, h.ports,";
   }
 
   $self->query(
-    $db, "SELECT $fields INET_NTOA(h.ip), $self->{SEARCH_FIELDS} seen, h.uid,
-      if ((u.expire <> '0000-00-00' && curdate() > u.expire) || (h.expire <> '0000-00-00' && curdate() > h.expire), 1, 0)
+    $db, "SELECT $fields INET_NTOA(h.ip) AS ip, 
+      $self->{SEARCH_FIELDS} seen, 
+      h.uid,
+      if ((u.expire <> '0000-00-00' && curdate() > u.expire) || (h.expire <> '0000-00-00' && curdate() > h.expire), 1, 0) AS expire
       $extra_fields
      FROM (dhcphosts_hosts h)
      left join dhcphosts_networks n on h.network=n.id
      left join users u on h.uid=u.uid
      $EXT_TABLES
      $WHERE
-     ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;"
+     ORDER BY $SORT $DESC 
+     LIMIT $PG, $PAGE_ROWS;",
+     undef,
+     $attr
   );
 
   return $self if ($self->{errno});
