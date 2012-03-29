@@ -663,9 +663,9 @@ sub bonus_service_discount_client {
   if ($RESULT{TOTAL_PAYMENT} > 0) {
     my $list = $Payments->list(
       {
-        UID        => $user->{UID},
+        UID        => $user->{UID} || $FORM{UID},
         TOTAL_ONLY => 1,
-        METHOD     => '!4'
+        METHOD     => $conf{BONUS_SERVICE_EXCLUDE} || '!4' 
       }
     );
 
@@ -1030,5 +1030,15 @@ sub bonus_turbo_mk {
 
   return $return;
 }
+
+#**********************************************************
+#
+#**********************************************************
+sub bonus_users {
+	my ($attr)=@_;
+	
+	bonus_service_discount_client();
+}
+
 1
 
