@@ -510,7 +510,7 @@ sub ipn_use {
   my $out           = '';
   my @type          = ();
   my %TRAFFIC_CLASS = ();
-  $Ipn->{debug}=1;
+  
 
   #Day reports
   if ($FORM{DATE} || ($FORM{TYPE} && $FORM{TYPE} eq 'DAYS_TCLASS')) {
