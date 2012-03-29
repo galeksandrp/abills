@@ -5234,7 +5234,7 @@ sub report_payments {
 
   for (my $i = 0 ; $i <= $#PAYMENT_METHODS ; $i++) {
     $METHODS_HASH{"$i:$i"} = "$PAYMENT_METHODS[$i]";
-    $PAYMENTS_METHODS{$i} = $PAYMENT_METHODS[$i];
+    $PAYMENTS_METHODS{$i}  = $PAYMENT_METHODS[$i];
   }
 
   my %PAYSYS_PAYMENT_METHODS = %{ cfg2hash($conf{PAYSYS_PAYMENTS_METHODS}) };
@@ -5289,7 +5289,7 @@ sub report_payments {
       {
         width      => '100%',
         caption    => "$_PAYMENTS",
-        title      => \@captions,
+        title      => \@caption,
         cols_align => [ 'right', 'left', 'right', 'right', 'left', 'left', 'right', 'right', 'left', 'left', 'center:noprint' ],
         qs         => $pages_qs,
         pages      => $payments->{TOTAL},
@@ -5303,10 +5303,15 @@ sub report_payments {
       my @rows = (
         $html->b($line->[0]),
         $html->button($line->[1], "index=15&UID=$line->[13]"),
-        $line->[2], $line->[3], $line->[4] . (($line->[14]) ? ' (' . $html->b($line->[14]) . ') ' : ''),
-        "$line->[5]", $PAYMENTS_METHODS{ $line->[6] },
-        "$line->[7]", ($conf{EXT_BILL_ACCOUNT} && $attr->{USER_INFO}) ? $BILL_ACCOUNTS{ $line->[8] } : "$line->[8]",
-        "$line->[9]", "$line->[10]"
+        $line->[2], 
+        $line->[3], 
+        $line->[4] . (($line->[14]) ? ' (' . $html->b($line->[14]) . ') ' : ''),
+        "$line->[5]", 
+        $PAYMENTS_METHODS{ $line->[6] },
+        "$line->[7]", 
+        ($conf{EXT_BILL_ACCOUNT} && $attr->{USER_INFO}) ? $BILL_ACCOUNTS{ $line->[8] } : "$line->[8]",
+        "$line->[9]", 
+        "$line->[10]"
       );
 
       if ($conf{SYSTEM_CURRENCY}) {

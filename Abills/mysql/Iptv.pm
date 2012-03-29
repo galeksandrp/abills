@@ -326,10 +326,7 @@ sub user_list {
   push @WHERE_RULES, "u.uid = service.uid";
 
   if ($attr->{FILTER_ID}) {
-    $attr->{FILTER_ID} =~ s/\*/\%/ig;
-    push @WHERE_RULES, "service.filter_id LIKE '$attr->{FILTER_ID}'";
-    $self->{SEARCH_FIELDS} .= 'service.filter_id, ';
-    $self->{SEARCH_FIELDS_COUNT}++;
+    push @WHERE_RULES, @{ $self->search_expr($attr->{FILTER_ID}, 'STR', 'service.filter_id', { EXT_FIELD => 1 }) };
   }
 
   if ($attr->{DVCRYPT_ID}) {
@@ -374,21 +371,21 @@ sub user_list {
   if ($attr->{SHOW_CHANNELS}) {
     $self->query(
       $db, "SELECT  u.id, 
-        if(u.company_id > 0, cb.deposit, b.deposit), 
+        if(u.company_id > 0, cb.deposit, b.deposit) AS deposit, 
         u.credit, 
-        tp.name, 
+        tp.name AS tp_name, 
         $self->{SEARCH_FIELDS}
         u.uid, 
         u.company_id, 
         service.tp_id, 
         u.activate, 
         u.expire, 
-        if(u.company_id > 0, company.bill_id, u.bill_id),
+        if(u.company_id > 0, company.bill_id, u.bill_id) as bill_id,
         u.reduction,
-        if(u.company_id > 0, company.ext_bill_id, u.ext_bill_id),
+        if(u.company_id > 0, company.ext_bill_id, u.ext_bill_id) AS ext_bill_id,
         ti_c.channel_id, 
-        c.num,
-        c.name,
+        c.num AS channel_num,
+        c.name AS channel_name,
         ti_c.month_price,
         u.disable,
         service.disable

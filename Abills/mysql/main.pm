@@ -239,6 +239,13 @@ sub search_expr {
     $self->{SEARCH_FIELDS_COUNT}++;
   }
 
+  if ($field) {
+    $field =~ s/ (as) ([a-z0-9_]+)//gi;
+   }
+  else {
+  	print "$field // $value\n" 
+   }
+
   if (defined($value) && $value =~ s/;/,/g && $value !~ /[<>=]+/) {
     my @val_arr = split(/,/, $value);
     $value = "'" . join("', '", @val_arr) . "'";
@@ -546,7 +553,7 @@ sub search_expr_users () {
     REDUCTION     => 'INT:u.reduction',
     REDUCTION_DATE=> 'INT:u.reduction_date',
     COMMENTS      => 'STR:pi.comments',
-    BILL_ID       => 'INT:if(company.id IS NULL,b.id,cb.id)',
+    BILL_ID       => 'INT:if(company.id IS NULL,b.id,cb.id) AS ext_bill_id',
 
     #ADDRESS_FLAT  => 'STR:pi.address_flat', 
   );

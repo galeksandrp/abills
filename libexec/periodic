@@ -105,7 +105,6 @@ foreach my $m (@MODULES) {
   my $i = 0;
   while (my ($k, $v) = each %PERIODIC) {
     if ($k eq 'daily') {
-
       foreach my $funtion_name (@{ $PERIODIC{$k} }) {
         push @daily_functions, $funtion_name;
       }
@@ -178,8 +177,6 @@ $ADMIN_REPORT{YESTERDAY} = $YESTERDAY;
 if (defined($args->{monthly})) {
   for (my $i = $#monthly_functions ; $i > -1 ; $i--) {
     my $f = $monthly_functions[$i];
-
-    #$DEBUG .=
     print "==> FUNCTION: " . $f . "\n" if ($args->{DEBUG} && $args->{DEBUG} > 4);
 
     $f->({ %$args, %ADMIN_REPORT });

@@ -2059,14 +2059,15 @@ sub iptv_daily_Fees {
 sub iptv_monthly_fees {
   my ($attr) = @_;
 
-  my $debug = $attr->{DEBUG} || 0;
-  my $debug_output = '';
-  $debug_output .= "Iptv - Monthly periodic payments\n" if ($debug > 1);
+  my $debug         = $attr->{DEBUG} || 0;
+  my $debug_output  = '';
+  $debug_output    .= "Iptv - Monthly periodic payments\n" if ($debug > 1);
+  my $START_PERIOD_DAY = ($conf{START_PERIOD_DAY}) ? $conf{START_PERIOD_DAY} : 1;
 
   use Users;
 
-  $LIST_PARAMS{TP_ID} = $attr->{TP_ID} if ($attr->{TP_ID});
-  my %USERS_LIST_PARAMS = ();
+  $LIST_PARAMS{TP_ID}       = $attr->{TP_ID} if ($attr->{TP_ID});
+  my %USERS_LIST_PARAMS     = ();
   $USERS_LIST_PARAMS{LOGIN} = $attr->{LOGIN} if ($attr->{LOGIN});
   $USERS_LIST_PARAMS{EXT_BILL} = 1 if ($conf{BONUS_EXT_FUNCTIONS});
 
@@ -2131,23 +2132,24 @@ sub iptv_monthly_fees {
           TP_ID        => $TP_ID,
           SORT         => 1,
           PAGE_ROWS    => 1000000,
+          COLS_NAME    => 1,
           %USERS_LIST_PARAMS
         }
       );
 
       foreach my $u (@$ulist) {
-        $debug_output .= " Login: $u->[0] ($u->[7])  TP_ID: $u->[10] Fees: $line->[6] REDUCTION: $u->[14]  $u->[2] $u->[3] $u->[10] - $u->[11]\n" if ($debug > 3);
+        $debug_output .= " Login: $u->{id} ($u->{uid})  TP_ID: $u->{tp_id} Fees: $line->[6] REDUCTION: $u->{reduction}  $u->{deposit} $u->{credit}\n" if ($debug > 3);
 
         #Check bill id and deposit
 
         my %user = (
-          LOGIN     => $u->[0],
-          UID       => $u->[7],
-          BILL_ID   => ($line->[13] > 0) ? $u->[15] : $u->[13],
-          REDUCTION => $u->[14],
-          ACTIVATE  => $u->[11],
-          DEPOSIT   => $u->[2],
-          CREDIT    => ($u->[3] > 0) ? $u->[3] : $line->[14]
+          LOGIN     => $u->{id},
+          UID       => $u->{uid},
+          BILL_ID   => ($line->[13] > 0) ? $u->{bill_id} : $u->{ext_bill_id},
+          REDUCTION => $u->{reduction},
+          ACTIVATE  => $u->{activate},
+          DEPOSIT   => $u->{deposit},
+          CREDIT    => ($u->{credit} > 0) ? $u->{credit} : $line->[14]
         );
 
         #Check bill ID and deposit
@@ -2158,8 +2160,6 @@ sub iptv_monthly_fees {
           );
 
           my $sum = 0;
-          $START_PERIOD_DAY = ($conf{START_PERIOD_DAY}) ? $conf{START_PERIOD_DAY} : 1;
-
           #Min use
           if ($min_use > 0 && $d == $START_PERIOD_DAY) {
 
@@ -2167,7 +2167,6 @@ sub iptv_monthly_fees {
 
           #Month Fee
           else {
-
             #Make sum
             $sum = $month_fee;
 
@@ -2221,8 +2220,6 @@ sub iptv_monthly_fees {
                     }
                   }
                 }
-
-                #print "   $user{LOGIN} $line->[6] $user{DEPOSIT} $USER{CREDIT} $u->[10] - $u->[11]\n";
               }
             }
 
@@ -2246,29 +2243,29 @@ sub iptv_monthly_fees {
         PAGE_ROWS     => 1000000,
         SHOW_CHANNELS => 1,
         MONTH_PRICE   => '>0',
+        COLS_NAME     => 1,
         %USERS_LIST_PARAMS
       }
     );
 
     foreach my $u (@$ulist) {
-      my $channel_num = $u->[14];
-      my $sum         = $u->[16];
-      $debug_output .= " Login: $u->[0] ($u->[7])  TP_ID: $u->[10] Channel: $channel_num Month Price: $sum REDUCTION: $u->[14]  $u->[2] $u->[3] $u->[10] - $u->[11]\n" if ($debug > 3);
+      my $channel_num = $u->{channel_id};
+      my $sum         = $u->{month_price};
+      $debug_output .= " Login: $u->{id} ($u->{uid})  TP_ID: $u->{tp_id} Channel: $channel_num Month Price: $sum REDUCTION: $u->{reduction}  $u->{credit} $u->{credit}\n" if ($debug > 3);
 
       #Check bill id and deposit
 
       my %user = (
-        LOGIN     => $u->[0],
-        UID       => $u->[5],
-        BILL_ID   => ($line->[13] > 0) ? $u->[12] : $u->[10],
-        REDUCTION => $u->[11],
+        LOGIN     => $u->{id},
+        UID       => $u->{uid},
+        BILL_ID   => ($line->[13] > 0) ? $u->{ext_bill_id} : $u->{bill_id},
+        REDUCTION => $u->{reduction},
         ACTIVATE  => '0000-00-00',
-        DEPOSIT   => $u->[1],
-        CREDIT    => ($u->[2] > 0) ? $u->[2] : $line->[14]
+        DEPOSIT   => $u->{deposit},
+        CREDIT    => ($u->{credit} > 0) ? $u->{credit} : $line->[14]
       );
 
       if ($postpaid == 1 || $user{DEPOSIT} + $user{CREDIT} > 0 || $tp_postpaid == 1) {
-
         #take Fees in first day of month
         $FEES_PARAMS{DESCRIBE} = "$_MONTH_FEE ($_TV $_CHANNELS:$channel_num)";
 
