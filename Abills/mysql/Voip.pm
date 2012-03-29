@@ -291,7 +291,7 @@ sub user_list {
   }
 
   if (defined($attr->{STATUS}) && $attr->{STATUS} ne '') {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{STATUS}, 'INT', 'service.disable') };
+    push @WHERE_RULES, @{ $self->search_expr($attr->{STATUS}, 'INT', 'service.disable AS voip_status') };
   }
 
   if ($attr->{NUMBER}) {

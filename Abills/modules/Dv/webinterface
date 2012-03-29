@@ -4878,8 +4878,8 @@ sub dv_daily_fees {
       $Dv->{debug} = 1 if ($debug > 6);
       my $ulist = $Dv->list(
         {
-          ACTIVATE     => "0000-00-00;<=$ADMIN_REPORT{DATE}",
-          EXPIRE       => "0000-00-00;>$ADMIN_REPORT{DATE}",
+          ACTIVATE     => "0000-00-00,>=$ADMIN_REPORT{DATE}",
+          EXPIRE       => "<$ADMIN_REPORT{DATE}",
           STATUS       => "0;5",
           LOGIN_STATUS => 0,
           TP_ID        => $TP_ID,
@@ -5015,8 +5015,8 @@ sub dv_daily_fees {
         #Ipn users for daily payments
         $ulist = $Dv->list(
           {
-            ACTIVATE     => "!0000-00-00,<=$ADMIN_REPORT{DATE}",
-            EXPIRE       => "!0000-00-00,>$ADMIN_REPORT{DATE}",
+            ACTIVATE     => "0000-00-00,>=$ADMIN_REPORT{DATE}",
+            EXPIRE       => "<$ADMIN_REPORT{DATE}",
             STATUS       => 0,
             LOGIN_STATUS => 0,
             TP_ID        => $tp_line->[0],
@@ -5121,8 +5121,8 @@ sub dv_holdup_fees {
 
   my $ulist = $Dv->list(
     {
-      ACTIVATE     => "!0000-00-00,>=$activate_date",
-      EXPIRE       => "!0000-00-00,<$ADMIN_REPORT{DATE}",
+      ACTIVATE     => "0000-00-00,>=$activate_date",
+      EXPIRE       => "<$ADMIN_REPORT{DATE}",
       STATUS       => "3",
       LOGIN_STATUS => 0,
       SORT         => 1,
@@ -5354,8 +5354,8 @@ sub dv_monthly_fees {
       $Dv->{debug} = 1 if ($debug > 5);
       my $ulist = $Dv->list(
         {
-          ACTIVATE     => "!0000-00-00,<=$activate_date",
-          EXPIRE       => "!0000-00-00,>$ADMIN_REPORT{DATE}",
+          ACTIVATE     => "0000-00-00,>=$activate_date",
+          EXPIRE       => "<$ADMIN_REPORT{DATE}",
           STATUS       => "0;5",
           LOGIN_STATUS => 0,
           TP_ID        => $TP_ID,
@@ -5774,8 +5774,8 @@ sub dv_monthly_fees {
 
         $ulist = $Dv->list(
           {
-            ACTIVATE     => "!0000-00-00,$ADMIN_REPORT{DATE}",
-            EXPIRE       => ">$ADMIN_REPORT{DATE}",
+            ACTIVATE     => "!0000-00-00,>=$ADMIN_REPORT{DATE}",
+            EXPIRE       => "<$ADMIN_REPORT{DATE}",
             STATUS       => 0,
             LOGIN_STATUS => 0,
             TP_ID        => $tp_line->[0],

@@ -9,7 +9,7 @@ use Fees;
 
 my $Sharing = Sharing->new($db, $admin, \%conf);
 my $Tariffs = Tariffs->new($db, \%conf, $admin);
-my $fees = Fees->new($db, $admin, \%conf);
+my $fees    = Fees->new($db, $admin, \%conf);
 
 my $sessions = '';
 
@@ -1982,7 +1982,7 @@ sub sharing_periodic_monthly_fees {
       $debug_output .= "TP ID: $line->[0] MF: $line->[6] POSTPAID: $line->[12] REDUCTION: $line->[11]\n" if ($debug > 1);
       my $ulist = $Sharing->list(
         {
-          ACTIVATE  => ">=$ADMIN_REPORT{DATE}",
+          ACTIVATE  => "0000-00-00,>=$ADMIN_REPORT{DATE}",
           EXPIRE    => "<$ADMIN_REPORT{DATE}",
           DISABLE   => '0',
           TP_ID     => $TP_ID,

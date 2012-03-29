@@ -226,9 +226,13 @@ sub get_data {
 # search_expr($self, $value, $type)
 #
 # type of fields
-# IP -  IP Address
-# INT - integer
-# STR - string
+#  IP -  IP Address
+#  INT - integer
+#  STR - string
+#  DATE - Date
+# data delimiters 
+# , - or
+# ; - and
 #**********************************************************
 sub search_expr {
   my $self = shift;
@@ -241,17 +245,16 @@ sub search_expr {
 
   if ($field) {
     $field =~ s/ (as) ([a-z0-9_]+)//gi;
-   }
-  else {
-  	print "$field // $value\n" 
-   }
-
-  if (defined($value) && $value =~ s/;/,/g && $value !~ /[<>=]+/) {
+  }
+  
+  my $delimiter = ($value =~ s/;/,/g) ? 'and' : 'or';
+  
+  if ($value && $value !~ /[<>=]+/) {
     my @val_arr = split(/,/, $value);
     $value = "'" . join("', '", @val_arr) . "'";
     return ["$field IN ($value)"];
   }
-
+  
   my @val_arr = split(/,/, $value) if (defined($value));
 
   my @result_arr = ();
@@ -267,7 +270,7 @@ sub search_expr {
         my $from_date = $1;
         my $to_date   = $2;
         if ($field) {
-          push @result_arr, "($field>=$from_date and $field<=$to_date)" ;
+          push @result_arr, "($field>=$from_date AND $field<=$to_date)" ;
         }
         next;
       }
@@ -307,11 +310,8 @@ sub search_expr {
   }
 
   if ($field) {
-    if ($type ne 'INT' && $type ne 'DATE') {
-      return [ '(' . join(' or ', @result_arr) . ')' ];
-    }
-    else {
-    	return [ '(' . join(' or ', @result_arr) . ')' ];
+    if ($type ne 'INT') {
+      return [ '(' . join(" $delimiter ", @result_arr) . ')' ];
     }
     return \@result_arr;
   }

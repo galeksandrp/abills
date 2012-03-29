@@ -595,7 +595,7 @@ sub credit_operation {
 
   my $list = $users->list(
     {
-      CREDIT_DATE => ">0000-00-00,<=$ADMIN_REPORT{DATE}",
+      CREDIT_DATE => "!0000-00-00;<=$ADMIN_REPORT{DATE}",
       CREDIT      => ">$conf{MAX_STABLE_CREDIT}",
       PAGE_ROWS   => 1000000,
       %LIST_PARAMS,
