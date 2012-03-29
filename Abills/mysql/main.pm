@@ -249,7 +249,7 @@ sub search_expr {
   
   my $delimiter = ($value =~ s/;/,/g) ? 'and' : 'or';
   
-  if ($value && $value !~ /[<>=]+/) {
+  if ($value && $delimiter eq 'and' && $value !~ /[<>=]+/) {
     my @val_arr = split(/,/, $value);
     $value = "'" . join("', '", @val_arr) . "'";
     return ["$field IN ($value)"];

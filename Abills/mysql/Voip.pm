@@ -291,7 +291,7 @@ sub user_list {
   }
 
   if (defined($attr->{STATUS}) && $attr->{STATUS} ne '') {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{STATUS}, 'INT', 'service.disable AS voip_status') };
+    push @WHERE_RULES, @{ $self->search_expr($attr->{STATUS}, 'INT', 'service.disable') };
   }
 
   if ($attr->{NUMBER}) {
@@ -307,7 +307,7 @@ sub user_list {
   }
 
   if ($attr->{SHOW_PASSWORD}) {
-    $self->{SEARCH_FIELDS} .= "DECODE(u.password, '$CONF->{secretkey}'), ";
+    $self->{SEARCH_FIELDS} .= "DECODE(u.password, '$CONF->{secretkey}') AS password, ";
     $self->{SEARCH_FIELDS_COUNT}++;
   }
 
@@ -315,14 +315,21 @@ sub user_list {
 
   $self->query(
     $db, "SELECT u.id, 
-      pi.fio, if(u.company_id > 0, cb.deposit, b.deposit),
-      u.credit, tp.name, 
+      pi.fio, 
+      if(u.company_id > 0, cb.deposit, b.deposit) AS deposit,
+      u.credit, 
+      tp.name AS tp_name, 
       u.disable, 
       service.number,
       $self->{SEARCH_FIELDS}
-      u.uid, u.company_id, pi.email, service.tp_id, u.activate, u.expire, 
+      u.uid, 
+      u.company_id, 
+      pi.email, 
+      service.tp_id, 
+      u.activate, 
+      u.expire, 
       if(u.company_id > 0, company.bill_id, u.bill_id) AS bill_id,
-      service.disable
+      service.disable AS voip_status
      FROM (users u, voip_main service)
      LEFT JOIN users_pi pi ON (u.uid = pi.uid)
      LEFT JOIN bills b ON u.bill_id = b.id
