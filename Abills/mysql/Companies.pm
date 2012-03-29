@@ -1,4 +1,5 @@
 package Companies;
+
 # Companies
 #
 
@@ -357,12 +358,30 @@ sub info {
     return $self;
   }
 
-  my @INFO_ARR = ();
-
-  (
-    $self->{COMPANY_ID},    $self->{COMPANY_NAME}, $self->{CREDIT},       $self->{CREDIT_DATE}, $self->{TAX_NUMBER},     $self->{BANK_ACCOUNT},   $self->{BANK_NAME}, $self->{COR_BANK_ACCOUNT},
-    $self->{BANK_BIC},      $self->{DISABLE},      $self->{BILL_ID},      $self->{DEPOSIT},     $self->{ADDRESS},        $self->{PHONE},          $self->{VAT},       $self->{CONTRACT_ID},
-    $self->{CONTRACT_DATE}, $self->{EXT_BILL_ID},  $self->{REGISTRATION}, $self->{DOMAIN_ID},   $self->{REPRESENTATIVE}, $self->{CONTRACT_SUFIX}, @INFO_ARR
+  my @INFO_ARR = ();  (
+    $self->{COMPANY_ID},
+    $self->{COMPANY_NAME},
+    $self->{CREDIT},
+    $self->{CREDIT_DATE},
+    $self->{TAX_NUMBER},
+    $self->{BANK_ACCOUNT},
+    $self->{BANK_NAME},
+    $self->{COR_BANK_ACCOUNT},
+    $self->{BANK_BIC},
+    $self->{DISABLE},
+    $self->{BILL_ID},
+    $self->{DEPOSIT},
+    $self->{ADDRESS},
+    $self->{PHONE},
+    $self->{VAT},
+    $self->{CONTRACT_ID},
+    $self->{CONTRACT_DATE},
+    $self->{EXT_BILL_ID},
+    $self->{REGISTRATION},
+    $self->{DOMAIN_ID},
+    $self->{REPRESENTATIVE},
+    $self->{CONTRACT_SUFIX},
+    @INFO_ARR
   ) = @{ $self->{list}->[0] };
 
   $self->{INFO_FIELDS_VAL} = \@INFO_ARR;
@@ -439,14 +458,16 @@ sub list {
   my $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES) : '';
 
   $self->query(
-    $db, "SELECT c.name, b.deposit, c.registration, count(u.uid), c.disable, c.id, 
-   c.disable, c.bill_id, c.credit, c.credit_date
+    $db, "SELECT c.name, b.deposit, c.credit, c.registration, count(u.uid) AS users_count, c.disable, c.id, 
+   c.disable, c.bill_id, c.credit_date
     FROM companies  c
     LEFT JOIN users u ON (u.company_id=c.id)
     LEFT JOIN bills b ON (b.id=c.bill_id)
     $WHERE
     GROUP BY c.id
-    ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;"
+    ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;",
+    undef,
+    $attr
   );
   my $list = $self->{list};
 

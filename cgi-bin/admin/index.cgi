@@ -1037,33 +1037,34 @@ sub form_companies {
     }
     print $html->letters_list({ pages_qs => $pages_qs });
 
-    my $list  = $company->list({%LIST_PARAMS});
+    my $list  = $company->list({%LIST_PARAMS, COLS_NAME=>1 });
     my $table = $html->table(
       {
         width   => '100%',
         caption => $_COMPANIES,
         border  => 1,
-        title   => [ $_NAME, $_DEPOSIT, $_REGISTRATION, $_USERS, $_STATUS, '-', '-' ],
+        title   => [ $_NAME, $_DEPOSIT, $_CREDIT, $_REGISTRATION, $_USERS, $_STATUS, '-', '-' ],
         cols_align => [ 'left', 'right', 'right', 'right', 'center', 'center' ],
         pages      => $company->{TOTAL},
         qs         => $pages_qs,
         ID         => 'COMPANY_ID',
         EXPORT     => "$_EXPORT XML:&xml=1",
         MENU       => "$_ADD:index="
-        . get_function_index('add_company') . ':add'
-        . ";$_SEARCH:index="
-        . get_function_index('form_search')
-        . "&type=13:search"
-
+        . get_function_index('add_company') . ':add' . ";$_SEARCH:index="
+        . get_function_index('form_search') . "&type=13:search"
       }
     );
 
     foreach my $line (@$list) {
       $table->addrow(
-        $line->[0], $line->[1], $line->[2], $html->button($line->[3], "index=13&COMPANY_ID=$line->[5]&subf=11"),
-        "$status[$line->[4]]",
-        $html->button($_INFO, "index=13&COMPANY_ID=$line->[5]", { CLASS => 'change' }),
-        (defined($permissions{0}{5})) ? $html->button($_DEL, "index=13&del=$line->[5]", { MESSAGE => "$_DEL $line->[0]?", CLASS => 'del' }) : ''
+        $line->{name}, 
+        $line->{deposit}, 
+        $line->{credit}, 
+        $line->{registration}, 
+        $html->button($line->{users_count}, "index=13&COMPANY_ID=$line->{id}&subf=11"),
+        "$status[$line->{disable}]",
+        $html->button($_INFO, "index=13&COMPANY_ID=$line->{id}", { CLASS => 'change' }),
+        (defined($permissions{0}{5})) ? $html->button($_DEL, "index=13&del=$line->{id}", { MESSAGE => "$_DEL $line->{name}?", CLASS => 'del' }) : ''
       );
     }
     print $table->show();
@@ -2422,7 +2423,7 @@ sub form_users {
   }
 
   my $list = $users->list({ %LIST_PARAMS, 
-  	                        FULL_LIST => 1,  
+  	                        FULL_LIST => 1,
   	                        COLS_NAME => 1,
   	                      });
 
@@ -2647,7 +2648,7 @@ sub user_company {
   my $user_info = $attr->{USER_INFO};
   use Customers;
   my $customer = Customers->new($db, $admin, \%conf);
-  my $company = $customer->company();
+  my $company  = $customer->company();
 
   form_search(
     {
@@ -2656,7 +2657,7 @@ sub user_company {
     }
   );
 
-  my $list  = $company->list({%LIST_PARAMS});
+  my $list  = $company->list({%LIST_PARAMS, COLS_NAME => 1 });
   my $table = $html->table(
     {
       width      => '100%',
@@ -2672,8 +2673,9 @@ sub user_company {
   $table->addrow($_DEFAULT, '', $html->button("$_DEL", "index=" . get_function_index('form_users') . "&change=1&UID=$FORM{UID}&COMPANY_ID=0", { CLASS => 'del' }),);
 
   foreach my $line (@$list) {
-    $table->{rowcolor} = ($user_info->{COMPANY_ID} == $line->[5]) ? $_COLORS[0] : undef;
-    $table->addrow(($user_info->{COMPANY_ID} == $line->[5]) ? $html->b($line->[0]) : $line->[0], $line->[1], ($user_info->{COMPANY_ID} == $line->[5]) ? '' : $html->button("$_CHANGE", "index=" . get_function_index('form_users') . "&change=1&UID=$FORM{UID}&COMPANY_ID=$line->[5]", { CLASS => 'add' }),
+    $table->{rowcolor} = ($user_info->{COMPANY_ID} == $line->{id}) ? $_COLORS[0] : undef;
+    $table->addrow(($user_info->{COMPANY_ID} == $line->{id}) ? $html->b($line->{name}) : $line->{name}, 
+      $line->{deposit}, ($user_info->{COMPANY_ID} == $line->{id}) ? '' : $html->button("$_CHANGE", "index=" . get_function_index('form_users') . "&change=1&UID=$FORM{UID}&COMPANY_ID=$line->{id}", { CLASS => 'add' }),
     );
   }
 
@@ -8760,8 +8762,7 @@ sub form_purchase_module {
   my ($attr) = @_;
 
   print "<p>модуль '$attr->{MODULE}' не установлен в системе, по вопросам приобретения модуля обратитесь к разработчику
-  <a href='http://abills.net.ua' target=_newa>ABillS.net.ua</a> 
-  
+  <a href='http://abills.net.ua' target=_newa>ABillS.net.ua</a>
   <p>
   Purchase this module '$attr->{MODULE}'. 
   <p>
@@ -8994,11 +8995,9 @@ sub title_former {
   for (my $i = 0 ; $i < $base_fields+$data->{SEARCH_FIELDS_COUNT} ; $i++) {
     $title[$i] = $SEARCH_TITLES{ $EX_TITLE_ARR[$i] } || "$_SEARCH";
   }
-	
 	foreach my $function_fld_name ( split(/,/, $attr->{FUNCTION_FIELDS} ) ) {
 		$title[$#title+1]='-';
 	}
-	
 	return \@title;
 }
 

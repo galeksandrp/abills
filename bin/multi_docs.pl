@@ -70,7 +70,6 @@ Abills::HTML->import();
 $html = Abills::HTML->new(
   {
     CONF => \%conf,
-
     # pdf => 1
   }
 );
@@ -197,30 +196,31 @@ sub periodic_invoice {
     # }
   }
 
-  my $list = $Docs->user_list(
+  my $docs_users = $Docs->user_list(
     {
       %LIST_PARAMS,
       PRE_INVOICE_DATE => $DATE,
       DISCOUNT         => '>=0',
-      PAGE_ROWS        => 1000000
+      PAGE_ROWS        => 1000000,
+      COLS_NAME        => 1 
     }
   );
 
-  foreach my $line (@$list) {
+  foreach my $docs_user (@$docs_users) {
     my %user = (
-      LOGIN             => $line->[0],
-      FIO               => $line->[1],
-      DEPOSIT           => $line->[2],
-      CREDIT            => $line->[3],
-      STATUS            => $line->[3],
-      INVOICE_DATE      => $line->[5],
-      NEXT_INVOICE_DATE => $line->[6],
-      INVOICE_PERIOD    => $line->[7],
-      EMAIL             => $line->[8],
-      SEND_DOCS         => $line->[9],
-      UID               => $line->[10],
-      ACTIVATE          => $line->[11],
-      DISCOUNT          => $line->[12] || 0,
+      LOGIN             => $docs_user->{id},
+      FIO               => $docs_user->{fio},
+      DEPOSIT           => $docs_user->{deposit},
+      CREDIT            => $docs_user->{credit},
+      STATUS            => $docs_user->{status},
+      INVOICE_DATE      => $docs_user->{invoice_date},
+      NEXT_INVOICE_DATE => $docs_user->{next_invoice_date},
+      INVOICE_PERIOD    => $docs_user->{invoice_period},
+      EMAIL             => $docs_user->{email},
+      SEND_DOCS         => $docs_user->{send_docs},
+      UID               => $docs_user->{uid},
+      ACTIVATE          => $docs_user->{activate},
+      DISCOUNT          => $docs_user->{discount} || 0,
       DOCS_CURRENCY     => $conf{DOCS_CURRENCY},
       EXCHANGE_RATE     => $FORM{EXCHANGE_RATE}
     );
@@ -238,7 +238,7 @@ sub periodic_invoice {
     my @ids               = ();
 
     # No invoicing service from last invoice
-    my $list = $Docs->invoice_new(
+    my $new_invoices = $Docs->invoice_new(
       {
         FROM_DATE => '2011-01-01',    #$user{INVOICE_DATE},
         TO_DATE   => $DATE,
@@ -247,14 +247,14 @@ sub periodic_invoice {
       }
     );
 
-    foreach my $line (@$list) {
-      next if ($line->[5]);
+    foreach my $invoice (@$new_invoices) {
+      next if ($line->{fees_id});
       $num++;
       push @ids, $num;
-      $ORDERS_HASH{ "ORDER_" . $num }   = "$line->[3]";
-      $ORDERS_HASH{ "SUM_" . $num }     = "$line->[4]";
-      $ORDERS_HASH{ "FEES_ID_" . $num } = "$line->[0]";
-      $total_not_invoice += $line->[4];
+      $ORDERS_HASH{ "ORDER_" . $num }   = "$line->{dsc}";
+      $ORDERS_HASH{ "SUM_" . $num }     = "$line->{sum}";
+      $ORDERS_HASH{ "FEES_ID_" . $num } = "$line->{id}";
+      $total_not_invoice += $line->{id};
     }
 
     if ($user{ACTIVATE} ne '0000-00-00') {
@@ -274,16 +274,17 @@ sub periodic_invoice {
 
       # Get invoces
       my %current_invoice = ();
-      my $list            = $Docs->invoices_list(
+      my $invoice_list = $Docs->invoices_list(
         {
           UID         => $FORM{UID},
           PAYMENT_ID  => 0,
-          ORDERS_LIST => 1
+          ORDERS_LIST => 1,
+          COLS_NAME   => 1
         }
       );
 
-      foreach my $line (@$list) {
-        $current_invoice{ $line->[1] } = $line->[0];
+      foreach my $invoice (@$invoice_list) {
+        $current_invoice{ $invoice->{date} } = $invoice->{invoice_num};
       }
 
       $FORM{UID} = $user{UID};
@@ -404,7 +405,6 @@ sub periodic_invoice {
         );
 
         #Sendemail
-
         if ($user{SEND_DOCS}) {
           $FORM{print} = $Docs->{DOC_ID};
           docs_invoice(
@@ -412,8 +412,6 @@ sub periodic_invoice {
               GET_EMAIL_INFO => 1,
               SEND_EMAIL     => $user{SEND_DOCS} || 0,
               UID            => $user{UID}
-
-              #%$attr
             }
           );
         }
@@ -576,11 +574,10 @@ sub prepaid_invoices_company {
     {
       DISABLE   => 0,
       PAGE_ROWS => 1000000,
-
-      #		                        %INFO_FIELDS_SEARCH,
       SORT       => $sort,
       SKIP_TOTAL => 1,
       %LIST_PARAMS,
+      COLS_NAME  => 1
     }
   );
   my @MULTI_ARR = ();
@@ -588,9 +585,9 @@ sub prepaid_invoices_company {
   my %EXTRA     = ();
 
   foreach my $line (@$list) {
-    my $name       = $line->[0];
-    my $deposit    = $line->[1];
-    my $company_id = $line->[5];
+    my $name       = $line->{name};
+    my $deposit    = $line->{deposit};
+    my $company_id = $line->{id};
 
     print "COMPANY: $name CID: $company_id DEPOSIT: $deposit\n" if ($debug > 2);
 
@@ -642,16 +639,17 @@ sub prepaid_invoices_company {
         SORT       => $sort,
         SKIP_TOTAL => 1,
         %LIST_PARAMS,
+        COLS_NAME  => 1
       }
     );
     my $tp_sum  = 0;
     my $doc_num = 0;
     foreach my $line (@$list) {
-      my $uid = $line->[ (6 + $Dv->{SEARCH_FIELDS_COUNT}) ];
-      my $tp_id = $line->[ (9 + $Dv->{SEARCH_FIELDS_COUNT}) ] || 0;
-      my $fio = $line->[1] || '';
+      my $uid   = $line->{uid};
+      my $tp_id = $line->{tp_name} || 0;
+      my $fio   = $line->{fio} || '';
 
-      print "UID: $uid LOGIN: $line->[0] FIO: $fio TP: $tp_id\n" if ($debug > 2);
+      print "UID: $uid LOGIN: $line->{id} FIO: $fio TP: $tp_id\n" if ($debug > 2);
 
       #Add debetor accouns
       if ($TP_LIST->{$tp_id}) {

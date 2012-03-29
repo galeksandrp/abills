@@ -671,7 +671,7 @@ sub bonus_service_discount_client {
     $RESULT{TOTAL_PAYMENT} = '';
   }
 
-  my $list = $Bonus->service_discount_list(
+  $list = $Bonus->service_discount_list(
     {
       REGISTRATION_DAYS  => "<=$registration_days,>=0",
       TOTAL_PAYMENTS_SUM => $RULES{TOTAL_PAYMENT} ? "<=$payments_sum,>=0" : undef,

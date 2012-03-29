@@ -22,7 +22,6 @@ $Log         = Log->new($db, \%conf);
 
 my %FORM_BASE     = ();
 my %TRAFFIC_NAMES = ();
-
 my @service_status_colors = ("$_COLORS[9]", "$_COLORS[6]", '#808080', '#0000FF', '#FF8000', '#009999');
 my @service_status = ("$_ENABLE", "$_DISABLE", "$_NOT_ACTIVE", "$_HOLD_UP", "$_DISABLE: $_NON_PAYMENT", "$ERR_SMALL_DEPOSIT");
 
@@ -7747,13 +7746,12 @@ sub dv_docs {
   my @services = ();
   $Dv->info($uid);
   
-  if ($Dv->{TOTAL}==0) {
+  if ($Dv->{TOTAL}==0 || ! $Dv->{DAY_ABON}) {
   	return \@services;
    }
   
   if ($Dv->{MONTH_ABON} > 0) {
     push @services, "Internet: $_MONTH_FEE_SHORT $Dv->{TP_NAME} ($Dv->{TP_ID})||$Dv->{MONTH_ABON}";
-
     #"$_MONTH_FEE: ($Dv->{TP_ID})||$Dv->{MONTH_ABON}";
   }
 
@@ -7766,6 +7764,7 @@ sub dv_docs {
       $M = sprintf("%02d", 1);
       $Y++;
     }
+
 
     my $days_in_month = ($M != 2 ? (($M % 2) ^ ($M > 7)) + 30 : (!($Y % 400) || !($Y % 4) && ($Y % 25) ? 29 : 28));
 

@@ -249,7 +249,7 @@ sub acct_stop {
     sent, 
     recv, 
     minp, 
-    kb,  
+    kb,
     sum, 
     nas_id, 
     port_id,
@@ -271,7 +271,7 @@ sub acct_stop {
           '$self->{FRAMED_IP_ADDRESS}', 
           '',
           '0', 
-          '0',  
+          '0',
           '$self->{ACCT_SESSION_ID}', 
           '$self->{BILL_ID}',
           '$ACCT_TERMINATE_CAUSE',
@@ -1068,7 +1068,7 @@ sub online_alive {
     my $sql = "UPDATE dv_calls SET  lupdated=UNIX_TIMESTAMP(),
     CONNECT_INFO='$attr->{CONNECT_INFO}',
     status=3
-     WHERE user_name = '$attr->{LOGIN}'  
+     WHERE user_name = '$attr->{LOGIN}'
     $session_id
     and framed_ip_address=INET_ATON('$attr->{REMOTE_ADDR}')";
 
@@ -1272,7 +1272,7 @@ sub user_detail {
         my $first_ip = $last_ip - $mask;
         print "IP FROM: " . int2ip($first_ip) . " TO: " . int2ip($last_ip) . "\n" if ($debug > 2);
         push @ip_q, "(
-                       (dst_addr>='$first_ip' and dst_addr<='$last_ip' )  
+                       (dst_addr>='$first_ip' and dst_addr<='$last_ip' )
                       )";
       }
       elsif ($ip =~ /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/) {
@@ -1297,7 +1297,7 @@ sub user_detail {
         my $first_ip = $last_ip - $mask;
         print "IP FROM: " . int2ip($first_ip) . " TO: " . int2ip($last_ip) . "\n" if ($debug > 2);
         push @ip_q, "(
-                       (src_addr>='$first_ip' and src_addr<='$last_ip' )  
+                       (src_addr>='$first_ip' and src_addr<='$last_ip' )
                       )";
       }
       elsif ($ip =~ /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/) {

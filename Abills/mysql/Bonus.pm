@@ -562,7 +562,6 @@ sub user_list {
   $self->query(
     $db, "SELECT u.id, pi.fio, b_tp.name, bu.state, bu.uid
      FROM (bonus_main bu, users u)
-     
      LEFT JOIN users_pi pi ON (u.uid=pi.uid)
      LEFT JOIN bonus_tps b_tp ON (b_tp.id=bu.tp_id)
      WHERE bu.uid=u.uid
@@ -789,7 +788,7 @@ sub bonus_operation_list {
 
   $self->query(
     $db, "SELECT p.id, u.id, $self->{SEARCH_FIELDS} p.date, p.dsc, p.sum, p.last_deposit, p.expire, p.method, 
-      p.ext_id, p.bill_id, if(a.name is null, 'Unknown', a.name),  
+      p.ext_id, p.bill_id, if(a.name is null, 'Unknown', a.name),
       INET_NTOA(p.ip), p.action_type, p.uid, p.inner_describe
     FROM bonus_log p
     LEFT JOIN users u ON (u.uid=p.uid)

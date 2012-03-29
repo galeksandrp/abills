@@ -541,7 +541,9 @@ sub invoices_list {
     $WHERE
     GROUP BY d.id 
     ORDER BY $SORT $DESC
-    LIMIT $PG, $PAGE_ROWS;"
+    LIMIT $PG, $PAGE_ROWS;",
+    undef,
+    $attr
   );
 
   return $self->{list} if ($self->{TOTAL} < 1);
@@ -608,7 +610,7 @@ sub docs_nextid {
 }
 
 #**********************************************************
-# docs_invoice_new
+# invoice_new
 #**********************************************************
 sub invoice_new {
   my $self = shift;
@@ -694,8 +696,12 @@ sub invoice_new {
   $self->query(
     $db, "SELECT f.id, u.id, f.date, f.dsc, f.sum, ao.fees_id,
 f.last_deposit, 
-f.method, f.bill_id, if(a.name is NULL, 'Unknown', a.name), 
-INET_NTOA(f.ip), f.uid, f.inner_describe 
+f.method, 
+f.bill_id, 
+if(a.name is NULL, 'Unknown', a.name) AS admin_name, 
+INET_NTOA(f.ip) as ip, 
+f.uid, 
+f.inner_describe 
 FROM fees f 
 LEFT JOIN users u ON (u.uid=f.uid) 
 LEFT JOIN admins a ON (a.aid=f.aid) 
@@ -703,7 +709,9 @@ LEFT JOIN docs_invoice_orders ao ON (ao.fees_id=f.id)
 $WHERE
 GROUP BY f.id 
     ORDER BY $SORT $DESC
-    LIMIT $PG, $PAGE_ROWS;"
+    LIMIT $PG, $PAGE_ROWS;",
+    undef,
+    $attr    
   );
 
   return $self->{list} if ($self->{TOTAL} < 1);
@@ -1024,7 +1032,9 @@ sub tax_invoice_list {
     $WHERE
     GROUP BY d.tax_invoice_id 
     ORDER BY $SORT $DESC
-    LIMIT $PG, $PAGE_ROWS;"
+    LIMIT $PG, $PAGE_ROWS;",
+    undef,
+    $attr
   );
 
   $self->{SUM} = 0.00;
@@ -1537,7 +1547,15 @@ sub user_info {
     return $self;
   }
 
-  ($self->{UID}, $self->{SEND_DOCS}, $self->{PERIODIC_CREATE_DOCS}, $self->{EMAIL}, $self->{COMMENTS}, $self->{PERSONAL_DELIVERY}, $self->{INVOICE_PERIOD}, $self->{INVOICE_DATE}, $self->{NEXT_INVOICE_DATE}) = @{ $self->{list}->[0] };
+  ($self->{UID}, 
+  $self->{SEND_DOCS}, 
+  $self->{PERIODIC_CREATE_DOCS}, 
+  $self->{EMAIL}, 
+  $self->{COMMENTS}, 
+  $self->{PERSONAL_DELIVERY}, 
+  $self->{INVOICE_PERIOD}, 
+  $self->{INVOICE_DATE}, 
+  $self->{NEXT_INVOICE_DATE}) = @{ $self->{list}->[0] };
 
   return $self;
 }
@@ -1749,11 +1767,12 @@ sub user_list {
 
   $self->query(
     $db, "select u.id, pi.fio, 
-     if(company.id IS NULL, b.deposit, cb.deposit), 
+     if(company.id IS NULL, b.deposit, cb.deposit) AS deposit, 
      if(u.company_id=0, u.credit, 
-          if (u.credit=0, company.credit, u.credit)), u.disable, 
+          if (u.credit=0, company.credit, u.credit)) AS credit, 
+     u.disable as login_status, 
      service.invoice_date, 
-     (service.invoice_date + INTERVAL service.invoicing_period MONTH) AS NEXT_INVOICE_DATE,
+     (service.invoice_date + INTERVAL service.invoicing_period MONTH) AS next_invoice_date,
      service.invoicing_period,    
      service.email, 
      service.send_docs,
@@ -1762,7 +1781,7 @@ sub user_list {
      $self->{SEARCH_FIELDS}
      if(u.activate='0000-00-00', 
      service.invoice_date + INTERVAL service.invoicing_period MONTH,  
-     service.invoice_date + INTERVAL 30*service.invoicing_period+service.invoicing_period-1 DAY)   - INTERVAL 10 day AS PRE_INVOICE_DATE 
+     service.invoice_date + INTERVAL 30*service.invoicing_period+service.invoicing_period-1 DAY)   - INTERVAL 10 day AS pre_invoice_date
    FROM (users u, docs_main service)
    
    LEFT JOIN users_pi pi ON (u.uid = pi.uid)
@@ -1773,7 +1792,9 @@ sub user_list {
    WHERE u.uid=service.uid AND
 
    $WHERE 
-   ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;"
+   ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;",
+   undef,
+   $attr
   );
 
   return $self if ($self->{errno});

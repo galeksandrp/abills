@@ -116,9 +116,29 @@ sub info {
   }
 
   (
-    $self->{UID},          $self->{GID},         $self->{G_NAME},         $self->{LOGIN},          $self->{ACTIVATE},   $self->{EXPIRE},       $self->{CREDIT},      $self->{REDUCTION},
-    $self->{REGISTRATION}, $self->{DISABLE},     $self->{BILL_ID},        $self->{DEPOSIT},        $self->{COMPANY_ID}, $self->{COMPANY_NAME}, $self->{COMPANY_VAT}, $self->{BILL_OWNER},
-    $self->{EXT_BILL_ID},  $self->{CREDIT_DATE}, $self->{REDUCTION_DATE}, $self->{COMPANY_CREDIT}, $self->{DOMAIN_ID},  $self->{DELETED},      $self->{PASSWORD}
+    $self->{UID},
+    $self->{GID},
+    $self->{G_NAME},
+    $self->{LOGIN},
+    $self->{ACTIVATE},
+    $self->{EXPIRE},
+    $self->{CREDIT},
+    $self->{REDUCTION},
+    $self->{REGISTRATION}, 
+    $self->{DISABLE},
+    $self->{BILL_ID},
+    $self->{DEPOSIT},
+    $self->{COMPANY_ID}, 
+    $self->{COMPANY_NAME}, 
+    $self->{COMPANY_VAT}, 
+    $self->{BILL_OWNER},
+    $self->{EXT_BILL_ID},
+    $self->{CREDIT_DATE}, 
+    $self->{REDUCTION_DATE}, 
+    $self->{COMPANY_CREDIT}, 
+    $self->{DOMAIN_ID},
+    $self->{DELETED},
+    $self->{PASSWORD}
   ) = @{ $self->{list}->[0] };
 
   if ((!$admin->{permissions}->{0} || !$admin->{permissions}->{0}->{8}) && ($self->{DELETED})) {
@@ -336,8 +356,8 @@ sub pi {
   pi.country_id,
   pi.address_street, 
   pi.address_build,
-  pi.address_flat,  
-  pi.email,  
+  pi.address_flat,
+  pi.email,
   pi.contract_id,
   pi.contract_date,
   pi.contract_sufix,
@@ -395,7 +415,7 @@ sub pi {
   #  }
   if ($self->{LOCATION_ID} > 0) {
     $self->query(
-      $db, "select d.id, d.city, d.name, s.name, b.number  
+      $db, "select d.id, d.city, d.name, s.name, b.number
      FROM builds b
      LEFT JOIN streets s  ON (s.id=b.street_id)
      LEFT JOIN districts d  ON (d.id=s.district_id)
@@ -661,12 +681,15 @@ sub group_del {
 sub list {
   my $self   = shift;
   my ($attr) = @_;
+  
   my @list   = ();
 
   $SORT      = ($attr->{SORT})      ? $attr->{SORT}      : 1;
   $DESC      = ($attr->{DESC})      ? $attr->{DESC}      : '';
   $PG        = ($attr->{PG})        ? $attr->{PG}        : 0;
   $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
+
+
 
   @WHERE_RULES = @{ $self->search_expr_users({ %$attr, 
   	                         EXT_FIELDS => [ 'UID',
@@ -691,7 +714,6 @@ sub list {
                                             'REDUCTION_DATE',
                                             'COMMENTS',
                                             'BILL_ID',
-                                            
                                             'ACTIVATE',
                                             'EXPIRE',
 
@@ -784,9 +806,8 @@ sub list {
      LEFT JOIN companies company ON  (u.company_id=company.id) 
      LEFT JOIN bills cb ON  (company.bill_id=cb.id)
      $EXT_TABLES
-     GROUP BY u.uid     
-     $HAVING 
-
+     GROUP BY u.uid
+     $HAVING
      ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;"
     );
     return $self if ($self->{errno});
@@ -866,9 +887,8 @@ sub list {
      LEFT JOIN companies company ON  (u.company_id=company.id) 
      LEFT JOIN bills cb ON  (company.bill_id=cb.id)
      $EXT_TABLES
-     GROUP BY u.uid     
-     $HAVING 
-
+     GROUP BY u.uid
+     $HAVING
      ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;"
     );
     return $self if ($self->{errno});
@@ -1979,15 +1999,15 @@ sub build_list {
   if ($attr->{CONNECTIONS}) {
     $sql = "SELECT b.number, b.flors, b.entrances, b.flats, s.name, 
      count(pi.uid), ROUND((count(pi.uid) / b.flats * 100), 0),
-	   b.added, b.id $ext_fields	   
-	   
+	   b.added, b.id $ext_fields
+
 	    FROM builds b
      LEFT JOIN streets s ON (s.id=b.street_id)
      LEFT JOIN users_pi pi ON (b.id=pi.location_id)
      $WHERE 
      GROUP BY b.id
      ORDER BY $SORT $DESC
-     LIMIT $PG, $PAGE_ROWS    
+     LIMIT $PG, $PAGE_ROWS
      ;";
   }
   else {
@@ -2029,13 +2049,13 @@ sub build_info {
    map_x,
    map_y,
    map_x2,
-   map_y2,   
+   map_y2,
    map_x3,
-   map_y3,   
+   map_y3,
    map_x4,
    map_y4,
    coordx,
-   coordy   
+   coordy
  FROM builds WHERE id='$attr->{ID}';"
   );
 

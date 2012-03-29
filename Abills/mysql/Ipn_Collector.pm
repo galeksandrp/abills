@@ -930,7 +930,7 @@ sub acct_stop {
     sent, 
     recv, 
     minp, 
-    kb,  
+    kb,
     sum, 
     nas_id, 
     port_id,
@@ -949,7 +949,7 @@ sub acct_stop {
           '$self->{FRAMED_IP_ADDRESS}', 
           '',
           '0', 
-          '0',  
+          '0',
           '$self->{ACCT_SESSION_ID}', 
           '$self->{BILL_ID}',
           '$ACCT_TERMINATE_CAUSE');", 'do'
