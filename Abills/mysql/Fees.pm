@@ -135,20 +135,22 @@ sub take {
           $self->{SUM} = $sum - $user->{EXT_BILL_DEPOSIT};
         }
 
-        $Bill->action('take', $user->{BILL_ID}, $self->{SUM});
-        if ($Bill->{errno}) {
-          $self->{errno}  = $Bill->{errno};
-          $self->{errstr} = $Bill->{errstr};
-          return $self;
+        if ($self->{SUM} > 0) {
+          $Bill->action('take', $user->{BILL_ID}, $self->{SUM});
+          if ($Bill->{errno}) {
+            $self->{errno}  = $Bill->{errno};
+            $self->{errstr} = $Bill->{errstr};
+            return $self;
+          }
+        
+          $self->query(
+            $db, "INSERT INTO fees (uid, bill_id, date, sum, dsc, ip, last_deposit, aid, vat, inner_describe, method) 
+             values ('$user->{UID}', '$user->{BILL_ID}', $DATE, '$self->{SUM}', '$DESCRIBE -', 
+              INET_ATON('$admin->{SESSION_IP}'), '$user->{DEPOSIT}', '$admin->{AID}',
+              '$user->{COMPANY_VAT}', '$DATA{INNER_DESCRIBE}', '$DATA{METHOD}')", 'do'
+          );
+          $sum = $sum - $self->{SUM};
         }
-
-        $self->query(
-          $db, "INSERT INTO fees (uid, bill_id, date, sum, dsc, ip, last_deposit, aid, vat, inner_describe, method) 
-           values ('$user->{UID}', '$user->{BILL_ID}', $DATE, '$self->{SUM}', '$DESCRIBE -', 
-            INET_ATON('$admin->{SESSION_IP}'), '$Bill->{DEPOSIT}', '$admin->{AID}',
-            '$user->{COMPANY_VAT}', '$DATA{INNER_DESCRIBE}', '$DATA{METHOD}')", 'do'
-        );
-        $sum = $sum - $self->{SUM};
         $user->{BILL_ID} = $user->{EXT_BILL_ID};
       }
     }
