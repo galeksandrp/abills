@@ -640,27 +640,42 @@ sub bonus_service_discount_client {
   my ($attr) = @_;
 
   my ($year, $month, $day) = split(/-/, $user->{REGISTRATION}, 3);
-  my $seltime = POSIX::mktime(0, 0, 0, $day, ($month - 1), ($year - 1900));
-  $registration_days = int((time() - $seltime) / 86400);
+  my $seltime              = POSIX::mktime(0, 0, 0, $day, ($month - 1), ($year - 1900));
+  $registration_days       = int((time() - $seltime) / 86400);
+
+
+  my %RULES = ();
+  my $list = $Bonus->service_discount_list({ PAGE_ROWS => 1000 });
+  foreach my $line (@$list) {
+    if ($line->[1] > 0) {
+      $RULES{PERIOD} = 1;
+    }
+    elsif ($line->[2] > 0) {
+      $RULES{TOTAL_PAYMENT} = 1;
+    }
+  }
+
+
   my $list = $Bonus->service_discount_list(
     {
-      REGISTRATION_DAYS => "<=$registration_days,>=0",
-      PAGE_ROWS         => 1,
-      SORT              => "1 DESC, 2 DESC, 3 DESC"
+      REGISTRATION_DAYS  => "<=$registration_days,>=0",
+      TOTAL_PAYMENTS_SUM => $RULES{TOTAL_PAYMENT} ? "<=$payments_sum,>=0" : undef,
+      PAGE_ROWS          => 1,
+      SORT               => "1 DESC, 2 DESC, 3 DESC"
     }
   );
 
   my %RESULT = ();
   if ($Bonus->{TOTAL} > 0) {
-    $RESULT{TOTAL_PAYMENT}     = $list->[0]->[2];
-    $RESULT{DISCOUNT}          = $list->[0]->[3];
-    $RESULT{DISCOUNT_PERIOD}   = $list->[0]->[4];
-    $RESULT{BONUS_SUM}         = $list->[0]->[5];
-    $RESULT{BONUS_PERCENT}     = $list->[0]->[6];
-    $RESULT{BONUS_EXT_ACCOUNT} = $list->[0]->[7];
+    $RESULT{TOTAL_PAYMENT}     = $list->[0]->[2] || 0;
+    $RESULT{DISCOUNT}          = $list->[0]->[3] || 0;
+    $RESULT{DISCOUNT_PERIOD}   = $list->[0]->[4] || 0;
+    $RESULT{BONUS_SUM}         = $list->[0]->[5] || 0;
+    $RESULT{BONUS_PERCENT}     = $list->[0]->[6] || 0;
+    $RESULT{BONUS_EXT_ACCOUNT} = $list->[0]->[7] || 0;
   }
 
-  if ($RESULT{TOTAL_PAYMENT} > 0) {
+  if ($RULES{TOTAL_PAYMENT} > 0) {
     my $list = $Payments->list(
       {
         UID        => $user->{UID} || $FORM{UID},
@@ -669,7 +684,7 @@ sub bonus_service_discount_client {
       }
     );
 
-    $RESULT{TOTAL_PAYMENT} = "$_TOTAL $_PAYMENTS: $Payments->{SUM}";
+    $RESULT{TOTAL_PAYMENT} = $html->b("$_TOTAL $_PAYMENTS: ". ($Payments->{SUM} || 0.00));
   }
   else {
     $RESULT{TOTAL_PAYMENT} = '';
