@@ -489,11 +489,11 @@ sub reports_users {
   undef @WHERE_RULES;
   if ($attr->{UID}) {
     push @WHERE_RULES, "l.uid='$attr->{UID}'";
-    $date  = " DATE_FORMAT(start, '%Y-%m-%d'), l.traffic_class, tt.descr";
+    $date  = " DATE_FORMAT(start, '%Y-%m-%d') AS start, l.traffic_class, tt.descr";
     $GROUP = '1, 2';
   }
   else {
-    $date = " DATE_FORMAT(start, '%Y-%m-%d'), count(DISTINCT l.uid) ";
+    $date = " DATE_FORMAT(start, '%Y-%m-%d') AS start, count(DISTINCT l.uid) AS count ";
   }
 
   if ($attr->{SESSION_ID}) {
@@ -530,14 +530,14 @@ sub reports_users {
 
     $attr->{TYPE} = '-' if (!$attr->{TYPE});
     if ($attr->{TYPE} eq 'HOURS') {
-      $date = "date_format(l.start, '\%H'), count(DISTINCT l.uid)";
+      $date = "date_format(l.start, '\%H') As hours, count(DISTINCT l.uid) AS count";
     }
     elsif ($attr->{TYPE} eq 'DAYS_TCLASS') {
-      $date  = "date_format(l.start, '%Y-%m-%d'), '-', l.traffic_class, tt.descr";
+      $date  = "date_format(l.start, '%Y-%m-%d') AS start, '-', l.traffic_class, tt.descr";
       $GROUP = '1,3';
     }
     elsif ($attr->{TYPE} eq 'DAYS') {
-      $date = "date_format(l.start, '%Y-%m-%d'), count(DISTINCT l.uid)";
+      $date = "date_format(l.start, '%Y-%m-%d') AS start, count(DISTINCT l.uid) AS count";
     }
     elsif ($attr->{TYPE} eq 'TP') {
       $date = "l.tp_id";
@@ -578,7 +578,7 @@ sub reports_users {
   elsif ($attr->{HOUR}) {
     push @WHERE_RULES, "date_format(start, '%Y-%m-%d %H')='$attr->{HOUR}'";
     $GROUP = "1, 2, 3";
-    $date  = "DATE_FORMAT(start, '%Y-%m-%d %H'), u.id, l.traffic_class, tt.descr ";
+    $date  = "DATE_FORMAT(start, '%Y-%m-%d %H') AS hours, u.id, l.traffic_class, tt.descr ";
   }
   elsif ($attr->{DATE}) {
     push @WHERE_RULES, "date_format(start, '%Y-%m-%d')='$attr->{DATE}'";
@@ -587,22 +587,22 @@ sub reports_users {
       $GROUP = "1, 2";
 
       #push @WHERE_RULES, "l.uid='$attr->{UID}'";
-      $date = " DATE_FORMAT(start, '%Y-%m-%d %H'), l.traffic_class, tt.descr";
+      $date = " DATE_FORMAT(start, '%Y-%m-%d %H') AS hours, l.traffic_class, tt.descr";
     }
     elsif ($attr->{HOURS}) {
       $GROUP = "1, 3";
-      $date  = "DATE_FORMAT(start, '%Y-%m-%d %H'), count(DISTINCT u.id), l.traffic_class, tt.descr ";
+      $date  = "DATE_FORMAT(start, '%Y-%m-%d %H') AS hours, count(DISTINCT u.id), l.traffic_class, tt.descr ";
     }
     else {
       $GROUP = "1, 2, 3";
-      $date  = "DATE_FORMAT(start, '%Y-%m-%d'), u.id, l.traffic_class, tt.descr ";
+      $date  = "DATE_FORMAT(start, '%Y-%m-%d') AS start, u.id, l.traffic_class, tt.descr ";
     }
   }
   elsif (defined($attr->{MONTH})) {
     push @WHERE_RULES, "date_format(l.start, '%Y-%m')='$attr->{MONTH}'";
   }
   else {
-    $date = "date_format(l.start, '%Y-%m'), count(DISTINCT u.id), ";
+    $date = "date_format(l.start, '%Y-%m') AS month, count(DISTINCT u.id), ";
   }
 
   if ($attr->{FROM_TIME} && $attr->{TO_TIME}) {
@@ -654,31 +654,24 @@ sub reports_users {
       $sql4 =~ s/\%TABLE\%/$table/g;
       $full_sql2 .= "$sql4\n";
 
-      #if ($i<$#tables) {
       $full_sql  .= " UNION ";
       $full_sql2 .= " UNION ";
-
-      # }
     }
   }
 
-  # else {
   $sql  =~ s/\%TABLE\%/ipn_log/g;
   $sql2 =~ s/\%TABLE\%/ipn_log/g;
   $full_sql  .= $sql;
   $full_sql2 .= $sql2;
 
-  #  }
-
   $full_sql .= " 
    ORDER BY $SORT $DESC ";
 
-  $self->query($db, $full_sql);
-
-  #
-
+  #Rows query
+  $self->query($db, $full_sql, undef, $attr);
   my $list = $self->{list};
 
+  #totals query
   $self->query($db, $full_sql2);
 
   ($self->{COUNT}, $self->{SUM}) = @{ $self->{list}->[0] };
@@ -1380,8 +1373,6 @@ sub user_detail {
   $list = $self->{list};
 
   if ($self->{TOTAL} > 0 && $#GROUP_RULES < 0) {
-
-    #$self->{debug}=1;
     my $totals = 0;
     foreach my $table (@tables) {
       $self->query(

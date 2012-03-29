@@ -510,9 +510,9 @@ sub ipn_use {
   my $out           = '';
   my @type          = ();
   my %TRAFFIC_CLASS = ();
+  $Ipn->{debug}=1;
 
-  #Day reposrt
-
+  #Day reports
   if ($FORM{DATE} || ($FORM{TYPE} && $FORM{TYPE} eq 'DAYS_TCLASS')) {
     $LIST_PARAMS{INTERVAL_TYPE} = 2;
 
@@ -736,7 +736,6 @@ sub ipn_use {
 
   }
   else {
-
     #Used Traffic
     my @caption = ("$_DATE", "$_USERS", "IN", "OUT", "$_TOTAL", $_SUM);
     if ($FORM{TYPE} eq 'DAYS_TCLASS') {
@@ -744,6 +743,9 @@ sub ipn_use {
     }
     elsif ($FORM{TYPE} eq 'HOURS') {
       $caption[1] = "$_HOURS";
+    }
+    elsif ($FORM{TYPE} eq 'GID') {
+      $caption[0] = "$_GROUPS";
     }
     elsif ($FORM{TYPE} eq 'USER') {
       $caption[0] = "$_USERS";

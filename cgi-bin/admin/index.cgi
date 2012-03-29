@@ -4871,6 +4871,10 @@ sub reports {
 
       $LIST_PARAMS{FROM_TIME} = $FORM{FROM_TIME};
       $LIST_PARAMS{TO_TIME}   = $FORM{TO_TIME};
+
+      if ($FORM{FROM_TIME} && $FORM{TO_TIME} && ($FORM{FROM_TIME} ne '00:00:00' || $FORM{TO_TIME} ne '24:00:00')) {
+      	$pages_qs .= "&FROM_TIME=$FORM{FROM_TIME}&TO_TIME=$FORM{TO_TIME}";
+      }
     }
 
     if (!$attr->{NO_GROUP}) {

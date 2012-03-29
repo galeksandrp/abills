@@ -228,262 +228,132 @@ form {
 	color:%_COLOR_9%;
 	font-size:10px;
 }
-
 a.add {
 	background:url(/img/button_add.png) no-repeat center;
-	padding-left:22px;
-	padding-top:5px;
-	height:24px;
-	display:block;
-	overflow:hidden;
-	text-indent:-90000px;
-	font-size:0;
-	margin:0;
 }
-
 a.sendmail {
 	background:url(/img/button_sendmail.png) no-repeat center;
-	padding-left:22px;
-	padding-top:5px;
-	height:24px;
-	display:block;
-	overflow:hidden;
-	text-indent:-90000px;
-	font-size:0;
-	margin:0;
 }
-
 a.del {
 	background:url(/img/button_del.png) no-repeat center;
-	padding-left:22px;
-	padding-top:5px;
-	display:block;
-	overflow:hidden;
-	text-indent:-9000px;
-	margin:0;
 }
-
 a.users {
 	background:url(/img/button_users.png) no-repeat center;
-	padding-left:22px;
-	padding-top:5px;
-	display:block;
-	overflow:hidden;
-	text-indent:-9000px;
-	margin:0;
 }
-
 a.payments {
 	background:url(/img/button_payments.png) no-repeat center;
-	padding-left:22px;
-	padding-top:5px;
-	height:22px;
-	display:block;
-	overflow:hidden;
-	font-size:0;
-	margin:0;
 }
-
 a.fees {
 	background:url(/img/button_fees.png) no-repeat center;
-	padding-left:22px;
-	padding-top:5px;
-	height:22px;
-	display:block;
-	text-decoration:none;
-	overflow:hidden;
-	text-indent:-9000px;
-	margin:0;
 }
-
 a.permissions {
 	background:url(/img/button_permissions.png) no-repeat center;
-	padding-left:22px;
-	padding-top:5px;
-	display:block;
-	overflow:hidden;
-	text-indent:-9000px;
-	margin:0;
 }
-
 a.history {
-	background:url(/img/button_history.png) no-repeat center;
-	padding-left:22px;
-	padding-top:5px;
-	display:block;
-	overflow:hidden;
-	text-indent:-9000px;
-	margin:0;
+	background:url(/img/button_history.png) no-repeat center;	
 }
-
 a.password {
 	background:url(/img/button_password.png) no-repeat center;
-	padding-left:22px;
-	padding-top:5px;
-	display:block;
-	overflow:hidden;
-	text-indent:-9000px;
-	margin:0;
 }
-
 a.shedule {
 	background:url(/img/button_shedule.png) no-repeat center;
-	padding-left:22px;
-	padding-top:5px;
-	display:block;
-	overflow:hidden;
-	text-indent:-9000px;
-	margin:0;
 }
-
 a.print {
 	background:url(/img/button_print.png) no-repeat center;
-	padding-left:22px;
-	padding-top:5px;
-	display:block;
-	overflow:hidden;
-	text-indent:-9000px;
-	margin:0;
 }
-
 a.stats {
 	background:url(/img/button_stats.png) no-repeat center;
-	padding-left:22px;
-	padding-top:5px;
-	display:block;
-	overflow:hidden;
-	text-indent:-9000px;
-	margin:0;
 }
-
 a.activate {
 	background:url(/img/button_activate.png) no-repeat center;
-	padding-left:22px;
-	padding-top:5px;
-	height:22px;
-	display:block;
-	overflow:hidden;
-	text-indent:-9000px;
-	margin:0;
 }
-
 a.off {
 	background:url(/img/button_off.png) no-repeat center;
-	padding-left:22px;
-	padding-top:5px;
-	height:22px;
-	display:block;
-	overflow:hidden;
-	text-indent:-9000px;
-	margin:0;
 }
-
 a.sql {
 	background:url(/img/button_sql.png) no-repeat center;
-	padding-left:22px;
-	padding-top:5px;
-	display:block;
-	overflow:hidden;
-	text-indent:-9000px;
-	margin:0;
 }
-
 a.download {
 	background:url(/img/button_download.png) no-repeat center;
-	padding-left:22px;
-	padding-top:5px;
-	display:block;
-	overflow:hidden;
-	text-indent:-9000px;
-	margin:0;
 }
-
 a.message {
 	background:url(/img/button_message.png) no-repeat center;
-	padding-left:22px;
-	padding-top:5px;
-	display:block;
-	overflow:hidden;
-	text-indent:-9000px;
-	margin:0;
 }
-
 a.info {
 	background:url(/img/button_info.png) no-repeat center;
-	padding-left:22px;
-	padding-top:5px;
-	display:block;
-	overflow:hidden;
-	text-indent:-9000px;
-	margin:0;
 }
-
 a.stats2 {
 	background:url(/img/chart_16.png) no-repeat center;
-	padding-left:22px;
-	padding-top:5px;
-	display:block;
-	overflow:hidden;
-	text-indent:-9000px;
-	margin:0;
 }
-
 a.traffic {
 	background:url(/img/button_traffic.png) no-repeat center;
-	padding-left:22px;
-	padding-top:5px;
-	display:block;
-	overflow:hidden;
-	text-indent:-9000px;
-	margin:0;
 }
-
 a.interval {
 	background:url(/img/button_interval.png) no-repeat center;
-	padding-left:22px;
-	padding-top:5px;
-	display:block;
-	overflow:hidden;
-	text-indent:-9000px;
-	margin:0;
 }
-
 a.show {
 	background:url(/img/button_show.png) no-repeat center;
-	padding-left:22px;
-	padding-top:5px;
-	display:block;
-	overflow:hidden;
-	text-indent:-9000px;
-	margin:0;
 }
-
 a.help {
 	background:url(/img/button_help.png) no-repeat center;
-	padding-left:22px;
-	padding-top:5px;
-	height:24px;
-	display:block;
-	overflow:hidden;
-	text-indent:-90000px;
-	font-size:0;
-	margin:0;
 }
 
 a.routes {
 	background:url(/img/button_routes.png) no-repeat center;
-	padding-left:22px;
-	padding-top:5px;
-	display:block;
-	overflow:hidden;
-	text-indent:-9000px;
-	margin:0;
 }
 
-a.rightAlignText {
-	padding-left:20px;
-	padding-top:0;
+a.change,
+a.search {
+	background:url(/img/button_change.png) no-repeat center;
+}
+
+a.add,
+a.sendmail,
+a.del,
+a.users,
+a.payments,
+a.fees,
+a.permissions,
+a.history,
+a.password,
+a.shedule,
+a.print,
+a.stats,
+a.activate,
+a.off,
+a.sql,
+a.download,
+a.message,
+a.info,
+a.stats2,
+a.traffic,
+a.interval,
+a.show,
+a.help,
+a.routes,
+a.change,
+a.search {
 	display:inline-block;
+	padding-left:22px;
+	overflow:hidden;
+	text-indent:-90000px;
+	text-decoration:none;
+	margin:0;
+	
+
+}
+a.add.rightAlignText {
+	background-position:right;
+	
+	height:24px;
+	display:block;
+	overflow:hidden;
+	text-indent:-90000px;
+	font-size:0;
+	margin:0 5px 0 0;
+}
+a.rightAlignText {
+	background-position:0px 0px;
 }
 
 .link_button {
@@ -535,7 +405,7 @@ TABLE.border {
 	font-family:'Trebuchet MS', 'Lucida Grande', Verdana, Lucida, Geneva, Helvetica, Arial, sans-serif;
 	background-color:%_COLOR_2%;
 	color:#333;
-	padding:0 0 6px;
+	padding:0 0 7px;
 }
 
 .l_user_menu ul {
@@ -1004,15 +874,10 @@ table tr.marked th,table tr.marked,.odd:hover,.even:hover,.hover,table tr.odd:ho
 	color:%_COLOR_9%;
 }
 
-a.change,a.search {
-	background:url(/img/button_change.png) no-repeat center;
-	padding-left:22px;
-	padding-top:5px;
-	display:block;
-	overflow:hidden;
-	text-indent:-9000px;
-	margin:0;
-}
+
+
+
+
 </style>
 
 <title>%title%</title>

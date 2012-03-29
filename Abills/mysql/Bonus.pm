@@ -70,7 +70,13 @@ sub info {
     return $self;
   }
 
-  ($self->{TP_ID}, $self->{PERIOD}, $self->{RANGE_BEGIN}, $self->{RANGE_END}, $self->{SUM}, $self->{COMMENTS}, $self->{ID}) = @{ $self->{list}->[0] };
+  ($self->{TP_ID}, 
+   $self->{PERIOD}, 
+   $self->{RANGE_BEGIN}, 
+   $self->{RANGE_END}, 
+   $self->{SUM}, 
+   $self->{COMMENTS}, 
+   $self->{ID}) = @{ $self->{list}->[0] };
 
   return $self;
 }
