@@ -717,7 +717,7 @@ sub reduction_operation {
   # For users
   my $list = $users->list(
     {
-      REDUCTION_DATE => ">0000-00-00,<=$ADMIN_REPORT{DATE}",
+      REDUCTION_DATE => ">0000-00-00;<=$ADMIN_REPORT{DATE}",
       REDUCTION      => ">0",
       PAGE_ROWS      => 1000000,
       COLS_NAME      => 1
