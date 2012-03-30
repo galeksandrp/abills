@@ -662,7 +662,7 @@ sub credit_full_set {
   my $FULL_CREDIT_PERIOD = $argv->{FULL_CREDIT_PERIOD};
   my $CREDIT_EXPIRE_DATE = '';
   if ($argv->{FULL_CREDIT_PERIOD}) {
-  	$CREDIT_EXPIRE_DATE = strftime "%Y-%m-%d", localtime((mktime(0, 0, 0, $D, $M, ($Y - 1900), 0, 0, 0) + $FULL_CREDIT_PERIOD * 86400));
+  	$CREDIT_EXPIRE_DATE = strftime "%Y-%m-%d", localtime((mktime(0, 0, 0, $D, ($M-1), ($Y - 1900), 0, 0, 0) + $FULL_CREDIT_PERIOD * 86400));
   }
   
   #set credit for individual users
