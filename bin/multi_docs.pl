@@ -264,8 +264,8 @@ sub periodic_invoice {
       $FORM{FROM_DATE} = $user{ACTIVATE};
       ($Y, $M, $D) = split(/-/, $FORM{FROM_DATE}, 3);
       $start_period_unixtime = (mktime(0, 0, 0, $D, ($M - 1), ($Y - 1900), 0, 0, 0) + 30 * 86400);
-      $user{INVOICE_PERIOD_START} = strftime '%Y-%m-%d', localtime((mktime(0, 0, 0, $D, ($M - 1), ($Y - 1900), 0, 0, 0) + 30 * 86400));
-      $user{INVOICE_PERIOD_STOP}  = strftime '%Y-%m-%d', localtime((mktime(0, 0, 0, $D, ($M - 1), ($Y - 1900), 0, 0, 0) + 30 * 86400));
+      $user{INVOICE_PERIOD_START} = strftime '%Y-%m-%d', localtime((mktime(0, 0, 0, $D, ($M - 1), ($Y - 1900), 0, 0, 0) + 31 * 86400));
+      $user{INVOICE_PERIOD_STOP}  = strftime '%Y-%m-%d', localtime((mktime(0, 0, 0, $D, ($M - 1), ($Y - 1900), 0, 0, 0) + 31 * 86400));
       ($Y, $M, $D) = split(/-/, $user{INVOICE_PERIOD_START}, 3);
     }
     else {
