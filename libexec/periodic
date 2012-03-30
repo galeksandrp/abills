@@ -673,6 +673,7 @@ sub credit_full_set {
       DISABLE        => 0,
       COLS_NAME      => 1,
       COMPANY_ID     => 0,
+      PAGE_ROWS      => 1000000,
       %LIST_PARAMS  
     }
   );
@@ -712,6 +713,7 @@ sub credit_full_set {
     {
       DISABLE        => 0,
       COLS_NAME      => 1,
+      PAGE_ROWS      => 1000000,
       %LIST_PARAMS  
     }
   );
