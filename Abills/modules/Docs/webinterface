@@ -4,11 +4,11 @@ use Docs;
 use Fees;
 use Customers;
 
-$Docs = Docs->new($db, $admin, \%conf);
-my $Fees = Fees->new($db, $admin, \%conf);
+$Docs        = Docs->new($db, $admin, \%conf);
+my $Fees     = Fees->new($db, $admin, \%conf);
 my $Payments = Payments->new($db, $admin, \%conf);
 my $Customer = Customers->new($db, $admin, \%conf);
-my $Company = $Customer->company();
+my $Company  = $Customer->company();
 
 #Default 20% VAT
 $conf{DOCS_VAT_INCLUDE} = 20 if (!defined($conf{DOCS_VAT_INCLUDE}));

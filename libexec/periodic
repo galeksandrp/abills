@@ -682,7 +682,7 @@ sub credit_full_set {
     my $credit = $line->{credit};
     my $uid    = $line->{uid};
 
-    $DEBUG .= "$line->{login} UID: $uid\n" if ($debug > 0);
+    $DEBUG .= "$line->{id} UID: $uid\n" if ($debug > 0);
     my $cross_modules_return = cross_modules_call('_docs', { UID          => $uid,
     	                                                       SKIP_MODULES => 'Docs,Sqlcmd,Multidoms,Bsr1000',
     	                                                       DEBUG        => ($debug > 3) ? 1 : undef,  });

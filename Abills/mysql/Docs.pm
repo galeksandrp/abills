@@ -149,7 +149,9 @@ sub docs_receipt_list {
     $WHERE
     GROUP BY d.id 
     ORDER BY $SORT $DESC
-    LIMIT $PG, $PAGE_ROWS;"
+    LIMIT $PG, $PAGE_ROWS;",
+    undef,
+    $attr
   );
 
   return $self->{list} if ($self->{TOTAL} < 1);
@@ -564,7 +566,9 @@ sub invoices_list {
     $self->query(
       $db, "SELECT  o.invoice_id,  o.orders,  o.unit,  o.counts,  o.price,  o.fees_id
       FROM  (docs_invoices d, docs_invoice_orders o) 
-     $WHERE;"
+     $WHERE;",
+     undef,
+     $attr
     );
 
     return $self->{list} if ($self->{TOTAL} < 1);
@@ -694,12 +698,17 @@ sub invoice_new {
   $WHERE = ($#WHERE_RULES > -1) ? 'WHERE ' . join(' and ', @WHERE_RULES) : '';
 
   $self->query(
-    $db, "SELECT f.id, u.id, f.date, f.dsc, f.sum, ao.fees_id,
-f.last_deposit, 
-f.method, 
-f.bill_id, 
-if(a.name is NULL, 'Unknown', a.name) AS admin_name, 
-INET_NTOA(f.ip) as ip, 
+    $db, "SELECT f.id, 
+      u.id AS login, 
+      f.date, 
+      f.dsc, 
+      f.sum, 
+      ao.fees_id,
+   f.last_deposit, 
+   f.method, 
+   f.bill_id, 
+   if(a.name is NULL, 'Unknown', a.name) AS admin_name, 
+   INET_NTOA(f.ip) as ip, 
 f.uid, 
 f.inner_describe 
 FROM fees f 
@@ -1681,55 +1690,40 @@ sub user_list {
   $PG        = ($attr->{PG})        ? $attr->{PG}        : 0;
   $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
 
-  $self->{SEARCH_FIELDS}       = '';
-  $self->{SEARCH_FIELDS_COUNT} = 0;
+  
+  my @WHERE_RULES = ( "u.uid = service.uid" );
 
-  undef @WHERE_RULES;
-  push @WHERE_RULES, "u.uid = service.uid";
+  push @WHERE_RULES, @{ $self->search_expr_users({ %$attr, 
+  	                         EXT_FIELDS => [
+  	                                        'PHONE',
+  	                                        'EMAIL',
+  	                                        'ADDRESS_FLAT',
+  	                                        'PASPORT_DATE',
+                                            'PASPORT_NUM', 
+                                            'PASPORT_GRANT',
+                                            'CITY', 
+                                            'ZIP',
+                                            'GID',
+                                            'CONTRACT_ID',
+                                            'CONTRACT_SUFIX',
+                                            'CONTRACT_DATE',
+                                            'EXPIRE',
+                                            'LOGIN_STATUS',
+                                            'CREDIT',
+                                            'CREDIT_DATE', 
+                                            'REDUCTION',
+                                            'REGISTRATION',
+                                            'REDUCTION_DATE',
+                                            'COMMENTS',
+                                            'BILL_ID',
+                                            
+                                            'ACTIVATE',
+                                            'EXPIRE',
 
-  if ($attr->{LOGIN}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{LOGIN}, 'STR', 'u.id') };
-  }
-
-  if ($attr->{DEPOSIT}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{DEPOSIT}, 'INT', 'u.deposit') };
-  }
-
-  if ($attr->{DISCOUNT}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{DISCOUNT}, 'INT', 'u.reduction', { EXT_FIELD => 1 }) };
-  }
-
-  if ($attr->{FIO}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{FIO}, 'STR', 'pi.fiio') };
-  }
+  	                                         ] }) };
 
   if ($attr->{COMMENTS}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{COMMENTS}, 'INT', 'service.comments', { EXT_FIELD => 1 }) };
-  }
-
-  # Show debeters
-  if ($attr->{COMPANY_ID}) {
-    push @WHERE_RULES, "u.company_id='$attr->{COMPANY_ID}'";
-  }
-
-  # Show groups
-  if ($attr->{GIDS}) {
-    push @WHERE_RULES, "u.gid IN ($attr->{GIDS})";
-  }
-  elsif ($attr->{GID}) {
-    push @WHERE_RULES, "u.gid='$attr->{GID}'";
-  }
-
-  #Activate
-  if ($attr->{ACTIVATE}) {
-    my $value = $self->search_expr("$attr->{ACTIVATE}", 'INT');
-    push @WHERE_RULES, "(u.activate='0000-00-00' or u.activate$attr->{ACTIVATE})";
-  }
-
-  #Expire
-  if ($attr->{EXPIRE}) {
-    my $value = $self->search_expr("$attr->{EXPIRE}", 'INT');
-    push @WHERE_RULES, "(u.expire='0000-00-00' or u.expire$attr->{EXPIRE})";
+    push @WHERE_RULES, @{ $self->search_expr($attr->{COMMENTS}, 'INT', 'service.comments AS service_comments', { EXT_FIELD => 1 }) };
   }
 
   if ($attr->{INVOICE_DATE}) {
@@ -1758,19 +1752,21 @@ sub user_list {
   }
 
   if ($attr->{PERIODIC_CREATE_DOCS}) {
-    push @WHERE_RULES, @{ $self->search_expr("$attr->{PERIODIC_CREATE_DOCS}", 'INT', 'd.periodic_create_docs') };
+    push @WHERE_RULES, @{ $self->search_expr("$attr->{PERIODIC_CREATE_DOCS}", 'INT', 'service.periodic_create_docs') };
   }
 
+  my $EXT_TABLES  = $self->{EXT_TABLES};
   $WHERE = ($#WHERE_RULES > -1) ? join(' and ', @WHERE_RULES) : '';
 
   my $list;
 
   $self->query(
-    $db, "select u.id, pi.fio, 
+    $db, "select u.id AS login, 
+     pi.fio, 
      if(company.id IS NULL, b.deposit, cb.deposit) AS deposit, 
      if(u.company_id=0, u.credit, 
           if (u.credit=0, company.credit, u.credit)) AS credit, 
-     u.disable as login_status, 
+     u.disable AS login_status, 
      service.invoice_date, 
      (service.invoice_date + INTERVAL service.invoicing_period MONTH) AS next_invoice_date,
      service.invoicing_period,    
