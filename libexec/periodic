@@ -669,10 +669,10 @@ sub credit_full_set {
   $users->{debug}=1 if ($debug > 6);
   my $list = $users->list(
     {
-#      CREDIT         => "0",
+      CREDIT         => "0",
       DISABLE        => 0,
       COLS_NAME      => 1,
-      COMPANY_ID     => 100,
+      COMPANY_ID     => 0,
       %LIST_PARAMS  
     }
   );
