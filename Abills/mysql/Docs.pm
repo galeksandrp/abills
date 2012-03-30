@@ -1746,8 +1746,8 @@ sub user_list {
       ))";  		
   	}
     else {
-      push @WHERE_RULES, "(u.activate='0000-00-00' AND service.invoice_date + INTERVAL service.invoicing_period MONTH - INTERVAL 10 day='$attr->{PRE_INVOICE_DATE}') 
-      OR (u.activate<>'0000-00-00' AND service.invoice_date + INTERVAL 30*service.invoicing_period+service.invoicing_period-1 DAY   - INTERVAL 10 day='$attr->{PRE_INVOICE_DATE}')";
+      push @WHERE_RULES, "((u.activate='0000-00-00' AND service.invoice_date + INTERVAL service.invoicing_period MONTH - INTERVAL 10 day='$attr->{PRE_INVOICE_DATE}') 
+      OR (u.activate<>'0000-00-00' AND service.invoice_date + INTERVAL 30*service.invoicing_period+service.invoicing_period DAY   - INTERVAL 10 day='$attr->{PRE_INVOICE_DATE}'))";
     }
   }
 

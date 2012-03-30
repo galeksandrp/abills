@@ -396,7 +396,7 @@ sub periodic_invoice {
     $FORM{NEXT_PERIOD} = 0 if ($FORM{NEXT_PERIOD} < 0);
 
     #Add to DB
-    if ($num > 0) {
+    #if ($num > 0) {
       if ($debug < 5) {
         $Docs->invoice_add({ %user, %ORDERS_HASH });
         $Docs->user_change(
@@ -408,7 +408,7 @@ sub periodic_invoice {
         );
 
         #Sendemail
-        if ($user{SEND_DOCS}) {
+        if ($num > 0 && $user{SEND_DOCS}) {
           $FORM{print} = $Docs->{DOC_ID};
           docs_invoice(
             {
@@ -419,7 +419,7 @@ sub periodic_invoice {
           );
         }
       }
-    }
+    #}
   }
 }
 
