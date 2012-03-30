@@ -3804,7 +3804,7 @@ sub dv_user_chg_tp {
       }
     );
 
-    my @skip_tp_changes = ()
+    my @skip_tp_changes = ();
     if ($conf{DV_SKIP_CHG_TPS}) {
       $conf{DV_SKIP_CHG_TPS} =~  s/ //g;
       @skip_tp_changes = split(/,/, $conf{DV_SKIP_CHG_TPS});

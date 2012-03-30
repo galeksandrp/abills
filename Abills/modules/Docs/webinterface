@@ -1983,7 +1983,7 @@ sub docs_invoice {
         my $list = $Docs->invoice_new(
           {
             FROM_DATE => $FORM{FROM_DATE} || $html->{FROM_DATE},
-            TO_DATE => $FORM{TO_DATE} || $html->{TO_DATE} || $DATE,
+            TO_DATE   => $FORM{TO_DATE} || $html->{TO_DATE} || $DATE,
             PAGE_ROWS => 500,
             UID       => $users->{UID}
           }
