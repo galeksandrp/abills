@@ -1963,6 +1963,22 @@ sub docs_invoice {
       my $total_not_invoice = 0;
       my $amount_for_pay    = 0;
 
+      # Get invoces
+      my %current_invoice = ();
+      my $invoice_list    = $Docs->invoices_list(
+        {
+          UID         => $FORM{UID},
+          PAYMENT_ID  => 0,
+          ORDERS_LIST => 1,
+          COLS_NAME   => 1
+        }
+      );
+
+      foreach my $invoice (@$invoice_list) {
+        $current_invoice{ $invoice->{orders} } = $invoice->{invoice_id};
+      }
+
+
       if (!$user->{UID}) {
         my $list = $Docs->invoice_new(
           {
@@ -1979,7 +1995,7 @@ sub docs_invoice {
           my $date = $line->[2];
           $date =~ s/ \d+:\d+:\d+//g;
           $table->addrow(
-            $html->form_input("ORDER_" . $line->[0], "$line->[3]", { TYPE => 'hidden', OUTPUT2RETURN => 1 })
+            $html->form_input("ORDER_" . $line->[0], "$line->[3]".  (($current_invoice{$line->[3]}) ? ' ' . $html->color_mark($_EXIST, 'red') : '')  , { TYPE => 'hidden', OUTPUT2RETURN => 1 })
             . $html->form_input("SUM_" . $line->[0],     "$line->[4]", { TYPE => 'hidden', OUTPUT2RETURN => 1 })
             . $html->form_input("FEES_ID_" . $line->[0], "$line->[0]", { TYPE => 'hidden', OUTPUT2RETURN => 1 })
             . $html->form_input("IDS", "$line->[0]", { TYPE => 'checkbox', STATE => 1, OUTPUT2RETURN => 1 }) . "$num",
@@ -2016,21 +2032,6 @@ sub docs_invoice {
 
       #Next period payments
       if ($FORM{NEXT_PERIOD}) {
-
-        # Get invoces
-        my %current_invoice = ();
-        my $list            = $Docs->invoices_list(
-          {
-            UID         => $FORM{UID},
-            PAYMENT_ID  => 0,
-            ORDERS_LIST => 1
-          }
-        );
-
-        foreach my $line (@$list) {
-          $current_invoice{ $line->[1] } = $line->[0];
-        }
-
         my $cross_modules_return = cross_modules_call('_docs');
         my $next_period          = $FORM{NEXT_PERIOD};
         if ($users->{ACTIVATE} ne '0000-00-00') {

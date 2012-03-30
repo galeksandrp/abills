@@ -3804,11 +3804,17 @@ sub dv_user_chg_tp {
       }
     );
 
+    my @skip_tp_changes = ()
+    if ($conf{DV_SKIP_CHG_TPS}) {
+      $conf{DV_SKIP_CHG_TPS} =~  s/ //g;
+      @skip_tp_changes = split(/,/, $conf{DV_SKIP_CHG_TPS});
+    }
+
     foreach my $line (@$list) {
       next if ($line->[0] == $Dv->{TP_ID} && $user->{EXPIRE} eq '0000-00-00');
       $table->{rowcolor} = ($table->{rowcolor} eq $_COLORS[1]) ? $_COLORS[2] : $_COLORS[1];
       my $radio_but = '';
-
+      
       if ($line->[5] + $line->[6] < $user->{DEPOSIT} + $user->{CREDIT} || $line->[17]) {
         $radio_but = $html->form_input('TP_ID', "$line->[0]", { TYPE => 'radio', OUTPUT2RETURN => 1 });
       }
