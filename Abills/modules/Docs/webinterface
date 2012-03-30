@@ -2084,8 +2084,6 @@ sub docs_invoice {
               my ($name, $describe, $sum) = split(/\|/, $line);
               next if ($sum < 0);
 
-              #my ($Y, $M, $D) = split(/-/, $FORM{FROM_DATE}, 3);
-              #$period_from = strftime "%Y-%m-%d", localtime( (mktime(0, 0, 0, $D, ($M-1), ($Y-1900), 0, 0, 0) + 1 * 86400) );
               $period_from = $FORM{FROM_DATE};
 
               for (my $i = ($FORM{NEXT_PERIOD} == -1) ? -2 : 0 ; $i < int($FORM{NEXT_PERIOD}) ; $i++) {
@@ -2133,13 +2131,12 @@ sub docs_invoice {
                   $period_to = "$Y-$M-$TO_D";
                 }
 
-                my $order = "$name $describe ($period_from-$period_to)";
+                my $order = "$name $describe($period_from-$period_to)";
 
                 $num++ if (!$current_invoice{$order});
                 $table->addrow(
                   (
-                    (!$current_invoice{$order})
-                    ? $html->form_input('ORDER_' . $num, "$order",    { TYPE => 'hidden', OUTPUT2RETURN => 1 })
+                    (!$current_invoice{$order})  ? $html->form_input('ORDER_' . $num, "$order",    { TYPE => 'hidden', OUTPUT2RETURN => 1 })
                     . $html->form_input('SUM_' . $num,   $result_sum, { TYPE => 'hidden', OUTPUT2RETURN => 1 })
                     . $html->form_input('IDS', "$num", { TYPE => ($user->{UID}) ? 'hidden' : 'checkbox', STATE => 'checked', OUTPUT2RETURN => 1 })
                     . $num
@@ -2195,7 +2192,6 @@ sub docs_invoice {
               create   => 1,
               CUSTOMER => $Docs->{CUSTOMER},
               step     => $FORM{step},
-
               #ALL_SERVICES   => 1
             },
             NAME => 'DOCS_SERVICES_INVOICE',
