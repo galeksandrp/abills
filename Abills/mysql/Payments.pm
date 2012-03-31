@@ -201,32 +201,32 @@ sub list {
 
   @WHERE_RULES = @{ $self->search_expr_users({ %$attr, 
   	                         EXT_FIELDS => [
-  	                                        'PHONE',
-  	                                        'EMAIL',
-  	                                        'ADDRESS_FLAT',
-  	                                        'PASPORT_DATE',
-                                            'PASPORT_NUM', 
-                                            'PASPORT_GRANT',
-                                            'CITY', 
-                                            'ZIP',
-                                            'GID',
-                                            'CONTRACT_ID',
-                                            'CONTRACT_SUFIX',
-                                            'CONTRACT_DATE',
-                                            'EXPIRE',
+                                  'PHONE',
+                                  'EMAIL',
+                                  'ADDRESS_FLAT',
+                                  'PASPORT_DATE',
+                                  'PASPORT_NUM', 
+                                  'PASPORT_GRANT',
+                                  'CITY', 
+                                  'ZIP',
+                                  'GID',
+                                  'CONTRACT_ID',
+                                  'CONTRACT_SUFIX',
+                                  'CONTRACT_DATE',
+                                  'EXPIRE',
 
-                                            'CREDIT',
-                                            'CREDIT_DATE', 
-                                            'REDUCTION',
-                                            'REGISTRATION',
-                                            'REDUCTION_DATE',
-                                            'COMMENTS',
-                                            'BILL_ID',
-                                            
-                                            'ACTIVATE',
-                                            'EXPIRE',
-
-  	                                         ] }) };
+                                  'CREDIT',
+                                  'CREDIT_DATE', 
+                                  'REDUCTION',
+                                  'REGISTRATION',
+                                  'REDUCTION_DATE',
+                                  'COMMENTS',
+                                  'BILL_ID',
+  
+                                  'ACTIVATE',
+                                  'EXPIRE',
+                                  'UID:skip'
+  	                             ] }) };
 
   if ($attr->{UID}) {
     push @WHERE_RULES, "p.uid='$attr->{UID}' ";
@@ -278,10 +278,10 @@ sub list {
 
   # Date intervals
   elsif ($attr->{FROM_DATE}) {
-    push @WHERE_RULES, @{ $self->search_expr(">=$attr->{FROM_DATE}", 'DATE', 'date_format(p.date, \'%Y-%m-%d\')') }, @{ $self->search_expr("<=$attr->{TO_DATE}", 'DATE', 'date_format(p.date, \'%Y-%m-%d\')') };
+    push @WHERE_RULES, @{ $self->search_expr(">=$attr->{FROM_DATE};<=$attr->{TO_DATE}", 'DATE', 'date_format(p.date, \'%Y-%m-%d\')') };
   }
   elsif ($attr->{FROM_DATE_TIME}) {
-    push @WHERE_RULES, @{ $self->search_expr(">=$attr->{FROM_DATE_TIME}", 'DATE', 'p.date') }, @{ $self->search_expr("<=$attr->{TO_DATE_TIME}", 'DATE', 'p.date') };
+    push @WHERE_RULES, @{ $self->search_expr(">=$attr->{FROM_DATE_TIME};<=$attr->{TO_DATE_TIME}", 'DATE', 'p.date') };
   }
   elsif ($attr->{PAYMENT_DAYS}) {
     my $expr = '=';
@@ -316,7 +316,9 @@ sub list {
   my $list;
   if (!$attr->{TOTAL_ONLY}) {
     $self->query(
-      $db, "SELECT p.id, u.id, $self->{SEARCH_FIELDS} p.date, p.dsc, p.sum, p.last_deposit, p.method, 
+      $db, "SELECT p.id, 
+      u.id AS login, 
+      $self->{SEARCH_FIELDS} p.date, p.dsc, p.sum, p.last_deposit, p.method, 
       p.ext_id, p.bill_id, 
       if(a.name is null, 'Unknown', a.name) AS admin_name,  
       INET_NTOA(p.ip) AS ip, 

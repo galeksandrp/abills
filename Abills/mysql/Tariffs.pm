@@ -751,7 +751,7 @@ sub list {
     tp.day_fee, tp.month_fee, 
     tp.logins, 
     tp.age,
-    tp_g.name,
+    tp_g.name AS tp_group_name,
     tp.rad_pairs,
     tp.reduction_fee,
     tp.postpaid_daily_fee,

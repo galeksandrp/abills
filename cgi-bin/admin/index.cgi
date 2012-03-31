@@ -5785,8 +5785,6 @@ sub form_payments () {
         }
 
         if ($FORM{ER} && $FORM{ER} != 1) {
-
-          #$FORM{MAIN_SUM} = $FORM{SUM};
           $FORM{PAYMENT_SUM} = sprintf("%.2f", $FORM{SUM} / $FORM{ER});
         }
         else {
@@ -5934,10 +5932,10 @@ sub form_payments () {
             MULTI_ARRAY_KEY          => 13,
             MULTI_ARRAY_VALUE        => '0,1,3',
             MULTI_ARRAY_VALUE_PREFIX => "$_NUM: ,$_DATE: ,$_SUM:",
-            SEL_OPTIONS => { 0 => '', (!$conf{PAYMENTS_NOT_CREATE_INVOICE}) ? (create => $_CREATE) : undef },
-            NO_ID       => 1,
-            MAIN_MENU   => get_function_index('docs_invoices_list'),
-            MAIN_MENU_AGRV => "UID=$FORM{UID}&INVOICE_ID=$FORM{INVOICE_ID}"
+            SEL_OPTIONS              => { 0 => '', (!$conf{PAYMENTS_NOT_CREATE_INVOICE}) ? (create => $_CREATE) : undef },
+            NO_ID                    => 1,
+            MAIN_MENU                => get_function_index('docs_invoices_list'),
+            MAIN_MENU_AGRV           => "UID=$FORM{UID}&INVOICE_ID=$FORM{INVOICE_ID}"
           }
         );
 
@@ -5998,7 +5996,7 @@ sub form_payments () {
 
   push @caption, '-';
 
-  my $list  = $payments->list({%LIST_PARAMS});
+  my $payments_list  = $payments->list({%LIST_PARAMS, COLS_NAME=>1});
   my $table = $html->table(
     {
       width      => '100%',
@@ -6014,20 +6012,25 @@ sub form_payments () {
   );
 
   my $pages_qs .= "&subf=2" if (!$FORM{subf});
-  foreach my $line (@$list) {
-    my $delete = ($permissions{1}{2}) ? $html->button($_DEL, "index=2&del=$line->[0]&UID=" . $line->[13] . "$pages_qs", { MESSAGE => "$_DEL [$line->[0]] ?", CLASS => 'del' }) : '';
+  foreach my $payment (@$payments_list) {
+    my $delete = ($permissions{1}{2}) ? $html->button($_DEL, "index=2&del=$payment->{id}&UID=$payment->{uid}$pages_qs", { MESSAGE => "$_DEL [$payment->{id}] ?", CLASS => 'del' }) : '';
 
     my @rows = (
-      $html->b($line->[0]),
-      $html->button($line->[1], "index=15&UID=$line->[13]"),
-      $line->[2], $line->[3] . (($line->[14]) ? $html->br() . $html->b($line->[14]) : ''),
-      $line->[4], "$line->[5]", $PAYMENTS_METHODS{ $line->[6] },
-      "$line->[7]", ($conf{EXT_BILL_ACCOUNT} && $attr->{USER_INFO}) ? $BILL_ACCOUNTS{ $line->[8] } : "$line->[8]",
-      "$line->[9]", "$line->[10]"
+      $html->b($payment->{id}),
+      $html->button($payment->{login}, "index=15&UID=$payment->{uid}"),
+      $payment->{date}, 
+      $payment->{dsc} . (($payment->{inner_describe}) ? $html->br() . $html->b($payment->{inner_describe}) : ''),
+      $payment->{sum}, 
+      "$payment->{last_deposit}", 
+      $PAYMENTS_METHODS{ $payment->{method} },
+      "$payment->{ext_id}", 
+      ($conf{EXT_BILL_ACCOUNT} && $attr->{USER_INFO}) ? $BILL_ACCOUNTS{ $payment->{bill_id} } : "$payment->{bill_id}",
+      "$payment->{admin_name}", 
+      "$payment->{ip}"
     );
 
     if ($conf{SYSTEM_CURRENCY}) {
-      push @rows, $line->[11], $line->[12];
+      push @rows, $payment->{amount}, $payment->{currency};
     }
 
     push @rows, $delete;

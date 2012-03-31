@@ -3794,35 +3794,36 @@ sub dv_user_chg_tp {
       }
     );
 
-    my $list = $tariffs->list(
+    my $tp_list = $tariffs->list(
       {
         TP_GID       => $Dv->{TP_GID},
         CHANGE_PRICE => '<=' . ($user->{DEPOSIT} + $user->{CREDIT}),
         MODULE       => 'Dv',
         PRIORITY     => $Dv->{TP_PRIORITY},
-        COMMENTS     => '*'
+        COMMENTS     => '*',
+        COLS_NAME    => 1
       }
     );
 
     my @skip_tp_changes = ();
     if ($conf{DV_SKIP_CHG_TPS}) {
-      $conf{DV_SKIP_CHG_TPS} =~  s/ //g;
-      @skip_tp_changes = split(/,/, $conf{DV_SKIP_CHG_TPS});
-    }
-
-    foreach my $line (@$list) {
-      next if ($line->[0] == $Dv->{TP_ID} && $user->{EXPIRE} eq '0000-00-00');
+      @skip_tp_changes = split(/,\s?/, $conf{DV_SKIP_CHG_TPS});
+    }    
+    
+    foreach my $tp (@$tp_list) {
+      next if (in_array($tp->{id}, \@skip_tp_changes));
+      next if ($tp->{id} == $Dv->{TP_ID} && $user->{EXPIRE} eq '0000-00-00');
       $table->{rowcolor} = ($table->{rowcolor} eq $_COLORS[1]) ? $_COLORS[2] : $_COLORS[1];
       my $radio_but = '';
       
-      if ($line->[5] + $line->[6] < $user->{DEPOSIT} + $user->{CREDIT} || $line->[17]) {
-        $radio_but = $html->form_input('TP_ID', "$line->[0]", { TYPE => 'radio', OUTPUT2RETURN => 1 });
+      if ($tp->{day_fee} + $tp->{month_fee} < $user->{DEPOSIT} + $user->{CREDIT} || $tp->{abon_distribution}) {
+        $radio_but = $html->form_input('TP_ID', "$tp->{id}", { TYPE => 'radio', OUTPUT2RETURN => 1 });
       }
       else {
         $radio_but = "$ERR_SMALL_DEPOSIT";
       }
 
-      $table->addrow($line->[0], $html->b($line->[1]) . $html->br() . convert($line->[19], { text2html => 1 }), $radio_but);
+      $table->addrow($tp->{id}, $html->b($tp->{name}) . $html->br() . convert($tp->{comments}, { text2html => 1 }), $radio_but);
     }
     $tariffs->{TARIF_PLAN_TABLE} = $table->show({ OUTPUT2RETURN => 1 });
 
@@ -7430,6 +7431,10 @@ sub dv_compensation () {
           }
         } while (($FROM_Y < $TO_Y) || ($FROM_M <= $TO_M && $FROM_Y == $TO_Y));
       }
+    }
+
+    if ($users->{REDUCTION}) {
+      $sum = $sum - (($sum / 100) *	$users->{REDUCTION});
     }
 
     $table->{color} = $_COLORS[3];

@@ -540,7 +540,6 @@ sub defaults {
     BILL_ID        => 0,
     EXT_BILL_ID    => 0,
     DOMAIN_ID      => 0
-
   );
 
   $self = \%DATA;
@@ -578,7 +577,9 @@ sub groups_list {
         LEFT JOIN users u ON  (u.gid=g.gid $USERS_WHERE) 
         $WHERE
         GROUP BY g.gid
-        ORDER BY $SORT $DESC"
+        ORDER BY $SORT $DESC",
+    undef,
+    $attr
   );
 
   my $list = $self->{list};
@@ -598,14 +599,9 @@ sub group_info {
   my $self = shift;
   my ($gid) = @_;
 
-  $self->query($db, "select g.name, g.descr, g.separate_docs, g.domain_id FROM groups g WHERE g.gid='$gid';");
-
-  return $self if ($self->{errno} || $self->{TOTAL} < 1);
-
-  ($self->{G_NAME}, $self->{G_DESCRIBE}, $self->{SEPARATE_DOCS}, $self->{DOMAIN_ID}) = @{ $self->{list}->[0] };
-
+  $self->query($db, "select g.name, g.descr, g.separate_docs, g.domain_id FROM groups g WHERE g.gid='$gid';",
+   undef, { INFO => 1 });
   $self->{GID} = $gid;
-
   return $self;
 }
 
@@ -616,25 +612,13 @@ sub group_change {
   my $self = shift;
   my ($gid, $attr) = @_;
 
-  my %FIELDS = (
-    GID           => 'gid',
-    G_NAME        => 'name',
-    G_DESCRIBE    => 'descr',
-    CHG           => 'gid',
-    SEPARATE_DOCS => 'separate_docs'
-  );
-
-  $attr->{CHG} = $gid;
-
   $attr->{SEPARATE_DOCS} = ($attr->{SEPARATE_DOCS}) ? 1 : 0;
 
   $self->changes(
     $admin,
     {
-      CHANGE_PARAM    => 'CHG',
+      CHANGE_PARAM    => 'GID',
       TABLE           => 'groups',
-      FIELDS          => \%FIELDS,
-      OLD_INFO        => $self->group_info($gid),
       DATA            => $attr,
       EXT_CHANGE_INFO => "GID:$gid"
     }
@@ -652,10 +636,7 @@ sub group_add {
 
   %DATA = $self->get_data($attr);
 
-  $self->query(
-    $db, "INSERT INTO groups (gid, name, descr, separate_docs, domain_id)
-    values ('$DATA{GID}', '$DATA{G_NAME}', '$DATA{G_DESCRIBE}', '$DATA{SEPARATE_DOCS}', '$admin->{DOMAIN_ID}');", 'do'
-  );
+  $self->query_add($db, 'groups', { %$attr, DOMAIN_ID => $admin->{DOMAIN_ID} });
 
   $admin->system_action_add("GID:$DATA{GID}", { TYPE => 1 });
 

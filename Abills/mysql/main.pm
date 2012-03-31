@@ -185,6 +185,14 @@ sub query {
         push @rows, $row;
       }      
     }
+    elsif ($attr->{INFO}) {
+     	push @{ $self->{COL_NAMES_ARR} }, @{ $q->{NAME} };        	
+      while (my $row = $q->fetchrow_hashref()) {
+        while(my ($k, $v) = each %$row ) {
+          $self->{ uc($k) }=$v;
+        }
+      }
+    }
     else {
       while (my @row = $q->fetchrow()) {
         push @rows, \@row;
@@ -356,10 +364,26 @@ sub changes {
     return $self;
   }
 
+  if (! $attr->{OLD_INFO} && ! $FIELDS ) {
+  	  my $sql = "SELECT * FROM $TABLE WHERE ". lc($attr->{CHANGE_PARAM})."='".$DATA{$attr->{CHANGE_PARAM}}."';";
+  	  if($self->{debug}) {
+  	    print $sql;	
+  	  }
+  	  my $q = $db->prepare($sql);
+      $q->execute();
+      my @inserts_arr = ();
+  
+      while (defined(my $row = $q->fetchrow_hashref())) {
+        while(my ($k, $v) = each %$row ) {
+          $OLD_DATA->{ uc($k) }=$v;
+          $FIELDS->{ uc($k) }=$k;
+        }
+      }
+  }
+
   my $CHANGES_QUERY = "";
   my $CHANGES_LOG   = "";
   while (my ($k, $v) = each(%DATA)) {
-
     #print "$k / $v -> $FIELDS->{$k} && $DATA{$k} && $OLD_DATA->{$k} ne $DATA{$k}<br>\n";
     if ($FIELDS->{$k} && defined($DATA{$k}) && $OLD_DATA->{$k} ne $DATA{$k}) {
       if ($k eq 'PASSWORD' || $k eq 'NAS_MNG_PASSWORD') {
@@ -684,9 +708,30 @@ sub search_expr_users () {
     push @fields, @{ $self->search_expr($attr->{ADDRESS_FLAT}, 'STR', 'pi.address_flat', { EXT_FIELD => 1 }) };
   }
 
-
   return \@fields;
 }
 
+#**********************************************************
+#
+#**********************************************************
+sub query_add {
+	my $self = shift;
+	my ($db, $table, $values, $attr)=@_;
+	
+  my $q = $db->column_info(undef, undef, $table, '%');
+  $q->execute();
+  my @inserts_arr = ();
+  
+  while (defined(my $row = $q->fetchrow_hashref())) {
+    my $column = uc($row->{COLUMN_NAME});
+    if ($values->{$column}) {
+    	push @inserts_arr, "$column='$values->{$column}'";
+     }
+  }
+	
+	my $sql = "INSERT INTO $table SET ". join(",\n ", @inserts_arr);
+
+	return $self->query($db, $sql, 'do');
+}
 
 1

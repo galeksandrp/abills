@@ -1002,7 +1002,7 @@ sub docs_invoices_list {
     push @CAPTION, '-', '-', '-', '-';
   }
 
-  my $list  = $Docs->invoices_list({%LIST_PARAMS});
+  my $invoice_list  = $Docs->invoices_list({%LIST_PARAMS, COLS_NAME =>1 });
   my $table = $html->table(
     {
       width      => '100%',
@@ -1020,36 +1020,40 @@ sub docs_invoices_list {
 
   my @rows = ();
 
-  foreach my $line (@$list) {
-    my $delete = ($permissions{1}{2}) ? $html->button($_DEL, "index=$index&del=$line->[13]&UID=$line->[12]", { MESSAGE => "$_DEL ID $line->[12] ?", CLASS => 'del' }) : '';
+  foreach my $invoice (@$invoice_list) {
+    my $delete = ($permissions{1}{2}) ? $html->button($_DEL, "index=$index&del=$invoice->{id}&UID=$invoice->{uid}", { MESSAGE => "$_DEL ID $line->{id} ?", CLASS => 'del' }) : '';
 
     @rows = (
-      "$line->[0]", $html->button("$line->[1]", "qindex=$index&print=$line->[13]&UID=$line->[12]$pages_qs" . (($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : ''), { ex_params => 'target=_new' }),
-      "$line->[2]", "$line->[3]", ($line->[4]) ? (($user->{UID}) ? $payments_status[1] : $html->button($payments_status[1], "index=2&UID=$line->[12]&ID=$line->[4]")) : $html->color_mark($payments_status[0], $_COLORS[6])
+      "$invoice->{invoice_num}", 
+      $html->button("$invoice->{date}", "qindex=$index&print=$invoice->{id}&UID=$invoice->{uid}$pages_qs" . (($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : ''), { ex_params => 'target=_new' }),
+      $invoice->{customer}, 
+      $invoice->{total_sum}, 
+      ($invoice->{payment_id}) ? (($user->{UID}) ? $payments_status[1] : $html->button($payments_status[1], "index=2&UID=$invoice->{uid}&ID=$invoice->{payment_id}")) : $html->color_mark($payments_status[0], $_COLORS[6])
     );
 
     if (!$user->{UID}) {
-      push @rows, $html->button($line->[5], "index=11&UID=" . $line->[ 12 + $Docs->{SEARCH_FIELDS_COUNT} ] . "") . (($line->[14]) ? $html->br() . $html->button(substr($line->[15], 0, 30), "index=13&COMPANY_ID=$line->[13]", { CLASS => 'small' }) : '')
-
-      #.$html->br().$line->[13]
-      , "$line->[6]", "$line->[7]", ($PAYMENTS_METHODS{ $line->[8] }) ? $PAYMENTS_METHODS{ $line->[8] } : $line->[8], "$line->[9]", "$line->[10]";
+      push @rows, $html->button($invoice->{login}, "index=11&UID=$invoice->{uid}") . (($line->{company_id}) ? $html->br() . $html->button(substr($line->{company_name}, 0, 30), "index=13&COMPANY_ID=$invoice->{company_id}", { CLASS => 'small' }) : ''),
+      "$invoice->{admin_name}", 
+      "$invoice->{created}", 
+      ($PAYMENTS_METHODS{ $invoice->{method} }) ? $PAYMENTS_METHODS{ $invoice->{method} } : $invoice->{method}, 
+      $invoice->{ext_id}, 
+      $invoice->{group_name};
 
       if ($conf{DOCS_CURRENCY}) {
-        push @rows, sprintf("%.2f", $line->[11]);
+        push @rows, sprintf("%.2f", $invoice->{alt_sum});
       }
 
-      my $payments_info = ($line->[17] > 0 && !$conf{DOCS_PAYMENT_SYSTEM_CURRENCY}) ? "&SUM=$line->[11]&ISO=$line->[17]" : "&SUM=$line->[3]";
+      my $payments_info = ($invoice->{currency} > 0 && !$conf{DOCS_PAYMENT_SYSTEM_CURRENCY}) ? "&SUM=$invoice->{total_sum}&ISO=$invoice->{currency}" : "&SUM=$invoice->{total_sum}";
 
       if ($FORM{BILL_ID}) {
-        push @rows, $line->[11];
+        push @rows, $invoice->{bill_id};
       }
 
-      push @rows, $html->button($_PAYMENTS, "index=2&INVOICE_ID=$line->[13]&UID=$line->[12]$payments_info", { CLASS => 'payments' }),
-      $html->button($_SEND_MAIL, "qindex=" . get_function_index('docs_invoices_list') . "&sendmail=$line->[13]&UID=$line->[12]", { ex_params => 'target=_new', CLASS => 'sendmail' }),
-      $html->button($_PRINT, "qindex=$index&print=$line->[13]&UID=$line->[12]" . (($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : ''), { ex_params => 'target=_new', CLASS => 'print' }),
+      push @rows, $html->button($_PAYMENTS, "index=2&INVOICE_ID=$invoice->{id}&UID=$invoice->{uid}$payments_info", { CLASS => 'payments' }),
+      $html->button($_SEND_MAIL, "qindex=" . get_function_index('docs_invoices_list') . "&sendmail=$invoice->{id}&UID=$invoice->{id}", { ex_params => 'target=_new', CLASS => 'sendmail' }),
+      $html->button($_PRINT, "qindex=$index&print=$invoice->{id}&UID=$invoice->{uid}" . (($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : ''), { ex_params => 'target=_new', CLASS => 'print' }),
       $delete;
     }
-
     $table->addrow(@rows);
   }
 
@@ -1890,7 +1894,6 @@ sub docs_invoice {
       my $list = $Docs->{ORDERS};
       foreach my $line (@$list) {
         $i++;
-
         $table->addrow($i, $line->[1], $line->[2], $line->[3], $line->[4], sprintf("%.2f", $line->[3] * $line->[4]));
       }
     }
@@ -2205,107 +2208,7 @@ sub docs_invoice {
         $Docs->{ORDERS} = $table->show({ OUTPUT2RETURN => 1 });
         $html->tpl_show(_include('docs_receipt_add', 'Docs'), { %FORM, %$attr, %$Docs, %$users }) if (!$FORM{pdf});
       }
-
-      # 	 if ($M < 12) {
-      #  	 $M=sprintf("%02d", $M+1);
-      #  	}
-      #   else {
-      #     $M = sprintf("%02d", 1);
-      #     $Y++;
-      #    }
-      #
-      #
-      #   my $table = $html->table( { width      => '600',
-      #                            border     => 1,
-      #                            caption    => ($user->{UID}) ? $_ACTIVATE_NEXT_PERIOD : "$_INVOICE $_PERIOD: $Y-$M",
-      #                            title_plain=> ['#', $_SERVICE, $_SUM ],
-      #                            cols_align => ['right', 'left', 'right'],
-      #                            qs         => $pages_qs,
-      #                            ID         => 'DOCS_SERVICE_INVOICES',
-      #                            class      => 'form',
-      #                          });
-      #
-      # 	 my $cross_modules_return = cross_modules_call('_docs');
-      #
-      # 	 my $num       = 1;
-      # 	 my $total_sum = 0;
-      # 	 foreach my $module (sort keys %$cross_modules_return) {
-      # 	 	 if (ref $cross_modules_return->{$module} eq 'ARRAY') {
-      # 	 	 	 next if ( $#{ $cross_modules_return->{$module} } == -1 );
-      # 	 	 	 $table->{extra}="colspan='3' class='small'";
-      #       $table->addrow("$module");
-      # 	 	 	 $table->{extra}=undef;
-      #
-      # 	 	 	 foreach my $line ( @{ $cross_modules_return->{$module} } ) {
-      # 	 	 	   my ($name, $describe, $sum)=split(/\|/, $line);
-      # 	 	 	 	 next if ($sum <= 0);
-      # 	 	     $table->addrow($html->form_input('ORDER_'.$num, "$name $describe", { TYPE => 'hidden', OUTPUT2RETURN => 1 }).
-      #                        $html->form_input('SUM_'.$num, "$sum", { TYPE => 'hidden', OUTPUT2RETURN => 1 }).
-      # 	 	                    $html->form_input('IDS', "$num", { TYPE => ($user->{UID}) ? 'hidden' : 'checkbox', STATE => 'checked', OUTPUT2RETURN => 1 }). $num,
-      # 	 	                    "$name $describe",
-      # 	 	                    "$sum");
-      # 	 	     $total_sum	+= $sum;
-      # 	 	     $num++;
-      # 	 	    }
-      # 	 	  }
-      # 	 }
-      #
-      #   my $amount_for_pay = 0;
-      #   if($users->{DEPOSIT}<0) {
-      #     $table->addrow(
-      #       $html->form_input('ORDER_'.$num, "$_DEBT", { TYPE => 'hidden', OUTPUT2RETURN => 1 }).
-      #       $html->form_input('SUM_'.$num, abs($users->{DEPOSIT}), { TYPE => 'hidden', OUTPUT2RETURN => 1 }).
-      #       $html->form_input('IDS', "$num", { TYPE => ($user->{UID}) ? 'hidden' : 'checkbox', STATE => 'checked', OUTPUT2RETURN => 1 }). $num,
-      # 	 	                    "$_DEBT",
-      # 	 	                    sprintf("%.2f", abs($users->{DEPOSIT}))
-      # 	 	                    );
-      #     $total_sum	+= abs($users->{DEPOSIT});
-      #     $amount_for_pay = $total_sum;
-      #     $num++;
-      #    }
-      # 	 else {
-      # 	 	 $amount_for_pay = $total_sum-$users->{DEPOSIT};
-      # 	  }
-      #
-      # 	 return sprintf("%.2f", $amount_for_pay) if ($attr->{TOTAL_ONLY});
-      #
-      # 	 $table->{extra}="colspan='2' class='total'";
-      #   $table->addrow("$_TOTAL:", sprintf("%.2f", $total_sum));
-      #   $table->{extra}="colspan='2' class='odd'";
-      #   $table->addrow($html->b("$_AMOUNT_FOR_PAY:"), $html->b(sprintf("%.2f", $amount_for_pay)));
-      #
-      #   if ($user->{DEPOSIT} + $user->{DEPOSIT} >= $amount_for_pay) {
-      #  	 return 0;
-      #    }
-      #
-      #   my $action = '';
-      # 	 if ($attr->{ACTION}) {
-      #	   $action = $html->form_input('back', "$_BACK", {  TYPE => 'submit' }).
-      #	             $html->form_input('make', "$attr->{LNG_ACTION}", {  TYPE => 'submit' });
-      #    }
-      #   else{
-      #	   $action = $html->form_input('make', "$_CREATE $_INVOICE", {  TYPE => 'submit', OUTPUT2RETURN => 1 });
-      #    }
-      #
-      #   $table->{rowcolor}='even';
-      #   $table->{extra}=' colspan=3 align=center';
-      #   $table->addrow($action);
-      #
-      # 	 my $content = $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
-      #	                 HIDDEN  => { index          => "$index",
-      #	                 	            UID            => $FORM{UID},
-      #	                 	            DATE           => $DATE,
-      #	                 	            create         => 1,
-      #	                 	            CUSTOMER       => $Docs->{CUSTOMER},
-      #	                 	            step           => $FORM{step},
-      #	                 	            #ALL_SERVICES   => 1
-      #	                 	           },
-      #	                 NAME    => 'DOCS_SERVICES_INVOICE',
-      #	                });
-      #
-      #   print $content;
     }
-
     #
     else {
       $Docs->{ORDERS} = $html->tpl_show(
@@ -3144,9 +3047,9 @@ sub docs_user {
   }
 
   $Docs->{INVOICE_PERIOD_SEL} = $html->form_select(
-    'INVOICE_PERIOD',
+    'INVOICING_PERIOD',
     {
-      SELECTED => $Docs->{INVOICE_PERIOD},
+      SELECTED => $Docs->{INVOICING_PERIOD},
       SEL_HASH => {
         1  => "1 $_MONTH",
         3  => "3 $_MONTH",

@@ -73,17 +73,17 @@ sub info {
 
   $self->query(
     $db, "SELECT dv.uid, dv.tp_id, 
-   tp.name, 
+   tp.name AS tp_name, 
    dv.logins, 
-   INET_NTOA(dv.ip), 
-   INET_NTOA(dv.netmask), 
+   INET_NTOA(dv.ip) AS ip, 
+   INET_NTOA(dv.netmask) AS netmask, 
    dv.speed, 
    dv.filter_id, 
    dv.cid,
    dv.disable,
    dv.callback,
    dv.port,
-   tp.gid,
+   tp.gid AS tp_gid,
    tp.month_fee,
    tp.day_fee,
    tp.postpaid_monthly_fee,
@@ -92,12 +92,12 @@ sub info {
    dv.turbo_mode,
    dv.free_turbo_mode,
    tp.abon_distribution,
-   tp.credit,
-   tp.tp_id,
-   tp.priority,
-   tp.activate_price,
-   tp.age,
-   tp.filter_id
+   tp.credit AS tp_filter,
+   tp.tp_id AS tp_num,
+   tp.priority AS tp_priority,
+   tp.activate_price AS tp_activate_price,
+   tp.age AS tp_age,
+   tp.filter_id AS tp_filter_id
      FROM dv_main dv
      LEFT JOIN tarif_plans tp ON (dv.tp_id=tp.id and tp.domain_id='$admin->{DOMAIN_ID}')
    $WHERE;"

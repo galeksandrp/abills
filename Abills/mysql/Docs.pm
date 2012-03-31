@@ -441,10 +441,36 @@ sub invoices_list {
   $PG        = ($attr->{PG})        ? $attr->{PG}        : 0;
   $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
 
-  $self->{SEARCH_FIELDS}       = '';
-  $self->{SEARCH_FIELDS_COUNT} = 0;
-
   @WHERE_RULES = ("d.id=o.invoice_id");
+
+  push @WHERE_RULES, @{ $self->search_expr_users({ %$attr, 
+  	                         EXT_FIELDS => [
+  	                                        'PHONE',
+  	                                        'EMAIL',
+  	                                        'ADDRESS_FLAT',
+  	                                        'PASPORT_DATE',
+                                            'PASPORT_NUM', 
+                                            'PASPORT_GRANT',
+                                            'CITY', 
+                                            'ZIP',
+                                            'GID',
+                                            'CONTRACT_ID',
+                                            'CONTRACT_SUFIX',
+                                            'CONTRACT_DATE',
+                                            'EXPIRE',
+
+                                            'CREDIT',
+                                            'CREDIT_DATE', 
+                                            'REDUCTION',
+                                            'REGISTRATION',
+                                            'REDUCTION_DATE',
+                                            'COMMENTS',
+                                            'BILL_ID',
+                                            
+                                            'ACTIVATE',
+                                            'EXPIRE',
+
+  	                                         ] }) };
 
   if ($SORT == 1) {
     $SORT = "2 DESC, 1";
@@ -453,9 +479,6 @@ sub invoices_list {
 
   if ($attr->{CUSTOMER}) {
     push @WHERE_RULES, @{ $self->search_expr($attr->{CUSTOMER}, 'STR', 'd.customer') };
-  }
-  elsif ($attr->{LOGIN}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{LOGIN}, 'STR', 'u.id') };
   }
 
   if ($attr->{FROM_DATE}) {
@@ -470,55 +493,35 @@ sub invoices_list {
     push @WHERE_RULES, @{ $self->search_expr($attr->{PAYMENT_METHOD}, 'INT', 'p.method') };
   }
 
-  if (defined($attr->{COMPANY_ID}) && $attr->{COMPANY_ID} ne '') {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{COMPANY_ID}, 'INT', 'u.company_id') };
-  }
-
   if ($attr->{DOC_ID}) {
     push @WHERE_RULES, @{ $self->search_expr($attr->{DOC_ID}, 'INT', 'd.invoice_num') };
   }
 
-  if ($attr->{BILL_ID}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{BIL_ID}, 'INT', 'p.bill_id', { EXT_FIELDS => 1 }) };
-  }
-
   if ($attr->{SUM}) {
-    my $value = $self->search_expr($attr->{SUM}, 'INT');
-    push @WHERE_RULES, "o.price * o.counts$value";
+    push @WHERE_RULES, @{ $self->search_expr($attr->{SUM}, 'INT', 'o.price * o.counts') };
   }
 
   if ($attr->{AID}) {
     push @WHERE_RULES, @{ $self->search_expr($attr->{AID}, 'STR', 'a.id') };
   }
 
-  # Show groups
-  if ($attr->{GIDS}) {
-    push @WHERE_RULES, "u.gid IN ($attr->{GIDS})";
-  }
-  elsif ($attr->{GID}) {
-    push @WHERE_RULES, "u.gid='$attr->{GID}'";
-  }
-
   if ($attr->{PAID_STATUS}) {
     push @WHERE_RULES, "d.payment_id" . (($attr->{PAID_STATUS} == 1) ? '>\'0' : '=\'0') . "'";
   }
 
-  #DIsable
-  if ($attr->{UID}) {
-    push @WHERE_RULES, "d.uid='$attr->{UID}'";
-  }
-
-  $self->{EXT_FIELDS} = '';
+ 
+  my $EXT_TABLES  = $self->{EXT_TABLES};
   if ($attr->{FULL_INFO}) {
-    $self->{EXT_FIELDS} = ",
+    $self->{SEARCH_FIELDS} = ",
  	 pi.address_street,
    pi.address_build,
    pi.address_flat,
-   if (d.phone<>0, d.phone, pi.phone),
+   if (d.phone<>0, d.phone, pi.phone) AS phone,
    pi.contract_id,
    pi.contract_date,
-   if(u.company_id > 0, c.bill_id, u.bill_id),
+   if(u.company_id > 0, c.bill_id, u.bill_id) AS bill_id,
    u.company_id";
+   $self->{SEARCH_FIELDS_COUNT}+=8;
   }
 
   if ($attr->{CONTRACT_ID}) {
@@ -527,12 +530,25 @@ sub invoices_list {
 
   $WHERE = ($#WHERE_RULES > -1) ? 'WHERE ' . join(' and ', @WHERE_RULES) : '';
   $self->query(
-    $db, "SELECT d.invoice_num, d.date, if(d.customer='-' or d.customer='', pi.fio, d.customer),sum(o.price * o.counts), 
-     d.payment_id, u.id, a.name, d.created, p.method, p.ext_id, g.name, 
-     if (d.exchange_rate>0, sum(o.price * o.counts) * d.exchange_rate, 0.00),
-     d.uid, d.id, u.company_id, c.name, if(u.company_id=0, concat(pi.contract_sufix,pi.contract_id), concat(c.contract_sufix,c.contract_id)), d.currency
+    $db, "SELECT d.invoice_num, 
+     d.date, 
+     if(d.customer='-' or d.customer='', pi.fio, d.customer) AS customer,
+     sum(o.price * o.counts) AS total_sum, 
+     d.payment_id, 
+     u.id AS login, 
+     a.name AS admin_name, 
+     d.created, 
+     p.method, 
+     p.ext_id, 
+     g.name AS group_name, 
+     if (d.exchange_rate>0, sum(o.price * o.counts) * d.exchange_rate, 0.00) AS alt_sum,
+     d.uid, 
+     d.id, 
+     u.company_id, 
+     c.name AS company_name, 
+     if(u.company_id=0, concat(pi.contract_sufix,pi.contract_id), concat(c.contract_sufix,c.contract_id)) AS contract_id, 
+     d.currency
      $self->{SEARCH_FIELDS}
-     $self->{EXT_FIELDS}
     FROM (docs_invoices d, docs_invoice_orders o)
     LEFT JOIN users u ON (d.uid=u.uid)
     LEFT JOIN admins a ON (d.aid=a.aid)
@@ -540,6 +556,7 @@ sub invoices_list {
     LEFT JOIN groups g ON (g.gid=u.gid)
     LEFT JOIN companies c ON (u.company_id=c.id)
     LEFT JOIN payments p ON (d.payment_id=p.id)
+    $EXT_TABLES
     $WHERE
     GROUP BY d.id 
     ORDER BY $SORT $DESC
@@ -1032,7 +1049,16 @@ sub tax_invoice_list {
   $WHERE = ($#WHERE_RULES > -1) ? 'WHERE ' . join(' and ', @WHERE_RULES) : '';
 
   $self->query(
-    $db, "SELECT d.tax_invoice_id, d.date, c.name, sum(o.price * o.counts), a.name, d.created, d.uid, d.company_id, d.id $self->{EXT_FIELDS}
+    $db, "SELECT d.tax_invoice_id, 
+    d.date, 
+    c.name AS company_name, 
+    sum(o.price * o.counts) AS total_sum, 
+    a.name AS admin_name, 
+    d.created, 
+    d.uid, 
+    d.company_id, 
+    d.id 
+    $self->{EXT_FIELDS}
     FROM (docs_tax_invoices d)
     LEFT JOIN docs_tax_invoice_orders o ON (d.id=o.tax_invoice_id)
     LEFT JOIN companies c ON (d.company_id=c.id)
@@ -1544,48 +1570,15 @@ sub user_info {
    service.personal_delivery,
    service.invoicing_period,
    service.invoice_date,
-   (service.invoice_date + INTERVAL service.invoicing_period MONTH) - INTERVAL 10 day AS PRE_INVOICE_DATE
+   (service.invoice_date + INTERVAL service.invoicing_period MONTH) - INTERVAL 10 day AS next_infvoice_date
 
      FROM docs_main service
-   $WHERE;"
+   $WHERE;", undef, { INFO => 1 }
   );
-
-  if ($self->{TOTAL} < 1) {
-    $self->{errno}  = 2;
-    $self->{errstr} = 'ERROR_NOT_EXIST';
-    return $self;
-  }
-
-  ($self->{UID}, 
-  $self->{SEND_DOCS}, 
-  $self->{PERIODIC_CREATE_DOCS}, 
-  $self->{EMAIL}, 
-  $self->{COMMENTS}, 
-  $self->{PERSONAL_DELIVERY}, 
-  $self->{INVOICE_PERIOD}, 
-  $self->{INVOICE_DATE}, 
-  $self->{NEXT_INVOICE_DATE}) = @{ $self->{list}->[0] };
 
   return $self;
 }
 
-#**********************************************************
-#
-#**********************************************************
-sub defaults {
-  my $self = shift;
-
-  my %DATA = (
-    SEND_DOCS            => 0,
-    PERIODIC_CREATE_DOCS => 0,
-    EMAIL                => '',
-    COMMENTS             => '',
-    INVOICE_DATE         => '0000-00-00'
-  );
-
-  $self = \%DATA;
-  return $self;
-}
 
 #**********************************************************
 # add()
@@ -1594,28 +1587,7 @@ sub user_add {
   my $self = shift;
   my ($attr) = @_;
 
-  my %DATA = $self->get_data($attr, { default => defaults() });
-
-  $self->query(
-    $db, "INSERT INTO docs_main (uid, 
-     send_docs, 
-     periodic_create_docs, 
-     email, 
-     comments,
-     personal_delivery,
-     invoicing_period,
-     invoice_date
-     )
-        VALUES ('$DATA{UID}',
-        '$DATA{SEND_DOCS}', 
-        '$DATA{PERIODIC_CREATE_DOCS}',
-        '$DATA{EMAIL}',
-        '$DATA{COMMENTS}',
-        '$DATA{PERSONAL_DELIVERY}',
-        '$DATA{INVOICE_PERIOD}',
-        '$DATA{INVOICE_DATE}'
-         );", 'do'
-  );
+  $self->query_add($db, 'docs_main', $attr);
 
   return $self if ($self->{errno});
   $admin->action_add("$DATA{UID}", "", { TYPE => 1 });
@@ -1629,17 +1601,6 @@ sub user_change {
   my $self = shift;
   my ($attr) = @_;
 
-  my %FIELDS = (
-    SEND_DOCS            => 'send_docs',
-    PERIODIC_CREATE_DOCS => 'periodic_create_docs',
-    EMAIL                => 'email',
-    COMMENTS             => 'comments',
-    UID                  => 'uid',
-    PERSONAL_DELIVERY    => 'personal_delivery',
-    INVOICE_PERIOD       => 'invoicing_period',
-    INVOICE_DATE         => 'invoice_date'
-  );
-
   if (!$attr->{CHANGE_DATE}) {
     $attr->{SEND_DOCS}            = (!defined($attr->{SEND_DOCS}))            ? 0 : 1;
     $attr->{PERIODIC_CREATE_DOCS} = (!defined($attr->{PERIODIC_CREATE_DOCS})) ? 0 : 1;
@@ -1652,8 +1613,6 @@ sub user_change {
     {
       CHANGE_PARAM => 'UID',
       TABLE        => 'docs_main',
-      FIELDS       => \%FIELDS,
-      OLD_INFO     => $self->user_info($attr->{UID}),
       DATA         => $attr
     }
   );
