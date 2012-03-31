@@ -315,7 +315,11 @@ sub dv_users_list {
     }
   );
 
-  form_search({ SEARCH_FORM => $html->tpl_show(_include('dv_users_search', 'Dv'), { %$Dv, %FORM }, { OUTPUT2RETURN => 1 }) });
+  form_search({ SEARCH_FORM  => $html->tpl_show(_include('dv_users_search', 'Dv'), 
+  	  { %$Dv, %FORM }, 
+  	  { OUTPUT2RETURN => 1 }),
+  	            ADDRESS_FORM => 1 
+  	});
 
   my $i            = 0;
   my $users_status = 0;

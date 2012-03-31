@@ -11,8 +11,15 @@
 <TR><TD>$_PERIOD:</TD><TD>$_FROM: %FROM_DATE% $_TO: %TO_DATE% </TD></TR>
 <TR><TD>$_ROWS:</TD><TD><input tabindex=2 type='text' name='PAGE_ROWS' value='$PAGE_ROWS' size=8></TD></TR>
 %SEARCH_FORM%
-<TR><TH colspan='2' class='even'><input type='submit' name='search' value='$_SEARCH'></TH></TR>
-</TABLE>
+<TR><TD colspan='2'>
+%ADDRESS_FORM%
+</TD></TR>
 
+
+
+<TR><TH colspan='2' class='even'><input type='submit' name='search' value='$_SEARCH'></TH></TR>
+
+
+</TABLE>
 </form>
 </div>

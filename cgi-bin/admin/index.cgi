@@ -6788,6 +6788,7 @@ sub form_search {
             SEL_OPTIONS => { '' => $_ALL }
           }
         );
+        $attr->{ADDRESS_FORM}=1;
       }
       elsif ($FORM{type} == 3) {
         $info{SEL_METHOD} = $html->form_select(
@@ -6799,6 +6800,7 @@ sub form_search {
             SEL_OPTIONS  => { '' => $_ALL }
           }
         );
+        $attr->{ADDRESS_FORM}=1;
       }
       elsif ($FORM{type} == 11 || $FORM{type} == 15) {
         $FORM{type} = 11;
@@ -6994,6 +6996,16 @@ sub form_search {
       $SEARCH_DATA{SEARCH_FORM} .= $html->form_input('type', "$FORM{type}", { TYPE => 'hidden' });
     }
 
+    if ($attr->{ADDRESS_FORM}) {
+    	$SEARCH_DATA{ADDRESS_FORM} = $html->tpl_show(templates('form_show_hide'), 
+    	   {
+    	   	CONTENT => '<table width=100%>'.$html->tpl_show(templates('form_address_sel'), $user_pi, { OUTPUT2RETURN => 1 }).'</table>',
+    	   	NAME    => $_ADDRESS,
+    	   	ID      => 'ADDRESS_FORM',
+    	    }, 
+    	   { OUTPUT2RETURN => 1 });
+    }
+
     $SEARCH_DATA{FROM_DATE} = $html->date_fld2('FROM_DATE', { MONTHES => \@MONTHES, FORM_NAME => 'form_search', WEEK_DAYS => \@WEEKDAYS });
     $SEARCH_DATA{TO_DATE}   = $html->date_fld2('TO_DATE',   { MONTHES => \@MONTHES, FORM_NAME => 'form_search', WEEK_DAYS => \@WEEKDAYS });
 
@@ -7011,7 +7023,7 @@ sub form_search {
       while (my ($k, $v) = each %SEARCH_TYPES) {
         if ($k == 11 || $k == 13 || $permissions{ ($k - 1) }) {
           $SEARCH_DATA{SEL_TYPE} .= "<th";
-          $SEARCH_DATA{SEL_TYPE} .= " bgcolor=$_COLORS[0]" if ($FORM{type} eq $k);
+          $SEARCH_DATA{SEL_TYPE} .= " class=title_color" if ($FORM{type} eq $k);
           $SEARCH_DATA{SEL_TYPE} .= '>';
           $SEARCH_DATA{SEL_TYPE} .= $html->button($v, "index=$index&type=$k");    #&search=1");
           $SEARCH_DATA{SEL_TYPE} .= "</th>\n";
