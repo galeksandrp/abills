@@ -69,10 +69,37 @@ sub docs_receipt_list {
 
   @WHERE_RULES = ("d.id=o.receipt_id");
 
-  if ($attr->{LOGIN}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{LOGIN}, 'STR', 'u.id') };
-  }
-  elsif ($attr->{CUSTOMER}) {
+  push @WHERE_RULES, @{ $self->search_expr_users({ %$attr, 
+  	                         EXT_FIELDS => [
+  	                                        'PHONE',
+  	                                        'EMAIL',
+  	                                        'ADDRESS_FLAT',
+  	                                        'PASPORT_DATE',
+                                            'PASPORT_NUM', 
+                                            'PASPORT_GRANT',
+                                            'CITY', 
+                                            'ZIP',
+                                            'GID',
+                                            'CONTRACT_ID',
+                                            'CONTRACT_SUFIX',
+                                            'CONTRACT_DATE',
+                                            'EXPIRE',
+
+                                            'CREDIT',
+                                            'CREDIT_DATE', 
+                                            'REDUCTION',
+                                            'REGISTRATION',
+                                            'REDUCTION_DATE',
+                                            'COMMENTS',
+                                            'BILL_ID',
+                                            
+                                            'ACTIVATE',
+                                            'EXPIRE',
+
+  	                                         ] }) };
+
+  
+  if ($attr->{CUSTOMER}) {
     push @WHERE_RULES, @{ $self->search_expr($attr->{CUSTOMER}, 'STR', 'd.customer') };
   }
 
@@ -92,14 +119,6 @@ sub docs_receipt_list {
     push @WHERE_RULES, @{ $self->search_expr($attr->{SUM}, 'INT', 'o.price * o.counts') };
   }
 
-  # Show groups
-  if ($attr->{GIDS}) {
-    push @WHERE_RULES, "u.gid IN ($attr->{GIDS})";
-  }
-  elsif ($attr->{GID}) {
-    push @WHERE_RULES, "u.gid='$attr->{GID}'";
-  }
-
   if (defined($attr->{PAYMENT_METHOD}) && $attr->{PAYMENT_METHOD} ne '') {
     push @WHERE_RULES, @{ $self->search_expr($attr->{PAYMENT_METHOD}, 'INT', 'p.method') };
   }
@@ -114,14 +133,13 @@ sub docs_receipt_list {
   }
 
   if ($attr->{FULL_INFO}) {
-    $self->{EXT_FIELDS} = ",
+    $self->{SEARCH_FIELDS} = ",
  	 pi.address_street,
    pi.address_build,
    pi.address_flat,
    if (d.phone<>0, d.phone, pi.phone),
    pi.contract_id,
    pi.contract_date,
-   u.id,
    u.company_id";
   }
 
@@ -140,7 +158,18 @@ sub docs_receipt_list {
   }
 
   $self->query(
-    $db, "SELECT d.receipt_num, d.date, if(d.customer='-' or d.customer='', pi.fio, d.customer), sum(o.price * o.counts), u.id, a.name, d.created, p.method, d.uid, d.id, p.id $self->{EXT_FIELDS}
+    $db, "SELECT d.receipt_num, 
+     d.date, 
+     if(d.customer='-' or d.customer='', pi.fio, d.customer) AS customer, 
+     sum(o.price * o.counts) AS total_sum, 
+     u.id AS login, 
+     a.name AS admin_name, 
+     d.created, 
+     p.method, 
+     d.uid, 
+     d.id, 
+     p.id 
+     $self->{SEARCH_FIELDS}
     FROM (docs_receipts d, docs_receipt_orders o)
     LEFT JOIN users u ON (d.uid=u.uid)
     LEFT JOIN admins a ON (d.aid=a.aid)
@@ -543,11 +572,13 @@ sub invoices_list {
      g.name AS group_name, 
      if (d.exchange_rate>0, sum(o.price * o.counts) * d.exchange_rate, 0.00) AS alt_sum,
      d.uid, 
-     d.id, 
+     d.id AS doc_id, 
      u.company_id, 
      c.name AS company_name, 
      if(u.company_id=0, concat(pi.contract_sufix,pi.contract_id), concat(c.contract_sufix,c.contract_id)) AS contract_id, 
-     d.currency
+     d.exchange_rate,
+     d.currency,
+     d.deposit AS docs_deposit
      $self->{SEARCH_FIELDS}
     FROM (docs_invoices d, docs_invoice_orders o)
     LEFT JOIN users u ON (d.uid=u.uid)
@@ -588,9 +619,15 @@ sub invoices_list {
      $attr
     );
 
-    return $self->{list} if ($self->{TOTAL} < 1);
-    my $list = $self->{list};
-    return $list;
+    foreach my $line ( @{  $self->{list} } ) {
+    	if (ref $line eq 'HASH') {
+        push @{ $self->{ORDERS}{$line->{invoice_id}} }, $line;	
+      }
+    }
+
+    #return $self->{list} if ($self->{TOTAL} < 1);
+    #my $list = $self->{list};
+    #return $list;
   }
 
   return $list;
