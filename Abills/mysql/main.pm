@@ -254,7 +254,7 @@ sub search_expr {
   if ($field) {
     $field =~ s/ (as) ([a-z0-9_]+)//gi;
   }
-  
+  $value = '' if (! defined($value)); 
   my $delimiter = ($value =~ s/;/,/g) ? 'and' : 'or';
   
   if ($value && $delimiter eq 'and' && $value !~ /[<>=]+/) {
