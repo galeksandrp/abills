@@ -5193,10 +5193,10 @@ sub dv_holdup_fees {
 sub dv_monthly_next_tp {
   my ($attr) = @_;
 
-  my $debug        = $attr->{DEBUG} || 0;
-  my $debug_output = '';
-  my $list         = $tariffs->list({ NEXT_TARIF_PLAN => '>0' });
-  my ($y, $m, $d) = split(/-/, $ADMIN_REPORT{DATE}, 3);
+  my $debug         = $attr->{DEBUG} || 0;
+  my $debug_output  = '';
+  my $list          = $tariffs->list({ NEXT_TARIF_PLAN => '>0' });
+  my ($y, $m, $d)   = split(/-/, $ADMIN_REPORT{DATE}, 3);
   my $days_in_month = ($m != 2 ? (($m % 2) ^ ($m > 7)) + 30 : (!($y % 400) || !($y % 4) && ($y % 25) ? 29 : 28));
   my $date_unixtime = mktime(0, 0, 0, $d, ($m - 1), $y - 1900, 0, 0, 0);
 
@@ -5211,8 +5211,8 @@ sub dv_monthly_next_tp {
     $Dv->{debug} = 1 if ($debug > 6);
     my $ulist = $Dv->list(
       {
-        ACTIVATE     => $activate_date,
-        EXPIRE       => ">$ADMIN_REPORT{DATE}",
+        ACTIVATE     => "0000-00-00,>=$ADMIN_REPORT{DATE}",
+        EXPIRE       => "<$ADMIN_REPORT{DATE}",
         STATUS       => "0",
         LOGIN_STATUS => 0,
         TP_ID        => $TP_INFO{TP_ID},
