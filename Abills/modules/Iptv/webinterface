@@ -331,6 +331,15 @@ sub iptv_users_list {
 sub iptv_user {
   my ($attr) = @_;
   $Iptv->{UID} = $FORM{UID};
+  
+  #Check stalker instalation
+  my $Iptv_stalker;
+  eval { require Iptv_stalker; };
+  if (!$@) {
+    Iptv_stalker->import();
+    $Iptv_stalker = Iptv_stalker->new($db, $admin, \%conf);
+  }
+
 
   if ($FORM{add}) {
     $Iptv->user_add({%FORM});
@@ -350,7 +359,6 @@ sub iptv_user {
   }
   elsif ($FORM{set}) {
     $Iptv->user_change({%FORM});
-
     if (!$Iptv->{errno}) {
       $Iptv->{ACCOUNT_ACTIVATE} = $attr->{USER_INFO}->{ACTIVATE};
       iptv_get_month_fee($Iptv) if (!$FORM{STATUS});
@@ -404,17 +412,13 @@ sub iptv_user {
   $user->{STATUS_SEL} = $html->form_select(
     'STATUS',
     {
-      SELECTED     => $Dv->{STATUS},
+      SELECTED     => $Iptv->{STATUS},
       SEL_ARRAY    => \@service_status,
       ARRAY_NUM_ID => 1
     }
   );
 
-  eval { require Iptv_stalker; };
-  if (!$@) {
-    Iptv_stalker->import();
-    my $Iptv_stalker = Iptv_stalker->new($db, $admin, \%conf);
-
+  if ($Iptv_stalker) {
     $user->{MODEMS} = $html->form_select(
       'CID',
       {

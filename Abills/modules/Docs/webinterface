@@ -48,9 +48,7 @@ sub docs_contract {
 
     if ($Docs->{CONTRACT_SUFIX}) {
       if ($conf{DOCS_CONTRACT_TYPES}) {
-
         #PREFIX:SUFIX:NAME;
-
         $conf{DOCS_CONTRACT_TYPES} =~ s/\n//g;
         my (@contract_types_list) = split(/;/, $conf{DOCS_CONTRACT_TYPES});
         foreach my $line (@contract_types_list) {

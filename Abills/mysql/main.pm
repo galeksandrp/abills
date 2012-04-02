@@ -605,7 +605,7 @@ sub search_expr_users () {
   }
 
   #Info fields
-  if ($info_field) {
+  if ($info_field && defined $self->can('config_list') ) {
     my $list = $self->config_list({ PARAM => 'ifu*', SORT => 2 });
 
     if ($self->{TOTAL} > 0) {

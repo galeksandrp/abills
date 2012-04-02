@@ -67,37 +67,27 @@ sub user_info {
 
   $self->query(
     $db, "SELECT service.uid, 
-   service.tp_id, 
-   tp.name, 
-   tp.tp_id, 
+   tp.name AS tp_name, 
+   tp.tp_id AS tp_num, 
    service.filter_id, 
    service.cid,
    service.disable,
    service.pin,
    service.vod,
-   tp.gid,
+   tp.gid AS tp_gid,
    tp.month_fee,
    tp.day_fee,
    tp.postpaid_monthly_fee,
    tp.payment_type,
    tp.period_alignment,
-   tp.id,
+   tp.id AS tp_num,
    service.dvcrypt_id
      FROM iptv_main service
      LEFT JOIN tarif_plans tp ON (service.tp_id=tp.tp_id)
-   $WHERE;"
+   $WHERE;",
+   undef,
+   { INFO => 1 }
   );
-
-  if ($self->{TOTAL} < 1) {
-    $self->{errno}  = 2;
-    $self->{errstr} = 'ERROR_NOT_EXIST';
-    return $self;
-  }
-
-  (
-    $self->{UID},    $self->{TP_ID},      $self->{TP_NAME},  $self->{TP_NUM},        $self->{FILTER_ID},    $self->{CID},              $self->{STATUS}, $self->{PIN}, $self->{VOD},
-    $self->{TP_GID}, $self->{MONTH_ABON}, $self->{DAY_ABON}, $self->{POSTPAID_ABON}, $self->{PAYMENT_TYPE}, $self->{PERIOD_ALIGNMENT}, $self->{TP_NUM}, $self->{DVCRYPT_ID}
-  ) = @{ $self->{list}->[0] };
 
   return $self;
 }

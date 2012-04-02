@@ -1587,6 +1587,7 @@ sub user_add {
   my $self = shift;
   my ($attr) = @_;
 
+  #$attr->{REG}='now()';
   $self->query_add($db, 'docs_main', $attr);
 
   return $self if ($self->{errno});

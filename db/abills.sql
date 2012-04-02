@@ -259,7 +259,7 @@ CREATE TABLE `docs_receipts` (
   `aid` smallint(6) unsigned NOT NULL default '0',
   `uid` int(11) unsigned NOT NULL default '0',
   `created` datetime NOT NULL default '0000-00-00 00:00:00',
-  `reciept_num` int(10) unsigned NOT NULL default '0',
+  `receipt_num` int(10) unsigned NOT NULL default '0',
   `vat` double(5,2) unsigned NOT NULL default '0.00',
   `by_proxy_seria` varchar(40) NOT NULL default '',
   `by_proxy_person` varchar(15) NOT NULL default '',
