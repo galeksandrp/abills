@@ -939,7 +939,7 @@ sub docs_invoices_list {
       $D{EXCHANGE_RATE}      = $d->{exchange_rate};
       $D{CURRENCY}           = $d->{currency};
       $D{DEPOSIT}            = $d->{docs_deposit};
-      $D{DOC_ID}             = $d->{doc_id};
+      $D{DOC_ID}             = $d->{id};
       $D{AMOUNT_FOR_PAY}     = ($D{DEPOSIT} < 0) ? abs($D{DEPOSIT}) : 0 - $D{DEPOSIT};
       $FORM{COMPANY_ID}      = $D{COMPANY_ID};
 
@@ -1776,6 +1776,7 @@ sub docs_invoice {
 
   }
   elsif ($FORM{print}) {
+
     $Docs->invoice_info($FORM{print}, { UID => $LIST_PARAMS{UID} });
 
     if ($conf{DOCS_VAT_INCLUDE}) {

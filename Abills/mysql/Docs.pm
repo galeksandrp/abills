@@ -572,7 +572,7 @@ sub invoices_list {
      g.name AS group_name, 
      if (d.exchange_rate>0, sum(o.price * o.counts) * d.exchange_rate, 0.00) AS alt_sum,
      d.uid, 
-     d.id AS doc_id, 
+     d.id, 
      u.company_id, 
      c.name AS company_name, 
      if(u.company_id=0, concat(pi.contract_sufix,pi.contract_id), concat(c.contract_sufix,c.contract_id)) AS contract_id, 
