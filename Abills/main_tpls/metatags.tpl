@@ -12,7 +12,8 @@
  <link rel=\"stylesheet\" media=\"print\" type=\"text/css\" href=\"%PRINTCSS%\" >
  <script src='%JAVASCRIPT%' type='text/javascript' language='javascript'></script>
  <script src='/calendar.js' type='text/javascript' language='javascript'></script>
-<script  src='/js/jquery.js' type='text/javascript'></script>
+ <script  src='/js/jquery.js' type='text/javascript'></script>
+ <script  src='/js/jquery.spoiler.js' type='text/javascript'></script>
 
 <style type=\"text/css\">
 body {
@@ -877,43 +878,44 @@ table tr.marked th,table tr.marked,.odd:hover,.even:hover,.hover,table tr.odd:ho
 
 
 /* ---------- */
+
 .dropdown-box {
-  margin: 20px 0px;
-  position:relative;
-  border: #dddddd solid 1px;
-  -webkit-border-radius: 10px 5px 5px 10px;
-  -moz-border-radius: 10px 5px 5px 10px;
+	position:relative;
 }
 .dropdown-box h3 {
-  background-color:#f0f0f0;
-  -moz-border-radius: 10px 5px 5px 10px;
-  -webkit-border-radius: 10px 5px 5px 10px;
-  margin:0px;
-  text-align:center;
+	background-color:#f0f0f0;
+	-moz-border-radius: 10px 5px 5px 10px;
+	-webkit-border-radius: 10px 5px 5px 10px;
+	margin:0px;
+	text-align:center;
 }
-.dropdown-box div {
-  padding:10px;
+.dropdown-container {
+	margin: 20px 0px;
+	border: #dddddd solid 1px;
+	-webkit-border-radius: 10px 5px 5px 10px;
+	-moz-border-radius: 10px 5px 5px 10px;
+}
+.dropdown-content {
+	padding:10px;
 }
 .dropdown-box:hover {
-  cursor:pointer;
+	cursor:pointer;
 }
 .dropdown-image-down {
-  background-image:url(/img/slide_down.png);
+	background-image:url(slide_down.png);
 }
 .dropdown-image-up {
-  background-image:url(/img/slide-up.png);
+	background-image:url(slide-up.png);
 }
-#dropdown-image {
-  position:absolute;
-  width:16px;
-  height:16px;
-  display:block;
-  top:4px;
-  right:15px;
+.dropdown-image-down,
+.dropdown-image-up {
+	position:absolute;
+	width:16px;
+	height:16px;
+	display:block;
+	top:4px;
+	right:15px;
 }
-
-
-
 
 </style>
 
