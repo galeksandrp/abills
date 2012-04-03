@@ -13,7 +13,7 @@
  <script src='%JAVASCRIPT%' type='text/javascript' language='javascript'></script>
  <script src='/calendar.js' type='text/javascript' language='javascript'></script>
  <script  src='/js/jquery.js' type='text/javascript'></script>
- <script  src='/js/jquery.spoiler.js' type='text/javascript'></script>
+ <script  src='/js/jquery.cookie.js' type='text/javascript'></script>
 
 <style type=\"text/css\">
 body {
@@ -888,6 +888,7 @@ table tr.marked th,table tr.marked,.odd:hover,.even:hover,.hover,table tr.odd:ho
 	-webkit-border-radius: 10px 5px 5px 10px;
 	margin:0px;
 	text-align:center;
+	height: 25px;
 }
 .dropdown-container {
 	margin: 20px 0px;
@@ -902,10 +903,10 @@ table tr.marked th,table tr.marked,.odd:hover,.even:hover,.hover,table tr.odd:ho
 	cursor:pointer;
 }
 .dropdown-image-down {
-	background-image:url(slide_down.png);
+	background-image:url(/img/slide_down.png);
 }
 .dropdown-image-up {
-	background-image:url(slide-up.png);
+	background-image:url(/img/slide-up.png);
 }
 .dropdown-image-down,
 .dropdown-image-up {

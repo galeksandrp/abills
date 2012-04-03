@@ -2441,7 +2441,7 @@ sub voip_daily_fees {
   $ADMIN_REPORT{DATE} = $DATE if (!$ADMIN_REPORT{DATE});
   my ($y, $m, $d) = split(/-/, $ADMIN_REPORT{DATE}, 3);
 
-  my $list = $tariffs->list(
+  my $tp_list = $tariffs->list(
     {
       %LIST_PARAMS,
       MODULE    => 'Voip',
@@ -2449,26 +2449,26 @@ sub voip_daily_fees {
     }
   );
 
-  foreach my $line (@$list) {
+  foreach my $tp (@$tp_list) {
     my %TP_INFO   = ();
-    my $TP_ID     = $line->[0];
-    my $postpaid  = $line->[4];
-    my $daily_fee = $line->[5];
+    my $TP_ID     = $tp->{id};
+    my $postpaid  = $tp->{payment_type};
+    my $daily_fee = $tp->{day_fee};
 
-    $TP_INFO{POSTPAID_MONTHLY} = $line->[13];
-    $TP_INFO{REDUCTION}        = $line->[11];
-    $TP_INFO{TP_NUM}           = $line->[18];
+    $TP_INFO{POSTPAID_MONTHLY} = $tp->{postpaid_monthly_fee};
+    $TP_INFO{REDUCTION}        = $tp->{reduction_fee};
+    $TP_INFO{TP_NUM}           = $tp->{tp_id};
 
-    $debug_output .= "TP ID: $line->[0] DF: $daily_fee POSTPAID: $postpaid\n" if ($debug > 1);
+    $debug_output .= "TP ID: $tp->{id} DF: $daily_fee POSTPAID: $postpaid\n" if ($debug > 1);
     if ($daily_fee > 0) {
-      $LIST_PARAMS{TP} = $line->[0];
       my $ulist = $Voip->user_list(
         {
           ACTIVATE     => "0000-00-00,>=$DATE",
           EXPIRE       => "<$DATE",
           STATUS       => '0',
           LOGIN_STATUS => 0,
-          TP_ID        => $TP_INFO{TP_NUM}
+          TP_ID        => $TP_INFO{TP_NUM},
+          COLS_NAME    => 1
         }
       );
 
