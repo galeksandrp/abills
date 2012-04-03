@@ -1388,7 +1388,7 @@ sub user_form {
     }
 
     if ($permissions{2}) {
-      $user_info->{FEES_BUTTON} = $html->button($_FEES, "index=2&UID=$LIST_PARAMS{UID}", { CLASS => 'fees rightAlignText' });
+      $user_info->{FEES_BUTTON} = $html->button($_FEES, "index=3&UID=$LIST_PARAMS{UID}", { CLASS => 'fees rightAlignText' });
     }
 
     $user_info->{EXDATA} = $html->tpl_show(templates('form_user_exdata'), $user_info, { OUTPUT2RETURN => 1 });
