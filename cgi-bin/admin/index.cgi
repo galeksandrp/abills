@@ -3015,6 +3015,8 @@ sub form_changes {
     13 => "Online $_DELETED",
     14 => "$_HOLD_UP",
     15 => "$_HANGUP",
+    16 => "$_PAYMENTS $_DELETED",
+    17 => "$_FEES $_DELETED",
     26 => "$_CHANGE $_GROUP",
     27 => "$_SHEDULE $_ADDED",
     28 => "$_SHEDULE $_DELETED",
@@ -3086,7 +3088,7 @@ sub form_changes {
     my $delete = ($permissions{4}{3}) ? $html->button($_DEL, "index=$index$pages_qs&del=$line->[0]", { MESSAGE => "$_DEL [$line->[0]] ?", CLASS => 'del' }) : '';
 
     my $color = undef;
-    if (in_array($line->[7], [ 10, 28, 13 ])) {
+    if (in_array($line->[7], [ 10, 28, 13, 16, 17 ])) {
       $color = 'red';
     }
     elsif (in_array($line->[7], [ 1, 7 ])) {
