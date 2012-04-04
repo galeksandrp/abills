@@ -306,7 +306,30 @@ sub search_expr {
     }
 
     if ($type eq 'IP') {
-      $v = "INET_ATON('$v')";
+      if ($value =~ m/\*/g) {
+        my ($i, $first_ip, $last_ip);
+        my @p = split(/\./, $value);
+        for ($i = 0 ; $i < 4 ; $i++) {
+          if ($p[$i] eq '*') {
+            $first_ip .= '0';
+            $last_ip  .= '255';
+          }
+          else {
+            $first_ip .= $p[$i];
+            $last_ip  .= $p[$i];
+          }
+          if ($i != 3) {
+            $first_ip .= '.';
+            $last_ip  .= '.';
+          }
+        }
+        push @result_arr, "(dv.ip>=INET_ATON('$first_ip') and dv.ip<=INET_ATON('$last_ip'))";
+
+        return \@result_arr;
+      }
+      else {      
+        $v = "INET_ATON('$v')";
+      }
     }
     else {
       $v = "'$v'";

@@ -12,6 +12,7 @@ use vars qw(@ISA @EXPORT @EXPORT_OK %EXPORT_TAGS $VERSION
 @EXPORT    = qw(%log_levels);
 
 my $db;
+my $attr;
 use main;
 @ISA = ("main");
 my $CONF;
@@ -34,10 +35,18 @@ my $CONF;
 #**********************************************************
 sub new {
   my $class = shift;
-  ($db, $CONF) = @_;
+  ($db, $CONF, $attr) = @_;
 
   my $self = {};
   bless($self, $class);
+  
+  if ($attr->{DEBUG_LEVEL}) {
+  	my %rev_log_level = reverse %log_levels;
+  	for(my $i=0; $i<=$attr->{DEBUG_LEVEL}; $i++) {
+  		$self->{debugmods} .= "$rev_log_level{$i} ";
+  	}
+  }
+  
 
   return $self;
 }
@@ -125,6 +134,10 @@ sub log_print {
   my $action = $attr->{'ACTION'} || $self->{ACTION} || '';
   if ($self->{LOG_FILE}) {
     $attr->{LOG_FILE}=$self->{LOG_FILE};
+  }
+
+  if ($self->{debugmods}) {
+    $CONF->{debugmods}=$self->{debugmods}; 
   }
 
   if (!$CONF->{debugmods} || $CONF->{debugmods} =~ /$LOG_TYPE/) {

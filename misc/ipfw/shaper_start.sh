@@ -32,16 +32,17 @@
 #   abills_ipn_if="" IPN Shapper interface
 #
 #   abills_ipn_allow_ip="" IPN Allow unauth ip
+#
+#   abills_squid_redirect="" Redirect traffic to squid
 
 
 
 CLASSES_NUMS='2 3'
-VERSION=5.86
+VERSION=5.87
 
 
 name="abills_shaper"
 rcvar=`set_rcvar`
-
 
 : ${abills_shaper_enable="NO"}
 : ${abills_shaper_if=""}
@@ -53,6 +54,7 @@ rcvar=`set_rcvar`
 : ${abills_neg_deposit=""}
 : ${abills_portal_ip="me"}
 : ${abills_mikrotik_shaper=""}
+: ${abills_squid_redirect=""}
 
 : ${abills_ipn_nas_id=""}
 : ${abills_ipn_if=""}
@@ -358,3 +360,29 @@ if [ w${SESSION_LIMIT} != w ]; then
  fi;
 fi;
 
+#Squid Redirect
+#FWD Section
+if [ x${abills_squid_redirect} != x ]; then
+  if [ x${SQUID_SERVER_IP} = w ]; then
+    SQUID_SERVER_IP=127.0.0.1;
+  fi;
+SQUID_REDIRET_TABLE=40
+FWD_RULE=10040;
+
+#Forwarding start
+if [ w${ACTION} = wstart ]; then
+  echo "Squid Forward Section - start"; 
+  ${IPFW} add ${FWD_RULE} fwd ${SQUID_SERVER_IP},8080 tcp from table\(${SQUID_REDIRET_TABLE}\) to any dst-port 80,443 via ${INTERNAL_INTERFACE}
+  #If use proxy
+  #${IPFW} add ${FWD_RULE} fwd ${FWD_WEB_SERVER_IP},3128 tcp from table\(32\) to any dst-port 3128 via ${INTERNAL_INTERFACE}
+else if [ x${ACTION} = xstop ]; then
+  echo "Squid Forward Section - stop:"; 
+  ${IPFW} delete ${FWD_RULE}
+else if [ x${ACTION} = xshow ]; then
+  echo "Squid Forward Section - status:"; 
+  ${IPFW} show ${FWD_RULE}
+fi;
+fi;
+fi;
+
+fi;

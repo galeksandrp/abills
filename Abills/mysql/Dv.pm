@@ -405,9 +405,22 @@ sub list {
   @WHERE_RULES = ("u.uid = dv.uid");
 
   if ($attr->{USERS_WARNINGS}) {
+  	
+  	my $allert_period = '';
+  	if ($attr->{ALERT_PERIOD}) {
+  	  $allert_period = "OR  (tp.month_fee > 0 AND if(u.activate='0000-00-00', 
+      datediff(DATE_FORMAT(curdate() + interval 1 month, '%Y-%m-01'), curdate()),
+      datediff(u.activate + interval 30 day, curdate())) IN ($attr->{ALERT_PERIOD}))";
+  	}
+
     $self->query(
-      $db, "SELECT u.id, pi.email, dv.tp_id, u.credit, b.deposit, tp.name, tp.uplimit, pi.phone,
-      pi.fio
+      $db, "SELECT u.id AS login, pi.email, dv.tp_id AS tp_num, u.credit, b.deposit, tp.name AS tp_name, tp.uplimit, pi.phone,
+      pi.fio,
+      if(u.activate='0000-00-00', 
+        datediff(DATE_FORMAT(curdate() + interval 1 month, '%Y-%m-01'), curdate()),
+        datediff(u.activate + interval 30 day, curdate())) AS to_next_period,
+      tp.month_fee,
+      u.uid
          FROM (users u,
                dv_main dv,
                bills b,
@@ -415,13 +428,18 @@ sub list {
          LEFT JOIN users_pi pi ON u.uid = pi.uid
          WHERE
                u.uid=dv.uid
-           and u.disable = 0
-           and u.bill_id=b.id
-           and dv.tp_id = tp.id
+           and u.disable  = 0
+           and u.bill_id  = b.id
+           and dv.tp_id   = tp.id
            and dv.disable = 0
-           and b.deposit<tp.uplimit AND tp.uplimit > 0 AND b.deposit+u.credit>0
+           AND b.deposit+u.credit>0
+           and ((tp.month_fee=0 AND tp.uplimit > 0 AND b.deposit<tp.uplimit)
+             $allert_period
+               )
          GROUP BY u.uid
-         ORDER BY u.id;"
+         ORDER BY u.id;",
+         undef,
+         $attr
     );
 
     return $self if ($self->{errno});

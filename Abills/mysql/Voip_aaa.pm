@@ -420,21 +420,21 @@ sub get_route_prefix {
   }
   chop($query_params);
 
-  $self->query(
-    $db, "SELECT r.id,
-      r.prefix,
-      r.gateway_id,
-      r.disable
+  $self->query($db, "SELECT r.id AS route_id,
+      r.prefix AS prefix,
+      r.gateway_id AS gateway_id,
+      r.disable AS route_disable
      FROM voip_routes r
       WHERE r.prefix in ($query_params)
-      ORDER BY 2 DESC LIMIT 1;"
+      ORDER BY 2 DESC LIMIT 1;",
+      undef,
+      {INFO => 1}
   );
 
-  if ($self->{TOTAL} < 1) {
-    return $self;
-  }
-
-  ($self->{ROUTE_ID}, $self->{PREFIX}, $self->{GATEWAY_ID}, $self->{ROUTE_DISABLE}, $self->{TRUNK_PROTOCOL}, $self->{TRUNK_PATH}) = @{ $self->{list}->[0] };
+  #if ($self->{TOTAL} < 1) {
+  #  return $self;
+  #}
+  #($self->{ROUTE_ID}, $self->{PREFIX}, $self->{GATEWAY_ID}, $self->{ROUTE_DISABLE}, $self->{TRUNK_PROTOCOL}, $self->{TRUNK_PATH}) = @{ $self->{list}->[0] };
 
   return $self;
 }
@@ -442,7 +442,7 @@ sub get_route_prefix {
 #**********************************************************
 #
 #**********************************************************
-sub get_intervals {
+ sub get_intervals {
   my $self = shift;
   my ($attr) = @_;
 
@@ -464,14 +464,13 @@ sub get_intervals {
          and rp.route_id = '$self->{ROUTE_ID}';"
   );
 
-  my $list               = $self->{list};
-  my %time_periods       = ();
-  my %periods_time_tarif = ();
+  my $list                = $self->{list};
+  my %time_periods        = ();
+  my %periods_time_tarif  = ();
   $self->{TRUNK_PATH}     = '';
   $self->{TRUNK_PROVIDER} = '';
 
   foreach my $line (@$list) {
-
     #$time_periods{INTERVAL_DAY}{INTERVAL_START}="INTERVAL_ID:INTERVAL_END";
     $time_periods{ $line->[0] }{ $line->[1] } = "$line->[4]:$line->[2]";
 

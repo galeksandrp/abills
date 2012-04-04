@@ -662,9 +662,9 @@ sub credit_operation {
 sub credit_full_set {
   $DEBUG .= "Set full credit\n" if ($debug > 1);
 
-  my $FULL_CREDIT_PERIOD = $argv->{FULL_CREDIT_PERIOD};
+  my $FULL_CREDIT_PERIOD = $args->{FULL_CREDIT_PERIOD};
   my $CREDIT_EXPIRE_DATE = '';
-  if ($argv->{FULL_CREDIT_PERIOD}) {
+  if ($FULL_CREDIT_PERIOD) {
   	$CREDIT_EXPIRE_DATE = strftime "%Y-%m-%d", localtime((mktime(0, 0, 0, $D, ($M-1), ($Y - 1900), 0, 0, 0) + $FULL_CREDIT_PERIOD * 86400));
   }
   
@@ -767,10 +767,6 @@ sub credit_full_set {
     	$DEBUG .= "SUM: $full_sum\n" if ($debug > 0);
     }
   }
-
-
-
-
 
   return 0;
 }
