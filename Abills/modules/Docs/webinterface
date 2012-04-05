@@ -1631,13 +1631,6 @@ sub docs_invoice {
     elsif (!$FORM{IDS} && $FORM{SUM} < 0.01) {
       $html->message('err', "$_DOCS :$_ERROR", "$_WRONG_SUM");
     }
-
-    #elsif(! $LIST_PARAMS{UID}) {
-    #  $html->message('err', "$_ERROR", "$_SELECT_USER");
-    # }
-    #elsif(! $FORM{CUSTOMER}) {
-    #  $html->message('err', "$_DOCS : $_ERROR", "$_ORG_NAME");
-    # }
     elsif ($FORM{PREVIEW}) {
       docs_preview('invoice', {%FORM});
       return 0;
@@ -1652,19 +1645,13 @@ sub docs_invoice {
       {
         use Finance;
         my $Finance = Finance->new($db, $admin);
-
-        #if ($FORM{CURRENCY} == $conf{DOCS_CURRENCY}) {
         $Finance->exchange_info(0, { ISO => $FORM{DOCS_CURRENCY} || $conf{DOCS_CURRENCY} });
         $FORM{EXCHANGE_RATE} = $Finance->{ER_RATE};
         $FORM{DOCS_CURRENCY} = $Finance->{ISO};
-
-        # }
       }
 
       $Docs->invoice_add({ %FORM, DEPOSIT => $users->{DEPOSIT} });
       if (!$Docs->{errno}) {
-
-        #if ($attr->{PERIODIC_INVOICE}) {
         #Add date of last invoice
         if ($attr->{REGISTRATION}) {
           my ($Y, $M, $D) = split(/-/, $DATE, 3);
@@ -1713,22 +1700,21 @@ sub docs_invoice {
               . $html->button("$_SEND $_EMAIL", "qindex=" . get_function_index('docs_invoices_list') . "&INVOICE_ID=$Docs->{DOC_ID}&sendmail=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}",    { ex_params => 'target=_new', CLASS => 'sendmail rightAlignText' })
               . $html->button($_PRINT,          "qindex=" . get_function_index('docs_invoices_list') . "&INVOICE_ID=$Docs->{DOC_ID}&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}&pdf=1", { ex_params => 'target=_new', CLASS => 'print rightAlignText' })
             );
+
+            $FORM{print} = $FORM{INVOICE_ID};
+            $FORM{pdf}   = 1;
+            delete($FORM{create});
+
+            return docs_invoice(
+              {
+                GET_EMAIL_INFO => 1,
+                SEND_EMAIL     => $FORM{SEND_EMAIL} || $attr->{SEND_EMAIL},
+                EMAIL          => $FORM{EMAIL},
+                %$attr
+              }
+            );
             return 0;
           }
-
-          $FORM{print} = $FORM{INVOICE_ID};
-          $FORM{pdf}   = 1;
-          delete($FORM{create});
-
-          return docs_invoice(
-            {
-              GET_EMAIL_INFO => 1,
-              SEND_EMAIL     => $FORM{SEND_EMAIL} || $attr->{SEND_EMAIL},
-              EMAIL          => $FORM{EMAIL},
-              %$attr
-            }
-          );
-
         }
         else {
           $html->message(
@@ -1738,8 +1724,6 @@ sub docs_invoice {
             . $html->button("$_SEND $_EMAIL", "qindex=$index&INVOICE_ID=$Docs->{DOC_ID}&sendmail=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}", { ex_params => 'target=_new', CLASS => 'sendmail rightAlignText' })
             . $html->button($_PRINT,          "qindex=$index&INVOICE_ID=$Docs->{DOC_ID}&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}",    { ex_params => 'target=_new', CLASS => 'print rightAlignText' })
           );
-
-          #return 0;
         }
 
         if ($user->{UID}) {
@@ -2375,6 +2359,8 @@ sub docs_print {
       $users->{EMAIL} = $Docs->{EMAIL} if ($Docs->{EMAIL});
       $attr->{SEND_EMAIL} = $Docs->{SEND_DOCS} if (!defined($attr->{SEND_EMAIL}) && $Docs->{SEND_DOCS});
     }
+    
+    
   }
 
   my $html_old;
