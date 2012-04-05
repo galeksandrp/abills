@@ -750,13 +750,14 @@ sub msgs_admin {
 
     
     if (! $Msgs->{ACTIVE_SURWEY} && ($A_PRIVILEGES{$Msgs->{CHAPTER}} || scalar keys %A_PRIVILEGES == 0)) {
+    	my $survey_sel = msgs_survey_sel();
    	  $Msgs->{REPLY} .= $html->tpl_show(_include('msgs_reply', 'Msgs'), { %$Msgs, 
       	REPLY_TEXT => "",
       	QUOTING    => "$reply",
      	  RUN_TIME   => "$_RUN_TIME ($_MINS):". $html->form_input('RUN_TIME', "$run_time", { EX_PARAMS => " STYLE='background-color: $_COLORS[3]' DISABLED size=9"} ),
      	  MAIN_INNER_MSG => $Msgs->{INNER_MSG},
      	  INNER_MSG  => ($FORM{INNER_MSG}) ? ' checked ' : '',
-     	  SURVEY_SEL => msgs_survey_sel()
+     	  SURVEY_SEL => $survey_sel
     	 }, { OUTPUT2RETURN => 1 });
      }
 
@@ -2679,7 +2680,6 @@ REG_FORM:
 #**********************************************************
 sub msgs_survey_sel {
   my ($attr) = @_;
-
 
   my $list = $Msgs->survey_subjects_list({ PAGE_ROWS => 10000 });
 
