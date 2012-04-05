@@ -1455,7 +1455,7 @@ sub info_field_add {
     $self->config_add(
       {
         PARAM => $field_prefix . "_$attr->{FIELD_ID}",
-        VALUE => "$attr->{POSITION}:$attr->{FIELD_TYPE}:$attr->{NAME}"
+        VALUE => "$attr->{POSITION}:$attr->{FIELD_TYPE}:$attr->{NAME}:$attr->{USERS_PORTAL}"
       }
     );
 

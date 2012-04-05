@@ -8192,6 +8192,8 @@ sub _external {
 # Information fields
 #**********************************************************
 sub form_info_fields {
+  
+  
   if ($FORM{USERS_ADD}) {
     if (length($FORM{FIELD_ID}) > 15) {
       $html->message('err', $_ERROR, "$ERR_WRONG_DATA");
@@ -8231,6 +8233,7 @@ sub form_info_fields {
       ARRAY_NUM_ID => 1
     }
   );
+
 
   my $list = $users->config_list({ PARAM => 'ifu*', SORT => 2 });
 
