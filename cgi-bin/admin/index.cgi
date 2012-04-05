@@ -4300,7 +4300,8 @@ sub form_nas {
     'dhcp'       => 'DHCP FreeRadius in DHCP mode',
     'ls_pap2t'   => 'Linksys pap2t',
     'ls_spa8000' => 'Linksys spa8000',
-    'redback'    => 'Ericson CE1000 Redback'
+    'redback'    => 'Ericson CE1000 Redback',
+    'mx80'       => 'Juniper MX80'
   );
 
   if (defined($conf{nas_servers})) {

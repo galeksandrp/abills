@@ -54,7 +54,7 @@ rcvar=`set_rcvar`
 : ${abills_neg_deposit=""}
 : ${abills_portal_ip="me"}
 : ${abills_mikrotik_shaper=""}
-: ${abills_squid_redirect=""}
+: ${abills_squid_redirect="NO"}
 
 : ${abills_ipn_nas_id=""}
 : ${abills_ipn_if=""}
@@ -362,7 +362,7 @@ fi;
 
 #Squid Redirect
 #FWD Section
-if [ x${abills_squid_redirect} != x ]; then
+if [ x${abills_squid_redirect} != xNO ]; then
   if [ x${SQUID_SERVER_IP} = w ]; then
     SQUID_SERVER_IP=127.0.0.1;
   fi;

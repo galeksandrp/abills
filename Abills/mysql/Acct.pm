@@ -120,7 +120,6 @@ sub accounting {
 
     # If not found auth records
     else {
-
       #Get TP_ID
       $self->query(
         $db, "SELECT u.uid, dv.tp_id, dv.join_service FROM (users u, dv_main dv)
@@ -140,7 +139,7 @@ sub accounting {
         $RAD->{USER_NAME} = '! ' . $RAD->{USER_NAME};
       }
 
-      my $sql = "INSERT INTO dv_calls
+      my $sql = "REPLACE INTO dv_calls
        (status, user_name, started, lupdated, nas_ip_address, nas_port_id, acct_session_id, framed_ip_address, CID, CONNECT_INFO,   nas_id, tp_id,
         uid, join_service)
          values ('$acct_status_type', 

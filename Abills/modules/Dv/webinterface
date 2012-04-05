@@ -4652,7 +4652,7 @@ sub dv_user_info {
   $html->tpl_show(_include('dv_user_info', 'Dv'), $Dv);
   
   
-  if($conf{DV_ALERT_REDIRECT_FILTER} eq $Dv->{FILTER_ID})  {
+  if($conf{DV_ALERT_REDIRECT_FILTER} eq $Dv->{FILTER_ID}) {
     $Dv->change({ UID => $user->{UID},
     	            FILTER_ID => ''
     	         });
