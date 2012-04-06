@@ -618,6 +618,7 @@ sub list {
   if ($self->{TOTAL} >= 0 && !$attr->{SKIP_TOTAL}) {
     $self->query(
       $db, "SELECT count(u.id) FROM (users u, dv_main dv) 
+    LEFT JOIN users_pi pi ON (u.uid = pi.uid)
     LEFT JOIN tarif_plans tp ON (tp.id=dv.tp_id) 
     $EXT_TABLE
     $WHERE"
