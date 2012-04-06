@@ -619,6 +619,7 @@ sub list {
     $self->query(
       $db, "SELECT count(u.id) FROM (users u, dv_main dv) 
     LEFT JOIN tarif_plans tp ON (tp.id=dv.tp_id) 
+    $EXT_TABLE
     $WHERE"
     );
     ($self->{TOTAL}) = @{ $self->{list}->[0] };
