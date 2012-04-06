@@ -451,6 +451,10 @@ sub list {
     push @WHERE_RULES, @{ $self->search_expr("$attr->{CREDIT}", 'INT', 'c.credit') };
   }
 
+  if ($attr->{ADDRESS}) {
+    push @WHERE_RULES, @{ $self->search_expr("$attr->{ADDRESS}", 'INT', 'c.address') };
+  }
+
   if ($attr->{LOGIN}) {
     push @WHERE_RULES, @{ $self->search_expr("$attr->{LOGIN}", 'STR', 'c.name') };
   }
