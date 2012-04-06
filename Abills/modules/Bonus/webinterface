@@ -699,7 +699,17 @@ sub bonus_service_discount_mk {
   my ($attr) = @_;
   my $return = 0;
 
-  if ($FORM{METHOD} == 4 || $FORM{METHOD} == 6) {
+  my @excluder_arr = ();
+  
+  if (!$conf{BONUS_SERVICE_EXCLUDE}) {
+    $conf{BONUS_SERVICE_EXCLUDE}='!4,!6';
+  }
+  
+  my $exclude      = $conf{BONUS_SERVICE_EXCLUDE};
+  $exclude         =~ s/!//g;
+  my @excluder_arr = split(/,\s?/, $exclude);
+
+  if (in_array($FORM{METHOD}, \@excluder_arr)) {
   	return 0;
    }
 
@@ -759,7 +769,7 @@ sub bonus_service_discount_mk {
         {
           UID        => $attr->{USER_INFO}->{UID},
           TOTAL_ONLY => 1,
-          METHOD     => '!4,!6'
+          METHOD     => $conf{BONUS_SERVICE_EXCLUDE} || '!4,!6'
         }
       );
       my $payments_sum = $Payments->{SUM};
