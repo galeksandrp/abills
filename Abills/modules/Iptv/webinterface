@@ -230,7 +230,10 @@ sub iptv_chg_tp {
       }
     );
 
-    $Tariffs->{PARAMS} .= form_period($period, { ABON_DATE => $Iptv->{ABON_DATE} });
+print %{ $Iptv };
+print "/// $Iptv->{TP_ID} //";
+
+    $Tariffs->{PARAMS}    .= form_period($period, { ABON_DATE => $Iptv->{ABON_DATE} });
     $Tariffs->{ACTION}     = 'set';
     $Tariffs->{LNG_ACTION} = $_CHANGE;
   }

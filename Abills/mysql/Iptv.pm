@@ -68,7 +68,7 @@ sub user_info {
   $self->query(
     $db, "SELECT service.uid, 
    tp.name AS tp_name, 
-   tp.tp_id AS tp_num, 
+   tp.tp_id, 
    service.filter_id, 
    service.cid,
    service.disable,

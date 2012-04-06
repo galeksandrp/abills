@@ -656,6 +656,7 @@ sub report_debetors {
   $PG        = ($attr->{PG})        ? $attr->{PG}        : 0;
   $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
   
+  $self->{SEARCH_FIELDS}='';
   my @WHERE_RULES  = ();
 
   if (! $attr->{PERIOD}) {
