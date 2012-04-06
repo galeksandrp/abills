@@ -703,7 +703,7 @@ sub search_expr_users () {
     }
     elsif ($CONF->{ADDRESS_REGISTER}) {
       if ($attr->{ADDRESS_STREET}) {
-        push @fields, @{ $self->search_expr($attr->{ADDRESS_STREET}, 'STR', 'streets.name', { EXT_FIELD => 'streets.name' }) };
+        push @fields, @{ $self->search_expr($attr->{ADDRESS_STREET}, 'STR', 'streets.name AS street_name', { EXT_FIELD => 1 }) };
         $self->{EXT_TABLES} .= "INNER JOIN builds ON (builds.id=pi.location_id)
         INNER JOIN streets ON (streets.id=builds.street_id)";
       }
