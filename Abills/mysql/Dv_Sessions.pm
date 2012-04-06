@@ -1503,7 +1503,7 @@ sub log_rotate {
     'INSERT INTO errors_log_new_sorted SELECT max(date), log_type, action, user, message, nas_id FROM errors_log GROUP BY user,message,nas_id;',
     'DROP TABLE errors_log_old;',
     'RENAME TABLE errors_log TO errors_log_old, errors_log_new_sorted TO errors_log;',
-    'DROP TABLE errors_log_old';
+    'DROP TABLE errors_log_old;';
 
     if (!$attr->{DAILY}) {
       use POSIX qw(strftime);

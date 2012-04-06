@@ -5394,7 +5394,7 @@ sub dv_monthly_fees {
           CREDIT       => ($u->{credit} > 0) ? $u->{credit} : ($CONF->{user_credit_change}) ? 0 : $line->[15],
           COMPANY_ID   => $u->{company_id},
           DV_STATUS    => $u->{dv_status},
-          EXT_DEPOSIT => ($u->{ext_deposit}) ? $u->{ext_deposit} : 0,
+          EXT_DEPOSIT  => ($u->{ext_deposit}) ? $u->{ext_deposit} : 0,
         );
 
         $debug_output .= " Login: $user{LOGIN} ($user{UID}) TP_ID: $u->{tp_id} Fees: $line->[6] REDUCTION: $user{REDUCTION} DEPOSIT: $user{DEPOSIT} CREDIT $user{CREDIT} ACTIVE: $user{ACTIVATE} TP: $u->{tp_id}\n" if ($debug > 3);

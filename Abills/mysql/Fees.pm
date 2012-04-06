@@ -123,8 +123,13 @@ sub take {
       }
     }
     elsif ($CONF->{FEES_PRIORITY} =~ /^main,bonus/) {
-      if ($user->{EXT_BILL_ID} && !defined($self->{EXT_BILL_DEPOSIT})) {
-        $user->info($user->{UID});
+      if (! $user->{EXT_BILL_ID} || ! defined($self->{EXT_BILL_DEPOSIT})) {
+      	my $uid = $user->{UID}; 
+      	my $fn  = 'user::info';
+        if (! defined( &$fn )) {
+     	    $user = Users->new($db, $admin, $CONF);
+        }
+        $user->info($uid);
       }
 
       if ($user->{DEPOSIT} < $sum) {
