@@ -84,31 +84,26 @@ sub user_info {
    voip.uid, 
    voip.number,
    voip.tp_id, 
-   tarif_plans.name, 
-   INET_NTOA(voip.ip),
+   tarif_plans.name as tp_name, 
+   INET_NTOA(voip.ip) AS ip,
    voip.disable,
    voip.allow_answer,
    voip.allow_calls,
    voip.cid,
    voip.logins,
    voip.registration,
-   tarif_plans.id,
+   tarif_plans.id as tp_num,
    voip.provision_nas_id,
    voip.provision_port
      FROM voip_main voip
      LEFT JOIN voip_tps tp ON (voip.tp_id=tp.id)
      LEFT JOIN tarif_plans ON (tarif_plans.tp_id=voip.tp_id)
-   $WHERE;"
+   $WHERE;",
+  undef,
+  { INFO => 1 } 
   );
 
-  if ($self->{TOTAL} < 1) {
-    $self->{errno}  = 2;
-    $self->{errstr} = 'ERROR_NOT_EXIST';
-    return $self;
-  }
 
-  ($self->{UID}, $self->{NUMBER}, $self->{TP_ID}, $self->{TP_NAME}, $self->{IP}, $self->{DISABLE}, $self->{ALLOW_ANSWER}, $self->{ALLOW_CALLS}, $self->{CID}, $self->{SIMULTANEOUSLY}, $self->{REGISTRATION}, $self->{TP_NUM}, $self->{PROVISION_NAS_ID}, $self->{PROVISION_PORT},) =
-  @{ $self->{list}->[0] };
 
   return $self;
 }
@@ -167,21 +162,6 @@ sub user_change {
   my $self = shift;
   my ($attr) = @_;
 
-  my %FIELDS = (
-    SIMULTANEONSLY   => 'logins',
-    NUMBER           => 'number',
-    DISABLE          => 'disable',
-    IP               => 'ip',
-    TP_ID            => 'tp_id',
-    CID              => 'cid',
-    UID              => 'uid',
-    FILTER_ID        => 'filter_id',
-    ALLOW_ANSWER     => 'allow_answer',
-    ALLOW_CALLS      => 'allow_calls',
-    PROVISION_NAS_ID => 'provision_nas_id',
-    PROVISION_PORT   => 'provision_port',
-  );
-
   $attr->{ALLOW_ANSWER} = ($attr->{ALLOW_ANSWER}) ? 1 : 0;
   $attr->{ALLOW_CALLS}  = ($attr->{ALLOW_CALLS})  ? 1 : 0;
 
@@ -190,8 +170,8 @@ sub user_change {
     {
       CHANGE_PARAM => 'UID',
       TABLE        => 'voip_main',
-      FIELDS       => \%FIELDS,
-      OLD_INFO     => $self->user_info($attr->{UID}),
+      #FIELDS       => \%FIELDS,
+      #OLD_INFO     => $self->user_info($attr->{UID}),
       DATA         => $attr
     }
   );
@@ -281,14 +261,20 @@ sub user_list {
   }
 
   if ($attr->{PASSWORD}) {
-    $self->{SEARCH_FIELDS} .= "DECODE(u.password, '$CONF->{secretkey}'), ";
+    $self->{SEARCH_FIELDS} .= "DECODE(u.password, '$CONF->{secretkey}') AS password, ";
     $self->{SEARCH_FIELDS_COUNT}++;
   }
 
   # Show users for spec tarifplan
   if ($attr->{TP_ID}) {
-    push @WHERE_RULES, "service.tp_id='$attr->{TP_ID}'";
+    push @WHERE_RULES, @{ $self->search_expr($attr->{TP_ID}, 'INT', 'service.tp_id') };
   }
+
+  if ($attr->{TP_FREE_TIME}) {
+    push @WHERE_RULES, @{ $self->search_expr($attr->{CID}, 'INT', 'tp.free_time AS tp_free_time', { EXT_FIELD => 1 }) };
+    $EXT_TABLE .= "LEFT JOIN voip_tps voip_tp ON (voip_tp.id=tp.tp_id) ";
+  }
+
 
   if (defined($attr->{STATUS}) && $attr->{STATUS} ne '') {
     push @WHERE_RULES, @{ $self->search_expr($attr->{STATUS}, 'INT', 'service.disable') };
@@ -638,20 +624,32 @@ sub tp_list() {
   my $self = shift;
   my ($attr) = @_;
 
-  my $WHERE = 'WHERE tp.tp_id=voip.id';
+
+  @WHERE_RULES = ('tp.tp_id=voip.id');
+  if ($attr->{FREE_TIME}) {
+    push @WHERE_RULES, @{ $self->search_expr($attr->{FREE_TIME}, 'INT', 'voip.free_time', { EXT_FIELD => 1 }) };
+  }
+
+  my $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES) : '';
 
   $self->query(
     $db, "SELECT tp.id, tp.name, if(sum(i.tarif) is NULL or sum(i.tarif)=0, 0, 1), 
     tp.payment_type,
-    tp.day_fee, tp.month_fee, 
+    tp.day_fee, 
+    tp.month_fee, 
     tp.logins, 
     tp.age,
-    tp.tp_id
+    tp.tp_id,
+    $self->{SEARCH_FIELDS}
+    ''
+    
     FROM (tarif_plans tp, voip_tps voip)
     LEFT JOIN intervals i ON (i.tp_id=tp.tp_id)
     $WHERE
     GROUP BY tp.id
-    ORDER BY $SORT $DESC;"
+    ORDER BY $SORT $DESC;",
+    undef,
+    $attr
   );
 
   return $self->{list};

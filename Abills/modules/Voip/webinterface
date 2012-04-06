@@ -7,10 +7,10 @@ use Log;
 use Fees;
 use Tariffs;
 
-my $Voip = Voip->new($db, $admin, \%conf);
+my $Voip     = Voip->new($db, $admin, \%conf);
 my $sessions = Voip_Sessions->new($db, \%conf);
-my $fees = Fees->new($db, $admin, \%conf);
-my $tariffs = Tariffs->new($db, \%conf, $admin);
+my $fees     = Fees->new($db, $admin, \%conf);
+my $tariffs  = Tariffs->new($db, \%conf, $admin);
 
 my $Nas = Nas->new($db, \%conf);
 $Log = Log->new($db, \%conf);
@@ -1727,11 +1727,17 @@ sub voip_use_allmonthes {
 sub voip_use {
   reports(
     {
-      DATE   => $FORM{DATE},
-      REPORT => ''
+      DATE      => $FORM{DATE},
+      REPORT    => '',
+      EX_PARAMS => {
+        DATE   => "$_DATE",
+        USERS  => "$_USERS",
+        ADMINS => "$_ADMINS",
+
+      },
+      PERIOD_FORM => 1,
     }
   );
-
   my ($tables_sessions, $table_fees);
 
   #Day reposrt

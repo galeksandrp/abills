@@ -1174,7 +1174,7 @@ CREATE TABLE `voip_tps` (
   `time_division` smallint(6) unsigned NOT NULL default '0', 
   PRIMARY KEY  (`id`),
   UNIQUE KEY `id` (`id`)
-) ;
+) COMMENT 'Voip  tarif plans';
 
 
 
