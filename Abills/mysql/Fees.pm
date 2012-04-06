@@ -159,6 +159,11 @@ sub take {
         $user->{BILL_ID} = $user->{EXT_BILL_ID};
       }
     }
+    
+    if ($sum == 0) {
+      $db->{AutoCommit} = 1 if (!$attr->{NO_AUTOCOMMIT});
+      return $self;
+    }
   }
 
   if ($user->{BILL_ID} && $user->{BILL_ID} > 0) {
