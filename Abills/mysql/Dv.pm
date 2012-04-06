@@ -404,36 +404,6 @@ sub list {
 
   @WHERE_RULES = ("u.uid = dv.uid");
 
-  @WHERE_RULES = @{ $self->search_expr_users({ %$attr, 
-  	                         EXT_FIELDS => [
-  	                                        'PHONE',
-  	                                        'EMAIL',
-  	                                        'ADDRESS_FLAT',
-  	                                        'PASPORT_DATE',
-                                            'PASPORT_NUM', 
-                                            'PASPORT_GRANT',
-                                            'CITY', 
-                                            'ZIP',
-                                            'GID',
-                                            'CONTRACT_ID',
-                                            'CONTRACT_SUFIX',
-                                            'CONTRACT_DATE',
-                                            'EXPIRE',
-
-                                            'CREDIT',
-                                            'CREDIT_DATE', 
-                                            'REDUCTION',
-                                            'REGISTRATION',
-                                            'REDUCTION_DATE',
-                                            'COMMENTS',
-                                            'BILL_ID',
-                                            
-                                            'ACTIVATE',
-                                            'EXPIRE',
-
-  	                                         ] }) };
-
-
   if ($attr->{USERS_WARNINGS}) {
   	
   	my $allert_period = '';
@@ -503,7 +473,34 @@ sub list {
     return $list;
   }
   
-  push @WHERE_RULES, @{ $self->search_expr_users($attr) };
+  push @WHERE_RULES, @{ $self->search_expr_users({ %$attr, 
+  	                         EXT_FIELDS => [
+  	                                        'PHONE',
+  	                                        'EMAIL',
+  	                                        'ADDRESS_FLAT',
+  	                                        'PASPORT_DATE',
+                                            'PASPORT_NUM', 
+                                            'PASPORT_GRANT',
+                                            'CITY', 
+                                            'ZIP',
+                                            'GID',
+                                            'CONTRACT_ID',
+                                            'CONTRACT_SUFIX',
+                                            'CONTRACT_DATE',
+                                            'EXPIRE',
+
+                                            'CREDIT',
+                                            'CREDIT_DATE', 
+                                            'REDUCTION',
+                                            'REGISTRATION',
+                                            'REDUCTION_DATE',
+                                            'COMMENTS',
+                                            'BILL_ID',
+                                            
+                                            'ACTIVATE',
+                                            'EXPIRE',
+
+  	                                         ] }) };
 
   if ($attr->{IP}) {
     push @WHERE_RULES, @{ $self->search_expr($attr->{IP}, 'IP', 'dv.ip') };

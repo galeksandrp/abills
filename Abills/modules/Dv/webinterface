@@ -5322,7 +5322,7 @@ sub dv_monthly_fees {
     my $abon_distrib        = $line->[17];
     my $postpaid            = $line->[4];
     my $month_fee           = $line->[6];
-    my $activate_date       = "!0000-00-00,<=$ADMIN_REPORT{DATE}";
+    my $activate_date       = "0000-00-00,>=$ADMIN_REPORT{DATE}";
     my $tp_ext_deposit_op   = $line->[14];
     my $small_deposit_block = $line->[19];
     my $fine                = $line->[21];
@@ -5365,7 +5365,7 @@ sub dv_monthly_fees {
       $Dv->{debug} = 1 if ($debug > 5);
       my $ulist = $Dv->list(
         {
-          ACTIVATE     => "0000-00-00,>=$activate_date",
+          ACTIVATE     => "$activate_date",
           EXPIRE       => "<$ADMIN_REPORT{DATE}",
           STATUS       => "0;5",
           LOGIN_STATUS => 0,
@@ -5396,7 +5396,7 @@ sub dv_monthly_fees {
           DV_STATUS    => $u->{dv_status},
           EXT_DEPOSIT  => ($u->{ext_deposit}) ? $u->{ext_deposit} : 0,
         );
-
+exit;
         $debug_output .= " Login: $user{LOGIN} ($user{UID}) TP_ID: $u->{tp_id} Fees: $line->[6] REDUCTION: $user{REDUCTION} DEPOSIT: $user{DEPOSIT} CREDIT $user{CREDIT} ACTIVE: $user{ACTIVATE} TP: $u->{tp_id}\n" if ($debug > 3);
 
         if (!$user{BILL_ID} && $user{MAIN_BILL_ID}) {
@@ -5757,8 +5757,6 @@ sub dv_monthly_fees {
     use Billing;
     my $Billing = Billing->new($db, $CONF);
 
-    #my %$processed_users = ();
-
     foreach my $tp_line (@$list) {
       my $ti_list = $tariffs->ti_list({ TP_ID => $tp_line->[18] });
       next if ($tariffs->{TOTAL} != 1);
@@ -5785,7 +5783,7 @@ sub dv_monthly_fees {
 
         $ulist = $Dv->list(
           {
-            ACTIVATE     => "!0000-00-00,>=$ADMIN_REPORT{DATE}",
+            ACTIVATE     => "0000-00-00,>=$ADMIN_REPORT{DATE}",
             EXPIRE       => "<$ADMIN_REPORT{DATE}",
             STATUS       => 0,
             LOGIN_STATUS => 0,

@@ -160,7 +160,7 @@ sub take {
       }
     }
     
-    if ($self->{SUM} == 0) {
+    if ($sum == 0) {
       $db->{AutoCommit} = 1 if (!$attr->{NO_AUTOCOMMIT});
       return $self;
     }
