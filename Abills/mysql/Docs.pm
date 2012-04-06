@@ -1234,7 +1234,11 @@ sub tax_invoice_add {
     my @ids_arr = split(/, /, $attr->{IDS});
 
     foreach my $id (@ids_arr) {
-      $DATA{ 'COUNTS_' . $id } = 1 if (!$DATA{ 'COUNTS_' . $id });
+      if (! $DATA{ 'ORDER_' . $id } && $DATA{ 'SUM_' . $id } == 0) {
+        next;	
+      }
+
+      $DATA{ 'COUNTS_' . $id } = 1 if (!$DATA{ 'COUNTS_' . $id });      
       $self->query(
         $db, "INSERT INTO docs_tax_invoice_orders (tax_invoice_id, orders, counts, unit, price)
          values (" . $self->{'DOC_ID'} . ", \"" . $DATA{ 'ORDER_' . $id } . "\", '" . $DATA{ 'COUNTS_' . $id } . "', '" . $DATA{ 'UNIT_' . $id } . "',
