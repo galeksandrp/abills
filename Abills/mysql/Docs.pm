@@ -818,8 +818,11 @@ sub invoice_add {
     my @ids_arr = split(/, /, $attr->{IDS});
 
     foreach my $id (@ids_arr) {
-      $DATA{ 'COUNTS_' . $id } = 1 if (!$DATA{ 'COUNTS_' . $id });
+      if (! $DATA{ 'ORDER_' . $id } && $DATA{ 'SUM_' . $id } == 0) {
+        next;	
+      }
 
+      $DATA{ 'COUNTS_' . $id } = 1 if (!$DATA{ 'COUNTS_' . $id });
       #next if (! $DATA{'SUM_'.$id} || $DATA{'SUM_'.$id} <= 0);
       $DATA{ 'SUM_' . $id } =~ s/\,/\./g;
       if ($DATA{ER} && $DATA{ER} != 1) {
