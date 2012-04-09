@@ -625,10 +625,6 @@ sub invoices_list {
         push @{ $self->{ORDERS}{ $line->{invoice_id} } }, $line;	
       }
     }
-
-    #return $self->{list} if ($self->{TOTAL} < 1);
-    #my $list = $self->{list};
-    #return $list;
   }
 
   return $list;

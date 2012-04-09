@@ -1510,12 +1510,13 @@ sub get_ip {
   my $assign_ip = ($#ips_arr > -1) ? $ips_arr[ rand($#ips_arr + 1) ] : undef;
 
   if ($assign_ip) {
-
     # Make reserv ip
-    $self->query(
-      $db, "INSERT INTO dv_calls (started, user_name, uid, framed_ip_address, nas_id, nas_ip_address, status, acct_session_id, tp_id, join_service, guest)
-      VALUES (now(), '$self->{USER_NAME}', '$self->{UID}', '$assign_ip', '$nas_num', INET_ATON('$nas_ip'), '11', 'IP', '$self->{TP_NUM}', '$self->{JOIN_SERVICE}', " . (($attr->{GUEST}) ? 1 : 0) . ");", 'do'
-    );
+    if (! $attr->{SKIP_RESERV}) {
+      $self->query(
+        $db, "INSERT INTO dv_calls (started, user_name, uid, framed_ip_address, nas_id, nas_ip_address, status, acct_session_id, tp_id, join_service, guest)
+        VALUES (now(), '$self->{USER_NAME}', '$self->{UID}', '$assign_ip', '$nas_num', INET_ATON('$nas_ip'), '11', 'IP', '$self->{TP_NUM}', '$self->{JOIN_SERVICE}', " . (($attr->{GUEST}) ? 1 : 0) . ");", 'do'
+      );
+    }
 
     $assign_ip = int2ip($assign_ip);
     return $assign_ip;

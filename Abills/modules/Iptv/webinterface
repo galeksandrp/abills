@@ -2132,8 +2132,8 @@ sub iptv_monthly_fees {
       $Iptv->{debug} = 1 if ($debug > 6);
       my $ulist = $Iptv->user_list(
         {
-          ACTIVATE     => "!0000-00-00,<=$ADMIN_REPORT{DATE}",
-          EXPIRE       => "!0000-00-00,>$ADMIN_REPORT{DATE}",
+          ACTIVATE     => "0000-00-00,>=$ADMIN_REPORT{DATE}",
+          EXPIRE       => "<$ADMIN_REPORT{DATE}",
           STATUS       => 0,
           LOGIN_STATUS => 0,
           TP_ID        => $TP_ID,
@@ -2146,9 +2146,6 @@ sub iptv_monthly_fees {
 
       foreach my $u (@$ulist) {
         $debug_output .= " Login: $u->{id} ($u->{uid})  TP_ID: $u->{tp_id} Fees: $line->[6] REDUCTION: $u->{reduction}  $u->{deposit} $u->{credit}\n" if ($debug > 3);
-
-        #Check bill id and deposit
-
         my %user = (
           LOGIN     => $u->{id},
           UID       => $u->{uid},
@@ -2158,6 +2155,7 @@ sub iptv_monthly_fees {
           DEPOSIT   => $u->{deposit},
           CREDIT    => ($u->{credit} > 0) ? $u->{credit} : $line->[14]
         );
+
 
         #Check bill ID and deposit
         if (($user{BILL_ID} && $user{BILL_ID} > 0) && defined($user{DEPOSIT})) {

@@ -117,7 +117,6 @@ sub accounting {
         }
       }
     }
-
     # If not found auth records
     else {
       #Get TP_ID
@@ -126,7 +125,9 @@ sub accounting {
        WHERE u.uid=dv.uid and u.id='$RAD->{USER_NAME}';"
       );
       if ($self->{TOTAL} > 0) {
-        ($self->{UID}, $self->{TP_ID}, $self->{JOIN_SERVICE}) = @{ $self->{list}->[0] };
+        ($self->{UID},
+         $self->{TP_ID},
+         $self->{JOIN_SERVICE}) = @{ $self->{list}->[0] };
 
         if ($self->{JOIN_SERVICE}) {
           if ($self->{JOIN_SERVICE} == 1) {
@@ -138,6 +139,7 @@ sub accounting {
       else {
         $RAD->{USER_NAME} = '! ' . $RAD->{USER_NAME};
       }
+
 
       my $sql = "REPLACE INTO dv_calls
        (status, user_name, started, lupdated, nas_ip_address, nas_port_id, acct_session_id, framed_ip_address, CID, CONNECT_INFO,   nas_id, tp_id,
@@ -157,6 +159,7 @@ sub accounting {
         '$self->{JOIN_SERVICE}');";
       $self->query($db, "$sql", 'do');
 
+      print $sql;
       $self->query($db, "DELETE FROM dv_calls WHERE nas_id='$NAS->{NAS_ID}' AND acct_session_id='IP' AND (framed_ip_address=INET_ATON('$RAD->{FRAMED_IP_ADDRESS}') or UNIX_TIMESTAMP()-UNIX_TIMESTAMP(started) > 120 );", 'do');
     }
   }

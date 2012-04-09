@@ -906,8 +906,6 @@ sub docs_invoices_list {
   }
 
   if ($FORM{print_list}) {
-  	#print "Content-Type: text/html\n\n";
- 	
     my $invoices_list = $Docs->invoices_list({ %FORM, 
     	                                %LIST_PARAMS, 
     	                                FULL_INFO   => 1,
@@ -1074,7 +1072,7 @@ sub docs_invoices_list {
         push @rows, sprintf("%.2f", $invoice->{alt_sum});
       }
 
-      my $payments_info = ($invoice->{currency} > 0 && !$conf{DOCS_PAYMENT_SYSTEM_CURRENCY}) ? "&SUM=$invoice->{total_sum}&ISO=$invoice->{currency}" : "&SUM=$invoice->{total_sum}";
+      my $payments_info = ($invoice->{currency} > 0 && !$conf{DOCS_PAYMENT_SYSTEM_CURRENCY}) ? "&SUM=$invoice->{alt_sum}&ISO=$invoice->{currency}" : "&SUM=$invoice->{total_sum}";
 
       if ($FORM{BILL_ID}) {
         push @rows, $invoice->{bill_id};
@@ -1640,6 +1638,8 @@ sub docs_invoice {
         $FORM{VAT} = $conf{DOCS_VAT_INCLUDE};
       }
 
+      $FORM{DOCS_CURRENCY}=$FORM{CURRENCY};
+
       if (($conf{SYSTEM_CURRENCY} && $conf{DOCS_CURRENCY})
         && $conf{SYSTEM_CURRENCY} ne $conf{DOCS_CURRENCY})
       {
@@ -1649,6 +1649,9 @@ sub docs_invoice {
         $FORM{EXCHANGE_RATE} = $Finance->{ER_RATE};
         $FORM{DOCS_CURRENCY} = $Finance->{ISO};
       }
+
+
+      print "// $FORM{DOCS_CURRENCY} //";
 
       $Docs->invoice_add({ %FORM, DEPOSIT => $users->{DEPOSIT} });
       if (!$Docs->{errno}) {
@@ -3106,7 +3109,6 @@ sub docs_pre_payment {
     $FORM{create}     = 1;
     $FORM{CUSTOMER}   = '-';
     $FORM{ORDER}      = $FORM{DESCRIBE};
-
     docs_invoice();
   }
   elsif ($FORM{INVOICE_ID}) {

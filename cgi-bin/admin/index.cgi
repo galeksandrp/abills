@@ -5865,7 +5865,7 @@ sub form_payments () {
     $payments->{SEL_ER} = $html->form_select(
       'ER',
       {
-        SELECTED          => $FORM{ER},
+        SELECTED          => $FORM{ER} ,
         SEL_MULTI_ARRAY   => [ [ '', '', '', '', '', '' ], @{$er_list} ],
         MULTI_ARRAY_KEY   => 5,
         MULTI_ARRAY_VALUE => '1,2',

@@ -155,9 +155,9 @@ foreach my $m (@MODULES) {
 
 
 push @monthly_functions,  'admin_report_monthly' if (! $args->{NO_ADM_REPORT});
-push @monthly_functions,  'logrotate', 'backup';
-
+push @monthly_functions,  'logrotate', 'backup' if (! $args->{MODULES});
 push @daily_functions, 'sheduler' if ($args->{SHEDULE} || !$args->{MODULES});
+
 my ($Y, $M, $D);
 
 #Make date asign function

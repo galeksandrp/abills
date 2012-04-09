@@ -408,9 +408,9 @@ ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;",
   else {
     $self->query(
       $db, "SELECT u.id, 
-      pi.fio, if(u.company_id > 0, cb.deposit, b.deposit), 
+      pi.fio, if(u.company_id > 0, cb.deposit, b.deposit) AS deposit, 
       u.credit, 
-      tp.name, 
+      tp.name AS tp_name, 
       service.disable, 
       $self->{SEARCH_FIELDS}
       u.uid, 
@@ -419,9 +419,9 @@ ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;",
       service.tp_id, 
       u.activate, 
       u.expire, 
-      if(u.company_id > 0, company.bill_id, u.bill_id),
+      if(u.company_id > 0, company.bill_id, u.bill_id) AS bill_id,
       u.reduction,
-      if(u.company_id > 0, company.ext_bill_id, u.ext_bill_id)
+      if(u.company_id > 0, company.ext_bill_id, u.ext_bill_id) as ext_bill_id
      FROM (users u, iptv_main service)
      LEFT JOIN users_pi pi ON (u.uid = pi.uid)
      LEFT JOIN bills b ON (u.bill_id = b.id)

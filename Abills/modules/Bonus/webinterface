@@ -707,7 +707,7 @@ sub bonus_service_discount_mk {
   
   my $exclude      = $conf{BONUS_SERVICE_EXCLUDE};
   $exclude         =~ s/!//g;
-  my @excluder_arr = split(/,\s?/, $exclude);
+  @excluder_arr = split(/,\s?/, $exclude);
 
   if (in_array($FORM{METHOD}, \@excluder_arr)) {
   	return 0;
