@@ -369,7 +369,7 @@ sub dv_users_list {
   }
   elsif ($Dv->{TOTAL} == 1) {
     delete $FORM{LOGIN};
-    $ui = user_info($list->{uid});
+    $ui = user_info($list->[0]->{uid});
     print $ui->{TABLE_SHOW};
     form_users({ USER_INFO => $ui });
     return 0;
