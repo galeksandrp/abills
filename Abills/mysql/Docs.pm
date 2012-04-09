@@ -58,7 +58,7 @@ sub invoice_defaults {
 }
 
 #**********************************************************
-# invoices_list
+# docs_receipt_list
 #**********************************************************
 sub docs_receipt_list {
   my $self = shift;
@@ -614,6 +614,7 @@ sub invoices_list {
     $self->query(
       $db, "SELECT  o.invoice_id,  o.orders,  o.unit,  o.counts,  o.price,  o.fees_id
       FROM  (docs_invoices d, docs_invoice_orders o) 
+      LEFT JOIN users u ON (d.uid=u.uid)
      $WHERE;",
      undef,
      $attr
