@@ -1404,4 +1404,20 @@ sub report_users_balance {
   return $list;
 }
 
+
+#**********************************************************
+#
+#**********************************************************
+sub company_reports {
+  my $self = shift;
+  my ($attr) = @_;
+	
+	my $sql = "SELECT c.id, c.name 
+	  FROM companies c
+	  INNER JOIN users u ON (u.company_id=c.id)
+	  ";
+	
+	
+}
+
 1

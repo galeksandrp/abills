@@ -671,7 +671,6 @@ sub docs_receipt_list {
   }
 
   if ($FORM{print_list}) {
-  	$Docs->{debug}=1;
   	print "Content-Type: text/html\n\n";
     my $receipt_list = $Docs->docs_receipt_list({ %FORM, 
     	                                         %LIST_PARAMS, 
@@ -1651,8 +1650,6 @@ sub docs_invoice {
       }
 
 
-      print "// $FORM{DOCS_CURRENCY} //";
-
       $Docs->invoice_add({ %FORM, DEPOSIT => $users->{DEPOSIT} });
       if (!$Docs->{errno}) {
         #Add date of last invoice
@@ -1995,7 +1992,7 @@ sub docs_invoice {
         }
       );
 
-      foreach my $invoice (@$invoice_list) {
+      foreach my $invoice (@$Docs->{ORDERS}) {
         $current_invoice{ $invoice->{orders} } = $invoice->{invoice_id};
       }
 
@@ -2015,11 +2012,14 @@ sub docs_invoice {
           my $date = $line->[2];
           $date =~ s/ \d+:\d+:\d+//g;
           $table->addrow(
-            $html->form_input("ORDER_" . $line->[0], "$line->[3]".  (($current_invoice{$line->[3]}) ? ' ' . $html->color_mark($_EXIST, 'red') : '')  , { TYPE => 'hidden', OUTPUT2RETURN => 1 })
+            $html->form_input("ORDER_" . $line->[0], "$line->[3]", { TYPE => 'hidden', OUTPUT2RETURN => 1 })
             . $html->form_input("SUM_" . $line->[0],     "$line->[4]", { TYPE => 'hidden', OUTPUT2RETURN => 1 })
             . $html->form_input("FEES_ID_" . $line->[0], "$line->[0]", { TYPE => 'hidden', OUTPUT2RETURN => 1 })
             . $html->form_input("IDS", "$line->[0]", { TYPE => 'checkbox', STATE => 1, OUTPUT2RETURN => 1 }) . "$num",
-            "$line->[1]", "$line->[2]", "$line->[3] $date", "$line->[4]"
+            "$line->[1]", 
+            "$line->[2]", 
+            "$line->[3] $date". (($current_invoice{$line->[3]}) ? ' ' . $html->color_mark($_EXIST, 'red') : ''), 
+            "$line->[4]"
           );
           $total_not_invoice += $line->[4];
         }

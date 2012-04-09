@@ -622,7 +622,7 @@ sub invoices_list {
     delete $self->{ORDERS};
     foreach my $line ( @{  $self->{list} } ) {
     	if (ref $line eq 'HASH') {
-        push @{ $self->{ORDERS}{ $line->{invoice_id} } }, $line;	
+        push @{ $self->{ORDERS} }, $line;	
       }
     }
   }

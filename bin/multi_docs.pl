@@ -184,15 +184,11 @@ sub periodic_invoice {
   $TO_D = ($M != 2 ? (($M % 2) ^ ($M > 7)) + 30 : (!($Y % 400) || !($Y % 4) && ($Y % 25) ? 29 : 28));
 
   if (($conf{SYSTEM_CURRENCY} && $conf{DOCS_CURRENCY})
-    && $conf{SYSTEM_CURRENCY} ne $conf{DOCS_CURRENCY})
-  {
+    && $conf{SYSTEM_CURRENCY} ne $conf{DOCS_CURRENCY}) {
     my $Finance = Finance->new($db, $admin);
-
-    #if ($FORM{CURRENCY} == $conf{DOCS_CURRENCY}) {
     $Finance->exchange_info(0, { ISO => $FORM{DOCS_CURRENCY} || $conf{DOCS_CURRENCY} });
     $FORM{EXCHANGE_RATE} = $Finance->{ER_RATE};
     $FORM{DOCS_CURRENCY} = $Finance->{ISO};
-    # }
   }
 
   my $docs_users = $Docs->user_list(
@@ -241,12 +237,11 @@ sub periodic_invoice {
     # No invoicing service from last invoice
     my $new_invoices = $Docs->invoice_new(
       {
-        FROM_DATE => '2011-01-01',    #$user{INVOICE_DATE},
+        FROM_DATE => '2011-01-01',
         TO_DATE   => $DATE,
         PAGE_ROWS => 500,
         COLS_NAME => 1,
         UID       => $user{UID}
-
       }
     );
 
