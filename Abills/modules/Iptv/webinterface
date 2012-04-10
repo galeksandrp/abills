@@ -230,9 +230,6 @@ sub iptv_chg_tp {
       }
     );
 
-print %{ $Iptv };
-print "/// $Iptv->{TP_ID} //";
-
     $Tariffs->{PARAMS}    .= form_period($period, { ABON_DATE => $Iptv->{ABON_DATE} });
     $Tariffs->{ACTION}     = 'set';
     $Tariffs->{LNG_ACTION} = $_CHANGE;
@@ -342,7 +339,6 @@ sub iptv_user {
     Iptv_stalker->import();
     $Iptv_stalker = Iptv_stalker->new($db, $admin, \%conf);
   }
-
 
   if ($FORM{add}) {
     $Iptv->user_add({%FORM});
@@ -1699,7 +1695,7 @@ sub iptv_user_channels {
     return 0;
   }
 
-  my $intervals = $Iptv_tp->{TOTAL};
+  my $intervals             = $Iptv_tp->{TOTAL};
   $LIST_PARAMS{INTERVAL_ID} = $list->[0]->[0];
   $LIST_PARAMS{TI}          = $list->[0]->[0];
   $LIST_PARAMS{DISABLE}     = 0;
@@ -1723,7 +1719,6 @@ sub iptv_user_channels {
   $list = $Iptv->channel_ti_list({ %LIST_PARAMS, MANDATORY => 1 });
 
   foreach my $line (@$list) {
-
     if ($FORM{add} || $FORM{set}) {
       if (($users->{CREDIT} + $users->{DEPOSIT}) > $line->[4] || $Iptv->{PEYMENT_TYPE}) {
         $Iptv->{TP_INFO}->{PERIOD_ALIGNMENT} = $Iptv->{PERIOD_ALIGNMENT} || 0;
@@ -2121,7 +2116,7 @@ sub iptv_monthly_fees {
     my $postpaid    = $tp->{payment_type};
     my $tp_postpaid = $tp->{postpaid_monthly_fee};
     my $month_fee   = $tp->{month_fee};
-    my $TP_NUM      = $tp->{tp_num};
+    my $TP_NUM      = $tp->{id};
 
     my %used_traffic = ();
 
