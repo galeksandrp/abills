@@ -2023,7 +2023,7 @@ sub iptv_user_channels {
 #**********************************************************
 # daily_Fees
 #**********************************************************
-sub iptv_daily_Fees {
+sub iptv_daily_fees {
 
   require Tariffs;
   Tariffs->import();
@@ -2038,8 +2038,8 @@ sub iptv_daily_Fees {
 
       my $ulist = $Iptv->user_list(
         {
-          ACTIVATE => "!0000-00-00,<=$DATE",
-          EXPIRE   => "!0000-00-00,>$DATE",
+          ACTIVATE => "0000-00-00,>=$DATE",
+          EXPIRE   => "<$DATE",
           DISABLE  => '0',
           TP       => $line->[0]
         }
@@ -2239,8 +2239,8 @@ sub iptv_monthly_fees {
     #Channels Fees
     $ulist = $Iptv->user_list(
       {
-        ACTIVATE      => "!0000-00-00,<=$ADMIN_REPORT{DATE}",
-        EXPIRE        => "!0000-00-00,>$ADMIN_REPORT{DATE}",
+        ACTIVATE      => "0000-00-00,>=$ADMIN_REPORT{DATE}",
+        EXPIRE        => "<$ADMIN_REPORT{DATE}",
         STATUS        => 0,
         LOGIN_STATUS  => 0,
         TP_ID         => $TP_ID,
@@ -2592,8 +2592,8 @@ sub dv_crypt {
     #Main users list
     my $ulist = $Iptv->user_list(
       {
-        ACTIVATE     => "!0000-00-00,<=$DATE",
-        EXPIRE       => "!0000-00-00,>$DATE",
+        ACTIVATE     => "0000-00-00,>=$DATE",
+        EXPIRE       => "<$DATE",
         DVCRYPT_ID   => '>0',
         STATUS       => ">=0",
         LOGIN_STATUS => ">=0",
@@ -2617,8 +2617,8 @@ sub dv_crypt {
       {
         PAGE_ROWS     => 1000000,
         DVCRYPT_ID    => '>0',
-        ACTIVATE      => "!0000-00-00,<=$DATE",
-        EXPIRE        => "!0000-00-00,>$DATE",
+        ACTIVATE      => "0000-00-00,>=$DATE",
+        EXPIRE        => "<$DATE",
         STATUS        => ">=0",
         LOGIN_STATUS  => ">=0",
         TP_ID         => $TP_ID,
