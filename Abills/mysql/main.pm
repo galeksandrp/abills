@@ -282,6 +282,9 @@ sub search_expr {
         }
         next;
       }
+    	elsif ($v eq '*') {
+        $v = ">=0000-00-00";
+      }
     }
 
     if ($type eq 'INT' && $v =~ s/\*/\%/g) {

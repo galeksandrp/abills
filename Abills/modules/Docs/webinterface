@@ -1992,7 +1992,7 @@ sub docs_invoice {
         }
       );
 
-      foreach my $invoice (@$Docs->{ORDERS}) {
+      foreach my $invoice (@{ $Docs->{ORDERS} }) {
         $current_invoice{ $invoice->{orders} } = $invoice->{invoice_id};
       }
 
