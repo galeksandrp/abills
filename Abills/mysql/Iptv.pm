@@ -377,8 +377,8 @@ sub user_list {
         c.num AS channel_num,
         c.name AS channel_name,
         ti_c.month_price,
-        u.disable,
-        service.disable
+        u.disable AS login_status, 
+        service.disable AS iptv_status
    from (intervals i, 
      iptv_ti_channels ti_c,
      users u,
@@ -403,7 +403,6 @@ ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;",
     );
 
     $list = $self->{list};
-
   }
   else {
     $self->query(
@@ -411,7 +410,7 @@ ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;",
       pi.fio, if(u.company_id > 0, cb.deposit, b.deposit) AS deposit, 
       u.credit, 
       tp.name AS tp_name, 
-      service.disable, 
+      service.disable AS iptv_status, 
       $self->{SEARCH_FIELDS}
       u.uid, 
       u.company_id, 

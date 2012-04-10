@@ -2564,14 +2564,14 @@ sub dv_crypt {
 
   my %tp_channels_list = ();
   my %users_channels   = ();
-  my $tp_list          = $Tariffs->list({ %LIST_PARAMS, MODULE => 'Iptv' });
+  my $tp_list          = $Tariffs->list({ %LIST_PARAMS, MODULE => 'Iptv', COLS_NAME => 1 });
 
-  foreach my $line (@$tp_list) {
-    my $TP_ID       = $line->[18];
-    my $min_use     = $line->[15];
-    my $postpaid    = $line->[4];
-    my $tp_postpaid = $line->[12];
-    my $month_fee   = $line->[6];
+  foreach my $tp (@$tp_list) {
+    my $TP_ID       = $tp->{tp_id};
+    my $min_use     = $tp->{min_use};
+    my $postpaid    = $line->{payment_type};
+    my $tp_postpaid = $line->{postpaid_monthly_fee};
+    my $month_fee   = $line->{month_fee};
 
     $Tariffs->ti_list({ TP_ID => $TP_ID });
 
@@ -2589,6 +2589,7 @@ sub dv_crypt {
       $tp_channels_list{ $line->[1] } = $line->[9];
     }
 
+
     #Main users list
     my $ulist = $Iptv->user_list(
       {
@@ -2600,15 +2601,16 @@ sub dv_crypt {
         TP_ID        => $TP_ID,
         SORT         => 1,
         PAGE_ROWS    => 1000000,
+        COLS_NAME    => 1
       }
     );
 
-    foreach my $line (@$ulist) {
-      if ($line->[2] + $line->[3] > 0 && $line->[5] == 0) {
-        %{ $users_channels{ $line->[6] } } = %tp_channels_list;
+    foreach my $u (@$ulist) {
+      if ($u->{deposit} + $u->{credit} > 0 && $u->{iptv_status} == 0) {
+        %{ $users_channels{ $u->{dvcrypt_id} } } = %tp_channels_list;
       }
       else {
-        %{ $users_channels{ $line->[6] } } = ();
+        %{ $users_channels{ $u->{dvcrypt_id} } } = ();
       }
     }
 
@@ -2624,16 +2626,16 @@ sub dv_crypt {
         TP_ID         => $TP_ID,
         SORT          => 1,
         SHOW_CHANNELS => 1,
+        COLS_NAME     => 1
       }
     );
 
-    foreach my $line (@$list) {
-      if ($line->[1] + $line->[2] > 0 && $line->[18] + $line->[19] == 0) {
-        $users_channels{ $line->[4] }{ $line->[15] } = "$line->[1]";
+    foreach my $u (@$list) {
+      if ($u->{deposit} + $u->{credit} > 0 && $u->{login_status} + $u->{iptv_status} == 0) {
+        $users_channels{ $u->{dvcrypt_id} }{ $u->{channel_id} } = "$u->{deposit}";
       }
       else {
-
-        $users_channels{ $line->[4] }{ $line->[15] } = 0;
+        $users_channels{ $u->{dvcrypt_id} }{ $u->{channel_id} } = 0;
       }
     }
   }
