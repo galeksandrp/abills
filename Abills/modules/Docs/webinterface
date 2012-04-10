@@ -2307,6 +2307,25 @@ sub docs_print {
     }
   );
 
+  if ($attr->{TOTAL_ALT_SUM}) {
+    $attr->{SUM_ALT_LIT} = int2ml(
+    "$attr->{TOTAL_ALT_SUM}",
+    {
+      ONES             => \@ones,
+      TWOS             => \@twos,
+      FIFTH            => \@fifth,
+      ONE              => \@one,
+      ONEST            => \@onest,
+      TEN              => \@ten,
+      TENS             => \@tens,
+      HUNDRED          => \@hundred,
+      MONEY_UNIT_NAMES => $conf{MONEY_UNIT_NAMES} || \@money_unit_names,
+      LOCALE           => $conf{LOCALE}
+    }
+  );
+  	
+  }
+
   if ($Docs->{ORDER_TOTAL_SUM_VAT}) {
     $attr->{ORDER_TOTAL_SUM_VAT_LIT} = int2ml(
       "$attr->{ORDER_TOTAL_SUM_VAT}",
