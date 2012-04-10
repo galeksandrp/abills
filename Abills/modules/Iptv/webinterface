@@ -2091,7 +2091,7 @@ sub iptv_monthly_fees {
   }
 
   $Tariffs->{debug} = 1 if ($debug > 6);
-  my $list = $Tariffs->list({ %LIST_PARAMS, MODULE => 'Iptv' });
+  my $list = $Tariffs->list({ %LIST_PARAMS, MODULE => 'Iptv', COLS_NAME => 1 });
   $ADMIN_REPORT{DATE} = $DATE if (!$ADMIN_REPORT{DATE});
   my ($y, $m, $d) = split(/-/, $ADMIN_REPORT{DATE}, 3);
   $m--;
@@ -2115,19 +2115,19 @@ sub iptv_monthly_fees {
   my $pre_month_begin = "$y-$m-01";
   my $pre_month_end   = "$y-$m-$days_in_month";
 
-  foreach my $line (@$list) {
-    my $TP_ID       = $line->[18];
-    my $min_use     = $line->[15];
-    my $postpaid    = $line->[4];
-    my $tp_postpaid = $line->[12];
-    my $month_fee   = $line->[6];
-    my $TP_NUM      = $line->[0];
+  foreach my $tp (@$list) {
+    my $TP_ID       = $tp->{tp_id};
+    my $min_use     = $tp->{min_use};
+    my $postpaid    = $tp->{payment_type};
+    my $tp_postpaid = $tp->{postpaid_monthly_fee};
+    my $month_fee   = $tp->{month_fee};
+    my $TP_NUM      = $tp->{tp_num};
 
     my %used_traffic = ();
 
     #Monthfee & min use
     if ($month_fee > 0 || $min_use > 0) {
-      $debug_output .= "TP ID: $TP_NUM MF: $month_fee POSTPAID: $postpaid REDUCTION: $line->[11] EXT_BILL_ID: $line->[13] CREDIT: $line->[14] MIN_USE: $min_use\n" if ($debug > 1);
+      $debug_output .= "TP ID: $TP_NUM MF: $month_fee POSTPAID: $postpaid REDUCTION: $tp->{reduction_fee} EXT_BILL_ID: $tp->{ext_bill_account} CREDIT: $tp->{credit} MIN_USE: $min_use\n" if ($debug > 1);
 
       $Iptv->{debug} = 1 if ($debug > 6);
       my $ulist = $Iptv->user_list(
@@ -2145,20 +2145,19 @@ sub iptv_monthly_fees {
       );
 
       foreach my $u (@$ulist) {
-        $debug_output .= " Login: $u->{id} ($u->{uid})  TP_ID: $u->{tp_id} Fees: $line->[6] REDUCTION: $u->{reduction}  $u->{deposit} $u->{credit}\n" if ($debug > 3);
+        $debug_output .= " Login: $u->{id} ($u->{uid})  TP_ID: $u->{tp_id} Fees: $tp->{month_fee} REDUCTION: $u->{reduction}  $u->{deposit} $u->{credit}\n" if ($debug > 3);
         my %user = (
           LOGIN     => $u->{id},
           UID       => $u->{uid},
-          BILL_ID   => ($line->[13] > 0) ? $u->{bill_id} : $u->{ext_bill_id},
+          BILL_ID   => ($tp->{ext_bill_account} > 0) ? $u->{ext_bill_id} : $u->{bill_id},
           REDUCTION => $u->{reduction},
           ACTIVATE  => $u->{activate},
           DEPOSIT   => $u->{deposit},
-          CREDIT    => ($u->{credit} > 0) ? $u->{credit} : $line->[14]
+          CREDIT    => ($u->{credit} > 0) ? $u->{credit} : $tp->{credit}
         );
 
-
         #Check bill ID and deposit
-        if (($user{BILL_ID} && $user{BILL_ID} > 0) && defined($user{DEPOSIT})) {
+        if (($user{BILL_ID} && $user{BILL_ID} > 0) &&  defined($user{DEPOSIT})) {
           my %FEES_PARAMS = (
             DATE   => $ADMIN_REPORT{DATE},
             METHOD => 1
@@ -2169,13 +2168,12 @@ sub iptv_monthly_fees {
           if ($min_use > 0 && $d == $START_PERIOD_DAY) {
 
           }
-
           #Month Fee
           else {
             #Make sum
             $sum = $month_fee;
 
-            if ($line->[11] == 1 && $user{REDUCTION} > 0) {
+            if ($tp->{reduction_fee} == 1 && $user{REDUCTION} > 0) {
               $sum = $sum * (100 - $user{REDUCTION}) / 100;
             }
 
@@ -2263,7 +2261,7 @@ sub iptv_monthly_fees {
       my %user = (
         LOGIN     => $u->{id},
         UID       => $u->{uid},
-        BILL_ID   => ($line->[13] > 0) ? $u->{ext_bill_id} : $u->{bill_id},
+        BILL_ID   => ($tp->{ext_bill_account} > 0) ? $u->{ext_bill_id} : $u->{bill_id},
         REDUCTION => $u->{reduction},
         ACTIVATE  => '0000-00-00',
         DEPOSIT   => $u->{deposit},
@@ -2569,9 +2567,9 @@ sub dv_crypt {
   foreach my $tp (@$tp_list) {
     my $TP_ID       = $tp->{tp_id};
     my $min_use     = $tp->{min_use};
-    my $postpaid    = $line->{payment_type};
-    my $tp_postpaid = $line->{postpaid_monthly_fee};
-    my $month_fee   = $line->{month_fee};
+    my $postpaid    = $tp->{payment_type};
+    my $tp_postpaid = $tp->{postpaid_monthly_fee};
+    my $month_fee   = $tp->{month_fee};
 
     $Tariffs->ti_list({ TP_ID => $TP_ID });
 
