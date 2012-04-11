@@ -341,7 +341,7 @@ sub list {
   $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES) : '';
 
   $self->query(
-    $db, "SELECT f.id, u.id, $self->{SEARCH_FIELDS} f.date, f.dsc, f.sum, f.last_deposit, f.method,
+    $db, "SELECT f.id, u.id AS login, $self->{SEARCH_FIELDS} f.date, f.dsc, f.sum, f.last_deposit, f.method,
     f.bill_id, 
    if(a.name is NULL, 'Unknown', a.name) AS admin_name, 
    INET_NTOA(f.ip) AS ip,

@@ -12,7 +12,7 @@ $UID $user $admin $sid
 
 #use strict;
 
-my $version = 0.16;
+my $version = 0.17;
 my $debug   = 0;
 
 use FindBin '$Bin';
@@ -519,7 +519,7 @@ abm_console console ABillS managment. Version: $version
     METHOD         - Method ID 
     UID            - UID
     ....
-  FEES=[login]     - Fees. info (default), ADD, DEL   
+  FEES=[login]     - Fees. info (default), GET, DEL   
    Extended:
     ....
 
@@ -752,17 +752,17 @@ sub form_fees {
   if ($ARGV->{GET}) {
     $ARGV->{LOGIN} = $ARGV->{FEES} if (!$ARGV->{LOGIN});
     delete $ARGV->{FEES};
-    my $list = $users->list({ BILL_ID => '>0', %$ARGV, PAGE_ROWS => 1000000 });
+    my $list = $users->list({ BILL_ID => '>0', %$ARGV, PAGE_ROWS => 1000000, COLS_NAME => 1 });
     $FORM->{SUM}      = $ARGV->{GET}      || $ARGV->{SUM};
     $FORM->{DESCRIBE} = $ARGV->{DESCRIBE} || '';
+    $FORM->{METHOD}   = $ARGV->{METHOD} || '';
     if ($users->{TOTAL} > 0) {
       foreach my $line (@$list) {
-
         my $user = {
-          UID     => $line->[ 5 + $users->{SEARCH_FIELDS_COUNT} ],
-          BILL_ID => $line->[ 4 + $users->{SEARCH_FIELDS_COUNT} ],
+          UID     => $line->{uid},
+          BILL_ID => $line->{bill_Id},
         };
-        print "LOGIN: $line->[1] UID: $user->{UID} BILL_ID: $user->{BILL_ID} \n" if ($debug > 0);
+        print "LOGIN: $line->{id} UID: $user->{UID} BILL_ID: $user->{BILL_ID} \n" if ($debug > 0);
         $fees->take($user, $FORM->{SUM}, { %$FORM, %$ARGV });
       }
     }
@@ -776,14 +776,12 @@ sub form_fees {
     }
   }
 
-  $fees->{debug} = 1;
-  my $list = $fees->list({%LIST_PARAMS});
+  my $list = $fees->list({%LIST_PARAMS, COLS_NAME => 1 });
   foreach my $line (@$list) {
-    printf("%-5d| %-16s|%19s|%11f|%-20s|\n", $line->[0], $line->[1], $line->[2], $line->[3], $line->[5],);
+    printf("%-5d| %-16s|%19s|%11f|%-20s|\n", $line->{id}, $line->{login}, $line->{date}, $line->{sum}, $line->{dsc});
 
     if ($ARGV->{DEL}) {
-      $fees->{debug} = 1;
-      $fees->del({ UID => $line->[10] }, $line->[0]);
+      $fees->del({ UID => $line->{uid} }, $line->{id});
       print "$_DEL\n";
     }
   }
@@ -829,17 +827,17 @@ sub form_payments {
     $ARGV->{LOGIN} = $ARGV->{PAYMENTS} if (!$ARGV->{LOGIN});
     delete $ARGV->{PAYMENTS};
 
-    my $list = $users->list({ BILL_ID => '>0', %$ARGV, PAGE_ROWS => 1000000 });
+    my $list = $users->list({ BILL_ID => '>0', %$ARGV, PAGE_ROWS => 1000000, COLS_NAME => 1 });
     $FORM->{SUM}      = $ARGV->{ADD}      || $ARGV->{SUM};
     $FORM->{DESCRIBE} = $ARGV->{DESCRIBE} || '';
     if ($users->{TOTAL} > 0) {
       foreach my $line (@$list) {
 
         my $user = {
-          UID     => $line->[ 5 + $users->{SEARCH_FIELDS_COUNT} ],
-          BILL_ID => $line->[ 4 + $users->{SEARCH_FIELDS_COUNT} ],
+          UID     => $line->{uid},
+          BILL_ID => $line->{bill_id},
         };
-        print "LOGIN: $line->[1] UID: $user->{UID} BILL_ID: $user->{BILL_ID} \n" if ($debug > 0);
+        print "LOGIN: $line->{id} UID: $user->{UID} BILL_ID: $user->{BILL_ID} \n" if ($debug > 0);
         $payments->add(
           $user,
           {
@@ -853,16 +851,6 @@ sub form_payments {
     return 0;
   }
 
-  #	if ($users->{TOTAL} < 1) {
-  #		print "$_ERROR: $_USER '$ARGV->{PAYMENTS}' $_NOT_EXIST\n";
-  #		return 0;
-  #	 }
-  #	$FORM            = $ARGV;
-  #	$FORM->{SUM}     = $ARGV->{ADD} || $ARGV->{SUM};
-  #	$FORM->{DESCRIBE}= $ARGV->{DESCRIBE} || '';
-  #	goto PAYMENTS;
-  #}
-
   my @args = ('ADD', 'DEL', 'METHOD', 'DATE', 'DESCRIBE');
   foreach my $a (@args) {
     if (defined($ARGV->{$a})) {
@@ -870,12 +858,12 @@ sub form_payments {
     }
   }
 
-  my $list = $payments->list({%LIST_PARAMS});
+  my $list = $payments->list({%LIST_PARAMS, COLS_NAME => 1});
   foreach my $line (@$list) {
-    printf("%-5d| %-16s|%19s|%11f|%-20s|\n", $line->[0], $line->[1], $line->[2], $line->[3], $line->[5],);
+    printf("%-5d| %-16s|%19s|%11f|%-20s|\n", $line->{id}, $line->{login}, $line->{date}, $line->{dsc}, $line->{sum},);
 
     if ($ARGV->{DEL}) {
-      $payments->del({ UID => $line->[13] }, $line->[0]);
+      $payments->del({ UID => $line->{uid} }, $line->{id});
       print "$_DEL\n";
     }
   }
