@@ -156,7 +156,12 @@ foreach my $m (@MODULES) {
 
 push @monthly_functions,  'admin_report_monthly' if (! $args->{NO_ADM_REPORT});
 push @monthly_functions,  'logrotate', 'backup' if (! $args->{MODULES});
-push @daily_functions, 'sheduler' if ($args->{SHEDULE} || ! $args->{MODULES});
+if ($args->{SHEDULE}) {
+   @daily_functions = ('sheduler');
+}
+elsif(! $args->{MODULES}) {
+	push @daily_functions, 'sheduler';
+}
 
 my ($Y, $M, $D);
 
@@ -358,7 +363,6 @@ sub sheduler {
     $ADMIN_REPORT{SHEDULE} .= $text . "\n";
   }
 
-  exit;
 }
 
 #**********************************************************
