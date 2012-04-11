@@ -734,6 +734,11 @@ sub search_expr_users () {
     push @fields, @{ $self->search_expr($attr->{ADDRESS_FLAT}, 'STR', 'pi.address_flat', { EXT_FIELD => 1 }) };
   }
 
+  if ($attr->{ACTION_TYPE}) {
+    push @fields, @{ $self->search_expr($attr->{ACTION_TYPE}, 'STR', 'aa.action_type', { EXT_FIELD => 'aa.action_type' }) };
+    $self->{EXT_TABLES} .= "LEFT JOIN admin_actions aa ON (u.uid=aa.uid)";
+  }
+
   return \@fields;
 }
 
