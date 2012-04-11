@@ -740,7 +740,7 @@ sub search_expr_users () {
   }
 
   if ($attr->{ACTION_DATE}) {
-    push @fields, @{ $self->search_expr($attr->{ACTION_PERIOD}, 'DATE', 'aa.datetime AS action_datetime', { EXT_FIELD => 1 }) };
+    push @fields, @{ $self->search_expr($attr->{ACTION_DATE}, 'DATE', 'aa.datetime AS action_datetime', { EXT_FIELD => 1 }) };
     $self->{EXT_TABLES} .= "LEFT JOIN admin_actions aa ON (u.uid=aa.uid)" if ($self->{EXT_TABLES} !~ /admin_actions/);
   }
 
