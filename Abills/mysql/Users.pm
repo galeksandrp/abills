@@ -848,9 +848,9 @@ sub list {
     $self->query(
       $db, "SELECT u.id, 
        pi.fio, 
-       if(company.id IS NULL, b.deposit, cb.deposit), 
+       if(company.id IS NULL, b.deposit, cb.deposit) AS deposit, 
        if(u.company_id=0, u.credit, 
-          if (u.credit=0, company.credit, u.credit)), u.disable, 
+          if (u.credit=0, company.credit, u.credit)) AS credit, u.disable, 
        $self->{SEARCH_FIELDS}
        u.uid, 
        u.company_id, 
@@ -911,7 +911,8 @@ sub list {
       if (u.credit=0, company.credit, u.credit)) AS credit,
       u.disable, 
       $self->{SEARCH_FIELDS}
-      u.uid, u.company_id, pi.email, u.activate, u.expire
+      u.uid, 
+      u.company_id, pi.email, u.activate, u.expire
      FROM users u
      LEFT JOIN users_pi pi ON (u.uid = pi.uid)
      LEFT JOIN bills b ON (u.bill_id = b.id)

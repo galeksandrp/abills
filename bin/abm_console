@@ -755,15 +755,19 @@ sub form_fees {
     my $list = $users->list({ BILL_ID => '>0', %$ARGV, PAGE_ROWS => 1000000, COLS_NAME => 1 });
     $FORM->{SUM}      = $ARGV->{GET}      || $ARGV->{SUM};
     $FORM->{DESCRIBE} = $ARGV->{DESCRIBE} || '';
-    $FORM->{METHOD}   = $ARGV->{METHOD} || '';
+    $FORM->{METHOD}   = $ARGV->{METHOD}   || '';
     if ($users->{TOTAL} > 0) {
       foreach my $line (@$list) {
         my $user = {
           UID     => $line->{uid},
-          BILL_ID => $line->{bill_Id},
+          BILL_ID => $line->{bill_id},
         };
         print "LOGIN: $line->{id} UID: $user->{UID} BILL_ID: $user->{BILL_ID} \n" if ($debug > 0);
         $fees->take($user, $FORM->{SUM}, { %$FORM, %$ARGV });
+        
+        if($fees->{errno}) {
+        	print "Error: $fees->{errno}";        	
+        }
       }
     }
     return 0;
@@ -826,13 +830,13 @@ sub form_payments {
   if ($ARGV->{ADD}) {
     $ARGV->{LOGIN} = $ARGV->{PAYMENTS} if (!$ARGV->{LOGIN});
     delete $ARGV->{PAYMENTS};
-
     my $list = $users->list({ BILL_ID => '>0', %$ARGV, PAGE_ROWS => 1000000, COLS_NAME => 1 });
     $FORM->{SUM}      = $ARGV->{ADD}      || $ARGV->{SUM};
     $FORM->{DESCRIBE} = $ARGV->{DESCRIBE} || '';
+    $FORM->{METHOD}   = $ARGV->{METHOD} || '';
+
     if ($users->{TOTAL} > 0) {
       foreach my $line (@$list) {
-
         my $user = {
           UID     => $line->{uid},
           BILL_ID => $line->{bill_id},
@@ -841,7 +845,7 @@ sub form_payments {
         $payments->add(
           $user,
           {
-            SUM => $FORM->{SUM},
+            SUM     => $FORM->{SUM},
             %$FORM,
             %$ARGV
           }

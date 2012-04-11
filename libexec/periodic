@@ -156,7 +156,7 @@ foreach my $m (@MODULES) {
 
 push @monthly_functions,  'admin_report_monthly' if (! $args->{NO_ADM_REPORT});
 push @monthly_functions,  'logrotate', 'backup' if (! $args->{MODULES});
-push @daily_functions, 'sheduler' if ($args->{SHEDULE} || !$args->{MODULES});
+push @daily_functions, 'sheduler' if ($args->{SHEDULE} || ! $args->{MODULES});
 
 my ($Y, $M, $D);
 
@@ -279,27 +279,28 @@ sub sheduler {
       Y         => "$Y,\\*",
       M         => "$M,\\*",
       D         => "$D,\\*",
-      PAGE_ROWS => 100000
+      PAGE_ROWS => 100000,
+      COLS_NAME => 1
     }
   );
 
   $ADMIN_REPORT{SHEDULE} = sprintf("%-14s| %-12s| %-8s| %-20s|%-14s|\n", "$_LOGIN", "$_MODULES", "$_TYPE", "$_VALUE", "$_ADMIN");
   $ADMIN_REPORT{SHEDULE} .= "---------------------------------------------------------\n";
-  foreach my $line (@$list) {
+  foreach my $s (@$list) {
     my $ret        = 0;
     my $error_text = '';
-    my $count      = $line->[4] || 0;
-    my $login      = $line->[5] || '-';
-    my $type       = $line->[6];
-    my $action     = $line->[7];
-    my $shedule_id = $line->[14];
+    my $count      = $s->{count} || 0;
+    my $login      = $s->{login} || '-';
+    my $type       = $s->{type};
+    my $action     = $s->{action};
+    my $shedule_id = $s->{id};
 
     if ($debug > 0) {
       print "Shedule $type:  $action\n";
     }
 
     if ($type eq 'fees') {
-      my $user = $users->info($line->[13]);
+      my $user = $users->info($s->{uid});
       my ($sum, $descr, $bill_id) = split(/:/, $action);
       if ($bill_id) {
         if ($bill_id =~ /(\S+)=(\S+)/) {
@@ -336,11 +337,11 @@ sub sheduler {
 
     #Required modules
     elsif ($type ne '') {
-      my $function = lc $line->[8] . "_sheduler";
-      $ret = $function->($line->[6], "$action", $line->[13]);
+      my $function = lc $s->{module} . "_sheduler";
+      $ret = $function->($s->{type}, "$action", $s->{uid});
     }
 
-    my $text = sprintf("%-14s| %-12s| %-8s| %-20s| %-14s|", $login, $line->[8], $type, $action, $line->[9]);
+    my $text = sprintf("%-14s| %-12s| %-8s| %-20s| %-14s|", $login, $s->{module}, $type, $action, $s->{admin_name});
 
     if ($ret > 1) {
       $text .= ($err_strs{$ret}) ? $err_strs{$ret} : 'Error: ' . $ret . ' ' . $error_text;
@@ -357,6 +358,7 @@ sub sheduler {
     $ADMIN_REPORT{SHEDULE} .= $text . "\n";
   }
 
+  exit;
 }
 
 #**********************************************************

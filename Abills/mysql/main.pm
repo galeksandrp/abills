@@ -603,10 +603,12 @@ sub search_expr_users () {
     REDUCTION     => 'INT:u.reduction',
     REDUCTION_DATE=> 'INT:u.reduction_date',
     COMMENTS      => 'STR:pi.comments',
-    BILL_ID       => 'INT:if(company.id IS NULL,b.id,cb.id) AS ext_bill_id',
+    BILL_ID       => 'INT:if(company.id IS NULL,b.id,cb.id) AS bill_id',
 
     #ADDRESS_FLAT  => 'STR:pi.address_flat', 
   );
+
+
 
   if ($attr->{CONTRACT_SUFIX}) {
     $attr->{CONTRACT_SUFIX} =~ s/\|//g;
