@@ -735,9 +735,15 @@ sub search_expr_users () {
   }
 
   if ($attr->{ACTION_TYPE}) {
-    push @fields, @{ $self->search_expr($attr->{ACTION_TYPE}, 'STR', 'aa.action_type', { EXT_FIELD => 'aa.action_type, aa.datetime AS action_datetime' }) };
-    $self->{EXT_TABLES} .= "LEFT JOIN admin_actions aa ON (u.uid=aa.uid)";
+    push @fields, @{ $self->search_expr($attr->{ACTION_TYPE}, 'INT', 'aa.action_type AS action_type', { EXT_FIELD => 1 }) };
+    $self->{EXT_TABLES} .= "LEFT JOIN admin_actions aa ON (u.uid=aa.uid)" if ($self->{EXT_TABLES} =~ /admin_actions/);
   }
+
+  if ($attr->{ACTION_DATE}) {
+    push @fields, @{ $self->search_expr($attr->{ACTION_PERIOD}, 'DATE', 'aa.datetime AS action_datetime', { EXT_FIELD => 1 }) };
+    $self->{EXT_TABLES} .= "LEFT JOIN admin_actions aa ON (u.uid=aa.uid)" if ($self->{EXT_TABLES} =~ /admin_actions/);
+  }
+
 
   return \@fields;
 }
