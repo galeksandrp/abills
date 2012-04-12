@@ -741,7 +741,12 @@ sub search_expr_users () {
   }
 
   if ($attr->{ACTION_DATE}) {
-    push @fields, @{ $self->search_expr($attr->{ACTION_DATE}, 'DATE', 'aa.datetime AS action_datetime', { EXT_FIELD => 1 }) };
+  	my $field_name = 'aa.datetime';
+  	if($attr->{ACTION_DATE}=~/\d{4}\-\d{2}\-\d{2}/) {
+  		$field_name = 'DATE_FORMAT(\'%Y-%m-%d\', aa.datetime)';
+  	}
+
+    push @fields, @{ $self->search_expr($attr->{ACTION_DATE}, 'DATE', "$field_name AS action_datetime", { EXT_FIELD => 1 }) };
     $self->{EXT_TABLES} .= "LEFT JOIN admin_actions aa ON (u.uid=aa.uid)" if ($self->{EXT_TABLES} !~ /admin_actions/);
   }
 
