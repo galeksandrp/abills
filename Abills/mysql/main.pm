@@ -743,7 +743,7 @@ sub search_expr_users () {
   if ($attr->{ACTION_DATE}) {
   	my $field_name = 'aa.datetime';
   	if($attr->{ACTION_DATE}=~/\d{4}\-\d{2}\-\d{2}/) {
-  		$field_name = 'DATE_FORMAT(\'%Y-%m-%d\', aa.datetime)';
+  		$field_name = 'DATE_FORMAT(aa.datetime, \'%Y-%m-%d\')';
   	}
 
     push @fields, @{ $self->search_expr($attr->{ACTION_DATE}, 'DATE', "$field_name AS action_datetime", { EXT_FIELD => 1 }) };
