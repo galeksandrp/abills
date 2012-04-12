@@ -451,6 +451,7 @@ sub reports {
       $db, "SELECT count(DISTINCT p.uid), count(*), sum(p.sum) 
       FROM payments p
       LEFT JOIN users u ON (u.uid=p.uid)
+      $EXT_TABLES
       $WHERE;"
     );
 
