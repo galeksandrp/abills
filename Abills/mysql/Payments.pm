@@ -309,7 +309,10 @@ sub list {
   my $EXT_TABLES  = $self->{EXT_TABLES};
   my $login_field = '';
   if ($attr->{FIO}) {
-    $EXT_TABLES  .= 'LEFT JOIN users_pi pi ON (u.uid=pi.uid)';
+    $EXT_TABLES  = 'LEFT JOIN users_pi pi ON (u.uid=pi.uid)'.$EXT_TABLES ;
+  }
+  elsif ($EXT_TABLES =~ /builds/ && $EXT_TABLES !~ /users_pi/) {
+    $EXT_TABLES = 'LEFT JOIN users_pi pi ON (u.uid=pi.uid) '. $EXT_TABLES;
   }
 
   $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES) : '';

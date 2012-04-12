@@ -6541,15 +6541,6 @@ sub form_fees {
         }
       );
 
-      #    $fees->{SEL_METHOD}=$html->form_select('METHOD',
-      #                                {
-      # 	                                SELECTED          => undef,
-      # 	                                SEL_MULTI_ARRAY   => $fees->fees_type_list(),
-      # 	                                MULTI_ARRAY_KEY   => 1,
-      # 	                                MULTI_ARRAY_VALUE => '1,3',
-      # 	                                NO_ID             => 1
-      # 	                               });
-
       $html->tpl_show(templates('form_fees'), $fees) if (!$attr->{REGISTRATION});
     }
   }
@@ -6582,7 +6573,7 @@ sub form_fees {
     $LIST_PARAMS{DESC} = DESC;
   }
 
-  my $list  = $fees->list({%LIST_PARAMS});
+  my $fees_list  = $fees->list({%LIST_PARAMS, COLS_NAME => 1 });
   my $table = $html->table(
     {
       width   => '100%',
@@ -6598,17 +6589,21 @@ sub form_fees {
   );
 
   $pages_qs .= "&subf=2" if (!$FORM{subf});
-  foreach my $line (@$list) {
-    my $delete = ($permissions{2}{2}) ? $html->button($_DEL, "index=3&del=$line->[0]&UID=" . $line->[10], { MESSAGE => "$_DEL ID: $line->[0]?", CLASS => 'del' }) : '';
+  foreach my $f (@$fees_list) {
+    my $delete = ($permissions{2}{2}) ? $html->button($_DEL, "index=3&del=$f->{id}&UID=$f->{uid}", { MESSAGE => "$_DEL ID: $f->{id}?", CLASS => 'del' }) : '';
 
     $table->addrow(
-      $html->b($line->[0]),
-      $html->button($line->[1], "index=15&UID=" . $line->[10]),
-      $line->[2], $line->[3] . (($line->[11]) ? $html->br() . $html->b($line->[11]) : ''),
-      $line->[4], "$line->[5]",
-      $FEES_METHODS{ $line->[6] },
-      ($BILL_ACCOUNTS{ $line->[7] }) ? $BILL_ACCOUNTS{ $line->[7] } : "$line->[7]",
-      "$line->[8]", "$line->[9]", $delete
+      $html->b($f->{id}),
+      $html->button($f->{login}, "index=15&UID=$f->{uid}"),
+      $f->{date}, 
+      $f->{dsc} . (($f->{inner_describe}) ? $html->br() . $html->b($f->{inner_describe}) : ''),
+      $f->{sum}, 
+      $f->{last_deposit},
+      $FEES_METHODS{ $f->{method} },
+      ($BILL_ACCOUNTS{ $f->{bill_id} }) ? $BILL_ACCOUNTS{ $f->{bill_id} } : "$f->{bill_id}",
+      "$f->{admin_name}", 
+      "$f->{ip}", 
+      $delete
     );
   }
 
