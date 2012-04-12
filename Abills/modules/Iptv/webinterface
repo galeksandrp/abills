@@ -2033,8 +2033,8 @@ sub iptv_daily_fees {
 
       my $ulist = $Iptv->user_list(
         {
-          ACTIVATE => "0000-00-00,>=$DATE",
-          EXPIRE   => "<$DATE",
+          ACTIVATE => "<=$DATE",
+          EXPIRE   => "0000-00-00,>$DATE",
           DISABLE  => '0',
           TP       => $line->[0]
         }
@@ -2127,8 +2127,8 @@ sub iptv_monthly_fees {
       $Iptv->{debug} = 1 if ($debug > 6);
       my $ulist = $Iptv->user_list(
         {
-          ACTIVATE     => "0000-00-00,>=$ADMIN_REPORT{DATE}",
-          EXPIRE       => "<$ADMIN_REPORT{DATE}",
+          ACTIVATE     => "<=$ADMIN_REPORT{DATE}",
+          EXPIRE       => "0000-00-00,>$ADMIN_REPORT{DATE}",
           STATUS       => 0,
           LOGIN_STATUS => 0,
           TP_ID        => $TP_ID,
@@ -2232,8 +2232,8 @@ sub iptv_monthly_fees {
     #Channels Fees
     $ulist = $Iptv->user_list(
       {
-        ACTIVATE      => "0000-00-00,>=$ADMIN_REPORT{DATE}",
-        EXPIRE        => "<$ADMIN_REPORT{DATE}",
+        ACTIVATE      => "<=$ADMIN_REPORT{DATE}",
+        EXPIRE        => "0000-00-00>$ADMIN_REPORT{DATE}",
         STATUS        => 0,
         LOGIN_STATUS  => 0,
         TP_ID         => $TP_ID,
@@ -2586,8 +2586,8 @@ sub dv_crypt {
     #Main users list
     my $ulist = $Iptv->user_list(
       {
-        ACTIVATE     => "0000-00-00,>=$DATE",
-        EXPIRE       => "<$DATE",
+        ACTIVATE     => "<=$DATE",
+        EXPIRE       => "0000-00-00,>$DATE",
         DVCRYPT_ID   => '>0',
         STATUS       => ">=0",
         LOGIN_STATUS => ">=0",
@@ -2612,8 +2612,8 @@ sub dv_crypt {
       {
         PAGE_ROWS     => 1000000,
         DVCRYPT_ID    => '>0',
-        ACTIVATE      => "0000-00-00,>=$DATE",
-        EXPIRE        => "<$DATE",
+        ACTIVATE      => "<=$DATE",
+        EXPIRE        => "0000-00-00,>$DATE",
         STATUS        => ">=0",
         LOGIN_STATUS  => ">=0",
         TP_ID         => $TP_ID,

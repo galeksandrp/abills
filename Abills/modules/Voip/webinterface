@@ -2469,8 +2469,8 @@ sub voip_daily_fees {
     if ($daily_fee > 0) {
       my $ulist = $Voip->user_list(
         {
-          ACTIVATE     => "0000-00-00,>=$DATE",
-          EXPIRE       => "<$DATE",
+          ACTIVATE     => "<=$DATE",
+          EXPIRE       => "0000-00-00,>$DATE",
           STATUS       => '0',
           LOGIN_STATUS => 0,
           TP_ID        => $TP_INFO{TP_NUM},
@@ -2548,8 +2548,8 @@ sub voip_monthly_fees {
     if ($month_fee > 0) {
       my $ulist = $Voip->user_list(
         {
-          ACTIVATE     => "0000-00-00,>=$DATE",
-          EXPIRE       => "<$DATE",
+          ACTIVATE     => "<=$DATE",
+          EXPIRE       => "0000-00-00,>$DATE",
           STATUS       => '0;2',
           LOGIN_STATUS => 0,
           TP_ID        => $TP_INFO{TP_NUM},
