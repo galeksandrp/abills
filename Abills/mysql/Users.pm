@@ -1106,7 +1106,8 @@ sub change {
       TABLE        => 'users',
       FIELDS       => \%FIELDS,
       OLD_INFO     => $old_info,
-      DATA         => $attr
+      DATA         => $attr,
+      ACTION_ID    => $attr->{ACTION_ID},
     }
   );
 
@@ -1135,7 +1136,7 @@ sub del {
     $admin->action_add($self->{UID}, "DELETE $self->{UID}:$self->{LOGIN}", { TYPE => 12 });
   }
   else {
-    $self->change($self->{UID}, { DELETED => 1, UID => $self->{UID} });
+    $self->change($self->{UID}, { DELETED => 1, ACTION_ID => 12, UID => $self->{UID} });
   }
 
   return $self->{result};

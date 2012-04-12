@@ -518,7 +518,6 @@ sub changes {
       $admin->action_add($DATA{UID}, "$self->{CHG_GID}", { TYPE => 26 });
     }
 
-    #if(defined($self->{'STATUS'}) && $self->{'STATUS'} ne '') {
     if ($self->{CHG_STATUS}) {
       $admin->action_add($DATA{UID}, "$self->{'STATUS'}" . (($attr->{EXT_CHANGE_INFO}) ? ' ' . $attr->{EXT_CHANGE_INFO} : ''), { TYPE => ($self->{'STATUS'} == 3) ? 14 : 4 });
     }
