@@ -627,7 +627,7 @@ sub ashield_user {
       ($activated eq 'no' || $error) ? $_NO : $_YES,
       ($online    eq 'no' || $error) ? $_NO : $_YES,
       $create,
-      $graceperiod_status . $html->br() . $installed . $html->br() . $statin_state_hash{ $station_info->{state} } . $html->br() . $status || $_ACTIV,
+      $graceperiod_status . $html->br() . $installed . $html->br() . (convert($statin_state_hash{ $station_info->{state} }, { win2utf8 => 1 })) . $html->br() . $status || $_ACTIV,
       ($graceperiod && !$graceperiod_status) ? "$_EXPIRE" : "$_ACTIV / $graceperiod_status",
       ($status) ? $html->button($_ACTIVATE, "index=$index&activate=$station_info->{id}&UID=$LIST_PARAMS{UID}", { CLASS => 'activate' }) : $html->button($_CHANGE, "index=$index&info=$station_info->{id}&UID=$LIST_PARAMS{UID}", { CLASS => 'change' }),
       $html->button($_STATS, "index=$index&stats=$station_info->{id}&UID=$LIST_PARAMS{UID}", { CLASS => 'stats' }),
