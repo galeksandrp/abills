@@ -332,12 +332,12 @@ sub ashield_user {
       $html->message('err', $_ERROR, "$ERR_SMALL_DEPOSIT");
     }
     else {
-      $Ashield->{ACTIVATE} = '0000-00-00';    #$attr->{USER}->{ACTIVATE};
+      $Ashield->{ACTIVATE} = '0000-00-00';
       if (!$FORM{STATUS}) {
         my $result_hash = ashield_drweb_request(
           'api/3.0/stations/add.ds',
           {
-            name => "$users->{LOGIN}" || $fio2 || '-',
+            name     => "$users->{LOGIN}" || $fio2 || '-',
             password => "$users->{PASSWORD}",
             email    => $FORM{EMAIL} || $Ashield->{EMAIL} || '-',
             rate     => $FORM{ 'AVD_TP_ID_' . $FORM{TP_ID} }
@@ -406,8 +406,6 @@ sub ashield_user {
 
         return 0;
       }
-
-      #$html->message('info', $_INFO, "$_ADDED");
     }
   }
   elsif ($FORM{set}) {
@@ -499,14 +497,19 @@ sub ashield_user {
       if (!$user->{UID} || ($line->[5] + $line->[6] < $user->{DEPOSIT} + $user->{CREDIT} || $line->[17])) {
         Encode::_utf8_off($ashield_tps_info->{ $line->[1] }->{ID});
         my $ashield_id = "$ashield_tps_info->{$line->[1]}->{ID}";
-        $radio_but = $html->form_input('TP_ID', "$line->[18]", { TYPE => 'radio', OUTPUT2RETURN => 1 }) . $html->form_input('AVD_TP_ID_' . $line->[0], $ashield_id, { TYPE => 'hidden', OUTPUT2RETURN => 1 });
+        $radio_but = $html->form_input('TP_ID', "$line->[18]", { TYPE => 'radio', OUTPUT2RETURN => 1 }) 
+          . $html->form_input('AVD_TP_ID_' . $line->[18], $ashield_id, { TYPE => 'hidden', OUTPUT2RETURN => 1 });
       }
       else {
         $radio_but = "$ERR_SMALL_DEPOSIT";
       }
 
       Encode::_utf8_off($ashield_tps_info->{ $line->[1] }->{GRACE_PERIOD});
-      $table->addrow($line->[0], $html->b($line->[1]) . $html->br() . $line->[19], $ashield_tps_info->{ $line->[1] }->{GRACE_PERIOD}, $line->[6], $radio_but);
+      $table->addrow($line->[0], 
+           $html->b($line->[1]) . $html->br() . $line->[19], 
+           $ashield_tps_info->{ $line->[1] }->{GRACE_PERIOD}, 
+           $line->[6], 
+           $radio_but);
     }
 
     $Ashield->{OP_SID} = mk_unique_value(16);
@@ -549,10 +552,8 @@ sub ashield_user {
       'api/3.0/stations/info.ds',
       {
         id => $line->[3],
-
         #components          => 'on',
-        'extra-info' => 'on',
-
+        'extra-info'        => 'on',
         #installedcomponents => 'on',
         #runningcomponents   => 'on',
         #groupmembership     => 'on'
@@ -622,7 +623,6 @@ sub ashield_user {
 
     $table->addrow(
       $html->color_mark($comp_name, 'code'),
-##    	               $k->{agentuuid}->[0],
       ($error) ? $error : $tp,
       ($activated eq 'no' || $error) ? $_NO : $_YES,
       ($online    eq 'no' || $error) ? $_NO : $_YES,
