@@ -670,8 +670,6 @@ sub list {
   $PG        = ($attr->{PG})        ? $attr->{PG}        : 0;
   $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
 
-
-
   @WHERE_RULES = @{ $self->search_expr_users({ %$attr, 
   	                  EXT_FIELDS => [ 'UID',
         'PHONE',
@@ -788,7 +786,9 @@ sub list {
      $EXT_TABLES
      GROUP BY u.uid
      $HAVING
-     ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;"
+     ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;",
+     undef,
+     $attr
     );
     return $self if ($self->{errno});
 
@@ -869,7 +869,9 @@ sub list {
      $EXT_TABLES
      GROUP BY u.uid
      $HAVING
-     ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;"
+     ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;",
+     undef,
+     $attr
     );
     return $self if ($self->{errno});
 
