@@ -693,7 +693,7 @@ sub report_debetors {
     $attr->{PERIOD} = 1;
   }
 
-  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES) : '';
+  $WHERE = ($#WHERE_RULES > -1) ? "AND " . join(' and ', @WHERE_RULES) : '';
 
   $self->query($db, "SELECT u.id, 
       pi.fio, pi.phone,

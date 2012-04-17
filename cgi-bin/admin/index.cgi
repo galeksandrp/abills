@@ -3017,6 +3017,7 @@ sub form_changes {
     15 => "$_HANGUP",
     16 => "$_PAYMENTS $_DELETED",
     17 => "$_FEES $_DELETED",
+    18 => "$_INVOICE $_DELETED",    
     26 => "$_CHANGE $_GROUP",
     27 => "$_SHEDULE $_ADDED",
     28 => "$_SHEDULE $_DELETED",
