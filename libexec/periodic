@@ -614,8 +614,8 @@ sub credit_operation {
     {
       CREDIT_DATE => "!0000-00-00;<=$ADMIN_REPORT{DATE}",
       CREDIT      => ">$conf{MAX_STABLE_CREDIT}",
-      PAGE_ROWS   => 1000000,
       %LIST_PARAMS,
+      PAGE_ROWS   => 1000000,
       COLS_NAME   => 1
     }
   );
