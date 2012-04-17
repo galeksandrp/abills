@@ -697,10 +697,10 @@ sub report_debetors {
 
   $self->query($db, "SELECT u.id, 
       pi.fio, pi.phone,
-      tp.name, 
+      tp.name AS tp_name, 
       if(u.company_id > 0, cb.deposit, b.deposit) AS deposit, 
       u.credit, 
-      dv.disable, 
+      dv.disable AS dv_status, 
       $self->{SEARCH_FIELDS}
       u.uid, 
       u.company_id, 
