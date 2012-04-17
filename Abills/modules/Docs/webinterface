@@ -1014,7 +1014,32 @@ sub docs_invoices_list {
     return 0;
   }
 
-  my @CAPTION = ('#', $_DATE, $_CUSTOMER, $_SUM, $_STATUS, $_USER, $_ADMIN, $_TIME, "$_PAYMENT_METHOD", "$_PAYMENTS EXT_ID", "$_GROUP");
+  #$conf{DOCS_INVOICES_LIST}='invoice_num,date,customer,total_sum,payment_id';
+  if (! $conf{DOCS_INVOICES_LIST}) {
+    $conf{DOCS_INVOICES_LIST}='invoice_num,date,customer,total_sum,payment_id,login,admin_name,created,method,ext_id,group_name';
+  }
+  my @CAPTION    = ();
+
+  my %EXT_TITLES = (
+  invoice_num    => '#',
+  date           => $_DATE,
+  customer       => $_CUSTOMER,    
+  total_sum      => "$_SUM",    
+  payment_id     => "$_STATUS",
+  login          => "$_USER", 
+  admin_name     => "$_ADMIN", 
+  created        => "$_CREATED",
+  method         => "$_PAYMENT_METHOD", 
+  ext_id         => "EXT ID",
+  group_name     => "$_GROUP $_NAME",
+  currency       => "$_ATL $_CURRENCY",
+  );
+
+  my @field_names = split(/,/, $conf{DOCS_INVOICES_LIST});
+  foreach my $c ( @field_names ) {
+	  push @CAPTION, $EXT_TITLES{$c};
+  }
+
 
   if ($conf{DOCS_CURRENCY}) {
     push @CAPTION, "$_ATL $_CURRENCY";
@@ -1029,6 +1054,7 @@ sub docs_invoices_list {
     }
     push @CAPTION, '-', '-', '-', '-';
   }
+
 
   my $invoice_list  = $Docs->invoices_list({%LIST_PARAMS, COLS_NAME =>1 });
   my $table = $html->table(
@@ -1050,23 +1076,30 @@ sub docs_invoices_list {
 
   foreach my $invoice (@$invoice_list) {
     my $delete = ($permissions{1}{2}) ? $html->button($_DEL, "index=$index&del=$invoice->{id}&UID=$invoice->{uid}", { MESSAGE => "$_DEL ID $line->{id} ?", CLASS => 'del' }) : '';
+    @rows = ();
+    for(my $i=0; $i<=$#field_names; $i++) {
+      my $fname = $field_names[$i];
+      my $val   = '';
 
-    @rows = (
-      "$invoice->{invoice_num}", 
-      $html->button("$invoice->{date}", "qindex=$index&print=$invoice->{id}&UID=$invoice->{uid}$pages_qs" . (($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : ''), { ex_params => 'target=_new' }),
-      $invoice->{customer}, 
-      $invoice->{total_sum}, 
-      ($invoice->{payment_id}) ? (($user->{UID}) ? $payments_status[1] : $html->button($payments_status[1], "index=2&UID=$invoice->{uid}&ID=$invoice->{payment_id}")) : $html->color_mark($payments_status[0], $_COLORS[6])
-    );
+      if ($fname eq 'date') {
+      	$val = $html->button("$invoice->{date}", "qindex=$index&print=$invoice->{id}&UID=$invoice->{uid}$pages_qs" . (($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : ''), { ex_params => 'target=_new' }),
+      }
+      elsif($fname eq 'payment_id') {
+      	$val = ($invoice->{payment_id}) ? (($user->{UID}) ? $payments_status[1] : $html->button($payments_status[1], "index=2&UID=$invoice->{uid}&ID=$invoice->{payment_id}")) : $html->color_mark($payments_status[0], $_COLORS[6]);
+      }
+      elsif($fname eq 'login') {
+        $val = $html->button($invoice->{login}, "index=11&UID=$invoice->{uid}") . (($line->{company_id}) ? $html->br() . $html->button(substr($line->{company_name}, 0, 30), "index=13&COMPANY_ID=$invoice->{company_id}", { CLASS => 'small' }) : '');
+      }
+      elsif($fname eq 'method') {
+        $val = ($PAYMENTS_METHODS{ $invoice->{method} }) ? $PAYMENTS_METHODS{ $invoice->{method} } : $invoice->{method};
+      }
+      else {
+      	$val = $invoice->{$fname};
+      }
+      push 	@rows, $val;
+    }
 
     if (!$user->{UID}) {
-      push @rows, $html->button($invoice->{login}, "index=11&UID=$invoice->{uid}") . (($line->{company_id}) ? $html->br() . $html->button(substr($line->{company_name}, 0, 30), "index=13&COMPANY_ID=$invoice->{company_id}", { CLASS => 'small' }) : ''),
-      "$invoice->{admin_name}", 
-      "$invoice->{created}", 
-      ($PAYMENTS_METHODS{ $invoice->{method} }) ? $PAYMENTS_METHODS{ $invoice->{method} } : $invoice->{method}, 
-      $invoice->{ext_id}, 
-      $invoice->{group_name};
-
       if ($conf{DOCS_CURRENCY}) {
         push @rows, sprintf("%.2f", $invoice->{alt_sum});
       }

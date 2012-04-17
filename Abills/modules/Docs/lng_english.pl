@@ -22,9 +22,9 @@ $ERR_NO_ORDERS='No orders';
 @hundred = ('', 'сто', 'двісті', 'триста', 'чотириста', 'п\'ятсот', 'шістсот', 'сімсот', 'вісімсот', 'дев\'ятсот');
 @money_unit_names = ('грн','коп');
 
-$_PAID='Paid account';
+$_PAID='Paid invoice';
 $_PARTLY_PAID='Partly paid';
-$_UNPAID='UnPaid account';
+$_UNPAID='UnPaid invoice';
 $_VAT_INCLUDE='Vat include';
 $_AMOUNT_FOR_PAY='Amount for pay';
 $_ACTIVATE_NEXT_PERIOD='For next activation period';

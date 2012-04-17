@@ -346,8 +346,8 @@ sub dv_users_list {
   }
 
   my $list = $Dv->list({%LIST_PARAMS, COLS_NAME => 1 });
-  my $TITLE = title_former({ 
-     INPUT_DATA      => $Dv, 
+  my $TITLE = title_former({
+     INPUT_DATA      => $Dv,
   	 BASE_FIELDS     => 6,
   	 FUNCTION_FIELDS => 'payments, stats',
   	 EXT_TITLES      => {
