@@ -656,8 +656,38 @@ sub report_debetors {
   $PG        = ($attr->{PG})        ? $attr->{PG}        : 0;
   $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
   
-  $self->{SEARCH_FIELDS}='';
-  my @WHERE_RULES  = ();
+
+  @WHERE_RULES = @{ $self->search_expr_users({ %$attr, 
+  	                         EXT_FIELDS => [
+  	                                        'PHONE',
+  	                                        'EMAIL',
+  	                                        'ADDRESS_FLAT',
+  	                                        'PASPORT_DATE',
+                                            'PASPORT_NUM', 
+                                            'PASPORT_GRANT',
+                                            'CITY', 
+                                            'ZIP',
+                                            'GID',
+                                            'CONTRACT_ID',
+                                            'CONTRACT_SUFIX',
+                                            'CONTRACT_DATE',
+                                            'EXPIRE',
+
+                                            'CREDIT',
+                                            'CREDIT_DATE', 
+                                            'REDUCTION',
+                                            'REGISTRATION',
+                                            'REDUCTION_DATE',
+                                            'COMMENTS',
+                                            'BILL_ID',
+                                            
+                                            'ACTIVATE',
+                                            'EXPIRE',
+
+  	                                         ] }) };
+
+  my $EXT_TABLE = $self->{EXT_TABLES}; 
+
 
   if (! $attr->{PERIOD}) {
     $attr->{PERIOD} = 1;
@@ -689,6 +719,7 @@ sub report_debetors {
      LEFT JOIN tarif_plans tp ON (tp.id=dv.tp_id) 
      LEFT JOIN companies company ON  (u.company_id=company.id) 
      LEFT JOIN bills cb ON  (company.bill_id=cb.id)
+     $EXT_TABLE
      WHERE if(u.company_id > 0, cb.deposit, b.deposit) < 0 - tp.month_fee*$attr->{PERIOD} $WHERE 
      GROUP BY u.id
      ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;"
@@ -707,6 +738,7 @@ sub report_debetors {
     LEFT JOIN tarif_plans tp ON (tp.id=dv.tp_id) 
     LEFT JOIN companies company ON  (u.company_id=company.id) 
     LEFT JOIN bills cb ON  (company.bill_id=cb.id)
+    $EXT_TABLE
     WHERE if(u.company_id > 0, cb.deposit, b.deposit) < 0 - tp.month_fee*$attr->{PERIOD}"
     );
     ($self->{TOTAL}) = @{ $self->{list}->[0] };
