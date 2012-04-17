@@ -722,7 +722,9 @@ sub report_debetors {
      $EXT_TABLE
      WHERE if(u.company_id > 0, cb.deposit, b.deposit) < 0 - tp.month_fee*$attr->{PERIOD} $WHERE 
      GROUP BY u.id
-     ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;"
+     ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;",
+     undef,
+     $attr
   );
 
   return $self if ($self->{errno});
