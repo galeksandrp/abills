@@ -60,6 +60,7 @@ $debug     = 0;
 my $error_str = '';
 
 require "Abills/Misc.pm";
+require "Abills/templates.pl";
 
 #Arguments
 my $ARGV = parse_arguments(\@ARGV);
