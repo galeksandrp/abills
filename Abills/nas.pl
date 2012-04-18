@@ -486,7 +486,7 @@ sub hangup_ipcad {
   my $Ipn = Ipn->new($db, \%conf);
 
   $Ipn->acct_stop({ %$attr, SESSION_ID => $attr->{ACCT_SESSION_ID} });
-  if ($NAS->{NAS_TYPE} eq 'dhcp') {
+  if ($NAS->{NAS_TYPE} eq 'dhcp' || $nas_type eq 'dlink_pb' || $nas_type eq 'dlink' || $nas_type eq 'edge_core' ) {
   	$Ipn->query($db, "DELETE FROM dhcphosts_leases WHERE ip=INET_ATON('$ip')", 'do');
   }
 
