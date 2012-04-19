@@ -1819,6 +1819,8 @@ sub paysys_privatbank_p24 {
 
   }
 
+  $conf{PAYSYS_P24_MERCHANT_CURRENCY}='USD' if(! $conf{PAYSYS_P24_MERCHANT_CURRENCY}); 
+
   $html->setCookie('lastindex', "$index", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure);
   $html->tpl_show(_include('paysys_privatbank_p24_add', 'Paysys'), { %info, %$user });
 }

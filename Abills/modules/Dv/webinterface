@@ -499,7 +499,6 @@ sub dv_user {
 
     $Dv->add({%FORM});
     if (!$Dv->{errno}) {
-
       #Make month feee
       $Dv->{ACCOUNT_ACTIVATE} = $attr->{USER_INFO}->{ACTIVATE};
       dv_get_month_fee($Dv) if (!$FORM{STATUS});
@@ -6473,7 +6472,7 @@ sub dv_wizard_user {
       # Info
       my $dv = $Dv->info($UID);
       my $pi = $user->pi({ UID => $UID });
-      $user = $user->info($UID, { SHOW_PASSWORD => 1 });
+      $user  = $user->info($UID, { SHOW_PASSWORD => 1 });
 
       if (!$attr->{SHORT_REPORT}) {
         $FORM{ex_message} = $message;

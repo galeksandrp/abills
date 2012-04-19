@@ -381,8 +381,8 @@ sub reports {
     push @WHERE_RULES, "u.gid='$attr->{GID}'";
   }
 
-  if (defined($attr->{METHODS}) and $attr->{METHODS} ne '') {
-    push @WHERE_RULES, "p.method IN ($attr->{METHODS}) ";
+  if (defined($attr->{METHOD}) and $attr->{METHOD} ne '') {
+    push @WHERE_RULES, "p.method IN ($attr->{METHOD}) ";
   }
 
   if (defined($attr->{DATE})) {
@@ -394,10 +394,10 @@ sub reports {
     push @WHERE_RULES, @{ $self->search_expr(">=$from", 'DATE', 'date_format(p.date, \'%Y-%m-%d\')') }, @{ $self->search_expr("<=$to", 'DATE', 'date_format(p.date, \'%Y-%m-%d\')') };
 
     if ($attr->{TYPE} eq 'HOURS') {
-      $date = "date_format(p.date, '%H')";
+      $date = "date_format(p.date, '%H') AS hour";
     }
     elsif ($attr->{TYPE} eq 'DAYS') {
-      $date = "date_format(p.date, '%Y-%m-%d')";
+      $date = "date_format(p.date, '%Y-%m-%d') AS date";
     }
     elsif ($attr->{TYPE} eq 'PAYMENT_METHOD') {
       $date = "p.method";
@@ -408,15 +408,15 @@ sub reports {
       $GROUP      = 5;
     }
     elsif ($attr->{TYPE} eq 'ADMINS') {
-      $date = "a.id";
+      $date = "a.id AS admin_name";
     }
     else {
-      $date = "u.id";
+      $date = "u.id AS login";
     }
   }
   elsif (defined($attr->{MONTH})) {
     push @WHERE_RULES, "date_format(p.date, '%Y-%m')='$attr->{MONTH}'";
-    $date = "date_format(p.date, '%Y-%m-%d')";
+    $date = "date_format(p.date, '%Y-%m-%d') AS date";
   }
   elsif ($attr->{PAYMENT_DAYS}) {
     my $expr = '=';
@@ -426,25 +426,27 @@ sub reports {
     push @WHERE_RULES, "p.date $expr curdate() - INTERVAL $attr->{PAYMENT_DAYS} DAY";
   }
   else {
-    $date = "date_format(p.date, '%Y-%m')";
+    $date = "date_format(p.date, '%Y-%m') AS month";
   }
 
   if ($attr->{ADMINS}) {
     push @WHERE_RULES, @{ $self->search_expr($attr->{ADMINS}, 'STR', 'a.id') };
-    $date = 'u.id';
+    $date = 'u.id AS login';
   }
 
   my $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES) : '';
 
   $self->query(
-    $db, "SELECT $date, count(DISTINCT p.uid), count(*), sum(p.sum), p.uid 
+    $db, "SELECT $date, count(DISTINCT p.uid) AS login_count, count(*) AS count, sum(p.sum) AS sum, p.uid 
       FROM (payments p)
       LEFT JOIN users u ON (u.uid=p.uid)
       LEFT JOIN admins a ON (a.aid=p.aid)
       $EXT_TABLES
       $WHERE 
       GROUP BY 1
-      ORDER BY $SORT $DESC;"
+      ORDER BY $SORT $DESC;",
+    undef,
+    $attr
   );
 
   my $list = $self->{list};
@@ -454,6 +456,7 @@ sub reports {
       $db, "SELECT count(DISTINCT p.uid), count(*), sum(p.sum) 
       FROM payments p
       LEFT JOIN users u ON (u.uid=p.uid)
+      LEFT JOIN admins a ON (a.aid=p.aid)
       $EXT_TABLES
       $WHERE;"
     );

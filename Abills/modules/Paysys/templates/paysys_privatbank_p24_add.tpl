@@ -8,7 +8,7 @@
 
 <input type='hidden' name='amt' value='$FORM{SUM}' />
 <input type='hidden' name='UID' value='$LIST_PARAMS{UID}'>
-<input type='hidden' name='ccy' value='USD' />
+<input type='hidden' name='ccy' value='$conf{PAYSYS_P24_MERCHANT_CURRENCY}' />
 <input type='hidden' name='merchant' value='$conf{PAYSYS_P24_MERCHANT_ID}' />
 <input type='hidden' name='order' value='$FORM{OPERATION_ID}' />
 <input type='hidden' name='details' value='Account Rechards' />

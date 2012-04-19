@@ -5285,6 +5285,8 @@ sub report_payments {
   my @CHART_TYPE = ('area', 'line', 'column');
   my $num        = 0;
 
+  $LIST_PARAMS{METHOD} = $FORM{FIELDS};
+
   if ($FORM{DATE}) {
     $graph_type = '';
     my @caption = ('ID', $_LOGIN, $_DATE, $_DESCRIBE, $_SUM, $_DEPOSIT, $_PAYMENT_METHOD, 'EXT ID', "$_BILL", $_ADMINS, 'IP');
@@ -5348,7 +5350,7 @@ sub report_payments {
     elsif ($type eq 'USER') {
       $CAPTION[0]           = $_USERS;
       $type                 = "search=1&LOGIN";
-      $LIST_PARAMS{METHODS} = $FORM{METHODS};
+      $LIST_PARAMS{METHOD}  = $FORM{METHODS};
       $graph_type           = '';
     }
     elsif ($type eq 'FIO') {
@@ -5380,7 +5382,7 @@ sub report_payments {
       }
     );
 
-    $list = $payments->reports({%LIST_PARAMS});
+    $list = $payments->reports({%LIST_PARAMS, COLS_NAME => 1 });
     $index = 2 if ($type =~ /search/);
     foreach my $line (@$list) {
       my $main_column = '';
@@ -5388,29 +5390,34 @@ sub report_payments {
       if ($type eq 'PAYMENT_METHOD') {
         $pages_qs =~ s/TYPE=PAYMENT_METHOD//;
         $pages_qs =~ s/FIELDS=[0-9,\ ]+&//;
-        $main_column = $html->button($PAYMENTS_METHODS{ $line->[0] }, "index=$index&TYPE=USER&METHODS=$line->[0]$pages_qs&FIELDS=$line->[0]");
+        $main_column = $html->button($PAYMENTS_METHODS{ $line->{method} }, "index=$index&TYPE=USER&METHODS=$line->{method}$pages_qs&FIELDS=$line->[0]");
       }
-      elsif ($type eq 'FIO' || $type eq 'USER' || $FORM{ADMINS}) {
-        if (!$line->[0] || $line->[0] eq '') {
-          $main_column = $html->button($html->color_mark("$_UNKNOWN UID:$line->[4]", $_COLORS[6]), "index=11&UID=$line->[4]");
+      elsif ($type eq 'FIO' || $type eq 'USER') {
+        if (!$line->{fio} || $line->{fio} eq '') {
+          $main_column = $html->button($html->color_mark("$_UNKNOWN UID:$line->{uid}", $_COLORS[6]), "index=11&UID=$line->{uid}");
         }
         else {
-          $main_column = $html->button($line->[0], "index=11&UID=$line->[4]");
+          $main_column = $html->button($line->{fio}, "index=11&UID=$line->{uid}");
         }
       }
-
+      elsif ($line->{admin_name}) {
+      	$main_column = $html->button($line->{admin_name}, "index=$index&$type=$line->{admin_name}$pages_qs");
+      }
       #elsif ($FORM{TYPE} && $FORM{TYPE} eq 'ADMINS')  {
       #  $CAPTION[0]=$_ADMINS;
       #  $graph_type='';
       # }
-      elsif ($line->[0] =~ /^\d{4}-\d{2}$/) {
-        $main_column = $html->button($line->[0], "index=$index&MONTH=$line->[0]$pages_qs");
+      elsif ($line->{month}) {
+        $main_column = $html->button($line->{month}, "index=$index&MONTH=$line->{month}$pages_qs");
       }
+      elsif($line->{date}) {
+        $main_column = $html->button($line->{date}, "index=$index&DATE=$line->{date}$pages_qs");
+       }
       else {
-        $main_column = $html->button($line->[0], "index=$index&$type=$line->[0]$pages_qs");
+        $main_column = $html->button($line->{login}, "index=$index&$type=$line->{login}$pages_qs");
       }
 
-      $table->addrow($main_column, $line->[1], $line->[2], $html->b($line->[3]));
+      $table->addrow($main_column, $line->{login_count}, $line->{count}, $html->b($line->{sum}));
 
       if ($type eq 'ADMINS') {
 
@@ -5421,26 +5428,26 @@ sub report_payments {
         $num++;
       }
       else {
-        if ($line->[0] =~ /(\d+)-(\d+)-(\d+)/) {
+        if ($line->{date} && $line->{date} =~ /(\d+)-(\d+)-(\d+)/) {
           $num = $3;
         }
-        elsif ($line->[0] =~ /(\d+)-(\d+)/) {
+        elsif ($line->{month} && $line->{month} =~ /(\d+)-(\d+)/) {
           $CHART{X_LINE}[$num] = $line->[0];
           $CHART{X_TEXT}[$num] = $line->[0];
           $num++;
         }
         elsif ($type eq 'HOURS') {
           $graph_type = 'day_stats';
-          $num        = $line->[0];
+          $num        = $line->{hour};
         }
 
-        $DATA_HASH{USERS}[$num]  = $line->[1];
-        $DATA_HASH{TOTALS}[$num] = $line->[2];
-        $DATA_HASH{SUM}[$num]    = $line->[3];
+        $DATA_HASH{USERS}[$num]  = $line->{login_count};
+        $DATA_HASH{TOTALS}[$num] = $line->{count};
+        $DATA_HASH{SUM}[$num]    = $line->{sum};
 
-        $AVG{USERS}  = $line->[1] if ($AVG{USERS} < $line->[1]);
-        $AVG{TOTALS} = $line->[2] if ($AVG{TOTALS} < $line->[2]);
-        $AVG{SUM}    = $line->[3] if ($AVG{SUM} < $line->[3]);
+        $AVG{USERS}  = $line->{login_count} if ($AVG{USERS} < $line->{login_count});
+        $AVG{TOTALS} = $line->{count} if ($AVG{TOTALS} < $line->{count});
+        $AVG{SUM}    = $line->{sum} if ($AVG{SUM} < $line->{sum});
       }
     }
 

@@ -1726,6 +1726,7 @@ sub mk_log {
     close(FILE);
   }
   else {
+  	print "Content-Type: text/plain\n\n";
     print "Can't open file '$paysys_log_file' $!\n";
   }
 }

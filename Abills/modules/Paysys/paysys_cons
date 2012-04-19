@@ -17,10 +17,10 @@ BEGIN {
   $sql_type = 'mysql';
   unshift(@INC, $libpath . "Abills/$sql_type/");
   unshift(@INC, $libpath . "/usr/abills/Abills/$sql_type/");
-  unshift(@INC, $libpath . "/usr/abills/");
   unshift(@INC, $libpath);
   unshift(@INC, $libpath . 'libexec/');
   unshift(@INC, '/usr/abills/');
+  unshift(@INC, '/usr/abills/Abills/');
   unshift(@INC, '/usr/abills/Abills/mysql/');
 
   eval { require Time::HiRes; };
