@@ -6988,7 +6988,6 @@ sub dv_get_month_fee {
   }
 
   #Get active price
-  print "// $Dv->{TP_INFO}->{ACTIV_PRICE} //";
   if ($Dv->{TP_INFO}->{ACTIV_PRICE} > 0) {
     my $users = Users->new($db, $admin, \%conf);
     my $user  = $users->info($Dv->{UID});
