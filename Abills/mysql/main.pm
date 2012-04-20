@@ -326,7 +326,7 @@ sub search_expr {
             $last_ip  .= '.';
           }
         }
-        push @result_arr, "(dv.ip>=INET_ATON('$first_ip') and dv.ip<=INET_ATON('$last_ip'))";
+        push @result_arr, "($field>=INET_ATON('$first_ip') and $field<=INET_ATON('$last_ip'))";
 
         return \@result_arr;
       }
