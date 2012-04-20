@@ -99,14 +99,15 @@ sub docs_receipt_add {
         if ($conf{DOCS_PDF_PRINT}) {
           $html->message(
             'info',
-            "$_RECEIPT $_ADDED",
+            "$_RECEIPT $_ADDED ",
             "$_RECEIPT $_NUM: [$Docs->{DOC_ID}]\n $_DATE: $date\n "
             . $html->button("$_SEND $_EMAIL", "qindex=" . get_function_index('docs_receipt_list') . "&sendmail=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}",    { ex_params => 'target=_new', CLASS => 'sendmail rightAlignText' }) . ' '
             . $html->button($_PRINT,          "qindex=" . get_function_index('docs_receipt_list') . "&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}&pdf=1", { ex_params => 'target=_new', CLASS => 'print rightAlignText' })
           );
 
           delete($FORM{create});
-          docs_receipt_list() if ($index != 2 && !$attr->{SKIP_LIST});
+          delete $FORM{print};
+          #docs_receipt_list() if ($index != 2 && !$attr->{SKIP_LIST});
 
           $FORM{print} = $Docs->{DOC_ID};
           $FORM{pdf}   = 1;
@@ -128,7 +129,6 @@ sub docs_receipt_add {
             . $html->button("$_SEND_MAIL", "qindex=" . get_function_index('docs_receipt_list') . "&sendmail=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}", { ex_params => 'target=_new', CLASS => 'sendmail rightAlignText' }) . ' '
             . $html->button($_PRINT,       "qindex=" . get_function_index('docs_receipt_list') . "&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}",    { ex_params => 'target=_new', CLASS => 'print rightAlignText' })
           );
-
           #$Docs->docs_receipt_info($Docs->{DOC_ID});
         }
 

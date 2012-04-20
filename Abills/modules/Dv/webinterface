@@ -501,10 +501,10 @@ sub dv_user {
     if (!$Dv->{errno}) {
       #Make month feee
       $Dv->{ACCOUNT_ACTIVATE} = $attr->{USER_INFO}->{ACTIVATE};
+      $Dv->info($Dv->{UID});
       dv_get_month_fee($Dv) if (!$FORM{STATUS});
 
       if ($attr->{REGISTRATION}) {
-        $Dv->info($Dv->{UID});
         $html->tpl_show(_include('dv_user_info', 'Dv'), $Dv);
         return 0;
       }
@@ -6988,6 +6988,7 @@ sub dv_get_month_fee {
   }
 
   #Get active price
+  print "// $Dv->{TP_INFO}->{ACTIV_PRICE} //";
   if ($Dv->{TP_INFO}->{ACTIV_PRICE} > 0) {
     my $users = Users->new($db, $admin, \%conf);
     my $user  = $users->info($Dv->{UID});
