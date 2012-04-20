@@ -5390,7 +5390,7 @@ sub report_payments {
       if ($type eq 'PAYMENT_METHOD') {
         $pages_qs =~ s/TYPE=PAYMENT_METHOD//;
         $pages_qs =~ s/FIELDS=[0-9,\ ]+&//;
-        $main_column = $html->button($PAYMENTS_METHODS{ $line->{method} }, "index=$index&TYPE=USER&METHODS=$line->{method}$pages_qs&FIELDS=$line->[0]");
+        $main_column = $html->button($PAYMENTS_METHODS{ $line->{method} }, "index=$index&TYPE=USER&METHODS=$line->{method}$pages_qs&FIELDS=$line->{method}");
       }
       elsif ($type eq 'FIO' || $type eq 'USER') {
         if (!$line->{fio} || $line->{fio} eq '') {
@@ -5423,8 +5423,8 @@ sub report_payments {
 
       }
       elsif ($type eq 'PAYMENT_METHOD') {
-        $DATA_HASH{TYPE}[ $num + 1 ] = $line->[3];
-        $CHART{X_TEXT}[$num] = $PAYMENT_METHODS[ $line->[0] ];
+        $DATA_HASH{TYPE}[ $num + 1 ] = $line->{count};
+        $CHART{X_TEXT}[$num] = $PAYMENT_METHODS[ $line->{method} ];
         $num++;
       }
       else {

@@ -346,7 +346,7 @@ sub change {
     $fees->take($user, $sum, { DESCRIBE => "REACTIVE" });
   }
 
-  $attr->{JOIN_SERVICE} = ($attr->{JOIN_SERVICE}) ? $attr->{JOIN_SERVICE} : 0;
+  #$attr->{JOIN_SERVICE} = ($attr->{JOIN_SERVICE}) ? $attr->{JOIN_SERVICE} : 0;
 
   $admin->{MODULE} = $MODULE;
   $self->changes(
