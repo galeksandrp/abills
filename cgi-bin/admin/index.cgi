@@ -912,6 +912,7 @@ sub form_companies {
       $company->{PRINT_CONTRACT} = $html->button("$_PRINT", "qindex=$index&COMPANY_ID=$FORM{COMPANY_ID}&PRINT_CONTRACT=$FORM{COMPANY_ID}" . (($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : ''), { ex_params => ' target=new', CLASS => 'print rightAlignText' });
     }
 
+
     func_menu(
       {
         'ID'   => $company->{COMPANY_ID},
@@ -6554,7 +6555,6 @@ sub form_fees {
   }
   elsif ($FORM{AID} && !defined($LIST_PARAMS{AID})) {
     $FORM{subf} = $index;
-
     form_admins();
     return 0;
   }
@@ -6567,7 +6567,7 @@ sub form_fees {
     form_search(
       {
         HIDDEN_FIELDS => {
-          subf => ($FORM{subf}) ? $FORM{subf} : undef,
+          subf       => ($FORM{subf}) ? $FORM{subf} : undef,
           COMPANY_ID => $FORM{COMPANY_ID}
         }
       }
@@ -6708,7 +6708,7 @@ sub form_search {
     }
 
     if ($FORM{type} ne $index) {
-      $functions{ $FORM{type} }->();
+#      $functions{ $FORM{type} }->();
     }
   }
 

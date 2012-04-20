@@ -272,7 +272,7 @@ sub list {
                                             'REGISTRATION',
                                             'REDUCTION_DATE',
                                             'COMMENTS',
-                                            'BILL_ID',
+                                            'BILL_ID:skip',
                                             
                                             'ACTIVATE',
                                             'EXPIRE',
