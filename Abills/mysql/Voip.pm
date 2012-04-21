@@ -634,7 +634,7 @@ sub tp_list() {
 
   $self->query(
     $db, "SELECT tp.id, tp.name, 
-    if(sum(i.tarif) is NULL or sum(i.tarif)=0, 0, 1) AS time_tarif, 
+    if(sum(i.tarif) is NULL or sum(i.tarif)=0, 0, 1) AS time_tarifs, 
     tp.payment_type,
     tp.day_fee, 
     tp.month_fee, 
