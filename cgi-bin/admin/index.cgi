@@ -6707,8 +6707,8 @@ sub form_search {
       }
     }
 
-    if ($FORM{type} ne $index) {
-#      $functions{ $FORM{type} }->();
+    if ($FORM{type} ne $index && ! $FORM{subf}) {
+      $functions{ $FORM{type} }->();
     }
   }
 

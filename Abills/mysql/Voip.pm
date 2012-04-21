@@ -633,7 +633,8 @@ sub tp_list() {
   my $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES) : '';
 
   $self->query(
-    $db, "SELECT tp.id, tp.name, if(sum(i.tarif) is NULL or sum(i.tarif)=0, 0, 1), 
+    $db, "SELECT tp.id, tp.name, 
+    if(sum(i.tarif) is NULL or sum(i.tarif)=0, 0, 1) AS time_tarif, 
     tp.payment_type,
     tp.day_fee, 
     tp.month_fee, 
