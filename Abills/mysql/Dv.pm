@@ -619,7 +619,8 @@ sub list {
     $self->query(
       $db, "SELECT count(u.id) FROM (users u, dv_main dv) 
     LEFT JOIN users_pi pi ON (u.uid = pi.uid)
-    LEFT JOIN tarif_plans tp ON (tp.id=dv.tp_id) 
+    LEFT JOIN tarif_plans tp ON (tp.id=dv.tp_id)
+    LEFT JOIN companies company ON  (u.company_id=company.id) 
     $EXT_TABLE
     $WHERE"
     );

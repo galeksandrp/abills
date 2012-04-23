@@ -38,7 +38,7 @@
 
 
 CLASSES_NUMS='2 3'
-VERSION=5.87
+VERSION=5.88
 
 
 name="abills_shaper"
@@ -177,13 +177,16 @@ if [ x${abills_shaper_enable} != xNO ]; then
     fi;
 
     ${BILLING_DIR}/libexec/billd checkspeed NAS_IDS=${abills_nas_id} RECONFIGURE=1 FW_DIRECTION_OUT="${OUT_DIRECTION}" FW_DIRECTION_IN="${IN_DIRECTION}";
-    if [ ${firewall_type} = "/etc/fw.conf" ]; then
-      ${IPFW} ${firewall_type}
-    fi;
     fi;
    fi;
   fi;
 fi;
+
+# Start custom shapper rules
+if [ ${firewall_type} = "/etc/fw.conf" ]; then
+  ${IPFW} ${firewall_type}
+fi;
+
 
 #IPoE Shapper for dhcp connections
 if [ x${abills_dhcp_shaper} != xNO ]; then
@@ -205,8 +208,8 @@ if [ x${abills_ipn_nas_id} != x ]; then
     IFACE=" via ${abills_ipn_if}"
   fi;
 
-  #Перенаправить все запросы неавторизированых клиентов на авторизатор
-  ${IPFW} add 64000 fwd 127.0.0.1,80 tcp from any to any dst-port 80 ${IFACE}
+  #Redirect unauth ips to portal
+  ${IPFW} add 64000 fwd 127.0.0.1,80 tcp from any to any dst-port 80 ${IFACE} in
 
   # Разрешить ping к серверу доступа
   ${IPFW} add 64100 allow icmp from any to me  ${IFACE}
@@ -224,12 +227,10 @@ if [ x${abills_ipn_nas_id} != x ]; then
     ${IPFW} add 64450 allow udp from ${abills_ipn_allow_ip} 53 to any
   fi;  
   
-  # Закрыть доступ неактивизированым хостам
-  ${IPFW} add 65000 deny ip from not table\(10\) to any ${IFACE} in
-
   /usr/abills/libexec/periodic monthly MODULES=Ipn SRESTART=1 NO_ADM_REPORT=1 NAS_IDS="${abills_ipn_nas_id}"
+  # Block unauth ips
+  ${IPFW} add 65000 deny ip from not table\(10\) to any ${IFACE} in
 fi;
-
 
 
 #NAT Section
@@ -241,7 +242,7 @@ if [ x"${abills_nat}" != x ] ; then
   # NAT External IP
   NAT_IPS=`echo ${abills_nat} | awk -F: '{ print $1 }'`;
   # Fake net 
-  FAKE_NET=`echo ${abills_nat} | awk -F: '{ print $2 }'`;
+  FAKE_NET=`echo ${abills_nat} | awk -F: '{ print $2 }' | sed 's/,/ /g'`;
   #NAT IF
   NAT_IF=`echo ${abills_nat} | awk -F: '{ print $3 }'`;
 
