@@ -199,7 +199,7 @@ sub periodic_invoice {
   my $docs_users = $Docs->user_list(
     {
       %LIST_PARAMS,
-      PRE_INVOICE_DATE     => $TO_DATE,
+      PRE_INVOICE_DATE     => $DATE,
       PERIODIC_CREATE_DOCS => 1,
       DISCOUNT             => '>=0',
       PAGE_ROWS            => 1000000,
