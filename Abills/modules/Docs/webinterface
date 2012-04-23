@@ -1056,7 +1056,7 @@ sub docs_invoices_list {
   }
 
 
-  my $invoice_list  = $Docs->invoices_list({%LIST_PARAMS, COLS_NAME =>1 });
+  my $invoice_list  = $Docs->invoices_list({%LIST_PARAMS, COLS_NAME =>1, FULL_INFO => $FORM{BILL_ID} });
   my $table = $html->table(
     {
       width      => '100%',
