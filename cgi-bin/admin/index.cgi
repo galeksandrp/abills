@@ -5433,8 +5433,8 @@ sub report_payments {
           $num = $3;
         }
         elsif ($line->{month} && $line->{month} =~ /(\d+)-(\d+)/) {
-          $CHART{X_LINE}[$num] = $line->[0];
-          $CHART{X_TEXT}[$num] = $line->[0];
+          $CHART{X_LINE}[$num] = $line->{month};
+          $CHART{X_TEXT}[$num] = $line->{month};
           $num++;
         }
         elsif ($type eq 'HOURS') {
