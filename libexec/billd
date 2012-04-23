@@ -294,13 +294,13 @@ sub check_lines {
       if (
         (
           $uid && ($calls_tp_id && $calls_tp_id ne $tp_num)
-          || ($state && !$conf{DV_STATUS_NEG_DEPOSIT})
+          || ($state && ! $conf{DV_STATUS_NEG_DEPOSIT})
 
           #           || ($POSTPAIDS{$tp_num} == 0 && $deposit+$credit <= 0 && ! $Billing->{NEG_DEPOSIT_FILTER}) # && $bill_priority == 0)
         )
         && $online_state != 2
       ){
-        $Log->log_print('LOG_WARNING', $user_name, "Change TP $calls_tp_id -> $tp_num DEPOSIT: $deposit CREDIT: $credit SESSION_SUM: $session_sum SESSION_ID: $acct_session_id",
+        $Log->log_print('LOG_WARNING', $user_name, "Change TP $calls_tp_id -> $tp_num DEPOSIT: $deposit CREDIT: $credit SESSION_SUM: $session_sum STATUS: $state SESSION_ID: $acct_session_id",
           { ACTION => 'HANGUP' });
 
         my $ret = hangup(
