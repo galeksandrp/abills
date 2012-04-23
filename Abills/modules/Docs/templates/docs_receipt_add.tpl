@@ -22,6 +22,7 @@
 
 <tr><td>$_NEXT_PERIODS:</td><td><input type=text name=NEXT_PERIOD value='%NEXT_PERIOD=0%' size=5> $_MONTH</td></tr>
 <tr><td>$_SEND E-mail:</td><td><input type=checkbox name=SEND_EMAIL value=1 checked></td></tr>
+<tr><td>$_INCLUDE_DEPOSIT:</td><td><input type=checkbox name=INCLUDE_DEPOSIT value=1 checked></td></tr>
 <tr><td colspan=2>
 
 %ORDERS%

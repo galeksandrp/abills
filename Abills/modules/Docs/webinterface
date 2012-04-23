@@ -1683,7 +1683,7 @@ sub docs_invoice {
       }
 
 
-      $Docs->invoice_add({ %FORM, DEPOSIT => $users->{DEPOSIT} });
+      $Docs->invoice_add({ %FORM, DEPOSIT => ($FORM{INCLUDE_DEPOSIT}) ?  $users->{DEPOSIT}  : undef });
       if (!$Docs->{errno}) {
         #Add date of last invoice
         if ($attr->{REGISTRATION}) {
@@ -1803,7 +1803,7 @@ sub docs_invoice {
     }
 
     $Docs->{CUSTOMER} = $self->{COMPANY_NAME} || $Docs->{FIO} || '-' if (!$Docs->{CUSTOMER});
-    $Docs->{DEPOSIT} = sprintf("%.2f", $Docs->{DEPOSIT});
+    $Docs->{DEPOSIT}  = sprintf("%.2f", $Docs->{DEPOSIT});
 
     if ($FORM{CHECK_PEYMENT_ID} && $Docs->{PAYMENT_ID}) {
       return 0;
@@ -3011,13 +3011,61 @@ sub docs_payments_maked {
 sub docs_users_list {
   my ($attr) = @_;
 
-  my $list  = $Docs->user_list({%LIST_PARAMS});
+  $Docs->{INVOICE_PERIOD_SEL} = $html->form_select(
+    'INVOICING_PERIOD',
+    {
+      SELECTED => $Docs->{INVOICING_PERIOD},
+      SEL_HASH => {
+      	'' => $_ALL,
+        1  => "1 $_MONTH",
+        3  => "3 $_MONTH",
+        6  => "6 $_MONTH",
+        12 => "12 $_MONTH",
+      },
+      NO_ID        => 1,
+      SORT_KEY_NUM => 1
+    }
+  );
+
+  $Docs->{PERIODIC_CREATE_DOCS}='checked' if ($FORM{PERIODIC_CREATE_DOCS});
+  $Docs->{SEND_DOCS}='checked' if ($FORM{SEND_DOCS});
+  $Docs->{PERSONAL_DELIVERY}='checked' if ($FORM{PERSONAL_DELIVERY});
+
+  $Docs->{INVOICE_DATE}         = $html->date_fld2(
+    'INVOICE_DATE',
+    {
+      MONTHES   => \@MONTHES,
+      FORM_NAME => 'form_search',
+      WEEK_DAYS => \@WEEKDAYS,
+      NO_DEFAULT_DATE => 1,
+    }
+  );
+
+  $Docs->{PRE_INVOICE_DATE}         = $html->date_fld2(
+    'PRE_INVOICE_DATE',
+    {
+      MONTHES   => \@MONTHES,
+      FORM_NAME => 'form_search',
+      WEEK_DAYS => \@WEEKDAYS,
+      NO_DEFAULT_DATE => 1,
+    }
+  );
+
+
+  form_search({ SEARCH_FORM  => $html->tpl_show(_include('docs_users_search', 'Docs'), 
+  	  { %FORM, %$Docs }, 
+  	  { OUTPUT2RETURN => 1 }),
+  	  ADDRESS_FORM => 1 
+  	});
+
+
+  my $list  = $Docs->user_list({%LIST_PARAMS, COLS_NAME => 1 });
   my $table = $html->table(
     {
-      width   => '100%',
-      caption => "$_USERS",
-      border  => 1,
-      title   => [ "$_LOGIN", "$_FIO", "$_DEPOSIT", "$_CREDIT", "$_STATUS", "$_LAST_INVOICE_DATE", "$_NEXT_INVOICE_DATE", "$_PERIOD ($_MONTH)" ],
+      width      => '100%',
+      caption    => "$_USERS",
+      border     => 1,
+      title      => [ "$_LOGIN", "$_FIO", "$_DEPOSIT", "$_CREDIT", "$_STATUS", "$_LAST_INVOICE_DATE", "$_NEXT_INVOICE_DATE", "$_PERIOD ($_MONTH)" ],
       cols_align => [ 'left', 'left', 'right', 'left', 'right', 'left' ],
       pages      => $Docs->{TOTAL},
       ID         => 'DOCS_USERS',
@@ -3025,9 +3073,15 @@ sub docs_users_list {
   );
 
   foreach my $line (@$list) {
-    $table->addrow($html->button($line->[0], "index=15&UID=$line->[10]"), "$line->[1]", "$line->[2]", "$line->[3]", "$line->[4]", "$line->[5]", "$line->[6]", "$line->[7]",);
-
-    #$total_sum+=$line->[4];
+    $table->addrow($html->button($line->{login}, "index=15&UID=$line->{uid}"), 
+      "$line->{fio}", 
+      "$line->{deposit}", 
+      "$line->{credit}", 
+      "$line->{login_status}", 
+      "$line->{invoice_date}", 
+      "$line->{pre_invoice_date}", 
+      "$line->{invoicing_period}"
+      );
   }
 
   print $table->show();

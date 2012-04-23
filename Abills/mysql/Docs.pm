@@ -885,8 +885,8 @@ sub invoice_info {
     $db, "SELECT d.invoice_num, 
    d.date, 
    d.customer,  
-   sum(o.price * o.counts), 
-   if(d.vat>0, FORMAT(sum(o.price * o.counts) / ((100+d.vat)/ d.vat), 2), FORMAT(0, 2)),
+   \@TOTAL_SUM := sum(o.price * o.counts) AS total_sum, 
+   if(d.vat>0, FORMAT(sum(o.price * o.counts) / ((100+d.vat)/ d.vat), 2), FORMAT(0, 2)) AS vat,
    u.id, 
    a.name, 
    d.created, 
@@ -896,10 +896,10 @@ sub invoice_info {
    pi.address_street,
    pi.address_build,
    pi.address_flat,
-   if (d.phone<>0, d.phone, pi.phone),
+   if (d.phone<>0, d.phone, pi.phone) AS phone,
    pi.contract_id,
    pi.contract_date,
-   d.date + interval $CONF->{DOCS_ACCOUNT_EXPIRE_PERIOD} day,
+   d.date + interval $CONF->{DOCS_ACCOUNT_EXPIRE_PERIOD} day AS expire_period,
    u.company_id,
    c.name,
    d.payment_id,
@@ -908,7 +908,9 @@ sub invoice_info {
    d.deposit,
    d.delivery_status,
    d.exchange_rate,
-   d.currency
+   d.currency,
+   \@CHARGED := sum(if (o.fees_id>0, o.price * o.counts, 0)) AS charged_sum,
+   \@TOTAL_SUM - \@CHARGED AS pre_payment
     FROM (docs_invoices d, docs_invoice_orders o)
     LEFT JOIN users u ON (d.uid=u.uid)
     LEFT JOIN companies c ON (u.company_id=c.id)
@@ -952,7 +954,8 @@ sub invoice_info {
     $self->{DEPOSIT},
     $self->{DELIVERY_STATUS},
     $self->{EXCHANGE_RATE},
-    $self->{CURRENCY}
+    $self->{CURRENCY},
+    $self->{CHARGED_SUM},
   ) = @{ $self->{list}->[0] };
 
   $self->{AMOUNT_FOR_PAY} = ($self->{DEPOSIT} > 0) ? $self->{TOTAL_SUM} - $self->{DEPOSIT} : $self->{TOTAL_SUM} + $self->{DEPOSIT};
@@ -1601,7 +1604,9 @@ sub user_info {
   my ($uid, $attr) = @_;
 
   $WHERE = "WHERE service.uid='$uid'";
-
+  
+  $CONF->{DOCS_PRE_INVOICE_PERIOD}=10 if (! defined($CONF->{DOCS_PRE_INVOICE_PERIOD}));
+  
   $self->query(
     $db, "SELECT service.uid, 
    service.send_docs, 
@@ -1611,8 +1616,7 @@ sub user_info {
    service.personal_delivery,
    service.invoicing_period,
    service.invoice_date,
-   (service.invoice_date + INTERVAL service.invoicing_period MONTH) - INTERVAL 10 day AS next_invoice_date
-
+   (service.invoice_date + INTERVAL service.invoicing_period MONTH) - INTERVAL $CONF->{DOCS_PRE_INVOICE_PERIOD} day AS next_invoice_date
      FROM docs_main service
    $WHERE;", undef, { INFO => 1 }
   );
@@ -1691,13 +1695,14 @@ sub user_list {
   $PG        = ($attr->{PG})        ? $attr->{PG}        : 0;
   $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
 
+  $CONF->{DOCS_PRE_INVOICE_PERIOD}=10 if (! defined($CONF->{DOCS_PRE_INVOICE_PERIOD}));
   
   my @WHERE_RULES = ( "u.uid = service.uid" );
 
   push @WHERE_RULES, @{ $self->search_expr_users({ %$attr, 
   	                         EXT_FIELDS => [
   	                                        'PHONE',
-  	                                        'EMAIL',
+  	                                        'EMAIL:skip',
   	                                        'ADDRESS_FLAT',
   	                                        'PASPORT_DATE',
                                             'PASPORT_NUM', 
@@ -1731,6 +1736,27 @@ sub user_list {
     push @WHERE_RULES, @{ $self->search_expr("$attr->{INVOICE_DATE}", 'DATE', 'service.invoice_date') };
   }
 
+
+  if ($attr->{EMAIL}) {
+    push @WHERE_RULES, @{ $self->search_expr("$attr->{EMAIL}", 'STR', 'service.email') };
+  }
+
+  if ($attr->{PERIODIC_CREATE_DOCS}) {
+    push @WHERE_RULES, @{ $self->search_expr("$attr->{PERIODIC_CREATE_DOCS}", 'INT', 'service.periodic_create_docs') };
+  }
+
+  if ($attr->{SEND_DOCS}) {
+    push @WHERE_RULES, @{ $self->search_expr("$attr->{SEND_DOCS}", 'INT', 'service.send_docs') };
+  }
+
+  if ($attr->{PERSONAL_DELIVERY}) {
+    push @WHERE_RULES, @{ $self->search_expr("$attr->{PERSONAL_DELIVERY}", 'INT', 'service.personal_delivery') };
+  }
+
+  if ($attr->{INVOICING_PERIOD}) {
+    push @WHERE_RULES, @{ $self->search_expr("$attr->{INVOICING_PERIOD}", 'INT', 'service.invoicing_period') };
+  }
+
   if ($attr->{PRE_INVOICE_DATE}) {
   	if ($attr->{PRE_INVOICE_DATE} =~ /(\d{4}-\d{2}-\d{2})\/(\d{4}-\d{2}-\d{2})/) {
       my $from_date = $1;
@@ -1738,17 +1764,17 @@ sub user_list {
 
       push @WHERE_RULES, "( 
       (u.activate='0000-00-00'
-           AND service.invoice_date + INTERVAL service.invoicing_period MONTH - INTERVAL 10 day>='$from_date'
-           AND service.invoice_date + INTERVAL service.invoicing_period MONTH - INTERVAL 10 day<='$to_date'
+           AND service.invoice_date + INTERVAL service.invoicing_period MONTH - INTERVAL $CONF->{DOCS_PRE_INVOICE_PERIOD} day>='$from_date'
+           AND service.invoice_date + INTERVAL service.invoicing_period MONTH - INTERVAL $CONF->{DOCS_PRE_INVOICE_PERIOD} day<='$to_date'
       )
       OR ( u.activate<>'0000-00-00'
-           AND service.invoice_date + INTERVAL 30*service.invoicing_period+service.invoicing_period-1 DAY - INTERVAL 10 day>='$from_date' 
-           AND service.invoice_date + INTERVAL 30*service.invoicing_period+service.invoicing_period-1 DAY - INTERVAL 10 day<='$to_date' 
+           AND service.invoice_date + INTERVAL 30*service.invoicing_period+service.invoicing_period-1 DAY - INTERVAL $CONF->{DOCS_PRE_INVOICE_PERIOD} day>='$from_date' 
+           AND service.invoice_date + INTERVAL 30*service.invoicing_period+service.invoicing_period-1 DAY - INTERVAL $CONF->{DOCS_PRE_INVOICE_PERIOD} day<='$to_date' 
       ))";  		
   	}
     else {
-      push @WHERE_RULES, "((u.activate='0000-00-00' AND service.invoice_date + INTERVAL service.invoicing_period MONTH - INTERVAL 10 day='$attr->{PRE_INVOICE_DATE}') 
-      OR (u.activate<>'0000-00-00' AND service.invoice_date + INTERVAL 30*service.invoicing_period+service.invoicing_period DAY   - INTERVAL 10 day='$attr->{PRE_INVOICE_DATE}'))";
+      push @WHERE_RULES, "((u.activate='0000-00-00' AND service.invoice_date + INTERVAL service.invoicing_period MONTH - INTERVAL $CONF->{DOCS_PRE_INVOICE_PERIOD} day='$attr->{PRE_INVOICE_DATE}') 
+      OR (u.activate<>'0000-00-00' AND service.invoice_date + INTERVAL 30*service.invoicing_period+service.invoicing_period DAY   - INTERVAL $CONF->{DOCS_PRE_INVOICE_PERIOD} day='$attr->{PRE_INVOICE_DATE}'))";
     }
   }
 
@@ -1769,16 +1795,16 @@ sub user_list {
           if (u.credit=0, company.credit, u.credit)) AS credit, 
      u.disable AS login_status, 
      service.invoice_date, 
-     (service.invoice_date + INTERVAL service.invoicing_period MONTH) AS next_invoice_date,
-     service.invoicing_period,    
+     if(u.activate='0000-00-00', 
+       service.invoice_date + INTERVAL service.invoicing_period MONTH,
+       service.invoice_date + INTERVAL 30*service.invoicing_period+service.invoicing_period-1 DAY) - INTERVAL 10 day AS pre_invoice_date,
+     service.invoicing_period,  
+     (service.invoice_date + INTERVAL service.invoicing_period MONTH) AS next_invoice_date,     
      service.email, 
      service.send_docs,
      service.uid,
-     u.activate,
      $self->{SEARCH_FIELDS}
-     if(u.activate='0000-00-00', 
-     service.invoice_date + INTERVAL service.invoicing_period MONTH,  
-     service.invoice_date + INTERVAL 30*service.invoicing_period+service.invoicing_period-1 DAY)   - INTERVAL 10 day AS pre_invoice_date
+     u.activate
    FROM (users u, docs_main service)
    
    LEFT JOIN users_pi pi ON (u.uid = pi.uid)

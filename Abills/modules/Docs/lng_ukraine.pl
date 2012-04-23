@@ -46,3 +46,5 @@ $_INVOICING_PERIOD='Період виписки рахунку';
 $_PERSONAL_DELIVERY='Персональна доставка';
 $_ALT='Альтернативная';
 $_CURRENCY='Валюта';
+
+$_INCLUDE_DEPOSIT='Врахувати депозит';

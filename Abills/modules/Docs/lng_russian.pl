@@ -41,3 +41,4 @@ $_CURRENCY='Валюта';
 
 $_LAST_INVOICE_DATE='Дата последнего счета';
 $_NEXT_INVOICE_DATE='Дата следующего счета';
+$_INCLUDE_DEPOSIT='Учесть депозит';

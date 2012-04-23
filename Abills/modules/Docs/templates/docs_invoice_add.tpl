@@ -6,6 +6,7 @@
 <input type=hidden name='OP_SID' value='%OP_SID%'>
 <input type=hidden name='VAT' value='%VAT%'>
 <input type=hidden name='SEND_EMAIL' value='1'>
+<input type=hidden name=INCLUDE_DEPOSIT value=1>
 <Table class=form>
 <tr><th class='form_title' colspan=2>%CAPTION%</th></tr>
 %FORM_ACCT_ID%

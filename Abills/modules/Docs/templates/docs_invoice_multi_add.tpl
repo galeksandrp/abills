@@ -1,5 +1,7 @@
 <form action=$SELF_URL name=multi_create>
 <input type=hidden name=index value=$index>
+<input type=hidden name=INCLUDE_BALANCE value=1>
+
 
 %USERS_TABLE%
 
