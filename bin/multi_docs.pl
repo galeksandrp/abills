@@ -81,12 +81,12 @@ $admin->info($conf{SYSTEM_ADMIN_ID}, { IP => '127.0.0.1' });
 
 require Finance;
 Finance->import();
-my $Fees = Finance->fees($db, $admin, \%conf);
-my $Users = Users->new($db, $admin, \%conf);
-$users = $Users;
+my $Fees    = Finance->fees($db, $admin, \%conf);
+my $Users   = Users->new($db, $admin, \%conf);
+$users      = $Users;
 my $Tariffs = Tariffs->new($db, $admin, \%conf);
-my $Docs = Docs->new($db, $admin, \%conf);
-my $Dv = Dv->new($db, $admin, \%conf);
+my $Docs    = Docs->new($db, $admin, \%conf);
+my $Dv      = Dv->new($db, $admin, \%conf);
 
 require $Bin . "/../Abills/modules/Docs/lng_$conf{default_language}.pl";
 require "language/$conf{default_language}.pl";
@@ -191,10 +191,15 @@ sub periodic_invoice {
     $FORM{DOCS_CURRENCY} = $Finance->{ISO};
   }
 
+  my $TO_DATE = $DATE;
+  if ( $DATE =~ /(\d{4}\-\d{2}\-\d{2})\/(\d{4}\-\d{2}\-\d{2})/ ) {
+    $TO_DATE = $1;
+  }
+
   my $docs_users = $Docs->user_list(
     {
       %LIST_PARAMS,
-      PRE_INVOICE_DATE     => $DATE,
+      PRE_INVOICE_DATE     => $TO_DATE,
       PERIODIC_CREATE_DOCS => 1,
       DISCOUNT             => '>=0',
       PAGE_ROWS            => 1000000,
@@ -235,10 +240,11 @@ sub periodic_invoice {
     my @ids               = ();
 
     # No invoicing service from last invoice
+
     my $new_invoices = $Docs->invoice_new(
       {
         FROM_DATE => '2011-01-01',
-        TO_DATE   => $DATE,
+        TO_DATE   => $TO_DATE,
         PAGE_ROWS => 500,
         COLS_NAME => 1,
         UID       => $user{UID}
@@ -281,7 +287,7 @@ sub periodic_invoice {
         }
       );
 
-      foreach my $invoice (@$invoice_list) {
+      foreach my $invoice (@{ $Docs->{ORDERS} }) {
         $current_invoice{ $invoice->{orders} } = $invoice->{invoice_id};
       }
       
