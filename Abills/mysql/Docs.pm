@@ -1611,7 +1611,7 @@ sub user_info {
    service.personal_delivery,
    service.invoicing_period,
    service.invoice_date,
-   (service.invoice_date + INTERVAL service.invoicing_period MONTH) - INTERVAL 10 day AS next_infvoice_date
+   (service.invoice_date + INTERVAL service.invoicing_period MONTH) - INTERVAL 10 day AS next_invoice_date
 
      FROM docs_main service
    $WHERE;", undef, { INFO => 1 }
