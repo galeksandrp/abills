@@ -225,7 +225,7 @@ if [ x${abills_ipn_nas_id} != x ]; then
     # Разрешить ДНС запросы к серверу
     ${IPFW} add 64400 allow udp from any to ${abills_ipn_allow_ip} 53
     ${IPFW} add 64450 allow udp from ${abills_ipn_allow_ip} 53 to any
-  fi;  
+  fi;
   
   /usr/abills/libexec/periodic monthly MODULES=Ipn SRESTART=1 NO_ADM_REPORT=1 NAS_IDS="${abills_ipn_nas_id}"
   # Block unauth ips
