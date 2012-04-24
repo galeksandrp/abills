@@ -768,10 +768,10 @@ sub paysys_log {
   my $list  = $Paysys->list({%LIST_PARAMS});
   my $table = $html->table(
     {
-      width   => '100%',
-      caption => "Paysys",
-      border  => 1,
-      title   => [ 'ID', "$_LOGIN", "$_DATE", "$_SUM", "$_PAY_SYSTEM", "$_TRANSACTION", "IP", "$_STATUS", '-', '-' ],
+      width      => '100%',
+      caption    => "Paysys",
+      border     => 1,
+      title      => [ 'ID', "$_LOGIN", "$_DATE", "$_SUM", "$_PAY_SYSTEM", "$_TRANSACTION", "$_USER IP", "$_STATUS", '-', '-' ],
       cols_align => [ 'left', 'left', 'right', 'right', 'left', 'right', 'right', 'center:noprint', 'center:noprint' ],
       qs         => $pages_qs,
       pages      => $Paysys->{TOTAL},
@@ -783,7 +783,10 @@ sub paysys_log {
 
     $table->addrow(
       $line->[0], $html->button("$line->[1]", "index=15&UID=$line->[8]"),
-      "$line->[2]", "$line->[3]", "$PAY_SYSTEMS{$line->[4]}", $html->button("$line->[5]", "index=2&EXT_ID=$line->[5]&search=1"),
+      "$line->[2]", 
+      "$line->[3]", 
+      "$PAY_SYSTEMS{$line->[4]}", 
+      $html->button("$line->[5]", "index=2&EXT_ID=$line->[5]&search=1"),
       "$line->[6]",
       "$line->[7]:$status[$line->[7]]",
       $html->button($_INFO, "index=$index&info=$line->[0]", { CLASS => 'show' }),
@@ -830,8 +833,7 @@ sub paysys_user_log {
         [ "$_PAY_SYSTEM", $PAY_SYSTEMS{ $Paysys->{SYSTEM_ID} } ], 
         [ "$_TRANSACTION", $Paysys->{TRANSACTION_ID} ], 
         [ "$_USER IP", $Paysys->{IP} ], 
-        [ "$_SYSTEM IP:", $Paysys->{PAYSYS_IP} ],
-        [ "$_INFO:", $Paysys->{INFO} ] ]
+        [ "$_INFO", $Paysys->{INFO} ] ]
       }
     );
 
