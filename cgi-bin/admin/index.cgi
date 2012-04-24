@@ -8979,7 +8979,7 @@ sub title_former {
     'phone'         => "$_PHONE",
     'comments'      => "$_COMMENTS",
     'company_id'    => '$_COMPANY_ID',
-    'bill_id'       => '$_BILLS',
+    'bill_id'       => "$_BILLS",
     'activate'      => "$_ACTIVATE",
     'expire'        => "$_EXPIRE",
     'credit_date'   => "$_CREDIT $_DATE",
