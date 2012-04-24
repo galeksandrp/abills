@@ -823,7 +823,15 @@ sub paysys_user_log {
       {
         width => '500',
         rows =>
-        [ [ "ID", $Paysys->{ID} ], [ "$_LOGIN", $Paysys->{LOGIN} ], [ "$_DATE", $Paysys->{DATETIME} ], [ "$_SUM", $Paysys->{SUM} ], [ "$_PAY_SYSTEM", $PAY_SYSTEMS{ $Paysys->{SYSTEM_ID} } ], [ "$_TRANSACTION", $Paysys->{TRANSACTION_ID} ], [ "IP", $Paysys->{IP} ], [ "$_INFO", $Paysys->{INFO} ] ]
+        [ [ "ID", $Paysys->{ID} ], 
+        [ "$_LOGIN", $Paysys->{LOGIN} ], 
+        [ "$_DATE", $Paysys->{DATETIME} ], 
+        [ "$_SUM", $Paysys->{SUM} ], 
+        [ "$_PAY_SYSTEM", $PAY_SYSTEMS{ $Paysys->{SYSTEM_ID} } ], 
+        [ "$_TRANSACTION", $Paysys->{TRANSACTION_ID} ], 
+        [ "$_USER IP", $Paysys->{IP} ], 
+        [ "$_SYSTEM IP:", $Paysys->{PAYSYS_IP} ],
+        [ "$_INFO:", $Paysys->{INFO} ] ]
       }
     );
 
@@ -851,7 +859,13 @@ sub paysys_user_log {
 
   foreach my $line (@$list) {
 
-    $table->addrow($line->[0], $line->[1], "$line->[2]", "$line->[3]", "$PAY_SYSTEMS{$line->[4]}", $line->[5], "$line->[6]", $html->button($_INFO, "index=$index&info=$line->[0]"));
+    $table->addrow($line->[0], 
+    $line->[1], 
+    "$line->[2]", 
+    "$line->[3]", 
+    "$PAY_SYSTEMS{$line->[4]}", 
+    $line->[5], "$line->[6]", 
+    $html->button($_INFO, "index=$index&info=$line->[0]"));
   }
   print $table->show();
 
