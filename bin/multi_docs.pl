@@ -201,7 +201,7 @@ sub periodic_invoice {
       %LIST_PARAMS,
       PRE_INVOICE_DATE     => $DATE,
       PERIODIC_CREATE_DOCS => 1,
-      DISCOUNT             => '>=0',
+      REDUCTION            => '>=0',
       PAGE_ROWS            => 1000000,
       COLS_NAME            => 1 
     }
@@ -221,7 +221,7 @@ sub periodic_invoice {
       SEND_DOCS         => $docs_user->{send_docs},
       UID               => $docs_user->{uid},
       ACTIVATE          => $docs_user->{activate},
-      DISCOUNT          => $docs_user->{discount} || 0,
+      DISCOUNT          => $docs_user->{reduction} || 0,
       DOCS_CURRENCY     => $conf{DOCS_CURRENCY},
       EXCHANGE_RATE     => $FORM{EXCHANGE_RATE}
     );
@@ -319,7 +319,7 @@ sub periodic_invoice {
 
               for (my $i = ($FORM{NEXT_PERIOD} == -1) ? -2 : 0 ; $i < int($FORM{NEXT_PERIOD}) ; $i++) {
                 my $result_sum = sprintf("%.2f", $sum);
-
+print "!! $user{DISCOUNT} !!\n";
                 if ($user{DISCOUNT} && $module ne 'Abon') {
                   $result_sum = sprintf("%.2f", $sum * (100 - $user{DISCOUNT}) / 100);
                 }

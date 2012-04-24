@@ -32,10 +32,6 @@ sub docs_user_del {
 sub docs_contract {
   my ($attr) = @_;
 
-  #$conf{DOCS_LANGUAGE} = $conf{default_language} if (! $conf{DOCS_LANGUAGE});
-  #require "../../language/$conf{DOCS_LANGUAGE}.pl";
-  #require "../../Abills/modules/Docs/lng_$conf{DOCS_LANGUAGE}.pl";
-
   if ($FORM{UID}) {
     my $user_main_info = $users->info($FORM{UID}, { SHOW_PASSWORD => 1 });
     $Docs = $users->pi({ UID => $FORM{UID} });
@@ -332,7 +328,6 @@ sub docs_receipt {
 
     #Next period payments
     if ($FORM{NEXT_PERIOD}) {
-
       # Get invoces
       my %current_receipt = ();
       my $list = $Docs->docs_receipt_list({ UID => $FORM{UID}, PAYMENT_ID => 0, ORDERS_LIST => 1 });
@@ -400,7 +395,6 @@ sub docs_receipt {
 
             for (my $i = ($FORM{NEXT_PERIOD} == -1) ? -2 : 0 ; $i < int($FORM{NEXT_PERIOD}) ; $i++) {
               $result_sum = sprintf("%.2f", $sum);
-
               if ($users->{REDUCTION} && $module ne 'Abon') {
                 $result_sum = sprintf("%.2f", $sum * (100 - $users->{REDUCTION}) / 100);
               }
@@ -2259,6 +2253,7 @@ sub docs_invoice {
       }
       else {
         $Docs->{ORDERS} = $table->show({ OUTPUT2RETURN => 1 });
+        $FORM{NEXT_PERIOD}=$Docs->{INVOICING_PERIOD} if (! $FORM{NEXT_PERIOD});
         $html->tpl_show(_include('docs_receipt_add', 'Docs'), { %FORM, %$attr, %$Docs, %$users }) if (!$FORM{pdf});
       }
     }

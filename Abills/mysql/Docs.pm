@@ -1736,7 +1736,6 @@ sub user_list {
     push @WHERE_RULES, @{ $self->search_expr("$attr->{INVOICE_DATE}", 'DATE', 'service.invoice_date') };
   }
 
-
   if ($attr->{EMAIL}) {
     push @WHERE_RULES, @{ $self->search_expr("$attr->{EMAIL}", 'STR', 'service.email') };
   }
