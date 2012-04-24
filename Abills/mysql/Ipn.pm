@@ -1101,13 +1101,14 @@ sub ipn_log_rotate {
 
     if ($self->{list}->[0]->[0] > 0) {
       $self->query($db, "SHOW TABLES LIKE 'ipn_traf_detail_$DATE';");
-      if ($self->{TOTAL} > 0 && $version > 4.1) {
+      if ($self->{TOTAL} == 0 && $version > 4.1) {
         @rq = ('CREATE TABLE IF NOT EXISTS ipn_traf_detail_new LIKE ipn_traf_detail;', 
                'RENAME TABLE ipn_traf_detail TO ipn_traf_detail_' . $DATE . ', ipn_traf_detail_new TO ipn_traf_detail;', 
                'TRUNCATE TABLE ipn_unknow_ips;',
                );
       }
       else {
+      	$attr->{PERIOD} = 30 if (! $attr->{PERIOD});
         @rq = ("DELETE FROM ipn_traf_detail WHERE f_time < f_time - INTERVAL $attr->{PERIOD} DAY;");
       }
     }
