@@ -760,7 +760,7 @@ sub get_speed {
   my ($attr) = @_;
 
   my $EXT_TABLE = '';
-
+  @WHERE_RULES  = ();
   $self->{SEARCH_FIELDS}       = '';
   $self->{SEARCH_FIELDS_COUNT} = 0;
 
@@ -803,7 +803,9 @@ AND intv.day IN (select if ( intv.day=8,
         (select if (intv.day=0, 0,
                 (select intv.day from intervals as intv where DATE_FORMAT( NOW(), '%w')+1 = intv.day LIMIT 1)))))
 GROUP BY tp.tp_id, tt.id
-ORDER by tp.tp_id, tt.id;"
+ORDER by tp.tp_id, tt.id;",
+  undef,
+  $attr  
   );
 
   return $self->{list};

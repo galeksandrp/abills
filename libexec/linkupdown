@@ -450,8 +450,15 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
        	  push @FW_ACTIONS, "$IPFW table $users_table_number add $CLIENT_IP/$BIT_MASK $tablearg_in";
           push @FW_ACTIONS, "$IPFW table ". ($users_table_number+1)." add $CLIENT_IP/$BIT_MASK $tablearg_out";
           
-          push @FW_ACTIONS, "$IPFW pipe $tablearg_in config bw ". $speed_in ."Kbit/s queue ". (( $speed_in / 10 > 1000 ) ? 1000 : int( $speed_in / 10 )) ."Kbytes mask dst-ip 0x00000000";
-          push @FW_ACTIONS, "$IPFW pipe $tablearg_out config bw ". $speed_out ."Kbit/s queue ". (( $speed_in / 10 > 1000) ? 1000 : int( $speed_in / 10 ) ) ."Kbytes mask dst-ip 0x00000000";
+          my $queue_in  = '';
+          my $queue_out = '';
+          if (! $conf{DV_SKIP_QUEUE}) {
+          	$queue_in  = "queue ". (( $speed_in / 10 > 1000 ) ? 1000 : int( $speed_in / 10 )) ."Kbytes";
+          	$queue_out = "queue ". (( $speed_in / 10 > 1000) ? 1000 : int( $speed_in / 10 ) ) ."Kbytes";
+          }
+          
+          push @FW_ACTIONS, "$IPFW pipe $tablearg_in config bw ". $speed_in ."Kbit/s $queue_in mask dst-ip 0x00000000";
+          push @FW_ACTIONS, "$IPFW pipe $tablearg_out config bw ". $speed_out ."Kbit/s $queue_out mask src-ip 0x00000000";
          }
         else {
 	      	my $tablearg_in  = ($Billing->{RESULT}{$traf_type}->{SPEED_IN}) ? (($speed_in > 10000) ? $speed_in : "1$speed_in"): ($START_FW[$traf_type] + $user->{TP_NUM});

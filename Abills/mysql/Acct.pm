@@ -159,7 +159,6 @@ sub accounting {
         '$self->{JOIN_SERVICE}');";
       $self->query($db, "$sql", 'do');
 
-      print $sql;
       $self->query($db, "DELETE FROM dv_calls WHERE nas_id='$NAS->{NAS_ID}' AND acct_session_id='IP' AND (framed_ip_address=INET_ATON('$RAD->{FRAMED_IP_ADDRESS}') or UNIX_TIMESTAMP()-UNIX_TIMESTAMP(started) > 120 );", 'do');
     }
   }
