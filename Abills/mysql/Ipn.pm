@@ -1137,7 +1137,8 @@ sub ipn_log_rotate {
         nas_id, ip, interval_id, sum(sum), session_id
         FROM ipn_log_backup
         WHERE DATE_FORMAT(start, '%Y-%m-%d')='$Y-$M-$D'
-        GROUP BY 2, traffic_class, ip, session_id;", "INSERT INTO ipn_log (
+        GROUP BY 2, traffic_class, ip, session_id;", 
+        "INSERT INTO ipn_log (
         uid, 
         start,
         stop,

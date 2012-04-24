@@ -1336,7 +1336,7 @@ sub tax_invoice_info {
     $self->{PHONE},
     $self->{CONTRACT_ID},
     $self->{CONTRACT_DATE},
-    $self->{COMPANY_NAMA},
+    $self->{COMPANY_NAME},
     $self->{EXPIRE_DATE}
   ) = @{ $self->{list}->[0] };
 

@@ -569,6 +569,7 @@ sub docs_receipt_list {
     if ($Docs->{EXCHANGE_RATE} > 0) {
       $Docs->{TOTAL_ALT_SUM}      = sprintf("%.2f", $Docs->{TOTAL_SUM} * $Docs->{EXCHANGE_RATE});
       $Docs->{AMOUNT_FOR_PAY_ALT} = sprintf("%.2f", $Docs->{AMOUNT_FOR_PAY} * $Docs->{EXCHANGE_RATE});
+      $Docs->{CHARGED_ALT_SUM}    = sprintf("%.2f", $Docs->{CHARGED_SUM} * $Docs->{EXCHANGE_RATE});
     }
 
     if ($Docs->{PAYMENT_ID}) {
@@ -984,6 +985,7 @@ sub docs_invoices_list {
         $D{TOTAL_ALT_SUM}      = sprintf("%.2f", $D{TOTAL_SUM} * $D{EXCHANGE_RATE});
         $D{AMOUNT_FOR_PAY_ALT} = sprintf("%.2f", $D{AMOUNT_FOR_PAY} * $D{EXCHANGE_RATE});
         $D{DEPOSIT_ALT}        = sprintf("%.2f", $D{DEPOSIT} * $D{EXCHANGE_RATE});
+        $D{CHARGED_ALT_SUM}    = sprintf("%.2f", $D{CHARGED_SUM} * $D{EXCHANGE_RATE});
       }
 
       $D{'TOTAL_SUM_WITHOUT_VAT'} = sprintf("%.2f", ($conf{DOCS_VAT_INCLUDE}) ? $D{TOTAL_SUM} - ($D{TOTAL_SUM}) / ((100 + $conf{DOCS_VAT_INCLUDE}) / $conf{DOCS_VAT_INCLUDE}) : $D{TOTAL_SUM});
@@ -1864,6 +1866,7 @@ sub docs_invoice {
         $Docs->{TOTAL_ALT_SUM}      = sprintf("%.2f", $Docs->{TOTAL_SUM} * $Docs->{EXCHANGE_RATE});
         $Docs->{AMOUNT_FOR_PAY_ALT} = sprintf("%.2f", $Docs->{AMOUNT_FOR_PAY} * $Docs->{EXCHANGE_RATE});
         $Docs->{DEPOSIT_ALT}        = sprintf("%.2f", $Docs->{DEPOSIT} * $Docs->{EXCHANGE_RATE});
+        $Docs->{CHARGED_ALT_SUM}    = sprintf("%.2f", $Docs->{CHARGED_SUM} * $Docs->{EXCHANGE_RATE});
       }
 
       $attr->{SEND_EMAIL} = 0 if (!defined($attr->{SEND_EMAIL}));
