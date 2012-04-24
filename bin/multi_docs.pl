@@ -402,7 +402,7 @@ sub periodic_invoice {
         $Docs->user_change(
           {
             UID          => $user{UID},
-            INVOICE_DATE => $user{INVOICE_PERIOD_START},
+            INVOICE_DATE => $user{NEXT_INVOICE_DATE},
             CHANGE_DATE  => 1
           }
         );
