@@ -2208,7 +2208,12 @@ sub docs_invoice {
         }
       }
 
-      $amount_for_pay = ($total_sum < $users->{DEPOSIT}) ? 0 : $total_sum - $users->{DEPOSIT};
+      if ($users->{DEPOSIT} != 0 ) {
+        $amount_for_pay = ($total_sum < $users->{DEPOSIT}) ? 0 : $total_sum - $users->{DEPOSIT};
+      }
+      else {
+      	$amount_for_pay = $total_sum;
+      }
       $total_sum += $total_not_invoice;
 
       $table->{extra} = " colspan=4 class=total ";
