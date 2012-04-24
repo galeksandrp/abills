@@ -319,7 +319,6 @@ sub periodic_invoice {
 
               for (my $i = ($FORM{NEXT_PERIOD} == -1) ? -2 : 0 ; $i < int($FORM{NEXT_PERIOD}) ; $i++) {
                 my $result_sum = sprintf("%.2f", $sum);
-print "!! $user{DISCOUNT} !!\n";
                 if ($user{DISCOUNT} && $module ne 'Abon') {
                   $result_sum = sprintf("%.2f", $sum * (100 - $user{DISCOUNT}) / 100);
                 }
