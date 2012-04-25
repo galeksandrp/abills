@@ -734,10 +734,10 @@ sub hosts_list {
 
   $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES) : '';
 
-  my $fields = "h.id, u.id, h.ip AS ip_num, h.hostname, n.name, h.network, h.mac, h.disable, h.expire, h.forced,  h.blocktime,";
+  my $fields = "h.id, u.id AS login, h.ip AS ip_num, h.hostname, n.name, h.network, h.mac, h.disable, h.expire, h.forced,  h.blocktime,";
 
   if ($attr->{VIEW}) {
-    $fields = "h.id, u.id, h.ip AS ip_num, h.hostname, concat(n.name, ' : ', h.network), h.mac, h.disable, h.nas, h.vid, h.ports,";
+    $fields = "h.id, u.id AS login, h.ip AS ip_num, h.hostname, concat(n.name, ' : ', h.network) AS network_name, h.mac, h.disable, h.nas, h.vid, h.ports,";
   }
 
   $self->query(
