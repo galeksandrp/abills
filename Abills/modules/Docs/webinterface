@@ -1829,7 +1829,7 @@ sub docs_invoice {
         ) if (!$FORM{pdf});
 
         my $count = $line->[2] || 1;
-        my $sum = sprintf("%.2f", $count * $line->[4]);
+        my $sum   = sprintf("%.2f", $count * $line->[4]);
 
         $Docs->{ 'LOGIN_' . $i }                   = $line->[6];
         $Docs->{ 'ORDER_NUM_' . $i }               = $i;
@@ -1841,7 +1841,10 @@ sub docs_invoice {
         $Docs->{ 'ORDER_PRICE_WITHOUT_VAT_' . $i } = sprintf("%.2f", ($Docs->{ 'ORDER_VAT_' . $i }) ? $line->[4] - $Docs->{ 'ORDER_VAT_' . $i } : $line->[3]);
         $Docs->{ 'ORDER_SUM_WITHOUT_VAT_' . $i }   = sprintf("%.2f", ($conf{DOCS_VAT_INCLUDE}) ? $sum - ($sum) / ((100 + $conf{DOCS_VAT_INCLUDE}) / $conf{DOCS_VAT_INCLUDE}) : $sum);
 
-        $Docs->{AMOUNT_FOR_PAY} += $Docs->{ 'ORDER_COUNT_' . $i } * $Docs->{ 'ORDER_PRICE_' . $i } if ($line->[5] == 0);
+        # not charged service
+        if ($line->[5] == 0) {
+          $Docs->{AMOUNT_FOR_PAY} += $Docs->{ 'ORDER_COUNT_' . $i } * $Docs->{ 'ORDER_PRICE_' . $i } 
+        }
 
         #alternative currancy sum
         if ($Docs->{EXCHANGE_RATE} > 0) {
@@ -1863,11 +1866,17 @@ sub docs_invoice {
         $Docs->{CHARGED_ALT_SUM}    = sprintf("%.2f", $Docs->{CHARGED_SUM} * $Docs->{EXCHANGE_RATE});
       }
 
+      
+
       $attr->{SEND_EMAIL} = 0 if (!defined($attr->{SEND_EMAIL}));
       if ($attr->{GET_EMAIL_INFO} && $attr->{SEND_EMAIL}) {
         $attr->{EMAIL_MSG_TEXT} = $html->tpl_show(_include('docs_invoice_email', 'Docs'), { %FORM, %$attr, %$Docs, %$users }, { OUTPUT2RETURN => 1 });
         $attr->{EMAIL_ATTACH_FILENAME} = 'invoice_' . $Docs->{INVOICE_NUM} . '.pdf' if (!$attr->{EMAIL_ATTACH_FILENAME});
         $attr->{EMAIL_MSG_SUBJECT}     = "ABillS - $_INVOICE: $Docs->{INVOICE_NUM}" if (!$attr->{EMAIL_MSG_SUBJECT});
+      }
+
+      if ($conf{DOCS_EXTRA_DEPOSIT}) {
+        $Docs->{DEPOSIT} =  $Docs->{DEPOSIT} + $Docs->{CHARGED_SUM}; 	
       }
 
       $FORM{pdf} = $conf{DOCS_PDF_PRINT};
