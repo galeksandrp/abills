@@ -1877,6 +1877,9 @@ sub docs_invoice {
 
       if ($conf{DOCS_EXTRA_DEPOSIT}) {
         $Docs->{DEPOSIT} =  sprintf("%.2f", $Docs->{DEPOSIT} + $Docs->{CHARGED_SUM});
+        if ($Docs->{EXCHANGE_RATE}) {
+          $Docs->{DEPOSIT_ALT}    = sprintf("%.2f", $Docs->{DEPOSIT} * $Docs->{EXCHANGE_RATE});
+        }
       }
 
       $FORM{pdf} = $conf{DOCS_PDF_PRINT};
