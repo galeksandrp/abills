@@ -215,7 +215,8 @@ sub check_lines {
         'CALLS_TP_ID',       
         'STATUS',        
         'FILTER_ID',
-        'TP_BILLS_PRIORITY'
+        'TP_BILLS_PRIORITY',
+        'GUEST_MODE'
       ]
     }
   );

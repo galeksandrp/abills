@@ -287,8 +287,10 @@ sub periodic_invoice {
         }
       );
 
-      foreach my $invoice (@{ $Docs->{ORDERS} }) {
-        $current_invoice{ $invoice->{orders} } = $invoice->{invoice_id};
+      foreach my $doc_id (keys %{ $Docs->{ORDERS} }) {
+        foreach my $invoice ( @{ $Docs->{ORDERS}->{$doc_id} }) {
+          $current_invoice{ $invoice->{orders} } = $invoice->{invoice_id};
+        }
       }
       
       if (! $docs_user->{login_status}) {

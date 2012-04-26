@@ -251,7 +251,8 @@ sub online {
     TP_NAME           => 'tp.tp_name',
     TP_BILLS_PRIORITY => 'tp.bills_priority',
     TP_CREDIT         => 'tp.credit',
-    NAS_NAME          => 'nas.name'
+    NAS_NAME          => 'nas.name',
+    GUEST_MODE        => 'c.guest'
   );
 
   my @RES_FIELDS = ($attr->{FIELDS_NAMES}) ? () : (0, 1, 2, 3, 4, 5, 6, 7, 8);
@@ -424,7 +425,9 @@ sub online {
  $EXT_TABLE
 
  $WHERE
- ORDER BY $SORT $DESC;", 'fields_list'
+ ORDER BY $SORT $DESC;", 
+ undef,
+ $attr
   );
 
   my %dub_logins = ();
@@ -448,11 +451,16 @@ sub online {
 
 
     my @fields = ();
-    for (my $i = 0 ; $i <= $RES_FIELDS_COUNT + 15 ; $i++) {
-      push @fields, $line->[$i];
+    if ($attr->{CALLS_NAME}) {
+      push @{ $nas_sorted{"$line->[$nas_id_field]"} }, $line ;
     }
+    else {
+      for (my $i = 0 ; $i <= $RES_FIELDS_COUNT + 15 ; $i++) {
+        push @fields, $line->[$i];
+      }
 
-    push(@{ $nas_sorted{"$line->[$nas_id_field]"} }, [@fields]);
+      push @{ $nas_sorted{"$line->[$nas_id_field]"} }, \@fields;
+    }
   }
 
   $self->{dub_ports}  = \%dub_ports;
