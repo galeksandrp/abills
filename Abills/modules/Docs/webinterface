@@ -1701,24 +1701,22 @@ sub docs_invoice {
         my $list = $Docs->{ORDERS};
         my $i    = 0;
 
-        foreach my $doc_id (keys %{ $list }) {
-          foreach my $line ( @{ $list->{$doc_id} }) {
-            $i++;
-            my $sum = sprintf("%.2f", $line->[3] * $line->[4]);
-            if (!$FORM{pdf}) {
-              $Docs->{ORDER} .= $html->tpl_show(
-                _include('docs_invoice_order_row', 'Docs'),
-                {
-                  NUMBER => $i,
-                  NAME   => $line->[1],
-                  COUNT  => $line->[3],
-                  UNIT   => $line->[2],
-                  PRICE  => $line->[4],
-                  SUM    => $sum
-                },
-                { OUTPUT2RETURN => 1 }
-              );
-            }
+        foreach my $line ( @{ $list }) {
+          $i++;
+          my $sum = sprintf("%.2f", $line->[3] * $line->[4]);
+          if (!$FORM{pdf}) {
+            $Docs->{ORDER} .= $html->tpl_show(
+              _include('docs_invoice_order_row', 'Docs'),
+              {
+                NUMBER => $i,
+                NAME   => $line->[1],
+                COUNT  => $line->[3],
+                UNIT   => $line->[2],
+                PRICE  => $line->[4],
+                SUM    => $sum
+              },
+              { OUTPUT2RETURN => 1 }
+            );
           }
         }
 
@@ -1813,7 +1811,9 @@ sub docs_invoice {
 
       (undef, $Docs->{TIME}) = split(/ /, $Docs->{CREATED}, 2);
       $Docs->{AMOUNT_FOR_PAY} = ($Docs->{DEPOSIT} < 0) ? abs($Docs->{DEPOSIT}) : 0 - $Docs->{DEPOSIT};
-      my $list = $Docs->{ORDERS}->{$FORM{print}};
+
+
+      my $list = $Docs->{ORDERS};
       my $i    = 0;
       foreach my $line (@$list) {
         $i++;
