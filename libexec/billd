@@ -420,7 +420,7 @@ sub check_lines {
       # periodic check deposit, stats and statu
       my %RAD = (
         USER_NAME             => "$online->{user_name}",
-        SESSION_START         => time - $online->{acct_session_time},
+        SESSION_START         => time - $online->{duration_sec},
         ACCT_SESSION_TIME     => $online->{duration_sec},
         INBYTE                => $online->{acct_input_octets},
         OUTBYTE               => $online->{acct_output_octets},
