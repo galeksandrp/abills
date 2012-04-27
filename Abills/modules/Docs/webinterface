@@ -2062,7 +2062,7 @@ sub docs_invoice {
             $html->form_input("ORDER_" . $line->[0], "$line->[3]", { TYPE => 'hidden', OUTPUT2RETURN => 1 })
             . $html->form_input("SUM_" . $line->[0],     "$line->[4]", { TYPE => 'hidden', OUTPUT2RETURN => 1 })
             . $html->form_input("FEES_ID_" . $line->[0], "$line->[0]", { TYPE => 'hidden', OUTPUT2RETURN => 1 })
-            . $html->form_input("IDS", "$line->[0]", { TYPE => 'checkbox', STATE => 1, OUTPUT2RETURN => 1 }) . "$num",
+            . ((! $current_invoice{$line->[3]}) ? $html->form_input("IDS", "$line->[0]", { TYPE => 'checkbox', STATE => 1, OUTPUT2RETURN => 1 }) . "$num" : ''),
             "$line->[1]", 
             "$line->[2]", 
             "$line->[3] $date". (($current_invoice{$line->[3]}) ? ' ' . $html->color_mark($_EXIST, 'red') : ''), 

@@ -211,7 +211,7 @@ sub online {
     FIO           => 'pi.fio',
     NAS_PORT_ID   => 'c.nas_port_id',
     CLIENT_IP_NUM => 'c.framed_ip_address AS ip_num',
-    DURATION      => 'SEC_TO_TIME(UNIX_TIMESTAMP() - UNIX_TIMESTAMP(c.started)) AS session_time',
+    DURATION      => 'SEC_TO_TIME(UNIX_TIMESTAMP() - UNIX_TIMESTAMP(c.started)) AS acct_session_time',
 
     INPUT_OCTETS   => 'c.acct_input_octets + 4294967296 * acct_input_gigawords AS input_otets',
     OUTPUT_OCTETS  => 'c.acct_output_octets + 4294967296 * acct_output_gigawords AS output_otets',
@@ -221,11 +221,11 @@ sub online {
     CID             => 'c.CID',
     DV_CID          => 'dv.cid',
     ACCT_SESSION_ID => 'c.acct_session_id',
-    TP_ID           => 'dv.tp_id',
-    CALLS_TP_ID     => 'c.tp_id',
+    TP_ID           => 'dv.tp_id AS tp_num',
+    CALLS_TP_ID     => 'c.tp_id AS calls_tp_id',
     CONNECT_INFO    => 'c.CONNECT_INFO',
     SPEED           => 'dv.speed',
-    SUM             => 'c.sum',
+    SUM             => 'c.sum AS session_sum',
     STATUS          => 'c.status',
     ADDRESS_FULL    => ($CONF->{ADDRESS_REGISTER}) ? 'concat(streets.name,\' \', builds.number, \'/\', pi.address_flat) AS ADDRESS' : 'concat(pi.address_street,\' \', pi.address_build,\'/\', pi.address_flat) AS ADDRESS',
     GID             => 'u.gid',
@@ -233,20 +233,20 @@ sub online {
     JOIN_SERVICE    => 'c.join_service',
 
     PHONE             => 'pi.phone',
-    CLIENT_IP         => 'INET_NTOA(c.framed_ip_address) AS client_ip',
+    CLIENT_IP         => 'INET_NTOA(c.framed_ip_address) AS ip',
     UID               => 'u.uid',
     NAS_IP            => 'INET_NTOA(c.nas_ip_address) AS nas_ip',
-    DEPOSIT           => 'if(company.name IS NULL, b.deposit, cb.deposit)',
-    CREDIT            => 'if(u.company_id=0, u.credit, if (u.credit=0, company.credit, u.credit))',
-    STARTED           => 'if(date_format(c.started, "%Y-%m-%d")=curdate(), date_format(c.started, "%H:%i:%s"), c.started)',
+    DEPOSIT           => 'if(company.name IS NULL, b.deposit, cb.deposit) AS deposit',
+    CREDIT            => 'if(u.company_id=0, u.credit, if (u.credit=0, company.credit, u.credit)) AS credit',
+    STARTED           => 'if(date_format(c.started, "%Y-%m-%d")=curdate(), date_format(c.started, "%H:%i:%s"), c.started) As started',
     NAS_ID            => 'c.nas_id',
-    LAST_ALIVE        => 'UNIX_TIMESTAMP()-c.lupdated AS last_alive',
+    LAST_ALIVE        => 'UNIX_TIMESTAMP() - c.lupdated AS last_alive',
     ACCT_SESSION_TIME => 'UNIX_TIMESTAMP() - UNIX_TIMESTAMP(c.started) AS total_time',
     DURATION_SEC      => 'if(c.lupdated>0, c.lupdated - UNIX_TIMESTAMP(c.started), 0) AS duration_sec',
-    FILTER_ID         => 'if(dv.filter_id<>\'\', dv.filter_id, tp.filter_id)',
+    FILTER_ID         => 'if(dv.filter_id<>\'\', dv.filter_id, tp.filter_id) AS filter_id',
     SESSION_START     => 'UNIX_TIMESTAMP(started) AS started_unixtime',
-    DISABLE           => 'u.disable',
-    DV_STATUS         => 'dv.disable',
+    DISABLE           => 'u.disable AS login_status',
+    DV_STATUS         => 'dv.disable AS dv_status',
 
     TP_NAME           => 'tp.tp_name',
     TP_BILLS_PRIORITY => 'tp.bills_priority',
@@ -445,20 +445,18 @@ sub online {
   my $list = $self->{list};
   my $nas_id_field = ($attr->{FIELDS_NAMES}) ? $RES_FIELDS_COUNT + 1 : $RES_FIELDS_COUNT + 10;
   foreach my $line (@$list) {
-    $dub_logins{ $line->[0] }++;
-    $dub_ports{ $line->[$nas_id_field] }{ $line->[$port_id] }++ if ($port_id);
-
-
-
     my @fields = ();
-    if ($attr->{CALLS_NAME}) {
-      push @{ $nas_sorted{"$line->[$nas_id_field]"} }, $line ;
+    if ($attr->{COLS_NAME}) {
+      push @{ $nas_sorted{$line->{nas_id}} }, $line ;
+      $dub_logins{ $line->{user_name} }++;
+      $dub_ports{ $line->{nas_id} }{ $line->{nas_port_id} }++ if ($port_id);
     }
     else {
       for (my $i = 0 ; $i <= $RES_FIELDS_COUNT + 15 ; $i++) {
         push @fields, $line->[$i];
       }
-
+      $dub_logins{ $line->[0] }++;
+      $dub_ports{ $line->[$nas_id_field] }{ $line->[$port_id] }++ if ($port_id);
       push @{ $nas_sorted{"$line->[$nas_id_field]"} }, \@fields;
     }
   }

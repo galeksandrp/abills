@@ -274,13 +274,17 @@ sub dv_auth {
 
   #Check  simultaneously logins if needs
   if ($self->{LOGINS} > 0) {
-    $self->query($db, "SELECT CID, INET_NTOA(framed_ip_address), nas_id FROM dv_calls WHERE user_name='$RAD->{USER_NAME}' and (status <> 2 and status < 11);");
+    $self->query($db, "SELECT CID, INET_NTOA(framed_ip_address), nas_id, status FROM dv_calls WHERE user_name='$RAD->{USER_NAME}' and (status <> 2);");
     my ($active_logins) = $self->{TOTAL};
-    my %active_nas = ();
+    my %active_nas      = ();
     foreach my $line (@{ $self->{list} }) {
-
-      #  	# Zap session with same CID
-      if ( $line->[0] ne ''
+      # If exist reserv add get it      
+      if ($line->[3] == 11) {
+      	$self->{IP}       = $line->[1];
+      	$self->{REASSIGN} = 1;
+      }
+      # Zap session with same CID
+      elsif ( $line->[0] ne ''
         && $line->[0] eq $RAD->{CALLING_STATION_ID}
         && $NAS->{NAS_TYPE} ne 'ipcad'
         && $active_nas{ $line->[2] }
@@ -484,10 +488,13 @@ sub dv_auth {
   # Return radius attr
   if ($self->{IP} ne '0') {
     $RAD_PAIRS->{'Framed-IP-Address'} = "$self->{IP}";
-    $self->query(
-      $db, "INSERT INTO dv_calls (started, user_name, uid, framed_ip_address, nas_id, nas_ip_address, status, acct_session_id, tp_id, join_service, guest)
-      VALUES (now(), '$self->{USER_NAME}', '$self->{UID}', INET_ATON('$self->{IP}'), '$NAS->{NAS_ID}', INET_ATON('$RAD->{NAS_IP_ADDRESS}'), '11', 'IP', '$self->{TP_NUM}', '$self->{JOIN_SERVICE}', 1);", 'do'
-    );
+    if (! $self->{REASSIGN}) {
+      $self->query(
+        $db, "INSERT INTO dv_calls (started, user_name, uid, framed_ip_address, nas_id, nas_ip_address, status, acct_session_id, tp_id, join_service, guest)
+        VALUES (now(), '$self->{USER_NAME}', '$self->{UID}', INET_ATON('$self->{IP}'), '$NAS->{NAS_ID}', INET_ATON('$RAD->{NAS_IP_ADDRESS}'), '11', 'IP', '$self->{TP_NUM}', '$self->{JOIN_SERVICE}', 1);", 'do'
+       );
+    }
+    delete $self->{REASSIGN};
   }
   else {
     my $ip = $self->get_ip($NAS->{NAS_ID}, "$RAD->{NAS_IP_ADDRESS}", { TP_IPPOOL => $self->{TP_IPPOOL} });
@@ -1487,8 +1494,6 @@ sub get_ip {
   INNER JOIN nas_ippools np ON (c.nas_id=np.nas_id)
   WHERE np.pool_id in ( $used_pools );"
   );
-
-  # AND (status<>2)
 
   $list = $self->{list};
   $self->{USED_IPS} = 0;

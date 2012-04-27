@@ -96,19 +96,19 @@ sub list {
 
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
  
- $self->query($db, "SELECT nas.id, 
-  nas.name, 
+ $self->query($db, "SELECT nas.id AS nas_id, 
+  nas.name as nas_name, 
   nas.nas_identifier, 
-  nas.ip,  
+  nas.ip as nas_ip,   
   nas.nas_type, 
-  ng.name,
-  nas.disable, 
+  ng.name as nas_group_name,
+  nas.disable as nas_disable, 
   nas.descr, 
-  nas.alive,
-  nas.mng_host_port, 
-  nas.mng_user, 
-  DECODE(nas.mng_password, '$SECRETKEY'), 
-  nas.rad_pairs, 
+  nas.alive as nas_alive,
+  nas.mng_host_port as nas_mng_ip_port, 
+  nas.mng_user as nas_mng_user,  
+  DECODE(nas.mng_password, '$SECRETKEY') as nas_mng_password, 
+  nas.rad_pairs as nas_rad_pairs, 
   nas.ext_acct,
   nas.auth_type
   $ext_fields,
@@ -117,7 +117,9 @@ sub list {
   LEFT JOIN nas_groups ng ON (ng.id=nas.gid)
   $EXT_TABLES
   $WHERE
-  ORDER BY $SORT $DESC;");
+  ORDER BY $SORT $DESC;",
+  undef,
+  $attr);
 
  return $self->{list};
 }

@@ -1,12 +1,29 @@
 =====0.54=====
 
-20.03.2012\\
 
+24.03.2012\\
+
+  * ''Dv'' Отчёт должники,  вывод всех клиентов с сумой долга большей месячной абон. платы 
+  * Переодическая установка кредита клиентам на всею суму предоставляемых услуг
+  * ''Dhcphosts''  FreeradiusDHCP добавлена возможность выдавать IP только на определённых портах Assign-Ports=""
+  * ''Cards'' установка статуса использовано для универсальный карт после первого логина ими
+  * ''Redback'' Перенаправление на разные страницы в зависимости от типа ошибки подключения 
+  * ''Dv'' $conf{DV_SKIP_CHG_TPS}  не показывать тарифные планы в меню изменения тарифного плана личного кабинета
+  * ''Dv'' Редирект на страницу информации о завершении учётного периода.
+  * ''Dv'' Механизм фильтрации трафика для определённых тарифных планов при помощи Squid
+  * ''Docs'' $conf{DOCS_PRE_INVOICE_PERIOD}=10; Вынесена в конфигурационный файл переменная задающая за сколько дней до начала учётного периода генерировать счета абонентам 
+  * ''Docs'' Возможность задавать поля для отображения в таблице (Пример $conf{DOCS_INVOICES_LIST}='invoice_num,
+date,customer,total_sum,login, admin_name,created,method, ext_id,group_name';) (скоро будет доступно для всех отчётов системы)
+  * ''Docs'' Галочка учета баланса при формировании счета
+  * ''Docs'' Признак оплаченной и неоплаченной услуги в счете, дополнительные параметры шаблонов
+
+
+20.03.2012\\
   * ''Iptv'' Отчёт использования каналов пользователями
   * ''Marketing'' Отчёт по использованию Triplay  услуг провайдера
   * ''Docs'' усовершенствована программа генерации переодических счетов на оплату
   * ''Docs'' Признак счета 'удалён'
-  * $conf{PAYMENTS_NOT_CREATE_INVOICE} Не создавать счет при оплате, выбор только из списка счетов
+  * $conf{PAYMENTS_NOT_CREATE_INVOICE}=1 Отключить создание счетов при внесении оплаты, остаётся только выбор из уже существующих счетов
   * ''Dv'' $conf{DV_TP_CHG_FREE}='360'; Бесплатная смена тарифного плана для абонента являющегося пользователям больше указанного периода времени. Указывается в днях.
   * ''Bonus'' установка скидки при оплате на определённый период
   * ''Iptv'' Добавлена возможность запускать внешние программы при изменении и обалдении сервиса  $conf{IPTV_USER_EXT_CMD} 
@@ -18,6 +35,7 @@
 
 
 MySQL:\\
+
   ALTER TABLE `voip_main` ADD COLUMN `nat` tinyint(1) unsigned NOT NULL default '1';
   ALTER TABLE `docs_invoices` ADD COLUMN `deleted` tinyint(1) unsigned NOT NULL default '1';
   ALTER TABLE `dv_main` ADD COLUMN `free_turbo_mode` smallint(6) unsigned NOT NULL default '0';
@@ -33,9 +51,21 @@ MySQL:\\
 
 MySQL:\\
 
+  ALTER TABLE payments ADD COLUMN currency smallint unsigned not null default 0;
+  ALTER TABLE payments ADD COLUMN amount double(10,2) NOT NULL default '0.00';
+  
+  ALTER TABLE docs_acct ADD  COLUMN deposit double(15,6) NOT NULL default '0.000000';
+  ALTER TABLE docs_acct ADD  COLUMN delivery_status tinyint(2) unsigned NOT NULL default '0';
+  ALTER TABLE docs_invoice_orders ADD COLUMN `fees_id` int(11) unsigned NOT NULL default 0;
+  ALTER TABLE docs_invoice_orders ADD key fees_id (fees_id);
+  ALTER TABLE docs_acct ADD COLUMN currency smallint unsigned  NOT NULL default 0;
+  ALTER TABLE docs_acct_orders ADD COLUMN fees_id int(11) unsigned NOT NULL default 0;
+  
   RENAME TABLE docs_invoice TO docs_receipts;
   RENAME TABLE docs_invoice_orders TO docs_receipt_orders;
   ALTER TABLE docs_receipts CHANGE COLUMN invoice_id receipt_num int(10) unsigned NOT NULL default '0';
+  ALTER TABLE docs_receipts ADD COLUMN  exchange_rate double(12,4) NOT NULL default '0.0000';
+  ALTER TABLE docs_receipts ADD COLUMN  currency smallint(6) unsigned  NOT NULL default 0;
   ALTER TABLE docs_receipt_orders CHANGE COLUMN invoice_id receipt_id int(11) unsigned NOT NULL default '0';
   ALTER TABLE docs_receipt_orders DROP KEY invoice_id;
   ALTER TABLE docs_receipt_orders ADD KEY receipt_id (receipt_id);
@@ -43,19 +73,16 @@ MySQL:\\
   RENAME TABLE docs_acct TO docs_invoices;
   RENAME TABLE docs_acct_orders TO docs_invoice_orders;
   ALTER TABLE docs_invoices CHANGE COLUMN acct_id invoice_num int(10) unsigned NOT NULL default '0';
+  ALTER TABLE docs_invoices ADD COLUMN deposit double(15,6) NOT NULL default '0.000000';
+  ALTER TABLE docs_invoices ADD COLUMN delivery_status tinyint(2) unsigned NOT NULL default '0';
+  ALTER TABLE docs_invoices ADD COLUMN  exchange_rate double(12,4) NOT NULL default '0.0000';
+  ALTER TABLE docs_invoices ADD COLUMN  currency smallint unsigned  NOT NULL default 0;
   ALTER TABLE docs_invoice_orders CHANGE COLUMN acct_id invoice_id int(10) unsigned NOT NULL default '0';
   ALTER TABLE docs_invoice_orders DROP KEY aid;
   ALTER TABLE docs_invoice_orders ADD KEY invoice_id (invoice_id);
   
-  ALTER TABLE payments ADD COLUMN currency smallint unsigned not null default 0;
-  ALTER TABLE payments ADD COLUMN amount double(10,2) NOT NULL default '0.00';
-  
-  ALTER TABLE `docs_main` ADD COLUMN  `invoice_date` date NOT NULL default '0000-00-00';
-  ALTER TABLE `docs_receipts` ADD COLUMN  `exchange_rate` double(12,4) NOT NULL default '0.0000';
-  ALTER TABLE `docs_receipts` ADD COLUMN  `currency` smallint(6) unsigned  NOT NULL default 0;
-  
-  ALTER TABLE `docs_invoices` ADD COLUMN  `exchange_rate` double(12,4) NOT NULL default '0.0000';
-  ALTER TABLE `docs_invoices` ADD COLUMN  `currency` smallint unsigned  NOT NULL default 0;
+  ALTER TABLE docs_main ADD COLUMN  invoice_date date NOT NULL default '0000-00-00';
+ 
 
 6.02.2012\\
   * ''Docs'' добавлен флаг персональной доставки документов
@@ -76,8 +103,6 @@ MySQL:\\
   ALTER TABLE `docs_main` ADD COLUMN  `personal_delivery` tinyint(1) unsigned NOT NULL default '0';
   ALTER TABLE `docs_main` ADD COLUMN  `invoicing_period` tinyint(3) unsigned NOT NULL default '0';
   ALTER TABLE `docs_acct` ADD COLUMN  `exchange_rate` double(12,4) NOT NULL default '0.0000';
-  ALTER TABLE `docs_acct` ADD COLUMN  `currency` smallint unsigned  NOT NULL default 0;
-  ALTER TABLE `docs_acct_orders` ADD COLUMN `fees_id` int(11) unsigned NOT NULL default 0;
   ALTER TABLE `exchange_rate_log` ADD COLUMN `id`  int(10) unsigned NOT NULL auto_increment primary key;
   ALTER TABLE `dv_calls` ADD COLUMN `guest` tinyint(1) unsigned NOT NULL default '0';
   ALTER TABLE `dv_calls` CHANGE COLUMN  CONNECT_INFO `CONNECT_INFO` varchar(30) NOT NULL default '';
@@ -85,7 +110,7 @@ MySQL:\\
 
 
 
-17.12.2012\\
+17.03.2012\\
   * ''Docs''  добавлен флаг персональной доставки документов
   * ''Docs''  добавлен период инвойсирования 
 
@@ -95,7 +120,7 @@ MySQL:\\
   ALTER TABLE `docs_main` ADD COLUMN  `invoicing_period` tinyint(3) unsigned NOT NULL default '0';
 
 
-14.12.2012\\
+14.02.2012\\
   * ''Storage'' Добавлена возможность аренды оборудование
   * ''Storage'' Добавлена возможность продажи оборудование
   * ''Storage'' Добавлена возможность прикрепления арендованного оборудования к модулю ведения сети (Dhcphosts)
@@ -150,24 +175,10 @@ MySQL:\\
   * ''Docs'' Добавлены дополнительные поля в счета фактуры: статус отправки, депозит на момент выписки счета, сума к оплате
   * Добавлен вывод всех сервисов пользователя в учётной записи $conf{USER_ALL_SERVICES}=1;
   * ''Dhcphosts''  активация Ipn c IP (Dhcp) меню
-
-MySQL:\\
-
-  ALTER TABLE `docs_invoice_orders` ADD COLUMN `fees_id` int(11) unsigned NOT NULL default 0;
-  ALTER TABLE `docs_invoice_orders` ADD key fees_id (fees_id);
-  ALTER TABLE `docs_invoices` ADD COLUMN `deposit` double(15,6) NOT NULL default '0.000000';
-  ALTER TABLE `docs_invoices` ADD COLUMN `delivery_status` tinyint(2) unsigned NOT NULL default '0';
-
-
-28.11.2011\\
   * ''Dhcphosts'' Freeradius DHCP  добавлена возможность выдавать независимые гостевые сети на VLAN
   * ''Docs'' Добавлены дополнительные поля в счета: статус отправки, депозит на момент выписки счета, сума к оплате
   * ''Docs'' Формирование счетов по всем услугам на следующий учётный период
   * Предупреждение пользователя о оплате следующего учётного периода
-
-MySQL:\\
-  ALTER TABLE docs_acct ADD  COLUMN `deposit` double(15,6) NOT NULL default '0.000000';
-  ALTER TABLE docs_acct ADD  COLUMN `delivery_status` tinyint(2) unsigned NOT NULL default '0';
 
 09.11.2011\\
   * Обновлён шейпер для Mikrotik: улучшена производительность, переработана IPN режим работы **обязательно проверте наличие параметра Mikrotik-Address-List в  radius словаре**. Если версия Mikrotik OS ниже 3.10 нужно указывать в радиус парах сервера доступа !Mikrotik-Address-List=0

@@ -41,7 +41,6 @@ if (defined($ARGV->{debug})) {
   print "Debug mode $debug\n";
 }
 elsif (defined($ARGV->{help})) {
-
   #get plugins
   opendir DIR, "$Bin/billd.plugins/" or die "Can't open dir '$Bin/billd.plugins/' $!\n";
   my @contents = grep /\.pm$/, readdir DIR;
@@ -190,11 +189,12 @@ sub check_lines {
   $sessions->online(
     {
       %LIST_PARAMS,
+      COLS_NAME    => 1,
       ALL          => 1,
       FIELDS_NAMES => [
         'USER_NAME',      
         'NAS_PORT_ID', 
-        'CLIENT_IP_NUM', 
+        'CLIENT_IP', 
         'DURATION',   
         'INPUT_OCTETS',      
         'OUTPUT_OCTETS', 
@@ -233,7 +233,7 @@ sub check_lines {
   }
 
   my $online   = $sessions->{nas_sorted};
-  my $nas_list = $nas->list({%LIST_PARAMS});
+  my $nas_list = $nas->list({%LIST_PARAMS, COLS_NAME => 1 });
 
   require Acct;
   Acct->import();
@@ -244,139 +244,61 @@ sub check_lines {
   my @time               = localtime();
   my $now                = $time[0] + $time[1] * 60 + $time[2] * 3600;
 
-  foreach my $nas_row (@$nas_list) {
-
+  foreach my $nas (@$nas_list) {
     #if don't have online users skip it
-    my $l = $online->{ $nas_row->[0] };
+    my $l = $online->{ $nas->{nas_id} };
     next if ($#{$l} < 0);
 
     if ($debug > 0) {
-      print "NAS: ($nas_row->[0]) $nas_row->[3] NAS_TYPE: $nas_row->[4] STATUS: $nas_row->[6] Alive: $nas_row->[8] Online: " . ($#{$l} + 1) . "\n";
+      print "NAS: ($nas->{nas_id}) $nas->{nas_ip} NAS_TYPE: $nas->{nas_type} STATUS: $nas->{nas_disable} Alive: $nas->{nas_alive} Online: " . ($#{$l} + 1) . "\n";
+    }
+    
+    foreach my $key (keys %{ $nas }){
+      $NAS{uc($key)}=$nas->{$key};
+      
     }
 
-    $NAS{NAS_ID}           = $nas_row->[0];
-    $NAS{NAS_IP}           = $nas_row->[3];
-    $NAS{NAS_TYPE}         = $nas_row->[4];
-    $NAS{NAS_ALIVE}        = $nas_row->[8] || 0;
-    $NAS{NAS_MNG_IP_PORT}  = $nas_row->[9];
-    $NAS{NAS_MNG_USER}     = $nas_row->[10];
-    $NAS{NAS_MNG_PASSWORD} = $nas_row->[11];
-    $NAS{NAS_EXT_ACCT}     = $nas_row->[13];
-
-    foreach my $line (@$l) {
-      my $user_name              = $line->[0];
-      my $nas_port_id            = $line->[1];
-      my $client_ip              = $line->[2];
-      my $duration               = $line->[3];
-      my $acct_input_octets      = $line->[4];
-      my $acct_output_octets     = $line->[5];
-      my $acct_input_octets_ext  = $line->[6];
-      my $acct_output_octets_ext = $line->[7];
-      my $acct_session_id        = $line->[8];
-      my $uid                    = $line->[9];
-      my $join_service           = $line->[10];
-      my $last_alive             = $line->[11];
-      my $acct_session_time      = $line->[12];
-      my $duration_sec           = $line->[13];
-      my $deposit                = $line->[14] || 0;
-      my $credit                 = ($line->[15] && $line->[15] > 0) ? $line->[15] : (($line->[16]) ? $TP_CREDITS{ $line->[16] } : 0);
-      my $tp_num                 = $line->[16] || 0;
-      my $state                  = (defined($line->[17])) ? $line->[17] + $line->[18] : 0;
-      my $session_sum            = $line->[19];
-      my $calls_tp_id            = $line->[20];
-      my $online_state           = $line->[21];
-      my $filter_id              = $line->[22];
-      my $bill_priority          = $line->[23];
-
+    foreach my $online (@$l) {
+      my $uid     = $online->{uid};
+      my $state   = ($online->{dv_status}) ? $online->{dv_status} + $online->{login_status} : 0;
       if ($debug > 1) {
-        printf("%-14s|%16s|%8s|%10s|%10s|%12s|\n", $user_name, int2ip($client_ip), $duration, $acct_input_octets, $acct_output_octets, $deposit);
+        printf("%-14s|%16s|%8s|%10s|%10s|%12s|\n", $online->{user_name}, $online->{ip}, $online->{duration}, $online->{acct_input_octets}, $online->{acct_output_octets}, $online->{deposit});
       }
 
       if (
-        (
-          $uid && ($calls_tp_id && $calls_tp_id ne $tp_num)
-          || ($state && ! $conf{DV_STATUS_NEG_DEPOSIT})
-
-          #           || ($POSTPAIDS{$tp_num} == 0 && $deposit+$credit <= 0 && ! $Billing->{NEG_DEPOSIT_FILTER}) # && $bill_priority == 0)
-        )
-        && $online_state != 2
+          (
+          $uid && ($online->{calls_tp_id} && $online->{calls_tp_id} ne $online->{tp_num})
+          || ($state && ! $online->{guest})
+          )
+          && $online->{status} != 2
       ){
-        $Log->log_print('LOG_WARNING', $user_name, "Change TP $calls_tp_id -> $tp_num DEPOSIT: $deposit CREDIT: $credit SESSION_SUM: $session_sum STATUS: $state SESSION_ID: $acct_session_id",
-          { ACTION => 'HANGUP' });
-
-        my $ret = hangup(
-          \%NAS,
-          "$nas_port_id",
-          "$user_name",
-          {
-            ACCT_SESSION_ID   => $acct_session_id,
-            FRAMED_IP_ADDRESS => int2ip($client_ip),
-            UID               => $uid,
-            debug             => $debug,
-            FILTER_ID         => $filter_id,
-            %NAS
-          }
-        );
+      	session_hangup(\%NAS, $online, "Change TP $online->{calls_tp_id} -> $online->{tp_num} DEPOSIT: $online->{deposit} CREDIT: $online->{credit} SESSION_SUM: $online->{session_sum} STATUS: $state SESSION_ID: $online->{acct_session_id}");
         next;
       }
 
-    #hangup connection if max ext traffic reached
-    #      if (($NAS{NAS_TYPE} eq 'exppp' && ($acct_input_octets_ext > $exppp_hanguplimit
-    #         || $acct_output_octets_ext > $exppp_hanguplimit))
-    #         || $state
-    #         ) {
-    #        print "Hangup Login: $user_name STATUS: $line->[18]/$line->[19] $acct_input_octets, $acct_output_octets, $acct_input_octets_ext, $acct_output_octets_ext, Session-ID: $acct_session_id - ";
-    #
-    #        my $ret = hangup(\%NAS, "$nas_port_id", "$user_name", { ACCT_SESSION_ID      => $acct_session_id,
-    #        	                                                      FRAMED_IP_ADDRESS    => int2ip($client_ip),
-    #           	                                                    UID                  => $uid,
-    #           	                                                    debug                => $debug
-    #           	                                                  });
-    #
-    #           if ($ret !~ /^ERR/i) {
-    #              print "Done";
-    #            }
-    #           print "\n";
-    #        next;
-    #       }
-
-      #if ($NAS{NAS_TYPE} eq 'ipcad') {
-      #	next
-      # }
-      #els
-      #      if ($NAS{NAS_TYPE} eq 'dhcp') {
-## Default alive for DHCP sessions
-##      	$NAS{NAS_ALIVE} = 8600 if (! $NAS{NAS_ALIVE});
-      #        if ($NAS{NAS_ALIVE} > 0 && $NAS{NAS_ALIVE} * $error_alive_count < $last_alive) {
-      #          $Log->log_print('LOG_WARNING', "$user_name", "Last Alive: $last_alive, Duration: $duration_sec Session-ID: $acct_session_id", { ACTION => 'HANGUP_DHCP', NAS => \%NAS  });
-      #          $sessions->zap($nas_row->[0], $nas_port_id, $acct_session_id);
-      #        	next;
-      #         }
-      #       }
-
       #Get stats from nas servers which don't support rad Alive
-      my $external_stats = get_stats(\%NAS, $nas_port_id);
+      my $external_stats = get_stats(\%NAS, $online->{nas_port_id});
       if ($NAS{NAS_ALIVE} > 0
-        && ($last_alive > $NAS{NAS_ALIVE} * $error_alive_count))
+        && ($online->{last_alive} > $NAS{NAS_ALIVE} * $error_alive_count))
       {
 
-        if ($last_alive > ($NAS{NAS_ALIVE} * $error_alive_count * 2)) {
+        if ($online->{last_alive} > ($NAS{NAS_ALIVE} * $error_alive_count * 2)) {
           my $ACCT_INFO = $sessions->online_info(
             {
-              NAS_ID          => $nas_row->[0],
-              NAS_PORT        => $nas_port_id,
-              ACCT_SESSION_ID => $acct_session_id
+              NAS_ID          => $NAS{NAS_ID},
+              NAS_PORT        => $online->{nas_port_id},
+              ACCT_SESSION_ID => $online->{acct_session_id}
             }
           );
 
-          $ACCT_INFO->{INBYTE}               = $acct_input_octets;
-          $ACCT_INFO->{OUTBYTE}              = $acct_output_octets;
-          $ACCT_INFO->{INBYTE2}              = $acct_input_octets_ext;
-          $ACCT_INFO->{OUTBYTE2}             = $acct_output_octets_ext;
+          $ACCT_INFO->{INBYTE}               = $online->{acct_input_octets};
+          $ACCT_INFO->{OUTBYTE}              = $online->{acct_output_octets};
+          $ACCT_INFO->{INBYTE2}              = $online->{acct_input_octets_ext};
+          $ACCT_INFO->{OUTBYTE2}             = $online->{acct_output_octets_ext};
           $ACCT_INFO->{ACCT_STATUS_TYPE}     = 'Stop';
-          $ACCT_INFO->{ACCT_SESSION_TIME}    = $acct_session_time;
+          $ACCT_INFO->{ACCT_SESSION_TIME}    = $online->{acct_session_time};
           $ACCT_INFO->{ACCT_TERMINATE_CAUSE} = 23;
-          $ACCT_INFO->{ACCT_SESSION_ID}      = $acct_session_id;
+          $ACCT_INFO->{ACCT_SESSION_ID}      = $online->{acct_session_id};
 
           my $r = $Acct->accounting($ACCT_INFO, \%NAS);
           my $info = '';
@@ -392,35 +314,25 @@ sub check_lines {
               $info .= sprintf("%-28s | %-30s |\n", $k, (defined($Acct->{$k})) ? $Acct->{$k} : '');
             }
           }
+
           if ($NAS{NAS_TYPE} eq 'ipcad' || $NAS{NAS_TYPE} eq 'dhcp') {
-            my $ret = hangup(
-              \%NAS,
-              "$nas_port_id",
-              "$line->[0]",
-              {
-                ACCT_SESSION_ID   => "$acct_session_id",
-                FRAMED_IP_ADDRESS => int2ip($client_ip),
-                UID               => $uid,
-                FILTER_ID         => $filter_id,
-                %NAS
-              }
-            );
+          	session_hangup(\%NAS, $online, '');
           }
 
-          $Log->log_print('LOG_WARNING', $user_name, "Last Alive: $last_alive, Session-ID: $acct_session_id\n$info", { ACTION => 'CALCULATION', NAS => \%NAS });
+          $Log->log_print('LOG_WARNING', $online->{user_name}, "Last Alive: $online->{last_alive}, Session-ID: $online->{acct_session_id}\n$info", { ACTION => 'CALCULATION', NAS => \%NAS });
           next;
         }
         else {
-          $Log->log_print('LOG_WARNING', "$user_name", "Last Alive: $last_alive, Session-ID: $acct_session_id", { ACTION => 'LOST_ALIVE', NAS => \%NAS });
-          $sessions->zap($nas_row->[0], $nas_port_id, $acct_session_id);
+          $Log->log_print('LOG_WARNING', $online->{user_name}, "Last Alive: $online->{last_alive}, Session-ID: $online->{acct_session_id}", { ACTION => 'LOST_ALIVE', NAS => \%NAS });
+          $sessions->zap( $NAS{NAS_ID} , $online->nas_port_id, $online->{acct_session_id});
         }
       }
       elsif (defined($external_stats->{error})) {
-        print "Error:  Login: $user_name, NAS-IP: $NAS{NAS_IP}, Port: $nas_port_id, Session-ID: $acct_session_id\n" if ($debug == 1);
+        print "Error:  Login: $online->{user_name}, NAS-IP: $NAS{NAS_IP}, Port: $online->{nas_port_id}, Session-ID: $online->{acct_session_id}\n" if ($debug == 1);
         $sessions->online_update(
           {
-            USER_NAME       => $user_name,
-            ACCT_SESSION_ID => $acct_session_id,
+            USER_NAME       => $online->{user_name},
+            ACCT_SESSION_ID => $online->{acct_session_id},
             STATUS          => 5
           }
         );
@@ -428,8 +340,8 @@ sub check_lines {
       elsif (defined($external_stats->{in})) {
         $sessions->online_update(
           {
-            USER_NAME       => $user_name,
-            ACCT_SESSION_ID => $acct_session_id,
+            USER_NAME       => $online->{user_name},
+            ACCT_SESSION_ID => $online->{acct_session_id},
             %$external_stats
           }
         );
@@ -439,7 +351,7 @@ sub check_lines {
       if ($conf{coa_send} && hascoa(\%NAS)) {
         if ($uid > 0) {
           my $Billing = Billing->new($db, \%conf);
-          $Tariffs->info(0, { ID => $tp_num });
+          $Tariffs->info(0, { ID => $online->{tp_num} });
           my $TIME_INTS      = $Tariffs->ti_list({ TP_ID => "$Tariffs->{TP_ID}" });
           my $curr_speed_in  = 0;
           my $curr_speed_out = 0;
@@ -458,14 +370,14 @@ sub check_lines {
 
                 #interval ended today
                 if ($now - $interval->[3] >= 0 && $now - $interval->[3] < $conf{billd_interval}) {
-                  $last           = $now - $interval->[3] < $duration_sec;
+                  $last           = $now - $interval->[3] < $online->{duration_sec};
                   $curr_speed_in  = $INT_DETL->[0]->[4];
                   $curr_speed_out = $INT_DETL->[0]->[5];
                 }
 
                 #current speed
                 elsif ($now - $interval->[2] >= 0 && $now - $interval->[2] < $conf{billd_interval}) {
-                  $curr          = $now - $interval->[2] < $duration_sec;
+                  $curr          = $now - $interval->[2] < $online->{duration_sec};
                   $new_speed_in  = $INT_DETL->[0]->[4];
                   $new_speed_out = $INT_DETL->[0]->[5];
                 }
@@ -473,7 +385,7 @@ sub check_lines {
 
               #day change
               elsif ($now + 86400 - $interval->[3] >= 0 && $now + 86400 - $interval->[3] < $conf{billd_interval}) {
-                $last           = $now + 86400 - $interval->[3] < $duration_sec;
+                $last           = $now + 86400 - $interval->[3] < $online->{duration_sec};
                 $curr_speed_in  = $INT_DETL->[0]->[4];
                 $curr_speed_out = $INT_DETL->[0]->[5];
               }
@@ -484,65 +396,69 @@ sub check_lines {
           if ($curr && $last && ($curr_speed_in != $new_speed_in || $curr_speed_out != $new_speed_out)) {
             my $ret = setspeed(
               \%NAS,
-              "$nas_port_id",
-              "$user_name",
+              "$online->{nas_port_id}",
+              "$online->{user_name}",
               $new_speed_in,
               $new_speed_out,
               {
-                ACCT_SESSION_ID   => $acct_session_id,
-                FRAMED_IP_ADDRESS => int2ip($client_ip),
+                ACCT_SESSION_ID   => $online->{acct_session_id},
+                FRAMED_IP_ADDRESS => $online->{ip},
                 UID               => $uid,
                 debug             => $debug
               }
             );
-            print "Change speed: $user_name SESSION_ID: $acct_session_id, SPEED: $curr_speed_in/$curr_speed_out -> $new_speed_in/$new_speed_out"
+            print "Change speed: $online->{user_name} SESSION_ID: $online->{acct_session_id}, SPEED: $curr_speed_in/$curr_speed_out -> $new_speed_in/$new_speed_out"
             . (($ret > -1) ? ", ERROR: $ret" : "")
             . "\n";    # if ($debug == 1);
           }
         }
       }
-
       #ENDCOA Section
 
       if (!$uid) { next; }
 
       # periodic check deposit, stats and statu
       my %RAD = (
-        USER_NAME             => "$user_name",
-        SESSION_START         => time - $acct_session_time,
-        ACCT_SESSION_TIME     => $duration_sec,
-        INBYTE                => $acct_input_octets,
-        OUTBYTE               => $acct_output_octets,
-        INBYTE2               => $acct_input_octets_ext,
-        OUTBYTE2              => $acct_input_octets_ext,
+        USER_NAME             => "$online->{user_name}",
+        SESSION_START         => time - $online->{acct_session_time},
+        ACCT_SESSION_TIME     => $online->{duration_sec},
+        INBYTE                => $online->{acct_input_octets},
+        OUTBYTE               => $online->{acct_output_octets},
+        INBYTE2               => $online->{acct_input_octets_ext},
+        OUTBYTE2              => $online->{acct_input_octets_ext},
         ACCT_INPUT_GIGAWORDS  => 0,
         ACCT_OUTPUT_GIGAWORDS => 0
       );
 
       # Join Service operation
-      if ($join_service) {
-        if (!$JOIN_SERVICE_STATS{$join_service}) {
+      if ($online->{join_service}) {
+        if (!$JOIN_SERVICE_STATS{$online->{join_service}}) {
           foreach my $line (@{ $sessions->online_join_services() }) {
             $JOIN_SERVICE_STATS{"$line->[0]"}{INBYTE}  = $line->[1];
             $JOIN_SERVICE_STATS{"$line->[0]"}{OUTBYTE} = $line->[2];
           }
         }
-        $RAD{INBYTE}  = $JOIN_SERVICE_STATS{$join_service}{INBYTE}  || 0;
-        $RAD{OUTBYTE} = $JOIN_SERVICE_STATS{$join_service}{OUTBYTE} || 0;
+        $RAD{INBYTE}  = $JOIN_SERVICE_STATS{$online->{join_service}}{INBYTE}  || 0;
+        $RAD{OUTBYTE} = $JOIN_SERVICE_STATS{$online->{join_service}}{OUTBYTE} || 0;
       }
 
       #if ($session_sum > 0)
       #Check active sessions
       $Billing->{CHECK_SESSION} = 1;
 
-      ($Billing->{UID}, $Billing->{SUM}, $Billing->{BILL_ID}, $Billing->{TARIF_PLAN}, $Billing->{TIME_TARIF}, $Billing->{TRAF_TARIF}) = $Billing->session_sum(
+      ($Billing->{UID}, 
+      $Billing->{SUM}, 
+      $Billing->{BILL_ID}, 
+      $Billing->{TARIF_PLAN}, 
+      $Billing->{TIME_TARIF}, 
+      $Billing->{TRAF_TARIF}) = $Billing->session_sum(
         "$RAD{USER_NAME}",
         $RAD{SESSION_START},
         $RAD{ACCT_SESSION_TIME} || 1,
         \%RAD,
         {
           UID    => $uid,
-          TP_NUM => $tp_num
+          TP_NUM => $online->{tp_num}
         }
       );
 
@@ -566,45 +482,56 @@ sub check_lines {
       . "UID: $Billing->{UID} SUM: $Billing->{SUM} BILL_ID: $Billing->{BILL_ID} TARIF_PLAN: $Billing->{TARIF_PLAN} TRAF_TARIF: $Billing->{TRAF_TARIF}\n"
       if ($debug > 2);
 
-      if ( (defined($Billing->{PAYMENT_TYPE}) && $Billing->{PAYMENT_TYPE} == 0) && ($deposit + $credit <= $Billing->{SUM})
+      if ( (defined($Billing->{PAYMENT_TYPE}) && $Billing->{PAYMENT_TYPE} == 0) 
+        && ($online->{deposit} + $online->{credit} <= $Billing->{SUM})
         || $Billing->{HANGUP}
-        || ($NAS{NAS_TYPE} eq 'exppp' && ($acct_input_octets_ext > $exppp_hanguplimit || $acct_output_octets_ext > $exppp_hanguplimit)))
+        || ($NAS{NAS_TYPE} eq 'exppp' && ($online->{acct_input_octets_ext} > $exppp_hanguplimit || $online->{acct_output_octets_ext} > $exppp_hanguplimit)))
       {
 
         #Neg deposit filter
-
-        if ($Billing->{NEG_DEPOSIT_FILTER} && $deposit + $credit <= 0 && $session_sum == 0) {
+        if ($online->{guest} && $online->{deposit} + $online->{credit} <= 0) {
           print "Skip with neg deposit filter '$Billing->{NEG_DEPOSIT_FILTER}'\n" if ($debug > 1);
-          next;
         }
-
-        my $ret = hangup(
-          \%NAS,
-          "$nas_port_id",
-          "$user_name",
-          {
-            ACCT_SESSION_ID   => $acct_session_id,
-            FRAMED_IP_ADDRESS => int2ip($client_ip),
-            UID               => $Billing->{UID},
-            debug             => $debug,
-            FILTER_ID         => $filter_id,
-            %NAS
-          }
-        );
-        my $hangup_status = 0;
-        if ($ret !~ /^Err/i) {
-          $hangup_status = 1;
+        else {
+      	 session_hangup(\%NAS, $online, "DEPOSIT: $online->{deposit} CREDIT: $online->{credit} SESSION_SUM: $Billing->{SUM} SESSION_ID: $online->{acct_session_id}");
         }
-        $Log->log_print(
-          'LOG_WARNING', "$RAD{USER_NAME}",
-          "DEPOSIT: $deposit CREDIT: $credit SESSION_SUM: $Billing->{SUM} SESSION_ID: $acct_session_id Status: $hangup_status",
-          { ACTION => 'HANGUP', NAS => \%NAS }
-        );
       }
     }
   }
 }
 
+
+#**********************************************************
+#
+#**********************************************************
+sub	session_hangup {
+  my ($NAS, $online, $message) =@_;
+
+  my $ret = hangup(
+          $NAS,
+          "$online->{nas_port_id}",
+          "$online->{user_name}",
+          {
+            ACCT_SESSION_ID   => $online->{acct_session_id},
+            FRAMED_IP_ADDRESS => $online->{ip},
+            UID               => $online->{uid},
+            debug             => $debug,
+            FILTER_ID         => $online->{filter_id},
+            %NAS
+          }
+        );
+
+  if ($message) {
+    my $hangup_status = 0;
+    if ($ret !~ /^Err/i) {
+       $hangup_status = 1;
+    }
+    $message .= " Status: $hangup_status";
+    $Log->log_print('LOG_WARNING', $online->{user_name}, $message,  { ACTION => 'HANGUP', NAS => $NAS });
+  }
+
+  return $ret;
+}
 #**********************************************************
 # Ceck current speed for exppp
 #**********************************************************
