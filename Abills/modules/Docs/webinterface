@@ -1994,7 +1994,7 @@ sub docs_invoice {
       $Docs->user_info($FORM{UID});
       if ($Docs->{TOTAL}) {      	
         if (!$FORM{NEXT_PERIOD}) {
-          $FORM{NEXT_PERIOD} = $Docs->{INVOICING_PERIOD} if ($Docs->{INVOICING_PERIOD} > 1);
+          $FORM{NEXT_PERIOD} = $Docs->{INVOICING_PERIOD} if ($Docs->{INVOICING_PERIOD});
         }
       }
 
