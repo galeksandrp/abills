@@ -160,7 +160,9 @@ sub periodic_invoice {
   my ($attr) = @_;
 
   $Docs->{debug} = 1 if ($debug > 6);
-  $DATE = $ARGV->{DATE} if ($ARGV->{DATE});
+  if ($ARGV->{DATE}) {
+    $DATE = $ARGV->{DATE} ;
+  }
 
   #Get period intervals for users with activate 0000-00-00
   if (!$FORM{INCLUDE_CUR_BILLING_PERIOD}) {
@@ -170,7 +172,6 @@ sub periodic_invoice {
   my ($Y, $M, $D) = split(/-/, $DATE);
   my $start_period_unixtime;
   my ($TO_Y, $TO_M, $TO_D);
-
   if ($M + 1 > 12) {
     $M = 1;
     $Y++;
@@ -181,6 +182,7 @@ sub periodic_invoice {
 
   $D = '01';
   my $NEXT_MONTH = sprintf("%4.d-%02d-%02d", $Y, $M, $D);
+  
   $TO_D = ($M != 2 ? (($M % 2) ^ ($M > 7)) + 30 : (!($Y % 400) || !($Y % 4) && ($Y % 25) ? 29 : 28));
 
   if (($conf{SYSTEM_CURRENCY} && $conf{DOCS_CURRENCY})
@@ -240,7 +242,6 @@ sub periodic_invoice {
     my @ids               = ();
 
     # No invoicing service from last invoice
-
     my $new_invoices = $Docs->invoice_new(
       {
         FROM_DATE => '2011-01-01',
