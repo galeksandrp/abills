@@ -1958,7 +1958,6 @@ sub docs_invoice {
     }
 
     print $table->show();
-
     return 0;
   }
 
@@ -2030,9 +2029,10 @@ sub docs_invoice {
       my $invoice_list    = $Docs->invoices_list(
         {
           UID         => $FORM{UID},
-          PAYMENT_ID  => 0,
+          #PAYMENT_ID  => 0,
           ORDERS_LIST => 1,
-          COLS_NAME   => 1
+          COLS_NAME   => 1,
+          PAGE_ROWS   => 1000
         }
       );
 
