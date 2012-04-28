@@ -2275,7 +2275,7 @@ sub docs_invoice {
       }
       else {
         $Docs->{ORDERS} = $table->show({ OUTPUT2RETURN => 1 });
-        $FORM{NEXT_PERIOD}=$Docs->{INVOICING_PERIOD} if (! $FORM{NEXT_PERIOD});
+        #$FORM{NEXT_PERIOD}=$Docs->{INVOICING_PERIOD} if (! $FORM{NEXT_PERIOD});
         $html->tpl_show(_include('docs_receipt_add', 'Docs'), { %FORM, %$attr, %$Docs, %$users }) if (!$FORM{pdf});
       }
     }
