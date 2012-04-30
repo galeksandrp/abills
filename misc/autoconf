@@ -205,7 +205,7 @@ if (!-f $config_file) {
   }
 }
 else {
-	interact_mode();
+  interact_mode();
 }
 
 require $Bin . '/../libexec/config.pl';
