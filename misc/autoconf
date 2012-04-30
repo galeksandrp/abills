@@ -64,9 +64,7 @@ if (!-f $config_file) {
       $read =~ s/^\s*//;
       $read =~ s/\s*$//;
 
-      #print "$VARIABLE  / $read\n";
       if ($read eq '') {
-
         #$mk_config{$VARIABLE} = $DEFAULT_VALUE{"$VARIABLE"};
       }
       else {
