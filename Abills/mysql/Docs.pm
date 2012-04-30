@@ -494,7 +494,7 @@ sub invoices_list {
                                             'REGISTRATION',
                                             'REDUCTION_DATE',
                                             'COMMENTS',
-                                            'BILL_ID',
+                                            'BILL_ID:skip',
                                             
                                             'ACTIVATE',
                                             'EXPIRE',
@@ -505,6 +505,7 @@ sub invoices_list {
     $SORT = "2 DESC, 1";
     $DESC = "DESC";
   }
+
 
   if ($attr->{CUSTOMER}) {
     push @WHERE_RULES, @{ $self->search_expr($attr->{CUSTOMER}, 'STR', 'd.customer') };
@@ -868,6 +869,8 @@ sub invoice_del {
     $self->query($db, "DELETE FROM docs_invoice_orders WHERE invoice_id='$id'", 'do');
     $self->query($db, "DELETE FROM docs_invoices WHERE id='$id'", 'do');
   }
+
+  $admin->action_add("$id", "", { TYPE => 18 });  
 
   return $self;
 }
