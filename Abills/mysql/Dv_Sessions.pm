@@ -830,6 +830,7 @@ sub prepaid_rest {
 
   $CONF->{MB_SIZE} = $CONF->{KBYTE_SIZE} * $CONF->{KBYTE_SIZE};
 
+
   #Get User TP and intervals
   $self->query(
     $db, "select tt.id, i.begin, i.end, 
@@ -844,7 +845,8 @@ sub prepaid_rest {
       PERIOD_DIFF(DATE_FORMAT(curdate(),'%Y%m'),DATE_FORMAT(u.registration, '%Y%m'))+1, tp.traffic_transfer_period), 
     tp.day_traf_limit,
     tp.week_traf_limit,
-    tp.month_traf_limit
+    tp.month_traf_limit,
+    tt.interval_id
   from (users u,
         dv_main dv,
         tarif_plans tp,
@@ -864,7 +866,7 @@ WHERE
     return 0;
   }
 
-  $self->{INFO_LIST} = $self->{list};
+  $self->{INFO_LIST}    = $self->{list};
   my $login             = $self->{INFO_LIST}->[0]->[5];
   my $traffic_transfert = $self->{INFO_LIST}->[0]->[10];
 
@@ -921,25 +923,28 @@ WHERE
   }
   else {
     $WHERE = "DATE_FORMAT(start, '%Y-%m-%d')>='$self->{INFO_LIST}->[0]->[3]' - INTERVAL $traffic_transfert MONTH ";
-
-    #and DATE_FORMAT(start, '%Y-%m-%d')<='$self->{INFO_LIST}->[0]->[3]'";
   }
 
-  #Get using traffic
-  $self->query(
-    $db, "select  
+  if ($CONF->{DV_INTERVAL_PREPAID}) {
+  	$self->query($db, "SELECT li.traffic_type, li.sent, li.recv  FROM dv_log l, dv_log_intervals li
+  	   WHERE l.acct_session_id=li.acct_session_id WHERE $uid $WHERE and li.interval_id='$self->{INFO_LIST}->[14]'");
+  }
+  else {
+    #Get using traffic
+    $self->query($db, "select  
      sum($octets_direction) / $CONF->{MB_SIZE},
      sum($octets_direction2) / $CONF->{MB_SIZE},
      DATE_FORMAT(start, '%Y-%m'), 
      1
-   FROM dv_log
-   WHERE $uid  and tp_id='$self->{INFO_LIST}->[0]->[8]' and
-    (  $WHERE
-      ) 
-   GROUP BY $GROUP
-   ;"
-  );
-
+     FROM dv_log
+     WHERE $uid  and tp_id='$self->{INFO_LIST}->[0]->[8]' and
+      (  $WHERE
+        ) 
+     GROUP BY $GROUP
+     ;"
+    );
+  }
+  
   if ($self->{TOTAL} > 0) {
     my ($class1, $class2) = (0, 0);
     $self->{INFO_LIST}->[0]->[4] = 0;
@@ -957,27 +962,6 @@ WHERE
     $rest{0} = $class1;
     $rest{1} = $class2;
   }
-
-  # }
-
-  #Check sessions
-  #Get using traffic
-  # $self->query($db, "select
-  #  $rest{0} - sum($octets_direction) / $CONF->{MB_SIZE},
-  #  $rest{1} - sum($octets_direction2) / $CONF->{MB_SIZE},
-  #  1
-  # FROM dv_log
-  # WHERE $uid ".
-  # #and tp_id='$self->{INFO_LIST}->[0]->[8]'
-  #  "AND DATE_FORMAT(start, '%Y-%m-%d')>='$self->{INFO_LIST}->[0]->[3]'
-  # GROUP BY 3
-  # ;");
-  #
-  # if ($self->{TOTAL} > 0) {
-  #   ($rest{0},
-  #    $rest{1}
-  #    ) =  @{ $self->{list}->[0] };
-  #  }
 
   #Check online
   $self->query(
