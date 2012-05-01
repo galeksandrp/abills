@@ -303,12 +303,15 @@ sub get_traffic {
   }
 
   if ($CONF->{DV_INTERVAL_PREPAID}) {
+  	$self->query($db, "SELECT li.traffic_type, li.sent, li.recv  FROM dv_log l, dv_log_intervals li
+  	   WHERE l.acct_session_id=li.acct_session_id WHERE uid $WHERE and li.interval_id='$self->{TI_ID}' and ($period)");
+  
 	  if ($self->{TOTAL} > 0) {
-      my ($TRAFFIC_OUT, $TRAFFIC_IN, $TRAFFIC_OUT_2, $TRAFFIC_IN_2) = @{ $self->{list}->[0] };
-      $result{TRAFFIC_OUT}   += $TRAFFIC_OUT;
-      $result{TRAFFIC_IN}    += $TRAFFIC_IN;
-      $result{TRAFFIC_OUT_2} += $TRAFFIC_OUT_2;
-      $result{TRAFFIC_IN_2}  += $TRAFFIC_IN_2;
+	  	foreach my $line ($self->{list}) {
+	  		my $sufix = ($line->[0] == 0) ? '' : "_".($line->[0]+1);
+        $result{'TRAFFIC_OUT'.$sufix}   += $line->[1];
+        $result{'TRAFFIC_IN'.$sufix}    += $line->[2];
+      }
     }
 
     $self->{PERIOD_TRAFFIC} = \%result;
@@ -697,8 +700,6 @@ sub session_sum {
   if (!defined($self->{NO_TPINTERVALS})) {
     if ($#sd < 0) {
       print "Not allow start period" if ($self->{debug});
-
-      #$self->{HANGUP}=1;
       return -16, 0, 0, 0, 0, 0;
     }
 
