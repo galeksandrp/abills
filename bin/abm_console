@@ -93,11 +93,10 @@ my %LIST_PARAMS = ();
 
 $debug = ($ARGV->{DEBUG}) ? $ARGV->{DEBUG} : $debug;
 $LIST_PARAMS{PAGE_ROWS} = ($ARGV->{PAGE_ROWS}) ? $ARGV->{PAGE_ROWS} : 1000000;
-$LIST_PARAMS{DATE}  = $ARGV->{DATE}  || '';
-$LIST_PARAMS{SORT}  = $ARGV->{SORT}  || 1;
-$LIST_PARAMS{DESC}  = $ARGV->{DESC}  || undef;
-$LIST_PARAMS{ID}    = $ARGV->{ID}    || undef;
-$LIST_PARAMS{LOGIN} = $ARGV->{LOGIN} || undef;
+
+foreach my $key ( %$ARGV ) {
+	$LIST_PARAMS{$key}=$ARGV->{$key};
+}
 
 #Intercat mode
 my $interact = 0;
