@@ -158,7 +158,6 @@ sub dv_chg_tp {
         $html->message('err', $_ERROR, "[$Dv->{errno}] $err_strs{$Dv->{errno}}");
       }
       else {
-
         #Take fees
         if (!$Dv->{STATUS} && $FORM{GET_ABON}) {
           dv_get_month_fee($Dv);
@@ -4368,6 +4367,7 @@ sub dv_user_info {
     );
 
     if (!$Dv->{errno}) {
+      $Dv->{ACCOUNT_ACTIVATE}=$user->{ACTIVATE};	
       $html->message('info', $_INFO, "$_ACTIVATE CID: $Dv->{ISG_CID_CUR}") if ($Dv->{ISG_CID_CUR});
       dv_get_month_fee($Dv) if (!$Dv->{STATUS});
     }
@@ -7064,11 +7064,10 @@ sub dv_get_month_fee {
     }
 
     #Make reduction
-    if ($users->{REDUCTION} > 0 && $Dv->{TP_INFO}->{REDUCTION_FEE}) {
+    if ($user->{REDUCTION} > 0 && $Dv->{TP_INFO}->{REDUCTION_FEE}) {
       $sum = $sum * (100 - $users->{REDUCTION}) / 100;
     }
 
-    #$message .= "$_MONTH_FEE: $sum ($Dv->{TP_INFO}->{ID})";
     $message .= "Internet: $_MONTH_FEE_SHORT $Dv->{TP_INFO}->{NAME} ($Dv->{TP_INFO}->{ID})";
 
     if ($Dv->{TP_INFO}->{ABON_DISTRIBUTION}) {
@@ -7087,6 +7086,7 @@ sub dv_get_month_fee {
     }
 
     $m = $active_m if ($active_m > 0);
+
     for (my $i = 0 ; $i <= $periods ; $i++) {
       if ($m > 12) {
         $m        = 1;
@@ -7096,7 +7096,7 @@ sub dv_get_month_fee {
       $m = sprintf("%.2d", $m);
 
       if ($i > 0) {
-        if ($users->{REDUCTION} > 0 && $Dv->{TP_INFO}->{REDUCTION_FEE}) {
+        if ($user->{REDUCTION} > 0 && $Dv->{TP_INFO}->{REDUCTION_FEE}) {
           $sum = $Dv->{TP_INFO}->{MONTH_FEE} * (100 - $users->{REDUCTION}) / 100;
         }
 
@@ -7684,7 +7684,15 @@ sub dv_payments_maked {
 
   my $abon_fees = ($attr->{USER_INFO}->{REDUCTION}) ? $Dv->{MONTH_ABON} + $Dv->{DAY_ABON} : ($Dv->{MONTH_ABON} + $Dv->{DAY_ABON}) * (100 - $attr->{USER_INFO}->{REDUCTION}) / 100;
 
-  if ($Dv->{STATUS} > 3 && ($deposit > $abon_fees || $Dv->{ABON_DISTRIBUTION})) {
+  
+  my $abon_fees = ($attr->{USER_INFO}->{REDUCTION}) ? $Dv->{MONTH_ABON} + $Dv->{DAY_ABON} : ($Dv->{MONTH_ABON} + $Dv->{DAY_ABON}) * (100 - $attr->{USER_INFO}->{REDUCTION}) / 100;
+
+  if($conf{DV_FULL_MONTH}) {
+  	$abon_fees = $Dv->{DAY_ABON}
+  }
+
+
+  if ($Dv->{STATUS} > 3 && ($deposit > $abon_fees || (! $conf{DV_FULL_MONTH} && $Dv->{ABON_DISTRIBUTION}) )) {
     $Dv->change(
       {
         UID    => $attr->{USER_INFO}->{UID},
