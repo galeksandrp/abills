@@ -367,7 +367,6 @@ sub check_lines {
 
               #interval started today
               if ($now - $interval->[2] >= 0) {
-
                 #interval ended today
                 if ($now - $interval->[3] >= 0 && $now - $interval->[3] < $conf{billd_interval}) {
                   $last           = $now - $interval->[3] < $online->{duration_sec};
@@ -479,8 +478,7 @@ sub check_lines {
       }
 
       print "START: $RAD{SESSION_START} DURATION: $RAD{ACCT_SESSION_TIME} "
-      . "UID: $Billing->{UID} SUM: $Billing->{SUM} BILL_ID: $Billing->{BILL_ID} TARIF_PLAN: $Billing->{TARIF_PLAN} TRAF_TARIF: $Billing->{TRAF_TARIF}\n"
-      if ($debug > 2);
+      . "UID: $Billing->{UID} SUM: $Billing->{SUM} BILL_ID: $Billing->{BILL_ID} TARIF_PLAN: $Billing->{TARIF_PLAN} TRAF_TARIF: $Billing->{TRAF_TARIF}\n" if ($debug > 2);
 
       if ( (defined($Billing->{PAYMENT_TYPE}) && $Billing->{PAYMENT_TYPE} == 0) 
         && ($online->{deposit} + $online->{credit} <= $Billing->{SUM})
@@ -495,6 +493,9 @@ sub check_lines {
         else {
       	 session_hangup(\%NAS, $online, "DEPOSIT: $online->{deposit} CREDIT: $online->{credit} SESSION_SUM: $Billing->{SUM} SESSION_ID: $online->{acct_session_id}");
         }
+      }
+      elsif($online->{guest} && $online->{deposit} + $online->{credit} > 0) {
+     	  session_hangup(\%NAS, $online, "DEPOSIT: $online->{deposit} CREDIT: $online->{credit} SESSION_SUM: $Billing->{SUM} SESSION_ID: $online->{acct_session_id}");
       }
     }
   }

@@ -213,8 +213,8 @@ sub online {
     CLIENT_IP_NUM => 'c.framed_ip_address AS ip_num',
     DURATION      => 'SEC_TO_TIME(UNIX_TIMESTAMP() - UNIX_TIMESTAMP(c.started)) AS acct_session_time',
 
-    INPUT_OCTETS   => 'c.acct_input_octets + 4294967296 * acct_input_gigawords AS input_otets',
-    OUTPUT_OCTETS  => 'c.acct_output_octets + 4294967296 * acct_output_gigawords AS output_otets',
+    INPUT_OCTETS   => 'c.acct_input_octets + 4294967296 * acct_input_gigawords AS acct_input_octets',
+    OUTPUT_OCTETS  => 'c.acct_output_octets + 4294967296 * acct_output_gigawords AS acct_output_octets',
     INPUT_OCTETS2  => 'c.ex_input_octets',
     OUTPUT_OCTETS2 => 'c.ex_output_octets',
 

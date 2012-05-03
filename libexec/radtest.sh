@@ -3,7 +3,7 @@
 
 AUTH_LOG=/usr/abills/var/log/abills.log
 ACCT_LOG=/usr/abills/var/log/acct.log
-VERSION=0.13
+VERSION=0.14
 
 
 USER_NAME=test
@@ -82,8 +82,7 @@ for _switch ; do
                 echo "Version: ${VERSION}";
                 exit;
                 ;;
-        -u)  
-                USER_NAME=$2;
+        -u)     USER_NAME=$2;
                 shift; shift
                 ;;
         -p)     USER_PASSWORD=$2;
@@ -94,7 +93,7 @@ for _switch ; do
                 ;;
         acct)   ACCOUNTING_ACTION=$2;
                 ACTION=acct 
-                shift; 
+                shift; shift;
                 ;;
         auth)   ACTION=auth;
                 shift;
