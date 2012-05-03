@@ -204,9 +204,6 @@ if (!-f $config_file) {
     exit;
   }
 }
-else {
-  interact_mode();
-}
 
 require $Bin . '/../libexec/config.pl';
 
@@ -245,10 +242,14 @@ elsif ($ARGV->{PROGRAMS}) {
     }
   }
 }
-
-if ($ARGV->{INTERACT}) {
+elsif ($ARGV->{INTERACT}) {
   interact_mode();
 }
+else {
+  interact_mode();
+}
+
+
 
 #**********************************************************
 # Program Info
