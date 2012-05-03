@@ -490,8 +490,8 @@ sub dv_auth {
     $RAD_PAIRS->{'Framed-IP-Address'} = "$self->{IP}";
     if (! $self->{REASSIGN}) {
       $self->query(
-        $db, "INSERT INTO dv_calls (started, user_name, uid, framed_ip_address, nas_id, nas_ip_address, status, acct_session_id, tp_id, join_service, guest)
-        VALUES (now(), '$self->{USER_NAME}', '$self->{UID}', INET_ATON('$self->{IP}'), '$NAS->{NAS_ID}', INET_ATON('$RAD->{NAS_IP_ADDRESS}'), '11', 'IP', '$self->{TP_NUM}', '$self->{JOIN_SERVICE}', 1);", 'do'
+        $db, "INSERT INTO dv_calls (started, user_name, uid, framed_ip_address, nas_id, nas_ip_address, status, acct_session_id, tp_id, join_service)
+        VALUES (now(), '$self->{USER_NAME}', '$self->{UID}', INET_ATON('$self->{IP}'), '$NAS->{NAS_ID}', INET_ATON('$RAD->{NAS_IP_ADDRESS}'), '11', 'IP', '$self->{TP_NUM}', '$self->{JOIN_SERVICE}');", 'do'
        );
     }
     delete $self->{REASSIGN};
@@ -503,7 +503,6 @@ sub dv_auth {
       return 1, $RAD_PAIRS;
     }
     elsif ($ip eq '0') {
-
       #$RAD_PAIRS->{'Reply-Message'}="$self->{errstr} ($NAS->{NAS_ID})";
       #return 1, $RAD_PAIRS;
     }

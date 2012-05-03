@@ -262,7 +262,7 @@ sub check_lines {
       my $uid     = $online->{uid};
       my $state   = ($online->{dv_status}) ? $online->{dv_status} + $online->{login_status} : 0;
       if ($debug > 1) {
-        printf("%-14s|%16s|%8s|%10s|%10s|%12s|\n", $online->{user_name}, $online->{ip}, $online->{duration}, $online->{acct_input_octets}, $online->{acct_output_octets}, $online->{deposit});
+        printf("%-14s|%16s|%8s|%10s|%10s|%12s|\n", $online->{user_name}, $online->{ip}, $online->{acct_session_time}, $online->{acct_input_octets}, $online->{acct_output_octets}, $online->{deposit});
       }
 
       if (
