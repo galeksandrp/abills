@@ -195,7 +195,17 @@ sub accounting {
         return $self;
       }
 
-      ($RAD->{INBYTE}, $RAD->{OUTBYTE}, $RAD->{ACCT_INPUT_GIGAWORDS}, $RAD->{ACCT_OUTPUT_GIGAWORDS}, $RAD->{INBYTE2}, $RAD->{OUTBYTE2}, $self->{TARIF_PLAN}, $self->{SUM}, $self->{UID}, $self->{BILL_ID}, $self->{COMPANY_ID}) = @{ $self->{list}->[0] };
+      ($RAD->{INBYTE}, 
+       $RAD->{OUTBYTE}, 
+       $RAD->{ACCT_INPUT_GIGAWORDS}, 
+       $RAD->{ACCT_OUTPUT_GIGAWORDS}, 
+       $RAD->{INBYTE2}, 
+       $RAD->{OUTBYTE2}, 
+       $self->{TARIF_PLAN}, 
+       $self->{SUM}, 
+       $self->{UID}, 
+       $self->{BILL_ID}, 
+       $self->{COMPANY_ID}) = @{ $self->{list}->[0] };
 
       if ($self->{COMPANY_ID} > 0) {
         $self->query($db, "SELECT bill_id FROM companies WHERE id='$self->{COMPANY_ID}';");
