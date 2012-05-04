@@ -160,8 +160,8 @@ sub traffic_calculations {
     if ($CONF->{rt_billing}) {
       $used_traffic->{TRAFFIC_IN}    += int($RAD->{INBYTE} / $CONF->{MB_SIZE});
       $used_traffic->{TRAFFIC_OUT}   += int($RAD->{OUTBYTE} / $CONF->{MB_SIZE});
-      $used_traffic->{TRAFFIC_IN_2}  += int($RAD->{INBYTE2} / $CONF->{MB_SIZE});
-      $used_traffic->{TRAFFIC_OUT_2} += int($RAD->{OUTBYTE2} / $CONF->{MB_SIZE});
+      $used_traffic->{TRAFFIC_IN_2}  += ($RAD->{INBYTE2}) ? int($RAD->{INBYTE2} / $CONF->{MB_SIZE}) : 0;
+      $used_traffic->{TRAFFIC_OUT_2} += ($RAD->{OUTBYTE2}) ? int($RAD->{OUTBYTE2} / $CONF->{MB_SIZE}) : 0;
     }
     elsif ($RAD->{ACCT_INPUT_GIGAWORDS}) {
       $recv = $recv + $RAD->{ACCT_INPUT_GIGAWORDS} * 4294967296;
