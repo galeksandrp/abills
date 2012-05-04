@@ -631,8 +631,8 @@ sub session_sum {
         tp.traffic_transfer_period,
         tp.neg_deposit_filter_id,
         tp.tp_id
-       FROM ( dv_main dv,  tarif_plans tp)
-       WHERE dv.tp_id=tp.id, tp.domain_id='$attr->{DOMAIN_ID}'
+       FROM (dv_main dv,  tarif_plans tp)
+       WHERE dv.tp_id=tp.id AND tp.domain_id='$attr->{DOMAIN_ID}'
        and dv.uid='$self->{JOIN_SERVICE}';"
       );
 

@@ -829,8 +829,6 @@ sub prepaid_rest {
   my ($attr) = @_;
 
   $CONF->{MB_SIZE} = $CONF->{KBYTE_SIZE} * $CONF->{KBYTE_SIZE};
-
-
   #Get User TP and intervals
   $self->query(
     $db, "select tt.id, i.begin, i.end, 

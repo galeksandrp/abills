@@ -789,12 +789,13 @@ sub dv_user {
         {
           JOIN_SERVICE => $Dv->{UID},
           COMPANY_ID   => $attr->{USER_INFO}->{COMPANY_ID},
-          PAGE_ROWS    => 1000
+          PAGE_ROWS    => 1000,
+          COLS_NAME    => 1
         }
       );
 
       foreach my $line (@$list) {
-        $Dv->{JOIN_SERVICES_USERS} .= $html->button("$line->[0]", "&index=15&UID=" . $line->[ $Dv->{SEARCH_FIELDS_COUNT} + 6 ]) . ' ';
+        $Dv->{JOIN_SERVICES_USERS} .= $html->button("$line->{id}", "&index=15&UID=$line->{uid}");
       }
     }
     elsif ($Dv->{JOIN_SERVICE} > 1) {
@@ -2646,34 +2647,36 @@ sub dv_stats {
   #Join Service
   if ($users->{COMPANY_ID}) {
     if ($Dv->{JOIN_SERVICE}) {
-      if ($Dv->{JOIN_SERVICE} == 1) {
-        my @uids = ();
-        my $list = $Dv->list(
+      my @uids = ();
+      my $list = $Dv->list(
           {
-            JOIN_SERVICE => $Dv->{UID},
+            JOIN_SERVICE => ($Dv->{JOIN_SERVICE}==1) ? $Dv->{UID} : $Dv->{JOIN_SERVICE},
             COMPANY_ID   => $attr->{USER_INFO}->{COMPANY_ID},
-            PAGE_ROWS    => 10000
+            PAGE_ROWS    => 10000,
+            COLS_NAME    => 1
           }
         );
 
-        foreach my $line (@$list) {
-          $Dv->{JOIN_SERVICES_USERS} .= $html->button("$line->[0]", "&index=$index&UID=" . $line->[ $Dv->{SEARCH_FIELDS_COUNT} + 6 ], { BUTTON => 1 }) . ' ';
-          push @uids, $line->[ $Dv->{SEARCH_FIELDS_COUNT} + 6 ];
+      foreach my $line (@$list) {
+      	if ($Dv->{JOIN_SERVICE} == 1) {
+          $Dv->{JOIN_SERVICES_USERS} .= $html->button("$line->{id}", "&index=$index&UID=$line->{uid}", { BUTTON => 1 }) . ' ';
         }
 
-        $LIST_PARAMS{UIDS} = $FORM{UID};
-        $LIST_PARAMS{UIDS} .= ',' . join(', ', @uids) if ($#uids > -1);
+        push @uids, $line->{uid};
       }
-      elsif ($Dv->{JOIN_SERVICE} > 1) {
+
+      $LIST_PARAMS{UIDS} = ($Dv->{JOIN_SERVICE} > 1) ? $Dv->{JOIN_SERVICE} : $FORM{UID};
+      $LIST_PARAMS{UIDS} .= ',' . join(', ', @uids) if ($#uids > -1);
+
+      if ($Dv->{JOIN_SERVICE} > 1) {
         $Dv->{JOIN_SERVICES_USERS} .= $html->button("$_MAIN", "index=$index&UID=$Dv->{JOIN_SERVICE}", { BUTTON => 1 }) . ' ';
       }
 
       my $table = $html->table(
-        {
-          width => '100%',
-          rows  => [ [ "$_JOIN_SERVICE:", $Dv->{JOIN_SERVICES_USERS} ] ]
-        }
-      );
+      {
+        width => '100%',
+        rows  => [ [ "$_JOIN_SERVICE:", $Dv->{JOIN_SERVICES_USERS} ] ]
+      });
       $sessions->{JOIN_SERVICE_STATS} .= $table->show();
     }
   }
@@ -2684,17 +2687,17 @@ sub dv_stats {
     $pages_qs .= "&rows=$conf{list_max_recs}";
   }
 
-  if (!$LIST_PARAMS{UID} && $FORM{LOGIN_EXPR}) {
+  if (!$LIST_PARAMS{UID} && $FORM{LOGIN}) {
     my $users = Users->new($db, $admin, \%conf);
-    my $list = $users->list({ LOGIN_EXPR => $FORM{LOGIN_EXPR} });
+    my $list = $users->list({ LOGIN => $FORM{LOGIN}, COLS_NAME => 1 });
     if ($users->{TOTAL} == 1) {
-      $LIST_PARAMS{UID}      = $list->[0]->[ 5 + $users->{SEARCH_FIELDS_COUNT} ];
+      $LIST_PARAMS{UID}      = $list->[0]->{uid};
       $FORM{UID}             = $LIST_PARAMS{UID};
       $UID                   = $LIST_PARAMS{UID};
-      $LIST_PARAMS{ACTIVATE} = $list->[0]->[ 8 + $users->{SEARCH_FIELDS_COUNT} ];
+      $LIST_PARAMS{ACTIVATE} = $list->[0]->{activate};
     }
     else {
-      $html->message('err', $_ERROR, "'$FORM{LOGIN_EXPR}' $_NOT_EXIST");
+      $html->message('err', $_ERROR, "'$FORM{LOGIN}' $_NOT_EXIST");
       return 0;
     }
 
@@ -2788,7 +2791,7 @@ sub dv_stats {
   if (
     $sessions->prepaid_rest(
       {
-        UID  => $LIST_PARAMS{UID},
+        UID  => ($Dv->{JOIN_SERVICE} > 1) ? $Dv->{JOIN_SERVICE} : $LIST_PARAMS{UID},
         UIDS => $LIST_PARAMS{UIDS}
       }
     )
@@ -2915,7 +2918,6 @@ sub dv_stats_calculation {
 # form_stats
 #**********************************************************
 sub dv_user_stats {
-
   if (defined($FORM{SESSION_ID})) {
     $pages_qs .= "&SESSION_ID=$FORM{SESSION_ID}";
     dv_session_detail({ LOGIN => $LIST_PARAMS{LOGIN} });
@@ -2950,37 +2952,38 @@ sub dv_user_stats {
 
     $Dv->info($UID);
 
-    if ($Dv->{JOIN_SERVICE} == 1) {
+    if ($Dv->{JOIN_SERVICE}) {
       my $list = $Dv->list(
         {
-          JOIN_SERVICE => $UID,
+          JOIN_SERVICE => ($Dv->{JOIN_SERVICE}==1) ? $UID : $Dv->{JOIN_SERVICE}, 
           COMPANY_ID   => $attr->{USER_INFO}->{COMPANY_ID},
-          PAGE_ROWS    => 1000
+          PAGE_ROWS    => 1000,
+          COLS_NAME    => 1
         }
       );
 
-      $Dv->{JOIN_SERVICES_USERS} .=
-      (!$FORM{JOIN_STATS})
-      ? $html->b("$_ALL $_USERS") . ' :: '
-      : $html->button("$_ALL", "&sid=$sid&index=$index&JOIN_STATS=" . $line->[ $Dv->{SEARCH_FIELDS_COUNT} + 6 ], { BUTTON => 1 }) . ' ';
+      if ($Dv->{JOIN_SERVICE} == 1) {
+        $Dv->{JOIN_SERVICES_USERS} .= (!$FORM{JOIN_STATS}) ? $html->b("$_ALL $_USERS") . ' :: '
+                 : $html->button("$_ALL", "&sid=$sid&index=$index&JOIN_STATS=" . $line->{uid}, { BUTTON => 1 }) . ' ';
+      }
+      #elsif ($Dv->{JOIN_SERVICE} > 1) {
+      #  $Dv->{JOIN_SERVICES_USERS} .= $html->button("$_MAIN", "index=$index&UID=$Dv->{JOIN_SERVICE}", { BUTTON => 1 });
+      #}
 
       foreach my $line (@$list) {
-        if ($FORM{JOIN_STATS} && $FORM{JOIN_STATS} == $line->[ $Dv->{SEARCH_FIELDS_COUNT} + 6 ]) {
-          $Dv->{JOIN_SERVICES_USERS} .= $html->b($line->[0]) . ' ';
+        if ($FORM{JOIN_STATS} && $FORM{JOIN_STATS} == $line->{uid}) {
+          $Dv->{JOIN_SERVICES_USERS} .= $html->b($line->{id}) . ' ';
           $UID = $FORM{JOIN_STATS};
         }
-        else {
-          $Dv->{JOIN_SERVICES_USERS} .= $html->button("$line->[0]", "&sid=$sid&index=$index&JOIN_STATS=" . $line->[ $Dv->{SEARCH_FIELDS_COUNT} + 6 ], { BUTTON => 1 }) . ' ';
+        elsif($Dv->{JOIN_SERVICE} == 1) {
+          $Dv->{JOIN_SERVICES_USERS} .= $html->button("$line->{id}", "&sid=$sid&index=$index&JOIN_STATS=" . $line->{uid}, { BUTTON => 1 }) . ' ';
         }
 
-        push @uids, $line->[ $Dv->{SEARCH_FIELDS_COUNT} + 6 ];
+        push @uids, $line->{uid};
       }
 
-      $LIST_PARAMS{UIDS} = $UID;
+      $LIST_PARAMS{UIDS}  = ($Dv->{JOIN_SERVICE} > 1) ? $Dv->{JOIN_SERVICE} : $UID;
       $LIST_PARAMS{UIDS} .= ',' . join(', ', @uids) if ($#uids > -1 && !$FORM{JOIN_STATS});
-    }
-    elsif ($Dv->{JOIN_SERVICE} > 1) {
-      $Dv->{JOIN_SERVICES_USERS} .= $html->button("$_MAIN", "index=$index&UID=$Dv->{JOIN_SERVICE}", { BUTTON => 1 });
     }
 
     my $table = $html->table(
@@ -3112,7 +3115,7 @@ sub dv_user_stats {
   if (
     $sessions->prepaid_rest(
       {
-        UID  => $LIST_PARAMS{UID},
+        UID  => ($Dv->{JOIN_SERVICE} > 1) ? $Dv->{JOIN_SERVICE} : $LIST_PARAMS{UID},
         UIDS => $LIST_PARAMS{UIDS}
       }
     )
