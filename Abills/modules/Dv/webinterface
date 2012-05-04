@@ -4890,6 +4890,7 @@ sub dv_daily_fees {
         {
           ACTIVATE     => "<=$ADMIN_REPORT{DATE}",
           EXPIRE       => "0000-00-00,>$ADMIN_REPORT{DATE}",
+          JOIN_SERVICE => "<2",
           STATUS       => "0;5",
           LOGIN_STATUS => 0,
           TP_ID        => $TP_ID,
@@ -5367,6 +5368,7 @@ sub dv_monthly_fees {
           ACTIVATE     => "$activate_date",
           EXPIRE       => "0000-00-00,>$ADMIN_REPORT{DATE}",
           STATUS       => "0;5",
+          JOIN_SERVICE => "<2",
           LOGIN_STATUS => 0,
           TP_ID        => $TP_ID,
           SORT         => 1,
@@ -7684,11 +7686,8 @@ sub dv_payments_maked {
 
   my $abon_fees = ($attr->{USER_INFO}->{REDUCTION}) ? $Dv->{MONTH_ABON} + $Dv->{DAY_ABON} : ($Dv->{MONTH_ABON} + $Dv->{DAY_ABON}) * (100 - $attr->{USER_INFO}->{REDUCTION}) / 100;
 
-  
-  my $abon_fees = ($attr->{USER_INFO}->{REDUCTION}) ? $Dv->{MONTH_ABON} + $Dv->{DAY_ABON} : ($Dv->{MONTH_ABON} + $Dv->{DAY_ABON}) * (100 - $attr->{USER_INFO}->{REDUCTION}) / 100;
-
   if($conf{DV_FULL_MONTH}) {
-  	$abon_fees = $Dv->{DAY_ABON}
+  	$abon_fees = ($attr->{USER_INFO}->{REDUCTION}) ? $Dv->{MONTH_ABON} + $Dv->{DAY_ABON}*30 : ($Dv->{MONTH_ABON} + $Dv->{DAY_ABON}*30) * (100 - $attr->{USER_INFO}->{REDUCTION}) / 100;
   }
 
 
