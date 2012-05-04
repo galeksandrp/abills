@@ -162,6 +162,12 @@ sub ipn_sessions2 {
   }
 
   $LIST_PARAMS{CUR_DATE} = $DATE;
+  $FORM{FROM_DATE} = $html->{FROM_DATE};
+  $FORM{TO_DATE}   = $html->{TO_DATE};
+  if ($FORM{FROM_DATE}) {
+    $LIST_PARAMS{INTERVAL} = "$FORM{FROM_DATE}/$FORM{TO_DATE}";
+  }
+
   my $list = $Ipn->reports_users({%LIST_PARAMS});
 
   #Used Fraffic

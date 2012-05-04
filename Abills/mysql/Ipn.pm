@@ -511,15 +511,25 @@ sub reports_users {
     my ($y,      $m,      $d)      = split(/-/, $attr->{CUR_DATE});
     my $START_DATE  = "$from_y$from_m";
     my $FINISH_DATE = "$to_y$to_m";
+    my $START_DATE_DAY  = "$from_y$from_m$from_d";
+    my $FINISH_DATE_DAY = "$to_y$to_m$to_d";
+
 
     $self->query($db, "SHOW TABLES LIKE 'ipn_log_%';");
     my $list = $self->{list};
 
     foreach my $line (@$list) {
       my $table = $line->[0];
-      if ($table =~ m/ipn_log_(\d{4})_(\d{2})/) {
+      if ($table =~ m/ipn_log_(\d{4})_(\d{2})$/) {
         my $table_date = "$1$2";
         if ($table_date >= $START_DATE && $table_date <= $FINISH_DATE) {
+          print $table. "\n" if ($debug > 1);
+          push @tables, $table;
+        }
+      }
+      elsif ($table =~ m/ipn_log_(\d{4})_(\d{2})_(\d{2})$/) {
+        my $table_date = "$1$2$3";
+        if ($table_date >= $START_DATE_DAY && $table_date <= $FINISH_DATE_DAY) {
           print $table. "\n" if ($debug > 1);
           push @tables, $table;
         }

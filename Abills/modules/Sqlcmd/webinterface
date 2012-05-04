@@ -430,13 +430,14 @@ sub sqlcmd_tables {
 
   #SHOW TABLE STATUS FROM abills;
   #$table{size} = Index_length + Data_length
-  # ALTER TABLE `abon_tariffs` CHANGE `name` `name` VARCHAR( 20 ) CHARACTER SET cp1251 COLLATE cp1251_general_ci NOT NULL DEFAULT ''
   $FORM{sort} = 1 if (!$FORM{sort});
 
   if ($FORM{ACTION} && $FORM{ACTION} eq 'BACKUP') {
     $FORM{mk_backup} = 1;
     form_sql_backup({ TABLES => $FORM{TABLES} });
   }
+
+  $html->tpl_show(_include('sqlcmd_search_tables', 'Sqlcmd'), { %$Sqlcmd, %FORM });  
 
   my $list = $Sqlcmd->info({ TYPE => 'showtables', %LIST_PARAMS, %FORM });
 
@@ -504,6 +505,9 @@ sub sqlcmd_tables {
         $l = int2byte($line->{'Index_length'} + $line->{'Data_length'});
       }
       elsif ($l eq 'Name') {
+      	if ($line->{$l} =~ /\d{4}_\d{2}_\d{2}$/) {
+      		$line->{$l} = $html->color_mark($line->{$l}, $_COLORS[6]);
+      	}
         $l = $html->form_input('TABLES', "$line->{$l}", { TYPE => 'checkbox' }) . ' ' . $line->{$l};
       }
       else {
@@ -550,10 +554,17 @@ sub sqlcmd_tables {
       . $html->form_select(
         'ACTION',
         {
-          SELECTED  => $FORM{ACTION},
-          SEL_ARRAY => [ 'ANALYZE', 'BACKUP', 'CHECK', 'CHECKSUM', 'OPTIMIZE', 'REPAIR', 'RESTORE' ],
-          NO_ID     => 1,
-          SEL_OPTIONS => { '', '' }
+          SELECTED   => $FORM{ACTION} || '',
+          SEL_HASH   => { '' => '',
+          	              'ANALYZE'    => 'ANALYZE', 
+          	              'BACKUP'     => 'BACKUP', 
+          	              'CHECK'      => 'CHECK', 
+          	              'CHECKSUM'   => 'CHECKSUM', 
+          	              'OPTIMIZE'   => 'OPTIMIZE', 
+          	              'REPAIR'     => 'REPAIR', 
+          	              'RESTORE'    => 'RESTORE', 
+          	              'DEL_BACKUP' => "$_DEL BACKUP" },
+          NO_ID      => 1,
         }
       ),
       { colspan => 2 }

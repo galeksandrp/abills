@@ -66,6 +66,16 @@ sub info {
           $sth = $db->do("RENAME TABLE $table TO $table" . "_$DATE, $table" . "_2 TO $table;");
         }
       }
+      elsif($attr->{ACTION} && 'BACKUP_DEL') {
+        my @tables_arr = split(/, /, $attr->{TABLES});
+        foreach my $table (@tables_arr) {
+          if ($table =~ /\d{4}\_\d{2}\_\d{2}$/) {
+            my $sql = "DELETE TABLE $table;";
+            print $sql;
+            my $sth = $db->do($sql);
+          }
+        }
+      }
 
       #elsif ($attr->{ACTION} eq 'BACKUP') {
       #  $DATE =~ s/-/\_/g;
@@ -74,8 +84,16 @@ sub info {
       #
       # }
     }
-
-    my $sth = $db->prepare("SHOW TABLE STATUS FROM $CONF->{dbname}");
+    
+    my $like = '';
+    if ($attr->{TABLES} && $attr->{search} ) {
+    	$attr->{TABLES} =~ s/\*/\%/g;
+    	$like =  "LIKE '$attr->{TABLES}'";
+    }
+    
+    print "SHOW TABLE STATUS FROM $CONF->{dbname} $like";
+    
+    my $sth = $db->prepare("SHOW TABLE STATUS FROM $CONF->{dbname} $like");
     $sth->execute();
     my $pri_keys = $sth->{mysql_is_pri_key};
     my $names    = $sth->{NAME};
@@ -102,6 +120,7 @@ sub info {
         my @res = $q->fetchrow();
         $Rows_hash{"$names->[$i]"} = "$res[2] / $res[3]";
       }
+      
       push @rows, \%Rows_hash;
     }
 
