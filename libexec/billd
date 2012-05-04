@@ -324,7 +324,7 @@ sub check_lines {
         }
         else {
           $Log->log_print('LOG_WARNING', $online->{user_name}, "Last Alive: $online->{last_alive}, Session-ID: $online->{acct_session_id}", { ACTION => 'LOST_ALIVE', NAS => \%NAS });
-          $sessions->zap( $NAS{NAS_ID} , $online->nas_port_id, $online->{acct_session_id});
+          $sessions->zap($NAS{NAS_ID}, $online->{nas_port_id}, $online->{acct_session_id});
         }
       }
       elsif (defined($external_stats->{error})) {
