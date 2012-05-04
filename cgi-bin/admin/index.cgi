@@ -2959,7 +2959,8 @@ sub form_system_changes {
       cols_align => [ 'right', 'left', 'right', 'left', 'left', 'right', 'left', 'left', 'center:noprint' ],
       qs         => $pages_qs,
       pages      => $admin->{TOTAL},
-      ID         => 'ADMIN_SYSTEM_ACTIONS'
+      ID         => 'ADMIN_SYSTEM_ACTIONS',
+      EXPORT     => "$_EXPORT XML:&xml=1",
     }
   );
 
@@ -3082,7 +3083,8 @@ sub form_changes {
       cols_align => [ 'right', 'left', 'right', 'left', 'left', 'right', 'left', 'left', 'center:noprint' ],
       qs         => $pages_qs,
       pages      => $admin->{TOTAL},
-      ID         => 'ADMIN_ACTIONS'
+      ID         => 'ADMIN_ACTIONS',
+      EXPORT     => "$_EXPORT XML:&xml=1",
     }
   );
 
