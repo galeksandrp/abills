@@ -870,7 +870,8 @@ sub invoice_del {
     $self->query($db, "DELETE FROM docs_invoices WHERE id='$id'", 'do');
   }
 
-  $admin->action_add("$id", "", { TYPE => 18 });  
+  $admin->{MODULE}='Docs';
+  $admin->action_add("$id", "$id", { TYPE => 18 });  
 
   return $self;
 }
