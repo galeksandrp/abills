@@ -25,7 +25,7 @@
 #
 #   abills_mikrotik_shaper=""  :  NAS IDS
 #                                    
-#IPN Section
+#IPN Section configuration
 #
 #   abills_ipn_nas_id="" ABillS IPN NAS ids, Enable IPN firewall functions
 #
@@ -33,12 +33,18 @@
 #
 #   abills_ipn_allow_ip="" IPN Allow unauth ip
 #
+#Other
+#
 #   abills_squid_redirect="" Redirect traffic to squid
-
+#
+#   abills_neg_deposit="" Enable neg deposit redirect
+#
+#   abills_neg_deposit_speed="512" Set default speed for negative deposit
+#
 
 
 CLASSES_NUMS='2 3'
-VERSION=5.88
+VERSION=5.90
 
 
 name="abills_shaper"
@@ -52,6 +58,7 @@ rcvar=`set_rcvar`
 : ${abills_dhcp_shaper="NO"}
 : ${abills_dhcp_shaper_nas_ids=""}
 : ${abills_neg_deposit=""}
+: ${abills_neg_deposit_speed=""}
 : ${abills_portal_ip="me"}
 : ${abills_mikrotik_shaper=""}
 : ${abills_squid_redirect="NO"}
@@ -159,7 +166,7 @@ if [ x${abills_shaper_enable} != xNO ]; then
     fi;
   #done
   #Stop ng_car shaper
-  else if [ w${ACTION} = wstop -a w$2 = w ]; then
+  elif [ w${ACTION} = wstop -a w$2 = w ]; then
     echo -n "ng_car shapper" 
 
     for num in ${CLASSES_NUMS}; do
@@ -167,7 +174,7 @@ if [ x${abills_shaper_enable} != xNO ]; then
     done;
 
     ${IPFW} delete 9000 9005 10000 10010 10015
-  else if [ w${ACTION} = w ]; then
+  elif [ w${ACTION} = w ]; then
     echo "(start|stop|start nat|stop nat)"
   #Start DUMMYNET shaper
   else   
@@ -177,8 +184,6 @@ if [ x${abills_shaper_enable} != xNO ]; then
     fi;
 
     ${BILLING_DIR}/libexec/billd checkspeed NAS_IDS=${abills_nas_id} RECONFIGURE=1 FW_DIRECTION_OUT="${OUT_DIRECTION}" FW_DIRECTION_IN="${IN_DIRECTION}";
-    fi;
-   fi;
   fi;
 fi;
 
@@ -186,7 +191,6 @@ fi;
 if [ ${firewall_type} = "/etc/fw.conf" ]; then
   ${IPFW} ${firewall_type}
 fi;
-
 
 #IPoE Shapper for dhcp connections
 if [ x${abills_dhcp_shaper} != xNO ]; then
@@ -311,7 +315,7 @@ fi;
 fi;
 
 
-#FWD Section
+#Neg deposit FWD Section
 if [ w${NEG_DEPOSIT_FWD} != w ]; then
   if [ w${WEB_SERVER_IP} = w ]; then
     FWD_WEB_SERVER_IP=127.0.0.1;
@@ -321,27 +325,31 @@ if [ w${NEG_DEPOSIT_FWD} != w ]; then
     DNS_IP=`cat /etc/resolv.conf | grep nameserver | awk '{ print $2 }' | head -1`
   fi;
 
-FWD_RULE=10014;
+  FWD_RULE=10014;
 
-#Forwarding start
-if [ w${ACTION} = wstart ]; then
-  echo "Negative Deposit Forward Section - start"; 
-  ${IPFW} add ${FWD_RULE} fwd ${FWD_WEB_SERVER_IP},80 tcp from table\(32\) to any dst-port 80,443 via ${INTERNAL_INTERFACE}
-  #If use proxy
-  #${IPFW} add ${FWD_RULE} fwd ${FWD_WEB_SERVER_IP},3128 tcp from table\(32\) to any dst-port 3128 via ${INTERNAL_INTERFACE}
-  ${IPFW} add `expr ${FWD_RULE} + 10` allow ip from table\(32\) to ${DNS_IP} dst-port 53 via ${INTERNAL_INTERFACE}
-  ${IPFW} add `expr ${FWD_RULE} + 20` allow tcp from table\(32\) to ${USER_PORTAL_IP} dst-port 9443 via ${INTERNAL_INTERFACE}
-  ${IPFW} add `expr ${FWD_RULE} + 30` deny ip from table\(32\) to any via ${INTERNAL_INTERFACE}
-else if [ w${ACTION} = wstop ]; then
-  echo "Negative Deposit Forward Section - stop:"; 
-  ${IPFW} delete ${FWD_RULE} ` expr ${FWD_RULE} + 10 ` ` expr ${FWD_RULE} + 20 ` ` expr ${FWD_RULE} + 30 `
-else if [ w${ACTION} = wshow ]; then
-  echo "Negative Deposit Forward Section - status:"; 
-  ${IPFW} show ${FWD_RULE}
-fi;
-fi;
-fi;
-
+  #Forwarding start
+  if [ w${ACTION} = wstart ]; then
+    echo "Negative Deposit Forward Section - start"; 
+    ${IPFW} add ${FWD_RULE} fwd ${FWD_WEB_SERVER_IP},80 tcp from table\(32\) to any dst-port 80,443 via ${INTERNAL_INTERFACE}
+    #If use proxy
+    #${IPFW} add ${FWD_RULE} fwd ${FWD_WEB_SERVER_IP},3128 tcp from table\(32\) to any dst-port 3128 via ${INTERNAL_INTERFACE}
+    # if allow usin net on neg deposit
+    if [ x${abills_neg_deposit_speed} != x ]; then
+      ${IPFW} add `expr ${FWD_RULE} + 30` pipe 1${abills_neg_deposit_speed} ip from any to not table\(10\) ${IN_DIRECTION}
+      ${IPFW} add `expr ${FWD_RULE} + 31` pipe 1${abills_neg_deposit_speed} ip from not table\(10\) to any ${OUT_DIRECTION}
+      ${IPFW} pipe 1${abills_neg_deposit_speed} config bw ${abills_neg_deposit_speed}Kbit/s mask src-ip 0xfffffffff
+    else    
+      ${IPFW} add `expr ${FWD_RULE} + 10` allow ip from table\(32\) to ${DNS_IP} dst-port 53 via ${INTERNAL_INTERFACE}
+      ${IPFW} add `expr ${FWD_RULE} + 20` allow tcp from table\(32\) to ${USER_PORTAL_IP} dst-port 9443 via ${INTERNAL_INTERFACE}
+      ${IPFW} add `expr ${FWD_RULE} + 30` deny ip from table\(32\) to any via ${INTERNAL_INTERFACE}
+    fi;
+  elif [ w${ACTION} = wstop ]; then
+    echo "Negative Deposit Forward Section - stop:"; 
+    ${IPFW} delete ${FWD_RULE} ` expr ${FWD_RULE} + 10 ` ` expr ${FWD_RULE} + 20 ` ` expr ${FWD_RULE} + 30 `
+  elif [ w${ACTION} = wshow ]; then
+    echo "Negative Deposit Forward Section - status:"; 
+    ${IPFW} show ${FWD_RULE}
+  fi;
 fi;
 
 

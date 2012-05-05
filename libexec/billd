@@ -1098,7 +1098,7 @@ sub check_speed {
     if ($conf{ng_car}) {
 
       #Get speed from server
-      open(PROCS, "/usr/sbin/ngctl list |") || die "Can't open file '' $!\n";
+      open(PROCS, "/usr/sbin/ngctl list |") || die "Can't open file '/usr/sbin/ngctl list' $!\n";
       while (<PROCS>) {
         if (/\s+Name: (class[\d+])_([a-zA-Z_0-9\-]+)/) {
           my $class = $1;
@@ -1209,7 +1209,16 @@ sub check_speed {
       %LIST_PARAMS,
       STATUS       => '<11',
       NAS_ID       => $ARGV->{NAS_IDS},
-      FIELDS_NAMES => [ 'USER_NAME', 'NAS_PORT_ID', 'TP_ID', 'SPEED', 'UID', 'JOIN_SERVICE', 'CLIENT_IP', 'DURATION', 'STARTED', 'CONNECT_INFO' ]
+      FIELDS_NAMES => [ 'USER_NAME', 
+                        'NAS_PORT_ID', 
+                        'TP_ID', 
+                        'SPEED', 
+                        'UID', 
+                        'JOIN_SERVICE', 
+                        'CLIENT_IP', 
+                        'DURATION', 
+                        'STARTED', 
+                        'CONNECT_INFO' ]
     }
   );
 
@@ -1377,7 +1386,9 @@ sub check_speed {
 
               if ($speed_in > 0) {
                 if (!$pipe_rules{$pipe_rule_in} || $pipe_rules{$pipe_rule_in} != $speed_out) {
-                  push @FW_ACTIONS, "$IPFW -q pipe $pipe_rule_in config bw " . $speed_out . "Kbit/s queue " . (($speed_in / 10 > 1000) ? 1000 : int($speed_in / 10)) . "Kbytes mask src-ip 0xfffffffff";
+         	        my $queue_out = (! $conf{DV_SKIP_QUEUE}) ? "queue ". (( $speed_out / 10 > 1000) ? 1000 : int( $speed_out / 10 ) ) ."Kbytes " : '';
+
+                  push @FW_ACTIONS, "$IPFW -q pipe $pipe_rule_in config bw " . $speed_out . "Kbit/s ". $queue_out ."mask src-ip 0xfffffffff";
                   print "Change TP: $tp Class: $traf_type Pipe: $pipe_rule_in IN: " . (($pipe_rules{$pipe_rule_in}) ? $pipe_rules{$pipe_rule_in} : 'Not set') . " -> $speed_out\n";
                   delete $pipe_rules{$pipe_rule_in};
                 }
@@ -1385,8 +1396,9 @@ sub check_speed {
 
               if ($speed_out > 0) {
                 if (!$pipe_rules{$pipe_rule_out} || $pipe_rules{$pipe_rule_out} != $speed_in) {
-                  push @FW_ACTIONS,
-                  "$IPFW -q pipe $pipe_rule_out config bw " . $speed_in . "Kbit/s queue " . (($speed_out / 10 > 1000) ? 1000 : int($speed_out / 10)) . "Kbytes mask dst-ip 0xffffffff";
+         	        my $queue_in  = (! $conf{DV_SKIP_QUEUE}) ? "queue ". (( $speed_in / 10 > 1000 ) ? 1000 : int( $speed_in / 10 )) ."Kbytes " : '';
+
+                  push @FW_ACTIONS, "$IPFW -q pipe $pipe_rule_out config bw " . $speed_in . "Kbit/s ". $queue_in ."mask dst-ip 0xffffffff";
 
                   print "Change TP: $tp Class: $traf_type Pipe: $pipe_rule_out OUT: " . (($pipe_rules{$pipe_rule_out}) ? $pipe_rules{$pipe_rule_out} : 'Not set') . " -> $speed_in\n";
                   delete $pipe_rules{$pipe_rule_out};
@@ -1766,7 +1778,9 @@ sub check_speed {
       }
 
       if (!$pipe_rules{$table_class} || $pipe_rules{$table_class} != $speed) {
-        push @FW_ACTIONS, "$IPFW pipe $table_class config bw " . $speed . "Kbit/s queue " . (($speed / 10 > 1000) ? 1000 : int($speed / 10)) . "Kbytes mask src-ip 0xfffffffff";
+        my $queue_out = (! $conf{DV_SKIP_QUEUE}) ? "queue ". (( $speed / 10 > 1000 ) ? 1000 : int( $speed / 10 )) ."Kbytes " : '';
+
+        push @FW_ACTIONS, "$IPFW pipe $table_class config bw " . $speed . "Kbit/s $queue_out mask src-ip 0xfffffffff";
         delete $pipe_rules{$table_class};
       }
     }

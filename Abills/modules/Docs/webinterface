@@ -1676,6 +1676,10 @@ sub docs_invoice {
         $Finance->exchange_info(0, { ISO => $FORM{DOCS_CURRENCY} || $conf{DOCS_CURRENCY} });
         $FORM{EXCHANGE_RATE} = $Finance->{ER_RATE};
         $FORM{DOCS_CURRENCY} = $Finance->{ISO};
+        
+        #if ($FORM{ALT_SUM}) {
+        #	$FORM{SUM} = $FORM{ALT_SUM}/$FORM{EXCHANGE_RATE};
+        #}
       }
 
 

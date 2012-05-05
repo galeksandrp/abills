@@ -454,7 +454,7 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
           my $queue_out = '';
           if (! $conf{DV_SKIP_QUEUE}) {
           	$queue_in  = "queue ". (( $speed_in / 10 > 1000 ) ? 1000 : int( $speed_in / 10 )) ."Kbytes";
-          	$queue_out = "queue ". (( $speed_in / 10 > 1000) ? 1000 : int( $speed_in / 10 ) ) ."Kbytes";
+          	$queue_out = "queue ". (( $speed_out / 10 > 1000) ? 1000 : int( $speed_out / 10 ) ) ."Kbytes";
           }
           
           push @FW_ACTIONS, "$IPFW pipe $tablearg_in config bw ". $speed_in ."Kbit/s $queue_in mask dst-ip 0x00000000";

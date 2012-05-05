@@ -821,7 +821,15 @@ sub invoice_add {
       }
 
       $DATA{ 'COUNTS_' . $id } = 1 if (!$DATA{ 'COUNTS_' . $id });
-      #next if (! $DATA{'SUM_'.$id} || $DATA{'SUM_'.$id} <= 0);
+#      if ($DATA{'ALT_SUM_'. $id}) {
+#      	if ($DATA{EXCHANGE_RATE} && $DATA{EXCHANGE_RATE} != 1) {
+#          $DATA{'SUM_'.  $id} = $DATA{'ALT_SUM_'. $id}/$DATA{EXCHANGE_RATE};
+#        }
+#        else {
+#        	$DATA{'SUM_'.  $id} = $DATA{'ALT_SUM_'. $id};
+#        }
+#      }
+
       $DATA{ 'SUM_' . $id } =~ s/\,/\./g;
       if ($DATA{ER} && $DATA{ER} != 1) {
         $DATA{ 'SUM_' . $id } = $DATA{ 'SUM_' . $id } / $DATA{ER};
