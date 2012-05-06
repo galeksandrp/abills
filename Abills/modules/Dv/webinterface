@@ -2812,11 +2812,17 @@ sub dv_stats {
     );
 
     foreach my $line (@$list) {
+    	my $traffic_rest = ($conf{DV_INTERVAL_PREPAID}) ? $sessions->{REST}->{ $line->{interval_id} }->{ $line->{traffic_class} }  :  $sessions->{REST}->{ $line->{traffic_class} };
+
       $table->addrow(
-        $line->[0] . ':' . (($TRAFFIC_NAMES{ $line->[0] }) ? $TRAFFIC_NAMES{ $line->[0] } : ''),
-        $line->[1], $line->[2], $line->[3], $line->[4],
-        ($line->[4] > 0 && $sessions->{REST}->{ $line->[0] } > 0) ? $sessions->{REST}->{ $line->[0] }      : 0,
-        ($line->[4] > 0 && $sessions->{REST}->{ $line->[0] } < 0) ? abs($sessions->{REST}->{ $line->[0] }) : 0
+        $line->{traffic_class} . ':' . (($TRAFFIC_NAMES{ $line->{traffic_class} }) ? $TRAFFIC_NAMES{ $line->{traffic_class} } : ''). 
+        ($conf{DV_INTERVAL_PREPAID} ? "/ $line->{interval_id}" : '') ,
+        $line->{interval_begin}, 
+        $line->{interval_end}, 
+        $line->{activate}, 
+        $line->{prepaid},
+        ($line->{prepaid} > 0 && $traffic_rest > 0) ? $traffic_rest      : 0,
+        ($line->{prepaid} > 0 && $traffic_rest < 0) ? abs($traffic_rest) : 0
       );
     }
 
@@ -3135,11 +3141,17 @@ sub dv_user_stats {
     );
 
     foreach my $line (@$list) {
+    	my $traffic_rest = ($conf{DV_INTERVAL_PREPAID}) ? $sessions->{REST}->{ $line->{interval_id} }->{ $line->{traffic_class} }  :  $sessions->{REST}->{ $line->{traffic_class} };
+
       $table->addrow(
-        $line->[0] . ':' . (($TRAFFIC_NAMES{ $line->[0] }) ? $TRAFFIC_NAMES{ $line->[0] } : ""),
-        $line->[1], $line->[2], $line->[3], $line->[4],
-        ($line->[4] > 0 && $sessions->{REST}->{ $line->[0] } > 0) ? $sessions->{REST}->{ $line->[0] }      : 0,
-        ($line->[4] > 0 && $sessions->{REST}->{ $line->[0] } < 0) ? abs($sessions->{REST}->{ $line->[0] }) : 0
+        $line->{traffic_class} . ':' . (($TRAFFIC_NAMES{ $line->{traffic_class} }) ? $TRAFFIC_NAMES{ $line->{traffic_class} } : ''). 
+        ($conf{DV_INTERVAL_PREPAID} ? "/ $line->{interval_id}" : '') ,
+        $line->{interval_begin}, 
+        $line->{interval_end}, 
+        $line->{activate}, 
+        $line->{prepaid},
+        ($line->{prepaid} > 0 && $traffic_rest > 0) ? $traffic_rest      : 0,
+        ($line->{prepaid} > 0 && $traffic_rest < 0) ? abs($traffic_rest) : 0
       );
     }
 

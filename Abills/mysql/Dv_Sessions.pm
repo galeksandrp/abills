@@ -1,5 +1,4 @@
 package Dv_Sessions;
-
 # Dv Stats functions
 #
 
@@ -831,16 +830,18 @@ sub prepaid_rest {
   $CONF->{MB_SIZE} = $CONF->{KBYTE_SIZE} * $CONF->{KBYTE_SIZE};
   #Get User TP and intervals
   $self->query(
-    $db, "select tt.id, i.begin, i.end, 
-    if(u.activate<>'0000-00-00', u.activate, DATE_FORMAT(curdate(), '%Y-%m-01')), 
+    $db, "select tt.id AS traffic_class, 
+    i.begin AS interval_begin, 
+    i.end AS interval_end, 
+    if(u.activate<>'0000-00-00', u.activate, DATE_FORMAT(curdate(), '%Y-%m-01')) AS activate, 
     tt.prepaid, 
-    u.id, 
+    u.id AS login, 
     tp.octets_direction, 
     u.uid, 
     dv.tp_id, 
-    tp.name,
+    tp.name AS tp_name,
     if (PERIOD_DIFF(DATE_FORMAT(curdate(),'%Y%m'),DATE_FORMAT(u.registration, '%Y%m')) < tp.traffic_transfer_period, 
-      PERIOD_DIFF(DATE_FORMAT(curdate(),'%Y%m'),DATE_FORMAT(u.registration, '%Y%m'))+1, tp.traffic_transfer_period), 
+      PERIOD_DIFF(DATE_FORMAT(curdate(),'%Y%m'),DATE_FORMAT(u.registration, '%Y%m'))+1, tp.traffic_transfer_period) AS traffic_transfert, 
     tp.day_traf_limit,
     tp.week_traf_limit,
     tp.month_traf_limit,
@@ -857,7 +858,9 @@ WHERE
  and i.id=tt.interval_id
  and u.uid='$attr->{UID}'
  ORDER BY 1
- "
+ ",
+ undef,
+ { COLS_NAME => 1 }
   );
 
   if ($self->{TOTAL} < 1) {
@@ -865,13 +868,15 @@ WHERE
   }
 
   $self->{INFO_LIST}    = $self->{list};
-  my $login             = $self->{INFO_LIST}->[0]->[5];
-  my $traffic_transfert = $self->{INFO_LIST}->[0]->[10];
+  my $login             = $self->{INFO_LIST}->[0]->{login};
+  my $traffic_transfert = $self->{INFO_LIST}->[0]->{traffic_transfert};
 
   my %prepaid_traffic = (
     0 => 0,
     1 => 0
   );
+
+  my %rest_intervals = ();
 
   my %rest = (
     0 => 0,
@@ -879,8 +884,9 @@ WHERE
   );
 
   foreach my $line (@{ $self->{list} }) {
-    $prepaid_traffic{ $line->[0] } = $line->[4];
-    $rest{ $line->[0] }            = $line->[4];
+    $prepaid_traffic{ $line->{traffic_class} } = $line->{prepaid};
+    $rest{ $line->{traffic_class} }            = $line->{prepaid};
+    $rest_intervals{$line->{interval_id}}{$line->{traffic_class}} = $line->{prepaid};
   }
 
   return 1 if ($attr->{INFO_ONLY});
@@ -890,13 +896,13 @@ WHERE
   my $octets_online_direction  = "acct_input_octets + acct_output_octets";
   my $octets_online_direction2 = "ex_input_octets + ex_output_octets";
 
-  if ($self->{INFO_LIST}->[0]->[6] == 1) {
+  if ($self->{INFO_LIST}->[0]->{octets_direction} == 1) {
     $octets_direction         = "recv + 4294967296 * acct_input_gigawords ";
     $octets_direction2        = "recv2";
     $octets_online_direction  = "acct_input_octets + 4294967296 * acct_input_gigawords";
     $octets_online_direction2 = "ex_input_octets";
   }
-  elsif ($self->{INFO_LIST}->[0]->[6] == 2) {
+  elsif ($self->{INFO_LIST}->[0]->{octets_direction} == 2) {
     $octets_direction         = "sent + 4294967296 * acct_output_gigawords ";
     $octets_direction2        = "sent2";
     $octets_online_direction  = "acct_output_octets + 4294967296 * acct_output_gigawords";
@@ -920,12 +926,13 @@ WHERE
     $WHERE = "date_format(l.start, '%Y-%m-%d')>='$attr->{FROM_DATE}' and date_format(l.start, '%Y-%m-%d')<='$attr->{TO_DATE}'";
   }
   else {
-    $WHERE = "DATE_FORMAT(start, '%Y-%m-%d')>='$self->{INFO_LIST}->[0]->[3]' - INTERVAL $traffic_transfert MONTH ";
+    $WHERE = "DATE_FORMAT(start, '%Y-%m-%d')>='$self->{INFO_LIST}->[0]->{activate}' - INTERVAL $traffic_transfert MONTH ";
   }
 
   if ($CONF->{DV_INTERVAL_PREPAID}) {
-  	$self->query($db, "SELECT li.traffic_type, li.sent, li.recv  FROM dv_log l, dv_log_intervals li
-  	   WHERE l.acct_session_id=li.acct_session_id WHERE $uid $WHERE and li.interval_id='$self->{INFO_LIST}->[14]'");
+  	$self->query($db, "SELECT li.traffic_type, (li.sent + li.recv) / $CONF->{MB_SIZE}, li.interval_id  FROM dv_log l, dv_log_intervals li
+  	   WHERE $uid AND ($WHERE) AND l.acct_session_id=li.acct_session_id
+  	GROUP BY interval_id, li.traffic_type");
   }
   else {
     #Get using traffic
@@ -935,7 +942,7 @@ WHERE
      DATE_FORMAT(start, '%Y-%m'), 
      1
      FROM dv_log
-     WHERE $uid  and tp_id='$self->{INFO_LIST}->[0]->[8]' and
+     WHERE $uid  and tp_id='$self->{INFO_LIST}->[0]->{tp_id}' and
       (  $WHERE
         ) 
      GROUP BY $GROUP
@@ -943,40 +950,64 @@ WHERE
     );
   }
   
+
   if ($self->{TOTAL} > 0) {
     my ($class1, $class2) = (0, 0);
-    $self->{INFO_LIST}->[0]->[4] = 0;
-    if ($prepaid_traffic{1}) { $self->{INFO_LIST}->[1]->[4] = 0 }
-    foreach my $line (@{ $self->{list} }) {
-      $class1 = ((($class1 > 0) ? $class1 : 0) + $prepaid_traffic{0}) - $line->[0];
-      $class2 = ((($class2 > 0) ? $class2 : 0) + $prepaid_traffic{1}) - $line->[1];
 
-      $self->{INFO_LIST}->[0]->[4] += $prepaid_traffic{0};
-      if ($prepaid_traffic{1}) {
-        $self->{INFO_LIST}->[1]->[4] += $prepaid_traffic{1};
-      }
+    if (! $CONF->{DV_INTERVAL_PREPAID}) { 
+      $self->{INFO_LIST}->[0]->{prepaid} = 0;
+      if ($prepaid_traffic{1}) { $self->{INFO_LIST}->[1]->{prepaid} = 0 }
     }
 
-    $rest{0} = $class1;
-    $rest{1} = $class2;
+    foreach my $line (@{ $self->{list} }) {
+      if ($CONF->{DV_INTERVAL_PREPAID}) {
+      	#$self->{INFO_LIST}->[1]->{prepaid}->[]
+      	
+      	#print "$line->[0] / $line->[1] / $line->[2] / $line->[3]- <br>";
+      	
+      	#$self->{INFO_LIST}->[0]->{prepaid} += $prepaid_traffic{0};
+        #$class1 = ((($class1 > 0) ? $class1 : 0) + $prepaid_traffic{0}) - $line->[1];
+      	#$self->{INFO_LIST}->[0]->{$line->[3]}->{prepaid} += $prepaid_traffic{0};
+      	#print "/ $line->[0] / $line->[3] / $class1 //<br>";
+	      $rest_intervals{$line->[2]}{$line->[0]} = $rest_intervals{$line->[2]}{$line->[0]} - $line->[1];
+      }
+      else {
+        $class1 = ((($class1 > 0) ? $class1 : 0) + $prepaid_traffic{0}) - $line->[0];
+        $class2 = ((($class2 > 0) ? $class2 : 0) + $prepaid_traffic{1}) - $line->[1];
+
+        $self->{INFO_LIST}->[0]->{prepaid} += $prepaid_traffic{0};
+        if ($prepaid_traffic{1}) {
+          $self->{INFO_LIST}->[1]->{prepaid} += $prepaid_traffic{1};
+        }
+      }
+    }
+    if (! $CONF->{DV_INTERVAL_PREPAID}) {
+      $rest{0} = $class1;
+      $rest{1} = $class2;
+    }
   }
 
-  #Check online
-  $self->query(
-    $db, "select 
-  $rest{0} - sum($octets_online_direction) / $CONF->{MB_SIZE},
-  $rest{1} - sum($octets_online_direction2) / $CONF->{MB_SIZE},
-  1
- FROM dv_calls
- WHERE $uid
- GROUP BY 3;"
-  );
 
-  if ($self->{TOTAL} > 0) {
-    ($rest{0}, $rest{1}) = @{ $self->{list}->[0] };
+  if (! $CONF->{DV_INTERVAL_PREPAID}) {
+    #Check online
+    $self->query($db, "select 
+       $rest{0} - sum($octets_online_direction) / $CONF->{MB_SIZE},
+       $rest{1} - sum($octets_online_direction2) / $CONF->{MB_SIZE},
+       1
+     FROM dv_calls
+     WHERE $uid
+     GROUP BY 3;"
+    );
+
+    if ($self->{TOTAL} > 0) {
+      ($rest{0}, $rest{1}) = @{ $self->{list}->[0] };
+    }
+    $self->{REST} = \%rest;
   }
-
-  $self->{REST} = \%rest;
+  else {
+  	$self->{REST} = \%rest_intervals;
+  }
+  
 
   return 1;
 }
