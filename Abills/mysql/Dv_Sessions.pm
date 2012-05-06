@@ -469,7 +469,7 @@ sub online {
 }
 
 #**********************************************************
-# online_del()
+# online_join_services()
 #**********************************************************
 sub online_join_services {
   my $self = shift;

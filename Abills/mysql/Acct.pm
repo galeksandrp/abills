@@ -251,7 +251,6 @@ sub accounting {
       $self->rt_billing($RAD, $NAS);
 
       if (!$self->{errno}) {
-
         #return $self;
         $self->query(
           $db, "INSERT INTO dv_log (uid, start, tp_id, duration, sent, recv, kb, sum, nas_id, port_id,
@@ -262,16 +261,19 @@ sub accounting {
         acct_output_gigawords) 
         VALUES ('$self->{UID}', FROM_UNIXTIME($RAD->{SESSION_START}), '$self->{TARIF_PLAN}', '$RAD->{ACCT_SESSION_TIME}', 
         '$RAD->{OUTBYTE}', '$RAD->{INBYTE}', '$self->{TRAF_TARIF}', $self->{CALLS_SUM}+$self->{SUM}, '$NAS->{NAS_ID}',
-        '$RAD->{NAS_PORT}', INET_ATON('$RAD->{FRAMED_IP_ADDRESS}'), '$RAD->{CALLING_STATION_ID}',
+        '$RAD->{NAS_PORT}', 
+        INET_ATON('$RAD->{FRAMED_IP_ADDRESS}'), '$RAD->{CALLING_STATION_ID}',
         '$RAD->{OUTBYTE2}', '$RAD->{INBYTE2}',  '$RAD->{ACCT_SESSION_ID}', 
         '$self->{BILL_ID}',
         '$RAD->{ACCT_TERMINATE_CAUSE}',
         '$RAD->{ACCT_INPUT_GIGAWORDS}',
         '$RAD->{ACCT_OUTPUT_GIGAWORDS}');", 'do'
         );
+        if ($self->{errno}) {
+        	
+        }
       }
       else {
-
         #DEbug only
         if ($conf->{ACCT_DEBUG}) {
           use POSIX qw(strftime);
@@ -451,6 +453,12 @@ sub accounting {
 sub rt_billing {
   my $self = shift;
   my ($RAD, $NAS) = @_;
+
+  if (! $RAD->{ACCT_SESSION_ID}) {
+    $self->{errno}  = 2;
+    $self->{errstr} = "Session account rt Not Exist '$RAD->{ACCT_SESSION_ID}'";
+    return $self;
+  }
 
   $self->query(
     $db, "SELECT lupdated, UNIX_TIMESTAMP()-lupdated, 

@@ -494,7 +494,7 @@ sub check_lines {
       	 session_hangup(\%NAS, $online, "DEPOSIT: $online->{deposit} CREDIT: $online->{credit} SESSION_SUM: $Billing->{SUM} SESSION_ID: $online->{acct_session_id}");
         }
       }
-      elsif($online->{guest} && $online->{deposit} + $online->{credit} > 0) {
+      elsif($online->{guest} && $online->{deposit} + $online->{credit} > 0 && $state == 0) {
      	  session_hangup(\%NAS, $online, "RECHANGE DEPOSIT: $online->{deposit} CREDIT: $online->{credit} SESSION_SUM: $Billing->{SUM} SESSION_ID: $online->{acct_session_id}");
       }
     }
