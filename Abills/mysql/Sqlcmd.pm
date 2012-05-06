@@ -70,7 +70,7 @@ sub info {
         my @tables_arr = split(/, /, $attr->{TABLES});
         foreach my $table (@tables_arr) {
           if ($table =~ /\d{4}\_\d{2}\_\d{2}$/) {
-            my $sql = "DELETE TABLE $table;";
+            my $sql = "DROP TABLE $table;";
             print $sql;
             my $sth = $db->do($sql);
           }
