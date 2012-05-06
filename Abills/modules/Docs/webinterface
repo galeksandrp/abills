@@ -1676,10 +1676,6 @@ sub docs_invoice {
         $Finance->exchange_info(0, { ISO => $FORM{DOCS_CURRENCY} || $conf{DOCS_CURRENCY} });
         $FORM{EXCHANGE_RATE} = $Finance->{ER_RATE};
         $FORM{DOCS_CURRENCY} = $Finance->{ISO};
-        
-        #if ($FORM{ALT_SUM}) {
-        #	$FORM{SUM} = $FORM{ALT_SUM}/$FORM{EXCHANGE_RATE};
-        #}
       }
 
 
@@ -2297,7 +2293,12 @@ sub docs_invoice {
         },
         { OUTPUT2RETURN => 1 }
       );
-      $html->tpl_show(_include('docs_invoice_add', 'Docs'), { %$Docs, %$users, %FORM });
+      if ($user->{UID}) {
+        $html->tpl_show(_include('docs_invoice_client_add', 'Docs'), { %$Docs, %$users, %FORM });
+      }
+      else {
+      	$html->tpl_show(_include('docs_invoice_add', 'Docs'), { %$Docs, %$users, %FORM });
+      }
     }
 
   }

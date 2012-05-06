@@ -830,6 +830,11 @@ sub invoice_add {
 #        }
 #      }
 
+      if ($DATA{REVERSE_CURRENCY}) {
+         $DATA{ 'SUM_' . $id } = $DATA{ 'SUM_' . $id }/$DATA{EXCHANGE_RATE};
+      }
+
+
       $DATA{ 'SUM_' . $id } =~ s/\,/\./g;
       if ($DATA{ER} && $DATA{ER} != 1) {
         $DATA{ 'SUM_' . $id } = $DATA{ 'SUM_' . $id } / $DATA{ER};
