@@ -8865,15 +8865,16 @@ sub form_nas_search {
     my $nas = Nas->new($db, \%conf);
     my $table = $html->table(
       {
-        width  => '100%',
-        border => 1,
-        title  => [ 'ID', $_NAME, 'IP', $_TYPE, 'mac' ],
+        width      => '100%',
+        border     => 1,
+        title      => [ 'ID', $_NAME, 'IP', $_TYPE, 'mac' ],
         cols_align => [ 'left', 'right', 'center' ],
         pages      => $nas->{TOTAL},
         ID         => 'NAS_SEARCH'
       }
     );
-    $list = $nas->list({%FORM});
+
+    $list = $nas->list({ %FORM });
     foreach my $line (@$list) {
       $table->addrow(
         $line->[0],
