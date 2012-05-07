@@ -141,7 +141,7 @@ sub paysys_import_form {
     exit;
   }
 
-  my $content = '';
+  my $content  = '';
   my $filename = $ARGV->{FILE} || '';
 
   if ($attr->{CONTENT}) {
@@ -274,13 +274,14 @@ sub paysys_import_form {
         my $list = $payments->list(
           {
             EXT_ID    => join(';', @payments_arr),
-            PAGE_ROWS => 1000000
+            PAGE_ROWS => 1000000,
+            COLS_NAME => 1
           }
         );
 
-        foreach my $line (@$list) {
-          $payments->del({ UID => $line->[11] }, $line->[0]);
-          print "ID: $line->[0] SUM: $line->[4]\n" if ($debug > 1);
+        foreach my $p (@$list) {
+          $payments->del({ UID => $p->{uid} }, $p->{id});
+          print "ID: $p->{id} SUM: $p->{uid}\n" if ($debug > 1);
         }
       }
 

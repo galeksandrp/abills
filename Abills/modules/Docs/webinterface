@@ -616,7 +616,7 @@ sub docs_receipt_list {
 
     if ($attr->{GET_EMAIL_INFO}) {
       delete $FORM{pdf};
-      $attr->{EMAIL_MSG_TEXT} = $html->tpl_show(_include('docs_receipt_email', 'Docs'), { %$Docs, %$users }, { OUTPUT2RETURN => 1 });
+      $attr->{EMAIL_MSG_TEXT}        = $html->tpl_show(_include('docs_receipt_email', 'Docs'), { %$Docs, %$users }, { OUTPUT2RETURN => 1 });
       $attr->{EMAIL_ATTACH_FILENAME} = 'receipt_' . $Docs->{RECEIPT_NUM} . '.pdf' if (!$attr->{EMAIL_ATTACH_FILENAME});
       $attr->{EMAIL_MSG_SUBJECT}     = "ABillS - $_RECEIPT: $Docs->{RECEIPT_NUM}" if (!$attr->{EMAIL_MSG_SUBJECT});
       $attr->{OUTPUT2RETURN}         = undef;
@@ -1872,7 +1872,8 @@ sub docs_invoice {
 
       $attr->{SEND_EMAIL} = 0 if (!defined($attr->{SEND_EMAIL}));
       if ($attr->{GET_EMAIL_INFO} && $attr->{SEND_EMAIL}) {
-        $attr->{EMAIL_MSG_TEXT} = $html->tpl_show(_include('docs_invoice_email', 'Docs'), { %FORM, %$attr, %$Docs, %$users }, { OUTPUT2RETURN => 1 });
+      	print $FORM{pdf}=undef;
+        $attr->{EMAIL_MSG_TEXT}        = $html->tpl_show(_include('docs_invoice_email', 'Docs'), { %FORM, %$attr, %$Docs, %$users }, { OUTPUT2RETURN => 1 });
         $attr->{EMAIL_ATTACH_FILENAME} = 'invoice_' . $Docs->{INVOICE_NUM} . '.pdf' if (!$attr->{EMAIL_ATTACH_FILENAME});
         $attr->{EMAIL_MSG_SUBJECT}     = "ABillS - $_INVOICE: $Docs->{INVOICE_NUM}" if (!$attr->{EMAIL_MSG_SUBJECT});
       }
