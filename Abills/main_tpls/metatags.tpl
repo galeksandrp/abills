@@ -830,6 +830,7 @@ TABLE.border {
 
 #search_window,#result_window {
 	padding:5px 10px;
+	display:inline-block;
 }
 
 .search_window_colors {

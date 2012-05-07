@@ -7,6 +7,7 @@
 		var form_id = '#' + $("#popup_info_form_id").html();
 		var template = $("#popup_info_template").html();
 		var result_field = $("#popup_info_result_field").html();
+		var search_window_height = $('#open_popup_block_middle').height();
 		
 		
 
@@ -17,7 +18,7 @@
 		$('#popclick').click(function(event){
 			change_tab_color_window();
 			//if ($('#result_window').is('.search_window_colors')) {
-			$('#search_window').addClass(".search_window_colors");			
+			$('#search_window').addClass("search_window_colors");			
 			$('#open_popup_block_middle').slideDown();
 			$('#shadow').show();
 			$('#loading').hide();
@@ -30,7 +31,8 @@
 		});
 		
 
-		$('#search_window').live('click', function() {				
+		$('#search_window').live('click', function() {
+			$('#open_popup_block_middle').height('');				
 			change_tab_color_window();
 			$('#result').hide();
 			$('#nas_ajax_content').show();
@@ -59,7 +61,14 @@
 			//alert($(form_id).serialize());
 			$.post(formUrl, $(form_id).serialize(),	
 				function(data){
-				if (data.length>0){		 
+				if (data.length>0){
+					//alert(data.length);
+					
+					if(data.length > 3000) {
+						$('#open_popup_block_middle').height(400);
+						$('#result').height(300);
+						$('#result').css({'overflow-y' : 'scroll'});
+					}							 
 					$('#loading').hide();
 					change_tab_color_result();
 					$('#result').empty().append(data).slideDown();			

@@ -104,6 +104,8 @@ sub hangup {
   }
   elsif ($nas_type eq 'mx80') {
     hangup_radius($NAS, $PORT, "$USER", $attr);
+    
+    hangup_radius($NAS, $PORT, "$attr->{CID}", $attr) if ($attr->{CID});
   }
   elsif ($nas_type eq 'lisg_cst') {
     hangup_radius($NAS, $PORT, "$attr->{FRAMED_IP_ADDRESS}", $attr);

@@ -216,7 +216,8 @@ sub check_lines {
         'STATUS',        
         'FILTER_ID',
         'TP_BILLS_PRIORITY',
-        'GUEST_MODE'
+        'GUEST_MODE',
+        'CID'
       ]
     }
   );

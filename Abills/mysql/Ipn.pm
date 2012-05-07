@@ -1143,7 +1143,7 @@ sub ipn_log_rotate {
         session_id
          )
        SELECT 
-        uid, DATE_FORMAT(start, '%Y-%m-%d %H'), DATE_FORMAT(stop, '%Y-%m-%d %H'), traffic_class, 
+        uid, DATE_FORMAT(start, '%Y-%m-%d %H:00:00'), DATE_FORMAT(stop, '%Y-%m-%d %H:00:00'), traffic_class, 
         sum(traffic_in), sum(traffic_out), 
         nas_id, ip, interval_id, sum(sum), session_id
         FROM ipn_log_backup
@@ -1168,7 +1168,7 @@ sub ipn_log_rotate {
         FROM ipn_log_backup
         WHERE DATE_FORMAT(start, '%Y-%m-%d')>'$Y-$M-$D'
         GROUP BY 2, traffic_class, ip, session_id;";
-   }
+  }
 
   #IPN log rotate
   if ($attr->{LOG} && $version > 4.1) {
