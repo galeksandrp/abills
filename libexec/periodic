@@ -73,8 +73,7 @@ $admin->{TIME} = $TIME;
 my $args = parse_arguments(\@ARGV);
 $ADMIN_REPORT{HOSTNAME} = hostname();
 
-my @daily_functions = ('credit_operation', 'reduction_operation', 'admin_report_daily');
-
+my @daily_functions = ('credit_operation', 'reduction_operation');
 push @daily_functions, 'debetors_group_create' if ($conf{DEBETORS_GROUP});
 
 my @monthly_functions = ();
@@ -153,7 +152,7 @@ foreach my $m (@MODULES) {
 }
 
 
-
+push @daily_functions,    'admin_report_daily';
 push @monthly_functions,  'admin_report_monthly' if (! $args->{NO_ADM_REPORT});
 push @monthly_functions,  'logrotate', 'backup' if (! $args->{MODULES});
 if ($args->{SHEDULE}) {

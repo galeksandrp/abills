@@ -5917,16 +5917,17 @@ sub dv_users_warning_messages {
   $LIST_PARAMS{ALERT_PERIOD}=$conf{DV_ALERT_REDIRECT} if ($conf{DV_ALERT_REDIRECT});
   $LIST_PARAMS{LOGIN} = $attr->{LOGIN} if ($attr->{LOGIN});
   $Dv->{debug}=1 if($debug > 5);
-  my $dv_list         = $Dv->list({%LIST_PARAMS, COLS_NAME => 1 });
+  my $dv_list         = $Dv->list({ %LIST_PARAMS, 
+  	                                COLS_NAME  => 1,
+  	                                COLS_UPPER => 1 });
 
   return 0 if ($Dv->{TOTAL} < 1);
 
-  my @allert_redirect_days = split(/,\s?/, $conf{DV_ALERT_REDIRECT});
+  my @allert_redirect_days = split(/,\s?/, $conf{DV_ALERT_REDIRECT} || '');
   
   foreach my $u (@$dv_list) {
   	my $type='email';
-    my $email = ((!defined($u->{email})) || $u->{email} eq '') ? (($conf{USERS_MAIL_DOMAIN}) ? "$u->{login}\@$conf{USERS_MAIL_DOMAIN}" : '') : "$u->{email}";
-
+    my $email = ((!defined($u->{EMAIL})) || $u->{EMAIL} eq '') ? (($conf{USERS_MAIL_DOMAIN}) ? "$u->{LOGIN}\@$conf{USERS_MAIL_DOMAIN}" : '') : "$u->{EMAIL}";
     if ($email eq '') { next; }
 
     if($conf{DV_ALERT_REDIRECT_FILTER} && in_array($u->{to_next_period}, \@allert_redirect_days)) {
@@ -5947,7 +5948,7 @@ sub dv_users_warning_messages {
     $debug_output .= $info if ($debug > 3);
 
     if ($debug < 5) {
-      my $message = $html->tpl_show(_include('dv_users_warning_messages', 'Dv'), \%USER_INFO, { OUTPUT2RETURN => 1 });
+      my $message = $html->tpl_show(_include('dv_users_warning_messages', 'Dv'), $u, { OUTPUT2RETURN => 1 });
       sendmail("$conf{ADMIN_MAIL}", "$email", "$_BILL_INFO", "$message", "$conf{MAIL_CHARSET}", "2 (High)");
     }
   }
@@ -5960,7 +5961,7 @@ $_TOTAL: $Dv->{TOTAL}\n";
   }
 
   $DEBUG .= $debug_output;
-  return $debug_output;
+  return $debug_output;  
 }
 
 #**********************************************************

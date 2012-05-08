@@ -40,3 +40,12 @@ CREATE TABLE `bonus_turbo` (
   `comments` text not null default '',
   PRIMARY KEY  (`id`)
 ) COMMENT "Bonus turbo"  ;
+
+CREATE TABLE `bonus_tps` (
+  `id` smallint(6) unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(50) NOT NULL,
+  `state` tinyint(1) unsigned NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `id` (`id`),
+  UNIQUE KEY `name` (`name`)
+) COMMENT "Bonus tarif plans"  ; 

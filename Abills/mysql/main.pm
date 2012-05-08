@@ -182,6 +182,11 @@ sub query {
     if ($attr->{COLS_NAME}) {
      	push @{ $self->{COL_NAMES_ARR} }, @{ $q->{NAME} };        	
       while (my $row = $q->fetchrow_hashref()) {
+      	if ($attr->{COLS_UPPER}) {
+      		while(my($k,$v)=each %$row) {
+      			$row->{uc($k)}=$v;
+      		}
+      	}
         push @rows, $row;
       }      
     }
