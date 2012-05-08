@@ -894,16 +894,16 @@ sub osmp_payments_v4 {
   my %request_hash = ();
   my $request_type = '';
 
-  my $status_id   = 0;
-  my $result_code = 0;
-  my $service_id  = 0;
-  my $response    = '';
+  my $status_id    = 0;
+  my $result_code  = 0;
+  my $service_id   = 0;
+  my $response     = '';
 
-  my $BALANCE   = 0.00;
-  my $OVERDRAFT = 0.00;
-  my $txn_date  = "$DATE$TIME";
-  $txn_date =~ s/[-:]//g;
-  my $txn_id = 0;
+  my $BALANCE      = 0.00;
+  my $OVERDRAFT    = 0.00;
+  my $txn_date     = "$DATE$TIME";
+  $txn_date        =~ s/[-:]//g;
+  my $txn_id       = 0;
 
   $request_hash{'protocol-version'} = $_xml->{'protocol-version'}->[0];
   $request_hash{'request-type'}     = $_xml->{'request-type'}->[0] || 0;
@@ -912,7 +912,7 @@ sub osmp_payments_v4 {
   $request_hash{'password'}         = $_xml->{'extra'}->{'password'}->{'content'};
   $request_hash{'password-md5'}     = $_xml->{'extra'}->{'password-md5'}->{'content'};
   $request_hash{'client-software'}  = $_xml->{'extra'}->{'client-software'}->{'content'};
-  my $transaction_number = $_xml->{'transaction-number'}->[0] || '';
+  my $transaction_number            = $_xml->{'transaction-number'}->[0] || '';
 
   $request_hash{'to'} = $_xml->{to};
 

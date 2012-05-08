@@ -1,13 +1,7 @@
 
 <form action='https://liqpay.com/?do=clickNbuy' method='POST' accept-charset='utf-8'>
-    <input type='hidden' name='version' value='1.2' />
-    <input type='hidden' name='merchant_id' value='$conf{PAYSYS_LIQPAY_MERCHANT_ID}' />
-    <input type='hidden' name='amount' value='$FORM{TOTAL_SUM}' />
-    <input type='hidden' name='currency' value='UAH' />
-    <input type='hidden' name='description' value='Payments ID: $FORM{OPERATION_ID}' />
-    <input type='hidden' name='order_id'  value='$FORM{OPERATION_ID}' />
-    <input type='hidden' name='result_url' value='https://$ENV{SERVER_NAME}:$ENV{SERVER_PORT}/index.cgi?TRUE=1&index=$index&OPERATION_ID=$FORM{OPERATION_ID}&PAYMENT_SYSTEM=$FORM{PAYMENT_SYSTEM}' />
-    <input type='hidden' name='server_url' value='https://$ENV{SERVER_NAME}:$ENV{SERVER_PORT}/paysys_check.cgi' />
+<input type='hidden' name='operation_xml' value='%XML_ENCODED%' />
+<input type='hidden' name='signature' value='%SIGN%' />
 
 
 <table width=400 class=form>
