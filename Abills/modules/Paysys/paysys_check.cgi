@@ -248,6 +248,10 @@ elsif ($FORM{ACT}) {
 elsif ($conf{PAYSYS_GIGS_IPS} && $conf{PAYSYS_GIGS_IPS} =~ /$ENV{REMOTE_ADDR}/) {
   require "Gigs.pm";
 }
+elsif ($conf{PAYSYS_EPAY_ACCOUNT_KEY} && $FORM{command} && $FORM{txn_id}) {
+  require "Epay.pm";
+  exit;
+}
 elsif (
   $conf{PAYSYS_GAZPROMBANK_ACCOUNT_KEY}
   && ( $FORM{lsid}

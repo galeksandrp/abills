@@ -53,7 +53,8 @@ my %PAY_SYSTEMS = (
   74 => 'Alpha-pay',
   75 => 'Zaplati',
   76 => 'Paynet',
-  77 => 'CyberPlat Visa/Master cards'
+  77 => 'CyberPlat Visa/Master cards',
+  78 => 'Epay'
 );
 
 my %CONF_OPTIONS = (
@@ -93,7 +94,8 @@ my %CONF_OPTIONS = (
   PAYSYS_ALFA_PAY_ACCOUNT_KEY     => 74,
   PAYSYS_ZAPLATI_SUMY_ACCOUNT_KEY => 75,
   PAYSYS_USMP_ACCOUNT_KEY         => 76,
-  PAYSYS_CP_VISA                  => 77
+  PAYSYS_CP_VISA                  => 77,
+  PAYSYS_EPAY_ACCOUNT_KEY         => 78
 );
 
 my @status = ('UNKNOWN', 'IN PROCCESS', 'COMPLETE', 'CANCELED', 'EXPIRED', 'INCORRECT_CHECKSUM', 'PAYMENT_ERROR', 'DUBLICATE', 'USER_ERROR', 'USER_NOT_EXIST', 'SMALL_PAYMENT_SUM', 'SQL_ERROR');

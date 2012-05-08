@@ -547,8 +547,6 @@ sub dv_auth {
             my $nburst = int($cir * 1.5 / 8);
             my $eburst = 2 * $nburst;
             push @{ $RAD_PAIRS->{'mpd-limit'} }, "out#$self->{TOTAL}#0=all $shapper_type $cir $nburst $eburst";
-
-            #push @{$RAD_PAIRS->{'mpd-limit'} }, "out#$self->{TOTAL}#0=all $shapper_type ". ($line->[2] * 1024)." 4000";
           }
 
           if ($line->[3] == 0 || $CONF->{ng_car}) {
