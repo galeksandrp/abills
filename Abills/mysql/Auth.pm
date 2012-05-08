@@ -282,6 +282,7 @@ sub dv_auth {
       if ($line->[3] == 11) {
       	$self->{IP}       = $line->[1];
       	$self->{REASSIGN} = 1;
+      	$active_logins--;
       }
       # Zap session with same CID
       elsif ( $line->[0] ne ''
