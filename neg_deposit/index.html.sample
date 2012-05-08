@@ -38,7 +38,16 @@
     <p style="color: #9b9a9a; text-align: center; margin-top: 35px;">Для работы в режиме минимальной пропускной способности активируйте ограниченый режим</p>
 
 
-    <a href='https://your_host:9443/skip_warning.cgi?redirect='><p style="color: #FFFFFF; text-align: center; margin-top: 35px;">Активировать  Ограниченый режим работы</p></a>
+    <a href='https://your_host:9443/skip_warning.cgi?redirect=' style="
+        font-family:Arial, Tahoma,Verdana, Helvetica, sans-serif;
+        background-color:#eeeeee;
+        color:#000000;
+        font-size:14px;
+        border:1px outset;
+        text-decoration:none;
+        border-color:#9F9F9F;
+        padding:1px 5px;
+">Активировать  Ограниченый режим работы</a>
     <br>
     
     <br>
