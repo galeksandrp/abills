@@ -249,7 +249,7 @@ sub online {
 
     TP_NAME           => 'tp.tp_name',
     TP_BILLS_PRIORITY => 'tp.bills_priority',
-    TP_CREDIT         => 'tp.credit',
+    TP_CREDIT         => 'tp.credit AS tp_credit',
     NAS_NAME          => 'nas.name',
     GUEST_MODE        => 'c.guest'
   );
