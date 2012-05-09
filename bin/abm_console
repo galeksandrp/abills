@@ -11,8 +11,7 @@ $UID $user $admin $sid
 );
 
 #use strict;
-
-my $version = 0.17;
+my $version = 0.18;
 my $debug   = 0;
 
 use FindBin '$Bin';
@@ -91,7 +90,15 @@ my $Dv = Dv->new($db, $admin, \%conf);
 
 my %LIST_PARAMS = ();
 
-$debug = ($ARGV->{DEBUG}) ? $ARGV->{DEBUG} : $debug;
+if ($ARGV->{DEBUG}) {
+	$debug = $fees->{DEBUG};
+  if ($ARGV->{DEBUG} > 5) {
+    $users->{debug}=1; 
+    $fees->{debug}=1;
+    $payments->{debug}=1;
+  }
+}
+
 $LIST_PARAMS{PAGE_ROWS} = ($ARGV->{PAGE_ROWS}) ? $ARGV->{PAGE_ROWS} : 1000000;
 
 foreach my $key ( %$ARGV ) {

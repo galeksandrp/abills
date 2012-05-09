@@ -2629,22 +2629,23 @@ sub ipn_start_active {
     $TPS{ $line->[0] } = $line->[4] if ($line->[4]);
   }
 
-  my $list = $sessions->online(
+  my $online_list = $sessions->online(
     {
       NAS_ID       => join(', ', @nas_ids_arr),
       FIELDS_NAMES => ['UID'],
+      COLS_NAME    => 1
     }
   );
 
   my $count       = 0;
   my %online_uids = ();
-  foreach my $line (@$list) {
-    $online_uids{ $line->[0] } = 1;
+  foreach my $online (@$online_list) {
+    $online_uids{ $online->{uid} } = 1;
   }
 
   my %DHCP_IPS = ();
   if ($conf{IPN_DHCP_ACTIVE}) {
-    $list = $Dhcphosts->hosts_list(
+    my $dhcp_list = $Dhcphosts->hosts_list(
       {
         STATUS       => 0,
         PAGE_ROWS    => 1000000,
@@ -2655,14 +2656,14 @@ sub ipn_start_active {
       }
     );
 
-    foreach my $line (@$list) {
+    foreach my $line (@$dhcp_list) {
       my $uid = $line->{uid};
       push @{ $DHCP_IPS{$uid} }, $line->{ip};
     }
   }
 
   $Dv->{debug} = 1 if ($debug > 5);
-  $list = $Dv->list(
+  my $dv_list = $Dv->list(
     {
       LOGIN         => $attr->{LOGINS} || undef,
       ACTIVATE      => "0000-00-00,>=$DATE",
@@ -2679,7 +2680,7 @@ sub ipn_start_active {
     }
   );
 
-  foreach my $dv_user (@$list) {
+  foreach my $dv_user (@$dv_list) {
     my $filter_id    = $dv_user->{filter_id};
     my $login        = $dv_user->{id};
     my $ip           = $dv_user->{ip};

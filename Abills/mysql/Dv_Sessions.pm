@@ -447,7 +447,7 @@ sub online {
     my @fields = ();
     if ($attr->{COLS_NAME}) {
       push @{ $nas_sorted{$line->{nas_id}} }, $line ;
-      $dub_logins{ $line->{user_name} }++;
+      $dub_logins{ $line->{user_name} }++ if ($line->{user_name});
       $dub_ports{ $line->{nas_id} }{ $line->{nas_port_id} }++ if ($port_id);
     }
     else {
