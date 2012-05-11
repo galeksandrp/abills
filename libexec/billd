@@ -217,7 +217,8 @@ sub check_lines {
         'FILTER_ID',
         'TP_BILLS_PRIORITY',
         'GUEST_MODE',
-        'CID'
+        'CID',
+        'TP_CREDIT'
       ]
     }
   );
@@ -295,8 +296,8 @@ sub check_lines {
 
           $ACCT_INFO->{INBYTE}               = $online->{acct_input_octets};
           $ACCT_INFO->{OUTBYTE}              = $online->{acct_output_octets};
-          $ACCT_INFO->{INBYTE2}              = $online->{acct_input_octets_ext};
-          $ACCT_INFO->{OUTBYTE2}             = $online->{acct_output_octets_ext};
+          $ACCT_INFO->{INBYTE2}              = $online->{ex_input_octets};
+          $ACCT_INFO->{OUTBYTE2}             = $online->{ex_output_octets};
           $ACCT_INFO->{ACCT_STATUS_TYPE}     = 'Stop';
           $ACCT_INFO->{ACCT_SESSION_TIME}    = $online->{acct_session_time};
           $ACCT_INFO->{ACCT_TERMINATE_CAUSE} = 23;
