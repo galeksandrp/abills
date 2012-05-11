@@ -67,7 +67,7 @@ if ($conf{DV_BONUS}) {
   
   $USER_FUNCTION_LIST{"05:1:Bonus:dv_rating_user:"}=0;
   
-  $PERIODIC{daily} = [ 'dv_rating_periodic', @{ $PERIODIC{daily} } ];
+  $PERIODIC{daily} = [ @{ $PERIODIC{daily} }, 'dv_rating_periodic' ];
  }
 
 

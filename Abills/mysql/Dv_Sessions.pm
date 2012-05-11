@@ -784,25 +784,25 @@ sub periods_totals {
 
   $self->query(
     $db, "SELECT  
-   sum(if(date_format(start, '%Y-%m-%d')=curdate(), sent + 4294967296 * acct_output_gigawords, 0)), 
-   sum(if(date_format(start, '%Y-%m-%d')=curdate(), recv + 4294967296 * acct_input_gigawords, 0)), 
-   SEC_TO_TIME(sum(if(date_format(start, '%Y-%m-%d')=curdate(), duration, 0))), 
+   sum(if(date_format(start, '%Y-%m-%d')=curdate(), sent + 4294967296 * acct_output_gigawords, 0)) AS day_sent, 
+   sum(if(date_format(start, '%Y-%m-%d')=curdate(), recv + 4294967296 * acct_input_gigawords, 0)) AS day_recv, 
+   SEC_TO_TIME(sum(if(date_format(start, '%Y-%m-%d')=curdate(), duration, 0))) AS day_duration, 
 
-   sum(if(TO_DAYS(curdate()) - TO_DAYS(start) = 1, sent + 4294967296 * acct_output_gigawords, 0)),
-   sum(if(TO_DAYS(curdate()) - TO_DAYS(start) = 1, recv + 4294967296 * acct_input_gigawords, 0)),
-   SEC_TO_TIME(sum(if(TO_DAYS(curdate()) - TO_DAYS(start) = 1, duration, 0))),
+   sum(if(TO_DAYS(curdate()) - TO_DAYS(start) = 1, sent + 4294967296 * acct_output_gigawords, 0)) AS yesterday_sent,
+   sum(if(TO_DAYS(curdate()) - TO_DAYS(start) = 1, recv + 4294967296 * acct_input_gigawords, 0)) AS yesterday_resc,
+   SEC_TO_TIME(sum(if(TO_DAYS(curdate()) - TO_DAYS(start) = 1, duration, 0))) AS yesterday_duration,
 
-   sum(if((YEAR(curdate())=YEAR(start)) and (WEEK(curdate()) = WEEK(start)), sent + 4294967296 * acct_output_gigawords, 0)),
-   sum(if((YEAR(curdate())=YEAR(start)) and  WEEK(curdate()) = WEEK(start), recv + 4294967296 * acct_input_gigawords, 0)),
-   SEC_TO_TIME(sum(if((YEAR(curdate())=YEAR(start)) and WEEK(curdate()) = WEEK(start), duration, 0))),
+   sum(if((YEAR(curdate())=YEAR(start)) and (WEEK(curdate()) = WEEK(start)), sent + 4294967296 * acct_output_gigawords, 0)) AS week_sent,
+   sum(if((YEAR(curdate())=YEAR(start)) and  WEEK(curdate()) = WEEK(start), recv + 4294967296 * acct_input_gigawords, 0)) AS week_resc,
+   SEC_TO_TIME(sum(if((YEAR(curdate())=YEAR(start)) and WEEK(curdate()) = WEEK(start), duration, 0))) AS week_duration,
                                                                               
-   sum(if(date_format(start, '%Y-%m')=date_format(curdate(), '%Y-%m'), sent + 4294967296 * acct_output_gigawords, 0)), 
-   sum(if(date_format(start, '%Y-%m')=date_format(curdate(), '%Y-%m'), recv + 4294967296 * acct_input_gigawords, 0)), 
-   SEC_TO_TIME(sum(if(date_format(start, '%Y-%m')=date_format(curdate(), '%Y-%m'), duration, 0))),
+   sum(if(date_format(start, '%Y-%m')=date_format(curdate(), '%Y-%m'), sent + 4294967296 * acct_output_gigawords, 0)) AS month_sent, 
+   sum(if(date_format(start, '%Y-%m')=date_format(curdate(), '%Y-%m'), recv + 4294967296 * acct_input_gigawords, 0)) AS month_recv, 
+   SEC_TO_TIME(sum(if(date_format(start, '%Y-%m')=date_format(curdate(), '%Y-%m'), duration, 0))) AS month_duration,
   
-   sum(sent + 4294967296 * acct_output_gigawords), 
-   sum(recv + 4294967296 * acct_input_gigawords), 
-   SEC_TO_TIME(sum(duration))
+   sum(sent + 4294967296 * acct_output_gigawords) AS total_sent, 
+   sum(recv + 4294967296 * acct_input_gigawords)  AS total_recv, 
+   SEC_TO_TIME(sum(duration))  AS total_duration
    FROM dv_log $WHERE;"
   );
 

@@ -795,7 +795,7 @@ sub dv_user {
       );
 
       foreach my $line (@$list) {
-        $Dv->{JOIN_SERVICES_USERS} .= $html->button("$line->{id}", "&index=15&UID=$line->{uid}");
+        $Dv->{JOIN_SERVICES_USERS} .= $html->button("$line->{id}", "&index=15&UID=$line->{uid}"). ' :: ';
       }
     }
     elsif ($Dv->{JOIN_SERVICE} > 1) {
