@@ -258,18 +258,18 @@ if [ x"${abills_nat}" != x ] ; then
     fi;
     
     NAT_IPS=`ifconfig ${NAT_INTERFACE} | grep inet | awk '{ print $2 }'`;
+    echo "Use ${NAT_IPS} for nating"
   fi;
 
   echo -n " NAT "
   NAT_TABLE=20
   NAT_FIRST_RULE=20
   NAT_REAL_TO_FAKE_TABLE_NUM=33;
-  NAT_FAKE_IP_TABLE_NUM=33;
 
   # nat configuration
   for IP in ${NAT_IPS}; do
     if [ w${ACTION} = wstart ]; then
-      ${IPFW} nat ` expr ${NAT_FIRST_RULE} + 1 ` config ip ${IP} log
+      ${IPFW} nat `expr ${NAT_FIRST_RULE} + 1` config ip ${IP} log
       ${IPFW} table ${NAT_REAL_TO_FAKE_TABLE_NUM} add ${IP} ` expr ${NAT_FIRST_RULE} + 1 `
 
       for f_net in ${FAKE_NET}; do

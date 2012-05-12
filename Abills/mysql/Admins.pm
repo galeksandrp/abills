@@ -467,6 +467,10 @@ sub action_list {
     push @WHERE_RULES, @{ $self->search_expr($attr->{TYPE}, 'INT', 'aa.action_type') };
   }
 
+  if ($attr->{IP}) {
+    push @WHERE_RULES, @{ $self->search_expr($attr->{IP}, 'IP', 'aa.ip') };
+  }
+
   # Date intervals
   if ($attr->{FROM_DATE}) {
     push @WHERE_RULES, "(date_format(aa.datetime, '%Y-%m-%d')>='$attr->{FROM_DATE}' and date_format(aa.datetime, '%Y-%m-%d')<='$attr->{TO_DATE}')";
@@ -581,6 +585,10 @@ sub system_action_list {
 
   if (defined($attr->{TYPE}) && $attr->{TYPE} ne '') {
     push @WHERE_RULES, @{ $self->search_expr($attr->{TYPE}, 'INT', 'aa.action_type') };
+  }
+
+  if ($attr->{IP}) {
+    push @WHERE_RULES, @{ $self->search_expr($attr->{IP}, 'IP', 'aa.ip') };
   }
 
   if ($attr->{GIDS}) {
