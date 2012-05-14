@@ -49,3 +49,24 @@ CREATE TABLE `bonus_tps` (
   UNIQUE KEY `id` (`id`),
   UNIQUE KEY `name` (`name`)
 ) COMMENT "Bonus tarif plans"  ; 
+
+
+CREATE TABLE `bonus_rules` (
+  `tp_id` smallint(6) unsigned NOT NULL DEFAULT '0',
+  `period` tinyint(2) unsigned NOT NULL DEFAULT '0',
+  `rules` varchar(20) NOT NULL,
+  `actions` varchar(20) NOT NULL,
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `rule_value` int(11) unsigned NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `tp_id` (`tp_id`,`period`,`rules`,`rule_value`)
+) COMMENT "Bonus rules"  ; 
+
+CREATE TABLE `bonus_main` (
+  `uid` int(11) unsigned NOT NULL DEFAULT '0',
+  `tp_id` smallint(6) unsigned NOT NULL DEFAULT '0',
+  `state` tinyint(1) unsigned NOT NULL DEFAULT '0',
+  PRIMARY KEY (`uid`),
+  UNIQUE KEY `uid` (`uid`)
+)  COMMENT='Bonus users' ;
+

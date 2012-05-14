@@ -1,5 +1,4 @@
 package Docs;
-
 # Documents functions functions
 #
 
@@ -879,12 +878,13 @@ sub invoice_del {
   if ($id == 0 && $attr->{UID}) {
   }
   else {
+  	$self->query($db, "SELECT invoice_num FROM docs_invoices WHERE id='$id'", 'do');
     $self->query($db, "DELETE FROM docs_invoice_orders WHERE invoice_id='$id'", 'do');
     $self->query($db, "DELETE FROM docs_invoices WHERE id='$id'", 'do');
   }
 
   $admin->{MODULE}='Docs';
-  $admin->action_add("$id", "$id", { TYPE => 18 });  
+  $admin->action_add("$id", "$id:$self->{invoice_num}", { TYPE => 18 });  
 
   return $self;
 }

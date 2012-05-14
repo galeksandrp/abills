@@ -413,7 +413,8 @@ sub periodic_invoice {
 
         #Sendemail
         if ($num > 0 && $user{SEND_DOCS}) {
-          $FORM{print} = $Docs->{DOC_ID};
+          $FORM{print}      = $Docs->{DOC_ID};
+          $LIST_PARAMS{UID} = $user{UID};
           docs_invoice(
             {
               GET_EMAIL_INFO => 1,

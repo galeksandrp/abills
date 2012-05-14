@@ -259,7 +259,6 @@ sub inc_postauth {
 
   # DHCP Section
   if ($RAD_REQUEST{'DHCP-Message-Type'}) {
-
     #    &radiusd::radlog(L_ERR, " --- START --- ". $RAD_REQUEST{'DHCP-Server-IP-Address'});
 
     if ($RAD_REQUEST{'DHCP-Gateway-IP-Address'}) {
