@@ -456,10 +456,12 @@ sub iptv_ext_cmd {
     my @cmd_arr = ();
     foreach my $host (@$hosts_list) {
       $cmd = tpl_parse("$cmd_tpl", { LOGIN    => $host->{login},
-      	                             NAS_IP   => $host->{nas_ip},
+      	                             NAS_IP   => $host->{mng_host_port} || $host->{nas_ip},
       	                             NAS_ID   => $host->{nas},
       	                             PORT_ID  => $host->{ports},
       	                             IP       => $host->{ip},
+      	                             NAS_LOGIN=> $host->{mng_user},
+      	                             NAS_PASSWORD => $host->{ip},
       	                           });    	
       
       push @cmd_arr, $cmd;
@@ -471,9 +473,10 @@ sub iptv_ext_cmd {
   }
 
 
-  print $cmd;
-    
   $cmd = tpl_parse("$cmd", $attr);
+  
+  print $cmd;
+  
   my $output = `$cmd`;
 }
 

@@ -734,7 +734,11 @@ sub hosts_list {
   my $fields = "h.id, u.id AS login, h.ip AS ip_num, h.hostname, n.name, h.network, h.mac, h.disable, h.expire, h.forced,  h.blocktime,";
 
   if ($attr->{VIEW}) {
-    $fields = "h.id, u.id AS login, h.ip AS ip_num, h.hostname, concat(n.name, ' : ', h.network) AS network_name, h.mac, h.disable, h.nas, h.vid, h.ports";
+    $fields = "h.id, u.id AS login, h.ip AS ip_num, h.hostname, concat(n.name, ' : ', h.network) AS network_name, h.mac, h.disable, h.nas, h.vid, h.ports,";
+  }
+
+  if ($attr->{SHOW_NAS_MNG_INFO}) {
+  	$fields .=  "nas.mng_host_port, nas.mng_user, DECODE(nas.mng_password, '$CONF->{secretkey}') AS mng_password, ";
   }
 
   $self->query(

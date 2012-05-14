@@ -255,6 +255,7 @@ a.history {
 }
 a.password {
 	background:url(/img/button_password.png) no-repeat center;
+	
 }
 a.shedule {
 	background:url(/img/button_shedule.png) no-repeat center;
@@ -308,12 +309,12 @@ a.search {
 	background:url(/img/button_change.png) no-repeat center;
 }
 
+a.payments,
+a.fees,
 a.add,
 a.sendmail,
 a.del,
 a.users,
-a.payments,
-a.fees,
 a.permissions,
 a.history,
 a.password,
@@ -334,18 +335,33 @@ a.help,
 a.routes,
 a.change,
 a.search {
+	display:block;
+	overflow:hidden;
+	margin:0 auto;
+	text-indent:-90000px;
+	text-decoration:none;
+	font-size:0;	
+	width:16px;
+	height:16px;
+	
+
+}
+
+
+a.payments.rightAlignText,
+a.fees.rightAlignText,
+a.change.rightAlignText{	
 	display:inline-block;
-	padding-left:22px;
 	overflow:hidden;
 	text-indent:-90000px;
 	text-decoration:none;
 	margin:0;
-	
-
+	padding:0;
 }
+
+
 a.add.rightAlignText {
 	background-position:right;
-	
 	height:24px;
 	display:block;
 	overflow:hidden;
@@ -741,6 +757,12 @@ TABLE.border {
 	padding:0;
 }
 
+
+
+
+
+
+
 #topNav ul {
 	height:30px;
 }
@@ -793,10 +815,19 @@ TABLE.border {
 }
 
 #quick_menu #topNav li a img {
+	width:32px;
+	height:32px;
 	float:left;
 	margin:0 0 0 5px;
 	padding:0;
+	padding-right: 1px;
+	//visibility:hidden;
+	//width:0px;
+	//height:0px;
+	//display:none;
 }
+
+
 
 #quick_menu {
 	float:left;
