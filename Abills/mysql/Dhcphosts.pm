@@ -657,17 +657,7 @@ sub hosts_list {
     push @WHERE_RULES, "h.network='$attr->{NETWORK}'";
   }
 
-  if ($attr->{IPS}) {
-    my @ip_arr = split(/,/, $attr->{IPS});
-    $attr->{IPS} = '';
-    foreach my $ip (@ip_arr) {
-      $ip =~ s/ //g;
-      $attr->{IPS} .= "INET_ATON('$ip'),";
-    }
-    chop($attr->{IPS});
-    push @WHERE_RULES, "h.ip IN ($attr->{IPS})";
-  }
-  elsif ($attr->{IP}) {
+  if ($attr->{IP}) {
     push @WHERE_RULES, @{ $self->search_expr("$attr->{IP}", 'IP', 'h.ip') };
   }
 
@@ -720,6 +710,13 @@ sub hosts_list {
     push @WHERE_RULES, @{ $self->search_expr("$attr->{NAS_ID}", 'INT', 'h.nas', { EXT_FIELD => 1 }) };
   }
 
+  if ($attr->{NAS_IP}) {
+    push @WHERE_RULES, @{ $self->search_expr("$attr->{NAS_IP}", 'STR', 'nas.ip AS nas_ip', { EXT_FIELD => 1 }) };
+    $EXT_TABLES .= "
+            LEFT JOIN nas  ON  (h.nas=nas.id) 
+            ";
+  }
+
   if ($attr->{VID}) {
     push @WHERE_RULES, @{ $self->search_expr("$attr->{VID}", 'INT', 'h.vid', { EXT_FIELD => 1 }) };
   }
@@ -737,7 +734,7 @@ sub hosts_list {
   my $fields = "h.id, u.id AS login, h.ip AS ip_num, h.hostname, n.name, h.network, h.mac, h.disable, h.expire, h.forced,  h.blocktime,";
 
   if ($attr->{VIEW}) {
-    $fields = "h.id, u.id AS login, h.ip AS ip_num, h.hostname, concat(n.name, ' : ', h.network) AS network_name, h.mac, h.disable, h.nas, h.vid, h.ports,";
+    $fields = "h.id, u.id AS login, h.ip AS ip_num, h.hostname, concat(n.name, ' : ', h.network) AS network_name, h.mac, h.disable, h.nas, h.vid, h.ports";
   }
 
   $self->query(
@@ -764,6 +761,7 @@ sub hosts_list {
     $self->query(
       $db, "SELECT count(*) FROM dhcphosts_hosts h
      left join users u on h.uid=u.uid
+     $EXT_TABLES
      $WHERE"
     );
     ($self->{TOTAL}) = @{ $self->{list}->[0] };

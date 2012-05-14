@@ -1,5 +1,7 @@
 :DEFAULT:RLM_PERL=1:Configure RLM_PERL
 :DEFAULT:RADIUS_CLIENT_IP=127.0.0.1:Radius client IP address
+:DEFAULT:RADIUS_SECRET=radsecr12:Radius Secret key
+:DEFAULT:RADIUS_SHORTNAME=nas1:Radius Client short name
 :DEFAULT:FREERADIUS=2:Radius Version 1 fo 1.xx or 2 for 2.xx
 :FREERADIUS=1,RLM_PERL=0:FILE=users            > [/usr/local/etc/raddb]/users
 :FREERADIUS=1,RLM_PERL=0:FILE=acct_users       > [/usr/local/etc/raddb]/acct_users

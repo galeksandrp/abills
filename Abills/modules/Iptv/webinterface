@@ -349,10 +349,9 @@ sub iptv_user {
       if ($conf{IPTV_DVCRYPT_FILENAME}) {
         dv_crypt();
       }
+
       if ($conf{IPTV_USER_EXT_CMD}) {
-        $cmd = $conf{IPTV_USER_EXT_CMD};
-        $cmd = tpl_parse("$cmd", { %$users, %$Iptv });
-        my $output = `$cmd`;
+      	iptv_ext_cmd($conf{IPTV_USER_EXT_CMD}, { %$users, %$Iptv })
       }
     }
   }
@@ -368,9 +367,7 @@ sub iptv_user {
       }
 
       if ($conf{IPTV_USER_EXT_CMD}) {
-        $cmd = $conf{IPTV_USER_EXT_CMD};
-        $cmd = tpl_parse("$cmd", { %$users, %$Iptv });
-        my $output = `$cmd`;
+      	iptv_ext_cmd($conf{IPTV_USER_EXT_CMD}, { %$users, %$Iptv })
       }
     }
   }
@@ -437,6 +434,50 @@ sub iptv_user {
     iptv_user_channels({ USER_INFO => $user });
   }
 }
+
+
+#**********************************************************
+#
+#**********************************************************
+sub iptv_ext_cmd {
+	my ($cmd, $attr)=@_;
+
+
+  if (in_array('Dhcphosts', \@MODULES)) {
+  	use Dhcphosts;
+    my $Dhcphosts = Dhcphosts->new($db, $admin, \%conf);
+    my $hosts_list = $Dhcphosts->hosts_list({ PORTS => '!',
+    	                                        UID   => $attr->{UID},
+    	                                        NAS_ID=> '>0',
+    	                                        NAS_IP=> '!0.0.0.0',
+    	                                        COLS_NAME => 1
+    	                                        });
+    my $cmd_tpl = $cmd;
+    my @cmd_arr = ();
+    foreach my $host (@$hosts_list) {
+      $cmd = tpl_parse("$cmd_tpl", { LOGIN    => $host->{login},
+      	                             NAS_IP   => $host->{nas_ip},
+      	                             NAS_ID   => $host->{nas},
+      	                             PORT_ID  => $host->{ports},
+      	                             IP       => $host->{ip},
+      	                           });    	
+      
+      push @cmd_arr, $cmd;
+    }
+    
+    if ($#cmd_arr > -1) {
+    	$cmd = join(';', @cmd_arr);
+    }
+  }
+
+
+  print $cmd;
+    
+  $cmd = tpl_parse("$cmd", $attr);
+  my $output = `$cmd`;
+}
+
+
 
 #**********************************************************
 #
