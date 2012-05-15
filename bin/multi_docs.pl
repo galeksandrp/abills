@@ -248,9 +248,10 @@ sub periodic_invoice {
           UID         => $user{UID},
           PAYMENT_ID  => 0,
           ORDERS_LIST => 1,
-          COLS_NAME   => 1
+          COLS_NAME   => 1,
+          PAGE_ROWS   => 10000
         }
-      );
+    );
     
     if ($Docs->{ORDERS}) {
       foreach my $doc_id (keys %{ $Docs->{ORDERS} }) {
@@ -274,6 +275,8 @@ sub periodic_invoice {
     foreach my $invoice (@$new_invoices) {
       next if ($invoice->{fees_id});
       next if ($current_invoice{$invoice->{dsc}});
+
+      
       $num++;
       push @ids, $num;
       $ORDERS_HASH{ "ORDER_" . $num }   = "$invoice->{dsc}";

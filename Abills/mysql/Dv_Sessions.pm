@@ -891,22 +891,25 @@ WHERE
 
   return 1 if ($attr->{INFO_ONLY});
 
-  my $octets_direction         = "(sent + 4294967296 * acct_output_gigawords) + (recv + 4294967296 * acct_input_gigawords) ";
-  my $octets_direction2        = "sent2 + recv2";
-  my $octets_online_direction  = "acct_input_octets + acct_output_octets";
-  my $octets_online_direction2 = "ex_input_octets + ex_output_octets";
+  my $octets_direction          = "(sent + 4294967296 * acct_output_gigawords) + (recv + 4294967296 * acct_input_gigawords) ";
+  my $octets_direction2         = "sent2 + recv2";
+  my $octets_online_direction   = "acct_input_octets + acct_output_octets";
+  my $octets_online_direction2  = "ex_input_octets + ex_output_octets";
+  my $octets_direction_interval = "(li.sent + li.recv)";
 
   if ($self->{INFO_LIST}->[0]->{octets_direction} == 1) {
-    $octets_direction         = "recv + 4294967296 * acct_input_gigawords ";
-    $octets_direction2        = "recv2";
-    $octets_online_direction  = "acct_input_octets + 4294967296 * acct_input_gigawords";
-    $octets_online_direction2 = "ex_input_octets";
+    $octets_direction          = "recv + 4294967296 * acct_input_gigawords ";
+    $octets_direction2         = "recv2";
+    $octets_online_direction   = "acct_input_octets + 4294967296 * acct_input_gigawords";
+    $octets_online_direction2  = "ex_input_octets";
+    $octets_direction_interval = "li.recv";
   }
   elsif ($self->{INFO_LIST}->[0]->{octets_direction} == 2) {
-    $octets_direction         = "sent + 4294967296 * acct_output_gigawords ";
-    $octets_direction2        = "sent2";
-    $octets_online_direction  = "acct_output_octets + 4294967296 * acct_output_gigawords";
-    $octets_online_direction2 = "ex_output_octets";
+    $octets_direction          = "sent + 4294967296 * acct_output_gigawords ";
+    $octets_direction2         = "sent2";
+    $octets_online_direction   = "acct_output_octets + 4294967296 * acct_output_gigawords";
+    $octets_online_direction2  = "ex_output_octets";
+    $octets_direction_interval = "li.sent";
   }
 
   my $uid = "uid='$attr->{UID}'";
@@ -930,7 +933,7 @@ WHERE
   }
 
   if ($CONF->{DV_INTERVAL_PREPAID}) {
-  	$self->query($db, "SELECT li.traffic_type, (li.sent + li.recv) / $CONF->{MB_SIZE}, li.interval_id  FROM dv_log l, dv_log_intervals li
+  	$self->query($db, "SELECT li.traffic_type, $octets_direction_interval / $CONF->{MB_SIZE}, li.interval_id  FROM dv_log l, dv_log_intervals li
   	   WHERE $uid AND ($WHERE) AND l.acct_session_id=li.acct_session_id
   	GROUP BY interval_id, li.traffic_type");
   }

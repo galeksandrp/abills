@@ -469,6 +469,7 @@ sub invoices_list {
   $PG        = ($attr->{PG})        ? $attr->{PG}        : 0;
   $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
 
+  delete $self->{ORDERS}; 
   @WHERE_RULES = ("d.id=o.invoice_id");
 
   push @WHERE_RULES, @{ $self->search_expr_users({ %$attr, 
@@ -610,7 +611,6 @@ sub invoices_list {
 
   ($self->{TOTAL}) = @{ $self->{list}->[0] };
 
-  delete $self->{ORDERS}; 
   if ($attr->{ORDERS_LIST}) {
     $self->query(
       $db, "SELECT  o.invoice_id,  o.orders,  o.unit,  o.counts,  o.price,  o.fees_id
