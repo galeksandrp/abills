@@ -610,6 +610,7 @@ sub invoices_list {
 
   ($self->{TOTAL}) = @{ $self->{list}->[0] };
 
+  delete $self->{ORDERS}; 
   if ($attr->{ORDERS_LIST}) {
     $self->query(
       $db, "SELECT  o.invoice_id,  o.orders,  o.unit,  o.counts,  o.price,  o.fees_id
@@ -619,7 +620,6 @@ sub invoices_list {
      undef,
      $attr
     );
-    delete $self->{ORDERS};
     foreach my $line ( @{  $self->{list} } ) {
     	if (ref $line eq 'HASH') {
         push @{ $self->{ORDERS}{$line->{invoice_id}} }, $line;	
