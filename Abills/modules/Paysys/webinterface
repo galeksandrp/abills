@@ -54,7 +54,8 @@ my %PAY_SYSTEMS = (
   75 => 'Zaplati',
   76 => 'Paynet',
   77 => 'CyberPlat Visa/Master cards',
-  78 => 'Epay'
+  78 => 'Epay',
+  79 => 'Private bank terminal (json)'
 );
 
 my %CONF_OPTIONS = (
@@ -95,7 +96,8 @@ my %CONF_OPTIONS = (
   PAYSYS_ZAPLATI_SUMY_ACCOUNT_KEY => 75,
   PAYSYS_USMP_ACCOUNT_KEY         => 76,
   PAYSYS_CP_VISA                  => 77,
-  PAYSYS_EPAY_ACCOUNT_KEY         => 78
+  PAYSYS_EPAY_ACCOUNT_KEY         => 78,
+  PAYSYS_PRIVATE_JSON_ACCOUNT_KEY => 79
 );
 
 my @status = ('UNKNOWN', 'IN PROCCESS', 'COMPLETE', 'CANCELED', 'EXPIRED', 'INCORRECT_CHECKSUM', 'PAYMENT_ERROR', 'DUBLICATE', 'USER_ERROR', 'USER_NOT_EXIST', 'SMALL_PAYMENT_SUM', 'SQL_ERROR');
