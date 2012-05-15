@@ -44,7 +44,7 @@
 
 
 CLASSES_NUMS='2 3'
-VERSION=5.90
+VERSION=5.91
 
 
 name="abills_shaper"
@@ -335,6 +335,13 @@ if [ w${NEG_DEPOSIT_FWD} != w ]; then
     #${IPFW} add ${FWD_RULE} fwd ${FWD_WEB_SERVER_IP},3128 tcp from table\(32\) to any dst-port 3128 via ${INTERNAL_INTERFACE}
     # if allow usin net on neg deposit
     if [ x${abills_neg_deposit_speed} != x ]; then
+      ${IPFW} add 9000 skipto ${FWD_RULE} ip from table\(32\) to any ${IN_DIRECTION}
+      ${IPFW} add 9001 skipto ${FWD_RULE} ip from any to table\(32\) ${OUT_DIRECTION}
+
+      ${IPFW} add 10020 pipe 1${abills_neg_deposit_speed} ip from any to not table\(10\) ${IN_DIRECTION}
+      ${IPFW} add 10021 pipe 1${abills_neg_deposit_speed} ip from not table\(10\) to any ${OUT_DIRECTION}
+      ${IPFW} pipe 1${abills_neg_deposit_speed} config bw ${abills_neg_deposit_speed}Kbit/s mask src-ip 0xfffffffff    
+    
       ${IPFW} add `expr ${FWD_RULE} + 30` pipe 1${abills_neg_deposit_speed} ip from any to not table\(10\) ${IN_DIRECTION}
       ${IPFW} add `expr ${FWD_RULE} + 31` pipe 1${abills_neg_deposit_speed} ip from not table\(10\) to any ${OUT_DIRECTION}
       ${IPFW} pipe 1${abills_neg_deposit_speed} config bw ${abills_neg_deposit_speed}Kbit/s mask src-ip 0xfffffffff

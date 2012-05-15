@@ -998,19 +998,19 @@ sub prepaid_rest {
   my $octets_direction = "l.traffic_in + l.traffic_out";
 
   #Recv
-  if ($info->[0]->[6] == 1) {
+  if ($info->[0]->{octets_direction} && $info->[0]->{octets_direction} == 1) {
     $octets_direction = "l.traffic_in";
   }
 
   #sent
-  elsif ($info->[0]->[6] == 2) {
+  elsif ($info->[0]->{octets_direction} == 2) {
     $octets_direction = "l.traffic_out";
   }
 
   $self->query(
     $db, "SELECT l.traffic_class, (sum($octets_direction)) / $CONF->{MB_SIZE}
    from ipn_log l
-   WHERE l.uid='$attr->{UID}' and DATE_FORMAT(start, '%Y-%m-%d')>='$info->[0]->[3]'
+   WHERE l.uid='$attr->{UID}' and DATE_FORMAT(start, '%Y-%m-%d')>='$info->[0]->{activate}'
    GROUP BY l.traffic_class, l.uid ;"
   );
 

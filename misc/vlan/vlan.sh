@@ -19,6 +19,11 @@
 
 . /etc/rc.subr
 
+name="abills_vlan_up"
+rcvar=`set_rcvar`
+
+load_rc_config $name
+
 : ${abills_vlan_precreated=0}
 n=${abills_vlan_precreated}
 parent_if=${abills_vlan_if}
@@ -37,5 +42,7 @@ if [ ${n} -lt 0 ]; then
   done;
 fi;
 
+
+echo "VLAN NAS: ${abills_vlan_nas}"
 
 /usr/abills/libexec/periodic daily MODULES=Vlan LOCAL_NAS_IDS=${abills_vlan_nas}

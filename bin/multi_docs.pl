@@ -245,19 +245,20 @@ sub periodic_invoice {
     my %current_invoice = ();
     my $invoice_list = $Docs->invoices_list(
         {
-          UID         => $FORM{UID},
+          UID         => $user{UID},
           PAYMENT_ID  => 0,
           ORDERS_LIST => 1,
           COLS_NAME   => 1
         }
       );
-
-    foreach my $doc_id (keys %{ $Docs->{ORDERS} }) {
-      foreach my $invoice ( @{ $Docs->{ORDERS}->{$doc_id} }) {
-        $current_invoice{ $invoice->{orders} } = $invoice->{invoice_id};
+    
+    if ($Docs->{ORDERS}) {
+      foreach my $doc_id (keys %{ $Docs->{ORDERS} }) {
+        foreach my $invoice ( @{ $Docs->{ORDERS}->{$doc_id} }) {
+          $current_invoice{ $invoice->{orders} } = $invoice->{invoice_id};
+        }
       }
     }
-
 
     # No invoicing service from last invoice
     my $new_invoices = $Docs->invoice_new(
@@ -293,7 +294,6 @@ sub periodic_invoice {
       $user{INVOICE_PERIOD_START} = $NEXT_MONTH;
     }
 
-    $FORM{UID} = $user{UID};
     #Next period payments
     if ($FORM{NEXT_PERIOD}) {
       if (! $docs_user->{login_status}) {

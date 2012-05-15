@@ -150,9 +150,13 @@ sub ipn_sessions2 {
 
       foreach my $line (@$list) {
         $table->addrow(
-          $line->[0], $line->[1], $line->[2], $line->[3], $line->[4],
-          ($line->[4] > 0 && $Ipn->{TRAFFIC}->{ $line->[0] } && $line->[4] - $Ipn->{TRAFFIC}->{ $line->[0] } > 0) ? $line->[4] - $Ipn->{TRAFFIC}->{ $line->[0] }      : 0,
-          ($line->[4] > 0 && $Ipn->{TRAFFIC}->{ $line->[0] } && $line->[4] - $Ipn->{TRAFFIC}->{ $line->[0] } < 0) ? abs($line->[4] - $Ipn->{TRAFFIC}->{ $line->[0] }) : 0
+          $line->{traffic_class}, 
+          $line->{interval_begin}, 
+          $line->{interval_end}, 
+          $line->{activate}, 
+          $line->{prepaid},
+          ($line->{prepaid} > 0 && $Ipn->{TRAFFIC}->{ $line->{traffic_class} } && $line->{prepaid} - $Ipn->{TRAFFIC}->{ $line->{traffic_class} } > 0) ? $line->{prepaid} - $Ipn->{TRAFFIC}->{ $line->{traffic_class} }  : 0,
+          ($line->{prepaid} > 0 && $Ipn->{TRAFFIC}->{ $line->{traffic_class} } && $line->{prepaid} - $Ipn->{TRAFFIC}->{ $line->{traffic_class} } < 0) ? abs($line->{prepaid} - $Ipn->{TRAFFIC}->{ $line->{traffic_class} }) : 0
         );
       }
       print $table->show();
