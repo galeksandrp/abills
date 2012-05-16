@@ -543,7 +543,7 @@ sub list {
   }
 
   if ($attr->{ALL_FILTER_ID}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{ALL_FILTER_ID}, 'STR', 'if(dv.filter_id<>\'\', dv.filter_id, tp.filter_id)', { EXT_FIELD => 1 }) };
+    push @WHERE_RULES, @{ $self->search_expr($attr->{ALL_FILTER_ID}, 'STR', 'if(dv.filter_id<>\'\', dv.filter_id, tp.filter_id) AS filter_id', { EXT_FIELD => 1 }) };
   }
   elsif ($attr->{FILTER_ID}) {
     push @WHERE_RULES, @{ $self->search_expr($attr->{FILTER_ID}, 'STR', 'dv.filter_id', { EXT_FIELD => 1 }) };

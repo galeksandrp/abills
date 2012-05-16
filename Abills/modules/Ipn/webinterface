@@ -2472,24 +2472,34 @@ sub ipn_periodic_session_restart {
 
   use Auth;
   my $Auth = Auth->new($db, \%conf);
+  $sessions->{debug}=1 if ($debug > 6);
   my $list = $sessions->online(
     {
       NAS_ID => join(', ', @nas_ids_arr),
-      FIELDS_NAMES => [ USER_NAME, CLIENT_IP, NAS_ID, NAS_IP, CONNECT_INFO, UID, ACCT_SESSION_ID, FILTER_ID, NAS_PORT_ID ]
+      FIELDS_NAMES => [ USER_NAME, 
+                        CLIENT_IP, 
+                        NAS_ID, 
+                        NAS_IP, 
+                        CONNECT_INFO, 
+                        UID, 
+                        ACCT_SESSION_ID, 
+                        FILTER_ID, 
+                        NAS_PORT_ID ],
+      COLS_NAME => 1
     }
   );
   my $count         = 0;
   my %activated_ips = ();
-  foreach my $line (@$list) {
-    my $login         = $line->[0];
-    my $ip            = $line->[1];
-    my $nas_id        = $line->[2];
-    my $nas_ip        = $line->[3];
-    my $connect_info  = $line->[4] || '';
-    my $uid           = $line->[5];
-    $FORM{SESSION_ID} = $line->[6];
-    my $filter_id     = $line->[7];
-    my $port          = $line->[8];
+  foreach my $online (@$list) {
+    my $login         = $line->{user_name};
+    my $ip            = $online->{ip};
+    my $nas_id        = $online->{nas_id};
+    my $nas_ip        = $online->{nas_ip};
+    my $connect_info  = $online->{connect_info} || '';
+    my $uid           = $online->{uid};
+    $FORM{SESSION_ID} = $online->{acct_session_id};
+    my $filter_id     = $online->{filter_id};
+    my $port          = $online->{nas_port};
 
     $debug_output .= "LOGIN: $login IP: $ip NAS_ID: $nas_id NAS_IP: $nas_ip CONNECT_INFO: $connect_info UID: $uid FILTER_ID: $filter_id\n" if ($debug > 3);
 
@@ -2642,15 +2652,17 @@ sub ipn_start_active {
   my $online_list = $sessions->online(
     {
       NAS_ID       => join(', ', @nas_ids_arr),
-      FIELDS_NAMES => ['UID'],
+      FIELDS_NAMES => ['UID', 'CLIENT_IP'],
       COLS_NAME    => 1
     }
   );
 
   my $count       = 0;
   my %online_uids = ();
+  my %online_ips  = ();
   foreach my $online (@$online_list) {
     $online_uids{ $online->{uid} } = 1;
+    $online_ips{ $online->{ip} } = 1;
   }
 
   my %DHCP_IPS = ();
@@ -2691,7 +2703,7 @@ sub ipn_start_active {
   );
 
   foreach my $dv_user (@$dv_list) {
-    my $filter_id    = $dv_user->{filter_id};
+    my $filter_id    = $dv_user->{filter_id} || '';
     my $login        = $dv_user->{id};
     my $ip           = $dv_user->{ip};
     my $connect_info = '';
@@ -2702,7 +2714,8 @@ sub ipn_start_active {
     my $deposit      = $dv_user->{deposit};
     my $credit       = ($dv_user->{credit} > 0) ? $dv_user->{credit} : ($conf{user_credit_change}) ? 0 : $dv_user->{credit};
 
-    DHCP_IP_ASSIGN:
+    DHCP_IP_ASSIGN:    
+    
     if ($conf{IPN_DHCP_ACTIVE} && $#{ $DHCP_IPS{$uid} } > -1) {
       $ip = pop @{ $DHCP_IPS{$uid} };
     }
@@ -2712,8 +2725,8 @@ sub ipn_start_active {
     if ($ip eq '0.0.0.0') {
       next;
     }
-    elsif ($online_uids{$uid}) {
-      print "$login Online\n" if ($debug > 3);
+    elsif ($online_ips{$ip}) {
+      print "$login $ip Online\n" if ($debug > 3);
       next;
     }
     elsif (!$deposit) {
