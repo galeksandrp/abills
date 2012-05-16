@@ -830,18 +830,19 @@ sub dhcphosts_user {
             }
           );
 
-          #Activate IPN Section
-          if ($FORM{IPN_ACTIVATE} && $conf{IPN_DHCP_ACTIVE} && in_array('Ipn', \@MODULES)) {
-            load_module('Ipn', $html);
-            $FORM{ACTIVE} = 1;
-            ipn_user_activate({ IP => $FORM{IP} });
-          }
-
           # If install Snmputils make make assign
           if (in_array('Snmputils', \@MODULES) && $FORM{NAS_ID}) {
             require "Abills/modules/Snmputils/webinterface";
             my $return = snmputils_periodic({ NAS_IDS => $FORM{NAS_ID}, DEBUG => 1 });
             print $html->message('info', $_INFO, $html->pre($return, { OUTPUT2RETURN => 1 }));
+          }
+
+          #Activate IPN Section
+          if ($FORM{IPN_ACTIVATE} && $conf{IPN_DHCP_ACTIVE} && in_array('Ipn', \@MODULES)) {
+            load_module('Ipn', $html);
+            $FORM{ACTIVE} = 1;
+            $FORM{NAS_ID} = undef;
+            ipn_user_activate({ IP => $FORM{IP} });
           }
         }
         return 0 if ($attr->{REGISTRATION});

@@ -2447,7 +2447,7 @@ sub ipn_periodic_session_restart {
 
   my $nas_list = $Nas->list(
     {
-      NAS_IDS   => $attr->{NAS_IDS},
+      NAS_IDS   => $attr->{LOCAL_NAS} || $attr->{NAS_IDS},
       PAGE_ROWS => 10000
     }
   );
@@ -2481,15 +2481,15 @@ sub ipn_periodic_session_restart {
   my $count         = 0;
   my %activated_ips = ();
   foreach my $line (@$list) {
-    my $login        = $line->[0];
-    my $ip           = $line->[1];
-    my $nas_id       = $line->[2];
-    my $nas_ip       = $line->[3];
-    my $connect_info = $line->[4] || '';
-    my $uid          = $line->[5];
+    my $login         = $line->[0];
+    my $ip            = $line->[1];
+    my $nas_id        = $line->[2];
+    my $nas_ip        = $line->[3];
+    my $connect_info  = $line->[4] || '';
+    my $uid           = $line->[5];
     $FORM{SESSION_ID} = $line->[6];
-    my $filter_id = $line->[7];
-    my $port      = $line->[8];
+    my $filter_id     = $line->[7];
+    my $port          = $line->[8];
 
     $debug_output .= "LOGIN: $login IP: $ip NAS_ID: $nas_id NAS_IP: $nas_ip CONNECT_INFO: $connect_info UID: $uid FILTER_ID: $filter_id\n" if ($debug > 3);
 
@@ -2598,7 +2598,7 @@ sub ipn_start_active {
   $Nas->{debug} = 1 if ($debug > 6);
   my $nas_list = $Nas->list(
     {
-      NAS_IDS   => $attr->{NAS_IDS},
+      NAS_IDS   => $attr->{LOCAL_NAS} || $attr->{NAS_IDS},
       PAGE_ROWS => 10000
     }
   );
@@ -2676,8 +2676,8 @@ sub ipn_start_active {
   my $dv_list = $Dv->list(
     {
       LOGIN         => $attr->{LOGINS} || undef,
-      ACTIVATE      => "0000-00-00,>=$DATE",
-      EXPIRE        => "<$DATE",
+      ACTIVATE      => "<=$DATE",
+      EXPIRE        => "0000-00-00,>$DATE",
       IP            => '>' . (($conf{IPN_DHCP_ACTIVE}) ? '=' : '') . '0.0.0.0',
       STATUS        => 0,
       LOGIN_STATUS  => 0,
@@ -2686,7 +2686,7 @@ sub ipn_start_active {
       TP_ID         => $attr->{TP_IDS} || '>0',
       PORT          => '>=0',
       TP_CREDIT     => '>=0',
-      COLS_NAME     => 1
+      COLS_NAME     => 1,
     }
   );
 
