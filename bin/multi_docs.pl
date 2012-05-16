@@ -404,6 +404,7 @@ sub periodic_invoice {
 
     #Add to DB
     #if ($num > 0) {
+      next if ($num == 0);
       if ($debug < 5) {
         $Docs->invoice_add({ %user, %ORDERS_HASH });
         $Docs->user_change(
