@@ -2382,9 +2382,15 @@ sub ipn_recalculate {
 #**********************************************************
 sub ipn_detail_rotate {
   my ($attr) = @_;
-  my $debug = $attr->{DEBUG} || 0;
+
+  my $debug        = $attr->{DEBUG} || 0;
   my $debug_output = '';
   return '' if ($attr->{SRESTART});
+  if ($attr->{LOGON_ACTIVE_USERS}) {
+    $DEBUG .= $debug_output;
+    return $debug_output;
+  }
+
 
   $Ipn->{debug} = 1 if ($debug > 6);
 
