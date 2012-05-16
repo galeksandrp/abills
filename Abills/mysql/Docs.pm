@@ -878,13 +878,13 @@ sub invoice_del {
   if ($id == 0 && $attr->{UID}) {
   }
   else {
-  	$self->query($db, "SELECT invoice_num FROM docs_invoices WHERE id='$id'", 'do');
+  	$self->query($db, "SELECT invoice_num, uid FROM docs_invoices WHERE id='$id'", undef, { INFO => 1 });
     $self->query($db, "DELETE FROM docs_invoice_orders WHERE invoice_id='$id'", 'do');
     $self->query($db, "DELETE FROM docs_invoices WHERE id='$id'", 'do');
   }
 
   $admin->{MODULE}='Docs';
-  $admin->action_add("$id", "$id:$self->{invoice_num}", { TYPE => 18 });  
+  $admin->action_add("$self->{UID}", "$id:$self->{INVOICE_NUM}", { TYPE => 18 });  
 
   return $self;
 }
