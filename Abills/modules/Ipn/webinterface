@@ -2491,7 +2491,8 @@ sub ipn_periodic_session_restart {
   my $count         = 0;
   my %activated_ips = ();
   foreach my $online (@$list) {
-    my $login         = $line->{user_name};
+  	print "hello ";
+    my $login         = $online->{user_name};
     my $ip            = $online->{ip};
     my $nas_id        = $online->{nas_id};
     my $nas_ip        = $online->{nas_ip};
@@ -2514,11 +2515,12 @@ sub ipn_periodic_session_restart {
         FILTER_ID            => "$filter_id",
         QUICK                => 1,
         DEBUG                => $debug,
-        NAS_PORT             => $port,
-        NAS_ID               => $nas_id,
+        NAS_PORT             => $port || 0,
+        NAS_ID               => $nas_id || 0,
         NAS_IP_ADDRESS       => $nas_info{$nas_id}{NAS_IP_ADDRESS},
         NAS_MNG_USER         => $nas_info{$nas_id}{NAS_MNG_USER},
-        NAS_MNG_IP_PORT      => $nas_info{$nas_id}{NAS_MNG_IP_PORT}
+        NAS_MNG_IP_PORT      => $nas_info{$nas_id}{NAS_MNG_IP_PORT},
+        CONNECT_INFO         => $connect_info || ''
       }
     );
 
@@ -2545,10 +2547,10 @@ sub ipn_periodic_session_restart {
         NAS_MNG_IP_PORT    => $nas_info{$nas_id}{NAS_MNG_IP_PORT},
         TP_ID              => $Dv->{TP_ID},
         CALLING_STATION_ID => $ip,
-        CONNECT_INFO       => $connect_info,
+        CONNECT_INFO       => $connect_info || 0,
         UID                => $uid,
         QUICK              => 1,
-        NAS_PORT           => $port,
+        NAS_PORT           => $port || 0,
         HINT               => 'NOPASS',
         DEBUG              => $debug,
         FILTER_ID          => "$filter_id",
