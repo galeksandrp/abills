@@ -626,7 +626,8 @@ sub cards_users_add {
         SERIAL    => "$FORM{SERIAL}",
         NUMBER    => $i,
         DILLER_ID => $FORM{DILLER_ID},
-        PIN       => ($FORM{PAYMENT_OPERATION}) ? "$password" : $password
+        PIN       => ($FORM{PAYMENT_OPERATION}) ? "$password" : $password,
+        EXPIRE    => $FORM{EXPIRE}
       };
     }
 
