@@ -298,8 +298,8 @@ sub ashield_user {
   use Encode;
   Encode::_utf8_off($name);
 
-  if ($Ashield::VERSION < 6.06) {
-    $html->message('info', "UPDATE", "Please update module 'Ashield' to version 6.03 or higher. http://abills.net.ua/ (Current Version: $Ashield::VERSION)");
+  if ($Ashield::VERSION < 6.07) {
+    $html->message('info', "UPDATE", "Please update module 'Ashield' to version 6.07 or higher. http://abills.net.ua/ (Current Version: $Ashield::VERSION)");
     return 0;
   }
 
@@ -311,7 +311,6 @@ sub ashield_user {
   my $ashield_tps_info = ashield_drweb_tps();
   my $list             = $Tariffs->list(
     {
-
       #CHANGE_PRICE => '<='. ($user->{DEPOSIT} + $user->{CREDIT}),
       MODULE   => 'Ashield',
       COMMENTS => '*'

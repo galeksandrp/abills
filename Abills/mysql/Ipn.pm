@@ -1162,7 +1162,7 @@ sub ipn_log_rotate {
         session_id
          )
        SELECT 
-        uid, DATE_FORMAT(start, '%Y-%m-%d'), DATE_FORMAT(stop, '%Y-%m-%d'), traffic_class, 
+        uid, DATE_FORMAT(start, '%Y-%m-%d 00:00:00'), DATE_FORMAT(stop, '%Y-%m-%d 00:00:00'), traffic_class, 
         sum(traffic_in), sum(traffic_out), 
         nas_id, ip, interval_id, sum(sum), session_id
         FROM ipn_log_backup
