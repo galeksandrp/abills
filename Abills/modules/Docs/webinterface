@@ -1963,7 +1963,7 @@ sub docs_invoice {
   }
 
   if (!$user->{UID}) {
-    $Docs->{FORM_INVOICE_ID} = "<tr><td>$_INVOICE $_NUM:</td><td><input type='text' name='INVOICE_ID' value='%INVOICE_ID%' size=12></td></tr>\n";
+    $Docs->{FORM_INVOICE_ID} = "<tr><td>$_INVOICE $_NUM:</td><td><input type='text' name='INVOICE_NUM' value='%INVOICE_ID%' size=12></td></tr>\n";
     $Docs->{DATE_FIELD} = $html->date_fld2('DATE', { MONTHES => \@MONTHES, FORM_NAME => 'invoice_add', WEEK_DAYS => \@WEEKDAYS });
   }
   else {

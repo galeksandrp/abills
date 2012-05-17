@@ -788,82 +788,79 @@ sub invoice_add {
   my ($attr) = @_;
 
   invoice_defaults();
+  $CONF->{DOCS_INVOICE_ORDERS}=10 if (! $CONF->{DOCS_INVOICE_ORDERS});
 
-  %DATA = $self->get_data($attr, { default => \%DATA });
-  $DATA{DATE} = ($attr->{DATE}) ? "'$attr->{DATE}'" : 'now()';
+  %DATA             = $self->get_data($attr, { default => \%DATA });
+  $DATA{DATE}       = ($attr->{DATE}) ? "'$attr->{DATE}'" : 'now()';
   $DATA{CUSTOMER}   = '' if (!$DATA{CUSTOMER});
   $DATA{PHONE}      = '' if (!$DATA{PHONE});
   $DATA{VAT}        = '' if (!$DATA{VAT});
   $DATA{PAYMENT_ID} = 0  if (!$DATA{PAYMENT_ID});
+  my @ids_arr       = split(/, /, $attr->{IDS} || '');
+  my $orders        = $#ids_arr;
+  my $order_num     = 0;
 
-  $DATA{INVOICE_NUM} = ($attr->{INVOICE_NUM}) ? $attr->{INVOICE_NUM} : $self->docs_nextid({ TYPE => 'INVOICE' });
-  return $self if ($self->{errno});
+  
+  do {
+    $DATA{INVOICE_NUM} = ($attr->{INVOICE_NUM}) ? $attr->{INVOICE_NUM} : $self->docs_nextid({ TYPE => 'INVOICE' });
+    return $self if ($self->{errno});
 
-  $self->query(
+    $self->query(
     $db, "insert into docs_invoices (invoice_num, date, created, customer, phone, aid, uid, payment_id, vat, deposit, 
     delivery_status, exchange_rate, currency)
       values ('$DATA{INVOICE_NUM}', $DATA{DATE}, now(), \"$DATA{CUSTOMER}\", \"$DATA{PHONE}\", 
       '$admin->{AID}', '$DATA{UID}', '$DATA{PAYMENT_ID}', '$DATA{VAT}', '$DATA{DEPOSIT}', 
       '$DATA{DELIVERY_STATUS}', '$DATA{EXCHANGE_RATE}', '$DATA{DOCS_CURRENCY}');", 'do'
-  );
-
-  return $self if ($self->{errno});
-  $self->{DOC_ID}      = $self->{INSERT_ID};
-  $self->{INVOICE_NUM} = $DATA{INVOICE_NUM};
-
-  if ($attr->{IDS}) {
-    my @ids_arr = split(/, /, $attr->{IDS});
-
-    foreach my $id (@ids_arr) {
-      if (! $DATA{ 'ORDER_' . $id } && $DATA{ 'SUM_' . $id } == 0) {
-        next;	
-      }
-
-      $DATA{ 'COUNTS_' . $id } = 1 if (!$DATA{ 'COUNTS_' . $id });
-#      if ($DATA{'ALT_SUM_'. $id}) {
-#      	if ($DATA{EXCHANGE_RATE} && $DATA{EXCHANGE_RATE} != 1) {
-#          $DATA{'SUM_'.  $id} = $DATA{'ALT_SUM_'. $id}/$DATA{EXCHANGE_RATE};
-#        }
-#        else {
-#        	$DATA{'SUM_'.  $id} = $DATA{'ALT_SUM_'. $id};
-#        }
-#      }
-
-      if ($DATA{REVERSE_CURRENCY}) {
-         $DATA{ 'SUM_' . $id } = $DATA{ 'SUM_' . $id }/$DATA{EXCHANGE_RATE};
-      }
-
-
-      $DATA{ 'SUM_' . $id } =~ s/\,/\./g;
-      if ($DATA{ER} && $DATA{ER} != 1) {
-        $DATA{ 'SUM_' . $id } = $DATA{ 'SUM_' . $id } / $DATA{ER};
-      }
-
-      $self->query(
-        $db, "INSERT INTO docs_invoice_orders (invoice_id, orders, counts, unit, price, fees_id)
-         values (" . $self->{'DOC_ID'} . ", \"" . $DATA{ 'ORDER_' . $id } . "\", '" . $DATA{ 'COUNTS_' . $id } . "', '" . ($DATA{ 'UNIT_' . $id } || 0) . "',
-       '" . $DATA{ 'SUM_' . $id } . "','" . ($DATA{ 'FEES_ID_' . $id } || 0) . "')", 'do'
-      );
-    }
-  }
-  else {
-    $DATA{COUNTS} = 1 if (!$DATA{COUNTS});
-    $DATA{UNIT}   = 0 if (!$DATA{UNIT});
-
-    if ($DATA{ER} && $DATA{ER} != 1) {
-      $DATA{'SUM'} = $DATA{'SUM'} / $DATA{ER};
-    }
-
-    $self->query(
-      $db, "INSERT INTO docs_invoice_orders (invoice_id, orders, counts, unit, price)
-       values ($self->{DOC_ID}, \"$DATA{ORDER}\", '$DATA{COUNTS}', '$DATA{UNIT}',
-    '$DATA{SUM}')", 'do'
     );
-  }
 
-  return $self if ($self->{errno});
+    return $self if ($self->{errno});
+    $self->{DOC_ID}      = $self->{INSERT_ID};
+    $self->{INVOICE_NUM} = $DATA{INVOICE_NUM};
 
-  $self->invoice_info($self->{DOC_ID});
+    if ($attr->{IDS}) {
+      for( my $order_num=0; $order_num<=$#ids_arr; $order_num++) {
+        my $id = $ids_arr[$order_num];
+        if (! $DATA{ 'ORDER_' . $id } && $DATA{ 'SUM_' . $id } == 0) {
+          next;	
+        }
+
+        $DATA{ 'COUNTS_' . $id } = 1 if (!$DATA{ 'COUNTS_' . $id });
+        if ($DATA{REVERSE_CURRENCY}) {
+          $DATA{ 'SUM_' . $id } = $DATA{ 'SUM_' . $id }/$DATA{EXCHANGE_RATE};
+        }
+
+        $DATA{ 'SUM_' . $id } =~ s/\,/\./g;
+        if ($DATA{ER} && $DATA{ER} != 1) {
+          $DATA{ 'SUM_' . $id } = $DATA{ 'SUM_' . $id } / $DATA{ER};
+        }
+
+        $self->query($db, "INSERT INTO docs_invoice_orders (invoice_id, orders, counts, unit, price, fees_id)
+            values (" . $self->{'DOC_ID'} . ", \"" . $DATA{ 'ORDER_' . $id } . "\", '" . $DATA{ 'COUNTS_' . $id } . "', '" . ($DATA{ 'UNIT_' . $id } || 0) . "',
+            '" . $DATA{ 'SUM_' . $id } . "','" . ($DATA{ 'FEES_ID_' . $id } || 0) . "')", 'do');
+      }
+      $orders-=$CONF->{DOCS_INVOICE_ORDERS};
+      delete ($attr->{INVOICE_NUM});
+    }
+    else {
+      $DATA{COUNTS} = 1 if (!$DATA{COUNTS});
+      $DATA{UNIT}   = 0 if (!$DATA{UNIT});
+
+      if ($DATA{ER} && $DATA{ER} != 1) {
+        $DATA{'SUM'} = $DATA{'SUM'} / $DATA{ER};
+      }
+
+      $self->query($db, "INSERT INTO docs_invoice_orders (invoice_id, orders, counts, unit, price)
+         values ($self->{DOC_ID}, \"$DATA{ORDER}\", '$DATA{COUNTS}', '$DATA{UNIT}',
+        '$DATA{SUM}')", 'do'
+      );
+      $orders-=$CONF->{DOCS_INVOICE_ORDERS}
+    }
+  
+    return $self if ($self->{errno});
+
+    $self->invoice_info($self->{DOC_ID});
+  } while( $CONF->{DOCS_INVOICE_ORDERS}<$orders );
+
 
   return $self;
 }
