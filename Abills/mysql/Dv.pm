@@ -404,14 +404,44 @@ sub list {
 
   @WHERE_RULES = ("u.uid = dv.uid");
 
-  if ($attr->{USERS_WARNINGS}) {
-  	
+  push @WHERE_RULES, @{ $self->search_expr_users({ %$attr, 
+  	                         EXT_FIELDS => [
+  	                                        'PHONE',
+  	                                        'EMAIL',
+  	                                        'ADDRESS_FLAT',
+  	                                        'PASPORT_DATE',
+                                            'PASPORT_NUM', 
+                                            'PASPORT_GRANT',
+                                            'CITY', 
+                                            'ZIP',
+                                            'GID',
+                                            'CONTRACT_ID',
+                                            'CONTRACT_SUFIX',
+                                            'CONTRACT_DATE',
+                                            'EXPIRE',
+
+                                            'CREDIT',
+                                            'CREDIT_DATE', 
+                                            'REDUCTION',
+                                            'REGISTRATION',
+                                            'REDUCTION_DATE',
+                                            'COMMENTS',
+                                            'BILL_ID',
+                                            
+                                            'ACTIVATE',
+                                            'EXPIRE',
+
+  	                                         ] }) };
+
+  if ($attr->{USERS_WARNINGS}) {  	
   	my $allert_period = '';
   	if ($attr->{ALERT_PERIOD}) {
-  	  $allert_period = "OR  (tp.month_fee > 0 AND if(u.activate='0000-00-00', 
+  	  $allert_period = "OR  (tp.month_fee > 0  AND if(u.activate='0000-00-00', 
       datediff(DATE_FORMAT(curdate() + interval 1 month, '%Y-%m-01'), curdate()),
       datediff(u.activate + interval 30 day, curdate())) IN ($attr->{ALERT_PERIOD}))";
   	}
+
+    $WHERE = ($#WHERE_RULES > -1) ? join(' and ', @WHERE_RULES) : '';
 
     $self->query(
       $db, "SELECT u.id AS login, pi.email, dv.tp_id AS tp_num, u.credit, b.deposit, tp.name AS tp_name, tp.uplimit, pi.phone,
@@ -426,16 +456,16 @@ sub list {
                bills b,
                tarif_plans tp)
          LEFT JOIN users_pi pi ON u.uid = pi.uid
-         WHERE
-               u.uid=dv.uid
+         WHERE $WHERE  
            and u.disable  = 0
            and u.bill_id  = b.id
            and dv.tp_id   = tp.id
            and dv.disable = 0
            AND b.deposit+u.credit>0
-           and ((tp.month_fee=0 AND tp.uplimit > 0 AND b.deposit<tp.uplimit)
+           and (((tp.month_fee=0 OR tp.abon_distribution=1) AND tp.uplimit > 0 AND b.deposit<tp.uplimit)
              $allert_period
                )
+
          GROUP BY u.uid
          ORDER BY u.id;",
          undef,
@@ -473,34 +503,6 @@ sub list {
     return $list;
   }
   
-  push @WHERE_RULES, @{ $self->search_expr_users({ %$attr, 
-  	                         EXT_FIELDS => [
-  	                                        'PHONE',
-  	                                        'EMAIL',
-  	                                        'ADDRESS_FLAT',
-  	                                        'PASPORT_DATE',
-                                            'PASPORT_NUM', 
-                                            'PASPORT_GRANT',
-                                            'CITY', 
-                                            'ZIP',
-                                            'GID',
-                                            'CONTRACT_ID',
-                                            'CONTRACT_SUFIX',
-                                            'CONTRACT_DATE',
-                                            'EXPIRE',
-
-                                            'CREDIT',
-                                            'CREDIT_DATE', 
-                                            'REDUCTION',
-                                            'REGISTRATION',
-                                            'REDUCTION_DATE',
-                                            'COMMENTS',
-                                            'BILL_ID',
-                                            
-                                            'ACTIVATE',
-                                            'EXPIRE',
-
-  	                                         ] }) };
 
   if ($attr->{IP}) {
     push @WHERE_RULES, @{ $self->search_expr($attr->{IP}, 'IP', 'dv.ip') };

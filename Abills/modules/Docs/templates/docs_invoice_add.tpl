@@ -9,7 +9,7 @@
 <input type=hidden name=INCLUDE_DEPOSIT value=1>
 <Table class=form>
 <tr><th class='form_title' colspan=2>%CAPTION%</th></tr>
-%FORM_ACCT_ID%
+%FORM_INVOICE_ID%
 <tr><td>$_DATE:</td><td>%DATE_FIELD%</td></tr>
 <tr><td>$_CUSTOMER:</td><td><input type=text name=CUSTOMER value='%CUSTOMER%' size=60></td></tr>
 <tr><td>$_PHONE:</td><td><input type=text name=PHONE value=%PHONE%></td></tr>
