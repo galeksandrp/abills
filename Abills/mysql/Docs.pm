@@ -29,6 +29,7 @@ sub new {
   my $self = {};
   bless($self, $class);
   $CONF->{DOCS_ACCOUNT_EXPIRE_PERIOD} = 30 if (!$CONF->{DOCS_ACCOUNT_EXPIRE_PERIOD});
+  $CONF->{DOCS_INVOICE_ORDERS}=10 if (! $CONF->{DOCS_INVOICE_ORDERS});
   return $self;
 }
 
@@ -788,6 +789,7 @@ sub invoice_add {
   my ($attr) = @_;
 
   invoice_defaults();
+  
   $CONF->{DOCS_INVOICE_ORDERS}=10 if (! $CONF->{DOCS_INVOICE_ORDERS});
 
   %DATA             = $self->get_data($attr, { default => \%DATA });
@@ -797,11 +799,10 @@ sub invoice_add {
   $DATA{VAT}        = '' if (!$DATA{VAT});
   $DATA{PAYMENT_ID} = 0  if (!$DATA{PAYMENT_ID});
   my @ids_arr       = split(/, /, $attr->{IDS} || '');
-  my $orders        = $#ids_arr;
+  my $orders        = $#ids_arr + 1;
   my $order_num     = 0;
 
-  
-  do {
+  while( $orders > 0 ) {
     $DATA{INVOICE_NUM} = ($attr->{INVOICE_NUM}) ? $attr->{INVOICE_NUM} : $self->docs_nextid({ TYPE => 'INVOICE' });
     return $self if ($self->{errno});
 
@@ -818,8 +819,8 @@ sub invoice_add {
     $self->{INVOICE_NUM} = $DATA{INVOICE_NUM};
 
     if ($attr->{IDS}) {
-      for( my $order_num=0; $order_num<=$#ids_arr; $order_num++) {
-        my $id = $ids_arr[$order_num];
+      for( my $order_num=0; $order_num<$CONF->{DOCS_INVOICE_ORDERS}; $order_num++) {
+        my $id = pop @ids_arr;
         if (! $DATA{ 'ORDER_' . $id } && $DATA{ 'SUM_' . $id } == 0) {
           next;	
         }
@@ -859,7 +860,9 @@ sub invoice_add {
     return $self if ($self->{errno});
 
     $self->invoice_info($self->{DOC_ID});
-  } while( $CONF->{DOCS_INVOICE_ORDERS}<$orders );
+    
+    print "$CONF->{DOCS_INVOICE_ORDERS}<$orders<br>";
+  } ;
 
 
   return $self;

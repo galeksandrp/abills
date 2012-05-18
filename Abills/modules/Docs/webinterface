@@ -1535,8 +1535,6 @@ sub docs_tax_invoice {
     }
   );
 
-  #$html->tpl_show(_include('docs_tax_invoice_add', 'Docs'), { %$Docs, %$users });
-
   docs_tax_invoice_list($attr);
 }
 
@@ -1672,12 +1670,11 @@ sub docs_invoice {
         && $conf{SYSTEM_CURRENCY} ne $conf{DOCS_CURRENCY})
       {
         use Finance;
-        my $Finance = Finance->new($db, $admin);
+        my $Finance = Finance->new($db, $admin, \%conf);
         $Finance->exchange_info(0, { ISO => $FORM{DOCS_CURRENCY} || $conf{DOCS_CURRENCY} });
         $FORM{EXCHANGE_RATE} = $Finance->{ER_RATE};
         $FORM{DOCS_CURRENCY} = $Finance->{ISO};
       }
-
 
       $Docs->invoice_add({ %FORM, DEPOSIT => ($FORM{INCLUDE_DEPOSIT}) ?  $users->{DEPOSIT}  : undef });
       if (!$Docs->{errno}) {
@@ -1783,7 +1780,14 @@ sub docs_invoice {
         return 0;
       }
       else {
-        $html->message('err', "$_DOCS : $_ERROR", "[$Docs->{errno}] $err_strs{$Docs->{errno}}") if (!$FORM{QUICK});
+        if (!$FORM{QUICK}) {
+          if ($Docs->{errno} && $Docs->{errno} == 2) {
+            $html->message('err', "$_DOCS : $_ERROR", "$_DOC $_NOT_EXIST");
+          }
+          else {
+            $html->message('err', "$_DOCS : $_ERROR", "[$Docs->{errno}] $err_strs{$Docs->{errno}}");
+          }
+        }
       }
     }
 
@@ -2059,17 +2063,20 @@ sub docs_invoice {
           $num++;
           my $date = $line->[2];
           $date =~ s/ \d+:\d+:\d+//g;
-#          $table->addrow(
-#            $html->form_input("ORDER_" . $line->[0], "$line->[3]", { TYPE => 'hidden', OUTPUT2RETURN => 1 })
-#            . $html->form_input("SUM_" . $line->[0],     "$line->[4]", { TYPE => 'hidden', OUTPUT2RETURN => 1 })
-#            . $html->form_input("FEES_ID_" . $line->[0], "$line->[0]", { TYPE => 'hidden', OUTPUT2RETURN => 1 })
-#            . ((! $current_invoice{$line->[3]}) ? $html->form_input("IDS", "$line->[0]", { TYPE => 'checkbox', STATE => 1, OUTPUT2RETURN => 1 }) . "$num" : ''),
-#            "$line->[1]", 
-#            "$line->[2]", 
-#            "$line->[3] $date". (($current_invoice{$line->[3]}) ? ' ' . $html->color_mark($_EXIST, 'red') : ''), 
-#            "$line->[4]"
-#          );
-#          $total_not_invoice += $line->[4];
+=comments
+# Not invoiced fees
+          $table->addrow(
+            $html->form_input("ORDER_" . $line->[0], "$line->[3]", { TYPE => 'hidden', OUTPUT2RETURN => 1 })
+            . $html->form_input("SUM_" . $line->[0],     "$line->[4]", { TYPE => 'hidden', OUTPUT2RETURN => 1 })
+            . $html->form_input("FEES_ID_" . $line->[0], "$line->[0]", { TYPE => 'hidden', OUTPUT2RETURN => 1 })
+            . ((! $current_invoice{$line->[3]}) ? $html->form_input("IDS", "$line->[0]", { TYPE => 'checkbox', STATE => 1, OUTPUT2RETURN => 1 }) . "$num" : ''),
+            "$line->[1]", 
+            "$line->[2]", 
+            "$line->[3] $date". (($current_invoice{$line->[3]}) ? ' ' . $html->color_mark($_EXIST, 'red') : ''), 
+            "$line->[4]"
+          );
+=cut
+          $total_not_invoice += $line->[4];
         }
       }
       else {
