@@ -2432,6 +2432,11 @@ sub ipn_periodic_session_restart {
   my $debug_output = '';
 
   my ($y, $m, $d) = split(/-/, $ADMIN_REPORT{DATE}, 3);
+  if ($attr->{IPN_SKIP_SESSION_RESTART}) {
+    $DEBUG .= $debug_output;
+    return $debug_output;
+  }
+
   if ((!$attr->{SRESTART} && $d != 1) || defined($attr->{LOGON_ACTIVE_USERS})) {
     $DEBUG .= $debug_output;
     return $debug_output;
@@ -2491,7 +2496,6 @@ sub ipn_periodic_session_restart {
   my $count         = 0;
   my %activated_ips = ();
   foreach my $online (@$list) {
-  	print "hello ";
     my $login         = $online->{user_name};
     my $ip            = $online->{ip};
     my $nas_id        = $online->{nas_id};
