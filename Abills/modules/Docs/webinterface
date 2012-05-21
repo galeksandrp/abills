@@ -1746,7 +1746,7 @@ sub docs_invoice {
           $html->message(
             'info',
             "$_INVOICE $_CREATED",
-            "$_INVOICE $_NUM: [$Docs->{INVOICE_ID}]\n $_DATE: $FORM{DATE} \n"
+            "$_INVOICE $_NUM: [$Docs->{INVOICE_NUM}]\n $_DATE: $FORM{DATE} \n"
             . $html->button("$_SEND $_EMAIL", "qindex=$index&INVOICE_ID=$Docs->{DOC_ID}&sendmail=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}", { ex_params => 'target=_new', CLASS => 'sendmail rightAlignText' })
             . $html->button($_PRINT,          "qindex=$index&INVOICE_ID=$Docs->{DOC_ID}&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}",    { ex_params => 'target=_new', CLASS => 'print rightAlignText' })
           );

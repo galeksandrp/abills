@@ -798,6 +798,17 @@ sub invoice_add {
   $DATA{PHONE}      = '' if (!$DATA{PHONE});
   $DATA{VAT}        = '' if (!$DATA{VAT});
   $DATA{PAYMENT_ID} = 0  if (!$DATA{PAYMENT_ID});
+
+
+
+  if (! $attr->{IDS} && $DATA{SUM}) {
+  	$attr->{IDS}    = 1;
+    $DATA{SUM_1}    = $DATA{SUM} || 0;
+    $DATA{COUNTS_1} = (!$DATA{COUNTS}) ?  1 : $DATA{COUNTS};
+    $DATA{UNIT_1}   = (!$DATA{UNIT}) ? 0 : $DATA{UNIT};
+    $DATA{ORDER_1}  = $DATA{DATA} || '';
+  }
+
   my @ids_arr       = split(/, /, $attr->{IDS} || '');
   my $orders        = $#ids_arr + 1;
   my $order_num     = 0;
@@ -842,26 +853,9 @@ sub invoice_add {
       $orders-=$CONF->{DOCS_INVOICE_ORDERS};
       delete ($attr->{INVOICE_NUM});
     }
-    else {
-      $DATA{COUNTS} = 1 if (!$DATA{COUNTS});
-      $DATA{UNIT}   = 0 if (!$DATA{UNIT});
-
-      if ($DATA{ER} && $DATA{ER} != 1) {
-        $DATA{'SUM'} = $DATA{'SUM'} / $DATA{ER};
-      }
-
-      $self->query($db, "INSERT INTO docs_invoice_orders (invoice_id, orders, counts, unit, price)
-         values ($self->{DOC_ID}, \"$DATA{ORDER}\", '$DATA{COUNTS}', '$DATA{UNIT}',
-        '$DATA{SUM}')", 'do'
-      );
-      $orders-=$CONF->{DOCS_INVOICE_ORDERS}
-    }
-  
+   
     return $self if ($self->{errno});
-
     $self->invoice_info($self->{DOC_ID});
-    
-    print "$CONF->{DOCS_INVOICE_ORDERS}<$orders<br>";
   } ;
 
 
