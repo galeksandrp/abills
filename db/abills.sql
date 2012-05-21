@@ -368,7 +368,7 @@ CREATE TABLE `exchange_rate_log` (
 
 CREATE TABLE `fees` (
   `date` datetime NOT NULL default '0000-00-00 00:00:00',
-  `sum` double(12,2) NOT NULL default '0.00',
+  `sum` double(12,4) NOT NULL default '0.00',
   `dsc` varchar(80) NOT NULL default '',
   `ip` int(11) unsigned NOT NULL default '0',
   `last_deposit` double(15,6) NOT NULL default '0.000000',

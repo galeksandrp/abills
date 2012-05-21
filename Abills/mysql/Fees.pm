@@ -88,7 +88,7 @@ sub take {
     return $self;
   }
 
-  $sum = sprintf("%.2f", $sum);
+  $sum = sprintf("%.4f", $sum);
   $db->{AutoCommit} = 0;
   if ($attr->{BILL_ID}) {
     $user->{BILL_ID} = $attr->{BILL_ID};

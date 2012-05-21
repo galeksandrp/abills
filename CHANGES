@@ -1,5 +1,21 @@
 =====0.54=====
 
+21.05.2012\\
+
+  * ''Dhcphosts'' ДОбавлена возможность задавать регулярное выражение для определения Remote-Id и Circuit-Id
+  * Добавлена работа с сервером доступа Juniper MX80
+  * ''Dv'' Редирект на страницу предупреждения о окончании баланса у абонента (для фильтра негативного депозита)
+  * ''Dv'' $conf{DV_SKIP_QUEUE} Отключение регулировки очереди для DUMMYNET. Поднимает производительность системы
+  * ''Dv'' Разрешать изменять тарифный план для распределённой абоненты только при суме достаточной на 1 месяц работы и больше  $conf{DV_FULL_MONTH}=1; 
+  * ''Dv'' В фильтр негативного депозита добавлена опция предоставлять интернет на минимальной скорости вместо блокировки. Перед предоставлением интернета пользователю открывается сообщение что ему нужно оплатить интернет для полноценной работы
+  * ''Docs'' Добавлена перем пенная разделять счета с большим количеством позиций на несколько счетов. $conf{DOCS_INVOICE_ORDERS}=10;	Количество позиций в счете. По умолчанию 10 
+  * ''Docs''  Ведение счетов в нескольких валютах
+  * ''Paysys'' Payonline, PrivatBank Soap, ePay, СyberPlat
+  * Дробная часть в поле сума журнала начислений увеличина до 4 символов
+
+MySQL:\\
+
+  ALTER TABLE  `fees` CHANGE COLUMN `sum` `sum` double(12,4) NOT NULL default '0.00';
 
 24.03.2012\\
 
@@ -102,7 +118,6 @@ MySQL:\\
 
   ALTER TABLE `docs_main` ADD COLUMN  `personal_delivery` tinyint(1) unsigned NOT NULL default '0';
   ALTER TABLE `docs_main` ADD COLUMN  `invoicing_period` tinyint(3) unsigned NOT NULL default '0';
-  ALTER TABLE `docs_acct` ADD COLUMN  `exchange_rate` double(12,4) NOT NULL default '0.0000';
   ALTER TABLE `exchange_rate_log` ADD COLUMN `id`  int(10) unsigned NOT NULL auto_increment primary key;
   ALTER TABLE `dv_calls` ADD COLUMN `guest` tinyint(1) unsigned NOT NULL default '0';
   ALTER TABLE `dv_calls` CHANGE COLUMN  CONNECT_INFO `CONNECT_INFO` varchar(30) NOT NULL default '';
