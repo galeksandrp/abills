@@ -283,7 +283,7 @@ sub sheduler {
       Y         => "$Y,\\*",
       M         => "$M,\\*",
       D         => "$D,\\*",
-      PAGE_ROWS => 100000,
+      PAGE_ROWS => 1000000,
       COLS_NAME => 1
     }
   );

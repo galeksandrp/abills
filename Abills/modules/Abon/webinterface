@@ -527,7 +527,10 @@ sub abon_periodic {
   # }
 
   $Abon->{debug} = 1 if ($debug > 7);
-  my $list = $Abon->periodic_list({ %LIST_PARAMS, DELETED => 0 });
+  my $list = $Abon->periodic_list({ %LIST_PARAMS, 
+  	                                DELETED => 0,
+  	                                LOGIN_STATUS => 0 
+  	                              });
 
   my ($y, $m, $d) = split(/-/, $ADMIN_REPORT{DATE}, 3);
   $m--;

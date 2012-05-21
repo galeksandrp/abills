@@ -191,7 +191,11 @@ sub info {
      LIMIT 1;"
   );
 
-  if ($self->{TOTAL} < 1) {
+
+  if ($self->{errno}) {
+    return $self;
+  }
+  elsif ($self->{TOTAL} < 1) {
     $self->{errno}  = 2;
     $self->{errstr} = 'Not exist';
     $self->{AID}    = 0;

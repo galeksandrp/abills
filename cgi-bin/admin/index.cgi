@@ -539,6 +539,9 @@ sub check_permissions {
       $admin->system_action_add("$login:$password", { TYPE => 11 });
       $admin->{errno} = 4;
     }
+    elsif ($admin->{errno} == 2) {
+    	return 2;
+    }
     return 1;
   }
   elsif ($admin->{DISABLE} == 1) {
