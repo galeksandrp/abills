@@ -383,7 +383,7 @@ sub user_tariff_list {
   # $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
 
   $self->query(
-    $db, "SELECT at.id, at.name, at.comments, at.price, at.period, ul.date, 
+    $db, "SELECT at.id, at.name, comments, at.price, at.period, ul.date, 
       if (at.nonfix_period = 1, 
       if (at.period = 0, ul.date+ INTERVAL 1 DAY, 
        if (at.period = 1, ul.date + INTERVAL 1 MONTH, 
