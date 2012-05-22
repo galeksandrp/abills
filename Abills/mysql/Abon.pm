@@ -383,7 +383,7 @@ sub user_tariff_list {
   # $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
 
   $self->query(
-    $db, "SELECT id, name, comments, price, period, ul.date, 
+    $db, "SELECT at.id, at.name, at.comments, at.price, at.period, ul.date, 
       if (at.nonfix_period = 1, 
       if (at.period = 0, ul.date+ INTERVAL 1 DAY, 
        if (at.period = 1, ul.date + INTERVAL 1 MONTH, 
@@ -419,7 +419,7 @@ sub user_tariff_list {
    ul.send_docs
      FROM abon_tariffs at
      LEFT JOIN abon_user_list ul ON (at.id=ul.tp_id and ul.uid='$uid')
-     GROUP BY id
+     GROUP BY at.id
      ORDER BY $SORT $DESC;"
   );
 
