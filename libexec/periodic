@@ -342,7 +342,13 @@ sub sheduler {
     #Required modules
     elsif ($type ne '') {
       my $function = lc $s->{module} . "_sheduler";
-      $ret = $function->($s->{type}, "$action", $s->{uid});
+      
+      if (defined(&$function) ) {
+        $ret = $function->($s->{type}, "$action", $s->{uid});
+      }
+      else {
+      	print "ID: $shedule_id Function not defined '$function'\n";
+      }
     }
 
     my $text = sprintf("%-14s| %-12s| %-8s| %-20s| %-14s|", $login, $s->{module}, $type, $action, $s->{admin_name});
