@@ -1809,7 +1809,6 @@ sub iptv_user_channels {
     $FORM{IDS} =~ s/, /;/g;
 
     #Add to shedule
-
     my ($Y, $M, $D) = split(/-/, $DATE);
     $D = '01';
     $M = $M + 1;
