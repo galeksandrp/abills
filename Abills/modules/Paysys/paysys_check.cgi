@@ -823,7 +823,7 @@ sub osmp_payments {
             UID            => "$user->{UID}",
             IP             => $ENV{REMOTE_ADDR},
             TRANSACTION_ID => "$payment_system:$FORM{txn_id}",
-            INFO           => "TYPE: $FORM{command} PS_TIME: " . (($FORM{txn_date}) ? $FORM{txn_date} : '') . " STATUS: $status $status_hash{$status}",
+            INFO           => "TYPE: $FORM{command}\nPS_TIME: " . (($FORM{txn_date}) ? $FORM{txn_date} : '') . "\nSTATUS: $status $status_hash{$status}\n". (($FORM{terminal}) ? "Terminal: $FORM{terminal}" : ''),
             PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}",
             STATUS         => 2
           }
