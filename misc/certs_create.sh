@@ -11,7 +11,7 @@ CA_pl='/usr/src/crypto/openssl/apps/CA.pl';
 
 hostname=`hostname`;
 password=whatever;
-VERSION=1.84;
+VERSION=1.85;
 DAYS=730;
 DATE=`date`;
 CERT_TYPE=$1;
@@ -32,7 +32,8 @@ if [ w$1 = w ] ; then
   echo " eap            - Create Server and users SSL Certs"
   echo " postfix_tls    - Create postfix TLS Certs"
   echo " express_oplata - Express oplata payment system"
-  echo " easysoft [public_key] - Easysoft payment system"
+  echo " easysoft [public_key] - Easysoft payment system x509 certs"
+  echo " privatbank [public_key] - privatbank payment system x509 certs"
   echo " info [file]    - Get info from SSL cert"
   echo " ssh [USER]     - Create SSH DSA Keys"
   echo "                USER - SSH remote user"
@@ -99,52 +100,57 @@ fi;
 
 
 #**********************************************************
+# Create x509 key
 # easysoft payments system
 # http://easysoft.com.ua/
 # kabanets@easysoft.com.ua
 #**********************************************************
-easysoft_cert () {
+x509_cert () {
   echo "#******************************************************************************"
-  echo "#Creating EasySoft certs"
+  echo "#Creating ${SYSTEM_NAME} certs"
   echo "#"
   echo "#******************************************************************************"
   echo
 
-  if [ w$1 = w  ]; then
-    echo "Enter path to EasySoft public key: ";
+  SYSTEM_NAME=$1;
+  SEND_EMAIL=$2;
+  PUBLIC_KEY=$3;
+  
+
+  if [ x${PUBLIC_KEY} = x  ]; then
+    echo "Enter path to ${SYSTEM_NAME} public key: ";
     read EASYSOFT_PUBLIC_KEY
   else
-    EASYSOFT_PUBLIC_KEY=$1;
+    PUBLIC_KEY=$1;
   fi;
 
-  if [ w${EASYSOFT_PUBLIC_KEY} = w ]; then
-    echo "Enter easysoft public key";
+  if [ x${PUBLIC_KEY} = x ]; then
+    echo "Enter ${SYSTEM_NAME} public key";
     exit;
   fi;
  
-  if [ w${EASYSOFT_PUBLIC_KEY} != w ]; then
-    cp ${EASYSOFT_PUBLIC_KEY} ${CERT_PATH}/easysoft_server_public.pem
-    chown ${APACHE_USER} ${CERT_PATH}/easysoft_server_public.pem
-    echo "Easy soft public key copy to ${CERT_PATH}/easysoft_server_public.pem"
+  if [ x${PUBLIC_KEY} != x ]; then
+    cp ${PUBLIC_KEY} ${CERT_PATH}/${SYSTEM_NAME}_server_public.pem
+    chown ${APACHE_USER} ${CERT_PATH}/${SYSTEM_NAME}_server_public.pem
+    echo "Easy soft public key copy to ${CERT_PATH}/${SYSTEM_NAME}_server_public.pem"
   fi;
 
-  ${OPENSSL} x509 -inform pem -in ${EASYSOFT_PUBLIC_KEY} -pubkey -out ${CERT_PATH}/easysoft_public_key.pem > ${CERT_PATH}/easysoft_server_public.pem
+  ${OPENSSL} x509 -inform pem -in ${EASYSOFT_PUBLIC_KEY} -pubkey -out ${CERT_PATH}/${SYSTEM_NAME}_public_key.pem > ${CERT_PATH}/${SYSTEM_NAME}_server_public.pem
 
 
   CERT_LENGTH=1024;
   # Private key
-  ${OPENSSL} genrsa -out easysoft_private.ppk ${CERT_LENGTH} 
-  ${OPENSSL} req -new -key easysoft_private.ppk -out easysoft.req 
-  #${OPENSSL} ca -in easysoft.req -out easysoft.cer 
-  ${OPENSSL} x509 -req -days ${DAYS} -in easysoft.req -signkey easysoft_private.ppk -out easysoft.cer
-  ${OPENSSL} rsa -in  ${CERT_PATH}/easysoft_private.ppk -out ${CERT_PATH}/easysoft_public.pem -pubout
+  ${OPENSSL} genrsa -out ${SYSTEM_NAME}_private.ppk ${CERT_LENGTH} 
+  ${OPENSSL} req -new -key ${SYSTEM_NAME}_private.ppk -out ${SYSTEM_NAME}.req 
+  #${OPENSSL} ca -in ${SYSTEM_NAME}.req -out ${SYSTEM_NAME}.cer 
+  ${OPENSSL} x509 -req -days ${DAYS} -in ${SYSTEM_NAME}.req -signkey ${SYSTEM_NAME}_private.ppk -out ${SYSTEM_NAME}.cer
+  ${OPENSSL} rsa -in  ${CERT_PATH}/${SYSTEM_NAME}_private.ppk -out ${CERT_PATH}/${SYSTEM_NAME}_public.pem -pubout
 
-  chmod u=r,go= ${CERT_PATH}/easysoft.cer
-  chown ${APACHE_USER} ${CERT_PATH}/easysoft.cer ${CERT_PATH}/easysoft_private.ppk ${CERT_PATH}/easysoft_public.pem
+  chmod u=r,go= ${CERT_PATH}/${SYSTEM_NAME}.cer
+  chown ${APACHE_USER} ${CERT_PATH}/${SYSTEM_NAME}.cer ${CERT_PATH}/${SYSTEM_NAME}_private.ppk ${CERT_PATH}/${SYSTEM_NAME}_public.pem
 
   echo "Sert created: ";
-  echo "Send this file to EasyPay (kabanets@easysoft.com.ua): ${CERT_PATH}/easysoft.cer";
-
+  echo "Send this file to ${SYSTEM_NAME} (${SEND_EMAIL}): ${CERT_PATH}/${SYSTEM_NAME}.cer";
 }
 
 #**********************************************************
@@ -163,7 +169,11 @@ apache_cert () {
   -passin pass:${password} -passout pass:${password}
 
   ${OPENSSL} x509 -req -days ${DAYS} -in server.csr -signkey server.key -out server.crt \
-   -passin pass:${password}
+  -passin pass:${password}
+
+  #Make public key
+  ${OPENSSL} rsa -in ${CERT_PATH}/server.key -out ${CERT_PATH}/server_public.pem -pubout \
+  -passin pass:${password}
 
   chmod u=r,go= ${CERT_PATH}/server.key
   chmod u=r,go= ${CERT_PATH}/server.crt
@@ -500,7 +510,10 @@ case ${CERT_TYPE} in
               postfix_cert;
                 ;;
         easysoft)
-              easysoft_cert $2;
+              x509_cert "easysoft" "kabanets@easysoft.com.ua" "$2";
+                ;;
+        privatbank)
+              x509_cert "privatbank" "" "$2";
                 ;;
         eap)
               eap_cert; 

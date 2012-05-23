@@ -662,6 +662,13 @@ sub osmp_payments {
     $status_hash{5}    = 'Неверный индентификатор абонента';
     $status_hash{243}  = 'Невозможно проверитьсостояние счёта';
     $CHECK_FIELD       = $conf{PAYSYS_PEGAS_ACCOUNT_KEY} || 'UID';
+    
+    if ($conf{PAYSYS_PEGAS_SELF_TERMINALS} && $FORM{terminal}) {
+      if ($conf{PAYSYS_PEGAS_SELF_TERMINALS} =~ /$FORM{terminal}/) {
+        $payment_system_id = 80;
+        $payment_system    = 'PST';
+      }
+    }
   }
 
   my $comments = '';
@@ -721,7 +728,8 @@ sub osmp_payments {
     my $prv_txn = $FORM{prv_txn};
     $RESULT_HASH{prv_txn} = $prv_txn;
 
-    my $list = $payments->list({ ID => "$prv_txn", EXT_ID => "PEGAS:*" });
+    my $list = $payments->list({ ID     => "$prv_txn", 
+    	                           EXT_ID => "PEGAS:*" });
 
     if ($payments->{errno}) {
       $RESULT_HASH{result} = 1;
@@ -736,7 +744,7 @@ sub osmp_payments {
     }
     else {
       my %user = (
-        BILL_DI => $list->[10],
+        BILL_ID => $list->[10],
         UID     => $list->[11]
       );
 
@@ -762,11 +770,11 @@ sub osmp_payments {
       $user = $users->info($FORM{account});
     }
     else {
-      my $list = $users->list({ $CHECK_FIELD => $FORM{account} });
+      my $list = $users->list({ $CHECK_FIELD => $FORM{account}, COLS_NAME => 1 });
 
       if (!$users->{errno} && $users->{TOTAL} > 0) {
 
-        my $uid = $list->[0]->[ 5 + $users->{SEARCH_FIELDS_COUNT} ];
+        my $uid = $list->[0]->{uid};
         $user = $users->info($uid);
       }
     }
@@ -789,7 +797,6 @@ sub osmp_payments {
           SUM          => $FORM{sum},
           DESCRIBE     => "$payment_system",
           METHOD       => ($conf{PAYSYS_PAYMENTS_METHODS} && $PAYSYS_PAYMENTS_METHODS{$payment_system_id}) ? $payment_system_id : '2',
-          ,
           EXT_ID       => "$payment_system:$FORM{txn_id}",
           CHECK_EXT_ID => "$payment_system:$FORM{txn_id}"
         }
