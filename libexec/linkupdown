@@ -318,13 +318,6 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
 
   #Create shaper dev for linux
   my $tc = '/sbin/tc';
-  if ($ARGV[0] eq 'pppd') {
-    push @FW_ACTIONS, "$tc qdisc del dev $INTERFACE ingress";
-    push @FW_ACTIONS, "$tc qdisc add dev $INTERFACE handle ffff: ingress";
-    push @FW_ACTIONS, "$tc qdisc del dev $INTERFACE root";
-    push @FW_ACTIONS, "$tc qdisc add dev $INTERFACE root handle 1: htb default 10 r2q 1";
-  }
-
   #Traf type shapper
   foreach my $traf_type (sort keys %speeds) {
     my $speed;
@@ -366,15 +359,22 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
     #Linux shaper
     if ($OS eq 'Linux') {
       my $prefix = 10000;
-      my $burst  = ($speed_in / 16);
+      my $burst  = int($speed_in / 16);
       my $flowid = ($speed_in > 0) ? sprintf("%x", $user->{UID} + $prefix * 2) : '';
-      my $drop   = ($speed_out > 0) ? "police rate $speed_out Kbit burst $burst" . 'k drop' : '';
+      my $drop   = ($speed_out > 0) ? "police rate $speed_out". "Kbit burst $burst" . 'k drop' : '';
+
+      if ($ARGV[0] eq 'pppd') {
+        push @FW_ACTIONS, "$tc qdisc del dev $INTERFACE ingress";
+        push @FW_ACTIONS, "$tc qdisc add dev $INTERFACE handle ffff: ingress";
+        push @FW_ACTIONS, "$tc qdisc del dev $INTERFACE root";
+        push @FW_ACTIONS, "$tc qdisc add dev $INTERFACE root handle 1: htb default 10 r2q 1";
+      }
 
       # new linux shapper
       if ($argv->{LINUX_NEW_MODEL}) {
         my $action = ($ACTION eq 'down') ? 'del' : 'add';
         push @FW_ACTIONS, "$tc class add dev $INTERFACE parent 1: classid 1:" . (10 + 10 * $traf_type) . " htb rate " . $speed_out . "kbit burst " . $burst . "k prio " . ($traf_type + 1);
-        push @FW_ACTIONS, "$tc qdisc add dev $INTERFACE parent 1:" .                              (10 + 10 * $traf_type) . " handle " . (10 + 10 * $traf_type) . ": sfq perturb 10 quantum 1500";
+        push @FW_ACTIONS, "$tc qdisc add dev $INTERFACE parent 1:" . (10 + 10 * $traf_type) . " handle " . (10 + 10 * $traf_type) . ": sfq perturb 10 quantum 1500";
         push @FW_ACTIONS, "$tc filter add dev $INTERFACE protocol ip parent 1:0 prio 1 handle " . ($traf_type + 1) . " fw classid 1:" . (10 + 10 * $traf_type);
         push @FW_ACTIONS, "$tc filter $action dev $INTERFACE protocol ip parent ffff: prio $fw_num_in u32 match ip src $CLIENT_IP $drop flowid 1:";
         next;

@@ -237,7 +237,7 @@ sub online {
     NAS_IP            => 'INET_NTOA(c.nas_ip_address) AS nas_ip',
     DEPOSIT           => 'if(company.name IS NULL, b.deposit, cb.deposit) AS deposit',
     CREDIT            => 'if(u.company_id=0, u.credit, if (u.credit=0, company.credit, u.credit)) AS credit',
-    STARTED           => 'if(date_format(c.started, "%Y-%m-%d")=curdate(), date_format(c.started, "%H:%i:%s"), c.started) As started',
+    STARTED           => 'if(date_format(c.started, "%Y-%m-%d")=curdate(), date_format(c.started, "%H:%i:%s"), c.started) AS started',
     NAS_ID            => 'c.nas_id',
     LAST_ALIVE        => 'UNIX_TIMESTAMP() - c.lupdated AS last_alive',
     ACCT_SESSION_TIME => 'UNIX_TIMESTAMP() - UNIX_TIMESTAMP(c.started) AS total_time',

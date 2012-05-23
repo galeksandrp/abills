@@ -300,7 +300,7 @@ sub sheduler {
     my $shedule_id = $s->{id};
 
     if ($debug > 0) {
-      print "Shedule $type:  $action\n";
+      print "Shedule $login Module: $s->{module} $type:  $action\n";
     }
 
     if ($type eq 'fees') {

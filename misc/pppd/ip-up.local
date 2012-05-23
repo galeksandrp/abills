@@ -43,7 +43,7 @@ if [ -f /var/run/radattr.$1 ];
 ##### speed server->client
    if [ "$UPSPEED" != "0" ] ; then
      ${TC} qdisc add dev ${IFNAME} root handle 1: htb default 20 r2q 1
-     ${TC} class add dev ${IFNAME}  parent 1: classid 1:1 htb rate ${UPSPEED}kbit burst 4k
+     ${TC} class add dev ${IFNAME} parent 1: classid 1:1 htb rate ${UPSPEED}kbit burst 4k
      ${TC} class add dev ${IFNAME} parent 1:1 classid 1:10 htb rate ${UPSPEED}kbit burst 4k prio 1
      ${TC} class add dev ${IFNAME} parent 1:1 classid 1:20 htb rate ${UPSPEED}kbit burst 4k prio 2
      ${TC} qdisc add dev ${IFNAME} parent 1:10 handle 10: sfq perturb 10 quantum 1500

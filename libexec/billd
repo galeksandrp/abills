@@ -674,7 +674,6 @@ sub check_speed_linux {
   #In
   open(PROCS, "$cmd |") || die "Can't open file '$cmd' $!\n";
   while (<PROCS>) {
-
     # ppp0 class htb 1:bb9 root prio 0 rate 2097Kbit ceil 2097Kbit burst 1599b cburst1599b
     if (/ppp(\d+)\sclass\shtb\s\d+:[a-f0-9]+\s.+\srate\s(\d+)(\S+)/i) {
       my $iface = $1;
@@ -705,7 +704,7 @@ sub check_speed_linux {
   my $user    = $Billing->get_timeinfo();
   my %speeds  = ();
   my %TP_HASH = ();
-  my $tp_list = $Tariffs->list({ MODULE => 'Dv', });
+  my $tp_list = $Tariffs->list({ MODULE => 'Dv', COLS_NAME => 1 });
 
   #GET TP speed
   my %tp_exprasions = ();
@@ -713,8 +712,8 @@ sub check_speed_linux {
   my %nets_hash     = ();
 
   foreach my $line (@$tp_list) {
-    my $tp_id = $line->[18];
-    my $tp    = $line->[0];
+    my $tp_id = $line->{tp_id};
+    my $tp    = $line->{id};
     $TP_HASH{$tp} = $tp_id;
     print "TP: $tp ($tp_id)\n" if ($debug > 1 || $ARGV->{SHOW_SPEED});
     my ($remaining_time, $ret_attr);
@@ -738,7 +737,6 @@ sub check_speed_linux {
     my %TT_IDS = %$ret_attr;
 
     if (scalar(keys %TT_IDS) > 0) {
-
       #Get intervals
       while (my ($k, $interval_id) = each(%TT_IDS)) {
         print " INTERVAL: $k, $interval_id\n" if ($debug > 1);
@@ -801,7 +799,17 @@ sub check_speed_linux {
     {
       %LIST_PARAMS,
       NAS_ID       => $ARGV->{NAS_IDS},
-      FIELDS_NAMES => [ 'USER_NAME', 'NAS_PORT_ID', 'TP_ID', 'SPEED', 'UID', 'JOIN_SERVICE', 'CLIENT_IP', 'DURATION', 'STARTED' ]
+      FIELDS_NAMES => [ 'USER_NAME', 
+                        'NAS_PORT_ID', 
+                        'TP_ID', 
+                        'SPEED', 
+                        'UID', 
+                        'JOIN_SERVICE', 
+                        'CLIENT_IP', 
+                        'DURATION_SEC', 
+                        'STARTED' 
+                      ],
+     COLS_NAME    => 1
     }
   );
 
@@ -815,22 +823,19 @@ sub check_speed_linux {
 
     my $l = $online->{ $nas_row->[0] };
     foreach my $line (@$l) {
-      my $duration = time2sec($line->[7]);
-      my $started  = $line->[8];
-
       #IFACE : TP : SPEED  :IP
       my $tp    = 0;
       my $tp_id = 0;
-      if ($line->[4] > 0) {
-        $Dv->info($line->[4]);
+      if ($line->{uid} > 0) {
+        $Dv->info($line->{uid});
         $tp    = $Dv->{TP_ID};
         $tp_id = $Dv->{TP_NUM};
       }
       else {
-        $tp = $line->[2];
+        $tp = $line->{tp_num};
       }
-      print "$line->[0] IF:$line->[1] TP:$tp SPEED:$line->[3] JOIN: $line->[5] IP:$line->[6] UID:$line->[4] DURATION:$duration STARTED:$started \n" if ($debug > 1);
-      $USER_IFACES{ $line->[0] } = "$line->[1]:$tp:$line->[3]:$line->[5]:$line->[6]:$line->[4]:$duration:$started";
+      print "$line->{user_name} IF:$line->{nas_port_id} TP:$tp SPEED:$line->{speed} JOIN: $line->{join_service} IP:$line->{ip} UID:$line->{uid} DURATION:$line->{duration_sec} STARTED:$line->{started} \n" if ($debug > 1);
+      $USER_IFACES{ $line->{user_name} } = "$line->{nas_port_id}:$tp:$line->{speed}:$line->{join_service}:$line->{ip}:$line->{uid}:$line->{duration_sec}:$line->{started}";
     }
   }
 
@@ -841,7 +846,7 @@ sub check_speed_linux {
     $debug_outputs = "$user IF: $IFACE TP: $TP IP: $IP SPEED: $SPEED JOIN SERVICE: $JOIN_SERVICE DURATION: $DURATION ($STARTED)\n";
 
     if ($ARGV->{SHOW_SPEED}) {
-      print "$user -> IN: " . ($PORTS_SPEEDS{$IFACE}{0}{IN} || 'Not set') . " OUT: " . ($PORTS_SPEEDS{$IFACE}{0}{OUT} || 'Not set') . "\n";
+      print "$user IF: $IFACE IN: " . ($PORTS_SPEEDS{$IFACE}{0}{IN} || 'Not set') . " OUT: " . ($PORTS_SPEEDS{$IFACE}{0}{OUT} || 'Not set') . "\n";
       next;
     }
 
@@ -851,7 +856,7 @@ sub check_speed_linux {
 
     #No shaper definition
     elsif (!$PORTS_SPEEDS{$IFACE} && $SPEED > 0
-      || ($SPEED > 0 && ($SPEED != $PORTS_SPEEDS{$IFACE}{0}{IN} || $SPEED != $PORTS_SPEEDS{$IFACE}{0}{OUT})))
+      || ($SPEED > 0 && (! $PORTS_SPEEDS{$IFACE}{0}{OUT} || ! $PORTS_SPEEDS{$IFACE}{0}{OUT} || $SPEED != $PORTS_SPEEDS{$IFACE}{0}{IN} || $SPEED != $PORTS_SPEEDS{$IFACE}{0}{OUT})))
     {
       $debug_outputs .= "  ! Speed not defined. Set speed\n";
       $changed = 1;
