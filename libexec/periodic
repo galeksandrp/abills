@@ -177,6 +177,9 @@ if ($args->{DATE}) {
   $ADMIN_REPORT{DATE} = $args->{DATE};
   $admin->{DATE} = $args->{DATE};
 }
+else {
+	$ADMIN_REPORT{DATE}=$DATE;
+}
 
 if ($args->{LOGIN}) {
 	$LIST_PARAMS{LOGIN}=$args->{LOGIN};

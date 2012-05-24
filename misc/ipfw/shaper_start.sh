@@ -44,7 +44,7 @@
 
 
 CLASSES_NUMS='2 3'
-VERSION=5.91
+VERSION=5.92
 
 
 name="abills_shaper"
@@ -187,11 +187,6 @@ if [ x${abills_shaper_enable} != xNO ]; then
   fi;
 fi;
 
-# Start custom shapper rules
-if [ ${firewall_type} = "/etc/fw.conf" ]; then
-  ${IPFW} ${firewall_type}
-fi;
-
 #IPoE Shapper for dhcp connections
 if [ x${abills_dhcp_shaper} != xNO ]; then
   if [ -f ${BILLING_DIR}/libexec/ipoe_shapper.pl ]; then
@@ -234,6 +229,11 @@ if [ x${abills_ipn_nas_id} != x ]; then
   /usr/abills/libexec/periodic monthly MODULES=Ipn SRESTART=1 NO_ADM_REPORT=1 NAS_IDS="${abills_ipn_nas_id}"
   # Block unauth ips
   ${IPFW} add 65000 deny ip from not table\(10\) to any ${IFACE} in
+fi;
+
+# Start custom shapper rules
+if [ ${firewall_type} = "/etc/fw.conf" ]; then
+  ${IPFW} ${firewall_type}
 fi;
 
 

@@ -1742,7 +1742,7 @@ sub iptv_user_channels {
   $LIST_PARAMS{DISABLE}     = 0;
 
   #Active channels
-  my %select_channels = ();
+  my %select_channels       = ();
 
   $list = $Iptv->user_channels_list(
     {
@@ -1856,12 +1856,9 @@ sub iptv_user_channels {
     $users = $user if ($user->{UID});
 
     foreach my $channel (keys %select_channels) {
-
-      #print "$channel<br>";
       #Tarif exists
       if ($ids_hash{$channel}) {
         delete $ids_hash{$channel};
-
         #Add new tarif
         push @add_arr, $channel;
       }
@@ -2405,7 +2402,7 @@ sub iptv_sheduler {
     $FORM{IDS}        = $action;
     $LIST_PARAMS{UID} = $uid;
     $FORM{change_now} = 1;
-    $users->info($uid);
+    $Iptv->user_info($uid);
     iptv_user_channels({ QUIET => 1, USER_INFO => $users });
   }
 }

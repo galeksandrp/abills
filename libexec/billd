@@ -1836,7 +1836,10 @@ sub check_speed {
       }
 
       $debug_outputs = '';
-      if ((!$fw_ips{$IP} || $fw_ips{$IP} ne $argument) && $speeds{$TP}{IN}{0} + $speeds{$TP}{OUT}{0} > 0) {
+      if ((!$fw_ips{$IP} || $fw_ips{$IP} ne $argument) 
+         && $speeds{$TP}{IN}{0} 
+         && $speeds{$TP}{OUT}{0}
+         && $speeds{$TP}{IN}{0} + $speeds{$TP}{OUT}{0} > 0) {
         push @FW_ACTIONS, "$IPFW -q table " . $users_table_number . " delete $IP";
         push @FW_ACTIONS, "$IPFW -q table " . $users_table_number . " add $IP $argument";
 
