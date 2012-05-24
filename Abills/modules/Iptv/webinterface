@@ -519,10 +519,7 @@ sub iptv_nas {
 sub iptv_ti_channels {
   my ($attr) = @_;
 
-  my $Iptv_tp;
   if (defined($attr->{TP})) {
-    $Iptv_tp = $attr->{TP};
-
     if ($FORM{change}) {
       $Iptv->channel_ti_change({%FORM});
       if (!$Iptv->{errno}) {
@@ -1726,17 +1723,15 @@ sub iptv_user_channels {
     $Iptv->user_info($LIST_PARAMS{UID});
   }
 
-  my $Iptv_tp = Tariffs->new($db, \%conf);
-
-  my $list = $Iptv_tp->ti_list({ TP_ID => $Iptv->{TP_ID} });
+  my $list = $Tariffs->ti_list({ TP_ID => $Iptv->{TP_ID} });
   my @interval_ids = ();
 
-  if ($Iptv_tp->{TOTAL} < 1) {
+  if ($Tariffs->{TOTAL} < 1) {
     $html->message('info', $_INFO, "$_INTERVAL $_NOT_EXIST", { ID => '404' }) if (!$attr->{QUIET});
     return 0;
   }
 
-  my $intervals             = $Iptv_tp->{TOTAL};
+  my $intervals             = $Tariffs->{TOTAL};
   $LIST_PARAMS{INTERVAL_ID} = $list->[0]->[0];
   $LIST_PARAMS{TI}          = $list->[0]->[0];
   $LIST_PARAMS{DISABLE}     = 0;
@@ -2059,7 +2054,7 @@ sub iptv_daily_fees {
 
   require Tariffs;
   Tariffs->import();
-  my $Tariffs = Tariffs->new($db, $conf);
+  my $Tariffs = Tariffs->new($db, $conf, $admin);
   my $list = $Tariffs->list({ %LIST_PARAMS, MODULE => 'Iptv' });
 
   foreach my $line (@$list) {
@@ -2402,7 +2397,14 @@ sub iptv_sheduler {
     $FORM{IDS}        = $action;
     $LIST_PARAMS{UID} = $uid;
     $FORM{change_now} = 1;
+    
     $Iptv->user_info($uid);
+    if (!$Iptv->{errno}) {
+      iptv_user_channels({ QUIET => 1, USER_INFO => $Iptv });
+    }
+    else {
+      print "!! UID: $uid / $Iptv->{errno}\n";
+    }
     iptv_user_channels({ QUIET => 1, USER_INFO => $users });
   }
 }
