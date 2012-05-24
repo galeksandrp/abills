@@ -3,10 +3,11 @@
 use Iptv;
 use Tariffs;
 use Fees;
+use Shedule;
 
 my $Tariffs = Tariffs->new($db, \%conf, $admin);
-my $Iptv = Iptv->new($db, $admin, \%conf);
-my $Fees = Fees->new($db, $admin, \%conf);
+my $Iptv    = Iptv->new($db, $admin, \%conf);
+my $Fees    = Fees->new($db, $admin, \%conf);
 
 my $debug          = 0;
 my @status         = ($_ENABLE, $_DISABLE);
@@ -124,7 +125,6 @@ sub iptv_chg_tp {
     }
   }
 
-  use Shedule;
   $shedule = Shedule->new($db, $admin);
 
   if ($FORM{set}) {
@@ -441,7 +441,6 @@ sub iptv_user {
 #**********************************************************
 sub iptv_ext_cmd {
 	my ($cmd, $attr)=@_;
-
 
   if (in_array('Dhcphosts', \@MODULES)) {
   	use Dhcphosts;
@@ -1718,8 +1717,6 @@ sub iptv_user_chg_tp {
 sub iptv_user_channels {
   my ($attr) = @_;
 
-  use Shedule;
-  my $Shedule = Shedule->new($db, $admin);
   my $Iptv;
 
   if ($attr->{USER_INFO}) {
@@ -1735,7 +1732,7 @@ sub iptv_user_channels {
   my @interval_ids = ();
 
   if ($Iptv_tp->{TOTAL} < 1) {
-    $html->message('info', $_INFO, "$_NOT_EXIST");
+    $html->message('info', $_INFO, "$_INTERVAL $_NOT_EXIST", { ID => '404' }) if (!$attr->{QUIET});
     return 0;
   }
 
@@ -1805,6 +1802,7 @@ sub iptv_user_channels {
     $html->message('info', $_INFO, "$_CHANNELS: " . join(', ', @mandatory_arr)) if (!$attr->{QUIET});
   }
 
+  my $Shedule = Shedule->new($db, $admin, \%conf);
   if ($FORM{change}) {
     $FORM{IDS} =~ s/, /;/g;
 
@@ -1845,7 +1843,6 @@ sub iptv_user_channels {
     }
   }
   elsif ($FORM{change_now}) {
-
     #===============
     my @new_arr  = ();
     my @ids_arr  = split(/, /, $FORM{IDS});

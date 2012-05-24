@@ -1238,7 +1238,6 @@ sub check_speed {
     require "Turbo.pm";
     Turbo->import();
     my $Turbo = Turbo->new($db, $admin, \%conf);
-    $Turbo->{debug} = 1;
     my $list = $Turbo->list({ ACTIVE => 1, });
 
     foreach my $line (@$list) {

@@ -6074,7 +6074,7 @@ sub dv_sheduler {
       }
     );
 
-    if ($Dv->{errno} && $Dv->{errno} == 15) {
+    if ($Dv->{errno}) {
       return $Dv->{errno};
     }
     else {
