@@ -11,7 +11,7 @@ CA_pl='/usr/src/crypto/openssl/apps/CA.pl';
 
 hostname=`hostname`;
 password=whatever;
-VERSION=1.85;
+VERSION=1.88;
 DAYS=730;
 DATE=`date`;
 CERT_TYPE=$1;
@@ -44,6 +44,7 @@ if [ w$1 = w ] ; then
   echo " -PASSSWORD     - Password for Certs (Default: whatever)"
   echo " -HOSTNAME      - Hostname for Certs (default: system hostname)"
   echo " -UPLOAD        - Upload ssh certs to host via ssh (default: )"
+  echo " -UPLOAD_FTP    - Upload ssh certs to host via ftp"
   
 
   exit;
@@ -77,6 +78,9 @@ for _switch ; do
                 ;;
         -UPLOAD) UPLOAD=y; HOST=$4
                 #shift; shift;
+                ;;
+        -UPLOAD_FTP) UPLOAD_FTP=y; UPLOAD=y; HOST=$4
+                #shift; 
                 ;;
         esac
 done
@@ -198,22 +202,23 @@ apache_cert () {
 # Create SSH certs
 #**********************************************************
 ssh_key () {
+  USER=$1;
   echo "**************************************************************************"
   echo "Creating SSH authentication Key"
   echo " Make ssh-keygen with empty password."
   echo "**************************************************************************"
-  echo
+  echo 
+  echo User: ${USER}
 
-  USER=$1;
+
 
   if [ w${CERT_TYPE} = w ]; then
     id_dsa_file=id_dsa;
   else
-    id_dsa_file=id_dsa.$1;
+    id_dsa_file=id_dsa.${USER};
   fi;
 
-  # If exist only upload
-  
+  # If exist only upload  
   if [ -f ${CERT_PATH}${id_dsa_file} ]; then
      echo "Cert exists: ${CERT_PATH}${id_dsa_file}";
      if [ x${UPLOAD} = x ]; then
@@ -239,10 +244,16 @@ ssh_key () {
       echo -n "Enter host: "
       read HOST
     fi;
-
+    
     echo "Make upload to: ${USER}@${HOST} "
-    ssh ${USER}@${HOST} "mkdir ~/.ssh"
-    scp ${CERT_PATH}${id_dsa_file}.pub ${USER}@${HOST}:~/.ssh/authorized_keys
+
+    if [ x${UPLOAD_FTP} = xy ]; then
+      ftp ${USER}@${HOST}:  ${CERT_PATH}${id_dsa_file}.pub
+    else 
+      ssh ${USER}@${HOST} "mkdir ~/.ssh"
+      scp ${CERT_PATH}${id_dsa_file}.pub ${USER}@${HOST}:~/.ssh/authorized_keys
+    fi;
+    
     
     echo -n "Connect to remote host: ${HOST}  (y/n): "
     read CONNECT
@@ -252,7 +263,8 @@ ssh_key () {
     fi;
   else 
     echo 
-    echo "Copy ${CERT_PATH}${id_dsa_file}.pub to REMOTE_HOST User home dir (/home/${USER}/.ssh/authorized_keys) "
+    echo "Copy certs manual: "
+    echo "${CERT_PATH}${id_dsa_file}.pub to REMOTE_HOST User home dir (/home/${USER}/.ssh/authorized_keys) "
     echo 
   fi;
  }

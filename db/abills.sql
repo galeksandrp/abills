@@ -1052,7 +1052,8 @@ CREATE TABLE `users_pi` (
   `city` varchar(20) NOT NULL default '',
   `accept_rules` tinyint(1) unsigned NOT NULL default '0',
   `location_id` INTEGER(11) UNSIGNED NOT NULL default '0',
-  PRIMARY KEY  (`uid`)
+  PRIMARY KEY  (`uid`),
+  KEY location_id (location_id)
 ) COMMENT='Users personal info';
 
 
@@ -1074,7 +1075,7 @@ CREATE TABLE `voip_calls` (
   `bill_id` int(11) unsigned NOT NULL default '0',
   `reduction` double(6,2) unsigned NOT NULL default '0.00',
    KEY `tp_id` (`tp_id`),
-  KEY `uid` (`uid`)
+   KEY `uid` (`uid`)
 ) ;
 
 
