@@ -247,7 +247,7 @@ sub tariff_list {
   $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? int($attr->{PAGE_ROWS}) : 25;
 
   if ($attr->{IDS}) {
-    push @WHERE_RULES, "id IN ($attr->{IDS})";
+    push @WHERE_RULES, "abon_tariffs.id IN ($attr->{IDS})";
   }
 
   $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES) : '';

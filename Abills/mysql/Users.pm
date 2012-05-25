@@ -1435,7 +1435,7 @@ sub info_field_add {
     $self->query($db, "ALTER TABLE users_pi ADD COLUMN _" . $attr->{FIELD_ID} . " $column_type;", 'do');
   }
 
-  if (!$self->{errno}) {
+  if (!$self->{errno} || ($self->{errno} && $self->{errno} == 3)) {
     if ($attr->{FIELD_TYPE} == 2) {
       $self->query(
         $db, "CREATE TABLE _$attr->{FIELD_ID}_list (
