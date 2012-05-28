@@ -1299,7 +1299,7 @@ sub msgs_user {
       }
 
       if (!$Msgs->{ACTIVE_SURWEY} && ($Msgs->{STATE} < 1 || $Msgs->{STATE} == 6)) {
-        $Msgs->{REPLY} .= $html->tpl_show(_include('msgs_reply', 'Msgs'), { %$Msgs, REPLY_TEXT => $reply }, { OUTPUT2RETURN => 1 });
+        $Msgs->{REPLY} .= $html->tpl_show(_include('msgs_client_reply', 'Msgs'), { %$Msgs, REPLY_TEXT => $reply }, { OUTPUT2RETURN => 1 });
       }
       else {
         $html->message('info', $_INFO, "$msg_status[$Msgs->{STATE}] $_DATE: $Msgs->{CLOSED_DATE}");
