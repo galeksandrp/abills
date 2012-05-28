@@ -179,6 +179,9 @@ apache_cert () {
   ${OPENSSL} rsa -in ${CERT_PATH}/server.key -out ${CERT_PATH}/server_public.pem -pubout \
   -passin pass:${password}
 
+  #PKS12 Public key
+  ${OPENSSL} pkcs12 -export -in server.crt -inkey server.key -out server_public.pem.p12
+
   chmod u=r,go= ${CERT_PATH}/server.key
   chmod u=r,go= ${CERT_PATH}/server.crt
   chown ${APACHE_USER} server.crt server.csr
@@ -187,6 +190,7 @@ apache_cert () {
 
   ${OPENSSL} rsa -in server.key.org -out server.key \
    -passin pass:${password} -passout pass:${password}
+
 
   #Cert info
   #${OPENSSL} x509 -in server.crt -noout -subject

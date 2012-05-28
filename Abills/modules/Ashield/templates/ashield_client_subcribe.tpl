@@ -13,7 +13,8 @@
 <tr><th colspan=2><a href='' target_new>$_INFO</a></th></tr>	
 <tr><td>E-mail:</td><td>%EMAIL%</td></tr>	
 -->
+<tr><th class=even colspan=2><input type=submit name='%ACTION%' value='%LNG_ACTION%'></th></tr>
 </table>
-<input type=submit name='%ACTION%' value='%LNG_ACTION%'>
+
 </form>
 

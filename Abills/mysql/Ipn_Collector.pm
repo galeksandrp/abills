@@ -92,25 +92,20 @@ sub user_ips {
   }
 
   if ($CONF->{IPN_STATIC_IP}) {
-    $sql = "select u.uid, dv.ip, u.id, 
-	   if(calls.acct_session_id, calls.acct_session_id, ''),
-	   0,
-	   0,
+    $sql = "select u.uid, dv.ip, u.id AS login, 
+	   if(calls.acct_session_id, calls.acct_session_id, '') AS acct_session_id,
 	   dv.tp_id, 
-		 if (u.company_id > 0, cb.id, b.id),
-		 if (c.name IS NULL, b.deposit, cb.deposit)+u.credit,
+		 if (u.company_id > 0, cb.id, b.id) AS bill_id,
+		 if (c.name IS NULL, b.deposit, cb.deposit)+u.credit AS deposit,
 		 tp.payment_type,
-		 0,
-		 0,
 		 tp.octets_direction,
 		 u.reduction,
-		 '',
 		 u.activate,
 		 dv.netmask,
-		 dv.ip,
+		 dv.ip AS dv_ip,
      calls.acct_input_gigawords,
-     calls.acct_output_gigawords
-
+     calls.acct_output_gigawords,
+     dv.join_service
 		 FROM (users u, dv_main dv)
 		 LEFT JOIN companies c ON (u.company_id=c.id)
 		 LEFT JOIN bills b ON (u.bill_id=b.id)
@@ -124,24 +119,26 @@ sub user_ips {
 		 GROUP BY u.uid;";
   }
   elsif ($CONF->{IPN_DEPOSIT_OPERATION}) {
-    $sql = "select u.uid, calls.framed_ip_address, calls.user_name,
+    $sql = "select u.uid, calls.framed_ip_address AS ip, 
+      calls.user_name AS login,
       calls.acct_session_id,
       calls.acct_input_octets,
       calls.acct_output_octets,
       dv.tp_id,
       if(u.company_id > 0, cb.id, b.id),
-      if(c.name IS NULL, b.deposit, cb.deposit)+u.credit,
+      if(c.name IS NULL, b.deposit, cb.deposit)+u.credit AS deposit,
       tp.payment_type,
-      UNIX_TIMESTAMP() - calls.lupdated,
+      UNIX_TIMESTAMP() - calls.lupdated AS interim_time,
       calls.nas_id,
       tp.octets_direction,
       u.reduction,
       CONNECT_INFO,
       u.activate,
       dv.netmask,
-      dv.ip,
+      dv.ip  AS dv_ip,
       calls.acct_input_gigawords,
-      calls.acct_output_gigawords
+      calls.acct_output_gigawords,
+      dv.join_service
     FROM (dv_calls calls, users u)
       LEFT JOIN companies c ON (u.company_id=c.id)
       LEFT JOIN bills b ON (u.bill_id=b.id)
@@ -152,29 +149,28 @@ sub user_ips {
     and calls.nas_id IN ($DATA->{NAS_ID}) ;";
   }
   else {
-    $sql = "SELECT u.uid, calls.framed_ip_address, calls.user_name, 
+    $sql = "SELECT u.uid, 
+    calls.framed_ip_address AS ip, 
+    calls.user_name AS login, 
     calls.acct_session_id,
     calls.acct_input_octets,
     calls.acct_output_octets,
     calls.tp_id,
-    NUll,
-    NULL,
-    1,
-    UNIX_TIMESTAMP() - calls.lupdated,
+    UNIX_TIMESTAMP() - calls.lupdated AS interim_time,
     calls.nas_id,
-    0,
     u.reduction,
     CONNECT_INFO,
     u.activate,
     dv.netmask,
-    dv.ip
+    dv.ip  AS dv_ip,
+    dv.join_service
     FROM (dv_calls calls, users u)
     LEFT JOIN dv_main dv ON (u.uid=dv.uid)
    WHERE u.id=calls.user_name and u.domain_id=0 and calls.status<11
    and calls.nas_id IN ($DATA->{NAS_ID});";
   }
 
-  $self->query($db, $sql);
+  $self->query($db, $sql, undef, { COLS_NAME => 1 });
 
   if ($self->{errno}) {
     print "SQL Error: Get online users\n";
@@ -192,45 +188,46 @@ sub user_ips {
   $self->{0}{OUT} = 0;
 
   foreach my $line (@$list) {
-    my $ip = $line->[1];
+    my $ip = $line->{ip};
 
     #Get IP/mask
-    if ($line->[16] && $line->[16] < 4294967295) {
-      my $count = 4294967295 - $line->[16];
+    if ($line->{netmask} && $line->{netmask} < 4294967295) {
+      my $count = 4294967295 - $line->{netmask};
       $ip = pack('N4N4', $ip, $count);
-      $ip_range{ $line->[0] } = $ip;
+      $ip_range{ $line->{uid} } = $ip;
     }
-    $ips{$ip} = $line->[0];
+    $ips{$ip} = $line->{uid};
 
     #IN / OUT octets
-    $self->{$ip}{IN}  = $line->[4];
-    $self->{$ip}{OUT} = $line->[5];
+    $self->{$ip}{IN}  = $line->{acct_input_octets} || 0;
+    $self->{$ip}{OUT} = $line->{acct_output_octets} || 0;
 
-    $self->{$ip}{ACCT_INPUT_GIGAWORDS}  = $line->[18] || 0;
-    $self->{$ip}{ACCT_OUTPUT_GIGAWORDS} = $line->[19] || 0;
+    $self->{$ip}{ACCT_INPUT_GIGAWORDS}  = $line->{acct_input_gigawords} || 0;
+    $self->{$ip}{ACCT_OUTPUT_GIGAWORDS} = $line->{acct_output_gigawords} || 0;
 
     #user NAS
-    $self->{$ip}{NAS_ID} = $line->[11];
+    $self->{$ip}{NAS_ID} = $line->{NAS_ID} || 0;
 
     #Octet direction
-    $self->{$ip}{OCTET_DIRECTION} = $line->[12];
+    $self->{$ip}{OCTET_DIRECTION} = $line->{octets_direction} || 0;
 
-    $users_info{TPS}{ $line->[0] } = $line->[6];
+    $users_info{TPS}{ $line->{uid} } = $line->{tp_id};
 
     #User login
-    $users_info{LOGINS}{ $line->[0] } = $line->[2];
+    $users_info{LOGINS}{ $line->{uid} } = $line->{login} || '';
 
     #Session ID
-    $session_ids{$ip}            = $line->[3];
-    $interim_times{ $line->[3] } = $line->[10];
-    $connect_info{ $line->[3] }  = $line->[14];
+    $session_ids{$ip}             = $line->{acct_session_id} || '';
+    $interim_times{ $line->{ip} } = $line->{interim_time} || 0;
+    $connect_info{ $line->{ip} }  = $line->{CONNECT_INFO} || '';
 
     #$self->{INTERIM}{$line->[3]}{TIME}=$line->[10];
-    $users_info{PAYMENT_TYPE}{ $line->[0] } = $line->[9];
-    $users_info{DEPOSIT}{ $line->[0] }      = $line->[8];
-    $users_info{REDUCTION}{ $line->[0] }    = $line->[13];
-    $users_info{ACTIVATE}{ $line->[0] }     = $line->[15];
-    $users_info{BILL_ID}{ $line->[0] }      = $line->[7];
+    $users_info{PAYMENT_TYPE}{ $line->{uid} } = $line->{payment_type};
+    $users_info{DEPOSIT}{ $line->{uid} }      = $line->{deposit};
+    $users_info{REDUCTION}{ $line->{uid} }    = $line->{reduction};
+    $users_info{ACTIVATE}{ $line->{uid} }     = $line->{activate};
+    $users_info{BILL_ID}{ $line->{uid} }      = $line->{bill_id};
+    $users_info{JOIN_SERVICE}{ $line->{uid} } = $line->{join_service}  if ( $line->{join_service} );
   }
 
   $self->{USERS_IPS}    = \%ips;
@@ -658,6 +655,27 @@ sub traffic_user_get2 {
   my $from   = $attr->{FROM} || '';
   my %result = ();
 
+
+  if ($attr->{JOIN_SERVICE}) {
+    my @uids_arr = ();
+    if ($attr->{JOIN_SERVICE} == 1) {
+    	push @uids_arr, $uid;
+    	$attr->{JOIN_SERVICE} = $uid;
+    }
+
+  	$self->query($db, "SELECT uid FROM dv_main WHERE join_service='$attr->{JOIN_SERVICE}'");
+     
+    foreach my $line (@{ $self->{list} }) {
+    	push @uids_arr, $line->[0];
+    }
+      	  
+    $WHERE = "uid IN (". join(', ', @uids_arr) .") AND ";
+  }
+  else {
+    $WHERE = "uid='$uid' and";
+  }
+
+
   if ($attr->{DATE_TIME}) {
     $WHERE = "start>=$attr->{DATE_TIME}";
   }
@@ -692,8 +710,7 @@ sub traffic_user_get2 {
    traffic_in / $CONF->{MB_SIZE},
    traffic_out / $CONF->{MB_SIZE}
     FROM traffic_prepaid_sum
-        WHERE uid='$uid'
-        and $WHERE;"
+        WHERE $WHERE;"
   );
 
   if ($self->{TOTAL} < 1) {
@@ -739,31 +756,48 @@ sub traffic_user_get {
   my $from       = $attr->{FROM} || '';
   my %result     = ();
 
+  if ($attr->{JOIN_SERVICE}) {
+    my @uids_arr = ();
+    if ($attr->{JOIN_SERVICE} == 1) {
+    	push @uids_arr, $uid;
+    	$attr->{JOIN_SERVICE} = $uid;
+    }
+
+  	$self->query($db, "SELECT uid FROM dv_main WHERE join_service='$attr->{JOIN_SERVICE}'");
+     
+    foreach my $line (@{ $self->{list} }) {
+    	push @uids_arr, $line->[0];
+    }
+      	  
+    $WHERE = "uid IN (". join(', ', @uids_arr) .") AND ";
+  }
+  else {
+    $WHERE = "uid='$uid' and";
+  }
+
   if ($attr->{DATE_TIME}) {
-    $WHERE = "start>=$attr->{DATE_TIME}";
+    $WHERE .= "start>=$attr->{DATE_TIME}";
   }
   elsif ($attr->{INTERVAL}) {
     my ($from, $to) = split(/\//, $attr->{INTERVAL});
     $from = ($from eq '0000-00-00') ? 'DATE_FORMAT(start, \'%Y-%m\')>=DATE_FORMAT(curdate(), \'%Y-%m\')' : "DATE_FORMAT(start, '\%Y-\%m-\%d')>='$from'";
-    $WHERE = "( $from AND start<'$to') ";
+    $WHERE .= "( $from AND start<'$to') ";
   }
   elsif ($attr->{ACTIVATE} && $attr->{ACTIVATE} ne '0000-00-00') {
-    $WHERE = "DATE_FORMAT(start, '%Y-%m-%d')>='$attr->{ACTIVATE}'";
+    $WHERE .= "DATE_FORMAT(start, '%Y-%m-%d')>='$attr->{ACTIVATE}'";
   }
   else {
-    $WHERE = "DATE_FORMAT(start, '%Y-%m')>=DATE_FORMAT(curdate(), '%Y-%m')";
+    $WHERE .= "DATE_FORMAT(start, '%Y-%m')>=DATE_FORMAT(curdate(), '%Y-%m')";
   }
 
   $self->query(
     $db, "SELECT traffic_class, sum(traffic_in) / $CONF->{MB_SIZE}, sum(traffic_out) / $CONF->{MB_SIZE} 
     FROM ipn_log
-        WHERE uid='$uid'
-        and $WHERE
-        GROUP BY uid, traffic_class;"
+        WHERE $WHERE
+        GROUP BY uid, traffic_class;", undef, $attr
   );
 
   foreach my $line (@{ $self->{list} }) {
-
     #Trffic class
     $result{ $line->[0] }{TRAFFIC_IN}  = $line->[1];
     $result{ $line->[0] }{TRAFFIC_OUT} = $line->[2];

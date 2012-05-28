@@ -257,7 +257,7 @@ sub tariff_list {
      priority,
      period_alignment,
      count(ul.uid),
-     id,
+     abon_tariffs.id,
      fees_type,
      create_account,
      ext_cmd,

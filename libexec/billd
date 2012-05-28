@@ -1844,7 +1844,7 @@ sub check_speed {
         push @FW_ACTIONS, "$IPFW -q table " . $users_table_number . " add $IP $argument";
 
         push @FW_ACTIONS, "$IPFW -q table " . ($users_table_number + 1) . " delete $IP";
-        push @FW_ACTIONS, "$IPFW -q table " . ($users_table_number + 1) . " add $IP " . ($argument + $fw_step);
+        push @FW_ACTIONS, "$IPFW -q table " . ($users_table_number + 1) . " add $IP " . (($SPEED > 0) ? $argument : ($argument + $fw_step));
 
         $debug_outputs = "$user -> IFACE: $IFACE TP: $TP IP: $IP SPEED: $SPEED JOIN SERVICE: $JOIN_SERVICE\n";
       }

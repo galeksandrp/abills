@@ -436,13 +436,16 @@ sub dv_user {
 
     # Info
     my $users = Users->new($db, $admin, \%conf);
-    my $dv    = $Dv->info($Dv->{UID});
+    $Dv       = $Dv->info($Dv->{UID});
     my $pi    = $users->pi({ UID => $Dv->{UID} });
     my $user  = $users->info($Dv->{UID}, { SHOW_PASSWORD => $permissions{0}{3} });
     $pi->{ADDRESS_FULL} = "$pi->{ADDRESS_STREET} $pi->{ADDRESS_BUILD}, $pi->{ADDRESS_FLAT}";
 
-    my ($y, $m, $d) = split(/-/, (($pi->{CONTRACT_DATE}) ? $pi->{CONTRACT_DATE} : $DATE), 3);
-    $pi->{CONTRACT_DATE_LIT} = "$d " . $MONTHES_LIT[ int($m) - 1 ] . " $y $_YEAR";
+    ($Dv->{Y}, $Dv->{M}, $Dv->{D}) = split(/-/, (($pi->{CONTRACT_DATE}) ? $pi->{CONTRACT_DATE} : $DATE), 3);
+    $pi->{CONTRACT_DATE_LIT} = "$Dv->{D} " . $MONTHES_LIT[ int($Dv->{M}) - 1 ] . " $Dv->{Y} $_YEAR";
+    if ($Dv->{Y}=~/\d{2}$/) {
+      $Dv->{Y2LIT}=$1;
+    }
 
     if ($FORM{pdf}) {
       print $html->header();
@@ -453,7 +456,7 @@ sub dv_user {
           %$pi,
           DATE => $DATE,
           TIME => $TIME,
-          %$dv,
+          %$Dv,
         }
       );
     }

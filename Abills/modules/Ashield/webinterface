@@ -303,6 +303,8 @@ sub ashield_user {
     return 0;
   }
 
+print "Content-Type: text/html\n\n";
+
   my $users = Users->new($db, $admin, \%conf);
   $Ashield->{UID} = $FORM{UID};
   $users->info($LIST_PARAMS{UID}, { SHOW_PASSWORD => 1 });
@@ -487,27 +489,28 @@ sub ashield_user {
     my $list = $Tariffs->list(
       {
         MODULE   => 'Ashield',
-        COMMENTS => '*'
+        COMMENTS => '*',
+        COLS_NAME=> 1
       }
     );
 
     foreach my $line (@$list) {
       my $radio_but = '';
-      if (!$user->{UID} || ($line->[5] + $line->[6] < $user->{DEPOSIT} + $user->{CREDIT} || $line->[17])) {
-        Encode::_utf8_off($ashield_tps_info->{ $line->[1] }->{ID});
-        my $ashield_id = "$ashield_tps_info->{$line->[1]}->{ID}";
-        $radio_but = $html->form_input('TP_ID', "$line->[18]", { TYPE => 'radio', OUTPUT2RETURN => 1 }) 
-          . $html->form_input('AVD_TP_ID_' . $line->[18], $ashield_id, { TYPE => 'hidden', OUTPUT2RETURN => 1 });
+      if (!$user->{UID} || ($line->{day_fee} + $line->{month_fee} < $user->{DEPOSIT} + $user->{CREDIT} || $line->{payment_type})) {
+        Encode::_utf8_off($ashield_tps_info->{ $line->{name} }->{ID});
+        my $ashield_id = "$ashield_tps_info->{$line->{name}}->{ID}";
+        $radio_but = $html->form_input('TP_ID', "$line->{tp_id}", { TYPE => 'radio', OUTPUT2RETURN => 1 }) 
+          . $html->form_input('AVD_TP_ID_' . $line->{tp_id}, $ashield_id, { TYPE => 'hidden', OUTPUT2RETURN => 1 });
       }
       else {
         $radio_but = "$ERR_SMALL_DEPOSIT";
       }
 
-      Encode::_utf8_off($ashield_tps_info->{ $line->[1] }->{GRACE_PERIOD});
-      $table->addrow($line->[0], 
-           $html->b($line->[1]) . $html->br() . $line->[19], 
-           $ashield_tps_info->{ $line->[1] }->{GRACE_PERIOD}, 
-           $line->[6], 
+      Encode::_utf8_off($ashield_tps_info->{ $line->{name} }->{GRACE_PERIOD});
+      $table->addrow($line->{id}, 
+           $html->b($line->{name}) . $html->br() . $line->{comments}, 
+           $ashield_tps_info->{ $line->{name} }->{GRACE_PERIOD}, 
+           $line->{month_fee}, 
            $radio_but);
     }
 
@@ -532,14 +535,21 @@ sub ashield_user {
   }
 
   #subscribes
+  my @captions = ("$_COMP_NAME", "$_TARIF_PLAN", "$_ACTIVATE", "Online", "$_CREATED", "$_STATUS", "$_GRACEPERIOD ($_DAYS)", '-', '-', '-');
+  
+  if (! $user->{UID}) {
+  	push @captions, '-', '-';
+  }
+  
+  $Ashield->{debug}=1; 
   $list  = $Ashield->ashield_avd_list({%LIST_PARAMS});
   $table = $html->table(
     {
       width       => '100%',
       caption     => "$_AGENTS",
-      title_plain => [ "$_COMP_NAME", "$_TARIF_PLAN", "$_ACTIVATE", "Online", "$_CREATED", "$_STATUS", "$_GRACEPERIOD ($_DAYS)", '-', '-', '-', '-', '-' ],
-      cols_align => [ 'left', 'left' ],
-      ID         => 'DRWEB_AGENTS'
+      title_plain => \@captions,
+      cols_align  => [ 'left', 'left' ],
+      ID          => 'DRWEB_AGENTS'
     }
   );
 
@@ -547,6 +557,7 @@ sub ashield_user {
     if ($permissions{4}{1}) {
       $delete = $html->button($_DEL, "index=$index&del=$line->[9]&UID=$LIST_PARAMS{UID}", { MESSAGE => "$_DEL $line->[0]?", CLASS => 'del' });
     }
+
     my $result_hash = ashield_drweb_request(
       'api/3.0/stations/info.ds',
       {
@@ -563,11 +574,11 @@ sub ashield_user {
       $error = "Dr.Web: [$result_hash->{error}->[0]->{errno}->[0]] $dr_web_errors{$result_hash->{error}->[0]->{errno}->[0]} ($result_hash->{error}->[0]->{message}->[0])";
     }
 
-    my ($id)         = keys %{ $result_hash->{stations}->[0]->{station} };
-    my $station_info = $result_hash->{stations}->[0]->{station}->{$id};
-    my $expire       = $station_info->{expires}->[0];
-    my $name         = $id;
-    my $graceperiod  = $station_info->{grace_period};
+    my ($id)               = keys %{ $result_hash->{stations}->[0]->{station} };
+    my $station_info       = $result_hash->{stations}->[0]->{station}->{$id};
+    my $expire             = $station_info->{expires}->[0];
+    my $name               = $id;
+    my $graceperiod        = $station_info->{grace_period};
     my $graceperiod_status = "$_GRACEPERIOD $_TO $line->[10]" if ($line->[10]);
     my $create             = val_parser($station_info->{created});
     my $cur_date           = time;
@@ -620,7 +631,7 @@ sub ashield_user {
     my $comp_name = ($conf{dbcharset} eq 'utf8') ? $name : convert($name, { utf82win => 1 });
     Encode::_utf8_off($comp_name);
 
-    $table->addrow(
+    my @row = (
       $html->color_mark($comp_name, 'code'),
       ($error) ? $error : $tp,
       ($activated eq 'no' || $error) ? $_NO : $_YES,
@@ -640,11 +651,24 @@ sub ashield_user {
             CLASS      => 'download'
           }
         )
-      ),
-      (!$user->{UID}) ? $html->button($_MESSAGE, "index=$index&msg=$station_info->{id}&UID=$LIST_PARAMS{UID}", { CLASS => 'message' }) : '',
-      (!$user->{UID}) ? $html->button($_DEL, "index=$index&del=$line->[9]&UID=$LIST_PARAMS{UID}", { MESSAGE => "$_DEL $line->[9] ?", CLASS => 'del' }) : ''
-    );
+      )
+     ); 
+     
+     if (!$user->{UID}) {
+     	push @row,  $html->button($_MESSAGE, "index=$index&msg=$station_info->{id}&UID=$LIST_PARAMS{UID}", { CLASS => 'message' }),
+     	$html->button($_DEL, "index=$index&del=$line->[9]&UID=$LIST_PARAMS{UID}", { MESSAGE => "$_DEL $line->[9] ?", CLASS => 'del' });
+     }
+
+     $table->addrow(@row);
   }
+  print $table->show();
+
+
+  $table = $html->table( { width      => '100%',
+                           cols_align => ['right', 'right'],
+                           rows       => [ [ "$_TOTAL:", $html->b($Ashield->{TOTAL}) ] ]
+                          } );
+
   print $table->show();
 
   return 0 if ($user->{UID});
