@@ -672,7 +672,7 @@ sub traffic_user_get2 {
     $WHERE = "uid IN (". join(', ', @uids_arr) .") AND ";
   }
   else {
-    $WHERE = "uid='$uid' and";
+    $WHERE = " uid='$uid' and ";
   }
 
 
@@ -769,10 +769,10 @@ sub traffic_user_get {
     	push @uids_arr, $line->[0];
     }
       	  
-    $WHERE = "uid IN (". join(', ', @uids_arr) .") AND ";
+    $WHERE = " uid IN (". join(', ', @uids_arr) .") AND ";
   }
   else {
-    $WHERE = "uid='$uid' and";
+    $WHERE = " uid='$uid' and ";
   }
 
   if ($attr->{DATE_TIME}) {

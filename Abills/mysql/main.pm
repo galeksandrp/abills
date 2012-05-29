@@ -683,7 +683,7 @@ sub search_expr_users () {
   if ($attr->{GIDS}) {
     push @fields, "u.gid IN ($attr->{GIDS})";
   }
-  elsif ($attr->{GID}) {
+  elsif (defined($attr->{GID}) && $attr->{GID} ne '') {
     push @fields,  @{ $self->search_expr($attr->{GID}, 'INT', 'u.gid', { EXT_FIELD => $ext_fields{GID} }) };
   }
 

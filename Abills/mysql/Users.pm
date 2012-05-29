@@ -721,7 +721,7 @@ sub list {
     push @WHERE_RULES, "b.deposit<0";
   }
 
- if (defined($attr->{DISABLE}) && $attr->{DISABLE} ne '') {
+  if (defined($attr->{DISABLE}) && $attr->{DISABLE} ne '') {
    push @WHERE_RULES, "u.disable='$attr->{DISABLE}'";
   }
 

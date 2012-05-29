@@ -483,6 +483,7 @@ print "Content-Type: text/html\n\n";
         caption     => "$_TRAFIF_PLANS",
         title_plain => [ "#", "$_TARIF_PLAN", "$_GRACEPERIOD", "$_PRICE", '-' ],
         cols_align  => [ 'left', 'left', 'center', 'right', 'center' ],
+        ID          => 'TARIF_PLANS'
       }
     );
 
@@ -554,7 +555,7 @@ print "Content-Type: text/html\n\n";
   );
 
   foreach my $line (@$list) {
-    if ($permissions{4}{1}) {
+    if ($permissions{4}{1} || ($user->{UID} && $conf{ASHIELD_CLIENT_SUBSCRIBE_DEL})) {
       $delete = $html->button($_DEL, "index=$index&del=$line->[9]&UID=$LIST_PARAMS{UID}", { MESSAGE => "$_DEL $line->[0]?", CLASS => 'del' });
     }
 
@@ -562,8 +563,8 @@ print "Content-Type: text/html\n\n";
       'api/3.0/stations/info.ds',
       {
         id => $line->[3],
-        #components          => 'on',
         'extra-info'        => 'on',
+        #components          => 'on',
         #installedcomponents => 'on',
         #runningcomponents   => 'on',
         #groupmembership     => 'on'
