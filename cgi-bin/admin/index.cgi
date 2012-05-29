@@ -1758,7 +1758,7 @@ sub form_address_sel {
          "text": "" }) };
   }
   elsif ($FORM{DISTRICT_ID}) {
-    my $list = $users->street_list({ DISTRICT_ID => $FORM{DISTRICT_ID}, PAGE_ROWS => 1000, SORT => 2 });
+    my $list = $users->street_list({ DISTRICT_ID => $FORM{DISTRICT_ID}, PAGE_ROWS => 10000, SORT => 2 });
     if ($users->{TOTAL} > 0) {
       foreach my $line (@$list) {
         $line->[1] =~ s/\'/&rsquo;/g;
