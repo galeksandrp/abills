@@ -443,6 +443,7 @@ sub dv_user {
 
     ($Dv->{Y}, $Dv->{M}, $Dv->{D}) = split(/-/, (($pi->{CONTRACT_DATE}) ? $pi->{CONTRACT_DATE} : $DATE), 3);
     $pi->{CONTRACT_DATE_LIT} = "$Dv->{D} " . $MONTHES_LIT[ int($Dv->{M}) - 1 ] . " $Dv->{Y} $_YEAR";
+    $Dv->{MONTH} = $MONTHES_LIT[ int($Dv->{M}) - 1 ];
     if ($Dv->{Y}=~/\d{2}$/) {
       $Dv->{Y2LIT}=$1;
     }
