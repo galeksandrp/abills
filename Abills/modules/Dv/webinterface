@@ -448,6 +448,10 @@ sub dv_user {
       $Dv->{Y2LIT}=$1;
     }
 
+print "Content-Type: text/html\n\n";
+
+print "// $Dv->{Y2LIT} / ($Dv->{Y}, $Dv->{M}, $Dv->{D}) //";
+
     if ($FORM{pdf}) {
       print $html->header();
       $html->tpl_show(

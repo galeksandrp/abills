@@ -206,7 +206,7 @@ sub user_ips {
     $self->{$ip}{ACCT_OUTPUT_GIGAWORDS} = $line->{acct_output_gigawords} || 0;
 
     #user NAS
-    $self->{$ip}{NAS_ID} = $line->{NAS_ID} || 0;
+    $self->{$ip}{NAS_ID} = $line->{nas_id} || 0;
 
     #Octet direction
     $self->{$ip}{OCTET_DIRECTION} = $line->{octets_direction} || 0;
