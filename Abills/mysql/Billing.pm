@@ -733,7 +733,7 @@ sub session_sum {
     $sum = $self->{MIN_SESSION_COST} if ($self->{MIN_SESSION_COST} && $sum < $self->{MIN_SESSION_COST} && $self->{MIN_SESSION_COST} > 0);
   }
 
-  if ($self->{COMPANY_ID} > 0) {
+  if ($self->{COMPANY_ID} && $self->{COMPANY_ID} > 0) {
     $self->query(
       $db, "SELECT bill_id, vat FROM companies
     WHERE id='$self->{COMPANY_ID}';"
