@@ -433,7 +433,7 @@ sub list {
 
   	                                         ] }) };
 
-  if ($attr->{USERS_WARNINGS}) {  	
+  if ($attr->{USERS_WARNINGS}) {
   	my $allert_period = '';
   	if ($attr->{ALERT_PERIOD}) {
   	  $allert_period = "OR  (tp.month_fee > 0  AND if(u.activate='0000-00-00', 

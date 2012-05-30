@@ -619,8 +619,36 @@ sub hosts_list {
 
   @WHERE_RULES = ();
 
-  $self->{SEARCH_FIELDS}       = '';
-  $self->{SEARCH_FIELDS_COUNT} = 0;
+  push @WHERE_RULES, @{ $self->search_expr_users({ %$attr, 
+  	                         EXT_FIELDS => [
+  	                                        'PHONE',
+  	                                        'EMAIL',
+  	                                        'ADDRESS_FLAT',
+  	                                        'PASPORT_DATE',
+                                            'PASPORT_NUM', 
+                                            'PASPORT_GRANT',
+                                            'CITY', 
+                                            'ZIP',
+                                            'GID',
+                                            'CONTRACT_ID',
+                                            'CONTRACT_SUFIX',
+                                            'CONTRACT_DATE',
+                                            'EXPIRE',
+
+                                            'CREDIT',
+                                            'CREDIT_DATE', 
+                                            'REDUCTION',
+                                            'REGISTRATION',
+                                            'REDUCTION_DATE',
+                                            'COMMENTS',
+                                            'BILL_ID',
+                                            
+                                            'ACTIVATE',
+                                            'EXPIRE',
+  	                                         ] }) };
+
+  my $EXT_TABLES = $self->{EXT_TABLES};
+
   if ($attr->{ID}) {
     push @WHERE_RULES, "h.id='$attr->{ID}'";
   }
@@ -628,17 +656,6 @@ sub hosts_list {
     if ($attr->{UID}) {
       push @WHERE_RULES, "h.uid='$attr->{UID}'";
     }
-  }
-
-  if ($attr->{LOGIN}) {
-    push @WHERE_RULES, @{ $self->search_expr("$attr->{LOGIN}", 'STR', 'u.id') };
-  }
-
-  if ($attr->{GIDS}) {
-    push @WHERE_RULES, "u.gid IN ($attr->{GIDS})";
-  }
-  elsif ($attr->{GID}) {
-    push @WHERE_RULES, "u.gid='$attr->{GID}'";
   }
 
   if ($attr->{HOSTNAME}) {
@@ -681,7 +698,6 @@ sub hosts_list {
   }
 
   # Deposit chech
-  my $EXT_TABLES   = '';
   my $extra_fields = '';
   if (defined($attr->{DHCPHOSTS_EXT_DEPOSITCHECK})) {
     $extra_fields = ', if(company.id IS NULL,ext_b.deposit,ext_cb.deposit) ';
@@ -737,6 +753,17 @@ sub hosts_list {
     $fields = "h.id, u.id AS login, h.ip AS ip_num, h.hostname, concat(n.name, ' : ', h.network) AS network_name, h.mac, h.disable, h.nas, h.vid, h.ports,";
   }
 
+
+  if ($CONF->{DHCPHOSTS_USE_DV_STATUS}) {
+	  if (defined($attr->{STATUS})) {
+      push @WHERE_RULES, "dv.disable='$attr->{STATUS}'";
+    }
+    
+    $EXT_TABLES .= "
+            LEFT JOIN dv_main dv ON  (dv.uid=u.uid) 
+            ";
+  }
+
   if ($attr->{SHOW_NAS_MNG_INFO}) {
   	$fields .=  "nas.mng_host_port, nas.mng_user, DECODE(nas.mng_password, '$CONF->{secretkey}') AS mng_password, ";
   }
@@ -749,7 +776,8 @@ sub hosts_list {
       $extra_fields
      FROM (dhcphosts_hosts h)
      left join dhcphosts_networks n on h.network=n.id
-     left join users u on h.uid=u.uid
+     left join users u on (h.uid=u.uid)
+     left join users_pi pi on (pi.uid=u.uid)
      $EXT_TABLES
      $WHERE
      ORDER BY $SORT $DESC 
@@ -765,6 +793,7 @@ sub hosts_list {
     $self->query(
       $db, "SELECT count(*) FROM dhcphosts_hosts h
      left join users u on h.uid=u.uid
+     left join users_pi pi on (pi.uid=u.uid)
      $EXT_TABLES
      $WHERE"
     );
