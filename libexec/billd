@@ -224,16 +224,6 @@ sub check_lines {
   );
 
   print "==> check_lines\n" if ($debug > 1);
-
-  my $list       = $Tariffs->list();
-  my %TP_CREDITS = ();
-  my %POSTPAIDS  = ();
-
-  foreach my $line (@$list) {
-    $TP_CREDITS{ $line->[0] } = (!$conf{user_credit_change}) ? $line->[15] : 0;
-    $POSTPAIDS{ $line->[0] }  = $line->[4];
-  }
-
   my $online   = $sessions->{nas_sorted};
   my $nas_list = $nas->list({%LIST_PARAMS, COLS_NAME => 1 });
 
@@ -263,7 +253,7 @@ sub check_lines {
     foreach my $online (@$l) {
       my $uid     = $online->{uid};
       my $state   = ($online->{dv_status}) ? $online->{dv_status} + $online->{login_status} : 0;
-      $online->{credit} = (defined($online->{credit}) && $online->{credit} == 0) ? $online->{tp_credit} : ($online->{credit} || 0);
+      $online->{credit} = (defined($online->{credit}) && $online->{credit} == 0) ? ((!$conf{user_credit_change}) ? $online->{tp_credit} : 0) : ($online->{credit} || 0);
       if ($debug > 1) {
         printf("%-14s|%16s|%8s|%10s|%10s|%12s|\n", $online->{user_name}, $online->{ip}, $online->{acct_session_time}, $online->{acct_input_octets}, $online->{acct_output_octets}, ($online->{deposit} || 'unknown'));
       }
