@@ -1,4 +1,4 @@
-<form id=pay name=pay method='POST' action='https://api.sandbox.ipay.ua/simple/'>
+<form id=pay name=pay method='POST' action='https://api.ipay.ua/simple/'>
 
 
 <input type='hidden' name='good' value='https://$ENV{SERVER_NAME}:$ENV{SERVER_PORT}$ENV{REQUEST_URI}?index=$index&PAYMENT_SYSTEM=$FORM{PAYMENT_SYSTEM}&ipay_transaction=%IPAY_PAYMENT_NO%'>

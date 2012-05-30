@@ -478,12 +478,6 @@ CREATE TABLE `mail_access` (
   UNIQUE KEY `id` (`id`)
 ) ;
 
-# --------------------------------------------------------
-
-#
-# Структура таблиці `mail_aliases`
-#
-
 CREATE TABLE `mail_aliases` (
   `address` varchar(255) NOT NULL default '',
   `goto` text NOT NULL,
