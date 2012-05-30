@@ -725,8 +725,6 @@ sub session_sum {
     }
   }
 
-  #print "$sent / $recv - $sum\n";
-
   $sum = $sum * (100 - $self->{REDUCTION}) / 100 if ($self->{REDUCTION} > 0);
 
   if (!$attr->{FULL_COUNT}) {
@@ -734,8 +732,7 @@ sub session_sum {
   }
 
   if ($self->{COMPANY_ID} && $self->{COMPANY_ID} > 0) {
-    $self->query(
-      $db, "SELECT bill_id, vat FROM companies
+    $self->query($db, "SELECT bill_id, vat FROM companies
     WHERE id='$self->{COMPANY_ID}';"
     );
 

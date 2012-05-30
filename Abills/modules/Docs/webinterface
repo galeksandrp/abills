@@ -38,6 +38,9 @@ sub docs_contract {
 
     my ($y, $m, $d) = split(/-/, (($users->{CONTRACT_DATE}) ? $users->{CONTRACT_DATE} : $DATE), 3);
     $Docs->{CONTRACT_DATE_LIT} = "$d " . $MONTHES_LIT[ int($m) - 1 ] . " $y $_YEAR";
+    if ($y=~/(\d{2})$/) {
+      $Docs->{CONTRACT_YY}=$1;
+    }
 
     %{$attr} = %{$user_main_info};
     my $contract_tpl = 'contract';

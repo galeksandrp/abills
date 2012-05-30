@@ -435,6 +435,7 @@ sub dv_user {
   if ($FORM{REGISTRATION_INFO}) {
 
     # Info
+    load_module('Docs', $html);
     my $users = Users->new($db, $admin, \%conf);
     $Dv       = $Dv->info($Dv->{UID});
     my $pi    = $users->pi({ UID => $Dv->{UID} });
@@ -443,14 +444,11 @@ sub dv_user {
 
     ($Dv->{Y}, $Dv->{M}, $Dv->{D}) = split(/-/, (($pi->{CONTRACT_DATE}) ? $pi->{CONTRACT_DATE} : $DATE), 3);
     $pi->{CONTRACT_DATE_LIT} = "$Dv->{D} " . $MONTHES_LIT[ int($Dv->{M}) - 1 ] . " $Dv->{Y} $_YEAR";
-    $Dv->{MONTH} = $MONTHES_LIT[ int($Dv->{M}) - 1 ];
-    if ($Dv->{Y}=~/\d{2}$/) {
-      $Dv->{Y2LIT}=$1;
+
+    $Dv->{MONTH_LIT}         = $MONTHES_LIT[ int($Dv->{M}) - 1 ];
+    if ($Dv->{Y}=~/(\d{2})$/) {
+      $Dv->{YY}=$1;
     }
-
-print "Content-Type: text/html\n\n";
-
-print "// $Dv->{Y2LIT} / ($Dv->{Y}, $Dv->{M}, $Dv->{D}) //";
 
     if ($FORM{pdf}) {
       print $html->header();
