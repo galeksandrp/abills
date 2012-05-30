@@ -371,18 +371,16 @@ sub accounting {
       acct_output_gigawords='$RAD->{ACCT_OUTPUT_GIGAWORDS}',";
       }
 
-      $self->query(
-        $db, "UPDATE dv_calls SET
-      $ipn_fields
-      status='$acct_status_type',
-      acct_session_time=UNIX_TIMESTAMP()-UNIX_TIMESTAMP(started),
-      framed_ip_address=INET_ATON('$RAD->{FRAMED_IP_ADDRESS}'),
-      lupdated=UNIX_TIMESTAMP()
-    WHERE
-      acct_session_id='$RAD->{ACCT_SESSION_ID}' and 
-      user_name='$RAD->{USER_NAME}' and
-      nas_id='$NAS->{NAS_ID}';", 'do'
-      );
+      $self->query($db, "UPDATE dv_calls SET
+        $ipn_fields
+        status='$acct_status_type',
+        acct_session_time=UNIX_TIMESTAMP()-UNIX_TIMESTAMP(started),
+        framed_ip_address=INET_ATON('$RAD->{FRAMED_IP_ADDRESS}'),
+        lupdated=UNIX_TIMESTAMP()
+      WHERE
+        acct_session_id='$RAD->{ACCT_SESSION_ID}' and 
+        user_name='$RAD->{USER_NAME}' and
+        nas_id='$NAS->{NAS_ID}';", 'do');
       return $self;
     }
     elsif ($NAS->{NAS_TYPE} eq 'ipcad') {
@@ -537,8 +535,7 @@ sub rt_billing {
   #   OUT2: $RAD->{INTERIUM_OUTBYTE1}
   #   \n" >> /tmp/echoccc`;
 
-  $self->query(
-    $db, "SELECT traffic_type FROM dv_log_intervals 
+  $self->query($db, "SELECT traffic_type FROM dv_log_intervals 
      WHERE acct_session_id='$RAD->{ACCT_SESSION_ID}' 
            and interval_id='$Billing->{TI_ID}';"
   );
@@ -557,11 +554,11 @@ sub rt_billing {
     if ($intrval_traffic{$traffic_type}) {
       $self->query(
         $db, "UPDATE dv_log_intervals SET  
-                               sent=sent+'" . $RAD->{ 'INTERIUM_OUTBYTE' . $RAD_TRAFF_SUFIX[$traffic_type] } . "', 
-                               recv=recv+'" . $RAD->{ 'INTERIUM_INBYTE' . $RAD_TRAFF_SUFIX[$traffic_type] } . "', 
-                               duration=duration+'$RAD->{INTERIUM_ACCT_SESSION_TIME}', 
-                               sum=sum+'$self->{SUM}'
-                         WHERE interval_id='$Billing->{TI_ID}' and acct_session_id='$RAD->{ACCT_SESSION_ID}' and traffic_type='$traffic_type';", 'do'
+                sent=sent+'" . $RAD->{ 'INTERIUM_OUTBYTE' . $RAD_TRAFF_SUFIX[$traffic_type] } . "', 
+                recv=recv+'" . $RAD->{ 'INTERIUM_INBYTE' . $RAD_TRAFF_SUFIX[$traffic_type] } . "', 
+                duration=duration+'$RAD->{INTERIUM_ACCT_SESSION_TIME}', 
+                sum=sum+'$self->{SUM}'
+              WHERE interval_id='$Billing->{TI_ID}' and acct_session_id='$RAD->{ACCT_SESSION_ID}' and traffic_type='$traffic_type';", 'do'
       );
     }
     else {

@@ -303,8 +303,6 @@ sub ashield_user {
     return 0;
   }
 
-print "Content-Type: text/html\n\n";
-
   my $users = Users->new($db, $admin, \%conf);
   $Ashield->{UID} = $FORM{UID};
   $users->info($LIST_PARAMS{UID}, { SHOW_PASSWORD => 1 });
@@ -390,6 +388,13 @@ print "Content-Type: text/html\n\n";
           );
 
           my $id = $result_hash->{stations}->[0]->{station}->{$name}->{id};
+          if ($conf{ASHIELD_DRWEB_FREE_GRACE}) {
+            $Ashield->ashield_avd_list({%LIST_PARAMS});
+            if ($Ashield->{TOTAL} > $conf{ASHIELD_DRWEB_FREE_GRACE}) {
+              $station_info->{grace_period}=0
+            }
+          }
+          
           $Ashield->ashield_avd_add(
             {
               UID            => $LIST_PARAMS{UID},
@@ -542,7 +547,6 @@ print "Content-Type: text/html\n\n";
   	push @captions, '-', '-';
   }
   
-  $Ashield->{debug}=1; 
   $list  = $Ashield->ashield_avd_list({%LIST_PARAMS});
   $table = $html->table(
     {
@@ -623,7 +627,7 @@ print "Content-Type: text/html\n\n";
       $status = $html->color_mark("$_STATUS_4: $blockbeg - $blockend", $_COLORS[8]) if ($blockbeg > 0);
     }
 
-    my $installed = ($station_info->{lastseenat}->[0]) ? $_INSTALLED : '';    #(lastseenat == "" or ( lastseenat != "" and state == 5 ) ) ? 0 : 'installed';
+    my $installed = ($station_info->{lastseenat}->[0]) ? $_INSTALLED : $_ACTIV;    #(lastseenat == "" or ( lastseenat != "" and state == 5 ) ) ? 0 : 'installed';
     my $download_url = $station_info->{url}->[0];
     if ($conf{ASHIELD_DRWEB_DOWNLOAD_PREFIX}) {
       $download_url =~ s/http:\/\/([a-z\.\-0-9\_]+)\//$conf{ASHIELD_DRWEB_DOWNLOAD_PREFIX}/i;
