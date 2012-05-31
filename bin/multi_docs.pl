@@ -205,7 +205,8 @@ sub periodic_invoice {
       PERIODIC_CREATE_DOCS => 1,
       REDUCTION            => '>=0',
       PAGE_ROWS            => 1000000,
-      COLS_NAME            => 1 
+      COLS_NAME            => 1,
+      LOGIN_STATUS         => 0 
     }
   );
 
@@ -423,7 +424,8 @@ sub periodic_invoice {
             {
               GET_EMAIL_INFO => 1,
               SEND_EMAIL     => $user{SEND_DOCS} || 0,
-              UID            => $user{UID}
+              UID            => $user{UID},
+              %user
             }
           );
         }

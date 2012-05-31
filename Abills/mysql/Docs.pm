@@ -900,11 +900,11 @@ sub invoice_info {
    d.customer,  
    \@TOTAL_SUM := sum(o.price * o.counts) AS total_sum, 
    if(d.vat>0, FORMAT(sum(o.price * o.counts) / ((100+d.vat)/ d.vat), 2), FORMAT(0, 2)) AS vat,
-   u.id, 
-   a.name, 
+   u.id AS login, 
+   a.name AS admin, 
    d.created, 
    d.uid, 
-   d.id,
+   d.id AS doc_id,
    pi.fio,
    pi.address_street,
    pi.address_build,
@@ -912,11 +912,11 @@ sub invoice_info {
    if (d.phone<>0, d.phone, pi.phone) AS phone,
    pi.contract_id,
    pi.contract_date,
-   d.date + interval $CONF->{DOCS_ACCOUNT_EXPIRE_PERIOD} day AS expire_period,
+   d.date + interval $CONF->{DOCS_ACCOUNT_EXPIRE_PERIOD} day AS expire_date,
    u.company_id,
-   c.name,
+   c.name company_name,
    d.payment_id,
-   p.method,
+   p.method as payment_method_id,
    p.ext_id,
    d.deposit,
    d.delivery_status,
@@ -931,7 +931,9 @@ sub invoice_info {
     LEFT JOIN admins a ON (d.aid=a.aid)
     LEFT JOIN payments p ON (d.payment_id=p.id)
     WHERE d.id=o.invoice_id and d.id='$id' $WHERE
-    GROUP BY d.id;"
+    GROUP BY d.id;",
+    undef,
+    { INFO => 1 }
   );
 
   if ($self->{TOTAL} < 1) {
@@ -939,37 +941,6 @@ sub invoice_info {
     $self->{errstr} = 'ERROR_NOT_EXIST';
     return $self;
   }
-  (
-    $self->{INVOICE_NUM},
-    $self->{DATE},
-    $self->{CUSTOMER},
-    $self->{TOTAL_SUM},
-    $self->{VAT},
-    $self->{LOGIN},
-    $self->{ADMIN},
-    $self->{CREATED},
-    $self->{UID},
-    $self->{DOC_ID},
-    $self->{FIO},
-
-    $self->{ADDRESS_STREET},
-    $self->{ADDRESS_BUILD},
-    $self->{ADDRESS_FLAT},
-    $self->{PHONE},
-    $self->{CONTRACT_ID},
-    $self->{CONTRACT_DATE},
-    $self->{EXPIRE_DATE},
-    $self->{COMPANY_ID},
-    $self->{COMPANY_NAME},
-    $self->{PAYMENT_ID},
-    $self->{PAYMENT_METHOD_ID},
-    $self->{EXT_ID},
-    $self->{DEPOSIT},
-    $self->{DELIVERY_STATUS},
-    $self->{EXCHANGE_RATE},
-    $self->{CURRENCY},
-    $self->{CHARGED_SUM},
-  ) = @{ $self->{list}->[0] };
 
   $self->{AMOUNT_FOR_PAY} = ($self->{DEPOSIT} > 0) ? $self->{TOTAL_SUM} - $self->{DEPOSIT} : $self->{TOTAL_SUM} + $self->{DEPOSIT};
 
