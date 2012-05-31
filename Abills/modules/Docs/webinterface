@@ -915,12 +915,12 @@ sub docs_invoices_list {
 
     foreach my $d (@$invoices_list) {
       my %D = ();
-      $D{INVOICE_NUM}        = $d->{invoice_num};
+      $D{NUMBER}             = $d->{invoice_num} || '-';
       $D{DATE}               = $d->{date};
       my ($year, $month, $day) = split(/-/, $d->{date}, 3);
       $D{FROM_DATE_LIT}      = "$day " . $MONTHES_LIT[ int($month) - 1 ] . " $year $_YEAR";
       $D{DATE_EURO_STANDART} = "$day.$month.$year";
-      $D{FIO}                = $d->{fio};
+      $D{FIO}                = $d->{customer} || $d->{fio};
       $D{ADDRESS_FULL}       = "$d->{address_street}, $d->{address_build}, $d->{address_flat}";
       $D{TOTAL_SUM}          = sprintf("%.2f", $d->{total_sum});
       $D{CONTRACT_ID}        = $d->{contract_id};
