@@ -995,11 +995,12 @@ sub docs_invoices_list {
       push @MULTI_ARR, { %$d, DOC_NUMBER => sprintf("%.6d", $doc_num), };
       $doc_num++;
       
-      print "$debug / UID: LOGIN: $d->{LOGIN} FIO: $d->{FIO} SUM: $d->{TOTAL_SUM}\n" if ($debug > 2);
+      print "UID: LOGIN: $d->{LOGIN} FIO: $d->{FIO} SUM: $d->{TOTAL_SUM}\n" if ($debug > 2);
     }
 
     print $html->header() if ($FORM{qindex});
-    my $tpl = ($FORM{COMPANY_ID}) ? 'docs_invoice_company' : 'docs_invoice';
+    #my $tpl = ($FORM{COMPANY_ID}) ? 'docs_invoice_company' : 'docs_invoice';
+    my $tpl = 'docs_invoice';
     my $single_tpl = $html->tpl_show(
       _include($tpl, 'Docs', { pdf => $FORM{pdf} }),
       undef,
