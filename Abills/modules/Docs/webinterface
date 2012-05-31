@@ -907,86 +907,75 @@ sub docs_invoices_list {
     	                                %LIST_PARAMS, 
     	                                FULL_INFO   => 1,
     	                                ORDERS_LIST => 1,
-    	                                COLS_NAME   => 1
+    	                                COLS_NAME   => 1,
+    	                                COLS_UPPER  => 1
     	                             });
 
     my @MULTI_ARR = ();
     my $doc_num   = 0;
 
     foreach my $d (@$invoices_list) {
-      my %D = ();
-      $D{NUMBER}             = $d->{invoice_num} || '-';
-      $D{DATE}               = $d->{date};
-      my ($year, $month, $day) = split(/-/, $d->{date}, 3);
-      $D{FROM_DATE_LIT}      = "$day " . $MONTHES_LIT[ int($month) - 1 ] . " $year $_YEAR";
-      $D{DATE_EURO_STANDART} = "$day.$month.$year";
-      $D{FIO}                = $d->{customer} || $d->{fio};
-      $D{ADDRESS_FULL}       = "$d->{address_street}, $d->{address_build}, $d->{address_flat}";
-      $D{TOTAL_SUM}          = sprintf("%.2f", $d->{total_sum});
-      $D{CONTRACT_ID}        = $d->{contract_id};
-      $D{CONTRACT_DATE}      = $d->{contract_date};
-      $D{BILL_ID}            = $d->{bill_id};
-      $D{COMPANY_ID}         = $d->{company_id};
-      $D{UID}                = $d->{uid};
-      $D{A_FIO}              = $d->{admin_fio};
-      $D{PHONE}              = $d->{phone};
-      $D{LOGIN}              = $d->{login};
-      $D{EXCHANGE_RATE}      = $d->{exchange_rate};
-      $D{CURRENCY}           = $d->{currency};
-      $D{DEPOSIT}            = $d->{docs_deposit};
-      $D{DOC_ID}             = $d->{id};
-      $D{AMOUNT_FOR_PAY}     = ($D{DEPOSIT} < 0) ? abs($D{DEPOSIT}) : 0 - $D{DEPOSIT};
-      $FORM{COMPANY_ID}      = $D{COMPANY_ID};
-
+      $d->{NUMBER}             = $d->{INVOICE_NUM} || '-';
+      my ($year, $month, $day) = split(/-/, $d->{DATE}, 3);
+      $d->{FROM_DATE_LIT}      = "$day " . $MONTHES_LIT[ int($month) - 1 ] . " $year $_YEAR";
+      $d->{DATE_EURO_STANDART} = "$day.$month.$year";
+      $d->{FIO}                = $d->{CUSTOMER} if ($d->{CUSTOMER});
+      $d->{ADDRESS_FULL}       = "$d->{ADDRESS_STREET}, $d->{ADDRESS_BUILD}, $d->{ADDRESS_FLAT}";
+      $d->{TOTAL_SUM}          = sprintf("%.2f", $d->{TOTAL_SUM});
+      $d->{A_FIO}              = $d->{admin_fio};
+      $d->{DEPOSIT}            = $d->{docs_deposit};
+      $d->{DOC_ID}             = $d->{id};
+      $d->{AMOUNT_FOR_PAY}     = ($d->{DEPOSIT} < 0) ? abs($d->{DEPOSIT}) : 0 - $d->{DEPOSIT};
+      $FORM{COMPANY_ID}        = $d->{COMPANY_ID};
 
       if ($conf{DOCS_VAT_INCLUDE}) {
-        $D{ORDER_TOTAL_SUM_VAT}   = sprintf("%.2f", $D{TOTAL_SUM} / ((100 + $conf{DOCS_VAT_INCLUDE}) / $conf{DOCS_VAT_INCLUDE}));
-        $D{TOTAL_SUM_WITHOUT_VAT} = sprintf("%.2f", $D{TOTAL_SUM} - $D{ORDER_TOTAL_SUM_VAT});
-        $D{TOTAL_SUM_VAT}         = sprintf("%.2f", $conf{DOCS_VAT_INCLUDE});
+        $d->{ORDER_TOTAL_SUM_VAT}   = sprintf("%.2f", $d->{TOTAL_SUM} / ((100 + $conf{DOCS_VAT_INCLUDE}) / $conf{DOCS_VAT_INCLUDE}));
+        $d->{TOTAL_SUM_WITHOUT_VAT} = sprintf("%.2f", $d->{TOTAL_SUM} - $d->{ORDER_TOTAL_SUM_VAT});
+        $d->{TOTAL_SUM_VAT}         = sprintf("%.2f", $conf{DOCS_VAT_INCLUDE});
       }
 
 
-      ($D{SUM_MAIN}, $D{SUM_SUB}) = split(/\./, $D{TOTAL_SUM});
-      $D{FROM_DATE_LIT} = '';
+      ($d->{SUM_MAIN}, $d->{SUM_SUB}) = split(/\./, $d->{TOTAL_SUM});
+      $d->{FROM_DATE_LIT} = '';
 
       my $i    = 0;
-      foreach my $order (@{ $Docs->{ORDERS}->{$D{DOC_ID}} }) {
+      foreach my $order (@{ $Docs->{ORDERS}->{$d->{DOC_ID}} }) {
         $i++;
         $Docs->{ORDER} .= sprintf("<tr><td align=right>%d</td><td>%s</td><td align=right>%d</td><td align=right>%d</td><td align=right>%.2f</td><td align=right>%.2f</td></tr>\n", $i, $order->{orders}, $order->{unit}, $order->{counts}, $order->{price}, ($order->{counts} * $order->{price})) if (!$conf{DOCS_PDF_PRINT});
 
         my $count = $order->{counts} || 1;
         my $sum   = sprintf("%.2f", $count * $order->{price});
 
-        $D{ 'ORDER_NUM_' . $i }   = $i;
-        $D{ 'ORDER_NAME_' . $i }  = $order->{orders};
-        $D{ 'ORDER_COUNT_' . $i } = $count;
-        $D{ 'ORDER_PRICE_' . $i } = $order->{price};
-        $D{ 'ORDER_SUM_' . $i }   = $sum;
+        $d->{ 'ORDER_NUM_' . $i }   = $i;
+        $d->{ 'ORDER_NAME_' . $i }  = $order->{orders};
+        $d->{ 'ORDER_COUNT_' . $i } = $count;
+        $d->{ 'ORDER_PRICE_' . $i } = $order->{price};
+        $d->{ 'ORDER_SUM_' . $i }   = $sum;
 
-        $D{ 'ORDER_PRICE_WITHOUT_VAT_' . $i } = sprintf("%.2f", ($conf{DOCS_VAT_INCLUDE}) ? $order->{price} - $order->{price} / ((100 + $conf{DOCS_VAT_INCLUDE}) / $conf{DOCS_VAT_INCLUDE}) : $line->{price});
-        $D{ 'ORDER_SUM_WITHOUT_VAT_' . $i } = sprintf("%.2f", ($conf{DOCS_VAT_INCLUDE}) ? $sum - ($sum) / ((100 + $conf{DOCS_VAT_INCLUDE}) / $conf{DOCS_VAT_INCLUDE}) : $sum);
+        $d->{ 'ORDER_PRICE_WITHOUT_VAT_' . $i } = sprintf("%.2f", ($conf{DOCS_VAT_INCLUDE}) ? $order->{price} - $order->{price} / ((100 + $conf{DOCS_VAT_INCLUDE}) / $conf{DOCS_VAT_INCLUDE}) : $line->{price});
+        $d->{ 'ORDER_SUM_WITHOUT_VAT_' . $i } = sprintf("%.2f", ($conf{DOCS_VAT_INCLUDE}) ? $sum - ($sum) / ((100 + $conf{DOCS_VAT_INCLUDE}) / $conf{DOCS_VAT_INCLUDE}) : $sum);
         
-        if ($D{EXCHANGE_RATE} > 0) {
-          $D{ 'ORDER_ALT_SUM_' . $i }               = sprintf("%.2f", $D{ 'ORDER_SUM_' . $i } * $D{EXCHANGE_RATE});
-          $D{ 'ORDER_ALT_PRICE_' . $i }             = sprintf("%.2f", $D{ 'ORDER_PRICE_' . $i } * $D{EXCHANGE_RATE});
-          $D{ 'ORDER_ALT_VAT_' . $i }               = sprintf("%.2f", $D{ 'ORDER_VAT_' . $i } * $D{EXCHANGE_RATE});
-          $D{ 'ORDER_ALT_PRICE_WITHOUT_VAT_' . $i } = sprintf("%.2f", $D{ 'ORDER_PRICE_WITHOUT_VAT_' . $i } * $D{EXCHANGE_RATE});
-          $D{ 'ORDER_ALT_SUM_WITHOUT_VAT_' . $i }   = sprintf("%.2f", $D{ 'ORDER_SUM_WITHOUT_VAT_' . $i } * $D{EXCHANGE_RATE});
+        if ($d->{EXCHANGE_RATE} > 0) {
+          $d->{ 'ORDER_ALT_SUM_' . $i }               = sprintf("%.2f", $d->{ 'ORDER_SUM_' . $i } * $d->{EXCHANGE_RATE});
+          $d->{ 'ORDER_ALT_PRICE_' . $i }             = sprintf("%.2f", $d->{ 'ORDER_PRICE_' . $i } * $d->{EXCHANGE_RATE});
+          $d->{ 'ORDER_ALT_VAT_' . $i }               = sprintf("%.2f", $d->{ 'ORDER_VAT_' . $i } * $d->{EXCHANGE_RATE});
+          $d->{ 'ORDER_ALT_PRICE_WITHOUT_VAT_' . $i } = sprintf("%.2f", $d->{ 'ORDER_PRICE_WITHOUT_VAT_' . $i } * $d->{EXCHANGE_RATE});
+          $d->{ 'ORDER_ALT_SUM_WITHOUT_VAT_' . $i }   = sprintf("%.2f", $d->{ 'ORDER_SUM_WITHOUT_VAT_' . $i } * $d->{EXCHANGE_RATE});
         }
       }
 
-      $D{TOTAL_SUM}      = sprintf("%.2f", $D{TOTAL_SUM});
-      $D{AMOUNT_FOR_PAY} = sprintf("%.2f", $D{AMOUNT_FOR_PAY});
+      $d->{TOTAL_SUM}      = sprintf("%.2f", $d->{TOTAL_SUM});
+      $d->{AMOUNT_FOR_PAY} = sprintf("%.2f", $d->{AMOUNT_FOR_PAY});
 
-      if ($D{EXCHANGE_RATE} > 0) {
-        $D{TOTAL_ALT_SUM}      = sprintf("%.2f", $D{TOTAL_SUM} * $D{EXCHANGE_RATE});
-        $D{AMOUNT_FOR_PAY_ALT} = sprintf("%.2f", $D{AMOUNT_FOR_PAY} * $D{EXCHANGE_RATE});
-        $D{DEPOSIT_ALT}        = sprintf("%.2f", $D{DEPOSIT} * $D{EXCHANGE_RATE});
-        $D{CHARGED_ALT_SUM}    = sprintf("%.2f", $D{CHARGED_SUM} * $D{EXCHANGE_RATE});
+      if ($d->{EXCHANGE_RATE} > 0) {
+        $d->{TOTAL_ALT_SUM}      = sprintf("%.2f", $d->{TOTAL_SUM} * $d->{EXCHANGE_RATE});
+        $d->{AMOUNT_FOR_PAY_ALT} = sprintf("%.2f", $d->{AMOUNT_FOR_PAY} * $d->{EXCHANGE_RATE});
+        $d->{DEPOSIT_ALT}        = sprintf("%.2f", $d->{DEPOSIT} * $d->{EXCHANGE_RATE});
+        $d->{CHARGED_ALT_SUM}    = sprintf("%.2f", $d->{CHARGED_SUM} * $d->{EXCHANGE_RATE});
       }
 
-      $D{'TOTAL_SUM_WITHOUT_VAT'} = sprintf("%.2f", ($conf{DOCS_VAT_INCLUDE}) ? $D{TOTAL_SUM} - ($D{TOTAL_SUM}) / ((100 + $conf{DOCS_VAT_INCLUDE}) / $conf{DOCS_VAT_INCLUDE}) : $D{TOTAL_SUM});
-      $D{'TOTAL_SUM_VAT'} = sprintf("%.2f", $D{TOTAL_SUM} - $D{'TOTAL_SUM_WITHOUT_VAT'});
+      $d->{'TOTAL_SUM_WITHOUT_VAT'} = sprintf("%.2f", ($conf{DOCS_VAT_INCLUDE}) ? $d->{TOTAL_SUM} - ($d->{TOTAL_SUM}) / ((100 + $conf{DOCS_VAT_INCLUDE}) / $conf{DOCS_VAT_INCLUDE}) : $d->{TOTAL_SUM});
+      $d->{'TOTAL_SUM_VAT'} = sprintf("%.2f", $d->{TOTAL_SUM} - $d->{'TOTAL_SUM_WITHOUT_VAT'});
 
       $i = 0;
       foreach my $field_id (@{ $Company->{INFO_FIELDS_ARR} }) {
@@ -995,7 +984,7 @@ sub docs_invoices_list {
         $i++;
       }
 
-      push @MULTI_ARR, { %D, DOC_NUMBER => sprintf("%.6d", $doc_num), };
+      push @MULTI_ARR, { %$d, DOC_NUMBER => sprintf("%.6d", $doc_num), };
       $doc_num++;
       print "UID: LOGIN: $d->{login} FIO: $d->{fio} SUM: $d->{total_sum}\n" if ($debug > 2);
     }
