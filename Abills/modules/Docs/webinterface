@@ -9,6 +9,7 @@ my $Fees     = Fees->new($db, $admin, \%conf);
 my $Payments = Payments->new($db, $admin, \%conf);
 my $Customer = Customers->new($db, $admin, \%conf);
 my $Company  = $Customer->company();
+my $debug    = $FORM{debug};
 
 #Default 20% VAT
 $conf{DOCS_VAT_INCLUDE} = 20 if (!defined($conf{DOCS_VAT_INCLUDE}));
@@ -901,8 +902,10 @@ sub docs_invoices_list {
     $LIST_PARAMS{SORT} = '2 desc, 1';
     $LIST_PARAMS{DESC} = 'DESC';
   }
-
+  
+  
   if ($FORM{print_list}) {
+  	print "Content-Type: text/html\n\n" if ($debug > 2);
     my $invoices_list = $Docs->invoices_list({ %FORM, 
     	                                %LIST_PARAMS, 
     	                                FULL_INFO   => 1,
@@ -914,7 +917,6 @@ sub docs_invoices_list {
     my $doc_num   = 0;
 
     foreach my $d (@$invoices_list) {
-
       $d->{AMOUNT_FOR_PAY}     = ($d->{DEPOSIT} < 0) ? abs($d->{DEPOSIT}) : 0 - $d->{DEPOSIT};
 
       $d->{NUMBER}             = $d->{INVOICE_NUM} || '-';
@@ -924,9 +926,9 @@ sub docs_invoices_list {
       $d->{FIO}                = $d->{CUSTOMER} if ($d->{CUSTOMER});
       $d->{ADDRESS_FULL}       = "$d->{ADDRESS_STREET}, $d->{ADDRESS_BUILD}, $d->{ADDRESS_FLAT}";
       $d->{TOTAL_SUM}          = sprintf("%.2f", $d->{TOTAL_SUM});
-      $d->{A_FIO}              = $d->{admin_fio};
-      $d->{DEPOSIT}            = $d->{docs_deposit};
-      $d->{DOC_ID}             = $d->{id};
+      $d->{A_FIO}              = $d->{ADMIN_FIO};
+      $d->{DEPOSIT}            = $d->{DOCS_DEPOSIT};
+      $d->{DOC_ID}             = $d->{ID};
       $d->{AMOUNT_FOR_PAY}     = ($d->{DEPOSIT} < 0) ? abs($d->{DEPOSIT}) : 0 - $d->{DEPOSIT};
       $FORM{COMPANY_ID}        = $d->{COMPANY_ID};
 
@@ -935,7 +937,6 @@ sub docs_invoices_list {
         $d->{TOTAL_SUM_WITHOUT_VAT} = sprintf("%.2f", $d->{TOTAL_SUM} - $d->{ORDER_TOTAL_SUM_VAT});
         $d->{TOTAL_SUM_VAT}         = sprintf("%.2f", $conf{DOCS_VAT_INCLUDE});
       }
-
 
       ($d->{SUM_MAIN}, $d->{SUM_SUB}) = split(/\./, $d->{TOTAL_SUM});
       $d->{FROM_DATE_LIT} = '';
@@ -948,6 +949,7 @@ sub docs_invoices_list {
         my $count = $order->{counts} || 1;
         my $sum   = sprintf("%.2f", $count * $order->{price});
 
+        $d->{ 'LOGIN_' . $i }       = $d->{LOGIN};
         $d->{ 'ORDER_NUM_' . $i }   = $i;
         $d->{ 'ORDER_NAME_' . $i }  = $order->{orders};
         $d->{ 'ORDER_COUNT_' . $i } = $count;
@@ -992,7 +994,8 @@ sub docs_invoices_list {
 
       push @MULTI_ARR, { %$d, DOC_NUMBER => sprintf("%.6d", $doc_num), };
       $doc_num++;
-      print "UID: LOGIN: $d->{login} FIO: $d->{fio} SUM: $d->{total_sum}\n" if ($debug > 2);
+      
+      print "$debug / UID: LOGIN: $d->{LOGIN} FIO: $d->{FIO} SUM: $d->{TOTAL_SUM}\n" if ($debug > 2);
     }
 
     print $html->header() if ($FORM{qindex});
@@ -2444,8 +2447,6 @@ sub docs_print {
       $users->{EMAIL} = $Docs->{EMAIL} if ($Docs->{EMAIL});
       $attr->{SEND_EMAIL} = $Docs->{SEND_DOCS} if (!defined($attr->{SEND_EMAIL}) && $Docs->{SEND_DOCS});
     }
-    
-    
   }
 
   my $html_old;
