@@ -491,12 +491,6 @@ CREATE TABLE `mail_aliases` (
   UNIQUE KEY `id` (`id`)
 ) ;
 
-# --------------------------------------------------------
-
-#
-# Структура таблиці `mail_boxes`
-#
-
 CREATE TABLE `mail_boxes` (
   `username` varchar(255) NOT NULL default '',
   `password` blob NOT NULL,

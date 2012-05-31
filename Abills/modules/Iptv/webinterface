@@ -49,7 +49,8 @@ sub iptv_close_period {
       width      => '300',
       caption    => "$_CLOSE_PERIOD",
       cols_align => [ 'left', 'left' ],
-      rows       => [ [ "$_STATUS:", "$close_period" ] ]
+      rows       => [ [ "$_STATUS:", "$close_period" ] ],
+      ID         => 'CLOSE_PERIOD'
     }
   );
   my %submit = ();
@@ -2051,36 +2052,47 @@ sub iptv_user_channels {
 # daily_Fees
 #**********************************************************
 sub iptv_daily_fees {
+  my ($attr) = @_;
 
+  my $debug        = $attr->{DEBUG} || 0;
+  my $debug_output = '';
+  my $DOMAIN_ID    = $attr->{DOMAIN_ID} || 0;
+
+  if ($attr->{USERS_WARNINGS_TEST}) {
+    return $debug_output;
+  }
   require Tariffs;
   Tariffs->import();
   my $Tariffs = Tariffs->new($db, $conf, $admin);
   my $list = $Tariffs->list({ %LIST_PARAMS, MODULE => 'Iptv' });
 
-  foreach my $line (@$list) {
-    if ($line->[5] > 0) {
-
-      # 	   print "$line->[0] $line->[6]\n";
-      $LIST_PARAMS{TP} = $line->[0];
+  foreach my $tp (@$list) {
+    if ($tp->{daily_fee} > 0) {
 
       my $ulist = $Iptv->user_list(
         {
-          ACTIVATE => "<=$DATE",
-          EXPIRE   => "0000-00-00,>$DATE",
-          DISABLE  => '0',
-          TP       => $line->[0]
+          ACTIVATE     => "<=$ADMIN_REPORT{DATE}",
+          EXPIRE       => "0000-00-00,>$ADMIN_REPORT{DATE}",
+          DISABLE      => '0',
+          TP           => $tp->{tp_id},
+          COLS_NAME    => 1
         }
       );
 
       foreach my $u (@$ulist) {
         my %user = (
-          ACCOUNT_ID => $u->[7],
-          UID        => $u->[6],
-          BILL_ID    => $u->[12]
+          UID        => $u->{uid},
+          BILL_ID    => $u->{bill_id}
         );
 
-        if ($line->[5] > 0 || $u->[2] + $u->[3] > 0) {
-          $Fees->take(\%user, $line->[5], { DESCRIBE => "$_DAY_FEE" });
+        my %PARAMS = (
+              DESCRIBE => "Tv: $_DAY_FEE_SHORT $tp->{name} ($tp->{tp_id})",
+              DATE     => "$ADMIN_REPORT{DATE} $TIME",
+              METHOD   => ($tp->{fees_method}) ? $tp->{fees_method} : 1
+        );
+
+        if ($tp->{payments_type} || $u->{deposit} + $u->{credit} > 0) {
+          $Fees->take(\%user, $tp->{daily_fee}, \%PARAMS );
         }
       }
     }
@@ -2265,7 +2277,7 @@ sub iptv_monthly_fees {
     $ulist = $Iptv->user_list(
       {
         ACTIVATE      => "<=$ADMIN_REPORT{DATE}",
-        EXPIRE        => "0000-00-00>$ADMIN_REPORT{DATE}",
+        EXPIRE        => "0000-00-00,>$ADMIN_REPORT{DATE}",
         STATUS        => 0,
         LOGIN_STATUS  => 0,
         TP_ID         => $TP_ID,
@@ -2284,7 +2296,6 @@ sub iptv_monthly_fees {
       $debug_output .= " Login: $u->{id} ($u->{uid})  TP_ID: $u->{tp_id} Channel: $channel_num Month Price: $sum REDUCTION: $u->{reduction}  $u->{credit} $u->{credit}\n" if ($debug > 3);
 
       #Check bill id and deposit
-
       my %user = (
         LOGIN     => $u->{id},
         UID       => $u->{uid},
@@ -2292,7 +2303,7 @@ sub iptv_monthly_fees {
         REDUCTION => $u->{reduction},
         ACTIVATE  => '0000-00-00',
         DEPOSIT   => $u->{deposit},
-        CREDIT    => ($u->{credit} > 0) ? $u->{credit} : $line->[14]
+        CREDIT    => ($u->{credit} > 0) ? $u->{credit} : $tp->{credit}
       );
 
       if ($postpaid == 1 || $user{DEPOSIT} + $user{CREDIT} > 0 || $tp_postpaid == 1) {
@@ -2314,7 +2325,7 @@ sub iptv_monthly_fees {
               print "\n";
             }
             else {
-              $debug_output .= " $user{LOGIN}  UID: $user{UID} SUM: $sum REDUCTION: $user{REDUCTION}\n" if ($debug > 0);
+              $debug_output .= " $user{LOGIN}  UID: $user{UID} SUM: $sum CHANNEL: $channel_num REDUCTION: $user{REDUCTION}\n" if ($debug > 0);
             }
           }
         }
@@ -2587,7 +2598,7 @@ sub iptv_get_month_fee {
 #**********************************************************
 #
 #**********************************************************
-sub dv_crypt {
+sub iptv_crypt {
   my ($attr) = @_;
   my @channels = (
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,

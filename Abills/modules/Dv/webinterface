@@ -4975,8 +4975,6 @@ sub dv_daily_fees {
               }
               elsif ($debug > 0) {
                 $debug_output .= " $user{LOGIN}  UID: $user{UID} SUM: $sum REDUCTION: $user{REDUCTION}\n" if ($debug > 0);
-
-                #$debug_output .= " UID: $user{UID} SUM: $sum REDUCTION: $user{REDUCTION}\n";
               }
             }
           }

@@ -339,7 +339,7 @@ sub user_list {
 
   #DIsable
   if (defined($attr->{STATUS})) {
-    push @WHERE_RULES, "service.disable='$attr->{STATUS}'";
+    push @WHERE_RULES, @{ $self->search_expr("$attr->{STATUS}", 'INT', 'service.disable') };
   }
 
   if ($attr->{MONTH_PRICE}) {
@@ -379,23 +379,22 @@ sub user_list {
         ti_c.month_price,
         u.disable AS login_status, 
         service.disable AS iptv_status
-   from (intervals i, 
-     iptv_ti_channels ti_c,
-     users u,
-     iptv_main service,
-     iptv_users_channels uc,
-     iptv_channels c)
-    
-     LEFT JOIN tarif_plans tp ON (tp.tp_id=service.tp_id) 
+   from intervals i
+
+     INNER JOIN iptv_ti_channels ti_c ON (i.id=ti_c.interval_id)
+     INNER JOIN iptv_users_channels uc ON (ti_c.channel_id=uc.channel_id)
+     INNER JOIN iptv_channels c ON (uc.channel_id=c.id)
+
+     INNER JOIN users u ON (u.uid=uc.uid)
+     INNER JOIN iptv_main service ON (u.uid = service.uid )
+
+     INNER JOIN tarif_plans tp ON (tp.tp_id=i.tp_id)
      LEFT JOIN bills b ON (u.bill_id = b.id)
-     LEFT JOIN companies company ON  (u.company_id=company.id) 
+     LEFT JOIN companies company ON  (u.company_id=company.id)
      LEFT JOIN bills cb ON  (company.bill_id=cb.id)
+
      $EXT_TABLE
-$WHERE 
-  AND i.id=ti_c.interval_id
-  AND uc.channel_id=c.id
-  AND u.uid=uc.uid
-  AND ti_c.channel_id=uc.channel_id
+  $WHERE 
 GROUP BY uc.uid, channel_id
 ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;",
      undef,

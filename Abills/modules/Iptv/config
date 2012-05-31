@@ -28,7 +28,7 @@ if ($conf{IPTV_USER_CHG_TP}) {
 
 %PERIODIC = ( 
               #report  => [ 'iptv_report' ],
-              monthly =>  [ 'iptv_monthly_fees', 'dv_crypt' ],
+              monthly =>  [ 'iptv_monthly_fees', 'iptv_crypt' ],
               #daily   => [ 'iptv_daily_fees' ],
              );
 1
