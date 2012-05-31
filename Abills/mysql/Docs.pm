@@ -551,7 +551,8 @@ sub invoices_list {
    pi.contract_id,
    pi.contract_date,
    if(u.company_id > 0, c.bill_id, u.bill_id) AS bill_id,
-   u.company_id";
+   u.company_id,
+   pi.email";
    $self->{SEARCH_FIELDS_COUNT}+=8;
   }
 

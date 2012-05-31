@@ -545,7 +545,7 @@ sub docs_receipt_list {
         $Docs->{ 'ORDER_SUM_' . $i }               = $sum;
         $Docs->{ 'ORDER_PRICE_WITHOUT_VAT_' . $i } = sprintf("%.2f", ($conf{DOCS_VAT_INCLUDE}) ? $line->[4] - $line->[4] / ((100 + $conf{DOCS_VAT_INCLUDE}) / $conf{DOCS_VAT_INCLUDE}) : $line->[4]);
         $Docs->{ 'ORDER_SUM_WITHOUT_VAT_' . $i }   = sprintf("%.2f", ($conf{DOCS_VAT_INCLUDE}) ? $sum - $sum / ((100 + $conf{DOCS_VAT_INCLUDE}) / $conf{DOCS_VAT_INCLUDE}) : $sum);
-        $Docs->{TOTAL_SUM} += $sum;
+        $Docs->{TOTAL_SUM}      += $sum;
         $Docs->{AMOUNT_FOR_PAY} += $Docs->{ 'ORDER_COUNT_' . $i } * $Docs->{ 'ORDER_PRICE_' . $i } if ($line->[5] == 0);
 
         #alternative currancy sum
@@ -910,11 +910,13 @@ sub docs_invoices_list {
     	                                COLS_NAME   => 1,
     	                                COLS_UPPER  => 1
     	                             });
-
     my @MULTI_ARR = ();
     my $doc_num   = 0;
 
     foreach my $d (@$invoices_list) {
+
+      $d->{AMOUNT_FOR_PAY}     = ($d->{DEPOSIT} < 0) ? abs($d->{DEPOSIT}) : 0 - $d->{DEPOSIT};
+
       $d->{NUMBER}             = $d->{INVOICE_NUM} || '-';
       my ($year, $month, $day) = split(/-/, $d->{DATE}, 3);
       $d->{FROM_DATE_LIT}      = "$day " . $MONTHES_LIT[ int($month) - 1 ] . " $year $_YEAR";
@@ -954,6 +956,10 @@ sub docs_invoices_list {
 
         $d->{ 'ORDER_PRICE_WITHOUT_VAT_' . $i } = sprintf("%.2f", ($conf{DOCS_VAT_INCLUDE}) ? $order->{price} - $order->{price} / ((100 + $conf{DOCS_VAT_INCLUDE}) / $conf{DOCS_VAT_INCLUDE}) : $line->{price});
         $d->{ 'ORDER_SUM_WITHOUT_VAT_' . $i } = sprintf("%.2f", ($conf{DOCS_VAT_INCLUDE}) ? $sum - ($sum) / ((100 + $conf{DOCS_VAT_INCLUDE}) / $conf{DOCS_VAT_INCLUDE}) : $sum);
+        
+        if ($line->{fees_id} == 0) {
+          $d->{AMOUNT_FOR_PAY} += $d->{ 'ORDER_COUNT_' . $i } * $d->{ 'ORDER_PRICE_' . $i } 
+        }
         
         if ($d->{EXCHANGE_RATE} > 0) {
           $d->{ 'ORDER_ALT_SUM_' . $i }               = sprintf("%.2f", $d->{ 'ORDER_SUM_' . $i } * $d->{EXCHANGE_RATE});
