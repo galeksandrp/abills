@@ -2849,7 +2849,7 @@ sub dv_stats {
 
   if ($sessions->{TOTAL} < 1) {
     $html->message('info', $_INFO, "$_NO_RECORD");
-    return 0;
+
   }
 
   $table = $html->table(
@@ -2894,7 +2894,9 @@ sub dv_stats {
     #$sessions->{MONTHLY_GRAPH} = $html->button('Wheekly Graph', '#', { IMG => '/graphics.cgi?UID=9&WEEKLY=1&SHOW_GRAPH=1' });
   }
 
-  $sessions->{SESSIONS} = dv_sessions($list, $sessions, { OUTPUT2RETURN => 1 });
+  if ($sessions->{TOTAL} > 0) {
+    $sessions->{SESSIONS} = dv_sessions($list, $sessions, { OUTPUT2RETURN => 1 });
+  }
 
   $html->tpl_show(_include('dv_stats', 'Dv'), $sessions);
 }

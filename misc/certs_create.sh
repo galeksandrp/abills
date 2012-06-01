@@ -180,7 +180,7 @@ apache_cert () {
   -passin pass:${password}
 
   #PKS12 Public key
-  ${OPENSSL} pkcs12 -export -in server.crt -inkey server.key -out server_public.pem.p12
+#  ${OPENSSL} pkcs12 -export -in server.crt -inkey server.key -out server_public.pem.p12
 
   chmod u=r,go= ${CERT_PATH}/server.key
   chmod u=r,go= ${CERT_PATH}/server.crt
