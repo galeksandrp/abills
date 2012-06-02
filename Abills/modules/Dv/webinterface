@@ -1892,7 +1892,7 @@ sub dv_sessions {
     form_search({ SEARCH_FORM => $html->tpl_show(_include('dv_sessions_search', 'Dv'), { %FORM, %$sessions }, { OUTPUT2RETURN => 1 }) });
     if ($FORM{search}) {
       $sessions = Dv_Sessions->new($db, $admin, \%conf);
-      $list = $sessions->list({%LIST_PARAMS});
+      $list = $sessions->list({%LIST_PARAMS, COLS_NAME => 1 });
     }
     else {
       return 0;
@@ -1909,18 +1909,23 @@ sub dv_sessions {
   if ($sessions->{SEARCH_FIELDS_COUNT}) {
     push @caption, 'TC';
   }
+  
+  if (! $user->{UID}) {
+  	push @caption, '-';
+  }
 
   my $table = $html->table(
     {
       width        => '100%',
       caption      => "$_SESSIONS",
       border       => 1,
-      title        => [ @caption, "-", "-" ],
+      title        => [ @caption, '-' ],
       cols_align   => [ 'left', 'right', 'right', 'RIGHT', 'right', 'right', 'right', 'right', 'right', 'right', 'center:noprint', 'center:noprint' ],
       qs           => $pages_qs,
       pages        => $sessions->{TOTAL},
       recs_on_page => $LIST_PARAMS{PAGE_ROWS},
-      ID           => 'DV_SESSIONS'
+      ID           => 'DV_SESSIONS',
+      EXPORT       => "$_EXPORT XML:&xml=1",
     }
   );
 
@@ -1932,27 +1937,36 @@ sub dv_sessions {
     if ($permissions{3}{1} && $LIST_PARAMS{UID}) {
       $delete = $html->button(
         $_DEL,
-        "index=" . $index . "$pages_qs&del=" . ($line->[ 12 + $sessions->{SEARCH_FIELDS_COUNT} ]) . "+$line->[11]+$line->[7]+$line->[1]+$line->[9]+$line->[0]",
-        { MESSAGE => "$_DEL $_SESSION $_SESSION_ID " . ($line->[ 11 + $sessions->{SEARCH_FIELDS_COUNT} ]) . "?", CLASS => 'del', NO_LINK_FORMER => 1 }
+        "index=$index$pages_qs&del=$line->{uid}+$line->{acct_session_id}+$line->{cid}+$line->{start}+$line->{sum}+$line->{login}",
+        { MESSAGE => "$_DEL $_SESSION $_SESSION_ID " . ($line->{acct_session_id}) . "?", CLASS => 'del', NO_LINK_FORMER => 1 }
       );
     }
+
     my @rows = ();
     for (my $i = 1 ; $i <= $sessions->{SEARCH_FIELDS_COUNT} ; $i++) {
-      push @rows, $ACCT_TERMINATE_CAUSES{ $line->[ 9 + $i ] };
+      if ($line->{terminate_cause}) {
+        push @rows, $ACCT_TERMINATE_CAUSES{ $line->{terminate_cause} };
+      }
     }
 
     $table->addrow(
-      $html->button("$line->[0]", "index=11&UID=$line->[12]"),
-      $line->[1], $line->[2], $line->[3],
-      int2byte($line->[4], { DIMENSION => $FORM{DIMENSION} }),
-      int2byte($line->[5], { DIMENSION => $FORM{DIMENSION} }),
-      $line->[6], $line->[7], $line->[ 10 + $sessions->{SEARCH_FIELDS_COUNT} ],
-      "$line->[9]", @rows, $html->button("D", "index=" . get_function_index(($user->{UID}) ? 'dv_user_stats' : 'dv_stats') . "&UID=" . ($line->[ 12 + $sessions->{SEARCH_FIELDS_COUNT} ]) . "&SESSION_ID=" . ($line->[ 11 + $sessions->{SEARCH_FIELDS_COUNT} ]), { TITLE => "$_DETAIL", CLASS => 'stats' }),
+      $html->button($line->{login}, "index=11&UID=$line->{uid}"),
+      $line->{start}, 
+      $line->{duration}, 
+      $line->{tp_id}, 
+      int2byte($line->{sent}, { DIMENSION => $FORM{DIMENSION} }),
+      int2byte($line->{recv}, { DIMENSION => $FORM{DIMENSION} }),
+      $line->{CID}, 
+      $line->{nas_id}, 
+      $line->{ip},
+      $line->{sum}, 
+      @rows, 
+      $html->button("D", "index=" . get_function_index(($user->{UID}) ? 'dv_user_stats' : 'dv_stats') . "&UID=$line->{uid}" . "&SESSION_ID=$line->{acct_session_id}", { TITLE => "$_DETAIL", CLASS => 'stats' }),
       $delete
     );
   }
 
-  if ($attr->{OUTPUT2RETURN}) {
+  if (! $FORM{EXPORT_CONTENT} && $attr->{OUTPUT2RETURN}) {
     return $table->show();
   }
 
@@ -2621,6 +2635,10 @@ sub dv_stats {
       return 0;
     }
   }
+  elsif ($FORM{UID}) {
+  	$LIST_PARAMS{UID} = $FORM{UID};
+  }
+
 
   if ($FORM{del} && $FORM{is_js_confirmed}) {
     if (!defined($permissions{3}{1})) {
@@ -2843,13 +2861,11 @@ sub dv_stats {
   }
 
   $sessions->{TOTALS_AVG} = dv_stats_calculation($sessions);
-
   #Session List
-  $list = $sessions->list({%LIST_PARAMS});
+  $list = $sessions->list({%LIST_PARAMS, COLS_NAME => 1 });
 
   if ($sessions->{TOTAL} < 1) {
     $html->message('info', $_INFO, "$_NO_RECORD");
-
   }
 
   $table = $html->table(
@@ -2888,9 +2904,8 @@ sub dv_stats {
 
   $sessions->{TOTALS_FULL} = $table->show();
   if (-f '../graphics.cgi' || -f 'graphics.cgi') {
-    $sessions->{DAILY_GRAPH}  = $html->button('', '#', { IMG_ALT => "$_GRAPH $_DAY",  IMG => "/graphics.cgi?LOGIN=$users->{LOGIN}&DAILY=1&SHOW_GRAPH=1" });
-    $sessions->{WEEKLY_GRAPH} = $html->button('', '#', { IMG_ALT => "$_GRAPH $_WEEK", IMG => "/graphics.cgi?LOGIN=$users->{LOGIN}&WEEKLY=1&SHOW_GRAPH=1" });
-
+    $sessions->{DAILY_GRAPH}  = $html->img("/graphics.cgi?LOGIN=$users->{LOGIN}&DAILY=1&SHOW_GRAPH=1", "$_DAILY $_STATS");
+    $sessions->{WEEKLY_GRAPH} = $html->img("/graphics.cgi?LOGIN=$users->{LOGIN}&WEEKLY=1&SHOW_GRAPH=1", "$_WEEKLY $_STATS");
     #$sessions->{MONTHLY_GRAPH} = $html->button('Wheekly Graph', '#', { IMG => '/graphics.cgi?UID=9&WEEKLY=1&SHOW_GRAPH=1' });
   }
 
@@ -3174,7 +3189,7 @@ sub dv_user_stats {
     $LIST_PARAMS{DESC} = 'DESC';
   }
 
-  $list  = $sessions->list({%LIST_PARAMS});
+  $list  = $sessions->list({%LIST_PARAMS, COLS_NAME => 1 });
   $table = $html->table(
     {
       caption     => "$_SUM",
@@ -3212,8 +3227,8 @@ sub dv_user_stats {
   $sessions->{TOTALS_FULL} = $table->show();
 
   if (-f '../graphics.cgi' || -f 'graphics.cgi') {
-    $sessions->{DAILY_GRAPH}  = $html->button('Daily Graph',   '#', { IMG => '/graphics.cgi?LOGIN=' . $LIST_PARAMS{LOGIN} . '&DAILY=1&SHOW_GRAPH=1' });
-    $sessions->{WEEKLY_GRAPH} = $html->button('Wheekly Graph', '#', { IMG => '/graphics.cgi?LOGIN=' . $LIST_PARAMS{LOGIN} . '&WEEKLY=1&SHOW_GRAPH=1' });
+    $sessions->{DAILY_GRAPH}  = $html->img('/graphics.cgi?LOGIN=' . $LIST_PARAMS{LOGIN} . '&DAILY=1&SHOW_GRAPH=1', "$_DAILY $_STATS" );
+    $sessions->{WEEKLY_GRAPH} = $html->img('/graphics.cgi?LOGIN=' . $LIST_PARAMS{LOGIN} . '&WEEKLY=1&SHOW_GRAPH=1', "$_WEEKLY $_STATS");
 
     #$sessions->{MONTHLY_GRAPH} = $html->button('Wheekly Graph', '#', { IMG => '/graphics.cgi?UID=9&WEEKLY=1&SHOW_GRAPH=1' });
   }

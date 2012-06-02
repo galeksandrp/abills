@@ -431,6 +431,7 @@ sub route_del {
 
   if ($id > 0) {
     $WHERE = "id='$id'";
+    $self->query($db, "DELETE FROM voip_route_prices WHERE route_id='$id';", 'do');
   }
   elsif ($attr->{ALL}) {
     $WHERE = "id > '0'";
@@ -460,6 +461,8 @@ sub route_change {
     ROUTE_NAME   => 'name',
     DESCRIBE     => 'descr',
   );
+
+  $attr->{DISABLE}=(! defined($attr->{DISABLE})) ? 0 : 1;
 
   $self->changes(
     $admin,
@@ -512,7 +515,9 @@ sub routes_list {
      FROM voip_routes r
      $WHERE 
      ORDER BY $SORT $DESC 
-     LIMIT $PG, $PAGE_ROWS;"
+     LIMIT $PG, $PAGE_ROWS;",
+    undef,
+    $attr
   );
 
   return $self if ($self->{errno});

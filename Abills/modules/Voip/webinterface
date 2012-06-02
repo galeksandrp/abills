@@ -1231,7 +1231,7 @@ sub voip_routes {
   my %new_hash     = ();
   my %phone_prefix = ();
 
-  my $list = $Voip->routes_list({%LIST_PARAMS});
+  my $list = $Voip->routes_list({%LIST_PARAMS, COLS_NAME => 1 });
 
   my $table = $html->table(
     {
@@ -1243,18 +1243,23 @@ sub voip_routes {
       qs         => $pages_qs,
       pages      => $Voip->{TOTAL},
       ID         => 'VOIP_ROUTES',
-      header => $html->button($_EXPORT, "qindex=$index&export=1", { BUTTON => 1 })
+      header     => $html->button($_EXPORT, "qindex=$index&export=1", { BUTTON => 1 })
     }
   );
 
   my ($delete, $change);
   foreach my $line (@$list) {
     if ($permissions{4}{1}) {
-      $delete = $html->button($_DEL, "index=$index&del=$line->[4]", { MESSAGE => "$_DEL '$line->[0]' ?", CLASS => 'del' });
-      $change = $html->button($_CHANGE, "index=$index&ROUTE_ID=$line->[4]", { CLASS => 'change' });
+      $delete = $html->button($_DEL, "index=$index&del=$line->{id}", { MESSAGE => "$_DEL '$line->{prefix}' ?", CLASS => 'del' });
+      $change = $html->button($_CHANGE, "index=$index&ROUTE_ID=$line->{id}", { CLASS => 'change' });
     }
 
-    $table->addrow($line->[0], $line->[1], $status[ $line->[2] ], $line->[3], $change, $delete);
+    $table->addrow($line->{prefix}, 
+      $line->{name}, 
+      $status[ $line->{disable} ], 
+      $line->{date}, 
+      $change, 
+      $delete);
 
   }
 

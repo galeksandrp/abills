@@ -1144,19 +1144,23 @@ sub list {
   $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES) : '';
 
   $self->query(
-    $db, "SELECT u.id, l.start, SEC_TO_TIME(l.duration), l.tp_id,
-  l.sent + 4294967296 * acct_output_gigawords, l.recv + 4294967296 * acct_input_gigawords, l.CID, l.nas_id, l.ip, l.sum, 
+    $db, "SELECT u.id AS login, l.start, SEC_TO_TIME(l.duration) AS duration, l.tp_id,
+  l.sent + 4294967296 * acct_output_gigawords AS sent, l.recv + 4294967296 * acct_input_gigawords AS recv, 
+  l.CID, l.nas_id, l.ip AS ip_num, l.sum, 
   $self->{SEARCH_FIELDS}
-  INET_NTOA(l.ip), 
+  INET_NTOA(l.ip) AS ip, 
   l.acct_session_id, 
   l.uid, 
   UNIX_TIMESTAMP(l.start),
   l.duration,
-  l.recv2, l.sent2
+  l.recv2, 
+  l.sent2
   FROM dv_log l
   INNER JOIN users u ON (u.uid=l.uid)
   $WHERE
-  ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;"
+  ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;",
+  undef,
+  $attr
   );
 
   my $list = $self->{list};
