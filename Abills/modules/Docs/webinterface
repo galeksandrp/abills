@@ -2010,7 +2010,7 @@ sub docs_invoice {
       # Get docs info
       $Docs->user_info($FORM{UID});
       if ($Docs->{TOTAL}) {      	
-        if (!$FORM{NEXT_PERIOD}) {
+        if (!defined($FORM{NEXT_PERIOD})) {
         	$FORM{NEXT_PERIOD}=0;
           #$FORM{NEXT_PERIOD} = $Docs->{INVOICING_PERIOD} if ($Docs->{INVOICING_PERIOD});
         }
@@ -2079,17 +2079,19 @@ sub docs_invoice {
           $date =~ s/ \d+:\d+:\d+//g;
 #=comments
 # Not invoiced fees
-          $table->addrow(
-            $html->form_input("ORDER_" . $line->[0], "$line->[3]", { TYPE => 'hidden', OUTPUT2RETURN => 1 })
-            . $html->form_input("SUM_" . $line->[0],     "$line->[4]", { TYPE => 'hidden', OUTPUT2RETURN => 1 })
-            . $html->form_input("FEES_ID_" . $line->[0], "$line->[0]", { TYPE => 'hidden', OUTPUT2RETURN => 1 })
-            . ((! $current_invoice{$line->[3]}) ? $html->form_input("IDS", "$line->[0]", { TYPE => 'checkbox', STATE => 1, OUTPUT2RETURN => 1 }) . "$num" : ''),
-            "$line->[1]", 
-            "$line->[2]", 
-            "$line->[3] $date". (($current_invoice{$line->[3]}) ? ' ' . $html->color_mark($_EXIST, 'red') : ''), 
-            "$line->[4]"
-          );
-#=cut
+          if (! $current_invoice{$line->[3]}) {
+            $table->addrow(
+              $html->form_input("ORDER_" . $line->[0], "$line->[3]", { TYPE => 'hidden', OUTPUT2RETURN => 1 })
+              . $html->form_input("SUM_" . $line->[0],     "$line->[4]", { TYPE => 'hidden', OUTPUT2RETURN => 1 })
+              . $html->form_input("FEES_ID_" . $line->[0], "$line->[0]", { TYPE => 'hidden', OUTPUT2RETURN => 1 })
+              . ((! $current_invoice{$line->[3]}) ? $html->form_input("IDS", "$line->[0]", { TYPE => 'checkbox', STATE => 1, OUTPUT2RETURN => 1 }) . "$num" : ''),
+              "$line->[1]", 
+              "$line->[2]", 
+              "$line->[3] $date". (($current_invoice{$line->[3]}) ? ' ' . $html->color_mark($_EXIST, 'red') : ''), 
+              "$line->[4]"
+            );
+          }
+#=cut     
           $total_not_invoice += $line->[4];
         }
       }
