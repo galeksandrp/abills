@@ -850,7 +850,6 @@ sub invoice_add {
           $DATA{ 'SUM_' . $id } = $DATA{ 'SUM_' . $id } / $DATA{ER};
         }
 
-        $self->{debug}=1;
         $self->query($db, "INSERT INTO docs_invoice_orders (invoice_id, orders, counts, unit, price, fees_id)
             values (" . $self->{'DOC_ID'} . ", \"" . $DATA{ 'ORDER_' . $id } . "\", '" . $DATA{ 'COUNTS_' . $id } . "', '" . ($DATA{ 'UNIT_' . $id } || 0) . "',
             '" . $DATA{ 'SUM_' . $id } . "','" . ($DATA{ 'FEES_ID_' . $id } || 0) . "')", 'do');
