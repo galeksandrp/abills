@@ -2075,7 +2075,7 @@ sub docs_invoice {
           $num++;
           my $date = $line->[2];
           $date =~ s/ \d+:\d+:\d+//g;
-=comments
+#=comments
 # Not invoiced fees
           $table->addrow(
             $html->form_input("ORDER_" . $line->[0], "$line->[3]", { TYPE => 'hidden', OUTPUT2RETURN => 1 })
@@ -2087,7 +2087,7 @@ sub docs_invoice {
             "$line->[3] $date". (($current_invoice{$line->[3]}) ? ' ' . $html->color_mark($_EXIST, 'red') : ''), 
             "$line->[4]"
           );
-=cut
+#=cut
           $total_not_invoice += $line->[4];
         }
       }
