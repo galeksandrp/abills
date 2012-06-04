@@ -1050,7 +1050,7 @@ sub docs_invoices_list {
     if ($FORM{BILL_ID}) {
       push @CAPTION, 'BILL_ID';
     }
-    push @CAPTION, '-', '-', '-', '-';
+    push @CAPTION, '-', '-', '-', '-', '-';
   }
 
 
@@ -1061,7 +1061,8 @@ sub docs_invoices_list {
       border     => 1,
       caption    => "$_INVOICES",
       title      => \@CAPTION,
-      cols_align => [ 'right', 'right', 'left', 'right', 'left', 'left', 'right', 'center:noprint', 'center:noprint', 'center:noprint' ],
+      cols_align => [ 'right', 'right', 'left', 'right', 'left', 'left', 'right', 'center:noprint', 'center:noprint', 
+      'center:noprint', 'center:noprint'  ],
       qs         => $pages_qs,
       pages      => $Docs->{TOTAL},
       EXPORT     => ' XML:&xml=1',
@@ -1109,6 +1110,11 @@ sub docs_invoices_list {
       }
 
       push @rows, $html->button($_PAYMENTS, "index=2&INVOICE_ID=$invoice->{id}&UID=$invoice->{uid}$payments_info", { CLASS => 'payments' }),
+      $html->button($_INFO, "index=$index&SHOW_ORDERS=$invoice->{id}&UID=$invoice->{uid}", { 
+      	  CLASS           => 'show',
+          NEW_WINDOW      => "$SELF_URL?qindex=$index&SHOW_ORDERS=$invoice->{id}&UID=$invoice->{uid}&header=1", 
+          NEW_WINDOW_SIZE => "640:600"
+       }),
       $html->button($_SEND_MAIL, "qindex=" . get_function_index('docs_invoices_list') . "&sendmail=$invoice->{id}&UID=$invoice->{id}", { ex_params => 'target=_new', CLASS => 'sendmail' }),
       $html->button($_PRINT, "qindex=$index&print=$invoice->{id}&UID=$invoice->{uid}" . (($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : ''), { ex_params => 'target=_new', CLASS => 'print' }),
       $delete;
@@ -1949,9 +1955,9 @@ sub docs_invoice {
     my $table = $html->table(
       {
         width => ($user->{UID}) ? '600' : '100%',
-        caption     => $_ORDERS,
+        caption     => "$_INVOICE: $Docs->{INVOICE_NUM} $_DATE: $Docs->{DATE}",
         border      => 1,
-        title_plain => [ '#', "$_NAME", "$_COUNT", "$_UNIT", "$_PRICE", $_SUM ],
+        title_plain => [ '#', "$_NAME", "$_COUNT", "$_PRICE", $_SUM ],
         ID          => 'DOCS_INVOCE_ORDERS',
       }
     );
@@ -1960,7 +1966,11 @@ sub docs_invoice {
       my $list = $Docs->{ORDERS};
       foreach my $line (@$list) {
         $i++;
-        $table->addrow($i, $line->[1], $line->[2], $line->[3], $line->[4], sprintf("%.2f", $line->[3] * $line->[4]));
+        $table->addrow($i, $line->[1], 
+          $line->[2], 
+          $line->[4], 
+          sprintf("%.2f", $line->[2] * $line->[4])
+        );
       }
     }
 

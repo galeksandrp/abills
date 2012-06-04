@@ -7813,9 +7813,9 @@ sub dv_docs {
   my @services = ();
   $Dv->info($uid);
   
-  if ($Dv->{TOTAL}==0 || ! $Dv->{DAY_ABON}) {
+  if ($Dv->{TOTAL}==0 || ! $Dv->{DAY_ABON} || $Dv->{STATUS}) {
   	return \@services;
-   }
+  }
   
   if ($Dv->{MONTH_ABON} > 0) {
     push @services, "Internet: $_MONTH_FEE_SHORT $Dv->{TP_NAME} ($Dv->{TP_ID})||$Dv->{MONTH_ABON}";

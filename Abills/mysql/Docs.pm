@@ -604,7 +604,7 @@ sub invoices_list {
   my $list = $self->{list};
 
   $self->query(
-    $db, "SELECT count(*)
+    $db, "SELECT count(distinct d.id)
     FROM (docs_invoices d, docs_invoice_orders o)    
     LEFT JOIN users u ON (d.uid=u.uid)
     LEFT JOIN admins a ON (d.aid=a.aid)
@@ -612,7 +612,7 @@ sub invoices_list {
     $WHERE"
   );
 
-  ($self->{TOTAL}) = @{ $self->{list}->[0] };
+  my ($total) = @{ $self->{list}->[0] };
 
   if ($attr->{ORDERS_LIST}) {
     $self->query(
@@ -629,6 +629,8 @@ sub invoices_list {
       }
     }
   }
+
+  $self->{TOTAL}=$total;
 
   return $list;
 }
@@ -813,9 +815,9 @@ sub invoice_add {
 
   my @ids_arr       = split(/, /, $attr->{IDS} || '');
   my $orders        = $#ids_arr + 1;
-  my $order_num     = 0;
+  my $order_number  = 0;
 
-  while( $orders > 0 ) {
+  while( $order_number <= $orders ) {
     $DATA{INVOICE_NUM} = ($attr->{INVOICE_NUM}) ? $attr->{INVOICE_NUM} : $self->docs_nextid({ TYPE => 'INVOICE' });
     return $self if ($self->{errno});
 
@@ -833,7 +835,7 @@ sub invoice_add {
 
     if ($attr->{IDS}) {
       for( my $order_num=0; $order_num<$CONF->{DOCS_INVOICE_ORDERS}; $order_num++) {
-        my $id = pop @ids_arr;
+        my $id = shift @ids_arr;
         if (! $DATA{ 'ORDER_' . $id } && $DATA{ 'SUM_' . $id } == 0) {
           next;	
         }
@@ -848,6 +850,7 @@ sub invoice_add {
           $DATA{ 'SUM_' . $id } = $DATA{ 'SUM_' . $id } / $DATA{ER};
         }
 
+        $self->{debug}=1;
         $self->query($db, "INSERT INTO docs_invoice_orders (invoice_id, orders, counts, unit, price, fees_id)
             values (" . $self->{'DOC_ID'} . ", \"" . $DATA{ 'ORDER_' . $id } . "\", '" . $DATA{ 'COUNTS_' . $id } . "', '" . ($DATA{ 'UNIT_' . $id } || 0) . "',
             '" . $DATA{ 'SUM_' . $id } . "','" . ($DATA{ 'FEES_ID_' . $id } || 0) . "')", 'do');
@@ -855,7 +858,7 @@ sub invoice_add {
       $orders-=$CONF->{DOCS_INVOICE_ORDERS};
       delete ($attr->{INVOICE_NUM});
     }
-   
+    $order_number++; 
     return $self if ($self->{errno});
     $self->invoice_info($self->{DOC_ID});
   } ;
