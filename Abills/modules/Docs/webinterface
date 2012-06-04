@@ -3029,7 +3029,7 @@ sub docs_payments_maked {
         $html->message('err', "$_INVOICE $_ERROR", "[$Docs->{errno}] $err_strs{$Docs->{errno}}");
       }
     }
-    elsif ($Docs->{TOTAL_SUM} != $FORM{SUM}) {
+    elsif (!$conf{PAYMENTS_NOT_CHECK_INVOICE_SUM} && $Docs->{TOTAL_SUM} != $FORM{SUM}) {
       $html->message('err', $_ERROR, "$_INVOICE $_SUM: $Docs->{TOTAL_SUM} \n$_PAYMENTS $_SUM: $FORM{SUM}");
     }
   }
