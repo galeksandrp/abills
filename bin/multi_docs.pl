@@ -247,10 +247,10 @@ sub periodic_invoice {
     my $invoice_list = $Docs->invoices_list(
         {
           UID         => $user{UID},
-          PAYMENT_ID  => 0,
+#          PAYMENT_ID  => 0,
           ORDERS_LIST => 1,
           COLS_NAME   => 1,
-          PAGE_ROWS   => 10000
+          PAGE_ROWS   => 1000000
         }
     );
     
