@@ -974,7 +974,7 @@ sub docs_invoices_list {
 
       $d->{TOTAL_SUM}      = sprintf("%.2f", $d->{TOTAL_SUM});
       $d->{AMOUNT_FOR_PAY} = sprintf("%.2f", $d->{AMOUNT_FOR_PAY});
-
+      $d->{DEPOSIT}        = sprintf("%.2f", $d->{DEPOSIT});
       if ($d->{EXCHANGE_RATE} > 0) {
         $d->{TOTAL_ALT_SUM}      = sprintf("%.2f", $d->{TOTAL_SUM} * $d->{EXCHANGE_RATE});
         $d->{AMOUNT_FOR_PAY_ALT} = sprintf("%.2f", $d->{AMOUNT_FOR_PAY} * $d->{EXCHANGE_RATE});
@@ -1739,7 +1739,7 @@ sub docs_invoice {
             $FORM{pdf}   = 1;
             delete($FORM{create});
 
-            return docs_invoice(
+            my $return = docs_invoice(
               {
                 GET_EMAIL_INFO => 1,
                 SEND_EMAIL     => (defined($FORM{SEND_EMAIL})) ? $FORM{SEND_EMAIL} : $attr->{SEND_EMAIL},
@@ -1747,7 +1747,8 @@ sub docs_invoice {
                 %$attr
               }
             );
-            return 0;
+            
+            return ($attr->{REGISTRATION}) ? 0 : $return;
           }
         }
         else {
@@ -1788,6 +1789,7 @@ sub docs_invoice {
         return 0;
       }
       else {
+      	      print "############"; 
         if (!$FORM{QUICK}) {
           if ($Docs->{errno} && $Docs->{errno} == 2) {
             $html->message('err', "$_DOCS : $_ERROR", "$_DOC $_NOT_EXIST");

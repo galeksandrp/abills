@@ -803,8 +803,6 @@ sub invoice_add {
   $DATA{VAT}        = '' if (!$DATA{VAT});
   $DATA{PAYMENT_ID} = 0  if (!$DATA{PAYMENT_ID});
 
-
-
   if (! $attr->{IDS} && $DATA{SUM}) {
   	$attr->{IDS}    = 1;
     $DATA{SUM_1}    = $DATA{SUM} || 0;
@@ -832,7 +830,7 @@ sub invoice_add {
     return $self if ($self->{errno});
     $self->{DOC_ID}      = $self->{INSERT_ID};
     $self->{INVOICE_NUM} = $DATA{INVOICE_NUM};
-
+    
     if ($attr->{IDS}) {
       for( my $order_num=0; $order_num<$CONF->{DOCS_INVOICE_ORDERS}; $order_num++) {
         my $id = shift @ids_arr;
