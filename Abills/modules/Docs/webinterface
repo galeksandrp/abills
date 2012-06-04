@@ -1789,7 +1789,6 @@ sub docs_invoice {
         return 0;
       }
       else {
-      	      print "############"; 
         if (!$FORM{QUICK}) {
           if ($Docs->{errno} && $Docs->{errno} == 2) {
             $html->message('err', "$_DOCS : $_ERROR", "$_DOC $_NOT_EXIST");
@@ -2012,7 +2011,8 @@ sub docs_invoice {
       $Docs->user_info($FORM{UID});
       if ($Docs->{TOTAL}) {      	
         if (!$FORM{NEXT_PERIOD}) {
-          $FORM{NEXT_PERIOD} = $Docs->{INVOICING_PERIOD} if ($Docs->{INVOICING_PERIOD});
+        	$FORM{NEXT_PERIOD}=0;
+          #$FORM{NEXT_PERIOD} = $Docs->{INVOICING_PERIOD} if ($Docs->{INVOICING_PERIOD});
         }
       }
 
