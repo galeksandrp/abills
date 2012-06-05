@@ -1038,7 +1038,7 @@ sub change {
     REDUCTION      => 'reduction',
     REDUCTION_DATE => 'reduction_date',
     SIMULTANEONSLY => 'logins',
-    COMMENTS       => 'comments',
+    #COMMENTS       => 'comments',
     COMPANY_ID     => 'company_id',
     DISABLE        => 'disable',
     GID            => 'gid',
@@ -1048,6 +1048,8 @@ sub change {
     DOMAIN_ID      => 'domain_id',
     DELETED        => 'deleted'
   );
+
+  print "!! $attr->{CREDIT} //";
 
   my $old_info = $self->info($attr->{UID});
 

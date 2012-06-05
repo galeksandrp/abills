@@ -370,7 +370,14 @@ a.add.rightAlignText {
 	margin:0 5px 0 0;
 }
 a.rightAlignText {
-	background-position:0px 0px;
+	background-position:right;
+
+	display:inline-block;
+	overflow:hidden;
+	text-indent:-90000px;
+	font-size:0;
+	padding-left:5px;
+	
 }
 
 .link_button {

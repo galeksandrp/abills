@@ -1262,8 +1262,12 @@ CREATE TABLE `web_online` (
   `admin` varchar(15) NOT NULL default '',
   `ip` varchar(15) NOT NULL default '',
   `logtime` int(11) unsigned NOT NULL default '0',
-  `page_index` int unsigned NOT NULL Default 0
-) ;
+  `page_index` int unsigned NOT NULL Default 0,
+  `sid` varchar(32) NOT NULL default '',
+  `ext_info` varchar(200) NOT NULL default '',
+  PRIMARY KEY  (`sid`),
+  UNIQUE KEY `sid` (`sid`)
+) COMMENT="Online admins" ;
 
 CREATE TABLE `reg_wizard` (
   `param` varchar(40) NOT NULL default '',

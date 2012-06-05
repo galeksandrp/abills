@@ -644,12 +644,15 @@ sub password {
 #**********************************************************
 sub online {
   my $self         = shift;
+  my ($attr)       = @_;
   my $time_out     = 120;
   my $online_users = '';
   my %curuser      = ();
 
+  my $WHERE = ($attr->{SID}) ?  "WHERE sid='$attr->{SID}'" : '';
+
   $self->query($db, "DELETE FROM web_online WHERE UNIX_TIMESTAMP()-logtime>$time_out;", 'do');
-  $self->query($db, "SELECT admin, ip FROM web_online;");
+  $self->query($db, "SELECT admin, ip FROM web_online $WHERE;");
 
   my $online_count = $self->{TOTAL} + 0;
   my $list         = $self->{list};
@@ -660,8 +663,8 @@ sub online {
 
   if ($curuser{ $self->{A_LOGIN} } ne $self->{SESSION_IP}) {
     $self->query(
-      $db, "INSERT INTO web_online (admin, ip, logtime)
-     values ('$self->{A_LOGIN}', '$self->{SESSION_IP}', UNIX_TIMESTAMP());", 'do'
+      $db, "INSERT INTO web_online (admin, ip, logtime, aid, sid)
+     values ('$self->{A_LOGIN}', '$self->{SESSION_IP}', UNIX_TIMESTAMP(), '$self->{AID}', '$attr->{SID}');", 'do'
     );
     $online_users .= "$self->{A_LOGIN} - $self->{SESSION_IP};\n";
     $online_count++;
@@ -669,6 +672,37 @@ sub online {
 
   return ($online_users, $online_count);
 }
+
+#**********************************************************
+# Online Administrators
+#**********************************************************
+sub online_info {
+  my $self         = shift;
+  my ($attr) = @_;
+
+  $self->query($db, "SELECT aid, ip, admin FROM web_online WHERE sid='$attr->{SID}';", 
+   undef,
+   { INFO => 1 });
+
+  #($self->{AID}, $self->{IP}, $self->{ADMIN}) = @{ $self->{list}->[0] };
+  return $self;
+}
+
+
+#**********************************************************
+# Online Administrators
+#**********************************************************
+sub online_del {
+  my $self         = shift;
+  my ($attr) = @_;
+
+  $self->query($db, "DELETE FROM web_online WHERE sid='$attr->{SID}';", 'do');
+
+  return $self;
+}
+
+
+
 
 =comments
 

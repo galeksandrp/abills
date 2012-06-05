@@ -506,7 +506,7 @@ sub list {
 
   if ($attr->{IP}) {
     push @WHERE_RULES, @{ $self->search_expr($attr->{IP}, 'IP', 'dv.ip') };
-    $self->{SEARCH_FIELDS} = 'INET_NTOA(dv.ip) AS ip, ';
+    $self->{SEARCH_FIELDS} .= 'INET_NTOA(dv.ip) AS ip, ';
     $self->{SEARCH_FIELDS_COUNT}++;
   }
 
