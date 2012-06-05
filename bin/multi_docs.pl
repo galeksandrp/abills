@@ -267,7 +267,7 @@ sub periodic_invoice {
       {
         FROM_DATE => '2011-01-01',
         TO_DATE   => $TO_DATE,
-        PAGE_ROWS => 500,
+        PAGE_ROWS => 1000000,
         COLS_NAME => 1,
         UID       => $user{UID}
       }
