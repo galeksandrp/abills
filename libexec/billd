@@ -2446,7 +2446,7 @@ sub check_speed_mikrotik {
     # Get mikrotik speed
     #show ips
     if ($ARGV->{SHOW_SPEED}) {
-      my $ip_list = get_mikrotik_value(qq{ /ip firewall address-list });
+      my $ip_list = get_mikrotik_value(qq{ /ip firewall address-list }, \%NAS);
       foreach my $line (@$ip_list) {
   	    my($id, $list_name, $ip)=split(/\s+/, $line);
   	    print "$id, $list_name, $ip\n";
