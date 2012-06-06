@@ -6,7 +6,6 @@ use vars qw($begin_time %LANG $CHARSET @MODULES $USER_FUNCTION_LIST
 $UID $user $admin
 $sid);
 
-
 BEGIN {
   my $libpath = '../';
 
@@ -48,20 +47,16 @@ my $db = $sql->{db};
 require Admins;
 Admins->import();
 $admin = Admins->new($db, \%conf);
-#$admin->info($conf{USERS_WEB_ADMIN_ID} ? $conf{USERS_WEB_ADMIN_ID} : $conf{SYSTEM_ADMIN_ID}, { DOMAIN_ID => $FORM{DOMAIN_ID}, IP => $ENV{REMOTE_ADDR} });
-#$admin->{SESSION_IP} = $ENV{REMOTE_ADDR};
-$conf{WEB_TITLE} = $admin->{DOMAIN_NAME} if ($admin->{DOMAIN_NAME});
 
 use Users;
 use Dv;
 use Tariffs;
 use Finance;
 
-$users       = Users->new($db, $admin, \%conf);
-$Dv          = Dv->new($db, $admin, \%conf);
-my $Tariffs  = Tariffs->new($db, \%conf, $admin);
+$users = Users->new($db, $admin, \%conf);
+$Dv = Dv->new($db, $admin, \%conf);
+my $Tariffs = Tariffs->new($db, \%conf, $admin);
 my $Payments = Finance->payments($db, $admin, \%conf);
-
 
 require "../language/russian.pl";
 require "Misc.pm";
@@ -117,9 +112,8 @@ if ($DATE && $DATE =~ /^(\d{1,4})\-(\d{2})\-(\d{2})$/) {
 }
 
 my $content = '';
-my $login  = $FORM{user} || '';
-my $passwd = $FORM{passwd} || '';
-
+my $login   = $FORM{user} || '';
+my $passwd  = $FORM{passwd} || '';
 
 ($aid, $sid, $login) = check_permissions("$login", "$passwd", "$sid");
 my %uf_menus = ();
@@ -129,12 +123,11 @@ if ($sid) {
   $COOKIES{sid} = $sid;
 }
 
-
 print "Content-Type: text/html\n\n";
 
 if ($aid > 0) {
   if ($FORM{SHOW_REPORT}) {
-    form_reports()
+    form_reports();
   }
   elsif ($index == 2) {
     form_payments();
@@ -143,206 +136,134 @@ if ($aid > 0) {
     form_main();
   }
 
-  print $html->tpl_show(_include('managers_main', 'Managers'), 
-    { CONTENT    => $content || $html->{OUTPUT}, 
-    	ADMIN_NAME => $admin->{A_FIO},
-	    FILTER     => $filter,
-    	});
+  print $html->tpl_show(
+    _include('managers_main', 'Managers'),
+    {
+      CONTENT => $content || $html->{OUTPUT},
+      ADMIN_NAME => $admin->{A_FIO},
+      FILTER     => $filter,
+    }
+  );
 }
 else {
-	form_login();
-	print $html->{OUTPUT};
+  form_login();
+  print $html->{OUTPUT};
 }
-
-
 
 #**********************************************************
 #
 #**********************************************************
 sub form_main {
 
-# Всего пользователей
-$users_total = $Dv->list(
-  {
-    COLS_NAME      => 1,
-    ADDRESS_STREET => '*',
-    ADDRESS_BUILD  => '*',
-    ADDRESS_FLAT   => '*',
-    CONTRACT_DATE  => '>=0000-00-00',
-    REGISTRATION   => '>=0000-00-00',
+  # Всего пользователей
+  $users_total = $Dv->list(
+    {
+      COLS_NAME      => 1,
+      ADDRESS_STREET => '*',
+      ADDRESS_BUILD  => '*',
+      ADDRESS_FLAT   => '*',
+      CONTRACT_DATE  => '>=0000-00-00',
+      REGISTRATION   => '>=0000-00-00',
+    }
+  );
+  $OUTPUT{USER_TOTAL} = $Dv->{TOTAL};
+
+  $mounth_contracts_added = $Dv->list(
+    {
+      ADDRESS_STREET => '*',
+      ADDRESS_BUILD  => '*',
+      ADDRESS_FLAT   => '*',
+      CONTRACT_DATE  => '>=0000-00-00',
+      COLS_NAME      => 1,
+      REGISTRATION   => ">=$OUTPUT{YEAR}-$OUTPUT{MOUNTH}-01;<=$OUTPUT{YEAR}-$OUTPUT{MOUNTH}-$OUTPUT{DAY}",
+    }
+  );
+
+  if (defined($attr->{DELETED})) {
+    print "$_DELETED";
   }
-);
-$OUTPUT{USER_TOTAL} = $Dv->{TOTAL};
 
-$mounth_contracts_added = $Dv->list(
-  {
-    ADDRESS_STREET => '*',
-    ADDRESS_BUILD  => '*',
-    ADDRESS_FLAT   => '*',
-    CONTRACT_DATE  => '>=0000-00-00',
-    COLS_NAME      => 1,
-    REGISTRATION   => ">=$OUTPUT{YEAR}-$OUTPUT{MOUNTH}-01;<=$OUTPUT{YEAR}-$OUTPUT{MOUNTH}-$OUTPUT{DAY}",
-  }
-);
+  $OUTPUT{REGISTRATION_MOUNTH_TOTAL} = $Dv->{TOTAL};
 
-if (defined($attr->{DELETED})) {
-  print "$_DELETED";
-}
+  # Всего разторгнуто договоров(месяц год) -
+  $mounth_contracts_deleted = $Dv->list(
+    {
+      ADDRESS_STREET => '*',
+      ADDRESS_BUILD  => '*',
+      ADDRESS_FLAT   => '*',
+      CONTRACT_DATE  => '>=0000-00-00',
+      COLS_NAME      => 1,
+      ACTION_DATE    => ">=$OUTPUT{YEAR}-$OUTPUT{MOUNTH}-01;<=$OUTPUT{YEAR}-$OUTPUT{MOUNTH}-$OUTPUT{DAY}",
+      ACTION_TYPE    => 12,
+      DELETED        => 1,
+      USER_STATUS    => 1,
+    }
+  );
 
-$OUTPUT{REGISTRATION_MOUNTH_TOTAL} = $Dv->{TOTAL};
+  $OUTPUT{DISCONNECTED} = $Dv->{TOTAL};
 
-# Всего разторгнуто договоров(месяц год) -
-$mounth_contracts_deleted = $Dv->list(
-  {
-    ADDRESS_STREET => '*',
-    ADDRESS_BUILD  => '*',
-    ADDRESS_FLAT   => '*',
-    CONTRACT_DATE  => '>=0000-00-00',
-    COLS_NAME      => 1,
-    ACTION_DATE    => ">=$OUTPUT{YEAR}-$OUTPUT{MOUNTH}-01;<=$OUTPUT{YEAR}-$OUTPUT{MOUNTH}-$OUTPUT{DAY}",
-    ACTION_TYPE    => 12,
-    DELETED        => 1,
-    USER_STATUS    => 1,
-  }
-);
+  $mounth_disabled_users = $Dv->list(
+    {
+      ADDRESS_STREET => '*',
+      ADDRESS_BUILD  => '*',
+      ADDRESS_FLAT   => '*',
+      CONTRACT_DATE  => '>=0000-00-00',
+      COLS_NAME      => 1,
+      ACTION_DATE    => ">=$OUTPUT{YEAR}-$OUTPUT{MOUNTH}-01;<=$OUTPUT{YEAR}-$OUTPUT{MOUNTH}-$OUTPUT{DAY}",
+      ACTION_TYPE    => 9,
+      REGISTRATION   => '>=0000-00-00',
+    }
+  );
 
-$OUTPUT{DISCONNECTED} = $Dv->{TOTAL};
+  $OUTPUT{TEMPORARILY_DISCONNECTED} = $Dv->{TOTAL};
 
-$mounth_disabled_users = $Dv->list(
-  {
-    ADDRESS_STREET => '*',
-    ADDRESS_BUILD  => '*',
-    ADDRESS_FLAT   => '*',
-    CONTRACT_DATE  => '>=0000-00-00',
-    COLS_NAME      => 1,
-    ACTION_DATE    => ">=$OUTPUT{YEAR}-$OUTPUT{MOUNTH}-01;<=$OUTPUT{YEAR}-$OUTPUT{MOUNTH}-$OUTPUT{DAY}",
-    ACTION_TYPE    => 9,
-    REGISTRATION   => '>=0000-00-00',
-  }
-);
+  #Всего должников:
+  #не оплативших текущий месяц
+  $mounth_total_debtors = $Dv->report_debetors(
+    {
+      COLS_NAME      => 1,
+      ADDRESS_STREET => '*',
+      ADDRESS_BUILD  => '*',
+      ADDRESS_FLAT   => '*',
+      CONTRACT_ID    => '*',
+      CONTRACT_DATE  => '>=0000-00-00',
+      REGISTRATION   => '>=0000-00-00',
+    }
+  );
 
-$OUTPUT{TEMPORARILY_DISCONNECTED} = $Dv->{TOTAL};
+  $OUTPUT{REPORT_DEBETORS} = $Dv->{TOTAL};
 
-#Всего должников:
-#не оплативших текущий месяц
-$mounth_total_debtors = $Dv->report_debetors(
-  {
-    COLS_NAME      => 1,
-    ADDRESS_STREET => '*',
-    ADDRESS_BUILD  => '*',
-    ADDRESS_FLAT   => '*',
-    CONTRACT_ID    => '*',
-    CONTRACT_DATE  => '>=0000-00-00',
-    REGISTRATION   => '>=0000-00-00',
-  }
-);
+  #не оплативших 2 и более месяцев -
+  $total_debtors = $Dv->report_debetors(
+    {
+      COLS_NAME      => 1,
+      ADDRESS_STREET => '*',
+      ADDRESS_BUILD  => '*',
+      ADDRESS_FLAT   => '*',
+      CONTRACT_ID    => '*',
+      CONTRACT_DATE  => '>=0000-00-00',
+      REGISTRATION   => '>=0000-00-00',
+      PERIOD         => 2
+    }
+  );
 
-$OUTPUT{REPORT_DEBETORS} = $Dv->{TOTAL};
-
-#не оплативших 2 и более месяцев -
-$total_debtors = $Dv->report_debetors(
-  {
-    COLS_NAME      => 1,
-    ADDRESS_STREET => '*',
-    ADDRESS_BUILD  => '*',
-    ADDRESS_FLAT   => '*',
-    CONTRACT_ID    => '*',
-    CONTRACT_DATE  => '>=0000-00-00',
-    REGISTRATION   => '>=0000-00-00',
-    PERIOD         => 2
-  }
-);
-
-$OUTPUT{REPORT_DEBETORS2} = $Dv->{TOTAL};
+  $OUTPUT{REPORT_DEBETORS2} = $Dv->{TOTAL};
 
 ############## SEARCH
-#					LOGIN           => $FORM{QUERY},
-#					COLS_NAME       => 1,
-#					ADDRESS_STREET  => '*',
-#					ADDRESS_BUILD   => '*',
-#					ADDRESS_FLAT    => '*',
-#					CONTRACT_ID     => '*',
+  #					LOGIN           => $FORM{QUERY},
+  #					COLS_NAME       => 1,
+  #					ADDRESS_STREET  => '*',
+  #					ADDRESS_BUILD   => '*',
+  #					ADDRESS_FLAT    => '*',
+  #					CONTRACT_ID     => '*',
 
-$LIST_PARAMS{LOGIN}          = '*';
-$LIST_PARAMS{ADDRESS_STREET} = '*';
-$LIST_PARAMS{ADDRESS_BUILD}  = '*';
-$LIST_PARAMS{ADDRESS_FLAT}   = '*';
-$LIST_PARAMS{CONTRACT_ID}    = '*';
-$LIST_PARAMS{PHONE}          = '*';
-$LIST_PARAMS{IP}             = '>=0.0.0.0';
-
-if ($FORM{SEARCH} and $FORM{QUERY} ne '') {
-  if ($FORM{TYPE} eq 'login') {
-
-    $LIST_PARAMS{LOGIN} = "$FORM{QUERY}*";
-  }
-  elsif ($FORM{TYPE} eq 'address') {
-    if ($FORM{QUERY} =~ /^(\w+).?(\d+)?.?(\d+)?$/) {
-      $LIST_PARAMS{ADDRESS_STREET} = $1 || '*';
-      $LIST_PARAMS{ADDRESS_BUILD}  = $2 || '*';
-      $LIST_PARAMS{ADDRESS_FLAT}   = $3 || '*';
-    }
-    else {
-
-    }
-
-  }
-  elsif ($FORM{TYPE} eq 'contract_id') {
-    $LIST_PARAMS{CONTRACT_ID} = "$FORM{QUERY}*";
-  }
-  elsif ($FORM{TYPE} eq 'phone') {
-    $LIST_PARAMS{PHONE} = "$FORM{QUERY}*";
-  }
-  elsif ($FORM{TYPE} eq 'ip') {
-    $LIST_PARAMS{IP} = "$FORM{QUERY}";
-  }
-  else {
-    $error_msg = 1;
-  }
-
-  $list = $Dv->list({ %LIST_PARAMS, COLS_NAME => 1 });
-
-  if ($Dv->{errno}) {
-    $html->message('err', $_ERROR, "[$Dv->{errno}] $err_strs{$Dv->{errno}}");
-    return 0;
-  }
-
-}
-else {
-  $Dv->{TOTAL} = 0;
-}
-
-my $table = $html->table(
-  {
-    width      => '100%',
-    caption    => "$_SEARCH",
-    border     => 1,
-    title      => [ '-', $_CONTRACT_ID, $_FIO, $_ADDRESS, $_TARIF_PLAN, $_BALANCE, $_STATUS, '-' ],
-    cols_align => [ 'left', 'left', 'right', 'right', 'left', 'center', 'center:noprint', 'center:noprint' ],
-    qs         => $pages_qs,
-    pages      => $Dv->{TOTAL},
-    ID         => 'SEARCH',
-    header     => $status_bar
-  }
-);
-
-foreach my $line (@$list) {
-  $table->addrow(
-    
-    $html->form_input('UID',  $line->{uid},
-              { TYPE          => 'checkbox', OUTPUT2RETURN => 1 }). $line->{id},
-    $line->{contract_id},
-    $line->{fio},
-    $line->{address_street} . ' ' . $line->{address_build} . ' ' . $line->{address_flat},
-    $line->{tp_name},
-    $line->{deposit},
-    $service_status[ $line->{dv_status} ],
-    $html->button("$_GO", "index=11&UID=$line->{uid}", { BUTTON => 1 }),
-  );
-}
-
-  $OUTPUT{RESULT_TABLE} = $table->show({ OUTPUT2RETURN => 1 });
-  $OUTPUT{RESULT_TOTAL} = $Dv->{TOTAL};
+  $LIST_PARAMS{LOGIN}          = '*';
+  $LIST_PARAMS{ADDRESS_STREET} = '*';
+  $LIST_PARAMS{ADDRESS_BUILD}  = '*';
+  $LIST_PARAMS{ADDRESS_FLAT}   = '*';
+  $LIST_PARAMS{CONTRACT_ID}    = '*';
+  $LIST_PARAMS{PHONE}          = '*';
+  $LIST_PARAMS{IP}             = '>=0.0.0.0';
 
   if ($index == 11) {
     dv_users();
@@ -358,14 +279,13 @@ foreach my $line (@$list) {
 sub form_reports {
   my $table = $html->table(
     {
-      width      => '100%',
-      caption    => "$_REPORTS",
-      border     => 1,
-      title      => [ "$_ONTRACT_ID", "$_FIO", "$_ADDRESS", "$_TARIF_PLAN", "$_STATUS", "$_CONTRACT $_DATE", 'дата фактического подключения', 'дата отключения' ],
+      width   => '100%',
+      caption => "$_REPORTS",
+      border  => 1,
+      title   => [ "$_ONTRACT_ID", "$_FIO", "$_ADDRESS", "$_TARIF_PLAN", "$_STATUS", "$_CONTRACT $_DATE", 'дата фактического подключения', 'дата отключения' ],
       cols_align => [ 'left', 'right', 'right', 'right', 'center', 'center' ],
       pages      => $users->{TOTAL},
       ID         => 'REPORT_USERS',
-
     }
   );
 
@@ -397,9 +317,6 @@ sub form_reports {
   $table->show();
   $filter = $html->tpl_show(_include('managers_filter_reports', 'Managers'), { undef, OUTPUT2RETURN => 1 });
 }
-
-
-
 
 #**********************************************************
 # check_permissions()
@@ -438,17 +355,16 @@ sub check_permissions {
     IP        => $ENV{REMOTE_ADDR} || '0.0.0.0'
   );
 
-
   if ($sid) {
     $admin->online_info({ SID => $sid });
     if ($admin->{TOTAL} > 0 && $ENV{REMOTE_ADDR} eq $admin->{IP}) {
-    	$admin->info($admin->{AID});
-    	return $admin->{AID}, $sid;
+      $admin->info($admin->{AID});
+      return $admin->{AID}, $sid;
     }
   }
 
   $admin->info(0, {%PARAMS});
-  
+
   if ($admin->{errno}) {
     if ($admin->{errno} == 4) {
       $admin->system_action_add("$login:$password", { TYPE => 11 });
@@ -462,18 +378,18 @@ sub check_permissions {
     return 0;
   }
 
-  if (! $sid) {
+  if (!$sid) {
     $sid = mk_unique_value(14);
   }
 
-  $admin->online({ SID =>  $sid });
+  $admin->online({ SID => $sid });
   if ($admin->{WEB_OPTIONS}) {
     my @WO_ARR = split(/;/, $admin->{WEB_OPTIONS});
     foreach my $line (@WO_ARR) {
       my ($k, $v) = split(/=/, $line);
       $admin->{WEB_OPTIONS}{$k} = $v;
     }
-  }  
+  }
 
   %permissions = %{ $admin->get_permissions() };
   return $admin->{AID}, $sid;
@@ -1612,8 +1528,6 @@ sub user_pi {
   $html->tpl_show(templates('form_pi'), { %$attr, UID => $LIST_PARAMS{UID}, %$user_pi, });
 }
 
-
-
 #**********************************************************
 # user_dv
 #**********************************************************
@@ -1623,27 +1537,98 @@ sub dv_users {
   $Dv->{UID} = $FORM{UID} || $LIST_PARAMS{UID};
   undef $Dv->{errno};
   if ($FORM{payment_add}) {
-  	$FORM{COMMENTS}= $FORM{PAYMENT_COMMENT};
-  	$FORM{add}     = 1;
-  	my $user = $users->info($Dv->{UID});
-  	form_payments({ USER_INFO => $user });
-  	return 0;
+    $FORM{COMMENTS} = $FORM{PAYMENT_COMMENT};
+    $FORM{add}      = 1;
+    my $user = $users->info($Dv->{UID});
+    form_payments({ USER_INFO => $user });
+    return 0;
   }
+
+  elsif ($FORM{SEARCH}) {    # and $FORM{QUERY} ne '') {
+    if ($FORM{TYPE} eq 'login') {
+      $LIST_PARAMS{LOGIN} = "$FORM{QUERY}*";
+    }
+    elsif ($FORM{TYPE} eq 'address') {
+      if ($FORM{QUERY} =~ /^(\w+).?(\d+)?.?(\d+)?$/) {
+        $LIST_PARAMS{ADDRESS_STREET} = $1 || '*';
+        $LIST_PARAMS{ADDRESS_BUILD}  = $2 || '*';
+        $LIST_PARAMS{ADDRESS_FLAT}   = $3 || '*';
+      }
+      else {
+
+      }
+    }
+    elsif ($FORM{TYPE} eq 'contract_id') {
+      $LIST_PARAMS{CONTRACT_ID} = "$FORM{QUERY}*";
+    }
+    elsif ($FORM{TYPE} eq 'phone') {
+      $LIST_PARAMS{PHONE} = "$FORM{QUERY}*";
+    }
+    elsif ($FORM{TYPE} eq 'ip') {
+      $LIST_PARAMS{IP} = "$FORM{QUERY}";
+    }
+    else {
+      $error_msg = 1;
+    }
+
+    $list = $Dv->list({ %LIST_PARAMS, COLS_NAME => 1 });
+
+    if ($Dv->{errno}) {
+      $html->message('err', $_ERROR, "[$Dv->{errno}] $err_strs{$Dv->{errno}}");
+      return 0;
+    }
+
+    my $table = $html->table(
+      {
+        width      => '100%',
+        caption    => "$_SEARCH",
+        border     => 1,
+        title      => [ '-', $_CONTRACT_ID, $_FIO, $_ADDRESS, $_TARIF_PLAN, $_BALANCE, $_STATUS, '-' ],
+        cols_align => [ 'left', 'left', 'right', 'right', 'left', 'center', 'center:noprint', 'center:noprint' ],
+        qs         => $pages_qs,
+        pages      => $Dv->{TOTAL},
+        ID         => 'SEARCH',
+        header     => $status_bar
+      }
+    );
+
+    foreach my $line (@$list) {
+      $table->addrow(
+
+        $html->form_input('UID', $line->{uid}, { TYPE => 'checkbox', OUTPUT2RETURN => 1 }) . $line->{id},
+        $line->{contract_id},
+        $line->{fio},
+        $line->{address_street} . ' ' . $line->{address_build} . ' ' . $line->{address_flat},
+        $line->{tp_name},
+        $line->{deposit},
+        $service_status[ $line->{dv_status} ],
+        $html->button("$_GO", "index=11&UID=$line->{uid}", { BUTTON => 1 }),
+      );
+    }
+
+    $OUTPUT{RESULT_TABLE} = $table->show({ OUTPUT2RETURN => 1 });
+    $OUTPUT{RESULT_TOTAL} = $Dv->{TOTAL};
+
+    $content = $html->tpl_show(_include('managers_main_content', 'Managers'), {%OUTPUT});
+    return 0;
+  }
+
   elsif ($FORM{REGISTRATION_INFO}) {
+
     # Info
     load_module('Docs', $html);
     my $users = Users->new($db, $admin, \%conf);
-    $Dv       = $Dv->info($Dv->{UID});
-    my $pi    = $users->pi({ UID => $Dv->{UID} });
-    my $user  = $users->info($Dv->{UID}, { SHOW_PASSWORD => $permissions{0}{3} });
+    $Dv = $Dv->info($Dv->{UID});
+    my $pi = $users->pi({ UID => $Dv->{UID} });
+    my $user = $users->info($Dv->{UID}, { SHOW_PASSWORD => $permissions{0}{3} });
     $pi->{ADDRESS_FULL} = "$pi->{ADDRESS_STREET} $pi->{ADDRESS_BUILD}, $pi->{ADDRESS_FLAT}";
 
     ($Dv->{Y}, $Dv->{M}, $Dv->{D}) = split(/-/, (($pi->{CONTRACT_DATE}) ? $pi->{CONTRACT_DATE} : $DATE), 3);
     $pi->{CONTRACT_DATE_LIT} = "$Dv->{D} " . $MONTHES_LIT[ int($Dv->{M}) - 1 ] . " $Dv->{Y} $_YEAR";
 
-    $Dv->{MONTH_LIT}         = $MONTHES_LIT[ int($Dv->{M}) - 1 ];
-    if ($Dv->{Y}=~/(\d{2})$/) {
-      $Dv->{YY}=$1;
+    $Dv->{MONTH_LIT} = $MONTHES_LIT[ int($Dv->{M}) - 1 ];
+    if ($Dv->{Y} =~ /(\d{2})$/) {
+      $Dv->{YY} = $1;
     }
 
     if ($FORM{pdf}) {
@@ -1670,48 +1655,56 @@ sub dv_users {
     return 0;
   }
   elsif ($FORM{change}) {
-#    if ($FORM{IP} eq '0.0.0.0' && $FORM{STATIC_IP_POOL}) {
-#      $FORM{IP} = dv_get_static_ip($FORM{STATIC_IP_POOL});
-#    }
 
-#    if ($FORM{IP} =~ /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/ && $FORM{IP} ne '0.0.0.0') {
-#      my $list = $Dv->list({ IP => $FORM{IP} });
-#      if ($Dv->{TOTAL} > 0 && $list->[0][ 6 + $Dv->{SEARCH_FIELDS_COUNT} ] != $FORM{UID}) {
-#        $html->message('err', $_ERROR, "IP: $FORM{IP} $_EXIST. $_LOGIN: " . $html->button("$list->[0][0]", "index=15&UID=" . $list->[0][ 6 + $Dv->{SEARCH_FIELDS_COUNT} ]));
-#        return 0;
-#      }
-#    }
+    #    if ($FORM{IP} eq '0.0.0.0' && $FORM{STATIC_IP_POOL}) {
+    #      $FORM{IP} = dv_get_static_ip($FORM{STATIC_IP_POOL});
+    #    }
 
-    $Dv->change({ %FORM  });
-    $users->{debug}=1;
-    $users->change($Dv->{UID}, { %FORM  });
-    $users->pi_change({ %FORM  });
+    #    if ($FORM{IP} =~ /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/ && $FORM{IP} ne '0.0.0.0') {
+    #      my $list = $Dv->list({ IP => $FORM{IP} });
+    #      if ($Dv->{TOTAL} > 0 && $list->[0][ 6 + $Dv->{SEARCH_FIELDS_COUNT} ] != $FORM{UID}) {
+    #        $html->message('err', $_ERROR, "IP: $FORM{IP} $_EXIST. $_LOGIN: " . $html->button("$list->[0][0]", "index=15&UID=" . $list->[0][ 6 + $Dv->{SEARCH_FIELDS_COUNT} ]));
+    #        return 0;
+    #      }
+    #    }
 
-#    if ($FORM{STATUS} == 0) {
-#      my $Shedule = Shedule->new($db, $admin, \%conf);
-#      my $list = $Shedule->list(
-#        {
-#          UID    => $FORM{UID},
-#          MODULE => 'Dv',
-#          TYPE   => 'status',
-#          ACTION => '0'
-#        }
-#      );
-#
-#      if ($Shedule->{TOTAL} == 1) {
-#        $Shedule->del(
-#          {
-#            UID => $FORM{UID},
-#            IDS => $list->[0][14]
-#          }
-#        );
-#      }
-#    }
+    my @uids_arr = split(/, /, $FORM{UID});
+
+    foreach my $uid (@uids_arr) {
+      $FORM{UID} = $uid;
+      $Dv->change({%FORM});
+
+      #    $users->{debug}=1;
+      $users->change($Dv->{UID}, {%FORM});
+      $users->pi_change({%FORM});
+    }
+
+    #    if ($FORM{STATUS} == 0) {
+    #      my $Shedule = Shedule->new($db, $admin, \%conf);
+    #      my $list = $Shedule->list(
+    #        {
+    #          UID    => $FORM{UID},
+    #          MODULE => 'Dv',
+    #          TYPE   => 'status',
+    #          ACTION => '0'
+    #        }
+    #      );
+    #
+    #      if ($Shedule->{TOTAL} == 1) {
+    #        $Shedule->del(
+    #          {
+    #            UID => $FORM{UID},
+    #            IDS => $list->[0][14]
+    #          }
+    #        );
+    #      }
+    #    }
 
     if (!$Dv->{errno}) {
       $Dv->{ACCOUNT_ACTIVATE} = $attr->{USER_INFO}->{ACTIVATE};
       if (!$FORM{STATUS} && ($FORM{GET_ABON} || !$FORM{TP_ID})) {
-      #  dv_get_month_fee($Dv);
+
+        #  dv_get_month_fee($Dv);
       }
 
       $html->message('info', "Internet", "$_CHANGED");
@@ -1719,9 +1712,15 @@ sub dv_users {
     }
   }
   elsif ($FORM{del}) {
-    $Dv->del();
-    if (!$Dv->{errno}) {
-      $html->message('info', $_INFO, "$_DELETED");
+    my @uids_arr = split(/, /, $FORM{UID});
+    foreach my $uid (@uids_arr) {
+      $users->{UID} = $uid;
+      $users->{debug}=1;
+      $users->del({ UID => $uid });
+      if (!$users->{errno}) {
+        $html->message('info', $_INFO, "$_DELETED");
+        return 0;
+      }
     }
   }
 
@@ -1739,46 +1738,48 @@ sub dv_users {
     }
   }
 
-  
   if ($Dv->{UID}) {
-    $list = $Dv->list({ 
-      UID            => $Dv->{UID}, 
-      ADDRESS_STREET => '*',
-      ADDRESS_BUILD  => '*',
-      ADDRESS_FLAT   => '*',
-      CONTRACT_DATE  => '>=0000-00-00',
-      CONTRACT_ID    => '*',
-      COLS_NAME      => 1, 
-    	COLS_UPPER     => 1,
-  	  PHONE          => '*',
-  	  COMMENTS       => '*'
-    });
+    $list = $Dv->list(
+      {
+        UID            => $Dv->{UID},
+        ADDRESS_STREET => '*',
+        ADDRESS_BUILD  => '*',
+        ADDRESS_FLAT   => '*',
+        CONTRACT_DATE  => '>=0000-00-00',
+        CONTRACT_ID    => '*',
+        COLS_NAME      => 1,
+        COLS_UPPER     => 1,
+        PHONE          => '*',
+        COMMENTS       => '*'
+      }
+    );
   }
 
   $OUTPUT{TP_SEL} = $html->form_select(
-      ($Dv->{TP_ID}) ? 'TP_ID' : '4.TP_ID',
+    ($Dv->{TP_ID}) ? 'TP_ID' : '4.TP_ID',
+    {
+      SELECTED => $Dv->{TP_ID} || $FORM{'4.TP_ID'},
+      SEL_MULTI_ARRAY   => $Tariffs->list({ MODULE => 'Dv' }),
+      MULTI_ARRAY_KEY   => 0,
+      MULTI_ARRAY_VALUE => 1,
+    }
+  );
+
+  if (!$FORM{NEW_USER} && $Dv->{TOTAL} > 0) {
+    my $payments_list = $Payments->list(
       {
-        SELECTED          => $Dv->{TP_ID} || $FORM{'4.TP_ID'},
-        SEL_MULTI_ARRAY   => $Tariffs->list({ MODULE => 'Dv' }),
-        MULTI_ARRAY_KEY   => 0,
-        MULTI_ARRAY_VALUE => 1,
+        UID       => $Dv->{UID},
+        COLS_NAME => 1,
+        PAGE_ROWS => 6,
+        SORT      => 1,
+        DESC      => 'desc'
       }
     );
 
-
-  if ($Dv->{TOTAL} > 0) {
-    my $payments_list  = $Payments->list({  
-    	    UID       => $Dv->{UID}, 
-    	    COLS_NAME => 1, 
-    	    PAGE_ROWS => 6, 
-    	    SORT      => 1, 
-    	    DESC      => 'desc' 
-    });
-
     my $table = $html->table(
       {
-        width      => '100%',
-        title_plain=> [ '#', "$_DATE", "$_SUM", "$_ADMIN", "$_COMMENTS" ],
+        width       => '100%',
+        title_plain => [ '#', "$_DATE", "$_SUM", "$_ADMIN", "$_COMMENTS" ],
         cols_align => [ 'right', 'right', 'left', 'left' ],
         pages      => $payments->{TOTAL},
         ID         => 'PAYMENTS'
@@ -1791,9 +1792,8 @@ sub dv_users {
 
     $OUTPUT{PAYMENT_LIST} = $table->show({ OUTPUT2RETURN => 1 });
 
-
     $html->tpl_show(_include('managers_edit_user', 'Managers'), { %OUTPUT, %{ $list->[0] } });
-    
+
     return 0;
 
     if ($permissions{0}{10}) {
@@ -1895,23 +1895,21 @@ sub dv_users {
   if ($Dv->{STATUS} > 0) {
     $Dv->{STATUS_COLOR} = $service_status_colors[ $Dv->{STATUS} ];
   }
-  
+
   $OUTPUT{GROUP_SEL} = $html->form_select(
-      '1.GID',
-      {
-        SELECTED          => $FORM{'1.GID'},
-        SEL_MULTI_ARRAY   => $users->groups_list({ GIDS => ($admin->{GIDS}) ? $admin->{GIDS} : undef }),
-        MULTI_ARRAY_KEY   => 0,
-        MULTI_ARRAY_VALUE => 1,
-        SEL_OPTIONS       => ($admin->{GIDS}) ? undef : { '' => "$_ALL" },
-      }
-    );
+    '1.GID',
+    {
+      SELECTED          => $FORM{'1.GID'},
+      SEL_MULTI_ARRAY   => $users->groups_list({ GIDS => ($admin->{GIDS}) ? $admin->{GIDS} : undef }),
+      MULTI_ARRAY_KEY   => 0,
+      MULTI_ARRAY_VALUE => 1,
+      SEL_OPTIONS       => ($admin->{GIDS}) ? undef : { '' => "$_ALL" },
+    }
+  );
 
   $html->tpl_show(_include('managers_add_user', 'Managers'), {%OUTPUT});
   return 0;
 }
-
-
 
 #*******************************************************************
 #
@@ -1954,18 +1952,18 @@ sub dv_wizard_user {
       $user = $user->info($UID);
 
       #2
-      if (defined($FORM{'2.newpassword'}) && $FORM{'2.newpassword'} ne '') {
+      if (defined($FORM{'2.newpassword'})) {#  && $FORM{'2.newpassword'} ne '') {
         if (length($FORM{'2.newpassword'}) < $conf{PASSWD_LENGTH}) {
           $html->message('err', "$_PASSWD : $_ERROR", "$err_strs{6}");
         }
-        elsif ($FORM{'2.newpassword'} eq $FORM{'2.confirm'}) {
+        #elsif ($FORM{'2.newpassword'} eq $FORM{'2.confirm'}) {
           $add_values{2}{PASSWORD} = $FORM{'2.newpassword'};
           $add_values{2}{UID}      = $UID;
           $add_values{2}{DISABLE}  = $FORM{'1.DISABLE'};
-        }
-        elsif ($FORM{'2.newpassword'} ne $FORM{'2.confirm'}) {
-          $html->message('err', "$_PASSWD : $_ERROR", "$err_strs{5}");
-        }
+        #}
+        #elsif ($FORM{'2.newpassword'} ne $FORM{'2.confirm'}) {
+        #  $html->message('err', "$_PASSWD : $_ERROR", "$err_strs{5}");
+        #}
 
         $user->change($UID, { %{ $add_values{2} } });
 
@@ -2085,7 +2083,12 @@ sub dv_wizard_user {
         my $user_fees;
         $Dv->add({ UID => $UID, %{ $add_values{4} } });
         if ($Dv->{errno}) {
-          $html->message('err', "Dv:$_ERROR", "Dv Modules [$Dv->{errno}] $err_strs{$Dv->{errno}}");
+          if ($Dv->{errno} == 15) {
+          	$html->message('err', "Dv:$_ERROR", "Dv Modules $ERR_SMALL_DEPOSIT");
+          }
+          else {
+            $html->message('err', "Dv:$_ERROR", "Dv Modules [$Dv->{errno}] $err_strs{$Dv->{errno}}");
+          }
           return 0;
         }
         elsif (!$FORM{SERIAL}) {
@@ -2097,56 +2100,56 @@ sub dv_wizard_user {
         }
       }
 
-      # Add E-Mail account
-      my $Mail;
-      if (in_array('Mail', \@MODULES) && $FORM{'6.USERNAME'}) {
-        require "Abills/modules/Mail/webinterface";
-        $Mail = Mail->new($db, $admin, \%conf);
-
-        $FORM{'6.newpassword'} = $FORM{'6.PASSWORD'} if ($FORM{'6.PASSWORD'});
-
-        $Mail->mbox_add(
-          {
-            UID => "$UID",
-            %{ $add_values{6} },
-            PASSWORD => $FORM{'6.newpassword'},
-          }
-        );
-        $Mail->{PASSWORD} = $FORM{'6.newpassword'};
-
-        if ($Mail->{errno}) {
-          $html->message('err', "E-MAIL : $_ERROR", "[$Mail->{errno}] $err_strs{$Mail->{errno}}");
-          return 0;
-        }
-        elsif ($FORM{'6.SEND_MAIL'}) {
-          my $message = $html->tpl_show(_include('mail_test_msg', 'Mail'), $Mail, { OUTPUT2RETURN => 1 });
-          sendmail("$conf{ADMIN_MAIL}", "$Mail->{USER_EMAIL}", "Test mail", "$message", "$conf{MAIL_CHARSET}", "");
-        }
-
-        $Mail = $Mail->mbox_info({ MBOX_ID => $Mail->{MBOX_ID} });
-        $Mail->{EMAIL_ADDR} = $Mail->{USERNAME} . '@' . $Mail->{DOMAIN};
-      }
-
-      # Msgs
-      if (in_array('Msgs', \@MODULES) && $add_values{7} && $FORM{'7.SUBJECT'}) {
-        require "Abills/modules/Msgs/webinterface";
-        $FORM{INNER_MSG} = 1;
-        my $Msgs = Msgs->new($db, $admin, \%conf);
-
-        %FORM      = %{ $add_values{7} };
-        $FORM{UID} = $UID;
-        $FORM{add} = $UID;
-        msgs_admin_add({ SEND_ONLY => 1 });
-      }
-
-      # Abon
-      if (in_array('Abon', \@MODULES) && $add_values{9}) {
-        require "Abills/modules/Abon/webinterface";
-        %FORM         = %{ $add_values{9} };
-        $FORM{UID}    = $UID;
-        $FORM{change} = $UID;
-        abon_user({ QUITE => 1 });
-      }
+#      # Add E-Mail account
+#      my $Mail;
+#      if (in_array('Mail', \@MODULES) && $FORM{'6.USERNAME'}) {
+#        require "Abills/modules/Mail/webinterface";
+#        $Mail = Mail->new($db, $admin, \%conf);
+#
+#        $FORM{'6.newpassword'} = $FORM{'6.PASSWORD'} if ($FORM{'6.PASSWORD'});
+#
+#        $Mail->mbox_add(
+#          {
+#            UID => "$UID",
+#            %{ $add_values{6} },
+#            PASSWORD => $FORM{'6.newpassword'},
+#          }
+#        );
+#        $Mail->{PASSWORD} = $FORM{'6.newpassword'};
+#
+#        if ($Mail->{errno}) {
+#          $html->message('err', "E-MAIL : $_ERROR", "[$Mail->{errno}] $err_strs{$Mail->{errno}}");
+#          return 0;
+#        }
+#        elsif ($FORM{'6.SEND_MAIL'}) {
+#          my $message = $html->tpl_show(_include('mail_test_msg', 'Mail'), $Mail, { OUTPUT2RETURN => 1 });
+#          sendmail("$conf{ADMIN_MAIL}", "$Mail->{USER_EMAIL}", "Test mail", "$message", "$conf{MAIL_CHARSET}", "");
+#        }
+#
+#        $Mail = $Mail->mbox_info({ MBOX_ID => $Mail->{MBOX_ID} });
+#        $Mail->{EMAIL_ADDR} = $Mail->{USERNAME} . '@' . $Mail->{DOMAIN};
+#      }
+#
+#      # Msgs
+#      if (in_array('Msgs', \@MODULES) && $add_values{7} && $FORM{'7.SUBJECT'}) {
+#        require "Abills/modules/Msgs/webinterface";
+#        $FORM{INNER_MSG} = 1;
+#        my $Msgs = Msgs->new($db, $admin, \%conf);
+#
+#        %FORM      = %{ $add_values{7} };
+#        $FORM{UID} = $UID;
+#        $FORM{add} = $UID;
+#        msgs_admin_add({ SEND_ONLY => 1 });
+#      }
+#
+#      # Abon
+#      if (in_array('Abon', \@MODULES) && $add_values{9}) {
+#        require "Abills/modules/Abon/webinterface";
+#        %FORM         = %{ $add_values{9} };
+#        $FORM{UID}    = $UID;
+#        $FORM{change} = $UID;
+#        abon_user({ QUITE => 1 });
+#      }
 
       #Fees wizard form
       if ($add_values{10}) {
@@ -2159,7 +2162,7 @@ sub dv_wizard_user {
       # Info
       my $dv = $Dv->info($UID);
       my $pi = $user->pi({ UID => $UID });
-      $user  = $user->info($UID, { SHOW_PASSWORD => 1 });
+      $user = $user->info($UID, { SHOW_PASSWORD => 1 });
 
       if (!$attr->{SHORT_REPORT}) {
         $FORM{ex_message} = $message;
@@ -2218,287 +2221,287 @@ sub dv_wizard_user {
     }
 
   }
-#
-#  foreach my $k (keys %FORM) {
-#    next if ($k eq '__BUFFER');
-#    my $val = $FORM{$k};
-#    if ($k =~ /\d+\.([A-Z0-9\_]+)/ig) {
-#      my $key = $1;
-#      $FORM{"$key"} = $val;
-#    }
-#  }
-#
-#  my $users_defaults = $users->defaults();
-#  $users_defaults->{DISABLE} = ($users_defaults->{DISABLE} == 1) ? ' checked' : '';
-#  $users_defaults->{GID} = sel_groups();
-#
-#  #Info fields
-#
-#  if (!$attr->{NO_EXTRADATA}) {
-#    $users_defaults->{EXDATA} = $user_info->{EXDATA} .= $html->tpl_show(templates('form_user_exdata_add'), { CREATE_BILL => ' checked' }, { OUTPUT2RETURN => 1 });
-#    $users_defaults->{EXDATA} .= $html->tpl_show(templates('form_ext_bill_add'), { CREATE_EXT_BILL => ' checked' }, { OUTPUT2RETURN => 1 }) if ($conf{EXT_BILL_ACCOUNT});
-#  }
-#
-#  my $dv_defaults = $Dv->defaults();
-#  $dv_defaults->{STATUS_SEL} = $html->form_select(
-#    'STATUS',
-#    {
-#      SELECTED => $FORM{STATUS} || undef,
-#      SEL_ARRAY    => \@service_status,
-#      STYLE        => \@service_status_colors,
-#      ARRAY_NUM_ID => 1
-#    }
-#  );
-#
-#  $dv_defaults->{TP_ID} = $html->form_select(
-#    'TP_ID',
-#    {
-#      SELECTED          => $FORM{TP_ID},
-#      SEL_MULTI_ARRAY   => $tariffs->list({ MODULE => 'Dv' }),
-#      MULTI_ARRAY_KEY   => 0,
-#      MULTI_ARRAY_VALUE => 1,
-#    }
-#  );
-#  delete($FORM{TP_ID});
-#  $dv_defaults->{CALLBACK} = '';
-#
-#  my $password_form;
-#  $password_form->{GEN_PASSWORD} = mk_unique_value(8);
-#  $password_form->{PW_CHARS}     = $conf{PASSWD_SYMBOLS} || "abcdefhjmnpqrstuvwxyz23456789ABCDEFGHJKLMNPQRSTUVWYXZ";
-#  $password_form->{PW_LENGTH}    = $conf{PASSWD_LENGTH} || 6;
-#
-#  #Info fields
-#  my %pi_form = ();
-#
-#  my $i = 0;
-#
-#  my $list = $users->config_list({ PARAM => 'ifu*', SORT => 2 });
-#
-#  foreach my $line (@$list) {
-#    my $field_id = '';
-#    if ($line->[0] =~ /ifu(\S+)/) {
-#      $field_id = "3." . $1;
-#      my ($position, $type, $name, $user_portal) = split(/:/, $line->[1]);
-#
-#      my $input = '';
-#      if ($type == 2) {
-#        my $table_name = $field_id;
-#        $table_name =~ s/3\.//;
-#
-#        $input = $html->form_select(
-#          "$field_id",
-#          {
-#            SELECTED          => $FORM{$field_id},
-#            SEL_MULTI_ARRAY   => $users->info_lists_list({ LIST_TABLE => $table_name . '_list' }),
-#            MULTI_ARRAY_KEY   => 0,
-#            MULTI_ARRAY_VALUE => 1,
-#            SEL_OPTIONS       => { 0 => '-N/S-' },
-#            NO_ID             => 1
-#          }
-#        );
-#
-#      }
-#      elsif ($type == 4) {
-#        $input = $html->form_input($field_id, 1, { TYPE => 'checkbox', STATE => ($FORM{$field_id}) ? 1 : undef });
-#      }
-#      elsif ($type == 3) {
-#        $input = $html->form_textarea($field_id, "$users->{INFO_FIELDS_VAL}->[$i]");
-#      }
-#      elsif ($type == 13) {
-#        $input = $html->form_input($field_id, "$users->{INFO_FIELDS_VAL}->[$i]", { TYPE => 'file' });
-#      }
-#      else {
-#        $input = $html->form_input($field_id, "", { SIZE => 40 });
-#      }
-#
-#      $pi_form{INFO_FIELDS} .= "<tr><td>$name:</td><td>$input</td></tr>\n";
-#      $i++;
-#    }
-#  }
-#
-#  if ($conf{DOCS_CONTRACT_TYPES}) {
-#
-#    #PREFIX:SUFIX:NAME;
-#
-#    $conf{DOCS_CONTRACT_TYPES} =~ s/\n//g;
-#    my (@contract_types_list) = split(/;/, $conf{DOCS_CONTRACT_TYPES});
-#
-#    my %CONTRACTS_LIST_HASH = ();
-#    foreach my $line (@contract_types_list) {
-#      my ($prefix, $sufix, $name, $tpl_name) = split(/:/, $line);
-#      $prefix =~ s/ //g;
-#      $CONTRACTS_LIST_HASH{"$prefix|$sufix"} = $name;
-#    }
-#
-#    $pi_form{CONTRACT_TYPE} = " $_TYPE: "
-#    . $html->form_select(
-#      'CONTRACT_TYPE',
-#      {
-#        SELECTED => '',
-#        SEL_HASH => { '' => '', %CONTRACTS_LIST_HASH },
-#        NO_ID    => 1
-#      }
-#    );
-#  }
-#
-#  $pi_form{PASPORT_DATE} = $html->date_fld2(
-#    'PASPORT_DATE',
-#    {
-#      FORM_NAME => 'user_form',
-#      WEEK_DAYS => \@WEEKDAYS,
-#      MONTHES   => \@MONTHES,
-#      DATE      => $user_pi->{PASPORT_DATE}
-#    }
-#  );
-#
-#  $pi_form{CONTRACT_DATE} = $html->date_fld2(
-#    'CONTRACT_DATE',
-#    {
-#      FORM_NAME => 'user_form',
-#      WEEK_DAYS => \@WEEKDAYS,
-#      MONTHES   => \@MONTHES,
-#      DATE      => $user_pi->{CONTRACT_DATE}
-#    }
-#  );
-#
-#  if ($conf{ADDRESS_REGISTER}) {
-#    $pi_form{ADDRESS_TPL} = $html->tpl_show(templates('form_address_sel'), $user_pi, { OUTPUT2RETURN => 1 });
-#  }
-#  else {
-#    $pi_form{ADDRESS_TPL} = $html->tpl_show(templates('form_address'), undef, { OUTPUT2RETURN => 1 });
-#  }
-#
-#  $dv_defaults->{JOIN_SERVICE} = '';
-#  $list = $Nas->ip_pools_list({ STATIC => 1 });
-#
-#  $dv_defaults->{STATIC_IP_POOL} = $html->form_select(
-#    'STATIC_IP_POOL',
-#    {
-#      SELECTED          => $FORM{STATIC_POOL},
-#      SEL_MULTI_ARRAY   => [ [ '', '' ], @$list ],
-#      MULTI_ARRAY_KEY   => 8,
-#      MULTI_ARRAY_VALUE => '1',
-#      NO_ID             => 1
-#    }
-#  );
-#
-#  my %tpls = (
-#    "01:$_LOGIN::"  => $html->tpl_show(templates('form_user'),     { %$users_defaults, %FORM }, { OUTPUT2RETURN => 1, ID => 'FORM_USER' }),
-#    "02:$_PASSWD::" => $html->tpl_show(templates('form_password'), { %$password_form,  %FORM }, { OUTPUT2RETURN => 1, ID => 'FORM_PASSWORD' }),
-#    "03:$_INFO::"   => $html->tpl_show(templates('form_pi'),       { %pi_form,         %FORM }, { OUTPUT2RETURN => 1, ID => 'FORM_PI' }),
-#    "04:Internet::" => $html->tpl_show(_include('dv_user', 'Dv'), { %$dv_defaults, %FORM }, { OUTPUT2RETURN => 1, ID => 'DV_USER' }),
-#  );
-#
-#  #Payments
-#  if ($permissions{1} && $permissions{1}{1}) {
-#    $Payments->{SEL_METHOD} = $html->form_select(
-#      'METHOD',
-#      {
-#        SELECTED => $FORM{METHOD} || undef,
-#        SEL_ARRAY    => \@PAYMENT_METHODS,
-#        ARRAY_NUM_ID => 1
-#      }
-#    );
-#    $Payments->{SUM}    = '0.00';
-#    $payments->{SEL_ER} = $html->form_select(
-#      'ER',
-#      {
-#        SELECTED          => undef,
-#        SEL_MULTI_ARRAY   => [ [ '', '', '', '', '' ], @{ $Payments->exchange_list() } ],
-#        MULTI_ARRAY_KEY   => 4,
-#        MULTI_ARRAY_VALUE => '1,2',
-#        NO_ID             => 1
-#      }
-#    );
-#
-#    $tpls{"05:$_PAYMENTS::"} = $html->tpl_show(templates('form_payments'), $payments, { OUTPUT2RETURN => 1, ID => 'FORM_PAYMENTS' });
-#  }
-#
-#  #If mail module added
-#  if (in_array('Mail', \@MODULES)) {
-#    require "Abills/modules/Mail/webinterface";
-#    my $Mail = Mail->new($db, $admin, \%conf);
-#
-#    $Mail->{PASSWORD} = qq{  
-#	<tr><td>$_PASSWD:</td><td><input type="password" id="text_pma_pw_mail" name="newpassword" title="$_PASSWD" onchange="pred_password.value = 'userdefined';" /></td></tr>
-#  <tr><td>$_CONFIRM_PASSWD:</td><td><input type="password" name="confirm" id="text_pma_pw2_mail" title="$_CONFIRM" onchange="pred_password.value = 'userdefined';" /></td></tr>
-#  <tr><td>  <input type="button" id="button_generate_password_mail" value="$_GET $_USER $_PASSWD" onclick="CopyInputField('text_pma_pw', 'generated_pw_mail');" />
-#          <input type="button" id="button_copy_password_mail" value="Copy" onclick="CopyInputField('generated_pw_mail', 'text_pma_pw_mail'); CopyInputField('generated_pw_mail', 'text_pma_pw2_mail')" />
-#    </td><td><input type="text" name="generated_pw" id="generated_pw_mail" /></td></tr>
-#     };
-#
-#    $Mail->{SEND_MAIL} = 'checked';
-#
-#    $Mail->{DOMAINS_SEL} = $html->form_select(
-#      'DOMAIN_ID',
-#      {
-#        SELECTED          => $Mail->{DOMAIN_ID},
-#        SEL_MULTI_ARRAY   => $Mail->domain_list(),
-#        MULTI_ARRAY_KEY   => 8,
-#        MULTI_ARRAY_VALUE => 0,
-#        SEL_OPTIONS       => { 0 => '-N/S-' },
-#        NO_ID             => 1
-#      }
-#    );
-#
-#    $tpls{"06:E-Mail::"} = $html->tpl_show(_include('mail_box', 'Mail'), $Mail, { OUTPUT2RETURN => 1, ID => 'MAIL_BOX' });
-#  }
-#
-#  #If msgs module added
-#  if (in_array('Msgs', \@MODULES) && !defined($FROM{CARDS_FORM})) {
-#    require "Abills/modules/Msgs/webinterface";
-#    my $Msgs = Msgs->new($db, $admin, \%conf);
-#    $FORM{UID} = -1;
-#    $tpls{"07:$_MESSAGE::"} = msgs_admin_add({ OUTPUT2RETURN => 1 });
-#  }
-#
-#  $tpls{"10:$_FEES::"} = form_fees_wizard({ OUTPUT2RETURN => 1 });
-#
-#  if ($attr->{TPLS}) {
-#    while (my ($k, $v) = each %{ $attr->{TPLS} }) {
-#      $tpls{$k} = $v;
-#    }
-#  }
-#
-#  my $wizard;
-#
-#  my $template         = '';
-#  my @sorted_templates = sort keys %tpls;
-#
-#  foreach my $key (@sorted_templates) {
-#    my ($n, $descr, $pre, $post) = split(/:/, $key, 4);
-#    $n = int($n);
-#    $template .= "<tr class='title_color'><th>$descr</th></tr>\n";
-#    my $sub_tpl .= $html->tpl_show($tpls{"$key"}, $wizard, { OUTPUT2RETURN => 1, ID => "$descr" });
-#    $sub_tpl =~ s/(<input .*?UID.*?>)//gi;
-#    $sub_tpl =~ s/(<input .*?index.*?>)//gi;
-#    $sub_tpl =~ s/name=[\'\"]?([A-Z_0-9]+)[\'\"]? /name=$n.$1 /ig;
-#    my $class = ($n % 2) ? 'odd' : 'even';
-#    $template .= "<tr><th class=$class align=center>" . $sub_tpl . "</th></tr>\n";
-#  }
-#
-#  $template =~ s/(<form .*?>)//gi;
-#  $template =~ s/<\/form>//ig;
-#  $template =~ s/(<input .*?type=submit.*?>)//gi;
-#  $template =~ s/<hr>//gi;
-#
-#  $template = "<table width=\"100%\">$template</table>";
-#  if ($attr->{OUTPUT2RETURN}) {
-#    return $template;
-#  }
-#
-#  print $html->form_main(
-#    {
-#      CONTENT => $template,
-#      HIDDEN  => { index => "$index" },
-#      SUBMIT  => { add => "$_ADD" },
-#      NAME    => 'user_form',
-#      ENCTYPE => 'multipart/form-data'
-#    }
-#  );
+
+  #
+  #  foreach my $k (keys %FORM) {
+  #    next if ($k eq '__BUFFER');
+  #    my $val = $FORM{$k};
+  #    if ($k =~ /\d+\.([A-Z0-9\_]+)/ig) {
+  #      my $key = $1;
+  #      $FORM{"$key"} = $val;
+  #    }
+  #  }
+  #
+  #  my $users_defaults = $users->defaults();
+  #  $users_defaults->{DISABLE} = ($users_defaults->{DISABLE} == 1) ? ' checked' : '';
+  #  $users_defaults->{GID} = sel_groups();
+  #
+  #  #Info fields
+  #
+  #  if (!$attr->{NO_EXTRADATA}) {
+  #    $users_defaults->{EXDATA} = $user_info->{EXDATA} .= $html->tpl_show(templates('form_user_exdata_add'), { CREATE_BILL => ' checked' }, { OUTPUT2RETURN => 1 });
+  #    $users_defaults->{EXDATA} .= $html->tpl_show(templates('form_ext_bill_add'), { CREATE_EXT_BILL => ' checked' }, { OUTPUT2RETURN => 1 }) if ($conf{EXT_BILL_ACCOUNT});
+  #  }
+  #
+  #  my $dv_defaults = $Dv->defaults();
+  #  $dv_defaults->{STATUS_SEL} = $html->form_select(
+  #    'STATUS',
+  #    {
+  #      SELECTED => $FORM{STATUS} || undef,
+  #      SEL_ARRAY    => \@service_status,
+  #      STYLE        => \@service_status_colors,
+  #      ARRAY_NUM_ID => 1
+  #    }
+  #  );
+  #
+  #  $dv_defaults->{TP_ID} = $html->form_select(
+  #    'TP_ID',
+  #    {
+  #      SELECTED          => $FORM{TP_ID},
+  #      SEL_MULTI_ARRAY   => $tariffs->list({ MODULE => 'Dv' }),
+  #      MULTI_ARRAY_KEY   => 0,
+  #      MULTI_ARRAY_VALUE => 1,
+  #    }
+  #  );
+  #  delete($FORM{TP_ID});
+  #  $dv_defaults->{CALLBACK} = '';
+  #
+  #  my $password_form;
+  #  $password_form->{GEN_PASSWORD} = mk_unique_value(8);
+  #  $password_form->{PW_CHARS}     = $conf{PASSWD_SYMBOLS} || "abcdefhjmnpqrstuvwxyz23456789ABCDEFGHJKLMNPQRSTUVWYXZ";
+  #  $password_form->{PW_LENGTH}    = $conf{PASSWD_LENGTH} || 6;
+  #
+  #  #Info fields
+  #  my %pi_form = ();
+  #
+  #  my $i = 0;
+  #
+  #  my $list = $users->config_list({ PARAM => 'ifu*', SORT => 2 });
+  #
+  #  foreach my $line (@$list) {
+  #    my $field_id = '';
+  #    if ($line->[0] =~ /ifu(\S+)/) {
+  #      $field_id = "3." . $1;
+  #      my ($position, $type, $name, $user_portal) = split(/:/, $line->[1]);
+  #
+  #      my $input = '';
+  #      if ($type == 2) {
+  #        my $table_name = $field_id;
+  #        $table_name =~ s/3\.//;
+  #
+  #        $input = $html->form_select(
+  #          "$field_id",
+  #          {
+  #            SELECTED          => $FORM{$field_id},
+  #            SEL_MULTI_ARRAY   => $users->info_lists_list({ LIST_TABLE => $table_name . '_list' }),
+  #            MULTI_ARRAY_KEY   => 0,
+  #            MULTI_ARRAY_VALUE => 1,
+  #            SEL_OPTIONS       => { 0 => '-N/S-' },
+  #            NO_ID             => 1
+  #          }
+  #        );
+  #
+  #      }
+  #      elsif ($type == 4) {
+  #        $input = $html->form_input($field_id, 1, { TYPE => 'checkbox', STATE => ($FORM{$field_id}) ? 1 : undef });
+  #      }
+  #      elsif ($type == 3) {
+  #        $input = $html->form_textarea($field_id, "$users->{INFO_FIELDS_VAL}->[$i]");
+  #      }
+  #      elsif ($type == 13) {
+  #        $input = $html->form_input($field_id, "$users->{INFO_FIELDS_VAL}->[$i]", { TYPE => 'file' });
+  #      }
+  #      else {
+  #        $input = $html->form_input($field_id, "", { SIZE => 40 });
+  #      }
+  #
+  #      $pi_form{INFO_FIELDS} .= "<tr><td>$name:</td><td>$input</td></tr>\n";
+  #      $i++;
+  #    }
+  #  }
+  #
+  #  if ($conf{DOCS_CONTRACT_TYPES}) {
+  #
+  #    #PREFIX:SUFIX:NAME;
+  #
+  #    $conf{DOCS_CONTRACT_TYPES} =~ s/\n//g;
+  #    my (@contract_types_list) = split(/;/, $conf{DOCS_CONTRACT_TYPES});
+  #
+  #    my %CONTRACTS_LIST_HASH = ();
+  #    foreach my $line (@contract_types_list) {
+  #      my ($prefix, $sufix, $name, $tpl_name) = split(/:/, $line);
+  #      $prefix =~ s/ //g;
+  #      $CONTRACTS_LIST_HASH{"$prefix|$sufix"} = $name;
+  #    }
+  #
+  #    $pi_form{CONTRACT_TYPE} = " $_TYPE: "
+  #    . $html->form_select(
+  #      'CONTRACT_TYPE',
+  #      {
+  #        SELECTED => '',
+  #        SEL_HASH => { '' => '', %CONTRACTS_LIST_HASH },
+  #        NO_ID    => 1
+  #      }
+  #    );
+  #  }
+  #
+  #  $pi_form{PASPORT_DATE} = $html->date_fld2(
+  #    'PASPORT_DATE',
+  #    {
+  #      FORM_NAME => 'user_form',
+  #      WEEK_DAYS => \@WEEKDAYS,
+  #      MONTHES   => \@MONTHES,
+  #      DATE      => $user_pi->{PASPORT_DATE}
+  #    }
+  #  );
+  #
+  #  $pi_form{CONTRACT_DATE} = $html->date_fld2(
+  #    'CONTRACT_DATE',
+  #    {
+  #      FORM_NAME => 'user_form',
+  #      WEEK_DAYS => \@WEEKDAYS,
+  #      MONTHES   => \@MONTHES,
+  #      DATE      => $user_pi->{CONTRACT_DATE}
+  #    }
+  #  );
+  #
+  #  if ($conf{ADDRESS_REGISTER}) {
+  #    $pi_form{ADDRESS_TPL} = $html->tpl_show(templates('form_address_sel'), $user_pi, { OUTPUT2RETURN => 1 });
+  #  }
+  #  else {
+  #    $pi_form{ADDRESS_TPL} = $html->tpl_show(templates('form_address'), undef, { OUTPUT2RETURN => 1 });
+  #  }
+  #
+  #  $dv_defaults->{JOIN_SERVICE} = '';
+  #  $list = $Nas->ip_pools_list({ STATIC => 1 });
+  #
+  #  $dv_defaults->{STATIC_IP_POOL} = $html->form_select(
+  #    'STATIC_IP_POOL',
+  #    {
+  #      SELECTED          => $FORM{STATIC_POOL},
+  #      SEL_MULTI_ARRAY   => [ [ '', '' ], @$list ],
+  #      MULTI_ARRAY_KEY   => 8,
+  #      MULTI_ARRAY_VALUE => '1',
+  #      NO_ID             => 1
+  #    }
+  #  );
+  #
+  #  my %tpls = (
+  #    "01:$_LOGIN::"  => $html->tpl_show(templates('form_user'),     { %$users_defaults, %FORM }, { OUTPUT2RETURN => 1, ID => 'FORM_USER' }),
+  #    "02:$_PASSWD::" => $html->tpl_show(templates('form_password'), { %$password_form,  %FORM }, { OUTPUT2RETURN => 1, ID => 'FORM_PASSWORD' }),
+  #    "03:$_INFO::"   => $html->tpl_show(templates('form_pi'),       { %pi_form,         %FORM }, { OUTPUT2RETURN => 1, ID => 'FORM_PI' }),
+  #    "04:Internet::" => $html->tpl_show(_include('dv_user', 'Dv'), { %$dv_defaults, %FORM }, { OUTPUT2RETURN => 1, ID => 'DV_USER' }),
+  #  );
+  #
+  #  #Payments
+  #  if ($permissions{1} && $permissions{1}{1}) {
+  #    $Payments->{SEL_METHOD} = $html->form_select(
+  #      'METHOD',
+  #      {
+  #        SELECTED => $FORM{METHOD} || undef,
+  #        SEL_ARRAY    => \@PAYMENT_METHODS,
+  #        ARRAY_NUM_ID => 1
+  #      }
+  #    );
+  #    $Payments->{SUM}    = '0.00';
+  #    $payments->{SEL_ER} = $html->form_select(
+  #      'ER',
+  #      {
+  #        SELECTED          => undef,
+  #        SEL_MULTI_ARRAY   => [ [ '', '', '', '', '' ], @{ $Payments->exchange_list() } ],
+  #        MULTI_ARRAY_KEY   => 4,
+  #        MULTI_ARRAY_VALUE => '1,2',
+  #        NO_ID             => 1
+  #      }
+  #    );
+  #
+  #    $tpls{"05:$_PAYMENTS::"} = $html->tpl_show(templates('form_payments'), $payments, { OUTPUT2RETURN => 1, ID => 'FORM_PAYMENTS' });
+  #  }
+  #
+  #  #If mail module added
+  #  if (in_array('Mail', \@MODULES)) {
+  #    require "Abills/modules/Mail/webinterface";
+  #    my $Mail = Mail->new($db, $admin, \%conf);
+  #
+  #    $Mail->{PASSWORD} = qq{
+  #	<tr><td>$_PASSWD:</td><td><input type="password" id="text_pma_pw_mail" name="newpassword" title="$_PASSWD" onchange="pred_password.value = 'userdefined';" /></td></tr>
+  #  <tr><td>$_CONFIRM_PASSWD:</td><td><input type="password" name="confirm" id="text_pma_pw2_mail" title="$_CONFIRM" onchange="pred_password.value = 'userdefined';" /></td></tr>
+  #  <tr><td>  <input type="button" id="button_generate_password_mail" value="$_GET $_USER $_PASSWD" onclick="CopyInputField('text_pma_pw', 'generated_pw_mail');" />
+  #          <input type="button" id="button_copy_password_mail" value="Copy" onclick="CopyInputField('generated_pw_mail', 'text_pma_pw_mail'); CopyInputField('generated_pw_mail', 'text_pma_pw2_mail')" />
+  #    </td><td><input type="text" name="generated_pw" id="generated_pw_mail" /></td></tr>
+  #     };
+  #
+  #    $Mail->{SEND_MAIL} = 'checked';
+  #
+  #    $Mail->{DOMAINS_SEL} = $html->form_select(
+  #      'DOMAIN_ID',
+  #      {
+  #        SELECTED          => $Mail->{DOMAIN_ID},
+  #        SEL_MULTI_ARRAY   => $Mail->domain_list(),
+  #        MULTI_ARRAY_KEY   => 8,
+  #        MULTI_ARRAY_VALUE => 0,
+  #        SEL_OPTIONS       => { 0 => '-N/S-' },
+  #        NO_ID             => 1
+  #      }
+  #    );
+  #
+  #    $tpls{"06:E-Mail::"} = $html->tpl_show(_include('mail_box', 'Mail'), $Mail, { OUTPUT2RETURN => 1, ID => 'MAIL_BOX' });
+  #  }
+  #
+  #  #If msgs module added
+  #  if (in_array('Msgs', \@MODULES) && !defined($FROM{CARDS_FORM})) {
+  #    require "Abills/modules/Msgs/webinterface";
+  #    my $Msgs = Msgs->new($db, $admin, \%conf);
+  #    $FORM{UID} = -1;
+  #    $tpls{"07:$_MESSAGE::"} = msgs_admin_add({ OUTPUT2RETURN => 1 });
+  #  }
+  #
+  #  $tpls{"10:$_FEES::"} = form_fees_wizard({ OUTPUT2RETURN => 1 });
+  #
+  #  if ($attr->{TPLS}) {
+  #    while (my ($k, $v) = each %{ $attr->{TPLS} }) {
+  #      $tpls{$k} = $v;
+  #    }
+  #  }
+  #
+  #  my $wizard;
+  #
+  #  my $template         = '';
+  #  my @sorted_templates = sort keys %tpls;
+  #
+  #  foreach my $key (@sorted_templates) {
+  #    my ($n, $descr, $pre, $post) = split(/:/, $key, 4);
+  #    $n = int($n);
+  #    $template .= "<tr class='title_color'><th>$descr</th></tr>\n";
+  #    my $sub_tpl .= $html->tpl_show($tpls{"$key"}, $wizard, { OUTPUT2RETURN => 1, ID => "$descr" });
+  #    $sub_tpl =~ s/(<input .*?UID.*?>)//gi;
+  #    $sub_tpl =~ s/(<input .*?index.*?>)//gi;
+  #    $sub_tpl =~ s/name=[\'\"]?([A-Z_0-9]+)[\'\"]? /name=$n.$1 /ig;
+  #    my $class = ($n % 2) ? 'odd' : 'even';
+  #    $template .= "<tr><th class=$class align=center>" . $sub_tpl . "</th></tr>\n";
+  #  }
+  #
+  #  $template =~ s/(<form .*?>)//gi;
+  #  $template =~ s/<\/form>//ig;
+  #  $template =~ s/(<input .*?type=submit.*?>)//gi;
+  #  $template =~ s/<hr>//gi;
+  #
+  #  $template = "<table width=\"100%\">$template</table>";
+  #  if ($attr->{OUTPUT2RETURN}) {
+  #    return $template;
+  #  }
+  #
+  #  print $html->form_main(
+  #    {
+  #      CONTENT => $template,
+  #      HIDDEN  => { index => "$index" },
+  #      SUBMIT  => { add => "$_ADD" },
+  #      NAME    => 'user_form',
+  #      ENCTYPE => 'multipart/form-data'
+  #    }
+  #  );
 
 }
-
 
 #**********************************************************
 # form_payments
@@ -2655,7 +2658,7 @@ sub form_payments () {
     $payments->{SEL_ER} = $html->form_select(
       'ER',
       {
-        SELECTED          => $FORM{ER} ,
+        SELECTED          => $FORM{ER},
         SEL_MULTI_ARRAY   => [ [ '', '', '', '', '', '' ], @{$er_list} ],
         MULTI_ARRAY_KEY   => 5,
         MULTI_ARRAY_VALUE => '1,2',
@@ -2725,10 +2728,10 @@ sub form_payments () {
             MULTI_ARRAY_KEY          => 13,
             MULTI_ARRAY_VALUE        => '0,1,3',
             MULTI_ARRAY_VALUE_PREFIX => "$_NUM: ,$_DATE: ,$_SUM:",
-            SEL_OPTIONS              => { 0 => '', (!$conf{PAYMENTS_NOT_CREATE_INVOICE}) ? (create => $_CREATE) : undef },
-            NO_ID                    => 1,
-            MAIN_MENU                => get_function_index('docs_invoices_list'),
-            MAIN_MENU_AGRV           => "UID=$FORM{UID}&INVOICE_ID=$FORM{INVOICE_ID}"
+            SEL_OPTIONS => { 0 => '', (!$conf{PAYMENTS_NOT_CREATE_INVOICE}) ? (create => $_CREATE) : undef },
+            NO_ID       => 1,
+            MAIN_MENU   => get_function_index('docs_invoices_list'),
+            MAIN_MENU_AGRV => "UID=$FORM{UID}&INVOICE_ID=$FORM{INVOICE_ID}"
           }
         );
 
@@ -2754,26 +2757,26 @@ sub form_payments () {
     form_admins();
     return 0;
   }
-#  elsif ($FORM{UID}) {
-#    $index = get_function_index('form_payments');
-#    form_users();
-#    return 0;
-#  }
-#  elsif ($index != 7) {
-#    $FORM{type} = $FORM{subf} if ($FORM{subf});
-#    form_search(
-#      {
-#        HIDDEN_FIELDS => {
-#          subf => ($FORM{subf}) ? $FORM{subf} : undef,
-#          COMPANY_ID => $FORM{COMPANY_ID}
-#        },
-#        ID => 'SEARCH_PAYMENTS'
-#      }
-#    );
-#  }
+
+  #  elsif ($FORM{UID}) {
+  #    $index = get_function_index('form_payments');
+  #    form_users();
+  #    return 0;
+  #  }
+  #  elsif ($index != 7) {
+  #    $FORM{type} = $FORM{subf} if ($FORM{subf});
+  #    form_search(
+  #      {
+  #        HIDDEN_FIELDS => {
+  #          subf => ($FORM{subf}) ? $FORM{subf} : undef,
+  #          COMPANY_ID => $FORM{COMPANY_ID}
+  #        },
+  #        ID => 'SEARCH_PAYMENTS'
+  #      }
+  #    );
+  #  }
 
   #return 0 if (!$permissions{1}{0});
-
 
   if (!defined($FORM{sort})) {
     $LIST_PARAMS{SORT} = 1;
@@ -2790,7 +2793,7 @@ sub form_payments () {
 
   push @caption, '-';
 
-  my $payments_list  = $payments->list({%LIST_PARAMS, COLS_NAME=>1});
+  my $payments_list = $payments->list({ %LIST_PARAMS, COLS_NAME => 1 });
   my $table = $html->table(
     {
       width      => '100%',
@@ -2800,8 +2803,9 @@ sub form_payments () {
       cols_align => [ 'right', 'left', 'right', 'right', 'left', 'left', 'right', 'right', 'left', 'left', 'center:noprint' ],
       qs         => $pages_qs,
       pages      => $payments->{TOTAL},
+
       #EXPORT     => ' XML:&xml=1',
-      ID         => 'PAYMENTS'
+      ID => 'PAYMENTS'
     }
   );
 
@@ -2812,15 +2816,10 @@ sub form_payments () {
     my @rows = (
       $html->b($payment->{id}),
       $html->button($payment->{login}, "index=15&UID=$payment->{uid}"),
-      $payment->{date}, 
-      $payment->{dsc} . (($payment->{inner_describe}) ? $html->br() . $html->b($payment->{inner_describe}) : ''),
-      $payment->{sum}, 
-      "$payment->{last_deposit}", 
-      $PAYMENTS_METHODS{ $payment->{method} },
-      "$payment->{ext_id}", 
-      ($conf{EXT_BILL_ACCOUNT} && $attr->{USER_INFO}) ? $BILL_ACCOUNTS{ $payment->{bill_id} } : "$payment->{bill_id}",
-      "$payment->{admin_name}", 
-      "$payment->{ip}"
+      $payment->{date}, $payment->{dsc} . (($payment->{inner_describe}) ? $html->br() . $html->b($payment->{inner_describe}) : ''),
+      $payment->{sum}, "$payment->{last_deposit}", $PAYMENTS_METHODS{ $payment->{method} },
+      "$payment->{ext_id}", ($conf{EXT_BILL_ACCOUNT} && $attr->{USER_INFO}) ? $BILL_ACCOUNTS{ $payment->{bill_id} } : "$payment->{bill_id}",
+      "$payment->{admin_name}", "$payment->{ip}"
     );
 
     if ($conf{SYSTEM_CURRENCY}) {
@@ -2846,8 +2845,6 @@ sub form_payments () {
   }
 
 }
-
-
 
 #**********************************************************
 # form_login
@@ -2895,9 +2892,6 @@ sub form_login {
 
   $OUTPUT{BODY} = $html->tpl_show(templates('form_client_login'), \%first_page);
 }
-
-
-
 
 1
 

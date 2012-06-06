@@ -10,23 +10,23 @@
 не оплативших 2 и более месяцев - <a href=\"$SELF_URL?SHOW_REPORT=total_debtors\">%REPORT_DEBETORS2%</a> </li>
 </ul>
 <form action=\"$SELF_URL\" method=\"get\" name=\"search_form\" >
-<a href='$SELF_URL?' class='href_buttons'>$_USERS</a>
+<input type=hidden name=index value=11>
+<button name='SEARCH' value=1>$_USERS</button>
 <br />
 <ul id=\"buttons\">
   <li>
-<a href='$SELF_URL?add=1' class='href_buttons'>$_CREATE</a>
+<button name=NEW_USER value=1>$_CREATE</button>
   </li>
   <li>
-<a href='$SELF_URL?del=1' class='href_buttons'>$_DEL</a>
+<button name=del value=1>$_DEL</button>
   </li>
   <li>
-<a href='$SELF_URL?del=1' class='href_buttons'>$_BLOCK</a>
+<button name=STATUS value=1>$_DISABLE</button>
   </li>
 </ul>
 <div id=\"search\">
-<button type=\"submit\">$_SEARCH</button>
+<button type=\"submit\" name=\"SEARCH\" value=1>$_SEARCH</button>
 <input type=\"text\" name=\"QUERY\" value=\"\"/>
-<input type=\"hidden\" name=\"SEARCH\" value=\"1\"/>
 <select name=\"TYPE\">
   <option value=\"login\">$_LOGIN</option>
   <option value=\"address\">$_ADDRESS</option>

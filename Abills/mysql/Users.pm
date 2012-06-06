@@ -1049,8 +1049,6 @@ sub change {
     DELETED        => 'deleted'
   );
 
-  print "!! $attr->{CREDIT} //";
-
   my $old_info = $self->info($attr->{UID});
 
   if ($attr->{CREATE_BILL}) {
