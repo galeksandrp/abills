@@ -2400,9 +2400,10 @@ sub ipn_detail_rotate {
     $DEBUG .= "Make log rotate\n" if ($debug > 0);
     $Ipn->ipn_log_rotate(
       {
-        DETAIL => 1,
-        LOG    => 1,
-        PERIOD => $conf{IPN_DETAIL_CLEAN_PERIOD} || 180
+        DETAIL    => 1,
+        LOG       => 1,
+        PERIOD    => $conf{IPN_DETAIL_CLEAN_PERIOD} || 180,
+        DAILY_LOG => $conf{IPN_DAILY_LOG_ROTATE} || 0,
       }
     );
 
