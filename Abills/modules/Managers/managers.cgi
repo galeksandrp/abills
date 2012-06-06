@@ -2889,7 +2889,9 @@ sub form_login {
       EXT_PARAMS => { qt_locale => \%QT_LANG }
     }
   );
-
+  
+  $first_page{TITLE}="Manager Form";
+  
   $OUTPUT{BODY} = $html->tpl_show(templates('form_client_login'), \%first_page);
 }
 

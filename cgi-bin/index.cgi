@@ -567,6 +567,7 @@ sub form_login {
     }
   );
 
+  $first_page{TITLE}=$_USER_PORTAL;
   $OUTPUT{BODY} = $html->tpl_show(templates('form_client_login'), \%first_page);
 }
 
