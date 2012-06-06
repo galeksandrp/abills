@@ -194,12 +194,12 @@ if (check_ip($ENV{REMOTE_ADDR}, '213.186.115.164/24')) {
   exit;
 }
 elsif ($FORM{__BUFFER} =~ /^{.+}$/ && 
-		 check_ip($ENV{REMOTE_ADDR}, '75.101.163.115,107.22.173.15,107.22.173.86,213.154.214.76,217.117.64.232,217.117.64.23')) {
+  check_ip($ENV{REMOTE_ADDR}, '75.101.163.115,107.22.173.15,107.22.173.86,213.154.214.76,217.117.64.232-217.117.64.238')) {
   require "Private_bank_json.pm";
   exit;
 }
 # Privat bank terminal interface
-elsif (check_ip($ENV{REMOTE_ADDR}, '217.117.64.232/28,75.101.163.115,213.154.214.76')) {
+elsif (check_ip($ENV{REMOTE_ADDR}, '107.22.173.15,217.117.64.232/28,75.101.163.115,213.154.214.76')) {
   require "Privat_terminal.pm";
   exit;
 }

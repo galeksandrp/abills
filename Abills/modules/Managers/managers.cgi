@@ -2091,13 +2091,13 @@ sub dv_wizard_user {
           }
           return 0;
         }
-        elsif (!$FORM{SERIAL}) {
-          if (!$add_values{4}{STATUS} && $Dv->{TP_INFO}->{MONTH_FEE} > 0) {
-            $Dv->{UID}              = $UID;
-            $Dv->{ACCOUNT_ACTIVATE} = $add_values{1}{ACTIVATE};
-            $user_fees              = dv_get_month_fee($Dv);
-          }
-        }
+#        elsif (! $FORM{SERIAL}) {
+#          if (!$add_values{4}{STATUS} && $Dv->{TP_INFO}->{MONTH_FEE} > 0) {
+#            $Dv->{UID}              = $UID;
+#            $Dv->{ACCOUNT_ACTIVATE} = $add_values{1}{ACTIVATE};
+#            $user_fees              = dv_get_month_fee($Dv);
+#          }
+#        }
       }
 
 #      # Add E-Mail account
