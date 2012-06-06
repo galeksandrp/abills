@@ -1380,7 +1380,7 @@ sub ipn_user_activate {
           ipn_change_status({ STATUS => 'ONLINE_ENABLE', %DATA });
 
           if ($ENV{HTTP_REFERER} && $ENV{HTTP_REFERER} !~ /index.cgi/ && $html->{SID}) {
-            print "Content-Type: text/html\n\n";
+            #print "Content-Type: text/html\n\n";
             print "Location: $ENV{HTTP_REFERER}" . "\n\n";
             exit;
           }
