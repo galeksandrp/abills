@@ -2647,6 +2647,7 @@ Flags: X - disabled, I - invalid
       if ($debug < 5) {
         $result .= `$SSH $nas_admin\@$nas_host "$cmd"; echo "$cmd" >> /var/log/shaper`;
       }
+      print "$result\n" if ($debug > 1);
     }
   }
 
