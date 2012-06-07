@@ -1152,7 +1152,7 @@ sub list {
   l.acct_session_id, 
   l.uid, 
   UNIX_TIMESTAMP(l.start),
-  l.duration,
+  l.duration AS duration_sec,
   l.recv2, 
   l.sent2
   FROM dv_log l

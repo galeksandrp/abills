@@ -150,11 +150,20 @@ else {
   print $html->{OUTPUT};
 }
 
+
+
+
+
+
+
+
+
+
+
 #**********************************************************
 #
 #**********************************************************
-sub form_main {
-
+sub form_reports_main {
   # Всего пользователей
   $users_total = $Dv->list(
     {
@@ -248,7 +257,15 @@ sub form_main {
   );
 
   $OUTPUT{REPORT_DEBETORS2} = $Dv->{TOTAL};
+}
 
+
+#**********************************************************
+#
+#**********************************************************
+sub form_main {
+
+  form_reports_main();
 ############## SEARCH
   #					LOGIN           => $FORM{QUERY},
   #					COLS_NAME       => 1,
@@ -277,14 +294,27 @@ sub form_main {
 #
 #**********************************************************
 sub form_reports {
-  my $table = $html->table(
+
+  form_reports_main();
+
+  my$table = $html->table(
+      {
+        width      => '100%',
+        cols_align => [ 'right', 'right' ],
+        rows       => [ [ "$_TOTAL:", $html->b($Dv->{TOTAL}) ] ]
+      }
+    );
+  $table->show();
+
+
+  $table = $html->table(
     {
       width   => '100%',
       caption => "$_REPORTS",
       border  => 1,
       title   => [ "$_ONTRACT_ID", "$_FIO", "$_ADDRESS", "$_TARIF_PLAN", "$_STATUS", "$_CONTRACT $_DATE", 'дата фактического подключения', 'дата отключения' ],
       cols_align => [ 'left', 'right', 'right', 'right', 'center', 'center' ],
-      pages      => $users->{TOTAL},
+      pages      => $Dv->{TOTAL},
       ID         => 'REPORT_USERS',
     }
   );
@@ -310,11 +340,16 @@ sub form_reports {
   }
 
   foreach my $u (@$ref) {
-    $table->addrow($u->{id}, $u->{fio}, $u->{address_street} . ' ' . $u->{address_build} . ' ' . $u->{address_flat}, $u->{tp_name}, $service_status[ $u->{dv_status} ], $u->{contract_date}, $u->{registration}, '-',);
-
+    $table->addrow($u->{id}, 
+      $u->{fio}, 
+      $u->{address_street} . ' ' . $u->{address_build} . ' ' . $u->{address_flat}, 
+      $u->{tp_name}, 
+      $service_status[ $u->{dv_status} ], 
+      $u->{contract_date}, 
+      $u->{registration}, '-',);
   }
-
   $table->show();
+
   $filter = $html->tpl_show(_include('managers_filter_reports', 'Managers'), { undef, OUTPUT2RETURN => 1 });
 }
 
@@ -1545,6 +1580,7 @@ sub dv_users {
   }
 
   elsif ($FORM{SEARCH}) {    # and $FORM{QUERY} ne '') {
+    $pages_qs .= "&SEARCH=1";
     if ($FORM{TYPE} eq 'login') {
       $LIST_PARAMS{LOGIN} = "$FORM{QUERY}*";
     }
@@ -1571,6 +1607,7 @@ sub dv_users {
       $error_msg = 1;
     }
 
+    $pages_qs .= "&TYPE=$FORM{TYPE}&QUERY=$FORM{QUERY}";
     $list = $Dv->list({ %LIST_PARAMS, COLS_NAME => 1 });
 
     if ($Dv->{errno}) {
@@ -1594,7 +1631,6 @@ sub dv_users {
 
     foreach my $line (@$list) {
       $table->addrow(
-
         $html->form_input('UID', $line->{uid}, { TYPE => 'checkbox', OUTPUT2RETURN => 1 }) . $line->{id},
         $line->{contract_id},
         $line->{fio},

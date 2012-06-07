@@ -5,6 +5,8 @@
 <title></title>
 <meta name=\"keywords\" content=\"\" />
 <meta name=\"description\" content=\"\" />
+<script src=\"functions.js\" type=\"text/javascript\" language=\"javascript\"></script>
+<script src='/calendar.js' type=\"text/javascript\" language='JavaScript'></script>
 
 <style type=\"text/css\">
 * {
@@ -221,6 +223,232 @@ font-weight:800;
 .table_border .table_border td {
 	border-bottom:0px solid #f0f0f0;
 }
+
+
+/* calendar icon 
+ input box in default state */
+.tcalInput {
+	background:url(/img/cal.gif) 100% 50% no-repeat;
+	padding-right:20px;
+	cursor:pointer;
+}
+
+/* additional properties for input boxe in activated state, above still applies unless in conflict */
+.tcalActive {
+	background-image:url(/img/no_cal.gif);
+}
+
+/* container of calendar's pop-up */
+#tcal {
+	position:absolute;
+	visibility:hidden;
+	z-index:100;
+	width:170px;
+	background-color:#FFF;
+	margin-top:2px;
+	border:1px solid silver;
+	-moz-box-shadow:3px 3px 4px silver;
+	-webkit-box-shadow:3px 3px 4px silver;
+	box-shadow:3px 3px 4px silver;
+	-ms-filter:\"progid:DXImageTransform.Microsoft.Shadow(Strength=4, Direction=135, Color='silver')\";
+	filter:progid:DXImageTransform.Microsoft.Shadow(Strength=4, Direction=135, Color='silver');
+	padding:0 2px 2px;
+}
+
+/* table containing navigation and current month */
+#tcalControls {
+	border-collapse:collapse;
+	border:0;
+	width:100%;
+}
+
+#tcalControls td {
+	border-collapse:collapse;
+	border:0;
+	width:16px;
+	background-position:50% 50%;
+	background-repeat:no-repeat;
+	cursor:pointer;
+	padding:0;
+}
+
+#tcalControls th {
+	border-collapse:collapse;
+	border:0;
+	line-height:25px;
+	font-size:10px;
+	text-align:center;
+	font-family:Tahoma, Geneva, sans-serif;
+	font-weight:700;
+	white-space:nowrap;
+	padding:0;
+}
+
+#tcalPrevYear {
+	background-image:url(/img/prev_year.gif);
+}
+
+#tcalPrevMonth {
+	background-image:url(/img/prev_mon.gif);
+}
+
+#tcalNextMonth {
+	background-image:url(/img/next_mon.gif);
+}
+
+#tcalNextYear {
+	background-image:url(/img/next_year.gif);
+}
+
+/* table containing week days header and calendar grid */
+#tcalGrid {
+	border-collapse:collapse;
+	border:1px solid silver;
+	width:100%;
+}
+
+#tcalGrid th {
+	border:1px solid silver;
+	border-collapse:collapse;
+	text-align:center;
+	font-family:Tahoma, Geneva, sans-serif;
+	font-size:10px;
+	background-color:gray;
+	color:#FFF;
+	padding:3px 0;
+}
+
+#tcalGrid td {
+	border:0;
+	border-collapse:collapse;
+	text-align:center;
+	font-family:Tahoma, Geneva, sans-serif;
+	width:14%;
+	font-size:11px;
+	cursor:pointer;
+	padding:2px 0;
+}
+
+#tcalGrid td.tcalOtherMonth {
+	color:silver;
+}
+
+#tcalGrid td.tcalWeekend {
+	background-color:#ACD6F5;
+}
+
+#tcalGrid td.tcalToday {
+	border:1px solid red;
+}
+
+#tcalGrid td.tcalSelected {
+	background-color:#FFB3BE;
+}
+
+
+
+#rules {
+	
+	text-align:center;
+	overflow:hidden;
+	height:32px;
+	line-height:30px;
+	padding:0 0 6px;
+}
+
+#rules li {
+	display:inline;
+	padding:0;
+	
+}
+
+#rules .center a {
+	font-weight:100;
+	font-size:11px;
+	background:#eeeeee;
+	border:1px solid #E1E1E1;
+	color:#000000;
+	text-decoration:none;
+	margin:1px;
+	padding:2px 5px;
+	-moz-border-radius: 4px;
+	-webkit-border-radius: 4px;
+	border: 2px solid #ccc;
+}
+
+#rules .center a:hover {
+	background:#FFFFFF;
+	border:1px solid #CADCEB;
+}
+
+#rules .center a.active {
+	background:#FFFFFF;
+	border:1px solid #666;
+	color:#fff;
+}
+
+#pageJumpWindow {
+	border:2px solid #ccc;
+	-moz-border-radius: 4px;
+	-webkit-border-radius: 4px;
+	width:130px;
+	height:40px;
+	display:none;
+	position:absolute;
+	background-color:#FFFFFF;
+	z-index:3;
+	padding:5px;
+	margin:0 auto;
+}
+
+#pageJumpWindow button  {
+	padding:0;
+	border:1px solid #ccc;
+	-moz-border-radius: 2px;
+	-webkit-border-radius: 2px;
+}
+#pageJumpWindow input  {
+	height:19px;
+	border:1px solid #ccc;
+
+}
+
+
+
+#pageJumpWindow h2 {
+	font-size:10px;
+	font-family:Tahoma, Geneva, sans-serif;
+	margin:0 0 -10px;
+}
+
+#buttonJumpMenu {
+	position:relative;
+	width:1px;
+	height:1px;
+	margin:0 auto;
+}
+
+.err_message
+ {
+	background-color:red;
+	color:#000000;
+	height:20px;
+	font-family:Arial, Tahoma, Verdana, Helvetica, sans-serif;
+	font-size:12px;
+}
+
+.info_message
+ {
+	background-color:#FDE302;
+	color:#000000;
+	height:20px;
+	font-family:Arial, Tahoma, Verdana, Helvetica, sans-serif;
+	font-size:12px;
+}
+
+
+
+
 
 
 /* Footer

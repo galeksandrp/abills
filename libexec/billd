@@ -2406,9 +2406,9 @@ sub check_speed_mikrotik {
   #Get TP speed
   my %TARIF_SPEEDS = ();
   my %class2nets   = ();
+  $Dv->{debug}=1 if ($debug>6);
   my $list         = $Dv->get_speed({ CHECK_NETS => 1 ,
-  	                                  TP_ID      => $ARGV->{TP_ID} || undef
-  	                                  
+  	                                  TP_ID      => $ARGV->{TP_ID} || undef  	                                  
   	                                  });
 
   foreach my $line (@$list) {
@@ -2556,7 +2556,7 @@ Flags: X - disabled, I - invalid
 
         #Global Shapper
         if ($traf_type == 0) {
-          my $count = get_mikrotik_value(qq{ /ip firewall mangle print count-only where new-packet-mark=ALLOW_GLOBAL_$tp_id }, \%NAS);
+          my $count = get_mikrotik_value('/ip firewall mangle print count-only where new-packet-mark=ALLOW_TRAFFIC_CLASS_'. $tp_id . '_in' , \%NAS);
 
           if (!$count->[0] || $count->[0] == 0) {
             push @commands,
@@ -2597,12 +2597,10 @@ Flags: X - disabled, I - invalid
             . "\" packet-mark=ALLOW_TRAFFIC_CLASS_" . $tp_id . '_' . $traf_type . '_in'
             . " priority=$priority burst-limit=0 burst-threshold=0 burst-time=0s";
             push @commands,
-              "/queue tree add name=\"" . 'TP_' 
+              '/queue tree add name="' . 'TP_' 
             . $tp_id . "_out_traffic_class_" . $traf_type
-            . "\" parent=global-out queue=\"" . 'TP_'
-            . $tp_id . "_out_traffic_class_" . $traf_type
-            . "\" packet-mark=ALLOW_TRAFFIC_CLASS_"
-            . $tp_id . '_' . $traf_type . '_out'
+            . '" parent=global-out queue="' . 'TP_' . $tp_id . '_out_traffic_class_' . $traf_type
+            . '" packet-mark=ALLOW_TRAFFIC_CLASS_' . $tp_id . '_' . $traf_type . '_out'
             . " priority=$priority burst-limit=0 burst-threshold=0 burst-time=0s";
           }
         }
@@ -2614,7 +2612,7 @@ Flags: X - disabled, I - invalid
     foreach my $line (@$list) {
       my $id   = $line->[0];
       my $nets = $line->[2];
-      $count = get_mikrotik_value(qq{/ip firewall address-list print count-only where list=TRAFFIC_CLASS_$id }, \%NAS);
+      $count   = get_mikrotik_value(qq{/ip firewall address-list print count-only where list=TRAFFIC_CLASS_$id }, \%NAS);
       if (!$count->[0] || $count->[0] == 0) {
 
         #Add traffic_class nets
@@ -2635,9 +2633,9 @@ Flags: X - disabled, I - invalid
       $cmd =~ s/\"/\\\"/g;
       print "$cmd\n" if ($debug > 0);
       if ($debug < 5) {
-        $result .= `$SSH $nas_admin\@$nas_host "$cmd"; echo "$cmd" >> /var/log/shaper`;
+        $result = `$SSH $nas_admin\@$nas_host "$cmd"; echo "$cmd" >> /var/log/shaper`;
       }
-      print "$result\n" if ($debug > 1);
+      print "$result\n" if ($debug > 2);
     }
   }
 
