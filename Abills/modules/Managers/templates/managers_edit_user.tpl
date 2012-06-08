@@ -10,7 +10,7 @@
 <!-- <b>$_COMMENTS</b>: <input type=text name=COMMENTS value='%COMMENTS%'> --> <br/><br/> 
 <b>$_FIO</b>: <input type=text  name='FIO' value='%FIO%' size=50>
 <b>$_CONTRACT_ID</b>: <input type=text  name=CONTRACT_ID value='%CONTRACT_ID%'>
-<b>$_CONTRACT $_DATE</b>: %CONTRACT_DATES%<br/><br/>
+<b>$_CONTRACT $_DATE</b>:<input class=\"tcalInput\" name=\"3.CONTRACT_DATE\" value=\"%CONTRACT_DATE%\" id=\"3.CONTRACT_DATE\" rel=\"tcal\" size=\"12\" type=\"text\"> <br/><br/>
 <b>$_ADDRESS_STREET</b>: <input type=text  name='ADDRESS_STREET' value='%ADDRESS_STREET%'>
 <b>$_ADDRESS_BUILD</b>: <input type=text  name=BUILD value='%BUILD%'> <b>$_ADDRESS_FLAT</b>: <input type=text  name=ADDRESS_FLAT value='%ADDRESS_FLAT%'> 
 <b>$_TARIF_PLAN</b>: %TP_NAME%<br/><br/>
@@ -40,7 +40,7 @@
 </table>
 <br />
 
-<b>$_SHEDULE $_HOLD_UP с</b> %SHEDULE_BLOCK% <b>$_PERIOD </b>
+<b>$_SHEDULE $_HOLD_UP с </b><span>  </span> <input class=\"tcalInput\" name=\"SHEDULE_BLOCK\" value=\"$DATE\" id=\"SHEDULE_BLOCK\" rel=\"tcal\" size=\"12\" type=\"text\"> <b>$_PERIOD </b>
 <select style='margin:0px 10px;'>
 	<option>1</option>  
 	<option>2</option>
@@ -61,7 +61,7 @@
 
 <b>$_SHEDULE $_CHANGE_TP </b> 
 %TP_SEL%
-<b>с</b> %SHEDULE_BLOCK%
+<b>с</b><input class=\"tcalInput\" name=\"SHEDULE_BLOCK\" value=\"$DATE\" id=\"SHEDULE_BLOCK\" rel=\"tcal\" size=\"12\" type=\"text\"> 
 <button type=submit style='margin-left:40px;'>$_SHEDULE</button><br><br>
 <b>$_ADD_STATIC_IP</b> <input type=text name=IP value='%IP%' style='margin:0px 10px;'> 
 <hr>

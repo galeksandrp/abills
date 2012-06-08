@@ -1645,7 +1645,7 @@ sub ipn_change_status {
     }
 
     print "IPN: $cmd\n" if ($DEBUG > 5);
-    system($cmd);
+    my $result = system($cmd);
   }
 
   if ($conf{IPN_FILTER} && ($STATUS ne 'ONLINE_ENABLE' || ($STATUS eq 'ONLINE_ENABLE' && $FILTER_ID ne ''))) {

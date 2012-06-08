@@ -957,6 +957,37 @@ table tr.marked th,table tr.marked,.odd:hover,.even:hover,.hover,table tr.odd:ho
 	right:15px;
 }
 
+
+
+#info_message {
+	text-align:center;
+	position:relative;
+	border:1px solid #000;
+	width:400px;
+	min-height:60px;
+	margin:0 auto;
+	border:1px solid #ccc;
+	-moz-border-radius: 4px; /* Firefox */
+	-webkit-border-radius: 4px; /* Safari, Chrome */
+	-khtml-border-radius: 4px; /* KHTML */
+	border-radius: 4px; /* CSS3 */			
+}
+#info_message div {
+	padding: 5px;
+	padding-left:20px;
+}
+#info_message div.err_message, 
+#info_message div.info_message {
+	font-weight:bold;
+	padding: 3px;	
+}
+#info_message div img {
+	position:absolute;
+	left:5px;
+	top:27px;	
+}
+
+
 </style>
 
 <title>%title%</title>

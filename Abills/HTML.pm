@@ -1378,39 +1378,29 @@ sub message {
   my $self = shift;
   my ($type, $caption, $message, $attr) = @_;
 
-  my $head = '';
   $caption .= ': ' . $attr->{ID} if ($attr->{ID});
   my $img = '';
+  my $class = '';
   if ($type eq 'err') {
-    $head = "<tr><th class='err_message' colspan='2'>$caption</th></tr>\n";
     $img  = '<img src="/img/attention.png" border="0" hspace="10" dir="ltr" alt="Error">';
+    $class = 'err_message';
   }
   elsif ($type eq 'info') {
-    $head = "<tr><th class='info_message' colspan='2'>$caption</th></tr>\n";
     $img  = '<img src="/img/information.png" border="0" hspace="10" dir="ltr" alt="Information">';
+    $class = 'info_message';
   }
 
   $message =~ s/\n/<br>/g;
 
-  my $output = qq{
+my $output = qq{
 <br>
-<TABLE width="400" border="0" cellpadding="0" cellspacing="0" class="noprint">
-<tr><TD bgcolor="$_COLORS[9]">
-<TABLE width="100%" border=0 cellpadding="2" cellspacing="1" class="noprint">
-<tr><TD bgcolor="$_COLORS[1]">
-
-<TABLE width="100%" border=0 cellpadding=0 cellspacing=0 class="noprint">
-$head
-<tr><TD class="odd" align="center" width="30">$img</TD>
-<TD class="odd">$message</TD></tr>
-</TABLE>
-
-</TD></TR>
-</TABLE>
-</TD></TR>
-</TABLE>
+<div id=info_message>
+	<div class=$class>$caption</div>
+	<div>$img $message</div>	
+</div>
 <br>
 };
+
 
   if (defined($self->{NO_PRINT})) {
     $self->{OUTPUT} .= $output;

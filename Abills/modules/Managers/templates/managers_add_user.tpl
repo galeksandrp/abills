@@ -9,7 +9,7 @@
 <!-- <b>Описание</b>: <input type=text  name=describe value=''> --><br/><br/>
 <b>$_FIO</b>: <input type=text  name='3.FIO' value=\"$FORM{'3.FIO'}\" size=50>
 <b>$_CONTRACT_ID</b>: <input type=text  name='3.CONTRACT_ID' value=\"$FORM{'3.CONTRACT_ID'}\">
-<b>$_CONTRACT $_DATE</b>: %CONTRACT_DATE%<br/><br/>
+<b>$_CONTRACT $_DATE</b>:<input class=\"tcalInput\" name=\"3.CONTRACT_DATE\" value=\"$DATE\" id=\"3.CONTRACT_DATE\" rel=\"tcal\" size=\"12\" type=\"text\"> <br/><br/>
 
 <b>$_COMMENTS</b>:<br/>
 <textarea name='3.COMMENTS' cols=80 id='comments'>$FORM{'3.COMMENTS'}</textarea>
@@ -21,7 +21,7 @@
 <br />
 <br />
 <b>_FL_P</b>: %GROUP_SEL%
-<b>$_ACTIVATE </b>: %ACTIVATE%<br/><br/>
+<b>$_ACTIVATE</b>:<input class=\"tcalInput\" name=\"1.ACTIVATE\" value=\"$DATE\" id=\"1.ACTIVATE\" rel=\"tcal\" size=\"12\" type=\"text\"> <br/><br/>
 <b>$_TARIF_PLAN</b>: %TP_SEL% <br/><br/>
 <a href='#' class=href_buttons>$_PRINT $_CONTRACT $_PAGE 1</a>
 <a href='#' class=href_buttons>$_PRINT $_CONTRACT $_PAGE 2</a>
@@ -29,3 +29,5 @@
 <input class=big_buttons name=add type=submit value='$_ADD'>
 
 </form>
+
+
