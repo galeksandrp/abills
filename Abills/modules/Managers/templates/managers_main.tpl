@@ -129,7 +129,6 @@ font-weight:800;
 	-khtml-border-radius: 4px; /* KHTML */
 	border-radius: 4px; /* CSS3 */
 	border: 2px solid #ccc;
-
 }
 #menu li:hover {
 	background-color: #ccc;
@@ -362,8 +361,7 @@ font-weight:800;
 
 
 
-#rules {
-	
+#rules {	
 	text-align:center;
 	overflow:hidden;
 	height:32px;
@@ -431,10 +429,7 @@ font-weight:800;
 #pageJumpWindow input  {
 	height:19px;
 	border:1px solid #ccc;
-
 }
-
-
 
 #pageJumpWindow h2 {
 	font-size:10px;
@@ -458,7 +453,6 @@ font-weight:800;
 }
 #info_message {
 	color:#000000;
-	height:20px;
 	font-family:Arial, Tahoma, Verdana, Helvetica, sans-serif;
 	font-size:12px;
 	text-align:center;

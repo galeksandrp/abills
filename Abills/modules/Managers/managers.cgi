@@ -1989,7 +1989,7 @@ sub dv_wizard_user {
       #2
       if (defined($FORM{'2.newpassword'})) {#  && $FORM{'2.newpassword'} ne '') {
         if (length($FORM{'2.newpassword'}) < $conf{PASSWD_LENGTH}) {
-          $html->message('err', "$_PASSWD : $_ERROR", "$err_strs{6}");
+          $html->message('err', "$_PASSWD : $_ERROR", "$ERR_SHORT_PASSWD");
         }
         #elsif ($FORM{'2.newpassword'} eq $FORM{'2.confirm'}) {
           $add_values{2}{PASSWORD} = $FORM{'2.newpassword'};
