@@ -1015,7 +1015,6 @@ sub add {
         CREATE_EXT_BILL => $attr->{CREATE_EXT_BILL}
       }
     );
-
   }
 
   return $self;

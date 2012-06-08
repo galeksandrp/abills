@@ -1751,7 +1751,6 @@ sub dv_users {
     my @uids_arr = split(/, /, $FORM{UID});
     foreach my $uid (@uids_arr) {
       $users->{UID} = $uid;
-      $users->{debug}=1;
       $users->del({ UID => $uid });
       if (!$users->{errno}) {
         $html->message('info', $_INFO, "$_DELETED");
