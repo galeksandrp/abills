@@ -1,14 +1,14 @@
 <!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">
 <html xmlns=\"http://www.w3.org/1999/xhtml\">
 <head>
-<meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\" />
+<meta http-equiv='content-type' content='text/html; charset=utf-8' />
 <title></title>
-<meta name=\"keywords\" content=\"\" />
-<meta name=\"description\" content=\"\" />
-<script src=\"functions.js\" type=\"text/javascript\" language=\"javascript\"></script>
-<script src='/calendar.js' type=\"text/javascript\" language='JavaScript'></script>
+<meta name='keywords' content='' />
+<meta name='description' content='' />
+<script src='functions.js' type='text/javascript' language='javascript'></script>
+<script src='/calendar.js' type='text/javascript' language='JavaScript'></script>
 
-<style type=\"text/css\">
+<style type='text/css'>
 * {
 	margin: 0;
 	padding: 0;
@@ -33,29 +33,37 @@ img {
 }
 input {
 	vertical-align: middle;
-	-moz-border-radius: 4px;
-	-webkit-border-radius: 4px;
+	-moz-border-radius: 4px; /* Firefox */
+	-webkit-border-radius: 4px; /* Safari, Chrome */
+	-khtml-border-radius: 4px; /* KHTML */
+	border-radius: 4px; /* CSS3 */
 	border: 2px solid #ccc;
 	margin-right: 5px;
 	
 }
 textarea {
-	-moz-border-radius: 4px;
-	-webkit-border-radius: 4px;
+	-moz-border-radius: 4px; /* Firefox */
+	-webkit-border-radius: 4px; /* Safari, Chrome */
+	-khtml-border-radius: 4px; /* KHTML */
+	border-radius: 4px; /* CSS3 */
 	border: 2px solid #ccc;
 }
 select {
 	margin-top:11px;
-	-moz-border-radius: 4px;
-	-webkit-border-radius: 4px;
+	-moz-border-radius: 4px; /* Firefox */
+	-webkit-border-radius: 4px; /* Safari, Chrome */
+	-khtml-border-radius: 4px; /* KHTML */
+	border-radius: 4px; /* CSS3 */
 	border: 2px solid #ccc;
 
 }
 
 button {
 	margin-top:11px;
-	-moz-border-radius: 4px;
-	-webkit-border-radius: 4px;
+	-moz-border-radius: 4px; /* Firefox */
+	-webkit-border-radius: 4px; /* Safari, Chrome */
+	-khtml-border-radius: 4px; /* KHTML */
+	border-radius: 4px; /* CSS3 */
 	border: 2px solid #ccc;
 	font-weight:bold;
 	padding: 3px;
@@ -116,8 +124,10 @@ font-weight:800;
 	display:inline-block;
 	padding:10px 20px;
 	margin-top:11px;
-	-moz-border-radius: 4px;
-	-webkit-border-radius: 4px;
+	-moz-border-radius: 4px; /* Firefox */
+	-webkit-border-radius: 4px; /* Safari, Chrome */
+	-khtml-border-radius: 4px; /* KHTML */
+	border-radius: 4px; /* CSS3 */
 	border: 2px solid #ccc;
 
 }
@@ -134,8 +144,10 @@ font-weight:800;
 	font-weight:bold;	
 }
 #auth {
-	-moz-border-radius: 4px;
-	-webkit-border-radius: 4px;
+	-moz-border-radius: 4px; /* Firefox */
+	-webkit-border-radius: 4px; /* Safari, Chrome */
+	-khtml-border-radius: 4px; /* KHTML */
+	border-radius: 4px; /* CSS3 */
 	position:absolute;
 	border:2px solid #ccc;
 	width:200px;
@@ -169,8 +181,10 @@ font-weight:800;
 
 	padding:10px 20px;
 	margin-top:11px;
-	-moz-border-radius: 4px;
-	-webkit-border-radius: 4px;
+	-moz-border-radius: 4px; /* Firefox */
+	-webkit-border-radius: 4px; /* Safari, Chrome */
+	-khtml-border-radius: 4px; /* KHTML */
+	border-radius: 4px; /* CSS3 */
 	border: 2px solid #ccc;
 	font-weight:bold;
 	background-color: #f0f0f0;
@@ -231,6 +245,7 @@ font-weight:800;
 	background:url(/img/cal.gif) 100% 50% no-repeat;
 	padding-right:20px;
 	cursor:pointer;
+	width:70px;
 }
 
 /* additional properties for input boxe in activated state, above still applies unless in conflict */
@@ -371,8 +386,10 @@ font-weight:800;
 	text-decoration:none;
 	margin:1px;
 	padding:2px 5px;
-	-moz-border-radius: 4px;
-	-webkit-border-radius: 4px;
+	-moz-border-radius: 4px; /* Firefox */
+	-webkit-border-radius: 4px; /* Safari, Chrome */
+	-khtml-border-radius: 4px; /* KHTML */
+	border-radius: 4px; /* CSS3 */
 	border: 2px solid #ccc;
 }
 
@@ -389,8 +406,10 @@ font-weight:800;
 
 #pageJumpWindow {
 	border:2px solid #ccc;
-	-moz-border-radius: 4px;
-	-webkit-border-radius: 4px;
+	-moz-border-radius: 4px; /* Firefox */
+	-webkit-border-radius: 4px; /* Safari, Chrome */
+	-khtml-border-radius: 4px; /* KHTML */
+	border-radius: 4px; /* CSS3 */
 	width:130px;
 	height:40px;
 	display:none;
@@ -404,8 +423,10 @@ font-weight:800;
 #pageJumpWindow button  {
 	padding:0;
 	border:1px solid #ccc;
-	-moz-border-radius: 2px;
-	-webkit-border-radius: 2px;
+	-moz-border-radius: 4px; /* Firefox */
+	-webkit-border-radius: 4px; /* Safari, Chrome */
+	-khtml-border-radius: 4px; /* KHTML */
+	border-radius: 4px; /* CSS3 */
 }
 #pageJumpWindow input  {
 	height:19px;
@@ -428,25 +449,49 @@ font-weight:800;
 	margin:0 auto;
 }
 
-.err_message
- {
+.err_message {
 	background-color:red;
-	color:#000000;
-	height:20px;
-	font-family:Arial, Tahoma, Verdana, Helvetica, sans-serif;
-	font-size:12px;
 }
 
-.info_message
- {
+.info_message {
 	background-color:#FDE302;
+}
+#info_message {
 	color:#000000;
 	height:20px;
 	font-family:Arial, Tahoma, Verdana, Helvetica, sans-serif;
 	font-size:12px;
+	text-align:center;
+	position:relative;
+	border:1px solid #000;
+	width:400px;
+	min-height:60px;
+	margin:0 auto;
+	border:1px solid #ccc;
+	-moz-border-radius: 4px; 
+	-webkit-border-radius: 4px; 
+	-khtml-border-radius: 4px; 
+	border-radius: 4px; 	
 }
-
-
+#info_message div {
+	padding: 5px;
+	padding-left:20px;
+}
+#info_message div.err_message, 
+#info_message div.info_message {
+	-moz-border-radius: 4px; 
+	-webkit-border-radius: 4px; 
+	-khtml-border-radius: 4px; 
+	border-radius: 4px; 
+	margin:2px;	
+	font-weight:bold;
+	padding: 5px 0 0 0;
+}
+#info_message div img {
+	position:absolute;
+	left:5px;
+	top:27px;	
+}
 
 
 

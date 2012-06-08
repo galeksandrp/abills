@@ -978,8 +978,13 @@ table tr.marked th,table tr.marked,.odd:hover,.even:hover,.hover,table tr.odd:ho
 }
 #info_message div.err_message, 
 #info_message div.info_message {
+	-moz-border-radius: 4px; 
+	-webkit-border-radius: 4px; 
+	-khtml-border-radius: 4px; 
+	border-radius: 4px; 
+	margin:2px;	
 	font-weight:bold;
-	padding: 3px;	
+	padding: 5px 0 0 0;
 }
 #info_message div img {
 	position:absolute;
