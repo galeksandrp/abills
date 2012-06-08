@@ -1106,6 +1106,10 @@ sub list {
     $self->{SEARCH_FIELDS_COUNT} += 1;
   }
 
+  if ($attr->{BILL_ID}) {
+    push @WHERE_RULES, @{ $self->search_expr($attr->{BILL_ID}, 'STR', 'l.bill_id', { EXT_FIELD => 1 }) };
+  }
+
   if ($attr->{FROM_DATE}) {
     push @WHERE_RULES, "(date_format(l.start, '%Y-%m-%d')>='$attr->{FROM_DATE}' and date_format(l.start, '%Y-%m-%d')<='$attr->{TO_DATE}')";
   }
@@ -1168,16 +1172,19 @@ sub list {
   if ($self->{TOTAL} > 0) {
     my $users_table = ($WHERE =~ /u\./) ? "INNER JOIN users u ON (u.uid=l.uid)" : '';
     $self->query(
-      $db, "SELECT count(l.uid), SEC_TO_TIME(sum(l.duration)), 
-      sum(l.sent + 4294967296 * acct_output_gigawords), sum(l.recv + 4294967296 * acct_input_gigawords), 
-      sum(l.sent2), sum(l.recv2), 
-      sum(sum)  
+      $db, "SELECT count(l.uid) AS total, 
+      SEC_TO_TIME(sum(l.duration)) AS duration, 
+      sum(l.sent + 4294967296 * acct_output_gigawords) AS traffic_in, 
+      sum(l.recv + 4294967296 * acct_input_gigawords) AS traffic_out, 
+      sum(l.sent2) AS traffic2_in, 
+      sum(l.recv2) AS traffic2_out, 
+      sum(sum) AS sum
       FROM dv_log l
       $users_table
-     $WHERE;"
+     $WHERE;",
+     undef,
+     { INFO => 1 }
     );
-
-    ($self->{TOTAL}, $self->{DURATION}, $self->{TRAFFIC_IN}, $self->{TRAFFIC_OUT}, $self->{TRAFFIC2_IN}, $self->{TRAFFIC2_OUT}, $self->{SUM}) = @{ $self->{list}->[0] };
   }
 
   return $list;

@@ -1906,10 +1906,14 @@ sub dv_sessions {
 
   my @caption = ("$_USER", "$_START", "$_DURATION", "$_TARIF_PLAN", (($TRAFFIC_NAMES{0}) ? $TRAFFIC_NAMES{0} : '') . " $_SENT", (($TRAFFIC_NAMES{0}) ? $TRAFFIC_NAMES{0} : '') . " $_RECV", "CID", "NAS", "IP", "$_SUM");
 
-  if ($sessions->{SEARCH_FIELDS_COUNT}) {
+  if ($FORM{SHOW_TERMINATE_CAUSE}) {
     push @caption, 'TC';
   }
-  
+
+  if ($FORM{BILL_ID}) {
+    push @caption, 'BILL_ID';
+  }
+ 
   if (! $user->{UID}) {
   	push @caption, '-';
   }
@@ -1934,20 +1938,27 @@ sub dv_sessions {
   my $Billing = Billing->new($db, \%conf);
 
   foreach my $line (@$list) {
-    if ($permissions{3}{1} && $LIST_PARAMS{UID}) {
+    if ($permissions{3}{1}) {# && $LIST_PARAMS{UID}) {
       $delete = $html->button(
         $_DEL,
-        "index=$index$pages_qs&del=$line->{uid}+$line->{acct_session_id}+$line->{cid}+$line->{start}+$line->{sum}+$line->{login}",
-        { MESSAGE => "$_DEL $_SESSION $_SESSION_ID " . ($line->{acct_session_id}) . "?", CLASS => 'del', NO_LINK_FORMER => 1 }
+        "index=". get_function_index('dv_stats') ."$pages_qs&del=$line->{uid}+$line->{acct_session_id}+$line->{nas_id}+$line->{start}+$line->{sum}+$line->{login}",
+        { MESSAGE => "$_DEL $_SESSION $_SESSION_ID " . ($line->{acct_session_id}) . "?", 
+        	CLASS => 'del', 
+        	NO_LINK_FORMER => 1 
+        }
       );
     }
 
     my @rows = ();
-    for (my $i = 1 ; $i <= $sessions->{SEARCH_FIELDS_COUNT} ; $i++) {
-      if ($line->{terminate_cause}) {
-        push @rows, $ACCT_TERMINATE_CAUSES{ $line->{terminate_cause} };
-      }
-    }
+    #for (my $i = 1 ; $i <= $sessions->{SEARCH_FIELDS_COUNT} ; $i++) {
+      #if ($line->{terminate_cause}) {
+        push @rows, $ACCT_TERMINATE_CAUSES{ $line->{terminate_cause} } if ($FORM{SHOW_TERMINATE_CAUSE});
+      #        	print "print";
+      #}
+      #elsif ($line->{bill_id}) {
+        push @rows, $line->{bill_id} if ($FORM{BILL_ID});
+      #}
+    #}
 
     $table->addrow(
       $html->button($line->{login}, "index=11&UID=$line->{uid}"),
