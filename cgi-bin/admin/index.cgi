@@ -7377,7 +7377,7 @@ sub form_templates {
       $html->message('info', $_DELETED, "$_DELETED: '$FORM{del}'");
     }
     else {
-      $html->message('err', $_DELETED, "$_ERROR");
+      $html->message('err', $_DELETED, "$_ERROR '$conf{TPL_DIR}/$FORM{del}' $!");
     }
   }
   elsif ($FORM{tpl_name}) {

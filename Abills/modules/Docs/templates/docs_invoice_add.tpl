@@ -1,3 +1,6 @@
+<p><a class=link_button title='$_NEXT_PERIOD $_INVOICE'  href='$SELF_URL?index=$index&amp;ALL_SERVICES=1&amp;UID=$FORM{UID}'>$_NEXT_PERIOD $_INVOICE</a></p>
+
+
 <form action='$SELF_URL' method='post' name='account_add'>
 <input type=hidden name=index value=$index>
 <input type=hidden name='UID' value='$FORM{UID}'>

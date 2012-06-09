@@ -625,7 +625,7 @@ sub invoices_list {
     );
     foreach my $line ( @{  $self->{list} } ) {
     	if (ref $line eq 'HASH') {
-        push @{ $self->{ORDERS}{$line->{invoice_id}} }, $line;	
+        push @{ $self->{ORDERS}{int($line->{invoice_id})} }, $line;	
       }
     }
   }

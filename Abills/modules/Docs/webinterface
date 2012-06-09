@@ -1054,7 +1054,11 @@ sub docs_invoices_list {
   }
 
 
-  my $invoice_list  = $Docs->invoices_list({%LIST_PARAMS, COLS_NAME =>1, FULL_INFO => $FORM{BILL_ID} });
+  my $invoice_list  = $Docs->invoices_list({%LIST_PARAMS, 
+  	   COLS_NAME   => 1, 
+  	   FULL_INFO   => $FORM{BILL_ID},
+  	   ORDERS_LIST => $FORM{xml}
+  	   });
   my $table = $html->table(
     {
       width      => '100%',
@@ -1067,12 +1071,11 @@ sub docs_invoices_list {
       pages      => $Docs->{TOTAL},
       EXPORT     => ' XML:&xml=1',
       ID         => 'DOCS_INVOICES_LIST',
-      header => ($FORM{UID}) ? $html->button("$_NEXT_PERIOD $_INVOICE", "index=$index&ALL_SERVICES=1&UID=$FORM{UID}") : undef
     }
   );
 
   my @rows = ();
-
+  my %orders_hash = %{ $self->{ORDERS} };
   foreach my $invoice (@$invoice_list) {
     my $delete = ($permissions{1}{2}) ? $html->button($_DEL, "index=$index&del=$invoice->{id}&UID=$invoice->{uid}", { MESSAGE => "$_DEL ID $line->{id} ?", CLASS => 'del' }) : '';
     @rows = ();
@@ -1119,6 +1122,25 @@ sub docs_invoices_list {
       $html->button($_PRINT, "qindex=$index&print=$invoice->{id}&UID=$invoice->{uid}" . (($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : ''), { ex_params => 'target=_new', CLASS => 'print' }),
       $delete;
     }
+    
+    if ($FORM{xml}) {
+    	my $orders = '';
+    	#o.invoice_id, o.orders, o.unit, o.counts, o.price, o.fees_id
+      my $i=1;
+      foreach my $order ( @{ $Docs->{ORDERS}{$invoice->{id}} } ) {
+      	$orders .= "<orders>
+      	            <num>$i</num> 
+      	            <order>$order->{orders}</order> 
+      	            <unit>$order->{unit}</unit> 
+      	            <counts>$order->{counts}</counts>
+      	            <price>$order->{price}</price>
+      	           </orders>";
+      	$i++;
+      }
+    
+    	push @rows, $orders;
+    }
+    
     $table->addrow(@rows);
   }
 
