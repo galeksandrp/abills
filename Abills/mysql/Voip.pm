@@ -1,5 +1,4 @@
 package Voip;
-
 # Voip  managment functions
 #
 
@@ -781,7 +780,7 @@ sub tp_change {
     NEXT_PERIOD          => 'next_period',
     NEXT_PERIOD_STEP     => 'next_period_step',
     FREE_TIME            => 'free_time',
-    TIME_DIVISION        => 'time_division'
+    TIME_DIVISION        => 'time_division',    
   );
 
   $self->changes(
@@ -846,13 +845,15 @@ sub tp_info {
      voip.next_period,
      voip.next_period_step,
      voip.free_time,
-     voip.id,
+     voip.id AS tp_id,
      voip.time_division
 
     FROM (voip_tps voip, tarif_plans tp)
     WHERE 
     voip.id=tp.tp_id AND
-    voip.id='$id';"
+    voip.id='$id';",
+    undef,
+    { INFO => 1 }
   );
 
   if ($self->{TOTAL} < 1) {
@@ -860,11 +861,6 @@ sub tp_info {
     $self->{errstr} = 'ERROR_NOT_EXIST';
     return $self;
   }
-
-  (
-    $self->{ID},           $self->{DAY_TIME_LIMIT},    $self->{WEEK_TIME_LIMIT}, $self->{MONTH_TIME_LIMIT}, $self->{MAX_SESSION_DURATION}, $self->{MIN_SESSION_COST}, $self->{RAD_PAIRS},
-    $self->{FIRST_PERIOD}, $self->{FIRST_PERIOD_STEP}, $self->{NEXT_PERIOD},     $self->{NEXT_PERIOD_STEP}, $self->{FREE_TIME},            $self->{TP_ID},            $self->{TIME_DIVISION}
-  ) = @{ $self->{list}->[0] };
 
   return $self;
 }
@@ -925,8 +921,8 @@ sub trunk_info {
 	trunkprefix,
 	protocol,
 	provider_ip,
-	removeprefix,
-	addprefix,
+	removeprefix AS remote_prefix,
+	addprefix AS add_prefix,
 	secondusedreal,
 	secondusedcarrier,
 	secondusedratecard,
@@ -934,7 +930,9 @@ sub trunk_info {
 	addparameter,
 	provider_name
      FROM voip_trunks
-   WHERE id='$id';"
+   WHERE id='$id';",
+  undef,
+  { INFO => 1 }
   );
 
   if ($self->{TOTAL} < 1) {
@@ -942,9 +940,6 @@ sub trunk_info {
     $self->{errstr} = 'ERROR_NOT_EXIST';
     return $self;
   }
-
-  ($self->{NAME}, $self->{TRUNKPREFIX}, $self->{PROTOCOL}, $self->{PROVIDER_IP}, $self->{REMOVE_PREFIX}, $self->{ADD_PREFIX}, $self->{SECONDUSEDREAL}, $self->{SECONDUSEDCARRIER}, $self->{SECONDUSEDRATECARD}, $self->{FAILOVER_TRUNK}, $self->{ADDPARAMETER}, $self->{PROVIDER_NAME}) =
-  @{ $self->{list}->[0] };
 
   return $self;
 }
@@ -1150,7 +1145,9 @@ sub extra_tarification_list {
     $db, "SELECT id, name, prepaid_time
      FROM voip_route_extra_tarification
      $WHERE 
-     ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;"
+     ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;",
+    undef,
+    $attr
   );
 
   return $self if ($self->{errno});

@@ -915,7 +915,6 @@ sub voip_tp {
       }
     }
 
-    #$Voip_tp = $Voip;
     $Voip_tp->{LNG_ACTION} = $_CHANGE;
     $Voip_tp->{ACTION}     = 'change';
 
@@ -949,7 +948,7 @@ sub voip_tp {
   my $table = $html->table(
     {
       width      => '100%',
-      border     => 1,
+      caption    => "$_TARIF_PLANS",
       title      => [ '#', $_NAME, $_HOUR_TARIF, $_PAYMENT_TYPE, $_DAY_FEE, $_MONTH_FEE, $_SIMULTANEOUSLY, $_AGE, '-', '-', '-' ],
       cols_align => [ 'right', 'left', 'center', 'center', 'right', 'right', 'right', 'right', 'right', 'right', 'center', 'center', 'center' ],
       ID         => 'VOIP_TP'
@@ -964,7 +963,7 @@ sub voip_tp {
     }
 
     if ($FORM{TP_ID} eq $line->{tp_id}) {
-      $table->{rowcolor} = $_COLORS[4];
+      $table->{rowcolor} = $_COLORS[0];
     }
     else {
       undef($table->{rowcolor});

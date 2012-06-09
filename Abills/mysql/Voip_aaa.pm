@@ -574,8 +574,7 @@ sub accounting {
   # Stop status
   elsif ($acct_status_type == 2) {
     if ($RAD->{ACCT_SESSION_TIME} > 0) {
-      $self->query(
-        $db, "SELECT 
+      $self->query($db, "SELECT 
       UNIX_TIMESTAMP(started),
       lupdated,
       acct_session_id,
@@ -671,7 +670,7 @@ sub accounting {
               $self->{PERIODS_TIME_TARIF} = undef;
             }
             elsif ($self->{LOG_DURATION} < $self->{PREPAID_TIME} && $RAD->{ACCT_SESSION_TIME} + $self->{LOG_DURATION} > $self->{PREPAID_TIME}) {
-              $self->{PAID_SESSION_TIME} = $RAD->{ACCT_SESSION_TIME} + $self->{LOG_DURATION} - $self->{LOG_DURATION};
+              $self->{PAID_SESSION_TIME} = $RAD->{ACCT_SESSION_TIME};
             }
           }
         }
