@@ -210,7 +210,7 @@ sub online {
     FIO           => 'pi.fio',
     NAS_PORT_ID   => 'c.nas_port_id',
     CLIENT_IP_NUM => 'c.framed_ip_address AS ip_num',
-    DURATION      => 'SEC_TO_TIME(UNIX_TIMESTAMP() - UNIX_TIMESTAMP(c.started)) AS acct_session_time',
+    DURATION      => 'SEC_TO_TIME(UNIX_TIMESTAMP() - UNIX_TIMESTAMP(c.started)) AS duration',
 
     INPUT_OCTETS   => 'c.acct_input_octets + 4294967296 * acct_input_gigawords AS acct_input_octets',
     OUTPUT_OCTETS  => 'c.acct_output_octets + 4294967296 * acct_output_gigawords AS acct_output_octets',
@@ -240,7 +240,7 @@ sub online {
     STARTED           => 'if(date_format(c.started, "%Y-%m-%d")=curdate(), date_format(c.started, "%H:%i:%s"), c.started) AS started',
     NAS_ID            => 'c.nas_id',
     LAST_ALIVE        => 'UNIX_TIMESTAMP() - c.lupdated AS last_alive',
-    ACCT_SESSION_TIME => 'UNIX_TIMESTAMP() - UNIX_TIMESTAMP(c.started) AS total_time',
+    ACCT_SESSION_TIME => 'UNIX_TIMESTAMP() - UNIX_TIMESTAMP(c.started) AS acct_session_time',
     DURATION_SEC      => 'if(c.lupdated>0, c.lupdated - UNIX_TIMESTAMP(c.started), 0) AS duration_sec',
     FILTER_ID         => 'if(dv.filter_id<>\'\', dv.filter_id, tp.filter_id) AS filter_id',
     SESSION_START     => 'UNIX_TIMESTAMP(started) AS started_unixtime',
