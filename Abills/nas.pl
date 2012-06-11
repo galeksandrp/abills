@@ -200,16 +200,24 @@ sub telnet_cmd {
       send($sock, "$sendtext\n", 0, $dest) or die $Log->log_print('LOG_INFO', "$USER_NAME", "Can't send: '$text' $!", { ACTION => 'CMD' });
     }
 
-    eval {
-      do {
-        recv($sock, $inbuf, $MAXBUF, 0);
+
+
+    do {
+        eval {
+          local $SIG{ALRM} = sub { die "alarm\n" }; # NB: \n обязателен
+          alarm 5;
+          recv($sock, $inbuf, $MAXBUF, 0);
+          alarm 0;
+        };
+
+        # если вышли по тайм-ауту $timeout
+        if ($@) {
+          last;
+        }
+        
         $input .= $inbuf;
         $len = length($inbuf);
-
-        #return 0;
-        alarm 5;
-     } while ($len >= $MAXBUF || $len < $wait_len);
-    };
+    } while ($len >= $MAXBUF || $len < $wait_len);
 
 
     $Log->log_print('LOG_DEBUG', "$USER_NAME", "Get: \"$input\"\nLength: $len", { ACTION => 'CMD' });
