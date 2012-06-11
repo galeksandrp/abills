@@ -202,24 +202,15 @@ sub telnet_cmd {
 
     eval {
       do {
-      	local $SIG{ALRM} = sub { die "alarm\n" }; # NB: \n required
-
         recv($sock, $inbuf, $MAXBUF, 0);
         $input .= $inbuf;
         $len = length($inbuf);
 
+        #return 0;
         alarm 5;
-       	my $nread = sysread SOCKET, $inbuf, $MAXBUF;
-      	alarm 0;
-      } while ($len >= $MAXBUF || $len < $wait_len);
-    };
+     } while ($len >= $MAXBUF || $len < $wait_len);
+    }
 
-    if ($@) {
-       return $res  unless $@ eq "alarm\n";   # propagate unexpected errors
-    }
-    else {
-    	# didn't
-    }
 
     $Log->log_print('LOG_DEBUG', "$USER_NAME", "Get: \"$input\"\nLength: $len", { ACTION => 'CMD' });
     $Log->log_print('LOG_DEBUG', "$USER_NAME", " Wait for: '$waitfor'",         { ACTION => 'CMD' });
