@@ -209,7 +209,7 @@ sub telnet_cmd {
         #return 0;
         alarm 5;
      } while ($len >= $MAXBUF || $len < $wait_len);
-    }
+    };
 
 
     $Log->log_print('LOG_DEBUG', "$USER_NAME", "Get: \"$input\"\nLength: $len", { ACTION => 'CMD' });
