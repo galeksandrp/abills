@@ -50,6 +50,15 @@ CREATE TABLE `bonus_tps` (
   UNIQUE KEY `name` (`name`)
 ) COMMENT "Bonus tarif plans"  ; 
 
+CREATE TABLE `bonus_accoumulation` (
+  `tp_id` smallint(6) unsigned NOT NULL default 0,
+  `dv_tp_id` smallint(6) unsigned NOT NULL default 0,
+  `scores` smallint(6) unsigned NOT NULL default 0,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `id` (`id`),
+  UNIQUE KEY `name` (`name`)
+) COMMENT "Bonus accoumulation"  ;
+
 
 CREATE TABLE `bonus_rules` (
   `tp_id` smallint(6) unsigned NOT NULL DEFAULT '0',
@@ -65,6 +74,7 @@ CREATE TABLE `bonus_rules` (
 CREATE TABLE `bonus_main` (
   `uid` int(11) unsigned NOT NULL DEFAULT '0',
   `tp_id` smallint(6) unsigned NOT NULL DEFAULT '0',
+  `accept_rules` tinyint(1) unsigned NOT NULL default '0',
   `state` tinyint(1) unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY (`uid`),
   UNIQUE KEY `uid` (`uid`)

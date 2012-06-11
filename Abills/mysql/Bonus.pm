@@ -491,8 +491,8 @@ sub user_add {
   my %DATA   = $self->get_data($attr);
 
   $self->query(
-    $db, "INSERT INTO bonus_main (uid, tp_id, state)
-        VALUES ('$DATA{UID}', '$DATA{TP_ID}', '$DATA{STATE}');", 'do'
+    $db, "INSERT INTO bonus_main (uid, tp_id, state, accept_rules)
+        VALUES ('$DATA{UID}', '$DATA{TP_ID}', '$DATA{STATE}', '$DATA{ACCEPT_RULES}');", 'do'
   );
 
   return $self;
@@ -796,7 +796,9 @@ sub bonus_operation_list {
     $EXT_TABLES
     $WHERE 
     GROUP BY p.id
-    ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;"
+    ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;",
+    undef,
+    $attr
   );
 
   $self->{SUM} = '0.00';
@@ -805,14 +807,16 @@ sub bonus_operation_list {
   my $list = $self->{list};
 
   $self->query(
-    $db, "SELECT count(p.id), sum(p.sum), count(DISTINCT p.uid) FROM bonus_log p
+    $db, "SELECT count(p.id) AS total, sum(p.sum) AS sum, count(DISTINCT p.uid) AS total_users FROM bonus_log p
   LEFT JOIN users u ON (u.uid=p.uid)
   LEFT JOIN admins a ON (a.aid=p.aid)
   $EXT_TABLES
-   $WHERE"
+   $WHERE",
+  undef,
+  { INFO => 1 }
   );
 
-  ($self->{TOTAL}, $self->{SUM}, $self->{TOTAL_USERS}) = @{ $self->{list}->[0] };
+
 
   return $list;
 }

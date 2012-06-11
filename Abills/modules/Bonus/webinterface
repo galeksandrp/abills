@@ -192,8 +192,8 @@ sub bonus_user_log {
 }
 
 #*******************************************************************
-# Change user variant form
-# form_chg_vid()
+# 
+# bonus_tp()
 #*******************************************************************
 sub bonus_tp {
   my ($attr) = @_;
@@ -203,6 +203,10 @@ sub bonus_tp {
 
   if ($FORM{RULES}) {
     bonus_rules();
+    return 0;
+  }
+  elsif ($FORM{ACCOMULATION}) {
+    bonus_accomulation();
     return 0;
   }
   elsif ($FORM{add}) {
@@ -254,6 +258,7 @@ sub bonus_tp {
       border     => 1,
       title      => [ '#', $_NAME, "$_STATE", '-', '-', '-' ],
       cols_align => [ 'right', 'left', 'center', 'center:noprint', 'center:noprint', 'center:noprint' ],
+      ID         => 'TP_ID'
     }
   );
 
@@ -270,10 +275,12 @@ sub bonus_tp {
       undef($table->{rowcolor});
     }
 
+    my $bonus_type = ($conf{BONUS_ACCOMULATION}) ? 'ACCOMULATION' : 'RULES';
+
     $table->addrow(
       $line->[0], $line->[1],
       $status[ $line->[2] ],
-      $html->button("$_RULES", "index=$index&RULES=1&TP_ID=$line->[0]"),
+      $html->button("$_RULES", "index=$index&$bonus_type=1&TP_ID=$line->[0]"),
       $html->button($_CHANGE, "index=$index&chg=$line->[0]", { CLASS => 'change' }),
       $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0] ?", CLASS => 'del' })
     );
@@ -285,7 +292,7 @@ sub bonus_tp {
     {
       width      => '100%',
       cols_align => [ 'right', 'right' ],
-      rows       => [ [ "$_TOTAL:", $html->b($Tariffs->{TOTAL}) ] ]
+      rows       => [ [ "$_TOTAL:", $html->b($Bonus->{TOTAL}) ] ]
     }
   );
 
@@ -429,7 +436,7 @@ sub bonus_rules {
     {
       width      => '100%',
       cols_align => [ 'right', 'right' ],
-      rows       => [ [ "$_TOTAL:", "<b>$Tariffs->{TOTAL}</b>" ] ]
+      rows       => [ [ "$_TOTAL:", $html->b($Bonus->{TOTAL}) ] ]
     }
   );
 
@@ -444,7 +451,7 @@ sub bonus_rules {
 sub bonus_user {
   my ($attr) = @_;
 
-  if ($FORM{add}) {
+  if ($FORM{add} && $FORM{ACCEPT_RULES}) {
     $Bonus->user_add({%FORM});
     if (!$Bonus->{errno}) {
       $html->message('info', $_INFO, "$_ADDED");
@@ -472,27 +479,33 @@ sub bonus_user {
   $Bonus->user_info($FORM{UID});
 
   if ($Bonus->{TOTAL} < 1) {
-    $Bonus->{ACTION}     = 'add';
-    $Bonus->{LNG_ACTION} = $_ADD;
+    $Bonus->{ACTION}      = $html->input('add', "$_REGISTRATION", { TYPE => 'submit' });
+    $Bonus->{ACCEPT_RULES}= $html->input('ACCEPT_RULES', '1', { STATE => $Bonus->{ACCEPT_RULES}, TYPE => 'checkbox' });
   }
-  else {
-    $Bonus->{ACTION}     = 'change';
-    $Bonus->{LNG_ACTION} = $_CHANGE;
+  elsif (! $user->{UID}) {
+    $Bonus->{ACTION}     = $html->input('change', "$_CHANGE", { TYPE => 'submit' });
+    $Bonus->{ACCEPT_RULES}= $_YES;
   }
 
   $Bonus->{TARIF_SEL} = $html->form_select(
     'TP_ID',
     {
       SELECTED          => $Bonus->{TP_ID},
-      SEL_MULTI_ARRAY   => [ [ '', '' ], @{ $Bonus->tp_list({}) } ],
+      SEL_MULTI_ARRAY   => [ @{ $Bonus->tp_list({   }) } ],
       MULTI_ARRAY_KEY   => 0,
       MULTI_ARRAY_VALUE => 1,
     }
   );
 
-  $Bonus->{STATE} = ($Bonus->{STATE}) ? 'checked' : '';
-  $html->tpl_show(_include('bonus_user', 'Bonus'), $Bonus);
+  if ($user->{UID}) {
+  	$Bonus->{STATE} = $status[$Bonus->{STATE}];
+  }
+  else {
+  	$html->input('STATE', '1', { STATE => $Bonus->{STATE}, TYPE => 'checkbox' });
+    $Bonus->{STATE} = ($Bonus->{STATE}) ? 'checked' : '';
+  }
 
+  $html->tpl_show(_include('bonus_user', 'Bonus'), $Bonus);
 }
 
 #*******************************************************************
@@ -1062,6 +1075,52 @@ sub bonus_users {
 	my ($attr)=@_;
 	
 	bonus_service_discount_client();
+}
+
+#**********************************************************
+#
+#**********************************************************
+sub bonus_accomulation {
+	my ($attr)=@_;
+
+  my $list = $Tariffs->list({ %LIST_PARAMS, 
+  	                          MODULE    => 'Dv',
+  	                          COLS_NAME => 1 
+  	                        });
+  
+  my $table = $html->table(
+    {
+      caption    => "$_TARIF_PLANS",
+      border     => 1,
+      title      => [ '#', $_NAME, "$_SCORES" ],
+      cols_align => [ 'right', 'left', 'left' ],
+      ID         => 'DV_TARIF_PLANS'
+    }
+  );
+
+  my ($delete, $change);
+  foreach my $line (@$list) {
+    $table->addrow(
+      $html->b($line->{tp_id}),
+      $line->{name},
+      $html->form_input('SCORES_$line->{tp_id}', "$Bonus->{SCORE}")
+    );
+  }
+
+  print $html->form_main(
+      {
+        CONTENT => $table->show(),
+        HIDDEN  => {
+          index  => "$index",
+          ACCOMULATION  => 1,
+        },
+        SUBMIT => {
+          change => "$_CHANGE"
+        },
+        METHOD => 'POST',
+        NAME   => 'bonus_tp_list'
+      }
+    );
 }
 
 1
