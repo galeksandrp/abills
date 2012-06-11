@@ -192,25 +192,24 @@ sub telnet_cmd {
   SH->autoflush(1);
 
   foreach my $line (@$commands) {
-
     my ($waitfor, $sendtext) = split(/\t/, $line, 2);
     my $wait_len = length($waitfor);
     $input = '';
 
     if ($waitfor eq '-') {
-
-      #send($sock, "$sendtext\r\n", 0, $dest) or die log_print('LOG_INFO', '', "Can't send: '$text' $!");
       send($sock, "$sendtext\n", 0, $dest) or die $Log->log_print('LOG_INFO', "$USER_NAME", "Can't send: '$text' $!", { ACTION => 'CMD' });
     }
 
-    do {
-      recv($sock, $inbuf, $MAXBUF, 0);
-      $input .= $inbuf;
-      $len = length($inbuf);
+    eval {
+      do {
+        recv($sock, $inbuf, $MAXBUF, 0);
+        $input .= $inbuf;
+        $len = length($inbuf);
 
-      #return 0;
-      alarm 5;
-    } while ($len >= $MAXBUF || $len < $wait_len);
+        #return 0;
+        alarm 5;
+      } while ($len >= $MAXBUF || $len < $wait_len);
+    };
 
     $Log->log_print('LOG_DEBUG', "$USER_NAME", "Get: \"$input\"\nLength: $len", { ACTION => 'CMD' });
     $Log->log_print('LOG_DEBUG', "$USER_NAME", " Wait for: '$waitfor'",         { ACTION => 'CMD' });
@@ -218,11 +217,7 @@ sub telnet_cmd {
     if ($input =~ /$waitfor/ig) {    # || $waitfor eq '') {
       $text = $sendtext;
       $Log->log_print('LOG_DEBUG', "$USER_NAME", "Send: $text", { ACTION => 'CMD' });
-
-      #send($sock, "$text\r\n", 0, $dest) or die log_print('LOG_INFO', "Can't send: '$text' $!");
       send($sock, "$text\n", 0, $dest) or die $Log->log_print('LOG_INFO', "$USER_NAME", "Can't send: '$text' $!", { ACTION => 'CMD' });
-
-      #"Can't send: $!\n";
     }
 
     $res .= "$input\n";
