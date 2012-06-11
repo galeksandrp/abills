@@ -343,8 +343,6 @@ a.search {
 	font-size:0;	
 	width:16px;
 	height:16px;
-	
-
 }
 
 

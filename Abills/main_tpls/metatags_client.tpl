@@ -220,7 +220,6 @@ a.activate
 	text-indent:-9000px;
 	margin:0;
 }
-
 a.add
  {
 	background:url(/img/button_add.png) no-repeat left;
@@ -228,7 +227,16 @@ a.add
 	overflow:hidden;
 	text-indent:-60px;
 }
-
+a.sendmail {
+  background:url(/img/button_sendmail.png) no-repeat center;
+	padding-left:22px;
+	padding-top:5px;
+	display:block;
+	overflow:hidden;
+	text-indent:-9000px;
+	width:16px;
+	margin:0;
+}
 a.del
  {
 	background:url(/img/button_del.png) no-repeat center;
@@ -239,7 +247,6 @@ a.del
 	text-indent:-9000px;
 	margin:0;
 }
-
 a.print
  {
 	background:url(/img/button_print.png) no-repeat center;
@@ -250,7 +257,6 @@ a.print
 	text-indent:-9000px;
 	margin:0;
 }
-
 a.download
  {
 	background:url(/img/button_download.png) no-repeat center;
@@ -261,7 +267,6 @@ a.download
 	text-indent:-9000px;
 	margin:0;
 }
-
 a.show
  {
 	background:url(/img/button_show.png) no-repeat center;
@@ -543,73 +548,64 @@ img.tcalIcon
 	background-image:url(/img/key.png);
 }
 
-#dv_user_info
- {
+#dv_user_info{
 	background-image:url(/img/internet3.png);
 }
 
-#ashield_user
- {
+#ashield_user {
 	background-image:url(/img/drweb.png);
 }
 
-#msgs_user
- {
+#bonus_user {
+	background-image:url(/img/bonus.png);
+}
+
+
+#msgs_user{
 	background-image:url(/img/call_help.png);
 }
 
-#mail_users_list
- {
+#mail_users_list{
 	background-image:url(/img/mail5.png);
 }
 
-#docs_invoices_list
- {
+#docs_invoices_list{
 	background-image:url(/img/documents.png);
 }
 
-#cards_user_payment
- {
+#cards_user_payment{
 	background-image:url(/img/payment-card.png);
 }
 
-#voip_user_info
- {
+#voip_user_info{
 	background-image:url(/img/voip.png);
 }
 
-#logout
- {
+#logout{
 	background-image:url(/img/logout.png);
 }
 
-#ureports_user_info
- {
+#ureports_user_info{
 	background-image:url(/img/ureports_user_info.png);
 }
 
-#sharing_user_info
- {
+#sharing_user_info{
 	background-image:url(/img/sharing_user_info.png);
 }
 
-#iptv_user_info
- {
+#iptv_user_info{
 	background-image:url(/img/iptv_user_info.png);
 }
 
-#filearch_user_video
- {
+#filearch_user_video{
 	background-image:url(/img/filearch_user_video.png);
 }
 
-#ipn_user_activate
- {
+#ipn_user_activate{
 	background-image:url(/img/ipn_user_activate.png);
 }
 
-#filearch_user_video,#iptv_user_info,#form_payments,#form_info,#form_passwd,#dv_user_info,#ashield_user,#msgs_user,#mail_users_list,#docs_invoices_list,#cards_user_payment,#voip_user_info,#logout,#ureports_user_info,#sharing_user_info,#ipn_user_activate
- {
+#filearch_user_video,#iptv_user_info,#form_payments,#form_info,#form_passwd,#dv_user_info,#ashield_user,#bonus_user,#msgs_user,#mail_users_list,#docs_invoices_list,#cards_user_payment,#voip_user_info,#logout,#ureports_user_info,#sharing_user_info,#ipn_user_activate{
 	background-repeat:no-repeat;
 	background-position:0 0;
 	margin-left:0;
@@ -617,8 +613,7 @@ img.tcalIcon
 	padding:8px 0 5px 37px;
 }
 
-#shadow
- {
+#shadow{
 	position:absolute;
 	top:0;
 	left:0;
@@ -630,8 +625,7 @@ img.tcalIcon
 	display:none;
 }
 
-#loading
- {
+#loading{
 	background-image:url('/img/loader.gif');
 	background-repeat:no-repeat;
 	background-position:center center;
@@ -639,8 +633,7 @@ img.tcalIcon
 	z-index:10;
 }
 
-.top_result_baloon
- {
+.top_result_baloon{
 	color:#FFF;
 	cursor:pointer;
 	background:rgba(0, 0, 0, 0.75);
@@ -662,54 +655,46 @@ img.tcalIcon
 	padding:15px;
 }
 
-.top_result_baloon span
- {
+.top_result_baloon span{
 	text-align:center;
 	padding-top:60px;
 	font-weight:700;
 	font-size:20px;
 }
 
-table
- {
+table{
 	-webkit-border-radius:10px 5px 5px 10px;
 	border:$_COLORS[3] solid 1px;
 	-moz-border-radius:10px 5px 5px 10px;
 }
 
-table.list
- {
+table.list{
 	-webkit-border-radius:0 0 0 0;
 	border:0;
 	-moz-border-radius:0;
 }
 
-table.form
- {
+table.form{
 	border-spacing:0;
 	padding:5px;
 }
 
-.tcaption
- {
+.tcaption{
 	background-color:%_COLOR_1%;
 	text-align:right;
 	font-size:12px;
 	font-weight:700;
 }
 
-.cel_border
- {
+.cel_border{
 	background-color:%_COLOR_4%;
 }
 
-td.menu_cel_main a:hover,td.menu_cel a:hover
- {
+td.menu_cel_main a:hover,td.menu_cel a:hover{
 	text-decoration:underline;
 }
 
-.table_title,.row_active
- {
+.table_title,.row_active{
 	background-color:%_COLOR_0%;
 	color:%_COLOR_9%;
 	height:24px;

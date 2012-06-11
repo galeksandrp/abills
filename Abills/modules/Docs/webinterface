@@ -1014,7 +1014,12 @@ sub docs_invoices_list {
 
   #$conf{DOCS_INVOICES_LIST}='invoice_num,date,customer,total_sum,payment_id';
   if (! $conf{DOCS_INVOICES_LIST}) {
-    $conf{DOCS_INVOICES_LIST}='invoice_num,date,customer,total_sum,payment_id,login,admin_name,created,method,ext_id,group_name';
+  	if ($user->{UID}) { 
+  		$conf{DOCS_INVOICES_LIST}='invoice_num,date,customer,total_sum,payment_id';
+  	}
+    else {
+      $conf{DOCS_INVOICES_LIST}='invoice_num,date,customer,total_sum,payment_id,login,admin_name,created,method,ext_id,group_name';
+    }
   }
   my @CAPTION    = ();
 
@@ -1059,6 +1064,7 @@ sub docs_invoices_list {
   	   FULL_INFO   => $FORM{BILL_ID},
   	   ORDERS_LIST => $FORM{xml}
   	   });
+
   my $table = $html->table(
     {
       width      => '100%',
@@ -1101,7 +1107,7 @@ sub docs_invoices_list {
       push 	@rows, $val;
     }
 
-    if (!$user->{UID}) {
+    if (! $user->{UID}) {
       if ($conf{DOCS_CURRENCY}) {
         push @rows, sprintf("%.2f", $invoice->{alt_sum});
       }
@@ -1121,22 +1127,23 @@ sub docs_invoices_list {
       $html->button($_SEND_MAIL, "qindex=" . get_function_index('docs_invoices_list') . "&sendmail=$invoice->{id}&UID=$invoice->{id}", { ex_params => 'target=_new', CLASS => 'sendmail' }),
       $html->button($_PRINT, "qindex=$index&print=$invoice->{id}&UID=$invoice->{uid}" . (($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : ''), { ex_params => 'target=_new', CLASS => 'print' }),
       $delete;
-    }
-    
-    if ($FORM{xml}) {
-    	my $orders = '';
-    	#o.invoice_id, o.orders, o.unit, o.counts, o.price, o.fees_id
-      my $i=1;
-      foreach my $order ( @{ $Docs->{ORDERS}{$invoice->{id}} } ) {
-      	$orders .= "<orders>
+
+      if ($FORM{xml}) {
+    	  my $orders = '';
+    	  #o.invoice_id, o.orders, o.unit, o.counts, o.price, o.fees_id
+        my $i=1;
+        foreach my $order ( @{ $Docs->{ORDERS}{$invoice->{id}} } ) {
+      	  $orders .= "<orders>
       	            <num>$i</num> 
       	            <order>$order->{orders}</order> 
       	            <unit>$order->{unit}</unit> 
       	            <counts>$order->{counts}</counts>
       	            <price>$order->{price}</price>
       	           </orders>";
-      	$i++;
+      	 $i++;
+        }
       }
+    
     
     	push @rows, $orders;
     }

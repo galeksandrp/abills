@@ -200,8 +200,6 @@ sub telnet_cmd {
       send($sock, "$sendtext\n", 0, $dest) or die $Log->log_print('LOG_INFO', "$USER_NAME", "Can't send: '$text' $!", { ACTION => 'CMD' });
     }
 
-
-
     do {
         eval {
           local $SIG{ALRM} = sub { die "alarm\n" }; # NB: \n обязателен
@@ -218,7 +216,6 @@ sub telnet_cmd {
         $input .= $inbuf;
         $len = length($inbuf);
     } while ($len >= $MAXBUF || $len < $wait_len);
-
 
     $Log->log_print('LOG_DEBUG', "$USER_NAME", "Get: \"$input\"\nLength: $len", { ACTION => 'CMD' });
     $Log->log_print('LOG_DEBUG', "$USER_NAME", " Wait for: '$waitfor'",         { ACTION => 'CMD' });
