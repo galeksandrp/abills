@@ -7096,9 +7096,10 @@ sub dv_get_month_fee {
         $days_in_month = ($active_m != 2 ? (($active_m % 2) ^ ($active_m > 7)) + 30 : (!($active_y % 400) || !($active_y % 4) && ($active_y % 25) ? 29 : 28));
         $d = $active_d;
       }
-
       $conf{START_PERIOD_DAY} = 1 if (!$conf{START_PERIOD_DAY});
-      $sum = sprintf("%.2f", ($sum / $days_in_month) * ($days_in_month - $d + $conf{START_PERIOD_DAY}));
+      my $calculation_days = ($d < $conf{START_PERIOD_DAY}) ? $conf{START_PERIOD_DAY} - $d : $days_in_month - $d + $conf{START_PERIOD_DAY};
+      
+      $sum = sprintf("%.2f", ($sum / $days_in_month) * $calculation_days);
     }
 
     return \%total_sum if ($sum == 0);
@@ -7111,6 +7112,7 @@ sub dv_get_month_fee {
       }
     }
     elsif (int($active_m) > 0 && (int($active_m) >= int($m) && int($active_y) < int($y))) {
+      print "/ if (int($active_d) > int($d)) { /";
       $periods = 12 - $active_m + $m;
       if (int($active_d) > int($d)) {
         $periods--;
@@ -7205,7 +7207,7 @@ sub dv_get_month_fee {
       }
       else {
         my $days_in_month = ($m != 2 ? (($m % 2) ^ ($m > 7)) + 30 : (!($active_y % 400) || !($active_y % 4) && ($active_y % 25) ? 29 : 28));
-        my $start_date = ($Dv->{TP_INFO}->{PERIOD_ALIGNMENT}) ? (($Dv->{ACCOUNT_ACTIVATE}) ? $Dv->{ACCOUNT_ACTIVATE} : $DATE) : "$y-$m-01";
+        my $start_date = ($Dv->{TP_INFO}->{PERIOD_ALIGNMENT}) ? (($Dv->{ACCOUNT_ACTIVATE} && $Dv->{ACCOUNT_ACTIVATE} ne '0000-00-00') ? $Dv->{ACCOUNT_ACTIVATE} : $DATE) : "$y-$m-01";
         $message .= " ($start_date-$y-$m-$days_in_month)";
       }
 

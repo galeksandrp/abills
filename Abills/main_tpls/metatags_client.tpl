@@ -736,10 +736,11 @@ table tr.marked th,table tr.marked,.odd:hover,.even:hover,.hover,table tr.odd:ho
 	-khtml-border-radius: 4px; /* KHTML */
 	border-radius: 4px; /* CSS3 */			
 }
+
 #info_message div {
-	padding: 5px;
-	padding-left:20px;
+  padding: 5px 5px 5px 50px;
 }
+
 #info_message div.err_message, 
 #info_message div.info_message {
 	-moz-border-radius: 4px; 
