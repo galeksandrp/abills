@@ -1,5 +1,14 @@
 =====0.54=====
 
+04.06.2012\\
+  *  fetch_backup  программа закачивает бекап абилса с удалённого сервера и загружает в базу на локальном
+
+MySQL:\\
+  ALTER  TABLE `web_online` ADD COLUMN `sid` varchar(32) NOT NULL default '';
+  ALTER  TABLE `web_online` ADD COLUMN `ext_info` varchar(200) NOT NULL default '';  
+  ALTER  TABLE `web_online` ADD PRIMARY KEY  (`sid`);
+  ALTER  TABLE `web_online` ADD COLUMN `aid` smallint(6) unsigned NOT NULL default '0';
+
 21.05.2012\\
 
   * ''Dhcphosts'' ДОбавлена возможность задавать регулярное выражение для определения Remote-Id и Circuit-Id
@@ -42,7 +51,7 @@ date,customer,total_sum,login, admin_name,created,method, ext_id,group_name';) (
   * $conf{PAYMENTS_NOT_CREATE_INVOICE}=1 Отключить создание счетов при внесении оплаты, остаётся только выбор из уже существующих счетов
   * ''Dv'' $conf{DV_TP_CHG_FREE}='360'; Бесплатная смена тарифного плана для абонента являющегося пользователям больше указанного периода времени. Указывается в днях.
   * ''Bonus'' установка скидки при оплате на определённый период
-  * ''Iptv'' Добавлена возможность запускать внешние программы при изменении и обалдении сервиса  $conf{IPTV_USER_EXT_CMD} 
+  * ''Iptv'' Добавлена возможность запускать внешние программы при изменении и добавлении сервиса  $conf{IPTV_USER_EXT_CMD} 
   * ''Iptv'' iptv_access_ctl.pl  программа контроля доступа абонентов 
   * ''Voip'' Добавлена опция NAT
   * ''Cards'' Запрет пополнения пользователям прикреплённым к компаниям $conf{CARDS_SKIP_COMPANY}

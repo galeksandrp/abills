@@ -168,6 +168,8 @@ pageTracker._trackPageview();
 </li>
 <li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:modules:mail:ru" class="wikilink1" title="abills:docs:modules:mail:ru">Mail</a></div>
 </li>
+<li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:modules:managers:ru:abills" class="wikilink1" title="abills:docs:modules:managers:ru:abills">Managers</a></div>
+</li>
 <li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:modules:maps:ru" class="wikilink1" title="abills:docs:modules:maps:ru">Maps</a></div>
 </li>
 <li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:modules:marketing:ru" class="wikilink1" title="abills:docs:modules:marketing:ru">Marketing</a></div>
@@ -262,6 +264,8 @@ pageTracker._trackPageview();
 </li>
 <li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:linux:radcoad:ru" class="wikilink1" title="abills:docs:linux:radcoad:ru">Linux PPPD + radcoad</a></div>
 </li>
+<li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:linux:linux_isg:ru" class="wikilink1" title="abills:docs:linux:linux_isg:ru">Linux ISG</a></div>
+</li>
 <li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:vyatta:vyatta:ru" class="wikilink1" title="abills:docs:vyatta:vyatta:ru">Vyatta</a></div>
 </li>
 <li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:lucent_max_tnt:ru" class="wikilink1" title="abills:docs:lucent_max_tnt:ru">Lucent MAX TNT</a></div>
@@ -333,7 +337,7 @@ pageTracker._trackPageview();
       <div class="bar-left" id="bar__bottomleft">
         <form class="button btn_source" method="post" action="/wiki/doku.php/abills:docs_03:install:ru"><div class="no"><input type="hidden" name="do" value="edit" /><input type="hidden" name="rev" value="" /><input type="submit" value="Показать исходный текст" class="button" accesskey="v" title="Показать исходный текст [V]" /></div></form>        <form class="button btn_revs" method="get" action="/wiki/doku.php/abills:docs_03:install:ru"><div class="no"><input type="hidden" name="do" value="revisions" /><input type="submit" value="История страницы" class="button" accesskey="o" title="История страницы [O]" /></div></form>      </div>
       <div class="bar-right" id="bar__bottomright">
-                                <form class="button btn_login" method="get" action="/wiki/doku.php/abills:docs_03:install:ru"><div class="no"><input type="hidden" name="do" value="login" /><input type="hidden" name="sectok" value="4857e66a3c141316c93d4e85760b0737" /><input type="submit" value="Войти" class="button" title="Войти" /></div></form>        <form class="button btn_index" method="get" action="/wiki/doku.php/abills:docs_03:install:ru"><div class="no"><input type="hidden" name="do" value="index" /><input type="submit" value="Все страницы" class="button" accesskey="x" title="Все страницы [X]" /></div></form>        <a class="nolink" href="#dokuwiki__top"><input type="button" class="button" value="Наверх" onclick="window.scrollTo(0, 0)" title="Наверх" /></a>&nbsp;
+                                <form class="button btn_login" method="get" action="/wiki/doku.php/abills:docs_03:install:ru"><div class="no"><input type="hidden" name="do" value="login" /><input type="hidden" name="sectok" value="cbcce2077028e489b9c75304e3f933ae" /><input type="submit" value="Войти" class="button" title="Войти" /></div></form>        <form class="button btn_index" method="get" action="/wiki/doku.php/abills:docs_03:install:ru"><div class="no"><input type="hidden" name="do" value="index" /><input type="submit" value="Все страницы" class="button" accesskey="x" title="Все страницы [X]" /></div></form>        <a class="nolink" href="#dokuwiki__top"><input type="button" class="button" value="Наверх" onclick="window.scrollTo(0, 0)" title="Наверх" /></a>&nbsp;
       </div>
       <div class="clearer"></div>
     </div>
