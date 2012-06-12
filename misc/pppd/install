@@ -26,8 +26,8 @@ PPP_VERSION=4:exec:mkdir ~/src/ && cd ~/src && wget ftp://ftp.samba.org/pub/ppp/
 PPP_VERSION=4:exec:tar zxvf ppp-2.4.4.tar.gz && cd ppp-2.4.4 && patch -p1 -l < ../radius-gigawords.patch && ./configure --prefix=/usr && make && make install
 
 #Accel-pptp
-:ACCEL_PPTP=1:accel-pptp > [/etc]/init.d/accel-pptp
-:ACCEL_PPTP=1:accel-pptp.conf [/etc]/accel-pptp.conf
+:ACCEL_PPTP=1:accel-pptp > [/etc]/init.d/accel-ppp
+:ACCEL_PPTP=1:accel-pptp.conf [/etc]/accel-ppp.conf
 :ACCEL_PPTP=1:pppd.dictionary >> /usr/local/share/accel-ppp/radius/dictionary
-:ACCEL_PPTP=1:exec:update-rc.d accel-pptp defaults
-:ACCEL_PPTP=1:exec:/etc/init.d/accel-pptp restart
+:ACCEL_PPTP=1:exec:update-rc.d accel-ppp defaults
+:ACCEL_PPTP=1:exec:/etc/init.d/accel-ppp restart
