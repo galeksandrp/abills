@@ -537,7 +537,8 @@ CREATE TABLE `msgs_admins` (
   UNIQUE KEY `aid` (`aid`,`chapter_id`)
 ) COMMENT='Msgs admins';
 
-CREATE TABLE `msgs_attachments` (   `id` bigint(20) unsigned NOT NULL auto_increment,
+CREATE TABLE `msgs_attachments` (   
+   `id` bigint(20) unsigned NOT NULL auto_increment,
    `message_id` bigint(20) NOT NULL default '0',
    `filename` varchar(250) NOT NULL  default '',
    `content_size` varchar(30) NOT NULL default '',
