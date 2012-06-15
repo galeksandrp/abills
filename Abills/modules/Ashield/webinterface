@@ -424,6 +424,15 @@ sub ashield_user {
       }
     }
   }
+  elsif ($FORM{del_shedule}) {
+    $Shedule->del({ ID => $FORM{del_shedule} });
+    if (!$Shedule->{error}) {
+      $html->message('info', $_INFO, "$_SHEDULE $_DELETED") if (!$attr->{QUITE});
+    }
+    else {
+      $html->message('err', $_ERROR, "$Shedule->{error}") if (!$attr->{QUITE});
+    }     
+  }
   elsif ($FORM{set}) {
     $Ashield->user_change({%FORM});
     if (!$Ashield->{errno}) {
@@ -1416,6 +1425,7 @@ sub ashield_drweb_user {
   }
   elsif ($attr->{change}) {
     my $message = '';
+    undef $result_hash->{error};
     if ($attr->{STATUS}) {
       my %CMD_PARAMS = ();
       if ($attr->{STATUS} == 1) {
@@ -1488,7 +1498,7 @@ sub ashield_drweb_user {
       return 1;
     }
     else {
-      $html->message('err', $_ERROR, "Dr.Web: [$result_hash->{error}->[0]->{errno}->[0]] $dr_web_errors{$result_hash->{error}->[0]->{errno}->[0]} ($result_hash->{error}->[0]->{message}->[0])") if (!$attr->{QUITE});
+      $html->message('err', $_ERROR, "'$result_hash->{error}->[0]->{message}->[0]' Dr.Web: [$result_hash->{error}->[0]->{errno}->[0]] $dr_web_errors{$result_hash->{error}->[0]->{errno}->[0]} ($result_hash->{error}->[0]->{message}->[0])") if (!$attr->{QUITE});
       return 0;
     }
   }
@@ -1605,7 +1615,8 @@ sub ashield_drweb_user {
     if ($Shedule->{TOTAL} > 0) {
   	  my($agent_id, $tp_id, $rate)=split(/:/,  $Shedule->{ACTION}, 3);
   	  $Tariffs->info($tp_id);
-      $Ashield->{TP_SEL}="$_DATE: ". "$Shedule->{D}-$Shedule->{M}-$Shedule->{Y}".$html->br()."$_TARIF_PLAN: ($tp_id) $Tariffs->{NAME}";
+      $Ashield->{TP_SEL}="$_DATE: ". "$Shedule->{D}-$Shedule->{M}-$Shedule->{Y}".$html->br()."$_TARIF_PLAN: ($tp_id) $Tariffs->{NAME}".
+        $html->button("$_DEL", "index=$index&del_shedule=$Shedule->{SHEDULE_ID}", { CLASS => 'del' });
     }
     else {
       $Ashield->{TP_SEL}=$html->form_select(

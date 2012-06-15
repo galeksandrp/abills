@@ -842,7 +842,7 @@ CREATE TABLE `shedule` (
   `admin_action` tinyint(1) unsigned NOT NULL default '0',
   PRIMARY KEY  (`id`),
   UNIQUE KEY `id` (`id`),
-  UNIQUE KEY `uniq_action` (`h`,`d`,`m`,`y`,`type`,`uid`),
+  UNIQUE KEY `uniq_action` (`h`,`d`,`m`,`y`,`type`,`uid`, `module`),
   KEY `date_type_uid` (`date`,`type`,`uid`)
 ) COMMENT='Shedules';
 
