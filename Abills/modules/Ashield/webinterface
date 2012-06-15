@@ -482,21 +482,12 @@ sub ashield_user {
   }
   elsif ($FORM{activate}) {
     $LIST_PARAMS{UUID} = $FORM{activate};
-    my $list = $Ashield->ashield_avd_list({%LIST_PARAMS});
+    my $list = $Ashield->ashield_avd_list({%LIST_PARAMS, COLS_NAME => 1 });
 
     if ($Ashield->{TOTAL} > 0) {
-      my $tp_id = $list->[0]->[7];
+      my $tp_id = $list->[0]->{tp_id};
       $Tariffs->info($tp_id);
       if ($Tariffs->{MONTH_FEE} > 0) {
-        ashield_drweb_user(
-          {
-            info   => $FORM{activate},
-            change => 1,
-            STATUS => 2,
-            RESET  => 1,
-          }
-        );
-
         my %FEES_PARAMS = (
           DESCRIBE => 'Dr.Web ' . $_ACTIVATE,
           METHOD   => 1,
@@ -512,6 +503,14 @@ sub ashield_user {
         }
       }
 
+      ashield_drweb_user(
+        {
+          info   => $FORM{activate},
+          change => 1,
+          STATUS => 2,
+          RESET  => 1,
+        }
+      );
     }
   }
   elsif ($FORM{stats}) {
@@ -1399,7 +1398,7 @@ sub ashield_drweb_user {
     my $result_hash = ashield_drweb_request(
       'api/3.0/stations/add.ds',
       {
-        id => $attr->{UID} || $attr->{UID},
+        id       => $attr->{UID} || $attr->{UID},
         password => '$attr->{PASSWORD}',
 
         #group       => undef,
@@ -1407,10 +1406,10 @@ sub ashield_drweb_user {
         #blockbeg    => undef,
         #blockend    => undef,
         #description => undef,
-        name => "$attr->{LOGIN}" || $attr->{LOGIN} || '-',
+        name     => "$attr->{LOGIN}" || $attr->{LOGIN} || '-',
         password => "$users->{PASSWORD}",
         email    => $attr->{EMAIL} || $attr->{EMAIL} || '-',
-        rate => $attr->{DR_WEB_TP_ID} || $attr->{TP_ID}
+        rate     => $attr->{DR_WEB_TP_ID} || $attr->{TP_ID}
       }
     );
 
@@ -2414,8 +2413,6 @@ sub ashield_sheduler {
   if ($type eq 'tp') {
   	my($agent_id, $tp_id, $rate)=split(/:/,  $action, 3);
     
-    $Ashield->{debug}=1;
-
     $Ashield->ashield_avd_change(
       {
         AGENTUUID   => $agent_id,

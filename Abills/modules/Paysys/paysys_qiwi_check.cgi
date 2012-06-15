@@ -154,7 +154,7 @@ sub qiwi_check {
 
     }
     elsif ($res_hash{ $line->{transaction_id} } == 60 || $res_hash{ $line->{transaction_id} } == 61 || $res_hash{ $line->{transaction_id} } == 51) {
-      my $user = $Users->info($line->[8]);
+      my $user = $Users->info($line->{uid});
 
       if ($Users->{TOTAL} < 1) {
         print "$line->{id} LOGIN: $line->{login} $line->{date} $line->{transaction_id} Not exists\n";
