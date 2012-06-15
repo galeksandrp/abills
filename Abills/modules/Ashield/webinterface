@@ -445,11 +445,14 @@ sub ashield_user {
       #}
     }
     else {
-      $Ashield->ashield_avd_del({ AGENT_ID => $FORM{del} });
+      $Ashield->ashield_avd_del({ AGENT_ID => $FORM{del}, ID => $FORM{ID} });
       #$Ashield->user_del() if ($FORM{UID});
       if (! $Ashield->{errno}) {
+        
         $html->message('info', $_INFO, "$_DELETED '$FORM{del}'");
-        ashield_drweb_user({ del => $FORM{del} }); 
+        if (! $FORM{ID}) {
+          ashield_drweb_user({ del => $FORM{del} }); 
+        }
       }
     }
     return 0;
@@ -570,7 +573,7 @@ sub ashield_user {
   	push @captions, '-';
   }
   
-  $list  = $Ashield->ashield_avd_list({%LIST_PARAMS});
+  $list  = $Ashield->ashield_avd_list({%LIST_PARAMS, COLS_NAME => 1 });
   $table = $html->table(
     {
       width       => '100%',
@@ -583,13 +586,13 @@ sub ashield_user {
 
   foreach my $line (@$list) {
     if ($permissions{4}{1} || ($user->{UID} && $conf{ASHIELD_CLIENT_SUBSCRIBE_DEL})) {
-      $delete = $html->button($_DEL, "index=$index&del=$line->[9]&UID=$LIST_PARAMS{UID}", { MESSAGE => "$_DEL $line->[0]?", CLASS => 'del' });
+      $delete = $html->button($_DEL, "index=$index&del=$line->{id}&UID=$LIST_PARAMS{UID}", { MESSAGE => "$_DEL $line->{agentuuid}?", CLASS => 'del' });
     }
 
     my $result_hash = ashield_drweb_request(
       'api/3.0/stations/info.ds',
       {
-        id => $line->[3],
+        id => $line->{agentuuid},
         'extra-info'        => 'on',
         #components          => 'on',
         #installedcomponents => 'on',
@@ -600,6 +603,10 @@ sub ashield_user {
     my $error = '';
     if ($result_hash->{error}->[0]->{errno}->[0]) {
       $error = "Dr.Web: [$result_hash->{error}->[0]->{errno}->[0]] $dr_web_errors{$result_hash->{error}->[0]->{errno}->[0]} ($result_hash->{error}->[0]->{message}->[0])";
+      if ($user->{UID}) {
+      	$html->message('info', $_INFO, "$_DISABLED");
+      	return 0;
+      }
     }
 
     my ($id)               = keys %{ $result_hash->{stations}->[0]->{station} };
@@ -607,7 +614,7 @@ sub ashield_user {
     my $expire             = $station_info->{expires}->[0];
     my $name               = $id;
     my $graceperiod        = $station_info->{grace_period};
-    my $graceperiod_status = "$_GRACEPERIOD $_TO $line->[10]" if ($line->[10]);
+    my $graceperiod_status = "$_GRACEPERIOD $_TO $line->{work_period}" if ($line->{work_period});
     my $create             = val_parser($station_info->{created});
     my $cur_date           = time;
     my ($rate)             = keys %{ $station_info->{rate} };
@@ -686,7 +693,8 @@ sub ashield_user {
      	push @row,  $html->button($_MESSAGE, "index=$index&msg=$station_info->{id}&UID=$LIST_PARAMS{UID}", { CLASS => 'message' });
      }
 
-   	 push @row, $html->button($_DEL, "index=$index&del=$station_info->{id}&UID=$LIST_PARAMS{UID}", { MESSAGE => "$_DEL $station_info->{id} ?", CLASS => 'del' });
+   	 push @row, $html->button($_DEL, "index=$index&del=$station_info->{id}". ((! $station_info->{id}) ? "ID=$line->{id}" : '') 
+   	   ."&UID=$LIST_PARAMS{UID}", { MESSAGE => "$_DEL $station_info->{id} ?", CLASS => 'del' });
 
      $table->addrow(@row);
   }
