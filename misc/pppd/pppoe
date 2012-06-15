@@ -1,0 +1,35 @@
+#!/bin/bash
+# Copyright Rene Mayrhofer, Gibraltar, 1999
+# This script is distibuted under the GPL
+
+PATH=/bin:/usr/bin:/sbin:/usr/sbin:/usr/local/sbin:/usr/local/bin
+FLAGS="defaults 50"
+
+LOCAL_IP=%LOCAL_IP%
+IFACE=%INTERFACE%
+
+case "$1" in
+  start)
+    echo "Starting PPPoE.... "
+    echo "  Starting PPPoE on VLAN..."
+    /usr/sbin/pppoe-server -N 1000 -k -L ${LOCAL_IP}  -I ${IFACE} 
+    echo "pppoe."
+    ;;
+  stop)
+    echo -n "Stopping PPPoE: "
+    killall -9 pppd
+    killall pppoe-server
+    echo "pppoe."
+    ;;
+  force-reload|restart)
+    echo "Restarting PPPoE: "
+    sh $0 stop
+    sh $0 start
+    ;;
+  *)
+    echo "Usage: /etc/init.d/pppoe {start|stop|restart|force-reload}"
+    exit 1
+    ;;
+esac
+
+exit 0
