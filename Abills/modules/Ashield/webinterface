@@ -311,6 +311,14 @@ sub ashield_user {
   $users->pi({ ID => $users->{UID} });
   $Ashield->{EMAIL} = ($users->{EMAIL}) ? $users->{EMAIL} . $html->form_input('EMAIL', "$users->{EMAIL}", { TYPE => 'hidden', OUTPUT2RETURN => 1 }) : $html->form_input('EMAIL', '', { OUTPUT2RETURN => 1 });
   my $ashield_tps_info = ashield_drweb_tps();
+
+  
+  if (! $ashield_tps_info ) {
+  	if ($user->{UID}) {
+  		return 0;
+  	}
+  }
+  
   my $list             = $Tariffs->list(
     {
       #CHANGE_PRICE => '<='. ($user->{DEPOSIT} + $user->{CREDIT}),
@@ -589,7 +597,7 @@ sub ashield_user {
       $delete = $html->button($_DEL, "index=$index&del=$line->{id}&UID=$LIST_PARAMS{UID}", { MESSAGE => "$_DEL $line->{agentuuid}?", CLASS => 'del' });
     }
 
-    my $result_hash = ashield_drweb_request(
+    my ($res, $result_hash) = ashield_drweb_request(
       'api/3.0/stations/info.ds',
       {
         id => $line->{agentuuid},
@@ -600,11 +608,11 @@ sub ashield_user {
         #groupmembership     => 'on'
       },
     );
+
     my $error = '';
-    if ($result_hash->{error}->[0]->{errno}->[0]) {
+    if (! $res || $result_hash->{error}->[0]->{errno}->[0]) {
       $error = "Dr.Web: [$result_hash->{error}->[0]->{errno}->[0]] $dr_web_errors{$result_hash->{error}->[0]->{errno}->[0]} ($result_hash->{error}->[0]->{message}->[0])";
       if ($user->{UID}) {
-      	$html->message('info', $_INFO, "$_DISABLED");
       	return 0;
       }
     }
@@ -1301,7 +1309,11 @@ sub ashield_drweb_tps {
 
   $result_hash = ashield_drweb_request('api/3.0/tariffs/list.ds', {});
 
-  if ($result_hash->{error}->[0]->{errno}->[0]) {
+  if (! $result_hash) {
+  	$html->message('err', $_ERROR, "Dr.Web: not work");
+  	return 0;
+  }
+  elsif ($result_hash->{error}->[0]->{errno}->[0]) {
     $html->message('err', $_ERROR, "Dr.Web: [$result_hash->{error}->[0]->{errno}->[0]] $dr_web_errors{$result_hash->{error}->[0]->{errno}->[0]} ($result_hash->{error}->[0]->{message}->[0])");
     return 0;
   }
@@ -2515,7 +2527,7 @@ sub ashield_drweb_request {
     my $message = "'$serveraddr' BAD:\n" . $response->code() . ', ' . $response->status_line() . "\n";
 
     ($attr->{CONSOLE}) ? $html->message('err', $_ERROR, $message) : print $message;
-    return;
+    return 0;
   }
 
   my $xml_content = $response->content();
