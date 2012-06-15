@@ -693,7 +693,7 @@ sub ashield_user {
      	push @row,  $html->button($_MESSAGE, "index=$index&msg=$station_info->{id}&UID=$LIST_PARAMS{UID}", { CLASS => 'message' });
      }
 
-   	 push @row, $html->button($_DEL, "index=$index&del=$station_info->{id}". ((! $station_info->{id}) ? "ID=$line->{id}" : '') 
+   	 push @row, $html->button($_DEL, "index=$index&del=$station_info->{id}". ((! $station_info->{id}) ? "&ID=$line->{id}" : '') 
    	   ."&UID=$LIST_PARAMS{UID}", { MESSAGE => "$_DEL $station_info->{id} ?", CLASS => 'del' });
 
      $table->addrow(@row);
