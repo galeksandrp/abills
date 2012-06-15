@@ -424,7 +424,7 @@ sub ashield_user {
       $html->message('info', $_INFO, "$_CHANGED");
     }
   }
-  elsif ($FORM{del} && $FORM{is_js_confirmed}) {
+  elsif (defined($FORM{del}) && $FORM{is_js_confirmed}) {
     if ($user->{UID}) {
       my ($Y, $M, $D)=split(/-/, $DATE);
       ($Y, $M, $D) = split(/-/, strftime("%Y-%m-%d", localtime((mktime(0, 0, 0, 01, ($M - 1), ($Y - 1900), 0, 0, 0) + 30 * 86400))));
