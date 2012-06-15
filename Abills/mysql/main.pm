@@ -576,11 +576,12 @@ sub search_expr_users () {
 
   #ID:type:Field name
   my %users_fields_hash = (
-    LOGIN        => 'STR:u.id',
-    UID          => 'INT:u.uid',
-    DEPOSIT      => 'INT:b.deposit',
-    COMPANY_ID   => 'INT:u.company_id',
-    REGISTRATION => 'DATE:u.registration',
+    LOGIN         => 'STR:u.id',
+    UID           => 'INT:u.uid',
+    DEPOSIT       => 'INT:b.deposit',
+    COMPANY_ID    => 'INT:u.company_id',
+    COMPANY_CREDIT=> 'INT:company.credit AS company_credit',
+    REGISTRATION  => 'DATE:u.registration',
 
     COMMENTS     => 'STR:pi.comments',
     FIO          => 'STR:pi.fio',

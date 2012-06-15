@@ -480,7 +480,9 @@ sub list {
   elsif ($attr->{CLOSED}) {
     $self->query(
       $db, "SELECT u.id, pi.fio, if(company.id IS NULL, b.deposit, b.deposit), 
-      u.credit, tp.name, u.disable, 
+       if(u.company_id=0, u.credit, 
+          if (u.credit=0, company.credit, u.credit)) AS credit,
+      tp.name, u.disable, 
       u.uid, u.company_id, u.email, u.tp_id, if(l.start is NULL, '-', l.start)
      FROM ( users u, bills b )
      LEFT JOIN users_pi pi ON u.uid = dv.uid
@@ -586,7 +588,8 @@ sub list {
   $self->query($db, "SELECT u.id, 
       pi.fio, 
       if(u.company_id > 0, cb.deposit, b.deposit) AS deposit, 
-      u.credit, 
+      if(u.company_id=0, u.credit, 
+          if (u.credit=0, company.credit, u.credit)) AS credit,
       tp.name AS tp_name, 
       dv.disable AS dv_status, 
       $self->{SEARCH_FIELDS}
