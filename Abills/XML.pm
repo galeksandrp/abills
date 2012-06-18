@@ -807,32 +807,7 @@ sub date_fld {
   my $month = $FORM{ $base_name . 'M' } || $mon;
   my $year  = $FORM{ $base_name . 'Y' } || $curyear + 1900;
 
-  my $result = "<SELECT name=\"" . $base_name . "D\">";
-  for (my $i = 1 ; $i <= 31 ; $i++) {
-    $result .= sprintf("<option value=\"%.2d\"", $i);
-    $result .= ' selected="1"' if ($day == $i);
-    $result .= ">$i</option>\n";
-  }
-  $result .= '</SELECT>';
-  $result .= "<SELECT name=\"" . $base_name . "M\">";
-
-  my $i = 0;
-  foreach my $line (@$MONTHES) {
-    $result .= sprintf("<option value=\"%.2d\"", $i);
-    $result .= ' selected="1"' if ($month == $i);
-    $result .= ">$line</option>\n";
-    $i++;
-  }
-
-  $result .= '</SELECT>';
-
-  $result .= "<SELECT name=\"" . $base_name . "Y\">";
-  for ($i = 2001 ; $i <= $curyear + 1900 ; $i++) {
-    $result .= "<option value=\"$i\"";
-    $result .= ' selected="1"' if ($year eq $i);
-    $result .= ">$i</option>\n";
-  }
-  $result .= '</SELECT>';
+  my $result = "<$base_name Y=\"$year\" M=\"$month\" D=\"$day\" />";
 
   return $result;
 }
@@ -853,33 +828,7 @@ sub date_fld2 {
   my $month = $FORM{ $base_name . 'M' } || $mon;
   my $year  = $FORM{ $base_name . 'Y' } || $curyear + 1900;
 
-  my $result = "<SELECT name=\"" . $base_name . "D\">";
-  for (my $i = 1 ; $i <= 31 ; $i++) {
-    $result .= sprintf("<option value=\"%.2d\"", $i);
-    $result .= ' selected="1"' if ($day == $i);
-    $result .= ">$i</option>\n";
-  }
-  $result .= '</SELECT>';
-
-  $result .= "<SELECT name=\"" . $base_name . "M\">";
-
-  my $i = 0;
-  foreach my $line (@$MONTHES) {
-    $result .= sprintf("<option value=\"%.2d\"", $i);
-    $result .= ' selected="1"' if ($month == $i);
-    $result .= ">$line</option>\n";
-    $i++;
-  }
-
-  $result .= '</SELECT>';
-
-  $result .= "<SELECT name=\"" . $base_name . "Y\">";
-  for ($i = 2001 ; $i <= $curyear + 1900 ; $i++) {
-    $result .= "<option value=\"$i\"";
-    $result .= ' selected="1"' if ($year eq $i);
-    $result .= ">$i</option>\n";
-  }
-  $result .= '</SELECT>';
+  my $result = "<$base_name Y=\"$year\" M=\"$month\" D=\"$day\" />";
 
   return $result;
 }

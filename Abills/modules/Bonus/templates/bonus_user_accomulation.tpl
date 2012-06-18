@@ -5,8 +5,11 @@
 <table width=420 class=form>
 <tr><th colspan=2 class=form_title>$_BONUS</th></tr>
 <tr><td>$_TARIF_PLAN:</td><td valign=middle>%TARIF_SEL%</td></tr>
-<tr><td>$_STATUS:</td><td>%STATE%</td></tr>
+<tr><td>$_ACTIV:</td><td>%STATE%</td></tr>
 <tr><td>$_ACCEPT_RULES:</td><td>%ACCEPT_RULES%</td></tr>
+
+<tr><td>$_BONUS:</td><td>%COST%</td></tr>
+
 <tr><th class=evan colspan=2>%ACTION%</th></tr>
 </table>
 

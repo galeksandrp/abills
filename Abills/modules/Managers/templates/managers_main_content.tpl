@@ -11,7 +11,10 @@
 </ul>
 <form action=\"$SELF_URL\" method=\"get\" name=\"search_form\" >
 <input type=hidden name=index value=11>
+<input type=hidden name='STATUS' value=1>
+
 <button name='SEARCH' value=1>$_USERS</button>
+
 <br />
 <ul id=\"buttons\">
   <li>
@@ -21,7 +24,7 @@
 <button name=del value=1>$_DEL</button>
   </li>
   <li>
-<button name=STATUS value=1>$_DISABLE</button>
+<button name=change value=1>$_BLOCK</button>
   </li>
 </ul>
 <div id=\"search\">

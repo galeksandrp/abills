@@ -505,31 +505,16 @@ font-weight:800;
 </head>
 
 <body>
+
 <div id=\"wrapper\">
   <div id=\"header\"> </div>
-  <!-- #header-->
-  
-  <div id=\"content\">
-    <ul id=\"menu\">
-      <li><a href=\"$SELF_URL?index=11&NEW_USER=1\" title='Вспливающая подсказка'>$_ADD_USER</a></li>
-      <li><a href=\"$SELF_URL\">$_SEARCH</a></li>
-      <li><a href=\"$SELF_URL?SHOW_REPORT=users_total\">$_REPORTS</a></li>
-    </ul>
-    <div id=\"auth\"> <br />
-      <p><strong>менеджер</strong>:<br />
-        <strong><a href=\"#\">%ADMIN_NAME%</a></strong></p>
-      <a href='$SELF_URL?index=1000' class='href_buttons'>$_LOGOUT</a>
-    </div>
-	%FILTER%
-	%CONTENT%
 
-  </div>
-  
+  <!-- #header-->
+  %MENU%  
   <!-- #content-->
-  
   <!-- <div id=\"footer\"></div> --> 
   <!-- #footer --> 
-  
+ 
 </div>
 <!-- #wrapper -->
 

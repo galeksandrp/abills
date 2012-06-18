@@ -206,7 +206,7 @@ sub bonus_tp {
     return 0;
   }
   elsif ($FORM{ACCOMULATION}) {
-    bonus_accomulation();
+    bonus_tp_accomulation();
     return 0;
   }
   elsif ($FORM{add}) {
@@ -477,14 +477,19 @@ sub bonus_user {
   }
 
   $Bonus->user_info($FORM{UID});
+  $Bonus->{STATE} = $html->form_input('STATE', '1', { STATE => $Bonus->{STATE}, TYPE => 'checkbox', OUTPUT2RETURN => 1 });
 
   if ($Bonus->{TOTAL} < 1) {
-    $Bonus->{ACTION}      = $html->input('add', "$_REGISTRATION", { TYPE => 'submit' });
-    $Bonus->{ACCEPT_RULES}= $html->input('ACCEPT_RULES', '1', { STATE => $Bonus->{ACCEPT_RULES}, TYPE => 'checkbox' });
+    $Bonus->{ACTION}      = $html->form_input('add', "$_REGISTRATION", { TYPE => 'submit', OUTPUT2RETURN => 1 });
+    $Bonus->{ACCEPT_RULES}= $html->form_input('ACCEPT_RULES', '1', { STATE => $Bonus->{ACCEPT_RULES}, TYPE => 'checkbox', OUTPUT2RETURN => 1 });
   }
   elsif (! $user->{UID}) {
-    $Bonus->{ACTION}     = $html->input('change', "$_CHANGE", { TYPE => 'submit' });
-    $Bonus->{ACCEPT_RULES}= $_YES;
+    $Bonus->{ACTION}      = $html->form_input('change', "$_CHANGE", { TYPE => 'submit' });
+    $Bonus->{ACCEPT_RULES}= $html->form_input('ACCEPT_RULES', '1', { STATE => $Bonus->{ACCEPT_RULES}, TYPE => 'checkbox' });
+  }
+  else {
+    $Bonus->{ACCEPT_RULES}= $_YES; #$bool_vals[1];
+    $Bonus->{STATE}       = $status[$Bonus->{STATE}];
   }
 
   $Bonus->{TARIF_SEL} = $html->form_select(
@@ -497,15 +502,17 @@ sub bonus_user {
     }
   );
 
-  if ($user->{UID}) {
-  	$Bonus->{STATE} = $status[$Bonus->{STATE}];
+  if ($conf{BONUS_ACCOMULATION}) {
+  	$Bonus->accomulation_scores_info({ UID => $FORM{UID} });
+  	if (! $Bonus->{TOTAL}) {
+  		$Bonus->{COST}='0.00';
+  	}
+  	
+  	$html->tpl_show(_include('bonus_user_accomulation', 'Bonus'), $Bonus);
   }
   else {
-  	$html->input('STATE', '1', { STATE => $Bonus->{STATE}, TYPE => 'checkbox' });
-    $Bonus->{STATE} = ($Bonus->{STATE}) ? 'checked' : '';
+    $html->tpl_show(_include('bonus_user', 'Bonus'), $Bonus);
   }
-
-  $html->tpl_show(_include('bonus_user', 'Bonus'), $Bonus);
 }
 
 #*******************************************************************
@@ -613,7 +620,10 @@ sub bonus_periodic_monthly {
 
   my $debug = $attr->{DEBUG} || 0;
   my $debug_output = '';
-  $debug_output .= "Bonus - Monthly periodic payments\n" if ($debug > 1);
+  $debug_output .= "Bonus - Monthly periodic\n" if ($debug > 1);
+  if ($conf{BONUS_ACCOMULATION}) {
+    $debug_output .= bonus_periodic_accomulation($attr)
+  }
 
   $DEBUG .= $debug_output;
   return $debug_output;
@@ -1080,11 +1090,23 @@ sub bonus_users {
 #**********************************************************
 #
 #**********************************************************
-sub bonus_accomulation {
+sub bonus_tp_accomulation {
 	my ($attr)=@_;
 
-  my $list = $Tariffs->list({ %LIST_PARAMS, 
-  	                          MODULE    => 'Dv',
+  if ($FORM{change}) {
+    my $list = $Bonus->accomulation_rule_change( \%FORM );
+
+    if ($Bonus->{errno}) {
+      $html->message('err', $_ERROR, "[$Bonus->{errno}] $err_strs{$Bonus->{errno}}");
+    }
+    else {
+      $html->message('info', $_BONUS, "$_CHANGED");
+    }
+  }
+
+  my $list = $Bonus->accomulation_rule_list({ 
+  	                          %LIST_PARAMS, 
+  	                          TP_ID     => $FORM{TP_ID},
   	                          COLS_NAME => 1 
   	                        });
   
@@ -1099,11 +1121,13 @@ sub bonus_accomulation {
   );
 
   my ($delete, $change);
+  
   foreach my $line (@$list) {
     $table->addrow(
-      $html->b($line->{tp_id}),
+      $html->form_input('DV_TP_ID', $line->{dv_tp_id}, { TYPE => 'HIDDEN', OUTPUT2RETURN=>1 }).
+      $html->b($line->{dv_tp_id}),
       $line->{name},
-      $html->form_input('SCORES_$line->{tp_id}', "$Bonus->{SCORE}")
+      $html->form_input("COST_".$line->{dv_tp_id}, "$line->{cost}")
     );
   }
 
@@ -1111,7 +1135,8 @@ sub bonus_accomulation {
       {
         CONTENT => $table->show(),
         HIDDEN  => {
-          index  => "$index",
+          index         => "$index",
+          TP_ID         => "$FORM{TP_ID}",
           ACCOMULATION  => 1,
         },
         SUBMIT => {
@@ -1121,6 +1146,15 @@ sub bonus_accomulation {
         NAME   => 'bonus_tp_list'
       }
     );
+}
+
+
+#**********************************************************
+#
+#**********************************************************
+sub bonus_periodic_accomulation {
+	my ($attr)=@_;
+	
 }
 
 1

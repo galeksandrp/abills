@@ -123,7 +123,13 @@ if ($sid) {
   $COOKIES{sid} = $sid;
 }
 
-print "Content-Type: text/html\n\n";
+if ($FORM{qindex}) {
+  $index=$FORM{qindex} ;
+  print "Content-Type: text/xml\n\n";
+}
+else {
+  print "Content-Type: text/html\n\n";
+}
 
 if ($aid > 0) {
   if ($FORM{SHOW_REPORT}) {
@@ -136,10 +142,10 @@ if ($aid > 0) {
     form_main();
   }
 
-  print $html->tpl_show(
-    _include('managers_main', 'Managers'),
+  $OUTPUT{MENU} = $html->tpl_show(
+    _include('managers_menu', 'Managers'),
     {
-      CONTENT => $content || $html->{OUTPUT},
+      CONTENT    => $content || $html->{OUTPUT},
       ADMIN_NAME => $admin->{A_FIO},
       FILTER     => $filter,
     }
@@ -147,12 +153,17 @@ if ($aid > 0) {
 }
 else {
   form_login();
-  print $html->{OUTPUT};
+  $OUTPUT{MENU} = $html->{OUTPUT};
 }
 
 
 
-
+print $html->tpl_show(
+  _include('managers_main', 'Managers'),
+  {
+    MENU       => $OUTPUT{MENU}
+  }
+);
 
 
 
@@ -1578,7 +1589,6 @@ sub dv_users {
     form_payments({ USER_INFO => $user });
     return 0;
   }
-
   elsif ($FORM{SEARCH}) {    # and $FORM{QUERY} ne '') {
     $pages_qs .= "&SEARCH=1";
     if ($FORM{TYPE} eq 'login') {
@@ -1620,12 +1630,13 @@ sub dv_users {
         width      => '100%',
         caption    => "$_SEARCH",
         border     => 1,
-        title      => [ '-', $_CONTRACT_ID, $_FIO, $_ADDRESS, $_TARIF_PLAN, $_BALANCE, $_STATUS, '-' ],
+        title      => [ "$_LOGIN", $_CONTRACT_ID, $_FIO, $_ADDRESS, $_TARIF_PLAN, $_BALANCE, $_STATUS, '-' ],
         cols_align => [ 'left', 'left', 'right', 'right', 'left', 'center', 'center:noprint', 'center:noprint' ],
         qs         => $pages_qs,
         pages      => $Dv->{TOTAL},
         ID         => 'SEARCH',
-        header     => $status_bar
+        header     => $status_bar,
+        EXPORT     => "$_EXPORT XML:&xml=1" # $_EXPORT CSV:csv=1",
       }
     );
 
@@ -1646,9 +1657,11 @@ sub dv_users {
     $OUTPUT{RESULT_TOTAL} = $Dv->{TOTAL};
 
     $content = $html->tpl_show(_include('managers_main_content', 'Managers'), {%OUTPUT});
+    if ($FORM{xml}) {
+    	print $OUTPUT{RESULT_TABLE};
+    }
     return 0;
   }
-
   elsif ($FORM{REGISTRATION_INFO}) {
 
     # Info
@@ -1714,7 +1727,6 @@ sub dv_users {
       $users->change($Dv->{UID}, {%FORM});
       $users->pi_change({%FORM});
     }
-
     #    if ($FORM{STATUS} == 0) {
     #      my $Shedule = Shedule->new($db, $admin, \%conf);
     #      my $list = $Shedule->list(
@@ -1739,12 +1751,15 @@ sub dv_users {
     if (!$Dv->{errno}) {
       $Dv->{ACCOUNT_ACTIVATE} = $attr->{USER_INFO}->{ACTIVATE};
       if (!$FORM{STATUS} && ($FORM{GET_ABON} || !$FORM{TP_ID})) {
-
         #  dv_get_month_fee($Dv);
       }
 
       $html->message('info', "Internet", "$_CHANGED");
       return 0 if ($attr->{REGISTRATION});
+      if ($FORM{STATUS}) {
+    	  return 0;
+      }
+
     }
   }
   elsif ($FORM{del}) {
@@ -1753,8 +1768,7 @@ sub dv_users {
       $users->{UID} = $uid;
       $users->del({ UID => $uid });
       if (!$users->{errno}) {
-        $html->message('info', $_INFO, "$_DELETED");
-        return 0;
+        $html->message('info', $_INFO, "$_DELETED UID: $uid");
       }
     }
   }
@@ -2925,7 +2939,7 @@ sub form_login {
     }
   );
   
-  $first_page{TITLE}="Manager Form";
+  $first_page{TITLE}="$_AUTH";
   
   $OUTPUT{BODY} = $html->tpl_show(templates('form_client_login'), \%first_page);
 }

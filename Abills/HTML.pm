@@ -183,6 +183,17 @@ sub new {
       }
     );
   }
+  elsif ($FORM{csv} || $attr->{csv}) {
+    require Abills::CSV;
+    $self = Abills::CSV->new(
+        {
+          IMG_PATH => $IMG_PATH,
+          NO_PRINT => defined($attr->{'NO_PRINT'}) ? $attr->{'NO_PRINT'} : 1,
+          CONF     => $CONF,
+          CHARSET  => $attr->{CHARSET}
+        }
+      );
+  }
 
   return $self;
 }
@@ -341,7 +352,7 @@ sub form_input {
     }
   }
 
-  my $state = (defined($attr->{STATE})) ? ' checked ' : '';
+  my $state = ($attr->{STATE}) ? ' checked ' : '';
   my $size = (defined($attr->{SIZE})) ? " SIZE=\"$attr->{SIZE}\"" : '';
 
   $self->{FORM_INPUT} = "<input type=\"$type\" name=\"$name\" value=\"$value\"$state$size$class$ex_params ID=\"$name\"/>";
