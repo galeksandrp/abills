@@ -220,6 +220,10 @@ elsif ($FORM{params}) {
   require "Sberbank.pm";
   exit;
 }
+elsif ($FORM{from} eq 'Payonline') {
+  require "Payonline.pm";
+  exit;
+}
 elsif ($FORM{action} && $conf{PAYSYS_TELCELL_ACCOUNT_KEY}) {
   require "Telcell.pm";
   exit;

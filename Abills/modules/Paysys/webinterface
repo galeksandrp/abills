@@ -33,7 +33,7 @@ my %PAY_SYSTEMS = (
   53 => "Express_Oplata",
   54 => "Privat Bank - Privat 24",
   55 => "Pay4",
-  56 => "ÀÈÑ ÅÐÈÏ",
+  56 => "ÐÐ˜Ð¡ Ð•Ð Ð˜ÐŸ",
   57 => "EasySoft",
   58 => "Liberty Reserve",
   59 => "QIWI",
@@ -56,7 +56,11 @@ my %PAY_SYSTEMS = (
   77 => 'CyberPlat Visa/Master cards',
   78 => 'Epay',
   79 => 'Private bank terminal (json)',
-  80 => 'Pegas Self Terminals'
+  80 => 'Pegas Self Terminals',
+  81 => 'QIWI - Payonline',
+  82 => 'WebMoney - Payonline',
+  83 => 'Yandex money - Payonline',
+  84 => 'Bank card - Payonline',
 );
 
 my %CONF_OPTIONS = (
@@ -99,7 +103,11 @@ my %CONF_OPTIONS = (
   PAYSYS_CP_VISA                  => 77,
   PAYSYS_EPAY_ACCOUNT_KEY         => 78,
   PAYSYS_PRIVATE_JSON_ACCOUNT_KEY => 79,
-  PAYSYS_PEGAS_SELF_TERMINALS     => 80
+  PAYSYS_PEGAS_SELF_TERMINALS     => 80,
+  PAYSYS_QIWI_PAYONLINE_ACCOUNT_KEY         => 81,
+  PAYSYS_WEBMONEY_PAYONLINE_ACCOUNT_KEY     => 82,
+  PAYSYS_YANDEX_MONEY_PAYONLINE_ACCOUNT_KEY => 83,
+  PAYSYS_BANK_CARD_PAYONLINE_ACCOUNT_KEY    => 84,
 );
 
 my @status = ('UNKNOWN', 'IN PROCCESS', 'COMPLETE', 'CANCELED', 'EXPIRED', 'INCORRECT_CHECKSUM', 'PAYMENT_ERROR', 'DUBLICATE', 'USER_ERROR', 'USER_NOT_EXIST', 'SMALL_PAYMENT_SUM', 'SQL_ERROR');
@@ -638,6 +646,16 @@ sub paysys_payment {
   elsif ($FORM{PAYMENT_SYSTEM} == 77 or defined($FORM{abillserrormsg})) {
     paysys_cp_visa();
   }
+  elsif ($FORM{PAYMENT_SYSTEM} == 81 ||  
+         $FORM{PAYMENT_SYSTEM} == 82 ||
+         $FORM{PAYMENT_SYSTEM} == 83 ||	
+         $FORM{PAYMENT_SYSTEM} == 84 ||
+         $FORM{payonline_transaction} ||
+         $FORM{payonline_transaction_error} ||
+         $FORM{ErrorCode}) {
+     paysys_payonline();
+  }  
+  
   else {
     PRE_LABEL:
     my %info = ();
@@ -656,7 +674,11 @@ sub paysys_payment {
       66 => 'PAYSYS_PAYPAL_RECIEVER_EMAIL',
       72 => 'PAYSYS_IPAY_MERCHANT_ID',
       73 => 'PAYSYS_YANDEX_ID',
-      77 => 'PAYSYS_CP_VISA'
+      77 => 'PAYSYS_CP_VISA',
+      81 => 'PAYSYS_QIWI_PAYONLINE',
+      82 => 'PAYSYS_WEBMONEY_PAYONLINE',
+      83 => 'PAYSYS_YANDEX_MONEY_PAYONLINE',
+      84 => 'PAYSYS_BANK_CARD_PAYONLINE',
 
     );
 
@@ -2055,24 +2077,24 @@ sub paysys_qiwi_list {
   );
 
   my %status_hash = (
-    10  => 'Íå îáðàáîòàíà',
-    20  => 'Îòïðàâëåí çàïðîñ ïðîâàéäåðó',
-    25  => 'Àâòîðèçóåòñÿ',
-    30  => 'Àâòîðèçîâàíà',
-    48  => 'Ïðîõîäèò ôèíàíñîâûé êîíòðîëü',
-    49  => 'Ïðîõîäèò ôèíàíñîâûé êîíòðîëü',
-    50  => 'Ïðîâîäèòñÿ',
-    51  => 'Ïðîâåäåíà (51)',
-    58  => 'Ïåðåïðîâîäèòñÿ',
-    59  => 'Ïðèíÿòà ê îïëàòå',
-    60  => 'Ïðîâåäåíà',
-    61  => 'Ïðîâåäåíà',
-    125 => 'Íå ñìîãëè îòïðàâèòü ïðîâàéäåðó',
-    130 => 'Îòêàç îò ïðîâàéäåðà',
-    148 => 'Íå ïðîøåë ôèí. êîíòðîëü',
-    149 => 'Íå ïðîøåë ôèí. êîíòðîëü',
-    150 => 'Îøèáêà àâòîðèçàöèè (íåâåðíûé ëîãèí/ïàðîëü)',
-    160 => 'Íå ïðîâåäåíà',
+    10  => 'ÐÐµ Ð¾Ð±Ñ€Ð°Ð±Ð¾Ñ‚Ð°Ð½Ð°',
+    20  => 'ÐžÑ‚Ð¿Ñ€Ð°Ð²Ð»ÐµÐ½ Ð·Ð°Ð¿Ñ€Ð¾Ñ Ð¿Ñ€Ð¾Ð²Ð°Ð¹Ð´ÐµÑ€Ñƒ',
+    25  => 'ÐÐ²Ñ‚Ð¾Ñ€Ð¸Ð·ÑƒÐµÑ‚ÑÑ',
+    30  => 'ÐÐ²Ñ‚Ð¾Ñ€Ð¸Ð·Ð¾Ð²Ð°Ð½Ð°',
+    48  => 'ÐŸÑ€Ð¾Ñ…Ð¾Ð´Ð¸Ñ‚ Ñ„Ð¸Ð½Ð°Ð½ÑÐ¾Ð²Ñ‹Ð¹ ÐºÐ¾Ð½Ñ‚Ñ€Ð¾Ð»ÑŒ',
+    49  => 'ÐŸÑ€Ð¾Ñ…Ð¾Ð´Ð¸Ñ‚ Ñ„Ð¸Ð½Ð°Ð½ÑÐ¾Ð²Ñ‹Ð¹ ÐºÐ¾Ð½Ñ‚Ñ€Ð¾Ð»ÑŒ',
+    50  => 'ÐŸÑ€Ð¾Ð²Ð¾Ð´Ð¸Ñ‚ÑÑ',
+    51  => 'ÐŸÑ€Ð¾Ð²ÐµÐ´ÐµÐ½Ð° (51)',
+    58  => 'ÐŸÐµÑ€ÐµÐ¿Ñ€Ð¾Ð²Ð¾Ð´Ð¸Ñ‚ÑÑ',
+    59  => 'ÐŸÑ€Ð¸Ð½ÑÑ‚Ð° Ðº Ð¾Ð¿Ð»Ð°Ñ‚Ðµ',
+    60  => 'ÐŸÑ€Ð¾Ð²ÐµÐ´ÐµÐ½Ð°',
+    61  => 'ÐŸÑ€Ð¾Ð²ÐµÐ´ÐµÐ½Ð°',
+    125 => 'ÐÐµ ÑÐ¼Ð¾Ð³Ð»Ð¸ Ð¾Ñ‚Ð¿Ñ€Ð°Ð²Ð¸Ñ‚ÑŒ Ð¿Ñ€Ð¾Ð²Ð°Ð¹Ð´ÐµÑ€Ñƒ',
+    130 => 'ÐžÑ‚ÐºÐ°Ð· Ð¾Ñ‚ Ð¿Ñ€Ð¾Ð²Ð°Ð¹Ð´ÐµÑ€Ð°',
+    148 => 'ÐÐµ Ð¿Ñ€Ð¾ÑˆÐµÐ» Ñ„Ð¸Ð½. ÐºÐ¾Ð½Ñ‚Ñ€Ð¾Ð»ÑŒ',
+    149 => 'ÐÐµ Ð¿Ñ€Ð¾ÑˆÐµÐ» Ñ„Ð¸Ð½. ÐºÐ¾Ð½Ñ‚Ñ€Ð¾Ð»ÑŒ',
+    150 => 'ÐžÑˆÐ¸Ð±ÐºÐ° Ð°Ð²Ñ‚Ð¾Ñ€Ð¸Ð·Ð°Ñ†Ð¸Ð¸ (Ð½ÐµÐ²ÐµÑ€Ð½Ñ‹Ð¹ Ð»Ð¾Ð³Ð¸Ð½/Ð¿Ð°Ñ€Ð¾Ð»ÑŒ)',
+    160 => 'ÐÐµ Ð¿Ñ€Ð¾Ð²ÐµÐ´ÐµÐ½Ð°',
   );
 
   my @ids_arr = ();
@@ -2331,6 +2353,109 @@ sub paysys_cp_visa () {
     return $html->tpl_show(_include('paysys_cyberplat_visa', 'Paysys'), \%info, { OUTPUT2RETURN => $attr->{OUTPUT2RETURN} });
   }
 }
+
+
+#**********************************************************
+# User web portal payments system with Payonline
+#**********************************************************
+sub paysys_payonline() {
+
+  if (defined($FORM{payonline_transaction})) {
+    $html->message('info', $_INFO, "$_ADDED $_TRANSACTION: $FORM{payonline_transaction}");
+    $html->setCookie('lastindex', "", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure);
+  }
+
+  elsif (defined($FORM{ErrorCode})) {
+    my @error_codes = (
+      ' Ð’Ð¾Ð·Ð½Ð¸ÐºÐ»Ð° Ñ‚ÐµÑ…Ð½Ð¸Ñ‡ÐµÑÐºÐ°Ñ Ð¾ÑˆÐ¸Ð±ÐºÐ°, Ð¿Ð¾Ð¿Ñ€Ð¾Ð±ÑƒÐ¹Ñ‚Ðµ Ð¿Ð¾Ð²Ñ‚Ð¾Ñ€Ð¸Ñ‚ÑŒ Ð¿Ð¾Ð¿Ñ‹Ñ‚ÐºÑƒ Ð¾Ð¿Ð»Ð°Ñ‚Ñ‹ ÑÐ¿ÑƒÑÑ‚Ñ Ð½ÐµÐºÐ¾Ñ‚Ð¾Ñ€Ð¾Ðµ Ð²Ñ€ÐµÐ¼Ñ',
+      ' ÐŸÑ€Ð¾Ð²ÐµÑÑ‚Ð¸ Ð¿Ð»Ð°Ñ‚ÐµÐ¶ Ð¿Ð¾ Ð±Ð°Ð½ÐºÐ¾Ð²ÑÐºÐ¾Ð¹ ÐºÐ°Ñ€Ñ‚Ðµ Ð½ÐµÐ²Ð¾Ð·Ð¼Ð¾Ð¶Ð½Ð¾. Ð’Ð°Ð¼ ÑÑ‚Ð¾Ð¸Ñ‚ Ð²Ð¾ÑÐ¿Ð¾Ð»ÑŒÐ·Ð¾Ð²Ð°Ñ‚ÑŒÑÑ Ð´Ñ€ÑƒÐ³Ð¸Ð¼ ÑÐ¿Ð¾ÑÐ¾Ð±Ð¾Ð¼ Ð¾Ð¿Ð»Ð°Ñ‚Ñ‹',
+' ÐŸÐ»Ð°Ñ‚ÐµÐ¶ Ð¾Ñ‚ÐºÐ»Ð¾Ð½ÑÐµÑ‚ÑÑ Ð±Ð°Ð½ÐºÐ¾Ð¼-ÑÐ¼Ð¸Ñ‚ÐµÐ½Ñ‚Ð¾Ð¼ ÐºÐ°Ñ€Ñ‚Ñ‹. ÐŸÐ»Ð°Ñ‚ÐµÐ»ÑŒÑ‰Ð¸ÐºÑƒ ÑÑ‚Ð¾Ð¸Ñ‚ ÑÐ²ÑÐ·Ð°Ñ‚ÑŒÑÑ Ñ Ð±Ð°Ð½ÐºÐ¾Ð¼, Ð²Ñ‹ÑÑÐ½Ð¸Ñ‚ÑŒ Ð¿Ñ€Ð¸Ñ‡Ð¸Ð½Ñƒ Ð¾Ñ‚ÐºÐ°Ð·Ð° Ð¸ Ð¿Ð¾Ð²Ñ‚Ð¾Ñ€Ð¸Ñ‚ÑŒ Ð¿Ð¾Ð¿Ñ‹Ñ‚ÐºÑƒ Ð¾Ð¿Ð»Ð°Ñ‚Ñ‹.'
+    );
+
+    $html->message('err', $_ERROR, "$_FAILED: \n" . ($error_codes[ $FORM{ErrorCode} - 1 ]));
+  }
+
+  else {
+    $html->setCookie('lastindex', "", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure);
+    my $payment_href       = '';
+    my $payment_type_title = '';
+
+    #use Digest::MD5 qw ( md5_hex );
+
+    #my $md5 = Digest::MD5->new;
+
+    #$md5->add($data);
+
+    if ($FORM{PAYMENT_SYSTEM} == 81) {
+
+      #QIWI
+      $payment_href       = 'https://secure.payonlinesystem.com/ru/payment/select/qiwi/';
+      $payment_type_title = 'QIWI';
+
+    }
+    elsif ($FORM{PAYMENT_SYSTEM} == 82) {
+
+      #Webmoney
+      $payment_href       = 'https://secure.payonlinesystem.com/ru/payment/select/webmoney/';
+      $payment_type_title = 'Webmoney';
+
+    }
+    elsif ($FORM{PAYMENT_SYSTEM} == 83) {
+
+      #Yandex.Money
+      $payment_href       = 'https://secure.payonlinesystem.com/ru/payment/select/yandexmoney/';
+      $payment_type_title = 'Yandex.Money';
+    }
+    elsif ($FORM{PAYMENT_SYSTEM} == 84) {
+
+      #Bank.Card
+      $payment_href       = 'https://secure.payonlinesystem.com/ru/payment/';
+      $payment_type_title = 'Bank.Card';
+    }
+    my %info = ();
+    my $sum;
+    $info{OrderId} = $FORM{OPERATION_ID};
+
+    if ($FORM{SUM} =~ /^(\d{1,5})\.?(\d{1,2})?$/) {
+      $sum = $FORM{SUM};
+    }
+    $info{amount}   = $sum;
+    $info{desc}     = "Login:$LIST_PARAMS{LOGIN} Transaction:$FORM{OPERATION_ID} UID:$LIST_PARAMS{UID}";
+    $info{form_url} = $payment_href;
+
+    use Digest::MD5 qw(md5_hex);
+
+    $info{securitykey} =
+    md5_hex('MerchantId='
+      . $conf{PAYSYS_PAYONLINE_MERCHANT_ID}
+      . '&OrderId='
+      . $info{OrderId}
+      . '&Amount='
+      . $sum
+      . '&Currency=RUB&OrderDescription='
+      . $info{desc}
+      . '&PrivateSecurityKey='
+      . $conf{PAYSYS_PAYONLINE_SECURITY_KEY});
+
+    $info{payment_form_title} = $payment_type_title;
+
+    $info{payment_system_id} = $FORM{PAYMENT_SYSTEM};
+
+    $info{returnurl} = "https://$ENV{SERVER_NAME}:$ENV{SERVER_PORT}$ENV{REQUEST_URI}?index=$index&payonline_transaction=$info{OrderId}&sid=$FORM{sid}";
+    $info{failurl} = "https://$ENV{SERVER_NAME}:$ENV{SERVER_PORT}$ENV{REQUEST_URI}";    #?index=$index&payonline_transaction_error=$info{OrderId}&sid=$FORM{sid}
+
+    #UrlEncode
+    #$info{returnurl} =~ s/([^A-Za-z0-9])/sprintf("%%%02X", ord($1))/seg;
+    #$info{failurl} =~ s/([^A-Za-z0-9])/sprintf("%%%02X", ord($1))/seg;
+
+    $html->setCookie('lastindex', "$index", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure);
+
+    return $html->tpl_show(_include('paysys_payonline_add', 'Paysys'), \%info, { OUTPUT2RETURN => $attr->{OUTPUT2RETURN} });
+  }
+}
+
+
+
 
 1
 

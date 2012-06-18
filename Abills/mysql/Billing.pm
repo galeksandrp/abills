@@ -307,10 +307,10 @@ sub get_traffic {
   	   WHERE l.acct_session_id=li.acct_session_id AND uid $WHERE and li.interval_id='$self->{TI_ID}' and ($period)");
   
 	  if ($self->{TOTAL} > 0) {
-	  	foreach my $line ($self->{list}) {
+	  	foreach my $line (@{ $self->{list} }) {
 	  		my $sufix = ($line->[0] == 0) ? '' : "_".($line->[0]+1);
-        $result{'TRAFFIC_OUT'.$sufix}   += $line->[1];
-        $result{'TRAFFIC_IN'.$sufix}    += $line->[2];
+        $result{'TRAFFIC_OUT'.$sufix} = ($result{'TRAFFIC_OUT'.$sufix}) ? $result{'TRAFFIC_OUT'.$sufix} + $line->[1] : 0;
+        $result{'TRAFFIC_IN'.$sufix}  = ($result{'TRAFFIC_IN'.$sufix}) ? $result{'TRAFFIC_IN'.$sufix} + $line->[2] : 0;
       }
     }
 
@@ -330,7 +330,10 @@ sub get_traffic {
   );
 
   if ($self->{TOTAL} > 0) {
-    ($result{TRAFFIC_OUT}, $result{TRAFFIC_IN}, $result{TRAFFIC_OUT_2}, $result{TRAFFIC_IN_2}) = @{ $self->{list}->[0] };
+    ($result{TRAFFIC_OUT}, 
+     $result{TRAFFIC_IN}, 
+     $result{TRAFFIC_OUT_2}, 
+     $result{TRAFFIC_IN_2}) = @{ $self->{list}->[0] };
   }
 
   if ($attr->{STATS_ONLY}) {
@@ -523,28 +526,27 @@ sub session_sum {
     $self->query(
       $db, "SELECT 
     u.uid,
-    UNIX_TIMESTAMP(DATE_FORMAT(FROM_UNIXTIME($SESSION_START), '%Y-%m-%d')),
-    DAYOFWEEK(FROM_UNIXTIME($SESSION_START)),
-    DAYOFYEAR(FROM_UNIXTIME($SESSION_START)),
+    UNIX_TIMESTAMP(DATE_FORMAT(FROM_UNIXTIME($SESSION_START), '%Y-%m-%d')) AS day_begin,
+    DAYOFWEEK(FROM_UNIXTIME($SESSION_START)) AS day_of_week,
+    DAYOFYEAR(FROM_UNIXTIME($SESSION_START)) AS day_of_year,
     u.reduction,
     u.bill_id,
     u.activate,
     u.company_id,
     u.ext_bill_id
    FROM users u
-   WHERE  u.id='$USER_NAME' and u.domain_id='$attr->{DOMAIN_ID}';"
+   WHERE  u.id='$USER_NAME' and u.domain_id='$attr->{DOMAIN_ID}';",
+   undef,
+   { INFO => 1 }   
     );
 
     if ($self->{errno}) {
       return -3, 0, 0, 0, 0, 0;
     }
-
     #user not found
     elsif ($self->{TOTAL} < 1) {
       return -2, 0, 0, 0, 0, 0;
     }
-
-    ($self->{UID}, $self->{DAY_BEGIN}, $self->{DAY_OF_WEEK}, $self->{DAY_OF_YEAR}, $self->{REDUCTION}, $self->{BILL_ID}, $self->{ACTIVATE}, $self->{COMPANY_ID}, $self->{EXT_BILL_ID},) = @{ $self->{list}->[0] };
 
     $self->query(
       $db, "SELECT 
@@ -557,7 +559,9 @@ sub session_sum {
     tp.tp_id,
     tp.bills_priority
    FROM tarif_plans tp
-   WHERE tp.id='$attr->{TP_NUM}' AND tp.domain_id='$attr->{DOMAIN_ID}';"
+   WHERE tp.id='$attr->{TP_NUM}' AND tp.domain_id='$attr->{DOMAIN_ID}';",
+   undef,
+   { INFO => 1 }
     );
 
     if ($self->{errno}) {
@@ -570,18 +574,15 @@ sub session_sum {
     }
 
     $self->{TP_NUM} = $attr->{TP_NUM};
-
-    ($self->{MIN_SESSION_COST}, $self->{PAYMENT_TYPE}, $self->{OCTETS_DIRECTION}, $self->{TRAFFIC_TRANSFER_PERIOD}, $self->{TOTAL_TIME_LIMIT}, $self->{TOTAL_TRAF_LIMIT}, $self->{TP_ID}, $self->{BILLS_PRIORITY}) = @{ $self->{list}->[0] };
-
   }
   else {
     $self->query(
       $db, "SELECT 
     u.uid,
-    tp.id, 
-    UNIX_TIMESTAMP(DATE_FORMAT(FROM_UNIXTIME($SESSION_START), '%Y-%m-%d')),
-    DAYOFWEEK(FROM_UNIXTIME($SESSION_START)),
-    DAYOFYEAR(FROM_UNIXTIME($SESSION_START)),
+    tp.id AS tp_num, 
+    UNIX_TIMESTAMP(DATE_FORMAT(FROM_UNIXTIME($SESSION_START), '%Y-%m-%d')) AS day_begin,
+    DAYOFWEEK(FROM_UNIXTIME($SESSION_START)) AS day_of_week,
+    DAYOFYEAR(FROM_UNIXTIME($SESSION_START)) AS day_of_year,
     u.reduction,
     u.bill_id,
     u.activate,
@@ -601,7 +602,9 @@ sub session_sum {
       dv_main dv) 
    LEFT JOIN tarif_plans tp ON (dv.tp_id=tp.id AND tp.domain_id='$attr->{DOMAIN_ID}')
    WHERE dv.uid=u.uid AND u.domain_id='$attr->{DOMAIN_ID}'
-   and u.id='$USER_NAME';"
+   and u.id='$USER_NAME';",
+   undef,
+   { INFO => 1 }
     );
 
     if ($self->{errno}) {
@@ -612,19 +615,13 @@ sub session_sum {
     elsif ($self->{TOTAL} < 1) {
       return -2, 0, 0, 0, 0, 0;
     }
-
-    (
-      $self->{UID},          $self->{TP_NUM},           $self->{DAY_BEGIN},        $self->{DAY_OF_WEEK},      $self->{DAY_OF_YEAR},      $self->{REDUCTION},               $self->{BILL_ID},
-      $self->{ACTIVATE},     $self->{MIN_SESSION_COST}, $self->{COMPANY_ID},       $self->{PAYMENT_TYPE},     $self->{OCTETS_DIRECTION}, $self->{TRAFFIC_TRANSFER_PERIOD}, $self->{NEG_DEPOSIT_FILTER},
-      $self->{JOIN_SERVICE}, $self->{TP_ID},            $self->{TOTAL_TIME_LIMIT}, $self->{TOTAL_TRAF_LIMIT}, $self->{EXT_BILL_ID},      $self->{BILLS_PRIORITY}
-    ) = @{ $self->{list}->[0] };
   }
 
   if ($self->{JOIN_SERVICE}) {
     if ($self->{JOIN_SERVICE} > 1) {
       $self->query(
         $db, "SELECT 
-        tp.id, 
+        tp.id as tp_num, 
         tp.min_session_cost,
         tp.payment_type,
         tp.octets_direction,
@@ -633,7 +630,9 @@ sub session_sum {
         tp.tp_id
        FROM (dv_main dv,  tarif_plans tp)
        WHERE dv.tp_id=tp.id AND tp.domain_id='$attr->{DOMAIN_ID}'
-       and dv.uid='$self->{JOIN_SERVICE}';"
+       and dv.uid='$self->{JOIN_SERVICE}';",
+       undef,
+       { INFO => 1 }
       );
 
       if ($self->{errno}) {
@@ -644,8 +643,6 @@ sub session_sum {
       elsif ($self->{TOTAL} < 1) {
         return -2, 0, 0, 0, 0, 0;
       }
-
-      ($self->{TP_NUM}, $self->{MIN_SESSION_COST}, $self->{PAYMENT_TYPE}, $self->{OCTETS_DIRECTION}, $self->{TRAFFIC_TRANSFER_PERIOD}, $self->{NEG_DEPOSIT_FILTER}, $self->{TP_ID}) = @{ $self->{list}->[0] };
 
       $self->{UIDS} = "$self->{JOIN_SERVICE}";
     }
