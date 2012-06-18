@@ -48,7 +48,6 @@ sub hangup {
   }
   elsif ($nas_type eq 'mikrotik') {
     hangup_radius($NAS, $PORT, $USER, $attr);
-
     #hangup_mikrotik_telnet($NAS, $PORT, $USER);
   }
   elsif ($nas_type eq 'chillispot') {
@@ -483,7 +482,6 @@ sub hangup_ipcad {
   my $netmask   = $attr->{NETMASK} || 32;
   my $FILTER_ID = $attr->{FILTER_ID} || '';
 
-
   require Ipn;
   Ipn->import();
   my $Ipn = Ipn->new($db, \%conf);
@@ -511,6 +509,10 @@ sub hangup_ipcad {
     $ENV{NAS_MNG_IP_PORT} = $NAS->{NAS_MNG_IP_PORT};
     $ENV{NAS_ID}          = $NAS->{NAS_ID};
     $ENV{NAS_TYPE}        = $NAS->{NAS_TYPE};
+  }
+
+  if (! $UID) {
+  	$UID=$attr->{UID};
   }
 
   if ($conf{IPN_FILTER}) {
