@@ -672,7 +672,8 @@ sub img {
   my ($img, $name, $attr) = @_;
 
   my $img_path = ($img =~ s/^://) ? "$IMG_PATH/" : '';
-  return "<img alt='$name' src='$img_path$img' border='0'>";
+  $img =~ s/\&/\&amp;/g;
+  return "<img alt='$name' src='$img_path$img'/>";
 }
 
 #**********************************************************
