@@ -6,7 +6,11 @@
 
 <b>$_LOGIN:</b>: <input type=text  name='LOGIN' value='%ID%'>
 <b>$_PASSWD:</b>: <input type=text  name=PASSWD value='%PASSWD%'>
-<b>$_PHONE</b>: <input type=text  name=PHONE value='%PHONE%'>
+<b>$_PHONE</b>: <input type=text  name=PHONE value='%PHONE%'><br><br>
+<b>$_PASPORT</b>: <input name='PASPORT_NUM' value='%PASPORT_NUM%' type='text'>
+<b>$_DATE</b>: <input class='tcalInput' name='PASPORT_DATE' value=\"%PASPORT_DATE%\" size=\"10\" rel=\"tcal\" id=\"PASPORT_DATE\" type=\"text\">
+ <b>$_GRANT</b>: <input name='PASPORT_GRANT' value='%PASPORT_GRANT%' type='text' size='55'> 
+
 <!-- <b>$_COMMENTS</b>: <input type=text name=COMMENTS value='%COMMENTS%'> --> <br/><br/> 
 <b>$_FIO</b>: <input type=text  name='FIO' value='%FIO%' size=50>
 <b>$_CONTRACT_ID</b>: <input type=text  name=CONTRACT_ID value='%CONTRACT_ID%'>

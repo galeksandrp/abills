@@ -11,6 +11,10 @@
 <b>$_CONTRACT_ID</b>: <input type=text  name='3.CONTRACT_ID' value=\"$FORM{'3.CONTRACT_ID'}\">
 <b>$_CONTRACT $_DATE</b>:<input class=\"tcalInput\" name=\"3.CONTRACT_DATE\" value=\"$DATE\" id=\"3.CONTRACT_DATE\" rel=\"tcal\" size=\"12\" type=\"text\"> <br/><br/>
 
+<b>$_PASPORT</b>: <input name='3.PASPORT_NUM' value='' type='text'>
+<b>$_DATE</b>: <input class='tcalInput' name='3.PASPORT_DATE' value=\"$DATE\" size=\"10\" rel=\"tcal\" id=\"PASPORT_DATE\" type=\"text\">
+ <b>$_GRANT</b>: <input name='3.PASPORT_GRANT' value='' type='text' size='55'> <br/><br/>
+
 <b>$_COMMENTS</b>:<br/>
 <textarea name='3.COMMENTS' cols=80 id='comments'>$FORM{'3.COMMENTS'}</textarea>
 <br/><br/>

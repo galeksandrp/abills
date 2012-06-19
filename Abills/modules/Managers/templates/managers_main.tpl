@@ -76,13 +76,7 @@ button:hover {
 
 }
 
-table {
-margin-top:15px;
-text-align: center;
 
-
-
-}
 
 th {
 height:35px;
@@ -91,14 +85,7 @@ background-color: #F0F0F0;
 }
 
 
-.tcaption {
 
-float:right;
-padding: 0px 10px 0px 0px;
-font-size:1.2em;
-font-weight:800;
-
-}
 
 #wrapper {
 	width: 1000px;
@@ -486,6 +473,14 @@ font-weight:800;
 	left:5px;
 	top:27px;	
 }
+
+.tcaption {
+	background-color:#FFFFFF;
+	text-align:right;
+	font-size:12px;
+	font-weight:700;
+}
+
 
 
 
