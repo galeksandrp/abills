@@ -184,8 +184,8 @@ sub new {
     );
   }
   elsif ($FORM{csv} || $attr->{csv}) {
-    require Abills::CSV;
-    $self = Abills::CSV->new(
+    require Abills::CONSOLE;
+    $self = Abills::CONSOLE->new(
         {
           IMG_PATH => $IMG_PATH,
           NO_PRINT => defined($attr->{'NO_PRINT'}) ? $attr->{'NO_PRINT'} : 1,

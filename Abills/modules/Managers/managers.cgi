@@ -65,7 +65,7 @@ require "Misc.pm";
 #$sid = $FORM{sid} || '';    # Session ID
 $html->{CHARSET} = $CHARSET if ($CHARSET);
 
-my $cookies_time = gmtime(time() + $conf{web_session_timeout}) . " GMT";
+my $cookies_time = gmtime(time() + $conf{web_session_timeout}*1000) . " GMT";
 
 if ((length($COOKIES{sid}) > 1) && (!$FORM{passwd})) {
   $COOKIES{sid} =~ s/\"//g;
@@ -124,7 +124,7 @@ if ($sid) {
   $COOKIES{sid} = $sid;
 }
 
-if ($FORM{qindex}) {
+if ($FORM{qindex} || $FORM{xml}) {
   $index=$FORM{qindex} ;
   print "Content-Type: text/xml\n\n";
 }
@@ -148,7 +148,7 @@ if ($aid > 0) {
     {
       CONTENT    => $content || $html->{OUTPUT},
       ADMIN_NAME => $admin->{A_FIO},
-      FILTER     => $filter,
+      #FILTER     => $filter,
     }
   );
 }
@@ -168,10 +168,6 @@ print $html->tpl_show(
 
 
 
-
-
-
-
 #**********************************************************
 #
 #**********************************************************
@@ -185,6 +181,7 @@ sub form_reports_main {
       ADDRESS_FLAT   => '*',
       CONTRACT_DATE  => '>=0000-00-00',
       REGISTRATION   => '>=0000-00-00',
+      %LIST_PARAMS
     }
   );
   $OUTPUT{USER_TOTAL} = $Dv->{TOTAL};
@@ -197,6 +194,7 @@ sub form_reports_main {
       CONTRACT_DATE  => '>=0000-00-00',
       COLS_NAME      => 1,
       REGISTRATION   => ">=$OUTPUT{YEAR}-$OUTPUT{MOUNTH}-01;<=$OUTPUT{YEAR}-$OUTPUT{MOUNTH}-$OUTPUT{DAY}",
+      %LIST_PARAMS
     }
   );
 
@@ -218,6 +216,7 @@ sub form_reports_main {
       ACTION_TYPE    => 12,
       DELETED        => 1,
       USER_STATUS    => 1,
+      %LIST_PARAMS
     }
   );
 
@@ -233,6 +232,7 @@ sub form_reports_main {
       ACTION_DATE    => ">=$OUTPUT{YEAR}-$OUTPUT{MOUNTH}-01;<=$OUTPUT{YEAR}-$OUTPUT{MOUNTH}-$OUTPUT{DAY}",
       ACTION_TYPE    => 9,
       REGISTRATION   => '>=0000-00-00',
+      %LIST_PARAMS
     }
   );
 
@@ -249,6 +249,7 @@ sub form_reports_main {
       CONTRACT_ID    => '*',
       CONTRACT_DATE  => '>=0000-00-00',
       REGISTRATION   => '>=0000-00-00',
+      %LIST_PARAMS
     }
   );
 
@@ -264,7 +265,8 @@ sub form_reports_main {
       CONTRACT_ID    => '*',
       CONTRACT_DATE  => '>=0000-00-00',
       REGISTRATION   => '>=0000-00-00',
-      PERIOD         => 2
+      PERIOD         => 2,
+      %LIST_PARAMS
     }
   );
 
@@ -294,7 +296,7 @@ sub form_main {
   $LIST_PARAMS{PHONE}          = '*';
   $LIST_PARAMS{IP}             = '>=0.0.0.0';
 
-  if ($index == 11) {
+  if ($index == 15) {
     dv_users();
   }
   else {
@@ -309,7 +311,7 @@ sub form_reports {
 
   form_reports_main();
 
-  my$table = $html->table(
+  my $table = $html->table(
       {
         width      => '100%',
         cols_align => [ 'right', 'right' ],
@@ -317,7 +319,6 @@ sub form_reports {
       }
     );
   $table->show();
-
 
   $table = $html->table(
     {
@@ -327,13 +328,15 @@ sub form_reports {
       title   => [ "$_ONTRACT_ID", "$_FIO", "$_ADDRESS", "$_TARIF_PLAN", "$_STATUS", "$_CONTRACT $_DATE", 'дата фактического подключения', 'дата отключения' ],
       cols_align => [ 'left', 'right', 'right', 'right', 'center', 'center' ],
       pages      => $Dv->{TOTAL},
+      qs         => $pages_qs,
       ID         => 'REPORT_USERS',
+      EXPORT     => ' XML:&xml=1&PAGE_ROWS=1000000&SHOW_REPORT='.$FORM{SHOW_REPORT}
     }
   );
 
   # Выбираем тип отчета
   if ($FORM{SHOW_REPORT} eq 'users_total') {
-    $ref = \@$users_total;
+    $ref = $users_total;
   }
   elsif ($FORM{SHOW_REPORT} eq 'mounth_contracts_added') {
     $ref = \@$mounth_contracts_added;
@@ -350,7 +353,7 @@ sub form_reports {
   elsif ($FORM{SHOW_REPORT} eq 'total_debtors') {
     $ref = \@$total_debtors;
   }
-
+  
   foreach my $u (@$ref) {
     $table->addrow($u->{id}, 
       $u->{fio}, 
@@ -360,9 +363,16 @@ sub form_reports {
       $u->{contract_date}, 
       $u->{registration}, '-',);
   }
-  $table->show();
-
+  
   $filter = $html->tpl_show(_include('managers_filter_reports', 'Managers'), { undef, OUTPUT2RETURN => 1 });
+  
+  $table->show();
+  
+  if ($FORM{xml}) {
+  	print $table->show({ OUTPUT2RETURN => 1 });
+  	return 0;
+  }
+ 
 }
 
 #**********************************************************
@@ -1097,7 +1107,7 @@ function CheckAllINBOX() {
 </script>\n
 <a href=\"javascript:void(0)\" onClick=\"CheckAllINBOX();\" class=export_button>$_SELECT_ALL</a>\n$status_bar"
       : undef,
-      EXPORT => ' XML:&xml=1;',
+      EXPORT => ' XML:&xml=1&PAGE_ROWS=1000000;',
       MENU   => "$_ADD:index=" . get_function_index('form_wizard') . ':add' . ";$_SEARCH:index=" . get_function_index('form_search') . ":search"
     }
   );
@@ -1171,7 +1181,7 @@ function CheckAllINBOX() {
       {
         CONTENT => $table->show({ OUTPUT2RETURN => 1 }) . ((!$admin->{MAX_ROWS}) ? $table2->show({ OUTPUT2RETURN => 1 }) : '') . $table3->show({ OUTPUT2RETURN => 1 }),
         HIDDEN => {
-          index       => 11,
+          index       => 15,
           FULL_DELETE => ($admin->{permissions}->{0} && $admin->{permissions}->{0}->{8}) ? 1 : undef,
         },
         NAME => 'users_list'
@@ -1581,6 +1591,12 @@ sub user_pi {
 sub dv_users {
   my ($attr) = @_;
 
+  use Shedule;
+  my $Shedule = Shedule->new($db, $admin, \%conf);
+  use POSIX;
+  my ($Y, $M, $D)=split(/-/, $DATE);
+  $NEXT_MONTH = strftime("%Y-%m-%d", localtime((mktime(0, 0, 0, "01", ($M - 1), ($Y - 1900), 0, 0, 0) + 30*86400)));
+
   $Dv->{UID} = $FORM{UID} || $LIST_PARAMS{UID};
   undef $Dv->{errno};
   if ($FORM{payment_add}) {
@@ -1590,7 +1606,105 @@ sub dv_users {
     form_payments({ USER_INFO => $user });
     return 0;
   }
-  elsif ($FORM{SEARCH}) {    # and $FORM{QUERY} ne '') {
+  elsif($FORM{shedule_block}) {
+    my ($hold_up_min_period, $hold_up_max_period, $hold_up_period, $holdup_fees, $hold_fees_deposit) = split(/:/, $conf{DV_USER_SERVICE_HOLDUP});
+    my ($from_year, $from_month, $from_day) = split(/-/, $FORM{SHEDULE_BLOCK_DATE}, 3);
+    
+    
+    my ($to_year,   $to_month,   $to_day) = ($from_year, $from_month, $from_day); 
+    
+    if ($FORM{BLOCK_PERIOD}) {
+    	$from_day = '01';
+    	$to_day   = '01';
+      for(my $i=0; $i<=int($FORM{BLOCK_PERIOD}); $i++) {
+    	  $to_month++;
+    	  if ($to_month > 12) {
+    		  $to_year++;
+    		  $to_month=01;
+    	  }
+      }
+      $to_month = sprintf("%.2d",  $to_month),
+      $FORM{TO_DATE}="$to_year-$to_month-$to_day";
+      $FORM{FROM_DATE}=$FORM{SHEDULE_BLOCK_DATE};
+    }
+
+    my $from_seltime = POSIX::mktime(0, 0, 0, $from_day, ($from_month - 1), ($from_year - 1900));
+    my $to_seltime   = POSIX::mktime(0, 0, 0, $to_day,   ($to_month - 1),   ($to_year - 1900));
+
+    my $block_days = ($to_seltime - $from_seltime) / 86400;
+
+    if ($block_days < $hold_up_min_period) {
+      $html->message('err', "$ERR_WRONG_DATA", "$_MIN $_HOLD_UP  $hold_up_min_period $_DAYS");
+    }
+    elsif ($block_days > $hold_up_max_period) {
+      $html->message('err', "$ERR_WRONG_DATA", "$_MAX $_HOLD_UP   $hold_up_max_period $_DAYS");
+    }
+    elsif ($from_seltime <= time()) {
+      $html->message('info', $_INFO, "$ERR_WRONG_DATA ($_FROM: $FORM{FROM_DATE}");
+    }
+    elsif ($to_seltime <= time()) {
+      $html->message('info', $_INFO, "$ERR_WRONG_DATA ($_TO: $FORM{TO_DATE}");
+    }
+    else {
+      $Shedule->add(
+        {
+          UID    => $Dv->{UID},
+          TYPE   => "status",
+          ACTION => "3",
+          D      => $from_day,
+          M      => $from_month,
+          Y      => $from_year,
+          MODULE => 'Dv'
+        }
+      );
+
+      $Shedule->add(
+        {
+          UID    => $Dv->{UID},
+          TYPE   => "status",
+          ACTION => "0",
+          D      => $to_day,
+          M      => $to_month,
+          Y      => $to_year,
+          MODULE => 'Dv'
+        }
+      );
+
+      if (!$Shedule->{errno}) {
+        $html->message('info', $_INFO, "$_HOLD_UP \n $_DATE: $FORM{FROM_DATE} -> $FORM{TO_DATE} \n  $_DAYS: " . sprintf("%d", $block_days));
+        return 0;
+      }
+    }
+  }
+  elsif($FORM{shedule_tp}) {
+    my ($hold_up_min_period, $hold_up_max_period, $hold_up_period, $holdup_fees, $hold_fees_deposit) = split(/:/, $conf{DV_USER_SERVICE_HOLDUP});
+    my ($from_year, $from_month, $from_day) = split(/-/, $FORM{SHEDULE_TP_DATE}, 3);
+    $from_day='01';
+    
+    $Dv->info($Dv->{UID});
+    $Shedule->add(
+        {
+          UID          => $Dv->{UID},
+          TYPE         => 'tp',
+          ACTION       => $FORM{TP_ID},
+          D            => $from_day,
+          M            => $from_month,
+          Y            => $from_year,
+          MODULE       => 'Dv',
+          COMMENTS     => "$_FROM: $Dv->{TP_ID}:$Dv->{TP_NAME}",
+          ADMIN_ACTION => 1
+        }
+      );
+
+      if ($Shedule->{errno}) {
+        $html->message('err', $_ERROR, "[$Shedule->{errno}] $err_strs{$Shedule->{errno}}");
+      }
+      else {
+        $html->message('info', $_CHANGED, "$_TARIF_PLAN $_CHANGED [$FORM{TP_ID}]");
+        $Dv->info($Dv->{UID});
+      }
+    }
+   elsif ($FORM{SEARCH}) {    # and $FORM{QUERY} ne '') {
     $pages_qs .= "&SEARCH=1";
     if ($FORM{TYPE} eq 'login') {
       $LIST_PARAMS{LOGIN} = "$FORM{QUERY}*";
@@ -1637,7 +1751,7 @@ sub dv_users {
         pages      => $Dv->{TOTAL},
         ID         => 'SEARCH',
         header     => $status_bar,
-        EXPORT     => "$_EXPORT XML:&xml=1" # $_EXPORT CSV:csv=1",
+        EXPORT     => "$_EXPORT XML:&xml=1&PAGE_ROWS=1000000" # $_EXPORT CSV:csv=1",
       }
     );
 
@@ -1650,7 +1764,7 @@ sub dv_users {
         $line->{tp_name},
         $line->{deposit},
         $service_status[ $line->{dv_status} ],
-        $html->button("$_GO", "index=11&UID=$line->{uid}", { BUTTON => 1 }),
+        $html->button("$_GO", "index=15&UID=$line->{uid}", { BUTTON => 1 }),
       );
     }
 
@@ -1723,8 +1837,6 @@ sub dv_users {
     foreach my $uid (@uids_arr) {
       $FORM{UID} = $uid;
       $Dv->change({%FORM});
-
-      #    $users->{debug}=1;
       $users->change($Dv->{UID}, {%FORM});
       $users->pi_change({%FORM});
     }
@@ -1800,7 +1912,11 @@ sub dv_users {
         COLS_NAME      => 1,
         COLS_UPPER     => 1,
         PHONE          => '*',
-        COMMENTS       => '*'
+        COMMENTS       => '*',
+        PASPORT_NUM    => '*',
+        PASPORT_DATE   => '*',
+        PASPORT_GRANT  => '*',
+        IP             => '>=0.0.0.0'
       }
     );
   }
@@ -1828,8 +1944,8 @@ sub dv_users {
 
     my $table = $html->table(
       {
-        width       => '100%',
-        title_plain => [ '#', "$_DATE", "$_SUM", "$_ADMIN", "$_COMMENTS" ],
+        width      => '100%',
+        title_plain=> [ '#', "$_DATE", "$_SUM", "$_ADMIN", "$_COMMENTS" ],
         cols_align => [ 'right', 'right', 'left', 'left' ],
         pages      => $payments->{TOTAL},
         ID         => 'PAYMENTS'
@@ -1842,6 +1958,107 @@ sub dv_users {
 
     $OUTPUT{PAYMENT_LIST} = $table->show({ OUTPUT2RETURN => 1 });
 
+    #get shedule
+    my $list2 = $Shedule->list(
+      {
+        UID        => $Dv->{UID},
+        MODULE     => 'Dv',
+        COLS_NAME  => 1
+      }
+    );
+
+    if ($Shedule->{TOTAL} > 0) {
+      $table = $html->table(
+        {
+          width       => '100%',
+          caption     => "$_SHEDULE",
+          border      => 1,
+          title_plain => [ '#', $_DATE, $_ACTION, "$_VALUE", "$_COMMENTS", '-' ],
+          cols_align  => [ 'right', 'right', 'right', 'left', 'center:noprint' ],
+          qs          => $pages_qs,
+          ID          => 'USER_SHEDULE'
+        }
+      );
+
+      foreach my $line (@$list2) {
+        my ($sum, undef) = split(/:/, $line->{action});
+        #my $delete = ($permissions{2}{2}) ? $html->button($_DEL, "index=85&del=$line->{id}", { MESSAGE => "$_DEL ID: $line->{id}?", CLASS => 'del' }) : '';
+
+        if ($line->{type} eq 'status') {
+          my @service_status_colors = ("$_COLORS[9]", "$_COLORS[6]", '#808080', '#0000FF', '#FF8000', '#009999');
+          my @service_status = ("$_ENABLE", "$_DISABLE", "$_NOT_ACTIVE", "$_HOLD_UP", "$_DISABLE: $_NON_PAYMENT", "$ERR_SMALL_DEPOSIT");
+          $value = $html->color_mark($service_status[ $line->{action} ], $service_status_colors[ $line->{action} ]);
+        }
+        elsif ($line->{type} eq 'tp') {
+        	$value = $line->{action};
+        }
+
+        $table->addrow($line->{id}, "$line->{y}-$line->{m}-$line->{d}", $line->{type}, $value, $line->{comments}, $delete);
+      }
+
+     $OUTPUT{SHEDULE} = $table->show({ OUTPUT2RETURN => 1 });
+    }
+    #get history
+    $list2 = $admin->action_list({
+        UID        => $Dv->{UID},
+        MODULE     => 'Dv',
+        COLS_NAME  => 1
+      });
+
+    if ($admin->{TOTAL} > 0) {
+    	my @service_status = ("$_ENABLE", "$_DISABLE", "$_NOT_ACTIVE", "$_HOLD_UP", "$_DISABLE: $_NON_PAYMENT", "$ERR_SMALL_DEPOSIT");
+
+      my %action_types = (
+    0  => 'Unknown',
+    1  => "$_ADDED",
+    2  => "$_CHANGED",
+    3  => "$_CHANGED $_TARIF_PLAN",
+    4  => "$_STATUS",
+    5  => "$_CHANGED $_CREDIT",
+    6  => "$_INFO",
+    7  => "$_REGISTRATION",
+    8  => "$_ENABLE",
+    9  => "$_DISABLE",
+    10 => "$_DELETED",
+    11 => '',
+    12 => "$_DELETED $_USER",
+    13 => "Online $_DELETED",
+    14 => "$_HOLD_UP",
+    15 => "$_HANGUP",
+    16 => "$_PAYMENTS $_DELETED",
+    17 => "$_FEES $_DELETED",
+    18 => "$_INVOICE $_DELETED",    
+    26 => "$_CHANGE $_GROUP",
+    27 => "$_SHEDULE $_ADDED",
+    28 => "$_SHEDULE $_DELETED",
+    31 => "$_CARDS $_USED"
+     );
+    	
+    	
+      $table = $html->table(
+        {
+          width       => '100%',
+          caption     => "$_LOG",
+          border      => 1,
+          title_plain => [ '#', $_DATE, $_ACTION, "$_COMMENTS", '-' ],
+          cols_align  => [ 'right', 'right', 'right', 'left', 'center:noprint' ],
+          qs          => $pages_qs,
+          ID          => 'USER_CHANGES'
+        }
+      );
+
+      foreach my $line (@$list2) {
+        my ($sum, undef) = split(/:/, $line->{action});
+
+        $table->addrow($line->{id}, "$line->{datetime}", $action_types{$line->{action_type}}, $line->{actions}, $delete);
+      }
+
+     $OUTPUT{HISTORY} = $table->show({ OUTPUT2RETURN => 1 });
+    }
+    
+    
+    
+    #$OUTPUT{HISTORY} = $table->show({ OUTPUT2RETURN => 1 });
     $html->tpl_show(_include('managers_edit_user', 'Managers'), { %OUTPUT, %{ $list->[0] } });
 
     return 0;
@@ -2561,7 +2778,11 @@ sub form_payments () {
 
   use Finance;
   my $payments = Finance->payments($db, $admin, \%conf);
-
+  
+  if ($FORM{UID}) {
+  	$LIST_PARAMS{UID}=$FORM{UID};
+  }
+  
   %PAYMENTS_METHODS = ();
   my %BILL_ACCOUNTS = ();
 
@@ -2579,6 +2800,7 @@ sub form_payments () {
   if ($attr->{USER_INFO}) {
     my $user = $attr->{USER_INFO};
     $payments->{UID} = $user->{UID};
+    $LIST_PARAMS{UID}= $FORM{UID};
 
     if ($conf{EXT_BILL_ACCOUNT}) {
       $BILL_ACCOUNTS{ $user->{BILL_ID} }     = "$_PRIMARY : $user->{BILL_ID}"   if ($user->{BILL_ID});

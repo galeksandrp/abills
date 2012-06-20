@@ -1,7 +1,7 @@
 <br/><br/>
 <br/><br/>
 <form action='$SELF_URL' METHOD='POST' NAME=NEW_USER>
-<input type=hidden name='index' value='11'>
+<input type=hidden name='index' value='15'>
 <input type=hidden name='1.CREATE_BILL' value='1'>
 <b>$_LOGIN</b>: <input type=text  name='1.LOGIN' value=\"$FORM{'1.LOGIN'}\">
 <b>$_PASSWD</b>: <input type=text  name='2.newpassword' value=\"$FORM{'2.newpassword'}\">

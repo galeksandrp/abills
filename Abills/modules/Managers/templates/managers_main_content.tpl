@@ -10,7 +10,7 @@
 не оплативших 2 и более месяцев - <a href=\"$SELF_URL?SHOW_REPORT=total_debtors\">%REPORT_DEBETORS2%</a> </li>
 </ul>
 <form action=\"$SELF_URL\" method=\"get\" name=\"search_form\" >
-<input type=hidden name=index value=11>
+<input type=hidden name=index value=15>
 <input type=hidden name='STATUS' value=1>
 
 <button name='SEARCH' value=1>$_USERS</button>

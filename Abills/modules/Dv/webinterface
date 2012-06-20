@@ -6050,7 +6050,6 @@ sub dv_traf_tarifs {
     $tarif_plan->tt_defaults();
 
     if ($FORM{change}) {
-
       $tarif_plan->tt_change(
         {
           TT_DESCRIBE_0  => $FORM{TT_DESCRIBE_0},

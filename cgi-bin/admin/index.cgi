@@ -3244,7 +3244,12 @@ sub form_intervals {
           $max_traffic_class_id = $line->[0] if ($line->[0] > $max_traffic_class_id);
           $table2->addrow(
             ($line->[0] != 0) ? $html->color_mark($line->[0], 'red') : $line->[0],
-            $line->[1], $line->[2], $line->[3], $line->[4], $line->[5], $line->[6],
+            $line->[1], 
+            $line->[2], 
+            $line->[3], 
+            $line->[4], 
+            $line->[5], 
+            $line->[6],
             convert($line->[7], { text2html => 1 }),
             $html->button($_CHANGE, "index=$index$pages_qs&tt=$TI_ID&chg=$line->[0]", { CLASS => 'change' }),
             $html->button($_DEL, "index=$index$pages_qs&tt=$TI_ID&del=$line->[0]", { MESSAGE => "$_DEL [$line->[0]]?", CLASS => 'del' })
@@ -3349,10 +3354,10 @@ sub form_intervals {
       );
     }
 
-    $tarif_plan->{NETS_SEL} = $html->form_select(
+    $tarif_plan->{NETS_SEL} =  $html->form_select(
       'TT_NET_ID',
       {
-        SELECTED          => $tarif_plan->{TT_NET_ID},
+        SELECTED          => ($tarif_plan->{ACTION} eq 'add' && ! $tarif_plan->{TT_NET_ID} && ! $tarif_plan->{TT_ID}) ? 1 : $tarif_plan->{TT_NET_ID},
         SEL_MULTI_ARRAY   => [ [ 0, '' ], @{ $tarif_plan->traffic_class_list({%LIST_PARAMS}) } ],
         MULTI_ARRAY_KEY   => 0,
         MULTI_ARRAY_VALUE => 1,

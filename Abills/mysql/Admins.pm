@@ -507,7 +507,9 @@ sub action_list {
    FROM admin_actions aa
       LEFT JOIN admins a ON (aa.aid=a.aid)
       LEFT JOIN users u ON (aa.uid=u.uid)
-      $WHERE ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;"
+      $WHERE ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;",
+   undef,
+   $attr
   );
 
   my $list = $self->{list};
