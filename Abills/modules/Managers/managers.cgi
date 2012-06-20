@@ -1616,7 +1616,7 @@ sub dv_users {
     if ($FORM{BLOCK_PERIOD}) {
     	$from_day = '01';
     	$to_day   = '01';
-      for(my $i=0; $i<=int($FORM{BLOCK_PERIOD}); $i++) {
+      for(my $i=0; $i<int($FORM{BLOCK_PERIOD}); $i++) {
     	  $to_month++;
     	  if ($to_month > 12) {
     		  $to_year++;
