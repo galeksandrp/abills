@@ -40,7 +40,8 @@ use Finance;
 use Admins;
 
 my $html = Abills::HTML->new();
-my $sql  = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
+my $sql  = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd},
+ { CHARSET => ($conf{dbcharset}) ? $conf{dbcharset} : undef });
 my $db   = $sql->{db};
 require "Abills/Misc.pm";
 #Operation status
@@ -139,17 +140,18 @@ sub qiwi_check {
     exit;
   }
 
+
+
   my %res_hash = ();
   foreach my $id (keys %{ $result->{'bills-list'}->[0]->{bill} }) {
     if ($debug > 5) {
       print "$id / " . $result->{'bills-list'}->[0]->{bill}->{$id}->{status} . "\n";
     }
-
     $res_hash{$id} = $result->{'bills-list'}->[0]->{bill}->{$id}->{status};
   }
 
   foreach my $line (@$list) {
-    print "$line->{id} LOGIN: $line->{login}:$line->{date} SUM: $line->{sum} PAYSYS: $line->{system_id} TRANSACTION_ID: $line->{transaction_id}  $line->{status} STATUS: $res_hash{$line->{transaction_id}}\n" if ($debug > 0);
+    print "$line->{id} LOGIN: $line->{login}:$line->{datetime} SUM: $line->{sum} PAYSYS: $line->{system_id} TRANSACTION_ID: $line->{transaction_id}  $line->{status} STATUS: $res_hash{$line->{transaction_id}}\n" if ($debug > 0);
     if ($res_hash{ $line->{transaction_id} } == 50) {
 
     }
@@ -157,11 +159,11 @@ sub qiwi_check {
       my $user = $Users->info($line->{uid});
 
       if ($Users->{TOTAL} < 1) {
-        print "$line->{id} LOGIN: $line->{login} $line->{date} $line->{transaction_id} Not exists\n";
+        print "$line->{id} LOGIN: $line->{login} $line->{datetime} $line->{transaction_id} Not exists\n";
         next;
       }
       elsif ($Users->{errno}) {
-        print "$line->{id} LOGIN: $line->{login} $line->{date} $line->{transaction_id} [$Users->{error}] $Users->{errstr}\n";
+        print "$line->{id} LOGIN: $line->{login} $line->{datetime} $line->{transaction_id} [$Users->{error}] $Users->{errstr}\n";
         next;
       }
 
@@ -177,7 +179,7 @@ sub qiwi_check {
       );
 
       if ($payments->{error}) {
-        print "Payments: $line->{id} LOGIN: $line->{login}:$line->{date} $line->{transaction_id} [$payments->{error}] $payments->{errstr}\n";
+        print "Payments: $line->{id} LOGIN: $line->{login}:$line->{datetime} $line->{transaction_id} [$payments->{error}] $payments->{errstr}\n";
         next;
       }
 
@@ -185,7 +187,7 @@ sub qiwi_check {
         {
           ID        => $line->{id},
           PAYSYS_IP => $ENV{'REMOTE_ADDR'},
-          INFO      => "$_DATE: $DATE $TIME $res_hash{$line->{transaction_id}} - $status_hash{$res_hash{$line->{transaction_id}}}",
+          INFO      => "DATE: $DATE $TIME $res_hash{$line->{transaction_id}} - $status_hash{$res_hash{$line->{transaction_id}}}",
           STATUS    => 2
         }
       );
