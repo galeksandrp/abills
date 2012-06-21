@@ -11,7 +11,7 @@ CA_pl='/usr/src/crypto/openssl/apps/CA.pl';
 
 hostname=`hostname`;
 password=whatever;
-VERSION=1.88;
+VERSION=1.89;
 DAYS=730;
 DATE=`date`;
 CERT_TYPE=$1;
@@ -44,7 +44,7 @@ if [ w$1 = w ] ; then
   echo " -PASSSWORD     - Password for Certs (Default: whatever)"
   echo " -HOSTNAME      - Hostname for Certs (default: system hostname)"
   echo " -UPLOAD        - Upload ssh certs to host via ssh (default: )"
-  echo " -UPLOAD_FTP    - Upload ssh certs to host via ftp"
+  echo " -UPLOAD_FTP    - Upload ssh certs to host via ftp (-UPLOAD_FTP user@host )"
   
 
   exit;
@@ -81,6 +81,9 @@ for _switch ; do
                 ;;
         -UPLOAD_FTP) UPLOAD_FTP=y; UPLOAD=y; HOST=$4
                 #shift; 
+                ;;
+        -SKIP_UPLOAD_CERT) SKIP_UPLOAD_CERT=1
+                shift;
                 ;;
         esac
 done
@@ -249,11 +252,16 @@ ssh_key () {
       read HOST
     fi;
     
-    echo "Make upload to: ${USER}@${HOST} "
+    
 
     if [ x${UPLOAD_FTP} = xy ]; then
-      ftp ${USER}@${HOST}:  ${CERT_PATH}${id_dsa_file}.pub
+      echo "Make upload to: ${HOST}:/${id_dsa_file}.pub ${CERT_PATH}${id_dsa_file}.pub"
+      ftp -u ${HOST}:/${id_dsa_file}.pub ${CERT_PATH}${id_dsa_file}.pub
+      
+      #USER=`echo ${HOST} | awk -F@ '{print $1}'`;
+      HOST=`echo ${HOST} | awk -F@ '{print $2}'`;
     else 
+      echo "Make upload to: ${USER}@${HOST} "
       ssh ${USER}@${HOST} "mkdir ~/.ssh"
       scp ${CERT_PATH}${id_dsa_file}.pub ${USER}@${HOST}:~/.ssh/authorized_keys
     fi;
