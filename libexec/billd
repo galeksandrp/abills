@@ -2541,7 +2541,7 @@ Flags: X - disabled, I - invalid
      #Add nat rules
      if ($ARGV->{NAT}) {
        my $skip_nat_ips = ($ARGV->{SKIP_NAT_IPS}) ? " dst-address=!$ARGV->{SKIP_NAT_IPS}" : '';
-       push @commands, qq{/ip firewall nat chain=srcnat action=masquerade $skip_nat_ips src-address-list=CLIENTS_$tp_id };
+       push @commands, qq{/ip firewall nat add chain=srcnat action=masquerade $skip_nat_ips src-address-list=CLIENTS_$tp_id };
      }
     }
 
