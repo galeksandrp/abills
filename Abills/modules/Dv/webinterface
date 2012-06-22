@@ -7106,9 +7106,9 @@ sub dv_get_month_fee {
       if (int($active_d) > int($d)) {
         $periods--;
       }
+      $active_m++;
     }
     elsif (int($active_m) > 0 && (int($active_m) >= int($m) && int($active_y) < int($y))) {
-      print "/ if (int($active_d) > int($d)) { /";
       $periods = 12 - $active_m + $m;
       if (int($active_d) > int($d)) {
         $periods--;
@@ -7133,7 +7133,7 @@ sub dv_get_month_fee {
         $periods = -1;
       }
       else {
-        $periods = 0;
+        $periods -= 1;
       }
     }
 
@@ -7167,7 +7167,7 @@ sub dv_get_month_fee {
               UID      => $Dv->{UID}
             }
           );
-
+          $Dv->{ACCOUNT_ACTIVATE} = strftime "%Y-%m-%d", localtime((mktime(0, 0, 0, $active_d, ($m - 1), ($active_y - 1900), 0, 0, 0) + 31 * 86400));
         }
         else {
           $DATE = "$active_y-$m-01";
@@ -7189,7 +7189,7 @@ sub dv_get_month_fee {
           $users->change(
             $Dv->{UID},
             {
-              ACTIVATE => "$DATE",
+              ACTIVATE => "$active_y-$m-$active_d", #|| "$DATE",
               UID      => $Dv->{UID}
             }
           );
