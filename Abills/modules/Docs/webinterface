@@ -2119,9 +2119,10 @@ sub docs_invoice {
               "$line->[3] $date". (($current_invoice{$line->[3]}) ? ' ' . $html->color_mark($_EXIST, 'red') : ''), 
               "$line->[4]"
             );
+            $total_not_invoice += $line->[4];
           }
 #=cut     
-          $total_not_invoice += $line->[4];
+          
         }
       }
       else {
