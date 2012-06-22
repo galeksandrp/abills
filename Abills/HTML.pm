@@ -1017,9 +1017,16 @@ sub table {
 
   #Export object
   if ($attr->{EXPORT} && !$FORM{EXPORT_CONTENT}) {
-    my ($export_name, $params) = split(/:/, $attr->{EXPORT}, 2);
-    $self->{EXPORT_OBJ} .= ' ' . $self->button("$export_name", "qindex=$index$attr->{qs}&pg=$PG&sort=$SORT&desc=$DESC&EXPORT_CONTENT=$attr->{ID}&header=1$params", { ex_params => 'target=_export', IMG_BUTTON => '/img/button_xml.png' });
-    push @header_obj, $self->{EXPORT_OBJ};
+    #foreach my $export (split(/;/, $attr->{EXPORT})) {
+      my ($export_name, $params) = split(/:/, $attr->{EXPORT}, 2);
+      $self->{EXPORT_OBJ} .= ' ' . $self->button("$export_name", "qindex=$index$attr->{qs}&pg=$PG&sort=$SORT&desc=$DESC&EXPORT_CONTENT=$attr->{ID}&header=1$params", { ex_params => 'target=_export', IMG_BUTTON => '/img/button_xml.png' });
+      
+      $params=~s/xml/csv/ig;
+      $export_name=~s/xml/csv/ig;
+      $self->{EXPORT_OBJ} .= ' ' . $self->button("$export_name", "qindex=$index$attr->{qs}&pg=$PG&sort=$SORT&desc=$DESC&EXPORT_CONTENT=$attr->{ID}&header=1$params", { ex_params => 'target=_export', IMG_BUTTON => '/img/button_csv.png' });
+
+      push @header_obj, $self->{EXPORT_OBJ};
+    #}
   }
 
   if (defined($attr->{VIEW})) {

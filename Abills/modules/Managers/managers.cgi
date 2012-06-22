@@ -126,7 +126,12 @@ if ($sid) {
 
 if ($FORM{qindex} || $FORM{xml}) {
   $index=$FORM{qindex} ;
-  print "Content-Type: text/xml\n\n";
+  if($FORM{xml}) {
+    print "Content-Type: text/xml\n\n";
+  }
+  else {
+  	print "Content-Type: text/plain\n\n";
+  }
 }
 else {
   print "Content-Type: text/html\n\n";
@@ -368,7 +373,7 @@ sub form_reports {
   
   $table->show();
   
-  if ($FORM{xml}) {
+  if ($FORM{xml} || $FORM{csv}) {
   	print $table->show({ OUTPUT2RETURN => 1 });
   	return 0;
   }
@@ -1772,7 +1777,7 @@ sub dv_users {
     $OUTPUT{RESULT_TOTAL} = $Dv->{TOTAL};
 
     $content = $html->tpl_show(_include('managers_main_content', 'Managers'), {%OUTPUT});
-    if ($FORM{xml}) {
+    if ($FORM{xml} || $FORM{csv} ) {
     	print $OUTPUT{RESULT_TABLE};
     }
     return 0;
