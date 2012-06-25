@@ -7,6 +7,9 @@ $MYSQLDUMP
 $DEBUG
 $users
 $Log
+$Y
+$M
+$D
 );
 
 #use strict;
@@ -161,8 +164,6 @@ if ($args->{SHEDULE}) {
 elsif(! $args->{MODULES}) {
 	push @daily_functions, 'sheduler';
 }
-
-my ($Y, $M, $D);
 
 #Make date asign function
 if ($args->{DATE}) {

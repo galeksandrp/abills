@@ -891,7 +891,9 @@ sub invoice_del {
 sub invoice_info {
   my $self = shift;
   my ($id, $attr) = @_;
-
+  
+  undef $self->{ORDERS};
+  
   $WHERE = ($attr->{UID}) ? "and d.uid='$attr->{UID}'" : '';
   $CONF->{DOCS_ACCOUNT_EXPIRE_PERIOD} = 30 if (!$CONF->{DOCS_ACCOUNT_EXPIRE_PERIOD});
   $self->query(

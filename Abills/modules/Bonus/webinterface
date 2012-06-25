@@ -5,10 +5,10 @@ use Bonus;
 use Finance;
 use Tariffs;
 
-my $Bonus = Bonus->new($db, $admin, \%conf);
-my $Fees = Fees->new($db, $admin, \%conf);
+my $Bonus    = Bonus->new($db, $admin, \%conf);
+my $Fees     = Fees->new($db, $admin, \%conf);
 my $Payments = Payments->new($db, $admin, \%conf);
-my $Tariffs = Tariffs->new($db, \%conf, $admin);
+my $Tariffs  = Tariffs->new($db, \%conf, $admin);
 
 #*******************************************************************
 # bonus user log
@@ -451,6 +451,10 @@ sub bonus_rules {
 sub bonus_user {
   my ($attr) = @_;
 
+  if (! $FORM{UID}) {
+  	$FORM{UID} = $LIST_PARAMS{UID};
+  }
+
   if ($FORM{add} && $FORM{ACCEPT_RULES}) {
     $Bonus->user_add({%FORM});
     if (!$Bonus->{errno}) {
@@ -478,6 +482,8 @@ sub bonus_user {
 
   $Bonus->user_info($FORM{UID});
   $Bonus->{STATE} = $html->form_input('STATE', '1', { STATE => $Bonus->{STATE}, TYPE => 'checkbox', OUTPUT2RETURN => 1 });
+
+
 
   if ($Bonus->{TOTAL} < 1) {
     $Bonus->{ACTION}      = $html->form_input('add', "$_REGISTRATION", { TYPE => 'submit', OUTPUT2RETURN => 1 });
@@ -1155,6 +1161,29 @@ sub bonus_tp_accomulation {
 sub bonus_periodic_accomulation {
 	my ($attr)=@_;
 	
+
+  my $debug = $attr->{DEBUG} || 0;
+  my $debug_output = '';
+  $debug_output .= "Bonus - Accoumulation\n" if ($debug > 1);
+	
+	if ( $D != 1) {
+    $DEBUG .= $debug_output;
+    return $debug_output;
+	}
+	
+	$Bonus->{debug}=1 if ($debug > 6);
+	
+	my $tp_list = $Bonus->accomulation_rule_list({ COST => '>0', COLS_NAME => 1 });
+	foreach my $tp (@$tp_list) {
+		$debug_output .= "TP ID: $tp->{tp_id} COST: $tp->{cost}\n" if ($debug> 1);
+	  my $list = $Bonus->user_list({ TP_ID => $tp->{tp_id}, COLS_NAME => 1, PAGE_ROWS => 1000000 });	
+	  foreach my $user (@$list) {
+	  	$debug_output .= "$user->{login}:$user->{uid} \n" if ($debug> 1);
+	  }
+	}
+	
+
+  return $debug_output;
 }
 
 1

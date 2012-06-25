@@ -177,8 +177,10 @@ sub query {
     return $self;
   }
 
+  
+
   if ($self->{TOTAL} > 0) {
-    my @rows;
+  	my @rows = ();
     if ($attr->{COLS_NAME}) {
      	push @{ $self->{COL_NAMES_ARR} }, @{ $q->{NAME} };        	
       while (my $row = $q->fetchrow_hashref()) {

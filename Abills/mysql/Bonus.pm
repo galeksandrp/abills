@@ -542,7 +542,37 @@ sub user_list {
   $DESC      = ($attr->{DESC})      ? $attr->{DESC}      : '';
   $PG        = ($attr->{PG})        ? $attr->{PG}        : 0;
   $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
-  undef @WHERE_RULES;
+
+  @WHERE_RULES = ("bu.uid = u.uid");
+
+  push @WHERE_RULES, @{ $self->search_expr_users({ %$attr, 
+  	                         EXT_FIELDS => [
+  	                                        'PHONE',
+  	                                        'EMAIL',
+  	                                        'ADDRESS_FLAT',
+  	                                        'PASPORT_DATE',
+                                            'PASPORT_NUM', 
+                                            'PASPORT_GRANT',
+                                            'CITY', 
+                                            'ZIP',
+                                            'GID',
+                                            'CONTRACT_ID',
+                                            'CONTRACT_SUFIX',
+                                            'CONTRACT_DATE',
+                                            'EXPIRE',
+
+                                            'CREDIT',
+                                            'CREDIT_DATE', 
+                                            'REDUCTION',
+                                            'REGISTRATION',
+                                            'REDUCTION_DATE',
+                                            'COMMENTS',
+                                            'BILL_ID',
+                                            
+                                            'ACTIVATE',
+                                            'EXPIRE',
+
+  	                                         ] }) };
 
   if ($attr->{TP_ID}) {
     push @WHERE_RULES, "tp_id='$attr->{TP_ID}'";
@@ -551,13 +581,18 @@ sub user_list {
   $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES) : '';
 
   $self->query(
-    $db, "SELECT u.id, pi.fio, b_tp.name, bu.state, bu.uid
+    $db, "SELECT u.id AS login, pi.fio, b_tp.name, bu.state, bu.uid
      FROM (bonus_main bu, users u)
      LEFT JOIN users_pi pi ON (u.uid=pi.uid)
      LEFT JOIN bonus_tps b_tp ON (b_tp.id=bu.tp_id)
-     WHERE bu.uid=u.uid
+     LEFT JOIN bills b ON (u.bill_id = b.id)
+     LEFT JOIN companies company ON  (u.company_id=company.id) 
+     LEFT JOIN bills cb ON  (company.bill_id=cb.id)
+     $WHERE
      ORDER BY $SORT $DESC
-     LIMIT $PG, $PAGE_ROWS;"
+     LIMIT $PG, $PAGE_ROWS;",
+     undef,
+     $attr
   );
 
   return $self if ($self->{errno});
@@ -1162,16 +1197,23 @@ sub accomulation_rule_list {
   #  push @WHERE_RULES, "";
   #}
 
+  my $JOIN_WHERE = '';
   if ($attr->{DV_TP_ID}) {
     push @WHERE_RULES, "dv_tp_id='$attr->{DV_TP_ID}'";
+    $JOIN_WHERE = "AND br.tp_id='$attr->{TP_ID}'";
   }
 
+  if ($attr->{COST}) {
+    push @WHERE_RULES, @{ $self->search_expr("$attr->{COST}", 'INT', 'cost') };
+  }
+
+ 
   $WHERE = ($#WHERE_RULES > -1) ? join(' and ', @WHERE_RULES) : '';
 
   $self->query(
     $db, "SELECT br.tp_id, tp.name, tp.tp_id AS dv_tp_id, br.cost
      FROM tarif_plans tp
-     LEFT JOIN bonus_rules_accomulation br ON (br.dv_tp_id=tp.tp_id AND br.tp_id='$attr->{TP_ID}')
+     LEFT JOIN bonus_rules_accomulation br ON (br.dv_tp_id=tp.tp_id $JOIN_WHERE)
      WHERE $WHERE 
      ORDER BY $SORT $DESC;",
     undef,
@@ -1278,11 +1320,11 @@ sub accomulation_first_rule {
   my ($attr) = @_;
   
   $CONF->{BONUS_ACCOMULATION_FIRST_BONUS}=40 if (! $CONF->{BONUS_ACCOMULATION_FIRST_BONUS});
-  
+  $CONF->{BONUS_ACCOMULATION_FIRST_INTERVAL}=3 if (! $CONF->{BONUS_ACCOMULATION_FIRST_INTERVAL});
   
   $self->query($db, 
     "REPLACE INTO bonus_rules_accomulation_scores (uid, cost, changed)
-SELECT $attr->{UID}, IF((SELECT min(last_deposit) FROM fees WHERE uid='$attr->{UID}' AND date>curdate() - INTERVAL 3 MONTH) > 0, $CONF->{BONUS_ACCOMULATION_FIRST_BONUS}, 0), curdate();", 'do');
+SELECT $attr->{UID}, IF((SELECT min(last_deposit) FROM fees WHERE uid='$attr->{UID}' AND date>curdate() - INTERVAL $CONF->{BONUS_ACCOMULATION_FIRST_INTERVAL} MONTH) > 0, $CONF->{BONUS_ACCOMULATION_FIRST_BONUS}, 0), curdate();", 'do');
   
   return $self;
 }

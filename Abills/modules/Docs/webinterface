@@ -1576,7 +1576,7 @@ sub docs_tax_invoice {
 }
 
 #**********************************************************
-# docs_invoice
+# 
 #**********************************************************
 sub docs_reports {
   my ($attr) = @_;
@@ -1679,10 +1679,10 @@ sub docs_invoice {
 
   use POSIX;
 
-  $users = $user if ($user->{UID});
+  $users        = $user if ($user->{UID});
   $Docs->invoice_defaults();
   $Docs->{DATE} = $DATE;
-  $FORM{UID} = $LIST_PARAMS{UID} if (!$FORM{UID});
+  $FORM{UID}    = $LIST_PARAMS{UID} if (!$FORM{UID});
 
   if ($FORM{create}) {
     $FORM{SUM} =~ s/\,/\./g;
@@ -1833,33 +1833,33 @@ sub docs_invoice {
   elsif ($FORM{print}) {
 
     $Docs->invoice_info($FORM{print}, { UID => $LIST_PARAMS{UID} });
-
+    my %Doc = %{ $Docs };
     if ($conf{DOCS_VAT_INCLUDE}) {
-      $Docs->{ORDER_TOTAL_SUM_VAT}   = sprintf("%.2f", $Docs->{TOTAL_SUM} / ((100 + $conf{DOCS_VAT_INCLUDE}) / $conf{DOCS_VAT_INCLUDE}));
-      $Docs->{TOTAL_SUM_WITHOUT_VAT} = sprintf("%.2f", $Docs->{TOTAL_SUM} - $Docs->{ORDER_TOTAL_SUM_VAT});
-      $Docs->{VAT}                   = sprintf("%.2f", $conf{DOCS_VAT_INCLUDE});
+      $Doc{ORDER_TOTAL_SUM_VAT}   = sprintf("%.2f", $Doc{TOTAL_SUM} / ((100 + $conf{DOCS_VAT_INCLUDE}) / $conf{DOCS_VAT_INCLUDE}));
+      $Doc{TOTAL_SUM_WITHOUT_VAT} = sprintf("%.2f", $Doc{TOTAL_SUM} - $Doc{ORDER_TOTAL_SUM_VAT});
+      $Doc{VAT}                   = sprintf("%.2f", $conf{DOCS_VAT_INCLUDE});
     }
 
-    $Docs->{CUSTOMER} = $self->{COMPANY_NAME} || $Docs->{FIO} || '-' if (!$Docs->{CUSTOMER});
-    $Docs->{DEPOSIT}  = sprintf("%.2f", $Docs->{DEPOSIT});
+    $Doc{CUSTOMER} = $self->{COMPANY_NAME} || $Doc{FIO} || '-' if (!$Doc{CUSTOMER});
+    $Doc{DEPOSIT}  = sprintf("%.2f", $Doc{DEPOSIT});
 
-    if ($FORM{CHECK_PEYMENT_ID} && $Docs->{PAYMENT_ID}) {
+    if ($FORM{CHECK_PEYMENT_ID} && $Doc{PAYMENT_ID}) {
       return 0;
     }
 
     if ($Docs->{TOTAL} > 0) {
-      ($Docs->{SUM_MAIN}, $Docs->{SUM_SUB}) = split(/\./, $Docs->{TOTAL_SUM});
-      $Docs->{FROM_DATE_LIT} = '';
+      ($Doc{SUM_MAIN}, $Doc{SUM_SUB}) = split(/\./, $Doc{TOTAL_SUM});
+       $Doc{FROM_DATE_LIT} = '';
 
-      (undef, $Docs->{TIME}) = split(/ /, $Docs->{CREATED}, 2);
-      $Docs->{AMOUNT_FOR_PAY} = ($Docs->{DEPOSIT} < 0) ? abs($Docs->{DEPOSIT}) : 0 - $Docs->{DEPOSIT};
+      (undef, $Doc{TIME}) = split(/ /, $Doc{CREATED}, 2);
+      $Doc{AMOUNT_FOR_PAY} = ($Doc{DEPOSIT} < 0) ? abs($Doc{DEPOSIT}) : 0 - $Doc{DEPOSIT};
 
 
-      my $list = $Docs->{ORDERS};
+      my $list = $Doc{ORDERS};
       my $i    = 0;
       foreach my $line (@$list) {
         $i++;
-        $Docs->{ORDER} .= $html->tpl_show(
+        $Doc{ORDER} .= $html->tpl_show(
           _include('docs_invoice_order_row', 'Docs'),
           {
             NUMBER => $i,
@@ -1875,66 +1875,64 @@ sub docs_invoice {
         my $count = $line->[2] || 1;
         my $sum   = sprintf("%.2f", $count * $line->[4]);
 
-        $Docs->{ 'LOGIN_' . $i }                   = $line->[6];
-        $Docs->{ 'ORDER_NUM_' . $i }               = $i;
-        $Docs->{ 'ORDER_NAME_' . $i }              = $line->[1];
-        $Docs->{ 'ORDER_COUNT_' . $i }             = $count;
-        $Docs->{ 'ORDER_PRICE_' . $i }             = $line->[4];
-        $Docs->{ 'ORDER_SUM_' . $i }               = $sum;
-        $Docs->{ 'ORDER_VAT_' . $i }               = ($conf{DOCS_VAT_INCLUDE}) ? sprintf("%.2f", $line->[4] / ((100 + $conf{DOCS_VAT_INCLUDE}) / $conf{DOCS_VAT_INCLUDE})) : 0;
-        $Docs->{ 'ORDER_PRICE_WITHOUT_VAT_' . $i } = sprintf("%.2f", ($Docs->{ 'ORDER_VAT_' . $i }) ? $line->[4] - $Docs->{ 'ORDER_VAT_' . $i } : $line->[3]);
-        $Docs->{ 'ORDER_SUM_WITHOUT_VAT_' . $i }   = sprintf("%.2f", ($conf{DOCS_VAT_INCLUDE}) ? $sum - ($sum) / ((100 + $conf{DOCS_VAT_INCLUDE}) / $conf{DOCS_VAT_INCLUDE}) : $sum);
+        $Doc{ 'LOGIN_' . $i }                   = $line->[6];
+        $Doc{ 'ORDER_NUM_' . $i }               = $i;
+        $Doc{ 'ORDER_NAME_' . $i }              = $line->[1];
+        $Doc{ 'ORDER_COUNT_' . $i }             = $count;
+        $Doc{ 'ORDER_PRICE_' . $i }             = $line->[4];
+        $Doc{ 'ORDER_SUM_' . $i }               = $sum;
+        $Doc{ 'ORDER_VAT_' . $i }               = ($conf{DOCS_VAT_INCLUDE}) ? sprintf("%.2f", $line->[4] / ((100 + $conf{DOCS_VAT_INCLUDE}) / $conf{DOCS_VAT_INCLUDE})) : 0;
+        $Doc{ 'ORDER_PRICE_WITHOUT_VAT_' . $i } = sprintf("%.2f", ($Doc{ 'ORDER_VAT_' . $i }) ? $line->[4] - $Doc{ 'ORDER_VAT_' . $i } : $line->[3]);
+        $Doc{ 'ORDER_SUM_WITHOUT_VAT_' . $i }   = sprintf("%.2f", ($conf{DOCS_VAT_INCLUDE}) ? $sum - ($sum) / ((100 + $conf{DOCS_VAT_INCLUDE}) / $conf{DOCS_VAT_INCLUDE}) : $sum);
 
         # not charged service
         if ($line->[5] == 0) {
-          $Docs->{AMOUNT_FOR_PAY} += $Docs->{ 'ORDER_COUNT_' . $i } * $Docs->{ 'ORDER_PRICE_' . $i } 
+          $Doc{AMOUNT_FOR_PAY} += $Doc{ 'ORDER_COUNT_' . $i } * $Doc{ 'ORDER_PRICE_' . $i } 
         }
 
         #alternative currancy sum
-        if ($Docs->{EXCHANGE_RATE} > 0) {
-          $Docs->{ 'ORDER_ALT_SUM_' . $i }               = sprintf("%.2f", $Docs->{ 'ORDER_SUM_' . $i } * $Docs->{EXCHANGE_RATE});
-          $Docs->{ 'ORDER_ALT_PRICE_' . $i }             = sprintf("%.2f", $Docs->{ 'ORDER_PRICE_' . $i } * $Docs->{EXCHANGE_RATE});
-          $Docs->{ 'ORDER_ALT_VAT_' . $i }               = sprintf("%.2f", $Docs->{ 'ORDER_VAT_' . $i } * $Docs->{EXCHANGE_RATE});
-          $Docs->{ 'ORDER_ALT_PRICE_WITHOUT_VAT_' . $i } = sprintf("%.2f", $Docs->{ 'ORDER_PRICE_WITHOUT_VAT_' . $i } * $Docs->{EXCHANGE_RATE});
-          $Docs->{ 'ORDER_ALT_SUM_WITHOUT_VAT_' . $i }   = sprintf("%.2f", $Docs->{ 'ORDER_SUM_WITHOUT_VAT_' . $i } * $Docs->{EXCHANGE_RATE});
+        if ($Doc{EXCHANGE_RATE} > 0) {
+          $Doc{ 'ORDER_ALT_SUM_' . $i }               = sprintf("%.2f", $Doc{ 'ORDER_SUM_' . $i } * $Doc{EXCHANGE_RATE});
+          $Doc{ 'ORDER_ALT_PRICE_' . $i }             = sprintf("%.2f", $Doc{ 'ORDER_PRICE_' . $i } * $Doc{EXCHANGE_RATE});
+          $Doc{ 'ORDER_ALT_VAT_' . $i }               = sprintf("%.2f", $Doc{ 'ORDER_VAT_' . $i } * $Doc{EXCHANGE_RATE});
+          $Doc{ 'ORDER_ALT_PRICE_WITHOUT_VAT_' . $i } = sprintf("%.2f", $Doc{ 'ORDER_PRICE_WITHOUT_VAT_' . $i } * $Doc{EXCHANGE_RATE});
+          $Doc{ 'ORDER_ALT_SUM_WITHOUT_VAT_' . $i }   = sprintf("%.2f", $Doc{ 'ORDER_SUM_WITHOUT_VAT_' . $i } * $Doc{EXCHANGE_RATE});
         }
       }
 
-      $Docs->{TOTAL_SUM}      = sprintf("%.2f", $Docs->{TOTAL_SUM});
-      $Docs->{AMOUNT_FOR_PAY} = sprintf("%.2f", $Docs->{AMOUNT_FOR_PAY});
+      $Doc{TOTAL_SUM}      = sprintf("%.2f", $Doc{TOTAL_SUM});
+      $Doc{AMOUNT_FOR_PAY} = sprintf("%.2f", $Doc{AMOUNT_FOR_PAY});
 
-      if ($Docs->{EXCHANGE_RATE} > 0) {
-        $Docs->{TOTAL_ALT_SUM}      = sprintf("%.2f", $Docs->{TOTAL_SUM} * $Docs->{EXCHANGE_RATE});
-        $Docs->{AMOUNT_FOR_PAY_ALT} = sprintf("%.2f", $Docs->{AMOUNT_FOR_PAY} * $Docs->{EXCHANGE_RATE});
-        $Docs->{DEPOSIT_ALT}        = sprintf("%.2f", $Docs->{DEPOSIT} * $Docs->{EXCHANGE_RATE});
-        $Docs->{CHARGED_ALT_SUM}    = sprintf("%.2f", $Docs->{CHARGED_SUM} * $Docs->{EXCHANGE_RATE});
+      if ($Doc{EXCHANGE_RATE} > 0) {
+        $Doc{TOTAL_ALT_SUM}      = sprintf("%.2f", $Doc{TOTAL_SUM} * $Doc{EXCHANGE_RATE});
+        $Doc{AMOUNT_FOR_PAY_ALT} = sprintf("%.2f", $Doc{AMOUNT_FOR_PAY} * $Doc{EXCHANGE_RATE});
+        $Doc{DEPOSIT_ALT}        = sprintf("%.2f", $Doc{DEPOSIT} * $Doc{EXCHANGE_RATE});
+        $Doc{CHARGED_ALT_SUM}    = sprintf("%.2f", $Doc{CHARGED_SUM} * $Doc{EXCHANGE_RATE});
       }
-
-      
 
       $attr->{SEND_EMAIL} = 0 if (!defined($attr->{SEND_EMAIL}));
       if ($attr->{GET_EMAIL_INFO} && $attr->{SEND_EMAIL}) {
       	print $FORM{pdf}=undef;
         $attr->{EMAIL_MSG_TEXT}        = $html->tpl_show(_include('docs_invoice_email', 'Docs'), { %$users, %FORM, %$attr, %$Docs }, { OUTPUT2RETURN => 1 });
-        $attr->{EMAIL_ATTACH_FILENAME} = 'invoice_' . $Docs->{INVOICE_NUM} . '.pdf' if (!$attr->{EMAIL_ATTACH_FILENAME});
-        $attr->{EMAIL_MSG_SUBJECT}     = "ABillS - $_INVOICE: $Docs->{INVOICE_NUM}" if (!$attr->{EMAIL_MSG_SUBJECT});
+        $attr->{EMAIL_ATTACH_FILENAME} = 'invoice_' . $Doc{INVOICE_NUM} . '.pdf' if (!$attr->{EMAIL_ATTACH_FILENAME});
+        $attr->{EMAIL_MSG_SUBJECT}     = "ABillS - $_INVOICE: $Doc{INVOICE_NUM}" if (!$attr->{EMAIL_MSG_SUBJECT});
       }
 
       if ($conf{DOCS_EXTRA_DEPOSIT}) {
-        $Docs->{DEPOSIT} =  sprintf("%.2f", $Docs->{DEPOSIT} + $Docs->{CHARGED_SUM});
-        if ($Docs->{EXCHANGE_RATE}) {
-          $Docs->{DEPOSIT_ALT}    = sprintf("%.2f", $Docs->{DEPOSIT} * $Docs->{EXCHANGE_RATE});
+        $Doc{DEPOSIT} =  sprintf("%.2f", $Doc{DEPOSIT} + $Doc{CHARGED_SUM});
+        if ($Doc{EXCHANGE_RATE}) {
+          $Doc{DEPOSIT_ALT}    = sprintf("%.2f", $Doc{DEPOSIT} * $Doc{EXCHANGE_RATE});
         }
       }
 
       $FORM{pdf} = $conf{DOCS_PDF_PRINT};
-      if ($Docs->{COMPANY_ID}) {
-        $Company->info($Docs->{COMPANY_ID});
+      if ($Doc{COMPANY_ID}) {
+        $Company->info($Doc{COMPANY_ID});
         delete $Company->{DEPOSIT};
-        return docs_print('invoice_company', { %$Docs, %$Company, %$attr, SUFIX => ($Docs->{VAT} > 0) ? 'vat' : '' });
+        return docs_print('invoice_company', { %Doc, %$Company, %$attr, SUFIX => ($Doc{VAT} > 0) ? 'vat' : '' });
       }
       else {
-        return docs_print('invoice', { %$Docs, %$attr });
+        return docs_print('invoice', { %Doc, %$attr });
       }
     }
     else {

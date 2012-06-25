@@ -12,6 +12,5 @@
 
 <tr><th class=evan colspan=2>%ACTION%</th></tr>
 </table>
-
 </form>
 </div>
