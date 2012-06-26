@@ -13,6 +13,9 @@ $var_dir
 $db
 $base_dir
 $admin
+$nas
+$sessions
+$Dv
 $debug
 $Log
 $ARGV
@@ -36,8 +39,8 @@ my $debug_output = '';
 $ARGV = parse_arguments(\@ARGV);
 my $log_dir = $var_dir . '/log';
 
-if (defined($ARGV->{debug})) {
-  $debug = $ARGV->{debug} || 1;
+if (defined($ARGV->{DEBUG})) {
+  $debug = $ARGV->{DEBUG} || 1;
   print "Debug mode $debug\n";
 }
 elsif (defined($ARGV->{help})) {
@@ -73,7 +76,7 @@ $plugins
   checklines    - Check alive connections
   -d            - deamon mode
 
-  debug         - debug mode
+  DEBUG=1..7    - debug mode
   NAS_IDS=...   - Make actions for NAS
   NAS_TYPES=...,- Make actions for NAS Types
   LOGINS=...,   - Make actions for logins
@@ -120,11 +123,11 @@ my $Tariffs = Tariffs->new($db, \%conf, $admin);
 
 my %LIST_PARAMS = ();
 require Dv_Sessions;
-my $sessions = Dv_Sessions->new($db, $admin, \%conf);
+$sessions = Dv_Sessions->new($db, $admin, \%conf);
 require Dv;
-my $Dv = Dv->new($db, $admin, \%conf);
+$Dv = Dv->new($db, $admin, \%conf);
 require Nas;
-my $nas = Nas->new($db, \%conf);
+$nas = Nas->new($db, \%conf);
 require Billing;
 Billing->import();
 
@@ -535,7 +538,6 @@ sub check_speed_mikro {
   my ($attr) = @_;
 
   #Get speed
-
   if ($attr->{NAS_IDS}) {
     $LIST_PARAMS{NAS_IDS} = $attr->{NAS_IDS};
   }

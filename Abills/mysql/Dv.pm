@@ -792,7 +792,8 @@ sub get_speed {
 
   $WHERE = ($#WHERE_RULES > -1) ? "AND " . join(' and ', @WHERE_RULES) : '';
 
-  $self->query($db, "SELECT tp.tp_id, tp.id, tt.id, tt.in_speed, tt.out_speed, tt.net_id, tt.expression 
+  $self->query($db, "SELECT tp.tp_id, tp.id AS tp_num, tt.id AS tt_id, tt.in_speed, 
+    tt.out_speed, tt.net_id, tt.expression 
   $self->{SEARCH_FIELDS} 
 FROM trafic_tarifs tt
 LEFT JOIN intervals intv ON (tt.interval_id = intv.id)

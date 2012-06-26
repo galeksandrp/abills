@@ -444,7 +444,19 @@ sub hangup_radius {
 
   $r->add_attributes({ Name => 'User-Name', Value => "$USER" }) if ($USER);
   $r->add_attributes({ Name => 'Framed-IP-Address', Value => "$attr->{FRAMED_IP_ADDRESS}" });
-  $r->send_packet(POD_REQUEST) and $type = $r->recv_packet;
+  
+  if ($attr->{RAD_REPLY}) {
+  	while(my($k, $v)=each %{ $attr->{RAD_REPLY} }) {
+  		$r->add_attributes({ Name => "$k", Value => "$v" });
+  	}
+  }
+  
+  if ($attr->{COA}) {
+  	$r->send_packet(COA_REQUEST) and $type = $r->recv_packet;
+  }
+  else {
+    $r->send_packet(POD_REQUEST) and $type = $r->recv_packet;
+  }
 
   if (!defined $type) {
 
