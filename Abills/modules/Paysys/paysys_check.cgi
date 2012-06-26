@@ -278,6 +278,10 @@ elsif (check_ip($ENV{REMOTE_ADDR}, '77.222.134.205')) {
   require "Ipay.pm";
   exit;
 }
+elsif (check_ip($ENV{REMOTE_ADDR}, '62.149.15.210,62.149.8.166')) {
+  require "Platezhka.pm";
+  exit;
+}
 elsif (check_ip($ENV{REMOTE_ADDR}, '213.230.106.112/28,213.230.65.85/28,192.168.1.102')) {
   require "Paynet.pm";
   exit;

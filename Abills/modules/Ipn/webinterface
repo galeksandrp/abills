@@ -2668,8 +2668,10 @@ sub ipn_start_active {
   my %online_uids = ();
   my %online_ips  = ();
   foreach my $online (@$online_list) {
-    $online_uids{ $online->{uid} } = 1;
-    $online_ips{ $online->{ip} } = 1;
+    if ($online->{uid}) {
+      $online_uids{ $online->{uid} } = 1;
+      $online_ips{ $online->{ip} } = 1;
+    }
   }
 
   my %DHCP_IPS = ();
