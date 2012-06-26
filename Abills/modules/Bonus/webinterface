@@ -1175,10 +1175,13 @@ sub bonus_periodic_accomulation {
 	
 	my $tp_list = $Bonus->accomulation_rule_list({ COST => '>0', COLS_NAME => 1 });
 	foreach my $tp (@$tp_list) {
-		$debug_output .= "TP ID: $tp->{tp_id} COST: $tp->{cost}\n" if ($debug> 1);
-	  my $list = $Bonus->user_list({ TP_ID => $tp->{tp_id}, COLS_NAME => 1, PAGE_ROWS => 1000000 });	
+		$debug_output .= "TP ID: $tp->{tp_id} DV TP: $tp->{dv_tp_id}  COST: $tp->{cost}\n" if ($debug> 1);
+	  my $list = $Bonus->user_list({ DV_TP_ID => $tp->{dv_tp_id}, COLS_NAME => 1, PAGE_ROWS => 1000000 });	
 	  foreach my $user (@$list) {
 	  	$debug_output .= "$user->{login}:$user->{uid} \n" if ($debug> 1);
+	  	if ($debug < 5) {
+        
+	    }
 	  }
 	}
 	

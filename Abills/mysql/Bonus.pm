@@ -578,16 +578,36 @@ sub user_list {
     push @WHERE_RULES, "tp_id='$attr->{TP_ID}'";
   }
 
+  if ($attr->{DV_TP_ID}) {
+    push @WHERE_RULES, "tp.tp_id='$attr->{DV_TP_ID}'";
+    $self->{EXT_TABLES} .= "LEFT JOIN dv_main dv ON (dv.uid = u.uid)
+      LEFT JOIN tarif_plans tp  ON (tp.id = dv.tp_id)
+    ";
+  }
+
+  if ($CONF->{BONUS_ACCOMULATION}){
+    $self->{EXT_TABLES} .= "LEFT JOIN bonus_rules_accomulation_scores ras ON (ras.uid = u.uid)";
+    $self->{SEARCH_FIELDS} .= 'ras.cost, ';
+    $self->{SEARCH_FIELDS_COUNT}++;
+  }
+
   $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES) : '';
 
   $self->query(
-    $db, "SELECT u.id AS login, pi.fio, b_tp.name, bu.state, bu.uid
+    $db, "SELECT u.id AS login, pi.fio, b_tp.name, bu.state, 
+      if(company.id IS NULL, b.deposit, cb.deposit) AS deposit, 
+      if(u.company_id=0, u.credit, 
+          if (u.credit=0, company.credit, u.credit)) AS credit, u.disable, 
+     $self->{SEARCH_FIELDS}     
+     bu.uid
+      
      FROM (bonus_main bu, users u)
      LEFT JOIN users_pi pi ON (u.uid=pi.uid)
      LEFT JOIN bonus_tps b_tp ON (b_tp.id=bu.tp_id)
      LEFT JOIN bills b ON (u.bill_id = b.id)
      LEFT JOIN companies company ON  (u.company_id=company.id) 
      LEFT JOIN bills cb ON  (company.bill_id=cb.id)
+     $self->{EXT_TABLES}
      $WHERE
      ORDER BY $SORT $DESC
      LIMIT $PG, $PAGE_ROWS;",
