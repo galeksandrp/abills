@@ -515,6 +515,10 @@ sub bonus_user {
   	}
   	
   	$html->tpl_show(_include('bonus_user_accomulation', 'Bonus'), $Bonus);
+  	
+  	if ($Bonus->{COST} > 0) {
+  	  bonus_accomulation_transfer()
+  	}
   }
   else {
     $html->tpl_show(_include('bonus_user', 'Bonus'), $Bonus);
@@ -1171,22 +1175,80 @@ sub bonus_periodic_accomulation {
     return $debug_output;
 	}
 	
+	$LIST_PARAMS{LOGIN} = $attr->{LOGIN} if ($attr->{LOGIN});
+	
 	$Bonus->{debug}=1 if ($debug > 6);
 	
 	my $tp_list = $Bonus->accomulation_rule_list({ COST => '>0', COLS_NAME => 1 });
 	foreach my $tp (@$tp_list) {
 		$debug_output .= "TP ID: $tp->{tp_id} DV TP: $tp->{dv_tp_id}  COST: $tp->{cost}\n" if ($debug> 1);
-	  my $list = $Bonus->user_list({ DV_TP_ID => $tp->{dv_tp_id}, COLS_NAME => 1, PAGE_ROWS => 1000000 });	
+	  my $list = $Bonus->user_list({ DV_TP_ID  => $tp->{dv_tp_id},
+	  	                             TP_ID     => $tp->{tp_id}, 
+	  	                             COLS_NAME => 1, 
+	  	                             PAGE_ROWS => 1000000,
+	  	                             DEPOSIT   => '>=0',
+	  	                             %LIST_PARAMS 
+	  	                           });	
 	  foreach my $user (@$list) {
-	  	$debug_output .= "$user->{login}:$user->{uid} \n" if ($debug> 1);
+	  	$debug_output .= "$user->{login}:$user->{uid} Score: $user->{cost}  \n" if ($debug> 1);
 	  	if ($debug < 5) {
-        
+        $Bonus->accomulation_scores_change({ UID => $user->{uid}, 
+        	 SCORE    => $user->{cost}+$tp->{cost},
+        	 DV_TP_ID => 0  });
 	    }
 	  }
 	}
 	
 
   return $debug_output;
+}
+
+#**********************************************************
+# $conf{BONUS_ACCOMULATION_TRANSFER_MIN}=1;
+# $conf{BONUS_ACCOMULATION_TRANSFER_PERCENT}=0;
+#
+#**********************************************************
+sub bonus_accomulation_transfer {
+	my ($attr)=@_;
+
+  $conf{BONUS_ACCOMULATION_TRANSFER_MIN}=1 if (! $conf{BONUS_ACCOMULATION_TRANSFER_MIN} );
+  $conf{BONUS_ACCOMULATION_TRANSFER_PERCENT}=0 if (! $conf{BONUS_ACCOMULATION_TRANSFER_PERCENT});
+
+	
+if ($FORM{transfer}) {
+	my $rechange_sum = $FORM{COST};
+  if ($Bonus->{COST} < $FORM{COST}) {
+  	$html->message('err', $_ERROR, "$ERR_SMALL_DEPOSIT");
+  }
+  elsif ($conf{BONUS_ACCOMULATION_TRANSFER_MIN} > $FORM{COST}) {
+  	$html->message('err', $_ERROR, "$ERR_SMALL_DEPOSIT");
+  }
+  else {
+  	if ($conf{BONUS_ACCOMULATION_TRANSFER_PERCENT}) {
+  		$rechange_sum = $FORM{COST} - ($FORM{COST} / 100 * $conf{BONUS_ACCOMULATION_TRANSFER_PERCENT});
+  	}
+  
+    $Bonus->accomulation_scores_change({ UID => $user->{UID} || $FORM{UID}, 
+        	 SCORE    => $Bonus->{COST}-$FORM{COST},
+        	 DV_TP_ID => 0  });
+
+    if (! $Bonus->{error}) {
+      if (! $user->{UID}){ 
+    	  $user = $users->info($FORM{UID});
+      }
+
+      $Payments->add($user, { SUM    => $rechange_sum, 
+    	                      METHOD => 4 
+    	                     });
+      $html->message('info', $_INFO, "$_ADDED $rechange_sum");	            
+    }
+  }
+  
+  
+}	
+
+$html->tpl_show(_include('bonus_accomulation_transfer', 'Bonus'), $Bonus);
+	
 }
 
 1

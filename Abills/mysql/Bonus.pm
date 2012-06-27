@@ -575,7 +575,7 @@ sub user_list {
   	                                         ] }) };
 
   if ($attr->{TP_ID}) {
-    push @WHERE_RULES, "tp_id='$attr->{TP_ID}'";
+    push @WHERE_RULES, "bu.tp_id='$attr->{TP_ID}'";
   }
 
   if ($attr->{DV_TP_ID}) {
@@ -1283,7 +1283,7 @@ sub accomulation_scores_change {
   my ($attr) = @_;
   my %DATA   = $self->get_data($attr);
 
-  $self->query($db, "REPLACE INTO bonus_rules_accomulation_scores (uid, dv_tp_id, score)
+  $self->query($db, "REPLACE INTO bonus_rules_accomulation_scores (uid, dv_tp_id, cost)
         VALUES ('$DATA{UID}', '$DATA{DV_TP_ID}', '$DATA{SCORE}');", 'do'
   );
 
