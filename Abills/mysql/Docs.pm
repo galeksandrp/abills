@@ -547,7 +547,7 @@ sub invoices_list {
  
   my $EXT_TABLES  = $self->{EXT_TABLES};
   if ($attr->{FULL_INFO}) {
-    $self->{SEARCH_FIELDS} = ",
+    $self->{SEARCH_FIELDS} .= "
  	 pi.address_street,
    pi.address_build,
    pi.address_flat,
@@ -557,7 +557,7 @@ sub invoices_list {
    if(u.company_id > 0, c.bill_id, u.bill_id) AS bill_id,
    u.company_id,
    pi.email,
-   pi.fio";
+   pi.fio,";
    $self->{SEARCH_FIELDS_COUNT}+=8;
   }
 
@@ -586,8 +586,9 @@ sub invoices_list {
      if(u.company_id=0, concat(pi.contract_sufix,pi.contract_id), concat(c.contract_sufix,c.contract_id)) AS contract_id, 
      d.exchange_rate,
      d.currency,
-     d.deposit AS docs_deposit
      $self->{SEARCH_FIELDS}
+     d.deposit AS docs_deposit
+     
     FROM (docs_invoices d, docs_invoice_orders o)
     LEFT JOIN users u ON (d.uid=u.uid)
     LEFT JOIN admins a ON (d.aid=a.aid)
@@ -613,6 +614,7 @@ sub invoices_list {
     LEFT JOIN users u ON (d.uid=u.uid)
     LEFT JOIN admins a ON (d.aid=a.aid)
     LEFT JOIN payments p ON (d.payment_id=p.id)
+    LEFT JOIN companies c ON (u.company_id=c.id)
     $WHERE"
   );
 
