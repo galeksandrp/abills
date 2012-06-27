@@ -12,22 +12,20 @@ mx80_change_profile();
 #
 #**********************************************************
 sub mx80_change_profile {
-
+  my ($attr)=@_;
   print "mx80_change_profile\n" if ($debug > 1);
 
   #Get speed
-  if ($attr->{NAS_IDS}) {
-    $LIST_PARAMS{NAS_IDS} = $attr->{NAS_IDS};
-  }
-  else {
+  if (! $LIST_PARAMS{NAS_IDS}) {
     $LIST_PARAMS{TYPE} = 'mx80';
   }
 
   if ($debug > 7) {
     $nas->{debug}= 1 ;
     $Dv->{debug} = 1 ;
+    $sessions->{debug}=1;
   }
-
+  
   #Tps  speeds
   my %TPS_SPEEDS = ();
   my $tp_speed_list = $Dv->get_speed({ COLS_NAME => 1 });

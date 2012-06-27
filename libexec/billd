@@ -20,6 +20,7 @@ $debug
 $Log
 $ARGV
 $OS
+%LIST_PARAMS
 );
 
 use strict;
@@ -121,7 +122,7 @@ require Tariffs;
 Tariffs->import();
 my $Tariffs = Tariffs->new($db, \%conf, $admin);
 
-my %LIST_PARAMS = ();
+%LIST_PARAMS = ();
 require Dv_Sessions;
 $sessions = Dv_Sessions->new($db, $admin, \%conf);
 require Dv;
@@ -140,6 +141,7 @@ if ($ARGV->{NAS_IDS}) {
   $LIST_PARAMS{NAS_IDS} = $ARGV->{NAS_IDS};
   $LIST_PARAMS{NAS_IDS} =~ s/ //g;
 }
+
 $LIST_PARAMS{TYPE}      = $ARGV->{NAS_TYPES} || undef;
 $LIST_PARAMS{USER_NAME} = $ARGV->{LOGINS};
 $LIST_PARAMS{PAGE_ROWS} = 100000;
