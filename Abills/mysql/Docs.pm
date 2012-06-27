@@ -532,6 +532,10 @@ sub invoices_list {
     push @WHERE_RULES, @{ $self->search_expr($attr->{SUM}, 'INT', 'o.price * o.counts') };
   }
 
+  if ($attr->{REPRESENTATIVE}) {
+  	push @WHERE_RULES, @{ $self->search_expr($attr->{REPRESENTATIVE}, 'STR', 'c.representative', { EXT_FIELD => 1 }) };
+  }
+
   if ($attr->{AID}) {
     push @WHERE_RULES, @{ $self->search_expr($attr->{AID}, 'STR', 'a.id') };
   }

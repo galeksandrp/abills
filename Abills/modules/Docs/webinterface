@@ -911,6 +911,7 @@ sub docs_invoices_list {
     	                                FULL_INFO   => 1,
     	                                ORDERS_LIST => 1,
     	                                COLS_NAME   => 1,
+    	                                REPRESENTATIVE => '*',
     	                                COLS_UPPER  => 1
     	                             });
     my @MULTI_ARR = ();
@@ -1652,7 +1653,11 @@ sub docs_invoices_multi_create {
   foreach my $line (@$list) {
     $table->addrow(
       $html->form_input('UIDS', $line->[ 5 + $users->{SEARCH_FIELDS_COUNT} ], { TYPE => 'checkbox' }) . ' ' . $html->button($line->[0], "index=15&UID=" . $line->[ 5 + $users->{SEARCH_FIELDS_COUNT} ]),
-      $line->[1], $line->[2], $line->[3], $html->color_mark($status[ $line->[4] ], $state_colors[ $line->[4] ]),
+      $line->[1], 
+      $line->[2], 
+      $line->[3], 
+      $html->color_mark($status[ $line->[4] ], 
+      $state_colors[ $line->[4] ]),
     );
   }
 
