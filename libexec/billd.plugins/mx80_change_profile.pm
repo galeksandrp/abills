@@ -28,7 +28,7 @@ sub mx80_change_profile {
   
   #Tps  speeds
   my %TPS_SPEEDS = ();
-  my $tp_speed_list = $Dv->get_speed({ COLS_NAME => 1 });
+  my $tp_speed_list = $Dv->get_speed({ COLS_NAME => 1, DESC => 'DESC' });
   foreach my $tp (@$tp_speed_list) {
   	if (defined($tp->{tt_id})) {
   	  $TPS_SPEEDS{$tp->{tp_num}}{$tp->{tt_id}}= ($tp->{out_speed} * 1024). "," . ($tp->{in_speed} * 1024);
@@ -98,12 +98,12 @@ sub mx80_change_profile {
       	}
 
         if ($debug > 2) {
-          while(my($k, $v)=each %{ \%RAD_REPLY_DEACTIVATE, \%RAD_REPLY_ACTIVATE }) {
-      	    print "$k -> \n";
-      	    foreach my $val (@$v) {
-      	    	print "       $val\n";
-      	    }
-          }
+#          while(my($k, $v)=each %{ \%RAD_REPLY_DEACTIVATE, \%RAD_REPLY_ACTIVATE }) {
+#      	    print "$k -> \n";
+#      	    foreach my $val (@$v) {
+#      	    	print "       $val\n";
+#      	    }
+#          }
         }
 
         hangup_radius($nas_info, $online->{'nas_port_id'}, $online->{'user_name'}, 

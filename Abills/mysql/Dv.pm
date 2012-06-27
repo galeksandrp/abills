@@ -769,6 +769,13 @@ sub get_speed {
   $self->{SEARCH_FIELDS}       = '';
   $self->{SEARCH_FIELDS_COUNT} = 0;
 
+  
+  $SORT      = ($attr->{SORT})      ? $attr->{SORT}      : 'tp.tp_id, tt.id';
+  $DESC      = ($attr->{DESC})      ? $attr->{DESC}      : '';
+
+
+   
+
   if ($attr->{LOGIN}) {
     push @WHERE_RULES, @{ $self->search_expr($attr->{LOGIN}, 'STR', 'u.id') };
     $EXT_TABLE .= "LEFT JOIN dv_main dv ON (dv.tp_id = tp.id )
@@ -809,7 +816,7 @@ AND intv.day IN (select if ( intv.day=8,
         (select if (intv.day=0, 0,
                 (select intv.day from intervals as intv where DATE_FORMAT( NOW(), '%w')+1 = intv.day LIMIT 1)))))
 GROUP BY tp.tp_id, tt.id
-ORDER by tp.tp_id, tt.id;",
+ORDER BY $SORT $DESC;",
   undef,
   $attr  
   );
