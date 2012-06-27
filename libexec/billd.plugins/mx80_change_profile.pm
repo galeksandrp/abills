@@ -49,7 +49,8 @@ sub mx80_change_profile {
                         'JOIN_SERVICE', 
                         'CLIENT_IP', 
                         'DURATION_SEC', 
-                        'STARTED' 
+                        'STARTED' ,
+                        'CID'
                       ],
      COLS_NAME    => 1
     }
@@ -75,29 +76,51 @@ sub mx80_change_profile {
     next if ($#{$l} < 0);
     foreach my $online (@$l) {
     	print "$online->{user_name} TP: $online->{tp_num}\n" if ($debug > 0);
-    	my $profile_sufix = ( $online->{'CONNECT_INFO'}  =~ /demux/) ? 'pppoe' : 'ipoe';
+    	my $profile_sufix = 'pppoe';
+      
+      if ( $online->{'CONNECT_INFO'}  !~ /demux/) {
+        $profile_sufix = 'ipoe';
+        $online->{'user_name'}=$online->{CID};
+      }
+      
       if  ($TPS_SPEEDS{$online->{tp_num}}) {
       	my $num = 3;
+    		my %RAD_REPLY_DEACTIVATE = ();
+    		my %RAD_REPLY_ACTIVATE   = ();
+
       	foreach my $tt_id ( keys %{ $TPS_SPEEDS{$online->{tp_num}} } ) {
       		print "$tt_id -> ". $TPS_SPEEDS{$online->{tp_num}}{$tt_id} . "\n" if ($debug > 1);
-      		my %RAD_REPLY = ();
  		  	  my $traffic_class_name = ($tt_id >0) ? "local_$tt_id" : 'global';
     	    if ($TPS_SPEEDS{$online->{tp_num}}{$tt_id}) {
-            push @{ $RAD_REPLY{'ERX-Service-Deactivate'} }, "svc-$traffic_class_name-$profile_sufix",
-            push @{ $RAD_REPLY{'ERX-Service-Activate:'.(3-$tt_id)} },  "svc-$traffic_class_name-$profile_sufix(". $TPS_SPEEDS{$online->{tp_num}}{$tt_id} .")";
+            push @{ $RAD_REPLY_DEACTIVATE{'ERX-Service-Deactivate'} }, "svc-$traffic_class_name-$profile_sufix";
+            push @{ $RAD_REPLY_ACTIVATE{'ERX-Service-Activate'} },  "svc-$traffic_class_name-$profile_sufix(". $TPS_SPEEDS{$online->{tp_num}}{$tt_id} .")";
           }
+      	}
 
-          if ($debug > 2) {
-            while(my($k, $v)=each %RAD_REPLY) {
-        	    print "$k -> $v->[0]\n";
-            }
+        if ($debug > 2) {
+          while(my($k, $v)=each %{ \%RAD_REPLY_DEACTIVATE, \%RAD_REPLY_ACTIVATE }) {
+      	    print "$k -> \n";
+      	    foreach my $val (@$v) {
+      	    	print "       $val\n";
+      	    }
           }
-          
-          hangup_radius($nas_info, $online->{'nas_port_id'}, $online->{'user_name'}, 
+        }
+
+        hangup_radius($nas_info, $online->{'nas_port_id'}, $online->{'user_name'}, 
           	  { FRAMED_IP_ADDRESS => $online->{ip},
           	  	COA               => 1,
-          	  	RAD_PAIRS         => \%RAD_REPLY });
-      	}
+          	  	RAD_PAIRS         => \%RAD_REPLY_DEACTIVATE, 
+          	    DEBUG             => (($debug > 2) ? 1 : 0)
+          	  });
+
+        hangup_radius($nas_info, $online->{'nas_port_id'}, $online->{'user_name'}, 
+          	  { FRAMED_IP_ADDRESS => $online->{ip},
+          	  	COA               => 1,
+          	  	RAD_PAIRS         => \%RAD_REPLY_ACTIVATE,
+          	  	DEBUG             => (($debug > 2) ? 1 : 0)
+          	  	});
+
+
       }
     }
     

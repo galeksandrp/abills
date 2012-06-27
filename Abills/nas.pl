@@ -435,22 +435,25 @@ sub hangup_radius {
   my $type;
   my $r = new Radius(
     Host   => "$NAS->{NAS_MNG_IP_PORT}",
-    Secret => "$NAS->{NAS_MNG_PASSWORD}"
+    Secret => "$NAS->{NAS_MNG_PASSWORD}",
+    Debug  => $attr->{DEBUG} || 0
   ) or return "Can't connect '$NAS->{NAS_MNG_IP_PORT}' $!";
 
   $conf{'dictionary'} = $base_dir . '/Abills/dictionary' if (!$conf{'dictionary'});
+
 
   $r->load_dictionary($conf{'dictionary'});
 
   $r->add_attributes({ Name => 'User-Name', Value => "$USER" }) if ($USER);
   $r->add_attributes({ Name => 'Framed-IP-Address', Value => "$attr->{FRAMED_IP_ADDRESS}" });
   
-  if ($attr->{RAD_REPLY}) {
-  	while(my($k, $v)=each %{ $attr->{RAD_REPLY} }) {
-  		$r->add_attributes({ Name => "$k", Value => "$v" });
+  if ($attr->{RAD_PAIRS}) {
+  	while(my($k, $v)=each %{ $attr->{RAD_PAIRS} }) {
+  		$r->add_attributes({ Name => "$k", Value => $v });
   	}
   }
   
+  my $request_type = ($attr->{COA}) ? 'COA' : 'POD';
   if ($attr->{COA}) {
   	$r->send_packet(COA_REQUEST) and $type = $r->recv_packet;
   }
@@ -459,9 +462,8 @@ sub hangup_radius {
   }
 
   if (!defined $type) {
-
-    # No responce from POD server
-    $Log->log_print('LOG_DEBUG', "$USER", "No responce from POD server '$NAS->{NAS_MNG_IP_PORT}'", { ACTION => 'CMD' });
+    # No responce from COA/POD server
+    $Log->log_print('LOG_DEBUG', "$USER", "No responce from $request_type server '$NAS->{NAS_MNG_IP_PORT}'", { ACTION => 'CMD' });
   }
 
   return $result;
