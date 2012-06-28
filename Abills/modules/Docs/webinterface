@@ -2228,7 +2228,7 @@ sub docs_invoice {
                 }
                 else {
                   $M += 1 if ($i > 0);
-                  if ($M < 12) {
+                  if ($M <= 12) {
                     $M = sprintf("%02d", $M);
                   }
                   else {
@@ -2238,11 +2238,11 @@ sub docs_invoice {
                   $period_from = "$Y-$M-01";
 
                   #$M+=1;
-                  if ($M < 12) {
+                  if ($M <= 12) {
                     $M = sprintf("%02d", $M);
                   }
                   else {
-                    $M = sprintf("%02d", $M - 13);
+                    $M = sprintf("%02d", $M - 12);
                     $Y++;
                   }
 

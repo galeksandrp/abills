@@ -93,7 +93,7 @@ sub mx80_change_profile {
  		  	  my $traffic_class_name = ($tt_id >0) ? "local_$tt_id" : 'global';
     	    if ($TPS_SPEEDS{$online->{tp_num}}{$tt_id}) {
             push @{ $RAD_REPLY_DEACTIVATE{'ERX-Service-Deactivate'} }, "svc-$traffic_class_name-$profile_sufix";
-            push @{ $RAD_REPLY_ACTIVATE{'ERX-Service-Activate'} },  "svc-$traffic_class_name-$profile_sufix(". $TPS_SPEEDS{$online->{tp_num}}{$tt_id} .")";
+            push @{ $RAD_REPLY_ACTIVATE{'ERX-Service-Activate:'.$tt_id} },  "svc-$traffic_class_name-$profile_sufix(". $TPS_SPEEDS{$online->{tp_num}}{$tt_id} .")";
           }
       	}
 
