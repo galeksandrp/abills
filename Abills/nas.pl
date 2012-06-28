@@ -468,6 +468,7 @@ sub hangup_radius {
 
 
  if ($attr->{DEBUG}) {
+ 	 print "Radius Return:";
    for my $a ($r->get_attributes) {
      print "$a->{'Name'} -> $a->{'Value'}\n";  	
    }
