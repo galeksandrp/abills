@@ -443,9 +443,8 @@ sub hangup_radius {
 
 
   $r->load_dictionary($conf{'dictionary'});
-
   $r->add_attributes({ Name => 'User-Name', Value => "$USER" }) if ($USER);
-  $r->add_attributes({ Name => 'Framed-IP-Address', Value => "$attr->{FRAMED_IP_ADDRESS}" });
+  $r->add_attributes({ Name => 'Framed-IP-Address', Value => "$attr->{FRAMED_IP_ADDRESS}" }) if ($attr->{FRAMED_IP_ADDRESS});
   
   if ($attr->{RAD_PAIRS}) {
   	while(my($k, $v)=each %{ $attr->{RAD_PAIRS} }) {
@@ -468,12 +467,13 @@ sub hangup_radius {
 
 
  if ($attr->{DEBUG}) {
- 	 print "Radius Return:";
+ 	 print "Radius Return:\n";
    for my $a ($r->get_attributes) {
-     print "$a->{'Name'} -> $a->{'Value'}\n";  	
+     print "  $a->{'Name'} -> $a->{'Value'}\n";  	
    }
  }
 
+  $r = undef;
 
   return $result;
 }
