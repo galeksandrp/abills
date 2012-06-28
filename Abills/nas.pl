@@ -466,6 +466,14 @@ sub hangup_radius {
     $Log->log_print('LOG_DEBUG', "$USER", "No responce from $request_type server '$NAS->{NAS_MNG_IP_PORT}'", { ACTION => 'CMD' });
   }
 
+
+ if ($debug > 0) {
+   for my $a ($r->get_attributes) {
+     print "$a->{'Name'} -> $a->{'Value'}\n";  	
+   }
+ }
+
+
   return $result;
 }
 
