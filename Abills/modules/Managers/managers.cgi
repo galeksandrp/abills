@@ -220,7 +220,6 @@ sub form_reports_main {
       ACTION_DATE    => ">=$OUTPUT{YEAR}-$OUTPUT{MOUNTH}-01;<=$OUTPUT{YEAR}-$OUTPUT{MOUNTH}-$OUTPUT{DAY}",
       ACTION_TYPE    => 12,
       DELETED        => 1,
-      USER_STATUS    => 1,
       %LIST_PARAMS
     }
   );
@@ -237,7 +236,7 @@ sub form_reports_main {
       ACTION_DATE    => ">=$OUTPUT{YEAR}-$OUTPUT{MOUNTH}-01;<=$OUTPUT{YEAR}-$OUTPUT{MOUNTH}-$OUTPUT{DAY}",
       ACTION_TYPE    => 9,
       REGISTRATION   => '>=0000-00-00',
-      %LIST_PARAMS
+      %LIST_PARAMS,
     }
   );
 
@@ -316,21 +315,12 @@ sub form_reports {
 
   form_reports_main();
 
-  my $table = $html->table(
-      {
-        width      => '100%',
-        cols_align => [ 'right', 'right' ],
-        rows       => [ [ "$_TOTAL:", $html->b($Dv->{TOTAL}) ] ]
-      }
-    );
-  $table->show();
-
   $table = $html->table(
     {
       width   => '100%',
       caption => "$_REPORTS",
       border  => 1,
-      title   => [ "$_ONTRACT_ID", "$_FIO", "$_ADDRESS", "$_TARIF_PLAN", "$_STATUS", "$_CONTRACT $_DATE", 'дата фактического подключения', 'дата отключения' ],
+      title   => [ "$_CONTRACT_ID", "$_FIO", "$_ADDRESS", "$_TARIF_PLAN", "$_STATUS", "$_CONTRACT $_DATE", 'дата фактического подключения', 'дата отключения' ],
       cols_align => [ 'left', 'right', 'right', 'right', 'center', 'center' ],
       pages      => $Dv->{TOTAL},
       qs         => $pages_qs,
@@ -342,21 +332,27 @@ sub form_reports {
   # Выбираем тип отчета
   if ($FORM{SHOW_REPORT} eq 'users_total') {
     $ref = $users_total;
+    $Dv->{RESULT_TOTAL}=$OUTPUT{USER_TOTAL};
   }
   elsif ($FORM{SHOW_REPORT} eq 'mounth_contracts_added') {
     $ref = \@$mounth_contracts_added;
+    $Dv->{RESULT_TOTAL}=$OUTPUT{REGISTRATION_MOUNTH_TOTAL};
   }
   elsif ($FORM{SHOW_REPORT} eq 'mounth_contracts_deleted') {
     $ref = \@$mounth_contracts_deleted;
+    $Dv->{RESULT_TOTAL}=$OUTPUT{DISCONNECTED};
   }
   elsif ($FORM{SHOW_REPORT} eq 'mounth_disabled_users') {
     $ref = \@$mounth_disabled_users;
+    $Dv->{RESULT_TOTAL}=$OUTPUT{TEMPORARILY_DISCONNECTED};
   }
   elsif ($FORM{SHOW_REPORT} eq 'mounth_total_debtors') {
     $ref = \@$mounth_total_debtors;
+    $Dv->{RESULT_TOTAL}=$OUTPUT{REPORT_DEBETORS};
   }
   elsif ($FORM{SHOW_REPORT} eq 'total_debtors') {
     $ref = \@$total_debtors;
+    $Dv->{RESULT_TOTAL}=$OUTPUT{REPORT_DEBETORS2};
   }
   
   foreach my $u (@$ref) {
@@ -369,9 +365,39 @@ sub form_reports {
       $u->{registration}, '-',);
   }
   
-  $filter = $html->tpl_show(_include('managers_filter_reports', 'Managers'), { undef, OUTPUT2RETURN => 1 });
+
+    $user_pi->{SHOW_REPORT_SEL} = $html->form_select(
+      'SHOW_REPORT',
+      {
+        SELECTED => $FORM{SHOW_REPORT},
+        SEL_HASH => { 		'users_total'             => 'Всего учетных записей',
+		'mounth_contracts_added'  => 'Всего заключено договоров(Апрель 2012)',
+		'mounth_contracts_deleted'=> 'Всего расторгнуто договоров(Апрель 2012)',
+		'mounth_disabled_users'   => 'Всего временно отключившихся(Апрель 2012)',
+		'mounth_total_debtors'    => 'не оплативших текущий месяц',
+		'total_debtors'           => 'не оплативших 2 и более месяцев',
+                     },
+        NO_ID    => 1
+      }
+    );
   
+  
+ 
+  $filter = $html->tpl_show(_include('managers_filter_reports', 'Managers'), { %$user_pi, OUTPUT2RETURN => 1 });
+  
+  my $result_table = $table->show({ OUTPUT2RETURN => 1  }); 
+  
+  my $table = $html->table(
+      {
+        width      => '100%',
+        cols_align => [ 'right', 'right' ],
+        rows       => [ [ "$_TOTAL:", $html->b($Dv->{RESULT_TOTAL}) ] ]
+      }
+    );
+
   $table->show();
+  $html->{OUTPUT} .= $result_table;
+  
   
   if ($FORM{xml} || $FORM{csv}) {
   	print $table->show({ OUTPUT2RETURN => 1 });
@@ -421,6 +447,7 @@ sub check_permissions {
     $admin->online_info({ SID => $sid });
     if ($admin->{TOTAL} > 0 && $ENV{REMOTE_ADDR} eq $admin->{IP}) {
       $admin->info($admin->{AID});
+      %permissions = %{ $admin->get_permissions() };
       return $admin->{AID}, $sid;
     }
   }
