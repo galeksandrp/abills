@@ -960,8 +960,15 @@ sub leases_clear {
   my ($attr) = @_;
 
   my %DATA = $self->get_data($attr, { default => leases_defaults() });
+  @WHERE_RULES=();
+  if ($attr->{ENDED}) {
+    push @WHERE_RULES, "ends < now()";
+  }
 
-  $self->query($db, "DELETE FROM dhcphosts_leases WHERE nas_id='$DATA{NAS_ID}';", 'do');
+  my $WHERE = ($#WHERE_RULES > -1) ? "AND " . join(' and ', @WHERE_RULES) : '';
+  
+
+  $self->query($db, "DELETE FROM dhcphosts_leases WHERE nas_id='$DATA{NAS_ID}' $WHERE;", 'do');
   return $self;
 }
 
