@@ -100,16 +100,17 @@ if [ w${ACTION} = wtest ]; then
   echo "${IPFW} -q flush" | at +10 minutes
 fi;
 
+
+#Get external interface
+if [ x${abills_shaper_if} != x ]; then
+  INTERNAL_INTERFACE=${abills_shaper_if}
+else 
+  EXTERNAL_INTERFACE=`/sbin/route get default | grep interface: | awk '{ print $2 }'`
+  INTERNAL_INTERFACE="ng*"
+fi; 
+
+
 if [ x${abills_shaper_enable} != xNO ]; then
-  #Get external interface
-  if [ x${abills_shaper_if} != x ]; then
-    INTERNAL_INTERFACE=${abills_shaper_if}
-  else 
-    EXTERNAL_INTERFACE=`/sbin/route get default | grep interface: | awk '{ print $2 }'`
-    INTERNAL_INTERFACE="ng*"
-  fi; 
-
-
   #Octets direction
   PKG_DIRECTION=`cat ${BILLING_DIR}/libexec/config.pl | grep octets_direction | ${SED} "s/\\$conf{octets_direction}='\(.*\)'.*/\1/"`
 
@@ -370,10 +371,9 @@ if [ w${SESSION_LIMIT} != w ]; then
     ${IPFW} add 64001   allow tcp from table\(34\) to any setup via ${INTERNAL_INTERFACE} in limit src-addr ${SESSION_LIMIT}
     ${IPFW} add 64002   allow udp from table\(34\) to any via ${INTERNAL_INTERFACE} in limit src-addr ${SESSION_LIMIT}
     ${IPFW} add 64003   allow icmp from table\(34\) to any via ${INTERNAL_INTERFACE} in limit src-addr ${SESSION_LIMIT}
-  else if [ w${ACTION} = wstop ]; then
-         ${IPFW} delete 00400 00401 00402 64001 64002 64003
-       fi; 
- fi;
+  elif [ w${ACTION} = wstop ]; then
+    ${IPFW} delete 00400 00401 00402 64001 64002 64003
+  fi;
 fi;
 
 #Squid Redirect
@@ -382,23 +382,21 @@ if [ x${abills_squid_redirect} != xNO ]; then
   if [ x${SQUID_SERVER_IP} = w ]; then
     SQUID_SERVER_IP=127.0.0.1;
   fi;
-SQUID_REDIRET_TABLE=40
-FWD_RULE=10040;
+  
+  SQUID_REDIRET_TABLE=40
+  FWD_RULE=10040;
 
-#Forwarding start
-if [ w${ACTION} = wstart ]; then
-  echo "Squid Forward Section - start"; 
-  ${IPFW} add ${FWD_RULE} fwd ${SQUID_SERVER_IP},8080 tcp from table\(${SQUID_REDIRET_TABLE}\) to any dst-port 80,443 via ${INTERNAL_INTERFACE}
-  #If use proxy
-  #${IPFW} add ${FWD_RULE} fwd ${FWD_WEB_SERVER_IP},3128 tcp from table\(32\) to any dst-port 3128 via ${INTERNAL_INTERFACE}
-else if [ x${ACTION} = xstop ]; then
-  echo "Squid Forward Section - stop:"; 
-  ${IPFW} delete ${FWD_RULE}
-else if [ x${ACTION} = xshow ]; then
-  echo "Squid Forward Section - status:"; 
-  ${IPFW} show ${FWD_RULE}
-fi;
-fi;
-fi;
-
+  #Forwarding start
+  if [ w${ACTION} = wstart ]; then
+    echo "Squid Forward Section - start"; 
+    ${IPFW} add ${FWD_RULE} fwd ${SQUID_SERVER_IP},8080 tcp from table\(${SQUID_REDIRET_TABLE}\) to any dst-port 80,443 via ${INTERNAL_INTERFACE}
+    #If use proxy
+    #${IPFW} add ${FWD_RULE} fwd ${FWD_WEB_SERVER_IP},3128 tcp from table\(32\) to any dst-port 3128 via ${INTERNAL_INTERFACE}
+  elif [ x${ACTION} = xstop ]; then
+    echo "Squid Forward Section - stop:"; 
+    ${IPFW} delete ${FWD_RULE}
+  elif [ x${ACTION} = xshow ]; then
+    echo "Squid Forward Section - status:"; 
+    ${IPFW} show ${FWD_RULE}
+  fi; 
 fi;
