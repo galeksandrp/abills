@@ -303,7 +303,7 @@ sub get_traffic {
   }
 
   if ($CONF->{DV_INTERVAL_PREPAID}) {
-  	$self->query($db, "SELECT li.traffic_type, li.sent, li.recv  FROM dv_log l, dv_log_intervals li
+  	$self->query($db, "SELECT li.traffic_type, sum(li.sent), sum(li.recv)  FROM dv_log l, dv_log_intervals li
   	   WHERE l.acct_session_id=li.acct_session_id AND uid $WHERE and li.interval_id='$self->{TI_ID}' and ($period)");
   
 	  if ($self->{TOTAL} > 0) {
