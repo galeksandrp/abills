@@ -158,8 +158,12 @@ sub traffic_calculations {
     }
 
     if ($CONF->{rt_billing}) {
-      $used_traffic->{TRAFFIC_IN}    += int($RAD->{INBYTE} / $CONF->{MB_SIZE});
-      $used_traffic->{TRAFFIC_OUT}   += int($RAD->{OUTBYTE} / $CONF->{MB_SIZE});
+      if ($CONF->{DV_INTERVAL_PREPAID}) {
+        ($sent, $recv) = (0,0);
+      }
+
+      $used_traffic->{TRAFFIC_IN}    += int($recv / $CONF->{MB_SIZE});
+      $used_traffic->{TRAFFIC_OUT}   += int($sent / $CONF->{MB_SIZE});
       $used_traffic->{TRAFFIC_IN_2}  += ($RAD->{INBYTE2}) ? int($RAD->{INBYTE2} / $CONF->{MB_SIZE}) : 0;
       $used_traffic->{TRAFFIC_OUT_2} += ($RAD->{OUTBYTE2}) ? int($RAD->{OUTBYTE2} / $CONF->{MB_SIZE}) : 0;
     }
@@ -303,7 +307,7 @@ sub get_traffic {
   }
 
   if ($CONF->{DV_INTERVAL_PREPAID}) {
-  	$self->query($db, "SELECT li.traffic_type, sum(li.sent), sum(li.recv)  FROM dv_log l, dv_log_intervals li
+  	$self->query($db, "SELECT li.traffic_type, sum(li.sent) / $CONF->{MB_SIZE}, sum(li.recv) / $CONF->{MB_SIZE}  FROM dv_log l, dv_log_intervals li
   	   WHERE l.acct_session_id=li.acct_session_id AND uid $WHERE and li.interval_id='$self->{TI_ID}' and ($period)");
   
 	  if ($self->{TOTAL} > 0) {

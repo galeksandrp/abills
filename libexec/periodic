@@ -689,7 +689,7 @@ sub credit_full_set {
     $users->{debug}=1 if ($debug > 6);
     my $list = $users->list(
      {
-      CREDIT         => "0",
+      CREDIT         => ">=0",
       DISABLE        => 0,
       COLS_NAME      => 1,
       COMPANY_ID     => 0,
@@ -718,12 +718,12 @@ sub credit_full_set {
         }
       }
     
+      $DEBUG .= "SUM: $full_sum\n" if ($debug > 0);
       if ($credit < $full_sum) {
     	  $users->change($uid, { UID         => $uid,
     		                       CREDIT      => ($full_sum+1),
     		                       CREDIT_DATE => ($CREDIT_EXPIRE_DATE) ? $CREDIT_EXPIRE_DATE : undef
-    		                      });
-    	  $DEBUG .= "SUM: $full_sum\n" if ($debug > 0);
+    		                      });   	  
       }
     }
   }
