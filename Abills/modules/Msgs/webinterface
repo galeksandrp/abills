@@ -205,15 +205,16 @@ sub msgs_admin_add {
           GID       => $FORM{GID},
           PAGE_ROWS => 1000000,
           DISABLE   => 0,
-          PHONE     => '*'
+          PHONE     => '*',
+          COLS_NAME => 1
         }
       );
 
       my @uids = ();
       foreach my $line (@$list) {
-        $FORM{UID} = $line->[ 5 + $users->{SEARCH_FIELDS_COUNT} ];
-        my $email = $line->[ 7 + $users->{SEARCH_FIELDS_COUNT} ];
-        $NUMBERS{ $line->[ 3 + $users->{SEARCH_FIELDS_COUNT} - (($admin->{permissions}->{0}->{8}) ? 0 : 1) ] } = $FORM{UID};
+        $FORM{UID} = $line->{uid};
+        my $email  = $line->{email};
+        $NUMBERS{ $line->{phone} } = $FORM{UID};
 
         push @uids, $FORM{UID};
         $Msgs->message_add(
@@ -245,7 +246,7 @@ sub msgs_admin_add {
               TIME       => $TIME,
               ID         => $Msgs->{INSERT_ID},
               SUBJECT    => $FORM{SUBJECT} . ' / ' . $FORM{REPLY_SUBJECT},
-              LOGIN      => $line->[0],
+              LOGIN      => $line->{id},
               UID        => $FORM{UID},
               STATUS     => $msg_status[ $FORM{STATE} ],
               MESSAGE    => $FORM{MESSAGE},

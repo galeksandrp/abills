@@ -1,5 +1,4 @@
 package Msgs;
-
 # Message system
 #
 
