@@ -1143,10 +1143,8 @@ sub docs_invoices_list {
       	           </orders>";
       	 $i++;
         }
+        push @rows, $orders;
       }
-    
-    
-    	push @rows, $orders;
     }
     
     $table->addrow(@rows);
