@@ -902,8 +902,7 @@ sub docs_invoices_list {
     $LIST_PARAMS{SORT} = '2 desc, 1';
     $LIST_PARAMS{DESC} = 'DESC';
   }
-  
-  
+
   if ($FORM{print_list}) {
   	print "Content-Type: text/html\n\n" if ($debug > 2);
     my $invoices_list = $Docs->invoices_list({ %FORM, 
@@ -943,9 +942,10 @@ sub docs_invoices_list {
       $d->{FROM_DATE_LIT} = '';
 
       my $i    = 0;
+      
       foreach my $order (@{ $Docs->{ORDERS}->{$d->{DOC_ID}} }) {
         $i++;
-        $Docs->{ORDER} .= sprintf("<tr><td align=right>%d</td><td>%s</td><td align=right>%d</td><td align=right>%d</td><td align=right>%.2f</td><td align=right>%.2f</td></tr>\n", $i, $order->{orders}, $order->{unit}, $order->{counts}, $order->{price}, ($order->{counts} * $order->{price})) if (!$conf{DOCS_PDF_PRINT});
+        $d->{ORDER} .= sprintf("<tr><td align=right>%d</td><td>%s</td><td align=right>%d</td><td align=right>%d</td><td align=right>%.2f</td><td align=right>%.2f</td></tr>\n", $i, $order->{orders}, $order->{unit}, $order->{counts}, $order->{price}, ($order->{counts} * $order->{price})) if (!$conf{DOCS_PDF_PRINT});
 
         my $count = $order->{counts} || 1;
         my $sum   = sprintf("%.2f", $count * $order->{price});
@@ -973,9 +973,9 @@ sub docs_invoices_list {
         }
       }
 
-      $d->{TOTAL_SUM}      = sprintf("%.2f", $d->{TOTAL_SUM});
-      $d->{AMOUNT_FOR_PAY} = sprintf("%.2f", $d->{AMOUNT_FOR_PAY});
-      $d->{DEPOSIT}        = sprintf("%.2f", $d->{DEPOSIT});
+      $d->{TOTAL_SUM}            = sprintf("%.2f", $d->{TOTAL_SUM});
+      $d->{AMOUNT_FOR_PAY}       = sprintf("%.2f", $d->{AMOUNT_FOR_PAY});
+      $d->{DEPOSIT}              = sprintf("%.2f", $d->{DEPOSIT});
       if ($d->{EXCHANGE_RATE} > 0) {
         $d->{TOTAL_ALT_SUM}      = sprintf("%.2f", $d->{TOTAL_SUM} * $d->{EXCHANGE_RATE});
         $d->{AMOUNT_FOR_PAY_ALT} = sprintf("%.2f", $d->{AMOUNT_FOR_PAY} * $d->{EXCHANGE_RATE});

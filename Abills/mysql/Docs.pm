@@ -623,12 +623,18 @@ sub invoices_list {
   if ($attr->{ORDERS_LIST}) {
     $self->query(
       $db, "SELECT  o.invoice_id,  o.orders,  o.unit,  o.counts,  o.price,  o.fees_id
-      FROM  (docs_invoices d, docs_invoice_orders o) 
-      LEFT JOIN users u ON (d.uid=u.uid)
-     $WHERE;",
+      FROM  docs_invoice_orders o
+     WHERE o.invoice_id IN (SELECT d.id
+    FROM (docs_invoices d, docs_invoice_orders o)    
+    LEFT JOIN users u ON (d.uid=u.uid)
+    LEFT JOIN admins a ON (d.aid=a.aid)
+    LEFT JOIN payments p ON (d.payment_id=p.id)
+    LEFT JOIN companies c ON (u.company_id=c.id)
+    $WHERE);",
      undef,
      $attr
     );
+    
     foreach my $line ( @{  $self->{list} } ) {
     	if (ref $line eq 'HASH') {
         push @{ $self->{ORDERS}{int($line->{invoice_id})} }, $line;	
@@ -637,7 +643,6 @@ sub invoices_list {
   }
 
   $self->{TOTAL}=$total;
-
   return $list;
 }
 
