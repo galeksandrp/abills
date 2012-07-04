@@ -117,7 +117,7 @@ sub mx80_change_profile {
         my $rad_vals = '';
         while(my($k, $v)=each %{ \%RAD_REPLY_DEACTIVATE, \%RAD_REPLY_ACTIVATE }) {
       	  foreach my $val (@$v) {
-      	    $rad_vals .=  "$k=\\\"$v\\\",";
+      	    $rad_vals .=  "$k=\\\"$val\\\",";
    	      }
         }
         
