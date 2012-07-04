@@ -995,7 +995,7 @@ sub table {
     }
   }
 
-  $self->{table} = "<TABLE $width cellspacing='0' cellpadding='0' border='0'$table_class>\n";
+  $self->{table} = "<TABLE $width cellspacing='0' cellpadding='0' border='0'$table_class summary=''>\n";
 
   #Table Caption
   if (defined($attr->{caption})) {
@@ -1019,11 +1019,11 @@ sub table {
   if ($attr->{EXPORT} && !$FORM{EXPORT_CONTENT}) {
     #foreach my $export (split(/;/, $attr->{EXPORT})) {
       my ($export_name, $params) = split(/:/, $attr->{EXPORT}, 2);
-      $self->{EXPORT_OBJ} .= ' ' . $self->button("$export_name", "qindex=$index$attr->{qs}&pg=$PG&sort=$SORT&desc=$DESC&EXPORT_CONTENT=$attr->{ID}&header=1$params", { ex_params => 'target=_export', IMG_BUTTON => '/img/button_xml.png' });
+      $self->{EXPORT_OBJ} .= ' ' . $self->button("$export_name", "qindex=$index$attr->{qs}&pg=$PG&sort=$SORT&desc=$DESC&EXPORT_CONTENT=$attr->{ID}&header=1$params", { ex_params => ' target=\'export\'', IMG_BUTTON => '/img/button_xml.png' });
       
       $params=~s/xml/csv/ig;
       $export_name=~s/xml/csv/ig;
-      $self->{EXPORT_OBJ} .= ' ' . $self->button("$export_name", "qindex=$index$attr->{qs}&pg=$PG&sort=$SORT&desc=$DESC&EXPORT_CONTENT=$attr->{ID}&header=1$params", { ex_params => 'target=_export', IMG_BUTTON => '/img/button_csv.png' });
+      $self->{EXPORT_OBJ} .= ' ' . $self->button("$export_name", "qindex=$index$attr->{qs}&pg=$PG&sort=$SORT&desc=$DESC&EXPORT_CONTENT=$attr->{ID}&header=1$params", { ex_params => 'target=\'export\'', IMG_BUTTON => '/img/button_csv.png' });
 
       push @header_obj, $self->{EXPORT_OBJ};
     #}
@@ -1037,7 +1037,7 @@ sub table {
     push @header_obj, $attr->{header};
   }
 
-  if ($#header_obj > -1) {
+  if ($#header_obj > -1 && $attr->{header}) {
     $self->{table} .= "<tr><td width=20% valign=bottom>$self->{EXPORT_OBJ}</td><td width=60%><div id='rules'><ul><li class='center'>";
 
     #foreach my $obj (@header_obj) {
@@ -1047,7 +1047,7 @@ sub table {
   }
 
   $self->{table} .= "<TR><TD class=cel_border colspan='3'>
-               <TABLE width='100%' cellspacing='1' cellpadding='0' border='0'>\n";
+               <TABLE width='100%' cellspacing='1' cellpadding='0' border='0' summary=''>\n";
 
   if (defined($attr->{title})) {
     $SORT = $LIST_PARAMS{SORT};
@@ -1652,7 +1652,7 @@ sub date_fld2 {
   my $tabindex = ($attr->{TABINDEX}) ? "tabindex=$attr->{TABINDEX}" : '';
 
   my $result = qq{
-<script language="JavaScript">
+<script language="JavaScript" type="text/javascript">
  A_TCALCONF = {
 	'cssprefix'  : 'tcal',
 	'months'     : [$monthes],

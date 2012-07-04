@@ -810,7 +810,9 @@ sub osmp_payments {
         }
       );
 
-      cross_modules_call('_payments_maked', { USER_INFO => $user, QUITE => 1 });
+      cross_modules_call('_payments_maked', { USER_INFO => $user, 
+      	                                      SUM       => $FORM{sum},
+      	                                      QUITE     => 1 });
 
       #Exists
       if ($payments->{errno} && $payments->{errno} == 7) {
@@ -1109,7 +1111,7 @@ sub osmp_payments_v4 {
         }
       );
 
-      cross_modules_call('_payments_maked', { USER_INFO => $user, QUITE => 1 });
+      cross_modules_call('_payments_maked', { USER_INFO => $user, SUM => $sum, QUITE => 1 });
 
       #Exists
       if ($payments->{errno} && $payments->{errno} == 7) {
@@ -1574,7 +1576,7 @@ sub wm_payments {
       }
     );
 
-    cross_modules_call('_payments_maked', { USER_INFO => $user, QUITE => 1 });
+    cross_modules_call('_payments_maked', { USER_INFO => $user, SUM => $FORM{LMI_PAYMENT_AMOUNT}, QUITE => 1 });
 
     $output2 .= "Paysys:" . $Paysys->{errno} if ($Paysys->{errno});
     $output2 .= "CHECK_SUM: $checksum\n";

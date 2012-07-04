@@ -1,4 +1,4 @@
-<script src="/ajax/lib/JsHttpRequest/JsHttpRequest.js"></script>
+<script src="/ajax/lib/JsHttpRequest/JsHttpRequest.js" type='text/javascript'></script>
 <style>
 div.timeline
 {

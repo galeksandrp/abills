@@ -1457,7 +1457,7 @@ sub unreg_requests_add {
         '$DATA{ADDRESS_BUILD}',
         '$DATA{ADDRESS_FLAT}',
         '$DATA{COUNTRY}',
-        '$DATA{COMPANY}',
+        '$DATA{COMPANY_NAME}',
         '$DATA{CONNECTION_TIME}',
         '$DATA{LOCATION_ID}'        
         );", 'do'
@@ -1505,11 +1505,11 @@ sub unreg_requests_info {
     $db, "SELECT 
     m.id,
     m.datetime,
-    ra.id,
+    ra.id AS received_admin,
     m.state,
     m.priority,
     m.subject,
-    mc.name,
+    mc.name AS chapter,
     m.request,
     m.comments,
     m.responsible_admin,
@@ -1522,15 +1522,17 @@ sub unreg_requests_info {
     m.ip,
     m.closed_date,
     m.uid,
-    m.company,
-    m.country_id,
+    m.company as company_name,
+    m.country_id as country,
     m.connection_time,
     m.location_id
     FROM (msgs_unreg_requests m)
     LEFT JOIN msgs_chapters mc ON (m.chapter=mc.id)
     LEFT JOIN admins ra ON (m.received_admin=ra.aid)
   WHERE m.id='$id' $WHERE
-  GROUP BY m.id;"
+  GROUP BY m.id;",
+  undef,
+  { INFO => 1 }
   );
 
   if ($self->{TOTAL} < 1) {
@@ -1538,12 +1540,6 @@ sub unreg_requests_info {
     $self->{errstr} = 'ERROR_NOT_EXIST';
     return $self;
   }
-
-  (
-    $self->{ID},       $self->{DATETIME},          $self->{RECIEVED_ADMIN}, $self->{STATE},   $self->{PRIORITY}, $self->{SUBJECT},         $self->{CHAPTER},       $self->{REQUEST},
-    $self->{COMMENTS}, $self->{RESPONSIBLE_ADMIN}, $self->{FIO},            $self->{PHONE},   $self->{EMAIL},    $self->{ADDRESS_STREET},  $self->{ADDRESS_BUILD}, $self->{ADDRESS_FLAT},
-    $self->{IP},       $self->{CLOSED_DATE},       $self->{UID},            $self->{COMPANY}, $self->{COUNTRY},  $self->{CONNECTION_TIME}, $self->{LOCATION_ID},
-  ) = @{ $self->{list}->[0] };
 
   if ($self->{LOCATION_ID} > 0) {
     $self->query(

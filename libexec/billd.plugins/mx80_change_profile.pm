@@ -113,13 +113,28 @@ sub mx80_change_profile {
           	    DEBUG             => (($debug > 2) ? 1 : 0)
           	  });
 
-        hangup_radius($nas_info, $online->{'nas_port_id'}, $online->{'user_name'}, 
-          	  { FRAMED_IP_ADDRESS => $online->{ip},
-          	  	COA               => 1,
-          	  	RAD_PAIRS         => \%RAD_REPLY_ACTIVATE,
-          	  	DEBUG             => (($debug > 2) ? 1 : 0)
-          	  	});
 
+        my $rad_vals = '';
+        while(my($k, $v)=each %{ \%RAD_REPLY_DEACTIVATE, \%RAD_REPLY_ACTIVATE }) {
+      	  foreach my $val (@$v) {
+      	    $rad_vals .=  "$k=\\\"$v\\\",";
+   	      }
+        }
+        
+        my $run = "echo \"$rad_vals User-Name=\\\"$online->{'user_name'}\\\"\" | /usr/local/bin/radclient $nas_info->{NAS_MNG_IP_PORT} coa $nas_info->{NAS_MNG_PASSWORD}";
+        if ($debug > 2 ) {
+        	print $run;
+        }
+        my $cmd = `$run`;
+
+#        hangup_radius($nas_info, $online->{'nas_port_id'}, $online->{'user_name'}, 
+#          	  { FRAMED_IP_ADDRESS => $online->{ip},
+#          	  	COA               => 1,
+#          	  	RAD_PAIRS         => \%RAD_REPLY_ACTIVATE,
+#          	  	DEBUG             => (($debug > 2) ? 1 : 0)
+#          	  	});
+
+        
 
       }
     }
