@@ -5077,10 +5077,10 @@ sub report_fees {
     $list       = $fees->list({%LIST_PARAMS});
     $table_fees = $html->table(
       {
-        width   => '100%',
-        caption => "$_FEES",
-        border  => 1,
-        title   => [ 'ID', $_LOGIN, $_DATE, $_DESCRIBE, $_SUM, $_DEPOSIT, $_TYPE, "$_BILLS", $_ADMINS, 'IP', '-' ],
+        width      => '100%',
+        caption    => "$_FEES",
+        border     => 1,
+        title      => [ 'ID', $_LOGIN, $_DATE, $_DESCRIBE, $_SUM, $_DEPOSIT, $_TYPE, "$_BILLS", $_ADMINS, 'IP', '-' ],
         cols_align => [ 'right', 'left', 'right', 'right', 'left', 'left', 'right', 'right', 'left', 'center:noprint' ],
         qs         => $pages_qs,
         pages      => $fees->{TOTAL},
@@ -5093,10 +5093,15 @@ sub report_fees {
     foreach my $line (@$list) {
       $table_fees->addrow(
         $html->b($line->[0]), $html->button($line->[1], "index=15&UID=" . $line->[10]), $line->[2], $line->[3] . (($line->[11]) ? $html->br() . $html->b($line->[11]) : ''),
-        $line->[4], "$line->[5]", $FEES_METHODS{ $line->[6] }, ($BILL_ACCOUNTS{ $line->[7] }) ? $BILL_ACCOUNTS{ $line->[7] } : "$line->[7]",
-        "$line->[8]", "$line->[9]",
+        $line->[4], 
+        "$line->[5]", 
+        $FEES_METHODS{ $line->[6] }, 
+        ($BILL_ACCOUNTS{ $line->[7] }) ? $BILL_ACCOUNTS{ $line->[7] } : "$line->[7]",
+        "$line->[8]", 
+        "$line->[9]",
       );
     }
+
   }
   else {
     $type = ($FORM{TYPE}) ? $FORM{TYPE} : 'DATE';
@@ -5110,7 +5115,7 @@ sub report_fees {
     elsif ($type eq 'USER') {
       $TITLE[0]   = $_USERS;
       $type       = "search=1&LOGIN";
-      $index      = 3;
+      #$index      = 3;
       $graph_type = '';
     }
     elsif ($type eq 'COMPANIES') {
@@ -5143,7 +5148,7 @@ sub report_fees {
         title      => \@TITLE,
         cols_align => [ 'right', 'right', 'right', 'right' ],
         qs         => $pages_qs,
-        ID         => 'REPORT_FEES',
+        ID         => 'REPORTS_FEES',
         EXPORT     => $_EXPORT . ' XML:&xml=1',
       }
     );
@@ -5169,6 +5174,9 @@ sub report_fees {
         $main_column = $html->button($line->[0], "index=13&COMPANY_ID=$line->[5]");
       }
       else {
+      	if ($type =~ /LOGIN/) {
+      		$index = 3;
+      	}
         $main_column = $html->button($line->[0], "index=$index&$type=$line->[0]$pages_qs");
       }
 

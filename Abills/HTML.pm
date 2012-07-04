@@ -1037,13 +1037,13 @@ sub table {
     push @header_obj, $attr->{header};
   }
 
-  if ($#header_obj > -1 && $attr->{header}) {
-    $self->{table} .= "<tr><td width=20% valign=bottom>$self->{EXPORT_OBJ}</td><td width=60%><div id='rules'><ul><li class='center'>";
+  if ($#header_obj > -1) {
+    $self->{table} .= "<tr><td width=20% valign=bottom>$self->{EXPORT_OBJ}</td><td width=60%><div id='rules'><ul><li class='center'>&nbsp;";
 
     #foreach my $obj (@header_obj) {
     #   $self->{table} .= $obj. '&nbsp;&nbsp;&nbsp;';
     # }
-    $self->{table} .= "$attr->{header}</li></ul></div></td><td width=20%>&nbsp</td></tr>\n";
+    $self->{table} .= "$attr->{header}</li></ul></div></td><td width=20%>&nbsp;</td></tr>\n";
   }
 
   $self->{table} .= "<TR><TD class=cel_border colspan='3'>
