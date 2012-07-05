@@ -797,6 +797,13 @@ sub osmp_payments {
       $status = 300;
     }
     else {
+      cross_modules_call('_pre_payment', 
+            {
+              USER_INFO  => $user,
+              SUM        => $FORM{sum},
+              QUITE      => 1
+            }
+       );
 
       #Add payments
       $payments->add(
@@ -1098,7 +1105,7 @@ sub osmp_payments_v4 {
       $result_code = 1;
     }
     else {
-
+      cross_modules_call('_pre_payment', { USER_INFO => $user, QUITE => 1, SUM => $sum });
       #Add payments
       $payments->add(
         $user,
@@ -1205,6 +1212,13 @@ sub osmp_payments_v4 {
         $result_code = 0;
       }
       else {
+        cross_modules_call('_pre_payment', 
+            {
+              USER_INFO  => $user,
+              SUM        => $FORM{PAY_AMOUNT},
+              QUITE      => 1
+            }
+        );
 
         #Add payments
         $payments->add(
