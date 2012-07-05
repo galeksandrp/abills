@@ -386,7 +386,15 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
       if ($flowid) {
         push @FW_ACTIONS, "$tc class del dev $INTERFACE parent 1: classid 1:$flowid > /dev/null 2>&1";
         if ($ACTION eq 'up') {
-          push @FW_ACTIONS, "$tc class add dev $INTERFACE parent 1: classid 1:$flowid htb rate $speed_in" . "Kbit";
+          push @FW_ACTIONS, "$tc class add dev $INTERFACE parent 1: classid 1:$flowid htb rate $speed_in" . "Kbit burst 4k";
+          
+          if ($ARGV[0] eq 'pppd') {
+            push @FW_ACTIONS, "/sbin/tc class add dev $INTERFACE parent 1:1 classid 1:10 htb rate $speed_in" . "kbit burst 4k prio 1";
+            push @FW_ACTIONS, "/sbin/tc class add dev $INTERFACE parent 1:1 classid 1:20 htb rate $speed_in" . "kbit burst 4k prio 2";
+
+            push @FW_ACTIONS, "/sbin/tc qdisc add dev $INTERFACE parent 1:10 handle 10: sfq perturb 10 quantum 1500";
+            push @FW_ACTIONS, "/sbin/tc qdisc add dev $INTERFACE parent 1:20 handle 20: sfq perturb 10 quantum 1500";
+          }
         }
       }
 
