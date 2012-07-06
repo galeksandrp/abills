@@ -55,7 +55,6 @@ CREATE TABLE `bonus_accoumulation` (
   `dv_tp_id` smallint(6) unsigned NOT NULL default 0,
   `scores` smallint(6) unsigned NOT NULL default 0,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `id` (`id`),
   UNIQUE KEY `name` (`name`)
 ) COMMENT "Bonus accoumulation"  ;
 
