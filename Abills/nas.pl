@@ -105,8 +105,9 @@ sub hangup {
     if ( $attr->{'CONNECT_INFO'}  !~ /demux/) {
       hangup_radius($NAS, $PORT, "$attr->{CID}", $attr);
     }
-  	
-    hangup_radius($NAS, $PORT, "$USER", $attr);
+  	else {
+      hangup_radius($NAS, $PORT, "$USER", $attr);
+    }
   }
   elsif ($nas_type eq 'lisg_cst') {
     hangup_radius($NAS, $PORT, "$attr->{FRAMED_IP_ADDRESS}", $attr);
@@ -468,16 +469,17 @@ sub hangup_radius {
   }
 
 
- if ($attr->{DEBUG}) {
- 	 print "Radius Return: $type\n";
-   for my $a ($r->get_attributes) {
-     print "  $a->{'Name'} -> $a->{'Value'}\n";  	
-   }
- }
+  for my $a ($r->get_attributes) {
+    $result .= "  $a->{'Name'} -> $a->{'Value'}\n";  	
+  }
+
+  if ($attr->{DEBUG}) {
+ 	  print "Radius Return: $type\n $result";
+  }
 
   $r = undef;
 
-  return $result;
+ return $result;
 }
 
 #*******************************************************************
