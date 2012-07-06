@@ -965,10 +965,14 @@ sub leases_clear {
     push @WHERE_RULES, "ends < now()";
   }
 
-  my $WHERE = ($#WHERE_RULES > -1) ? "AND " . join(' and ', @WHERE_RULES) : '';
+  if ($attr->{NAS_ID}) {
+    push @WHERE_RULES, @{ $self->search_expr($attr->{NAS}, 'INT', 'nas_id') };
+  }
+
+  my $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES) : '';
   
 
-  $self->query($db, "DELETE FROM dhcphosts_leases WHERE nas_id='$DATA{NAS_ID}' $WHERE;", 'do');
+  $self->query($db, "DELETE FROM dhcphosts_leases $WHERE;", 'do');
   return $self;
 }
 
@@ -1066,7 +1070,7 @@ sub log_list {
   }
 
   if ($attr->{MESSAGE_TYPE}) {
-    push @WHERE_RULES, @{ $self->search_expr("$attr->{MESSAGE_TYPE}", 'INT', 'l.message_type') };
+    
   }
 
   if ($attr->{MESSAGE}) {
