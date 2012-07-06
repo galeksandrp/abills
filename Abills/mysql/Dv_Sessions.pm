@@ -548,40 +548,37 @@ sub online_info {
   $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES) : '';
 
   $self->query(
-    $db, "SELECT user_name, UNIX_TIMESTAMP(started), acct_session_time, 
+    $db, "SELECT user_name, 
+    UNIX_TIMESTAMP(started) AS session_start, 
+    acct_session_time, 
    acct_input_octets,
    acct_output_octets,
    ex_input_octets,
    ex_output_octets,
    connect_term_reason,
-   INET_NTOA(framed_ip_address),
-   lupdated,
-   nas_port_id,
-   INET_NTOA(nas_ip_address),
-      CID,
-      CONNECT_INFO,
-      acct_session_id,
-      nas_id,
-      started,
-      acct_input_gigawords 
-      acct_output_gigawords 
- 
-      FROM dv_calls 
-   $WHERE 
-   "
+   INET_NTOA(framed_ip_address) AS framed_ip_address,
+   lupdated as last_update,
+   nas_port_id as nas_port,
+   INET_NTOA(nas_ip_address) AS nas_ip_address , 
+   CID AS calling_session_id,
+   CONNECT_INFO,
+   acct_session_id,
+   nas_id,
+   started AS acct_session_started,
+   acct_input_gigawords 
+   acct_output_gigawords 
+   FROM dv_calls 
+   $WHERE",
+   undef,
+   { INFO => 1 }
   );
 
   if ($self->{TOTAL} < 1) {
     $self->{errno}  = 2;
     $self->{errstr} = 'ERROR_NOT_EXIST';
-    return $self;
   }
 
-  (
-    $self->{USER_NAME},           $self->{SESSION_START},     $self->{ACCT_SESSION_TIME},    $self->{ACCT_INPUT_OCTETS},    $self->{ACCT_OUTPUT_OCTETS}, $self->{ACCT_EX_INPUT_OCTETS}, $self->{ACCT_EX_OUTPUT_OCTETS},
-    $self->{CONNECT_TERM_REASON}, $self->{FRAMED_IP_ADDRESS}, $self->{LAST_UPDATE},          $self->{NAS_PORT},             $self->{NAS_IP_ADDRESS},     $self->{CALLING_STATION_ID},   $self->{CONNECT_INFO},
-    $self->{ACCT_SESSION_ID},     $self->{NAS_ID},            $self->{ACCT_SESSION_STARTED}, $self->{ACCT_INPUT_GIGAWORDS}, $self->{ACCT_OUTPUT_GIGAWORDS}
-  ) = @{ $self->{list}->[0] };
+  $self->{CID} = $self->{CALLING_SESSION_ID};
 
   return $self;
 }

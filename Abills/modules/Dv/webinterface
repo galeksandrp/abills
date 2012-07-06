@@ -1321,7 +1321,8 @@ sub dv_online {
     my ($nas_id, $nas_port_id, $acct_session_id, $user_name) = split(/ |\+/, $FORM{hangup}, 4);
 
     $Nas->info({ NAS_ID => $nas_id });
-
+    $sessions->online_info( { ACCT_SESSION_ID  => $acct_session_id });
+     
     if ($Nas->{errno}) {
       $html->message('err', $_NAS, "$Nas->{errstr}");
       return 0;
@@ -1335,7 +1336,8 @@ sub dv_online {
       {
         ACCT_SESSION_ID   => "$acct_session_id",
         FRAMED_IP_ADDRESS => "$FORM{FRAMED_IP_ADDRESS}",
-        UID               => $FORM{UID}
+        UID               => $FORM{UID},
+        %$sessions
       }
     );
 
