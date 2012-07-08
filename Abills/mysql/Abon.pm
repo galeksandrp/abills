@@ -203,6 +203,8 @@ sub tariff_change {
   $attr->{VAT}                   = 0 if (!$attr->{VAT});
   $attr->{NONFIX_PERIOD}         = 0 if (!$attr->{NONFIX_PERIOD});
   $attr->{DISCOUNT}              = 0 if (!$attr->{DISCOUNT});
+  $attr->{EXT_BILL_ACCOUNT}      = 0 if (!$attr->{EXT_BILL_ACCOUNT});
+
 
   $self->changes(
     $admin,
@@ -268,7 +270,9 @@ sub tariff_list {
      LEFT JOIN abon_user_list ul ON (abon_tariffs.id=ul.tp_id)
      $WHERE
      GROUP BY abon_tariffs.id
-     ORDER BY $SORT $DESC;"
+     ORDER BY $SORT $DESC;",
+    undef,
+    $attr
   );
 
   return $self->{list};
@@ -383,7 +387,9 @@ sub user_tariff_list {
   # $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
 
   $self->query(
-    $db, "SELECT at.id, at.name, comments, at.price, at.period, ul.date, 
+    $db, "SELECT at.id, at.name, ul.comments, at.price, at.period, 
+      ul.service_count,
+      ul.date, 
       if (at.nonfix_period = 1, 
       if (at.period = 0, ul.date+ INTERVAL 1 DAY, 
        if (at.period = 1, ul.date + INTERVAL 1 MONTH, 
@@ -395,9 +401,7 @@ sub user_tariff_list {
             )
           )
         )
-       )
-      ,
-      
+       ),      
       if (at.period = 0, ul.date+ INTERVAL 1 DAY, 
        if (at.period = 1, DATE_FORMAT(ul.date + INTERVAL 1 MONTH, '%Y-%m-01'), 
          if (at.period = 2, CONCAT(YEAR(ul.date + INTERVAL 3 MONTH), '-' ,(QUARTER((ul.date + INTERVAL 3 MONTH))*3-2), '-01'), 
@@ -409,9 +413,9 @@ sub user_tariff_list {
           )
         )
        )
-      ),
+      ) AS next_abon,
    ul.discount,
-   count(ul.uid),
+   count(ul.uid) AS active_service,
    ul.notification1,
    ul.notification1_account_id,
    ul.notification2,
@@ -420,7 +424,9 @@ sub user_tariff_list {
      FROM abon_tariffs at
      LEFT JOIN abon_user_list ul ON (at.id=ul.tp_id and ul.uid='$uid')
      GROUP BY at.id
-     ORDER BY $SORT $DESC;"
+     ORDER BY $SORT $DESC;",
+   undef,
+   $attr
   );
 
   my $list = $self->{list};
@@ -470,9 +476,9 @@ sub user_tariff_change {
     }
 
     $self->query(
-      $db, "INSERT INTO abon_user_list (uid, tp_id, comments, date, discount, create_docs, send_docs) 
+      $db, "INSERT INTO abon_user_list (uid, tp_id, comments, date, discount, create_docs, send_docs, service_count) 
      VALUES ('$attr->{UID}', '$tp_id', '" . $attr->{ 'COMMENTS_' . $tp_id } . "', $date, '" . $attr->{ 'DISCOUNT_' . $tp_id } . "',
-     '" . $attr->{ 'CREATE_DOCS_' . $tp_id } . "', '" . $attr->{ 'SEND_DOCS_' . $tp_id } . "');", 'do'
+     '" . $attr->{ 'CREATE_DOCS_' . $tp_id } . "', '" . $attr->{ 'SEND_DOCS_' . $tp_id } . "', '". $attr->{'SERVICE_COUNT_'. $tp_id} ."');", 'do'
     );
     $abon_add .= "$tp_id, ";
   }
@@ -574,13 +580,13 @@ sub periodic_list {
   $self->query(
     $db, "SELECT at.period, at.price, u.uid, 
   if(u.company_id > 0, c.bill_id, u.bill_id) AS bill_id,
-  u.id, 
+  u.id AS login, 
   at.id, 
   at.name,
-  if(c.name IS NULL, b.deposit, cb.deposit),
+  if(c.name IS NULL, b.deposit, cb.deposit) AS deposit,
   if(c.name IS NULL, u.credit, 
     if (c.credit = 0, u.credit, c.credit) 
-   ),
+   ) AS credit,
   u.disable,
   at.id,
   at.payment_type,
@@ -653,7 +659,8 @@ sub periodic_list {
     if(ul.discount>0, ul.discount,
      if(at.discount=1, u.reduction, 0)),
      ul.create_docs,
-     ul.send_docs
+     ul.send_docs,
+     ul.service_count
   FROM (abon_tariffs at, abon_user_list ul, users u)
      LEFT JOIN bills b ON (u.bill_id=b.id)
      LEFT JOIN companies c ON (u.company_id=c.id)
@@ -664,7 +671,9 @@ at.id=ul.tp_id and
 ul.uid=u.uid
 $WHERE
 AND u.deleted='0'
-ORDER BY at.priority;"
+ORDER BY at.priority;",
+undef,
+$attr
   );
 
   my $list = $self->{list};

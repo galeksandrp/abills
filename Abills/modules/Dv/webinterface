@@ -1336,6 +1336,7 @@ sub dv_online {
       {
         ACCT_SESSION_ID   => "$acct_session_id",
         FRAMED_IP_ADDRESS => "$FORM{FRAMED_IP_ADDRESS}",
+        DEBUG             => $FORM{DEBUG} || undef,
         UID               => $FORM{UID},
         %$sessions
       }

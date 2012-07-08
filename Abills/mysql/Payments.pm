@@ -307,6 +307,15 @@ sub list {
   }
 
   my $EXT_TABLES  = $self->{EXT_TABLES};
+  if ($attr->{INVOICE_NUM}) {
+    push @WHERE_RULES, @{ $self->search_expr("$attr->{INVOICE_NUM}", 'INT', 'invoice.invoice_num', { EXT_FIELD => 1 }) };
+    $EXT_TABLES  .= 'LEFT JOIN docs_invoices invoice ON (invoice.payment_id=p.id)';
+  }
+
+  if ($attr->{COMPANY_ID}) {
+    push @WHERE_RULES, @{ $self->search_expr($attr->{COMPANY_ID}, 'INT', 'u.company_id', { EXT_FIELD => 1 }) };
+  }
+
   my $login_field = '';
   $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES) : '';
   
@@ -316,7 +325,6 @@ sub list {
   elsif ($EXT_TABLES =~ /builds/ && $EXT_TABLES !~ /users_pi/) {
     $EXT_TABLES = 'LEFT JOIN users_pi pi ON (u.uid=pi.uid) '. $EXT_TABLES;
   }
-
   
   my $list;
   if (!$attr->{TOTAL_ONLY}) {
@@ -329,6 +337,7 @@ sub list {
       INET_NTOA(p.ip) AS ip, 
       p.amount,
       p.currency,
+      $self->{SEARCH_FIELDS}
       p.uid, 
       p.inner_describe
     FROM payments p

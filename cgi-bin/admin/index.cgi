@@ -5920,8 +5920,6 @@ sub form_payments () {
         SELECTED => (defined($FORM{METHOD}) && $FORM{METHOD} ne '') ? $FORM{METHOD} : 0,
         SEL_HASH => \%PAYMENTS_METHODS,
         NO_ID    => 1,
-
-        #SORT_KEY     => 1
       }
     );
 
@@ -6023,6 +6021,16 @@ sub form_payments () {
   if ($conf{SYSTEM_CURRENCY}) {
     push @caption, "$_ALT $_SUM", "$_CURRENCY";
   }
+  if ($FORM{INVOICE_NUM}) {
+    $LIST_PARAMS{INVOICE_NUM} = $FORM{INVOICE_NUM};
+    push @caption, "$_INVOICE ID";
+  }
+  
+  if ($FORM{COMPANY_ID}) {
+    $LIST_PARAMS{COMPANY_ID} = $FORM{COMPANY_ID};
+    push @caption, "$_COMPANY";
+  }
+
 
   push @caption, '-';
 
@@ -6052,7 +6060,7 @@ sub form_payments () {
       $payment->{dsc} . (($payment->{inner_describe}) ? $html->br() . $html->b($payment->{inner_describe}) : ''),
       $payment->{sum}, 
       "$payment->{last_deposit}", 
-      $PAYMENTS_METHODS{ $payment->{method} },
+      ($FORM{METHOD_NUM}) ? $payment->{method} : $PAYMENTS_METHODS{ $payment->{method} },
       "$payment->{ext_id}", 
       ($conf{EXT_BILL_ACCOUNT} && $attr->{USER_INFO}) ? $BILL_ACCOUNTS{ $payment->{bill_id} } : "$payment->{bill_id}",
       "$payment->{admin_name}", 
@@ -6062,6 +6070,15 @@ sub form_payments () {
     if ($conf{SYSTEM_CURRENCY}) {
       push @rows, $payment->{amount}, $payment->{currency};
     }
+
+    if ($FORM{INVOICE_NUM}) {
+      push @rows, $payment->{invoice_num};
+    }
+
+    if ($FORM{COMPANY_ID}) {
+      push @rows, $payment->{company_id};
+    }
+
 
     push @rows, $delete;
     $table->addrow(@rows);

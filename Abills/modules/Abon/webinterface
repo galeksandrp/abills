@@ -75,6 +75,10 @@ sub abon_user {
           $activate_notification               = $line->[11];
           $Abon->{TP_INFO}->{DISCOUNT}         = $line->[13];
 
+          if ($FORM{'SERVICE_COUNT_'. $Abon->{TP_INFO}->{TP_ID} }) {
+            $Abon->{TP_INFO}->{MONTH_FEE}=$Abon->{TP_INFO}->{MONTH_FEE} * $FORM{'SERVICE_COUNT_'. $Abon->{TP_INFO}->{TP_ID} };
+          }
+
           if ($FORM{ 'DATE_' . $Abon->{TP_INFO}->{TP_ID} } && $FORM{ 'DATE_' . $Abon->{TP_INFO}->{TP_ID} } ne '0000-00-00') {
             $FORM{ 'PERIOD_' . $Abon->{TP_INFO}->{TP_ID} } = $line->[2];
             push @add_arr, $line->[7];
@@ -117,7 +121,6 @@ sub abon_user {
           }
 
           if ($Abon->{TP_INFO}->{CREATE_ACCOUNT} && $FORM{ 'CREATE_DOCS_' . $Abon->{TP_INFO}->{TP_ID} }) {
-
             #$LIST_PARAMS{UID}= $users->{UID};
             delete($FORM{IDS});
             $FORM{SUM}        = $Abon->{TP_INFO}->{MONTH_FEE};
@@ -171,12 +174,12 @@ sub abon_user {
     return 0 if ($attr->{QUITE} || $attr->{REGISTRATION});
   }
 
-  my $list  = $Abon->user_tariff_list($FORM{UID});
+  my $list  = $Abon->user_tariff_list($FORM{UID}, { COLS_NAME => 1 });
   my $table = $html->table(
     {
-      width   => '100%',
-      caption => "$_ABON",
-      title   => [ '-', $_NAME, $_COMMENTS, $_SUM, $_PERIOD, $_LAST_ABON, $_NEXT_ABON, "$_REDUCTION (%)", "$_CREATE $_DOCS", "$_SEND_NOTIFICATION" ],
+      width      => '100%',
+      caption    => "$_ABON",
+      title      => [ '-', "$_SERVICE $_NAME", $_COMMENTS, $_SUM, $_PERIOD, "$_SERVICE $_COUNT", $_LAST_ABON, $_NEXT_ABON, "$_REDUCTION (%)", "$_CREATE $_DOCS", "$_SEND_NOTIFICATION" ],
       cols_align => [ 'left', 'left', 'left', 'right', 'left', 'right', 'right' ],
       qs         => $pages_qs,
       ID         => 'USER_ABON',
@@ -190,10 +193,10 @@ sub abon_user {
   }
 
   foreach my $line (@$list) {
-    my $describe = $line->[2] || $FORM{ 'COMMENTS_' . $line->[0] };
-    my $state = ($#ids > -1) ? in_array($line->[0], \@ids) : $line->[8];
+    my $describe = $line->{comments} || $FORM{ 'COMMENTS_' . $line->{id} };
+    my $state = ($#ids > -1) ? in_array($line->{id}, \@ids) : $line->{active_service};
 
-    if ($FORM{ 'error_' . $line->[0] }) {
+    if ($FORM{ 'error_' . $line->{id} }) {
       $table->{rowcolor} = 'red';
     }
     else {
@@ -201,36 +204,37 @@ sub abon_user {
     }
 
     $table->addrow(
-      $line->[0]
+      $line->{id}
       . $html->form_input(
         'IDS',
-        "$line->[0]",
+        "$line->{id}",
         {
           TYPE  => 'CHECKBOX',
           STATE => ($state == 1) ? 1 : undef
         }
       ),
-      ($permissions{5}) ? $html->button($line->[1], "index=" . get_function_index('abon_tariffs') . '&ABON_ID=' . $line->[0]) : "$line->[1]",
-      $html->form_input('COMMENTS_' . $line->[0], $describe || $FORM{ 'error_comments_' . $line->[0] }, { SIZE => 40 }),
-      "$line->[3]",
-      $PERIODS[ $line->[4] ],
-      "$line->[5]",
-      ($line->[6]) ? "$line->[6]" : $html->date_fld2('DATE_' . $line->[0], { FORM_NAME => 'ABON_USER_TPS', WEEK_DAYS => \@WEEKDAYS, MONTHES => \@MONTHES, DATE => '0000-00-00' }),
-      $html->form_input('DISCOUNT_' . $line->[0], "$line->[7]", { SIZE => '8' }),
+      ($permissions{5}) ? $html->button($line->{name}, "index=" . get_function_index('abon_tariffs') . '&ABON_ID=' . $line->{id}) : "$line->{name}",
+      $html->form_input('COMMENTS_' . $line->{id}, $describe || $FORM{ 'error_comments_' . $line->{id} }, { SIZE => 40 }),
+      "$line->{price}",
+      $PERIODS[ $line->{period} ],
+      $html->form_input('SERVICE_COUNT_' . $line->{id}, $line->{service_count} || 1, { SIZE => 5 }),
+      $line->{date},
+      ($line->{next_abon}) ? "$line->{next_abon}" : $html->date_fld2('DATE_' . $line->{id}, { FORM_NAME => 'ABON_USER_TPS', WEEK_DAYS => \@WEEKDAYS, MONTHES => \@MONTHES, DATE => '0000-00-00' }),
+      $html->form_input('DISCOUNT_' . $line->{id}, "$line->{discount}", { SIZE => '8' }),
       $html->form_input(
-        'CREATE_DOCS_' . $line->[0],
+        'CREATE_DOCS_' . $line->{id},
         "1",
         {
           TYPE  => 'CHECKBOX',
-          STATE => ($line->[12]) ? 1 : undef
+          STATE => ($line->{create_docs}) ? 1 : undef
         }
       ),
       $html->form_input(
-        'SEND_DOCS_' . $line->[0],
+        'SEND_DOCS_' . $line->{id},
         "1",
         {
           TYPE  => 'CHECKBOX',
-          STATE => ($line->[13]) ? 1 : undef
+          STATE => ($line->{send_docs}) ? 1 : undef
         }
       )
     );
@@ -244,7 +248,7 @@ sub abon_user {
     $action = $html->form_input('change', "$_CHANGE", { TYPE => 'submit' });
   }
 
-  $table->{extra}    = 'colspan=10 align=center';
+  $table->{extra}    = 'colspan=11 align=center';
   $table->{rowcolor} = 'even';
   $table->addrow($action);
 
@@ -557,6 +561,7 @@ sub abon_periodic {
       DISCOUNT       => $line->[31],
       CREATE_DOCS    => $line->[32],
       SEND_DOCS      => $line->[33],
+      SERVICE_COUNT  => $line->[34] || 1,
     );
 
     my $notification1            = $line->[20];
@@ -588,12 +593,14 @@ sub abon_periodic {
       $line->[8] = 0 if (!$line->[8]);
       $PARAMS{DESCRIBE} = "$_ABON: $info{TP_NAME}. $info{COMMENT}" if ($info{COMMENT});
       $abon_date = $ADMIN_REPORT{DATE} if (!$abon_date && $line->[0] == 1 && $d == 1);
+      if ($info{SERVICE_COUNT} > 1) {
+        $info{SUM} = $info{SERVICE_COUNT} * $info{SUM}; 
+      }
       $info{SUM} = $info{SUM} * (100 - $info{DISCOUNT}) / 100 if ($info{DISCOUNT} > 0);
 
       #Get abon
       if ($ADMIN_REPORT{DATE} eq $info{ABON_DATE} || $info{PERIOD} == 0) {
         if ($line->[8] && ($info{DEPOSIT} + $info{CREDIT} > 0 || $line->[11] == 1) && $line->[9] == 0) {
-
           $fees->take(\%user, $info{SUM}, {%PARAMS}) if ($info{DISCOUNT} < 100);
           $Abon->user_tariff_update(
             {
@@ -602,6 +609,10 @@ sub abon_periodic {
               TP_ID => "$info{TP_ID}"
             }
           );
+
+          if ($fees->{errno}) {
+          	print "$fees->{errno} $fees->{errstr}";
+          }
 
           if ($info{CREATE_ACCOUNT} && $info{CREATE_DOCS}) {
             $FORM{SUM}        = $info{SUM};

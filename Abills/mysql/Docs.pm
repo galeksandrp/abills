@@ -521,7 +521,7 @@ sub invoices_list {
   }
 
   if (defined($attr->{PAYMENT_METHOD}) && $attr->{PAYMENT_METHOD} ne '') {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{PAYMENT_METHOD}, 'INT', 'p.method') };
+    push @WHERE_RULES, @{ $self->search_expr($attr->{PAYMENT_METHOD}, 'INT', 'p.method', { EXT_FIELD => 1 }) };
   }
 
   if ($attr->{DOC_ID}) {
@@ -534,6 +534,10 @@ sub invoices_list {
 
   if ($attr->{REPRESENTATIVE}) {
   	push @WHERE_RULES, @{ $self->search_expr($attr->{REPRESENTATIVE}, 'STR', 'c.representative', { EXT_FIELD => 1 }) };
+  }
+
+  if ($attr->{COMPANY_ID}) {
+    push @WHERE_RULES, @{ $self->search_expr($attr->{COMPANY_ID}, 'INT', 'u.company_id', { EXT_FIELD => 1 }) };
   }
 
   if ($attr->{AID}) {

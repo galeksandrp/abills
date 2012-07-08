@@ -1,3 +1,19 @@
+=====0.55=====
+09.06.2012\\
+  * Добавлен экспорт в csv
+  * Создан автоконфигуратор mikrotik
+  * Добавленно создание правил NAT  при инициализации праивл шейпера
+  * Добавлен плагин billd чистки Dhcpleases (dhcp_clean_leases)
+  * Поддержка sflow
+  * ''Docs''  добавлена возможность выводить типы услуг в счетах с  типов cнятий
+ $conf{DOCS_FEES_METHOD_ORDERS}=1;
+  * ''Abon'' возможность указывать несколько однотипных сервисов для абонплаты 
+
+MySQL:\\
+  ALTER TABLE `abon_user_list` ADD COLUMN `service_count` smallint(4) unsigned NOT NULL DEFAULT 1;
+  UPDATE abon_user_list SET `service_count=1
+
+
 =====0.54=====
 
 04.06.2012\\

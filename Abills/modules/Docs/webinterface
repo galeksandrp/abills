@@ -898,6 +898,7 @@ sub docs_invoices_list {
 
   $LIST_PARAMS{COMPANY_ID} = $FORM{CUSTOMER_TYPE};
 
+  #PAYMENT_METHOD
   if (!$FORM{sort}) {
     $LIST_PARAMS{SORT} = '2 desc, 1';
     $LIST_PARAMS{DESC} = 'DESC';
@@ -1056,9 +1057,17 @@ sub docs_invoices_list {
     if ($FORM{BILL_ID}) {
       push @CAPTION, 'BILL_ID';
     }
+
+    if ($FORM{PAYMENT_METHOD}) {
+      push @CAPTION, "$_PAYMENT_METHOD";
+    }
+
+    if ($FORM{COMPANY_ID}) {
+      push @CAPTION, "$_COMPANY";
+    }
+
     push @CAPTION, '-', '-', '-', '-', '-';
   }
-
 
   my $invoice_list  = $Docs->invoices_list({%LIST_PARAMS, 
   	   COLS_NAME   => 1, 
@@ -1117,6 +1126,12 @@ sub docs_invoices_list {
 
       if ($FORM{BILL_ID}) {
         push @rows, $invoice->{bill_id};
+      }
+      if ($FORM{PAYMENT_METHOD}) {
+        push @rows, $invoice->{method};
+      }
+      if ($FORM{COMPANY_ID}) {
+        push @rows, $invoice->{company_id};
       }
 
       push @rows, $html->button($_PAYMENTS, "index=2&INVOICE_ID=$invoice->{id}&UID=$invoice->{uid}$payments_info", { CLASS => 'payments' }),
@@ -2017,15 +2032,30 @@ sub docs_invoice {
     $Docs->{DATE_FIELD} = "$DATE";
     $users = $user;
   }
+ 
+  if ($conf{DOCS_FEES_METHOD_ORDERS}) {
+  	my %FEES_METHODS = %{ get_fees_types() };
+    my @orders = values %FEES_METHODS;
 
-  $Docs->{SEL_ORDER} .= $html->form_select(
-    'ORDER',
-    {
-      SELECTED  => $FORM{ORDER},
-      SEL_ARRAY => ($conf{DOCS_ORDERS}) ? $conf{DOCS_ORDERS} : [$_DV],
-      NO_ID     => 1
-    }
-  );
+    $Docs->{SEL_ORDER} .= $html->form_select(
+      'ORDER',
+      {
+        SELECTED  => $FORM{ORDER},
+        SEL_ARRAY => \@orders,
+        NO_ID     => 1
+      }
+    );
+  }
+  else {
+    $Docs->{SEL_ORDER} .= $html->form_select(
+      'ORDER',
+      {
+        SELECTED  => $FORM{ORDER},
+        SEL_ARRAY => ($conf{DOCS_ORDERS}) ? $conf{DOCS_ORDERS} : [$_DV],
+        NO_ID     => 1
+      }
+    );
+  }
 
   $users->pi({ UID => $users->{UID} || $FORM{UID} });
   $Docs->{OP_SID}   = mk_unique_value(16);
@@ -2348,6 +2378,7 @@ sub docs_invoice {
         },
         { OUTPUT2RETURN => 1 }
       );
+
       if ($user->{UID}) {
         $html->tpl_show(_include('docs_invoice_client_add', 'Docs'), { %$Docs, %$users, %FORM });
       }
