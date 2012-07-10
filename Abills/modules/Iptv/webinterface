@@ -352,6 +352,7 @@ sub iptv_user {
       }
 
       if ($conf{IPTV_USER_EXT_CMD}) {
+      	$Iptv->{ACTION}='down' if ($FORM{STATUS});
       	iptv_ext_cmd($conf{IPTV_USER_EXT_CMD}, { %$users, %$Iptv })
       }
     }
@@ -368,6 +369,7 @@ sub iptv_user {
       }
 
       if ($conf{IPTV_USER_EXT_CMD}) {
+      	$Iptv->{ACTION}='down' if ($FORM{STATUS});
       	iptv_ext_cmd($conf{IPTV_USER_EXT_CMD}, { %$users, %$Iptv })
       }
     }
@@ -472,7 +474,10 @@ sub iptv_ext_cmd {
     }
   }
 
-
+  if (! $attr->{ACTION}) {
+  	$attr->{ACTION}='up';
+  }
+  
   $cmd = tpl_parse("$cmd", $attr);
   
   print $cmd;
