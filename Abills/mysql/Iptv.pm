@@ -351,7 +351,7 @@ sub user_list {
     $EXT_TABLE = "LEFT JOIN dhcphosts_hosts dhcp ON (dhcp.uid=u.uid)
  	               LEFT JOIN nas  ON (nas.id=dhcp.nas)";
 
-    $self->{SEARCH_FIELDS} = "nas.ip, dhcp.ports, nas.nas_type, nas.mng_user, DECODE(nas.mng_password, '$CONF->{secretkey}'),";
+    $self->{SEARCH_FIELDS} = "nas.ip AS nas_ip, dhcp.ports, nas.nas_type, nas.mng_user, DECODE(nas.mng_password, '$CONF->{secretkey}') AS mng_password,";
     $self->{SEARCH_FIELDS_COUNT} += 5;
   }
 
