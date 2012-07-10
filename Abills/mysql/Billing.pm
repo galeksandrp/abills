@@ -825,7 +825,7 @@ sub session_splitter {
   }
 
   if ($time_intervals == 0) {
-    $self->{NO_TPINTERVALS} = 'y';
+    $self->{NO_TPINTERVALS} = 1;
     $self->{SUM}            = 0;
     return $self;
   }
@@ -1133,7 +1133,6 @@ sub remaining_time {
 
     TIME_INTERVALS:
 
-    #my @intervals = sort keys %$cur_int;
     my @intervals = sort { $a <=> $b } keys %$cur_int;
     $i = -1;
 

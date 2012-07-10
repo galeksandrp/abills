@@ -823,7 +823,7 @@ sub invoice_add {
     $DATA{SUM_1}    = $DATA{SUM} || 0;
     $DATA{COUNTS_1} = (!$DATA{COUNTS}) ?  1 : $DATA{COUNTS};
     $DATA{UNIT_1}   = (!$DATA{UNIT}) ? 0 : $DATA{UNIT};
-    $DATA{ORDER_1}  = $DATA{DATA} || '';
+    $DATA{ORDER_1}  = $DATA{ORDER} || '';
   }
 
   my @ids_arr       = split(/, /, $attr->{IDS} || '');

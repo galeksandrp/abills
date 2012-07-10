@@ -445,25 +445,25 @@ sub iptv_ext_cmd {
 
   if (in_array('Dhcphosts', \@MODULES)) {
   	use Dhcphosts;
-    my $Dhcphosts = Dhcphosts->new($db, $admin, \%conf);
-    my $hosts_list = $Dhcphosts->hosts_list({ PORTS => '!',
-    	                                        UID   => $attr->{UID},
-    	                                        NAS_ID=> '>0',
-    	                                        NAS_IP=> '!0.0.0.0',
-    	                                        COLS_NAME => 1
+    my $Dhcphosts  = Dhcphosts->new($db, $admin, \%conf);
+    my $hosts_list = $Dhcphosts->hosts_list({ PORTS             => '!',
+    	                                        UID               => $attr->{UID},
+    	                                        NAS_ID            => '>0',
+    	                                        NAS_IP            => '!0.0.0.0',
+    	                                        SHOW_NAS_MNG_INFO => 1,
+    	                                        COLS_NAME         => 1
     	                                        });
     my $cmd_tpl = $cmd;
     my @cmd_arr = ();
     foreach my $host (@$hosts_list) {
-      $cmd = tpl_parse("$cmd_tpl", { LOGIN    => $host->{login},
-      	                             NAS_IP   => $host->{mng_host_port} || $host->{nas_ip},
-      	                             NAS_ID   => $host->{nas},
-      	                             PORT_ID  => $host->{ports},
-      	                             IP       => $host->{ip},
-      	                             NAS_LOGIN=> $host->{mng_user},
-      	                             NAS_PASSWORD => $host->{ip},
+      $cmd = tpl_parse("$cmd_tpl", { LOGIN        => $host->{login},
+      	                             NAS_IP       => $host->{mng_host_port} || $host->{nas_ip},
+      	                             NAS_ID       => $host->{nas},
+      	                             PORT_ID      => $host->{ports},
+      	                             IP           => $host->{ip},
+      	                             NAS_LOGIN    => $host->{mng_user},
+      	                             NAS_PASSWORD => $host->{mng_password},
       	                           });    	
-      
       push @cmd_arr, $cmd;
     }
     

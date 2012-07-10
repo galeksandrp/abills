@@ -954,21 +954,13 @@ WHERE
   if ($self->{TOTAL} > 0) {
     my ($class1, $class2) = (0, 0);
 
-    if (! $CONF->{DV_INTERVAL_PREPAID}) { 
+    if (! $CONF->{DV_INTERVAL_PREPAID}) {
       $self->{INFO_LIST}->[0]->{prepaid} = 0;
       if ($prepaid_traffic{1}) { $self->{INFO_LIST}->[1]->{prepaid} = 0 }
     }
 
     foreach my $line (@{ $self->{list} }) {
       if ($CONF->{DV_INTERVAL_PREPAID}) {
-      	#$self->{INFO_LIST}->[1]->{prepaid}->[]
-      	
-      	#print "$line->[0] / $line->[1] / $line->[2] / $line->[3]- <br>";
-      	
-      	#$self->{INFO_LIST}->[0]->{prepaid} += $prepaid_traffic{0};
-        #$class1 = ((($class1 > 0) ? $class1 : 0) + $prepaid_traffic{0}) - $line->[1];
-      	#$self->{INFO_LIST}->[0]->{$line->[3]}->{prepaid} += $prepaid_traffic{0};
-      	#print "/ $line->[0] / $line->[3] / $class1 //<br>";
 	      $rest_intervals{$line->[2]}{$line->[0]} = $rest_intervals{$line->[2]}{$line->[0]} - $line->[1];
       }
       else {
