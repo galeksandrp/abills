@@ -4,8 +4,8 @@
 ACTION=$1
 NAS_IP=$2
 PORT_ID=$3
-NAS_LOGIN=$3
-NAS_PASSWORD=$3
+NAS_LOGIN=$4
+NAS_PASSWORD=$5
 
 PATH_LOG="/usr/abills/var/log/iptv"
 PATH_CONF="/usr/abills/var/log/iptv/lock"
