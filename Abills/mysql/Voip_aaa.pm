@@ -98,7 +98,7 @@ sub user_info {
    voip.tp_id, 
    INET_NTOA(voip.ip),
    DECODE(password, '$conf->{secretkey}'),
-   0,
+   voip.logins,
    voip.allow_answer,
    voip.allow_calls,
    voip.disable,
@@ -129,7 +129,7 @@ sub user_info {
     $self->{TP_ID},
     $self->{IP},
     $self->{PASSWORD},
-    $self->{SIMULTANEOUSLY},
+    $self->{LOGINS},
     $self->{ALLOW_ANSWER},
     $self->{ALLOW_CALLS},
     $self->{VOIP_DISABLE},
@@ -145,8 +145,6 @@ sub user_info {
     $self->{DAY_OF_YEAR}
 
   ) = @{ $self->{list}->[0] };
-
-  $self->{SIMULTANEOUSLY} = 0;
 
   #Chack Company account if ACCOUNT_ID > 0
   $self->check_company_account() if ($self->{COMPANY_ID} > 0);
@@ -209,6 +207,17 @@ sub auth {
     return 1, \%RAD_PAIRS;
   }
   elsif ($self->{TOTAL} < 1) {
+  	# 
+  	if ($self->{LOGINS} > 0) {
+      $self->query($db, "SELECT count(*) FROM voip_calls 
+       WHERE calling_station_id='$RAD->{CALLING_STATION_ID}';");
+      
+      if ($self->{TOTAL} && $self->{list}->[0]->[0] >= $self->{LOGINS}) {
+        $RAD_PAIRS{'Reply-Message'} = "More then allow calls ($self->{LOGINS}/$self->{list}->[0]->[0])";
+        return 1, \%RAD_PAIRS;
+      }       
+    }
+  	
     $self->{errno}  = 2;
     $self->{errstr} = 'ERROR_NOT_EXIST';
     if (!$RAD->{H323_CALL_ORIGIN}) {
@@ -316,7 +325,6 @@ sub auth {
 
       if ($session_timeout > 0) {
         $RAD_PAIRS{'Session-Timeout'} = $session_timeout;
-
         #$RAD_PAIRS{'h323-credit-time'}=$session_timeout;
       }
       elsif ($self->{PAYMENT_TYPE} == 0 && $session_timeout == 0) {

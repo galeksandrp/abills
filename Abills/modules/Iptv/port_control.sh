@@ -55,7 +55,7 @@ echo $TIMESTAMP > $PATH_CONF/lock/lock_${NAS_IP}_e${PORT_ID}
 while [ $RETRY -gt 0 ]; do
 	#init ssh session and writing output to file
 	echo "---------------------------------------------" > $PATH_LOG/$TODAY/$FILE
-	echo "`date "+%Y-%m-%d %H:%M:%S"` Parameters: ${NAS_IP} ${PORT_ID}" >> $PATH_LOG/$TODAY/$FILE
+	echo "`date "+%Y-%m-%d %H:%M:%S"` Parameters: ${NAS_IP} ${PORT_ID} ${TP_ID} ${NAS_LOGIN} ${NAS_PASSWORD}" >> $PATH_LOG/$TODAY/$FILE
 	echo "---------------------------------------------" >> $PATH_LOG/$TODAY/$FILE
 	
 	if [ x${ACTION} = xup ]; then

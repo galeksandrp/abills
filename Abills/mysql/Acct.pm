@@ -458,6 +458,7 @@ sub rt_billing {
     return $self;
   }
 
+   $self->{debug}=1;
   $self->query(
     $db, "SELECT lupdated, UNIX_TIMESTAMP()-lupdated, 
    if($RAD->{INBYTE}   >= acct_input_octets AND $RAD->{ACCT_INPUT_GIGAWORDS}=acct_input_gigawords, 
@@ -484,13 +485,26 @@ sub rt_billing {
     return $self;
   }
 
-  ($RAD->{INTERIUM_SESSION_START}, $RAD->{INTERIUM_ACCT_SESSION_TIME}, $RAD->{INTERIUM_INBYTE}, $RAD->{INTERIUM_OUTBYTE}, $RAD->{INTERIUM_INBYTE1}, $RAD->{INTERIUM_OUTBYTE1}, $self->{CALLS_SUM}, $self->{TP_NUM}, $self->{UID}) = @{ $self->{list}->[0] };
+  ($RAD->{INTERIUM_SESSION_START}, 
+  $RAD->{INTERIUM_ACCT_SESSION_TIME}, 
+  $RAD->{INTERIUM_INBYTE}, 
+  $RAD->{INTERIUM_OUTBYTE}, 
+  $RAD->{INTERIUM_INBYTE1}, 
+  $RAD->{INTERIUM_OUTBYTE1}, 
+  $self->{CALLS_SUM}, 
+  $self->{TP_NUM}, 
+  $self->{UID}) = @{ $self->{list}->[0] };
 
   my $Billing = Billing->new($db, $conf);
 
   #print "INterim:   $RAD->{INTERIUM_INBYTE},   $RAD->{INTERIUM_OUTBYTE}, \n";
 
-  ($self->{UID}, $self->{SUM}, $self->{BILL_ID}, $self->{TARIF_PLAN}, $self->{TIME_TARIF}, $self->{TRAF_TARIF}) = $Billing->session_sum(
+  ($self->{UID}, 
+  $self->{SUM}, 
+  $self->{BILL_ID}, 
+  $self->{TARIF_PLAN}, 
+  $self->{TIME_TARIF}, 
+  $self->{TRAF_TARIF}) = $Billing->session_sum(
     "$RAD->{USER_NAME}",
     $RAD->{INTERIUM_SESSION_START},
     $RAD->{INTERIUM_ACCT_SESSION_TIME},
