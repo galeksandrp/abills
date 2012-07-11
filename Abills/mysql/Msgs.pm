@@ -471,7 +471,9 @@ sub message_info {
     LEFT JOIN admins a ON (m.aid=a.aid)
     LEFT JOIN groups g ON (m.gid=g.gid)
   WHERE m.id='$id' $WHERE
-  GROUP BY m.id;"
+  GROUP BY m.id;",
+  undef,
+  { INFO => 1 }
   );
 
   if ($self->{TOTAL} < 1) {
