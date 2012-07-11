@@ -918,13 +918,17 @@ sub msgs_admin {
   $LIST_PARAMS{PRIORITY} = undef if ($FORM{PRIORITY} == 5);
 
   my $status_bar = msgs_status_bar();
-  my $list = $Msgs->messages_list({ %LIST_PARAMS, DESC => (!$FORM{sort}) ? 'DESC' : $FORM{desc} });
+  $Msgs->{debug}=1;
+  my $list = $Msgs->messages_list({ %LIST_PARAMS, 
+  	                                DESC      => (!$FORM{sort}) ? 'DESC' : $FORM{desc}, 
+  	                                COLS_NAME => 1
+                                 });
 
   my $table = $html->table(
     {
-      width   => '100%',
-      caption => "$_MESSAGES",
-      title   => [ '#', "$_USER", "$_SUBJECT", "$_CHAPTERS", "$_DATE", "$_STATUS", "$_CLOSED", "$_RESPOSIBLE", "$_ADMIN", "$_PRIORITY", "$_EXECUTION", "-", "-" ],
+      width      => '100%',
+      caption    => "$_MESSAGES",
+      title      => [ '#', "$_USER", "$_SUBJECT", "$_CHAPTERS", "$_DATE", "$_STATUS", "$_CLOSED", "$_RESPOSIBLE", "$_ADMIN", "$_PRIORITY", "$_EXECUTION", "-", "-" ],
       cols_align => [ 'right', 'left', 'left', 'right', 'right', 'left', 'center', 'right', 'left', 'center:noprint', 'center:noprint' ],
       qs         => $pages_qs,
       pages      => $Msgs->{TOTAL},
@@ -949,33 +953,35 @@ function CheckAllINBOX() {
   );
 
   foreach my $line (@$list) {
-    my $state = ($line->[5] == 0) ? $html->b($msg_status[ $line->[5] ]) : $msg_status[ $line->[5] ];
+    my $state = ($line->{state} == 0) ? $html->b($msg_status[ $line->{state} ]) : $msg_status[ $line->{state} ];
 
-    $state .= ' <img src="../img/red_dot.gif" border="0" alt="No reply"/>' if ($line->[17] eq '0000-00-00 00:00:00');
-    if ($line->[22] > 0) {
-      if ($CHAPTERS_DELIGATION{ $line->[19] } == $line->[21]) {
+    $state .= ' <img src="../img/red_dot.gif" border="0" alt="No reply"/>' if ($line->{admin_read} eq '0000-00-00 00:00:00');
+
+    if ($line->{deligation} > 0) {
+      if ($CHAPTERS_DELIGATION{ $line->{chapter_id} } == $line->{deligation}) {
         $state .= ' <img src="../img/delivered2.png" border="0" alt="' . $_DELIVERED . '"/>';
       }
       else {
         $state .= ' <img src="../img/delivered1.png" border="0" alt="' . $_DELIVERED . '"/>';
       }
     }
-    my $priority = $html->color_mark($priority[ $line->[9] ], $priority_colors[ $line->[9] ]);
+
+    my $priority = $html->color_mark($priority[ $line->{priority} ], $priority_colors[ $line->{priority} ]);
 
     $table->addrow(
-      $line->[0] . (($A_PRIVILEGES{ $line->[19] } > 2 || scalar keys %CHAPTERS_DELIGATION == 0) ? $html->form_input('del', "$line->[0]", { TYPE => 'checkbox' }) : '') . (($line->[22]) ? $html->b("($_INNER_MSGS_CHAR)") : ""),
-      ($line->[12] > 0) ? $html->button($line->[1], "index=11&UID=$line->[12]") : $line->[1],
-      $html->button((($line->[2]) ? "$line->[2]" : $_NO_SUBJECT), "index=$index&UID=$line->[12]&chg=$line->[0]"),
-      $line->[3],
-      $line->[4],
+      $line->{id} . (($A_PRIVILEGES{ $line->{chapter_id} } > 2 || scalar keys %CHAPTERS_DELIGATION == 0) ? $html->form_input('del', "$line->{id}", { TYPE => 'checkbox' }) : '') . (($line->{inner_msg}) ? $html->b("($_INNER_MSGS_CHAR)") : ""),
+      ($line->{uid} > 0) ? $html->button($line->{client_id}, "index=11&UID=$line->{uid}") : $line->{client_id},
+      $html->button((($line->{subject}) ? "$line->{subject}" : $_NO_SUBJECT), "index=$index&UID=$line->{uid}&chg=$line->{id}"),
+      $line->{chapter_name},
+      $line->{date},
       $state,
-      $line->[6],
-      $line->[7],
-      $line->[8],
+      $line->{closed_date},
+      $line->{resposible_admin_login},
+      "<abbr title='$line->{admin_name}'>$line->{admin_login}</abbr>",
       $priority,
-      $line->[10],
-      $html->button("$_SHOW", "index=$index&chg=$line->[0]&UID=$line->[12]", { CLASS => 'show' }),
-      (($A_PRIVILEGES{ $line->[19] } > 2 || $#A_CHAPTER == -1) ? $html->button($_DEL, "index=$index&del=$line->[0]$pages_qs", { MESSAGE => "$_DEL '$line->[0]' ?", CLASS => 'del' }) : '')
+      $line->{plan_date_time},
+      $html->button("$_SHOW", "index=$index&chg=$line->{id}&UID=$line->{uid}", { CLASS => 'show' }),
+      (($A_PRIVILEGES{ $line->{chapter_id} } > 2 || $#A_CHAPTER == -1) ? $html->button($_DEL, "index=$index&del=$line->{id}$pages_qs", { MESSAGE => "$_DEL [$line->{id}] $line->{subject} ?", CLASS => 'del' }) : '')
     );
   }
 

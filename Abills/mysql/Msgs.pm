@@ -289,31 +289,30 @@ sub messages_list {
 
   $self->query(
     $db, "SELECT m.id,
-if(m.uid>0, u.id, g.name),
+if(m.uid>0, u.id, g.name) AS client_id,
 m.subject,
-mc.name,
+mc.name AS chapter_name,
 m.date,
 m.state,
 $self->{SEARCH_FIELDS}
 m.closed_date,
-ra.id,
-a.id,
+ra.id AS resposible_admin_login,
+a.id AS admin_login,
 m.priority,
-CONCAT(m.plan_date, ' ', m.plan_time),
-SEC_TO_TIME(sum(r.run_time)),
+CONCAT(m.plan_date, ' ', m.plan_time) AS plan_date_time,
+SEC_TO_TIME(sum(r.run_time)) AS run_time,
 m.uid,
 a.aid,
 m.state,
 m.gid,
 m.user_read,
 m.admin_read,
-if(r.id IS NULL, 0, count(r.id)),
-m.chapter,
-DATE_FORMAT(plan_date, '%w'),
+if(r.id IS NULL, 0, count(r.id)) AS replies_counts,
+m.chapter AS chapter_id,
+DATE_FORMAT(plan_date, '%w') AS plan_date,
 m.deligation,
-m.inner_msg
-
-
+m.inner_msg,
+a.name AS admin_name
 FROM (msgs_messages m)
 LEFT JOIN users u ON (m.uid=u.uid)
 $EXT_JOIN
@@ -325,25 +324,27 @@ LEFT JOIN admins ra ON (m.resposible=ra.aid)
  $WHERE
 GROUP BY m.id 
     ORDER BY $SORT $DESC
-    LIMIT $PG, $PAGE_ROWS;"
+    LIMIT $PG, $PAGE_ROWS;",
+ undef,
+ $attr
   );
 
   my $list = $self->{list};
 
   if ($self->{TOTAL} > 0 || $PG > 0) {
     $self->query(
-      $db, "SELECT count(DISTINCT m.id), 
-   sum(if(m.admin_read = '0000-00-00 00:00:00', 1, 0)),
-   sum(if(m.state = 0, 1, 0)),
-   sum(if(m.state = 1, 1, 0)),
-   sum(if(m.state = 2, 1, 0))
+      $db, "SELECT count(DISTINCT m.id) AS total, 
+   sum(if(m.admin_read = '0000-00-00 00:00:00', 1, 0)) AS in_work,
+   sum(if(m.state = 0, 1, 0)) AS open,
+   sum(if(m.state = 1, 1, 0)) AS unmaked,
+   sum(if(m.state = 2, 1, 0)) AS closed
     FROM (msgs_messages m)
     LEFT JOIN users u ON (m.uid=u.uid)
     LEFT JOIN msgs_chapters mc ON (m.chapter=mc.id)
-    $WHERE"
+    $WHERE",
+    undef,
+    { INFO => 1 }
     );
-
-    ($self->{TOTAL}, $self->{IN_WORK}, $self->{OPEN}, $self->{UNMAKED}, $self->{CLOSED},) = @{ $self->{list}->[0] };
   }
 
   $WHERE       = '';
@@ -435,20 +436,20 @@ sub message_info {
   $self->query(
     $db, "SELECT m.id,
   m.subject,
-  m.par,
+  m.par AS parent_id,
   m.uid,
   m.chapter,
   m.message,
   m.reply,
-  INET_NTOA(m.ip),
+  INET_NTOA(m.ip) AS ip,
   m.date,
   m.state,
   m.aid,
-  u.id,
-  a.id,
-  mc.name,
+  u.id AS login,
+  a.id AS a_name,
+  mc.name AS chapter_name,
   m.gid,
-  g.name,
+  g.name AS fg_name,
   m.state,
   m.priority,
   m.lock_msg,
@@ -478,12 +479,6 @@ sub message_info {
     $self->{errstr} = 'ERROR_NOT_EXIST';
     return $self;
   }
-
-  (
-    $self->{ID},        $self->{SUBJECT},   $self->{PARENT_ID},    $self->{UID},        $self->{CHAPTER},   $self->{MESSAGE}, $self->{REPLY},       $self->{IP},         $self->{DATE},      $self->{STATE},     $self->{AID},
-    $self->{LOGIN},     $self->{A_NAME},    $self->{CHAPTER_NAME}, $self->{GID},        $self->{G_NAME},    $self->{STATE},   $self->{PRIORITY},    $self->{LOCK},       $self->{PLAN_DATE}, $self->{PLAN_TIME}, $self->{CLOSED_DATE},
-    $self->{DONE_DATE}, $self->{USER_READ}, $self->{ADMIN_READ},   $self->{RESPOSIBLE}, $self->{INNER_MSG}, $self->{PHONE},   $self->{DISPATCH_ID}, $self->{DELIGATION}, $self->{SURVEY_ID}
-  ) = @{ $self->{list}->[0] };
 
   $self->attachment_info({ MSG_ID => $self->{ID} });
 
@@ -524,7 +519,6 @@ sub message_change {
     DELIGATION  => 'deligation'
   );
 
-  #print "!! $attr->{STATE} !!!";
   $attr->{STATUS} = ($attr->{STATUS}) ? $attr->{STATUS} : 0;
 
   $admin->{MODULE} = $MODULE;
