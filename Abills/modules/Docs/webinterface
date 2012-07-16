@@ -821,7 +821,43 @@ sub docs_invoices_list {
   my @payments_status = ("$_UNPAID", "$_PAID", "$_PARTLY_PAID");
   push @PAYMENT_METHODS, @EX_PAYMENT_METHODS if (@EX_PAYMENT_METHODS);
 
-  if ($attr->{COMPANY}) {
+  if ($FORM{UNINVOICED}) {
+	  my $payments_list  = $Docs->invoice_list({%LIST_PARAMS, COLS_NAME=>1});
+    my $table = $html->table(
+    {
+      width      => '100%',
+      caption    => "$_PAYMENTS",
+      border     => 1,
+      title      => \@caption,
+      cols_align => [ 'right', 'left', 'right', 'right', 'left', 'left', 'right', 'right', 'left', 'left', 'center:noprint' ],
+      qs         => $pages_qs,
+      pages      => $payments->{TOTAL},
+      EXPORT     => ' XML:&xml=1',
+      ID         => 'PAYMENTS'
+    }
+    );
+
+    my $pages_qs .= "&subf=2" if (!$FORM{subf});
+    foreach my $payment (@$payments_list) {
+      my @rows = (
+      $html->b($payment->{id}),
+      $html->button($payment->{login}, "index=15&UID=$payment->{uid}"),
+      $payment->{date}, 
+      $payment->{dsc} . (($payment->{inner_describe}) ? $html->br() . $html->b($payment->{inner_describe}) : ''),
+      $payment->{sum}, 
+      "$payment->{last_deposit}", 
+      ($FORM{METHOD_NUM}) ? $payment->{method} : $PAYMENTS_METHODS{ $payment->{method} },
+      "$payment->{ext_id}", 
+      ($conf{EXT_BILL_ACCOUNT} && $attr->{USER_INFO}) ? $BILL_ACCOUNTS{ $payment->{bill_id} } : "$payment->{bill_id}",
+      "$payment->{admin_name}", 
+      "$payment->{ip}"
+      );
+    }
+  	
+  	print $table->show();
+  	return 0;
+  }
+  elsif ($attr->{COMPANY}) {
     $LIST_PARAMS{COMPANY_ID} = $FORM{COMPANY_ID};
     $index = $FORM{index};
   }
@@ -1030,7 +1066,7 @@ sub docs_invoices_list {
   date           => $_DATE,
   customer       => $_CUSTOMER,    
   total_sum      => "$_SUM",    
-  payment_id     => "$_STATUS",
+  payment_id     => "$_PAYMENTS",
   login          => "$_USER", 
   admin_name     => "$_ADMIN", 
   created        => "$_CREATED",
@@ -1103,7 +1139,19 @@ sub docs_invoices_list {
       	$val = $html->button("$invoice->{date}", "qindex=$index&print=$invoice->{id}&UID=$invoice->{uid}$pages_qs" . (($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : ''), { ex_params => 'target=_new' }),
       }
       elsif($fname eq 'payment_id') {
-      	$val = ($invoice->{payment_id}) ? (($user->{UID}) ? $payments_status[1] : $html->button($payments_status[1], "index=2&UID=$invoice->{uid}&ID=$invoice->{payment_id}")) : $html->color_mark($payments_status[0], $_COLORS[6]);
+      	
+      	if ($invoice->{payment_sum} == $invoice->{total_sum}){
+          $val = $html->button($invoice->{payment_sum}, "index=2&UID=$invoice->{uid}&ID=$invoice->{payment_id}");
+        }
+        elsif ($invoice->{payment_sum} == 0) {
+          $val = $html->color_mark($payments_status[0], $_COLORS[6]).
+           $html->button("$_SEARCH $_PAYMENTS", "index=$index&UID=$invoice->{uid}&UNINVOICED=$invoice->{id}", { CLASS => 'search' });
+        }
+        else {
+        	$val = $invoice->{payment_sum};
+        }
+
+      	#$val = $invoice->{payment_sum}; #($invoice->{payment_id}) ? (($user->{UID}) ? $payments_status[1] : $html->button($payments_status[1], "index=2&UID=$invoice->{uid}&ID=$invoice->{payment_id}")) : $html->color_mark($payments_status[0], $_COLORS[6]);
       }
       elsif($fname eq 'login') {
         $val = $html->button($invoice->{login}, "index=11&UID=$invoice->{uid}") . (($line->{company_id}) ? $html->br() . $html->button(substr($line->{company_name}, 0, 30), "index=13&COMPANY_ID=$invoice->{company_id}", { CLASS => 'small' }) : '');
@@ -1178,6 +1226,15 @@ sub docs_invoices_list {
   print $table->show();
 
   return 0;
+}
+
+#**********************************************************
+# docs_uninvoiced_payments
+#**********************************************************
+sub docs_uninvoiced_payments {
+	my ($attr) = @_;
+	
+	
 }
 
 #**********************************************************

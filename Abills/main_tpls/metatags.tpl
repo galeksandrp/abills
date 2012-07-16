@@ -304,9 +304,12 @@ a.routes {
 	background:url(/img/button_routes.png) no-repeat center;
 }
 
-a.change,
+a.change {
+        background:url(/img/button_change.png) no-repeat center;
+}
+
 a.search {
-	background:url(/img/button_change.png) no-repeat center;
+	background:url(/img/button_search.png) no-repeat center;
 }
 
 a.payments,

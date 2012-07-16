@@ -1022,24 +1022,25 @@ sub log_list {
   my $self = shift;
   my ($attr) = @_;
 
-  @WHERE_RULES                 = ();
   $self->{SEARCH_FIELDS}       = '';
   $self->{SEARCH_FIELDS_COUNT} = 0;
+
   my @ids = ();
   if ($attr->{UID}) {
-    my $line = $self->hosts_list({ UID => $attr->{UID} });
+    my $line = $self->hosts_list({ UID => $attr->{UID}, COLS_NAME => 1 });
 
     if ($self->{TOTAL} > 0) {
       foreach my $line (@{$line}) {
-        push @ids, $line->[11], $line->[6];
+        push @ids, $line->{ip}, $line->{mac};
       }
     }
-    @WHERE_RULES = ();
     if ($#ids > -1) {
       $attr->{MESSAGE} = '* ' . join(" *,* ", @ids) . ' *';
     }
     $self->{IDS} = \@ids;
   }
+
+  @WHERE_RULES = ();
 
   $SORT      = ($attr->{SORT})      ? $attr->{SORT}      : 1;
   $DESC      = ($attr->{DESC})      ? $attr->{DESC}      : '';
@@ -1050,9 +1051,9 @@ sub log_list {
     push @WHERE_RULES, "l.id='$attr->{ID}'";
   }
 
-  if ($attr->{LOGIN}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{LOGIN}, 'STR', 'u.id', { EXT_FIELD => 1 }) };
-  }
+#  if ($attr->{LOGIN}) {
+#    push @WHERE_RULES, @{ $self->search_expr($attr->{LOGIN}, 'STR', 'u.id', { EXT_FIELD => 1 }) };
+#  }
 
   if ($attr->{GIDS}) {
     push @WHERE_RULES, "u.gid IN ($attr->{GIDS})";
@@ -1082,7 +1083,12 @@ sub log_list {
   }
 
   $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES) : '';
-
+  my $EXT_TABLES = $self->{EXT_TABLES};
+  
+  if ($WHERE =~ / u\./) {
+    $EXT_TABLES .= "LEFT JOIN users u ON  (u.uid=l.uid)"; 
+  }
+  
   $self->query($db, "SELECT l.datetime, l.hostname, l.message_type, l.message
      FROM (dhcphosts_log l)
      $WHERE

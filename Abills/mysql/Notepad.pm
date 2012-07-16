@@ -238,11 +238,15 @@ sub notepad_new {
     FROM (notepad n)
    $WHERE;");
 
+if ($self->{errno}) {
+  return $self;
+}
 
 if ($self->{TOTAL}){
-  ($self->{TODAY}, $self->{ACTIVE}) = @{ $self->{list}->[0] };
-  $self->{TODAY}=0 if (! $self->{TODAY});
-  $self->{ACTIVE}=0 if (!$self->{ACTIVE});
+  ($self->{TODAY},
+   $self->{ACTIVE}) = @{ $self->{list}->[0] };
+   $self->{TODAY}=0 if (! $self->{TODAY});
+   $self->{ACTIVE}=0 if (!$self->{ACTIVE});
   return $self->{TODAY}, $self->{ACTIVE};
 
 }

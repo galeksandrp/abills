@@ -507,6 +507,18 @@ sub invoices_list {
     $DESC = "DESC";
   }
 
+  if ($attr->{UNINVOICED}) {
+  	
+  	$self->select($db, "SELECT p.id, p.date, p.dsc, i.id
+from payments p
+LEFT JOIN docs_invoices i ON (p.id=i.payment_id)
+WHERE i.id IS NULL
+limit 10");
+    
+    my $list = $self->{list};
+    return $list;
+  }
+
 
   if ($attr->{CUSTOMER}) {
     push @WHERE_RULES, @{ $self->search_expr($attr->{CUSTOMER}, 'STR', 'd.customer') };
@@ -575,7 +587,7 @@ sub invoices_list {
      d.date, 
      if(d.customer='-' or d.customer='', pi.fio, d.customer) AS customer,
      sum(o.price * o.counts) AS total_sum, 
-     d.payment_id, 
+     if (d.payment_id > 0, sum(p.sum), 0) AS payment_sum, 
      u.id AS login, 
      a.name AS admin_name, 
      d.created, 
@@ -591,7 +603,8 @@ sub invoices_list {
      d.exchange_rate,
      d.currency,
      $self->{SEARCH_FIELDS}
-     d.deposit AS docs_deposit
+     d.deposit AS docs_deposit,
+     d.payment_id
      
     FROM (docs_invoices d, docs_invoice_orders o)
     LEFT JOIN users u ON (d.uid=u.uid)

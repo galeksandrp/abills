@@ -525,16 +525,20 @@ sub ipn_use {
   #Day reports
   if ($FORM{DATE} || ($FORM{TYPE} && $FORM{TYPE} eq 'DAYS_TCLASS')) {
     $LIST_PARAMS{INTERVAL_TYPE} = 2;
-
     $LIST_PARAMS{CUR_DATE} = $DATE;
-    my $list = $Ipn->reports_users({%LIST_PARAMS});
+
+    if ($FORM{DATE} && ! $FORM{TYPE}) {
+    	$LIST_PARAMS{HOURS}=1;
+    }
+
+    my $list = $Ipn->reports_users({ %LIST_PARAMS });
 
     #Used Fraffic
     $table_sessions = $html->table(
       {
-        width   => '100%',
-        caption => "$_SESSIONS",
-        title   => [ "$_DATE", "$_USERS", "$_TRAFFIC_CLASS", "$_NAME", "IN", "OUT", "$_TOTAL", "$_SUM" ],
+        width      => '100%',
+        caption    => "$_SESSIONS",
+        title      => [ "$_DATE", "$_USERS", "$_TRAFFIC_CLASS", "$_NAME", "IN", "OUT", "$_TOTAL", "$_SUM" ],
         cols_align => [ 'right', 'left', 'right', 'right', 'right', 'right', 'right' ],
         qs         => $pages_qs,
         ID         => 'IPN_USERS_STATS',
@@ -602,16 +606,15 @@ sub ipn_use {
           $user_total_out   += $stats_array[$i][5];
           $user_traffic_sum += $stats_array[$i][4] + $stats_array[$i][5];
           $user_sum         += $stats_array[$i][6];
-
         }
 
         $table_sessions->{rowcolor} = $_COLORS[3];
         $table_sessions->addtd(
-          "<th colspan='2'>$_TOTAL:</th>",
-          "<th>" . int2byte($user_total_in,    { DIMENSION => $FORM{DIMENSION} }) . "</th>",
-          "<th>" . int2byte($user_total_out,   { DIMENSION => $FORM{DIMENSION} }) . "</th>",
-          "<th>" . int2byte($user_traffic_sum, { DIMENSION => $FORM{DIMENSION} }) . "</th>",
-          "<th>" . $user_sum . "</th>"
+          $table->th("$_TOTAL:", { colspan => 2 }),
+          $table->td( int2byte($user_total_in,    { DIMENSION => $FORM{DIMENSION} }) ),
+          $table->td( int2byte($user_total_out,   { DIMENSION => $FORM{DIMENSION} }) ),
+          $table->td( int2byte($user_traffic_sum, { DIMENSION => $FORM{DIMENSION} }) ),
+          $table->td( $user_sum )
         );
 
         $totals{SUM}         += $user_sum;
@@ -621,7 +624,7 @@ sub ipn_use {
         #Chart
         my ($date, $h) = split(/ /, $stats_array[0][0], 2);
         $h++;
-        $AVG{MONEY} = $user_sum if ($AVG{TRAFFIC_IN} < $user_sum);
+        $AVG{MONEY}                 = $user_sum if ($AVG{TRAFFIC_IN} < $user_sum);
         $DATA_HASH{TRAFFIC_IN}[$h]  = int($user_total_in / 3600);
         $DATA_HASH{TRAFFIC_OUT}[$h] = int($user_total_out / 3600);
         $DATA_HASH2{USERS}[$h]      = $user_count;
@@ -659,7 +662,7 @@ sub ipn_use {
         my $user_traffic_sum = 0;
         my $user_sum         = 0;
 
-        my $field2 = ($FORM{TYPE}) ? '' : $html->button($stats_array[0][1], "index=11&UID=$stats_array[0][8]");
+        my $field2 = ($FORM{TYPE}) ? '' : ($LIST_PARAMS{HOURS}) ? $stats_array[0][1] : $html->button($stats_array[0][1], "index=11&UID=$stats_array[0][8]");
 
         $table_sessions->addtd(
           $table->td($html->button($stats_array[0][0], "index=$index&DATE=$stats_array[0][0]"), { rowspan => ($#stats_array > 0) ? $#stats_array + 2 : 2 }),

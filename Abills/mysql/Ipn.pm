@@ -509,8 +509,8 @@ sub reports_users {
     my ($from_y, $from_m, $from_d) = split(/-/, $from);
     my ($to_y,   $to_m,   $to_d)   = split(/-/, $to);
     my ($y,      $m,      $d)      = split(/-/, $attr->{CUR_DATE});
-    my $START_DATE  = "$from_y$from_m";
-    my $FINISH_DATE = "$to_y$to_m";
+    my $START_DATE      = "$from_y$from_m";
+    my $FINISH_DATE     = "$to_y$to_m";
     my $START_DATE_DAY  = "$from_y$from_m$from_d";
     my $FINISH_DATE_DAY = "$to_y$to_m$to_d";
 
@@ -540,7 +540,7 @@ sub reports_users {
 
     $attr->{TYPE} = '-' if (!$attr->{TYPE});
     if ($attr->{TYPE} eq 'HOURS') {
-      $date = "date_format(l.start, '\%H') As hours, count(DISTINCT l.uid) AS count";
+      $date = "date_format(l.start, '\%H') AS hours, count(DISTINCT l.uid) AS count";
     }
     elsif ($attr->{TYPE} eq 'DAYS_TCLASS') {
       $date  = "date_format(l.start, '%Y-%m-%d') AS start, '-', l.traffic_class, tt.descr";
@@ -592,7 +592,6 @@ sub reports_users {
   }
   elsif ($attr->{DATE}) {
     push @WHERE_RULES, "date_format(start, '%Y-%m-%d')='$attr->{DATE}'";
-
     if ($attr->{UID}) {
       $GROUP = "1, 2";
 
@@ -601,7 +600,7 @@ sub reports_users {
     }
     elsif ($attr->{HOURS}) {
       $GROUP = "1, 3";
-      $date  = "DATE_FORMAT(start, '%Y-%m-%d %H') AS hours, count(DISTINCT u.id), l.traffic_class, tt.descr ";
+      $date  = "DATE_FORMAT(start, '%Y-%m-%d %H') AS hours, count(DISTINCT u.id) AS user_counts, l.traffic_class, tt.descr ";
     }
     else {
       $GROUP = "1, 2, 3";
