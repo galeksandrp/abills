@@ -978,7 +978,7 @@ sub snmputils_dlink_pb {
       $debug_output .= "$line->[0], UID: $line->[1] IP: $line->[2] MAC: $line->[3] PORT: $user_ports\n" if ($debug > 2);
 
       if ($line->[4] >= $conf{SNMPUTILS_BINDING_DEPOSIT}) {
-        $MUST_ACTIVATE{ $line->[3] } = "$line->[2]:$user_ports";
+        $MUST_ACTIVATE{ uc($line->[3]) } = "$line->[2]:$user_ports";
         $ACTIVATE_IP{ $line->[2] } = \@user_ports_arr;
       }
       else {
