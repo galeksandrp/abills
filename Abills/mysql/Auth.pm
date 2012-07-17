@@ -1698,7 +1698,6 @@ sub neg_deposit_filter_former () {
         return 1, $RAD_PAIRS;
       }
       elsif ($ip eq '0') {
-
         #$RAD_PAIRS->{'Reply-Message'}="$self->{errstr} ($NAS->{NAS_ID})";
         #return 1, $RAD_PAIRS;
       }

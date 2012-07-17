@@ -948,13 +948,16 @@ sub test_radius_returns {
 # tpl_parse($string, \%HASH_REF);
 #**********************************************************
 sub tpl_parse {
-  my ($string, $HASH_REF) = @_;
+  my ($string, $HASH_REF, $attr) = @_;
 
   while (my ($k, $v) = each %$HASH_REF) {
     if (!defined($v)) {
       $v = '';
     }
     $string =~ s/\%$k\%/$v/g;
+    if ($attr->{SET_ENV}) {
+      $ENV{$k}=$v;
+    }
   }
 
   return $string;
