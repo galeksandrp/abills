@@ -959,8 +959,8 @@ sub snmputils_dlink_pb {
       }
     );
 
-    my %SERVER_MAC    = ();    #Now active in server
-    my %MUST_ACTIVATE = ();    #Need to be active
+    my %SERVER_MAC       = (); #Now active in server
+    my %MUST_ACTIVATE    = (); #Need to be active
     my %ACTIVATE_IP_PORT = (); #Check ip port
     if ($ACTIVE_MAC->{MAC}) {
       # IP -> MAC
@@ -989,7 +989,7 @@ sub snmputils_dlink_pb {
     while (my ($ip, $mac) = each %SERVER_MAC) {
     	$mac = uc($mac);
       $debug_output .= "IP: $ip MAC: $mac " if ($debug > 0);
-      if ($MUST_ACTIVATE{$mac} && in_array($ACTIVE_MAC{ACTIVE}{$ip}, $ACTIVATE_IP{ $ip }) ) {
+      if ($MUST_ACTIVATE{$mac} && in_array($ACTIVE_MAC->{ACTIVE}{$ip}, $ACTIVATE_IP{ $ip }) ) {
         delete $MUST_ACTIVATE{$mac};
         delete $SERVER_MAC{$ip};
         $debug_output .= " Skip...\n" if ($debug > 0);
@@ -1418,7 +1418,7 @@ sub snmputils_dlink_pb_add {
   elsif ($sw_info->{version} =~ /DES-30|DES-32/) {
     push @snmp_values, $oid, "integer", "4";
 
-    print "=> $oid\n";
+    print "=> $oid\n" if ($debug > 2);
     if ($sw_info->{version} =~ /DES-32/) {
       if (snmpset($SNMP_COMMUNITY, @snmp_values)) {
         $message .= " Ok\n";
@@ -1564,12 +1564,10 @@ sub snmputils_dlink_pb_list {
 
     #Blocked address
     if ($line =~ /^[\d\.]{0,2}\d\.\d\.(\d)\.\d+\.(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(.+)/) {
-
       #       MAC / 2 -> MAC
       $BLOCK_HASH{$2}{$1} = $3;
       print "Block" . $html->br() if ($debug > 0);
     }
-
     #Binding Address 1210
     #1.5. 213.169.84.100 .2.35.69.103.137.1
     elsif ($line =~ /^\d\.\d.(\d).(\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3})\.(\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3}):(.+)/g) {
@@ -1582,7 +1580,7 @@ sub snmputils_dlink_pb_list {
         my $string = unpack("B*", $port);
         if ($debug > 0) {
           my $hex_val = join(':', unpack("H2H2H2H2", pack("B48", $string)));
-          print "IP: $ip PORT: $hex_val ($string)<BR>\n";
+          print "IP: $ip PORT: $hex_val ($string)". $html->br() ."\n";
         }
 
         my $multi_ports = '';
@@ -1611,6 +1609,7 @@ sub snmputils_dlink_pb_list {
       if ($1 == 4) {
         my $port = $3;
         my $ip   = $2;
+        $info{ACTIVE}{$ip} = $port;
 
         my $string = unpack("B48", $port);
         if ($debug > 0) {
@@ -1632,6 +1631,7 @@ sub snmputils_dlink_pb_list {
 
           $multi_ports .= ",$port";
           push @{ $info{PORT}{$port} }, $ip;
+          $info{ACTIVE}{$ip} = $port;
         }
 
         $info{MULTIPORTS}{$2} = "$multi_ports";    #if ($count>1);

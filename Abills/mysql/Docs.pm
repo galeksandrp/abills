@@ -439,7 +439,7 @@ sub docs_receipt_add {
 }
 
 #**********************************************************
-# Bill
+# docs_receipt_del
 #**********************************************************
 sub docs_receipt_del {
   my $self = shift;
@@ -454,6 +454,20 @@ sub docs_receipt_del {
     $self->query($db, "DELETE FROM docs_receipt_orders WHERE receipt_id='$id'", 'do');
     $self->query($db, "DELETE FROM docs_receipts WHERE id='$id'", 'do');
   }
+
+  return $self;
+}
+
+
+#**********************************************************
+# invoices_list
+#**********************************************************
+sub invoices2payments {
+  my $self =shift;
+  my ($attr) = @_;
+
+  $self->query($db, "INSERT INTO docs_invoice2payments (invoice_id, payment_id)
+    VALUES ('$attr->{INVOICE_ID}', '$attr->{PAYMENT_ID}')", 'do');
 
   return $self;
 }
@@ -509,12 +523,15 @@ sub invoices_list {
 
   if ($attr->{UNINVOICED}) {
   	
-  	$self->select($db, "SELECT p.id, p.date, p.dsc, i.id
+  	$self->query($db, "SELECT p.id, p.date, p.dsc, p.sum, i2p.invoice_id
 from payments p
-LEFT JOIN docs_invoices i ON (p.id=i.payment_id)
-WHERE i.id IS NULL
-limit 10");
-    
+LEFT JOIN docs_invoice2payments i2p ON (p.id=i2p.payment_id)
+WHERE p.uid='$attr->{UID}' AND i2p.invoice_id IS NULL
+    ORDER BY $SORT $DESC
+    LIMIT $PG, $PAGE_ROWS;",
+    undef,
+    $attr);
+
     my $list = $self->{list};
     return $list;
   }
@@ -587,7 +604,7 @@ limit 10");
      d.date, 
      if(d.customer='-' or d.customer='', pi.fio, d.customer) AS customer,
      sum(o.price * o.counts) AS total_sum, 
-     if (d.payment_id > 0, sum(p.sum), 0) AS payment_sum, 
+     if (p.id IS NOT NULL , sum(p.sum), 0) AS payment_sum, 
      u.id AS login, 
      a.name AS admin_name, 
      d.created, 
@@ -612,7 +629,8 @@ limit 10");
     LEFT JOIN users_pi pi ON (pi.uid=u.uid)
     LEFT JOIN groups g ON (g.gid=u.gid)
     LEFT JOIN companies c ON (u.company_id=c.id)
-    LEFT JOIN payments p ON (d.payment_id=p.id)
+    LEFT JOIN docs_invoice2payments i2p ON (d.id=i2p.invoice_id)
+    LEFT JOIN payments p ON (i2p.payment_id=p.id)
     $EXT_TABLES
     $WHERE
     GROUP BY d.id 
@@ -664,7 +682,7 @@ limit 10");
 }
 
 #**********************************************************
-# invoices_list
+# docs_nextid
 #**********************************************************
 sub docs_nextid {
   my $self = shift;
@@ -903,6 +921,7 @@ sub invoice_del {
   }
   else {
   	$self->query($db, "SELECT invoice_num, uid FROM docs_invoices WHERE id='$id'", undef, { INFO => 1 });
+    $self->query($db, "DELETE FROM docs_invoice2payments WHERE invoice_id='$id'", 'do');
     $self->query($db, "DELETE FROM docs_invoice_orders WHERE invoice_id='$id'", 'do');
     $self->query($db, "DELETE FROM docs_invoices WHERE id='$id'", 'do');
   }

@@ -230,8 +230,18 @@ CREATE TABLE `docs_invoice_orders` (
   `unit` tinyint(3) unsigned NOT NULL default '0',
   `price` double(10,2) unsigned NOT NULL default '0.00',
   `fees_id` int(11) unsigned NOT NULL default 0,
-  KEY `invoice_id` (`invoice_id`)
+  KEY `invoice_id` (`invoice_id`),
+  FOREIGN KEY (`invoice_id`) REFERENCES docs_invoices(id)
 )  COMMENT='Docs Invoice Orders' ;
+
+
+CREATE TABLE docs_invoice2payments (
+  `invoice_id` int(11) unsigned NOT NULL default 0,
+  `payment_id` int(11) unsigned NOT NULL default 0,
+  PRIMARY  KEY `invoice2payments` (`invoice_id`, `payment_id`),
+  FOREIGN KEY (payment_id) REFERENCES payments(id),
+  FOREIGN KEY (invoice_id) REFERENCES docs_invoices(id)
+) COMMENT='Docs Invoice to payments' ;
 
 CREATE TABLE `docs_acts` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
@@ -252,7 +262,7 @@ CREATE TABLE `docs_acts` (
 
 
 CREATE TABLE `docs_receipts` (
-  `id` int(11) NOT NULL auto_increment,
+  `id` int(11) unsigned NOT NULL auto_increment,
   `date` date NOT NULL default '0000-00-00',
   `customer` varchar(200) NOT NULL default '',
   `phone` varchar(16) NOT NULL default '0',
@@ -272,7 +282,8 @@ CREATE TABLE `docs_receipts` (
   `currency` smallint(6) unsigned  NOT NULL default 0,
   PRIMARY KEY  (`id`),
   KEY `payment_id` (`payment_id`),
-  KEY `domain_id` (`domain_id`)
+  KEY `domain_id` (`domain_id`),
+  FOREIGN KEY (payment_id) REFERENCES payments(id)
 )  COMMENT='Docs Receipts';
 
 CREATE TABLE `docs_receipt_orders` (
@@ -282,7 +293,8 @@ CREATE TABLE `docs_receipt_orders` (
   `unit` tinyint(3) unsigned NOT NULL default '0',
   `price` double(10,2) unsigned NOT NULL default '0.00',
   `fees_id` int(11) unsigned NOT NULL default 0,
-  KEY `receipt_id` (`receipt_id`)
+  KEY `receipt_id` (`receipt_id`),
+  FOREIGN KEY (receipt_id) REFERENCES docs_receipts(id)
 ) COMMENT='Docs receipt orders';
 
 CREATE TABLE `docs_main` (
@@ -754,11 +766,6 @@ CREATE TABLE `netflow_address` (
   UNIQUE KEY `client_ip` (`client_ip`)
 ) ;
 
-# --------------------------------------------------------
-
-#
-# Структура таблиці `networks`
-#
 
 CREATE TABLE `networks` (
   `ip` int(11) unsigned NOT NULL default '0',
@@ -774,7 +781,7 @@ CREATE TABLE `networks` (
   `web_control` varchar(21) NOT NULL default '',
   PRIMARY KEY  (`ip`,`netmask`),
   UNIQUE KEY `id` (`id`)
-)  ;
+) COMMENT='Networks list'; 
 
 
 CREATE TABLE `payments` (

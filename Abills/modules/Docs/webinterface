@@ -822,40 +822,57 @@ sub docs_invoices_list {
   push @PAYMENT_METHODS, @EX_PAYMENT_METHODS if (@EX_PAYMENT_METHODS);
 
   if ($FORM{UNINVOICED}) {
-	  my $payments_list  = $Docs->invoice_list({%LIST_PARAMS, COLS_NAME=>1});
-    my $table = $html->table(
-    {
-      width      => '100%',
-      caption    => "$_PAYMENTS",
-      border     => 1,
-      title      => \@caption,
-      cols_align => [ 'right', 'left', 'right', 'right', 'left', 'left', 'right', 'right', 'left', 'left', 'center:noprint' ],
-      qs         => $pages_qs,
-      pages      => $payments->{TOTAL},
-      EXPORT     => ' XML:&xml=1',
-      ID         => 'PAYMENTS'
+    if ($FORM{add}) {
+      $Docs->invoices2payments(\%FORM);
+      if (!$Docs->{errno}) {
+     	  $html->message('info', $_INFO, "$_ADDED");
+     	}
+     	else {
+        $html->message('err', $_ERROR, "[$Docs->{errno}] $err_strs{$Docs->{errno}}");
+     	}
     }
-    );
-
-    my $pages_qs .= "&subf=2" if (!$FORM{subf});
-    foreach my $payment (@$payments_list) {
-      my @rows = (
-      $html->b($payment->{id}),
-      $html->button($payment->{login}, "index=15&UID=$payment->{uid}"),
-      $payment->{date}, 
-      $payment->{dsc} . (($payment->{inner_describe}) ? $html->br() . $html->b($payment->{inner_describe}) : ''),
-      $payment->{sum}, 
-      "$payment->{last_deposit}", 
-      ($FORM{METHOD_NUM}) ? $payment->{method} : $PAYMENTS_METHODS{ $payment->{method} },
-      "$payment->{ext_id}", 
-      ($conf{EXT_BILL_ACCOUNT} && $attr->{USER_INFO}) ? $BILL_ACCOUNTS{ $payment->{bill_id} } : "$payment->{bill_id}",
-      "$payment->{admin_name}", 
-      "$payment->{ip}"
+    else {
+	    my $payments_list  = $Docs->invoices_list({%LIST_PARAMS, UNINVOICED=>1, COLS_NAME=>1});
+      my $table = $html->table(
+      {
+        width      => '500',
+        caption    => "$_PAYMENTS",
+        border     => 1,
+        title      => ['#', "$_DATE", "$_DESCRIBE", "$_SUM" ],
+        cols_align => [ 'right', 'left', 'left', 'right', 'right',  'center:noprint' ],
+        qs         => $pages_qs,
+        pages      => $Docs->{TOTAL},
+        EXPORT     => ' XML:&xml=1',
+        ID         => 'UNINVOICED_PAYMENTS'
+      }
       );
-    }
+
+      my $pages_qs .= "&subf=2" if (!$FORM{subf});
+      foreach my $payment (@$payments_list) {
+        $table->addrow(
+         $html->form_input('ids', $payments->{id}, { TYPE => 'checkbox' }).
+         $html->b($payment->{id}),
+         $payment->{date}, 
+         $payment->{dsc} . (($payment->{inner_describe}) ? $html->br() . $html->b($payment->{inner_describe}) : ''),
+         $payment->{sum}
+        );
+      }
   	
-  	print $table->show();
-  	return 0;
+	    print $html->form_main(
+      {
+        CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
+        HIDDEN  => {
+          UID        => "$FORM{UID}",
+          index      => $index,
+          INVOICE_ID => $FORM{UNINVOICED},
+          UNINVOICED => "$FORM{UNINVOICED}"
+        },
+        SUBMIT => { add => "$_ADD" }
+      }
+      );
+
+  	  return 0;
+  	}
   }
   elsif ($attr->{COMPANY}) {
     $LIST_PARAMS{COMPANY_ID} = $FORM{COMPANY_ID};
@@ -3132,13 +3149,17 @@ sub docs_payments_maked {
 
   #Add invoice number
   if ($FORM{INVOICE_ID}) {
-    $Docs->invoice_change(
-      {
-        ID         => $FORM{INVOICE_ID},
-        UID        => $FORM{UID},
-        PAYMENT_ID => $attr->{PAYMENT_ID}
-      }
-    );
+    $Docs->invoices2payments({ PAYMENT_ID => $attr->{PAYMENT_ID}, 
+    	                         INVOICE_ID => $FORM{INVOICE_ID}
+    	                       });
+
+#    $Docs->invoice_change(
+#      {
+#        ID         => $FORM{INVOICE_ID},
+#        UID        => $FORM{UID},
+#        PAYMENT_ID => $attr->{PAYMENT_ID}
+#      }
+#    );
 
     if ($Docs->{errno}) {
       if ($Docs->{errno} == 2) {
