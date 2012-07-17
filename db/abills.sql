@@ -235,14 +235,6 @@ CREATE TABLE `docs_invoice_orders` (
 )  COMMENT='Docs Invoice Orders' ;
 
 
-CREATE TABLE docs_invoice2payments (
-  `invoice_id` int(11) unsigned NOT NULL default 0,
-  `payment_id` int(11) unsigned NOT NULL default 0,
-  PRIMARY  KEY `invoice2payments` (`invoice_id`, `payment_id`),
-  FOREIGN KEY (payment_id) REFERENCES payments(id),
-  FOREIGN KEY (invoice_id) REFERENCES docs_invoices(id)
-) COMMENT='Docs Invoice to payments' ;
-
 CREATE TABLE `docs_acts` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `date` date NOT NULL DEFAULT '0000-00-00',
@@ -804,6 +796,14 @@ CREATE TABLE `payments` (
   KEY `date` (`date`),
   KEY `uid` (`uid`)
 ) COMMENT "Payments log"  ;
+
+CREATE TABLE docs_invoice2payments (
+  `invoice_id` int(11) unsigned NOT NULL default 0,
+  `payment_id` int(11) unsigned NOT NULL default 0,
+  PRIMARY  KEY `invoice2payments` (`invoice_id`, `payment_id`),
+  FOREIGN KEY (payment_id) REFERENCES payments(id),
+  FOREIGN KEY (invoice_id) REFERENCES docs_invoices(id)
+) COMMENT='Docs Invoice to payments' ;
 
 
 CREATE TABLE fees_types (
