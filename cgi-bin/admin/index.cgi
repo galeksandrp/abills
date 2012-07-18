@@ -1372,6 +1372,10 @@ sub user_form {
     }
 
     my $main_account = $html->tpl_show(templates('form_user'), { %$user_info, %$attr }, { OUTPUT2RETURN => 1 });
+    
+    $user_info->{PW_CHARS}  = $conf{PASSWD_SYMBOLS} || "abcdefhjmnpqrstuvwxyz23456789ABCDEFGHJKLMNPQRSTUVWYXZ";
+    $user_info->{PW_LENGTH} = $conf{PASSWD_LENGTH}  || 6;
+    
     $main_account .= $html->tpl_show(templates('form_password'), { %$user_info, %$attr }, { OUTPUT2RETURN => 1 });
 
     $main_account =~ s/<FORM.+>//ig;
@@ -4794,9 +4798,9 @@ sub form_passwd {
     $html->message('err', $_ERROR, "$ERR_WRONG_CONFIRM");
   }
 
-  $password_form->{PW_CHARS}  = $conf{PASSWD_SYMBOLS} || "abcdefhjmnpqrstuvwxyz23456789ABCDEFGHJKLMNPQRSTUVWYXZ";
-  $password_form->{PW_LENGTH} = $conf{PASSWD_LENGTH}  || 6;
-  $password_form->{ACTION}    = 'change';
+  $password_form->{PW_CHARS}   = $conf{PASSWD_SYMBOLS} || "abcdefhjmnpqrstuvwxyz23456789ABCDEFGHJKLMNPQRSTUVWYXZ";
+  $password_form->{PW_LENGTH}  = $conf{PASSWD_LENGTH}  || 6;
+  $password_form->{ACTION}     = 'change';
   $password_form->{LNG_ACTION} = "$_CHANGE";
 
   $password_form->{ACTION}     = 'change';
@@ -8051,11 +8055,11 @@ sub form_sql_backup {
   );
 
   opendir DIR, $conf{BACKUP_DIR} or $html->message('err', $_ERROR, "Can't open dir '$conf{BACKUP_DIR}' $!\n");
-  my @contents = grep !/^\.\.?$/, readdir DIR;
+    my @contents = grep !/^\.\.?$/, readdir DIR;
   closedir DIR;
 
   use POSIX qw(strftime);
-  foreach my $filename (@contents) {
+  foreach my $filename (sort @contents) {
     my ($dev, $ino, $mode, $nlink, $uid, $gid, $rdev, $size, $atime, $mtime, $ctime, $blksize, $blocks) = stat("$conf{BACKUP_DIR}/$filename");
     my $date = strftime "%Y-%m-%d %H:%M:%S", localtime($mtime);
     $table->addrow($filename, $date, int2byte($size), $html->button($_DEL, "index=$index&del=$filename", { MESSAGE => "$_DEL $filename?", CLASS => 'del' }));
