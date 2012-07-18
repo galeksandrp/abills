@@ -169,12 +169,12 @@ sub take {
   if ($user->{BILL_ID} && $user->{BILL_ID} > 0) {
     $Bill->info({ BILL_ID => $user->{BILL_ID} });
 
-    if ($user->{COMPANY_VAT}) {
-      $sum = $sum * ((100 + $user->{COMPANY_VAT}) / 100);
-    }
-    else {
-      $user->{COMPANY_VAT} = 0;
-    }
+#    if ($user->{COMPANY_VAT}) {
+#      $sum = $sum * ((100 + $user->{COMPANY_VAT}) / 100);
+#    }
+#    else {
+#      $user->{COMPANY_VAT} = 0;
+#    }
 
     $Bill->action('take', $user->{BILL_ID}, $sum);
     if ($Bill->{errno}) {

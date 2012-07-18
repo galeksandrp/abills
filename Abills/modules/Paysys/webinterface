@@ -292,10 +292,10 @@ sub paysys_import_form {
           $payments->add(
             $user,
             {
-              SUM      => $DATA_ARR->[$i]->{SUM},
-              DESCRIBE => $DATA_ARR->[$i]->{DESCRIBE} || '',
-              METHOD   => ($DATA_ARR->[$i]->{PAYMENT_METHOD} && $DATA_ARR->[$i]->{PAYMENT_METHOD} ne '') ? $DATA_ARR->[$i]->{PAYMENT_METHOD} : 1,
-              DATE => $DATA_ARR->[$i]->{DATE} || undef,
+              SUM            => $DATA_ARR->[$i]->{SUM},
+              DESCRIBE       => $DATA_ARR->[$i]->{DESCRIBE} || '',
+              METHOD         => (defined($DATA_ARR->[$i]->{PAYMENT_METHOD}) && $DATA_ARR->[$i]->{PAYMENT_METHOD} ne '') ? $DATA_ARR->[$i]->{PAYMENT_METHOD} : 1,
+              DATE           => $DATA_ARR->[$i]->{DATE} || undef,
               EXT_ID         => $ext_id,
               CHECK_EXT_ID   => $ext_id,
               INNER_DESCRIBE => $DATA_ARR->[$i]->{INNER_DESCRIBE} || ''
@@ -333,7 +333,6 @@ sub paysys_import_form {
               DATE           => $DATA_ARR->[$i]->{DATE}           || undef,
               INNER_DESCRIBE => $DATA_ARR->[$i]->{INNER_DESCRIBE} || '',
               METHOD         => $DATA_ARR->[$i]->{METHOD},
-
               #    EXT_ID       => "$DATA_ARR->[$i]->{DATE}.$FORM{IMPORT_TYPE}.$ID",
               #    CHECK_EXT_ID => "$DATA_ARR->[$i]->{DATE}.$FORM{IMPORT_TYPE}.$ID"
             }
@@ -435,7 +434,7 @@ function CheckAllINBOX() {
           $PAYMENT_METHOD_SEL = $html->form_select(
             'METHOD_' . $ID,
             {
-              SELECTED => $FORM{ 'METHOD_' . $ID },
+              SELECTED => $DATA_ARR->[$i]->{METHOD} || '',
               SEL_HASH => {%FEES_METHODS},
               NO_ID    => 1,
               SORT_KEY => 1

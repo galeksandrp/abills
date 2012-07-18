@@ -7220,10 +7220,10 @@ sub form_shedule {
   my $list  = $Shedule->list({%LIST_PARAMS});
   my $table = $html->table(
     {
-      width   => '100%',
-      border  => 1,
-      caption => "$_SHEDULE",
-      title   => [ "$_HOURS", "$_DAY", "$_MONTH", "$_YEAR", "$_COUNT", "$_USER", "$_TYPE", "$_VALUE", "$_MODULES", "$_ADMINS", "$_CREATED", "$_COMMENTS", "-" ],
+      width      => '100%',
+      border     => 1,
+      caption    => "$_SHEDULE",
+      title      => [ "$_HOURS", "$_DAY", "$_MONTH", "$_YEAR", "$_COUNT", "$_USER", "$_TYPE", "$_VALUE", "$_MODULES", "$_ADMINS", "$_CREATED", "$_COMMENTS", "-" ],
       cols_align => [ 'right', 'right', 'right', 'right', 'right', 'left', 'right', 'right', 'right', 'left', 'right', 'center' ],
       qs         => $pages_qs,
       pages      => $Shedule->{TOTAL},
@@ -7236,12 +7236,6 @@ sub form_shedule {
     my $delete = ($permissions{4}{3} || $permissions{0}{4}) ? $html->button($_DEL, "index=$index&del=$line->[14]", { MESSAGE => "$_DEL [$line->[14]]?", CLASS => 'del' }) : '-';
     my $value = convert("$line->[7]", { text2html => 1 });
 
-    if ($line->[6] eq 'status') {
-      my @service_status_colors = ("$_COLORS[9]", "$_COLORS[6]", '#808080', '#0000FF', '#FF8000', '#009999');
-      my @service_status = ("$_ENABLE", "$_DISABLE", "$_NOT_ACTIVE", "$_HOLD_UP", "$_DISABLE: $_NON_PAYMENT", "$ERR_SMALL_DEPOSIT");
-      $value = $html->color_mark($service_status[ $line->[7] ], $service_status_colors[ $line->[7] ]);
-    }
-
     if ( int($line->[3] . $line->[2] . $line->[1]) <= int($y . $m . $d)
       && $line->[3] ne '*'
       && $line->[2] ne '*'
@@ -7253,7 +7247,25 @@ sub form_shedule {
       $table->{rowcolor} = undef;
     }
 
-    $table->addrow($html->b($line->[0]), $line->[1], $line->[2], $line->[3], $line->[4], $html->button($line->[5], "index=15&UID=$line->[13]"), ($TYPES{ $line->[6] }) ? $TYPES{ $line->[6] } : $line->[6], $value, "$line->[8]", "$line->[9]", "$line->[10]", "$line->[11]", $delete);
+    if ($line->[6] eq 'status') {
+      my @service_status_colors = ("$_COLORS[9]", "$_COLORS[6]", '#808080', '#0000FF', '#FF8000', '#009999');
+      my @service_status = ("$_ENABLE", "$_DISABLE", "$_NOT_ACTIVE", "$_HOLD_UP", "$_DISABLE: $_NON_PAYMENT", "$ERR_SMALL_DEPOSIT");
+      $value = $html->color_mark($service_status[ $line->[7] ], ($table->{rowcolor} && $table->{rowcolor} eq $service_status_colors[ $line->[7] ]) ? '#FFFFFF' : $service_status_colors[ $line->[7] ]);
+    }
+
+
+    $table->addrow($html->b($line->[0]), 
+      $line->[1], 
+      $line->[2], 
+      $line->[3], 
+      $line->[4], 
+      $html->button($line->[5], "index=15&UID=$line->[13]"), ($TYPES{ $line->[6] }) ? $TYPES{ $line->[6] } : $line->[6], 
+      $value, 
+      "$line->[8]", 
+      "$line->[9]", 
+      "$line->[10]", 
+      "$line->[11]", 
+      $delete);
   }
   print $table->show();
 
