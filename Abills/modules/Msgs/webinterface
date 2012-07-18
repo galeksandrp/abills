@@ -4,8 +4,8 @@ use Msgs;
 my $Msgs  = Msgs->new($db, $admin, \%conf);
 my $users = Users->new($db, $admin, \%conf);
 
-my @priority = ("$_VERY_LOW", "$_LOW", "$_NORMAL", "$_HIGH", "$_VERY_HIGH");
-my @msg_status = ("$_OPEN", "$_CLOSED_UNSUCCESSFUL", "$_CLOSED_SUCCESSFUL");
+my @priority        = ("$_VERY_LOW", "$_LOW", "$_NORMAL", "$_HIGH", "$_VERY_HIGH");
+my @msg_status      = ("$_OPEN", "$_CLOSED_UNSUCCESSFUL", "$_CLOSED_SUCCESSFUL");
 @msgs_status_colors = ("#0000FF", "$_COLORS[6]", '#808080', '#009D00', '#FF8000');
 my @priority_colors = ('#8A8A8A', "$_COLORS[8]", "$_COLORS[9]", '#E06161', "$_COLORS[6]");
 
@@ -908,6 +908,17 @@ sub msgs_admin {
     $Msgs->{PLAN_DATE} = "0000-00-00";
     $Msgs->{PLAN_TIME} = "00:00:00";
     $Msgs->{MSG_ID}    = undef;
+    $Msgs->{RESPOSIBLE_SEL} = $html->form_select(
+      'RESPOSIBLE',
+     {
+      SELECTED          => $FORM{RESPOSIBLE} || '',
+      SEL_MULTI_ARRAY   => [ [ '', $_ALL ], @{ $admin->list({ GIDS => $admins->{GIDS} }) } ],
+      MULTI_ARRAY_KEY   => 0,
+      MULTI_ARRAY_VALUE => 1,
+      NO_ID             => 1
+     }
+    );
+    
     form_search({ SEARCH_FORM => $html->tpl_show(_include('msgs_search', 'Msgs'), { %$Msgs, %FORM }, { OUTPUT2RETURN => 1 }) });
   }
   else {
@@ -916,7 +927,6 @@ sub msgs_admin {
 
   $LIST_PARAMS{STATE}    = undef if ($FORM{STATE} == 3);
   $LIST_PARAMS{PRIORITY} = undef if ($FORM{PRIORITY} == 5);
-
   my $status_bar = msgs_status_bar();
   my $list = $Msgs->messages_list({ %LIST_PARAMS, 
   	                                DESC      => (!$FORM{sort}) ? 'DESC' : $FORM{desc}, 

@@ -243,6 +243,10 @@ sub messages_list {
     push @WHERE_RULES, @{ $self->search_expr($attr->{DELIGATION}, 'INT', 'm.delegation') };
   }
 
+  if ($attr->{RESPOSIBLE}) {
+    push @WHERE_RULES, @{ $self->search_expr($attr->{RESPOSIBLE}, 'INT', 'm.resposible') };
+  }
+
   if ($attr->{PRIORITY}) {
     push @WHERE_RULES, @{ $self->search_expr($attr->{PRIORITY}, 'INT', 'm.state') };
   }
@@ -262,9 +266,7 @@ sub messages_list {
   my $EXT_JOIN = '';
 
   if ($attr->{IP}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{IP}, 'IP', 'm.ip') };
-    $self->{SEARCH_FIELDS} = 'INET_NTOA(m.ip), ';
-    $self->{SEARCH_FIELDS_COUNT}++;
+    push @WHERE_RULES, @{ $self->search_expr($attr->{IP}, 'IP', 'm.ip',  { EXT_FIELD => 'INET_NTOA(m.ip)' }) };
   }
 
   if ($attr->{FULL_ADDRESS}) {
