@@ -140,14 +140,13 @@ sub qiwi_check {
     exit;
   }
 
-
-
   my %res_hash = ();
   foreach my $id (keys %{ $result->{'bills-list'}->[0]->{bill} }) {
+    my $status = int($result->{'bills-list'}->[0]->{bill}->{$id}->{status});
     if ($debug > 5) {
-      print "$id / " . $result->{'bills-list'}->[0]->{bill}->{$id}->{status} . "\n";
+      print "$id / " . $status . "\n";
     }
-    $res_hash{$id} = $result->{'bills-list'}->[0]->{bill}->{$id}->{status};
+    $res_hash{$id} = $status;
   }
 
   foreach my $line (@$list) {
