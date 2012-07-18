@@ -201,7 +201,11 @@ sub dv_chg_tp {
     $tariffs->{LNG_ACTION}     = $_DEL;
   }
   else {
-    my $tp_list = $tariffs->list({ MODULE => 'Dv', DOMAIN_ID => $admin->{DOMAIN_ID} });
+    my $tp_list = $tariffs->list({ 
+    	                    MODULE    => 'Dv', 
+    	                    DOMAIN_ID => $admin->{DOMAIN_ID},
+    	                    COLS_NAME => 1
+    	                    });
 
     #Sheduler fot TP change
     if ($conf{DV_TP_MULTISHEDULE}) {
@@ -234,7 +238,7 @@ sub dv_chg_tp {
 
         my %TP_HASH = ();
         foreach my $line (@$tp_list) {
-          $TP_HASH{ $line->[0] } = $line->[1];
+          $TP_HASH{ $line->{id} } = $line->{name};
         }
 
         foreach my $line (@$list) {
@@ -245,13 +249,21 @@ sub dv_chg_tp {
       }
     }
 
+    # GID:ID=>NAME
+    my %TPS_HASH = ();
+    foreach my $line (@$tp_list) {
+      $TPS_HASH{$line->{tp_group_name}}{ $line->{id} } = $line->{name};
+    }
+
     $tariffs->{TARIF_PLAN_SEL} = $html->form_select(
       'TP_ID',
       {
         SELECTED          => $Dv->{TP_ID},
-        SEL_MULTI_ARRAY   => $tp_list,
+        #SEL_MULTI_ARRAY   => $tp_list,
+        SEL_HASH          => \%TPS_HASH,
         MULTI_ARRAY_KEY   => 0,
         MULTI_ARRAY_VALUE => 1,
+        GROUP_COLOR       => 1,
         MAIN_MENU         => ($permissions{0}{10}) ? get_function_index('dv_tp') : undef,
         MAIN_MENU_AGRV    => "TP_ID=$Dv->{TP_NUM}"
       }

@@ -1159,7 +1159,7 @@ sub msgs_user {
   $Msgs->{STATE_SEL} = $html->form_select(
     'STATE',
     {
-      SELECTED => $FORM{STATE} || 0,
+      SELECTED     => $FORM{STATE} || 0,
       SEL_ARRAY    => \@msg_status,
       STYLE        => \@style,
       ARRAY_NUM_ID => 1
@@ -1684,7 +1684,7 @@ sub msgs_dispatch {
   $Msgs->{STATE_SEL} = $html->form_select(
     'STATE',
     {
-      SELECTED => $Msgs->{STATE} || 0,
+      SELECTED     => $Msgs->{STATE} || 0,
       SEL_ARRAY    => [ @msg_status, "$_ALL" ],
       ARRAY_NUM_ID => 0,
       EX_PARAMS    => "onchange='samechanged(this)'"

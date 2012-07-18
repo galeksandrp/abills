@@ -507,7 +507,8 @@ sub form_select {
   }
   elsif (defined($attr->{SEL_HASH})) {
     my @H = ();
-
+    my @group_colors = ('#000000','#008000','#0000A0','#D76B00','#790000','#808000','#3D7A7A');
+    my $group_id = 0;
     if ($attr->{SORT_KEY}) {
       @H = sort keys %{ $attr->{SEL_HASH} };
     }
@@ -535,10 +536,18 @@ sub form_select {
       }
       elsif (ref $attr->{SEL_HASH}->{$k} eq 'HASH') {
         $self->{SELECT} .= "<optgroup label=\"$k\" title=\"$k\">\n";
-
+         
         foreach my $val (sort keys %{ $attr->{SEL_HASH}->{$k} }) {
           $self->{SELECT} .= "<option value='$val'";
           $self->{SELECT} .= " style='COLOR:$attr->{STYLE}->[$val];' " if ($attr->{STYLE});
+          
+          if ($attr->{STYLE}) {
+            $self->{SELECT} .= " style='COLOR:$attr->{STYLE}->[$val];' ";
+          }
+          elsif($attr->{GROUP_COLOR}){
+            $self->{SELECT} .= " style='COLOR:$group_colors[$group_id];' ";
+          }
+          
           if (defined($attr->{SELECTED}) && $val eq $attr->{SELECTED}) {
             $self->{SELECT} .= ' selected';
           }
@@ -546,10 +555,14 @@ sub form_select {
           $self->{SELECT} .= "$attr->{SEL_HASH}->{$k}->{$val}\n";
         }
         $self->{SELECT} .= "</optgroup>";
+        $group_id++;
       }
       else {
         $self->{SELECT} .= "<option value='$k'";
-        $self->{SELECT} .= " style='COLOR:$attr->{STYLE}->[$k];' " if ($attr->{STYLE});
+        if ($attr->{STYLE}) {
+          $self->{SELECT} .= " style='COLOR:$attr->{STYLE}->[$k];' " ;
+        }
+        
         $self->{SELECT} .= ' selected' if (defined($attr->{SELECTED}) && $k eq $attr->{SELECTED});
         $self->{SELECT} .= ">";
         $self->{SELECT} .= "$k:" if (!$attr->{NO_ID});
