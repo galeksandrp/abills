@@ -944,8 +944,9 @@ sub snmputils_dlink_pb {
 
   if ($Snmputils->{TOTAL} > 0) {
     $RAD_PAIRS =~ /Assign-Ports=\"(.+)\"/;
-    my $ports = $1 || '';
-    my $SWICH_INFO = snmputils_dlink_pb_version({ SNMP_COMMUNITY => $SNMP_COMMUNITY });
+    my $allow_ports     = $1 || '';
+    my @allow_ports_arr = split(/,/, $allow_ports);
+    my $SWICH_INFO      = snmputils_dlink_pb_version({ SNMP_COMMUNITY => $SNMP_COMMUNITY });
 
     if (!$SWICH_INFO->{version}) {
       $debug_output .= "Unknow version\n" if ($debug > 1);
@@ -968,11 +969,16 @@ sub snmputils_dlink_pb {
     }
 
     foreach my $line (@$list) {
-      my $user_ports = $ports;
-      my @user_ports_arr =  split(/,/, $ports);
+      my $user_ports     = $allow_ports;
+      my @user_ports_arr = @allow_ports_arr;
       if ($line->[7]) {
-        $user_ports = $line->[7];
-        @user_ports_arr =  split(/,/, $line->[7]);
+      	@user_ports_arr = (); 
+        foreach my $port (split(/,/, $line->[7])) {
+        	if (in_array($port, \@allow_ports_arr)) {
+        	  push @user_ports_arr, $port;
+        	}
+        }
+        $user_ports = join(',', @user_ports_arr);
       }
 
       $debug_output .= "$line->[0], UID: $line->[1] IP: $line->[2] MAC: $line->[3] PORT: $user_ports\n" if ($debug > 2);
@@ -1022,7 +1028,7 @@ sub snmputils_dlink_pb {
           {
             SNMP_COMMUNITY => $SNMP_COMMUNITY,
             IP             => $ip,
-            PORT_ID        => ($user_ports ne '') ? $user_ports : $ports,
+            PORT_ID        => ($user_ports ne '') ? $user_ports : $allow_ports,
             MAC            => $mac,
             SWITCH_INFO    => $SWITCH_INFO,
             ACL_IP_MAC     => $conf{SNMPUTILS_DLINK_ACL_TYPE}
@@ -1033,8 +1039,7 @@ sub snmputils_dlink_pb {
     }
 
     #Active ports
-
-    my @ports_arr = split(/,/, $ports);
+    my @ports_arr = split(/,/, $allow_ports);
     $debug_output .= "Active port: " if ($debug > 1);
     foreach my $port (@ports_arr) {
       if ($debug < 3) {
