@@ -1421,9 +1421,9 @@ sub dhcphosts_reconfigure {
 
   dhcphosts_mac_block_make();
   my $cmd = $conf{DHCPHOSTS_RECONFIGURE};
-  tpl_parse($cmd, { %FORM, %$attr }, { SET_ENV => 1 });
+  $cmd = tpl_parse($cmd, { %FORM, %$attr }, { SET_ENV => 1 });
   open STDERR, '/dev/null';
-    my $res = `$cmd`;
+  my $res = `$cmd`;
   print $res if ($debug > 2);
 
   return 0;
