@@ -1326,9 +1326,9 @@ sub snmputils_dlink_pb_add {
   #Шаг 1. Задать IP-адрес связки:
   my $oid = $oid_prefix . $oid_sufix{MAKE} . ".$ip";
   if ($sw_info->{version} !~ /DES-32/) {
-    $message .= "$oid => 4\n";
+    $message .= "$oid => 4\n" if ($debug > 1);
     if (snmpset($SNMP_COMMUNITY, $oid, "integer", "4")) {
-      $message .= " Ok\n";
+      $message .= " Ok\n" if ($debug > 1);
     }
     push @snmp_values, $oid, "integer", "4";
   }
@@ -1340,10 +1340,10 @@ sub snmputils_dlink_pb_add {
     $mac .= chr(hex($c));
   }
 
-  $message .= "$oid_prefix$oid_sufix{MAC}.$ip => " . unpack("H*", $mac) . "\n";
+  $message .= "$oid_prefix$oid_sufix{MAC}.$ip => " . unpack("H*", $mac) . "\n" if ($debug > 1);
   if ($sw_info->{version} !~ /DES-32/) {
     if (snmpset($SNMP_COMMUNITY, $oid_prefix . $oid_sufix{MAC} . ".$ip", "string", "$mac")) {
-      $message .= "Ok\n";
+      $message .= "Ok\n" if ($debug > 1);
     }
     else {
       print "MAC: '' $SNMP_Session::suppress_warnings / $SNMP_Session::errmsg";
@@ -1390,10 +1390,10 @@ sub snmputils_dlink_pb_add {
     $port_binding .= chr(hex($c));
   }
 
-  $message .= $oid_prefix . $oid_sufix{PORT} . ".$ip => " . join(':', @ar) . "\n";
+  $message .= $oid_prefix . $oid_sufix{PORT} . ".$ip => " . join(':', @ar) . "\n" if ($debug > 1);
   if ($sw_info->{version} !~ /DES-32/) {
     if (snmpset($SNMP_COMMUNITY, $oid_prefix . $oid_sufix{PORT} . ".$ip", "string", "$port_binding")) {
-      $message .= "Ok\n";
+      $message .= "Ok\n" if ($debug > 1);
     }
     else {
       print "PORT: $oid_prefix / $oid_sufix{PORT} / $ip => " . join(':', @ar) . "\n";
@@ -1406,19 +1406,19 @@ sub snmputils_dlink_pb_add {
   if ($oid_sufix{MODE}) {
     my $mode = (defined($attr->{ACL_IP_MAC})) ? int($attr->{ACL_IP_MAC}) : 1;
     if ($sw_info->{version} =~ /DES-3526/) { $mode = $mode; }
-    $message .= $oid_prefix . $oid_sufix{MODE} . ".$ip => $mode\n";
+    $message .= $oid_prefix . $oid_sufix{MODE} . ".$ip => $mode\n" if ($debug > 1);
 
     if (snmpset($SNMP_COMMUNITY, $oid_prefix . $oid_sufix{MODE} . ".$ip", "integer", $mode)) {
-      $message .= "Ok\n";
+      $message .= "Ok\n" if ($debug > 1);
     }
     push @snmp_values, $oid_prefix . $oid_sufix{MODE} . ".$ip", "integer", $mode;
   }
 
   #Шаг 5. Включить IP-MAC-Port Binding на этом порту:
   foreach my $port (@get_port_arr) {
-    $message .= $oid_prefix . $oid_sufix{STATE} . ".$port => 2\n";
+    $message .= $oid_prefix . $oid_sufix{STATE} . ".$port => 2\n" if ($debug > 1);
     if (snmpset($SNMP_COMMUNITY, $oid_prefix . $oid_sufix{STATE} . ".$port", "integer", "2")) {
-      $message .= "Ok\n";
+      $message .= "Ok\n" if ($debug > 1);
     }
   }
 
