@@ -65,6 +65,7 @@ sub cross_modules_call {
     if (defined(&$function)) {
      	$return = $function->($attr);
      }
+
     $full_return{$mod}=$return;
    }
 

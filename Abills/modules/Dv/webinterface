@@ -7017,6 +7017,7 @@ sub dv_get_month_fee {
     my $Bonus_rating = Bonus_rating->new($db, $admin, \%conf);
     $Bonus_rating->info($Dv->{TP_INFO}->{TP_ID});
 
+
     if ($Bonus_rating->{TOTAL} > 0) {
       my $bonus_sum = 0;
       if ($FORM{add} && $Bonus_rating->{ACTIVE_BONUS} > 0) {
@@ -7030,12 +7031,9 @@ sub dv_get_month_fee {
         if (!$users->{BILL_ID}) {
           $users->info($Dv->{UID});
         }
-
-        $payments->add(
-          {
-            BILL_ID => ($Bonus_rating->{EXT_BILL_ACCOUNT}) ? $users->{EXT_BILL_ID} : $users->{BILL_ID},
-            UID => $users->{UID}
-          },
+        my $u = $users;
+        $u->{BILL_ID} = ($Bonus_rating->{EXT_BILL_ACCOUNT}) ? $users->{EXT_BILL_ID} : $users->{BILL_ID};
+        $payments->add($u,
           {
             SUM      => $bonus_sum,
             METHOD   => 4,
@@ -7743,6 +7741,9 @@ sub dv_traffic_classes {
 sub dv_payments_maked {
   my ($attr) = @_;
 
+
+  $user=$attr->{USER_INFO} if ($attr->{USER_INFO});
+
   return '' if ($FORM{DISABLE});
 
   $Dv->info($attr->{USER_INFO}->{UID});
@@ -7763,6 +7764,7 @@ sub dv_payments_maked {
         STATUS => 0
       }
     );
+
     $Dv->{ACCOUNT_ACTIVATE} = $attr->{USER_INFO}->{ACTIVATE} || '0000-00-00';
     dv_get_month_fee($Dv, $attr);
   }
