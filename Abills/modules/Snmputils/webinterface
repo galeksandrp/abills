@@ -974,8 +974,13 @@ sub snmputils_dlink_pb {
       if ($line->[7]) {
       	@user_ports_arr = (); 
         foreach my $port (split(/,/, $line->[7])) {
-        	if (in_array($port, \@allow_ports_arr)) {
-        	  push @user_ports_arr, $port;
+        	if ($#allow_ports_arr > -1) {
+        	  if (in_array($port, \@allow_ports_arr)) {
+        	    push @user_ports_arr, $port;
+        	  }
+        	}
+        	else {
+        		push @user_ports_arr, $port;
         	}
         }
         $user_ports = join(',', @user_ports_arr);
