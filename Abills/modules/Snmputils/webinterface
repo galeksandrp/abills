@@ -999,7 +999,7 @@ sub snmputils_dlink_pb {
 
     while (my ($ip, $mac) = each %SERVER_MAC) {
     	$mac = uc($mac);
-      $debug_output .= "IP: $ip MAC: $mac " if ($debug > 0);
+      $debug_output .= "IP: $ip MAC: $mac PORT: $ACTIVE_MAC->{ACTIVE}{$ip}" if ($debug > 0);
       if ($MUST_ACTIVATE{$mac} && in_array($ACTIVE_MAC->{ACTIVE}{$ip}, $ACTIVATE_IP{ $ip }) ) {
         delete $MUST_ACTIVATE{$mac};
         delete $SERVER_MAC{$ip};
