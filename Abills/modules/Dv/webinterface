@@ -445,7 +445,6 @@ sub dv_user {
   $Dv->{UID} = $FORM{UID} || $LIST_PARAMS{UID};
   undef $Dv->{errno};
   if ($FORM{REGISTRATION_INFO}) {
-
     # Info
     load_module('Docs', $html);
     my $users = Users->new($db, $admin, \%conf);
@@ -477,7 +476,7 @@ sub dv_user {
     }
     else {
       $html->tpl_show(templates('form_user_info'), { %$user, %$pi, DATE => $DATE, TIME => $TIME });
-      $html->tpl_show(_include('dv_user_info', 'Dv'), $dv);
+      $html->tpl_show(_include('dv_user_info', 'Dv'), $Dv);
 
       if (in_array('Mail', \@MODULES)) {
         require "Abills/modules/Mail/webinterface";
@@ -751,10 +750,10 @@ sub dv_user {
     }
 
     $Dv->{CALLBACK} = ($Dv->{CALLBACK} == 1) ? ' checked' : '';
-    $Dv->{REGISTRATION_INFO} = $html->button("$_REGISTRATION", "index=$index&UID=$Dv->{UID}&REGISTRATION_INFO=1", { BUTTON => 1 });
+    $Dv->{REGISTRATION_INFO} = $html->button("$_MEMO", "index=$index&UID=$Dv->{UID}&REGISTRATION_INFO=1", { BUTTON => 1 });
 
     if ($conf{DOCS_PDF_PRINT}) {
-      $Dv->{REGISTRATION_INFO_PDF} = $html->button("PDF", "qindex=$index&UID=$Dv->{UID}&REGISTRATION_INFO=1&pdf=1", { ex_params => 'target=_new', BUTTON => 1 });
+      $Dv->{REGISTRATION_INFO_PDF} = $html->button("$_MEMO (PDF)", "qindex=$index&UID=$Dv->{UID}&REGISTRATION_INFO=1&pdf=1", { ex_params => 'target=_new', BUTTON => 1 });
     }
   }
 

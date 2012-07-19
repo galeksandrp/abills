@@ -51,6 +51,7 @@ $_MAP='Map';
 $_PHONE='Phone';
 $_COMMENTS='Comments';
 $_REGISTRATION='Registration';
+$_MEMO='Memo';
 $_REGISTRATION_COMPLETE='Registration Complete';
 $_EXPIRE='Expired';
 
