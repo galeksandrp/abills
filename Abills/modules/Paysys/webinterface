@@ -2006,8 +2006,6 @@ sub paysys_qiwi {
   if ($FORM{send_invoice}) {
     $FORM{COMMENT} = $user->{LOGIN};
     my $result = qiwi_invoice_request(\%FORM);
-print "Content-Type: text/html\n\n";
-print "// $result->{'result-code'}->[0]->{fatal} //";
 
     if ($result->{'result-code'}->[0]->{fatal} eq '-true') {
       my $error = "$result->{'result-code'}->[0]->{content}";
