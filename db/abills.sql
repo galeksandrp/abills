@@ -800,6 +800,7 @@ CREATE TABLE `payments` (
 CREATE TABLE docs_invoice2payments (
   `invoice_id` int(11) unsigned NOT NULL default 0,
   `payment_id` int(11) unsigned NOT NULL default 0,
+  `sum` double(10,2) NOT NULL default '0.00',
   PRIMARY  KEY `invoice2payments` (`invoice_id`, `payment_id`),
   FOREIGN KEY (payment_id) REFERENCES payments(id),
   FOREIGN KEY (invoice_id) REFERENCES docs_invoices(id)

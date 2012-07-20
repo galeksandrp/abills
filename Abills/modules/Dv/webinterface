@@ -7201,7 +7201,7 @@ sub dv_get_month_fee {
           $users->change(
             $Dv->{UID},
             {
-              ACTIVATE => ($conf{payment_chg_activate}) ? $DATE : "$active_y-$m-$active_d",
+              ACTIVATE => ($conf{DV_CURDATE_ACTIVATE}) ? $DATE : "$active_y-$m-$active_d",
               UID      => $Dv->{UID}
             }
           );

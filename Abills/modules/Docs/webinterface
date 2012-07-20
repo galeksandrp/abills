@@ -1155,8 +1155,7 @@ sub docs_invoices_list {
       if ($fname eq 'date') {
       	$val = $html->button("$invoice->{date}", "qindex=$index&print=$invoice->{id}&UID=$invoice->{uid}$pages_qs" . (($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : ''), { ex_params => 'target=_new' }),
       }
-      elsif($fname eq 'payment_id') {
-      	
+      elsif($fname eq 'payment_id') {      	
       	if ($invoice->{payment_sum} == $invoice->{total_sum}){
           $val = $html->button($invoice->{payment_sum}, "index=2&UID=$invoice->{uid}&ID=$invoice->{payment_id}");
         }
