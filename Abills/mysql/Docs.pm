@@ -466,10 +466,56 @@ sub invoices2payments {
   my $self =shift;
   my ($attr) = @_;
 
-  $self->query($db, "INSERT INTO docs_invoice2payments (invoice_id, payment_id)
-    VALUES ('$attr->{INVOICE_ID}', '$attr->{PAYMENT_ID}')", 'do');
+  $self->query($db, "INSERT INTO docs_invoice2payments (invoice_id, payment_id, sum)
+    VALUES ('$attr->{INVOICE_ID}', '$attr->{PAYMENT_ID}', '$attr->{SUM}')", 'do');
 
   return $self;
+}
+
+
+#**********************************************************
+# invoices_list
+#**********************************************************
+sub invoices2payments_list {
+  my $self =shift;
+  my ($attr) = @_;
+
+  @WHERE_RULES = ();
+
+  if ($attr->{PAYMENT_ID}) {
+    push @WHERE_RULES, @{ $self->search_expr($attr->{PAYMENT_ID}, 'INT', 'i2p.payment_id') };
+  }
+
+  if ($attr->{INVOICE_ID}) {
+    push @WHERE_RULES, @{ $self->search_expr($attr->{INVOICE_ID}, 'INT', 'i2p.invoice_id') };
+  }
+
+  if ($attr->{UNINVOICED}) {
+    push @WHERE_RULES, '(i2p.invoice_id IS NULL OR p.sum>(SELECT sum(sum) FROM docs_invoice2payments WHERE payment_id=p.id))';
+  }
+
+  if ($attr->{UID}) {
+  	push @WHERE_RULES, @{ $self->search_expr($attr->{UID}, 'INT', 'p.uid') };
+  }
+
+  $WHERE = ($#WHERE_RULES > -1) ? 'WHERE ' . join(' and ', @WHERE_RULES) : '';
+
+	$self->query($db, "SELECT p.id AS payment_id, p.date, p.dsc, 
+  	  p.sum AS payment_sum, 
+  	  i2p.sum AS invoiced_sum, 
+  	  i2p.invoice_id, 
+  	  p.uid
+ 	  
+from payments p
+LEFT JOIN docs_invoice2payments i2p ON (p.id=i2p.payment_id)
+$WHERE
+    ORDER BY $SORT $DESC
+    LIMIT $PG, $PAGE_ROWS;",
+    undef,
+    $attr);
+
+    my $list = $self->{list};
+    return $list;
 }
 
 #**********************************************************
@@ -485,7 +531,7 @@ sub invoices_list {
   $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
 
   delete $self->{ORDERS}; 
-  @WHERE_RULES = ("d.id=o.invoice_id");
+  @WHERE_RULES = ();
 
   push @WHERE_RULES, @{ $self->search_expr_users({ %$attr, 
   	                         EXT_FIELDS => [
@@ -516,17 +562,31 @@ sub invoices_list {
 
   	                                         ] }) };
 
-  if ($SORT == 1) {
+  if ($SORT == 1 && ! $attr->{DESC}) {
     $SORT = "2 DESC, 1";
     $DESC = "DESC";
   }
 
   if ($attr->{UNINVOICED}) {
+  	my $WHERE = '';
   	
-  	$self->query($db, "SELECT p.id, p.date, p.dsc, p.sum, i2p.invoice_id
+  	if ($attr->{PAYMENT_ID}) {
+  		$WHERE = "AND p.id='$attr->{PAYMENT_ID}'";
+  	}
+  	
+  	$self->query($db, "SELECT p.id, p.date, p.dsc, 
+  	  p.sum AS payment_sum, 
+  	  sum(i2p.sum) AS invoiced_sum, 
+  	  if (i2p.sum IS NULL, p.sum, p.sum - sum(i2p.sum)) AS remains,
+  	  i2p.invoice_id, 
+  	  p.uid
+  	  
 from payments p
 LEFT JOIN docs_invoice2payments i2p ON (p.id=i2p.payment_id)
-WHERE p.uid='$attr->{UID}' AND i2p.invoice_id IS NULL
+WHERE p.uid='$attr->{UID}' 
+AND (i2p.invoice_id IS NULL OR p.sum>(SELECT sum(sum) FROM docs_invoice2payments WHERE payment_id=p.id))
+$WHERE
+    GROUP BY p.id
     ORDER BY $SORT $DESC
     LIMIT $PG, $PAGE_ROWS;",
     undef,
@@ -577,7 +637,18 @@ WHERE p.uid='$attr->{UID}' AND i2p.invoice_id IS NULL
     push @WHERE_RULES, "d.payment_id" . (($attr->{PAID_STATUS} == 1) ? '>\'0' : '=\'0') . "'";
   }
 
- 
+  if ($attr->{UNPAIMENT}) {
+    push @WHERE_RULES, "(i2p.sum IS NULL OR 
+       ( (SELECT sum(sum) FROM  docs_invoice2payments WHERE invoice_id=d.id)
+       
+        < (SELECT sum(orders.counts*orders.price) FROM `docs_invoice_orders` orders WHERE orders.invoice_id=d.id)))" . (( $attr->{ID} ) ? "d.id='$attr->{ID}'" : '');
+  }
+  elsif ($attr->{ID}) {
+    push @WHERE_RULES, @{ $self->search_expr($attr->{ID}, 'INT', 'd.id') };
+  }
+
+  
+
   my $EXT_TABLES  = $self->{EXT_TABLES};
   if ($attr->{FULL_INFO}) {
     $self->{SEARCH_FIELDS} .= "
@@ -598,13 +669,14 @@ WHERE p.uid='$attr->{UID}' AND i2p.invoice_id IS NULL
     push @WHERE_RULES, '(' . join('', @{ $self->search_expr($attr->{CONTRACT_ID}, 'STR', 'concat(pi.contract_sufix,pi.contract_id)') }) . ' OR ' . join('', @{ $self->search_expr($attr->{CONTRACT_ID}, 'STR', 'concat(c.contract_sufix,c.contract_id)') }) . ')';
   }
 
+
   $WHERE = ($#WHERE_RULES > -1) ? 'WHERE ' . join(' and ', @WHERE_RULES) : '';
   $self->query(
     $db, "SELECT d.invoice_num, 
      d.date, 
      if(d.customer='-' or d.customer='', pi.fio, d.customer) AS customer,
-     sum(o.price * o.counts) AS total_sum, 
-     if (p.id IS NOT NULL , sum(p.sum), 0) AS payment_sum, 
+     sum(o.price * o.counts) / count(d.invoice_num) AS total_sum, 
+     if (i2p.payment_id IS NOT NULL, sum(i2p.sum), 0) AS payment_sum,
      u.id AS login, 
      a.name AS admin_name, 
      d.created, 
@@ -623,7 +695,8 @@ WHERE p.uid='$attr->{UID}' AND i2p.invoice_id IS NULL
      d.deposit AS docs_deposit,
      d.payment_id
      
-    FROM (docs_invoices d, docs_invoice_orders o)
+    FROM docs_invoices d
+    INNER JOIN  docs_invoice_orders o ON (d.id=o.invoice_id)
     LEFT JOIN users u ON (d.uid=u.uid)
     LEFT JOIN admins a ON (d.aid=a.aid)
     LEFT JOIN users_pi pi ON (pi.uid=u.uid)
@@ -633,7 +706,7 @@ WHERE p.uid='$attr->{UID}' AND i2p.invoice_id IS NULL
     LEFT JOIN payments p ON (i2p.payment_id=p.id)
     $EXT_TABLES
     $WHERE
-    GROUP BY d.id 
+    GROUP BY d.id, i2p.invoice_id 
     ORDER BY $SORT $DESC
     LIMIT $PG, $PAGE_ROWS;",
     undef,
@@ -650,6 +723,7 @@ WHERE p.uid='$attr->{UID}' AND i2p.invoice_id IS NULL
     LEFT JOIN admins a ON (d.aid=a.aid)
     LEFT JOIN payments p ON (d.payment_id=p.id)
     LEFT JOIN companies c ON (u.company_id=c.id)
+    LEFT JOIN docs_invoice2payments i2p ON (d.id=i2p.invoice_id)
     $WHERE"
   );
 

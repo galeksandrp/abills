@@ -13,6 +13,7 @@ CREATE TABLE `dhcphosts_hosts` (
   `comments` varchar(250) NOT NULL default '',
   `ports` varchar(100) NOT NULL DEFAULT '',
   `vid` smallint(6) unsigned NOT NULL default '0',
+  `server_vid` smallint(6) unsigned NOT NULL default '0',
   `nas` smallint(6) unsigned NOT NULL default '0',
   `option_82` tinyint(1) unsigned NOT NULL default '0',
   `boot_file` VARCHAR( 150 ) NOT NULL default '',

@@ -1,17 +1,57 @@
 =====0.55=====
+20.07.2012\\
+
+  * ''Dv'' Добавлено разделение груп тарифных планов цветами
+  * ''Dv'' $conf{DV_CURDATE_ACTIVATE}=1; Активировать приостановленный за неуплату сервис текущей датой. по умолчанию сервис 
+активируется следующей учётной датой. 
+  * ''Docs'' Привязка оплат к счетам с возможностью привязывать одну оплату к нескольким счетам или один счет к нескольким оплатам.
+  * ''Dhcphosts'' Добавлен Server Vlan  для авторизации q2q
+
+
+
+MySQL: \\
+
+  ALTER TABLE payments ADD COLUMN `reg_date` datetime NOT NULL default '0000-00-00 00:00:00';
+  DROP TABLE IF EXISTS docs_invoice2payments;
+  CREATE TABLE docs_invoice2payments (
+  `invoice_id` int(11) unsigned NOT NULL default 0,
+  `payment_id` int(11) unsigned NOT NULL default 0,
+  `sum` double(10,2) NOT NULL default '0.00',
+  PRIMARY  KEY `invoice2payments` (`invoice_id`, `payment_id`),
+  FOREIGN KEY (payment_id) REFERENCES payments(id),
+  FOREIGN KEY (invoice_id) REFERENCES docs_invoices(id)
+  ) COMMENT='Docs Invoice to payments' ;
+  REPLACE INTO docs_invoice2payments (SELECT i.id, i.payment_id, p.sum FROM docs_invoices i, payments p WHERE i.payment_id=p.id);
+  
+  ALTER TABLE docs_receipts ADD FOREIGN KEY (payment_id) REFERENCES payments(id);
+  ALTER TABLE docs_receipt_orders ADD FOREIGN KEY (receipt_id) REFERENCES docs_receipts(id);
+  ALTER TABLE docs_invoice_orders ADD FOREIGN KEY (invoice_id) REFERENCES docs_invoices(id);
+  
+  create table id (id int not null default 0);
+  
+  DELETE FROM id;
+  INSERT INTO id SELECT r.id from docs_receipts r LEFT JOIN payments p ON (p.id=r.payment_id) WHERE p.id IS null;
+  DELETE from docs_receipts  WHERE id in (SELECT id from id);
+  
+  DELETE FROM id;
+  INSERT INTO id SELECT ro.receipt_id from docs_receipt_orders ro LEFT JOIN docs_receipts r ON (r.id=ro.receipt_id) WHERE ro.receipt_id IS null;
+  DELETE from docs_receipt_orders  WHERE receipt_id in (SELECT id from id);
+  
+  ALTER TABLE `dhcphosts_hosts` ADD COLUMN `server_vid` smallint(6) unsigned NOT NULL default '0';
+
+
 09.06.2012\\
   * Добавлен экспорт в csv
   * Создан автоконфигуратор mikrotik
   * Добавленно создание правил NAT  при инициализации праивл шейпера
   * Добавлен плагин billd чистки Dhcpleases (dhcp_clean_leases)
-  * Поддержка sflow
-  * ''Docs''  добавлена возможность выводить типы услуг в счетах с  типов cнятий
- $conf{DOCS_FEES_METHOD_ORDERS}=1;
-  * ''Abon'' возможность указывать несколько однотипных сервисов для абонплаты 
+  * ''Ipn'' Поддержка sflow
+  * ''Docs''  добавлена возможность выводить типы услуг в счетах с  типов начислений $conf{DOCS_FEES_METHOD_ORDERS}=1;
+  * ''Abon'' возможность указывать несколько однотипных услуг для абон. платы 
 
 MySQL:\\
   ALTER TABLE `abon_user_list` ADD COLUMN `service_count` smallint(4) unsigned NOT NULL DEFAULT 1;
-  UPDATE abon_user_list SET `service_count=1
+  UPDATE abon_user_list SET service_count=1
 
 
 =====0.54=====

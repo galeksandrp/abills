@@ -791,6 +791,7 @@ CREATE TABLE `payments` (
   `inner_describe` varchar(80) NOT NULL default '',
   `amount` double(10,2) NOT NULL default '0.00',
   `currency` smallint unsigned not null default 0,
+  `reg_date` datetime NOT NULL default '0000-00-00 00:00:00',
   PRIMARY KEY  (`id`),
   UNIQUE KEY `id` (`id`),
   KEY `date` (`date`),

@@ -5877,7 +5877,12 @@ sub form_payments () {
 
       $payments->del($user, $FORM{del});
       if ($payments->{errno}) {
-        $html->message('err', $_ERROR, "[$payments->{errno}] $err_strs{$payments->{errno}}");
+      	if ($payments->{errno} == 3) {
+      		$html->message('err', $_ERROR, "$ERR_DELETE_INVOICE");
+      	}
+      	else {
+          $html->message('err', $_ERROR, "[$payments->{errno}] $err_strs{$payments->{errno}}");
+        }
       }
       else {
         $html->message('info', $_PAYMENTS, "$_DELETED ID: $FORM{del}");
@@ -5965,10 +5970,10 @@ sub form_payments () {
           "INVOICE_ID",
           {
             SELECTED                 => $FORM{INVOICE_ID},
-            SEL_MULTI_ARRAY          => $Docs->invoices_list({ UID => $user->{UID}, PAYMENT_ID => 0, PAGE_ROWS => 100, SORT => 2, DESC => 'DESC' }),
+            SEL_MULTI_ARRAY          => $Docs->invoices_list({ UID => $user->{UID}, UNPAIMENT => 1, PAGE_ROWS => 200, SORT => 2, DESC => 'DESC' }),
             MULTI_ARRAY_KEY          => 13,
-            MULTI_ARRAY_VALUE        => '0,1,3',
-            MULTI_ARRAY_VALUE_PREFIX => "$_NUM: ,$_DATE: ,$_SUM:",
+            MULTI_ARRAY_VALUE        => '0,1,3,4',
+            MULTI_ARRAY_VALUE_PREFIX => "$_NUM: ,$_DATE: ,$_SUM: ,$_PAYMENTS: ",
             SEL_OPTIONS              => { 0 => '', (!$conf{PAYMENTS_NOT_CREATE_INVOICE}) ? (create => $_CREATE) : undef },
             NO_ID                    => 1,
             MAIN_MENU                => get_function_index('docs_invoices_list'),
@@ -5989,7 +5994,6 @@ sub form_payments () {
       }
 
       $html->tpl_show(templates('form_payments'), { %FORM, %$attr, %$payments });
-
       #return 0 if ($attr->{REGISTRATION});
     }
   }
@@ -6025,7 +6029,8 @@ sub form_payments () {
 
   $LIST_PARAMS{ID} = $FORM{ID} if ($FORM{ID});
 
-  my @caption = ('ID', $_LOGIN, $_DATE, $_DESCRIBE, $_SUM, $_DEPOSIT, $_PAYMENT_METHOD, 'EXT ID', "$_BILL", $_ADMINS, 'IP');
+  my @caption = ('ID', $_LOGIN, $_DATE, $_DESCRIBE, $_SUM, $_DEPOSIT, 
+     $_PAYMENT_METHOD, 'EXT ID', "$_BILL", $_ADMINS, "$_REGISTRATION", 'IP');
 
   if ($conf{SYSTEM_CURRENCY}) {
     push @caption, "$_ALT $_SUM", "$_CURRENCY";
@@ -6040,10 +6045,26 @@ sub form_payments () {
     push @caption, "$_COMPANY";
   }
 
+  my $payments_list  = $payments->list({%LIST_PARAMS, COLS_NAME=>1});
 
+  my %i2p_hash = ();
+  if (in_array('Docs', \@MODULES)) {
+  	push @caption, "$_INVOICE";
+  	my @payment_id_arr = ();
+  	foreach my $p (@$payments_list) {
+  		push @payment_id_arr, $p->{id};
+  	}
+  	
+  	my $i2p_list = $Docs->invoices2payments_list({ PAYMENT_ID => join(';', @payment_id_arr), 
+  		                                             COLS_NAME => 1 });
+  	foreach my $i2p (@$i2p_list) {
+  	  push @{ $i2p_hash{$i2p->{payment_id}} }, "$i2p->{invoice_id}:$i2p->{invoiced_sum}";
+  	}
+  }
+  
   push @caption, '-';
 
-  my $payments_list  = $payments->list({%LIST_PARAMS, COLS_NAME=>1});
+
   my $table = $html->table(
     {
       width      => '100%',
@@ -6073,6 +6094,7 @@ sub form_payments () {
       "$payment->{ext_id}", 
       ($conf{EXT_BILL_ACCOUNT} && $attr->{USER_INFO}) ? $BILL_ACCOUNTS{ $payment->{bill_id} } : "$payment->{bill_id}",
       "$payment->{admin_name}", 
+      $payment->{reg_date},
       "$payment->{ip}"
     );
 
@@ -6088,6 +6110,24 @@ sub form_payments () {
       push @rows, $payment->{company_id};
     }
 
+    if (in_array('Docs', \@MODULES)) {
+      my $payment_sum = $payment->{sum};
+    	my $i2p         = '';
+
+    	if ($i2p_hash{$payment->{id}}) {
+        foreach my $val ( @{ $i2p_hash{$payment->{id}} }  ) {
+        	my ($invoice_id, $invoiced_sum)=split(/:/, $val);
+    	    $i2p .= $invoiced_sum ." $_APPLIED $_INVOICE #". $html->button($invoice_id, "index=". get_function_index('docs_invoices_list'). "&ID=$invoice_id&search=1"  ) . $html->br();
+        	$payment_sum -= $invoiced_sum;
+        }
+    	}
+
+    	if ($payment_sum > 0) {
+    	  $i2p .= sprintf("%.2f", $payment_sum). ' '. $html->color_mark("$_UNAPPLIED", $_COLORS[6]) .' ('. $html->button($_APPLY, "index=". get_function_index('docs_invoices_list') ."&UNINVOICED=1&PAYMENT_ID=$payment->{id}&UID=$payment->{uid}") .')';
+    	}
+      
+      push @rows, $i2p;
+    }
 
     push @rows, $delete;
     $table->addrow(@rows);

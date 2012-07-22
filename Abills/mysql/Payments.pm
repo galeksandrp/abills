@@ -124,9 +124,9 @@ sub add {
 
     $self->query(
       $db, "INSERT INTO payments (uid, bill_id, date, sum, dsc, ip, last_deposit, aid, method, ext_id,
-           inner_describe, amount, currency) 
+           inner_describe, amount, currency, reg_date) 
            values ('$user->{UID}', '$user->{BILL_ID}', $date, '$DATA{SUM}', '$DATA{DESCRIBE}', INET_ATON('$admin->{SESSION_IP}'), '$Bill->{DEPOSIT}', '$admin->{AID}', '$DATA{METHOD}', 
-           '$DATA{EXT_ID}', '$DATA{INNER_DESCRIBE}', '$DATA{AMOUNT}', '$DATA{CURRENCY}');", 'do'
+           '$DATA{EXT_ID}', '$DATA{INNER_DESCRIBE}', '$DATA{AMOUNT}', '$DATA{CURRENCY}', now());", 'do'
     );
 
     if (!$self->{errno}) {
@@ -180,9 +180,11 @@ sub del {
   my ($sum, $bill_id) = @{ $self->{list}->[0] };
 
   $Bill->action('take', $bill_id, $sum);
-
-  $self->query($db, "DELETE FROM payments WHERE id='$id';", 'do');
-  $admin->action_add($user->{UID}, "$id $sum", { TYPE => 16 });
+  if (! $Bill->{errno}) {
+    $self->query($db, "DELETE FROM docs_invoice2payments WHERE payment_id='$id';", 'do');
+    $self->query($db, "DELETE FROM payments WHERE id='$id';", 'do');
+    $admin->action_add($user->{UID}, "$id $sum", { TYPE => 16 });
+  }
 
   return $self;
 }
@@ -334,6 +336,7 @@ sub list {
       $self->{SEARCH_FIELDS} p.date, p.dsc, p.sum, p.last_deposit, p.method, 
       p.ext_id, p.bill_id, 
       if(a.name is null, 'Unknown', a.name) AS admin_name,  
+      p.reg_date,
       INET_NTOA(p.ip) AS ip, 
       p.amount,
       p.currency,

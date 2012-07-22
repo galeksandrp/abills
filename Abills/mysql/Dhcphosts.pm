@@ -350,14 +350,16 @@ sub host_add {
 
   $self->query(
     $db, "INSERT INTO dhcphosts_hosts (uid, hostname, network, ip, mac, blocktime, 
-    forced, disable, expire, comments, option_82, vid, nas, ports, boot_file, next_server, ipn_activate) 
+    forced, disable, expire, comments, option_82, vid, nas, ports, boot_file, next_server, ipn_activate,
+    server_vid) 
     VALUES('$DATA{UID}', '$DATA{HOSTNAME}', '$DATA{NETWORK}',
       INET_ATON('$DATA{IP}'), '$DATA{MAC}', '$DATA{BLOCKTIME}', '$DATA{FORCED}', '$DATA{DISABLE}',
       '$DATA{EXPIRE}',
       '$DATA{COMMENTS}', '$DATA{OPTION_82}', '$DATA{VID}', '$DATA{NAS_ID}', '$DATA{PORTS}',
       '$DATA{BOOT_FILE}',
       '$DATA{NEXT_SERVER}',
-      '$DATA{IPN_ACTIVATE}'
+      '$DATA{IPN_ACTIVATE}',
+      '$DATA{SERVER_VID}'
       );", 'do'
   );
 
@@ -435,7 +437,7 @@ sub host_info {
    uid, 
    hostname, 
    network, 
-   INET_NTOA(ip), 
+   INET_NTOA(ip) AS ip, 
    mac, 
    blocktime, 
    forced,
@@ -443,15 +445,18 @@ sub host_info {
    expire,
    option_82,
    vid,
+   server_vid,
    comments,
-   nas,
+   nas AS nas_id,
    ports,
    boot_file, 
    changed,
    next_server,
    ipn_activate
   FROM dhcphosts_hosts
-  WHERE $WHERE;"
+  WHERE $WHERE;",
+  undef,
+  { INFO => 1 }
   );
 
   if ($self->{TOTAL} < 1) {
@@ -460,10 +465,6 @@ sub host_info {
     return $self;
   }
 
-  (
-    $self->{UID},       $self->{HOSTNAME}, $self->{NETWORK},  $self->{IP},     $self->{MAC},   $self->{BLOCKTIME}, $self->{FORCED},  $self->{DISABLE},     $self->{EXPIRE},
-    $self->{OPTION_82}, $self->{VID},      $self->{COMMENTS}, $self->{NAS_ID}, $self->{PORTS}, $self->{BOOT_FILE}, $self->{CHANGED}, $self->{NEXT_SERVER}, $self->{IPN_ACTIVATE},
-  ) = @{ $self->{list}->[0] };
 
   return $self;
 }
@@ -493,9 +494,8 @@ sub host_change {
     PORTS        => 'ports',
     BOOT_FILE    => 'boot_file',
     NEXT_SERVER  => 'next_server',
-    IPN_ACTIVATE => 'ipn_activate'
-
-    #   CHANGED     => 'changed'
+    IPN_ACTIVATE => 'ipn_activate',
+    SERVER_VID   => 'server_vid'
   );
 
   $attr->{OPTION_82}    = ($attr->{OPTION_82})    ? 1 : 0;
