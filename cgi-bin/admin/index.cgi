@@ -5750,11 +5750,15 @@ sub form_payments () {
 
   return 0 if (!$permissions{1});
 
+
+  if (in_array('Docs', \@MODULES)) {
+    load_module('Docs', $html);
+  }
+
   %PAYMENTS_METHODS = ();
   my %BILL_ACCOUNTS = ();
 
   if ($FORM{print}) {
-    load_module('Docs', $html);
     if ($FORM{INVOICE_ID}) {
       docs_invoice({%FORM});
     }
@@ -5775,7 +5779,6 @@ sub form_payments () {
 
     if (in_array('Docs', \@MODULES)) {
       $FORM{QUICK} = 1;
-      load_module('Docs', $html);
     }
 
     if (!$attr->{REGISTRATION}) {
