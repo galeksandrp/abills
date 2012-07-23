@@ -615,7 +615,9 @@ CREATE TABLE `msgs_messages` (
   `deligation_level` tinyint(4) unsigned NOT NULL default '0',
   `survey_id` smallint(6) unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY  (`id`),
-  KEY `uid` (`uid`)
+  KEY `uid` (`uid`),
+  KEY `chapter` (`chapter`),
+  KEY `state` (`state`)
 ) COMMENT='Msgs Messages';
 
 CREATE TABLE `msgs_reply` (

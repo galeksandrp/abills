@@ -718,12 +718,13 @@ $WHERE
 
   $self->query(
     $db, "SELECT count(distinct d.id)
-    FROM (docs_invoices d, docs_invoice_orders o)    
+    FROM docs_invoices d
+    INNER JOIN docs_invoice_orders o ON (o.invoice_id=d.id)
     LEFT JOIN users u ON (d.uid=u.uid)
     LEFT JOIN admins a ON (d.aid=a.aid)
-    LEFT JOIN payments p ON (d.payment_id=p.id)
     LEFT JOIN companies c ON (u.company_id=c.id)
     LEFT JOIN docs_invoice2payments i2p ON (d.id=i2p.invoice_id)
+    LEFT JOIN payments p ON (i2p.payment_id=p.id)
     $WHERE"
   );
 
