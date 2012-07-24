@@ -480,6 +480,11 @@ sub invoices2payments_list {
   my $self =shift;
   my ($attr) = @_;
 
+  $SORT      = ($attr->{SORT})      ? $attr->{SORT}      : 1;
+  $DESC      = ($attr->{DESC})      ? $attr->{DESC}      : '';
+  $PG        = ($attr->{PG})        ? $attr->{PG}        : 0;
+  $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
+
   @WHERE_RULES = ();
 
   if ($attr->{PAYMENT_ID}) {
@@ -634,14 +639,19 @@ $WHERE
   }
 
   if ($attr->{PAID_STATUS}) {
-    push @WHERE_RULES, "d.payment_id" . (($attr->{PAID_STATUS} == 1) ? '>\'0' : '=\'0') . "'";
+    $attr->{UNPAIMENT}=$attr->{PAID_STATUS};
   }
 
   if ($attr->{UNPAIMENT}) {
+  	my $st = '<>';
+  	if ($attr->{UNPAIMENT} == 2) {
+  		$st='=';
+  	}
+  	
     push @WHERE_RULES, "(i2p.sum IS NULL OR 
        ( (SELECT sum(sum) FROM  docs_invoice2payments WHERE invoice_id=d.id)
-       
-        < (SELECT sum(orders.counts*orders.price) FROM `docs_invoice_orders` orders WHERE orders.invoice_id=d.id)))" . (( $attr->{ID} ) ? "d.id='$attr->{ID}'" : '');
+       $st
+        (SELECT sum(orders.counts*orders.price) FROM `docs_invoice_orders` orders WHERE orders.invoice_id=d.id)))" . (( $attr->{ID} ) ? "d.id='$attr->{ID}'" : '');
   }
   elsif ($attr->{ID}) {
     push @WHERE_RULES, @{ $self->search_expr($attr->{ID}, 'INT', 'd.id') };

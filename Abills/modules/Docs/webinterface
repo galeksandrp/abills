@@ -953,7 +953,7 @@ sub docs_invoices_list {
       {
         SELECTED     => $FORM{PAID_STATUS},
         ARRAY_NUM_ID => 1,
-        SEL_ARRAY    => [ $_ALL, $_PAID, $_UNPAID ],
+        SEL_ARRAY    => [ $_ALL, $_UNPAID, $_PAID,  ],
         NO_ID        => 1
       }
     );
@@ -1112,6 +1112,7 @@ sub docs_invoices_list {
       $conf{DOCS_INVOICES_LIST}='invoice_num,date,customer,total_sum,payment_id,login,admin_name,created,method,ext_id,group_name';
     }
   }
+
   my @CAPTION    = ();
 
   my %EXT_TITLES = (
@@ -1164,6 +1165,25 @@ sub docs_invoices_list {
   	   ORDERS_LIST => $FORM{xml}
   	   });
 
+
+	push @caption, "$_INVOICE";
+  
+  my %i2p_hash       = ();
+  my @invoice_id_arr = ();
+
+ 	foreach my $invoice (@$invoice_list) {
+ 		push @invoice_id_arr, $invoice->{id};
+ 	}
+  	
+ 	my $i2p_list = $Docs->invoices2payments_list({ INVOICE_ID => join(';', @invoice_id_arr), 
+ 		                                             COLS_NAME  => 1,
+ 		                                             PAGE_ROWS  => 100000 
+ 		                                           });
+
+ 	foreach my $i2p (@$i2p_list) {
+ 	  push @{ $i2p_hash{$i2p->{invoice_id}} }, "$i2p->{payment_id}:$i2p->{invoiced_sum}";
+	}
+
   my $table = $html->table(
     {
       width      => '100%',
@@ -1191,19 +1211,24 @@ sub docs_invoices_list {
       if ($fname eq 'date') {
       	$val = $html->button("$invoice->{date}", "qindex=$index&print=$invoice->{id}&UID=$invoice->{uid}$pages_qs" . (($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : ''), { ex_params => 'target=_new' }),
       }
-      elsif($fname eq 'payment_id') {      	
-      	if ($invoice->{payment_sum} == $invoice->{total_sum}){
-          $val = $html->button($invoice->{payment_sum}, "index=$index&UID=$invoice->{uid}&SHOW_PAYMENTS=$invoice->{id}");
-        }
-        elsif ($invoice->{payment_sum} != $invoice->{total_sum}) {
-          $val = (($invoice->{payment_sum} == 0 ) ? $html->color_mark($payments_status[0], $_COLORS[6]) : $html->color_mark($invoice->{payment_sum}, $_COLORS[6])).
-           $html->button("$_SEARCH $_PAYMENTS", "index=$index&UID=$invoice->{uid}&UNINVOICED=$invoice->{id}", { CLASS => 'search' });
-        }
-        else {
-        	$val = $invoice->{payment_sum};
-        }
+      elsif($fname eq 'payment_id') {
+        my $invoice_sum = $invoice->{total_sum};
+      	$val         = '';
 
-      	#$val = $invoice->{payment_sum}; #($invoice->{payment_id}) ? (($user->{UID}) ? $payments_status[1] : $html->button($payments_status[1], "index=2&UID=$invoice->{uid}&ID=$invoice->{payment_id}")) : $html->color_mark($payments_status[0], $_COLORS[6]);
+      	if ($i2p_hash{$invoice->{id}}) {
+          foreach my $p2i_val ( @{ $i2p_hash{$invoice->{id}} }  ) {
+          	my ($payment_id, $invoiced_sum)=split(/:/, $p2i_val);
+    	      $val .= $html->button($invoiced_sum, "index=". get_function_index('form_payments'). "&ID=$payment_id&search=1") . $html->br();
+        	  $invoice_sum -= $invoiced_sum;
+          }
+    	  }
+
+    	  if ($invoice_sum > 0) {
+    	  	if ($val) {
+    	  	  $val = $html->color_mark($val, 'red');
+    	  	}
+          $val .= $html->button("$_SEARCH $_PAYMENTS", "index=$index&UID=$invoice->{uid}&UNINVOICED=$invoice->{id}",  { CLASS => 'search' });
+        }
       }
       elsif($fname eq 'login') {
         $val = $html->button($invoice->{login}, "index=11&UID=$invoice->{uid}") . (($line->{company_id}) ? $html->br() . $html->button(substr($line->{company_name}, 0, 30), "index=13&COMPANY_ID=$invoice->{company_id}", { CLASS => 'small' }) : '');
@@ -3183,8 +3208,6 @@ sub docs_payments_maked {
   my ($attr) = @_;
 
   #Add invoice number
-  #$Docs->{debug}=1;
-  
   if (! $FORM{SUM} || $FORM{SUM} == 0) {
   	$html->message('err', $_ERROR, "$ERR_WRONG_SUM");
   	return 0;
