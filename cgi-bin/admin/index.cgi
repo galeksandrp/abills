@@ -225,7 +225,7 @@ if ($FORM{AWEB_OPTIONS}) {
 
 #===========================================================
 my @actions = (
-  [ $_INFO, $_ADD, $_LIST, $_PASSWD, $_CHANGE, $_DEL, $_ALL, $_MULTIUSER_OP, "$_SHOW $_DELETED", "$_CREDIT", "$_TARIF_PLANS", "$_REDUCTION" ],    # Users
+  [ $_INFO, $_ADD, $_LIST, $_PASSWD, $_CHANGE, $_DEL, $_ALL, $_MULTIUSER_OP, "$_SHOW $_DELETED", "$_CREDIT", "$_TARIF_PLANS", "$_REDUCTION", "$_DISABLE $_DEPOSIT" ],    # Users
   [ $_LIST, $_ADD, $_DEL, $_ALL, $_DATE ],                                                                                                        # Payments
   [ $_LIST, $_GET, $_DEL, $_ALL ],                                                                                                                # Fees
   [ $_LIST,       $_DEL ],                                                                                                                        # reports view
@@ -1391,14 +1391,19 @@ sub user_form {
     $FORM{UID} = $user_info->{UID};
     $user_info->{COMPANY_NAME} = $html->color_mark("$_NOT_EXIST ID: $user_info->{COMPANY_ID}", $_COLORS[6]) if ($user_info->{COMPANY_ID} && !$user_info->{COMPANY_NAME});
 
-    if ($permissions{1}) {
-      $user_info->{PAYMENTS_BUTTON} = $html->button($_PAYMENTS, "index=2&UID=$LIST_PARAMS{UID}", { CLASS => 'payments rightAlignText' });
+    if ($permissions{0}{12}) {
+      $user_info->{DEPOSIT}='--';
     }
-
-    if ($permissions{2}) {
-      $user_info->{FEES_BUTTON} = $html->button($_FEES, "index=3&UID=$LIST_PARAMS{UID}", { CLASS => 'fees rightAlignText' });
+    else {
+	    if ($permissions{1}) {
+        $user_info->{PAYMENTS_BUTTON} = $html->button($_PAYMENTS, "index=2&UID=$LIST_PARAMS{UID}", { CLASS => 'payments rightAlignText' });
+      }
+  
+      if ($permissions{2}) {
+        $user_info->{FEES_BUTTON} = $html->button($_FEES, "index=3&UID=$LIST_PARAMS{UID}", { CLASS => 'fees rightAlignText' });
+      }
     }
-
+ 
     $user_info->{EXDATA} = $html->tpl_show(templates('form_user_exdata'), $user_info, { OUTPUT2RETURN => 1 });
     if ($conf{EXT_BILL_ACCOUNT} && $user_info->{EXT_BILL_ID}) {
       $user_info->{EXDATA} .= $html->tpl_show(templates('form_ext_bill'), $user_info, { OUTPUT2RETURN => 1 });
@@ -2515,7 +2520,7 @@ function CheckAllINBOX() {
     $table->addtd(
       $table->td($multiuser . user_ext_menu($uid, $line->{id})),
       $table->td($line->{fio}),
-      $table->td(($line->{deposit} + $line->{credit} < 0) ? $html->color_mark($line->{deposit}, $_COLORS[6]) : $line->{deposit}),
+      $table->td( ($permissions{0}{12}) ? '--' : ($line->{deposit} + $line->{credit} < 0) ? $html->color_mark($line->{deposit}, $_COLORS[6]) : $line->{deposit}),
       $table->td($line->{credit}),
       $table->td($status[ $line->{disable} ], { bgcolor => $state_colors[ $line->{disable} ], align => 'center' }),
       @fields_array,

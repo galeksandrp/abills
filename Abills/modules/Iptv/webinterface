@@ -340,6 +340,9 @@ sub iptv_user {
     Iptv_stalker->import();
     $Iptv_stalker = Iptv_stalker->new($db, $admin, \%conf);
   }
+  else {
+    print "/ $@ /"; 	
+  }
 
   if ($FORM{add}) {
     $Iptv->user_add({%FORM});
@@ -363,7 +366,9 @@ sub iptv_user {
       $Iptv->{ACCOUNT_ACTIVATE} = $attr->{USER_INFO}->{ACTIVATE};
       iptv_get_month_fee($Iptv) if (!$FORM{STATUS});
       $Iptv->user_channels({ UID => $FORM{UID} });
+
       $html->message('info', $_INFO, "$_CHANGED");
+
       if ($conf{IPTV_DVCRYPT_FILENAME}) {
         dv_crypt();
       }
@@ -971,6 +976,15 @@ sub iptv_channels {
       $html->message('info', $_ADDED, "$_ADDED '$FORM{NAME}' ");
     }
   }
+  elsif($FORM{stalker_export}) {
+    my $Iptv_stalker;
+    eval { require Iptv_stalker; };
+    if (!$@) {
+      Iptv_stalker->import();
+      $Iptv_stalker = Iptv_stalker->new($db, $admin, \%conf);
+    }
+  	
+  }
   elsif ($FORM{change}) {
     $Iptv->channel_change({%FORM});
     if (!$Iptv->{errno}) {
@@ -1014,10 +1028,10 @@ sub iptv_channels {
   my $list  = $Iptv->channel_list({%LIST_PARAMS});
   my $table = $html->table(
     {
-      width   => '100%',
-      caption => "$_CHANNELS",
-      border  => 1,
-      title   => [ $_NUM, $_NAME, $_DESCRIBE, "$_PORT", $_STATUS, '-', '-' ],
+      width      => '100%',
+      caption    => "$_CHANNELS",
+      border     => 1,
+      title      => [ $_NUM, $_NAME, $_DESCRIBE, "$_PORT", $_STATUS, '-', '-' ],
       cols_align => [ 'right', 'left', 'left', 'right', 'center', 'center' ],
       qs         => $pages_qs,
       pages      => $Iptv->{TOTAL},
@@ -1033,8 +1047,12 @@ sub iptv_channels {
       $change = $html->button($_CHANGE, "index=$index&chg=$line->[5]", { CLASS => 'change' });
     }
 
-    $table->addrow($line->[0], $line->[1], $line->[2], $line->[3], $status[ $line->[4] ], $change, $delete);
-
+    $table->addrow($line->[0], 
+      $line->[1], 
+      $line->[2], 
+      $line->[3], 
+      $status[ $line->[4] ], 
+      $change, $delete);
   }
   print $table->show();
 
@@ -1042,7 +1060,9 @@ sub iptv_channels {
     {
       width      => '100%',
       cols_align => [ 'right', 'right' ],
-      rows       => [ [ "$_TOTAL:", $html->b($Iptv->{TOTAL}) ] ]
+      rows       => [ [ ($conf{IPTV_STALKET_DB}) ? $html->button("Stalker $_EXPORT", "index=$index&stalker_export=1", { BUTTON => 1, ex_params => 'target=new' }) : '', 
+      "$_TOTAL:", $html->b($Iptv->{TOTAL}) ] ]
+      
     }
   );
   print $table->show();

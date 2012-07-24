@@ -2231,8 +2231,6 @@ sub paysys_paypal {
         }
       );
 
-      #print "Content-Type: text/html\n\n";
-
       if ($resArray->{'responseEnvelope.ack'} eq 'Success') {
         $html->setCookie('lastindex', "$index", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure);
         if ("" eq $preapprovalKey) {

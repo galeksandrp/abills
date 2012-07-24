@@ -609,7 +609,6 @@ sub channel_del {
 
   $self->query($db, "DELETE from iptv_channels WHERE id='$id';", 'do');
 
-  #$admin->action_add($self->{UID}, "DELETE");
   return $self->{result};
 }
 
@@ -660,7 +659,9 @@ sub channel_list {
    disable, id
      FROM iptv_channels
      $WHERE 
-     ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;"
+     ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;",
+    undef,
+    $attr
   );
 
   return $self if ($self->{errno});
