@@ -748,7 +748,8 @@ $WHERE
     FROM (docs_invoices d, docs_invoice_orders o)    
     LEFT JOIN users u ON (d.uid=u.uid)
     LEFT JOIN admins a ON (d.aid=a.aid)
-    LEFT JOIN payments p ON (d.payment_id=p.id)
+    LEFT JOIN docs_invoice2payments i2p ON (d.id=i2p.invoice_id)
+    LEFT JOIN payments p ON (i2p.payment_id=p.id)
     LEFT JOIN companies c ON (u.company_id=c.id)
     $WHERE);",
      undef,
@@ -1063,7 +1064,8 @@ sub invoice_info {
     LEFT JOIN companies c ON (u.company_id=c.id)
     LEFT JOIN users_pi pi ON (pi.uid=u.uid)
     LEFT JOIN admins a ON (d.aid=a.aid)
-    LEFT JOIN payments p ON (d.payment_id=p.id)
+    LEFT JOIN docs_invoice2payments i2p ON (d.id=i2p.invoice_id)
+    LEFT JOIN payments p ON (i2p.payment_id=p.id)
     WHERE d.id=o.invoice_id and d.id='$id' $WHERE
     GROUP BY d.id;",
     undef,
