@@ -669,8 +669,7 @@ sub channel_list {
   my $list = $self->{list};
 
   if ($self->{TOTAL} >= 0) {
-    $self->query($db, "SELECT count(*) FROM iptv_channels $WHERE");
-    ($self->{TOTAL}) = @{ $self->{list}->[0] };
+    $self->query($db, "SELECT count(*) AS total FROM iptv_channels $WHERE", undef, { INFO => 1 });
   }
 
   return $list;
@@ -816,13 +815,15 @@ sub channel_ti_list {
   $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES) : '';
 
   $self->query(
-    $db, "SELECT if (ic.channel_id IS NULL, 0, 1),
-   c.num, c.name,  c.comments, ic.month_price, ic.day_price, ic.mandatory, c.port,
-   c.disable, c.id
+    $db, "SELECT if (ic.channel_id IS NULL, 0, 1) AS interval_channel_id,
+   c.num AS channel_num, c.name,  c.comments, ic.month_price, ic.day_price, ic.mandatory, c.port,
+   c.disable, c.id AS channel_id
      FROM iptv_channels c
      LEFT JOIN iptv_ti_channels ic ON (id=ic.channel_id and ic.interval_id='$attr->{TI}')
      $WHERE
-     ORDER BY $SORT $DESC ;"
+     ORDER BY $SORT $DESC ;",
+    undef,
+    $attr
   );
 
   return $self if ($self->{errno});
@@ -831,14 +832,14 @@ sub channel_ti_list {
 
   if ($self->{TOTAL} >= 0) {
     $self->query(
-      $db, "SELECT count(*), sum(if (ic.channel_id IS NULL, 0, 1)) 
+      $db, "SELECT count(*) AS total, sum(if (ic.channel_id IS NULL, 0, 1)) AS active 
      FROM iptv_channels c
      LEFT JOIN iptv_ti_channels ic ON (c.id=ic.channel_id and ic.interval_id='$attr->{TI}')
      $WHERE
-    "
+    ",
+    undef,
+    { INFO => 1 }
     );
-
-    ($self->{TOTAL}, $self->{ACTIVE}) = @{ $self->{list}->[0] };
   }
 
   return $list;
