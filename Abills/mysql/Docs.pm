@@ -29,7 +29,7 @@ sub new {
   my $self = {};
   bless($self, $class);
   $CONF->{DOCS_ACCOUNT_EXPIRE_PERIOD} = 30 if (!$CONF->{DOCS_ACCOUNT_EXPIRE_PERIOD});
-  $CONF->{DOCS_INVOICE_ORDERS}=10 if (! $CONF->{DOCS_INVOICE_ORDERS});
+  $CONF->{DOCS_INVOICE_ORDERS}=12 if (! $CONF->{DOCS_INVOICE_ORDERS});
   return $self;
 }
 
