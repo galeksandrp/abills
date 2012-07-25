@@ -181,7 +181,7 @@ sub periodic_invoice {
   }
 
   $D = '01';
-  my $NEXT_MONTH = sprintf("%4.d-%02d-%02d", $Y, $M, $D);
+  my $NEXT_MONTH = sprintf("%4d-%02d-%02d", $Y, $M, $D);
   
   $TO_D = ($M != 2 ? (($M % 2) ^ ($M > 7)) + 30 : (!($Y % 400) || !($Y % 4) && ($Y % 25) ? 29 : 28));
 

@@ -535,7 +535,7 @@ sub invoices_list {
   $PG        = ($attr->{PG})        ? $attr->{PG}        : 0;
   $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
 
-  delete $self->{ORDERS}; 
+  delete $self->{ORDERS};
   @WHERE_RULES = ();
 
   push @WHERE_RULES, @{ $self->search_expr_users({ %$attr, 
@@ -685,7 +685,7 @@ $WHERE
     $db, "SELECT d.invoice_num, 
      d.date, 
      if(d.customer='-' or d.customer='', pi.fio, d.customer) AS customer,
-     sum(o.price * o.counts) / count(d.invoice_num) AS total_sum, 
+     if (i2p.sum IS NULL, sum(o.price * o.counts),  sum(o.price * o.counts) /count(i2p.sum)) AS total_sum, 
      if (i2p.payment_id IS NOT NULL, sum(i2p.sum), 0) AS payment_sum,
      u.id AS login, 
      a.name AS admin_name, 
@@ -926,7 +926,7 @@ sub invoice_add {
 
   invoice_defaults();
   
-  $CONF->{DOCS_INVOICE_ORDERS}=10 if (! $CONF->{DOCS_INVOICE_ORDERS});
+  $CONF->{DOCS_INVOICE_ORDERS}=12 if (! $CONF->{DOCS_INVOICE_ORDERS});
 
   %DATA             = $self->get_data($attr, { default => \%DATA });
   $DATA{DATE}       = ($attr->{DATE}) ? "'$attr->{DATE}'" : 'now()';
