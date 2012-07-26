@@ -225,11 +225,11 @@ sub paysys_import_form {
         push @{$BINDING_IDS}, $DATA_HASH{$BINDING_FIELD};
       }
     }
-
     #Get data from file
     elsif ($FORM{FILE_DATA}) {
       my $content = $FORM{"FILE_DATA"}{'Contents'};
       ($DATA_ARR, $BINDING_IDS) = paysys_import_parse($content, $import_expr, $BINDING_FIELD, { DEBUG => $debug, ENCODE => $FORM{ENCODE} });
+
       my $table2 = $html->table(
         {
           width => '100%',
@@ -264,7 +264,8 @@ sub paysys_import_form {
         PAGE_ROWS      => 1000000
       }
     );
-
+    
+    
     if ($users->{errno}) {
       $html->message('err', $_ERROR, "[$users->{errno}] $err_strs{$users->{errno}}");
       return 0;
@@ -545,13 +546,12 @@ sub paysys_import_parse {
   my $line_count = 1;
 
   foreach my $line (@rows) {
-
     if ($attr->{ENCODE}) {
       $line = convert($line, { $attr->{ENCODE} => 1 });
     }
 
     my %DATA_HASH = ();
-
+$debug=2;
     #next if ($#params < $#EXPR_IDS);
     if (my @res = ($line =~ /$expration/)) {
       for (my $i = 0 ; $i <= $#res ; $i++) {
@@ -802,7 +802,8 @@ sub paysys_log {
       cols_align => [ 'left', 'left', 'right', 'right', 'left', 'right', 'right', 'center:noprint', 'center:noprint' ],
       qs         => $pages_qs,
       pages      => $Paysys->{TOTAL},
-      ID         => 'PAYSYS_LOG'
+      ID         => 'PAYSYS_LOG',
+      EXPORT     => "$_EXPORT XML:&xml=1",
     }
   );
 

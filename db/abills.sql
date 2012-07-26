@@ -1277,6 +1277,7 @@ CREATE TABLE `web_online` (
   `page_index` int unsigned NOT NULL Default 0,
   `sid` varchar(32) NOT NULL default '',
   `ext_info` varchar(200) NOT NULL default '',
+  `aid` smallint(6) unsigned NOT NULL default '0',
   PRIMARY KEY  (`sid`),
   UNIQUE KEY `sid` (`sid`)
 ) COMMENT="Online admins" ;

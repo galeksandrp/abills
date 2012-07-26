@@ -286,9 +286,20 @@ sub send_radius_request {
   if ($request_type eq ACCESS_REQUEST) {
     $port = 1812;
   }
+  my $radius_host = $conf{VOIP_RADIUS_SERVER_HOST} || '127.0.0.1';
+  if ($conf{VOIP_RADIUS_SERVER_HOST} =~ /(.+):(\d+),(\d+)/) {
+  	$radius_host=$1;
+  	if ($request_type eq ACCESS_REQUEST) {
+  		$port=$2;
+  	}
+  	else {
+  		$port=$3;
+  	}
+  }
+
 
   $r = new Radius(
-    Host    => "$conf{VOIP_RADIUS_SERVER_HOST}:$port",
+    Host    => "$radius_host:$port",
     Secret  => "$conf{VOIP_RADIUS_SERVER_SECRET}",
     TimeOut => 15,
   );

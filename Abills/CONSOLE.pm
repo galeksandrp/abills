@@ -499,13 +499,7 @@ sub table {
   }
   
   $self->{ID} = $attr->{ID};
-#  if (defined($attr->{caption})) {
-#    $self->{table} .= " $attr->{caption}";
-#  }
-#  if (defined($attr->{ID})) {
-#    $self->{table} .= " ID=\"$attr->{ID}\" ";
-#
-#  }
+  $self->{title} = $attr->{title};
 
   if (defined($attr->{title})) {
     $self->{table} .= $self->table_title($SORT, $DESC, $PG, $attr->{title}, $attr->{qs});
@@ -539,8 +533,15 @@ sub addrow {
 
   my $extra = (defined($self->{extra})) ? " $self->{extra}" : '';
   $row_number++;
+  my $col_num=0;
+
   foreach my $val (@row) {
+  	if($self->{title}->[$col_num] &&  $self->{title}->[$col_num] eq '-') {
+  	  next;
+    }
+
     $self->{rows} .= "$COLS_SEPARATOR" . $self->link_former($val, { SKIP_SPACE => 1 });
+    $col_num++;
   }
 
   $self->{rows} .= "\n";
