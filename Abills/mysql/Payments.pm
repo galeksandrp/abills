@@ -183,6 +183,7 @@ sub del {
   $Bill->action('take', $bill_id, $sum);
   if (! $Bill->{errno}) {
     $self->query($db, "DELETE FROM docs_invoice2payments WHERE payment_id='$id';", 'do');
+    $self->query($db, "DELETE FROM docs_receipts WHERE payment_id='$id';", 'do');    
     $self->query($db, "DELETE FROM payments WHERE id='$id';", 'do');
     if (! $self->{errno}) {
       $admin->action_add($user->{UID}, "$id $sum", { TYPE => 16 });
