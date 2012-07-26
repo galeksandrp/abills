@@ -168,6 +168,7 @@ sub del {
 
   $self->query($db, "SELECT sum, bill_id from payments WHERE id='$id';");
 
+  $db->{AutoCommit} = 0;
   if ($self->{TOTAL} < 1) {
     $self->{errno}  = 2;
     $self->{errstr} = 'ERROR_NOT_EXIST';
@@ -183,9 +184,16 @@ sub del {
   if (! $Bill->{errno}) {
     $self->query($db, "DELETE FROM docs_invoice2payments WHERE payment_id='$id';", 'do');
     $self->query($db, "DELETE FROM payments WHERE id='$id';", 'do');
-    $admin->action_add($user->{UID}, "$id $sum", { TYPE => 16 });
+    if (! $self->{errno}) {
+      $admin->action_add($user->{UID}, "$id $sum", { TYPE => 16 });
+      $db->commit();
+    }
+    else {
+      $db->rollback();
+    }
   }
 
+  $db->{AutoCommit} = 1;
   return $self;
 }
 
