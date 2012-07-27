@@ -3204,8 +3204,12 @@ sub docs_tax_exports {
 sub docs_payments_maked {
   my ($attr) = @_;
 
+
+  if ($attr->{CHANGE_CREDIT}) {
+  	return 0;
+  }
   #Add invoice number
-  if (! $FORM{SUM} || $FORM{SUM} == 0) {
+  elsif (! $FORM{SUM} || $FORM{SUM} == 0) {
   	$html->message('err', $_ERROR, "$ERR_WRONG_SUM");
   	return 0;
   }

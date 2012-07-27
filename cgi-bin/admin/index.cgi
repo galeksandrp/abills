@@ -2124,7 +2124,7 @@ sub form_users {
           $users->pi_change({%FORM});
         }
 
-        cross_modules_call('_payments_maked', { USER_INFO => $user_info, });
+        cross_modules_call('_payments_maked', { USER_INFO => $user_info, CHANGE_CREDIT => 1 });
 
         #External scripts
         if ($conf{external_userchange}) {
