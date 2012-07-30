@@ -344,8 +344,26 @@ sub iptv_user {
   else {
     print "/ $@ /"; 	
   }
+  
+  if($FORM{send_message}) {
+	  if ($FORM{send}) {
+	  	$Iptv_stalker->send_msg({ %FORM });
+	  	
+    	if ($Iptv_stalker->{errno}) {
+     	  $html->message('err', $_ERROR, "$Iptv_stalker->{errno} $Iptv_stalker->{errstr}");
+     	}
+     	else {
+     		$html->message('info', $_INFO, "$_SENDED");
+     	}
 
-  if ($FORM{add}) {
+	  }
+	  else {
+      $user->{IPTV_MODEMS} = $html->tpl_show(_include('iptv_send_message', 'Iptv'), { %$attr, %$user } )
+    }
+    
+    return 0;
+  }
+  elsif ($FORM{add}) {
     $Iptv->user_add({%FORM});
     if (!$Iptv->{errno}) {
       $Iptv->{ACCOUNT_ACTIVATE} = $attr->{USER_INFO}->{ACTIVATE};
@@ -357,7 +375,7 @@ sub iptv_user {
 
       if ($Iptv_stalker) {
       	my @sub_ch = split(/,/, iptv_user_channels_list({ UID =>  $FORM{UID}, TP_ID => $FORM{TP_ID} }));  # Массив подписных каналов
-        $Iptv_stalker->change_user_subscribe_channel(2, \@sub_ch);
+        $Iptv_stalker->change_user_subscribe_channel($FORM{UID}, \@sub_ch);
        	if ($Iptv_stalker->{errno}) {
        	  $html->message('err', $_ERROR, "$Iptv_stalker->{errno} $Iptv_stalker->{errstr}");
        	}
@@ -384,7 +402,7 @@ sub iptv_user {
 
       if ($Iptv_stalker) {
       	my @sub_ch = split(/,/, iptv_user_channels_list({ UID =>  $FORM{UID}, TP_ID => $FORM{TP_ID} }));  # Массив подписных каналов
-        $Iptv_stalker->change_user_subscribe_channel(2, \@sub_ch);
+        $Iptv_stalker->change_user_subscribe_channel($FORM{UID}, \@sub_ch);
        	if ($Iptv_stalker->{errno}) {
        	  $html->message('err', $_ERROR, "$Iptv_stalker->{errno} $Iptv_stalker->{errstr}");
        	}
@@ -449,12 +467,17 @@ sub iptv_user {
       $user->{MODEMS} = $html->form_select(
         'CID',
         {
-          SELECTED          => $FORM{TP_ID},
+          SELECTED          => $Iptv->{CID},
           SEL_MULTI_ARRAY   => $stalker_modems_list,
           MULTI_ARRAY_KEY   => 0,
           MULTI_ARRAY_VALUE => 1,
         }
       );
+      
+     if ($Iptv->{CID}) {
+     	 $user->{SEND_MESSAGE} = $html->button("$_SEND $_MESSAGE", "index=$index&UID=$FORM{UID}&send_message=1", { BUTTON => 1 });
+     }
+
      $user->{IPTV_MODEMS} = $html->tpl_show(_include('iptv_modems', 'Iptv'), { %$attr, %$user }, { OUTPUT2RETURN => 1 });
     }
     else {

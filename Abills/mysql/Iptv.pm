@@ -110,7 +110,8 @@ sub defaults {
     CALLBACK       => 0,
     PORT           => 0,
     PIN            => '',
-    DVCRYPT_ID     => ''
+    DVCRYPT_ID     => '',
+    
   );
 
   $self = \%DATA;
