@@ -452,6 +452,10 @@ sub snmputils_periodic {
       $debug_output .= "Static MAC Forwarding\n" if ($debug > 0);
       $debug_output .= snmputils_qbridge({%CONF_HASH});
     }
+    elsif ($type eq 'hp') {
+      $debug_output .= "HP\n" if ($debug > 0);
+      $debug_output .= snmputils_hp({%CONF_HASH});
+    }
     elsif ($type eq 'celan') {
       $debug_output .= "CeLAN MACs Binding\n" if ($debug > 0);
       $debug_output .= snmputils_celan_macs({%CONF_HASH});
@@ -763,7 +767,6 @@ sub snmputils_chg_vlan {
 # HOST,
 # COMMUNITY:
 # IP/MAC
-#
 #
 #**********************************************************
 sub snmputils_qbridge {
@@ -3245,7 +3248,8 @@ sub snmp_info_form {
         'dlink_ip_mac_port' => 'D-Link IP MAC Port Binding',
         'cisco_air'         => 'Cisco Aironet Asociation',
         'celan'             => 'CeLAN MAC Table',
-        'cable_tester'      => 'Cable tester (D-Link)'
+        'cable_tester'      => 'Cable tester (D-Link)',
+        'ifAdminStatus'     => 'Port State'
       },
       NO_ID => 1
     }
@@ -3282,7 +3286,6 @@ sub snmp_info_form {
     print "-- $OIDS_EXINFO{$SNMP_OID_NAME}{SYNTAX} --";
 
     if ($FORM{set}) {
-
       my $SNMP_OID = $FORM{SNMP_OID};
       $SNMP_OID .= '.' . $FORM{SNMP_INDEX} if ($FORM{SNMP_INDEX});
 
@@ -3353,6 +3356,7 @@ sub snmp_info_form {
       $function->({ SNMP_COMMUNITY => $SNMP_COMMUNITY });
       return 0;
     }
+
     my %result  = &snmpwalkhash("$SNMP_COMMUNITY", \&my_simple_hash, $FORM{TYPE});
     my @CAPTION = keys %result;
     my @RES_ARR = sort { $a <=> $b } keys %{ $result{"$CAPTION[0]"} };
@@ -3368,16 +3372,15 @@ sub snmp_info_form {
           caption    => "$_RESULT: $SNMP_COMMUNITY",
           border     => 1,
           title      => [ 'index', @CAPTION ],
-          cols_align => [ 'left', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'center' ]
+          cols_align => [ 'left', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'center' ],
+          ID         => 'SNMP_INFO'
         }
       );
 
       foreach my $k (@RES_ARR) {
         my @arr = ($k);
         foreach my $ft (@CAPTION) {
-
-          #$result{$ft}{$k} = data_convert($ft, $result{$ft}{$k});
-          push @arr, ($OIDS_EXINFO{$ft}{ACCESS} eq 'read-write') ? $html->button("$result{$ft}{$k}", "index=$index&change=y&SNMP_INDEX=$k&SNMP_OID=$OIDS_HASH{$ft}$page_qs") : $result{$ft}{$k};
+          push @arr, ($OIDS_EXINFO{$ft}{ACCESS} eq 'read-write') ? $html->button("$result{$ft}{$k}", "index=$index&change=1&SNMP_INDEX=$k&SNMP_OID=$OIDS_HASH{$ft}$page_qs") : $result{$ft}{$k};
         }
         $table->addrow(@arr);
         $rows_count++;
@@ -3473,7 +3476,6 @@ sub snmpMIB_to_OID_extended ($) {
     'enterprises'  => 'private',
   );
 
-  #my %OIDS_HASH = ();
   my %OIDS_EX = ();
 
   if (!open(MIB, $arg)) {
@@ -4435,5 +4437,139 @@ sub snmputils_cable_tester {
   );
 
 }
+
+
+#**********************************************************
+# HP
+#
+#**********************************************************
+sub snmputils_hp {
+  my ($attr) = @_;
+
+  my $debug          = $attr->{DEBUG} || 0;
+  my $NAS_ID         = $attr->{NAS_ID};              # line->[0];
+  my $MNG_PASSWORD   = $attr->{MNG_PASSWORD};        # line->[11];
+  my $MNG_HOST       = $attr->{MNG_HOST};            # $line->[9];
+  my $RAD_PAIRS      = $attr->{RAD_PAIRS};           #$line->[12];
+  my $SNMP_COMMUNITY = "$MNG_PASSWORD\@$MNG_HOST";
+
+  my $debug_output = '';
+  my ($PORTS_STATUS) = snmputils_hp_list(
+    {
+      SNMP_COMMUNITY => $SNMP_COMMUNITY,
+      SWITCH_INFO    => $SWITCH_INFO,
+    }
+  );
+
+  my %MUST_ACTIVATE = ();                            #Need to be active
+
+  my $list = $Snmputils->snmputils_nas_ipmac(
+    {
+      NAS_ID    => $NAS_ID,
+      PG        => 0,
+      PAGE_ROWS => 100000,
+      DISABLE   => 0,
+      COLS_NANE => 1
+    }
+  );
+
+  foreach my $line (@$list) {
+    my $user_ports = '';
+    if ($line->{ports}) {
+      $user_ports = $line->{ports};
+    }
+
+    $debug_output .= "$line->{nas_id}, UID: $line->{uid} IP: $line->{ip} MAC: $line->{mac} VID: $line->{vid} PORT: $line->{ports} NAS: $line->{nas}\n" if ($debug > 2);
+    # Must active
+    if ($line->{deposit} >= $conf{SNMPUTILS_BINDING_DEPOSIT} && ($line->{nas} == 0 || $line->{nas} == $NAS_ID)) {
+      $MUST_ACTIVATE{"$line->{ports}"} = 1;
+    }
+    else {
+    	$MUST_ACTIVATE{"$line->{ports}"} = 2;
+      $debug_output .= " Negative deposit\n" if ($debug > 2);
+    }
+  }
+
+  #Must active
+  $debug_output .= "Add to server:\n" if ($debug > 0);
+  while (my ($port, $status) = each %MUST_ACTIVATE) {
+    $debug_output .= "Port:$port Status:$status".$html->br() if ($debug > 0);
+
+    if ($PORTS_STATUS{$port} == $status) {
+    	next;
+    }
+
+    if ($debug < 3) {
+      my $message = snmputils_hp_port_change(
+        {
+          SNMP_COMMUNITY => $SNMP_COMMUNITY,
+          PORT_ID        => $port,
+          SWITCH_INFO    => $SWITCH_INFO,
+          STATE          => $status,
+          DEBUG          => $debug
+        }
+      );
+
+      $debug_output .= "! $message\n";
+    }
+  }
+
+  $DEBUG = $debug_output;
+  return $debug_output;
+}
+
+#*******************************************************************
+# HP Change port status
+#*******************************************************************
+sub snmputils_hp_port_change {
+  my ($attr) = @_;
+
+  my $message = '';
+  my $SNMP_COMMUNITY = $attr->{SNMP_COMMUNITY} || '';
+
+  my $port_list = $attr->{PORT_ID} || 1;
+  my $active    = $attr->{STATE}   || 0;
+  my $debug     = $attr->{DEBUG}   || 0;
+
+  my $oid = $OIDS_HASH{ifAdminStatus} . $port_list;
+  $message .= "$oid => $active\n";
+  if (snmpset($SNMP_COMMUNITY, $oid, "integer", "1")) {
+    $message .= " Ok\n";
+  }
+
+  return $message;
+}
+
+#*******************************************************************
+# HP ports status list
+#*******************************************************************
+sub snmputils_hp_list {
+  my ($attr) = @_;
+
+  my $debug          = $attr->{DEBUG}          || 0;
+  my $SNMP_COMMUNITY = $attr->{SNMP_COMMUNITY} || '';
+  #'ifAdminStatus' =>  	1.3.6.1.2.1.2.2.1.7;
+  #'ifOperStatus' '1.3.6.1.2.1.2.2.1.8' 
+
+  my %active  = ();
+  my %dynamic = ();
+
+  #Full list
+  my @result = &snmpwalk("$SNMP_COMMUNITY", $OIDS_HASH{ifAdminStatus});
+  print "$OIDS_HASH{ifAdminStatus}".$html->br() if ($debug > 0);
+
+  my %PORTS_STATUS = ();  
+  foreach my $line (@result) {
+    print "$line" . $html->br() if ($debug > 0);
+    my($port, $status) = split(/:/, $line);
+    $PORTS_STATUS{$port}=$status;
+  }
+
+  return \%PORTS_STATUS;
+}
+
+
+
+
 1
 
