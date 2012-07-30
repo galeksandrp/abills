@@ -355,6 +355,14 @@ sub iptv_user {
         dv_crypt();
       }
 
+      if ($Iptv_stalker) {
+      	my @sub_ch = split(/,/, iptv_user_channels_list({ UID =>  $FORM{UID}, TP_ID => $FORM{TP_ID} }));  # Массив подписных каналов
+        $Iptv_stalker->change_user_subscribe_channel(2, \@sub_ch);
+       	if ($Iptv_stalker->{errno}) {
+       	  $html->message('err', $_ERROR, "$Iptv_stalker->{errno} $Iptv_stalker->{errstr}");
+       	}
+      }
+
       if ($conf{IPTV_USER_EXT_CMD}) {
       	$Iptv->{ACTION}='down' if ($FORM{STATUS});
       	iptv_ext_cmd($conf{IPTV_USER_EXT_CMD}, { %$users, %$Iptv })
@@ -372,6 +380,14 @@ sub iptv_user {
 
       if ($conf{IPTV_DVCRYPT_FILENAME}) {
         dv_crypt();
+      }
+
+      if ($Iptv_stalker) {
+      	my @sub_ch = split(/,/, iptv_user_channels_list({ UID =>  $FORM{UID}, TP_ID => $FORM{TP_ID} }));  # Массив подписных каналов
+        $Iptv_stalker->change_user_subscribe_channel(2, \@sub_ch);
+       	if ($Iptv_stalker->{errno}) {
+       	  $html->message('err', $_ERROR, "$Iptv_stalker->{errno} $Iptv_stalker->{errstr}");
+       	}
       }
 
       if ($conf{IPTV_USER_EXT_CMD}) {
