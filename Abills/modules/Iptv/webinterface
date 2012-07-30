@@ -345,6 +345,8 @@ sub iptv_user {
     print "/ $@ /"; 	
   }
   
+  $FORM{CID} = $FORM{CID2} || $FORM{CID};
+  
   if($FORM{send_message}) {
 	  if ($FORM{send}) {
 	  	$Iptv_stalker->send_msg({ %FORM });
@@ -465,12 +467,14 @@ sub iptv_user {
     my $stalker_modems_list = $Iptv_stalker->stalker_users_list({ UNREGISTER => 1 });
     if (! $Iptv_stalker->{errno}) {
       $user->{MODEMS} = $html->form_select(
-        'CID',
+        'CID2',
         {
           SELECTED          => $Iptv->{CID},
           SEL_MULTI_ARRAY   => $stalker_modems_list,
-          MULTI_ARRAY_KEY   => 0,
+          MULTI_ARRAY_KEY   => 1,
           MULTI_ARRAY_VALUE => 1,
+          SEL_OPTIONS       => { '' => ''},
+          NO_ID             => 1
         }
       );
       
