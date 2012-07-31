@@ -430,8 +430,11 @@ sub list {
                                             
                                             'ACTIVATE',
                                             'EXPIRE',
+                                            'DEPOSIT:skip'
 
   	                                         ] }) };
+
+
 
   if ($attr->{USERS_WARNINGS}) {
   	my $allert_period = '';
@@ -534,6 +537,10 @@ sub list {
     push @WHERE_RULES, @{ $self->search_expr($attr->{SIMULTANEONSLY}, 'INT', 'dv.logins', { EXT_FIELD => 1 }) };
   }
 
+  if ($attr->{DEPOSIT}) {
+  	push @WHERE_RULES, @{ $self->search_expr($attr->{DEPOSIT}, 'INT', 'if(u.company_id > 0, cb.deposit, b.deposit)') };
+  }
+
   if ($attr->{SPEED}) {
     push @WHERE_RULES, @{ $self->search_expr($attr->{SPEED}, 'INT', 'dv.speed', { EXT_FIELD => 1 }) };
   }
@@ -626,6 +633,8 @@ sub list {
     LEFT JOIN users_pi pi ON (u.uid = pi.uid)
     LEFT JOIN tarif_plans tp ON (tp.id=dv.tp_id)
     LEFT JOIN companies company ON  (u.company_id=company.id) 
+    LEFT JOIN bills b ON (u.bill_id = b.id)
+    LEFT JOIN bills cb ON  (company.bill_id=cb.id)
     $EXT_TABLE
     $WHERE"
     );
@@ -756,6 +765,43 @@ sub report_debetors {
   return $list;
 }
 
+
+
+#**********************************************************
+# report_tp
+#**********************************************************
+sub report_tp {
+  my $self = shift;
+  my ($attr) = @_;
+
+  $SORT      = ($attr->{SORT})      ? $attr->{SORT}      : 1;
+  $DESC      = ($attr->{DESC})      ? $attr->{DESC}      : '';
+  $PG        = ($attr->{PG})        ? $attr->{PG}        : 0;
+  $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
+  
+  $WHERE = ($#WHERE_RULES > -1) ? "AND " . join(' and ', @WHERE_RULES) : '';
+
+  $self->query($db, "SELECT tp.id, tp.name, count(dv.uid) AS counts,
+      sum(if(dv.disable=0, 1, 0)) AS active,
+      sum(if(dv.disable=1, 1, 0)) AS disabled,
+      sum(if(if(u.company_id > 0, cb.deposit, b.deposit) <= 0, 1, 0)) AS debetors,
+      tp.tp_id
+      FROM users u
+    INNER JOIN dv_main dv ON (u.uid=dv.uid)
+    LEFT JOIN bills b ON (u.bill_id = b.id)
+    LEFT JOIN tarif_plans tp ON (tp.id=dv.tp_id) 
+    LEFT JOIN companies company ON  (u.company_id=company.id) 
+    LEFT JOIN bills cb ON  (company.bill_id=cb.id)
+     GROUP BY tp.id
+     ORDER BY $SORT $DESC;",
+     undef,
+     $attr
+  );
+
+  return $self if ($self->{errno});
+
+  return $self->{list};
+}
 
 #**********************************************************
 # get tp speed

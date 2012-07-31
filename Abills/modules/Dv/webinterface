@@ -7883,7 +7883,7 @@ my $table = $html->table(
     cols_align  => [ 'left', 'right', 'right', 'right', 'right', 'right' ],
     pages       => $Dv->{TOTAL},
     rowcolor    => 'odd',
-    ID          => 'DEBETORS'
+    ID          => 'REPORT_DEBETORS'
   }
 );
 
@@ -7907,6 +7907,50 @@ $table = $html->table(
     rows       => [ [ "$_TOTAL:", $html->b($Dv->{TOTAL}) ] ]
   }
 );
+
+print $table->show();
+}
+
+#**********************************************************
+#
+#**********************************************************
+sub dv_report_tp {
+	my ($attr)=@_;
+	
+	my $list = $Dv->report_tp({ %LIST_PARAMS, COLS_NAME => 1 });
+	
+my $table = $html->table(
+  {
+    caption     => "$_TARIF_PLANS",
+    width       => '100%',
+    title       => [ "#", "$_NAME", "$_TOTAL", "$_ACTIV", "$_DISABLE", "$_DEBETORS" ],
+    cols_align  => [ 'left', 'right', 'right', 'right', 'right', 'right' ],
+    pages       => $Dv->{TOTAL},
+    rowcolor    => 'odd',
+    ID          => 'REPORTS_TARIF_PLANS'
+  }
+);
+
+foreach my $line (@$list) {
+  $table->addrow(
+    $line->{id}, 
+    $html->button($line->{name}, "index=". get_function_index('dv_users_list'). "&TP_ID=$line->{tp_id}"), 
+    $line->{counts}, 
+    $html->button($line->{active}, "index=". get_function_index('dv_users_list'). "&TP_ID=$line->{tp_id}&STATUS=0"), 
+    $html->button($line->{disabled}, "index=". get_function_index('dv_users_list'). "&TP_ID=$line->{tp_id}&STATUS=1"), 
+    $html->button($line->{debetors}, "index=". get_function_index('dv_users_list'). "&TP_ID=$line->{tp_id}&DEPOSIT=<0&search=1")
+  );
+}
+	
+#print $table->show();
+#
+#$table = $html->table(
+#  {
+#    width      => '100%',
+#    cols_align => [ 'right', 'right' ],
+#    rows       => [ [ "$_TOTAL:", $html->b($Dv->{TOTAL}) ] ]
+#  }
+#);
 
 print $table->show();
 }

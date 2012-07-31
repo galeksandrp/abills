@@ -1236,6 +1236,10 @@ sub ipn_user_activate {
     $ip = ($FORM{REMOTE_ADDR}) ? $FORM{REMOTE_ADDR} : $ENV{REMOTE_ADDR};
   }
   else {
+  	if ($Dv->{IP} ne '0.0.0.0' && $ENV{REMOTE_ADDR} ne $Dv->{IP}) {
+  		$html->message('err', $_ERROR, "$ERR_UNALLOW_IP '$ENV{REMOTE_ADDR}'");
+  		return 0;
+  	}
     $ip = $attr->{IP} || $ENV{REMOTE_ADDR};
   }
 
