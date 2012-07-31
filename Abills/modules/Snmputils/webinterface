@@ -4469,7 +4469,7 @@ sub snmputils_hp {
       PG        => 0,
       PAGE_ROWS => 100000,
       DISABLE   => 0,
-      COLS_NANE => 1
+      COLS_NAME => 1
     }
   );
 
@@ -4531,7 +4531,7 @@ sub snmputils_hp_port_change {
   my $active    = $attr->{STATE}   || 0;
   my $debug     = $attr->{DEBUG}   || 0;
 
-  my $oid = $OIDS_HASH{ifAdminStatus} . $port_list;
+  my $oid = $OIDS_HASH{ifAdminStatus} .'.'. $port_list;
   $message .= "$oid => $active\n";
   if (snmpset($SNMP_COMMUNITY, $oid, "integer", "1")) {
     $message .= " Ok\n";
