@@ -4481,7 +4481,10 @@ sub snmputils_hp {
 
     $debug_output .= "$line->{nas_id}, UID: $line->{uid} IP: $line->{ip} MAC: $line->{mac} VID: $line->{vid} PORT: $line->{ports} NAS: $line->{nas}\n" if ($debug > 2);
     # Must active
-    if ($line->{deposit} >= $conf{SNMPUTILS_BINDING_DEPOSIT} && ($line->{nas} == 0 || $line->{nas} == $NAS_ID)) {
+    if ($line->{deposit} >= $conf{SNMPUTILS_BINDING_DEPOSIT} 
+       && ($line->{nas} == 0 || $line->{nas} == $NAS_ID) 
+       && ($line->{status} == 0) 
+       ) {
       $MUST_ACTIVATE{"$line->{ports}"} = 1;
     }
     else {
