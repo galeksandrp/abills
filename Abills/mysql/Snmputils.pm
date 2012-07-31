@@ -68,9 +68,12 @@ sub snmputils_nas_ipmac {
      d.nas,
      u.id AS login,
      d.network,
-     if(u.disable=1, 1, if((u.expire='0000-00-00' or u.expire > CURDATE())
+     if(u.disable=1, 1,
+      if (d.disable=1, 1,
+       if((u.expire='0000-00-00' or u.expire > CURDATE())
         AND (u.activate='0000-00-00' or u.activate <= CURDATE()), 0, 1)
-       ) AS status
+      )
+     ) AS status
    FROM (users u, dhcphosts_hosts d)
      LEFT JOIN bills ub ON (u.bill_id = ub.id)
      LEFT JOIN companies company ON  (u.company_id=company.id)

@@ -4536,7 +4536,7 @@ sub snmputils_hp_port_change {
 
   my $oid = $OIDS_HASH{ifAdminStatus} .'.'. $port_list;
   $message .= "$oid => $active\n";
-  if (snmpset($SNMP_COMMUNITY, $oid, "integer", "1")) {
+  if (snmpset($SNMP_COMMUNITY, $oid, "integer", "$active")) {
     $message .= " Ok\n";
   }
 
