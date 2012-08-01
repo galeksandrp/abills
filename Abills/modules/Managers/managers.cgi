@@ -315,12 +315,14 @@ sub form_reports {
 
   form_reports_main();
 
+  $pages_qs .= "&SHOW_REPORT=$FORM{SHOW_REPORT}";
+
   $table = $html->table(
     {
-      width   => '100%',
-      caption => "$_REPORTS",
-      border  => 1,
-      title   => [ "$_CONTRACT_ID", "$_FIO", "$_ADDRESS", "$_TARIF_PLAN", "$_STATUS", "$_CONTRACT $_DATE", 'дата фактического подключения', 'дата отключения' ],
+      width      => '100%',
+      caption    => "$_REPORTS",
+      border     => 1,
+      title      => [ "$_CONTRACT_ID", "$_FIO", "$_ADDRESS", "$_TARIF_PLAN", "$_STATUS", "$_CONTRACT $_DATE", 'дата фактического подключения', 'дата отключения' ],
       cols_align => [ 'left', 'right', 'right', 'right', 'center', 'center' ],
       pages      => $Dv->{TOTAL},
       qs         => $pages_qs,
@@ -736,19 +738,19 @@ sub form_users {
     form_passwd({ USER_INFO => $user_info }) if (defined($FORM{newpassword}));
 
     if ($FORM{change}) {
-      if (!$permissions{0}{4}) {
-        $html->message('err', $_ERROR, "$ERR_ACCESS_DENY");
-        print "</td></table>\n";
-        return 0;
-      }
-      elsif (!$permissions{0}{9} && $user_info->{CREDIT} != $FORM{CREDIT}) {
-        $html->message('err', $_ERROR, "$_CHANGE $_CREDIT $ERR_ACCESS_DENY");
-        $FORM{CREDIT} = undef;
-      }
-      elsif (!$permissions{0}{11} && $user_info->{REDUCTION} != $FORM{REDUCTION}) {
-        $html->message('err', $_ERROR, "$_REDUCTION $ERR_ACCESS_DENY");
-        $FORM{REDUCTION} = undef;
-      }
+#      if (!$permissions{0}{4}) {
+#        $html->message('err', $_ERROR, "$ERR_ACCESS_DENY");
+#        print "</td></table>\n";
+#        return 0;
+#      }
+#      elsif (!$permissions{0}{9} && $user_info->{CREDIT} != $FORM{CREDIT}) {
+#        $html->message('err', $_ERROR, "$_CHANGE $_CREDIT $ERR_ACCESS_DENY");
+#        $FORM{CREDIT} = undef;
+#      }
+#      elsif (!$permissions{0}{11} && $user_info->{REDUCTION} != $FORM{REDUCTION}) {
+#        $html->message('err', $_ERROR, "$_REDUCTION $ERR_ACCESS_DENY");
+#        $FORM{REDUCTION} = undef;
+#      }
 
       $user_info->change($user_info->{UID}, {%FORM});
       if ($user_info->{errno}) {
@@ -1757,6 +1759,9 @@ sub dv_users {
     elsif ($FORM{TYPE} eq 'phone') {
       $LIST_PARAMS{PHONE} = "$FORM{QUERY}*";
     }
+    elsif ($FORM{TYPE} eq 'fio') {
+      $LIST_PARAMS{FIO} = "$FORM{QUERY}*";
+    }
     elsif ($FORM{TYPE} eq 'ip') {
       $LIST_PARAMS{IP} = "$FORM{QUERY}";
     }
@@ -1948,7 +1953,8 @@ sub dv_users {
         PASPORT_NUM    => '*',
         PASPORT_DATE   => '*',
         PASPORT_GRANT  => '*',
-        IP             => '>=0.0.0.0'
+        IP             => '>=0.0.0.0',
+        _describe      => '*'
       }
     );
   }
@@ -1956,7 +1962,7 @@ sub dv_users {
   $OUTPUT{TP_SEL} = $html->form_select(
     ($Dv->{TP_ID}) ? 'TP_ID' : '4.TP_ID',
     {
-      SELECTED => $Dv->{TP_ID} || $FORM{'4.TP_ID'},
+      SELECTED          => $Dv->{TP_ID} || $FORM{'4.TP_ID'},
       SEL_MULTI_ARRAY   => $Tariffs->list({ MODULE => 'Dv' }),
       MULTI_ARRAY_KEY   => 0,
       MULTI_ARRAY_VALUE => 1,

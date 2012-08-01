@@ -26,7 +26,21 @@ my %sms_status = (
 #**********************************************************
 sub sms_service_connect {
 
-if ($conf{SMS_EPOCHTASMS_OPENKEY}) {
+if ($conf{SMS_LITTLESMS_USER}) {
+  eval { require "modules/Sms/Littlesms.pm"; };
+  if (!$@) {
+    eval { require "modules/Sms/Littlesms.pm"; };
+    Littlesms->import();
+    $Sms_service = Littlesms->new($db, $admin, \%conf);
+    return $Sms_service;
+  }
+  else {
+    print $@;
+    $html->message('err', $_ERROR, "Can't load 'Littlesms'. Purchase this module http://abills.net.ua");
+    exit;
+  }
+}
+elsif ($conf{SMS_EPOCHTASMS_OPENKEY}) {
   eval { require "modules/Sms/Epochtasms.pm"; };
   if (!$@) {
     eval { require "modules/Sms/Epochtasms.pm"; };
@@ -159,7 +173,7 @@ sub sms_reports {
   my $table = $html->table(
     {
       width      => '100%',
-      caption    => "$_REPORTS",
+      caption    => "$Sms_service->{SERVICE_NAME} - $_REPORTS",
       border     => 1,
       title      => [ 'id', 'msg_id', 'number', 'sign', 'message', 'wappush', 'cost', 'credits', 'send_time', 'sended', 'updated', 'status', 'dlr_status' ],
       cols_align => [ 'center', 'left', 'left', 'left', 'left', 'left', 'left', 'left', 'left', 'left', 'left', 'left', 'left' ],
@@ -205,7 +219,6 @@ sub sms_reports {
     }
   );
   print $table->show();
-
 }
 
 1

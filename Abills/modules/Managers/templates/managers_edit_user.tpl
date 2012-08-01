@@ -6,15 +6,22 @@
 
 <b>$_LOGIN</b>: <input type=text  name='LOGIN' value='%ID%'>
 <b>$_PASSWD</b>: <input type=text  name=PASSWD value='%PASSWD%'>
-<b>$_PHONE</b>: <input type=text  name=PHONE value='%PHONE%'><br><br>
+
+<b>$_DESCRIBE</b>:<input type=text  name='_describe' value='%_describe%' size=30><br /><br />
+
 <b>$_FIO</b>: <input type=text  name='FIO' value='%FIO%' size=50>
+<b>$_PHONE</b>: <input type=text  name='PHONE' value='%PHONE%'>
+<br><br>
+
 <b>$_CONTRACT_ID</b>: <input type=text  name=CONTRACT_ID value='%CONTRACT_ID%'>
 <b>$_CONTRACT $_DATE</b>:<input class='tcalInput' name='CONTRACT_DATE' value='%CONTRACT_DATE%' id='CONTRACT_DATE' rel='tcal' size='12' type='text'> <br/><br/>
 <b>$_PASPORT</b>: <input name='PASPORT_NUM' value='%PASPORT_NUM%' type='text'>
 <b>$_DATE</b>: <input class='tcalInput' name='PASPORT_DATE' value='%PASPORT_DATE%' size='10' rel='tcal' id='PASPORT_DATE' type='text'>
 <b>$_GRANT</b>: <input name='PASPORT_GRANT' value='%PASPORT_GRANT%' type='text' size='55'> <br/><br/>
+<b>$_ADDRESS</b><br>
 <b>$_ADDRESS_STREET</b>: <input type=text  name='ADDRESS_STREET' value='%ADDRESS_STREET%'>
-<b>$_ADDRESS_BUILD</b>: <input type=text  name=ADDRESS_BUILD value='%ADDRESS_BUILD%' size=3> <b>$_ADDRESS_FLAT</b>: <input type=text  name=ADDRESS_FLAT value='%ADDRESS_FLAT%' size=3> 
+<b>$_ADDRESS_BUILD</b>: <input type=text  name=ADDRESS_BUILD value='%ADDRESS_BUILD%' size=3> <b>$_ADDRESS_FLAT</b>: <input type=text  name=ADDRESS_FLAT value='%ADDRESS_FLAT%' size=3>
+<br> 
 <b>$_TARIF_PLAN</b>: %TP_NAME%<br/><br/>
 
 <b>$_COMMENTS</b>:<br/>

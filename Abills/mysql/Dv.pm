@@ -48,7 +48,6 @@ sub info {
   my ($uid, $attr) = @_;
 
   if (defined($attr->{LOGIN})) {
-    use Users;
     my $users = Users->new($db, $admin, $CONF);
     $users->info(0, { LOGIN => "$attr->{LOGIN}" });
     if ($users->{errno}) {
@@ -403,7 +402,6 @@ sub list {
   }
 
   @WHERE_RULES = ("u.uid = dv.uid");
-
   push @WHERE_RULES, @{ $self->search_expr_users({ %$attr, 
   	                         EXT_FIELDS => [
   	                                        'PHONE',

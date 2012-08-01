@@ -1,5 +1,4 @@
 package Users;
-
 # Users manage functions
 #
 
@@ -11,7 +10,7 @@ use Exporter;
 $VERSION = 2.05;
 @ISA     = ('Exporter');
 
-@EXPORT = qw();
+@EXPORT = qw(config_list);
 
 @EXPORT_OK   = ();
 %EXPORT_TAGS = ();
