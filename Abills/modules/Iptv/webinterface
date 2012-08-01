@@ -404,6 +404,7 @@ sub iptv_user {
 
       if ($Iptv_stalker) {
       	my @sub_ch = split(/,/, iptv_user_channels_list({ UID =>  $FORM{UID}, TP_ID => $FORM{TP_ID} }));  # Ìàññèâ ïîäïèñíûõ êàíàëîâ
+      	print join(',', @sub_ch);
         $Iptv_stalker->change_user_subscribe_channel($FORM{UID}, \@sub_ch);
        	if ($Iptv_stalker->{errno}) {
        	  $html->message('err', $_ERROR, "$Iptv_stalker->{errno} $Iptv_stalker->{errstr}");

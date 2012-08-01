@@ -7,6 +7,19 @@ my $Fees  = Fees->new($db, $admin, \%conf);
 my $Users = Users->new($db, $admin, \%conf);
 
 my $Sms_service;
+my %sms_status = (
+0  => 'В очереди отправки',
+1  => 'Недостаточно денег для рассылки',
+2  => 'В процессе рассылки',
+3  => 'Отправлено',
+4  => 'Нет правильных номеров получателей',
+5  => 'Частично отправлено',
+6  => 'Спам',
+7  => 'Недействительное имя отправителя',
+8  => 'Пауза',
+9  => 'Запланирована',
+10 => 'Ожидает модерации'
+);
 
 #**********************************************************
 # Connect to torbosms
@@ -66,22 +79,29 @@ sub sms_send {
   my ($attr) = @_;
 
   sms_service_connect();
+  
+  if (! $attr->{NUMBER} || $attr->{NUMBERS}) {
+  	$html->message('err', $_ERROR, "ERR_PHONE_NOT_DEFINED");
+  }
+  elsif (! $attr->{NUMBERS} && $attr->{NUMBER} !~ /(\d{12})/) {
+  	$html->message('err', $_ERROR, "ERR_WRONG_PHONE");
+  }
 
   $Sms_service->send_sms(
     {
       NUMBERS => $attr->{NUMBERS},
       NUMBER  => $attr->{NUMBER},
-      MESSAGE => (($conf{TURBOSMS_MESSAGE_HEADER}) ? $conf{TURBOSMS_MESSAGE_HEADER} : '') . $attr->{MESSAGE},
+      MESSAGE => (($conf{TURBOSMS_MESSAGE_HEADER}) ? $conf{TURBOSMS_MESSAGE_HEADER}.' ' : '') . $attr->{MESSAGE},
       DEBUG   => $attr->{DEBUG} || 0
     }
   );
 
   if ($Sms_service->{errno}) {
     if ($attr->{QUITE}) {
-      print "[$Sms_service->{errno}] $err_strs{$Sms_service->{errno}}\n";
+      print "[$Sms_service->{errno}] $err_strs{$Sms_service->{errno}} $Sms_service->{errstr}\n";
     }
     else {
-      $html->message('err', "Turbosms - $_ERROR", "[$Sms_service->{errno}] $err_strs{$Sms_service->{errno}}");
+      $html->message('err', "Turbosms - $_ERROR", "[$Sms_service->{errno}] $err_strs{$Sms_service->{errno}} $Sms_service->{errstr}");
     }
     return 0;
   }
@@ -123,54 +143,51 @@ sub sms_info {
 #**********************************************************
 #
 #**********************************************************
-sub turbosms_reports {
+sub sms_reports {
   $Sms_service = sms_service_connect();
   
   if (! $Sms_service ) {
   	return 0;
   }
-  
 
-  my $list = $Sms_service->info({%LIST_PARAMS});
+  my $list = $Sms_service->info({%LIST_PARAMS, COLS_NAME => 1 });
 
   my $table = $html->table(
     {
       width      => '100%',
-      caption    => "$_REPORTS - Turbosms",
+      caption    => "$_REPORTS",
       border     => 1,
       title      => [ 'id', 'msg_id', 'number', 'sign', 'message', 'wappush', 'cost', 'credits', 'send_time', 'sended', 'updated', 'status', 'dlr_status' ],
       cols_align => [ 'center', 'left', 'left', 'left', 'left', 'left', 'left', 'left', 'left', 'left', 'left', 'left', 'left' ],
       qs         => $pages_qs,
-      ID         => 'REPORTS_TURBOSMS',
+      ID         => 'REPORTS_SMS',
       pages      => $Sms_service->{TOTAL}
     }
   );
 
   use Encode;
-
   foreach my $line (@$list) {
-    my $status  = $line->[11] || 0;
-    my $message = $line->[4]  || '';
+    my $status  = $sms_status{$line->{status}} || 0;
+    my $message = $line->{message}  || '';
     if ($conf{dbcharset} ne 'utf8') { Encode::from_to($status,  'utf-8', 'windows-1251') }
     if ($conf{dbcharset} ne 'utf8') { Encode::from_to($message, 'utf-8', 'windows-1251') }
 
     $table->addrow(
-      $line->[0],
-      $line->[1],
-      $line->[2],
-      $line->[3],
+      $line->{id},
+      $line->{msg_id},
+      $line->{number},
+      $line->{sign},
       $message,
-      $line->[5],
-      $line->[6],
-      $line->[7],
-      $line->[8],
-      $line->[9],
-      $line->[10],
+      $line->{wappush},
+      $line->{cost},
+      $line->{credit},
+      $line->{send_time},
+      ($line->{sended}) ? $_YES: $_NO,
+      $line->{updated},
       $status,
-
       #convert( substr("$line->[11]", 0, 16), {  utf82win => 1 }).$html->br().
-      #convert(convert("��������", {  win2utf8 => 1 })),
-      $line->[12],
+      #convert(convert("Отсутств", {  win2utf8 => 1 })),
+      $line->{dlr_status},
     );
   }
 

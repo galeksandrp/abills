@@ -3180,6 +3180,41 @@ sub snmputils_load_mibs {
   return \%OIDS_EXINFO;
 }
 
+
+#**********************************************************
+#
+#**********************************************************
+sub snmputils_ports_state {
+	
+	  my %result  = &snmpwalkhash("$SNMP_COMMUNITY", \&my_simple_hash, $FORM{TYPE});
+    my @RES_ARR = sort { $a <=> $b } keys %{ $result{"$CAPTION[0]"} };
+
+    if ($SNMP_Session::errmsg) {
+      print $html->message('err', $_ERROR, "$FORM{TYPE}" . $html->br() . "$SNMP_Session::suppress_warnings / $SNMP_Session::errmsg");
+    }
+
+    if ($#RES_ARR > 0 && $FORM{TYPE} ne 'system') {
+      $table = $html->table(
+        {
+          width      => '600',
+          border     => 1,
+          ID         => 'SNMP_PORT_INFO'
+        }
+      );
+
+      foreach my $k (@RES_ARR) {
+        my @arr = ($k);
+        foreach my $ft (@CAPTION) {
+          push @arr, ($OIDS_EXINFO{$ft}{ACCESS} eq 'read-write') ? $html->button("$result{$ft}{$k}", "index=$index&change=1&SNMP_INDEX=$k&SNMP_OID=$OIDS_HASH{$ft}$page_qs") : $result{$ft}{$k};
+        }
+        $table->addrow(@arr);
+        $rows_count++;
+      }
+	  }
+
+	print $table->show();
+}
+
 #**********************************************************
 #
 #**********************************************************
@@ -3249,7 +3284,7 @@ sub snmp_info_form {
         'cisco_air'         => 'Cisco Aironet Asociation',
         'celan'             => 'CeLAN MAC Table',
         'cable_tester'      => 'Cable tester (D-Link)',
-        'ifAdminStatus'     => 'Port State'
+        'ports_state'       => 'Port State'
       },
       NO_ID => 1
     }
