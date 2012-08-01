@@ -101,7 +101,7 @@ sub sms_send {
       print "[$Sms_service->{errno}] $err_strs{$Sms_service->{errno}} $Sms_service->{errstr}\n";
     }
     else {
-      $html->message('err', "Turbosms - $_ERROR", "[$Sms_service->{errno}] $err_strs{$Sms_service->{errno}} $Sms_service->{errstr}");
+      $html->message('err', "$Sms_service->{SERVICE_NAME} - $_ERROR", "[$Sms_service->{errno}] $err_strs{$Sms_service->{errno}} $Sms_service->{errstr}");
     }
     return 0;
   }
@@ -151,6 +151,10 @@ sub sms_reports {
   }
 
   my $list = $Sms_service->info({%LIST_PARAMS, COLS_NAME => 1 });
+
+  if ($Sms_service->{errno}) {
+    $html->message('err', "$Sms_service->{SERVICE_NAME} - $_ERROR", "[$Sms_service->{errno}] $err_strs{$Sms_service->{errno}} $Sms_service->{errstr}");
+  }
 
   my $table = $html->table(
     {
