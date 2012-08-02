@@ -261,6 +261,23 @@ sub pi_add {
     ($prefix, $sufix) = split(/\|/, $attr->{CONTRACT_TYPE});
   }
 
+  if ($DATA{STREET_ID} && $DATA{ADDRESS_BUILD} && ! $DATA{LOCATION_ID}) {
+  	my $list = $self->build_list({ STREET_ID => $DATA{STREET_ID}, 
+  		                  NUMBER    => $attr->{ADDRESS_BUILD}, 
+  		                  COLS_NAME => 1 
+  		                });
+
+  	if ($self->{TOTAL} > 0) {
+  		$DATA{LOCATION_ID}=$list->[0]->{id};
+  	}
+  	else {
+  		$self->build_add({ NUMBER    => $DATA{ADDRESS_BUILD}, 
+  			                 STREET_ID => $DATA{STREET_ID},  
+  			              });
+  	  $DATA{LOCATION_ID}=$self->{INSERT_ID};
+  	}
+  }
+
   $self->query(
     $db, "INSERT INTO users_pi (uid, fio, phone, address_street, address_build, address_flat, country_id,
           email, contract_id, contract_date, comments, pasport_num, pasport_date,  pasport_grant, zip, 
@@ -1980,7 +1997,7 @@ sub build_list {
   my $sql = '';
   if ($attr->{CONNECTIONS}) {
     $sql = "SELECT b.number, b.flors, b.entrances, b.flats, s.name, 
-     count(pi.uid), ROUND((count(pi.uid) / b.flats * 100), 0),
+     count(pi.uid) AS users_count, ROUND((count(pi.uid) / b.flats * 100), 0) AS users_connections,
 	   b.added, b.id $ext_fields
 
 	    FROM builds b
@@ -1999,7 +2016,7 @@ sub build_list {
      LIMIT $PG, $PAGE_ROWS;";
   }
 
-  $self->query($db, "$sql");
+  $self->query($db, "$sql", undef, $attr);
   my $list = $self->{list};
 
   if ($self->{TOTAL} > 0) {
