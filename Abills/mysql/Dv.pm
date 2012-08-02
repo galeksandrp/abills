@@ -749,6 +749,7 @@ sub report_debetors {
       $db, "SELECT count(*)
       FROM users u
     INNER JOIN dv_main dv ON (u.uid=dv.uid)
+    LEFT JOIN users_pi pi ON (u.uid = pi.uid)
     LEFT JOIN bills b ON (u.bill_id = b.id)
     LEFT JOIN tarif_plans tp ON (tp.id=dv.tp_id) 
     LEFT JOIN companies company ON  (u.company_id=company.id) 

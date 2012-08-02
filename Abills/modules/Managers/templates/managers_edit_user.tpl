@@ -19,7 +19,7 @@
 <b>$_DATE</b>: <input class='tcalInput' name='PASPORT_DATE' value='%PASPORT_DATE%' size='10' rel='tcal' id='PASPORT_DATE' type='text'>
 <b>$_GRANT</b>: <input name='PASPORT_GRANT' value='%PASPORT_GRANT%' type='text' size='55'> <br/><br/>
 <b>$_ADDRESS</b><br>
-<b>$_ADDRESS_STREET</b>: <input type=text  name='ADDRESS_STREET' value='%ADDRESS_STREET%'>
+<b>$_ADDRESS_STREET</b>: %STREET_SEL%
 <b>$_ADDRESS_BUILD</b>: <input type=text  name=ADDRESS_BUILD value='%ADDRESS_BUILD%' size=3> <b>$_ADDRESS_FLAT</b>: <input type=text  name=ADDRESS_FLAT value='%ADDRESS_FLAT%' size=3>
 <br> 
 <b>$_TARIF_PLAN</b>: %TP_NAME%<br/><br/>

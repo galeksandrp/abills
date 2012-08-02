@@ -284,18 +284,7 @@ sub form_reports_main {
 sub form_main {
 
   form_reports_main();
-############## SEARCH
-  #					LOGIN           => $FORM{QUERY},
-  #					COLS_NAME       => 1,
-  #					ADDRESS_STREET  => '*',
-  #					ADDRESS_BUILD   => '*',
-  #					ADDRESS_FLAT    => '*',
-  #					CONTRACT_ID     => '*',
-
-  $LIST_PARAMS{LOGIN}          = '*';
-  $LIST_PARAMS{ADDRESS_STREET} = '*';
-  $LIST_PARAMS{ADDRESS_BUILD}  = '*';
-  $LIST_PARAMS{ADDRESS_FLAT}   = '*';
+  $LIST_PARAMS{SHOW_ADDRESS}   = 1;
   $LIST_PARAMS{CONTRACT_ID}    = '*';
   $LIST_PARAMS{PHONE}          = '*';
   $LIST_PARAMS{IP}             = '>=0.0.0.0';
@@ -1075,6 +1064,7 @@ sub form_users {
     }
     $i++;
   }
+
 
   my $list = $users->list(
     {
@@ -1937,13 +1927,15 @@ sub dv_users {
     }
   }
 
+
   if ($Dv->{UID}) {
     $list = $Dv->list(
       {
         UID            => $Dv->{UID},
-        ADDRESS_STREET => '*',
-        ADDRESS_BUILD  => '*',
-        ADDRESS_FLAT   => '*',
+#        ADDRESS_STREET => '*',
+#        ADDRESS_BUILD  => '*',
+#        ADDRESS_FLAT   => '*',
+        SHOW_ADDRESS   => 1,
         CONTRACT_DATE  => '>=0000-00-00',
         CONTRACT_ID    => '*',
         COLS_NAME      => 1,
@@ -1954,7 +1946,7 @@ sub dv_users {
         PASPORT_DATE   => '*',
         PASPORT_GRANT  => '*',
         IP             => '>=0.0.0.0',
-        _describe      => '*'
+        _describe      => '*',
       }
     );
   }
@@ -1991,10 +1983,26 @@ sub dv_users {
     );
 
     foreach my $payment (@$payments_list) {
-      $table->addrow($payment->{id}, $payment->{date}, $payment->{sum}, $payment->{admin_name}, $payment->{dsc});
+      $table->addrow($payment->{id}, 
+        $payment->{date}, 
+        $payment->{sum}, 
+        $payment->{admin_name}, 
+        $payment->{dsc});
     }
 
     $OUTPUT{PAYMENT_LIST} = $table->show({ OUTPUT2RETURN => 1 });
+
+  $OUTPUT{STREET_SEL} = $html->form_select(
+    'STREET_ID',
+    {
+      SELECTED          => $list->[0]->{'STREET_ID'},
+      SEL_MULTI_ARRAY   => $users->street_list(),
+      MULTI_ARRAY_KEY   => 0,
+      MULTI_ARRAY_VALUE => 1,
+      NO_ID             => 1,
+      SEL_OPTIONS       => { '' => "" },
+    }
+    );
 
     #get shedule
     my $list2 = $Shedule->list(
@@ -2093,7 +2101,6 @@ sub dv_users {
 
      $OUTPUT{HISTORY} = $table->show({ OUTPUT2RETURN => 1 });
     }
-    
     
     
     #$OUTPUT{HISTORY} = $table->show({ OUTPUT2RETURN => 1 });
@@ -2212,6 +2219,18 @@ sub dv_users {
     }
   );
 
+  $OUTPUT{STREET_SEL} = $html->form_select(
+    '3.STREET_ID',
+    {
+      SELECTED          => $FORM{'1.STREET_ID'},
+      SEL_MULTI_ARRAY   => $users->street_list(),
+      MULTI_ARRAY_KEY   => 0,
+      MULTI_ARRAY_VALUE => 1,
+      NO_ID             => 1,
+      SEL_OPTIONS       => { '' => "" },
+    }
+  );
+
   $html->tpl_show(_include('managers_add_user', 'Managers'), {%OUTPUT});
   return 0;
 }
@@ -2237,8 +2256,9 @@ sub dv_wizard_user {
   }
 
   my %add_values = ();
-
+  
   if ($FORM{add}) {
+  	$db->{AutoCommit} = 0;
     foreach my $k (sort %FORM) {
       if ($k =~ m/^[0-9]+\.[_a-zA-Z0-9]+$/) {
         $k =~ s/%22//g;
@@ -2249,7 +2269,6 @@ sub dv_wizard_user {
 
     # Password
     $add_values{1}{GID} = $admin->{GID} if ($admin->{GID});
-
     my $user = $users->add({ %{ $add_values{1} }, CREATE_EXT_BILL => ((defined($FORM{'5.EXT_BILL_DEPOSIT'}) || $FORM{'1.CREATE_EXT_BILL'}) ? 1 : 0) });
     my $message = '';
     if (!$user->{errno}) {
@@ -2259,7 +2278,7 @@ sub dv_wizard_user {
       #2
       if (defined($FORM{'2.newpassword'})) {#  && $FORM{'2.newpassword'} ne '') {
         if (length($FORM{'2.newpassword'}) < $conf{PASSWD_LENGTH}) {
-          $html->message('err', "$_PASSWD : $_ERROR", "$ERR_SHORT_PASSWD");
+          $html->message('err', "$_PASSWD : $_ERROR", "- $ERR_SHORT_PASSWD");
         }
         #elsif ($FORM{'2.newpassword'} eq $FORM{'2.confirm'}) {
           $add_values{2}{PASSWORD} = $FORM{'2.newpassword'};
@@ -2290,6 +2309,7 @@ sub dv_wizard_user {
 
           if ($Payments->{errno}) {
             $html->message('err', "$_PAYMENTS : $_ERROR", "[$Payments->{errno}] $err_strs{$Payments->{errno}}");
+            $db->rollback();
             return 0;
           }
           else {
@@ -2345,6 +2365,7 @@ sub dv_wizard_user {
 
             if ($Payments->{errno}) {
               $html->message('err', "$_PAYMENTS : $_ERROR", "[$Payments->{errno}] $err_strs{$Payments->{errno}}");
+              $db->rollback();
               return 0;
             }
             else {
@@ -2365,6 +2386,7 @@ sub dv_wizard_user {
 
             if ($fees->{errno}) {
               $html->message('err', "$_ERROR : $_FEES", "[$fees->{errno}] $err_strs{$fees->{errno}}");
+              $db->rollback();
               return 0;
             }
             else {
@@ -2394,67 +2416,10 @@ sub dv_wizard_user {
           else {
             $html->message('err', "Dv:$_ERROR", "Dv Modules [$Dv->{errno}] $err_strs{$Dv->{errno}}");
           }
+          $db->rollback();
           return 0;
         }
-#        elsif (! $FORM{SERIAL}) {
-#          if (!$add_values{4}{STATUS} && $Dv->{TP_INFO}->{MONTH_FEE} > 0) {
-#            $Dv->{UID}              = $UID;
-#            $Dv->{ACCOUNT_ACTIVATE} = $add_values{1}{ACTIVATE};
-#            $user_fees              = dv_get_month_fee($Dv);
-#          }
-#        }
       }
-
-#      # Add E-Mail account
-#      my $Mail;
-#      if (in_array('Mail', \@MODULES) && $FORM{'6.USERNAME'}) {
-#        require "Abills/modules/Mail/webinterface";
-#        $Mail = Mail->new($db, $admin, \%conf);
-#
-#        $FORM{'6.newpassword'} = $FORM{'6.PASSWORD'} if ($FORM{'6.PASSWORD'});
-#
-#        $Mail->mbox_add(
-#          {
-#            UID => "$UID",
-#            %{ $add_values{6} },
-#            PASSWORD => $FORM{'6.newpassword'},
-#          }
-#        );
-#        $Mail->{PASSWORD} = $FORM{'6.newpassword'};
-#
-#        if ($Mail->{errno}) {
-#          $html->message('err', "E-MAIL : $_ERROR", "[$Mail->{errno}] $err_strs{$Mail->{errno}}");
-#          return 0;
-#        }
-#        elsif ($FORM{'6.SEND_MAIL'}) {
-#          my $message = $html->tpl_show(_include('mail_test_msg', 'Mail'), $Mail, { OUTPUT2RETURN => 1 });
-#          sendmail("$conf{ADMIN_MAIL}", "$Mail->{USER_EMAIL}", "Test mail", "$message", "$conf{MAIL_CHARSET}", "");
-#        }
-#
-#        $Mail = $Mail->mbox_info({ MBOX_ID => $Mail->{MBOX_ID} });
-#        $Mail->{EMAIL_ADDR} = $Mail->{USERNAME} . '@' . $Mail->{DOMAIN};
-#      }
-#
-#      # Msgs
-#      if (in_array('Msgs', \@MODULES) && $add_values{7} && $FORM{'7.SUBJECT'}) {
-#        require "Abills/modules/Msgs/webinterface";
-#        $FORM{INNER_MSG} = 1;
-#        my $Msgs = Msgs->new($db, $admin, \%conf);
-#
-#        %FORM      = %{ $add_values{7} };
-#        $FORM{UID} = $UID;
-#        $FORM{add} = $UID;
-#        msgs_admin_add({ SEND_ONLY => 1 });
-#      }
-#
-#      # Abon
-#      if (in_array('Abon', \@MODULES) && $add_values{9}) {
-#        require "Abills/modules/Abon/webinterface";
-#        %FORM         = %{ $add_values{9} };
-#        $FORM{UID}    = $UID;
-#        $FORM{change} = $UID;
-#        abon_user({ QUITE => 1 });
-#      }
 
       #Fees wizard form
       if ($add_values{10}) {
@@ -2525,6 +2490,7 @@ sub dv_wizard_user {
       return 0 if ($attr->{SHORT_REPORT});
     }
 
+   $db->commit();
   }
 
   #

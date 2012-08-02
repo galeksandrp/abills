@@ -17,7 +17,7 @@
 <b>$_DATE</b>: <input class='tcalInput' name='3.PASPORT_DATE' value=\"$DATE\" size=\"10\" rel=\"tcal\" id=\"PASPORT_DATE\" type=\"text\">
 <b>$_GRANT</b>: <input name='3.PASPORT_GRANT' value='' type='text' size='55'> <br>
 <b>$_ADDRESS</b><br>
-<b>$_ADDRESS_STREET</b>: <input type=text  name='3.ADDRESS_STREET' value=\"$FORM{'3.ADDRESS_STREET'}\">
+<b>$_ADDRESS_STREET</b>: %STREET_SEL%
 <b>$_ADDRESS_BUILD</b>: <input type=text  name='3.ADDRESS_BUILD' value=\"$FORM{'3.ADDRESS_BUILD'}\" size=3>
 <b>$_ADDRESS_FLAT</b>: <input type=text  name='3.ADDRESS_FLAT' value=\"$FORM{'3.ADDRESS_FLAT'}\" size=3>
 <br/>
@@ -32,9 +32,9 @@
 <b>_FL_P</b>: %GROUP_SEL%
 <b>$_ACTIVATE</b>:<input class=\"tcalInput\" name=\"1.ACTIVATE\" value=\"$DATE\" id=\"1.ACTIVATE\" rel=\"tcal\" size=\"12\" type=\"text\"> <br/><br/>
 
-<a href='#' class=href_buttons>$_PRINT $_CONTRACT $_PAGE 1</a>
+<a href='$SELF_URL?index=15&UID=$FORM{UID}&pdf=1&PRINT_CONTRACT=1' class=href_buttons>$_PRINT $_CONTRACT $_PAGE 1</a>
 <a href='#' class=href_buttons>$_PRINT $_CONTRACT $_PAGE 2</a>
-<a href='#' class=href_buttons>$_PRINT $_MEMORY_CARD</a>
+<a href='$SELF_URL?qindex=15&UID=$FORM{UID}&PRINT_CONTRACT=$FORM{CONTRACT_ID}&pdf=1' class=href_buttons>$_PRINT $_MEMORY_CARD</a>
 <input class=big_buttons name=add type=submit value='$_ADD'>
 
 </form>

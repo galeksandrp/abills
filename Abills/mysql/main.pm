@@ -715,8 +715,14 @@ sub search_expr_users () {
     elsif ($CONF->{ADDRESS_REGISTER}) {
       if ($attr->{ADDRESS_STREET}) {
         push @fields, @{ $self->search_expr($attr->{ADDRESS_STREET}, 'STR', 'streets.name AS street_name', { EXT_FIELD => 1 }) };
-        $self->{EXT_TABLES} .= "INNER JOIN builds ON (builds.id=pi.location_id)
-        INNER JOIN streets ON (streets.id=builds.street_id)";
+        $self->{EXT_TABLES} .= "LEFT JOIN builds ON (builds.id=pi.location_id)
+        LEFT JOIN streets ON (streets.id=builds.street_id)";
+      }
+      elsif($attr->{SHOW_ADDRESS}) {
+      	$self->{SEARCH_FIELDS_COUNT} += 4;
+      	$self->{SEARCH_FIELDS}       .= 'streets.name AS street_name, builds.number AS address_build, pi.address_flat, streets.id AS street_id, pi.address_flat, ';
+        $self->{EXT_TABLES} .= "LEFT JOIN builds ON (builds.id=pi.location_id)
+        LEFT JOIN streets ON (streets.id=builds.street_id)";
       }
     }
     elsif ($attr->{ADDRESS_STREET}) {
@@ -726,7 +732,7 @@ sub search_expr_users () {
     if ($CONF->{ADDRESS_REGISTER}) {
       if ($attr->{ADDRESS_BUILD}) {
         push @fields, @{ $self->search_expr($attr->{ADDRESS_BUILD}, 'STR', 'builds.number', { EXT_FIELD => 'builds.number' }) };
-        $self->{EXT_TABLES} .= "INNER JOIN builds ON (builds.id=pi.location_id)" if ($self->{EXT_TABLES} !~ /builds/);
+        $self->{EXT_TABLES} .= "LEFT JOIN builds ON (builds.id=pi.location_id)" if ($self->{EXT_TABLES} !~ /builds/);
       }
     }
     elsif ($attr->{ADDRESS_BUILD}) {
