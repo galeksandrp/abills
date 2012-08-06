@@ -358,9 +358,11 @@ if ($conf{LANGS}) {
 }
 
 $html->{METATAGS} = templates('metatags');
-if (($FORM{UID} && $FORM{UID} =~ /^(\d+)$/ && $FORM{UID} > 0) || ($FORM{LOGIN} && $FORM{LOGIN} && $FORM{LOGIN} !~ /\*/ && !$FORM{add} && !$FORM{next})) {
-  $ui = user_info($FORM{UID}, { LOGIN => ($FORM{LOGIN}) ? $FORM{LOGIN} : undef });
-  $html->{WEB_TITLE} = "$conf{WEB_TITLE} [$ui->{LOGIN}]";
+if (($FORM{UID} && $FORM{UID} =~ /^(\d+)$/ && $FORM{UID} > 0) || ($FORM{LOGIN} && $FORM{LOGIN} !~ /\*/ && !$FORM{add} && !$FORM{next} )) {
+	if ($FORM{type} ne 10) {
+    $ui = user_info($FORM{UID}, { LOGIN => ($FORM{LOGIN}) ? $FORM{LOGIN} : undef });
+    $html->{WEB_TITLE} = "$conf{WEB_TITLE} [$ui->{LOGIN}]";
+  }
 }
 
 print $html->header();
@@ -368,6 +370,7 @@ my ($menu_text, $navigat_menu) = mk_navigator();
 ($admin->{ONLINE_USERS}, $admin->{ONLINE_COUNT}) = $admin->online();
 
 my %SEARCH_TYPES = (
+  10 => "$_UNIVERSAL",
   11 => $_USERS,
   2  => $_PAYMENTS,
   3  => $_FEES,
@@ -384,7 +387,7 @@ elsif (!defined $FORM{type}) {
 $admin->{SEL_TYPE} = $html->form_select(
   'type',
   {
-    SELECTED => (!$SEARCH_TYPES{ $FORM{type} }) ? 11 : $FORM{type},
+    SELECTED => (!$SEARCH_TYPES{ $FORM{type} }) ? 10 : $FORM{type},
     SEL_HASH => \%SEARCH_TYPES,
     NO_ID    => 1
 
@@ -2499,11 +2502,22 @@ function CheckAllINBOX() {
       MENU   => "$_ADD:index=" . get_function_index('form_wizard') . ':add' . ";$_SEARCH:index=" . get_function_index('form_search') . ":search"
     }
   );
+  
+  if ($FORM{UNIVERSAL_SEARCH}) {
+   	$search_color_mark=$html->color_mark($FORM{UNIVERSAL_SEARCH}, $_COLORS[6]);
+  }
+  
   my $base_fields = 5;
   foreach my $line (@$list) {
     my $uid      = $line->{uid};
     my $payments = ($permissions{1}) ? $html->button($_PAYMENTS, "index=2&UID=$uid", { CLASS => 'payments' }) : '';
     my $fees     = ($permissions{2}) ? $html->button($_FEES, "index=3&UID=$uid", { CLASS => 'fees' }) : '';
+
+    if ($FORM{UNIVERSAL_SEARCH}) {
+   	  $line->{fio} =~ s/(.*)$FORM{UNIVERSAL_SEARCH}(.*)/\1$search_color_mark\2/;
+   	  $line->{id}  =~ s/(.*)$FORM{UNIVERSAL_SEARCH}(.*)/\1$search_color_mark\2/;
+    }
+
 
     my @fields_array = ();
     for (my $i = $base_fields; $i < $base_fields+$users->{SEARCH_FIELDS_COUNT}; $i++) {
@@ -2513,6 +2527,11 @@ function CheckAllINBOX() {
       elsif ($users->{COL_NAMES_ARR}->[$i] eq 'deleted') {
         $line->{deleted} = $html->color_mark($bool_vals[ $line->{deleted} ], ($line->{deleted} == 1) ? $state_colors[ $line->{deleted} ] : '');
       }
+      
+      if ($FORM{UNIVERSAL_SEARCH}) {
+      	$line->{$users->{COL_NAMES_ARR}->[$i]} =~ s/(.*)$FORM{UNIVERSAL_SEARCH}(.*)/\1$search_color_mark\2/;
+      }
+      
       push @fields_array, $table->td($line->{$users->{COL_NAMES_ARR}->[$i]});
     }
 
@@ -6789,9 +6808,17 @@ sub form_search {
   my %SEARCH_DATA = $admin->get_data(\%FORM);
 
   if ($FORM{search}) {
-    $LIST_PARAMS{LOGIN} = $FORM{LOGIN};
     $pages_qs = "&search=1";
     $pages_qs .= "&type=$FORM{type}" if ($pages_qs !~ /&type=/);
+
+    if ($FORM{type} == 10) {
+    	$FORM{UNIVERSAL_SEARCH}=$FORM{LOGIN} || $FORM{UNIVERSAL_SEARCH};
+    	delete $FORM{LOGIN};
+    	$FORM{type} = 11 ;
+    }
+    else {
+	    $LIST_PARAMS{LOGIN} = $FORM{LOGIN};
+    }
 
     while (my ($k, $v) = each %FORM) {
       if ($k =~ /([A-Z0-9]+|_[a-z0-9]+)/ && $v ne '' && $k ne '__BUFFER') {
@@ -6799,7 +6826,7 @@ sub form_search {
         $pages_qs .= "&$k=$v";
       }
     }
-
+    
     if ($FORM{type} ne $index && ! $FORM{subf}) {
       $functions{ $FORM{type} }->();
     }
@@ -6853,8 +6880,14 @@ sub form_search {
       13 => 'form_search_companies'
     );
 
-    $FORM{type} = 11 if ($FORM{type} == 15);
-
+    if ($FORM{type} == 15) {
+      $FORM{type} = 11 ;
+    }
+    elsif($FORM{type} == 10) {
+    	$FORM{UNIVERSAL_SEARCH}="$FORM{LOGIN}";
+    	$FORM{type} = 11 ;
+    }
+    
     if ($FORM{LOGIN} && $admin->{MIN_SEARCH_CHARS} && length($FORM{LOGIN}) < $admin->{MIN_SEARCH_CHARS}) {
       $html->message('err', $_ERROR, "$_ERR_SEARCH_VAL_TOSMALL. $_MIN: $admin->{MIN_SEARCH_CHARS}");
       return 0;
@@ -9073,6 +9106,7 @@ sub title_former {
     'last_payment'  => "$_PAYMENTS $_DATE",
     'email'         => 'E-Mail',
     'address_street'=> $_ADDRESS,
+    'address_full'  => $_ADDRESS,
     'pasport_date'  => "$_PASPORT $_DATE",
     'pasport_num'   => "$_PASPORT $_NUM",
     'pasport_grant' => "$_PASPORT $_GRANT",

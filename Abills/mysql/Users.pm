@@ -261,8 +261,6 @@ sub pi_add {
     ($prefix, $sufix) = split(/\|/, $attr->{CONTRACT_TYPE});
   }
 
-print "// ($DATA{STREET_ID} && $DATA{ADDRESS_BUILD} && ! $DATA{LOCATION_ID}) //";
-
   if ($DATA{STREET_ID} && $DATA{ADDRESS_BUILD} && ! $DATA{LOCATION_ID}) {
   	my $list = $self->build_list({ STREET_ID => $DATA{STREET_ID}, 
   		                  NUMBER    => $attr->{ADDRESS_BUILD}, 
@@ -706,7 +704,34 @@ sub list {
   $PG        = ($attr->{PG})        ? $attr->{PG}        : 0;
   $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
 
-  @WHERE_RULES = @{ $self->search_expr_users({ %$attr, 
+  if ($attr->{UNIVERSAL_SEARCH}) {
+  	my @us_fields = ('u.uid:INT', 'u.id:STR', 'pi.fio:STR', 'pi.contract_id:STR', 'pi.email:STR', 'pi.phone:STR', 'pi.comments:STR');
+    $self->{SEARCH_FIELDS_COUNT}+=5;
+
+  	if ($CONF->{ADDRESS_REGISTER}) {
+      $self->{EXT_TABLES} .= "LEFT JOIN builds ON (builds.id=pi.location_id)
+      LEFT JOIN streets ON (streets.id=builds.street_id)";
+      push @us_fields, "CONCAT(streets.name, ' ', builds.number, ',', pi.address_flat):STR";
+      $self->{SEARCH_FIELDS}="CONCAT(streets.name, ' ', builds.number, ',', pi.address_flat) AS address_full,";
+  	}
+  	else {
+  	  push @us_fields, "CONCAT(pi.address_street, ' ', pi.address_build, ',', pi.address_flat):STR";
+  	  $self->{SEARCH_FIELDS}="CONCAT(pi.address_street, ' ', pi.address_build, ',', pi.address_flat) AS address_full,";
+  	}
+  	
+    $self->{SEARCH_FIELDS} .= 'pi.phone, pi.contract_id,pi.email,pi.comments,';
+  	
+
+  	my @us_query  = ();
+  	foreach my $f (@us_fields) {
+  		my ($name, $type) = split(/:/, $f);
+  		push @us_query, @{ $self->search_expr("*$attr->{UNIVERSAL_SEARCH}*", "$type", "$name") };
+  	}
+
+  	@WHERE_RULES = ("(". join(' or ', @us_query) .")");
+  }
+  else {
+  	  @WHERE_RULES = @{ $self->search_expr_users({ %$attr, 
   	                  EXT_FIELDS => [ 'UID',
         'PHONE',
         'EMAIL',
@@ -732,6 +757,7 @@ sub list {
         'ACTIVATE',
         'EXPIRE',
          ] }) };
+  }
 
   if ($attr->{DOMAIN_ID}) {
     push @WHERE_RULES, @{ $self->search_expr("$attr->{DOMAIN_ID}", 'INT', 'u.domain_id', { EXT_FIELD => 1 }) };

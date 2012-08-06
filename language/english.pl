@@ -501,4 +501,5 @@ $_MONTH_FEE_SHORT='M/F';
 $_DAY_FEE_SHORT='D/F';
 $_CURRENCY='Currency';
 $_ACCOMULATION='Accomulation';
+$_UNIVERSAL='Universal';
 

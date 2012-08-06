@@ -88,6 +88,8 @@ sub take {
     return $self;
   }
 
+  my $company_vat = $user->{COMPANY_VAT} || 0;
+
   $sum = sprintf("%.4f", $sum);
   $db->{AutoCommit} = 0;
   if ($attr->{BILL_ID}) {
@@ -108,12 +110,13 @@ sub take {
             return $self;
           }
 
+
           $self->{SUM} = $self->{EXT_BILL_DEPOSIT};
           $self->query(
             $db, "INSERT INTO fees (uid, bill_id, date, sum, dsc, ip, last_deposit, aid, vat, inner_describe, method) 
              values ('$user->{UID}', '$user->{EXT_BILL_ID}', $DATE, '$self->{SUM}', '$DESCRIBE', 
               INET_ATON('$admin->{SESSION_IP}'), '$Bill->{DEPOSIT}', '$admin->{AID}',
-              '$user->{COMPANY_VAT}', '$DATA{INNER_DESCRIBE}', '$DATA{METHOD}')", 'do'
+              '$company_vat', '$DATA{INNER_DESCRIBE}', '$DATA{METHOD}')", 'do'
           );
           $sum = $sum - $user->{EXT_BILL_DEPOSIT};
         }
@@ -152,7 +155,7 @@ sub take {
             $db, "INSERT INTO fees (uid, bill_id, date, sum, dsc, ip, last_deposit, aid, vat, inner_describe, method) 
              values ('$user->{UID}', '$user->{BILL_ID}', $DATE, '$self->{SUM}', '$DESCRIBE -', 
               INET_ATON('$admin->{SESSION_IP}'), '$user->{DEPOSIT}', '$admin->{AID}',
-              '$user->{COMPANY_VAT}', '$DATA{INNER_DESCRIBE}', '$DATA{METHOD}')", 'do'
+              '$company_vat', '$DATA{INNER_DESCRIBE}', '$DATA{METHOD}')", 'do'
           );
           $sum = $sum - $self->{SUM};
         }
@@ -188,7 +191,7 @@ sub take {
       $db, "INSERT INTO fees (uid, bill_id, date, sum, dsc, ip, last_deposit, aid, vat, inner_describe, method) 
            values ('$user->{UID}', '$user->{BILL_ID}', $DATE, '$self->{SUM}', '$DESCRIBE', 
             INET_ATON('$admin->{SESSION_IP}'), '$Bill->{DEPOSIT}', '$admin->{AID}',
-            '$user->{COMPANY_VAT}', '$DATA{INNER_DESCRIBE}', '$DATA{METHOD}')", 'do'
+            '$company_vat', '$DATA{INNER_DESCRIBE}', '$DATA{METHOD}')", 'do'
     );
 
     if ($self->{errno}) {
