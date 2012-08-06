@@ -89,7 +89,7 @@ sub user_info {
    voip.allow_answer,
    voip.allow_calls,
    voip.cid,
-   voip.logins,
+   voip.logins AS simultaneously,
    voip.registration,
    tarif_plans.id as tp_num,
    voip.provision_nas_id,
@@ -161,8 +161,12 @@ sub user_change {
   my $self = shift;
   my ($attr) = @_;
 
-  $attr->{ALLOW_ANSWER} = ($attr->{ALLOW_ANSWER}) ? 1 : 0;
-  $attr->{ALLOW_CALLS}  = ($attr->{ALLOW_CALLS})  ? 1 : 0;
+  if (! $attr->{TP_ID}) {
+    $attr->{ALLOW_ANSWER} = ($attr->{ALLOW_ANSWER}) ? 1 : 0;
+    $attr->{ALLOW_CALLS}  = ($attr->{ALLOW_CALLS})  ? 1 : 0;
+  }
+
+  $attr->{LOGINS}=$attr->{SIMULTANEOUSLY};
 
   $self->changes(
     $admin,

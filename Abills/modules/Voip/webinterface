@@ -13,7 +13,7 @@ my $fees     = Fees->new($db, $admin, \%conf);
 my $tariffs  = Tariffs->new($db, \%conf, $admin);
 
 my $Nas = Nas->new($db, \%conf);
-$Log = Log->new($db, \%conf);
+$Log    = Log->new($db, \%conf);
 
 my $MODULE = ($module{$index}) ? $module{$index} : 'Voip';
 my $debug  = 0;
@@ -2761,7 +2761,6 @@ sub voip_gk_console {
           }
           elsif ($line =~ /ACF/) {
             my @registred = split(/\|/, $line);
-
             #ACF|Caller_IP:Port|Caller_EPID|CRV|DestinationInfo|SrcInfo|IsAnswered;
             #ACF|Callee_IP:Port|Callee_EPID|CRV|DestinationInfo|SrcInfo|IsAnswered;
             $table->addrow('&nbsp;', @registred, $html->button("H", "index=$index&NAS_ID=$FORM{NAS_ID}&command=disconnectcall+$registred[4]", { TITLE => 'Hangup', BUTTON => 1 }));
