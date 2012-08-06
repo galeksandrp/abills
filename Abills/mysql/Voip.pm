@@ -74,8 +74,6 @@ sub user_info {
     push @WHERE_RULES, "voip.ip=INET_ATON('$attr->{IP}')";
   }
 
-  #my $PASSWORD = '0';
-
   $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES) : '';
 
   $self->query(
@@ -93,7 +91,9 @@ sub user_info {
    voip.registration,
    tarif_plans.id as tp_num,
    voip.provision_nas_id,
-   voip.provision_port
+   voip.provision_port,
+   tarif_plans.month_fee,
+   tarif_plans.day_fee
      FROM voip_main voip
      LEFT JOIN voip_tps tp ON (voip.tp_id=tp.id)
      LEFT JOIN tarif_plans ON (tarif_plans.tp_id=voip.tp_id)
@@ -101,8 +101,6 @@ sub user_info {
   undef,
   { INFO => 1 } 
   );
-
-
 
   return $self;
 }
@@ -147,6 +145,7 @@ sub user_add {
         '$DATA{PROVISION_NAS_ID}', '$DATA{PROVISION_PORT}');", 'do'
   );
 
+  $self->{TP_INFO} = $tariffs->info($DATA{TP_ID});
   return $self if ($self->{errno});
 
   $admin->action_add($DATA{UID}, "ADDED", { TYPE => 1 });
@@ -164,6 +163,9 @@ sub user_change {
   if (! $attr->{TP_ID}) {
     $attr->{ALLOW_ANSWER} = ($attr->{ALLOW_ANSWER}) ? 1 : 0;
     $attr->{ALLOW_CALLS}  = ($attr->{ALLOW_CALLS})  ? 1 : 0;
+  }
+  else {
+  	$self->{TP_INFO} = $tariffs->info($attr->{TP_ID});
   }
 
   $attr->{LOGINS}=$attr->{SIMULTANEOUSLY};

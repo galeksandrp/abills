@@ -564,7 +564,7 @@ sub info {
   }
 
   if (defined($attr->{TP_ID})) {
-    push @WHERE_RULES, "tp.tp_id='$attr->{TP_ID}'";
+    push @WHERE_RULES, "tp_id='$attr->{TP_ID}'";
   }
 
   if ($attr->{ID}) {
