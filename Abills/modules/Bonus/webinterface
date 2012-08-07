@@ -1164,8 +1164,6 @@ sub bonus_tp_accomulation {
 #**********************************************************
 sub bonus_periodic_accomulation {
 	my ($attr)=@_;
-	
-
   my $debug = $attr->{DEBUG} || 0;
   my $debug_output = '';
   $debug_output .= "Bonus - Accoumulation\n" if ($debug > 1);
@@ -1243,8 +1241,6 @@ if ($FORM{transfer}) {
       $html->message('info', $_INFO, "$_ADDED $rechange_sum");	            
     }
   }
-  
-  
 }	
 
 $html->tpl_show(_include('bonus_accomulation_transfer', 'Bonus'), $Bonus);

@@ -1340,11 +1340,11 @@ sub accomulation_first_rule {
   my ($attr) = @_;
   
   $CONF->{BONUS_ACCOMULATION_FIRST_BONUS}=40 if (! $CONF->{BONUS_ACCOMULATION_FIRST_BONUS});
-  $CONF->{BONUS_ACCOMULATION_FIRST_INTERVAL}=3 if (! $CONF->{BONUS_ACCOMULATION_FIRST_INTERVAL});
+  $CONF->{BONUS_ACCOMULATION_FIRST_INTERVAL}=3 if (! defined($CONF->{BONUS_ACCOMULATION_FIRST_INTERVAL}));
   
   $self->query($db, 
     "REPLACE INTO bonus_rules_accomulation_scores (uid, cost, changed)
-SELECT $attr->{UID}, IF((SELECT min(last_deposit) FROM fees WHERE uid='$attr->{UID}' AND date>curdate() - INTERVAL $CONF->{BONUS_ACCOMULATION_FIRST_INTERVAL} MONTH) > 0, $CONF->{BONUS_ACCOMULATION_FIRST_BONUS}, 0), curdate();", 'do');
+SELECT $attr->{UID}, IF((SELECT \@A:=min(last_deposit) FROM fees WHERE uid='$attr->{UID}' AND date>=curdate() - INTERVAL $CONF->{BONUS_ACCOMULATION_FIRST_INTERVAL} MONTH) >= 0 OR \@A is null , $CONF->{BONUS_ACCOMULATION_FIRST_BONUS}, 0), curdate();", 'do');
   
   return $self;
 }
