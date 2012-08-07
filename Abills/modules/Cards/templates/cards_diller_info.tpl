@@ -1,4 +1,5 @@
-<TABLE width='600' cellspacing='0' cellpadding='0' border='0'><TR><TD bgcolor='#E1E1E1'>
+<TABLE width='600' cellspacing='0' cellpadding='0' border='0' class=form>
+<TR><TD bgcolor='#E1E1E1'>
 <TABLE width='100%' cellspacing='1' cellpadding='0' border='0'>
 
 <tr bgcolor='$_COLORS[0]'><th colspan=2 align=right>$_INFO</th></tr>

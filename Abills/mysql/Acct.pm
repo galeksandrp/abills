@@ -17,8 +17,12 @@ $VERSION     = 2.00;
 use main;
 use Billing;
 
+
+
 @ISA = ("main");
 my ($db, $conf);
+my $Billing;
+
 
 my %ACCT_TYPES = (
   'Start'          => 1,
@@ -37,6 +41,8 @@ sub new {
   ($db, $conf) = @_;
   my $self = {};
   bless($self, $class);
+  
+  $Billing = Billing->new($db, $conf);
 
   return $self;
 }
@@ -165,8 +171,6 @@ sub accounting {
 
   # Stop status
   elsif ($acct_status_type == 2) {
-    my $Billing = Billing->new($db, $conf);
-
     #IPN Service
     if ($NAS->{NAS_EXT_ACCT} || $NAS->{NAS_TYPE} eq 'ipcad') {
       $self->query(
@@ -494,9 +498,8 @@ sub rt_billing {
   $self->{TP_NUM}, 
   $self->{UID}) = @{ $self->{list}->[0] };
 
-  my $Billing = Billing->new($db, $conf);
-
-  #print "INterim:   $RAD->{INTERIUM_INBYTE},   $RAD->{INTERIUM_OUTBYTE}, \n";
+  my $out_byte = $RAD->{OUTBYTE} + $RAD->{ACCT_OUTPUT_GIGAWORDS} * 4294967296;
+  my $in_byte  = $RAD->{INBYTE} + $RAD->{ACCT_INPUT_GIGAWORDS} * 4294967296;
 
   ($self->{UID}, 
   $self->{SUM}, 
@@ -508,8 +511,8 @@ sub rt_billing {
     $RAD->{INTERIUM_SESSION_START},
     $RAD->{INTERIUM_ACCT_SESSION_TIME},
     {
-      OUTBYTE  => ($RAD->{OUTBYTE} + $RAD->{ACCT_OUTPUT_GIGAWORDS} * 4294967296) - $RAD->{INTERIUM_OUTBYTE},
-      INBYTE   => ($RAD->{INBYTE} + $RAD->{ACCT_INPUT_GIGAWORDS} * 4294967296) - $RAD->{INTERIUM_INBYTE},
+      OUTBYTE  => ($out_byte == $RAD->{INTERIUM_OUTBYTE}) ? $RAD->{INTERIUM_OUTBYTE} : $out_byte - $RAD->{INTERIUM_OUTBYTE},
+      INBYTE   => ($in_byte  == $RAD->{INTERIUM_INBYTE}) ? $RAD->{INTERIUM_INBYTE} : $in_byte - $RAD->{INTERIUM_INBYTE},
       OUTBYTE2 => $RAD->{OUTBYTE2} - $RAD->{INTERIUM_OUTBYTE1},
       INBYTE2  => $RAD->{INBYTE2} - $RAD->{INTERIUM_INBYTE1},
 

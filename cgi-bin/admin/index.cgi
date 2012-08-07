@@ -1091,7 +1091,8 @@ sub form_companies {
           CONTENT => "$_FILE: " . $html->form_input('FILE_DATA', '', { TYPE => 'file' }),
           ENCTYPE => 'multipart/form-data',
           HIDDEN => { index  => $index, },
-          SUBMIT => { import => "$_IMPORT" }
+          SUBMIT => { import => "$_IMPORT" },
+          TARGET => 'new'
         }
       );
     }

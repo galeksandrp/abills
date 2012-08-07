@@ -398,11 +398,11 @@ sub form_main {
 
   my $METHOD = ($attr->{METHOD}) ? $attr->{METHOD} : 'POST';
   $self->{FORM} = "<FORM ";
-  $self->{FORM} .= "ID=\"$attr->{ID}\" "           if ($attr->{ID});
-  $self->{FORM} .= "name=\"$attr->{NAME}\" "       if ($attr->{NAME});
-  $self->{FORM} .= "enctype=\"$attr->{ENCTYPE}\" " if ($attr->{ENCTYPE});
-
-  $self->{FORM} .= "action=\"$SELF_URL\" METHOD=\"$METHOD\">\n";
+  $self->{FORM} .= "ID='$attr->{ID}' "           if ($attr->{ID});
+  $self->{FORM} .= "name='$attr->{NAME}' "       if ($attr->{NAME});
+  $self->{FORM} .= "enctype='$attr->{ENCTYPE}' " if ($attr->{ENCTYPE});
+  $self->{FORM} .= "target='$attr->{TARGET}' "   if ($attr->{TARGET});
+  $self->{FORM} .= "action='$SELF_URL' METHOD='$METHOD'>\n";
 
   if (defined($attr->{HIDDEN})) {
     my $H = $attr->{HIDDEN};

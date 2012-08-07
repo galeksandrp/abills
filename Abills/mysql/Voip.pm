@@ -640,6 +640,10 @@ sub tp_list() {
     push @WHERE_RULES, @{ $self->search_expr($attr->{FREE_TIME}, 'INT', 'voip.free_time', { EXT_FIELD => 1 }) };
   }
 
+  if ($attr->{TIME_DIVISION}) {
+    push @WHERE_RULES, @{ $self->search_expr($attr->{TIME_DIVISION}, 'INT', 'voip.time_division', { EXT_FIELD => 1 }) };
+  }
+
   my $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES) : '';
 
   $self->query(
