@@ -202,7 +202,6 @@ sub traffic_calculations {
       $traf_price{in}{0}  = 0;
       $traf_price{out}{0} = 0;
     }
-
     #
     elsif ($used_traffic->{TRAFFIC_SUM} + $used_traffic->{ONLINE} / $CONF->{MB_SIZE} > $prepaid{0}
       && $used_traffic->{TRAFFIC_SUM} < $prepaid{0})
@@ -507,9 +506,12 @@ sub session_sum {
     tp.total_traf_limit,
     tp.tp_id,
     tp.neg_deposit_filter_id,
-    tp.bills_priority
+    tp.bills_priority,
+    tp.credit AS tp_credit
    FROM tarif_plans tp
-   WHERE tp.id='$attr->{TP_NUM}' AND tp.domain_id='$attr->{DOMAIN_ID}';"
+   WHERE tp.id='$attr->{TP_NUM}' AND tp.domain_id='$attr->{DOMAIN_ID}';",
+   undef,
+   { INFO => 1 }
     );
 
     if ($self->{errno}) {
@@ -522,8 +524,6 @@ sub session_sum {
     }
 
     $self->{TP_NUM} = $attr->{TP_NUM};
-
-    ($self->{MIN_SESSION_COST}, $self->{PAYMENT_TYPE}, $self->{OCTETS_DIRECTION}, $self->{TRAFFIC_TRANSFER_PERIOD}, $self->{TOTAL_TIME_LIMIT}, $self->{TOTAL_TRAF_LIMIT}, $self->{TP_ID}, $self->{NEG_DEPOSIT_FILTER}, $self->{BILLS_PRIORITY}) = @{ $self->{list}->[0] };
   }
 
   #If defined TP_NUM
@@ -562,7 +562,8 @@ sub session_sum {
     tp.total_time_limit,
     tp.total_traf_limit,
     tp.tp_id,
-    tp.bills_priority
+    tp.bills_priority,
+    tp.credit
    FROM tarif_plans tp
    WHERE tp.id='$attr->{TP_NUM}' AND tp.domain_id='$attr->{DOMAIN_ID}';",
    undef,
@@ -602,7 +603,8 @@ sub session_sum {
     tp.total_time_limit,
     tp.total_traf_limit,
     u.ext_bill_id,
-    tp.bills_priority
+    tp.bills_priority,
+    tp.credit AS tp_credit
    FROM (users u, 
       dv_main dv) 
    LEFT JOIN tarif_plans tp ON (dv.tp_id=tp.id AND tp.domain_id='$attr->{DOMAIN_ID}')
@@ -632,7 +634,8 @@ sub session_sum {
         tp.octets_direction,
         tp.traffic_transfer_period,
         tp.neg_deposit_filter_id,
-        tp.tp_id
+        tp.tp_id,
+        tp.credit AS tp_credit
        FROM (dv_main dv,  tarif_plans tp)
        WHERE dv.tp_id=tp.id AND tp.domain_id='$attr->{DOMAIN_ID}'
        and dv.uid='$self->{JOIN_SERVICE}';",
@@ -672,6 +675,7 @@ sub session_sum {
   if ($self->{NEG_DEPOSIT_FILTER}) {
     $self->query($db, "SELECT deposit FROM bills WHERE id='$self->{BILL_ID}';");
     if ($self->{TOTAL} > 0) {
+    	$self->{CREDIT} = ($self->{CREDIT}>0) ? $self->{CREDIT} : $self->{TP_CREDIT};
       ($self->{DEPOSIT}) = @{ $self->{list}->[0] };
       if ($self->{DEPOSIT} + $self->{CREDIT} < 0) {
         return $self->{UID}, 0, $self->{BILL_ID}, $self->{TP_NUM}, 0, 0;

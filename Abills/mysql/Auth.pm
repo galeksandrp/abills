@@ -67,18 +67,18 @@ sub dv_auth {
 
   $self->query(
     $db, "select  if (dv.logins=0, if(tp.logins is null, 0, tp.logins), dv.logins) AS logins,
-  if(dv.filter_id != '', dv.filter_id, if(tp.filter_id is null, '', tp.filter_id)),
-  if(dv.ip>0, INET_NTOA(dv.ip), 0),
-  INET_NTOA(dv.netmask),
-  dv.tp_id,
-  dv.speed,
+  if(dv.filter_id != '', dv.filter_id, if(tp.filter_id is null, '', tp.filter_id)) AS filter,
+  if(dv.ip>0, INET_NTOA(dv.ip), 0) AS ip,
+  INET_NTOA(dv.netmask) AS netmask,
+  dv.tp_id AS tp_num,
+  dv.speed AS user_speed,
   dv.cid,
   
   tp.total_time_limit,
   tp.day_time_limit,
   tp.week_time_limit,
   tp.month_time_limit,
-  UNIX_TIMESTAMP(DATE_FORMAT(DATE_ADD(curdate(), INTERVAL 1 MONTH), '%Y-%m-01')) - UNIX_TIMESTAMP(),
+  UNIX_TIMESTAMP(DATE_FORMAT(DATE_ADD(curdate(), INTERVAL 1 MONTH), '%Y-%m-01')) - UNIX_TIMESTAMP() AS time_limit,
 
   tp.total_traf_limit,
   tp.day_traf_limit,
@@ -87,38 +87,39 @@ sub dv_auth {
   tp.octets_direction,
 
   if (count(un.uid) + count(tp_nas.tp_id) = 0, 0,
-    if (count(un.uid)>0, 1, 2)),
+    if (count(un.uid)>0, 1, 2)) AS nas,
 
-  UNIX_TIMESTAMP(),
-  UNIX_TIMESTAMP(DATE_FORMAT(FROM_UNIXTIME(UNIX_TIMESTAMP()), '%Y-%m-%d')),
-  DAYOFWEEK(FROM_UNIXTIME(UNIX_TIMESTAMP())),
-  DAYOFYEAR(FROM_UNIXTIME(UNIX_TIMESTAMP())),
+  UNIX_TIMESTAMP() AS session_start,
+  UNIX_TIMESTAMP(DATE_FORMAT(FROM_UNIXTIME(UNIX_TIMESTAMP()), '%Y-%m-%d')) AS day_begin,
+  DAYOFWEEK(FROM_UNIXTIME(UNIX_TIMESTAMP())) AS day_of_week,
+  DAYOFYEAR(FROM_UNIXTIME(UNIX_TIMESTAMP())) AS day_of_year,
   dv.disable,
   tp.max_session_duration,
   tp.payment_type,
   tp.credit_tresshold,
-  tp.rad_pairs,
-  count(i.id),
-  tp.age,
+  tp.rad_pairs AS tp_rad_pairs,
+  count(i.id) AS intervals,
+  tp.age AS account_age,
   dv.callback,
   dv.port,
   tp.traffic_transfer_period,
   tp.neg_deposit_filter_id,
   tp.ext_bill_account,
-  tp.credit,
-  tp.ippool,
+  tp.credit AS tp_credit,
+  tp.ippool as tp_ippool,
   dv.join_service,
   tp.tp_id,
   tp.active_day_fee,
-  tp.neg_deposit_ippool
-
+  tp.neg_deposit_ippool AS neg_deposit_ip_pool
      FROM (dv_main dv)
      LEFT JOIN tarif_plans tp ON (dv.tp_id=tp.id $DOMAIN_ID)
      LEFT JOIN users_nas un ON (un.uid = dv.uid)
      LEFT JOIN tp_nas ON (tp_nas.tp_id = tp.tp_id)
      LEFT JOIN intervals i ON (tp.tp_id = i.tp_id)
      WHERE dv.uid='$self->{UID}'
-     GROUP BY dv.uid;"
+     GROUP BY dv.uid;",
+  undef,
+  { INFO => 1 }
   );
 
   if ($self->{errno}) {
@@ -130,14 +131,8 @@ sub dv_auth {
     $RAD_PAIRS->{'Reply-Message'} = "Service not allow";
     return 1, $RAD_PAIRS;
   }
-  $self->{USER_NAME} = $RAD->{USER_NAME};
-  (
-    $self->{LOGINS},                $self->{FILTER},           $self->{IP},               $self->{NETMASK},    $self->{TP_NUM},           $self->{USER_SPEED},     $self->{CID},             $self->{TOTAL_TIME_LIMIT},
-    $self->{DAY_TIME_LIMIT},        $self->{WEEK_TIME_LIMIT},  $self->{MONTH_TIME_LIMIT}, $self->{TIME_LIMIT}, $self->{TOTAL_TRAF_LIMIT}, $self->{DAY_TRAF_LIMIT}, $self->{WEEK_TRAF_LIMIT}, $self->{MONTH_TRAF_LIMIT},
-    $self->{OCTETS_DIRECTION},      $self->{NAS},              $self->{SESSION_START},    $self->{DAY_BEGIN},  $self->{DAY_OF_WEEK},      $self->{DAY_OF_YEAR},    $self->{DISABLE},         $self->{MAX_SESSION_DURATION},
-    $self->{PAYMENT_TYPE},          $self->{CREDIT_TRESSHOLD}, $self->{TP_RAD_PAIRS},     $self->{INTERVALS},  $self->{ACCOUNT_AGE},      $self->{CALLBACK},       $self->{PORT},            $self->{TRAFFIC_TRANSFER_PERIOD},
-    $self->{NEG_DEPOSIT_FILTER_ID}, $self->{EXT_BILL_ACCOUNT}, $self->{TP_CREDIT},        $self->{TP_IPPOOL},  $self->{JOIN_SERVICE},     $self->{TP_ID},          $self->{ACTIVE_DAY_FEE},  $self->{NEG_DEPOSIT_IP_POOL},
-  ) = @{ $self->{list}->[0] };
+
+  $self->{USER_NAME}=$RAD->{USER_NAME};
 
   #DIsable
   if ($self->{DISABLE}) {
@@ -171,13 +166,13 @@ sub dv_auth {
       $self->query(
         $db, "select  
   if ($self->{LOGINS}>0, $self->{LOGINS}, tp.logins) AS logins,
-  if('$self->{FILTER}' != '', '$self->{FILTER}', tp.filter_id),
-  dv.tp_id,
+  if('$self->{FILTER}' != '', '$self->{FILTER}', tp.filter_id) AS filter,
+  dv.tp_id AS tp_num,
   tp.total_time_limit,
   tp.day_time_limit,
   tp.week_time_limit,
   tp.month_time_limit,
-  UNIX_TIMESTAMP(DATE_FORMAT(DATE_ADD(curdate(), INTERVAL 1 MONTH), '%Y-%m-01')) - UNIX_TIMESTAMP(),
+  UNIX_TIMESTAMP(DATE_FORMAT(DATE_ADD(curdate(), INTERVAL 1 MONTH), '%Y-%m-01')) - UNIX_TIMESTAMP() AS time_limit,
 
   tp.total_traf_limit,
   tp.day_traf_limit,
@@ -186,18 +181,18 @@ sub dv_auth {
   tp.octets_direction,
 
   if (count(un.uid) + count(tp_nas.tp_id) = 0, 0,
-    if (count(un.uid)>0, 1, 2)),
+    if (count(un.uid)>0, 1, 2)) AS nas,
   tp.max_session_duration,
   tp.payment_type,
   tp.credit_tresshold,
   tp.rad_pairs,
-  count(i.id),
-  tp.age,
+  count(i.id) AS intervals,
+  tp.age AS account_age,
   tp.traffic_transfer_period,
   tp.neg_deposit_filter_id,
   tp.ext_bill_account,
-  tp.credit,
-  tp.ippool,
+  tp.credit AS tp_credit,
+  tp.ippool AS tp_ip_pool,
   tp.tp_id
      FROM (dv_main dv, tarif_plans tp)
      LEFT JOIN users_nas un ON (un.uid = dv.uid)
@@ -205,7 +200,9 @@ sub dv_auth {
      LEFT JOIN intervals i ON (tp.tp_id = i.tp_id)
      WHERE dv.tp_id=tp.id
          AND dv.uid='$self->{JOIN_SERVICE}'
-     GROUP BY dv.uid;"
+     GROUP BY dv.uid;",
+     undef,
+     { INFO => 1 }
       );
 
       if ($self->{errno}) {
@@ -218,12 +215,6 @@ sub dv_auth {
         return 1, $RAD_PAIRS;
       }
 
-      (
-        $self->{LOGINS},                $self->{FILTER},           $self->{TP_NUM},           $self->{TOTAL_TIME_LIMIT}, $self->{DAY_TIME_LIMIT},   $self->{WEEK_TIME_LIMIT},  $self->{MONTH_TIME_LIMIT},
-        $self->{TIME_LIMIT},            $self->{TOTAL_TRAF_LIMIT}, $self->{DAY_TRAF_LIMIT},   $self->{WEEK_TRAF_LIMIT},  $self->{MONTH_TRAF_LIMIT}, $self->{OCTETS_DIRECTION}, $self->{NAS},
-        $self->{MAX_SESSION_DURATION},  $self->{PAYMENT_TYPE},     $self->{CREDIT_TRESSHOLD}, $self->{TP_RAD_PAIRS},     $self->{INTERVALS},        $self->{ACCOUNT_AGE},      $self->{TRAFFIC_TRANSFER_PERIOD},
-        $self->{NEG_DEPOSIT_FILTER_ID}, $self->{EXT_BILL_ACCOUNT}, $self->{TP_CREDIT},        $self->{TP_IPPOOL},        $self->{TP_ID},
-      ) = @{ $self->{list}->[0] };
       $self->{UIDS} = "$self->{JOIN_SERVICE}";
     }
     else {
@@ -459,8 +450,8 @@ sub dv_auth {
     }
   }
 
-  if ($self->{ACC_EXPIRE} != 0) {
-    my $to_expire = $self->{ACC_EXPIRE} - $self->{SESSION_START};
+  if ($self->{ACCOUNT_EXPIRE} != 0) {
+    my $to_expire = $self->{ACCOUNT_EXPIRE} - $self->{SESSION_START};
     if ($to_expire < $time_limit) {
       $time_limit = $to_expire;
     }
@@ -950,8 +941,8 @@ sub authentication {
   u.activate,
   u.reduction,
   u.ext_bill_id,
-  UNIX_TIMESTAMP(u.expire),
-  u.id
+  UNIX_TIMESTAMP(u.expire) AS account_expire,
+  u.id AS user_name
      FROM users u, dv_main dv
      WHERE dv.uid=u.uid 
         AND dv.CID='$RAD->{CALLING_STATION_ID}'
@@ -1020,26 +1011,28 @@ sub authentication {
     $self->query(
       $db, "select
   u.uid,
-  DECODE(password, '$SECRETKEY'),
-  UNIX_TIMESTAMP(),
-  UNIX_TIMESTAMP(DATE_FORMAT(FROM_UNIXTIME(UNIX_TIMESTAMP()), '%Y-%m-%d')),
-  DAYOFWEEK(FROM_UNIXTIME(UNIX_TIMESTAMP())),
-  DAYOFYEAR(FROM_UNIXTIME(UNIX_TIMESTAMP())),
+  DECODE(password, '$SECRETKEY') AS passwd,
+  UNIX_TIMESTAMP() AS session_start,
+  UNIX_TIMESTAMP(DATE_FORMAT(FROM_UNIXTIME(UNIX_TIMESTAMP()), '%Y-%m-%d')) AS day_bagin,
+  DAYOFWEEK(FROM_UNIXTIME(UNIX_TIMESTAMP())) AS day_of_week,
+  DAYOFYEAR(FROM_UNIXTIME(UNIX_TIMESTAMP())) AS day_of_year,
   u.company_id,
   u.disable,
   u.bill_id,
   u.credit,
-  u.activate,
+  u.activate AS account_activate,
   u.reduction,
   u.ext_bill_id,
-  UNIX_TIMESTAMP(u.expire)
+  UNIX_TIMESTAMP(u.expire) AS account_expire
      FROM users u
      WHERE 
         u.id='$RAD->{USER_NAME}' $WHERE
         AND (u.expire='0000-00-00' or u.expire > CURDATE())
         AND (u.activate='0000-00-00' or u.activate <= CURDATE())
         AND u.deleted='0'
-       GROUP BY u.id;"
+       GROUP BY u.id;",
+  undef,
+  { INFO => 1 }
     );
   }
   if ($self->{errno}) {
@@ -1052,25 +1045,22 @@ sub authentication {
     return 1, \%RAD_PAIRS;
   }
 
-  ($self->{UID}, $self->{PASSWD}, $self->{SESSION_START}, $self->{DAY_BEGIN}, $self->{DAY_OF_WEEK}, $self->{DAY_OF_YEAR}, $self->{COMPANY_ID}, $self->{DISABLE}, $self->{BILL_ID}, $self->{CREDIT}, $self->{ACCOUNT_ACTIVATE}, $self->{REDUCTION}, $self->{EXT_BILL_ID}, $self->{ACC_EXPIRE}) =
-  @{ $self->{list}->[0] };
 
   #Auth chap
-  if ($RAD->{HINT} && $RAD->{HINT} eq 'NOPASS') {
-
-  }
-  elsif ($RAD->{CHAP_PASSWORD} && $RAD->{CHAP_CHALLENGE}) {
+#  if ($RAD->{HINT} && $RAD->{HINT} eq 'NOPASS') {
+#
+#  }
+#  els
+  if ($RAD->{CHAP_PASSWORD} && $RAD->{CHAP_CHALLENGE}) {
     if (check_chap("$RAD->{CHAP_PASSWORD}", "$self->{PASSWD}", "$RAD->{CHAP_CHALLENGE}", 0) == 0) {
       $RAD_PAIRS{'Reply-Message'} = "Wrong CHAP password";
       return 1, \%RAD_PAIRS;
     }
   }
-
   #Auth MS-CHAP v1,v2
   elsif ($RAD->{MS_CHAP_CHALLENGE}) {
 
   }
-
   #End MS-CHAP auth
   elsif ($NAS->{NAS_AUTH_TYPE} == 1) {
     if (check_systemauth("$RAD->{USER_NAME}", "$RAD->{USER_PASSWORD}") == 0) {
@@ -1079,7 +1069,6 @@ sub authentication {
       return 1, \%RAD_PAIRS;
     }
   }
-
   #If don't athorize any above methods auth PAP password
   else {
     if (defined($RAD->{USER_PASSWORD}) && $self->{PASSWD} ne $RAD->{USER_PASSWORD}) {
@@ -1682,7 +1671,6 @@ sub neg_deposit_filter_former () {
   }
 
   if (!$attr->{USER_FILTER}) {
-
     # Return radius attr
     if ($self->{IP} ne '0' && !$self->{NEG_DEPOSIT_IP_POOL}) {
       $RAD_PAIRS->{'Framed-IP-Address'} = "$self->{IP}";
@@ -1700,6 +1688,10 @@ sub neg_deposit_filter_former () {
       elsif ($ip eq '0') {
         #$RAD_PAIRS->{'Reply-Message'}="$self->{errstr} ($NAS->{NAS_ID})";
         #return 1, $RAD_PAIRS;
+        $self->query(
+        $db, "INSERT INTO dv_calls (started, user_name, uid, framed_ip_address, nas_id, nas_ip_address, status, acct_session_id, tp_id, join_service, guest)
+      VALUES (now(), '$self->{USER_NAME}', '$self->{UID}', 0, '$NAS->{NAS_ID}', INET_ATON('$RAD->{NAS_IP_ADDRESS}'), '11', 'IP', '$self->{TP_NUM}', '$self->{JOIN_SERVICE}', 1);", 'do'
+      );
       }
       else {
         $RAD_PAIRS->{'Framed-IP-Address'} = "$ip";

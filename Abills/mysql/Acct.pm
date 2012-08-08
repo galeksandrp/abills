@@ -94,7 +94,7 @@ sub accounting {
   if ($acct_status_type == 1) {
     $self->query(
       $db, "SELECT acct_session_id FROM dv_calls 
-    WHERE user_name='$RAD->{USER_NAME}' AND nas_id='$NAS->{NAS_ID}' AND framed_ip_address=INET_ATON('$RAD->{FRAMED_IP_ADDRESS}');"
+    WHERE user_name='$RAD->{USER_NAME}' AND nas_id='$NAS->{NAS_ID}' AND (framed_ip_address=INET_ATON('$RAD->{FRAMED_IP_ADDRESS}') OR framed_ip_address=0);"
     );
 
     #Get connection speed
@@ -116,7 +116,7 @@ sub accounting {
          acct_session_id='$RAD->{ACCT_SESSION_ID}', 
          CID='$RAD->{CALLING_STATION_ID}', 
          CONNECT_INFO='$RAD->{CONNECT_INFO}'
-         WHERE user_name='$RAD->{USER_NAME}' AND nas_id='$NAS->{NAS_ID}' AND acct_session_id='IP' AND framed_ip_address=INET_ATON('$RAD->{FRAMED_IP_ADDRESS}')
+         WHERE user_name='$RAD->{USER_NAME}' AND nas_id='$NAS->{NAS_ID}' AND acct_session_id='IP' AND (framed_ip_address=INET_ATON('$RAD->{FRAMED_IP_ADDRESS}') OR framed_ip_address=0) 
          LIMIT 1;";
           $self->query($db, "$sql", 'do');
           last;
