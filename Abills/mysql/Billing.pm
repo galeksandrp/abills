@@ -307,14 +307,15 @@ sub get_traffic {
   }
 
   if ($CONF->{DV_INTERVAL_PREPAID}) {
-  	$self->query($db, "SELECT li.traffic_type, sum(li.sent) / $CONF->{MB_SIZE}, sum(li.recv) / $CONF->{MB_SIZE}  FROM dv_log l, dv_log_intervals li
-  	   WHERE l.acct_session_id=li.acct_session_id AND uid $WHERE and li.interval_id='$self->{TI_ID}' and ($period)");
+  	my $sql =  "SELECT li.traffic_type, sum(li.sent) / $CONF->{MB_SIZE}, sum(li.recv) / $CONF->{MB_SIZE}  FROM dv_log l, dv_log_intervals li
+           WHERE l.acct_session_id=li.acct_session_id AND uid $WHERE and li.interval_id='$self->{TI_ID}' and ($period)";
+  	$self->query($db, $sql);
   
 	  if ($self->{TOTAL} > 0) {
 	  	foreach my $line (@{ $self->{list} }) {
 	  		my $sufix = ($line->[0] == 0) ? '' : "_".($line->[0]+1);
-        $result{'TRAFFIC_OUT'.$sufix} = ($result{'TRAFFIC_OUT'.$sufix}) ? $result{'TRAFFIC_OUT'.$sufix} + $line->[1] : 0;
-        $result{'TRAFFIC_IN'.$sufix}  = ($result{'TRAFFIC_IN'.$sufix}) ? $result{'TRAFFIC_IN'.$sufix} + $line->[2] : 0;
+        $result{'TRAFFIC_OUT'.$sufix} = ($result{'TRAFFIC_OUT'.$sufix}) ? $result{'TRAFFIC_OUT'.$sufix} + $line->[1] : $line->[1];
+        $result{'TRAFFIC_IN'.$sufix}  = ($result{'TRAFFIC_IN'.$sufix}) ? $result{'TRAFFIC_IN'.$sufix} + $line->[2] : $line->[2];
       }
     }
 
