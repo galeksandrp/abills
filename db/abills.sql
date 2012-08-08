@@ -253,42 +253,6 @@ CREATE TABLE `docs_acts` (
 
 
 
-CREATE TABLE `docs_receipts` (
-  `id` int(11) unsigned NOT NULL auto_increment,
-  `date` date NOT NULL default '0000-00-00',
-  `customer` varchar(200) NOT NULL default '',
-  `phone` varchar(16) NOT NULL default '0',
-  `aid` smallint(6) unsigned NOT NULL default '0',
-  `uid` int(11) unsigned NOT NULL default '0',
-  `created` datetime NOT NULL default '0000-00-00 00:00:00',
-  `receipt_num` int(10) unsigned NOT NULL default '0',
-  `vat` double(5,2) unsigned NOT NULL default '0.00',
-  `by_proxy_seria` varchar(40) NOT NULL default '',
-  `by_proxy_person` varchar(15) NOT NULL default '',
-  `by_proxy_date` date NOT NULL default '0000-00-00',
-  `domain_id` smallint(6) unsigned not null default 0,
-  `payment_id` int(11) unsigned NOT NULL default 0,
-  `deposit` double(15,6) NOT NULL default '0.000000',
-  `delivery_status` tinyint(2) unsigned NOT NULL default '0',
-  `exchange_rate` double(12,4) NOT NULL default '0.0000',
-  `currency` smallint(6) unsigned  NOT NULL default 0,
-  PRIMARY KEY  (`id`),
-  KEY `payment_id` (`payment_id`),
-  KEY `domain_id` (`domain_id`),
-  FOREIGN KEY (payment_id) REFERENCES payments(id)
-)  COMMENT='Docs Receipts';
-
-CREATE TABLE `docs_receipt_orders` (
-  `receipt_id` int(11) unsigned NOT NULL default '0',
-  `orders` varchar(200) NOT NULL default '',
-  `counts` int(10) unsigned NOT NULL default '0',
-  `unit` tinyint(3) unsigned NOT NULL default '0',
-  `price` double(10,2) unsigned NOT NULL default '0.00',
-  `fees_id` int(11) unsigned NOT NULL default 0,
-  KEY `receipt_id` (`receipt_id`),
-  FOREIGN KEY (receipt_id) REFERENCES docs_receipts(id)
-) COMMENT='Docs receipt orders';
-
 CREATE TABLE `docs_main` (
   `uid` int(11) unsigned NOT NULL default '0' PRIMARY KEY,
   `send_docs` tinyint(1) unsigned NOT NULL default '0',
@@ -799,6 +763,43 @@ CREATE TABLE `payments` (
   KEY `date` (`date`),
   KEY `uid` (`uid`)
 ) COMMENT "Payments log"  ;
+
+
+CREATE TABLE `docs_receipts` (
+  `id` int(11) unsigned NOT NULL auto_increment,
+  `date` date NOT NULL default '0000-00-00',
+  `customer` varchar(200) NOT NULL default '',
+  `phone` varchar(16) NOT NULL default '0',
+  `aid` smallint(6) unsigned NOT NULL default '0',
+  `uid` int(11) unsigned NOT NULL default '0',
+  `created` datetime NOT NULL default '0000-00-00 00:00:00',
+  `receipt_num` int(10) unsigned NOT NULL default '0',
+  `vat` double(5,2) unsigned NOT NULL default '0.00',
+  `by_proxy_seria` varchar(40) NOT NULL default '',
+  `by_proxy_person` varchar(15) NOT NULL default '',
+  `by_proxy_date` date NOT NULL default '0000-00-00',
+  `domain_id` smallint(6) unsigned not null default 0,
+  `payment_id` int(11) unsigned NOT NULL default 0,
+  `deposit` double(15,6) NOT NULL default '0.000000',
+  `delivery_status` tinyint(2) unsigned NOT NULL default '0',
+  `exchange_rate` double(12,4) NOT NULL default '0.0000',
+  `currency` smallint(6) unsigned  NOT NULL default 0,
+  PRIMARY KEY  (`id`),
+  KEY `payment_id` (`payment_id`),
+  KEY `domain_id` (`domain_id`),
+  FOREIGN KEY (payment_id) REFERENCES payments(id)
+)  COMMENT='Docs Receipts';
+
+CREATE TABLE `docs_receipt_orders` (
+  `receipt_id` int(11) unsigned NOT NULL default '0',
+  `orders` varchar(200) NOT NULL default '',
+  `counts` int(10) unsigned NOT NULL default '0',
+  `unit` tinyint(3) unsigned NOT NULL default '0',
+  `price` double(10,2) unsigned NOT NULL default '0.00',
+  `fees_id` int(11) unsigned NOT NULL default 0,
+  KEY `receipt_id` (`receipt_id`),
+  FOREIGN KEY (receipt_id) REFERENCES docs_receipts(id)
+) COMMENT='Docs receipt orders';
 
 CREATE TABLE docs_invoice2payments (
   `invoice_id` int(11) unsigned NOT NULL default 0,
