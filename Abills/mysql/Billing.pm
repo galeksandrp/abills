@@ -159,7 +159,7 @@ sub traffic_calculations {
 
     if ($CONF->{rt_billing}) {
       if ($CONF->{DV_INTERVAL_PREPAID}) {
-        ($sent, $recv) = (0,0);
+        #($sent, $recv) = (0,0);
       }
 
       $used_traffic->{TRAFFIC_IN}    += int($recv / $CONF->{MB_SIZE});
