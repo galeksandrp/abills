@@ -32,6 +32,8 @@ $conf{'VOIP_DEFAULTDIALTIMEOUT'} = 120 if (!$conf{'VOIP_DEFAULTDIALTIMEOUT'});
 $conf{'VOIP_MAX_SESSION_TIME'}   = 10800 if (!$conf{'VOIP_MAX_SESSION_TIME'});
 $conf{'timeshift'}               = 0     if (!exists($conf{'VOIP_TIMESHIFT'}));
 $conf{'VOIP_AGI_DIAL_DELIMITER'} = '|'   if (!$conf{'VOIP_AGI_DIAL_DELIMITER'});
+$conf{'VOIP_ASTERISK_IVR_DIR'}   = '/usr/local/share/asterisk/sounds/' if (! $conf{'VOIP_ASTERISK_IVR_DIR'});
+$conf{'VOIP_ASTERISK_IVR_LANG'}  = 'ru,en';
 
 # Creating new interface to asterisk
 use Asterisk::AGI;
@@ -97,8 +99,8 @@ $rad_attributes{'h323-call-origin'}   = ($context eq 'answer') ? 'answer' : 'ori
 $rad_attributes{'Cisco-Call-Type'}    = "$call_type";
 $rad_attributes{'Cisco-NAS-Port'}     = $data{'channel'};
 $rad_attributes{'Cisco-AVPair'}       = "call-codec=$data{'codec'};";
-$rad_attributes{'Cisco-AVPair'} .= ($data{'useragent'}) ? "useragent=$data{'useragent'};" : "";
-$rad_attributes{'Cisco-AVPair'} .= "session-protocol=$protocol";
+$rad_attributes{'Cisco-AVPair'}      .= ($data{'useragent'}) ? "useragent=$data{'useragent'};" : "";
+$rad_attributes{'Cisco-AVPair'}      .= "session-protocol=$protocol";
 
 #Get NAS IP and ID
 if (!exists($conf{'NAS_IP_ADDRESS'}) || !exists($conf{'VOIP_NAS_ID'})) {
@@ -121,6 +123,13 @@ if ($type != ACCESS_ACCEPT) {
   $reply .= ($rad_response{'Reply-Message'}) ? " Reply-Message: " . $rad_response{'Reply-Message'} : '';
 
   syslog('LOG_ERR', $reply);
+  foreach my $lang ( split(/,/, $conf{VOIP_ASTERISK_IVR_LANG}) ) {
+ 	  if (-f "$conf{'VOIP_ASTERISK_IVR_DIR'}/$lang/$rad_response{'Filter-Id'}.gsm") {
+ 		  $agi->set_variable('CHANNEL(language)', $lang);
+		  $agi->exec('Playback', "$rad_response{'Filter-Id'}");
+	  }
+  }
+
   $agi->verbose($reply, 3);
   $agi->hangup();
   exit 0;
@@ -136,6 +145,18 @@ if (defined($rad_response{'h323-credit-time'}) && $rad_response{'h323-credit-tim
 elsif (defined($rad_response{'Session-Timeout'}) && $rad_response{'Session-Timeout'} < $data{'session_timeout'}) {
   $data{'session_timeout'} = int($rad_response{'Session-Timeout'});
 }
+
+if ($rad_response{'Filter-Id'}) {
+	$agi->verbose('RAD filter-id=' . $rad_response{'Filter-Id'}, 3);
+  foreach my $lang ( split(/,/, $conf{VOIP_ASTERISK_IVR_LANG}) ) {
+ 	  if (-f "$conf{'VOIP_ASTERISK_IVR_DIR'}/$lang/$rad_response{'Filter-Id'}.gsm") {
+ 		  $agi->set_variable('CHANNEL(language)', $lang);
+		  $agi->exec('Playback', "$rad_response{'Filter-Id'}");
+	  }
+  }
+}
+
+
 
 #return code
 if (defined($rad_response{'h323-return-code'})) {

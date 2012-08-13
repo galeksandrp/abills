@@ -804,6 +804,7 @@ sub list {
   #Show last paymenst
   if ($attr->{PAYMENTS} || $attr->{PAYMENT_DAYS}) {
     my @HAVING_RULES = @WHERE_RULES;
+   
     if ($attr->{PAYMENTS}) {
       my $value = $self->search_expr($attr->{PAYMENTS}, 'INT');
       push @WHERE_RULES,  "p.date$value";
@@ -822,7 +823,7 @@ sub list {
       $self->{SEARCH_FIELDS_COUNT}++;
     }
 
-    my $HAVING = ($#WHERE_RULES > -1) ? "HAVING " . join(' and ', @HAVING_RULES) : '';
+    my $HAVING = ($#HAVING_RULES > -1) ? "HAVING " . join(' and ', @HAVING_RULES) : '';
 
     $self->query(
       $db, "SELECT u.id, 

@@ -23,7 +23,12 @@ use Auth;
 my ($db, $conf, $Billing);
 
 my %RAD_PAIRS = ();
-my %ACCT_TYPES = ('Start', 1, 'Stop', 2, 'Alive', 3, 'Accounting-On', 7, 'Accounting-Off', 8);
+my %ACCT_TYPES = ('Start' =>          1, 
+                  'Stop'  =>          2, 
+                  'Alive' =>          3, 
+                  'Accounting-On' =>  7, 
+                  'Accounting-Off'=>  8
+                 );
 
 #**********************************************************
 # Init
@@ -84,11 +89,11 @@ sub user_info {
 
   my $WHERE = '';
   if (defined($RAD->{H323_CALL_ORIGIN}) && $RAD->{H323_CALL_ORIGIN} == 0) {
-    $WHERE = " and number='$RAD->{CALLED_STATION_ID}'";
+    $WHERE = "number='$RAD->{CALLED_STATION_ID}'";
     $RAD->{USER_NAME} = $RAD->{CALLED_STATION_ID};
   }
   else {
-    $WHERE = " and number='$RAD->{USER_NAME}'";
+    $WHERE = "number='$RAD->{USER_NAME}'";
   }
 
   $self->query(
@@ -96,55 +101,36 @@ sub user_info {
    voip.uid, 
    voip.number,
    voip.tp_id, 
-   INET_NTOA(voip.ip),
-   DECODE(password, '$conf->{secretkey}'),
+   INET_NTOA(voip.ip) AS ip,
+   DECODE(password, '$conf->{secretkey}') AS password,
    voip.logins,
    voip.allow_answer,
    voip.allow_calls,
-   voip.disable,
-   u.disable,
+   voip.disable AS voip_disable,
+   u.disable AS user_disable,
    u.reduction,
    u.bill_id,
    u.company_id,
    u.credit,
-  UNIX_TIMESTAMP(),
-  UNIX_TIMESTAMP(DATE_FORMAT(FROM_UNIXTIME(UNIX_TIMESTAMP()), '%Y-%m-%d')),
-  DAYOFWEEK(FROM_UNIXTIME(UNIX_TIMESTAMP())),
-  DAYOFYEAR(FROM_UNIXTIME(UNIX_TIMESTAMP()))
-
-   FROM voip_main voip, 
-        users u
-   WHERE 
-    u.uid=voip.uid
-   $WHERE;"
+  UNIX_TIMESTAMP() AS session_start,
+  UNIX_TIMESTAMP(DATE_FORMAT(FROM_UNIXTIME(UNIX_TIMESTAMP()), '%Y-%m-%d')) AS day_begin,
+  DAYOFWEEK(FROM_UNIXTIME(UNIX_TIMESTAMP())) AS day_of_week,
+  DAYOFYEAR(FROM_UNIXTIME(UNIX_TIMESTAMP())) AS day_of_year,
+   if(voip.filter_id<>'', voip.filter_id, tp.filter_id) AS filter_id,
+   tp.payment_type,
+   tp.uplimit
+   FROM voip_main voip 
+   INNER JOIN users u ON (u.uid=voip.uid)
+   LEFT JOIN tarif_plans tp ON (tp.tp_id=voip.tp_id)
+   WHERE  
+   $WHERE;",
+  undef,
+  { INFO => 1 }
   );
 
   if ($self->{TOTAL} < 1) {
     return $self;
   }
-
-  (
-    $self->{UID},
-    $self->{NUMBER},
-    $self->{TP_ID},
-    $self->{IP},
-    $self->{PASSWORD},
-    $self->{LOGINS},
-    $self->{ALLOW_ANSWER},
-    $self->{ALLOW_CALLS},
-    $self->{VOIP_DISABLE},
-    $self->{USER_DISABLE},
-    $self->{REDUCTION},
-    $self->{BILL_ID},
-    $self->{COMPANY_ID},
-    $self->{CREDIT},
-
-    $self->{SESSION_START},
-    $self->{DAY_BEGIN},
-    $self->{DAY_OF_WEEK},
-    $self->{DAY_OF_YEAR}
-
-  ) = @{ $self->{list}->[0] };
 
   #Chack Company account if ACCOUNT_ID > 0
   $self->check_company_account() if ($self->{COMPANY_ID} > 0);
@@ -170,7 +156,6 @@ sub number_expr {
     my ($left, $right) = split(/\//, $num_expr[$i]);
     my $r = eval "\"$right\"";
     if ($RAD->{CALLED_STATION_ID} =~ s/$left/$r/) {
-
       #    print "$i\n";
       last;
     }
@@ -222,9 +207,11 @@ sub auth {
     $self->{errstr} = 'ERROR_NOT_EXIST';
     if (!$RAD->{H323_CALL_ORIGIN}) {
       $RAD_PAIRS{'Reply-Message'} = "Answer Number Not Exist '$RAD->{USER_NAME}'";
+      $RAD_PAIRS{'Filter-Id'}='answer_not_exist';
     }
     else {
       $RAD_PAIRS{'Reply-Message'} = "Caller Number Not Exist '$RAD->{USER_NAME}'";
+      $RAD_PAIRS{'Filter-Id'}='call_not_exist';
     }
     return 1, \%RAD_PAIRS;
   }
@@ -238,6 +225,7 @@ sub auth {
   else {
     if ($self->{IP} ne '0.0.0.0' && $self->{IP} ne $RAD->{FRAMED_IP_ADDRESS}) {
       $RAD_PAIRS{'Reply-Message'} = "Not allow IP '$RAD->{FRAMED_IP_ADDRESS}' / $self->{IP} ";
+      $RAD_PAIRS{'Filter-Id'}='not_allow_ip';
       return 1, \%RAD_PAIRS;
     }
   }
@@ -246,21 +234,26 @@ sub auth {
   if ($self->{VOIP_DISABLE}) {
     if ($self->{VOIP_DISABLE} == 2 && $RAD->{H323_CALL_ORIGIN} == 1) {
       $RAD_PAIRS{'Reply-Message'} = "Incoming only";
+      $RAD_PAIRS{'Filter-Id'} = 'incoming_only';
       return 1, \%RAD_PAIRS;
     }
     else {
       $RAD_PAIRS{'Reply-Message'} = "Service Disable";
+      $RAD_PAIRS{'Filter-Id'} = 'service_disabled';
       return 1, \%RAD_PAIRS;
     }
   }
   elsif ($self->{USER_DISABLE}) {
-
-    #$RAD_PAIRS{'h323-return-code'}=7;
     $RAD_PAIRS{'Reply-Message'} = "Account Disable";
+ 	  $RAD_PAIRS{'Filter-Id'} = 'user_disable';
     return 1, \%RAD_PAIRS;
   }
 
-  $self->{PAYMENT_TYPE} = 0;
+  if ($self->{FILTER_ID}) {
+  	$RAD_PAIRS{'Filter-Id'} = $self->{FILTER_ID};
+  }
+
+  #$self->{PAYMENT_TYPE} = 0;
   if ($self->{PAYMENT_TYPE} == 0) {
     $self->{DEPOSIT}           = $self->{DEPOSIT} + $self->{CREDIT};    #-$self->{CREDIT_TRESSHOLD};
     $RAD->{H323_CREDIT_AMOUNT} = $self->{DEPOSIT};
@@ -268,7 +261,13 @@ sub auth {
     #Check deposit
     if ($self->{DEPOSIT} <= 0) {
       $RAD_PAIRS{'Reply-Message'} = "Negativ deposit '$self->{DEPOSIT}'. Rejected!";
+      $RAD_PAIRS{'Filter-Id'}='neg_deposit';
       return 1, \%RAD_PAIRS;
+    }
+    
+    if ($self->{DEPOSIT} < $self->{UPLIMIT}) {
+    	$RAD_PAIRS{'Reply-Message'} = "Too small deposit please recharge balace";
+    	$RAD_PAIRS{'Filter-Id'}='deposit_alert';
     }
   }
   else {
@@ -280,20 +279,24 @@ sub auth {
   if (defined($RAD->{H323_CONF_ID})) {
     if ($self->{ALLOW_ANSWER} < 1 && $RAD->{H323_CALL_ORIGIN} == 0) {
       $RAD_PAIRS{'Reply-Message'} = "Not allow answer";
+      $RAD_PAIRS{'Filter-Id'} ='not_allow_answer';
       return 1, \%RAD_PAIRS;
     }
     elsif ($self->{ALLOW_CALLS} < 1 && $RAD->{H323_CALL_ORIGIN} == 1) {
       $RAD_PAIRS{'Reply-Message'} = "Not allow calls";
+      $RAD_PAIRS{'Filter-Id'}='not_allow_call';
       return 1, \%RAD_PAIRS;
     }
 
     $self->get_route_prefix($RAD);
     if ($self->{TOTAL} < 1) {
       $RAD_PAIRS{'Reply-Message'} = "No route '" . $RAD->{'CALLED_STATION_ID'} . "'";
+      $RAD_PAIRS{'Filter-Id'}='no_route';
       return 1, \%RAD_PAIRS;
     }
     elsif ($self->{ROUTE_DISABLE} == 1) {
       $RAD_PAIRS{'Reply-Message'} = "Route disabled '" . $RAD->{'CALLED_STATION_ID'} . "'";
+      $RAD_PAIRS{'Filter-Id'}='route_disable';
       return 1, \%RAD_PAIRS;
     }
 
@@ -305,6 +308,7 @@ sub auth {
 
       if ($self->{TOTAL} < 1) {
         $RAD_PAIRS{'Reply-Message'} = "No price for route prefix '$self->{PREFIX}' number '" . $RAD->{'CALLED_STATION_ID'} . "'";
+        $RAD_PAIRS{'Filter-Id'}='no_price_for_route';
         return 1, \%RAD_PAIRS;
       }
 
@@ -329,6 +333,7 @@ sub auth {
       }
       elsif ($self->{PAYMENT_TYPE} == 0 && $session_timeout == 0) {
         $RAD_PAIRS{'Reply-Message'} = "Too small deposit for call'";
+        $RAD_PAIRS{'Filter-Id'}='too_small_deposit';
         return 1, \%RAD_PAIRS;
       }
 

@@ -30,6 +30,9 @@
   <tr><td>$_NEXT_PERIOD:</td><td><input type=text name=NEXT_PERIOD value='%NEXT_PERIOD%'></td></tr>
   <tr><td>$_NEXT_PERIOD_STEP:</td><td><input type=text name=NEXT_PERIOD_STEP value='%NEXT_PERIOD_STEP%'></td></tr>
   <tr><td>$_TIME_DIVISION ($_SECONDS .):</td><td><input type=text name=TIME_DIVISION value='%TIME_DIVISION%'></td></tr>
+  
+    <tr><td>FILTER_ID:</td><td><input type=text name=FILTER_ID value='%FILTER_ID%'></td></tr>
+  
   <tr><th colspan=2 class='even'><input type=submit name='%ACTION%' value='%LNG_ACTION%'></th></tr> 
 </table>
 

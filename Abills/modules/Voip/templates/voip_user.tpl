@@ -12,6 +12,7 @@
 <tr><td>$_ALLOW_CALLS:</td><td><input type=checkbox name=ALLOW_CALLS value='1' %ALLOW_CALLS%></td></tr>
 
 <tr><td>$_STATUS:</td><td bgcolor=%STATUS_COLOR%>%STATUS_SEL%</td></tr>
+<tr><td>FILTER ID:</td><td><input type=text name=FILTER_ID value='%FILTER_ID%'></td></tr>
 %PROVISION%
 <tr><th class=even>
 %DEL_BUTTON%</th>

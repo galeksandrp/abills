@@ -1106,6 +1106,7 @@ CREATE TABLE `voip_main` (
   `registration` date NOT NULL default '0000-00-00',
   `ip` int(11) unsigned NOT NULL default '0',
   `cid` varchar(35) NOT NULL default '',
+  `filter_id` varchar(150) NOT NULL default '',
   `allow_answer` tinyint(1) unsigned NOT NULL default '1',
   `allow_calls` tinyint(1) unsigned NOT NULL default '1',
   `logins` tinyint(3) unsigned NOT NULL default '0',

@@ -189,7 +189,7 @@ sub customers_list {
                             if(pi.fio<>'', pi.fio, u.id)),
                          u.gid,
                          g.name,
-                         if(company.id IS NULL, 0, 1),
+                         if(company.id IS NULL, 0, company.id),
                          $ADDRESS_FULL,
                          pi.phone,
                          if(u.company_id > 0, company.contract_sufix, pi.contract_sufix),
