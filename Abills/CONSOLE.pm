@@ -837,41 +837,60 @@ sub tpl_show {
   my $self = shift;
   my ($tpl, $variables_ref, $attr) = @_;
 
-  my $tpl_name = $attr->{ID} || '';
-
-  if ($FORM{EXPORT_CONTENT} && $FORM{EXPORT_CONTENT} ne $tpl_name) {
+  if ($FORM{EXPORT_CONTENT} && $FORM{EXPORT_CONTENT} ne $attr->{ID}) {
     return '';
   }
 
-  my $xml_tpl = "<INFO name=\"$tpl_name\">\n";
+  if (!$attr->{SOURCE}) {
+    while ($tpl =~ /\%(\w+)(\=?)([A-Za-z0-9\_\.\/\\\]\[:\-]{0,50})\%/g) {
+      my $var       = $1;
+      my $delimiter = $2;
+      my $default   = $3;
 
-  while ($tpl =~ /\%(\w+)\%/g) {
-    my $var = $1;
-    if ($var =~ /ACTION_LNG/) {
-      next;
-    }
-    elsif (defined($variables_ref->{$var})) {
-      $xml_tpl .= "<$var>$variables_ref->{$var}</$var>\n";
-    }
-    else {
-      $xml_tpl .= "<$var/>";
+      #    if ($var =~ /$\{exec:.+\}$/) {
+      #    	my $exec = $1;
+      #    	if ($exec !~ /$\/usr/abills\/\misc\/ /);
+      #    	my $exec_content = system("$1");
+      #    	$tpl =~ s/\%$var\%/$exec_content/g;
+      #     }
+      #    els
+
+      if ($attr->{SKIP_VARS} && $attr->{SKIP_VARS} =~ /$var/) {
+      }
+      elsif ($default && $default =~ /expr:(.*)/) {
+        my @expr_arr = split(/\//, $1, 2);
+        $variables_ref->{$var} =~ s/$expr_arr[0]/$expr_arr[1]/g;
+        $default               =~ s/\//\\\//g;
+        $default               =~ s/\[/\\\[/g;
+        $default               =~ s/\]/\\\]/g;
+        $tpl                   =~ s/\%$var$delimiter$default%/$variables_ref->{$var}/g;
+      }
+      elsif (defined($variables_ref->{$var})) {
+        if ($variables_ref->{$var} !~ /\=\'|\' | \'/ && !$attr->{SKIP_QUOTE}) {
+          $variables_ref->{$var} =~ s/\'/&rsquo;/g;
+        }
+        $tpl =~ s/\%$var$delimiter$default%/$variables_ref->{$var}/g;
+      }
+      else {
+        $tpl =~ s/\%$var$delimiter$default\%/$default/g;
+      }
     }
   }
 
-  $tpl =~ s/&nbsp;/&#160;/g;
-
-  $xml_tpl .= "</INFO>\n";
   if ($attr->{OUTPUT2RETURN}) {
-    return $xml_tpl;
+    return $tpl;
   }
+  elsif ($attr->{MAIN}) {
+    $self->{OUTPUT} .= "$tpl";
+    return $tpl;
+  }
+  elsif ($attr->{notprint} || $self->{NO_PRINT}) {
+    $self->{OUTPUT} .= "<div class='table_top'></div>\n" . "<div class='table_cont'>$tpl</div>" . "<div class='table_bot'></div>\n";
 
-  #  elsif (defined($attr->{notprint}) || ($self->{NO_PRINT} && $self->{NO_PRINT} == 1)) {
-  elsif ($attr->{notprint} || defined($self->{NO_PRINT})) {
-    $self->{OUTPUT} .= $xml_tpl;
-    return $xml_tpl;
+    return $tpl;
   }
   else {
-    print $xml_tpl;
+    print "<div class='table_top'></div>\n" . "<div class='table_cont'>$tpl</div>\n" . "<div class='table_bot'></div>\n";
   }
 }
 

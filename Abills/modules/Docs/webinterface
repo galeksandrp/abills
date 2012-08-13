@@ -1980,7 +1980,6 @@ sub docs_invoice {
 
   }
   elsif ($FORM{print}) {
-
     $Docs->invoice_info($FORM{print}, { UID => $LIST_PARAMS{UID} });
     my %Doc = %{ $Docs };
     if ($conf{DOCS_VAT_INCLUDE}) {
