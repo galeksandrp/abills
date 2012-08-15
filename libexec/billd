@@ -2011,7 +2011,7 @@ sub get_db_info {
   my ($ip_pid_hash) = @_;
 
   $sessions->{debug} = 1 if ($debug > 4);
-  my $list = $sessions->online({ FIELDS_NAMES => ['CLIENT_IP'] });
+  my $list = $sessions->online({ FIELDS_NAMES => ['CLIENT_IP'], NAS_ID => $ARGV->{NAS_IDS} });
 
   foreach my $line (@$list) {
     my $ip = $line->[0];

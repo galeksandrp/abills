@@ -226,7 +226,7 @@ sub add {
   return $self if ($self->{errno});
 
   $admin->{MODULE} = $MODULE;
-  $admin->action_add("$DATA{UID}", "ACTIVE", { TYPE => 1 });
+  $admin->action_add("$DATA{UID}", "", { TYPE => 1 });
   return $self;
 }
 

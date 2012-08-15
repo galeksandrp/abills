@@ -167,6 +167,7 @@ sub change {
   
   $attr->{DHCP} = ($attr->{DHCP}) ? $attr->{DHCP} : 0;
   $attr->{PPPOE} = ($attr->{PPPOE}) ? $attr->{PPPOE} : 0;
+   $attr->{DISABLE} = ($attr->{DISABLE}) ? $attr->{DISABLE} : 0;
   
   my $old_info = $self->info($attr->{UID});
   

@@ -493,6 +493,9 @@ sub user_add {
     $self->accomulation_first_rule($attr);
   }
 
+  $admin->{MODULE} = $MODULE;
+  $admin->action_add("$DATA{UID}", "", { TYPE => 1 });
+
   return $self;
 }
 
@@ -506,6 +509,7 @@ sub user_change {
   $attr->{STATE} = ($attr->{STATE}) ? 1 : 0;
   $attr->{ACCEPT_RULES} = ($attr->{ACCEPT_RULES}) ? 1 : 0;
 
+  $admin->{MODULE} = $MODULE;
   $self->changes(
     $admin,
     {
