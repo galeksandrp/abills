@@ -57,10 +57,11 @@ my %PAY_SYSTEMS = (
   78 => 'Epay',
   79 => 'Private bank terminal (json)',
   80 => 'Pegas Self Terminals',
-  81 => 'QIWI - Payonline',
-  82 => 'WebMoney - Payonline',
-  83 => 'Yandex money - Payonline',
-  84 => 'Bank card - Payonline',
+  81 => 'Payonline - QIWI',
+  82 => 'Payonline - WebMoney',
+  83 => 'Payonline - Yandex money',
+  84 => 'Payonline - Bank card',
+  85 => "Webmoney - Terminal",
 );
 
 my %CONF_OPTIONS = (
@@ -108,6 +109,7 @@ my %CONF_OPTIONS = (
   PAYSYS_WEBMONEY_PAYONLINE_ACCOUNT_KEY     => 82,
   PAYSYS_YANDEX_MONEY_PAYONLINE_ACCOUNT_KEY => 83,
   PAYSYS_BANK_CARD_PAYONLINE_ACCOUNT_KEY    => 84,
+  PAYSYS_WEBMONEY_TERMINAL                  => 85
 );
 
 my @status = ('UNKNOWN', 'IN PROCCESS', 'COMPLETE', 'CANCELED', 'EXPIRED', 'INCORRECT_CHECKSUM', 'PAYMENT_ERROR', 'DUBLICATE', 'USER_ERROR', 'USER_NOT_EXIST', 'SMALL_PAYMENT_SUM', 'SQL_ERROR');
@@ -603,7 +605,7 @@ sub paysys_payment {
     goto PRE_LABEL;
   }
 
-  if ($FORM{PAYMENT_SYSTEM} == 41 || $FORM{LMI_PAYMENT_NO}) {
+  if ($FORM{PAYMENT_SYSTEM} == 41 || $FORM{PAYMENT_SYSTEM} == 85 || $FORM{LMI_PAYMENT_NO}) {
     paysys_webmoney();
   }
   elsif ($FORM{PAYMENT_SYSTEM} == 42) {
@@ -678,7 +680,7 @@ sub paysys_payment {
       82 => 'PAYSYS_WEBMONEY_PAYONLINE',
       83 => 'PAYSYS_YANDEX_MONEY_PAYONLINE',
       84 => 'PAYSYS_BANK_CARD_PAYONLINE',
-
+      85 => 'PAYSYS_WEBMONEY_TERMINAL'
     );
 
     while (my ($k, $v) = each %PAY_SYSTEMS) {
@@ -964,6 +966,11 @@ sub paysys_webmoney () {
    <font color='red'>$_TEST_MODE (LMI_MODE: $LMI_MODE, LMI_SIM_MODE: $LMI_SIM_MODE)</font>";
   }
 
+  # Terminal auth type
+  if ($FORM{PAYMENT_SYSTEM} == 85) {
+  	$inf{AT}='authtype_8';
+  }
+
   my @ACCOUNTS = split(/;/, $conf{PAYSYS_WEBMONEY_ACCOUNTS});
   $info{ACCOUNTS_SEL} = $html->form_select(
     'LMI_PAYEE_PURSE',
@@ -974,8 +981,8 @@ sub paysys_webmoney () {
     }
   );
 
-  $info{LMI_PAYMENT_AMOUNT} = $FORM{SUM};
-  my $pay_describe = "Login: $LIST_PARAMS{LOGIN}, UID: $LIST_PARAMS{UID}";
+  $info{LMI_PAYMENT_AMOUNT}    = $FORM{SUM};
+  my $pay_describe             = "Login: $LIST_PARAMS{LOGIN}, UID: $LIST_PARAMS{UID}";
   $info{DESCRIBE}              = $pay_describe;
   $info{LMI_PAYMENT_DESC}      = ($conf{dbcharset} eq 'utf8') ? convert($pay_describe, { utf82win => 1 }) : $pay_describe;
   $conf{PAYSYS_LMI_RESULT_URL} = "http://$ENV{SERVER_NAME}" . (($ENV{SERVER_PORT} != 80) ? ":$ENV{SERVER_PORT}" : '') . "/paysys_check.cgi" if (!$conf{PAYSYS_LMI_RESULT_URL});
