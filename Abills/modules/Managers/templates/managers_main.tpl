@@ -501,17 +501,15 @@ background-color: #F0F0F0;
 
 <body>
 
-<div id=\"wrapper\">
-  <div id=\"header\"> </div>
-
+<div id=\"wrapper\"><div id=\"header\"></div>
   <!-- #header-->
   %MENU%  
   <!-- #content-->
   <!-- <div id=\"footer\"></div> --> 
   <!-- #footer --> 
- 
 </div>
 <!-- #wrapper -->
+
 
 </body>
 </html>

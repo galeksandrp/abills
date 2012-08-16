@@ -1623,7 +1623,7 @@ sub dv_users {
 
   $Dv->{UID} = $FORM{UID} || $LIST_PARAMS{UID};
   undef $Dv->{errno};
-  if ($FORM{payment_add}) {
+  if ($FORM{payment_add} || ($FORM{subf} && $FORM{subf} == 2)) {
     $FORM{COMMENTS} = $FORM{PAYMENT_COMMENT};
     $FORM{add}      = 1;
     my $user = $users->info($Dv->{UID});
@@ -2258,6 +2258,7 @@ sub dv_wizard_user {
   my %add_values = ();
   
   if ($FORM{add}) {
+  	$html->{OUTPUT}='<center>';
   	$db->{AutoCommit} = 0;
     foreach my $k (sort %FORM) {
       if ($k =~ m/^[0-9]+\.[_a-zA-Z0-9]+$/) {
@@ -2502,7 +2503,11 @@ sub dv_wizard_user {
    
    $db->commit();
    delete $FORM{add};
+   delete $FORM{NEW_USER};
+   $FORM{payment_add}=1;
    $FORM{UID}=$user->{UID};
+   $FORM{subf}=2;
+   $index = 15;
    form_payments({ USER_INFO => $user });
    
    return $UID;
@@ -2833,8 +2838,9 @@ sub form_payments () {
 
     if (!$attr->{REGISTRATION}) {
       if ($user->{BILL_ID} < 1) {
-        form_bills({ USER_INFO => $user });
-        return 0;
+        #form_bills({ USER_INFO => $user });
+        $user->info($FORM{UID});
+        #return 0;
       }
     }
 
