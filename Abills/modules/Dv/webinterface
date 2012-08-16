@@ -6995,6 +6995,7 @@ sub dv_get_month_fee {
     MONTH_FEE => 0
   );
 
+
   $users = $user if ($user->{UID});
 
   #Make bonus
@@ -7043,6 +7044,7 @@ sub dv_get_month_fee {
       }
     }
   }
+
 
   #Get active price
   if ($Dv->{TP_INFO}->{ACTIV_PRICE} > 0) {
@@ -7143,7 +7145,7 @@ sub dv_get_month_fee {
         $periods -= 1;
       }
     }
-
+	  
     $m = $active_m if ($active_m > 0);
 
     for (my $i = 0 ; $i <= $periods ; $i++) {

@@ -316,7 +316,7 @@ sub form_reports {
       pages      => $Dv->{TOTAL},
       qs         => $pages_qs,
       ID         => 'REPORT_USERS',
-      EXPORT     => ' XML:&xml=1&PAGE_ROWS=1000000&SHOW_REPORT='.$FORM{SHOW_REPORT}
+      EXPORT     => ' XML:&xml=1&PAGE_ROWS=1000000' #&SHOW_REPORT='.$FORM{SHOW_REPORT}
     }
   );
 
@@ -389,8 +389,8 @@ sub form_reports {
   $table->show();
   $html->{OUTPUT} .= $result_table;
   
-  
   if ($FORM{xml} || $FORM{csv}) {
+  	print $html->{OUTPUT};
   	print $table->show({ OUTPUT2RETURN => 1 });
   	return 0;
   }
@@ -2245,7 +2245,7 @@ sub dv_wizard_user {
   $FORM{DV_WIZARD} = 1;
 
   if ($FORM{print}) {
-    require "Abills/modules/Docs/webinterface";
+    load_module('Docs');
     if ($FORM{PRINT_CONTRACT}) {
       docs_contract({%$Dv});
     }
@@ -2269,7 +2269,7 @@ sub dv_wizard_user {
 
     # Password
     $add_values{1}{GID} = $admin->{GID} if ($admin->{GID});
-    my $user = $users->add({ %{ $add_values{1} }, CREATE_EXT_BILL => ((defined($FORM{'5.EXT_BILL_DEPOSIT'}) || $FORM{'1.CREATE_EXT_BILL'}) ? 1 : 0) });
+    $user = $users->add({ %{ $add_values{1} }, CREATE_EXT_BILL => ((defined($FORM{'5.EXT_BILL_DEPOSIT'}) || $FORM{'1.CREATE_EXT_BILL'}) ? 1 : 0) });
     my $message = '';
     if (!$user->{errno}) {
       $UID  = $user->{UID};
@@ -2331,70 +2331,70 @@ sub dv_wizard_user {
       }
 
       # Ext bill add
-      if ($FORM{'5.EXT_BILL_DEPOSIT'}) {
-        $add_values{5}{SUM} = $FORM{'5.EXT_BILL_DEPOSIT'};
-
-        # if Bonus $conf{BONUS_EXT_FUNCTIONS}
-        if (in_array('Bonus', \@MODULES) && $conf{BONUS_EXT_FUNCTIONS}) {
-          require "Abills/modules/Bonus/webinterface";
-          my $Bonus = Bonus->new($db, $admin, \%conf);
-
-          my $sum = $FORM{'5.EXT_BILL_DEPOSIT'};
-          %FORM      = %{ $add_values{8} };
-          $FORM{UID} = $UID;
-          $FORM{SUM} = $sum;
-          $FORM{add} = $UID;
-          if ($FORM{SUM} < 0) {
-            $FORM{ACTION_TYPE} = 1;
-            $FORM{SUM}         = abs($FORM{SUM});
-          }
-          $FORM{SHORT_REPORT} = 1;
-          bonus_user_log({ USER_INFO => $user });
-        }
-        else {
-          if ($FORM{'5.EXT_BILL_DEPOSIT'} + 0 > 0) {
-            my $er = ($FORM{'5.ER'}) ? $Payments->exchange_info($FORM{'5.ER'}) : { ER_RATE => 1 };
-            $Payments->add(
-              $user,
-              {
-                %{ $add_values{5} },
-                BILL_ID => $user->{EXT_BILL_ID},
-                ER      => $er->{ER_RATE}
-              }
-            );
-
-            if ($Payments->{errno}) {
-              $html->message('err', "$_PAYMENTS : $_ERROR", "[$Payments->{errno}] $err_strs{$Payments->{errno}}");
-              $db->rollback();
-              return 0;
-            }
-            else {
-              $message = "$_SUM: $FORM{'5.SUM'} $er->{ER_SHORT_NAME}\n";
-            }
-          }
-          elsif ($FORM{'5.EXT_BILL_DEPOSIT'} + 0 < 0) {
-            my $er = ($FORM{'5.ER'}) ? $Payments->exchange_info($FORM{'5.ER'}) : { ER_RATE => 1 };
-            $fees->take(
-              $user,
-              abs($FORM{'5.EXT_BILL_DEPOSIT'}),
-              {
-                BILL_ID  => $user->{EXT_BILL_ID},
-                DESCRIBE => 'MIGRATION',
-                ER       => $er->{ER_RATE}
-              }
-            );
-
-            if ($fees->{errno}) {
-              $html->message('err', "$_ERROR : $_FEES", "[$fees->{errno}] $err_strs{$fees->{errno}}");
-              $db->rollback();
-              return 0;
-            }
-            else {
-              $message = "$_SUM: $FORM{'5.EXT_BILL_DEPOSIT'} $er->{ER_SHORT_NAME}\n";
-            }
-          }
-        }
-      }
+#      if ($FORM{'5.EXT_BILL_DEPOSIT'}) {
+#        $add_values{5}{SUM} = $FORM{'5.EXT_BILL_DEPOSIT'};
+#
+#        # if Bonus $conf{BONUS_EXT_FUNCTIONS}
+#        if (in_array('Bonus', \@MODULES) && $conf{BONUS_EXT_FUNCTIONS}) {
+#          require "Abills/modules/Bonus/webinterface";
+#          my $Bonus = Bonus->new($db, $admin, \%conf);
+#
+#          my $sum = $FORM{'5.EXT_BILL_DEPOSIT'};
+#          %FORM      = %{ $add_values{8} };
+#          $FORM{UID} = $UID;
+#          $FORM{SUM} = $sum;
+#          $FORM{add} = $UID;
+#          if ($FORM{SUM} < 0) {
+#            $FORM{ACTION_TYPE} = 1;
+#            $FORM{SUM}         = abs($FORM{SUM});
+#          }
+#          $FORM{SHORT_REPORT} = 1;
+#          bonus_user_log({ USER_INFO => $user });
+#        }
+#        else {
+#          if ($FORM{'5.EXT_BILL_DEPOSIT'} + 0 > 0) {
+#            my $er = ($FORM{'5.ER'}) ? $Payments->exchange_info($FORM{'5.ER'}) : { ER_RATE => 1 };
+#            $Payments->add(
+#              $user,
+#              {
+#                %{ $add_values{5} },
+#                BILL_ID => $user->{EXT_BILL_ID},
+#                ER      => $er->{ER_RATE}
+#              }
+#            );
+#
+#            if ($Payments->{errno}) {
+#              $html->message('err', "$_PAYMENTS : $_ERROR", "[$Payments->{errno}] $err_strs{$Payments->{errno}}");
+#              $db->rollback();
+#              return 0;
+#            }
+#            else {
+#              $message = "$_SUM: $FORM{'5.SUM'} $er->{ER_SHORT_NAME}\n";
+#            }
+#          }
+#          elsif ($FORM{'5.EXT_BILL_DEPOSIT'} + 0 < 0) {
+#            my $er = ($FORM{'5.ER'}) ? $Payments->exchange_info($FORM{'5.ER'}) : { ER_RATE => 1 };
+#            $fees->take(
+#              $user,
+#              abs($FORM{'5.EXT_BILL_DEPOSIT'}),
+#              {
+#                BILL_ID  => $user->{EXT_BILL_ID},
+#                DESCRIBE => 'MIGRATION',
+#                ER       => $er->{ER_RATE}
+#              }
+#            );
+#
+#            if ($fees->{errno}) {
+#              $html->message('err', "$_ERROR : $_FEES", "[$fees->{errno}] $err_strs{$fees->{errno}}");
+#              $db->rollback();
+#              return 0;
+#            }
+#            else {
+#              $message = "$_SUM: $FORM{'5.EXT_BILL_DEPOSIT'} $er->{ER_SHORT_NAME}\n";
+#            }
+#          }
+#        }
+#      }
 
       #4 Dv
       # Make Dv service only with TP
@@ -2418,6 +2418,13 @@ sub dv_wizard_user {
           }
           $db->rollback();
           return 0;
+        }
+        else {
+        	if (!$FORM{STATUS}) {
+     	      $Dv->info($UID);
+          	load_module('Dv');
+            dv_get_month_fee($Dv);       	
+          }
         }
       }
 
@@ -2477,8 +2484,6 @@ sub dv_wizard_user {
           }
         }
       }
-
-      return $UID;
     }
     else {
       if ($users->{errno} == 7) {
@@ -2490,7 +2495,17 @@ sub dv_wizard_user {
       return 0 if ($attr->{SHORT_REPORT});
     }
 
+
+   
+   $FORM{SUM} = $Dv->{TP_INFO}->{MONTH_FEE};
+   
+   
    $db->commit();
+   delete $FORM{add};
+   $FORM{UID}=$user->{UID};
+   form_payments({ USER_INFO => $user });
+   
+   return $UID;
   }
 
   #

@@ -179,26 +179,25 @@ sub add {
     my $tariffs = Tariffs->new($db, $CONF, $admin);
 
     $self->{TP_INFO} = $tariffs->info(0, { ID => $DATA{TP_ID} });
+      #Take activation price
+      if ($tariffs->{ACTIV_PRICE} > 0) {
+        my $user = Users->new($db, $admin, $CONF);
+        $user->info($DATA{UID});
 
-    #Take activation price
-    if ($tariffs->{ACTIV_PRICE} > 0) {
-      my $user = Users->new($db, $admin, $CONF);
-      $user->info($DATA{UID});
+        if ($CONF->{FEES_PRIORITY} =~ /bonus/ && $user->{EXT_BILL_DEPOSIT}) {
+          $user->{DEPOSIT} += $user->{EXT_BILL_DEPOSIT};
+        }
 
-      if ($CONF->{FEES_PRIORITY} =~ /bonus/ && $user->{EXT_BILL_DEPOSIT}) {
-        $user->{DEPOSIT} += $user->{EXT_BILL_DEPOSIT};
+        if ($user->{DEPOSIT} + $user->{CREDIT} < $tariffs->{ACTIV_PRICE} && $tariffs->{PAYMENT_TYPE} == 0) {
+          $self->{errno} = 15;
+          return $self;
+        }
+
+        my $fees = Fees->new($db, $admin, $CONF);
+        $fees->take($user, $tariffs->{ACTIV_PRICE}, { DESCRIBE => "ACTIV TP" });
+
+        $tariffs->{ACTIV_PRICE} = 0;
       }
-
-      if ($user->{DEPOSIT} + $user->{CREDIT} < $tariffs->{ACTIV_PRICE} && $tariffs->{PAYMENT_TYPE} == 0) {
-        $self->{errno} = 15;
-        return $self;
-      }
-
-      my $fees = Fees->new($db, $admin, $CONF);
-      $fees->take($user, $tariffs->{ACTIV_PRICE}, { DESCRIBE => "ACTIV TP" });
-
-      $tariffs->{ACTIV_PRICE} = 0;
-    }
   }
 
   $self->query(
