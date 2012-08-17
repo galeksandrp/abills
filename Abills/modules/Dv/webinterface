@@ -7137,16 +7137,15 @@ sub dv_get_month_fee {
     }
 
     if ($Dv->{ACCOUNT_ACTIVATE} ne '0000-00-00' && ($Dv->{OLD_STATUS} == 5)) {
+      if ($conf{DV_CURDATE_ACTIVATE}) {
+        $periods = 0;      	
+      }
       #if activation in cure month curmonth
-      if ($periods == 0 || ($periods == 1 && $d < $active_d)) {
+      elsif ($periods == 0 || ($periods == 1 && $d < $active_d)) {
         $periods = -1;
       }
       else {
         $periods -= 1;
-      }
-      
-      if ($conf{DV_CURDATE_ACTIVATE}) {
-      	$periods = 0;
       }
     }
 	  
