@@ -7144,6 +7144,10 @@ sub dv_get_month_fee {
       else {
         $periods -= 1;
       }
+      
+      if ($conf{DV_CURDATE_ACTIVATE}) {
+      	$periods = 0;
+      }
     }
 	  
     $m = $active_m if ($active_m > 0);
@@ -7202,10 +7206,14 @@ sub dv_get_month_fee {
               UID      => $Dv->{UID}
             }
           );
+          if ($conf{DV_CURDATE_ACTIVATE}) {
+            ($active_y, $active_m, $active_d)=split(/-/, $DATE);
+          }
         }
         else {
           $DATE = "$active_y-$m-$active_d";
         }
+
         my $end_period = strftime "%Y-%m-%d", localtime((mktime(0, 0, 0, $active_d, ($m - 1), ($active_y - 1900), 0, 0, 0) + 30 * 86400));
         $Dv->{ACCOUNT_ACTIVATE} = strftime "%Y-%m-%d", localtime((mktime(0, 0, 0, $active_d, ($m - 1), ($active_y - 1900), 0, 0, 0) + 31 * 86400));
         $message .= " ($active_y-$m-$active_d-$end_period)";
