@@ -771,7 +771,6 @@ sub bonus_service_discount_mk {
   my %RESULT = ();
   if ($periods > 0) {
     if ($RULES{PERIOD}) {
-
       my ($year, $month, $day) = split(/-/, $attr->{USER_INFO}->{REGISTRATION}, 3);
       my $seltime = POSIX::mktime(0, 0, 0, $day, ($month - 1), ($year - 1900));
       $registration_days = int((time() - $seltime) / 86400);
@@ -846,9 +845,10 @@ sub bonus_service_discount_mk {
     }
 
     if ($RESULT{BONUS_SUM} && $RESULT{BONUS_SUM} > 0) {
-      my $bill_id = ($RESULT{BONUS_EXT_ACCOUNT}) ? $attr->{USER_INFO}->{EXT_BILL_ID} : $attr->{USER_INFO};
+      my $user    = $attr->{USER_INFO};
+      $user->{BILL_ID} = ($RESULT{BONUS_EXT_ACCOUNT}) ? $attr->{USER_INFO}->{EXT_BILL_ID} : $attr->{USER_INFO}->{BILL_ID};
       $Payments->add(
-        { %{ $attr->{USER_INFO} }, BILL_ID => $bill_id, },
+        $user,
         {
           SUM      => $RESULT{BONUS_SUM},
           METHOD   => 4,
@@ -873,7 +873,6 @@ sub bonus_service_discount_mk {
         $html->message('info', $_INFO, "$message");
       }
     }
-
   }
 
   return $return;

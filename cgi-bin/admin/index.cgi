@@ -5855,7 +5855,7 @@ sub form_payments () {
         }
 
         #Make pre payments functions in all modules
-        cross_modules_call('_pre_payment', {%$attr});
+        cross_modules_call('_pre_payment', { %$attr });
 
 
         if (!$conf{PAYMENTS_NOT_CHECK_INVOICE_SUM} && ($FORM{INVOICE_SUM} && $FORM{INVOICE_SUM} != $FORM{PAYMENT_SUM})) {
