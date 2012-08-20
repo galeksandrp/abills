@@ -465,6 +465,10 @@ sub dv_auth {
     return 1, $RAD_PAIRS;
   }
 
+  if (length($self->{FILTER}) > 0) {
+    $self->neg_deposit_filter_former($RAD, $NAS, $self->{FILTER}, { USER_FILTER => 1, RAD_PAIRS => $RAD_PAIRS });
+  }
+
   if ($NAS->{NAS_TYPE} && $NAS->{NAS_TYPE} eq 'ipcad') {
 
     # SET ACCOUNT expire date
@@ -504,9 +508,6 @@ sub dv_auth {
   }
 
   $RAD_PAIRS->{'Framed-IP-Netmask'} = "$self->{NETMASK}" if (defined($RAD_PAIRS->{'Framed-IP-Address'}));
-  if (length($self->{FILTER}) > 0) {
-    $self->neg_deposit_filter_former($RAD, $NAS, $self->{FILTER}, { USER_FILTER => 1, RAD_PAIRS => $RAD_PAIRS });
-  }
 
 ####################################################################
   # Vendor specific return

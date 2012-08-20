@@ -6,6 +6,8 @@
 <input type='hidden' name='LMI_FAIL_URL' value='https://$ENV{SERVER_NAME}:$ENV{SERVER_PORT}$ENV{REQUEST_URI}?FALSE=1&LMI_PAYMENT_NO=%LMI_PAYMENT_NO%&PAYMENT_SYSTEM=$FORM{PAYMENT_SYSTEM}&index=$index'>
 <input type='hidden' name='LMI_FAIL_METHOD' value='2'>
 <input type='hidden' name='LMI_PAYMENT_NO' value='%LMI_PAYMENT_NO%'>
+<input type='hidden' name='at' value='%AT%'>
+
 
 <input type='hidden' name='UID' value='$LIST_PARAMS{UID}'>
 <input type='hidden' name='sid' value='$FORM{sid}'>

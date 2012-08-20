@@ -61,7 +61,7 @@ my %PAY_SYSTEMS = (
   82 => 'Payonline - WebMoney',
   83 => 'Payonline - Yandex money',
   84 => 'Payonline - Bank card',
-  85 => "Webmoney - Terminal",
+  85 => "Термінали України",
 );
 
 my %CONF_OPTIONS = (
@@ -969,7 +969,7 @@ sub paysys_webmoney () {
 
   # Terminal auth type
   if ($FORM{PAYMENT_SYSTEM} == 85) {
-  	$info{AT}='?at=authtype_7';
+  	$info{AT}='?at=authtype_8';
   }
 
   my @ACCOUNTS = split(/;/, $conf{PAYSYS_WEBMONEY_ACCOUNTS});

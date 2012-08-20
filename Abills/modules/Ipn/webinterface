@@ -1360,6 +1360,7 @@ sub ipn_user_activate {
 
         my $Auth = Auth->new($db, \%conf);
         my ($r, $RAD_PAIRS) = $Auth->dv_auth(\%DATA, $Nas, { SECRETKEY => $conf{secretkey} });
+        delete ($RAD->{'Session-Timeout'});
         if ($RAD_PAIRS->{'Filter-Id'}) {
           $DATA{FILTER_ID} = $RAD_PAIRS->{'Filter-Id'};
         }
@@ -1368,6 +1369,8 @@ sub ipn_user_activate {
             $DATA{FILTER_ID} .= "$k=$v, ";
           }
         }
+
+
 
         if ($r == 1) {
           $html->message('err', $_ERROR, "$RAD_PAIRS->{'Reply-Message'}");
