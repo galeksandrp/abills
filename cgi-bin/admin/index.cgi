@@ -2358,7 +2358,6 @@ sub form_users {
       $html->message('err', $_MULTIUSER_OP, "$_SELECT_USER");
     }
     elsif (scalar keys %CHANGE_PARAMS < 1) {
-
       #$html->message('err', $_MULTIUSER_OP, "$_SELECT_USER");
     }
     else {
@@ -2499,7 +2498,7 @@ function CheckAllINBOX() {
 </script>\n
 <a href=\"javascript:void(0)\" onClick=\"CheckAllINBOX();\" class=export_button>$_SELECT_ALL</a>\n$status_bar"
       : undef,
-      EXPORT => ' XML:&xml=1;',
+      EXPORT => ' XML:&xml=1',
       MENU   => "$_ADD:index=" . get_function_index('form_wizard') . ':add' . ";$_SEARCH:index=" . get_function_index('form_search') . ":search"
     }
   );
@@ -2538,7 +2537,7 @@ function CheckAllINBOX() {
 
     my $multiuser = ($permissions{0}{7}) ? $html->form_input('IDS', "$uid", { TYPE => 'checkbox', }) : '';
     $table->addtd(
-      $table->td($multiuser . user_ext_menu($uid, $line->{id})),
+      $table->td(($FORM{xml}) ? $line->{id} : $multiuser . user_ext_menu($uid, $line->{id})),
       $table->td($line->{fio}),
       $table->td( ($permissions{0}{12}) ? '--' : ($line->{deposit} + $line->{credit} < 0) ? $html->color_mark($line->{deposit}, $_COLORS[6]) : $line->{deposit}),
       $table->td($line->{credit}),
@@ -2566,6 +2565,7 @@ function CheckAllINBOX() {
     }
   );
 
+
   if ($permissions{0}{7}) {
     my $table3 = $html->table(
       {
@@ -2590,14 +2590,14 @@ function CheckAllINBOX() {
     print $html->form_main(
       {
         CONTENT => $table->show({ OUTPUT2RETURN => 1 }) . ((!$admin->{MAX_ROWS}) ? $table2->show({ OUTPUT2RETURN => 1 }) : '') . $table3->show({ OUTPUT2RETURN => 1 }),
-        HIDDEN => {
+        HIDDEN  => {
           index       => 11,
           FULL_DELETE => ($admin->{permissions}->{0} && $admin->{permissions}->{0}->{8}) ? 1 : undef,
-        },
-        NAME => 'users_list'
+       },
+       NAME    => 'users_list',
+       ID      => 'USERS_LIST',
       }
     );
-
   }
   else {
     print $table->show();

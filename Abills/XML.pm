@@ -192,15 +192,14 @@ sub form_input {
 # HTML Input form
 #**********************************************************
 sub form_main {
+  my $self = shift;
   my ($attr) = @_;
+
   if ($FORM{EXPORT_CONTENT} && $FORM{EXPORT_CONTENT} ne $attr->{ID}) {
     return '';
   }
 
-  my $self = shift;
-  my ($attr) = @_;
-
-  $self->{FORM} = "<FORM action=\"$SELF_URL\" METHOD=\"POST\">\n";
+  $self->{FORM} = "<FORM action=\"$SELF_URL\">\n";
 
   if (defined($attr->{HIDDEN})) {
     my $H = $attr->{HIDDEN};
@@ -209,7 +208,7 @@ sub form_main {
     }
   }
 
-  if (defined($attr->{CONTENT})) {
+  if ($attr->{CONTENT}) {
     $self->{FORM} .= $attr->{CONTENT};
   }
 
