@@ -1,4 +1,4 @@
-<form id=pay name=pay method='POST' action='https://merchant.webmoney.ru/lmi/payment.asp?%AT%'>
+<form id=pay name=pay method='POST' action='https://merchant.webmoney.ru/lmi/payment.asp%AT%'>
 <input type='hidden' name='LMI_RESULT_URL' value='$conf{PAYSYS_LMI_RESULT_URL}'>
 <input type='hidden' name='LMI_SUCCESS_URL' value='https://$ENV{SERVER_NAME}:$ENV{SERVER_PORT}$ENV{REQUEST_URI}?TRUE=1'>
 <input type='hidden' name='LMI_SUCCESS_METHOD' value='0'>
