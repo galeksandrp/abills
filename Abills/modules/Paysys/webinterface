@@ -968,7 +968,7 @@ sub paysys_webmoney () {
 
   # Terminal auth type
   if ($FORM{PAYMENT_SYSTEM} == 85) {
-  	$info{AT}='authtype_8';
+  	$info{AT}='?at=authtype_8';
   }
 
   my @ACCOUNTS = split(/;/, $conf{PAYSYS_WEBMONEY_ACCOUNTS});
