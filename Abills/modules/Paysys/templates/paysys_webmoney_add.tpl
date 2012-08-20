@@ -7,7 +7,6 @@
 <input type='hidden' name='LMI_FAIL_METHOD' value='2'>
 <input type='hidden' name='LMI_PAYMENT_NO' value='%LMI_PAYMENT_NO%'>
 
-
 <input type='hidden' name='UID' value='$LIST_PARAMS{UID}'>
 <input type='hidden' name='sid' value='$FORM{sid}'>
 <input type='hidden' name='IP' value='$ENV{REMOTE_ADDR}'>

@@ -966,9 +966,10 @@ sub paysys_webmoney () {
    <font color='red'>$_TEST_MODE (LMI_MODE: $LMI_MODE, LMI_SIM_MODE: $LMI_SIM_MODE)</font>";
   }
 
+
   # Terminal auth type
   if ($FORM{PAYMENT_SYSTEM} == 85) {
-  	$info{AT}='?at=authtype_8';
+  	$info{AT}='?at=authtype_7';
   }
 
   my @ACCOUNTS = split(/;/, $conf{PAYSYS_WEBMONEY_ACCOUNTS});
