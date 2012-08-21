@@ -1270,8 +1270,8 @@ sub check_speed {
 
     #Make pipe forward rules for traffic class
     for (my $i = 0 ; $i <= $#START_FW ; $i++) {
-      push @FW_ACTIONS, "$IPFW -q add " . (10000 - $i * 1000) . " pipe tablearg ip from table\\(" . ($users_table_number + $i * 2) . "\\) to " . (($i == 0) ? 'any' : "table\\(2,$i\\)") . " $via_if_in";
-      push @FW_ACTIONS, "$IPFW -q add " . (10000 - $i * 1000 + 10) . " pipe tablearg ip from " . (($i == 0) ? 'any' : "table\\(2,$i\\)") . " to table\\(" . ($users_table_number + $i * 2 + 1) . "\\) $via_if_out";
+      push @FW_ACTIONS, "$IPFW -q add " . (10000 - $i * 1000) . " pipe tablearg ip from table\\(" . ($users_table_number + $i * 2 + 1) . "\\) to " . (($i == 0) ? 'any' : "table\\(2,$i\\)") . " $via_if_in";
+      push @FW_ACTIONS, "$IPFW -q add " . (10000 - $i * 1000 + 10) . " pipe tablearg ip from " . (($i == 0) ? 'any' : "table\\(2,$i\\)") . " to table\\(" . ($users_table_number + $i * 2) . "\\) $via_if_out";
     }
 
     #Unlim rules
@@ -1401,7 +1401,7 @@ sub check_speed {
                 if (!$pipe_rules{$pipe_rule_out} || $pipe_rules{$pipe_rule_out} != $speed_in) {
          	        my $queue_in  = (! $conf{DV_SKIP_QUEUE}) ? "queue ". (( $speed_in / 10 > 1000 ) ? 1000 : int( $speed_in / 10 )) ."Kbytes " : '';
 
-                  push @FW_ACTIONS, "$IPFW -q pipe $pipe_rule_out config bw " . $speed_in . "Kbit/s ". $queue_in ."mask src-ip 0xffffffff";
+                  push @FW_ACTIONS, "$IPFW -q pipe $pipe_rule_out config bw " . $speed_in . "Kbit/s ". $queue_in ." mask src-ip 0xffffffff";
 
                   print "Change TP: $tp Class: $traf_type Pipe: $pipe_rule_out OUT: " . (($pipe_rules{$pipe_rule_out}) ? $pipe_rules{$pipe_rule_out} : 'Not set') . " -> $speed_in\n";
                   delete $pipe_rules{$pipe_rule_out};

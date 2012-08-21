@@ -1063,7 +1063,7 @@ sub authentication {
 
   }
   #End MS-CHAP auth
-  elsif ($NAS->{NAS_AUTH_TYPE} == 1) {
+  elsif ($NAS->{NAS_AUTH_TYPE} && $NAS->{NAS_AUTH_TYPE} == 1) {
     if (check_systemauth("$RAD->{USER_NAME}", "$RAD->{USER_PASSWORD}") == 0) {
       $RAD_PAIRS{'Reply-Message'} = "Wrong password '$RAD->{USER_PASSWORD}' $NAS->{NAS_AUTH_TYPE}";
       $RAD_PAIRS{'Reply-Message'} .= " CID: " . $RAD->{'CALLING_STATION_ID'} if ($RAD->{'CALLING_STATION_ID'});
