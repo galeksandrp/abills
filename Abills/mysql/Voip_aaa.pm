@@ -103,7 +103,7 @@ sub user_info {
    voip.tp_id, 
    INET_NTOA(voip.ip) AS ip,
    DECODE(password, '$conf->{secretkey}') AS password,
-   voip.logins,
+   if (voip.logins=0, if(voip.logins is null, 0, tp.logins), voip.logins) AS logins,
    voip.allow_answer,
    voip.allow_calls,
    voip.disable AS voip_disable,
@@ -156,7 +156,6 @@ sub number_expr {
     my ($left, $right) = split(/\//, $num_expr[$i]);
     my $r = eval "\"$right\"";
     if ($RAD->{CALLED_STATION_ID} =~ s/$left/$r/) {
-      #    print "$i\n";
       last;
     }
   }
@@ -258,8 +257,12 @@ sub auth {
     $self->{DEPOSIT}           = $self->{DEPOSIT} + $self->{CREDIT};    #-$self->{CREDIT_TRESSHOLD};
     $RAD->{H323_CREDIT_AMOUNT} = $self->{DEPOSIT};
 
+    #One month freeperiod
+    if ($conf->{VOIP_ONEMONTH_INCOMMING_ALLOW} && ! $self->{VOIP_DISABLE}) {
+    	
+    }
     #Check deposit
-    if ($self->{DEPOSIT} <= 0) {
+    elsif ($self->{DEPOSIT} <= 0) {
       $RAD_PAIRS{'Reply-Message'} = "Negativ deposit '$self->{DEPOSIT}'. Rejected!";
       $RAD_PAIRS{'Filter-Id'}='neg_deposit';
       return 1, \%RAD_PAIRS;

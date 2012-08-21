@@ -673,11 +673,10 @@ sub show {
 
   if ((defined($self->{NO_PRINT})) && (!defined($attr->{OUTPUT2RETURN}))) {
     $self->{prototype}->{OUTPUT} .= $self->{show};
-
-    #$self->{OUTPUT} .= $self->{show};
     $self->{show} = '';
   }
 
+  print $self->header() if ($FORM{csv});
   return $self->{show};
 }
 

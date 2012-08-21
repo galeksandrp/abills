@@ -505,6 +505,10 @@ sub list {
     return $list;
   }
   
+  
+  if ($attr->{ADDRESS_FULL}) {
+ 		push @WHERE_RULES, @{ $self->search_expr("*$attr->{ADDRESS_FULL}*", "STR", "CONCAT(pi.address_street, ' ', pi.address_build, ',', pi.address_flat)") };
+  }
 
   if ($attr->{IP}) {
     push @WHERE_RULES, @{ $self->search_expr($attr->{IP}, 'IP', 'dv.ip') };
@@ -547,6 +551,7 @@ sub list {
   }
 
   if ($attr->{CID}) {
+  	$attr->{CID}=~s/[\:\-\.]/\*/g;
     push @WHERE_RULES, @{ $self->search_expr($attr->{CID}, 'STR', 'dv.cid', { EXT_FIELD => 1 }) };
   }
 
