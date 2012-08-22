@@ -191,17 +191,6 @@ sub auth {
     return 1, \%RAD_PAIRS;
   }
   elsif ($self->{TOTAL} < 1) {
-  	# 
-  	if ($self->{LOGINS} > 0) {
-      $self->query($db, "SELECT count(*) FROM voip_calls 
-       WHERE calling_station_id='$RAD->{CALLING_STATION_ID}';");
-      
-      if ($self->{TOTAL} && $self->{list}->[0]->[0] >= $self->{LOGINS}) {
-        $RAD_PAIRS{'Reply-Message'} = "More then allow calls ($self->{LOGINS}/$self->{list}->[0]->[0])";
-        return 1, \%RAD_PAIRS;
-      }       
-    }
-  	
     $self->{errno}  = 2;
     $self->{errstr} = 'ERROR_NOT_EXIST';
     if (!$RAD->{H323_CALL_ORIGIN}) {
@@ -246,6 +235,17 @@ sub auth {
     $RAD_PAIRS{'Reply-Message'} = "Account Disable";
  	  $RAD_PAIRS{'Filter-Id'} = 'user_disable';
     return 1, \%RAD_PAIRS;
+  }
+
+	# 
+	if ($self->{LOGINS} > 0) {
+    $self->query($db, "SELECT count(*) FROM voip_calls 
+       WHERE calling_station_id='$RAD->{CALLING_STATION_ID}';");
+      
+    if ($self->{TOTAL} && $self->{list}->[0]->[0] >= $self->{LOGINS}) {
+      $RAD_PAIRS{'Reply-Message'} = "More then allow calls ($self->{LOGINS}/$self->{list}->[0]->[0])";
+      return 1, \%RAD_PAIRS;
+    }       
   }
 
   if ($self->{FILTER_ID}) {

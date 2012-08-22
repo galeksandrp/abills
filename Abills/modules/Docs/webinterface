@@ -2058,6 +2058,13 @@ sub docs_invoice {
         $Doc{CHARGED_ALT_SUM}    = sprintf("%.2f", $Doc{CHARGED_SUM} * $Doc{EXCHANGE_RATE});
       }
 
+      #Get payments
+  	  my $i2p_list = $Docs->invoices2payments_list({ INVOICE_ID => $FORM{SHOW_PAYMENTS}, COLS_NAME => 1 });
+  	  foreach my $i2p (@{ $i2p_list }) {
+  		  push @payments_ids_arr, $i2p->{payment_id};
+  	  }
+      
+
       $attr->{SEND_EMAIL} = 0 if (!defined($attr->{SEND_EMAIL}));
       if ($attr->{GET_EMAIL_INFO} && $attr->{SEND_EMAIL}) {
       	print $FORM{pdf}=undef;
