@@ -694,7 +694,9 @@ sub triplay_stats {
 $WHERE  
    GROUP BY pi.uid
    ORDER BY $SORT $DESC 
-   LIMIT $PG, $PAGE_ROWS;"
+   LIMIT $PG, $PAGE_ROWS;",
+   undef,
+   $attr
   );
 
   return $self if ($self->{errno});
@@ -711,6 +713,69 @@ $WHERE
     );
     ($self->{TOTAL}) = @{ $self->{list}->[0] };
   }
+
+  return $list;
+}
+
+#**********************************************************
+#
+#**********************************************************
+sub dhcp_full_list {
+  my $self   = shift;
+  my ($attr) = @_;
+  my @list   = ();
+
+  $SORT      = ($attr->{SORT})      ? $attr->{SORT}      : 1;
+  $DESC      = ($attr->{DESC})      ? $attr->{DESC}      : '';
+  $PG        = ($attr->{PG})        ? $attr->{PG}        : 0;
+  $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
+
+  $self->{SEARCH_FIELDS}       = '';
+  $self->{SEARCH_FIELDS_COUNT} = 0;
+
+  @WHERE_RULES = ();
+
+  if ($attr->{LOCATION_ID}) {
+    push @WHERE_RULES, @{ $self->search_expr($attr->{LOCATION_ID}, 'INT', 'pi.location_id') };
+  }
+
+  my $WHERE = ($#WHERE_RULES > -1) ? 'WHERE ' . join(' and ', @WHERE_RULES) : '';
+
+  $self->query(
+    $db, "SELECT u.id AS login, 
+    g.name AS group_name, 
+    u.registration, 
+if(company.id IS NULL, b.deposit, cb.deposit) AS deposit,
+tp.name AS tp_name,
+INET_NTOA(dhcp.ip) AS ip,
+n.name AS nas_name,
+dhcp.ports,
+pi.fio,
+CONCAT(pi.address_street, ' ', pi.address_build, ',', pi.address_flat) AS address_full,
+pi.phone,
+dhcp.nas AS nas_id,
+u.uid
+FROM dhcphosts_hosts dhcp
+INNER JOIN users u ON (u.uid=dhcp.uid)
+  LEFT JOIN bills b ON (u.bill_id = b.id)
+  LEFT JOIN companies company ON  (u.company_id=company.id) 
+  LEFT JOIN bills cb ON  (company.bill_id=cb.id)
+
+  LEFT JOIN users_pi pi ON (pi.uid=u.uid)
+  LEFT JOIN dv_main dv ON (dv.uid=u.uid)
+  LEFT JOIN tarif_plans tp ON (tp.id=dv.tp_id)
+  LEFT JOIN nas n ON (dhcp.nas=n.id)
+  LEFT JOIN groups g ON (g.gid=u.gid)
+GROUP BY dhcp.id
+   ORDER BY $SORT $DESC 
+   LIMIT $PG, $PAGE_ROWS;",
+   undef,
+   $attr
+  );
+
+  return $self if ($self->{errno});
+
+  my $list = $self->{list};
 
   return $list;
 }

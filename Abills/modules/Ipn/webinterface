@@ -1645,6 +1645,7 @@ sub ipn_change_status {
     $cmd =~ s/\%SPEED_OUT/$speed_out/g if ($speed_out > 0);
     $cmd =~ s/\%LOGIN/$USER_NAME/g;
     $cmd =~ s/\%PORT/$PORT/g;
+    $cmd =~ s/\%DEBUG//g;
 
     if ($attr->{NAS_IP_ADDRESS}) {
       $ENV{NAS_IP_ADDRESS}  = $attr->{NAS_IP_ADDRESS};

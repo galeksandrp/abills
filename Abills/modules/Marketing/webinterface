@@ -623,5 +623,59 @@ sub marketing_triplay_stats {
   print $table->show();
 }
 
+
+#**********************************************************
+#
+#**********************************************************
+sub marketing_dhcp_full_list {
+  my ($attr) = @_;
+
+  my $list = $Marketing->dhcp_full_list({ %FORM, %LIST_PARAMS, COLS_NAME => 1 });
+
+  #адрес, № квратиры, договор, Тариф Интернет, Тариф телевилиния, тариф телефонии, ФИО, телефон
+  my $table = $html->table(
+    {
+      width      => '100%',
+      caption    => $_CHANNELS,
+      border     => 1,
+      title      => [ "$_USER", "$_GROUP", "$_REGISTRATION", "$_DEPOSIT",  "$_TARIF_PLAN", 
+        "IP", "$_NAS", "$_PORT", "$_FIO", "$_ADDRESS", "$_PHONE" ],
+      cols_align => [ 'right', 'left', 'right', 'right' ],
+      qs         => $pages_qs,
+      pages      => $Marketing->{TOTAL},
+      ID         => 'IPTV_CHANNELS',
+    }
+  );
+
+  foreach my $line (@$list) {
+    $table->addrow(
+    $html->button($line->{login}, "index=11&UID=$line->{uid}"),
+    $line->{group_name}, 
+    $line->{registration}, 
+    $line->{deposit}, 
+    $line->{tp_name}, 
+    $line->{ip}, 
+    $line->{nas_name}, 
+    $line->{ports}, 
+    $line->{fio}, 
+    $line->{address_full}, 
+    $line->{phone}, 
+    );
+  }
+
+  print $table->show();
+
+  $table = $html->table(
+    {
+      width      => '100%',
+      cols_align => [ 'right', 'right' ],
+      rows       => [ [ "$_TOTAL:", $html->b($Marketing->{TOTAL}) ] ]
+    }
+  );
+  print $table->show();
+}
+
+
+
 1
 
