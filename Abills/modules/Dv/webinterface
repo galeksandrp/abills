@@ -5618,7 +5618,6 @@ sub dv_monthly_fees {
 
             #If deposit is above-zero or TARIF PALIN is POST PAID or PERIODIC PAYMENTS is POSTPAID
             if ($postpaid == 1 || $user{DEPOSIT} + $user{CREDIT} > 0 || $TP_INFO{POSTPAID_MONTHLY} == 1) {
-
               #***************************************************************
               #Unblock Small deposit status
               if ($small_deposit_block && $month_fee < $user{DEPOSIT}) {
@@ -5753,7 +5752,6 @@ sub dv_monthly_fees {
               }
             }
             else {
-
               # Get Fine
               if ($fine > 0) {
                 if ($conf{DV_FINE_LIMIT} && $user{DEPOSIT} + $user{CREDIT} < $conf{DV_FINE_LIMIT}) {
@@ -5769,9 +5767,13 @@ sub dv_monthly_fees {
                 $fees->take(\%user, $sum, {%FEES_PARAMS});
                 $debug_output .= " $user{LOGIN}  UID: $user{UID} SUM: $sum REDUCTION: $user{REDUCTION} FINE\n" if ($debug > 0);
               }
-
               #Block small deposit
-              if ($user{DV_STATUS} == 0 && $small_deposit_block && $date_unixtime - $active_unixtime > 30 * 86400) {
+              if ($user{DV_STATUS} == 0 && $small_deposit_block && 
+                 (($user{ACTIVATE} ne '0000-00-00' && $date_unixtime - $active_unixtime > 30 * 86400)
+                   ||
+                   ($user{ACTIVATE} eq '0000-00-00' && ($d == $START_PERIOD_DAY || $abon_distrib))
+                   )
+                 ) {
                 if ($small_deposit_block == -1) {
                   $Dv->change(
                     {
