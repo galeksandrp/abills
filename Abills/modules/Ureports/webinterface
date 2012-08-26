@@ -1,17 +1,25 @@
 # User reports webinterface
 
+eval { require Ureports; };
+if (!$@) {
+  Ureports->import();
+}
+else {
+  print "Content-Type: text/html\n\n" if ($user->{UID});
+  print "Can't load 'Ureports'. Purchase this module http://abills.net.ua $@";
+  exit;    #return 0;
+}
+
+
 use Dv;
 use Dv_Sessions;
 use Finance;
 use Fees;
-use Ureports;
-
-#use Shedule;
 use Tariffs;
 
 my $Ureports = Ureports->new($db, $admin, \%conf);
-my $fees = Fees->new($db, $admin, \%conf);
-my $tariffs = Tariffs->new($db, \%conf, $admin);
+my $fees     = Fees->new($db, $admin, \%conf);
+my $tariffs  = Tariffs->new($db, \%conf, $admin);
 
 my %FORM_BASE      = ();
 my @service_status = ("$_ENABLE", "$_DISABLE", "$_NOT_ACTIVE");
