@@ -8,7 +8,7 @@ if (!$@) {
 }
 else {
   print "Content-Type: text/html\n\n" if ($user->{UID});
-  print "Can't load 'Cards'. Purchase this module http://abills.net.ua $@";
+  print "Can't load 'Cards'. Purchase this module http://abills.net.ua";
   exit;    #return 0;
 }
 

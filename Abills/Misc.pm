@@ -51,11 +51,11 @@ sub cross_modules_call {
   foreach my $mod (@MODULES) {
   	if (in_array($mod, \@skip_modules)) {
   		next;
-  	 }
+  	}
     
     if ($attr->{DEBUG}) {
-    	print " $mod\n";
-     }
+    	print " $mod -> ". lc($mod).$function_sufix ."\n";
+    }
 
     load_module("$mod", $html);
     my $function = lc($mod).$function_sufix;
@@ -64,7 +64,7 @@ sub cross_modules_call {
     
     if (defined(&$function)) {
      	$return = $function->($attr);
-     }
+    }
 
     $full_return{$mod}=$return;
    }

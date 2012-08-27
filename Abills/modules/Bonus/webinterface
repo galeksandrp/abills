@@ -654,7 +654,7 @@ sub bonus_report {
 sub bonus_pre_payment {
   my ($attr) = @_;
   my $REPORT = '';
-
+  
   if ($conf{BONUS_SERVICE_DISCOUNT} && $FORM{SUM} > 0) {
     bonus_service_discount_mk($attr);
   }
@@ -740,11 +740,13 @@ sub bonus_service_discount_mk {
   
   my $exclude      = $conf{BONUS_SERVICE_EXCLUDE};
   $exclude         =~ s/!//g;
-  @excluder_arr = split(/,\s?/, $exclude);
+  @excluder_arr    = split(/,\s?/, $exclude);
 
-  if (in_array($FORM{METHOD}, \@excluder_arr)) {
+  if ($FORM{METHOD} && in_array($FORM{METHOD}, \@excluder_arr)) {
   	return 0;
-   }
+  }
+
+
 
   my %RULES = ();
   my $list = $Bonus->service_discount_list({ PAGE_ROWS => 1000 });
@@ -767,7 +769,6 @@ sub bonus_service_discount_mk {
   if ($Dv->{MONTH_ABON} > 0) {
     $periods = int($FORM{SUM} / $Dv->{MONTH_ABON});
   }
-
   my %RESULT = ();
   if ($periods > 0) {
     if ($RULES{PERIOD}) {
@@ -870,7 +871,7 @@ sub bonus_service_discount_mk {
       else {
         my $message = "$_BONUS $_SUM: $RESULT{BONUS_SUM}";
         $message = "$_EXTRA $_ACCOUNT\n" . $message if ($RESULT{BONUS_EXT_ACCOUNT});
-        $html->message('info', $_INFO, "$message");
+        $html->message('info', $_INFO, "$message") if (! $attr->{QUITE});
       }
     }
   }

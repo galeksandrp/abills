@@ -124,7 +124,7 @@ if ($sid) {
   $COOKIES{sid} = $sid;
 }
 
-if ($FORM{qindex} || $FORM{xml}) {
+if ($FORM{qindex} || $FORM{xml} || $FORM{csv}) {
   $index=$FORM{qindex} ;
   if($FORM{xml}) {
     print "Content-Type: text/xml\n\n";
