@@ -1737,6 +1737,14 @@ sub dv_users {
       $LIST_PARAMS{LOGIN} = "$FORM{QUERY}*";
     }
     elsif ($FORM{TYPE} eq 'address') {
+    	if ($LIST_PARAMS{QUERY}=~/(\s+)(\d+)\/(\d+)/) {
+    		$FORM{QUERY} = "$1 $2/$3";
+    	}
+    	else {
+    		$FORM{QUERY}=~s/ /\*/g;
+    		$FORM{QUERY}.='*';
+      }
+    	
     	$LIST_PARAMS{ADDRESS_FULL}=$FORM{QUERY};
     }
     elsif ($FORM{TYPE} eq 'contract_id') {

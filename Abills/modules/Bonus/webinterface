@@ -655,6 +655,8 @@ sub bonus_pre_payment {
   my ($attr) = @_;
   my $REPORT = '';
   
+  $FORM{SUM}=$attr->{SUM} if ($attr->{SUM});
+  
   if ($conf{BONUS_SERVICE_DISCOUNT} && $FORM{SUM} > 0) {
     bonus_service_discount_mk($attr);
   }

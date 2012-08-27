@@ -31,9 +31,9 @@
 <button type=\"submit\" name=\"SEARCH\" value=1>$_SEARCH</button>
 <input type=\"text\" name=\"QUERY\" value=\"\"/>
 <select name=\"TYPE\">
+  <option value=\"address\">$_ADDRESS</option>
   <option value=\"login\">$_LOGIN</option>
   <option value=\"fio\">$_FIO</option>
-  <option value=\"address\">$_ADDRESS</option>
   <option value=\"contract_id\">$_CONTRACT_ID</option>
   <option value=\"phone\">$_PHONE</option>
   <option value=\"ip\">IP</option>
