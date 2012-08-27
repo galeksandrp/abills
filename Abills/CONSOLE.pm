@@ -446,9 +446,8 @@ sub header {
   if ($FORM{csv}) {
   	my $filename     =  ($self->{ID}) ? $self->{ID}.'.scv' : int(rand(10000000)).'.csv';  	
   	$self->{header}  = "Content-Type: text/csv; filename=$filename\n";  	
-	  $self->{header} .= "Content-type: application/pdf; filename=$filename\n";
-	  $self->{header} .= "Cache-Control: no-cache\n";
-	  $self->{header} .= "Content-disposition: inline; name=\"$filename\"\n\n";
+	$self->{header} .= "Cache-Control: no-cache\n";
+	$self->{header} .= "Content-disposition: inline; name=\"$filename\"\n\n";
   }
   else {
    $self->{header} = "Content-Type: text/plain\n\n";
