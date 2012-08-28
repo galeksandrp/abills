@@ -77,7 +77,7 @@ sub info {
 
   my $password = "''";
   if ($attr->{SHOW_PASSWORD}) {
-    $password = "DECODE(u.password, '$CONF->{secretkey}')";
+    $password = "DECODE(u.password, '$CONF->{secretkey}') AS password";
   }
 
   $self->query(

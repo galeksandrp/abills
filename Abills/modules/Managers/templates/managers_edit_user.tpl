@@ -5,7 +5,7 @@
 <input type=hidden name=UID value=%UID%>
 
 <b>$_LOGIN</b>: <input type=text  name='LOGIN' value='%ID%'>
-<b>$_PASSWD</b>: <input type=text  name=PASSWD value='%PASSWD%'>
+<b>$_PASSWD</b>: <input type=text  name=PASSWD value='%PASSWORD%'>
 
 <b>$_DESCRIBE</b>:<input type=text  name='_describe' value='%_describe%' size=30><br /><br />
 

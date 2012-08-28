@@ -1707,7 +1707,6 @@ sub dv_users {
     my ($hold_up_min_period, $hold_up_max_period, $hold_up_period, $holdup_fees, $hold_fees_deposit) = split(/:/, $conf{DV_USER_SERVICE_HOLDUP});
     my ($from_year, $from_month, $from_day) = split(/-/, $FORM{SHEDULE_TP_DATE}, 3);
     $from_day='01';
-    
     $Dv->info($Dv->{UID});
     $Shedule->add(
         {
@@ -1737,7 +1736,7 @@ sub dv_users {
       $LIST_PARAMS{LOGIN} = "$FORM{QUERY}*";
     }
     elsif ($FORM{TYPE} eq 'address') {
-    	if ($LIST_PARAMS{QUERY}=~/(\s+)(\d+)\/(\d+)/) {
+    	if ($FORM{QUERY}=~/(.+)(\d+)\/(\d+)/) {
     		$FORM{QUERY} = "$1 $2/$3";
     	}
     	else {
@@ -1764,7 +1763,7 @@ sub dv_users {
     }
 
     $pages_qs .= "&TYPE=$FORM{TYPE}&QUERY=$FORM{QUERY}";
-    $list = $Dv->list({ %LIST_PARAMS, COLS_NAME => 1 });
+    $list = $Dv->list({ %LIST_PARAMS, COLS_NAME => 1, BUILD_DELIMITER => '/' });
 
     if ($Dv->{errno}) {
       $html->message('err', $_ERROR, "[$Dv->{errno}] $err_strs{$Dv->{errno}}");
@@ -1940,6 +1939,7 @@ sub dv_users {
 #        ADDRESS_BUILD  => '*',
 #        ADDRESS_FLAT   => '*',
         SHOW_ADDRESS   => 1,
+        SHOW_PASSWORD  => 1,
         CONTRACT_DATE  => '>=0000-00-00',
         CONTRACT_ID    => '*',
         COLS_NAME      => 1,
@@ -1951,6 +1951,7 @@ sub dv_users {
         PASPORT_GRANT  => '*',
         IP             => '>=0.0.0.0',
         _describe      => '*',
+        
       }
     );
   }

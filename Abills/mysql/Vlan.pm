@@ -61,31 +61,23 @@ sub info {
    }
   
   $self->query($db, "SELECT vlan_id,
-   INET_NTOA(ip), 
-   INET_NTOA(netmask), 
+   INET_NTOA(ip) AS ip, 
+   INET_NTOA(netmask) AS netmask, 
    disable, 
    dhcp,
    pppoe,
    nas_id,
-   INET_NTOA(unnumbered_ip)
+   INET_NTOA(unnumbered_ip) AS unnumbered_ip
      FROM vlan_main
-   $WHERE;");
+   $WHERE;",
+   undef,
+   { INFO => 1 });
 
   if ($self->{TOTAL} < 1) {
      $self->{errno} = 2;
      $self->{errstr} = 'ERROR_NOT_EXIST';
      return $self;
    }
-
-  ($self->{VLAN_ID},
-   $self->{IP}, 
-   $self->{NETMASK}, 
-   $self->{DISABLE},
-   $self->{DHCP},
-   $self->{PPPOE},
-   $self->{NAS_ID},
-   $self->{UNNUMBERED_IP},
-  )= @{ $self->{list}->[0] };
 
   return $self;
 }
@@ -289,7 +281,7 @@ sub list {
  my $GROUP_BY = "GROUP BY u.uid";
 
  if (defined($attr->{VLAN_GROUP})) {
-   $GROUP_BY = "GROUP BY vlan.vlan_id";
+   $GROUP_BY = "GROUP BY $attr->{VLAN_GROUP}";
    $self->{SEARCH_FIELDS} = 'max(INET_NTOA(vlan.ip)), min(INET_NTOA(vlan.netmask)), INET_NTOA(vlan.unnumbered_ip),';
    $self->{SEARCH_FIELDS_COUNT}+=2;
   }

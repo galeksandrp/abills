@@ -2059,9 +2059,16 @@ sub docs_invoice {
       }
 
       #Get payments
-  	  my $i2p_list = $Docs->invoices2payments_list({ INVOICE_ID => $FORM{SHOW_PAYMENTS}, COLS_NAME => 1 });
+      print "Content-Type: text/html\n\n";
+      $Docs->{debug}=1;
+  	  my $i2p_list = $Docs->invoices2payments_list({ INVOICE_ID => $FORM{print}, COLS_NAME => 1 });
+      my $payments_total_sum = 0;  	  
   	  foreach my $i2p (@{ $i2p_list }) {
-  		  push @payments_ids_arr, $i2p->{payment_id};
+  	  	$Doc{PAYMENT_DATE_1}=$i2p->{date};
+  	  	$Doc{PAYMENT_COMMENTS_1}=$i2p->{dsc};
+  	  	$Doc{PAYMENT_SUM_1}=$i2p->{sum};
+  	  	$Doc{PAYMENT_ID_1}=$i2p->{payment_id};
+  	  	$payments_total_sum += $payments_total_sum;
   	  }
       
 

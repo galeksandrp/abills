@@ -44,11 +44,20 @@
 
 
 CLASSES_NUMS='2 3'
-VERSION=5.94
+VERSION=5.95
 
 
 name="abills_shaper"
+
+if [ x${abills_shaper_enable} = x ]; then
+  name="abills_nat"
+  abills_nat_enable=YES;
+fi;
+
 rcvar=`set_rcvar`
+
+
+
 
 : ${abills_shaper_enable="NO"}
 : ${abills_shaper_if=""}
@@ -57,7 +66,7 @@ rcvar=`set_rcvar`
 : ${abills_nat=""}
 : ${abills_dhcp_shaper="NO"}
 : ${abills_dhcp_shaper_nas_ids=""}
-: ${abills_neg_deposit=""}
+: ${abills_neg_deposit="NO"}
 : ${abills_neg_deposit_speed=""}
 : ${abills_portal_ip="me"}
 : ${abills_mikrotik_shaper=""}
@@ -68,6 +77,7 @@ rcvar=`set_rcvar`
 : ${abills_ipn_allow_ip=""}
 
 
+
 load_rc_config $name
 #run_rc_command "$1"
 
@@ -75,8 +85,8 @@ IPFW=/sbin/ipfw
 SED=/usr/bin/sed
 BILLING_DIR=/usr/abills
 
-start_cmd="${name}_start"
-stop_cmd="${name}_stop"
+start_cmd="abills_shaper_start"
+stop_cmd="abills_shaper_stop"
 
 if [ x${abills_mikrotik_shaper} != x ]; then
   ${BILLING_DIR}/libexec/billd checkspeed mikrotik NAS_IDS="${abills_mikrotik_shaper}" RECONFIGURE=1
@@ -108,7 +118,6 @@ else
   INTERNAL_INTERFACE="\"ng*\""
 fi; 
 
-
 #**********************************************************
 #
 #**********************************************************
@@ -136,7 +145,6 @@ abills_shaper
 abills_dhcp_shaper
 abills_ipn
 abills_nat
-external_fw_rules
 neg_deposit
 abills_ip_sessions
 squid_redirect
@@ -148,6 +156,8 @@ squid_redirect
 #**********************************************************
 abills_shaper() {
   if [ x${abills_shaper_enable} = xNO ]; then
+    return 0;
+  elif [ x${abills_shaper_enable} = xNAT ]; then
     return 0;
   fi;
   
@@ -211,7 +221,7 @@ abills_shaper() {
     echo "ng_car shapper" 
 
     for num in ${CLASSES_NUMS}; do
-      ${IPFW} delete ` expr 9100 + ${num} \* 10 + 5 ` ` expr 9100 + ${num} \* 10 `  ` expr 9000 + ${num} \* 10 ` ` expr 10100 + ${num} \* 10 ` ` expr 9000 + ${num} \* 10 + 5 ` ` expr 10100 + ${num} \* 10 + 5 ` 
+      ${IPFW} delete ` expr 9100 + ${num} \* 10 + 5 ` ` expr 9100 + ${num} \* 10 `  ` expr 9000 + ${num} \* 10 ` ` expr 10000 - ${num} \* 10 ` ` expr 10100 + ${num} \* 10 ` ` expr 10200 + ${num} \* 10 ` ` expr 9000 + ${num} \* 10 + 5 ` ` expr 10000 - ${num} \* 10 + 5 ` ` expr 10100 + ${num} \* 10 + 5 ` ` expr 10200 + ${num} \* 10 + 5 ` 
     done;
 
     ${IPFW} delete 9000 9005 10000 10010 10015 08000 08010  09010 10020 10025
@@ -254,33 +264,37 @@ abills_ipn() {
   if [ x${abills_ipn_nas_id} = x ]; then
     return 0;
   fi;
-  
-  if [ x${abills_ipn_if} != x ]; then
-    IFACE=" via ${abills_ipn_if}"
-  fi;
+  if [ w${ACTION} = wstart ]; then
+  	if [ x${abills_ipn_if} != x ]; then
+    		IFACE=" via ${abills_ipn_if}"
+  	fi;
 
-  #Redirect unauth ips to portal
-  ${IPFW} add 64000 fwd 127.0.0.1,80 tcp from any to any dst-port 80 ${IFACE} in
+  	#Redirect unauth ips to portal
+  	${IPFW} add 64000 fwd 127.0.0.1,80 tcp from any to any dst-port 80 ${IFACE} in
 
-  # Разрешить ping к серверу доступа
-  ${IPFW} add 64100 allow icmp from any to me  ${IFACE}
-  ${IPFW} add 64101 allow icmp from me to any  ${IFACE}
+  	# Разрешить ping к серверу доступа
+  	${IPFW} add 64100 allow icmp from any to me  ${IFACE}
+  	${IPFW} add 64101 allow icmp from me to any  ${IFACE}
 
-  if [ x${abills_ipn_allow_ip} != x ]; then
-    # Доступ к странице авторизации  
-    ${IPFW} add 10 allow tcp from any to ${abills_ipn_allow_ip} 9443  ${IFACE}
-    ${IPFW} add 11 allow tcp from ${abills_ipn_allow_ip} 9443 to any  ${IFACE}
-    ${IPFW} add 12 allow tcp from any to ${abills_ipn_allow_ip} 80  ${IFACE}
-    ${IPFW} add 13 allow tcp from ${abills_ipn_allow_ip} 80 to any  ${IFACE}
+     if [ x${abills_ipn_allow_ip} != x ]; then
+    	# Доступ к странице авторизации  
+    	${IPFW} add 10 allow tcp from any to ${abills_ipn_allow_ip} 9443  ${IFACE}
+    	${IPFW} add 11 allow tcp from ${abills_ipn_allow_ip} 9443 to any  ${IFACE}
+    	${IPFW} add 12 allow tcp from any to ${abills_ipn_allow_ip} 80  ${IFACE}
+    	${IPFW} add 13 allow tcp from ${abills_ipn_allow_ip} 80 to any  ${IFACE}
   
-    # Разрешить ДНС запросы к серверу
-    ${IPFW} add 64400 allow udp from any to ${abills_ipn_allow_ip} 53
-    ${IPFW} add 64450 allow udp from ${abills_ipn_allow_ip} 53 to any
-  fi;
+    	# Разрешить ДНС запросы к серверу
+    	${IPFW} add 64400 allow udp from any to ${abills_ipn_allow_ip} 53
+    	${IPFW} add 64450 allow udp from ${abills_ipn_allow_ip} 53 to any
+      fi;
   
-  /usr/abills/libexec/periodic monthly MODULES=Ipn SRESTART=1 NO_ADM_REPORT=1 NAS_IDS="${abills_ipn_nas_id}"
-  # Block unauth ips
-  ${IPFW} add 65000 deny ip from not table\(10\) to any ${IFACE} in
+  	/usr/abills/libexec/periodic monthly MODULES=Ipn SRESTART=1 NO_ADM_REPORT=1 NAS_IDS="${abills_ipn_nas_id}"
+  	# Block unauth ips
+  	${IPFW} add 65000 deny ip from not table\(10\) to any ${IFACE} in
+    elif [ w${ACTION} = wstop ]; then
+	${IPFW} delete 10 11 12 13 64000 64100 64101  64400 64450 65000
+   fi;		
+  
 }
 
 #**********************************************************
@@ -288,7 +302,17 @@ abills_ipn() {
 #**********************************************************
 external_fw_rules() {
   if [ ${firewall_type} = "/etc/fw.conf" ]; then
-    ${IPFW} ${firewall_type}
+	cat ${firewall_type} | while read line
+	do
+	 RULEADD=`echo ${line} | awk '{print \$1}'`;    	
+         NUMBERIPFW=`echo ${line} | awk '{print \$2}'`;
+	if [ w${RULEADD} = wadd ]; then
+         	NOEX=`${IPFW} show  ${NUMBERIPFW} 2>/dev/null | wc -l`;
+    		if [ ${NOEX} -eq 0 ]; then
+			${IPFW} ${line};		
+		fi;
+	fi;	
+	done;
   fi;
 }
 
@@ -387,9 +411,10 @@ fi;
 #**********************************************************
 neg_deposit() {
 
-  if [ ${abills_neg_deposit} = NO ]; then
+  if [ "${abills_neg_deposit}" = NO ]; then
     return 0;
   fi;
+
   echo "Negative Deposit Forward Section ${ACTION}"
   if [ w${WEB_SERVER_IP} = w ]; then
     FWD_WEB_SERVER_IP=127.0.0.1;

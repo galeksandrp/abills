@@ -506,8 +506,15 @@ sub list {
   }
   
   
+  
   if ($attr->{ADDRESS_FULL}) {
- 		push @WHERE_RULES, @{ $self->search_expr("*$attr->{ADDRESS_FULL}*", "STR", "CONCAT(pi.address_street, ' ', pi.address_build, ',', pi.address_flat)") };
+  	$attr->{BUILD_DELIMITER}=',' if (! $attr->{BUILD_DELIMITER});
+  	if ($CONF->{ADDRESS_REGISTER}) {
+      push @WHERE_RULES, @{ $self->search_expr("$attr->{ADDRESS_FULL}*", "STR", "CONCAT(streets.name, ' ', builds.number, '$attr->{BUILD_DELIMITER}', pi.address_flat)") };
+  	}
+  	else {
+ 		  push @WHERE_RULES, @{ $self->search_expr("*$attr->{ADDRESS_FULL}*", "STR", "CONCAT(pi.address_street, ' ', pi.address_build, '$attr->{BUILD_DELIMITER}', pi.address_flat)") };
+ 		}
   }
 
   if ($attr->{IP}) {
@@ -581,6 +588,12 @@ sub list {
   if (defined($attr->{STATUS}) && $attr->{STATUS} ne '') {
     push @WHERE_RULES, @{ $self->search_expr($attr->{STATUS}, 'INT', 'dv.disable') };
   }
+
+  if ($attr->{SHOW_PASSWORD}) {
+    $self->{SEARCH_FIELDS} .= "DECODE(u.password, '$CONF->{secretkey}') AS password,";
+    $self->{SEARCH_FIELDS_COUNT}++;
+  }
+
 
   my $EXT_TABLE = $self->{EXT_TABLES};
 
