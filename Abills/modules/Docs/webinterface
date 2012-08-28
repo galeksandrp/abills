@@ -995,6 +995,7 @@ sub docs_invoices_list {
 
   if ($FORM{print_list}) {
   	print "Content-Type: text/html\n\n" if ($debug > 2);
+
     my $invoices_list = $Docs->invoices_list({ %FORM, 
     	                                %LIST_PARAMS, 
     	                                FULL_INFO   => 1,

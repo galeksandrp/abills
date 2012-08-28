@@ -185,9 +185,11 @@ sub query {
      	push @{ $self->{COL_NAMES_ARR} }, @{ $q->{NAME} };        	
       while (my $row = $q->fetchrow_hashref()) {
       	if ($attr->{COLS_UPPER}) {
+      		my $row2;
       		while(my($k,$v)=each %$row) {
-      			$row->{uc($k)}=$v;
+      			$row2->{uc($k)}=$v;
       		}
+      		$row = { %$row2, %$row };
       	}
         push @rows, $row;
       }      
