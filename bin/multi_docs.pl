@@ -474,7 +474,7 @@ sub prepaid_invoices {
 
   require $MODULES[0] . '.pm';
   $MODULES[0]->import();
-  my $Module_name = $MODULES[0]->new($db, $admin, \%conf);
+  my $Module_name     = $MODULES[0]->new($db, $admin, \%conf);
   $LIST_PARAMS{TP_ID} = $ARGV->{TP_ID} if ($ARGV->{TP_ID});
   $LIST_PARAMS{LOGIN} = $ARGV->{LOGIN} if ($ARGV->{LOGIN});
   my $TP_LIST = get_tps();
@@ -508,7 +508,8 @@ sub prepaid_invoices {
     print "UID: $uid LOGIN: $line->[0] FIO: $line->[1] TP: $tp_id / $Module_name->{SEARCH_FIELDS_COUNT}\n" if ($debug > 2);
 
     $Docs->user_info($uid);
-    if (!$Docs->{PERIODIC_CREATE_DOCS}) {
+
+    if ($ARGV->{INVOICE2ALL} || !$Docs->{PERIODIC_CREATE_DOCS}) {
       print "Skip create docs\n" if ($debug > 2);
       next;
     }
@@ -516,13 +517,13 @@ sub prepaid_invoices {
     %FORM = (
       UID        => $uid,
       create     => 1,
-      SEND_EMAIL => $Docs->{SEND_DOCS},
+      SEND_EMAIL => $ARGV->{INVOICE2ALL} || $Docs->{SEND_DOCS},
       pdf        => 1,
       CUSTOMER   => '-',
       EMAIL      => $Docs->{EMAIL}
     );
 
-    #Add debetor accouns
+    #Add debetor invoice
     if ($line->[2] && $line->[2] < 0) {
       print "  DEPOSIT: $line->[2]\n" if ($debug > 2);
       $FORM{SUM}   = abs($line->[2]);
@@ -933,6 +934,7 @@ Multi documents creator
   PERIODIC_INVOICE - Create periodic invoice for clients
   POSTPAID_INVOICES- Created for previe month debetors
   PREPAID_INVOICES - Create cridit invoice and next month payments invoice
+                     INVOICE2ALL=1 - Create and send invoice to all users
   
   LOGIN            - User login
   TP_ID            - Tariff Plan
