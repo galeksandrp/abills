@@ -240,7 +240,8 @@ sub auth {
 	# 
 	if ($self->{LOGINS} > 0) {
     $self->query($db, "SELECT count(*) FROM voip_calls 
-       WHERE calling_station_id='$RAD->{CALLING_STATION_ID}' AND status<>2;");
+       WHERE (calling_station_id='$RAD->{CALLING_STATION_ID}' OR called_station_id='$RAD->{CALLING_STATION_ID}')
+       AND status<>2;");
       
     if ($self->{TOTAL} && $self->{list}->[0]->[0] >= $self->{LOGINS}) {
       $RAD_PAIRS{'Reply-Message'} = "More then allow calls ($self->{LOGINS}/$self->{list}->[0]->[0])";
