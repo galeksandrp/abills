@@ -259,6 +259,8 @@ sub search_expr {
     $self->{SEARCH_FIELDS} .= ($attr->{EXT_FIELD} ne '1') ? "$attr->{EXT_FIELD}, " : "$field, ";
     $self->{SEARCH_FIELDS_COUNT}++;
   }
+  my @result_arr = ();
+  return \@result_arr if ($value eq '_SHOW');
 
   if ($field) {
     $field =~ s/ (as) ([a-z0-9_]+)//gi;
@@ -273,8 +275,6 @@ sub search_expr {
   }
   
   my @val_arr = split(/,/, $value) if (defined($value));
-
-  my @result_arr = ();
 
   foreach my $v (@val_arr) {
     my $expr = '=';

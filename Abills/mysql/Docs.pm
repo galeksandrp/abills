@@ -503,16 +503,22 @@ sub invoices2payments_list {
   	push @WHERE_RULES, @{ $self->search_expr($attr->{UID}, 'INT', 'p.uid') };
   }
 
-  $WHERE = ($#WHERE_RULES > -1) ? 'WHERE ' . join(' and ', @WHERE_RULES) : '';
+  if ($attr->{FROM_DATE}) {
+    push @WHERE_RULES, "(date_format(d.date, '%Y-%m-%d')>='$attr->{FROM_DATE}' and date_format(d.date, '%Y-%m-%d')<='$attr->{TO_DATE}')";
+  }
 
+
+  $WHERE = ($#WHERE_RULES > -1) ? 'WHERE ' . join(' and ', @WHERE_RULES) : '';
 	$self->query($db, "SELECT p.id AS payment_id, p.date, p.dsc, 
   	  p.sum AS payment_sum, 
   	  i2p.sum AS invoiced_sum, 
   	  i2p.invoice_id, 
-  	  p.uid
+  	  p.uid,
+  	  p.amount
  	  
 from payments p
 LEFT JOIN docs_invoice2payments i2p ON (p.id=i2p.payment_id)
+LEFT JOIN docs_invoices d ON (d.id=i2p.invoice_id)
 $WHERE
     ORDER BY $SORT $DESC
     LIMIT $PG, $PAGE_ROWS;",
