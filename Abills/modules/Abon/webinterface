@@ -78,6 +78,9 @@ sub abon_user {
           if ($FORM{'SERVICE_COUNT_'. $Abon->{TP_INFO}->{TP_ID} }) {
             $Abon->{TP_INFO}->{MONTH_FEE}=$Abon->{TP_INFO}->{MONTH_FEE} * $FORM{'SERVICE_COUNT_'. $Abon->{TP_INFO}->{TP_ID} };
           }
+          else {
+          	$FORM{'SERVICE_COUNT_'. $Abon->{TP_INFO}->{TP_ID} }=1;
+          }
 
           if ($FORM{ 'DATE_' . $Abon->{TP_INFO}->{TP_ID} } && $FORM{ 'DATE_' . $Abon->{TP_INFO}->{TP_ID} } ne '0000-00-00') {
             $FORM{ 'PERIOD_' . $Abon->{TP_INFO}->{TP_ID} } = $line->[2];
@@ -123,7 +126,8 @@ sub abon_user {
           if ($Abon->{TP_INFO}->{CREATE_ACCOUNT} && $FORM{ 'CREATE_DOCS_' . $Abon->{TP_INFO}->{TP_ID} }) {
             #$LIST_PARAMS{UID}= $users->{UID};
             delete($FORM{IDS});
-            $FORM{SUM}        = $Abon->{TP_INFO}->{MONTH_FEE};
+            $FORM{SUM}        = $Abon->{TP_INFO}->{MONTH_FEE} / $FORM{'SERVICE_COUNT_'. $Abon->{TP_INFO}->{TP_ID} };
+            $FORM{COUNT}      = $FORM{'SERVICE_COUNT_'. $Abon->{TP_INFO}->{TP_ID} };
             $FORM{UID}        = $users->{UID};
             $FORM{create}     = 1;
             $FORM{CUSTOMER}   = '-';
@@ -134,7 +138,9 @@ sub abon_user {
 
           if ($activate_notification) {
             my $message = $html->tpl_show(_include('abon_notification3', 'Abon'), $Abon, { OUTPUT2RETURN => 1 });
-            sendmail("$conf{ADMIN_MAIL}", "$email", "$conf{WEB_TITLE} - $Abon->{TP_INFO}->{NAME} $Abon->{COMMENTS}", "$message", "$conf{MAIL_CHARSET}", '', {});
+            sendmail("$conf{ADMIN_MAIL}", "$email", 
+              "$conf{WEB_TITLE} - $Abon->{TP_INFO}->{NAME} $Abon->{COMMENTS}", "$message", 
+              "$conf{MAIL_CHARSET}", '', {});
           }
 
           #$Abon->user_tariff_update({ UID   => "$users->{UID}",
@@ -524,11 +530,10 @@ sub abon_periodic {
   $LIST_PARAMS{LOGIN} = $attr->{LOGIN} if ($attr->{LOGIN});
   $LIST_PARAMS{TP_ID} = $attr->{TP_ID} if ($attr->{TP_ID});
 
-  #if (in_array('Docs', \@MODULES) ) {
-  $FORM{QUICK} = 1;
-  require "Abills/modules/Docs/webinterface";
-
-  # }
+  if (in_array('Docs', \@MODULES) ) {
+    $FORM{QUICK} = 1;
+    load_module('Docs');
+  }
 
   $Abon->{debug} = 1 if ($debug > 7);
   my $list = $Abon->periodic_list({ %LIST_PARAMS, 
@@ -615,7 +620,8 @@ sub abon_periodic {
           }
 
           if ($info{CREATE_ACCOUNT} && $info{CREATE_DOCS}) {
-            $FORM{SUM}        = $info{SUM};
+            $FORM{SUM}        = $info{SUM} / $info{SERVICE_COUNT};
+            $FORM{COUNT}      = $info{SERVICE_COUNT};
             $FORM{UID}        = $user{UID};
             $FORM{create}     = 1;
             $FORM{CUSTOMER}   = '-';
@@ -645,12 +651,13 @@ sub abon_periodic {
           my $message = $html->tpl_show(_include('abon_alert', 'Abon'), { %$Abon, %info }, { OUTPUT2RETURN => 1 });
           my $attach;
           if ($alert_account && $info{CREATE_DOCS}) {
-            $FORM{SUM}      = $info{SUM};
+            $FORM{SUM}      = $info{SUM} / $info{SERVICE_COUNT};
+            $FORM{COUNT}    = $info{SERVICE_COUNT} || 1;
             $FORM{UID}      = $user{UID};
             $FORM{create}   = 1;
             $FORM{CUSTOMER} = '-';
             $FORM{ORDER}    = "$info{TP_NAME} $info{COMMENT}";
-            my $content = docs_invoice({ QUITE => 1, OUTPUT2RETURN => 1 });
+            my $content     = docs_invoice({ QUITE => 1, OUTPUT2RETURN => 1 });
 
             if ($info{SEND_DOCS}) {
               $attach = [
@@ -691,7 +698,8 @@ sub abon_periodic {
 
         if ($notification_account && $info{CREATE_DOCS}) {
           $LIST_PARAMS{UID} = $user{UID};
-          $FORM{SUM}        = $info{SUM};
+          $FORM{SUM}        = $info{SUM} / $info{SERVICE_COUNT};
+          $FORM{COUNT}      = $info{SERVICE_COUNT};
           $FORM{UID}        = $user{UID};
           $FORM{create}     = 1;
           $FORM{CUSTOMER}   = '-';

@@ -1931,22 +1931,22 @@ sub docs_invoice {
               . $html->button("$_SEND $_EMAIL", "qindex=" . get_function_index('docs_invoices_list') . "&INVOICE_ID=$Docs->{DOC_ID}&sendmail=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}",    { ex_params => 'target=_new', CLASS => 'sendmail rightAlignText' })
               . $html->button($_PRINT,          "qindex=" . get_function_index('docs_invoices_list') . "&INVOICE_ID=$Docs->{DOC_ID}&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}&pdf=1", { ex_params => 'target=_new', CLASS => 'print rightAlignText' })
             );
+          }
 
-            $FORM{print} = $FORM{INVOICE_ID};
-            $FORM{pdf}   = 1;
-            delete($FORM{create});
+          $FORM{print} = $FORM{INVOICE_ID};
+          $FORM{pdf}   = 1;
+          delete($FORM{create});
 
-            my $return = docs_invoice(
+          my $return = docs_invoice(
               {
                 GET_EMAIL_INFO => 1,
                 SEND_EMAIL     => (defined($FORM{SEND_EMAIL})) ? $FORM{SEND_EMAIL} : $attr->{SEND_EMAIL},
                 EMAIL          => $FORM{EMAIL},
                 %$attr
               }
-            );
+          );
             
-            return ($attr->{REGISTRATION}) ? 0 : $return;
-          }
+          return ($attr->{REGISTRATION}) ? 0 : $return;
         }
         else {
           $html->message(
@@ -2738,7 +2738,7 @@ sub docs_print {
   }
 
   if ($attr->{SEND_EMAIL} && !$attr->{OUTPUT2RETURN}) {    # && ! $FORM{SKIP_SEND_EMAIL}) {
-                                                           # Email not specified
+    # Email not specified
     if (!$attr->{EMAIL} && !$users->{EMAIL}) {
       $FORM{ERR_MESSAGE} = "Email $_NOT_EXIST";
       return 0;

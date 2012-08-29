@@ -1097,7 +1097,7 @@ sub ipn_log_rotate {
   my ($attr) = @_;
 
   #yesterday date
-  my $DATE = "2012_07_01"; #(strftime "%Y_%m_%d", localtime(time - 86400));
+  my $DATE = (strftime "%Y_%m_%d", localtime(time - 86400));
 
   my ($Y, $M, $D) = split(/_/, $DATE);
 
