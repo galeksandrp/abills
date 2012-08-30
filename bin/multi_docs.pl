@@ -142,7 +142,7 @@ elsif ($ARGV->{PERIODIC_INVOICE}) {
 }
 elsif ($ARGV->{PREPAID_INVOICES}) {
   prepaid_invoices()         if (!$ARGV->{COMPANY_ID});
-  prepaid_invoices_company() if (!$ARGV->{LOGIN});
+  prepaid_invoices_company();
 }
 else {
   help();
