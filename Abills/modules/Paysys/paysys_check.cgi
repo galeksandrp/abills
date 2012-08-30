@@ -232,9 +232,6 @@ elsif ($FORM{action}) {
   require "Cyberplat.pm";
   exit;
 }
-elsif ($FORM{txn_id} || $FORM{prv_txn} || defined($FORM{prv_id}) || ($FORM{command} && $FORM{account})) {
-  osmp_payments();
-}
 elsif ($FORM{SHOPORDERNUMBER}) {
   portmone_payments();
 }
@@ -260,13 +257,15 @@ elsif ($conf{PAYSYS_EPAY_ACCOUNT_KEY} && $FORM{command} && $FORM{txn_id}) {
   require "Epay.pm";
   exit;
 }
+elsif ($FORM{txn_id} || $FORM{prv_txn} || defined($FORM{prv_id}) || ($FORM{command} && $FORM{account})) {
+  osmp_payments();
+}
 elsif (
   $conf{PAYSYS_GAZPROMBANK_ACCOUNT_KEY}
   && ( $FORM{lsid}
     || $FORM{trid}
     || $FORM{dtst})
-)
-{
+) {
   require "Gazprombank.pm";
   exit;
 }
@@ -282,10 +281,12 @@ elsif (check_ip($ENV{REMOTE_ADDR}, '62.149.15.210,62.149.8.166')) {
   require "Platezhka.pm";
   exit;
 }
-elsif (check_ip($ENV{REMOTE_ADDR}, '213.230.106.112/28,213.230.65.85/28,192.168.1.102')) {
+elsif (check_ip($ENV{REMOTE_ADDR}, '213.230.106.112/28,213.230.65.85/28')) {
   require "Paynet.pm";
   exit;
 }
+
+
 
 #Check payment system by IP
 if (check_ip($ENV{REMOTE_ADDR}, '92.125.0.0/24')) {

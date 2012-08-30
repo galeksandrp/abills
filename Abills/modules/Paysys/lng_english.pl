@@ -14,3 +14,4 @@ $_BINDING='Binding';
 $_TARIF_PLAN_SUM='Minimum one month fees';
 $_CANCEL_PAYMENTS='Cancel Payments';
 $_BALANCE_RECHARCHE_SUM='Balance recharche sum';
+$_ERR_SMALL_SUM='Minimal recharge sum ';
