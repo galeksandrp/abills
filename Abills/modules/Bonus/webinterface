@@ -748,8 +748,6 @@ sub bonus_service_discount_mk {
   	return 0;
   }
 
-
-
   my %RULES = ();
   my $list = $Bonus->service_discount_list({ PAGE_ROWS => 1000 });
   foreach my $line (@$list) {
@@ -848,7 +846,8 @@ sub bonus_service_discount_mk {
     }
 
     if ($RESULT{BONUS_SUM} && $RESULT{BONUS_SUM} > 0) {
-      my $user    = $attr->{USER_INFO};
+      my $user         = $attr->{USER_INFO};
+      $user->{MAIN_BILL_ID} = $user->{BILL_ID};
       $user->{BILL_ID} = ($RESULT{BONUS_EXT_ACCOUNT}) ? $attr->{USER_INFO}->{EXT_BILL_ID} : $attr->{USER_INFO}->{BILL_ID};
       $Payments->add(
         $user,
@@ -875,6 +874,7 @@ sub bonus_service_discount_mk {
         $message = "$_EXTRA $_ACCOUNT\n" . $message if ($RESULT{BONUS_EXT_ACCOUNT});
         $html->message('info', $_INFO, "$message") if (! $attr->{QUITE});
       }
+      $user->{BILL_ID} = $user->{MAIN_BILL_ID};
     }
   }
 
