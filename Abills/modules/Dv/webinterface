@@ -252,7 +252,7 @@ sub dv_chg_tp {
     # GID:ID=>NAME
     my %TPS_HASH = ();
     foreach my $line (@$tp_list) {
-      $TPS_HASH{$line->{tp_group_name}}{ $line->{id} } = $line->{name};
+      $TPS_HASH{$line->{tp_group_name}}{ $line->{id} } = "$line->{id} $line->{name}";
     }
 
     $tariffs->{TARIF_PLAN_SEL} = $html->form_select(
@@ -262,7 +262,7 @@ sub dv_chg_tp {
         #SEL_MULTI_ARRAY   => $tp_list,
         SEL_HASH          => \%TPS_HASH,
         MULTI_ARRAY_KEY   => 0,
-        MULTI_ARRAY_VALUE => 1,
+        MULTI_ARRAY_VALUE => "0,1",
         GROUP_COLOR       => 1,
         MAIN_MENU         => ($permissions{0}{10}) ? get_function_index('dv_tp') : undef,
         MAIN_MENU_AGRV    => "TP_ID=$Dv->{TP_NUM}"
