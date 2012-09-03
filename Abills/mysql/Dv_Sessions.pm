@@ -1530,13 +1530,19 @@ sub log_rotate {
     if (!$attr->{DAILY}) {
       use POSIX qw(strftime);
       my $DATE = (strftime "%Y_%m_%d", localtime(time - 86400));
-      push @rq, 'CREATE TABLE IF NOT EXISTS s_detail_new LIKE s_detail;', 'RENAME TABLE s_detail TO s_detail_' . $DATE . ', s_detail_new TO s_detail;',
+      push @rq, 'CREATE TABLE IF NOT EXISTS s_detail_new LIKE s_detail;', 
+      'RENAME TABLE s_detail TO s_detail_' . $DATE . ', s_detail_new TO s_detail;',
 
       #'CREATE TABLE IF NOT EXISTS errors_log_new LIKE errors_log;',
       #'RENAME TABLE errors_log TO errors_log_'. $DATE .
       # ', errors_log_new TO errors_log;',
 
-      'CREATE TABLE IF NOT EXISTS dv_log_intervals_new LIKE dv_log_intervals;', 'DROP TABLE dv_log_intervals_old', 'RENAME TABLE dv_log_intervals TO dv_log_intervals_old' . ', dv_log_intervals_new TO dv_log_intervals;';
+      'CREATE TABLE IF NOT EXISTS dv_log_intervals_new LIKE dv_log_intervals;', 
+      'DROP TABLE dv_log_intervals_old',
+      'RENAME TABLE dv_log_intervals TO dv_log_intervals_old, dv_log_intervals_new TO dv_log_intervals;';
+      if ($CONF->{DV_INTERVAL_PREPAID}) {
+        push @rq, 'INSERT INTO dv_log_intervals SELECT * FROM dv_log_intervals_old WHERE added>=UNIX_TIMESTAMP()-86400*31;';
+      }
     }
   }
   else {
