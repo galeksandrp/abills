@@ -832,7 +832,7 @@ sub dv_user {
     }
   );
 
-  $html->tpl_show(_include('dv_user', 'Dv'), { %$attr, %$Dv }, {});
+  $html->tpl_show(_include('dv_user', 'Dv'), { %$attr, %$Dv }, { ID => 'dv_user' });
   return 0;
 }
 

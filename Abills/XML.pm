@@ -229,6 +229,24 @@ sub form_main {
   return $self->{FORM};
 }
 
+#*******************************************************************
+# form_input
+#*******************************************************************
+sub form_textarea {
+  my $self = shift;
+  my ($name, $value, $attr) = @_;
+
+  $self->{FORM_INPUT} = "<textarea id='$name' name='$name'>$value</textarea>";
+
+  if (defined($self->{NO_PRINT}) && (!defined($attr->{OUTPUT2RETURN}))) {
+    $self->{OUTPUT} .= $self->{FORM_INPUT};
+    $self->{FORM_INPUT} = '';
+  }
+
+  return $self->{FORM_INPUT};
+}
+
+
 #**********************************************************
 #
 #**********************************************************
@@ -849,6 +867,27 @@ sub log_print {
 $text
 </LOG_PRINT>
 [END]
+}
+
+#*******************************************************************
+# HTML element
+#*******************************************************************
+sub element {
+  my $self = shift;
+  my ($name, $value, $attr) = @_;
+
+  if ($attr->{ID}) {
+  	$value = "<$attr->{ID}>$value</$attr->{ID}>";
+  }
+
+  $self->{FORM_INPUT} = "$value";
+
+  if (defined($self->{NO_PRINT}) && (!defined($attr->{OUTPUT2RETURN}))) {
+    $self->{OUTPUT} .= $self->{FORM_INPUT};
+    $self->{FORM_INPUT} = '';
+  }
+
+  return $self->{FORM_INPUT};
 }
 
 #**********************************************************

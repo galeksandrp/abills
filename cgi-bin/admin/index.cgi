@@ -329,12 +329,24 @@ if ($FORM{qindex}) {
   if (defined($module{$index})) {
     load_module($module{$index}, $html);
   }
+
+
+#print $functions{$index};
+  if ($FORM{UID}) {
+    $ui = user_info($FORM{UID}, { LOGIN => ($FORM{LOGIN}) ? $FORM{LOGIN} : undef });
+    print "<user_info>";
+  }
+
   if ($functions{$index}) {
-    $functions{$index}->();
+    $functions{$index}->({ USER_INFO => $ui });
   }
   else {
     print "Content/type: text/html\n\n";
     print "Function not exist!";
+  }
+  
+  if ($FORM{UID}) {
+  	print "</user_info>";
   }
   exit;
 }
@@ -1375,7 +1387,7 @@ sub user_form {
       $user_info->{DISABLE} = '';
     }
 
-    my $main_account = $html->tpl_show(templates('form_user'), { %$user_info, %$attr }, { OUTPUT2RETURN => 1 });
+    my $main_account = $html->tpl_show(templates('form_user'), { %$user_info, %$attr }, { OUTPUT2RETURN => 1, ID => 'form_user' });
     
     $user_info->{PW_CHARS}  = $conf{PASSWD_SYMBOLS} || "abcdefhjmnpqrstuvwxyz23456789ABCDEFGHJKLMNPQRSTUVWYXZ";
     $user_info->{PW_LENGTH} = $conf{PASSWD_LENGTH}  || 6;
@@ -1408,9 +1420,9 @@ sub user_form {
       }
     }
  
-    $user_info->{EXDATA} = $html->tpl_show(templates('form_user_exdata'), $user_info, { OUTPUT2RETURN => 1 });
+    $user_info->{EXDATA} = $html->tpl_show(templates('form_user_exdata'), $user_info, { OUTPUT2RETURN => 1, ID => 'form_user_exdata'  });
     if ($conf{EXT_BILL_ACCOUNT} && $user_info->{EXT_BILL_ID}) {
-      $user_info->{EXDATA} .= $html->tpl_show(templates('form_ext_bill'), $user_info, { OUTPUT2RETURN => 1 });
+      $user_info->{EXDATA} .= $html->tpl_show(templates('form_ext_bill'), $user_info, { OUTPUT2RETURN => 1, ID => 'ext_bill_id' });
     }
 
     if ($user_info->{DISABLE} > 0) {
@@ -1454,7 +1466,7 @@ sub user_form {
     }
 
     if ($attr->{REGISTRATION}) {
-      my $main_account = $html->tpl_show(templates('form_user'), { %$user_info, %$attr }, { OUTPUT2RETURN => 1 });
+      my $main_account = $html->tpl_show(templates('form_user'), { %$user_info, %$attr }, { ID => 'form_user', OUTPUT2RETURN => 1 });
       $main_account =~ s/<FORM.+>//ig;
       $main_account =~ s/<\/FORM>//ig;
       $main_account =~ s/<input.+type=submit.+>//ig;
@@ -1463,7 +1475,7 @@ sub user_form {
       user_pi({ MAIN_USER_TPL => $main_account, %$attr });
     }
     else {
-      $html->tpl_show(templates('form_user'), $user_info);
+      $html->tpl_show(templates('form_user'), $user_info, { ID => 'form_user' });
     }
   }
 
@@ -1644,7 +1656,7 @@ sub user_ext_menu {
   my $ext_menu = qq{
 <div id=quick_menu class=noprint>
 <ul id=topNav>
-  <li><a href="#"><img src='/img/user.png' border=0/></a>
+  <li><a href="#"><img src='/img/user.png' border='0'/></a>
   <ul>
     $payments_menu
     $fees_menu
@@ -1917,7 +1929,7 @@ sub user_pi {
       if ($user_pi->{INFO_FIELDS_VAL}->[$i] ne '') {
 
         #
-        $input .= " <a href=\"http://www.icq.com/people/about_me.php?uin=$user_pi->{INFO_FIELDS_VAL}->[$i]\"><img  src=\"http://status.icq.com/online.gif?icq=$user_pi->{INFO_FIELDS_VAL}->[$i]&img=21\" border=0></a>";
+        $input .= " <a href=\"http://www.icq.com/people/about_me.php?uin=$user_pi->{INFO_FIELDS_VAL}->[$i]\"><img  src=\"http://status.icq.com/online.gif?icq=$user_pi->{INFO_FIELDS_VAL}->[$i]&img=21\" border='0'></a>";
       }
     }
 
@@ -1960,7 +1972,12 @@ sub user_pi {
       $input = $html->form_input($field_id, "$user_pi->{INFO_FIELDS_VAL}->[$i]", { SIZE => 40 });
     }
 
-    $user_pi->{INFO_FIELDS} .= "<tr><td>" . (eval "\"$name\"") . ":</td><td valign=center>$input</td></tr>\n";
+    $user_pi->{INFO_FIELDS} .= $html->element('tr', 
+        $html->element('td', (eval "\"$name\"")).
+        $html->element('td', $input, { valign=>'center' }),
+      { ID => "$field_id"  }
+    );
+
     $i++;
   }
 
@@ -2019,7 +2036,7 @@ sub user_pi {
   if ($conf{ADDRESS_REGISTER}) {
     my $add_address_index = get_function_index('form_districts');
     $user_pi->{ADD_ADDRESS_LINK} = $html->button("$_ADD $_ADDRESS", "index=$add_address_index", { CLASS => 'add rightAlignText' });
-    $user_pi->{ADDRESS_TPL} = $html->tpl_show(templates('form_address_sel'), $user_pi, { OUTPUT2RETURN => 1 });
+    $user_pi->{ADDRESS_TPL} = $html->tpl_show(templates('form_address_sel'), $user_pi, { OUTPUT2RETURN => 1, ID => 'form_address_sel' });
   }
   else {
     my $countries = $html->tpl_show(templates('countries'), undef, { OUTPUT2RETURN => 1 });
@@ -2040,7 +2057,7 @@ sub user_pi {
     $user_pi->{ADDRESS_TPL} = $html->tpl_show(templates('form_address'), $user_pi, { OUTPUT2RETURN => 1 });
   }
 
-  $html->tpl_show(templates('form_pi'), { %$attr, UID => $LIST_PARAMS{UID}, %$user_pi, });
+  $html->tpl_show(templates('form_pi'), { %$attr, UID => $LIST_PARAMS{UID}, %$user_pi, }, { ID => 'form_pi' });
 }
 
 #**********************************************************
@@ -2076,21 +2093,23 @@ sub form_users {
 
   if ($attr->{USER_INFO}) {
     my $user_info = $attr->{USER_INFO};
+    
     if ($users->{errno}) {
       $html->message('err', $_ERROR, "[$users->{errno}] $err_strs{$users->{errno}}");
       return 0;
     }
+    
 
-    print "<table width=\"100%\" border=\"0\" cellspacing=\"1\" cellpadding=\"2\"><tr><td valign=\"top\" align=\"center\">\n";
+    $html->tpl_show(templates('form_user_header'), $user_info, { ID => 'user_header' });
+    
 
     #Make service menu
-    my $service_menu       = '';
     my $service_func_index = 0;
     my $service_func_menu  = '';
     foreach my $key (sort keys %menu_items) {
       if (defined($menu_items{$key}{20})) {
         $service_func_index = $key if (($FORM{MODULE} && $FORM{MODULE} eq $module{$key} || !$FORM{MODULE}) && $service_func_index == 0);
-        $service_menu .= '<li class=umenu_item>' . $html->button($menu_items{$key}{20}, "UID=$user_info->{UID}&index=$key");
+        $user_info->{SERVICE_MENU} .= $html->element('li', $html->button($menu_items{$key}{20}, "UID=$user_info->{UID}&index=$key"), {  class => 'umenu_item' });
       }
 
       if ($service_func_index > 0 && $menu_items{$key}{$service_func_index}) {
@@ -2158,16 +2177,14 @@ sub form_users {
       user_form({ USER_INFO => $user_info });
 
       if ($conf{USER_ALL_SERVICES}) {
-
         foreach my $module (@MODULES) {
           $FORM{MODULE} = $module;
           my $service_func_index = 0;
           my $service_func_menu  = '';
-          my $service_menu       = '';
           foreach my $key (sort keys %menu_items) {
             if (defined($menu_items{$key}{20})) {
               $service_func_index = $key if (($FORM{MODULE} && $FORM{MODULE} eq $module{$key} || !$FORM{MODULE}) && $service_func_index == 0);
-              $service_menu .= '<li class=umenu_item>' . $html->button($menu_items{$key}{20}, "UID=$user_info->{UID}&index=$key");
+              $user_info->{SERVICE_MENU} .= $html->element('li', $html->button($menu_items{$key}{20}, "UID=$user_info->{UID}&index=$key"), { class => 'umenu_item' });
             }
 
             if ($service_func_index > 0 && $menu_items{$key}{$service_func_index}) {
@@ -2175,15 +2192,14 @@ sub form_users {
             }
           }
           if ($service_func_index) {
-            print "<TABLE width='100%' border=0>
-        <TR><TH class=form_title>$module</TH></TR>
-        <TR><TH class=odd><div id='rules'><ul><li class='center'>$service_func_menu</li></ul></div></TH></TR></TABLE>\n";
+            print "<TABLE width='100%' border='0'>
+        <TR><TH class='form_title'>$module</TH></TR>
+        <TR><TH class='odd'><div id='rules'><ul><li class='center'>$service_func_menu</li></ul></div></TH></TR></TABLE>\n";
 
             $index = $service_func_index;
             if (defined($module{$service_func_index})) {
               load_module($module{$service_func_index}, $html);
             }
-
             $functions{$service_func_index}->({ USER_INFO => $user_info });
           }
         }
@@ -2199,11 +2215,10 @@ sub form_users {
             load_module($module{$service_func_index}, $html);
           }
 
-          print "<TABLE width='100%' border=0>
-      <TR><TH class=form_title>$module{$service_func_index}</TH></TR>
-      <TR><TH class=even><div id='rules'><ul><li class='center'>$service_func_menu</li></ul></div></TH></TR>
+          print "<TABLE width='100%' border='0'>
+      <TR><TH class='form_title'>$module{$service_func_index}</TH></TR>
+      <TR><TH class='even'><div id='rules'><ul><li class='center'>$service_func_menu</li></ul></div></TH></TR>
     </TABLE>\n";
-
           $functions{$service_func_index}->({ USER_INFO => $user_info });
         }
 
@@ -2212,9 +2227,9 @@ sub form_users {
       user_pi({ %$attr, USER_INFO => $user_info });
     }
 
-    my $payments_menu = (defined($permissions{1})) ? '<li class=umenu_item>' . $html->button($_PAYMENTS, "UID=$user_info->{UID}&index=2") . '</li>' : '';
-    my $fees_menu     = (defined($permissions{2})) ? '<li class=umenu_item>' . $html->button($_FEES,     "UID=$user_info->{UID}&index=3") . '</li>' : '';
-    my $sendmail_manu = '<li class=umenu_item>' . $html->button($_SEND_MAIL, "UID=$user_info->{UID}&index=31") . '</li>';
+    $user_info->{PAYMENTS_MENU} = (defined($permissions{1})) ? $html->element('li', $html->button($_PAYMENTS, "UID=$user_info->{UID}&index=2"), { class=>'umenu_item' }) : '';
+    $user_info->{FEES_MENU}     = (defined($permissions{2})) ? $html->element('li', $html->button($_FEES,     "UID=$user_info->{UID}&index=3"), { class=>'umenu_item' }) : '';
+    $user_info->{SENDMAIL_MANU} = $html->element('li',  $html->button($_SEND_MAIL, "UID=$user_info->{UID}&index=31") , { class=>'umenu_item' });
 
     my $second_menu    = '';
     my %userform_menus = (
@@ -2227,7 +2242,6 @@ sub form_users {
     );
 
     $userform_menus{17} = $_PASSWD if ($permissions{0}{3});
-
     while (my ($k, $v) = each %uf_menus) {
       $userform_menus{$k} = $v;
     }
@@ -2236,40 +2250,19 @@ sub form_users {
       my $v   = $userform_menus{$k};
       my $url = "index=$k&UID=$user_info->{UID}";
       my $a   = (defined($FORM{$k})) ? $html->b($v) : $v;
-      $second_menu .= "<li class=umenu_item>" . $html->button($a, "$url") . '</li>';
+      $user_info->{SECOND_MENU} .= $html->element('li', $html->button($a, "$url"), { class=>'umenu_item' });
     }
 
     my $full_delete = '';
     if ($admin->{permissions}->{0} && $admin->{permissions}->{0}->{8} && ($user_info->{DELETED})) {
-      $second_menu .= "<li class=umenu_item>" . $html->button($_UNDELETE, "index=15&del_user=1&UNDELETE=1&UID=$user_info->{UID}&is_js_confirmed=1") . '</li>';
+      $user_info->{SECOND_MENU} .= $html->element('li', $html->button($_UNDELETE, "index=15&del_user=1&UNDELETE=1&UID=$user_info->{UID}&is_js_confirmed=1"), { class=>'umenu_item' });
       $full_delete = "&FULL_DELETE=1";
     }
 
-    $second_menu .= "<li class=umenu_item>" . $html->button($_DEL, "index=15&del_user=1&UID=$user_info->{UID}$full_delete", { MESSAGE => "$_USER: $user_info->{LOGIN} / $user_info->{UID}" }) . '</li>' if (defined($permissions{0}{5}));
+    $user_info->{SECOND_MENU} .= $html->element('li', $html->button($_DEL, "index=15&del_user=1&UID=$user_info->{UID}$full_delete", { MESSAGE => "$_USER: $user_info->{LOGIN} / $user_info->{UID}" }), { class=>'umenu_item' }) if (defined($permissions{0}{5}));
 
-    print "
-</td><td bgcolor='$_COLORS[3]' valign='top' width='180'>
-<table width='100%' border='0' cellspacing='0' cellpadding='0'><tr><td>
-<div class=l_user_menu>
-<ul class=user_menu>
-  $payments_menu
-  $fees_menu
-  $sendmail_manu
-</ul>
-</div>
-</td></tr>
-<tr><td>
-  <div class=l_user_menu> 
-  <ul class=user_menu>
-   $service_menu
-  </ul></div>
-<div class=l_user_menu>
-<ul class=user_menu>
- $second_menu
-</ul></div>
-</td></tr>
-</table>
-</td></tr></table>\n";
+    
+    $html->tpl_show(templates('form_user_footer'), $user_info, { ID => 'user_footer' });
     return 0;
   }
   elsif ($FORM{add}) {
@@ -3505,9 +3498,9 @@ sub form_holidays {
 
   print "<br><TABLE width=\"400\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\">
 <tr><TD bgcolor=\"$_COLORS[4]\">
-<TABLE width=\"100%\" cellspacing=1 cellpadding=0 border=0>
-<tr bgcolor=\"$_COLORS[0]\"><th>" . $html->button(' << ', 'index=75&month=' . $p_month . '&year=' . $p_year) . "</th><th colspan='5'>$MONTHES[$month] $year</th><th>" . $html->button(' >> ', "index=75&month=$n_month&year=$n_year") . "</th></tr>
-<tr bgcolor=\"$_COLORS[0]\"><th>$WEEKDAYS[1]</th><th>$WEEKDAYS[2]</th><th>$WEEKDAYS[3]</th>
+<TABLE width=\"100%\" cellspacing='1' cellpadding='0' border='0'>
+<tr class='form_title'><th>" . $html->button(' << ', 'index=75&month=' . $p_month . '&year=' . $p_year) . "</th><th colspan='5'>$MONTHES[$month] $year</th><th>" . $html->button(' >> ', "index=75&month=$n_month&year=$n_year") . "</th></tr>
+<tr class='form_title'><th>$WEEKDAYS[1]</th><th>$WEEKDAYS[2]</th><th>$WEEKDAYS[3]</th>
 <th>$WEEKDAYS[4]</th><th>$WEEKDAYS[5]</th>
 <th><font color=\"#FF0000\">$WEEKDAYS[6]</font></th><th><font color=#FF0000>$WEEKDAYS[7]</font></th></tr>\n";
 
@@ -4381,7 +4374,7 @@ sub form_nas {
   $nas->{NAS_DISABLE} = ($nas->{NAS_DISABLE} > 0) ? ' checked' : '';
 
   if ($conf{ADDRESS_REGISTER}) {
-    $nas->{ADDRESS_TPL} = $html->tpl_show(templates('form_address_sel'), $nas, { OUTPUT2RETURN => 1 });
+    $nas->{ADDRESS_TPL} = $html->tpl_show(templates('form_address_sel'), $nas, { OUTPUT2RETURN => 1, ID => 'form_address_sel' });
   }
   else {
     my $countries = $html->tpl_show(templates('countries'), undef, { OUTPUT2RETURN => 1 });
@@ -4400,7 +4393,7 @@ sub form_nas {
       }
     );
 
-    $nas->{ADDRESS_TPL} = $html->tpl_show(templates('form_address'), $nas, { OUTPUT2RETURN => 1 });
+    $nas->{ADDRESS_TPL} = $html->tpl_show(templates('form_address'), $nas, { OUTPUT2RETURN => 1, ID => 'form_address' });
   }
 
   $nas->{NAS_GROUPS_SEL} = sel_nas_groups({ GID => $nas->{GID} });
@@ -5777,7 +5770,6 @@ sub form_payments () {
 
   return 0 if (!$permissions{1});
 
-
   if (in_array('Docs', \@MODULES)) {
     load_module('Docs', $html);
   }
@@ -5971,15 +5963,15 @@ sub form_payments () {
       $payments->{OP_SID} = mk_unique_value(16);
 
       if ($conf{EXT_BILL_ACCOUNT}) {
-        $payments->{EXT_DATA} = "<tr><td colspan=2>$_BILL:</td><td>"
-        . $html->form_select(
-          'BILL_ID',
-          {
-            SELECTED => $FORM{BILL_ID} || $attr->{USER_INFO}->{BILL_ID},
-            SEL_HASH => \%BILL_ACCOUNTS,
-            NO_ID    => 1
-          }
-        ) . "</td></tr>\n";
+        $payments->{EXT_DATA} = $html->element('tr', 
+           $html->element('td', "$_BILL:",  { colspan => 2 }).
+           $html->element('td', $html->form_select('BILL_ID',
+              {
+                SELECTED => $FORM{BILL_ID} || $attr->{USER_INFO}->{BILL_ID},
+                SEL_HASH => \%BILL_ACCOUNTS,
+                NO_ID    => 1
+               }) 
+           ), { ID => 'EXT_BILL_ID' });
       }
 
       if ($permissions{1}{4}) {
@@ -5992,7 +5984,13 @@ sub form_payments () {
         }
 
         my $date_field = $html->date_fld2('DATE', { DATE => $DATE, TIME => $TIME, MONTHES => \@MONTHES, FORM_NAME => 'user', WEEK_DAYS => \@WEEKDAYS });
-        $payments->{DATE} = "<tr><td colspan=2>$_DATE:</td><td>$date_field  $_HOLD: <input type=checkbox name=hold_date value=1 " . (($COOKIES{hold_date}) ? 'checked' : '') . "> </td></tr>\n";
+        $payments->{DATE} = $html->element('tr',
+         $html->element('td', "$_DATE:", { colspan=>2 }).
+         $html->element('td', "$date_field  $_HOLD:". 
+         $html->form_input('hold_date', '1', { TYPE => 'checkbox', EX_PARAMS => "NAME='hold_date'", 
+         	  STATE => (($COOKIES{hold_date}) ? 1 : undef) })
+         ),
+         );
       }
 
       if (in_array('Docs', \@MODULES)) {
@@ -6023,7 +6021,7 @@ sub form_payments () {
         $payments->{LNG_ACTION} = $_ADD;
       }
 
-      $html->tpl_show(templates('form_payments'), { %FORM, %$attr, %$payments });
+      $html->tpl_show(templates('form_payments'), { %FORM, %$attr, %$payments }, { ID => 'form_payments'  });
       #return 0 if ($attr->{REGISTRATION});
     }
   }
@@ -6625,7 +6623,7 @@ sub form_fees {
       $fees->{SHEDULE} = $table2->show();
     }
 
-    $fees->{PERIOD_FORM} = form_period($period, { TD_EXDATA => 'colspan=2' });
+    $fees->{PERIOD_FORM} = form_period($period, { TD_EXDATA => "colspan='2'" });
     if ($permissions{2} && $permissions{2}{1}) {
 
       #exchange rate sel
@@ -6641,15 +6639,15 @@ sub form_fees {
       );
 
       if ($conf{EXT_BILL_ACCOUNT}) {
-        $fees->{EXT_DATA} = "<tr><td colspan=2>$_BILL:</td><td>"
-        . $html->form_select(
-          'BILL_ID',
-          {
-            SELECTED => $FORM{BILL_ID} || $attr->{USER_INFO}->{BILL_ID},
-            SEL_HASH => \%BILL_ACCOUNTS,
-            NO_ID    => 1
-          }
-        ) . "</td></tr>\n";
+        $fees->{EXT_DATA} =  $html->element('tr', 
+           $html->element('td', "$_BILL:",  { colspan => 2 }).
+           $html->element('td', $html->form_select('BILL_ID',
+              {
+                SELECTED => $FORM{BILL_ID} || $attr->{USER_INFO}->{BILL_ID},
+                SEL_HASH => \%BILL_ACCOUNTS,
+                NO_ID    => 1
+               }) 
+           ), { ID => 'EXT_BILL_ID' }); 
       }
 
       $fees->{SEL_METHOD} = $html->form_select(
@@ -6664,7 +6662,7 @@ sub form_fees {
         }
       );
 
-      $html->tpl_show(templates('form_fees'), $fees) if (!$attr->{REGISTRATION});
+      $html->tpl_show(templates('form_fees'), $fees, { ID => 'form_fees' }) if (!$attr->{REGISTRATION});
     }
   }
   elsif ($FORM{AID} && !defined($LIST_PARAMS{AID})) {
@@ -6984,7 +6982,7 @@ sub form_search {
             $input = $html->form_input($field_id, "$FORM{$field_id}", { SIZE => 40 });
           }
 
-          $info{INFO_FIELDS} .= "<tr><td colspan=2>" . (eval "\"$name\"") . ":</td><td>$input</td></tr>\n";
+          $info{INFO_FIELDS} .= "<tr><td colspan='2'>" . (eval "\"$name\"") . ":</td><td>$input</td></tr>\n";
           $i++;
         }
 
@@ -7024,7 +7022,7 @@ sub form_search {
         }
 
         if ($conf{ADDRESS_REGISTER}) {
-          $info{ADDRESS_FORM} = $html->tpl_show(templates('form_address_sel'), $user_pi, { OUTPUT2RETURN => 1 });
+          $info{ADDRESS_FORM} = $html->tpl_show(templates('form_address_sel'), $user_pi, { OUTPUT2RETURN => 1, ID => 'form_address_sel' });
           $info{ADDRESS_FORM} .= "<tr><td>$_NO_RECORD</td><td><input type=checkbox name='NOT_FILLED' value='1'></td></tr>";
         }
         else {
@@ -7043,7 +7041,7 @@ sub form_search {
               NO_ID    => 1
             }
           );
-          $info{ADDRESS_FORM} = $html->tpl_show(templates('form_address'), { %FORM, %$user_pi }, { OUTPUT2RETURN => 1 });
+          $info{ADDRESS_FORM} = $html->tpl_show(templates('form_address'), { %FORM, %$user_pi }, { OUTPUT2RETURN => 1, ID => 'form_address' });
         }
       }
       elsif ($FORM{type} == 13) {
@@ -7092,7 +7090,7 @@ sub form_search {
             $input = $html->form_input($field_id, "$FORM{$field_id}", { SIZE => 40 });
           }
 
-          $info{INFO_FIELDS} .= "<tr><td colspan=2>" . (eval "\"$name\"") . ":</td><td>$input</td></tr>\n";
+          $info{INFO_FIELDS} .= "<tr><td colspan='2'>" . (eval "\"$name\"") . ":</td><td>$input</td></tr>\n";
           $i++;
         }
 
@@ -7103,7 +7101,7 @@ sub form_search {
         $info{EXPIRE}       = $html->date_fld2('EXPIRE',       { NO_DEFAULT_DATE => 1, MONTHES => \@MONTHES, FORM_NAME => 'form_search', WEEK_DAYS => \@WEEKDAYS, TABINDEX => 18 });
 
         if ($conf{ADDRESS_REGISTER}) {
-          $info{ADDRESS_FORM} = $html->tpl_show(templates('form_address_sel'), $user_pi, { OUTPUT2RETURN => 1 });
+          $info{ADDRESS_FORM} = $html->tpl_show(templates('form_address_sel'), $user_pi, { OUTPUT2RETURN => 1, ID => 'form_address_sel' });
           $info{ADDRESS_FORM} .= "<tr><td>$_NO_RECORD</td><td><input type=checkbox name='NOT_FILLED' value='1'></td></tr>";
         }
         else {
@@ -7133,7 +7131,7 @@ sub form_search {
     if ($attr->{ADDRESS_FORM}) {
     	$SEARCH_DATA{ADDRESS_FORM} = $html->tpl_show(templates('form_show_hide'), 
     	   {
-    	   	CONTENT => '<table width=100%>'.$html->tpl_show(templates('form_address_sel'), $user_pi, { OUTPUT2RETURN => 1 }).'</table>',
+    	   	CONTENT => '<table width=100%>'.$html->tpl_show(templates('form_address_sel'), $user_pi, { OUTPUT2RETURN => 1, ID => 'form_address_sel' }).'</table>',
     	   	NAME    => $_ADDRESS,
     	   	ID      => 'ADDRESS_FORM',
     	    }, 
@@ -7829,7 +7827,7 @@ sub form_period {
   my @periods = ("$_NOW", "$_NEXT_PERIOD", "$_DATE");
   my $date_fld = $html->date_fld2('DATE', { FORM_NAME => 'user', MONTHES => \@MONTHES, WEEK_DAYS => \@WEEKDAYS, NEXT_DAY => 1 });
   my $form_period = '';
-  $form_period .= "<tr><td " . (($attr->{TD_EXDATA}) ? $attr->{TD_EXDATA} : '') . " rowspan=" . (($attr->{ABON_DATE}) ? 3 : 2) . ">$_DATE:</td><td>";
+  $form_period .= "<tr><td " . (($attr->{TD_EXDATA}) ? $attr->{TD_EXDATA} : '') . " rowspan=" . (($attr->{ABON_DATE}) ? "'3'" : "'2'") . ">$_DATE:</td><td>";
 
   $form_period .= $html->form_input(
     'period', "0",
