@@ -637,7 +637,7 @@ $WHERE
   }
 
   if ($attr->{COMPANY_ID}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{COMPANY_ID}, 'INT', 'u.company_id', { EXT_FIELD => 1 }) };
+    push @WHERE_RULES, @{ $self->search_expr($attr->{COMPANY_ID}, 'INT', 'u.company_id') };
   }
 
   if ($attr->{AID}) {
@@ -675,7 +675,6 @@ $WHERE
    pi.contract_id,
    pi.contract_date,
    if(u.company_id > 0, c.bill_id, u.bill_id) AS bill_id,
-   u.company_id,
    pi.email,
    pi.fio,";
    $self->{SEARCH_FIELDS_COUNT}+=8;
@@ -791,7 +790,7 @@ sub docs_nextid {
      WHERE YEAR(date)=YEAR(curdate());";
   }
   elsif ($attr->{TYPE} eq 'TAX_INVOICE') {
-    $sql = "SELECT max(d.tax_receipt_id), count(*) FROM docs_tax_receipts d
+    $sql = "SELECT max(d.tax_invoice_id), count(*) FROM docs_tax_invoices d
      WHERE YEAR(date)=YEAR(curdate());";
   }
   elsif ($attr->{TYPE} eq 'ACT') {
@@ -1277,7 +1276,7 @@ sub tax_invoice_reports {
   }
 
   if ($attr->{DOC_ID}) {
-    push @WHERE_RULES, $self->search_expr($attr->{DOC_ID}, 'INT', 'd.tax_receipt_id');
+    push @WHERE_RULES, $self->search_expr($attr->{DOC_ID}, 'INT', 'd.tax_invoice_id');
   }
 
   if ($attr->{SUM}) {

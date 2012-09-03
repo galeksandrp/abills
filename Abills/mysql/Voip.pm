@@ -214,7 +214,32 @@ sub user_list {
 
 
   @WHERE_RULES = ( "u.uid = service.uid" );
-  push @WHERE_RULES, @{ $self->search_expr_users($attr) };
+  push @WHERE_RULES, @{ $self->search_expr_users({ %$attr, EXT_FIELDS => [
+  	                                        'PHONE',
+  	                                        'EMAIL',
+  	                                        'ADDRESS_FLAT',
+  	                                        'PASPORT_DATE',
+                                            'PASPORT_NUM', 
+                                            'PASPORT_GRANT',
+                                            'CITY', 
+                                            'ZIP',
+                                            'GID',
+                                            'CONTRACT_ID',
+                                            'CONTRACT_SUFIX',
+                                            'CONTRACT_DATE',
+                                            'EXPIRE',
+
+                                            'CREDIT',
+                                            'CREDIT_DATE', 
+                                            'REDUCTION',
+                                            'REGISTRATION',
+                                            'REDUCTION_DATE',
+                                            'COMMENTS',
+                                            'BILL_ID',
+                                            
+                                            'ACTIVATE',
+                                            'EXPIRE',
+                                            'DEPOSIT:skip'] }) };
   my $EXT_TABLE = $self->{EXT_TABLES};
 
   if ($attr->{USERS_WARNINGS}) {

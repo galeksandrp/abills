@@ -363,7 +363,9 @@ sub sheduler {
     }
 
     if ($count <= 1) {
-      $shedule->del({ ID => $shedule_id, RESULT => $ret . $error_text });
+      $shedule->del({ ID       => $shedule_id, RESULT => $ret . $error_text, 
+      	              EXT_INFO => " S:$s->{module}:$type:$action",
+      	              EXECUTE  => 1  });
     }
     else {
       $shedule->change({ SHEDULE_ID => $shedule_id, COUNTS => $count - 1, RESULT => $ret . $error_text });
@@ -924,7 +926,7 @@ sub debetors_group_create {
       }
     }
   }
-exit;
+
   #Flush from debetors group
   $DEBUG .= "Delete from debetors Group\n" if ($debug > 1);
   foreach my $DEBETOR_GID (sort { $b <=> $a } keys %DEBETORS_GIDS) {

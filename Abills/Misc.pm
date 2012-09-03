@@ -8,8 +8,11 @@ sub load_module {
 	my ($module, $attr) = @_;
 
 	my $lang_file = '';
+	$attr->{language} = 'english' if (! $attr->{language});
+
   foreach my $prefix (@INC) {
     my $realfilename = "$prefix/Abills/modules/$module/lng_$attr->{language}.pl";
+
     if (-f $realfilename) {
       $lang_file =  $realfilename;
       last;

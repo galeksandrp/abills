@@ -985,8 +985,7 @@ sub docs_invoices_list {
     form_search({ SEARCH_FORM => ($FORM{pdf}) ? '' : $html->tpl_show(_include('docs_invoice_search', 'Docs'), { %info, %FORM }, { notprint => 1 }) });
   }
 
-  $LIST_PARAMS{COMPANY_ID} = $FORM{CUSTOMER_TYPE};
-
+  $LIST_PARAMS{COMPANY_ID} = $LIST_PARAMS{COMPANY_ID} || $FORM{CUSTOMER_TYPE};
   #PAYMENT_METHOD
   if (!$FORM{sort}) {
     $LIST_PARAMS{SORT} = '2 desc, 1';
@@ -1184,7 +1183,6 @@ sub docs_invoices_list {
   	   ORDERS_LIST => $FORM{xml}
   	   });
 
-
 	push @caption, "$_INVOICE";
   
   my %i2p_hash       = ();
@@ -1247,7 +1245,7 @@ sub docs_invoices_list {
         }
       }
       elsif($fname eq 'login') {
-        $val = $html->button($invoice->{login}, "index=11&UID=$invoice->{uid}") . (($line->{company_id}) ? $html->br() . $html->button(substr($line->{company_name}, 0, 30), "index=13&COMPANY_ID=$invoice->{company_id}", { CLASS => 'small' }) : '');
+        $val = $html->button($invoice->{login}, "index=11&UID=$invoice->{uid}"). (($invoice->{company_id}) ? $html->br() . $html->button(substr($invoice->{company_name}, 0, 30), "index=13&COMPANY_ID=$invoice->{company_id}", { CLASS => 'small' }) : '');
       }
       elsif($fname eq 'method') {
         $val = ($PAYMENTS_METHODS{ $invoice->{method} }) ? $PAYMENTS_METHODS{ $invoice->{method} } : $invoice->{method};

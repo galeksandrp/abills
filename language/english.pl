@@ -465,6 +465,7 @@ $_BIRTHDAY='Birthday';
 $_FLATS='Flats';
 $_ACTION='Action';
 $_EXECUTE='Execute';
+$_EXECUTED='Executed';
 $_PAY='Pay';
 $_GRAPH='Charts for';
 $_VIEW='View';

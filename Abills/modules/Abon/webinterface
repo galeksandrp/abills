@@ -878,18 +878,22 @@ sub abon_docs {
 
   my @services = ();
   my $UID      = $FORM{UID} || $attr->{UID};
-  my $list     = $Abon->user_tariff_list($UID);
+  my $list     = $Abon->user_tariff_list($UID, { COLS_NAME => 1 });
   
   return \@services if ($Abon->{TOTAL} == 0);
   
   foreach my $line (@$list) {
-    if ($line->[5]) {
-      if ($line->[7] > 0) {
-        $line->[3] = $line->[3] * ((100 - $line->[7]) / 100);
+    if ($line->{date}) {
+      if ($line->{discount} > 0) {
+        $line->{price} = $line->{price} * ((100 - $line->{discount}) / 100);
+      }
+
+      if ($line->{service_count} > 1) {
+      	$line->{price} = $line->{price} * $line->{service_count};
       }
 
       # NAME| ID | SUM
-      push @services, "$_ABON: ($line->[0]) " . "$line->[1]" . "|$line->[2]|$line->[3]";
+      push @services, "$_ABON: ($line->{id}) " . "$line->{name}" . "|$line->{comments}|$line->{price}";
     }
   }
 

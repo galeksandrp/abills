@@ -2930,7 +2930,7 @@ sub form_system_changes {
     13 => "Online $_DEL",
     27 => "$_SHEDULE $_ADDED",
     28 => "$_SHEDULE $_DELETED",
-
+    29 => "$_SHEDULE $_EXECUTED",
     41 => "$_CHANGED $_EXCHANGE_RATE",
     42 => "$_DELETED $_EXCHANGE_RATE",
   );
@@ -3055,6 +3055,7 @@ sub form_changes {
     26 => "$_CHANGE $_GROUP",
     27 => "$_SHEDULE $_ADDED",
     28 => "$_SHEDULE $_DELETED",
+    29 => "$_SHEDULE $_EXECUTED",
     31 => "$_CARDS $_USED"
   );
 

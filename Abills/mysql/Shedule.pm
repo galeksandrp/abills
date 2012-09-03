@@ -276,11 +276,16 @@ sub del {
    return $self;	
   }
  
- $self->info({ ID => $attr->{ID}});
+ $self->info({ ID => $attr->{ID} });
 
  if ($self->{TOTAL} > 0) {
    $self->query($db, "DELETE FROM shedule WHERE id='$attr->{ID}';", 'do');
-   $admin->system_action_add("SHEDULE:$attr->{ID} UID:$self->{UID} RESULT: $result", { TYPE => 28 });    
+   if ($self->{UID}) {
+     $admin->action_add($self->{UID}, "SHEDULE:$attr->{ID} RESULT:$result". $attr->{EXT_INFO}, { TYPE => ($attr->{EXECUTE}) ? 29 : 28 });
+   }
+   else {
+     $admin->system_action_add("SHEDULE:$attr->{ID} UID:$self->{UID} RESULT: $result", { TYPE => ($attr->{EXECUTE}) ? 29 : 28 });
+   }
   } 
   
  return $self;	

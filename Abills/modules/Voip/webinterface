@@ -2491,7 +2491,8 @@ sub voip_daily_fees {
           STATUS       => '0',
           LOGIN_STATUS => 0,
           TP_ID        => $TP_INFO{TP_NUM},
-          COLS_NAME    => 1
+          COLS_NAME    => 1,
+          REDUCTION    => '_SHOW'
         }
       );
 
