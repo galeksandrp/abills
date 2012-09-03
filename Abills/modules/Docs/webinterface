@@ -1008,7 +1008,7 @@ sub docs_invoices_list {
   	  $payments_list{$i2p->{invoice_id}}{'PAYMENT_COMMENTS_'.$i} = $i2p->{dsc};
   	  $payments_list{$i2p->{invoice_id}}{'PAYMENT_SUM_'.$i}      = $i2p->{payment_sum};
   	  $payments_list{$i2p->{invoice_id}}{'PAYMENT_ID_'.$i}       = $i2p->{payment_id};
-  	  $payments_list{$i2p->{invoice_id}}{'PAYMENT_ALT_SUM_'.$i}  = $i2p->{amount};
+  	  $payments_list{$i2p->{invoice_id}}{'PAYMENT_ALT_SUM_'.$i}  = sprintf("%.2f",  $i2p->{amount});
   	  $i++;
 	  }
 
@@ -2086,7 +2086,7 @@ sub docs_invoice {
   	  	$Doc{'PAYMENT_COMMENTS_'.$i} = $i2p->{dsc};
   	  	$Doc{'PAYMENT_SUM_'.$i}      = $i2p->{payment_sum};
   	  	$Doc{'PAYMENT_ID_'.$i}       = $i2p->{payment_id};
-  	  	$Doc{'PAYMENT_ALT_SUM_'.$i}  = $Doc{EXCHANGE_RATE} * $i2p->{payment_sum};
+  	  	$Doc{'PAYMENT_ALT_SUM_'.$i}  = sprintf("%.2f", $Doc{EXCHANGE_RATE} * $i2p->{payment_sum});
   	  	$payments_total_sum     += $payments_total_sum;
   	  	$i++;
   	  }
