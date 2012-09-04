@@ -685,8 +685,8 @@ sub credit_full_set {
   if ($FULL_CREDIT_PERIOD) {
   	$CREDIT_EXPIRE_DATE = strftime "%Y-%m-%d", localtime((mktime(0, 0, 0, $D, ($M-1), ($Y - 1900), 0, 0, 0) + $FULL_CREDIT_PERIOD * 86400));
   }
-  
-  if (! $ARGV->{COMPANY_ID}) {
+
+  if (! $args->{COMPANY_ID}) {
     #set credit for individual users
     $users->{debug}=1 if ($debug > 6);
     my $list = $users->list(
@@ -739,7 +739,7 @@ sub credit_full_set {
       COLS_NAME      => 1,
       %LIST_PARAMS,
       PAGE_ROWS      => 1000000,
-      COMPANY_ID     => (defined($ARGV->{COMPANY_ID})) ? $ARGV->{COMPANY_ID} : undef
+      COMPANY_ID     => (defined($args->{COMPANY_ID})) ? $args->{COMPANY_ID} : undef
     }
   );
 
