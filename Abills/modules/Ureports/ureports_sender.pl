@@ -62,8 +62,8 @@ my $admin = Admins->new($db, \%conf);
 $admin->info($conf{SYSTEM_ADMIN_ID}, { IP => '127.0.0.1' });
 
 my $Ureports = Ureports->new($db, $admin, \%conf);
-my $fees = Fees->new($db, $admin, \%conf);
-my $tariffs = Tariffs->new($db, \%conf, $admin);
+my $fees     = Fees->new($db, $admin, \%conf);
+my $tariffs  = Tariffs->new($db, \%conf, $admin);
 my $Sessions = Dv_Sessions->new($db, $admin, \%conf);
 
 require $Bin . "/../language/$html->{language}.pl";
@@ -78,6 +78,7 @@ my %REPORTS        = (
   3 => "$_TRAFFIC_BELOW",
   4 => "$_MONTH_REPORT",
 );
+my %SERVICE_LIST_PARAMS = ();
 
 use POSIX qw(strftime);
 
@@ -95,9 +96,9 @@ if ($ARGV->{DEBUG}) {
 }
 
 $DATE = $ARGV->{DATE} if ($ARGV->{DATE});
-if ($ARGV->{REPORT_ID}) {
+if ($ARGV->{REPORT_IDS}) {
   $ARGV->{REPORT_IDS} =~ s/,/;/g;
-  $LIST_PARAMS{REPORT_ID} = $ARGV->{REPORT_IDS};
+  $SERVICE_LIST_PARAMS{REPORT_ID} = $ARGV->{REPORT_IDS};
 }
 
 my $debug_output = ureports_periodic_reports({%$ARGV});
@@ -153,7 +154,6 @@ sub ureports_periodic_reports {
   $LIST_PARAMS{MODULE} = 'Ureports';
   $LIST_PARAMS{TP_ID} = $ARGV->{TP_IDS} if ($ARGV->{TP_IDS});
 
-  my %SERVICE_LIST_PARAMS = ();
   $SERVICE_LIST_PARAMS{LOGIN} = $ARGV->{LOGINS} if ($ARGV->{LOGINS});
 
   my $list = $tariffs->list({%LIST_PARAMS});
@@ -184,7 +184,7 @@ sub ureports_periodic_reports {
         %SERVICE_LIST_PARAMS
       }
     );
-
+    
     foreach my $u (@$ulist) {
 
       #Check bill id and deposit
@@ -345,7 +345,7 @@ sub ureports_periodic_reports {
           }
         }
 
-        # 10 - tOO SMALL DEPOSIT FOR NEXT MONTH WORK
+        # 10 - TOO SMALL DEPOSIT FOR NEXT MONTH WORK
         elsif ($user{REPORT_ID} == 10) {
           if ($user{TP_MONTH_FEE} > $user{DEPOSIT} + $user{CREDIT}) {
             %PARAMS = (

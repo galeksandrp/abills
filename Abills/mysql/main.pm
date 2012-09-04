@@ -354,7 +354,12 @@ sub search_expr {
 
   if ($field) {
     if ($type ne 'INT') {
-      return [ '(' . join(" $delimiter ", @result_arr) . ')' ];
+    	if ($#result_arr > -1) {
+        return [ '(' . join(" $delimiter ", @result_arr) . ')' ];
+      }
+      else {
+      	return [];
+      }
     }
     return \@result_arr;
   }

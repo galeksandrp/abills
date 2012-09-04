@@ -733,12 +733,36 @@ sub dhcp_full_list {
   $self->{SEARCH_FIELDS}       = '';
   $self->{SEARCH_FIELDS_COUNT} = 0;
 
-  @WHERE_RULES = ();
+  @WHERE_RULES = @{ $self->search_expr_users({ %$attr, 
+  	                  EXT_FIELDS => [ 'UID',
+        'PHONE',
+        'EMAIL',
+        'ADDRESS_FLAT',
+        'PASPORT_DATE',
+        'PASPORT_NUM', 
+        'PASPORT_GRANT',
+        'CITY', 
+        'ZIP',
+        'GID',
+        'CONTRACT_ID',
+        'CONTRACT_SUFIX',
+        'CONTRACT_DATE',
+        'EXPIRE',
 
-  if ($attr->{LOCATION_ID}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{LOCATION_ID}, 'INT', 'pi.location_id') };
-  }
+        'CREDIT',
+        'CREDIT_DATE', 
+        'REDUCTION',
+        'REGISTRATION',
+        'REDUCTION_DATE',
+        'COMMENTS',
+        'BILL_ID',
+        'ACTIVATE',
+        'EXPIRE',
+         ] }) };
 
+  #if ($attr->{LOCATION_ID}) {
+  #  push @WHERE_RULES, @{ $self->search_expr($attr->{LOCATION_ID}, 'INT', 'pi.location_id') };
+  #}
   my $WHERE = ($#WHERE_RULES > -1) ? 'WHERE ' . join(' and ', @WHERE_RULES) : '';
 
   $self->query(
@@ -766,6 +790,7 @@ INNER JOIN users u ON (u.uid=dhcp.uid)
   LEFT JOIN tarif_plans tp ON (tp.id=dv.tp_id)
   LEFT JOIN nas n ON (dhcp.nas=n.id)
   LEFT JOIN groups g ON (g.gid=u.gid)
+$WHERE
 GROUP BY dhcp.id
    ORDER BY $SORT $DESC 
    LIMIT $PG, $PAGE_ROWS;",

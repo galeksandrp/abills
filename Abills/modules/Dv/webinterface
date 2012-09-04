@@ -7923,6 +7923,7 @@ print $table->show();
 sub dv_report_tp {
 	my ($attr)=@_;
 	
+	$Dv->{debug}=1;
 	my $list = $Dv->report_tp({ %LIST_PARAMS, COLS_NAME => 1 });
 	
 my $table = $html->table(
@@ -7937,27 +7938,32 @@ my $table = $html->table(
   }
 );
 
+
+my ($total_users, $totals_active, $total_disabled, $total_debetors)=(0,0,0,0);
 foreach my $line (@$list) {
   $table->addrow(
     $line->{id}, 
     $html->button($line->{name}, "index=". get_function_index('dv_users_list'). "&TP_ID=$line->{tp_id}"), 
-    $line->{counts}, 
+    $html->button($line->{counts}, "index=". get_function_index('dv_users_list'). "&TP_ID=$line->{tp_id}"),  
     $html->button($line->{active}, "index=". get_function_index('dv_users_list'). "&TP_ID=$line->{tp_id}&STATUS=0"), 
     $html->button($line->{disabled}, "index=". get_function_index('dv_users_list'). "&TP_ID=$line->{tp_id}&STATUS=1"), 
     $html->button($line->{debetors}, "index=". get_function_index('dv_users_list'). "&TP_ID=$line->{tp_id}&DEPOSIT=<0&search=1")
   );
+  $total_users    += $line->{counts};
+  $totals_active  += $line->{active};
+  $total_disabled += $line->{disabled}; 
+  $total_debetors += $line->{debetors};
 }
 	
-#print $table->show();
-#
-#$table = $html->table(
-#  {
-#    width      => '100%',
-#    cols_align => [ 'right', 'right' ],
-#    rows       => [ [ "$_TOTAL:", $html->b($Dv->{TOTAL}) ] ]
-#  }
-#);
-
+	 $table->addrow(
+    '', 
+    $_TOTAL, 
+    $total_users, 
+    $totals_active, 
+    $total_disabled, 
+    $total_debetors
+  );
+	
 print $table->show();
 }
 

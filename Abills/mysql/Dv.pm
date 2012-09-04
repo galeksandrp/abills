@@ -797,7 +797,7 @@ sub report_tp {
   
   $WHERE = ($#WHERE_RULES > -1) ? "AND " . join(' and ', @WHERE_RULES) : '';
 
-  $self->query($db, "SELECT tp.id, tp.name, count(dv.uid) AS counts,
+  $self->query($db, "SELECT tp.id, tp.name, count(DISTINCT dv.uid) AS counts,
       sum(if(dv.disable=0, 1, 0)) AS active,
       sum(if(dv.disable=1, 1, 0)) AS disabled,
       sum(if(if(u.company_id > 0, cb.deposit, b.deposit) <= 0, 1, 0)) AS debetors,
