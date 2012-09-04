@@ -2079,7 +2079,6 @@ sub form_users {
       sms_send(
         {
           NUMBER => $users->{PHONE},
-          ,
           MESSAGE => "LOGIN: $users->{LOGIN} PASSWORD: $users->{PASSWORD}",
           UID     => $users->{UID}
         }
@@ -2192,9 +2191,11 @@ sub form_users {
             }
           }
           if ($service_func_index) {
-            print "<TABLE width='100%' border='0'>
-        <TR><TH class='form_title'>$module</TH></TR>
-        <TR><TH class='odd'><div id='rules'><ul><li class='center'>$service_func_menu</li></ul></div></TH></TR></TABLE>\n";
+          	$html->element('table', 
+          	 $html->element('tr', $html->element('th', $module, { class=>'form_title' }) ).
+          	 $html->element('tr', $html->element('th', $service_func_menu, { class=>'odd' }) )
+          	,
+          	{ width=>'100%', border=>'0' });
 
             $index = $service_func_index;
             if (defined($module{$service_func_index})) {
