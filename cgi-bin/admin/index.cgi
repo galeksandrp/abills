@@ -2191,9 +2191,13 @@ sub form_users {
             }
           }
           if ($service_func_index) {
-          	$html->element('table', 
+ 	          print $html->element('table', 
           	 $html->element('tr', $html->element('th', $module, { class=>'form_title' }) ).
-          	 $html->element('tr', $html->element('th', $service_func_menu, { class=>'odd' }) )
+          	 $html->element('tr', $html->element('th', 
+          	   $html->element('div',
+          	     $html->element('li', $service_func_menu, { class =>'center' })
+          	   ,{ id=>'rules' })
+          	   ,{ class=>'even' }) )
           	,
           	{ width=>'100%', border=>'0' });
 
@@ -2216,10 +2220,16 @@ sub form_users {
             load_module($module{$service_func_index}, $html);
           }
 
-          print "<TABLE width='100%' border='0'>
-      <TR><TH class='form_title'>$module{$service_func_index}</TH></TR>
-      <TR><TH class='even'><div id='rules'><ul><li class='center'>$service_func_menu</li></ul></div></TH></TR>
-    </TABLE>\n";
+          print $html->element('table', 
+          	 $html->element('tr', $html->element('th', $module, { class=>'form_title' }) ).
+          	 $html->element('tr', $html->element('th', 
+          	   $html->element('div',
+          	     $html->element('li', $service_func_menu, { class =>'center' })
+          	   ,{ id=>'rules' })
+          	   ,{ class=>'even' }) )
+          	,
+          	{ width=>'100%', border=>'0' });
+
           $functions{$service_func_index}->({ USER_INFO => $user_info });
         }
 
