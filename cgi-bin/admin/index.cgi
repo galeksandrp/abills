@@ -6086,7 +6086,7 @@ sub form_payments () {
   	my $i2p_list = $Docs->invoices2payments_list({ PAYMENT_ID => join(';', @payment_id_arr), 
   		                                             COLS_NAME => 1 });
   	foreach my $i2p (@$i2p_list) {
-  	  push @{ $i2p_hash{$i2p->{payment_id}} }, "$i2p->{invoice_id}:$i2p->{invoiced_sum}";
+  	  push @{ $i2p_hash{$i2p->{payment_id}} }, "$i2p->{invoice_id}:$i2p->{invoiced_sum}:$i2p->{invoice_num}";
   	}
   }
   
@@ -6144,8 +6144,8 @@ sub form_payments () {
 
     	if ($i2p_hash{$payment->{id}}) {
         foreach my $val ( @{ $i2p_hash{$payment->{id}} }  ) {
-        	my ($invoice_id, $invoiced_sum)=split(/:/, $val);
-    	    $i2p .= $invoiced_sum ." $_APPLIED $_INVOICE #". $html->button($invoice_id, "index=". get_function_index('docs_invoices_list'). "&ID=$invoice_id&search=1"  ) . $html->br();
+        	my ($invoice_id, $invoiced_sum, $invoice_num)=split(/:/, $val);
+    	    $i2p .= $invoiced_sum ." $_APPLIED $_INVOICE #". $html->button($invoice_num, "index=". get_function_index('docs_invoices_list'). "&ID=$invoice_id&search=1"  ) . $html->br();
         	$payment_sum -= $invoiced_sum;
         }
     	}

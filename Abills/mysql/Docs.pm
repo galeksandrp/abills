@@ -514,7 +514,8 @@ sub invoices2payments_list {
   	  i2p.sum AS invoiced_sum, 
   	  i2p.invoice_id, 
   	  p.uid,
-  	  p.amount
+  	  p.amount,
+  	  d.invoice_num
  	  
 from payments p
 LEFT JOIN docs_invoice2payments i2p ON (p.id=i2p.payment_id)
