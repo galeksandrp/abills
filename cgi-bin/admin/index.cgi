@@ -312,6 +312,7 @@ $users = Users->new($db, $admin, \%conf);
 
 #Quick index
 # Show only function results whithout main windows
+
 if ($FORM{qindex}) {
   $index = $FORM{qindex};
   if ($FORM{header}) {
@@ -321,7 +322,6 @@ if ($FORM{qindex}) {
     if ($FORM{UID}) {
       $ui = user_info($FORM{UID}, { LOGIN => ($FORM{LOGIN}) ? $FORM{LOGIN} : undef });
       print "<user_info>";
-      
     }
   }
 
@@ -345,7 +345,7 @@ if ($FORM{qindex}) {
     print "Function not exist!";
   }
   
-  if ($FORM{UID}) {
+  if ($FORM{header} && $FORM{UID}) {
   	print "</user_info>";
   }
   exit;

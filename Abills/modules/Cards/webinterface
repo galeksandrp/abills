@@ -94,20 +94,27 @@ sub cards_main {
           $DILLERS_LIST{"$line->[7]"}{"$line->[1]:$line->[3]"}++ if ($line->[7] ne 'null');
         }
 
-        @ORDERS = ();
+        my $i   = 1;
+        my @ids = ();
         while (my ($k, $v) = each(%CARDS_GROUPS)) {
           my ($seria, $price) = split(/:/, $k, 2);
           $price = $price / $v;
-          push @ORDERS, "$_ICARDS $_SERIAL: $seria |0|$v|$price";
+          $FORM{'SUM_'. $i}    = $price;
+          $FORM{'COUNTS_'. $i} = $v;
+          $FORM{'UNIT_'. $i}   = 1;
+          $FORM{'ORDER_'. $i}  = "$_ICARDS $_SERIAL: $seria";
+          push @ids, $i;
+          $i++;
         }
-
-        docs_receipt_add(
-          {    #CUSTOMER  => $Cards->{NAME},
-            ORDERS    => [@ORDERS],
-            create    => 1,
+        
+        $FORM{IDS} = join(', ', @ids);
+        
+        $FORM{create}    = 1;
+        $FORM{UID}       = $Cards->{UID};
+        docs_invoice (
+          {  
             FROM      => $FROM,
             DATE      => $DATE,
-            UID       => $Cards->{UID},
             SKIP_LIST => 1
           }
         );

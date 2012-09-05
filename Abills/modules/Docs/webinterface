@@ -1844,12 +1844,11 @@ sub docs_invoice {
   my ($attr) = @_;
 
   use POSIX;
-
   $users        = $user if ($user->{UID});
   $Docs->invoice_defaults();
   $Docs->{DATE} = $DATE;
   $FORM{UID}    = $LIST_PARAMS{UID} if (!$FORM{UID});
-
+  
   if ($FORM{create}) {
     $FORM{SUM} =~ s/\,/\./g;
     if ($FORM{OP_SID} and $FORM{OP_SID} eq $COOKIES{OP_SID}) {
@@ -1894,7 +1893,7 @@ sub docs_invoice {
         }
 
         $FORM{INVOICE_ID} = $Docs->{DOC_ID};
-        $Docs->invoice_info($Docs->{DOC_ID}, { UID => $LIST_PARAMS{UID} });
+        $Docs->invoice_info($Docs->{DOC_ID}, { UID => $FORM{UID} });
         $Docs->{CUSTOMER} = $self->{COMPANY_NAME} || $Docs->{FIO} || '-';
         ($Docs->{SUM_MAIN}, $Docs->{SUM_SUB}) = split(/\./, $Docs->{TOTAL_SUM});
 
@@ -1926,8 +1925,8 @@ sub docs_invoice {
               'info',
               "$_INVOICE $_CREATED",
               "$_INVOICE $_NUM: [$Docs->{INVOICE_NUM}]\n $_DATE: $Docs->{DATE}\n $_TOTAL $_SUM: $Docs->{TOTAL_SUM} \n"
-              . $html->button("$_SEND $_EMAIL", "qindex=" . get_function_index('docs_invoices_list') . "&INVOICE_ID=$Docs->{DOC_ID}&sendmail=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}",    { ex_params => 'target=_new', CLASS => 'sendmail rightAlignText' })
-              . $html->button($_PRINT,          "qindex=" . get_function_index('docs_invoices_list') . "&INVOICE_ID=$Docs->{DOC_ID}&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}&pdf=1", { ex_params => 'target=_new', CLASS => 'print rightAlignText' })
+              . $html->button("$_SEND $_EMAIL", "qindex=" . get_function_index('docs_invoices_list') . "&INVOICE_ID=$Docs->{DOC_ID}&sendmail=$Docs->{DOC_ID}&UID=$FORM{UID}",    { ex_params => 'target=_new', CLASS => 'sendmail rightAlignText' })
+              . $html->button($_PRINT,          "qindex=" . get_function_index('docs_invoices_list') . "&INVOICE_ID=$Docs->{DOC_ID}&print=$Docs->{DOC_ID}&UID=$FORM{UID}&pdf=1", { ex_params => 'target=_new', CLASS => 'print rightAlignText' })
             );
           }
 
@@ -1951,8 +1950,8 @@ sub docs_invoice {
             'info',
             "$_INVOICE $_CREATED",
             "$_INVOICE $_NUM: [$Docs->{INVOICE_NUM}]\n $_DATE: $FORM{DATE} \n"
-            . $html->button("$_SEND $_EMAIL", "qindex=$index&INVOICE_ID=$Docs->{DOC_ID}&sendmail=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}", { ex_params => 'target=_new', CLASS => 'sendmail rightAlignText' })
-            . $html->button($_PRINT,          "qindex=$index&INVOICE_ID=$Docs->{DOC_ID}&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}",    { ex_params => 'target=_new', CLASS => 'print rightAlignText' })
+            . $html->button("$_SEND $_EMAIL", "qindex=$index&INVOICE_ID=$Docs->{DOC_ID}&sendmail=$Docs->{DOC_ID}&UID=$FORM{UID}", { ex_params => 'target=_new', CLASS => 'sendmail rightAlignText' })
+            . $html->button($_PRINT,          "qindex=$index&INVOICE_ID=$Docs->{DOC_ID}&print=$Docs->{DOC_ID}&UID=$FORM{UID}",    { ex_params => 'target=_new', CLASS => 'print rightAlignText' })
           );
         }
 
@@ -1997,7 +1996,7 @@ sub docs_invoice {
 
   }
   elsif ($FORM{print}) {
-    $Docs->invoice_info($FORM{print}, { UID => $LIST_PARAMS{UID} });
+    $Docs->invoice_info($FORM{print}, { UID => $FORM{UID} });
     my %Doc = %{ $Docs };
     if ($conf{DOCS_VAT_INCLUDE}) {
       $Doc{ORDER_TOTAL_SUM_VAT}   = sprintf("%.2f", $Doc{TOTAL_SUM} / ((100 + $conf{DOCS_VAT_INCLUDE}) / $conf{DOCS_VAT_INCLUDE}));
@@ -2157,7 +2156,7 @@ sub docs_invoice {
     }
   }
   elsif ($FORM{SHOW_ORDERS}) {
-    $Docs->invoice_info($FORM{SHOW_ORDERS}, { UID => $LIST_PARAMS{UID} });
+    $Docs->invoice_info($FORM{SHOW_ORDERS}, { UID => $FORM{UID} });
 
     my $table = $html->table(
       {
