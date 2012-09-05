@@ -3239,7 +3239,9 @@ sub docs_payments_maked {
   }
   #Add invoice number
   elsif (! $FORM{SUM} || $FORM{SUM} == 0) {
-  	$html->message('err', $_ERROR, "$ERR_WRONG_SUM");
+  	if($FORM{APPLY_TO_INVOICE} ||  $FORM{INVOICE_ID}) {
+  	  $html->message('err', $_ERROR, "$ERR_WRONG_SUM");
+  	}
   	return 0;
   }
 
