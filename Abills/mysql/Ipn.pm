@@ -87,8 +87,31 @@ sub user_status {
   my ($DATA) = @_;
 
   my $SESSION_START = 'now()';
-  my $sql           = "INSERT INTO dv_calls
-   (status, 
+  my $sql  = '';
+  
+  #Get active session
+  $self->query($db, "SELECT framed_ip_address FROM dv_calls WHERE 
+    user_name='$DATA->{USER_NAME}'
+    AND acct_session_id='IP'
+    AND nas_id='$DATA->{NAS_ID}' LIMIT 1;");
+  
+  if ($self->{TOTAL} > 0) {
+  	$sql = "UPDATE dv_calls SET
+  	status='$DATA->{ACCT_STATUS_TYPE}',  
+    started=$SESSION_START, 
+    lupdated=UNIX_TIMESTAMP(), 
+    nas_port_id='$DATA->{NAS_PORT}', 
+    acct_session_id='$DATA->{ACCT_SESSION_ID}', 
+    framed_ip_address=INET_ATON('$DATA->{FRAMED_IP_ADDRESS}'), 
+    CID='$DATA->{CALLING_STATION_ID}', 
+    CONNECT_INFO='$DATA->{CONNECT_INFO}' 
+    WHERE user_name='$DATA->{USER_NAME}'
+    AND acct_session_id='IP'
+    AND nas_id='$DATA->{NAS_ID}' LIMIT 1;";
+  }  
+  else {   
+    $sql           = "INSERT INTO dv_calls
+    (status, 
     user_name, 
     started, 
     lupdated, 
@@ -103,18 +126,19 @@ sub user_status {
 )
     values (
     '$DATA->{ACCT_STATUS_TYPE}', 
-    \"$DATA->{USER_NAME}\", 
+    '$DATA->{USER_NAME}', 
     $SESSION_START, 
     UNIX_TIMESTAMP(), 
     '$DATA->{NAS_PORT}', 
-    \"$DATA->{ACCT_SESSION_ID}\",
+    '$DATA->{ACCT_SESSION_ID}',
      INET_ATON('$DATA->{FRAMED_IP_ADDRESS}'), 
     '$DATA->{CALLING_STATION_ID}', 
     '$DATA->{CONNECT_INFO}', 
     '$DATA->{NAS_ID}',
     '$DATA->{UID}',
     '$DATA->{TP_ID}'
-  );";
+    );";
+  }
 
   $self->query($db, "$sql", 'do');
   return $self;
