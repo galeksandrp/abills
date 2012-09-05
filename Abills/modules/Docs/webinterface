@@ -2650,15 +2650,6 @@ sub docs_print {
 
   my $template = $type;
 
-  #Make individual templates for paments methods
-  if ($attr->{PAYMENT_METHOD_ID} && $FORM{pdf}) {
-    my $new_template = $template . '_' . $attr->{PAYMENT_METHOD_ID};
-    my $template_content = _include('docs_' . $new_template, 'Docs', { $FORM{pdf} => 1 });
-    if ($template_content !~ /No such tem/ && $template_content ne '') {
-      $template = $new_template;
-    }
-  }
-
   print $html->header() if ($FORM{qindex});
   if ($LIST_PARAMS{COMPANY_ID}) {
 
@@ -2684,6 +2675,21 @@ sub docs_print {
       $users->{EMAIL} = $Docs->{EMAIL} if ($Docs->{EMAIL});
       $attr->{SEND_EMAIL} = $Docs->{SEND_DOCS} if (!defined($attr->{SEND_EMAIL}) && $Docs->{SEND_DOCS});
     }
+  }
+
+  #Make individual templates for paments methods
+  if ($attr->{PAYMENT_METHOD_ID} && $FORM{pdf}) {
+    my $new_template = $template . '_' . $attr->{PAYMENT_METHOD_ID};
+    my $template_content = _include('docs_' . $new_template, 'Docs', { $FORM{pdf} => 1 });
+    if ($template_content !~ /No such tem/ && $template_content ne '') {
+      $template = $new_template;
+    }
+    elsif($attr->{SUFIX}) {
+    	$attr->{SUFIX} = '_'.$attr->{SUFIX};
+    }
+  }
+  elsif($attr->{SUFIX}) {
+  	$attr->{SUFIX} = '_'.$attr->{SUFIX};
   }
 
   my $html_old;
