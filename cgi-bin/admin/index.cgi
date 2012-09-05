@@ -317,6 +317,12 @@ if ($FORM{qindex}) {
   if ($FORM{header}) {
     $html->{METATAGS} = templates('metatags');
     print $html->header();
+    #print $functions{$index};
+    if ($FORM{UID}) {
+      $ui = user_info($FORM{UID}, { LOGIN => ($FORM{LOGIN}) ? $FORM{LOGIN} : undef });
+      print "<user_info>";
+      
+    }
   }
 
   if ($index == -1) {
@@ -330,12 +336,6 @@ if ($FORM{qindex}) {
     load_module($module{$index}, $html);
   }
 
-
-#print $functions{$index};
-  if ($FORM{UID}) {
-    $ui = user_info($FORM{UID}, { LOGIN => ($FORM{LOGIN}) ? $FORM{LOGIN} : undef });
-    print "<user_info>";
-  }
 
   if ($functions{$index}) {
     $functions{$index}->({ USER_INFO => $ui });

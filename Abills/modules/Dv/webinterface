@@ -601,7 +601,7 @@ sub dv_user {
     $Dv->{TP_ID} = $html->form_select(
       'TP_ID',
       {
-        SELECTED => $Dv->{TP_ID} || $FORM{TP_ID},
+        SELECTED          => $Dv->{TP_ID} || $FORM{TP_ID},
         SEL_MULTI_ARRAY   => $tariffs->list({ MODULE => 'Dv' }),
         MULTI_ARRAY_KEY   => 0,
         MULTI_ARRAY_VALUE => 1,
@@ -688,8 +688,8 @@ sub dv_user {
     }
 
     $Dv->{NETMASK_COLOR} = ($Dv->{NETMASK} ne '255.255.255.255') ? $_COLORS[0] : $_COLORS[1];
-    my $shedule_index = get_function_index('dv_sheduler');
-    $Dv->{SHEDULE} = $html->button("$_SHEDULE", "UID=$FORM{UID}&Shedule=status&index=" . (($shedule_index) ? $shedule_index : $index + 4), { CLASS => 'shedule rightAlignText' });
+    my $shedule_index    = get_function_index('dv_sheduler');
+    $Dv->{SHEDULE}       = $html->button("$_SHEDULE", "UID=$FORM{UID}&Shedule=status&index=" . (($shedule_index) ? $shedule_index : $index + 4), { CLASS => 'shedule rightAlignText' });
 
     my $list = $sessions->online(
       {
@@ -4508,7 +4508,7 @@ sub dv_user_info {
     my ($to_year,   $to_month,   $to_day)   = split(/-/, $Dv->{ABON_DATE}, 3);
 
     if ($Dv->{ABON_DISTRIBUTION} && $Dv->{MONTH_ABON} > 0) {
-      my $days_to_fees = int(($user->{DEPOSIT} + $user->{CREDIT}) / ($Dv->{MONTH_ABON} / 30));
+      my $days_to_fees = int(($user->{DEPOSIT} + $user->{CREDIT}) / (($Dv->{MONTH_ABON} * (100 - $user->{REDUCTION}) / 100 ) / 30));
 
       $Dv->{NEXT_FEES_WARNING} = "$_SERVICE_ENDED";
       $Dv->{NEXT_FEES_WARNING} =~ s/\%DAYS\%/$days_to_fees/g;
