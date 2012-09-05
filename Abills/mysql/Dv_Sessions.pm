@@ -377,7 +377,7 @@ sub online {
   }
 
   if ($attr->{TP_ID}) {
-    push @WHERE_RULES, "dv.tp_id='$attr->{TP_ID}'";
+  	push @WHERE_RULES, @{ $self->search_expr($attr->{TP_ID}, 'INT', 'dv.tp_id') };
   }
 
   if ($attr->{NAS_ID}) {
