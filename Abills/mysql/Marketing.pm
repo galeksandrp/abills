@@ -760,9 +760,15 @@ sub dhcp_full_list {
         'EXPIRE',
          ] }) };
 
-  #if ($attr->{LOCATION_ID}) {
-  #  push @WHERE_RULES, @{ $self->search_expr($attr->{LOCATION_ID}, 'INT', 'pi.location_id') };
-  #}
+  if ($attr->{TP_ID}) {
+    push @WHERE_RULES, @{ $self->search_expr($attr->{TP_ID}, 'INT', 'dv.tp_id') };
+  }
+
+  if ($attr->{NAS_ID}) {
+    push @WHERE_RULES, @{ $self->search_expr($attr->{NAS_ID}, 'INT', 'dhcp.nas') };
+  }
+  
+  
   my $WHERE = ($#WHERE_RULES > -1) ? 'WHERE ' . join(' and ', @WHERE_RULES) : '';
 
   $self->query(
