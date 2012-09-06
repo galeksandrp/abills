@@ -504,12 +504,13 @@ sub list {
     my $list = $self->{list};
     return $list;
   }
-  
-  
-  
+
   if ($attr->{ADDRESS_FULL}) {
   	$attr->{BUILD_DELIMITER}=',' if (! $attr->{BUILD_DELIMITER});
-  	if ($CONF->{ADDRESS_REGISTER}) {
+  	if ($attr->{MANAGERS}) {
+      push @WHERE_RULES, @{ $self->search_expr("$attr->{ADDRESS_FULL}*", "STR", "CONCAT(streets.name, '', builds.number, '$attr->{BUILD_DELIMITER}', pi.address_flat)") };
+  	}
+  	elsif ($CONF->{ADDRESS_REGISTER}) {
       push @WHERE_RULES, @{ $self->search_expr("$attr->{ADDRESS_FULL}*", "STR", "CONCAT(streets.name, ' ', builds.number, '$attr->{BUILD_DELIMITER}', pi.address_flat)") };
   	}
   	else {

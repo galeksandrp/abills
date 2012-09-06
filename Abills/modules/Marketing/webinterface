@@ -662,7 +662,7 @@ sub marketing_dhcp_full_list {
   	});
   
   if ($FORM{search}) {
-    $LIST_PARAMS{REGISTRATION} = ">$FORM{FROM_DATE};<$FORM{TO_DATE}";
+    $LIST_PARAMS{REGISTRATION} = ">=$FORM{FROM_DATE};<=$FORM{TO_DATE}";
   }
 
   my $list = $Marketing->dhcp_full_list({ %FORM, %LIST_PARAMS, COLS_NAME => 1 });

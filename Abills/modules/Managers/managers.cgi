@@ -1736,8 +1736,9 @@ sub dv_users {
       $LIST_PARAMS{LOGIN} = "$FORM{QUERY}*";
     }
     elsif ($FORM{TYPE} eq 'address') {
+      $LIST_PARAMS{MANAGERS}       = 1;
     	if ($FORM{QUERY}=~/(.+)(\d+)\/(\d+)/) {
-    		$FORM{QUERY} = "$1 $2/$3";
+    		$FORM{QUERY} = "$1$2/$3";
     	}
     	else {
     		$FORM{QUERY}=~s/ /\*/g;
