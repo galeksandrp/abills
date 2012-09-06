@@ -313,12 +313,18 @@ $users = Users->new($db, $admin, \%conf);
 #Quick index
 # Show only function results whithout main windows
 
-if ($FORM{qindex}) {
-  $index = $FORM{qindex};
+if ($FORM{qindex} || $FORM{get_index}) {
+  
+  if ($FORM{get_index}) {
+  	$index = get_function_index($FORM{get_index});
+  }
+  else {
+    $index = $FORM{qindex};
+  }
+
   if ($FORM{header}) {
     $html->{METATAGS} = templates('metatags');
     print $html->header();
-    #print $functions{$index};
     if ($FORM{UID}) {
       $ui = user_info($FORM{UID}, { LOGIN => ($FORM{LOGIN}) ? $FORM{LOGIN} : undef });
       print "<user_info>";
@@ -2100,7 +2106,6 @@ sub form_users {
     
 
     $html->tpl_show(templates('form_user_header'), $user_info, { ID => 'user_header' });
-    
 
     #Make service menu
     my $service_func_index = 0;
