@@ -677,7 +677,7 @@ sub marketing_dhcp_full_list {
         "IP", "$_NAS", "$_PORT", "$_FIO", "$_ADDRESS", "$_PHONE" ],
       cols_align => [ 'right', 'left', 'right', 'right' ],
       qs         => $pages_qs,
-      pages      => $Marketing->{TOTAL},
+      pages      => $Marketing->{TOTAL_USERS},
       ID         => 'IPTV_CHANNELS',
     }
   );
@@ -704,7 +704,7 @@ sub marketing_dhcp_full_list {
     {
       width      => '100%',
       cols_align => [ 'right', 'right' ],
-      rows       => [ [ "$_TOTAL:", $html->b($Marketing->{TOTAL}) ] ]
+      rows       => [ [ "$_TOTAL:", $html->b($Marketing->{TOTAL_USERS}) ] ]
     }
   );
   print $table->show();

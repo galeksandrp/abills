@@ -805,8 +805,26 @@ GROUP BY dhcp.id
   );
 
   return $self if ($self->{errno});
-
   my $list = $self->{list};
+
+
+$self->query($db, "SELECT count(*) AS total_users FROM dhcphosts_hosts dhcp
+INNER JOIN users u ON (u.uid=dhcp.uid)
+  LEFT JOIN bills b ON (u.bill_id = b.id)
+  LEFT JOIN companies company ON  (u.company_id=company.id) 
+  LEFT JOIN bills cb ON  (company.bill_id=cb.id)
+
+  LEFT JOIN users_pi pi ON (pi.uid=u.uid)
+  LEFT JOIN dv_main dv ON (dv.uid=u.uid)
+  LEFT JOIN tarif_plans tp ON (tp.id=dv.tp_id)
+  LEFT JOIN nas n ON (dhcp.nas=n.id)
+  LEFT JOIN groups g ON (g.gid=u.gid)
+$WHERE
+;",
+   undef,
+   { INFO => 1 }
+  );
+
 
   return $list;
 }
