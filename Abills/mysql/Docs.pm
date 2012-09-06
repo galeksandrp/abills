@@ -480,10 +480,10 @@ sub invoices2payments_list {
   my $self =shift;
   my ($attr) = @_;
 
-  $SORT      = ($attr->{SORT})      ? $attr->{SORT}      : 1;
-  $DESC      = ($attr->{DESC})      ? $attr->{DESC}      : '';
-  $PG        = ($attr->{PG})        ? $attr->{PG}        : 0;
-  $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
+  my $SORT      = ($attr->{SORT})      ? $attr->{SORT}      : 1;
+  my $DESC      = ($attr->{DESC})      ? $attr->{DESC}      : '';
+  my $PG        = ($attr->{PG})        ? $attr->{PG}        : 0;
+  my $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
 
   @WHERE_RULES = ();
 
@@ -770,6 +770,7 @@ $WHERE
   }
 
   $self->{TOTAL}=$total;
+  
   return $list;
 }
 
