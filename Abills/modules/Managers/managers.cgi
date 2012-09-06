@@ -54,9 +54,9 @@ use Dv;
 use Tariffs;
 use Finance;
 
-$users = Users->new($db, $admin, \%conf);
-$Dv = Dv->new($db, $admin, \%conf);
-my $Tariffs = Tariffs->new($db, \%conf, $admin);
+$users       = Users->new($db, $admin, \%conf);
+$Dv          = Dv->new($db, $admin, \%conf);
+my $Tariffs  = Tariffs->new($db, \%conf, $admin);
 my $Payments = Finance->payments($db, $admin, \%conf);
 
 require "../language/russian.pl";
@@ -1737,6 +1737,9 @@ sub dv_users {
     }
     elsif ($FORM{TYPE} eq 'address') {
       $LIST_PARAMS{MANAGERS}       = 1;
+    	if ($FORM{QUERY}=~/^\d+/) {
+    		$FORM{QUERY}="*$FORM{QUERY}*";
+    	}
     	if ($FORM{QUERY}=~/(.+)(\d+)\/(\d+)/) {
     		$FORM{QUERY} = "$1$2/$3";
     	}
