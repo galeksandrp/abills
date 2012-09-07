@@ -1279,7 +1279,7 @@ sub docs_invoices_list {
           NEW_WINDOW      => "$SELF_URL?qindex=$index&SHOW_ORDERS=$invoice->{id}&UID=$invoice->{uid}&header=1", 
           NEW_WINDOW_SIZE => "640:600"
        }),
-      $html->button($_SEND_MAIL, "qindex=" . get_function_index('docs_invoices_list') . "&sendmail=$invoice->{id}&UID=$invoice->{id}", { ex_params => 'target=_new', CLASS => 'sendmail' }),
+      $html->button($_SEND_MAIL, "qindex=" . get_function_index('docs_invoices_list') . "&sendmail=$invoice->{id}&UID=$invoice->{uid}", { ex_params => 'target=_new', CLASS => 'sendmail' }),
       $html->button($_PRINT, "qindex=$index&print=$invoice->{id}&UID=$invoice->{uid}" . (($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : ''), { ex_params => 'target=_new', CLASS => 'print' }),
       $delete;
 
@@ -1996,7 +1996,7 @@ sub docs_invoice {
 
   }
   elsif ($FORM{print}) {
-    $Docs->invoice_info($FORM{print}, { UID => $FORM{UID} });
+  	$Docs->invoice_info($FORM{print}, { UID => $FORM{UID} });
     my %Doc = %{ $Docs };
     if ($conf{DOCS_VAT_INCLUDE}) {
       $Doc{ORDER_TOTAL_SUM_VAT}   = sprintf("%.2f", $Doc{TOTAL_SUM} / ((100 + $conf{DOCS_VAT_INCLUDE}) / $conf{DOCS_VAT_INCLUDE}));
@@ -2127,8 +2127,7 @@ sub docs_invoice {
           GET_EMAIL_INFO => 1
         }
       )
-    )
-    {
+    ) {
       $html->message('info', "$_INFO", "E-Mail $_SENDED ");
     }
     else {
