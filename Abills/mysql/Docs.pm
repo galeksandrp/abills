@@ -941,7 +941,7 @@ sub invoice_add {
   $DATA{PHONE}      = '' if (!$DATA{PHONE});
   $DATA{VAT}        = '' if (!$DATA{VAT});
   $DATA{PAYMENT_ID} = 0  if (!$DATA{PAYMENT_ID});
-
+  
   if (! $attr->{IDS} && $DATA{SUM}) {
   	$attr->{IDS}    = 1;
     $DATA{SUM_1}    = $DATA{SUM} || 0;

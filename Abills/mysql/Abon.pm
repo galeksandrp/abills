@@ -435,7 +435,7 @@ sub user_tariff_list {
 }
 
 #**********************************************************
-# user_tariffs()
+# user_tariff_change()
 #**********************************************************
 sub user_tariff_change {
   my $self = shift;
@@ -443,9 +443,24 @@ sub user_tariff_change {
 
   my $abon_add = '';
   my $abon_del = '';
+ 
+  $admin->{MODULE} = $MODULE;
+ 
+  if ($attr->{CHANGE_INFO}) {
+  	$self->query($db, "UPDATE abon_user_list SET 
+  	  comments='$attr->{COMMENTS}', 
+  	  discount='$attr->{DISCOUNT}', 
+  	  create_docs='$attr->{CREATE_DOCS}', 
+  	  send_docs='$attr->{SEND_DOCS}', 
+  	  service_count='$attr->{SERVICE_COUNT}'
+  	  WHERE uid='$attr->{UID}' AND tp_id='$attr->{TP_ID}';
+  	  ", 'do');
+  $admin->action_add($attr->{UID}, "ADD: $abon_add DEL: $abon_del", { TYPE => 3 });
+  return $self;
 
-  if ($attr->{DEL}) {
-    $self->query($db, "DELETE from abon_user_list WHERE uid='$attr->{UID}' AND  tp_id IN ($attr->{DEL});", 'do');
+  }
+  elsif ($attr->{DEL}) {
+    $self->query($db, "DELETE from abon_user_list WHERE uid='$attr->{UID}' AND tp_id IN ($attr->{DEL});", 'do');
     $abon_del = "$attr->{DEL}";
   }
 

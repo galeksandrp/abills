@@ -45,18 +45,47 @@ sub abon_user {
       $ids_hash{$k} = 1;
     }
 
-    my $list = $Abon->user_tariff_list($FORM{UID});
+    my $list = $Abon->user_tariff_list($FORM{UID}, { COLS_NAME => 1 });
 
     foreach my $line (@$list) {
-      if ($ids_hash{ $line->[0] } && $line->[5]) {
-        delete $ids_hash{ $line->[0] };
+      if ($ids_hash{ $line->{id} } && $line->{date}) {
+        #check changes
+        
+        my @compare = (
+          'COMMENTS_:comments',
+          'SERVICE_COUNT_:service_count',
+          #'DATE_:date',
+          'DISCOUNT_:discount',
+          'CREATE_DOCS_:create_docs',
+          'SEND_DOCS_:send_docs');
+          
+        foreach my $l (@compare) {
+        	my ($input_value, $db_value)=split(/:/, $l);
+        	if ($FORM{$input_value.$line->{id}} ne $line->{$db_value}) {
+        		next if (! $FORM{$input_value.$line->{id}} && ! $line->{$db_value});
+        		$Abon->user_tariff_change({ UID => $FORM{UID},
+        			          TP_ID       => $line->{id},
+        		 	          COMMENTS    => $FORM{'COMMENTS_'.$line->{id}}, 
+  	                    DISCOUNT    => $FORM{'DISCOUNT_'.$line->{id}}, 
+  	                    CREATE_DOCS => $FORM{'CREATE_DOCS_'.$line->{id}}, 
+  	                    SEND_DOCS   => $FORM{'SEND_DOCS_'.$line->{id}}, 
+  	                    SERVICE_COUNT=>$FORM{'SERVICE_COUNT_'.$line->{id}},
+  	                    CHANGE_INFO => 1
+  	                    });
+        		last;
+        	}
+        }  
+        
+        delete $ids_hash{ $line->{id} };
       }
-      elsif ($line->[5]) {
-        push @del_arr, $line->[0];
+      elsif ($line->{date}) {
+        push @del_arr, $line->{id};
       }
     }
 
-    @new_arr = keys %ids_hash;
+    @new_arr  = keys %ids_hash;
+    my @docs_ids = ();
+    
     if ($#new_arr > -1) {
       my $list = $Abon->tariff_list({ IDS => join(', ', @new_arr) });
       foreach my $line (@$list) {
@@ -124,16 +153,11 @@ sub abon_user {
           }
 
           if ($Abon->{TP_INFO}->{CREATE_ACCOUNT} && $FORM{ 'CREATE_DOCS_' . $Abon->{TP_INFO}->{TP_ID} }) {
-            #$LIST_PARAMS{UID}= $users->{UID};
-            delete($FORM{IDS});
-            $FORM{SUM}        = $Abon->{TP_INFO}->{MONTH_FEE} / $FORM{'SERVICE_COUNT_'. $Abon->{TP_INFO}->{TP_ID} };
-            $FORM{COUNT}      = $FORM{'SERVICE_COUNT_'. $Abon->{TP_INFO}->{TP_ID} };
-            $FORM{UID}        = $users->{UID};
-            $FORM{create}     = 1;
-            $FORM{CUSTOMER}   = '-';
-            $FORM{ORDER}      = "[$Abon->{TP_INFO}->{TP_ID}] $Abon->{TP_INFO}->{NAME} $Abon->{COMMENTS}";
-            $FORM{SEND_EMAIL} = $FORM{ 'SEND_DOCS_' . $Abon->{TP_INFO}->{TP_ID} } || undef;
-            docs_invoice({ QUITE => 1 });
+            $FORM{'SUM_'.($#docs_ids+2)}    = $Abon->{TP_INFO}->{MONTH_FEE} / $FORM{'SERVICE_COUNT_'. $Abon->{TP_INFO}->{TP_ID} };
+            $FORM{'COUNT_'.($#docs_ids+2)}  = $FORM{'SERVICE_COUNT_'. $Abon->{TP_INFO}->{TP_ID} };
+            $FORM{'ORDER_'.($#docs_ids+2)}  = "[$Abon->{TP_INFO}->{TP_ID}] $Abon->{TP_INFO}->{NAME} $Abon->{COMMENTS}";
+            $FORM{SEND_EMAIL}             = $FORM{ 'SEND_DOCS_' . $Abon->{TP_INFO}->{TP_ID} } || undef;
+            push @docs_ids, int($#docs_ids+2);
           }
 
           if ($activate_notification) {
@@ -169,6 +193,14 @@ sub abon_user {
         DEL => join(', ', @del_arr)
       }
     );
+
+
+    if ($#docs_ids > -1) {
+      $FORM{create}     = 1;
+      $FORM{CUSTOMER}   = '-';
+      $FORM{IDS}        = join(', ', @docs_ids);
+      docs_invoice({ QUITE => 1 });
+    }
 
     if (!$Abon->{errno}) {
     }

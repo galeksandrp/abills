@@ -5356,13 +5356,13 @@ sub report_payments {
 
   if ($FORM{DATE}) {
     $graph_type = '';
-    my @caption = ('ID', $_LOGIN, $_DATE, $_DESCRIBE, $_SUM, $_DEPOSIT, $_PAYMENT_METHOD, 'EXT ID', "$_BILL", $_ADMINS, 'IP');
+    my @caption = ('ID', $_LOGIN, $_DATE, $_DESCRIBE, "$_SUM", $_DEPOSIT, $_PAYMENT_METHOD, 'EXT ID', "$_BILL", $_ADMINS, "$_REGISTRATION");
 
     if ($conf{SYSTEM_CURRENCY}) {
       push @caption, "$_ALT $_SUM", "$_CURRENCY";
     }
 
-    $list  = $payments->list({%LIST_PARAMS});
+    $list  = $payments->list({%LIST_PARAMS, COLS_NAME => 1 });
     $table = $html->table(
       {
         width      => '100%',
@@ -5379,21 +5379,21 @@ sub report_payments {
     my $pages_qs .= "&subf=2" if (!$FORM{subf});
     foreach my $line (@$list) {
       my @rows = (
-        $html->b($line->[0]),
-        $html->button($line->[1], "index=15&UID=$line->[13]"),
-        $line->[2], 
-        $line->[3], 
-        $line->[4] . (($line->[14]) ? ' (' . $html->b($line->[14]) . ') ' : ''),
-        "$line->[5]", 
-        $PAYMENTS_METHODS{ $line->[6] },
-        "$line->[7]", 
-        ($conf{EXT_BILL_ACCOUNT} && $attr->{USER_INFO}) ? $BILL_ACCOUNTS{ $line->[8] } : "$line->[8]",
-        "$line->[9]", 
-        "$line->[10]"
+        $html->b($line->{id}),
+        $html->button($line->{login}, "index=15&UID=$line->{uid}"),
+        $line->{date}, 
+        $line->{dsc} . (($line->{inner_describe}) ? ' (' . $html->b($line->{inner_describe}) . ') ' : ''),
+        $line->{sum},
+        "$line->{last_deposit}", 
+        $PAYMENTS_METHODS{ $line->{method} },
+        "$line->{ext_id}", 
+        ($conf{EXT_BILL_ACCOUNT} && $attr->{USER_INFO}) ? $BILL_ACCOUNTS{ $line->{bill_id} } : "$line->{bill_id}",
+        "$line->{admin_name}", 
+        "$line->{reg_date}"
       );
 
       if ($conf{SYSTEM_CURRENCY}) {
-        push @rows, $line->[11], $line->[12];
+        push @rows, $line->{amount}, $line->{currency};
       }
 
       $table->addrow(@rows);

@@ -1,7 +1,7 @@
 <FORM action='$SELF_URL' METHOD='POST'>
 <INPUT type='hidden' name='index' value='$index'>
 <INPUT type='hidden' name='ABON_ID' value='$FORM{ABON_ID}'>
-<table>
+<table class=form>
 <tr><th colspan=3 class=form_title>%ACTION_LNG% $_ABON</th></tr>
 <tr><td>$_NAME:</td><td colspan=2><input type='text' name='NAME' value='%NAME%' size=45></td></tr>
 <tr><td>$_SUM:</td><td colspan=2><input type='text' name='SUM' value='%SUM%' size=10></td></tr>
@@ -33,7 +33,8 @@
 
 <tr><td>$_EXT_CMD:</td><td colspan=2><input type=text size=60 name=EXT_CMD value='%EXT_CMD%'></td></tr>
 <!-- <tr><td>$_DATE:</td><td></td></tr> -->
+<tr><th colspan=3 class=even><INPUT type='submit' name='%ACTION%' value='%ACTION_LNG%'></th></tr>
 </table>
 
-<INPUT type='submit' name='%ACTION%' value='%ACTION_LNG%'>
+
 </FORM>
