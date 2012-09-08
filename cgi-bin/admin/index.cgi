@@ -4671,13 +4671,13 @@ sub form_ip_pools {
     $html->message('err', $_ERROR, "$err_strs{$nas->{errno}}");
   }
 
-  my $list  = $nas->nas_ip_pools_list({%LIST_PARAMS});
+  my $list  = $nas->nas_ip_pools_list({%LIST_PARAMS, COLS_NAME => 1 });
   my $table = $html->table(
     {
-      width   => '100%',
-      caption => "NAS IP POOLs",
-      border  => 1,
-      title   => [ '', "NAS", "$_NAME", "$_BEGIN", "$_END", "$_COUNT", "$_PRIORITY", "$_SPEED (Kbits)", '-', '-' ],
+      width      => '100%',
+      caption    => "NAS IP POOLs",
+      border     => 1,
+      title      => [ '', "NAS", "$_NAME", "$_BEGIN", "$_END", "$_COUNT", "$_PRIORITY", "$_SPEED (Kbits)", '-', '-' ],
       cols_align => [ 'right', 'left', 'right', 'right', 'right', 'right', 'center', 'center' ],
       qs         => $pages_qs,
       pages      => $nas->{TOTAL},
@@ -4686,11 +4686,19 @@ sub form_ip_pools {
   );
 
   foreach my $line (@$list) {
-    my $delete = ($FORM{NAS_ID}) ? $html->button($_DEL, "index=62$pages_qs&del=$line->[10]", { MESSAGE => "$_DEL POOL $line->[10]?", CLASS => 'del' }) : '';
-    my $change = ($FORM{NAS_ID}) ? $html->button($_CHANGE, "index=62$pages_qs&chg=$line->[10]", { CLASS => 'change' }) : '';
-    $table->{rowcolor} = ($line->[10] eq $FORM{chg}) ? 'row_active' : undef;
+    my $delete = ($FORM{NAS_ID}) ? $html->button($_DEL, "index=". get_function_index('form_ip_pools') ."$pages_qs&del=$line->{id}", { MESSAGE => "$_DEL POOL $line->{id}?", CLASS => 'del' }) : '';
+    my $change = ($FORM{NAS_ID}) ? $html->button($_CHANGE, "index=". get_function_index('form_ip_pools') ."$pages_qs&chg=$line->{id}", { CLASS => 'change' }) : '';
+    $table->{rowcolor} = ($line->{id} eq $FORM{chg}) ? 'row_active' : undef;
 
-    $table->addrow(($line->[12]) ? 'static' : $html->form_input('ids', $line->[10], { TYPE => 'checkbox', STATE => ($line->[0]) ? 'checked' : undef }), $html->button($line->[1], "index=61&NAS_ID=$line->[10]"), $line->[2], $line->[8], $line->[9], $line->[5], $line->[6], $line->[7], $change, $delete);
+    $table->addrow(($line->{static}) ? 'static' : $html->form_input('ids', $line->{id}, { TYPE => 'checkbox', STATE => ($line->{active_nas_id}) ? 'checked' : undef }), 
+    $html->button($line->{nas_name}, "index=". get_function_index('form_nas') ."&NAS_ID=$line->{active_nas_id}"), 
+    $line->{pool_name}, 
+    $line->{first_ip}, 
+    $line->{last_ip}, 
+    $line->{ip_count}, 
+    $line->{priority}, 
+    $line->{speed}, 
+    $change, $delete);
   }
 
   print $html->form_main(

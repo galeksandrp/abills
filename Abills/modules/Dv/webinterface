@@ -4902,11 +4902,11 @@ sub dv_daily_fees {
 
   $debug_output .= "DV: Daily periodic fees\n" if ($debug > 1);
 
-  $LIST_PARAMS{TP_ID} = $attr->{TP_ID} if ($attr->{TP_ID});
+  $LIST_PARAMS{TP_ID}     = $attr->{TP_ID} if ($attr->{TP_ID});
   $LIST_PARAMS{DOMAIN_ID} = $DOMAIN_ID;
 
-  my %USERS_LIST_PARAMS = ();
-  $USERS_LIST_PARAMS{LOGIN} = $attr->{LOGIN} if ($attr->{LOGIN});
+  my %USERS_LIST_PARAMS         = ();
+  $USERS_LIST_PARAMS{LOGIN}     = $attr->{LOGIN} if ($attr->{LOGIN});
   $USERS_LIST_PARAMS{DOMAIN_ID} = $DOMAIN_ID;
 
   #$USERS_LIST_PARAMS{ACTIVE_DAY_FEE} = 1;
@@ -4918,11 +4918,11 @@ sub dv_daily_fees {
 
   foreach my $line (@$list) {
     if ($line->[5] > 0) {
-      my $TP_ID          = $line->[0];
-      my $TP_NAME        = $line->[1];
-      my $active_day_fee = $line->[20];
-      my $fine           = $line->[21];
-      my %TP_INFO        = ();
+      my $TP_ID                = $line->[0];
+      my $TP_NAME              = $line->[1];
+      my $active_day_fee       = $line->[20];
+      my $fine                 = $line->[21];
+      my %TP_INFO              = ();
       $TP_INFO{POSTPAID_DAILY} = $line->[12];
       $TP_INFO{REDUCTION}      = $line->[11];
       $TP_INFO{FEES_METHOD}    = $line->[23];
@@ -5643,7 +5643,6 @@ sub dv_monthly_fees {
                 $sum                   = $fine;
                 $EXT_INFO              = "FINE";
               }
-
               # If activation set to monthly fees taken throught 30 days
               elsif ($user{ACTIVATE} ne '0000-00-00') {
 
@@ -7923,7 +7922,6 @@ print $table->show();
 sub dv_report_tp {
 	my ($attr)=@_;
 	
-	$Dv->{debug}=1;
 	my $list = $Dv->report_tp({ %LIST_PARAMS, COLS_NAME => 1 });
 	
 my $table = $html->table(

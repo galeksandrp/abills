@@ -316,15 +316,21 @@ sub nas_ip_pools_list {
   my $WHERE_NAS = ($#WHERE_RULES > -1) ? "AND " . join(' and ', @WHERE_RULES) : '';
 
   $self->query(
-    $db, "SELECT if (np.nas_id IS NULL, 0, np.nas_id),
-   n.name, pool.name, 
-   pool.ip, pool.ip + pool.counts, pool.counts,  pool.priority, pool.speed,
-    INET_NTOA(pool.ip), INET_NTOA(pool.ip + pool.counts), 
-    pool.id, np.nas_id, pool.static
+    $db, "SELECT if (np.nas_id IS NULL, 0, np.nas_id) AS active_nas_id,
+   n.name as nas_name, pool.name AS pool_name, 
+    pool.ip, pool.ip + pool.counts AS ip_count, 
+    pool.counts,  pool.priority, pool.speed,
+    INET_NTOA(pool.ip) as first_ip, 
+    INET_NTOA(pool.ip + pool.counts) AS last_ip, 
+    pool.id, 
+    np.nas_id, 
+    pool.static
     FROM ippools pool
     LEFT JOIN nas_ippools np ON (np.pool_id=pool.id $WHERE_NAS)
     LEFT JOIN nas n ON (n.id=np.nas_id)
-      ORDER BY $SORT $DESC"
+      ORDER BY $SORT $DESC",
+   undef,
+   $attr
   );
 
   return $self->{list};
@@ -459,7 +465,9 @@ sub ip_pools_list {
     pool.id, pool.nas
     FROM ippools pool, nas 
     WHERE pool.nas=nas.id
-    $WHERE  ORDER BY $SORT $DESC"
+    $WHERE  ORDER BY $SORT $DESC",
+   undef,
+   $attr
   );
 
   return $self->{list};

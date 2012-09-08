@@ -133,7 +133,6 @@ sub dv_auth {
   }
 
   $self->{USER_NAME}=$RAD->{USER_NAME};
-
   #DIsable
   if ($self->{DISABLE}) {
     if ($self->{DISABLE} == 2) {
@@ -1168,9 +1167,8 @@ sub check_company_account () {
   my $self = shift;
 
   $self->query(
-    $db, "SELECT bill_id, 
-                            disable,
-                            credit FROM companies WHERE id='$self->{COMPANY_ID}';"
+    $db, "SELECT bill_id, disable, credit 
+       FROM companies WHERE id='$self->{COMPANY_ID}';"
   );
 
   if ($self->{errno}) {
