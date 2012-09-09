@@ -973,6 +973,8 @@ sub invoice_add {
     if ($attr->{IDS}) {
       for( my $order_num=0; $order_num<$CONF->{DOCS_INVOICE_ORDERS}; $order_num++) {
         my $id = shift @ids_arr;
+        next if (! $id);
+        
         if (! $DATA{ 'ORDER_' . $id } && $DATA{ 'SUM_' . $id } == 0) {
           next;	
         }

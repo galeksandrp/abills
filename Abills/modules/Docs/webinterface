@@ -1850,7 +1850,7 @@ sub docs_invoice {
   $FORM{UID}    = $LIST_PARAMS{UID} if (!$FORM{UID});
   
   if ($FORM{create}) {
-    $FORM{SUM} =~ s/\,/\./g;
+    $FORM{SUM} =~ s/\,/\./g if ($FORM{SUM});
     if ($FORM{OP_SID} and $FORM{OP_SID} eq $COOKIES{OP_SID}) {
       $html->message('err', "$_DOCS : $_ERROR", "$_EXIST");
     }
@@ -2077,7 +2077,7 @@ sub docs_invoice {
       #Get payments
   	  my $i2p_list = $Docs->invoices2payments_list({ INVOICE_ID => $FORM{print}, COLS_NAME => 1 });
       my $payments_total_sum = 0;
-      my $i = 1;
+      $i = 1;
   	  foreach my $i2p (@{ $i2p_list }) {
   	  	$Doc{'PAYMENT_DATE_'.$i}     = $i2p->{date};
   	  	$Doc{'PAYMENT_COMMENTS_'.$i} = $i2p->{dsc};

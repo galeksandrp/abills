@@ -6064,7 +6064,7 @@ sub form_payments () {
     form_search(
       {
         HIDDEN_FIELDS => {
-          subf => ($FORM{subf}) ? $FORM{subf} : undef,
+          subf       => ($FORM{subf}) ? $FORM{subf} : undef,
           COMPANY_ID => $FORM{COMPANY_ID}
         },
         ID => 'SEARCH_PAYMENTS'
@@ -6893,6 +6893,7 @@ sub form_search {
     $html->tpl_show(templates('form_search_simple'), \%SEARCH_DATA);
   }
   elsif ($attr->{TPL}) {
+  	print $attr->{TPL};
     #defined();
   }
   elsif (!$FORM{pdf}) {

@@ -596,14 +596,13 @@ sub periodic_list {
     $db, "SELECT at.period, at.price, u.uid, 
   if(u.company_id > 0, c.bill_id, u.bill_id) AS bill_id,
   u.id AS login, 
-  at.id, 
-  at.name,
+  at.id AS tp_id, 
+  at.name AS tp_name,
   if(c.name IS NULL, b.deposit, cb.deposit) AS deposit,
   if(c.name IS NULL, u.credit, 
     if (c.credit = 0, u.credit, c.credit) 
    ) AS credit,
   u.disable,
-  at.id,
   at.payment_type,
   ul.comments,
   \@last_fees_date := if(ul.date='0000-00-00', curdate(), ul.date),
@@ -630,7 +629,7 @@ sub periodic_list {
           )
         )
        )
-      ) AS fees_date,
+      ) AS abon_date,
    at.ext_bill_account,
    if(u.company_id > 0, c.ext_bill_id, u.ext_bill_id) AS ext_bill_id,
    at.priority,
@@ -672,7 +671,7 @@ sub periodic_list {
        )
       ) AS nextfees_date,
     if(ul.discount>0, ul.discount,
-     if(at.discount=1, u.reduction, 0)),
+     if(at.discount=1, u.reduction, 0)) AS discount,
      ul.create_docs,
      ul.send_docs,
      ul.service_count

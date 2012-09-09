@@ -560,90 +560,66 @@ sub abon_periodic {
   $debug_output .= "ABON: Periodic payments\n" if ($debug > 1);
 
   $LIST_PARAMS{LOGIN} = $attr->{LOGIN} if ($attr->{LOGIN});
-  $LIST_PARAMS{TP_ID} = $attr->{TP_ID} if ($attr->{TP_ID});
+  if ($attr->{TP_ID}) {
+  	$attr->{TP_ID} =~ s/,/;/g;
+    $LIST_PARAMS{TP_ID} = $attr->{TP_ID} ;
+  }
 
   if (in_array('Docs', \@MODULES) ) {
     $FORM{QUICK} = 1;
     load_module('Docs');
   }
 
+
   $Abon->{debug} = 1 if ($debug > 7);
   my $list = $Abon->periodic_list({ %LIST_PARAMS, 
-  	                                DELETED => 0,
-  	                                LOGIN_STATUS => 0 
+  	                                DELETED      => 0,
+  	                                LOGIN_STATUS => 0,
+  	                                COLS_NAME    => 1,
+  	                                COLS_UPPER   => 1
   	                              });
-
+  
+  my %docs_info = ();
   my ($y, $m, $d) = split(/-/, $ADMIN_REPORT{DATE}, 3);
   $m--;
 
-  foreach my $line (@$list) {
-    my %info = (
-      PERIOD    => $line->[0],
-      SUM       => $line->[1],
-      UID       => $line->[2],
-      LOGIN     => $line->[4],
-      TP_NAME   => $line->[6],
-      DEPOSIT   => $line->[7],
-      CREDIT    => $line->[8],
-      TP_ID     => $line->[10],
-      COMMENT   => $line->[12],
-      ABON_DATE => $line->[14],
-      BILL_ID   => ($line->[15]) ? $line->[16] : $line->[3],
-      FEES_TYPE => $line->[18] || 1,
-      CREATE_ACCOUNT => $line->[19],
-      EMAIL          => $line->[25],
-      ALERT          => $line->[23],
-      DATETIME       => "$ADMIN_REPORT{DATE} $TIME",
-      NEXT_ABON_FEES => $line->[30],
-      DISCOUNT       => $line->[31],
-      CREATE_DOCS    => $line->[32],
-      SEND_DOCS      => $line->[33],
-      SERVICE_COUNT  => $line->[34] || 1,
-    );
-
-    my $notification1            = $line->[20];
-    my $notification2            = $line->[21];
-    my $notification_account     = $line->[22];
-    my $alert_account            = $line->[24];
-    my $email                    = $line->[25];
-    my $notification1_account_id = $line->[26];
-    my $ext_cmd                  = $line->[27];
-    my $activate_notification    = $line->[28];
-    my $vat                      = $line->[29];
+  foreach my $info (@$list) {
+    $info->{DATETIME}  = "$ADMIN_REPORT{DATE} $TIME";
+    $info->{BILL_ID}   = $line->{EXT_BILL_ID} if ($info->{EXT_BILL_ACCOUNT});
 
     if ($debug > 5) {
-      $debug_output .= "UID: $info{UID} TP_ID: $info{TP_ID} SUM: $info{SUM} DEPOSIT: " . (($info{DEPOSIT}) ? $info{DEPOSIT} : 'Undefined') . " NOT1: $notification1 NOT2: $notification2 ABON: $info{ABON_DATE}\n";
+      $debug_output .= "UID: $info->{UID} TP_ID: $info->{TP_ID} SUM: $info->{PRICE} DEPOSIT: " . (($info->{DEPOSIT}) ? $info->{DEPOSIT} : 'Undefined') . " NOT1: $info->{NOTIFICATION1} NOT2: $info->{NOTIFICATION2} ABON: $info->{ABON_DATE}\n";
     }
 
-    if (defined($info{DEPOSIT})) {
+    if (defined($info->{DEPOSIT})) {
       my %user = (
-        UID     => $info{UID},
-        BILL_ID => $info{BILL_ID}
+        UID     => $info->{UID},
+        BILL_ID => $info->{BILL_ID}
       );
 
       my %PARAMS = (
-        DESCRIBE => "$_ABON: ($info{TP_ID}) $info{TP_NAME}",
-        METHOD   => $info{FEES_TYPE},
+        DESCRIBE => "$_ABON: ($info->{TP_ID}) $info->{TP_NAME}",
+        METHOD   => $info->{FEES_TYPE},
         DATE     => $ADMIN_REPORT{DATE}
       );
 
-      $line->[8] = 0 if (!$line->[8]);
-      $PARAMS{DESCRIBE} = "$_ABON: $info{TP_NAME}. $info{COMMENT}" if ($info{COMMENT});
-      $abon_date = $ADMIN_REPORT{DATE} if (!$abon_date && $line->[0] == 1 && $d == 1);
-      if ($info{SERVICE_COUNT} > 1) {
-        $info{SUM} = $info{SERVICE_COUNT} * $info{SUM}; 
+      $info->{CREDIT}   = 0 if (!$info->{CREDIT});
+      $PARAMS{DESCRIBE} = "$_ABON: $info->{TP_NAME}. $info->{COMMENTS}" if ($info->{COMMENTS});
+      $abon_date = $ADMIN_REPORT{DATE} if (!$abon_date && $info->{PERIOD} == 1 && $d == 1);
+      if ($info->{SERVICE_COUNT} > 1) {
+        $info->{PRICE} = $info->{SERVICE_COUNT} * $info->{PRICE}; 
       }
-      $info{SUM} = $info{SUM} * (100 - $info{DISCOUNT}) / 100 if ($info{DISCOUNT} > 0);
+      $info->{PRICE} = $info->{PRICE} * (100 - $info->{DISCOUNT}) / 100 if ($info->{DISCOUNT} > 0);
 
-      #Get abon
-      if ($ADMIN_REPORT{DATE} eq $info{ABON_DATE} || $info{PERIOD} == 0) {
-        if ($line->[8] && ($info{DEPOSIT} + $info{CREDIT} > 0 || $line->[11] == 1) && $line->[9] == 0) {
-          $fees->take(\%user, $info{SUM}, {%PARAMS}) if ($info{DISCOUNT} < 100);
+      #Get daily abon
+      if ($ADMIN_REPORT{DATE} eq $info->{ABON_DATE} || $info->{PERIOD} == 0) {
+        if ($info->{DEPOSIT} && ($info->{DEPOSIT} + $info->{CREDIT} > 0 || $info->{PAYMENT_TYPE} == 1) && $info->{DISABLE} == 0) {
+          $fees->take(\%user, $info->{PRICE}, {%PARAMS}) if ($info->{DISCOUNT} < 100);
           $Abon->user_tariff_update(
             {
-              UID   => "$info{UID}",
+              UID   => "$info->{UID}",
               DATE  => $ADMIN_REPORT{DATE},
-              TP_ID => "$info{TP_ID}"
+              TP_ID => "$info->{TP_ID}"
             }
           );
 
@@ -651,102 +627,75 @@ sub abon_periodic {
           	print "$fees->{errno} $fees->{errstr}";
           }
 
-          if ($info{CREATE_ACCOUNT} && $info{CREATE_DOCS}) {
-            $FORM{SUM}        = $info{SUM} / $info{SERVICE_COUNT};
-            $FORM{COUNT}      = $info{SERVICE_COUNT};
-            $FORM{UID}        = $user{UID};
-            $FORM{create}     = 1;
-            $FORM{CUSTOMER}   = '-';
-            $FORM{ORDER}      = "$info{TP_NAME} $info{COMMENT}";
-            $FORM{SEND_EMAIL} = $info{SEND_DOCS} || 0;
-            docs_invoice({ QUITE => 1 });
+          if ($info->{CREATE_ACCOUNT} && $info->{CREATE_DOCS}) {
+          	push @{ $docs_info{$user{UID}} }, {
+             SUM        => $info->{PRICE} / $info->{SERVICE_COUNT},
+             COUNT      => $info->{SERVICE_COUNT},
+             ORDER      => "$info->{TP_NAME} $info->{COMMENTS}",
+             SEND_EMAIL => $info->{SEND_DOCS} || 0
+            };
           }
 
           if ($ext_cmd) {
             my $cmd = $ext_cmd;
-            $cmd .= " ACTION=ACTIVE UID=$user{UID} TP_ID=$info{TP_ID} COMMENTS=\"$info{COMMENT}\" SUM=$info{SUM}";
+            $cmd .= " ACTION=ACTIVE UID=$user{UID} TP_ID=$info->{TP_ID} COMMENTS=\"$info->{COMMENTS}\" SUM=$info->{PRICE}";
             $ret = system($cmd);
           }
 
-          if ($activate_notification && $info{SEND_DOCS}) {
-            my $message = $html->tpl_show(_include('abon_notification3', 'Abon'), { %$Abon, %info }, { OUTPUT2RETURN => 1 });
-            sendmail("$conf{ADMIN_MAIL}", "$email", "$conf{WEB_TITLE} - $info{TP_NAME} $info{COMMENT}", "$message", "$conf{MAIL_CHARSET}", '', {});
+          if ($info->{ACTIVATE_NOTIFICATION} && $info->{SEND_DOCS}) {
+            my $message = $html->tpl_show(_include('abon_notification3', 'Abon'), { %$Abon, %$info }, { OUTPUT2RETURN => 1 });
+            sendmail("$conf{ADMIN_MAIL}", "$info->{EMAIL}", "$conf{WEB_TITLE} - $info->{TP_NAME} $info->{COMMENTS}", "$message", "$conf{MAIL_CHARSET}", '', {});
           }
 
-          $debug_output .= "$user{UID} TP_ID: $info{TP_ID} SUM: $info{SUM} ACCOUNT: " . (($info{CREATE_ACCOUNT}) ? "ACCOUNT SEND_EMAIL: $email" : '') . (($activate_notification) ? "NOTIFICATION: $email" : '') . "\n" if ($debug > 0);
+          $debug_output .= "$user{UID} TP_ID: $info->{TP_ID} SUM: $info->{PRICE} ACCOUNT: $info->{CREATE_ACCOUNT} " . (($info->{CREATE_ACCOUNT}) ? "ACCOUNT SEND_EMAIL: $info->{EMAIL}" : '') . (($info->{ACTIVATE_NOTIFICATION}) ? " NOTIFICATION: $info->{EMAIL}" : '') . "\n" if ($debug > 0);
         }
-
         #Send Alert
-        elsif ($ADMIN_REPORT{DATE} eq $info{ABON_DATE} && $info{SEND_DOCS}) {
-          $debug_output .= "$user{UID} SUM: TP_ID: $info{TP_ID} $info{SUM} ACCOUNT: $info{CREATE_ACCOUNT} Alert EMAIL: $email\n" if ($debug > 0);
+        elsif ($ADMIN_REPORT{DATE} eq $info->{ABON_DATE} && $info->{SEND_DOCS}) {
+          $debug_output .= "$user{UID} SUM: $info->{PRICE} TP_ID: $info->{TP_ID} $info->{PRICE} ACCOUNT: $info->{CREATE_ACCOUNT} Alert EMAIL: $info->{EMAIL}\n" if ($debug > 0);
 
-          my $message = $html->tpl_show(_include('abon_alert', 'Abon'), { %$Abon, %info }, { OUTPUT2RETURN => 1 });
+          my $message = $html->tpl_show(_include('abon_alert', 'Abon'), { %$Abon, %$info }, { OUTPUT2RETURN => 1 });
           my $attach;
-          if ($alert_account && $info{CREATE_DOCS}) {
-            $FORM{SUM}      = $info{SUM} / $info{SERVICE_COUNT};
-            $FORM{COUNT}    = $info{SERVICE_COUNT} || 1;
-            $FORM{UID}      = $user{UID};
-            $FORM{create}   = 1;
-            $FORM{CUSTOMER} = '-';
-            $FORM{ORDER}    = "$info{TP_NAME} $info{COMMENT}";
-            my $content     = docs_invoice({ QUITE => 1, OUTPUT2RETURN => 1 });
-
-            if ($info{SEND_DOCS}) {
-              $attach = [
-                {
-                  CONTENT      => $content,
-                  CONTENT_TYPE => 'Content-type: application/pdf',
-                  FILENAME     => 'invoice.pdf'
-                }
-              ];
-            }
+          if ($info->{ALERT_ACCOUNT} && $info->{CREATE_DOCS}) {
+          	push @{ $docs_info{$user{UID}} }, {   	
+              SUM        => $info->{PRICE} / $info->{SERVICE_COUNT},
+              COUNT      => $info->{SERVICE_COUNT} || 1,
+              ORDER      => "$info->{TP_NAME} $info->{COMMENTS}",
+              SEND_EMAIL => $info->{SEND_DOCS} || 0
+            };
 
             $Abon->user_tariff_update(
               {
                 UID                     => "$user{UID}",
                 NOTIFICATION            => 1,
-                DATE                    => $ADMIN_REPORT{DATE},
-                NOTIFICATION_ACCOUNT_ID => $FORM{ACCOUN_ID},
-                TP_ID                   => "$info{TP_ID}"
+                DATE                    => $ADMIN_REPORT->{DATE},
+                NOTIFICATION_ACCOUNT_ID => $FORM->{ACCOUN_ID},
+                TP_ID                   => "$info->{TP_ID}"
               }
             );
           }
 
-          sendmail("$conf{ADMIN_MAIL}", "$email", "$conf{WEB_TITLE} - $info{TP_NAME} $info{COMMENT}", "$message", "$conf{MAIL_CHARSET}", '', { ATTACHMENTS => $attach });
+          sendmail("$conf{ADMIN_MAIL}", "$info->{EMAIL}", "$conf{WEB_TITLE} - $info->{TP_NAME} $info->{COMMENTS}", "$message", "$conf{MAIL_CHARSET}", '', { ATTACHMENTS => $attach });
 
           if ($ext_cmd) {
             my $cmd = $ext_cmd;
-            $cmd .= " ACTION=ALERT UID=$user{UID} TP_ID=$info{TP_ID} COMMENTS=\"$info{COMMENT}\" SUM=$info{SUM}";
+            $cmd .= " ACTION=ALERT UID=$user{UID} TP_ID=$info->{TP_ID} COMMENTS=\"$info->{COMMENTS}\" SUM=$info->{PRICE}";
             $ret = system($cmd);
           }
         }
       }
-
       #Notification Section
-      elsif ($notification1 eq $ADMIN_REPORT{DATE}) {
-        my $message = $html->tpl_show(_include('abon_notification1', 'Abon'), { %$Abon, %info }, { OUTPUT2RETURN => 1 });
+      elsif ($info->{NOTIFICATION1} eq $ADMIN_REPORT{DATE}) {
+        my $message = $html->tpl_show(_include('abon_notification1', 'Abon'), { %$Abon, %$info }, { OUTPUT2RETURN => 1 });
         my $attach;
-        $debug_output .= "$user{UID} TP_ID: $info{TP_ID} SUM: $info{SUM} ACCOUNT: $info{CREATE_ACCOUNT} Notification 1 EMAIL: $email\n" if ($debug > 0);
+        $debug_output .= "$user{UID} TP_ID: $info->{TP_ID} SUM: $info->{PRICE} ACCOUNT: $info->{CREATE_ACCOUNT} Notification 1 EMAIL: $info->{EMAIL}\n" if ($debug > 0);
 
-        if ($notification_account && $info{CREATE_DOCS}) {
-          $LIST_PARAMS{UID} = $user{UID};
-          $FORM{SUM}        = $info{SUM} / $info{SERVICE_COUNT};
-          $FORM{COUNT}      = $info{SERVICE_COUNT};
-          $FORM{UID}        = $user{UID};
-          $FORM{create}     = 1;
-          $FORM{CUSTOMER}   = '-';
-          $FORM{ORDER}      = "$info{TP_NAME} $info{COMMENT}";
-          $FORM{SEND_EMAIL} = $info{SEND_DOCS} || undef;
-          $FORM{pdf}        = $conf{DOCS_PDF_PRINT};
-          my $content = docs_invoice({ QUITE => 1, OUTPUT2RETURN => 1 });
-          $attach = [
-            {
-              CONTENT      => $content,
-              CONTENT_TYPE => 'Content-type: application/pdf',
-              FILENAME     => 'invoice.pdf'
-            }
-          ];
-
+        if ($info->{NOTIFICATION_ACCOUNT} && $info->{CREATE_DOCS}) {
+        	push @{ $docs_info{$user{UID}} }, {   	
+              SUM        => $info->{PRICE} / $info->{SERVICE_COUNT},
+              COUNT      => $info->{SERVICE_COUNT} || 1,
+              ORDER      => "$info->{TP_NAME} $info->{COMMENTS}",
+              SEND_EMAIL => $info->{SEND_DOCS} || 0
+          };
         }
 
         $Abon->user_tariff_update(
@@ -755,21 +704,21 @@ sub abon_periodic {
             NOTIFICATION            => 1,
             DATE                    => $ADMIN_REPORT{DATE},
             NOTIFICATION_ACCOUNT_ID => $FORM{ACCOUNT_ID},
-            TP_ID                   => "$info{TP_ID}"
+            TP_ID                   => "$info->{TP_ID}"
           }
         );
 
-        if ($info{SEND_DOCS}) {
-          sendmail("$conf{ADMIN_MAIL}", "$email", "$conf{WEB_TITLE} - $info{TP_NAME} $info{COMMENT}", "$message", "$conf{MAIL_CHARSET}", '', { ATTACHMENTS => $attach });
+        if ($info->{SEND_DOCS}) {
+          sendmail("$conf{ADMIN_MAIL}", "$info->{EMAIL}", "$conf{WEB_TITLE} - $info->{TP_NAME} $info->{COMMENTS}", "$message", "$conf{MAIL_CHARSET}", '', { ATTACHMENTS => $attach });
         }
       }
-      elsif ($notification2 eq $ADMIN_REPORT{DATE}) {
-        $debug_output .= "$user{UID} TP_ID: $info{TP_ID} SUM: $info{SUM} ACCOUNT: $notification1_account_id Notification 2 EMAIL: $email\n" if ($debug > 0);
+      elsif ($info->{NOTIFICATION2} eq $ADMIN_REPORT{DATE}) {
+        $debug_output .= "$user{UID} TP_ID: $info->{TP_ID} SUM: $info->{PRICE} ACCOUNT: $notification1_account_id Notification 2 EMAIL: $info->{email}\n" if ($debug > 0);
 
-        my $message = $html->tpl_show(_include('abon_notification2', 'Abon'), { %$Abon, %info }, { OUTPUT2RETURN => 1 });
+        my $message = $html->tpl_show(_include('abon_notification2', 'Abon'), { %$Abon, %$info }, { OUTPUT2RETURN => 1 });
         my $attach;
 
-        if ($notification1_account_id && $info{CREATE_DOCS}) {
+        if ($info->{NOTIFICATION1_ACCOUNT_ID} && $info->{CREATE_DOCS}) {
           $FORM{print}            = $notification1_account_id;
           $FORM{CHECK_PEYMENT_ID} = 1;
           $FORM{pdf}              = $conf{DOCS_PDF_PRINT};
@@ -790,19 +739,43 @@ sub abon_periodic {
             UID          => "$user{UID}",
             NOTIFICATION => 2,
             DATE         => $ADMIN_REPORT{DATE},
-            TP_ID        => "$line->[10]"
+            TP_ID        => "$info->{TP_ID}"
           }
         );
-        if ($info{SEND_DOCS}) {
-          sendmail("$conf{ADMIN_MAIL}", "$email", "$conf{WEB_TITLE} - $info{TP_NAME} $info{COMMENT}", "$message", "$conf{MAIL_CHARSET}", '', { ATTACHMENTS => $attach });
+        if ($info->{SEND_DOCS}) {
+          sendmail("$conf{ADMIN_MAIL}", "$info->{EMAIL}", "$conf{WEB_TITLE} - $info->{TP_NAME} $info->{COMMENTS}", "$message", "$conf{MAIL_CHARSET}", '', { ATTACHMENTS => $attach });
         }
       }
-
     }
     else {
-      print "[ $line->[2] ] $line->[4] - Don't have money account\n";
+      print "[ $info->{UID} ] $info->{LOGIN} - Don't have money account\n";
     }
   }
+  
+ 
+  #Create and Send documents
+  #load_module('Docs');
+if (in_array('Docs', \@MODULES) ) {
+  while (($uid, $values) = each %docs_info) {
+  	my $i=1;
+  	my @docs_ids=();
+  	%FORM = ();
+  	foreach my $doc (@{ $values }) {
+  		next if ($doc->{SUM} == 0);  		
+      $FORM{'SUM_'.$i}    = $doc->{SUM};
+      $FORM{'COUNT_'.$i}  = $doc->{COUNT};
+      $FORM{'ORDER_'.$i}  = $doc->{ORDER};
+      $FORM{SEND_EMAIL}   = $doc->{SEND_DOCS};
+      push @docs_ids, "$i";
+      $i++;
+    }
+
+    $FORM{IDS}   = join(', ', @docs_ids);
+    $FORM{UID}   = $uid;
+    $FORM{create}= 1;
+  	docs_invoice({ QUITE => 1 });
+  }
+}
 
   $DEBUG .= $debug_output;
   return $debug_output;

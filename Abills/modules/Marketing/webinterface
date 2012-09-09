@@ -587,21 +587,29 @@ sub marketing_triplay_stats {
   }
 
   my $address = $html->tpl_show(templates('form_address_sel'), {%FORM}, { OUTPUT2RETURN => 1 });
-  $html->tpl_show(_include('marketing_search', 'Marketing'), { %$Marketing, %FORM, ADDRESS => $address });
 
-  if (!$FORM{show}) {
+
+  form_search(
+    {
+      TPL        => $html->tpl_show(_include('marketing_search', 'Marketing'), 
+        { %FORM, ADDRESS => $address },
+        { OUTPUT2RETURN  => 1 }
+        )
+    });
+
+  if (! $FORM{search}) {
     return 0;
   }
 
-  my $list = $Marketing->triplay_stats({ %FORM, %LIST_PARAMS });
+  my $list = $Marketing->triplay_stats({ %LIST_PARAMS });
 
   #адрес, № квратиры, договор, Тариф Интернет, Тариф телевилиния, тариф телефонии, ФИО, телефон
   my $table = $html->table(
     {
-      width   => '100%',
-      caption => $_CHANNELS,
-      border  => 1,
-      title   => [ "$_ADDRESS", $_ADDRESS_FLAT, $_CONTRACT, "Internet $_TARIF_PLAN", "Voip $_TARIF_PLAN", "$_TV $_TARIF_PLAN", $_FIO, $_PHONE ],
+      width      => '100%',
+      caption    => $_CHANNELS,
+      border     => 1,
+      title      => [ "$_ADDRESS", $_ADDRESS_FLAT, $_CONTRACT, "Internet $_TARIF_PLAN", "Voip $_TARIF_PLAN", "$_TV $_TARIF_PLAN", $_FIO, $_PHONE ],
       cols_align => [ 'right', 'left', 'right', 'right' ],
       qs         => $pages_qs,
       pages      => $Marketing->{TOTAL},
