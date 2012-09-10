@@ -298,6 +298,7 @@ $_FOLDER='Folder';
 #==new
 $_LIST='List';
 $_REPORTS = 'Reports';
+$_REPORTS_WIZARD='Reports Wizard';
 $_MODULES = 'Modules';
 $_SYSTEM = 'System configuration';
 $_GENERED_PARRWORD = 'Generate password';

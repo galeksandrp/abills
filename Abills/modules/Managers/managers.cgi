@@ -3,7 +3,7 @@
 #
 
 use vars qw($begin_time %LANG $CHARSET @MODULES $USER_FUNCTION_LIST
-$UID $user $admin
+$UID $user $admin $Payments
 $sid);
 
 BEGIN {
@@ -53,11 +53,6 @@ use Users;
 use Dv;
 use Tariffs;
 use Finance;
-
-$users       = Users->new($db, $admin, \%conf);
-$Dv          = Dv->new($db, $admin, \%conf);
-my $Tariffs  = Tariffs->new($db, \%conf, $admin);
-my $Payments = Finance->payments($db, $admin, \%conf);
 
 require "../language/russian.pl";
 require "Misc.pm";
@@ -124,13 +119,16 @@ if ($sid) {
   $COOKIES{sid} = $sid;
 }
 
-if ($FORM{qindex} || $FORM{xml} || $FORM{csv}) {
+if ($FORM{qindex} || $FORM{xml} || $FORM{csv} || $FORM{print}) {
   $index=$FORM{qindex} ;
   if($FORM{xml}) {
     print "Content-Type: text/xml\n\n";
   }
   elsif($FORM{csv}) {
 
+  }
+  elsif ($FORM{print}) {
+  	print $html->header();
   }
   else {
   	print "Content-Type: text/plain\n\n";
@@ -141,6 +139,33 @@ else {
 }
 
 if ($aid > 0) {
+	$admin->{SESSION_IP} = $admin->{IP};
+	$users       = Users->new($db, $admin, \%conf);
+  $Dv          = Dv->new($db, $admin, \%conf);
+  $Tariffs     = Tariffs->new($db, \%conf, $admin);
+	$Payments    = Finance->payments($db, $admin, \%conf);
+
+if ($FORM{print}) {
+  	if ($FORM{INVOICE_ID}) {
+  	  load_module('Docs');
+  	  print docs_invoice();
+  	}
+  	elsif($FORM{RECEIPT_ID}) {
+  		load_module('Docs');
+  		print docs_receipt_list();
+  	}
+    elsif ($FORM{PRINT_CONTRACT}) {
+  		load_module('Docs');
+      print docs_contract({%$Dv});
+    }
+    elsif($FORM{REGISTRATION_INFO}) {
+    	load_module('Dv');
+    	print dv_user();
+    }
+  	
+  	exit;
+}
+
   if ($FORM{SHOW_REPORT}) {
     form_reports();
   }
@@ -189,6 +214,7 @@ sub form_reports_main {
       ADDRESS_FLAT   => '*',
       CONTRACT_DATE  => '>=0000-00-00',
       REGISTRATION   => '>=0000-00-00',
+      DELETED        => 0,
       %LIST_PARAMS
     }
   );
@@ -201,6 +227,7 @@ sub form_reports_main {
       ADDRESS_FLAT   => '*',
       CONTRACT_DATE  => '>=0000-00-00',
       COLS_NAME      => 1,
+      DELETED        => 0,
       REGISTRATION   => ">=$OUTPUT{YEAR}-$OUTPUT{MOUNTH}-01;<=$OUTPUT{YEAR}-$OUTPUT{MOUNTH}-$OUTPUT{DAY}",
       %LIST_PARAMS
     }
@@ -238,6 +265,7 @@ sub form_reports_main {
       COLS_NAME      => 1,
       ACTION_DATE    => ">=$OUTPUT{YEAR}-$OUTPUT{MOUNTH}-01;<=$OUTPUT{YEAR}-$OUTPUT{MOUNTH}-$OUTPUT{DAY}",
       ACTION_TYPE    => 9,
+      DELETED        => 0,
       REGISTRATION   => '>=0000-00-00',
       %LIST_PARAMS,
     }
@@ -1767,7 +1795,11 @@ sub dv_users {
     }
 
     $pages_qs .= "&TYPE=$FORM{TYPE}&QUERY=$FORM{QUERY}";
-    $list = $Dv->list({ %LIST_PARAMS, COLS_NAME => 1, BUILD_DELIMITER => '/' });
+    $list = $Dv->list({ %LIST_PARAMS, 
+    	                  COLS_NAME       => 1, 
+    	                  DELETED         => 0,
+    	                  BUILD_DELIMITER => '/' 
+    	                });
 
     if ($Dv->{errno}) {
       $html->message('err', $_ERROR, "[$Dv->{errno}] $err_strs{$Dv->{errno}}");
@@ -1794,7 +1826,7 @@ sub dv_users {
         $html->form_input('UID', $line->{uid}, { TYPE => 'checkbox', OUTPUT2RETURN => 1 }) . $line->{id},
         $line->{contract_id},
         $line->{fio},
-        $line->{address_street} . ' ' . $line->{address_build} . ' ' . $line->{address_flat},
+        $line->{address_street} . ' ' . $line->{address_build} . '/' . $line->{address_flat},
         $line->{tp_name},
         $line->{deposit},
         $service_status[ $line->{dv_status} ],
@@ -1918,6 +1950,7 @@ sub dv_users {
         $html->message('info', $_INFO, "$_DELETED UID: $uid");
       }
     }
+    return 0;
   }
 
   if ($Dv->{errno}) {
@@ -1953,6 +1986,7 @@ sub dv_users {
         PASPORT_NUM    => '*',
         PASPORT_DATE   => '*',
         PASPORT_GRANT  => '*',
+        DELETED        => 0,
         IP             => '>=0.0.0.0',
         _describe      => '*',
         
@@ -2219,16 +2253,10 @@ sub dv_users {
     $Dv->{STATUS_COLOR} = $service_status_colors[ $Dv->{STATUS} ];
   }
 
-  $OUTPUT{GROUP_SEL} = $html->form_select(
-    '1.GID',
-    {
-      SELECTED          => $FORM{'1.GID'},
-      SEL_MULTI_ARRAY   => $users->groups_list({ GIDS => ($admin->{GIDS}) ? $admin->{GIDS} : undef }),
-      MULTI_ARRAY_KEY   => 0,
-      MULTI_ARRAY_VALUE => 1,
-      SEL_OPTIONS       => ($admin->{GIDS}) ? undef : { '' => "$_ALL" },
-    }
-  );
+  $users->group_info($admin->{GID});
+  my $GROUPS_SEL = "$admin->{GID}:$users->{G_NAME}";
+
+  $OUTPUT{GROUP_SEL} = $GROUPS_SEL; 
 
   $OUTPUT{STREET_SEL} = $html->form_select(
     '3.STREET_ID',
@@ -2241,6 +2269,8 @@ sub dv_users {
       SEL_OPTIONS       => { '' => "" },
     }
   );
+
+
 
   $html->tpl_show(_include('managers_add_user', 'Managers'), {%OUTPUT});
   return 0;
@@ -2455,7 +2485,7 @@ sub dv_wizard_user {
       # Info
       my $dv = $Dv->info($UID);
       my $pi = $user->pi({ UID => $UID });
-      $user = $user->info($UID, { SHOW_PASSWORD => 1 });
+      $user  = $user->info($UID, { SHOW_PASSWORD => 1 });
 
       if (!$attr->{SHORT_REPORT}) {
         $FORM{ex_message} = $message;
@@ -2543,6 +2573,9 @@ sub form_payments () {
   	$LIST_PARAMS{UID}=$FORM{UID};
   }
   
+  $FORM{INVOICE_ID}='create';
+  $FORM{CREATE_RECEIPT}=1;
+  
   %PAYMENTS_METHODS = ();
   my %BILL_ACCOUNTS = ();
 
@@ -2558,7 +2591,7 @@ sub form_payments () {
   }
 
   if ($attr->{USER_INFO}) {
-    my $user = $attr->{USER_INFO};
+    my $user         = $attr->{USER_INFO};
     $payments->{UID} = $user->{UID};
     $LIST_PARAMS{UID}= $FORM{UID};
 
@@ -2780,22 +2813,16 @@ sub form_payments () {
         $payments->{LNG_ACTION} = $_ADD;
       }
 
-      $html->tpl_show(templates('form_payments'), { %FORM, %$attr, %$payments });
-
+      #$html->tpl_show(templates('form_payments'), { %FORM, %$attr, %$payments });
       #return 0 if ($attr->{REGISTRATION});
     }
   }
-  elsif ($FORM{AID} && !defined($LIST_PARAMS{AID})) {
-    $FORM{subf} = $index;
-    form_admins();
-    return 0;
-  }
-
-  #  elsif ($FORM{UID}) {
-  #    $index = get_function_index('form_payments');
-  #    form_users();
-  #    return 0;
-  #  }
+  elsif ($FORM{UID}) {
+      $index = get_function_index('form_payments');
+      my $user = $users->info($FORM{UID});
+      form_payments({ USER_INFO => $user  });
+      return 0;
+   }
   #  elsif ($index != 7) {
   #    $FORM{type} = $FORM{subf} if ($FORM{subf});
   #    form_search(

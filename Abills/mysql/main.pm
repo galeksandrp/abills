@@ -701,14 +701,14 @@ sub search_expr_users () {
     $self->{EXT_TABLES} .= "LEFT JOIN builds ON (builds.id=pi.location_id)";
   }
   elsif ($attr->{LOCATION_ID}) {
-    push @fields, @{ $self->search_expr($attr->{LOCATION_ID}, 'INT', 'pi.location_id', { EXT_FIELD => 'streets.name AS street_name, builds.number AS build_number, pi.address_flat, builds.id AS build_id' }) };
+    push @fields, @{ $self->search_expr($attr->{LOCATION_ID}, 'INT', 'pi.location_id', { EXT_FIELD => 'streets.name AS address_street, builds.number AS build_number, pi.address_flat, builds.id AS build_id' }) };
     $self->{EXT_TABLES} .= "LEFT JOIN builds ON (builds.id=pi.location_id)
    LEFT JOIN streets ON (streets.id=builds.street_id)";
     $self->{SEARCH_FIELDS_COUNT} += 3;
   }
   else {
     if ($attr->{STREET_ID}) {
-      push @fields, @{ $self->search_expr($attr->{STREET_ID}, 'INT', 'builds.street_id', { EXT_FIELD => 'streets.name AS street_name, builds.number AS build_number' }) };
+      push @fields, @{ $self->search_expr($attr->{STREET_ID}, 'INT', 'builds.street_id', { EXT_FIELD => 'streets.name AS address_street, builds.number AS build_number' }) };
       $self->{EXT_TABLES} .= "LEFT JOIN builds ON (builds.id=pi.location_id)
      LEFT JOIN streets ON (streets.id=builds.street_id)";
       $self->{SEARCH_FIELDS_COUNT} += 1;
@@ -721,13 +721,13 @@ sub search_expr_users () {
     }
     elsif ($CONF->{ADDRESS_REGISTER}) {
       if ($attr->{ADDRESS_STREET}) {
-        push @fields, @{ $self->search_expr($attr->{ADDRESS_STREET}, 'STR', 'streets.name AS street_name', { EXT_FIELD => 1 }) };
+        push @fields, @{ $self->search_expr($attr->{ADDRESS_STREET}, 'STR', 'streets.name AS address_street', { EXT_FIELD => 1 }) };
         $self->{EXT_TABLES} .= "LEFT JOIN builds ON (builds.id=pi.location_id)
         LEFT JOIN streets ON (streets.id=builds.street_id)";
       }
       elsif($attr->{SHOW_ADDRESS}) {
       	$self->{SEARCH_FIELDS_COUNT} += 4;
-      	$self->{SEARCH_FIELDS}       .= 'streets.name AS street_name, builds.number AS address_build, pi.address_flat, streets.id AS street_id, pi.address_flat, ';
+      	$self->{SEARCH_FIELDS}       .= 'streets.name AS address_street, builds.number AS address_build, pi.address_flat, streets.id AS street_id, pi.address_flat, ';
         $self->{EXT_TABLES} .= "LEFT JOIN builds ON (builds.id=pi.location_id)
         LEFT JOIN streets ON (streets.id=builds.street_id)";
       }

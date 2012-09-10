@@ -461,6 +461,7 @@ sub dv_user {
       $Dv->{YY}=$1;
     }
 
+
     if (! $FORM{pdf}) {
       if (in_array('Mail', \@MODULES)) {
         require "Abills/modules/Mail/webinterface";
@@ -475,7 +476,7 @@ sub dv_user {
     }
 
     print $html->header();
-    $html->tpl_show(
+    return $html->tpl_show(
         _include('dv_user_memo', 'Dv', { pdf => $FORM{pdf} }),
         {
           %$user,
@@ -6296,7 +6297,7 @@ sub dv_wizard_user {
   $FORM{DV_WIZARD} = 1;
 
   if ($FORM{print}) {
-    require "Abills/modules/Docs/webinterface";
+    load_module('Docs');
     if ($FORM{PRINT_CONTRACT}) {
       docs_contract({%$Dv});
     }

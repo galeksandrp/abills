@@ -29,12 +29,12 @@
 <textarea name='3.COMMENTS' cols=80 id='comments'>$FORM{'3.COMMENTS'}</textarea>
 <br/><br/>
 
-<b>_FL_P</b>: %GROUP_SEL%
+<b>ФЛ-П</b>: %GROUP_SEL%
 <b>$_ACTIVATE</b>:<input class=\"tcalInput\" name=\"1.ACTIVATE\" value=\"$DATE\" id=\"1.ACTIVATE\" rel=\"tcal\" size=\"12\" type=\"text\"> <br/><br/>
 
-<a href='$SELF_URL?index=15&UID=$FORM{UID}&pdf=1&PRINT_CONTRACT=1' class=href_buttons>$_PRINT $_CONTRACT $_PAGE 1</a>
-<a href='#' class=href_buttons>$_PRINT $_CONTRACT $_PAGE 2</a>
-<a href='$SELF_URL?qindex=15&UID=$FORM{UID}&PRINT_CONTRACT=$FORM{CONTRACT_ID}&pdf=1' class=href_buttons>$_PRINT $_MEMORY_CARD</a>
+<a href='$SELF_URL?index=15&UID=$FORM{UID}&pdf=1&PRINT_CONTRACT=1&print=1' target=_new class=href_buttons>$_PRINT $_CONTRACT $_PAGE 1</a>
+<a href='$SELF_URL?index=15&UID=$FORM{UID}&pdf=1&PRINT_CONTRACT=1&print=1' target=_new  class=href_buttons>$_PRINT $_CONTRACT $_PAGE 2</a>
+<a href='$SELF_URL?qindex=15&UID=$FORM{UID}&REGISTRATION_INFO=1$FORM{UID}&pdf=1&print=1'  target=_new  class=href_buttons>$_PRINT $_MEMORY_CARD</a>
 <input class=big_buttons name=add type=submit value='$_ADD'>
 
 </form>

@@ -49,7 +49,7 @@
 </table>
 <br />
 
-<b>$_SHEDULE $_HOLD_UP с </b><span>  </span> <input class='tcalInput' name='SHEDULE_BLOCK_DATE' value='$NEXT_MONTH' id='SHEDULE_BLOCK' rel='tcal' size='12' type='text'> <b>$_PERIOD </b>
+<b>$_SHEDULE_CHANGE с</b><span>  </span> <input class='tcalInput' name='SHEDULE_BLOCK_DATE' value='$NEXT_MONTH' id='SHEDULE_BLOCK' rel='tcal' size='12' type='text'> <b>$_PERIOD </b>
 <select style='margin:0px 10px;' name=BLOCK_PERIOD>
 	<option>1</option>  
 	<option>2</option>
