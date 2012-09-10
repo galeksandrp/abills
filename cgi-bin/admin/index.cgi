@@ -5081,8 +5081,8 @@ sub report_fees_month {
 sub report_wizard_config {
   my ($attr) = @_;
 
-  use Reports;
-  my $Reports = Reports->new($db, $admin, \%conf);
+  #use Reports;
+  #my $Reports = Reports->new($db, $admin, \%conf);
 
 if ($FORM{add}) {
 	
@@ -5110,8 +5110,8 @@ $html->tpl_show(templates('form_report_wizards_conf'), { %FORM, %$attr }
 sub report_wizard {
   my ($attr) = @_;
 
-  use Reports;
-  my $Reports = Reports->new($db, $admin, \%conf);
+  #use Reports;
+  #my $Reports = Reports->new($db, $admin, \%conf);
 
 if ($FORM{REPORT}) {
 
