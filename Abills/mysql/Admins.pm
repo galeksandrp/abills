@@ -665,7 +665,7 @@ sub online {
 
   if ($curuser{ $self->{A_LOGIN} } ne $self->{SESSION_IP}) {
     $self->query(
-      $db, "INSERT INTO web_online (admin, ip, logtime, aid, sid)
+      $db, "REPLACE INTO web_online (admin, ip, logtime, aid, sid)
      values ('$self->{A_LOGIN}', '$self->{SESSION_IP}', UNIX_TIMESTAMP(), '$self->{AID}', '$attr->{SID}');", 'do'
     );
     $online_users .= "$self->{A_LOGIN} - $self->{SESSION_IP};\n";

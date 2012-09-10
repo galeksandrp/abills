@@ -5407,7 +5407,7 @@ sub report_payments {
 
   if ($FORM{DATE}) {
     $graph_type = '';
-    my @caption = ('ID', $_LOGIN, $_DATE, $_DESCRIBE, "$_SUM", $_DEPOSIT, $_PAYMENT_METHOD, 'EXT ID', "$_BILL", $_ADMINS, "$_REGISTRATION");
+    my @caption = ('ID', $_LOGIN, $_DATE, $_DESCRIBE, "$_SUM", $_DEPOSIT, $_PAYMENT_METHOD, 'EXT ID', "$_BILL", $_ADMINS, "$_REGISTRATION", "IP");
 
     if ($conf{SYSTEM_CURRENCY}) {
       push @caption, "$_ALT $_SUM", "$_CURRENCY";
@@ -5440,7 +5440,8 @@ sub report_payments {
         "$line->{ext_id}", 
         ($conf{EXT_BILL_ACCOUNT} && $attr->{USER_INFO}) ? $BILL_ACCOUNTS{ $line->{bill_id} } : "$line->{bill_id}",
         "$line->{admin_name}", 
-        "$line->{reg_date}"
+        "$line->{reg_date}",
+        "$line->{ip}"
       );
 
       if ($conf{SYSTEM_CURRENCY}) {
