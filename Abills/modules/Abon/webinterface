@@ -763,7 +763,7 @@ if (in_array('Docs', \@MODULES) ) {
   	foreach my $doc (@{ $values }) {
   		next if ($doc->{SUM} == 0);  		
       $FORM{'SUM_'.$i}    = $doc->{SUM};
-      $FORM{'COUNT_'.$i}  = $doc->{COUNT};
+      $FORM{'COUNTS_'.$i}  = $doc->{COUNT};
       $FORM{'ORDER_'.$i}  = $doc->{ORDER};
       $FORM{SEND_EMAIL}   = ($FORM{SEND_EMAIL}) ? 1 : $doc->{SEND_EMAIL};
       push @docs_ids, "$i";

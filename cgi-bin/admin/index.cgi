@@ -1374,7 +1374,12 @@ sub user_form {
       $user_info->{GID} = sel_groups();
     }
     elsif ($admin->{GID}) {
-      $user_info->{GID} .= $html->form_input('GID', "$admin->{GID}", { TYPE => 'hidden' });
+      $user_info->{GID} = $html->form_select(
+        "GID",
+        {
+          SELECTED   => $admin->{GID},
+          SEL_HASH   => { $admin->{GID} => $admin->{GID} },
+        });
     }
     else {
       $FORM{GID} = $attr->{GID};
@@ -3562,7 +3567,6 @@ sub form_admins {
   my $admin_form = Admins->new($db, \%conf);
   $admin_form->{ACTION}     = 'add';
   $admin_form->{LNG_ACTION} = $_ADD;
-
   if ($FORM{AID}) {
     $admin_form->info($FORM{AID});
 
@@ -3663,7 +3667,7 @@ sub form_admins {
   );
 
   $admin_form->{DISABLE} = ($admin_form->{DISABLE} > 0) ? 'checked' : '';
-  $admin_form->{GROUP_SEL} = sel_groups();
+  $admin_form->{GROUP_SEL} = sel_groups({ GID => $admin_form->{GID}  });
 
   if ($admin->{DOMAIN_ID}) {
     $admin_form->{DOMAIN_SEL} = $admin->{DOMAIN_NAME};
@@ -8164,9 +8168,10 @@ sub form_config {
 # sel_groups();
 #**********************************************************
 sub sel_groups {
-  my $GROUPS_SEL = '';
+	my ($attr) = @_;
 
-  if ($admin->{GID} > 0 && !$admin->{GIDS}) {
+  my $GROUPS_SEL = '';
+  if ($admin->{GID} > 0 && ! $admin->{GIDS}) {
     $users->group_info($admin->{GID});
     $GROUPS_SEL = "$admin->{GID}:$users->{G_NAME}";
   }
@@ -8174,7 +8179,7 @@ sub sel_groups {
     $GROUPS_SEL = $html->form_select(
       'GID',
       {
-        SELECTED          => $FORM{GID},
+        SELECTED          => $attr->{GID} || $FORM{GID},
         SEL_MULTI_ARRAY   => $users->groups_list({ GIDS => ($admin->{GIDS}) ? $admin->{GIDS} : undef }),
         MULTI_ARRAY_KEY   => 0,
         MULTI_ARRAY_VALUE => 1,
