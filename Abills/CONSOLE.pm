@@ -543,7 +543,7 @@ sub addrow {
     $col_num++;
   }
 
-  $self->{rows} .= "\n";
+  $self->{rows} .= "\r\n";
   return $self->{rows};
 }
 

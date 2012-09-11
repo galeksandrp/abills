@@ -2094,7 +2094,7 @@ sub docs_invoice {
 
       $attr->{SEND_EMAIL} = 0 if (!defined($attr->{SEND_EMAIL}));
       if ($attr->{GET_EMAIL_INFO} && $attr->{SEND_EMAIL}) {
-      	print $FORM{pdf}=undef;
+      	$FORM{pdf}=undef;
         $attr->{EMAIL_MSG_TEXT}        = $html->tpl_show(_include('docs_invoice_email', 'Docs'), { %$users, %FORM, %$attr, %$Docs }, { OUTPUT2RETURN => 1 });
         $attr->{EMAIL_ATTACH_FILENAME} = 'invoice_' . $Doc{INVOICE_NUM} . '.pdf' if (!$attr->{EMAIL_ATTACH_FILENAME});
         $attr->{EMAIL_MSG_SUBJECT}     = "ABillS - $_INVOICE: $Doc{INVOICE_NUM}" if (!$attr->{EMAIL_MSG_SUBJECT});
@@ -2697,7 +2697,7 @@ sub docs_print {
   }
 
   my $html_old;
-  if ($FORM{pdf} && !$html->{pdf_output}) {
+  if ($FORM{pdf} && ! $html->{pdf_output}) {
     $html_old = $html;
     PDF::API2->import();
     require Abills::PDF;
@@ -2722,11 +2722,18 @@ sub docs_print {
         SUFIX         => $attr->{SUFIX}
       }
     ),
-    { %$users, %$attr }
+    { %$users, 
+    	%$attr, 
+    },
+    { TITLE   => "$template",
+      SUBJECT => "$template"	
+    }
   );
 
   $html = $html_old if ($html_old);
   delete $FORM{pdf};
+
+
 
   if ($conf{DOCS_LANGUAGE} && $html->{language} ne $conf{DOCS_LANGUAGE}) {
     if (-f "../Abills/modules/Docs/lng_$html->{language}.pl") {

@@ -1228,9 +1228,9 @@ sub tpl_show {
 
   $debug = 0;
   $filename =~ s/\.[a-z]{3}$//;
-  my $tpl_describe = tpl_describe($filename, { debug => $self->{debug} });
+  my $tpl_describe = tpl_describe("$filename", { debug => $self->{debug} });
   $filename = $filename . '.pdf';
-  my $pdf = PDF::API2->open($filename);
+  my $pdf = PDF::API2->open("$filename");
   my $tpl;
 
   my $moddate .= '';
@@ -1242,8 +1242,8 @@ sub tpl_show {
     'ModDate'      => "D:$moddate" . "+02'00'",
     'Creator'      => ($attr->{ADMIN}) ? $attr->{ADMIN} : "ABillS pdf manager",
     'Producer'     => "ABillS pdf manager",
-    'Title'        => "Account",
-    'Subject'      => "Account",
+    'Title'        => $attr->{TITLE} || "Invoice",
+    'Subject'      => $attr->{SUBJECT} || "Invoice",
     'Keywords'     => ""
   );
 
@@ -1256,13 +1256,13 @@ sub tpl_show {
   if ($encode =~ /utf-8/) {
     $font_name = '/usr/abills/Abills/templates/fonts/FreeSerif.ttf';
     $font = $pdf->ttfont($font_name, -encode => "$encode");
+    #$font = $pdf->corefont($font_name, -encode => "$encode");
   }
   else {
     $font = $pdf->corefont($font_name, -encode => "$encode");
   }
 
   MULTIDOC_LABEL:
-
   for my $key (sort keys %$tpl_describe) {
     my @patterns = ();
 
@@ -1341,7 +1341,6 @@ sub tpl_show {
       $txt->translate($x, $y);
 
       if (defined($variables_ref->{$key})) {
-
         $text = $variables_ref->{$key};
         if ($tpl_describe->{$key}->{EXPR}) {
           my @expr_arr = split(/\//, $tpl_describe->{$key}->{EXPR}, 2);
@@ -1402,10 +1401,11 @@ sub tpl_show {
         else {
           $txt->text($text, -align => $align || 'justified');
         }
-
       }
     }
   }
+
+
 
   if ($attr->{MULTI_DOCS} && $multi_doc_count <= $#{ $attr->{MULTI_DOCS} }) {
     if ($attr->{DOCS_IN_FILE} && $multi_doc_count > 0 && $multi_doc_count % $attr->{DOCS_IN_FILE} == 0) {

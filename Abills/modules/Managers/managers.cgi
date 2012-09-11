@@ -1828,7 +1828,7 @@ sub dv_users {
         $line->{fio},
         $line->{address_street} . ' ' . $line->{address_build} . '/' . $line->{address_flat},
         $line->{tp_name},
-        $line->{deposit},
+        sprintf("%.2f", $line->{deposit}),
         $service_status[ $line->{dv_status} ],
         $html->button("$_GO", "index=15&UID=$line->{uid}", { BUTTON => 1 }),
       );
@@ -1885,20 +1885,12 @@ sub dv_users {
     return 0;
   }
   elsif ($FORM{change}) {
-
-    #    if ($FORM{IP} eq '0.0.0.0' && $FORM{STATIC_IP_POOL}) {
-    #      $FORM{IP} = dv_get_static_ip($FORM{STATIC_IP_POOL});
-    #    }
-
-    #    if ($FORM{IP} =~ /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/ && $FORM{IP} ne '0.0.0.0') {
-    #      my $list = $Dv->list({ IP => $FORM{IP} });
-    #      if ($Dv->{TOTAL} > 0 && $list->[0][ 6 + $Dv->{SEARCH_FIELDS_COUNT} ] != $FORM{UID}) {
-    #        $html->message('err', $_ERROR, "IP: $FORM{IP} $_EXIST. $_LOGIN: " . $html->button("$list->[0][0]", "index=15&UID=" . $list->[0][ 6 + $Dv->{SEARCH_FIELDS_COUNT} ]));
-    #        return 0;
-    #      }
-    #    }
-
+    if ($FORM{change} == 2) {
+    	$FORM{STATUS} = 0;
+    }
+    
     my @uids_arr = split(/, /, $FORM{UID});
+
 
     foreach my $uid (@uids_arr) {
       $FORM{UID} = $uid;
@@ -1906,26 +1898,6 @@ sub dv_users {
       $users->change($Dv->{UID}, {%FORM});
       $users->pi_change({%FORM});
     }
-    #    if ($FORM{STATUS} == 0) {
-    #      my $Shedule = Shedule->new($db, $admin, \%conf);
-    #      my $list = $Shedule->list(
-    #        {
-    #          UID    => $FORM{UID},
-    #          MODULE => 'Dv',
-    #          TYPE   => 'status',
-    #          ACTION => '0'
-    #        }
-    #      );
-    #
-    #      if ($Shedule->{TOTAL} == 1) {
-    #        $Shedule->del(
-    #          {
-    #            UID => $FORM{UID},
-    #            IDS => $list->[0][14]
-    #          }
-    #        );
-    #      }
-    #    }
 
     if (!$Dv->{errno}) {
       $Dv->{ACCOUNT_ACTIVATE} = $attr->{USER_INFO}->{ACTIVATE};
@@ -1935,10 +1907,9 @@ sub dv_users {
 
       $html->message('info', "Internet", "$_CHANGED");
       return 0 if ($attr->{REGISTRATION});
-      if ($FORM{STATUS}) {
+      if (defined($FORM{STATUS})) {
     	  return 0;
       }
-
     }
   }
   elsif ($FORM{del}) {
@@ -2082,7 +2053,11 @@ sub dv_users {
         	$value = $line->{action};
         }
 
-        $table->addrow($line->{id}, "$line->{y}-$line->{m}-$line->{d}", $line->{type}, $value, $line->{comments}, $delete);
+        $table->addrow($line->{id}, 
+          "$line->{y}-$line->{m}-$line->{d}", 
+          $line->{type}, 
+          $value, 
+          $line->{comments}, $delete);
       }
 
      $OUTPUT{SHEDULE} = $table->show({ OUTPUT2RETURN => 1 });

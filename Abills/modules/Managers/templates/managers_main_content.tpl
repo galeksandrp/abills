@@ -26,6 +26,10 @@
   <li>
 <button name=change value=1>$_BLOCK</button>
   </li>
+  <li>
+<button name=change value=2>$_UNBLOCK</button>
+  </li>
+  
 </ul>
 <div id=\"search\">
 <button type=\"submit\" name=\"SEARCH\" value=1>$_SEARCH</button>

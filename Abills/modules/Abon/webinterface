@@ -156,7 +156,7 @@ sub abon_user {
             $FORM{'SUM_'.($#docs_ids+2)}    = $Abon->{TP_INFO}->{MONTH_FEE} / $FORM{'SERVICE_COUNT_'. $Abon->{TP_INFO}->{TP_ID} };
             $FORM{'COUNT_'.($#docs_ids+2)}  = $FORM{'SERVICE_COUNT_'. $Abon->{TP_INFO}->{TP_ID} };
             $FORM{'ORDER_'.($#docs_ids+2)}  = "[$Abon->{TP_INFO}->{TP_ID}] $Abon->{TP_INFO}->{NAME} $Abon->{COMMENTS}";
-            $FORM{SEND_EMAIL}             = $FORM{ 'SEND_DOCS_' . $Abon->{TP_INFO}->{TP_ID} } || undef;
+            $FORM{SEND_EMAIL}               = $FORM{ 'SEND_DOCS_' . $Abon->{TP_INFO}->{TP_ID} } || undef;
             push @docs_ids, int($#docs_ids+2);
           }
 
@@ -752,10 +752,10 @@ sub abon_periodic {
     }
   }
   
- 
   #Create and Send documents
   #load_module('Docs');
 if (in_array('Docs', \@MODULES) ) {
+	$^W=0;
   while (($uid, $values) = each %docs_info) {
   	my $i=1;
   	my @docs_ids=();
@@ -765,7 +765,7 @@ if (in_array('Docs', \@MODULES) ) {
       $FORM{'SUM_'.$i}    = $doc->{SUM};
       $FORM{'COUNT_'.$i}  = $doc->{COUNT};
       $FORM{'ORDER_'.$i}  = $doc->{ORDER};
-      $FORM{SEND_EMAIL}   = $doc->{SEND_DOCS};
+      $FORM{SEND_EMAIL}   = ($FORM{SEND_EMAIL}) ? 1 : $doc->{SEND_EMAIL};
       push @docs_ids, "$i";
       $i++;
     }
@@ -773,8 +773,13 @@ if (in_array('Docs', \@MODULES) ) {
     $FORM{IDS}   = join(', ', @docs_ids);
     $FORM{UID}   = $uid;
     $FORM{create}= 1;
-  	docs_invoice({ QUITE => 1 });
+
+  	docs_invoice({ QUITE => 1, 
+  		             SEND_EMAIL     => $FORM{SEND_EMAIL},
+  		             GET_EMAIL_INFO => $FORM{SEND_EMAIL} 
+  		           });
   }
+  $^W=1;
 }
 
   $DEBUG .= $debug_output;
