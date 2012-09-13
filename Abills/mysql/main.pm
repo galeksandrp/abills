@@ -611,7 +611,6 @@ sub search_expr_users () {
     ACTIVATE      => 'DATE:u.activate',
     EXPIRE        => 'DATE:u.expire',
     
-    DEPOSIT       => 'INT:b.deposit',
     CREDIT        => 'INT:u.credit',
     CREDIT_DATE   => 'DATE:u.credit_date', 
     REDUCTION     => 'INT:u.reduction',

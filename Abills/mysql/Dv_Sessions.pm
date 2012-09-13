@@ -189,12 +189,12 @@ sub online {
     'c.turbo_mode',
     'c.join_service',
 
+    'if(company.name IS NULL, b.deposit, cb.deposit) AS deposit',
+    'u.credit',
     'pi.phone',
     'INET_NTOA(c.framed_ip_address) AS ip',
     'u.uid',
     'INET_NTOA(c.nas_ip_address) AS nas_ip',
-    'if(company.name IS NULL, b.deposit, cb.deposit) AS deposit',
-    'u.credit',
     'if(date_format(c.started, "%Y-%m-%d")=curdate(), date_format(c.started, "%H:%i:%s"), c.started)',
     'c.nas_id',
     'UNIX_TIMESTAMP()-c.lupdated AS last_alive',
@@ -262,7 +262,6 @@ sub online {
 
   my $fields  = '';
   my $port_id = 0;
-
   for (my $i = 0 ; $i <= $#RES_FIELDS ; $i++) {
     if ($RES_FIELDS[$i] == 2) {
       $port_id = $i;
@@ -389,7 +388,10 @@ sub online {
     if ($attr->{FILTER_FIELD} == 3) {
       $filter_field = "INET_NTOA(framed_ip_address)";
     }
-
+    elsif ($attr->{FILTER_FIELD} == 20) {
+      $filter_field = '';
+      push @WHERE_RULES, @{ $self->search_expr($attr->{FILTER}, 'INT', "b.deposit") };
+    }
     #elsif ($attr->{FILTER_FIELD} == 11){
     #	 $filter_field = "CONCAT(dv.tp_id, tp.name)";
     #	 $EXT_TABLE .= "LEFT JOIN tarif_plans tp ON (tp.id=dv.tp_id AND tp.module='Dv')"
@@ -405,8 +407,10 @@ sub online {
     else {
       $filter_field = $FIELDS_ALL[ $attr->{FILTER_FIELD} ];
     }
-
-    push @WHERE_RULES, ($attr->{FILTER} =~ s/\*/\%/g) ? "$filter_field LIKE '$attr->{FILTER}'" : "$filter_field='$attr->{FILTER}'";
+    
+    if ($filter_field) {
+      push @WHERE_RULES, ($attr->{FILTER} =~ s/\*/\%/g) ? "$filter_field LIKE '$attr->{FILTER}'" : "$filter_field='$attr->{FILTER}'";
+    }
   }
 
   $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES) : '';

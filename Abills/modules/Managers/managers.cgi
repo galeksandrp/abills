@@ -331,12 +331,93 @@ sub form_main {
 #**********************************************************
 #
 #**********************************************************
+sub reports_tp_change {
+	my ($attr) = @_;
+	
+	print "Content-Type: text/html\n\n";
+	$admin->{debug}=1;
+	my $list = $admin->action_list({ %LIST_PARAMS, COLS_NAME => 1 });
+  my $table = $html->table(
+    {
+      width      => '100%',
+      caption    => "$_PAYMENTS",
+      border     => 1,
+      title      => [],
+      cols_align => [ 'right', 'left', 'right', 'right', 'left', 'left', 'right', 'right', 'left', 'left', 'center:noprint' ],
+      qs         => $pages_qs,
+      pages      => $payments->{TOTAL},
+
+      #EXPORT     => ' XML:&xml=1',
+      ID => 'PAYMENTS'
+    }
+  );
+
+  my $pages_qs .= "&subf=2" if (!$FORM{subf});
+  foreach my $payment (@$payments_list) {
+    my $delete = ($permissions{1}{2}) ? $html->button($_DEL, "index=2&del=$payment->{id}&UID=$payment->{uid}$pages_qs", { MESSAGE => "$_DEL [$payment->{id}] ?", CLASS => 'del' }) : '';
+
+    my @rows = (
+      $html->b($payment->{id}),
+      $html->button($payment->{login}, "index=15&UID=$payment->{uid}"),
+      $payment->{date}, $payment->{dsc} . (($payment->{inner_describe}) ? $html->br() . $html->b($payment->{inner_describe}) : ''),
+      $payment->{sum}, "$payment->{last_deposit}", $PAYMENTS_METHODS{ $payment->{method} },
+      "$payment->{ext_id}", ($conf{EXT_BILL_ACCOUNT} && $attr->{USER_INFO}) ? $BILL_ACCOUNTS{ $payment->{bill_id} } : "$payment->{bill_id}",
+      "$payment->{admin_name}", "$payment->{ip}"
+    );
+
+    if ($conf{SYSTEM_CURRENCY}) {
+      push @rows, $payment->{amount}, $payment->{currency};
+    }
+
+    push @rows, $delete;
+    $table->addrow(@rows);
+  }
+
+  print $table->show();
+	
+}
+
+#**********************************************************
+#
+#**********************************************************
 sub form_reports {
 
-  form_reports_main();
 
   $pages_qs .= "&SHOW_REPORT=$FORM{SHOW_REPORT}";
 
+  
+  my ($y, $m, $d)=split(/-/, $DATE);
+  my $month_name = $MONTHES[int($m)];
+
+  $user_pi->{SHOW_REPORT_SEL} = $html->form_select(
+      'SHOW_REPORT',
+      {
+        SELECTED => $FORM{SHOW_REPORT},
+        SEL_HASH => { 		'users_total'             => "Всего учетных записей",
+		'mounth_contracts_added'  => "Всего заключено договоров ($month_name $y)",
+		'mounth_contracts_deleted'=> "Всего расторгнуто договоров ($month_name $y)",
+		'mounth_disabled_users'   => "Всего временно отключившихся ($month_name $y)",
+		'mounth_total_debtors'    => "не оплативших текущий месяц",
+		'total_debtors'           => "не оплативших 2 и более месяцев",
+		'tp_change'               => "Переходы тарифных планов",
+		'flp_payments'            => "$_PAYMENTS"
+                     },
+        NO_ID    => 1
+      }
+    );
+ 
+  $filter = $html->tpl_show(_include('managers_filter_reports', 'Managers'), { %$user_pi, OUTPUT2RETURN => 1 });
+
+  if ($FORM{SHOW_REPORT} eq 'flp_payments') {
+    form_payments();
+    return 0;
+  }
+  elsif ($FORM{SHOW_REPORT} eq 'tp_change') {
+    reports_tp_change();
+  	return 0;
+  }
+
+  form_reports_main();
   $table = $html->table(
     {
       width      => '100%',
@@ -386,26 +467,6 @@ sub form_reports {
       $u->{contract_date}, 
       $u->{registration}, '-',);
   }
-  
-
-    $user_pi->{SHOW_REPORT_SEL} = $html->form_select(
-      'SHOW_REPORT',
-      {
-        SELECTED => $FORM{SHOW_REPORT},
-        SEL_HASH => { 		'users_total'             => 'Всего учетных записей',
-		'mounth_contracts_added'  => 'Всего заключено договоров(Апрель 2012)',
-		'mounth_contracts_deleted'=> 'Всего расторгнуто договоров(Апрель 2012)',
-		'mounth_disabled_users'   => 'Всего временно отключившихся(Апрель 2012)',
-		'mounth_total_debtors'    => 'не оплативших текущий месяц',
-		'total_debtors'           => 'не оплативших 2 и более месяцев',
-                     },
-        NO_ID    => 1
-      }
-    );
-  
-  
- 
-  $filter = $html->tpl_show(_include('managers_filter_reports', 'Managers'), { %$user_pi, OUTPUT2RETURN => 1 });
   
   my $result_table = $table->show({ OUTPUT2RETURN => 1  }); 
   
@@ -465,16 +526,20 @@ sub check_permissions {
     IP        => $ENV{REMOTE_ADDR} || '0.0.0.0'
   );
 
+  
+
   if ($sid) {
     $admin->online_info({ SID => $sid });
     if ($admin->{TOTAL} > 0 && $ENV{REMOTE_ADDR} eq $admin->{IP}) {
       $admin->info($admin->{AID});
+      $LIST_PARAMS{GID}=$admin->{GID};
       %permissions = %{ $admin->get_permissions() };
       return $admin->{AID}, $sid;
     }
   }
 
   $admin->info(0, {%PARAMS});
+  $LIST_PARAMS{GID}=$admin->{GID};
 
   if ($admin->{errno}) {
     if ($admin->{errno} == 4) {
@@ -1765,10 +1830,13 @@ sub dv_users {
     }
     elsif ($FORM{TYPE} eq 'address') {
       $LIST_PARAMS{MANAGERS}       = 1;
-    	if ($FORM{QUERY}=~/^\d+/) {
+    	if (! $FORM{QUERY}) {
+
+    	}
+    	elsif ($FORM{QUERY}=~/^\d+/) {
     		$FORM{QUERY}="*$FORM{QUERY}*";
     	}
-    	if ($FORM{QUERY}=~/(.+)(\d+)\/(\d+)/) {
+    	elsif ($FORM{QUERY}=~/(.+)(\d+)\/(\d+)/) {
     		$FORM{QUERY} = "$1$2/$3";
     	}
     	else {

@@ -1428,7 +1428,7 @@ sub dv_online {
             CONNECT_INFO,
             CID,
             USER_NAME,
-            SESSION_START
+            SESSION_START,
           ]
         }
       );
@@ -1588,7 +1588,11 @@ sub dv_online {
   print $table2->show();
 
   #Field formed section
-  my @FIELDS_ALL = ("$_USER", "$_FIO", "$_PORT", "IP", "$_DURATION", "$_RECV", "$_SENT", "Ex_IN", "Ex_OUT", "CID", "SESSION_ID", "$_TARIF_PLAN", "CONNECT_INFO", "$_SPEED", "$_SUM", "$_STATUS", "$_ADDRESS", "$_GROUP", "TURBO", "$_JOIN_SERVICE");
+  my @FIELDS_ALL = ("$_USER", "$_FIO", "$_PORT", "IP", "$_DURATION", 
+  "$_RECV", "$_SENT", "Ex_IN", 
+  "Ex_OUT", "CID", "SESSION_ID", "$_TARIF_PLAN", "CONNECT_INFO", "$_SPEED", 
+  "$_SUM", "$_STATUS", "$_ADDRESS", "$_GROUP", "TURBO", "$_JOIN_SERVICE",
+  "$_DEPOSIT", "$_CREDIT", "$_PHONE");
 
   if ($sessions->{TOTAL} > 500) {
     my $table = $html->table(
