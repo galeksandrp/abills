@@ -209,10 +209,8 @@ sub form_reports_main {
   $users_total = $Dv->list(
     {
       COLS_NAME      => 1,
-      ADDRESS_STREET => '*',
-      ADDRESS_BUILD  => '*',
-      ADDRESS_FLAT   => '*',
-      CONTRACT_DATE  => '>=0000-00-00',
+      SHOW_ADDRESS   => 1,
+      CONTRACT_DATE  => '_SHOW',
       REGISTRATION   => '>=0000-00-00',
       DELETED        => 0,
       %LIST_PARAMS
@@ -222,10 +220,8 @@ sub form_reports_main {
 
   $mounth_contracts_added = $Dv->list(
     {
-      ADDRESS_STREET => '*',
-      ADDRESS_BUILD  => '*',
-      ADDRESS_FLAT   => '*',
-      CONTRACT_DATE  => '>=0000-00-00',
+      SHOW_ADDRESS   => 1,
+      CONTRACT_DATE  => '_SHOW',
       COLS_NAME      => 1,
       DELETED        => 0,
       REGISTRATION   => ">=$OUTPUT{YEAR}-$OUTPUT{MOUNTH}-01;<=$OUTPUT{YEAR}-$OUTPUT{MOUNTH}-$OUTPUT{DAY}",
@@ -233,19 +229,17 @@ sub form_reports_main {
     }
   );
 
+  $OUTPUT{REGISTRATION_MOUNTH_TOTAL} = $Dv->{TOTAL};
+
   if (defined($attr->{DELETED})) {
     print "$_DELETED";
   }
 
-  $OUTPUT{REGISTRATION_MOUNTH_TOTAL} = $Dv->{TOTAL};
-
   # Всего разторгнуто договоров(месяц год) -
   $mounth_contracts_deleted = $Dv->list(
     {
-      ADDRESS_STREET => '*',
-      ADDRESS_BUILD  => '*',
-      ADDRESS_FLAT   => '*',
-      CONTRACT_DATE  => '>=0000-00-00',
+      SHOW_ADDRESS   => 1,
+      CONTRACT_DATE  => '_SHOW',
       COLS_NAME      => 1,
       ACTION_DATE    => ">=$OUTPUT{YEAR}-$OUTPUT{MOUNTH}-01;<=$OUTPUT{YEAR}-$OUTPUT{MOUNTH}-$OUTPUT{DAY}",
       ACTION_TYPE    => 12,
@@ -258,15 +252,14 @@ sub form_reports_main {
 
   $mounth_disabled_users = $Dv->list(
     {
-      ADDRESS_STREET => '*',
-      ADDRESS_BUILD  => '*',
-      ADDRESS_FLAT   => '*',
-      CONTRACT_DATE  => '>=0000-00-00',
+      SHOW_ADDRESS   => 1,
+      CONTRACT_DATE  => '_SHOW',
+      REGISTRATION   => '_SHOW',
       COLS_NAME      => 1,
       ACTION_DATE    => ">=$OUTPUT{YEAR}-$OUTPUT{MOUNTH}-01;<=$OUTPUT{YEAR}-$OUTPUT{MOUNTH}-$OUTPUT{DAY}",
-      ACTION_TYPE    => 9,
+      #ACTION_TYPE    => 9,
       DELETED        => 0,
-      REGISTRATION   => '>=0000-00-00',
+      STATUS         => 1,
       %LIST_PARAMS,
     }
   );
@@ -278,17 +271,15 @@ sub form_reports_main {
   $mounth_total_debtors = $Dv->report_debetors(
     {
       COLS_NAME      => 1,
-      ADDRESS_STREET => '*',
-      ADDRESS_BUILD  => '*',
-      ADDRESS_FLAT   => '*',
-      CONTRACT_ID    => '*',
-      CONTRACT_DATE  => '>=0000-00-00',
-      REGISTRATION   => '>=0000-00-00',
+      SHOW_ADDRESS   => 1,
+      CONTRACT_ID    => '_SHOW',
+      REGISTRATION   => '_SHOW',
+      CONTRACT_DATE  => '_SHOW',
       %LIST_PARAMS
     }
   );
 
-  $OUTPUT{REPORT_DEBETORS} = $Dv->{TOTAL};
+  $OUTPUT{REPORT_DEBETORS} = $Dv->{TOTAL} || 0;
 
   #не оплативших 2 и более месяцев -
   $total_debtors = $Dv->report_debetors(
@@ -333,44 +324,46 @@ sub form_main {
 #**********************************************************
 sub reports_tp_change {
 	my ($attr) = @_;
+
+  my %TP_LIST = ();
+  
+  my $list = $Tariffs->list({ MODULE => 'Dv' });
+  foreach my $line (@$list) {
+  	$TP_LIST{$line->[0]}=$line->[1];
+  }
+  
 	
-	print "Content-Type: text/html\n\n";
-	$admin->{debug}=1;
-	my $list = $admin->action_list({ %LIST_PARAMS, COLS_NAME => 1 });
+	my $list = $admin->action_list({ %LIST_PARAMS,
+		   MODULE       => 'Dv',
+		   TYPE         => 3,
+		   CONTRACT_ID  => '_SHOW',
+		   FIO          => '_SHOW',
+		   SHOW_ADDRESS => 1,
+		   COLS_NAME    => 1 
+  });
+
   my $table = $html->table(
     {
       width      => '100%',
-      caption    => "$_PAYMENTS",
+      caption    => "$_TARIF_PLAN - $_CHANGED",
       border     => 1,
-      title      => [],
+      title      => [ "$_CONTRACT_ID", "$_FIO", "$_ADDRESS", "$_FROM $_TARIF_PLAN",  "$_TO $_TARIF_PLAN" ],
       cols_align => [ 'right', 'left', 'right', 'right', 'left', 'left', 'right', 'right', 'left', 'left', 'center:noprint' ],
       qs         => $pages_qs,
-      pages      => $payments->{TOTAL},
-
-      #EXPORT     => ' XML:&xml=1',
-      ID => 'PAYMENTS'
+      pages      => $admin->{TOTAL},
+      EXPORT     => ' XML:&xml=1',
+      ID         => 'TP_CHANGE'
     }
   );
 
-  my $pages_qs .= "&subf=2" if (!$FORM{subf});
-  foreach my $payment (@$payments_list) {
-    my $delete = ($permissions{1}{2}) ? $html->button($_DEL, "index=2&del=$payment->{id}&UID=$payment->{uid}$pages_qs", { MESSAGE => "$_DEL [$payment->{id}] ?", CLASS => 'del' }) : '';
-
-    my @rows = (
-      $html->b($payment->{id}),
-      $html->button($payment->{login}, "index=15&UID=$payment->{uid}"),
-      $payment->{date}, $payment->{dsc} . (($payment->{inner_describe}) ? $html->br() . $html->b($payment->{inner_describe}) : ''),
-      $payment->{sum}, "$payment->{last_deposit}", $PAYMENTS_METHODS{ $payment->{method} },
-      "$payment->{ext_id}", ($conf{EXT_BILL_ACCOUNT} && $attr->{USER_INFO}) ? $BILL_ACCOUNTS{ $payment->{bill_id} } : "$payment->{bill_id}",
-      "$payment->{admin_name}", "$payment->{ip}"
+  foreach my $line (@$list) {
+    my ($from_tp, $to_tp)=split(/->/, $line->{actions});
+    $table->addrow($line->{contract_id},
+    $line->{fio},
+    $line->{address_full},
+    $from_tp,
+    $to_tp
     );
-
-    if ($conf{SYSTEM_CURRENCY}) {
-      push @rows, $payment->{amount}, $payment->{currency};
-    }
-
-    push @rows, $delete;
-    $table->addrow(@rows);
   }
 
   print $table->show();

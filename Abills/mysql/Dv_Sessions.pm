@@ -251,7 +251,10 @@ sub online {
     TP_BILLS_PRIORITY => 'tp.bills_priority',
     TP_CREDIT         => 'tp.credit AS tp_credit',
     NAS_NAME          => 'nas.name',
-    GUEST_MODE        => 'c.guest'
+    GUEST_MODE        => 'c.guest',
+    PAYMENT_METHOD    => 'tp.payment_type',
+    EXPIRED           => "if(u.expire>'0000-00-00' AND u.expire < curdate(), 1, 0) AS expired",
+    EXPIRE            => 'u.expire'
   );
 
   my @RES_FIELDS = ($attr->{FIELDS_NAMES}) ? () : (0, 1, 2, 3, 4, 5, 6, 7, 8);
@@ -287,7 +290,7 @@ sub online {
     $RES_FIELDS_COUNT = 0;
     foreach my $field (@{ $attr->{FIELDS_NAMES} }) {
       $fields .= "$FIELDS_NAMES_HASH{$field},\n ";
-      if ($field =~ /TP_BILLS_PRIORITY|TP_NAME|FILTER_ID|TP_CREDIT/ && $EXT_TABLE !~ /tarif_plans/) {
+      if ($field =~ /TP_BILLS_PRIORITY|TP_NAME|FILTER_ID|TP_CREDIT|PAYMENT_METHOD/ && $EXT_TABLE !~ /tarif_plans/) {
         $EXT_TABLE .= "LEFT JOIN tarif_plans tp ON (tp.id=dv.tp_id AND tp.module='Dv')";
       }
       elsif ($field =~ /NAS_NAME/ && $EXT_TABLE !~ / nas /) {
@@ -372,7 +375,7 @@ sub online {
   }
 
   if (defined($attr->{FRAMED_IP_ADDRESS})) {
-    push @WHERE_RULES, "framed_ip_address=INET_ATON('$attr->{FRAMED_IP_ADDRESS}')";
+    push @WHERE_RULES, "c.framed_ip_address=INET_ATON('$attr->{FRAMED_IP_ADDRESS}')";
   }
 
   if ($attr->{TP_ID}) {

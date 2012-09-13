@@ -447,6 +447,38 @@ sub action_list {
   @WHERE_RULES = ();
   $WHERE       = '';
 
+  push @WHERE_RULES, @{ $self->search_expr_users({ %$attr, 
+  	                         EXT_FIELDS => [
+  	                                        'PHONE',
+  	                                        'EMAIL',
+  	                                        'FIO',
+  	                                        'ADDRESS_FLAT',
+  	                                        'PASPORT_DATE',
+                                            'PASPORT_NUM', 
+                                            'PASPORT_GRANT',
+                                            'CITY', 
+                                            'ZIP',
+                                            'GID',
+                                            'CONTRACT_ID',
+                                            'CONTRACT_SUFIX',
+                                            'CONTRACT_DATE',
+                                            'EXPIRE',
+
+                                            'CREDIT',
+                                            'CREDIT_DATE', 
+                                            'REDUCTION',
+                                            'REGISTRATION',
+                                            'REDUCTION_DATE',
+                                            'COMMENTS',
+                                            'BILL_ID',
+                                            
+                                            'ACTIVATE',
+                                            'EXPIRE',
+                                            'DEPOSIT:skip'
+
+  	                                         ] }) };
+
+
   # UID
   if ($attr->{UID}) {
     push @WHERE_RULES, "aa.uid='$attr->{UID}'";
@@ -498,16 +530,25 @@ sub action_list {
     push @WHERE_RULES, "($users_gid (a.gid IN ($attr->{GIDS}) $system_admins))";
   }
 
+  my $EXT_TABLE = $self->{EXT_TABLES}; 
+
   $WHERE = "WHERE " . join(' and ', @WHERE_RULES) if ($#WHERE_RULES > -1);
 
+  if ($self->{SEARCH_FIELDS} =~ /pi\./) {
+  	$EXT_TABLE = " LEFT JOIN users_pi pi ON (u.uid=pi.uid) ".$EXT_TABLE ;
+  }
+
   $self->query(
-    $db, "select aa.id, u.id, aa.datetime, aa.actions, a.id, INET_NTOA(aa.ip), aa.module, 
+    $db, "select aa.id, u.id AS login, aa.datetime, aa.actions, a.id as admin_login, INET_NTOA(aa.ip) AS ip,   aa.module, 
       aa.action_type,
-      aa.uid, aa.aid, aa.id
+      aa.uid, 
+      $self->{SEARCH_FIELDS}
+      aa.aid
    FROM admin_actions aa
       LEFT JOIN admins a ON (aa.aid=a.aid)
       LEFT JOIN users u ON (aa.uid=u.uid)
-      $WHERE ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;",
+      $EXT_TABLE
+   $WHERE ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;",
    undef,
    $attr
   );

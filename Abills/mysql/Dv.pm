@@ -645,7 +645,7 @@ sub list {
 
   if ($self->{TOTAL} >= 0 && !$attr->{SKIP_TOTAL}) {
     $self->query(
-      $db, "SELECT count(u.id) FROM (users u, dv_main dv) 
+      $db, "SELECT count( DISTINCT u.id) FROM (users u, dv_main dv) 
     LEFT JOIN users_pi pi ON (u.uid = pi.uid)
     LEFT JOIN tarif_plans tp ON (tp.id=dv.tp_id)
     LEFT JOIN companies company ON  (u.company_id=company.id) 
@@ -773,7 +773,8 @@ sub report_debetors {
     LEFT JOIN companies company ON  (u.company_id=company.id) 
     LEFT JOIN bills cb ON  (company.bill_id=cb.id)
     $EXT_TABLE
-    WHERE if(u.company_id > 0, cb.deposit, b.deposit) < 0 - tp.month_fee*$attr->{PERIOD}"
+    WHERE if(u.company_id > 0, cb.deposit, b.deposit) < 0 - tp.month_fee*$attr->{PERIOD}
+    $WHERE"    
     );
     ($self->{TOTAL}) = @{ $self->{list}->[0] };
   }

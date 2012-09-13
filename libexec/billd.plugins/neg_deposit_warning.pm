@@ -37,7 +37,8 @@ sub neg_deposit_warning {
                         'STARTED' ,
                         'CID',
                         'DEPOSIT',
-                        'CREDIT'
+                        'CREDIT',
+                        'PAYMENT_METHOD'
                       ],
       FILTER       => "<0",                
       FILTER_FIELD => '20',
@@ -48,8 +49,8 @@ sub neg_deposit_warning {
   #my $online      = $sessions->{nas_sorted};
 
   foreach my $info (@{ $sessions->{list} }) {
-    print "Login: $info->{user_name} IP: $info->{ip} DEPOSIT: $info->{deposit} CREDIT: $info->{credit}\n";
-    if ($info->{deposit} + $info->{credit} < 0) {
+  print "Login: $info->{user_name} IP: $info->{ip} DEPOSIT: $info->{deposit} CREDIT: $info->{credit}\n" if ($debug);
+    if ($info->{deposit} + $info->{credit} <= 0 && $info->{payment_type} == 0) {
     	mk_redirect({ IP => $info->{ip} });
     }
   }
@@ -69,7 +70,9 @@ sub mk_redirect {
 		$cmd =~ s/IP/$attr->{IP}/g;
 	}
 	elsif ($OS eq 'FreeBSD') {
-		$cmd = "/usr/local/bin/sudo /usr/sbin/ipfw table 32 add $attr->{IP}";
+		$cmd = "/usr/local/bin/sudo /sbin/ipfw table 32 add $attr->{IP}";
+		#/usr/local/bin/sudo /sbin/ipfw table 10 delete $attr->{IP};
+		#/usr/local/bin/sudo /sbin/ipfw table 11 delete $attr->{IP};";
 	}
 	elsif($OS eq 'Linux') {
 		

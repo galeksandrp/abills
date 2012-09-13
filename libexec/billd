@@ -144,6 +144,8 @@ if ($ARGV->{NAS_IDS}) {
 
 $LIST_PARAMS{TYPE}      = $ARGV->{NAS_TYPES} || undef;
 $LIST_PARAMS{USER_NAME} = $ARGV->{LOGINS};
+$LIST_PARAMS{TP_ID}     = $ARGV->{TP_IDS};
+$LIST_PARAMS{GID}       = $ARGV->{GIDS};
 $LIST_PARAMS{PAGE_ROWS} = 100000;
 $LIST_PARAMS{DISABLE}   = 0;
 my %NAS = ();
@@ -223,7 +225,9 @@ sub check_lines {
         'TP_BILLS_PRIORITY',
         'GUEST_MODE',
         'CID',
-        'TP_CREDIT'
+        'TP_CREDIT',
+        'EXPIRED',
+        'EXPIRE'
       ]
     }
   );
@@ -271,6 +275,10 @@ sub check_lines {
           && $online->{status} != 2
       ){
       	session_hangup(\%NAS, $online, "Change TP $online->{calls_tp_id} -> $online->{tp_num} DEPOSIT: $online->{deposit} CREDIT: $online->{credit} SESSION_SUM: $online->{session_sum} STATUS: $state SESSION_ID: $online->{acct_session_id} GUEST: $online->{guest}");
+        next;
+      }
+      elsif ($online->{expired}) {
+      	session_hangup(\%NAS, $online, "Expired $online->{expire} DEPOSIT: $online->{deposit} CREDIT: $online->{credit} SESSION_SUM: $online->{session_sum} STATUS: $state SESSION_ID: $online->{acct_session_id} GUEST: $online->{guest}");
         next;
       }
 
