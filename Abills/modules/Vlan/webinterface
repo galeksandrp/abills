@@ -423,7 +423,7 @@ sub vlan_create {
       {
         DISABLE    => 0,
         PAGE_ROWS  => 100000,
-        NAS_ID     => $line->[0],
+        NAS_ID     => $NAS_ID,
         SORT       => 5,
         VLAN_GROUP => "vlan.vlan_id, vlan.unnumbered_ip",
         LOGIN      => ($attr->{LOGIN}) ? $attr->{LOGIN} : undef
@@ -440,9 +440,8 @@ sub vlan_create {
         PARENT_IF    => $parent_interface
       }
     );
-
+    my $if_created = 0;
     foreach my $line (@$vlan_list) {
-
       #Port
       $debug_output .= "$line->[0]: VLAN ID: $line->[4] IP: $line->[11]/$line->[12] NETMASK: $line->[6]" . " USER IPs: $line->[6] DHCP: $line->[8] PPPoE: $line->[9] UNNUMBERED_IP: \n" if ($debug > 2);
 
@@ -499,6 +498,7 @@ sub vlan_create {
         }
       }
 
+      # if not exists create it
       if (!$vlans_info->{ $INFO{VLAN_ID} }) {
         push @commands, tpl_parse($conf{VLAN_IF_CREATE}, \%INFO);
 
@@ -543,6 +543,7 @@ sub vlan_create {
       elsif ($INFO{UNNUMBERED_IP}) {
         push @commands, tpl_parse($conf{VLAN_IF_IP}, \%INFO);
         $debug_output .= "Vlan ID: $INFO{VLAN_ID} IP: $INFO{VLAN_IF_IP} Changed\n" if ($debug > 0);
+        #delete $vlans_info->{ $INFO{VLAN_ID} };
       }
       else {
         delete $vlans_info->{ $INFO{VLAN_ID} };

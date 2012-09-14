@@ -543,6 +543,7 @@ sub dv_user {
         return 0;
       }
     }
+    
     $Dv->change({%FORM});
 
     if ($FORM{STATUS} == 0) {
@@ -756,7 +757,7 @@ sub dv_user {
   $Dv->{STATUS_SEL} = $html->form_select(
     'STATUS',
     {
-      SELECTED => $Dv->{STATUS} || $FORM{STATUS},
+      SELECTED     => $Dv->{STATUS} || $FORM{STATUS},
       SEL_ARRAY    => \@service_status,
       STYLE        => \@service_status_colors,
       ARRAY_NUM_ID => 1

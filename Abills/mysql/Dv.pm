@@ -80,7 +80,7 @@ sub info {
    dv.speed, 
    dv.filter_id, 
    dv.cid,
-   dv.disable,
+   dv.disable as status,
    dv.callback,
    dv.port,
    tp.gid AS tp_gid,
