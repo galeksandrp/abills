@@ -2720,17 +2720,17 @@ sub ipn_start_active {
   $Dv->{debug} = 1 if ($debug > 5);
   my $dv_list = $Dv->list(
     {
+      %LIST_PARAMS,
       ACTIVATE      => "<=$DATE",
       EXPIRE        => "0000-00-00,>$DATE",
       IP            => '>' . (($conf{IPN_DHCP_ACTIVE}) ? '=' : '') . '0.0.0.0',
       STATUS        => 0,
       LOGIN_STATUS  => 0,
       ALL_FILTER_ID => '*',
-      PAGE_ROWS     => 1000000,
       PORT          => '>=0',
       TP_CREDIT     => '>=0',
       COLS_NAME     => 1,
-      %LIST_PARAMS
+      PAGE_ROWS     => 1000000,
     }
   );
 
