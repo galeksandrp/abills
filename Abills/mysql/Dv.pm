@@ -71,7 +71,8 @@ sub info {
   $admin->{DOMAIN_ID} = 0 if (!defined($admin->{DOMAIN_ID}));
 
   $self->query(
-    $db, "SELECT dv.uid, dv.tp_id, 
+    $db, "SELECT dv.uid, 
+   dv.tp_id, 
    tp.name AS tp_name, 
    dv.logins, 
    INET_NTOA(dv.ip) AS ip, 
@@ -99,7 +100,9 @@ sub info {
    tp.filter_id AS tp_filter_id
      FROM dv_main dv
      LEFT JOIN tarif_plans tp ON (dv.tp_id=tp.id and tp.domain_id='$admin->{DOMAIN_ID}')
-   $WHERE;"
+   $WHERE;",
+   undef,
+   { INFO => 1 }
   );
 
   if ($self->{TOTAL} < 1) {
@@ -107,36 +110,6 @@ sub info {
     $self->{errstr} = 'ERROR_NOT_EXIST';
     return $self;
   }
-
-  (
-    $self->{UID},
-    $self->{TP_ID},
-    $self->{TP_NAME},
-    $self->{SIMULTANEONSLY},
-    $self->{IP},
-    $self->{NETMASK},
-    $self->{SPEED},
-    $self->{FILTER_ID},
-    $self->{CID},
-    $self->{STATUS},
-    $self->{CALLBACK},
-    $self->{PORT},
-    $self->{TP_GID},
-    $self->{MONTH_ABON},
-    $self->{DAY_ABON},
-    $self->{POSTPAID_ABON},
-    $self->{PAYMENT_TYPE},
-    $self->{JOIN_SERVICE},
-    $self->{TURBO_MODE},
-    $self->{FREE_TURBO_MODE},
-    $self->{ABON_DISTRIBUTION},
-    $self->{TP_CREDIT},
-    $self->{TP_NUM},
-    $self->{TP_PRIORITY},
-    $self->{TP_ACTIVATION_PRICE},
-    $self->{TP_AGE},
-    $self->{TP_FILTER_ID}
-  ) = @{ $self->{list}->[0] };
 
   return $self;
 }

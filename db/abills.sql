@@ -765,6 +765,7 @@ CREATE TABLE `payments` (
 ) COMMENT "Payments log"  ;
 
 
+
 CREATE TABLE `docs_receipts` (
   `id` int(11) unsigned NOT NULL auto_increment,
   `date` date NOT NULL default '0000-00-00',

@@ -5079,55 +5079,6 @@ sub report_fees_month {
 }
 
 
-#**********************************************************
-#
-#**********************************************************
-sub report_wizard_config {
-  my ($attr) = @_;
-
-  #use Reports;
-  #my $Reports = Reports->new($db, $admin, \%conf);
-
-if ($FORM{add}) {
-	
-}
-elsif ($FORM{change}) {
-	
-}
-elsif ($FORM{chg}) {
-	
-}
-elsif ($FORM{del}) {
-	
-}
-
-$html->tpl_show(templates('form_report_wizards_conf'), { %FORM, %$attr } 
-             );
-
-  
-}
-
-
-#**********************************************************
-#
-#**********************************************************
-sub report_wizard {
-  my ($attr) = @_;
-
-  #use Reports;
-  #my $Reports = Reports->new($db, $admin, \%conf);
-
-if ($FORM{REPORT}) {
-
-
-  return 0;	
-}
-
-
-
-
-  
-}
 
 #**********************************************************
 #
@@ -5636,9 +5587,8 @@ sub fl {
     "2:0:$_PAYMENTS:form_payments:::",
     "3:0:$_FEES:form_fees:::",
     "4:0:$_REPORTS:null:::",
-    "41:4:$_REPORTS_WIZARD:report_wizard:::",
     "42:4:$_PAYMENTS:report_payments:::",
-    "43:41:$_MONTH:report_payments_month:::",
+    "43:42:$_MONTH:report_payments_month:::",
     "44:4:$_FEES:report_fees:::",
     "45:44:$_MONTH:report_fees_month:::",
 
@@ -5650,7 +5600,7 @@ sub fl {
     "64:61:$_GROUPS:form_nas_groups:::",
     "65:5:$_EXCHANGE_RATE:form_exchange_rate:::",
     "66:5:$_LOG:form_changes:::",
-    "67:5:$_REPORTS_WIZARD:report_wizard_conf:::",
+    
 
     # "68:5:$_LOCATIONS:form_districts:::",
     # "69:68:$_STREETS:form_streets::",
