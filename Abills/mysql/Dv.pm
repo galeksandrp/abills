@@ -92,7 +92,7 @@ sub info {
    dv.turbo_mode,
    dv.free_turbo_mode,
    tp.abon_distribution,
-   tp.credit AS tp_filter,
+   tp.credit AS tp_credit,
    tp.tp_id AS tp_num,
    tp.priority AS tp_priority,
    tp.activate_price AS tp_activate_price,
