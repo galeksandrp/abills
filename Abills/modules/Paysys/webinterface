@@ -2465,7 +2465,16 @@ sub paysys_payonline() {
 }
 
 
+#**********************************************************
+#
+#**********************************************************
+sub paysys_yandex () {
+  require "modules/Paysys/Yandex.pm";	
 
+print "Content-Type: text/html\n\n";
+
+   print web_request();
+}
 
 1
 

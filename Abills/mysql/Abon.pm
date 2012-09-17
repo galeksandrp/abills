@@ -91,9 +91,13 @@ sub tariff_info {
    ext_cmd,
    activate_notification,
    vat,
-   discount   
+   discount,
+   manual_activate,
+   user_portal
      FROM abon_tariffs
-   $WHERE;"
+   $WHERE;",
+   undef,
+   { INFO => 1 }
   );
 
   if ($self->{TOTAL} < 1) {
@@ -101,11 +105,6 @@ sub tariff_info {
     $self->{errstr} = 'ERROR_NOT_EXIST';
     return $self;
   }
-
-  (
-    $self->{NAME},      $self->{PERIOD},        $self->{SUM},           $self->{PAYMENT_TYPE},         $self->{PERIOD_ALIGNMENT}, $self->{NONFIX_PERIOD}, $self->{EXT_BILL_ACCOUNT}, $self->{ABON_ID},               $self->{PRIORITY}, $self->{CREATE_ACCOUNT},
-    $self->{FEES_TYPE}, $self->{NOTIFICATION1}, $self->{NOTIFICATION2}, $self->{NOTIFICATION_ACCOUNT}, $self->{ALERT},            $self->{ALERT_ACCOUNT}, $self->{EXT_CMD},          $self->{ACTIVATE_NOTIFICATION}, $self->{VAT},      $self->{DISCOUNT}
-  ) = @{ $self->{list}->[0] };
 
   return $self;
 }
@@ -135,27 +134,8 @@ sub tariff_add {
   my ($attr) = @_;
 
   %DATA = $self->get_data($attr);
-
-  $self->query(
-    $db, "INSERT INTO abon_tariffs (id, name, period, price, payment_type, period_alignment, nonfix_period, ext_bill_account,
-         priority, create_account, 
-           fees_type,
-  notification1,
-  notification2,
-  notification_account,
-  alert_account,
-  ext_cmd, activate_notification, vat, discount)
-        VALUES ('$DATA{ID}', '$DATA{NAME}', '$DATA{PERIOD}', '$DATA{SUM}', '$DATA{PAYMENT_TYPE}', '$DATA{PERIOD_ALIGNMENT}',
-        '$DATA{NONFIX_PERIOD}', '$DATA{EXT_BILL_ACCOUNT}',
-        '$DATA{PRIORITY}', '$DATA{CREATE_ACCOUNT}',
-        '$DATA{FEES_TYPE}', 
-        '$DATA{NOTIFICATION1}', 
-        '$DATA{NOTIFICATION2}', 
-        '$DATA{NOTIFICATION_ACCOUNT}', 
-        '$DATA{ALERT_ACCOUNT}',
-        '$DATA{EXT_CMD}', '$DATA{ACTIVATE_NOTIFICATION}', '$DATA{VAT}',
-        '$DATA{DISCOUNT}');", 'do'
-  );
+   
+  $self->query_add($db, 'abon_tariffs', \%DATA);
 
   return $self if ($self->{errno});
   $admin->system_action_add("ABON_ID:$DATA{ID}", { TYPE => 1 });
@@ -169,30 +149,6 @@ sub tariff_change {
   my $self = shift;
   my ($attr) = @_;
 
-  my %FIELDS = (
-    ABON_ID               => 'id',
-    NAME                  => 'name',
-    PERIOD                => 'period',
-    SUM                   => 'price',
-    PAYMENT_TYPE          => 'payment_type',
-    PERIOD_ALIGNMENT      => 'period_alignment',
-    NONFIX_PERIOD         => 'nonfix_period',
-    EXT_BILL_ACCOUNT      => 'ext_bill_account',
-    PRIORITY              => 'priority',
-    CREATE_ACCOUNT        => 'create_account',
-    FEES_TYPE             => 'fees_type',
-    NOTIFICATION1         => 'notification1',
-    NOTIFICATION2         => 'notification2',
-    NOTIFICATION_ACCOUNT  => 'notification_account',
-    ALERT                 => 'alert',
-    ALERT_ACCOUNT         => 'alert_account',
-    EXT_CMD               => 'ext_cmd',
-    ACTIVATE_NOTIFICATION => 'activate_notification',
-    VAT                   => 'vat',
-    NONFIX_PERIOD         => 'nonfix_period',
-    DISCOUNT              => 'discount'
-  );
-
   $attr->{CREATE_ACCOUNT}        = 0 if (!$attr->{CREATE_ACCOUNT});
   $attr->{FEES_TYPE}             = 0 if (!$attr->{FEES_TYPE});
   $attr->{NOTIFICATION_ACCOUNT}  = 0 if (!$attr->{NOTIFICATION_ACCOUNT});
@@ -204,15 +160,17 @@ sub tariff_change {
   $attr->{NONFIX_PERIOD}         = 0 if (!$attr->{NONFIX_PERIOD});
   $attr->{DISCOUNT}              = 0 if (!$attr->{DISCOUNT});
   $attr->{EXT_BILL_ACCOUNT}      = 0 if (!$attr->{EXT_BILL_ACCOUNT});
+  $attr->{USER_PORTAL}           = 0 if (!$attr->{USER_PORTAL});
+  $attr->{MANUAL_ACTIVATE}       = 0 if (!$attr->{MANUAL_ACTIVATE});
 
+  $attr->{ID}=$attr->{ABON_ID};
 
+  $self->{debug}=1;
   $self->changes(
     $admin,
     {
-      CHANGE_PARAM    => 'ABON_ID',
+      CHANGE_PARAM    => 'ID',
       TABLE           => 'abon_tariffs',
-      FIELDS          => \%FIELDS,
-      OLD_INFO        => $self->tariff_info($attr->{ABON_ID}),
       DATA            => $attr,
       EXT_CHANGE_INFO => "ABON_ID:$attr->{ABON_ID}"
     }
@@ -258,14 +216,16 @@ sub tariff_list {
     $db, "SELECT name, price, period, payment_type, 
      priority,
      period_alignment,
-     count(ul.uid),
-     abon_tariffs.id,
+     count(ul.uid) AS user_count,
+     abon_tariffs.id AS tp_id,
      fees_type,
      create_account,
      ext_cmd,
      activate_notification,
      vat,
-     abon_tariffs.discount
+     abon_tariffs.discount,
+     manual_activate,
+     user_portal
      FROM abon_tariffs
      LEFT JOIN abon_user_list ul ON (abon_tariffs.id=ul.tp_id)
      $WHERE
@@ -402,7 +362,7 @@ sub user_tariff_list {
           )
         )
        ),      
-      if (at.period = 0, ul.date+ INTERVAL 1 DAY, 
+      \@next_abon := if (at.period = 0, ul.date+ INTERVAL 1 DAY, 
        if (at.period = 1, DATE_FORMAT(ul.date + INTERVAL 1 MONTH, '%Y-%m-01'), 
          if (at.period = 2, CONCAT(YEAR(ul.date + INTERVAL 3 MONTH), '-' ,(QUARTER((ul.date + INTERVAL 3 MONTH))*3-2), '-01'), 
            if (at.period = 3, CONCAT(YEAR(ul.date + INTERVAL 6 MONTH), '-', if(MONTH(ul.date + INTERVAL 6 MONTH) > 6, '06', '01'), '-01'), 
@@ -420,7 +380,9 @@ sub user_tariff_list {
    ul.notification1_account_id,
    ul.notification2,
    ul.create_docs,
-   ul.send_docs
+   ul.send_docs,
+   at.manual_activate,
+   if (\@next_abon < curdate(), 1, 0) AS missing
      FROM abon_tariffs at
      LEFT JOIN abon_user_list ul ON (at.id=ul.tp_id and ul.uid='$uid')
      GROUP BY at.id
@@ -455,9 +417,16 @@ sub user_tariff_change {
   	  service_count='$attr->{SERVICE_COUNT}'
   	  WHERE uid='$attr->{UID}' AND tp_id='$attr->{TP_ID}';
   	  ", 'do');
-  $admin->action_add($attr->{UID}, "ADD: $abon_add DEL: $abon_del", { TYPE => 3 });
-  return $self;
 
+    $admin->action_add($attr->{UID}, "ADD: $abon_add DEL: $abon_del", { TYPE => 3 });
+    return $self;
+  }
+  elsif($attr->{ACTIVATE}) {
+  	$self->query($db, "UPDATE abon_user_list SET 
+  	  date='$attr->{ABON_DATE}'
+  	  WHERE uid='$attr->{UID}' AND tp_id='$attr->{ACTIVATE}';
+  	  ", 'do');  	
+  	return 0;
   }
   elsif ($attr->{DEL}) {
     $self->query($db, "DELETE from abon_user_list WHERE uid='$attr->{UID}' AND tp_id IN ($attr->{DEL});", 'do');

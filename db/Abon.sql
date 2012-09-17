@@ -20,6 +20,8 @@ CREATE TABLE `abon_tariffs` (
   `alert_account` tinyint(1) unsigned NOT NULL DEFAULT '0',
   `ext_cmd` VARCHAR(240) NOT NULL DEFAULT '' ,
   `discount` tinyint(1) unsigned NOT NULL default '0',
+  `manual_activate` tinyint(1) NOT NULL default 0,
+  `user_portal` tinyint(1) NOT NULL default 0,
   PRIMARY KEY  (`id`),
   UNIQUE KEY `id` (`id`),
   UNIQUE KEY `name` (`name`)
