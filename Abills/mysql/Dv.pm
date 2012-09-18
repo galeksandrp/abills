@@ -74,7 +74,7 @@ sub info {
     $db, "SELECT dv.uid, 
    dv.tp_id, 
    tp.name AS tp_name, 
-   dv.logins, 
+   dv.logins as SIMULTANEONSLY, 
    INET_NTOA(dv.ip) AS ip, 
    INET_NTOA(dv.netmask) AS netmask, 
    dv.speed, 

@@ -1,18 +1,61 @@
 =====0.55=====
+
+17.09.2012 \\
+
+  * ''Ureports'' $conf{UREPORTS_SKIP_ACTIVATE_SMS}=1;  не отправлять SMS при активации и изменении данных услуги
+  * ''Cards'' В интерфейсе дилера добавлена печать отдельных карточек списка 
+  * ''Voip'' Добавлены фильтры оповещения о негативном депозите и маленьком депозите перед разговором, лимит оповещения устанавливается в ТП
+  * ''Dv'' Изменены названия шаблонов памятки абонента  dv_user_info на dv_user_memo
+  * ''Marketing'' Добавлен расширенный отчёт **IP/DHCP**
+  * ''Paysys'' Добавлена опция указывающая суму минимальной оплаты для платежей через портал $conf{PAYSYS_MIN_SUM}=0;
+  * Добавлена детализация выполнены расписаний
+  * ''Ipn'' Добавлены фильтр активации и переинициализации сессий: LOGINS, GIDS, TP_IDS
+  * ''Dv'' Добавлены возможность периодически выводить сообщение о необходимости пополнить депозит для абонентов с негативным депозитом 
+  * ''Abon'' Ручная активация простроченных услуг 
+  * Включение дополнительных услуг в аккаунте абонента
+
+MySQL:\\
+
+   ALTER TABLE `voip_main` ADD COLUMN  `filter_id` varchar(150) NOT NULL default '';
+   ALTER TABLE `abon_tariffs` ADD COLUMN  `manual_activate` tinyint(1) NOT NULL default 0;
+   ALTER TABLE `abon_tariffs` ADD COLUMN  `user_portal` tinyint(1) NOT NULL default 0;
+   CREATE TABLE reports_wizard (
+     id int(11) unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY,
+     name varchar(100) not null default '',
+     comments text not null default '',
+     query text not null default '',
+     query_total text not null default '',
+     fields text not null default '',
+     date date not null default '0000-00-00',
+     aid smallint(11) unsigned NOT NULL default 0,
+     unique (name)
+   ) COMMENT 'Reports Wizard';
+
+
+
+06.08.2012 \\
+  * Добавлена возможность отключать отображение депозита для администратора 
+  * ''Snmputils'' Добавлена поддержка управления портами HP, Cisco  коммутаторов
+  * Добавлен мульти поиск при введении данные в правом верхнем углу система ищет по Логину, ФИО, Номеру контракта, Адресу, Номеру паспорта, UID, Email, кометарию. Система выделяет цветом найденные соответствия поиска.
+  * ''Dv'' Добавлен отчёт по Тарифным планам
+  * При добавлении абонента можно внести номер дома и если он не существует в системе его будет добавлено
+  * ''Sms'' Добавлены службы рассылки СМС: EpochtaSMS, LittleSMS
+  * ''Maps'' Добавлены колодцы, зоны покрытия 
+
+
 20.07.2012\\
 
   * ''Dv'' Добавлено разделение груп тарифных планов цветами
   * ''Dv'' $conf{DV_CURDATE_ACTIVATE}=1; Активировать приостановленный за неуплату сервис текущей датой. по умолчанию сервис 
 активируется следующей учётной датой. 
   * ''Docs'' Привязка оплат к счетам с возможностью привязывать одну оплату к нескольким счетам или один счет к нескольким оплатам.
-  * ''Dhcphosts'' Добавлен Server Vlan  для авторизации q2q
+  * ''Dhcphosts'' Добавлен Server Vlan  для авторизации q-in-q
 
 
 
 MySQL: \\
 
   ALTER TABLE payments ADD COLUMN `reg_date` datetime NOT NULL default '0000-00-00 00:00:00';
-  DROP TABLE IF EXISTS docs_invoice2payments;
   CREATE TABLE docs_invoice2payments (
   `invoice_id` int(11) unsigned NOT NULL default 0,
   `payment_id` int(11) unsigned NOT NULL default 0,
@@ -22,10 +65,6 @@ MySQL: \\
   FOREIGN KEY (invoice_id) REFERENCES docs_invoices(id)
   ) COMMENT='Docs Invoice to payments' ;
   REPLACE INTO docs_invoice2payments (SELECT i.id, i.payment_id, p.sum FROM docs_invoices i, payments p WHERE i.payment_id=p.id);
-  
-  ALTER TABLE docs_receipts ADD FOREIGN KEY (payment_id) REFERENCES payments(id);
-  ALTER TABLE docs_receipt_orders ADD FOREIGN KEY (receipt_id) REFERENCES docs_receipts(id);
-  ALTER TABLE docs_invoice_orders ADD FOREIGN KEY (invoice_id) REFERENCES docs_invoices(id);
   
   create table id (id int not null default 0);
   
@@ -37,6 +76,10 @@ MySQL: \\
   INSERT INTO id SELECT ro.receipt_id from docs_receipt_orders ro LEFT JOIN docs_receipts r ON (r.id=ro.receipt_id) WHERE ro.receipt_id IS null;
   DELETE from docs_receipt_orders  WHERE receipt_id in (SELECT id from id);
   
+  ALTER TABLE docs_receipts ADD FOREIGN KEY (payment_id) REFERENCES payments(id);
+  ALTER TABLE docs_receipt_orders ADD FOREIGN KEY (receipt_id) REFERENCES docs_receipts(id);
+  ALTER TABLE docs_invoice_orders ADD FOREIGN KEY (invoice_id) REFERENCES docs_invoices(id);
+   
   ALTER TABLE `dhcphosts_hosts` ADD COLUMN `server_vid` smallint(6) unsigned NOT NULL default '0';
 
 
