@@ -1141,6 +1141,12 @@ sub dhcphosts_config {
 
   my %INFO     = ();
   my %NAS_MACS = ();
+  
+  my $xml_output = 0;
+  if ($FORM{xml}) {
+  	$FORM{xml}  = undef;
+  	$xml_output = 1;
+  }
 
   # Nas CSI
   my $nas_list = $Nas->list();
@@ -1403,6 +1409,9 @@ $net_content";
         }
       );
     }
+  }
+  if ($xml_output) {
+    $FORM{xml}=1;
   }
 }
 

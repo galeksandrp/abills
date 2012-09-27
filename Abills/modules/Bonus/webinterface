@@ -10,6 +10,8 @@ my $Fees     = Fees->new($db, $admin, \%conf);
 my $Payments = Payments->new($db, $admin, \%conf);
 my $Tariffs  = Tariffs->new($db, \%conf, $admin);
 
+my @status = ("$_DISABLE", "$_ENABLE");
+
 #*******************************************************************
 # bonus user log
 #*******************************************************************
@@ -462,6 +464,11 @@ sub bonus_user {
     }
   }
   elsif ($FORM{change}) {
+  	if ($user->{UID}) {
+  		%FORM       = ();
+  		$FORM{STATE}= 0;
+  		$FORM{UID}  = $user->{UID};
+  	}
     $Bonus->user_change({%FORM});
 
     if (!$Bonus->{errno}) {
@@ -481,21 +488,23 @@ sub bonus_user {
   }
 
   $Bonus->user_info($FORM{UID});
-  $Bonus->{STATE} = $html->form_input('STATE', '1', { STATE => $Bonus->{STATE}, TYPE => 'checkbox', OUTPUT2RETURN => 1 });
 
 
 
   if ($Bonus->{TOTAL} < 1) {
     $Bonus->{ACTION}      = $html->form_input('add', "$_REGISTRATION", { TYPE => 'submit', OUTPUT2RETURN => 1 });
     $Bonus->{ACCEPT_RULES}= $html->form_input('ACCEPT_RULES', '1', { STATE => $Bonus->{ACCEPT_RULES}, TYPE => 'checkbox', OUTPUT2RETURN => 1 });
+    $Bonus->{STATE} = $html->form_input('STATE', '1', { STATE => $Bonus->{STATE}, TYPE => 'checkbox', OUTPUT2RETURN => 1 });
+
   }
   elsif (! $user->{UID}) {
     $Bonus->{ACTION}      = $html->form_input('change', "$_CHANGE", { TYPE => 'submit' });
     $Bonus->{ACCEPT_RULES}= $html->form_input('ACCEPT_RULES', '1', { STATE => $Bonus->{ACCEPT_RULES}, TYPE => 'checkbox' });
+    $Bonus->{STATE}       = $html->form_input('STATE', '1', { STATE => ($Bonus->{STATE}==1) ? $Bonus->{STATE} : undef, TYPE => 'checkbox', OUTPUT2RETURN => 1 });
   }
   else {
     $Bonus->{ACCEPT_RULES}= $_YES; #$bool_vals[1];
-    $Bonus->{STATE}       = $status[$Bonus->{STATE}];
+    $Bonus->{STATE}       = $status[$Bonus->{STATE}] . '  '. (($Bonus->{STATE}==1) ?  $html->button("$_DISABLE", "index=$index&change=1&STATE=0", { MESSAGE => "$_DISABLE $_BONUS ?", BUTTON => 1 }) : '');
   }
 
   $Bonus->{TARIF_SEL} = $html->form_select(

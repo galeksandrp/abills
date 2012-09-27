@@ -4477,6 +4477,8 @@ sub dv_user_info {
     return 0;
   }
 
+
+
   # Get next payment period
   if (
        $Dv->{MONTH_ABON} > 0

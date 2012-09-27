@@ -506,7 +506,7 @@ sub user_change {
   my $self = shift;
   my ($attr) = @_;
 
-  $attr->{STATE} = ($attr->{STATE}) ? 1 : 0;
+  $attr->{STATE} = ($attr->{STATE}) ? $attr->{STATE} : 0;
   $attr->{ACCEPT_RULES} = ($attr->{ACCEPT_RULES}) ? 1 : 0;
 
   $admin->{MODULE} = $MODULE;
