@@ -2595,7 +2595,7 @@ sub voip_monthly_fees {
 
         $debug_output .= " Login: $user{LOGIN} ($user{UID}) REDUCTION: $user{REDUCTION} DEPOSIT: $u->{deposit} CREDIT $user{CREDIT} ACTIVE: $user{ACTIVATE}\n" if ($debug > 3);
         my %FEES_PARAMS = (
-          DESCRIBE => "Voip: $_MONTH_FEE ($TP_ID)",
+          DESCRIBE => "Voip: $_MONTH_FEE ($TP_INFO->{TP_ID})",
           DATE     => $ADMIN_REPORT{DATE},
           METHOD   => 1
         );

@@ -139,6 +139,7 @@ if ($debug > 0) {
 if ($type != ACCESS_ACCEPT) {
   my $reply = "USER: $rad_attributes{'User-Name'} Call reject";
   $reply .= ($rad_response{'Reply-Message'}) ? " Reply-Message: " . $rad_response{'Reply-Message'} : '';
+  $rad_response{'Filter-Id'} = 'user_disabled' if $context eq 'answer';
 
   syslog('LOG_ERR', $reply);
   foreach my $lang ( split(/,/, $conf{VOIP_ASTERISK_IVR_LANG}) ) {
