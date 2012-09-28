@@ -46,7 +46,8 @@ sub vlan_users_list {
         IP      => 'IP',
         NETMASK => 'NETMASK',
         VLAN_ID => 'VLAN_ID',
-        NAS     => 'NAS_ID'
+        NAS     => 'NAS_ID',
+        UNNUMBERED_IP => 'UNNUMBERED_IP'
       }
     }
   );
@@ -58,9 +59,13 @@ sub vlan_users_list {
     $pages_qs .= "&letter=$FORM{letter}";
   }
 
-  my $list = $Vlan->list({%LIST_PARAMS});
+  my $list = $Vlan->list({UNNUMBERED_IP => '_SHOW',
+  	                      %LIST_PARAMS,   	                      
+  	                      COLS_NAME     => 1 
+  	                     });
 
-  my @TITLE = ($_LOGIN, $_FIO, $_DEPOSIT, $_CREDIT, 'VLAN ID', "$_INTERFACE IP", "IP $_RANGE", "DHCP", "PPPoE", $_STATUS);
+  my @TITLE = ($_LOGIN, $_FIO, $_DEPOSIT, $_CREDIT, 'VLAN ID', "$_INTERFACE IP", 
+    "IP $_RANGE", "DHCP", "PPPoE", $_STATUS);
 
   for (my $i = 0 ; $i < $Vlan->{SEARCH_FIELDS_COUNT} ; $i++) {
     push @TITLE, '-';
@@ -72,7 +77,7 @@ sub vlan_users_list {
     return 0;
   }
   elsif ($Vlan->{TOTAL} == 1) {
-    form_users({ USER => user_info($list->[0]->[ 11 + $Vlan->{SEARCH_FIELDS_COUNT} ]) });
+    form_users({ USER => user_info($list->[0]->{uid}) });
     return 0;
   }
 
@@ -92,22 +97,22 @@ sub vlan_users_list {
   foreach my $line (@$list) {
 
     my @fields_array = ();
-    for (my $i = 0 ; $i < $Vlan->{SEARCH_FIELDS_COUNT} ; $i++) {
-      push @fields_array, $line->[ 7 + $i ];
-    }
+    #for (my $i = 0 ; $i < $Vlan->{SEARCH_FIELDS_COUNT} ; $i++) {
+    #  push @fields_array, $line->{unnumbered_ip};
+    #}
 
     $table->addrow(
-      $html->button("$line->[0]", "index=15&UID=$line->[11+$Vlan->{SEARCH_FIELDS_COUNT}]&MODULE=Vlan"),
-      "$line->[1]",
-      "$line->[2]",
-      "$line->[3]",
-      "$line->[4]",
-      "$line->[5]",
-      "$line->[6]",
-      $bool_vals[ $line->[8] ],
-      $bool_vals[ $line->[9] ],
-      $status[ $line->[7] ]
-
+      $html->button("$line->{login}", "index=15&UID=$line->{uid}&MODULE=Vlan"),
+      "$line->{fio}",
+      "$line->{deposit}",
+      "$line->{credit}",
+      "$line->{vlan_id}",
+      "$line->{ip}",
+      "$line->{ip_range}",
+      $bool_vals[ $line->{disable} ],
+      $bool_vals[ $line->{dhcp} ],
+      $status[ $line->{pppoe} ],
+      $line->{unnumbered_ip}
     );
   }
   print $table->show();
