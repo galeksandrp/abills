@@ -24,6 +24,7 @@ require Abills::Radius;
 Abills::Radius->import();
 
 my $debug = 1;
+my $rad_debug_file = "/usr/abills/var/log/agi_rad.log";
 
 $conf{'VOIP_DEFAULTDIALTIMEOUT'} = 120 if (!$conf{'VOIP_DEFAULTDIALTIMEOUT'});
 
@@ -118,6 +119,23 @@ if (!exists($conf{'NAS_IP_ADDRESS'}) || !exists($conf{'VOIP_NAS_ID'})) {
 my $r;
 my $type = send_radius_request(ACCESS_REQUEST, \%rad_attributes);
 
+
+if ($debug > 0) {
+  $agi->verbose("RAD Pairs:");
+  my $debug_text = "Response $type\n";
+  while (my ($k, $v) = each %rad_response) {
+    $agi->verbose("$k = $v");    
+    $debug_text .=" $data{'caller'} $k = $v\n" if ($debug > 2);
+  }
+
+  # Output to file
+  if ($debug > 2) {
+  	open(VERB_FILE, ">>$rad_debug_file") or $agi->verbose("Can't open file '$rad_debug_file' for debug info $!");
+  	  print VERB_FILE $debug_text;
+  	close(VERB_FILE);
+  }
+}
+
 if ($type != ACCESS_ACCEPT) {
   my $reply = "USER: $rad_attributes{'User-Name'} Call reject";
   $reply .= ($rad_response{'Reply-Message'}) ? " Reply-Message: " . $rad_response{'Reply-Message'} : '';
@@ -172,13 +190,6 @@ if ($data{return_code} != 0 && $data{return_code} != 13) {
 }
 
 #$agi->set_autohangup($data{'session_timeout'}) if $data{'session_timeout'} > 0;
-
-if ($debug > 0) {
-  $agi->verbose("RAD Pairs:");
-  while (my ($k, $v) = each %rad_response) {
-    $agi->verbose("$k = $v");
-  }
-}
 
 #Make calling string
 my $rewrittennumber = $data{'called'};

@@ -1496,7 +1496,15 @@ sub paysys_privatbank {
 
   #SHA1 signature
   #----------------------------
-  use Digest::SHA1;
+  eval { require Digest::SHA1; };
+  if (!$@) {
+    Digest::SHA1->import();
+  }
+  else {
+    print "Content-Type: text/html\n\n" if ($user->{UID});
+    print "Can't load 'Digest::SHA1' check http://www.cpan.org";
+    exit;
+  }
 
   my $ctx = Digest::SHA1->new;
   $ctx->add($conf{PAYSYS_PB_PW} . $conf{PAYSYS_PB_MERID} . '414963' . $info{OPERATION_ID} . $info{AMOUNT} . '980' . $info{AMOUNT2} . '840' . $info{AdditionalData});
@@ -2391,9 +2399,7 @@ sub paysys_payonline() {
     my $payment_type_title = '';
 
     #use Digest::MD5 qw ( md5_hex );
-
     #my $md5 = Digest::MD5->new;
-
     #$md5->add($data);
 
     if ($FORM{PAYMENT_SYSTEM} == 81) {

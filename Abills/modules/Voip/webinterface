@@ -861,9 +861,14 @@ sub voip_tp {
   $Voip_tp->{ACTION}     = 'ADD_TP';
 
   if ($FORM{ADD_TP}) {
-    $Voip->tp_add({%FORM});
-    if (!$Voip->{errno}) {
-      $html->message('info', $_ADDED, "$_ADDED $Voip->{TP_ID}");
+    if (! $FORM{NAME}) {
+      $html->message('err', $_ERROR, $ERR_WRONG_NAME	);
+    }
+    else {	
+      $Voip->tp_add({%FORM});
+      if (!$Voip->{errno}) {
+        $html->message('info', $_ADDED, "$_ADDED $Voip->{TP_ID}");
+      }
     }
   }
   elsif ($FORM{TP_ID}) {
@@ -949,6 +954,9 @@ sub voip_tp {
       ARRAY_NUM_ID => 1
     }
   );
+
+  $Voip_tp->{POSTPAID_DAY_FEE}   = ($Voip_tp->{POSTPAID_DAY_FEE})   ? 'checked' : '';
+  $Voip_tp->{POSTPAID_MONTH_FEE} = ($Voip_tp->{POSTPAID_MONTH_FEE}) ? 'checked' : '';
 
   $html->tpl_show(_include('voip_tp', 'Voip'), $Voip_tp);
 
@@ -2475,7 +2483,7 @@ sub voip_daily_fees {
   foreach my $tp (@$tp_list) {
     my %TP_INFO   = ();
     my $TP_ID     = $tp->{id};
-    my $postpaid  = $tp->{payment_type};
+    my $postpaid  = $tp->{payment_type} || $tp->{postpaid_daily_fee};
     my $daily_fee = $tp->{day_fee};
 
     $TP_INFO{POSTPAID_MONTHLY} = $tp->{postpaid_monthly_fee};
@@ -2548,29 +2556,25 @@ sub voip_monthly_fees {
   $ADMIN_REPORT{DATE} = $DATE if (!$ADMIN_REPORT{DATE});
   my ($y, $m, $d) = split(/-/, $ADMIN_REPORT{DATE}, 3);
 
-  my $list = $tariffs->list({ %LIST_PARAMS, MODULE => 'Voip' });
+  my $list = $tariffs->list({ %LIST_PARAMS, 
+  	                          MODULE    => 'Voip',
+  	                          COLS_NAME => 1,
+  	                          COLS_UPPER=> 1
+  	                           });
   my $date_unixtime = mktime(0, 0, 0, $d, ($m - 1), $y - 1900, 0, 0, 0);
 
-  foreach my $line (@$list) {
-    my %TP_INFO   = ();
-    my $TP_ID     = $line->[0];
-    my $postpaid  = $line->[4];
-    my $month_fee = $line->[6];
+  foreach my $TP_INFO (@$list) {
+    $TP_INFO->{POSTPAID}  = $tp->{payment_type} || $tp->{postpaid_monthly_fee};
+    $debug_output .= "TP ID: $TP_INFO->{TP_ID} MF: $month_fee POSTPAID: $TP_INFO->{POSTPAID}\n" if ($debug > 1);
 
-    $TP_INFO{POSTPAID_MONTHLY} = $line->[13];
-    $TP_INFO{REDUCTION}        = $line->[11];
-    $TP_INFO{TP_NUM}           = $line->[18];
-
-    $debug_output .= "TP ID: $line->[0] MF: $month_fee POSTPAID: $postpaid\n" if ($debug > 1);
-
-    if ($month_fee > 0) {
+    if ($TP_INFO->{MONTH_FEE} > 0) {
       my $ulist = $Voip->user_list(
         {
           ACTIVATE     => "<=$DATE",
           EXPIRE       => "0000-00-00,>$DATE",
           STATUS       => '0;2',
           LOGIN_STATUS => 0,
-          TP_ID        => $TP_INFO{TP_NUM},
+          TP_ID        => $TP_INFO->{TP_ID},
           PAGE_ROWS    => 10000000,
           COLS_NAME    => 1,
           %VOIP_LIST_PARAMS
@@ -2583,7 +2587,7 @@ sub voip_monthly_fees {
           UID       => $u->{uid},
           BILL_ID   => $u->{bill_id},
           ACTIVATE  => $u->{activate},
-          REDUCTION => 0,
+          REDUCTION => '_SHOW',
           DEPOSIT   => $u->{deposit},
           CREDIT    => $u->{credit},
           STATUS    => $u->{voip_status},
@@ -2597,8 +2601,8 @@ sub voip_monthly_fees {
         );
 
         if ($user{ACTIVATE} eq '0000-00-00' and $d == 1) {
-          if ($postpaid > 0 || $user{DEPOSIT} + $user{CREDIT} > 0) {
-            $fees->take(\%user, $month_fee, \%FEES_PARAMS);
+          if ($TP_INFO->{POSTPAID} || $user{DEPOSIT} + $user{CREDIT} > 0) {
+            $fees->take(\%user, $TP_INFO->{MONTH_FEE}, \%FEES_PARAMS);
           }
           elsif ($conf{VOIP_ONEMONTH_INCOMMING_ALLOW}) {
             my $change_status = ($user{STATUS} == 0) ? 2 : 1;
@@ -2607,12 +2611,12 @@ sub voip_monthly_fees {
           }
         }
         elsif ($user{ACTIVATE} ne '0000-00-00') {
-          if ($postpaid > 0 || $user{DEPOSIT} + $user{CREDIT} > 0) {
+          if ($TP_INFO->{POSTPAID} || $user{DEPOSIT} + $user{CREDIT} > 0) {
             my ($activate_y, $activate_m, $activate_d) = split(/-/, $user{ACTIVATE}, 3);
             my $active_unixtime = mktime(0, 0, 0, $activate_d, ($activate_m - 1), $activate_y - 1900, 0, 0, 0);
 
             if ($date_unixtime - $active_unixtime > 30 * 86400) {
-              $fees->take(\%user, $month_fee, \%FEES_PARAMS);
+              $fees->take(\%user, $TP_INFO->{MONTH_FEE}, \%FEES_PARAMS);
               $users->change($user{UID}, { ACTIVATE => $DATE, UID => $user{UID} });
             }
           }
