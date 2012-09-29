@@ -1322,7 +1322,7 @@ sub dhcphosts_config {
 
         # make custom option 82 tpl
         if ($conf{DHCPHOSTS_O82_CLASS_TPL}) {
-          $INFO{OPTION82_CLASS} .= $html->tpl_show(_include('dhcphosts_dhcp_conf_o82_class', 'Dhcphosts'), \%INFO, { OUTPUT2RETURN => 1 });
+          $INFO{OPTION82_CLASS} .= $html->tpl_show(_include('dhcphosts_dhcp_conf_o82_class', 'Dhcphosts'), \%INFO, { OUTPUT2RETURN => 1, CONFIG_TPL    => 1 });
         }
         else {
           $INFO{OPTION82_CLASS} .= "# LOGIN: $host->{login}\nclass \"$INFO{DHCPHOSTS_O82_CLASS_NAME}\" { match if $matches ;  \n }\n\n";
@@ -1348,14 +1348,16 @@ sub dhcphosts_config {
             BOOT_FILE   => ($host->{boot_file}) ? "filename \"" . $host->{boot_file} . "\";"    : '',
             NEXT_SERVER => ($host->{next_server}) ? "next-server \"" . $host->{next_server} . "\";" : '',
           },
-          { OUTPUT2RETURN => 1 }
+          { OUTPUT2RETURN => 1, CONFIG_TPL => 1 }
         );
       }
     }
 
-    $SUBNETS{ $line->[7] }{ $line->[0] } .= $html->tpl_show(_include('dhcphosts_dhcp_conf_subnet', 'Dhcphosts'), \%INFO, { OUTPUT2RETURN => 1 });
+    $SUBNETS{ $line->[7] }{ $line->[0] } .= $html->tpl_show(_include('dhcphosts_dhcp_conf_subnet', 'Dhcphosts'), \%INFO, { OUTPUT2RETURN => 1, CONFIG_TPL => 1 });
 
-    $INFO{SUBNETS} .= $html->tpl_show(_include('dhcphosts_dhcp_conf_subnet', 'Dhcphosts'), \%INFO, { OUTPUT2RETURN => 1 });
+    $INFO{SUBNETS} .= $html->tpl_show(_include('dhcphosts_dhcp_conf_subnet', 'Dhcphosts'), \%INFO, 
+      { OUTPUT2RETURN => 1,
+      	CONFIG_TPL    => 1 });
   }
 
   $INFO{NETWORKS} = '';
@@ -1380,7 +1382,9 @@ $net_content";
   if (!$AUTH{dhcp}) {
     if (($attr->{reconfig} || $FORM{reconfig})) {
 
-      my $tpl = $html->tpl_show(_include('dhcphosts_dhcp_conf_main', 'Dhcphosts'), \%INFO, { OUTPUT2RETURN => 1 });
+      my $tpl = $html->tpl_show(_include('dhcphosts_dhcp_conf_main', 'Dhcphosts'), \%INFO, 
+      { OUTPUT2RETURN => 1,
+      	CONFIG_TPL    => 1 });
 
       if (open(FILE, ">$conf{DHCPHOSTS_CONFIG}")) {
         print FILE $tpl;
@@ -1395,9 +1399,12 @@ $net_content";
       $html->message('info', $_INFO, "DHCP $_RECONFIGURE '$conf{DHCPHOSTS_CONFIG}'") if (!$attr->{QUITE});
     }
     else {
-      my $conf_content = $html->tpl_show(_include('dhcphosts_dhcp_conf_main', 'Dhcphosts'), \%INFO, { OUTPUT2RETURN => 1 });
+      my $conf_content = $html->tpl_show(_include('dhcphosts_dhcp_conf_main', 'Dhcphosts'), \%INFO, 
+        { OUTPUT2RETURN => 1,
+        	CONFIG_TPL    => 1 });
 
-      print "$conf{DHCPHOSTS_CONFIG}<br><textarea cols=90 rows=20>$conf_content</textarea>\n";
+      $html->pre($conf{DHCPHOSTS_CONFIG});
+      print "<textarea cols=90 rows=20>$conf_content</textarea>\n";
       print $html->form_main(
         {
           HIDDEN => {
@@ -1405,7 +1412,8 @@ $net_content";
             IDS    => $FORM{IDS},
             config => 'dhcp.conf'
           },
-          SUBMIT => { reconfig => $_RECONFIGURE }
+          SUBMIT => { reconfig => $_RECONFIGURE },
+          METHOD => 'GET'
         }
       );
     }

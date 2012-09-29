@@ -20,6 +20,7 @@ $PG
 $PAGE_ROWS
 $SELF_URL
 $SESSION_IP
+$CONFIG_TPL_SHOW
 @MONTHES
 );
 
@@ -88,6 +89,7 @@ sub new {
   my $prot = (defined($ENV{HTTPS}) && $ENV{HTTPS} =~ /on/i) ? 'https' : 'http';
   $SELF_URL = (defined($ENV{HTTP_HOST})) ? "$prot://$ENV{HTTP_HOST}$ENV{SCRIPT_NAME}" : '';
   $SESSION_IP = $ENV{REMOTE_ADDR} || '0.0.0.0';
+  $CONFIG_TPL_SHOW = $attr->{CONFIG_TPL_SHOW};
 
   @_COLORS = (
     '#FDE302',    # 0 TH
@@ -902,6 +904,10 @@ sub tpl_show {
   my $self = shift;
   my ($tpl, $variables_ref, $attr) = @_;
 
+  if ($attr->{CONFIG_TPL}) {
+    return $CONFIG_TPL_SHOW->($self, $tpl, $variables_ref, $attr);
+  }
+
   my $tpl_name = $attr->{ID} || '';
 
   if ($FORM{EXPORT_CONTENT} && $FORM{EXPORT_CONTENT} ne $tpl_name) {
@@ -924,8 +930,8 @@ sub tpl_show {
   }
 
   $tpl =~ s/&nbsp;/&#160;/g;
-
   $xml_tpl .= "</INFO>\n";
+
   if ($attr->{OUTPUT2RETURN}) {
     return $xml_tpl;
   }

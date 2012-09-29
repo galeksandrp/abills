@@ -150,6 +150,8 @@ sub new {
     $self->{language} = $CONF->{default_language} || 'english';
   }
 
+  $self->{config_tpl_show}='hello'; #\&tpl_show;
+
   #Make  PDF output
   if ($FORM{pdf} || $attr->{pdf}) {
     $FORM{pdf} = 1;
@@ -179,7 +181,8 @@ sub new {
         IMG_PATH => $IMG_PATH,
         NO_PRINT => defined($attr->{'NO_PRINT'}) ? $attr->{'NO_PRINT'} : 1,
         CONF     => $CONF,
-        CHARSET  => $attr->{CHARSET}
+        CHARSET  => $attr->{CHARSET},
+        CONFIG_TPL_SHOW => \&tpl_show
       }
     );
   }
