@@ -283,7 +283,7 @@ else {
           STATE => ($line->{send_docs}) ? 1 : undef
         }
       ),
-      ($state && $line->{manual_activate} && $line->{missing}) ? $html->button("$_ACTIVATE", "index=$index&change=1&&ACTIVATE=$line->{id}&ABON_DATE=$line->{next_abon}&UID=$FORM{UID}", { BUTTON => 1 }) : ''
+      ($state && $line->{manual_activate}) ? $html->button("$_ACTIVATE", "index=$index&change=1&&ACTIVATE=$line->{id}&ABON_DATE=$line->{next_abon}&UID=$FORM{UID}", { BUTTON => 1 }) : ''
     );
   }
 

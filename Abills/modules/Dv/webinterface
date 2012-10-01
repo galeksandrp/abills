@@ -20,8 +20,8 @@ my $sessions = Dv_Sessions->new($db, $admin, \%conf);
 my $Nas      = Nas->new($db, \%conf);
 $Log         = Log->new($db, \%conf);
 
-my %FORM_BASE     = ();
-my %TRAFFIC_NAMES = ();
+my %FORM_BASE      = ();
+my %TRAFFIC_NAMES  = ();
 my @service_status_colors = ("$_COLORS[9]", "$_COLORS[6]", '#808080', '#0000FF', '#FF8000', '#009999');
 my @service_status = ("$_ENABLE", "$_DISABLE", "$_NOT_ACTIVE", "$_HOLD_UP", "$_DISABLE: $_NON_PAYMENT", "$ERR_SMALL_DEPOSIT");
 
@@ -1029,7 +1029,7 @@ sub dv_tp {
   $tarif_info->{ABON_DISTRIBUTION}  = ($tarif_info->{ABON_DISTRIBUTION})  ? 'checked' : '';
   $tarif_info->{ACTIVE_DAY_FEE}     = ($tarif_info->{ACTIVE_DAY_FEE})     ? 'checked' : '';
 
-  %FEES_METHODS = %{ get_fees_types() };
+  my %FEES_METHODS = %{ get_fees_types() };
   $FEES_METHODS{0} = '';
 
   $tarif_info->{SEL_METHOD} = $html->form_select(
@@ -4918,31 +4918,25 @@ sub dv_daily_fees {
   $USERS_LIST_PARAMS{DOMAIN_ID} = $DOMAIN_ID;
 
   #$USERS_LIST_PARAMS{ACTIVE_DAY_FEE} = 1;
-
   $tariffs->{debug} = 1 if ($debug > 6);
 
-  my $list = $tariffs->list({%LIST_PARAMS});
+  my $list = $tariffs->list({%LIST_PARAMS, 
+  	                         COLS_NAME => 1, 
+  	                         COLS_UPPER => 1 });
   $ADMIN_REPORT{DATE} = $DATE if (!$ADMIN_REPORT{DATE});
+  my %FEES_METHODS = %{ get_fees_types({ SHORT => 1 }) };
 
-  foreach my $line (@$list) {
-    if ($line->[5] > 0) {
-      my $TP_ID                = $line->[0];
-      my $TP_NAME              = $line->[1];
-      my $active_day_fee       = $line->[20];
-      my $fine                 = $line->[21];
-      my %TP_INFO              = ();
-      $TP_INFO{POSTPAID_DAILY} = $line->[12];
-      $TP_INFO{REDUCTION}      = $line->[11];
-      $TP_INFO{FEES_METHOD}    = $line->[23];
-      $debug_output .= "TP ID: $TP_ID DF: $line->[5] MF: $line->[6] POSTPAID: $TP_INFO{POSTPAID_DAILY} REDUCTION: $TP_INFO{REDUCTION} EXT_BILL: $line->[13] CREDIT: $line->[14]\n" if ($debug > 1);
+  foreach my $TP_INFO (@$list) {
+    if ($TP_INFO->{DAY_FEE} > 0) {
+      $debug_output .= "TP ID: $TP_INFO->{ID} DF: $TP_INFO->{DAY_FEE} POSTPAID: $TP_INFO->{POSTPAID_DAILY_FEE} REDUCTION: $TP_INFO->{REDUCTION_FEE} EXT_BILL: $TP_INFO->{EXT_BILL_ACCOUNT} CREDIT: $TP_INFO->{CREDIT}\n" if ($debug > 1);
 
       #Get active yesterdays logins
       my %active_logins = ();
-      if ($active_day_fee > 0) {
+      if ($TP_INFO->{ACTIVE_DAY_FEE} > 0) {
         my $report_list = $sessions->reports(
           {
             INTERVAL => "$attr->{YESTERDAY}/$attr->{YESTERDAY}",
-            TP_ID    => $TP_ID,
+            TP_ID    => $TP_INFO->{ID},
           }
         );
 
@@ -4959,7 +4953,7 @@ sub dv_daily_fees {
           JOIN_SERVICE => "<2",
           STATUS       => "0;5",
           LOGIN_STATUS => 0,
-          TP_ID        => $TP_ID,
+          TP_ID        => $TP_INFO->{ID},
           SORT         => 1,
           PAGE_ROWS    => 1000000,
           TP_CREDIT    => '>=0',
@@ -4975,24 +4969,24 @@ sub dv_daily_fees {
           LOGIN     => $u->{id},
           UID       => $u->{uid},
           #Check ext deposit
-          BILL_ID   => ($line->[14] > 0) ? $u->{ext_bill_id} : $u->{bill_id},
+          BILL_ID   => ($TP_INFO->{EXT_BILL_ACCOUNT} > 0) ? $u->{ext_bill_id} : $u->{bill_id},
           REDUCTION => $u->{reduction},
           ACTIVATE  => $u->{activate},
           DEPOSIT   => $u->{deposit},
-          CREDIT    => ($u->{credit} > 0) ? $u->{credit} : ($CONF->{user_credit_change}) ? 0 : $line->[15],
+          CREDIT    => ($u->{credit} > 0) ? $u->{credit} : ($CONF->{user_credit_change}) ? 0 : $TP_INFO->{CREDIT},
           DV_STATUS => $u->{dv_status},
         );
 
         if (defined($user{BILL_ID}) && $user{BILL_ID} > 0 && defined($user{DEPOSIT})) {
           #If deposit is above-zero or TARIF PALIN is POST PAID or PERIODIC PAYMENTS is POSTPAID
           #Active day fees
-          if ( (($user{DEPOSIT} + $user{CREDIT} > 0 || $line->[4] == 1 || $TP_INFO{POSTPAID_DAILY} == 1) && $active_day_fee == 0)
-            || ($active_day_fee == 1 && $active_logins{ $user{LOGIN} }))
+          if ( (($user{DEPOSIT} + $user{CREDIT} > 0 || $TP_INFO->{PAYMENT_TYPE} == 1 || $TP_INFO->{POSTPAID_DAILY_FEE} == 1) && $TP_INFO->{ACTIVE_DAY_FEE} == 0)
+            || ($TP_INFO->{ACTIVE_DAY_FEE} == 1 && $active_logins{ $user{LOGIN} }))
           {
-            my $sum = $line->[5];
+            my $sum = $TP_INFO->{DAY_FEE};
 
             # IF TP have PARIODIC PAYMENTS USER reduction
-            if ($TP_INFO{REDUCTION} == 1 && $user{REDUCTION} > 0) {
+            if ($TP_INFO->{REDUCTION_FEE} == 1 && $user{REDUCTION} > 0) {
               if ($user{REDUCTION} >= 100) {
                 $debug_output .= "UID: $user{UID} SUM: $sum REDUCTION: $user{REDUCTION} next\n" if ($debug > 3);
                 next;
@@ -5000,10 +4994,18 @@ sub dv_daily_fees {
               $sum = $sum * (100 - $user{REDUCTION}) / 100;
             }
 
+            my %FEES_DSC = (
+              MODULE    => 'Internet:',
+              TP_ID     => $TP_INFO->{ID},
+              TP_NAME   => $TP_INFO->{NAME},
+              FEES_PERIOD_DAY => $_DAY_FEE_SHORT,
+              FEES_METHOD=>$FEES_METHODS{$TP_INFO->{FEES_METHOD}},
+            );
+
             my %PARAMS = (
-              DESCRIBE => "Internet: $_DAY_FEE_SHORT $TP_NAME ($TP_ID)",
               DATE     => "$ADMIN_REPORT{DATE} $TIME",
-              METHOD   => ($TP_INFO{FEES_METHOD}) ? $TP_INFO{FEES_METHOD} : 1
+              METHOD   => ($TP_INFO->{FEES_METHOD}) ? $TP_INFO->{FEES_METHOD} : 1,
+              DESCRIBE => dv_fees_dsc_former(\%FEES_DSC)
             );
 
             if ($debug > 4) {
@@ -5025,7 +5027,7 @@ sub dv_daily_fees {
           }
 
           # If status too small deposit get fine from user
-          elsif ($fine > 0) {
+          elsif ($TP_INFO->{FINE} > 0) {
             if ($conf{DV_FINE_LIMIT} && $user{DEPOSIT} + $user{CREDIT} < $conf{DV_FINE_LIMIT}) {
               next;
             }
@@ -5036,8 +5038,8 @@ sub dv_daily_fees {
               DATE     => $ADMIN_REPORT{DATE}
             );
             $EXT_INFO = "FINE";
-            $fees->take(\%user, $fine, {%FEES_PARAMS});
-            $debug_output .= " $user{LOGIN}  UID: $user{UID} SUM: $fine REDUCTION: $user{REDUCTION} FINE\n" if ($debug > 0);
+            $fees->take(\%user, $TP_INFO->{FINE}, {%FEES_PARAMS});
+            $debug_output .= " $user{LOGIN}  UID: $user{UID} SUM: $TP_INFO->{FINE} REDUCTION: $user{REDUCTION} FINE\n" if ($debug > 0);
           }
         }
         else {
@@ -5355,8 +5357,13 @@ sub dv_monthly_fees {
   $debug_output .= dv_monthly_next_tp($attr);
   $DEBUG .= $debug_output;
 
+  my %FEES_METHODS = %{ get_fees_types({ SHORT => 1 }) };
+
   my $users = Users->new($db, $admin, \%conf);
-  my $list = $tariffs->list({%LIST_PARAMS});
+  my $list = $tariffs->list({%LIST_PARAMS, 
+  	                         COLS_NAME => 1,
+  	                         COLS_UPPER=> 1
+  	                       });
 
   my ($y, $m, $d)      = split(/-/, $ADMIN_REPORT{DATE}, 3);
   my $days_in_month    = ($m != 2 ? (($m % 2) ^ ($m > 7)) + 30 : (!($y % 400) || !($y % 4) && ($y % 25) ? 29 : 28));
@@ -5377,32 +5384,18 @@ sub dv_monthly_fees {
   my $pre_month_begin = "$y-$m-01";
   my $pre_month_end   = "$y-$m-$days_in_pre_month";
 
-  foreach my $line (@$list) {
-    my %TP_INFO             = ();
-    my $TP_ID               = $line->[0];
-    my $TP_NAME             = $line->[1];
-    my $min_use_sum         = $line->[16];
-    my $abon_distrib        = $line->[17];
-    my $postpaid            = $line->[4];
-    my $month_fee           = $line->[6];
+  foreach my $TP_INFO (@$list) {
+    my $month_fee           = $TP_INFO->{MONTH_FEE};
     my $activate_date       = "<=$ADMIN_REPORT{DATE}";
-    my $tp_ext_deposit_op   = $line->[14];
-    my $small_deposit_block = $line->[19];
-    my $fine                = $line->[21];
-
-    $TP_INFO{POSTPAID_MONTHLY} = $line->[13];
-    $TP_INFO{REDUCTION}        = $line->[11];
-    $TP_INFO{FEES_METHOD}      = $line->[23];
-
     my %used_traffic = ();
 
     #Monthfee & min use
-    if ($month_fee > 0 || $min_use_sum > 0) {
-      $debug_output .= "TP ID: $line->[0] MF: $line->[6] POSTPAID: $TP_INFO{POSTPAID_MONTHLY} REDUCTION: $TP_INFO{REDUCTION} EXT_BILL_ID: $tp_ext_deposit_op CREDIT: $line->[15] MIN_USE: $min_use_sum ABON_DISTR: $abon_distrib\n" if ($debug > 1);
+    if ($month_fee > 0 || $TP_INFO->{MIN_USE} > 0) {
+      $debug_output .= "TP ID: $TP_INFO->{ID} MF: $TP_INFO->{MONTH_FEE} POSTPAID: $TP_INFO->{POSTPAID_MONTHLY_FEE} REDUCTION: $TP_INFO->{REDUCTION_FEE} EXT_BILL_ID: $TP_INFO->{EXT_BILL_ACCOUNT} CREDIT: $TP_INFO->{CREDIT} MIN_USE: $TP_INFO->{MIN_USE} ABON_DISTR: $TP_INFO->{ABON_DISTRIBUTION}\n" if ($debug > 1);
 
       #get used  traffic for min use functions
       my %processed_users = ();
-      if ($min_use_sum > 0 && $START_PERIOD_DAY && $conf{DV_MIN_USER_FULLPERIOD}) {
+      if ($TP_INFO->{MIN_USE} > 0 && $START_PERIOD_DAY && $conf{DV_MIN_USER_FULLPERIOD}) {
         my $interval = "$pre_month_begin/$pre_month_end";
         if ($conf{DV_MIN_USER_FULLPERIOD}) {
           $activate_date = strftime "%Y-%m-%d", localtime($date_unixtime - 86400 * 30);
@@ -5413,7 +5406,7 @@ sub dv_monthly_fees {
         my $report_list = $sessions->reports(
           {
             INTERVAL => $interval,
-            TP_ID    => $TP_ID,
+            TP_ID    => $TP_INFO->{ID},
           }
         );
 
@@ -5421,7 +5414,7 @@ sub dv_monthly_fees {
           $used_traffic{ $l->[7] } = $l->[6];
         }
       }
-      if ($abon_distrib) {
+      if ($TP_INFO->{ABON_DISTRIBUTION}) {
         $month_fee = $month_fee / $days_in_month;
       }
 
@@ -5433,7 +5426,7 @@ sub dv_monthly_fees {
           STATUS       => "0;5",
           JOIN_SERVICE => "<2",
           LOGIN_STATUS => 0,
-          TP_ID        => $TP_ID,
+          TP_ID        => $TP_INFO->{ID},
           SORT         => 1,
           PAGE_ROWS    => 1000000,
           TP_CREDIT    => '>=0',
@@ -5446,7 +5439,7 @@ sub dv_monthly_fees {
       my $extfield_count = $Dv->{SEARCH_FIELDS_COUNT};
       foreach my $u (@$ulist) {
         my $EXT_INFO       = '';
-        my $ext_deposit_op = $tp_ext_deposit_op;
+        my $ext_deposit_op = $TP_INFO->{EXT_BILL_ACCOUNT};
         my %user           = (
           LOGIN        => $u->{id},
           UID          => $u->{uid},
@@ -5455,13 +5448,21 @@ sub dv_monthly_fees {
           REDUCTION    => $u->{reduction},
           ACTIVATE     => $u->{activate},
           DEPOSIT      => $u->{deposit},
-          CREDIT       => ($u->{credit} > 0) ? $u->{credit} : ($CONF->{user_credit_change}) ? 0 : $line->[15],
+          CREDIT       => ($u->{credit} > 0) ? $u->{credit} : ($CONF->{user_credit_change}) ? 0 : $TP_INFO->{CREDIT},
           COMPANY_ID   => $u->{company_id},
           DV_STATUS    => $u->{dv_status},
           EXT_DEPOSIT  => ($u->{ext_deposit}) ? $u->{ext_deposit} : 0,
         );
 
-        $debug_output .= " Login: $user{LOGIN} ($user{UID}) TP_ID: $u->{tp_id} Fees: $line->[6] REDUCTION: $user{REDUCTION} DEPOSIT: $user{DEPOSIT} CREDIT $user{CREDIT} ACTIVE: $user{ACTIVATE} TP: $u->{tp_id}\n" if ($debug > 3);
+      my %FEES_DSC = (
+         MODULE    => 'Internet:',
+         TP_ID     => $TP_INFO->{ID},
+         TP_NAME   => $TP_INFO->{NAME},
+         FEES_PERIOD_MONTH => $_MONTH_FEE_SHORT,
+         FEES_METHOD=>$FEES_METHODS{$TP_INFO->{FEES_METHOD}}
+      );
+
+        $debug_output .= " Login: $user{LOGIN} ($user{UID}) TP_ID: $u->{tp_id} Fees: $TP_INFO->{MONTH_FEE} REDUCTION: $user{REDUCTION} DEPOSIT: $user{DEPOSIT} CREDIT $user{CREDIT} ACTIVE: $user{ACTIVATE} TP: $u->{tp_id}\n" if ($debug > 3);
 
         if (!$user{BILL_ID} && $user{MAIN_BILL_ID}) {
           $user{BILL_ID}      = $user{MAIN_BILL_ID};
@@ -5472,16 +5473,16 @@ sub dv_monthly_fees {
         if (($user{BILL_ID} && $user{BILL_ID} > 0) && defined($user{DEPOSIT})) {
           my %FEES_PARAMS = (
             DATE   => $ADMIN_REPORT{DATE},
-            METHOD => ($TP_INFO{FEES_METHOD}) ? $TP_INFO{FEES_METHOD} : 1
+            METHOD => ($TP_INFO->{FEES_METHOD}) ? $TP_INFO->{FEES_METHOD} : 1
           );
           my $sum = 0;
 
           #***************************************************************
           #Min use Makes only 1 of month
-          if ($min_use_sum > 0 && $d != $START_PERIOD_DAY && !$conf{DV_MIN_USER_FULLPERIOD}) {
+          if ($TP_INFO->{MIN_USE} > 0 && $d != $START_PERIOD_DAY && !$conf{DV_MIN_USER_FULLPERIOD}) {
 
             #Check activation date
-            my $min_use = $min_use_sum;
+            my $min_use = $TP_INFO->{MIN_USE};
 
             if ($user{REDUCTION} > 0) {
               $min_use = $min_use * (100 - $user{REDUCTION}) / 100;
@@ -5505,7 +5506,7 @@ sub dv_monthly_fees {
             if ($user{COMPANY_ID} > 0) {
               my $company_users = $Dv->list(
                 {
-                  TP_ID      => $TP_ID,
+                  TP_ID      => $TP_INFO->{ID},
                   COMPANY_ID => $user{COMPANY_ID}
                 }
               );
@@ -5539,7 +5540,7 @@ sub dv_monthly_fees {
 
             $sum = $min_use - $used;
 
-            if ($TP_INFO{REDUCTION} == 1 && $user{REDUCTION} > 0) {
+            if ($TP_INFO->{REDUCTION_FEE} == 1 && $user{REDUCTION} > 0) {
               if ($user{REDUCTION} >= 100) {
                 $debug_output .= "UID: $user{UID} SUM: $sum REDUCTION: $user{REDUCTION} next\n" if ($debug > 3);
                 next;
@@ -5547,7 +5548,7 @@ sub dv_monthly_fees {
               $sum = $sum * (100 - $user{REDUCTION}) / 100;
             }
 
-            if ($postpaid == 1 || $user{DEPOSIT} + $user{CREDIT} > 0 || $TP_INFO{POSTPAID_MONTHLY} == 1) {
+            if ($TP_INFO->{PAYMENT_TYPE} == 1 || $user{DEPOSIT} + $user{CREDIT} > 0 || $TP_INFO->{POSTPAID_MONTHLY_FEE} == 1) {
               if ($d == $START_PERIOD_DAY) {
                 if ($debug > 4) {
                   $debug_output .= " UID: $user{UID} SUM: $sum REDUCTION: $user{REDUCTION}\n";
@@ -5576,7 +5577,7 @@ sub dv_monthly_fees {
 
             #Make sum
             $sum = $month_fee;
-            if ($TP_INFO{REDUCTION} == 1 && $user{REDUCTION} > 0) {
+            if ($TP_INFO->{REDUCTION_FEE} == 1 && $user{REDUCTION} > 0) {
               $sum = $sum * (100 - $user{REDUCTION}) / 100;
             }
 
@@ -5591,22 +5592,23 @@ sub dv_monthly_fees {
             if ($conf{BONUS_EXT_FUNCTIONS} && $ext_deposit_op > 0) {
 
               # Small deposit
-              if ($small_deposit_block && $user{EXT_DEPOSIT} + $user{DEPOSIT} + $user{CREDIT} < $sum) {
-                if (($user{ACTIVATE} eq '0000-00-00' and $d == $START_PERIOD_DAY) || $abon_distrib || ($user{ACTIVATE} ne '0000-00-00' && $date_unixtime - $active_unixtime < 30 * 86400)) {
+              if ($TP_INFO->{SMALL_DEPOSIT_ACTION} && $user{EXT_DEPOSIT} + $user{DEPOSIT} + $user{CREDIT} < $sum) {
+                if (($user{ACTIVATE} eq '0000-00-00' and $d == $START_PERIOD_DAY) 
+                   || $TP_INFO->{ABON_DISTRIBUTION} 
+                   || ($user{ACTIVATE} ne '0000-00-00' && $date_unixtime - $active_unixtime < 30 * 86400)) {
                   goto SMALL_DEPOSIT_LABEL;
                 }
               }
               elsif ($sum > $user{EXT_DEPOSIT} && $user{EXT_DEPOSIT} > 0) {
                 # Take some sum from ext deposit other from main
-                if ((($user{ACTIVATE} eq '0000-00-00' and $d == $START_PERIOD_DAY) || $abon_distrib) || $user{ACTIVATE} ne '0000-00-00') {
+                if ((($user{ACTIVATE} eq '0000-00-00' and $d == $START_PERIOD_DAY) || $TP_INFO->{ABON_DISTRIBUTION}) || $user{ACTIVATE} ne '0000-00-00') {
                   if ($date_unixtime - $active_unixtime < 30 * 86400) {
                   }
                   else {
                     my $ext_deposit_sum = $user{EXT_DEPOSIT};
 
-                    $FEES_PARAMS{DESCRIBE} = "Internet: $_MONTH_FEE_SHORT $TP_NAME ($TP_ID)";
+                    $FEES_PARAMS{DESCRIBE} = dv_fees_dsc_former(\%FEES_DSC);
 
-                    #"$_MONTH_FEE ($TP_ID)";
                     $fees->take(\%user, $ext_deposit_sum, {%FEES_PARAMS});
                     $sum = $sum - $user{EXT_DEPOSIT};
                     $user{BILL_ID} = $user{MAIN_BILL_ID};
@@ -5625,10 +5627,10 @@ sub dv_monthly_fees {
             }
 
             #If deposit is above-zero or TARIF PALIN is POST PAID or PERIODIC PAYMENTS is POSTPAID
-            if ($postpaid == 1 || $user{DEPOSIT} + $user{CREDIT} > 0 || $TP_INFO{POSTPAID_MONTHLY} == 1) {
+            if ($TP_INFO->{PAYMENT_TYPE} == 1 || $user{DEPOSIT} + $user{CREDIT} > 0 || $TP_INFO->{POSTPAID_MONTHLY_FEE} == 1) {
               #***************************************************************
               #Unblock Small deposit status
-              if ($small_deposit_block && $month_fee < $user{DEPOSIT}) {
+              if ($TP_INFO->{SMALL_DEPOSIT_ACTION} && $month_fee < $user{DEPOSIT}) {
                 $Dv->change(
                   {
                     UID    => $user{UID},
@@ -5638,27 +5640,25 @@ sub dv_monthly_fees {
               }
 
               #take fees in first day of month
-              $FEES_PARAMS{DESCRIBE} = "Internet: $_MONTH_FEE_SHORT $TP_NAME ($TP_ID)";
-
-              #"$_MONTH_FEE ($TP_ID)";
-              $FEES_PARAMS{DESCRIBE} .= " - $_ABON_DISTRIBUTION" if ($abon_distrib);
-              if ($user{DV_STATUS} == 5 && $fine > 0) {
+              $FEES_PARAMS{DESCRIBE} = dv_fees_dsc_former(\%FEES_DSC);
+              $FEES_PARAMS{DESCRIBE} .= " - $_ABON_DISTRIBUTION" if ($TP_INFO->{ABON_DISTRIBUTION});
+              if ($user{DV_STATUS} == 5 && $TP_INFO->{FINE} > 0) {
                 if ($conf{DV_FINE_LIMIT} && $user{DEPOSIT} + $user{CREDIT} < $conf{DV_FINE_LIMIT}) {
                   next;
                 }
                 $FEES_PARAMS{DESCRIBE} = "$_FINE";
                 $FEES_PARAMS{METHOD}   = 2;
-                $sum                   = $fine;
+                $sum                   = $TP_INFO->{FINE};
                 $EXT_INFO              = "FINE";
               }
               # If activation set to monthly fees taken throught 30 days
               elsif ($user{ACTIVATE} ne '0000-00-00') {
 
                 #Block small deposit
-                if ($small_deposit_block && $sum > $user{DEPOSIT} + $user{CREDIT} && $date_unixtime - $active_unixtime > 30 * 86400) {
+                if ($TP_INFO->{SMALL_DEPOSIT_ACTION} && $sum > $user{DEPOSIT} + $user{CREDIT} && $date_unixtime - $active_unixtime > 30 * 86400) {
                   SMALL_DEPOSIT_LABEL:
 
-                  if ($small_deposit_block == -1) {
+                  if ($TP_INFO->{SMALL_DEPOSIT_ACTION} == -1) {
                     $Dv->change(
                       {
                         UID    => $user{UID},
@@ -5670,7 +5670,7 @@ sub dv_monthly_fees {
                     $Dv->change(
                       {
                         UID   => $user{UID},
-                        TP_ID => $small_deposit_block
+                        TP_ID => $TP_INFO->{SMALL_DEPOSIT_ACTION}
                       }
                     );
                   }
@@ -5690,7 +5690,7 @@ sub dv_monthly_fees {
                     $debug_output .= " $user{LOGIN} UID: $user{UID} SUM: $sum REDUCTION: $user{REDUCTION}\n";
                   }
                   else {
-                    $FEES_PARAMS{DESCRIBE} .= " ($ADMIN_REPORT{DATE}-" . (strftime "%Y-%m-%d", localtime($date_unixtime + 86400 * 30)) . ')' if (!$abon_distrib);
+                    $FEES_PARAMS{DESCRIBE} .= " ($ADMIN_REPORT{DATE}-" . (strftime "%Y-%m-%d", localtime($date_unixtime + 86400 * 30)) . ')' if (!$TP_INFO->{ABON_DISTRIBUTION});
 
                     $fees->take(\%user, $sum, {%FEES_PARAMS});
                     $debug_output .= " $user{LOGIN} UID: $user{UID} SUM: $sum REDUCTION: $user{REDUCTION} CHANGE ACTIVATE\n" if ($debug > 0);
@@ -5713,17 +5713,17 @@ sub dv_monthly_fees {
                     next;
                   }
                 }
-                elsif ($abon_distrib) {
+                elsif ($TP_INFO->{ABON_DISTRIBUTION}) {
                   $EXT_INFO .= "CHANGE ACTIVATE\n" if ($debug > 0);
                 }
                 else {
                   next;
                 }
               }
-              elsif (($user{ACTIVATE} eq '0000-00-00' and $d == $START_PERIOD_DAY) || $abon_distrib) {
+              elsif (($user{ACTIVATE} eq '0000-00-00' and $d == $START_PERIOD_DAY) || $TP_INFO->{ABON_DISTRIBUTION}) {
                 #Block small deposit
-                if ($small_deposit_block && $sum > $user{DEPOSIT} + $user{CREDIT}) {
-                  if ($small_deposit_block == -1) {
+                if ($TP_INFO->{SMALL_DEPOSIT_ACTION} && $sum > $user{DEPOSIT} + $user{CREDIT}) {
+                  if ($TP_INFO->{SMALL_DEPOSIT_ACTION} == -1) {
                     $Dv->change(
                       {
                         UID    => $user{UID},
@@ -5735,7 +5735,7 @@ sub dv_monthly_fees {
                     $Dv->change(
                       {
                         UID   => $user{UID},
-                        TP_ID => $small_deposit_block
+                        TP_ID => $TP_INFO->{SMALL_DEPOSIT_ACTION}
                       }
                     );
                   }
@@ -5752,7 +5752,7 @@ sub dv_monthly_fees {
                 $debug_output .= " UID: $user{UID} SUM: $sum REDUCTION: $user{REDUCTION}\n";
               }
               else {
-                $FEES_PARAMS{DESCRIBE} .= " ($cure_month_begin-$cure_month_end)" if (!$abon_distrib);
+                $FEES_PARAMS{DESCRIBE} .= " ($cure_month_begin-$cure_month_end)" if (!$TP_INFO->{ABON_DISTRIBUTION});
 
                 $fees->take(\%user, $sum, {%FEES_PARAMS});
                 $debug_output .= " $user{LOGIN}  UID: $user{UID} SUM: $sum REDUCTION: $user{REDUCTION} $EXT_INFO\n" if ($debug > 0);
@@ -5760,7 +5760,7 @@ sub dv_monthly_fees {
             }
             else {
               # Get Fine
-              if ($fine > 0) {
+              if ($TP_INFO->{FINE} > 0) {
                 if ($conf{DV_FINE_LIMIT} && $user{DEPOSIT} + $user{CREDIT} < $conf{DV_FINE_LIMIT}) {
                   next;
                 }
@@ -5769,19 +5769,19 @@ sub dv_monthly_fees {
                   METHOD   => 1,
                   DATE     => $ADMIN_REPORT{DATE}
                 );
-                $sum      = $fine;
+                $sum      = $TP_INFO->{FINE};
                 $EXT_INFO = "FINE";
                 $fees->take(\%user, $sum, {%FEES_PARAMS});
                 $debug_output .= " $user{LOGIN}  UID: $user{UID} SUM: $sum REDUCTION: $user{REDUCTION} FINE\n" if ($debug > 0);
               }
               #Block small deposit
-              if ($user{DV_STATUS} == 0 && $small_deposit_block && 
+              if ($user{DV_STATUS} == 0 && $TP_INFO->{SMALL_DEPOSIT_ACTION} && 
                  (($user{ACTIVATE} ne '0000-00-00' && $date_unixtime - $active_unixtime > 30 * 86400)
                    ||
-                   ($user{ACTIVATE} eq '0000-00-00' && ($d == $START_PERIOD_DAY || $abon_distrib))
+                   ($user{ACTIVATE} eq '0000-00-00' && ($d == $START_PERIOD_DAY || $TP_INFO->{ABON_DISTRIBUTION}))
                    )
                  ) {
-                if ($small_deposit_block == -1) {
+                if ($TP_INFO->{SMALL_DEPOSIT_ACTION} == -1) {
                   $Dv->change(
                     {
                       UID    => $user{UID},
@@ -5793,7 +5793,7 @@ sub dv_monthly_fees {
                   $Dv->change(
                     {
                       UID   => $user{UID},
-                      TP_ID => $small_deposit_block
+                      TP_ID => $TP_INFO->{SMALL_DEPOSIT_ACTION}
                     }
                   );
                 }
@@ -7054,6 +7054,7 @@ sub dv_get_month_fee {
     }
   }
 
+  my %FEES_METHODS = %{ get_fees_types() };
 
   #Get active price
   if ($Dv->{TP_INFO}->{ACTIV_PRICE} > 0) {
@@ -7092,6 +7093,15 @@ sub dv_get_month_fee {
     }
 
     my $message = '';
+
+    my %FEES_DSC = (
+              MODULE    => 'Internet:',
+              TP_ID     => $Dv->{TP_INFO}->{ID},
+              TP_NAME   => $Dv->{TP_INFO}->{NAME},
+              FEES_PERIOD_DAY => $_DAY_FEE_SHORT,
+              FEES_METHOD=>$FEES_METHODS{$Dv->{TP_INFO}->{FEES_METHOD}},
+            );
+
 
     #Current Month
     my ($y, $m, $d) = split(/-/, $DATE, 3);
@@ -7971,6 +7981,24 @@ foreach my $line (@$list) {
   );
 	
 print $table->show();
+}
+
+#**********************************************************
+#
+#**********************************************************
+sub dv_fees_dsc_former () {
+	my ($attr)=@_;
+	my $text = $conf{DV_FEES_DSC};
+
+  while ($text =~ /\%(\w+)\%/g) {
+    my $var       = $1;
+    if(! defined($attr->{$var})) {
+    	$attr->{$var}='';
+    }
+    $text =~ s/\%$var\%/$attr->{$var}/g;
+	}
+	
+	return $text;
 }
 
 1

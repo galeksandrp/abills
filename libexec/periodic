@@ -37,6 +37,9 @@ require Admins;
 Admins->import();
 require Customers;
 Customers->import();
+require Finance;
+Finance->import();
+
 
 require Abills::HTML;
 
@@ -383,8 +386,6 @@ sub sheduler {
 sub admin_report_daily {
 
   #Payments
-  require Finance;
-  Finance->import();
   my $Payments = Finance->payments($db, $admin, \%conf);
 
   $ADMIN_REPORT{PAYMENTS} = sprintf("%-14s|%-28s| %20s| %8s| %12s| %15s| %19s|\n", $_LOGIN, "$_FIO", $_DESCRIBE, $_SUM, 'Admins.', 'IP', $_DATE);
@@ -454,8 +455,6 @@ sub admin_report_daily {
 sub admin_report_monthly {
 
   #Payments
-  require Finance;
-  Finance->import();
   my $payments = Finance->payments($db, $admin, \%conf);
 
   $ADMIN_REPORT{PAYMENTS} = sprintf(" %19s| %9s| %12s|\n", $_DATE, $_COUNT, $_SUM);
@@ -984,6 +983,30 @@ sub debetors_group_create {
   }
 
   return 0;
+}
+
+
+#**********************************************************
+# get_fees_types
+#
+# return $Array_ref
+#**********************************************************
+sub get_fees_types {
+  my ($attr) = @_;
+
+  my %FEES_METHODS = ();
+  my $fees         = Finance->fees($db, $admin, \%conf);
+  my $list         = $fees->fees_type_list({ PAGE_ROWS => 10000 });
+  foreach my $line (@$list) {
+    if ($FORM{METHOD} && $FORM{METHOD} == $line->[0]) {
+      $FORM{SUM}      = $line->[3] if ($line->[3] > 0);
+      $FORM{DESCRIBE} = $line->[2] if ($line->[2]);
+    }
+
+    $FEES_METHODS{ $line->[0] } = (($line->[1] =~ /\$/) ? eval($line->[1]) : $line->[1]) . (($line->[3] > 0) ? (($attr->{SHORT}) ? ":$line->[3]" : " ($_SERVICE $_PRICE: $line->[3])") : '');
+  }
+
+  return \%FEES_METHODS;
 }
 
 1
