@@ -351,8 +351,6 @@ sub form_info {
 
       if ($admin->{TOTAL} >= $month_changes) {
         $user->{CREDIT_CHG_BUTTON} = $html->color_mark("$ERR_CREDIT_CHANGE_LIMIT_REACH. $_TOTAL: $admin->{TOTAL}/$month_changes", $_COLORS[6]);
-
-        #$FORM{change_credit}=undef;
         $sum = -1;
       }
     }
@@ -424,7 +422,7 @@ sub form_info {
       else {
         $user->{CREDIT_CHG_BUTTON} = $html->button(
           "$_SET $_CREDIT: " . sprintf("%.2f", $sum) . (($price && $price > 0) ? sprintf(" (%s: %.2f)", "$_CREDIT $_CHANGE $_PRICE", $price) : undef),
-          "index=$index&sid=$sid&change_credit=$sum",
+          "index=". get_function_index('form_info') ."&sid=$sid&change_credit=$sum",
           { BUTTON => 1 }
         );
       }
