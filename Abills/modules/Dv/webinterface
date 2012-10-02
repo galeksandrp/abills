@@ -4911,6 +4911,7 @@ sub dv_daily_fees {
   $debug_output .= "DV: Daily periodic fees\n" if ($debug > 1);
 
   $LIST_PARAMS{TP_ID}     = $attr->{TP_ID} if ($attr->{TP_ID});
+  $LIST_PARAMS{GID}       = $attr->{GID} if ($attr->{GID});
   $LIST_PARAMS{DOMAIN_ID} = $DOMAIN_ID;
 
   my %USERS_LIST_PARAMS         = ();
@@ -5346,6 +5347,8 @@ sub dv_monthly_fees {
   use Users;
 
   $LIST_PARAMS{TP_ID} = $attr->{TP_ID} if ($attr->{TP_ID});
+  $LIST_PARAMS{GID}   = $attr->{GID} if ($attr->{GID});
+
   my %USERS_LIST_PARAMS = ();
   $USERS_LIST_PARAMS{LOGIN} = $attr->{LOGIN} if ($attr->{LOGIN});
   $USERS_LIST_PARAMS{EXT_BILL} = 1 if ($conf{BONUS_EXT_FUNCTIONS});

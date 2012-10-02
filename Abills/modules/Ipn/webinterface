@@ -2451,14 +2451,14 @@ sub ipn_periodic_session_restart {
   }
 
 
-  if ($attr->{LOGINS}) {
-  	$LIST_PARAMS{LOGIN}=$attr->{LOGINS};
+  if ($attr->{LOGIN}) {
+  	$LIST_PARAMS{LOGIN}=$attr->{LOGIN};
   }
-  elsif ($attr->{TP_IDS}) {
-  	$LIST_PARAMS{TP_ID}=$attr->{TP_IDS};
+  elsif ($attr->{TP_ID}) {
+  	$LIST_PARAMS{TP_ID}=$attr->{TP_ID};
   }
-  elsif ($attr->{GIDS}) {
-  	$LIST_PARAMS{GID}=$attr->{GIDS};
+  elsif ($attr->{GID}) {
+  	$LIST_PARAMS{GID}=$attr->{GID};
   }
 
   #Get online
@@ -2670,14 +2670,14 @@ sub ipn_start_active {
     $TPS{ $line->[0] } = $line->[4] if ($line->[4]);
   }
 
-  if ($attr->{LOGINS}) {
-  	$LIST_PARAMS{LOGIN}=$attr->{LOGINS};
+  if ($attr->{LOGIN}) {
+  	$LIST_PARAMS{LOGIN}=$attr->{LOGIN};
   }
-  elsif ($attr->{TP_IDS}) {
-  	$LIST_PARAMS{TP_ID}=$attr->{TP_IDS};
+  elsif ($attr->{TP_ID}) {
+  	$LIST_PARAMS{TP_ID}=$attr->{TP_ID};
   }
-  elsif ($attr->{GIDS}) {
-  	$LIST_PARAMS{GID}=$attr->{GIDS};
+  elsif ($attr->{GID}) {
+  	$LIST_PARAMS{GID}=$attr->{GID};
   }
 
   my $online_list = $sessions->online(

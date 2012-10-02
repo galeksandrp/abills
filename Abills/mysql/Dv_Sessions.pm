@@ -345,6 +345,10 @@ sub online {
     push @WHERE_RULES, "((c.status=1 or c.status>=3) AND c.status<11)";
   }
 
+  if ($attr->{LOGIN}) {
+  	$attr->{USER_NAME}=$attr->{LOGIN};
+  }
+
   if (defined($attr->{USER_NAME})) {
     push @WHERE_RULES, @{ $self->search_expr("$attr->{USER_NAME}", 'STR', 'c.user_name') };
   }

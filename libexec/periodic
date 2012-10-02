@@ -253,7 +253,11 @@ else {
    SET_FULL_CREDIT            - Set credit for all services
      FULL_CREDIT_PERIOD       - Period for full credit in days
      COMPANY_ID=\"0\"           - Company ID. All Companies '>0', Non company users '0'
+
+Extra params
    LOGIN                      - Periodic action for some login
+   GID                        - Periodic action for some user groups
+   TP_ID                      - Periodic action for some TP_ID (If user separate modules)
    DEBUG                      - Show debug output\n";
   exit;
 }
