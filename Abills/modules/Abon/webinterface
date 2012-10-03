@@ -62,7 +62,8 @@ else {
           #'DATE_:date',
           'DISCOUNT_:discount',
           'CREATE_DOCS_:create_docs',
-          'SEND_DOCS_:send_docs');
+          'SEND_DOCS_:send_docs',
+          'MANUAL_FEE_:manual_fee');
           
         foreach my $l (@compare) {
         	my ($input_value, $db_value)=split(/:/, $l);
@@ -75,6 +76,7 @@ else {
   	                    CREATE_DOCS => $FORM{'CREATE_DOCS_'.$line->{id}}, 
   	                    SEND_DOCS   => $FORM{'SEND_DOCS_'.$line->{id}}, 
   	                    SERVICE_COUNT=>$FORM{'SERVICE_COUNT_'.$line->{id}},
+  	                    MANUAL_FEE  => $FORM{'MANUAL_FEE_'.$line->{id}},
   	                    CHANGE_INFO => 1
   	                    });
         		last;
@@ -225,7 +227,8 @@ else {
     {
       width      => '100%',
       caption    => "$_ABON",
-      title      => [ '-', "$_SERVICE $_NAME", $_COMMENTS, $_SUM, $_PERIOD, "$_SERVICE $_COUNT", $_LAST_ABON, $_NEXT_ABON, "$_REDUCTION (%)", "$_CREATE $_DOCS", "$_SEND_NOTIFICATION", '-' ],
+      title      => [ '-', "$_SERVICE $_NAME", $_COMMENTS, $_SUM, $_PERIOD, "$_SERVICE $_COUNT",
+        $_LAST_ABON, $_NEXT_ABON, "$_REDUCTION (%)", "$_CREATE $_DOCS", "$_SEND_NOTIFICATION", "$_MANUAL_ACTIVATE", '-' ],
       cols_align => [ 'left', 'left', 'left', 'right', 'left', 'right', 'right', 'center' ],
       qs         => $pages_qs,
       ID         => 'USER_ABON',
@@ -267,22 +270,22 @@ else {
       $line->{date},
       ($line->{next_abon}) ? "$line->{next_abon}" : $html->date_fld2('DATE_' . $line->{id}, { FORM_NAME => 'ABON_USER_TPS', WEEK_DAYS => \@WEEKDAYS, MONTHES => \@MONTHES, DATE => '0000-00-00' }),
       $html->form_input('DISCOUNT_' . $line->{id}, "$line->{discount}", { SIZE => '8' }),
-      $html->form_input(
-        'CREATE_DOCS_' . $line->{id},
-        "1",
+      $html->form_input('CREATE_DOCS_' . $line->{id}, "1",
         {
           TYPE  => 'CHECKBOX',
           STATE => ($line->{create_docs}) ? 1 : undef
         }
       ),
-      $html->form_input(
-        'SEND_DOCS_' . $line->{id},
-        "1",
+      $html->form_input('SEND_DOCS_' . $line->{id},  "1",
         {
           TYPE  => 'CHECKBOX',
           STATE => ($line->{send_docs}) ? 1 : undef
         }
       ),
+      $html->form_input('MANUAL_FEE_' . $line->{id}, "1", 
+        { TYPE  => 'checkbox', 
+        	STATE => ($line->{manual_fee}) ? 1 : undef
+        }),
       ($state && $line->{manual_activate}) ? $html->button("$_ACTIVATE", "index=$index&change=1&&ACTIVATE=$line->{id}&ABON_DATE=$line->{next_abon}&UID=$FORM{UID}", { BUTTON => 1 }) : ''
     );
   }
@@ -332,12 +335,15 @@ sub abon_user_list {
 
   $LIST_PARAMS{COMPANY_ID} = $FORM{COMPANY_ID} if ($FORM{COMPANY_ID});
 
-  my $list  = $Abon->user_list({%LIST_PARAMS});
+  my $list  = $Abon->user_list({%LIST_PARAMS,
+  	                            COLS_NAME    => 1
+  	                           });
   my $table = $html->table(
     {
-      width   => '100%',
-      caption => "$_ABON - $_USERS",
-      title   => [ $_LOGIN, $_FIO, $_TARIF_PLAN, "$_COMMENTS", $_SUM, $_PERIOD, $_LAST_ABON, $_NEXT_ABON ],
+      width      => '100%',
+      caption    => "$_ABON - $_USERS",
+      title      => [ $_LOGIN, $_FIO, $_TARIF_PLAN, "$_COMMENTS", $_SUM, $_PERIOD, $_LAST_ABON, 
+       $_NEXT_ABON, "$_MANUAL_ACTIVATE" ],
       cols_align => [ 'left', 'right', 'left', 'right' ],
       qs         => $pages_qs,
       pages      => $Abon->{TOTAL},
@@ -347,7 +353,15 @@ sub abon_user_list {
 
   my $delete = '';
   foreach my $line (@$list) {
-    $table->addrow(user_ext_menu($line->[8], $line->[0]), "$line->[1]", $line->[2], $line->[3], $line->[4], $PERIODS[ $line->[5] ], $line->[6], $line->[7]);
+    $table->addrow(user_ext_menu($line->{uid}, $line->{login}), 
+      $line->{fio}, 
+      $line->{tp_name}, 
+      $line->{comments}, 
+      $line->{price}, 
+      $PERIODS[ $line->{period} ], 
+      $line->{date}, 
+      $line->{next_abon},
+      $line->{manual_fee});
   }
   print $table->show();
 

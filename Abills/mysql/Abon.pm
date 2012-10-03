@@ -281,10 +281,14 @@ sub user_list {
     push @WHERE_RULES, "at.id='$attr->{ABON_ID}'";
   }
 
+  if (defined($attr->{MANUAL_FEE})) {
+    push @WHERE_RULES, @{ $self->search_expr("$attr->{MANUAL_FEE}", 'INT', 'ul.manual_fee') };
+  }
+
   $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES) : '';
 
   $self->query(
-    $db, "SELECT u.id, pi.fio, at.name, ul.comments, at.price, at.period,
+    $db, "SELECT u.id AS login, pi.fio, at.name AS tp_name, ul.comments, at.price, at.period,
      ul.date, 
      if (at.nonfix_period = 1, 
       if (at.period = 0, ul.date+ INTERVAL 1 DAY, 
@@ -311,15 +315,18 @@ sub user_list {
           )
         )
        )
-      ),
+      ) AS next_abon,
+     ul.manual_fee,
      u.uid, 
-     at.id
+     at.id AS tp_id
      FROM (users u, abon_user_list ul, abon_tariffs at)
      LEFT JOIN users_pi pi ON u.uid = pi.uid
      $WHERE
      GROUP BY ul.uid, ul.tp_id
      ORDER BY $SORT $DESC
-     LIMIT $PG, $PAGE_ROWS;"
+     LIMIT $PG, $PAGE_ROWS;",
+  undef,
+  $attr
   );
   my $list = $self->{list};
 
@@ -374,6 +381,7 @@ sub user_tariff_list {
         )
        )
       ) AS next_abon,
+   ul.manual_fee,   
    ul.discount,
    count(ul.uid) AS active_service,
    ul.notification1,
@@ -414,7 +422,8 @@ sub user_tariff_change {
   	  discount='$attr->{DISCOUNT}', 
   	  create_docs='$attr->{CREATE_DOCS}', 
   	  send_docs='$attr->{SEND_DOCS}', 
-  	  service_count='$attr->{SERVICE_COUNT}'
+  	  service_count='$attr->{SERVICE_COUNT}',
+  	  manual_fee='$attr->{MANUAL_FEE}'
   	  WHERE uid='$attr->{UID}' AND tp_id='$attr->{TP_ID}';
   	  ", 'do');
 
@@ -460,9 +469,9 @@ sub user_tariff_change {
     }
 
     $self->query(
-      $db, "INSERT INTO abon_user_list (uid, tp_id, comments, date, discount, create_docs, send_docs, service_count) 
+      $db, "INSERT INTO abon_user_list (uid, tp_id, comments, date, discount, create_docs, send_docs, service_count, manual_fee) 
      VALUES ('$attr->{UID}', '$tp_id', '" . $attr->{ 'COMMENTS_' . $tp_id } . "', $date, '" . $attr->{ 'DISCOUNT_' . $tp_id } . "',
-     '" . $attr->{ 'CREATE_DOCS_' . $tp_id } . "', '" . $attr->{ 'SEND_DOCS_' . $tp_id } . "', '". $attr->{'SERVICE_COUNT_'. $tp_id} ."');", 'do'
+     '" . $attr->{ 'CREATE_DOCS_' . $tp_id } . "', '" . $attr->{ 'SEND_DOCS_' . $tp_id } . "', '". $attr->{'SERVICE_COUNT_'. $tp_id} ."', '" . $attr->{ 'MANUAL_FEE_' . $tp_id } . "');", 'do'
     );
     $abon_add .= "$tp_id, ";
   }

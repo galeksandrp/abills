@@ -1,5 +1,14 @@
 =====0.55=====
 
+03.10.2012 \\
+  * ''Abon'' галочка снимать абон. плату только в ручном режиме 
+  * ''Abon'' ручная активация услуг. Возможность заказать и дозаказать услугу на дополнительный термин
+  * ''Dv'' настраиваемые шаблоны журнала начислений [[abills:docs:modules:dv:ru#shablon_formirovanija_opisanija_nachislenij|Подробней]]
+
+MySQL:\\
+  ALTER TABLE `abon_user_list` ADD COLUMN `manual_fee` tinyint(1) unsigned NOT NULL DEFAULT 0;
+
+
 17.09.2012 \\
 
   * ''Ureports'' $conf{UREPORTS_SKIP_ACTIVATE_SMS}=1;  не отправлять SMS при активации и изменении данных услуги
