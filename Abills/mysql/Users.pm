@@ -1188,7 +1188,7 @@ sub del {
   my ($attr) = @_;
 
   if ($attr->{FULL_DELETE}) {
-    my @clear_db = ('admin_actions', 'fees', 'payments', 'users_nas', 'users', 'users_pi');
+    my @clear_db = ('admin_actions', 'fees', 'payments', 'users_nas', 'users', 'users_pi', 'shedule');
 
     $self->{info} = '';
     foreach my $table (@clear_db) {

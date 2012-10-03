@@ -43,6 +43,7 @@ my $debug = 0;
 my %intervals   = ();
 my %tp_interval = ();
 my %ip_range    = ();
+my %ip_user_hash= ();
 my @zoneids;
 my %ip_class_tables = ();
 
@@ -193,8 +194,12 @@ sub user_ips {
     #Get IP/mask
     if ($line->{netmask} && $line->{netmask} < 4294967295) {
       my $count = 4294967295 - $line->{netmask};
+      my $ip2hash = $ip;
       $ip = pack('N4N4', $ip, $count);
       $ip_range{ $line->{uid} } = $ip;
+      for (my $i =0; $i <= $count; $i++) {
+        $ip_user_hash{$ip2hash+$i} = $line->{uid};
+      }
     }
     $ips{$ip} = $line->{uid};
 
@@ -273,16 +278,11 @@ sub traffic_agregate_users {
     $y++;
   }
   else {
-    while (my ($uid, $ip_count) = each %ip_range) {
-      my ($ip, $count) = unpack('N4N4', $ip_count);
-      my $last_ip = $ip + $count;
-
-      if ($ip <= $DATA->{SRC_IP} && $DATA->{SRC_IP} <= $last_ip) {
-        push @{ $self->{AGREGATE_USERS}{$uid}{OUT} }, {%$DATA};
-        $DATA->{UID} = $uid;
-        $y++;
-        last;
-      }
+    if ($ip_user_hash{$DATA->{SRC_IP}}) {
+      my $uid = $ip_user_hash{$DATA->{SRC_IP}};  
+      push @{ $self->{AGREGATE_USERS}{$uid}{OUT} }, {%$DATA};
+      $DATA->{UID} = $uid;
+      $y++;
     }
   }
 
@@ -298,16 +298,11 @@ sub traffic_agregate_users {
     $y++;
   }
   else {
-    while (my ($uid, $ip_count) = each %ip_range) {
-      my ($ip, $count) = unpack('N4N4', $ip_count);
-      my $last_ip = $ip + $count;
-
-      if ($ip <= $DATA->{DST_IP} && $DATA->{DST_IP} <= $last_ip) {
-        push @{ $self->{AGREGATE_USERS}{$uid}{IN} }, {%$DATA};
-        $DATA->{UID} = $uid;
-        $y++;
-        last;
-      }
+    if (defined($ip_user_hash{$DATA->{DST_IP}})) {
+      my $uid = $ip_user_hash{$DATA->{DST_IP}};
+      push @{ $self->{AGREGATE_USERS}{$uid}{IN} }, {%$DATA};
+      $DATA->{UID} = $uid;
+      $y++;
     }
 
     #Unknown Ips
