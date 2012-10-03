@@ -319,8 +319,9 @@ sub list {
 
   my $EXT_TABLES  = $self->{EXT_TABLES};
   if ($attr->{INVOICE_NUM}) {
-    push @WHERE_RULES, @{ $self->search_expr("$attr->{INVOICE_NUM}", 'INT', 'invoice.invoice_num', { EXT_FIELD => 1 }) };
-    $EXT_TABLES  .= 'LEFT JOIN docs_invoices invoice ON (invoice.payment_id=p.id)';
+    push @WHERE_RULES, @{ $self->search_expr("$attr->{INVOICE_NUM}", 'INT', 'd.invoice_num', { EXT_FIELD => 1 }) };
+    $EXT_TABLES  .= 'LEFT JOIN docs_invoice2payments i2p ON (p.id=i2p.payment_id)
+    LEFT JOIN docs_invoices d ON (d.id=i2p.invoice_id)';
   }
 
   if ($attr->{COMPANY_ID}) {
