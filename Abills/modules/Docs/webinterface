@@ -1848,6 +1848,7 @@ sub docs_invoice {
   $Docs->invoice_defaults();
   $Docs->{DATE} = $DATE;
   $FORM{UID}    = $LIST_PARAMS{UID} if (!$FORM{UID});
+  $FORM{ORDER} .= ' '.$FORM{ORDER2} if ($FORM{ORDER2});
   
   if ($FORM{create}) {
     $FORM{SUM} =~ s/\,/\./g if ($FORM{SUM});
@@ -2205,10 +2206,10 @@ sub docs_invoice {
       'ORDER',
       {
         SELECTED  => $FORM{ORDER},
-        SEL_ARRAY => \@orders,
+        SEL_ARRAY => ['', @orders],
         NO_ID     => 1
       }
-    );
+    );    
   }
   else {
     $Docs->{SEL_ORDER} .= $html->form_select(
