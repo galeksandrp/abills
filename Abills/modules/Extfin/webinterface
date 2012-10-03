@@ -33,7 +33,8 @@ sub extfin_export_customers {
         {
           width   => '100%',
           caption => "$_USERS",
-          title   => [ 'ID', $_NAME, $_FIO, "$_GROUP ID", "$_GROUP", $_TYPE, $_ADDRESS, $_PHONE, $_CONTRACT_ID, 'BILL ID', "BANK ACCOUNT", 'BANK NAME', 'COR ACCT' ],
+          title   => [ 'ID', $_NAME, $_FIO, "$_GROUP ID", "$_GROUP", $_TYPE, $_ADDRESS, $_PHONE, 
+           $_CONTRACT_ID, "$_CONTRACT_DATE", 'BILL ID', "BANK ACCOUNT", 'BANK NAME', 'COR ACCT' ],
           ID      => 'EXTFIN_CUSTOMERS',
           qs      => $pages_qs,
           rows    => [ [ 10000000, "$_TOTAL $_USERS", "$_TOTAL $_USERS", 0, '', 1, '', '', '', '', '', '', '' ] ],
@@ -45,7 +46,7 @@ sub extfin_export_customers {
       return 0;
     }
 
-    my @TITLE = ('ID', $_NAME, $_FIO, "$_GROUP ID", "$_GROUP", $_TYPE, $_ADDRESS, $_PHONE, "$_CONTRACT $_TYPE", $_CONTRACT_ID, 'BILL ID', "BANK ACCOUNT", 'BANK NAME', 'COR ACCT');
+    my @TITLE = ('ID', $_NAME, $_FIO, "$_GROUP ID", "$_GROUP", $_TYPE, $_ADDRESS, $_PHONE, "$_CONTRACT $_TYPE", $_CONTRACT_ID, "$_CONTRACT $_DATE", 'BILL ID', "BANK ACCOUNT", 'BANK NAME', 'COR ACCT');
 
     if ($FORM{INFO_FIELDS} || $FORM{INFO_FIELDS_COMPANIES}) {
       push @TITLE, split(/, /, $FORM{INFO_FIELDS} . $FORM{INFO_FIELDS_COMPANIES});
@@ -76,7 +77,22 @@ sub extfin_export_customers {
         }
       }
 
-      $table->addrow($line->[0], $line->[1], $line->[2], $line->[3], $line->[4], $line->[5], $line->[6], $line->[7], $line->[8], $line->[9], $line->[10], $line->[11], $line->[12], $line->[13], @arr);
+      $table->addrow($line->[0], 
+        $line->[1], 
+        $line->[2], 
+        $line->[3], 
+        $line->[4], 
+        $line->[5], 
+        $line->[6], 
+        $line->[7], 
+        $line->[8], 
+        $line->[9], 
+        $line->[10], 
+        $line->[11], 
+        $line->[12], 
+        $line->[13], 
+        $line->[14], 
+        @arr);
     }
 
     print $table->show();

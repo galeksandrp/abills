@@ -330,7 +330,6 @@ sub list {
   elsif ($attr->{DATE}) {
     push @WHERE_RULES, @{ $self->search_expr($attr->{DATE}, 'DATE', 'date_format(f.date, \'%Y-%m-%d\')') };
   }
-
   # Month
   elsif ($attr->{MONTH}) {
     push @WHERE_RULES, "date_format(f.date, '%Y-%m')='$attr->{MONTH}'";

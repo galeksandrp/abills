@@ -278,18 +278,17 @@ sub search_expr {
 
   foreach my $v (@val_arr) {
     my $expr = '=';
-
     if ($type eq 'DATE') {
-    	if ($v =~ /([=><!]{0,2})(\d{2})[\/\.\-](\d{2})[\/\.\-](\d{4})/) {
-        $v = "$1$4-$3-$2";
-      }
-      elsif($v =~ /(\d{4}-\d{2}-\d{2})\/(\d{4}-\d{2}-\d{2})/) {
+      if($v =~ /(\d{4}-\d{2}-\d{2})\/(\d{4}-\d{2}-\d{2})/) {
         my $from_date = $1;
         my $to_date   = $2;
         if ($field) {
           push @result_arr, "($field>=$from_date AND $field<=$to_date)" ;
         }
         next;
+      }
+    	elsif ($v =~ /([=><!]{0,2})(\d{2})[\/\.\-](\d{2})[\/\.\-](\d{4})/) {
+        $v = "$1$4-$3-$2";
       }
     	elsif ($v eq '*') {
         $v = ">=0000-00-00";

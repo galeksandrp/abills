@@ -598,7 +598,8 @@ sub abon_periodic {
   	                                DELETED      => 0,
   	                                LOGIN_STATUS => 0,
   	                                COLS_NAME    => 1,
-  	                                COLS_UPPER   => 1
+  	                                COLS_UPPER   => 1,
+  	                                MANUAL_FEE   => 1
   	                              });
   
   my %docs_info = ();

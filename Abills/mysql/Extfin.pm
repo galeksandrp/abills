@@ -184,20 +184,21 @@ sub customers_list {
     $db, "SELECT  
                          u.uid, 
                          if(u.company_id > 0, company.name, 
-                            if(pi.fio<>'', pi.fio, u.id)),
+                            if(pi.fio<>'', pi.fio, u.id)) AS login,
                          if(u.company_id > 0, company.name, 
-                            if(pi.fio<>'', pi.fio, u.id)),
+                            if(pi.fio<>'', pi.fio, u.id)) AS name,
                          u.gid,
                          g.name,
-                         if(company.id IS NULL, 0, company.id),
+                         if(company.id IS NULL, 0, company.id) AS company_id,
                          $ADDRESS_FULL,
-                         pi.phone,
-                         if(u.company_id > 0, company.contract_sufix, pi.contract_sufix),
-                         if(u.company_id > 0, company.contract_id, pi.contract_id),
-                         if(u.company_id > 0, company.bill_id, u.bill_id),
-                         if(u.company_id > 0, company.bank_account, ''),
-                         if(u.company_id > 0, company.bank_name, ''),
-                         if(u.company_id > 0, company.cor_bank_account, '')
+                         if(u.company_id > 0, company.phone, pi.phone),
+                         if(u.company_id > 0, company.contract_sufix, pi.contract_sufix) AS contract_sufix,
+                         if(u.company_id > 0, company.contract_id, pi.contract_id) AS contract_id,
+                         if(u.company_id > 0, company.contract_date, pi.contract_date) AS contract_date,
+                         if(u.company_id > 0, company.bill_id, u.bill_id) AS bill_id,
+                         if(u.company_id > 0, company.bank_account, '') AS bank_account,
+                         if(u.company_id > 0, company.bank_name, '') AS bank_name,
+                         if(u.company_id > 0, company.cor_bank_account, '') AS cor_bank_account
                        $self->{SEARCH_FIELDS}
                          
      FROM users u
@@ -212,9 +213,11 @@ sub customers_list {
      LEFT JOIN streets ON (streets.id=builds.street_id)
      
      $WHERE
-     GROUP BY 11
+     GROUP BY 12
      ORDER BY $SORT $DESC 
-     LIMIT $PG, $PAGE_ROWS;"
+     LIMIT $PG, $PAGE_ROWS;",
+     undef,
+     $attr
   );
 
   return $self if ($self->{errno});

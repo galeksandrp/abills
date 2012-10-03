@@ -566,6 +566,10 @@ sub periodic_list {
     push @WHERE_RULES, @{ $self->search_expr("$attr->{LOGIN_STATUS}", 'INT', 'u.disable', { EXT_FIELD => 1 }) };
   }
 
+  if (defined($attr->{MANUAL_FEE})) {
+    push @WHERE_RULES, @{ $self->search_expr("$attr->{MANUAL_FEE}", 'INT', 'ul.manual_fee') };
+  }
+
   my $WHERE = ($#WHERE_RULES > -1) ? "AND " . join(' and ', @WHERE_RULES) : '';
 
   my $EXT_TABLE = '';

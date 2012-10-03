@@ -477,7 +477,8 @@ sub prepaid_invoices {
   my $Module_name     = $MODULES[0]->new($db, $admin, \%conf);
   $LIST_PARAMS{TP_ID} = $ARGV->{TP_ID} if ($ARGV->{TP_ID});
   $LIST_PARAMS{LOGIN} = $ARGV->{LOGIN} if ($ARGV->{LOGIN});
-  my $TP_LIST = get_tps();
+  $LIST_PARAMS{GID}   = $ARGV->{GID}   if ($ARGV->{GID});
+  my $TP_LIST         = get_tps();
 
   my $list = $Module_name->list(
     {
@@ -491,9 +492,10 @@ sub prepaid_invoices {
       ADDRESS_FLAT   => '*',
       PAGE_ROWS      => 1000000,
       #		                        %INFO_FIELDS_SEARCH,
-      SORT       => $sort,
-      SKIP_TOTAL => 1,
+      SORT           => $sort,
+      SKIP_TOTAL     => 1,
       %LIST_PARAMS,
+      COLS_NAME      => 1
     }
   );
 
@@ -502,14 +504,14 @@ sub prepaid_invoices {
   my $doc_num   = 0;
 
   foreach my $line (@$list) {
-    my $uid   = $line->[ (6 + $Module_name->{SEARCH_FIELDS_COUNT}) ];
-    my $tp_id = $line->[ (9 + $Module_name->{SEARCH_FIELDS_COUNT}) ];
+    my $uid   = $line->{uid};
+    my $tp_id = $line->{tp_id};
 
-    print "UID: $uid LOGIN: $line->[0] FIO: $line->[1] TP: $tp_id / $Module_name->{SEARCH_FIELDS_COUNT}\n" if ($debug > 2);
+    print "UID: $uid LOGIN: $line->{login} FIO: $line->{fio} TP: $tp_id / $Module_name->{SEARCH_FIELDS_COUNT}\n" if ($debug > 2);
 
     $Docs->user_info($uid);
 
-    if ($ARGV->{INVOICE2ALL} || !$Docs->{PERIODIC_CREATE_DOCS}) {
+    if ($ARGV->{INVOICE2ALL} || ! $Docs->{PERIODIC_CREATE_DOCS}) {
       print "Skip create docs\n" if ($debug > 2);
       next;
     }
@@ -524,8 +526,8 @@ sub prepaid_invoices {
     );
 
     #Add debetor invoice
-    if ($line->[2] && $line->[2] < 0) {
-      print "  DEPOSIT: $line->[2]\n" if ($debug > 2);
+    if ($line->{deposit} && $line->{deposit} < 0) {
+      print "  DEPOSIT: $line->{deposit}\n" if ($debug > 2);
       $FORM{SUM}   = abs($line->[2]);
       $FORM{ORDER} = "$_DEBT";
       docs_invoices({ QUITE => 1 });
@@ -539,7 +541,6 @@ sub prepaid_invoices {
       $FORM{ORDER} = "$_TARIF_PLAN";
       docs_invoice({ QUITE => 1 });
     }
-
   }
   print "TOTAL USERS: $Module_name->{TOTAL} DOCS: $doc_num\n";
 }
@@ -588,8 +589,8 @@ sub prepaid_invoices_company {
 
   my $list = $Company->list(
     {
-      DISABLE   => 0,
-      PAGE_ROWS => 1000000,
+      DISABLE    => 0,
+      PAGE_ROWS  => 1000000,
       SORT       => $sort,
       SKIP_TOTAL => 1,
       %LIST_PARAMS,
@@ -623,10 +624,10 @@ sub prepaid_invoices_company {
 
     #Check month periodic
     $Docs->user_info($admin_user);
-    #if (!$Docs->{PERIODIC_CREATE_DOCS}) {
-    #  print "Skip create docs\n" if ($debug > 2);
-    #  next;
-    #}
+    if (!$Docs->{PERIODIC_CREATE_DOCS}) {
+      print "Skip create docs\n" if ($debug > 2);
+      next;
+    }
 
     %FORM = (
       UID        => $admin_user,
@@ -687,55 +688,48 @@ sub prepaid_invoices_company {
 
 
 
-  my $total_sum = 0;
-  my @ids       = ();
-  if ($debug > 6) {
-    $Fees->{debug}=1;
-  }
-
-  my $fees_list = $Fees->list({ DATE       => ">=$DATE",
+    my $total_sum = 0;
+    my @ids       = ();
+    if ($debug > 6) {
+      $Fees->{debug}=1;
+    }
+  
+    my $date = ($ARGV->{DATE}) ? "$ARGV->{DATE}"  : ">=$DATE" ;
+  
+    my $fees_list = $Fees->list({ DATE       => $date,
   	                            COMPANY_ID => $company_id,
   	                            COLS_NAME  => 1 });
 
-  foreach my $line (@$fees_list) {
-    $num++;
-    push @ids, $num;
-    $ORDERS_HASH{ 'ORDER_' . $num }   = $line->{dsc};
-    $ORDERS_HASH{ 'SUM_' . $num }     = $line->{sum};
-    $ORDERS_HASH{ "FEES_ID_" . $num } = $line->{id};
-    $total_sum                       += $line->{sum};
-  }
-
-  $ORDERS_HASH{IDS} = join(', ', @ids);
-
-  if ($debug > 1) {
-    print "$user{LOGIN}: Invoice period: $user{INVOICE_PERIOD_START} - $user{INVOICE_PERIOD_STOP}\n";
-    for (my $i = 1 ; $i <= $num ; $i++) {
-      print "$i|" . $ORDERS_HASH{ 'ORDER_' . $i } . "|" . $ORDERS_HASH{ 'SUM_' . $i } . "| " . ($ORDERS_HASH{ 'FEES_ID_' . $i } || '') . "\n";
+    foreach my $line (@$fees_list) {
+      $num++;
+      push @ids, $num;
+      $ORDERS_HASH{ 'ORDER_' . $num }   = $line->{dsc};
+      $ORDERS_HASH{ 'SUM_' . $num }     = $line->{sum};
+      $ORDERS_HASH{ "FEES_ID_" . $num } = $line->{id};
+      $total_sum                       += $line->{sum};
     }
-    print "Total: $num  SUM: $total_sum Amount to pay: $amount_for_pay\n";
-  }
 
+    $ORDERS_HASH{IDS} = join(', ', @ids);
+
+    if ($debug > 1) {
+      print "$user{LOGIN}: Invoice period: $user{INVOICE_PERIOD_START} - $user{INVOICE_PERIOD_STOP}\n";
+      for (my $i = 1 ; $i <= $num ; $i++) {
+        print "$i|" . $ORDERS_HASH{ 'ORDER_' . $i } . "|" . $ORDERS_HASH{ 'SUM_' . $i } . "| " . ($ORDERS_HASH{ 'FEES_ID_' . $i } || '') . "\n";
+      }
+      print "Total: $num  SUM: $total_sum Amount to pay: $amount_for_pay\n";
+    }
 
     #Add to DB
-    #if ($num > 0) {
-      next if ($num == 0);
-      if ($debug < 5) {
-        $Docs->invoice_add({ %FORM, %ORDERS_HASH });
-#        $Docs->user_change(
-#          {
-#            UID          => $user{UID},
-#            INVOICE_DATE => $user{NEXT_INVOICE_DATE},
-#            CHANGE_DATE  => 1
-#          }
-#        );
+    next if ($num == 0);
+    if ($debug < 5) {
+      $Docs->invoice_add({ %FORM, %ORDERS_HASH });
 
-        #Sendemail
-        if ($num > 0) { # && $user{SEND_DOCS}) {
-          $FORM{print}      = $Docs->{DOC_ID};
-          $LIST_PARAMS{UID} = $user{UID};
-          $FORM{create}     = undef;
-          docs_invoice(
+      #Sendemail
+      if ($num > 0) { # && $user{SEND_DOCS}) {
+      $FORM{print}      = $Docs->{DOC_ID};
+      $LIST_PARAMS{UID} = $user{UID};
+      $FORM{create}     = undef;
+      docs_invoice(
             {
               GET_EMAIL_INFO => 1,
               SEND_EMAIL     => 1, #$user{SEND_DOCS} || 0,
@@ -745,8 +739,8 @@ sub prepaid_invoices_company {
               %user
             }
           );
-        }
       }
+    }
   }
 
   print "TOTAL USERS: $Company->{TOTAL} DOCS: $doc_num\n";
@@ -933,17 +927,19 @@ sub help {
 Multi documents creator	
   PERIODIC_INVOICE - Create periodic invoice for clients
   POSTPAID_INVOICES- Created for previe month debetors
-  PREPAID_INVOICES - Create cridit invoice and next month payments invoice
+  PREPAID_INVOICES - Create credit invoice and next month payments invoice
                      INVOICE2ALL=1 - Create and send invoice to all users
   
+Extra filter parameters
   LOGIN            - User login
   TP_ID            - Tariff Plan
+  GID              - User Gid
   COMPANY_ID       - Company id. if defined company id generated only companies invoicess. U can use wilde card *
   
   RESULT_DIR=      - Output dir (default: abills/cgi-bin/admin/pdf)
   DOCS_IN_FILE=    - docs in single file (default: $docs_in_file)
   ADDRESS2         - User second address (fields: _c_address, _c_build, _c_flat)
-  DATE=YYYY-MM-DD  - Dococument create date of period "YYYY-MM-DD/YYYY-MM-DD"
+  DATE=YYYY-MM-DD  - Document create date of period "YYYY-MM-DD/YYYY-MM-DD"
   SORT=            - Sort by 
   DEBUG=[1..5]     - Debug mode
 [END]

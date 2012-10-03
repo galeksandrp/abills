@@ -950,7 +950,9 @@ sub form_companies {
         $_ADD_USER => "24:COMPANY_ID=$FORM{COMPANY_ID}",
         $_BILL     => "19:COMPANY_ID=$FORM{COMPANY_ID}"
       },
-      { f_args => { COMPANY => $company } }
+      { f_args     => { COMPANY => $company },
+      	MAIN_INDEX => get_function_index('form_companies') 
+      }
     );
 
     #Sub functions
@@ -1218,20 +1220,19 @@ sub func_menu {
 
   return '' if ($FORM{pdf});
 
-  print "<TABLE width=\"100%\" bgcolor=\"$_COLORS[2]\">\n";
+  print "<TABLE width='100%' bgcolor='$_COLORS[2]'>\n";
 
   while (my ($k, $v) = each %$header) {
     print "<tr><td>$k: </td><td valign=top>$v</td></tr>\n";
   }
-  print "<tr bgcolor=\"$_COLORS[1]\"><td colspan=\"2\">\n";
+  print "<tr class='even'><td colspan='2'>\n";
 
   my $menu;
 
-  #while(my($name, $v)=each  %$items) {
   foreach my $name (sort { $items->{$a} cmp $items->{$b} } keys %$items) {
     my $v = $items->{$name};
     my ($subf, $ext_url, $class) = split(/:/, $v, 3);
-    $menu .= ($FORM{subf} && $FORM{subf} eq $subf) ? ' ' . $html->b($name) : ' ' . $html->button($name, "index=$index&$ext_url&subf=$subf", { ($class) ? (CLASS => $class) : (BUTTON => 1) });
+    $menu .= ($FORM{subf} && $FORM{subf} eq $subf) ? ' ' . $html->b($name) : ' ' . $html->button($name, "index=". (($f_args->{MAIN_INDEX}) ? $f_args->{MAIN_INDEX} : $index) ."&$ext_url&subf=$subf", { ($class) ? (CLASS => $class) : (BUTTON => 1) });
   }
 
   print "$menu</td></tr>
