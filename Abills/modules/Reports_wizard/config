@@ -1,7 +1,0 @@
-#Iner_ID : Main or Sub or if -1 user menu func list
-%FUNCTIONS_LIST = (
-    "01:0:$_REPORTS_WIZARD:reports_wizard:"        => 4,
-    "02:0:$_REPORTS_WIZARD:reports_wizard_config:" => 5                  
-                   );
-
-1

@@ -39,5 +39,6 @@ CREATE TABLE `abon_user_list` (
   `create_docs` tinyint(1) unsigned NOT NULL DEFAULT 0,
   `send_docs` tinyint(1) unsigned NOT NULL DEFAULT 0,
   `service_count` smallint(4) unsigned NOT NULL DEFAULT 1,
+  `manual_fee` tinyint(1) unsigned NOT NULL DEFAULT 0,
   KEY `uid` (`uid`, `tp_id`)
 ) COMMENT='Abon user list';
