@@ -632,7 +632,7 @@ sub prepaid_invoices_company {
     %FORM = (
       UID        => $admin_user,
       create     => 1,
-      SEND_EMAIL => $Docs->{SEND_DOCS},
+      SEND_EMAIL => $Docs->{SEND_DOCS} || undef,
       pdf        => 1,
       CUSTOMER   => '-',
       EMAIL      => $Docs->{EMAIL}

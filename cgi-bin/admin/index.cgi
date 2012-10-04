@@ -6169,7 +6169,7 @@ sub form_payments () {
       push @rows, $payment->{company_id};
     }
 
-    if (in_array('Docs', \@MODULES)) {
+    if (in_array('Docs', \@MODULES) && ! $FORM{xml}) {
       my $payment_sum = $payment->{sum};
     	my $i2p         = '';
 
