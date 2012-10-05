@@ -283,7 +283,7 @@ sub search_expr {
         my $from_date = $1;
         my $to_date   = $2;
         if ($field) {
-          push @result_arr, "($field>=$from_date AND $field<=$to_date)" ;
+          push @result_arr, "($field>='$from_date' AND $field<='$to_date')" ;
         }
         next;
       }

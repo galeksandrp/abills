@@ -726,19 +726,20 @@ sub prepaid_invoices_company {
 
       #Sendemail
       if ($num > 0) { # && $user{SEND_DOCS}) {
-      $FORM{print}      = $Docs->{DOC_ID};
-      $LIST_PARAMS{UID} = $user{UID};
-      $FORM{create}     = undef;
-      docs_invoice(
+        $FORM{print}      = $Docs->{DOC_ID};
+        $LIST_PARAMS{UID} = $user{UID};
+        $FORM{create}     = undef;
+        docs_invoice(
             {
               GET_EMAIL_INFO => 1,
-              SEND_EMAIL     => 1, #$user{SEND_DOCS} || 0,
+              SEND_EMAIL     => $Docs->{SEND_DOCS} || 0,
               UID            => $user{UID},
               COMPANY_ID     => $company_id,
               DEBUG          => $debug,
               %user
             }
           );
+        $doc_num++;
       }
     }
   }
