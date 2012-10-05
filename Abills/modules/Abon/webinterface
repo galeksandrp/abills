@@ -593,13 +593,13 @@ sub abon_periodic {
   }
 
 
-  $Abon->{debug} = 1 if ($debug > 7);
+  $Abon->{debug} = 1 if ($debug > 6);
   my $list = $Abon->periodic_list({ %LIST_PARAMS, 
   	                                DELETED      => 0,
   	                                LOGIN_STATUS => 0,
   	                                COLS_NAME    => 1,
   	                                COLS_UPPER   => 1,
-  	                                MANUAL_FEE   => 1
+  	                                MANUAL_FEE   => 0
   	                              });
   
   my %docs_info = ();
@@ -610,7 +610,7 @@ sub abon_periodic {
     $info->{DATETIME}  = "$ADMIN_REPORT{DATE} $TIME";
     $info->{BILL_ID}   = $line->{EXT_BILL_ID} if ($info->{EXT_BILL_ACCOUNT});
 
-    if ($debug > 5) {
+    if ($debug > 2) {
       $debug_output .= "UID: $info->{UID} TP_ID: $info->{TP_ID} SUM: $info->{PRICE} DEPOSIT: " . (($info->{DEPOSIT}) ? $info->{DEPOSIT} : 'Undefined') . " NOT1: $info->{NOTIFICATION1} NOT2: $info->{NOTIFICATION2} ABON: $info->{ABON_DATE}\n";
     }
 

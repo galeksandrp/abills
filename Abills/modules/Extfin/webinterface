@@ -73,7 +73,7 @@ sub extfin_export_customers {
       my @arr = ();
       if ($Extfin->{SEARCH_FIELDS_COUNT}) {
         for (my $i = 0 ; $i <= $Extfin->{SEARCH_FIELDS_COUNT} ; $i++) {
-          push @arr, $line->[ 14 + $i ];
+          push @arr, $line->[ 15 + $i ];
         }
       }
 
