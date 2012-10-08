@@ -581,8 +581,8 @@ sub periodic_list {
   at.id AS tp_id, 
   at.name AS tp_name,
   if(c.name IS NULL, b.deposit, cb.deposit) AS deposit,
-  if(c.name IS NULL, u.credit, 
-    if (c.credit = 0, u.credit, c.credit) 
+  if(u.credit, u.credit,
+    if (c.credit <> 0, c.credit, 0) 
    ) AS credit,
   u.disable,
   at.payment_type,
