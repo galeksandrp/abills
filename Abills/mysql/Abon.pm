@@ -582,8 +582,7 @@ sub periodic_list {
   at.name AS tp_name,
   if(c.name IS NULL, b.deposit, cb.deposit) AS deposit,
   if(u.credit, u.credit,
-    if (c.credit <> 0, c.credit, 0) 
-   ) AS credit,
+    if (c.credit <> 0, c.credit, 0) ) AS credit,
   u.disable,
   at.payment_type,
   ul.comments,
@@ -656,7 +655,8 @@ sub periodic_list {
      if(at.discount=1, u.reduction, 0)) AS discount,
      ul.create_docs,
      ul.send_docs,
-     ul.service_count
+     ul.service_count,
+     ul.manual_fee
   FROM (abon_tariffs at, abon_user_list ul, users u)
      LEFT JOIN bills b ON (u.bill_id=b.id)
      LEFT JOIN companies c ON (u.company_id=c.id)
