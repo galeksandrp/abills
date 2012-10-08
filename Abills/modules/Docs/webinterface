@@ -2092,6 +2092,26 @@ sub docs_invoice {
   	  	$payments_total_sum     += $payments_total_sum;
   	  	$i++;
   	  }
+      
+      $Doc{PAYMENTS_TOTAL_SUM}=$payments_total_sum;
+      
+      #Get unpayments
+      my $unpayment_list = $Docs->invoices_list({ UID       => $FORM{UID},
+      	                                          UNPAIMENT => 1,
+      	                                          COLS_NAME => 1
+      	                                        });
+      $i = 1;
+      my $unpayment_total_sum = 0;
+      foreach my $unpayment ( @$unpayment_list ) {
+  	  	$Doc{'UNPAYMENT_INVOICE_DATE_'.$i}     = $unpayment->{date};
+  	  	$Doc{'UNPAYMENT_INVOICE_COMMENTS_'.$i} = $unpayment->{dsc};
+  	  	$Doc{'UNPAYMENT_INVOICE_SUM_'.$i}      = $unpayment->{total_sum} - $unpayment->{payment_sum};
+  	  	$Doc{'UNPAYMENT_INVOICE_NUM_'.$i}       = $unpayment->{invoice_num};
+  	  	$Doc{'UNPAYMENT_INVOICE_ALT_SUM_'.$i}  = sprintf("%.2f", $Doc{EXCHANGE_RATE} * $i2p->{payment_sum});
+  	  	$unpayment_total_sum     += $Doc{'UNPAYMENT_INVOICE_SUM_'.$i};
+      }      	                                           
+
+      $Doc{UNPAYMENT_TOTAL_SUM}=$unpayment_total_sum;
 
       $attr->{SEND_EMAIL} = 0 if (!defined($attr->{SEND_EMAIL}));
       if ($attr->{GET_EMAIL_INFO} && $attr->{SEND_EMAIL}) {
@@ -2733,8 +2753,6 @@ sub docs_print {
 
   $html = $html_old if ($html_old);
   delete $FORM{pdf};
-
-
 
   if ($conf{DOCS_LANGUAGE} && $html->{language} ne $conf{DOCS_LANGUAGE}) {
     if (-f "../Abills/modules/Docs/lng_$html->{language}.pl") {

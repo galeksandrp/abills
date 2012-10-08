@@ -373,7 +373,6 @@ sub abon_user_list {
     }
   );
   print $table->show();
-
 }
 
 #*******************************************************************
@@ -679,7 +678,7 @@ sub abon_periodic {
           my $message = $html->tpl_show(_include('abon_alert', 'Abon'), { %$Abon, %$info }, { OUTPUT2RETURN => 1 });
           my $attach;
           if ($info->{ALERT_ACCOUNT} && $info->{CREATE_DOCS}) {
-          	push @{ $docs_info{$user{UID}} }, {   	
+          	push @{ $docs_info{$user{UID}} }, {
               SUM        => $info->{PRICE} / $info->{SERVICE_COUNT},
               COUNT      => $info->{SERVICE_COUNT} || 1,
               ORDER      => "$info->{TP_NAME} $info->{COMMENTS}",
@@ -736,13 +735,13 @@ sub abon_periodic {
         }
       }
       elsif ($info->{NOTIFICATION2} eq $ADMIN_REPORT{DATE}) {
-        $debug_output .= "$user{UID} TP_ID: $info->{TP_ID} SUM: $info->{PRICE} ACCOUNT: $notification1_account_id Notification 2 EMAIL: $info->{email}\n" if ($debug > 0);
+        $debug_output .= "$user{UID} TP_ID: $info->{TP_ID} SUM: $info->{PRICE} ACCOUNT: $info->{->{NOTIFICATION1_ACCOUNT_ID} Notification 2 EMAIL: $info->{email}\n" if ($debug > 0);
 
         my $message = $html->tpl_show(_include('abon_notification2', 'Abon'), { %$Abon, %$info }, { OUTPUT2RETURN => 1 });
         my $attach;
 
         if ($info->{NOTIFICATION1_ACCOUNT_ID} && $info->{CREATE_DOCS}) {
-          $FORM{print}            = $notification1_account_id;
+          $FORM{print}            = $info->{NOTIFICATION1_ACCOUNT_ID};
           $FORM{CHECK_PEYMENT_ID} = 1;
           $FORM{pdf}              = $conf{DOCS_PDF_PRINT};
           my $content = docs_invoice({ QUITE => 1, OUTPUT2RETURN => 1 });
@@ -786,7 +785,7 @@ if (in_array('Docs', \@MODULES) ) {
   	foreach my $doc (@{ $values }) {
   		next if ($doc->{SUM} == 0);  		
       $FORM{'SUM_'.$i}    = $doc->{SUM};
-      $FORM{'COUNTS_'.$i}  = $doc->{COUNT};
+      $FORM{'COUNTS_'.$i} = $doc->{COUNT};
       $FORM{'ORDER_'.$i}  = $doc->{ORDER};
       $FORM{SEND_EMAIL}   = ($FORM{SEND_EMAIL}) ? 1 : $doc->{SEND_EMAIL};
       push @docs_ids, "$i";
