@@ -598,7 +598,6 @@ sub abon_periodic {
   	                                LOGIN_STATUS => 0,
   	                                COLS_NAME    => 1,
   	                                COLS_UPPER   => 1,
-  	                                MANUAL_FEE   => 0
   	                              });
   
   my %docs_info = ();
@@ -634,7 +633,7 @@ sub abon_periodic {
       $info->{PRICE} = $info->{PRICE} * (100 - $info->{DISCOUNT}) / 100 if ($info->{DISCOUNT} > 0);
 
       #Get daily abon
-      if ($ADMIN_REPORT{DATE} eq $info->{ABON_DATE} || $info->{PERIOD} == 0) {
+      if (! $info->{MANUAL_FEE} && ($ADMIN_REPORT{DATE} eq $info->{ABON_DATE} || $info->{PERIOD} == 0)) {
         if ($info->{DEPOSIT} && ($info->{DEPOSIT} + $info->{CREDIT} > 0 || $info->{PAYMENT_TYPE} == 1) && $info->{DISABLE} == 0) {
           $fees->take(\%user, $info->{PRICE}, {%PARAMS}) if ($info->{DISCOUNT} < 100);
           $Abon->user_tariff_update(
