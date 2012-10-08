@@ -651,7 +651,7 @@ sub periodic_list {
           )
         )
        )
-      ) AS nextfees_date,
+      ) AS next_abon_fees_date,
     if(ul.discount>0, ul.discount,
      if(at.discount=1, u.reduction, 0)) AS discount,
      ul.create_docs,
