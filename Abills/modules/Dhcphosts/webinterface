@@ -1346,7 +1346,7 @@ sub dhcphosts_config {
             LOGIN       => $host->{login},
             HOSTNAME    => $host->{hostname},
             BOOT_FILE   => ($host->{boot_file}) ? "filename \"" . $host->{boot_file} . "\";"    : '',
-            NEXT_SERVER => ($host->{next_server}) ? "next-server \"" . $host->{next_server} . "\";" : '',
+            NEXT_SERVER => ($host->{next_server}) ? "next-server $host->{next_server};" : '',
           },
           { OUTPUT2RETURN => 1, CONFIG_TPL => 1 }
         );
