@@ -919,7 +919,10 @@ sub msgs_admin {
      }
     );
     
-    form_search({ SEARCH_FORM => $html->tpl_show(_include('msgs_search', 'Msgs'), { %$Msgs, %FORM }, { OUTPUT2RETURN => 1 }) });
+    form_search({ SEARCH_FORM => $html->tpl_show(_include('msgs_search', 'Msgs'), 
+    	             { %$Msgs, %FORM }, 
+    	             { OUTPUT2RETURN => 1 }),
+     	             NO_DEFAULT_DATE => 1 });
   }
   else {
     msgs_admin_add();

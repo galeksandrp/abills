@@ -6972,7 +6972,7 @@ sub form_search {
         my $i = 0;
         my $list = $users->config_list({ PARAM => 'ifu*', SORT => 2 });
         if ($users->{TOTAL} > 0) {
-          $info{INFO_FIELDS} .= "<tr><th colspan='3' bgcolor='$_COLORS[0]'>$_INFO_FIELDS</th></tr>\n";
+          $info{INFO_FIELDS} .= "<tr><th colspan='3' class='title_color'>$_INFO_FIELDS</th></tr>\n";
         }
         foreach my $line (@$list) {
           my $field_id = '';
@@ -7036,7 +7036,6 @@ sub form_search {
               my ($prefix, $sufix, $name, $tpl_name) = split(/:/, $line);
 
               #print "P $prefix, $sufix, $name, $tpl_name<br>";
-
               $prefix =~ s/ //g;
               $CONTRACTS_LIST_HASH{"$prefix|$sufix"} = $name;
             }
@@ -7080,7 +7079,7 @@ sub form_search {
         my $i = 0;
         my $list = $users->config_list({ PARAM => 'ifu*', SORT => 2 });
         if ($users->{TOTAL} > 0) {
-          $info{INFO_FIELDS} .= "<tr><th colspan='3' bgcolor='$_COLORS[0]'>$_INFO_FIELDS</th></tr>\n";
+          $info{INFO_FIELDS} .= "<tr><th colspan='3' class=title_color>$_INFO_FIELDS</th></tr>\n";
         }
         foreach my $line (@$list) {
           my $field_id = '';
@@ -7170,8 +7169,8 @@ sub form_search {
     	   { OUTPUT2RETURN => 1 });
     }
 
-    $SEARCH_DATA{FROM_DATE} = $html->date_fld2('FROM_DATE', { MONTHES => \@MONTHES, FORM_NAME => 'form_search', WEEK_DAYS => \@WEEKDAYS });
-    $SEARCH_DATA{TO_DATE}   = $html->date_fld2('TO_DATE',   { MONTHES => \@MONTHES, FORM_NAME => 'form_search', WEEK_DAYS => \@WEEKDAYS });
+    $SEARCH_DATA{FROM_DATE} = $html->date_fld2('FROM_DATE', { MONTHES => \@MONTHES, FORM_NAME => 'form_search', WEEK_DAYS => \@WEEKDAYS, NO_DEFAULT_DATE => $attr->{NO_DEFAULT_DATE} });
+    $SEARCH_DATA{TO_DATE}   = $html->date_fld2('TO_DATE',   { MONTHES => \@MONTHES, FORM_NAME => 'form_search', WEEK_DAYS => \@WEEKDAYS, NO_DEFAULT_DATE => $attr->{NO_DEFAULT_DATE} });
 
     my $SEL_TYPE = $html->form_select(
       'type',
@@ -7189,7 +7188,7 @@ sub form_search {
           $SEARCH_DATA{SEL_TYPE} .= "<th";
           $SEARCH_DATA{SEL_TYPE} .= " class=title_color" if ($FORM{type} eq $k);
           $SEARCH_DATA{SEL_TYPE} .= '>';
-          $SEARCH_DATA{SEL_TYPE} .= $html->button($v, "index=$index&type=$k");    #&search=1");
+          $SEARCH_DATA{SEL_TYPE} .= $html->button($v, "index=$index&type=$k");
           $SEARCH_DATA{SEL_TYPE} .= "</th>\n";
         }
       }

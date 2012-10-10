@@ -363,7 +363,7 @@ sub host_add {
       );", 'do'
   );
 
-  $admin->action_add($DATA{UID}, "ADD $DATA{IP}/$DATA{MAC}");
+  $admin->action_add($DATA{UID}, "ADD $DATA{IP}/$DATA{MAC} NAS: $DATA{NAS_ID}/$DATA{PORTS}");
 
   return $self;
 }
