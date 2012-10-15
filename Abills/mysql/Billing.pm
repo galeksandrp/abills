@@ -102,8 +102,8 @@ sub traffic_calculations {
 
       #Get using traffic
       $self->query(
-        $db, "select sum(sent / $CONF->{MB_SIZE} + 4092 * acct_output_gigawords), 
-     sum(recv  / $CONF->{MB_SIZE} + 4092 * acct_input_gigawords),
+        $db, "select sum(sent / $CONF->{MB_SIZE} + 4096 * acct_output_gigawords), 
+     sum(recv  / $CONF->{MB_SIZE} + 4096 * acct_input_gigawords),
      sum(sent2) / $CONF->{MB_SIZE},  
      sum(recv2) / $CONF->{MB_SIZE},
      DATE_FORMAT(start, '%Y-%m')

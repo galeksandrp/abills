@@ -2477,7 +2477,12 @@ sub paysys_payonline() {
 sub paysys_yandex () {
   require "modules/Paysys/Yandex.pm";	
 
-  print yandex({ SUM => $FORM{SUM} });
+  if ($FORM{code}) {
+  	$html->message('info', 'info', "Code: $FORM{code}//". receiveOAuthToken({ code => $FORM{code} }));
+  }
+  else {
+    yandex_get_token({ SUM => $FORM{SUM} });
+  }
 }
 
 1

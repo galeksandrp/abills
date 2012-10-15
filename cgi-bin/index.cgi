@@ -147,6 +147,12 @@ if ($uid > 0) {
 
   $html->{SID} = $sid;
 
+  if ($FORM{get_index}) {
+  	$index = get_function_index($FORM{get_index});
+  	$FORM{index}=$index;
+  }
+
+
   if (!$FORM{pdf} && -f '../Abills/templates/_form_client_custom_menu.tpl') {
     $OUTPUT{MENU} = $html->tpl_show(templates('form_client_custom_menu'), $user, { OUTPUT2RETURN => 1 });
   }
@@ -176,6 +182,7 @@ if ($uid > 0) {
       );
     }
   }
+
 
   if ($html->{ERROR}) {
     $html->message('err', $_ERROR, "$html->{ERROR}");

@@ -277,7 +277,7 @@ elsif (check_ip($ENV{REMOTE_ADDR}, '77.222.134.205')) {
   require "Ipay.pm";
   exit;
 }
-elsif (check_ip($ENV{REMOTE_ADDR}, '62.149.15.210,62.149.8.166')) {
+elsif (check_ip($ENV{REMOTE_ADDR}, '62.149.15.210,62.149.8.166,82.207.125.57')) {
   require "Platezhka.pm";
   exit;
 }
@@ -315,6 +315,10 @@ elsif ($FORM{payment} && $FORM{payment} =~ /pay_way/) {
   require "P24.pm";
   p24_payments();
   exit;
+}
+elsif($conf{'PAYSYS_YANDEX_ACCCOUNT'} && $FORM{code}) {
+	yandex();
+	exit;
 }
 
 print "Content-Type: text/html\n\n";
@@ -1848,4 +1852,14 @@ sub load_module {
   return 0;
 }
 
+#**********************************************************
+#
+#**********************************************************
+sub yandex () {
+  my ($attr)=@_;
+  my $payment_system    = $attr->{SYSTEM_SHORT_NAME} || 'Yandex';
+  my $payment_system_id = $attr->{SYSTEM_ID}         || 73;
+	
+  print "Location: https://$ENV{SERVER_NAME}:$ENV{SERVER_PORT}/index.cgi?get_index=paysys_payment&PAYMENT_SYSTEM=$payment_system_id&code=$FORM{code}\n\n";
+}
 1
