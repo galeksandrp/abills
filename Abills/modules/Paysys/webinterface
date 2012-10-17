@@ -2476,13 +2476,47 @@ sub paysys_payonline() {
 #**********************************************************
 sub paysys_yandex () {
   require "modules/Paysys/Yandex.pm";	
+  Yandex->import();
+
+  my $Ym = Yandex->ym_new($db, $admin, \%conf);
+  my $ym_token = '';
 
   if ($FORM{code}) {
-  	$html->message('info', 'info', "Code: $FORM{code}//". receiveOAuthToken({ code => $FORM{code} }));
+  	$Ym->receiveOAuthToken({ code => $FORM{code} });
+  	if($Ym->{error}) {
+  		$html->message('err', "$_ERROR", "$Ym->{error} $Ym->{error_str}" );
+  	}
+  	else {
+  		$Ym->query($db, "UPDATE users_pi SET ym_token=ENCODE('$Ym->{token}', '$conf{secretkey}') WHERE uid='$user->{UID}';", 'do');
+  		$ym_token = $Ym->{token};
+  	} 
   }
   else {
-    yandex_get_token({ SUM => $FORM{SUM} });
+  	$Ym->query($db, "SELECT DECODE(ym_token, '$conf{secretkey}') AS ym_token FROM users_pi WHERE uid='$user->{UID}';", undef, { INFO => 1 });
+    if ($Ym->{TOTAL} > 0 && $Ym->{YM_TOKEN}  ne '') {
+      $ym_token	= $Ym->{YM_TOKEN};
+    }
+    else {
+      $Ym->yandex_get_token({ SUM => $FORM{SUM} });
+      return 0;
+    }
   }
+  
+  my $result_hash = $Ym->ym_request_payment_p2p($ym_token, undef, "$FORM{SUM}", "$FORM{OPERATION_ID}", "LOGIN"); # $user->{LOGIN} UID: $user->{UID}" );
+
+ 	if($Ym->{error}) {
+ 		if ($Ym->{error} == 2) {
+ 			$Ym->query($db, "UPDATE users_pi SET ym_token='' WHERE uid='$user->{UID}';", 'do');
+ 		}
+  	$html->message('err', "$_ERROR", "!! $Ym->{error} $Ym->{error_str}" );
+  	my $a = `echo "\nERROR: !! $Ym->{error} $Ym->{error_str}" >> /tmp/ym`;
+  }
+  else {
+  	print "Content-Type: text/html\n\n";
+  	print %$result_hash;
+  }
+
+  
 }
 
 1

@@ -399,8 +399,25 @@ sub pi {
   my @INFO_ARR = ();
 
   (
-    $self->{FIO},      $self->{PHONE},       $self->{COUNTRY_ID},   $self->{ADDRESS_STREET}, $self->{ADDRESS_BUILD}, $self->{ADDRESS_FLAT}, $self->{EMAIL},        $self->{CONTRACT_ID}, $self->{CONTRACT_DATE}, $self->{CONTRACT_SUFIX},
-    $self->{COMMENTS}, $self->{PASPORT_NUM}, $self->{PASPORT_DATE}, $self->{PASPORT_GRANT},  $self->{ZIP},           $self->{CITY},         $self->{ACCEPT_RULES}, $self->{LOCATION_ID}, @INFO_ARR
+    $self->{FIO},      
+    $self->{PHONE},       
+    $self->{COUNTRY_ID},   
+    $self->{ADDRESS_STREET}, 
+    $self->{ADDRESS_BUILD}, 
+    $self->{ADDRESS_FLAT}, 
+    $self->{EMAIL},       
+    $self->{CONTRACT_ID}, 
+    $self->{CONTRACT_DATE}, 
+    $self->{CONTRACT_SUFIX},
+    $self->{COMMENTS}, 
+    $self->{PASPORT_NUM}, 
+    $self->{PASPORT_DATE}, 
+    $self->{PASPORT_GRANT},  
+    $self->{ZIP},           
+    $self->{CITY},         
+    $self->{ACCEPT_RULES}, 
+    $self->{LOCATION_ID}, 
+    @INFO_ARR
   ) = @{ $self->{list}->[0] };
 
   $self->{INFO_FIELDS_VAL} = \@INFO_ARR;

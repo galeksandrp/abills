@@ -386,7 +386,7 @@ sub host_del {
     $WHERE = "id='$attr->{ID}'";
     my $host = $self->host_info($attr->{ID});
     $uid    = $host->{UID};
-    $action = "DELETE HOST $host->{HOSTNAME} ($host->{IP}/$host->{MAC})";
+    $action = "DELETE HOST $host->{HOSTNAME} ($host->{IP}/$host->{MAC}) $host->{NAS_ID}:$host->{PORTS}";
   }
 
   $self->query($db, "DELETE FROM dhcphosts_hosts where $WHERE", 'do');
