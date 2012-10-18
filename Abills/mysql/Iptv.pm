@@ -71,7 +71,7 @@ sub user_info {
    tp.tp_id, 
    service.filter_id, 
    service.cid,
-   service.disable,
+   service.disable AS status,
    service.pin,
    service.vod,
    tp.gid AS tp_gid,

@@ -258,12 +258,15 @@ sub iptv_users_list {
     'STATUS',
     {
       SELECTED     => $FORM{STATUS},
-      SEL_ARRAY    => [ '', @service_status ],
+      SEL_ARRAY    => [ @service_status ],
+      SEL_OPTIONS  => { '' => '' },
       ARRAY_NUM_ID => 1
     }
   );
 
-  form_search({ SEARCH_FORM => $html->tpl_show(_include('iptv_users_search', 'Iptv'), {%FORM}, { notprint => 1 }) });
+  form_search({ SEARCH_FORM => $html->tpl_show(_include('iptv_users_search', 'Iptv'), 
+  	          { %FORM }, 
+  	          { notprint => 1 }) });
 
   print $html->letters_list({ pages_qs => $pages_qs });
 
@@ -374,16 +377,9 @@ sub iptv_user {
       if ($conf{IPTV_DVCRYPT_FILENAME}) {
         iptv_crypt();
       }
-      
-      #print .'/||'. $FORM{TP_ID}. '-||-';
-      
-      
-      if ($Iptv_stalker) {
-      	#my @sub_ch = split(/,/, iptv_user_channels_list({ UID =>  $FORM{UID}, TP_ID => $FORM{TP_ID} }));  # Массив подписных каналов
-        $Iptv_stalker->stalker_user_chg_tp(($FORM{TP_IDS} eq '') ? $FORM{TP_ID} : $FORM{TP_IDS}, ($FORM{CID2} ne '') ? $FORM{CID2} : $FORM{CID});
 
-        #print .'/||'. $FORM{TP_ID}. '-||-';
-        #$Iptv_stalker->change_user_subscribe_channel($FORM{UID}, \@sub_ch);
+      if ($Iptv_stalker) {
+        $Iptv_stalker->stalker_user_chg_tp(($FORM{TP_IDS} eq '') ? $FORM{TP_ID} : $FORM{TP_IDS}, ($FORM{CID2} ne '') ? $FORM{CID2} : $FORM{CID});
        	if ($Iptv_stalker->{errno}) {
        	  $html->message('err', $_ERROR, "$Iptv_stalker->{errno} $Iptv_stalker->{errstr}");
        	}
@@ -396,9 +392,6 @@ sub iptv_user {
     }
   }
   elsif ($FORM{set}) {
-    
-    
-    
     $Iptv->user_change({%FORM});
     if (!$Iptv->{errno}) {
       $Iptv->{ACCOUNT_ACTIVATE} = $attr->{USER_INFO}->{ACTIVATE};
@@ -410,18 +403,9 @@ sub iptv_user {
       if ($conf{IPTV_DVCRYPT_FILENAME}) {
         iptv_crypt();
       }
-      
-      #print $FORM{TP_ID} . '//';
-      
-      
+
       if ($Iptv_stalker) {
         $Iptv_stalker->stalker_user_chg_tp(($FORM{TP_IDS} eq '') ? $FORM{TP_ID} : $FORM{TP_IDS}, ($FORM{CID2} ne '') ? $FORM{CID2} : $FORM{CID});
-        #print 'TP_ID=' . $FORM{TP_IDS} . ' and CID='. $FORM{CID2};
-      	#print $FORM{TP_ID} . '//';
-      	#my @sub_ch = split(/,/, iptv_user_channels_list({ UID =>  $FORM{UID}, TP_ID => $FORM{TP_ID} }));  # Массив подписных каналов
-      	#print @sub_ch . '--';
-      	#print join(',', @sub_ch);
-        #$Iptv_stalker->change_user_subscribe_channel($FORM{UID}, \@sub_ch);
        	if ($Iptv_stalker->{errno}) {
        	  $html->message('err', $_ERROR, "$Iptv_stalker->{errno} $Iptv_stalker->{errstr}");
        	}
@@ -559,7 +543,6 @@ sub iptv_ext_cmd {
   $cmd = tpl_parse("$cmd", $attr);
   
   print $cmd if ($attr->{debug});
-  
   my $output = `$cmd`;
 }
 
