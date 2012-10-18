@@ -372,12 +372,18 @@ sub iptv_user {
       iptv_get_month_fee($Iptv) if (!$FORM{STATUS});
       $html->message('info', $_INFO, "$_ADDED");
       if ($conf{IPTV_DVCRYPT_FILENAME}) {
-        dv_crypt();
+        iptv_crypt();
       }
-
+      
+      #print .'/||'. $FORM{TP_ID}. '-||-';
+      
+      
       if ($Iptv_stalker) {
-      	my @sub_ch = split(/,/, iptv_user_channels_list({ UID =>  $FORM{UID}, TP_ID => $FORM{TP_ID} }));  # Массив подписных каналов
-        $Iptv_stalker->change_user_subscribe_channel($FORM{UID}, \@sub_ch);
+      	#my @sub_ch = split(/,/, iptv_user_channels_list({ UID =>  $FORM{UID}, TP_ID => $FORM{TP_ID} }));  # Массив подписных каналов
+        $Iptv_stalker->stalker_user_chg_tp(($FORM{TP_IDS} eq '') ? $FORM{TP_ID} : $FORM{TP_IDS}, ($FORM{CID2} ne '') ? $FORM{CID2} : $FORM{CID});
+
+        #print .'/||'. $FORM{TP_ID}. '-||-';
+        #$Iptv_stalker->change_user_subscribe_channel($FORM{UID}, \@sub_ch);
        	if ($Iptv_stalker->{errno}) {
        	  $html->message('err', $_ERROR, "$Iptv_stalker->{errno} $Iptv_stalker->{errstr}");
        	}
@@ -390,6 +396,9 @@ sub iptv_user {
     }
   }
   elsif ($FORM{set}) {
+    
+    
+    
     $Iptv->user_change({%FORM});
     if (!$Iptv->{errno}) {
       $Iptv->{ACCOUNT_ACTIVATE} = $attr->{USER_INFO}->{ACTIVATE};
@@ -399,13 +408,20 @@ sub iptv_user {
       $html->message('info', $_INFO, "$_CHANGED");
 
       if ($conf{IPTV_DVCRYPT_FILENAME}) {
-        dv_crypt();
+        iptv_crypt();
       }
-
+      
+      #print $FORM{TP_ID} . '//';
+      
+      
       if ($Iptv_stalker) {
-      	my @sub_ch = split(/,/, iptv_user_channels_list({ UID =>  $FORM{UID}, TP_ID => $FORM{TP_ID} }));  # Массив подписных каналов
-      	print join(',', @sub_ch);
-        $Iptv_stalker->change_user_subscribe_channel($FORM{UID}, \@sub_ch);
+        $Iptv_stalker->stalker_user_chg_tp(($FORM{TP_IDS} eq '') ? $FORM{TP_ID} : $FORM{TP_IDS}, ($FORM{CID2} ne '') ? $FORM{CID2} : $FORM{CID});
+        #print 'TP_ID=' . $FORM{TP_IDS} . ' and CID='. $FORM{CID2};
+      	#print $FORM{TP_ID} . '//';
+      	#my @sub_ch = split(/,/, iptv_user_channels_list({ UID =>  $FORM{UID}, TP_ID => $FORM{TP_ID} }));  # Массив подписных каналов
+      	#print @sub_ch . '--';
+      	#print join(',', @sub_ch);
+        #$Iptv_stalker->change_user_subscribe_channel($FORM{UID}, \@sub_ch);
        	if ($Iptv_stalker->{errno}) {
        	  $html->message('err', $_ERROR, "$Iptv_stalker->{errno} $Iptv_stalker->{errstr}");
        	}
@@ -434,10 +450,11 @@ sub iptv_user {
     $user               = $Iptv->defaults();
     $user->{ACTION}     = 'add';
     $user->{LNG_ACTION} = $_ACTIVATE;
+    #$user->{TP_IDS}      = $user->{TP_ID};
     $user->{TP_NUM}     = $html->form_select(
       'TP_ID',
       {
-        SELECTED          => $user->{TP_ID},
+        SELECTED          => $Iptv->{TP_ID},
         SEL_MULTI_ARRAY   => $Tariffs->list({ MODULE => 'Iptv' }),
         MULTI_ARRAY_KEY   => 18,
         MULTI_ARRAY_VALUE => '0,1',
@@ -448,7 +465,7 @@ sub iptv_user {
   }
   else {
   	print iptv_user_channels_list({ UID =>  $FORM{UID}, TP_ID => $Iptv->{TP_ID} });
-  	
+  	$user->{TP_IDS}            = $Iptv->{TP_ID};
     $user->{ACTION}           = 'set';
     $user->{LNG_ACTION}       = $_CHANGE;
     $user->{CHANGE_TP_BUTTON} = $html->button($_CHANGE, 'UID=' . $FORM{UID} . '&index=' . get_function_index('iptv_chg_tp'), { CLASS => 'change rightAlignText' });
@@ -541,7 +558,7 @@ sub iptv_ext_cmd {
   
   $cmd = tpl_parse("$cmd", $attr);
   
-  print $cmd;
+  print $cmd if ($attr->{debug});
   
   my $output = `$cmd`;
 }
@@ -588,11 +605,29 @@ sub iptv_ti_channels {
 
   if (defined($attr->{TP})) {
     if ($FORM{change}) {
-      $Iptv->channel_ti_change({%FORM});
-      if (!$Iptv->{errno}) {
-        $html->message('info', $_INFO, "$_CHANGED");
+
+      eval { require Iptv_stalker; };
+      if (!$@) {
+        my $Iptv_stalker;
+        Iptv_stalker->import();
+        $Iptv_stalker = Iptv_stalker->new($db, $admin, \%conf);
+      
+        $Iptv_stalker->stalker_channel_ti_change({%FORM});
+        
+        if (!$Iptv_stalker->{errno}) {
+          stalker_tariff_export();
+          $html->message('info', $_INFO, "$_CHANGED");
+        } else {
+          $html->message('err', $_ERROR, "$Iptv_stalker->{errno} $Iptv_stalker->{errstr}");
+        }
+      } else {
+        print $@;
+        #$Iptv->channel_ti_change({%FORM});
+#        if (!$Iptv->{errno}) {
+#          $html->message('info', $_INFO, "$_CHANGED");
+#        }  
       }
-    }
+    } 
   }
   else {
     iptv_tp({ f => 'iptv_ti_channels' });
@@ -862,12 +897,40 @@ sub iptv_tp {
   $tarif_info               = $Tariffs->defaults();
   $tarif_info->{LNG_ACTION} = $_ADD;
   $tarif_info->{ACTION}     = 'ADD_TP';
+  
+  # Export tarrif plan from stalker
+  #stalker_tp_export
+  
+  if($FORM{STALKER_TP_EXPORT}) {
+  	stalker_tariff_export();
+  	
+  }
 
+  # -- end  Export tarrif plan from stalker -- # 
   if ($FORM{ADD_TP}) {
     $FORM{TP_ID} = $FORM{CHG_TP_ID};
+    
     $Tariffs->add({ %FORM, MODULE => 'Iptv' });
+      
     if (!$Tariffs->{errno}) {
       $html->message('info', $_ADDED, "$_ADDED $Tariffs->{TP_ID}");
+    }      
+
+    
+    
+    
+
+  }
+  elsif ($FORM{STALKER_ADD_TP}) {
+	  
+	  eval { require Iptv_stalker; };    
+    if (!$@) { 
+      my $Iptv_stalker;   
+      Iptv_stalker->import();
+      $Iptv_stalker = Iptv_stalker->new($db, $admin, \%conf); 
+      $Iptv_stalker->stalker_tp_add({%FORM});
+      stalker_tariff_export({WITHOUT_SUBSCRIPTION => 1});      
+        
     }
   }
   elsif (defined($FORM{TP_ID})) {
@@ -929,6 +992,16 @@ sub iptv_tp {
     if (!$Tariffs->{errno}) {
       $html->message('info', $_DELETE, "$_DELETED $FORM{del}");
     }
+    if(defined($FORM{del_stalker_tp}) && $FORM{del_stalker_tp} > 0) {
+      my $Iptv_stalker;
+      eval { require Iptv_stalker; };
+      if (!$@) {
+        Iptv_stalker->import();
+        $Iptv_stalker = Iptv_stalker->new($db, $admin, \%conf);
+        $Iptv_stalker->stalker_del_tp({ UID => $FORM{del_stalker_tp} });
+        $Iptv->user_del({ UID => $uid });
+      }      
+    }
   }
 
   if ($Tariffs->{errno}) {
@@ -963,8 +1036,15 @@ sub iptv_tp {
     $tarif_info->{EXT_BILL_ACCOUNT} = "<tr><td>$_EXTRA $_BILL:</td><td><input type='checkbox' name='EXT_BILL_ACCOUNT' value='1' $checked></td></tr>\n";
   }
 
-  $html->tpl_show(_include('iptv_tp', 'Iptv'), $tarif_info);
+  eval { require Iptv_stalker; };
+  if (!$@) {
+    $tarif_info->{STALKER_ACTION} = 'STALKER_ADD_TP';
+    $tarif_info->{STALKER_LNG_ACTION} = $_ADD;
 
+    $html->tpl_show(_include('iptv_stalker_tp_add', 'Iptv'), $tarif_info);
+  } else {
+    $html->tpl_show(_include('iptv_tp', 'Iptv'), $tarif_info);
+  }
   my $list = $Tariffs->list({ %LIST_PARAMS, MODULE => 'Iptv' });
 
   # Time tariff Name Begin END Day fee Month fee Simultaneously - - -
@@ -981,9 +1061,21 @@ sub iptv_tp {
 
   my ($delete, $change);
   foreach my $line (@$list) {
-    if ($permissions{4}{1}) {
-      $delete = $html->button($_DEL, "index=$index&del=$line->[18]", { MESSAGE => "$_DEL $line->[0]?", CLASS => 'del' });
-      $change = $html->button($_CHANGE, "index=$index&TP_ID=$line->[18]", { CLASS => 'change' });
+
+    eval { require Iptv_stalker; };
+    if (!$@) {
+     my $stalker_tp_id = ($line->[0] - $CONF->{STALKER_TP_ID} > 0 ? $line->[0] - $CONF->{STALKER_TP_ID} : 0);   
+     if ($permissions{4}{1}) {
+        $delete = $html->button($_DEL, "index=$index&del=$line->[18]&del_stalker_tp=$stalker_tp_id", { MESSAGE => "$_DEL $line->[0]?", CLASS => 'del' });
+        $change = '';
+        #$html->button($_CHANGE, "index=$index&TP_ID=$line->[18]", { CLASS => 'change' });
+      }      
+    }
+    else {
+     if ($permissions{4}{1}) {
+        $delete = $html->button($_DEL, "index=$index&del=$line->[18]", { MESSAGE => "$_DEL $line->[0]?", CLASS => 'del' });
+        $change = $html->button($_CHANGE, "index=$index&TP_ID=$line->[18]", { CLASS => 'change' });
+      }      
     }
 
     if ($FORM{TP_ID} eq $line->[18]) {
@@ -1010,7 +1102,8 @@ sub iptv_tp {
     {
       width      => '100%',
       cols_align => [ 'right', 'right' ],
-      rows       => [ [ "$_TOTAL:", $html->b($Tariffs->{TOTAL}) ] ]
+      rows       => [ [ ($conf{IPTV_STALKET_DB}) ? $html->button("Stalker $_EXPORT_TARIFFS", "index=$index&STALKER_TP_EXPORT=1", { BUTTON => 1 }) : '', 
+      "$_TOTAL:", $html->b($Tariffs->{TOTAL}) ] ]
     }
   );
   print $table->show();
@@ -1023,29 +1116,179 @@ sub iptv_tp {
 #**********************************************************
 sub iptv_channels {
 
+  if ($FORM{message}) {				
+    $html->message('info', $_INFO, "$FORM{message}");	
+  }
+
   $Iptv->{ACTION}     = 'add';
   $Iptv->{LNG_ACTION} = $_ADD;
+  $Iptv->{ACTION_STALKER}='stalker_add';
+  $Iptv->{ACTION_LNG_STALKER}=$_ADD;
+  
+  my @tv_genre_id = (
+     '-----------',
+     $_INFORMATIVE,
+     $_ENTERTAINMENT,
+     $_BABY,
+     $_MOVIE,
+     $_SCIENCE,
+     $_SPORT,
+     $_MUSIC,
+     $_BUSINESS,
+     $_CULTURE,
+     $_ADULT,
+  );
+  	  
+  if ($FORM{stalker_add}) {	
+    if ($FORM{NAME} ne '' && $FORM{NUMBER} =~ /\d{1,3}/) {
+	  $Iptv->stalker_channel_add({ %FORM });
+	  
+      if (! $Iptv->{errno}) {
+	    stalker_export();
+        $html->tpl_show(_include('iptv_redirect', 'Iptv'), { 
+          SECTION => '',
+          MESSAGE => "$_ADDED",
+        });		
+      }
+    }
+    else {
+      $FORM{TV_GENRE_ID}=$html->form_select("TV_GENRE_ID", 
+      {
+        SELECTED     => $FORM{TV_GENRE_ID},
+        SEL_ARRAY    => \@tv_genre_id,
+        ARRAY_NUM_ID => 0,  
+      });
+      
+      $html->message('info', $_INFO, "$_FIELD_ARE_REQUIRED 
+	      $_NUM,
+	      $_NAME"
+	    );
+    }
+  } 
+  elsif ($FORM{stalker_del}) {
+    $Iptv->stalker_channel_del( {STALKER_NAME =>$FORM{stalker_del}, ABILLS_ID => $FORM{abills_id}} );
+    if (! $Iptv->{errno}){
+	    stalker_export();
+        $html->tpl_show(_include('iptv_redirect', 'Iptv'), { 
+          SECTION => '',
+          MESSAGE => "$_DELETED",
+        });	        
+    }
+  }
+	elsif ($FORM{stalker_chg}) {
+		$Iptv->{ACTION_STALKER}='stalker_change';
+		$Iptv->{ACTION_LNG_STALKER}=$_CHANGE;
+		$Iptv->stalker_channel_info({ NAME => $FORM{stalker_chg},});
+
+		
+    foreach my $line (%{$Iptv}) {
+
+      if($line eq 'WOWZA_TMP_LINK' ||
+         $line eq 'CENSORED' ||
+         $line eq 'HD' ||
+         $line eq 'BASE_CH' ||
+         $line eq 'BONUS_CH' ||
+         $line eq 'ENABLE_TV_ARCHIVE' ||
+         $line eq 'WOWZA_DVR' ||
+         $line eq 'USE_HTTP_TMP_LINK' ||
+         $line eq 'ENABLE_WOWZA_LOAD_BALANCING' ||
+         $line eq 'ENABLE_MONITORING') {
+
+         if($Iptv->{$line} == 1){
+           $Iptv->{$line} = "checked='checked'";
+         }
+      }
+      elsif($line eq 'STATUS') {
+         if($Iptv->{$line} == 0){
+           $Iptv->{$line} = "checked='checked'";
+         }
+      }
+
+    }
+   
+		if (! $Iptv->{errno}) {
+			$html->message('info', $_INFO, "$_CHANGING");	
+		}
+	}
+	elsif ($FORM{stalker_change}) {
+	  my $change_errors = 0;
+	  
+		if ($FORM{NAME} ne '' && $FORM{NUMBER} =~ /\d{1,3}/) {
+			if($FORM{NUMBER} != $FORM{OLD_NUMBER}) {
+			  $list = $Iptv->stalker_channel_list( { NUMBER => $FORM{NUMBER} });
+			  if(defined($list->[0]->[0])){
+          $change_errors = 2		      
+			  }
+			}			
+			if($change_errors == 0) {
+  			$Iptv->stalker_change_channels({ %FORM });
+  			if (!$Iptv->{errno}) {   
+  			  stalker_export();
+          $html->tpl_show(_include('iptv_redirect', 'Iptv'), { 
+  				  SECTION => '',
+  				  MESSAGE => "$_CHANGED",
+  				});			
+  	    }
+  	  }
+		}
+		else {
+      $change_errors = 1
+		}
+	if($change_errors > 0) {
+    $Iptv->{ACTION_STALKER}='stalker_change';
+    $Iptv->{ACTION_LNG_STALKER}=$_CHANGE;
+
+    foreach my $line (keys %FORM) {
+
+      if($line eq 'WOWZA_TMP_LINK' ||
+         $line eq 'CENSORED' ||
+         $line eq 'HD' ||
+         $line eq 'BASE_CH' ||
+         $line eq 'BONUS_CH' ||
+         $line eq 'ENABLE_TV_ARCHIVE' ||
+         $line eq 'WOWZA_DVR' ||
+         $line eq 'USE_HTTP_TMP_LINK' ||
+         $line eq 'ENABLE_WOWZA_LOAD_BALANCING' ||
+         $line eq 'ENABLE_MONITORING') {
+
+         if($FORM{$line} == 1 || $FORM{$line} eq 'on'){
+           $FORM{$line} = "checked='checked'";
+         }
+      }
+      elsif($line eq 'STATUS') {
+         if($FORM{$line} == 0 || $FORM{$line} eq 'on' ){
+           $FORM{$line} = "checked='checked'";
+         }
+      }
+    }
+
+    $FORM{TV_GENRE_ID}=$html->form_select("TV_GENRE_ID", 
+    {
+      SELECTED     => $FORM{TV_GENRE_ID},
+      SEL_ARRAY    => \@tv_genre_id,
+      ARRAY_NUM_ID => 0,  
+    });
+
+    if($change_errors == 1) {
+      $html->message('info', $_INFO, "$_FIELD_ARE_REQUIRED 
+        $_NUM,
+        $_NAME"
+      );	      
+    }
+    elsif($change_errors == 2) {
+      $html->message('info', $_INFO, $_THIS_NUMBER_ALREADY_EXISTS);           
+    }
+	}	
+}
 
   if ($FORM{add}) {
     $Iptv->channel_add({%FORM});
     if (!$Iptv->{errno}) {
       $html->message('info', $_ADDED, "$_ADDED '$FORM{NAME}' ");
-    }
+    }    
   }
-  elsif($FORM{stalker_export}) {
-    my $Iptv_stalker;
-    eval { require Iptv_stalker; };
-    if (!$@) {
-      Iptv_stalker->import();
-      $Iptv_stalker = Iptv_stalker->new($db, $admin, \%conf);
-      $Iptv_stalker->stalker_channel_export();
-      if (!$Iptv_stalker->{errno}) {
-        $html->message('info', $_INFO, "$_ADDED");
-      }
-      else {
-      	$html->message('err', $_ERROR, "$Iptv_stalker->{errno} $Iptv_stalker->{errstr}");
-      }
-    }
+  elsif($FORM{stalker_export}) {        
+    stalker_export();
   }
   elsif ($FORM{change}) {
     $Iptv->channel_change({%FORM});
@@ -1075,7 +1318,23 @@ sub iptv_channels {
   }
 
   $Iptv->{DISABLE} = ' checked' if ($Iptv->{DISABLE} == 1);
-  $html->tpl_show(_include('iptv_channel', 'Iptv'), $Iptv);
+
+  $Iptv->{CHANGE_PARAM} = defined($Iptv->{CHANGE_PARAM}) ? $Iptv->{CHANGE_PARAM} : $FORM{CHANGE_PARAM};
+  $Iptv->{OLD_NUMBER} = defined($Iptv->{OLD_NUMBER}) ? $Iptv->{OLD_NUMBER} : $FORM{OLD_NUMBER};
+  $Iptv->{TV_GENRE_ID}=$html->form_select("TV_GENRE_ID", 
+  {
+    SELECTED     => (defined($Iptv->{TV_GENRE_ID_SELECT}) ? $Iptv->{TV_GENRE_ID_SELECT} : (defined($FORM{TV_GENRE_ID}) ? $FORM{TV_GENRE_ID} : 0)),
+    SEL_ARRAY    => \@tv_genre_id,
+    ARRAY_NUM_ID => 0,  
+  });
+
+    eval { require Iptv_stalker; };
+    if (!$@) {
+      $html->tpl_show(_include('iptv_stalker_ch_add', 'Iptv'), {%$Iptv, %FORM});
+    }
+    else {
+      $html->tpl_show(_include('iptv_channel', 'Iptv'), $Iptv);
+    }
 
   my %SEARCH_FIELDS = (
     $_NUM      => "NUMBER",
@@ -1105,8 +1364,16 @@ sub iptv_channels {
   my ($delete, $change);
   foreach my $line (@$list) {
     if ($permissions{4}{1}) {
-      $delete = $html->button($_DEL, "index=$index&del=$line->{id}", { MESSAGE => "$_DEL $line->{num} / $line->{name}?", CLASS => 'del' });
-      $change = $html->button($_CHANGE, "index=$index&chg=$line->{id}", { CLASS => 'change' });
+    	
+	eval { require Iptv_stalker; };    
+    if (!$@) {
+        $delete = $html->button($_DEL, "index=$index&stalker_del=$line->{name}&abills_id=$line->{id}", { MESSAGE => "$_DEL $line->{num} / $line->{name}?", CLASS => 'del' });
+        $change = $html->button($_CHANGE, "index=$index&stalker_chg=$line->{name}&abills_id=$line->{id}", { CLASS => 'change' });      	
+      }
+      else {
+        $delete = $html->button($_DEL, "index=$index&del=$line->{id}", { MESSAGE => "$_DEL $line->{num} / $line->{name}?", CLASS => 'del' });
+        $change = $html->button($_CHANGE, "index=$index&chg=$line->{id}", { CLASS => 'change' });
+      }
     }
 
     $table->addrow($line->{num}, 
@@ -2914,6 +3181,89 @@ sub iptv_user_channels_list {
 
   return join(',', keys %{ $users_channels{$attr->{UID}} });
 }
+
+sub stalker_export {
+	my ($attr) = @_;
+	
+    my $Iptv_stalker;
+    eval { require Iptv_stalker; };
+    if (!$@) {
+      Iptv_stalker->import();
+      $Iptv_stalker = Iptv_stalker->new($db, $admin, \%conf);
+      
+      $Iptv_stalker->stalker_channel_export();
+      if (!$Iptv_stalker->{errno}) {
+      	if(!defined($FORM{stalker_del} && !defined($FORM{stalker_change}))) {
+          $html->message('info', $_INFO, "$_ADDED");
+        }
+      }
+      else {
+      	$html->message('err', $_ERROR, "$Iptv_stalker->{errno} $Iptv_stalker->{errstr}");
+      }
+    }
+    else {
+     print  $@;
+    }
+}
+# stalker export tariff plan
+sub stalker_tariff_export {
+  my ($attr) = @_;
+  my @stalker_tp_id;
+  my $Iptv_stalker;
+    
+    eval { require Iptv_stalker; };
+    if (!$@) {
+      Iptv_stalker->import();
+      $Iptv_stalker = Iptv_stalker->new($db, $admin, \%conf);
+      
+      #debug
+      if (!$Iptv_stalker->{errno}) {
+        #Export from DB stalker - table tariff_plan
+        $list_tariffs = $Iptv_stalker->stalker_db_list_tariffs();
+        
+        foreach my $stalker_tp_id ( @$list_tariffs ) {
+          $Iptv_stalker->stalker_tp_export($stalker_tp_id->[0]); 
+        }
+        
+        #return 0;
+        #Export id columns of tariff_plan(table) from stalker DB
+
+          #print $stalker_id2num{197} . 'zo';
+          #print $abills_num2id{101} . 'zo';
+          #print $package_tp_id{3} . 'zo';
+          #print $tariffs_id_intervals{10402} . 'zo';
+          
+          
+        #return 0;
+
+        foreach my $line ( @$list_tariffs ) {
+          #print $line->[0] . 'oz';
+          
+          $Iptv_stalker->replace_interval_id($line->[0]);
+          #push(@stalker_tp_id, $line->[0]);
+        }
+        
+        if(!defined($attr->{WITHOUT_SUBSCRIPTION})) {
+          $Iptv_stalker->stalker_subscribe_export();
+        }
+        
+        
+        return 0;
+        #Add intervals to abills with stalkers tariff ids
+        #$Iptv_stalker->intervals_stalker_tp(\@stalker_tp_id);
+ 
+      } 
+      else {
+      	$html->message('err', $_ERROR, "$Iptv_stalker->{errno} $Iptv_stalker->{errstr}");
+      }
+    } else {
+    	print $@;
+    }
+    #$Iptv_stalker->stalker_tp_export()
+
+}
+
+
 
 1
 

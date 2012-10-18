@@ -4348,6 +4348,7 @@ sub form_nas {
     'cisco_air'  => 'Cisco Aironets',
     'bsr1000'    => 'CMTS Motorola BSR 1000',
     'mikrotik'   => 'Mikrotik (http://www.mikrotik.com)',
+    'mikrotik_dhcp'   => 'Mikrotik DHCP service',
     'dlink_pb'   => 'Dlink IP-MAC-Port Binding',
     'other'      => 'Other nas server',
     'chillispot' => 'Chillispot (www.chillispot.org)',

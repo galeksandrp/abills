@@ -561,6 +561,41 @@ sub channel_add {
   return $self;
 }
 
+
+#**********************************************************
+# add()
+#**********************************************************
+sub channel_add_stalker {
+  my $self = shift;
+  my ($attr) = @_;
+
+  my %DATA = $self->get_data($attr, { default => channel_defaults() });
+
+  $self->query(
+    $db, "INSERT INTO $CONF->{IPTV_STALKET_DB}.itv (name,
+   num,
+   port,
+   comments,
+   disable
+             )
+        VALUES (
+   '$DATA{NAME}', 
+   '$DATA{NUMBER}', 
+   '$DATA{PORT}', 
+   '$DATA{DESCRIBE}',
+   '$DATA{DISABLE}'
+         );", 'do'
+  );
+
+  return $self if ($self->{errno});
+
+  #$admin->action_add("$DATA{UID}", "ACTIVE");
+  return $self;
+}
+
+
+
+
 #**********************************************************
 # change()
 #**********************************************************
@@ -894,5 +929,300 @@ ORDER BY $SORT $DESC ";
 
   return $list;
 }
+
+#**********************************************************
+# Add channel to stalker middleware
+#**********************************************************
+sub stalker_channel_add {
+	my $self = shift;
+	my ($attr) = @_;
+	
+	%DATA = $self->get_data($attr);
+
+	for (keys %DATA){
+    if ($DATA{$_} eq 'on'){
+      $DATA{$_} = 1; 
+    }
+  }
+    
+    if($DATA{STATUS} == 1) {
+    	$DATA{STATUS} = 0;	
+    }
+    else {
+    	$DATA{STATUS} = 1;	
+    }
+
+$self->query($db, "INSERT INTO $CONF->{IPTV_STALKET_DB}.itv(
+  name,
+  number,
+  use_http_tmp_link,
+  wowza_tmp_link,
+  wowza_dvr,
+  censored,
+  base_ch,
+  bonus_ch,
+  hd,
+  cost,
+  cmd, 
+  mc_cmd,
+  enable_wowza_load_balancing,
+  enable_tv_archive,
+  enable_monitoring,
+  monitoring_url,
+  descr,
+  tv_genre_id, 
+  status,
+  xmltv_id,
+  service_id,
+  volume_correction,
+  correct_time
+)	  
+VALUES 
+(
+  '$DATA{NAME}', 
+  '$DATA{NUMBER}', 
+  '$DATA{USE_HTTP_TMP_LINK}', 
+  '$DATA{WOWZA_TMP_LINK}',
+  '$DATA{WOWZA_DVR}', 
+  '$DATA{CENSORED}', 
+  '$DATA{BASE_CH}', 
+  '$DATA{BONUS_CH}', 
+  '$DATA{HD}',
+  '$DATA{COST}', 
+  '$DATA{CMD}', 
+  '$DATA{MC_CMD}', 
+  '$DATA{ENABLE_WOWZA_LOAD_BALANCING}', 
+  '$DATA{ENABLE_TV_ARCHIVE}',
+  '$DATA{ENABLE_MONITORING}', 
+  '$DATA{MONITORING_URL}', 
+  '$DATA{DESCR}', 
+  '$DATA{TV_GENRE_ID}', 
+  '$DATA{STATUS}',
+  '$DATA{XMLTV_ID}', 
+  '$DATA{SERVICE_ID}', 
+  '$DATA{VOLUME_CORRECTION}',
+  '$DATA{CORRECT_TIME}' 
+);", 'do' 																											
+);
+	return 0;	
+}
+
+#**********************************************************
+# Delete channel from stalker DB
+#**********************************************************
+sub stalker_channel_del {
+  my $self = shift;
+  my ($attr) = @_;
+  
+  %DATA = $self->get_data($attr);
+
+  $self->query($db, "DELETE from $CONF->{IPTV_STALKET_DB}.itv WHERE name LIKE '$DATA{STALKER_NAME}';", 'do');
+  $self->query($db, "DELETE from iptv_channels WHERE id='$DATA{ABILLS_ID}';", 'do');
+  return $self->{result};	
+
+}
+
+#**********************************************************
+# Stalker channel list
+#**********************************************************
+sub stalker_channel_list {
+	my $self = shift;
+	my ($attr) = @_;
+	
+	my @WHERE_RULES  = ();
+	
+	my $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+	my $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+	
+	if(defined($attr->{ID})) {
+  		push @WHERE_RULES, "id='$attr->{ID}'";
+	}
+	if(defined($attr->{NAME})) {
+  		push @WHERE_RULES, "name LIKE '$attr->{NAME}'";
+	}	  
+	if(defined($attr->{NUMBER})) {
+  		push @WHERE_RULES, "number LIKE '$attr->{NUMBER}'";
+	}	
+ 
+  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
+ 
+	$self->query($db, 
+    "SELECT
+      name,
+      number,
+      use_http_tmp_link,
+      wowza_tmp_link,
+      wowza_dvr,
+      censored,
+      base_ch,
+      bonus_ch,
+      hd,
+      cost,
+      cmd, 
+      mc_cmd,
+      enable_wowza_load_balancing,
+      enable_tv_archive,
+      enable_monitoring,
+      monitoring_url,
+      descr,
+      tv_genre_id, 
+      status,
+      xmltv_id,
+      service_id,
+      volume_correction,
+      correct_time
+    FROM $CONF->{IPTV_STALKET_DB}.itv
+    $WHERE
+    ORDER BY $SORT $DESC;");
+  return $self->{list};
+}
+
+#**********************************************************
+# Stalker channel info
+#**********************************************************
+sub stalker_channel_info {
+	my $self = shift;
+	my ($attr) = @_;
+ 
+ 	%DATA = $self->get_data($attr); 
+
+	$self->query($db,
+    "SELECT
+      name,
+      number,
+      use_http_tmp_link,
+      wowza_tmp_link,
+      wowza_dvr,
+      censored,
+      base_ch,
+      bonus_ch,
+      hd,
+      cost,
+      cmd, 
+      mc_cmd,
+      enable_wowza_load_balancing,
+      enable_tv_archive,
+      enable_monitoring,
+      monitoring_url,
+      descr,
+      tv_genre_id, 
+      status,
+      xmltv_id,
+      service_id,
+      volume_correction,
+      correct_time,
+      name,
+      number
+    FROM $CONF->{IPTV_STALKET_DB}.itv
+    WHERE name LIKE '$attr->{NAME}';");
+
+  ( $self->{NAME},
+    $self->{NUMBER},
+    $self->{USE_HTTP_TMP_LINK},
+    $self->{WOWZA_TMP_LINK},
+    $self->{WOWZA_DVR},
+    $self->{CENSORED},
+    $self->{BASE_CH},
+    $self->{BONUS_CH},
+    $self->{HD},
+    $self->{COST},
+    $self->{CMD},
+    $self->{MC_CMD},
+    $self->{ENABLE_WOWZA_LOAD_BALANCING},
+    $self->{ENABLE_TV_ARCHIVE},
+    $self->{ENABLE_MONITORING},
+    $self->{MONITORING_URL},
+    $self->{DESCR},
+    $self->{TV_GENRE_ID_SELECT},
+    $self->{STATUS},
+    $self->{XMLTV_ID},
+    $self->{SERVICE_ID},
+    $self->{VOLUME_CORRECTION},
+    $self->{CORRECT_TIME},
+    $self->{CHANGE_PARAM},
+    $self->{OLD_NUMBER}    
+  )= @{ $self->{list}->[0] };
+
+	return $self;	
+}
+
+
+#**********************************************************
+# Stalker change channels
+#**********************************************************
+sub stalker_change_channels {
+	my $self = shift;
+	my ($attr) = @_; 
+
+  %DATA = $self->get_data($attr);
+
+  for (keys %DATA){
+    if ($DATA{$_} eq 'on'){
+      $DATA{$_} = 1; 
+    }
+  }
+
+  if($DATA{STATUS} == 1) {
+    $DATA{STATUS} = 0;	
+  }
+  else {
+    $DATA{STATUS} = 1;	
+  }
+
+$self->query($db, 
+  "UPDATE $CONF->{IPTV_STALKET_DB}.itv SET
+    name                        = '$DATA{NAME}',
+    number                      = '$DATA{NUMBER}',
+    use_http_tmp_link           = '$DATA{USE_HTTP_TMP_LINK}',
+    wowza_tmp_link              = '$DATA{WOWZA_TMP_LINK}',
+    wowza_dvr                   = '$DATA{WOWZA_DVR}',
+    censored                    = '$DATA{CENSORED}',
+    base_ch                     = '$DATA{BASE_CH}',
+    bonus_ch                    = '$DATA{BONUS_CH}',
+    hd                          = '$DATA{HD}',
+    cost                        = '$DATA{COST}',
+    cmd                         = '$DATA{CMD}', 
+    mc_cmd                      = '$DATA{MC_CMD}',
+    enable_wowza_load_balancing = '$DATA{ENABLE_WOWZA_LOAD_BALANCING}',
+    enable_tv_archive           = '$DATA{ENABLE_TV_ARCHIVE}',
+    enable_monitoring           = '$DATA{ENABLE_MONITORING}',
+    monitoring_url              = '$DATA{MONITORING_URL}',
+    descr                       = '$DATA{DESCR}',
+    tv_genre_id                 = '$DATA{TV_GENRE_ID}', 
+    status                      = '$DATA{STATUS}',
+    xmltv_id                    = '$DATA{XMLTV_ID}',
+    service_id                  = '$DATA{SERVICE_ID}',
+    volume_correction           = '$DATA{VOLUME_CORRECTION}',
+    correct_time                = '$DATA{CORRECT_TIME}'
+  WHERE name LIKE '$DATA{CHANGE_PARAM}';", 'do' 																											
+);
+  return $self;
+}
+
+
+##**********************************************************
+## stalker_channel_export
+##**********************************************************
+#sub stalker_channel_export {
+#  my $self = shift;
+#  my ($attr) = @_;
+#  
+#  $self->query(
+#    $db, "REPLACE INTO $CONF->{dbname}.iptv_channels (name,
+#	   num,
+#	   port,
+#	   comments,
+#	   disable) SELECT name, 
+#	   number, 
+#	   id, 
+#	   descr, 
+#	   if(status=1, 0, 1) 
+#   FROM $CONF->{IPTV_STALKET_DB}.itv", 'do');
+#  return 0;
+#}
+
+
+
+
 
 1
