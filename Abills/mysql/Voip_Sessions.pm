@@ -491,12 +491,21 @@ sub calculation {
   }
 
   $self->query(
-    $db, "SELECT SEC_TO_TIME(min(l.duration)), SEC_TO_TIME(max(l.duration)), SEC_TO_TIME(avg(l.duration)),
-  min(l.sum), max(l.sum), avg(l.sum)
+    $db, "SELECT SEC_TO_TIME(min(l.duration)) AS min_dur, 
+     SEC_TO_TIME(max(l.duration)) AS max_dur, 
+     SEC_TO_TIME(avg(l.duration)) AS avg_dur,
+     min(l.sum) AS min_sum, 
+     max(l.sum) AS max_sum, 
+     avg(l.sum) AS avg_sum
   FROM voip_log l $WHERE"
   );
 
-  ($self->{min_dur}, $self->{max_dur}, $self->{avg_dur}, $self->{min_sum}, $self->{max_sum}, $self->{avg_sum}) = @{ $self->{list}->[0] };
+  ($self->{min_dur}, 
+   $self->{max_dur}, 
+   $self->{avg_dur}, 
+   $self->{min_sum}, 
+   $self->{max_sum}, 
+   $self->{avg_sum}) = @{ $self->{list}->[0] };
 
   return $self;
 }

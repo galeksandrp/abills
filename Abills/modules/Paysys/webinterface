@@ -708,8 +708,8 @@ sub paysys_payment {
 #**********************************************************
 sub paysys_log {
 
-  if ($Paysys::VERSION < 4.01) {
-    $html->message('info', "UPDATE", "Please update module 'Paysys' to version 4.01 or higher. http://abills.net.ua/");
+  if ($Paysys::VERSION < 4.03) {
+    $html->message('info', "UPDATE", "Please update module 'Paysys' to version 4.03 or higher. http://abills.net.ua/");
     return 0;
   }
 

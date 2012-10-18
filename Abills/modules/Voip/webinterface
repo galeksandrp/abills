@@ -2074,7 +2074,7 @@ sub voip_stats {
     {
       width       => '100%',
       rowcolor    => $_COLORS[0],
-      title_plain => [ "$_FROM: ", $html->date_fld('from', { MONTHES => \@MONTHES }), "$_TO: ", $html->date_fld('to', { MONTHES => \@MONTHES }), "$_ROWS: ", $html->form_input('rows', int($conf{list_max_recs}), { SIZE => 4 }), $html->form_input('show', $_SHOW, { TYPE => 'submit' }) ],
+      title_plain => [ "$_FROM: ", $html->date_fld2('FROM_DATE', { MONTHES => \@MONTHES }), "$_TO: ", $html->date_fld2('TO_DATE', { MONTHES => \@MONTHES }), "$_ROWS: ", $html->form_input('rows', int($conf{list_max_recs}), { SIZE => 4 }), $html->form_input('show', $_SHOW, { TYPE => 'submit' }) ],
     }
   );
 
@@ -2090,14 +2090,10 @@ sub voip_stats {
   );
 
   voip_stats_calculation($sessions);
-
+  
   if (defined($FORM{show})) {
-    $pages_qs .= "&show=y&fromD=$FORM{fromD}&fromm=$FORM{fromM}&fromy=$FORM{fromY}&tod=$FORM{toD}&tom=$FORM{toM}&toy=$FORM{toY}";
-    $FORM{fromM}++;
-    $FORM{toM}++;
-    $FORM{fromM} = sprintf("%.2d", $FORM{fromM}++);
-    $FORM{toM}   = sprintf("%.2d", $FORM{toM}++);
-    $LIST_PARAMS{INTERVAL} = "$FORM{fromY}-$FORM{fromM}-$FORM{fromD}/$FORM{toY}-$FORM{toM}-$FORM{toD}";
+    $pages_qs .= "&show=1&FROM_DATE=$FORM{FROM_DATE}&TO_DATE=$FORM{TO_DATE}";
+    $LIST_PARAMS{INTERVAL} = "$FORM{FROM_DATE}/$FORM{TO_DATE}";
   }
   elsif (defined($FORM{period})) {
     $LIST_PARAMS{PERIOD} = int($FORM{period});
@@ -2315,8 +2311,8 @@ sub voip_user_stats {
       rowcolor => $_COLORS[0],
       rows     => [
         [
-          "$_FROM: ", $html->date_fld('from', { MONTHES => \@MONTHES }),
-          "$_TO: ", $html->date_fld('to', { MONTHES => \@MONTHES }),
+          "$_FROM: ", $html->date_fld2('FROM_DATE', { MONTHES => \@MONTHES }),
+          "$_TO: ", $html->date_fld2('TO_DATE', { MONTHES => \@MONTHES }),
           "$_ROWS: ",
           $html->form_input('rows', int($conf{list_max_recs}), { SIZE => 4,        OUTPUT2RETURN => 1 }),
           $html->form_input('show', $_SHOW,                    { TYPE => 'submit', OUTPUT2RETURN => 1 })
@@ -2339,12 +2335,8 @@ sub voip_user_stats {
   voip_stats_calculation($sessions);
 
   if (defined($FORM{show})) {
-    $pages_qs .= "&show=y&fromD=$FORM{fromD}&fromm=$FORM{fromM}&fromy=$FORM{fromY}&tod=$FORM{toD}&tom=$FORM{toM}&toy=$FORM{toY}";
-    $FORM{fromM}++;
-    $FORM{toM}++;
-    $FORM{fromM} = sprintf("%.2d", $FORM{fromM}++);
-    $FORM{toM}   = sprintf("%.2d", $FORM{toM}++);
-    $LIST_PARAMS{INTERVAL} = "$FORM{fromY}-$FORM{fromM}-$FORM{fromD}/$FORM{toY}-$FORM{toM}-$FORM{toD}";
+    $pages_qs .= "&show=1&FROM_DATE=$FORM{FROM_DATE}&TO_DATE=$FORM{TO_DATE}";
+    $LIST_PARAMS{INTERVAL} = "$FORM{FROM_DATE}/$FORM{TO_DATE}";
   }
   elsif (defined($FORM{period})) {
     $LIST_PARAMS{PERIOD} = int($FORM{period});
