@@ -318,8 +318,8 @@ sub nas_ip_pools_list {
   $self->query(
     $db, "SELECT if (np.nas_id IS NULL, 0, np.nas_id) AS active_nas_id,
    n.name as nas_name, pool.name AS pool_name, 
-    pool.ip, pool.ip + pool.counts AS ip_count, 
-    pool.counts,  pool.priority, pool.speed,
+    pool.ip, pool.ip + pool.counts AS last_ip_num, 
+    pool.counts AS ip_count,  pool.priority, pool.speed,
     INET_NTOA(pool.ip) as first_ip, 
     INET_NTOA(pool.ip + pool.counts) AS last_ip, 
     pool.id, 
@@ -443,8 +443,8 @@ sub ip_pools_list {
     my $WHERE = ($#WHERE_RULES > -1) ? join(' and ', @WHERE_RULES) : '';
     $self->query(
       $db, "SELECT '', pool.name, 
-   pool.ip, pool.ip + pool.counts, pool.counts, pool.priority,
-    INET_NTOA(pool.ip), INET_NTOA(pool.ip + pool.counts), 
+   pool.ip, pool.ip + pool.counts AS last_ip_num, pool.counts, pool.priority,
+    INET_NTOA(pool.ip) AS first_ip, INET_NTOA(pool.ip + pool.counts) AS last_ip, 
     pool.id, pool.nas
     FROM ippools pool 
     WHERE $WHERE  ORDER BY $SORT $DESC"
@@ -460,8 +460,8 @@ sub ip_pools_list {
 
   $self->query(
     $db, "SELECT nas.name, pool.name, 
-   pool.ip, pool.ip + pool.counts, pool.counts, pool.priority,
-    INET_NTOA(pool.ip), INET_NTOA(pool.ip + pool.counts), 
+   pool.ip, pool.ip + pool.counts AS last_ip_num, pool.counts, pool.priority,
+    INET_NTOA(pool.ip) AS first_ip, INET_NTOA(pool.ip + pool.counts) AS last_ip, 
     pool.id, pool.nas
     FROM ippools pool, nas 
     WHERE pool.nas=nas.id

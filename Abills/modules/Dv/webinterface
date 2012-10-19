@@ -7991,6 +7991,9 @@ print $table->show();
 #**********************************************************
 sub dv_fees_dsc_former () {
 	my ($attr)=@_;
+	
+	$conf{DV_FEES_DSC}='Internet: %FEES_PERIOD_MONTH%%FEES_PERIOD_DAY% %TP_NAME% (%TP_ID%) %PERIOD% %FEES_METHOD%' if (! $conf{DV_FEES_DSC});
+	
 	my $text = $conf{DV_FEES_DSC};
 
   while ($text =~ /\%(\w+)\%/g) {
