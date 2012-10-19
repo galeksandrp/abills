@@ -420,16 +420,19 @@ sub periodic_invoice {
 
         #Sendemail
         if ($num > 0 && $user{SEND_DOCS}) {
-          $FORM{print}      = $Docs->{DOC_ID};
-          $LIST_PARAMS{UID} = $user{UID};
-          docs_invoice(
-            {
-              GET_EMAIL_INFO => 1,
-              SEND_EMAIL     => $user{SEND_DOCS} || 0,
-              UID            => $user{UID},
-              %user
-            }
-          );
+        	my @invoices = split(/,/, $self->{DOC_IDS});
+        	foreach my $doc_id (@invoices) {
+            $FORM{print}      = $doc_id;
+            $LIST_PARAMS{UID} = $user{UID};
+            docs_invoice(
+              {
+                GET_EMAIL_INFO => 1,
+                SEND_EMAIL     => $user{SEND_DOCS} || 0,
+                UID            => $user{UID},
+                %user
+              }
+            );
+          }
         }
       }
     #}
