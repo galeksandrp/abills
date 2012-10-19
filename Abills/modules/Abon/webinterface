@@ -115,9 +115,11 @@ sub abon_user {
           $Abon->{TP_INFO}->{DISCOUNT}         = $line->{discount};
           $Abon->{NEXT_ABON_DATE}              = $line->{next_abon_date};
           $Abon->{SERVICE_COUNT}               = $FORM{'SERVICE_COUNT_'. $Abon->{TP_INFO}->{TP_ID} } || 1;
+          $Abon->{DATETIME}                    = "$DATE $TIME";
+          $Abon->{DATE}                        = "$DATE";
 
           if ($FORM{ACTIVATE}) {
-          	my $ai_list = $Abon->periodic_list({ UID => $users->{UID}
+          	my $ai_list = $Abon->periodic_list({ UID => $users->{UID},
           		                      TP_ID        => $line->{tp_id},
   	                                COLS_NAME    => 1,
   	                                COLS_UPPER   => 1,
