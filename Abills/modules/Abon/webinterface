@@ -114,12 +114,24 @@ sub abon_user {
           $activate_notification               = $line->{activate_notification};
           $Abon->{TP_INFO}->{DISCOUNT}         = $line->{discount};
           $Abon->{NEXT_ABON_DATE}              = $line->{next_abon_date};
+          $Abon->{SERVICE_COUNT}               = $FORM{'SERVICE_COUNT_'. $Abon->{TP_INFO}->{TP_ID} } || 1;
 
-          if ($FORM{'SERVICE_COUNT_'. $Abon->{TP_INFO}->{TP_ID} }) {
-            $Abon->{TP_INFO}->{PRICE}=$Abon->{TP_INFO}->{PRICE} * $FORM{'SERVICE_COUNT_'. $Abon->{TP_INFO}->{TP_ID} };
+          if ($FORM{ACTIVATE}) {
+          	my $ai_list = $Abon->periodic_list({ %LIST_PARAMS, 
+  	                                DELETED      => 0,
+  	                                LOGIN_STATUS => 0,
+  	                                COLS_NAME    => 1,
+  	                                COLS_UPPER   => 1,
+  	                              });
+
+  	        $Abon->{COMMENTS}       = $ai_list->[0]->{COMMENTS};
+  	        $Abon->{NEXT_ABON_DATE} = $ai_list->[0]->{NEXT_ABON_DATE};
+  	        $Abon->{TP_INFO}->{DISCOUNT} = $ai_list->[0]->{DISCOUNT};
+  	        $Abon->{SERVICE_COUNT}  = $ai_list->[0]->{SERVICE_COUNT};  	        
           }
-          else {
-          	$FORM{'SERVICE_COUNT_'. $Abon->{TP_INFO}->{TP_ID} }=1;
+
+          if ($Abon->{SERVICE_COUNT} > 1) {
+            $Abon->{TP_INFO}->{PRICE}=$Abon->{TP_INFO}->{PRICE} * $Abon->{SERVICE_COUNT};
           }
 
           if ($FORM{ 'DATE_' . $Abon->{TP_INFO}->{TP_ID} } && $FORM{ 'DATE_' . $Abon->{TP_INFO}->{TP_ID} } ne '0000-00-00') {
@@ -161,18 +173,6 @@ sub abon_user {
             my $cmd = $ext_cmd;
             $cmd .= " ACTION=ALERT UID=$user{UID} TP_ID=$tp_id COMMENTS=\"$comment\" SUM=$sum";
             $ret = system($cmd);
-          }
-
-          if ($FORM{ACTIVATE}) {
-          	my $ai_list = $Abon->periodic_list({ %LIST_PARAMS, 
-  	                                DELETED      => 0,
-  	                                LOGIN_STATUS => 0,
-  	                                COLS_NAME    => 1,
-  	                                COLS_UPPER   => 1,
-  	                              });
-
-  	        $Abon->{COMMENTS}       = $ai_list->[0]->{COMMENTS};
-  	        $Abon->{NEXT_ABON_DATE} = $ai_list->[0]->{NEXT_ABON_DATE};
           }
 
           if ($Abon->{TP_INFO}->{CREATE_ACCOUNT} && $FORM{ 'CREATE_DOCS_' . $Abon->{TP_INFO}->{TP_ID} }) {
