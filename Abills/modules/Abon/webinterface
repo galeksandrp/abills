@@ -127,6 +127,7 @@ sub abon_user {
   	        $Abon->{COMMENTS}       = $ai_list->[0]->{COMMENTS};
   	        $Abon->{NEXT_ABON_DATE} = $ai_list->[0]->{NEXT_ABON_DATE};
   	        $Abon->{TP_INFO}->{DISCOUNT} = $ai_list->[0]->{DISCOUNT};
+  	        $FORM{ 'DISCOUNT_' . $Abon->{TP_INFO}->{TP_ID} } = $ai_list->[0]->{DISCOUNT};
   	        $Abon->{SERVICE_COUNT}  = $ai_list->[0]->{SERVICE_COUNT};  	        
           }
 
