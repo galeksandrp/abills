@@ -104,7 +104,7 @@ sub abon_user {
 
         if (($users->{CREDIT} + $users->{DEPOSIT}) > $line->{price} || $line->{payment_type} || time() < $seltime) {
           $Abon->{TP_INFO}->{PERIOD_ALIGNMENT} = $line->{period_alignment} || 0;
-          $Abon->{TP_INFO}->{MONTH_FEE}        = $line->{price};
+          $Abon->{TP_INFO}->{PRICE}        = $line->{price};
           $Abon->{TP_INFO}->{TP_ID}            = $line->{tp_id};
           $Abon->{TP_INFO}->{NAME}             = $line->{name};
           $Abon->{COMMENTS}                    = $FORM{ 'COMMENTS_' . $line->{tp_id} };
@@ -115,7 +115,7 @@ sub abon_user {
           $Abon->{TP_INFO}->{DISCOUNT}         = $line->{discount};
 
           if ($FORM{'SERVICE_COUNT_'. $Abon->{TP_INFO}->{TP_ID} }) {
-            $Abon->{TP_INFO}->{MONTH_FEE}=$Abon->{TP_INFO}->{MONTH_FEE} * $FORM{'SERVICE_COUNT_'. $Abon->{TP_INFO}->{TP_ID} };
+            $Abon->{TP_INFO}->{PRICE}=$Abon->{TP_INFO}->{PRICE} * $FORM{'SERVICE_COUNT_'. $Abon->{TP_INFO}->{TP_ID} };
           }
           else {
           	$FORM{'SERVICE_COUNT_'. $Abon->{TP_INFO}->{TP_ID} }=1;
@@ -133,10 +133,10 @@ sub abon_user {
           );
 
           if ($FORM{ 'DISCOUNT_' . $Abon->{TP_INFO}->{TP_ID} }) {
-            $Abon->{TP_INFO}->{MONTH_FEE} = $Abon->{TP_INFO}->{MONTH_FEE} * ((100 - $FORM{ 'DISCOUNT_' . $Abon->{TP_INFO}->{TP_ID} }) / 100);
+            $Abon->{TP_INFO}->{PRICE} = $Abon->{TP_INFO}->{PRICE} * ((100 - $FORM{ 'DISCOUNT_' . $Abon->{TP_INFO}->{TP_ID} }) / 100);
           }
           elsif ($Abon->{TP_INFO}->{DISCOUNT} && $users->{REDUCTION} > 0) {
-            $Abon->{TP_INFO}->{MONTH_FEE} = $Abon->{TP_INFO}->{MONTH_FEE} * ((100 - $users->{REDUCTION}) / 100);
+            $Abon->{TP_INFO}->{PRICE} = $Abon->{TP_INFO}->{PRICE} * ((100 - $users->{REDUCTION}) / 100);
           }
 
           if (time() < $seltime) {
@@ -147,12 +147,12 @@ sub abon_user {
             $message .= abon_get_month_fee($Abon);
           }
           elsif ($FORM{ 'DISCOUNT_' . $Abon->{TP_INFO}->{TP_ID} } < 100) {
-            $fees->take($users, $Abon->{TP_INFO}->{MONTH_FEE}, {%PARAMS});
+            $fees->take($users, $Abon->{TP_INFO}->{PRICE}, {%PARAMS});
             if ($fees->{errno}) {
               $html->message('err', "$_FEES : $_ERROR", "[$fees->{errno}] $fees->{errstr}");
             }
             else {
-              $message .= "$_ABON: $Abon->{TP_INFO}->{MONTH_FEE} ($Abon->{TP_INFO}->{TP_ID})\n";
+              $message .= "$_ABON: $Abon->{TP_INFO}->{PRICE} ($Abon->{TP_INFO}->{TP_ID})\n";
             }
           }
 
@@ -163,16 +163,17 @@ sub abon_user {
           }
 
           if ($Abon->{TP_INFO}->{CREATE_ACCOUNT} && $FORM{ 'CREATE_DOCS_' . $Abon->{TP_INFO}->{TP_ID} }) {
-            $FORM{'SUM_'.($#docs_ids+2)}    = $Abon->{TP_INFO}->{MONTH_FEE} / $FORM{'SERVICE_COUNT_'. $Abon->{TP_INFO}->{TP_ID} };
+            $FORM{'SUM_'.($#docs_ids+2)}    = $Abon->{TP_INFO}->{PRICE} / $FORM{'SERVICE_COUNT_'. $Abon->{TP_INFO}->{TP_ID} };
             $FORM{'COUNT_'.($#docs_ids+2)}  = $FORM{'SERVICE_COUNT_'. $Abon->{TP_INFO}->{TP_ID} };
             $FORM{'ORDER_'.($#docs_ids+2)}  = "[$Abon->{TP_INFO}->{TP_ID}] $Abon->{TP_INFO}->{NAME} $Abon->{COMMENTS}";
             $FORM{SEND_EMAIL}               = $FORM{ 'SEND_DOCS_' . $Abon->{TP_INFO}->{TP_ID} } || undef;
             push @docs_ids, int($#docs_ids+2);
           }
 
-          if ($activate_notification) {
-             my $message = $html->tpl_show(_include('abon_notification3', 'Abon'), $Abon, { OUTPUT2RETURN => 1 });
-            sendmail("$conf{ADMIN_MAIL}", "$email", 
+          if ($activate_notification && $users->{EMAIL}) {
+             my $message = $html->tpl_show(_include('abon_notification3', 'Abon'), 
+              { %{ $users }, %{ $Abon->{TP_INFO} } }, { OUTPUT2RETURN => 1 });
+            sendmail("$conf{ADMIN_MAIL}", "$users->{EMAIL}", 
               "$conf{WEB_TITLE} - $Abon->{TP_INFO}->{NAME} $Abon->{COMMENTS}", "$message", 
               "$conf{MAIL_CHARSET}", '', {});
           }
@@ -819,8 +820,8 @@ sub abon_get_month_fee {
   my $message = '';
 
   #Get month fee
-  if ($Abon->{TP_INFO}->{MONTH_FEE} > 0) {
-    my $sum  = $Abon->{TP_INFO}->{MONTH_FEE};
+  if ($Abon->{TP_INFO}->{PRICE} > 0) {
+    my $sum  = $Abon->{TP_INFO}->{PRICE};
     my $user = $users->info($Abon->{UID});
 
     #Current Month
@@ -864,7 +865,7 @@ sub abon_get_month_fee {
       $m = sprintf("%.2d", $active_m + $i);
 
       if ($i > 0) {
-        $sum     = $Abon->{TP_INFO}->{MONTH_FEE};
+        $sum     = $Abon->{TP_INFO}->{PRICE};
         $message = "$_ABON: $sum ($Abon->{TP_INFO}->{TP_ID})\n";
         $DATE    = "$active_y-$m-01";
         $TIME    = "00:00:00";
