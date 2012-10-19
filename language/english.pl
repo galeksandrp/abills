@@ -504,4 +504,5 @@ $_DAY_FEE_SHORT='D/F';
 $_CURRENCY='Currency';
 $_ACCOMULATION='Accomulation';
 $_UNIVERSAL='Universal';
+$_YEAR_SHORT='y.';
 

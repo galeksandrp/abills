@@ -953,6 +953,7 @@ sub invoice_add {
   my @ids_arr       = split(/, /, $attr->{IDS} || '');
   my $orders        = $#ids_arr + 1;
   my $order_number  = 0;
+  my @invoice_num_arr = ();
 
   while( $order_number <= $orders ) {
     $DATA{INVOICE_NUM} = ($attr->{INVOICE_NUM}) ? $attr->{INVOICE_NUM} : $self->docs_nextid({ TYPE => 'INVOICE' });
@@ -969,6 +970,7 @@ sub invoice_add {
     return $self if ($self->{errno});
     $self->{DOC_ID}      = $self->{INSERT_ID};
     $self->{INVOICE_NUM} = $DATA{INVOICE_NUM};
+    push @invoice_num_arr, $self->{DOC_ID};
     
     if ($attr->{IDS}) {
       for( my $order_num=0; $order_num<$CONF->{DOCS_INVOICE_ORDERS}; $order_num++) {
@@ -1001,6 +1003,7 @@ sub invoice_add {
     $self->invoice_info($self->{DOC_ID});
   } ;
 
+  $self->{DOC_IDS} = join(',', @invoice_num_arr);
 
   return $self;
 }
