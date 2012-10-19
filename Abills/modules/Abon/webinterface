@@ -104,9 +104,9 @@ sub abon_user {
 
         if (($users->{CREDIT} + $users->{DEPOSIT}) > $line->{price} || $line->{payment_type} || time() < $seltime) {
           $Abon->{TP_INFO}->{PERIOD_ALIGNMENT} = $line->{period_alignment} || 0;
-          $Abon->{TP_INFO}->{PRICE}        = $line->{price};
+          $Abon->{TP_INFO}->{PRICE}            = $line->{price};
           $Abon->{TP_INFO}->{TP_ID}            = $line->{tp_id};
-          $Abon->{TP_INFO}->{NAME}             = $line->{name};
+          $Abon->{TP_INFO}->{TP_NAME}             = $line->{name};
           $Abon->{COMMENTS}                    = $FORM{ 'COMMENTS_' . $line->{tp_id} };
           $Abon->{TP_INFO}->{FEES_TYPE}        = $line->{fees_type} || 1;
           $Abon->{TP_INFO}->{CREATE_ACCOUNT}   = $line->{create_account};
@@ -165,16 +165,17 @@ sub abon_user {
           if ($Abon->{TP_INFO}->{CREATE_ACCOUNT} && $FORM{ 'CREATE_DOCS_' . $Abon->{TP_INFO}->{TP_ID} }) {
             $FORM{'SUM_'.($#docs_ids+2)}    = $Abon->{TP_INFO}->{PRICE} / $FORM{'SERVICE_COUNT_'. $Abon->{TP_INFO}->{TP_ID} };
             $FORM{'COUNT_'.($#docs_ids+2)}  = $FORM{'SERVICE_COUNT_'. $Abon->{TP_INFO}->{TP_ID} };
-            $FORM{'ORDER_'.($#docs_ids+2)}  = "[$Abon->{TP_INFO}->{TP_ID}] $Abon->{TP_INFO}->{NAME} $Abon->{COMMENTS}";
+            $FORM{'ORDER_'.($#docs_ids+2)}  = "[$Abon->{TP_INFO}->{TP_ID}] $Abon->{TP_INFO}->{TP_NAME} $Abon->{COMMENTS}";
             $FORM{SEND_EMAIL}               = $FORM{ 'SEND_DOCS_' . $Abon->{TP_INFO}->{TP_ID} } || undef;
             push @docs_ids, int($#docs_ids+2);
           }
 
           if ($activate_notification && $users->{EMAIL}) {
-             my $message = $html->tpl_show(_include('abon_notification3', 'Abon'), 
-              { %{ $users }, %{ $Abon->{TP_INFO} } }, { OUTPUT2RETURN => 1 });
+            my $message = $html->tpl_show(_include('abon_notification3', 'Abon'), 
+              { %{ $users }, %{ $Abon->{TP_INFO} }, %{ $Abon } }, { OUTPUT2RETURN => 1 });
+
             sendmail("$conf{ADMIN_MAIL}", "$users->{EMAIL}", 
-              "$conf{WEB_TITLE} - $Abon->{TP_INFO}->{NAME} $Abon->{COMMENTS}", "$message", 
+              "$conf{WEB_TITLE} - $Abon->{TP_INFO}->{TP_NAME} $Abon->{COMMENTS}", "$message", 
               "$conf{MAIL_CHARSET}", '', {});
           }
 
@@ -287,7 +288,8 @@ sub abon_user {
         { TYPE  => 'checkbox', 
         	STATE => ($line->{manual_fee}) ? 1 : undef
         }),
-      ($state && $line->{manual_activate}) ? $html->button("$_ACTIVATE", "index=$index&change=1&&ACTIVATE=$line->{id}&ABON_DATE=$line->{next_abon}&UID=$FORM{UID}", { BUTTON => 1 }) : ''
+      ($state && $line->{manual_activate}) ? $html->button("$_ACTIVATE", "index=$index&change=1&&ACTIVATE=$line->{id}&ABON_DATE=$line->{next_abon}&UID=$FORM{UID}&COMMENTS_".
+       $line->{id}. "=$describe", { BUTTON => 1 }) : ''
     );
   }
 
@@ -854,7 +856,7 @@ sub abon_get_month_fee {
       $periods = 12 - $active_m + $m;
     }
 
-    $message = "$_ABON: " . (($Abon->{COMMENTS}) ? " $Abon->{TP_INFO}->{NAME} $Abon->{COMMENTS}" : " [$Abon->{TP_INFO}->{TP_ID}] $Abon->{TP_INFO}->{NAME} ") . $message . "\n";
+    $message = "$_ABON: " . (($Abon->{COMMENTS}) ? " $Abon->{TP_INFO}->{TP_NAME} $Abon->{COMMENTS}" : " [$Abon->{TP_INFO}->{TP_ID}] $Abon->{TP_INFO}->{TP_NAME} ") . $message . "\n";
 
     for (my $i = 0 ; $i <= $periods ; $i++) {
       if ($active_m + $i > 12) {
