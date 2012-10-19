@@ -106,13 +106,14 @@ sub abon_user {
           $Abon->{TP_INFO}->{PERIOD_ALIGNMENT} = $line->{period_alignment} || 0;
           $Abon->{TP_INFO}->{PRICE}            = $line->{price};
           $Abon->{TP_INFO}->{TP_ID}            = $line->{tp_id};
-          $Abon->{TP_INFO}->{TP_NAME}             = $line->{name};
+          $Abon->{TP_INFO}->{TP_NAME}          = $line->{name};
           $Abon->{COMMENTS}                    = $FORM{ 'COMMENTS_' . $line->{tp_id} };
           $Abon->{TP_INFO}->{FEES_TYPE}        = $line->{fees_type} || 1;
           $Abon->{TP_INFO}->{CREATE_ACCOUNT}   = $line->{create_account};
           $ext_cmd                             = $line->{ext_cmd};
           $activate_notification               = $line->{activate_notification};
           $Abon->{TP_INFO}->{DISCOUNT}         = $line->{discount};
+          $Abon->{NEXT_ABON_DATE}              = $line->{next_abon_date};
 
           if ($FORM{'SERVICE_COUNT_'. $Abon->{TP_INFO}->{TP_ID} }) {
             $Abon->{TP_INFO}->{PRICE}=$Abon->{TP_INFO}->{PRICE} * $FORM{'SERVICE_COUNT_'. $Abon->{TP_INFO}->{TP_ID} };
@@ -162,6 +163,18 @@ sub abon_user {
             $ret = system($cmd);
           }
 
+          if ($FORM{ACTIVATE}) {
+          	my $ai_list = $Abon->periodic_list({ %LIST_PARAMS, 
+  	                                DELETED      => 0,
+  	                                LOGIN_STATUS => 0,
+  	                                COLS_NAME    => 1,
+  	                                COLS_UPPER   => 1,
+  	                              });
+
+  	        $Abon->{COMMENTS}       = $ai_list->[0]->{COMMENTS};
+  	        $Abon->{NEXT_ABON_DATE} = $ai_list->[0]->{NEXT_ABON_DATE};
+          }
+
           if ($Abon->{TP_INFO}->{CREATE_ACCOUNT} && $FORM{ 'CREATE_DOCS_' . $Abon->{TP_INFO}->{TP_ID} }) {
             $FORM{'SUM_'.($#docs_ids+2)}    = $Abon->{TP_INFO}->{PRICE} / $FORM{'SERVICE_COUNT_'. $Abon->{TP_INFO}->{TP_ID} };
             $FORM{'COUNT_'.($#docs_ids+2)}  = $FORM{'SERVICE_COUNT_'. $Abon->{TP_INFO}->{TP_ID} };
@@ -195,6 +208,7 @@ sub abon_user {
           }
         }
       }
+
     }
 
     delete $FORM{IDS};

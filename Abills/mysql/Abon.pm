@@ -225,7 +225,31 @@ sub tariff_list {
      vat,
      abon_tariffs.discount,
      manual_activate,
-     user_portal
+     user_portal,
+     \@nextfees_date := if (nonfix_period = 1, 
+      if (period = 0, curdate() + INTERVAL 2 DAY, 
+       if (period = 1, curdate() + INTERVAL 2 MONTH, 
+         if (period = 2, curdate() + INTERVAL 6 MONTH, 
+           if (period = 3, curdate() + INTERVAL 12 MONTH, 
+             if (period = 4, curdate() + INTERVAL 2 YEAR, 
+               '-'
+              )
+            )
+          )
+        )
+       ),
+      if (period = 0, curdate()+ INTERVAL 1 DAY, 
+       if (period = 1, DATE_FORMAT(curdate() + INTERVAL 2 MONTH, '%Y-%m-01'), 
+         if (period = 2, CONCAT(YEAR(curdate() + INTERVAL 6 MONTH), '-' ,(QUARTER((curdate() + INTERVAL 6 MONTH))*6-2), '-01'), 
+           if (period = 3, CONCAT(YEAR(curdate() + INTERVAL 12 MONTH), '-', if(MONTH(curdate() + INTERVAL 12 MONTH) > 12, '06', '01'), '-01'), 
+             if (period = 4, DATE_FORMAT(curdate() + INTERVAL 2 YEAR, '%Y-01-01'), 
+               '-'
+              )
+            )
+          )
+        )
+       )
+      ) AS next_abon_date
      FROM abon_tariffs
      LEFT JOIN abon_user_list ul ON (abon_tariffs.id=ul.tp_id)
      $WHERE
@@ -568,6 +592,10 @@ sub periodic_list {
 
   if (defined($attr->{MANUAL_FEE})) {
     push @WHERE_RULES, @{ $self->search_expr("$attr->{MANUAL_FEE}", 'INT', 'ul.manual_fee') };
+  }
+
+  if ($attr->{UID}) {
+    push @WHERE_RULES, @{ $self->search_expr("$attr->{UID}", 'INT', 'u.uid') };
   }
 
   my $WHERE = ($#WHERE_RULES > -1) ? "AND " . join(' and ', @WHERE_RULES) : '';
