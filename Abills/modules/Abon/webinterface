@@ -117,9 +117,8 @@ sub abon_user {
           $Abon->{SERVICE_COUNT}               = $FORM{'SERVICE_COUNT_'. $Abon->{TP_INFO}->{TP_ID} } || 1;
 
           if ($FORM{ACTIVATE}) {
-          	my $ai_list = $Abon->periodic_list({ %LIST_PARAMS, 
-  	                                DELETED      => 0,
-  	                                LOGIN_STATUS => 0,
+          	my $ai_list = $Abon->periodic_list({ UID => $users->{UID}
+          		                      TP_ID        => $line->{tp_id},
   	                                COLS_NAME    => 1,
   	                                COLS_UPPER   => 1,
   	                              });
