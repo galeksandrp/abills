@@ -718,8 +718,8 @@ sub abon_periodic {
 
           sendmail("$conf{ADMIN_MAIL}", "$info->{EMAIL}", "$conf{WEB_TITLE} - $info->{TP_NAME} $info->{COMMENTS}", "$message", "$conf{MAIL_CHARSET}", '', { ATTACHMENTS => $attach });
 
-          if ($ext_cmd) {
-            my $cmd = $ext_cmd;
+          if ($info->{ext_cmd}) {
+            my $cmd = $info->{ext_cmd};
             $cmd .= " ACTION=ALERT UID=$user{UID} TP_ID=$info->{TP_ID} COMMENTS=\"$info->{COMMENTS}\" SUM=$info->{PRICE}";
             $ret = system($cmd);
           }
