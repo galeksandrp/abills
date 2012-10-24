@@ -608,7 +608,7 @@ sub abon_periodic {
 
   if (in_array('Docs', \@MODULES) ) {
     $FORM{QUICK} = 1;
-    load_module('Docs');
+    load_module('Docs', $html);
   }
 
 
@@ -677,7 +677,7 @@ sub abon_periodic {
              SEND_EMAIL => $info->{SEND_DOCS} || 0
             };
           }
-#print "$user{UID} !!!!!!!!!!!!!!!!!!!!! $ext_cmd \n";
+
           if ($info->{ext_cmd}) {
             my $cmd = $info->{ext_cmd};
             $cmd .= " ACTION=ACTIVE UID=$user{UID} TP_ID=$info->{TP_ID} COMMENTS=\"$info->{COMMENTS}\" SUM=$info->{PRICE}";
@@ -795,7 +795,6 @@ sub abon_periodic {
   }
   
   #Create and Send documents
-  #load_module('Docs');
 if (in_array('Docs', \@MODULES) ) {
 	$^W=0;
   while (($uid, $values) = each %docs_info) {

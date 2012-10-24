@@ -16,15 +16,15 @@ sub load_module {
     if (-f $realfilename) {
       $lang_file =  $realfilename;
       last;
-     }
+    }
     elsif (-f "$prefix/Abills/modules/$module/lng_english.pl") {
     	$lang_file = "$prefix/Abills/modules/$module/lng_english.pl";
-     }
-   }
+    }
+  }
 
   if ($lang_file ne '') {
     require $lang_file;
-   }
+  }
 
  	require "Abills/modules/$module/webinterface";
 
