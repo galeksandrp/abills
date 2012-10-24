@@ -101,8 +101,8 @@ sub abon_user {
       foreach my $line (@$list) {
         my ($Y, $M, $D) = split(/-/, $FORM{ 'DATE_' . $line->{tp_id} }, 3);
         my $seltime = POSIX::mktime(0, 0, 0, $D, ($M - 1), ($Y - 1900));
-
-        if (($users->{CREDIT} + $users->{DEPOSIT}) > $line->{price} || $line->{payment_type} || time() < $seltime) {
+        if (($users->{CREDIT} + $users->{DEPOSIT}) > $line->{price} 
+             || $line->{payment_type} || time() < $seltime) {
           $Abon->{TP_INFO}->{PERIOD_ALIGNMENT} = $line->{period_alignment} || 0;
           $Abon->{TP_INFO}->{PRICE}            = $line->{price};
           $Abon->{TP_INFO}->{TP_ID}            = $line->{tp_id};
@@ -173,7 +173,7 @@ sub abon_user {
 
           if ($ext_cmd) {
             my $cmd = $ext_cmd;
-            $cmd .= " ACTION=ALERT UID=$users->{UID} TP_ID=$Abon->{TP_INFO}->{TP_ID} COMMENTS=\"$Abon->{COMMENTS}\" SUM=$Abon->{TP_INFO}->{PRICE}";
+            $cmd .= " ACTION=ACTIVE UID=$users->{UID} TP_ID=$Abon->{TP_INFO}->{TP_ID} COMMENTS=\"$Abon->{COMMENTS}\" SUM=". sprintf("%.2f", $Abon->{TP_INFO}->{PRICE});
             $ret = system($cmd);
           }
 
@@ -203,6 +203,7 @@ sub abon_user {
         }
         else {
           $html->message('err', "$_ABON : $_ERROR", "$_TARIF_PLAN: [$line->{tp_id}] $line->{name}\n$ERR_SMALL_DEPOSIT");
+          delete $FORM{ACTIVATE};
           $FORM{ 'error_' . $line->{tp_id} }          = 1;
           $FORM{ 'error_comments_' . $line->{tp_id} } = $ERR_SMALL_DEPOSIT;
           if ($attr->{REGISTRATION}) {
@@ -676,9 +677,9 @@ sub abon_periodic {
              SEND_EMAIL => $info->{SEND_DOCS} || 0
             };
           }
-
-          if ($ext_cmd) {
-            my $cmd = $ext_cmd;
+#print "$user{UID} !!!!!!!!!!!!!!!!!!!!! $ext_cmd \n";
+          if ($info->{ext_cmd}) {
+            my $cmd = $info->{ext_cmd};
             $cmd .= " ACTION=ACTIVE UID=$user{UID} TP_ID=$info->{TP_ID} COMMENTS=\"$info->{COMMENTS}\" SUM=$info->{PRICE}";
             $ret = system($cmd);
           }
