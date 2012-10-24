@@ -2550,7 +2550,7 @@ sub paysys_yandex () {
           if ($Paysys->{STATUS} == 2) {
             $html->message('info', $_INFO, "$_ADDED $_SUM: $Paysys->{SUM} $_TRANSACTION ID: $FORM{OPERATION_ID}");
           }
-          elsif ($Paysys->{STATUS} == 0) {
+          elsif ($Paysys->{STATUS} < 2) {
             if ($result_hash->{status} eq 'success') {
             	my $result = '';
             	while(my($k, $v)=each %result) {
@@ -2567,9 +2567,9 @@ sub paysys_yandex () {
                 $payments->add($user,
                 {
                   METHOD       => ($conf{PAYSYS_PAYMENTS_METHODS} && $PAYSYS_PAYMENTS_METHODS{73}) ? 73 : '2',
-                  EXT_ID       => "YM:$Paysys->{TRANSACTION_ID}",
-                  CHECK_EXT_ID => "YM:$Paysys->{TRANSACTION_ID}",
-                  SUM            => $Paysys->{SUM},
+                  EXT_ID       => "$Paysys->{TRANSACTION_ID}",
+                  CHECK_EXT_ID => "$Paysys->{TRANSACTION_ID}",
+                  SUM          => $Paysys->{SUM},
                 });
                 
                 #Exists
@@ -2584,10 +2584,8 @@ sub paysys_yandex () {
  	        }
  	      }
  	    }
- 	    $html->message('info', $_INFO, "$_ADDED $_SUM: $list->[0][3] ID: $FORM{LMI_PAYMENT_NO}");
- 	
-  	  print "Content-Type: text/html\n\n";
-  	  print %$result_hash;
+
+ 	    $html->message('info', $_INFO, "$_ADDED $_SUM: $Paysys->{SUM} ID: $Paysys->{TRANSACTION_ID}");
     }    
   }
   else {  
@@ -2617,17 +2615,12 @@ sub paysys_yandex () {
         SUM            => $FORM{SUM},
         UID            => $user->{UID},
         IP             => $ENV{REMOTE_ADDR},
-        TRANSACTION_ID => "$FORM{OPERATION_ID}",
+        TRANSACTION_ID => "YM:$FORM{OPERATION_ID}",
         STATUS         => 1,
         CODE           => $result_hash->{request_id},
         PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}"
        }
        ); 
- 	
- 	    
- 	
-  	  print "Content-Type: text/html\n\n";
-  	  print %$result_hash;
     }
   }
 }
