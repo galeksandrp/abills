@@ -2541,7 +2541,7 @@ sub paysys_yandex () {
   	  my $a = `echo "\nERROR: !! $Ym->{error} $Ym->{error_str}" >> /tmp/ym`;
     }
     else {  	
- 	    $Paysys->info({ CODE => $result_hash->{OPERATION_ID} });
+ 	    $Paysys->info({ CODE => $FORM{REQUEST_ID} });
       if ($Paysys->{TOTAL} > 0) {
         if ($Paysys->{UID} != $LIST_PARAMS{UID}) {
           $html->message('err', $_ERROR, "$_FAILED ID: $FORM{OPERATION_ID}");
@@ -2562,6 +2562,24 @@ sub paysys_yandex () {
                 STATUS => 2,
                 INFO   => "$result"
               });
+              
+              if (! $Paysys->{error}) {
+                $payments->add($user,
+                {
+                  METHOD       => ($conf{PAYSYS_PAYMENTS_METHODS} && $PAYSYS_PAYMENTS_METHODS{73}) ? 73 : '2',
+                  EXT_ID       => "YM:$Paysys->{TRANSACTION_ID}",
+                  CHECK_EXT_ID => "YM:$Paysys->{TRANSACTION_ID}",
+                  SUM            => $Paysys->{SUM},
+                });
+                
+                #Exists
+                if ($payments->{errno} && $payments->{errno} == 7) {
+                  $html->messages('err', $_ERROR, "$_EXIST: ");
+                }
+                elsif ($payments->{errno}) {
+                  $html->messages('err', $_ERROR, "$_ERROR");
+                }
+              }
  	          }
  	        }
  	      }
