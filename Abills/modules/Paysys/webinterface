@@ -2504,11 +2504,15 @@ sub paysys_yandex () {
   if ($FORM{code}) {
   	$Ym->receiveOAuthToken({ code => $FORM{code} });
   	if($Ym->{error}) {
-  		$html->message('err', "$_ERROR", "$Ym->{error} $Ym->{error_str}" );
+  		$html->message('err', "$_INFO Token", "$Ym->{error} $Ym->{error_str}" );
   	}
   	else {
   		$Ym->query($db, "UPDATE users_pi SET ym_token=ENCODE('$Ym->{token}', '$conf{secretkey}') WHERE uid='$user->{UID}';", 'do');
   		$ym_token = $Ym->{token};
+  		delete $FORM{PAYMENT_SYSTEM};
+  		$html->message('info', "$_INFO", "Yandex.Money Токен обновлён, теперь можете совершать оплату" );
+  		paysys_payment();
+  		return 0;
   	} 
   }
   else {
@@ -2588,8 +2592,9 @@ sub paysys_yandex () {
  	    $html->message('info', $_INFO, "$_ADDED $_SUM: $Paysys->{SUM} ID: $Paysys->{TRANSACTION_ID}");
     }    
   }
-  else {  
-    my $result_hash = $Ym->ym_request_payment_p2p($ym_token, undef, "$FORM{SUM}", "$FORM{OPERATION_ID}", "$user->{LOGIN} UID: $user->{UID}");
+  else {
+    my $result_hash = $Ym->ym_request_payment_p2p($ym_token, undef, "$FORM{SUM}", 
+                            "$FORM{OPERATION_ID}", "$user->{LOGIN} UID: $user->{UID}");
 
  	  if($Ym->{error}) {
  		  if ($Ym->{error} == 2) {
@@ -2597,7 +2602,7 @@ sub paysys_yandex () {
  		  }
  		
  		  if ($YANDEX_ERR{$Ym->{error_str}}) {
- 		    $html->message('err', "$_ERROR", "$YANDEX_ERR{$Ym->{error_str}} \n $Ym->{status} \n $Ym->{error_description}" )
+ 		    $html->message('err', "$_ERROR $_STEP 1", "$YANDEX_ERR{$Ym->{error_str}} \n $Ym->{status} \n $Ym->{error_description}" )
  		  }
  		  else {
   	    $html->message('err', "$_ERROR", "$ERR_UNKNOWN $Ym->{error} $Ym->{error_str}" );

@@ -1,7 +1,7 @@
 <form id=pay name=pay method='POST' action='$SELF_URL'>
 <input type='hidden' name='index' value='$index'>
 <input type='hidden' name='UID' value='$LIST_PARAMS{UID}'>
-<input type='hidden' name='sid' value='$FORM{sid}'>
+<input type='hidden' name='sid' value='$sid'>
 <input type='hidden' name='IP' value='$ENV{REMOTE_ADDR}'>
 <input type='hidden' name='OPERATION_ID' value='$FORM{OPERATION_ID}'>
 <input type='hidden' name='PAYMENT_SYSTEM' value='$FORM{PAYMENT_SYSTEM}'>
