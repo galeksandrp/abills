@@ -276,6 +276,7 @@ $ERR_WRONG_FILE_NAME='Wrong file name or type';
 $ERR_WRONG_SUM="Wrong sum. Enter sum.";
 $ERR_ACCESS_DENY='Access Deny';
 $ERR_UNALLOW_IP='Unallow IP';
+$ERR_UNKNOWN='Unknown error';
 
 #
 $ERR_IP_ADDRESS_CONFLICT='IP Address Conflict.';

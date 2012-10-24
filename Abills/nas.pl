@@ -102,12 +102,14 @@ sub hangup {
     hangup_radius($NAS, $PORT, "", $attr);
   }
   elsif ($nas_type eq 'mx80') {
-    if ( $attr->{'CONNECT_INFO'}  !~ /demux/) {
-      hangup_radius($NAS, $PORT, "$attr->{CID}", $attr);
-    }
-  	else {
-      hangup_radius($NAS, $PORT, "$USER", $attr);
-    }
+    #if ( $attr->{'CONNECT_INFO'}  !~ /demux/) {
+    #  hangup_radius($NAS, $PORT, "$attr->{CID}", $attr);
+    #}
+  	#else {
+    #  hangup_radius($NAS, $PORT, "$USER", $attr);
+    #}
+    
+    hangup_radius($NAS, $PORT, "$USER", { SESSION_ID => $attr->{ACCT_SESSION_ID} });    
   }
   elsif ($nas_type eq 'lisg_cst') {
     hangup_radius($NAS, $PORT, "$attr->{FRAMED_IP_ADDRESS}", $attr);
@@ -444,15 +446,20 @@ sub hangup_radius {
 
   $conf{'dictionary'} = $base_dir . '/Abills/dictionary' if (!$conf{'dictionary'});
 
-
   $r->load_dictionary($conf{'dictionary'});
-  $r->add_attributes({ Name => 'User-Name', Value => "$USER" }) if ($USER);
-  $r->add_attributes({ Name => 'Framed-IP-Address', Value => "$attr->{FRAMED_IP_ADDRESS}" }) if ($attr->{FRAMED_IP_ADDRESS});
+
+  if ($attr->{SESSION_ID}) {
+  	$r->add_attributes({ Name => 'Acct-Session-Id', Value => "$attr->{SESSION_ID}" }) if ($USER);
+  }
+  else {
+    $r->add_attributes({ Name => 'User-Name', Value => "$USER" }) if ($USER);
+    $r->add_attributes({ Name => 'Framed-IP-Address', Value => "$attr->{FRAMED_IP_ADDRESS}" }) if ($attr->{FRAMED_IP_ADDRESS});
   
-  if ($attr->{RAD_PAIRS}) {
-  	while(my($k, $v)=each %{ $attr->{RAD_PAIRS} }) {
-  		$r->add_attributes({ Name => "$k", Value => $v });
-  	}
+    if ($attr->{RAD_PAIRS}) {
+  	  while(my($k, $v)=each %{ $attr->{RAD_PAIRS} }) {
+  		  $r->add_attributes({ Name => "$k", Value => $v });
+  	  }
+    }
   }
   
   my $request_type = ($attr->{COA}) ? 'COA' : 'POD';

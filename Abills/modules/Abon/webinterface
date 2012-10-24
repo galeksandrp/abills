@@ -173,7 +173,7 @@ sub abon_user {
 
           if ($ext_cmd) {
             my $cmd = $ext_cmd;
-            $cmd .= " ACTION=ALERT UID=$user{UID} TP_ID=$tp_id COMMENTS=\"$comment\" SUM=$sum";
+            $cmd .= " ACTION=ALERT UID=$users->{UID} TP_ID=$Abon->{TP_INFO}->{TP_ID} COMMENTS=\"$Abon->{COMMENTS}\" SUM=$Abon->{TP_INFO}->{PRICE}";
             $ret = system($cmd);
           }
 

@@ -112,7 +112,10 @@ my %CONF_OPTIONS = (
   PAYSYS_WEBMONEY_TERMINAL                  => 85
 );
 
-my @status = ('UNKNOWN', 'IN PROCCESS', 'COMPLETE', 'CANCELED', 'EXPIRED', 'INCORRECT_CHECKSUM', 'PAYMENT_ERROR', 'DUBLICATE', 'USER_ERROR', 'USER_NOT_EXIST', 'SMALL_PAYMENT_SUM', 'SQL_ERROR');
+my @status = ('UNKNOWN', 'IN PROCCESS', 'COMPLETE', 
+'CANCELED', 'EXPIRED', 'INCORRECT_CHECKSUM', 
+'PAYMENT_ERROR', 'DUBLICATE', 'USER_ERROR', 
+'USER_NOT_EXIST', 'SMALL_PAYMENT_SUM', 'SQL_ERROR');
 
 #require "modules/Paysys/paysys_cons";
 
@@ -1262,7 +1265,7 @@ sub paysys_portmone () {
     $Paysys->add(
       {
         SYSTEM_ID      => 45,
-        DATETIME       => "'$DATE $TIME'",
+        DATETIME       => "$DATE $TIME",
         SUM            => $FORM{SUM},
         UID            => $user->{UID},
         IP             => $FORM{IP},
@@ -1471,7 +1474,7 @@ sub paysys_privatbank {
     $Paysys->add(
       {
         SYSTEM_ID      => $payment_system_id,
-        DATETIME       => "'$DATE $TIME'",
+        DATETIME       => "$DATE $TIME",
         SUM            => $FORM{SUM},
         UID            => $user->{UID},
         IP             => "$ENV{'REMOTE_ADDR'}",
@@ -1866,7 +1869,7 @@ sub paysys_privatbank_p24 {
     $Paysys->add(
       {
         SYSTEM_ID      => 54,
-        DATETIME       => "'$DATE $TIME'",
+        DATETIME       => "$DATE $TIME",
         SUM            => $FORM{SUM},
         UID            => $user->{UID},
         IP             => "$ENV{'REMOTE_ADDR'}",
@@ -1940,7 +1943,7 @@ sub paysys_liqpay {
     $Paysys->add(
       {
         SYSTEM_ID      => 62,
-        DATETIME       => "'$DATE $TIME'",
+        DATETIME       => "$DATE $TIME",
         SUM            => $FORM{SUM},
         COMMISSION     => $info{COMMISSION_SUM},
         UID            => $user->{UID},
@@ -2040,7 +2043,7 @@ sub paysys_qiwi {
       $Paysys->add(
         {
           SYSTEM_ID      => $payment_system_id,
-          DATETIME       => "'$DATE $TIME'",
+          DATETIME       => "$DATE $TIME",
           SUM            => $FORM{SUM},
           UID            => $user->{UID},
           IP             => "$ENV{'REMOTE_ADDR'}",
@@ -2241,7 +2244,7 @@ sub paysys_paypal {
       $Paysys->add(
         {
           SYSTEM_ID      => $payment_system_id,
-          DATETIME       => "'$DATE $TIME'",
+          DATETIME       => "$DATE $TIME",
           SUM            => $FORM{SUM},
           UID            => $user->{UID},
           IP             => "$ENV{'REMOTE_ADDR'}",
@@ -2480,6 +2483,23 @@ sub paysys_yandex () {
 
   my $Ym = Yandex->ym_new($db, $admin, \%conf);
   my $ym_token = '';
+  
+  my %YANDEX_ERR = (
+   'illegal_params'      => 'Обязательные параметры платежа отсутствуют или имеют недопустимые значения.',
+   'illegal_param_label' => 'Недопустимое значение параметра label.',
+   'phone_unknown'       => 'Указан номер телефона не связанный со счетом пользователя или получателя платежа.',
+   'payment_refused' 	   => 'Отказано в приёме платежа (например пользователь попробовал заплатить за товар, которого нет в магазине).',
+   'authorization_reject'=> "В авторизации платежа отказано. Возможные причины:\n\n
+     - транзакция с текущими параметрами запрещена для данного пользователя;\n
+     - пользователь не принял Соглашение об использовании системы \"Яндекс.Деньги\". ",
+   'not_enough_funds'   => 	'На счете плательщика недостаточно средств. Необходимо пополнить счет и провести новый платеж.',
+   'limit_exceeded'     =>  "Превышен один из лимитов на операции:\n\n
+    - на сумму операции для выданного токена авторизации; \n
+    - сумму операции за период времени для выданного токена авторизации; \n
+    - ограничений платежной системы для различных видов операций.\n\n
+    Техническая ошибка, повторите вызов операции позднее."
+  );
+
 
   if ($FORM{code}) {
   	$Ym->receiveOAuthToken({ code => $FORM{code} });
@@ -2502,22 +2522,73 @@ sub paysys_yandex () {
     }
   }
   
-  my $result_hash = $Ym->ym_request_payment_p2p($ym_token, undef, "$FORM{SUM}", "$FORM{OPERATION_ID}", "LOGIN"); # $user->{LOGIN} UID: $user->{UID}" );
-
- 	if($Ym->{error}) {
- 		if ($Ym->{error} == 2) {
- 			$Ym->query($db, "UPDATE users_pi SET ym_token='' WHERE uid='$user->{UID}';", 'do');
- 		}
-  	$html->message('err', "$_ERROR", "!! $Ym->{error} $Ym->{error_str}" );
-  	my $a = `echo "\nERROR: !! $Ym->{error} $Ym->{error_str}" >> /tmp/ym`;
-  }
-  else {
-  	print "Content-Type: text/html\n\n";
-  	print %$result_hash;
-  }
-
   
+  
+  if ($FORM{CONFIRM_PAYMENT}) {
+    $Ym->ym_process_payment($ym_token, $FORM{REQUEST_ID});
+    
+ 	  if($Ym->{error}) {
+ 		  if ($Ym->{error} == 2) {
+ 			  $Ym->query($db, "UPDATE users_pi SET ym_token='' WHERE uid='$user->{UID}';", 'do');
+ 		  }
+ 		
+ 		  if ($YANDEX_ERR{$Ym->{error_str}}) {
+ 		    $html->message('err', "$_ERROR", "$YANDEX_ERR{$Ym->{error_str}} \n $Ym->{status} \n $Ym->{error_description}" )
+ 		  }
+ 		  else {
+  	    $html->message('err', "$_ERROR", "$ERR_UNKNOWN $Ym->{error} $Ym->{error_str}" );
+  	  }
+  	  my $a = `echo "\nERROR: !! $Ym->{error} $Ym->{error_str}" >> /tmp/ym`;
+    }
+    else {  	
+ 	    
+ 	    $html->message('info', $_INFO, "$_ADDED $_SUM: $list->[0][3] ID: $FORM{LMI_PAYMENT_NO}");
+ 	
+  	  print "Content-Type: text/html\n\n";
+  	  print %$result_hash;
+    }    
+  }
+  else {  
+    my $result_hash = $Ym->ym_request_payment_p2p($ym_token, undef, "$FORM{SUM}", "$FORM{OPERATION_ID}", "$user->{LOGIN} UID: $user->{UID}");
+
+ 	  if($Ym->{error}) {
+ 		  if ($Ym->{error} == 2) {
+ 			  $Ym->query($db, "UPDATE users_pi SET ym_token='' WHERE uid='$user->{UID}';", 'do');
+ 		  }
+ 		
+ 		  if ($YANDEX_ERR{$Ym->{error_str}}) {
+ 		    $html->message('err', "$_ERROR", "$YANDEX_ERR{$Ym->{error_str}} \n $Ym->{status} \n $Ym->{error_description}" )
+ 		  }
+ 		  else {
+  	    $html->message('err', "$_ERROR", "$ERR_UNKNOWN $Ym->{error} $Ym->{error_str}" );
+  	  }
+  	  my $a = `echo "\nERROR: !! $Ym->{error} $Ym->{error_str}" >> /tmp/ym`;
+    }
+    else {
+ 	    $html->tpl_show(_include('paysys_ym_confirm', 'Paysys'), \%info);
+
+      $Paysys->add(
+       {
+        SYSTEM_ID      => 73,
+        DATETIME       => "$DATE $TIME",
+        SUM            => $FORM{SUM},
+        UID            => $user->{UID},
+        IP             => $ENV{REMOTE_ADDR},
+        TRANSACTION_ID => "$FORM{OPERATION_ID}",
+        INFO           => '-',
+        PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}"
+       }
+       ); 
+ 	
+ 	    
+ 	
+  	  print "Content-Type: text/html\n\n";
+  	  print %$result_hash;
+    }
+  }
 }
+  
+
 
 1
 

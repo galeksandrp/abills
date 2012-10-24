@@ -228,7 +228,7 @@ elsif ($FORM{action} && $conf{PAYSYS_TELCELL_ACCOUNT_KEY}) {
   require "Telcell.pm";
   exit;
 }
-elsif ($FORM{action}) {
+elsif ($FORM{action} && $conf{PAYSYS_CYBERPLAT_ACCOUNT_KEY}) {
   require "Cyberplat.pm";
   exit;
 }
