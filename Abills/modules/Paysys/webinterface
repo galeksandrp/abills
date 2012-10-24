@@ -2525,7 +2525,7 @@ sub paysys_yandex () {
   
   
   if ($FORM{CONFIRM_PAYMENT}) {
-    $Ym->ym_process_payment($ym_token, $FORM{REQUEST_ID});
+    my $result_hash = $Ym->ym_process_payment($ym_token, $FORM{REQUEST_ID});
     
  	  if($Ym->{error}) {
  		  if ($Ym->{error} == 2) {
@@ -2541,7 +2541,31 @@ sub paysys_yandex () {
   	  my $a = `echo "\nERROR: !! $Ym->{error} $Ym->{error_str}" >> /tmp/ym`;
     }
     else {  	
- 	    
+ 	    $Paysys->info({ CODE => $result_hash->{OPERATION_ID} });
+      if ($Paysys->{TOTAL} > 0) {
+        if ($Paysys->{UID} != $LIST_PARAMS{UID}) {
+          $html->message('err', $_ERROR, "$_FAILED ID: $FORM{OPERATION_ID}");
+        }
+        else {
+          if ($Paysys->{STATUS} == 2) {
+            $html->message('info', $_INFO, "$_ADDED $_SUM: $Paysys->{SUM} $_TRANSACTION ID: $FORM{OPERATION_ID}");
+          }
+          elsif ($Paysys->{STATUS} == 0) {
+            if ($result_hash->{status} eq 'success') {
+            	my $result = '';
+            	while(my($k, $v)=each %result) {
+            		$result .= "$k: $v; ";
+              }            	
+            	
+              $Paysys->change({
+                ID     => $Paysys->{ID},
+                STATUS => 2,
+                INFO   => "$result"
+              });
+ 	          }
+ 	        }
+ 	      }
+ 	    }
  	    $html->message('info', $_INFO, "$_ADDED $_SUM: $list->[0][3] ID: $FORM{LMI_PAYMENT_NO}");
  	
   	  print "Content-Type: text/html\n\n";
@@ -2565,6 +2589,7 @@ sub paysys_yandex () {
   	  my $a = `echo "\nERROR: !! $Ym->{error} $Ym->{error_str}" >> /tmp/ym`;
     }
     else {
+      $info{REQUEST_ID}=$result_hash->{request_id};
  	    $html->tpl_show(_include('paysys_ym_confirm', 'Paysys'), \%info);
 
       $Paysys->add(
@@ -2575,7 +2600,8 @@ sub paysys_yandex () {
         UID            => $user->{UID},
         IP             => $ENV{REMOTE_ADDR},
         TRANSACTION_ID => "$FORM{OPERATION_ID}",
-        INFO           => '-',
+        STATUS         => 1,
+        CODE           => $result_hash->{request_id},
         PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}"
        }
        ); 
