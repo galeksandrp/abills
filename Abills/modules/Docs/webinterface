@@ -1108,8 +1108,8 @@ sub docs_invoices_list {
     }
 
     print $html->header() if ($FORM{qindex});
-    #my $tpl = ($FORM{COMPANY_ID}) ? 'docs_invoice_company' : 'docs_invoice';
-    my $tpl = 'docs_invoice';
+    my $tpl = ($FORM{COMPANY_ID}) ? 'docs_invoice_company' : 'docs_invoice';
+    #my $tpl = 'docs_invoice';
     my $single_tpl = $html->tpl_show(
       _include($tpl, 'Docs', { pdf => $FORM{pdf} }),
       undef,
@@ -1310,7 +1310,9 @@ sub docs_invoices_list {
     {
       width      => '100%',
       cols_align => [ 'right', 'right' ],
-      rows       => [ [ (($user->{UID}) ? '' : $html->button("$_PRINT $_LIST", "qindex=$index&print_list=1$pages_qs" . (($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : ''), { BUTTON => 1, ex_params => 'target=new' })), "$_TOTAL:", $html->b($total_invoices) ] ]
+      rows       => [ [ (($user->{UID}) ? '' : $html->button("$_PRINT $_LIST", "qindex=$index&print_list=1$pages_qs". 
+      (($FORM{COMPANY_ID}) ? "&COMPANY_ID=$FORM{COMPANY_ID}" : '') .
+      (($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : ''), { BUTTON => 1, ex_params => 'target=new' })), "$_TOTAL:", $html->b($total_invoices) ] ]
     }
   );
 
