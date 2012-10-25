@@ -459,6 +459,11 @@ sub list {
     push @WHERE_RULES, @{ $self->search_expr("$attr->{LOGIN}", 'STR', 'c.name') };
   }
 
+  if ($attr->{DEPOSIT}) {
+    push @WHERE_RULES, @{ $self->search_expr("$attr->{DEPOSIT}", 'INT', 'b.deposit') };
+  }
+
+
   my $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES) : '';
 
   $self->query(

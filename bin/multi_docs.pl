@@ -481,6 +481,7 @@ sub prepaid_invoices {
   $LIST_PARAMS{TP_ID} = $ARGV->{TP_ID} if ($ARGV->{TP_ID});
   $LIST_PARAMS{LOGIN} = $ARGV->{LOGIN} if ($ARGV->{LOGIN});
   $LIST_PARAMS{GID}   = $ARGV->{GID}   if ($ARGV->{GID});
+  $LIST_PARAMS{DEPOSIT}    = $ARGV->{DEPOSIT}    if ($ARGV->{DEPOSIT});
   my $TP_LIST         = get_tps();
 
   my $list = $Module_name->list(
@@ -586,6 +587,7 @@ sub prepaid_invoices_company {
   $LIST_PARAMS{TP_ID}      = $ARGV->{TP_ID}      if ($ARGV->{TP_ID});
   $LIST_PARAMS{LOGIN}      = $ARGV->{LOGIN}      if ($ARGV->{LOGIN});
   $LIST_PARAMS{COMPANY_ID} = $ARGV->{COMPANY_ID} if ($ARGV->{COMPANY_ID});
+  $LIST_PARAMS{DEPOSIT}    = $ARGV->{DEPOSIT}    if ($ARGV->{DEPOSIT});
 
   my $TP_LIST      = get_tps();
   my @invoices_ids = ();
@@ -943,6 +945,7 @@ Extra filter parameters
   LOGIN            - User login
   TP_ID            - Tariff Plan
   GID              - User Gid
+  DEPOSIT          - filter user deposit
   COMPANY_ID       - Company id. if defined company id generated only companies invoicess. U can use wilde card *
   
   RESULT_DIR=      - Output dir (default: abills/cgi-bin/admin/pdf)
