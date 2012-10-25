@@ -612,15 +612,19 @@ sub prepaid_invoices_company {
     print "COMPANY: $name CID: $company_id DEPOSIT: $deposit\n" if ($debug > 2);
 
     #get main user
+    my $admin_login      = 0;
     my $admin_user       = 0;
     my $admin_user_email = '';
-    my $admin_list       = $Company->admins_list({ GET_ADMINS => 1 });
+    my $admin_list       = $Company->admins_list({ 
+    	                               COMPANY_ID => $company_id,
+    	                               GET_ADMINS => 1 });
 
     if ($Company->{TOTAL} < 1) {
       print "Company don't have admin user\n";
       next;
     }
     else {
+    	$admin_login      = $admin_list->[0]->[0];
       $admin_user       = $admin_list->[0]->[4];
       $admin_user_email = $admin_list->[0]->[3];
     }
@@ -700,8 +704,9 @@ sub prepaid_invoices_company {
     my $date = ($ARGV->{DATE}) ? "$ARGV->{DATE}"  : ">=$DATE" ;
   
     my $fees_list = $Fees->list({ DATE       => $date,
-  	                            COMPANY_ID => $company_id,
-  	                            COLS_NAME  => 1 });
+  	                              COMPANY_ID => $company_id,
+  	                              COLS_NAME  => 1 
+  	                            });
 
     foreach my $line (@$fees_list) {
       $num++;
