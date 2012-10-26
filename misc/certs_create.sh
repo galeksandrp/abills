@@ -217,7 +217,7 @@ ssh_key () {
   echo 
   echo User: ${USER}
 
-
+  SSH_PORT=22
 
   if [ w${CERT_TYPE} = w ]; then
     id_dsa_file=id_dsa;
@@ -229,7 +229,7 @@ ssh_key () {
   if [ -f ${CERT_PATH}${id_dsa_file} ]; then
      echo "Cert exists: ${CERT_PATH}${id_dsa_file}";
      if [ x${UPLOAD} = x ]; then
-       echo "Upload to remote host[Y/n]: "
+       echo "Upload to remote host via ssh[Y/n]: "
        read UPLOAD
      fi;
   fi;
@@ -242,7 +242,7 @@ ssh_key () {
     chmod u=r,go= ${CERT_PATH}/${id_dsa_file}.pub
     echo "Set Cert user: ${CERT_USER}";
 
-    echo -n "Upload file to remote host (y/n): "
+    echo -n "Upload file to remote host via ssh(y/n): "
     read UPLOAD
   fi;
 
@@ -250,6 +250,8 @@ ssh_key () {
     if [ x${HOST} = x ]; then
       echo -n "Enter host: "
       read HOST
+      SSH_PORT=`echo ${HOST} | awk -F: '{ print $2 }'`
+      HOST=`echo ${HOST} | awk -F: '{ print $1 }'`
     fi;
     
     
@@ -262,15 +264,15 @@ ssh_key () {
       HOST=`echo ${HOST} | awk -F@ '{print $2}'`;
     else 
       echo "Make upload to: ${USER}@${HOST} "
-      ssh ${USER}@${HOST} "mkdir ~/.ssh"
-      scp ${CERT_PATH}${id_dsa_file}.pub ${USER}@${HOST}:~/.ssh/authorized_keys
+      ssh -p ${SSH_PORT} ${USER}@${HOST} "mkdir ~/.ssh"
+      scp -P ${SSH_PORT} ${CERT_PATH}${id_dsa_file}.pub ${USER}@${HOST}:~/.ssh/authorized_keys
     fi;
     
     
     echo -n "Connect to remote host: ${HOST}  (y/n): "
     read CONNECT
     if [ w${CONNECT} = wy ]; then
-      ssh -o StrictHostKeyChecking=no -i ${CERT_PATH}${id_dsa_file}  ${USER}@${HOST}
+      ssh -p ${SSH_PORT} -o StrictHostKeyChecking=no -i ${CERT_PATH}${id_dsa_file}  ${USER}@${HOST}
       exit;
     fi;
   else 
