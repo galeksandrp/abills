@@ -3544,13 +3544,22 @@ sub docs_user {
   $Docs->{PERIODIC_CREATE_DOCS} = ($Docs->{PERIODIC_CREATE_DOCS}) ? 'checked' : '';
   $Docs->{SEND_DOCS}            = ($Docs->{SEND_DOCS})            ? 'checked' : '';
   $Docs->{PERSONAL_DELIVERY}    = ($Docs->{PERSONAL_DELIVERY})    ? 'checked' : '';
+  
+  my $invoice_date = $DATE;
+  if ($Docs->{INVOICE_DATE} && $Docs->{INVOICE_DATE} ne '0000-00-00') {
+  	$invoice_date = $Docs->{INVOICE_DATE}; 
+  }
+  elsif($users->{ACTIVATE} && $users->{ACTIVATE} ne  '0000-00-00') {
+  	$invoice_date = $users->{ACTIVATE};
+  }
+  
   $Docs->{INVOICE_DATE}         = $html->date_fld2(
     'INVOICE_DATE',
     {
       MONTHES   => \@MONTHES,
       FORM_NAME => 'receipt_add',
       WEEK_DAYS => \@WEEKDAYS,
-      DATE      => $Docs->{INVOICE_DATE} || $users->{ACTIVATE}
+      DATE      => $invoice_date
     }
   );
 
