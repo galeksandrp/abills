@@ -481,7 +481,10 @@ sub list {
   my $list = $self->{list};
 
   if ($self->{TOTAL} > 0 || $PG > 0) {
-    $self->query($db, "SELECT count(c.id) FROM companies c $WHERE;");
+    $self->query($db, "SELECT count(c.id) FROM companies c
+    LEFT JOIN users u ON (u.company_id=c.id)
+    LEFT JOIN bills b ON (b.id=c.bill_id)
+     $WHERE;");
     ($self->{TOTAL}) = @{ $self->{list}->[0] };
   }
 

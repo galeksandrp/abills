@@ -2091,7 +2091,7 @@ sub docs_invoice {
   	  	$Doc{'PAYMENT_SUM_'.$i}      = $i2p->{payment_sum};
   	  	$Doc{'PAYMENT_ID_'.$i}       = $i2p->{payment_id};
   	  	$Doc{'PAYMENT_ALT_SUM_'.$i}  = sprintf("%.2f", $Doc{EXCHANGE_RATE} * $i2p->{payment_sum});
-  	  	$payments_total_sum     += $payments_total_sum;
+  	  	$payments_total_sum         += $payments_total_sum;
   	  	$i++;
   	  }
       
@@ -2108,10 +2108,10 @@ sub docs_invoice {
   	  	$Doc{'UNPAYMENT_INVOICE_DATE_'.$i}     = $unpayment->{date};
   	  	$Doc{'UNPAYMENT_INVOICE_COMMENTS_'.$i} = $unpayment->{dsc};
   	  	$Doc{'UNPAYMENT_INVOICE_SUM_'.$i}      = $unpayment->{total_sum} - $unpayment->{payment_sum};
-  	  	$Doc{'UNPAYMENT_INVOICE_NUM_'.$i}       = $unpayment->{invoice_num};
+  	  	$Doc{'UNPAYMENT_INVOICE_NUM_'.$i}      = $unpayment->{invoice_num};
   	  	$Doc{'UNPAYMENT_INVOICE_ALT_SUM_'.$i}  = sprintf("%.2f", $Doc{EXCHANGE_RATE} * $i2p->{payment_sum});
-  	  	$unpayment_total_sum     += $Doc{'UNPAYMENT_INVOICE_SUM_'.$i};
-      }      	                                           
+  	  	$unpayment_total_sum                  += $Doc{'UNPAYMENT_INVOICE_SUM_'.$i};
+      }
 
       $Doc{UNPAYMENT_TOTAL_SUM}=$unpayment_total_sum;
 

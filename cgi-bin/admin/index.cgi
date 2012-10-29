@@ -2112,18 +2112,19 @@ sub form_users {
     
 
     $html->tpl_show(templates('form_user_header'), $user_info, { ID => 'user_header' });
-
     #Make service menu
     my $service_func_index = 0;
     my $service_func_menu  = '';
-    foreach my $key (sort keys %menu_items) {
-      if (defined($menu_items{$key}{20})) {
-        $service_func_index = $key if (($FORM{MODULE} && $FORM{MODULE} eq $module{$key} || !$FORM{MODULE}) && $service_func_index == 0);
-        $user_info->{SERVICE_MENU} .= $html->element('li', $html->button($menu_items{$key}{20}, "UID=$user_info->{UID}&index=$key"), {  class => 'umenu_item' });
-      }
+    if (! $attr->{REGISTRATION}) {
+      foreach my $key (sort keys %menu_items) {
+        if (defined($menu_items{$key}{20})) {
+          $service_func_index = $key if (($FORM{MODULE} && $FORM{MODULE} eq $module{$key} || !$FORM{MODULE}) && $service_func_index == 0);
+          $user_info->{SERVICE_MENU} .= $html->element('li', $html->button($menu_items{$key}{20}, "UID=$user_info->{UID}&index=$key"), {  class => 'umenu_item' });
+        }
 
-      if ($service_func_index > 0 && $menu_items{$key}{$service_func_index}) {
-        $service_func_menu .= $html->button($menu_items{$key}{$service_func_index}, "UID=$user_info->{UID}&index=$key") . ' ';
+        if ($service_func_index > 0 && $menu_items{$key}{$service_func_index}) {
+          $service_func_menu .= $html->button($menu_items{$key}{$service_func_index}, "UID=$user_info->{UID}&index=$key") . ' ';
+        }
       }
     }
 
@@ -2283,7 +2284,6 @@ sub form_users {
 
     $user_info->{SECOND_MENU} .= $html->element('li', $html->button($_DEL, "index=15&del_user=1&UID=$user_info->{UID}$full_delete", { MESSAGE => "$_USER: $user_info->{LOGIN} / $user_info->{UID}" }), { class=>'umenu_item' }) if (defined($permissions{0}{5}));
 
-    
     $html->tpl_show(templates('form_user_footer'), $user_info, { ID => 'user_footer' });
     return 0;
   }
