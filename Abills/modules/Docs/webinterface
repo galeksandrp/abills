@@ -3271,7 +3271,6 @@ sub docs_tax_exports {
 sub docs_payments_maked {
   my ($attr) = @_;
 
-
   if ($attr->{CHANGE_CREDIT}) {
   	return 0;
   }
