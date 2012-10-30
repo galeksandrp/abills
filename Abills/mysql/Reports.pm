@@ -124,6 +124,8 @@ sub mk {
   $attr->{QUERY}=~s/%PAGE_ROWS%/$PAGE_ROWS/;
   $attr->{QUERY}=~s/%SORT%/$SORT/;
   $attr->{QUERY}=~s/%DESC%/$DESC/;
+  $attr->{QUERY}=~s/%PAGES%/LIMIT $PG $PAGE_ROWS/;
+  
 
   $self->query(
       $db, "$attr->{QUERY};", 
@@ -132,16 +134,15 @@ sub mk {
   );
 
   my $list = $self->{list};  
-
-  $self->query(
-      $db, "$attr->{QUERY_TOTAL};", 
-  undef, 
-  { COLS_NAME => 1 }
-  );
-
-
-  $self->{TOTAL} = $self->{list}->[0]->{total} if($self->{list}->[0]->{total});
-
+  
+  if ($attr->{QUERY_TOTAL}) {
+    $self->query(
+        $db, "$attr->{QUERY_TOTAL};", 
+    undef, 
+    { COLS_NAME => 1 }
+    );
+    $self->{TOTAL} = $self->{list}->[0]->{total} if($self->{list}->[0]->{total});
+  }
 
   return $list;
 }

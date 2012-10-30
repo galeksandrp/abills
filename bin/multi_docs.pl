@@ -344,7 +344,7 @@ sub periodic_invoice {
                 }
                 else {
                   $M += 1 if ($i > 0);
-                  if ($M < 12) {
+                  if ($M < 13) {
                     $M = sprintf("%02d", $M);
                   }
                   else {
@@ -354,7 +354,7 @@ sub periodic_invoice {
                   $period_from = "$Y-$M-01";
 
                   #$M+=1;
-                  if ($M < 12) {
+                  if ($M < 13) {
                     $M = sprintf("%02d", $M);
                   }
                   else {

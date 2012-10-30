@@ -53,7 +53,8 @@ sub rwizard_config {
     }
   }
 
-  $html->tpl_show(_include('rwizard_config', 'Rwizard'), { %FORM, %$Reports }, { SKIP_VARS => 'PG,PAGE_ROWS,SORT,DESC' });
+  $html->tpl_show(_include('rwizard_config', 'Rwizard'), { %FORM, %$Reports }, 
+    { SKIP_VARS => 'PG,PAGE_ROWS,SORT,DESC,PAGES' });
   my $list = $Reports->list({ %LIST_PARAMS, COLS_NAME => 1 });
   $table = $html->table(
     {
@@ -118,8 +119,16 @@ sub rwizard {
     my @col_names = ();
     foreach my $col (@cols) {
       my ($col_name, $col_title) = split(/:/, $col);
-      push @titles,    $col_title;
-      push @col_names, $col_name;
+      push @titles,  $col_title;
+      
+      if (! $col_title) {
+      	$col_title=$col_name
+      }
+      elsif ($col_name =~ /^$/) {
+      	$col_title = eval($col_title);
+      }
+
+      push @col_names, $col_title;
     }
 
     my $list = $Reports->mk(
@@ -127,7 +136,7 @@ sub rwizard {
         QUERY       => $Reports->{QUERY},
         QUERY_TOTAL => $Reports->{QUERY_TOTAL},
         %LIST_PARAMS,
-        COLS_NAME => 1
+        COLS_NAME   => 1
       }
     );
 
@@ -146,7 +155,6 @@ sub rwizard {
         EXPORT => "$_EXPORT XML:&xml=1",
         pages  => $Reports->{TOTAL},
         qs     => $pages_qs,
-
       }
     );
 

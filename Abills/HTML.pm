@@ -59,8 +59,6 @@ my $CONF;
 
 my $row_number = 0;
 
-#require "Abills/templates.pl";
-
 #**********************************************************
 # Create Object
 #**********************************************************
@@ -86,7 +84,7 @@ sub new {
 
   $SORT = $FORM{sort} || 1;
   $DESC = ($FORM{desc}) ? 'DESC' : '';
-  $PG = $FORM{pg} || 0;
+  $PG   = $FORM{pg} || 0;
   $self->{CHARSET} = (defined($attr->{CHARSET})) ? $attr->{CHARSET} : 'windows-1251';
 
   if ($FORM{PAGE_ROWS}) {
@@ -111,7 +109,7 @@ sub new {
   $domain   = $ENV{SERVER_NAME};
   $web_path = '';
   $secure   = '';
-  my $prot = (defined($ENV{HTTPS}) && $ENV{HTTPS} =~ /on/i) ? 'https' : 'http';
+  my $prot  = (defined($ENV{HTTPS}) && $ENV{HTTPS} =~ /on/i) ? 'https' : 'http';
   $SELF_URL = (defined($ENV{HTTP_HOST})) ? "$prot://$ENV{HTTP_HOST}$ENV{SCRIPT_NAME}" : '';
 
   $SESSION_IP = $ENV{REMOTE_ADDR} || '0.0.0.0';
@@ -196,6 +194,27 @@ sub new {
           CHARSET  => $attr->{CHARSET}
         }
       );
+  }
+  elsif ($FORM{xls} || $attr->{xls}) {
+    $FORM{xls} = 1;
+    eval { require Spreadsheet::WriteExcel; };
+    if (!$@) {
+      Spreadsheet::WriteExcel->import();
+      require Abills::EXCEL;
+      $self = Abills::EXCEL->new(
+        {
+          IMG_PATH => $IMG_PATH,
+          NO_PRINT => defined($attr->{'NO_PRINT'}) ? $attr->{'NO_PRINT'} : 1,
+          CONF     => $CONF,
+          CHARSET  => $attr->{CHARSET}
+        }
+      );
+    }
+    else {
+      print "Content-Type: text/html\n\n";
+      print "Can't load 'Spreadsheet::WriteExcel'. Get it from http://cpan.org $@";
+      exit;    #return 0;
+    }
   }
 
   return $self;
@@ -1059,11 +1078,19 @@ sub table {
   if ($attr->{EXPORT} && !$FORM{EXPORT_CONTENT}) {
     #foreach my $export (split(/;/, $attr->{EXPORT})) {
       my ($export_name, $params) = split(/:/, $attr->{EXPORT}, 2);
-      $self->{EXPORT_OBJ} .= ' ' . $self->button("$export_name", "qindex=$index$attr->{qs}&pg=$PG&sort=$SORT&desc=$DESC&EXPORT_CONTENT=$attr->{ID}&header=1$params", { ex_params => ' target=\'export\'', IMG_BUTTON => '/img/button_xml.png' });
-      
-      $params=~s/xml/csv/ig;
-      $export_name=~s/xml/csv/ig;
-      $self->{EXPORT_OBJ} .= ' ' . $self->button("$export_name", "qindex=$index$attr->{qs}&pg=$PG&sort=$SORT&desc=$DESC&EXPORT_CONTENT=$attr->{ID}&header=1$params", { ex_params => 'target=\'export\'', IMG_BUTTON => '/img/button_csv.png' });
+#      $self->{EXPORT_OBJ} .= ' ' . $self->button("$export_name", "qindex=$index$attr->{qs}&pg=$PG&sort=$SORT&desc=$DESC&EXPORT_CONTENT=$attr->{ID}&header=1$params", { ex_params => ' target=\'export\'', IMG_BUTTON => '/img/button_xml.png' });
+#      
+#      $params=~s/xml/csv/ig;
+#      $export_name=~s/xml/csv/ig;
+#      $self->{EXPORT_OBJ} .= ' ' . $self->button("$export_name", "qindex=$index$attr->{qs}&pg=$PG&sort=$SORT&desc=$DESC&EXPORT_CONTENT=$attr->{ID}&header=1$params", { ex_params => 'target=\'export\'', IMG_BUTTON => '/img/button_csv.png' });
+#
+#      $params=~s/csv/csv/ig;
+#      $export_name=~s/xml/csv/ig;
+
+      foreach my $export_name ( 'xml', 'csv', 'xls' ) {
+      	$params = "&$export_name=1";
+        $self->{EXPORT_OBJ} .= ' ' . $self->button("$export_name", "qindex=$index$attr->{qs}&pg=$PG&sort=$SORT&desc=$DESC&EXPORT_CONTENT=$attr->{ID}&header=1$params", { ex_params => 'target=\'export\'', IMG_BUTTON => '/img/button_'. $export_name .'.png' });
+      }
 
       push @header_obj, $self->{EXPORT_OBJ};
     #}

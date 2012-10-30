@@ -165,7 +165,6 @@ sub tariff_change {
 
   $attr->{ID}=$attr->{ABON_ID};
 
-  $self->{debug}=1;
   $self->changes(
     $admin,
     {

@@ -109,7 +109,7 @@ sub new {
   $domain   = $ENV{SERVER_NAME};
   $web_path = '';
   $secure   = '';
-  my $prot = (defined($ENV{HTTPS}) && $ENV{HTTPS} =~ /on/i) ? 'https' : 'http';
+  my $prot  = (defined($ENV{HTTPS}) && $ENV{HTTPS} =~ /on/i) ? 'https' : 'http';
   $SELF_URL = (defined($ENV{HTTP_HOST})) ? "$prot://$ENV{HTTP_HOST}$ENV{SCRIPT_NAME}" : '';
 
   $SESSION_IP = $ENV{REMOTE_ADDR} || '0.0.0.0';
@@ -155,10 +155,7 @@ sub new {
     $self = Abills::XML->new(
       {
         IMG_PATH => $IMG_PATH,
-        NO_PRINT => defined($attr->{'NO_PRINT'})
-        ? $attr->{'NO_PRINT'}
-        : 1
-
+        NO_PRINT => defined($attr->{'NO_PRINT'}) ? $attr->{'NO_PRINT'} : 1
       }
     );
   }
@@ -906,10 +903,9 @@ sub show {
 
   $self->{show} = $self->{table};
   $self->{show} .= $self->{rows};
-  $self->{show} .= "</TABLE></TD></TR></TABLE>\n";
 
   if (defined($self->{pages})) {
-    $self->{show} = '<br>' . $self->{pages} . $self->{show} . $self->{pages} . '<br>';
+    $self->{show} = $self->{pages} . $self->{show} . $self->{pages};
   }
   if ((defined($self->{NO_PRINT})) && (!defined($attr->{OUTPUT2RETURN}))) {
     $self->{prototype}->{OUTPUT} .= $self->{show};
@@ -1029,61 +1025,6 @@ sub pages {
   }
 
   return $self->{pages};
-}
-
-#*******************************************************************
-# Make data field
-# date_fld($base_name)
-#*******************************************************************
-sub date_fld {
-  my $self = shift;
-  my ($base_name, $attr) = @_;
-
-  my $MONTHES = $attr->{MONTHES};
-
-  my ($sec, $min, $hour, $mday, $mon, $curyear, $wday, $yday, $isdst) = localtime(time);
-
-  if ($attr->{DATE}) {
-    my ($y, $m, $d) = split(/-/, $attr->{DATE});
-    $mday = $d;
-  }
-  else {
-    $mday = 1;
-  }
-
-  my $day   = $FORM{ $base_name . 'D' } || $mday;
-  my $month = $FORM{ $base_name . 'M' } || $mon;
-  my $year  = $FORM{ $base_name . 'Y' } || $curyear + 1900;
-
-  my $result = "<SELECT name=" . $base_name . "D>";
-  for (my $i = 1 ; $i <= 31 ; $i++) {
-    $result .= sprintf("<option value=%.2d", $i);
-    $result .= ' selected' if ($day == $i);
-    $result .= ">$i\n";
-  }
-  $result .= '</select>';
-
-  $result .= "<SELECT name=" . $base_name . "M>";
-
-  my $i = 0;
-  foreach my $line (@$MONTHES) {
-    $result .= sprintf("<option value=%.2d", $i);
-    $result .= ' selected' if ($month == $i);
-
-    $result .= ">$line\n";
-    $i++;
-  }
-  $result .= '</select>';
-
-  $result .= "<SELECT name=" . $base_name . "Y>";
-  for ($i = 2002 ; $i <= $curyear + 1900 + 2 ; $i++) {
-    $result .= "<option value=$i";
-    $result .= ' selected' if ($year eq $i);
-    $result .= ">$i\n";
-  }
-  $result .= '</select>' . "\n";
-
-  return $result;
 }
 
 #*******************************************************************

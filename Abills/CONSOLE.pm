@@ -497,13 +497,15 @@ sub table {
     }
   }
   
+  
   $self->{ID} = $attr->{ID};
-  $self->{title} = $attr->{title};
+  
 
-  if (defined($attr->{title})) {
+  if ($attr->{title}) {
+  	$self->{title} = $attr->{title};
     $self->{table} .= $self->table_title($SORT, $DESC, $PG, $attr->{title}, $attr->{qs});
   }
-  elsif (defined($attr->{title_plain})) {
+  elsif ($attr->{title_plain}) {
     $self->{table} .= $self->table_title_plain($attr->{title_plain});
   }
 
@@ -662,7 +664,7 @@ sub show {
   if ($FORM{EXPORT_CONTENT} && $FORM{EXPORT_CONTENT} ne $self->{ID}) {
     return '';
   }
-
+  
   $self->{show} = $self->{table};
   $self->{show} .= $self->{rows};
 

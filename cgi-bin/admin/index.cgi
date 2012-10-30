@@ -2552,7 +2552,7 @@ function CheckAllINBOX() {
 
     my $multiuser = ($permissions{0}{7}) ? $html->form_input('IDS', "$uid", { TYPE => 'checkbox', }) : '';
     $table->addtd(
-      $table->td(($FORM{xml}) ? $line->{id} : $multiuser . user_ext_menu($uid, $line->{id})),
+      $table->td(($FORM{xml} || $FORM{csv} || $FORM{xls}) ? $line->{id} : $multiuser . user_ext_menu($uid, $line->{id})),
       $table->td($line->{fio}),
       $table->td( ($permissions{0}{12}) ? '--' : ($line->{deposit} + $line->{credit} < 0) ? $html->color_mark($line->{deposit}, $_COLORS[6]) : $line->{deposit}),
       $table->td($line->{credit}),
@@ -2598,7 +2598,8 @@ function CheckAllINBOX() {
           [ $html->form_input('MU_CREDIT_DATE', "1", { TYPE => 'checkbox', }) . "$_CREDIT $_DATE", $html->form_input('CREDIT_DATE', "0000-00-00") ],
           [ '', $html->form_input('MULTIUSER', "$_CHANGE", { TYPE => 'submit' }) ],
 
-        ]
+        ],
+        ID => 'USER_MANAGMENT'
       }
     );
 

@@ -119,13 +119,17 @@ if ($sid) {
   $COOKIES{sid} = $sid;
 }
 
-if ($FORM{qindex} || $FORM{xml} || $FORM{csv} || $FORM{print}) {
+if ($FORM{qindex} || $FORM{xml} || $FORM{csv} || $FORM{xls} || $FORM{print}) {
   $index=$FORM{qindex} ;
   if($FORM{xml}) {
     print "Content-Type: text/xml\n\n";
+    $LIST_PARAMS{PAGE_ROWS}=100000000;
   }
-  elsif($FORM{csv}) {
-
+  elsif($FORM{csv} || $FORM{xls}) {
+    $LIST_PARAMS{PAGE_ROWS}=100000000;
+    if ($FORM{header} && $FORM{xls}) {
+    	print $html->header();
+    }
   }
   elsif ($FORM{print}) {
   	print $html->header();
@@ -342,6 +346,8 @@ sub reports_tp_change {
 		   COLS_NAME    => 1 
   });
 
+  
+
   my $table = $html->table(
     {
       width      => '100%',
@@ -361,20 +367,26 @@ sub reports_tp_change {
     $table->addrow($line->{contract_id},
     $line->{fio},
     $line->{address_full},
-    $from_tp,
-    $to_tp
+    ($TP_LIST{$from_tp}) ? $TP_LIST{$from_tp} : "[$from_tp]",
+    ($TP_LIST{$to_tp}) ? $TP_LIST{$to_tp} : "[$to_tp]"
     );
   }
 
-  print $table->show();
-	
+  if ($FORM{xml} || $FORM{csv} || $FORM{xls}) {
+  	print $html->{OUTPUT};
+  	print $table->show({ OUTPUT2RETURN => 1 });
+  	return 0;
+  }
+  else {
+    print $table->show();
+  }
 }
 
 #**********************************************************
 #
 #**********************************************************
 sub form_reports {
-
+  my ($attr)=@_;
 
   $pages_qs .= "&SHOW_REPORT=$FORM{SHOW_REPORT}";
 
@@ -406,7 +418,7 @@ sub form_reports {
     return 0;
   }
   elsif ($FORM{SHOW_REPORT} eq 'tp_change') {
-    reports_tp_change();
+    return reports_tp_change();
   	return 0;
   }
 
@@ -474,12 +486,11 @@ sub form_reports {
   $table->show();
   $html->{OUTPUT} .= $result_table;
   
-  if ($FORM{xml} || $FORM{csv}) {
+  if ($FORM{xml} || $FORM{csv} || $FORM{xls}) {
   	print $html->{OUTPUT};
   	print $table->show({ OUTPUT2RETURN => 1 });
   	return 0;
   }
- 
 }
 
 #**********************************************************
@@ -1899,7 +1910,7 @@ sub dv_users {
     $OUTPUT{RESULT_TOTAL} = $Dv->{TOTAL};
 
     $content = $html->tpl_show(_include('managers_main_content', 'Managers'), {%OUTPUT});
-    if ($FORM{xml} || $FORM{csv} ) {
+    if ($FORM{xml} || $FORM{csv} || $FORM{xls} ) {
     	print $OUTPUT{RESULT_TABLE};
     }
     return 0;

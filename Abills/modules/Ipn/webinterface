@@ -2450,7 +2450,6 @@ sub ipn_periodic_session_restart {
     return $debug_output;
   }
 
-
   if ($attr->{LOGIN}) {
   	$LIST_PARAMS{LOGIN}=$attr->{LOGIN};
   }
