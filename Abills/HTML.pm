@@ -1067,9 +1067,6 @@ sub table {
     my @menu_arr = split(/;/, $attr->{MENU});
     foreach my $line (@menu_arr) {
       my ($name, $ext_attr, $class) = split(/:/, $line);
-
-      #push @header_obj, $self->button("$name", "$ext_attr", { CLASS => $class  });
-      #push @header_obj,
       $self->{EXPORT_OBJ} .= ' ' . $self->button("$name", "$ext_attr", { IMG_BUTTON => "/img/button_$class.png" });
     }
   }

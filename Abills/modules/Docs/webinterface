@@ -2108,7 +2108,7 @@ sub docs_invoice {
         $Doc{AMOUNT_FOR_PAY_ALT} = sprintf("%.2f", $Doc{AMOUNT_FOR_PAY} * $Doc{EXCHANGE_RATE});
         $Doc{DEPOSIT_ALT}        = sprintf("%.2f", $Doc{DEPOSIT} * $Doc{EXCHANGE_RATE});
         $Doc{CHARGED_ALT_SUM}    = sprintf("%.2f", $Doc{CHARGED_SUM} * $Doc{EXCHANGE_RATE});
-        $Doc{UNPAYMENT_TOTAL_SUM}= sprintf("%.2f", $Doc{CHARGED_SUM} * $Doc{UNPAYMENT_TOTAL_SUM});
+        $Doc{UNPAYMENT_TOTAL_SUM_ALT}= sprintf("%.2f", $Doc{CHARGED_SUM} * $Doc{UNPAYMENT_TOTAL_SUM});
       }
 
       $attr->{SEND_EMAIL} = 0 if (!defined($attr->{SEND_EMAIL}));
