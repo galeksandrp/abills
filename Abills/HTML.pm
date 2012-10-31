@@ -1076,24 +1076,20 @@ sub table {
 
   #Export object
   if ($attr->{EXPORT} && !$FORM{EXPORT_CONTENT}) {
-    #foreach my $export (split(/;/, $attr->{EXPORT})) {
-      my ($export_name, $params) = split(/:/, $attr->{EXPORT}, 2);
-#      $self->{EXPORT_OBJ} .= ' ' . $self->button("$export_name", "qindex=$index$attr->{qs}&pg=$PG&sort=$SORT&desc=$DESC&EXPORT_CONTENT=$attr->{ID}&header=1$params", { ex_params => ' target=\'export\'', IMG_BUTTON => '/img/button_xml.png' });
-#      
-#      $params=~s/xml/csv/ig;
-#      $export_name=~s/xml/csv/ig;
-#      $self->{EXPORT_OBJ} .= ' ' . $self->button("$export_name", "qindex=$index$attr->{qs}&pg=$PG&sort=$SORT&desc=$DESC&EXPORT_CONTENT=$attr->{ID}&header=1$params", { ex_params => 'target=\'export\'', IMG_BUTTON => '/img/button_csv.png' });
-#
-#      $params=~s/csv/csv/ig;
-#      $export_name=~s/xml/csv/ig;
+    my ($export_name, $params) = split(/:/, $attr->{EXPORT}, 2);
+    my @export_formats = ('xml', 'csv');
+      
+    eval { require Spreadsheet::WriteExcel; };
+    if (!$@) {
+    	push @export_formats, 'xls';
+    }      
 
-      foreach my $export_name ( 'xml', 'csv', 'xls' ) {
-      	$params = "&$export_name=1";
-        $self->{EXPORT_OBJ} .= ' ' . $self->button("$export_name", "qindex=$index$attr->{qs}&pg=$PG&sort=$SORT&desc=$DESC&EXPORT_CONTENT=$attr->{ID}&header=1$params", { ex_params => 'target=\'export\'', IMG_BUTTON => '/img/button_'. $export_name .'.png' });
-      }
+    foreach my $export_name ( @export_formats ) {
+    	$params = "&$export_name=1";
+      $self->{EXPORT_OBJ} .= ' ' . $self->button("$export_name", "qindex=$index$attr->{qs}&pg=$PG&sort=$SORT&desc=$DESC&EXPORT_CONTENT=$attr->{ID}&header=1$params", { ex_params => 'target=\'export\'', IMG_BUTTON => '/img/button_'. $export_name .'.png' });
+    }
 
-      push @header_obj, $self->{EXPORT_OBJ};
-    #}
+    push @header_obj, $self->{EXPORT_OBJ};
   }
 
   if (defined($attr->{VIEW})) {

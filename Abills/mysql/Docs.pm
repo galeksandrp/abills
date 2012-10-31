@@ -704,6 +704,7 @@ $WHERE
      d.id, 
      u.company_id, 
      c.name AS company_name, 
+     c.phone AS company_phone,
      if(u.company_id=0, concat(pi.contract_sufix,pi.contract_id), concat(c.contract_sufix,c.contract_id)) AS contract_id, 
      d.exchange_rate,
      d.currency,
@@ -1070,7 +1071,8 @@ sub invoice_info {
    d.exchange_rate,
    d.currency,
    \@CHARGED := sum(if (o.fees_id>0, o.price * o.counts, 0)) AS charged_sum,
-   \@TOTAL_SUM - \@CHARGED AS pre_payment
+   \@TOTAL_SUM - \@CHARGED AS pre_payment,
+   c.phone AS company_phone
     FROM (docs_invoices d, docs_invoice_orders o)
     LEFT JOIN users u ON (d.uid=u.uid)
     LEFT JOIN companies c ON (u.company_id=c.id)

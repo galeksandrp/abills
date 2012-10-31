@@ -994,7 +994,6 @@ sub docs_invoices_list {
 
   if ($FORM{print_list}) {
   	print "Content-Type: text/html\n\n"  if ($debug > 2);
-
     #Get payments
 	  my $i2p_list = $Docs->invoices2payments_list({ %LIST_PARAMS,
 	  	                                             COLS_NAME => 1 
@@ -1011,7 +1010,7 @@ sub docs_invoices_list {
   	  $i++;
 	  }
 
-
+    $LIST_PARAMS{COMPANY_ID}=$FORM{COMPANY_ID} if ($FORM{COMPANY_ID});
     my $invoices_list = $Docs->invoices_list({ %FORM, 
     	                                %LIST_PARAMS, 
     	                                FULL_INFO   => 1,
@@ -1025,7 +1024,6 @@ sub docs_invoices_list {
 
     foreach my $d (@$invoices_list) {
       $d->{AMOUNT_FOR_PAY}     = ($d->{DEPOSIT} < 0) ? abs($d->{DEPOSIT}) : 0 - $d->{DEPOSIT};
-
       $d->{NUMBER}             = $d->{INVOICE_NUM} || '-';
       my ($year, $month, $day) = split(/-/, $d->{DATE}, 3);
       $d->{FROM_DATE_LIT}      = "$day " . $MONTHES_LIT[ int($month) - 1 ] . " $year $_YEAR_SHORT";
@@ -1046,7 +1044,6 @@ sub docs_invoices_list {
       }
 
       ($d->{SUM_MAIN}, $d->{SUM_SUB}) = split(/\./, $d->{TOTAL_SUM});
-      $d->{FROM_DATE_LIT} = '';
 
       my $i    = 0;
       
@@ -1103,13 +1100,12 @@ sub docs_invoices_list {
 
       push @MULTI_ARR, { %$d, DOC_NUMBER => sprintf("%.6d", $doc_num), };
       $doc_num++;
-      
       print "UID: LOGIN: $d->{LOGIN} FIO: $d->{FIO} SUM: $d->{TOTAL_SUM}\n" if ($debug > 2);
     }
 
     print $html->header() if ($FORM{qindex});
     my $tpl = ($FORM{COMPANY_ID}) ? 'docs_invoice_company' : 'docs_invoice';
-    #my $tpl = 'docs_invoice';
+
     my $single_tpl = $html->tpl_show(
       _include($tpl, 'Docs', { pdf => $FORM{pdf} }),
       undef,
@@ -1310,8 +1306,7 @@ sub docs_invoices_list {
     {
       width      => '100%',
       cols_align => [ 'right', 'right' ],
-      rows       => [ [ (($user->{UID}) ? '' : $html->button("$_PRINT $_LIST", "qindex=$index&print_list=1$pages_qs". 
-      (($FORM{COMPANY_ID}) ? "&COMPANY_ID=$FORM{COMPANY_ID}" : '') .
+      rows       => [ [ (($user->{UID}) ? '' : $html->button("$_PRINT $_LIST", "qindex=". $index ."&print_list=1$pages_qs". 
       (($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : ''), { BUTTON => 1, ex_params => 'target=new' })), "$_TOTAL:", $html->b($total_invoices) ] ]
     }
   );
@@ -2074,13 +2069,6 @@ sub docs_invoice {
       $Doc{TOTAL_SUM}      = sprintf("%.2f", $Doc{TOTAL_SUM});
       $Doc{AMOUNT_FOR_PAY} = sprintf("%.2f", $Doc{AMOUNT_FOR_PAY});
 
-      if ($Doc{EXCHANGE_RATE} > 0) {
-        $Doc{TOTAL_ALT_SUM}      = sprintf("%.2f", $Doc{TOTAL_SUM} * $Doc{EXCHANGE_RATE});
-        $Doc{AMOUNT_FOR_PAY_ALT} = sprintf("%.2f", $Doc{AMOUNT_FOR_PAY} * $Doc{EXCHANGE_RATE});
-        $Doc{DEPOSIT_ALT}        = sprintf("%.2f", $Doc{DEPOSIT} * $Doc{EXCHANGE_RATE});
-        $Doc{CHARGED_ALT_SUM}    = sprintf("%.2f", $Doc{CHARGED_SUM} * $Doc{EXCHANGE_RATE});
-      }
-
       #Get payments
   	  my $i2p_list = $Docs->invoices2payments_list({ INVOICE_ID => $FORM{print}, COLS_NAME => 1 });
       my $payments_total_sum = 0;
@@ -2114,6 +2102,14 @@ sub docs_invoice {
       }
 
       $Doc{UNPAYMENT_TOTAL_SUM}=$unpayment_total_sum;
+
+      if ($Doc{EXCHANGE_RATE} > 0) {
+        $Doc{TOTAL_ALT_SUM}      = sprintf("%.2f", $Doc{TOTAL_SUM} * $Doc{EXCHANGE_RATE});
+        $Doc{AMOUNT_FOR_PAY_ALT} = sprintf("%.2f", $Doc{AMOUNT_FOR_PAY} * $Doc{EXCHANGE_RATE});
+        $Doc{DEPOSIT_ALT}        = sprintf("%.2f", $Doc{DEPOSIT} * $Doc{EXCHANGE_RATE});
+        $Doc{CHARGED_ALT_SUM}    = sprintf("%.2f", $Doc{CHARGED_SUM} * $Doc{EXCHANGE_RATE});
+        $Doc{UNPAYMENT_TOTAL_SUM}= sprintf("%.2f", $Doc{CHARGED_SUM} * $Doc{UNPAYMENT_TOTAL_SUM});
+      }
 
       $attr->{SEND_EMAIL} = 0 if (!defined($attr->{SEND_EMAIL}));
       if ($attr->{GET_EMAIL_INFO} && $attr->{SEND_EMAIL}) {
