@@ -2110,7 +2110,7 @@ sub docs_invoice {
   	  foreach my $i2p (@{ $i2p_list }) {
   	  	$Doc{'PAYMENT_DATE_'.$i}     = $i2p->{date};
   	  	$Doc{'PAYMENT_COMMENTS_'.$i} = $i2p->{dsc};
-  	  	$Doc{'PAYMENT_SUM_'.$i}      = $i2p->{invoice_sum};
+  	  	$Doc{'PAYMENT_SUM_'.$i}      = $i2p->{invoiced_sum};
   	  	$Doc{'PAYMENT_ID_'.$i}       = $i2p->{payment_id};
   	  	$Doc{'PAYMENT_ALT_SUM_'.$i}  = sprintf("%.2f", $Doc{EXCHANGE_RATE} * $i2p->{payment_sum});
   	  	$payments_total_sum         += $payments_total_sum;
