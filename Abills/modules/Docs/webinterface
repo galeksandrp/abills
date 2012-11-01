@@ -2102,13 +2102,15 @@ sub docs_invoice {
       $Doc{AMOUNT_FOR_PAY} = sprintf("%.2f", $Doc{AMOUNT_FOR_PAY});
 
       #Get payments
-  	  my $i2p_list = $Docs->invoices2payments_list({ INVOICE_ID => $FORM{print}, COLS_NAME => 1 });
+  	  my $i2p_list = $Docs->invoices2payments_list({ INVOICE_ID => $FORM{print}, 
+  	  	                                             COLS_NAME => 1 
+  	  	                                           });
       my $payments_total_sum = 0;
       $i = 1;
   	  foreach my $i2p (@{ $i2p_list }) {
   	  	$Doc{'PAYMENT_DATE_'.$i}     = $i2p->{date};
   	  	$Doc{'PAYMENT_COMMENTS_'.$i} = $i2p->{dsc};
-  	  	$Doc{'PAYMENT_SUM_'.$i}      = $i2p->{payment_sum};
+  	  	$Doc{'PAYMENT_SUM_'.$i}      = $i2p->{invoice_sum};
   	  	$Doc{'PAYMENT_ID_'.$i}       = $i2p->{payment_id};
   	  	$Doc{'PAYMENT_ALT_SUM_'.$i}  = sprintf("%.2f", $Doc{EXCHANGE_RATE} * $i2p->{payment_sum});
   	  	$payments_total_sum         += $payments_total_sum;
