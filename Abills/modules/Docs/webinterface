@@ -422,7 +422,6 @@ sub docs_receipt {
                 }
                 $period_from = "$Y-$M-01";
 
-                #$M+=1;
                 if ($M < 12) {
                   $M = sprintf("%02d", $M);
                 }
@@ -665,8 +664,6 @@ sub docs_receipt_list {
 
   if (!$FORM{sort}) {
     $LIST_PARAMS{SORT} = '2 DESC,1 DESC';
-
-    #$LIST_PARAMS{DESC}='DESC';
   }
 
   if ($FORM{print_list}) {
@@ -905,7 +902,6 @@ sub docs_invoices_list {
   		push @payments_ids_arr, $i2p->{payment_id};
   	}
   	$FORM{ID} = join(';', @payments_ids_arr);
-    #$FORM{search}=1;
     delete $FORM{UID};
   	form_payments();
   	return 0;
@@ -1237,7 +1233,7 @@ sub docs_invoices_list {
       title      => \@CAPTION,
       cols_align => [ 'right', 'right', 'left', 'right', 'left', 'left', 'right', 'center:noprint', 'center:noprint', 
       'center:noprint', 'center:noprint'  ],
-      qs         => '', #$pages_qs,
+      qs         => $pages_qs,
       pages      => $total_invoices,
       EXPORT     => ' XML:&xml=1',
       ID         => 'DOCS_INVOICES_LIST',
@@ -2482,7 +2478,6 @@ sub docs_invoice {
                   }
                   $period_from = "$Y-$M-01";
 
-                  #$M+=1;
                   if ($M <= 12) {
                     $M = sprintf("%02d", $M);
                   }

@@ -737,7 +737,7 @@ sub prepaid_invoices_company {
       $LIST_PARAMS{UID} = $user{UID};
       $FORM{create}     = undef;
        
-      my @doc_ids=split(/,/, $self->{DOC_IDS}); 
+      my @doc_ids=split(/,/, $Docs->{DOC_IDS}); 
       #Sendemail
       foreach $doc_id (@doc_ids) {
         $FORM{print}      = $doc_id;
