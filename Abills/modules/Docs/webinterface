@@ -1091,6 +1091,38 @@ sub docs_invoices_list {
       $d->{'TOTAL_SUM_WITHOUT_VAT'} = sprintf("%.2f", ($conf{DOCS_VAT_INCLUDE}) ? $d->{TOTAL_SUM} - ($d->{TOTAL_SUM}) / ((100 + $conf{DOCS_VAT_INCLUDE}) / $conf{DOCS_VAT_INCLUDE}) : $d->{TOTAL_SUM});
       $d->{'TOTAL_SUM_VAT'} = sprintf("%.2f", $d->{TOTAL_SUM} - $d->{'TOTAL_SUM_WITHOUT_VAT'});
 
+      $d->{SUM_LIT} = int2ml("$d->{TOTAL_SUM}",
+      {
+        ONES             => \@ones,
+        TWOS             => \@twos,
+        FIFTH            => \@fifth,
+        ONE              => \@one,
+        ONEST            => \@onest,
+        TEN              => \@ten,
+        TENS             => \@tens,
+        HUNDRED          => \@hundred,
+        MONEY_UNIT_NAMES => $conf{MONEY_UNIT_NAMES} || \@money_unit_names,
+        LOCALE           => $conf{LOCALE}
+      }
+      );
+
+      if ($d->{TOTAL_ALT_SUM}) {
+        $d->{SUM_ALT_LIT} = int2ml("$d->{TOTAL_ALT_SUM}",
+        {
+        ONES             => \@ones,
+        TWOS             => \@twos,
+        FIFTH            => \@fifth,
+        ONE              => \@one,
+        ONEST            => \@onest,
+        TEN              => \@ten,
+        TENS             => \@tens,
+        HUNDRED          => \@hundred,
+        MONEY_UNIT_NAMES => $conf{MONEY_UNIT_NAMES} || \@money_unit_names,
+        LOCALE           => $conf{LOCALE}
+        }
+        );
+      }
+
       $i = 0;
       foreach my $field_id (@{ $Company->{INFO_FIELDS_ARR} }) {
         my ($position, $type, $name) = split(/:/, $Company->{INFO_FIELDS_HASH}->{$field_id});
@@ -1205,7 +1237,7 @@ sub docs_invoices_list {
       title      => \@CAPTION,
       cols_align => [ 'right', 'right', 'left', 'right', 'left', 'left', 'right', 'center:noprint', 'center:noprint', 
       'center:noprint', 'center:noprint'  ],
-      qs         => $pages_qs,
+      qs         => '', #$pages_qs,
       pages      => $total_invoices,
       EXPORT     => ' XML:&xml=1',
       ID         => 'DOCS_INVOICES_LIST',
@@ -1306,7 +1338,7 @@ sub docs_invoices_list {
     {
       width      => '100%',
       cols_align => [ 'right', 'right' ],
-      rows       => [ [ (($user->{UID}) ? '' : $html->button("$_PRINT $_LIST", "qindex=". $index ."&print_list=1$pages_qs". 
+      rows       => [ [ (($user->{UID}) ? '' : $html->button("$_PRINT $_LIST", "qindex=". $index ."&print_list=1$pages_qs&pg=$FORM{pg}". 
       (($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : ''), { BUTTON => 1, ex_params => 'target=new' })), "$_TOTAL:", $html->b($total_invoices) ] ]
     }
   );

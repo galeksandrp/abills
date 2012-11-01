@@ -536,11 +536,6 @@ sub get_zone {
             my @PORTS_ARRAY = split(/,/, $6);
             foreach my $port (@PORTS_ARRAY) {
               push @{ $ip_class_tables{$zoneid}[$i]{Ports} }, $port;
-
-              #while (my $ref2=$sth2->fetchrow_hashref()) {
-              #  if ($DEBUG) { print "$ref2->{'PortNum'} "; }
-              #  push @{$zones{$zoneid}{A}[$i]{Ports}}, $ref2->{'PortNum'};
-              #}
             }
           }
           $i++;
@@ -579,9 +574,7 @@ sub ip_in_zone($$$$) {
     my $a_neg       = $$adr_hash{'Neg'};
     my $a_ports_ref = \@{ $$adr_hash{'Ports'} };
     if ( (($a_ip & $a_msk) == ($ip_num & $a_msk))
-      && (is_exist($a_ports_ref, $port)))
-    {
-
+      && (is_exist($a_ports_ref, $port))) {
       if ($a_neg) {
         $res = 0;
       }
