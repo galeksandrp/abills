@@ -734,11 +734,13 @@ sub prepaid_invoices_company {
     if ($debug < 5) {
       $Docs->invoice_add({ %FORM, %ORDERS_HASH });
 
+      $LIST_PARAMS{UID} = $user{UID};
+      $FORM{create}     = undef;
+       
+      my @doc_ids=split(/,/, $self->{DOC_IDS}); 
       #Sendemail
-      if ($num > 0) { # && $user{SEND_DOCS}) {
-        $FORM{print}      = $Docs->{DOC_ID};
-        $LIST_PARAMS{UID} = $user{UID};
-        $FORM{create}     = undef;
+      foreach $doc_id (@doc_ids) {
+        $FORM{print}      = $doc_id;
         docs_invoice(
             {
               GET_EMAIL_INFO => 1,
