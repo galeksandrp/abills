@@ -376,6 +376,7 @@ sub host_del {
   my ($attr) = @_;
   my $uid;
   my $action;
+  my $host;
 
   if ($attr->{UID}) {
     $WHERE  = "uid='$attr->{UID}'";
@@ -384,12 +385,13 @@ sub host_del {
   }
   else {
     $WHERE = "id='$attr->{ID}'";
-    my $host = $self->host_info($attr->{ID});
+    $host = $self->host_info($attr->{ID});
     $uid    = $host->{UID};
     $action = "DELETE HOST $host->{HOSTNAME} ($host->{IP}/$host->{MAC}) $host->{NAS_ID}:$host->{PORTS}";
   }
 
   $self->query($db, "DELETE FROM dhcphosts_hosts where $WHERE", 'do');
+  $self->query($db, "DELETE FROM dhcphosts_leases where uid='$uid' or hardware='$host->{MAC}'", 'do');
 
   $admin->action_add($uid, "$action", { TYPE => 10 });
 

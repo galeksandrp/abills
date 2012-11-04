@@ -2557,7 +2557,7 @@ sub voip_monthly_fees {
 
   foreach my $TP_INFO (@$list) {
     $TP_INFO->{POSTPAID}  = $tp->{payment_type} || $tp->{postpaid_monthly_fee};
-    $debug_output .= "TP ID: $TP_INFO->{TP_ID} MF: $month_fee POSTPAID: $TP_INFO->{POSTPAID}\n" if ($debug > 1);
+    $debug_output .= "TP ID: $TP_INFO->{TP_ID} MF: $TP_INFO->{MONTH_FEE} POSTPAID: $TP_INFO->{POSTPAID}\n" if ($debug > 1);
 
     if ($TP_INFO->{MONTH_FEE} > 0) {
       my $ulist = $Voip->user_list(
