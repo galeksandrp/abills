@@ -2556,7 +2556,7 @@ sub voip_monthly_fees {
   my $date_unixtime = mktime(0, 0, 0, $d, ($m - 1), $y - 1900, 0, 0, 0);
 
   foreach my $TP_INFO (@$list) {
-    $TP_INFO->{POSTPAID}  = $tp->{payment_type} || $tp->{postpaid_monthly_fee};
+    $TP_INFO->{POSTPAID}  = $TP_INFO->{PAYMENT_TYPE} || $TP_INFO->{POSTPAID_MONTHLY_FEE};
     $debug_output .= "TP ID: $TP_INFO->{TP_ID} MF: $TP_INFO->{MONTH_FEE} POSTPAID: $TP_INFO->{POSTPAID}\n" if ($debug > 1);
 
     if ($TP_INFO->{MONTH_FEE} > 0) {
