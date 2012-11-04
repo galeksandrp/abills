@@ -388,7 +388,6 @@ sub voip_user {
 
   $user->{ALLOW_ANSWER} = ' checked' if ($user->{ALLOW_ANSWER} == 1);
   $user->{ALLOW_CALLS}  = ' checked' if ($user->{ALLOW_CALLS} == 1);
-
   $user->{STATUS_SEL} = $html->form_select(
     'DISABLE',
     {
@@ -3094,6 +3093,28 @@ sub voip_exchange_rate {
 #**********************************************************
 sub voip_payments_maked {
   my ($attr) = @_;
+
+  $user=$attr->{USER_INFO} if ($attr->{USER_INFO});
+
+  if (! $FORM{DISABLE}) {
+    $Voip->user_info($attr->{USER_INFO}->{UID});
+
+    my $deposit = $attr->{USER_INFO}->{DEPOSIT} + (($attr->{USER_INFO}->{CREDIT} > 0) ? $attr->{USER_INFO}->{CREDIT} : $Voip->{TP_CREDIT});
+
+    my $abon_fees = ($attr->{USER_INFO}->{REDUCTION}) ? $Voip->{MONTH_ABON} + $Voip->{DAY_ABON} : ($Voip->{MONTH_ABON} + $Voip->{DAY_ABON}) * (100 - $attr->{USER_INFO}->{REDUCTION}) / 100;
+
+    if ($Voip->{DISABLE} > 1 && $deposit > $abon_fees) {
+      $Voip->user_change(
+      {
+        UID     => $attr->{USER_INFO}->{UID},
+        TP_ID   => $Voip->{TP_ID},
+        DISABLE => 0
+      });
+
+      $Voip->{ACCOUNT_ACTIVATE} = $attr->{USER_INFO}->{ACTIVATE} || '0000-00-00';
+      voip_get_month_fee($Voip, $attr);
+    }
+  }
 
   voip_mk_users_conf();
 }

@@ -525,15 +525,6 @@ sub accounting {
     if ($RAD->{USER_NAME} =~ /(\S+):(\d+)/) {
       $RAD->{USER_NAME} = $2;
     }
-
-    #   if ($RAD->{H323_CALL_ORIGIN}==0) {
-    # 	   $RAD->{H323_CALL_ORIGIN} = 1;
-    # 	   $RAD->{USER_NAME}=$RAD->{CALLING_STATION_ID};
-    #    }
-    #   else {
-    #   	 $RAD->{H323_CALL_ORIGIN} = 0;
-    #   	 $RAD->{USER_NAME}=$RAD->{CALLED_STATION_ID};
-    #    }
   }
 
   if ($conf->{VOIP_NUMBER_EXPR}) {
@@ -548,33 +539,33 @@ sub accounting {
       $self->user_info($RAD, $NAS);
 
       my $sql = "INSERT INTO voip_calls 
-     (  status,
-      user_name,
-      started,
-      lupdated,
-      calling_station_id,
-      called_station_id,
-      nas_id,
-      conf_id,
-      call_origin,
-      uid,
-      bill_id,
-      tp_id,
-      reduction,
-      acct_session_id,
-      route_id
-     )
-    values ($acct_status_type, '$RAD->{USER_NAME}', $SESSION_START, UNIX_TIMESTAMP(), 
-      '$RAD->{CALLING_STATION_ID}', '$RAD->{CALLED_STATION_ID}', '$NAS->{NAS_ID}',
-      '$RAD->{H323_CONF_ID}',
-      '$RAD->{H323_CALL_ORIGIN}',
-      '$self->{UID}',
-      '$self->{BILL_ID}',
-      '$self->{TP_ID}',
-      '$self->{REDUCTION}',
-      '$RAD->{ACCT_SESSION_ID}',
-      ''
-      );";
+      (  status,
+       user_name,
+       started,
+       lupdated,
+       calling_station_id,
+       called_station_id,
+       nas_id,
+       conf_id,
+       call_origin,
+       uid,
+       bill_id,
+       tp_id,
+       reduction,
+       acct_session_id,
+       route_id
+      )
+     values ($acct_status_type, '$RAD->{USER_NAME}', $SESSION_START, UNIX_TIMESTAMP(), 
+       '$RAD->{CALLING_STATION_ID}', '$RAD->{CALLED_STATION_ID}', '$NAS->{NAS_ID}',
+       '$RAD->{H323_CONF_ID}',
+       '$RAD->{H323_CALL_ORIGIN}',
+       '$self->{UID}',
+       '$self->{BILL_ID}',
+       '$self->{TP_ID}',
+       '$self->{REDUCTION}',
+       '$RAD->{ACCT_SESSION_ID}',
+       ''
+       );";
 
       $self->query($db, $sql, 'do');
     }
@@ -592,8 +583,8 @@ sub accounting {
   elsif ($acct_status_type == 2) {
     if ($RAD->{ACCT_SESSION_TIME} > 0) {
       $self->query($db, "SELECT 
-      UNIX_TIMESTAMP(started),
-      lupdated,
+      UNIX_TIMESTAMP(started) AS session_start,
+      lupdated AS last_update,
       acct_session_id,
       calling_station_id,
       called_station_id,
@@ -607,14 +598,16 @@ sub accounting {
       c.tp_id,
       route_id,
       tp.time_division,
-      UNIX_TIMESTAMP(),
-      UNIX_TIMESTAMP(DATE_FORMAT(FROM_UNIXTIME(UNIX_TIMESTAMP()), '%Y-%m-%d')),
-      DAYOFWEEK(FROM_UNIXTIME(UNIX_TIMESTAMP())),
-      DAYOFYEAR(FROM_UNIXTIME(UNIX_TIMESTAMP()))
+      UNIX_TIMESTAMP() AS session_stop,
+      UNIX_TIMESTAMP(DATE_FORMAT(FROM_UNIXTIME(UNIX_TIMESTAMP()), '%Y-%m-%d')) AS day_begin,
+      DAYOFWEEK(FROM_UNIXTIME(UNIX_TIMESTAMP())) AS day_of_week,
+      DAYOFYEAR(FROM_UNIXTIME(UNIX_TIMESTAMP())) AS day_of_year
     FROM voip_calls c, voip_tps tp
       WHERE  c.tp_id=tp.id
       and conf_id='$RAD->{H323_CONF_ID}'
-      and call_origin='$RAD->{H323_CALL_ORIGIN}';"
+      and call_origin='$RAD->{H323_CALL_ORIGIN}';",
+      undef,
+      { INFO => 1 }
       );
 
       if ($self->{TOTAL} < 1) {
@@ -628,30 +621,6 @@ sub accounting {
         $self->{errstr} = "SQL error";
         return $self;
       }
-
-      (
-        $self->{SESSION_START},
-        $self->{LAST_UPDATE},
-        $self->{ACCT_SESSION_ID},
-        $self->{CALLING_STATION_ID},
-        $self->{CALLED_STATION_ID},
-        $self->{NAS_ID},
-        $self->{CLIENT_IP_ADDRESS},
-        $self->{CONF_ID},
-        $self->{CALL_ORIGIN},
-        $self->{UID},
-        $self->{REDUCTION},
-        $self->{BILL_ID},
-        $self->{TP_ID},
-        $self->{ROUTE_ID},
-        $self->{TIME_DIVISION},
-
-        $self->{SESSION_STOP},
-        $self->{DAY_BEGIN},
-        $self->{DAY_OF_WEEK},
-        $self->{DAY_OF_YEAR}
-
-      ) = @{ $self->{list}->[0] };
 
       if ($self->{UID} == 0) {
         $self->{errno}  = 110;

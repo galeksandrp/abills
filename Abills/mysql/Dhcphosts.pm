@@ -927,22 +927,24 @@ sub leases_list {
   # IP, START, MAC, HOSTNAME, ENDS, STATE, REMOTE_ID,
 
   $self->query(
-    $db, "SELECT if (l.uid > 0, u.id, ''), 
-  INET_NTOA(l.ip), l.start, l.hardware, l.hostname, 
+    $db, "SELECT if (l.uid > 0, u.id, '') AS login, 
+  INET_NTOA(l.ip) AS ip, l.start, l.hardware, l.hostname, 
   l.ends,
   l.state,
   l.port,
   l.vlan,
   l.flag,
+  l.nas_id,
   l.remote_id,
   l.circuit_id,
   l.next_state,
-  l.uid,
-  l.nas_id
+  l.uid
   FROM dhcphosts_leases  l
   LEFT JOIN users u ON (u.uid=l.uid)
    $WHERE 
-  ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS; "
+  ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS; ",
+  undef,
+  $attr
   );
 
   my $list = $self->{list};

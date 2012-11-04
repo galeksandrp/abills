@@ -92,8 +92,9 @@ sub user_info {
    tarif_plans.id as tp_num,
    voip.provision_nas_id,
    voip.provision_port,
-   tarif_plans.month_fee,
-   tarif_plans.day_fee
+   tarif_plans.month_fee AS month_abon,
+   tarif_plans.day_fee AS day_abon,
+   tarif_plans.credit AS tp_credit
      FROM voip_main voip
      LEFT JOIN voip_tps tp ON (voip.tp_id=tp.id)
      LEFT JOIN tarif_plans ON (tarif_plans.tp_id=voip.tp_id)

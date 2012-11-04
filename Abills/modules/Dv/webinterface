@@ -7419,15 +7419,15 @@ sub dv_dhcp_get_mac {
 
   #Get mac from DB
   if ($conf{DHCPHOSTS_LEASES} eq 'db') {
-    my $list = $Dhcphosts->leases_list({ IP => $ip, STATE => 2 });
+    my $list = $Dhcphosts->leases_list({ IP => $ip, STATE => 2, COLS_NAME => 1 });
 
     if ($Dhcphosts->{TOTAL} > 0) {
       %PARAMS = (
-        IP     => $list->[0]->[1],
-        MAC    => $list->[0]->[3],
-        NAS_ID => $list->[0]->[11],
-        PORTS  => $list->[0]->[12],
-        VLAN   => $list->[0]->[13],
+        IP     => $list->[0]->{ip},
+        MAC    => $list->[0]->{hardware},
+        NAS_ID => $list->[0]->{nas_id},
+        PORTS  => $list->[0]->{port},
+        VLAN   => $list->[0]->{vlan},
       );
     }
     return \%PARAMS;
@@ -7766,7 +7766,6 @@ sub dv_traffic_classes {
 sub dv_payments_maked {
   my ($attr) = @_;
 
-
   $user=$attr->{USER_INFO} if ($attr->{USER_INFO});
 
   return '' if ($FORM{DISABLE});
@@ -7780,7 +7779,6 @@ sub dv_payments_maked {
   if($conf{DV_FULL_MONTH}) {
   	$abon_fees = ($attr->{USER_INFO}->{REDUCTION}) ? $Dv->{MONTH_ABON} + $Dv->{DAY_ABON}*30 : ($Dv->{MONTH_ABON} + $Dv->{DAY_ABON}*30) * (100 - $attr->{USER_INFO}->{REDUCTION}) / 100;
   }
-
 
   if ($Dv->{STATUS} > 3 && ($deposit > $abon_fees || (! $conf{DV_FULL_MONTH} && $Dv->{ABON_DISTRIBUTION}) )) {
     $Dv->change(

@@ -244,23 +244,23 @@ sub dhcphosts_monitor {
         SIMPLE => {
           "$_HOSTS_HOSTNAME" => 'HOSTNAME',
           'IP'               => 'IP',
+          "$_NAS"            => 'NAS_ID',
           'MAC'              => 'HARDWARE',
           "$_EXPIRE"         => 'ENDS',
           'CIRCUIT_ID'       => 'CIRCUIT_ID',
           'REMOTE_ID'        => 'REMOTE_ID',
           'STATE'            => { '' => '', %state_hash_rev }
         },
-
       }
     );
 
-    my $list = $Dhcphosts->leases_list({%LIST_PARAMS});
+    my $list = $Dhcphosts->leases_list({%LIST_PARAMS, COLS_NAME => 1});
 
     my $table = $html->table(
       {
-        width   => '100%',
-        caption => "$_HOSTS",
-        title   => [ "$_USER", 'IP', "$_START", "MAC", "$_HOSTS", "abandoned", "$_STATE", "$_PORT", "Vlan", "$_MODE", "remote-id", "circuit_id", "-" ],
+        width      => '100%',
+        caption    => "$_HOSTS",
+        title      => [ "$_USER", 'IP', "$_START", "MAC", "$_HOSTS", "abandoned", "$_STATE", "$_PORT", "Vlan", "GUEST_MODE", "$_NAS", "remote-id", "circuit_id", "-" ],
         cols_align => [ 'left', 'right', 'right', 'right', 'left', 'center:noprint', 'center:noprint', 'center:noprint', 'center:noprint' ],
         ID         => 'MONITOR_DHCP',
         qs         => $pages_qs,
@@ -270,9 +270,20 @@ sub dhcphosts_monitor {
 
     foreach my $line (@$list) {
       $table->addrow(
-        ($line->[0]) ? $html->button($line->[0], "index=15&UID=$line->[13]") : '',
-        $line->[1], $line->[2], $line->[3], $line->[4], $line->[5], $state_hash_rev{ $line->[6] },
-        $line->[7], $line->[8], $line->[9], $line->[10], $line->[11], $html->button('P', "index=$index&ping=$line->[1]", { TITLE => 'ping', BUTTON => 1 })
+        ($line->{login}) ? $html->button($line->{login}, "index=15&UID=$line->{uid}") : '',
+        $line->{ip}, 
+        $line->{start}, 
+        $line->{hardware}, 
+        $line->{hostname}, 
+        $line->{ends}, 
+        $state_hash_rev{ $line->{state} },
+        $line->{port}, 
+        $line->{vlan}, 
+        $bool_vals[$line->{flag}],
+        $line->{nas_id}, 
+        $line->{remote_id}, 
+        $line->{circuit_id},         
+        $html->button('P', "index=$index&ping=$line->{ip}", { TITLE => 'ping', BUTTON => 1 })
       );
     }
     print $table->show();
