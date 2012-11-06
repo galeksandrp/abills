@@ -2131,6 +2131,10 @@ sub iptv_user_channels {
       }
     );
     $html->message('info', $_INFO, "$_CHANNELS: " . join(', ', @mandatory_arr)) if (!$attr->{QUIET});
+
+    if ($conf{IPTV_DVCRYPT_FILENAME}) {
+      iptv_crypt();
+    }
   }
 
   my $Shedule = Shedule->new($db, $admin, \%conf);
@@ -3031,7 +3035,6 @@ sub iptv_crypt {
     $content .= "$dv_crypt_id;" . (join('', @arr)) . "\n";
   }
 
-  $debug=3;
   print $html->pre($content) if ($debug > 1);
 
   if (open(FILE, ">$filename")) {
