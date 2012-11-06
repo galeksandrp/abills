@@ -2121,21 +2121,21 @@ sub iptv_user_channels {
       push @mandatory_arr, $line->[9];
     }
   }
-
-  if (($FORM{add} || $FORM{set}) && $FORM{change_now}) {
-    $Iptv->user_channels(
-      {
-        UID   => $Iptv->{UID},
-        TP_ID => $Iptv->{TP_ID},
-        IDS   => join(', ', @mandatory_arr)
-      }
-    );
-    $html->message('info', $_INFO, "$_CHANNELS: " . join(', ', @mandatory_arr)) if (!$attr->{QUIET});
-
-    if ($conf{IPTV_DVCRYPT_FILENAME}) {
-      iptv_crypt();
-    }
-  }
+    
+#  if ($FORM{change_now}) {
+#    $Iptv->user_channels(
+#      {
+#        UID   => $Iptv->{UID},
+#        TP_ID => $Iptv->{TP_ID},
+#        IDS   => join(', ', @mandatory_arr)
+#      }
+#    );
+#    $html->message('info', $_INFO, "$_CHANNELS: " . join(', ', @mandatory_arr)) if (!$attr->{QUIET});
+#
+#    if ($conf{IPTV_DVCRYPT_FILENAME}) {
+#      iptv_crypt();
+#    }
+#  }
 
   my $Shedule = Shedule->new($db, $admin, \%conf);
   if ($FORM{change}) {
@@ -2243,6 +2243,9 @@ sub iptv_user_channels {
 
     if (!$Iptv->{errno}) {
       $html->message('info', $_INFO, "$_CHANGED") if (!$attr->{QUIET});
+      if ($conf{IPTV_DVCRYPT_FILENAME}) {
+        iptv_crypt();
+      }
     }
     else {
       $html->message('err', $_ERROR, "[$Iptv->{errno}] $err_strs{$Iptv->{errno}}") if (!$attr->{QUIET});
