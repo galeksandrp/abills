@@ -629,7 +629,7 @@ sub dhcphosts_hosts {
     $pages_qs .= "&VIEW=1";
   }
 
-  my $list  = $Dhcphosts->hosts_list({%LIST_PARAMS, COLS_NAME => 1 });
+  my $list  = $Dhcphosts->hosts_list({ %LIST_PARAMS, COLS_NAME => 1 });
   my $table = $html->table(
     {
       width      => '100%',
