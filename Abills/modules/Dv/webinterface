@@ -7767,10 +7767,13 @@ sub dv_payments_maked {
   my ($attr) = @_;
 
   $user=$attr->{USER_INFO} if ($attr->{USER_INFO});
-
   return '' if ($FORM{DISABLE});
 
   $Dv->info($attr->{USER_INFO}->{UID});
+  
+  if ($Dv->{TOTAL} < 1) {
+  	return 0;
+  }
 
   my $deposit = $attr->{USER_INFO}->{DEPOSIT} + (($attr->{USER_INFO}->{CREDIT} > 0) ? $attr->{USER_INFO}->{CREDIT} : $Dv->{TP_CREDIT});
 

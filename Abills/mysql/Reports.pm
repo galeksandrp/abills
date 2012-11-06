@@ -133,7 +133,7 @@ sub mk {
   $attr
   );
 
-  my $list = $self->{list};  
+  $list = $self->{list};  
   
   if ($attr->{QUERY_TOTAL}) {
     $self->query(

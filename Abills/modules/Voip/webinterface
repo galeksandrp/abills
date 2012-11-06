@@ -3098,6 +3098,9 @@ sub voip_payments_maked {
 
   if (! $FORM{DISABLE}) {
     $Voip->user_info($attr->{USER_INFO}->{UID});
+    if ($Voip->{TOTAL} < 1) {
+    	return 0;
+    }
 
     my $deposit = $attr->{USER_INFO}->{DEPOSIT} + (($attr->{USER_INFO}->{CREDIT} > 0) ? $attr->{USER_INFO}->{CREDIT} : $Voip->{TP_CREDIT});
 

@@ -1517,7 +1517,7 @@ sub multidoms_cards_dillers {
   $Cards->{ACTION}     = 'add';
   $Cards->{LNG_ACTION} = $_ADD;
 
-  print "cONTENT-tYPE: TEXT/HTML\n\n";
+  print "content-type: text/html\n\n";
 
   if ($FORM{info}) {
 
