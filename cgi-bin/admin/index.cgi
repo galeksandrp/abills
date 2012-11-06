@@ -6879,7 +6879,6 @@ sub form_search {
   }
 
   #$SEARCH_DATA{HIDDEN_FIELDS}.=$html->form_input("GID", "$FORM{GID}", { TYPE => 'hidden', OUTPUT2RETURN => 1 })  if ($FORM{GID});
-
   if (defined($attr->{SIMPLE})) {
     my $SEARCH_FIELDS = $attr->{SIMPLE};
     while (my ($k, $v) = each(%$SEARCH_FIELDS)) {
@@ -7079,7 +7078,7 @@ sub form_search {
       }
       elsif ($FORM{type} == 13) {
         my $i = 0;
-        my $list = $users->config_list({ PARAM => 'ifu*', SORT => 2 });
+        my $list = $users->config_list({ PARAM => 'ifc*', SORT => 2 });
         if ($users->{TOTAL} > 0) {
           $info{INFO_FIELDS} .= "<tr><th colspan='3' class=title_color>$_INFO_FIELDS</th></tr>\n";
         }
