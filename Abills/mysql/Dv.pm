@@ -301,10 +301,10 @@ sub change {
       $user->change($attr->{UID}, { EXPIRE => "0000-00-00", UID => $attr->{UID} });
     }
   }
-  elsif (($old_info->{STATUS} == 2 && $attr->{STATUS} == 0)
-    || ($old_info->{STATUS} == 4 && $attr->{STATUS} == 0)
-    || ($old_info->{STATUS} == 5 && $attr->{STATUS} == 0))
-  {
+  elsif (($old_info->{STATUS} == 1 
+         || $old_info->{STATUS} == 2 
+         || $old_info->{STATUS} == 4 
+         || $old_info->{STATUS} == 5) && $attr->{STATUS} == 0) {
     my $tariffs = Tariffs->new($db, $CONF, $admin);
     $self->{TP_INFO} = $tariffs->info(0, { ID => $old_info->{TP_ID} });
   }

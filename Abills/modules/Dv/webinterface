@@ -7082,6 +7082,7 @@ sub dv_get_month_fee {
 
   #Get month fee
   if ($Dv->{TP_INFO}->{MONTH_FEE} > 0) {
+  	
     my $sum   = $Dv->{TP_INFO}->{MONTH_FEE};
     my $users = Users->new($db, $admin, \%conf);
     my $user  = $users->info($Dv->{UID});
