@@ -345,9 +345,9 @@ sub iptv_user {
     $Iptv_stalker = Iptv_stalker->new($db, $admin, \%conf);
   }
   else {
-    print "/ $@ /"; 	
+    #print "/ $@ /"; 	
   }
-  
+
   $FORM{CID} = $FORM{CID2} || $FORM{CID};
   
   if($FORM{send_message}) {
@@ -396,7 +396,10 @@ sub iptv_user {
     if (!$Iptv->{errno}) {
       $Iptv->{ACCOUNT_ACTIVATE} = $attr->{USER_INFO}->{ACTIVATE};
       iptv_get_month_fee($Iptv) if (!$FORM{STATUS});
-      $Iptv->user_channels({ UID => $FORM{UID} });
+
+      if ($FORM{change_now}) {
+        $Iptv->user_channels({ UID => $FORM{UID} });
+      }
 
       $html->message('info', $_INFO, "$_CHANGED");
 
@@ -423,7 +426,7 @@ sub iptv_user {
       $html->message('info', $_INFO, "$_CHANGED");
     }
   }
-
+  
   if ($Iptv->{errno}) {
     $html->message('err', $_ERROR, "[$Iptv->{errno}] $err_strs{$Iptv->{errno}}");
   }
@@ -445,16 +448,14 @@ sub iptv_user {
         NO_ID             => 1,
       }
     );
-
   }
   else {
-  	print iptv_user_channels_list({ UID =>  $FORM{UID}, TP_ID => $Iptv->{TP_ID} });
-  	$user->{TP_IDS}            = $Iptv->{TP_ID};
+  	iptv_user_channels_list({ UID =>  $FORM{UID}, TP_ID => $Iptv->{TP_ID} });
+  	$user->{TP_IDS}           = $Iptv->{TP_ID};
     $user->{ACTION}           = 'set';
     $user->{LNG_ACTION}       = $_CHANGE;
     $user->{CHANGE_TP_BUTTON} = $html->button($_CHANGE, 'UID=' . $FORM{UID} . '&index=' . get_function_index('iptv_chg_tp'), { CLASS => 'change rightAlignText' });
   }
-
 
   $user->{STATUS_SEL} = $html->form_select(
     'STATUS',
@@ -588,7 +589,6 @@ sub iptv_ti_channels {
 
   if (defined($attr->{TP})) {
     if ($FORM{change}) {
-
       eval { require Iptv_stalker; };
       if (!$@) {
         my $Iptv_stalker;
@@ -603,12 +603,12 @@ sub iptv_ti_channels {
         } else {
           $html->message('err', $_ERROR, "$Iptv_stalker->{errno} $Iptv_stalker->{errstr}");
         }
-      } else {
-        print $@;
-        #$Iptv->channel_ti_change({%FORM});
-#        if (!$Iptv->{errno}) {
-#          $html->message('info', $_INFO, "$_CHANGED");
-#        }  
+      } 
+      else {
+        $Iptv->channel_ti_change({%FORM});
+        if (!$Iptv->{errno}) {
+          $html->message('info', $_INFO, "$_CHANGED");
+        }  
       }
     } 
   }
@@ -876,7 +876,8 @@ sub iptv_intervals {
 #**********************************************************
 sub iptv_tp {
   my $tarif_info;
-  my @Payment_Types = ($_PREPAID, $_POSTPAID);
+
+  my @Payment_Types         = ($_PREPAID, $_POSTPAID);
   $tarif_info               = $Tariffs->defaults();
   $tarif_info->{LNG_ACTION} = $_ADD;
   $tarif_info->{ACTION}     = 'ADD_TP';
@@ -886,26 +887,16 @@ sub iptv_tp {
   
   if($FORM{STALKER_TP_EXPORT}) {
   	stalker_tariff_export();
-  	
   }
-
   # -- end  Export tarrif plan from stalker -- # 
   if ($FORM{ADD_TP}) {
     $FORM{TP_ID} = $FORM{CHG_TP_ID};
-    
     $Tariffs->add({ %FORM, MODULE => 'Iptv' });
-      
     if (!$Tariffs->{errno}) {
       $html->message('info', $_ADDED, "$_ADDED $Tariffs->{TP_ID}");
-    }      
-
-    
-    
-    
-
+    }
   }
-  elsif ($FORM{STALKER_ADD_TP}) {
-	  
+  elsif ($FORM{STALKER_ADD_TP}) {	  
 	  eval { require Iptv_stalker; };    
     if (!$@) { 
       my $Iptv_stalker;   
@@ -967,7 +958,6 @@ sub iptv_tp {
 
     $tarif_info->{LNG_ACTION} = $_CHANGE;
     $tarif_info->{ACTION}     = 'change';
-
   }
   elsif (defined($FORM{del}) && $FORM{is_js_confirmed}) {
     $Tariffs->del($FORM{del});
@@ -1025,7 +1015,8 @@ sub iptv_tp {
     $tarif_info->{STALKER_LNG_ACTION} = $_ADD;
 
     $html->tpl_show(_include('iptv_stalker_tp_add', 'Iptv'), $tarif_info);
-  } else {
+  } 
+  else {
     $html->tpl_show(_include('iptv_tp', 'Iptv'), $tarif_info);
   }
   my $list = $Tariffs->list({ %LIST_PARAMS, MODULE => 'Iptv' });
@@ -1033,10 +1024,10 @@ sub iptv_tp {
   # Time tariff Name Begin END Day fee Month fee Simultaneously - - -
   my $table = $html->table(
     {
-      width   => '100%',
-      caption => "$_TARIF_PLANS",
-      border  => 1,
-      title   => [ '#', $_NAME, $_HOUR_TARIF, $_TRAFIC_TARIFS, $_PAYMENT_TYPE, $_DAY_FEE, $_MONTH_FEE, $_SIMULTANEOUSLY, $_AGE, $_GROUP, '-', '-', '-' ],
+      width      => '100%',
+      caption    => "$_TARIF_PLANS",
+      border     => 1,
+      title      => [ '#', $_NAME, $_HOUR_TARIF, $_TRAFIC_TARIFS, $_PAYMENT_TYPE, $_DAY_FEE, $_MONTH_FEE, $_SIMULTANEOUSLY, $_AGE, $_GROUP, '-', '-', '-' ],
       cols_align => [ 'right', 'left', 'center', 'center', 'center', 'right', 'right', 'right', 'right', 'center:noprint', 'center:noprint', 'center:noprint' ],
       ID         => 'IPTV_TARIF_PLANS'
     }
@@ -1044,7 +1035,6 @@ sub iptv_tp {
 
   my ($delete, $change);
   foreach my $line (@$list) {
-
     eval { require Iptv_stalker; };
     if (!$@) {
      my $stalker_tp_id = ($line->[0] - $CONF->{STALKER_TP_ID} > 0 ? $line->[0] - $CONF->{STALKER_TP_ID} : 0);   
@@ -1074,8 +1064,14 @@ sub iptv_tp {
       $bool_vals[ $line->[2] ],
       $bool_vals[ $line->[3] ],
       $Payment_Types[ $line->[4] ],
-      $line->[5], $line->[6], $line->[7], $line->[8], $line->[9], $html->button($_INTERVALS, "index=" . get_function_index('iptv_intervals') . "&subf=73&TP_ID=$line->[18]", { CLASS => 'interval' }),
-      $change, $delete
+      $line->[5], 
+      $line->[6], 
+      $line->[7], 
+      $line->[8], 
+      $line->[9], 
+      $html->button($_INTERVALS, "index=" . get_function_index('iptv_intervals') . "&subf=73&TP_ID=$line->[18]", { CLASS => 'interval' }),
+      $change, 
+      $delete
     );
   }
 
@@ -2095,7 +2091,7 @@ sub iptv_user_channels {
   $list = $Iptv->channel_ti_list({ %LIST_PARAMS, MANDATORY => 1 });
 
   foreach my $line (@$list) {
-    if ($FORM{add} || $FORM{set}) {
+    if (($FORM{add} || $FORM{set}) && $FORM{change_now}) {
       if (($users->{CREDIT} + $users->{DEPOSIT}) > $line->[4] || $Iptv->{PEYMENT_TYPE}) {
         $Iptv->{TP_INFO}->{PERIOD_ALIGNMENT} = $Iptv->{PERIOD_ALIGNMENT} || 0;
         $Iptv->{TP_INFO}->{MONTH_FEE}        = $line->[4];
@@ -2126,7 +2122,7 @@ sub iptv_user_channels {
     }
   }
 
-  if ($FORM{add} || $FORM{set}) {
+  if (($FORM{add} || $FORM{set}) && $FORM{change_now}) {
     $Iptv->user_channels(
       {
         UID   => $Iptv->{UID},
@@ -2943,10 +2939,10 @@ sub iptv_crypt {
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
   );
+
   my $filename = $conf{IPTV_DVCRYPT_FILENAME} || $conf{TPL_DIR} . '/dvcrypt.conf';
   my $content = '';
 
-  my %tp_channels_list = ();
   my %users_channels   = ();
   my $tp_list          = $Tariffs->list({ %LIST_PARAMS, MODULE => 'Iptv', COLS_NAME => 1 });
 
@@ -2956,6 +2952,7 @@ sub iptv_crypt {
     my $postpaid    = $tp->{payment_type};
     my $tp_postpaid = $tp->{postpaid_monthly_fee};
     my $month_fee   = $tp->{month_fee};
+    my %tp_channels_list = ();
 
     $Tariffs->ti_list({ TP_ID => $TP_ID });
 
@@ -2966,13 +2963,14 @@ sub iptv_crypt {
     my $channels_list = $Iptv->channel_ti_list(
       {
         INTERVAL_ID => $Tariffs->{list}->[0]->[0],
-        MANDATORY   => 1
+        MANDATORY   => 1,
+        COLS_NAME   => 1
       }
     );
-    foreach my $line (@$channels_list) {
-      $tp_channels_list{ $line->[1] } = $line->[9];
-    }
 
+    foreach my $line (@$channels_list) {
+      $tp_channels_list{ $line->{channel_num} } = $line->{channel_id};
+    }
 
     #Main users list
     my $ulist = $Iptv->user_list(
@@ -2980,8 +2978,8 @@ sub iptv_crypt {
         ACTIVATE     => "<=$DATE",
         EXPIRE       => "0000-00-00,>$DATE",
         DVCRYPT_ID   => '>0',
-        STATUS       => ">=0",
-        LOGIN_STATUS => ">=0",
+        STATUS       => '_SHOW',
+        LOGIN_STATUS => '_SHOW',
         TP_ID        => $TP_ID,
         SORT         => 1,
         PAGE_ROWS    => 1000000,
@@ -2990,6 +2988,7 @@ sub iptv_crypt {
     );
 
     foreach my $u (@$ulist) {
+      	
       if ($u->{deposit} + $u->{credit} > 0 && $u->{iptv_status} == 0) {
         %{ $users_channels{ $u->{dvcrypt_id} } } = %tp_channels_list;
       }
@@ -3005,22 +3004,21 @@ sub iptv_crypt {
         DVCRYPT_ID    => '>0',
         ACTIVATE      => "<=$DATE",
         EXPIRE        => "0000-00-00,>$DATE",
-        STATUS        => ">=0",
-        LOGIN_STATUS  => ">=0",
+        STATUS        => '_SHOW',
+        LOGIN_STATUS  => '_SHOW',
         TP_ID         => $TP_ID,
         SORT          => 1,
         SHOW_CHANNELS => 1,
-        COLS_NAME     => 1,
-        
+        COLS_NAME     => 1,        
       }
     );
 
     foreach my $u (@$list) {
       if ($u->{deposit} + $u->{credit} > 0 && $u->{login_status} + $u->{iptv_status} == 0) {
-        $users_channels{ $u->{dvcrypt_id} }{ $u->{channel_id} } = "$u->{deposit}";
+        $users_channels{ $u->{dvcrypt_id} }{ $u->{channel_num} } = "$u->{deposit}";
       }
       else {
-        $users_channels{ $u->{dvcrypt_id} }{ $u->{channel_id} } = 0;
+        $users_channels{ $u->{dvcrypt_id} }{ $u->{channel_num} } = 0;
       }
     }
   }
@@ -3033,6 +3031,7 @@ sub iptv_crypt {
     $content .= "$dv_crypt_id;" . (join('', @arr)) . "\n";
   }
 
+  $debug=3;
   print $html->pre($content) if ($debug > 1);
 
   if (open(FILE, ">$filename")) {
@@ -3188,12 +3187,14 @@ sub stalker_export {
      print  $@;
     }
 }
+
+#**********************************************************
 # stalker export tariff plan
+#**********************************************************
 sub stalker_tariff_export {
   my ($attr) = @_;
   my @stalker_tp_id;
-  my $Iptv_stalker;
-    
+  my $Iptv_stalker;    
     eval { require Iptv_stalker; };
     if (!$@) {
       Iptv_stalker->import();
@@ -3239,8 +3240,9 @@ sub stalker_tariff_export {
       else {
       	$html->message('err', $_ERROR, "$Iptv_stalker->{errno} $Iptv_stalker->{errstr}");
       }
-    } else {
-    	print $@;
+    } 
+    else {
+
     }
     #$Iptv_stalker->stalker_tp_export()
 
