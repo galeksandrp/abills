@@ -621,7 +621,7 @@ sub dhcphosts_hosts {
 
   my %NAS_HASH = ();
   if ($FORM{VIEW} && $FORM{VIEW} == 1) {
-    @TITLE = ('#', "$_USER", "IP", "$_HOSTS_HOSTNAME", "$_HOSTS_NETWORKS_NET", "$_HOSTS_MAC", "$_STATUS", "$_SWITCH", "VLAN", "$_PORT", "-", "-");
+    @TITLE = ('#', "$_USER", "IP", "$_HOSTS_HOSTNAME", "$_HOSTS_NETWORKS_NET", "$_HOSTS_MAC", "$_STATUS", "$_SWITCH", "VLAN", "$_PORT", "Server VLAN", "-", "-");
     $LIST_PARAMS{VIEW} = $FORM{VIEW};
     foreach my $line (@$nas_list) {
       $NAS_HASH{ $line->[0] } = $line->[1];
@@ -629,7 +629,7 @@ sub dhcphosts_hosts {
     $pages_qs .= "&VIEW=1";
   }
 
-  my $list  = $Dhcphosts->hosts_list({%LIST_PARAMS});
+  my $list  = $Dhcphosts->hosts_list({%LIST_PARAMS, COLS_NAME => 1 });
   my $table = $html->table(
     {
       width      => '100%',
@@ -644,40 +644,50 @@ sub dhcphosts_hosts {
   );
 
   foreach my $line (@$list) {
-    $status = $line->[10] + $line->[7];
+    $status = $line->{disable} + $line->{expire};
     my $status_color = $_COLORS[9];
     if    ($status == 0) { $status_color = $_COLORS[9]; }
     elsif ($status == 1) { $status_color = $_COLORS[6]; }
     elsif ($status == 2) { $status_color = $_COLORS[6]; }
 
-    if (($line->[ 12 + $Dhcphosts->{SEARCH_FIELDS_COUNT} ] == 1) && $status) {
+    if (($line->{expire} == 1) && $status) {
       $table->{rowcolor} = $_COLORS[0];
     }
     else {
       $table->{rowcolor} = undef;
     }
-    my $uid = 0;
+    my $uid = $line->{uid};
     my @arr = ();
 
     if ($FORM{VIEW}) {
-      $status = $line->[6];
-
-      if    ($status == 0) { $status_color = $_COLORS[9]; }
-      elsif ($status == 1) { $status_color = $_COLORS[6]; }
-      elsif ($status == 2) { $status_color = $_COLORS[6]; }
-
-      $uid = $line->[ 12 + $Dhcphosts->{SEARCH_FIELDS_COUNT} ];
-      push @arr, $line->[0], $html->button($line->[1], "index=15&UID=$uid&MODULE=Dhcphosts"), $line->[10], $line->[3], $line->[4], $line->[5], $html->color_mark($status[ $line->[6] ], $status_color), $NAS_HASH{ $line->[7] }, $line->[8], $line->[9];
+      push @arr, $line->{id}, 
+            $html->button($line->{login}, "index=15&UID=$uid&MODULE=Dhcphosts"), 
+             $line->{ip}, 
+             $line->{hostname}, 
+             $line->{network_name}, 
+             $line->{mac}, 
+             $html->color_mark($status[ $line->{disable} ], $status_color), 
+             $NAS_HASH{ $line->{nas} }, 
+             $line->{vid}, 
+             $line->{ports},
+             $line->{server_vid};
     }
     else {
-      $uid = $line->[ 13 + $Dhcphosts->{SEARCH_FIELDS_COUNT} ];
-      push @arr, $line->[0], $html->button($line->[1], "index=15&UID=$uid&MODULE=Dhcphosts"), $line->[11], $line->[3], $line->[5] . ": " . $line->[4], $line->[6], $html->color_mark($status[ $line->[7] ], $status_color), $line->[9], $line->[8];
+      push @arr, $line->{id}, 
+        $html->button($line->{login}, "index=15&UID=$uid&MODULE=Dhcphosts"), 
+        $line->{ip}, 
+        $line->{hostname}, 
+        $line->{network_id} . ": " . $line->{network_name}, 
+        $line->{mac}, 
+        $html->color_mark($status[ $line->{disable} ], $status_color), 
+        $line->{expire}, 
+        $line->{blocktime};
     }
 
     $table->addrow(
-      @arr,
-      $html->button($_CHANGE, "index=" . get_function_index('dhcphosts_user') . "&chg=$line->[0]&MODULE=Dhcphosts&UID=$uid", { CLASS => 'change' }),
-      $html->button($_DEL, "index=" . get_function_index('dhcphosts_user') . "&del=$line->[0]&UID=$uid&IP=$line->[11]", { MESSAGE => "$_DEL $line->[0]?", CLASS => 'del' })
+      @arr, 
+      $html->button($_CHANGE, "index=" . get_function_index('dhcphosts_user') . "&chg=$line->{id}&MODULE=Dhcphosts&UID=$uid", { CLASS => 'change' }),
+      $html->button($_DEL, "index=" . get_function_index('dhcphosts_user') . "&del=$line->{id}&UID=$uid&IP=$line->{ip}", { MESSAGE => "$_DEL $line->{id}?", CLASS => 'del' })
     );
   }
   print $table->show();

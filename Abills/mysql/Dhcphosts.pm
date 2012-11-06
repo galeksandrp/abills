@@ -739,6 +739,10 @@ sub hosts_list {
     push @WHERE_RULES, @{ $self->search_expr("$attr->{VID}", 'INT', 'h.vid', { EXT_FIELD => 1 }) };
   }
 
+  if ($attr->{SERVER_VID}) {
+    push @WHERE_RULES, @{ $self->search_expr("$attr->{SERVER_VID}", 'INT', 'h.server_vid', { EXT_FIELD => 1 }) };
+  }
+
   if ($attr->{BOOT_FILE}) {
     push @WHERE_RULES, @{ $self->search_expr("$attr->{BOOT_FILE}", 'STR', 'h.boot_file', { EXT_FIELD => 1 }) };
   }
@@ -749,10 +753,10 @@ sub hosts_list {
 
   $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES) : '';
 
-  my $fields = "h.id, u.id AS login, h.ip AS ip_num, h.hostname, n.name, h.network, h.mac, h.disable, h.expire, h.forced,  h.blocktime,";
+  my $fields = "h.id, u.id AS login, h.ip AS ip_num, h.hostname, n.name AS network_name, h.network AS network_id, h.mac, h.disable, h.expire, h.forced,  h.blocktime,";
 
   if ($attr->{VIEW}) {
-    $fields = "h.id, u.id AS login, h.ip AS ip_num, h.hostname, concat(n.name, ' : ', h.network) AS network_name, h.mac, h.disable, h.nas, h.vid, h.ports,";
+    $fields = "h.id, u.id AS login, h.ip AS ip_num, h.hostname, concat(n.name, ' : ', h.network) AS network_name, h.mac, h.disable, h.nas, h.vid, h.ports, h.server_vid,";
   }
 
 
