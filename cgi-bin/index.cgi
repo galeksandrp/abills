@@ -194,7 +194,9 @@ if ($uid > 0) {
   $OUTPUT{LOGIN} = $login;
   $OUTPUT{IP}    = $ENV{REMOTE_ADDR};
   $pages_qs      = "&UID=$user->{UID}&sid=$sid";
-  $OUTPUT{STATE} = ($user->{DISABLE}) ? $html->color_mark("$_DISABLE", $_COLORS[6]) : $_ENABLE;
+  $OUTPUT{STATE} = ($user->{DISABLE}) ? $html->color_mark("$_DISABLE", $_COLORS[6]) : 
+  $_ENABLE;
+  $OUTPUT{STATE_CODE}=$user->{DISABLE};
 
   if ($COOKIES{lastindex}) {
     $index = int($COOKIES{lastindex});
@@ -504,7 +506,7 @@ sub form_info {
     if ($field_id eq '_rating') {
       $extra = $html->button($_RATING, "index=" . get_function_index('dv_rating_user'), { BUTTON => 1 });
     }
-    $user->{INFO_FIELDS} .= "<tr><td>" . (eval "\"$name\"") . ":</td><td valign=center>$user->{INFO_FIELDS_VAL}->[$i] $extra</td></tr>\n";
+    $user->{INFO_FIELDS} .= "<tr><td>" . (eval "\"$name\"") . ":</td><td valign='center'>$user->{INFO_FIELDS_VAL}->[$i] $extra</td></tr>\n";
   }
 
   $html->tpl_show(templates('form_client_info'), $user);

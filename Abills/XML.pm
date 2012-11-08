@@ -91,20 +91,6 @@ sub new {
   $SESSION_IP = $ENV{REMOTE_ADDR} || '0.0.0.0';
   $CONFIG_TPL_SHOW = $attr->{CONFIG_TPL_SHOW};
 
-  @_COLORS = (
-    '#FDE302',    # 0 TH
-    '#FFFFFF',    # 1 TD.1
-    '#eeeeee',    # 2 TD.2
-    '#dddddd',    # 3 TH.sum, TD.sum
-    '#E1E1E1',    # 4 border
-    '#FFFFFF',    # 5
-    '#FFFFFF',    # 6
-    '#000088',    # 7 vlink
-    '#0000A0',    # 8 Link
-    '#000000',    # 9 Text
-    '#FFFFFF',    #10 background
-  );              #border
-
   %LIST_PARAMS = (
     SORT      => $SORT,
     DESC      => $DESC,
@@ -331,7 +317,6 @@ sub form_select {
 # setCookie($name, $value, $expiration, $path, $domain, $secure);
 #*******************************************************************
 sub setCookie {
-
   # end a set-cookie header with the word secure and the cookie will only
   # be sent through secure connections
   my $self = shift;
@@ -460,9 +445,6 @@ sub header {
   my $admin_name = $ENV{REMOTE_USER};
   my $admin_ip   = $ENV{REMOTE_ADDR};
   $self->{header} = "Content-Type: text/xml\n\n";
-  if ($COOKIES{colors} && $COOKIES{colors} ne '') {
-    @_COLORS = split(/, /, $COOKIES{colors});
-  }
 
   my $JAVASCRIPT = ($attr->{PATH}) ? "$attr->{PATH}functions.js" : "functions.js";
   my $css = '';    #css();
@@ -511,8 +493,8 @@ sub table {
       $self->addrow(@$line);
     }
   }
-  $self->{ID} = $attr->{ID};
 
+  $self->{ID} = $attr->{ID};
   $self->{table} = "<TABLE";
 
   if (defined($attr->{caption})) {
@@ -559,7 +541,7 @@ sub addrow {
   $row_number++;
   $self->{rows} .= "  <ROW>";
   foreach my $val (@row) {
-    $self->{rows} .= "<TD$extra>" . $self->link_former($val, { SKIP_SPACE => 1 }) . "</TD>";
+    $self->{rows} .= "<TD>" . ($self->{SKIP_FORMER}) ? $val : $self->link_former($val, { SKIP_SPACE => 1 }) . "</TD>";
   }
 
   $self->{rows} .= "</ROW>\n";
@@ -604,10 +586,9 @@ sub td {
   my ($value, $attr) = @_;
   my $extra = '';
 
-  while (my ($k, $v) = each %$attr) {
-
-    #$extra.=" $k=\"$v\"";
-  }
+#  while (my ($k, $v) = each %$attr) {
+#    #$extra.=" $k=\"$v\"";
+#  }
 
   my $td = '';
   if ($attr->{TH}) {
@@ -661,19 +642,6 @@ sub table_title {
   my $i = 1;
   foreach my $line (@$caption) {
     $self->{table_title} .= " <COLUMN_" . $i . " NAME=\"$line\" ";
-    if ($line ne '-') {
-      if ($sort != $i) {
-      }
-      elsif ($desc eq 'DESC') {
-        $desc = '';
-        $self->{table_title} .= " SORT=\"ASC\"";
-      }
-      elsif ($sort > 0) {
-        $self->{table_title} .= " SORT=\"DESC\"";
-        $desc = 'DESC';
-      }
-    }
-
     $self->{table_title} .= "/>\n";
     $i++;
   }
@@ -718,8 +686,6 @@ sub show {
 
   if ((defined($self->{NO_PRINT})) && (!defined($attr->{OUTPUT2RETURN}))) {
     $self->{prototype}->{OUTPUT} .= $self->{show};
-
-    #$self->{OUTPUT} .= $self->{show};
     $self->{show} = '';
   }
 
@@ -782,7 +748,6 @@ sub message {
   else {
     print $output;
   }
-
 }
 
 #*******************************************************************
@@ -809,27 +774,6 @@ sub pages {
   }
 
   return "<PAGES>" . $self->{pages} . "</PAGES>\n";
-}
-
-#*******************************************************************
-# Make data field
-# date_fld($base_name)
-#*******************************************************************
-sub date_fld {
-  my $self = shift;
-  my ($base_name, $attr) = @_;
-
-  my $MONTHES = $attr->{MONTHES};
-
-  my ($sec, $min, $hour, $mday, $mon, $curyear, $wday, $yday, $isdst) = localtime(time);
-
-  my $day   = $FORM{ $base_name . 'D' } || 1;
-  my $month = $FORM{ $base_name . 'M' } || $mon;
-  my $year  = $FORM{ $base_name . 'Y' } || $curyear + 1900;
-
-  my $result = "<$base_name Y=\"$year\" M=\"$month\" D=\"$day\" />";
-
-  return $result;
 }
 
 #*******************************************************************
