@@ -234,7 +234,8 @@ sub dhcphosts_monitor {
       'unknown'   => 0,
       'free'      => 1,
       'active'    => 2,
-      'abandoned' => 3
+      'abandoned' => 3,
+      'expired'   => 4
     );
 
     my %state_hash_rev = reverse %state_hash;
@@ -276,7 +277,7 @@ sub dhcphosts_monitor {
         $line->{hardware}, 
         $line->{hostname}, 
         $line->{ends}, 
-        $state_hash_rev{ $line->{state} },
+        $html->color_mark($state_hash_rev{ $line->{state} }, ($line->{state} > 2) ? $_COLORS[6] : $_COLORS[9] ),
         $line->{port}, 
         $line->{vlan}, 
         $html->color_mark($bool_vals[$line->{flag}], ($line->{flag}) ? $_COLORS[6] : $_COLORS[9] ),

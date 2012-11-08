@@ -932,9 +932,10 @@ sub leases_list {
 
   $self->query(
     $db, "SELECT if (l.uid > 0, u.id, '') AS login, 
-  INET_NTOA(l.ip) AS ip, l.start, l.hardware, l.hostname, 
+  INET_NTOA(l.ip) AS ip, 
+  l.start, l.hardware, l.hostname, 
   l.ends,
-  l.state,
+  if (l.ends < now(), 4, l.state) AS state,
   l.port,
   l.vlan,
   l.flag,
