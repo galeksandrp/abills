@@ -279,7 +279,7 @@ sub dhcphosts_monitor {
         $state_hash_rev{ $line->{state} },
         $line->{port}, 
         $line->{vlan}, 
-        $bool_vals[$line->{flag}],
+        $html->color_marks($bool_vals[$line->{flag}], ($line->{flag}) ? %_COLORS[6] : $_COLORS[9] ),
         $line->{nas_id}, 
         $line->{remote_id}, 
         $line->{circuit_id},         

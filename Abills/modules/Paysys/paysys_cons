@@ -221,6 +221,7 @@ sub paysys_import_form {
             }
           );
         }
+
         if ($payments->{errno} && $payments->{errno} == 7) {
           $error_str = "ERROR: EXIST: EXT_ID: $ext_id\n";
           $error     = 1;
