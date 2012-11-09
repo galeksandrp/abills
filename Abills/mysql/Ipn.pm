@@ -8,7 +8,7 @@ use vars qw(@ISA @EXPORT @EXPORT_OK %EXPORT_TAGS $VERSION
 );
 
 use Exporter;
-$VERSION = 2.00;
+$VERSION = 2.01;
 @ISA     = ('Exporter');
 @EXPORT  = qw( );
 
@@ -408,7 +408,9 @@ sub list {
   $GROUP
   ORDER BY $SORT $DESC 
   LIMIT $PG, $PAGE_ROWS
-  ;"
+  ;",
+  undef,
+  $attr
   );
 
   #
@@ -472,7 +474,9 @@ sub stats {
    LEFT join  trafic_tarifs tt ON (l.interval_id=tt.interval_id and l.traffic_class=tt.id)
    $WHERE 
    GROUP BY $GROUP
-  ;"
+  ;",
+  undef,
+  $attr
   );
 
   #
@@ -835,8 +839,6 @@ sub reports {
     $self->{PORTS_LIST_TO} = $self->{list};
   }
   else {
-
-    #$PAGE_ROWS = 10;
     $self->query(
       $db, "SELECT   $lupdate,
    sum(if(src_port=0 && (src_port + dst_port>0), size, 0)),
@@ -849,7 +851,8 @@ sub reports {
    $GROUP
   ORDER BY $SORT $DESC 
   LIMIT $PG, $PAGE_ROWS;
-  ;"
+  ;",
+  undef, $attr
     );
   }
 
