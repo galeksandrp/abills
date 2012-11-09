@@ -6106,7 +6106,8 @@ sub form_payments () {
     push @caption, "$_COMPANY";
   }
 
-  my $payments_list  = $payments->list({%LIST_PARAMS, COLS_NAME=>1});
+  my $payments_list  = $payments->list({%LIST_PARAMS, 
+  	                                    COLS_NAME => 1});
 
   my %i2p_hash = ();
   if (in_array('Docs', \@MODULES)) {
@@ -6117,7 +6118,8 @@ sub form_payments () {
   	}
   	
   	my $i2p_list = $Docs->invoices2payments_list({ PAYMENT_ID => join(';', @payment_id_arr), 
-  		                                             COLS_NAME => 1 });
+  		                                             PAGE_ROWS  => $LIST_PARAMS{PAGE_ROWS}*3, 
+  		                                             COLS_NAME  => 1 });
   	foreach my $i2p (@$i2p_list) {
   	  push @{ $i2p_hash{$i2p->{payment_id}} }, "$i2p->{invoice_id}:$i2p->{invoiced_sum}:$i2p->{invoice_num}";
   	}
