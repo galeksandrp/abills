@@ -119,16 +119,15 @@ sub rwizard {
     my @col_names = ();
     foreach my $col (@cols) {
       my ($col_name, $col_title) = split(/:/, $col);
-      push @titles,  $col_title;
-      
       if (! $col_title) {
       	$col_title=$col_name
       }
-      elsif ($col_name =~ /^$/) {
+      elsif ($col_name =~ /^\$_/) {
       	$col_title = eval($col_title);
       }
 
-      push @col_names, $col_title;
+      push @col_names, $col_name;
+      push @titles, $col_title;
     }
 
     my $list = $Reports->mk(

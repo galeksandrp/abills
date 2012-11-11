@@ -124,7 +124,7 @@ sub mk {
   $attr->{QUERY}=~s/%PAGE_ROWS%/$PAGE_ROWS/;
   $attr->{QUERY}=~s/%SORT%/$SORT/;
   $attr->{QUERY}=~s/%DESC%/$DESC/;
-  $attr->{QUERY}=~s/%PAGES%/LIMIT $PG $PAGE_ROWS/;
+  $attr->{QUERY}=~s/%PAGES%/LIMIT $PG, $PAGE_ROWS/;
   
 
   $self->query(
