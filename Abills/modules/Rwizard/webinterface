@@ -112,7 +112,8 @@ sub rwizard {
   $html->tpl_show(_include('rwizard_panel', 'Rwizard'), {%$Reports});
 
   if ($FORM{REPORT}) {
-    $Reports->info({ ID => $FORM{REPORT} });
+    $Reports->info({ ID => $FORM{REPORT}, %LIST_PARAMS });
+
     $pages_qs .= "&REPORT=$FORM{REPORT}";
     my @cols      = split(/[\r\n]+/, $Reports->{FIELDS});
     my @titles    = ();

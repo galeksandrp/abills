@@ -1550,8 +1550,6 @@ sub pages {
   my ($count, $argument, $attr) = @_;
 
   return '' if ($self->{MAX_ROWS});
-  
-
 
   if (defined($attr->{recs_on_page})) {
     $PAGE_ROWS = $attr->{recs_on_page};
