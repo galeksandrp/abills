@@ -2422,7 +2422,7 @@ sub docs_invoice {
             $M = sprintf("%02d", $M);
           }
           else {
-            $M = sprintf("%02d", $M - 13);
+            $M = sprintf("%02d", $M - 12);
             $Y++;
           }
 
@@ -2469,7 +2469,7 @@ sub docs_invoice {
                 }
                 else {
                   $M += 1 if ($i > 0);
-                  if ($M <= 12) {
+                  if ($M < 13) {
                     $M = sprintf("%02d", $M);
                   }
                   else {
@@ -2478,7 +2478,7 @@ sub docs_invoice {
                   }
                   $period_from = "$Y-$M-01";
 
-                  if ($M <= 12) {
+                  if ($M < 13) {
                     $M = sprintf("%02d", $M);
                   }
                   else {
@@ -2549,7 +2549,7 @@ sub docs_invoice {
 
         $action = $html->form_input('make', "$_CREATE $_INVOICE", { TYPE => 'submit', OUTPUT2RETURN => 1 });
         $table->{rowcolor} = 'even';
-        $table->{extra}    = ' colspan=5 align=center';
+        $table->{extra}    = ' colspan=\'5\' align=\'center\'';
         $table->addrow($action);
 
         my $content = $html->form_main(
