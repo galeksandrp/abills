@@ -652,13 +652,17 @@ $WHERE
   if ($attr->{UNPAIMENT}) {
   	my $st = '<>';
   	if ($attr->{UNPAIMENT} == 2) {
-  		$st='=';
-  	}
-  	
-    push @WHERE_RULES, "(i2p.sum IS NULL OR 
+  		    push @WHERE_RULES, "(
        ( (SELECT sum(sum) FROM  docs_invoice2payments WHERE invoice_id=d.id)
-       $st
-        (SELECT sum(orders.counts*orders.price) FROM `docs_invoice_orders` orders WHERE orders.invoice_id=d.id)))" . (( $attr->{ID} ) ? "d.id='$attr->{ID}'" : '');
+       =
+        (SELECT sum(orders.counts*orders.price) FROM docs_invoice_orders orders WHERE orders.invoice_id=d.id)))" . (( $attr->{ID} ) ? "d.id='$attr->{ID}'" : '');
+  	}
+  	else {
+      push @WHERE_RULES, "(i2p.sum IS NULL OR 
+       ( (SELECT sum(sum) FROM  docs_invoice2payments WHERE invoice_id=d.id)
+       <>
+        (SELECT sum(orders.counts*orders.price) FROM docs_invoice_orders orders WHERE orders.invoice_id=d.id)))" . (( $attr->{ID} ) ? "d.id='$attr->{ID}'" : '');
+    }
   }
   elsif ($attr->{ID}) {
     push @WHERE_RULES, @{ $self->search_expr($attr->{ID}, 'INT', 'd.id') };
