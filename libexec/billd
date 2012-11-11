@@ -66,8 +66,8 @@ CHECK exist connections
   checkmikro  - check Active ppp on Mikrotik session and disconnect unknown ip.
 CHECK speed
   checkspeed       - check cure speed for user on FreeBSD and Linux NAS. Arguments NAS_IDS=xx
-  SHOW_SPEED=1  - Only show current speed
-  checkspeed_mikro - check cure speed for user on Mikrotik. Arguments NAS_IDS=xx
+    SHOW_SPEED=1   - Only show current speed
+    RECONFIGURE=1  - Reconfigure speed settings
   speed_expr       - Speed Expration
   SHOW_CUR_SPEED   - Show current users speed
   OS               - Local OS (Linux|FreeBSD). Optional params
@@ -83,6 +83,7 @@ $plugins
   LOGINS=...,   - Make actions for logins
 \n";
   exit;
+  #  checkspeed_mikro - check cure speed for user on Mikrotik. Arguments NAS_IDS=xx
 }
 
 exit if (!$ARGV->{checkppp} && make_pid($log_dir . "/billd.pid") == 1);
@@ -155,7 +156,7 @@ elsif (defined($ARGV->{checkpppd}))        { check_ifaces({ LINUX => 1 }); }
 elsif (defined($ARGV->{checkmpd}))         { check_ifaces({ MPD => 1 }); }
 elsif (defined($ARGV->{checkspeed}))       { check_speed(); }
 elsif (defined($ARGV->{check_pptpd}))      { check_pptpd(); }
-elsif (defined($ARGV->{checkspeed_mikro})) { check_speed_mikro(); }
+#elsif (defined($ARGV->{checkspeed_mikro})) { check_speed_mikro(); }
 elsif (defined($ARGV->{checkmikro}))       { check_mikro(); }
 elsif (defined($ARGV->{speed_expr}))       { speed_expr();  }
 elsif (defined($ARGV->{check_cisco_cid}))  { check_cisco_cid() }
@@ -541,92 +542,95 @@ sub	session_hangup {
 
   return $ret;
 }
-#**********************************************************
-# Ceck current speed for exppp
-#**********************************************************
-sub check_speed_mikro {
-  my ($attr) = @_;
 
-  #Get speed
-  if ($attr->{NAS_IDS}) {
-    $LIST_PARAMS{NAS_IDS} = $attr->{NAS_IDS};
-  }
-  else {
-    $LIST_PARAMS{TYPE} = 'mikrotik';
-  }
 
-  my %nas_speeds = ();
-  my $list       = $nas->list({%LIST_PARAMS});
 
-  foreach my $line (@$list) {
-    my %info_hash = ();
-    my %NAS       = ();
-
-    $debug_output .= "NAS ID: $line->[0] MNG_INFO: $line->[10]\@$line->[9]\n" if ($debug > 2);
-
-    $NAS{NAS_ID}           = $line->[0];
-    $NAS{NAS_IP}           = $line->[3];
-    $NAS{NAS_TYPE}         = $line->[4];
-    $NAS{NAS_ALIVE}        = $line->[8] || 0;
-    $NAS{NAS_MNG_IP_PORT}  = $line->[9];
-    $NAS{NAS_MNG_USER}     = $line->[10];
-    $NAS{NAS_MNG_PASSWORD} = $line->[11];
-
-    if ($NAS{NAS_MNG_USER} eq '') {
-      $debug_output .= "Skiped Not defined control user NAS_ID: $NAS{NAS_ID}\n" if ($debug > 1);
-      next;
-    }
-
-    my ($ip, $mng_port) = split(/:/, $NAS{NAS_MNG_IP_PORT}, 2);
-    my $cmds = "/usr/bin/ssh -o StrictHostKeyChecking=no -i $base_dir/Certs/id_dsa.$NAS{NAS_MNG_USER} " . "$NAS{NAS_MNG_USER}\@$ip  \"/queue  simple  print\" ";
-
-    my $output = '';
-    $debug_output .= $cmds . "\n" if ($debug > 3);
-    open(CMD, "$cmds |") || die "Can't open '$cmds' $!";
-    while (my $l = <CMD>) {
-      $output .= $l;
-    }
-    close(CMD);
-
-    my @parts = split(/[\r]\n[\r]\n/, $output);
-
-    # key1 interface; key2 rule number; value speed
-    my %rule_speed = ();
-
-    foreach my $part (@parts) {
-      my $params = parse_fw($part);
-      if ($params->{'limit-at'} && $params->{'limit-at'} =~ /(\d+)\/(\d+)/) {
-        $rule_speed{ $params->{'item'} }{IN}  = $1;
-        $rule_speed{ $params->{'item'} }{OUT} = $2;
-      }
-
-      if ($debug > 5) {
-        while (my ($key, $val) = each %$params) {
-          $debug_output .= "INTERFACE: $key\n";
-          while (my ($direction, $value) = each %$val) {
-            $debug_output .= "  $direction SPEED: $value\n";
-          }
-        }
-      }
-    }
-
-    push @{ $nas_speeds{ $NAS{NAS_ID} } }, %rule_speed;
-
-    if ($debug > 4) {
-      while (my ($key, $val) = each %rule_speed) {
-        $debug_output .= "INTERFACE: $key\n";
-        while (my ($direction, $value) = each %$val) {
-          $debug_output .= "  $direction:\t$value\n";
-        }
-      }
-    }
-
-  }
-
-  print $debug_output;
-
-  return \%nas_speeds;
-}
+##**********************************************************
+## Ceck current speed for 
+##**********************************************************
+#sub check_speed_mikro {
+#  my ($attr) = @_;
+#
+#  #Get speed
+#  if ($attr->{NAS_IDS}) {
+#    $LIST_PARAMS{NAS_IDS} = $attr->{NAS_IDS};
+#  }
+#  else {
+#    $LIST_PARAMS{TYPE} = 'mikrotik';
+#  }
+#
+#  my %nas_speeds = ();
+#  my $list       = $nas->list({%LIST_PARAMS});
+#
+#  foreach my $line (@$list) {
+#    my %info_hash = ();
+#    my %NAS       = ();
+#
+#    $debug_output .= "NAS ID: $line->[0] MNG_INFO: $line->[10]\@$line->[9]\n" if ($debug > 2);
+#
+#    $NAS{NAS_ID}           = $line->[0];
+#    $NAS{NAS_IP}           = $line->[3];
+#    $NAS{NAS_TYPE}         = $line->[4];
+#    $NAS{NAS_ALIVE}        = $line->[8] || 0;
+#    $NAS{NAS_MNG_IP_PORT}  = $line->[9];
+#    $NAS{NAS_MNG_USER}     = $line->[10];
+#    $NAS{NAS_MNG_PASSWORD} = $line->[11];
+#
+#    if ($NAS{NAS_MNG_USER} eq '') {
+#      $debug_output .= "Skiped Not defined control user NAS_ID: $NAS{NAS_ID}\n" if ($debug > 1);
+#      next;
+#    }
+#
+#    my ($ip, $mng_port) = split(/:/, $NAS{NAS_MNG_IP_PORT}, 2);
+#    my $cmds = "/usr/bin/ssh -o StrictHostKeyChecking=no -i $base_dir/Certs/id_dsa.$NAS{NAS_MNG_USER} " . "$NAS{NAS_MNG_USER}\@$ip  \"/queue  simple  print\" ";
+#
+#    my $output = '';
+#    $debug_output .= $cmds . "\n" if ($debug > 3);
+#    open(CMD, "$cmds |") || die "Can't open '$cmds' $!";
+#    while (my $l = <CMD>) {
+#      $output .= $l;
+#    }
+#    close(CMD);
+#
+#    my @parts = split(/[\r]\n[\r]\n/, $output);
+#
+#    # key1 interface; key2 rule number; value speed
+#    my %rule_speed = ();
+#
+#    foreach my $part (@parts) {
+#      my $params = parse_fw($part);
+#      if ($params->{'limit-at'} && $params->{'limit-at'} =~ /(\d+)\/(\d+)/) {
+#        $rule_speed{ $params->{'item'} }{IN}  = $1;
+#        $rule_speed{ $params->{'item'} }{OUT} = $2;
+#      }
+#
+#      if ($debug > 5) {
+#        while (my ($key, $val) = each %$params) {
+#          $debug_output .= "INTERFACE: $key\n";
+#          while (my ($direction, $value) = each %$val) {
+#            $debug_output .= "  $direction SPEED: $value\n";
+#          }
+#        }
+#      }
+#    }
+#
+#    push @{ $nas_speeds{ $NAS{NAS_ID} } }, %rule_speed;
+#
+#    if ($debug > 4) {
+#      while (my ($key, $val) = each %rule_speed) {
+#        $debug_output .= "INTERFACE: $key\n";
+#        while (my ($direction, $value) = each %$val) {
+#          $debug_output .= "  $direction:\t$value\n";
+#        }
+#      }
+#    }
+#
+#  }
+#
+#  print $debug_output;
+#
+#  return \%nas_speeds;
+#}
 
 #*****************************************************
 # Parse fw params
@@ -2425,7 +2429,6 @@ sub check_speed_mikrotik {
 
   foreach my $line (@$list) {
     print "TP ID: $line->[0] $line->[1] $line->[2] $line->[3] $line->[4]\n" if ($debug > 1);
-    # TP:NET_ID:[IN,OUT] -> SPEED
     $TARIF_SPEEDS{ $line->[0] }{ $line->[2] }{IN}  = $line->[3];
     $TARIF_SPEEDS{ $line->[0] }{ $line->[2] }{OUT} = $line->[4];
     $class2nets{ $line->[0] }{ $line->[2] }        = $line->[5];

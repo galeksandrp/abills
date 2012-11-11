@@ -2408,7 +2408,7 @@ sub docs_invoice {
         }
         else {
           $M += 1;
-          if ($M < 12) {
+          if ($M < 13) {
             $M = sprintf("%02d", $M);
           }
           else {
@@ -2418,7 +2418,7 @@ sub docs_invoice {
           $FORM{FROM_DATE} = "$Y-$M-$D";
 
           $M += $next_period - 1;
-          if ($M < 12) {
+          if ($M < 13) {
             $M = sprintf("%02d", $M);
           }
           else {
