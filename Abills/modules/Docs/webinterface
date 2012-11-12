@@ -1277,6 +1277,7 @@ sub docs_invoices_list {
       else {
       	$val = $invoice->{$fname};
       }
+
       push 	@rows, $val;
     }
 
@@ -2567,14 +2568,13 @@ sub docs_invoice {
             NAME => 'DOCS_SERVICES_INVOICE',
           }
         );
-
-        #print $content;
       }
       else {
         $Docs->{ORDERS} = $table->show({ OUTPUT2RETURN => 1 });
         #$FORM{NEXT_PERIOD}=$Docs->{INVOICING_PERIOD} if (! $FORM{NEXT_PERIOD});
         $html->tpl_show(_include('docs_receipt_add', 'Docs'), { %FORM, %$attr, %$Docs, %$users }) if (!$FORM{pdf});
       }
+      delete $table->{SKIP_FORMER};
     }
     #
     else {

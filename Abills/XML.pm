@@ -541,7 +541,7 @@ sub addrow {
   $row_number++;
   $self->{rows} .= "  <ROW>";
   foreach my $val (@row) {
-    $self->{rows} .= "<TD>" . ($self->{SKIP_FORMER}) ? $val : $self->link_former($val, { SKIP_SPACE => 1 }) . "</TD>";
+    $self->{rows} .= "<TD>" . (($self->{SKIP_FORMER}) ? $val : $self->link_former($val, { SKIP_SPACE => 1 })) . "</TD>";
   }
 
   $self->{rows} .= "</ROW>\n";
