@@ -71,9 +71,7 @@ sub rwizard_config {
 
   foreach my $line (@$list) {
     my $delete = $html->button($_DEL, "index=$index&del=$line->{id}", { MESSAGE => "$_DEL '$line->{id}'?", CLASS => 'del', TEXT => $_DEL });
-
     $table->{rowcolor} = ($FORM{ID} && $FORM{ID} == $line->{id}) ? 'row_active' : undef;
-
     $table->addrow($line->{id}, $line->{name}, $line->{comments}, $html->button("$_CHANGE", "index=$index&chg=$line->{id}", { CLASS => 'change', TEXT => $_CHANGE }), $delete);
   }
   print $table->show();
@@ -114,7 +112,7 @@ sub rwizard {
   if ($FORM{REPORT}) {
     $Reports->info({ ID => $FORM{REPORT}, %LIST_PARAMS });
 
-    $pages_qs .= "&REPORT=$FORM{REPORT}";
+    $pages_qs     .= "&REPORT=$FORM{REPORT}";
     my @cols      = split(/[\r\n]+/, $Reports->{FIELDS});
     my @titles    = ();
     my @col_names = ();
@@ -149,12 +147,11 @@ sub rwizard {
         width   => '100%',
         caption => "$Reports->{NAME}",
         title   => \@titles,
-
         #cols_align => [ 'center', 'left', 'left', 'right', 'left', 'left', 'center', 'left', 'center:noprint', 'center:noprint', 'center:noprint' ],
-        ID     => 'REPORTS_$Reports->{ID}',
-        EXPORT => "$_EXPORT XML:&xml=1",
-        pages  => $Reports->{TOTAL},
-        qs     => $pages_qs,
+        ID      => "REPORTS_$Reports->{ID}",
+        EXPORT  => "$_EXPORT XML:&xml=1",
+        pages   => $Reports->{TOTAL},
+        qs      => $pages_qs,
       }
     );
 
@@ -174,14 +171,16 @@ sub rwizard {
     }
     print $table->show();
 
-    #  $table = $html->table(
-    #    {
-    #      width      => '100%',
-    #      cols_align => [ 'right', 'right' ],
-    #      rows       => [ [ "$_TOTAL:", $html->b($Reports->{TOTAL}) ] ]
-    #    }
-    #  );
-    #  print $table->show();
+    if ($Reports->{TOTAL}) {
+      $table = $html->table(
+        {
+          width      => '100%',
+          cols_align => [ 'right', 'right' ],
+          rows       => [ [ "$_TOTAL:", $html->b($Reports->{TOTAL}) ] ]
+        }
+      );
+      print $table->show();
+    }
 
     return 0;
   }

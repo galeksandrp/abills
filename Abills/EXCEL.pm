@@ -421,7 +421,11 @@ sub header {
   my $admin_name = $ENV{REMOTE_USER};
   my $admin_ip   = $ENV{REMOTE_ADDR};
 
-	my $filename     =  ($self->{ID}) ? $self->{ID}.'.xls' : int(rand(10000000)).'.xls';  	
+  if ($FORM{DEBUG}) {
+    print "Content-Type: text/html\n\n";
+  }
+
+  my $filename     =  ($self->{ID}) ? $self->{ID}.'.xls' : int(rand(10000000)).'.xls';  	
 	$self->{header}  = "Content-Type: application/vnd.ms-excel; filename=$filename\n";  	
   $self->{header} .= "Cache-Control: no-cache\n";
   $self->{header} .= "Content-disposition: attachment;filename=\"$filename\"\n\n";
@@ -468,7 +472,8 @@ sub table {
       $self->addrow(@$line);
     }
   }
- 
+   
+  $row_number=0; 
   # Create a new Excel workbook
   use Encode qw(decode);
   $workbook = Spreadsheet::WriteExcel->new(\*STDOUT);
@@ -492,7 +497,7 @@ sub addrow {
 
   $row_number++;
   $col_num=0;
-  
+
   foreach my $val (@row) {
   	if($self->{title}->[$col_num] &&  $self->{title}->[$col_num] eq '-') {
   	  next;

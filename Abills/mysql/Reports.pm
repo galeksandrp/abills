@@ -113,8 +113,8 @@ sub mk {
   my $self = shift;
   my ($attr) = @_;
 
-  my $SORT      = ($attr->{SORT})      ? $attr->{SORT}      : 1;
-  my $DESC      = ($attr->{DESC})      ? $attr->{DESC}      : '';
+  my $SORT   = ($attr->{SORT})      ? $attr->{SORT}      : 1;
+  my $DESC   = ($attr->{DESC})      ? $attr->{DESC}      : '';
   $PG        = ($attr->{PG})        ? $attr->{PG}        : 0;
   $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
 

@@ -444,17 +444,17 @@ sub header {
   my $admin_ip   = $ENV{REMOTE_ADDR};
   
   if ($FORM{csv}) {
-  	my $filename     =  ($self->{ID}) ? $self->{ID}.'.scv' : int(rand(10000000)).'.csv';  	
+  	my $filename     = ($self->{ID}) ? $self->{ID}.'.csv' : int(rand(10000000)).'.csv';
   	$self->{header}  = "Content-Type: text/csv; filename=$filename\n";  	
-	$self->{header} .= "Cache-Control: no-cache\n";
-	$self->{header} .= "Content-disposition: inline; name=\"$filename\"\n\n";
+	  $self->{header} .= "Cache-Control: no-cache\n";
+	  $self->{header} .= "Content-disposition: inline; name=\"$filename\"\n\n";
   }
   else {
    $self->{header} = "Content-Type: text/plain\n\n";
   }
 
   my $CHARSET = (defined($attr->{CHARSET})) ? $attr->{CHARSET} : $self->{CHARSET} || 'windows-1251';
-  $CHARSET =~ s/ //g;
+  $CHARSET    =~ s/ //g;
 
   return $self->{header};
 }
