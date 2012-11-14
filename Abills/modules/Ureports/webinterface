@@ -63,8 +63,6 @@ sub ureports_users_list {
 
   if ($attr->{TP}) {
     $LIST_PARAMS{TP_ID} = $FORM{TP_ID};
-
-    #$pages_qs .= "&TP_ID=$FORM{TP_ID}";
   }
   elsif ($FORM{TP_ID}) {
     $FORM{subf} = $index;
@@ -145,7 +143,14 @@ sub ureports_users_list {
     my $uid = $line->[ 5 + $Ureports->{SEARCH_FIELDS_COUNT} ];
     my $payments = ($permissions{1}) ? $html->button("$_PAYMENTS", "index=2&UID=$uid", { CLASS => 'payments' }) : '';
 
-    $table->addrow($html->button("$line->[0]", "index=15&UID=$uid"), "$line->[1]", "$line->[2]", "$line->[3]", "$line->[4]", "$service_status[$line->[5]]", @fields_array, $payments, $html->button("$_STATS", "index=" . (get_function_index('ureports_stats')) . "&UID=$uid", { CLASS => 'stats' }));
+    $table->addrow($html->button("$line->[0]", "index=15&UID=$uid"), 
+    "$line->[1]", "$line->[2]", 
+    (($line->[3]) ? $html->color_mark($service_status[$line->[3]], $_COLORS[6]) : $service_status[$line->[3]]), 
+    "$line->[4]", 
+    "$service_status[$line->[5]]", 
+    @fields_array, 
+    $payments, 
+    $html->button("$_STATS", "index=" . (get_function_index('ureports_stats')) . "&UID=$uid", { CLASS => 'stats' }));
   }
   print $table->show();
 

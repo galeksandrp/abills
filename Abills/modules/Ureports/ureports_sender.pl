@@ -98,7 +98,7 @@ if ($ARGV->{DEBUG}) {
 $DATE = $ARGV->{DATE} if ($ARGV->{DATE});
 if ($ARGV->{REPORT_IDS}) {
   $ARGV->{REPORT_IDS} =~ s/,/;/g;
-  $SERVICE_LIST_PARAMS{REPORT_ID} = $ARGV->{REPORT_IDS};
+  $ARGV->{TP_IDS}     = $ARGV->{REPORT_IDS};
 }
 
 my $debug_output = ureports_periodic_reports({%$ARGV});
@@ -152,13 +152,13 @@ sub ureports_periodic_reports {
 
   $debug_output .= "Ureports: Daily spool former\n" if ($debug > 1);
   $LIST_PARAMS{MODULE} = 'Ureports';
-  $LIST_PARAMS{TP_ID} = $ARGV->{TP_IDS} if ($ARGV->{TP_IDS});
+  $LIST_PARAMS{TP_ID}  = $ARGV->{TP_IDS} if ($ARGV->{TP_IDS});
 
   $SERVICE_LIST_PARAMS{LOGIN} = $ARGV->{LOGINS} if ($ARGV->{LOGINS});
 
-  my $list = $tariffs->list({%LIST_PARAMS});
+  my $list         = $tariffs->list({%LIST_PARAMS});
   $ADMIN_REPORT{DATE} = $DATE if (!$ADMIN_REPORT{DATE});
-  my ($y, $m, $d) = split(/-/, $ADMIN_REPORT{DATE}, 3);
+  my ($y, $m, $d)  = split(/-/, $ADMIN_REPORT{DATE}, 3);
   my $reports_type = 0;
 
   foreach my $line (@$list) {
@@ -171,6 +171,7 @@ sub ureports_periodic_reports {
 
     #Get users
     $Ureports->{debug} = 1 if ($debug > 5);
+    $Ureports->{debug}=1;
     my $ulist = $Ureports->tp_user_reports_list(
       {
         DATE           => '0000-00-00',
@@ -186,7 +187,6 @@ sub ureports_periodic_reports {
     );
     
     foreach my $u (@$ulist) {
-
       #Check bill id and deposit
       my %PARAMS = ();
       my %user   = (
@@ -208,7 +208,6 @@ sub ureports_periodic_reports {
       );
 
       if ($user{BILL_ID} > 0 && defined($user{DEPOSIT})) {
-
         #Skip action for pay opearation
         if ($user{MSG_PRICE} > 0 && $user{DEPOSIT} + $user{CREDIT} < 0 && $TP_INFO{POSTPAID} == 0) {
           $debug_output .= "UID: $user{UID} REPORT_ID: $user{REPORT_ID} DEPOSIT: $user{DEPOSIT}/$user{CREDIT} Skip action Small Deposit for sending\n" if ($debug > 0);
