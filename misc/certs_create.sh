@@ -11,7 +11,7 @@ CA_pl='/usr/src/crypto/openssl/apps/CA.pl';
 
 hostname=`hostname`;
 password=whatever;
-VERSION=1.89;
+VERSION=1.90;
 DAYS=730;
 DATE=`date`;
 CERT_TYPE=$1;
@@ -73,13 +73,13 @@ for _switch ; do
         -PASSWORD) password=$3
                 shift; shift
                 ;;
-        -HOSTNAME) hostname=$3
+        -HOSTNAME) HOSTNAME=$3
                 shift; shift
                 ;;
-        -UPLOAD) UPLOAD=y; HOST=$4
+        -UPLOAD) UPLOAD=y; HOSTNAME=$4
                 #shift; shift;
                 ;;
-        -UPLOAD_FTP) UPLOAD_FTP=y; UPLOAD=y; HOST=$4
+        -UPLOAD_FTP) UPLOAD_FTP=y; UPLOAD=y; HOSTNAME=$4
                 #shift; 
                 ;;
         -SKIP_UPLOAD_CERT) SKIP_UPLOAD_CERT=1
@@ -229,7 +229,7 @@ ssh_key () {
   if [ -f ${CERT_PATH}${id_dsa_file} ]; then
      echo "Cert exists: ${CERT_PATH}${id_dsa_file}";
      if [ x${UPLOAD} = x ]; then
-       echo "Upload to remote host via ssh[Y/n]: "
+       echo "Upload to remote host via ssh (Y/n): "
        read UPLOAD
      fi;
   fi;
@@ -240,36 +240,34 @@ ssh_key () {
 
     chown ${APACHE_USER} ${CERT_PATH}${id_dsa_file}
     chmod u=r,go= ${CERT_PATH}/${id_dsa_file}.pub
-    echo "Set Cert user: ${CERT_USER}";
 
-    echo -n "Upload file to remote host via ssh(y/n): "
+    echo "Set Cert user: ${CERT_USER}";
+    echo -n "Upload file to remote host via ssh (Y/n): "
     read UPLOAD
   fi;
 
   if [ x${UPLOAD} = xy ]; then
-    if [ x${HOST} = x ]; then
+    if [ x${HOSTNAME} = x ]; then
       echo -n "Enter host: "
-      read HOST
-      SSH_PORT=`echo ${HOST} | awk -F: '{ print $2 }'`
-      HOST=`echo ${HOST} | awk -F: '{ print $1 }'`
+      read HOSTNAME
+      SSH_PORT=`echo ${HOSTNAME} | awk -F: '{ print $2 }'`
+      HOSTNAME=`echo ${HOSTNAME} | awk -F: '{ print $1 }'`
     fi;
     
     
 
     if [ x${UPLOAD_FTP} = xy ]; then
-      echo "Make upload to: ${HOST}:/${id_dsa_file}.pub ${CERT_PATH}${id_dsa_file}.pub"
-      ftp -u ${HOST}:/${id_dsa_file}.pub ${CERT_PATH}${id_dsa_file}.pub
-      
-      #USER=`echo ${HOST} | awk -F@ '{print $1}'`;
-      HOST=`echo ${HOST} | awk -F@ '{print $2}'`;
+      echo "Make upload to: ${HOSTNAME}:/${id_dsa_file}.pub ${CERT_PATH}${id_dsa_file}.pub"
+      ftp -u ${HOSTNAME}:/${id_dsa_file}.pub ${CERT_PATH}${id_dsa_file}.pub
+      HOSTNAME=`echo ${HOSTNAME} | awk -F@ '{print $2}'`;
     else 
-      echo "Make upload to: ${USER}@${HOST} "
-      ssh -p ${SSH_PORT} ${USER}@${HOST} "mkdir ~/.ssh"
-      scp -P ${SSH_PORT} ${CERT_PATH}${id_dsa_file}.pub ${USER}@${HOST}:~/.ssh/authorized_keys
+      echo "Making upload to: ${USER}@${HOSTNAME} "
+      ssh -p ${SSH_PORT} ${USER}@${HOSTNAME} "mkdir ~/.ssh"
+      scp -P ${SSH_PORT} ${CERT_PATH}${id_dsa_file}.pub ${USER}@${HOSTNAME}:~/.ssh/authorized_keys
     fi;
     
     
-    echo -n "Connect to remote host: ${HOST}  (y/n): "
+    echo -n "Connect to remote host: ${HOSTNAME} (y/n): "
     read CONNECT
     if [ w${CONNECT} = wy ]; then
       ssh -p ${SSH_PORT} -o StrictHostKeyChecking=no -i ${CERT_PATH}${id_dsa_file}  ${USER}@${HOST}
