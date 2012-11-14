@@ -229,7 +229,7 @@ ssh_key () {
   if [ -f ${CERT_PATH}${id_dsa_file} ]; then
      echo "Cert exists: ${CERT_PATH}${id_dsa_file}";
      if [ x${UPLOAD} = x ]; then
-       echo "Upload to remote host via ssh (Y/n): "
+       echo -n "Upload to remote host via ssh [Y/n]: "
        read UPLOAD
      fi;
   fi;
@@ -242,7 +242,7 @@ ssh_key () {
     chmod u=r,go= ${CERT_PATH}/${id_dsa_file}.pub
 
     echo "Set Cert user: ${CERT_USER}";
-    echo -n "Upload file to remote host via ssh (Y/n): "
+    echo -n "Upload file to remote host via ssh [Y/n]: "
     read UPLOAD
   fi;
 
@@ -252,6 +252,9 @@ ssh_key () {
       read HOSTNAME
       SSH_PORT=`echo ${HOSTNAME} | awk -F: '{ print $2 }'`
       HOSTNAME=`echo ${HOSTNAME} | awk -F: '{ print $1 }'`
+      if [ x${SSH_PORT} = x ]; then
+        SSH_PORT=22;
+      fi;
     fi;
     
     
@@ -267,7 +270,7 @@ ssh_key () {
     fi;
     
     
-    echo -n "Connect to remote host: ${HOSTNAME} (y/n): "
+    echo -n "Connect to remote host: ${HOSTNAME} [y/n]: "
     read CONNECT
     if [ w${CONNECT} = wy ]; then
       ssh -p ${SSH_PORT} -o StrictHostKeyChecking=no -i ${CERT_PATH}${id_dsa_file}  ${USER}@${HOST}
