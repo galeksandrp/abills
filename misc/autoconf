@@ -451,12 +451,11 @@ sub check_install {
     elsif ($file =~ /^:(\S{0,100}):(.+) (>{1,2}) +\[(\S+)\]\/(.+)/) {
       my $params = $1;
       my $value  = $2;
-      $type   = $3;
-      $folder = $4;
-      $dest   = $5;
+      $type      = $3;
+      $folder    = $4;
+      $dest      = $5;
 
       $value =~ s/\\n/\n/g;
-
       my %PARAMS_HASH         = ();
       my %EXCLUDE_PARAMS_HASH = ();
 
@@ -469,7 +468,9 @@ sub check_install {
           if ($param_name2 =~ /^!(.+)/) {
             $param_name2 = $1;
             if (defined($ARGV->{$param_name2}) && $ARGV->{$param_name2} eq $param_value2) {
+            	print "$value\n Skip..\n" if ($debug > 2);
               $skip = 1;
+              last;
             }
           }
           elsif (!defined($ARGV->{$param_name2}) || $ARGV->{$param_name2} ne $param_value2) {
@@ -487,6 +488,7 @@ sub check_install {
         next if ($skip);
       }
 
+
       if ($value =~ /^FILE=(\S+)/) {
         $config_body = get_file($conf{WORK_DIR} . "/$program/" . $1);
       }
@@ -495,13 +497,14 @@ sub check_install {
       }
     }
     elsif ($file =~ /^(\S+) +([>]{1,2}) +\[(\S+)\]\/(.+)/) {
-      my $config = $1;
+      my $config   = $1;
       $type        = $2;
       $folder      = $3;
       $dest        = $4;
       $config_body = get_file($conf{WORK_DIR} . "/$program/$config");
     }
     else {
+    	print "Unknown options:\n $file\n";
       next;
     }
 
@@ -531,7 +534,6 @@ sub check_install {
 
     }
     else {
-
       #print "$type$folder/$dest";
       if ($type eq '>>') {
 

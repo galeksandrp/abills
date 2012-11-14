@@ -273,7 +273,7 @@ ssh_key () {
     echo -n "Connect to remote host: ${HOSTNAME} [y/n]: "
     read CONNECT
     if [ w${CONNECT} = wy ]; then
-      ssh -p ${SSH_PORT} -o StrictHostKeyChecking=no -i ${CERT_PATH}${id_dsa_file}  ${USER}@${HOST}
+      ssh -p ${SSH_PORT} -o StrictHostKeyChecking=no -i ${CERT_PATH}${id_dsa_file}  ${USER}@${HOSTNAME}
       exit;
     fi;
   else 
