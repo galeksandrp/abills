@@ -431,7 +431,8 @@ sub vlan_create {
         NAS_ID     => $NAS_ID,
         SORT       => 5,
         VLAN_GROUP => "vlan.vlan_id, vlan.unnumbered_ip",
-        LOGIN      => ($attr->{LOGIN}) ? $attr->{LOGIN} : undef
+        LOGIN      => ($attr->{LOGIN}) ? $attr->{LOGIN} : undef,
+        COLS_NAME  => 1
       }
     );
 
@@ -446,21 +447,21 @@ sub vlan_create {
       }
     );
     my %if_created = ();
-    foreach my $line (@$vlan_list) {
+    foreach my $vlan (@$vlan_list) {
       #Port
-      $debug_output .= "$line->[0]: VLAN ID: $line->[4] IP: $line->[11]/$line->[12] NETMASK: $line->[6]" . " USER IPs: $line->[6] DHCP: $line->[8] PPPoE: $line->[9] UNNUMBERED_IP: \n" if ($debug > 2);
+      $debug_output .= "$vlan->{login}: VLAN ID: $vlan->{vlan_id} IP: $vlan->{ip}/$vlan->{netmask} NETMASK: $vlan->{netnask}" . " USER IPs: $vlan->{ip_range} DHCP: $vlan->{dhcp} PPPoE: $vlan->{pppoe} UNNUMBERED_IP: \n" if ($debug > 2);
 
       $INFO{VLAN_IF_NETMASK} = '';
-      $INFO{LOGIN}           = $line->[0];
-      $INFO{VLAN_ID}         = $line->[4];
-      $INFO{VLAN_IF_IP}      = $line->[11];
-      $INFO{DHCP}            = $line->[8];
-      $INFO{PPPOE}           = $line->[9];
-      $INFO{UNNUMBERED_IP}   = $line->[13];
+      $INFO{LOGIN}           = $vlan->{login};
+      $INFO{VLAN_ID}         = $vlan->{vlan_id};
+      $INFO{VLAN_IF_IP}      = $vlan->{ip};
+      $INFO{DHCP}            = $vlan->{dhcp};
+      $INFO{PPPOE}           = $vlan->{pppoe};
+      $INFO{UNNUMBERED_IP}   = $vlan->{unnumbered_ip};
       #$INFO{USER_IP}         = $line->[6];
 
-      if (($INFO{VLAN_IF_NETMASK} && $line->[12] ne '255.255.255.255') || !$INFO{VLAN_IF_NETMASK}) {
-        $INFO{VLAN_IF_NETMASK} = $line->[12];
+      if (($INFO{VLAN_IF_NETMASK} && $vlan->{netmask} ne '255.255.255.255') || !$INFO{VLAN_IF_NETMASK}) {
+        $INFO{VLAN_IF_NETMASK} = $vlan->{netmask};
         my $ips = 4294967296 - ip2int($INFO{VLAN_IF_NETMASK});
         $INFO{VLAN_IF_BIT_NETMASK} = 32 - length(sprintf("%b", $ips)) + 1;
       }
@@ -470,7 +471,7 @@ sub vlan_create {
 
       $INFO{PARENT_INTERFACE} = $parent_interface;
       if ($INFO{DHCP} == 1 && $INFO{VLAN_IF_IP} ne '0.0.0.0') {
-        my ($first_ip, $last_ip) = split(/ - /, $line->[6]);
+        my ($first_ip, $last_ip) = split(/ - /, $vlan->{ip_range});
         $INFO{NETWORK}      = int2ip(ip2int($INFO{VLAN_IF_IP}) - 1);
         $INFO{NETWORK_MASK} = $INFO{VLAN_IF_NETMASK};
         $INFO{RANGE}        = "range $first_ip $last_ip;";
@@ -504,7 +505,7 @@ sub vlan_create {
 
       # if not exists create it
       if (!$vlans_info->{ $INFO{VLAN_ID} } && ! $if_created{$INFO{VLAN_ID}}) {
-      	
+     	
         push @commands, tpl_parse($conf{VLAN_IF_CREATE}, \%INFO);
 
         if ($INFO{VLAN_IF_IP} ne '0.0.0.0') {
@@ -544,7 +545,6 @@ sub vlan_create {
         else {
           push @client_interfaces_unused, "vlan$INFO{VLAN_ID}";
         }
-
       }
       elsif ($INFO{UNNUMBERED_IP}) {
         push @commands, tpl_parse($conf{VLAN_IF_IP}, \%INFO);
