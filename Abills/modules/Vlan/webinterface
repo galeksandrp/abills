@@ -5,7 +5,7 @@ use Vlan;
 my $Vlan = Vlan->new($db, $admin, \%conf);
 my $Nas = Nas->new($db, \%conf);
 
-my $SUDO  = 'sudo';
+my $SUDO  = $conf{SUDO} || '';
 my $SSH   = '/usr/bin/ssh';
 my $SCP   = '/usr/bin/scp';
 my $debug = $FORM{VLAN_DEBUG} || 0;
