@@ -547,9 +547,9 @@ sub vlan_create {
         }
       }
       elsif ($INFO{UNNUMBERED_IP}) {
-        push @commands, tpl_parse($conf{VLAN_IF_IP}, \%INFO);
-        $debug_output .= "Vlan ID: $INFO{VLAN_ID} IP: $INFO{VLAN_IF_IP} Changed\n" if ($debug > 0);
-        delete $vlans_info->{ $INFO{VLAN_ID} };
+        push @commands, tpl_parse($conf{VLAN_IF_IP}, { %INFO, UNNUMBERED_ADD  => 1 } );
+        $debug_output .= "Vlan ID: $INFO{VLAN_ID} IP: $INFO{VLAN_IF_IP} UNNUMBERED_IP: $INFO{UNNUMBERED_IP} Changed\n" if ($debug > 0);
+        #delete $vlans_info->{ $INFO{VLAN_ID} };
       }
       else {
         delete $vlans_info->{ $INFO{VLAN_ID} };
