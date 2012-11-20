@@ -243,6 +243,7 @@ sub dhcphosts_monitor {
     form_search(
       {
         SIMPLE => {
+        	"$_LOGIN"          => 'LOGIN',
           "$_HOSTS_HOSTNAME" => 'HOSTNAME',
           'IP'               => 'IP',
           "$_NAS"            => 'NAS_ID',

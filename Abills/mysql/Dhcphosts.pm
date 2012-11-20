@@ -905,6 +905,10 @@ sub leases_list {
   if ($attr->{STARTS}) {
     push @WHERE_RULES, @{ $self->search_expr("$attr->{STARTS}", 'INT', 'starts') };
   }
+  
+  if ($attr->{LOGIN}) {
+    push @WHERE_RULES, @{ $self->search_expr("$attr->{LOGIN}", 'STR', 'u.id') };
+  }
 
   if (defined($attr->{STATE})) {
     push @WHERE_RULES, "state='$attr->{STATE}'";
