@@ -958,7 +958,7 @@ sub leases_list {
 
   my $list = $self->{list};
 
-  $self->query($db, "SELECT count(*) FROM dhcphosts_leases 
+  $self->query($db, "SELECT count(*) FROM dhcphosts_leases l 
     LEFT JOIN users u ON (u.uid=l.uid)
   $WHERE;");
 
