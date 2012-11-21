@@ -4257,7 +4257,7 @@ sub form_nas {
           'NAS_ID',
           {
             SELECTED          => $FORM{NAS_ID},
-            SEL_MULTI_ARRAY   => $nas->list({%LIST_PARAMS}),
+            SEL_MULTI_ARRAY   => $nas->list({ %LIST_PARAMS, NAS_ID => undef }),
             MULTI_ARRAY_KEY   => 0,
             MULTI_ARRAY_VALUE => 1,
           }
