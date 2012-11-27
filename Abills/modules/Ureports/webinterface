@@ -146,8 +146,8 @@ sub ureports_users_list {
     $table->addrow($html->button("$line->[0]", "index=15&UID=$uid"), 
     "$line->[1]", "$line->[2]", 
     (($line->[3]) ? $html->color_mark($service_status[$line->[3]], $_COLORS[6]) : $service_status[$line->[3]]), 
-    "$line->[4]", 
-    "$service_status[$line->[5]]", 
+    ($line->[4]) ? 'Sms' : 'E-mail',
+    $line->[5], 
     @fields_array, 
     $payments, 
     $html->button("$_STATS", "index=" . (get_function_index('ureports_stats')) . "&UID=$uid", { CLASS => 'stats' }));
