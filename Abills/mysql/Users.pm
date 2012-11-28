@@ -429,23 +429,6 @@ sub pi {
     $i++;
   }
 
-  # if ($self->{LOCATION_ID} > 0 ) {
-  #   $self->query($db, "select d.id, d.city, d.name, s.name, b.number
-  #     FROM users_pi pi
-  #     LEFT JOIN builds b ON (b.id=pi.location_id)
-  #     LEFT JOIN streets s  ON (s.id=b.street_id)
-  #     LEFT JOIN districts d  ON (d.id=s.district_id)
-  #     WHERE pi.uid='$UID'");
-  #
-  #    if ($self->{TOTAL} > 0) {
-  #      ($self->{DISTRICT_ID},
-  #       $self->{CITY},
-  #       $self->{ADDRESS_DISTRICT},
-  #       $self->{ADDRESS_STREET},
-  #       $self->{ADDRESS_BUILD},
-  #      )= @{ $self->{list}->[0] };
-  #     }
-  #  }
   if ($self->{LOCATION_ID} > 0) {
     $self->query(
       $db, "select d.id, d.city, d.name, s.name, b.number
@@ -460,6 +443,7 @@ sub pi {
     }
   }
 
+  $self->{TOTAL}=1;
   return $self;
 }
 

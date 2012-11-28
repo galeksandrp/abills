@@ -1198,6 +1198,8 @@ sub dispatch_del {
   $WHERE = ($#WHERE_RULES > -1) ? join(' and ', @WHERE_RULES) : '';
   $self->query($db, "DELETE FROM msgs_dispatch WHERE $WHERE", 'do');
 
+  $admin->system_action_add("MGSG_DISPATCH:$attr->{ID}", { TYPE => 10 });
+
   return $self;
 }
 
@@ -1260,7 +1262,6 @@ sub dispatch_change {
       FIELDS       => \%FIELDS,
       OLD_INFO     => $self->dispatch_info($attr->{ID}),
       DATA         => $attr,
-
     }
   );
 
