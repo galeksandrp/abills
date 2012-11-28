@@ -18,6 +18,9 @@ use FindBin '$Bin';
 require $Bin . '/config.pl';
 unshift(@INC, $Bin . '/../', $Bin . "/../Abills/$conf{dbtype}");
 unshift(@INC, $Bin . '/../Abills');
+
+require "Abills/templates.pl";
+
 require Abills::Base;
 Abills::Base->import();
 require Abills::HTML;
