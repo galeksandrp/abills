@@ -68,6 +68,7 @@ sub marketing_evolution {
   }
   elsif ($FORM{MONTH}) {
     $LIST_PARAMS{MONTH} = $FORM{MONTH};
+    $pages_qs .= "&MONTH=$FORM{MONTH}&USERS=1";
     $graph_type = 'day_stats';
   }
 
