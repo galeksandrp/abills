@@ -845,18 +845,25 @@ sub cards_user_payment () {
 
         if ($Cards->{DILLER_ID}) {
           $Cards->cards_diller_info({ ID => $Cards->{DILLER_ID} });
+          my $diller_fees = 0;
           if ($Cards->{PAYMENT_TYPE} == 2 && $Cards->{OPERATION_PAYMENT} > 0) {
+            $diller_fees=$Cards->{SUM} / 100 * $Cards->{OPERATION_PAYMENT};
+          }
+          elsif ($Cards->{DILLER_PERCENTAGE} > 0) {
+          	$diller_fees=$Cards->{DILLER_PERCENTAGE};
+          }
+ 
+          if ($diller_fees > 0) {
             my $user_new = Users->new($db, $admin, \%conf);
             $user_new->info($Cards->{UID});
 
             my $Fees = Finance->fees($db, $admin, \%conf);
             $Fees->take(
               $user_new,
-              $Cards->{OPERATION_PAYMENT},
+              $diller_fees,
               {
                 DESCRIBE => "Card activate: $Cards->{ID}",
                 METHOD   => 0,
-
                 #                                  EXT_ID       => "$Cards->{SERIAL}$Cards->{NUMBER}",
                 #                                  CHECK_EXT_ID => "$Cards->{SERIAL}$Cards->{NUMBER}"
               }

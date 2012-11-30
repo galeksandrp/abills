@@ -293,6 +293,7 @@ $_RELAYS='Relay',
 $_ACCESS='Access';
 $_TRANSPORT = 'Transport';
 $_ANTIVIRUS='Antivirus';
+$_VIRUS_ALERT='Virus allert';
 $_ANTISPAM='Antispam';
 $_FOLDER='Folder';
 

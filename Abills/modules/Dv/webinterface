@@ -23,7 +23,9 @@ $Log         = Log->new($db, \%conf);
 my %FORM_BASE      = ();
 my %TRAFFIC_NAMES  = ();
 my @service_status_colors = ("$_COLORS[9]", "$_COLORS[6]", '#808080', '#0000FF', '#FF8000', '#009999');
-my @service_status = ("$_ENABLE", "$_DISABLE", "$_NOT_ACTIVE", "$_HOLD_UP", "$_DISABLE: $_NON_PAYMENT", "$ERR_SMALL_DEPOSIT");
+my @service_status = ("$_ENABLE", "$_DISABLE", "$_NOT_ACTIVE", "$_HOLD_UP", 
+  "$_DISABLE: $_NON_PAYMENT", "$ERR_SMALL_DEPOSIT",
+  "$_VIRUS_ALERT" );
 
 #*******************************************************************
 # Delete user from module
@@ -320,6 +322,7 @@ sub dv_users_list {
         3  => $service_status[3],
         4  => $service_status[4],
         5  => $service_status[5]
+        6  => $service_status[6]
       },
       NO_ID => 1,
       STYLE => \@service_status_colors,
