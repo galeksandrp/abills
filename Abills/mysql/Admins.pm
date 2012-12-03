@@ -291,6 +291,7 @@ sub list {
 sub change {
   my $self   = shift;
   my ($attr) = @_;
+    
   my %FIELDS = (
     AID              => 'aid',
     A_LOGIN          => 'id',
@@ -334,6 +335,7 @@ sub change {
       EXT_CHANGE_INFO => "AID:$self->{AID}"
     }
   );
+
   $self->info($self->{AID});
   return $self;
 }

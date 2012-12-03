@@ -763,7 +763,7 @@ sub list {
   if ($attr->{DOMAIN_ID}) {
     push @WHERE_RULES, @{ $self->search_expr("$attr->{DOMAIN_ID}", 'INT', 'u.domain_id', { EXT_FIELD => 1 }) };
   }
-  elsif (defined($admin->{DOMAIN_ID})) {
+  elsif ($admin->{DOMAIN_ID}) {
     push @WHERE_RULES, @{ $self->search_expr("$admin->{DOMAIN_ID}", 'INT', 'u.domain_id', { EXT_FIELD => 0 }) };
   }
 
