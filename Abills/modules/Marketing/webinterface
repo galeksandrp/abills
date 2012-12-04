@@ -233,7 +233,7 @@ sub marketing_internet {
       rows     => [
         [
           "$_PERIOD: ",
-          $html->date_fld('FROM_', { MONTHES => \@MONTHES }),
+          $html->date_fld2('FROM_', { MONTHES => \@MONTHES }),
           "$_STATUS: "
           . $html->form_select(
             'STATUS',

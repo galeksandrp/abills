@@ -308,7 +308,9 @@ sub change {
     my $tariffs = Tariffs->new($db, $CONF, $admin);
     $self->{TP_INFO} = $tariffs->info(0, { ID => $old_info->{TP_ID} });
   }
-  elsif ($old_info->{STATUS} == 3 && $attr->{STATUS} == 0 && $attr->{STATUS_DAYS}) {
+  elsif ($old_info->{STATUS} == 3 
+        && $attr->{STATUS} == 0 
+        && $attr->{STATUS_DAYS}) {
     my $user = Users->new($db, $admin, $CONF);
     $user->info($attr->{UID});
 
