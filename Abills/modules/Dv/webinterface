@@ -6476,7 +6476,7 @@ sub dv_wizard_user {
           return 0;
         }
         elsif (!$FORM{SERIAL}) {
-          if (!$add_values{4}{STATUS} && $Dv->{TP_INFO}->{MONTH_FEE} > 0) {
+          if (!$add_values{4}{STATUS} && $Dv->{TP_INFO}->{MONTH_FEE} > 0 && ! $add_values{4}{DV_SKIP_FEE}) {
             $Dv->{UID}              = $UID;
             $Dv->{ACCOUNT_ACTIVATE} = $add_values{1}{ACTIVATE};
             $user_fees              = dv_get_month_fee($Dv);
