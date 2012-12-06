@@ -693,7 +693,7 @@ sub check_speed_linux_ipn {
     	my @ip_arr = split(/\./, $user->{ip});
     	my $hex_ip = '';
     	foreach my $ip_n (@ip_arr) {
-    	  $hex_ip .= sprintf("%x", $ip_n);
+    	  $hex_ip .= sprintf("%.2x", $ip_n);
     	}
 
       $USER_HEX_IPS{$hex_ip} = "$user->{user_name}:$user->{uid}:$user->{ip}";
