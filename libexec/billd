@@ -654,6 +654,115 @@ sub parse_fw {
   return \%params;
 }
 
+
+#**********************************************************
+# checkspeed for pppd interfaces
+#**********************************************************
+sub check_speed_linux_ipn {
+  my ($attr) = @_;
+
+  $sessions->{debug}=1 if ($debug > 6);
+
+  $sessions->online(
+    {
+      %LIST_PARAMS,
+      NAS_ID       => $ARGV->{NAS_IDS},
+      FIELDS_NAMES => [ 'USER_NAME', 
+                        'NAS_PORT_ID', 
+                        'TP_ID', 
+                        'SPEED', 
+                        'UID', 
+                        'JOIN_SERVICE', 
+                        'CLIENT_IP', 
+                        'DURATION_SEC', 
+                        'STARTED' 
+                      ],
+     COLS_NAME    => 1
+    }
+  );
+
+  my $online      = $sessions->{nas_sorted};
+  my $nas_list    = $nas->list({%LIST_PARAMS});
+  my %USER_HEX_IPS = ();
+
+  foreach my $nas_row (@$nas_list) {
+    next if (!$online->{ $nas_row->[0] });
+
+    my $l = $online->{ $nas_row->[0] };
+    foreach my $user (@$l) {
+    	my @ip_arr = split(/\./, $user->{ip});
+    	my $hex_ip = '';
+    	foreach my $ip_n (@ip_arr) {
+    	  $hex_ip .= sprintf("%x", $ip_n);
+    	}
+
+      $USER_HEX_IPS{$hex_ip} = "$user->{user_name}:$user->{uid}:$user->{ip}";
+      print "$user->{ip} HEX IP:$hex_ip\n" if ($debug > 3);
+    }
+  }
+
+  # Get tc rules
+  my @interfaces_arr = ();
+  
+  if ($ARGV->{IPN_INTERFACES}) {
+    @interfaces_arr = split(/,/, $ARGV->{IPN_INTERFACES});
+  }
+  else {
+    my $result = `/sbin/ifconfig | grep eth | awk '{ print \$1 }'`;
+    @interfaces_arr = split(/[\r\n]/, $result);
+  }
+  
+  my %TC_INFO = ();
+
+  foreach my $interface ( @interfaces_arr ) {
+    my $cmd          = '/sbin/tc -s -d filter ls dev '. $interface .' parent 1:';
+    print "$cmd\n" if ($debug > 5);
+    my $tc_output = '';
+    #In
+    open(PROCS, "$cmd |") || die "Can't open file '$cmd' $!\n";
+      while (<PROCS>) {
+        $tc_output .= $_;
+      }
+    close(PROCS);
+
+    my @file_rows = split(/[\r\n]/, $tc_output);
+    my $pref   = 0;
+    
+    foreach my $file_row (@file_rows) {
+	    print $file_row."\n" if ($debug > 4);
+	
+      if ($file_row =~ /filter protocol ip pref\s+(\d+)/) {
+  	    $pref = $1;
+      }
+      elsif($file_row =~ /\s+match (\H+)\/ffffffff/) {
+ 	      my $hex_ip = $1;
+ 	      $TC_INFO{$hex_ip}=$pref;
+ 	      if ($debug>2) {
+ 	  	    my $ip = join('.', unpack("N*", pack("H*", $hex_ip)));
+ 	        print "$ip ($hex_ip) -> $pref\n" 
+ 	      }
+ 	    }
+    }
+  }
+
+while(my($hex_ip, $info)= each %USER_HEX_IPS) {
+	print "$USER_HEX_IPS{$hex_ip}: ($hex_ip) ";
+	if (! $TC_INFO{$hex_ip}) {
+		print "! Speed not defined. Set speed";
+	}
+	else {
+		if ($debug > 1) {
+			print "Pref:$TC_INFO{$hex_ip}";
+		}
+	}
+	print "\n";
+}
+
+
+}
+
+
+
 #**********************************************************
 # checkspeed for pppd interfaces
 #**********************************************************
@@ -666,6 +775,11 @@ sub check_speed_linux {
 
   if ($debug > 1) {
     $cmd_debug = 'debug';
+  }
+
+  if ($ARGV->{LINUX_IPN} ) {
+    check_speed_linux_ipn();
+    return 0;
   }
 
   #$conf{KBYTE_SIZE} = 1024 if (! $conf{KBYTE_SIZE});
@@ -1084,7 +1198,7 @@ sub check_speed {
   my $fw_step       = 0;
 
   # Check linux shapper
-  if ($OS eq 'Linux') {
+  if ($OS eq 'Linux' || $ARGV->{LINUX_IPN}) {
     print "> Linux nas\n" if ($debug > 1);
     check_speed_linux();
     exit;

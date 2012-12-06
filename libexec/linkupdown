@@ -361,6 +361,15 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
       my $prefix = 10000;
       my $burst  = int($speed_in / 16);
       my $flowid = ($speed_in > 0) ? sprintf("%x", $user->{UID} + $prefix * 2) : '';
+      
+      $fw_num_in  = $user->{UID};
+      $fw_num_out = $user->{UID} + $prefix;
+
+      $fw_num_in  = ($START_FW[$traf_type]) + $user->{UID};
+      $fw_num_out = ($START_FW[$traf_type]) + $user->{UID}; #($START_FW[$traf_type] + $fw_step) + $user->{UID};
+
+
+      
       my $drop   = ($speed_out > 0) ? "police rate $speed_out". "Kbit burst $burst" . 'k drop' : '';
 
       if ($ARGV[0] eq 'pppd') {
@@ -380,8 +389,8 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
         next;
       }
 
-      push @FW_ACTIONS, "$tc filter del dev $INTERFACE protocol ip parent 1: prio $fw_num_out > /dev/null 2>&1";
-      push @FW_ACTIONS, "$tc filter del dev $INTERFACE protocol ip parent ffff: prio $fw_num_in > /dev/null 2>&1";
+      push @FW_ACTIONS, "$tc filter del dev $INTERFACE protocol ip parent 1: prio $fw_num_out u32 match ip dst $CLINT_IP > /dev/null 2>&1";
+      push @FW_ACTIONS, "$tc filter del dev $INTERFACE protocol ip parent ffff: prio $fw_num_in u32 match ip src $CLINT_IP > /dev/null 2>&1";
 
       if ($flowid) {
         push @FW_ACTIONS, "$tc class del dev $INTERFACE parent 1: classid 1:$flowid > /dev/null 2>&1";

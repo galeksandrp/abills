@@ -308,12 +308,12 @@ sub online {
   else {
     $ext_fields = "
    pi.phone,
-   INET_NTOA(c.framed_ip_address),
+   INET_NTOA(c.framed_ip_address) AS ip,
    u.uid,
-   INET_NTOA(c.nas_ip_address),
-   if(company.name IS NULL, b.deposit, cb.deposit),
+   INET_NTOA(c.nas_ip_address) AS nas_ip,
+   if(company.name IS NULL, b.deposit, cb.deposit) AS deposit,
    if(u.company_id=0, u.credit,
-          if (u.credit=0, company.credit, u.credit)),
+          if (u.credit=0, company.credit, u.credit)) AS credit,
    if(date_format(c.started, '%Y-%m-%d')=curdate(), date_format(c.started, '%H:%i:%s'), c.started),
    UNIX_TIMESTAMP()-c.lupdated,
    c.status,
@@ -385,6 +385,11 @@ sub online {
   if ($attr->{TP_ID}) {
   	push @WHERE_RULES, @{ $self->search_expr($attr->{TP_ID}, 'INT', 'dv.tp_id') };
   }
+
+  if ($attr->{IP}) {
+  	push @WHERE_RULES, @{ $self->search_expr($attr->{IP}, 'IP', 'INET_NTOA(framed_ip_address)') };
+  }
+
 
   if ($attr->{NAS_ID}) {
     push @WHERE_RULES, "nas_id IN ($attr->{NAS_ID})";

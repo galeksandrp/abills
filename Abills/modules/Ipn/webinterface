@@ -2459,6 +2459,9 @@ sub ipn_periodic_session_restart {
   elsif ($attr->{GID}) {
   	$LIST_PARAMS{GID}=$attr->{GID};
   }
+  elsif ($attr->{IP}) {
+  	$LIST_PARAMS{IP}=$attr->{IP};
+  }
 
   #Get online
   my $Dv = Dv->new($db, $admin, \%conf);
