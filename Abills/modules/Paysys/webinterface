@@ -1487,7 +1487,8 @@ sub paysys_privatbank {
         IP             => "$ENV{'REMOTE_ADDR'}",
         TRANSACTION_ID => "$FORM{OPERATION_ID}",
         INFO           => '-',
-        PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}"
+        PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}",
+        STATUS         => 1
       }
     );
 
@@ -1577,8 +1578,6 @@ sub paysys_p24_get_payments {
   if ($conf{PAYSYS_P24_EXPR}) {
     ($BINDING_FIELD, $BINDING_EXPR) = split(/:/, $conf{PAYSYS_P24_EXPR}, 2);
   }
-
-  #print %{ $info->{data}->{info}->[0]->{vitiazsybr}->[0]->{row} };
 
   my $table = $html->table(
     {
@@ -1882,7 +1881,8 @@ sub paysys_privatbank_p24 {
         IP             => "$ENV{'REMOTE_ADDR'}",
         TRANSACTION_ID => "$FORM{OPERATION_ID}",
         INFO           => '-',
-        PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}"
+        PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}",
+        STATUS         => 1
       }
     );
 

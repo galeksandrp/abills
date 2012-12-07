@@ -477,8 +477,8 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
             $queue_out = "queue " . (($speed_out / 10 > 1000) ? 1000 : int($speed_out / 10)) . "Kbytes";
           }
 
-          push @FW_ACTIONS, "$IPFW pipe $tablearg_in config bw " . $speed_out . "Kbit/s $queue_in mask dst-ip 0x00000000";
-          push @FW_ACTIONS, "$IPFW pipe $tablearg_out config bw " . $speed_in . "Kbit/s $queue_out mask src-ip 0x00000000";
+          push @FW_ACTIONS, "$IPFW pipe $tablearg_in config bw " . $speed_out . "Kbit/s $queue_out mask dst-ip 0x00000000";
+          push @FW_ACTIONS, "$IPFW pipe $tablearg_out config bw " . $speed_in . "Kbit/s $queue_in mask src-ip 0x00000000";
         }
         else {
           my $tablearg_in  = ($Billing->{RESULT}{$traf_type}->{SPEED_IN}) ? (($speed_in > 10000)  ? $speed_in  : "1$speed_in")  : ($START_FW[$traf_type] + $user->{TP_NUM});

@@ -387,7 +387,7 @@ sub online {
   }
 
   if ($attr->{IP}) {
-  	push @WHERE_RULES, @{ $self->search_expr($attr->{IP}, 'IP', 'INET_NTOA(framed_ip_address)') };
+  	push @WHERE_RULES, @{ $self->search_expr($attr->{IP}, 'IP', 'c.framed_ip_address') };
   }
 
 
