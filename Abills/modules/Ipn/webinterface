@@ -2746,7 +2746,7 @@ sub ipn_start_active {
     my $tp_id        = $dv_user->{tp_id};
     my $port         = $dv_user->{port};
     my $deposit      = $dv_user->{deposit};
-    my $credit       = ($dv_user->{credit} > 0) ? $dv_user->{credit} : ($conf{user_credit_change}) ? 0 : $dv_user->{tp_credit};
+    my $credit       = ($dv_user->{credit} && $dv_user->{credit} > 0) ? $dv_user->{credit} : ($conf{user_credit_change}) ? 0 : $dv_user->{tp_credit};
 
     DHCP_IP_ASSIGN:    
     
