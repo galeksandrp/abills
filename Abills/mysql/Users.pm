@@ -805,7 +805,7 @@ sub list {
   #Show last paymenst
   if ($attr->{PAYMENTS} || $attr->{PAYMENT_DAYS}) {
     my @HAVING_RULES = @WHERE_RULES;
-   
+
     if ($attr->{PAYMENTS}) {
       my $value = $self->search_expr($attr->{PAYMENTS}, 'INT');
       push @WHERE_RULES,  "p.date$value";
@@ -854,10 +854,12 @@ sub list {
      undef,
      $attr
     );
+
     return $self if ($self->{errno});
 
     my $list = $self->{list};
-
+    
+    # Totas Records
     if ($self->{TOTAL} > 0) {
       if ($attr->{PAYMENT}) {
         $WHERE_RULES[$#WHERE_RULES] = @{ $self->search_expr($attr->{PAYMENTS}, 'INT', 'p.date') };

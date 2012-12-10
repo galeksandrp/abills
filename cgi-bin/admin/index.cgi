@@ -2452,7 +2452,8 @@ sub form_users {
     }
     $i++;
   }
-
+  
+  $users->{debug}=1;
   my $list = $users->list({ %LIST_PARAMS, 
   	                        FULL_LIST => 1,
   	                        COLS_NAME => 1,
@@ -9163,8 +9164,8 @@ sub title_former {
     'build_number'  => "$_BUILDS",
     'streets_name'  => "$_STREETS",
     'district_name' => "$_DISTRICTS",
-    'u.deleted'     => "$_DELETED",
-    'u.gid'         => "$_GROUP",
+    'deleted'       => "$_DELETED",
+    'gid'           => "$_GROUP",
     'builds.id'     => 'Location ID',
     'uid'           => 'UID',
     'if(company.id IS NULL,b.id,cb.id)' => "_BILL"
