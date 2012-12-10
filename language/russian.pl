@@ -233,6 +233,7 @@ $_TO_USER='Кому';
 $_MAKE_BACKAUP='Сделать backup';
 $_ARTICLE='Товар';
 $_NUM='Номер';
+$ERR_DELETE_RECEIPT='Удалите с начало квитанцию';
 $_ACTIVATE='Активации';
 $_PAYMENT_METHOD='Вид оплаты';
 $_SIZE='Размер';

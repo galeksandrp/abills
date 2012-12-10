@@ -268,6 +268,7 @@ $ERR_NAME_TOOLONG='Login is too long';
 $ERR_WRONG_DATA="Wrong data input";
 $ERR_SMALL_DEPOSIT='Too Small Deposit';
 $ERR_DELETE_INVOICE='Delete invoice first';
+$ERR_DELETE_RECEIPT='Delete receipt first';
 $ERR_UNKNOWN_IP="Not registred IP Address. Can't find your NAS.";
 $ERR_ACCEPT_RULES='Don\'t accepted rules';
 $ERR_CREDIT_CHANGE_LIMIT_REACH='Credit change limit reach';

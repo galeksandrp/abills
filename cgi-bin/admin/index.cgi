@@ -5933,7 +5933,8 @@ sub form_payments () {
       $payments->del($user, $FORM{del});
       if ($payments->{errno}) {
       	if ($payments->{errno} == 3) {
-      		$html->message('err', $_ERROR, "$ERR_DELETE_INVOICE");
+      		$html->message('err', $_ERROR, "$ERR_DELETE_RECEIPT ". 
+      		 $html->button($_SHOW, "search=1&PAYMENT_ID=$FORM{del}&index=".(get_function_index('docs_receipt_list')), { BUTTON => 1}) );
       	}
       	else {
           $html->message('err', $_ERROR, "[$payments->{errno}] $err_strs{$payments->{errno}}");
