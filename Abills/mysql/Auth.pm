@@ -1472,6 +1472,8 @@ sub get_ip {
 
   my $used_pools = join(', ', @used_pools_arr);
 
+  #Lock table for read
+  $db->do('lock tables dv_calls as c read , nas_ippools as np read, dv_calls write');
   #get active address and delete from pool
   # Select from active users and reserv ips
   $self->query(
@@ -1508,9 +1510,15 @@ sub get_ip {
         VALUES (now(), '$self->{USER_NAME}', '$self->{UID}', '$assign_ip', '$nas_num', INET_ATON('$nas_ip'), '11', 'IP', '$self->{TP_NUM}', '$self->{JOIN_SERVICE}', " . (($attr->{GUEST}) ? 1 : 0) . ");", 'do'
       );
     }
-
-    $assign_ip = int2ip($assign_ip);
-    return $assign_ip;
+   
+    $db->do('unlock tables');
+    if( defined( $self->{errno} )) {
+      return -1;
+    }
+    else {
+      $assign_ip = int2ip($assign_ip);
+      return $assign_ip;
+    }
   }
   else {    # no addresses available in pools
     if ($attr->{TP_POOLS}) {
