@@ -3676,7 +3676,7 @@ sub form_admins {
   }
   elsif (in_array('Multidoms', \@MODULES)) {
     load_module('Multidoms', $html);
-    $admin_form->{DOMAIN_SEL} = multidoms_domains_sel();
+    $admin_form->{DOMAIN_SEL} = multidoms_domains_sel({ SHOW_ID => 1 });
   }
   else {
     $admin_form->{DOMAIN_SEL} = '';
