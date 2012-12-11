@@ -3571,8 +3571,11 @@ sub form_admins {
   $admin_form->{LNG_ACTION} = $_ADD;
   if ($FORM{AID}) {
     $admin_form->info($FORM{AID});
+    if(! $FORM{DOMAIN_ID}) {
+      $FORM{DOMAIN_ID}  = $admin_form->{DOMAIN_ID} if($admin_form->{DOMAIN_ID});    	
+    }
 
-    $FORM{DOMAIN_ID}  = $admin_form->{DOMAIN_ID} if($admin_form->{DOMAIN_ID});
+
     $LIST_PARAMS{AID} = $admin_form->{AID};
     $pages_qs         = "&AID=$admin_form->{AID}&subf=$FORM{subf}";
 
