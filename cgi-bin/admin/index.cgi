@@ -3575,7 +3575,6 @@ sub form_admins {
       $FORM{DOMAIN_ID}  = $admin_form->{DOMAIN_ID} if($admin_form->{DOMAIN_ID});    	
     }
 
-
     $LIST_PARAMS{AID} = $admin_form->{AID};
     $pages_qs         = "&AID=$admin_form->{AID}&subf=$FORM{subf}";
 

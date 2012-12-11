@@ -110,14 +110,23 @@ sub online_count {
   my $self = shift;
   my ($attr) = @_;
 
+  my $EXT_TABLE = '';
+  my $WHERE = '';
+  if($admin->{DOMAIN_ID}) {
+    $EXT_TABLE = ' INNER JOIN users u ON (c.uid=u.uid)';
+    $WHERE = ' AND u.domain_id';
+  }
+
   $self->query(
     $db, "SELECT n.id, n.name, n.ip, n.nas_type,  
    sum(if (c.status=1 or c.status>=3, 1, 0)),
-   count(distinct uid),
+   count(distinct c.uid),
    sum(if (status=2, 1, 0)), 
    sum(if (status>3, 1, 0))
- FROM dv_calls c, nas n
- WHERE c.nas_id=n.id AND c.status<11
+ FROM dv_calls c  
+ INNER JOIN nas n ON (c.nas_id=n.id)
+ $EXT_TABLE
+ WHERE c.status<11 $WHERE
  GROUP BY c.nas_id
  ORDER BY $SORT $DESC;"
   );
@@ -126,15 +135,17 @@ sub online_count {
 
   if ($self->{TOTAL} > 0) {
     $self->query(
-      $db, "SELECT 1, count(uid),  
- 	   sum(if (c.status=1 or c.status>=3, 1, 0)),
- 	   sum(if (status=2, 1, 0))
+      $db, "SELECT 1, count(c.uid) AS total_users,  
+ 	   sum(if (c.status=1 or c.status>=3, 1, 0)) AS online,
+ 	   sum(if (c.status=2, 1, 0)) AS zaped
    FROM dv_calls c 
-   WHERE c.status<11
-   GROUP BY 1;"
+   $EXT_TABLE
+   WHERE c.status<11 $WHERE
+   GROUP BY 1;",
+   undef,
+   { INFO => 1 }
     );
-
-    (undef, $self->{TOTAL}, $self->{ONLINE}, $self->{ZAPED}) = @{ $self->{list}->[0] };
+   $self->{TOTAL} = $self->{TOTAL_USERS};
   }
 
   return $list;
@@ -424,6 +435,11 @@ sub online {
       push @WHERE_RULES, ($attr->{FILTER} =~ s/\*/\%/g) ? "$filter_field LIKE '$attr->{FILTER}'" : "$filter_field='$attr->{FILTER}'";
     }
   }
+
+  if (defined($attr->{GUEST})) {
+    push @WHERE_RULES, @{ $self->search_expr("$attr->{GUEST}", 'INT', 'c.guest') };
+  }
+
 
   $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES) : '';
 
