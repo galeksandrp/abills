@@ -21,8 +21,19 @@ my $Maps = Maps->new($db, $admin, \%conf);
 #use Storage;
 #my $Storage    = Storage->new($db, $admin, \%conf);
 
-#  check for installed GD
 
+# check Maps.pm version
+sub check_version {
+  if ($Maps::VERSION < 2.01) {
+    $html->message('info', "UPDATE", "Please update module 'Maps' to version 2.01 or higher. http://abills.net.ua/");
+    return 1;
+  }
+  else {
+    return 0;  
+  }  
+}
+
+#  check for installed GD
 sub check_modules {
   if (eval { require GD }) {
     GD->import();    # if needed
@@ -43,6 +54,9 @@ sub check_modules {
 #***********************************************************
 sub maps_add {
 
+  if (check_version()) {
+    return 0;
+  }
   if (check_modules()) {
     return 0;
   }
@@ -130,6 +144,9 @@ sub maps_add {
 #**********************************************************
 sub maps_main {
 
+  if (check_version()) {
+    return 0;
+  }
   if (check_modules()) {
     return 0;
   }
@@ -601,6 +618,9 @@ sub google_maps_add {
   if ($FORM{message}) {
     $html->message('info', $_INFO, "$FORM{message}");
   }
+  if (check_version()) {
+    return 0;
+  }
 
   @TYPES = ($_COAXIAL, $_FIBER_OPTIC);
   @TYPES_COLORS = ('#ff0000', '#000000');
@@ -1059,6 +1079,9 @@ sub google_maps_show {
   if ($FORM{message}) {
     $html->message('info', $_INFO, "$FORM{message}");
   }
+  if (check_version()) {
+    return 0;
+  }
 
   my ($attr) = @_;
 
@@ -1094,6 +1117,7 @@ sub google_maps_show {
       );
     }
   }
+  # Set filter cookies
 
   #Get users online  *****************************************
 
@@ -1250,6 +1274,18 @@ sub google_maps_show {
     #***********************************************************
     # template 	(maps_location_info)   +++DISTRICT_ID => $attr->{DISTRICT_ID},
     #***********************************************************
+  %ufilter = $html->getCookies();
+ 
+  if($ufilter{UFILTER} eq 'online') {
+    $user_info = '';
+    $count_offline = ''
+  }
+  elsif($ufilter{UFILTER} eq 'offline') {
+    $count_online = '';
+    $user_online = '';
+  } 
+
+
     $tpl_obj .= $html->tpl_show(
       _include('google_location_info', 'Maps'),
       {
@@ -1448,6 +1484,10 @@ sub google_maps_show_client {
     $html->message('info', $_INFO, "$FORM{message}");
   }
 
+  if (check_version()) {
+    return 0;
+  }
+  
   #Get builds (javascript)  **********************************
   $list = $Maps->build_list({ SHOW_MAPS_GOOGLE => 1, PAGE_ROWS => '100000' });
   if ($Maps->{errno}) {

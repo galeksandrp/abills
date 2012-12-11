@@ -26,3 +26,5 @@ $_SHOW_DISTRICTS = 'Показати меню райони';
 $_IN_NEW_WINDOW = 'В новому вікні';
 $_DISTRICT = 'Район';
 $_LINE = 'Линія';
+$_ONLY_ONLINE = 'Тільки онлайн';
+$_ONLY_OFFLINE = 'Тільки oфлайн'; 

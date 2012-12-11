@@ -31,4 +31,6 @@ $_ADD_WIFI_ZONE = 'Add Wi-Fi zone';
 $_ADD_WIFI_RADIUS = 'Add Wi-Fi radius';
 $_METERS_SHORT = 'm.';
 $_FIELDS_FOR_RADIUS_ARE_REQUIRED = 'Fields for radius are required';
-$_ADD_WELL = 'Add well'; 
+$_ADD_WELL = 'Add well';
+$_ONLY_ONLINE = 'Only online';
+$_ONLY_OFFLINE = 'Only offline'; 

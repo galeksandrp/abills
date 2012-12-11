@@ -33,3 +33,5 @@ $_WIFI_RADIUS = 'Зона покрытия';
 $_METERS_SHORT = 'м.';
 $_FIELDS_FOR_RADIUS_ARE_REQUIRED = 'Поле \'Добавить зону покрытия\' обязательное для заполнения';
 $_ADD_WELL = 'Добавить колодец';
+$_ONLY_ONLINE = 'Только онлайн';
+$_ONLY_OFFLINE = 'Только оффлайн';

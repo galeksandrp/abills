@@ -168,6 +168,10 @@ function hideShowDistrict ()
 	}
 }
 
+function submit_user_filter() {
+  document.mapUserShow.submit;
+}
+
 function fullScreenDistrict() {
 	var height = window.innerHeight;
 	var width = window.innerWidth;
@@ -176,6 +180,32 @@ function fullScreenDistrict() {
 	newWindow.document.getElementById('districtButton').style.display = 'none';
 }
 google.maps.event.addDomListener(window, 'load', initialize);
+
+
+ //alert($(\"#UFILTER :selected\").val(););
+
+\$(document).ready(function(){
+//alert();
+var uCookie = \$.cookie('UFILTER');
+//alert (uCookie) ;
+
+
+
+\$('#UFILTER').change(function() {
+  if(\$.cookie('UFILTER')) {
+    \$.cookie('UFILTER', null);
+  }
+  \$.cookie('UFILTER', \$(\"#UFILTER option:selected\").val());
+  \$(\"#mapUserShow\").submit() 
+});
+
+if(uCookie) {
+  \$('#UFILTER option[value=' + uCookie + ']').attr('selected', 'selected');
+}
+
+
+});
+
 </script>
 <br />
 <a  class='link_button' id=\"districtButton\" onclick=javascript:hideShowDistrict()>$_HIDE_DISTRICTS</a>
@@ -196,7 +226,17 @@ google.maps.event.addDomListener(window, 'load', initialize);
 
     <br />
     <div align=center >%DISTRICTS%  %DELDISTRICT%</div>
-     
+    <br />
+    <div align=center>
+      <form action=$SELF_URL ID='mapUserShow' name='mapUserShow'>
+        <input type=hidden name=index value=$index>
+        <select onchange=\"submit_user_filter()\" name='UFILTER' id='UFILTER'>
+          <option value='all'>$_ALL</option>
+          <option value='online'>$_ONLY_ONLINE</option>
+          <option value='offline'>$_ONLY_OFFLINE</option>
+        </select>
+      </form>
+    </div> 
   </td>
   <td>
     <!-- The frame used to measure the screen size -->
