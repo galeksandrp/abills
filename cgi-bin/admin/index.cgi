@@ -1712,8 +1712,12 @@ sub user_info {
     return 0;
   }
 
-  my $deleted = ($user_info->{DELETED}) ? $html->color_mark($html->b($_DELETED), '#FF0000') : '';
-  my $ext_menu = user_ext_menu($user_info->{UID}, $user_info->{LOGIN}, { SHOW_UID => 1 });
+  my $deleted   = ($user_info->{DELETED}) ? $html->color_mark($html->b($_DELETED), '#FF0000') : '';
+  my $ext_menu  = user_ext_menu($user_info->{UID}, $user_info->{LOGIN}, { SHOW_UID => 1 });
+  my $domain_id = '';
+  if ($admin->{DOMAIN_ID} == 0 && $user_info->{DOMAIN_ID} > 0) {
+  	$domain_id = " DOMAIN: $user_info->{DOMAIN_ID}";
+  }
 
   $table = $html->table(
     {
@@ -1721,7 +1725,7 @@ sub user_info {
       rowcolor   => 'even',
       border     => 0,
       cols_align => ['left:noprint'],
-      rows       => [ [ "$ext_menu" . $deleted ] ],
+      rows       => [ [ "$ext_menu" . $deleted . $domain_id ] ],
       class      => 'form',
     }
   );
