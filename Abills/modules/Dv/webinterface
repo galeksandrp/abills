@@ -7154,7 +7154,7 @@ sub dv_get_month_fee {
       $sum = $sum * (100 - $users->{REDUCTION}) / 100;
     }
 
-    $message .= "Internet: $_MONTH_FEE_SHORT $Dv->{TP_INFO}->{NAME} ($Dv->{TP_INFO}->{ID})";
+    $message .= dv_fees_dsc_former(\%FEES_DSC);
 
     if ($Dv->{TP_INFO}->{ABON_DISTRIBUTION}) {
       $sum = $sum / (($m != 2 ? (($m % 2) ^ ($m > 7)) + 30 : (!($y % 400) || !($y % 4) && ($y % 25) ? 29 : 28)));
@@ -8006,9 +8006,9 @@ print $table->show();
 #**********************************************************
 sub dv_fees_dsc_former () {
 	my ($attr)=@_;
-	
-	$conf{DV_FEES_DSC}='Internet: %FEES_PERIOD_MONTH%%FEES_PERIOD_DAY% %TP_NAME% (%TP_ID%) %PERIOD% %FEES_METHOD%' if (! $conf{DV_FEES_DSC});
-	
+
+	$conf{DV_FEES_DSC}='Internet: %FEES_PERIOD_MONTH%%FEES_PERIOD_DAY% %TP_NAME% (%TP_ID%) %PERIOD%' if (! $conf{DV_FEES_DSC});
+
 	my $text = $conf{DV_FEES_DSC};
 
   while ($text =~ /\%(\w+)\%/g) {
