@@ -3508,7 +3508,7 @@ sub dv_user_chg_tp {
   }
 
   if ($LIST_PARAMS{UID}) {
-    $Dv = $Dv->info($LIST_PARAMS{UID});
+    $Dv = $Dv->info($LIST_PARAMS{UID}, { DOMAIN_ID => $user->{DOMAIN_ID} });
     if ($Dv->{TOTAL} < 1) {
       $html->message('info', $_INFO, "$_NOT_ACTIVE", { ID => 22 });
       return 0;
