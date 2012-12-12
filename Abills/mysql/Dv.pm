@@ -67,8 +67,15 @@ sub info {
   if (defined($attr->{IP})) {
     $WHERE = "WHERE dv.ip=INET_ATON('$attr->{IP}')";
   }
-
-  $admin->{DOMAIN_ID} = 0 if (!defined($admin->{DOMAIN_ID}));
+  
+  my $domain_id = 0;
+  if ($admin->{DOMAIN_ID}) {
+    $domain_id = $admin->{DOMAIN_ID};
+  }
+  elsif ($attr->{DOMAIN_ID}) {
+    $domain_id = $attr->{DOMAIN_ID};
+  }
+  
 
   $self->query(
     $db, "SELECT dv.uid, 
@@ -99,7 +106,7 @@ sub info {
    tp.age AS tp_age,
    tp.filter_id AS tp_filter_id
      FROM dv_main dv
-     LEFT JOIN tarif_plans tp ON (dv.tp_id=tp.id and tp.domain_id='$admin->{DOMAIN_ID}')
+     LEFT JOIN tarif_plans tp ON (dv.tp_id=tp.id and tp.domain_id='$domain_id')
    $WHERE;",
    undef,
    { INFO => 1 }

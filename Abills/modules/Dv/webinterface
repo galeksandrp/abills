@@ -205,7 +205,7 @@ sub dv_chg_tp {
   else {
     my $tp_list = $tariffs->list({ 
     	                    MODULE    => 'Dv', 
-    	                    DOMAIN_ID => $admin->{DOMAIN_ID},
+    	                    DOMAIN_ID => $users->{DOMAIN_ID} || $admin->{DOMAIN_ID},
     	                    COLS_NAME => 1
     	                    });
 
@@ -600,14 +600,14 @@ sub dv_user {
     }
   }
 
-  $Dv->info($Dv->{UID});
+  $Dv->info($Dv->{UID}, { DOMAIN_ID => $users->{DOMAIN_ID} });
 
   if ($Dv->{TOTAL} < 1) {
     $Dv->{TP_ID} = $html->form_select(
       'TP_ID',
       {
         SELECTED          => $Dv->{TP_ID} || $FORM{TP_ID},
-        SEL_MULTI_ARRAY   => $tariffs->list({ MODULE => 'Dv' }),
+        SEL_MULTI_ARRAY   => $tariffs->list({ MODULE => 'Dv', DOMAIN_ID => $users->{DOMAIN_ID} }),
         MULTI_ARRAY_KEY   => 0,
         MULTI_ARRAY_VALUE => 1,
       }
@@ -1000,6 +1000,8 @@ sub dv_tp {
       SEL_MULTI_ARRAY   => [ [ '', '' ], @{ $tariffs->tp_group_list() } ],
       MULTI_ARRAY_KEY   => 0,
       MULTI_ARRAY_VALUE => 1,
+      MAIN_MENU         => get_function_index('form_tp_groups'),
+      MAIN_MENU_AGRV    => "chg=$tarif_info->{TP_GID}"
     }
   );
 

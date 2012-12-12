@@ -8308,6 +8308,7 @@ sub form_tp_groups {
       border     => 1,
       title      => [ '#', $_NAME, $_USER_CHG_TP, $_COUNT, '-', '-' ],
       cols_align => [ 'right', 'left', 'center', 'right', 'center:noprint', 'center:noprint' ],
+      ID         => 'TP_GROUPS'
     }
   );
 
@@ -8320,6 +8321,9 @@ sub form_tp_groups {
 
     if ($FORM{TP_ID} eq $line->[0]) {
       $table->{rowcolor} = 'row_active';
+    }
+    elsif($FORM{chg} eq $line->[0]) {
+    	$table->{rowcolor} = 'row_active';
     }
     else {
       undef($table->{rowcolor});
