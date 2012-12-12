@@ -112,9 +112,9 @@ sub online_count {
 
   my $EXT_TABLE = '';
   my $WHERE = '';
-  if($admin->{DOMAIN_ID}) {
+  if($attr->{DOMAIN_ID}) {
     $EXT_TABLE = ' INNER JOIN users u ON (c.uid=u.uid)';
-    $WHERE = ' AND u.domain_id';
+    $WHERE = " AND u.domain_id='$attr->{DOMAIN_ID}'";
   }
 
   $self->query(
@@ -132,7 +132,7 @@ sub online_count {
   );
 
   my $list = $self->{list};
-
+  $self->{ONLINE}=0;
   if ($self->{TOTAL} > 0) {
     $self->query(
       $db, "SELECT 1, count(c.uid) AS total_users,  
