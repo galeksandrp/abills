@@ -3872,7 +3872,8 @@ sub dv_user_chg_tp {
         MODULE       => 'Dv',
         PRIORITY     => $Dv->{TP_PRIORITY},
         COMMENTS     => '*',
-        COLS_NAME    => 1
+        COLS_NAME    => 1,
+        DOMAIN_ID    => $user->{DOMAIN_ID}
       }
     );
 
@@ -4474,7 +4475,7 @@ sub dv_user_info {
     );
   }
 
-  $Dv->info($LIST_PARAMS{UID});
+  $Dv->info($LIST_PARAMS{UID}, { DOMAIN_ID => $user->{DOMAIN_ID} });
   $user->{DV_STATUS} = $Dv->{STATUS};
 
   if ($Dv->{TOTAL} < 1) {
