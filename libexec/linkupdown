@@ -389,8 +389,8 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
         next;
       }
 
-      push @FW_ACTIONS, "$tc filter del dev $INTERFACE protocol ip parent 1: prio $fw_num_out u32 match ip dst $CLINT_IP > /dev/null 2>&1";
-      push @FW_ACTIONS, "$tc filter del dev $INTERFACE protocol ip parent ffff: prio $fw_num_in u32 match ip src $CLINT_IP > /dev/null 2>&1";
+      push @FW_ACTIONS, "$tc filter del dev $INTERFACE protocol ip parent 1: prio $fw_num_out u32 match ip dst $CLIENT_IP > /dev/null 2>&1";
+      push @FW_ACTIONS, "$tc filter del dev $INTERFACE protocol ip parent ffff: prio $fw_num_in u32 match ip src $CLIENT_IP > /dev/null 2>&1";
 
       if ($flowid) {
         push @FW_ACTIONS, "$tc class del dev $INTERFACE parent 1: classid 1:$flowid > /dev/null 2>&1";

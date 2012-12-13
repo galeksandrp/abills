@@ -210,6 +210,11 @@ apache_cert () {
 #**********************************************************
 ssh_key () {
   USER=$1;
+  
+  if [ x${USER} = x ]; then
+    USER=abills_admin
+  fi;
+  
   echo "**************************************************************************"
   echo "Creating SSH authentication Key"
   echo " Make ssh-keygen with empty password."
