@@ -100,7 +100,6 @@ sub ureports_users_list {
   my @EX_TITLE_ARR = split(/, /, $Ureports->{SEARCH_FIELDS});
 
   my %SEARCH_TITLES = (
-    'INET_NTOA(dv.ip)' => 'IP',
     'dv.speed'         => $_SPEED,
     'dv.port'          => $_PORT,
     'dv.cid'           => 'CID',
@@ -140,7 +139,7 @@ sub ureports_users_list {
     for (my $i = 0 ; $i < $Ureports->{SEARCH_FIELDS_COUNT} ; $i++) {
       push @fields_array, $line->[ 6 + $i ];
     }
-    my $uid = $line->[ 5 + $Ureports->{SEARCH_FIELDS_COUNT} ];
+    my $uid = $line->[ 6 + $Ureports->{SEARCH_FIELDS_COUNT} ];
     my $payments = ($permissions{1}) ? $html->button("$_PAYMENTS", "index=2&UID=$uid", { CLASS => 'payments' }) : '';
 
     $table->addrow($html->button("$line->[0]", "index=15&UID=$uid"), 

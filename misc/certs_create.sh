@@ -11,7 +11,7 @@ CA_pl='/usr/src/crypto/openssl/apps/CA.pl';
 
 hostname=`hostname`;
 password=whatever;
-VERSION=1.90;
+VERSION=1.91;
 DAYS=730;
 DATE=`date`;
 CERT_TYPE=$1;
