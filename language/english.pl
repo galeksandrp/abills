@@ -508,4 +508,5 @@ $_CURRENCY='Currency';
 $_ACCOMULATION='Accomulation';
 $_UNIVERSAL='Universal';
 $_YEAR_SHORT='y.';
+$_ACTIVATION_PAYMENT='Activation payment';
 

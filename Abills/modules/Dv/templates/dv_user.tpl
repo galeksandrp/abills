@@ -19,6 +19,7 @@ function check_status(object, text) {
 
 %ONLINE_TABLE%
 <br>
+<b>%PAYMENT_MESSAGE%</b>
 <form action='$SELF_URL' method='post'>
 <input type=hidden name='index' value='$index'>
 <input type=hidden name='UID' value='$FORM{UID}'>
