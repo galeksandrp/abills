@@ -1958,7 +1958,8 @@ sub paysys_liqpay {
         TRANSACTION_ID => "$FORM{OPERATION_ID}",
         INFO           => '-',
         PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}",
-        STATUS         => 1
+        STATUS         => 1,
+        DOMAIN_ID      => $user->{DOMAIN_ID}
       }
     );
 
