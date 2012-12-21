@@ -838,7 +838,8 @@ sub dv_user {
   );
 
   if ($Dv->{STATUS} && $Dv->{MONTH_ABON}+$Dv->{DAY_ABON} > $users->{DEPOSIT}) {
-    $Dv->{PAYMENT_MESSAGE} = "$_ACTIVATION_PAYMENT ". sprintf("%.2f", ($Dv->{DAY_ABON} - $users->{DEPOSIT}+$Dv->{MONTH_ABON}));
+  	my $sum=sprintf("%.2f", ($Dv->{DAY_ABON} - $users->{DEPOSIT}+$Dv->{MONTH_ABON})); 
+  $Dv->{PAYMENT_MESSAGE} = "$_ACTIVATION_PAYMENT $sum " . $html->button("$_PAYMENTS", "UID=$FORM{UID}&index=2&SUM=$sum", {CLASS => 'payments rightAlignText'});
   }
 
   $html->tpl_show(_include('dv_user', 'Dv'), { %$admin, %$attr, %$Dv }, { ID => 'dv_user' });
