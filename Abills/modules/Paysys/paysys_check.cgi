@@ -224,6 +224,13 @@ elsif ($FORM{from} eq 'Payonline') {
   require "Payonline.pm";
   exit;
 }
+elsif ($conf{PAYSYS_EXPPAY_ACCOUNT_KEY}
+  && ( $FORM{action} == 1
+    || $FORM{action} == 2
+    || $FORM{action} == 4 )) {
+  require "Express.pm";
+  exit;
+}
 elsif ($FORM{action} && $conf{PAYSYS_TELCELL_ACCOUNT_KEY}) {
   require "Telcell.pm";
   exit;
