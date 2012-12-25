@@ -216,6 +216,17 @@ sub new {
       exit;    #return 0;
     }
   }
+  elsif ($CONF->{HTML5}) {
+    require Abills::HTML5;
+    $self = Abills::HTML5->new(
+        {
+          IMG_PATH => $IMG_PATH,
+          NO_PRINT => defined($attr->{'NO_PRINT'}) ? $attr->{'NO_PRINT'} : 1,
+          CONF     => $CONF,
+          CHARSET  => $attr->{CHARSET}
+        }
+      );
+  }
 
   return $self;
 }
