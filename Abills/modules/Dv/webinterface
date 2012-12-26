@@ -699,7 +699,11 @@ sub dv_user {
     my $list = $sessions->online(
       {
         UID          => $Dv->{UID},
-        FIELDS_NAMES => [ CLIENT_IP_NUM, DURATION, INPUT_OCTETS, OUTPUT_OCTETS, NAS_NAME, UID, NAS_ID, NAS_PORT_ID, ACCT_SESSION_ID, USER_NAME ]
+        FIELDS_NAMES => [ CLIENT_IP_NUM, DURATION, INPUT_OCTETS, 
+        OUTPUT_OCTETS, NAS_NAME, UID, NAS_ID, NAS_PORT_ID, 
+        ACCT_SESSION_ID, 
+        USER_NAME,
+        GUEST_MODE ]
       }
     );
 
@@ -720,6 +724,7 @@ sub dv_user {
           $line->[1],
           int2byte($line->[2]),
           int2byte($line->[3]),
+          ($line->[10]==1) ? $_GUEST : '', 
           $html->button("$line->[4]", "index=$online_index&NAS_ID=$line->[6]"),
           $html->button('Z', "index=$online_index&zap=$Dv->{UID}" . '+' . $line->[6] . '+' . $line->[7] . '+' . $line->[8] . $pages_qs,                       { TITLE => 'Zap',    CLASS => 'del', NO_LINK_FORMER => 1 }),
           $html->button('H', "index=$online_index&FRAMED_IP_ADDRESS=" . int2ip($line->[0]) . "&hangup=$line->[6]+$line->[7]+$line->[8]+$line->[9]&$pages_qs", { TITLE => 'Hangup', CLASS => 'off', NO_LINK_FORMER => 1 })

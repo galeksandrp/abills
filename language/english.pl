@@ -509,4 +509,5 @@ $_ACCOMULATION='Accomulation';
 $_UNIVERSAL='Universal';
 $_YEAR_SHORT='y.';
 $_ACTIVATION_PAYMENT='Activation payment';
+$_GUEST='Guest';
 
