@@ -340,10 +340,10 @@ sub form_info {
     $month_changes = 0 if (!$month_changes);
     my $credit_date = strftime "%Y-%m-%d", localtime(time + int($days) * 86400);
     if (in_array('Dv', \@MODULES)) {
-      require "Abills/modules/Dv/webinterface";
+      load_module('Dv', $html);
       my $Dv = Dv->new($db, $admin, \%conf);
       $Dv->info($user->{UID});
-      $sum = $Dv->{TP_CREDIT} if ($Dv->{TP_CREDIT} > 0);
+      $sum = $Dv->{TP_CREDIT} if ($sum == 0 && $Dv->{TP_CREDIT} > 0);
     }
 
     if ($month_changes) {
