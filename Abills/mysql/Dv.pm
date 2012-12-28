@@ -106,7 +106,7 @@ sub info {
    tp.age AS tp_age,
    tp.filter_id AS tp_filter_id
      FROM dv_main dv
-     LEFT JOIN tarif_plans tp ON (dv.tp_id=tp.id and tp.domain_id='$domain_id')
+     LEFT JOIN tarif_plans tp ON ((tp.module='Dv' or tp.module='') AND dv.tp_id=tp.id and tp.domain_id='$domain_id')
    $WHERE;",
    undef,
    { INFO => 1 }
