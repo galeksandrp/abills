@@ -18,10 +18,11 @@
 	 }
 </script>
 
+
+<div class='login_form_border'>
+<div class='kabinet-styled_table-wrap box_shadow border_rad'>
 <br>
 <br>
-
-
 <form action='$SELF_URL' METHOD='post' name=form_login>
 <input type=hidden name=DOMAIN_ID value='$FORM{DOMAIN_ID}'>
 <input type=hidden ID=REFERRER name=REFERRER value='$FORM{REFERRER}'>
@@ -34,6 +35,8 @@
 <tr><th colspan='2' class=even><input type='submit' name='logined' value=' $_ENTER ' onclick='set_referrer()'></th></TR>
 </TABLE>
 </form>
-
+<br>
+</div>
+</div>
 <br>
 <br>
