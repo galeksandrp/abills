@@ -519,8 +519,36 @@ sub reports {
 
   undef @WHERE_RULES;
   my $date = '';
+  my $EXT_TABLES = '';
 
-  if (defined($attr->{MONTH})) {
+  if ($attr->{INTERVAL}) {
+    my ($from, $to) = split(/\//, $attr->{INTERVAL}, 2);
+    push @WHERE_RULES, "date_format(l.start, '%Y-%m-%d')>='$from' and date_format(l.start, '%Y-%m-%d')<='$to'";
+    $attr->{TYPE} = '-' if (!$attr->{TYPE});
+    if ($attr->{TYPE} eq 'HOURS') {
+      $date = "date_format(l.start, '\%H')";
+    }
+    elsif ($attr->{TYPE} eq 'DAYS') {
+      $date = "date_format(l.start, '%Y-%m-%d')";
+    }
+    elsif ($attr->{TYPE} eq 'TP') {
+      $date = "l.tp_id";
+    }
+    elsif ($attr->{TYPE} eq 'TERMINATE_CAUSE') {
+      $date = "l.terminate_cause";
+    }
+    elsif ($attr->{TYPE} eq 'GID') {
+      $date = "u.gid";
+    }
+    elsif ($attr->{TYPE} eq 'COMPANIES') {
+      $date       = "c.name";
+      $EXT_TABLES = "INNER JOIN companies c ON (c.id=u.company_id)";
+    }
+    else {
+      $date = "u.id";
+    }
+  }
+  elsif (defined($attr->{MONTH})) {
     push @WHERE_RULES, "date_format(l.start, '%Y-%m')='$attr->{MONTH}'";
     $date = "date_format(l.start, '%Y-%m-%d')";
   }

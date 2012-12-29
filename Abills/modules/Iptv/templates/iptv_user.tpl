@@ -2,6 +2,7 @@
 <form action=$SELF_URL method=post>
 <input type=hidden name=index value=$index>
 <input type=hidden name=UID value='$FORM{UID}'>
+<input type=hidden name=TP_IDS value='%TP_IDS%'>
 <table width=500 cellspacing=0 cellpadding=3 class=form>
 <tr><td>$_TARIF_PLAN:</td><td valign=middle>[%TP_NUM%]<b> %TP_NAME% </b> %CHANGE_TP_BUTTON%</td></tr>
 <tr><td>Filter-ID:</td><td><input type=text name=FILTER_ID value='%FILTER_ID%'></td></tr>

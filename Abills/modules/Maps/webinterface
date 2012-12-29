@@ -155,27 +155,30 @@ sub maps_main {
     return 0;
   }
 
-  my $list = $Maps->districts_list({ PAGE_ROWS => 1000 });
+  $newcheckbox = $html->form_select("DISTRICT_IDS", 
+							{	SELECTED          => $FORM{DISTRICT_IDS},
+								SEL_MULTI_ARRAY   => [ @{ $Maps->districts_list({ PAGE_ROWS => 1000 }) } ], 
+								MULTI_ARRAY_KEY   => 0,
+								MULTI_ARRAY_VALUE => 1,
+								NO_ID             => 1
+							});	
 
-  foreach my $line (@$list) {
-    $newcheckbox .= "<tr><td>" . $html->form_input(
-      'DISTRICT_IDS',
-      $line->[0],
+  
+  $user_filter = $html->form_select(
+      "USER_FILTER",
       {
-        TYPE => 'checkbox',
-
-      },
-      { OUTPUT2RETURN => 1 }
-    )
-    . ' '
-    . $line->[1]
-    . "<td></tr>";
-
-  }
+        SELECTED     => $FORM{USER_FILTER} || 0,
+        SEL_ARRAY    => [$_ALL, $_ONLY_ONLINE, $_ONLY_OFFLINE],
+        ARRAY_NUM_ID => 0,
+        NO_ID        => 1
+      }
+    );
+  
 
   $html->tpl_show(
     _include('maps_view_region', 'Maps'),
     {
+      TYPES           => $user_filter,
       DISTRICTS_TABLE => $newcheckbox,
       SHOW_USERS      => (defined($FORM{SHOW_USERS})) ? (($FORM{SHOW_USERS} == 1) ? 'checked' : undef) : '',
       SHOW_NAS        => (defined($FORM{SHOW_NAS})) ? (($FORM{SHOW_NAS} == 1) ? 'checked' : undef) : ''
@@ -384,6 +387,23 @@ sub maps_map_show {
     #***********************************************************
     # template 	(maps_location_info)   +++DISTRICT_ID => $attr->{DISTRICT_ID},
     #***********************************************************
+    
+    
+    $user_online = "<strong><font color=green>$_USER online($count_online)</font></strong><br /> $user_online ";
+    $user_info = "<strong><font color=red>$_USERS($count_offline):</font></strong><br />  $user_info ";
+    
+    if($FORM{USER_FILTER} == 1) {
+      $user_info = '';
+      $count_offline = '';
+    }
+    elsif($FORM{USER_FILTER} == 2) {
+      $count_online = '';
+      $user_online = '';
+    }
+    
+    
+     
+    
     $tpl_obj .= $html->tpl_show(
       _include('maps_location_info', 'Maps'),
       {
@@ -399,11 +419,8 @@ sub maps_map_show {
         MAP_Y4             => $line->[14],
         USER_OFFLINE       => $user_info,
         USERS_ONLINE       => $user_online,
-        USER_COUNT_OFFLINE => $count_offline,
-        USER_COUNT_ONLINE  => $count_online,
 
         #	                                                          					INSTALL_INFO  => $install_info
-
       },
       { OUTPUT2RETURN => 1 }
     );

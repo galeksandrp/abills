@@ -5650,7 +5650,7 @@ sub dv_monthly_fees {
               #*******************************************
               #Unblock Small deposit status
               if ($TP_INFO->{SMALL_DEPOSIT_ACTION} && $month_fee < $user{DEPOSIT}) {
-        	      if ($TP_INFO->{ABON_DISTRIBUTION} && $conf{DV_FULL_MONTH} && $month_fee * $days_in_month < $user{DEPOSIT}) {
+        	      if ($TP_INFO->{ABON_DISTRIBUTION} && $conf{DV_FULL_MONTH} && $month_fee * $days_in_month > $user{DEPOSIT}) {
                   next;
                 }
               	
