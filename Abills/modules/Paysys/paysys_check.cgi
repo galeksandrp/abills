@@ -1869,4 +1869,29 @@ sub yandex () {
 	
   print "Location: https://$ENV{SERVER_NAME}:$ENV{SERVER_PORT}/index.cgi?get_index=paysys_payment&PAYMENT_SYSTEM=$payment_system_id&code=$FORM{code}\n\n";
 }
+
+#**********************************************************
+# get_fees_types
+#
+# return $Array_ref
+#**********************************************************
+sub get_fees_types {
+  my ($attr) = @_;
+
+  use Finance;
+  my %FEES_METHODS = ();
+  my $fees         = Finance->fees($db, $admin, \%conf);
+  my $list         = $fees->fees_type_list({ PAGE_ROWS => 10000 });
+  foreach my $line (@$list) {
+    if ($FORM{METHOD} && $FORM{METHOD} == $line->[0]) {
+      $FORM{SUM}      = $line->[3] if ($line->[3] > 0);
+      $FORM{DESCRIBE} = $line->[2] if ($line->[2]);
+    }
+
+    $FEES_METHODS{ $line->[0] } = (($line->[1] =~ /\$/) ? eval($line->[1]) : $line->[1]) . (($line->[3] > 0) ? (($attr->{SHORT}) ? ":$line->[3]" : " ($_SERVICE $_PRICE: $line->[3])") : '');
+  }
+
+  return \%FEES_METHODS;
+}
+
 1

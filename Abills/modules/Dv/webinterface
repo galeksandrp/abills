@@ -5650,7 +5650,7 @@ sub dv_monthly_fees {
               #*******************************************
               #Unblock Small deposit status
               if ($TP_INFO->{SMALL_DEPOSIT_ACTION} && $month_fee < $user{DEPOSIT}) {
-        	      if ($TP_INFO->{ABON_DISTRIBUTION} && $conf{DV_FULL_MONTH} && $month_fee * $days_in_month > $user{DEPOSIT}) {
+        	      if ($user{DV_STATUS} && $conf{DV_FULL_MONTH} && $month_fee * $days_in_month > $user{DEPOSIT}) {
                   next;
                 }
               	
@@ -7810,7 +7810,7 @@ sub dv_payments_maked {
         STATUS => 0
       }
     );
-
+    
     $Dv->{ACCOUNT_ACTIVATE} = $attr->{USER_INFO}->{ACTIVATE} || '0000-00-00';
     dv_get_month_fee($Dv, $attr);
   }
