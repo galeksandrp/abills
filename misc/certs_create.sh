@@ -11,14 +11,14 @@ CA_pl='/usr/src/crypto/openssl/apps/CA.pl';
 
 hostname=`hostname`;
 password=whatever;
-VERSION=1.91;
+VERSION=1.92;
 DAYS=730;
 DATE=`date`;
 CERT_TYPE=$1;
 CERT_USER="";
 OPENSSL=`which openssl`
 CERT_LENGTH=2048;
-
+OS=`uname`;
 
 if [ w$1 = whelp ]; then
   shift ;
@@ -144,7 +144,6 @@ x509_cert () {
 
   ${OPENSSL} x509 -inform pem -in ${EASYSOFT_PUBLIC_KEY} -pubkey -out ${CERT_PATH}/${SYSTEM_NAME}_public_key.pem > ${CERT_PATH}/${SYSTEM_NAME}_server_public.pem
 
-
   CERT_LENGTH=1024;
   # Private key
   ${OPENSSL} genrsa -out ${SYSTEM_NAME}_private.ppk ${CERT_LENGTH} 
@@ -266,7 +265,12 @@ ssh_key () {
 
     if [ x${UPLOAD_FTP} = xy ]; then
       echo "Make upload to: ${HOSTNAME}:/${id_dsa_file}.pub ${CERT_PATH}${id_dsa_file}.pub"
-      ftp -u ${HOSTNAME}:/${id_dsa_file}.pub ${CERT_PATH}${id_dsa_file}.pub
+
+      if [ x${OS} = xFreeBSD ] ; then
+         FTP_OPTIONS="-u";
+      fi;
+
+      ftp ${FTP_OPTIONS} ${HOSTNAME}:/${id_dsa_file}.pub ${CERT_PATH}${id_dsa_file}.pub
       HOSTNAME=`echo ${HOSTNAME} | awk -F@ '{print $2}'`;
     else 
       echo "Making upload to: ${USER}@${HOSTNAME} "
