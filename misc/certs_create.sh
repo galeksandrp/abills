@@ -268,10 +268,16 @@ ssh_key () {
 
       if [ x${OS} = xFreeBSD ] ; then
          FTP_OPTIONS="-u";
+         ftp ${FTP_OPTIONS} ${HOSTNAME}:/${id_dsa_file}.pub ${CERT_PATH}${id_dsa_file}.pub
+      else
+        echo -n "Enter ftp password: "
+        read FTP_PASSWD
+        (echo user ${USER} "${FTP_PASSWD}"; echo "cd /"; echo "ls"; echo "lcd ${CERT_PATH}";  echo "put ${id_dsa_file}.pub"; ) | ftp -ivn ${HOSTNAME}
       fi;
 
-      ftp ${FTP_OPTIONS} ${HOSTNAME}:/${id_dsa_file}.pub ${CERT_PATH}${id_dsa_file}.pub
+
       HOSTNAME=`echo ${HOSTNAME} | awk -F@ '{print $2}'`;
+      exit;
     else 
       echo "Making upload to: ${USER}@${HOSTNAME} "
       ssh -p ${SSH_PORT} ${USER}@${HOSTNAME} "mkdir ~/.ssh"

@@ -842,9 +842,14 @@ sub dv_user {
     }
   );
 
-  if ($Dv->{STATUS} && $Dv->{MONTH_ABON}+$Dv->{DAY_ABON} > $users->{DEPOSIT}) {
-  	my $sum=sprintf("%.2f", ($Dv->{DAY_ABON} - $users->{DEPOSIT}+$Dv->{MONTH_ABON})); 
-  $Dv->{PAYMENT_MESSAGE} = "$_ACTIVATION_PAYMENT $sum " . $html->button("$_PAYMENTS", "UID=$FORM{UID}&index=2&SUM=$sum", {CLASS => 'payments rightAlignText'});
+  my $total_fee = $Dv->{MONTH_ABON}+$Dv->{DAY_ABON};
+  if ($users->{REDUCTION}) {
+    $total_fee = $total_fee * (100 - $users->{REDUCTION}) / 100;
+  }
+
+  if ($Dv->{STATUS} && $total_fee > $users->{DEPOSIT}) {
+  	my $sum=sprintf("%.2f", abs($total_fee - $users->{DEPOSIT})); 
+    $Dv->{PAYMENT_MESSAGE} = "$_ACTIVATION_PAYMENT $sum " . $html->button("$_PAYMENTS", "UID=$FORM{UID}&index=2&SUM=$sum", {CLASS => 'payments rightAlignText'});
   }
 
   $html->tpl_show(_include('dv_user', 'Dv'), { %$admin, %$attr, %$Dv }, { ID => 'dv_user' });
@@ -7797,10 +7802,10 @@ sub dv_payments_maked {
 
   my $deposit = $attr->{USER_INFO}->{DEPOSIT} + (($attr->{USER_INFO}->{CREDIT} > 0) ? $attr->{USER_INFO}->{CREDIT} : ( (!$conf{user_credit_change}) ? $Dv->{TP_CREDIT} : 0 ) ) + (( $attr->{SUM})? $attr->{SUM} : 0 );
 
-  my $abon_fees = ($attr->{USER_INFO}->{REDUCTION}) ? $Dv->{MONTH_ABON} + $Dv->{DAY_ABON} : ($Dv->{MONTH_ABON} + $Dv->{DAY_ABON}) * (100 - $attr->{USER_INFO}->{REDUCTION}) / 100;
+  my $abon_fees = ($attr->{USER_INFO}->{REDUCTION}==0) ? $Dv->{MONTH_ABON} + $Dv->{DAY_ABON} : ($Dv->{MONTH_ABON} + $Dv->{DAY_ABON}) * (100 - $attr->{USER_INFO}->{REDUCTION}) / 100;
 
   if($conf{DV_FULL_MONTH}) {
-  	$abon_fees = ($attr->{USER_INFO}->{REDUCTION}) ? $Dv->{MONTH_ABON} + $Dv->{DAY_ABON}*30 : ($Dv->{MONTH_ABON} + $Dv->{DAY_ABON}*30) * (100 - $attr->{USER_INFO}->{REDUCTION}) / 100;
+  	$abon_fees = ($attr->{USER_INFO}->{REDUCTION}==0) ? $Dv->{MONTH_ABON} + $Dv->{DAY_ABON}*30 : ($Dv->{MONTH_ABON} + $Dv->{DAY_ABON}*30) * (100 - $attr->{USER_INFO}->{REDUCTION}) / 100;
   }
 
   if ($Dv->{STATUS} > 3 && ($deposit > $abon_fees || (! $conf{DV_FULL_MONTH} && $Dv->{ABON_DISTRIBUTION}) )) {
