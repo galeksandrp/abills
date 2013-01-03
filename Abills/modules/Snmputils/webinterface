@@ -1,4 +1,3 @@
-#!/usr/bin/perl
 # Snmputils module
 # managment snmp devices
 
@@ -328,7 +327,8 @@ sub snmputils_monitor {
     'bsr1000'       => \&snmputils_docsis_modems,
     'dlink_pb'      => \&snmputils_dlink_pb_monitor,
     'mikrotik_info' => \&snmputils_mikrotik_info,
-    'zyxel_smf'     => \&snmputils_zyxel_smf_monitor
+    'zyxel_smf'     => \&snmputils_zyxel_smf_monitor,
+    'mikrotik'      => \&snmputils_mikrotik
   );
 
   $info{NAS_TYPES} = $html->form_select(
@@ -339,7 +339,7 @@ sub snmputils_monitor {
         'pm25'          => 'Portmaster 2/3',
         'patton'        => 'Patton RAS 29xx',
         'cisco_air'     => 'Cisco Aironets',
-        'mikrotik'      => 'Mikrotik (not work yet)',
+        'mikrotik'      => 'Mikrotik ',
         'bsr1000'       => 'BSR1000 Modems',
         'docsis'        => 'Docsis modems',
         'dlink_pb'      => 'D-Link port binding',
@@ -376,7 +376,6 @@ sub snmputils_monitor {
   }
 
   if ($FORM{HOST}) {
-
     #    $func_hash{$NAS_TYPE}->();
   }
   elsif ($FORM{NAS_TYPE}) {
@@ -2446,6 +2445,43 @@ sub snmputils_zyxel_smf {
 
 #*******************************************************************
 #
+#*******************************************************************
+sub snmputils_mikrotik_air {
+  my ($attr) = @_;
+
+  my $debug          = $FORM{DEBUG}            || 0;
+  my $SNMP_COMMUNITY = $attr->{SNMP_COMMUNITY} || '';
+  my $message        = '';
+
+
+  my %result  = &snmpwalkhash("$SNMP_COMMUNITY", \&my_simple_hash, $FORM{TYPE});
+  my @RES_ARR = sort { $a <=> $b } keys %{ $result{"$CAPTION[0]"} };
+
+  if ($SNMP_Session::errmsg) {
+    print $html->message('err', $_ERROR, "$FORM{TYPE}" . $html->br() . "$SNMP_Session::suppress_warnings / $SNMP_Session::errmsg");
+  }
+
+  $table = $html->table(
+      {
+        width      => '100%',
+        border     => 1,
+        ID         => 'SNMP_MIKROTIK_AIR',
+      }
+    );
+
+    foreach my $k (@RES_ARR) {
+      my @arr = ($k);
+      foreach my $ft (@CAPTION) {
+        push @arr, ($OIDS_EXINFO{$ft}{ACCESS} eq 'read-write') ? $html->button("$result{$ft}{$k}", "index=$index&change=1&SNMP_INDEX=$k&SNMP_OID=$OIDS_HASH{$ft}$page_qs") : $result{$ft}{$k};
+      }
+      $table->addrow(@arr);
+      $rows_count++;
+    }
+
+  print $table->show();
+}
+
+#*******************************************************************
 #
 #*******************************************************************
 sub snmputils_ciscoair {
@@ -2937,7 +2973,6 @@ sub snmputils_mikrotik_info {
       SINGLE         => \%fields
     }
   );
-
 }
 
 #**********************************************************
@@ -3185,7 +3220,6 @@ sub snmputils_load_mibs {
 #
 #**********************************************************
 sub snmputils_ports_state {
-	
 	  my %result  = &snmpwalkhash("$SNMP_COMMUNITY", \&my_simple_hash, $FORM{TYPE});
     my @RES_ARR = sort { $a <=> $b } keys %{ $result{"$CAPTION[0]"} };
 
@@ -3284,7 +3318,8 @@ sub snmp_info_form {
         'cisco_air'         => 'Cisco Aironet Asociation',
         'celan'             => 'CeLAN MAC Table',
         'cable_tester'      => 'Cable tester (D-Link)',
-        'ports_state'       => 'Port State'
+        'ports_state'       => 'Port State',
+        'mikrotik_air'      => 'Mikrotik Signal Power'
       },
       NO_ID => 1
     }
@@ -3301,6 +3336,8 @@ sub snmp_info_form {
   );
 
   if ($FORM{change}) {
+  	print "hello";
+  	
     my $SNMP_COMMUNITY = "$FORM{SNMP_COMMUNITY}\@$FORM{SNMP_HOST}";
 
     if ($FORM{NAS_ID}) {

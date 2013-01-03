@@ -935,7 +935,7 @@ sub msgs_admin {
   	                                DESC      => (!$FORM{sort}) ? 'DESC' : $FORM{desc}, 
   	                                COLS_NAME => 1
                                  });
-
+  
   my $table = $html->table(
     {
       width      => '100%',
@@ -945,7 +945,8 @@ sub msgs_admin {
       qs         => $pages_qs,
       pages      => $Msgs->{TOTAL},
       ID         => 'MSGS_LIST',
-      header     => (
+      header     => 
+      (
         (scalar keys %CHAPTERS_DELIGATION == 0)
         ? "<script language=\"JavaScript\" type=\"text/javascript\">
 <!-- 
@@ -960,7 +961,8 @@ function CheckAllINBOX() {
 </script>\n<a href=\"javascript:void(0)\" onClick=\"CheckAllINBOX();\">$_SELECT_ALL</a>\n"
         : ''
       )
-      . $status_bar
+      . 
+     $status_bar
     }
   );
 
@@ -1072,8 +1074,9 @@ sub msgs_status_bar {
     $pages_qs =~ s/UID=\d+//;
   }
 
+  my @header_arr = ();
+
   my $i          = 0;
-  my $status_bar = '';
   $pages_qs =~ s/\&ALL_OPENED=1|\&ALL_MSGS=1//;
   $pages_qs =~ s/STATE=\d+//;
   $pages_qs .= "&CHAPTER=$FORM{CHAPTER}" if ($FORM{CHAPTER});
@@ -1081,10 +1084,10 @@ sub msgs_status_bar {
   foreach my $name (@msg_status) {
     if (defined($FORM{STATE}) && $FORM{STATE} == $i && $FORM{STATE} ne '') {
       $LIST_PARAMS{STATE} = $FORM{STATE};
-      $status_bar .= ' ' . $html->b($name);
+      push @header_arr, $name;
     }
     else {
-      $status_bar .= ' ' . $html->button("$name", "index=$index&STATE=$i$pages_qs", { BUTTON => 1 });
+      push @header_arr, "$name:index=$index&STATE=$i$pages_qs";
     }
     $i++;
   }
@@ -1094,18 +1097,20 @@ sub msgs_status_bar {
   }
 
   if ($FORM{ALL_OPENED} || $FORM{STATE} eq '0;3;4;5;6;7') {
-    $status_bar = $html->button("$_ALL", "index=$index&ALL_MSGS=1$pages_qs", { BUTTON => 1 }) . ' ' . $html->b("$_ACTIVE") . $status_bar;
+    @header_arr = ("$_ALL:index=$index&ALL_MSGS=1$pages_qs", "$_ACTIVE", @header_arr);
     $LIST_PARAMS{STATE} = "0;3;4;5;6;7";
     $pages_qs .= "&ALL_OPENED=1";
   }
   elsif ($FORM{ALL_MSGS} || $FORM{STATE} eq '') {
-    $status_bar = $html->b($_ALL) . ' ' . $html->button("$_ACTIVE", "index=$index&ALL_OPENED=1$pages_qs", { BUTTON => 1 }) . $status_bar;
+    @header_arr = ("$_ALL", "$_ACTIVE:index=$index&ALL_OPENED=1$pages_qs", @header_arr);
     $pages_qs .= "&ALL_MSGS=1";
   }
   else {
-    $status_bar = $html->button("$_ALL", "index=$index&ALL_MSGS=1$pages_qs", { BUTTON => 1 }) . ' ' . $html->button("$_ACTIVE", "index=$index&ALL_OPENED=1$pages_qs", { BUTTON => 1 }) . $status_bar;
+    @header_arr = ("$_ALL:index=$index&ALL_MSGS=1$pages_qs", "$_ACTIVE:index=$index&ALL_OPENED=1$pages_qs", @header_arr);
     $pages_qs .= "&STATE=$FORM{STATE}";
   }
+
+  my $status_bar = $html->table_header(\@header_arr);
 
   return $status_bar;
 }
@@ -1409,30 +1414,40 @@ sub msgs_user {
 
   $pages_qs =~ s/\&ALL_OPENED=1|\&ALL_MSGS=1//;
   $pages_qs =~ s/STATE=\d+//;
+  my @status_bar = ();
   my $i = 0;
   foreach my $name (@msg_status) {
     if (defined($FORM{STATE}) && $FORM{STATE} == $i && $FORM{STATE} ne '') {
       $LIST_PARAMS{STATE} = ($FORM{STATE} == 0) ? '0;6' : $FORM{STATE};
-      $status_bar .= ' ' . $html->b($name);
+      push @status_bar, $name;
     }
     else {
-      $status_bar .= ' ' . $html->button("$name", "index=$index&STATE=$i$pages_qs");
+      push @status_bar, "$name:index=$index&STATE=$i$pages_qs";
     }
     $i++;
   }
 
   #======================
   if ($FORM{ALL_OPENED} || $FORM{STATE} eq '0;3;4;5;6;7') {
-    $status_bar = $html->button("$_ALL", "index=$index&ALL_MSGS=1$pages_qs") . ' ' . $html->b("$_ACTIVE") . $status_bar;
+    @status_bar = ("$_ALL:index=$index&ALL_MSGS=1$pages_qs", 
+                   "$_ACTIVE", 
+                   @status_bar);
+
     $LIST_PARAMS{STATE} = "0;3;4;5;6;7";
     $pages_qs .= "&ALL_OPENED=1";
   }
   elsif ($FORM{ALL_MSGS} || $FORM{STATE} eq '') {
-    $status_bar = $html->b($_ALL) . ' ' . $html->button("$_ACTIVE", "index=$index&ALL_OPENED=1$pages_qs") . $status_bar;
+    @status_bar = ( "$_ALL",
+                    "$_ACTIVE:index=$index&ALL_OPENED=1$pages_qs",
+                    @status_bar);
+
     $pages_qs .= "&ALL_MSGS=1";
   }
   else {
-    $status_bar = $html->button("$_ALL", "index=$index&ALL_MSGS=1$pages_qs") . ' ' . $html->button("$_ACTIVE", "index=$index&ALL_OPENED=1$pages_qs") . $status_bar;
+    @status_bar = ( "$_ALL:index=$index&ALL_MSGS=1$pages_qs",
+                    "$_ACTIVE:index=$index&ALL_OPENED=1$pages_qs",
+                    @status_bar);
+
     $pages_qs .= "&STATE=$FORM{STATE}";
   }
 
@@ -1447,7 +1462,7 @@ sub msgs_user {
       qs          => $pages_qs,
       pages       => $Msgs->{TOTAL},
       ID          => 'MSGS_LIST',
-      header      => $status_bar
+      header      => \@status_bar
     }
   );
 

@@ -1108,6 +1108,10 @@ sub table {
   }
 
   if ($attr->{header}) {
+  	if (ref $attr->{header} eq 'ARRAY') {
+  	  $attr->{header}=$self->table_header($attr->{header});
+    }
+
     push @header_obj, $attr->{header};
   }
 
@@ -1288,6 +1292,34 @@ sub table_title_plain {
 
   $self->{table_title} .= "</TR>\n";
   return $self->{table_title};
+}
+
+#*******************************************************************
+# Show table column  titles with wort derectives
+# Arguments
+# table_header($header);
+# $header_arr - array of elements
+#*******************************************************************
+sub table_header {
+  my $self = shift;
+  my ($header_arr) = @_;
+  
+  my $header = '';
+  
+  foreach my $element ( @{ $header_arr } ) {
+  	my ($name, $url)= split(/:/, $element, 2);
+  	#$header .= ' <li>';
+  	$header .= ' ';
+  	if ($url) {
+  	  $header .= $self->button($name, $url, { BUTTON => 1 });
+  	}
+  	else {
+  		$header .= $self->b($name);
+  	}
+  	#$header .= '</li>';
+  }
+
+  return $header;
 }
 
 #*******************************************************************
