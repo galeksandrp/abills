@@ -1,4 +1,3 @@
-#/usr/bin/perl
 # Bonus web functions
 
 use Bonus;
