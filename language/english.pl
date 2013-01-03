@@ -511,3 +511,5 @@ $_YEAR_SHORT='y.';
 $_ACTIVATION_PAYMENT='Activation payment';
 $_GUEST='Guest';
 
+$_ACTIVATE_NEXT_PERIOD='For next activation period';
+

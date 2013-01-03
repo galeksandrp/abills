@@ -1338,6 +1338,23 @@ sub form_money_transfer {
 #**********************************************************
 sub form_neg_deposit {
   my ($user, $attr) = @_;
+  
+  $user->{TOTAL_DEBET} = 0;
+  
+  my $cross_modules_return = cross_modules_call('_docs');
+  foreach my $module (sort keys %$cross_modules_return) {
+    if (ref $cross_modules_return->{$module} eq 'ARRAY') {
+      next if ($#{ $cross_modules_return->{$module} } == -1);
+      foreach my $line (@{ $cross_modules_return->{$module} }) {
+        my ($name, $describe, $sum) = split(/\|/, $line);
+        $user->{TOTAL_DEBET}+=$sum;
+      }      
+    }
+  }
+
+  $user->{TOTAL_DEBET} += abs($user->{DEPOSIT}) if ($user->{DEPOSIT} < 0);
+  $user->{TOTAL_DEBET} = sprintf("%.2f", $user->{TOTAL_DEBET});
+  $pages_qs = "&SUM=$user->{TOTAL_DEBET}";
 
   if (in_array('Docs', \@MODULES)) {
     my $fn_index = get_function_index('docs_invoices_list');
@@ -1348,6 +1365,12 @@ sub form_neg_deposit {
     my $fn_index = get_function_index('paysys_payment');
     $user->{PAYMENT_BUTTON} = $html->button("$_BALANCE_RECHARCHE", "index=$fn_index$pages_qs", { BUTTON => 1 });
   }
+
+  if (in_array('Cards', \@MODULES)) {
+    my $fn_index = get_function_index('cards_user_payment');
+    $user->{CARDS_BUTTON} = $html->button("$_ICARDS", "index=$fn_index$pages_qs", { BUTTON => 1 });
+  }
+
 
   $html->tpl_show(templates('form_neg_deposit'), $user);
 }
