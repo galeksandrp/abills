@@ -814,12 +814,8 @@ sub get_speed {
   $self->{SEARCH_FIELDS}       = '';
   $self->{SEARCH_FIELDS_COUNT} = 0;
 
-  
   $SORT      = ($attr->{SORT})      ? $attr->{SORT}      : 'tp.tp_id, tt.id';
   $DESC      = ($attr->{DESC})      ? $attr->{DESC}      : '';
-
-
-   
 
   if ($attr->{LOGIN}) {
     push @WHERE_RULES, @{ $self->search_expr($attr->{LOGIN}, 'STR', 'u.id') };

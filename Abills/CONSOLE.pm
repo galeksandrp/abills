@@ -3,7 +3,7 @@ package Abills::CONSOLE;
 #XML Functions
 
 use strict;
-use vars qw(@ISA @EXPORT @EXPORT_OK %EXPORT_TAGS $VERSION %h2
+use vars qw(@ISA @EXPORT @EXPORT_OK %EXPORT_TAGS $VERSION
 @_COLORS
 %FORM
 %LIST_PARAMS
@@ -195,15 +195,18 @@ sub form_input {
 # HTML Input form
 #**********************************************************
 sub form_main {
+  my $self   = shift;
   my ($attr) = @_;
+
   if ($FORM{EXPORT_CONTENT} && $FORM{EXPORT_CONTENT} ne $attr->{ID}) {
     return '';
   }
 
-  my $self = shift;
-  my ($attr) = @_;
+  $self->{FORM} = "";
 
-  $self->{FORM} = "<FORM action=\"$SELF_URL\" METHOD=\"POST\">\n";
+  if ($FORM{csv}) {
+  	return $attr->{CONTENT};
+  }
 
   if (defined($attr->{HIDDEN})) {
     my $H = $attr->{HIDDEN};
@@ -212,7 +215,7 @@ sub form_main {
     }
   }
 
-  if (defined($attr->{CONTENT})) {
+  if ($attr->{CONTENT}) {
     $self->{FORM} .= $attr->{CONTENT};
   }
 
@@ -223,7 +226,7 @@ sub form_main {
     }
   }
 
-  $self->{FORM} .= "</FORM>\n";
+  $self->{FORM} .= "";
 
   if (defined($self->{NO_PRINT})) {
     $self->{OUTPUT} .= $self->{FORM};
@@ -442,6 +445,11 @@ sub header {
   my ($attr)     = @_;
   my $admin_name = $ENV{REMOTE_USER};
   my $admin_ip   = $ENV{REMOTE_ADDR};
+
+  if ($FORM{DEBUG}) {
+    print "Content-Type: text/plain\n\n";
+  }
+
   
   if ($FORM{csv}) {
   	my $filename     = ($self->{ID}) ? $self->{ID}.'.csv' : int(rand(10000000)).'.csv';
@@ -495,11 +503,9 @@ sub table {
     foreach my $line (@$rows) {
       $self->addrow(@$line);
     }
-  }
+  }  
   
-  
-  $self->{ID} = $attr->{ID};
-  
+  $self->{ID} = $attr->{ID};  
 
   if ($attr->{title}) {
   	$self->{title} = $attr->{title};
@@ -560,8 +566,8 @@ sub addtd {
   foreach my $val (@row) {
     $self->{rows} .= "$val$COLS_SEPARATOR";
   }
-
-  return $self->{rows}."\n";
+  $self->{rows} .= "\n";
+  return $self->{rows};
 }
 
 #*******************************************************************
@@ -591,13 +597,13 @@ sub td {
 
   my $td = '';
   if ($attr->{TH}) {
-    $td .= $value ."$COLS_SEPARATOR" if (defined($value));
-    $td .= $COLS_SEPARATOR;
+    $td .= $value if (defined($value));
   }
   else {
     $td .= $value if (defined($value));
-    $td .= $COLS_SEPARATOR;
   }
+
+  #$td .= $COLS_SEPARATOR;
   return $td;
 }
 
@@ -664,7 +670,7 @@ sub show {
   if ($FORM{EXPORT_CONTENT} && $FORM{EXPORT_CONTENT} ne $self->{ID}) {
     return '';
   }
-  
+
   $self->{show} = $self->{table};
   $self->{show} .= $self->{rows};
 
@@ -672,12 +678,11 @@ sub show {
     $self->{show} = $self->{show} . $self->{pages};
   }
 
-  if ((defined($self->{NO_PRINT})) && (!defined($attr->{OUTPUT2RETURN}))) {
+  if (defined($self->{NO_PRINT}) && !defined($attr->{OUTPUT2RETURN})) {
     $self->{prototype}->{OUTPUT} .= $self->{show};
     $self->{show} = '';
   }
 
-  #print $self->header() if ($FORM{csv});
   return $self->{show};
 }
 

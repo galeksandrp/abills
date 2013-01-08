@@ -444,10 +444,15 @@ sub header {
   my ($attr)     = @_;
   my $admin_name = $ENV{REMOTE_USER};
   my $admin_ip   = $ENV{REMOTE_ADDR};
+  
+  if ($FORM{DEBUG}) {
+    print "Content-Type: text/plain\n\n";
+  }
+
   $self->{header} = "Content-Type: text/xml\n\n";
 
   my $JAVASCRIPT = ($attr->{PATH}) ? "$attr->{PATH}functions.js" : "functions.js";
-  my $css = '';    #css();
+  my $css = '';
 
   my $CHARSET = (defined($attr->{CHARSET})) ? $attr->{CHARSET} : $self->{CHARSET} || 'windows-1251';
   $CHARSET =~ s/ //g;
@@ -456,10 +461,10 @@ sub header {
   return $self->{header};
 }
 
-#********************************************************************
+#**********************************************************
 #
 # css()
-#********************************************************************
+#**********************************************************
 sub css {
   my $css = "";
   return $css;

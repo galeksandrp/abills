@@ -2228,7 +2228,6 @@ sub form_users {
 
       }
       else {
-
         #===============
         #$service_func_index
         if ($functions{$service_func_index}) {
@@ -2614,9 +2613,9 @@ function CheckAllINBOX() {
         HIDDEN  => {
           index       => 11,
           FULL_DELETE => ($admin->{permissions}->{0} && $admin->{permissions}->{0}->{8}) ? 1 : undef,
-       },
-       NAME    => 'users_list',
-       ID      => 'USERS_LIST',
+        },
+        NAME    => 'users_list',
+        ID      => 'USERS_LIST',
       }
     );
   }

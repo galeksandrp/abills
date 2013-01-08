@@ -3,7 +3,7 @@ package Abills::EXCEL;
 #EXCEL Functions
 
 use strict;
-use vars qw(@ISA @EXPORT @EXPORT_OK %EXPORT_TAGS $VERSION %h2
+use vars qw(@ISA @EXPORT @EXPORT_OK %EXPORT_TAGS $VERSION
 @_COLORS
 %FORM
 %LIST_PARAMS
@@ -204,6 +204,7 @@ sub form_input {
 #**********************************************************
 sub form_main {
   my ($attr) = @_;
+
   if ($FORM{EXPORT_CONTENT} && $FORM{EXPORT_CONTENT} ne $attr->{ID}) {
     return '';
   }
@@ -211,7 +212,7 @@ sub form_main {
   my $self = shift;
   my ($attr) = @_;
 
-  if (defined($attr->{CONTENT})) {
+  if ($attr->{CONTENT}) {
     $self->{FORM} .= $attr->{CONTENT};
   }
 
@@ -420,9 +421,8 @@ sub header {
   my ($attr)     = @_;
   my $admin_name = $ENV{REMOTE_USER};
   my $admin_ip   = $ENV{REMOTE_ADDR};
-
   if ($FORM{DEBUG}) {
-    print "Content-Type: text/html\n\n";
+    print "Content-Type: text/plain\n\n";
   }
 
   my $filename     =  ($self->{ID}) ? $self->{ID}.'.xls' : int(rand(10000000)).'.xls';  	
@@ -608,7 +608,6 @@ sub show {
     $self->{show} = '';
   }
 
-  print $self->header() if ($FORM{csv});
   return $self->{show};
 }
 
@@ -789,12 +788,11 @@ sub tpl_show {
     return $tpl;
   }
   elsif ($attr->{notprint} || $self->{NO_PRINT}) {
-    $self->{OUTPUT} .= "<div class='table_top'></div>\n" . "<div class='table_cont'>$tpl</div>" . "<div class='table_bot'></div>\n";
-
+    $self->{OUTPUT} .= "$tpl";
     return $tpl;
   }
   else {
-    print "<div class='table_top'></div>\n" . "<div class='table_cont'>$tpl</div>\n" . "<div class='table_bot'></div>\n";
+    print "$tpl";
   }
 }
 
