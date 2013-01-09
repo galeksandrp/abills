@@ -985,12 +985,13 @@ sub header {
   my ($attr)     = @_;
   my $admin_name = $ENV{REMOTE_USER};
   my $admin_ip   = $ENV{REMOTE_ADDR};
+
   $self->{header} = "Content-Type: text/html\n\n";
 
   if ($self->{colors}) {
     @_COLORS = split(/, /, $self->{colors});
   }
-  elsif (defined($COOKIES{colors}) && $COOKIES{colors} ne '') {
+  elsif ($COOKIES{colors}) {
     @_COLORS = split(/, /, $COOKIES{colors});
   }
 

@@ -69,6 +69,7 @@ use Abills::Base;
 @state_colors = ("#00FF00", "#FF0000", "#AAAAFF");
 
 %permissions = ();
+$index = 0;
 
 #Cookie auth
 if ($conf{AUTH_METHOD}) {
@@ -139,8 +140,8 @@ if ($admin->{DOMAIN_ID}) {
   $conf{WEB_TITLE} = $admin->{DOMAIN_NAME};
 }
 
-$index = 0;
-$html  = Abills::HTML->new(
+if (! $html) {
+  $html  = Abills::HTML->new(
   {
     CONF     => \%conf,
     NO_PRINT => 0,
@@ -148,12 +149,15 @@ $html  = Abills::HTML->new(
     CHARSET  => $conf{default_charset},
     %{ $admin->{WEB_OPTIONS} }
   }
-);
-
-require "../../language/$html->{language}.pl";
+  );
+  require "../../language/$html->{language}.pl";
+}
+else {
+	
+}
 
 if ($admin->{errno}) {
-  print "Content-type: text/html\n\n";
+  print $html->header();
   my $message = "$ERR_ACCESS_DENY";
 
   if ($admin->{errno} == 2) {
@@ -184,7 +188,7 @@ require "Misc.pm";
 
 #Operation system ID
 if ($FORM{OP_SID}) {
-  $html->setCookie('OP_SID', $FORM{OP_SID}, "Fri, 1-Jan-2038 00:00:01", '', $domain, $secure);
+  $html->setCookie('OP_SID', $FORM{OP_SID}, "", '', $domain, $secure);
 }
 
 if ($index == 2) {
@@ -257,13 +261,14 @@ if ($FORM{AWEB_OPTIONS}) {
 #===========================================================
 my @actions = (
   [ $_INFO, $_ADD, $_LIST, $_PASSWD, $_CHANGE, $_DEL, $_ALL, $_MULTIUSER_OP, "$_SHOW $_DELETED", "$_CREDIT", "$_TARIF_PLANS", "$_REDUCTION", "$_DISABLE $_DEPOSIT" ],    # Users
-  [ $_LIST, $_ADD, $_DEL, $_ALL, $_DATE ],                                                                                                        # Payments
-  [ $_LIST, $_GET, $_DEL, $_ALL ],                                                                                                                # Fees
-  [ $_LIST,       $_DEL ],                                                                                                                        # reports view
-  [ $_LIST,       $_ADD, $_CHANGE, $_DEL, $_ADMINS, "$_SYSTEM $_LOG", $_DOMAINS ],                                                                # system magment
+  [ $_LIST, $_ADD, $_DEL, $_ALL, $_DATE ],   # Payments
+  [ $_LIST, $_GET, $_DEL, $_ALL ],           # Fees
+  [ $_LIST, $_DEL ],                         # reports view
+  [ $_LIST, $_ADD, $_CHANGE, $_DEL, $_ADMINS, 
+   "$_SYSTEM $_LOG", $_DOMAINS ],            # system magment
   [ $_MONITORING, $_HANGUP ],
-  [$_SEARCH],                                                                                                                                     # Search
-  [$_ALL],                                                                                                                                        # Modules managments
+  [$_SEARCH],                                # Search
+  [$_ALL],                                   # Modules managments
   [$_PROFILE],
   [ $_LIST, $_ADD, $_CHANGE, $_DEL ],
 );
@@ -343,7 +348,6 @@ $users = Users->new($db, $admin, \%conf);
 
 #Quick index
 # Show only function results whithout main windows
-
 if ($FORM{qindex} || $FORM{get_index}) {
   
   if ($FORM{get_index}) {
@@ -590,6 +594,7 @@ sub check_permissions {
         foreach my $line (@WO_ARR) {
           my ($k, $v) = split(/=/, $line);
           $admin->{WEB_OPTIONS}{$k} = $v;
+          $html->{$k}=$v;
         }
       }
 

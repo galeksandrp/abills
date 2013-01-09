@@ -7905,7 +7905,7 @@ sub dv_docs {
               FEES_METHOD=>$FEES_METHODS{$Dv->{FEES_METHOD}},
             );
   	
-    push @services, dv_fees_dsc_former(\%FEES_DSC); 
+    push @services, dv_fees_dsc_former(\%FEES_DSC)."||$Dv->{MONTH_ABON}"; 
     #"Internet: $_MONTH_FEE_SHORT $Dv->{TP_NAME} ($Dv->{TP_ID})||$Dv->{MONTH_ABON}";
     #"$_MONTH_FEE: ($Dv->{TP_ID})||$Dv->{MONTH_ABON}";
   }
