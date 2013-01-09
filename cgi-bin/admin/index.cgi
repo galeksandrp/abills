@@ -70,7 +70,7 @@ use Abills::Base;
 
 %permissions = ();
 $index = 0;
-
+$conf{HTML5}=0;
 #Cookie auth
 if ($conf{AUTH_METHOD}) {
   $html  = Abills::HTML->new(
