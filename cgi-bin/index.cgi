@@ -64,15 +64,13 @@ require "Misc.pm";
 $sid = $FORM{sid} || '';    # Session ID
 $html->{CHARSET} = $CHARSET if ($CHARSET);
 
-my $cookies_time = gmtime(time() + $conf{web_session_timeout}) . " GMT";
-
 if ((length($COOKIES{sid}) > 1) && (!$FORM{passwd})) {
   $COOKIES{sid} =~ s/\"//g;
   $COOKIES{sid} =~ s/\'//g;
   $sid = $COOKIES{sid};
 }
 elsif ((length($COOKIES{sid}) > 1) && (defined($FORM{passwd}))) {
-  $html->setCookie('sid', "", "$cookies_time", $web_path, $domain, $secure);
+  $html->setCookie('sid', "", "", $web_path, $domain, $secure);
   $COOKIES{sid} = undef;
 }
 
@@ -83,11 +81,11 @@ if (defined($FORM{colors})) {
 }
 
 #Operation system ID
-$html->setCookie('OP_SID',   "$FORM{OP_SID}",   "$cookies_time",            $web_path, $domain, $secure) if (defined($FORM{OP_SID}));
+$html->setCookie('OP_SID',   "$FORM{OP_SID}",   "",            $web_path, $domain, $secure) if (defined($FORM{OP_SID}));
 $html->setCookie('language', "$FORM{language}", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure) if (defined($FORM{language}));
 
-if (defined($FORM{sid})) {
-  $html->setCookie('sid', "$FORM{sid}", "$cookies_time", $web_path, $domain, $secure);
+if ($FORM{sid}) {
+  $html->setCookie('sid', "$FORM{sid}", "", $web_path, $domain, $secure);
   $COOKIES{sid} = $FORM{sid};
 }
 

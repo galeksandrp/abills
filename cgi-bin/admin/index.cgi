@@ -46,7 +46,8 @@ $begin_time %LANG $CHARSET @MODULES $FUNCTIONS_LIST $USER_FUNCTION_LIST
 $index
 $UID
 $user
-$admin $sid
+$admin 
+$sid
 $ui
 );
 
@@ -67,8 +68,41 @@ use Abills::Base;
 
 @state_colors = ("#00FF00", "#FF0000", "#AAAAFF");
 
+%permissions = ();
+
+#Cookie auth
+if ($conf{AUTH_METHOD}) {
+  $html  = Abills::HTML->new(
+  {
+    CONF     => \%conf,
+    NO_PRINT => 0,
+    PATH     => $conf{WEB_IMG_SCRIPT_PATH} || '../',
+    CHARSET  => $conf{default_charset},
+    %{ $admin->{WEB_OPTIONS} }
+  }
+  );
+
+  require "../../language/$html->{language}.pl";
+  require "Abills/templates.pl";
+
+  if ($index == 10) {
+    $admin->online_del({ SID => $COOKIES{sid} });
+  }
+
+  my $res = check_permissions("$FORM{user}", "$FORM{passwd}", "$COOKIES{sid}");
+ 
+  if (! $res) {
+    $html->setCookie('sid', "$sid", "", $web_path, $domain, $secure);
+    $COOKIES{sid} = $sid;
+  }
+  else {
+ 	  print $html->header();
+ 	  form_login();
+ 	  exit;
+  }
+}
 #**********************************************************
-#IF Mod rewrite enabled
+#IF Mod rewrite enabled Basic Auth
 #
 #    <IfModule mod_rewrite.c>
 #        RewriteEngine on
@@ -79,28 +113,24 @@ use Abills::Base;
 #    Options Indexes ExecCGI FollowSymLinks
 #
 #**********************************************************
-#print "Content-Type: texthtml\n\n";
-#while(my($k, $v)=each %ENV) {
-#	print "$k, $v\n";
-#}
-#exit;
-%permissions = ();
-if (defined($ENV{HTTP_CGI_AUTHORIZATION})) {
-  $ENV{HTTP_CGI_AUTHORIZATION} =~ s/basic\s+//i;
-  my ($REMOTE_USER, $REMOTE_PASSWD) = split(/:/, decode_base64($ENV{HTTP_CGI_AUTHORIZATION}));
-
-  my $res = check_permissions("$REMOTE_USER", "$REMOTE_PASSWD");
-  if ($res == 1) {
-    print "WWW-Authenticate: Basic realm=\"$conf{WEB_TITLE} Billing System\"\n";
-    print "Status: 401 Unauthorized\n";
-  }
-  elsif ($res == 2) {
-    print "WWW-Authenticate: Basic realm=\"Billing system / '$REMOTE_USER' Account Disabled\"\n";
-    print "Status: 401 Unauthorized\n";
-  }
-
-}
 else {
+  if (defined($ENV{HTTP_CGI_AUTHORIZATION})) {
+    $ENV{HTTP_CGI_AUTHORIZATION} =~ s/basic\s+//i;
+    my ($REMOTE_USER, $REMOTE_PASSWD) = split(/:/, decode_base64($ENV{HTTP_CGI_AUTHORIZATION}));
+
+    my $res = check_permissions("$REMOTE_USER", "$REMOTE_PASSWD");
+    if ($res == 1) {
+      print "WWW-Authenticate: Basic realm=\"$conf{WEB_TITLE} Billing System\"\n";
+      print "Status: 401 Unauthorized\n";
+    }
+    elsif ($res == 2) {
+      print "WWW-Authenticate: Basic realm=\"Billing system / '$REMOTE_USER' Account Disabled\"\n";
+      print "Status: 401 Unauthorized\n";
+    }
+  }
+}
+
+if ($REMOTE_USER) {
   check_permissions('$REMOTE_USER');
 }
 
@@ -385,7 +415,7 @@ if (($FORM{UID} && $FORM{UID} =~ /^(\d+)$/ && $FORM{UID} > 0) || ($FORM{LOGIN} &
 
 print $html->header();
 my ($menu_text, $navigat_menu) = mk_navigator();
-($admin->{ONLINE_USERS}, $admin->{ONLINE_COUNT}) = $admin->online();
+($admin->{ONLINE_USERS}, $admin->{ONLINE_COUNT}) = $admin->online({ SID => $sid });
 
 my %SEARCH_TYPES = (
   10 => "$_UNIVERSAL",
@@ -526,7 +556,7 @@ $html->test();
 # check_permissions()
 #**********************************************************
 sub check_permissions {
-  my ($login, $password, $attr) = @_;
+  my ($login, $password, $session_sid, $attr) = @_;
 
   if ($conf{ADMINS_ALLOW_IP}) {
     $conf{ADMINS_ALLOW_IP} =~ s/ //g;
@@ -546,6 +576,30 @@ sub check_permissions {
   $login    =~ s/'/\''/g;
   $password =~ s/"/\\"/g;
   $password =~ s/'/\\'/g;
+
+  if ($session_sid && ! $login) {
+    $admin->online_info({ SID => $session_sid });
+    if ($admin->{TOTAL} > 0 && $ENV{REMOTE_ADDR} eq $admin->{IP}) {
+    $admin->info($admin->{AID}, { IP => $ENV{REMOTE_ADDR} || '0.0.0.0' });
+      $LIST_PARAMS{GID}=$admin->{GID};
+      %permissions  = %{ $admin->get_permissions() };
+
+      if ($admin->{WEB_OPTIONS}) {
+        my @WO_ARR = split(/;/, $admin->{WEB_OPTIONS});
+        foreach my $line (@WO_ARR) {
+          my ($k, $v) = split(/=/, $line);
+          $admin->{WEB_OPTIONS}{$k} = $v;
+        }
+      }
+
+      $sid          = $session_sid;
+      $admin->{SID} = $session_sid;
+      return 0;
+    }
+    else {
+    	$admin->online_del({ SID => $session_sid });
+    }
+  }
 
   my %PARAMS = (
     LOGIN     => "$login",
@@ -580,6 +634,11 @@ sub check_permissions {
   }
 
   %permissions = %{ $admin->get_permissions() };
+  if (! $sid) {
+    $sid = mk_unique_value(14);
+    $admin->{SID} = $sid;
+  }
+
   return 0;
 }
 
@@ -5654,7 +5713,6 @@ sub fl {
     push @m, "56:50:$_PAYMENTS:form_payments:AID::";
     push @m, "57:50:$_CHANGE:form_admins:AID::";
     push @m, "58:50:$_GROUPS:form_admins_groups:AID::" if ($admin->{GID} == 0);
-
     #push @m, "59:50:$_ALLOW IP:form_admins_ips:AID::";
   }
 
@@ -5668,6 +5726,11 @@ sub fl {
     push @m, "28:27:$_ADD:add_groups:::";
   }
 
+  if ($conf{AUTH_METHOD}) {
+  	$permissions{9}{1}=1;
+    push @m, "10:0:$_LOGOUT:null:::";
+  }
+
   foreach my $line (@m) {
     my ($ID, $PARENT, $NAME, $FUNTION_NAME, $ARGS, $OP) = split(/:/, $line);
     $menu_items{$ID}{$PARENT} = $NAME;
@@ -5676,7 +5739,6 @@ sub fl {
     $menu_args{$ID} = $ARGS         if ($ARGS         ne '');
     $maxnumber      = $ID           if ($maxnumber < $ID);
   }
-
 }
 
 #**********************************************************
@@ -9209,6 +9271,56 @@ sub title_former {
 		$title[$#title+1]='-';
 	}
 	return \@title;
+}
+
+
+#**********************************************************
+# form_login
+#**********************************************************
+sub form_login {
+  my %first_page = ();
+
+  if ($conf{tech_works}) {
+    $html->message('info', $_INFO, "$conf{tech_works}");
+    return 0;
+  }
+
+  #Make active lang list
+  if ($conf{LANGS}) {
+    $conf{LANGS} =~ s/\n//g;
+    my (@lang_arr) = split(/;/, $conf{LANGS});
+    %LANG = ();
+    foreach my $l (@lang_arr) {
+      my ($lang, $lang_name) = split(/:/, $l);
+      $lang =~ s/^\s+//;
+      $LANG{$lang} = $lang_name;
+    }
+  }
+
+  my %QT_LANG = (
+    byelorussian => 22,
+    bulgarian    => 20,
+    english      => 31,
+    french       => 37,
+    polish       => 90,
+    russian      => 96,
+    ukraine      => 129,
+  );
+
+  $first_page{SEL_LANGUAGE} = $html->form_select(
+    'language',
+    {
+      EX_PARAMS  => 'onChange="selectLanguage()"',
+      SELECTED   => $html->{language},
+      SEL_HASH   => \%LANG,
+      NO_ID      => 1,
+      EXT_PARAMS => { qt_locale => \%QT_LANG }
+    }
+  );
+  
+  $first_page{TITLE}="$_AUTH";
+  
+  $OUTPUT{BODY} = $html->tpl_show(templates('form_client_login'), \%first_page);
 }
 
 1

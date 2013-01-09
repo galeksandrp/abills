@@ -694,9 +694,10 @@ sub online {
   my $online_users = '';
   my %curuser      = ();
 
-  my $WHERE = ($attr->{SID}) ?  "WHERE sid='$attr->{SID}'" : '';
+  my $WHERE = ($self->{SID}) ?  "WHERE sid='$self->{SID}'" : '';
 
   $self->query($db, "DELETE FROM web_online WHERE UNIX_TIMESTAMP()-logtime>$time_out;", 'do');
+
   $self->query($db, "SELECT admin, ip FROM web_online $WHERE;");
 
   my $online_count = $self->{TOTAL} + 0;
@@ -709,7 +710,7 @@ sub online {
   if ($curuser{ $self->{A_LOGIN} } ne $self->{SESSION_IP}) {
     $self->query(
       $db, "REPLACE INTO web_online (admin, ip, logtime, aid, sid)
-     values ('$self->{A_LOGIN}', '$self->{SESSION_IP}', UNIX_TIMESTAMP(), '$self->{AID}', '$attr->{SID}');", 'do'
+     values ('$self->{A_LOGIN}', '$self->{SESSION_IP}', UNIX_TIMESTAMP(), '$self->{AID}', '$self->{SID}');", 'do'
     );
     $online_users .= "$self->{A_LOGIN} - $self->{SESSION_IP};\n";
     $online_count++;

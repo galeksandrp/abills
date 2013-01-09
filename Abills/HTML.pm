@@ -688,11 +688,10 @@ sub dirname {
 # setCookie($name, $value, $expiration, $path, $domain, $secure);
 #*******************************************************************
 sub setCookie {
-
-  # end a set-cookie header with the word secure and the cookie will only
-  # be sent through secure connections
   my $self = shift;
   my ($name, $value, $expiration, $path, $domain, $secure) = @_;
+
+  $expiration = gmtime(time() + (($CONF->{web_session_timeout}) ? $CONF->{web_session_timeout} : 86000 )) . " GMT" if (! $expiration); 
 
   print "Set-Cookie: ";
   print $name, "=$value; expires=\"", $expiration, "\"; path=$path; domain=", $domain, "; ", $secure, "\n";
@@ -733,8 +732,8 @@ sub menu () {
   my %tree           = ();
   my %menu           = ();
   my $sub_menu_array;
-  my $EX_ARGS = (defined($attr->{EX_ARGS})) ? $attr->{EX_ARGS} : '';
-  my $fl = $attr->{FUNCTION_LIST};
+  my $EX_ARGS        = (defined($attr->{EX_ARGS})) ? $attr->{EX_ARGS} : '';
+  my $fl             = $attr->{FUNCTION_LIST};
 
   # make navigate line
   if ($index > 0) {
@@ -801,7 +800,6 @@ sub menu () {
   while (my $sm_item = pop @$sub_menu_array) {
     my ($ID, $name) = split(/:/, $sm_item, 2);
     next if ((!defined($attr->{ALL_PERMISSIONS})) && (!defined($permissions->{ $ID - 1 })) && $parent == 0);
-
     my $active = 'odd';
     if (defined($tree{$ID})) {
       $name   = $self->b($name);
@@ -828,7 +826,6 @@ sub menu () {
       }
     }
     else {
-
       #next;
       #$link = "<a href='$SELF_URL?index=$ID&$menu_args->{$ID}'>$name</a>";
     }
