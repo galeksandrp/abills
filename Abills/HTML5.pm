@@ -1,6 +1,6 @@
 package Abills::HTML5;
 
-#HTML visualisation functions
+#HTML5 visualisation functions
 
 use strict;
 use vars qw(@ISA @EXPORT @EXPORT_OK %EXPORT_TAGS $VERSION %h2
@@ -84,7 +84,7 @@ sub new {
 
   $SORT = $FORM{sort} || 1;
   $DESC = ($FORM{desc}) ? 'DESC' : '';
-  $PG   = $FORM{pg} || 0;
+  $PG = $FORM{pg} || 0;
   $self->{CHARSET} = (defined($attr->{CHARSET})) ? $attr->{CHARSET} : 'windows-1251';
 
   if ($FORM{PAGE_ROWS}) {
@@ -109,7 +109,7 @@ sub new {
   $domain   = $ENV{SERVER_NAME};
   $web_path = '';
   $secure   = '';
-  my $prot  = (defined($ENV{HTTPS}) && $ENV{HTTPS} =~ /on/i) ? 'https' : 'http';
+  my $prot = (defined($ENV{HTTPS}) && $ENV{HTTPS} =~ /on/i) ? 'https' : 'http';
   $SELF_URL = (defined($ENV{HTTP_HOST})) ? "$prot://$ENV{HTTP_HOST}$ENV{SCRIPT_NAME}" : '';
 
   $SESSION_IP = $ENV{REMOTE_ADDR} || '0.0.0.0';
@@ -148,7 +148,7 @@ sub new {
     $self->{language} = $CONF->{default_language} || 'english';
   }
 
-  $self->{config_tpl_show}='hello'; #\&tpl_show;
+  $self->{config_tpl_show} = 'hello';    #\&tpl_show;
 
   #Make  PDF output
   if ($FORM{pdf} || $attr->{pdf}) {
@@ -176,10 +176,10 @@ sub new {
     require Abills::XML;
     $self = Abills::XML->new(
       {
-        IMG_PATH => $IMG_PATH,
-        NO_PRINT => defined($attr->{'NO_PRINT'}) ? $attr->{'NO_PRINT'} : 1,
-        CONF     => $CONF,
-        CHARSET  => $attr->{CHARSET},
+        IMG_PATH        => $IMG_PATH,
+        NO_PRINT        => defined($attr->{'NO_PRINT'}) ? $attr->{'NO_PRINT'} : 1,
+        CONF            => $CONF,
+        CHARSET         => $attr->{CHARSET},
         CONFIG_TPL_SHOW => \&tpl_show
       }
     );
@@ -187,13 +187,13 @@ sub new {
   elsif ($FORM{csv} || $attr->{csv}) {
     require Abills::CONSOLE;
     $self = Abills::CONSOLE->new(
-        {
-          IMG_PATH => $IMG_PATH,
-          NO_PRINT => defined($attr->{'NO_PRINT'}) ? $attr->{'NO_PRINT'} : 1,
-          CONF     => $CONF,
-          CHARSET  => $attr->{CHARSET}
-        }
-      );
+      {
+        IMG_PATH => $IMG_PATH,
+        NO_PRINT => defined($attr->{'NO_PRINT'}) ? $attr->{'NO_PRINT'} : 1,
+        CONF     => $CONF,
+        CHARSET  => $attr->{CHARSET}
+      }
+    );
   }
   elsif ($FORM{xls} || $attr->{xls}) {
     $FORM{xls} = 1;
@@ -416,9 +416,9 @@ sub element {
 
   my $params = '';
   if (ref $attr eq 'HASH') {
-    while(my($k, $v)=each %$attr) {
-    	$params .= "$k='$v' ";
-    }	
+    while (my ($k, $v) = each %$attr) {
+      $params .= "$k='$v' ";
+    }
   }
 
   $self->{FORM_INPUT} = "<$name $params>$value</$name>";
@@ -552,9 +552,9 @@ sub form_select {
     }
   }
   elsif (defined($attr->{SEL_HASH})) {
-    my @H = ();
-    my @group_colors = ('#000000','#008000','#0000A0','#D76B00','#790000','#808000','#3D7A7A');
-    my $group_id = 0;
+    my @H            = ();
+    my @group_colors = ('#000000', '#008000', '#0000A0', '#D76B00', '#790000', '#808000', '#3D7A7A');
+    my $group_id     = 0;
     if ($attr->{SORT_KEY}) {
       @H = sort keys %{ $attr->{SEL_HASH} };
     }
@@ -582,18 +582,18 @@ sub form_select {
       }
       elsif (ref $attr->{SEL_HASH}->{$k} eq 'HASH') {
         $self->{SELECT} .= "<optgroup label=\"$k\" title=\"$k\">\n";
-         
+
         foreach my $val (sort keys %{ $attr->{SEL_HASH}->{$k} }) {
           $self->{SELECT} .= "<option value='$val'";
           $self->{SELECT} .= " style='COLOR:$attr->{STYLE}->[$val];' " if ($attr->{STYLE});
-          
+
           if ($attr->{STYLE}) {
             $self->{SELECT} .= " style='COLOR:$attr->{STYLE}->[$val];' ";
           }
-          elsif($attr->{GROUP_COLOR}){
+          elsif ($attr->{GROUP_COLOR}) {
             $self->{SELECT} .= " style='COLOR:$group_colors[$group_id];' ";
           }
-          
+
           if (defined($attr->{SELECTED}) && $val eq $attr->{SELECTED}) {
             $self->{SELECT} .= ' selected';
           }
@@ -606,9 +606,9 @@ sub form_select {
       else {
         $self->{SELECT} .= "<option value='$k'";
         if ($attr->{STYLE}) {
-          $self->{SELECT} .= " style='COLOR:$attr->{STYLE}->[$k];' " ;
+          $self->{SELECT} .= " style='COLOR:$attr->{STYLE}->[$k];' ";
         }
-        
+
         $self->{SELECT} .= ' selected' if (defined($attr->{SELECTED}) && $k eq $attr->{SELECTED});
         $self->{SELECT} .= ">";
         $self->{SELECT} .= "$k:" if (!$attr->{NO_ID});
@@ -1033,11 +1033,9 @@ sub table {
   my ($attr) = @_;
   $self->{rows} = '';
 
- # my $width       = (defined($attr->{width}))  ? "width=\"$attr->{width}\""   : '';
- # my $border      = (defined($attr->{border})) ? "border=\"$attr->{border}\"" : '';
- # my $table_class = (defined($attr->{class}))  ? "class=\"$attr->{class}\""   : 'class=list';
-
-
+  # my $width       = (defined($attr->{width}))  ? "width=\"$attr->{width}\""   : '';
+  # my $border      = (defined($attr->{border})) ? "border=\"$attr->{border}\"" : '';
+  # my $table_class = (defined($attr->{class}))  ? "class=\"$attr->{class}\""   : 'class=list';
 
   if (defined($attr->{rowcolor})) {
     $self->{rowcolor} = $attr->{rowcolor};
@@ -1077,18 +1075,18 @@ sub table {
   if ($attr->{EXPORT} && !$FORM{EXPORT_CONTENT}) {
     my ($export_name, $params) = split(/:/, $attr->{EXPORT}, 2);
     my @export_formats = ('xml', 'csv');
-      
+
     eval { require Spreadsheet::WriteExcel; };
     if (!$@) {
-    	push @export_formats, 'xls';
-    }      
+      push @export_formats, 'xls';
+    }
 
-    foreach my $export_name ( @export_formats ) {
-    	$params = "&$export_name=1";
-    	if ($export_name eq 'xls') {
-    		$params .= "&PAGE_ROWS=1000000";
-    	}
-      $self->{EXPORT_OBJ} .= ' ' . $self->button("$export_name", "qindex=$index$attr->{qs}&pg=$PG&sort=$SORT&desc=$DESC&EXPORT_CONTENT=$attr->{ID}&header=1$params", { ex_params => 'target=\'export\'', IMG_BUTTON => '/img/button_'. $export_name .'.png' });
+    foreach my $export_name (@export_formats) {
+      $params = "&$export_name=1";
+      if ($export_name eq 'xls') {
+        $params .= "&PAGE_ROWS=1000000";
+      }
+      $self->{EXPORT_OBJ} .= ' ' . $self->button("$export_name", "qindex=$index$attr->{qs}&pg=$PG&sort=$SORT&desc=$DESC&EXPORT_CONTENT=$attr->{ID}&header=1$params", { ex_params => 'target=\'export\'', IMG_BUTTON => '/img/button_' . $export_name . '.png' });
     }
 
     push @header_obj, $self->{EXPORT_OBJ};
@@ -1100,7 +1098,7 @@ sub table {
 
   if ($attr->{header}) {
     if (ref $attr->{header} eq 'ARRAY') {
-      $attr->{header}=$self->table_header($attr->{header});
+      $attr->{header} = $self->table_header($attr->{header});
     }
     push @header_obj, $attr->{header};
   }
@@ -1125,22 +1123,22 @@ sub table {
     $self->{table} .= $self->table_title_plain($attr->{title_plain});
   }
 
-#  if (defined($attr->{cols_align})) {
-#    $self->{table} .= "<COLGROUP>\n";
-#    my $cols_align = $attr->{cols_align};
-#    my $i          = 0;
-#    foreach my $line (@$cols_align) {
-#      my $class = '';
-#      if ($line =~ /:/) {
-#        ($line, $class) = split(/:/, $line, 2);
-#        $class = " class='$class'";
-#      }
-#      my $width = (defined($attr->{cols_width}) && defined(@{ $attr->{cols_width} }[$i])) ? " width='@{$attr->{cols_width}}[$i]'" : '';
-#      $self->{table} .= " <COL align='$line'$class$width />\n";
-#      $i++;
-#    }
-#    $self->{table} .= "</COLGROUP>\n";
-#  }
+  #  if (defined($attr->{cols_align})) {
+  #    $self->{table} .= "<COLGROUP>\n";
+  #    my $cols_align = $attr->{cols_align};
+  #    my $i          = 0;
+  #    foreach my $line (@$cols_align) {
+  #      my $class = '';
+  #      if ($line =~ /:/) {
+  #        ($line, $class) = split(/:/, $line, 2);
+  #        $class = " class='$class'";
+  #      }
+  #      my $width = (defined($attr->{cols_width}) && defined(@{ $attr->{cols_width} }[$i])) ? " width='@{$attr->{cols_width}}[$i]'" : '';
+  #      $self->{table} .= " <COL align='$line'$class$width />\n";
+  #      $i++;
+  #    }
+  #    $self->{table} .= "</COLGROUP>\n";
+  #  }
 
   if ($attr->{pages} && !$FORM{EXPORT_CONTENT}) {
     my $op;
@@ -1465,20 +1463,22 @@ sub message {
   my ($type, $caption, $message, $attr) = @_;
 
   $caption .= ': ' . $attr->{ID} if ($attr->{ID});
-  my $img = '';
+  my $img   = '';
   my $class = '';
   if ($type eq 'err') {
+
     #$img  = '<img src="/img/attention.png" border="0" hspace="10" dir="ltr" alt="Error">';
     $class = 'err_message';
   }
   elsif ($type eq 'info') {
+
     #$img  = '<img src="/img/information.png" border="0" hspace="10" dir="ltr" alt="Information">';
     $class = 'info_message';
   }
 
   $message =~ s/\n/<br>/g;
 
-my $output = qq{
+  my $output = qq{
 <br>
 <div id=info_message class='box_shadow border_rad'>
 	<div class='$class border_rad_t2'>$caption</div>
@@ -1486,7 +1486,6 @@ my $output = qq{
 </div>
 <br>
 };
-
 
   if (defined($self->{NO_PRINT})) {
     $self->{OUTPUT} .= $output;
@@ -1835,7 +1834,7 @@ sub tpl_show {
     return $tpl;
   }
   elsif ($attr->{notprint} || $self->{NO_PRINT}) {
-    $self->{OUTPUT} .= "<div class='kabinet-styled_table-wrap_form box_shadow border_rad'>\n".$tpl."</div>\n";
+    $self->{OUTPUT} .= "<div class='kabinet-styled_table-wrap_form box_shadow border_rad'>\n" . $tpl . "</div>\n";
     return $tpl;
   }
   else {
@@ -2185,27 +2184,26 @@ if (AC_FL_RunContent == 0 || DetectFlashVer == 0) {
 sub table_header {
   my $self = shift;
   my ($header_arr) = @_;
-  
+
   my $header = '';
-  
-  foreach my $element ( @{ $header_arr } ) {
-  	my ($name, $url)= split(/:/, $element, 2);
-  	#$header .= ' <li>';
-  	$header .= ' ';
-  	if ($url) {
-  	  $header .= $self->button($name, $url, { BUTTON => 1 });
-  	}
-  	else {
-  		$header .= $self->b($name);
-  	}
-  	#$header .= '</li>';
+
+  foreach my $element (@{$header_arr}) {
+    my ($name, $url) = split(/:/, $element, 2);
+
+    #$header .= ' <li>';
+    $header .= ' ';
+    if ($url) {
+      $header .= $self->button($name, $url, { BUTTON => 1 });
+    }
+    else {
+      $header .= $self->b($name);
+    }
+
+    #$header .= '</li>';
   }
 
   return $header;
 }
-
-#*******************************************************************
-
 
 #**********************************************************
 # Break line
