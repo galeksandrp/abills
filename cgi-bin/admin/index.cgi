@@ -94,7 +94,7 @@ if ($conf{AUTH_METHOD}) {
   my $res = check_permissions("$FORM{user}", "$FORM{passwd}", "$COOKIES{sid}");
  
   if (! $res) {
-    $html->setCookie('sid', "$sid", "", $web_path, $domain, $secure);
+    $html->setCookie('sid', "$sid", "", "/admin/", $domain, $secure);
     $COOKIES{sid} = $sid;
   }
   else {

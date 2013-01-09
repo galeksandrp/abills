@@ -51,7 +51,7 @@ sub dv_chg_tp {
   my $user;
   if (defined($attr->{USER_INFO})) {
     $user = $attr->{USER_INFO};
-    $Dv   = $Dv->info($user->{UID});
+    $Dv   = $Dv->info($user->{UID}, { DOMAIN_ID => $user->{DOMAIN_ID} });
     if ($Dv->{TOTAL} < 1) {
       $html->message('info', $_INFO, "$_NOT_ACTIVE");
       return 0;
@@ -464,7 +464,6 @@ sub dv_user {
       $Dv->{YY}=$1;
     }
 
-
     if (! $FORM{pdf}) {
       if (in_array('Mail', \@MODULES)) {
         require "Abills/modules/Mail/webinterface";
@@ -540,9 +539,9 @@ sub dv_user {
     }
 
     if ($FORM{IP} =~ /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/ && $FORM{IP} ne '0.0.0.0') {
-      my $list = $Dv->list({ IP => $FORM{IP} });
-      if ($Dv->{TOTAL} > 0 && $list->[0][ 6 + $Dv->{SEARCH_FIELDS_COUNT} ] != $FORM{UID}) {
-        $html->message('err', $_ERROR, "IP: $FORM{IP} $_EXIST. $_LOGIN: " . $html->button("$list->[0][0]", "index=15&UID=" . $list->[0][ 6 + $Dv->{SEARCH_FIELDS_COUNT} ]));
+      my $list = $Dv->list({ IP => $FORM{IP}, COLS_NAME => 1 });
+      if ($Dv->{TOTAL} > 0 && $list->[0]->{uid} != $FORM{UID}) {
+        $html->message('err', $_ERROR, "IP: $FORM{IP} $_EXIST. $_LOGIN: " . $html->button("$list->[0]{login}", "index=15&UID=" . $list->[0]->{uid}));
         return 0;
       }
     }
@@ -3849,8 +3848,8 @@ sub dv_user_chg_tp {
     $tariffs->{TARIF_PLAN_TABLE} = $tariffs->{TARIF_PLAN_SEL};
     if (!$Shedule->{ADMIN_ACTION}) {
       $tariffs->{ACTION}     = 'del';
-      $tariffs->{LNG_ACTION} = $_DEL;
-      $tariffs->{ACTION}     = $html->form_input('del', $_DEL, { TYPE => 'submit', OUTPUT2RETURN => 1 });
+      $tariffs->{LNG_ACTION} = "$_DEL";
+      $tariffs->{ACTION}     = $html->form_input('del', "$_DEL  $_SHEDULE", { TYPE => 'submit', OUTPUT2RETURN => 1 });
     }
   }
   else {
