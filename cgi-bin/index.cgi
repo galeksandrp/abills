@@ -126,7 +126,7 @@ if ($uid > 0) {
     $LIST_PARAMS{LOGIN} = $user->{LOGIN};
     ipn_user_activate();
     $OUTPUT{BODY} = $html->{OUTPUT};
-    print $html->tpl_show(templates('form_client_start'), \%OUTPUT);
+    print $html->tpl_show(templates('form_client_start'), \%OUTPUT, { MAIN => 1 });
     exit;
   }
 
@@ -246,7 +246,7 @@ if ($uid > 0) {
   }
 
   $OUTPUT{STATE} = ($user->{SERVICE_STATUS}) ? $user->{SERVICE_STATUS} : $OUTPUT{STATE};
-  $OUTPUT{BODY} = $html->tpl_show(templates('form_client_main'), \%OUTPUT);
+  $OUTPUT{BODY} = $html->tpl_show(templates('form_client_main'), \%OUTPUT, { MAIN => 1 });
 }
 else {
   form_login();
@@ -254,7 +254,7 @@ else {
 
 print $html->header();
 $OUTPUT{BODY} = "$html->{OUTPUT}";
-print $html->tpl_show(templates('form_client_start'), \%OUTPUT);
+print $html->tpl_show(templates('form_client_start'), \%OUTPUT, { MAIN => 1 });
 
 $html->test() if ($conf{debugmods} =~ /LOG_DEBUG/);
 
@@ -576,7 +576,8 @@ sub form_login {
   );
 
   $first_page{TITLE}=$_USER_PORTAL;
-  $OUTPUT{BODY} = $html->tpl_show(templates('form_client_login'), \%first_page);
+  $OUTPUT{BODY} = $html->tpl_show(templates('form_client_login'), 
+   \%first_page, { MAIN => 1 });
 }
 
 #*******************************************************************
