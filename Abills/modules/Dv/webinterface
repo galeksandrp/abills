@@ -3592,7 +3592,6 @@ sub dv_user_chg_tp {
       # Get next month
       my ($Y, $M, $D);
       if ($user->{ACTIVATE} eq '0000-00-00') {
-
         # Get next month
         ($Y, $M, $D) = split(/-/, $DATE, 3);
       }
@@ -3836,7 +3835,7 @@ sub dv_user_chg_tp {
   );
 
   if ($Shedule->{TOTAL} > 0) {
-    $tariffs->info(0, { ID => $Shedule->{ACTION} });
+    $tariffs->info(0, { ID => $Shedule->{ACTION}, MODULE => 'Dv' });
 
     $table = $html->table(
       {
