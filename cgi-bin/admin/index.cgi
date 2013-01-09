@@ -81,7 +81,8 @@ if ($conf{AUTH_METHOD}) {
     %{ $admin->{WEB_OPTIONS} }
   }
   );
-
+  
+  $html->{language} = $FORM{language} if ($FORM{language} && $FORM{language} =~ /[a-z_]/);
   require "../../language/$html->{language}.pl";
   require "Abills/templates.pl";
 
