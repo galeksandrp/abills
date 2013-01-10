@@ -98,6 +98,7 @@ if ($conf{AUTH_METHOD}) {
     $COOKIES{sid} = $sid;
   }
   else {
+  	$html->{METATAGS} = templates('metatags');
  	  print $html->header();
  	  form_login();
  	  exit;
