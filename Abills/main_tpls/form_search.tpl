@@ -1,5 +1,4 @@
 <div class='noprint'>
-
 <form action='$SELF_URL' METHOD='POST' name='form_search'>
 <input type='hidden' name='index' value='$index'>
 %HIDDEN_FIELDS%

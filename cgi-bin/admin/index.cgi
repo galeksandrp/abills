@@ -66,11 +66,11 @@ $db                 = $sql->{db};
 $admin              = Admins->new($db, \%conf);
 use Abills::Base;
 
-@state_colors = ("#00FF00", "#FF0000", "#AAAAFF");
+@state_colors       = ("#00FF00", "#FF0000", "#AAAAFF");
+%permissions        = ();
+$index              = 0;
+$conf{HTML5}        = 0;
 
-%permissions = ();
-$index = 0;
-$conf{HTML5}=0;
 #Cookie auth
 if ($conf{AUTH_METHOD}) {
   $html  = Abills::HTML->new(
@@ -79,7 +79,7 @@ if ($conf{AUTH_METHOD}) {
     NO_PRINT => 0,
     PATH     => $conf{WEB_IMG_SCRIPT_PATH} || '../',
     CHARSET  => $conf{default_charset},
-    %{ $admin->{WEB_OPTIONS} }
+    #%{ $admin->{WEB_OPTIONS} }
   }
   );
   
@@ -585,8 +585,8 @@ sub check_permissions {
   if ($session_sid && ! $login) {
     $admin->online_info({ SID => $session_sid });
     if ($admin->{TOTAL} > 0 && $ENV{REMOTE_ADDR} eq $admin->{IP}) {
-    $admin->info($admin->{AID}, { IP => $ENV{REMOTE_ADDR} || '0.0.0.0' });
-      $LIST_PARAMS{GID}=$admin->{GID};
+      $admin->info($admin->{AID}, { IP => $ENV{REMOTE_ADDR} || '0.0.0.0' });
+      # $LIST_PARAMS{GID}=$admin->{GID};
       %permissions  = %{ $admin->get_permissions() };
 
       if ($admin->{WEB_OPTIONS}) {
@@ -636,6 +636,9 @@ sub check_permissions {
     foreach my $line (@WO_ARR) {
       my ($k, $v) = split(/=/, $line);
       $admin->{WEB_OPTIONS}{$k} = $v;
+      if ($html)  {
+      	$html->{$k}=$v;
+      }
     }
   }
 
@@ -7046,7 +7049,7 @@ sub form_search {
       }
       elsif ($FORM{type} == 11 || $FORM{type} == 15) {
         $FORM{type} = 11;
-
+        $index=11;
         my $i = 0;
         my $list = $users->config_list({ PARAM => 'ifu*', SORT => 2 });
         if ($users->{TOTAL} > 0) {
@@ -7232,6 +7235,8 @@ sub form_search {
           $info{ADDRESS_FORM} = $html->tpl_show(templates('form_address'), $user_pi, { OUTPUT2RETURN => 1 });
         }
       }
+      	
+
 
       $SEARCH_DATA{SEARCH_FORM} = $html->tpl_show(templates($search_form{ $FORM{type} }), { %FORM, %info, GROUPS_SEL => $group_sel }, { OUTPUT2RETURN => 1 });
       $SEARCH_DATA{SEARCH_FORM} .= $html->form_input('type', "$FORM{type}", { TYPE => 'hidden' });
