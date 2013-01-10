@@ -712,7 +712,7 @@ sub list {
     push @WHERE_RULES, @{ $self->search_expr($admin->{DOMAIN_ID}, 'INT', 'tp.domain_id') };
   }
   elsif (defined($attr->{DOMAIN_ID})) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{DOMAIN_ID}, 'INT', 'tp.domain_id') };
+    push @WHERE_RULES, @{ $self->search_expr($attr->{DOMAIN_ID}, 'INT', 'tp.domain_id', { EXT_FIELD => 1 }) };
   }
 
   if ($attr->{PAYMENT_TYPE}) {
@@ -772,7 +772,7 @@ sub list {
     LEFT JOIN trafic_tarifs tt ON (tt.interval_id=i.id)
     LEFT JOIN tp_groups tp_g ON (tp.gid=tp_g.id)
     $WHERE
-    GROUP BY tp.id
+    GROUP BY tp.tp_id
     ORDER BY $SORT $DESC;",
     undef,
     $attr

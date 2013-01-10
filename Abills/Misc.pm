@@ -99,4 +99,51 @@ sub get_function_index {
   return $function_index;
 }
 
+
+#**********************************************************
+# get_period_dates
+# 
+# get_period_dates
+#
+#   TYPE              0 - day, 1 - month  
+#   START_DATE
+#   ACCOUNT_ACTIVATE
+#   PERIOD_ALIGNMENT
+#**********************************************************
+sub get_period_dates {
+	my ($attr)=@_;
+	
+  my $START_PERIOD = $attr->{START_DATE} || $DATE;
+  
+  my ($start_date, $end_date);
+
+  if ($attr->{ACCOUNT_ACTIVATE} && $attr->{ACCOUNT_ACTIVATE} ne '0000-00-00') {
+    $START_PERIOD = $attr->{ACTIVATE};
+  }
+
+  my ($start_y, $start_m, $start_d)=split(/-/, $START_PERIOD);
+
+  if ($attr->{TYPE}) {
+  	if ($attr->{TYPE}==1) {
+      my $days_in_month = ($start_m != 2 ? (($start_m % 2) ^ ($start_m > 7)) + 30 : (!($start_y % 400) || !($start_y % 4) && ($start_y % 25) ? 29 : 28));
+
+      #start date
+     	$end_date   = "$start_y-$start_m-$days_in_month";
+      if ($attr->{PERIOD_ALIGNMENT}) {
+      	$start_date = $START_PERIOD;
+      }
+      else {
+        $start_date = "$start_y-$start_m-01";
+        if ($attr->{ACCOUNT_ACTIVATE}) {
+          my $end_date = strftime "%Y-%m-%d", localtime((mktime(0, 0, 0, $start_d, ($start_m - 1), ($start_y - 1900), 0, 0, 0) + 30 * 86400));
+        }        
+      }
+
+      return " ($start_date-$end_date)";
+  	}
+  }
+	
+	return '';
+}
+
 1

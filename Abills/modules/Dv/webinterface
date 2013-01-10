@@ -5382,7 +5382,8 @@ sub dv_monthly_fees {
   my %FEES_METHODS = %{ get_fees_types({ SHORT => 1 }) };
 
   my $users = Users->new($db, $admin, \%conf);
-  my $list = $tariffs->list({%LIST_PARAMS, 
+  my $list = $tariffs->list({%LIST_PARAMS,
+  	                         DOMAIN_ID => '>=0', 
   	                         COLS_NAME => 1,
   	                         COLS_UPPER=> 1
   	                       });
@@ -5409,6 +5410,7 @@ sub dv_monthly_fees {
   foreach my $TP_INFO (@$list) {
     my $month_fee           = $TP_INFO->{MONTH_FEE};
     my $activate_date       = "<=$ADMIN_REPORT{DATE}";
+    $USERS_LIST_PARAMS{DOMAIN_ID} = $TP_INFO->{DOMAIN_ID};
     my %used_traffic = ();
 
     #Monthfee & min use

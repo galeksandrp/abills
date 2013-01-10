@@ -9334,4 +9334,6 @@ sub form_login {
   $OUTPUT{BODY} = $html->tpl_show(templates('form_client_login'), \%first_page);
 }
 
+
+
 1

@@ -162,12 +162,20 @@ sub abon_user {
             $message .= abon_get_month_fee($Abon);
           }
           elsif ($FORM{ 'DISCOUNT_' . $Abon->{TP_INFO}->{TP_ID} } < 100) {
-            $fees->take($users, $Abon->{TP_INFO}->{PRICE}, {%PARAMS});
+          	if ($line->{period} == 1) {
+          		$PARAMS{DESCRIBE} .= get_period_dates({  
+          			                  TYPE             => $line->{period},
+      	                          PERIOD_ALIGNMENT => $Abon->{TP_INFO}->{PERIOD_ALIGNMENT},
+      	                          ACCOUNT_ACTIVATE => $users->{ACTIVATE}
+      	                        });
+          	}
+
+            $fees->take($users, $Abon->{TP_INFO}->{PRICE}, { %PARAMS });
             if ($fees->{errno}) {
               $html->message('err', "$_FEES : $_ERROR", "[$fees->{errno}] $fees->{errstr}");
             }
             else {
-              $message .= "$_ABON: $Abon->{TP_INFO}->{PRICE} ($Abon->{TP_INFO}->{TP_ID})\n";
+              $message .= "$PARAMS{DESCRIBE}";
             }
           }
 
@@ -639,7 +647,9 @@ sub abon_periodic {
       );
 
       my %PARAMS = (
-        DESCRIBE => "$_ABON: ($info->{TP_ID}) $info->{TP_NAME}",
+        DESCRIBE => "$_ABON: ($info->{TP_ID}) $info->{TP_NAME}". get_period_dates({ TYPE         => $info->{PERIOD},
+        	                                                                          START_PERIOD => $ADMIN_REPORT{DATE}
+        	                                                                        }),
         METHOD   => $info->{FEES_TYPE},
         DATE     => $ADMIN_REPORT{DATE}
       );
@@ -834,9 +844,8 @@ sub abon_get_month_fee {
   my ($Abon, $attr) = @_;
 
   my $result_sum = 0;
-
   my $message = '';
-
+  
   #Get month fee
   if ($Abon->{TP_INFO}->{PRICE} > 0) {
     my $sum  = $Abon->{TP_INFO}->{PRICE};
@@ -872,7 +881,7 @@ sub abon_get_month_fee {
       $periods = 12 - $active_m + $m;
     }
 
-    $message = "$_ABON: " . (($Abon->{COMMENTS}) ? " $Abon->{TP_INFO}->{TP_NAME} $Abon->{COMMENTS}" : " [$Abon->{TP_INFO}->{TP_ID}] $Abon->{TP_INFO}->{TP_NAME} ") . $message . "\n";
+    $message = "$_ABON: " . (($Abon->{COMMENTS}) ? "$Abon->{TP_INFO}->{TP_NAME} $Abon->{COMMENTS}" : "[$Abon->{TP_INFO}->{TP_ID}] $Abon->{TP_INFO}->{TP_NAME} ") . $message . "\n";
 
     for (my $i = 0 ; $i <= $periods ; $i++) {
       if ($active_m + $i > 12) {
@@ -901,11 +910,19 @@ sub abon_get_month_fee {
       if ($Abon->{COMMENTS}) {
         $message .= $Abon->{COMMENTS};
       }
+      #add period
+      $message .= get_period_dates({  TYPE             => 1,
+      	                              PERIOD_ALIGNMENT => $Abon->{TP_INFO}->{PERIOD_ALIGNMENT},
+      	                              ACCOUNT_ACTIVATE => $Abon->{ACTIVATE}
+      	                           });
+
+      my $fees_message  = $message;
+      $fees_message =~ s/\n//g;
 
       $fees->take(
         $users, $sum,
         {
-          DESCRIBE => $message,
+          DESCRIBE => $fees_message,
           METHOD   => $Abon->{TP_INFO}->{FEES_TYPE},
           DATE     => "$DATE $TIME"
         }

@@ -587,6 +587,7 @@ sub search_expr_users () {
     LOGIN         => 'STR:u.id',
     UID           => 'INT:u.uid',
     DEPOSIT       => 'INT:b.deposit',
+    DOMAIN_ID     => 'INT:u.domain_id',
     COMPANY_ID    => 'INT:u.company_id',
     COMPANY_CREDIT=> 'INT:company.credit AS company_credit',
     REGISTRATION  => 'DATE:u.registration',

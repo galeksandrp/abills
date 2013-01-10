@@ -408,11 +408,9 @@ sub list {
                                             
                                             'ACTIVATE',
                                             'EXPIRE',
-                                            'DEPOSIT:skip'
-
+                                            'DEPOSIT:skip',
+                                            'DOMAIN_ID'
   	                                         ] }) };
-
-
 
   if ($attr->{USERS_WARNINGS}) {
   	my $allert_period = '';
