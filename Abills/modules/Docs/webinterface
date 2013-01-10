@@ -2340,7 +2340,7 @@ sub docs_invoice {
       if (! $user->{UID}) {
         my $list = $Docs->invoice_new(
           {
-            FROM_DATE => $users->{REGISTRATION},  #$FORM{FROM_DATE} || $html->{FROM_DATE},
+            FROM_DATE => '0000-00-00', #$users->{REGISTRATION},  #$FORM{FROM_DATE} || $html->{FROM_DATE},
             TO_DATE   => $FORM{TO_DATE} || $html->{TO_DATE} || $DATE,
             PAGE_ROWS => 500,
             UID       => $users->{UID}
