@@ -789,7 +789,7 @@ sub list {
   }
 
   if ($attr->{ACTIVE}) {
-    push @WHERE_RULES, "u.expire>curdate() and u.credit + if(company.id IS NULL, b.deposit, cb.deposit) > 0 and u.disable=0 ";
+    push @WHERE_RULES, "(u.expire = '0000-00-00' or u.expire>curdate()) and u.credit + if(company.id IS NULL, b.deposit, cb.deposit) > 0 and u.disable=0 ";
   }
 
   my $EXT_TABLES = $self->{EXT_TABLES};
