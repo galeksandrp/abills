@@ -2,11 +2,47 @@
 #
 #
 #***********************************************************************
+# /etc/rc.conf
+#
+# abills_firewall="YES"          enable ABillS Firewall
+#
+# abills_shaper_enable="YES"     enable shapper
+#
+# abills_shaper2_enable="YES"    enable shapper with mangle
+#
+# abills_nas_id=""               ABillS NAS ID default 1
+#
+# abills_ip_sessions=""          ABIllS IP SEssions limit
+#
+# abills_nat="EXTERNAL_IP:INTERNAL_IPS:NAT_IF" - Enable abills nat
+#
+# abills_dhcp_shaper=""  (bool)  Set to "NO" by default.
+#                                Enable ipoe_shaper
+#
+# abills_dhcp_shaper_nas_ids=""  Set nas ids for shapper, Default: all nas servers
+#
+# abills_mikrotik_shaper=""      NAS IDS
+#
+#IPN Section configuration
+#
+# abills_ipn_nas_id=""           ABillS IPN NAS ids, Enable IPN firewall functions
+#
+# abills_ipn_if="eth0,eth1"      IPN Shapper interface
+#
+#Other
+#
+# abills_squid_redirect=""      Redirect traffic to squid
+#
+# abills_neg_deposit=""         Enable neg deposit redirect
+#
+# abills_neg_deposit_speed="512" Set default speed for negative deposit
+
 
 VERSION=1.01 
 . /etc/rc.conf
 
 name="abills_shaper" 
+
 if [ x${abills_shaper_enable} = x ]; then
   name="abills_nat"
   abills_nat_enable=YES; 
@@ -29,29 +65,20 @@ EXTERNAL_INTERFACE=`/sbin/ip r | awk '/default/{print $5}'`
 #**********************************************************
 #
 #**********************************************************
+all_rulles(){
+  ACTION=$1
 
-abills_shaper_start(){
-  ACTION=start 
+if [ x${abills_ipn_if} != x ]; then
+  IPN_INTERFACES=`echo ${abills_ipn_if} | sed 's/,/ /g'`
+fi;
 
 abills_iptables
 abills_shaper 
+abills_shaper2
 abills_ipn 
 abills_nat 
 neg_deposit
 
-}
-
-#**********************************************************
-#
-#**********************************************************
-
-abills_shaper_stop() {
-  ACTION=stop 
-abills_iptables
-abills_shaper 
-abills_ipn 
-abills_nat 
-neg_deposit
 }
 
 
@@ -59,6 +86,10 @@ neg_deposit
 #IPTABLES RULES
 #**********************************************************
 abills_iptables() {
+
+if [ x${abills_firewall} = x ]; then
+  return 0;
+fi;
 
 echo "ABillS Iptables ${ACTION}"
 
@@ -88,10 +119,10 @@ $IPT -A FORWARD -p tcp -m tcp -s 0/0 --dport 80 -j ACCEPT
 $IPT -A FORWARD -p tcp -m tcp -s 0/0 --dport 9443 -j ACCEPT
 
 if [ x${abills_ipn_if} != x ]; then
-  IPN_INTERFACE=`echo ${abills_ipn_if} | sed 's/,/ /g'`
+  IPN_INTERFACES=`echo ${abills_ipn_if} | sed 's/,/ /g'`
 
   # Перенаправление IPN клиентов
-  for REDIRECT_IPN in ${IPN_INTERFACE}; do
+  for REDIRECT_IPN in ${IPN_INTERFACES}; do
     REDIRECT_POOL=`ip r |grep " ${REDIRECT_IPN} " | awk '{ print $1 }'`
     $IPT -t nat -A PREROUTING -s ${REDIRECT_POOL} -p tcp --dport 80 -j REDIRECT --to-ports 80
     $IPT -t nat -A PREROUTING -s ${REDIRECT_POOL} -p tcp --dport 443 -j REDIRECT --to-ports 80
@@ -129,12 +160,14 @@ abills_shaper() {
     return 0;
   elif [ x${abills_shaper_enable} = xNAT ]; then
     return 0;
+  elif [ x${abills_shaper_enable} = x ]; then
+    return 0;
   fi;
 
 echo "ABillS Shapper ${ACTION}"
 
-if [ x${ACTION} = xstart ];then
-  for INTERFACE in ${IPN_INTERFACE}; do
+if [ x${ACTION} = xstart ]; then
+  for INTERFACE in ${IPN_INTERFACES}; do
     TCQA="${TC} qdisc add dev ${INTERFACE}"
     TCQD="${TC} qdisc del dev ${INTERFACE}"
 
@@ -148,7 +181,7 @@ if [ x${ACTION} = xstart ];then
   done
 
 elif [ x${ACTION} = xstop ]; then
-  for INTERFACE in ${IPN_INTERFACE}; do
+  for INTERFACE in ${IPN_INTERFACES}; do
     TCQA="${TC} qdisc add dev ${INTERFACE}"
     TCQD="${TC} qdisc del dev ${INTERFACE}"
 
@@ -161,13 +194,59 @@ fi;
 }
 
 #**********************************************************
+# Abills Shapper
+# With mangle support
+#**********************************************************
+abills_shaper2() { 
+
+  if [ x${abills_shaper2_enable} = xNO ]; then
+    return 0;
+  elif [ x${abills_shaper2_enable} = x ]; then
+    return 0;
+  fi;
+
+echo "ABillS Shapper 2 ${ACTION}"
+
+SPEEDUP=100mbit
+SPEEDDOWN=100mbit
+
+if [ x${ACTION} = xstart ]; then
+  ${IPT} -t mangle --flush
+
+  ${TC} qdisc add dev ${EXTERNAL_INTERFACE} root handle 1: htb
+  ${TC} class add dev ${EXTERNAL_INTERFACE} parent 1: classid 1:1 htb rate $SPEEDDOWN ceil $SPEEDDOWN
+
+  for INTERFACE in ${IPN_INTERFACES}; do
+    ${TC} qdisc add dev ${INTERFACE} root handle 1: htb
+    ${TC} class add dev ${INTERFACE} parent 1: classid 1:1 htb rate $SPEEDUP ceil $SPEEDUP
+
+    echo "Shaper UP ${INTERFACE}"
+  done
+elif [ x${ACTION} = xstop ]; then
+  ${IPT} -t mangle --flush
+  ${TC} qdisc del dev ${EXTERNAL_INTERFACE} root handle 1: htb
+  for INTERFACE in ${IPN_INTERFACES}; do
+    ${TC} qdisc del dev ${INTERFACE} root handle 1: htb
+    echo "Shaper DOWN ${INTERFACE}"
+  done
+elif [ x${ACTION} = xstatus ]; then
+  echo "External: ${EXTERNAL_INTERFACE}";  
+  ${TC} class show dev ${EXTERNAL_INTERFACE}
+  for INTERFACE in ${IPN_INTERFACES}; do
+    echo "Internal: ${INTERFACE}"
+    ${TC} class show dev ${INTERFACE}
+  done
+fi;
+}
+
+#**********************************************************
 #Ipn Sections
 # Enable IPN
 #**********************************************************
 abills_ipn() {
 
 if [ x${abills_ipn_nas_id} = x ]; then
-  echo "unknown ABillS IPN NAS id"
+  #echo "unknown ABillS IPN NAS id"
   return 0;
 fi;
 
@@ -191,6 +270,7 @@ fi;
 #NAT Section
 #**********************************************************
 abills_nat() {
+
   if [ x"${abills_nat}" = x ]; then
     return 0;
   fi;
@@ -210,33 +290,47 @@ abills_nat() {
     echo "Disable NAT" 
   fi;
 }
+
+
 #**********************************************************
 #Neg deposit FWD Section
 #**********************************************************
 neg_deposit() {
+  
+  if [ x${abills_neg_deposit} = x ]; then
+    return 0;
+  fi;
+
   echo "NEG_DEPOSIT in the development"
 }
 
 #############################Скрипт################################
 case "$1" in start) echo -n "START : $name"
-            echo ""
-	    abills_shaper_start
+      echo ""
+	    all_rulles start
 	    echo "."
 	    ;; 
 	stop) echo -n "STOP : $name"
 	    echo ""
-	    abills_shaper_stop
+	    all_rulles stop
 	    echo "."
 	    ;; 
 	restart) echo -n "RESTART : $name"
 	    echo ""
-	    abills_shaper_stop
-	    abills_shaper_start
+	    all_rulles stop
+	    all_rulles start
 	    echo "."
 	    ;;
-    *) echo "Usage: /etc/init.d/rc.iptables
- start|stop|restart|clear"
+	status) echo -n "STATUS : $name"
+	    echo ""
+	    all_rulles status
+	    echo "."
+	    ;;
+    *) echo "Usage: /etc/init.d/shapper_start.sh
+ start|stop|status|restart|clear"
     exit 1
     ;; 
     esac 
-    exit 0
+
+
+exit 0
