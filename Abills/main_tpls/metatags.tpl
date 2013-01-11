@@ -992,6 +992,12 @@ table tr.marked th,table tr.marked,.odd:hover,.even:hover,.hover,table tr.odd:ho
 	top:27px;	
 }
 
+.login_form_border {
+  width:400px;
+  margin: 180px auto;
+
+}
+
 
 </style>
 

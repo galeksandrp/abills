@@ -755,8 +755,51 @@ sub user_info {
 #  return \%params;
 #}
 
+=comments
+declare -i mark=$ID+101
+declare -i mark1=$ID+4101
+$IPT -t mangle -A FORWARD -d $IP -j MARK --set-mark $mark
+$IPT -t mangle -A FORWARD -s $IP -j MARK --set-mark $mark1
+
+#Download
+$tc class add dev $IFDOWN parent 1:1 classid 1:$mark htb rate $SPEED$SCOUNT
+$tc filter add dev $IFDOWN parent 1: protocol ip prio 3 handle $mark fw classid
+1:$mark
+
+#Upload
+$tc class add dev $IFUP parent 1:1 classid 1:$mark1 htb rate $UPSPEED$SCOUNT
+$tc filter add dev $IFUP parent 1: protocol ip prio 3 handle $mark1 fw classid 1:$mark1
+
+#stop
+
+declare -i mark=$ID+101
+declare -i mark1=$ID+4101
+
+if [ -n "$mark" ]
+then
+    $IPT -t mangle -D FORWARD -d $IP -j MARK --set-mark $mark
+    while [ $? = 0 ]
+    do
+            $IPT -t mangle -D FORWARD -d $IP -j MARK --set-mark $mark
+    done
+fi
+
+if [ -n "$mark1" ]
+then
+    $IPT -t mangle -D FORWARD -s $IP -j MARK --set-mark $mark1
+    while [ $? = 0 ]
+    do
+            $IPT -t mangle -D FORWARD -s $IP -j MARK --set-mark $mark1
+    done
+fi
+
+
+=end
+
+
 if ($conf{linkupdown_external}) {
   my $res = `$conf{linkupdown_external} "$ACTION" "$INTERFACE" "$USER" "$CLIENT_IP"`;
 }
 
 1
+

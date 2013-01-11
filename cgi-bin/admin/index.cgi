@@ -6995,11 +6995,11 @@ sub form_search {
     );
 
     if ($FORM{type} == 15) {
-      $FORM{type} = 11 ;
+      $FORM{type} = 11;
     }
     elsif($FORM{type} == 10) {
     	$FORM{UNIVERSAL_SEARCH}="$FORM{LOGIN}";
-    	$FORM{type} = 11 ;
+    	$FORM{type} = 11;
     }
     
     if ($FORM{LOGIN} && $admin->{MIN_SEARCH_CHARS} && length($FORM{LOGIN}) < $admin->{MIN_SEARCH_CHARS}) {
@@ -7049,8 +7049,11 @@ sub form_search {
         $attr->{ADDRESS_FORM}=1;
       }
       elsif ($FORM{type} == 11 || $FORM{type} == 15) {
-        $FORM{type} = 11;
-        $index=11;
+        if ($index == 30) {
+          $index=7 ;
+          delete $FORM{UID};
+        }
+
         my $i = 0;
         my $list = $users->config_list({ PARAM => 'ifu*', SORT => 2 });
         if ($users->{TOTAL} > 0) {
