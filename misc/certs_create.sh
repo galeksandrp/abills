@@ -375,8 +375,29 @@ postfix_cert () {
   echo "Make POSTFIX TLS sertificats"
   echo "******************************************************************************"
 
-  ${OPENSSL} req -new -x509 -nodes -out smtpd.pem -keyout smtpd.pem -days ${DAYS} \
-    -passin pass:${password} -passout pass:${password}
+
+mkdir ${CERT_PATH}
+cd ${CERT_PATH}
+
+openssl genrsa -des3 -rand /etc/hosts -out smtpd.key 1024
+#вводим пароль для нашего файла-ключа smtpd.key
+
+chmod 600 smtpd.key
+openssl req -new -key smtpd.key -out smtpd.csr
+#снова вводим пароль от smtpd.key, а затем требуемую информацию
+
+openssl x509 -req -days 3650 -in smtpd.csr -signkey smtpd.key -out smtpd.crt
+#снова пароль от smtpd.key
+
+openssl rsa -in smtpd.key -out smtpd.key.unencrypted
+#и снова пароль от smtpd.key
+
+mv -f smtpd.key.unencrypted smtpd.key
+openssl req -new -x509 -extensions v3_ca -keyout cakey.pem -out cacert.pem -days 3650
+#угадайте что? да, пароль от smtpd.key, и снова доп. информацию
+
+#  ${OPENSSL} req -new -x509 -nodes -out smtpd.pem -keyout smtpd.pem -days ${DAYS} \
+#    -passin pass:${password} -passout pass:${password}
 }
 
 #**********************************************************
@@ -548,7 +569,7 @@ case ${CERT_TYPE} in
         info)
               cert_info $2;
                 ;;
-        postfix)
+        postfix_tls)
               postfix_cert;
                 ;;
         easysoft)
