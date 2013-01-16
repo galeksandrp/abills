@@ -387,8 +387,9 @@ sub payments {
   if ($FORM{LMI_PAYMENT_NO}) {    # || $FORM{LMI_HASH}) {
     wm_payments();
   }
-  elsif ($FORM{rupay_action}) {
-    rupay_payments();
+  elsif ($FORM{userField_UID}) {
+    require "Rbkmoney.pm";
+    #print 'lol';
   }
   elsif ($FORM{id_ups}) {
     require "Ukrpays.pm";
@@ -1407,108 +1408,6 @@ sub smsproxy_payments {
 
 }
 
-#**********************************************************
-#
-#**********************************************************
-sub rupay_payments {
-
-  $md5->reset;
-  my $checksum = '';
-  my $info     = '';
-  my $user     = $users->info($FORM{user_field_UID});
-
-  if ($user->{errno}) {
-    $status = "ERROR: $user->{errno}";
-  }
-  elsif ($user->{TOTAL} < 0) {
-    $status = "User not exist";
-  }
-  elsif ($FORM{rupay_site_id} ne $conf{PAYSYS_RUPAY_ID}) {
-    $status = 'Not valid money account';
-  }
-
-  while (my ($k, $v) = each %FORM) {
-    $info .= "$k, $v\n" if ($k =~ /^rupay|^user_field/);
-  }
-
-  #notification
-  #Make checksum
-  if ($FORM{rupay_action} eq 'add') {
-    $md5->add("$FORM{rupay_action}::$FORM{rupay_site_id}::$FORM{rupay_order_id}::$FORM{rupay_name_service}::$FORM{rupay_id}::$FORM{rupay_sum}::$FORM{rupay_user}::$FORM{rupay_email}::$FORM{rupay_data}::$conf{PAYSYS_RUPAY_SECRET_KEY}");
-    $checksum = $md5->hexdigest();
-
-    $status = 'Preview Request';
-    if ($FORM{rupay_hash} ne $checksum) {
-      $status = "Incorect checksum '$checksum'";
-    }
-
-    #Info section
-    $Paysys->add(
-      {
-        SYSTEM_ID      => 42,
-        DATETIME       => '',
-        SUM            => $FORM{rupay_sum},
-        UID            => $FORM{user_field_UID},
-        IP             => $FORM{user_field_IP},
-        TRANSACTION_ID => "$FORM{rupay_order_id}",
-        INFO           => "STATUS, $status\n$info",
-        PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}"
-      }
-    );
-  }
-
-  #Add paymets
-  elsif ($FORM{rupay_action} eq 'update') {
-
-    #Make checksum
-    $md5->add("$FORM{rupay_action}::$FORM{rupay_site_id}::$FORM{rupay_order_id}::$FORM{rupay_sum}::$FORM{rupay_id}::$FORM{rupay_data}::$FORM{rupay_status}::$conf{PAYSYS_RUPAY_SECRET_KEY}");
-    $checksum = $md5->hexdigest();
-
-    if ($FORM{rupay_hash} ne $checksum) {
-      $status = 'Incorect checksum';
-    }
-    elsif ($status eq '') {
-
-      #Add payments
-      my $er = ($FORM{'5.ER'}) ? $payments->exchange_info() : { ER_RATE => 1 };
-      $payments->add(
-        $user,
-        {
-          SUM      => $FORM{rupay_sum},
-          DESCRIBE => 'RUpay',
-          METHOD   => ($conf{PAYSYS_PAYMENTS_METHODS} && $PAYSYS_PAYMENTS_METHODS{42}) ? 42 : '2',
-          EXT_ID   => $FORM{rupay_order_id},
-          ER       => $er->{ER_RATE}
-        }
-      );
-
-      if ($payments->{errno}) {
-        $info = "PAYMENT ERROR: $payments->{errno}\n";
-      }
-      else {
-        $status = "Added $payments->{INSERT_ID}\n";
-      }
-    }
-
-    #Info section
-    $Paysys->add(
-      {
-        SYSTEM_ID      => 42,
-        DATETIME       => '',
-        SUM            => $FORM{rupay_sum},
-        UID            => $FORM{user_field_UID},
-        IP             => $FORM{user_field_IP},
-        TRANSACTION_ID => "$FORM{rupay_order_id}",
-        INFO           => "STATUS, $status\n$info",
-        PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}"
-      }
-    );
-
-    $output2 .= "Paysys:" . $Paysys->{errno} if ($Paysys->{errno});
-    $output2 .= "CHECK_SUM: $checksum\n";
-  }
-
-}
 
 #**********************************************************
 # https://merchant.webmoney.ru/conf/guide.asp

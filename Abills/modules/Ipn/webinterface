@@ -1645,7 +1645,6 @@ sub ipn_change_status {
     return 0;
   }
   else {
-
     $cmd =~ s/\%IP/$ip/g;
     $cmd =~ s/\%MASK/$netmask/g;
     $cmd =~ s/\%NUM/$rule_num/g;

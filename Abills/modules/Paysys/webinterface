@@ -1,5 +1,5 @@
 # Paysys System
-# Support Webmoney, Rupay, SMSProxy,  Ukrpays
+# Support Webmoney, Rbkmoney, SMSProxy,  Ukrpays
 
 eval { require Paysys; };
 if (!$@) {
@@ -19,7 +19,7 @@ my $Paysys = Paysys->new($db, $admin, \%conf);
 
 my %PAY_SYSTEMS = (
   41 => "Webmoney",
-  42 => "RUpay",
+  42 => "Rbkmoney",
   43 => "SMSProxy",
   44 => "OSMP",
   45 => "Portmone",
@@ -66,7 +66,7 @@ my %PAY_SYSTEMS = (
 
 my %CONF_OPTIONS = (
   PAYSYS_WEBMONEY_ACCOUNTS     => 41,
-  PAYSYS_RUPAY_ID              => 42,
+  PAYSYS_RBKMONEY_ID           => 42,
   PAYSYS_SMSPROXY              => 43,
   PAYSYS_OSMP_ACCOUNT_KEY      => 44,
   PAYSYS_PORTMONE_PAYEE_ID     => 45,
@@ -622,7 +622,7 @@ sub paysys_payment {
     paysys_webmoney();
   }
   elsif ($FORM{PAYMENT_SYSTEM} == 42) {
-    paysys_rupay();
+    paysys_rbkmoney();
   }
   elsif ($FORM{PAYMENT_SYSTEM} == 43) {
     paysys_smsproxy();
@@ -676,7 +676,7 @@ sub paysys_payment {
     $info{OPERATION_ID} = mk_unique_value(8, { SYMBOLS => '0123456789' });
     my %PAY_SYSTEM_ACCOUNTS = (
       41 => 'PAYSYS_WEBMONEY_ACCOUNTS',
-      42 => 'PAYSYS_RUPAY_ID',
+      42 => 'PAYSYS_RBKMONEY_ID',
       43 => 'PAYSYS_SMSPROXY',
       45 => 'PAYSYS_PORTMONE_PAYEE_ID',
       46 => 'PAYSYS_UKRPAYS_SECRETKEY',
@@ -1429,6 +1429,48 @@ sub paysys_rupay {
 
   $html->tpl_show(_include('paysys_rupay_add', 'Paysys'), \%info);
 }
+
+#**********************************************************
+#
+#**********************************************************
+sub paysys_rbkmoney {
+
+  my %info = ();
+
+  if ($FORM{FALSE}) {
+    $html->message('err', $_ERROR, "$_FAILED ID: $FORM{OPERATION_ID}");
+  }
+  elsif ($FORM{TRUE}) {
+    my $list = $Paysys->list({ TRANSACTION_ID => "$FORM{OPERATION_ID}", UID => $LIST_PARAMS{UID} });
+
+    if ($Paysys->{TOTAL} > 0) {
+      $html->message('info', $_INFO, "$_TRANSACTION_PROCESSING $_SUM: $list->[0][3] ID: $FORM{OPERATION_ID}");
+    }
+    else {
+      $html->message('err', $_ERROR, "$_FAILED ID: $FORM{OPERATION_ID} $_ERR_NO_TRANSACTION");
+    }
+
+    return 0;
+  }
+
+  $info{SUM_VAL_SEL} = $html->form_select(
+    'recipientCurrency',
+    {
+      SELECTED  => $FORM{sum_val},
+      SEL_ARRAY => [ USD, EUR, UAH, RUR ],
+      NO_ID     => 1
+    }
+  );
+
+  $info{OPERATION_ID} = $FORM{OPERATION_ID};
+  $info{SUM}          = $FORM{SUM};
+  $info{DESCRIBE}     = $FORM{DESCRIBE};
+
+  $html->tpl_show(_include('paysys_rbkmoney_add', 'Paysys'), \%info);
+}
+
+
+
 
 #**********************************************************
 # 80567161228 vadim
