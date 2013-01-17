@@ -813,14 +813,14 @@ sub ureports_use {
           "$_USERS: " . $html->b($sessions->{USERS}),
           "$_SESSIONS: " . $html->b($sessions->{SESSIONS}),
           "$_TRAFFIC: " 
-          . $html->b(int2byte($sessions->{TRAFFIC})) . "<BR>"
+          . $html->b(int2byte($sessions->{TRAFFIC})) . $html->br()
           . "$_TRAFFIC IN: "
-          . $html->b(int2byte($sessions->{TRAFFIC_IN})) . "<BR>"
+          . $html->b(int2byte($sessions->{TRAFFIC_IN})) . $html->br()
           . "$_TRAFFIC OUT: "
           . $html->b(int2byte($sessions->{TRAFFIC_OUT}))
           ,
 
-          "$_TRAFFIC 2: " . $html->b(int2byte($sessions->{TRAFFIC_2})) . "<br>" . "$_TRAFFIC 2 IN: " . $html->b(int2byte($sessions->{TRAFFIC_2_IN})) . "<BR>" . "$_TRAFFIC 2 OUT: " . $html->b(int2byte($sessions->{TRAFFIC_2_OUT})),
+          "$_TRAFFIC 2: " . $html->b(int2byte($sessions->{TRAFFIC_2})) . $html->br() . "$_TRAFFIC 2 IN: " . $html->b(int2byte($sessions->{TRAFFIC_2_IN})) . $html->br() . "$_TRAFFIC 2 OUT: " . $html->b(int2byte($sessions->{TRAFFIC_2_OUT})),
 
           "$_DURATION: " . $html->b($sessions->{DURATION}),
           "$_SUM: " . $html->b($sessions->{SUM})
@@ -897,7 +897,7 @@ sub ureports_stats {
   $table = $html->table(
     {
       width    => '100%',
-      rowcolor => $_COLORS[0],
+      rowcolor => 'table_title',
       rows     => [
         [
           "$_FROM: ",
@@ -1119,7 +1119,7 @@ sub ureports_send_reports {
   }
   elsif ($type == 1) {
     if (in_array('Sms', \@MODULES)) {
-      require "Abills/modules/Sms/webinterface";
+      load_module('Sms', $html);
       sms_send(
         {
           NUMBER    => $destination,

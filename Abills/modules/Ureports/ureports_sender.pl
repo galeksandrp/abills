@@ -104,7 +104,7 @@ if ($ARGV->{REPORT_IDS}) {
   $ARGV->{TP_IDS}     = $ARGV->{REPORT_IDS};
 }
 
-my $debug_output = ureports_periodic_reports({%$ARGV});
+my $debug_output = ureports_periodic_reports({ %$ARGV });
 
 print $debug_output;
 
@@ -114,7 +114,10 @@ print $debug_output;
 sub ureports_send_reports {
   my ($type, $destination, $message, $attr) = @_;
 
-  if ($type == 0) {
+  if ($debug > 6) {
+  	print "$type $destination $message\n";
+  }
+  elsif ($type == 0) {
   	$message = $html->tpl_show(_include('ureports_email_message', 'Ureports'), $attr, { OUTPUT2RETURN => 1 });
 
     my $subject = $attr->{SUBJECT} || '';
@@ -250,9 +253,7 @@ sub ureports_periodic_reports {
 
               $rest = ($line->{prepaid} > 0 && $Sessions->{REST}->{ $line->{traffic_class} } > 0) ? $Sessions->{REST}->{ $line->{traffic_class} } : 0;
               if ($rest < $user->{VALUE}) {
-
                 $rest_traffic .= "================\n $_TRAFFIC $_TYPE: $line->{traffic_class}\n$_BEGIN: $line->{interval_begin}\n" . "$_END: $line->{interval_end}\n" . "$_TOTAL: $line->{prepaid}\n" . "\n $_REST: " . $rest . "\n================";
-
               }
             }
 
@@ -372,12 +373,14 @@ sub ureports_periodic_reports {
           }
         );
 
-        $Ureports->tp_user_reports_update(
-          {
-            UID       => $user->{UID},
-            REPORT_ID => $user->{REPORT_ID}
-          }
-        );
+        if ($debug < 5) {
+          $Ureports->tp_user_reports_update(
+            {
+              UID       => $user->{UID},
+              REPORT_ID => $user->{REPORT_ID}
+            }
+          );
+        }
 
         if ($user->{MSG_PRICE} > 0) {
           $sum = $user->{MSG_PRICE};
@@ -399,18 +402,21 @@ sub ureports_periodic_reports {
             }
           }
         }
+          
         $debug_output .= "UID: $user->{UID} REPORT_ID: $user->{REPORT_ID} DESTINATION_TYPE: $user->{DESTINATION_TYPE} DESTINATION: $user->{DESTINATION_ID}\n" if ($debug > 0);
-
-        $Ureports->log_add(
-          {
-            DESTINATION => $user->{DESTINATION_ID},
-            BODY        => (length($PARAMS{MESSAGE}) < 500) ? $PARAMS{MESSAGE} : '-',
-            UID         => $user->{UID},
-            TP_ID       => $user->{TP_ID},
-            REPORT_ID   => $user->{REPORT_ID},
-            STATUS      => 0
-          }
-        );
+        
+        if ($debug < 5) {
+          $Ureports->log_add(
+            {
+              DESTINATION => $user->{DESTINATION_ID},
+              BODY        => (length($PARAMS{MESSAGE}) < 500) ? $PARAMS{MESSAGE} : '-',
+              UID         => $user->{UID},
+              TP_ID       => $user->{TP_ID},
+              REPORT_ID   => $user->{REPORT_ID},
+              STATUS      => 0
+            }
+          );
+        }
       }
     }
   }
