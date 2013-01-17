@@ -304,6 +304,27 @@ neg_deposit() {
   echo "NEG_DEPOSIT in the development"
 }
 
+
+#**********************************************************
+#
+#**********************************************************
+fw_gre () {
+
+  INTERFACE="-i eth3"
+
+  iptables -I FORWARD -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu
+  iptables -A INPUT -i ${INTERFACE} -p tcp -m tcp --dport 53 -j ACCEPT
+  iptables -A INPUT -i ${INTERFACE} -p udp -m udp --dport 53 -j ACCEPT
+  iptables -A INPUT -i ${INTERFACE} -p tcp -m tcp --dport 9443 -j ACCEPT
+  iptables -A INPUT -i ${INTERFACE} -m state --state RELATED,ESTABLISHED -j ACCEPT
+  iptables -A INPUT -i ${INTERFACE} -p tcp --dport 1723 -j ACCEPT
+  iptables -A INPUT -i ${INTERFACE} -p gre -j ACCEPT
+  iptables -A INPUT -i ${INTERFACE} -p icmp -j ACCEPT
+  iptables -A INPUT -i ${INTERFACE} -j DROP
+  iptables -A OUTPUT -j ACCEPT
+
+}
+
 #############################Скрипт################################
 case "$1" in start) echo -n "START : $name"
       echo ""

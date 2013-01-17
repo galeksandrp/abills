@@ -227,6 +227,10 @@ sub dhcphosts_monitor {
       $html->message('err', $_ERROR, "$ERR_WRONG_DATA: IP");
     }
   }
+  elsif ($FORM{del}) {
+  	$Dhcphosts->leases_clear();
+    $html->message('info', $_INFO, "$_DELETED");
+  }
 
   #Get info from DB
   if ($conf{DHCPHOSTS_LEASES} eq 'db') {
@@ -267,6 +271,7 @@ sub dhcphosts_monitor {
         ID         => 'MONITOR_DHCP',
         qs         => $pages_qs,
         pages      => $Dhcphosts->{TOTAL},
+        header     => $html->button("$_DEL $_ALL", "index=$index&del=1", { MESSAGE => "$_DEL?" }),
       }
     );
 
