@@ -914,6 +914,9 @@ sub leases_list {
   	if ($attr->{STATE}==4) {
   		push @WHERE_RULES, "l.ends < now()";
   	}
+  	if ($attr->{STATE}==2) {
+  		push @WHERE_RULES, "l.ends > now()";
+  	}
   	else {
       push @WHERE_RULES, "state='$attr->{STATE}'";
     }
