@@ -272,6 +272,7 @@ sub dhcphosts_monitor {
         qs         => $pages_qs,
         pages      => $Dhcphosts->{TOTAL},
         header     => $html->button("$_DEL $_ALL", "index=$index&del=1", { MESSAGE => "$_DEL?" }),
+        ID         => 'DHCPHOSTS_LEASES'
       }
     );
 
@@ -318,9 +319,9 @@ sub dhcphosts_monitor {
 
   my $table = $html->table(
     {
-      width   => '100%',
-      caption => "$_HOSTS",
-      title   => [ "$_USER", 'IP', "$_START", "MAC", "$_HOSTS", "abandoned", "$_STATE", "remote-id", "circuit_id", "-" ],
+      width      => '100%',
+      caption    => "$_HOSTS",
+      title      => [ "$_USER", 'IP', "$_START", "MAC", "$_HOSTS", "abandoned", "$_STATE", "remote-id", "circuit_id", "-" ],
       cols_align => [ 'left', 'right', 'right', 'right', 'left', 'center:noprint', 'center:noprint', 'center:noprint', 'center:noprint' ],
       ID         => 'MONITOR_DHCP'
     }
