@@ -264,14 +264,21 @@ ssh_key () {
     
 
     if [ x${UPLOAD_FTP} = xy ]; then
-      echo "Make upload to: ${HOSTNAME}:/${id_dsa_file}.pub ${CERT_PATH}${id_dsa_file}.pub"
+      FTP_PORT=21
+      echo "Make upload to: ${HOSTNAME}:${FTP_PORT}/${id_dsa_file}.pub ${CERT_PATH}${id_dsa_file}.pub"
+
+      CHECK_USER=`echo ${HOSTNAME} | grep @`;
+      if [ x${CHECK_USER} != x ]; then
+        USER=`echo ${HOSTNAME} | awk -F@ '{ print $1 }'`
+        HOSTNAME=`echo ${HOSTNAME} | awk -F@ '{ print $2 }'`
+      fi;
+
+      echo -n "Enter ftp password: "
+      read FTP_PASSWD
 
       if [ x${OS} = xFreeBSD ] ; then
-         FTP_OPTIONS="-u";
-         ftp ${FTP_OPTIONS} ${HOSTNAME}:/${id_dsa_file}.pub ${CERT_PATH}${id_dsa_file}.pub
+         ftp -u ftp://${USER}:${FTP_PASSWD}@${HOSTNAME}:${FTP_PORT}/${id_dsa_file}.pub ${CERT_PATH}${id_dsa_file}.pub
       else
-        echo -n "Enter ftp password: "
-        read FTP_PASSWD
         (echo user ${USER} "${FTP_PASSWD}"; echo "cd /"; echo "ls"; echo "lcd ${CERT_PATH}";  echo "put ${id_dsa_file}.pub"; ) | ftp -ivn ${HOSTNAME}
       fi;
 

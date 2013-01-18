@@ -228,7 +228,7 @@ sub dhcphosts_monitor {
     }
   }
   elsif ($FORM{del}) {
-  	$Dhcphosts->leases_clear();
+  	$Dhcphosts->leases_clear(\%FORM);
     $html->message('info', $_INFO, "$_DELETED");
   }
 
@@ -237,9 +237,9 @@ sub dhcphosts_monitor {
     my %state_hash = (
       'unknown'   => 0,
       'free'      => 1,
-      'active'    => 2,
+      "$_ACTIV"   => 2,
       'abandoned' => 3,
-      'expired'   => 4
+      "$_EXPIRED" => 4
     );
 
     my %state_hash_rev = reverse %state_hash;
@@ -271,7 +271,8 @@ sub dhcphosts_monitor {
         ID         => 'MONITOR_DHCP',
         qs         => $pages_qs,
         pages      => $Dhcphosts->{TOTAL},
-        header     => $html->button("$_DEL $_ALL", "index=$index&del=1", { MESSAGE => "$_DEL?" }),
+        header     => $html->button("$_DEL $_ALL", "index=$index&del=1", { MESSAGE => "$_DEL $_ALL?" }).' '.
+          $html->button("$_DEL $_EXPIRED", "index=$index&del=1&ENDED=1", { MESSAGE => "$_DEL $_EXPIRED?" }),
         ID         => 'DHCPHOSTS_LEASES'
       }
     );
