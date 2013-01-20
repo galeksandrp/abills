@@ -94,7 +94,7 @@ if ($conf{AUTH_METHOD}) {
   my $res = check_permissions("$FORM{user}", "$FORM{passwd}", "$COOKIES{sid}");
  
   if (! $res) {
-    $html->setCookie('sid', "$sid", "", "/admin/", $domain, $secure);
+    $html->setCookie('sid', "$sid", "", "", $domain, $secure);
     $COOKIES{sid} = $sid;
   }
   else {
@@ -2525,7 +2525,7 @@ sub form_users {
     }
     $i++;
   }
-  
+
   my $list = $users->list({ %LIST_PARAMS, 
   	                        FULL_LIST => 1,
   	                        COLS_NAME => 1,

@@ -693,8 +693,18 @@ sub setCookie {
 
   $expiration = gmtime(time() + (($CONF->{web_session_timeout}) ? $CONF->{web_session_timeout} : 86000 )) . " GMT" if (! $expiration); 
 
-  print "Set-Cookie: ";
-  print $name, "=$value; expires=\"", $expiration, "\"; path=$path; domain=", $domain, "; ", $secure, "\n";
+  my $cookie = "Set-Cookie: $name=$value; expires=\"", $expiration, "\"; ";
+
+  if ($path ne ""){
+    $cookie .= " path=$path; ";
+  }
+  if ($domain ne ""){
+    $cookie .= " domain=$domain; ";
+  } 
+
+  $cookie .= " $secure\n";
+
+  print $cookie;
 }
 
 #********************************************************************

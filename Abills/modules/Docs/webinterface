@@ -1216,7 +1216,7 @@ sub docs_invoices_list {
  	foreach my $invoice (@$invoice_list) {
  		push @invoice_id_arr, $invoice->{id};
  	}
-  	
+
  	my $i2p_list = $Docs->invoices2payments_list({ INVOICE_ID => join(';', @invoice_id_arr), 
  		                                             COLS_NAME  => 1,
  		                                             PAGE_ROWS  => 100000 
@@ -1243,6 +1243,7 @@ sub docs_invoices_list {
 
   my @rows = ();
   my %orders_hash = %{ $self->{ORDERS} };
+  
   foreach my $invoice (@$invoice_list) {
     my $delete = ($permissions{1}{2}) ? $html->button($_DEL, "index=$index&del=$invoice->{id}&UID=$invoice->{uid}", { MESSAGE => "$_DEL ID $line->{id} ?", CLASS => 'del' }) : '';
     @rows = ();
@@ -1251,7 +1252,7 @@ sub docs_invoices_list {
       my $val   = '';
 
       if ($fname eq 'date') {
-      	$val = $html->button("$invoice->{date}", "qindex=$index&print=$invoice->{id}&UID=$invoice->{uid}$pages_qs" . (($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : ''), { ex_params => 'target=_new' }),
+      	$val = $html->button("$invoice->{date}", "qindex=$index&print=$invoice->{id}&UID=$invoice->{uid}$pages_qs" . (($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : ''). (($users->{DOMAIN_ID}) ? "&DOMAIN_ID=$users->{DOMAIN_ID}" : ''), { ex_params => 'target=_new' }),
       }
       elsif($fname eq 'payment_id') {
         my $invoice_sum = $invoice->{total_sum};
@@ -1306,7 +1307,7 @@ sub docs_invoices_list {
           NEW_WINDOW_SIZE => "640:600"
        }),
       $html->button($_SEND_MAIL, "qindex=" . get_function_index('docs_invoices_list') . "&sendmail=$invoice->{id}&UID=$invoice->{uid}", { ex_params => 'target=_new', CLASS => 'sendmail' }),
-      $html->button($_PRINT, "qindex=$index&print=$invoice->{id}&UID=$invoice->{uid}" . (($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : ''), { ex_params => 'target=_new', CLASS => 'print' }),
+      $html->button($_PRINT, "qindex=$index&print=$invoice->{id}&UID=$invoice->{uid}" . (($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : ''). (($users->{DOMAIN_ID}) ? "&DOMAIN_ID=$users->{DOMAIN_ID}" : ''), { ex_params => 'target=_new', CLASS => 'print' }),
       $delete;
 
       if ($FORM{xml}) {
