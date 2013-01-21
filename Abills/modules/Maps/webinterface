@@ -1,4 +1,3 @@
-# unknown test version :)
 
 # Зелений -    [online] онлайн
 # Фіолетовий - [offline] оффлайн
@@ -236,7 +235,7 @@ sub maps_map_show {
   #Get users online  *****************************************
 
   #$Maps->{debug}=1;
-  my $list = $Maps->users_online_list({ PAGE_ROWS => 8000 });
+  my $list = $Maps->users_online_list({ PAGE_ROWS => 4000 });
 
   foreach my $line (@$list) {
 
@@ -257,7 +256,7 @@ sub maps_map_show {
   #						 DISTRICT_ID => $attr->{DISTRICT_ID},
   #						 PAGE_ROWS => '1000'
   #											 });
-  my $list2 = $Maps->nas_list({ SHOW_MAPS => 1, PAGE_ROWS => '5000', DISTRICT_ID => $attr->{DISTRICT_ID} });
+  my $list2 = $Maps->nas_list({ SHOW_MAPS => 1, PAGE_ROWS => '500', DISTRICT_ID => $attr->{DISTRICT_ID} });
 
   my %NAS_INFO = ();
   foreach my $line2 (@$list2) {
@@ -284,7 +283,7 @@ sub maps_map_show {
   $list = $Maps->all_users_list(
     {
       LOCATION_ID => '>0',
-      PAGE_ROWS   => '8000'
+      PAGE_ROWS   => '4000'
     }
   );
 
@@ -333,7 +332,7 @@ sub maps_map_show {
 
   $users->{debug} = 1;
 
-  $list = $Maps->build_list({ SHOW_MAPS => 1, DISTRICT_ID => $attr->{DISTRICT_ID}, PAGE_ROWS => '8000' });
+  $list = $Maps->build_list({ SHOW_MAPS => 1, DISTRICT_ID => $attr->{DISTRICT_ID}, PAGE_ROWS => '2000' });
 
   my $cnt = 0;
   foreach my $line (@$list) {
