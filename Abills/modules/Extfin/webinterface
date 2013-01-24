@@ -690,9 +690,9 @@ sub extfin_report_deeds {
         rows     => [
           [
             "$_FROM: ",
-            $html->date_fld('FROM_', { MONTHES => \@MONTHES }),
+            $html->date_fld2('FROM_', { MONTHES => \@MONTHES }),
             "$_TO: ",
-            $html->date_fld('TO_', { MONTHES => \@MONTHES }),
+            $html->date_fld2('TO_', { MONTHES => \@MONTHES }),
             "$_PERIOD: ",
             $html->form_select(
               'MONTH',
@@ -1229,7 +1229,7 @@ sub extfin_debetors {
       rows     => [
         [
           "$_PERIOD: ",
-          $html->form_input('SEL_DATE', 1, { TYPE => 'checkbox' }) . $html->date_fld('from', { MONTHES => \@MONTHES }),
+          $html->form_input('SEL_DATE', 1, { TYPE => 'checkbox' }) . $html->date_fld2('from', { MONTHES => \@MONTHES }),
           "$_STATUS: "
           . $html->form_select(
             'STATUS',
@@ -1476,9 +1476,9 @@ sub extfin_users_balance {
         rows     => [
           [
             "$_FROM: ",
-            $html->date_fld('FROM_', { MONTHES => \@MONTHES }),
+            $html->date_fld2('FROM_', { MONTHES => \@MONTHES }),
             "$_TO: ",
-            $html->date_fld('TO_', { MONTHES => \@MONTHES }),
+            $html->date_fld2('TO_', { MONTHES => \@MONTHES }),
             "$_PERIOD: ",
             $html->form_select(
               'MONTH',
