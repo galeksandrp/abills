@@ -2536,8 +2536,6 @@ sub check_speed_mikrotik {
   }
 
   my $result   = '';
-  my $nas_port = 22;
-
   #Get TP speed
   my %TARIF_SPEEDS = ();
   my %class2nets   = ();
@@ -2576,12 +2574,10 @@ sub check_speed_mikrotik {
     $NAS{NAS_MNG_PASSWORD} = $nas_row->[11];
     
 
-    ($NAS{NAS_MNG_IP_PORT}, $nas_port) = split(/:/, $NAS{NAS_MNG_IP_PORT});
-
+    my ($nas_host, $nas_port) = split(/:/, $NAS{NAS_MNG_IP_PORT});
     $nas_port     = 22 if (! $nas_port);
-    my $nas_host  = $NAS{NAS_MNG_IP_PORT} || '';
     my $nas_admin = $NAS{NAS_MNG_USER}    || 'admin';
-    my $SSH       = $ARGV->{SSH_CMD}      || "/usr/bin/ssh -P $nas_port -o StrictHostKeyChecking=no -i $base_dir/Certs/id_dsa." . $nas_admin;
+    my $SSH       = $ARGV->{SSH_CMD}      || "/usr/bin/ssh -p $nas_port -o StrictHostKeyChecking=no -i $base_dir/Certs/id_dsa." . $nas_admin;
     $NAS{SSH_CMD} = $SSH;
 
     if ($ARGV->{RECONFIGURE}) {
@@ -2895,9 +2891,10 @@ sub check_speed_linux_new {
 sub get_mikrotik_value {
   my ($cmd, $attr) = @_;
 
-  my $nas_host  = $attr->{NAS_MNG_IP_PORT} || '';
+  my ($nas_host, $nas_port) = split(/:/, $attr->{NAS_MNG_IP_PORT});
+  $nas_port     = 22 if (! $nas_port);
   my $nas_admin = $attr->{NAS_MNG_USER}    || 'admin';
-  my $SSH       = $attr->{SSH_CMD}         || "/usr/bin/ssh -o StrictHostKeyChecking=no -i $base_dir/Certs/id_dsa." . $nas_admin;
+  my $SSH       = $attr->{SSH_CMD}         || "/usr/bin/ssh -p $nas_port -o StrictHostKeyChecking=no -i $base_dir/Certs/id_dsa." . $nas_admin;
 
   my @value = ();
 

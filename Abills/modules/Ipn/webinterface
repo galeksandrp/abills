@@ -2538,7 +2538,7 @@ sub ipn_periodic_session_restart {
         FRAMED_IP_ADDRESS    => $ip,
         ACCT_TERMINATE_CAUSE => 7,
         UID                  => $uid,
-        FILTER_ID            => "$filter_id",
+        FILTER_ID            => $filter_id || '',
         QUICK                => 1,
         DEBUG                => $debug,
         NAS_PORT             => $port || 0,
