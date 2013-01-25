@@ -2535,7 +2535,8 @@ sub check_speed_mikrotik {
     $LIST_PARAMS{TYPE} = 'mikrotik';
   }
 
-  my $result = '';
+  my $result   = '';
+  my $nas_port = 22;
 
   #Get TP speed
   my %TARIF_SPEEDS = ();
@@ -2546,10 +2547,11 @@ sub check_speed_mikrotik {
   	                                  });
 
   my $parent_in='global-in';
-  my $parent_out'global-out';
+  my $parent_out='global-out';
+
   if ($ARGV->{MIKROTIK6}) {
     $parent_in='global';
-    $parent_out'global';
+    $parent_out='global';
   }
 
   foreach my $line (@$list) {
@@ -2572,12 +2574,14 @@ sub check_speed_mikrotik {
     $NAS{NAS_MNG_IP_PORT}  = $nas_row->[9];
     $NAS{NAS_MNG_USER}     = $nas_row->[10];
     $NAS{NAS_MNG_PASSWORD} = $nas_row->[11];
+    
 
-    ($NAS{NAS_MNG_IP_PORT}, undef) = split(/:/, $NAS{NAS_MNG_IP_PORT});
+    ($NAS{NAS_MNG_IP_PORT}, $nas_port) = split(/:/, $NAS{NAS_MNG_IP_PORT});
 
+    $nas_port     = 22 if (! $nas_port);
     my $nas_host  = $NAS{NAS_MNG_IP_PORT} || '';
     my $nas_admin = $NAS{NAS_MNG_USER}    || 'admin';
-    my $SSH       = $ARGV->{SSH_CMD}      || "/usr/bin/ssh -o StrictHostKeyChecking=no -i $base_dir/Certs/id_dsa." . $nas_admin;
+    my $SSH       = $ARGV->{SSH_CMD}      || "/usr/bin/ssh -P $nas_port -o StrictHostKeyChecking=no -i $base_dir/Certs/id_dsa." . $nas_admin;
     $NAS{SSH_CMD} = $SSH;
 
     if ($ARGV->{RECONFIGURE}) {
