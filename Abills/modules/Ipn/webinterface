@@ -2579,7 +2579,7 @@ sub ipn_periodic_session_restart {
         NAS_PORT           => $port || 0,
         HINT               => 'NOPASS',
         DEBUG              => $debug,
-        FILTER_ID          => "$filter_id",
+        FILTER_ID          => $filter_id || '',
       );
 
       my ($r, $RAD_PAIRS) = $Auth->dv_auth(\%DATA, $nas_info{$nas_id}, { SECRETKEY => $conf{secretkey} });
