@@ -470,9 +470,9 @@ sub session_sum {
   if ($attr->{UID}) {
     $self->query(
       $db, "SELECT 
-    UNIX_TIMESTAMP(DATE_FORMAT(FROM_UNIXTIME($SESSION_START), '%Y-%m-%d')),
-    DAYOFWEEK(FROM_UNIXTIME($SESSION_START)),
-    DAYOFYEAR(FROM_UNIXTIME($SESSION_START)),
+    UNIX_TIMESTAMP(DATE_FORMAT(FROM_UNIXTIME($SESSION_START), '%Y-%m-%d')) AS day_begin,
+    DAYOFWEEK(FROM_UNIXTIME($SESSION_START)) AS day_of_week,
+    DAYOFYEAR(FROM_UNIXTIME($SESSION_START)) AS day_of_year,
     u.reduction,
     u.bill_id,
     u.activate,
@@ -481,7 +481,9 @@ sub session_sum {
     u.credit,
     u.ext_bill_id
    FROM users u
-   WHERE u.uid='$attr->{UID}';"
+   WHERE u.uid='$attr->{UID}';",
+   undef,
+   { INFO => 1 }
     );
 
     if ($self->{errno}) {
@@ -494,7 +496,6 @@ sub session_sum {
     }
 
     $self->{UID} = $attr->{UID};
-    ($self->{DAY_BEGIN}, $self->{DAY_OF_WEEK}, $self->{DAY_OF_YEAR}, $self->{REDUCTION}, $self->{BILL_ID}, $self->{ACTIVATE}, $self->{COMPANY_ID}, $attr->{DOMAIN_ID}, $self->{CREDIT}, $self->{EXT_BILL_ID}) = @{ $self->{list}->[0] };
 
     $self->query(
       $db, "SELECT 
@@ -525,7 +526,6 @@ sub session_sum {
 
     $self->{TP_NUM} = $attr->{TP_NUM};
   }
-
   #If defined TP_NUM
   elsif ($attr->{TP_NUM}) {
     $self->query(
@@ -697,9 +697,10 @@ sub session_sum {
     return $self->{UID}, $sum, $self->{BILL_ID}, $self->{TP_NUM}, 0, 0;
   }
 
+
   $tariffs = Tariffs->new($db, $CONF);
   $self->session_splitter($SESSION_START, $SESSION_DURATION, $self->{DAY_BEGIN}, $self->{DAY_OF_WEEK}, $self->{DAY_OF_YEAR}, { TP_ID => $self->{TP_ID} });
-
+exit;
   #session devisions
   my @sd = @{ $self->{TIME_DIVISIONS_ARR} };
 

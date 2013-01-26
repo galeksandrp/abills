@@ -193,7 +193,7 @@ sub check_lines {
   $sessions->{debug} = 1 if ($debug > 4);
 
   $sessions->online_del({ SESSIONS_LIST => ['IP'],
-  	                      QUICK         => 1 });
+                          QUICK         => 1 });
   $sessions->online(
     {
       %LIST_PARAMS,
@@ -257,7 +257,6 @@ sub check_lines {
     
     foreach my $key (keys %{ $nas }){
       $NAS{uc($key)}=$nas->{$key};
-      
     }
 
     foreach my $online (@$l) {
@@ -275,11 +274,11 @@ sub check_lines {
           )
           && $online->{status} != 2
       ){
-      	session_hangup(\%NAS, $online, "Change TP $online->{calls_tp_id} -> $online->{tp_num} DEPOSIT: $online->{deposit} CREDIT: $online->{credit} SESSION_SUM: $online->{session_sum} STATUS: $state SESSION_ID: $online->{acct_session_id} GUEST: $online->{guest}");
+        session_hangup(\%NAS, $online, "Change TP $online->{calls_tp_id} -> $online->{tp_num} DEPOSIT: $online->{deposit} CREDIT: $online->{credit} SESSION_SUM: $online->{session_sum} STATUS: $state SESSION_ID: $online->{acct_session_id} GUEST: $online->{guest}");
         next;
       }
       elsif ($online->{expired}) {
-      	session_hangup(\%NAS, $online, "Expired $online->{expire} DEPOSIT: $online->{deposit} CREDIT: $online->{credit} SESSION_SUM: $online->{session_sum} STATUS: $state SESSION_ID: $online->{acct_session_id} GUEST: $online->{guest}");
+        session_hangup(\%NAS, $online, "Expired $online->{expire} DEPOSIT: $online->{deposit} CREDIT: $online->{credit} SESSION_SUM: $online->{session_sum} STATUS: $state SESSION_ID: $online->{acct_session_id} GUEST: $online->{guest}");
         next;
       }
 
@@ -323,7 +322,7 @@ sub check_lines {
           }
 
           if ($NAS{NAS_TYPE} eq 'ipcad' || $NAS{NAS_TYPE} eq 'dhcp') {
-          	session_hangup(\%NAS, $online, '');
+            session_hangup(\%NAS, $online, '');
           }
 
           $Log->log_print('LOG_WARNING', $online->{user_name}, "Last Alive: $online->{last_alive}, Session-ID: $online->{acct_session_id}\n$info", { ACTION => 'CALCULATION', NAS => \%NAS });
@@ -367,7 +366,6 @@ sub check_lines {
           my $last           = 0;
           my $curr           = 0;
           foreach my $interval (@$TIME_INTS) {
-
             #if we have more than 1 interval, that works for all days
             if (($interval->[3] - $interval->[2] < 86400) && ($interval->[1] == 0)) {
               my $INT_DETL = $Tariffs->tt_list({ TI_ID => $interval->[0] });
@@ -451,7 +449,6 @@ sub check_lines {
       #if ($session_sum > 0)
       #Check active sessions
       $Billing->{CHECK_SESSION} = 1;
-
       ($Billing->{UID}, 
       $Billing->{SUM}, 
       $Billing->{BILL_ID}, 
@@ -498,13 +495,13 @@ sub check_lines {
           print "Skip with neg deposit filter '$Billing->{NEG_DEPOSIT_FILTER}'\n" if ($debug > 1);
         }
         else {
-      	 session_hangup(\%NAS, $online, "DEPOSIT: $online->{deposit} CREDIT: $online->{credit} SESSION_SUM: $Billing->{SUM} SESSION_ID: $online->{acct_session_id}");
+         session_hangup(\%NAS, $online, "DEPOSIT: $online->{deposit} CREDIT: $online->{credit} SESSION_SUM: $Billing->{SUM} SESSION_ID: $online->{acct_session_id}");
         }
       }
       elsif($online->{guest} && $online->{deposit} + $online->{credit} > 0 && $state == 0) {
-     	  if ($online->{guest} != 2) {
-     	    session_hangup(\%NAS, $online, "RECHANGE DEPOSIT: $online->{deposit} CREDIT: $online->{credit} SESSION_SUM: $Billing->{SUM} SESSION_ID: $online->{acct_session_id} STATE: $state GUEST: $online->{guest}");
-     	  }
+         if ($online->{guest} != 2) {
+           session_hangup(\%NAS, $online, "RECHANGE DEPOSIT: $online->{deposit} CREDIT: $online->{credit} SESSION_SUM: $Billing->{SUM} SESSION_ID: $online->{acct_session_id} STATE: $state GUEST: $online->{guest}");
+         }
       }
     }
   }
@@ -514,7 +511,7 @@ sub check_lines {
 #**********************************************************
 #
 #**********************************************************
-sub	session_hangup {
+sub  session_hangup {
   my ($NAS, $online, $message) =@_;
 
   my $ret = hangup(
@@ -690,11 +687,11 @@ sub check_speed_linux_ipn {
 
     my $l = $online->{ $nas_row->[0] };
     foreach my $user (@$l) {
-    	my @ip_arr = split(/\./, $user->{ip});
-    	my $hex_ip = '';
-    	foreach my $ip_n (@ip_arr) {
-    	  $hex_ip .= sprintf("%.2x", $ip_n);
-    	}
+      my @ip_arr = split(/\./, $user->{ip});
+      my $hex_ip = '';
+      foreach my $ip_n (@ip_arr) {
+        $hex_ip .= sprintf("%.2x", $ip_n);
+      }
 
       $USER_HEX_IPS{$hex_ip} = "$user->{user_name}:$user->{uid}:$user->{ip}";
       print "$user->{ip} HEX IP:$hex_ip\n" if ($debug > 3);
@@ -729,33 +726,33 @@ sub check_speed_linux_ipn {
     my $pref   = 0;
     
     foreach my $file_row (@file_rows) {
-	    print $file_row."\n" if ($debug > 4);
-	
+      print $file_row."\n" if ($debug > 4);
+  
       if ($file_row =~ /filter protocol ip pref\s+(\d+)/) {
-  	    $pref = $1;
+        $pref = $1;
       }
       elsif($file_row =~ /\s+match (\H+)\/ffffffff/) {
- 	      my $hex_ip = $1;
- 	      $TC_INFO{$hex_ip}=$pref;
- 	      if ($debug>2) {
- 	  	    my $ip = join('.', unpack("N*", pack("H*", $hex_ip)));
- 	        print "$ip ($hex_ip) -> $pref\n" 
- 	      }
- 	    }
+         my $hex_ip = $1;
+         $TC_INFO{$hex_ip}=$pref;
+         if ($debug>2) {
+           my $ip = join('.', unpack("N*", pack("H*", $hex_ip)));
+           print "$ip ($hex_ip) -> $pref\n" 
+         }
+       }
     }
   }
 
 while(my($hex_ip, $info)= each %USER_HEX_IPS) {
-	print "$USER_HEX_IPS{$hex_ip}: ($hex_ip) ";
-	if (! $TC_INFO{$hex_ip}) {
-		print "! Speed not defined. Set speed";
-	}
-	else {
-		if ($debug > 1) {
-			print "Pref:$TC_INFO{$hex_ip}";
-		}
-	}
-	print "\n";
+  print "$USER_HEX_IPS{$hex_ip}: ($hex_ip) ";
+  if (! $TC_INFO{$hex_ip}) {
+    print "! Speed not defined. Set speed";
+  }
+  else {
+    if ($debug > 1) {
+      print "Pref:$TC_INFO{$hex_ip}";
+    }
+  }
+  print "\n";
 }
 
 
@@ -1184,8 +1181,8 @@ sub check_speed {
     exit;
   }
   elsif ($ARGV->{NEW}) {
-  	check_speed_linux_new();
-  	exit;
+    check_speed_linux_new();
+    exit;
   }
   elsif (!$ARGV->{NAS_IDS}) {
     print "NAS not specify. Example:\n";
@@ -1519,7 +1516,7 @@ sub check_speed {
 
               if ($speed_in > 0) {
                 if (!$pipe_rules{$pipe_rule_in} || $pipe_rules{$pipe_rule_in} != $speed_out) {
-         	        my $queue_out = (! $conf{DV_SKIP_QUEUE}) ? "queue ". (( $speed_out / 10 > 1000) ? 1000 : int( $speed_out / 10 ) ) ."Kbytes " : '';
+                   my $queue_out = (! $conf{DV_SKIP_QUEUE}) ? "queue ". (( $speed_out / 10 > 1000) ? 1000 : int( $speed_out / 10 ) ) ."Kbytes " : '';
 
                   push @FW_ACTIONS, "$IPFW -q pipe $pipe_rule_in config bw " . $speed_out . "Kbit/s ". $queue_out ."mask dst-ip 0xfffffffff";
                   print "Change TP: $tp Class: $traf_type Pipe: $pipe_rule_in IN: " . (($pipe_rules{$pipe_rule_in}) ? $pipe_rules{$pipe_rule_in} : 'Not set') . " -> $speed_out\n";
@@ -1529,7 +1526,7 @@ sub check_speed {
 
               if ($speed_out > 0) {
                 if (!$pipe_rules{$pipe_rule_out} || $pipe_rules{$pipe_rule_out} != $speed_in) {
-         	        my $queue_in  = (! $conf{DV_SKIP_QUEUE}) ? "queue ". (( $speed_in / 10 > 1000 ) ? 1000 : int( $speed_in / 10 )) ."Kbytes " : '';
+                   my $queue_in  = (! $conf{DV_SKIP_QUEUE}) ? "queue ". (( $speed_in / 10 > 1000 ) ? 1000 : int( $speed_in / 10 )) ."Kbytes " : '';
 
                   push @FW_ACTIONS, "$IPFW -q pipe $pipe_rule_out config bw " . $speed_in . "Kbit/s ". $queue_in ." mask src-ip 0xffffffff";
 
@@ -2047,14 +2044,14 @@ sub check_pptpd {
     #LINUX
     if (/^(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\d+)\s+(\S+)\s+(.+)/) {
       $procs_hash{$2}{$1} = "$10";
-      print "$2 - $3 / $10his	\n";
+      print "$2 - $3 / $10his  \n";
     }
 
     #FreeBSD
     #USER   PID  PPID  PGID   SID JOBC STAT  TT       TIME COMMAND
     elsif (/^(\S+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(.+)$/) {
       $procs_hash{$2}{$3} = "$10";
-      print "$2 - $3 / $10his	\n";
+      print "$2 - $3 / $10his  \n";
     }
 
   }
@@ -2543,8 +2540,8 @@ sub check_speed_mikrotik {
   my %class2nets   = ();
   $Dv->{debug}=1 if ($debug>6);
   my $list         = $Dv->get_speed({ CHECK_NETS => 1 ,
-  	                                  TP_ID      => $ARGV->{TP_ID} || undef  	                                  
-  	                                  });
+                                      TP_ID      => $ARGV->{TP_ID} || undef                                      
+                                      });
 
   my $parent_in='global-in';
   my $parent_out='global-out';
@@ -2594,8 +2591,8 @@ sub check_speed_mikrotik {
     if ($ARGV->{SHOW_SPEED}) {
       my $ip_list = get_mikrotik_value(qq{ /ip firewall address-list print }, \%NAS);
       foreach my $line (@$ip_list) {
-  	    my($id, $list_name, $ip)=split(/\s+/, $line);
-  	    print "$id, $list_name, $ip\n";
+        my($id, $list_name, $ip)=split(/\s+/, $line);
+        print "$id, $list_name, $ip\n";
       }
       next;
     }
@@ -2733,9 +2730,9 @@ sub get_tp_cure_speed {
   my %class2nets   = ();
   $Dv->{debug}=1 if ($debug>6);
   my $list         = $Dv->get_speed({ CHECK_NETS => 1 ,
-  	                                  TP_ID      => $ARGV->{TP_ID} || undef,
-  	                                  COLS_NAME  => 1
-  	                                  });
+                                      TP_ID      => $ARGV->{TP_ID} || undef,
+                                      COLS_NAME  => 1
+                                      });
 
   foreach my $line (@$list) {
     print "TP ID: $line->{tp_id} $line->{tp_num} $line->{tt_id} $line->{in_speed} $line->{out_speed}\n" if ($debug > 1);
@@ -2786,7 +2783,7 @@ sub check_speed_linux_new {
 
       #Global Shapper
       if ($traf_type == 0) {
-      	#IN
+        #IN
         push @commands, "$tc class add dev $interface parent 1:1 classid 1:". ($tp_id * 10)  ." htb rate ". $speed_in ."kbit ceil " .$speed_in ."kbit prio ". ($traf_type + 5);
         push @commands, "$tc qdisc add dev $interface parent 1:". ($tp_id * 10)  ." handle ". (4200 + $tp_id * 10)  .": sfq perturb 10 quantum 1500";
         push @commands, "$tc filter add dev $interface protocol ip parent 1:0 handle ". ($tp_id * 10)  ." fw flowid 1:". ($tp_id * 10);
