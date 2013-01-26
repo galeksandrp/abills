@@ -2534,7 +2534,9 @@ sub check_speed_mikrotik {
   if (!$LIST_PARAMS{NAS_IDS}) {
     $LIST_PARAMS{TYPE} = 'mikrotik';
   }
-
+  
+  my $mikrotik_cmd_log = "$log_dir/mikrotik_cmd.log";
+  
   my $result   = '';
   #Get TP speed
   my %TARIF_SPEEDS = ();
@@ -2706,12 +2708,12 @@ Flags: X - disabled, I - invalid
     }
 
     #Make ssh command
-    $result .= `echo "===> Initialising remote commands executing:" >> /var/log/shaper` if ($debug > 0);
+    $result .= `echo "===> Initialising remote commands executing:" >> $mikrotik_cmd_log` if ($debug > 0);
     foreach my $cmd (@commands) {
       $cmd =~ s/\"/\\\"/g;
       print "$cmd\n" if ($debug > 0);
       if ($debug < 5) {
-        $result = `$SSH $nas_admin\@$nas_host "$cmd"; echo "$cmd" >> /var/log/shaper`;
+        $result = `$SSH $nas_admin\@$nas_host "$cmd"; echo "$cmd" >> $mikrotik_cmd_log`;
       }
       print "$result\n" if ($debug > 2);
     }
