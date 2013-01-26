@@ -44,7 +44,7 @@
 
 
 CLASSES_NUMS='2 3'
-VERSION=5.95
+VERSION=5.96
 
 
 name="abills_shaper"
@@ -87,6 +87,7 @@ BILLING_DIR=/usr/abills
 
 start_cmd="abills_shaper_start"
 stop_cmd="abills_shaper_stop"
+restart_cmd="abills_shaper_restart"
 
 if [ x${abills_mikrotik_shaper} != x ]; then
   ${BILLING_DIR}/libexec/billd checkspeed mikrotik NAS_IDS="${abills_mikrotik_shaper}" RECONFIGURE=1
@@ -132,7 +133,6 @@ external_fw_rules
 neg_deposit
 abills_ip_sessions
 squid_redirect
-
 }
 
 #**********************************************************
@@ -148,7 +148,14 @@ abills_nat
 neg_deposit
 abills_ip_sessions
 squid_redirect
+}
 
+#**********************************************************
+#
+#**********************************************************
+abills_shaper_restart() {
+  abills_shaper_stop
+  abills_shaper_start
 }
 
 #**********************************************************
@@ -248,8 +255,11 @@ abills_dhcp_shaper() {
     if [ x${abills_dhcp_shaper_nas_ids} != x ]; then
       NAS_IDS="NAS_IDS=${abills_dhcp_shaper_nas_ids}"
     fi;
-     
-    ${BILLING_DIR}/libexec/ipoe_shapper.pl -d ${NAS_IDS}
+    if [ w${ACTION} = wstart ]; then
+      ${BILLING_DIR}/libexec/ipoe_shapper.pl -d ${NAS_IDS}
+    elif [ w${ACTION} = wstop ]; then
+      kill `cat ${BILLING_DIR}/var/log/ipoe_shapper.pid`
+    fi;
   else
     echo "Can\'t find 'ipoe_shapper.pl' "
   fi;

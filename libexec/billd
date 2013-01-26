@@ -1894,6 +1894,17 @@ sub check_speed {
       $static_speeds{ $line->[7] } = 1;
     }
 
+    if ($conf{DV_TURBO_MODE}) {
+      my (@turbo_mods) = split(/;/, $conf{DV_TURBO_MODE});
+      foreach my $line (@turbo_mods) {
+        my ($speed, $time, $price, $name, $bonus) = split(/:/, $line, 5);
+        $speed=~s/ //g;
+        if ($speed) {
+          $static_speeds{$speed}=1;
+        }
+      }
+    }
+
     #Static speed
     foreach my $speed (sort { $a <=> $b } keys %static_speeds) {
       my $table_class = "1$speed";
