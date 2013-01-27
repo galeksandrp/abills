@@ -4212,8 +4212,7 @@ sub cisco_isg_cmd {
 # dv_turbo_mode
 #**********************************************************
 sub dv_turbo_mode_report {
-  dv_turbo_mode({ REPORT => 1 })
-
+  dv_turbo_mode({ REPORT => 1 });
 }
 
 #**********************************************************

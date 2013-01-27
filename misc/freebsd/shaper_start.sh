@@ -44,7 +44,7 @@
 
 
 CLASSES_NUMS='2 3'
-VERSION=5.96
+VERSION=5.97
 
 
 name="abills_shaper"
@@ -225,7 +225,7 @@ abills_shaper() {
   #done
   #Stop ng_car shaper
   elif [ w${ACTION} = wstop -a w$2 = w ]; then
-    echo "ng_car shapper" 
+    echo "Stop shapper" 
 
     for num in ${CLASSES_NUMS}; do
       ${IPFW} delete ` expr 9100 + ${num} \* 10 + 5 ` ` expr 9100 + ${num} \* 10 `  ` expr 9000 + ${num} \* 10 ` ` expr 10000 - ${num} \* 10 ` ` expr 10100 + ${num} \* 10 ` ` expr 10200 + ${num} \* 10 ` ` expr 9000 + ${num} \* 10 + 5 ` ` expr 10000 - ${num} \* 10 + 5 ` ` expr 10100 + ${num} \* 10 + 5 ` ` expr 10200 + ${num} \* 10 + 5 ` 
