@@ -505,6 +505,7 @@ sub session_sum {
     tp.traffic_transfer_period,
     tp.total_time_limit,
     tp.total_traf_limit,
+    tp.month_traf_limit,
     tp.tp_id,
     tp.neg_deposit_filter_id,
     tp.bills_priority,
@@ -561,6 +562,7 @@ sub session_sum {
     tp.traffic_transfer_period,
     tp.total_time_limit,
     tp.total_traf_limit,
+    tp.month_traf_limit,
     tp.tp_id,
     tp.bills_priority,
     tp.credit
@@ -602,6 +604,7 @@ sub session_sum {
     tp.tp_id,
     tp.total_time_limit,
     tp.total_traf_limit,
+    tp.month_traf_limit,
     u.ext_bill_id,
     tp.bills_priority,
     tp.credit AS tp_credit
@@ -686,10 +689,19 @@ sub session_sum {
     }
   }
 
-  if ($self->{TOTAL_TRAF_LIMIT} && $self->{CHECK_SESSION}) {
-    if ($sent + $recv >= $self->{TOTAL_TRAF_LIMIT}) {
-      $self->{HANGUP} = 1;
-      return $self->{UID}, 0, $self->{BILL_ID}, $self->{TP_NUM}, 0, 0;
+
+  if ($self->{CHECK_SESSION}) {
+  	if ($self->{TOTAL_TRAF_LIMIT}) {
+      if ($sent + $recv >= $self->{TOTAL_TRAF_LIMIT}) {
+        $self->{HANGUP} = 1;
+        return $self->{UID}, 0, $self->{BILL_ID}, $self->{TP_NUM}, 0, 0;
+      }
+    }
+  	elsif ($self->{MONTH_TRAF_LIMIT}) {
+      if ($sent + $recv >= $self->{MONTH_TRAF_LIMIT}) {
+        $self->{HANGUP} = 1;
+        return $self->{UID}, 0, $self->{BILL_ID}, $self->{TP_NUM}, 0, 0;
+      }
     }
   }
 
