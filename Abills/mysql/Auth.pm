@@ -256,9 +256,11 @@ sub dv_auth {
     }
   }
 
+  my $pppoe_pluse = ($CONF->{DV_PPPOE_PLUSE_PARAM} && $RAD->{$CONF->{DV_PPPOE_PLUSE_PARAM}}) ? $RAD->{$CONF->{DV_PPPOE_PLUSE_PARAM}} :	$RAD->{NAS_PORT};
+
   #Check port
-  if ($self->{PORT} > 0 && $self->{PORT} != $RAD->{NAS_PORT}) {
-    $RAD_PAIRS->{'Reply-Message'} = "Wrong port '$RAD->{NAS_PORT}'";
+  if ($self->{PORT} && $self->{PORT} ne $pppoe_pluse) {
+    $RAD_PAIRS->{'Reply-Message'} = "Wrong port '$pppoe_pluse'";
     return 1, $RAD_PAIRS;
   }
 
