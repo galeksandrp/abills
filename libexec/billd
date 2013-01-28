@@ -229,7 +229,6 @@ sub check_lines {
         'TP_CREDIT',
         'EXPIRED',
         'EXPIRE',
-        'MONTH_TRAF_LIMIT'
       ]
     }
   );

@@ -698,7 +698,8 @@ sub session_sum {
       }
     }
   	elsif ($self->{MONTH_TRAF_LIMIT}) {
-      if ($sent + $recv >= $self->{MONTH_TRAF_LIMIT}) {
+  		my $counters = $self->get_traffic({ UID => $self->{UID} });
+      if ($counters->{TRAFFIC_IN} + $counters->{TRAFFIC_OUT} >= $self->{MONTH_TRAF_LIMIT}) {
         $self->{HANGUP} = 1;
         return $self->{UID}, 0, $self->{BILL_ID}, $self->{TP_NUM}, 0, 0;
       }
