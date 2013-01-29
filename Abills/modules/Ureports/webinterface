@@ -171,7 +171,7 @@ sub ureports_users_list {
 sub ureports_user {
   my ($attr) = @_;
 
-  if ($Ureports::VERSION < 5.51) {
+  if ($Ureports::VERSION < 2.24) {
     $html->message('info', "UPDATE", "Please update module 'Ureports' to version 2.24 or higher. http://abills.net.ua/");
     return 0;
   }
