@@ -1156,6 +1156,8 @@ sub ureports_daily_resets {
   my $debug_output = 'Daily reports reset';
 
   $debug_output = "Daily reports reset\n" if ($debug > 1);
+  
+  $self->{debug} = 1 if ($debug > 6);
   my $list = $Ureports->tp_user_reports_list(
     {
       RESET     => 1,
