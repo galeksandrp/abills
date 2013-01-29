@@ -171,6 +171,11 @@ sub ureports_users_list {
 sub ureports_user {
   my ($attr) = @_;
 
+  if ($Ureports::VERSION < 5.51) {
+    $html->message('info', "UPDATE", "Please update module 'Ureports' to version 2.24 or higher. http://abills.net.ua/");
+    return 0;
+  }
+
   $Ureports->{UID} = $FORM{UID} || $LIST_PARAMS{UID};
 
   if ($FORM{add}) {
@@ -1155,16 +1160,17 @@ sub ureports_daily_resets {
     {
       RESET     => 1,
       REPORT_ID => 1,
-      DATE      => '>0000-00-00'
+      DATE      => '>0000-00-00',
+      COLS_NAME => 1
     }
   );
 
   foreach my $line (@$list) {
-    $debug_output .= "UID: $line->[8] REPORT_ID: $line->[0] VALUE: $line->[3] DEPOSIT: $line->[5]\n" if ($debug > 1);
+    $debug_output .= "UID: $line->{uid} REPORT_ID: $line->{report_id} VALUE: $line->{value} DEPOSIT: $line->{deposit}\n" if ($debug > 1);
     $Ureports->tp_user_reports_reset_date(
       {
-        REPORT_ID => $line->[0],
-        UID       => $line->[8]
+        REPORT_ID => $line->{report_id},
+        UID       => $line->{uid}
       }
     );
   }
