@@ -445,9 +445,10 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
       }
 
       if ($speed_in + $speed_out == 0) {
-        push @FW_ACTIONS, "$IPFW table " . ($users_table_number - 1) . " add $CLIENT_IP/$BIT_MASK $traf_type";
+      	my $table_id = ($traf_type == 0) ? 9 : 9;
+        push @FW_ACTIONS, "$IPFW table " . $table_id . " add $CLIENT_IP/$BIT_MASK $traf_type";
         if ($traf_type > 0) {
-          push @FW_ACTIONS, "$IPFW table " . ($users_table_number-2) . " add $CLIENT_IP/$BIT_MASK $traf_type";
+          push @FW_ACTIONS, "$IPFW table " . $table_id . " add $CLIENT_IP/$BIT_MASK $traf_type";
         }
         next;
       }
@@ -658,7 +659,7 @@ sub user_info {
     exit 1;
   }
   elsif ($Dv->{TOTAL} < 1) {
-    print "$USER - Not exist\n" if ($debug);
+    print "$USER - Not exist or speed not defined\n" if ($debug);
     my $a = `echo "$DATE $TIME / $USER - Not exist" >> /tmp/linkupdown`;
     exit 0;
   }

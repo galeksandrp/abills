@@ -324,6 +324,10 @@ sub user_list {
     push @WHERE_RULES, @{ $self->search_expr($attr->{DVCRYPT_ID}, 'INT', 'service.dvcrypt_id', { EXT_FIELD => 1 }) };
   }
 
+  if ($attr->{CID}) {
+    push @WHERE_RULES, @{ $self->search_expr($attr->{CID}, 'STR', 'service.cid', { EXT_FIELD => 1 }) };
+  }
+
   if ($attr->{COMMENTS}) {
     push @WHERE_RULES, @{ $self->search_expr($attr->{COMMENTS}, 'STR', 'service.comments', { EXT_FIELD => 1 }) };
   }

@@ -44,7 +44,7 @@
 
 
 CLASSES_NUMS='2 3'
-VERSION=5.97
+VERSION=5.98
 
 
 name="abills_shaper"
@@ -286,7 +286,7 @@ abills_ipn() {
   	${IPFW} add 64100 allow icmp from any to me  ${IFACE}
   	${IPFW} add 64101 allow icmp from me to any  ${IFACE}
 
-     if [ x${abills_ipn_allow_ip} != x ]; then
+    if [ x${abills_ipn_allow_ip} != x ]; then
     	# Доступ к странице авторизации  
     	${IPFW} add 10 allow tcp from any to ${abills_ipn_allow_ip} 9443  ${IFACE}
     	${IPFW} add 11 allow tcp from ${abills_ipn_allow_ip} 9443 to any  ${IFACE}
@@ -296,15 +296,15 @@ abills_ipn() {
     	# Разрешить ДНС запросы к серверу
     	${IPFW} add 64400 allow udp from any to ${abills_ipn_allow_ip} 53
     	${IPFW} add 64450 allow udp from ${abills_ipn_allow_ip} 53 to any
-      fi;
+    fi;
   
-  	/usr/abills/libexec/periodic monthly MODULES=Ipn SRESTART=1 NO_ADM_REPORT=1 NAS_IDS="${abills_ipn_nas_id}"
+  	echo "Restart active sessions"
+  	/usr/abills/libexec/periodic monthly MODULES=Ipn SRESTART=1 NO_ADM_REPORT=1 NAS_IDS="${abills_ipn_nas_id}" &
   	# Block unauth ips
   	${IPFW} add 65000 deny ip from not table\(10\) to any ${IFACE} in
-    elif [ w${ACTION} = wstop ]; then
-	${IPFW} delete 10 11 12 13 64000 64100 64101  64400 64450 65000
-   fi;		
-  
+  elif [ w${ACTION} = wstop ]; then
+	  ${IPFW} delete 10 11 12 13 64000 64100 64101  64400 64450 65000
+  fi;		
 }
 
 #**********************************************************
