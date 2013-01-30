@@ -158,7 +158,8 @@ sub user_add {
              cid
              )
         VALUES ('$DATA{UID}', now(),
-        '$DATA{TP_ID}', '$DATA{STATUS}',
+        '$DATA{TP_ID}', 
+        '$DATA{STATUS}',
         '$DATA{FILTER_ID}',
         '$DATA{PIN}',
         '$DATA{VOD}',
@@ -556,12 +557,12 @@ sub channel_add {
    '$DATA{PORT}', 
    '$DATA{DESCRIBE}',
    '$DATA{DISABLE}'
-         );", 'do'
+       );", 'do'
   );
 
   return $self if ($self->{errno});
 
-  #$admin->action_add("$DATA{UID}", "ACTIVE");
+  $admin->system_action_add("CH:$DATA{NUMBER}", { TYPE => 1 });
   return $self;
 }
 

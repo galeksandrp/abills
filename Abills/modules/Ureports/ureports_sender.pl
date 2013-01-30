@@ -166,6 +166,7 @@ sub ureports_periodic_reports {
 
   $SERVICE_LIST_PARAMS{LOGIN} = $ARGV->{LOGINS} if ($ARGV->{LOGINS});
 
+  $tariffs->{debug}=1 if ($debug > 6);
   my $list         = $tariffs->list({%LIST_PARAMS});
   $ADMIN_REPORT{DATE} = $DATE if (!$ADMIN_REPORT{DATE});
   my ($y, $m, $d)  = split(/-/, $ADMIN_REPORT{DATE}, 3);
