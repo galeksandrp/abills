@@ -131,6 +131,8 @@ sub user_add {
     my $tariffs = Tariffs->new($db, $CONF, $admin);
     $self->{TP_INFO} = $tariffs->info($DATA{TP_ID});
 
+    $self->{TP_NUM}  = $tariffs->{ID};
+
     #Take activation price
     if ($tariffs->{ACTIV_PRICE} > 0) {
       my $user = Users->new($db, $admin, $CONF);

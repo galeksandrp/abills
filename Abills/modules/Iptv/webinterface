@@ -388,25 +388,9 @@ sub iptv_user {
       $Iptv->{ACCOUNT_ACTIVATE} = $attr->{USER_INFO}->{ACTIVATE};
       iptv_get_month_fee($Iptv) if (!$FORM{STATUS});
       $html->message('info', $_INFO, "$_ADDED");
-      if ($conf{IPTV_DVCRYPT_FILENAME}) {
-        iptv_crypt();
-      }
-
-      if ($Iptv_stalker) {
-        $Iptv_stalker->stalker_user_chg_tp(($FORM{TP_IDS} eq '') ? $FORM{TP_ID} : $FORM{TP_IDS}, ($FORM{CID2} ne '') ? $FORM{CID2} : $FORM{CID});
-         if ($Iptv_stalker->{errno}) {
-           $html->message('err', $_ERROR, "$Iptv_stalker->{errno} $Iptv_stalker->{errstr}");         
-         }
-      }
-
-      if ($conf{IPTV_USER_EXT_CMD}) {
-        $Iptv->{ACTION}='down' if ($FORM{STATUS});
-        iptv_ext_cmd($conf{IPTV_USER_EXT_CMD}, { %$users, %$Iptv })
-      }
     }
   }
-  elsif ($FORM{set}) {
-      
+  elsif ($FORM{set}) {      
     $Iptv->user_change({%FORM});
     if (!$Iptv->{errno}) {
       $Iptv->{ACCOUNT_ACTIVATE} = $attr->{USER_INFO}->{ACTIVATE};
@@ -417,24 +401,6 @@ sub iptv_user {
       }
 
       $html->message('info', $_INFO, "$_CHANGED");
-
-      if ($conf{IPTV_DVCRYPT_FILENAME}) {
-        iptv_crypt();
-      }
-
-      if (defined($Iptv_stalker)) {
-        #print 'lol2';
-        $Iptv_stalker->stalker_user_chg_tp(($FORM{TP_IDS} eq '') ? $FORM{TP_ID} : $FORM{TP_IDS}, ($FORM{CID2} ne '') ? $FORM{CID2} : $FORM{CID});
-       
-         if ($Iptv_stalker->{errno}) {
-           $html->message('err', $_ERROR, "$Iptv_stalker->{errno} $Iptv_stalker->{errstr}");
-         }
-      }
-
-      if ($conf{IPTV_USER_EXT_CMD}) {
-        $Iptv->{ACTION}='down' if ($FORM{STATUS});
-        iptv_ext_cmd($conf{IPTV_USER_EXT_CMD}, { %$users, %$Iptv })
-      }
     }
   }
   elsif ($FORM{del} && $FORM{is_js_confirmed}) {
@@ -446,6 +412,11 @@ sub iptv_user {
   
   if ($Iptv->{errno}) {
     $html->message('err', $_ERROR, "[$Iptv->{errno}] $err_strs{$Iptv->{errno}}");
+  }
+  else {
+  	if (iptv_account_action()) {
+  		$html->message('err', $_ERROR, "$Iptv->{errno} $Iptv->{errstr}");
+  	}
   }
 
   my $user = $Iptv->user_info($FORM{UID});
@@ -3263,27 +3234,27 @@ sub iptv_stalker {
     exit;
   }
 
-  print $html->button("$_ACCOUNTS", "index=$index", { BUTTON => 1 }).
-  $html->button("STB", "index=$index&list=STB", { BUTTON => 1 }).
-  $html->button("$_CHANNELS", "index=$index&list=ITV", { BUTTON => 1 }).
-  $html->button("TV_SUBSCRIPTION", "index=$index&list=ITV_SUBSCRIPTION", { BUTTON => 1 }).
-  $html->br();
+ print $html->button("$_ACCOUNTS", "index=$index", { BUTTON => 1 }).
+ $html->button("STB", "index=$index&list=STB", { BUTTON => 1 }).
+ $html->button("$_CHANNELS", "index=$index&list=ITV", { BUTTON => 1 }).
+ $html->button("TV_SUBSCRIPTION", "index=$index&list=ITV_SUBSCRIPTION", { BUTTON => 1 }).
+ $html->br();
 
+ if ($FORM{add} || $FORM{set}) {
+   return $Stalker_api->user_action({ %$users, %$Iptv, %FORM });
+ }
 
-  # Get tps 
+  # Get tps
   my %tp_list = ();
   my $list = $Tariffs->list({ MODULE    => 'Iptv',
-                                COLS_NAME => 1 
+                              COLS_NAME => 1 
                            });
   foreach my $tp (@$list) {
     $tp_list{$tp->{id}}=$tp->{tp_id};
   }
 
-
- if ($FORM{change}) {
-   
- }
- elsif ($FORM{register}) {
+ 
+ if ($FORM{register}) {
    if (! $tp_list{$FORM{TP_ID}}) {
      $html->message('err', $_ERROR, "$_TARF_PLAN $_NOT_EXIST");
    }
@@ -3291,7 +3262,6 @@ sub iptv_stalker {
      $users->add({ %FORM });
      $FORM{TP_ID} = $tp_list{$FORM{TP_ID}};
      if (! $users->{errno} ) {
-       $Iptv->{debug}=1;
        $Iptv->user_add({ %FORM, UID => $users->{UID} });
      }
      else {
@@ -3349,6 +3319,10 @@ sub iptv_stalker {
       elsif ( ref $val eq 'ARRAY') {
         push @row, join($html->br(), @$val);
       }
+      elsif ($key eq 'stb_mac') {
+        $val = $html->button("$val", "index=$index&list=STB_MODULES&MAC=$val");
+        push @row, "$val";
+      }
       else {
         push @row, "$val";
       }
@@ -3386,7 +3360,7 @@ sub iptv_stalker_show_list {
   }
 
   $Stalker_api->send_request({ ACTION => "$list_name/$FORM{MAC}",
-                                });
+                             });
 
   if ($Stalker_api->{error}) {
     $html->message('err', $_ERROR, "$Stalker_api->{error}/$Stalker_api->{errstr} ");
@@ -3491,6 +3465,68 @@ sub iptv_stalker_show_list {
 sub iptv_account_action {
   my ($attr) = @_;
   
+  my $result = 0;
+  
+  if ($FORM{add}) {
+    if ($conf{IPTV_DVCRYPT_FILENAME}) {
+      iptv_crypt();
+    }
+
+    #Api function
+    if ($conf{IPTV_STALKER_API_HOST}) {
+    	iptv_stalker();
+    	if ($Stalker_api->{error}) {
+    	  $Iptv->{errno}  = $Stalker_api->{errno}; 
+    	  $Iptv->{errstr} = $Stalker_api->{errstr};
+    	  $result = 1;
+      }
+    }
+    #DB functions
+    elsif ($Iptv_stalker) {
+      $Iptv_stalker->stalker_user_chg_tp(($FORM{TP_IDS} eq '') ? $FORM{TP_ID} : $FORM{TP_IDS}, ($FORM{CID2} ne '') ? $FORM{CID2} : $FORM{CID});
+      if ($Iptv_stalker->{errno}) {
+        $result = 1;
+      }
+    }
+
+    if ($conf{IPTV_USER_EXT_CMD}) {
+      $Iptv->{ACTION}='down' if ($FORM{STATUS});
+      iptv_ext_cmd($conf{IPTV_USER_EXT_CMD}, { %$users, %$Iptv })
+    }
+  }
+  elsif ($FORM{set}) {
+    if ($conf{IPTV_DVCRYPT_FILENAME}) {
+      iptv_crypt();
+    }
+
+    if ($conf{IPTV_STALKER_API_HOST}) {
+    	iptv_stalker();
+    	if ($Stalker_api->{error}) {
+    	  $Iptv->{errno}  = $Stalker_api->{errno}; 
+    	  $Iptv->{errstr} = $Stalker_api->{errstr};
+    	  $result = 1;
+      }    	
+    }
+    elsif ($Iptv_stalker) {
+      $Iptv_stalker->stalker_user_chg_tp(($FORM{TP_IDS} eq '') ? $FORM{TP_ID} : $FORM{TP_IDS}, ($FORM{CID2} ne '') ? $FORM{CID2} : $FORM{CID});
+      if ($Iptv_stalker->{errno}) {
+        $result = 1;
+      }
+    }
+
+    if ($conf{IPTV_USER_EXT_CMD}) {
+      $Iptv->{ACTION}='down' if ($FORM{STATUS});
+      iptv_ext_cmd($conf{IPTV_USER_EXT_CMD}, { %$users, %$Iptv })
+    }
+  }
+  elsif ($FORM{chg}) {
+  	
+  }
+  elsif ($FORM{del}) {
+  	
+  }
+
+  return $result;
 }
 1
 
