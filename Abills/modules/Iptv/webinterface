@@ -3234,15 +3234,25 @@ sub iptv_stalker {
     exit;
   }
 
- print $html->button("$_ACCOUNTS", "index=$index", { BUTTON => 1 }).
- $html->button("STB", "index=$index&list=STB", { BUTTON => 1 }).
- $html->button("$_CHANNELS", "index=$index&list=ITV", { BUTTON => 1 }).
- $html->button("TV_SUBSCRIPTION", "index=$index&list=ITV_SUBSCRIPTION", { BUTTON => 1 }).
- $html->br();
-
  if ($FORM{add} || $FORM{set}) {
-   return $Stalker_api->user_action({ %$users, %$Iptv, %FORM });
+   $Stalker_api->user_action({ %$users, %$Iptv, %FORM });
+   
+   if ($Stalker_api->{errstr} eq 'Account not found') {
+ 	   $Stalker_api->user_action({ %$users, 
+ 	   	                           %$Iptv, 
+ 	   	                           %FORM,
+ 	   	                           add  => 1,
+ 	   	                           set  => undef });
+   }   
+   
+   return $Stalker_api->{error};
  }
+
+ print $html->button("$_ACCOUNTS", "index=$index", { BUTTON => 1 }).
+  $html->button("STB", "index=$index&list=STB", { BUTTON => 1 }).
+  $html->button("$_CHANNELS", "index=$index&list=ITV", { BUTTON => 1 }).
+  $html->button("TV_SUBSCRIPTION", "index=$index&list=ITV_SUBSCRIPTION", { BUTTON => 1 }).
+  $html->br();
 
   # Get tps
   my %tp_list = ();

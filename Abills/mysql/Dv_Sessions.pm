@@ -230,6 +230,7 @@ sub online {
 
     CID             => 'c.CID',
     DV_CID          => 'dv.cid',
+    NETMASK         => 'INET_NTOA(dv.netmask) AS netmask',
     ACCT_SESSION_ID => 'c.acct_session_id',
     TP_ID           => 'dv.tp_id AS tp_num',
     CALLS_TP_ID     => 'c.tp_id AS calls_tp_id',
