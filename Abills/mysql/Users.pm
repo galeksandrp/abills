@@ -83,20 +83,24 @@ sub info {
   $self->query(
     $db, "SELECT u.uid,
    u.gid, 
-   g.name,
-   u.id, u.activate, u.expire, u.credit, u.reduction, 
+   g.name AS g_name,
+   u.id AS login, 
+   u.activate, 
+   u.expire, 
+   u.credit, 
+   u.reduction, 
    u.registration, 
    u.disable,
-   if(u.company_id > 0, cb.id, b.id),
-   if(c.name IS NULL, b.deposit, cb.deposit),
+   if(u.company_id > 0, cb.id, b.id) AS bill_id,
+   if(c.name IS NULL, b.deposit, cb.deposit) AS deposit,
    u.company_id,
-   if(c.name IS NULL, '', c.name), 
-   if(c.name IS NULL, 0, c.vat),
-   if(c.name IS NULL, b.uid, cb.uid),
-   if(u.company_id > 0, c.ext_bill_id, u.ext_bill_id),
+   if(c.name IS NULL, '', c.name) AS company_name, 
+   if(c.name IS NULL, 0, c.vat) AS company_vat,
+   if(c.name IS NULL, b.uid, cb.uid) AS bill_owner,
+   if(u.company_id > 0, c.ext_bill_id, u.ext_bill_id) AS ext_bill_id,
    u.credit_date,
    u.reduction_date,
-   if(c.name IS NULL, 0, c.credit),
+   if(c.name IS NULL, 0, c.credit) AS company_credit,
    u.domain_id,
    u.deleted,
    $password
@@ -105,7 +109,9 @@ sub info {
      LEFT JOIN groups g ON (u.gid=g.gid)
      LEFT JOIN companies c ON (u.company_id=c.id)
      LEFT JOIN bills cb ON (c.bill_id=cb.id)
-     $WHERE;"
+     $WHERE;",
+   undef,
+   { INFO => 1 }
   );
 
   if ($self->{TOTAL} < 1) {
@@ -113,32 +119,6 @@ sub info {
     $self->{errstr} = 'ERROR_NOT_EXIST';
     return $self;
   }
-
-  (
-    $self->{UID},
-    $self->{GID},
-    $self->{G_NAME},
-    $self->{LOGIN},
-    $self->{ACTIVATE},
-    $self->{EXPIRE},
-    $self->{CREDIT},
-    $self->{REDUCTION},
-    $self->{REGISTRATION}, 
-    $self->{DISABLE},
-    $self->{BILL_ID},
-    $self->{DEPOSIT},
-    $self->{COMPANY_ID}, 
-    $self->{COMPANY_NAME}, 
-    $self->{COMPANY_VAT}, 
-    $self->{BILL_OWNER},
-    $self->{EXT_BILL_ID},
-    $self->{CREDIT_DATE}, 
-    $self->{REDUCTION_DATE}, 
-    $self->{COMPANY_CREDIT}, 
-    $self->{DOMAIN_ID},
-    $self->{DELETED},
-    $self->{PASSWORD}
-  ) = @{ $self->{list}->[0] };
 
   if ((!$admin->{permissions}->{0} || !$admin->{permissions}->{0}->{8}) && ($self->{DELETED})) {
     $self->{errno}  = 2;

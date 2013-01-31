@@ -3235,6 +3235,10 @@ sub iptv_stalker {
   }
 
  if ($FORM{add} || $FORM{set}) {
+   $users->info({ SHOW_PASSWORD => 1,
+   	              UID           => $users->{UID} || $FORM{UID} 
+   	            });
+
    $Stalker_api->user_action({ %$users, %$Iptv, %FORM });
    
    if ($Stalker_api->{errstr} eq 'Account not found') {
