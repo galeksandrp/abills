@@ -3235,8 +3235,9 @@ sub iptv_stalker {
   }
 
  if ($FORM{add} || $FORM{set}) {
-   $users->info({ SHOW_PASSWORD => 1,
-   	              UID           => $users->{UID} || $FORM{UID} 
+   $users->info($users->{UID} || $FORM{UID},
+                { 
+                	SHOW_PASSWORD => 1,
    	            });
 
    $Stalker_api->user_action({ %$users, %$Iptv, %FORM });
