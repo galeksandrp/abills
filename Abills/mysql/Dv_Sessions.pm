@@ -162,7 +162,6 @@ sub online {
   my $EXT_TABLE = '';
 
   $admin->{DOMAIN_ID} = 0 if (!$admin->{DOMAIN_ID});
-
   if ($attr->{COUNT}) {
     if ($attr->{ZAPED}) {
       $WHERE = 'WHERE c.status=2';
@@ -302,7 +301,11 @@ sub online {
     $RES_FIELDS_COUNT = 0;
     foreach my $field (@{ $attr->{FIELDS_NAMES} }) {
       $fields .= "$FIELDS_NAMES_HASH{$field},\n ";
-      if ($field =~ /TP_BILLS_PRIORITY|TP_NAME|FILTER_ID|TP_CREDIT|PAYMENT_METHOD/ && $EXT_TABLE !~ /tarif_plans/) {
+      
+      if (! $field) {
+      	print "dv_calls/online: Wrong field name\n";
+      }
+      elsif ($field =~ /TP_BILLS_PRIORITY|TP_NAME|FILTER_ID|TP_CREDIT|PAYMENT_METHOD/ && $EXT_TABLE !~ /tarif_plans/) {
         $EXT_TABLE .= "LEFT JOIN tarif_plans tp ON (tp.id=dv.tp_id AND tp.module='Dv')";
       }
       elsif ($field =~ /NAS_NAME/ && $EXT_TABLE !~ / nas /) {

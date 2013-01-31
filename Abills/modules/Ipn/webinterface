@@ -2518,7 +2518,7 @@ sub ipn_periodic_session_restart {
                         ACCT_SESSION_ID, 
                         FILTER_ID, 
                         NAS_PORT_ID,
-                        NETNASK
+                        NETMASK
                          ],
       COLS_NAME => 1,
       %LIST_PARAMS
