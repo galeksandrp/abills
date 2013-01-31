@@ -140,7 +140,6 @@ $users = Users->new($db, $admin, \%conf);
 my $output2 = '';
 
 #read(STDIN, $output2, $ENV{'CONTENT_LENGTH'});
-#$output2 = '!!';
 if ($debug > 0) {
   while (my ($k, $v) = each %FORM) {
     $output2 .= "$k -> $v\n" if ($k ne '__BUFFER');
