@@ -99,10 +99,6 @@ if ($ARGV->{DEBUG}) {
 }
 
 $DATE = $ARGV->{DATE} if ($ARGV->{DATE});
-if ($ARGV->{REPORT_IDS}) {
-  $ARGV->{REPORT_IDS} =~ s/,/;/g;
-  $ARGV->{TP_IDS}     = $ARGV->{REPORT_IDS};
-}
 
 my $debug_output = ureports_periodic_reports({ %$ARGV });
 
@@ -163,8 +159,13 @@ sub ureports_periodic_reports {
   $debug_output .= "Ureports: Daily spool former\n" if ($debug > 1);
   $LIST_PARAMS{MODULE} = 'Ureports';
   $LIST_PARAMS{TP_ID}  = $ARGV->{TP_IDS} if ($ARGV->{TP_IDS});
+  
+  if ($ARGV->{REPORT_IDS}) {
+    $ARGV->{REPORT_IDS} =~ s/,/;/g;
+    $SERVICE_LIST_PARAMS{REPORT_ID} = $ARGV->{REPORT_IDS} if ($ARGV->{REPORT_IDS});
+  }
 
-  $SERVICE_LIST_PARAMS{LOGIN} = $ARGV->{LOGINS} if ($ARGV->{LOGINS});
+  $SERVICE_LIST_PARAMS{LOGIN}     =  $ARGV->{LOGINS} if ($ARGV->{LOGINS});
 
   $tariffs->{debug}=1 if ($debug > 6);
   my $list         = $tariffs->list({%LIST_PARAMS});
@@ -189,7 +190,6 @@ sub ureports_periodic_reports {
         TP_ID          => $TP_ID,
         SORT           => 1,
         PAGE_ROWS      => 1000000,
-        REPORT_ID      => '',
         DV_TP          => 1,
         ACCOUNT_STATUS => 0,
         STATUS         => 0,

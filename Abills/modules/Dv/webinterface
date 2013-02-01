@@ -447,6 +447,9 @@ sub dv_user {
 
   $Dv->{UID} = $FORM{UID} || $LIST_PARAMS{UID};
   undef $Dv->{errno};
+  
+  #print "// -- $FORM{add}-- / $FORM{REGISTRATION_INFO} /";
+  
   if ($FORM{REGISTRATION_INFO}) {
     # Info
     load_module('Docs', $html);
@@ -510,6 +513,13 @@ sub dv_user {
         return 0;
       }
     }
+
+print "!!!!!!";
+
+
+
+
+
 
     $Dv->add({%FORM});
     if (!$Dv->{errno}) {

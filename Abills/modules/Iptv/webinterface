@@ -168,7 +168,7 @@ sub iptv_chg_tp {
           D            => $day,
           M            => $month,
           Y            => $year,
-          COMMENTS     => "$_FROM: $Dv->{TP_ID}:$Dv->{TP_NAME}",
+          COMMENTS     => "$_FROM: $Iptv->{TP_ID}:$Iptv->{TP_NAME}",
           ADMIN_ACTION => 1,
           MODULE       => 'Iptv'
         }
@@ -383,14 +383,20 @@ sub iptv_user {
     return 0;
   }
   elsif ($FORM{add}) {
+  	$Iptv->{debug}=1;
     $Iptv->user_add({%FORM});
     if (!$Iptv->{errno}) {
       $Iptv->{ACCOUNT_ACTIVATE} = $attr->{USER_INFO}->{ACTIVATE};
       iptv_get_month_fee($Iptv) if (!$FORM{STATUS});
       $html->message('info', $_INFO, "$_ADDED");
+      
+      if ($attr->{REGISTRATION}) {
+#        $html->tpl_show(_include('dv_user_info', 'Dv'), $Dv);
+        return 0;
+      }
     }
   }
-  elsif ($FORM{set}) {      
+  elsif ($FORM{change}) {      
     $Iptv->user_change({%FORM});
     if (!$Iptv->{errno}) {
       $Iptv->{ACCOUNT_ACTIVATE} = $attr->{USER_INFO}->{ACTIVATE};
@@ -423,9 +429,17 @@ sub iptv_user {
   if ($user->{TOTAL} < 1) {
     $html->message('info', $_INFO, $_NOT_ACTIVE);
     $user               = $Iptv->defaults();
-    $user->{ACTION}     = 'add';
-    $user->{LNG_ACTION} = $_ACTIVATE;
-    #$user->{TP_IDS}      = $user->{TP_ID};
+
+    if ($attr->{ACTION}) {
+      $Iptv->{ACTION}     = $attr->{ACTION};
+      $Iptv->{LNG_ACTION} = $attr->{LNG_ACTION};
+    }
+    else {
+      $Iptv->{ACTION}     = 'add';
+      $Iptv->{LNG_ACTION} = $_ACTIVATE;
+      $html->message('info', $_INFO, $_NOT_ACTIVE);
+    }
+
     $user->{TP_NUM}     = $html->form_select(
       'TP_ID',
       {
@@ -440,8 +454,17 @@ sub iptv_user {
   else {
     iptv_user_channels_list({ UID =>  $FORM{UID}, TP_ID => $Iptv->{TP_ID} });
     $user->{TP_IDS}           = $Iptv->{TP_ID};
-    $user->{ACTION}           = 'set';
-    $user->{LNG_ACTION}       = $_CHANGE;
+
+    if ($attr->{ACTION}) {
+      $Iptv->{ACTION}     = $attr->{ACTION};
+      $Iptv->{LNG_ACTION} = $attr->{LNG_ACTION};
+    }
+    else {
+      $Iptv->{ACTION}     = 'change';
+      $Iptv->{LNG_ACTION} = $_CHANGE;
+      $html->message('info', $_INFO, $_NOT_ACTIVE);
+    }    
+
     $user->{CHANGE_TP_BUTTON} = $html->button($_CHANGE, 'UID=' . $FORM{UID} . '&index=' . get_function_index('iptv_chg_tp'), { CLASS => 'change rightAlignText' });
   }
 
@@ -487,6 +510,8 @@ sub iptv_user {
   if ($user->{UID}) {
     iptv_user_channels({ USER_INFO => $user });
   }
+  
+  return 0;
 }
 
 
@@ -1863,7 +1888,7 @@ sub iptv_user_chg_tp {
   if ($Iptv->{TP_ID} == $FORM{TP_ID}) {
 
   }
-  elsif ($FORM{set}) {
+  elsif ($FORM{change}) {
     use POSIX;
 
     if ($period == 1 && $conf{IPTV_USER_CHG_TP_SHEDULE}) {
@@ -2066,7 +2091,7 @@ sub iptv_user_channels {
   $list = $Iptv->channel_ti_list({ %LIST_PARAMS, MANDATORY => 1 });
 
   foreach my $line (@$list) {
-    if (($FORM{add} || $FORM{set}) && $FORM{change_now}) {
+    if (($FORM{add} || $FORM{change}) && $FORM{change_now}) {
       if (($users->{CREDIT} + $users->{DEPOSIT}) > $line->[4] || $Iptv->{PEYMENT_TYPE}) {
         $Iptv->{TP_INFO}->{PERIOD_ALIGNMENT} = $Iptv->{PERIOD_ALIGNMENT} || 0;
         $Iptv->{TP_INFO}->{MONTH_FEE}        = $line->[4];
@@ -3234,7 +3259,7 @@ sub iptv_stalker {
     exit;
   }
 
- if ($FORM{add} || $FORM{set}) {
+ if ($FORM{add} || $FORM{change}) {
    $users->info($users->{UID} || $FORM{UID},
                 { 
                 	SHOW_PASSWORD => 1,
@@ -3509,7 +3534,7 @@ sub iptv_account_action {
       iptv_ext_cmd($conf{IPTV_USER_EXT_CMD}, { %$users, %$Iptv })
     }
   }
-  elsif ($FORM{set}) {
+  elsif ($FORM{change}) {
     if ($conf{IPTV_DVCRYPT_FILENAME}) {
       iptv_crypt();
     }

@@ -782,6 +782,7 @@ sub form_wizard {
   #Make functions
   if ($FORM{step} > 1 && !$FORM{back}) {
     $html->{NO_PRINT} = 1;
+
     REG:
     $db->{AutoCommit} = 0;
     my $step = $FORM{step} - 1;
@@ -796,12 +797,14 @@ sub form_wizard {
       }
     }
 
-    if (!$FORM{change}) {
+    if (! $FORM{change}) {
       $FORM{add} = 1;
     }
     else {
       $FORM{next} = 1;
     }
+
+    print  "// $FORM{add} //";
 
     $FORM{UID} = $LIST_PARAMS{UID} if (!$FORM{UID} && $LIST_PARAMS{UID});
 
@@ -817,18 +820,16 @@ sub form_wizard {
       $FORM{step} += 1;
       $FORM{back} = 1;
       $html->{NO_PRINT} = undef;
-      undef $FORM{add};
-      undef $FORM{change};
+      undef $FORM{add}, $FORM{change};
       $reg_output = $html->{OUTPUT};
       goto START;
     }
     else {
       $db->commit();
     }
-    undef $FORM{add};
-    undef $FORM{change};
-
+    undef $FORM{add}, $FORM{change};
     $html->{NO_PRINT} = undef;
+    
     $reg_output = $html->{OUTPUT};
   }
 
@@ -885,15 +886,14 @@ sub form_wizard {
       %FORM,
       ACTION       => 'next',
       REGISTRATION => 1,
-
       #USER        => \%FORM,
-      USER_INFO  => ($FORM{UID})            ? $users   : undef,
-      LNG_ACTION => ($steps{ $FORM{step} }) ? "$_NEXT" : "$_REGISTRATION_COMPLETE",
-      BACK_BUTTON => ($FORM{step} > 2) ? $html->form_input('finish', "$_FINISH", { TYPE => 'submit' }) . ' ' . $html->form_input('back', "$_BACK", { TYPE => 'submit' })
+      USER_INFO    => ($FORM{UID})            ? $users   : undef,
+      LNG_ACTION   => ($steps{ $FORM{step} }) ? "$_NEXT" : "$_REGISTRATION_COMPLETE",
+      BACK_BUTTON  => ($FORM{step} > 2) ? $html->form_input('finish', "$_FINISH", { TYPE => 'submit' }) . ' ' . $html->form_input('back', "$_BACK", { TYPE => 'submit' })
       : (!$FORM{back}) ? $html->form_input('add', "$_FINISH", { TYPE => 'submit' })
       : $html->form_input('change', "$_FINISH", { TYPE => 'submit' }),
-      UID     => $FORM{UID},
-      SUBJECT => $_REGISTRATION
+      UID          => $FORM{UID},
+      SUBJECT      => $_REGISTRATION
     }
   );
 
