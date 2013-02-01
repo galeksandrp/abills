@@ -427,16 +427,15 @@ sub iptv_user {
 
   my $user = $Iptv->user_info($FORM{UID});
   if ($user->{TOTAL} < 1) {
-    $html->message('info', $_INFO, $_NOT_ACTIVE);
     $user               = $Iptv->defaults();
 
     if ($attr->{ACTION}) {
-      $Iptv->{ACTION}     = $attr->{ACTION};
-      $Iptv->{LNG_ACTION} = $attr->{LNG_ACTION};
+      $user->{ACTION}     = $attr->{ACTION};
+      $user->{LNG_ACTION} = $attr->{LNG_ACTION};
     }
     else {
-      $Iptv->{ACTION}     = 'add';
-      $Iptv->{LNG_ACTION} = $_ACTIVATE;
+      $user->{ACTION}     = 'add';
+      $user->{LNG_ACTION} = $_ACTIVATE;
       $html->message('info', $_INFO, $_NOT_ACTIVE);
     }
 
@@ -456,12 +455,12 @@ sub iptv_user {
     $user->{TP_IDS}           = $Iptv->{TP_ID};
 
     if ($attr->{ACTION}) {
-      $Iptv->{ACTION}     = $attr->{ACTION};
-      $Iptv->{LNG_ACTION} = $attr->{LNG_ACTION};
+      $user->{ACTION}     = $attr->{ACTION};
+      $user->{LNG_ACTION} = $attr->{LNG_ACTION};
     }
     else {
-      $Iptv->{ACTION}     = 'change';
-      $Iptv->{LNG_ACTION} = $_CHANGE;
+      $user->{ACTION}     = 'change';
+      $user->{LNG_ACTION} = $_CHANGE;
       $html->message('info', $_INFO, $_NOT_ACTIVE);
     }    
 
@@ -504,8 +503,6 @@ sub iptv_user {
   }
 
   $html->tpl_show(_include('iptv_user', 'Iptv'), { %$attr, %$user });
-
-
 
   if ($user->{UID}) {
     iptv_user_channels({ USER_INFO => $user });
