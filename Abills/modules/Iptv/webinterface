@@ -3267,8 +3267,8 @@ sub iptv_stalker {
  	   $Stalker_api->user_action({ %$users, 
  	   	                           %$Iptv, 
  	   	                           %FORM,
- 	   	                           add  => 1,
- 	   	                           set  => undef });
+ 	   	                           add   => 1,
+ 	   	                           change=> undef });
    }   
    
    return $Stalker_api->{error};
@@ -3323,8 +3323,8 @@ sub iptv_stalker {
  # Get abills users 
  my %register_stb = ();
  my $list = $Iptv->user_list({ PAGE_ROWS => 1000000, 
-                                CID       => '*',
-                                 COLS_NAME => 1 });
+                               CID       => '*',
+                               COLS_NAME => 1 });
  
  foreach my $line (@$list) {
     $register_stb{$line->{cid}} = $line->{uid};
