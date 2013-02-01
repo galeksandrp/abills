@@ -1,3 +1,4 @@
+# unknown test version  :)
 
 # Зелений -    [online] онлайн
 # Фіолетовий - [offline] оффлайн
@@ -24,7 +25,7 @@ my $Maps = Maps->new($db, $admin, \%conf);
 
 # check Maps.pm version
 sub check_version {
-  if ($Maps::VERSION < 2.01) {
+  if ($Maps::VERSION < 2.02) {
     $html->message('info', "UPDATE", "Please update module 'Maps' to version 2.01 or higher. http://abills.net.ua/");
     return 1;
   }
@@ -235,7 +236,7 @@ sub maps_map_show {
   #Get users online  *****************************************
 
   #$Maps->{debug}=1;
-  my $list = $Maps->users_online_list({ PAGE_ROWS => 4000 });
+  my $list = $Maps->users_online_list({ PAGE_ROWS => 8000 });
 
   foreach my $line (@$list) {
 
@@ -256,7 +257,7 @@ sub maps_map_show {
   #						 DISTRICT_ID => $attr->{DISTRICT_ID},
   #						 PAGE_ROWS => '1000'
   #											 });
-  my $list2 = $Maps->nas_list({ SHOW_MAPS => 1, PAGE_ROWS => '500', DISTRICT_ID => $attr->{DISTRICT_ID} });
+  my $list2 = $Maps->nas_list({ SHOW_MAPS => 1, PAGE_ROWS => '5000', DISTRICT_ID => $attr->{DISTRICT_ID} });
 
   my %NAS_INFO = ();
   foreach my $line2 (@$list2) {
@@ -283,7 +284,7 @@ sub maps_map_show {
   $list = $Maps->all_users_list(
     {
       LOCATION_ID => '>0',
-      PAGE_ROWS   => '4000'
+      PAGE_ROWS   => '8000'
     }
   );
 
@@ -332,7 +333,7 @@ sub maps_map_show {
 
   $users->{debug} = 1;
 
-  $list = $Maps->build_list({ SHOW_MAPS => 1, DISTRICT_ID => $attr->{DISTRICT_ID}, PAGE_ROWS => '2000' });
+  $list = $Maps->build_list({ SHOW_MAPS => 1, DISTRICT_ID => $attr->{DISTRICT_ID}, PAGE_ROWS => '8000' });
 
   my $cnt = 0;
   foreach my $line (@$list) {
@@ -1125,8 +1126,7 @@ sub google_maps_show {
   elsif ($FORM{dcoordx} and $FORM{dcoordy}) {
     $Maps->del_build({ DCOORDX => $FORM{dcoordx}, DCOORDY => $FORM{dcoordy} });
     if (!$Maps->{errno}) {
-      $html->tpl_show(
-        _include('maps_redirect', 'Maps'),
+      $html->tpl_show(_include('maps_redirect', 'Maps'),
         {
           SECTION => '',
           MESSAGE => "$_DEL_MARKER",
@@ -1293,6 +1293,10 @@ sub google_maps_show {
     #***********************************************************
   %ufilter = $html->getCookies();
  
+  if($count_online > 0) {
+    $sub_online = 1;
+  }
+  
   if($ufilter{UFILTER} eq 'online') {
     $user_info = '';
     $count_offline = ''
@@ -1320,6 +1324,7 @@ sub google_maps_show {
         USERS_ONLINE       => $user_online,
         USER_COUNT_OFFLINE => $count_offline,
         USER_COUNT_ONLINE  => $count_online,
+        SUB_ONLINE         => $sub_online, 
 
         #INSTALL_INFO  => $install_info
 
