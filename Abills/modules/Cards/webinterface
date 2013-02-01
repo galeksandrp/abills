@@ -888,7 +888,9 @@ sub cards_user_payment () {
           my $test = `echo "$DATE $TIME $user->{LOGIN}  $Cards->{SERIAL}$Cards->{NUMBER} A:$ENV{HTTP_USER_AGENT} QS:$ENV{QUERY_STRING} RA:$ENV{REMOTE_ADDR} ADDED ($gt)"   >> /tmp/cards_debug`;
         }
 
-        cross_modules_call('_payments_maked', { USER_INFO => $user, QUITE => 1 });
+        cross_modules_call('_payments_maked', { USER_INFO => $user, 
+                                                SKIP_MODULES => 'Cards,Sqlcmd',
+                                                QUITE => 1 });
         return 0;
       }
       elsif ($payments->{errno}) {

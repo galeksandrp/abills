@@ -1161,7 +1161,6 @@ sub form_payments {
       $line->[3],
       $line->[4],
       "$line->[5]",
-
       #  $PAYMENT_METHODS[$line->[6]],
       #  "$line->[7]",
       #  "$line->[8]",

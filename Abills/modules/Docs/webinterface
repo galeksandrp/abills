@@ -454,7 +454,7 @@ sub docs_receipt {
                 ),
                 $users->{LOGIN},
                 $period_from,
-                $order . (($current_receipt{$order}) ? ' ' . $html->color_mark($_EXIST, 'red') : ''),
+                $order . (($current_receipt{$order}) ? ' ' . $html->color_mark($_EXIST, "$_COLORS[6]") : ''),
                 $result_sum
               );
 
@@ -983,7 +983,7 @@ sub docs_invoices_list {
   }
 
   $LIST_PARAMS{COMPANY_ID} = $LIST_PARAMS{COMPANY_ID} || $FORM{CUSTOMER_TYPE};
-  #PAYMENT_METHOD
+
   if (!$FORM{sort}) {
     $LIST_PARAMS{SORT} = '2 desc, 1';
     $LIST_PARAMS{DESC} = 'DESC';
@@ -1267,7 +1267,7 @@ sub docs_invoices_list {
     	  }
 
     	  if ($invoice_sum > 0) {
-          $val .= $html->color_mark(sprintf("%.2f", $invoice_sum), $_COLORS[6]) . $html->br() . $html->button("$_SEARCH $_PAYMENTS", "index=$index&UID=$invoice->{uid}&UNINVOICED=$invoice->{id}",  { CLASS => 'search' });
+          $val .= $html->color_mark(sprintf("%.2f", $invoice_sum), $_COLORS[6]) . $html->br() . ((! $user->{UID} ) ? $html->button("$_SEARCH $_PAYMENTS", "index=$index&UID=$invoice->{uid}&UNINVOICED=$invoice->{id}",  { CLASS => 'search' }) : '');
         }
       }
       elsif($fname eq 'login') {
@@ -2363,7 +2363,7 @@ sub docs_invoice {
               . ((! $current_invoice{$line->[3]}) ? $html->form_input("IDS", "$line->[0]", { TYPE => 'checkbox', STATE => 1, OUTPUT2RETURN => 1 }) . "$num" : ''),
               "$line->[1]", 
               "$line->[2]", 
-              "$line->[3] $date". (($current_invoice{$line->[3]}) ? ' ' . $html->color_mark($_EXIST, 'red') : ''), 
+              "$line->[3] $date". (($current_invoice{$line->[3]}) ? ' ' . $html->color_mark($_EXIST, "$_COLORS[6]") : ''), 
               "$line->[4]"
             );
             $total_not_invoice += $line->[4];
@@ -2512,7 +2512,7 @@ sub docs_invoice {
                   ),
                   $users->{LOGIN},
                   $period_from,
-                  $order . (($current_invoice{$order}) ? ' ' . $html->color_mark($_EXIST, 'red') : ''),
+                  $order . (($current_invoice{$order}) ? ' ' . $html->color_mark($_EXIST, "$_COLORS[6]") : ''),
                   $result_sum
                 );
 
