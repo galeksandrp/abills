@@ -1,6 +1,7 @@
 #!/usr/bin/perl
 # Ureports sender
 #
+#
 
 use vars qw(%RAD %conf $db %AUTH $DATE $TIME $var_dir
 %ADMIN_REPORT

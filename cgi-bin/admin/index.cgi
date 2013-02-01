@@ -804,7 +804,7 @@ sub form_wizard {
       $FORM{next} = 1;
     }
 
-    print  "// $FORM{add} //";
+    #print  "// $FORM{add} //";
 
     $FORM{UID} = $LIST_PARAMS{UID} if (!$FORM{UID} && $LIST_PARAMS{UID});
 
