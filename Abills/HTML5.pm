@@ -809,10 +809,10 @@ sub menu () {
         $menu_text .= "<li class='inner_menu-item $active'>$prefix$link</li>\n";
       }
       elsif (defined($tree{$ID})) {
-        $menu_text .= "<li class='inner_menu-item'>$prefix$link</li>\n";
+        $menu_text .= "<li class='inner_sub_menu-item sub_level$level'>$prefix$link</li>\n";
       }
       else {
-        $menu_text .= "<li class='inner_sub_menu-item'>$prefix$link</li>\n";
+        $menu_text .= "<li class='inner_sub_menu-item sub_level$level'>$prefix$link</li>\n";
       }
     }
     else {
