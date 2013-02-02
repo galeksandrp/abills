@@ -718,7 +718,7 @@ sub paysys_payment {
 #**********************************************************
 sub paysys_log {
 
-  if ($Paysys::VERSION < 4.03) {
+  if ($Paysys::VERSION < 4.05) {
     $html->message('info', "UPDATE", "Please update module 'Paysys' to version 4.03 or higher. http://abills.net.ua/");
     return 0;
   }
@@ -807,7 +807,8 @@ sub paysys_log {
     $LIST_PARAMS{DESC} = DESC;
   }
 
-  my $list  = $Paysys->list({%LIST_PARAMS});
+  my $list  = $Paysys->list({ %LIST_PARAMS, COLS_NAME => 1  });
+
   my $table = $html->table(
     {
       width      => '100%',
@@ -822,18 +823,17 @@ sub paysys_log {
     }
   );
 
-  foreach my $line (@$list) {
-
+  foreach my $line (@$list) {      
     $table->addrow(
-      $line->[0], $html->button("$line->[1]", "index=15&UID=$line->[8]"),
-      "$line->[2]", 
-      "$line->[3]", 
-      "$PAY_SYSTEMS{$line->[4]}", 
-      $html->button("$line->[5]", "index=2&EXT_ID=$line->[5]&search=1"),
-      "$line->[6]",
-      "$line->[7]:$status[$line->[7]]",
-      $html->button($_INFO, "index=$index&info=$line->[0]", { CLASS => 'show' }),
-      ($user->{UID}) ? '-' : $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?", CLASS => 'del' })
+      $line->{id}, $html->button("$line->{login}", "index=15&UID=$line->{uid}"),
+      "$line->{datetime}", 
+      "$line->{sum}", 
+      "$PAY_SYSTEMS{$line->{system_id}}", 
+      $html->button("$line->{transaction_id}", "index=2&EXT_ID=$line->{transaction_id}&search=1"),
+      "$line->{ip}",
+      "$line->{status}:$status[$line->{status}]",
+      $html->button($_INFO, "index=$index&info=$line->{id}", { CLASS => 'show' }),
+      ($user->{UID}) ? '-' : $html->button($_DEL, "index=$index&del=$line->{id}", { MESSAGE => "$_DEL $line->{id}?", CLASS => 'del' })
     );
   }
   print $table->show();

@@ -104,6 +104,7 @@ $conf{debugmods}='LOG_ALERT LOG_WARNING LOG_ERR LOG_INFO';
 #show auth and accounting time need Time::HiRes module (available from CPAN)
 # Check script runnig time
 $conf{time_check}=1;
+$conf{RADIUS2}=1;
 
 #Firewall start rule numbers
 # (GLobal, Class 1, Class 2)

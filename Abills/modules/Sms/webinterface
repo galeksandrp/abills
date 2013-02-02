@@ -101,6 +101,10 @@ sub sms_send {
   	$html->message('err', $_ERROR, "ERR_WRONG_PHONE");
   }
 
+  if ($attr->{NUMBER} && $conf{SMS_NUMBER_EXPR}) {
+    $attr->{NUMBER} = number_expr($attr->{NUMBER});
+  }
+
   $Sms_service->send_sms(
     {
       NUMBERS => $attr->{NUMBERS},
@@ -220,6 +224,26 @@ sub sms_reports {
   );
   print $table->show();
 }
+
+#**********************************************************
+#
+#**********************************************************
+sub number_expr {
+  my ($number_origin) = @_;
+  my @num_expr = split(/;/, $conf{SMS_NUMBER_EXPR});
+
+  my $number = $number_origin;
+  for (my $i = 0 ; $i <= $#num_expr ; $i++) {
+    my ($left, $right) = split(/\//, $num_expr[$i]);
+    my $r = eval "\"$right\"";
+    if ($number =~ s/$left/$r/) {
+      return $number;
+    }
+  }
+
+  return $number;
+}
+
 
 1
 
