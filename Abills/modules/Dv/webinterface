@@ -204,10 +204,10 @@ sub dv_chg_tp {
   }
   else {
     my $tp_list = $tariffs->list({ 
-    	                    MODULE    => 'Dv', 
-    	                    DOMAIN_ID => $users->{DOMAIN_ID} || $admin->{DOMAIN_ID},
-    	                    COLS_NAME => 1
-    	                    });
+                          MODULE    => 'Dv', 
+                          DOMAIN_ID => $users->{DOMAIN_ID} || $admin->{DOMAIN_ID},
+                          COLS_NAME => 1
+                          });
 
     #Sheduler fot TP change
     if ($conf{DV_TP_MULTISHEDULE}) {
@@ -330,10 +330,10 @@ sub dv_users_list {
   );
 
   form_search({ SEARCH_FORM  => $html->tpl_show(_include('dv_users_search', 'Dv'), 
-  	  { %$Dv, %FORM }, 
-  	  { OUTPUT2RETURN => 1 }),
-  	  ADDRESS_FORM => 1 
-  	});
+      { %$Dv, %FORM }, 
+      { OUTPUT2RETURN => 1 }),
+      ADDRESS_FORM => 1 
+    });
 
   my $i            = 0;
   my $users_status = 0;
@@ -362,9 +362,9 @@ sub dv_users_list {
   my $list = $Dv->list({%LIST_PARAMS, COLS_NAME => 1 });
   my $TITLE = title_former({
      INPUT_DATA      => $Dv,
-  	 BASE_FIELDS     => 6,
-  	 FUNCTION_FIELDS => 'payments, stats',
-  	 EXT_TITLES      => {
+     BASE_FIELDS     => 6,
+     FUNCTION_FIELDS => 'payments, stats',
+     EXT_TITLES      => {
        'ip'          => 'IP',
        'netmask'     => 'NETMASK',
        'speed'       => $_SPEED,
@@ -858,7 +858,7 @@ print "!!!!!!";
   }
 
   if ($Dv->{STATUS} && $total_fee > $users->{DEPOSIT}) {
-  	my $sum=sprintf("%.2f", abs($total_fee - $users->{DEPOSIT})); 
+    my $sum=sprintf("%.2f", abs($total_fee - $users->{DEPOSIT})); 
     $Dv->{PAYMENT_MESSAGE} = "$_ACTIVATION_PAYMENT $sum " . $html->button("$_PAYMENTS", "UID=$FORM{UID}&index=2&SUM=$sum", {CLASS => 'payments rightAlignText'});
   }
 
@@ -1960,7 +1960,7 @@ sub dv_sessions {
   }
  
   if (! $user->{UID}) {
-  	push @caption, '-';
+    push @caption, '-';
   }
 
   my $table = $html->table(
@@ -1988,8 +1988,8 @@ sub dv_sessions {
         $_DEL,
         "index=". get_function_index('dv_stats') ."$pages_qs&del=$line->{uid}+$line->{acct_session_id}+$line->{nas_id}+$line->{start}+$line->{sum}+$line->{login}",
         { MESSAGE => "$_DEL $_SESSION $_SESSION_ID " . ($line->{acct_session_id}) . "?", 
-        	CLASS => 'del', 
-        	NO_LINK_FORMER => 1 
+          CLASS => 'del', 
+          NO_LINK_FORMER => 1 
         }
       );
     }
@@ -1998,7 +1998,7 @@ sub dv_sessions {
     #for (my $i = 1 ; $i <= $sessions->{SEARCH_FIELDS_COUNT} ; $i++) {
       #if ($line->{terminate_cause}) {
         push @rows, $ACCT_TERMINATE_CAUSES{ $line->{terminate_cause} } if ($FORM{SHOW_TERMINATE_CAUSE});
-      #        	print "print";
+      #          print "print";
       #}
       #elsif ($line->{bill_id}) {
         push @rows, $line->{bill_id} if ($FORM{BILL_ID});
@@ -2692,7 +2692,7 @@ sub dv_stats {
     }
   }
   elsif ($FORM{UID}) {
-  	$LIST_PARAMS{UID} = $FORM{UID};
+    $LIST_PARAMS{UID} = $FORM{UID};
   }
 
 
@@ -2738,7 +2738,7 @@ sub dv_stats {
         );
 
       foreach my $line (@$list) {
-      	if ($Dv->{JOIN_SERVICE} == 1) {
+        if ($Dv->{JOIN_SERVICE} == 1) {
           $Dv->{JOIN_SERVICES_USERS} .= $html->button("$line->{id}", "&index=$index&UID=$line->{uid}", { BUTTON => 1 }) . ' ';
         }
 
@@ -2892,7 +2892,7 @@ sub dv_stats {
     );
 
     foreach my $line (@$list) {
-    	my $traffic_rest = ($conf{DV_INTERVAL_PREPAID}) ? $sessions->{REST}->{ $line->{interval_id} }->{ $line->{traffic_class} }  :  $sessions->{REST}->{ $line->{traffic_class} };
+      my $traffic_rest = ($conf{DV_INTERVAL_PREPAID}) ? $sessions->{REST}->{ $line->{interval_id} }->{ $line->{traffic_class} }  :  $sessions->{REST}->{ $line->{traffic_class} };
 
       $table->addrow(
         $line->{traffic_class} . ':' . (($TRAFFIC_NAMES{ $line->{traffic_class} }) ? $TRAFFIC_NAMES{ $line->{traffic_class} } : ''). 
@@ -3220,7 +3220,7 @@ sub dv_user_stats {
     );
 
     foreach my $line (@$list) {
-    	my $traffic_rest = ($conf{DV_INTERVAL_PREPAID}) ? $sessions->{REST}->{ $line->{interval_id} }->{ $line->{traffic_class} }  :  $sessions->{REST}->{ $line->{traffic_class} };
+      my $traffic_rest = ($conf{DV_INTERVAL_PREPAID}) ? $sessions->{REST}->{ $line->{interval_id} }->{ $line->{traffic_class} }  :  $sessions->{REST}->{ $line->{traffic_class} };
 
       $table->addrow(
         $line->{traffic_class} . ':' . (($TRAFFIC_NAMES{ $line->{traffic_class} }) ? $TRAFFIC_NAMES{ $line->{traffic_class} } : ''). 
@@ -4380,7 +4380,7 @@ sub dv_user_info {
     );
 
     if (!$Dv->{errno}) {
-      $Dv->{ACCOUNT_ACTIVATE}=$user->{ACTIVATE};	
+      $Dv->{ACCOUNT_ACTIVATE}=$user->{ACTIVATE};  
       $html->message('info', $_INFO, "$_ACTIVATE CID: $Dv->{ISG_CID_CUR}") if ($Dv->{ISG_CID_CUR});
       dv_get_month_fee($Dv) if (!$Dv->{STATUS});
     }
@@ -4582,7 +4582,7 @@ sub dv_user_info {
       ($speed, $time, $price, $name, $bonus) = split(/:/, $line, 5);
       
       if ($bonus && ! $Dv->{FREE_TURBO_MODE} ) {
-      	next;
+        next;
       }
       
       push @turbo_mods_full, sprintf("$name\n $_SPEED: $speed\n $_TIME: %s\n $_PRICE: %.2f %s", sec2time($time, { format => 1 }), $price, (($bonus) ? "($_BONUS)" : ''));
@@ -4626,16 +4626,16 @@ sub dv_user_info {
         }
 
         if ($bonus) {
-        	 if ($Dv->{FREE_TURBO_MODE} < 1) {
-        	 	 $html->message('err', "$_ERROR", "$_BONUS Turbo $_EXPIRED");
-        	 	 return 0;
-        	 }
-        	 else {
-        	   $Dv->change({ 
-        	 	   UID             => $user->{UID},
-        	 	   FREE_TURBO_MODE => ($Dv->{FREE_TURBO_MODE}-1)
-        	   });
-        	 }
+           if ($Dv->{FREE_TURBO_MODE} < 1) {
+              $html->message('err', "$_ERROR", "$_BONUS Turbo $_EXPIRED");
+              return 0;
+           }
+           else {
+             $Dv->change({ 
+                UID             => $user->{UID},
+                FREE_TURBO_MODE => ($Dv->{FREE_TURBO_MODE}-1)
+             });
+           }
          }
 
         if ($conf{DV_TURBO_CMD}) {
@@ -4668,8 +4668,8 @@ sub dv_user_info {
   
   if($conf{DV_ALERT_REDIRECT_FILTER} eq $Dv->{FILTER_ID}) {
     $Dv->change({ UID => $user->{UID},
-    	            FILTER_ID => ''
-    	         });
+                  FILTER_ID => ''
+               });
   }
 
   
@@ -4865,14 +4865,13 @@ sub dv_daily_fees {
 
   my %USERS_LIST_PARAMS         = ();
   $USERS_LIST_PARAMS{LOGIN}     = $attr->{LOGIN} if ($attr->{LOGIN});
-  $USERS_LIST_PARAMS{DOMAIN_ID} = $DOMAIN_ID;
 
   #$USERS_LIST_PARAMS{ACTIVE_DAY_FEE} = 1;
   $tariffs->{debug} = 1 if ($debug > 6);
-
   my $list = $tariffs->list({%LIST_PARAMS, 
-  	                         COLS_NAME => 1, 
-  	                         COLS_UPPER => 1 });
+                             COLS_NAME  => 1, 
+                             COLS_UPPER => 1 });
+
   $ADMIN_REPORT{DATE} = $DATE if (!$ADMIN_REPORT{DATE});
   my %FEES_METHODS = %{ get_fees_types({ SHORT => 1 }) };
 
@@ -4880,6 +4879,7 @@ sub dv_daily_fees {
     if ($TP_INFO->{DAY_FEE} > 0) {
       $debug_output .= "TP ID: $TP_INFO->{ID} DF: $TP_INFO->{DAY_FEE} POSTPAID: $TP_INFO->{POSTPAID_DAILY_FEE} REDUCTION: $TP_INFO->{REDUCTION_FEE} EXT_BILL: $TP_INFO->{EXT_BILL_ACCOUNT} CREDIT: $TP_INFO->{CREDIT}\n" if ($debug > 1);
 
+      $USERS_LIST_PARAMS{DOMAIN_ID} = $TP_INFO->{DOMAIN_ID};
       #Get active yesterdays logins
       my %active_logins = ();
       if ($TP_INFO->{ACTIVE_DAY_FEE} > 0) {
@@ -5312,11 +5312,12 @@ sub dv_monthly_fees {
   my %FEES_METHODS = %{ get_fees_types({ SHORT => 1 }) };
 
   my $users = Users->new($db, $admin, \%conf);
+  $tariffs->{debug} = 1 if ($debug > 6);
   my $list = $tariffs->list({%LIST_PARAMS,
-  	                         DOMAIN_ID => '>=0', 
-  	                         COLS_NAME => 1,
-  	                         COLS_UPPER=> 1
-  	                       });
+                             DOMAIN_ID => '_SHOW', 
+                             COLS_NAME => 1,
+                             COLS_UPPER=> 1
+                           });
 
   my ($y, $m, $d)      = split(/-/, $ADMIN_REPORT{DATE}, 3);
   my $days_in_month    = ($m != 2 ? (($m % 2) ^ ($m > 7)) + 30 : (!($y % 400) || !($y % 4) && ($y % 25) ? 29 : 28));
@@ -5585,10 +5586,10 @@ sub dv_monthly_fees {
               #*******************************************
               #Unblock Small deposit status
               if ($TP_INFO->{SMALL_DEPOSIT_ACTION} && $month_fee < $user{DEPOSIT}) {
-        	      if ($user{DV_STATUS} && $conf{DV_FULL_MONTH} && $month_fee * $days_in_month > $user{DEPOSIT}) {
+                if ($user{DV_STATUS} && $conf{DV_FULL_MONTH} && $month_fee * $days_in_month > $user{DEPOSIT}) {
                   next;
                 }
-              	
+                
                 $Dv->change(
                   {
                     UID    => $user{UID},
@@ -5636,8 +5637,8 @@ sub dv_monthly_fees {
                   #Change activation to cure date
                   # !!! We need change activation only if payments add
                   #                 $users->change($user{UID}, {
-                  #        	                      UID      => $user{UID},
-                  #        	                      ACTIVATE => $ADMIN_REPORT{DATE} });
+                  #                                UID      => $user{UID},
+                  #                                ACTIVATE => $ADMIN_REPORT{DATE} });
 
                   $debug_output .= " SMALL_DEPOSIT_BLOCK." if ($debug > 3);
                   next;
@@ -5837,17 +5838,17 @@ sub dv_monthly_fees {
           #Summary for company users
           #         my @UIDS  = ();
           #         if ($$processed_users{$user{COMPANY_ID}}) {
-          #         	 next;
+          #            next;
           #          }
           #
           #         if ($user{COMPANY_ID}) {
           #           my $company_users = $ulist = $Dv->list({ TP_ID      => $tp_line->[0],
           #                                                    COMPANY_ID => $user{COMPANY_ID}
-          #         	                                        });
+          #                                                   });
           #           $$processed_users{$user{COMPANY_ID}}=1;
           #
           #           foreach my $c_user ( @$company_users ) {
-          #         	    push @UIDS, $c_user->[7];
+          #               push @UIDS, $c_user->[7];
           #            }
           #
           #           print "$user{LOGIN} hello $user{COMPANY_ID} // ";
@@ -5923,27 +5924,27 @@ sub dv_users_warning_messages {
   $LIST_PARAMS{LOGIN} = $attr->{LOGIN} if ($attr->{LOGIN});
   $Dv->{debug}=1 if($debug > 5);
   my $dv_list         = $Dv->list({ %LIST_PARAMS, 
-  	                                COLS_NAME  => 1,
-  	                                COLS_UPPER => 1 });
+                                    COLS_NAME  => 1,
+                                    COLS_UPPER => 1 });
 
 
   if ($Dv->{TOTAL} < 1) {
-  	$DEBUG .= $debug_output;
+    $DEBUG .= $debug_output;
     return $debug_output;
   }
 
   my @allert_redirect_days = split(/,\s?/, $conf{DV_ALERT_REDIRECT} || '');
   
   foreach my $u (@$dv_list) {
-  	my $type='email';
+    my $type='email';
     my $email = ((!defined($u->{EMAIL})) || $u->{EMAIL} eq '') ? (($conf{USERS_MAIL_DOMAIN}) ? "$u->{LOGIN}\@$conf{USERS_MAIL_DOMAIN}" : '') : "$u->{EMAIL}";
     if ($email eq '') { next; }
 
     if($conf{DV_ALERT_REDIRECT_FILTER} && in_array($u->{to_next_period}, \@allert_redirect_days)) {
-    	$type='redirect';
-    	$Dv->change({ UID       => $u->{uid},
-    		            FILTER_ID => $conf{DV_ALERT_REDIRECT_FILTER}
-    		          });
+      $type='redirect';
+      $Dv->change({ UID       => $u->{uid},
+                    FILTER_ID => $conf{DV_ALERT_REDIRECT_FILTER}
+                  });
     }
 
     my $info = sprintf("%-14s| %4d|%-20s| %9.4f| %8.2f| %6s|\n", $u->{login}, 
@@ -6759,7 +6760,7 @@ sub dv_wizard_user {
     my $Mail = Mail->new($db, $admin, \%conf);
 
     $Mail->{PASSWORD} = qq{  
-	<tr><td>$_PASSWD:</td><td><input type="password" id="text_pma_pw_mail" name="newpassword" title="$_PASSWD" onchange="pred_password.value = 'userdefined';" /></td></tr>
+  <tr><td>$_PASSWD:</td><td><input type="password" id="text_pma_pw_mail" name="newpassword" title="$_PASSWD" onchange="pred_password.value = 'userdefined';" /></td></tr>
   <tr><td>$_CONFIRM_PASSWD:</td><td><input type="password" name="confirm" id="text_pma_pw2_mail" title="$_CONFIRM" onchange="pred_password.value = 'userdefined';" /></td></tr>
   <tr><td>  <input type="button" id="button_generate_password_mail" value="$_GET $_USER $_PASSWD" onclick="CopyInputField('text_pma_pw', 'generated_pw_mail');" />
           <input type="button" id="button_copy_password_mail" value="Copy" onclick="CopyInputField('generated_pw_mail', 'text_pma_pw_mail'); CopyInputField('generated_pw_mail', 'text_pma_pw2_mail')" />
@@ -7036,7 +7037,7 @@ sub dv_get_month_fee {
 
   #Get month fee
   if ($Dv->{TP_INFO}->{MONTH_FEE} > 0) {
-  	
+    
     my $sum   = $Dv->{TP_INFO}->{MONTH_FEE};
     my $users = Users->new($db, $admin, \%conf);
     my $user  = $users->info($Dv->{UID});
@@ -7115,7 +7116,7 @@ sub dv_get_month_fee {
 
     if ($Dv->{ACCOUNT_ACTIVATE} ne '0000-00-00' && ($Dv->{OLD_STATUS} == 5)) {
       if ($conf{DV_CURDATE_ACTIVATE}) {
-        $periods = 0;      	
+        $periods = 0;        
       }
       #if activation in cure month curmonth
       elsif ($periods == 0 || ($periods == 1 && $d < $active_d)) {
@@ -7125,7 +7126,7 @@ sub dv_get_month_fee {
         $periods -= 1;
       }
     }
-	  
+    
     $m = $active_m if ($active_m > 0);
 
     for (my $i = 0 ; $i <= $periods ; $i++) {
@@ -7486,7 +7487,7 @@ sub dv_compensation () {
     }
 
     if ($users->{REDUCTION}) {
-      $sum = $sum - (($sum / 100) *	$users->{REDUCTION});
+      $sum = $sum - (($sum / 100) *  $users->{REDUCTION});
     }
 
     $table->{color} = $_COLORS[3];
@@ -7726,7 +7727,7 @@ sub dv_payments_maked {
   $Dv->info($attr->{USER_INFO}->{UID});
   
   if ($Dv->{TOTAL} < 1) {
-  	return 0;
+    return 0;
   }
 
   my $deposit = $attr->{USER_INFO}->{DEPOSIT} + (($attr->{USER_INFO}->{CREDIT} > 0) ? $attr->{USER_INFO}->{CREDIT} : ( (!$conf{user_credit_change}) ? $Dv->{TP_CREDIT} : 0 ) ) + (( $attr->{SUM})? $attr->{SUM} : 0 );
@@ -7734,7 +7735,7 @@ sub dv_payments_maked {
   my $abon_fees = ($attr->{USER_INFO}->{REDUCTION}==0) ? $Dv->{MONTH_ABON} + $Dv->{DAY_ABON} : ($Dv->{MONTH_ABON} + $Dv->{DAY_ABON}) * (100 - $attr->{USER_INFO}->{REDUCTION}) / 100;
 
   if($conf{DV_FULL_MONTH}) {
-  	$abon_fees = ($attr->{USER_INFO}->{REDUCTION}==0) ? $Dv->{MONTH_ABON} + $Dv->{DAY_ABON}*30 : ($Dv->{MONTH_ABON} + $Dv->{DAY_ABON}*30) * (100 - $attr->{USER_INFO}->{REDUCTION}) / 100;
+    $abon_fees = ($attr->{USER_INFO}->{REDUCTION}==0) ? $Dv->{MONTH_ABON} + $Dv->{DAY_ABON}*30 : ($Dv->{MONTH_ABON} + $Dv->{DAY_ABON}*30) * (100 - $attr->{USER_INFO}->{REDUCTION}) / 100;
   }
 
   if ($Dv->{STATUS} > 3 && ($deposit > $abon_fees || (! $conf{DV_FULL_MONTH} && $Dv->{ABON_DISTRIBUTION}) )) {
@@ -7822,7 +7823,7 @@ sub dv_docs {
   $Dv->info($uid);
   
   if ($Dv->{TOTAL}==0 || ! $Dv->{DAY_ABON} || $Dv->{STATUS}) {
-  	return \@services;
+    return \@services;
   }
   
   if ($Dv->{MONTH_ABON} > 0) {
@@ -7833,7 +7834,7 @@ sub dv_docs {
               FEES_PERIOD_DAY => $_MONTH_FEE_SHORT,
               FEES_METHOD=>$FEES_METHODS{$Dv->{FEES_METHOD}},
             );
-  	
+    
     push @services, dv_fees_dsc_former(\%FEES_DSC)."||$Dv->{MONTH_ABON}"; 
   }
 
@@ -7861,10 +7862,10 @@ sub dv_docs {
 #
 #**********************************************************
 sub dv_report_debetors {
-	my ($attr)=@_;
-	
-	my $list = $Dv->report_debetors({ %LIST_PARAMS });
-	
+  my ($attr)=@_;
+  
+  my $list = $Dv->report_debetors({ %LIST_PARAMS });
+  
 my $table = $html->table(
   {
     caption     => "$_DEBETORS",
@@ -7886,7 +7887,7 @@ foreach my $line (@$list) {
    $line->[5],
    $html->color_mark($service_status[$line->[6]], $service_status_colors[$line->[6]]));
 }
-	
+  
 print $table->show();
 
 
@@ -7905,10 +7906,10 @@ print $table->show();
 #
 #**********************************************************
 sub dv_report_tp {
-	my ($attr)=@_;
-	
-	my $list = $Dv->report_tp({ %LIST_PARAMS, COLS_NAME => 1 });
-	
+  my ($attr)=@_;
+  
+  my $list = $Dv->report_tp({ %LIST_PARAMS, COLS_NAME => 1 });
+  
 my $table = $html->table(
   {
     caption     => "$_TARIF_PLANS",
@@ -7937,8 +7938,8 @@ foreach my $line (@$list) {
   $total_disabled += $line->{disabled}; 
   $total_debetors += $line->{debetors};
 }
-	
-	 $table->addrow(
+  
+   $table->addrow(
     '', 
     $_TOTAL, 
     $total_users, 
@@ -7946,7 +7947,7 @@ foreach my $line (@$list) {
     $total_disabled, 
     $total_debetors
   );
-	
+  
 print $table->show();
 }
 
@@ -7954,21 +7955,21 @@ print $table->show();
 #
 #**********************************************************
 sub dv_fees_dsc_former () {
-	my ($attr)=@_;
+  my ($attr)=@_;
 
-	$conf{DV_FEES_DSC}='Internet: %FEES_PERIOD_MONTH%%FEES_PERIOD_DAY% %TP_NAME% (%TP_ID%) %PERIOD%' if (! $conf{DV_FEES_DSC});
+  $conf{DV_FEES_DSC}='Internet: %FEES_PERIOD_MONTH%%FEES_PERIOD_DAY% %TP_NAME% (%TP_ID%) %PERIOD%' if (! $conf{DV_FEES_DSC});
 
-	my $text = $conf{DV_FEES_DSC};
+  my $text = $conf{DV_FEES_DSC};
 
   while ($text =~ /\%(\w+)\%/g) {
     my $var       = $1;
     if(! defined($attr->{$var})) {
-    	$attr->{$var}='';
+      $attr->{$var}='';
     }
     $text =~ s/\%$var\%/$attr->{$var}/g;
-	}
-	
-	return $text;
+  }
+  
+  return $text;
 }
 
 1

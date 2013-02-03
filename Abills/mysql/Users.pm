@@ -75,10 +75,16 @@ sub info {
     $WHERE = "WHERE u.uid='$uid'";
   }
 
+  if ($attr->{DOMAIN_ID}) {
+    $WHERE = "AND u.domain_id='$attr->{DOMAIN_ID}'";
+  }
+
   my $password = "''";
   if ($attr->{SHOW_PASSWORD}) {
     $password = "DECODE(u.password, '$CONF->{secretkey}') AS password";
   }
+
+
 
   $self->query(
     $db, "SELECT u.uid,

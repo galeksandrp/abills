@@ -127,10 +127,10 @@ sub take {
     }
     elsif ($CONF->{FEES_PRIORITY} =~ /^main,bonus/) {
       if (! $user->{EXT_BILL_ID} || ! defined($self->{EXT_BILL_DEPOSIT})) {
-      	my $uid = $user->{UID}; 
-      	my $fn  = 'user::info';
+        my $uid = $user->{UID}; 
+        my $fn  = 'user::info';
         if (! defined( &$fn )) {
-     	    $user = Users->new($db, $admin, $CONF);
+           $user = Users->new($db, $admin, $CONF);
         }
         $user->info($uid);
       }
@@ -254,11 +254,11 @@ sub list {
 
   my @list = ();
   @WHERE_RULES = @{ $self->search_expr_users({ %$attr, 
-  	                         EXT_FIELDS => [
-  	                                        'PHONE',
-  	                                        'EMAIL',
-  	                                        'ADDRESS_FLAT',
-  	                                        'PASPORT_DATE',
+                             EXT_FIELDS => [
+                                            'PHONE',
+                                            'EMAIL',
+                                            'ADDRESS_FLAT',
+                                            'PASPORT_DATE',
                                             'PASPORT_NUM', 
                                             'PASPORT_GRANT',
                                             'CITY', 
@@ -280,7 +280,7 @@ sub list {
                                             'ACTIVATE',
                                             'EXPIRE',
 
-  	                                         ] }) };
+                                             ] }) };
 
   if ($attr->{UID}) {
     push @WHERE_RULES, @{ $self->search_expr($attr->{UID}, 'INT', 'f.uid') };
@@ -454,17 +454,26 @@ sub reports {
     push @WHERE_RULES, "f.method IN ($attr->{METHODS}) ";
   }
 
+  if ($admin->{DOMAIN_ID}) {
+    push @WHERE_RULES, @{ $self->search_expr("$admin->{DOMAIN_ID}", 'INT', 'u.domain_id', { EXT_FIELD => 0 }) };
+    $EXT_TABLES .= " INNER JOIN users u ON (u.uid=f.uid)";
+  }
+  else {
+    $EXT_TABLES .= " LEFT JOIN users u ON (u.uid=f.uid)";
+  }
+
   my $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES) : '';
 
   $self->query(
     $db, "SELECT $date, count(DISTINCT f.uid), count(*),  sum(f.sum), f.uid, u.company_id 
       FROM fees f
-      LEFT JOIN users u ON (u.uid=f.uid)
       LEFT JOIN admins a ON (f.aid=a.aid)
       $EXT_TABLES
       $WHERE 
       GROUP BY $GROUP
-      ORDER BY $SORT $DESC;"
+      ORDER BY $SORT $DESC;",
+    undef,
+    $attr
   );
 
   my $list = $self->{list};
@@ -475,7 +484,7 @@ sub reports {
     $self->query(
       $db, "SELECT count(DISTINCT f.uid), count(*), sum(f.sum) 
       FROM fees f
-      LEFT JOIN users u ON (u.uid=f.uid)
+      $EXT_TABLES
       $WHERE;"
     );
 

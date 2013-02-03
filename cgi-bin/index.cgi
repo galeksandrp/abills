@@ -728,7 +728,6 @@ sub auth {
     if ($conf{check_access}) {
       $res = auth_radius("$login", "$password");
     }
-
     #check password direct from SQL
     else {
       $res = auth_sql("$login", "$password") if ($res < 1);
@@ -737,7 +736,9 @@ sub auth {
 
   #Get user ip
   if (defined($res) && $res > 0) {
-    $user->info(0, { LOGIN => "$login" });
+    $user->info($user->{UID} || 0, {  LOGIN     => ($user->{UID}) ? undef : "$login", 
+    	                                DOMAIN_ID => $FORM{DOMAIN_ID} 
+    	                              });
 
     if ($user->{TOTAL} > 0) {
       $sid                 = mk_unique_value(16);
@@ -786,12 +787,12 @@ sub auth_sql {
     0,
     {
       LOGIN    => "$login",
-      PASSWORD => "$password"
+      PASSWORD => "$password",
+      DOMAIN_ID=> $FORM{DOMAIN_ID}
     }
   );
 
   if ($user->{TOTAL} < 1) {
-
     #$html->message('err', $_ERROR, "$_NOT_FOUND");
   }
   elsif ($user->{errno}) {

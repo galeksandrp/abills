@@ -574,7 +574,6 @@ sub list {
     $self->{SEARCH_FIELDS_COUNT}++;
   }
 
-
   my $EXT_TABLE = $self->{EXT_TABLES};
 
   if ($attr->{EXT_BILL}) {

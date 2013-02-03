@@ -219,20 +219,20 @@ sub network_info {
     $db, "SELECT
    id,
    name,
-   INET_NTOA(network),
-   INET_NTOA(mask),
-   INET_NTOA(routers),
-   INET_NTOA(block_network),
-   INET_NTOA(block_mask),
-   suffix,
+   INET_NTOA(network) AS network,
+   INET_NTOA(mask) AS mask,
+   INET_NTOA(routers) AS ROUTERS,
+   INET_NTOA(block_network) AS blocK_network,
+   INET_NTOA(block_mask) AS block_mask,
+   suffix AS domainname,
    dns,
    dns2,
    ntp,
    coordinator,
    phone,
    disable,
-   INET_NTOA(ip_range_first),
-   INET_NTOA(ip_range_last),
+   INET_NTOA(ip_range_first) AS ip_range_forst,
+   INET_NTOA(ip_range_last) AS ip_range_last,
    static,
    comments,
    deny_unknown_clients,
@@ -241,7 +241,9 @@ sub network_info {
    guest_vlan
   FROM dhcphosts_networks
 
-  WHERE id='$id';"
+  WHERE id='$id';",
+  undef,
+  { INFO => 1 }
   );
 
   if ($self->{TOTAL} < 1) {
@@ -249,12 +251,6 @@ sub network_info {
     $self->{errstr} = 'ERROR_NOT_EXIST';
     return $self;
   }
-
-  (
-    $self->{ID},     $self->{NAME},     $self->{NETWORK},              $self->{MASK},          $self->{ROUTERS},    $self->{BLOCK_NETWORK}, $self->{BLOCK_MASK},     $self->{DOMAINNAME},
-    $self->{DNS},    $self->{DNS2},     $self->{NTP},                  $self->{COORDINATOR},   $self->{PHONE},      $self->{DISABLE},       $self->{IP_RANGE_FIRST}, $self->{IP_RANGE_LAST},
-    $self->{STATIC}, $self->{COMMENTS}, $self->{DENY_UNKNOWN_CLIENTS}, $self->{AUTHORITATIVE}, $self->{NET_PARENT}, $self->{GUEST_VLAN}
-  ) = @{ $self->{list}->[0] };
 
   return $self;
 }
@@ -363,7 +359,7 @@ sub host_add {
       );", 'do'
   );
 
-  $admin->action_add($DATA{UID}, "ADD $DATA{IP}/$DATA{MAC} NAS: $DATA{NAS_ID}/$DATA{PORTS}");
+  $admin->action_add($DATA{UID}, "$DATA{IP}/$DATA{MAC} NAS: $DATA{NAS_ID}/$DATA{PORTS}", {  TYPE => 1 });
 
   return $self;
 }
@@ -466,7 +462,6 @@ sub host_info {
     $self->{errstr} = 'ERROR_NOT_EXIST';
     return $self;
   }
-
 
   return $self;
 }

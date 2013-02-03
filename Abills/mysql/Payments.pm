@@ -211,7 +211,7 @@ sub list {
   $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
 
   @WHERE_RULES = @{ $self->search_expr_users({ %$attr, 
-  	                         EXT_FIELDS => [
+                             EXT_FIELDS => [
                                   'PHONE',
                                   'EMAIL',
                                   'ADDRESS_FLAT',
@@ -237,7 +237,7 @@ sub list {
                                   'ACTIVATE',
                                   'EXPIRE',
                                   'UID:skip'
-  	                             ] }) };
+                                 ] }) };
 
   if ($attr->{UID}) {
     push @WHERE_RULES, "p.uid='$attr->{UID}' ";
@@ -458,12 +458,19 @@ sub reports {
     $date = 'u.id AS login';
   }
 
+  if ($admin->{DOMAIN_ID}) {
+    push @WHERE_RULES, @{ $self->search_expr("$admin->{DOMAIN_ID}", 'INT', 'u.domain_id', { EXT_FIELD => 0 }) };
+    $EXT_TABLES .= " INNER JOIN users u ON (u.uid=p.uid)";
+  }
+  else {
+    $EXT_TABLES .= " LEFT JOIN users u ON (u.uid=p.uid)";
+  }
+
   my $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES) : '';
 
   $self->query(
     $db, "SELECT $date, count(DISTINCT p.uid) AS login_count, count(*) AS count, sum(p.sum) AS sum, p.uid 
-      FROM (payments p)
-      LEFT JOIN users u ON (u.uid=p.uid)
+      FROM payments p
       LEFT JOIN admins a ON (a.aid=p.aid)
       $EXT_TABLES
       $WHERE 
@@ -479,7 +486,6 @@ sub reports {
     $self->query(
       $db, "SELECT count(DISTINCT p.uid), count(*), sum(p.sum) 
       FROM payments p
-      LEFT JOIN users u ON (u.uid=p.uid)
       LEFT JOIN admins a ON (a.aid=p.aid)
       $EXT_TABLES
       $WHERE;"

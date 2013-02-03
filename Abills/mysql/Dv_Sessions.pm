@@ -136,8 +136,8 @@ sub online_count {
   if ($self->{TOTAL} > 0) {
     $self->query(
       $db, "SELECT 1, count(c.uid) AS total_users,  
- 	   sum(if (c.status=1 or c.status>=3, 1, 0)) AS online,
- 	   sum(if (c.status=2, 1, 0)) AS zaped
+      sum(if (c.status=1 or c.status>=3, 1, 0)) AS online,
+      sum(if (c.status=2, 1, 0)) AS zaped
    FROM dv_calls c 
    $EXT_TABLE
    WHERE c.status<11 $WHERE
@@ -303,7 +303,7 @@ sub online {
       $fields .= "$FIELDS_NAMES_HASH{$field},\n ";
       
       if (! $field) {
-      	print "dv_calls/online: Wrong field name\n";
+        print "dv_calls/online: Wrong field name\n";
       }
       elsif ($field =~ /TP_BILLS_PRIORITY|TP_NAME|FILTER_ID|TP_CREDIT|PAYMENT_METHOD/ && $EXT_TABLE !~ /tarif_plans/) {
         $EXT_TABLE .= "LEFT JOIN tarif_plans tp ON (tp.id=dv.tp_id AND tp.module='Dv')";
@@ -361,7 +361,7 @@ sub online {
   }
 
   if ($attr->{LOGIN}) {
-  	$attr->{USER_NAME}=$attr->{LOGIN};
+    $attr->{USER_NAME}=$attr->{LOGIN};
   }
 
   if (defined($attr->{USER_NAME})) {
@@ -398,11 +398,11 @@ sub online {
   }
 
   if ($attr->{TP_ID}) {
-  	push @WHERE_RULES, @{ $self->search_expr($attr->{TP_ID}, 'INT', 'dv.tp_id') };
+    push @WHERE_RULES, @{ $self->search_expr($attr->{TP_ID}, 'INT', 'dv.tp_id') };
   }
 
   if ($attr->{IP}) {
-  	push @WHERE_RULES, @{ $self->search_expr($attr->{IP}, 'IP', 'c.framed_ip_address') };
+    push @WHERE_RULES, @{ $self->search_expr($attr->{IP}, 'IP', 'c.framed_ip_address') };
   }
 
 
@@ -420,8 +420,8 @@ sub online {
       push @WHERE_RULES, @{ $self->search_expr($attr->{FILTER}, 'INT', "b.deposit") };
     }
     #elsif ($attr->{FILTER_FIELD} == 11){
-    #	 $filter_field = "CONCAT(dv.tp_id, tp.name)";
-    #	 $EXT_TABLE .= "LEFT JOIN tarif_plans tp ON (tp.id=dv.tp_id AND tp.module='Dv')"
+    #   $filter_field = "CONCAT(dv.tp_id, tp.name)";
+    #   $EXT_TABLE .= "LEFT JOIN tarif_plans tp ON (tp.id=dv.tp_id AND tp.module='Dv')"
     # }
     elsif ($attr->{FILTER_FIELD} == 16 && $CONF->{ADDRESS_REGISTER}) {
       if ($EXT_TABLE !~ /builds/) {
@@ -966,9 +966,9 @@ WHERE
   }
 
   if ($CONF->{DV_INTERVAL_PREPAID}) {
-  	$self->query($db, "SELECT li.traffic_type, SUM($octets_direction_interval) / $CONF->{MB_SIZE}, li.interval_id  FROM dv_log l, dv_log_intervals li
-  	   WHERE $uid AND ($WHERE) AND l.acct_session_id=li.acct_session_id
-  	GROUP BY interval_id, li.traffic_type");
+    $self->query($db, "SELECT li.traffic_type, SUM($octets_direction_interval) / $CONF->{MB_SIZE}, li.interval_id  FROM dv_log l, dv_log_intervals li
+       WHERE $uid AND ($WHERE) AND l.acct_session_id=li.acct_session_id
+    GROUP BY interval_id, li.traffic_type");
   }
   else {
     #Get using traffic
@@ -997,7 +997,7 @@ WHERE
 
     foreach my $line (@{ $self->{list} }) {
       if ($CONF->{DV_INTERVAL_PREPAID}) {
-	      $rest_intervals{$line->[2]}{$line->[0]} = $rest_intervals{$line->[2]}{$line->[0]} - $line->[1];
+        $rest_intervals{$line->[2]}{$line->[0]} = $rest_intervals{$line->[2]}{$line->[0]} - $line->[1];
       }
       else {
         $class1 = ((($class1 > 0) ? $class1 : 0) + $prepaid_traffic{0}) - $line->[0];
@@ -1033,7 +1033,7 @@ WHERE
     $self->{REST} = \%rest;
   }
   else {
-  	$self->{REST} = \%rest_intervals;
+    $self->{REST} = \%rest_intervals;
   }
   
 
@@ -1383,6 +1383,14 @@ sub reports {
     push @WHERE_RULES, "u.gid='$attr->{GID}'";
   }
 
+  if ($admin->{DOMAIN_ID}) {
+    push @WHERE_RULES, @{ $self->search_expr("$admin->{DOMAIN_ID}", 'INT', 'u.domain_id', { EXT_FIELD => 0 }) };
+    #$EXT_TABLES .= " INNER JOIN users u ON (u.uid=f.uid)";
+  }
+  else {
+    #$EXT_TABLES .= " LEFT JOIN users u ON (u.uid=f.uid)";
+  }
+
   my $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES) : '';
 
   $self->{REPORT_FIELDS}{DATE} = $date;
@@ -1431,7 +1439,7 @@ sub reports {
     if (defined($attr->{HOURS})) {
       $self->query(
         $db, "select date_format(l.start, '%Y-%m-%d %H')start, '%Y-%m-%d %H')start, '%Y-%m-%d %H'), 
-   	count(DISTINCT l.uid), count(l.uid), 
+     count(DISTINCT l.uid), count(l.uid), 
     sum(l.sent + 4294967296 * acct_output_gigawords + l.recv + 4294967296 * acct_input_gigawords), 
      sum(l.sent2 + l.recv2), sec_to_time(sum(l.duration)), sum(l.sum), l.uid $ext_fields
       FROM dv_log l
