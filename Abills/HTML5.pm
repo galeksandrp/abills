@@ -677,14 +677,24 @@ sub dirname {
 # setCookie($name, $value, $expiration, $path, $domain, $secure);
 #*******************************************************************
 sub setCookie {
-
-  # end a set-cookie header with the word secure and the cookie will only
-  # be sent through secure connections
   my $self = shift;
   my ($name, $value, $expiration, $path, $domain, $secure) = @_;
 
-  print "Set-Cookie: ";
-  print $name, "=$value; expires=\"", $expiration, "\"; path=$path; domain=", $domain, "; ", $secure, "\n";
+  $expiration = gmtime(time() + (($CONF->{web_session_timeout}) ? $CONF->{web_session_timeout} : 86000 )) . " GMT" if (! $expiration); 
+  $value='' if (! $value);
+
+  my $cookie = "Set-Cookie: $name=$value; expires=\"$expiration\"; ";
+
+  if ($path ne ""){
+    $cookie .= " path=$path; ";
+  }
+  if ($domain ne ""){
+    $cookie .= " domain=$domain; ";
+  } 
+
+  $cookie .= " $secure\n";
+
+  print $cookie;
 }
 
 #********************************************************************
