@@ -2585,14 +2585,11 @@ sub check_speed_mikrotik {
     $NAS{NAS_MNG_IP_PORT}  = $nas_row->[9];
     $NAS{NAS_MNG_USER}     = $nas_row->[10];
     $NAS{NAS_MNG_PASSWORD} = $nas_row->[11];
-
+    my $nas_port           = 22;
     my ($nas_host, $nas_port_coa) = split(/:/, $NAS{NAS_MNG_IP_PORT});
 
     if ($ARGV->{SSH_PORT}) {
     	$nas_port     = int($ARGV->{SSH_PORT});
-    }
-    elsif (! $nas_port) {
-      $nas_port     = 22 
     }
 
     my $nas_admin = $NAS{NAS_MNG_USER}    || 'admin';
