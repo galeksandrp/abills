@@ -179,7 +179,6 @@ if [ x${ACTION} = xstart ]; then
 
     echo "Shaper UP ${INTERFACE}"
   done
-
 elif [ x${ACTION} = xstop ]; then
   for INTERFACE in ${IPN_INTERFACES}; do
     TCQA="${TC} qdisc add dev ${INTERFACE}"
@@ -190,7 +189,15 @@ elif [ x${ACTION} = xstop ]; then
 
     echo "Shaper DOWN ${INTERFACE}"
   done
+elif [ x${ACTION} = xstatus ]; then
+  for INTERFACE in ${IPN_INTERFACES}; do
+    echo "Internal: ${INTERFACE}"
+    ${TC} class show dev ${INTERFACE}
+    ${TC} qdisc show dev ${INTERFACE}
+  done
 fi;
+
+
 }
 
 #**********************************************************
@@ -246,7 +253,6 @@ fi;
 abills_ipn() {
 
 if [ x${abills_ipn_nas_id} = x ]; then
-  #echo "unknown ABillS IPN NAS id"
   return 0;
 fi;
 
@@ -257,9 +263,6 @@ fi;
 
 }
 
-#**********************************************************
-#
-#**********************************************************
 
 #**********************************************************
 # Start custom shapper rules
@@ -276,19 +279,35 @@ abills_nat() {
   fi;
 
   echo "ABillS NAT ${ACTION}"
+  
+  if [ x${ACTION} = xstatus ]; then
+    ${IPT} -t nat -L
+    return 0;
+  fi;
+  
   # NAT External IP
   NAT_IPS=`echo ${abills_nat} | awk -F: '{ print $1 }'`;
   # Fake net
   FAKE_NET=`echo ${abills_nat} | awk -F: '{ print $2 }' | sed 's/,/ /g'`;
   #NAT IF
   NAT_IF=`echo ${abills_nat} | awk -F: '{ print $3 }'`;
-  echo  "$NAT_IPS $FAKE_NET $NAT_IF"
-
-  if [ w${ACTION} = wstart ]; then 
-    echo "Enable NAT"
-  elif [ x${ACTION} = xstop ]; then 
-    echo "Disable NAT" 
+  echo  "NAT: $NAT_IPS | $FAKE_NET $NAT_IF"
+  if [ x${NAT_IPS} = x ]; then
+    NAT_IPS=all
   fi;
+  # nat configuration
+  
+  for IP in ${NAT_IPS}; do
+
+    if [ w${ACTION} = wstart ]; then 
+      ${IPT} -t nat -A POSTROUTING -o ${NAT_IF} -j MASQUERADE
+      echo "Enable NAT"
+    elif [ x${ACTION} = xstop ]; then 
+      ${IPT} -t nat -D POSTROUTING -o ${NAT_IF} -j MASQUERADE
+      echo "Disable NAT" 
+    fi;
+  done;
+
 }
 
 
@@ -297,11 +316,30 @@ abills_nat() {
 #**********************************************************
 neg_deposit() {
   
-  if [ x${abills_neg_deposit} = x ]; then
+  if [ x"${abills_neg_deposit}" = x ]; then
     return 0;
   fi;
 
-  echo "NEG_DEPOSIT in the development"
+  echo "NEG_DEPOSIT"
+
+  if [ "${abills_neg_deposit}" = "YES" ]; then
+    USER_NET="0.0.0.0/0"
+  else
+    # Portal IP
+    PORTAL_IP=`echo ${abills_nat} | awk -F: '{ print $1 }'`;
+    # Fake net
+    USER_NET=`echo ${abills_nat} | awk -F: '{ print $2 }' | sed 's/,/ /g'`;
+    # Users IF
+    USER_IF=`echo ${abills_nat} | awk -F: '{ print $3 }'`;
+    echo  "$PORTAL_IP $USER_NET $USER_IF"
+  fi;
+
+
+  for IP in ${USER_NET}; do  
+    ${IPT} -t nat -A PREROUTING -s ${IP} -p tcp --dport 80 -j REDIRECT --to-ports 80 -i ${USER_IF}
+  done;
+
+  
 }
 
 

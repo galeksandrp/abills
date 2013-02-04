@@ -487,8 +487,9 @@ sub portmone_payments {
     else {
       $Paysys->change(
         {
-          ID   => $list->[0][0],
-          INFO => "APPROVALCODE: $FORM{APPROVALCODE}"
+          ID     => $list->[0][0],
+          INFO   => "APPROVALCODE: $FORM{APPROVALCODE}",
+          STATUS => 2
         }
       );
       $status = 1;

@@ -713,7 +713,6 @@ sub session_sum {
 
   $tariffs = Tariffs->new($db, $CONF);
   $self->session_splitter($SESSION_START, $SESSION_DURATION, $self->{DAY_BEGIN}, $self->{DAY_OF_WEEK}, $self->{DAY_OF_YEAR}, { TP_ID => $self->{TP_ID} });
-exit;
   #session devisions
   my @sd = @{ $self->{TIME_DIVISIONS_ARR} };
 
