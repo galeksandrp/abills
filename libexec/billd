@@ -81,6 +81,9 @@ $plugins
   NAS_IDS=...   - Make actions for NAS
   NAS_TYPES=...,- Make actions for NAS Types
   LOGINS=...,   - Make actions for logins
+  TP_IDS=....   - Tariff plans
+  SSH_CMD=      - (Default: /usr/bin/ssh -p \$nas_port -o StrictHostKeyChecking=no -i $base_dir/Certs/id_dsa.\$nas_mng_user)
+  SSH_PORT=22   - (Default: 22)
 \n";
   exit;
   #  checkspeed_mikro - check cure speed for user on Mikrotik. Arguments NAS_IDS=xx
@@ -2582,10 +2585,14 @@ sub check_speed_mikrotik {
     $NAS{NAS_MNG_IP_PORT}  = $nas_row->[9];
     $NAS{NAS_MNG_USER}     = $nas_row->[10];
     $NAS{NAS_MNG_PASSWORD} = $nas_row->[11];
-    
 
     my ($nas_host, $nas_port) = split(/:/, $NAS{NAS_MNG_IP_PORT});
-    $nas_port     = 22 if (! $nas_port);
+    if ($ARGV->{SSH_PORT}) {
+    	$nas_port     = int($ARGV->{SSH_PORT});
+    }
+    elsif (! $nas_port) {
+      $nas_port     = 22 
+    }
     my $nas_admin = $NAS{NAS_MNG_USER}    || 'admin';
     my $SSH       = $ARGV->{SSH_CMD}      || "/usr/bin/ssh -p $nas_port -o StrictHostKeyChecking=no -i $base_dir/Certs/id_dsa." . $nas_admin;
     $NAS{SSH_CMD} = $SSH;
