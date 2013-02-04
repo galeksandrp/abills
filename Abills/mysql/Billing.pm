@@ -190,8 +190,8 @@ sub traffic_calculations {
       $used_traffic->{ONLINE2}       = $sent2;
     }
     else {
-      $used_traffic->{TRAFFIC_SUM}   = $used_traffic->{TRAFFIC_OUT} + $used_traffic->{TRAFFIC_IN};
-      $used_traffic->{TRAFFIC_SUM_2} = $used_traffic->{TRAFFIC_OUT_2} + $used_traffic->{TRAFFIC_IN_2};
+      $used_traffic->{TRAFFIC_SUM}   = ($used_traffic->{TRAFFIC_OUT}) ? $used_traffic->{TRAFFIC_OUT} + $used_traffic->{TRAFFIC_IN} : 0;
+      $used_traffic->{TRAFFIC_SUM_2} = ($used_traffic->{TRAFFIC_OUT_2}) ? $used_traffic->{TRAFFIC_OUT_2} + $used_traffic->{TRAFFIC_IN_2} : 0;
       $used_traffic->{ONLINE}        = $sent + $recv;
       $used_traffic->{ONLINE2}       = $sent2 + $recv2;
     }

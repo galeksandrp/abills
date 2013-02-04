@@ -178,6 +178,8 @@ if [ x${ACTION} = xstart ]; then
     $TCQA handle ffff: ingress
 
     echo "Shaper UP ${INTERFACE}"
+    
+    ${IPT} -A FORWARD -j DROP -i ${INTERFACE}
   done
 elif [ x${ACTION} = xstop ]; then
   for INTERFACE in ${IPN_INTERFACES}; do
@@ -227,6 +229,7 @@ if [ x${ACTION} = xstart ]; then
     ${TC} qdisc add dev ${INTERFACE} root handle 1: htb
     ${TC} class add dev ${INTERFACE} parent 1: classid 1:1 htb rate $SPEEDUP ceil $SPEEDUP
 
+    ${IPT} -A FORWARD -j DROP -i ${INTERFACE}
     echo "Shaper UP ${INTERFACE}"
   done
 elif [ x${ACTION} = xstop ]; then
@@ -256,11 +259,20 @@ if [ x${abills_ipn_nas_id} = x ]; then
   return 0;
 fi;
 
-if [ w${ACTION} = wstart ]; then
+if [ x${ACTION} = xstart ]; then
   echo "Enable users IPN"
   ${BILLING_DIR}/libexec/periodic monthly MODULES=Ipn SRESTART=1 NO_ADM_REPORT=1 NAS_IDS="${abills_ipn_nas_id}"
-fi;
+  
+  if [ x"${abills_ipn_allow_ip}" != x ]; then
+    echo "Enable allow ips ${abills_ipn_allow_ip}";
+    for INTERFACE in ${IPN_INTERFACES} ; do
+      for IP in ${abills_ipn_allow_ip} ; do
+        ${IPT} -I FORWARD -d ${IP} -j ACCEPT -i ${INTERFACE};
+      done;
+    done;
+  fi;
 
+fi;
 }
 
 
@@ -326,11 +338,11 @@ neg_deposit() {
     USER_NET="0.0.0.0/0"
   else
     # Portal IP
-    PORTAL_IP=`echo ${abills_nat} | awk -F: '{ print $1 }'`;
+    PORTAL_IP=`echo ${abills_neg_deposit} | awk -F: '{ print $1 }'`;
     # Fake net
-    USER_NET=`echo ${abills_nat} | awk -F: '{ print $2 }' | sed 's/,/ /g'`;
+    USER_NET=`echo ${abills_neg_deposit} | awk -F: '{ print $2 }' | sed 's/,/ /g'`;
     # Users IF
-    USER_IF=`echo ${abills_nat} | awk -F: '{ print $3 }'`;
+    USER_IF=`echo ${abills_neg_deposit} | awk -F: '{ print $3 }'`;
     echo  "$PORTAL_IP $USER_NET $USER_IF"
   fi;
 
