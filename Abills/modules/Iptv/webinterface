@@ -361,22 +361,10 @@ sub iptv_user {
   $FORM{CID} = $FORM{CID2} || $FORM{CID};
   
   if($FORM{send_message}) {
-    if ($FORM{send}) {
-      $Iptv_stalker->send_msg({ %FORM });
-      
-      if ($Iptv_stalker->{errno}) {
-         $html->message('err', $_ERROR, "$Iptv_stalker->{errno} $Iptv_stalker->{errstr}");
-       }
-       else {
-         $html->message('info', $_INFO, "$_SENDED");
-       }
-
+    if (! $FORM{send}) {
+      $user->{IPTV_MODEMS} = $html->tpl_show(_include('iptv_send_message', 'Iptv'), { %$attr, %$user } );
+      return 0;
     }
-    else {
-      $user->{IPTV_MODEMS} = $html->tpl_show(_include('iptv_send_message', 'Iptv'), { %$attr, %$user } )
-    }
-    
-    return 0;
   }
   elsif ($FORM{add}) {
     $Iptv->user_add({%FORM});
@@ -470,7 +458,7 @@ sub iptv_user {
     }
   );
 
-  if (defined($Iptv_stalker)) {
+  if ($Iptv_stalker) {
     my $stalker_modems_list = $Iptv_stalker->stalker_users_list({ UNREGISTER => 1 });
     if (! $Iptv_stalker->{errno}) {
       $user->{MODEMS} = $html->form_select(
@@ -485,8 +473,8 @@ sub iptv_user {
         }
       );
       
-     if ($Iptv->{CID}) {
-        $user->{SEND_MESSAGE} = $html->button("$_SEND $_MESSAGE", "index=$index&UID=$FORM{UID}&send_message=1", { BUTTON => 1 });
+     if ($user->{CID}) {
+       $user->{SEND_MESSAGE} = $html->button("$_SEND $_MESSAGE", "index=$index&UID=$FORM{UID}&send_message=1", { BUTTON => 1 });
      }
 
      $user->{IPTV_MODEMS} = $html->tpl_show(_include('iptv_modems', 'Iptv'), { %$attr, %$user }, { OUTPUT2RETURN => 1 });
@@ -494,6 +482,9 @@ sub iptv_user {
     else {
       $html->message('err', $_ERROR, "$Iptv_stalker->{errno} $Iptv_stalker->{errstr}");
     }
+  }
+  else {
+    $user->{SEND_MESSAGE} = $html->button("$_SEND $_MESSAGE", "index=$index&UID=$FORM{UID}&send_message=1", { BUTTON => 1 });
   }
 
   $html->tpl_show(_include('iptv_user', 'Iptv'), { %$attr, %$user });
@@ -3256,7 +3247,12 @@ sub iptv_stalker {
     exit;
   }
 
- if ($FORM{add} || $FORM{change}) {
+ if ($FORM{send_message}) {
+ 	 $Stalker_api->send_message({ %FORM });
+
+ 	 return $Stalker_api->{error};
+ }
+ elsif ($FORM{add} || $FORM{change}) {
    $users->info($users->{UID} || $FORM{UID},
                 { 
                   SHOW_PASSWORD => 1,
@@ -3593,6 +3589,26 @@ sub iptv_account_action {
   }
   elsif ($FORM{chg}) {
     
+  }
+  elsif ($FORM{send_message}) {
+    if ($conf{IPTV_STALKER_API_HOST}) {
+      iptv_stalker();
+      if ($Stalker_api->{error}) {
+        $Iptv->{errno}  = $Stalker_api->{errno}; 
+        $Iptv->{errstr} = $Stalker_api->{errstr};
+        $result = 1;
+      }      
+    }
+    elsif ($Iptv_stalker) {
+      $Iptv_stalker->send_msg({ %FORM });
+      
+      if ($Iptv_stalker->{errno}) {
+         $html->message('err', $_ERROR, "$Iptv_stalker->{errno} $Iptv_stalker->{errstr}");
+      }
+      else {
+        $html->message('info', $_INFO, "$_SENDED");
+      }
+    }
   }
   elsif ($FORM{del}) {
     
