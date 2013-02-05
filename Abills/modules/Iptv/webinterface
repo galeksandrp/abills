@@ -14,6 +14,8 @@ my @status         = ($_ENABLE, $_DISABLE);
 my @service_status = ("$_ENABLE", "$_DISABLE", "$_NOT_ACTIVE");
 my @service_status_colors = ("$_COLORS[9]", "$_COLORS[6]", '#808080', '#0000FF', '#FF8000', '#009999');
 
+my %tp_list = ();
+
 my $Iptv_stalker;
 my $Stalker_api;
 
@@ -117,8 +119,7 @@ sub iptv_chg_tp {
     && ( $users->{DEPOSIT} + $users->{CREDIT} > 0
       || $Iptv->{POSTPAID_ABON}
       || $Iptv->{PAYMENT_TYPE} == 1)
-  )
-  {
+  ) {
 
     if ($users->{ACTIVATE} ne '0000-00-00') {
       my ($Y, $M, $D) = split(/-/, $users->{ACTIVATE}, 3);
@@ -189,16 +190,6 @@ sub iptv_chg_tp {
         $html->message('err', $_ERROR, "[$users->{errno}] $err_strs{$users->{errno}}");
       }
       else {
-        if (defined($Iptv_stalker)) {
-          #$Iptv_stalker->{debug}=1;
-          $Iptv_stalker->stalker_user_chg_tp($FORM{TP_ID}, $Iptv_stalker->a2s_uid($FORM{UID}, 1));
-       
-          if ($Iptv_stalker->{errno}) {
-            $html->message('err', $_ERROR, "$Iptv_stalker->{errno} $Iptv_stalker->{errstr}");
-          }
-        }
-        
-
         #Take Fees
         if ($Iptv->{TP_INFO}->{MONTH_FEE} > 0 && !$Iptv->{STATUS}) {
           iptv_get_month_fee($Iptv);
@@ -207,6 +198,10 @@ sub iptv_chg_tp {
         $html->message('info', $_CHANGED, "$_CHANGED");
         $Iptv->user_info($user->{UID});
         iptv_user_channels({ QUIET => 1, USER_INFO => $Iptv });
+        $FORM{change}= 1;
+         if (iptv_account_action({ CHANGE_TP => 1 })){
+           $html->message('err', $_ERROR, "$Iptv->{errno} $Iptv->{errstr}");
+         }
       }
     }
   }
@@ -235,7 +230,8 @@ sub iptv_chg_tp {
         width      => '100%',
         caption    => "$_SHEDULE",
         cols_align => [ 'left', 'left' ],
-        rows       => [ [ "$_TARIF_PLAN:", "$shedule->{ACTION}" ], [ "$_DATE:", "$shedule->{D}-$shedule->{M}-$shedule->{Y}" ], [ "$_ADMIN:", "$shedule->{ADMIN_NAME}" ], [ "$_ADDED:", "$shedule->{DATE}" ], [ "ID:", "$shedule->{SHEDULE_ID}" ] ]
+        rows       => [ [ "$_TARIF_PLAN:", "$shedule->{ACTION}" ], [ "$_DATE:", "$shedule->{D}-$shedule->{M}-$shedule->{Y}" ], [ "$_ADMIN:", "$shedule->{ADMIN_NAME}" ], [ "$_ADDED:", "$shedule->{DATE}" ], [ "ID:", "$shedule->{SHEDULE_ID}" ] ],
+        ID         => 'SHEDULE_INFO'
       }
     );
 
@@ -383,7 +379,6 @@ sub iptv_user {
     return 0;
   }
   elsif ($FORM{add}) {
-  	$Iptv->{debug}=1;
     $Iptv->user_add({%FORM});
     if (!$Iptv->{errno}) {
       $Iptv->{ACCOUNT_ACTIVATE} = $attr->{USER_INFO}->{ACTIVATE};
@@ -420,9 +415,9 @@ sub iptv_user {
     $html->message('err', $_ERROR, "[$Iptv->{errno}] $err_strs{$Iptv->{errno}}");
   }
   else {
-  	if (iptv_account_action()) {
-  		$html->message('err', $_ERROR, "$Iptv->{errno} $Iptv->{errstr}");
-  	}
+    if (iptv_account_action()) {
+      $html->message('err', $_ERROR, "$Iptv->{errno} $Iptv->{errstr}");
+    }
   }
 
   my $user = $Iptv->user_info($FORM{UID});
@@ -436,7 +431,7 @@ sub iptv_user {
     else {
       $user->{ACTION}     = 'add';
       $user->{LNG_ACTION} = $_ACTIVATE;
-      $html->message('info', $_INFO, $_NOT_ACTIVE);
+      $html->message('info', $_INFO, "$_NOT_ACTIVE");
     }
 
     $user->{TP_NUM}     = $html->form_select(
@@ -461,7 +456,6 @@ sub iptv_user {
     else {
       $user->{ACTION}     = 'change';
       $user->{LNG_ACTION} = $_CHANGE;
-      $html->message('info', $_INFO, $_NOT_ACTIVE);
     }    
 
     $user->{CHANGE_TP_BUTTON} = $html->button($_CHANGE, 'UID=' . $FORM{UID} . '&index=' . get_function_index('iptv_chg_tp'), { CLASS => 'change rightAlignText' });
@@ -2736,6 +2730,13 @@ sub iptv_sheduler {
         TP_ID => $action
       }
     );
+
+    $FORM{change}= 1;
+    $FORM{UID}   = $uid;
+    $FORM{TP_ID} = $action;
+     if (iptv_account_action({ CHANGE_TP => 1 })) {
+      $html->message('err', $_ERROR, "$Iptv->{errno} $Iptv->{errstr}");
+    }
   }
 
   #Set channel
@@ -3258,17 +3259,17 @@ sub iptv_stalker {
  if ($FORM{add} || $FORM{change}) {
    $users->info($users->{UID} || $FORM{UID},
                 { 
-                	SHOW_PASSWORD => 1,
-   	            });
+                  SHOW_PASSWORD => 1,
+                 });
 
    $Stalker_api->user_action({ %$users, %$Iptv, %FORM });
    
    if ($Stalker_api->{errstr} eq 'Account not found') {
- 	   $Stalker_api->user_action({ %$users, 
- 	   	                           %$Iptv, 
- 	   	                           %FORM,
- 	   	                           add   => 1,
- 	   	                           change=> undef });
+      $Stalker_api->user_action({ %$users, 
+                                   %$Iptv, 
+                                   %FORM,
+                                   add   => 1,
+                                   change=> undef });
    }   
    
    return $Stalker_api->{error};
@@ -3278,10 +3279,10 @@ sub iptv_stalker {
   $html->button("STB", "index=$index&list=STB", { BUTTON => 1 }).
   $html->button("$_CHANNELS", "index=$index&list=ITV", { BUTTON => 1 }).
   $html->button("TV_SUBSCRIPTION", "index=$index&list=ITV_SUBSCRIPTION", { BUTTON => 1 }).
+  $html->button("$_TARIF_PLANS", "index=$index&list=tariffs", { BUTTON => 1 }).
   $html->br();
 
   # Get tps
-  my %tp_list = ();
   my $list = $Tariffs->list({ MODULE    => 'Iptv',
                               COLS_NAME => 1 
                            });
@@ -3303,6 +3304,15 @@ sub iptv_stalker {
      else {
        $html->message('err', $_ERROR, "$users->{error}/$users->{errstr} ");
      }
+   }
+ }
+ elsif ($FORM{tp_add}) {
+   $Tariffs->add({ %FORM, MODULE => 'Iptv' });
+   if (!$Tariffs->{errno}) {
+     $html->message('info', $_ADDED, "$_ADDED $Tariffs->{TP_ID}");
+   }
+   else {
+     $html->message('err', $_ERROR, "$users->{error}/$users->{errstr} ");
    }
  }
  elsif ($FORM{list}) {
@@ -3348,7 +3358,7 @@ sub iptv_stalker {
     while( ($key, $val)=each %{ $account_hash } ) {
       if ($key eq 'tariff_plan') {
         if (! $tp_list{$val}){ 
-        	$val = "$val ". $html->br(). $html->color_mark($_NOT_EXIST, 'red') . $html->button($_ADD, "ID=$val&index=". get_function_index('iptv_tp'), { CLASS => 'add' }) ;
+          $val = "$val ". $html->br(). $html->color_mark($_NOT_EXIST, 'red') . $html->button($_ADD, "ID=$val&index=". get_function_index('iptv_tp'), { CLASS => 'add' }) ;
         }
         push @row, $val;
       }
@@ -3445,10 +3455,29 @@ sub iptv_stalker_show_list {
   foreach my $account_hash ( @{ $Stalker_api->{RESULT}->{results} } ) {
     my @row = ();
     while( ($key, $val)=each %{ $account_hash } ) {
-    	Encode::_utf8_off($account_hash->{name}) if ($account_hash->{name});
+      Encode::_utf8_off($account_hash->{name}) if ($account_hash->{name});
 
       if ( ref $val eq 'ARRAY') {
-        push @row, join($html->br(), @$val);
+        my $col_values = '';
+        foreach my $v (@$val) {
+          if (ref $v eq 'HASH') {
+            while(my($k, $v) = each %$v) {
+              $col_values .= " $k - $v". $html->br();
+            }
+          }
+          else {
+            $col_values .= $v . $html->br();
+          }
+        }
+        
+        push @row, $col_values;
+      }
+      elsif ( ref $val eq 'HASH') {
+        my $col_values = '';
+        while(my($k, $v) = each %$val) {
+          $col_values .= " $k - $v". $html->br();
+        }
+        push @row, $col_values;
       }
       else {
         if ($key eq 'mac') {
@@ -3483,11 +3512,17 @@ sub iptv_stalker_show_list {
     elsif ($register_stb{$account_hash->{stb_mac}}) {
       push @row, $html->button($_SHOW, "index=15&UID=$register_stb{$account_hash->{stb_mac}}", { CLASS => 'show' });
     }
-    else {
+    elsif ($account_hash->{external_id}) {
+      push @row, (! $tp_list{$account_hash->{external_id}}) ? $html->button($_ADD, "list=tariffs&index=$index&tp_add=1&ID=$account_hash->{external_id}&NAME=$account_hash->{name}", { CLASS => 'add' }) :
+        $html->button($_ADD, "index=". get_function_index('iptv_tp') ."&TP_ID=$tp_list{$account_hash->{external_id}}", { CLASS => 'show' }) ;
+    }    
+    elsif(defined($account_hash->{login})) {
       push @row, $html->button($_ADD, "index=$index&register=1&LOGIN=".
        (( $account_hash->{login}) ? $account_hash->{login} : $account_hash->{stb_mac}). "&PASSWORD=&TP_ID=$account_hash->{tariff_plan}&STATUS=$account_hash->{status}&CREATE_BILL=1&CID=$account_hash->{stb_mac}", { CLASS => 'add' });
     }
-
+    else {
+      push @row, '';
+    }
 
     $table->addrow(@row);
   }
@@ -3510,11 +3545,11 @@ sub iptv_account_action {
 
     #Api function
     if ($conf{IPTV_STALKER_API_HOST}) {
-    	iptv_stalker();
-    	if ($Stalker_api->{error}) {
-    	  $Iptv->{errno}  = $Stalker_api->{errno}; 
-    	  $Iptv->{errstr} = $Stalker_api->{errstr};
-    	  $result = 1;
+      iptv_stalker();
+      if ($Stalker_api->{error}) {
+        $Iptv->{errno}  = $Stalker_api->{errno}; 
+        $Iptv->{errstr} = $Stalker_api->{errstr};
+        $result = 1;
       }
     }
     #DB functions
@@ -3536,14 +3571,15 @@ sub iptv_account_action {
     }
 
     if ($conf{IPTV_STALKER_API_HOST}) {
-    	iptv_stalker();
-    	if ($Stalker_api->{error}) {
-    	  $Iptv->{errno}  = $Stalker_api->{errno}; 
-    	  $Iptv->{errstr} = $Stalker_api->{errstr};
-    	  $result = 1;
-      }    	
+      iptv_stalker();
+      if ($Stalker_api->{error}) {
+        $Iptv->{errno}  = $Stalker_api->{errno}; 
+        $Iptv->{errstr} = $Stalker_api->{errstr};
+        $result = 1;
+      }      
     }
     elsif ($Iptv_stalker) {
+      #$Iptv_stalker->stalker_user_chg_tp($FORM{TP_ID}, $Iptv_stalker->a2s_uid($FORM{UID}, 1));
       $Iptv_stalker->stalker_user_chg_tp(($FORM{TP_IDS} eq '') ? $FORM{TP_ID} : $FORM{TP_IDS}, ($FORM{CID2} ne '') ? $FORM{CID2} : $FORM{CID});
       if ($Iptv_stalker->{errno}) {
         $result = 1;
@@ -3556,10 +3592,10 @@ sub iptv_account_action {
     }
   }
   elsif ($FORM{chg}) {
-  	
+    
   }
   elsif ($FORM{del}) {
-  	
+    
   }
 
   return $result;

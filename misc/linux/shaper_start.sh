@@ -267,7 +267,11 @@ if [ x${ACTION} = xstart ]; then
     echo "Enable allow ips ${abills_ipn_allow_ip}";
     for INTERFACE in ${IPN_INTERFACES} ; do
       for IP in ${abills_ipn_allow_ip} ; do
-        ${IPT} -I FORWARD -d ${IP} -j ACCEPT -i ${INTERFACE};
+        ${IPT} -I FORWARD  -d ${IP} -j ACCEPT -i ${INTERFACE};
+        ${IPT} -I FORWARD  -s ${IP} -j ACCEPT -i ${INTERFACE};
+        if [ x"${abills_nat}" != x ]; then
+          ${IPT} -t nat -I PREROUTING 1 -d ${IP} -j ACCEPT;
+        fi;
       done;
     done;
   fi;
