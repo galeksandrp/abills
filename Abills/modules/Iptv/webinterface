@@ -191,7 +191,7 @@ sub iptv_chg_tp {
       }
       else {
         #Take Fees
-        if ($Iptv->{TP_INFO}->{MONTH_FEE} > 0 && !$Iptv->{STATUS}) {
+        if ($Iptv->{TP_INFO}->{MONTH_FEE} > 0 && ! $Iptv->{STATUS} && $FORM{GET_ABON}) {
           iptv_get_month_fee($Iptv);
         }
 
@@ -383,7 +383,10 @@ sub iptv_user {
     $Iptv->user_change({%FORM});
     if (!$Iptv->{errno}) {
       $Iptv->{ACCOUNT_ACTIVATE} = $attr->{USER_INFO}->{ACTIVATE};
-      iptv_get_month_fee($Iptv) if (!$FORM{STATUS});
+      
+      if (!$FORM{STATUS} && $FORM{GET_ABON}) {
+        iptv_get_month_fee($Iptv)
+      }
 
       if ($FORM{change_now}) {
         $Iptv->user_channels({ UID => $FORM{UID} });
