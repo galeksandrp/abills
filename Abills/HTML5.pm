@@ -85,7 +85,7 @@ sub new {
   $SORT = $FORM{sort} || 1;
   $DESC = ($FORM{desc}) ? 'DESC' : '';
   $PG = $FORM{pg} || 0;
-  $self->{CHARSET} = (defined($attr->{CHARSET})) ? $attr->{CHARSET} : 'windows-1251';
+  $self->{CHARSET} = (defined($attr->{CHARSET})) ? $attr->{CHARSET} : 'utf8';
 
   if ($FORM{PAGE_ROWS}) {
     $PAGE_ROWS = $FORM{PAGE_ROWS};

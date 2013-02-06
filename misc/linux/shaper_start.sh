@@ -38,6 +38,24 @@
 # abills_neg_deposit_speed="512" Set default speed for negative deposit
 
 
+### BEGIN INIT INFO
+# Provides:          shaper_start
+# Required-Start:    $remote_fs $network $syslog
+# Should-Start:      $time mysql slapd postgresql samba krb5-kdc
+# Required-Stop:     $remote_fs $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Radius Daemon
+# Description:       Extensible, configurable radius daemon
+### END INIT INFO
+
+set -e
+
+. /lib/lsb/init-functions
+
+PROG="shaper_start"
+DESCR="shaper_start"
+
 VERSION=1.01 
 . /etc/rc.conf
 

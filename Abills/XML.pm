@@ -82,7 +82,7 @@ sub new {
   $DESC      = ($FORM{desc}) ? 'DESC' : '';
   $PG        = $FORM{pg} || 0;
   $PAGE_ROWS = $FORM{PAGE_ROWS} || 25;
-  $self->{CHARSET} = (defined($attr->{CHARSET})) ? $attr->{CHARSET} : 'windows-1251';
+  $self->{CHARSET} = (defined($attr->{CHARSET})) ? $attr->{CHARSET} : 'utf8';
   $domain          = $ENV{SERVER_NAME};
   $web_path        = '';
   $secure          = '';
@@ -454,7 +454,7 @@ sub header {
   my $JAVASCRIPT = ($attr->{PATH}) ? "$attr->{PATH}functions.js" : "functions.js";
   my $css = '';
 
-  my $CHARSET = (defined($attr->{CHARSET})) ? $attr->{CHARSET} : $self->{CHARSET} || 'windows-1251';
+  my $CHARSET = (defined($attr->{CHARSET})) ? $attr->{CHARSET} : $self->{CHARSET} || 'utf8';
   $CHARSET =~ s/ //g;
   $self->{header} .= qq{<?xml version="1.0"  encoding="$CHARSET" ?>};
 

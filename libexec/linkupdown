@@ -707,7 +707,7 @@ if ($ACTION eq 'up') {
                     "$IPTABLES -t mangle -A FORWARD -s $CLIENT_IP -j MARK --set-mark $ruleid_out";
 
   if (! $WAN_IF) {
-    $INTERFACE = `/sbin/ip route get 0.0.0.0 | head -1 | sed s/.*dev// |awk '{ print \$1 }'`;
+    $WAN_IF = `/sbin/ip route get 1.1.1.1 | head -1 | sed s/.*dev// |awk '{ print \$1 }'`;
     chop($WAN_IF);	
   } 
   my $SCOUNT='';
