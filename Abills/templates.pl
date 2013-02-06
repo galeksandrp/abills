@@ -18,7 +18,7 @@ sub _include {
   $tpl .= '_' . $attr->{SUFIX} if ($attr->{SUFIX});
 
   start:
-
+  $domain_path = 'domain';
   if ($admin->{DOMAIN_ID}) {
     $domain_path = "$admin->{DOMAIN_ID}/";
   }
@@ -26,6 +26,7 @@ sub _include {
     $domain_path = "$FORM{DOMAIN_ID}/";
   }
 
+  $FORM{NAS_GID}='' if (!$FORM{NAS_GID});
 
   my @search_paths = (
     $Bin . '/../Abills/templates/' . $domain_path . '/' . $FORM{NAS_GID} . '/' . $module . '_' . $tpl . "_$html->{language}" . $sufix,
@@ -37,6 +38,7 @@ sub _include {
            '../Abills/templates/' . $domain_path . $module . '_' . $tpl . $sufix,
     $Bin . '/../Abills/templates/'. $domain_path . $module . '_' . $tpl . $sufix,
     $Bin . '/../Abills/templates/' . $module . '_' . $tpl . "_$html->{language}" . $sufix,
+
 #    $Bin . '/../Abills/templates/' . $module . '_' . $tpl . $sufix,
 #           '../Abills/templates/' . $module . '_' . $tpl . $sufix,
   );

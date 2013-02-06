@@ -3331,7 +3331,7 @@ sub iptv_stalker {
 
  # Get abills users 
  my %register_stb = ();
- my $list = $Iptv->user_list({ PAGE_ROWS => 1000000, 
+ $list = $Iptv->user_list({ PAGE_ROWS => 1000000, 
                                CID       => '*',
                                COLS_NAME => 1 });
  
@@ -3340,7 +3340,10 @@ sub iptv_stalker {
  }
 
 
- my @TITLE = keys %{ @{ $Stalker_api->{RESULT}->{results} }->[0] }; 
+ my @TITLE = ();
+ if ($Stalker_api->{RESULT}->{results}) {
+   @TITLE = keys %{ $Stalker_api->{RESULT}->{results}->[0] }; 
+ }
 
   my $table = $html->table(
     {
@@ -3440,7 +3443,7 @@ sub iptv_stalker_show_list {
     return 0;
   }
 
-  my @TITLE = keys %{ @{ $Stalker_api->{RESULT}->{results} }->[0] }; 
+  my @TITLE = keys %{ $Stalker_api->{RESULT}->{results}->[0] }; 
 
   my $table = $html->table(
     {

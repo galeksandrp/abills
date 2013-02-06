@@ -1228,7 +1228,7 @@ sub dhcphosts_config {
     $INFO{AUTHORITATIVE}        = ($Dhcphosts->{AUTHORITATIVE}) ? 'authoritative;' : '';
     $INFO{DENY_UNKNOWN_CLIENTS} = ($Dhcphosts->{DENY_UNKNOWN_CLIENTS}) ? 'deny unknown-clients;' : '';
 
-    if (!$Dhcphosts->{STATIC} && $Dhcphosts->{IP_RANGE_FIRST} ne '0.0.0.0') {
+    if (! $Dhcphosts->{STATIC} && $Dhcphosts->{IP_RANGE_FIRST} ne '0.0.0.0') {
       $INFO{RANGE} = "range $Dhcphosts->{IP_RANGE_FIRST} $Dhcphosts->{IP_RANGE_LAST};";
     }
     else {

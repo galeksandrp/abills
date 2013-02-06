@@ -231,7 +231,7 @@ sub network_info {
    coordinator,
    phone,
    disable,
-   INET_NTOA(ip_range_first) AS ip_range_forst,
+   INET_NTOA(ip_range_first) AS ip_range_first,
    INET_NTOA(ip_range_last) AS ip_range_last,
    static,
    comments,
