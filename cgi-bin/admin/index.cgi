@@ -294,7 +294,8 @@ if ($admin->{MAX_ROWS} > 0) {
 #Global Vars
 @action = ('add', $_ADD);
 @bool_vals = ($_NO, $_YES);
-@PAYMENT_METHODS = ("$_CASH", "$_BANK", "$_EXTERNAL_PAYMENTS", 'Credit Card', "$_BONUS", "$_CORRECTION", "$_COMPENSATION", "$_MONEY_TRANSFER");
+@PAYMENT_METHODS = ("$_CASH", "$_BANK", "$_EXTERNAL_PAYMENTS", 'Credit Card', "$_BONUS", "$_CORRECTION", "$_COMPENSATION", 
+ "$_MONEY_TRANSFER", "$_RECALCULATE");
 @status = ("$_ENABLE", "$_DISABLE");
 my %menu_items = ();
 my %menu_names = ();

@@ -111,8 +111,9 @@ sub dv_chg_tp {
       return 0;
     }
 
+    my ($year, $month, $day) = split(/-/, $DATE, 3);
+    my $message='';
     if ($period > 0) {
-      my ($year, $month, $day);
       if ($period == 1) {
         ($year, $month, $day) = split(/-/, $Dv->{ABON_DATE}, 3);
       }
@@ -161,10 +162,65 @@ sub dv_chg_tp {
       }
       else {
         #Take fees
+        #Message
         if (!$Dv->{STATUS} && $FORM{GET_ABON}) {
-          dv_get_month_fee($Dv);
+          
+
+          if ( $FORM{RECALCULATE} ) {
+            my $days_in_month = ($month != 2 ? (($month % 2) ^ ($month > 7)) + 30 : (!($year % 400) || !($year % 4) && ($year % 25) ? 29 : 28));
+            my $rest_days     = $days_in_month - $day + 1;
+
+            my $rest_day_sum1 = (! $Dv->{TP_INFO}->{ABON_DISTRIBUTION}) ? $Dv->{TP_INFO}->{MONTH_FEE} /  $days_in_month * $rest_days : 0;
+            my $rest_day_sum2 = (! $Dv->{TP_INFO_OLD}->{ABON_DISTRIBUTION}) ? $Dv->{TP_INFO_OLD}->{MONTH_FEE} /  $days_in_month * $rest_days : 0;
+            $sum              = sprintf("%.5f", $rest_day_sum1 - $rest_day_sum2);
+
+            #take fees     
+            if ( $sum > 0) {
+              my %FEES_DSC = (
+                  MODULE          => 'Internet:',
+                  TP_ID           => $Dv->{TP_INFO}->{ID},
+                  TP_NAME         => $Dv->{TP_INFO}->{NAME},
+                  FEES_PERIOD_DAY => $_MONTH_FEE_SHORT,
+                  FEES_METHOD=>$FEES_METHODS{$Dv->{TP_INFO}->{FEES_METHOD}},
+                );
+
+              my %PARAMS = (
+                METHOD   => ($Dv->{TP_INFO}->{FEES_METHOD}) ? $Dv->{TP_INFO}->{FEES_METHOD} : 1,
+                DESCRIBE => dv_fees_dsc_former(\%FEES_DSC)
+              );
+
+              $fees->take($users, $sum, \%PARAMS);
+              if ($fees->{errno}) {
+                $html->message('err', $_ERROR, "[$fees->{errno}] $err_strs{$fees->{errno}}");
+              }
+              else {
+              	$message .= "\n$_RECALCULATE\n$_FEES: $sum";
+              }
+            }
+            #Add compensation
+            elsif ($sum < 0) {
+              $payments->add($users,
+                 {
+                   SUM      => abs($sum),
+                   METHOD   => 8,
+                   DESCRIBE => "$_TARIF_PLAN: $Dv->{TP_INFO}->{NAME}",
+                 }
+              );
+              
+              if ($payments->{errno}) {
+                $html->message('err', $_ERROR, "[$payments->{errno}] $err_strs{$payments->{errno}}");
+              }
+              else {
+              	$message .= "\n$_RECALCULATE\n$_RETURNED: ". abs($sum);
+              }
+            }
+          }
+          else {
+          	dv_get_month_fee($Dv);
+          }
         }
-        $html->message('info', $_CHANGED, "$_TARIF_PLAN $_CHANGED");
+
+        $html->message('info', $_CHANGED, "$_TARIF_PLAN $message");
         $Dv->info($Dv->{UID});
       }
     }
@@ -514,13 +570,6 @@ sub dv_user {
         return 0;
       }
     }
-
-print "!!!!!!";
-
-
-
-
-
 
     $Dv->add({%FORM});
     if (!$Dv->{errno}) {
@@ -4945,9 +4994,9 @@ sub dv_daily_fees {
             }
 
             my %FEES_DSC = (
-              MODULE    => 'Internet:',
-              TP_ID     => $TP_INFO->{ID},
-              TP_NAME   => $TP_INFO->{NAME},
+              MODULE          => 'Internet:',
+              TP_ID           => $TP_INFO->{ID},
+              TP_NAME         => $TP_INFO->{NAME},
               FEES_PERIOD_DAY => $_DAY_FEE_SHORT,
               FEES_METHOD=>$FEES_METHODS{$TP_INFO->{FEES_METHOD}},
             );
@@ -7057,7 +7106,7 @@ sub dv_get_month_fee {
               MODULE    => 'Internet:',
               TP_ID     => $Dv->{TP_INFO}->{ID},
               TP_NAME   => $Dv->{TP_INFO}->{NAME},
-              FEES_PERIOD_DAY => $_DAY_FEE_SHORT,
+              FEES_PERIOD_DAY => $_MONTH_FEE_SHORT,
               FEES_METHOD=>$FEES_METHODS{$Dv->{TP_INFO}->{FEES_METHOD}},
             );
 
@@ -7081,6 +7130,8 @@ sub dv_get_month_fee {
       }
       $conf{START_PERIOD_DAY} = 1 if (!$conf{START_PERIOD_DAY});
       my $calculation_days = ($d < $conf{START_PERIOD_DAY}) ? $conf{START_PERIOD_DAY} - $d : $days_in_month - $d + $conf{START_PERIOD_DAY};
+      
+      print "# ($d < $conf{START_PERIOD_DAY}) ? $conf{START_PERIOD_DAY} - $d : $days_in_month - $d + $conf{START_PERIOD_DAY} ## ($sum / $days_in_month) * $calculation_days <br>";
       
       $sum = sprintf("%.2f", ($sum / $days_in_month) * $calculation_days);
     }
@@ -7234,7 +7285,7 @@ sub dv_get_month_fee {
           $html->message('err', $_ERROR, "[$fees->{errno}] $fees->{errstr}") if (!$attr->{QUITE});
         }
         else {
-          $html->message('info', $_INFO, $message) if ($html && !$attr->{QUITE});
+          $html->message('info', $_INFO, $message. "\n $_SUM: ". sprintf("%.2f", $sum)) if ($html && !$attr->{QUITE});
         }
       }
 
@@ -7828,11 +7879,11 @@ sub dv_docs {
   
   if ($Dv->{MONTH_ABON} > 0) {
     my %FEES_DSC = (
-              MODULE    => 'Internet:',
-              TP_ID     => $Dv->{TP_ID},
-              TP_NAME   => $Dv->{TP_NAME},
+              MODULE          => 'Internet:',
+              TP_ID           => $Dv->{TP_ID},
+              TP_NAME         => $Dv->{TP_NAME},
               FEES_PERIOD_DAY => $_MONTH_FEE_SHORT,
-              FEES_METHOD=>$FEES_METHODS{$Dv->{FEES_METHOD}},
+              FEES_METHOD     => $FEES_METHODS{$Dv->{FEES_METHOD}},
             );
     
     push @services, dv_fees_dsc_former(\%FEES_DSC)."||$Dv->{MONTH_ABON}"; 
@@ -7851,7 +7902,7 @@ sub dv_docs {
 
     my $days_in_month = ($M != 2 ? (($M % 2) ^ ($M > 7)) + 30 : (!($Y % 400) || !($Y % 4) && ($Y % 25) ? 29 : 28));
 
-    push @services, "Internet: $_DAY_FEE_SHORT: $Dv->{TP_NAME} ($Dv->{TP_ID})|$days_in_month $_DAY|" . sprintf("%.2f", ($Dv->{DAY_ABON} * $days_in_month));
+    push @services, "Internet: $_MONTH_FEE_SHORT: $Dv->{TP_NAME} ($Dv->{TP_ID})|$days_in_month $_DAY|" . sprintf("%.2f", ($Dv->{DAY_ABON} * $days_in_month));
   }
 
   return \@services;
