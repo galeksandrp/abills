@@ -4760,7 +4760,7 @@ sub form_ip_pools {
       width      => '100%',
       caption    => "NAS IP POOLs",
       border     => 1,
-      title      => [ '', "NAS", "$_NAME", "$_BEGIN", "$_END", "$_COUNT", "$_PRIORITY", "$_SPEED (Kbits)", '-', '-' ],
+      title      => [ 'ID', "NAS", "$_NAME", "$_BEGIN", "$_END", "$_COUNT", "$_PRIORITY", "$_SPEED (Kbits)", '-', '-' ],
       cols_align => [ 'right', 'left', 'right', 'right', 'right', 'right', 'center', 'center' ],
       qs         => $pages_qs,
       pages      => $nas->{TOTAL},
@@ -4773,7 +4773,8 @@ sub form_ip_pools {
     my $change = ($FORM{NAS_ID}) ? $html->button($_CHANGE, "index=". get_function_index('form_ip_pools') ."$pages_qs&chg=$line->{id}", { CLASS => 'change' }) : '';
     $table->{rowcolor} = ($line->{id} eq $FORM{chg}) ? 'row_active' : undef;
 
-    $table->addrow(($line->{static}) ? 'static' : $html->form_input('ids', $line->{id}, { TYPE => 'checkbox', STATE => ($line->{active_nas_id}) ? 'checked' : undef }), 
+    $table->addrow(
+    $html->b($line->{id}).' '.(($line->{static}) ? 'static' : $html->form_input('ids', $line->{id}, { TYPE => 'checkbox', STATE => ($line->{active_nas_id}) ? 'checked' : undef })), 
     $html->button($line->{nas_name}, "index=". get_function_index('form_nas') ."&NAS_ID=$line->{active_nas_id}"), 
     $line->{pool_name}, 
     $line->{first_ip}, 
