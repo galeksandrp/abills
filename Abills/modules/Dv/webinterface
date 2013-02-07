@@ -7049,7 +7049,7 @@ sub dv_get_month_fee {
           {
            SUM      => abs($sum),
            METHOD   => 8,
-           DESCRIBE => "$_TARIF_PLAN: $Dv->{TP_INFO}->{NAME}",
+           DESCRIBE => "$_TARIF_PLAN: $Dv->{TP_INFO_OLD}->{NAME} ($Dv->{TP_INFO_OLD}->{ID})",
           }
       );
               
