@@ -7301,6 +7301,7 @@ sub dv_dhcp_get_mac_add {
           SORT      => 3,
           DESC      => 'DESC',
           PAGE_ROWS => 1,
+          COLS_NAME => 1
           #%PARAMS_HASH
         }
       );
@@ -7311,17 +7312,16 @@ sub dv_dhcp_get_mac_add {
         return 0;
       }
       elsif ($Dhcphosts->{TOTAL} < 1) {
-
         $Dhcphosts->network_info($id);
         if ($Dhcphosts->{TOTAL} < 0) {
           $html->message('err', $_ACTIVATE, "$_ERROR Can't find your network '$id' ", { ID => 117 });
           return 0;
         }
 
-        $PARAMS_HASH{IP} = int2ip(ip2int($Dhcphosts->{NETWORK}) + 2) if (defined($PARAMS_HASH{IP}));
+        $PARAMS_HASH{IP} = $Dhcphosts->{IP_RANGE_FIRST} if ($PARAMS_HASH{IP});
       }
       else {
-        $PARAMS_HASH{IP} = int2ip($list->[0]->[2] + 1) if (defined($PARAMS_HASH{IP}));
+        $PARAMS_HASH{IP} = int2ip($list->[0]->{ip_num} + 1) if (defined($PARAMS_HASH{IP}));
       }
 
       $Dhcphosts->host_add(
@@ -7342,7 +7342,7 @@ sub dv_dhcp_get_mac_add {
         }
       }
       else {
-        require "Abills/modules/Dhcphosts/webinterface";
+        load_module('Dhcphosts');
         dhcphosts_config(
           {
             NETWORKS => $id,
