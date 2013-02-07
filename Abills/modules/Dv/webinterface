@@ -172,8 +172,10 @@ sub dv_chg_tp {
 
             my $rest_day_sum1 = (! $Dv->{TP_INFO}->{ABON_DISTRIBUTION}) ? $Dv->{TP_INFO}->{MONTH_FEE} /  $days_in_month * $rest_days : 0;
             my $rest_day_sum2 = (! $Dv->{TP_INFO_OLD}->{ABON_DISTRIBUTION}) ? $Dv->{TP_INFO_OLD}->{MONTH_FEE} /  $days_in_month * $rest_days : 0;
-            $sum              = sprintf("%.5f", $rest_day_sum1 - $rest_day_sum2);
-
+            $sum              = $rest_day_sum2; # sprintf("%.5f", $rest_day_sum1 - $rest_day_sum2);
+            
+            #PERIOD_ALIGNMENT
+            $Dv->{TP_INFO}->{PERIOD_ALIGNMENT}=1;
             #take fees     
             if ( $sum > 0) {
               my %FEES_DSC = (
@@ -215,9 +217,8 @@ sub dv_chg_tp {
               }
             }
           }
-          else {
-          	dv_get_month_fee($Dv);
-          }
+
+        	dv_get_month_fee($Dv);
         }
 
         $html->message('info', $_CHANGED, "$_TARIF_PLAN $message");
