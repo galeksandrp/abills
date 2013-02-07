@@ -7273,6 +7273,7 @@ sub dv_dhcp_get_mac_add {
 
   use Dhcphosts;
   my $Dhcphosts = Dhcphosts->new($db, $admin, \%conf);
+  $conf{DV_IP_DISCOVERY}=~s/[\r\n ]//g;
   my @dhcp_nets = split(/;/, $conf{DV_IP_DISCOVERY});
   my $default_params = "IP,MAC";
 
