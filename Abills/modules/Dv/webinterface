@@ -164,62 +164,6 @@ sub dv_chg_tp {
         #Take fees
         #Message
         if (!$Dv->{STATUS} && $FORM{GET_ABON}) {
-          
-
-          if ( $FORM{RECALCULATE} ) {
-            my $days_in_month = ($month != 2 ? (($month % 2) ^ ($month > 7)) + 30 : (!($year % 400) || !($year % 4) && ($year % 25) ? 29 : 28));
-            my $rest_days     = $days_in_month - $day + 1;
-
-            my $rest_day_sum1 = (! $Dv->{TP_INFO}->{ABON_DISTRIBUTION}) ? $Dv->{TP_INFO}->{MONTH_FEE} /  $days_in_month * $rest_days : 0;
-            my $rest_day_sum2 = (! $Dv->{TP_INFO_OLD}->{ABON_DISTRIBUTION}) ? $Dv->{TP_INFO_OLD}->{MONTH_FEE} /  $days_in_month * $rest_days : 0;
-            $sum              = $rest_day_sum2; # sprintf("%.5f", $rest_day_sum1 - $rest_day_sum2);
-            
-            #PERIOD_ALIGNMENT
-            $Dv->{TP_INFO}->{PERIOD_ALIGNMENT}=1;
-            #take fees     
-#            if ( $sum > 0) {
-#              my %FEES_DSC = (
-#                  MODULE          => 'Internet:',
-#                  TP_ID           => $Dv->{TP_INFO}->{ID},
-#                  TP_NAME         => $Dv->{TP_INFO}->{NAME},
-#                  FEES_PERIOD_DAY => $_MONTH_FEE_SHORT,
-#                  FEES_METHOD=>$FEES_METHODS{$Dv->{TP_INFO}->{FEES_METHOD}},
-#                );
-#
-#              my %PARAMS = (
-#                METHOD   => ($Dv->{TP_INFO}->{FEES_METHOD}) ? $Dv->{TP_INFO}->{FEES_METHOD} : 1,
-#                DESCRIBE => dv_fees_dsc_former(\%FEES_DSC)
-#              );
-#
-#              $fees->take($users, $sum, \%PARAMS);
-#              if ($fees->{errno}) {
-#                $html->message('err', $_ERROR, "[$fees->{errno}] $err_strs{$fees->{errno}}");
-#              }
-#              else {
-#              	$message .= "\n$_RECALCULATE\n$_FEES: $sum";
-#              }
-#            }
-#            #Add compensation
-#            els
-
-            if ($sum > 0) {
-              $payments->add($users,
-                 {
-                   SUM      => abs($sum),
-                   METHOD   => 8,
-                   DESCRIBE => "$_TARIF_PLAN: $Dv->{TP_INFO}->{NAME}",
-                 }
-              );
-              
-              if ($payments->{errno}) {
-                $html->message('err', $_ERROR, "[$payments->{errno}] $err_strs{$payments->{errno}}");
-              }
-              else {
-              	$message .= "\n$_RECALCULATE\n$_RETURNED: ". abs($sum);
-              }
-            }
-          }
-
         	dv_get_month_fee($Dv);
         }
 
@@ -7088,10 +7032,39 @@ sub dv_get_month_fee {
   }
 
   my $message = '';
+  #Current Month
+  my ($y, $m, $d)   = split(/-/, $DATE, 3);
+  my $days_in_month = ($m != 2 ? (($m % 2) ^ ($m > 7)) + 30 : (!($y % 400) || !($y % 4) && ($y % 25) ? 29 : 28));
+
+  if ( $FORM{RECALCULATE} ) {
+    my $rest_days     = $days_in_month - $d + 1;
+    #my $rest_day_sum1 = (! $Dv->{TP_INFO}->{ABON_DISTRIBUTION}) ? $Dv->{TP_INFO}->{MONTH_FEE} /  $days_in_month * $rest_days : 0;
+    my $rest_day_sum2 = (! $Dv->{TP_INFO_OLD}->{ABON_DISTRIBUTION}) ? $Dv->{TP_INFO_OLD}->{MONTH_FEE} /  $days_in_month * $rest_days : 0;
+    $sum              = $rest_day_sum2; # sprintf("%.5f", $rest_day_sum1 - $rest_day_sum2);
+    #PERIOD_ALIGNMENT
+    $Dv->{TP_INFO}->{PERIOD_ALIGNMENT}=1;
+    #Compensation
+    if ($sum > 0) {
+      $payments->add($users,
+          {
+           SUM      => abs($sum),
+           METHOD   => 8,
+           DESCRIBE => "$_TARIF_PLAN: $Dv->{TP_INFO}->{NAME}",
+          }
+      );
+              
+      if ($payments->{errno}) {
+        $html->message('err', $_ERROR, "[$payments->{errno}] $err_strs{$payments->{errno}}");
+      }
+      else {
+    	  $message .= "$_RECALCULATE\n$_RETURNED: ". sprintf("%.2f", abs($sum))."\n";
+      }
+    }
+  }
+
 
   #Get month fee
-  if ($Dv->{TP_INFO}->{MONTH_FEE} > 0) {
-    
+  if ($Dv->{TP_INFO}->{MONTH_FEE} > 0) {    
     my $sum   = $Dv->{TP_INFO}->{MONTH_FEE};
     my $users = Users->new($db, $admin, \%conf);
     my $user  = $users->info($Dv->{UID});
@@ -7113,10 +7086,6 @@ sub dv_get_month_fee {
               FEES_METHOD=>$FEES_METHODS{$Dv->{TP_INFO}->{FEES_METHOD}},
             );
 
-
-    #Current Month
-    my ($y, $m, $d) = split(/-/, $DATE, 3);
-
     my ($active_y, $active_m, $active_d) = split(/-/, $Dv->{ACCOUNT_ACTIVATE} || $users->{ACTIVATE}, 3);
 
     if (int("$y$m$d") < int("$active_y$active_m$active_d")) {
@@ -7124,8 +7093,7 @@ sub dv_get_month_fee {
     }
 
     if ($Dv->{TP_INFO}->{PERIOD_ALIGNMENT} && !$Dv->{TP_INFO}->{ABON_DISTRIBUTION}) {
-      #$message = "$_MONTH_ALIGNMENT, ";
-      my $days_in_month = ($m != 2 ? (($m % 2) ^ ($m > 7)) + 30 : (!($y % 400) || !($y % 4) && ($y % 25) ? 29 : 28));
+      $message .= "$_MONTH_ALIGNMENT, ";
 
       if ($Dv->{ACCOUNT_ACTIVATE} && $Dv->{ACCOUNT_ACTIVATE} ne '0000-00-00') {
         $days_in_month = ($active_m != 2 ? (($active_m % 2) ^ ($active_m > 7)) + 30 : (!($active_y % 400) || !($active_y % 4) && ($active_y % 25) ? 29 : 28));
@@ -7133,7 +7101,7 @@ sub dv_get_month_fee {
       }
       $conf{START_PERIOD_DAY} = 1 if (!$conf{START_PERIOD_DAY});
       my $calculation_days = ($d < $conf{START_PERIOD_DAY}) ? $conf{START_PERIOD_DAY} - $d : $days_in_month - $d + $conf{START_PERIOD_DAY};
-      
+
       $sum = sprintf("%.2f", ($sum / $days_in_month) * $calculation_days);
     }
 
