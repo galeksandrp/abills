@@ -70,11 +70,11 @@ sub docs_receipt_list {
   @WHERE_RULES = ("d.id=o.receipt_id");
 
   push @WHERE_RULES, @{ $self->search_expr_users({ %$attr, 
-  	                         EXT_FIELDS => [
-  	                                        'PHONE',
-  	                                        'EMAIL',
-  	                                        'ADDRESS_FLAT',
-  	                                        'PASPORT_DATE',
+                             EXT_FIELDS => [
+                                            'PHONE',
+                                            'EMAIL',
+                                            'ADDRESS_FLAT',
+                                            'PASPORT_DATE',
                                             'PASPORT_NUM', 
                                             'PASPORT_GRANT',
                                             'CITY', 
@@ -96,7 +96,7 @@ sub docs_receipt_list {
                                             'ACTIVATE',
                                             'EXPIRE',
 
-  	                                         ] }) };
+                                             ] }) };
 
   
   if ($attr->{CUSTOMER}) {
@@ -134,7 +134,7 @@ sub docs_receipt_list {
 
   if ($attr->{FULL_INFO}) {
     $self->{SEARCH_FIELDS} = ",
- 	 pi.address_street,
+    pi.address_street,
    pi.address_build,
    pi.address_flat,
    if (d.phone<>0, d.phone, pi.phone),
@@ -500,7 +500,7 @@ sub invoices2payments_list {
   }
 
   if ($attr->{UID}) {
-  	push @WHERE_RULES, @{ $self->search_expr($attr->{UID}, 'INT', 'p.uid') };
+    push @WHERE_RULES, @{ $self->search_expr($attr->{UID}, 'INT', 'p.uid') };
   }
 
   if ($attr->{FROM_DATE}) {
@@ -509,14 +509,14 @@ sub invoices2payments_list {
 
 
   $WHERE = ($#WHERE_RULES > -1) ? 'WHERE ' . join(' and ', @WHERE_RULES) : '';
-	$self->query($db, "SELECT p.id AS payment_id, p.date, p.dsc, 
-  	  p.sum AS payment_sum, 
-  	  i2p.sum AS invoiced_sum, 
-  	  i2p.invoice_id, 
-  	  p.uid,
-  	  p.amount,
-  	  d.invoice_num
- 	  
+  $self->query($db, "SELECT p.id AS payment_id, p.date, p.dsc, 
+      p.sum AS payment_sum, 
+      i2p.sum AS invoiced_sum, 
+      i2p.invoice_id, 
+      p.uid,
+      p.amount,
+      d.invoice_num
+     
 from payments p
 LEFT JOIN docs_invoice2payments i2p ON (p.id=i2p.payment_id)
 LEFT JOIN docs_invoices d ON (d.id=i2p.invoice_id)
@@ -546,11 +546,11 @@ sub invoices_list {
   @WHERE_RULES = ();
 
   push @WHERE_RULES, @{ $self->search_expr_users({ %$attr, 
-  	                         EXT_FIELDS => [
-  	                                        'PHONE',
-  	                                        'EMAIL',
-  	                                        'ADDRESS_FLAT',
-  	                                        'PASPORT_DATE',
+                             EXT_FIELDS => [
+                                            'PHONE',
+                                            'EMAIL',
+                                            'ADDRESS_FLAT',
+                                            'PASPORT_DATE',
                                             'PASPORT_NUM', 
                                             'PASPORT_GRANT',
                                             'CITY', 
@@ -572,7 +572,7 @@ sub invoices_list {
                                             'ACTIVATE',
                                             'EXPIRE',
 
-  	                                         ] }) };
+                                             ] }) };
 
   if ($SORT == 1 && ! $attr->{DESC}) {
     $SORT = "2 DESC, 1";
@@ -580,19 +580,19 @@ sub invoices_list {
   }
 
   if ($attr->{UNINVOICED}) {
-  	my $WHERE = '';
-  	
-  	if ($attr->{PAYMENT_ID}) {
-  		$WHERE = "AND p.id='$attr->{PAYMENT_ID}'";
-  	}
-  	
-  	$self->query($db, "SELECT p.id, p.date, p.dsc, 
-  	  p.sum AS payment_sum, 
-  	  sum(i2p.sum) AS invoiced_sum, 
-  	  if (i2p.sum IS NULL, p.sum, p.sum - sum(i2p.sum)) AS remains,
-  	  i2p.invoice_id, 
-  	  p.uid
-  	  
+    my $WHERE = '';
+    
+    if ($attr->{PAYMENT_ID}) {
+      $WHERE = "AND p.id='$attr->{PAYMENT_ID}'";
+    }
+    
+    $self->query($db, "SELECT p.id, p.date, p.dsc, 
+      p.sum AS payment_sum, 
+      sum(i2p.sum) AS invoiced_sum, 
+      if (i2p.sum IS NULL, p.sum, p.sum - sum(i2p.sum)) AS remains,
+      i2p.invoice_id, 
+      p.uid
+      
 from payments p
 LEFT JOIN docs_invoice2payments i2p ON (p.id=i2p.payment_id)
 WHERE p.uid='$attr->{UID}' 
@@ -634,7 +634,7 @@ $WHERE
   }
 
   if ($attr->{REPRESENTATIVE}) {
-  	push @WHERE_RULES, @{ $self->search_expr($attr->{REPRESENTATIVE}, 'STR', 'c.representative', { EXT_FIELD => 1 }) };
+    push @WHERE_RULES, @{ $self->search_expr($attr->{REPRESENTATIVE}, 'STR', 'c.representative', { EXT_FIELD => 1 }) };
   }
 
   if ($attr->{COMPANY_ID}) {
@@ -650,14 +650,14 @@ $WHERE
   }
 
   if ($attr->{UNPAIMENT}) {
-  	my $st = '<>';
-  	if ($attr->{UNPAIMENT} == 2) {
-  		    push @WHERE_RULES, "(
+    my $st = '<>';
+    if ($attr->{UNPAIMENT} == 2) {
+          push @WHERE_RULES, "(
        ( (SELECT sum(sum) FROM  docs_invoice2payments WHERE invoice_id=d.id)
        =
         (SELECT sum(orders.counts*orders.price) FROM docs_invoice_orders orders WHERE orders.invoice_id=d.id)))" . (( $attr->{ID} ) ? "d.id='$attr->{ID}'" : '');
-  	}
-  	else {
+    }
+    else {
       push @WHERE_RULES, "(i2p.sum IS NULL OR 
        ( (SELECT sum(sum) FROM  docs_invoice2payments WHERE invoice_id=d.id)
        <>
@@ -673,7 +673,7 @@ $WHERE
   my $EXT_TABLES  = $self->{EXT_TABLES};
   if ($attr->{FULL_INFO}) {
     $self->{SEARCH_FIELDS} .= "
- 	 pi.address_street,
+    pi.address_street,
    pi.address_build,
    pi.address_flat,
    if (d.phone<>0, d.phone, pi.phone) AS phone,
@@ -768,8 +768,8 @@ $WHERE
     );
     
     foreach my $line ( @{  $self->{list} } ) {
-    	if (ref $line eq 'HASH') {
-        push @{ $self->{ORDERS}{int($line->{invoice_id})} }, $line;	
+      if (ref $line eq 'HASH') {
+        push @{ $self->{ORDERS}{int($line->{invoice_id})} }, $line;  
       }
     }
   }
@@ -948,7 +948,7 @@ sub invoice_add {
   $DATA{PAYMENT_ID} = 0  if (!$DATA{PAYMENT_ID});
   
   if (! $attr->{IDS} && $DATA{SUM}) {
-  	$attr->{IDS}    = 1;
+    $attr->{IDS}    = 1;
     $DATA{SUM_1}    = $DATA{SUM} || 0;
     $DATA{COUNTS_1} = (!$DATA{COUNTS}) ?  1 : $DATA{COUNTS};
     $DATA{UNIT_1}   = (!$DATA{UNIT}) ? 0 : $DATA{UNIT};
@@ -983,7 +983,7 @@ sub invoice_add {
         next if (! $id);
         
         if (! $DATA{ 'ORDER_' . $id } && $DATA{ 'SUM_' . $id } == 0) {
-          next;	
+          next;  
         }
 
         $DATA{ 'COUNTS_' . $id } = 1 if (!$DATA{ 'COUNTS_' . $id });
@@ -1023,7 +1023,7 @@ sub invoice_del {
   if ($id == 0 && $attr->{UID}) {
   }
   else {
-  	$self->query($db, "SELECT invoice_num, uid FROM docs_invoices WHERE id='$id'", undef, { INFO => 1 });
+    $self->query($db, "SELECT invoice_num, uid FROM docs_invoices WHERE id='$id'", undef, { INFO => 1 });
     $self->query($db, "DELETE FROM docs_invoice2payments WHERE invoice_id='$id'", 'do');
     $self->query($db, "DELETE FROM docs_invoice_orders WHERE invoice_id='$id'", 'do');
     $self->query($db, "DELETE FROM docs_invoices WHERE id='$id'", 'do');
@@ -1376,7 +1376,7 @@ sub tax_invoice_add {
 
     foreach my $id (@ids_arr) {
       if (! $DATA{ 'ORDER_' . $id } && $DATA{ 'SUM_' . $id } == 0) {
-        next;	
+        next;  
       }
 
       $DATA{ 'COUNTS_' . $id } = 1 if (!$DATA{ 'COUNTS_' . $id });      
@@ -1840,11 +1840,11 @@ sub user_list {
   my @WHERE_RULES = ( "u.uid = service.uid" );
 
   push @WHERE_RULES, @{ $self->search_expr_users({ %$attr, 
-  	                         EXT_FIELDS => [
-  	                                        'PHONE',
-  	                                        'EMAIL:skip',
-  	                                        'ADDRESS_FLAT',
-  	                                        'PASPORT_DATE',
+                             EXT_FIELDS => [
+                                            'PHONE',
+                                            'EMAIL:skip',
+                                            'ADDRESS_FLAT',
+                                            'PASPORT_DATE',
                                             'PASPORT_NUM', 
                                             'PASPORT_GRANT',
                                             'CITY', 
@@ -1866,7 +1866,7 @@ sub user_list {
                                             'ACTIVATE',
                                             'EXPIRE',
 
-  	                                         ] }) };
+                                             ] }) };
 
   if ($attr->{COMMENTS}) {
     push @WHERE_RULES, @{ $self->search_expr($attr->{COMMENTS}, 'INT', 'service.comments AS service_comments', { EXT_FIELD => 1 }) };
@@ -1897,7 +1897,7 @@ sub user_list {
   }
 
   if ($attr->{PRE_INVOICE_DATE}) {
-  	if ($attr->{PRE_INVOICE_DATE} =~ /(\d{4}-\d{2}-\d{2})\/(\d{4}-\d{2}-\d{2})/) {
+    if ($attr->{PRE_INVOICE_DATE} =~ /(\d{4}-\d{2}-\d{2})\/(\d{4}-\d{2}-\d{2})/) {
       my $from_date = $1;
       my $to_date   = $2;
 
@@ -1909,8 +1909,8 @@ sub user_list {
       OR ( u.activate<>'0000-00-00'
            AND service.invoice_date + INTERVAL 30*service.invoicing_period+service.invoicing_period-1 DAY - INTERVAL $CONF->{DOCS_PRE_INVOICE_PERIOD} day>='$from_date' 
            AND service.invoice_date + INTERVAL 30*service.invoicing_period+service.invoicing_period-1 DAY - INTERVAL $CONF->{DOCS_PRE_INVOICE_PERIOD} day<='$to_date' 
-      ))";  		
-  	}
+      ))";      
+    }
     else {
       push @WHERE_RULES, "((u.activate='0000-00-00' AND service.invoice_date + INTERVAL service.invoicing_period MONTH - INTERVAL $CONF->{DOCS_PRE_INVOICE_PERIOD} day='$attr->{PRE_INVOICE_DATE}') 
       OR (u.activate<>'0000-00-00' AND service.invoice_date + INTERVAL 30*service.invoicing_period+service.invoicing_period DAY   - INTERVAL $CONF->{DOCS_PRE_INVOICE_PERIOD} day='$attr->{PRE_INVOICE_DATE}'))";

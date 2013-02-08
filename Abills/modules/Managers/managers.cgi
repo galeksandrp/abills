@@ -128,14 +128,14 @@ if ($FORM{qindex} || $FORM{xml} || $FORM{csv} || $FORM{xls} || $FORM{print}) {
   elsif($FORM{csv} || $FORM{xls}) {
     $LIST_PARAMS{PAGE_ROWS}=100000000;
     if ($FORM{header} && $FORM{xls}) {
-    	print $html->header();
+      print $html->header();
     }
   }
   elsif ($FORM{print}) {
-  	print $html->header();
+    print $html->header();
   }
   else {
-  	print "Content-Type: text/plain\n\n";
+    print "Content-Type: text/plain\n\n";
   }
 }
 else {
@@ -143,31 +143,31 @@ else {
 }
 
 if ($aid > 0) {
-	$admin->{SESSION_IP} = $admin->{IP};
-	$users       = Users->new($db, $admin, \%conf);
+  $admin->{SESSION_IP} = $admin->{IP};
+  $users       = Users->new($db, $admin, \%conf);
   $Dv          = Dv->new($db, $admin, \%conf);
   $Tariffs     = Tariffs->new($db, \%conf, $admin);
-	$Payments    = Finance->payments($db, $admin, \%conf);
+  $Payments    = Finance->payments($db, $admin, \%conf);
 
 if ($FORM{print}) {
-  	if ($FORM{INVOICE_ID}) {
-  	  load_module('Docs');
-  	  print docs_invoice();
-  	}
-  	elsif($FORM{RECEIPT_ID}) {
-  		load_module('Docs');
-  		print docs_receipt_list();
-  	}
+    if ($FORM{INVOICE_ID}) {
+      load_module('Docs');
+      print docs_invoice();
+    }
+    elsif($FORM{RECEIPT_ID}) {
+      load_module('Docs');
+      print docs_receipt_list();
+    }
     elsif ($FORM{PRINT_CONTRACT}) {
-  		load_module('Docs');
+      load_module('Docs');
       print docs_contract({%$Dv});
     }
     elsif($FORM{REGISTRATION_INFO}) {
-    	load_module('Dv');
-    	print dv_user();
+      load_module('Dv');
+      print dv_user();
     }
-  	
-  	exit;
+    
+    exit;
 }
 
   if ($FORM{SHOW_REPORT}) {
@@ -327,23 +327,23 @@ sub form_main {
 #
 #**********************************************************
 sub reports_tp_change {
-	my ($attr) = @_;
+  my ($attr) = @_;
 
   my %TP_LIST = ();
   
   my $list = $Tariffs->list({ MODULE => 'Dv' });
   foreach my $line (@$list) {
-  	$TP_LIST{$line->[0]}=$line->[1];
+    $TP_LIST{$line->[0]}=$line->[1];
   }
   
-	
-	my $list = $admin->action_list({ %LIST_PARAMS,
-		   MODULE       => 'Dv',
-		   TYPE         => 3,
-		   CONTRACT_ID  => '_SHOW',
-		   FIO          => '_SHOW',
-		   SHOW_ADDRESS => 1,
-		   COLS_NAME    => 1 
+  
+  my $list = $admin->action_list({ %LIST_PARAMS,
+       MODULE       => 'Dv',
+       TYPE         => 3,
+       CONTRACT_ID  => '_SHOW',
+       FIO          => '_SHOW',
+       SHOW_ADDRESS => 1,
+       COLS_NAME    => 1 
   });
 
   
@@ -373,9 +373,9 @@ sub reports_tp_change {
   }
 
   if ($FORM{xml} || $FORM{csv} || $FORM{xls}) {
-  	print $html->{OUTPUT};
-  	print $table->show({ OUTPUT2RETURN => 1 });
-  	return 0;
+    print $html->{OUTPUT};
+    print $table->show({ OUTPUT2RETURN => 1 });
+    return 0;
   }
   else {
     print $table->show();
@@ -398,14 +398,14 @@ sub form_reports {
       'SHOW_REPORT',
       {
         SELECTED => $FORM{SHOW_REPORT},
-        SEL_HASH => { 		'users_total'             => "Всего учетных записей",
-		'mounth_contracts_added'  => "Всего заключено договоров ($month_name $y)",
-		'mounth_contracts_deleted'=> "Всего расторгнуто договоров ($month_name $y)",
-		'mounth_disabled_users'   => "Всего временно отключившихся ($month_name $y)",
-		'mounth_total_debtors'    => "не оплативших текущий месяц",
-		'total_debtors'           => "не оплативших 2 и более месяцев",
-		'tp_change'               => "Переходы тарифных планов",
-		'flp_payments'            => "$_PAYMENTS"
+        SEL_HASH => {     'users_total'             => "Всего учетных записей",
+    'mounth_contracts_added'  => "Всего заключено договоров ($month_name $y)",
+    'mounth_contracts_deleted'=> "Всего расторгнуто договоров ($month_name $y)",
+    'mounth_disabled_users'   => "Всего временно отключившихся ($month_name $y)",
+    'mounth_total_debtors'    => "не оплативших текущий месяц",
+    'total_debtors'           => "не оплативших 2 и более месяцев",
+    'tp_change'               => "Переходы тарифных планов",
+    'flp_payments'            => "$_PAYMENTS"
                      },
         NO_ID    => 1
       }
@@ -419,7 +419,7 @@ sub form_reports {
   }
   elsif ($FORM{SHOW_REPORT} eq 'tp_change') {
     return reports_tp_change();
-  	return 0;
+    return 0;
   }
 
   form_reports_main();
@@ -487,9 +487,9 @@ sub form_reports {
   $html->{OUTPUT} .= $result_table;
   
   if ($FORM{xml} || $FORM{csv} || $FORM{xls}) {
-  	print $html->{OUTPUT};
-  	print $table->show({ OUTPUT2RETURN => 1 });
-  	return 0;
+    print $html->{OUTPUT};
+    print $table->show({ OUTPUT2RETURN => 1 });
+    return 0;
   }
 }
 
@@ -1738,14 +1738,14 @@ sub dv_users {
     my ($to_year,   $to_month,   $to_day) = ($from_year, $from_month, $from_day); 
     
     if ($FORM{BLOCK_PERIOD}) {
-    	$from_day = '01';
-    	$to_day   = '01';
+      $from_day = '01';
+      $to_day   = '01';
       for(my $i=0; $i<int($FORM{BLOCK_PERIOD}); $i++) {
-    	  $to_month++;
-    	  if ($to_month > 12) {
-    		  $to_year++;
-    		  $to_month=01;
-    	  }
+        $to_month++;
+        if ($to_month > 12) {
+          $to_year++;
+          $to_month=01;
+        }
       }
       $to_month = sprintf("%.2d",  $to_month),
       $FORM{TO_DATE}="$to_year-$to_month-$to_day";
@@ -1834,21 +1834,21 @@ sub dv_users {
     }
     elsif ($FORM{TYPE} eq 'address') {
       $LIST_PARAMS{MANAGERS}       = 1;
-    	if (! $FORM{QUERY}) {
+      if (! $FORM{QUERY}) {
 
-    	}
-    	elsif ($FORM{QUERY}=~/^\d+/) {
-    		$FORM{QUERY}="*$FORM{QUERY}*";
-    	}
-    	elsif ($FORM{QUERY}=~/(.+)(\d+)\/(\d+)/) {
-    		$FORM{QUERY} = "$1$2/$3";
-    	}
-    	else {
-    		$FORM{QUERY}=~s/ /\*/g;
-    		$FORM{QUERY}.='*';
       }
-    	
-    	$LIST_PARAMS{ADDRESS_FULL}=$FORM{QUERY};
+      elsif ($FORM{QUERY}=~/^\d+/) {
+        $FORM{QUERY}="*$FORM{QUERY}*";
+      }
+      elsif ($FORM{QUERY}=~/(.+)(\d+)\/(\d+)/) {
+        $FORM{QUERY} = "$1$2/$3";
+      }
+      else {
+        $FORM{QUERY}=~s/ /\*/g;
+        $FORM{QUERY}.='*';
+      }
+      
+      $LIST_PARAMS{ADDRESS_FULL}=$FORM{QUERY};
     }
     elsif ($FORM{TYPE} eq 'contract_id') {
       $LIST_PARAMS{CONTRACT_ID} = "$FORM{QUERY}*";
@@ -1868,10 +1868,10 @@ sub dv_users {
 
     $pages_qs .= "&TYPE=$FORM{TYPE}&QUERY=$FORM{QUERY}";
     $list = $Dv->list({ %LIST_PARAMS, 
-    	                  COLS_NAME       => 1, 
-    	                  DELETED         => 0,
-    	                  BUILD_DELIMITER => '/' 
-    	                });
+                        COLS_NAME       => 1, 
+                        DELETED         => 0,
+                        BUILD_DELIMITER => '/' 
+                      });
 
     if ($Dv->{errno}) {
       $html->message('err', $_ERROR, "[$Dv->{errno}] $err_strs{$Dv->{errno}}");
@@ -1911,7 +1911,7 @@ sub dv_users {
 
     $content = $html->tpl_show(_include('managers_main_content', 'Managers'), {%OUTPUT});
     if ($FORM{xml} || $FORM{csv} || $FORM{xls} ) {
-    	print $OUTPUT{RESULT_TABLE};
+      print $OUTPUT{RESULT_TABLE};
     }
     return 0;
   }
@@ -1958,7 +1958,7 @@ sub dv_users {
   }
   elsif ($FORM{change}) {
     if ($FORM{change} == 2) {
-    	$FORM{STATUS} = 0;
+      $FORM{STATUS} = 0;
     }
     
     my @uids_arr = split(/, /, $FORM{UID});
@@ -1980,7 +1980,7 @@ sub dv_users {
       $html->message('info', "Internet", "$_CHANGED");
       return 0 if ($attr->{REGISTRATION});
       if (defined($FORM{STATUS})) {
-    	  return 0;
+        return 0;
       }
     }
   }
@@ -2122,7 +2122,7 @@ sub dv_users {
           $value = $html->color_mark($service_status[ $line->{action} ], $service_status_colors[ $line->{action} ]);
         }
         elsif ($line->{type} eq 'tp') {
-        	$value = $line->{action};
+          $value = $line->{action};
         }
 
         $table->addrow($line->{id}, 
@@ -2142,7 +2142,7 @@ sub dv_users {
       });
 
     if ($admin->{TOTAL} > 0) {
-    	my @service_status = ("$_ENABLE", "$_DISABLE", "$_NOT_ACTIVE", "$_HOLD_UP", "$_DISABLE: $_NON_PAYMENT", "$ERR_SMALL_DEPOSIT");
+      my @service_status = ("$_ENABLE", "$_DISABLE", "$_NOT_ACTIVE", "$_HOLD_UP", "$_DISABLE: $_NON_PAYMENT", "$ERR_SMALL_DEPOSIT");
 
       my %action_types = (
     0  => 'Unknown',
@@ -2169,8 +2169,8 @@ sub dv_users {
     28 => "$_SHEDULE $_DELETED",
     31 => "$_CARDS $_USED"
      );
-    	
-    	
+      
+      
       $table = $html->table(
         {
           width       => '100%',
@@ -2346,8 +2346,8 @@ sub dv_wizard_user {
   my %add_values = ();
   
   if ($FORM{add}) {
-  	$html->{OUTPUT}='<center>';
-  	$db->{AutoCommit} = 0;
+    $html->{OUTPUT}='<center>';
+    $db->{AutoCommit} = 0;
     foreach my $k (sort %FORM) {
       if ($k =~ m/^[0-9]+\.[_a-zA-Z0-9]+$/) {
         $k =~ s/%22//g;
@@ -2504,7 +2504,7 @@ sub dv_wizard_user {
         $Dv->add({ UID => $UID, %{ $add_values{4} } });
         if ($Dv->{errno}) {
           if ($Dv->{errno} == 15) {
-          	$html->message('err', "Dv:$_ERROR", "Dv Modules $ERR_SMALL_DEPOSIT");
+            $html->message('err', "Dv:$_ERROR", "Dv Modules $ERR_SMALL_DEPOSIT");
           }
           else {
             $html->message('err', "Dv:$_ERROR", "Dv Modules [$Dv->{errno}] $err_strs{$Dv->{errno}}");
@@ -2513,10 +2513,10 @@ sub dv_wizard_user {
           return 0;
         }
         else {
-        	if (!$FORM{STATUS}) {
-     	      $Dv->info($UID);
-          	load_module('Dv');
-            dv_get_month_fee($Dv);       	
+          if (!$FORM{STATUS}) {
+             $Dv->info($UID);
+            load_module('Dv');
+            dv_get_month_fee($Dv);         
           }
         }
       }
@@ -2617,7 +2617,7 @@ sub form_payments () {
   my $payments = Finance->payments($db, $admin, \%conf);
   
   if ($FORM{UID}) {
-  	$LIST_PARAMS{UID}=$FORM{UID};
+    $LIST_PARAMS{UID}=$FORM{UID};
   }
   
   $FORM{INVOICE_ID}='create';

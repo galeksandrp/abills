@@ -428,8 +428,8 @@ sub element {
   my $params = '';
   if (ref $attr eq 'HASH') {
     while(my($k, $v)=each %$attr) {
-    	$params .= "$k='$v' ";
-    }	
+      $params .= "$k='$v' ";
+    }  
   }
 
   $self->{FORM_INPUT} = "<$name $params>$value</$name>";
@@ -1098,14 +1098,14 @@ sub table {
       
     eval { require Spreadsheet::WriteExcel; };
     if (!$@) {
-    	push @export_formats, 'xls';
+      push @export_formats, 'xls';
     }      
 
     foreach my $export_name ( @export_formats ) {
-    	$params = "&$export_name=1";
-    	#if ($export_name eq 'xls') {
-    		$params .= "&PAGE_ROWS=1000000";
-    	#}
+      $params = "&$export_name=1";
+      #if ($export_name eq 'xls') {
+        $params .= "&PAGE_ROWS=1000000";
+      #}
       $self->{EXPORT_OBJ} .= ' ' . $self->button("$export_name", "qindex=$index$attr->{qs}&pg=$PG&sort=$SORT&desc=$DESC&EXPORT_CONTENT=$attr->{ID}&header=1$params", { ex_params => 'target=\'export\'', IMG_BUTTON => '/img/button_'. $export_name .'.png' });
     }
 
@@ -1117,8 +1117,8 @@ sub table {
   }
 
   if ($attr->{header}) {
-  	if (ref $attr->{header} eq 'ARRAY') {
-  	  $attr->{header}=$self->table_header($attr->{header});
+    if (ref $attr->{header} eq 'ARRAY') {
+      $attr->{header}=$self->table_header($attr->{header});
     }
 
     push @header_obj, $attr->{header};
@@ -1316,16 +1316,16 @@ sub table_header {
   my $header = '';
   
   foreach my $element ( @{ $header_arr } ) {
-  	my ($name, $url)= split(/:/, $element, 2);
-  	#$header .= ' <li>';
-  	$header .= ' ';
-  	if ($url) {
-  	  $header .= $self->button($name, $url, { BUTTON => 1 });
-  	}
-  	else {
-  		$header .= $self->b($name);
-  	}
-  	#$header .= '</li>';
+    my ($name, $url)= split(/:/, $element, 2);
+    #$header .= ' <li>';
+    $header .= ' ';
+    if ($url) {
+      $header .= $self->button($name, $url, { BUTTON => 1 });
+    }
+    else {
+      $header .= $self->b($name);
+    }
+    #$header .= '</li>';
   }
 
   return $header;
@@ -1528,8 +1528,8 @@ sub message {
 my $output = qq{
 <br>
 <div id=info_message>
-	<div class=$class>$caption</div>
-	<div>$img $message</div>	
+  <div class=$class>$caption</div>
+  <div>$img $message</div>  
 </div>
 <br>
 };
@@ -1630,9 +1630,9 @@ sub pages {
 </div>
 <div id="buttonJumpMenu">
     <div id='pageJumpWindow'>
-    	<h2>Перейти к странице:</h2>
-    	<input id='pagevalue' type='text'  size='5' maxlength=3/>
-    	<button onclick="checkval('index.cgi?$argument&pg=')">OK</button>
+      <h2>Перейти к странице:</h2>
+      <input id='pagevalue' type='text'  size='5' maxlength=3/>
+      <button onclick="checkval('index.cgi?$argument&pg=')">OK</button>
     </div>
 </div>
 };
@@ -1769,17 +1769,17 @@ sub date_fld2 {
   my $result = qq{
 <script language="JavaScript" type="text/javascript">
  A_TCALCONF = {
-	'cssprefix'  : 'tcal',
-	'months'     : [$monthes],
-	'weekdays'   : [$week_days],
-	'longwdays'  : ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thirsday', 'Friday', 'Saturday'],
-	'yearscroll' : false, // show year scroller
-	'weekstart'  : 1, // first day of week: 0-Su or 1-Mo
-	'prevyear'   : 'Previous Year',
-	'nextyear'   : 'Next Year',
-	'prevmonth'  : 'Previous Month',
-	'nextmonth'  : 'Next Month',
-	'format'     : 'Y-m-d'
+  'cssprefix'  : 'tcal',
+  'months'     : [$monthes],
+  'weekdays'   : [$week_days],
+  'longwdays'  : ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thirsday', 'Friday', 'Saturday'],
+  'yearscroll' : false, // show year scroller
+  'weekstart'  : 1, // first day of week: 0-Su or 1-Mo
+  'prevyear'   : 'Previous Year',
+  'nextyear'   : 'Next Year',
+  'prevmonth'  : 'Previous Month',
+  'nextmonth'  : 'Next Month',
+  'format'     : 'Y-m-d'
 };
 </script>
 <input type=text name='$base_name' value='$date' size=$size rel='tcal' ID='$base_name' $tabindex> 
@@ -1844,10 +1844,10 @@ sub tpl_show {
       my $default   = $3;
 
       #    if ($var =~ /$\{exec:.+\}$/) {
-      #    	my $exec = $1;
-      #    	if ($exec !~ /$\/usr/abills\/\misc\/ /);
-      #    	my $exec_content = system("$1");
-      #    	$tpl =~ s/\%$var\%/$exec_content/g;
+      #      my $exec = $1;
+      #      if ($exec !~ /$\/usr/abills\/\misc\/ /);
+      #      my $exec_content = system("$1");
+      #      $tpl =~ s/\%$var\%/$exec_content/g;
       #     }
       #    els
 
@@ -1998,24 +1998,24 @@ sub make_charts {
   my $data = '<chart>' . $ex_params
 
   . '
-	<series_color>
-	  <color>00EE00</color>
-		<color>FF8844</color>
-		<color>7e6cee</color>
-		<color>BBBBFF</color>
-		<color>E8AC71</color>
-		<color>99FB5E</color>
-	 </series_color>
+  <series_color>
+    <color>00EE00</color>
+    <color>FF8844</color>
+    <color>7e6cee</color>
+    <color>BBBBFF</color>
+    <color>E8AC71</color>
+    <color>99FB5E</color>
+   </series_color>
 
   <chart_grid_h alpha="10" color="0066FF" thickness="1"  />
-	<chart_grid_v alpha="10" color="0066FF" thickness="1" />
+  <chart_grid_v alpha="10" color="0066FF" thickness="1" />
   <chart_label shadow="low" color="000000" alpha="95" size="10" position="inside" as_percentage="true" />
   <chart_border color="000000" top_thickness="1" bottom_thickness="2" left_thickness="0" right_thickness="0" />
   <chart_rect x="' . $CHART_RECT_x . '" y="' . $CHART_RECT_y . '" width="' . $CHART_RECT_width . '" height="' . $CHART_RECT_height . '" positive_color="FFFFFF" positive_alpha="40" />
   <chart_pref select="true" />
 
-	<axis_category font="arial" bold="1" size="11" color="000000" alpha="50" skip="' . $AXIS_CATEGORY_skip . '" />
-	<axis_ticks value_ticks="" category_ticks="1" major_thickness="2" minor_thickness="1" minor_count="3" major_color="000000" minor_color="888888" position="outside" />
+  <axis_category font="arial" bold="1" size="11" color="000000" alpha="50" skip="' . $AXIS_CATEGORY_skip . '" />
+  <axis_ticks value_ticks="" category_ticks="1" major_thickness="2" minor_thickness="1" minor_count="3" major_color="000000" minor_color="888888" position="outside" />
 
   <axis_value font="arial" size="7" color="000000" alpha="75" steps="4" prefix="" suffix="' . $suffix . '" 
   decimals="0" separator="" show_min="1" orientation="diagonal_up" />
@@ -2026,17 +2026,17 @@ sub make_charts {
 
 
 
-	<draw>
-		<text layer="background" shadow="low" color="ffffff" alpha="5" size="30" x="0" y="0" width="400" height="150" >|||||||||||||||||||||||||||||||||||||||||||||||</text>
-		<text layer="background"  shadow="low" color="ffffff" alpha="5" size="30" x="0" y="140" width="400" height="150" v_align="bottom">|||||||||||||||||||||||||||||||||||||||||||||||</text>
-	</draw>
+  <draw>
+    <text layer="background" shadow="low" color="ffffff" alpha="5" size="30" x="0" y="0" width="400" height="150" >|||||||||||||||||||||||||||||||||||||||||||||||</text>
+    <text layer="background"  shadow="low" color="ffffff" alpha="5" size="30" x="0" y="140" width="400" height="150" v_align="bottom">|||||||||||||||||||||||||||||||||||||||||||||||</text>
+  </draw>
 
-	<filter>
-		<shadow id="low" distance="2" angle="45" color="0" alpha="50" blurX="5" blurY="5" />
-		<bevel id="data" angle="45" blurX="10" blurY="10" distance="3" highlightAlpha="5" highlightColor="ffffff" shadowColor="000000" shadowAlpha="50" type="full" />
-		<bevel id="bg" angle="10" blurX="20" blurY="20" distance="10" highlightAlpha="25" highlightColor="ff8888" shadowColor="8888ff" shadowAlpha="25" type="full" />
-		<glow id="glow1" color="ff88ff" alpha="75" blurX="30" blurY="30" inner="false" />
-	</filter>
+  <filter>
+    <shadow id="low" distance="2" angle="45" color="0" alpha="50" blurX="5" blurY="5" />
+    <bevel id="data" angle="45" blurX="10" blurY="10" distance="3" highlightAlpha="5" highlightColor="ffffff" shadowColor="000000" shadowAlpha="50" type="full" />
+    <bevel id="bg" angle="10" blurX="20" blurY="20" distance="10" highlightAlpha="25" highlightColor="ff8888" shadowColor="8888ff" shadowAlpha="25" type="full" />
+    <glow id="glow1" color="ff88ff" alpha="75" blurX="30" blurY="30" inner="false" />
+  </filter>
 
 
   ';
@@ -2154,7 +2154,7 @@ sub make_charts {
   $CHART_RECT_width  += 80;
   $CHART_RECT_height += 90;
   my $output = qq { 
-	
+  
 <!-- charts start -->
 <script language="javascript">AC_FL_RunContent = 0;</script>
 <script language="javascript">DetectFlashVer = 0; </script>
@@ -2171,46 +2171,46 @@ var requiredRevision     = 45;
 <script language="JavaScript" type="text/javascript">
 <!--
 if (AC_FL_RunContent == 0 || DetectFlashVer == 0) {
-	alert("This page requires AC_RunActiveContent.js.");
+  alert("This page requires AC_RunActiveContent.js.");
 } else {
-	var hasRightVersion = DetectFlashVer(requiredMajorVersion, requiredMinorVersion, requiredRevision);
-	if(hasRightVersion) { 
-		AC_FL_RunContent(
-			'codebase', 'http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=9,0,45,0',
-			'width', '$CHART_RECT_width',
-			'height', '$CHART_RECT_height',
-			'scale', 'noscale',
-			'salign', 'TL',
-			'bgcolor', '#EEEEEE',
-			'wmode', 'opaque',
-			'movie', 'charts',
-			'src', 'charts',
-			'FlashVars', 'library_path=$PATH/charts_library&xml_source=$file_xml.xml', 
-			'id', 'my_chart',
-			'name', 'my_chart',
-			'menu', 'true',
-			'allowFullScreen', 'true',
-			'allowScriptAccess','sameDomain',
-			'quality', 'high',
-			'align', 'middle',
-			'pluginspage', 'http://www.macromedia.com/go/getflashplayer',
-			'play', 'true',
-			'devicefont', 'false'
-			); 
-	} else { 
-		var alternateContent = 'This content requires the Adobe Flash Player. '
-		+ '<u><a href=http://www.macromedia.com/go/getflash/>Get Flash</a></u>.';
-		document.write(alternateContent); 
-	}
+  var hasRightVersion = DetectFlashVer(requiredMajorVersion, requiredMinorVersion, requiredRevision);
+  if(hasRightVersion) { 
+    AC_FL_RunContent(
+      'codebase', 'http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=9,0,45,0',
+      'width', '$CHART_RECT_width',
+      'height', '$CHART_RECT_height',
+      'scale', 'noscale',
+      'salign', 'TL',
+      'bgcolor', '#EEEEEE',
+      'wmode', 'opaque',
+      'movie', 'charts',
+      'src', 'charts',
+      'FlashVars', 'library_path=$PATH/charts_library&xml_source=$file_xml.xml', 
+      'id', 'my_chart',
+      'name', 'my_chart',
+      'menu', 'true',
+      'allowFullScreen', 'true',
+      'allowScriptAccess','sameDomain',
+      'quality', 'high',
+      'align', 'middle',
+      'pluginspage', 'http://www.macromedia.com/go/getflashplayer',
+      'play', 'true',
+      'devicefont', 'false'
+      ); 
+  } else { 
+    var alternateContent = 'This content requires the Adobe Flash Player. '
+    + '<u><a href=http://www.macromedia.com/go/getflash/>Get Flash</a></u>.';
+    document.write(alternateContent); 
+  }
 }
 // -->
 </script>
 <noscript>
-	<P>This content requires JavaScript.</P>
+  <P>This content requires JavaScript.</P>
 </noscript>
 <!-- charts end -->
-<br>	
-	};
+<br>  
+  };
 
   if ($attr->{OUTPUT2RETURN}) {
     return $output;

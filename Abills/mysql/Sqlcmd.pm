@@ -87,8 +87,8 @@ sub info {
     
     my $like = '';
     if ($attr->{TABLES} && $attr->{search} ) {
-    	$attr->{TABLES} =~ s/\*/\%/g;
-    	$like =  "LIKE '$attr->{TABLES}'";
+      $attr->{TABLES} =~ s/\*/\%/g;
+      $like =  "LIKE '$attr->{TABLES}'";
     }
     
     print "SHOW TABLE STATUS FROM $CONF->{dbname} $like";

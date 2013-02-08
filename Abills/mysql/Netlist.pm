@@ -42,7 +42,7 @@ sub groups_list() {
 
 
  if ($self->{errno}) {
- 	  return \@list;
+     return \@list;
   }
  
 
@@ -82,14 +82,14 @@ sub group_change {
                  COMMENTS => 'comments'
                 );   
  
-	$self->changes($admin, { CHANGE_PARAM => 'ID',
-		                TABLE        => 'netlist_groups',
-		                FIELDS       => \%FIELDS,
-		                OLD_INFO     => $self->group_info($attr->{ID}, $attr),
-		                DATA         => $attr
-		              } );
+  $self->changes($admin, { CHANGE_PARAM => 'ID',
+                    TABLE        => 'netlist_groups',
+                    FIELDS       => \%FIELDS,
+                    OLD_INFO     => $self->group_info($attr->{ID}, $attr),
+                    DATA         => $attr
+                  } );
  
-	return $self;
+  return $self;
 }
 
 #**********************************************************
@@ -98,7 +98,7 @@ sub group_change {
 sub group_del {
   my $self = shift;
   my ($id) = @_;
-  	
+    
   $self->query($db, "DELETE FROM netlist_groups WHERE id='$id';", 'do');
   
  return $self;
@@ -165,7 +165,7 @@ sub ip_list() {
    }
 
   if ($attr->{HOSTNAME}) {
-  	$attr->{HOSTNAME} =~ s/\*/\%/ig;
+    $attr->{HOSTNAME} =~ s/\*/\%/ig;
     push @WHERE_RULES, "ni.hostname LIKE '$attr->{HOSTNAME}'";
    }
 
@@ -245,37 +245,37 @@ sub ip_change {
                  GID       => 'gid',
                  STATUS    => 'status',
                  COMMENTS  => 'comments',
-                 IP				 => 'ip',
+                 IP         => 'ip',
                  DESCR     => 'descr'
                 );   
 
   if ($attr->{IDS}) {
-  	my @ids_array = split(/, /, $attr->{IDS});
-  	foreach my $a (@ids_array) {
-      $attr->{IP_NUM} = $a;	
+    my @ids_array = split(/, /, $attr->{IDS});
+    foreach my $a (@ids_array) {
+      $attr->{IP_NUM} = $a;  
       $attr->{HOSTNAME}  = gethostbyaddr(inet_aton($a), AF_INET) if ($attr->{RESOLV});
 
-	    $self->changes($admin, { CHANGE_PARAM => 'IP_NUM',
-		                           TABLE        => 'netlist_ips',
-		                           FIELDS       => \%FIELDS,
-		                           OLD_INFO     => $self->ip_info($attr->{IP_NUM}, $attr),
-		                           DATA         => $attr
-		                          } );
+      $self->changes($admin, { CHANGE_PARAM => 'IP_NUM',
+                               TABLE        => 'netlist_ips',
+                               FIELDS       => \%FIELDS,
+                               OLD_INFO     => $self->ip_info($attr->{IP_NUM}, $attr),
+                               DATA         => $attr
+                              } );
 
       return $self if ($self->{errno});
 
-  	 }
-  	return 0;
+     }
+    return 0;
    }
  
-	$self->changes($admin, { CHANGE_PARAM => 'IP_NUM',
-		                       TABLE        => 'netlist_ips',
-		                       FIELDS       => \%FIELDS,
-		                       OLD_INFO     => $self->ip_info($attr->{IP_NUM}, $attr),
-		                       DATA         => $attr
-		                      } );
+  $self->changes($admin, { CHANGE_PARAM => 'IP_NUM',
+                           TABLE        => 'netlist_ips',
+                           FIELDS       => \%FIELDS,
+                           OLD_INFO     => $self->ip_info($attr->{IP_NUM}, $attr),
+                           DATA         => $attr
+                          } );
  
-	return $self;
+  return $self;
 }
 
 #**********************************************************
@@ -284,7 +284,7 @@ sub ip_change {
 sub ip_del {
   my $self = shift;
   my ($ip) = @_;
-  	
+    
   $self->query($db, "DELETE FROM netlist_ips WHERE ip='$ip';", 'do');
   
  return $self;

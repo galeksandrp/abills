@@ -94,30 +94,30 @@ sub user_ips {
 
   if ($CONF->{IPN_STATIC_IP}) {
     $sql = "select u.uid, dv.ip, u.id AS login, 
-	   if(calls.acct_session_id, calls.acct_session_id, '') AS acct_session_id,
-	   dv.tp_id, 
-		 if (u.company_id > 0, cb.id, b.id) AS bill_id,
-		 if (c.name IS NULL, b.deposit, cb.deposit)+u.credit AS deposit,
-		 tp.payment_type,
-		 tp.octets_direction,
-		 u.reduction,
-		 u.activate,
-		 dv.netmask,
-		 dv.ip AS dv_ip,
+     if(calls.acct_session_id, calls.acct_session_id, '') AS acct_session_id,
+     dv.tp_id, 
+     if (u.company_id > 0, cb.id, b.id) AS bill_id,
+     if (c.name IS NULL, b.deposit, cb.deposit)+u.credit AS deposit,
+     tp.payment_type,
+     tp.octets_direction,
+     u.reduction,
+     u.activate,
+     dv.netmask,
+     dv.ip AS dv_ip,
      calls.acct_input_gigawords,
      calls.acct_output_gigawords,
      dv.join_service
-		 FROM (users u, dv_main dv)
-		 LEFT JOIN companies c ON (u.company_id=c.id)
-		 LEFT JOIN bills b ON (u.bill_id=b.id)
-		 LEFT JOIN bills cb ON (c.bill_id=cb.id)
-		 LEFT JOIN tarif_plans tp ON (tp.id=dv.tp_id)
-		 LEFT JOIN dv_calls calls ON (u.id=calls.user_name)
+     FROM (users u, dv_main dv)
+     LEFT JOIN companies c ON (u.company_id=c.id)
+     LEFT JOIN bills b ON (u.bill_id=b.id)
+     LEFT JOIN bills cb ON (c.bill_id=cb.id)
+     LEFT JOIN tarif_plans tp ON (tp.id=dv.tp_id)
+     LEFT JOIN dv_calls calls ON (u.id=calls.user_name)
      LEFT JOIN users_nas un ON(u.uid=un.uid)
-		 WHERE u.uid=dv.uid and u.domain_id=0
-		  and dv.ip > 0 and u.disable=0 and dv.disable=0
-		  and (un.nas_id IN ($DATA->{NAS_ID}) or un.nas_id IS NULL)
-		 GROUP BY u.uid;";
+     WHERE u.uid=dv.uid and u.domain_id=0
+      and dv.ip > 0 and u.disable=0 and dv.disable=0
+      and (un.nas_id IN ($DATA->{NAS_ID}) or un.nas_id IS NULL)
+     GROUP BY u.uid;";
   }
   elsif ($CONF->{IPN_DEPOSIT_OPERATION}) {
     $sql = "select u.uid, calls.framed_ip_address AS ip, 
@@ -647,16 +647,16 @@ sub traffic_user_get2 {
   if ($attr->{JOIN_SERVICE}) {
     my @uids_arr = ();
     if ($attr->{JOIN_SERVICE} == 1) {
-    	push @uids_arr, $uid;
-    	$attr->{JOIN_SERVICE} = $uid;
+      push @uids_arr, $uid;
+      $attr->{JOIN_SERVICE} = $uid;
     }
 
-  	$self->query($db, "SELECT uid FROM dv_main WHERE join_service='$attr->{JOIN_SERVICE}'");
+    $self->query($db, "SELECT uid FROM dv_main WHERE join_service='$attr->{JOIN_SERVICE}'");
      
     foreach my $line (@{ $self->{list} }) {
-    	push @uids_arr, $line->[0];
+      push @uids_arr, $line->[0];
     }
-      	  
+          
     $WHERE = "uid IN (". join(', ', @uids_arr) .") AND ";
   }
   else {
@@ -704,7 +704,7 @@ sub traffic_user_get2 {
   if ($self->{TOTAL} < 1) {
     $self->query(
       $db, "INSERT INTO traffic_prepaid_sum (uid, started, traffic_class, traffic_in, traffic_out)
-   	   VALUES ('$uid', $attr->{ACTIVATE}, '$attr->{TRAFFIC_ID}', '$attr->{TRAFFIC_IN}', '$attr->{TRAFFIC_OUT}')", 'do'
+        VALUES ('$uid', $attr->{ACTIVATE}, '$attr->{TRAFFIC_ID}', '$attr->{TRAFFIC_IN}', '$attr->{TRAFFIC_OUT}')", 'do'
     );
 
     $result{ $attr->{TRAFFIC_ID} }{TRAFFIC_IN}  = 0;
@@ -747,16 +747,16 @@ sub traffic_user_get {
   if ($attr->{JOIN_SERVICE}) {
     my @uids_arr = ();
     if ($attr->{JOIN_SERVICE} == 1) {
-    	push @uids_arr, $uid;
-    	$attr->{JOIN_SERVICE} = $uid;
+      push @uids_arr, $uid;
+      $attr->{JOIN_SERVICE} = $uid;
     }
 
-  	$self->query($db, "SELECT uid FROM dv_main WHERE join_service='$attr->{JOIN_SERVICE}'");
+    $self->query($db, "SELECT uid FROM dv_main WHERE join_service='$attr->{JOIN_SERVICE}'");
      
     foreach my $line (@{ $self->{list} }) {
-    	push @uids_arr, $line->[0];
+      push @uids_arr, $line->[0];
     }
-      	  
+          
     $WHERE = " uid IN (". join(', ', @uids_arr) .") AND ";
   }
   else {
@@ -1002,7 +1002,7 @@ sub unknown_add {
 
   $self->query(
     $db, "INSERT INTO ipn_unknow_ips (src_ip, dst_ip, size, nas_id, datetime)
-   	   VALUES ($from, $to, $size, $nas_id, now());", 'do'
+        VALUES ($from, $to, $size, $nas_id, now());", 'do'
   );
 
   return $self;

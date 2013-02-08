@@ -54,15 +54,15 @@ sub new {
 #
 #**********************************************************
 sub mbox_add {
-	my $self = shift;
-	my ($attr) = @_;
+  my $self = shift;
+  my ($attr) = @_;
   %DATA = $self->get_data($attr); 
-	
+  
   $DATA{ANTIVIRUS} = (defined($attr->{ANTIVIRUS})) ? 0 : 1;
   $DATA{ANTISPAM} = (defined($attr->{ANTISPAM})) ? 0 : 1;
 
-	
-	$self->query($db, "INSERT INTO mail_boxes 
+  
+  $self->query($db, "INSERT INTO mail_boxes 
     (username,  domain_id, descr, maildir, create_date, change_date, mails_limit, box_size, status, 
      uid, 
      antivirus, antispam, expire, password) values
@@ -71,44 +71,44 @@ sub mbox_add {
     '$DATA{UID}', 
     '$DATA{ANTIVIRUS}', '$DATA{ANTISPAM}', '$DATA{EXPIRE}', 
     ENCODE('$DATA{PASSWORD}', '$CONF->{secretkey}'));", 'do');
-	
-	return $self if ($self->{errno});
-	
-	$self->{MBOX_ID}=$self->{INSERT_ID};
-	
-	if ($DATA{DOMAIN_ID}) {
-	  $self->domain_info({ MAIL_DOMAIN_ID => $DATA{DOMAIN_ID} });
+  
+  return $self if ($self->{errno});
+  
+  $self->{MBOX_ID}=$self->{INSERT_ID};
+  
+  if ($DATA{DOMAIN_ID}) {
+    $self->domain_info({ MAIL_DOMAIN_ID => $DATA{DOMAIN_ID} });
    }
-	else {
+  else {
     $self->{DOMAIN}='';
-	 }
+   }
 
-	$self->{USER_EMAIL} = $DATA{USERNAME}.'@'.$self->{DOMAIN};
-	
+  $self->{USER_EMAIL} = $DATA{USERNAME}.'@'.$self->{DOMAIN};
+  
   $admin->action_add($DATA{UID}, "ADD $self->{USER_EMAIL}");
-	
-	return $self;
+  
+  return $self;
 }
 
 #**********************************************************
 #
 #**********************************************************
 sub mbox_del {
-	my $self = shift;
-	my ($id, $attr) = @_;
+  my $self = shift;
+  my ($id, $attr) = @_;
 
   if ($CONF->{DELETE_USER}) {
-  	$self->query($db, "DELETE FROM mail_boxes 
+    $self->query($db, "DELETE FROM mail_boxes 
       WHERE uid='$CONF->{DELETE_USER}';", 'do');
    }
   else {
-	  $self->query($db, "DELETE FROM mail_boxes 
+    $self->query($db, "DELETE FROM mail_boxes 
       WHERE id='$id' and uid='$attr->{UID}';", 'do');
-	 }
+   }
 
 
   $admin->action_add($attr->{UID}, "$attr->{UID}", { TYPE => 10 });
-	return $self;
+  return $self;
 }
 
 
@@ -116,43 +116,43 @@ sub mbox_del {
 #
 #**********************************************************
 sub mbox_change {
-	my $self = shift;
-	my ($attr) = @_;
+  my $self = shift;
+  my ($attr) = @_;
 
 
-	my %FIELDS = (MBOX_ID      => 'id',
-	              USERNAME     => 'username',  
-	              DOMAIN_ID    => 'domain_id',
-	              COMMENTS     => 'descr', 
-	              MAILDIR      => 'maildir', 
-	              CREATE_DATE  => 'create_date', 
-	              CHANGE_DATE  => 'change_date', 
-	              BOX_SIZE     => 'box_size',
-	              MAILS_LIMIT  => 'mails_limit',
-	              DISABLE      => 'status', 
-	              UID          => 'uid', 
-	              ANTIVIRUS    => 'antivirus', 
-	              ANTISPAM     => 'antispam',
-	              EXPIRE       => 'expire',
-	              PASSWORD     => 'password'	              
-	              );
-	
+  my %FIELDS = (MBOX_ID      => 'id',
+                USERNAME     => 'username',  
+                DOMAIN_ID    => 'domain_id',
+                COMMENTS     => 'descr', 
+                MAILDIR      => 'maildir', 
+                CREATE_DATE  => 'create_date', 
+                CHANGE_DATE  => 'change_date', 
+                BOX_SIZE     => 'box_size',
+                MAILS_LIMIT  => 'mails_limit',
+                DISABLE      => 'status', 
+                UID          => 'uid', 
+                ANTIVIRUS    => 'antivirus', 
+                ANTISPAM     => 'antispam',
+                EXPIRE       => 'expire',
+                PASSWORD     => 'password'                
+                );
+  
   $attr->{ANTIVIRUS} = (defined($attr->{ANTIVIRUS})) ? 0 : 1;
   $attr->{ANTISPAM}  = (defined($attr->{ANTISPAM})) ? 0 : 1;
   $attr->{DISABLE}   = (defined($attr->{DISABLE})) ? 1 : 0;
-	
- 	$self->changes($admin, 
- 	              { CHANGE_PARAM => 'MBOX_ID',
-	                TABLE        => 'mail_boxes',
-	                FIELDS       => \%FIELDS,
-	                OLD_INFO     => $self->mbox_info($attr),
-	                DATA         => $attr
-		              } );
+  
+   $self->changes($admin, 
+                 { CHANGE_PARAM => 'MBOX_ID',
+                  TABLE        => 'mail_boxes',
+                  FIELDS       => \%FIELDS,
+                  OLD_INFO     => $self->mbox_info($attr),
+                  DATA         => $attr
+                  } );
 
 
-	
+  
 
-	return $self;
+  return $self;
 }
 
 
@@ -164,20 +164,20 @@ sub mbox_change {
 #
 #**********************************************************
 sub defaults {
-	my $self = shift;
-	
-	return $self;
+  my $self = shift;
+  
+  return $self;
 }
 
 #**********************************************************
 #
 #**********************************************************
 sub mbox_info {
-	my $self = shift;
-	my ($attr) = @_;
-	
-	my $WHERE = ($attr->{UID}) ? "and mb.uid='$attr->{UID}'" : '';
-	
+  my $self = shift;
+  my ($attr) = @_;
+  
+  my $WHERE = ($attr->{UID}) ? "and mb.uid='$attr->{UID}'" : '';
+  
   $self->query($db, "SELECT mb.username,  mb.domain_id, md.domain, mb.descr, mb.maildir, mb.create_date, 
    mb.change_date, 
    mb.mails_limit, 
@@ -215,16 +215,16 @@ sub mbox_info {
    $self->{MBOX_ID}
   )= @{ $self->{list}->[0] };
 
-	
-	return $self;
+  
+  return $self;
 }
 
 #**********************************************************
 #
 #**********************************************************
 sub mbox_list {
-	my $self = shift;
-	my ($attr) = @_;
+  my $self = shift;
+  my ($attr) = @_;
 
  $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
  $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
@@ -234,7 +234,7 @@ sub mbox_list {
  @WHERE_RULES = ();
 
  if (defined($attr->{UID})) {
- 	  push @WHERE_RULES, "mb.uid='$attr->{UID}'";
+     push @WHERE_RULES, "mb.uid='$attr->{UID}'";
   }
  if ($attr->{FIRST_LETTER}) {
     push @WHERE_RULES, "mb.username LIKE '$attr->{FIRST_LETTER}%'";
@@ -247,15 +247,15 @@ sub mbox_list {
    push @WHERE_RULES, "u.gid='$attr->{GID}'"; 
   }
 
-	my $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
-	
-	$self->query($db, "SELECT mb.username, md.domain, u.id, mb.descr, mb.mails_limit, 
-	      mb.box_size,
-	      mb.antivirus, 
-	      mb.antispam, mb.status, 
-	      mb.create_date, mb.change_date, mb.expire, mb.maildir, 
-	      mb.uid, 
-	      mb.id
+  my $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
+  
+  $self->query($db, "SELECT mb.username, md.domain, u.id, mb.descr, mb.mails_limit, 
+        mb.box_size,
+        mb.antivirus, 
+        mb.antispam, mb.status, 
+        mb.create_date, mb.change_date, mb.expire, mb.maildir, 
+        mb.uid, 
+        mb.id
         FROM mail_boxes mb
         LEFT JOIN mail_domains md ON  (md.id=mb.domain_id)
         LEFT JOIN users u ON  (mb.uid=u.uid) 
@@ -280,27 +280,27 @@ sub mbox_list {
 #
 #**********************************************************
 sub domain_add {
-	my $self = shift;
-	my ($attr) = @_;
+  my $self = shift;
+  my ($attr) = @_;
   %DATA = $self->get_data($attr); 
-	
-	$self->query($db, "INSERT INTO mail_domains (domain, comments, create_date, change_date, status, backup_mx, transport)
+  
+  $self->query($db, "INSERT INTO mail_domains (domain, comments, create_date, change_date, status, backup_mx, transport)
            VALUES ('$DATA{DOMAIN}', '$DATA{COMMENTS}', now(), now(), '$DATA{STATUS}', '$DATA{BACKUP_MX}', '$DATA{TRANSPORT}');", 'do');
-	
-	return $self;
+  
+  return $self;
 }
 
 #**********************************************************
 #
 #**********************************************************
 sub domain_del {
-	my $self = shift;
-	my ($id) = @_;
+  my $self = shift;
+  my ($id) = @_;
 
-	$self->query($db, "DELETE FROM mail_domains 
+  $self->query($db, "DELETE FROM mail_domains 
     WHERE id='$id';", 'do');
-	
-	return $self;
+  
+  return $self;
 }
 
 
@@ -308,40 +308,40 @@ sub domain_del {
 #
 #**********************************************************
 sub domain_change {
-	my $self = shift;
-	my ($attr) = @_;
+  my $self = shift;
+  my ($attr) = @_;
 
 
-	my %FIELDS = (MAIL_DOMAIN_ID   => 'id',
-	              DOMAIN       => 'domain',
-	              COMMENTS     => 'comments', 
-	              CHANGE_DATE  => 'change_date', 
-	              DISABLE      => 'status',
-	              BACKUP_MX    => 'backup_mx',
-	              TRANSPORT    => 'transport'
-	              );
+  my %FIELDS = (MAIL_DOMAIN_ID   => 'id',
+                DOMAIN       => 'domain',
+                COMMENTS     => 'comments', 
+                CHANGE_DATE  => 'change_date', 
+                DISABLE      => 'status',
+                BACKUP_MX    => 'backup_mx',
+                TRANSPORT    => 'transport'
+                );
 
 
   $attr->{BACKUP_MX} = (! defined($attr->{BACKUP_MX})) ? 0 : 1;
- 	$self->changes($admin, { CHANGE_PARAM => 'MAIL_DOMAIN_ID',
-	                TABLE        => 'mail_domains',
-	                FIELDS       => \%FIELDS,
-	                OLD_INFO     => $self->domain_info($attr),
-	                DATA         => $attr
-		              } );
-	
-	
-	return $self;
+   $self->changes($admin, { CHANGE_PARAM => 'MAIL_DOMAIN_ID',
+                  TABLE        => 'mail_domains',
+                  FIELDS       => \%FIELDS,
+                  OLD_INFO     => $self->domain_info($attr),
+                  DATA         => $attr
+                  } );
+  
+  
+  return $self;
 }
 
 #**********************************************************
 #
 #**********************************************************
 sub domain_info {
-	my $self = shift;
-	my ($attr) = @_;
-	
-	
+  my $self = shift;
+  my ($attr) = @_;
+  
+  
   $self->query($db, "SELECT domain, comments, create_date, change_date, status, 
   backup_mx,
   transport,
@@ -363,16 +363,16 @@ sub domain_info {
    $self->{TRANSPORT},
    $self->{MAIL_DOMAIN_ID}
   ) = @{ $self->{list}->[0] };
-	
-	return $self;
+  
+  return $self;
 }
 
 #**********************************************************
 #
 #**********************************************************
 sub domain_list {
-	my $self = shift;
-	my ($attr) = @_;
+  my $self = shift;
+  my ($attr) = @_;
 
  
  $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
@@ -390,7 +390,7 @@ sub domain_list {
  my $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
 
  $self->query($db, "SELECT md.domain, md.comments, md.status, md.backup_mx, md.transport, md.create_date, 
-	    md.change_date, count(*) as mboxes, md.id
+      md.change_date, count(*) as mboxes, md.id
         FROM mail_domains md
         LEFT JOIN mail_boxes mb ON  (md.id=mb.domain_id) 
         $WHERE
@@ -416,25 +416,25 @@ sub domain_list {
 #
 #**********************************************************
 sub alias_add {
-	my $self = shift;
-	my ($attr) = @_;
+  my $self = shift;
+  my ($attr) = @_;
   %DATA = $self->get_data($attr); 
-	
-	$self->query($db, "INSERT INTO mail_aliases (address, goto,  create_date, change_date, status)
+  
+  $self->query($db, "INSERT INTO mail_aliases (address, goto,  create_date, change_date, status)
            VALUES ('$DATA{ADDRESS}', '$DATA{GOTO}', now(), now(), '$DATA{STATUS}');", 'do');
 
-	
-	return $self;
+  
+  return $self;
 }
 
 #**********************************************************
 #
 #**********************************************************
 sub alias_del {
-	my $self = shift;
-	my ($id, $attr) = @_;
-	$self->query($db, "DELETE FROM mail_aliases  WHERE id='$id';", 'do');
-	return $self;
+  my $self = shift;
+  my ($id, $attr) = @_;
+  $self->query($db, "DELETE FROM mail_aliases  WHERE id='$id';", 'do');
+  return $self;
 }
 
 
@@ -442,38 +442,38 @@ sub alias_del {
 #
 #**********************************************************
 sub alias_change {
-	my $self = shift;
-	my ($attr) = @_;
+  my $self = shift;
+  my ($attr) = @_;
 
 
-	my %FIELDS = (MAIL_ADDRESS  => 'address',
-	              GOTO          => 'goto',
-	              COMMENTS      => 'comments', 
-	              CHANGE_DATE   => 'change_date', 
-	              DISABLE       => 'status',
-	              MAIL_ALIAS_ID => 'id'
-	              );
-	
- 	$self->changes($admin, { CHANGE_PARAM => 'MAIL_ALIAS_ID',
-	                TABLE        => 'mail_aliases',
-	                FIELDS       => \%FIELDS,
-	                OLD_INFO     => $self->alias_info($attr),
-	                DATA         => $attr
-		              } );
+  my %FIELDS = (MAIL_ADDRESS  => 'address',
+                GOTO          => 'goto',
+                COMMENTS      => 'comments', 
+                CHANGE_DATE   => 'change_date', 
+                DISABLE       => 'status',
+                MAIL_ALIAS_ID => 'id'
+                );
+  
+   $self->changes($admin, { CHANGE_PARAM => 'MAIL_ALIAS_ID',
+                  TABLE        => 'mail_aliases',
+                  FIELDS       => \%FIELDS,
+                  OLD_INFO     => $self->alias_info($attr),
+                  DATA         => $attr
+                  } );
 
-	
-	
-	return $self;
+  
+  
+  return $self;
 }
 
 #**********************************************************
 #
 #**********************************************************
 sub alias_info {
-	my $self = shift;
-	my ($attr) = @_;
-	
-	
+  my $self = shift;
+  my ($attr) = @_;
+  
+  
   $self->query($db, "SELECT address,  goto, comments, create_date, change_date, status, id
    FROM mail_aliases WHERE id='$attr->{MAIL_ALIAS_ID}';");
 
@@ -491,22 +491,22 @@ sub alias_info {
    $self->{DISABLE},
    $self->{MAIL_ALIAS_ID}
   )= @{ $self->{list}->[0] };
-	
-	return $self;
+  
+  return $self;
 }
 
 #**********************************************************
 #
 #**********************************************************
 sub alias_list {
-	my $self = shift;
-	my ($attr) = @_;
+  my $self = shift;
+  my ($attr) = @_;
 
-	@WHERE_RULES = ();
-	$WHERE = '';
-	
-	$self->query($db, "SELECT ma.address, ma.goto, ma.comments, ma.status, ma.create_date, 
-	    ma.change_date, ma.id
+  @WHERE_RULES = ();
+  $WHERE = '';
+  
+  $self->query($db, "SELECT ma.address, ma.goto, ma.comments, ma.status, ma.create_date, 
+      ma.change_date, ma.id
         FROM mail_aliases ma
         $WHERE
         ORDER BY $SORT $DESC
@@ -531,34 +531,34 @@ sub alias_list {
 #
 #**********************************************************
 sub access_add {
-	my $self = shift;
-	my ($attr) = @_;
+  my $self = shift;
+  my ($attr) = @_;
   %DATA = $self->get_data($attr); 
 
   if ($DATA{MACTION} == 3) {
-  	 $DATA{FACTION} = "$access_actions[$DATA{MACTION}]:$DATA{CODE} $DATA{MESSAGE}";
+     $DATA{FACTION} = "$access_actions[$DATA{MACTION}]:$DATA{CODE} $DATA{MESSAGE}";
     }
   else {
-  	 $DATA{FACTION} = $access_actions[$DATA{MACTION}];
+     $DATA{FACTION} = $access_actions[$DATA{MACTION}];
     }
 
 
   $self->query($db, "INSERT INTO mail_access (pattern, action, status, comments, change_date)
            VALUES ('$DATA{PATTERN}', '$DATA{FACTION}', '$DATA{DISABLE}', '$DATA{COMMENTS}', now());", 'do');
 
-	return $self;
+  return $self;
 }
 
 #**********************************************************
 #
 #**********************************************************
 sub access_del {
-	my $self = shift;
-	
-	my ($id, $attr) = @_;
+  my $self = shift;
+  
+  my ($id, $attr) = @_;
 
-	$self->query($db, "DELETE FROM mail_access WHERE id='$id';", 'do');
-	return $self;
+  $self->query($db, "DELETE FROM mail_access WHERE id='$id';", 'do');
+  return $self;
 }
 
 
@@ -566,44 +566,44 @@ sub access_del {
 #
 #**********************************************************
 sub access_change {
-	my $self = shift;
-	my ($attr) = @_;
+  my $self = shift;
+  my ($attr) = @_;
 
 
-	my %FIELDS = (PATTERN      => 'pattern',
-	              ACTION       => 'action',
-	              DISABLE      => 'status',
-	              COMMENTS     => 'comments'
-	              );
-	
+  my %FIELDS = (PATTERN      => 'pattern',
+                ACTION       => 'action',
+                DISABLE      => 'status',
+                COMMENTS     => 'comments'
+                );
+  
   if ($attr->{MACTION} == 3) {
-  	 $attr->{ACTION} = "$access_actions[$attr->{MACTION}]:$attr->{CODE} $attr->{MESSAGE}";
+     $attr->{ACTION} = "$access_actions[$attr->{MACTION}]:$attr->{CODE} $attr->{MESSAGE}";
     }
   else {
-  	 $attr->{ACTION} = $access_actions[$attr->{MACTION}];
+     $attr->{ACTION} = $access_actions[$attr->{MACTION}];
     }
 
-	
- 	$self->changes($admin, { CHANGE_PARAM => 'MAIL_ACCESS_ID',
-	                TABLE        => 'mail_access',
-	                FIELDS       => \%FIELDS,
-	                OLD_INFO     => $self->access_info($attr),
-	                DATA         => $attr
-		              } );
+  
+   $self->changes($admin, { CHANGE_PARAM => 'MAIL_ACCESS_ID',
+                  TABLE        => 'mail_access',
+                  FIELDS       => \%FIELDS,
+                  OLD_INFO     => $self->access_info($attr),
+                  DATA         => $attr
+                  } );
 
-	
-	
-	return $self;
+  
+  
+  return $self;
 }
 
 #**********************************************************
 #
 #**********************************************************
 sub access_info {
-	my $self = shift;
-	my ($attr) = @_;
-	
-	
+  my $self = shift;
+  my ($attr) = @_;
+  
+  
   $self->query($db, "SELECT pattern, action, status, comments, change_date, id
    FROM mail_access WHERE pattern='$attr->{PATTERN}';");
 
@@ -620,22 +620,22 @@ sub access_info {
    $self->{CHANGE_DATE},
    $self->{MAIL_ACCESS_ID}
   )= @{ $self->{list}->[0] };
-	
-	($self->{FACTION}, $self->{CODE}, $self->{MESSAGE})=split(/:| /, $self->{FACTION}, 3);
-	
-	return $self;
+  
+  ($self->{FACTION}, $self->{CODE}, $self->{MESSAGE})=split(/:| /, $self->{FACTION}, 3);
+  
+  return $self;
 }
 
 #**********************************************************
 #
 #**********************************************************
 sub access_list {
-	my $self = shift;
-	my ($attr) = @_;
-	
-	$WHERE = '';
-	
-	$self->query($db, "SELECT pattern, action, comments, status, change_date, id
+  my $self = shift;
+  my ($attr) = @_;
+  
+  $WHERE = '';
+  
+  $self->query($db, "SELECT pattern, action, comments, status, change_date, id
         FROM mail_access
         $WHERE
         ORDER BY $SORT $DESC
@@ -659,26 +659,26 @@ sub access_list {
 #
 #**********************************************************
 sub transport_add {
-	my $self = shift;
-	my ($attr) = @_;
+  my $self = shift;
+  my ($attr) = @_;
   %DATA = $self->get_data($attr); 
 
 
   $self->query($db, "INSERT INTO mail_transport (domain, transport, comments, change_date) 
    values ('$DATA{DOMAIN}', '$DATA{TRANSPORT}', '$DATA{COMMENTS}', now());", 'do');
 
-	return $self;
+  return $self;
 }
 
 #**********************************************************
 #
 #**********************************************************
 sub transport_del {
-	my $self = shift;
-	my ($id, $attr) = @_;
+  my $self = shift;
+  my ($id, $attr) = @_;
 
-	$self->query($db, "DELETE FROM mail_transport WHERE id='$id';", 'do');
-	return $self;
+  $self->query($db, "DELETE FROM mail_transport WHERE id='$id';", 'do');
+  return $self;
 }
 
 
@@ -686,34 +686,34 @@ sub transport_del {
 #
 #**********************************************************
 sub transport_change {
-	my $self = shift;
-	my ($attr) = @_;
+  my $self = shift;
+  my ($attr) = @_;
 
 
-	my %FIELDS = (DOMAIN             => 'domain',
-	              TRANSPORT          => 'transport',
-	              COMMENTS           => 'comments',
-	              MAIL_TRANSPORT_ID  => 'id'
-	              );
-	
- 	$self->changes($admin, { CHANGE_PARAM => 'MAIL_TRANSPORT_ID',
-	                TABLE        => 'mail_transport',
-	                FIELDS       => \%FIELDS,
-	                OLD_INFO     => $self->transport_info($attr),
-	                DATA         => $attr
-		              } );
-	
-	return $self;
+  my %FIELDS = (DOMAIN             => 'domain',
+                TRANSPORT          => 'transport',
+                COMMENTS           => 'comments',
+                MAIL_TRANSPORT_ID  => 'id'
+                );
+  
+   $self->changes($admin, { CHANGE_PARAM => 'MAIL_TRANSPORT_ID',
+                  TABLE        => 'mail_transport',
+                  FIELDS       => \%FIELDS,
+                  OLD_INFO     => $self->transport_info($attr),
+                  DATA         => $attr
+                  } );
+  
+  return $self;
 }
 
 #**********************************************************
 #
 #**********************************************************
 sub transport_info {
-	my $self = shift;
-	my ($attr) = @_;
-	
-	
+  my $self = shift;
+  my ($attr) = @_;
+  
+  
   $self->query($db, "SELECT domain, transport, comments, change_date, id
    FROM mail_transport WHERE id='$attr->{MAIL_TRANSPORT_ID}';");
 
@@ -729,21 +729,21 @@ sub transport_info {
    $self->{CHANGE_DATE},
    $self->{MAIL_TRANSPORT_ID}
   )= @{ $self->{list}->[0] };
-	
-	
-	return $self;
+  
+  
+  return $self;
 }
 
 #**********************************************************
 #
 #**********************************************************
 sub transport_list {
-	my $self = shift;
-	my ($attr) = @_;
-	
-	$WHERE = '';
-	
-	$self->query($db, "SELECT domain, transport, comments, change_date, id
+  my $self = shift;
+  my ($attr) = @_;
+  
+  $WHERE = '';
+  
+  $self->query($db, "SELECT domain, transport, comments, change_date, id
         FROM mail_transport
         $WHERE
         ORDER BY $SORT $DESC
@@ -767,18 +767,18 @@ sub transport_list {
 #
 #**********************************************************
 sub spam_replace {
-	my $self = shift;
-	my ($attr) = @_;
+  my $self = shift;
+  my ($attr) = @_;
   %DATA = $self->get_data($attr); 
 
   $self->spam_del(0, { USER_NAME  => "$DATA{USER_NAME}", 
-  	                   PREFERENCE => "$DATA{PREFERENCE}"
-  	                 });
+                       PREFERENCE => "$DATA{PREFERENCE}"
+                     });
 
   $self->query($db, "INSERT INTO mail_spamassassin (username, preference, value, comments, create_date, change_date) 
    values ('$DATA{USER_NAME}', '$DATA{PREFERENCE}', '$DATA{VALUE}', '$DATA{COMMENTS}', now(), now());", 'do');
 
-	return $self;
+  return $self;
 }
 
 
@@ -786,32 +786,32 @@ sub spam_replace {
 #
 #**********************************************************
 sub spam_add {
-	my $self = shift;
-	my ($attr) = @_;
+  my $self = shift;
+  my ($attr) = @_;
   %DATA = $self->get_data($attr); 
 
   $self->query($db, "INSERT INTO mail_spamassassin (username, preference, value, comments, create_date, change_date) 
    values ('$DATA{USER_NAME}', '$DATA{PREFERENCE}', '$DATA{VALUE}', '$DATA{COMMENTS}', now(), now());", 'do');
 
-	return $self;
+  return $self;
 }
 
 #**********************************************************
 #
 #**********************************************************
 sub spam_del {
-	my $self = shift;
-	my ($id, $attr) = @_;
+  my $self = shift;
+  my ($id, $attr) = @_;
 
   if ($attr->{USER_NAME} && $attr->{PREFERENCE}) {
-  	$WHERE="username='$attr->{USER_NAME}' and preference='$attr->{PREFERENCE}'";
+    $WHERE="username='$attr->{USER_NAME}' and preference='$attr->{PREFERENCE}'";
    }
   else {
     $WHERE="prefid='$id'";
    }
    
-	$self->query($db, "DELETE FROM mail_spamassassin WHERE $WHERE;", 'do');
-	return $self;
+  $self->query($db, "DELETE FROM mail_spamassassin WHERE $WHERE;", 'do');
+  return $self;
 }
 
 
@@ -819,36 +819,36 @@ sub spam_del {
 #
 #**********************************************************
 sub spam_change {
-	my $self = shift;
-	my ($attr) = @_;
+  my $self = shift;
+  my ($attr) = @_;
 
 
-	my %FIELDS = (USER_NAME          => 'user_name',
-	              PREFERENCE         => 'preference',
-	              VALUE              => 'value',
-	              COMMENTS           => 'comments',
-	              CHANGE_DATE        => 'change_date',
-	              ID                 => 'prefid'
-	              );
-	
- 	$self->changes($admin, { CHANGE_PARAM => 'ID',
-	                TABLE        => 'mail_spamassassin',
-	                FIELDS       => \%FIELDS,
-	                OLD_INFO     => $self->spam_info($attr),
-	                DATA         => $attr
-		              } );
-	
-	return $self;
+  my %FIELDS = (USER_NAME          => 'user_name',
+                PREFERENCE         => 'preference',
+                VALUE              => 'value',
+                COMMENTS           => 'comments',
+                CHANGE_DATE        => 'change_date',
+                ID                 => 'prefid'
+                );
+  
+   $self->changes($admin, { CHANGE_PARAM => 'ID',
+                  TABLE        => 'mail_spamassassin',
+                  FIELDS       => \%FIELDS,
+                  OLD_INFO     => $self->spam_info($attr),
+                  DATA         => $attr
+                  } );
+  
+  return $self;
 }
 
 #**********************************************************
 #
 #**********************************************************
 sub spam_info {
-	my $self = shift;
-	my ($attr) = @_;
-	
-	
+  my $self = shift;
+  my ($attr) = @_;
+  
+  
   $self->query($db, "SELECT username, preference, value, comments, create_date, change_date
    FROM mail_spamassassin WHERE prefid='$attr->{ID}';");
 
@@ -865,18 +865,18 @@ sub spam_info {
    $self->{CREATE_DATE},
    $self->{CHANGE_DATE}
   )= @{ $self->{list}->[0] };
-	
-	
-	return $self;
+  
+  
+  return $self;
 }
 
 #**********************************************************
 #
 #**********************************************************
 sub spam_list {
-	my $self = shift;
-	my ($attr) = @_;
-	
+  my $self = shift;
+  my ($attr) = @_;
+  
  @WHERE_RULES = (); 
  $WHERE = '';
  
@@ -902,8 +902,8 @@ sub spam_list {
   }
 
  $WHERE = "WHERE " . join(' and ', @WHERE_RULES) if($#WHERE_RULES > -1);
-	
-	$self->query($db, "SELECT username, preference, value, comments, change_date, prefid
+  
+  $self->query($db, "SELECT username, preference, value, comments, change_date, prefid
         FROM mail_spamassassin
         $WHERE
         ORDER BY $SORT $DESC
@@ -960,8 +960,8 @@ sub spam_awl_del {
     my @selected = split(/, /, $attr->{IDS});
     
     foreach my $line (@selected) {
-    	my ($username, $email) = split(/\|/, $line, 2);
-    	$self->query($db, "DELETE FROM mail_awl WHERE username='$username' and email='$email';", 'do');
+      my ($username, $email) = split(/\|/, $line, 2);
+      $self->query($db, "DELETE FROM mail_awl WHERE username='$username' and email='$email';", 'do');
      }
    }
 
@@ -973,15 +973,15 @@ sub spam_awl_del {
 #
 #**********************************************************
 sub spam_awl_list {
-	my $self = shift;
-	my ($attr) = @_;
+  my $self = shift;
+  my ($attr) = @_;
 
  $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
  $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
  $PG = ($attr->{PG}) ? $attr->{PG} : 0;
  $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
 
-	
+  
  @WHERE_RULES = (); 
  
  if ($attr->{USER_NAME}) {
@@ -1005,7 +1005,7 @@ sub spam_awl_list {
   }
 
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES) : '';
- 	
+   
  $self->query($db, "SELECT username, email, ip, count, totscore
         FROM mail_awl
         $WHERE

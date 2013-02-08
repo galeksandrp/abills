@@ -862,7 +862,7 @@ sub tt_list {
 
     $self->query(
       $db, "SELECT tt.id, in_price, out_price, prepaid, in_speed, 
-	    out_speed, descr, tc.name, expression, tt.net_id $show_nets
+      out_speed, descr, tc.name, expression, tt.net_id $show_nets
      FROM trafic_tarifs  tt 
      LEFT JOIN  traffic_classes tc ON (tc.id=tt.net_id)
      WHERE tt.interval_id='$attr->{TI_ID}'
@@ -907,9 +907,9 @@ sub tt_info {
 
   $self->query(
     $db, "SELECT id, interval_id, in_price, out_price, prepaid, in_speed, out_speed, 
-	     descr, 
-	     net_id,
-	     expression
+       descr, 
+       net_id,
+       expression
      FROM trafic_tarifs 
      WHERE 
      interval_id='$attr->{TI_ID}'
@@ -1034,7 +1034,7 @@ sub tt_del {
 
   $self->query(
     $db, "DELETE FROM trafic_tarifs 
-	 WHERE  interval_id='$attr->{TI_ID}'  and id='$attr->{TT_ID}' ;", 'do'
+   WHERE  interval_id='$attr->{TI_ID}'  and id='$attr->{TT_ID}' ;", 'do'
   );
 
   if ($CONF->{DV_EXPPP_NETFILES} && -f "$CONF->{DV_EXPPP_NETFILES}/$attr->{TI_ID}.nets" && $attr->{NETS}) {

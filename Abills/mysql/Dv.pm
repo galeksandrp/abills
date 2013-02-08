@@ -384,11 +384,11 @@ sub list {
 
   @WHERE_RULES = ("u.uid = dv.uid");
   push @WHERE_RULES, @{ $self->search_expr_users({ %$attr, 
-  	                         EXT_FIELDS => [
-  	                                        'PHONE',
-  	                                        'EMAIL',
-  	                                        'ADDRESS_FLAT',
-  	                                        'PASPORT_DATE',
+                             EXT_FIELDS => [
+                                            'PHONE',
+                                            'EMAIL',
+                                            'ADDRESS_FLAT',
+                                            'PASPORT_DATE',
                                             'PASPORT_NUM', 
                                             'PASPORT_GRANT',
                                             'CITY', 
@@ -411,15 +411,15 @@ sub list {
                                             'EXPIRE',
                                             'DEPOSIT:skip',
                                             'DOMAIN_ID'
-  	                                         ] }) };
+                                             ] }) };
 
   if ($attr->{USERS_WARNINGS}) {
-  	my $allert_period = '';
-  	if ($attr->{ALERT_PERIOD}) {
-  	  $allert_period = "OR  (tp.month_fee > 0  AND if(u.activate='0000-00-00', 
+    my $allert_period = '';
+    if ($attr->{ALERT_PERIOD}) {
+      $allert_period = "OR  (tp.month_fee > 0  AND if(u.activate='0000-00-00', 
       datediff(DATE_FORMAT(curdate() + interval 1 month, '%Y-%m-01'), curdate()),
       datediff(u.activate + interval 30 day, curdate())) IN ($attr->{ALERT_PERIOD}))";
-  	}
+    }
 
     $WHERE = ($#WHERE_RULES > -1) ? join(' and ', @WHERE_RULES) : '';
 
@@ -486,16 +486,16 @@ sub list {
   }
 
   if ($attr->{ADDRESS_FULL}) {
-  	$attr->{BUILD_DELIMITER}=',' if (! $attr->{BUILD_DELIMITER});
-  	if ($attr->{MANAGERS}) {
+    $attr->{BUILD_DELIMITER}=',' if (! $attr->{BUILD_DELIMITER});
+    if ($attr->{MANAGERS}) {
       push @WHERE_RULES, @{ $self->search_expr("$attr->{ADDRESS_FULL}*", "STR", "CONCAT(streets.name, '', builds.number, '$attr->{BUILD_DELIMITER}', pi.address_flat)") };
-  	}
-  	elsif ($CONF->{ADDRESS_REGISTER}) {
+    }
+    elsif ($CONF->{ADDRESS_REGISTER}) {
       push @WHERE_RULES, @{ $self->search_expr("$attr->{ADDRESS_FULL}*", "STR", "CONCAT(streets.name, ' ', builds.number, '$attr->{BUILD_DELIMITER}', pi.address_flat)") };
-  	}
-  	else {
- 		  push @WHERE_RULES, @{ $self->search_expr("*$attr->{ADDRESS_FULL}*", "STR", "CONCAT(pi.address_street, ' ', pi.address_build, '$attr->{BUILD_DELIMITER}', pi.address_flat)") };
- 		}
+    }
+    else {
+       push @WHERE_RULES, @{ $self->search_expr("*$attr->{ADDRESS_FULL}*", "STR", "CONCAT(pi.address_street, ' ', pi.address_build, '$attr->{BUILD_DELIMITER}', pi.address_flat)") };
+     }
   }
 
   if ($attr->{IP}) {
@@ -527,7 +527,7 @@ sub list {
   }
 
   if ($attr->{DEPOSIT}) {
-  	push @WHERE_RULES, @{ $self->search_expr($attr->{DEPOSIT}, 'INT', 'if(u.company_id > 0, cb.deposit, b.deposit)') };
+    push @WHERE_RULES, @{ $self->search_expr($attr->{DEPOSIT}, 'INT', 'if(u.company_id > 0, cb.deposit, b.deposit)') };
   }
 
   if ($attr->{SPEED}) {
@@ -539,7 +539,7 @@ sub list {
   }
 
   if ($attr->{CID}) {
-  	$attr->{CID}=~s/[\:\-\.]/\*/g;
+    $attr->{CID}=~s/[\:\-\.]/\*/g;
     push @WHERE_RULES, @{ $self->search_expr($attr->{CID}, 'STR', 'dv.cid', { EXT_FIELD => 1 }) };
   }
 
@@ -668,11 +668,11 @@ sub report_debetors {
   
 
   @WHERE_RULES = @{ $self->search_expr_users({ %$attr, 
-  	                         EXT_FIELDS => [
-  	                                        'PHONE',
-  	                                        'EMAIL',
-  	                                        'ADDRESS_FLAT',
-  	                                        'PASPORT_DATE',
+                             EXT_FIELDS => [
+                                            'PHONE',
+                                            'EMAIL',
+                                            'ADDRESS_FLAT',
+                                            'PASPORT_DATE',
                                             'PASPORT_NUM', 
                                             'PASPORT_GRANT',
                                             'CITY', 
@@ -694,7 +694,7 @@ sub report_debetors {
                                             'ACTIVATE',
                                             'EXPIRE',
 
-  	                                         ] }) };
+                                             ] }) };
 
   my $EXT_TABLE = $self->{EXT_TABLES}; 
 
@@ -850,7 +850,7 @@ WHERE intv.begin <= DATE_FORMAT( NOW(), '%H:%i:%S' )
  AND tp.module='Dv'
  $WHERE
 AND intv.day IN (select if ( intv.day=8, 
-		(SELECT if ((select count(*) from holidays where     DATE_FORMAT( NOW(), '%c-%e' ) = day)>0, 8,
+    (SELECT if ((select count(*) from holidays where     DATE_FORMAT( NOW(), '%c-%e' ) = day)>0, 8,
                 (select if (intv.day=0, 0, (select intv.day from intervals as intv where DATE_FORMAT(NOW(), '%w')+1 = intv.day LIMIT 1))))),
         (select if (intv.day=0, 0,
                 (select intv.day from intervals as intv where DATE_FORMAT( NOW(), '%w')+1 = intv.day LIMIT 1)))))

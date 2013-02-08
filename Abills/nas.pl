@@ -105,7 +105,7 @@ sub hangup {
     #if ( $attr->{'CONNECT_INFO'}  !~ /demux/) {
     #  hangup_radius($NAS, $PORT, "$attr->{CID}", $attr);
     #}
-  	#else {
+    #else {
     #  hangup_radius($NAS, $PORT, "$USER", $attr);
     #}
     
@@ -449,22 +449,22 @@ sub hangup_radius {
   $r->load_dictionary($conf{'dictionary'});
 
   if ($attr->{SESSION_ID}) {
-  	$r->add_attributes({ Name => 'Acct-Session-Id', Value => "$attr->{SESSION_ID}" }) if ($USER);
+    $r->add_attributes({ Name => 'Acct-Session-Id', Value => "$attr->{SESSION_ID}" }) if ($USER);
   }
   else {
     $r->add_attributes({ Name => 'User-Name', Value => "$USER" }) if ($USER);
     $r->add_attributes({ Name => 'Framed-IP-Address', Value => "$attr->{FRAMED_IP_ADDRESS}" }) if ($attr->{FRAMED_IP_ADDRESS});
   
     if ($attr->{RAD_PAIRS}) {
-  	  while(my($k, $v)=each %{ $attr->{RAD_PAIRS} }) {
-  		  $r->add_attributes({ Name => "$k", Value => $v });
-  	  }
+      while(my($k, $v)=each %{ $attr->{RAD_PAIRS} }) {
+        $r->add_attributes({ Name => "$k", Value => $v });
+      }
     }
   }
   
   my $request_type = ($attr->{COA}) ? 'COA' : 'POD';
   if ($attr->{COA}) {
-  	$r->send_packet(COA_REQUEST) and $type = $r->recv_packet;
+    $r->send_packet(COA_REQUEST) and $type = $r->recv_packet;
   }
   else {
     $r->send_packet(POD_REQUEST) and $type = $r->recv_packet;
@@ -477,11 +477,11 @@ sub hangup_radius {
 
 
   for my $a ($r->get_attributes) {
-    $result .= "  $a->{'Name'} -> $a->{'Value'}\n";  	
+    $result .= "  $a->{'Name'} -> $a->{'Value'}\n";    
   }
 
   if ($attr->{DEBUG}) {
- 	  print "Radius Return: $type\n $result";
+     print "Radius Return: $type\n $result";
   }
 
   $r = undef;
@@ -522,7 +522,7 @@ sub hangup_ipcad {
 
   $Ipn->acct_stop({ %$attr, SESSION_ID => $attr->{ACCT_SESSION_ID} });
   if ($NAS->{NAS_TYPE} eq 'dhcp' || $nas_type eq 'dlink_pb' || $nas_type eq 'dlink' || $nas_type eq 'edge_core' ) {
-  	$Ipn->query($db, "DELETE FROM dhcphosts_leases WHERE ip=INET_ATON('$ip')", 'do');
+    $Ipn->query($db, "DELETE FROM dhcphosts_leases WHERE ip=INET_ATON('$ip')", 'do');
   }
 
   my $num = 0;
@@ -546,7 +546,7 @@ sub hangup_ipcad {
   }
 
   if (! $UID) {
-  	$UID=$attr->{UID};
+    $UID=$attr->{UID};
   }
 
   if ($conf{IPN_FILTER}) {

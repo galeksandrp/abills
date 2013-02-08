@@ -323,8 +323,8 @@ elsif ($FORM{payment} && $FORM{payment} =~ /pay_way/) {
   exit;
 }
 elsif($conf{'PAYSYS_YANDEX_ACCCOUNT'} && $FORM{code}) {
-	yandex();
-	exit;
+  yandex();
+  exit;
 }
 
 print "Content-Type: text/html\n\n";
@@ -342,38 +342,38 @@ print "Content-Type: text/html\n\n";
 #closedir DIR;
 #
 #for(my $i=0; $i<=$#paysys_modules; $i++) {
-#	my $paysys_module = $paysys_modules[$i];
-#	undef $system_ips;
-#	undef $systems_ident_params;
+#  my $paysys_module = $paysys_modules[$i];
+#  undef $system_ips;
+#  undef $systems_ident_params;
 #
 #  print "$paysys_module";
 #  require "$modules_dir$paysys_module";
 #
 #  my $pay_function = $paysys_module.'_payment';
 #  if (! defined(&$pay_function)) {
-#  	print "Not found" if ($debug > 2);
-#  	next;
+#    print "Not found" if ($debug > 2);
+#    next;
 #   }
 #
-#	if ($debug > 3) {
+#  if ($debug > 3) {
 #
-#	  if ($system_ips) {
-#	    my @ips = split(/,/, $system_ips);
-#	    foreach my $ip (@ips) {
-#	      $systems_ips{$ip}="$paysys_module"."_payment";
-#	     }
-#	   }
-#	  elsif (defined(%systems_ident_params)) {
-#	    while(my ($param, $function) = %systems_ident_params) {
-#	      $systemS_params{$param}="$paysys_module:$function";;
-#	     }
-#	   }
+#    if ($system_ips) {
+#      my @ips = split(/,/, $system_ips);
+#      foreach my $ip (@ips) {
+#        $systems_ips{$ip}="$paysys_module"."_payment";
+#       }
+#     }
+#    elsif (defined(%systems_ident_params)) {
+#      while(my ($param, $function) = %systems_ident_params) {
+#        $systemS_params{$param}="$paysys_module:$function";;
+#       }
+#     }
 #
-#	  if (!$@) {
-#	  	print "Loaded";
-#	   }
-#	  print "<br>\n";
-#	 }
+#    if (!$@) {
+#      print "Loaded";
+#     }
+#    print "<br>\n";
+#   }
 #}
 
 payments();
@@ -750,7 +750,7 @@ sub osmp_payments {
     $RESULT_HASH{prv_txn} = $prv_txn;
 
     my $list = $payments->list({ ID     => "$prv_txn", 
-    	                           EXT_ID => "PEGAS:*" });
+                                 EXT_ID => "PEGAS:*" });
 
     if ($payments->{errno}) {
       $RESULT_HASH{result} = 1;
@@ -831,8 +831,8 @@ sub osmp_payments {
       );
 
       cross_modules_call('_payments_maked', { USER_INFO => $user, 
-      	                                      SUM       => $FORM{sum},
-      	                                      QUITE     => 1 });
+                                              SUM       => $FORM{sum},
+                                              QUITE     => 1 });
 
       #Exists
       if ($payments->{errno} && $payments->{errno} == 7) {
@@ -1284,7 +1284,7 @@ sub osmp_payments_v4 {
 <account-number>$account_number</account-number>
 </to>
 </payment>
-	
+  
 };
 
     }
@@ -1518,30 +1518,30 @@ sub wm_payments {
 #
 #  my $checksum = wm_validate();
 #  my $info = '';
-#	my $user = $users->info($FORM{UID});
+#  my $user = $users->info($FORM{UID});
 #
-#	my @ACCOUNTS = split(/;/, $conf{PAYSYS_WEBMONEY_ACCOUNTS});
+#  my @ACCOUNTS = split(/;/, $conf{PAYSYS_WEBMONEY_ACCOUNTS});
 #
 #  if (! in_array($FORM{LMI_PAYEE_PURSE}, \@ACCOUNTS)) {
-#  	$status = 'Not valid money account';
-#  	#return 0;
+#    $status = 'Not valid money account';
+#    #return 0;
 #   }
 #  elsif (defined($FORM{LMI_MODE}) && $FORM{LMI_MODE} == 1) {
-#  	$status = 'Test mode';
-#  	#return 0;
+#    $status = 'Test mode';
+#    #return 0;
 #   }
 #  elsif (length($FORM{LMI_HASH}) != 32 ) {
-#  	$status = 'Not MD5 checksum';
+#    $status = 'Not MD5 checksum';
 #   }
 #  elsif ($FORM{LMI_HASH} ne $checksum) {
-#  	$status = "Incorect checksum '$checksum'";
+#    $status = "Incorect checksum '$checksum'";
 #   }
 #  elsif ($user->{errno}) {
-#		$status = "ERROR: $user->{errno}";
-#	 }
-#	elsif ($user->{TOTAL} < 0) {
-#		$status = "User not exist";
-#	 }
+#    $status = "ERROR: $user->{errno}";
+#   }
+#  elsif ($user->{TOTAL} < 0) {
+#    $status = "User not exist";
+#   }
 #  else {
 #    #Add payments
 #    my $er = 1;
@@ -1551,23 +1551,23 @@ sub wm_payments {
 #      my $payment_unit = 'WM'.$1;
 #      $payments->exchange_info(0, { SHORT_NAME => "$payment_unit"  });
 #      if ($payments->{TOTAL} > 0) {
-#      	$er = $payments->{ER_RATE};
+#        $er = $payments->{ER_RATE};
 #       }
 #     }
 #
 #    #my $er = ($FORM{'5.ER'}) ? $payments->exchange_info() : { ER_RATE => 1 } ;
 #    $payments->add($user, {SUM          => $FORM{LMI_PAYMENT_AMOUNT},
-#    	                     DESCRIBE     => 'Webmoney',
-#    	                     METHOD       => '2',
-#  	                       EXT_ID       => $FORM{SHOPORDERNUMBER},
-#  	                       ER           => $er
-#  	                       } );
+#                           DESCRIBE     => 'Webmoney',
+#                           METHOD       => '2',
+#                           EXT_ID       => $FORM{SHOPORDERNUMBER},
+#                           ER           => $er
+#                           } );
 #
 #    if ($payments->{errno}) {
 #      $info = "PAYMENT ERROR: $payments->{errno}\n";
 #     }
 #    else {
-#    	$status = "Added $payments->{INSERT_ID}\n";
+#      $status = "Added $payments->{INSERT_ID}\n";
 #     }
 #   }
 #
@@ -1577,9 +1577,9 @@ sub wm_payments {
 #
 #  #Info section
 #  $Paysys->add({ SYSTEM_ID      => 41,
-#  	             DATETIME       => '',
-#  	             SUM            => $FORM{SUM},
-#  	             UID            => $FORM{UID},
+#                 DATETIME       => '',
+#                 SUM            => $FORM{SUM},
+#                 UID            => $FORM{UID},
 #                 IP             => $FORM{IP},
 #                 TRANSACTION_ID => "$FORM{SHOPORDERNUMBER}",
 #                 INFO           => "STATUS, $status\n$info",
@@ -1676,7 +1676,7 @@ sub mk_log {
     close(FILE);
   }
   else {
-  	print "Content-Type: text/plain\n\n";
+    print "Content-Type: text/plain\n\n";
     print "Can't open file '$paysys_log_file' $!\n";
   }
 }
@@ -1765,7 +1765,7 @@ sub yandex () {
   my ($attr)=@_;
   my $payment_system    = $attr->{SYSTEM_SHORT_NAME} || 'Yandex';
   my $payment_system_id = $attr->{SYSTEM_ID}         || 73;
-	
+  
   print "Location: https://$ENV{SERVER_NAME}:$ENV{SERVER_PORT}/index.cgi?get_index=paysys_payment&PAYMENT_SYSTEM=$payment_system_id&code=$FORM{code}\n\n";
 }
 

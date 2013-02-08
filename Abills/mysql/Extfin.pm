@@ -143,12 +143,12 @@ sub customers_list {
   # Show groups
   if ($attr->{GIDS}) {
 
-    # 	 push @WHERE_RULES, @{ $self->search_expr($attr->{ADDRESS_BUILD}, 'STR', 'pi.address_build', { EXT_FIELD => 1 }) };
+    #    push @WHERE_RULES, @{ $self->search_expr($attr->{ADDRESS_BUILD}, 'STR', 'pi.address_build', { EXT_FIELD => 1 }) };
     push @WHERE_RULES, "u.gid IN ($attr->{GIDS})";
   }
   elsif ($attr->{GID}) {
 
-    # 	 push @WHERE_RULES, @{ $self->search_expr($attr->{ADDRESS_BUILD}, 'STR', 'pi.address_build', { EXT_FIELD => 1 }) };
+    #    push @WHERE_RULES, @{ $self->search_expr($attr->{ADDRESS_BUILD}, 'STR', 'pi.address_build', { EXT_FIELD => 1 }) };
     push @WHERE_RULES, "u.gid='$attr->{GID}'";
   }
 
@@ -804,11 +804,11 @@ sub paids_list {
   }
 
   # elsif (defined($attr->{MONTH})) {
-  # 	 push @WHERE_RULES, "date_format(p.date, '%Y-%m')='$attr->{MONTH}'";
+  #    push @WHERE_RULES, "date_format(p.date, '%Y-%m')='$attr->{MONTH}'";
   #   $date = "date_format(p.date, '%Y-%m-%d')";
   #  }
   # else {
-  # 	 $date = "date_format(p.date, '%Y-%m')";
+  #    $date = "date_format(p.date, '%Y-%m')";
   #  }
 
   my $GROUP = '';
@@ -1122,7 +1122,7 @@ sub extfin_debetors {
 
     #$self->query($db, "select uid, last_deposit-sum FROM fees WHERE date<$attr->{DATE} GROUP BY uid ORDER BY id;");
     #foreach my $line (@{ $self->{list} }) {
-    #	$deposits{$line->[0]}=$line->[1];
+    #  $deposits{$line->[0]}=$line->[1];
     # }
 
     $self->{DEPOSITS} = \%deposits;
@@ -1414,13 +1414,13 @@ sub report_users_balance {
 sub company_reports {
   my $self = shift;
   my ($attr) = @_;
-	
-	my $sql = "SELECT c.id, c.name 
-	  FROM companies c
-	  INNER JOIN users u ON (u.company_id=c.id)
-	  ";
-	
-	
+  
+  my $sql = "SELECT c.id, c.name 
+    FROM companies c
+    INNER JOIN users u ON (u.company_id=c.id)
+    ";
+  
+  
 }
 
 1

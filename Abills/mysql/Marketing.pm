@@ -734,7 +734,7 @@ sub dhcp_full_list {
   $self->{SEARCH_FIELDS_COUNT} = 0;
 
   @WHERE_RULES = @{ $self->search_expr_users({ %$attr, 
-  	                  EXT_FIELDS => [ 'UID',
+                      EXT_FIELDS => [ 'UID',
         'PHONE',
         'EMAIL',
         'ADDRESS_FLAT',

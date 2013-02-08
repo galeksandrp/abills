@@ -78,7 +78,7 @@ sub DesParity
     my ($index, $pkey);
     foreach $index (0 .. 7)
     {
-	$pkey .= pack('B*',  substr($ks, $index * 7, 7) . '0'); # parity bit is 0
+  $pkey .= pack('B*',  substr($ks, $index * 7, 7) . '0'); # parity bit is 0
     }
     return $pkey;
 }
@@ -135,7 +135,7 @@ sub GenerateNTResponse
     my ($authchallenge, $peerchallenge, $username, $password) = @_;
 
     my $challenge = ChallengeHash
-	($peerchallenge, $authchallenge, $username);
+  ($peerchallenge, $authchallenge, $username);
     my $passwordhash = NtPasswordHash($password);
     my $response = ChallengeResponse($challenge, $passwordhash);
     return $response;
@@ -174,8 +174,8 @@ sub GenerateAuthenticatorResponse
     my ($password, $ntresponse, $peerchallenge, $authchallenge, $username) = @_;
 
     return GenerateAuthenticatorResponseHash
-	(NtPasswordHash(NtPasswordHash($password)), 
-	 $ntresponse, $peerchallenge, $authchallenge, $username);
+  (NtPasswordHash(NtPasswordHash($password)), 
+   $ntresponse, $peerchallenge, $authchallenge, $username);
 }
 
 # Following is support for RFC3079 MPPE send and recv keys
@@ -192,7 +192,7 @@ sub mppeGetKeys
 
     my $masterkey = GetMasterKey($nt_hashhash, $nt_response);
     return (GetAsymmetricStartKey($masterkey, $requiredlen, 1, 1), 
-	    GetAsymmetricStartKey($masterkey, $requiredlen, 0, 1));
+      GetAsymmetricStartKey($masterkey, $requiredlen, 0, 1));
 }
 
 sub GetMasterKey

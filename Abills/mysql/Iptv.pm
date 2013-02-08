@@ -288,11 +288,11 @@ sub user_list {
   $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
 
   @WHERE_RULES = @{ $self->search_expr_users({ %$attr, 
-  	                         EXT_FIELDS => [
-  	                                        'PHONE',
-  	                                        'EMAIL',
-  	                                        'ADDRESS_FLAT',
-  	                                        'PASPORT_DATE',
+                             EXT_FIELDS => [
+                                            'PHONE',
+                                            'EMAIL',
+                                            'ADDRESS_FLAT',
+                                            'PASPORT_DATE',
                                             'PASPORT_NUM', 
                                             'PASPORT_GRANT',
                                             'CITY', 
@@ -314,7 +314,7 @@ sub user_list {
                                             'ACTIVATE',
                                             'EXPIRE',
 
-  	                                         ] }) };
+                                             ] }) };
 
 
   push @WHERE_RULES, "u.uid = service.uid";
@@ -357,7 +357,7 @@ sub user_list {
   my $EXT_TABLE = $self->{EXT_TABLES};
   if ($attr->{SHOW_CONNECTIONS}) {
     $EXT_TABLE = "LEFT JOIN dhcphosts_hosts dhcp ON (dhcp.uid=u.uid)
- 	               LEFT JOIN nas  ON (nas.id=dhcp.nas)";
+                  LEFT JOIN nas  ON (nas.id=dhcp.nas)";
 
     $self->{SEARCH_FIELDS} = "nas.ip AS nas_ip, dhcp.ports, nas.nas_type, nas.mng_user, DECODE(nas.mng_password, '$CONF->{secretkey}') AS mng_password,";
     $self->{SEARCH_FIELDS_COUNT} += 5;
@@ -822,11 +822,11 @@ sub channel_ti_list {
 
   # Start letter
   if ($attr->{NAME}) {
-  	push @WHERE_RULES, @{ $self->search_expr($attr->{NAME}, 'STR', 'name') };
+    push @WHERE_RULES, @{ $self->search_expr($attr->{NAME}, 'STR', 'name') };
   }
 
   if ($attr->{DESCRIBE}) {
-  	push @WHERE_RULES, @{ $self->search_expr($attr->{DESCRIBE}, 'STR', 'comments') };
+    push @WHERE_RULES, @{ $self->search_expr($attr->{DESCRIBE}, 'STR', 'comments') };
   }
 
   if ($attr->{NUMBER}) {
@@ -909,7 +909,7 @@ LEFT JOIN bills cb ON  (company.bill_id=cb.id)
 GROUP BY c.id
 ORDER BY $SORT $DESC ";
 
-  #	$sql = "select c.num, c.name, count(*), c.id
+  #  $sql = "select c.num, c.name, count(*), c.id
   #FROM iptv_channels c
   #LEFT JOIN iptv_ti_channels ic  ON (c.id=ic.channel_id)
   #LEFT JOIN intervals i ON (ic.interval_id=i.id)
@@ -941,22 +941,22 @@ ORDER BY $SORT $DESC ";
 # Add channel to stalker middleware
 #**********************************************************
 sub stalker_channel_add {
-	my $self = shift;
-	my ($attr) = @_;
-	
-	%DATA = $self->get_data($attr);
+  my $self = shift;
+  my ($attr) = @_;
+  
+  %DATA = $self->get_data($attr);
 
-	for (keys %DATA){
+  for (keys %DATA){
     if ($DATA{$_} eq 'on'){
       $DATA{$_} = 1; 
     }
   }
     
     if($DATA{STATUS} == 1) {
-    	$DATA{STATUS} = 0;	
+      $DATA{STATUS} = 0;  
     }
     else {
-    	$DATA{STATUS} = 1;	
+      $DATA{STATUS} = 1;  
     }
 
 $self->query($db, "INSERT INTO $CONF->{IPTV_STALKET_DB}.itv(
@@ -983,7 +983,7 @@ $self->query($db, "INSERT INTO $CONF->{IPTV_STALKET_DB}.itv(
   service_id,
   volume_correction,
   correct_time
-)	  
+)    
 VALUES 
 (
   '$DATA{NAME}', 
@@ -1009,9 +1009,9 @@ VALUES
   '$DATA{SERVICE_ID}', 
   '$DATA{VOLUME_CORRECTION}',
   '$DATA{CORRECT_TIME}' 
-);", 'do' 																											
+);", 'do'                                                       
 );
-	return 0;	
+  return 0;  
 }
 
 #**********************************************************
@@ -1025,7 +1025,7 @@ sub stalker_channel_del {
 
   $self->query($db, "DELETE from $CONF->{IPTV_STALKET_DB}.itv WHERE name LIKE '$DATA{STALKER_NAME}';", 'do');
   $self->query($db, "DELETE from iptv_channels WHERE id='$DATA{ABILLS_ID}';", 'do');
-  return $self->{result};	
+  return $self->{result};  
 
 }
 
@@ -1033,27 +1033,27 @@ sub stalker_channel_del {
 # Stalker channel list
 #**********************************************************
 sub stalker_channel_list {
-	my $self = shift;
-	my ($attr) = @_;
-	
-	my @WHERE_RULES  = ();
-	
-	my $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
-	my $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
-	
-	if(defined($attr->{ID})) {
-  		push @WHERE_RULES, "id='$attr->{ID}'";
-	}
-	if(defined($attr->{NAME})) {
-  		push @WHERE_RULES, "name LIKE '$attr->{NAME}'";
-	}	  
-	if(defined($attr->{NUMBER})) {
-  		push @WHERE_RULES, "number LIKE '$attr->{NUMBER}'";
-	}	
+  my $self = shift;
+  my ($attr) = @_;
+  
+  my @WHERE_RULES  = ();
+  
+  my $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+  my $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+  
+  if(defined($attr->{ID})) {
+      push @WHERE_RULES, "id='$attr->{ID}'";
+  }
+  if(defined($attr->{NAME})) {
+      push @WHERE_RULES, "name LIKE '$attr->{NAME}'";
+  }    
+  if(defined($attr->{NUMBER})) {
+      push @WHERE_RULES, "number LIKE '$attr->{NUMBER}'";
+  }  
  
   $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
  
-	$self->query($db, 
+  $self->query($db, 
     "SELECT
       name,
       number,
@@ -1088,12 +1088,12 @@ sub stalker_channel_list {
 # Stalker channel info
 #**********************************************************
 sub stalker_channel_info {
-	my $self = shift;
-	my ($attr) = @_;
+  my $self = shift;
+  my ($attr) = @_;
  
- 	%DATA = $self->get_data($attr); 
+   %DATA = $self->get_data($attr); 
 
-	$self->query($db,
+  $self->query($db,
     "SELECT
       name,
       number,
@@ -1150,7 +1150,7 @@ sub stalker_channel_info {
     $self->{OLD_NUMBER}    
   )= @{ $self->{list}->[0] };
 
-	return $self;	
+  return $self;  
 }
 
 
@@ -1158,8 +1158,8 @@ sub stalker_channel_info {
 # Stalker change channels
 #**********************************************************
 sub stalker_change_channels {
-	my $self = shift;
-	my ($attr) = @_; 
+  my $self = shift;
+  my ($attr) = @_; 
 
   %DATA = $self->get_data($attr);
 
@@ -1170,10 +1170,10 @@ sub stalker_change_channels {
   }
 
   if($DATA{STATUS} == 1) {
-    $DATA{STATUS} = 0;	
+    $DATA{STATUS} = 0;  
   }
   else {
-    $DATA{STATUS} = 1;	
+    $DATA{STATUS} = 1;  
   }
 
 $self->query($db, 
@@ -1201,7 +1201,7 @@ $self->query($db,
     service_id                  = '$DATA{SERVICE_ID}',
     volume_correction           = '$DATA{VOLUME_CORRECTION}',
     correct_time                = '$DATA{CORRECT_TIME}'
-  WHERE name LIKE '$DATA{CHANGE_PARAM}';", 'do' 																											
+  WHERE name LIKE '$DATA{CHANGE_PARAM}';", 'do'                                                       
 );
   return $self;
 }
@@ -1216,14 +1216,14 @@ $self->query($db,
 #  
 #  $self->query(
 #    $db, "REPLACE INTO $CONF->{dbname}.iptv_channels (name,
-#	   num,
-#	   port,
-#	   comments,
-#	   disable) SELECT name, 
-#	   number, 
-#	   id, 
-#	   descr, 
-#	   if(status=1, 0, 1) 
+#     num,
+#     port,
+#     comments,
+#     disable) SELECT name, 
+#     number, 
+#     id, 
+#     descr, 
+#     if(status=1, 0, 1) 
 #   FROM $CONF->{IPTV_STALKET_DB}.itv", 'do');
 #  return 0;
 #}

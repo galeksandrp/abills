@@ -450,12 +450,12 @@ sub action_list {
   $WHERE       = '';
 
   push @WHERE_RULES, @{ $self->search_expr_users({ %$attr, 
-  	                         EXT_FIELDS => [
-  	                                        'PHONE',
-  	                                        'EMAIL',
-  	                                        'FIO',
-  	                                        'ADDRESS_FLAT',
-  	                                        'PASPORT_DATE',
+                             EXT_FIELDS => [
+                                            'PHONE',
+                                            'EMAIL',
+                                            'FIO',
+                                            'ADDRESS_FLAT',
+                                            'PASPORT_DATE',
                                             'PASPORT_NUM', 
                                             'PASPORT_GRANT',
                                             'CITY', 
@@ -478,7 +478,7 @@ sub action_list {
                                             'EXPIRE',
                                             'DEPOSIT:skip'
 
-  	                                         ] }) };
+                                             ] }) };
 
 
   # UID
@@ -537,7 +537,7 @@ sub action_list {
   $WHERE = "WHERE " . join(' and ', @WHERE_RULES) if ($#WHERE_RULES > -1);
 
   if ($self->{SEARCH_FIELDS} =~ /pi\./) {
-  	$EXT_TABLE = " LEFT JOIN users_pi pi ON (u.uid=pi.uid) ".$EXT_TABLE ;
+    $EXT_TABLE = " LEFT JOIN users_pi pi ON (u.uid=pi.uid) ".$EXT_TABLE ;
   }
 
   $self->query(
@@ -762,7 +762,7 @@ sub allow_ip_list {
  @WHERE_RULES = ();
  
  if ($attr->{IP}) {
- 	 push @WHERE_RULES, "aip.ip=INET_ATON('$attr->{IP}')";
+    push @WHERE_RULES, "aip.ip=INET_ATON('$attr->{IP}')";
   }
  
  if ($attr->{AID}) {
@@ -794,7 +794,7 @@ sub allow_ip_add {
    VALUES ('$DATA{AID}', INET_ATON('$DATA{IP}'));", 'do');
 
   if ($self->{errno}) {
-  	return $self;
+    return $self;
    }
 
   $self->system_action_add("ALLOW IP: $DATA{IP}", { TYPE => 1 });  

@@ -274,7 +274,7 @@ sub accounting {
         '$RAD->{ACCT_OUTPUT_GIGAWORDS}');", 'do'
         );
         if ($self->{errno}) {
-        	
+          
         }
       }
       else {

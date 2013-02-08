@@ -248,20 +248,20 @@ sub pi_add {
   }
 
   if ($DATA{STREET_ID} && $DATA{ADDRESS_BUILD} && ! $DATA{LOCATION_ID}) {
-  	my $list = $self->build_list({ STREET_ID => $DATA{STREET_ID}, 
-  		                  NUMBER    => $attr->{ADDRESS_BUILD}, 
-  		                  COLS_NAME => 1 
-  		                });
+    my $list = $self->build_list({ STREET_ID => $DATA{STREET_ID}, 
+                        NUMBER    => $attr->{ADDRESS_BUILD}, 
+                        COLS_NAME => 1 
+                      });
 
-  	if ($self->{TOTAL} > 0) {
-  		$DATA{LOCATION_ID}=$list->[0]->{id};
-  	}
-  	else {
-  		$self->build_add({ NUMBER    => $DATA{ADDRESS_BUILD}, 
-  			                 STREET_ID => $DATA{STREET_ID},  
-  			              });
-  	  $DATA{LOCATION_ID}=$self->{INSERT_ID};
-  	}
+    if ($self->{TOTAL} > 0) {
+      $DATA{LOCATION_ID}=$list->[0]->{id};
+    }
+    else {
+      $self->build_add({ NUMBER    => $DATA{ADDRESS_BUILD}, 
+                         STREET_ID => $DATA{STREET_ID},  
+                      });
+      $DATA{LOCATION_ID}=$self->{INSERT_ID};
+    }
   }
 
   $self->query(
@@ -464,20 +464,20 @@ sub pi_change {
   );
 
   if ($attr->{STREET_ID} && $attr->{ADDRESS_BUILD} && ! $attr->{LOCATION_ID}) {
-  	my $list = $self->build_list({ STREET_ID => $attr->{STREET_ID}, 
-  		                  NUMBER    => $attr->{ADDRESS_BUILD}, 
-  		                  COLS_NAME => 1 
-  		                });
+    my $list = $self->build_list({ STREET_ID => $attr->{STREET_ID}, 
+                        NUMBER    => $attr->{ADDRESS_BUILD}, 
+                        COLS_NAME => 1 
+                      });
 
-  	if ($self->{TOTAL} > 0) {
-  		$attr->{LOCATION_ID}=$list->[0]->{id};
-  	}
-  	else {
-  		$self->build_add({ NUMBER    => $attr->{ADDRESS_BUILD}, 
-  			                 STREET_ID => $attr->{STREET_ID},  
-  			              });
-  	  $attr->{LOCATION_ID}=$self->{INSERT_ID};
-  	}
+    if ($self->{TOTAL} > 0) {
+      $attr->{LOCATION_ID}=$list->[0]->{id};
+    }
+    else {
+      $self->build_add({ NUMBER    => $attr->{ADDRESS_BUILD}, 
+                         STREET_ID => $attr->{STREET_ID},  
+                      });
+      $attr->{LOCATION_ID}=$self->{INSERT_ID};
+    }
   }
 
 
@@ -692,34 +692,34 @@ sub list {
   $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
 
   if ($attr->{UNIVERSAL_SEARCH}) {
-  	my @us_fields = ('u.uid:INT', 'u.id:STR', 'pi.fio:STR', 'pi.contract_id:STR', 'pi.email:STR', 'pi.phone:STR', 'pi.comments:STR');
+    my @us_fields = ('u.uid:INT', 'u.id:STR', 'pi.fio:STR', 'pi.contract_id:STR', 'pi.email:STR', 'pi.phone:STR', 'pi.comments:STR');
     $self->{SEARCH_FIELDS_COUNT}+=5;
 
-  	if ($CONF->{ADDRESS_REGISTER}) {
+    if ($CONF->{ADDRESS_REGISTER}) {
       $self->{EXT_TABLES} .= "LEFT JOIN builds ON (builds.id=pi.location_id)
       LEFT JOIN streets ON (streets.id=builds.street_id)";
       push @us_fields, "CONCAT(streets.name, ' ', builds.number, ',', pi.address_flat):STR";
       $self->{SEARCH_FIELDS}="CONCAT(streets.name, ' ', builds.number, ',', pi.address_flat) AS address_full,";
-  	}
-  	else {
-  	  push @us_fields, "CONCAT(pi.address_street, ' ', pi.address_build, ',', pi.address_flat):STR";
-  	  $self->{SEARCH_FIELDS}="CONCAT(pi.address_street, ' ', pi.address_build, ',', pi.address_flat) AS address_full,";
-  	}
-  	
+    }
+    else {
+      push @us_fields, "CONCAT(pi.address_street, ' ', pi.address_build, ',', pi.address_flat):STR";
+      $self->{SEARCH_FIELDS}="CONCAT(pi.address_street, ' ', pi.address_build, ',', pi.address_flat) AS address_full,";
+    }
+    
     $self->{SEARCH_FIELDS} .= 'pi.phone, pi.contract_id,pi.email,pi.comments,';
-  	
+    
 
-  	my @us_query  = ();
-  	foreach my $f (@us_fields) {
-  		my ($name, $type) = split(/:/, $f);
-  		push @us_query, @{ $self->search_expr("*$attr->{UNIVERSAL_SEARCH}*", "$type", "$name") };
-  	}
+    my @us_query  = ();
+    foreach my $f (@us_fields) {
+      my ($name, $type) = split(/:/, $f);
+      push @us_query, @{ $self->search_expr("*$attr->{UNIVERSAL_SEARCH}*", "$type", "$name") };
+    }
 
-  	@WHERE_RULES = ("(". join(' or ', @us_query) .")");
+    @WHERE_RULES = ("(". join(' or ', @us_query) .")");
   }
   else {
-  	  @WHERE_RULES = @{ $self->search_expr_users({ %$attr, 
-  	                  EXT_FIELDS => [ 'UID',
+      @WHERE_RULES = @{ $self->search_expr_users({ %$attr, 
+                      EXT_FIELDS => [ 'UID',
         'PHONE',
         'EMAIL',
         'ADDRESS_FLAT',
@@ -1252,7 +1252,7 @@ sub bruteforce_add {
 
   $self->query(
     $db, "INSERT INTO users_bruteforce (login, password, datetime, ip, auth_state) VALUES 
-	      ('$attr->{LOGIN}', '$attr->{PASSWORD}', now(), INET_ATON('$attr->{REMOTE_ADDR}'), '$attr->{AUTH_STATE}');", 'do'
+        ('$attr->{LOGIN}', '$attr->{PASSWORD}', now(), INET_ATON('$attr->{REMOTE_ADDR}'), '$attr->{AUTH_STATE}');", 'do'
   );
 
   return $self;
@@ -1291,9 +1291,9 @@ sub bruteforce_list {
   if (!$attr->{CHECK}) {
     $self->query(
       $db, "SELECT login, password, datetime, $count, INET_NTOA(ip) FROM users_bruteforce
-	    $WHERE
-	    $GROUP
-	    ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;"
+      $WHERE
+      $GROUP
+      ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;"
     );
     $list = $self->{list};
   }
@@ -1322,7 +1322,7 @@ sub bruteforce_del {
 
   $self->query(
     $db, "DELETE FROM users_bruteforce
-	 WHERE $WHERE;", 'do'
+   WHERE $WHERE;", 'do'
   );
 
   return $self;
@@ -1339,9 +1339,9 @@ sub web_session_add {
 
   $self->query(
     $db, "INSERT INTO web_users_sessions 
-	      (uid, datetime, login, remote_addr, sid, ext_info) VALUES 
-	      ('$attr->{UID}', UNIX_TIMESTAMP(), '$attr->{LOGIN}', INET_ATON('$attr->{REMOTE_ADDR}'), '$attr->{SID}',
-	      '$attr->{EXT_INFO}');", 'do'
+        (uid, datetime, login, remote_addr, sid, ext_info) VALUES 
+        ('$attr->{UID}', UNIX_TIMESTAMP(), '$attr->{LOGIN}', INET_ATON('$attr->{REMOTE_ADDR}'), '$attr->{SID}',
+        '$attr->{EXT_INFO}');", 'do'
   );
 
   return $self;
@@ -1419,10 +1419,10 @@ sub web_sessions_list {
   if (!$attr->{CHECK}) {
     $self->query(
       $db, "SELECT uid, datetime, login, INET_NTOA(remote_addr), sid 
-	   FROM web_users_sessions
-	    $WHERE
-	    $GROUP
-	    ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;"
+     FROM web_users_sessions
+      $WHERE
+      $GROUP
+      ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;"
     );
     $list = $self->{list};
   }
@@ -1442,7 +1442,7 @@ sub web_session_del {
 
   $self->query(
     $db, "DELETE FROM web_users_sessions
-	 WHERE sid='$attr->{SID}';", 'do'
+   WHERE sid='$attr->{SID}';", 'do'
   );
 
   return $self;
@@ -2034,9 +2034,9 @@ sub build_list {
   if ($attr->{CONNECTIONS}) {
     $sql = "SELECT b.number, b.flors, b.entrances, b.flats, s.name, 
      count(pi.uid) AS users_count, ROUND((count(pi.uid) / b.flats * 100), 0) AS users_connections,
-	   b.added, b.id $ext_fields
+     b.added, b.id $ext_fields
 
-	    FROM builds b
+      FROM builds b
      LEFT JOIN streets s ON (s.id=b.street_id)
      LEFT JOIN users_pi pi ON (b.id=pi.location_id)
      $WHERE 

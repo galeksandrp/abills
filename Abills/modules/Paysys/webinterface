@@ -315,12 +315,12 @@ sub paysys_import_form {
             $total_count++;
             $total_sum += $DATA_ARR->[$i]->{SUM};
             cross_modules_call('_payments_maked', { 
-          	      USER_INFO    => $user, 
+                  USER_INFO    => $user, 
                   QUITE        => 1, 
                   SUM          => $DATA_ARR->[$i]->{SUM},
-          	      PAYMENT_ID   => $payments->{PAYMENT_ID},  
-          	      SKIP_MODULES => 'Paysys,Sqlcmd'
-          	      });
+                  PAYMENT_ID   => $payments->{PAYMENT_ID},  
+                  SKIP_MODULES => 'Paysys,Sqlcmd'
+                  });
           }
         }
         else {
@@ -662,7 +662,7 @@ sub paysys_payment {
   }
   elsif ($FORM{PAYMENT_SYSTEM} == 81 ||  
          $FORM{PAYMENT_SYSTEM} == 82 ||
-         $FORM{PAYMENT_SYSTEM} == 83 ||	
+         $FORM{PAYMENT_SYSTEM} == 83 ||  
          $FORM{PAYMENT_SYSTEM} == 84 ||
          $FORM{payonline_transaction} ||
          $FORM{payonline_transaction_error} ||
@@ -982,7 +982,7 @@ sub paysys_webmoney () {
 
   # Terminal auth type
   if ($FORM{PAYMENT_SYSTEM} == 85) {
-  	$info{AT}='?at=authtype_8';
+    $info{AT}='?at=authtype_8';
   }
 
   my @ACCOUNTS = split(/;/, $conf{PAYSYS_WEBMONEY_ACCOUNTS});
@@ -1121,32 +1121,32 @@ sub paysys_periodic () {
 #
 #<?xml version='1.0' encoding='windows-1251' standalone='yes'?>
 #<portmoneresult count='<???-?? ????????>'>
-#	<request>
-#		<shopordernumber>??????????? ???????? SHOPORDERNUMBER</shopordernumber>
-#		<shop_id>??????????? ???????? SHOP_ID</shop_id>
-#		<paymenttype>??????????? ???????? PAYMENTTYPE</paymenttype>
-#		<startdate>??????????? ???????? STARTMONTH/STARTDAY/STARTYEAR</startdate>
-#		<enddate>??????????? ???????? ENDMONTH/ENDDAY/ENDYEAR</enddate>
-#		<success>??????????? ???????? SUCCESS</success>
-#	</request>
-#	<orders>
-#		<order>
-#			<ordernumber>????? ??????</ordernumber>
-#			<description>???????????</ description >
-#			<orderdate>????</orderdate>
-#			<total>?????</total>
-#			<currency>??? ??????</currency>
-#			<approvalcode>??? ???????????</approvalcode>
-#			<billnumber>????? ???????</billnumber>
-#			<billdate>???? ???????</billdate>
-#			<error_code>??? ?????? ??????????????? ??????</error_code>
-#			<error_message>??????????? ?????? ??????????????? ??????</error_ message>
-#		</order>
-#		<order>
-#			...
-#		</order>
-#		...
-#	</orders>
+#  <request>
+#    <shopordernumber>??????????? ???????? SHOPORDERNUMBER</shopordernumber>
+#    <shop_id>??????????? ???????? SHOP_ID</shop_id>
+#    <paymenttype>??????????? ???????? PAYMENTTYPE</paymenttype>
+#    <startdate>??????????? ???????? STARTMONTH/STARTDAY/STARTYEAR</startdate>
+#    <enddate>??????????? ???????? ENDMONTH/ENDDAY/ENDYEAR</enddate>
+#    <success>??????????? ???????? SUCCESS</success>
+#  </request>
+#  <orders>
+#    <order>
+#      <ordernumber>????? ??????</ordernumber>
+#      <description>???????????</ description >
+#      <orderdate>????</orderdate>
+#      <total>?????</total>
+#      <currency>??? ??????</currency>
+#      <approvalcode>??? ???????????</approvalcode>
+#      <billnumber>????? ???????</billnumber>
+#      <billdate>???? ???????</billdate>
+#      <error_code>??? ?????? ??????????????? ??????</error_code>
+#      <error_message>??????????? ?????? ??????????????? ??????</error_ message>
+#    </order>
+#    <order>
+#      ...
+#    </order>
+#    ...
+#  </orders>
 #</portmoneresult>
 #
 #
@@ -2528,7 +2528,7 @@ sub paysys_payonline() {
 #
 #**********************************************************
 sub paysys_yandex () {
-  require "modules/Paysys/Yandex.pm";	
+  require "modules/Paysys/Yandex.pm";  
   Yandex->import();
 
   my $Ym = Yandex->ym_new($db, $admin, \%conf);
@@ -2538,11 +2538,11 @@ sub paysys_yandex () {
    'illegal_params'      => 'Обязательные параметры платежа отсутствуют или имеют недопустимые значения.',
    'illegal_param_label' => 'Недопустимое значение параметра label.',
    'phone_unknown'       => 'Указан номер телефона не связанный со счетом пользователя или получателя платежа.',
-   'payment_refused' 	   => 'Отказано в приёме платежа (например пользователь попробовал заплатить за товар, которого нет в магазине).',
+   'payment_refused'      => 'Отказано в приёме платежа (например пользователь попробовал заплатить за товар, которого нет в магазине).',
    'authorization_reject'=> "В авторизации платежа отказано. Возможные причины:\n\n
      - транзакция с текущими параметрами запрещена для данного пользователя;\n
      - пользователь не принял Соглашение об использовании системы \"Яндекс.Деньги\". ",
-   'not_enough_funds'   => 	'На счете плательщика недостаточно средств. Необходимо пополнить счет и провести новый платеж.',
+   'not_enough_funds'   =>   'На счете плательщика недостаточно средств. Необходимо пополнить счет и провести новый платеж.',
    'limit_exceeded'     =>  "Превышен один из лимитов на операции:\n\n
     - на сумму операции для выданного токена авторизации; \n
     - сумму операции за период времени для выданного токена авторизации; \n
@@ -2552,23 +2552,23 @@ sub paysys_yandex () {
 
 
   if ($FORM{code}) {
-  	$Ym->receiveOAuthToken({ code => $FORM{code} });
-  	if($Ym->{error}) {
-  		$html->message('err', "$_INFO Token", "$Ym->{error} $Ym->{error_str}" );
-  	}
-  	else {
-  		$Ym->query($db, "UPDATE users_pi SET ym_token=ENCODE('$Ym->{token}', '$conf{secretkey}') WHERE uid='$user->{UID}';", 'do');
-  		$ym_token = $Ym->{token};
-  		delete $FORM{PAYMENT_SYSTEM};
-  		$html->message('info', "$_INFO", "Yandex.Money Токен обновлён, теперь можете совершать оплату" );
-  		paysys_payment();
-  		return 0;
-  	} 
+    $Ym->receiveOAuthToken({ code => $FORM{code} });
+    if($Ym->{error}) {
+      $html->message('err', "$_INFO Token", "$Ym->{error} $Ym->{error_str}" );
+    }
+    else {
+      $Ym->query($db, "UPDATE users_pi SET ym_token=ENCODE('$Ym->{token}', '$conf{secretkey}') WHERE uid='$user->{UID}';", 'do');
+      $ym_token = $Ym->{token};
+      delete $FORM{PAYMENT_SYSTEM};
+      $html->message('info', "$_INFO", "Yandex.Money Токен обновлён, теперь можете совершать оплату" );
+      paysys_payment();
+      return 0;
+    } 
   }
   else {
-  	$Ym->query($db, "SELECT DECODE(ym_token, '$conf{secretkey}') AS ym_token FROM users_pi WHERE uid='$user->{UID}';", undef, { INFO => 1 });
+    $Ym->query($db, "SELECT DECODE(ym_token, '$conf{secretkey}') AS ym_token FROM users_pi WHERE uid='$user->{UID}';", undef, { INFO => 1 });
     if ($Ym->{TOTAL} > 0 && $Ym->{YM_TOKEN}  ne '') {
-      $ym_token	= $Ym->{YM_TOKEN};
+      $ym_token  = $Ym->{YM_TOKEN};
     }
     else {
       $Ym->yandex_get_token({ SUM => $FORM{SUM} });
@@ -2581,21 +2581,21 @@ sub paysys_yandex () {
   if ($FORM{CONFIRM_PAYMENT}) {
     my $result_hash = $Ym->ym_process_payment($ym_token, $FORM{REQUEST_ID});
     
- 	  if($Ym->{error}) {
- 		  if ($Ym->{error} == 2) {
- 			  $Ym->query($db, "UPDATE users_pi SET ym_token='' WHERE uid='$user->{UID}';", 'do');
- 		  }
- 		
- 		  if ($YANDEX_ERR{$Ym->{error_str}}) {
- 		    $html->message('err', "$_ERROR", "$YANDEX_ERR{$Ym->{error_str}} \n $Ym->{status} \n $Ym->{error_description}" )
- 		  }
- 		  else {
-  	    $html->message('err', "$_ERROR", "$ERR_UNKNOWN $Ym->{error} $Ym->{error_str}" );
-  	  }
-  	  my $a = `echo "\nERROR: !! $Ym->{error} $Ym->{error_str}" >> /tmp/ym`;
+     if($Ym->{error}) {
+       if ($Ym->{error} == 2) {
+         $Ym->query($db, "UPDATE users_pi SET ym_token='' WHERE uid='$user->{UID}';", 'do');
+       }
+     
+       if ($YANDEX_ERR{$Ym->{error_str}}) {
+         $html->message('err', "$_ERROR", "$YANDEX_ERR{$Ym->{error_str}} \n $Ym->{status} \n $Ym->{error_description}" )
+       }
+       else {
+        $html->message('err', "$_ERROR", "$ERR_UNKNOWN $Ym->{error} $Ym->{error_str}" );
+      }
+      my $a = `echo "\nERROR: !! $Ym->{error} $Ym->{error_str}" >> /tmp/ym`;
     }
-    else {  	
- 	    $Paysys->info({ CODE => $FORM{REQUEST_ID} });
+    else {    
+       $Paysys->info({ CODE => $FORM{REQUEST_ID} });
       if ($Paysys->{TOTAL} > 0) {
         if ($Paysys->{UID} != $LIST_PARAMS{UID}) {
           $html->message('err', $_ERROR, "$_FAILED ID: $FORM{OPERATION_ID}");
@@ -2606,11 +2606,11 @@ sub paysys_yandex () {
           }
           elsif ($Paysys->{STATUS} < 2) {
             if ($result_hash->{status} eq 'success') {
-            	my $result = '';
-            	while(my($k, $v)=each %result) {
-            		$result .= "$k: $v; ";
-              }            	
-            	
+              my $result = '';
+              while(my($k, $v)=each %result) {
+                $result .= "$k: $v; ";
+              }              
+              
               $Paysys->change({
                 ID     => $Paysys->{ID},
                 STATUS => 2,
@@ -2618,13 +2618,13 @@ sub paysys_yandex () {
               });
               
               if (! $Paysys->{error}) {
- 	              cross_modules_call('_pre_payment', { USER_INFO   => $user, 
+                 cross_modules_call('_pre_payment', { USER_INFO   => $user, 
                                            SKIP_MODULES=> 'Sqlcmd',
                                            QUITE       => 1, 
                                            SUM         => $Paysys->{SUM},
                                           });
 
-              	
+                
                 $payments->add($user,
                 {
                   METHOD       => ($conf{PAYSYS_PAYMENTS_METHODS} && $PAYSYS_PAYMENTS_METHODS{73}) ? 73 : '2',
@@ -2641,42 +2641,42 @@ sub paysys_yandex () {
                   $html->messages('err', $_ERROR, "$_ERROR");
                 }
                 else {
-    	            cross_modules_call('_payments_maked', { 
-                	   USER_INFO  => $user, 
-                	   PAYMENT_ID => $payments->{PAYMENT_ID},
-          	         SUM        => $Paysys->{SUM},
-          	         QUITE      => 1 
-          	        });
+                  cross_modules_call('_payments_maked', { 
+                     USER_INFO  => $user, 
+                     PAYMENT_ID => $payments->{PAYMENT_ID},
+                     SUM        => $Paysys->{SUM},
+                     QUITE      => 1 
+                    });
                 }
               }
- 	          }
- 	        }
- 	      }
- 	    }
+             }
+           }
+         }
+       }
 
- 	    $html->message('info', $_INFO, "$_ADDED $_SUM: $Paysys->{SUM} ID: $Paysys->{TRANSACTION_ID}");
+       $html->message('info', $_INFO, "$_ADDED $_SUM: $Paysys->{SUM} ID: $Paysys->{TRANSACTION_ID}");
     }    
   }
   else {
     my $result_hash = $Ym->ym_request_payment_p2p($ym_token, undef, "$FORM{SUM}", 
                             "$FORM{OPERATION_ID}", "$user->{LOGIN} UID: $user->{UID}");
 
- 	  if($Ym->{error}) {
- 		  if ($Ym->{error} == 2) {
- 			  $Ym->query($db, "UPDATE users_pi SET ym_token='' WHERE uid='$user->{UID}';", 'do');
- 		  }
- 		
- 		  if ($YANDEX_ERR{$Ym->{error_str}}) {
- 		    $html->message('err', "$_ERROR $_STEP 1", "$YANDEX_ERR{$Ym->{error_str}} \n $Ym->{status} \n $Ym->{error_description}" )
- 		  }
- 		  else {
-  	    $html->message('err', "$_ERROR", "$ERR_UNKNOWN $Ym->{error} $Ym->{error_str}" );
-  	  }
-  	  my $a = `echo "\nERROR: !! $Ym->{error} $Ym->{error_str}" >> /tmp/ym`;
+     if($Ym->{error}) {
+       if ($Ym->{error} == 2) {
+         $Ym->query($db, "UPDATE users_pi SET ym_token='' WHERE uid='$user->{UID}';", 'do');
+       }
+     
+       if ($YANDEX_ERR{$Ym->{error_str}}) {
+         $html->message('err', "$_ERROR $_STEP 1", "$YANDEX_ERR{$Ym->{error_str}} \n $Ym->{status} \n $Ym->{error_description}" )
+       }
+       else {
+        $html->message('err', "$_ERROR", "$ERR_UNKNOWN $Ym->{error} $Ym->{error_str}" );
+      }
+      my $a = `echo "\nERROR: !! $Ym->{error} $Ym->{error_str}" >> /tmp/ym`;
     }
     else {
       $info{REQUEST_ID}=$result_hash->{request_id};
- 	    $html->tpl_show(_include('paysys_ym_confirm', 'Paysys'), \%info);
+       $html->tpl_show(_include('paysys_ym_confirm', 'Paysys'), \%info);
 
       $Paysys->add(
        {

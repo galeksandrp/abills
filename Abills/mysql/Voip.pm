@@ -166,7 +166,7 @@ sub user_change {
     $attr->{ALLOW_CALLS}  = ($attr->{ALLOW_CALLS})  ? 1 : 0;
   }
   else {
-  	$self->{TP_INFO} = $tariffs->info($attr->{TP_ID});
+    $self->{TP_INFO} = $tariffs->info($attr->{TP_ID});
   }
 
   $attr->{LOGINS}=$attr->{SIMULTANEOUSLY};
@@ -216,10 +216,10 @@ sub user_list {
 
   @WHERE_RULES = ( "u.uid = service.uid" );
   push @WHERE_RULES, @{ $self->search_expr_users({ %$attr, EXT_FIELDS => [
-  	                                        'PHONE',
-  	                                        'EMAIL',
-  	                                        'ADDRESS_FLAT',
-  	                                        'PASPORT_DATE',
+                                            'PHONE',
+                                            'EMAIL',
+                                            'ADDRESS_FLAT',
+                                            'PASPORT_DATE',
                                             'PASPORT_NUM', 
                                             'PASPORT_GRANT',
                                             'CITY', 
@@ -911,18 +911,18 @@ sub trunk_add {
   %DATA = $self->get_data($attr);
 
   $self->query(
-    $db, "INSERT INTO voip_trunks (	name,
-	trunkprefix,
-	protocol,
-	provider_ip,
-	removeprefix,
-	addprefix,
-	secondusedreal,
-	secondusedcarrier,
-	secondusedratecard,
-	failover_trunk,
-	addparameter,
-	provider_name
+    $db, "INSERT INTO voip_trunks (  name,
+  trunkprefix,
+  protocol,
+  provider_ip,
+  removeprefix,
+  addprefix,
+  secondusedreal,
+  secondusedcarrier,
+  secondusedratecard,
+  failover_trunk,
+  addparameter,
+  provider_name
  ) 
         VALUES ('$DATA{NAME}', '$DATA{TRUNKPREFIX}',  '$DATA{PROTOCOL}', '$DATA{PROVIDER_IP}', 
         '$DATA{REMOVE_PREFIX}',
@@ -954,17 +954,17 @@ sub trunk_info {
   $self->query(
     $db, "SELECT 
    name,
-	trunkprefix,
-	protocol,
-	provider_ip,
-	removeprefix AS remote_prefix,
-	addprefix AS add_prefix,
-	secondusedreal,
-	secondusedcarrier,
-	secondusedratecard,
-	failover_trunk,
-	addparameter,
-	provider_name
+  trunkprefix,
+  protocol,
+  provider_ip,
+  removeprefix AS remote_prefix,
+  addprefix AS add_prefix,
+  secondusedreal,
+  secondusedcarrier,
+  secondusedratecard,
+  failover_trunk,
+  addparameter,
+  provider_name
      FROM voip_trunks
    WHERE id='$id';",
   undef,

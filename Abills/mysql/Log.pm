@@ -41,10 +41,10 @@ sub new {
   bless($self, $class);
   
   if ($attr->{DEBUG_LEVEL}) {
-  	my %rev_log_level = reverse %log_levels;
-  	for(my $i=0; $i<=$attr->{DEBUG_LEVEL}; $i++) {
-  		$self->{debugmods} .= "$rev_log_level{$i} ";
-  	}
+    my %rev_log_level = reverse %log_levels;
+    for(my $i=0; $i<=$attr->{DEBUG_LEVEL}; $i++) {
+      $self->{debugmods} .= "$rev_log_level{$i} ";
+    }
   }
   
 

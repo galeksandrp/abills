@@ -95,8 +95,8 @@ sub user_status {
     AND nas_id='$DATA->{NAS_ID}' LIMIT 1;");
   
   if ($self->{TOTAL} > 0) {
-  	$sql = "UPDATE dv_calls SET
-  	status='$DATA->{ACCT_STATUS_TYPE}',  
+    $sql = "UPDATE dv_calls SET
+    status='$DATA->{ACCT_STATUS_TYPE}',  
     started=$SESSION_START, 
     lupdated=UNIX_TIMESTAMP(), 
     nas_port_id='$DATA->{NAS_PORT}', 
@@ -381,7 +381,7 @@ sub list {
   }
 
   #elsif($attr->{INTERVAL_TYPE} eq 'sessions') {
-  #	$WHERE = '';
+  #  $WHERE = '';
   #  $lupdate = "f_time";
   #  $GROUP=2;
   #}
@@ -590,7 +590,7 @@ sub reports_users {
     }
 
     #   elsif ($attr->{GID} eq 'GID') {
-    #   	 $date = "u.gid"
+    #      $date = "u.gid"
     #    }
     #   else {
     #     $date = "u.id";
@@ -1143,7 +1143,7 @@ sub ipn_log_rotate {
                );
       }
       else {
-      	$attr->{PERIOD} = 30 if (! $attr->{PERIOD});
+        $attr->{PERIOD} = 30 if (! $attr->{PERIOD});
         @rq = ("DELETE FROM ipn_traf_detail WHERE f_time < f_time - INTERVAL $attr->{PERIOD} DAY;");
       }
     }
@@ -1391,7 +1391,7 @@ sub user_detail {
       $date = "$1-$2-$3";
     }
 
-    push @sql_arr, "SELECT s_time,	f_time,
+    push @sql_arr, "SELECT s_time,  f_time,
     INET_NTOA(src_addr),
     src_port,
     INET_NTOA(dst_addr),

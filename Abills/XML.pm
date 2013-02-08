@@ -828,7 +828,7 @@ sub element {
   my ($name, $value, $attr) = @_;
 
   if ($attr->{ID}) {
-  	$value = "<$attr->{ID}>$value</$attr->{ID}>";
+    $value = "<$attr->{ID}>$value</$attr->{ID}>";
   }
 
   $self->{FORM_INPUT} = "$value";

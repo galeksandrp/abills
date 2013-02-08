@@ -256,7 +256,7 @@ sub dv_auth {
     }
   }
 
-  my $pppoe_pluse = ($CONF->{DV_PPPOE_PLUSE_PARAM} && $RAD->{$CONF->{DV_PPPOE_PLUSE_PARAM}}) ? $RAD->{$CONF->{DV_PPPOE_PLUSE_PARAM}} :	$RAD->{NAS_PORT};
+  my $pppoe_pluse = ($CONF->{DV_PPPOE_PLUSE_PARAM} && $RAD->{$CONF->{DV_PPPOE_PLUSE_PARAM}}) ? $RAD->{$CONF->{DV_PPPOE_PLUSE_PARAM}} :  $RAD->{NAS_PORT};
 
   #Check port
   if ($self->{PORT} && $self->{PORT} !~ m/any/i && $self->{PORT} ne $pppoe_pluse) {
@@ -264,7 +264,7 @@ sub dv_auth {
     return 1, $RAD_PAIRS;
   }
   elsif (! $self->{PORT} && $CONF->{DV_PPPOE_PLUSE_PARAM}) {
-  	$self->query($db, "UPDATE dv_main SET port='$RAD->{$CONF->{DV_PPPOE_PLUSE_PARAM}}';", 'do');
+    $self->query($db, "UPDATE dv_main SET port='$RAD->{$CONF->{DV_PPPOE_PLUSE_PARAM}}';", 'do');
   }
 
   #Check  simultaneously logins if needs
@@ -275,9 +275,9 @@ sub dv_auth {
     foreach my $line (@{ $self->{list} }) {
       # If exist reserv add get it      
       if ($line->[3] == 11) {
-      	$self->{IP}       = $line->[1];
-      	$self->{REASSIGN} = 1;
-      	$active_logins--;
+        $self->{IP}       = $line->[1];
+        $self->{REASSIGN} = 1;
+        $active_logins--;
       }
       # Zap session with same CID
       elsif ( $line->[0] ne ''
@@ -831,10 +831,10 @@ sub Auth_CID {
   if ($CONF->{DHCP_CID_IP} || $CONF->{DHCP_CID_MAC} || $CONF->{DHCP_CID_MPD}) {
     $self->query(
       $db, "SELECT INET_NTOA(dh.ip), dh.mac
-	       FROM dhcphosts_hosts dh
+         FROM dhcphosts_hosts dh
          LEFT JOIN users u ON u.uid=dh.uid
-	       WHERE  u.id='$RAD->{USER_NAME}'
-	         AND dh.disable = 0
+         WHERE  u.id='$RAD->{USER_NAME}'
+           AND dh.disable = 0
            AND dh.mac='$RAD->{CALLING_STATION_ID}'"
     );
     if ($self->{errno}) {
@@ -1275,7 +1275,7 @@ sub ex_traffic_params {
       }
       else {
         $interval = "(DATE_FORMAT(start, '%Y-%m')>=DATE_FORMAT(curdate() - INTERVAL $self->{TRAFFIC_TRANSFER_PERIOD} MONTH, '%Y-%m') AND 
-    	 DATE_FORMAT(start, '%Y-%m')<=DATE_FORMAT(curdate(), '%Y-%m') ) ";
+       DATE_FORMAT(start, '%Y-%m')<=DATE_FORMAT(curdate(), '%Y-%m') ) ";
       }
 
       # Traffic transfer

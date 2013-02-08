@@ -550,11 +550,11 @@ sub user_list {
   @WHERE_RULES = ("bu.uid = u.uid");
 
   push @WHERE_RULES, @{ $self->search_expr_users({ %$attr, 
-  	                         EXT_FIELDS => [
-  	                                        'PHONE',
-  	                                        'EMAIL',
-  	                                        'ADDRESS_FLAT',
-  	                                        'PASPORT_DATE',
+                             EXT_FIELDS => [
+                                            'PHONE',
+                                            'EMAIL',
+                                            'ADDRESS_FLAT',
+                                            'PASPORT_DATE',
                                             'PASPORT_NUM', 
                                             'PASPORT_GRANT',
                                             'CITY', 
@@ -576,7 +576,7 @@ sub user_list {
                                             'ACTIVATE',
                                             'EXPIRE',
 
-  	                                         ] }) };
+                                             ] }) };
 
   if ($attr->{TP_ID}) {
     push @WHERE_RULES, "bu.tp_id='$attr->{TP_ID}'";
@@ -1351,7 +1351,7 @@ DATE_FORMAT(min(date), '%Y%m')) FROM fees where uid='$attr->{UID}' AND
     date>=curdate() - INTERVAL $CONF->{BONUS_ACCOMULATION_FIRST_INTERVAL} MONTH");
     
   if ($self->{list}->[0]->[0]>=$CONF->{BONUS_ACCOMULATION_FIRST_INTERVAL}) { 
-  	$self->query($db, 
+    $self->query($db, 
     "REPLACE INTO bonus_rules_accomulation_scores (uid, cost, changed)
 SELECT $attr->{UID}, IF((SELECT \@A:=min(last_deposit) FROM fees WHERE uid='$attr->{UID}' AND date>=curdate() - INTERVAL $CONF->{BONUS_ACCOMULATION_FIRST_INTERVAL} MONTH) >= 0 OR \@A is null , $CONF->{BONUS_ACCOMULATION_FIRST_BONUS}, 0), curdate();", 'do');
   }

@@ -188,17 +188,17 @@ sub user_list_add {
    }
 
   if ($attr->{GID}) {
-  	push @WHERE_RULES, @{ $self->search_expr($attr->{GID}, 'INT', "u.gid") };  
+    push @WHERE_RULES, @{ $self->search_expr($attr->{GID}, 'INT', "u.gid") };  
    }
 
   if (defined($attr->{DV_STATUS}) && $attr->{DV_STATUS} ne '') {
-  	push @WHERE_RULES, @{ $self->search_expr($attr->{DV_STATUS}, 'INT', "dv.disable") };  
-  	$EXT_TABLES = "LEFT JOIN dv_main dv ON (u.uid=dv.uid)";
+    push @WHERE_RULES, @{ $self->search_expr($attr->{DV_STATUS}, 'INT', "dv.disable") };  
+    $EXT_TABLES = "LEFT JOIN dv_main dv ON (u.uid=dv.uid)";
    }
 
   if ($attr->{TP_ID}) {
-  	push @WHERE_RULES, @{ $self->search_expr($attr->{TP_ID}, 'INT', "dv.tp_id") };  
-  	$EXT_TABLES = "LEFT JOIN dv_main dv ON (u.uid=dv.uid)";
+    push @WHERE_RULES, @{ $self->search_expr($attr->{TP_ID}, 'INT', "dv.tp_id") };  
+    $EXT_TABLES = "LEFT JOIN dv_main dv ON (u.uid=dv.uid)";
    }
 
  if ($CONF->{ADDRESS_REGISTER}) {
@@ -259,10 +259,10 @@ sub user_list_change {
   my @WHERE_RULES = ("mdelivery_id='$attr->{MDELIVERY_ID}'");
 
   if ($attr->{UID}) {
-  	push @WHERE_RULES, @{ $self->search_expr($attr->{UID}, 'INT', "uid") };  
+    push @WHERE_RULES, @{ $self->search_expr($attr->{UID}, 'INT', "uid") };  
    }
   elsif ($attr->{ID}) {
-  	push @WHERE_RULES, @{ $self->search_expr($attr->{ID}, 'INT', "id") };
+    push @WHERE_RULES, @{ $self->search_expr($attr->{ID}, 'INT', "id") };
    }
 
   $WHERE = ($#WHERE_RULES>-1) ? join(' AND ', @WHERE_RULES) : '';
@@ -288,14 +288,14 @@ sub user_list_del {
   my @WHERE_RULES = ();
 
   if ($attr->{UID}) {
-  	push @WHERE_RULES, @{ $self->search_expr($attr->{UID}, 'INT', "uid") };  
+    push @WHERE_RULES, @{ $self->search_expr($attr->{UID}, 'INT', "uid") };  
    }
 
   if ($attr->{MDELIVERY_ID}) {
-  	push @WHERE_RULES, @{ $self->search_expr($attr->{MDELIVERY_ID}, 'INT', "mdelivery_id") };
+    push @WHERE_RULES, @{ $self->search_expr($attr->{MDELIVERY_ID}, 'INT', "mdelivery_id") };
    }
   elsif ($attr->{ID}) {
-  	push @WHERE_RULES, @{ $self->search_expr($attr->{ID}, 'INT', "id") };
+    push @WHERE_RULES, @{ $self->search_expr($attr->{ID}, 'INT', "id") };
    }
 
   $WHERE = ($#WHERE_RULES>-1) ? join(' AND ', @WHERE_RULES) : '';
@@ -324,15 +324,15 @@ sub user_list {
   my @WHERE_RULES = ("u.uid=mdl.uid");
 
   if ($attr->{MDELIVERY_ID}) {
-  	push @WHERE_RULES, @{ $self->search_expr($attr->{MDELIVERY_ID}, 'INT', "mdl.mdelivery_id") };
+    push @WHERE_RULES, @{ $self->search_expr($attr->{MDELIVERY_ID}, 'INT', "mdl.mdelivery_id") };
    } 
 
   if (defined($attr->{STATUS})) {
-  	push @WHERE_RULES, @{ $self->search_expr($attr->{STATUS}, 'INT', "mdl.status") };
+    push @WHERE_RULES, @{ $self->search_expr($attr->{STATUS}, 'INT', "mdl.status") };
    } 
 
   if (defined($attr->{LOGIN})) {
-  	push @WHERE_RULES, @{ $self->search_expr($attr->{LOGIN}, 'INT', "u.id") };
+    push @WHERE_RULES, @{ $self->search_expr($attr->{LOGIN}, 'INT', "u.id") };
    } 
 
 
@@ -442,7 +442,7 @@ sub attachment_info () {
     $WHERE = "message_id='$attr->{MSG_ID}'";
    }
   elsif ($attr->{ID}) {
-  	$WHERE = "id='$attr->{ID}'";
+    $WHERE = "id='$attr->{ID}'";
    }
 
   $self->query($db,  "SELECT id, filename, 
@@ -467,7 +467,7 @@ sub attachment_info () {
     return $self;
    }
   else {
-  	return $self->{list};
+    return $self->{list};
    }
 }
 
@@ -476,8 +476,8 @@ sub attachment_info () {
 #**********************************************************
 sub reset {
   my ($self) = shift;
-  my ( $attr )	= @_;
-	
+  my ( $attr )  = @_;
+  
 
 
   $self->query($db, "UPDATE mdelivery_list SET status=0 WHERE id='$attr->{ID}';", 'do');

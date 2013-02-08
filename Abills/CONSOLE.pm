@@ -205,7 +205,7 @@ sub form_main {
   $self->{FORM} = "";
 
   if ($FORM{csv}) {
-  	return $attr->{CONTENT};
+    return $attr->{CONTENT};
   }
 
   if (defined($attr->{HIDDEN})) {
@@ -452,10 +452,10 @@ sub header {
 
   
   if ($FORM{csv}) {
-  	my $filename     = ($self->{ID}) ? $self->{ID}.'.csv' : int(rand(10000000)).'.csv';
-  	$self->{header}  = "Content-Type: text/csv; filename=$filename\n";
-	  $self->{header} .= "Cache-Control: no-cache\n";
-	  $self->{header} .= "Content-disposition: inline; name=\"$filename\"\n\n";
+    my $filename     = ($self->{ID}) ? $self->{ID}.'.csv' : int(rand(10000000)).'.csv';
+    $self->{header}  = "Content-Type: text/csv; filename=$filename\n";
+    $self->{header} .= "Cache-Control: no-cache\n";
+    $self->{header} .= "Content-disposition: inline; name=\"$filename\"\n\n";
   }
   else {
    $self->{header} = "Content-Type: text/plain\n\n";
@@ -508,7 +508,7 @@ sub table {
   $self->{ID} = $attr->{ID};  
 
   if ($attr->{title}) {
-  	$self->{title} = $attr->{title};
+    $self->{title} = $attr->{title};
     $self->{table} .= $self->table_title($SORT, $DESC, $PG, $attr->{title}, $attr->{qs});
   }
   elsif ($attr->{title_plain}) {
@@ -543,8 +543,8 @@ sub addrow {
   my $col_num=0;
 
   foreach my $val (@row) {
-  	if($self->{title}->[$col_num] &&  $self->{title}->[$col_num] eq '-') {
-  	  next;
+    if($self->{title}->[$col_num] &&  $self->{title}->[$col_num] eq '-') {
+      next;
     }
 
     $self->{rows} .= "$COLS_SEPARATOR" . $self->link_former($val, { SKIP_SPACE => 1 });
@@ -853,10 +853,10 @@ sub tpl_show {
       my $default   = $3;
 
       #    if ($var =~ /$\{exec:.+\}$/) {
-      #    	my $exec = $1;
-      #    	if ($exec !~ /$\/usr/abills\/\misc\/ /);
-      #    	my $exec_content = system("$1");
-      #    	$tpl =~ s/\%$var\%/$exec_content/g;
+      #      my $exec = $1;
+      #      if ($exec !~ /$\/usr/abills\/\misc\/ /);
+      #      my $exec_content = system("$1");
+      #      $tpl =~ s/\%$var\%/$exec_content/g;
       #     }
       #    els
 

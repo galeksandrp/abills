@@ -98,10 +98,10 @@ if ($conf{AUTH_METHOD}) {
     $COOKIES{sid} = $sid;
   }
   else {
-  	$html->{METATAGS} = templates('metatags');
- 	  print $html->header();
- 	  form_login();
- 	  exit;
+    $html->{METATAGS} = templates('metatags');
+     print $html->header();
+     form_login();
+     exit;
   }
 }
 #**********************************************************
@@ -154,7 +154,7 @@ if (! $html) {
   require "../../language/$html->{language}.pl";
 }
 else {
-	
+  
 }
 
 if ($admin->{errno}) {
@@ -353,7 +353,7 @@ $users = Users->new($db, $admin, \%conf);
 if ($FORM{qindex} || $FORM{get_index}) {
   
   if ($FORM{get_index}) {
-  	$index = get_function_index($FORM{get_index});
+    $index = get_function_index($FORM{get_index});
   }
   else {
     $index = $FORM{qindex};
@@ -389,7 +389,7 @@ if ($FORM{qindex} || $FORM{get_index}) {
   }
   
   if ($FORM{header} && $FORM{UID}) {
-  	print "</user_info>";
+    print "</user_info>";
   }
   exit;
 }
@@ -414,7 +414,7 @@ if ($conf{LANGS}) {
 
 $html->{METATAGS} = templates('metatags');
 if (($FORM{UID} && $FORM{UID} =~ /^(\d+)$/ && $FORM{UID} > 0) || ($FORM{LOGIN} && $FORM{LOGIN} !~ /\*/ && !$FORM{add} && !$FORM{next} )) {
-	if ($FORM{type} ne 10) {
+  if ($FORM{type} ne 10) {
     $ui = user_info($FORM{UID}, { LOGIN => ($FORM{LOGIN}) ? $FORM{LOGIN} : undef });
     $html->{WEB_TITLE} = "$conf{WEB_TITLE} [$ui->{LOGIN}]";
   }
@@ -605,7 +605,7 @@ sub check_permissions {
       return 0;
     }
     else {
-    	$admin->online_del({ SID => $session_sid });
+      $admin->online_del({ SID => $session_sid });
     }
   }
 
@@ -623,7 +623,7 @@ sub check_permissions {
       $admin->{errno} = 4;
     }
     elsif ($admin->{errno} == 2) {
-    	return 2;
+      return 2;
     }
     return 1;
   }
@@ -639,7 +639,7 @@ sub check_permissions {
       my ($k, $v) = split(/=/, $line);
       $admin->{WEB_OPTIONS}{$k} = $v;
       if ($html)  {
-      	$html->{$k}=$v;
+        $html->{$k}=$v;
       }
     }
   }
@@ -726,13 +726,13 @@ sub form_start {
 }
 
 #**********************************************************
-# 1.	Регистрация пользователя (изменение набора реквизитов персональной информации о пользователе);
-# 2.	Подключение  пользователю Интернет-тарифа;
-# 3.	Подключение набора периодических сервисов;
-# 4.	Регистрация набора одноразовых сервисов;
-# 5.	Генерация первого инвойса.
-# 6.	Генерация договора.
-# 7.	Создание тикета на подключение
+# 1.  Регистрация пользователя (изменение набора реквизитов персональной информации о пользователе);
+# 2.  Подключение  пользователю Интернет-тарифа;
+# 3.  Подключение набора периодических сервисов;
+# 4.  Регистрация набора одноразовых сервисов;
+# 5.  Генерация первого инвойса.
+# 6.  Генерация договора.
+# 7.  Создание тикета на подключение
 #**********************************************************
 sub form_wizard {
   my ($attr) = @_;
@@ -810,7 +810,7 @@ sub form_wizard {
     $FORM{UID} = $LIST_PARAMS{UID} if (!$FORM{UID} && $LIST_PARAMS{UID});
 
     #while(my($k, $v)=each %FORM) {
-    #	print "$k, $v<br>";
+    #  print "$k, $v<br>";
     # }
     $return = $fn->({ REGISTRATION => 1, USER_INFO => ($FORM{UID}) ? $users : undef });
     $LIST_PARAMS{UID} = $FORM{UID};
@@ -1021,7 +1021,7 @@ sub form_companies {
         $_BILL     => "19:COMPANY_ID=$FORM{COMPANY_ID}"
       },
       { f_args     => { COMPANY => $company },
-      	MAIN_INDEX => get_function_index('form_companies') 
+        MAIN_INDEX => get_function_index('form_companies') 
       }
     );
 
@@ -1493,7 +1493,7 @@ sub user_form {
       $user_info->{DEPOSIT}='--';
     }
     else {
-	    if ($permissions{1}) {
+      if ($permissions{1}) {
         $user_info->{PAYMENTS_BUTTON} = $html->button($_PAYMENTS, "index=2&UID=$LIST_PARAMS{UID}", { CLASS => 'payments rightAlignText' });
       }
   
@@ -1786,7 +1786,7 @@ sub user_info {
   my $ext_menu  = user_ext_menu($user_info->{UID}, $user_info->{LOGIN}, { SHOW_UID => 1 });
   my $domain_id = '';
   if ($admin->{DOMAIN_ID} == 0 && $user_info->{DOMAIN_ID} > 0) {
-  	$domain_id = " DOMAIN: $user_info->{DOMAIN_ID}";
+    $domain_id = " DOMAIN: $user_info->{DOMAIN_ID}";
   }
 
   $table = $html->table(
@@ -1865,7 +1865,7 @@ sub form_address_sel {
     $js_list = "<select style='width: inherit;' size='$size' onchange='insert(this)' id='build'>" . $js_list . "</select>";
 
     print qq{JsHttpRequest.dataReady({ "id": "$id", 
-   	     "js": { "list": "$js_list" }, 
+          "js": { "list": "$js_list" }, 
          "text": "" }) };
   }
   elsif ($FORM{DISTRICT_ID}) {
@@ -1885,7 +1885,7 @@ sub form_address_sel {
     $js_list = "<select style='width: inherit;' size='$size' onchange='insert(this)' id='street'>" . $js_list . "</select>";
 
     print qq{JsHttpRequest.dataReady({ "id": "$id", 
-   	    "js": { "list": "$js_list" }, 
+         "js": { "list": "$js_list" }, 
         "text": "" }) };
   }
   else {
@@ -1899,7 +1899,7 @@ sub form_address_sel {
     $js_list = "<select style='width: inherit;' size='$size' onchange='insert(this)' id='block'>" . $js_list . "</select>";
 
     print qq{JsHttpRequest.dataReady({ "id": "$id", 
-   	    "js": { "list": "$js_list" }, 
+         "js": { "list": "$js_list" }, 
         "text": "" }) };
   }
   exit;
@@ -2278,15 +2278,15 @@ sub form_users {
             }
           }
           if ($service_func_index) {
- 	          print $html->element('table', 
-          	 $html->element('tr', $html->element('th', $module, { class=>'form_title' }) ).
-          	 $html->element('tr', $html->element('th', 
-          	   $html->element('div',
-          	     $html->element('li', $service_func_menu, { class =>'center' })
-          	   ,{ id=>'rules' })
-          	   ,{ class=>'even' }) )
-          	,
-          	{ width=>'100%', border=>'0' });
+             print $html->element('table', 
+             $html->element('tr', $html->element('th', $module, { class=>'form_title' }) ).
+             $html->element('tr', $html->element('th', 
+               $html->element('div',
+                 $html->element('li', $service_func_menu, { class =>'center' })
+               ,{ id=>'rules' })
+               ,{ class=>'even' }) )
+            ,
+            { width=>'100%', border=>'0' });
 
             $index = $service_func_index;
             if (defined($module{$service_func_index})) {
@@ -2307,14 +2307,14 @@ sub form_users {
           }
 
           print $html->element('table', 
-          	 $html->element('tr', $html->element('th', $module, { class=>'form_title' }) ).
-          	 $html->element('tr', $html->element('th', 
-          	   $html->element('div',
-          	     $html->element('li', $service_func_menu, { class =>'center' })
-          	   ,{ id=>'rules' })
-          	   ,{ class=>'even' }) )
-          	,
-          	{ width=>'100%', border=>'0' });
+             $html->element('tr', $html->element('th', $module, { class=>'form_title' }) ).
+             $html->element('tr', $html->element('th', 
+               $html->element('div',
+                 $html->element('li', $service_func_menu, { class =>'center' })
+               ,{ id=>'rules' })
+               ,{ class=>'even' }) )
+            ,
+            { width=>'100%', border=>'0' });
 
           $functions{$service_func_index}->({ USER_INFO => $user_info });
         }
@@ -2528,9 +2528,9 @@ sub form_users {
   }
 
   my $list = $users->list({ %LIST_PARAMS, 
-  	                        FULL_LIST => 1,
-  	                        COLS_NAME => 1,
-  	                      });
+                            FULL_LIST => 1,
+                            COLS_NAME => 1,
+                          });
 
   if ($users->{errno}) {
     $html->message('err', $_ERROR, "[$users->{errno}] $err_strs{$users->{errno}}");
@@ -2559,8 +2559,8 @@ sub form_users {
 
   my $TITLE = title_former({
      INPUT_DATA      => $users,
-  	 BASE_FIELDS     => 5,
-  	 FUNCTION_FIELDS => 'payments, fees',
+     BASE_FIELDS     => 5,
+     FUNCTION_FIELDS => 'payments, fees',
     });
 
   #User list
@@ -2593,7 +2593,7 @@ function CheckAllINBOX() {
   );
   
   if ($FORM{UNIVERSAL_SEARCH}) {
-   	$search_color_mark=$html->color_mark($FORM{UNIVERSAL_SEARCH}, $_COLORS[6]);
+     $search_color_mark=$html->color_mark($FORM{UNIVERSAL_SEARCH}, $_COLORS[6]);
   }
   
   my $base_fields = 5;
@@ -2603,8 +2603,8 @@ function CheckAllINBOX() {
     my $fees     = ($permissions{2}) ? $html->button($_FEES, "index=3&UID=$uid", { CLASS => 'fees' }) : '';
 
     if ($FORM{UNIVERSAL_SEARCH}) {
-   	  $line->{fio} =~ s/(.*)$FORM{UNIVERSAL_SEARCH}(.*)/\1$search_color_mark\2/;
-   	  $line->{id}  =~ s/(.*)$FORM{UNIVERSAL_SEARCH}(.*)/\1$search_color_mark\2/;
+       $line->{fio} =~ s/(.*)$FORM{UNIVERSAL_SEARCH}(.*)/\1$search_color_mark\2/;
+       $line->{id}  =~ s/(.*)$FORM{UNIVERSAL_SEARCH}(.*)/\1$search_color_mark\2/;
     }
 
 
@@ -2618,7 +2618,7 @@ function CheckAllINBOX() {
       }
       
       if ($FORM{UNIVERSAL_SEARCH}) {
-      	$line->{$users->{COL_NAMES_ARR}->[$i]} =~ s/(.*)$FORM{UNIVERSAL_SEARCH}(.*)/\1$search_color_mark\2/;
+        $line->{$users->{COL_NAMES_ARR}->[$i]} =~ s/(.*)$FORM{UNIVERSAL_SEARCH}(.*)/\1$search_color_mark\2/;
       }
       
       push @fields_array, $table->td($line->{$users->{COL_NAMES_ARR}->[$i]});
@@ -3646,7 +3646,7 @@ sub form_admins {
   if ($FORM{AID}) {
     $admin_form->info($FORM{AID});
     if(! $FORM{DOMAIN_ID}) {
-      $FORM{DOMAIN_ID}  = $admin_form->{DOMAIN_ID} if($admin_form->{DOMAIN_ID});    	
+      $FORM{DOMAIN_ID}  = $admin_form->{DOMAIN_ID} if($admin_form->{DOMAIN_ID});      
     }
 
     $LIST_PARAMS{AID} = $admin_form->{AID};
@@ -3876,8 +3876,8 @@ sub form_admins_groups {
 #
 #my $admin = $attr->{ADMIN};
 #if ($FORM{add}) {
-#	my $admin = $attr->{ADMIN};
-#	$admin->allow_ip_add({ %FORM });
+#  my $admin = $attr->{ADMIN};
+#  $admin->allow_ip_add({ %FORM });
 #  if ($admin->{errno}) {
 #    $html->message('err', $_ERROR, "[$admin->{errno}] $err_strs{$admin->{errno}}");
 #   }
@@ -5022,7 +5022,7 @@ sub reports {
       $LIST_PARAMS{TO_TIME}   = $FORM{TO_TIME};
 
       if ($FORM{FROM_TIME} && $FORM{TO_TIME} && ($FORM{FROM_TIME} ne '00:00:00' || $FORM{TO_TIME} ne '24:00:00')) {
-      	$pages_qs .= "&FROM_TIME=$FORM{FROM_TIME}&TO_TIME=$FORM{TO_TIME}";
+        $pages_qs .= "&FROM_TIME=$FORM{FROM_TIME}&TO_TIME=$FORM{TO_TIME}";
       }
     }
 
@@ -5308,9 +5308,9 @@ sub report_fees {
         $main_column = $html->button($line->[0], "index=13&COMPANY_ID=$line->[5]");
       }
       else {
-      	if ($type =~ /LOGIN/) {
-      		$index = 3;
-      	}
+        if ($type =~ /LOGIN/) {
+          $index = 3;
+        }
         $main_column = $html->button($line->[0], "index=$index&$type=$line->[0]$pages_qs");
       }
 
@@ -5555,7 +5555,7 @@ sub report_payments {
         }
       }
       elsif ($line->{admin_name}) {
-      	$main_column = $html->button($line->{admin_name}, "index=$index&$type=$line->{admin_name}$pages_qs");
+        $main_column = $html->button($line->{admin_name}, "index=$index&$type=$line->{admin_name}$pages_qs");
       }
       #elsif ($FORM{TYPE} && $FORM{TYPE} eq 'ADMINS')  {
       #  $CAPTION[0]=$_ADMINS;
@@ -5739,7 +5739,7 @@ sub fl {
   }
 
   if ($conf{AUTH_METHOD}) {
-  	$permissions{9}{1}=1;
+    $permissions{9}{1}=1;
     push @m, "10:0:$_LOGOUT:null:::";
   }
 
@@ -5997,9 +5997,9 @@ sub form_payments () {
             $FORM{PAYMENTS_ID} = $payments->{PAYMENT_ID};
             
             cross_modules_call('_payments_maked', { %$attr, 
-            	  PAYMENT_ID   => $payments->{PAYMENT_ID},
-            	  SKIP_MODULES => 'Sqlcmd',
-            	   });
+                PAYMENT_ID   => $payments->{PAYMENT_ID},
+                SKIP_MODULES => 'Sqlcmd',
+                 });
           }
         }
       }
@@ -6012,11 +6012,11 @@ sub form_payments () {
 
       $payments->del($user, $FORM{del});
       if ($payments->{errno}) {
-      	if ($payments->{errno} == 3) {
-      		$html->message('err', $_ERROR, "$ERR_DELETE_RECEIPT ". 
-      		 $html->button($_SHOW, "search=1&PAYMENT_ID=$FORM{del}&index=".(get_function_index('docs_receipt_list')), { BUTTON => 1}) );
-      	}
-      	else {
+        if ($payments->{errno} == 3) {
+          $html->message('err', $_ERROR, "$ERR_DELETE_RECEIPT ". 
+           $html->button($_SHOW, "search=1&PAYMENT_ID=$FORM{del}&index=".(get_function_index('docs_receipt_list')), { BUTTON => 1}) );
+        }
+        else {
           $html->message('err', $_ERROR, "[$payments->{errno}] $err_strs{$payments->{errno}}");
         }
       }
@@ -6102,7 +6102,7 @@ sub form_payments () {
          $html->element('td', "$_DATE:", { colspan=>2 }).
          $html->element('td', "$date_field  $_HOLD:". 
          $html->form_input('hold_date', '1', { TYPE => 'checkbox', EX_PARAMS => "NAME='hold_date'", 
-         	  STATE => (($COOKIES{hold_date}) ? 1 : undef) })
+             STATE => (($COOKIES{hold_date}) ? 1 : undef) })
          ),
          );
       }
@@ -6188,22 +6188,22 @@ sub form_payments () {
   }
 
   my $payments_list  = $payments->list({%LIST_PARAMS, 
-  	                                    COLS_NAME => 1});
+                                        COLS_NAME => 1});
 
   my %i2p_hash = ();
   if (in_array('Docs', \@MODULES)) {
-  	push @caption, "$_INVOICE";
-  	my @payment_id_arr = ();
-  	foreach my $p (@$payments_list) {
-  		push @payment_id_arr, $p->{id};
-  	}
-  	
-  	my $i2p_list = $Docs->invoices2payments_list({ PAYMENT_ID => join(';', @payment_id_arr), 
-  		                                             PAGE_ROWS  => $LIST_PARAMS{PAGE_ROWS}*3, 
-  		                                             COLS_NAME  => 1 });
-  	foreach my $i2p (@$i2p_list) {
-  	  push @{ $i2p_hash{$i2p->{payment_id}} }, "$i2p->{invoice_id}:$i2p->{invoiced_sum}:$i2p->{invoice_num}";
-  	}
+    push @caption, "$_INVOICE";
+    my @payment_id_arr = ();
+    foreach my $p (@$payments_list) {
+      push @payment_id_arr, $p->{id};
+    }
+    
+    my $i2p_list = $Docs->invoices2payments_list({ PAYMENT_ID => join(';', @payment_id_arr), 
+                                                   PAGE_ROWS  => $LIST_PARAMS{PAGE_ROWS}*3, 
+                                                   COLS_NAME  => 1 });
+    foreach my $i2p (@$i2p_list) {
+      push @{ $i2p_hash{$i2p->{payment_id}} }, "$i2p->{invoice_id}:$i2p->{invoiced_sum}:$i2p->{invoice_num}";
+    }
   }
   
   push @caption, '-';
@@ -6256,19 +6256,19 @@ sub form_payments () {
 
     if (in_array('Docs', \@MODULES) && ! $FORM{xml}) {
       my $payment_sum = $payment->{sum};
-    	my $i2p         = '';
+      my $i2p         = '';
 
-    	if ($i2p_hash{$payment->{id}}) {
+      if ($i2p_hash{$payment->{id}}) {
         foreach my $val ( @{ $i2p_hash{$payment->{id}} }  ) {
-        	my ($invoice_id, $invoiced_sum, $invoice_num)=split(/:/, $val);
-    	    $i2p .= $invoiced_sum ." $_PAID $_INVOICE #". $html->button($invoice_num, "index=". get_function_index('docs_invoices_list'). "&ID=$invoice_id&search=1"  ) . $html->br();
-        	$payment_sum -= $invoiced_sum;
+          my ($invoice_id, $invoiced_sum, $invoice_num)=split(/:/, $val);
+          $i2p .= $invoiced_sum ." $_PAID $_INVOICE #". $html->button($invoice_num, "index=". get_function_index('docs_invoices_list'). "&ID=$invoice_id&search=1"  ) . $html->br();
+          $payment_sum -= $invoiced_sum;
         }
-    	}
+      }
 
-    	if ($payment_sum > 0) {
-    	  $i2p .= sprintf("%.2f", $payment_sum). ' '. $html->color_mark("$_UNAPPLIED", $_COLORS[6]) .' ('. $html->button($_APPLY, "index=". get_function_index('docs_invoices_list') ."&UNINVOICED=1&PAYMENT_ID=$payment->{id}&UID=$payment->{uid}") .')';
-    	}
+      if ($payment_sum > 0) {
+        $i2p .= sprintf("%.2f", $payment_sum). ' '. $html->color_mark("$_UNAPPLIED", $_COLORS[6]) .' ('. $html->button($_APPLY, "index=". get_function_index('docs_invoices_list') ."&UNINVOICED=1&PAYMENT_ID=$payment->{id}&UID=$payment->{uid}") .')';
+      }
       
       push @rows, $i2p;
     }
@@ -6928,12 +6928,12 @@ sub form_search {
     $pages_qs .= "&type=$FORM{type}" if ($pages_qs !~ /&type=/);
 
     if ($FORM{type} == 10) {
-    	$FORM{UNIVERSAL_SEARCH}=$FORM{LOGIN} || $FORM{UNIVERSAL_SEARCH};
-    	delete $FORM{LOGIN};
-    	$FORM{type} = 11 ;
+      $FORM{UNIVERSAL_SEARCH}=$FORM{LOGIN} || $FORM{UNIVERSAL_SEARCH};
+      delete $FORM{LOGIN};
+      $FORM{type} = 11 ;
     }
     else {
-	    $LIST_PARAMS{LOGIN} = $FORM{LOGIN};
+      $LIST_PARAMS{LOGIN} = $FORM{LOGIN};
     }
 
     while (my ($k, $v) = each %FORM) {
@@ -6984,7 +6984,7 @@ sub form_search {
     $html->tpl_show(templates('form_search_simple'), \%SEARCH_DATA);
   }
   elsif ($attr->{TPL}) {
-  	print $attr->{TPL};
+    print $attr->{TPL};
     #defined();
   }
   elsif (!$FORM{pdf}) {
@@ -7000,8 +7000,8 @@ sub form_search {
       $FORM{type} = 11;
     }
     elsif($FORM{type} == 10) {
-    	$FORM{UNIVERSAL_SEARCH}="$FORM{LOGIN}";
-    	$FORM{type} = 11;
+      $FORM{UNIVERSAL_SEARCH}="$FORM{LOGIN}";
+      $FORM{type} = 11;
     }
     
     if ($FORM{LOGIN} && $admin->{MIN_SEARCH_CHARS} && length($FORM{LOGIN}) < $admin->{MIN_SEARCH_CHARS}) {
@@ -7241,7 +7241,7 @@ sub form_search {
           $info{ADDRESS_FORM} = $html->tpl_show(templates('form_address'), $user_pi, { OUTPUT2RETURN => 1 });
         }
       }
-      	
+        
 
 
       $SEARCH_DATA{SEARCH_FORM} = $html->tpl_show(templates($search_form{ $FORM{type} }), { %FORM, %info, GROUPS_SEL => $group_sel }, { OUTPUT2RETURN => 1 });
@@ -7249,13 +7249,13 @@ sub form_search {
     }
 
     if ($attr->{ADDRESS_FORM}) {
-    	$SEARCH_DATA{ADDRESS_FORM} = $html->tpl_show(templates('form_show_hide'), 
-    	   {
-    	   	CONTENT => '<table width=100%>'.$html->tpl_show(templates('form_address_sel'), $user_pi, { OUTPUT2RETURN => 1, ID => 'form_address_sel' }).'</table>',
-    	   	NAME    => $_ADDRESS,
-    	   	ID      => 'ADDRESS_FORM',
-    	    }, 
-    	   { OUTPUT2RETURN => 1 });
+      $SEARCH_DATA{ADDRESS_FORM} = $html->tpl_show(templates('form_show_hide'), 
+         {
+           CONTENT => '<table width=100%>'.$html->tpl_show(templates('form_address_sel'), $user_pi, { OUTPUT2RETURN => 1, ID => 'form_address_sel' }).'</table>',
+           NAME    => $_ADDRESS,
+           ID      => 'ADDRESS_FORM',
+          }, 
+         { OUTPUT2RETURN => 1 });
     }
 
     $SEARCH_DATA{FROM_DATE} = $html->date_fld2('FROM_DATE', { MONTHES => \@MONTHES, FORM_NAME => 'form_search', WEEK_DAYS => \@WEEKDAYS, NO_DEFAULT_DATE => $attr->{NO_DEFAULT_DATE} });
@@ -8207,7 +8207,7 @@ sub form_config {
 # sel_groups();
 #**********************************************************
 sub sel_groups {
-	my ($attr) = @_;
+  my ($attr) = @_;
 
   my $GROUPS_SEL = '';
   if ($admin->{GID} > 0 && ! $admin->{GIDS}) {
@@ -8402,7 +8402,7 @@ sub form_tp_groups {
       $table->{rowcolor} = 'row_active';
     }
     elsif($FORM{chg} eq $line->[0]) {
-    	$table->{rowcolor} = 'row_active';
+      $table->{rowcolor} = 'row_active';
     }
     else {
       undef($table->{rowcolor});
@@ -9142,8 +9142,8 @@ sub form_nas_search {
         "<div class='clickSearchResult' name='$line->[1]'>$line->[1]</div>",
 
         #$html->button("$line->[1]", "#", { GLOBAL_URL => '#',
-        #	                                 ex_params => "class='nasClick' name='$line->[1]'"
-        #	                                }),
+        #                                   ex_params => "class='nasClick' name='$line->[1]'"
+        #                                  }),
         $line->[3],
         $line->[4],
         $line->[5],
@@ -9216,12 +9216,12 @@ sub get_popup_info {
 # title_former
 #**********************************************************
 sub title_former {
-	my ($attr)=@_;
-	my @title = ();
+  my ($attr)=@_;
+  my @title = ();
 
-	my $data = $attr->{INPUT_DATA};
+  my $data = $attr->{INPUT_DATA};
 
-	my %SEARCH_TITLES = (
+  my %SEARCH_TITLES = (
     'disable'       => "$_STATUS",
     'deposit'       => "$_DEPOSIT",
     'credit'        => "$_CREDIT",
@@ -9284,10 +9284,10 @@ sub title_former {
   for (my $i = 0 ; $i < $base_fields+$data->{SEARCH_FIELDS_COUNT} ; $i++) {
     $title[$i] = $SEARCH_TITLES{ $EX_TITLE_ARR[$i] } || "$_SEARCH";
   }
-	foreach my $function_fld_name ( split(/,/, $attr->{FUNCTION_FIELDS} ) ) {
-		$title[$#title+1]='-';
-	}
-	return \@title;
+  foreach my $function_fld_name ( split(/,/, $attr->{FUNCTION_FIELDS} ) ) {
+    $title[$#title+1]='-';
+  }
+  return \@title;
 }
 
 

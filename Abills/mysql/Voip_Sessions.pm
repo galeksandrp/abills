@@ -432,7 +432,7 @@ sub list {
   }
 
   #else {
-  #	 push @WHERE_RULES, "date_format(start, '%Y-%m-%d')=curdate()";
+  #   push @WHERE_RULES, "date_format(start, '%Y-%m-%d')=curdate()";
   #}
   #From To
 
@@ -559,7 +559,7 @@ sub reports {
 
   if ($attr->{TYPE}) {
     if ($attr->{TYPE} eq 'TYPE'){
-    	$date = "u.id AS login";
+      $date = "u.id AS login";
     }
   }
 

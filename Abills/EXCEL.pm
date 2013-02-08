@@ -425,8 +425,8 @@ sub header {
     print "Content-Type: text/plain\n\n";
   }
 
-  my $filename     =  ($self->{ID}) ? $self->{ID}.'.xls' : int(rand(10000000)).'.xls';  	
-	$self->{header}  = "Content-Type: application/vnd.ms-excel; filename=$filename\n";  	
+  my $filename     =  ($self->{ID}) ? $self->{ID}.'.xls' : int(rand(10000000)).'.xls';    
+  $self->{header}  = "Content-Type: application/vnd.ms-excel; filename=$filename\n";    
   $self->{header} .= "Cache-Control: no-cache\n";
   $self->{header} .= "Content-disposition: attachment;filename=\"$filename\"\n\n";
 
@@ -499,8 +499,8 @@ sub addrow {
   $col_num=0;
 
   foreach my $val (@row) {
-  	if($self->{title}->[$col_num] &&  $self->{title}->[$col_num] eq '-') {
-  	  next;
+    if($self->{title}->[$col_num] &&  $self->{title}->[$col_num] eq '-') {
+      next;
     }
 
     $worksheet->write($row_number, $col_num, decode('utf8', "$val"), undef);
@@ -518,10 +518,10 @@ sub addtd {
   my (@row) = @_;
 
   foreach my $val (@row) {
-  	if($self->{title}->[$col_num] &&  $self->{title}->[$col_num] eq '-') {
-  	  next;
+    if($self->{title}->[$col_num] &&  $self->{title}->[$col_num] eq '-') {
+      next;
     }
-  	
+    
     $worksheet->write($row_number, $col_num, decode('utf8', "$val"), undef);
     $col_num++;
   }
@@ -561,7 +561,7 @@ sub td {
 sub table_title {
   my $self = shift;
   my ($sort, $desc, $pg, $caption, $qs) = @_;
-   	 
+      
   my $title_format = $workbook->add_format(
     color   => 'black',
     size    => 10,
@@ -751,10 +751,10 @@ sub tpl_show {
       my $default   = $3;
 
       #    if ($var =~ /$\{exec:.+\}$/) {
-      #    	my $exec = $1;
-      #    	if ($exec !~ /$\/usr/abills\/\misc\/ /);
-      #    	my $exec_content = system("$1");
-      #    	$tpl =~ s/\%$var\%/$exec_content/g;
+      #      my $exec = $1;
+      #      if ($exec !~ /$\/usr/abills\/\misc\/ /);
+      #      my $exec_content = system("$1");
+      #      $tpl =~ s/\%$var\%/$exec_content/g;
       #     }
       #    els
 

@@ -5,10 +5,10 @@
 # load_module($string, \%HASH_REF);
 #**********************************************************
 sub load_module {
-	my ($module, $attr) = @_;
+  my ($module, $attr) = @_;
 
-	my $lang_file = '';
-	$attr->{language} = 'english' if (! $attr->{language});
+  my $lang_file = '';
+  $attr->{language} = 'english' if (! $attr->{language});
 
   foreach my $prefix (@INC) {
     my $realfilename = "$prefix/Abills/modules/$module/lng_$attr->{language}.pl";
@@ -18,7 +18,7 @@ sub load_module {
       last;
     }
     elsif (-f "$prefix/Abills/modules/$module/lng_english.pl") {
-    	$lang_file = "$prefix/Abills/modules/$module/lng_english.pl";
+      $lang_file = "$prefix/Abills/modules/$module/lng_english.pl";
     }
   }
 
@@ -26,9 +26,9 @@ sub load_module {
     require $lang_file;
   }
 
- 	require "Abills/modules/$module/webinterface";
+   require "Abills/modules/$module/webinterface";
 
-	return 0;
+  return 0;
 }
 
 
@@ -47,17 +47,17 @@ sub cross_modules_call {
   my @skip_modules = ();
   
   if ($attr->{SKIP_MODULES}) {
-  	$attr->{SKIP_MODULES}=~s/\s+//g;
-  	@skip_modules=split(/,/, $attr->{SKIP_MODULES});
+    $attr->{SKIP_MODULES}=~s/\s+//g;
+    @skip_modules=split(/,/, $attr->{SKIP_MODULES});
    }
 
   foreach my $mod (@MODULES) {
-  	if (in_array($mod, \@skip_modules)) {
-  		next;
-  	}
+    if (in_array($mod, \@skip_modules)) {
+      next;
+    }
     
     if ($attr->{DEBUG}) {
-    	print " $mod -> ". lc($mod).$function_sufix ."\n";
+      print " $mod -> ". lc($mod).$function_sufix ."\n";
     }
 
     load_module("$mod", $html);
@@ -66,7 +66,7 @@ sub cross_modules_call {
     my $return;
     
     if (defined(&$function)) {
-     	$return = $function->($attr);
+       $return = $function->($attr);
     }
 
     $full_return{$mod}=$return;
@@ -111,8 +111,8 @@ sub get_function_index {
 #   PERIOD_ALIGNMENT
 #**********************************************************
 sub get_period_dates {
-	my ($attr)=@_;
-	
+  my ($attr)=@_;
+  
   my $START_PERIOD = $attr->{START_DATE} || $DATE;
   
   my ($start_date, $end_date);
@@ -124,13 +124,13 @@ sub get_period_dates {
   my ($start_y, $start_m, $start_d)=split(/-/, $START_PERIOD);
 
   if ($attr->{TYPE}) {
-  	if ($attr->{TYPE}==1) {
+    if ($attr->{TYPE}==1) {
       my $days_in_month = ($start_m != 2 ? (($start_m % 2) ^ ($start_m > 7)) + 30 : (!($start_y % 400) || !($start_y % 4) && ($start_y % 25) ? 29 : 28));
 
       #start date
-     	$end_date   = "$start_y-$start_m-$days_in_month";
+       $end_date   = "$start_y-$start_m-$days_in_month";
       if ($attr->{PERIOD_ALIGNMENT}) {
-      	$start_date = $START_PERIOD;
+        $start_date = $START_PERIOD;
       }
       else {
         $start_date = "$start_y-$start_m-01";
@@ -140,10 +140,10 @@ sub get_period_dates {
       }
 
       return " ($start_date-$end_date)";
-  	}
+    }
   }
-	
-	return '';
+  
+  return '';
 }
 
 1

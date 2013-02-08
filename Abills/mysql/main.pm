@@ -180,22 +180,22 @@ sub query {
   
 
   if ($self->{TOTAL} > 0) {
-  	my @rows = ();
+    my @rows = ();
     if ($attr->{COLS_NAME}) {
-     	push @{ $self->{COL_NAMES_ARR} }, @{ $q->{NAME} };        	
+       push @{ $self->{COL_NAMES_ARR} }, @{ $q->{NAME} };          
       while (my $row = $q->fetchrow_hashref()) {
-      	if ($attr->{COLS_UPPER}) {
-      		my $row2;
-      		while(my($k,$v)=each %$row) {
-      			$row2->{uc($k)}=$v;
-      		}
-      		$row = { %$row2, %$row };
-      	}
+        if ($attr->{COLS_UPPER}) {
+          my $row2;
+          while(my($k,$v)=each %$row) {
+            $row2->{uc($k)}=$v;
+          }
+          $row = { %$row2, %$row };
+        }
         push @rows, $row;
       }      
     }
     elsif ($attr->{INFO}) {
-     	push @{ $self->{COL_NAMES_ARR} }, @{ $q->{NAME} };        	
+       push @{ $self->{COL_NAMES_ARR} }, @{ $q->{NAME} };          
       while (my $row = $q->fetchrow_hashref()) {
         while(my ($k, $v) = each %$row ) {
           $self->{ uc($k) }=$v;
@@ -287,10 +287,10 @@ sub search_expr {
         }
         next;
       }
-    	elsif ($v =~ /([=><!]{0,2})(\d{2})[\/\.\-](\d{2})[\/\.\-](\d{4})/) {
+      elsif ($v =~ /([=><!]{0,2})(\d{2})[\/\.\-](\d{2})[\/\.\-](\d{4})/) {
         $v = "$1$4-$3-$2";
       }
-    	elsif ($v eq '*') {
+      elsif ($v eq '*') {
         $v = ">=0000-00-00";
       }
     }
@@ -353,11 +353,11 @@ sub search_expr {
 
   if ($field) {
     if ($type ne 'INT') {
-    	if ($#result_arr > -1) {
+      if ($#result_arr > -1) {
         return [ '(' . join(" $delimiter ", @result_arr) . ')' ];
       }
       else {
-      	return [];
+        return [];
       }
     }
     return \@result_arr;
@@ -404,11 +404,11 @@ sub changes {
   }
 
   if (! $attr->{OLD_INFO} && ! $FIELDS ) {
-  	  my $sql = "SELECT * FROM $TABLE WHERE ". lc($attr->{CHANGE_PARAM})."='".$DATA{$attr->{CHANGE_PARAM}}."';";
-  	  if($self->{debug}) {
-  	    print $sql;	
-  	  }
-  	  my $q = $db->prepare($sql);
+      my $sql = "SELECT * FROM $TABLE WHERE ". lc($attr->{CHANGE_PARAM})."='".$DATA{$attr->{CHANGE_PARAM}}."';";
+      if($self->{debug}) {
+        print $sql;  
+      }
+      my $q = $db->prepare($sql);
       $q->execute();
       my @inserts_arr = ();
   
@@ -634,14 +634,14 @@ sub search_expr_users () {
 
   my $info_field = 0;
   foreach my $key (keys %{ $attr }) {
-  	if ($users_fields_hash{$key}) {
-  		next if ($ext_fields{$key.':skip'});
-  		my ($type, $field) = split(/:/, $users_fields_hash{$key});
-  		next if ($type eq 'STR' && ! $attr->{$key});
-  		push @fields, @{ $self->search_expr($attr->{$key}, $type, "$field", { EXT_FIELD => $ext_fields{$key} }) };
+    if ($users_fields_hash{$key}) {
+      next if ($ext_fields{$key.':skip'});
+      my ($type, $field) = split(/:/, $users_fields_hash{$key});
+      next if ($type eq 'STR' && ! $attr->{$key});
+      push @fields, @{ $self->search_expr($attr->{$key}, $type, "$field", { EXT_FIELD => $ext_fields{$key} }) };
     }
     elsif (! $info_field && $key =~ /^_/) {
-    	$info_field=1;
+      $info_field=1;
     }
   }
 
@@ -725,8 +725,8 @@ sub search_expr_users () {
         LEFT JOIN streets ON (streets.id=builds.street_id)";
       }
       elsif($attr->{SHOW_ADDRESS}) {
-      	$self->{SEARCH_FIELDS_COUNT} += 4;
-      	$self->{SEARCH_FIELDS}       .= 'streets.name AS address_street, builds.number AS address_build, pi.address_flat, streets.id AS street_id, pi.address_flat, ';
+        $self->{SEARCH_FIELDS_COUNT} += 4;
+        $self->{SEARCH_FIELDS}       .= 'streets.name AS address_street, builds.number AS address_build, pi.address_flat, streets.id AS street_id, pi.address_flat, ';
         $self->{EXT_TABLES} .= "LEFT JOIN builds ON (builds.id=pi.location_id)
         LEFT JOIN streets ON (streets.id=builds.street_id)";
       }
@@ -760,10 +760,10 @@ sub search_expr_users () {
   }
 
   if ($attr->{ACTION_DATE}) {
-  	my $field_name = 'aa.datetime';
-  	if($attr->{ACTION_DATE}=~/\d{4}\-\d{2}\-\d{2}/) {
-  		$field_name = 'DATE_FORMAT(aa.datetime, \'%Y-%m-%d\')';
-  	}
+    my $field_name = 'aa.datetime';
+    if($attr->{ACTION_DATE}=~/\d{4}\-\d{2}\-\d{2}/) {
+      $field_name = 'DATE_FORMAT(aa.datetime, \'%Y-%m-%d\')';
+    }
 
     push @fields, @{ $self->search_expr($attr->{ACTION_DATE}, 'DATE', "$field_name AS action_datetime", { EXT_FIELD => 1 }) };
     $self->{EXT_TABLES} .= "LEFT JOIN admin_actions aa ON (u.uid=aa.uid)" if ($self->{EXT_TABLES} !~ /admin_actions/);
@@ -777,9 +777,9 @@ sub search_expr_users () {
 #
 #**********************************************************
 sub query_add {
-	my $self = shift;
-	my ($db, $table, $values, $attr)=@_;
-	
+  my $self = shift;
+  my ($db, $table, $values, $attr)=@_;
+  
   my $q = $db->column_info(undef, undef, $table, '%');
   $q->execute();
   my @inserts_arr = ();
@@ -787,13 +787,13 @@ sub query_add {
   while (defined(my $row = $q->fetchrow_hashref())) {
     my $column = uc($row->{COLUMN_NAME});
     if ($values->{$column}) {
-    	push @inserts_arr, "$column='$values->{$column}'";
+      push @inserts_arr, "$column='$values->{$column}'";
      }
   }
-	
-	my $sql = "INSERT INTO $table SET ". join(",\n ", @inserts_arr);
+  
+  my $sql = "INSERT INTO $table SET ". join(",\n ", @inserts_arr);
 
-	return $self->query($db, $sql, 'do');
+  return $self->query($db, $sql, 'do');
 }
 
 1

@@ -12,7 +12,7 @@
 # See the file 'Changes' in the distrution archive.                         #
 #                                                                           #
 #############################################################################
-# 	$Id$
+#   $Id$
 
 package Radius;
 
@@ -116,10 +116,10 @@ sub send_packet {
   $data = pack('C C n', $type, $request_id, $length) . $self->{'authenticator'} . $self->{'attributes'};
   $request_id = ($request_id + 1) & 0xff;
 
-  #	if ($debug) {
-  #		print STDERR "Sending request:\n";
-  #		print HexDump $data;
-  #	}
+  #  if ($debug) {
+  #    print STDERR "Sending request:\n";
+  #    print HexDump $data;
+  #  }
   $self->{'sock'}->send($data) || $self->set_error('ESENDFAIL');
 }
 
@@ -134,10 +134,10 @@ sub recv_packet {
 
   $self->{'sock'}->recv($data, 65536) or return $self->set_error('ERECVFAIL');
 
-  #	if ($debug) {
-  #		print STDERR "Received response:\n";
-  #		print HexDump $data;
-  #	}
+  #  if ($debug) {
+  #    print STDERR "Received response:\n";
+  #    print HexDump $data;
+  #  }
 
   ($type, $id, $length, $auth, $self->{'attributes'}) = unpack('C C n a16 a*', $data);
   return $self->set_error('EBADAUTH') if $auth ne $self->calc_authenticator($type, $id, $length);
@@ -471,19 +471,19 @@ Authen::Radius - provide simple Radius client facilities
   $r = new Authen::Radius(Host => 'myserver', Secret => 'mysecret');
   Authen::Radius->load_dictionary();
   $r->add_attributes (
-  		{ Name => 'User-Name', Value => 'myname' },
-  		{ Name => 'Password', Value => 'mypwd' },
+      { Name => 'User-Name', Value => 'myname' },
+      { Name => 'Password', Value => 'mypwd' },
 # RFC 2865 http://www.ietf.org/rfc/rfc2865.txt calls this attribute
 # User-Password. Check your local RADIUS dictionary to find
 # out which name is used on your system
-#  		{ Name => 'User-Password', Value => 'mypwd' },
-  		{ Name => 'h323-return-code', Value => '0' }, # Cisco AV pair
-		{ Name => 'Digest-Attributes', Value => { Method => 'REGISTER' } }
+#      { Name => 'User-Password', Value => 'mypwd' },
+      { Name => 'h323-return-code', Value => '0' }, # Cisco AV pair
+    { Name => 'Digest-Attributes', Value => { Method => 'REGISTER' } }
   );
   $r->send_packet(ACCESS_REQUEST) and $type = $r->recv_packet();
   print "server response type = $type\n";
   for $a ($r->get_attributes()) {
-  	print "attr: name=$a->{'Name'} value=$a->{'Value'}\n";
+    print "attr: name=$a->{'Name'} value=$a->{'Value'}\n";
   }
 
 =head1  DESCRIPTION

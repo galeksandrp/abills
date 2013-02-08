@@ -233,12 +233,12 @@ sub auth {
   }
   elsif ($self->{USER_DISABLE}) {
     $RAD_PAIRS{'Reply-Message'} = "Account Disable";
- 	  $RAD_PAIRS{'Filter-Id'} = 'user_disable';
+     $RAD_PAIRS{'Filter-Id'} = 'user_disable';
     return 1, \%RAD_PAIRS;
   }
 
-	# 
-	if ($self->{LOGINS} > 0) {
+  # 
+  if ($self->{LOGINS} > 0) {
     $self->query($db, "SELECT count(*) FROM voip_calls 
        WHERE (calling_station_id='$RAD->{CALLING_STATION_ID}' OR called_station_id='$RAD->{CALLING_STATION_ID}')
        AND status<>2;");
@@ -250,7 +250,7 @@ sub auth {
   }
 
   if ($self->{FILTER_ID}) {
-  	$RAD_PAIRS{'Filter-Id'} = $self->{FILTER_ID};
+    $RAD_PAIRS{'Filter-Id'} = $self->{FILTER_ID};
   }
 
   #$self->{PAYMENT_TYPE} = 0;
@@ -260,7 +260,7 @@ sub auth {
 
     #One month freeperiod
     if ($conf->{VOIP_ONEMONTH_INCOMMING_ALLOW} && ! $self->{VOIP_DISABLE}) {
-    	
+      
     }
     #Check deposit
     elsif ($self->{DEPOSIT} <= 0) {
@@ -270,8 +270,8 @@ sub auth {
     }
     
     if ($self->{DEPOSIT} < $self->{UPLIMIT}) {
-    	$RAD_PAIRS{'Reply-Message'} = "Too small deposit please recharge balace";
-    	$RAD_PAIRS{'Filter-Id'}='deposit_alert';
+      $RAD_PAIRS{'Reply-Message'} = "Too small deposit please recharge balace";
+      $RAD_PAIRS{'Filter-Id'}='deposit_alert';
     }
   }
   else {
@@ -646,7 +646,7 @@ sub accounting {
           if ($self->{PREPAID_TIME} > 0) {
             $self->{LOG_DURATION} = 0;
             my $sql = "SELECT sum(duration) FROM voip_log l, voip_route_prices rp WHERE l.route_id=rp.route_id
-       	 	   AND uid='$self->{UID}' AND rp.extra_tarification='$self->{EXTRA_TARIFICATION}'";
+               AND uid='$self->{UID}' AND rp.extra_tarification='$self->{EXTRA_TARIFICATION}'";
             $self->query($db, "$sql");
             $self->{LOG_DURATION} = 0;
             if ($self->{TOTAL} > 0) {

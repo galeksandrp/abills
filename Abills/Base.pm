@@ -267,15 +267,15 @@ sub utf82win {
   #
   #    #elsif(($Code>=0x81)&&($Code<=0x200+0x44f)){ $Unicode.=chr($Code - 170); }
   #
-  #    #elsif($Code==0x49){ $Unicode.='I';     	}
-  #    #elsif($Code==0x69){ $Unicode.='i';     	}
-  #    #elsif($Code==0x3F){ $Unicode.='?';     	}
-  #    #elsif($Code==0x20){ $Unicode.=' ';     	}
-  #    #elsif($Code==0x2C){ $Unicode.=',';     	}
-  #    #elsif($Code==0x2E){ $Unicode.='.';     	}
-  #    #elsif($Code==0x64){ $Unicode.='d';     	}
+  #    #elsif($Code==0x49){ $Unicode.='I';       }
+  #    #elsif($Code==0x69){ $Unicode.='i';       }
+  #    #elsif($Code==0x3F){ $Unicode.='?';       }
+  #    #elsif($Code==0x20){ $Unicode.=' ';       }
+  #    #elsif($Code==0x2C){ $Unicode.=',';       }
+  #    #elsif($Code==0x2E){ $Unicode.='.';       }
+  #    #elsif($Code==0x64){ $Unicode.='d';       }
   #    else{ $Unicode.= $_;
-  #    	}
+  #      }
   #   }
   #
   #  return $Unicode;
@@ -324,7 +324,7 @@ sub sendmail {
   }
 
   if (! $from) {
-  	return 0;
+    return 0;
   }
 
   my $header = '';

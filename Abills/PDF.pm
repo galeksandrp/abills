@@ -1291,7 +1291,7 @@ sub tpl_show {
       }
 
       #else {
-      #	$text = ''; #"'$key: $x/$y'";
+      #  $text = ''; #"'$key: $x/$y'";
       # }
 
       if ($text_file ne '') {

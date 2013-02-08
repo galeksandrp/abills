@@ -61,13 +61,13 @@ sub add {
 # Add to deposit
 #**********************************************************
 sub add2deposit {
-	my $self = shift;
-	my ($sum) = @_;
-	
+  my $self = shift;
+  my ($sum) = @_;
+  
  $self->query($db, "UPDATE accounts SET deposit=deposit+$sum 
      WHERE id='$self->{ACCOUNT_ID}';");
 
-  return $self;	
+  return $self;  
 }
 
 
@@ -116,7 +116,7 @@ sub change {
   }
 
 if ($CHANGES_QUERY eq '') {
-  return $self->{result};	
+  return $self->{result};  
 }
 
 # print $CHANGES_LOG;

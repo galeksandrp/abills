@@ -306,13 +306,13 @@ sub get_traffic {
   }
 
   if ($CONF->{DV_INTERVAL_PREPAID}) {
-  	my $sql =  "SELECT li.traffic_type, sum(li.sent) / $CONF->{MB_SIZE}, sum(li.recv) / $CONF->{MB_SIZE}  FROM dv_log l, dv_log_intervals li
+    my $sql =  "SELECT li.traffic_type, sum(li.sent) / $CONF->{MB_SIZE}, sum(li.recv) / $CONF->{MB_SIZE}  FROM dv_log l, dv_log_intervals li
            WHERE l.acct_session_id=li.acct_session_id AND uid $WHERE and li.interval_id='$self->{TI_ID}' and ($period)";
-  	$self->query($db, $sql);
+    $self->query($db, $sql);
   
-	  if ($self->{TOTAL} > 0) {
-	  	foreach my $line (@{ $self->{list} }) {
-	  		my $sufix = ($line->[0] == 0) ? '' : "_".($line->[0]+1);
+    if ($self->{TOTAL} > 0) {
+      foreach my $line (@{ $self->{list} }) {
+        my $sufix = ($line->[0] == 0) ? '' : "_".($line->[0]+1);
         $result{'TRAFFIC_OUT'.$sufix} = ($result{'TRAFFIC_OUT'.$sufix}) ? $result{'TRAFFIC_OUT'.$sufix} + $line->[1] : $line->[1];
         $result{'TRAFFIC_IN'.$sufix}  = ($result{'TRAFFIC_IN'.$sufix}) ? $result{'TRAFFIC_IN'.$sufix} + $line->[2] : $line->[2];
       }
@@ -678,7 +678,7 @@ sub session_sum {
   if ($self->{NEG_DEPOSIT_FILTER}) {
     $self->query($db, "SELECT deposit FROM bills WHERE id='$self->{BILL_ID}';");
     if ($self->{TOTAL} > 0) {
-    	$self->{CREDIT} = ($self->{CREDIT}>0) ? $self->{CREDIT} : $self->{TP_CREDIT};
+      $self->{CREDIT} = ($self->{CREDIT}>0) ? $self->{CREDIT} : $self->{TP_CREDIT};
       ($self->{DEPOSIT}) = @{ $self->{list}->[0] };
       if ($self->{DEPOSIT} + $self->{CREDIT} < 0) {
         return $self->{UID}, 0, $self->{BILL_ID}, $self->{TP_NUM}, 0, 0;
@@ -691,14 +691,14 @@ sub session_sum {
 
 
   if ($self->{CHECK_SESSION}) {
-  	if ($self->{TOTAL_TRAF_LIMIT}) {
+    if ($self->{TOTAL_TRAF_LIMIT}) {
       if ($sent + $recv >= $self->{TOTAL_TRAF_LIMIT}) {
         $self->{HANGUP} = 1;
         return $self->{UID}, 0, $self->{BILL_ID}, $self->{TP_NUM}, 0, 0;
       }
     }
-  	elsif ($self->{MONTH_TRAF_LIMIT}) {
-  		my $counters = $self->get_traffic({ UID => $self->{UID} });
+    elsif ($self->{MONTH_TRAF_LIMIT}) {
+      my $counters = $self->get_traffic({ UID => $self->{UID} });
       if ($counters->{TRAFFIC_IN} + $counters->{TRAFFIC_OUT} >= $self->{MONTH_TRAF_LIMIT}) {
         $self->{HANGUP} = 1;
         return $self->{UID}, 0, $self->{BILL_ID}, $self->{TP_NUM}, 0, 0;

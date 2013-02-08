@@ -617,11 +617,11 @@ sub hosts_list {
   @WHERE_RULES = ();
 
   push @WHERE_RULES, @{ $self->search_expr_users({ %$attr, 
-  	                         EXT_FIELDS => [
-  	                                        'PHONE',
-  	                                        'EMAIL',
-  	                                        'ADDRESS_FLAT',
-  	                                        'PASPORT_DATE',
+                             EXT_FIELDS => [
+                                            'PHONE',
+                                            'EMAIL',
+                                            'ADDRESS_FLAT',
+                                            'PASPORT_DATE',
                                             'PASPORT_NUM', 
                                             'PASPORT_GRANT',
                                             'CITY', 
@@ -642,7 +642,7 @@ sub hosts_list {
                                             
                                             'ACTIVATE',
                                             'EXPIRE',
-  	                                         ] }) };
+                                             ] }) };
 
   my $EXT_TABLES = $self->{EXT_TABLES};
 
@@ -756,7 +756,7 @@ sub hosts_list {
 
 
   if ($CONF->{DHCPHOSTS_USE_DV_STATUS}) {
-	  if (defined($attr->{STATUS})) {
+    if (defined($attr->{STATUS})) {
       push @WHERE_RULES, "dv.disable='$attr->{STATUS}'";
     }
     
@@ -766,7 +766,7 @@ sub hosts_list {
   }
 
   if ($attr->{SHOW_NAS_MNG_INFO}) {
-  	$fields .=  "nas.mng_host_port, nas.mng_user, DECODE(nas.mng_password, '$CONF->{secretkey}') AS mng_password, ";
+    $fields .=  "nas.mng_host_port, nas.mng_user, DECODE(nas.mng_password, '$CONF->{secretkey}') AS mng_password, ";
   }
 
   $self->query(
@@ -906,13 +906,13 @@ sub leases_list {
   }
 
   if (defined($attr->{STATE})) {
-  	if ($attr->{STATE}==4) {
-  		push @WHERE_RULES, "l.ends < now()";
-  	}
-  	if ($attr->{STATE}==2) {
-  		push @WHERE_RULES, "l.ends > now()";
-  	}
-  	else {
+    if ($attr->{STATE}==4) {
+      push @WHERE_RULES, "l.ends < now()";
+    }
+    if ($attr->{STATE}==2) {
+      push @WHERE_RULES, "l.ends > now()";
+    }
+    else {
       push @WHERE_RULES, "state='$attr->{STATE}'";
     }
   }

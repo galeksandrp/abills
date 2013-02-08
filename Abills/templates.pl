@@ -44,7 +44,7 @@ sub _include {
   );
 
   foreach my $result_template (@search_paths) {
-  	if (-f $result_template) {
+    if (-f $result_template) {
       return ($FORM{pdf}) ? $result_template : tpl_content($result_template) ;
     }
   }
