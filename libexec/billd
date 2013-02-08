@@ -2645,7 +2645,7 @@ Flags: X - disabled, I - invalid
         print "Add shaper: TP_ID: $tp_id Class: $traf_type\n" if ($debug > 0);
         #Global Shapper
         if ($traf_type == 0) {
-          $count = ($ARGV->{RECONFIGURE}) ? 0 : get_mikrotik_value('/ip firewall mangle print count-only where new-packet-mark=ALLOW_TRAFFIC_CLASS_'. $tp_id . '_in' , \%NAS);
+          $count = ($ARGV->{RECONFIGURE}) ? [ 0 ] : get_mikrotik_value('/ip firewall mangle print count-only where new-packet-mark=ALLOW_TRAFFIC_CLASS_'. $tp_id . '_in' , \%NAS);
 
           if (! $count->[0] || $count->[0] == 0) {
             push @commands,
@@ -2665,7 +2665,7 @@ Flags: X - disabled, I - invalid
         #Peering shapper
         else {
           #Check TP,
-          $count = ($ARGV->{RECONFIGURE}) ? 0 : get_mikrotik_value("/ip firewall mangle print count-only where new-packet-mark=ALLOW_TRAFFIC_CLASS_" . $tp_id . '_' . $traf_type, \%NAS);
+          $count = ($ARGV->{RECONFIGURE}) ? [ 0 ] : get_mikrotik_value("/ip firewall mangle print count-only where new-packet-mark=ALLOW_TRAFFIC_CLASS_" . $tp_id . '_' . $traf_type, \%NAS);
           my $net_id = $class2nets{$tp_id}{$traf_type};
           if (!$count->[0] || $count->[0] == 0) {
           }
