@@ -2637,16 +2637,17 @@ Flags: X - disabled, I - invalid
     foreach my $tp_id (sort keys %TARIF_SPEEDS) {
       my $speeds = $TARIF_SPEEDS{$tp_id};
       foreach my $traf_type (sort keys %$speeds) {
+      	
         my $speed     = $speeds->{$traf_type};
         my $speed_in  = (defined($speed->{IN})) ? $speed->{IN} * 1024 : 0;
         my $speed_out = (defined($speed->{OUT})) ? $speed->{OUT} * 1024 : 0;
         my $priority  = 5 - $traf_type;
-
+        print "Add shaper: TP_ID: $tp_id Class: $traf_type\n" if ($debug > 0);
         #Global Shapper
         if ($traf_type == 0) {
-          my $count = get_mikrotik_value('/ip firewall mangle print count-only where new-packet-mark=ALLOW_TRAFFIC_CLASS_'. $tp_id . '_in' , \%NAS);
+          $count = ($ARGV->{RECONFIGURE}) ? 0 : get_mikrotik_value('/ip firewall mangle print count-only where new-packet-mark=ALLOW_TRAFFIC_CLASS_'. $tp_id . '_in' , \%NAS);
 
-          if (!$count->[0] || $count->[0] == 0) {
+          if (! $count->[0] || $count->[0] == 0) {
             push @commands,
               "/ip firewall mangle add chain=forward action=mark-packet new-packet-mark=ALLOW_TRAFFIC_CLASS_" . $tp_id . '_in' . " passthrough=yes src-address-list=CLIENTS_$tp_id dst-address=0.0.0.0/0";
             push @commands,
@@ -2661,11 +2662,10 @@ Flags: X - disabled, I - invalid
               "/queue tree add name=\"" . 'TP_' . $tp_id . "_out_global\" parent=$parent_out queue=\"" . 'TP_' . $tp_id . "_out_global_speed\" packet-mark=ALLOW_TRAFFIC_CLASS_" . $tp_id . '_out' . " priority=$priority burst-limit=0 burst-threshold=0 burst-time=0s";
           }
         }
-
         #Peering shapper
         else {
           #Check TP,
-          $count = get_mikrotik_value("/ip firewall mangle print count-only where new-packet-mark=ALLOW_TRAFFIC_CLASS_" . $tp_id . '_' . $traf_type, \%NAS);
+          $count = ($ARGV->{RECONFIGURE}) ? 0 : get_mikrotik_value("/ip firewall mangle print count-only where new-packet-mark=ALLOW_TRAFFIC_CLASS_" . $tp_id . '_' . $traf_type, \%NAS);
           my $net_id = $class2nets{$tp_id}{$traf_type};
           if (!$count->[0] || $count->[0] == 0) {
           }
@@ -2703,7 +2703,7 @@ Flags: X - disabled, I - invalid
     $result .= `echo "===> Initialising remote commands executing:" >> $mikrotik_cmd_log` if ($debug > 0);
     foreach my $cmd (@commands) {
       $cmd =~ s/\"/\\\"/g;
-      print "$cmd\n" if ($debug > 0);
+      print "$cmd\n" if ($debug > 1);
       if ($debug < 5) {
         $result = `$SSH $nas_admin\@$nas_host "$cmd"; echo "$cmd" >> $mikrotik_cmd_log`;
       }
