@@ -1,5 +1,9 @@
 # Ashield
 # 5530068
+#
+# https://github.com/DoctorWebLtd/perl-avdesk
+#
+
 
 use LWP::UserAgent;
 use HTTP::Request::Common;

@@ -44,7 +44,7 @@
 
 
 CLASSES_NUMS='2 3'
-VERSION=5.98
+VERSION=5.99
 
 
 name="abills_shaper"
@@ -301,7 +301,8 @@ abills_ipn() {
   	echo "Restart active sessions"
   	/usr/abills/libexec/periodic monthly MODULES=Ipn SRESTART=1 NO_ADM_REPORT=1 NAS_IDS="${abills_ipn_nas_id}" &
   	# Block unauth ips
-  	${IPFW} add 65000 deny ip from not table\(10\) to any ${IFACE} in
+  	#${IPFW} add 65000 deny ip from not table\(10\) to any ${IFACE} in
+  	${IPFW} add 65000 deny ip from any to any ${IFACE} in
   elif [ w${ACTION} = wstop ]; then
 	  ${IPFW} delete 10 11 12 13 64000 64100 64101  64400 64450 65000
   fi;		
