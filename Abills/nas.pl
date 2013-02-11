@@ -513,7 +513,7 @@ sub hangup_ipcad {
 
   my $result = '';
   my $ip        = $attr->{FRAMED_IP_ADDRESS};
-  my $netmask   = $attr->{NETMASK} || 32;
+  my $netmask   = $attr->{NETMASK} || $attr->{netmask} || 32;
   my $FILTER_ID = $attr->{FILTER_ID} || '';
   
   if ($netmask ne '32') {

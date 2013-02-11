@@ -525,6 +525,7 @@ sub  session_hangup {
           {
             ACCT_SESSION_ID   => $online->{acct_session_id},
             FRAMED_IP_ADDRESS => $online->{ip},
+            NETMASK           => $online->{netmask},
             UID               => $online->{uid},
             debug             => $debug,
             FILTER_ID         => $online->{filter_id},
