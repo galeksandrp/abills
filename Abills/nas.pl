@@ -515,6 +515,11 @@ sub hangup_ipcad {
   my $ip        = $attr->{FRAMED_IP_ADDRESS};
   my $netmask   = $attr->{NETMASK} || 32;
   my $FILTER_ID = $attr->{FILTER_ID} || '';
+  
+  if ($netmask ne '32') {
+    my $ips = 4294967296 - ip2int($netmask);
+    $netmask = 32 - length(sprintf("%b", $ips)) + 1;
+  }
 
   require Ipn;
   Ipn->import();
@@ -557,6 +562,8 @@ sub hangup_ipcad {
     $cmd =~ s/\%FILTER_ID/$FILTER_ID/g;
     $cmd =~ s/\%UID/$UID/g;
     $cmd =~ s/\%PORT/$PORT/g;
+    $cmd =~ s/\%MASK/$netmask/g;
+
     system($cmd);
     print "IPN FILTER: $cmd\n" if ($attr->{debug} && $attr->{debug} > 5);
   }
@@ -567,6 +574,7 @@ sub hangup_ipcad {
     $cmd =~ s/\%MASK/$netmask/g;
     $cmd =~ s/\%NUM/$rule_num/g;
     $cmd =~ s/\%LOGIN/$USER_NAME/g;
+    $cmd =~ s/\%MASK/$netmask/g;
 
     $Log->log_print('LOG_DEBUG', '', "$cmd", { ACTION => 'CMD' });
     if ($attr->{debug} && $attr->{debug} > 4) {

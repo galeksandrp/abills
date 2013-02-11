@@ -783,8 +783,8 @@ sub cards_user_payment () {
         while (my ($k, $v) = each %FORM) {
           $output .= "$k=$v;" if ($FORM{$k} ne '__BUFFER');
         }
-
-        my $test = `echo "$DATE $TIME $user->{LOGIN}  $Cards->{SERIAL}$Cards->{NUMBER} A:$ENV{HTTP_USER_AGENT} QS:$ENV{QUERY_STRING} RA:$ENV{REMOTE_ADDR} $output  ($gt)"  >> /tmp/cards_debug`;
+        my $rand = rand();
+        my $test = `echo "$DATE $TIME $user->{LOGIN} :$rand  $Cards->{SERIAL}$Cards->{NUMBER} A:$ENV{HTTP_USER_AGENT} QS:$ENV{QUERY_STRING} RA:$ENV{REMOTE_ADDR} $output  ($gt)"  >> /tmp/cards_debug`;
       }
 
       my $cards_number_length = $conf{CARDS_NUMBER_LENGTH} || 11;
@@ -885,7 +885,9 @@ sub cards_user_payment () {
             my $gen_time = $end_time - $begin_time;
             $gt = sprintf(" GT: %2.5f", $gen_time);
           }
-          my $test = `echo "$DATE $TIME $user->{LOGIN}  $Cards->{SERIAL}$Cards->{NUMBER} A:$ENV{HTTP_USER_AGENT} QS:$ENV{QUERY_STRING} RA:$ENV{REMOTE_ADDR} ADDED ($gt)"   >> /tmp/cards_debug`;
+ 
+          my $rand = rand();
+          my $test = `echo "$DATE $TIME $user->{LOGIN} R: $rand $Cards->{SERIAL}$Cards->{NUMBER} A:$ENV{HTTP_USER_AGENT} QS:$ENV{QUERY_STRING} RA:$ENV{REMOTE_ADDR} ADDED ($gt)"   >> /tmp/cards_debug`;
         }
 
         cross_modules_call('_payments_maked', { USER_INFO => $user, 
