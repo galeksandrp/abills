@@ -463,6 +463,47 @@ sub list {
     push @WHERE_RULES, @{ $self->search_expr("$attr->{DEPOSIT}", 'INT', 'b.deposit') };
   }
 
+  #Info fields
+  my @fields = ();
+
+  my $list = $self->config_list({ PARAM => 'ifc*', SORT => 2 });
+  if ($self->{TOTAL} > 0) {
+    foreach my $line (@$list) {
+      if ($line->[0] =~ /ifc(\S+)/) {
+        my $field_name = $1;
+        my ($position, $type, $name) = split(/:/, $line->[1]);
+
+        if (defined($attr->{$field_name}) && $type == 4) {
+          push @WHERE_RULES, 'c.' . $field_name . "='$attr->{$field_name}'";
+        }
+        #Skip for bloab
+        elsif ($type == 5) {
+          next;
+        }
+        elsif ($attr->{$field_name}) {
+          if ($type == 1) {
+            my $value = $self->search_expr("$attr->{$field_name}", 'INT');
+            push @WHERE_RULES, "(c." . $field_name . "$value)";
+          }
+          elsif ($type == 2) {
+            push @WHERE_RULES, "(pi.$field_name='$attr->{$field_name}')";
+            $self->{SEARCH_FIELDS} .= "$field_name" . '_list.name AS '. $field_name. '_list_name, ';
+            $self->{SEARCH_FIELDS_COUNT}++;
+            $self->{EXT_TABLES} .= "LEFT JOIN $field_name" . "_list ON (c.$field_name = $field_name" . "_list.id)";
+            next;
+          }
+          else {
+            $attr->{$field_name} =~ s/\*/\%/ig;
+            push @WHERE_RULES, "c.$field_name LIKE '$attr->{$field_name}'";
+          }
+
+          $self->{SEARCH_FIELDS} .= "c.$field_name, ";
+          $self->{SEARCH_FIELDS_COUNT}++;
+        }
+      }
+    }
+    $self->{EXTRA_FIELDS} = $list;
+  }
 
   my $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES) : '';
 

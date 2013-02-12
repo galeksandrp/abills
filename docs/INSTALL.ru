@@ -48,14 +48,14 @@
                     <div id="dokuwiki__usertools">
                 <h3 class="a11y">Инструменты пользователя</h3>
                 <ul>
-                    <li><a href="/wiki/doku.php/abills:docs_03:install:ru?do=login&amp;sectok=8156e96fa832fa353ecae99142a7d7cf"  class="action login" rel="nofollow" title="Войти">Войти</a></li>                </ul>
+                    <li><a href="/wiki/doku.php/abills:docs_03:install:ru?do=login&amp;sectok=bab6f53157b5cee48973d639a52fe5f8"  class="action login" rel="nofollow" title="Войти">Войти</a></li>                </ul>
             </div>
         
         <!-- SITE TOOLS -->
         <div id="dokuwiki__sitetools">
             <h3 class="a11y">Инструменты сайта</h3>
             <form action="/wiki/doku.php/abills" accept-charset="utf-8" class="search" id="dw__search" method="get"><div class="no"><input type="hidden" name="do" value="search" /><input type="text" id="qsearch__in" accesskey="f" name="id" class="edit" title="[F]" /><input type="submit" value="Поиск" class="button" title="Поиск" /><div id="qsearch__out" class="ajax_qsearch JSpopup"></div></div></form>            <div class="mobileTools">
-                <form action="doku.php" method="post" accept-charset="utf-8"><div class="no"><input type="hidden" name="id" value="abills:docs_03:install:ru" /><input type="hidden" name="sectok" value="8156e96fa832fa353ecae99142a7d7cf" /><select name="do" class="edit quickselect" title="Инструменты"><option value="">Инструменты</option><optgroup label="Инструменты страницы"><option value="edit">Показать исходный текст</option><option value="revisions">История страницы</option><option value="backlink">Ссылки сюда</option></optgroup><optgroup label="Инструменты сайта"><option value="recent">Недавние изменения</option><option value="media">Media Manager</option><option value="index">Все страницы</option></optgroup><optgroup label="Инструменты пользователя"><option value="login">Войти</option></optgroup></select><input type="submit" value="&gt;" /></div></form>            </div>
+                <form action="doku.php" method="post" accept-charset="utf-8"><div class="no"><input type="hidden" name="id" value="abills:docs_03:install:ru" /><input type="hidden" name="sectok" value="bab6f53157b5cee48973d639a52fe5f8" /><select name="do" class="edit quickselect" title="Инструменты"><option value="">Инструменты</option><optgroup label="Инструменты страницы"><option value="edit">Показать исходный текст</option><option value="revisions">История страницы</option><option value="backlink">Ссылки сюда</option></optgroup><optgroup label="Инструменты сайта"><option value="recent">Недавние изменения</option><option value="media">Media Manager</option><option value="index">Все страницы</option></optgroup><optgroup label="Инструменты пользователя"><option value="login">Войти</option></optgroup></select><input type="submit" value="&gt;" /></div></form>            </div>
             <ul>
                 <li><a href="/wiki/doku.php/abills:docs_03:install:ru?do=recent"  class="action recent" accesskey="r" rel="nofollow" title="Недавние изменения [R]">Недавние изменения</a></li><li><a href="/wiki/doku.php/abills:docs_03:install:ru?do=media"  class="action media" rel="nofollow" title="Media Manager">Media Manager</a></li><li><a href="/wiki/doku.php/abills:docs_03:install:ru?do=index"  class="action index" accesskey="x" rel="nofollow" title="Все страницы [X]">Все страницы</a></li>            </ul>
         </div>
@@ -169,7 +169,7 @@
 </li>
 <li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:sqlcmd:ru" class="wikilink1" title="abills:docs:sqlcmd:ru">Sqlcmd</a></div>
 </li>
-<li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:squid:ru" class="wikilink1" title="abills:docs:squid:ru">Squid</a></div>
+<li class="level4"><div class="li"> <span class="curid"><a href="/wiki/doku.php/abills:docs:squid:ru" class="wikilink1" title="abills:docs:squid:ru">Squid</a></span></div>
 </li>
 <li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:ureports:ru" class="wikilink1" title="abills:docs:ureports:ru">Ureports</a></div>
 </li>
@@ -189,7 +189,7 @@
 </li>
 <li class="level1"><div class="li"> Frequently Asked Questions</div>
 <ul>
-<li class="level4"><div class="li"> <span class="curid"><a href="/wiki/doku.php/abills:docs:faq:ru" class="wikilink1" title="abills:docs:faq:ru">Russian</a></span></div>
+<li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:faq:ru" class="wikilink1" title="abills:docs:faq:ru">Russian</a></div>
 </li>
 </ul>
 </li>
@@ -349,7 +349,7 @@
 
     </div></div><!-- /site -->
 
-    <div class="no"><img src="/wiki/lib/exe/indexer.php?id=abills%3Adocs_03%3Ainstall%3Aru&amp;1360139853" width="2" height="1" alt="" /></div>
+    <div class="no"><img src="/wiki/lib/exe/indexer.php?id=abills%3Adocs_03%3Ainstall%3Aru&amp;1360687832" width="2" height="1" alt="" /></div>
     <div id="screen__mode" class="no"></div>    <!--[if ( lte IE 7 | IE 8 ) ]></div><![endif]-->
 </body>
 </html>

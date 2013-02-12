@@ -7166,11 +7166,11 @@ sub form_search {
         my $i = 0;
         my $list = $users->config_list({ PARAM => 'ifc*', SORT => 2 });
         if ($users->{TOTAL} > 0) {
-          $info{INFO_FIELDS} .= "<tr><th colspan='3' class=title_color>$_INFO_FIELDS</th></tr>\n";
+          $info{INFO_FIELDS} .= "<tr><th colspan='3' class='title_color'>$_INFO_FIELDS</th></tr>\n";
         }
         foreach my $line (@$list) {
           my $field_id = '';
-          if ($line->[0] =~ /ifu(\S+)/) {
+          if ($line->[0] =~ /ifc(\S+)/) {
             $field_id = $1;
           }
 
