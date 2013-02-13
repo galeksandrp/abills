@@ -649,15 +649,16 @@ sub abon_periodic {
       );
 
       my %PARAMS = (
-        DESCRIBE => "$_ABON: ($info->{TP_ID}) $info->{TP_NAME}". get_period_dates({ TYPE         => $info->{PERIOD},
-        	                                                                          START_PERIOD => $ADMIN_REPORT{DATE}
-        	                                                                        }),
+        DESCRIBE => "$_ABON: ($info->{TP_ID}) $info->{TP_NAME}". 
+                         (($info->{COMMENTS}) ? " $info->{COMMENTS}" : '') .
+                         get_period_dates({ TYPE         => $info->{PERIOD},
+        	                                  START_PERIOD => $ADMIN_REPORT{DATE}
+        	                               }),
         METHOD   => $info->{FEES_TYPE},
         DATE     => $ADMIN_REPORT{DATE}
       );
 
       $info->{CREDIT}   = 0 if (!$info->{CREDIT});
-      $PARAMS{DESCRIBE} = "$_ABON: $info->{TP_NAME}. $info->{COMMENTS}" if ($info->{COMMENTS});
       $abon_date = $ADMIN_REPORT{DATE} if (!$abon_date && $info->{PERIOD} == 1 && $d == 1);
       if ($info->{SERVICE_COUNT} > 1) {
         $info->{PRICE} = $info->{SERVICE_COUNT} * $info->{PRICE}; 
