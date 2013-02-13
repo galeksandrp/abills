@@ -101,10 +101,22 @@ sub abon_user {
       foreach my $line (@$list) {
         my ($Y, $M, $D) = split(/-/, $FORM{ 'DATE_' . $line->{tp_id} }, 3);
         my $seltime = POSIX::mktime(0, 0, 0, $D, ($M - 1), ($Y - 1900));
-        if (($users->{CREDIT} + $users->{DEPOSIT}) > $line->{price} 
+
+        $Abon->{TP_INFO}->{DISCOUNT} = $ai_list->[0]->{DISCOUNT};
+        $Abon->{TP_INFO}->{DISCOUNT} = $line->{discount};
+        $Abon->{TP_INFO}->{PRICE}    = $line->{price};
+        $FORM{ 'DISCOUNT_' . $Abon->{TP_INFO}->{TP_ID} } = $ai_list->[0]->{DISCOUNT};
+        
+        if ($FORM{ 'DISCOUNT_' . $Abon->{TP_INFO}->{TP_ID} }) {
+          $Abon->{TP_INFO}->{PRICE} = $Abon->{TP_INFO}->{PRICE} * ((100 - $FORM{ 'DISCOUNT_' . $Abon->{TP_INFO}->{TP_ID} }) / 100);
+        }
+        elsif ($Abon->{TP_INFO}->{DISCOUNT} && $users->{REDUCTION} > 0) {
+          $Abon->{TP_INFO}->{PRICE} = $Abon->{TP_INFO}->{PRICE} * ((100 - $users->{REDUCTION}) / 100);
+        }
+
+        if (($users->{CREDIT} + $users->{DEPOSIT}) > $Abon->{TP_INFO}->{PRICE}
              || $line->{payment_type} || time() < $seltime) {
           $Abon->{TP_INFO}->{PERIOD_ALIGNMENT} = $line->{period_alignment} || 0;
-          $Abon->{TP_INFO}->{PRICE}            = $line->{price};
           $Abon->{TP_INFO}->{TP_ID}            = $line->{tp_id};
           $Abon->{TP_INFO}->{TP_NAME}          = $line->{name};
           $Abon->{COMMENTS}                    = $FORM{ 'COMMENTS_' . $line->{tp_id} };
@@ -112,7 +124,6 @@ sub abon_user {
           $Abon->{TP_INFO}->{CREATE_ACCOUNT}   = $line->{create_account};
           $ext_cmd                             = $line->{ext_cmd};
           $activate_notification               = $line->{activate_notification};
-          $Abon->{TP_INFO}->{DISCOUNT}         = $line->{discount};
           $Abon->{NEXT_ABON_DATE}              = $line->{next_abon_date};
           $Abon->{SERVICE_COUNT}               = $FORM{'SERVICE_COUNT_'. $Abon->{TP_INFO}->{TP_ID} } || 1;
           $Abon->{DATETIME}                    = "$DATE $TIME";
@@ -127,8 +138,6 @@ sub abon_user {
 
   	        $Abon->{COMMENTS}       = $ai_list->[0]->{COMMENTS};
   	        $Abon->{NEXT_ABON_DATE} = $ai_list->[0]->{NEXT_ABON_DATE};
-  	        $Abon->{TP_INFO}->{DISCOUNT} = $ai_list->[0]->{DISCOUNT};
-  	        $FORM{ 'DISCOUNT_' . $Abon->{TP_INFO}->{TP_ID} } = $ai_list->[0]->{DISCOUNT};
   	        $Abon->{SERVICE_COUNT}  = $ai_list->[0]->{SERVICE_COUNT};  	        
           }
 
@@ -146,13 +155,6 @@ sub abon_user {
             DESCRIBE => "$_ABON: ($line->{tp_id}) " . (($FORM{ 'COMMENTS_' . $line->{tp_id} }) ? $FORM{ 'COMMENTS_' . $line->{tp_id} } : "$line->{name}"),
             METHOD => $Abon->{TP_INFO}->{FEES_TYPE}
           );
-
-          if ($FORM{ 'DISCOUNT_' . $Abon->{TP_INFO}->{TP_ID} }) {
-            $Abon->{TP_INFO}->{PRICE} = $Abon->{TP_INFO}->{PRICE} * ((100 - $FORM{ 'DISCOUNT_' . $Abon->{TP_INFO}->{TP_ID} }) / 100);
-          }
-          elsif ($Abon->{TP_INFO}->{DISCOUNT} && $users->{REDUCTION} > 0) {
-            $Abon->{TP_INFO}->{PRICE} = $Abon->{TP_INFO}->{PRICE} * ((100 - $users->{REDUCTION}) / 100);
-          }
 
           if (time() < $seltime) {
 
@@ -210,7 +212,7 @@ sub abon_user {
           push @add_arr, $line->{tp_id};
         }
         else {
-          $html->message('err', "$_ABON : $_ERROR", "$_TARIF_PLAN: [$line->{tp_id}] $line->{name}\n$ERR_SMALL_DEPOSIT");
+          $html->message('err', "$_ABON : $_ERROR", "$_TARIF_PLAN: [$line->{tp_id}] $line->{name}\n $ERR_SMALL_DEPOSIT");
           delete $FORM{ACTIVATE};
           $FORM{ 'error_' . $line->{tp_id} }          = 1;
           $FORM{ 'error_comments_' . $line->{tp_id} } = $ERR_SMALL_DEPOSIT;
