@@ -5560,7 +5560,7 @@ sub dv_monthly_fees {
 
                     $FEES_PARAMS{DESCRIBE} = dv_fees_dsc_former(\%FEES_DSC);
 
-                    $fees->take(\%user, $ext_deposit_sum, {%FEES_PARAMS});
+                    $fees->take(\%user, $ext_deposit_sum, { %FEES_PARAMS });
                     $sum = $sum - $user{EXT_DEPOSIT};
                     $user{BILL_ID} = $user{MAIN_BILL_ID};
                   }
@@ -7062,6 +7062,12 @@ sub dv_get_month_fee {
     }
   }
 
+  my $TIME = "00:00:00";
+  my %FEES_PARAMS = (
+              DATE   => "$DATE $TIME",
+              METHOD => ($Dv->{TP_INFO}->{FEES_METHOD}) ? $Dv->{TP_INFO}->{FEES_METHOD} : 1
+            );
+
 
   #Get month fee
   if ($Dv->{TP_INFO}->{MONTH_FEE} > 0) {    
@@ -7079,11 +7085,11 @@ sub dv_get_month_fee {
     }
 
     my %FEES_DSC = (
-              MODULE    => 'Internet:',
-              TP_ID     => $Dv->{TP_INFO}->{ID},
-              TP_NAME   => $Dv->{TP_INFO}->{NAME},
+              MODULE          => 'Internet:',
+              TP_ID           => $Dv->{TP_INFO}->{ID},
+              TP_NAME         => "$Dv->{TP_INFO}->{NAME}",
               FEES_PERIOD_DAY => $_MONTH_FEE_SHORT,
-              FEES_METHOD=>$FEES_METHODS{$Dv->{TP_INFO}->{FEES_METHOD}},
+              FEES_METHOD     => $FEES_METHODS{$Dv->{TP_INFO}->{FEES_METHOD}},
             );
 
     my ($active_y, $active_m, $active_d) = split(/-/, $Dv->{ACCOUNT_ACTIVATE} || $users->{ACTIVATE}, 3);
@@ -7093,7 +7099,7 @@ sub dv_get_month_fee {
     }
 
     if ($Dv->{TP_INFO}->{PERIOD_ALIGNMENT} && !$Dv->{TP_INFO}->{ABON_DISTRIBUTION}) {
-      $message .= "$_MONTH_ALIGNMENT, ";
+      $FEES_DSC{EXTRA} = " $_MONTH_ALIGNMENT,";
 
       if ($Dv->{ACCOUNT_ACTIVATE} && $Dv->{ACCOUNT_ACTIVATE} ne '0000-00-00') {
         $days_in_month = ($active_m != 2 ? (($active_m % 2) ^ ($active_m > 7)) + 30 : (!($active_y % 400) || !($active_y % 4) && ($active_y % 25) ? 29 : 28));
@@ -7127,12 +7133,13 @@ sub dv_get_month_fee {
       $sum = $sum * (100 - $users->{REDUCTION}) / 100;
     }
 
-    $message .= dv_fees_dsc_former(\%FEES_DSC);
 
     if ($Dv->{TP_INFO}->{ABON_DISTRIBUTION}) {
       $sum = $sum / (($m != 2 ? (($m % 2) ^ ($m > 7)) + 30 : (!($y % 400) || !($y % 4) && ($y % 25) ? 29 : 28)));
-      $message .= " - $_ABON_DISTRIBUTION";
+      $FEES_DSC{EXTRA} = " - $_ABON_DISTRIBUTION";
     }
+
+    #$message .= dv_fees_dsc_former(\%FEES_DSC);
 
     if ($Dv->{ACCOUNT_ACTIVATE} ne '0000-00-00' && ($Dv->{OLD_STATUS} == 5)) {
       if ($conf{DV_CURDATE_ACTIVATE}) {
@@ -7158,17 +7165,15 @@ sub dv_get_month_fee {
       $m = sprintf("%.2d", $m);
 
       if ($i > 0) {
+      	$message = '';
         if ($user->{REDUCTION} > 0 && $Dv->{TP_INFO}->{REDUCTION_FEE}) {
           $sum = $Dv->{TP_INFO}->{MONTH_FEE} * (100 - $users->{REDUCTION}) / 100;
         }
 
-        #$message = "$_MONTH_FEE: $sum ($Dv->{TP_INFO}->{ID})";
-        $message = "Internet: $_MONTH_FEE_SHORT $Dv->{TP_INFO}->{NAME} ($Dv->{TP_INFO}->{ID})";
-
         if ($Dv->{ACCOUNT_ACTIVATE}) {
           $DATE = $Dv->{ACCOUNT_ACTIVATE};
           my $end_period = strftime "%Y-%m-%d", localtime((mktime(0, 0, 0, $active_d, ($m - 1), ($active_y - 1900), 0, 0, 0) + 30 * 86400));
-          $message .= " ($DATE-$end_period)";
+          $FEES_DSC{PERIOD} = "($active_y-$m-$active_d-$end_period)";
 
           $users->change(
             $Dv->{UID},
@@ -7182,7 +7187,7 @@ sub dv_get_month_fee {
         else {
           $DATE = "$active_y-$m-01";
           my $days_in_month = ($m != 2 ? (($m % 2) ^ ($m > 7)) + 30 : (!($active_y % 400) || !($active_y % 4) && ($active_y % 25) ? 29 : 28));
-          $message .= " ($DATE-$active_y-$m-$days_in_month)";
+          $FEES_DSC{PERIOD} = "($active_y-$m-$active_d-$end_period)";
         }
       }
       elsif ($Dv->{ACCOUNT_ACTIVATE} && $Dv->{ACCOUNT_ACTIVATE} ne '0000-00-00') {
@@ -7213,42 +7218,28 @@ sub dv_get_month_fee {
 
         my $end_period = strftime "%Y-%m-%d", localtime((mktime(0, 0, 0, $active_d, ($m - 1), ($active_y - 1900), 0, 0, 0) + 30 * 86400));
         $Dv->{ACCOUNT_ACTIVATE} = strftime "%Y-%m-%d", localtime((mktime(0, 0, 0, $active_d, ($m - 1), ($active_y - 1900), 0, 0, 0) + 31 * 86400));
-        $message .= " ($active_y-$m-$active_d-$end_period)";
+        $FEES_DSC{PERIOD} = "($active_y-$m-$active_d-$end_period)";
       }
       else {
         my $days_in_month = ($m != 2 ? (($m % 2) ^ ($m > 7)) + 30 : (!($active_y % 400) || !($active_y % 4) && ($active_y % 25) ? 29 : 28));
         my $start_date = ($Dv->{TP_INFO}->{PERIOD_ALIGNMENT}) ? (($Dv->{ACCOUNT_ACTIVATE} && $Dv->{ACCOUNT_ACTIVATE} ne '0000-00-00') ? $Dv->{ACCOUNT_ACTIVATE} : $DATE) : "$y-$m-01";
-        $message .= " ($start_date-$y-$m-$days_in_month)";
+        $FEES_DSC{PERIOD} = "($start_date-$y-$m-$days_in_month)";
       }
 
-      $TIME = "00:00:00";
+      $FEES_PARAMS{DESCRIBE} = dv_fees_dsc_former(\%FEES_DSC);
+      $message .= $FEES_PARAMS{DESCRIBE};
+
       if ($conf{EXT_BILL_ACCOUNT}) {
         if ($user->{EXT_BILL_DEPOSIT} < $sum && $user->{MAIN_BILL_ID}) {
           $sum = $sum - $user->{EXT_BILL_DEPOSIT};
-          $fees->take(
-            $users,
-            $user->{EXT_BILL_DEPOSIT},
-            {
-              DESCRIBE => $message,
-              METHOD   => ($Dv->{TP_INFO}->{FEES_METHOD}) ? $Dv->{TP_INFO}->{FEES_METHOD} : 1,
-              DATE     => "$DATE $TIME"
-            }
-          );
+          $fees->take($users, $user->{EXT_BILL_DEPOSIT}, \%FEES_PARAMS);
           $user->{BILL_ID}      = $user->{MAIN_BILL_ID};
           $user->{MAIN_BILL_ID} = undef;
         }
       }
 
       if ($sum > 0) {
-        $fees->take(
-          $users, $sum,
-          {
-            DESCRIBE => $message,
-            METHOD   => ($Dv->{TP_INFO}->{FEES_METHOD}) ? $Dv->{TP_INFO}->{FEES_METHOD} : 1,
-            DATE     => "$DATE $TIME"
-          }
-        );
-
+        $fees->take($users, $sum, \%FEES_PARAMS);
         $total_sum{MONTH_FEE} += $sum;
         if ($fees->{errno}) {
           $html->message('err', $_ERROR, "[$fees->{errno}] $fees->{errstr}") if (!$attr->{QUITE});
@@ -7978,7 +7969,7 @@ print $table->show();
 sub dv_fees_dsc_former () {
   my ($attr)=@_;
 
-  $conf{DV_FEES_DSC}='Internet: %FEES_PERIOD_MONTH%%FEES_PERIOD_DAY% %TP_NAME% (%TP_ID%) %PERIOD%' if (! $conf{DV_FEES_DSC});
+  $conf{DV_FEES_DSC}='Internet: %FEES_PERIOD_MONTH%%FEES_PERIOD_DAY% %TP_NAME% (%TP_ID%)%EXTRA% %PERIOD%' if (! $conf{DV_FEES_DSC});
 
   my $text = $conf{DV_FEES_DSC};
 
