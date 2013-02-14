@@ -3908,6 +3908,8 @@ sub dv_user_chg_tp {
       $table->{rowcolor} = ($table->{rowcolor} eq $_COLORS[1]) ? $_COLORS[2] : $_COLORS[1];
       my $radio_but = '';
       
+      $user->{CREDIT}=($user->{CREDIT}>0)? $user->{CREDIT}  : ((! $conf{user_credit_change} && $tp->{TP_CREDIT} > 0) ? $tp->{TP_CREDIT} : 0);
+      
       if ($tp->{day_fee} + $tp->{month_fee} < $user->{DEPOSIT} + $user->{CREDIT} || $tp->{abon_distribution}) {
         $radio_but = $html->form_input('TP_ID', "$tp->{id}", { TYPE => 'radio', OUTPUT2RETURN => 1 });
       }
