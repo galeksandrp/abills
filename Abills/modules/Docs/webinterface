@@ -3578,6 +3578,9 @@ sub docs_user {
   elsif($users->{ACTIVATE} && $users->{ACTIVATE} ne  '0000-00-00') {
   	$invoice_date = $users->{ACTIVATE};
   }
+  elsif ($Docs->{INVOICE_DATE}) {
+  	$invoice_date = $Docs->{INVOICE_DATE}; 
+  }
   
   $Docs->{INVOICE_DATE}         = $html->date_fld2(
     'INVOICE_DATE',

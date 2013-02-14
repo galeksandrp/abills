@@ -9341,5 +9341,320 @@ sub form_login {
 }
 
 
+#**********************************************************
+#
+# Make month feee
+#**********************************************************
+sub service_get_month_fee {
+  my ($Service, $attr) = @_;
+
+  use Finance;
+  my $fees = Finance->fees($db, $admin, \%conf);
+  my $payments = Finance->payments($db, $admin, \%conf);
+
+  my %total_sum = (
+    ACTIVATE  => 0,
+    MONTH_FEE => 0
+  );
+  my $service_name = $attr->{SERVICE_NAME} || 'Internet';
+
+  $users = $user if ($user->{UID});
+
+  #Make bonus
+  if ($conf{DV_BONUS} && $service_name eq 'Internet') {
+    eval { require Bonus_rating; };
+    if (!$@) {
+      Bonus_rating->import();
+    }
+    else {
+      $html->message('err', $_ERROR, "Can't load 'Bonus_rating'. Purchase this module http://abills.net.ua") if (!$attr->{QUITE});
+      return 0;
+    }
+
+    my $Bonus_rating = Bonus_rating->new($db, $admin, \%conf);
+    $Bonus_rating->info($Service->{TP_INFO}->{TP_ID});
+
+
+    if ($Bonus_rating->{TOTAL} > 0) {
+      my $bonus_sum = 0;
+      if ($FORM{add} && $Bonus_rating->{ACTIVE_BONUS} > 0) {
+        $bonus_sum = $Bonus_rating->{ACTIVE_BONUS};
+      }
+      elsif ($Bonus_rating->{CHANGE_BONUS} > 0) {
+        $bonus_sum = $Bonus_rating->{CHANGE_BONUS};
+      }
+
+      if ($bonus_sum > 0) {
+        if (!$users->{BILL_ID}) {
+          $users->info($Service->{UID});
+        }
+        my $u = $users;
+        $u->{BILL_ID} = ($Bonus_rating->{EXT_BILL_ACCOUNT}) ? $users->{EXT_BILL_ID} : $users->{BILL_ID};
+
+        $payments->add($u,
+          {
+            SUM      => $bonus_sum,
+            METHOD   => 4,
+            DESCRIBE => "$_BONUS: $_TARIF_PLAN: $Service->{TP_ID}",
+          }
+        );
+        if ($payments->{errno}) {
+          $html->message('err', $_ERROR, "[$payments->{errno}] $payments->{errstr}") if (!$attr->{QUITE});
+        }
+        else {
+          $html->message('info', $_INFO, "$_BONUS: $bonus_sum") if (!$attr->{QUITE});
+        }
+      }
+    }
+  }
+
+  my %FEES_METHODS = %{ get_fees_types() };
+
+  #Get active price
+  if ($Service->{TP_INFO}->{ACTIV_PRICE} > 0) {
+    my $users = Users->new($db, $admin, \%conf);
+    my $user  = $users->info($Service->{UID});
+    my $date  = ($user->{ACTIVATE} ne '0000-00-00') ? $user->{ACTIVATE} : $DATE;
+    my $time  = ($user->{ACTIVATE} ne '0000-00-00') ? '00:00:00' : $TIME;
+
+    if (!$Service->{OLD_STATUS} || $Service->{OLD_STATUS} == 2) {
+      $fees->take(
+        $user,
+        $Service->{TP_INFO}->{ACTIV_PRICE},
+        {
+          DESCRIBE => "$_ACTIVATE $_TARIF_PLAN",
+          DATE     => "$date $time"
+        }
+      );
+      $total_sum{ACTIVATE} = $Service->{TP_INFO}->{ACTIV_PRICE};
+      $html->message('info', $_INFO, "- $_ACTIVATE $_TARIF_PLAN") if ($html);
+    }
+  }
+
+  my $message = '';
+  #Current Month
+  my ($y, $m, $d)   = split(/-/, $DATE, 3);
+  my $days_in_month = ($m != 2 ? (($m % 2) ^ ($m > 7)) + 30 : (!($y % 400) || !($y % 4) && ($y % 25) ? 29 : 28));
+
+  if ( $FORM{RECALCULATE} ) {
+    my $rest_days     = $days_in_month - $d + 1;
+    #my $rest_day_sum1 = (! $Service->{TP_INFO}->{ABON_DISTRIBUTION}) ? $Service->{TP_INFO}->{MONTH_FEE} /  $days_in_month * $rest_days : 0;
+    my $rest_day_sum2 = (! $Service->{TP_INFO_OLD}->{ABON_DISTRIBUTION}) ? $Service->{TP_INFO_OLD}->{MONTH_FEE} /  $days_in_month * $rest_days : 0;
+    $sum              = $rest_day_sum2; # sprintf("%.5f", $rest_day_sum1 - $rest_day_sum2);
+    #PERIOD_ALIGNMENT
+    $Service->{TP_INFO}->{PERIOD_ALIGNMENT}=1;
+    #Compensation
+    if ($sum > 0) {
+      $payments->add($users,
+          {
+           SUM      => abs($sum),
+           METHOD   => 8,
+           DESCRIBE => "$_TARIF_PLAN: $Service->{TP_INFO_OLD}->{NAME} ($Service->{TP_INFO_OLD}->{ID})",
+          }
+      );
+              
+      if ($payments->{errno}) {
+        $html->message('err', $_ERROR, "[$payments->{errno}] $err_strs{$payments->{errno}}");
+      }
+      else {
+    	  $message .= "$_RECALCULATE\n$_RETURNED: ". sprintf("%.2f", abs($sum))."\n";
+      }
+    }
+  }
+
+  my $TIME = "00:00:00";
+  my %FEES_PARAMS = (
+              DATE   => "$DATE $TIME",
+              METHOD => ($Service->{TP_INFO}->{FEES_METHOD}) ? $Service->{TP_INFO}->{FEES_METHOD} : 1
+            );
+
+
+  #Get month fee
+  if ($Service->{TP_INFO}->{MONTH_FEE} > 0) {    
+    my $sum   = $Service->{TP_INFO}->{MONTH_FEE};
+    my $users = Users->new($db, $admin, \%conf);
+    my $user  = $users->info($Service->{UID});
+
+    if ($Service->{TP_INFO}->{EXT_BILL_ACCOUNT}) {
+      if ($user->{EXT_BILL_ID}) {
+        if (!$conf{BONUS_EXT_FUNCTIONS} || ($conf{BONUS_EXT_FUNCTIONS} && $user->{EXT_BILL_DEPOSIT} > 0)) {
+          $user->{MAIN_BILL_ID} = $user->{BILL_ID};
+          $user->{BILL_ID}      = $user->{EXT_BILL_ID};
+        }
+      }
+    }
+
+    my %FEES_DSC = (
+              MODULE          => $service_name.':',
+              TP_ID           => $Service->{TP_INFO}->{ID},
+              TP_NAME         => "$Service->{TP_INFO}->{NAME}",
+              FEES_PERIOD_DAY => $_MONTH_FEE_SHORT,
+              FEES_METHOD     => $FEES_METHODS{$Service->{TP_INFO}->{FEES_METHOD}},
+            );
+
+    my ($active_y, $active_m, $active_d) = split(/-/, $Service->{ACCOUNT_ACTIVATE} || $users->{ACTIVATE}, 3);
+
+    if (int("$y$m$d") < int("$active_y$active_m$active_d")) {
+      return \%total_sum;
+    }
+
+    if ($Service->{TP_INFO}->{PERIOD_ALIGNMENT} && !$Service->{TP_INFO}->{ABON_DISTRIBUTION}) {
+      $FEES_DSC{EXTRA} = " $_MONTH_ALIGNMENT,";
+
+      if ($Service->{ACCOUNT_ACTIVATE} && $Service->{ACCOUNT_ACTIVATE} ne '0000-00-00') {
+        $days_in_month = ($active_m != 2 ? (($active_m % 2) ^ ($active_m > 7)) + 30 : (!($active_y % 400) || !($active_y % 4) && ($active_y % 25) ? 29 : 28));
+        $d = $active_d;
+      }
+      $conf{START_PERIOD_DAY} = 1 if (!$conf{START_PERIOD_DAY});
+      my $calculation_days = ($d < $conf{START_PERIOD_DAY}) ? $conf{START_PERIOD_DAY} - $d : $days_in_month - $d + $conf{START_PERIOD_DAY};
+
+      $sum = sprintf("%.2f", ($sum / $days_in_month) * $calculation_days);
+    }
+
+    return \%total_sum if ($sum == 0);
+
+    my $periods = 0;
+    if (int($active_m) > 0 && int($active_m) < $m) {
+      $periods = $m - $active_m;
+      if (int($active_d) > int($d)) {
+        $periods--;
+      }
+      $active_m++;
+    }
+    elsif (int($active_m) > 0 && (int($active_m) >= int($m) && int($active_y) < int($y))) {
+      $periods = 12 - $active_m + $m;
+      if (int($active_d) > int($d)) {
+        $periods--;
+      }
+    }
+
+    #Make reduction
+    if ($user->{REDUCTION} > 0 && $Service->{TP_INFO}->{REDUCTION_FEE}) {
+      $sum = $sum * (100 - $users->{REDUCTION}) / 100;
+    }
+
+
+    if ($Service->{TP_INFO}->{ABON_DISTRIBUTION}) {
+      $sum = $sum / (($m != 2 ? (($m % 2) ^ ($m > 7)) + 30 : (!($y % 400) || !($y % 4) && ($y % 25) ? 29 : 28)));
+      $FEES_DSC{EXTRA} = " - $_ABON_DISTRIBUTION";
+    }
+
+    #$message .= dv_fees_dsc_former(\%FEES_DSC);
+
+    if ($Service->{ACCOUNT_ACTIVATE} ne '0000-00-00' && ($Service->{OLD_STATUS} == 5)) {
+      if ($conf{DV_CURDATE_ACTIVATE}) {
+        $periods = 0;        
+      }
+      #if activation in cure month curmonth
+      elsif ($periods == 0 || ($periods == 1 && $d < $active_d)) {
+        $periods = -1;
+      }
+      else {
+        $periods -= 1;
+      }
+    }
+    
+    $m = $active_m if ($active_m > 0);
+
+    for (my $i = 0 ; $i <= $periods ; $i++) {
+      if ($m > 12) {
+        $m        = 1;
+        $active_y = $active_y + 1;
+      }
+
+      $m = sprintf("%.2d", $m);
+
+      if ($i > 0) {
+      	$message = '';
+        if ($user->{REDUCTION} > 0 && $Service->{TP_INFO}->{REDUCTION_FEE}) {
+          $sum = $Service->{TP_INFO}->{MONTH_FEE} * (100 - $users->{REDUCTION}) / 100;
+        }
+
+        if ($Service->{ACCOUNT_ACTIVATE}) {
+          $DATE = $Service->{ACCOUNT_ACTIVATE};
+          my $end_period = strftime "%Y-%m-%d", localtime((mktime(0, 0, 0, $active_d, ($m - 1), ($active_y - 1900), 0, 0, 0) + 30 * 86400));
+          $FEES_DSC{PERIOD} = "($active_y-$m-$active_d-$end_period)";
+
+          $users->change(
+            $Service->{UID},
+            {
+              ACTIVATE => "$DATE",
+              UID      => $Service->{UID}
+            }
+          );
+          $Service->{ACCOUNT_ACTIVATE} = strftime "%Y-%m-%d", localtime((mktime(0, 0, 0, $active_d, ($m - 1), ($active_y - 1900), 0, 0, 0) + 31 * 86400));
+        }
+        else {
+          $DATE = "$active_y-$m-01";
+          my $days_in_month = ($m != 2 ? (($m % 2) ^ ($m > 7)) + 30 : (!($active_y % 400) || !($active_y % 4) && ($active_y % 25) ? 29 : 28));
+          $FEES_DSC{PERIOD} = "($active_y-$m-$active_d-$end_period)";
+        }
+      }
+      elsif ($Service->{ACCOUNT_ACTIVATE} && $Service->{ACCOUNT_ACTIVATE} ne '0000-00-00') {
+        if ($Service->{TP_INFO}->{PERIOD_ALIGNMENT}) {
+          $users->change(
+            $Service->{UID},
+            {
+              ACTIVATE => '0000-00-00',
+              UID      => $Service->{UID}
+            }
+          );
+        }
+        elsif ($Service->{OLD_STATUS} == 5) {
+          $users->change(
+            $Service->{UID},
+            {
+              ACTIVATE => ($conf{DV_CURDATE_ACTIVATE}) ? $DATE : "$active_y-$m-$active_d",
+              UID      => $Service->{UID}
+            }
+          );
+          if ($conf{DV_CURDATE_ACTIVATE}) {
+            ($active_y, $active_m, $active_d)=split(/-/, $DATE);
+          }
+        }
+        else {
+          $DATE = "$active_y-$m-$active_d";
+        }
+
+        my $end_period = strftime "%Y-%m-%d", localtime((mktime(0, 0, 0, $active_d, ($m - 1), ($active_y - 1900), 0, 0, 0) + 30 * 86400));
+        $Service->{ACCOUNT_ACTIVATE} = strftime "%Y-%m-%d", localtime((mktime(0, 0, 0, $active_d, ($m - 1), ($active_y - 1900), 0, 0, 0) + 31 * 86400));
+        $FEES_DSC{PERIOD} = "($active_y-$m-$active_d-$end_period)";
+      }
+      else {
+        my $days_in_month = ($m != 2 ? (($m % 2) ^ ($m > 7)) + 30 : (!($active_y % 400) || !($active_y % 4) && ($active_y % 25) ? 29 : 28));
+        my $start_date = ($Service->{TP_INFO}->{PERIOD_ALIGNMENT}) ? (($Service->{ACCOUNT_ACTIVATE} && $Service->{ACCOUNT_ACTIVATE} ne '0000-00-00') ? $Service->{ACCOUNT_ACTIVATE} : $DATE) : "$y-$m-01";
+        $FEES_DSC{PERIOD} = "($start_date-$y-$m-$days_in_month)";
+      }
+
+      $FEES_PARAMS{DESCRIBE} = dv_fees_dsc_former(\%FEES_DSC);
+      $message .= $FEES_PARAMS{DESCRIBE};
+
+      if ($conf{EXT_BILL_ACCOUNT}) {
+        if ($user->{EXT_BILL_DEPOSIT} < $sum && $user->{MAIN_BILL_ID}) {
+          $sum = $sum - $user->{EXT_BILL_DEPOSIT};
+          $fees->take($users, $user->{EXT_BILL_DEPOSIT}, \%FEES_PARAMS);
+          $user->{BILL_ID}      = $user->{MAIN_BILL_ID};
+          $user->{MAIN_BILL_ID} = undef;
+        }
+      }
+
+      if ($sum > 0) {
+        $fees->take($users, $sum, \%FEES_PARAMS);
+        $total_sum{MONTH_FEE} += $sum;
+        if ($fees->{errno}) {
+          $html->message('err', $_ERROR, "[$fees->{errno}] $fees->{errstr}") if (!$attr->{QUITE});
+        }
+        else {
+          $html->message('info', $_INFO, $message. "\n $_SUM: ". sprintf("%.2f", $sum)) if ($html && !$attr->{QUITE});
+        }
+      }
+
+      $m++;
+    }
+  }
+
+  return \%total_sum;
+}
+
 
 1
