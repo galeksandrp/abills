@@ -201,6 +201,9 @@ sub user_change {
 
   if ($attr->{TP_ID} && $old_info->{TP_ID} != $attr->{TP_ID}) {
     my $tariffs = Tariffs->new($db, $CONF, $admin);
+
+    $tariffs->info(0, { ID => $old_info->{TP_ID} });
+    %{ $self->{TP_INFO_OLD} } = %{ $tariffs };
     $self->{TP_INFO} = $tariffs->info($attr->{TP_ID});
     my $user = Users->new($db, $admin, $CONF);
 

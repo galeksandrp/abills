@@ -805,8 +805,6 @@ sub form_wizard {
       $FORM{next} = 1;
     }
 
-    #print  "// $FORM{add} //";
-
     $FORM{UID} = $LIST_PARAMS{UID} if (!$FORM{UID} && $LIST_PARAMS{UID});
 
     #while(my($k, $v)=each %FORM) {
@@ -1837,6 +1835,8 @@ sub form_show_attach {
   print "$users->{CONTENT}";
 }
 
+
+
 #**********************************************************
 # Ajax address form
 #**********************************************************
@@ -1853,57 +1853,107 @@ sub form_address_sel {
     if ($users->{TOTAL} > 0) {
       foreach my $line (@$list) {
         $line->[1] =~ s/\'/&rsquo;/g;
-        $js_list .= "<option class='spisok' value='p3|$line->[0]|l3|$line->[6]'>$line->[0]</option>";
+        $js_list .= "<option value='$line->[6]'>$line->[0]</option>";
       }
     }
-    else {
-      $js_list .= "<option class='spisok' value='p3||l3|0'>$_NOT_EXIST</option>";
-    }
-
     my $size = ($users->{TOTAL} > 10) ? 10 : $users->{TOTAL};
     $size = 2 if ($size < 2);
-    $js_list = "<select style='width: inherit;' size='$size' onchange='insert(this)' id='build'>" . $js_list . "</select>";
+    #$js_list = "<select style='width: inherit;' size='$size' onchange='insert(this)' id='build'>" . $js_list . "</select>";
+    print "<option value=''></option>" . $js_list;
 
-    print qq{JsHttpRequest.dataReady({ "id": "$id", 
-          "js": { "list": "$js_list" }, 
-         "text": "" }) };
   }
   elsif ($FORM{DISTRICT_ID}) {
     my $list = $users->street_list({ DISTRICT_ID => $FORM{DISTRICT_ID}, PAGE_ROWS => 10000, SORT => 2 });
     if ($users->{TOTAL} > 0) {
       foreach my $line (@$list) {
         $line->[1] =~ s/\'/&rsquo;/g;
-        $js_list .= "<option class='spisok' value='p2|$line->[1]|l2|$line->[0]'>$line->[1]</option>";
+        $js_list .= "<option value='$line->[0]'>$line->[1]</option>";
       }
     }
-    else {
-      $js_list .= "<option class='spisok' value='p2||l2|0'>$_NOT_EXIST</option>";
-    }
-
     my $size = ($users->{TOTAL} > 10) ? 10 : $users->{TOTAL};
     $size = 2 if ($size < 2);
-    $js_list = "<select style='width: inherit;' size='$size' onchange='insert(this)' id='street'>" . $js_list . "</select>";
+    print "<option value=''></option>" . $js_list;
 
-    print qq{JsHttpRequest.dataReady({ "id": "$id", 
-         "js": { "list": "$js_list" }, 
-        "text": "" }) };
   }
   else {
     my $list = $users->district_list({ %LIST_PARAMS, PAGE_ROWS => 1000 });
     foreach my $line (@$list) {
-      $js_list .= "<option class='spisok' value='p1|$line->[1]|l1|$line->[0]'>$line->[1]</option>";
+      $js_list .= "<option  value='$line->[0]'>$line->[1]</option>";
     }
 
     my $size = ($users->{TOTAL} > 10) ? 10 : $users->{TOTAL};
     $size = 2 if ($size < 2);
-    $js_list = "<select style='width: inherit;' size='$size' onchange='insert(this)' id='block'>" . $js_list . "</select>";
-
-    print qq{JsHttpRequest.dataReady({ "id": "$id", 
-         "js": { "list": "$js_list" }, 
-        "text": "" }) };
+      print "<option value=''></option>" . $js_list;
   }
   exit;
 }
+#**********************************************************
+# Ajax address form
+#**********************************************************
+#sub form_address_sel {
+#
+#  print "Content-Type: text/html\n\n";
+#  my $js_list   = '';
+#  my $id        = $FORM{'JsHttpRequest'};
+#  my $jsrequest = $FORM{'jsrequest'};
+#  ($id, undef) = split(/-/, $id);
+#
+#  if ($FORM{STREET}) {
+#    my $list = $users->build_list({ STREET_ID => $FORM{STREET}, PAGE_ROWS => 10000 });
+#    if ($users->{TOTAL} > 0) {
+#      foreach my $line (@$list) {
+#        $line->[1] =~ s/\'/&rsquo;/g;
+#        $js_list .= "<option class='spisok' value='p3|$line->[0]|l3|$line->[6]'>$line->[0]</option>";
+#      }
+#    }
+#    else {
+#      $js_list .= "<option class='spisok' value='p3||l3|0'>$_NOT_EXIST</option>";
+#    }
+#
+#    my $size = ($users->{TOTAL} > 10) ? 10 : $users->{TOTAL};
+#    $size = 2 if ($size < 2);
+#    $js_list = "<select style='width: inherit;' size='$size' onchange='insert(this)' id='build'>" . $js_list . "</select>";
+#
+#    print qq{JsHttpRequest.dataReady({ "id": "$id", 
+#          "js": { "list": "$js_list" }, 
+#         "text": "" }) };
+#  }
+#  elsif ($FORM{DISTRICT_ID}) {
+#    my $list = $users->street_list({ DISTRICT_ID => $FORM{DISTRICT_ID}, PAGE_ROWS => 10000, SORT => 2 });
+#    if ($users->{TOTAL} > 0) {
+#      foreach my $line (@$list) {
+#        $line->[1] =~ s/\'/&rsquo;/g;
+#        $js_list .= "<option class='spisok' value='p2|$line->[1]|l2|$line->[0]'>$line->[1]</option>";
+#      }
+#    }
+#    else {
+#      $js_list .= "<option class='spisok' value='p2||l2|0'>$_NOT_EXIST</option>";
+#    }
+#
+#    my $size = ($users->{TOTAL} > 10) ? 10 : $users->{TOTAL};
+#    $size = 2 if ($size < 2);
+#    $js_list = "<select style='width: inherit;' size='$size' onchange='insert(this)' id='street'>" . $js_list . "</select>";
+#
+#    print qq{JsHttpRequest.dataReady({ "id": "$id", 
+#         "js": { "list": "$js_list" }, 
+#        "text": "" }) };
+#  }
+#  else {
+#    my $list = $users->district_list({ %LIST_PARAMS, PAGE_ROWS => 1000 });
+#    foreach my $line (@$list) {
+#      $js_list .= "<option class='spisok' value='p1|$line->[1]|l1|$line->[0]'>$line->[1]</option>";
+#    }
+#
+#    my $size = ($users->{TOTAL} > 10) ? 10 : $users->{TOTAL};
+#    $size = 2 if ($size < 2);
+#    $js_list = "<select style='width: inherit;' size='$size' onchange='insert(this)' id='block'>" . $js_list . "</select>";
+#
+#    print qq{JsHttpRequest.dataReady({ "id": "$id", 
+#         "js": { "list": "$js_list" }, 
+#        "text": "" }) };
+#  }
+#  exit;
+#}
 
 #**********************************************************
 #
@@ -9441,6 +9491,7 @@ sub service_get_month_fee {
     #my $rest_day_sum1 = (! $Service->{TP_INFO}->{ABON_DISTRIBUTION}) ? $Service->{TP_INFO}->{MONTH_FEE} /  $days_in_month * $rest_days : 0;
     my $rest_day_sum2 = (! $Service->{TP_INFO_OLD}->{ABON_DISTRIBUTION}) ? $Service->{TP_INFO_OLD}->{MONTH_FEE} /  $days_in_month * $rest_days : 0;
     $sum              = $rest_day_sum2; # sprintf("%.5f", $rest_day_sum1 - $rest_day_sum2);
+
     #PERIOD_ALIGNMENT
     $Service->{TP_INFO}->{PERIOD_ALIGNMENT}=1;
     #Compensation
@@ -9485,6 +9536,7 @@ sub service_get_month_fee {
     }
 
     my %FEES_DSC = (
+              SERVICE_NAME    => $service_name,
               MODULE          => $service_name.':',
               TP_ID           => $Service->{TP_INFO}->{ID},
               TP_NAME         => "$Service->{TP_INFO}->{NAME}",
@@ -9626,7 +9678,8 @@ sub service_get_month_fee {
         $FEES_DSC{PERIOD} = "($start_date-$y-$m-$days_in_month)";
       }
 
-      $FEES_PARAMS{DESCRIBE} = dv_fees_dsc_former(\%FEES_DSC);
+      $FEES_PARAMS{DESCRIBE} = fees_dsc_former(\%FEES_DSC);
+      $FEES_PARAMS{DESCRIBE} .= $attr->{EXT_DESCRIBE} if ($attr->{EXT_DESCRIBE});
       $message .= $FEES_PARAMS{DESCRIBE};
 
       if ($conf{EXT_BILL_ACCOUNT}) {
@@ -9656,5 +9709,26 @@ sub service_get_month_fee {
   return \%total_sum;
 }
 
+
+#**********************************************************
+#
+#**********************************************************
+sub fees_dsc_former () {
+  my ($attr)=@_;
+  
+  $conf{DV_FEES_DSC}='%SERVICE_NAME%: %FEES_PERIOD_MONTH%%FEES_PERIOD_DAY% %TP_NAME% (%TP_ID%)%EXTRA% %PERIOD%' if (! $conf{DV_FEES_DSC});
+
+  my $text = $conf{DV_FEES_DSC};
+
+  while ($text =~ /\%(\w+)\%/g) {
+    my $var       = $1;
+    if(! defined($attr->{$var})) {
+      $attr->{$var}='';
+    }
+    $text =~ s/\%$var\%/$attr->{$var}/g;
+  }
+  
+  return $text;
+}
 
 1
