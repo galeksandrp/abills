@@ -45,7 +45,7 @@
   <TD>$_ADDRESS_BUILD:</TD>
   <TD><div>
       <select name='ADDRESS_BUILD' id='p3' style='width:250px;'>
-        <option value='LOCATION_ID'>%ADDRESS_BUILD%</option>
+        <option value='%ADDRESS_BUILD%'>%ADDRESS_BUILD%</option>
       </select>
     </div></TD>
 </TR>

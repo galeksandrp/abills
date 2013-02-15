@@ -417,16 +417,18 @@ sub pi {
 
   if ($self->{LOCATION_ID} > 0) {
     $self->query(
-      $db, "select d.id, d.city, d.name, s.name, b.number
+      $db, "select d.id AS district_id, 
+      d.city, 
+      d.name AS address_district, 
+      s.name AS address_street, 
+      b.number AS address_build
      FROM builds b
      LEFT JOIN streets s  ON (s.id=b.street_id)
      LEFT JOIN districts d  ON (d.id=s.district_id)
-     WHERE b.id='$self->{LOCATION_ID}'"
+     WHERE b.id='$self->{LOCATION_ID}'",
+     undef,
+     { INFO => 1 }
     );
-
-    if ($self->{TOTAL} > 0) {
-      ($self->{DISTRICT_ID}, $self->{CITY}, $self->{ADDRESS_DISTRICT}, $self->{ADDRESS_STREET}, $self->{ADDRESS_BUILD},) = @{ $self->{list}->[0] };
-    }
   }
 
   $self->{TOTAL}=1;
