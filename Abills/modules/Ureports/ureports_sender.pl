@@ -354,6 +354,24 @@ sub ureports_periodic_reports {
             next;
           }
         }
+
+        #Report 11
+        # Small deposit fo next month activation
+        elsif ($user->{REPORT_ID} == 11) {
+          if (0 > $user->{DEPOSIT}) {
+            my $recharge = $user->{TP_MONTH_FEE}+$user->{DEPOSIT}; 
+            %PARAMS = (
+              DESCRIBE => "$_REPORTS ($user->{REPORT_ID}) ",
+              DATE     => "$ADMIN_REPORT{DATE} $TIME",
+              METHOD   => 1,
+              MESSAGE  => "$_SMALL_DEPOSIT_FOR_NEXT_MONTH $_BALANCE_RECHARCHE $recharge",
+              SUBJECT  => "$_DEPOSIT_BELOW"
+              );
+          }
+          else {
+            next;
+          }
+        }
       }
       else {
         print "[ $user->{UID} ] $user->{LOGIN} - Don't have money account\n";

@@ -529,7 +529,7 @@ sub docs_receipt_list {
       my $i      = 1;
       my @ORDERS = @{ $Docs->{ORDERS} };
       $Docs->{ORDER} = '';
-      $Docs->{AMOUNT_FOR_PAY} = ($Docs->{DEPOSIY} < 0) ? abs($Docs->{DEPOSIT}) : 0 - $Docs->{DEPOSIT};
+      $Docs->{AMOUNT_FOR_PAY} = ($Docs->{DEPOSIT} < 0) ? abs($Docs->{DEPOSIT}) : 0 - $Docs->{DEPOSIT};
 
       foreach my $line (@ORDERS) {
 

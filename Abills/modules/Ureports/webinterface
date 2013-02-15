@@ -37,7 +37,8 @@ my %REPORTS        = (
   7  => "$_CREDIT $_EXPIRE",
   8  => "$_LOGIN $_DISABLE ",
   9  => "$_DAYS_TO_EXPIRE",
-  10 => "$_SMALL_DEPOSIT_FOR_NEXT_MONTH"
+  10 => "$_SMALL_DEPOSIT_FOR_NEXT_MONTH",
+  11 => "$_SMALL_DEPOSIT_FOR_NEXT_MONTH"
 );
 
 #дані для формування звітів.
