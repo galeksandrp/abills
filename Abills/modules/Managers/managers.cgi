@@ -56,20 +56,13 @@ use Finance;
 
 require "../language/russian.pl";
 require "Misc.pm";
-
-#$sid = $FORM{sid} || '';    # Session ID
 $html->{CHARSET} = $CHARSET if ($CHARSET);
 
 my $cookies_time = gmtime(time() + $conf{web_session_timeout}*1000) . " GMT";
 
-if ((length($COOKIES{sid}) > 1) && (!$FORM{passwd})) {
-  $COOKIES{sid} =~ s/\"//g;
-  $COOKIES{sid} =~ s/\'//g;
+if (length($COOKIES{sid}) > 1 && (! $FORM{passwd})) {
+  $COOKIES{sid} =~ s/[\"\']//g;
   $sid = $COOKIES{sid};
-}
-elsif ((length($COOKIES{sid}) > 1) && (defined($FORM{passwd}))) {
-  $html->setCookie('sid', "", "$cookies_time", $web_path, $domain, $secure);
-  $COOKIES{sid} = undef;
 }
 
 #Cookie section ============================================
@@ -111,11 +104,12 @@ my $content = '';
 my $login   = $FORM{user} || '';
 my $passwd  = $FORM{passwd} || '';
 
-($aid, $sid, $login) = check_permissions("$login", "$passwd", "$sid");
+
+my $res = check_permissions("$login", "$passwd", "$sid");
 my %uf_menus = ();
 
-if ($sid) {
-  $html->setCookie('sid', "$sid", "$cookies_time", $web_path, $domain, $secure);
+if (! $res) {
+  $html->setCookie('sid', "$sid", "", "", $domain, $secure);
   $COOKIES{sid} = $sid;
 }
 
@@ -142,14 +136,15 @@ else {
   print "Content-Type: text/html\n\n";
 }
 
-if ($aid > 0) {
+if (! $res) {
+	($admin->{ONLINE_USERS}, $admin->{ONLINE_COUNT}) = $admin->online({ SID => $sid });
   $admin->{SESSION_IP} = $admin->{IP};
   $users       = Users->new($db, $admin, \%conf);
   $Dv          = Dv->new($db, $admin, \%conf);
   $Tariffs     = Tariffs->new($db, \%conf, $admin);
   $Payments    = Finance->payments($db, $admin, \%conf);
 
-if ($FORM{print}) {
+  if ($FORM{print}) {
     if ($FORM{INVOICE_ID}) {
       load_module('Docs');
       print docs_invoice();
@@ -168,7 +163,7 @@ if ($FORM{print}) {
     }
     
     exit;
-}
+  }
 
   if ($FORM{SHOW_REPORT}) {
     form_reports();
@@ -193,8 +188,6 @@ else {
   form_login();
   $OUTPUT{MENU} = $html->{OUTPUT};
 }
-
-
 
 print $html->tpl_show(
   _include('managers_main', 'Managers'),
@@ -493,15 +486,102 @@ sub form_reports {
   }
 }
 
+##**********************************************************
+## check_permissions()
+##**********************************************************
+#sub check_permissions {
+#  my ($login, $password, $sid, $attr) = @_;
+#
+#  if ($index == 1000) {
+#    $admin->online_del({ SID => $sid });
+#    return 0;
+#  }
+#
+#	  print "Content-Type: text/html\n\n";
+#  print "// $COOKIES{sid} //";
+#
+#
+#  if ($conf{ADMINS_ALLOW_IP}) {
+#    $conf{ADMINS_ALLOW_IP} =~ s/ //g;
+#    my @allow_ips_arr = split(/,/, $conf{ADMINS_ALLOW_IP});
+#    my $allow_ips_hash = ();
+#    foreach my $ip (@allow_ips_arr) {
+#      $allow_ips_hash{$ip} = 1;
+#    }
+#    if (!$allow_ips_hash{ $ENV{REMOTE_ADDR} }) {
+#      $admin->system_action_add("$login:$password DENY IP: $ENV{REMOTE_ADDR}", { TYPE => 11 });
+#      $admin->{errno} = 3;
+#      return 3;
+#    }
+#  }
+#
+#  $login    =~ s/"/\\"/g;
+#  $login    =~ s/'/\''/g;
+#  $password =~ s/"/\\"/g;
+#  $password =~ s/'/\\'/g;
+#
+#  my %PARAMS = (
+#    LOGIN     => "$login",
+#    PASSWORD  => "$password",
+#    SECRETKEY => $conf{secretkey},
+#    IP        => $ENV{REMOTE_ADDR} || '0.0.0.0'
+#  );
+#
+#  if ($sid) {
+#  	$admin->{debug}=1;
+#    $admin->online_info({ SID => $sid });
+#    if ($admin->{TOTAL} > 0 && $ENV{REMOTE_ADDR} eq $admin->{IP}) {
+#      $admin->info($admin->{AID});
+#      $LIST_PARAMS{GID}=$admin->{GID};
+#      %permissions = %{ $admin->get_permissions() };
+#      return $admin->{AID}, $sid;
+#    }
+#  }
+#
+#  $admin->info(0, {%PARAMS});
+#  $LIST_PARAMS{GID}=$admin->{GID};
+#
+#  if ($admin->{errno}) {
+#    if ($admin->{errno} == 4) {
+#      $admin->system_action_add("$login:$password", { TYPE => 11 });
+#      $admin->{errno} = 4;
+#    }
+#    return 0;
+#  }
+#  elsif ($admin->{DISABLE} == 1) {
+#    $admin->{errno}  = 2;
+#    $admin->{errstr} = 'DISABLED';
+#    return 0;
+#  }
+#
+#  if (!$sid) {
+#    $sid = mk_unique_value(14);
+#  }
+#
+#  $admin->online({ SID => $sid });
+#  if ($admin->{WEB_OPTIONS}) {
+#    my @WO_ARR = split(/;/, $admin->{WEB_OPTIONS});
+#    foreach my $line (@WO_ARR) {
+#      my ($k, $v) = split(/=/, $line);
+#      $admin->{WEB_OPTIONS}{$k} = $v;
+#    }
+#  }
+#
+#  %permissions = %{ $admin->get_permissions() };
+#  return $admin->{AID}, $sid;
+#}
+
+
 #**********************************************************
+#
 # check_permissions()
 #**********************************************************
 sub check_permissions {
-  my ($login, $password, $sid, $attr) = @_;
+  my ($login, $password, $session_sid, $attr) = @_;
 
   if ($index == 1000) {
-    $admin->online_del({ SID => $sid });
-    return 0;
+    $admin->online_del({ SID => $COOKIES{sid} });
+    return 1;
   }
 
   if ($conf{ADMINS_ALLOW_IP}) {
@@ -522,6 +602,31 @@ sub check_permissions {
   $login    =~ s/'/\''/g;
   $password =~ s/"/\\"/g;
   $password =~ s/'/\\'/g;
+  
+  if ($session_sid && ! $login) {
+    $admin->online_info({ SID => $session_sid });
+    if ($admin->{TOTAL} > 0 && $ENV{REMOTE_ADDR} eq $admin->{IP}) {
+      $admin->info($admin->{AID}, { IP => $ENV{REMOTE_ADDR} || '0.0.0.0' });
+      # $LIST_PARAMS{GID}=$admin->{GID};
+      %permissions  = %{ $admin->get_permissions() };
+
+      if ($admin->{WEB_OPTIONS}) {
+        my @WO_ARR = split(/;/, $admin->{WEB_OPTIONS});
+        foreach my $line (@WO_ARR) {
+          my ($k, $v) = split(/=/, $line);
+          $admin->{WEB_OPTIONS}{$k} = $v;
+          $html->{$k}=$v;
+        }
+      }
+
+      $sid          = $session_sid;
+      $admin->{SID} = $session_sid;
+      return 0;
+    }
+    else {
+      $admin->online_del({ SID => $session_sid });
+    }
+  }
 
   my %PARAMS = (
     LOGIN     => "$login",
@@ -530,50 +635,43 @@ sub check_permissions {
     IP        => $ENV{REMOTE_ADDR} || '0.0.0.0'
   );
 
-  
-
-  if ($sid) {
-    $admin->online_info({ SID => $sid });
-    if ($admin->{TOTAL} > 0 && $ENV{REMOTE_ADDR} eq $admin->{IP}) {
-      $admin->info($admin->{AID});
-      $LIST_PARAMS{GID}=$admin->{GID};
-      %permissions = %{ $admin->get_permissions() };
-      return $admin->{AID}, $sid;
-    }
-  }
-
   $admin->info(0, {%PARAMS});
-  $LIST_PARAMS{GID}=$admin->{GID};
-
   if ($admin->{errno}) {
     if ($admin->{errno} == 4) {
       $admin->system_action_add("$login:$password", { TYPE => 11 });
       $admin->{errno} = 4;
     }
-    return 0;
+    elsif ($admin->{errno} == 2) {
+      return 2;
+    }
+    return 1;
   }
   elsif ($admin->{DISABLE} == 1) {
     $admin->{errno}  = 2;
     $admin->{errstr} = 'DISABLED';
-    return 0;
+    return 2;
   }
 
-  if (!$sid) {
-    $sid = mk_unique_value(14);
-  }
-
-  $admin->online({ SID => $sid });
   if ($admin->{WEB_OPTIONS}) {
     my @WO_ARR = split(/;/, $admin->{WEB_OPTIONS});
     foreach my $line (@WO_ARR) {
       my ($k, $v) = split(/=/, $line);
       $admin->{WEB_OPTIONS}{$k} = $v;
+      if ($html)  {
+        $html->{$k}=$v;
+      }
     }
   }
 
   %permissions = %{ $admin->get_permissions() };
-  return $admin->{AID}, $sid;
+  if (! $sid) {
+    $sid = mk_unique_value(14);
+    $admin->{SID} = $sid;
+  }
+
+  return 0;
 }
+
 
 #**********************************************************
 #

@@ -690,7 +690,7 @@ sub password {
 sub online {
   my $self         = shift;
   my ($attr)       = @_;
-  my $time_out     = 120;
+  my $time_out     = 300;
   my $online_users = '';
   my %curuser      = ();
 
@@ -730,7 +730,6 @@ sub online_info {
    undef,
    { INFO => 1 });
 
-  #($self->{AID}, $self->{IP}, $self->{ADMIN}) = @{ $self->{list}->[0] };
   return $self;
 }
 
