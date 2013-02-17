@@ -246,25 +246,36 @@ sub dv_auth {
     }
   }
 
-  #Check CID (MAC)
-  if ($self->{CID} ne '' && $self->{CID} !~ /ANY/i) {
-    if ($NAS->{NAS_TYPE} eq 'cisco' && !$RAD->{CALLING_STATION_ID}) {
-    }
-    else {
-      my ($ret, $ERR_RAD_PAIRS) = $self->Auth_CID($RAD);
-      return $ret, $ERR_RAD_PAIRS if ($ret == 1);
+  my $pppoe_pluse = ''; 
+  my $ignore_cid  = 0;
+  if ($CONF->{DV_PPPOE_PLUSE_PARAM} && $RAD->{$CONF->{DV_PPPOE_PLUSE_PARAM}}) {
+  	$pppoe_pluse = $RAD->{$CONF->{DV_PPPOE_PLUSE_PARAM}} ;
+  	if ($self->{PORT} && $self->{PORT} !~ /any/i) {
+  		$ignore_cid  = 1;
+  	}
+    elsif (! $self->{PORT}) {
+      $self->query($db, "UPDATE dv_main SET port='$RAD->{$CONF->{DV_PPPOE_PLUSE_PARAM}}';", 'do');
+      $self->{PORT}=$RAD->{$CONF->{DV_PPPOE_PLUSE_PARAM}};
     }
   }
-
-  my $pppoe_pluse = ($CONF->{DV_PPPOE_PLUSE_PARAM} && $RAD->{$CONF->{DV_PPPOE_PLUSE_PARAM}}) ? $RAD->{$CONF->{DV_PPPOE_PLUSE_PARAM}} :  $RAD->{NAS_PORT};
+  else {
+    $pppoe_pluse = $RAD->{NAS_PORT};
+  }
 
   #Check port
   if ($self->{PORT} && $self->{PORT} !~ m/any/i && $self->{PORT} ne $pppoe_pluse) {
     $RAD_PAIRS->{'Reply-Message'} = "Wrong port '$pppoe_pluse'";
     return 1, $RAD_PAIRS;
   }
-  elsif (! $self->{PORT} && $CONF->{DV_PPPOE_PLUSE_PARAM}) {
-    $self->query($db, "UPDATE dv_main SET port='$RAD->{$CONF->{DV_PPPOE_PLUSE_PARAM}}';", 'do');
+ 
+  #Check CID (MAC)
+  if ($self->{CID} ne '' && $self->{CID} !~ /ANY/i) {
+    if ($NAS->{NAS_TYPE} eq 'cisco' && !$RAD->{CALLING_STATION_ID}) {
+    }
+    elsif (! $ignore_cid) {
+      my ($ret, $ERR_RAD_PAIRS) = $self->Auth_CID($RAD);
+      return $ret, $ERR_RAD_PAIRS if ($ret == 1);
+    }
   }
 
   #Check  simultaneously logins if needs
@@ -762,7 +773,8 @@ sub dv_auth {
     && $self->{CID} eq ''
     && $RAD->{CALLING_STATION_ID}
     && $RAD->{CALLING_STATION_ID} =~ /:|\-/
-    && $RAD->{CALLING_STATION_ID} !~ /\//)
+    && $RAD->{CALLING_STATION_ID} !~ /\//
+    && ! $self->{NAS_PORT})
   {
     $self->query(
       $db, "UPDATE dv_main SET cid='$RAD->{CALLING_STATION_ID}'
