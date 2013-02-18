@@ -1232,7 +1232,353 @@ $self->query($db,
 #}
 
 
+#**********************************************************
+# online()
+#**********************************************************
+sub online {
+  my $self = shift;
+  my ($attr) = @_;
+
+  my $WHERE     = '';
+  my $EXT_TABLE = '';
+
+  $admin->{DOMAIN_ID} = 0 if (!$admin->{DOMAIN_ID});
+  if ($attr->{COUNT}) {
+    if ($attr->{ZAPED}) {
+      $WHERE = 'WHERE c.status=2';
+    }
+    else {
+      $WHERE = 'WHERE ((c.status=1 or c.status>=3) AND c.status<11)';
+    }
+
+    $self->query($db, "SELECT  count(*) FROM iptv_calls c $WHERE;");
+    $self->{TOTAL} = $self->{list}->[0][0];
+    return $self;
+  }
+
+  my %FIELDS_NAMES_HASH = (
+    LOGIN           => 'u.id AS login',
+    FIO             => 'pi.fio',
+    NAS_PORT_ID     => 'c.nas_port_id',
+    CLIENT_IP_NUM   => 'c.framed_ip_address AS ip_num',
+    DURATION        => 'SEC_TO_TIME(UNIX_TIMESTAMP() - UNIX_TIMESTAMP(c.started)) AS duration',
+
+    CID             => 'c.CID',
+    DV_CID          => 'service.cid',
+    NETMASK         => 'INET_NTOA(service.netmask) AS netmask',
+    ACCT_SESSION_ID => 'c.acct_session_id',
+    TP_ID           => 'service.tp_id AS tp_num',
+    CALLS_TP_ID     => 'c.tp_id AS calls_tp_id',
+    CONNECT_INFO    => 'c.CONNECT_INFO',
+    SPEED           => 'service.speed',
+    SUM             => 'c.sum AS session_sum',
+    STATUS          => 'c.status',
+    ADDRESS_FULL    => ($CONF->{ADDRESS_REGISTER}) ? 'concat(streets.name,\' \', builds.number, \'/\', pi.address_flat) AS ADDRESS' : 'concat(pi.address_street,\' \', pi.address_build,\'/\', pi.address_flat) AS ADDRESS',
+    GID             => 'u.gid',
+    TURBO_MODE      => 'c.turbo_mode',
+    JOIN_SERVICE    => 'c.join_service',
+
+    PHONE             => 'pi.phone',
+    CLIENT_IP         => 'INET_NTOA(c.framed_ip_address) AS ip',
+    UID               => 'u.uid',
+    NAS_IP            => 'INET_NTOA(c.nas_ip_address) AS nas_ip',
+    DEPOSIT           => 'if(company.name IS NULL, b.deposit, cb.deposit) AS deposit',
+    CREDIT            => 'if(u.company_id=0, u.credit, if (u.credit=0, company.credit, u.credit)) AS credit',
+    STARTED           => 'if(date_format(c.started, "%Y-%m-%d")=curdate(), date_format(c.started, "%H:%i:%s"), c.started) AS started',
+    NAS_ID            => 'c.nas_id',
+    LAST_ALIVE        => 'UNIX_TIMESTAMP() - c.lupdated AS last_alive',
+    ACCT_SESSION_TIME => 'UNIX_TIMESTAMP() - UNIX_TIMESTAMP(c.started) AS acct_session_time',
+    DURATION_SEC      => 'if(c.lupdated>0, c.lupdated - UNIX_TIMESTAMP(c.started), 0) AS duration_sec',
+    FILTER_ID         => 'if(service.filter_id<>\'\', service.filter_id, tp.filter_id) AS filter_id',
+    SESSION_START     => 'UNIX_TIMESTAMP(started) AS started_unixtime',
+    DISABLE           => 'u.disable AS login_status',
+    DV_STATUS         => 'service.disable AS service_status',
+
+    TP_NAME           => 'tp.name AS tp_name',
+    TP_BILLS_PRIORITY => 'tp.bills_priority',
+    TP_CREDIT         => 'tp.credit AS tp_credit',
+    NAS_NAME          => 'nas.name',
+    GUEST_MODE        => 'c.guest',
+    PAYMENT_METHOD    => 'tp.payment_type',
+    EXPIRED           => "if(u.expire>'0000-00-00' AND u.expire <= curdate(), 1, 0) AS expired",
+    EXPIRE            => 'u.expire'
+  );
+
+  my $fields           = '';
+  my $port_id          = 0;
+  my $RES_FIELDS_COUNT = 0; #$#RES_FIELDS;
+  my $ext_fields       = '';
+
+  if ($attr->{FIELDS_NAMES}) {
+    $fields           = '';
+    $RES_FIELDS_COUNT = 0;
+    foreach my $field (@{ $attr->{FIELDS_NAMES} }) {
+      $fields .= "$FIELDS_NAMES_HASH{$field},\n ";
+      
+      if (! $field) {
+        print "iptv_calls/online: Wrong field name\n";
+      }
+      elsif ($field =~ /TP_BILLS_PRIORITY|TP_NAME|FILTER_ID|TP_CREDIT|PAYMENT_METHOD/ && $EXT_TABLE !~ /tarif_plans/) {
+        $EXT_TABLE .= " LEFT JOIN tarif_plans tp ON (tp.tp_id=service.tp_id)";
+      }
+      elsif ($field =~ /NAS_NAME/ && $EXT_TABLE !~ / nas /) {
+        $EXT_TABLE .= "LEFT JOIN nas ON (nas.id=c.nas_id)";
+      }
+      elsif ($field =~ /FIO|PHONE/ && $EXT_TABLE !~ / users_pi /) {
+        $EXT_TABLE .= "LEFT JOIN users_pi pi ON (pi.uid=u.uid)";
+      }
+
+      $RES_FIELDS_COUNT++;
+    }
+    $RES_FIELDS_COUNT--;
+    $fields .= ' c.nas_id';
+  }
+
+  $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+  $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+
+  my @WHERE_RULES = ();
+
+  if ($attr->{ZAPED}) {
+    push @WHERE_RULES, "c.status=2";
+  }
+  elsif ($attr->{ALL}) {
+
+  }
+  elsif ($attr->{STATUS}) {
+    push @WHERE_RULES, @{ $self->search_expr("$attr->{STATUS}", 'INT', 'c.status') };
+  }
+  else {
+    push @WHERE_RULES, "((c.status=1 or c.status>=3) AND c.status<11)";
+  }
+
+  if ($attr->{LOGIN}) {
+    $attr->{USER_NAME}=$attr->{LOGIN};
+  }
+
+  if (defined($attr->{USER_NAME})) {
+    push @WHERE_RULES, @{ $self->search_expr("$attr->{USER_NAME}", 'STR', 'c.user_name') };
+  }
+  elsif ($attr->{UID}) {
+    push @WHERE_RULES, @{ $self->search_expr("$attr->{UID}", 'INT', 'c.uid') };
+  }
+
+  if (defined($attr->{SESSION_ID})) {
+    push @WHERE_RULES, "c.acct_session_id LIKE '$attr->{SESSION_ID}'";
+  }
+
+  if ($attr->{SESSION_IDS}) {
+    my @session_arr = split(/, /, $attr->{SESSION_IDS});
+    my $w = "'" . join('\', \'', @session_arr) . "'";
+    push @WHERE_RULES, "c.acct_session_id IN ($w)";
+  }
+
+  # Show groups
+  if ($attr->{GIDS}) {
+    push @WHERE_RULES, "u.gid IN ($attr->{GIDS})";
+  }
+  elsif ($attr->{GID}) {
+    push @WHERE_RULES, "u.gid='$attr->{GID}'";
+  }
+
+  if ($attr->{DOMAIN_ID}) {
+    push @WHERE_RULES, @{ $self->search_expr("$attr->{DOMAIN_ID}", 'INT', 'u.domain_id') };
+  }
+
+  if (defined($attr->{FRAMED_IP_ADDRESS})) {
+    push @WHERE_RULES, "c.framed_ip_address=INET_ATON('$attr->{FRAMED_IP_ADDRESS}')";
+  }
+
+  if ($attr->{TP_ID}) {
+    push @WHERE_RULES, @{ $self->search_expr($attr->{TP_ID}, 'INT', 'service.tp_id') };
+  }
+
+  if ($attr->{IP}) {
+    push @WHERE_RULES, @{ $self->search_expr($attr->{IP}, 'IP', 'c.framed_ip_address') };
+  }
 
 
+  if ($attr->{NAS_ID}) {
+    push @WHERE_RULES, "nas_id IN ($attr->{NAS_ID})";
+  }
 
+  if ($attr->{FILTER}) {
+    my $filter_field = '';
+    if ($attr->{FILTER_FIELD} == 3) {
+      $filter_field = "INET_NTOA(framed_ip_address)";
+    }
+    elsif ($attr->{FILTER_FIELD} == 20) {
+      $filter_field = '';
+      push @WHERE_RULES, @{ $self->search_expr($attr->{FILTER}, 'INT', "b.deposit") };
+    }
+    elsif ($attr->{FILTER_FIELD} == 16 && $CONF->{ADDRESS_REGISTER}) {
+      if ($EXT_TABLE !~ /builds/) {
+        $EXT_TABLE .= "INNER JOIN builds b ON (builds.id=pi.location_id)
+       INNER JOIN streets s ON (streets.id=builds.street_id)";
+      }
+
+      $filter_field = 'concat(streets.name, \', \', builds.number)';
+    }
+    
+    if ($filter_field) {
+      push @WHERE_RULES, ($attr->{FILTER} =~ s/\*/\%/g) ? "$filter_field LIKE '$attr->{FILTER}'" : "$filter_field='$attr->{FILTER}'";
+    }
+  }
+
+  if (defined($attr->{GUEST})) {
+    push @WHERE_RULES, @{ $self->search_expr("$attr->{GUEST}", 'INT', 'c.guest') };
+  }
+
+
+  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES) : '';
+
+  $self->query(
+    $db, "SELECT $fields 
+  $ext_fields
+ FROM iptv_calls c
+ LEFT JOIN users u     ON (u.uid=c.uid)
+ LEFT JOIN iptv_main service  ON (service.uid=u.uid)
+
+ LEFT JOIN bills b ON (u.bill_id=b.id)
+ LEFT JOIN companies company ON (u.company_id=company.id)
+ LEFT JOIN bills cb ON (company.bill_id=cb.id)
+ $EXT_TABLE
+
+ $WHERE
+ ORDER BY $SORT $DESC;", 
+ undef,
+ $attr
+  );
+
+  my %dub_logins = ();
+  my %dub_ports  = ();
+  my %nas_sorted = ();
+
+  if ($self->{TOTAL} < 1) {
+    $self->{dub_ports}  = \%dub_ports;
+    $self->{dub_logins} = \%dub_logins;
+    $self->{nas_sorted} = \%nas_sorted;
+
+    return $self->{list};
+  }
+
+  my $list = $self->{list};
+  my $nas_id_field = ($attr->{FIELDS_NAMES}) ? $RES_FIELDS_COUNT + 1 : $RES_FIELDS_COUNT + 10;
+  foreach my $line (@$list) {
+    my @fields = ();
+    if ($attr->{COLS_NAME}) {
+      push @{ $nas_sorted{$line->{nas_id}} }, $line ;
+      $dub_logins{ $line->{user_name} }++ if ($line->{user_name});
+      $dub_ports{ $line->{nas_id} }{ $line->{nas_port_id} }++ if ($port_id);
+    }
+    else {
+      for (my $i = 0 ; $i <= $RES_FIELDS_COUNT + 15 ; $i++) {
+        push @fields, $line->[$i];
+      }
+      $dub_logins{ $line->[0] }++;
+      $dub_ports{ $line->[$nas_id_field] }{ $line->[$port_id] }++ if ($port_id);
+      push @{ $nas_sorted{"$line->[$nas_id_field]"} }, \@fields;
+    }
+  }
+
+  $self->{dub_ports}  = \%dub_ports;
+  $self->{dub_logins} = \%dub_logins;
+  $self->{nas_sorted} = \%nas_sorted;
+
+  return $self->{list};
+}
+
+
+#**********************************************************
+# online_add()
+#**********************************************************
+sub online_add {
+  my $self = shift;
+	my ($attr) = @_;
+	
+	
+  $self->query(
+     $db, "INSERT INTO iptv_calls (started, uid, framed_ip_address, nas_id, nas_ip_address, status, acct_session_id, tp_id, CID)
+      VALUES (now(), 
+      '$attr->{UID}', 
+      INET_ATON('". (($attr->{IP}) ? $attr->{IP} : '0.0.0.0' ) ."'), 
+      '$attr->{NAS_ID}', 
+      INET_ATON('". (($attr->{NAS_IP_ADDRESS}) ? $attr->{NAS_IP_ADDRESS} : '0.0.0.0' ) ."'), 
+      '$attr->{STATUS}', 
+      '$attr->{ACCT_SESSION_ID}', 
+      '$attr->{TP_ID}',
+      '$attr->{CID}'
+      );", 'do'
+  );
+
+  return $self;
+}
+
+#**********************************************************
+# online()
+#**********************************************************
+sub online_count {
+  my $self = shift;
+  my ($attr) = @_;
+
+  my $EXT_TABLE = '';
+  my $WHERE = '';
+  if($attr->{DOMAIN_ID}) {
+    $EXT_TABLE = ' INNER JOIN users u ON (c.uid=u.uid)';
+    $WHERE = " AND u.domain_id='$attr->{DOMAIN_ID}'";
+  }
+
+  $self->query(
+    $db, "SELECT n.id, n.name, n.ip, n.nas_type,  
+   sum(if (c.status=1 or c.status>=3, 1, 0)),
+   count(distinct c.uid),
+   sum(if (status=2, 1, 0)), 
+   sum(if (status>3, 1, 0))
+ FROM iptv_calls c  
+ INNER JOIN nas n ON (c.nas_id=n.id)
+ $EXT_TABLE
+ WHERE c.status<11 $WHERE
+ GROUP BY c.nas_id
+ ORDER BY $SORT $DESC;"
+  );
+
+  my $list = $self->{list};
+  $self->{ONLINE}=0;
+  if ($self->{TOTAL} > 0) {
+    $self->query(
+      $db, "SELECT 1, count(c.uid) AS total_users,  
+      sum(if (c.status=1 or c.status>=3, 1, 0)) AS online,
+      sum(if (c.status=2, 1, 0)) AS zaped
+   FROM iptv_calls c 
+   $EXT_TABLE
+   WHERE c.status<11 $WHERE
+   GROUP BY 1;",
+   undef,
+   { INFO => 1 }
+    );
+   $self->{TOTAL} = $self->{TOTAL_USERS};
+  }
+
+  return $list;
+}
+
+
+#**********************************************************
+# online_update
+#**********************************************************
+sub online_update {
+  my $self = shift;
+  my ($DATA) = @_;
+
+  $self->query(
+    $db, "UPDATE iptv_calls SET
+      lupdated=UNIX_TIMESTAMP()
+    WHERE
+      acct_session_id='$DATA->{ACCT_SESSION_ID}' and 
+      uid='$DATA->{UID}' and
+      CID='$DATA->{CID}';", 'do'
+  );
+
+  return $self;
+}
 1

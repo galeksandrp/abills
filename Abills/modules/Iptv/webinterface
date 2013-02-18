@@ -1365,8 +1365,10 @@ sub iptv_channels {
 # online users
 #*******************************************************************
 sub iptv_online {
-
-  my $nas = Nas->new($db, \%conf);
+  
+  use Nas;
+  my $nas      = Nas->new($db, \%conf);
+  my $sessions = $Iptv;
   my $message;
 
   if ($FORM{ping}) {
@@ -1536,12 +1538,27 @@ sub iptv_online {
     $cure = 'Zap';
   }
   else {
-    $sessions->online({ ZAPED => 'yes' });
-    $form_link = $html->button($_ZAPED, "index=$index&ZAPED=1", { BUTTON => 1 }) . " ($sessions->{TOTAL})";
+    #$sessions->online({ ZAPED => 1 });
+    #$form_link = $html->button($_ZAPED, "index=$index&ZAPED=1", { BUTTON => 1 }) . " ($sessions->{TOTAL})";
     $cure = 'Online';
   }
 
-  $sessions->online({%LIST_PARAMS});
+  $sessions->online({ %LIST_PARAMS,
+  	                  FIELDS_NAMES => [
+  	                   LOGIN,
+  	                   FIO,
+  	                   STARTED,
+  	                   DURATION,
+  	                   CID,
+  	                   CLIENT_IP,
+  	                   TP_NAME,
+  	                   UID,
+  	                   ACCT_SESSION_ID,
+  	                   LAST_ALIVE
+  	                  ],
+  	                  COLS_NAME => 1
+  	                 });
+
   my $dub_ports  = $sessions->{dub_ports};
   my $dub_logins = $sessions->{dub_logins};
 
@@ -1549,7 +1566,7 @@ sub iptv_online {
     {
       caption    => "$cure",
       width      => '100%',
-      title      => [ "$_USER", "$_FIO", "CALLING_STATION_ID", "CALLING_STATION_ID", "$_DURATION", "CLIENT_IP_ADDRESS", "-", "-", "-" ],
+      title      => [ "$_USER", "$_FIO", "$_START", "$_DURATION", "CALLING_STATION_ID", "CLIENT_IP_ADDRESS", "$_TARIF_PLAN", "-", "-", "-" ],
       cols_align => [ 'left', 'left', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'center' ],
       qs         => $pages_qs,
     }
@@ -1560,27 +1577,41 @@ sub iptv_online {
 
   my $nas_list = $nas->list();
 
-  foreach my $nas_row (@$nas_list) {
+  foreach my $nas_row (( 0 )) {
+    $nas_row->[0] = 0;
     next if (!defined($online->{ $nas_row->[0] }));
 
     $table->{rowcolor} = $_COLORS[0];
     $table->{extra}    = "colspan=\"9\" class=\"small\"";
-    $table->addrow("$nas_row->[0]:<b>$nas_row->[1]</b>:$nas_row->[4]");
+    $table->addrow("$nas_row->[0]:". $html->b($nas_row->[1]). ":$nas_row->[4]");
 
     my $l = $online->{ $nas_row->[0] };
     foreach my $line (@$l) {
       undef($table->{rowcolor});
       undef($table->{extra});
-      if (defined($dub_logins->{ $line->[0] })) { $bg = '#FFFF00'; }
+      if (defined($dub_logins->{ $line->{login} })) { 
+      	$bg = '#FFFF00'; 
+      }
+      elsif ($line->{status} == 3) { 
+      	$bg = '#FF0000'; 
+      }
+      else { 
+      	$bg = ($bg eq $_COLORS[1]) ? $_COLORS[2] : $_COLORS[1]; 
+      }
 
-      #    elsif (defined($dub_ports->{$nas_row->[4]}{$line->[2]})) { $bg='#00FF40';    }
-      elsif ($line->[9] == 3) { $bg = '#FF0000'; }
-      else                    { $bg = ($bg eq $_COLORS[1]) ? $_COLORS[2] : $_COLORS[1]; }
+      my $zap    = $html->button('Z', "index=$index&zap=$nas_row->[0]+$line->{acct_session_id}", { TITLE => 'Zap', BUTTON => 1 });
+      my $hangup = ($FORM{ZAPED}) ? $html->form_input('dellist', "$line->{acct_session_id}", { TYPE => 'checkbox', { BUTTON => 1 } }) : $html->button('H', "index=$index&hangup=$nas_row->[0]+$line->{acct_session_id}", { TITLE => 'Hangup', BUTTON => 1 });
 
-      my $zap = $html->button('Z', "index=$index&zap=$nas_row->[0]+$line->[9]", { TITLE => 'Zap', BUTTON => 1 });
-      my $hangup = ($FORM{ZAPED}) ? $html->form_input('dellist', "$line->[9]", { TYPE => 'checkbox', { BUTTON => 1 } }) : $html->button('H', "index=$index&hangup=$nas_row->[0]+$line->[2]+$line->[9]+$line->[0]", { TITLE => 'Hangup', BUTTON => 1 });
-
-      $table->addrow(user_ext_menu($line->[8], $line->[0]), $line->[1], $line->[2], $line->[3], $line->[4], $line->[5], $html->button('P', "index=$index&ping=$line->[3]", { TITLE => 'Ping', BUTTON => 1 }), "$zap", "$hangup");
+      $table->addrow(user_ext_menu($line->{uid}, $line->{login}), 
+        $line->{fio}, 
+        $line->{started}, 
+        $line->{duration}, 
+        $line->{MAC}, 
+        $line->{ip}, 
+        $line->{tp_name}, 
+        $html->button('P', "index=$index&ping=$line->{client_ip}", { TITLE => 'Ping', BUTTON => 1 }), 
+        "$zap", 
+        "$hangup");
     }
   }
 
@@ -3626,5 +3657,10 @@ sub iptv_account_action {
 
   return $result;
 }
+
+
+
+
+
 1
 

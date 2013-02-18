@@ -519,7 +519,7 @@ sub list {
     undef,
     $attr
   );
-  my $list = $self->{list};
+  $list = $self->{list};
 
   if ($self->{TOTAL} > 0 || $PG > 0) {
     $self->query($db, "SELECT count(c.id) FROM companies c

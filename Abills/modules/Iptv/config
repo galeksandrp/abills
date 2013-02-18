@@ -16,6 +16,7 @@
                    "20:0:$_TV:iptv_online:"                  => 6,
                    "30:0:$_TV:iptv_report:"                  => 4,
                    "31:30:$_CHANNELS $_USED:iptv_reports_channels:" => 4,
+                   "36:0:$_TV:Iptv_online:"                  => 6,
                    );
 
 
