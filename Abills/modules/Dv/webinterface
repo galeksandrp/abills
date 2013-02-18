@@ -4953,7 +4953,7 @@ sub dv_daily_fees {
             my %PARAMS = (
               DATE     => "$ADMIN_REPORT{DATE} $TIME",
               METHOD   => ($TP_INFO->{FEES_METHOD}) ? $TP_INFO->{FEES_METHOD} : 1,
-              DESCRIBE => dv_fees_dsc_former(\%FEES_DSC)
+              DESCRIBE => fees_dsc_former(\%FEES_DSC)
             );
 
             if ($debug > 4) {
@@ -5560,7 +5560,7 @@ sub dv_monthly_fees {
                   else {
                     my $ext_deposit_sum = $user{EXT_DEPOSIT};
 
-                    $FEES_PARAMS{DESCRIBE} = dv_fees_dsc_former(\%FEES_DSC);
+                    $FEES_PARAMS{DESCRIBE} = fees_dsc_former(\%FEES_DSC);
 
                     $fees->take(\%user, $ext_deposit_sum, { %FEES_PARAMS });
                     $sum = $sum - $user{EXT_DEPOSIT};
@@ -5597,7 +5597,7 @@ sub dv_monthly_fees {
               }
 
               #take fees in first day of month
-              $FEES_PARAMS{DESCRIBE} = dv_fees_dsc_former(\%FEES_DSC);
+              $FEES_PARAMS{DESCRIBE} = fees_dsc_former(\%FEES_DSC);
               $FEES_PARAMS{DESCRIBE} .= " - $_ABON_DISTRIBUTION" if ($TP_INFO->{ABON_DISTRIBUTION});
               if ($user{DV_STATUS} == 5 && $TP_INFO->{FINE} > 0) {
                 if ($conf{DV_FINE_LIMIT} && $user{DEPOSIT} + $user{CREDIT} < $conf{DV_FINE_LIMIT}) {
@@ -7542,7 +7542,7 @@ sub dv_docs {
               FEES_METHOD     => $FEES_METHODS{$Dv->{FEES_METHOD}},
             );
     
-    push @services, dv_fees_dsc_former(\%FEES_DSC)."||$Dv->{MONTH_ABON}"; 
+    push @services, fees_dsc_former(\%FEES_DSC)."||$Dv->{MONTH_ABON}"; 
   }
 
   if ($Dv->{DAY_ABON} > 0) {

@@ -146,4 +146,28 @@ sub get_period_dates {
   return '';
 }
 
+
+#**********************************************************
+#
+#**********************************************************
+sub fees_dsc_former {
+  my ($attr)=@_;
+  
+  $conf{DV_FEES_DSC}='%SERVICE_NAME%: %FEES_PERIOD_MONTH%%FEES_PERIOD_DAY% %TP_NAME% (%TP_ID%)%EXTRA% %PERIOD%' if (! $conf{DV_FEES_DSC});
+
+  my $text = $conf{DV_FEES_DSC};
+
+  while ($text =~ /\%(\w+)\%/g) {
+    my $var       = $1;
+    if(! defined($attr->{$var})) {
+      $attr->{$var}='';
+    }
+    $text =~ s/\%$var\%/$attr->{$var}/g;
+  }
+  
+  return $text;
+}
+
+
+
 1

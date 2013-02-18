@@ -1715,7 +1715,7 @@ sub service_get_month_fee {
         $FEES_DSC{PERIOD} = "($start_date-$y-$m-$days_in_month)";
       }
 
-      $FEES_PARAMS{DESCRIBE} = dv_fees_dsc_former(\%FEES_DSC);
+      $FEES_PARAMS{DESCRIBE} = fees_dsc_former(\%FEES_DSC);
       $message .= $FEES_PARAMS{DESCRIBE};
 
       if ($conf{EXT_BILL_ACCOUNT}) {
@@ -1745,26 +1745,5 @@ sub service_get_month_fee {
   return \%total_sum;
 }
 
-
-#**********************************************************
-#
-#**********************************************************
-sub fees_dsc_former () {
-  my ($attr)=@_;
-  
-  $conf{DV_FEES_DSC}='%SERVICE_NAME%: %FEES_PERIOD_MONTH%%FEES_PERIOD_DAY% %TP_NAME% (%TP_ID%)%EXTRA% %PERIOD%' if (! $conf{DV_FEES_DSC});
-
-  my $text = $conf{DV_FEES_DSC};
-
-  while ($text =~ /\%(\w+)\%/g) {
-    my $var       = $1;
-    if(! defined($attr->{$var})) {
-      $attr->{$var}='';
-    }
-    $text =~ s/\%$var\%/$attr->{$var}/g;
-  }
-  
-  return $text;
-}
 
 1
