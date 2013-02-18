@@ -103,7 +103,8 @@ sub info {
    tp.priority AS tp_priority,
    tp.activate_price AS tp_activate_price,
    tp.age AS tp_age,
-   tp.filter_id AS tp_filter_id
+   tp.filter_id AS tp_filter_id,
+   tp.period_alignment AS tp_period_alignment
      FROM dv_main dv
      LEFT JOIN tarif_plans tp ON ((tp.module='Dv' or tp.module='') AND dv.tp_id=tp.id and tp.domain_id='$domain_id')
    $WHERE;",

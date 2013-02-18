@@ -689,10 +689,30 @@ sub search_expr_users () {
   }
 
   if ($attr->{GIDS}) {
+    if ($admin->{GIDS}) {
+      my @result_gids = ();  
+      my @admin_gids  = split(/, /, $admin->{GIDS});
+      my @attr_gids   = split(/, /, $attr->{GIDS});
+
+      foreach my $attr_gid ( @attr_gids ) {
+        foreach my $admin_gid (@admin_gids)  {
+          if ($admin_gid == $attr_gid) {
+            push @result_gids, $attr_gid; 
+            last;
+          }
+        }
+      }
+
+      $attr->{GIDS}=join(', ', @result_gids);
+    }
+    
     push @fields, "u.gid IN ($attr->{GIDS})";
   }
   elsif (defined($attr->{GID}) && $attr->{GID} ne '') {
     push @fields,  @{ $self->search_expr($attr->{GID}, 'INT', 'u.gid', { EXT_FIELD => $ext_fields{GID} }) };
+  }
+  elsif ($admin->{GIDS}) {
+    push @fields, "u.gid IN ($admin->{GIDS})";
   }
 
   if ($attr->{NOT_FILLED}) {

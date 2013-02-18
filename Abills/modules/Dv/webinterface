@@ -760,7 +760,7 @@ sub dv_user {
       }
     }
 
-    $Dv->{CALLBACK} = ($Dv->{CALLBACK} == 1) ? ' checked' : '';
+    $Dv->{CALLBACK}          = ($Dv->{CALLBACK} == 1) ? ' checked' : '';
     $Dv->{REGISTRATION_INFO} = $html->button("$_MEMO", "qindex=$index&UID=$Dv->{UID}&REGISTRATION_INFO=1", { BUTTON => 1, ex_params => 'target=_new' });
 
     if ($conf{DOCS_PDF_PRINT}) {
@@ -853,8 +853,18 @@ sub dv_user {
     $total_fee = $total_fee * (100 - $users->{REDUCTION}) / 100;
   }
 
+
   if ($Dv->{STATUS} && $total_fee > $users->{DEPOSIT}) {
-    my $sum=sprintf("%.2f", abs($total_fee - $users->{DEPOSIT})); 
+    my $sum=0; 
+    if ($Dv->{TP_PERIOD_ALIGNMENT}) {
+    	my($y, $m, $d)=split(/-/, $DATE);
+      my $days_in_month = ($m != 2 ? (($m % 2) ^ ($m > 7)) + 30 : (!($y % 400) || !($y % 4) && ($y % 25) ? 29 : 28));
+      $sum = sprintf("%.2f", abs(($total_fee / $days_in_month) * ($days_in_month - $d) - $users->{DEPOSIT}));
+    }
+    else {
+    	$sum =  sprintf("%.2f", abs($total_fee - $users->{DEPOSIT}));
+    }
+    
     $Dv->{PAYMENT_MESSAGE} = "$_ACTIVATION_PAYMENT $sum " . $html->button("$_PAYMENTS", "UID=$FORM{UID}&index=2&SUM=$sum", {CLASS => 'payments rightAlignText'});
   }
 
@@ -7476,18 +7486,18 @@ sub dv_pay_to {
 
     if ($Dv->{MONTH_ABON} && $Dv->{ABON_DISTRIBUTION} || $Dv->{DAY_ABON}) {
       if ($from_year . '-' . $from_month eq $to_year . '-' . $to_month) {
-        $Dv->{DAYS} = $to_day - $from_day;
-        my $days_in_month = ($FROM_M != 2 ? (($FROM_M % 2) ^ ($FROM_M > 7)) + 30 : (!($FROM_Y % 400) || !($FROM_Y % 4) && ($FROM_Y % 25) ? 29 : 28));
-        $Dv->{SUM} = sprintf("%.2f", $Dv->{DAYS} * $Dv->{DAY_ABON} + $Dv->{DAYS} * ($Dv->{MONTH_ABON} / $days_in_month));
+        $Dv->{DAYS} = $to_day - $from_day + 1;
+        my $days_in_month = ($from_month != 2 ? (($from_month % 2) ^ ($from_month > 7)) + 30 : (!($from_year % 400) || !($from_year % 4) && ($from_year % 25) ? 29 : 28));
+        $Dv->{SUM} = sprintf("%.2f", ($Dv->{MONTH_ABON} / $days_in_month) * $Dv->{DAYS});
       }
       elsif ("$from_year-$from_month" ne "$to_year-$to_month") {
-        
         $from_day--;
         do {
           $days_in_month = ($from_month != 2 ? (($from_month % 2) ^ ($from_month > 7)) + 30 : (!($from_year % 400) || !($from_year % 4) && ($from_year % 25) ? 29 : 28));
           my $month_days = ($from_month == $to_month) ? $to_day : $days_in_month - $from_day;
-          $from_day = 0;
-          my $month_sum = sprintf("%.2f", $month_days * $Dv->{DAY_ABON} + $month_days * ($Dv->{MONTH_ABON} / $days_in_month));
+          $from_day      = 0;
+          my $month_sum  = sprintf("%.2f", ($Dv->{MONTH_ABON} / $days_in_month) * $month_days);
+
           $Dv->{SUM}  += $month_sum;
           $Dv->{DAYS} += $month_days;
 

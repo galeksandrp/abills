@@ -275,7 +275,7 @@ my @actions = (
 );
 
 if ($admin->{GIDS}) {
-  $LIST_PARAMS{GIDS} = $admin->{GIDS};
+  #$LIST_PARAMS{GIDS} = $admin->{GIDS};
 }
 elsif ($admin->{GID} > 0) {
   $LIST_PARAMS{GID} = $admin->{GID};
