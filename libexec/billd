@@ -1220,7 +1220,6 @@ sub check_speed {
     $IFACE_SPEED = check_speed_mpd();
   }
   else {
-
     # Get global ips
     open(IPFW, "/sbin/ipfw table $users_table_number list |") || die "Can't open file '/sbin/ipfw table $users_table_number list' $!\n";
     while (<IPFW>) {

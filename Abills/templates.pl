@@ -18,7 +18,7 @@ sub _include {
   $tpl .= '_' . $attr->{SUFIX} if ($attr->{SUFIX});
 
   start:
-  $domain_path = 'domain';
+  $domain_path = '';
   if ($admin->{DOMAIN_ID}) {
     $domain_path = "$admin->{DOMAIN_ID}/";
   }

@@ -94,12 +94,13 @@ if ($conf{AUTH_METHOD}) {
   my $res = check_permissions("$FORM{user}", "$FORM{passwd}", "$COOKIES{sid}");
  
   if (! $res) {
-    $html->setCookie('sid', "$sid", "", "", $domain, $secure);
+    $html->setCookie('sid', "$sid", "", "/", $domain, $secure);
     $COOKIES{sid} = $sid;
   }
   else {
     $html->{METATAGS} = templates('metatags');
      print $html->header();
+     print "$COOKIES{sid} // $ENV{'HTTP_COOKIE'} ";
      form_login();
      exit;
   }
