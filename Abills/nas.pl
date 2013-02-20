@@ -831,7 +831,8 @@ sub hangup_mpd5 {
   	$NAS->{NAS_MNG_IP_PORT}="$hostname:$radius_port";
     return hangup_radius($NAS, $PORT, $USER, $attr);
   }
-
+  
+  $hostname='127.0.0.1';
   my $ctl_port = "L-$PORT";
   if ($attr->{ACCT_SESSION_ID}) {
     if ($attr->{ACCT_SESSION_ID} =~ /^\d+\-(.+)/) {
