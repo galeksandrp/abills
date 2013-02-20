@@ -447,9 +447,9 @@ neg_deposit() {
       ${IPFW} add 9000 skipto ${FWD_RULE} ip from table\(32\) to any ${IN_DIRECTION}
       ${IPFW} add 9001 skipto ${FWD_RULE} ip from any to table\(32\) ${OUT_DIRECTION}
 
-      ${IPFW} add 10020 pipe 1${abills_neg_deposit_speed} ip from any to not table\(10\) ${IN_DIRECTION}
-      ${IPFW} add 10021 pipe 1${abills_neg_deposit_speed} ip from not table\(10\) to any ${OUT_DIRECTION}
-      ${IPFW} pipe 1${abills_neg_deposit_speed} config bw ${abills_neg_deposit_speed}Kbit/s mask src-ip 0xfffffffff    
+      #${IPFW} add 10020 pipe 1${abills_neg_deposit_speed} ip from any to not table\(10\) ${IN_DIRECTION}
+      #${IPFW} add 10021 pipe 1${abills_neg_deposit_speed} ip from not table\(10\) to any ${OUT_DIRECTION}
+      #${IPFW} pipe 1${abills_neg_deposit_speed} config bw ${abills_neg_deposit_speed}Kbit/s mask src-ip 0xfffffffff    
     
       ${IPFW} add `expr ${FWD_RULE} + 30` pipe 1${abills_neg_deposit_speed} ip from any to not table\(10\) ${IN_DIRECTION}
       ${IPFW} add `expr ${FWD_RULE} + 31` pipe 1${abills_neg_deposit_speed} ip from not table\(10\) to any ${OUT_DIRECTION}
