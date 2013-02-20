@@ -544,7 +544,7 @@ sub form_select {
       $self->{SELECT} .= '>';
 
       #Value
-      $self->{SELECT} .= "$v->[$key]:" if (!$attr->{NO_ID});
+      $self->{SELECT} .= "$v->[$key] " if (!$attr->{NO_ID});
 
       if ($value =~ /,/) {
         my @values      = split(/,/, $value);
@@ -586,7 +586,7 @@ sub form_select {
           $self->{SELECT} .= ' selected' if (defined($attr->{SELECTED}) && $val eq $attr->{SELECTED});
           $self->{SELECT} .= ">";
 
-          #$self->{SELECT} .= "$val:" if (! $attr->{NO_ID});
+          #$self->{SELECT} .= "$val " if (! $attr->{NO_ID});
           $self->{SELECT} .= "$val\n";
         }
         $self->{SELECT} .= "</optgroup>";
@@ -622,7 +622,7 @@ sub form_select {
         
         $self->{SELECT} .= ' selected' if (defined($attr->{SELECTED}) && $k eq $attr->{SELECTED});
         $self->{SELECT} .= ">";
-        $self->{SELECT} .= "$k:" if (!$attr->{NO_ID});
+        $self->{SELECT} .= "$k " if (!$attr->{NO_ID});
         $self->{SELECT} .= "$attr->{SEL_HASH}{$k}\n";
       }
     }

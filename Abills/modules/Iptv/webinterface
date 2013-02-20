@@ -379,7 +379,7 @@ sub iptv_user {
       }
     }
   }
-  elsif ($FORM{change}) {      
+  elsif ($FORM{change}) {
     $Iptv->user_change({%FORM});
     if (!$Iptv->{errno}) {
       $Iptv->{ACCOUNT_ACTIVATE} = $attr->{USER_INFO}->{ACTIVATE};
@@ -2978,7 +2978,6 @@ sub iptv_crypt {
 
   my %users_channels   = ();
   my $tp_list          = $Tariffs->list({ %LIST_PARAMS, MODULE => 'Iptv', COLS_NAME => 1 });
-
   foreach my $tp (@$tp_list) {
     my $TP_ID       = $tp->{tp_id};
     my $min_use     = $tp->{min_use};
@@ -3075,6 +3074,8 @@ sub iptv_crypt {
   }
 
   print "Generated '$filename'\n" if ($debug > 1);
+  
+  return "Generated '$filename'\n";
 }
 
 #**********************************************************
@@ -3603,6 +3604,7 @@ sub iptv_account_action {
     }
   }
   elsif ($FORM{change}) {
+
     if ($conf{IPTV_DVCRYPT_FILENAME}) {
       iptv_crypt();
     }
