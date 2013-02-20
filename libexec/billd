@@ -2121,17 +2121,19 @@ sub check_ifaces {
 
     my $res = '';
     if ($attr->{MPD}) {
-      my $ret = hangup(
-        \%NAS,
-        "0", 
-        "",
-        {
-          ACCT_SESSION_ID   => "",
-          FRAMED_IP_ADDRESS => $ip_address,
-          IFACE             => "ng$iface",
-          LOCAL_HANGUP      => 1
-        }
-      );
+      if ($debug < 5) {
+        my $ret = hangup(
+          \%NAS,
+          "0", 
+          "",
+          {
+            ACCT_SESSION_ID   => "",
+            FRAMED_IP_ADDRESS => $ip_address,
+            IFACE             => "ng$iface",
+            LOCAL_HANGUP      => 1
+          }
+        );
+      }
     }
     elsif ($pid > 0) {
       $res = `/bin/kill -9 $pid; /sbin/ifconfig tun$iface delete down`;
