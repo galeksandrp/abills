@@ -825,7 +825,7 @@ sub hangup_mpd5 {
 
   my ($hostname, $radius_port, $telnet_port) = ('127.0.0.1', '3799', '5005');
 
-  ($hostname, $radius_port, $telnet_port) = split(/:/, $hostname, 3);
+  ($hostname, $radius_port, $telnet_port) = split(/:/, $NAS->{NAS_MNG_IP_PORT}, 3);
 
   if (! $attr->{LOCAL_HANGUP}) {
   	$NAS->{NAS_MNG_IP_PORT}="$hostname:$radius_port";

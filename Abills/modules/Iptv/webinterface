@@ -564,7 +564,7 @@ sub iptv_ext_cmd {
 #    $Iptv->change({ UID     => $attr->{USER_INFO}->{UID},
 #                  STATUS  => 0  });
 #    $Iptv->{ACCOUNT_ACTIVATE}=$attr->{USER_INFO}->{ACTIVATE} || '0000-00-00';
-#    iptv_get_month_fee($Iptv, $attr);
+#    service_get_month_fee($Iptv, $attr);
 #   }
 #}
 
@@ -2234,7 +2234,7 @@ sub iptv_user_channels {
 
           if ($Iptv->{TP_INFO}->{MONTH_FEE} > 0) {
             $Iptv->{ACCOUNT_ACTIVATE} = $users->{ACTIVATE};
-            iptv_get_month_fee($Iptv, { EXT_DESCRIBE => " $_CHANNEL: $line->[1]",
+            service_get_month_fee($Iptv, { EXT_DESCRIBE => " $_CHANNEL: $line->[1]",
             	                          SERVICE_NAME => "$_TV" });
           }
           else {
