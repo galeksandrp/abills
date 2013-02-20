@@ -2095,16 +2095,16 @@ sub check_ifaces {
 
   my %NAS = ();
   if ($ARGV->{NAS_IDS}) {
-    my $list = $nas->list({ NAS_IDS => $ARGV->{NAS_IDS} });
+    my $list = $nas->list({ NAS_IDS => $ARGV->{NAS_IDS}, COLS_NAME => 1 });
     foreach my $line (@$list) {
-      $debug_output .= "NAS ID: $line->[0] MNG_INFO: $line->[10]\@$line->[9] $line->[12]\n" if ($debug > 2);
-      $NAS{NAS_ID}           = $line->[0];
-      $NAS{NAS_IP}           = $line->[3];
-      $NAS{NAS_TYPE}         = $line->[4];
-      $NAS{NAS_ALIVE}        = $line->[8] || 0;
-      $NAS{NAS_MNG_IP_PORT}  = $line->[9];
-      $NAS{NAS_MNG_USER}     = $line->[10];
-      $NAS{NAS_MNG_PASSWORD} = $line->[11];
+      $debug_output .= "NAS ID: $line->{nas_id} MNG_INFO: $line->{nas_mng_user}\@$line->{nas_mng_ip_port} $line->{nas_rad_pairs}\n" if ($debug > 2);
+      $NAS{NAS_ID}           = $line->{nas_id};
+      $NAS{NAS_IP}           = $line->{nas_ip};
+      $NAS{NAS_TYPE}         = $line->{nas_type};
+      $NAS{NAS_ALIVE}        = $line->{nas_alive} || 0;
+      $NAS{NAS_MNG_IP_PORT}  = $line->{nas_mng_ip_port};
+      $NAS{NAS_MNG_USER}     = $line->{nas_mng_user};
+      $NAS{NAS_MNG_PASSWORD} = $line->{nas_mng_password};
       if ($NAS{NAS_MNG_USER} eq '') {
         $debug_output .= "Skiped Not defined control user NAS_ID: $NAS{NAS_ID}\n" if ($debug > 1);
         next;
@@ -2123,11 +2123,13 @@ sub check_ifaces {
     if ($attr->{MPD}) {
       my $ret = hangup(
         \%NAS,
-        "0", "",
+        "0", 
+        "",
         {
           ACCT_SESSION_ID   => "",
           FRAMED_IP_ADDRESS => $ip_address,
-          IFACE             => "ng$iface"
+          IFACE             => "ng$iface",
+          LOCAL_HANGUP      => 1
         }
       );
     }
@@ -2586,8 +2588,12 @@ sub check_speed_mikrotik {
     $NAS{NAS_MNG_IP_PORT}  = $nas_row->[9];
     $NAS{NAS_MNG_USER}     = $nas_row->[10];
     $NAS{NAS_MNG_PASSWORD} = $nas_row->[11];
-    my $nas_port           = 22;
-    my ($nas_host, $nas_port_coa) = split(/:/, $NAS{NAS_MNG_IP_PORT});
+    
+    my ($nas_host, $nas_port_coa, $nas_port) = split(/:/, $NAS{NAS_MNG_IP_PORT}, 3);
+
+    if (!$nas_port) {
+      $nas_port           = 22;
+    }
 
     if ($ARGV->{SSH_PORT}) {
     	$nas_port     = int($ARGV->{SSH_PORT});

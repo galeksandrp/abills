@@ -432,7 +432,7 @@ sub hangup_radius {
     return 'ERR:';
   }
 
-  my ($ip, $mng_port) = split(/:/, $NAS->{NAS_MNG_IP_PORT}, 2);
+  my ($ip, $mng_port, $second_port) = split(/:/, $NAS->{NAS_MNG_IP_PORT}, 3);
   $Log->log_print('LOG_DEBUG', "$USER", "HANGUP: User-Name=$USER Framed-IP-Address=$attr->{FRAMED_IP_ADDRESS} NAS_MNG: $ip:$mng_port '$NAS->{NAS_MNG_PASSWORD}'", { ACTION => 'CMD', NAS => $NAS });
 
   my %RAD_PAIRS = ();
@@ -823,7 +823,12 @@ sub hangup_mpd5 {
     return "Error";
   }
 
-  if ($NAS->{NAS_MNG_USER} eq '') {
+  my ($hostname, $radius_port, $telnet_port) = ('127.0.0.1', '3799', '5005');
+
+  ($hostname, $radius_port, $telnet_port) = split(/:/, $hostname, 3);
+
+  if (! $attr->{LOCAL_HANGUP}) {
+  	$NAS->{NAS_MNG_IP_PORT}="$hostname:$radius_port";
     return hangup_radius($NAS, $PORT, $USER, $attr);
   }
 
@@ -834,6 +839,7 @@ sub hangup_mpd5 {
     }
   }
 
+  $NAS->{NAS_MNG_IP_PORT}="$hostname:$telnet_port";
   $Log->log_print('LOG_DEBUG', $USER_NAME, " HANGUP: SESSION: $ctl_port NAS_MNG: $NAS->{NAS_MNG_IP_PORT} '$NAS->{NAS_MNG_PASSWORD}'", { ACTION => 'CMD' });
 
   my @commands = ("\t", "Username: \t$NAS->{NAS_MNG_USER}", "Password: \t$NAS->{NAS_MNG_PASSWORD}", "\\[\\] \tlink $ctl_port", "\] \tclose", "\] \texit");
