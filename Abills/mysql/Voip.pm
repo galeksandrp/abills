@@ -89,6 +89,7 @@ sub user_info {
    voip.cid,
    voip.logins AS simultaneously,
    voip.registration,
+   voip.filter_id,
    tarif_plans.id as tp_num,
    voip.provision_nas_id,
    voip.provision_port,

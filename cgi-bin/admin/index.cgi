@@ -100,7 +100,6 @@ if ($conf{AUTH_METHOD}) {
   else {
     $html->{METATAGS} = templates('metatags');
      print $html->header();
-     print "$COOKIES{sid} // $ENV{'HTTP_COOKIE'} ";
      form_login();
      exit;
   }
