@@ -9571,7 +9571,7 @@ sub service_get_month_fee {
       if (int($active_d) > int($d)) {
         $periods--;
       }
-      $active_m++;
+      #$active_m++;
     }
     elsif (int($active_m) > 0 && (int($active_m) >= int($m) && int($active_y) < int($y))) {
       $periods = 12 - $active_m + $m;
@@ -9590,8 +9590,6 @@ sub service_get_month_fee {
       $sum = $sum / (($m != 2 ? (($m % 2) ^ ($m > 7)) + 30 : (!($y % 400) || !($y % 4) && ($y % 25) ? 29 : 28)));
       $FEES_DSC{EXTRA} = " - $_ABON_DISTRIBUTION";
     }
-
-    #$message .= dv_fees_dsc_former(\%FEES_DSC);
 
     if ($Service->{ACCOUNT_ACTIVATE} ne '0000-00-00' && ($Service->{OLD_STATUS} == 5)) {
       if ($conf{DV_CURDATE_ACTIVATE}) {
@@ -9616,17 +9614,21 @@ sub service_get_month_fee {
 
       $m = sprintf("%.2d", $m);
 
+      my $days_in_month = ($m != 2 ? (($m % 2) ^ ($m > 7)) + 30 : (!($active_y % 400) || !($active_y % 4) && ($active_y % 25) ? 29 : 28));
       if ($i > 0) {
-      	$message = '';
+        $FEES_DSC{EXTRA} = '';
+      	$message         = '';
         if ($user->{REDUCTION} > 0 && $Service->{TP_INFO}->{REDUCTION_FEE}) {
           $sum = $Service->{TP_INFO}->{MONTH_FEE} * (100 - $users->{REDUCTION}) / 100;
         }
+        else {
+        	$sum = $Service->{TP_INFO}->{MONTH_FEE};
+        }
 
         if ($Service->{ACCOUNT_ACTIVATE}) {
-          $DATE = $Service->{ACCOUNT_ACTIVATE};
+          $DATE          = $Service->{ACCOUNT_ACTIVATE};
           my $end_period = strftime "%Y-%m-%d", localtime((mktime(0, 0, 0, $active_d, ($m - 1), ($active_y - 1900), 0, 0, 0) + 30 * 86400));
           $FEES_DSC{PERIOD} = "($active_y-$m-$active_d-$end_period)";
-
           $users->change(
             $Service->{UID},
             {
@@ -9637,12 +9639,13 @@ sub service_get_month_fee {
           $Service->{ACCOUNT_ACTIVATE} = strftime "%Y-%m-%d", localtime((mktime(0, 0, 0, $active_d, ($m - 1), ($active_y - 1900), 0, 0, 0) + 31 * 86400));
         }
         else {
-          $DATE = "$active_y-$m-01";
-          my $days_in_month = ($m != 2 ? (($m % 2) ^ ($m > 7)) + 30 : (!($active_y % 400) || !($active_y % 4) && ($active_y % 25) ? 29 : 28));
-          $FEES_DSC{PERIOD} = "($active_y-$m-$active_d-$end_period)";
+          $DATE             = "$active_y-$m-01";
+          $FEES_DSC{PERIOD} = "($active_y-$m-01-$active_y-$m-$days_in_month)";
         }
       }
       elsif ($Service->{ACCOUNT_ACTIVATE} && $Service->{ACCOUNT_ACTIVATE} ne '0000-00-00') {
+        my $end_period = strftime "%Y-%m-%d", localtime((mktime(0, 0, 0, $active_d, ($m - 1), ($active_y - 1900), 0, 0, 0) + 30 * 86400));
+
         if ($Service->{TP_INFO}->{PERIOD_ALIGNMENT}) {
           $users->change(
             $Service->{UID},
@@ -9651,6 +9654,7 @@ sub service_get_month_fee {
               UID      => $Service->{UID}
             }
           );
+          $end_period  = "$y-$m-$days_in_month";
         }
         elsif ($Service->{OLD_STATUS} == 5) {
           $users->change(
@@ -9668,8 +9672,7 @@ sub service_get_month_fee {
           $DATE = "$active_y-$m-$active_d";
         }
 
-        my $end_period = strftime "%Y-%m-%d", localtime((mktime(0, 0, 0, $active_d, ($m - 1), ($active_y - 1900), 0, 0, 0) + 30 * 86400));
-        $Service->{ACCOUNT_ACTIVATE} = strftime "%Y-%m-%d", localtime((mktime(0, 0, 0, $active_d, ($m - 1), ($active_y - 1900), 0, 0, 0) + 31 * 86400));
+        $Service->{ACCOUNT_ACTIVATE} = ($Service->{TP_INFO}->{PERIOD_ALIGNMENT}) ? undef : strftime "%Y-%m-%d", localtime((mktime(0, 0, 0, $active_d, ($m - 1), ($active_y - 1900), 0, 0, 0) + 31 * 86400));
         $FEES_DSC{PERIOD} = "($active_y-$m-$active_d-$end_period)";
       }
       else {
@@ -9679,8 +9682,8 @@ sub service_get_month_fee {
       }
 
       $FEES_PARAMS{DESCRIBE} = fees_dsc_former(\%FEES_DSC);
-      $FEES_PARAMS{DESCRIBE} .= $attr->{EXT_DESCRIBE} if ($attr->{EXT_DESCRIBE});
-      $message .= $FEES_PARAMS{DESCRIBE};
+      $FEES_PARAMS{DESCRIBE}.= $attr->{EXT_DESCRIBE} if ($attr->{EXT_DESCRIBE});
+      $message              .= $FEES_PARAMS{DESCRIBE};
 
       if ($conf{EXT_BILL_ACCOUNT}) {
         if ($user->{EXT_BILL_DEPOSIT} < $sum && $user->{MAIN_BILL_ID}) {
