@@ -19,6 +19,7 @@ $html
 $systems_ips
 %systems_ident_params
 %system_params
+$silent
 );
 
 BEGIN {
@@ -50,10 +51,13 @@ use Paysys;
 use Finance;
 use Admins;
 
-$debug = $conf{PAYSYS_DEBUG} || 0;
-$html = Abills::HTML->new();
-my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd}, { CHARSET => ($conf{dbcharset}) ? $conf{dbcharset} : undef });
-my $db = $sql->{db};
+$silent  = 1;
+$debug   = $conf{PAYSYS_DEBUG} || 0;
+$html    = Abills::HTML->new();
+my $sql  = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd}, { CHARSET => ($conf{dbcharset}) ? $conf{dbcharset} : undef });
+my $db   = $sql->{db};
+require "Misc.pm";
+
 
 #Operation status
 my $status = '';
@@ -127,11 +131,11 @@ if ($conf{PAYSYS_PASSWD}) {
   }
 }
 
-$Paysys = Paysys->new($db, undef, \%conf);
-$admin = Admins->new($db, \%conf);
+$Paysys   = Paysys->new($db, undef, \%conf);
+$admin    = Admins->new($db, \%conf);
 $admin->info($conf{SYSTEM_ADMIN_ID}, { IP => $ENV{REMOTE_ADDR} });
 $payments = Finance->payments($db, $admin, \%conf);
-$users = Users->new($db, $admin, \%conf);
+$users    = Users->new($db, $admin, \%conf);
 
 %PAYSYS_PAYMENTS_METHODS = %{ cfg2hash($conf{PAYSYS_PAYMENTS_METHODS}) };
 
@@ -653,6 +657,8 @@ sub osmp_payments {
     }
   }
 
+  print "Content-Type: text/html\n\n";
+
   print "Content-Type: text/xml\n\n";
 
   my $payment_system    = $attr->{SYSTEM_SHORT_NAME} || 'OSMP';
@@ -710,7 +716,7 @@ sub osmp_payments {
   #Check user account
   #https://service.someprovider.ru:8443/payment_app.cgi?command=check&txn_id=1234567&account=0957835959&sum=10.45
   if ($command eq 'check') {
-    my $list = $users->list({ $CHECK_FIELD => $FORM{account} });
+    my $list = $users->list({ $CHECK_FIELD => $FORM{account}, COLS_NAME => 1 });
 
     if (!$conf{PAYSYS_PEGAS} && !$FORM{sum}) {
       $status = 300;
@@ -740,7 +746,7 @@ sub osmp_payments {
     if ($payment_system_id == 44) {
       $RESULT_HASH{$txn_id} = $FORM{txn_id};
       $RESULT_HASH{prv_txn} = $FORM{prv_txn};
-      $RESULT_HASH{comment} = "Balance: $list->[0]->[2]" if ($status == 0);
+      $RESULT_HASH{comment} = "Balance: $list->[0]->{deposit}" if ($status == 0);
     }
   }
 
@@ -1681,55 +1687,7 @@ sub mk_log {
   }
 }
 
-#**********************************************************
-# Calls function for all registration modules if function exist
-#
-# cross_modules_call(function_sufix, attr)
-#**********************************************************
-sub cross_modules_call {
-  my ($function_sufix, $attr) = @_;
-  my $timeout = $attr->{timeout} || 3;
 
-  $attr->{USER_INFO}->{DEPOSIT} += $attr->{SUM} if ($attr->{SUM});
-
-  eval {
-    my %full_return  = ();
-    my @skip_modules = ();
-
-    #disable stdout output
-    open($SAVEOUT, ">&", STDOUT) or die "XXXX: $!";
-
-    #Reset out
-    open STDIN,  '/dev/null';
-    open STDOUT, '/dev/null';
-    open STDERR, '/dev/null';
-
-    if ($attr->{SKIP_MODULES}) {
-      $attr->{SKIP_MODULES} =~ s/\s+//g;
-      @skip_modules = split(/,/, $attr->{SKIP_MODULES});
-    }
-
-    local $SIG{ALRM} = sub { die "alarm\n" };    # NB: \n required
-    alarm $timeout;
-
-    foreach my $mod (@MODULES) {
-      if (in_array($mod, \@skip_modules)) {
-        next;
-      }
-      require "Abills/modules/$mod/webinterface";
-      my $function = lc($mod) . $function_sufix;
-      my $return;
-      if (defined(&$function)) {
-        $return = $function->($attr);
-      }
-      $full_return{$mod} = $return;
-    }
-  };
-
-  # off disable stdout output
-  open(STDOUT, ">&", $SAVEOUT);
-  return \%full_return;
-}
 
 #**********************************************************
 # load_module($string, \%HASH_REF);
