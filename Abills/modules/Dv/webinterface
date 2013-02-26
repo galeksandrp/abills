@@ -5417,13 +5417,13 @@ sub dv_monthly_fees {
           EXT_DEPOSIT  => ($u->{ext_deposit}) ? $u->{ext_deposit} : 0,
         );
 
-      my %FEES_DSC = (
-         MODULE    => 'Internet:',
-         TP_ID     => $TP_INFO->{ID},
-         TP_NAME   => $TP_INFO->{NAME},
-         FEES_PERIOD_MONTH => $_MONTH_FEE_SHORT,
-         FEES_METHOD=>$FEES_METHODS{$TP_INFO->{FEES_METHOD}}
-      );
+        my %FEES_DSC = (
+          MODULE            => 'Internet:',
+          TP_ID             => $TP_INFO->{ID},
+          TP_NAME           => $TP_INFO->{NAME},
+          FEES_PERIOD_MONTH => $_MONTH_FEE_SHORT,
+          FEES_METHOD       => $FEES_METHODS{$TP_INFO->{FEES_METHOD}}
+        );
 
         $debug_output .= " Login: $user{LOGIN} ($user{UID}) TP_ID: $u->{tp_id} Fees: $TP_INFO->{MONTH_FEE} REDUCTION: $user{REDUCTION} DEPOSIT: $user{DEPOSIT} CREDIT $user{CREDIT} ACTIVE: $user{ACTIVATE} TP: $u->{tp_id}\n" if ($debug > 3);
 
@@ -5589,6 +5589,22 @@ sub dv_monthly_fees {
               }
             }
 
+            #Prepaid period credit
+            if ($conf{DV_PREPAID_PERIOD_CREDIT} 
+                && ($user{ACTIVATE} eq '0000-00-00' and $d == $START_PERIOD_DAY)
+                && $user{CREDIT} == 0 
+                && $user{DEPOSIT} < $sum) {
+
+                my $credit_period = int($user{DEPOSIT} /  ($sum / $days_in_month));
+                $users->change($user{UID}, {
+                                            UID         => $user{UID},
+                                            CREDIT_DATE => "$y-$m-$credit_period",
+                                            CREDIT      => $sum
+                                          });
+                $user{CREDIT}  = $sum;
+                $debug_output .= " $user{LOGIN} UID: $user{UID} SUM: $sum change credit\n";
+            }
+
             #If deposit is above-zero or TARIF PALIN is POST PAID or PERIODIC PAYMENTS is POSTPAID
             if ($TP_INFO->{PAYMENT_TYPE} == 1 || $user{DEPOSIT} + $user{CREDIT} > 0 || $TP_INFO->{POSTPAID_MONTHLY_FEE} == 1) {
               #*******************************************
@@ -5609,6 +5625,7 @@ sub dv_monthly_fees {
               #take fees in first day of month
               $FEES_PARAMS{DESCRIBE} = fees_dsc_former(\%FEES_DSC);
               $FEES_PARAMS{DESCRIBE} .= " - $_ABON_DISTRIBUTION" if ($TP_INFO->{ABON_DISTRIBUTION});
+
               if ($user{DV_STATUS} == 5 && $TP_INFO->{FINE} > 0) {
                 if ($conf{DV_FINE_LIMIT} && $user{DEPOSIT} + $user{CREDIT} < $conf{DV_FINE_LIMIT}) {
                   next;
@@ -5651,7 +5668,12 @@ sub dv_monthly_fees {
                   $debug_output .= " SMALL_DEPOSIT_BLOCK." if ($debug > 3);
                   next;
                 }
-
+                
+                #Static day
+                # if( ($TP_INFO->{STATIC_DAY} && ($d == $activate_d || ($d == $conf{START_PERIOD_DAY} && $activate_d > 28))) {
+                #  $activate_y, $activate_m, $activate_d
+                #}
+                
                 if ($date_unixtime - $active_unixtime > 30 * 86400) {
                   if ($debug > 4) {
                     $debug_output .= " $user{LOGIN} UID: $user{UID} SUM: $sum REDUCTION: $user{REDUCTION}\n";
