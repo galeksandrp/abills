@@ -1690,33 +1690,6 @@ sub mk_log {
 
 
 #**********************************************************
-# load_module($string, \%HASH_REF);
-#**********************************************************
-sub load_module {
-  my ($module, $attr) = @_;
-
-  my $lang_file = '';
-  foreach my $prefix (@INC) {
-    my $realfilename = "$prefix/Abills/modules/$module/lng_$attr->{language}.pl";
-    if (-f $realfilename) {
-      $lang_file = $realfilename;
-      last;
-    }
-    elsif (-f "$prefix/Abills/modules/$module/lng_english.pl") {
-      $lang_file = "$prefix/Abills/modules/$module/lng_english.pl";
-    }
-  }
-
-  if ($lang_file ne '') {
-    require $lang_file;
-  }
-
-  require "Abills/modules/$module/webinterface";
-
-  return 0;
-}
-
-#**********************************************************
 #
 #**********************************************************
 sub yandex () {
