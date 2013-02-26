@@ -1925,7 +1925,13 @@ sub check_speed {
       if (!$pipe_rules{$table_class} || $pipe_rules{$table_class} != $speed) {
         my $queue_out = (! $conf{DV_SKIP_QUEUE}) ? "queue ". (( $speed / 10 > 1000 ) ? 1000 : int( $speed / 10 )) ."Kbytes " : '';
 
-        push @FW_ACTIONS, "$IPFW pipe $table_class config bw " . $speed . "Kbit/s $queue_out mask src-ip 0xfffffffff";
+       my $mask_direction = 'src-ip';
+
+        if ($conf{octets_direction} eq 'server') {
+          $mask_direction = 'dst-ip';
+        }
+
+        push @FW_ACTIONS, "$IPFW pipe $table_class config bw " . $speed . "Kbit/s $queue_out mask $mask_direction 0xfffffffff";
         delete $pipe_rules{$table_class};
       }
     }
