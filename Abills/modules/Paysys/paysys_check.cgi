@@ -657,8 +657,6 @@ sub osmp_payments {
     }
   }
 
-  print "Content-Type: text/html\n\n";
-
   print "Content-Type: text/xml\n\n";
 
   my $payment_system    = $attr->{SYSTEM_SHORT_NAME} || 'OSMP';
