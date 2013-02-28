@@ -383,10 +383,30 @@ sub online {
 
   # Show groups
   if ($attr->{GIDS}) {
+    if ($admin->{GIDS}) {
+      my @result_gids = ();  
+      my @admin_gids  = split(/, /, $admin->{GIDS});
+      my @attr_gids   = split(/, /, $attr->{GIDS});
+
+      foreach my $attr_gid ( @attr_gids ) {
+        foreach my $admin_gid (@admin_gids)  {
+          if ($admin_gid == $attr_gid) {
+            push @result_gids, $attr_gid; 
+            last;
+          }
+        }
+      }
+
+      $attr->{GIDS}=join(', ', @result_gids);
+    }
+    
     push @WHERE_RULES, "u.gid IN ($attr->{GIDS})";
   }
-  elsif ($attr->{GID}) {
-    push @WHERE_RULES, "u.gid='$attr->{GID}'";
+  elsif (defined($attr->{GID}) && $attr->{GID} ne '') {
+    push @WHERE_RULES,  @{ $self->search_expr($attr->{GID}, 'INT', 'u.gid') };
+  }
+  elsif ($admin->{GIDS}) {
+    push @WHERE_RULES, "u.gid IN ($admin->{GIDS})";
   }
 
   if ($attr->{DOMAIN_ID}) {
