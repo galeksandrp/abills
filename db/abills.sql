@@ -677,7 +677,7 @@ CREATE TABLE `nas` (
   `ip` varchar(15) default NULL,
   `nas_type` varchar(20) default NULL,
   `auth_type` tinyint(3) unsigned NOT NULL default '0',
-  `mng_host_port` varchar(25) not null default ''
+  `mng_host_port` varchar(25) not null default '',
   `mng_user` varchar(20) default NULL,
   `mng_password` blob NOT NULL,
   `rad_pairs` text NOT NULL,
