@@ -1301,7 +1301,7 @@ sub mk_session_log {
   my $self        = shift;
   my ($acct_info) = @_;
   my $filename    = "$acct_info->{USER_NAME}.$acct_info->{ACCT_SESSION_ID}";
-
+  $filename =~ s/\//_/g;
   open(FILE, ">$CONF->{SPOOL_DIR}/$filename") || die "Can't open file '$CONF->{SPOOL_DIR}/$filename' $!";
   while (my ($k, $v) = each(%$acct_info)) {
     print FILE "$k:$v\n";
