@@ -840,7 +840,6 @@ sub hangup_mpd5 {
     }
   }
 
-  $NAS->{NAS_MNG_IP_PORT}="$hostname:$telnet_port";
   $Log->log_print('LOG_DEBUG', $USER_NAME, " HANGUP: SESSION: $ctl_port NAS_MNG: $NAS->{NAS_MNG_IP_PORT} '$NAS->{NAS_MNG_PASSWORD}'", { ACTION => 'CMD' });
 
   my @commands = ("\t", "Username: \t$NAS->{NAS_MNG_USER}", "Password: \t$NAS->{NAS_MNG_PASSWORD}", "\\[\\] \tlink $ctl_port", "\] \tclose", "\] \texit");
@@ -849,7 +848,7 @@ sub hangup_mpd5 {
     $commands[3] = "\\[\\] \tiface $attr->{IFACE}";
   }
 
-  my $result = telnet_cmd("$NAS->{NAS_MNG_IP_PORT}", \@commands, { debug => 1 });
+  my $result = telnet_cmd("$hostname:$telnet_port", \@commands, { debug => 1 });
 
   return $result;
 }

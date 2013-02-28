@@ -62,7 +62,7 @@ CHECK exist connections
   checkmpd    - check Active mpd5 on FreeBSD session and disconnect unknown ip
   check_cisco_cid - check Cisco cids
   checkpppd   - check Active pppd on Linux session and disconnect unknown ip
-  check_pptpd - chack Active PoPToP deamon on Linux
+  check_pptpd - check Active PoPToP deamon on Linux
   checkmikro  - check Active ppp on Mikrotik session and disconnect unknown ip.
 CHECK speed
   checkspeed       - check cure speed for user on FreeBSD and Linux NAS. Arguments NAS_IDS=xx
