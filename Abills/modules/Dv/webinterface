@@ -5593,15 +5593,18 @@ sub dv_monthly_fees {
             if ($conf{DV_PREPAID_PERIOD_CREDIT} 
                 && ($user{ACTIVATE} eq '0000-00-00' and $d == $START_PERIOD_DAY)
                 && $user{CREDIT} == 0 
-                && $user{DEPOSIT} < $sum) {
+                && ($user{DEPOSIT} < $sum && $user{DEPOSIT} > 0)) {
 
                 my $credit_period = int($user{DEPOSIT} /  ($sum / $days_in_month));
-                $users->change($user{UID}, {
+                if ($credit_period > 0) {
+                  $users->change($user{UID}, {
                                             UID         => $user{UID},
-                                            CREDIT_DATE => "$y-$m-$credit_period",
+                                            CREDIT_DATE => "$y-". ($m+1) ."-$credit_period",
                                             CREDIT      => $sum
                                           });
-                $user{CREDIT}  = $sum;
+                  $user{CREDIT}  = $sum;
+                }
+
                 $debug_output .= " $user{LOGIN} UID: $user{UID} SUM: $sum change credit\n";
             }
 
