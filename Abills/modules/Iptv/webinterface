@@ -1904,11 +1904,9 @@ sub iptv_user_chg_tp {
 
   }
   elsif ($FORM{change}) {
-    use POSIX;
-
     if ($period == 1 && $conf{IPTV_USER_CHG_TP_SHEDULE}) {
 
-      my $seltime = POSIX::mktime(0, 0, 0, $FORM{date_D}, $FORM{date_M}, ($FORM{date_Y} - 1900));
+      my $seltime = mktime(0, 0, 0, $FORM{date_D}, $FORM{date_M}, ($FORM{date_Y} - 1900));
 
       if ($seltime <= time()) {
         $html->message('info', $_INFO, "$ERR_WRONG_DATA");
@@ -1963,7 +1961,7 @@ sub iptv_user_chg_tp {
       }
       $M = sprintf("%02.d", $M);
 
-      my $seltime = POSIX::mktime(0, 0, 0, $D, $M, ($Y - 1900));
+      my $seltime = mktime(0, 0, 0, $D, $M, ($Y - 1900));
 
       if ($seltime > time()) {
         $shedule->add(
@@ -2545,9 +2543,9 @@ sub iptv_monthly_fees {
       );
 
       foreach my $u (@$ulist) {
-        $debug_output .= " Login: $u->{id} ($u->{uid})  TP_ID: $u->{tp_id} Fees: $tp->{month_fee} REDUCTION: $u->{reduction}  $u->{deposit} $u->{credit}\n" if ($debug > 3);
+        $debug_output .= " Login: $u->{login} ($u->{uid})  TP_ID: $u->{tp_id} Fees: $tp->{month_fee} REDUCTION: $u->{reduction}  $u->{deposit} $u->{credit}\n" if ($debug > 3);
         my %user = (
-          LOGIN     => $u->{id},
+          LOGIN     => $u->{login},
           UID       => $u->{uid},
           BILL_ID   => ($tp->{ext_bill_account} > 0) ? $u->{ext_bill_id} : $u->{bill_id},
           REDUCTION => $u->{reduction},
@@ -2654,11 +2652,11 @@ sub iptv_monthly_fees {
     foreach my $u (@$ulist) {
       my $channel_num = $u->{channel_id};
       my $sum         = $u->{month_price};
-      $debug_output .= " Login: $u->{id} ($u->{uid})  TP_ID: $u->{tp_id} Channel: $channel_num Month Price: $sum REDUCTION: $u->{reduction}  $u->{credit} $u->{credit}\n" if ($debug > 3);
+      $debug_output .= " Login: $u->{login} ($u->{uid})  TP_ID: $u->{tp_id} Channel: $channel_num Month Price: $sum REDUCTION: $u->{reduction}  $u->{credit} $u->{credit}\n" if ($debug > 3);
 
       #Check bill id and deposit
       my %user = (
-        LOGIN     => $u->{id},
+        LOGIN     => $u->{login},
         UID       => $u->{uid},
         BILL_ID   => ($tp->{ext_bill_account} > 0) ? $u->{ext_bill_id} : $u->{bill_id},
         REDUCTION => $u->{reduction},
@@ -3300,11 +3298,11 @@ sub iptv_stalker {
    $Stalker_api->user_action({ %$users, %$Iptv, %FORM });
    
    if ($Stalker_api->{errstr} eq 'Account not found') {
-      $Stalker_api->user_action({ %$users, 
-                                   %$Iptv, 
-                                   %FORM,
-                                   add   => 1,
-                                   change=> undef });
+     $Stalker_api->user_action({ %$users, 
+                                 %$Iptv, 
+                                 %FORM,
+                                 add   => 1,
+                                 change=> undef });
    }   
    
    return $Stalker_api->{error};

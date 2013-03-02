@@ -316,6 +316,7 @@ sub user_list {
                                             
                                             'ACTIVATE',
                                             'EXPIRE',
+                                            'LOGIN_STATUS'
 
                                              ] }) };
 
@@ -371,7 +372,7 @@ sub user_list {
   my $list;
   if ($attr->{SHOW_CHANNELS}) {
     $self->query(
-      $db, "SELECT  u.id, 
+      $db, "SELECT  u.id AS login, 
         if(u.company_id > 0, cb.deposit, b.deposit) AS deposit, 
         u.credit, 
         tp.name AS tp_name, 
@@ -416,7 +417,7 @@ ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;",
   }
   else {
     $self->query(
-      $db, "SELECT u.id, 
+      $db, "SELECT u.id AS login, 
       pi.fio, if(u.company_id > 0, cb.deposit, b.deposit) AS deposit, 
       u.credit, 
       tp.name AS tp_name, 
@@ -502,12 +503,14 @@ sub channel_info {
   $self->query(
     $db, "SELECT id,
    name,
-   num,
+   num AS number,
    port,
-   comments,
+   comments AS describe,
    disable
      FROM iptv_channels
-   $WHERE;"
+   $WHERE;",
+   undef,
+   { INFO => 1 }
   );
 
   if ($self->{TOTAL} < 1) {
@@ -515,8 +518,6 @@ sub channel_info {
     $self->{errstr} = 'ERROR_NOT_EXIST';
     return $self;
   }
-
-  ($self->{ID}, $self->{NAME}, $self->{NUMBER}, $self->{PORT}, $self->{DESCRIBE}, $self->{DISABLE}) = @{ $self->{list}->[0] };
 
   return $self;
 }
@@ -1581,4 +1582,37 @@ sub online_update {
 
   return $self;
 }
+
+
+#**********************************************************
+# online_del()
+#**********************************************************
+sub online_del {
+  my $self = shift;
+  my ($attr) = @_;
+
+  if ($attr->{SESSIONS_LIST}) {
+    my $session_list = join("', '", @{ $attr->{SESSIONS_LIST} });
+    $WHERE = "acct_session_id in ( '$session_list' )";
+
+    if ($attr->{QUICK}) {
+      $self->query($db, "DELETE FROM iptv_calls WHERE $WHERE;", 'do');
+      return $self;
+    }
+  }
+
+  @WHERE_RULES= ();
+  
+  if ($attr->{CID}) {
+    push @WHERE_RULES, @{ $self->search_expr("$attr->{CID}", 'STR', 'CID') };
+  }
+
+  if ($#WHERE_RULES > -1) {
+    my $WHERE = join(' and ', @WHERE_RULES);
+    $self->query($db, "DELETE FROM iptv_calls WHERE $WHERE;", 'do');
+  }
+
+  return $self;
+}
+
 1
