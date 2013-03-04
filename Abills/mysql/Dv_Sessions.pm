@@ -264,6 +264,7 @@ sub online {
     NAS_NAME          => 'nas.name',
     GUEST_MODE        => 'c.guest',
     PAYMENT_METHOD    => 'tp.payment_type',
+    TP_CREDIT_TRESSHOLD  => 'tp.credit_tresshold',
     EXPIRED           => "if(u.expire>'0000-00-00' AND u.expire <= curdate(), 1, 0) AS expired",
     EXPIRE            => 'u.expire'
   );
