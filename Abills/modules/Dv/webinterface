@@ -7637,7 +7637,7 @@ $table = $html->table(
   {
     width      => '100%',
     cols_align => [ 'right', 'right' ],
-    rows       => [ [ "$_TOTAL:", $html->b($Dv->{TOTAL}) ] ]
+    rows       => [ [ "$_TOTAL:", $html->b($Dv->{TOTAL}), "$_SUM:", $html->b($Dv->{SUM}) ] ]
   }
 );
 

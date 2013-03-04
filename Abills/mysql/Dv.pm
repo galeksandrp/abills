@@ -743,7 +743,7 @@ sub report_debetors {
 
   if ($self->{TOTAL} >= 0 && !$attr->{SKIP_TOTAL}) {
     $self->query(
-      $db, "SELECT count(*)
+      $db, "SELECT count(*) AS total_debetors, sum(if(u.company_id > 0, cb.deposit, b.deposit)) AS total_debetors_sum
       FROM users u
     INNER JOIN dv_main dv ON (u.uid=dv.uid)
     LEFT JOIN users_pi pi ON (u.uid = pi.uid)
@@ -755,7 +755,7 @@ sub report_debetors {
     WHERE if(u.company_id > 0, cb.deposit, b.deposit) < 0 - tp.month_fee*$attr->{PERIOD}
     $WHERE"    
     );
-    ($self->{TOTAL}) = @{ $self->{list}->[0] };
+    ($self->{TOTAL}, $self->{SUM}) = @{ $self->{list}->[0] };
   }
   
   
