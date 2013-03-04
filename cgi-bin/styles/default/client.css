@@ -169,6 +169,7 @@ th:last-child,
 	width: 235px;
 	margin: 0 2px 23px;
 	border: 1px solid #e4e4e4;
+	text-align: left;
 }
 
 #kabinet-menu .inner_menu-item {
@@ -253,9 +254,8 @@ th:last-child,
 /* kabinet */
 
 .login_form_border {
-  width:400px;
+  width:450px;
   margin: 180px auto;
-  
 }
 
 .top_status {
