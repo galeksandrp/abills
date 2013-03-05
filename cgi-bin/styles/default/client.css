@@ -121,7 +121,9 @@ th:last-child,
 .page_wrap {
 	min-height: 100%;
 	position: relative;
+/*	
 	background: url('/styles/default/img/bg_head.jpg') center 0 no-repeat;
+*/
 }
 .header_wrap {
 	width: 100%;	
