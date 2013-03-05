@@ -20,11 +20,12 @@ sub stalker_online {
   use Iptv;
   use Tariffs;
   use Users;
+  use Shedule;
   
   my $users   = Users->new($db, $admin, \%conf);
   my $Iptv    = Iptv->new($db, $admin, \%conf);
   my $Tariffs = Tariffs->new($db, \%conf, $admin);
-  
+  my $Shedule = Shedule->new($db, $admin);
   
   print "Stalker STB online\n" if ($debug > 1);
 
@@ -50,9 +51,10 @@ sub stalker_online {
   $admin->{MODULE}='Iptv';
   #Get tp
   my %TP_INFO = ();
-  my $list = $Tariffs->list({ AGE        => '_SHOW', 
+  my $list = $Tariffs->list({ AGE             => '_SHOW', 
+  	                          NEXT_TARIF_PLAN => '_SHOW',
   	                          COLS_NAME  => 1,
-  	                          COLS_UPPER => 1 
+  	                          COLS_UPPER => 1, 
   	                        });
   foreach my $line (@$list) {
   	$TP_INFO{$line->{TP_ID}}=$line;
@@ -61,12 +63,13 @@ sub stalker_online {
   # Get accounts
   my %USERS_LIST = ();
   $Iptv->{debug}=1 if ($debug > 6);
-  $list = $Iptv->user_list({ PAGE_ROWS => 1000000, 
-  	                         COLS_NAME => 1,
-  	                         CID       => '_SHOW',
-  	                         ACTIVATE  => '_SHOW',
-  	                         EXPIRE    => '_SHOW',
-  	                         LOGIN_STATUS=> '_SHOW',
+  $list = $Iptv->user_list({ PAGE_ROWS      => 1000000, 
+  	                         COLS_NAME      => 1,
+  	                         CID            => '_SHOW',
+  	                         ACTIVATE       => '_SHOW',
+  	                         EXPIRE         => '_SHOW',
+  	                         LOGIN_STATUS   => '_SHOW',
+  	                         NEXT_TARIF_PLAN=>'_SHOW'
   	                       });
 
   foreach my $line (@$list) {
@@ -222,8 +225,27 @@ sub stalker_online {
   	    if ($TP_INFO{$user->{tp_id}}->{AGE} && $user->{expire} eq '0000-00-00') {
   	    	my $expire_date = strftime "%Y-%m-%d", localtime(time + $TP_INFO{$user->{tp_id}}->{AGE} * 86400);
   	    	print "ADD EXPIRE: $expire_date TP_AGE: $TP_INFO{$user->{tp_id}}->{AGE}\n" if ($debug > 2);
-  	    	$users->change($user->{uid}, { EXPIRE => $expire_date,
-  	    		                             UID    => $user->{uid} })
+  	    	if ($TP_INFO{$user->{tp_id}}->{NEXT_TP_ID}) {
+            my ($year, $month, $day)=split(/\-/, $expire_date, 3);
+
+            $Shedule->add(
+               {
+                UID          => $user->{uid},
+                TYPE         => 'tp',
+                ACTION       => $user->{tp_id},
+                D            => $day,
+                M            => $month,
+                Y            => $year,
+                COMMENTS     => "$_FROM: $user->{tp_id}:$TP_INFO->{TP_NAME}",
+                ADMIN_ACTION => 1,
+                MODULE       => 'Iptv'
+              }
+            );  	    		
+  	    	}
+  	    	else {
+  	    	  $users->change($user->{uid}, { EXPIRE => $expire_date,
+  	    		                               UID    => $user->{uid} })
+  	      }
   	    }
   	  }
     }

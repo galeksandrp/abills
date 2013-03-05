@@ -144,7 +144,7 @@ sub iptv_chg_tp {
     }
   }
 
-  $shedule = Shedule->new($db, $admin);
+  $shedule = Shedule->new($db, $admin, \%conf);
 
   if ($FORM{set}) {
     if (!$permissions{0}{4}) {
@@ -990,6 +990,28 @@ sub iptv_tp {
   $tarif_info->{REDUCTION_FEE}    = ($tarif_info->{REDUCTION_FEE})    ? 'checked' : '';
   $tarif_info->{POSTPAID_FEE}     = ($tarif_info->{POSTPAID_FEE})     ? 'checked' : '';
   $tarif_info->{PERIOD_ALIGNMENT} = ($tarif_info->{PERIOD_ALIGNMENT}) ? 'checked' : '';
+
+  my $tp_list = $Tariffs->list({ MODULE => 'Iptv', DOMAIN_ID => $admin->{DOMAIN_ID} });
+
+  $tarif_info->{SMALL_DEPOSIT_ACTION_SEL} = $html->form_select(
+    'SMALL_DEPOSIT_ACTION',
+    {
+      SELECTED          => $tarif_info->{SMALL_DEPOSIT_ACTION},
+      SEL_MULTI_ARRAY   => [ [ '', '' ], [ '-1', "$_HOLD_UP" ], @{$tp_list} ],
+      MULTI_ARRAY_KEY   => 0,
+      MULTI_ARRAY_VALUE => 1,
+    }
+  );
+
+  $tarif_info->{NEXT_TARIF_PLAN_SEL} = $html->form_select(
+    'NEXT_TARIF_PLAN',
+    {
+      SELECTED          => $tarif_info->{NEXT_TARIF_PLAN},
+      SEL_MULTI_ARRAY   => [ [ '', '' ], @{$tp_list} ],
+      MULTI_ARRAY_KEY   => 0,
+      MULTI_ARRAY_VALUE => 1,
+    }
+  );
 
   if ($conf{EXT_BILL_ACCOUNT}) {
     my $checked = ($tarif_info->{EXT_BILL_ACCOUNT}) ? ' checked' : '';

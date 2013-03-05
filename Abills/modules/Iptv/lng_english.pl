@@ -34,3 +34,4 @@ $_EXPORT_TARIFFS = 'Export tariffs';
 $_EXTERNAL_ID ='External ID';
 $_NEED_CONFIRM='Need confirm';
 $_REBOOT='Reboot';
+$_NEXT_PERIOD_TP='Next account period tariff plan';
