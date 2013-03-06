@@ -82,10 +82,6 @@ if ($conf{AUTH_METHOD}) {
     #%{ $admin->{WEB_OPTIONS} }
   }
   );
-  
-  $html->{language} = $FORM{language} if ($FORM{language} && $FORM{language} =~ /[a-z_]/);
-  require "../../language/$html->{language}.pl";
-  require "Abills/templates.pl";
 
   if ($index == 10) {
     $admin->online_del({ SID => $COOKIES{sid} });
@@ -94,14 +90,22 @@ if ($conf{AUTH_METHOD}) {
   my $res = check_permissions("$FORM{user}", "$FORM{passwd}", "$COOKIES{sid}");
  
   if (! $res) {
+    $html->{language} = $FORM{language} if ($FORM{language} && $FORM{language} =~ /[a-z_]/);
+    require "../../language/$html->{language}.pl";
+    require "Abills/templates.pl";
+
     $html->setCookie('sid', "$sid", "", "/", $domain, $secure);
     $COOKIES{sid} = $sid;
   }
   else {
+    $html->{language} = $FORM{language} if ($FORM{language} && $FORM{language} =~ /[a-z_]/);
+    require "../../language/$html->{language}.pl";
+    require "Abills/templates.pl";
+  	
     $html->{METATAGS} = templates('metatags');
-     print $html->header();
-     form_login();
-     exit;
+    print $html->header();
+    form_login();
+    exit;
   }
 }
 #**********************************************************
@@ -2624,7 +2628,7 @@ sub form_users {
       pages      => $users->{TOTAL},
       ID         => 'USERS_LIST',
       header     => ($permissions{0}{7})
-      ? "<script language=\"JavaScript\" type=\"text/javascript\">
+      ? "<script language='JavaScript' type='text/javascript'>
 <!-- 
 function CheckAllINBOX() {
   for (var i = 0; i < document.users_list.elements.length; i++) {
@@ -4278,9 +4282,6 @@ sub form_admin_permissions {
 # profile()
 #**********************************************************
 sub admin_profile {
-
-  #my ($admin) = @_;
-
   my @colors_descr = ('# 0 TH', '# 1 TD.1', '# 2 TD.2', '# 3 TH.sum, TD.sum', '# 4 border', '# 5', '# 6 Error, Warning', '# 7 vlink', '# 8 link', '# 9 Text', '#10 background');
 
   if ($FORM{colors}) {

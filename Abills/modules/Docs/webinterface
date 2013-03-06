@@ -2304,9 +2304,9 @@ sub docs_invoice {
 
       my $table = $html->table(
         {
-          width   => ($user->{UID}) ? '600'                  : '100%',
-          caption => ($user->{UID}) ? $_ACTIVATE_NEXT_PERIOD : "$_INVOICE $_PERIOD: $Y-$M",
-          border  => 1,
+          width       => ($user->{UID}) ? '600'                  : '100%',
+          caption     => ($user->{UID}) ? $_ACTIVATE_NEXT_PERIOD : "$_INVOICE $_PERIOD: $Y-$M",
+          border      => 1,
           title_plain => [ '#',     "$_LOGIN", "$_DATE", "$_DESCRIBE", $_SUM ],
           cols_align  => [ 'right', 'left',    'right',  'left' ],
           pages       => $Docs->{TOTAL},

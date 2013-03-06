@@ -44,11 +44,10 @@ sub cross_modules_call {
   my $timeout = $attr->{timeout} || 3;
 
   $attr->{USER_INFO}->{DEPOSIT} += $attr->{SUM} if ($attr->{SUM});
+  my %full_return  = ();
+  my @skip_modules = ();
 
   eval {
-    my %full_return  = ();
-    my @skip_modules = ();
-
     if ($silent) {
       #disable stdout output
       open($SAVEOUT, ">&", STDOUT) or die "XXXX: $!";
@@ -221,7 +220,9 @@ sub fees_dsc_former {
   my ($attr)=@_;
   
   $conf{DV_FEES_DSC}='%SERVICE_NAME%: %FEES_PERIOD_MONTH%%FEES_PERIOD_DAY% %TP_NAME% (%TP_ID%)%EXTRA% %PERIOD%' if (! $conf{DV_FEES_DSC});
-
+  if (! $attr->{SERVICE_NAME}) {
+  	$attr->{SERVICE_NAME}='Internet';
+  }
   my $text = $conf{DV_FEES_DSC};
 
   while ($text =~ /\%(\w+)\%/g) {

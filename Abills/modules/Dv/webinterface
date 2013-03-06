@@ -4953,7 +4953,7 @@ sub dv_daily_fees {
             }
 
             my %FEES_DSC = (
-              MODULE          => 'Internet:',
+              MODULE          => 'Internet',
               TP_ID           => $TP_INFO->{ID},
               TP_NAME         => $TP_INFO->{NAME},
               FEES_PERIOD_DAY => $_DAY_FEE_SHORT,
@@ -5418,7 +5418,7 @@ sub dv_monthly_fees {
         );
 
         my %FEES_DSC = (
-          MODULE            => 'Internet:',
+          MODULE            => 'Internet',
           TP_ID             => $TP_INFO->{ID},
           TP_NAME           => $TP_INFO->{NAME},
           FEES_PERIOD_MONTH => $_MONTH_FEE_SHORT,
@@ -7567,10 +7567,10 @@ sub dv_docs {
   if ($Dv->{TOTAL}==0 || ! $Dv->{DAY_ABON} || $Dv->{STATUS}) {
     return \@services;
   }
-  
+
   if ($Dv->{MONTH_ABON} > 0) {
     my %FEES_DSC = (
-              MODULE          => 'Internet:',
+              MODULE          => 'Internet',
               TP_ID           => $Dv->{TP_ID},
               TP_NAME         => $Dv->{TP_NAME},
               FEES_PERIOD_DAY => $_MONTH_FEE_SHORT,

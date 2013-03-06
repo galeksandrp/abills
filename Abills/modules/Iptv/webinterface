@@ -2097,7 +2097,7 @@ sub iptv_user_channels {
   my @interval_ids = ();
 
   if ($Tariffs->{TOTAL} < 1) {
-    $html->message('info', $_INFO, "$_INTERVAL $_NOT_EXIST", { ID => '404' }) if (!$attr->{QUIET});
+    #$html->message('info', $_INFO, "$_INTERVALS $_NOT_EXIST", { ID => '404' }) if (!$attr->{QUIET});
     return 0;
   }
 
