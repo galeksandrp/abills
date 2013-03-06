@@ -473,7 +473,7 @@ sub dv_user {
 
     if (! $FORM{pdf}) {
       if (in_array('Mail', \@MODULES)) {
-        require "Abills/modules/Mail/webinterface";
+        load_module('Mail');
         my $Mail = Mail->new($db, $admin, \%conf);
 
         my $list = $Mail->mbox_list({ UID => $Dv->{UID} });
@@ -669,11 +669,21 @@ sub dv_user {
         }
       }
       else {
-        $Dv->{NEXT_FEES_WARNING} = "$_ABON";
+        $Dv->{NEXT_FEES_WARNING} = "$_NEXT_FEES: ";
         if ($users->{ACTIVATE} ne '0000-00-00') {
           my ($Y, $M, $D) = split(/-/, $users->{ACTIVATE}, 3);
-          $M--;
-          $Dv->{ABON_DATE} = strftime("%Y-%m-%d", localtime((mktime(0, 0, 0, $D, $M, ($Y - 1900), 0, 0, 0) + 31 * 86400)));
+          if($Dv->{FIXED_FEES_DAY}) {
+          	if ($M == 12) {
+          		$M = 0;
+          		$Y++;
+          	}
+
+          	$Dv->{ABON_DATE} = strftime("%Y-%m-%d", localtime(mktime(0, 0, 0, $D, $M, ($Y - 1900), 0, 0, 0)));
+          }
+          else {
+            $M--;
+            $Dv->{ABON_DATE} = strftime("%Y-%m-%d", localtime((mktime(0, 0, 0, $D, $M, ($Y - 1900), 0, 0, 0) + 31 * 86400)));
+          }
         }
         else {
           my ($Y, $M, $D) = split(/-/, $DATE, 3);
@@ -695,7 +705,10 @@ sub dv_user {
           }
           $Dv->{ABON_DATE} = sprintf("%d-%02d-%02d", $Y, $M, $D);
         }
+        
+        $Dv->{NEXT_FEES_WARNING} .= "$Dv->{ABON_DATE}";
       }
+      
     }
 
     $Dv->{NETMASK_COLOR} = ($Dv->{NETMASK} ne '255.255.255.255') ? $_COLORS[0] : $_COLORS[1];
@@ -852,7 +865,6 @@ sub dv_user {
   if ($users->{REDUCTION}) {
     $total_fee = $total_fee * (100 - $users->{REDUCTION}) / 100;
   }
-
 
   if ($Dv->{STATUS} && $total_fee > $users->{DEPOSIT}) {
     my $sum=0; 
@@ -1064,6 +1076,7 @@ sub dv_tp {
   $tarif_info->{PERIOD_ALIGNMENT}   = ($tarif_info->{PERIOD_ALIGNMENT})   ? 'checked' : '';
   $tarif_info->{ABON_DISTRIBUTION}  = ($tarif_info->{ABON_DISTRIBUTION})  ? 'checked' : '';
   $tarif_info->{ACTIVE_DAY_FEE}     = ($tarif_info->{ACTIVE_DAY_FEE})     ? 'checked' : '';
+  $tarif_info->{FIXED_FEES_DAY}     = ($tarif_info->{FIXED_FEES_DAY})     ? 'checked' : '';
 
   my %FEES_METHODS = %{ get_fees_types() };
   $FEES_METHODS{0} = '';
@@ -4445,7 +4458,6 @@ sub dv_user_info {
       || $Dv->{POSTPAID_ABON}
       || $Dv->{PAYMENT_TYPE} == 1)
   ){
-
     if ($user->{ACTIVATE} ne '0000-00-00') {
       my ($Y, $M, $D) = split(/-/, $user->{ACTIVATE}, 3);
       $M--;
@@ -4467,6 +4479,10 @@ sub dv_user_info {
       }
 
       $Dv->{ABON_DATE} = sprintf("%d-%02d-%02d", $Y, $M, $D);
+    }
+
+    if ($Dv->{ABON_DATE}) {
+    	$Dv->{ABON_DATE} = "-- $_NEXT_FEES: $Dv->{ABON_DATE}";
     }
 
     my ($from_year, $from_month, $from_day) = split(/-/, $DATE,            3);
@@ -5322,9 +5338,10 @@ sub dv_monthly_fees {
   my $users = Users->new($db, $admin, \%conf);
   $tariffs->{debug} = 1 if ($debug > 6);
   my $list = $tariffs->list({%LIST_PARAMS,
-                             DOMAIN_ID => '_SHOW', 
-                             COLS_NAME => 1,
-                             COLS_UPPER=> 1
+                             DOMAIN_ID      => '_SHOW', 
+                             FIXED_FEES_DAY => '_SHOW',
+                             COLS_NAME      => 1,
+                             COLS_UPPER     => 1
                            });
 
   my ($y, $m, $d)      = split(/-/, $ADMIN_REPORT{DATE}, 3);
@@ -5673,11 +5690,8 @@ sub dv_monthly_fees {
                 }
                 
                 #Static day
-                # if( ($TP_INFO->{STATIC_DAY} && ($d == $activate_d || ($d == $conf{START_PERIOD_DAY} && $activate_d > 28))) {
-                #  $activate_y, $activate_m, $activate_d
-                #}
-                
-                if ($date_unixtime - $active_unixtime > 30 * 86400) {
+                if( ($TP_INFO->{FIXED_FEES_DAY} && ($d == $activate_d || ($d == $START_PERIOD_DAY && $activate_d > 28))) ||
+                 ($date_unixtime - $active_unixtime > 30 * 86400) ) {
                   if ($debug > 4) {
                     $debug_output .= " $user{LOGIN} UID: $user{UID} SUM: $sum REDUCTION: $user{REDUCTION}\n";
                   }

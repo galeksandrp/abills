@@ -26,6 +26,7 @@ my %FIELDS = (
   DAY_FEE                 => 'day_fee',
   ACTIVE_DAY_FEE          => 'active_day_fee',
   MONTH_FEE               => 'month_fee',
+  FIXED_FEES_DAY          => 'fixed_fees_day',
   REDUCTION_FEE           => 'reduction_fee',
   POSTPAID_DAY_FEE        => 'postpaid_daily_fee',
   POSTPAID_MONTH_FEE      => 'postpaid_monthly_fee',
@@ -195,19 +196,18 @@ sub ti_info {
   my ($ti_id, $attr) = @_;
 
   $self->query(
-    $db, "SELECT day, begin, end, tarif, id
+    $db, "SELECT day AS ti_day, 
+     begin AS ti_begin, 
+     end AS ti_end, 
+     tarif AS ti_tarif, 
+     id
     FROM intervals 
-    WHERE id='$ti_id';"
+    WHERE id='$ti_id';",
+    undef,
+    { INFO => 1 }
   );
 
-  if ($self->{TOTAL} < 1) {
-    $self->{errno}  = 2;
-    $self->{errstr} = 'ERROR_NOT_EXIST';
-    return $self;
-  }
-
   $self->{TI_ID} = $ti_id;
-  ($self->{TI_DAY}, $self->{TI_BEGIN}, $self->{TI_END}, $self->{TI_TARIF}) = @{ $self->{list}->[0] };
 
   return $self;
 }
@@ -327,17 +327,12 @@ sub tp_group_info {
   $self->query(
     $db, "SELECT name, user_chg_tp
     FROM tp_groups 
-    WHERE id='$tp_group_id';"
+    WHERE id='$tp_group_id';",
+    undef,
+    { INFO => 1 }
   );
 
-  if ($self->{TOTAL} < 1) {
-    $self->{errno}  = 2;
-    $self->{errstr} = 'ERROR_NOT_EXIST';
-    return $self;
-  }
-
   $self->{GID} = $tp_group_id;
-  ($self->{NAME}, $self->{USER_CHG_TP}) = @{ $self->{list}->[0] };
 
   return $self;
 }
@@ -459,7 +454,8 @@ sub add {
      fine,
      neg_deposit_ippool,
      next_tp_id,
-     fees_method
+     fees_method,
+     fixed_fees_day
      )
     values ('$DATA{ID}', '$DATA{ALERT}', \"$DATA{NAME}\", 
      '$DATA{MONTH_FEE}', '$DATA{DAY_FEE}', '$DATA{ACTIVE_DAY_FEE}', '$DATA{REDUCTION_FEE}', 
@@ -488,7 +484,8 @@ sub add {
      '$DATA{FINE}',
      '$DATA{NEG_DEPOSIT_IPPOOL}',
      '$DATA{NEXT_TARIF_PLAN}',
-     '$DATA{FEES_METHOD}'
+     '$DATA{FEES_METHOD}',
+     '$DATA{FIXED_FEES_DAY}'
      );", 'do'
   );
 
@@ -513,6 +510,7 @@ sub change {
   $attr->{SMALL_DEPOSIT_ACTION} = 0 if (!$attr->{SMALL_DEPOSIT_ACTION});
   $attr->{BILLS_PRIORITY}       = 0 if (!$attr->{BILLS_PRIORITY});
   $attr->{ACTIVE_DAY_FEE}       = 0 if (!$attr->{ACTIVE_DAY_FEE});
+  $attr->{FIXED_FEES_DAY}           = 0 if (!$attr->{FIXED_FEES_DAY});
 
   $self->changes(
     $admin,
@@ -580,20 +578,26 @@ sub info {
   my $WHERE = ($#WHERE_RULES > -1) ? join(' and ', @WHERE_RULES) : '';
 
   $self->query(
-    $db, "SELECT id, name,
-      day_fee, active_day_fee, month_fee, reduction_fee, postpaid_daily_fee, postpaid_monthly_fee, 
+    $db, "SELECT id, 
+      name,
+      day_fee, 
+      active_day_fee,
+      month_fee, 
+      reduction_fee, 
+      postpaid_daily_fee AS postpaid_day_fee, 
+      postpaid_monthly_fee AS postpaid_month_fee, 
       ext_bill_account,
-      logins, age,
+      logins AS SIMULTANEOUSLY, age,
       day_time_limit, week_time_limit,  month_time_limit, total_time_limit, 
       day_traf_limit, week_traf_limit,  month_traf_limit, total_traf_limit, 
-      activate_price, change_price, credit_tresshold, uplimit, octets_direction, 
+      activate_price AS activ_price, change_price, credit_tresshold, uplimit AS alert, octets_direction, 
       max_session_duration,
       filter_id,
       payment_type,
       min_session_cost,
       rad_pairs,
       traffic_transfer_period,
-      gid,
+      gid AS tp_gid,
       neg_deposit_filter_id,
       module,
       credit,
@@ -609,68 +613,14 @@ sub info {
       bills_priority,
       fine,
       neg_deposit_ippool,
-      next_tp_id,
-      fees_method
+      next_tp_id AS next_tarif_plan,
+      fees_method,
+      fixed_fees_day
     FROM tarif_plans
-    WHERE $WHERE;"
+    WHERE $WHERE;",
+    undef,
+    { INFO => 1 }
   );
-
-  if ($self->{TOTAL} < 1) {
-    $self->{errno}  = 2;
-    $self->{errstr} = 'ERROR_NOT_EXIST';
-    return $self;
-  }
-
-  (
-    $self->{ID},                   
-    $self->{NAME},             
-    $self->{DAY_FEE},          
-    $self->{ACTIVE_DAY_FEE},   
-    $self->{MONTH_FEE},       
-    $self->{REDUCTION_FEE},           
-    $self->{POSTPAID_DAY_FEE},     
-    $self->{POSTPAID_MONTH_FEE},
-    $self->{EXT_BILL_ACCOUNT},     
-    $self->{SIMULTANEOUSLY},   
-    $self->{AGE},              
-    $self->{DAY_TIME_LIMIT},   
-    $self->{WEEK_TIME_LIMIT}, 
-    $self->{MONTH_TIME_LIMIT},        
-    $self->{TOTAL_TIME_LIMIT},     
-    $self->{DAY_TRAF_LIMIT},
-    $self->{WEEK_TRAF_LIMIT},      
-    $self->{MONTH_TRAF_LIMIT}, 
-    $self->{TOTAL_TRAF_LIMIT}, 
-    $self->{ACTIV_PRICE},      
-    $self->{CHANGE_PRICE},    
-    $self->{CREDIT_TRESSHOLD},        
-    $self->{ALERT},                
-    $self->{OCTETS_DIRECTION},
-    $self->{MAX_SESSION_DURATION}, 
-    $self->{FILTER_ID},        
-    $self->{PAYMENT_TYPE},     
-    $self->{MIN_SESSION_COST}, 
-    $self->{RAD_PAIRS},       
-    $self->{TRAFFIC_TRANSFER_PERIOD}, 
-    $self->{TP_GID},               
-    $self->{NEG_DEPOSIT_FILTER_ID},
-    $self->{MODULE},               
-    $self->{CREDIT},           
-    $self->{IPPOOL},           
-    $self->{PERIOD_ALIGNMENT}, 
-    $self->{MIN_USE},         
-    $self->{ABON_DISTRIBUTION},       
-    $self->{SMALL_DEPOSIT_ACTION}, 
-    $self->{TP_ID},
-    $self->{DOMAIN_ID},            
-    $self->{PRIORITY},         
-    $self->{COMMENTS},         
-    $self->{BILLS_PRIORITY},   
-    $self->{FINE},            
-    $self->{NEG_DEPOSIT_IPPOOL},      
-    $self->{NEXT_TARIF_PLAN},      
-    $self->{FEES_METHOD},
-  ) = @{ $self->{list}->[0] };
 
   return $self;
 }
@@ -721,6 +671,10 @@ sub list {
 
   if ($attr->{ACTIVE_DAY_FEE}) {
     push @WHERE_RULES, @{ $self->search_expr("$attr->{ACTIVE_DAY_FEE}", 'INT', 'tp.active_day_fee') };
+  }
+
+  if ($attr->{FIXED_FEES_DAY}) {
+    push @WHERE_RULES, @{ $self->search_expr("$attr->{FIXED_FEES_DAY}", 'INT', 'tp.fixed_fees_day', { EXT_FIELD => 1 }) };
   }
 
   if ($attr->{NEXT_TARIF_PLAN}) {
@@ -1212,16 +1166,11 @@ sub traffic_class_info {
   $self->query(
     $db, "SELECT id, name, comments, nets
      FROM traffic_classes
-   $WHERE;"
+   $WHERE;",
+   undef,
+   { INFO => 1 }
   );
 
-  if ($self->{TOTAL} < 1) {
-    $self->{errno}  = 2;
-    $self->{errstr} = 'ERROR_NOT_EXIST';
-    return $self;
-  }
-
-  ($self->{ID}, $self->{NAME}, $self->{COMMENTS}, $self->{NETS},) = @{ $self->{list}->[0] };
 
   return $self;
 }

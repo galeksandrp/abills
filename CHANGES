@@ -1,5 +1,15 @@
 =====0.55=====
 
+05.03.2013 \\
+  * ''Dv'' $conf{DV_PREPAID_PERIOD_CREDIT}  кредит на предоплаченній период
+  * ''Dv'' Снятие абоплаты статически кадого месяца в один и тотже день
+
+MySQL:\\
+  ALTER TABLE tarif_plans ADD COLUMN `fixed_fees_day` tinyint(1) NOT NULL default '0';
+  ALTER TABLE nas change column mng_host_port `mng_host_port` varchar(25) not null default '';
+
+
+
 05.02.2013 \\
 
   * ''Cards'' Процентное начисление дилеру при пополнении карточкой

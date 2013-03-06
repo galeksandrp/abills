@@ -107,6 +107,7 @@ $_ENTER='Enter';
 $_BALANCE='Balance';
 $_PERIOD='Period';
 $_NEXT_PERIOD='Next account period';
+$_NEXT_FEES='Next Fees';
 $_SENT='Sent';
 $_RECV='Received';
 $_LAST_PAYMENT='Late payment';
@@ -182,6 +183,7 @@ $_NASS='NAS';
 $_PORT='Port';
 $_REDUCTION='Discount';
 $_STATIC='Static';
+$_FIXED_FEES_DAY='Fixed fees day';
 
 
 $_SEARCH='Search';

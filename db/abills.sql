@@ -862,7 +862,7 @@ CREATE TABLE `shedule` (
 CREATE TABLE `tarif_plans` (
   `id` smallint(5) unsigned NOT NULL default '0',
   `month_fee` double(14,2) unsigned NOT NULL default '0.00',
-  `static_day` tinyint(1) NOT NULL default '0',
+  `fixed_fees_day` tinyint(1) NOT NULL default '0',
   `uplimit` double(14,2) NOT NULL default '0.00',
   `name` varchar(40) NOT NULL default '',
   `day_fee` double(14,2) unsigned NOT NULL default '0.00',

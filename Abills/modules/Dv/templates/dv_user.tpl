@@ -19,7 +19,10 @@ function check_status(object, text) {
 
 %ONLINE_TABLE%
 <br>
-<b>%PAYMENT_MESSAGE%</b>
+<b>%PAYMENT_MESSAGE%
+<br>
+%NEXT_FEES_WARNING%
+</b>
 <form action='$SELF_URL' method='post'>
 <input type=hidden name='index' value='$index'>
 <input type=hidden name='UID' value='$FORM{UID}'>
@@ -41,7 +44,7 @@ function check_status(object, text) {
 </td></tr>
 <tr><td>TURBO:</td><td>%TURBO_MODE_SEL%</td></tr>
 <tr><td>TURBO $_COUNT:</td><td><input type=text name=FREE_TURBO_MODE value='%FREE_TURBO_MODE%'></td></tr>
-<tr><td>%NEXT_FEES_WARNING%:</td><td>%ABON_DATE%</td></tr>
+<!-- <tr><td>%NEXT_FEES_WARNING%:</td><td>%ABON_DATE%</td></tr> -->
 <tr><td colspan='2'>%REGISTRATION_INFO%  %REGISTRATION_INFO_PDF%</td></tr>
 <tr><th colspan='2' class=even>%BACK_BUTTON%
 <input type=submit name='%ACTION%' value='%LNG_ACTION%' class='noprint' onclick=\"return check_status(this, '$_DELETE ?')\">

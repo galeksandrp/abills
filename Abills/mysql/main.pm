@@ -211,8 +211,11 @@ sub query {
   }
   else {
     delete $self->{list};
+    if ($attr->{INFO}) {
+      $self->{errno}  = 2;
+      $self->{errstr} = 'ERROR_NOT_EXIST';
+    }
   }
-
 
   $self->{query_count}++;
   return $self;
