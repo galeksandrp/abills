@@ -219,7 +219,7 @@ sub get_period_dates {
 sub fees_dsc_former {
   my ($attr)=@_;
   
-  $conf{DV_FEES_DSC}='%SERVICE_NAME%: %FEES_PERIOD_MONTH%%FEES_PERIOD_DAY% %TP_NAME% (%TP_ID%)%EXTRA% %PERIOD%' if (! $conf{DV_FEES_DSC});
+  $conf{DV_FEES_DSC}='%SERVICE_NAME%: %FEES_PERIOD_MONTH%%FEES_PERIOD_DAY% %TP_NAME% (%TP_ID%)%EXTRA%%PERIOD%' if (! $conf{DV_FEES_DSC});
   if (! $attr->{SERVICE_NAME}) {
   	$attr->{SERVICE_NAME}='Internet';
   }

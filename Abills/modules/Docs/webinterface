@@ -440,7 +440,7 @@ sub docs_receipt {
                 $period_to = "$Y-$M-$TO_D";
               }
 
-              my $order = "$name $describe ($period_from-$period_to)";
+              my $order = "$name $describe($period_from-$period_to)";
 
               $num++ if (!$current_receipt{$order});
               $table->addrow(
