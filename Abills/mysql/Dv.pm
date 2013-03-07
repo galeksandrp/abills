@@ -105,7 +105,7 @@ sub info {
    tp.age AS tp_age,
    tp.filter_id AS tp_filter_id,
    tp.period_alignment AS tp_period_alignment,
-   tp.fix_fees_period
+   tp.fixed_fees_period
      FROM dv_main dv
      LEFT JOIN tarif_plans tp ON ((tp.module='Dv' or tp.module='') AND dv.tp_id=tp.id and tp.domain_id='$domain_id')
    $WHERE;",
