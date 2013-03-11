@@ -55,8 +55,8 @@ sub cards_card_info {
 #
 #**********************************************************
 sub cards_main {
-  if ($Cards::VERSION < 5.51) {
-    $html->message('info', "UPDATE", "Please update module 'Cards' to version 5.47 or higher. http://abills.net.ua/");
+  if ($Cards::VERSION < 5.52) {
+    $html->message('info', "UPDATE", "Please update module 'Cards' to version 5.52 or higher. http://abills.net.ua/");
     return 0;
   }
 
@@ -712,15 +712,16 @@ sub cards_user_payment () {
     $html->message('err', $_INFO, "$ERR_COMPANY_DISABLE");
     return 0;
   }
-
-  $user = Users->new($db, $admin, \%conf);
+  
+  my $rand = rand();
+  
   if (($FORM{PIN} && $FORM{SERIAL}) || ($FORM{PIN} && $conf{CARDS_PIN_ONLY})) {
     $db->{AutoCommit} = 0;
 
     my $BRUTE_LIMIT = ($conf{CARDS_BRUTE_LIMIT}) ? $conf{CARDS_BRUTE_LIMIT} : 5;
     my $brute = $Cards->bruteforce_list({ UID => $LIST_PARAMS{UID} });
     $Cards->cards_info({ %FORM, UID => $LIST_PARAMS{UID}, PAYMENTS => 1 });
-
+    
     if ($Cards->{error}) {
       $html->message('err', $_ERROR, "$ERR_SUPPORT / $ERR_SUPPORT", { ID => 600 });
       return 0;
@@ -758,7 +759,8 @@ sub cards_user_payment () {
     }
     else {
       if ($Cards->{UID}) {
-        $user->info($Cards->{UID});
+        my $user_new = Users->new($db, $admin, \%conf);
+        $user_new->info($Cards->{UID});
         use Log;
         my $Log = Log->new($db, \%conf);
 
@@ -768,8 +770,8 @@ sub cards_user_payment () {
           return 0;
         }
       }
-
-      $user->info($LIST_PARAMS{UID});
+      
+      #$user->info($LIST_PARAMS{UID});
       if ($conf{CARDS_DEBUG}) {
         my $gt = '';
         if ($begin_time > 0) {
@@ -783,7 +785,7 @@ sub cards_user_payment () {
         while (my ($k, $v) = each %FORM) {
           $output .= "$k=$v;" if ($FORM{$k} ne '__BUFFER');
         }
-        my $rand = rand();
+
         my $test = `echo "$DATE $TIME $user->{LOGIN} :$rand  $Cards->{SERIAL}$Cards->{NUMBER} A:$ENV{HTTP_USER_AGENT} QS:$ENV{QUERY_STRING} RA:$ENV{REMOTE_ADDR} $output  ($gt)"  >> /tmp/cards_debug`;
       }
 
@@ -802,14 +804,13 @@ sub cards_user_payment () {
 
       if (!$payments->{errno}) {
         $user->{DEPOSIT} += $Cards->{SUM} - $Cards->{COMMISSION};
-        $html->message('info', $_PAYMENTS, "$_ADDED\n$_SUM: $Cards->{SUM} \n " . (($Cards->{COMMISSION} > 0) ? "$_COMMISSION $Cards->{COMMISSION}\n" : '') . "\n $_DEPOSIT: $user->{DEPOSIT}\n");
 
         $Cards->cards_change(
           {
             ID       => "$Cards->{ID}",
             STATUS   => 2,
             UID      => $user->{UID},
-            DATETIME => "$DATE $TIME",
+            #DATETIME => "$DATE $TIME",
           }
         );
 
@@ -819,6 +820,8 @@ sub cards_user_payment () {
           return 0;
         }
 
+        $html->message('info', $_PAYMENTS, "$_ADDED\n$_SUM: $Cards->{SUM} \n " . (($Cards->{COMMISSION} > 0) ? "$_COMMISSION $Cards->{COMMISSION}\n" : '') . "\n $_DEPOSIT: $user->{DEPOSIT}\n");
+        
         #Make external script
         if ($conf{CARDS_PAYMENTS_EXTERNAL}) {
           _external("$conf{CARDS_PAYMENTS_EXTERNAL}", { %$Cards, %$user });
@@ -875,6 +878,13 @@ sub cards_user_payment () {
         $payments->list({ EXT_ID => "$Cards->{SERIAL}$Cards->{NUMBER}" });
         if ($payments->{TOTAL} <= 1) {
           $db->commit();
+
+#          $Cards->cards_change(
+#            {
+#              ID       => "$Cards->{ID}",
+#              DATETIME => "$DATE $TIME",
+#            }
+#          );          
         }
 
         if ($conf{CARDS_DEBUG}) {
@@ -886,7 +896,6 @@ sub cards_user_payment () {
             $gt = sprintf(" GT: %2.5f", $gen_time);
           }
  
-          my $rand = rand();
           my $test = `echo "$DATE $TIME $user->{LOGIN} R: $rand $Cards->{SERIAL}$Cards->{NUMBER} A:$ENV{HTTP_USER_AGENT} QS:$ENV{QUERY_STRING} RA:$ENV{REMOTE_ADDR} ADDED ($gt)"   >> /tmp/cards_debug`;
         }
 
@@ -899,14 +908,16 @@ sub cards_user_payment () {
         $db->rollback();
         if ($payments->{errno} == 7) {
           $html->message('err', $_ERROR, "$status[2]", { ID => 608 });
-          $Cards->cards_change(
-            {
-              ID       => "$Cards->{ID}",
-              STATUS   => 2,
-              UID      => $user->{UID},
-              DATETIME => "$DATE $TIME",
-            }
-          );
+          if ($Cards->{STATUS} != 2) {
+            $Cards->cards_change(
+              {
+                ID       => "$Cards->{ID}",
+                STATUS   => 2,
+                UID      => $user->{UID},
+                DATETIME => "$DATE $TIME",
+              }
+            );
+          }
         }
         else {
           $html->message('err', $_ERROR, "$_ERROR", { ID => 609 });

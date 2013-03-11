@@ -61,6 +61,7 @@ CHECK exist connections
   checkppp    - check Active ppp on FreeBSD session and disconnect unknown ip
   checkmpd    - check Active mpd5 on FreeBSD session and disconnect unknown ip
   check_cisco_cid - check Cisco cids
+  check_cisco_if - check Active Cisco interfaces and disconnect unknown nas-port 
   checkpppd   - check Active pppd on Linux session and disconnect unknown ip
   check_pptpd - check Active PoPToP deamon on Linux
   checkmikro  - check Active ppp on Mikrotik session and disconnect unknown ip.
@@ -163,6 +164,7 @@ elsif (defined($ARGV->{check_pptpd}))      { check_pptpd(); }
 elsif (defined($ARGV->{checkmikro}))       { check_mikro(); }
 elsif (defined($ARGV->{speed_expr}))       { speed_expr();  }
 elsif (defined($ARGV->{check_cisco_cid}))  { check_cisco_cid() }
+elsif (defined($ARGV->{check_cisco_if}))   { check_cisco_if() }
 else {
   my $action = $ARGV[0];
   if ($action && -f "$Bin/billd.plugins/$action" . '.pm') {
@@ -170,6 +172,7 @@ else {
   }
   else {
     check_lines();
+    cross_moduless_actions();
   }
 }
 
@@ -187,6 +190,14 @@ make_pid($log_dir . "/billd.pid", 'clean');
 #***********************************************************
 sub deamon {
 
+}
+
+#***********************************************************
+# cross_moduless_actions
+#***********************************************************
+sub cross_moduless_actions {
+	my ($attr) = @_;
+	
 }
 
 #***********************************************************
@@ -2091,6 +2102,68 @@ sub check_pptpd {
     }
   }
 }
+
+#**********************************************************
+# check Active interfaces in Cisco
+#**********************************************************
+sub check_cisco_if {
+  my ($attr)       = @_;
+  my %NAS          = ();
+  my %session_hash = ();
+
+  if ($ARGV->{NAS_IDS}) {
+    my $list = $nas->list({ NAS_IDS => $ARGV->{NAS_IDS}, COLS_NAME => 1 });
+    foreach my $line (@$list) {
+      $debug_output .= "NAS ID: $line->{nas_id} MNG_INFO: $line->{nas_mng_user}\@$line->{nas_mng_ip_port} $line->{nas_rad_pairs}\n" if ($debug > 2);
+      $NAS{NAS_ID}           = $line->{nas_id};
+      $NAS{NAS_IP}           = $line->{nas_ip};
+      $NAS{NAS_TYPE}         = $line->{nas_type};
+      $NAS{NAS_ALIVE}        = $line->{nas_alive} || 0;
+      $NAS{NAS_MNG_IP_PORT}  = $line->{nas_mng_ip_port};
+      $NAS{NAS_MNG_USER}     = $line->{nas_mng_user};
+      $NAS{NAS_MNG_PASSWORD} = $line->{nas_mng_password};
+
+      if ($NAS{NAS_TYPE} ne 'cisco') {
+        $debug_output .= "Skiped, NAS type not cisco\n" if ($debug > 1);
+        next;
+      }
+      my (@aaa_ses_cisco) = snmpwalk($NAS{NAS_MNG_PASSWORD} . '@' . $NAS{NAS_IP}, ".1.3.6.1.4.1.9.9.150.1.1.3.1.3");
+      foreach my $item (@aaa_ses_cisco) {
+        my ($sess_id, $addr) = split(':', $item);
+        if ($addr ne '0.0.0.0') { $session_hash{ $NAS{NAS_ID} . ":$sess_id" } = "$addr"; }
+      }
+    }
+  }
+  $sessions->{debug} = 1 if ($debug > 4);
+  my $list = $sessions->online({ FIELDS_NAMES => [ 'NAS_PORT_ID', 'CLIENT_IP' ], NAS_ID => $ARGV->{NAS_IDS} });
+  foreach my $line (@$list) {
+    my $sess_id = $line->[0];
+    my $ip      = $line->[1];
+    my $nas_id  = $line->[2];
+    print "exist: $nas_id $sess_id $ip\n" if ($debug > 3);
+    delete $session_hash{"$nas_id:$sess_id"};
+  }
+  my $unallow_ips = 0;
+  while (my ($info, $ip_address) = each %session_hash) {
+    my ($nas_id, $iface) = split(/:/, $info, 2);
+    if ($conf{DV_PPP_UNCHECKED}) {
+      next if ($ip_address =~ /$conf{DV_PPP_UNCHECKED}/);
+    }
+    hangup_snmp(
+      $nas->info({ NAS_ID => $nas_id }),
+      $iface,
+      {
+        OID   => '.1.3.6.1.4.1.9.9.150.1.1.3.1.5.' . $iface,
+        TYPE  => 'integer',
+        VALUE => 1
+      }
+    );
+    print "Killed NAS: $nas_id IP: $ip_address IF: $iface ($DATE $TIME)\n";
+    $unallow_ips++;
+  }
+  print "Unallow ips: $unallow_ips\n" if ($debug > 1);
+}
+
 
 #**********************************************************
 # check Active interfaces

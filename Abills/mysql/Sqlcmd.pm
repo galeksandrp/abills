@@ -173,9 +173,12 @@ sub list {
   foreach my $query (@QUERY_ARRAY) {
     next if (length($query) < 5);
     my $q;
+    $query =~ s/^ //g;
 
-    if ($query =~ /CREATE /i) {
-      $self->{AFFECTED} = $db->do("$query") || print $db->errstr;
+    if ($query =~ /CREATE|UPDATE|INSERT|ALTER/i) {
+    	$db->{mysql_client_found_rows}=1;
+      my $count = $db->do("$query") || print $db->errstr;
+      $self->{AFFECTED} = sprintf("%d", (defined ($count) ? $count : 0));
     }
     else {
       $q = $db->prepare("$query", { "mysql_use_result" => ($query !~ /!SELECT/gi) ? 0 : 1 }) || print $db->errstr;

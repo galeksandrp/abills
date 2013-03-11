@@ -67,10 +67,12 @@ sub connect {
   my ($dbhost, $dbname, $dbuser, $dbpasswd, $attr) = @_;
 
   bless($self, $class);
-  $self->{db} = DBI->connect_cached("DBI:mysql:database=$dbname;host=$dbhost", "$dbuser", "$dbpasswd") or print "Content-Type: text/html\n\nError: Unable connect to DB server '$dbhost:$dbname'\n";
+  #my %conn_attrs = (PrintError => 0, RaiseError => 1, AutoCommit => 1);
+  
+  $self->{db} = DBI->connect_cached("DBI:mysql:database=$dbname;host=$dbhost;mysql_client_found_rows=0", "$dbuser", "$dbpasswd") or print "Content-Type: text/html\n\nError: Unable connect to DB server '$dbhost:$dbname'\n";
 
   if (!$self->{db}) {
-    my $a = `echo "/ $DBI::errstr/" >> /tmp/connect_error `;
+    my $a = `echo "Connection Error: $DBI::errstr" >> /tmp/sql_errors `;
   }
 
   #For mysql 5 or highter
@@ -129,7 +131,8 @@ sub query {
       push(@Array, $Data);
     }
   }
-
+  
+  $self->{AFFECTED}=0;
   if ($type && $type eq 'do') {
     $self->{AFFECTED} = $db->do($query, undef, @Array);
     if (defined($db->{'mysql_insertid'})) {
@@ -176,8 +179,6 @@ sub query {
     }
     return $self;
   }
-
-  
 
   if ($self->{TOTAL} > 0) {
     my @rows = ();
@@ -497,8 +498,12 @@ sub changes {
   my $extended = ($attr->{EXTENDED}) ? $attr->{EXTENDED} : '';
 
   $self->query($db, "UPDATE $TABLE SET $CHANGES_QUERY WHERE $FIELDS->{$CHANGE_PARAM}='$DATA{$CHANGE_PARAM}'$extended", 'do');
-
-  if ($self->{errno}) {
+  $self->{AFFECTED} = sprintf("%d", (defined ($self->{AFFECTED}) ? $self->{AFFECTED} : 0));
+  
+  if ($self->{AFFECTED} == 0) {
+  	return $self; 
+  }
+  elsif ($self->{errno}) {
     return $self;
   }
   if ($attr->{EXT_CHANGE_INFO}) {
