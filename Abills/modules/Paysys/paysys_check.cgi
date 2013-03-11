@@ -267,6 +267,10 @@ elsif ($conf{PAYSYS_EPAY_ACCOUNT_KEY} && $FORM{command} && $FORM{txn_id}) {
   require "Epay.pm";
   exit;
 }
+elsif (check_ip($ENV{REMOTE_ADDR}, '77.73.26.162,77.73.26.163,77.73.26.164,217.73.198.66')) {
+  require "Deltapay.pm";
+  exit;
+}
 elsif ($FORM{txn_id} || $FORM{prv_txn} || defined($FORM{prv_id}) || ($FORM{command} && $FORM{account})) {
   osmp_payments();
 }
