@@ -172,7 +172,7 @@ sub stalker_online {
     	my $expire_unixdate = 0;
     	if ($user->{expire} ne '0000-00-00') {
     	  my ($expire_y, $expire_m, $expire_d)=split(/\-/, $user->{expire}, 3);
-    	  $expire_unixdate = mktime(0, 0, 0, $expire_d, $expire_m, ($expire_y - 1900));
+    	  $expire_unixdate = mktime(0, 0, 0, $expire_d, ($expire_m-1), ($expire_y - 1900));
     	  $expire_unixdate = ($expire_unixdate < time) ? 1 : 0;
     	}
 
@@ -183,6 +183,7 @@ sub stalker_online {
     	    || $user->{iptv_status}
     	    || $expire_unixdate
     	) {
+
         $admin->action_add("$user->{uid}", "$account_hash->{mac}", { TYPE => 15 });
         print "Disable STB LOGIN: $user->{login} MAC: $account_hash->{mac} Expire: $expire_unixdate DEPOSIT: $user->{deposit}+$credit STATUS: $user->{disable}/$user->{iptv_status}\n";
         $Stalker_api->user_action({ UID    => $user->{uid}, 
