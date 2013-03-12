@@ -444,8 +444,8 @@ sub check_lines {
         ACCT_SESSION_TIME     => $online->{duration_sec},
         INBYTE                => $online->{acct_input_octets},
         OUTBYTE               => $online->{acct_output_octets},
-        INBYTE2               => $online->{acct_input_octets_ext},
-        OUTBYTE2              => $online->{acct_input_octets_ext},
+        INBYTE2               => $online->{ex_input_octets},
+        OUTBYTE2              => $online->{ex_output_octets},
         ACCT_INPUT_GIGAWORDS  => 0,
         ACCT_OUTPUT_GIGAWORDS => 0
       );
@@ -503,7 +503,7 @@ sub check_lines {
       if ( (defined($Billing->{PAYMENT_TYPE}) && $Billing->{PAYMENT_TYPE} == 0) 
         && ($online->{deposit} + $online->{credit} <= $Billing->{SUM} + $online->{credit_tresshold})
         || $Billing->{HANGUP}
-        || ($NAS{NAS_TYPE} eq 'exppp' && ($online->{acct_input_octets_ext} > $exppp_hanguplimit || $online->{acct_output_octets_ext} > $exppp_hanguplimit)))
+        || ($NAS{NAS_TYPE} eq 'exppp' && ($online->{ex_input_octets} > $exppp_hanguplimit || $online->{ex_output_octets} > $exppp_hanguplimit)))
       {
 
         #Neg deposit filter
@@ -2764,7 +2764,7 @@ Flags: X - disabled, I - invalid
         }
       }
       
-     #Add nat rules
+     #Add na rules
      if ($ARGV->{NAT}) {
        my $skip_nat_ips = ($ARGV->{SKIP_NAT_IPS}) ? " dst-address=!$ARGV->{SKIP_NAT_IPS}" : '';
        push @commands, qq{/ip firewall nat add chain=srcnat action=masquerade $skip_nat_ips src-address-list=CLIENTS_$tp_id };
