@@ -80,10 +80,10 @@ sub get_nas_info {
   $NAS_PARAMS{NAS_IDENTIFIER} = $RAD->{NAS_IDENTIFIER} if ($RAD->{NAS_IDENTIFIER});
   $nas->info({%NAS_PARAMS});
 
-  if (defined($nas->{errno}) || $nas->{TOTAL} < 1) {
+  if ($nas->{errno}) {
     if ($RAD->{MIKROTIK_HOST_IP}) {
       $nas->info({ NAS_ID => $RAD->{NAS_IDENTIFIER} });
-      if (defined($nas->{errno}) || $nas->{TOTAL} < 1) {
+      if ($nas->{errno}) {
         access_deny("$RAD->{USER_NAME}", "Unknow server '$RAD->{NAS_IP_ADDRESS}'" . (($RAD->{NAS_IDENTIFIER}) ? " Nas-Identifier: $RAD->{NAS_IDENTIFIER}" : '') . ' ' . (($RAD->{NAS_IP_ADDRESS} eq '0.0.0.0') ? $RAD->{CALLED_STATION_ID} : ''), 0, $db);
         $RAD_REPLY{'Reply-Message'} = "Unknow server '$RAD->{NAS_IP_ADDRESS}'";
         return 1;
@@ -332,7 +332,7 @@ sub inc_postauth {
     if ($RAD_REQUEST{'Calling-Station-Id'}) {
       $reject_info = "CID: $RAD_REQUEST{'Calling-Station-Id'}";
     }
-    $Log->log_print('LOG_WARNING', $RAD_REQUEST{'User-Name'}, "REJECT Wrong password or account not exists $reject_info$GT", { NAS => $nas });
+    $Log->log_print('LOG_WARNING', $RAD_REQUEST{'User-Name'}, "REJECT Wrong password, expire or account not exists $reject_info$GT", { NAS => $nas });
     return 0;
   }
   else {
@@ -340,7 +340,7 @@ sub inc_postauth {
       $reject_info = "CID: $RAD->{CALLING_STATION_ID}";
     }
 
-    $Log->log_print('LOG_WARNING', $RAD->{USER_NAME}, "REJECT Wrong password or account not exists $reject_info$GT", { NAS => $nas });
+    $Log->log_print('LOG_WARNING', $RAD->{USER_NAME}, "REJECT Wrong password, expire or account not exists $reject_info$GT", { NAS => $nas });
   }
 }
 

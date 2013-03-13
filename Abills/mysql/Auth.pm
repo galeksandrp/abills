@@ -1531,7 +1531,7 @@ sub get_ip {
     }
    
     $db->do('unlock tables');
-    if( defined( $self->{errno} )) {
+    if( $self->{errno} ) {
       return -1;
     }
     else {

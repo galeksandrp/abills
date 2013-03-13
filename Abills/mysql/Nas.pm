@@ -153,29 +153,37 @@ sub info {
   }
 
   $self->query(
-    $db, "SELECT id, name, nas_identifier, descr, ip, nas_type, auth_type, mng_host_port, mng_user, 
- DECODE(mng_password, '$SECRETKEY'), rad_pairs, alive, disable, ext_acct, 
- gid, address_build, address_street, address_flat, zip, city, country, domain_id, mac,
- changed, location_id
+    $db, "SELECT id as nas_id, 
+    name AS nas_name,
+    nas_identifier, 
+    descr AS nas_describe, 
+    ip AS nas_ip, 
+    nas_type, 
+    auth_type AS nas_auth_type, 
+    mng_host_port as nas_mng_ip_port, 
+    mng_user AS nas_mng_user, 
+    DECODE(mng_password, '$SECRETKEY') AS nas_mng_password, 
+    rad_pairs AS nas_rad_pairs, 
+    alive AS nas_alive, 
+    disable AS nas_disable, 
+    ext_acct AS nas_ext_acct, 
+    gid, 
+    address_build, 
+    address_street, 
+    address_flat, 
+    zip, 
+    city, 
+    country, 
+    domain_id, 
+    mac,
+    changed, 
+    location_id
  FROM nas
  WHERE $WHERE
- ORDER BY nas_identifier DESC;"
+ ORDER BY nas_identifier DESC;",
+ undef,
+ { INFO => 1 }
   );
-
-  if (defined($self->{errno})) {
-    return $self;
-  }
-  elsif ($self->{TOTAL} < 1) {
-    $self->{errstr} = "ERROR_NOT_EXIST";
-    $self->{errno}  = 2;
-    return $self;
-  }
-
-  (
-    $self->{NAS_ID},           $self->{NAS_NAME},      $self->{NAS_INDENTIFIER}, $self->{NAS_DESCRIBE}, $self->{NAS_IP},       $self->{NAS_TYPE}, $self->{NAS_AUTH_TYPE}, $self->{NAS_MNG_IP_PORT}, $self->{NAS_MNG_USER},
-    $self->{NAS_MNG_PASSWORD}, $self->{NAS_RAD_PAIRS}, $self->{NAS_ALIVE},       $self->{NAS_DISABLE},  $self->{NAS_EXT_ACCT}, $self->{GID},      $self->{ADDRESS_BUILD}, $self->{ADDRESS_STREET},  $self->{ADDRESS_FLAT},
-    $self->{ZIP},              $self->{CITY},          $self->{COUNTRY},         $self->{DOMAIN_ID},    $self->{MAC},          $self->{CHANGED},  $self->{LOCATION_ID}
-  ) = @{ $self->{list}->[0] };
 
   if ($self->{LOCATION_ID} > 0) {
     $self->query(
