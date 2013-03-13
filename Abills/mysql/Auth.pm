@@ -123,12 +123,13 @@ sub dv_auth {
   );
 
   if ($self->{errno}) {
-    $RAD_PAIRS->{'Reply-Message'} = 'SQL error';
-    undef $db;
-    return 1, $RAD_PAIRS;
-  }
-  elsif ($self->{TOTAL} < 1) {
-    $RAD_PAIRS->{'Reply-Message'} = "Service not allow";
+    if($self->{errno} == 2) {
+    	$RAD_PAIRS->{'Reply-Message'} = "Service not allow";
+    }
+    else {
+      $RAD_PAIRS->{'Reply-Message'} = 'SQL error';
+      undef $db;
+    }
     return 1, $RAD_PAIRS;
   }
 
@@ -205,12 +206,13 @@ sub dv_auth {
       );
 
       if ($self->{errno}) {
-        $RAD_PAIRS->{'Reply-Message'} = 'SQL error';
-        undef $db;
-        return 1, $RAD_PAIRS;
-      }
-      elsif ($self->{TOTAL} < 1) {
-        $RAD_PAIRS->{'Reply-Message'} = "Service not allow";
+        if($self->{errno} == 2) {
+        	$RAD_PAIRS->{'Reply-Message'} = "Service not allow";
+        }
+        else {
+          $RAD_PAIRS->{'Reply-Message'} = 'SQL error';
+          undef $db;
+        }
         return 1, $RAD_PAIRS;
       }
 
@@ -1053,15 +1055,15 @@ sub authentication {
     );
   }
   if ($self->{errno}) {
-    $RAD_PAIRS{'Reply-Message'} = 'SQL error';
-    undef $db;
+    if($self->{errno} == 2) {
+    	$RAD_PAIRS->{'Reply-Message'} = "Login Not Exist or Expire";
+    }
+    else {
+      $RAD_PAIRS{'Reply-Message'} = 'SQL error';
+      undef $db;
+    }
     return 1, \%RAD_PAIRS;
   }
-  elsif ($self->{TOTAL} < 1) {
-    $RAD_PAIRS{'Reply-Message'} = "Login Not Exist or Expire";
-    return 1, \%RAD_PAIRS;
-  }
-
 
   #Auth chap
 #  if ($RAD->{HINT} && $RAD->{HINT} eq 'NOPASS') {
