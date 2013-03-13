@@ -1056,7 +1056,7 @@ sub authentication {
   }
   if ($self->{errno}) {
     if($self->{errno} == 2) {
-    	$RAD_PAIRS->{'Reply-Message'} = "Login Not Exist or Expire";
+    	$RAD_PAIRS{'Reply-Message'} = "Login Not Exist or Expire";
     }
     else {
       $RAD_PAIRS{'Reply-Message'} = 'SQL error';
