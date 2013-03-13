@@ -180,7 +180,7 @@ sub auth {
       undef %auth_mod;
     }
 
-    if ($auth_mod{"default"}->{errstr}) {
+    if ($auth_mod{"default"}->{errstr} && $auth_mod{"default"}->{errno} != 2) {
       $auth_mod{"default"}->{errstr} =~ s/\n//g;
       $message .= $auth_mod{"default"}->{errstr};
     }
