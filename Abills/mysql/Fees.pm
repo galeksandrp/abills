@@ -410,7 +410,6 @@ sub reports {
   	push @WHERE_RULES, @{ $self->search_expr($attr->{ADMINS}, 'STR', 'a.id') };
   }
 
-
   if ($attr->{DATE}) {
     push @WHERE_RULES, "date_format(f.date, '%Y-%m-%d')='$attr->{DATE}'";
   }
@@ -489,6 +488,7 @@ sub reports {
     $self->query(
       $db, "SELECT count(DISTINCT f.uid), count(*), sum(f.sum) 
       FROM fees f
+      LEFT JOIN admins a ON (f.aid=a.aid)
       $EXT_TABLES
       $WHERE;"
     );

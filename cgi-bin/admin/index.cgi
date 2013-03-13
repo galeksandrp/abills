@@ -5017,7 +5017,7 @@ sub reports {
 
   if ($FORM{ADMINS}) {
     $LIST_PARAMS{ADMINS} = $FORM{ADMINS};
-    $pages_qs = "&ADMINS=$LIST_PARAMS{ADMINS}";
+    $pages_qs .= "&ADMINS=$LIST_PARAMS{ADMINS}";
   }
 
   if ($LIST_PARAMS{UID}) {
@@ -5026,12 +5026,10 @@ sub reports {
   else {
     if ($FORM{GID}) {
       $LIST_PARAMS{GID} = $FORM{GID};
-      $pages_qs = "&GID=$FORM{GID}";
+      $pages_qs .= "&GID=$FORM{GID}";
       delete $LIST_PARAMS{GIDS};
     }
   }
-
-
 
   my @rows = ();
 
@@ -5047,7 +5045,7 @@ sub reports {
     }
 
     $LIST_PARAMS{FIELDS} = $FORM{FIELDS};
-    $pages_qs = "&FIELDS=$FORM{FIELDS}";
+    $pages_qs .= "&FIELDS=$FORM{FIELDS}";
 
     my $table2 = $html->table({ width => '100%', rowcolor => 'static' });
     my @arr    = ();
@@ -5234,6 +5232,7 @@ sub report_fees {
     $METHODS_HASH{"$k:$k"} = "$v";
   }
 
+
   reports(
     {
       DATE        => $FORM{DATE},
@@ -5406,12 +5405,13 @@ sub report_fees {
   }
 
   print $table_fees->show();
+
   $table = $html->table(
     {
       width      => '100%',
       cols_align => [ 'right', 'right', 'right', 'right', 'right', 'right' ],
-      rows => [ [ "$_USERS: " . $html->b($fees->{USERS}), "$_TOTAL: " . $html->b($fees->{TOTAL}), "$_SUM: " . $html->b($fees->{SUM}) ] ],
-      rowcolor => 'even'
+      rows       => [ [ "$_USERS: " . $html->b($fees->{USERS}), "$_TOTAL: " . $html->b($fees->{TOTAL}), "$_SUM: " . $html->b($fees->{SUM}) ] ],
+      rowcolor   => 'even'
     }
   );
   print $table->show();

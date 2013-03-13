@@ -26,6 +26,8 @@ $COLS_SEPARATOR
 
 use Exporter;
 use Spreadsheet::WriteExcel;
+use Encode qw(decode);
+
 $VERSION = 2.01;
 @ISA     = ('Exporter');
 
@@ -465,6 +467,7 @@ sub table {
   if (defined($attr->{rowcolor})) {
     $self->{rowcolor} = $attr->{rowcolor};
   }
+  $self->{ID}=$attr->{ID};
 
   if ($attr->{rows}) {
     my $rows = $attr->{rows};
@@ -472,10 +475,13 @@ sub table {
       $self->addrow(@$line);
     }
   }
-   
+  
+  if ($FORM{EXPORT_CONTENT} && $FORM{EXPORT_CONTENT} ne $self->{ID}) {
+  	return $self;
+  }
+  
   $row_number=0; 
   # Create a new Excel workbook
-  use Encode qw(decode);
   $workbook = Spreadsheet::WriteExcel->new(\*STDOUT);
 
   # Add a worksheet
@@ -498,12 +504,19 @@ sub addrow {
   $row_number++;
   $col_num=0;
 
+  if (! $worksheet) {
+  	return $self;
+  }
+
   foreach my $val (@row) {
     if($self->{title}->[$col_num] &&  $self->{title}->[$col_num] eq '-') {
       next;
     }
 
     $worksheet->write($row_number, $col_num, decode('utf8', "$val"), undef);
+    
+    print "row: $row_number col: $col_num = $val\n" if ($FORM{DEBUG});
+    
     $col_num++;
   }
 
@@ -523,6 +536,7 @@ sub addtd {
     }
     
     $worksheet->write($row_number, $col_num, decode('utf8', "$val"), undef);
+    print "row: $row_number col: $col_num = $val\n" if ($FORM{DEBUG});
     $col_num++;
   }
   $row_number++;
@@ -599,11 +613,13 @@ sub show {
   my $self = shift;
   my ($attr) = @_;
 
+  $workbook->close() if ($workbook);  
+  
   if ($FORM{EXPORT_CONTENT} && $FORM{EXPORT_CONTENT} ne $self->{ID}) {
     return '';
   }
-  
-  if ((defined($self->{NO_PRINT})) && (!defined($attr->{OUTPUT2RETURN}))) {
+
+  if ($self->{NO_PRINT} && (!defined($attr->{OUTPUT2RETURN}))) {
     $self->{prototype}->{OUTPUT} .= $self->{show};
     $self->{show} = '';
   }
@@ -630,20 +646,6 @@ sub button {
   my ($name, $params, $attr) = @_;
   
   return $name;
-  
-  my $ex_params = (defined($attr->{ex_params})) ? $attr->{ex_params} : '';
-  my $ex_attr = '';
-
-  $params = ($attr->{GLOBAL_URL}) ? $attr->{GLOBAL_URL} : "$params";
-
-  $params = $attr->{JAVASCRIPT} if (defined($attr->{JAVASCRIPT}));
-  $params = $self->link_former($params);
-
-  $ex_attr = " TITLE='$attr->{TITLE}'" if (defined($attr->{TITLE}));
-
-  my $button = "<BUTTON VALUE=\"$params\" $ex_attr>$name</BUTTON>";
-
-  return $button;
 }
 
 #*******************************************************************

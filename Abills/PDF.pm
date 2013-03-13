@@ -749,7 +749,7 @@ sub table {
     $self->{table} .= "</COLGROUP>\n";
   }
 
-  if (defined($attr->{pages})) {
+  if ($attr->{pages}) {
     my $op;
     if ($FORM{index}) {
       $op = "index=$FORM{index}";
