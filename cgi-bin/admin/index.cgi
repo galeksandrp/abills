@@ -5015,6 +5015,11 @@ sub reports {
     $pages_qs = "&MONTH=$LIST_PARAMS{MONTH}";
   }
 
+  if ($FORM{ADMINS}) {
+    $LIST_PARAMS{ADMINS} = $FORM{ADMINS};
+    $pages_qs = "&ADMINS=$LIST_PARAMS{ADMINS}";
+  }
+
   if ($LIST_PARAMS{UID}) {
     $pages_qs .= "&UID=$LIST_PARAMS{UID}";
   }
@@ -5025,6 +5030,8 @@ sub reports {
       delete $LIST_PARAMS{GIDS};
     }
   }
+
+
 
   my @rows = ();
 
@@ -5257,7 +5264,7 @@ sub report_fees {
   my $num        = 0;
   my @CHART_TYPE = ('area', 'line', 'column');
 
-  if (defined($FORM{DATE})) {
+  if ($FORM{DATE}) {
     $graph_type = '';
     $list       = $fees->list({%LIST_PARAMS});
     $table_fees = $html->table(
@@ -5338,7 +5345,7 @@ sub report_fees {
       }
     );
 
-    $list = $fees->reports({%LIST_PARAMS});
+    $list = $fees->reports({ %LIST_PARAMS });
     foreach my $line (@$list) {
       my $main_column = '';
       if ($type eq 'METHOD') {
@@ -5564,7 +5571,6 @@ sub report_payments {
     }
     elsif ($FORM{ADMINS}) {
       $CAPTION[0]          = $_USERS;
-      $LIST_PARAMS{ADMINS} = $FORM{ADMINS};
       $graph_type          = '';
     }
     elsif ($type eq 'ADMINS') {

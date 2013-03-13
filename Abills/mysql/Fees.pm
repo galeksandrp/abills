@@ -406,6 +406,11 @@ sub reports {
     push @WHERE_RULES, "f.BILL_ID IN ( $attr->{BILL_ID} )";
   }
 
+  if ($attr->{ADMINS}) {
+  	push @WHERE_RULES, @{ $self->search_expr($attr->{ADMINS}, 'STR', 'a.id') };
+  }
+
+
   if ($attr->{DATE}) {
     push @WHERE_RULES, "date_format(f.date, '%Y-%m-%d')='$attr->{DATE}'";
   }
