@@ -1,5 +1,5 @@
 #!/bin/sh
-#
+# ABillS Firefall Managment Program for Linux
 #
 #***********************************************************************
 # /etc/rc.conf
@@ -330,17 +330,21 @@ abills_nat() {
     NAT_IPS=all
   fi;
   # nat configuration
-  
+
   for IP in ${NAT_IPS}; do
 
     if [ w${ACTION} = wstart ]; then 
-      ${IPT} -t nat -A POSTROUTING -o ${NAT_IF} -j MASQUERADE
-      echo "Enable NAT"
-    elif [ x${ACTION} = xstop ]; then 
-      ${IPT} -t nat -D POSTROUTING -o ${NAT_IF} -j MASQUERADE
-      echo "Disable NAT" 
+     for IP_NAT in ${FAKE_NET}; do
+      ${IPT} -t nat -A POSTROUTING -s ${IP_NAT} -j SNAT --to-source ${IP}
+      echo "Enable NAT for ${IP_NAT}"
+     done;
     fi;
   done;
+    if [ x${ACTION} = xstop ]; then
+      ${IPT} -F -t nat
+      ${IPT} -X -t nat
+      echo "Disable NAT"
+    fi;
 
 }
 
