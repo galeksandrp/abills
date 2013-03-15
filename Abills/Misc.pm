@@ -96,52 +96,6 @@ sub cross_modules_call {
 }
 
 
-
-
-##**********************************************************
-## Calls function for all registration modules if function exist 
-##
-## HASH_REF = cross_modules_call(function_sufix, attr) 
-##
-## return HASH_REF
-##   MODULE -> return
-##**********************************************************
-#sub cross_modules_call {
-#  my ($function_sufix, $attr) = @_;
-#
-#  my %full_return = ();
-#  my @skip_modules = ();
-#  
-#  if ($attr->{SKIP_MODULES}) {
-#    $attr->{SKIP_MODULES}=~s/\s+//g;
-#    @skip_modules=split(/,/, $attr->{SKIP_MODULES});
-#   }
-#
-#  foreach my $mod (@MODULES) {
-#    if (in_array($mod, \@skip_modules)) {
-#      next;
-#    }
-#    
-#    if ($attr->{DEBUG}) {
-#      print " $mod -> ". lc($mod).$function_sufix ."\n";
-#    }
-#
-#    load_module("$mod", $html);
-#    my $function = lc($mod).$function_sufix;
-#    
-#    my $return;
-#    
-#    if (defined(&$function)) {
-#       $return = $function->($attr);
-#    }
-#
-#    $full_return{$mod}=$return;
-#  }
-#
-#  return \%full_return;
-#}
-
-
 #**********************************************************
 # Get function index
 #
@@ -333,6 +287,7 @@ sub service_get_month_fee {
   my $days_in_month = ($m != 2 ? (($m % 2) ^ ($m > 7)) + 30 : (!($y % 400) || !($y % 4) && ($y % 25) ? 29 : 28));
 
   if ( $FORM{RECALCULATE} ) {
+
     my $rest_days     = $days_in_month - $d + 1;
     #my $rest_day_sum1 = (! $Service->{TP_INFO}->{ABON_DISTRIBUTION}) ? $Service->{TP_INFO}->{MONTH_FEE} /  $days_in_month * $rest_days : 0;
     my $rest_day_sum2 = (! $Service->{TP_INFO_OLD}->{ABON_DISTRIBUTION}) ? $Service->{TP_INFO_OLD}->{MONTH_FEE} /  $days_in_month * $rest_days : 0;
