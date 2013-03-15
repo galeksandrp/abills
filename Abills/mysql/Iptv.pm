@@ -196,8 +196,10 @@ sub user_change {
     CID            => 'cid'
   );
 
-  $attr->{VOD} = (!defined($attr->{VOD})) ? 0 : 1;
-  my $old_info = $self->user_info($attr->{UID});
+  $attr->{VOD}        = (!defined($attr->{VOD})) ? 0 : 1;
+  my $old_info        = $self->user_info($attr->{UID});
+  $self->{OLD_STATUS} = $old_info->{STATUS};
+
 
   if ($attr->{TP_ID} && $old_info->{TP_ID} != $attr->{TP_ID}) {
     my $tariffs = Tariffs->new($db, $CONF, $admin);

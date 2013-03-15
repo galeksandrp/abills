@@ -384,7 +384,7 @@ sub iptv_user {
     if (!$Iptv->{errno}) {
       $Iptv->{ACCOUNT_ACTIVATE} = $attr->{USER_INFO}->{ACTIVATE};
       
-      if (!$FORM{STATUS} && $FORM{GET_ABON}) {
+      if (! $FORM{STATUS} && ($FORM{GET_ABON} || !$FORM{TP_ID})) {
         service_get_month_fee($Iptv, { SERVICE_NAME => "$_TV" });
       }
 
@@ -1881,7 +1881,7 @@ sub iptv_user_info {
     $Iptv->{TP_CHANGE} = $html->button("$_CHANGE", 'index=' . get_function_index('iptv_user_chg_tp') . '&sid=' . $sid, { BUTTON => 1 });
   }
 
-  $Iptv->{DISABLE} = $_ENABLE;
+  $Iptv->{DISABLE} = $html->color_mark($service_status[ $Iptv->{STATUS} ], $service_status_colors[ $Iptv->{STATUS} ]),
   $html->tpl_show(_include('iptv_user_info', 'Iptv'), $Iptv);
 
   iptv_user_channels({ USER_INFO => $user });

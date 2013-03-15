@@ -277,7 +277,7 @@ sub service_get_month_fee {
         }
       );
       $total_sum{ACTIVATE} = $Service->{TP_INFO}->{ACTIV_PRICE};
-      $html->message('info', $_INFO, "- $_ACTIVATE $_TARIF_PLAN") if ($html);
+      $html->message('info', $_INFO, "$_ACTIVATE $_TARIF_PLAN") if ($html);
     }
   }
 
