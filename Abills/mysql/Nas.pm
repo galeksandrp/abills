@@ -195,7 +195,12 @@ sub info {
     );
 
     if ($self->{TOTAL} > 0) {
-      ($self->{DISTRICT_ID}, $self->{CITY}, $self->{ADDRESS_DISTRICT}, $self->{ADDRESS_STREET}, $self->{ADDRESS_BUILD},) = @{ $self->{list}->[0] };
+      ($self->{DISTRICT_ID}, 
+       $self->{CITY}, 
+       $self->{ADDRESS_DISTRICT}, 
+       $self->{ADDRESS_STREET}, 
+       $self->{ADDRESS_BUILD}
+      ) = @{ $self->{list}->[0] };
     }
   }
 

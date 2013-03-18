@@ -487,12 +487,12 @@ sub session_sum {
     );
 
     if ($self->{errno}) {
-      return -3, 0, 0, 0, 0, 0;
-    }
-
-    #user not found
-    elsif ($self->{TOTAL} < 1) {
-      return -2, 0, 0, 0, 0, 0;
+    	if ($self->{errno} == 7) {
+        return -2, 0, 0, 0, 0, 0;    		
+    	}
+    	else {
+        return -3, 0, 0, 0, 0, 0;
+      }
     }
 
     $self->{UID} = $attr->{UID};
@@ -517,13 +517,15 @@ sub session_sum {
     );
 
     if ($self->{errno}) {
-      return -3, 0, 0, 0, 0, 0;
+      #TP not found
+      if ($self->{errno} == 7) {
+        return -5, 0, 0, 0, 0, 0;
+      }
+      else {
+        return -3, 0, 0, 0, 0, 0;
+      }
     }
 
-    #TP not found
-    elsif ($self->{TOTAL} < 1) {
-      return -5, 0, 0, 0, 0, 0;
-    }
 
     $self->{TP_NUM} = $attr->{TP_NUM};
   }
@@ -547,11 +549,13 @@ sub session_sum {
     );
 
     if ($self->{errno}) {
-      return -3, 0, 0, 0, 0, 0;
-    }
-    #user not found
-    elsif ($self->{TOTAL} < 1) {
-      return -2, 0, 0, 0, 0, 0;
+      #user not found
+      if ($self->{errno} == 7) {
+        return -2, 0, 0, 0, 0, 0;
+      }
+      else {
+        return -3, 0, 0, 0, 0, 0;
+      }
     }
 
     $self->query(
@@ -573,13 +577,15 @@ sub session_sum {
     );
 
     if ($self->{errno}) {
-      return -3, 0, 0, 0, 0, 0;
+      #TP not found
+      if ($self->{errno} == 7) {
+        return -5, 0, 0, 0, 0, 0;
+      }
+      else {
+        return -3, 0, 0, 0, 0, 0;
+      }
     }
 
-    #TP not found
-    elsif ($self->{TOTAL} < 1) {
-      return -5, 0, 0, 0, 0, 0;
-    }
 
     $self->{TP_NUM} = $attr->{TP_NUM};
   }
@@ -618,12 +624,13 @@ sub session_sum {
     );
 
     if ($self->{errno}) {
-      return -3, 0, 0, 0, 0, 0;
-    }
-
-    #user not found
-    elsif ($self->{TOTAL} < 1) {
-      return -2, 0, 0, 0, 0, 0;
+      #user not found
+      if ($self->{errno} == 7) {
+        return -2, 0, 0, 0, 0, 0;
+      }
+      else {
+        return -3, 0, 0, 0, 0, 0;
+      }
     }
   }
 
@@ -647,12 +654,13 @@ sub session_sum {
       );
 
       if ($self->{errno}) {
-        return -3, 0, 0, 0, 0, 0;
-      }
-
-      #user not found
-      elsif ($self->{TOTAL} < 1) {
-        return -2, 0, 0, 0, 0, 0;
+        #user not found
+        if ($self->{errno} == 7) {
+          return -2, 0, 0, 0, 0, 0;
+        }
+        else {
+          return -3, 0, 0, 0, 0, 0;
+        }
       }
 
       $self->{UIDS} = "$self->{JOIN_SERVICE}";
