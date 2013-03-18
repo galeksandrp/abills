@@ -175,41 +175,31 @@ sub accounting {
     if ($NAS->{NAS_EXT_ACCT} || $NAS->{NAS_TYPE} eq 'ipcad') {
       $self->query(
         $db, "SELECT 
-       dv.acct_input_octets,
-       dv.acct_output_octets,
+       dv.acct_input_octets AS inbyte,
+       dv.acct_output_octets AS outbyte,
        dv.acct_input_gigawords,
        dv.acct_output_gigawords,
-       dv.ex_input_octets,
-       dv.ex_output_octets,
-       dv.tp_id,
+       dv.ex_input_octets AS inbyte2,
+       dv.ex_output_octets AS outbyte2,
+       dv.tp_id AS tarif_plan,
        dv.sum,
        dv.uid,
        u.bill_id,
        u.company_id
     FROM (dv_calls dv, users u)
-    WHERE dv.uid=u.uid AND dv.user_name='$RAD->{USER_NAME}' AND dv.acct_session_id='$RAD->{ACCT_SESSION_ID}';"
+    WHERE dv.uid=u.uid AND dv.user_name='$RAD->{USER_NAME}' AND dv.acct_session_id='$RAD->{ACCT_SESSION_ID}';",
+    undef,
+    { INFO => 1 }
       );
 
       if ($self->{errno}) {
+        if ($self->{errno} == 2) {
+          $self->{errno}  = 2;
+          $self->{errstr} = "Session account Not Exist '$RAD->{ACCT_SESSION_ID}'";
+          return $self;
+        }
         return $self;
       }
-      elsif ($self->{TOTAL} < 1) {
-        $self->{errno}  = 2;
-        $self->{errstr} = "Session account Not Exist '$RAD->{ACCT_SESSION_ID}'";
-        return $self;
-      }
-
-      ($RAD->{INBYTE}, 
-       $RAD->{OUTBYTE}, 
-       $RAD->{ACCT_INPUT_GIGAWORDS}, 
-       $RAD->{ACCT_OUTPUT_GIGAWORDS}, 
-       $RAD->{INBYTE2}, 
-       $RAD->{OUTBYTE2}, 
-       $self->{TARIF_PLAN}, 
-       $self->{SUM}, 
-       $self->{UID}, 
-       $self->{BILL_ID}, 
-       $self->{COMPANY_ID}) = @{ $self->{list}->[0] };
 
       if ($self->{COMPANY_ID} > 0) {
         $self->query($db, "SELECT bill_id FROM companies WHERE id='$self->{COMPANY_ID}';");
@@ -254,7 +244,7 @@ sub accounting {
     elsif ($conf->{rt_billing}) {
       $self->rt_billing($RAD, $NAS);
 
-      if (!$self->{errno}) {
+      if (! $self->{errno}) {
         #return $self;
         $self->query(
           $db, "INSERT INTO dv_log (uid, start, tp_id, duration, sent, recv, kb, sum, nas_id, port_id,
@@ -273,6 +263,7 @@ sub accounting {
         '$RAD->{ACCT_INPUT_GIGAWORDS}',
         '$RAD->{ACCT_OUTPUT_GIGAWORDS}');", 'do'
         );
+
         if ($self->{errno}) {
           
         }
@@ -424,7 +415,7 @@ sub accounting {
 
   if ($self->{errno}) {
     $self->{errno}  = 1;
-    $self->{errstr} = "ACCT $RAD->{ACCT_STATUS_TYPE} SQL Error";
+    $self->{errstr} = "ACCT $RAD->{ACCT_STATUS_TYPE} SQL Error '$RAD->{ACCT_SESSION_ID}'";
     return $self;
   }
 
