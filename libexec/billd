@@ -492,7 +492,7 @@ sub check_lines {
           next;
         }
         elsif ($Billing->{UID} == -3) {
-          print "Sql error '$RAD{USER_NAME}'\n";
+          print "Sql error '$RAD{USER_NAME}' [$Billing->{errno} $Billing->{errstr}]\n";
         }
         next;
       }
