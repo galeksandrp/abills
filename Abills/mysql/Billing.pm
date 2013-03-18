@@ -487,7 +487,7 @@ sub session_sum {
     );
 
     if ($self->{errno}) {
-    	if ($self->{errno} == 7) {
+    	if ($self->{errno} == 2) {
         return -2, 0, 0, 0, 0, 0;    		
     	}
     	else {
@@ -518,7 +518,7 @@ sub session_sum {
 
     if ($self->{errno}) {
       #TP not found
-      if ($self->{errno} == 7) {
+      if ($self->{errno} == 2) {
         return -5, 0, 0, 0, 0, 0;
       }
       else {
@@ -550,7 +550,7 @@ sub session_sum {
 
     if ($self->{errno}) {
       #user not found
-      if ($self->{errno} == 7) {
+      if ($self->{errno} == 2) {
         return -2, 0, 0, 0, 0, 0;
       }
       else {
@@ -578,7 +578,7 @@ sub session_sum {
 
     if ($self->{errno}) {
       #TP not found
-      if ($self->{errno} == 7) {
+      if ($self->{errno} == 2) {
         return -5, 0, 0, 0, 0, 0;
       }
       else {
@@ -625,7 +625,7 @@ sub session_sum {
 
     if ($self->{errno}) {
       #user not found
-      if ($self->{errno} == 7) {
+      if ($self->{errno} == 2) {
         return -2, 0, 0, 0, 0, 0;
       }
       else {
@@ -655,7 +655,7 @@ sub session_sum {
 
       if ($self->{errno}) {
         #user not found
-        if ($self->{errno} == 7) {
+        if ($self->{errno} == 2) {
           return -2, 0, 0, 0, 0, 0;
         }
         else {
