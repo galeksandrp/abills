@@ -511,7 +511,7 @@ sub session_sum {
     tp.bills_priority,
     tp.credit AS tp_credit
    FROM tarif_plans tp
-   WHERE tp.id='$attr->{TP_NUM}' AND tp.domain_id='$attr->{DOMAIN_ID}';",
+   WHERE tp.id='$attr->{TP_NUM}' AND tp.domain_id='$self->{DOMAIN_ID}';",
    undef,
    { INFO => 1 }
     );
