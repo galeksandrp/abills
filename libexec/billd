@@ -293,6 +293,10 @@ sub check_lines {
         session_hangup(\%NAS, $online, "Change TP $online->{calls_tp_id} -> $online->{tp_num} DEPOSIT: $online->{deposit} CREDIT: $online->{credit} SESSION_SUM: $online->{session_sum} STATUS: $state SESSION_ID: $online->{acct_session_id} GUEST: $online->{guest}");
         next;
       }
+      elsif ($online->{status} == 9) {
+        session_hangup(\%NAS, $online, "LOst session DEPOSIT: $online->{deposit} CREDIT: $online->{credit} SESSION_SUM: $online->{session_sum} STATUS: $state SESSION_ID: $online->{acct_session_id} GUEST: $online->{guest}");
+        next;
+      }
       elsif ($online->{expired}) {
         session_hangup(\%NAS, $online, "Expired $online->{expire} DEPOSIT: $online->{deposit} CREDIT: $online->{credit} SESSION_SUM: $online->{session_sum} STATUS: $state SESSION_ID: $online->{acct_session_id} GUEST: $online->{guest}");
         next;
@@ -556,95 +560,6 @@ sub  session_hangup {
 
   return $ret;
 }
-
-
-
-##**********************************************************
-## Ceck current speed for 
-##**********************************************************
-#sub check_speed_mikro {
-#  my ($attr) = @_;
-#
-#  #Get speed
-#  if ($attr->{NAS_IDS}) {
-#    $LIST_PARAMS{NAS_IDS} = $attr->{NAS_IDS};
-#  }
-#  else {
-#    $LIST_PARAMS{TYPE} = 'mikrotik';
-#  }
-#
-#  my %nas_speeds = ();
-#  my $list       = $nas->list({%LIST_PARAMS});
-#
-#  foreach my $line (@$list) {
-#    my %info_hash = ();
-#    my %NAS       = ();
-#
-#    $debug_output .= "NAS ID: $line->[0] MNG_INFO: $line->[10]\@$line->[9]\n" if ($debug > 2);
-#
-#    $NAS{NAS_ID}           = $line->[0];
-#    $NAS{NAS_IP}           = $line->[3];
-#    $NAS{NAS_TYPE}         = $line->[4];
-#    $NAS{NAS_ALIVE}        = $line->[8] || 0;
-#    $NAS{NAS_MNG_IP_PORT}  = $line->[9];
-#    $NAS{NAS_MNG_USER}     = $line->[10];
-#    $NAS{NAS_MNG_PASSWORD} = $line->[11];
-#
-#    if ($NAS{NAS_MNG_USER} eq '') {
-#      $debug_output .= "Skiped Not defined control user NAS_ID: $NAS{NAS_ID}\n" if ($debug > 1);
-#      next;
-#    }
-#
-#    my ($ip, $mng_port) = split(/:/, $NAS{NAS_MNG_IP_PORT}, 2);
-#    my $cmds = "/usr/bin/ssh -o StrictHostKeyChecking=no -i $base_dir/Certs/id_dsa.$NAS{NAS_MNG_USER} " . "$NAS{NAS_MNG_USER}\@$ip  \"/queue  simple  print\" ";
-#
-#    my $output = '';
-#    $debug_output .= $cmds . "\n" if ($debug > 3);
-#    open(CMD, "$cmds |") || die "Can't open '$cmds' $!";
-#    while (my $l = <CMD>) {
-#      $output .= $l;
-#    }
-#    close(CMD);
-#
-#    my @parts = split(/[\r]\n[\r]\n/, $output);
-#
-#    # key1 interface; key2 rule number; value speed
-#    my %rule_speed = ();
-#
-#    foreach my $part (@parts) {
-#      my $params = parse_fw($part);
-#      if ($params->{'limit-at'} && $params->{'limit-at'} =~ /(\d+)\/(\d+)/) {
-#        $rule_speed{ $params->{'item'} }{IN}  = $1;
-#        $rule_speed{ $params->{'item'} }{OUT} = $2;
-#      }
-#
-#      if ($debug > 5) {
-#        while (my ($key, $val) = each %$params) {
-#          $debug_output .= "INTERFACE: $key\n";
-#          while (my ($direction, $value) = each %$val) {
-#            $debug_output .= "  $direction SPEED: $value\n";
-#          }
-#        }
-#      }
-#    }
-#
-#    push @{ $nas_speeds{ $NAS{NAS_ID} } }, %rule_speed;
-#
-#    if ($debug > 4) {
-#      while (my ($key, $val) = each %rule_speed) {
-#        $debug_output .= "INTERFACE: $key\n";
-#        while (my ($direction, $value) = each %$val) {
-#          $debug_output .= "  $direction:\t$value\n";
-#        }
-#      }
-#    }
-#
-#  }
-#
-#  print $debug_output;
-#
-#  return \%nas_speeds;
-#}
 
 #*****************************************************
 # Parse fw params
@@ -1243,7 +1158,6 @@ sub check_speed {
 
     #Get ng_car speed
     if ($conf{ng_car}) {
-
       #Get speed from server
       open(PROCS, "/usr/sbin/ngctl list |") || die "Can't open file '/usr/sbin/ngctl list' $!\n";
       while (<PROCS>) {
@@ -1288,7 +1202,6 @@ sub check_speed {
       }
     }
     else {
-
       #----------------------------------------------------------
       # old shaper check
       #----------------------------------------------------------

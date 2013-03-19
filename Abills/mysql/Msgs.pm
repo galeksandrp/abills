@@ -124,12 +124,41 @@ sub messages_list {
 
   @WHERE_RULES = ();
 
-  if ($attr->{LOGIN}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{LOGIN}, 'STR', 'u.id') };
-  }
+  push @WHERE_RULES, @{ $self->search_expr_users({ %$attr, 
+                             EXT_FIELDS => [
+                                            'FIO',
+                                            'PHONE:skip',
+                                            'EMAIL',
+                                            'ADDRESS_FLAT',
+                                            'PASPORT_DATE',
+                                            'PASPORT_NUM', 
+                                            'PASPORT_GRANT',
+                                            'CITY', 
+                                            'ZIP',
+                                            'GID',
+                                            'CONTRACT_ID',
+                                            'CONTRACT_SUFIX',
+                                            'CONTRACT_DATE',
+                                            'EXPIRE',
+
+                                            'CREDIT',
+                                            'CREDIT_DATE', 
+                                            'REDUCTION',
+                                            'REGISTRATION',
+                                            'REDUCTION_DATE',
+                                            'COMMENTS',
+                                            'BILL_ID',
+                                            
+                                            'ACTIVATE',
+                                            'EXPIRE',
+                                            'DEPOSIT:skip',
+                                            'DOMAIN_ID',
+                                            'PASSWORD'
+                                             ] }) };
+
 
   if ($attr->{DATE}) {
-    push @WHERE_RULES, "date_format(m.date, '%Y-%m-%d')='$attr->{DATE}'";
+    push @WHERE_RULES, @{ $self->search_expr($attr->{DATE}, 'DATE', "date_format(m.date, '%Y-%m-%d')") };
   }
   elsif ($attr->{FROM_DATE}) {
     push @WHERE_RULES, "(date_format(m.date, '%Y-%m-%d')>='$attr->{FROM_DATE}' and date_format(m.date, '%Y-%m-%d')<='$attr->{TO_DATE}')";
@@ -158,7 +187,7 @@ sub messages_list {
   }
 
   if ($attr->{MESSAGE}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{MESSAGE}, 'STR', 'm.message') };
+    push @WHERE_RULES, @{ $self->search_expr($attr->{MESSAGE}, 'STR', 'm.message', { EXT_FIELD => 1 }) };
   }
   elsif (defined($attr->{REPLY})) {
     push @WHERE_RULES, @{ $self->search_expr($attr->{USER_READ}, 'STR', 'm.user_read') };
@@ -166,14 +195,6 @@ sub messages_list {
 
   if (defined($attr->{PHONE})) {
     push @WHERE_RULES, @{ $self->search_expr($attr->{PHONE}, 'STR', 'm.phone') };
-  }
-
-  # Show groups
-  if ($attr->{GIDS}) {
-    push @WHERE_RULES, "(u.gid IN ($attr->{GIDS}) OR m.gid IN ($attr->{GIDS}) OR m.aid='$admin->{AID}')";
-  }
-  elsif ($attr->{GID}) {
-    push @WHERE_RULES, "(u.gid='$attr->{GID}' OR m.gid='$attr->{GID}' OR m.aid='$admin->{AID}')";
   }
 
   if ($attr->{USER_READ}) {
@@ -193,7 +214,6 @@ sub messages_list {
   }
 
   if ($attr->{REPLY_COUNT}) {
-
     #push @WHERE_RULES, "r.admin_read='$attr->{ADMIN_READ}'";
   }
 
@@ -211,11 +231,11 @@ sub messages_list {
     push @WHERE_RULES, "(" . join(" or ", @WHERE_RULES_pre) . ")";
   }
   elsif ($attr->{CHAPTERS}) {
-    push @WHERE_RULES, "m.chapter IN ($attr->{CHAPTERS})";
+    push @WHERE_RULES, @{ $self->search_expr($attr->{CHAPTERS}, 'INT', 'm.chapter') };
   }
 
   if ($attr->{CHAPTER}) {
-    push @WHERE_RULES, "m.chapter='$attr->{CHAPTER}'";
+    push @WHERE_RULES, @{ $self->search_expr($attr->{CHAPTER}, 'INT', 'm.chapter') };
   }
 
   if ($attr->{UID}) {
@@ -263,29 +283,15 @@ sub messages_list {
     push @WHERE_RULES, @{ $self->search_expr($attr->{DISPATCH_ID}, 'INT', 'm.dispatch_id') };
   }
 
-  my $EXT_JOIN = '';
-
   if ($attr->{IP}) {
     push @WHERE_RULES, @{ $self->search_expr($attr->{IP}, 'IP', 'm.ip',  { EXT_FIELD => 'INET_NTOA(m.ip)' }) };
   }
 
-  if ($attr->{FULL_ADDRESS}) {
-    $EXT_JOIN = 'LEFT JOIN users_pi pi ON (u.uid=pi.uid) ';
-    $self->{SEARCH_FIELDS} = 'pi.fio, CONCAT(pi.address_street, \' \', pi.address_build, \'/\', pi.address_flat), pi.phone, ';
-    $self->{SEARCH_FIELDS_COUNT} += 3;
-  }
+  my $EXT_TABLE = $self->{EXT_TABLES};
 
-  if ($attr->{SHOW_TEXT}) {
-    $self->{SEARCH_FIELDS} .= 'm.message, ';
-    $self->{SEARCH_FIELDS_COUNT}++;
+  if ($self->{SEARCH_FIELDS} =~ /pi\./) {
+    $EXT_TABLE = "LEFT JOIN users_pi pi ON (u.uid = pi.uid) $EXT_TABLE";
   }
-
-  if ($attr->{PASSWORD}) {
-    $self->{SEARCH_FIELDS} .= "DECODE(u.password, '$CONF->{secretkey}'), ";
-    $self->{SEARCH_FIELDS_COUNT}++;
-  }
-
-  # resposible
 
   $WHERE = ($#WHERE_RULES > -1) ? 'WHERE ' . join(' and ', @WHERE_RULES) : '';
 
@@ -317,7 +323,7 @@ m.inner_msg,
 a.name AS admin_name
 FROM (msgs_messages m)
 LEFT JOIN users u ON (m.uid=u.uid)
-$EXT_JOIN
+$EXT_TABLE
 LEFT JOIN admins a ON (m.aid=a.aid)
 LEFT JOIN groups g ON (m.gid=g.gid)
 LEFT JOIN msgs_reply r ON (m.id=r.main_msg)
@@ -1037,7 +1043,6 @@ sub messages_reports {
     }
     elsif ($attr->{TYPE} eq 'RESPOSIBLE') {
       $date          = "a.id";
-      $self->{debug} = 1;
       $EXT_TABLE     = 'LEFT JOIN  admins a ON (m.resposible=a.aid)';
     }
   }
