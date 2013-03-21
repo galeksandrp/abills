@@ -1121,6 +1121,13 @@ sub check_speed {
     print "# billd checkspeed NAS_IDS=8,1,5...\n";
     exit;
   }
+  # Check linux shapper
+  elsif ($OS eq 'Linux' || $ARGV->{LINUX_IPN}) {
+    print "> Linux nas\n" if ($debug > 1);
+    check_speed_linux();
+    exit;
+  }
+
 
   @START_FW = (5000, 3000, 1000) if ($#START_FW < 0);
   my %LOGINS_SPEEDS = ();
@@ -1129,13 +1136,6 @@ sub check_speed {
   my %fw_ips        = ();
   my @FW_ACTIONS    = ();
   my $fw_step       = 0;
-
-  # Check linux shapper
-  if ($OS eq 'Linux' || $ARGV->{LINUX_IPN}) {
-    print "> Linux nas\n" if ($debug > 1);
-    check_speed_linux();
-    exit;
-  }
 
   my $users_table_number = $conf{FW_TABLE_USERS} || 10;
   my $nets_table_number  = 2;

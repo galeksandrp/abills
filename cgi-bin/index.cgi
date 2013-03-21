@@ -1353,7 +1353,7 @@ sub form_neg_deposit {
 
   $user->{TOTAL_DEBET} += abs($user->{DEPOSIT}) if ($user->{DEPOSIT} < 0);
   $user->{TOTAL_DEBET} = sprintf("%.2f", $user->{TOTAL_DEBET});
-  $pages_qs = "&SUM=$user->{TOTAL_DEBET}";
+  $pages_qs = "&SUM=$user->{TOTAL_DEBET}&sid=$sid";
 
   if (in_array('Docs', \@MODULES)) {
     my $fn_index = get_function_index('docs_invoices_list');

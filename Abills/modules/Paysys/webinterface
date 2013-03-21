@@ -2323,13 +2323,28 @@ sub paysys_paypal {
         }
       }
       else {
-        $html->message('err', $_ERROR, "$_FAILED ID: $FORM{OrderID}");
+      	
+      	my $message = '';
+      	if ($resArray->{'error(0).errorId'}) {
+      		#Invalid header
+      		if($resArray->{'error(0).errorId'} == 560022) {
+      	    $message = $resArray->{'error(0).message'};
+      	  }
+      	  else {
+      	  	$message = $resArray->{'error(0).message'};
+      	  }
 
-        print "Content-Type: text/html\n\n";
-        while (my ($k, $v) = each %$resArray) {
-          print "$k, $v <br>";
+      	  $message =~ s/\+/ /g;
+      	}
+      	
+        $html->message('err', $_ERROR, "$_FAILED ID: $FORM{OrderID}\n$message");
+        
+        if ($conf{PAYSY_DEBUG} > 2) {
+          print "Content-Type: text/html\n\n";
+          while (my ($k, $v) = each %$resArray) {
+            print "$k, $v <br>";
+          }
         }
-
         return 0;
       }
     }
