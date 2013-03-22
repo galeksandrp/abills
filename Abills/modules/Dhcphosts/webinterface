@@ -1106,8 +1106,9 @@ sub dhcphosts_get_static_ip {
     my %users_ips = ();
 
     my $list = $Dhcphosts->hosts_list(
-      {    #NETWORK   => $network_id,
-        PAGE_ROWS => 100000
+      {
+        PAGE_ROWS => 100000,
+        SKIP_GID  => 1
       }
     );
 

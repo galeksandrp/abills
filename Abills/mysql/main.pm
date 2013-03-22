@@ -697,7 +697,10 @@ sub search_expr_users () {
     }
   }
 
-  if ($attr->{GIDS}) {
+  if ($attr->{SKIP_GID}) {
+  	
+  }
+  elsif ($attr->{GIDS}) {
     if ($admin->{GIDS}) {
       my @result_gids = ();  
       my @admin_gids  = split(/, /, $admin->{GIDS});

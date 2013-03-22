@@ -907,7 +907,8 @@ sub dv_get_static_ip {
   my $list = $Dv->list(
     {
       PAGE_ROWS => 100000,
-      IP        => ">=$Nas->{NAS_IP_SIP}"
+      IP        => ">=$Nas->{NAS_IP_SIP}",
+      SKIP_GID  => 1
     }
   );
 
