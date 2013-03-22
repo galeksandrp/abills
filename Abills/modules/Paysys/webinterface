@@ -2282,74 +2282,85 @@ sub paysys_paypal {
       return 0;
     }
     else {
-      my $ipnNotificationUrl = "https://$ENV{SERVER_NAME}:$ENV{SERVER_PORT}/paysys_check.cgi";
-      my $returnUrl          = "https://$ENV{SERVER_NAME}:$ENV{SERVER_PORT}$ENV{REQUEST_URI}?OPERATION_ID=$FORM{OPERATION_ID}&PAYMENT_SYSTEM=66&index=$index&finish=1";
-      my $cancelUrl          = "https://$ENV{SERVER_NAME}:$ENV{SERVER_PORT}$ENV{REQUEST_URI}?OPERATION_ID=$FORM{OPERATION_ID}&PAYMENT_SYSTEM=66&index=$index&cancel=1";
-      my $trackingId         = $FORM{OPERATION_ID};
-      my $actionType         = 'PAY';
+    	if ($FORM{STEP}) {
+        my $ipnNotificationUrl = "https://$ENV{SERVER_NAME}:$ENV{SERVER_PORT}/paysys_check.cgi";
+        my $returnUrl          = "https://$ENV{SERVER_NAME}:$ENV{SERVER_PORT}$ENV{REQUEST_URI}?OPERATION_ID=$FORM{OPERATION_ID}&PAYMENT_SYSTEM=66&index=$index&finish=1";
+        my $cancelUrl          = "https://$ENV{SERVER_NAME}:$ENV{SERVER_PORT}$ENV{REQUEST_URI}?OPERATION_ID=$FORM{OPERATION_ID}&PAYMENT_SYSTEM=66&index=$index&cancel=1";
+        my $trackingId         = $FORM{OPERATION_ID};
+        my $actionType         = 'PAY';
+        $FORM{SUM}             = $FORM{FULL_SUM};
 
-      my $resArray = CallPay($actionType, $cancelUrl, $returnUrl, [ $conf{PAYSYS_PAYPAL_RECIEVER_EMAIL} ], [ $FORM{SUM} ], $receiverPrimaryArray, [ $FORM{OPERATION_ID} ], $feesPayer, $ipnNotificationUrl, $memo, $pin, $preapprovalKey, $reverseAllParallelPaymentsOnError, $senderEmail, $trackingId);
+        my $resArray = CallPay($actionType, $cancelUrl, $returnUrl, [ $conf{PAYSYS_PAYPAL_RECIEVER_EMAIL} ], [ $FORM{SUM} ], $receiverPrimaryArray, [ $FORM{OPERATION_ID} ], $feesPayer, $ipnNotificationUrl, $memo, $pin, $preapprovalKey, $reverseAllParallelPaymentsOnError, $senderEmail, $trackingId);
 
-      #Info section
-      $Paysys->add(
-        {
-          SYSTEM_ID      => $payment_system_id,
-          DATETIME       => "$DATE $TIME",
-          SUM            => $FORM{SUM},
-          UID            => $user->{UID},
-          IP             => "$ENV{'REMOTE_ADDR'}",
-          TRANSACTION_ID => "$payment_system:" . $resArray->{"payKey"},
-          INFO           => "$FORM{OPERATION_ID}",
-          CODE           => "$FORM{OPERATION_ID}",
-          PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}"
-        }
-      );
+        #Info section
+        $Paysys->add(
+         {
+            SYSTEM_ID      => $payment_system_id,
+            DATETIME       => "$DATE $TIME",
+            SUM            => $FORM{SUM},
+            UID            => $user->{UID},
+            IP             => "$ENV{'REMOTE_ADDR'}",
+            TRANSACTION_ID => "$payment_system:" . $resArray->{"payKey"},
+            INFO           => "$FORM{OPERATION_ID}",
+            CODE           => "$FORM{OPERATION_ID}",
+            PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}"
+         }
+        ); 
 
-      if ($resArray->{'responseEnvelope.ack'} eq 'Success') {
-        $html->setCookie('lastindex', "$index", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure);
-        if ("" eq $preapprovalKey) {
-
-          # redirect for web approval flow
-          my $cmd = "cmd=_ap-payment&paykey=" . $resArray->{"payKey"};
-          $info{PP_LINK} = RedirectToPayPal($cmd, { OUTPUT2RETURN => undef });
+        if ($resArray->{'responseEnvelope.ack'} eq 'Success') {
+          $html->setCookie('lastindex', "$index", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure);
+          if ("" eq $preapprovalKey) {
+            # redirect for web approval flow
+            my $cmd = "cmd=_ap-payment&paykey=" . $resArray->{"payKey"};
+            $info{PP_LINK} = RedirectToPayPal($cmd, { OUTPUT2RETURN => undef });
+          }
+          else {
+            # payKey is the key that you can use to identify the payment resulting from the Pay call
+            my $payKey = $resArray->{"payKey"};
+  
+            # paymentExecStatus is the status of the payment
+            my $paymentExecStatus = $resArray->{"paymentExecStatus"};
+          }
         }
         else {
 
-          # payKey is the key that you can use to identify the payment resulting from the Pay call
-          my $payKey = $resArray->{"payKey"};
+        	my $message = '';
+        	if ($resArray->{'error(0).errorId'}) {
+        		#Invalid header
+       		  if($resArray->{'error(0).errorId'} == 560022) {
+      	      $message = $resArray->{'error(0).message'};
+      	    }
+      	    else {
+      	  	  $message = $resArray->{'error(0).message'};
+      	    }
 
-          # paymentExecStatus is the status of the payment
-          my $paymentExecStatus = $resArray->{"paymentExecStatus"};
+        	  $message =~ s/\+/ /g;
+         	}
+      	
+          $html->message('err', $_ERROR, "$_FAILED ID: $FORM{OrderID}\n$message");
+        
+          if ($conf{PAYSY_DEBUG} > 2) {
+            print "Content-Type: text/html\n\n";
+            while (my ($k, $v) = each %$resArray) {
+              print "$k, $v <br>";
+            }
+          }
+          return 0;
         }
       }
       else {
-      	
-      	my $message = '';
-      	if ($resArray->{'error(0).errorId'}) {
-      		#Invalid header
-      		if($resArray->{'error(0).errorId'} == 560022) {
-      	    $message = $resArray->{'error(0).message'};
-      	  }
-      	  else {
-      	  	$message = $resArray->{'error(0).message'};
-      	  }
-
-      	  $message =~ s/\+/ /g;
+      	$FORM{FULL_SUM}  = $FORM{SUM};
+      	$FORM{COMMISION} = 0.00;
+      	if ($conf{PAYSYS_PAYPAL_COMMISSION}) {
+      		$conf{PAYSYS_PAYPAL_COMMISSION}=~s/%SUM%/$FORM{SUM}/;
+      		$FORM{COMMISION} = eval($conf{PAYSYS_PAYPAL_COMMISSION});
+      		$FORM{FULL_SUM}  = $FORM{SUM}+$FORM{COMMISION};
       	}
-      	
-        $html->message('err', $_ERROR, "$_FAILED ID: $FORM{OrderID}\n$message");
-        
-        if ($conf{PAYSY_DEBUG} > 2) {
-          print "Content-Type: text/html\n\n";
-          while (my ($k, $v) = each %$resArray) {
-            print "$k, $v <br>";
-          }
-        }
-        return 0;
       }
     }
   }
-
+  #print "Content-Type: text/html\n\n";
+  
   $html->tpl_show(_include('paysys_paypal_add', 'Paysys'), { %info, %$user });
 }
 
