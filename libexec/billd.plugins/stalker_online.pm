@@ -136,7 +136,7 @@ sub stalker_online {
     }
     
     if (! $account_hash->{online}) {
-#    	next;
+    	next;
     }
     
     #block with negative deposite
