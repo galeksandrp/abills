@@ -48,6 +48,7 @@ sub marketing_evolution {
             }
           ),
 
+          "$_GROUPS: ".sel_groups(),
           "$_ROWS: ",
           $html->form_input('rows', int($conf{list_max_recs}), { SIZE => 4 }),
           $html->form_input('show', $_SHOW,                    { TYPE => 'submit' })
@@ -61,7 +62,7 @@ sub marketing_evolution {
   my %AVG        = ();
   my %CHART      = ();
   my $num        = 0;
-
+ 
   if ($FORM{show}) {
     $pages_qs = "&show=1&FROM_DATE=$FORM{FROM_DATE}&TO_DATE=$FORM{TO_DATE}&PERIOD=$FORM{PERIOD}";
     $LIST_PARAMS{INTERVAL} = "$FORM{FROM_DATE}/$FORM{TO_DATE}";
@@ -71,7 +72,11 @@ sub marketing_evolution {
     $pages_qs .= "&MONTH=$FORM{MONTH}&USERS=1";
     $graph_type = 'day_stats';
   }
-
+ 
+  if ($FORM{GID}) {
+  	$pages_qs .= "&GID=$FORM{GID}";
+  }	
+ 
   print $html->form_main(
     {
       CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
@@ -152,7 +157,7 @@ sub marketing_evolution {
       $LIST_PARAMS{SORT} = 1;
       $LIST_PARAMS{DESC} = 'DESC';
     }
-
+    
     my $list = $Marketing->evolution_report({ %LIST_PARAMS, %FORM });
     my $table = $html->table(
       {
@@ -167,9 +172,12 @@ sub marketing_evolution {
 
     foreach my $line (@$list) {
       $table->addrow(
-        ($FORM{MONTH}) ? $html->button($line->[0], "index=$index&DATE=$line->[0]") : $html->button($line->[0], "index=$index&MONTH=$line->[0]"),
-        $line->[1], (($line->[2] < 0) ? 0 : $line->[2]),
-        $line->[3], $line->[4], ($FORM{MONTH}) ? $html->button($_USERS, "index=$index&DATE=$line->[0]&USERS=1") : $html->button($_USERS, "index=$index&MONTH=$line->[0]&USERS=1"),
+        ($FORM{MONTH}) ? $html->button($line->[0], "index=$index&DATE=$line->[0]&USERS=1$pages_qs") : $html->button($line->[0], "index=$index&MONTH=$line->[0]$pages_qs"),
+        $line->[1], 
+        (($line->[2] < 0) ? 0 : $line->[2]),
+        $line->[3], 
+        $line->[4], 
+        ($FORM{MONTH}) ? $html->button($_USERS, "index=$index&DATE=$line->[0]&USERS=1$pages_qs") : $html->button($_USERS, "index=$index&MONTH=$line->[0]&USERS=1$pages_qs"),
       );
 
       if ($line->[0] =~ /(\d+)-(\d+)-(\d+)/) {

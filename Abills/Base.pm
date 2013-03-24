@@ -36,6 +36,7 @@ $VERSION = 2.00;
 &cfg2hash
 &clearquotes
 &cmd
+&ssh_cmd
 );
 
 @EXPORT_OK = qw(
@@ -62,6 +63,7 @@ encode_base64
 cfg2hash
 clearquotes
 cmd
+ssh_cmd
 );
 
 %EXPORT_TAGS = ();
@@ -987,6 +989,42 @@ sub cmd {
     # didn't
     print "didn't\n" if ($attr->{debug});
   }
+}
+
+#**********************************************************
+# get_ssh_value($cmd, \%HASH_REF);
+#**********************************************************
+sub ssh_cmd {
+  my ($cmd, $attr) = @_;
+
+  my @mng_array = split(/:/, $attr->{NAS_MNG_IP_PORT});
+
+  my $nas_host =  $mng_array[0];
+  my $nas_port = 22;
+
+  if ($#mng_array < 1) {
+    $nas_port=22;
+  }
+  else {
+ 	  $nas_port=$mng_array[$#mng_array];
+  }
+
+  my $base_dir  = $attr->{BASE_DIR} || '/usr/abills/';
+  my $nas_admin = $attr->{NAS_MNG_USER}    || 'abills_admin';
+  my $SSH       = $attr->{SSH_CMD}         || "/usr/bin/ssh -p $nas_port -o StrictHostKeyChecking=no -i $base_dir/Certs/id_dsa." . $nas_admin;
+
+  my @value = ();
+  my $cmds = "$SSH $nas_admin\@$nas_host '$cmd'";
+  
+  if ($attr->{DEBUG}) {
+  	print $cmds;
+  }
+  
+  open(CMD, "$cmds |") || die "Can't open '$cmds' $!\n";
+    @value = <CMD>;
+  close(CMD);
+
+  return \@value;  
 }
 
 1;

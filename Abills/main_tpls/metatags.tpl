@@ -9,10 +9,11 @@
  <META HTTP-EQUIV=\"Content-Type\" CONTENT=\"text/html; charset=%CHARSET%\">
  <META name=\"Author\" content=\"~AsmodeuS~\">
  <META HTTP-EQUIV=\"content-language\" content=\"%CONTENT_LANGUAGE%\">
+ <script  src='/js/jquery.js' type='text/javascript'></script>
  <link rel=\"stylesheet\" media=\"print\" type=\"text/css\" href=\"%PRINTCSS%\" >
  <script src='%JAVASCRIPT%' type='text/javascript' language='javascript'></script>
  <script src='/calendar.js' type='text/javascript' language='javascript'></script>
- <script  src='/js/jquery.js' type='text/javascript'></script>
+ 
  <script  src='/js/jquery.cookie.js' type='text/javascript'></script>
 
 <style type=\"text/css\">
@@ -853,6 +854,16 @@ TABLE.border {
 }
 
 #open_popup_block_middle {
+	position:fixed;
+	top:50%;
+	left:50%;
+	display:none;
+	z-index:10;
+	overflow:hidden;
+	background:#f6f6f6;
+}
+
+.open_popup_block_middle {
 	position:fixed;
 	top:50%;
 	left:50%;

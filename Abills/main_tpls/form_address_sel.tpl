@@ -7,7 +7,7 @@
 </style>
 <link rel='stylesheet' type='text/css' href='/styles/default/chosen.css' />
 <script type='text/javascript' src='/styles/default/js/chosen.jquery.min.js' ></script>
-<script language=\"JavaScript\" type=\"text/javascript\">
+<script language='JavaScript' type='text/javascript'>
     \$(document).ready(function(){
       \$('#p1').chosen({no_results_text: '$_NOT_EXIST', allow_single_deselect: true, placeholder_text: '$_CHANGE'});
       \$('#p2').chosen({no_results_text: '$_NOT_EXIST', allow_single_deselect: true, placeholder_text: '$_CHANGE'});
@@ -22,10 +22,10 @@
 <TR>
   <TH colspan=2 class='form_title'>$_ADDRESS</TH>
 </TR>
-<TR bgcolor='$_COLORS[2]'>
-  <TD colspan=2 ><div id='timeline'><img src='/img/progbar.gif'></div></TD>
+<TR class=even>
+  <TD colspan=2><div id='timeline'><img src='/img/progbar.gif'></div></TD>
 </TR>
-<TR bgcolor='$_COLORS[2]'>
+<TR class=even>
   <TD>$_DISTRICTS:</TD>
   <TD><div>
       <select name='ADDRESS_DISTRICT' id='p1' style='width:250px;'>
@@ -33,7 +33,7 @@
       </select>
     </div></TD>
 </TR>
-<TR bgcolor='$_COLORS[2]'>
+<TR class=even>
   <TD>$_ADDRESS_STREET:</TD>
   <TD><div>
       <select name='ADDRESS_STREET' id='p2' style='width:250px;'>
@@ -41,7 +41,7 @@
       </select>
     </div></TD>
 </TR>
-<TR bgcolor='$_COLORS[2]'>
+<TR class=even>
   <TD>$_ADDRESS_BUILD:</TD>
   <TD><div>
       <select name='ADDRESS_BUILD' id='p3' style='width:250px;'>
@@ -49,10 +49,12 @@
       </select>
     </div></TD>
 </TR>
-<TR bgcolor='$_COLORS[2]'>
+<TR class=even>
   <TD>$_ADDRESS_FLAT:</TD>
   <TD><input type=text name=ADDRESS_FLAT value='%ADDRESS_FLAT%' size=8></TD>
 </TR>
-<TR bgcolor='$_COLORS[2]'>
-  <TD colspan=2 align=right>%ADD_ADDRESS_LINK%</TD>
+<TR class=even>
+  <TD colspan=2 align=right><a href='$SELF_URL?get_index=google_maps_show&UID=$FORM{UID}&header=1' target=_map class='link_button'>$_MAP</a> 
+  <a href='$SELF_URL?get_index=form_districts&header=1' class='link_button'>$_ADD $_ADDRESS</a> 
+  %ADD_ADDRESS_LINK%</TD>
 </TR>

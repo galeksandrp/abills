@@ -4,7 +4,7 @@ $CONTENT_LANGUAGE='EN';
 
 @PERIODS=('Today', 'Yesterday', 'Week', 'Month', 'All sessions', 'From activation');
 @MONTHES=('January', 'February', 'March', 'April', 'May', 'June', 'July', 'August',  'September', 'October', 'November', 'December');
-@WEEKDAYS=('Hollidays', 'Mon', 'Tue', 'Wen', 'Thu', 'Fri', 'Sat', 'Sun');
+@WEEKDAYS=('Holidays', 'Mon', 'Tue', 'Wen', 'Thu', 'Fri', 'Sat', 'Sun');
 
 $_ADD='Add';
 $_GET='Get';

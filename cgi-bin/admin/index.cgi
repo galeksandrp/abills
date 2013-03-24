@@ -358,6 +358,7 @@ if ($FORM{qindex} || $FORM{get_index}) {
   
   if ($FORM{get_index}) {
     $index = get_function_index($FORM{get_index});
+    goto FULL_MODE if ($FORM{full});
   }
   else {
     $index = $FORM{qindex};
@@ -398,12 +399,14 @@ if ($FORM{qindex} || $FORM{get_index}) {
   exit;
 }
 
+
 if ($FORM{POPUP} == 1) {
   print "Content/type: text/html\n\n";
   get_popup_info();
   exit;
 }
 
+FULL_MODE:
 #Make active lang list
 if ($conf{LANGS}) {
   $conf{LANGS} =~ s/\n//g;
@@ -2174,8 +2177,8 @@ sub user_pi {
   );
 
   if ($conf{ADDRESS_REGISTER}) {
-    my $add_address_index = get_function_index('form_districts');
-    $user_pi->{ADD_ADDRESS_LINK} = $html->button("$_ADD $_ADDRESS", "index=$add_address_index", { CLASS => 'add rightAlignText' });
+    #my $add_address_index = get_function_index('form_districts');
+    #$user_pi->{ADD_ADDRESS_LINK} = $html->button("$_ADD $_ADDRESS", "index=$add_address_index", { CLASS => 'add rightAlignText' });
     $user_pi->{ADDRESS_TPL} = $html->tpl_show(templates('form_address_sel'), $user_pi, { OUTPUT2RETURN => 1, ID => 'form_address_sel' });
   }
   else {
@@ -2641,8 +2644,9 @@ function CheckAllINBOX() {
 </script>\n
 <a href=\"javascript:void(0)\" onClick=\"CheckAllINBOX();\" class=export_button>$_SELECT_ALL</a>\n$status_bar"
       : undef,
-      EXPORT => ' XML:&xml=1',
-      MENU   => "$_ADD:index=" . get_function_index('form_wizard') . ':add' . ";$_SEARCH:index=" . get_function_index('form_search') . ":search"
+      EXPORT    => ' XML:&xml=1',
+      MENU      => "$_ADD:index=" . get_function_index('form_wizard') . ':add' . ";$_SEARCH:index=" . get_function_index('form_search') . ":search",
+      SHOW_COLS => \%SEARCH_TITLES
     }
   );
   
@@ -4362,8 +4366,32 @@ sub form_nas {
     $pages_qs .= "&NAS_ID=$FORM{NAS_ID}&subf=$FORM{subf}";
     $LIST_PARAMS{NAS_ID} = $FORM{NAS_ID};
     %F_ARGS = (NAS => $nas);
+    
+    if ($FORM{console}) {
+    	if ($FORM{ACTION}) {
+    	  $nas->{NAS_MNG_IP_PORT}= $FORM{NAS_MNG_IP_PORT} if ($FORM{NAS_MNG_IP_PORT});
+    	  $nas->{NAS_MNG_USER}   = $FORM{NAS_MNG_USER} if ($FORM{NAS_MNG_USER});
+        my $result = ssh_cmd($FORM{CMD}, { %$nas, DEBUG => 1 });
 
-    if ($nas->{NAS_TYPE} eq 'chillispot' && -f "../wrt_configure.cgi") {
+  	    $table = $html->table(
+         {
+          width      => '500',
+          caption    => "$_RESULT",
+          ID         => 'CONSOLE RESULT',
+          
+         }
+        );
+
+        foreach my $line (@{ $result }) {
+        	$table->addrow($line);
+        }
+  	    print $table->show();
+    	}
+
+    	$html->tpl_show(templates('form_nas_console'), $nas, { ID => 'form_nas_console' });
+    	return 0;
+    }
+    elsif ($nas->{NAS_TYPE} eq 'chillispot' && -f "../wrt_configure.cgi") {
       $ENV{HTTP_HOST} =~ s/\:(\d+)//g;
       $nas->{EXTRA_PARAMS} = $html->tpl_show(
         templates('form_nas_configure'),
@@ -4567,14 +4595,14 @@ sub form_nas {
   $table = $html->table(
     {
       width      => '100%',
-      caption    => "$_NAS--",
+      caption    => "$_NAS",
       title      => [ "ID", "$_NAME", "NAS-Identifier", "IP", "$_TYPE", "$_AUTH", "$_STATUS", "$_DESCRIBE", '-', '-', '-' ],
       cols_align => [ 'center', 'left', 'left', 'right', 'left', 'left', 'center', 'left', 'center:noprint', 'center:noprint', 'center:noprint' ],
       ID         => 'NAS_LIST',
 
       #MENU       => "$_ADD:index=". get_function_index('form_nas') .':add'
-      EXPORT => "$_EXPORT XML:&xml=1",
-      MENU   => "$_ADD:index=" . get_function_index('form_nas') . ':add' . ";$_SEARCH:index=" . get_function_index('form_nas') . "&type=13:search"
+      EXPORT     => "$_EXPORT XML:&xml=1",
+      MENU       => "$_ADD:index=" . get_function_index('form_nas') . ':add' . ";$_SEARCH:index=" . get_function_index('form_nas') . "&type=13:search"
     }
   );
 
@@ -5112,13 +5140,12 @@ sub reports {
         rows     => [
           [
             @rows,
-            ($attr->{XML})
-            ? ' &nbsp; ' 
-            . $html->form_input('NO_MENU', 1, { TYPE => 'hidden' })
-            . ' &nbsp; '
-            . $html->form_input('xml', 1, { TYPE => 'checkbox' }) . "XML"
-            : '',
-
+#            ($attr->{XML})
+#            ? ' &nbsp; ' 
+#            . $html->form_input('NO_MENU', 1, { TYPE => 'hidden' })
+#            . ' &nbsp; '
+#            . $html->form_input('xml', 1, { TYPE => 'checkbox' }) . "XML"
+#            : '',
             ' &nbsp;' . $html->form_input('show', $_SHOW, { TYPE => 'submit' })
           ]
         ],
@@ -9278,7 +9305,7 @@ sub title_former {
 
   my $data = $attr->{INPUT_DATA};
 
-  my %SEARCH_TITLES = (
+  %SEARCH_TITLES = (
     'disable'       => "$_STATUS",
     'deposit'       => "$_DEPOSIT",
     'credit'        => "$_CREDIT",

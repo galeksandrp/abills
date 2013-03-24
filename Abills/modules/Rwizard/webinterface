@@ -14,6 +14,15 @@ sub rwizard_config {
   $Reports->{LNG_ACTION} = $_ADD;
 
   if ($FORM{add}) {
+    if ($FORM{IMPORT}) {
+      my @sections = split(/=============================/, $FORM{ 'IMPORT'}{Contents});
+      $FORM{NAME}        = $sections[0] if (! $FORM{NAME});
+      $FORM{COMMENTS}    = $sections[1] if (! $FORM{COMMENTS});
+      $FORM{QUERY}       = $sections[2];
+      $FORM{QUERY_TOTAL} = $sections[3];
+      $FORM{FIELDS}      = $sections[4];
+    }
+
     $Reports->add({%FORM});
 
     if (!$Reports->{errno}) {
@@ -26,6 +35,24 @@ sub rwizard_config {
     if (!$Reports->{errno}) {
       $html->message('info', $_REPORTS, "$_CHANGED");
     }
+  }
+  elsif ($FORM{export}) {
+    $Reports->info({ ID => $FORM{export} });
+    my $export_date = qq{
+$Reports->{NAME}
+=============================
+$Reports->{COMMENTS}
+=============================
+$Reports->{QUERY}
+=============================
+$Reports->{QUERY_TOTAL}
+=============================
+$Reports->{FIELDS}
+=============================
+    };
+    
+    print "$export_date";
+    return 0;
   }
   elsif ($FORM{chg}) {
     $Reports->info({ ID => $FORM{chg} });
@@ -54,14 +81,14 @@ sub rwizard_config {
   }
 
   $html->tpl_show(_include('rwizard_config', 'Rwizard'), { %FORM, %$Reports }, 
-    { SKIP_VARS => 'PG,PAGE_ROWS,SORT,DESC,PAGES' });
+    { SKIP_VARS => 'PG,PAGE_ROWS,SORT,DESC,PAGES,DATE_FROM,DATE_TO' });
   my $list = $Reports->list({ %LIST_PARAMS, COLS_NAME => 1 });
   $table = $html->table(
     {
       width      => '100%',
       caption    => "$_REPORTS",
-      title      => [ "ID", "$_NAME", "$_COMMENTS", '-', '-' ],
-      cols_align => [ 'center', 'left', 'left', 'right', 'left', 'left', 'center', 'left', 'center:noprint', 'center:noprint', 'center:noprint' ],
+      title      => [ "ID", "$_NAME", "$_COMMENTS", '-', '-', '-', '-' ],
+      cols_align => [ 'center', 'left', 'left', 'right', 'left', 'center:noprint', 'center:noprint', 'center:noprint' ],
       ID         => 'REPORTS_LIST',
       EXPORT     => "$_EXPORT XML:&xml=1",
       MENU       => "$_ADD:index=" . get_function_index('rwizard_config') . ':add',
@@ -71,8 +98,14 @@ sub rwizard_config {
 
   foreach my $line (@$list) {
     my $delete = $html->button($_DEL, "index=$index&del=$line->{id}", { MESSAGE => "$_DEL '$line->{id}'?", CLASS => 'del', TEXT => $_DEL });
-    $table->{rowcolor} = ($FORM{ID} && $FORM{ID} == $line->{id}) ? 'row_active' : undef;
-    $table->addrow($line->{id}, $line->{name}, $line->{comments}, $html->button("$_CHANGE", "index=$index&chg=$line->{id}", { CLASS => 'change', TEXT => $_CHANGE }), $delete);
+    $table->{rowcolor} = ($FORM{chg} && $FORM{chg} == $line->{id}) ? 'row_active' : undef;
+    $table->addrow($line->{id}, 
+     $line->{name}, 
+     $line->{comments}, 
+     $html->button("$_EXPORT", "qindex=$index&export=$line->{id}", { CLASS => 'download', TEXT => $_CHANGE }), 
+     $html->button("$_SHOW", "index=". get_function_index('rwizard') ."&REPORT=$line->{id}", { CLASS => 'show', TEXT => $_CHANGE }), 
+     $html->button("$_CHANGE", "index=$index&chg=$line->{id}", { CLASS => 'change', TEXT => $_CHANGE }), 
+     $delete);
   }
   print $table->show();
 
@@ -104,10 +137,13 @@ sub rwizard {
       MULTI_ARRAY_VALUE => '0',
       NO_ID             => 1,
       MAIN_MENU         => get_function_index('rwizard_config'),
+      MAIN_MENU_AGRV    => "chg=$FORM{REPORT}"
     }
   );
 
-  $html->tpl_show(_include('rwizard_panel', 'Rwizard'), {%$Reports});
+  my @rows = ("$_REPORTS: $Reports->{REPORTS_SEL}");
+
+  #$html->tpl_show(_include('rwizard_panel', 'Rwizard'), {%$Reports});
 
   if ($FORM{REPORT}) {
     $Reports->info({ ID => $FORM{REPORT}, %LIST_PARAMS });
@@ -121,12 +157,54 @@ sub rwizard {
       if (! $col_title) {
       	$col_title=$col_name
       }
-      elsif ($col_name =~ /^\$_/) {
-      	$col_title = eval($col_title);
+      elsif ($col_title =~ /^\$_/) {
+      	$col_title = eval "$col_title";
       }
+
 
       push @col_names, $col_name;
       push @titles, $col_title;
+    }
+
+    if ($Reports->{QUERY} =~ /DATE_FROM/) {
+    	push @rows, "$_DATE: " . $html->date_fld2('DATE_FROM', { MONTHES => \@MONTHES, FORM_NAME => 'form_reports', WEEK_DAYS => \@WEEKDAYS }) 
+    	. "-" . $html->date_fld2('DATE_TO', { MONTHES => \@MONTHES, FORM_NAME => 'form_reports', WEEK_DAYS => \@WEEKDAYS });
+      $Reports->{QUERY}       =~ s/%DATE_FROM%/$html->{DATE_FROM}/g;
+      $Reports->{QUERY}       =~ s/%DATE_TO%/$html->{DATE_TO}/g;
+      $Reports->{QUERY_TOTAL} =~ s/%DATE_FROM%/$html->{DATE_FROM}/g;
+      $Reports->{QUERY_TOTAL} =~ s/%DATE_TO%/$html->{DATE_TO}/g;
+      
+      $pages_qs .= "&DATE_FROM=$html->{DATE_FROM}&DATE_TO=$html->{DATE_TO}";
+    }
+
+    if ($Reports->{QUERY} =~ /DATE_FROM/) {
+    	push @rows, "$_GROUP: " . sel_groups();
+    	$pages_qs .= "&GID=$FORM{GID}";
+    }
+
+    if ($#rows > -1 ) {
+    	my $table = $html->table(
+      {
+        width    => '100%',
+        rowcolor => 'odd',
+        rows     => [
+          [
+            @rows,
+            ' &nbsp;' . $html->form_input('show', $_SHOW, { TYPE => 'submit' })
+          ]
+        ],
+      }
+      );
+
+      print $html->form_main(
+      {
+        CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
+        NAME    => 'rwizard',
+        HIDDEN  => {
+          'index' => "$index",
+        }
+      }
+      );      
     }
 
     my $list = $Reports->mk(

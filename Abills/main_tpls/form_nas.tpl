@@ -25,7 +25,11 @@
 <TR><TD>$_GROUP:</TD><TD>%NAS_GROUPS_SEL%</TD></TR>
 %ADDRESS_TPL%
 
-<TR><TD colspan=2>%EXTRA_PARAMS%</TD></TR>
+<TR><TD colspan=2>%EXTRA_PARAMS%
+
+<a href='$SELF_URL?index=$index&console=1&NAS_ID=%NAS_ID%&full=1' class='link_button'>Console</a>
+<a href='$SELF_URL?get_index=snmp_info_form&console=1&NAS_ID=%NAS_ID%&full=1' class='link_button'>SNMP</a>
+</TD></TR>
 <TR><TH colspan=2 class=even><input type=submit name=%ACTION% value='%LNG_ACTION%'></TH></TR>
 </TABLE>
 

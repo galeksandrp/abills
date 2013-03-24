@@ -204,8 +204,8 @@ sub evolution_report {
   $self->{SEARCH_FIELDS}       = '';
   $self->{SEARCH_FIELDS_COUNT} = 0;
 
-  @WHERE_RULES = ();
-
+  @WHERE_RULES   = ();
+  my $EXT_TABLES = '';
   my $date = 'DATE_FORMAT(datetime, \'%Y-%m\')';
 
   if ($attr->{PERIOD}) {
@@ -219,13 +219,21 @@ sub evolution_report {
     push @WHERE_RULES, 'aa.module=\'\'';
   }
 
-  if ($attr->{MONTH}) {
+  if ($attr->{DATE}) {
+  	push @WHERE_RULES, @{ $self->search_expr($attr->{DATE}, 'INT', 'date_format(aa.datetime, \'%Y-%m-%d\')') };
+  }
+  elsif ($attr->{MONTH}) {
     push @WHERE_RULES, "date_format(aa.datetime, '%Y-%m')='$attr->{MONTH}'";
     $date = "DATE_FORMAT(datetime, \'%Y-%m-%d\')";
   }
   elsif ($attr->{INTERVAL}) {
     my ($from, $to) = split(/\//, $attr->{INTERVAL}, 2);
     push @WHERE_RULES, "date_format(aa.datetime, '%Y-%m-%d')>='$from' and date_format(aa.datetime, '%Y-%m-%d')<='$to'";
+  }
+
+  if ($attr->{GID}) {
+  	push @WHERE_RULES, @{ $self->search_expr($attr->{GID}, 'INT', 'u.gid') };
+  	$EXT_TABLES .= "LEFT JOIN users u ON (u.uid=aa.uid)";
   }
 
   my $WHERE = ($#WHERE_RULES > -1) ? 'WHERE ' . join(' and ', @WHERE_RULES) : '';
@@ -237,6 +245,7 @@ sub evolution_report {
   sum(if(action_type = 8, 1, 0)),
   sum(if(action_type = 12, 1, 0))  
   FROM admin_actions aa
+  $EXT_TABLES
   $WHERE 
   GROUP BY 1
      ORDER BY $SORT $DESC 
@@ -250,8 +259,10 @@ sub evolution_report {
   if ($self->{TOTAL} >= 0) {
     $self->query(
       $db, "SELECT count(distinct $date) FROM admin_actions aa
-    $WHERE;"
+      $EXT_TABLES
+      $WHERE;"
     );
+
     ($self->{TOTAL}) = @{ $self->{list}->[0] };
   }
 
@@ -285,12 +296,19 @@ sub evolution_users_report {
     push @WHERE_RULES, 'aa.module=\'\'';
   }
 
-  if ($attr->{MONTH}) {
+  if ($attr->{DATE}) {
+  	push @WHERE_RULES, @{ $self->search_expr($attr->{DATE}, 'INT', 'date_format(aa.datetime, \'%Y-%m-%d\')') };
+  }
+  elsif ($attr->{MONTH}) {
     push @WHERE_RULES, "date_format(aa.datetime, '%Y-%m')='$attr->{MONTH}'";
   }
   elsif ($attr->{INTERVAL}) {
     my ($from, $to) = split(/\//, $attr->{INTERVAL}, 2);
     push @WHERE_RULES, "date_format(aa.datetime, '%Y-%m-%d')>='$from' and date_format(aa.datetime, '%Y-%m-%d')<='$to'";
+  }
+
+  if ($attr->{GID}) {
+  	push @WHERE_RULES, @{ $self->search_expr($attr->{GID}, 'INT', 'u.gid') };
   }
 
   my $user = 'u.id';
@@ -358,8 +376,9 @@ sub evolution_users_report {
   if ($self->{TOTAL} >= 0) {
     $self->query(
       $db, "SELECT count(distinct $date) FROM admin_actions aa
-    $WHERE;"
-    );
+       LEFT JOIN users u ON (aa.uid=u.uid)
+       $WHERE;"
+      );
     ($self->{TOTAL}) = @{ $self->{list}->[0] };
   }
 
