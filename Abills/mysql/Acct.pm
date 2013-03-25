@@ -285,9 +285,8 @@ sub accounting {
 
       #Get connected TP
       $self->query(
-        $db, "SELECT uid, tp_id, CONNECT_INFO FROM dv_calls
-      WHERE
-      acct_session_id='$RAD->{ACCT_SESSION_ID}' and nas_id='$NAS->{NAS_ID}';"
+        $db, "SELECT uid, tp_id, CONNECT_INFO FROM dv_calls WHERE
+          acct_session_id='$RAD->{ACCT_SESSION_ID}' and nas_id='$NAS->{NAS_ID}';"
       );
 
       ($EXT_ATTR{UID}, $EXT_ATTR{TP_NUM}, $EXT_ATTR{CONNECT_INFO}) = @{ $self->{list}->[0] } if ($self->{TOTAL} > 0);
