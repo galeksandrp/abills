@@ -481,35 +481,44 @@ sub rt_billing {
   }
 
   $self->query(
-    $db, "SELECT user_name, 
-     lupdated AS interium_session_start, 
-     UNIX_TIMESTAMP()-lupdated AS interium_acct_session_time, 
-   if($RAD->{INBYTE}   >= acct_input_octets AND $RAD->{ACCT_INPUT_GIGAWORDS}=acct_input_gigawords, 
-        $RAD->{INBYTE} - acct_input_octets, 
-        4294967296-acct_input_octets+4294967296*($RAD->{ACCT_INPUT_GIGAWORDS}-acct_input_gigawords-1)+$RAD->{INBYTE}) AS interium_inbyte,
-   if($RAD->{OUTBYTE}  >= acct_output_octets AND $RAD->{ACCT_OUTPUT_GIGAWORDS}=acct_output_gigawords, 
-        $RAD->{OUTBYTE}  - acct_output_octets,
-        4294967296-acct_output_octets+4294967296*($RAD->{ACCT_OUTPUT_GIGAWORDS}-acct_output_gigawords-1)+$RAD->{OUTBYTE}) AS interium_outbyte,
-   if($RAD->{INBYTE2}  >= ex_input_octets, $RAD->{INBYTE2}  - ex_input_octets, ex_input_octets) AS interium_inbyte1,
-   if($RAD->{OUTBYTE2} >= ex_output_octets, $RAD->{OUTBYTE2} - ex_output_octets, ex_output_octets) AS interium_outbyte1,
-   sum AS calls_sum,
-   tp_id AS tp_num,
+    $db, "SELECT lupdated, UNIX_TIMESTAMP()-lupdated,
+   if($RAD->{INBYTE}   >= acct_input_octets AND $RAD->{ACCT_INPUT_GIGAWORDS}=acct_input_gigawords,
+        $RAD->{INBYTE} - acct_input_octets,
+        4294967296-acct_input_octets+4294967296*($RAD->{ACCT_INPUT_GIGAWORDS}-acct_input_gigawords-1)+$RAD->{INBYTE}),
+   if($RAD->{OUTBYTE}  >= acct_output_octets AND $RAD->{ACCT_OUTPUT_GIGAWORDS}=acct_output_gigawords,
+        $RAD->{OUTBYTE} - acct_output_octets,
+        4294967296-acct_output_octets+4294967296*($RAD->{ACCT_OUTPUT_GIGAWORDS}-acct_output_gigawords-1)+$RAD->{OUTBYTE}),
+   if($RAD->{INBYTE2}  >= ex_input_octets, $RAD->{INBYTE2}  - ex_input_octets, ex_input_octets),
+   if($RAD->{OUTBYTE2} >= ex_output_octets, $RAD->{OUTBYTE2} - ex_output_octets, ex_output_octets),
+   sum,
+   tp_id,
    uid
-   FROM dv_calls 
-  WHERE nas_id='$NAS->{NAS_ID}' and acct_session_id='$RAD->{ACCT_SESSION_ID}';",
-  undef,
-  { INFO => 1 }
+   FROM dv_calls
+  WHERE nas_id='$NAS->{NAS_ID}' and acct_session_id='$RAD->{ACCT_SESSION_ID}';"
   );
 
   if ($self->{errno}) {
-    if ($self->{errno} == 2) {
-      $self->{errstr} = "Session account rt Not Exist '$RAD->{ACCT_SESSION_ID}'";
-    }    
+    return $self;
+  }
+  elsif ($self->{TOTAL} < 1) {
+    $self->{errno}  = 2;
+    $self->{errstr} = "Session account rt Not Exist '$RAD->{ACCT_SESSION_ID}'";
     return $self;
   }
 
+  ($RAD->{INTERIUM_SESSION_START},
+  $RAD->{INTERIUM_ACCT_SESSION_TIME},
+  $RAD->{INTERIUM_INBYTE},
+  $RAD->{INTERIUM_OUTBYTE},
+  $RAD->{INTERIUM_INBYTE1},
+  $RAD->{INTERIUM_OUTBYTE1},
+  $self->{CALLS_SUM},
+  $self->{TP_NUM},
+  $self->{UID}) = @{ $self->{list}->[0] };
+
   my $out_byte = $RAD->{OUTBYTE} + $RAD->{ACCT_OUTPUT_GIGAWORDS} * 4294967296;
   my $in_byte  = $RAD->{INBYTE} + $RAD->{ACCT_INPUT_GIGAWORDS} * 4294967296;
+
 
   ($self->{UID}, 
   $self->{SUM}, 
