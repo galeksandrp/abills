@@ -2646,7 +2646,8 @@ function CheckAllINBOX() {
       : undef,
       EXPORT    => ' XML:&xml=1',
       MENU      => "$_ADD:index=" . get_function_index('form_wizard') . ':add' . ";$_SEARCH:index=" . get_function_index('form_search') . ":search",
-      SHOW_COLS => \%SEARCH_TITLES
+      SHOW_COLS => \%SEARCH_TITLES,
+      ACTIVE_COLS => \%ACTIVE_TITLES
     }
   );
   
@@ -9343,7 +9344,9 @@ sub title_former {
     'uid'           => 'UID',
     'if(company.id IS NULL,b.id,cb.id)' => "_BILL"
   );
-
+  
+  %ACTIVE_TITLES = ();
+  
   if ($data->{EXTRA_FIELDS}) {
     foreach my $line (@{ $data->{EXTRA_FIELDS} }) {
       if ($line->[0] =~ /ifu(\S+)/) {
@@ -9366,7 +9369,8 @@ sub title_former {
   my @title        = ();
 
   for (my $i = 0 ; $i < $base_fields+$data->{SEARCH_FIELDS_COUNT} ; $i++) {
-    $title[$i] = $SEARCH_TITLES{ $EX_TITLE_ARR[$i] } || "$_SEARCH";
+    $title[$i]     = $SEARCH_TITLES{ $EX_TITLE_ARR[$i] } || "$_SEARCH";
+    $ACTIVE_TITLES{$EX_TITLE_ARR[$i]} = 1;
   }
   foreach my $function_fld_name ( split(/,/, $attr->{FUNCTION_FIELDS} ) ) {
     $title[$#title+1]='-';

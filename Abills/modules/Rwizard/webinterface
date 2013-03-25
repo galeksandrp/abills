@@ -262,6 +262,9 @@ sub rwizard {
 
     return 0;
   }
+  else {
+  	$html->tpl_show(_include('rwizard_panel', 'Rwizard'), {%$Reports});
+  }
 
 }
 

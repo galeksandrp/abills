@@ -1080,15 +1080,22 @@ sub table {
   if (defined($attr->{caption})) {
   	my $show_cols = '';
   	if ($attr->{SHOW_COLS}) {
-$self->{table} .= "<tr> <td>
-    <a class='js_cols_name' href='#' >show</a>
-    <div id='open_popup_block_middle' style='width:300px; height:400px'>
-    <a id='close_popup_window'>
+      $self->{table} .= "<tr><td>
+      <a class='js_cols_name' href='#' >show</a>
+      <div id='open_popup_block_middle' style='width:300px; height:400px'>
+      <a id='close_popup_window'>
       <img id='close_popup_window_img' src='/img/popup_window/close.png' title='CLOSE' /></a>
-      <div id='popup_window_content'><br/>
-        Contet insert her
-      </div>
-    </div></td></TR>\n";  	
+      <div id='popup_window_content'><br/>";
+      
+      while(my($k, $v)=each %{ $attr->{SHOW_COLS} }){
+      	$self->{table} .= "<input type=checkbox name=$k ";
+      	$self->{table} .= ( $attr->{ACTIVE_COLS}->{$k} ) ? 'checked' : '';
+      	$self->{table} .= "> $v<br>";
+      }
+      
+      $self->{table} .= "
+      <input type=submit name=show value=show>
+      </div></div></td></TR>\n";  	
     }
 
     $self->{table} .= "<TR><TD class='tcaption' colspan='3'>$attr->{caption}</td></TR>\n";
