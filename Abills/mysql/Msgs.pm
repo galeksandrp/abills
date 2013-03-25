@@ -123,6 +123,7 @@ sub messages_list {
   $PG        = (defined($attr->{PG}))   ? $attr->{PG}        : 0;
 
   @WHERE_RULES = ();
+  $attr->{SKIP_GID} = 1;
 
   push @WHERE_RULES, @{ $self->search_expr_users({ %$attr, 
                              EXT_FIELDS => [
@@ -135,7 +136,7 @@ sub messages_list {
                                             'PASPORT_GRANT',
                                             'CITY', 
                                             'ZIP',
-                                            'GID',
+                                            'GID:skip',
                                             'CONTRACT_ID',
                                             'CONTRACT_SUFIX',
                                             'CONTRACT_DATE',
@@ -156,6 +157,14 @@ sub messages_list {
                                             'PASSWORD'
                                              ] }) };
 
+  # Show groups
+  if ($attr->{GIDS} || $admin->{GIDS}) {
+  	$attr->{GIDS} = $admin->{GIDS} if (! $attr->{GIDS});
+    push @WHERE_RULES, "(u.gid IN ($attr->{GIDS}) OR m.gid IN ($attr->{GIDS}) OR m.aid='$admin->{AID}')";
+  }
+  elsif ($attr->{GID}) {
+    push @WHERE_RULES, "(u.gid='$attr->{GID}' OR m.gid='$attr->{GID}' OR m.aid='$admin->{AID}')";
+  }
 
   if ($attr->{DATE}) {
     push @WHERE_RULES, @{ $self->search_expr($attr->{DATE}, 'DATE', "date_format(m.date, '%Y-%m-%d')") };
