@@ -2885,12 +2885,13 @@ sub voip_mk_users_conf {
 
   my $content = '';
 
+  $Voip->{debug}=1;
   my $list = $Voip->user_list(
     {
       PAGE_ROWS => 100000,
-      CID       => '*',
-      PASSWORD  => 1,
-      IP        => '>=0',
+      CID       => '_SHOW',
+      PASSWORD  => '_SHOW',
+      IP        => '_SHOW',
       COLS_NAME => 1
     }
   );
@@ -2915,7 +2916,6 @@ sub voip_mk_users_conf {
     close(FILE);
   }
   else {
-
     #$html->message('err', "Voip:$_ERROR", "Can't open file config file '$conf{VOIP_ASTERISK_USERS}' $!") if (! $attr->{QUITE});
   }
 
