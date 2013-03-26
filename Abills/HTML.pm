@@ -1081,7 +1081,6 @@ sub table {
   	my $show_cols = '';
   	if ($attr->{SHOW_COLS}) {
       $self->{table} .= "<tr><td>
-      <a class='js_cols_name' href='#' >show</a>
       <div id='open_popup_block_middle' style='width:300px; height:400px'>
       <a id='close_popup_window'>
       <img id='close_popup_window_img' src='/img/popup_window/close.png' title='CLOSE' /></a>
@@ -1095,10 +1094,11 @@ sub table {
       
       $self->{table} .= "
       <input type=submit name=show value=show>
-      </div></div></td></TR>\n";  	
+      </div></div></td></tr>\n";  	
     }
 
-    $self->{table} .= "<TR><TD class='tcaption' colspan='3'>$attr->{caption}</td></TR>\n";
+    #$self->{table} .= "<TR><TD class='tcaption' colspan='3'>$attr->{caption}</td></TR>\n";
+    $self->{table} .= "<TR><TD class='tcaption' colspan='3'>$attr->{caption}<img class='tableHideShowImg' style='padding:5px;' src=/img/up_pointer.png /><img class='js_cols_name' src=/img/controls.png /></td></TR>\n";
   }
 
 

@@ -274,7 +274,6 @@ sub change {
 
       $tariffs->{ACTIV_PRICE} = 0;
     }
-
     # Change TP
     elsif (!$skip_change_fee
       && $tariffs->{CHANGE_PRICE} > 0
