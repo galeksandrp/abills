@@ -81,7 +81,7 @@ $Reports->{FIELDS}
   }
 
   $html->tpl_show(_include('rwizard_config', 'Rwizard'), { %FORM, %$Reports }, 
-    { SKIP_VARS => 'PG,PAGE_ROWS,SORT,DESC,PAGES,DATE_FROM,DATE_TO' });
+    { SKIP_VARS => 'PG,PAGE_ROWS,SORT,DESC,PAGES,DATE_FROM,DATE_TO,GID' });
   my $list = $Reports->list({ %LIST_PARAMS, COLS_NAME => 1 });
   $table = $html->table(
     {
@@ -144,7 +144,7 @@ sub rwizard {
   my @rows = ("$_REPORTS: $Reports->{REPORTS_SEL}");
 
   #$html->tpl_show(_include('rwizard_panel', 'Rwizard'), {%$Reports});
-
+ 
   if ($FORM{REPORT}) {
     $Reports->info({ ID => $FORM{REPORT}, %LIST_PARAMS });
 
@@ -177,9 +177,12 @@ sub rwizard {
       $pages_qs .= "&DATE_FROM=$html->{DATE_FROM}&DATE_TO=$html->{DATE_TO}";
     }
 
-    if ($Reports->{QUERY} =~ /DATE_FROM/) {
+    if ($Reports->{QUERY} =~ /%GID%/) {
     	push @rows, "$_GROUP: " . sel_groups();
     	$pages_qs .= "&GID=$FORM{GID}";
+
+      $Reports->{QUERY}       =~ s/%GID%/$FORM{GID}/g;
+      $Reports->{QUERY_TOTAL} =~ s/%GID%/$FORM{GID}/g;
     }
 
     if ($#rows > -1 ) {
@@ -250,11 +253,17 @@ sub rwizard {
     print $table->show();
 
     if ($Reports->{TOTAL}) {
+    	my @total_ext = ();
+
+    	if($Reports->{SUM})  {
+    		push @total_ext, "$_SUM: $Reports->{SUM}";
+    	}
+
       $table = $html->table(
         {
           width      => '100%',
           cols_align => [ 'right', 'right' ],
-          rows       => [ [ "$_TOTAL:", $html->b($Reports->{TOTAL}) ] ]
+          rows       => [ [ "$_TOTAL: ". $html->b($Reports->{TOTAL}), @total_ext ] ]
         }
       );
       print $table->show();

@@ -1,6 +1,6 @@
 <form action='$SELF_URL' METHOD='POST' ENCTYPE='multipart/form-data' id='CARDS_ADD'>
 <input type=hidden name=index value=$index>
-<input type=hidden name=ID value=%ID%>
+<input type=hidden name=ID value=$FORM{chg}>
 <table class=form>
 <tr><th class=form_title>Reports Wizard</th></tr>
 <tr><td>$_NAME</td></tr>

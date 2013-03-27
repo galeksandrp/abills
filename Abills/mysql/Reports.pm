@@ -140,9 +140,9 @@ sub mk {
     $self->query(
         $db, "$attr->{QUERY_TOTAL};", 
     undef, 
-    { COLS_NAME => 1 }
+    { INFO => 1 }
     );
-    $self->{TOTAL} = $self->{list}->[0]->{total} if($self->{list}->[0]->{total});
+    #$self->{TOTAL} = $self->{list}->[0]->{total} if($self->{list}->[0]->{total});
   }
 
   return $list;
@@ -172,12 +172,6 @@ sub info {
    { INFO => 1 }
   );
 
-  if ($self->{TOTAL} < 1) {
-    $self->{errno}  = 2;
-    $self->{errstr} = 'ERROR_NOT_EXIST';
-    return $self;
-  }
-
   return $self;
 }
 
@@ -189,6 +183,7 @@ sub change {
   my $self   = shift;
   my ($attr) = @_;
 
+  $self->{debug}=1;
   $self->changes(
     $admin,
     {
