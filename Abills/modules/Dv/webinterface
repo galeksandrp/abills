@@ -4904,7 +4904,8 @@ sub dv_daily_fees {
 
   #$USERS_LIST_PARAMS{ACTIVE_DAY_FEE} = 1;
   $tariffs->{debug} = 1 if ($debug > 6);
-  my $list = $tariffs->list({%LIST_PARAMS, 
+  my $list = $tariffs->list({%LIST_PARAMS,
+  	                         MODULE     => 'Dv', 
                              COLS_NAME  => 1, 
                              COLS_UPPER => 1 });
 
@@ -5350,6 +5351,7 @@ sub dv_monthly_fees {
   my $users = Users->new($db, $admin, \%conf);
   $tariffs->{debug} = 1 if ($debug > 6);
   my $list = $tariffs->list({%LIST_PARAMS,
+                             MODULE         => 'Dv',
                              DOMAIN_ID      => '_SHOW', 
                              FIXED_FEES_DAY => '_SHOW',
                              COLS_NAME      => 1,
