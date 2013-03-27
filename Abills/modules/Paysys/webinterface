@@ -2224,7 +2224,7 @@ sub paysys_paypal {
         if ($Paysys->{STATUS} == 2) {
           $html->message('info', $_INFO, "$_ADDED $_SUM: $Paysys->{SUM} $_TRANSACTION ID: $FORM{OPERATION_ID}");
         }
-        elsif ($Paysys->{STATUS} == 0) {
+        elsif ($Paysys->{STATUS} == 1) {
           my $resArray = CallPaymentDetails('', '', $FORM{OPERATION_ID});
           my $result = '';
           while (my ($k, $v) = each %$resArray) {

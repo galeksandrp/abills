@@ -485,7 +485,7 @@ sub list {
       push @WHERE_RULES, @{ $self->search_expr("$attr->{ADDRESS_FULL}*", "STR", "CONCAT(streets.name, '', builds.number, '$attr->{BUILD_DELIMITER}', pi.address_flat)") };
     }
     elsif ($CONF->{ADDRESS_REGISTER}) {
-      push @WHERE_RULES, @{ $self->search_expr("$attr->{ADDRESS_FULL}*", "STR", "CONCAT(streets.name, ' ', builds.number, '$attr->{BUILD_DELIMITER}', pi.address_flat)") };
+#      push @WHERE_RULES, @{ $self->search_expr("$attr->{ADDRESS_FULL}", "STR", "CONCAT(streets.name, ' ', builds.number, '$attr->{BUILD_DELIMITER}', pi.address_flat)", { EXT_FIELD => 1 }) };
     }
     else {
        push @WHERE_RULES, @{ $self->search_expr("*$attr->{ADDRESS_FULL}*", "STR", "CONCAT(pi.address_street, ' ', pi.address_build, '$attr->{BUILD_DELIMITER}', pi.address_flat)") };
@@ -547,8 +547,6 @@ sub list {
   # Show users for spec tarifplan
   if (defined($attr->{TP_ID})) {
     push @WHERE_RULES, @{ $self->search_expr($attr->{TP_ID}, 'INT', 'dv.tp_id') };
-    #$self->{SEARCH_FIELDS} .= 'tp.name AS tp_name, ';
-    #$self->{SEARCH_FIELDS_COUNT}++;
   }
 
   if (defined($attr->{TP_CREDIT})) {

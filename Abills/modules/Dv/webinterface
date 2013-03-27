@@ -362,6 +362,14 @@ sub dv_users_list {
     $pages_qs .= "&letter=$FORM{letter}";
   }
 
+  if ($FORM{show_cols}) {
+  	foreach my $col (keys %FORM) {
+  		if ($FORM{$col} && $col =~ /[A-Z\_0-1]+/) {
+  			$LIST_PARAMS{$col}=$FORM{$col};
+  		}
+  	}
+  }
+
   my $list = $Dv->list({%LIST_PARAMS, COLS_NAME => 1 });
   my $TITLE = title_former({
      INPUT_DATA      => $Dv,
@@ -402,7 +410,9 @@ sub dv_users_list {
       qs         => $pages_qs,
       pages      => $Dv->{TOTAL},
       ID         => 'INTERNET_USERS_LIST',
-      header     => $status_bar
+      header     => $status_bar,
+      SHOW_COLS  => \%SEARCH_TITLES,
+      ACTIVE_COLS => \%ACTIVE_TITLES
     }
   );
 

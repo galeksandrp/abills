@@ -1492,7 +1492,7 @@ sub get_ip {
   my $used_pools = join(', ', @used_pools_arr);
 
   #Lock table for read
-  $db->do('lock tables dv_calls as c read , nas_ippools as np read, dv_calls write');
+  $db->do('lock tables dv_calls as c read, nas_ippools as np read, dv_calls write');
   #get active address and delete from pool
   # Select from active users and reserv ips
   $self->query(
@@ -1540,6 +1540,7 @@ sub get_ip {
     }
   }
   else {    # no addresses available in pools
+    $db->do('unlock tables');
     if ($attr->{TP_POOLS}) {
       $self->get_ip($nas_num, $nas_ip);
     }

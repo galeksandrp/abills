@@ -1084,21 +1084,36 @@ sub table {
       <div id='open_popup_block_middle' style='width:300px; height:400px'>
       <a id='close_popup_window'>
       <img id='close_popup_window_img' src='/img/popup_window/close.png' title='CLOSE' /></a>
+      <form action=$SELF_URL METHOD=post>
+      <input type=hidden name=index value=$index>
+      <input type=hidden name=sort value=$FORM{sort}>
+      <input type=hidden name=desc value=$FORM{desc}>
+      <input type=hidden name=pg value=$FORM{pg}>
+
       <div id='popup_window_content'><br/>";
       
-      while(my($k, $v)=each %{ $attr->{SHOW_COLS} }){
-      	$self->{table} .= "<input type=checkbox name=$k ";
-      	$self->{table} .= ( $attr->{ACTIVE_COLS}->{$k} ) ? 'checked' : '';
-      	$self->{table} .= "> $v<br>";
+      #while(my($k, $v)=each %{ $attr->{SHOW_COLS} }){
+      foreach my $k (sort keys %{ $attr->{SHOW_COLS} }){
+      	my $v = $attr->{SHOW_COLS}->{$k};
+      	my $uc_name = ($k !~ /^_/) ? uc($k) : $k;
+      	$self->{table} .= "<input type=checkbox name=$uc_name value=";
+      	$self->{table} .= ( $attr->{ACTIVE_COLS}->{$k} && $attr->{ACTIVE_COLS}->{$k} ne '1') ? "$attr->{ACTIVE_COLS}->{$k}" : '_SHOW';
+      	$self->{table} .= ( $attr->{ACTIVE_COLS}->{$k} ) ? ' checked' : '';
+      	$self->{table} .= "> $v ";
+      	$self->{table} .= ( $attr->{ACTIVE_COLS}->{$k} ) ? " ($attr->{ACTIVE_COLS}->{$k})" : '';
+      	$self->{table} .= "<br>\n";
       }
       
       $self->{table} .= "
-      <input type=submit name=show value=show>
+      <input type=submit name=show_cols value=show>
+      </form>
       </div></div></td></tr>\n";  	
+      
+      $show_cols = "<img class='js_cols_name' src=/img/controls.png />";
     }
+    
 
-    #$self->{table} .= "<TR><TD class='tcaption' colspan='3'>$attr->{caption}</td></TR>\n";
-    $self->{table} .= "<TR><TD class='tcaption' colspan='3'>$attr->{caption}<img class='tableHideShowImg' style='padding:5px;' src=/img/up_pointer.png /><img class='js_cols_name' src=/img/controls.png /></td></TR>\n";
+    $self->{table} .= "<TR><TD class='tcaption' colspan='3'>$attr->{caption}<img class='tableHideShowImg' style='padding:5px;' src=/img/dropdown.png />$show_cols</td></TR>\n";
   }
 
 

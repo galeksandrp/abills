@@ -2584,6 +2584,17 @@ sub form_users {
     $i++;
   }
 
+
+  if ($FORM{show_cols}) {
+  	foreach my $col (keys %FORM) {
+  		if ($FORM{$col} && $col =~ /[A-Z\_0-1]+/) {
+  			$LIST_PARAMS{$col}=$FORM{$col};
+  			print "// $col -> $FORM{$col} //<br>";
+  		}
+  	}
+  }
+
+  $users->{debug}=1; 
   my $list = $users->list({ %LIST_PARAMS, 
                             FULL_LIST => 1,
                             COLS_NAME => 1,
@@ -2714,6 +2725,7 @@ function CheckAllINBOX() {
   );
 
 
+
   if ($permissions{0}{7}) {
     my $table3 = $html->table(
       {
@@ -2725,10 +2737,10 @@ function CheckAllINBOX() {
           [ $html->form_input('MU_GID', "1", { TYPE => 'checkbox', }) . $_GROUP, sel_groups() ],
           [ $html->form_input('MU_DISABLE',     "1", { TYPE => 'checkbox', }) . $_DISABLE,         $html->form_input('DISABLE',     "1", { TYPE => 'checkbox', }) . $_CONFIRM ],
           [ $html->form_input('MU_DEL',         "1", { TYPE => 'checkbox', }) . $_DEL,             $html->form_input('DEL',         "1", { TYPE => 'checkbox', }) . $_CONFIRM ],
-          [ $html->form_input('MU_ACTIVATE',    "1", { TYPE => 'checkbox', }) . $_ACTIVATE,        $html->form_input('ACTIVATE',    "0000-00-00") ],
-          [ $html->form_input('MU_EXPIRE',      "1", { TYPE => 'checkbox', }) . $_EXPIRE,          $html->form_input('EXPIRE',      "0000-00-00") ],
-          [ $html->form_input('MU_CREDIT',      "1", { TYPE => 'checkbox', }) . $_CREDIT,          $html->form_input('CREDIT',      "0") ],
-          [ $html->form_input('MU_CREDIT_DATE', "1", { TYPE => 'checkbox', }) . "$_CREDIT $_DATE", $html->form_input('CREDIT_DATE', "0000-00-00") ],
+          [ $html->form_input('MU_ACTIVATE',    "1", { TYPE => 'checkbox', }) . $_ACTIVATE,        $html->date_fld2('ACTIVATE', { FORM_NAME => 'admin_form', WEEK_DAYS => \@WEEKDAYS, MONTHES => \@MONTHES, NO_DEFAULT_DATE => 1 }) ],
+          [ $html->form_input('MU_EXPIRE',      "1", { TYPE => 'checkbox', }) . $_EXPIRE,          $html->date_fld2('EXPIRE', { FORM_NAME => 'admin_form', WEEK_DAYS => \@WEEKDAYS, MONTHES => \@MONTHES, NO_DEFAULT_DATE => 1 }) ],
+          [ $html->form_input('MU_CREDIT',      "1", { TYPE => 'checkbox', }) . $_CREDIT,          $html->form_input('CREDIT',      "") ],
+          [ $html->form_input('MU_CREDIT_DATE', "1", { TYPE => 'checkbox', }) . "$_CREDIT $_DATE", $html->date_fld2('CREDIT_DATE', { FORM_NAME => 'admin_form', WEEK_DAYS => \@WEEKDAYS, MONTHES => \@MONTHES, NO_DEFAULT_DATE => 1 }) ],
           [ '', $html->form_input('MULTIUSER', "$_CHANGE", { TYPE => 'submit' }) ],
 
         ],
@@ -9315,34 +9327,34 @@ sub title_former {
     'ext_deposit'   => "$_EXTRA $_DEPOSIT",
     'last_payment'  => "$_PAYMENTS $_DATE",
     'email'         => 'E-Mail',
-    'address_street'=> $_ADDRESS,
-    'address_full'  => $_ADDRESS,
     'pasport_date'  => "$_PASPORT $_DATE",
     'pasport_num'   => "$_PASPORT $_NUM",
     'pasport_grant' => "$_PASPORT $_GRANT",
-    'address_build' => "$_ADDRESS_BUILD",
-    'address_flat'  => "$_ADDRESS_FLAT",
     'city'          => "$_CITY",
     'zip'           => "$_ZIP",
     'contract_id'   => "$_CONTRACT_ID",
     'registration'  => "$_REGISTRATION",
     'phone'         => "$_PHONE",
     'comments'      => "$_COMMENTS",
-    'company_id'    => '$_COMPANY_ID',
+    'company_id'    => "$_COMPANY ID",
     'bill_id'       => "$_BILLS",
     'activate'      => "$_ACTIVATE",
     'expire'        => "$_EXPIRE",
     'credit_date'   => "$_CREDIT $_DATE",
     'reduction'     => "$_REDUCTION",
     'domain_id'     => 'DOMAIN ID',
-    'build_number'  => "$_BUILDS",
-    'streets_name'  => "$_STREETS",
+
+    'address_full'  => "$_FULL $_ADDRESS",
+    'address_street'=> "$_ADDRESS_STREET",
+    'address_build' => "$_ADDRESS_BUILD",
+    'address_flat'  => "$_ADDRESS_FLAT",
+
     'district_name' => "$_DISTRICTS",
     'deleted'       => "$_DELETED",
     'gid'           => "$_GROUP",
-    'builds.id'     => 'Location ID',
+    'build_id'      => 'Location ID',
     'uid'           => 'UID',
-    'if(company.id IS NULL,b.id,cb.id)' => "_BILL"
+    'bill_id'       => "$_BILL"
   );
   
   %ACTIVE_TITLES = ();
@@ -9370,7 +9382,7 @@ sub title_former {
 
   for (my $i = 0 ; $i < $base_fields+$data->{SEARCH_FIELDS_COUNT} ; $i++) {
     $title[$i]     = $SEARCH_TITLES{ $EX_TITLE_ARR[$i] } || "$_SEARCH";
-    $ACTIVE_TITLES{$EX_TITLE_ARR[$i]} = 1;
+    $ACTIVE_TITLES{$EX_TITLE_ARR[$i]} = $FORM{uc($EX_TITLE_ARR[$i])} || '_SHOW';
   }
   foreach my $function_fld_name ( split(/,/, $attr->{FUNCTION_FIELDS} ) ) {
     $title[$#title+1]='-';

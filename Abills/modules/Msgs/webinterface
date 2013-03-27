@@ -937,12 +937,63 @@ sub msgs_admin {
   	                                DESC      => (!$FORM{sort}) ? 'DESC' : $FORM{desc}, 
   	                                COLS_NAME => 1
                                  });
+
+=comments
+SELECT m.id,
+if(m.uid>0, u.id, g.name) AS client_id,
+m.subject,
+mc.name AS chapter_name,
+m.date,
+m.state,
+
+m.closed_date,
+ra.id AS resposible_admin_login,
+a.id AS admin_login,
+m.priority,
+CONCAT(m.plan_date, ' ', m.plan_time) AS plan_date_time,
+SEC_TO_TIME(sum(r.run_time)) AS run_time,
+m.uid,
+a.aid,
+m.state,
+m.gid,
+m.user_read,
+m.admin_read,
+if(r.id IS NULL, 0, count(r.id)) AS replies_counts,
+m.chapter AS chapter_id,
+DATE_FORMAT(plan_date, '%w') AS plan_date,
+m.deligation,
+m.inner_msg,
+a.name AS admin_name
+FROM (msgs_messages m)
+
+
+=cut
+
+  my $TITLE = title_former({
+     INPUT_DATA      => $Msgs,
+     BASE_FIELDS     => 11,
+     FUNCTION_FIELDS => '-, -',
+     EXT_TITLES      => {
+       'id'          => '#',
+       'client_id'   => $_USER,
+       'subject'     => $_SUBJECT,
+       'chapter_name'=> $_CHAPTERS,
+       'date'         => "$_DATE",
+       'state'       => "$_STATE",
+       'closed_date' => "$_CLOSED",
+       'resposible_admin_login' => $_RESPOSIBLE,
+       'admin_login' => $_ADMIN,
+       'priority'    => $_PRIORITY,
+       'plan_date_time' => "$_EXECUTION",
+     }
+    });
+
   
   my $table = $html->table(
     {
       width      => '100%',
       caption    => "$_MESSAGES",
-      title      => [ '#', "$_USER", "$_SUBJECT", "$_CHAPTERS", "$_DATE", "$_STATUS", "$_CLOSED", "$_RESPOSIBLE", "$_ADMIN", "$_PRIORITY", "$_EXECUTION", "-", "-" ],
+      title      => $TITLE, #[ '#', "$_USER", "$_SUBJECT", "$_CHAPTERS", "$_DATE", "$_STATUS", "$_CLOSED", "$_RESPOSIBLE", "$_ADMIN", "$_PRIORITY", "$_EXECUTION", "-", "-" ],
       cols_align => [ 'right', 'left', 'left', 'right', 'right', 'left', 'center', 'right', 'left', 'center:noprint', 'center:noprint' ],
       qs         => $pages_qs,
       pages      => $Msgs->{TOTAL},
@@ -964,7 +1015,10 @@ function CheckAllINBOX() {
         : ''
       )
       . 
-     $status_bar
+     $status_bar,
+     SHOW_COLS  => \%SEARCH_TITLES,
+     ACTIVE_COLS => \%ACTIVE_TITLES
+
     }
   );
 
@@ -2337,10 +2391,10 @@ sub msgs_reports {
     my $list = $Msgs->messages_list({%LIST_PARAMS});
     $table_sessions = $html->table(
       {
-        width   => '100%',
-        caption => "$_MSGS",
-        border  => 1,
-        title   => [ '#', "$_USER", "$_SUBJECT", "$_CHAPTERS", "$_DATE", "$_STATUS", "IP", "$_ADMIN", "$_PRIORITY", "$_EXECUTION", "$_RUN_TIME" ],
+        width      => '100%',
+        caption    => "$_MSGS",
+        border     => 1,
+        title      => [ '#', "$_USER", "$_SUBJECT", "$_CHAPTERS", "$_DATE", "$_STATUS", "IP", "$_ADMIN", "$_PRIORITY", "$_EXECUTION", "$_RUN_TIME" ],
         cols_align => [ 'right', 'left', 'left', 'left', 'right', 'left', 'center', 'right', 'center:noprint', 'center:noprint' ],
         ID         => 'MSGS',
         EXPORT     => ' XML:&xml=1',
