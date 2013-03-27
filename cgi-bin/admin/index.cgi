@@ -2594,7 +2594,6 @@ sub form_users {
   	}
   }
 
-  $users->{debug}=1; 
   my $list = $users->list({ %LIST_PARAMS, 
                             FULL_LIST => 1,
                             COLS_NAME => 1,
