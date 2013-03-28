@@ -177,7 +177,6 @@ sub rwizard {
       $pages_qs .= "&DATE_FROM=$html->{DATE_FROM}&DATE_TO=$html->{DATE_TO}";
     }
 
-    $Reports->{debug}=1;
     if ($Reports->{QUERY} =~ /%GID%/) {
     	push @rows, "$_GROUP: " . sel_groups();
     	$pages_qs .= "&GID=$FORM{GID}";

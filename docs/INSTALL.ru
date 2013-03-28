@@ -52,14 +52,14 @@
                     <div id="dokuwiki__usertools">
                 <h3 class="a11y">Инструменты пользователя</h3>
                 <ul>
-                    <li><a href="/wiki/doku.php/abills:docs_03:install:ru?do=login&amp;sectok=970f97e8967ba972d7c24de8284c03c8"  class="action login" rel="nofollow" title="Войти">Войти</a></li>                </ul>
+                    <li><a href="/wiki/doku.php/abills:docs_03:install:ru?do=login&amp;sectok=606a68aaa6316297009bf773be436409"  class="action login" rel="nofollow" title="Войти">Войти</a></li>                </ul>
             </div>
         
         <!-- SITE TOOLS -->
         <div id="dokuwiki__sitetools">
             <h3 class="a11y">Инструменты сайта</h3>
             <form action="/wiki/doku.php/abills" accept-charset="utf-8" class="search" id="dw__search" method="get"><div class="no"><input type="hidden" name="do" value="search" /><input type="text" id="qsearch__in" accesskey="f" name="id" class="edit" title="[F]" /><input type="submit" value="Поиск" class="button" title="Поиск" /><div id="qsearch__out" class="ajax_qsearch JSpopup"></div></div></form>            <div class="mobileTools">
-                <form action="doku.php" method="post" accept-charset="utf-8"><div class="no"><input type="hidden" name="id" value="abills:docs_03:install:ru" /><input type="hidden" name="sectok" value="970f97e8967ba972d7c24de8284c03c8" /><select name="do" class="edit quickselect" title="Инструменты"><option value="">Инструменты</option><optgroup label="Инструменты страницы"><option value="edit">Показать исходный текст</option><option value="revisions">История страницы</option><option value="backlink">Ссылки сюда</option></optgroup><optgroup label="Инструменты сайта"><option value="recent">Недавние изменения</option><option value="media">Media Manager</option><option value="index">Все страницы</option></optgroup><optgroup label="Инструменты пользователя"><option value="login">Войти</option></optgroup></select><input type="submit" value="&gt;" /></div></form>            </div>
+                <form action="doku.php" method="post" accept-charset="utf-8"><div class="no"><input type="hidden" name="id" value="abills:docs_03:install:ru" /><input type="hidden" name="sectok" value="606a68aaa6316297009bf773be436409" /><select name="do" class="edit quickselect" title="Инструменты"><option value="">Инструменты</option><optgroup label="Инструменты страницы"><option value="edit">Показать исходный текст</option><option value="revisions">История страницы</option><option value="backlink">Ссылки сюда</option></optgroup><optgroup label="Инструменты сайта"><option value="recent">Недавние изменения</option><option value="media">Media Manager</option><option value="index">Все страницы</option></optgroup><optgroup label="Инструменты пользователя"><option value="login">Войти</option></optgroup></select><input type="submit" value="&gt;" /></div></form>            </div>
             <ul>
                 <li><a href="/wiki/doku.php/abills:docs_03:install:ru?do=recent"  class="action recent" accesskey="r" rel="nofollow" title="Недавние изменения [R]">Недавние изменения</a></li><li><a href="/wiki/doku.php/abills:docs_03:install:ru?do=media"  class="action media" rel="nofollow" title="Media Manager">Media Manager</a></li><li><a href="/wiki/doku.php/abills:docs_03:install:ru?do=index"  class="action index" accesskey="x" rel="nofollow" title="Все страницы [X]">Все страницы</a></li>            </ul>
         </div>
@@ -100,7 +100,7 @@
 <ul>
 <li class="level3"><div class="li"> <a href="/wiki/doku.php/abills:docs:manual:install:ru" class="wikilink1" title="abills:docs:manual:install:ru">Установка Универсальная</a></div>
 </li>
-<li class="level3"><div class="li"> <span class="curid"><a href="/wiki/doku.php/abills:docs:manual:install_freebsd:ru" class="wikilink1" title="abills:docs:manual:install_freebsd:ru">FreeBSD</a></span></div>
+<li class="level3"><div class="li"> <a href="/wiki/doku.php/abills:docs:manual:install_freebsd:ru" class="wikilink1" title="abills:docs:manual:install_freebsd:ru">FreeBSD</a></div>
 </li>
 <li class="level3"><div class="li"> <a href="/wiki/doku.php/abills:docs:manual:install_ubuntu:ru" class="wikilink1" title="abills:docs:manual:install_ubuntu:ru">Ubuntu</a></div>
 </li>
@@ -126,7 +126,7 @@
 </li>
 <li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:modules:cards:ru" class="wikilink1" title="abills:docs:modules:cards:ru">Cards</a></div>
 </li>
-<li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:modules:dv:ru" class="wikilink1" title="abills:docs:modules:dv:ru">Dv</a></div>
+<li class="level4"><div class="li"> <span class="curid"><a href="/wiki/doku.php/abills:docs:modules:dv:ru" class="wikilink1" title="abills:docs:modules:dv:ru">Dv</a></span></div>
 </li>
 <li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:modules:dhcphosts:ru" class="wikilink1" title="abills:docs:modules:dhcphosts:ru">Dhcphosts</a></div>
 </li>
@@ -362,7 +362,7 @@
 
     </div></div><!-- /site -->
 
-    <div class="no"><img src="/wiki/lib/exe/indexer.php?id=abills%3Adocs_03%3Ainstall%3Aru&amp;1362586376" width="2" height="1" alt="" /></div>
+    <div class="no"><img src="/wiki/lib/exe/indexer.php?id=abills%3Adocs_03%3Ainstall%3Aru&amp;1364470206" width="2" height="1" alt="" /></div>
     <div id="screen__mode" class="no"></div>    <!--[if ( lte IE 7 | IE 8 ) ]></div><![endif]-->
 </body>
 </html>
