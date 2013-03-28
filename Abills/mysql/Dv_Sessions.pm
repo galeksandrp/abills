@@ -676,48 +676,36 @@ sub session_detail {
   $self->query(
     $db, "SELECT 
   l.start,
-  l.start + INTERVAL l.duration SECOND,
+  l.start + INTERVAL l.duration SECOND AS stop,
   l.duration,
   l.tp_id,
-  tp.name,
-  l.sent + 4294967296 * acct_output_gigawords, 
-  l.recv + 4294967296 * acct_input_gigawords,
-  l.recv2,
-  l.sent2, 
-  INET_NTOA(l.ip),
+  tp.name AS tp_name,
+  l.sent + 4294967296 * acct_output_gigawords AS sent, 
+  l.recv + 4294967296 * acct_input_gigawords AS recv,
+  l.recv2 AS sent2,
+  l.sent2 AS recv 2, 
+  INET_NTOA(l.ip) AS ip,
   l.CID,
   l.nas_id,
-  n.name,
-  n.ip,
-  l.port_id,
-  l.minp,
-  l.kb,
+  n.name AS nas_name,
+  n.ip AS nas_ip,
+  l.port_id AS nas_port,
   l.sum,
   l.bill_id,
-  u.id,
+  u.id AS login,
   l.uid,
-  l.acct_session_id,
-  l.terminate_cause,
-  UNIX_TIMESTAMP(l.start)
+  l.acct_session_id AS session_id,
+  l.terminate_cause AS acct_terminate_cause,
+  UNIX_TIMESTAMP(l.start) AS start_unixtime
  FROM (dv_log l, users u)
  LEFT JOIN tarif_plans tp ON (l.tp_id=tp.id) 
  LEFT JOIN nas n ON (l.nas_id=n.id) 
  WHERE l.uid=u.uid 
  $WHERE
- and acct_session_id='$attr->{SESSION_ID}';"
+ and acct_session_id='$attr->{SESSION_ID}';",
+ undef,
+ { INFO => 1 }
   );
-
-  if ($self->{TOTAL} < 1) {
-    $self->{errno}  = 2;
-    $self->{errstr} = 'ERROR_NOT_EXIST';
-    return $self;
-  }
-
-  (
-    $self->{START},       $self->{STOP}, $self->{DURATION}, $self->{TP_ID},  $self->{TP_NAME},  $self->{SENT},       $self->{RECV},                 $self->{SENT2},
-    $self->{RECV2},       $self->{IP},   $self->{CID},      $self->{NAS_ID}, $self->{NAS_NAME}, $self->{NAS_IP},     $self->{NAS_PORT},             $self->{TIME_TARIFF},
-    $self->{TRAF_TARIFF}, $self->{SUM},  $self->{BILL_ID},  $self->{LOGIN},  $self->{UID},      $self->{SESSION_ID}, $self->{ACCT_TERMINATE_CAUSE}, $self->{START_UNIXTIME}
-  ) = @{ $self->{list}->[0] };
 
   return $self;
 }
