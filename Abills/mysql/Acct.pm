@@ -246,14 +246,14 @@ sub accounting {
       if (! $self->{errno}) {
         #return $self;
         $self->query(
-          $db, "INSERT INTO dv_log (uid, start, tp_id, duration, sent, recv, kb, sum, nas_id, port_id,
+          $db, "INSERT INTO dv_log (uid, start, tp_id, duration, sent, recv, sum, nas_id, port_id,
         ip, CID, sent2, recv2, acct_session_id, 
         bill_id,
         terminate_cause,
         acct_input_gigawords,
         acct_output_gigawords) 
         VALUES ('$self->{UID}', FROM_UNIXTIME($RAD->{SESSION_START}), '$self->{TARIF_PLAN}', '$RAD->{ACCT_SESSION_TIME}', 
-        '$RAD->{OUTBYTE}', '$RAD->{INBYTE}', '$self->{TRAF_TARIF}', $self->{CALLS_SUM}+$self->{SUM}, '$NAS->{NAS_ID}',
+        '$RAD->{OUTBYTE}', '$RAD->{INBYTE}', $self->{CALLS_SUM}+$self->{SUM}, '$NAS->{NAS_ID}',
         '$RAD->{NAS_PORT}', 
         INET_ATON('$RAD->{FRAMED_IP_ADDRESS}'), '$RAD->{CALLING_STATION_ID}',
         '$RAD->{OUTBYTE2}', '$RAD->{INBYTE2}',  '$RAD->{ACCT_SESSION_ID}', 
@@ -314,14 +314,14 @@ sub accounting {
       }
       else {
         $self->query(
-          $db, "INSERT INTO dv_log (uid, start, tp_id, duration, sent, recv, kb,  sum, nas_id, port_id,
+          $db, "INSERT INTO dv_log (uid, start, tp_id, duration, sent, recv, sum, nas_id, port_id,
           ip, CID, sent2, recv2, acct_session_id, 
           bill_id,
           terminate_cause,
           acct_input_gigawords,
           acct_output_gigawords ) 
           VALUES ('$self->{UID}', FROM_UNIXTIME($RAD->{SESSION_START}), '$self->{TARIF_PLAN}', '$RAD->{ACCT_SESSION_TIME}', 
-          '$RAD->{OUTBYTE}', '$RAD->{INBYTE}', '$self->{TRAF_TARIF}', '$self->{SUM}', '$NAS->{NAS_ID}',
+          '$RAD->{OUTBYTE}', '$RAD->{INBYTE}', '$self->{SUM}', '$NAS->{NAS_ID}',
           '$RAD->{NAS_PORT}', INET_ATON('$RAD->{FRAMED_IP_ADDRESS}'), '$RAD->{CALLING_STATION_ID}',
           '$RAD->{OUTBYTE2}', '$RAD->{INBYTE2}',  '$RAD->{ACCT_SESSION_ID}', 
           '$self->{BILL_ID}',
@@ -571,7 +571,8 @@ sub rt_billing {
 
   $self->query($db, "SELECT traffic_type FROM dv_log_intervals 
      WHERE acct_session_id='$RAD->{ACCT_SESSION_ID}' 
-           and interval_id='$Billing->{TI_ID}';"
+           AND interval_id='$Billing->{TI_ID}'
+           AND uid='$self->{UID}';"
   );
 
   my %intrval_traffic = ();
@@ -597,11 +598,11 @@ sub rt_billing {
     }
     else {
       $self->query(
-        $db, "INSERT INTO dv_log_intervals (interval_id, sent, recv, duration, traffic_type, sum, acct_session_id)
+        $db, "INSERT INTO dv_log_intervals (interval_id, sent, recv, duration, traffic_type, sum, acct_session_id, uid)
         values ('$Billing->{TI_ID}', 
           '" . $RAD->{ 'INTERIUM_OUTBYTE' . $RAD_TRAFF_SUFIX[$traffic_type] } . "', 
           '" . $RAD->{ 'INTERIUM_INBYTE' . $RAD_TRAFF_SUFIX[$traffic_type] } . "', 
-        '$RAD->{INTERIUM_ACCT_SESSION_TIME}', '$traffic_type', '$self->{SUM}', '$RAD->{ACCT_SESSION_ID}');", 'do'
+        '$RAD->{INTERIUM_ACCT_SESSION_TIME}', '$traffic_type', '$self->{SUM}', '$RAD->{ACCT_SESSION_ID}', '$self->{UID}');", 'do'
       );
     }
   }

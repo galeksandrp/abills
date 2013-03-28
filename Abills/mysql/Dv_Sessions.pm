@@ -987,8 +987,10 @@ WHERE
   }
 
   if ($CONF->{DV_INTERVAL_PREPAID}) {
-    $self->query($db, "SELECT li.traffic_type, SUM($octets_direction_interval) / $CONF->{MB_SIZE}, li.interval_id  FROM dv_log l, dv_log_intervals li
-       WHERE $uid AND ($WHERE) AND l.acct_session_id=li.acct_session_id
+    $self->query($db, "SELECT li.traffic_type, SUM($octets_direction_interval) / $CONF->{MB_SIZE}, li.interval_id  
+       FROM dv_log l, dv_log_intervals li
+       WHERE $uid AND ($WHERE) 
+         AND l.acct_session_id=li.acct_session_id AND li.uid=l.uid
     GROUP BY interval_id, li.traffic_type");
   }
   else {

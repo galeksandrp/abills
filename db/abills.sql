@@ -142,9 +142,11 @@ CREATE TABLE `dv_log_intervals` (
   `sum` double(14,6) unsigned NOT NULL default '0.000000',
   `acct_session_id` varchar(25) NOT NULL default '',
   `added` timestamp NOT NULL,
+  `uid` int(11) unsigned NOT NULL default '0', 
   KEY `acct_session_id` (`acct_session_id`),
-  KEY `session_interval` (`acct_session_id`,`interval_id`)
-) ;
+  KEY `session_interval` (`acct_session_id`,`interval_id`),
+  KEY `uid` (`uid`)
+) COMMENT='DV interval summary stats';
 
 
 CREATE TABLE `errors_log` (
@@ -409,8 +411,6 @@ CREATE TABLE `dv_log` (
   `duration` int(11) NOT NULL default '0',
   `sent` int(10) unsigned NOT NULL default '0',
   `recv` int(10) unsigned NOT NULL default '0',
-  `minp` double(10,2) unsigned NOT NULL default '0.00',
-  `kb` double(10,2) unsigned NOT NULL default '0.00',
   `sum` double(14,6) NOT NULL default '0.000000',
   `port_id` smallint(5) unsigned NOT NULL default '0',
   `nas_id` tinyint(3) unsigned NOT NULL default '0',
@@ -429,11 +429,6 @@ CREATE TABLE `dv_log` (
   KEY `uid` (`uid`,`start`)
 ) ;
 
-# --------------------------------------------------------
-
-#
-# Структура таблиці `mail_access`
-#
 
 CREATE TABLE `mail_access` (
   `pattern` varchar(30) NOT NULL default '',
