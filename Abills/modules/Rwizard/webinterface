@@ -180,9 +180,14 @@ sub rwizard {
     if ($Reports->{QUERY} =~ /%GID%/) {
     	push @rows, "$_GROUP: " . sel_groups();
     	$pages_qs .= "&GID=$FORM{GID}";
-
-      $Reports->{QUERY}       =~ s/%GID%/$FORM{GID}/g;
-      $Reports->{QUERY_TOTAL} =~ s/%GID%/$FORM{GID}/g;
+      if ($FORM{GID} == '') {
+        $Reports->{QUERY}       =~ s/and [a-z\.\_]+\=\'%GID%\'/$FORM{GID}/ig;
+        $Reports->{QUERY_TOTAL} =~ s/and [a-z\.\_]+\=\'%GID%\'/$FORM{GID}/ig;
+      }
+      else {
+        $Reports->{QUERY}       =~ s/%GID%/$FORM{GID}/g;
+        $Reports->{QUERY_TOTAL} =~ s/%GID%/$FORM{GID}/g;
+      }
     }
 
     if ($#rows > -1 ) {
