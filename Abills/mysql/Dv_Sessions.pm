@@ -683,7 +683,7 @@ sub session_detail {
   l.sent + 4294967296 * acct_output_gigawords AS sent, 
   l.recv + 4294967296 * acct_input_gigawords AS recv,
   l.recv2 AS sent2,
-  l.sent2 AS recv 2, 
+  l.sent2 AS recv2, 
   INET_NTOA(l.ip) AS ip,
   l.CID,
   l.nas_id,
