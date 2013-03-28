@@ -954,9 +954,9 @@ WHERE
     $octets_direction_interval = "li.sent";
   }
 
-  my $uid = "uid='$attr->{UID}'";
+  my $uid = "l.uid='$attr->{UID}'";
   if ($attr->{UIDS}) {
-    $uid = "uid IN ($attr->{UIDS})";
+    $uid = "l.uid IN ($attr->{UIDS})";
   }
 
   #Traffic transfert
