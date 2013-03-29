@@ -66,12 +66,6 @@ sub info {
    { INFO => 1 }
   );
 
-  if ($self->{TOTAL} < 1) {
-    $self->{errno}  = 2;
-    $self->{errstr} = 'ERROR_NOT_EXIST';
-    return $self;
-  }
-
   return $self;
 }
 
@@ -466,12 +460,6 @@ sub user_info {
    undef,
    { INFO => 1 }
   );
-
-  if ($self->{TOTAL} < 1) {
-    $self->{errno}  = 2;
-    $self->{errstr} = 'ERROR_NOT_EXIST';
-    return $self;
-  }
 
   return $self;
 }

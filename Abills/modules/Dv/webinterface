@@ -362,14 +362,6 @@ sub dv_users_list {
     $pages_qs .= "&letter=$FORM{letter}";
   }
 
-  if ($FORM{show_cols}) {
-  	foreach my $col (keys %FORM) {
-  		if ($FORM{$col} && $col =~ /[A-Z\_0-1]+/) {
-  			$LIST_PARAMS{$col}=$FORM{$col};
-  		}
-  	}
-  }
-
   my $list = $Dv->list({%LIST_PARAMS, COLS_NAME => 1 });
   my $TITLE = title_former({
      INPUT_DATA      => $Dv,
@@ -6611,6 +6603,9 @@ sub dv_wizard_user {
     else {
       if ($users->{errno} == 7) {
         $html->message('err', "$_ERROR", "$_LOGIN: '$add_values{1}{LOGIN}' $_USER_EXIST");
+      }
+      elsif ($users->{errno} == 10) {
+        $html->message('err', $_ERROR, "'$FORM{LOGIN}' $ERR_WRONG_NAME");
       }
       else {
         $html->message('err', "[$users->{errno}] $err_strs{$users->{errno}}", "$_LOGIN: '$add_values{1}{LOGIN}'");

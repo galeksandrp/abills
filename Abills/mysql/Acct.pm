@@ -593,7 +593,7 @@ sub rt_billing {
                 recv=recv+'" . $RAD->{ 'INTERIUM_INBYTE' . $RAD_TRAFF_SUFIX[$traffic_type] } . "', 
                 duration=duration+'$RAD->{INTERIUM_ACCT_SESSION_TIME}', 
                 sum=sum+'$self->{SUM}'
-              WHERE interval_id='$Billing->{TI_ID}' and acct_session_id='$RAD->{ACCT_SESSION_ID}' and traffic_type='$traffic_type';", 'do'
+              WHERE interval_id='$Billing->{TI_ID}' and acct_session_id='$RAD->{ACCT_SESSION_ID}' and traffic_type='$traffic_type' AND uid='$self->{UID}';", 'do'
       );
     }
     else {

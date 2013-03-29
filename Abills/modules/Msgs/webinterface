@@ -585,10 +585,10 @@ sub msgs_admin {
       }
     }
 
-    %params = ();
-    $params{CHAPTER} = $FORM{CHAPTER_ID} if ($FORM{CHAPTER_ID});
-    $params{STATE} = $FORM{STATE} if (defined($FORM{STATE}) && $FORM{STATE} ne '');
-    $params{STATE} = ($FORM{STATE} == 0 && !$FORM{MAIN_INNER_MESSAGE}) ? 6 : $FORM{STATE};
+    %params              = ();
+    $params{CHAPTER}     = $FORM{CHAPTER_ID} if ($FORM{CHAPTER_ID});
+    $params{STATE}       = $FORM{STATE} if (defined($FORM{STATE}) && $FORM{STATE} ne '');
+    $params{STATE}       = ($FORM{STATE} == 0 && !$FORM{MAIN_INNER_MESSAGE}) ? 6 : $FORM{STATE};
     $params{CLOSED_DATE} = "$DATE $TIME" if ($FORM{STATE} > 0);
     $params{DONE_DATE}   = $DATE         if ($FORM{STATE} > 1);
     $Msgs->message_change(
@@ -974,16 +974,16 @@ FROM (msgs_messages m)
      BASE_FIELDS     => 11,
      FUNCTION_FIELDS => '-, -',
      EXT_TITLES      => {
-       'id'          => '#',
-       'client_id'   => $_USER,
-       'subject'     => $_SUBJECT,
-       'chapter_name'=> $_CHAPTERS,
+       'id'           => '#',
+       'client_id'    => $_USER,
+       'subject'      => $_SUBJECT,
+       'chapter_name' => $_CHAPTERS,
        'date'         => "$_DATE",
-       'state'       => "$_STATE",
-       'closed_date' => "$_CLOSED",
+       'state'        => "$_STATE",
+       'closed_date'  => "$_CLOSED",
        'resposible_admin_login' => $_RESPOSIBLE,
-       'admin_login' => $_ADMIN,
-       'priority'    => $_PRIORITY,
+       'admin_login'  => $_ADMIN,
+       'priority'     => $_PRIORITY,
        'plan_date_time' => "$_EXECUTION",
      }
     });
@@ -1018,7 +1018,6 @@ function CheckAllINBOX() {
      $status_bar,
      SHOW_COLS  => \%SEARCH_TITLES,
      ACTIVE_COLS => \%ACTIVE_TITLES
-
     }
   );
 

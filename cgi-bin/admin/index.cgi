@@ -2584,16 +2584,6 @@ sub form_users {
     $i++;
   }
 
-
-  if ($FORM{show_cols}) {
-  	foreach my $col (keys %FORM) {
-  		if ($FORM{$col} && $col =~ /[A-Z\_0-1]+/) {
-  			$LIST_PARAMS{$col}=$FORM{$col};
-  			print "// $col -> $FORM{$col} //<br>";
-  		}
-  	}
-  }
-
   my $list = $users->list({ %LIST_PARAMS, 
                             FULL_LIST => 1,
                             COLS_NAME => 1,

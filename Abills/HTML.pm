@@ -134,6 +134,16 @@ sub new {
     PG        => $PG,
     PAGE_ROWS => $PAGE_ROWS,
   );
+
+  if ($FORM{show_cols}) {
+  	foreach my $col (keys %FORM) {
+  		if ($FORM{$col} && $col =~ /[A-Z\_0-1]+/) {
+  			$LIST_PARAMS{$col}=$FORM{$col};
+  			#print "// $col => $FORM{$col}<br>"; 
+  		}
+  	}
+  }
+
   %functions = ();
   $pages_qs  = '';
   $index     = int($FORM{index} || 0);
@@ -1084,13 +1094,15 @@ sub table {
       <div id='open_popup_block_middle' style='width:300px; height:400px'>
       <a id='close_popup_window'>
       <img id='close_popup_window_img' src='/img/popup_window/close.png' title='CLOSE' /></a>
-      <form action=$SELF_URL METHOD=post>
-      <input type=hidden name=index value=$index>
-      <input type=hidden name=sort value=$FORM{sort}>
-      <input type=hidden name=desc value=$FORM{desc}>
-      <input type=hidden name=pg value=$FORM{pg}>
+      <form action=$SELF_URL METHOD=post>";
+      
+      foreach my $param_name ('index', 'sort', 'desc', 'pg', 'PAGE_ROWS', 'search', 'USERS_STATUS', 'STATUS', 'STATE') {
+      	if ($FORM{$param_name}) {
+          $self->{table} .= "<input type=hidden name=$param_name value='$FORM{$param_name}'>\n";
+      	}
+      }
 
-      <div id='popup_window_content'><br/>";
+      $self->{table} .= "<div id='popup_window_content'><br/>";
       
       #while(my($k, $v)=each %{ $attr->{SHOW_COLS} }){
       foreach my $k (sort keys %{ $attr->{SHOW_COLS} }){
@@ -1173,8 +1185,8 @@ sub table {
                <TABLE width='100%' cellspacing='1' cellpadding='0' border='0' summary=''>\n";
 
   if (defined($attr->{title})) {
-    $SORT = $LIST_PARAMS{SORT};
-    $self->{table} .= $self->table_title($SORT, $FORM{desc}, $PG, $attr->{title}, $attr->{qs});
+    $SORT              = $LIST_PARAMS{SORT};
+    $self->{table}    .= $self->table_title($SORT, $FORM{desc}, $PG, $attr->{title}, $attr->{qs});
     $self->{title_arr} = $attr->{title};
   }
   elsif (defined($attr->{title_plain})) {
