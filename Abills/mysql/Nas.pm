@@ -384,20 +384,17 @@ sub ip_pools_info {
   my $WHERE = '';
 
   $self->query(
-    $db, "SELECT id, INET_NTOA(ip), counts, name, priority, static, speed
-   FROM ippools  WHERE id='$id';"
+    $db, "SELECT id, 
+      INET_NTOA(ip) AS nas_ip_sip, 
+      counts AS nas_ip_count, 
+      name AS pool_name, 
+      priority AS pool_priority, 
+      static, 
+      speed AS pool_speed
+   FROM ippools  WHERE id='$id';",
+   undef,
+   { INFO => 1 }
   );
-
-  if (defined($self->{errno})) {
-    return $self;
-  }
-  elsif ($self->{TOTAL} < 1) {
-    $self->{errstr} = "ERROR_NOT_EXIST";
-    $self->{errno}  = 2;
-    return $self;
-  }
-
-  ($self->{ID}, $self->{NAS_IP_SIP}, $self->{NAS_IP_COUNT}, $self->{POOL_NAME}, $self->{POOL_PRIORITY}, $self->{STATIC}, $self->{POOL_SPEED},) = @{ $self->{list}->[0] };
 
   return $self;
 }
@@ -409,6 +406,8 @@ sub ip_pools_info {
 sub ip_pools_change {
   my $self = shift;
   my ($attr) = @_;
+
+  $self->{debug}=1;
 
   my %FIELDS = (
     ID             => 'id',
@@ -495,11 +494,15 @@ sub ip_pools_add {
   my ($attr) = @_;
   my %DATA   = $self->get_data($attr);
 
-  $self->query(
-    $db, "INSERT INTO ippools (nas, ip, counts, name, priority, static, speed) 
-   VALUES ('$DATA{NAS_ID}', INET_ATON('$DATA{NAS_IP_SIP}'), '$DATA{NAS_IP_COUNT}',
-   '$DATA{POOL_NAME}', '$DATA{POOL_PRIORITY}', '$DATA{STATIC}', '$DATA{POOL_SPEED}')", 'do'
-  );
+ $self->query_add($db, 'groups', { %$attr, 
+ 	                                 NAS      => $attr->{NAS_ID}, 
+ 	                                 IP       => "INET_ATON('$DATA{NAS_IP_SIP}')", 
+ 	                                 COUNTS   => $attr->{NAS_IP_COUNT}, 
+ 	                                 NAME     => $attr->{POOL_NAME}, 
+ 	                                 PRIORITY => $attr->{POOL_PRIORITY}, 
+ 	                                 SPEED    => $attr->{POOL_SPEED},
+ 	                                 IPV6_PREFIX => "INET6_ATON($attr->{IPV6_PREFIX})"
+ 	                                  });
 
   $admin->system_action_add("NAS_ID:$DATA{NAS_ID} POOLS:" . (join(',', split(/, /, $attr->{ids}))), { TYPE => 1 });
   return 0;
@@ -573,7 +576,9 @@ sub nas_group_list {
     $db, "SELECT id, name, comments, disable
   FROM nas_groups
   $WHERE
-  ORDER BY $SORT $DESC;"
+  ORDER BY $SORT $DESC;",
+  undef, 
+  { INFO => 1 }
   );
 
   return $self->{list};
@@ -592,26 +597,10 @@ sub nas_group_info {
   }
 
   $self->query(
-    $db, "SELECT id, 
-    name, 
-    comments, 
-    disable, 
-    domain_id
- FROM nas_groups
- WHERE $WHERE
-  ;"
+    $db, "SELECT * FROM nas_groups WHERE $WHERE;",
+  undef,
+  { INFO => 1 }
   );
-
-  if (defined($self->{errno})) {
-    return $self;
-  }
-  elsif ($self->{TOTAL} < 1) {
-    $self->{errstr} = "ERROR_NOT_EXIST";
-    $self->{errno}  = 2;
-    return $self;
-  }
-
-  ($self->{ID}, $self->{NAME}, $self->{COMMENTS}, $self->{DISABLE}, $self->{DOMAIN_ID}) = @{ $self->{list}->[0] };
 
   return $self;
 }
@@ -625,22 +614,11 @@ sub nas_group_change {
 
   $attr->{DISABLE} = (defined($attr->{DISABLE})) ? 1 : 0;
 
-  my %FIELDS = (
-    ID       => 'id',
-    NAME     => 'name',
-    COMMENTS => 'comments',
-    DISABLE  => 'disable',
-
-    #  DOMAIN_ID       => 'DOMAIN_ID',
-  );
-
   $self->changes(
     $admin,
     {
       CHANGE_PARAM    => 'ID',
       TABLE           => 'nas_groups',
-      FIELDS          => \%FIELDS,
-      OLD_INFO        => $self->nas_group_info({ ID => $attr->{ID} }),
       DATA            => $attr,
       EXT_CHANGE_INFO => "NAS_GROUP_ID:$self->{ID}"
     }
@@ -660,11 +638,7 @@ sub nas_group_add {
   my ($attr) = @_;
 
   %DATA = $self->get_data($attr);
-
-  $self->query(
-    $db, "INSERT INTO nas_groups (name, comments, disable, domain_id)
- values ('$DATA{NAME}', '$DATA{COMMENTS}', '$DATA{DISABLE}', '$DATA{DOMAIN_ID}');", 'do'
-  );
+  $self->query_add($db, 'groups', $attr);
 
   $admin->system_action_add("NAS_GROUP_ID:$self->{INSERT_ID}", { TYPE => 1 });
   return 0;

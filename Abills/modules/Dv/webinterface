@@ -5031,7 +5031,7 @@ sub dv_daily_fees {
 
   #Daily bonus PAYMENTS
   #Make traffic recalculation for expration
-  $list = $tariffs->list({%LIST_PARAMS});
+  $list = $tariffs->list({%LIST_PARAMS, MODULE     => 'Dv' });
   $debug_output .= "Bonus payments\n";
   use Billing;
   my $Billing = Billing->new($db, $CONF);
@@ -5241,7 +5241,7 @@ sub dv_monthly_next_tp {
 
   my $debug         = $attr->{DEBUG} || 0;
   my $debug_output  = '';
-  my $list          = $tariffs->list({ NEXT_TARIF_PLAN => '>0' });
+  my $list          = $tariffs->list({ NEXT_TARIF_PLAN => '>0', MODULE     => 'Dv' });
   my ($y, $m, $d)   = split(/-/, $ADMIN_REPORT{DATE}, 3);
   my $days_in_month = ($m != 2 ? (($m % 2) ^ ($m > 7)) + 30 : (!($y % 400) || !($y % 4) && ($y % 25) ? 29 : 28));
   my $date_unixtime = mktime(0, 0, 0, $d, ($m - 1), $y - 1900, 0, 0, 0);
@@ -5827,7 +5827,7 @@ sub dv_monthly_fees {
 
   #Make traffic recalculation for expration
   if ($d == 1) {
-    $list = $tariffs->list({%LIST_PARAMS});
+    $list = $tariffs->list({%LIST_PARAMS, MODULE => 'Dv' });
     $debug_output .= "Total month price\n";
     use Billing;
     my $Billing = Billing->new($db, $CONF);

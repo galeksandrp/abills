@@ -108,6 +108,20 @@ sub db_version {
 # type. do
 #       list
 #**********************************************************
+sub query2 {
+  my $self = shift;
+  my ($db, $query, $type, $attr) = @_;
+
+  $self->query($db, $query, $type, $attr);
+
+  return $self;
+}
+
+#**********************************************************
+#  do
+# type. do
+#       list
+#**********************************************************
 sub query {
   my $self = shift;
   my ($db, $query, $type, $attr) = @_;

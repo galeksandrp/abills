@@ -4517,7 +4517,8 @@ sub form_nas {
     'ls_pap2t'   => 'Linksys pap2t',
     'ls_spa8000' => 'Linksys spa8000',
     'redback'    => 'Ericson CE1000 Redback',
-    'mx80'       => 'Juniper MX80'
+    'mx80'       => 'Juniper MX80',
+    'ipv6'       => 'ipv6'
   );
 
   if (defined($conf{nas_servers})) {
