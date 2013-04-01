@@ -494,7 +494,7 @@ sub ip_pools_add {
   my ($attr) = @_;
   my %DATA   = $self->get_data($attr);
 
- $self->query_add($db, 'groups', { %$attr, 
+ $self->query_add($db, 'ippools', { %$attr, 
  	                                 NAS      => $attr->{NAS_ID}, 
  	                                 IP       => "INET_ATON('$DATA{NAS_IP_SIP}')", 
  	                                 COUNTS   => $attr->{NAS_IP_COUNT}, 
