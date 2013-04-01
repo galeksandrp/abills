@@ -185,7 +185,7 @@ sub info {
  { INFO => 1 }
   );
 
-  if ($self->{LOCATION_ID} > 0) {
+  if ($self->{LOCATION_ID}) {
     $self->query(
       $db, "select d.id, d.city, d.name, s.name, b.number  
      FROM builds b
