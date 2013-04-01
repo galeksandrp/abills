@@ -457,6 +457,10 @@ sub changes {
         $CHANGES_LOG   .= "$k $OLD_DATA->{$k}->$DATA{$k};";
         $CHANGES_QUERY .= "$FIELDS->{$k}=INET_ATON('$DATA{$k}'),";
       }
+    	elsif ($column eq 'IPV6_PREFIX') {
+    		$CHANGES_LOG   .= "$k $OLD_DATA->{$k}->$DATA{$k};";
+    		$CHANGES_QUERY .= "$FIELDS->{$k}=INET6_ATON('$DATA{$k}')";
+    	}
       elsif ($k eq 'CHANGED') {
         $CHANGES_QUERY .= "$FIELDS->{$k}=now(),";
       }
@@ -840,7 +844,15 @@ sub query_add {
   while (defined(my $row = $q->fetchrow_hashref())) {
     my $column = uc($row->{COLUMN_NAME});
     if ($values->{$column}) {
-      push @inserts_arr, "$column='$values->{$column}'";
+    	if ($column eq 'IP' || $column eq 'NETMASK') {
+    		push @inserts_arr, "$row->{COLUMN_NAME}=INET_ATON('$values->{$column}')";
+    	}
+    	elsif ($column eq 'IPV6_PREFIX') {
+    		push @inserts_arr, "$row->{COLUMN_NAME}=INET6_ATON('$values->{$column}')";
+    	}
+    	else {
+        push @inserts_arr, "$row->{COLUMN_NAME}='$values->{$column}'";
+      }
      }
   }
   
