@@ -457,7 +457,7 @@ sub changes {
         $CHANGES_LOG   .= "$k $OLD_DATA->{$k}->$DATA{$k};";
         $CHANGES_QUERY .= "$FIELDS->{$k}=INET_ATON('$DATA{$k}'),";
       }
-    	elsif ($column eq 'IPV6_PREFIX') {
+    	elsif ($k eq 'IPV6_PREFIX') {
     		$CHANGES_LOG   .= "$k $OLD_DATA->{$k}->$DATA{$k};";
     		$CHANGES_QUERY .= "$FIELDS->{$k}=INET6_ATON('$DATA{$k}')";
     	}
