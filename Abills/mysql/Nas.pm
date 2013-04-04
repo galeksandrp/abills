@@ -407,8 +407,6 @@ sub ip_pools_change {
   my $self = shift;
   my ($attr) = @_;
 
-  $self->{debug}=1;
-
   my %FIELDS = (
     ID             => 'id',
     POOL_NAME      => 'name',
@@ -496,12 +494,12 @@ sub ip_pools_add {
 
  $self->query_add($db, 'ippools', { %$attr, 
  	                                 NAS      => $attr->{NAS_ID}, 
- 	                                 IP       => "INET_ATON('$DATA{NAS_IP_SIP}')", 
+ 	                                 IP       => "$DATA{NAS_IP_SIP}", 
  	                                 COUNTS   => $attr->{NAS_IP_COUNT}, 
  	                                 NAME     => $attr->{POOL_NAME}, 
  	                                 PRIORITY => $attr->{POOL_PRIORITY}, 
  	                                 SPEED    => $attr->{POOL_SPEED},
- 	                                 IPV6_PREFIX => "INET6_ATON($attr->{IPV6_PREFIX})"
+# 	                                 IPV6_PREFIX => "INET6_ATON($attr->{IPV6_PREFIX})"
  	                                  });
 
   $admin->system_action_add("NAS_ID:$DATA{NAS_ID} POOLS:" . (join(',', split(/, /, $attr->{ids}))), { TYPE => 1 });

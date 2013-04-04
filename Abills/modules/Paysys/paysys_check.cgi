@@ -192,7 +192,7 @@ if ($conf{PAYSYS_SUCCESSIONS}) {
   }
 }
 
-if (check_ip($ENV{REMOTE_ADDR}, '213.186.115.164/24')) {
+if (check_ip($ENV{REMOTE_ADDR}, '213.160.149.229/24')) {
   require "Ibox.pm";
   exit;
 }
