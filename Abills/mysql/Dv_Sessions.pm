@@ -983,13 +983,13 @@ WHERE
   }
   else {
     #Get using traffic
-    $self->query($db, "select  
+    $self->query($db, "SELECT  
      sum($octets_direction) / $CONF->{MB_SIZE},
      sum($octets_direction2) / $CONF->{MB_SIZE},
-     DATE_FORMAT(start, '%Y-%m'), 
+     DATE_FORMAT(l.start, '%Y-%m'), 
      1
-     FROM dv_log
-     WHERE $uid  and tp_id='$self->{INFO_LIST}->[0]->{tp_id}' and
+     FROM dv_log l
+     WHERE $uid  and l.tp_id='$self->{INFO_LIST}->[0]->{tp_id}' and
       (  $WHERE
         ) 
      GROUP BY $GROUP
@@ -1029,11 +1029,11 @@ WHERE
 
   if (! $CONF->{DV_INTERVAL_PREPAID}) {
     #Check online
-    $self->query($db, "select 
+    $self->query($db, "SELECT
        $rest{0} - sum($octets_online_direction) / $CONF->{MB_SIZE},
        $rest{1} - sum($octets_online_direction2) / $CONF->{MB_SIZE},
        1
-     FROM dv_calls
+     FROM dv_calls l
      WHERE $uid
      GROUP BY 3;"
     );
