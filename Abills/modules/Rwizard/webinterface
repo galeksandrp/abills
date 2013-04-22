@@ -21,6 +21,12 @@ sub rwizard_config {
       $FORM{QUERY}       = $sections[2];
       $FORM{QUERY_TOTAL} = $sections[3];
       $FORM{FIELDS}      = $sections[4];
+      
+      $FORM{QUERY}       =~ s/^ //g;
+      $FORM{QUERY}       =~ s/\'/\\\'/g;
+      $FORM{QUERY_TOTAL} =~ s/^ //g;
+      $FORM{QUERY_TOTAL} =~ s/\'/\\\'/g;
+      $FORM{QUERY_TOTAL} =~ s/^[\n\r]+$//g;
     }
 
     $Reports->add({%FORM});
@@ -81,7 +87,7 @@ $Reports->{FIELDS}
   }
 
   $html->tpl_show(_include('rwizard_config', 'Rwizard'), { %FORM, %$Reports }, 
-    { SKIP_VARS => 'PG,PAGE_ROWS,SORT,DESC,PAGES,DATE_FROM,DATE_TO,GID' });
+    { SKIP_VARS => 'PG,PAGE_ROWS,SORT,DESC,PAGES,DATE_FROM,DATE_TO,GID,Y,m,d,i,h' });
   my $list = $Reports->list({ %LIST_PARAMS, COLS_NAME => 1 });
   $table = $html->table(
     {
@@ -127,7 +133,6 @@ sub rwizard {
   my ($attr) = @_;
 
   my $list = $Reports->list();
-
   $Reports->{REPORTS_SEL} = $html->form_select(
     'REPORT',
     {
@@ -153,6 +158,7 @@ sub rwizard {
     my @titles    = ();
     my @col_names = ();
     foreach my $col (@cols) {
+    	next if (! $col);
       my ($col_name, $col_title) = split(/:/, $col);
       if (! $col_title) {
       	$col_title=$col_name
@@ -160,7 +166,6 @@ sub rwizard {
       elsif ($col_title =~ /^\$_/) {
       	$col_title = eval "$col_title";
       }
-
 
       push @col_names, $col_name;
       push @titles, $col_title;
@@ -215,6 +220,7 @@ sub rwizard {
       );      
     }
 
+    $Reports->{QUERY_TOTAL} =~ s/^[\n\r]+$//g;
     my $list = $Reports->mk(
       {
         QUERY       => $Reports->{QUERY},
@@ -225,7 +231,7 @@ sub rwizard {
     );
 
     if ($Reports->{errno}) {
-      $html->message('err', $_ERROR, "[$Reports->{errno}] $Reports->{errstr}" . $html->br() . $html->pre($Reports->{QUERY}));
+      $html->message('err', $_ERROR, "[$Reports->{errno}] $Reports->{errstr}" . $html->br() . $html->pre($Reports->{QUERY}, { OUTPUT2RETURN => 1 })) ;
     }
 
     $table = $html->table(

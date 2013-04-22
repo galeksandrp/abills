@@ -24,10 +24,14 @@ use main;
 #**********************************************************
 sub new {
   my $class = shift;
-  ($db, $admin, $CONF) = @_;
+  my $db    = shift;
+  ($admin, $CONF) = @_;
 
   my $self = {};
   bless($self, $class);
+  
+  $self->{db}=$db;
+  
   return $self;
 }
 
@@ -54,10 +58,9 @@ sub create {
   my ($attr) = @_;
 
   my %DATA = $self->get_data($attr, { default => defaults() });
-  $self->query(
-    $db, "INSERT INTO bills (deposit, uid, company_id, registration) 
-    VALUES ('$DATA{DEPOSIT}', '$DATA{UID}', '$DATA{COMPANY_ID}', now());", 'do'
-  );
+  $self->query_add('bills', { %DATA, 
+  	                          REGISTRATION => 'now()' 
+  	                        });
 
   $self->{BILL_ID} = $self->{INSERT_ID} if (!$self->{errno});
 
@@ -90,7 +93,7 @@ sub action {
     return $self;
   }
 
-  $self->query($db, "UPDATE bills SET deposit=deposit$value WHERE id='$BILL_ID';", 'do');
+  $self->query2("UPDATE bills SET deposit=deposit$value WHERE id='$BILL_ID';", 'do');
 
   return $self;
 }
@@ -137,17 +140,16 @@ sub list {
     }
   }
 
-  $self->query(
-    $db, "SELECT b.id, b.deposit, u.id,  c.name, b.uid, b.company_id
+  $self->query2("SELECT b.id, b.deposit, u.id,  c.name, b.uid, b.company_id
      FROM bills b
      LEFT JOIN users u ON  (b.uid=u.uid) 
      LEFT JOIN companies c ON  (b.company_id=c.id) 
      $WHERE 
      GROUP BY 1
-     ORDER BY $SORT $DESC;"
+     ORDER BY $SORT $DESC;",
+     undef,
+     $attr
   );
-
-  #LIMIT $PG, $PAGE_ROWS
 
   return $self->{list};
 }
@@ -159,11 +161,9 @@ sub del {
   my $self = shift;
   my ($attr) = @_;
 
-  $self->query(
-    $db, "DELETE FROM bills
+  $self->query2("DELETE FROM bills
     WHERE id='$attr->{BILL_ID}';", 'do'
   );
-  return $self if ($db->err > 0);
 
   return $self;
 }
@@ -175,20 +175,17 @@ sub info {
   my $self = shift;
   my ($attr) = @_;
 
-  $self->query(
-    $db, "SELECT b.id, b.deposit, u.id, b.uid, b.company_id
+  $self->query2("SELECT b.id AS bill_id, 
+     b.deposit AS deposit, 
+     u.id As login, 
+     b.uid, 
+     b.company_id
     FROM bills b
     LEFT JOIN users u ON (u.uid = b.uid)
-    WHERE b.id='$attr->{BILL_ID}';"
+    WHERE b.id='$attr->{BILL_ID}';",
+    undef,
+    { INFO => 1 }
   );
-
-  if ($self->{TOTAL} < 1) {
-    $self->{errno}  = 2;
-    $self->{errstr} = 'ERROR_NOT_EXIST';
-    return $self;
-  }
-
-  ($self->{BILL_ID}, $self->{DEPOSIT}, $self->{LOGIN}, $self->{UID}, $self->{COMPANY_ID},) = @{ $self->{list}->[0] };
 
   return $self;
 }

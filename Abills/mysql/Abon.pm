@@ -16,18 +16,18 @@ $VERSION = 2.00;
 %EXPORT_TAGS = ();
 
 use main;
+@ISA = ("main");
 
 my $MODULE = 'Abon';
 
-@ISA = ("main");
-my $uid;
 
 #**********************************************************
 # Init
 #**********************************************************
 sub new {
   my $class = shift;
-  ($db, $admin, $CONF) = @_;
+  my $db    = shift;
+  ($admin, $CONF) = @_;
 
   my $self = {};
   bless($self, $class);
@@ -38,6 +38,8 @@ sub new {
     $self->{UID} = $CONF->{DELETE_USER};
     $self->del({ UID => $CONF->{DELETE_USER} });
   }
+
+  $self->{db}=$db;
 
   return $self;
 }
@@ -51,7 +53,7 @@ sub del {
   my $self = shift;
   my ($attr) = @_;
 
-  $self->query($db, "DELETE from abon_user_list WHERE uid='$self->{UID}';", 'do');
+  $self->query2("DELETE from abon_user_list WHERE uid='$self->{UID}';", 'do');
 
   $admin->action_add($self->{UID}, "$self->{UID}", { TYPE => 10 });
   return $self->{result};
@@ -70,8 +72,7 @@ sub tariff_info {
 
   $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES) : '';
 
-  $self->query(
-    $db, "SELECT 
+  $self->query2("SELECT 
    name,
    period,
    price,
@@ -99,12 +100,6 @@ sub tariff_info {
    undef,
    { INFO => 1 }
   );
-
-  if ($self->{TOTAL} < 1) {
-    $self->{errno}  = 2;
-    $self->{errstr} = 'ERROR_NOT_EXIST';
-    return $self;
-  }
 
   return $self;
 }
@@ -135,7 +130,7 @@ sub tariff_add {
 
   %DATA = $self->get_data($attr);
    
-  $self->query_add($db, 'abon_tariffs', \%DATA);
+  $self->query_add('abon_tariffs', \%DATA);
 
   return $self if ($self->{errno});
   $admin->system_action_add("ABON_ID:$DATA{ID}", { TYPE => 1 });
@@ -187,7 +182,7 @@ sub tariff_del {
   my $self = shift;
   my ($id) = @_;
 
-  $self->query($db, "DELETE from abon_tariffs WHERE id='$id';", 'do');
+  $self->query2("DELETE from abon_tariffs WHERE id='$id';", 'do');
   $admin->system_action_add("ABON_ID:$id", { TYPE => 10 });
   return $self->{result};
 }
@@ -211,8 +206,7 @@ sub tariff_list {
 
   $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES) : '';
 
-  $self->query(
-    $db, "SELECT name, price, period, payment_type, 
+  $self->query2("SELECT name, price, period, payment_type, 
      priority,
      period_alignment,
      count(ul.uid) AS user_count,
@@ -310,8 +304,7 @@ sub user_list {
 
   $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES) : '';
 
-  $self->query(
-    $db, "SELECT u.id AS login, pi.fio, at.name AS tp_name, ul.comments, at.price, at.period,
+  $self->query2("SELECT u.id AS login, pi.fio, at.name AS tp_name, ul.comments, at.price, at.period,
      ul.date, 
      if (at.nonfix_period = 1, 
       if (at.period = 0, ul.date+ INTERVAL 1 DAY, 
@@ -354,13 +347,10 @@ sub user_list {
   my $list = $self->{list};
 
   if ($self->{TOTAL} > 0) {
-    $self->query(
-      $db, "SELECT count(u.uid)
+    $self->query2("SELECT count(u.uid) AS total
      FROM (users u, abon_user_list ul, abon_tariffs at)
-     $WHERE"
+     $WHERE", undef, { INFO => 1 }
     );
-
-    ($self->{TOTAL}) = @{ $self->{list}->[0] };
   }
 
   return $list;
@@ -376,10 +366,9 @@ sub user_tariff_list {
   # @WHERE_RULES = ("ul.uid='$uid'");
   # $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
 
-  $self->query(
-    $db, "SELECT at.id, at.name, ul.comments, at.price, at.period, 
+  $self->query2("SELECT at.id, at.name, ul.comments, at.price, at.period, 
       ul.service_count,
-      ul.date, 
+      max(ul.date) AS date, 
       if (at.nonfix_period = 1, 
       if (at.period = 0, ul.date+ INTERVAL 1 DAY, 
        if (at.period = 1, ul.date + INTERVAL 1 MONTH, 
@@ -440,7 +429,7 @@ sub user_tariff_change {
   $admin->{MODULE} = $MODULE;
  
   if ($attr->{CHANGE_INFO}) {
-    $self->query($db, "UPDATE abon_user_list SET 
+    $self->query2("UPDATE abon_user_list SET 
       comments='$attr->{COMMENTS}', 
       discount='$attr->{DISCOUNT}', 
       create_docs='$attr->{CREATE_DOCS}', 
@@ -454,14 +443,14 @@ sub user_tariff_change {
     return $self;
   }
   elsif($attr->{ACTIVATE}) {
-    $self->query($db, "UPDATE abon_user_list SET 
+    $self->query2("UPDATE abon_user_list SET 
       date='$attr->{ABON_DATE}'
       WHERE uid='$attr->{UID}' AND tp_id='$attr->{ACTIVATE}';
       ", 'do');    
     return 0;
   }
   elsif ($attr->{DEL}) {
-    $self->query($db, "DELETE from abon_user_list WHERE uid='$attr->{UID}' AND tp_id IN ($attr->{DEL});", 'do');
+    $self->query2("DELETE from abon_user_list WHERE uid='$attr->{UID}' AND tp_id IN ($attr->{DEL});", 'do');
     $abon_del = "$attr->{DEL}";
   }
 
@@ -491,8 +480,7 @@ sub user_tariff_change {
       $date = 'curdate()';
     }
 
-    $self->query(
-      $db, "INSERT INTO abon_user_list (uid, tp_id, comments, date, discount, create_docs, send_docs, service_count, manual_fee) 
+    $self->query2("INSERT INTO abon_user_list (uid, tp_id, comments, date, discount, create_docs, send_docs, service_count, manual_fee) 
      VALUES ('$attr->{UID}', '$tp_id', '" . $attr->{ 'COMMENTS_' . $tp_id } . "', $date, '" . $attr->{ 'DISCOUNT_' . $tp_id } . "',
      '" . $attr->{ 'CREATE_DOCS_' . $tp_id } . "', '" . $attr->{ 'SEND_DOCS_' . $tp_id } . "', '". $attr->{'SERVICE_COUNT_'. $tp_id} ."', '" . $attr->{ 'MANUAL_FEE_' . $tp_id } . "');", 'do'
     );
@@ -519,7 +507,7 @@ sub user_tariff_del {
     $WHERE = "tp_id='$attr->{TP_ID}'";
   }
 
-  $self->query($db, "DELETE from abon_user_list WHERE uid='$attr->{UID}' AND $WHERE;", 'do');
+  $self->query2("DELETE from abon_user_list WHERE uid='$attr->{UID}' AND $WHERE;", 'do');
 
   $admin->action_add($attr->{UID}, "$attr->{TP_IDS}");
   return $self;
@@ -547,14 +535,12 @@ sub user_tariff_update {
       $set = "notification2=$DATE";
     }
 
-    $self->query(
-      $db, "UPDATE abon_user_list SET $set
+    $self->query2("UPDATE abon_user_list SET $set
      WHERE uid='$attr->{UID}' and tp_id='$attr->{TP_ID}';", 'do'
     );
   }
   else {
-    $self->query(
-      $db, "UPDATE abon_user_list SET date=$DATE, 
+    $self->query2("UPDATE abon_user_list SET date=$DATE, 
      notification1='0000-00-00',
      notification1_account_id='0',
      notification2='0000-00-00'
@@ -601,8 +587,7 @@ sub periodic_list {
 
   my $EXT_TABLE = '';
 
-  $self->query(
-    $db, "SELECT at.period, at.price, u.uid, 
+  $self->query2("SELECT at.period, at.price, u.uid, 
   if(u.company_id > 0, c.bill_id, u.bill_id) AS bill_id,
   u.id AS login, 
   at.id AS tp_id, 

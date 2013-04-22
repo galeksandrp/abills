@@ -281,7 +281,7 @@ sub bonus_tp {
     $table->addrow(
       $line->[0], $line->[1],
       $status[ $line->[2] ],
-      $html->button("$_RULES", "index=$index&$bonus_type=1&TP_ID=$line->[0]"),
+      $html->button("$_RULES", "index=$index&$bonus_type=1&TP_ID=$line->[0]", { BUTTON => 1 }),
       $html->button($_CHANGE, "index=$index&chg=$line->[0]", { CLASS => 'change' }),
       $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0] ?", CLASS => 'del' })
     );
@@ -513,6 +513,9 @@ sub bonus_user {
       SEL_MULTI_ARRAY   => [ @{ $Bonus->tp_list({   }) } ],
       MULTI_ARRAY_KEY   => 0,
       MULTI_ARRAY_VALUE => 1,
+      MAIN_MENU         => get_function_index('bonus_tp'),
+      MAIN_MENU_AGRV    => "TP_ID=$Bonus->{TP_ID}"
+      
     }
   );
 
@@ -1193,11 +1196,12 @@ sub bonus_periodic_accomulation {
 	  my $list = $Bonus->user_list({ DV_TP_ID  => $tp->{dv_tp_id},
 	  	                             TP_ID     => $tp->{tp_id}, 
 	  	                             COLS_NAME => 1, 
-	  	                             PAGE_ROWS => 1000000,
 	  	                             DEPOSIT   => '>=0',
-	  	                             %LIST_PARAMS 
+	  	                             %LIST_PARAMS, 
+	  	                             PAGE_ROWS => 1000000,
 	  	                           });	
 	  foreach my $user (@$list) {
+	  	$user->{cost} = 0 if (! $user->{cost});
 	  	$debug_output .= "$user->{login}:$user->{uid} Score: $user->{cost}  \n" if ($debug> 1);
 	  	if ($debug < 5) {
         $Bonus->accomulation_scores_change({ UID => $user->{uid}, 

@@ -142,7 +142,6 @@ sub mk {
     undef, 
     { INFO => 1 }
     );
-    #$self->{TOTAL} = $self->{list}->[0]->{total} if($self->{list}->[0]->{total});
   }
 
   return $list;
@@ -183,7 +182,6 @@ sub change {
   my $self   = shift;
   my ($attr) = @_;
 
-  $self->{debug}=1;
   $self->changes(
     $admin,
     {

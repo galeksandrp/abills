@@ -42,34 +42,34 @@ sub abon_user {
     my @del_arr  = ();
 
 
-  if ($FORM{ACTIVATE}) {
- 	  push @new_arr, $FORM{ACTIVATE};
-  }
-  else {
-    foreach my $k (@ids_arr) {
-      $ids_hash{$k} = 1;
+    if ($FORM{ACTIVATE}) {
+ 	    push @new_arr, $FORM{ACTIVATE};
     }
+    else {
+      foreach my $k (@ids_arr) {
+        $ids_hash{$k} = 1;
+      }
 
-    my $list = $Abon->user_tariff_list($FORM{UID}, { COLS_NAME => 1 });
+      my $list = $Abon->user_tariff_list($FORM{UID}, { COLS_NAME => 1 });
 
-    foreach my $line (@$list) {
-      if ($ids_hash{ $line->{id} } && $line->{date}) {
-        #check changes
-        
-        my @compare = (
-          'COMMENTS_:comments',
-          'SERVICE_COUNT_:service_count',
-          #'DATE_:date',
-          'DISCOUNT_:discount',
-          'CREATE_DOCS_:create_docs',
-          'SEND_DOCS_:send_docs',
-          'MANUAL_FEE_:manual_fee');
+      foreach my $line (@$list) {
+        if ($ids_hash{ $line->{id} } && $line->{date}) {
+          #check changes
+          my @compare = (
+            'COMMENTS_:comments',
+            'SERVICE_COUNT_:service_count',
+            #'DATE_:date',
+            'DISCOUNT_:discount',
+            'CREATE_DOCS_:create_docs',
+            'SEND_DOCS_:send_docs',
+            'MANUAL_FEE_:manual_fee'
+          );
           
-        foreach my $l (@compare) {
-        	my ($input_value, $db_value)=split(/:/, $l);
-        	if ($FORM{$input_value.$line->{id}} ne $line->{$db_value}) {
-        		next if (! $FORM{$input_value.$line->{id}} && ! $line->{$db_value});
-        		$Abon->user_tariff_change({ UID => $FORM{UID},
+          foreach my $l (@compare) {
+        	  my ($input_value, $db_value)=split(/:/, $l);
+          	if ($FORM{$input_value.$line->{id}} ne $line->{$db_value}) {
+          		next if (! $FORM{$input_value.$line->{id}} && ! $line->{$db_value});
+          		$Abon->user_tariff_change({ UID => $FORM{UID},
         			          TP_ID       => $line->{id},
         		 	          COMMENTS    => $FORM{'COMMENTS_'.$line->{id}}, 
   	                    DISCOUNT    => $FORM{'DISCOUNT_'.$line->{id}}, 
@@ -79,19 +79,19 @@ sub abon_user {
   	                    MANUAL_FEE  => $FORM{'MANUAL_FEE_'.$line->{id}},
   	                    CHANGE_INFO => 1
   	                    });
-        		last;
-        	}
-        }  
+        		  last;
+        	  }
+          }  
         
-        delete $ids_hash{ $line->{id} };
+          delete $ids_hash{ $line->{id} };
+        }
+        elsif ($line->{date}) {
+          push @del_arr, $line->{id};
+        }
       }
-      elsif ($line->{date}) {
-        push @del_arr, $line->{id};
-      }
-    }
 
-    @new_arr  = keys %ids_hash;
-}
+      @new_arr  = keys %ids_hash;
+    }
 
     my @docs_ids = ();
     
@@ -102,11 +102,12 @@ sub abon_user {
         my ($Y, $M, $D) = split(/-/, $FORM{ 'DATE_' . $line->{tp_id} }, 3);
         my $seltime = POSIX::mktime(0, 0, 0, $D, ($M - 1), ($Y - 1900));
 
+        $Abon->{TP_INFO}->{TP_ID}    = $line->{tp_id};
         $Abon->{TP_INFO}->{DISCOUNT} = $ai_list->[0]->{DISCOUNT};
         $Abon->{TP_INFO}->{DISCOUNT} = $line->{discount};
         $Abon->{TP_INFO}->{PRICE}    = $line->{price};
-        $FORM{ 'DISCOUNT_' . $Abon->{TP_INFO}->{TP_ID} } = $ai_list->[0]->{DISCOUNT};
-        
+        #$FORM{ 'DISCOUNT_' . $Abon->{TP_INFO}->{TP_ID} } = $ai_list->[0]->{DISCOUNT};
+       
         if ($FORM{ 'DISCOUNT_' . $Abon->{TP_INFO}->{TP_ID} }) {
           $Abon->{TP_INFO}->{PRICE} = $Abon->{TP_INFO}->{PRICE} * ((100 - $FORM{ 'DISCOUNT_' . $Abon->{TP_INFO}->{TP_ID} }) / 100);
         }
@@ -117,7 +118,6 @@ sub abon_user {
         if (($users->{CREDIT} + $users->{DEPOSIT}) > $Abon->{TP_INFO}->{PRICE}
              || $line->{payment_type} || time() < $seltime) {
           $Abon->{TP_INFO}->{PERIOD_ALIGNMENT} = $line->{period_alignment} || 0;
-          $Abon->{TP_INFO}->{TP_ID}            = $line->{tp_id};
           $Abon->{TP_INFO}->{TP_NAME}          = $line->{name};
           $Abon->{COMMENTS}                    = $FORM{ 'COMMENTS_' . $line->{tp_id} };
           $Abon->{TP_INFO}->{FEES_TYPE}        = $line->{fees_type} || 1;
@@ -152,7 +152,7 @@ sub abon_user {
           }
 
           my %PARAMS = (
-            DESCRIBE => "$_ABON: ($line->{tp_id}) " . (($FORM{ 'COMMENTS_' . $line->{tp_id} }) ? $FORM{ 'COMMENTS_' . $line->{tp_id} } : "$line->{name}"),
+            DESCRIBE => "$_ABON: ($line->{tp_id}) $line->{name}" . (($FORM{ 'COMMENTS_' . $line->{tp_id} }) ? ' '.$FORM{ 'COMMENTS_' . $line->{tp_id} } : ""),
             METHOD => $Abon->{TP_INFO}->{FEES_TYPE}
           );
 
@@ -281,7 +281,7 @@ sub abon_user {
       $table->{rowcolor} = undef;
     }
 
-    $table->addrow($state.
+    $table->addrow(
       $line->{id}
       . $html->form_input(
         'IDS',
@@ -298,7 +298,7 @@ sub abon_user {
       $html->form_input('SERVICE_COUNT_' . $line->{id}, $line->{service_count} || 1, { SIZE => 5 }),
       $line->{date},
       ($line->{next_abon}) ? "$line->{next_abon}" : $html->date_fld2('DATE_' . $line->{id}, { FORM_NAME => 'ABON_USER_TPS', WEEK_DAYS => \@WEEKDAYS, MONTHES => \@MONTHES, DATE => '0000-00-00' }),
-      $html->form_input('DISCOUNT_' . $line->{id}, "$line->{discount}", { SIZE => '8' }),
+      $html->form_input('DISCOUNT_' . $line->{id}, $FORM{'DISCOUNT_' . $line->{id}} || $line->{discount}, { SIZE => '8' }),
       $html->form_input('CREATE_DOCS_' . $line->{id}, "1",
         {
           TYPE  => 'CHECKBOX',
@@ -328,7 +328,7 @@ sub abon_user {
     $action = $html->form_input('change', "$_CHANGE", { TYPE => 'submit' });
   }
 
-  $table->{extra}    = 'colspan=11 align=\'center\'';
+  $table->{extra}    = 'colspan=13 align=\'center\'';
   $table->{rowcolor} = 'even';
   $table->addrow($action);
 
@@ -620,7 +620,6 @@ sub abon_periodic {
     $FORM{QUICK} = 1;
     load_module('Docs', $html);
   }
-
 
   $Abon->{debug} = 1 if ($debug > 6);
   my $list = $Abon->periodic_list({ %LIST_PARAMS, 

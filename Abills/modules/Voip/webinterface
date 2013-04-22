@@ -320,6 +320,18 @@ sub voip_user {
       $html->message('err', $_ERROR, "$ERR_WRONG_DATA $_NUMBER");
     }
     else {
+      if ($FORM{PROVISION_PORT}) {
+        my $list = $Voip->user_list({ PROVISION_PORT  => $FORM{PROVISION_PORT}, 
+      	                              PROVISION_NAS_ID=> $FORM{PROVISION_NAS_ID},
+      	                              COLS_NAME       => 1 
+        	                         });
+
+        if ($Voip->{TOTAL} > 0 && $list->[0]{uid} != $FORM{UID}) {
+          $html->message('err', $_ERROR, "$_PORT: $FORM{PROVISION_PORT}  $_EXIST. $_LOGIN: " . $html->button("$list->[0]{login}", "index=15&UID=" . $list->[0]{uid} ));
+          return 0;
+        }
+      }
+
       $Voip->user_add({%FORM});
       if (!$Voip->{errno}) {
         $html->message('info', $_INFO, "$_ADDED");
@@ -332,6 +344,18 @@ sub voip_user {
     }
   }
   elsif ($FORM{set}) {
+    
+    if ($FORM{PROVISION_PORT}) {
+      my $list = $Voip->user_list({ PROVISION_PORT  => $FORM{PROVISION_PORT}, 
+      	                            PROVISION_NAS_ID=> $FORM{PROVISION_NAS_ID},
+      	                            COLS_NAME       => 1 
+      	                         });
+      if ($Voip->{TOTAL} > 0 && $list->[0]{uid} != $FORM{UID}) {
+        $html->message('err', $_ERROR, "$_PORT: $FORM{PROVISION_PORT}  $_EXIST. $_LOGIN: " . $html->button("$list->[0]{login}", "index=15&UID=" . $list->[0]{uid} ));
+        return 0;
+      }
+    }
+
     $Voip->user_change({%FORM});
     if (!$Voip->{errno}) {
       $html->message('info', $_INFO, "$_CHANGED");

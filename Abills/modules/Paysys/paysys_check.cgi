@@ -192,7 +192,7 @@ if ($conf{PAYSYS_SUCCESSIONS}) {
   }
 }
 
-if (check_ip($ENV{REMOTE_ADDR}, '213.160.149.229/24')) {
+if (check_ip($ENV{REMOTE_ADDR}, '213.186.115.164/24')) {
   require "Ibox.pm";
   exit;
 }
@@ -262,6 +262,10 @@ elsif ($FORM{ACT}) {
 }
 elsif ($conf{PAYSYS_GIGS_IPS} && $conf{PAYSYS_GIGS_IPS} =~ /$ENV{REMOTE_ADDR}/) {
   require "Gigs.pm";
+}
+elsif (check_ip($ENV{REMOTE_ADDR}, '217.77.49.157,192.168.1.102')) {
+  require "Rucard.pm";
+  exit;
 }
 elsif ($conf{PAYSYS_EPAY_ACCOUNT_KEY} && $FORM{command} && $FORM{txn_id}) {
   require "Epay.pm";

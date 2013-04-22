@@ -113,6 +113,8 @@ CREATE TABLE `dv_calls` (
   `ex_output_octets` bigint(14) unsigned NOT NULL default '0',
   `connect_term_reason` int(4) unsigned NOT NULL default '0',
   `framed_ip_address` int(11) unsigned NOT NULL default '0',
+  `framed_ipv6_prefix` varbinary(16) not null default '',
+  `framed_interface_id` varbinary(16) not null default '',
   `lupdated` int(11) unsigned NOT NULL default '0',
   `sum` double(14,6) NOT NULL default '0.000000',
   `CID` varchar(18) NOT NULL default '',
@@ -129,6 +131,7 @@ CREATE TABLE `dv_calls` (
   `guest` tinyint(1) unsigned NOT NULL default '0',
   KEY `user_name` (`user_name`),
   KEY `acct_session_id` (`acct_session_id`),
+  KEY `framed_ip_address` (`framed_ip_address`),
   KEY `uid` (`uid`)
 );
 
@@ -401,6 +404,7 @@ CREATE TABLE `ippools` (
   `priority` tinyint(4) NOT NULL DEFAULT '0',
   `static` tinyint(1) unsigned NOT NULL DEFAULT '0',
   `speed` int(10) unsigned NOT NULL default '0',
+  `ipv6_prefix` VARBINARY(16) not null default '',
   PRIMARY KEY  (`id`),
   UNIQUE KEY `nas` (`nas`,`ip`)
 )  ;
@@ -422,6 +426,7 @@ CREATE TABLE `dv_log` (
   `bill_id` int(11) unsigned NOT NULL default '0',
   `uid` int(11) unsigned NOT NULL default '0',
   `terminate_cause` tinyint(4) unsigned NOT NULL default '0',
+  `framed_ipv6_prefix` varbinary(16) not null default '',
   `acct_input_gigawords` smallint(4) unsigned NOT NULL default '0',
   `acct_output_gigawords` smallint(4) unsigned NOT NULL default '0',
   `ex_input_octets_gigawords` smallint(4) unsigned NOT NULL default '0',

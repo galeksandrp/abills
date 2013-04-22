@@ -1127,7 +1127,7 @@ sub ipn_log_rotate {
 
   my @rq      = ();
   my $version = $self->db_version();
-
+  $attr->{PERIOD} = 30 if (! $attr->{PERIOD});
   #Detail Daily rotate
   if ($attr->{DETAIL}) {
     $self->query($db, "SELECT count(*) FROM ipn_traf_detail;");
@@ -1141,8 +1141,17 @@ sub ipn_log_rotate {
                );
       }
       else {
-        $attr->{PERIOD} = 30 if (! $attr->{PERIOD});
         @rq = ("DELETE FROM ipn_traf_detail WHERE f_time < f_time - INTERVAL $attr->{PERIOD} DAY;");
+      }
+    }
+
+    $self->query($db, "SHOW TABLES LIKE 'ipn_traf_detail_%'");
+    foreach my $table_name (@{ $self->{list} }) {
+    	$table_name->[0] =~ /(\d{4})\_(\d{2})\_(\d{2})$/;
+    	my ($log_y, $log_m, $log_d) = ($1, $2, $3);
+      my $seltime = POSIX::mktime(0, 0, 0, $log_d, ($log_m - 1), ($log_y - 1900));    	
+    	if ((time - $seltime) > 86400 * $attr->{PERIOD}) {
+        push @rq, "DROP table ipn_traf_detail_". $log_y .'_'.$log_m.'_'. "$log_d;";
       }
     }
   }
@@ -1238,6 +1247,7 @@ sub ipn_log_rotate {
         WHERE DATE_FORMAT(start, '%Y-%m')>'$Y-$M'
         GROUP BY 2, traffic_class, ip, session_id;";
   }
+
 
   foreach my $query (@rq) {
     $self->query($db, "$query", 'do');

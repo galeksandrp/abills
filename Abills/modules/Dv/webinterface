@@ -422,7 +422,7 @@ sub dv_users_list {
       "$line->{deposit}",
       "$line->{credit}",
       "$line->{tp_name}",
-      ($line->{status} > 0) ? $html->color_mark($service_status[ $line->{status} ], $service_status_colors[ $line->{status} ]) : "$service_status[$line->{status}]",
+      ($line->{dv_status} > 0) ? $html->color_mark($service_status[ $line->{dv_status} ], $service_status_colors[ $line->{dv_status} ]) : "$service_status[$line->{dv_status}]",
       @fields_array,
       $payments,
       $html->button("$_STATS", "index=" . get_function_index('dv_stats') . "&UID=" . $line->{uid}, { CLASS => 'stats' })
@@ -513,9 +513,9 @@ sub dv_user {
     }
 
     if ($FORM{IP} =~ /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/ && $FORM{IP} ne '0.0.0.0') {
-      my $list = $Dv->list({ IP => $FORM{IP} });
-      if ($Dv->{TOTAL} > 0 && $list->[0][ 6 + $Dv->{SEARCH_FIELDS_COUNT} ] != $FORM{UID}) {
-        $html->message('err', $_ERROR, "IP: $FORM{IP} $_EXIST. $_LOGIN: " . $html->button("$list->[0][0]", "index=15&UID=" . $list->[0][ 6 + $Dv->{SEARCH_FIELDS_COUNT} ]));
+      my $list = $Dv->list({ IP => $FORM{IP}, COLS_NAME => 1 });
+      if ($Dv->{TOTAL} > 0 && $list->[0]{uid} != $FORM{UID}) {
+        $html->message('err', $_ERROR, "IP: $FORM{IP} $_EXIST. $_LOGIN: " . $html->button("$list->[0]{login}", "index=15&UID=" . $list->[0]{uid} ));
         return 0;
       }
     }
@@ -712,7 +712,7 @@ sub dv_user {
       }
       elsif ($Dv->{DAY_ABON} > 0) {
       	my $work_days = int(($users->{DEPOSIT} + $users->{CREDIT}) / $Dv->{DAY_ABON});
-      	$Dv->{NEXT_FEES_WARNING} = "$_NEXT_FEES_THROUGHT: $work_days";
+      	$Dv->{NEXT_FEES_WARNING} = "$_SERVICE_ENDED: $work_days";
       }
       
     }
@@ -875,14 +875,24 @@ sub dv_user {
 
   if ($Dv->{STATUS} && $total_fee > $users->{DEPOSIT}) {
     my $sum=0; 
-    if ($Dv->{TP_PERIOD_ALIGNMENT}) {
-    	my($y, $m, $d)=split(/-/, $DATE);
-      my $days_in_month = ($m != 2 ? (($m % 2) ^ ($m > 7)) + 30 : (!($y % 400) || !($y % 4) && ($y % 25) ? 29 : 28));
-      $sum = sprintf("%.2f", abs(($total_fee / $days_in_month) * ($days_in_month - $d) - $users->{DEPOSIT}));
-    }
-    else {
+#    if ($Dv->{TP_PERIOD_ALIGNMENT}) {
+#    	my($y, $m, $d)=split(/-/, $DATE);
+#      my $days_in_month = ($m != 2 ? (($m % 2) ^ ($m > 7)) + 30 : (!($y % 400) || !($y % 4) && ($y % 25) ? 29 : 28));
+#      my $month_fee = ($total_fee / $days_in_month) * ($days_in_month - $d);
+#      if ($month_fee > $users->{DEPOSIT}) {
+#        my $full_sum  = abs($month_fee - $users->{DEPOSIT});
+#        $sum = sprintf("%.2f", $full_sum);
+#        if($sum - $full_sum < 0) {
+#          $sum = sprintf("%.2f", $sum + 1);
+#        }
+#      }
+#    }
+#    else {
     	$sum =  sprintf("%.2f", abs($total_fee - $users->{DEPOSIT}));
-    }
+    	if ($sum < abs($total_fee - $users->{DEPOSIT})) {
+    		$sum = sprintf("%.2f", $sum + 1);
+    	}
+#    }
     
     $Dv->{PAYMENT_MESSAGE} = "$_ACTIVATION_PAYMENT $sum " . $html->button("$_PAYMENTS", "UID=$FORM{UID}&index=2&SUM=$sum", {CLASS => 'payments rightAlignText'});
   }
@@ -1674,7 +1684,6 @@ sub dv_online {
 
     if (!$FORM{NAS_ID} && !$FORM{ZAPED} && !$FORM{FILTER}) {
       print dv_online_search({ FIELDS_ALL => \@FIELDS_ALL });
-
       return 0;
     }
     else {
@@ -1948,6 +1957,8 @@ sub dv_sessions {
         SEL_MULTI_ARRAY   => [ [ '', $_ALL ], @{ $Nas->list({%LIST_PARAMS}) } ],
         MULTI_ARRAY_KEY   => 0,
         MULTI_ARRAY_VALUE => 1,
+        MAIN_MENU         => get_function_index('form_nas'),
+        MAIN_MENU_AGRV    => "NAS_ID=$FORM{NAS_ID}"
       }
     );
 
@@ -6339,6 +6350,10 @@ sub dv_wizard_user {
 
     # Password
     $add_values{1}{GID} = $admin->{GID} if ($admin->{GID});
+
+    if ($permissions{0}{13}) {
+      $add_values{1}{DISABLE}=2;
+    }
 
     my $user = $users->add({ %{ $add_values{1} }, CREATE_EXT_BILL => ((defined($FORM{'5.EXT_BILL_DEPOSIT'}) || $FORM{'1.CREATE_EXT_BILL'}) ? 1 : 0) });
     my $message = '';

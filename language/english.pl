@@ -219,6 +219,7 @@ $_PRINT='Print';
 $_ACCOUNT_EXIST='Account already exists';
 $_SDETAIL='Sessions detalization';
 $_DETAIL='Detail';
+$_MODEL='Model';
 
 $_AUTH='Authorization';
 $_SHORT_NAME="Short name";
@@ -305,7 +306,7 @@ $_LIST='List';
 $_REPORTS = 'Reports';
 $_REPORTS_WIZARD='Reports Wizard';
 $_MODULES = 'Modules';
-$_SYSTEM = 'System configuration';
+$_SYSTEM = 'Configuration';
 $_GENERED_PARRWORD = 'Generate password';
 $_DISABLE='Disable';
 $_HOLD_UP='Hold Up';
@@ -514,4 +515,7 @@ $_ACTIVATION_PAYMENT='Activation payment';
 $_GUEST='Guest';
 
 $_ACTIVATE_NEXT_PERIOD='For next activation period';
+
+$_EQUIPMENT='Equipment';
+$_VENDOR='Vendor';
 

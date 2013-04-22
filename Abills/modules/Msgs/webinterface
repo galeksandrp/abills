@@ -567,7 +567,6 @@ sub msgs_admin {
       $FORM{REPLY_ID} = $reply_id;
 
       if (!$Msgs->{errno}) {
-
         #Add attachment
         if ($FORM{FILE_UPLOAD}{filename}) {
           $Msgs->attachment_add(
@@ -591,6 +590,7 @@ sub msgs_admin {
     $params{STATE}       = ($FORM{STATE} == 0 && !$FORM{MAIN_INNER_MESSAGE}) ? 6 : $FORM{STATE};
     $params{CLOSED_DATE} = "$DATE $TIME" if ($FORM{STATE} > 0);
     $params{DONE_DATE}   = $DATE         if ($FORM{STATE} > 1);
+
     $Msgs->message_change(
       {
         UID        => $LIST_PARAMS{UID},
@@ -2402,12 +2402,6 @@ sub msgs_reports {
 
     my ($delete, $change);
     foreach my $line (@$list) {
-
-      #    if ($permissions{4}{1}) {
-      #      $delete = $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?" });
-      #      $change = $html->button($_CHANGE, "index=$index&chg=$line->[0]&UID=$line->[10]");
-      #     }
-
       my $priority = $html->color_mark($priority[ $line->[8] ], $priority_colors[ $line->[8] ]);
 
       $table_sessions->addrow(

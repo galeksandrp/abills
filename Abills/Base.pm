@@ -1014,6 +1014,7 @@ sub ssh_cmd {
   my $SSH       = $attr->{SSH_CMD}         || "/usr/bin/ssh -p $nas_port -o StrictHostKeyChecking=no -i $base_dir/Certs/id_dsa." . $nas_admin;
 
   my @value = ();
+  $cmd =~ s/[\r\n]/ /g;
   my $cmds = "$SSH $nas_admin\@$nas_host '$cmd'";
   
   if ($attr->{DEBUG}) {

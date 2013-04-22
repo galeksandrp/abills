@@ -21,7 +21,6 @@ use main;
 @ISA = ("main");
 
 my %DATA;
-my $db;
 my $aid;
 my $IP;
 
@@ -30,9 +29,13 @@ my $IP;
 #**********************************************************
 sub new {
   my $class = shift;
-  ($db, $CONF) = @_;
+  my $db    = shift; 
+  ($CONF)   = @_;
+
   my $self = {};
   bless($self, $class);
+
+  $self->{db}=$db;
 
   return $self;
 }
@@ -53,10 +56,11 @@ sub admins_groups_list {
     $WHERE = ($attr->{AID}) ? "AND ag.aid='$attr->{AID}'" : "AND ag.aid='$self->{AID}'";
   }
 
-  $self->query(
-    $db, "SELECT ag.gid, ag.aid, g.name 
+  $self->query2("SELECT ag.gid, ag.aid, g.name 
     FROM admins_groups ag, groups g
-    WHERE g.gid=ag.gid $WHERE;"
+    WHERE g.gid=ag.gid $WHERE;",
+  undef,
+  $attr
   );
 
   return $self->{list};
@@ -69,11 +73,11 @@ sub admin_groups_change {
   my $self = shift;
   my ($attr) = @_;
 
-  $self->query($db, "DELETE FROM admins_groups WHERE aid='$self->{AID}';", 'do');
+  $self->query2("DELETE FROM admins_groups WHERE aid='$self->{AID}';", 'do');
   my @groups = split(/,/, $attr->{GID});
 
   foreach my $gid (@groups) {
-    $self->query($db, "INSERT INTO admins_groups (aid, gid) VALUES ('$attr->{AID}', '$gid');", 'do');
+    $self->query2("INSERT INTO admins_groups (aid, gid) VALUES ('$attr->{AID}', '$gid');", 'do');
   }
 
   $self->system_action_add("AID:$attr->{AID} GID: " . (join(',', @groups)), { TYPE => 2 });
@@ -87,7 +91,7 @@ sub get_permissions {
   my $self        = shift;
   my %permissions = ();
 
-  $self->query($db, "SELECT section, actions, module FROM admin_permits WHERE aid='$self->{AID}';");
+  $self->query2("SELECT section, actions, module FROM admin_permits WHERE aid='$self->{AID}';");
 
   foreach my $line (@{ $self->{list} }) {
     my ($section, $action, $module) = @$line;
@@ -108,12 +112,11 @@ sub set_permissions {
   my $self = shift;
   my ($permissions) = @_;
 
-  $self->query($db, "DELETE FROM admin_permits WHERE aid='$self->{AID}';", 'do');
+  $self->query2("DELETE FROM admin_permits WHERE aid='$self->{AID}';", 'do');
   while (my ($section, $actions_hash) = each %$permissions) {
     while (my ($action, $y) = each %$actions_hash) {
       my ($perms, $module) = split(/_/, $action);
-      $self->query(
-        $db, "INSERT INTO admin_permits (aid, section, actions, module) 
+      $self->query2("INSERT INTO admin_permits (aid, section, actions, module) 
       VALUES ('$self->{AID}', '$section', '$perms', '$module');", 'do'
       );
     }
@@ -154,7 +157,7 @@ sub info {
   if (defined($attr->{LOGIN}) && defined($attr->{PASSWORD})) {
     my $SECRETKEY = (defined($attr->{SECRETKEY})) ? $attr->{SECRETKEY} : '';
     $WHERE    = "WHERE a.id='$attr->{LOGIN}'";
-    $PASSWORD = "if(DECODE(a.password, '$SECRETKEY')='$attr->{PASSWORD}', 0, 1)";
+    $PASSWORD = "if(DECODE(a.password, '$SECRETKEY')='$attr->{PASSWORD}', 0, 1) AS password_match";
   }
   elsif ($attr->{DOMAIN_ID}) {
     $WHERE = "WHERE a.domain_id='$attr->{DOMAIN_ID}'";
@@ -164,13 +167,19 @@ sub info {
   }
 
   $IP = ($attr->{IP}) ? $attr->{IP} : '0.0.0.0';
-  $self->query(
-    $db, "SELECT a.aid, a.id, a.name, a.regdate, a.phone, a.disable, a.web_options, a.gid, 
-     count(ag.aid),
+  $self->query2("SELECT a.aid, 
+     a.id AS a_login, 
+     a.name AS a_fio, 
+     a.regdate AS a_registration,
+     a.phone AS a_phone, 
+     a.disable, 
+     a.web_options, 
+     a.gid, 
+     count(ag.aid) AS gids,
      a.email,
-     a.comments,
+     a.comments AS a_comments,
      a.domain_id,
-     d.name,
+     d.name AS domain_name,
      a.min_search_chars,
      a.max_rows,
      a.address,
@@ -188,54 +197,20 @@ sub info {
      $WHERE
      GROUP BY a.aid
      ORDER BY a.aid DESC
-     LIMIT 1;"
+     LIMIT 1;",
+     undef,
+     { INFO => 1 }
   );
 
 
-  if ($self->{errno}) {
-    return $self;
-  }
-  elsif ($self->{TOTAL} < 1) {
-    $self->{errno}  = 2;
-    $self->{errstr} = 'Not exist';
-    $self->{AID}    = 0;
-    return $self;
-  }
-
-  my $a_ref = $self->{list}->[0];
-  if ($a_ref->[22] == 1) {
+  if ($self->{PASSWORD_MATCH} && $self->{PASSWORD_MATCH} ==  1) {
     $self->{errno}  = 4;
     $self->{errstr} = 'ERROR_WRONG_PASSWORD';
-    $self->{AID}    = $a_ref->[0], return $self;
+    return $self;
   }
 
-  (
-    $self->{AID},
-    $self->{A_LOGIN},
-    $self->{A_FIO},
-    $self->{A_REGISTRATION}, 
-    $self->{A_PHONE}, 
-    $self->{DISABLE},    
-    $self->{WEB_OPTIONS}, 
-    $self->{GID},
-    $self->{GIDS},
-    $self->{EMAIL},
-    $self->{A_COMMENTS},
-    $self->{DOMAIN_ID},
-    $self->{DOMAIN_NAME},
-    $self->{MIN_SEARCH_CHARS},
-    $self->{MAX_ROWS},
-    $self->{ADDRESS},
-    $self->{CELL_PHONE},
-    $self->{PASPORT_NUM},
-    $self->{PASPORT_DATE},
-    $self->{PASPORT_GRANT},
-    $self->{INN},
-    $self->{BIRTHDAY},
-  ) = @$a_ref;
-
   if ($self->{GIDS} > 0) {
-    $self->query($db, "SELECT gid  FROM admins_groups WHERE aid='$self->{AID}';");
+    $self->query2("SELECT gid FROM admins_groups WHERE aid='$self->{AID}';");
     $self->{GIDS} = '';
     foreach my $line (@{ $self->{list} }) {
       $self->{GIDS} .= $line->[0] . ', ';
@@ -273,13 +248,14 @@ sub list {
 
   $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES) : '';
 
-  $self->query(
-    $db, "select a.aid, a.id, a.name, a.regdate, a.disable, g.name, d.name 
+  $self->query2("select a.aid, a.id, a.name, a.regdate, a.disable, g.name, d.name 
  FROM admins a
   LEFT JOIN groups g ON (a.gid=g.gid) 
   LEFT JOIN domains d ON (d.id=a.domain_id) 
  $WHERE
- ORDER BY $SORT $DESC;"
+ ORDER BY $SORT $DESC;",
+  undef,
+  $attr
   );
 
   return $self->{list};
@@ -348,8 +324,7 @@ sub add {
   my ($attr) = @_;
   %DATA = $self->get_data($attr);
 
-  $self->query(
-    $db, "INSERT INTO admins (id, name, regdate, phone, disable, gid, email, comments, password, domain_id,
+  $self->query2("INSERT INTO admins (id, name, regdate, phone, disable, gid, email, comments, password, domain_id,
   min_search_chars, max_rows,
   address, cell_phone, pasport_num, pasport_date, pasport_grant, inn, birthday) 
    VALUES ('$DATA{A_LOGIN}', '$DATA{A_FIO}', now(),  '$DATA{A_PHONE}', '$DATA{DISABLE}', '$DATA{GID}', 
@@ -371,8 +346,8 @@ sub del {
   my $self = shift;
   my ($id) = @_;
 
-  $self->query($db, "DELETE FROM admins WHERE aid='$id';",        'do');
-  $self->query($db, "DELETE FROM admin_permits WHERE aid='$id';", 'do');
+  $self->query2("DELETE FROM admins WHERE aid='$id';",        'do');
+  $self->query2("DELETE FROM admin_permits WHERE aid='$id';", 'do');
 
   $self->system_action_add("AID:$id", { TYPE => 10 });
   return $self;
@@ -394,8 +369,7 @@ sub action_add {
 
   $IP = $attr->{IP} if ($attr->{IP});
 
-  $self->query(
-    $db, "INSERT INTO admin_actions (aid, ip, datetime, actions, uid, module, action_type) 
+  $self->query2("INSERT INTO admin_actions (aid, ip, datetime, actions, uid, module, action_type) 
     VALUES ('$self->{AID}', INET_ATON('$IP'), now(), '$actions', '$uid', '$MODULE', '$action_type')", 'do'
   );
   return $self;
@@ -408,8 +382,7 @@ sub action_info {
   my $self = shift;
   my ($id) = @_;
 
-  $self->query(
-    $db, "SELECT aid, INET_NTOA(ip), datetime, actions, uid, module, action_type 
+  $self->query2("SELECT aid, INET_NTOA(ip), datetime, actions, uid, module, action_type 
     FROM admin_actions WHERE id='$id';"
   );
 
@@ -428,7 +401,7 @@ sub action_del {
   $self->action_info($id);
 
   if ($self->{TOTAL} > 0) {
-    $self->query($db, "DELETE FROM admin_actions WHERE id='$id';", 'do');
+    $self->query2("DELETE FROM admin_actions WHERE id='$id';", 'do');
     $self->system_action_add("ACTION:$id DATETIME:$self->{DATETIME} UID:$self->{UID} CHANGED:$self->{ACTION}", { TYPE => 10 });
   }
 }
@@ -540,8 +513,7 @@ sub action_list {
     $EXT_TABLE = " LEFT JOIN users_pi pi ON (u.uid=pi.uid) ".$EXT_TABLE ;
   }
 
-  $self->query(
-    $db, "select aa.id, u.id AS login, aa.datetime, aa.actions, a.id as admin_login, INET_NTOA(aa.ip) AS ip,   aa.module, 
+  $self->query2("select aa.id, u.id AS login, aa.datetime, aa.actions, a.id as admin_login, INET_NTOA(aa.ip) AS ip,   aa.module, 
       aa.action_type,
       aa.uid, 
       $self->{SEARCH_FIELDS}
@@ -557,13 +529,14 @@ sub action_list {
 
   my $list = $self->{list};
 
-  $self->query(
-    $db, "SELECT count(*) FROM admin_actions aa 
+  $self->query2("SELECT count(*) AS total FROM admin_actions aa 
     LEFT JOIN users u ON (aa.uid=u.uid)
     LEFT JOIN admins a ON (aa.aid=a.aid)
-    $WHERE;"
+    $WHERE;",
+    undef,
+    { INFO => 1 }
   );
-  ($self->{TOTAL}) = @{ $self->{list}->[0] };
+
 
   return $list;
 }
@@ -578,10 +551,10 @@ sub system_action_add {
   my $MODULE      = (defined($self->{MODULE})) ? $self->{MODULE} : '';
   my $action_type = ($attr->{TYPE})            ? $attr->{TYPE}   : '';
 
-  $self->query(
-    $db, "INSERT INTO admin_system_actions (aid, ip, datetime, actions, module, action_type) 
+  $self->query2("INSERT INTO admin_system_actions (aid, ip, datetime, actions, module, action_type) 
     VALUES ('$self->{AID}', INET_ATON('$IP'), now(), '$actions', '$MODULE', '$action_type')", 'do'
   );
+
   return $self;
 }
 
@@ -591,7 +564,7 @@ sub system_action_add {
 sub system_action_del {
   my $self = shift;
   my ($action_id) = @_;
-  $self->query($db, "DELETE FROM admin_system_actions WHERE id='$action_id';", 'do');
+  $self->query2("DELETE FROM admin_system_actions WHERE id='$action_id';", 'do');
 }
 
 #**********************************************************
@@ -649,23 +622,26 @@ sub system_action_list {
 
   $WHERE = "WHERE " . join(' and ', @WHERE_RULES) if ($#WHERE_RULES > -1);
 
-  $self->query($db, 
+  $self->query2( 
      "select aa.id, aa.datetime, aa.actions, a.id, INET_NTOA(aa.ip), aa.module, 
       aa.action_type,
       aa.aid
    FROM admin_system_actions aa
       LEFT JOIN admins a ON (aa.aid=a.aid)
-      $WHERE ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;"
+      $WHERE ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;",
+   undef,
+   $attr
   );
 
   my $list = $self->{list};
 
-  $self->query($db, 
-    "SELECT count(*) FROM admin_system_actions aa 
+  $self->query2(
+    "SELECT count(*) AS total FROM admin_system_actions aa 
     LEFT JOIN admins a ON (aa.aid=a.aid)
-    $WHERE;"
+    $WHERE;",
+    undef,
+    { INFO => 1 }
   );
-  ($self->{TOTAL}) = @{ $self->{list}->[0] };
 
   return $list;
 }
@@ -678,7 +654,7 @@ sub password {
   my ($password, $attr) = @_;
 
   my $secretkey = (defined($attr->{secretkey})) ? $attr->{secretkey} : '';
-  $self->query($db, "UPDATE admins SET password=ENCODE('$password', '$secretkey') WHERE aid='$aid';", 'do');
+  $self->query2("UPDATE admins SET password=ENCODE('$password', '$secretkey') WHERE aid='$aid';", 'do');
 
   $self->system_action_add("AID:$self->{INSERT_ID} PASSWORD:****", { TYPE => 2 });
   return $self;
@@ -696,9 +672,9 @@ sub online {
 
   my $WHERE = ($self->{SID}) ?  "WHERE sid='$self->{SID}'" : '';
 
-  $self->query($db, "DELETE FROM web_online WHERE UNIX_TIMESTAMP()-logtime>$time_out;", 'do');
+  $self->query2("DELETE FROM web_online WHERE UNIX_TIMESTAMP()-logtime>$time_out;", 'do');
 
-  $self->query($db, "SELECT admin, ip FROM web_online $WHERE;");
+  $self->query2("SELECT admin, ip FROM web_online $WHERE;");
 
   my $online_count = $self->{TOTAL} + 0;
   my $list         = $self->{list};
@@ -708,8 +684,7 @@ sub online {
   }
 
   if ($curuser{ $self->{A_LOGIN} } ne $self->{SESSION_IP}) {
-    $self->query(
-      $db, "REPLACE INTO web_online (admin, ip, logtime, aid, sid)
+    $self->query2("REPLACE INTO web_online (admin, ip, logtime, aid, sid)
      values ('$self->{A_LOGIN}', '$self->{SESSION_IP}', UNIX_TIMESTAMP(), '$self->{AID}', '$self->{SID}');", 'do'
     );
     $online_users .= "$self->{A_LOGIN} - $self->{SESSION_IP};\n";
@@ -726,7 +701,7 @@ sub online_info {
   my $self         = shift;
   my ($attr) = @_;
 
-  $self->query($db, "SELECT aid, ip, admin FROM web_online WHERE sid='$attr->{SID}';", 
+  $self->query2("SELECT aid, ip, admin FROM web_online WHERE sid='$attr->{SID}';", 
    undef,
    { INFO => 1 });
 
@@ -741,7 +716,7 @@ sub online_del {
   my $self         = shift;
   my ($attr) = @_;
 
-  $self->query($db, "DELETE FROM web_online WHERE sid='$attr->{SID}';", 'do');
+  $self->query2("DELETE FROM web_online WHERE sid='$attr->{SID}';", 'do');
 
   return $self;
 }
@@ -771,7 +746,7 @@ sub allow_ip_list {
  
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES) : '';
  
- $self->query($db, "SELECT INET_NTOA(aip.ip)
+ $self->query2("SELECT INET_NTOA(aip.ip)
  FROM admins_allow_ips aip
  $WHERE
  ORDER BY $SORT $DESC;");
@@ -789,7 +764,7 @@ sub allow_ip_add {
   my ($attr) = @_;
   %DATA = $self->get_data($attr); 
 
-  $self->query($db, "INSERT INTO admins_allow_ips (ip) 
+  $self->query2("INSERT INTO admins_allow_ips (ip) 
    VALUES ('$DATA{AID}', INET_ATON('$DATA{IP}'));", 'do');
 
   if ($self->{errno}) {
@@ -808,7 +783,7 @@ sub allow_ip_del {
   my $self = shift;
   my ($attr) = @_;
 
-  $self->query($db, "DELETE FROM admins_allow_ips WHERE ip=INET_ATON('$attr->{IP}');", 'do');
+  $self->query2("DELETE FROM admins_allow_ips WHERE ip=INET_ATON('$attr->{IP}');", 'do');
   
   $self->system_action_add("ALLOW IP: $attr->{IP}", { TYPE => 10 });  
   return $self;

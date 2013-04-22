@@ -260,7 +260,7 @@ sub user_list {
   }
   elsif ($attr->{CLOSED}) {
     $self->query(
-      $db, "SELECT u.id, pi.fio, if(company.id IS NULL, b.deposit, b.deposit), 
+      $db, "SELECT u.id AS login, pi.fio, if(company.id IS NULL, b.deposit, b.deposit), 
       u.credit, tp.name, u.disable, 
       u.uid, u.company_id, u.email, u.tp_id, if(l.start is NULL, '-', l.start)
      FROM (users u, bills b)
@@ -332,7 +332,7 @@ sub user_list {
   $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES) : '';
 
   $self->query(
-    $db, "SELECT u.id, 
+    $db, "SELECT u.id AS login, 
       pi.fio, 
       if(u.company_id > 0, cb.deposit, b.deposit) AS deposit,
       u.credit, 

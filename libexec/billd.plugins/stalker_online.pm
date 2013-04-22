@@ -87,7 +87,8 @@ sub stalker_online {
                           FIELDS_NAMES => [  
                             CID,
                             UID,
-                            ACCT_SESSION_ID
+                            ACCT_SESSION_ID,
+                            FIO
                           ]
                         });
 
@@ -187,6 +188,7 @@ sub stalker_online {
         $admin->action_add("$user->{uid}", "$account_hash->{mac}", { TYPE => 15 });
         print "Disable STB LOGIN: $user->{login} MAC: $account_hash->{mac} Expire: $expire_unixdate DEPOSIT: $user->{deposit}+$credit STATUS: $user->{disable}/$user->{iptv_status}\n";
         $Stalker_api->user_action({ UID    => $user->{uid}, 
+        	                          FIO    => $user->{fio}, 
         	                          LOGIN  => $user->{login}, 
         	                          STATUS => 1, 
                                     change => 1 });

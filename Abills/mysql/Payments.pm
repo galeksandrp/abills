@@ -45,10 +45,16 @@ my %FIELDS = (
 #**********************************************************
 sub new {
   my $class = shift;
-  ($db, $admin, $CONF) = @_;
+  my $db    = shift; 
+
+  ($admin, $CONF) = @_;
   my $self = {};
   bless($self, $class);
+  
+  $self->{db}=$db;
+
   $Bill = Bills->new($db, $admin, $CONF);
+
   return $self;
 }
 
@@ -93,7 +99,7 @@ sub add {
   }
 
   if ($DATA{CHECK_EXT_ID}) {
-    $self->query($db, "SELECT id, date, sum, uid FROM payments WHERE ext_id='$DATA{CHECK_EXT_ID}';");
+    $self->query2("SELECT id, date, sum, uid FROM payments WHERE ext_id='$DATA{CHECK_EXT_ID}';");
     if ($self->{TOTAL} > 0) {
       $self->{errno}  = 7;
       $self->{errstr} = 'ERROR_DUBLICATE';
@@ -105,7 +111,7 @@ sub add {
     }
   }
 
-  $db->{AutoCommit} = 0;
+  $self->{db}->{AutoCommit} = 0;
   $user->{BILL_ID} = $attr->{BILL_ID} if ($attr->{BILL_ID});
 
   $DATA{AMOUNT} = $DATA{SUM};
@@ -122,8 +128,7 @@ sub add {
 
     my $date = ($DATA{DATE}) ? "'$DATA{DATE}'" : 'now()';
 
-    $self->query(
-      $db, "INSERT INTO payments (uid, bill_id, date, sum, dsc, ip, last_deposit, aid, method, ext_id,
+    $self->query2("INSERT INTO payments (uid, bill_id, date, sum, dsc, ip, last_deposit, aid, method, ext_id,
            inner_describe, amount, currency, reg_date) 
            values ('$user->{UID}', '$user->{BILL_ID}', $date, '$DATA{SUM}', '$DATA{DESCRIBE}', INET_ATON('$admin->{SESSION_IP}'), '$Bill->{DEPOSIT}', '$admin->{AID}', '$DATA{METHOD}', 
            '$DATA{EXT_ID}', '$DATA{INNER_DESCRIBE}', '$DATA{AMOUNT}', '$DATA{CURRENCY}', now());", 'do'
@@ -141,10 +146,10 @@ sub add {
         );
       }
       $self->{SUM} = $DATA{SUM};
-      $db->commit() if (!$attr->{TRANSACTION});
+      $self->{db}->commit() if (!$attr->{TRANSACTION});
     }
     else {
-      $db->rollback();
+      $self->{db}->rollback();
     }
 
     $self->{PAYMENT_ID} = $self->{INSERT_ID};
@@ -154,7 +159,7 @@ sub add {
     $self->{errstr} = 'No Bill';
   }
 
-  $db->{AutoCommit} = 1 if (!$attr->{NO_AUTOCOMMIT} && !$attr->{TRANSACTION});
+  $self->{db}->{AutoCommit} = 1 if (!$attr->{NO_AUTOCOMMIT} && !$attr->{TRANSACTION});
 
   return $self;
 }
@@ -166,9 +171,9 @@ sub del {
   my $self = shift;
   my ($user, $id) = @_;
 
-  $self->query($db, "SELECT sum, bill_id from payments WHERE id='$id';");
+  $self->query2("SELECT sum, bill_id from payments WHERE id='$id';");
 
-  $db->{AutoCommit} = 0;
+  $self->{db}->{AutoCommit} = 0;
   if ($self->{TOTAL} < 1) {
     $self->{errno}  = 2;
     $self->{errstr} = 'ERROR_NOT_EXIST';
@@ -182,19 +187,19 @@ sub del {
 
   $Bill->action('take', $bill_id, $sum);
   if (! $Bill->{errno}) {
-    $self->query($db, "DELETE FROM docs_invoice2payments WHERE payment_id='$id';", 'do');
-    $self->query($db, "DELETE FROM docs_receipts WHERE payment_id='$id';", 'do');    
-    $self->query($db, "DELETE FROM payments WHERE id='$id';", 'do');
+    $self->query2("DELETE FROM docs_invoice2payments WHERE payment_id='$id';", 'do');
+    $self->query2("DELETE FROM docs_receipts WHERE payment_id='$id';", 'do');    
+    $self->query2("DELETE FROM payments WHERE id='$id';", 'do');
     if (! $self->{errno}) {
       $admin->action_add($user->{UID}, "$id $sum", { TYPE => 16 });
-      $db->commit();
+      $self->{db}->commit();
     }
     else {
-      $db->rollback();
+      $self->{db}->rollback();
     }
   }
 
-  $db->{AutoCommit} = 1;
+  $self->{db}->{AutoCommit} = 1;
   return $self;
 }
 
@@ -340,8 +345,7 @@ sub list {
   
   my $list;
   if (!$attr->{TOTAL_ONLY}) {
-    $self->query(
-      $db, "SELECT p.id, 
+    $self->query2("SELECT p.id, 
       u.id AS login, 
       $self->{SEARCH_FIELDS} p.date, p.dsc, p.sum, p.last_deposit, p.method, 
       p.ext_id, p.bill_id, 
@@ -359,7 +363,9 @@ sub list {
     $EXT_TABLES
     $WHERE 
     GROUP BY p.id
-    ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;", undef, $attr
+    ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;", 
+    undef, 
+    $attr
     );
 
     $self->{SUM} = '0.00';
@@ -368,17 +374,15 @@ sub list {
     $list = $self->{list};
   }
 
-  $self->query($db, "SELECT count(p.id), sum(p.sum), count(DISTINCT p.uid) FROM payments p
+  $self->query2("SELECT count(p.id) AS total, sum(p.sum) AS sum, count(DISTINCT p.uid) AS total_users
+    FROM payments p
   LEFT JOIN users u ON (u.uid=p.uid)
   LEFT JOIN admins a ON (a.aid=p.aid) 
   $EXT_TABLES
-  $WHERE"
+  $WHERE",
+  undef,
+  { INFO => 1 }
   );
-
-  ($self->{TOTAL}, 
-   $self->{SUM}, 
-   $self->{TOTAL_USERS}
-  ) = @{ $self->{list}->[0] };
 
   return $list;
 }
@@ -460,16 +464,15 @@ sub reports {
 
   if ($admin->{DOMAIN_ID}) {
     push @WHERE_RULES, @{ $self->search_expr("$admin->{DOMAIN_ID}", 'INT', 'u.domain_id', { EXT_FIELD => 0 }) };
-    $EXT_TABLES .= " INNER JOIN users u ON (u.uid=p.uid)";
+    $EXT_TABLES = "INNER JOIN users u ON (u.uid=p.uid) ".$EXT_TABLES;
   }
   else {
-    $EXT_TABLES .= " LEFT JOIN users u ON (u.uid=p.uid)";
+    $EXT_TABLES = "LEFT JOIN users u ON (u.uid=p.uid)". $EXT_TABLES;
   }
 
   my $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES) : '';
 
-  $self->query(
-    $db, "SELECT $date, count(DISTINCT p.uid) AS login_count, count(*) AS count, sum(p.sum) AS sum, p.uid 
+  $self->query2("SELECT $date, count(DISTINCT p.uid) AS login_count, count(*) AS count, sum(p.sum) AS sum, p.uid 
       FROM payments p
       LEFT JOIN admins a ON (a.aid=p.aid)
       $EXT_TABLES
@@ -483,15 +486,14 @@ sub reports {
   my $list = $self->{list};
 
   if ($self->{TOTAL} > 0) {
-    $self->query(
-      $db, "SELECT count(DISTINCT p.uid), count(*), sum(p.sum) 
+    $self->query2("SELECT count(DISTINCT p.uid) AS users, count(*) AS total, sum(p.sum) AS sum
       FROM payments p
       LEFT JOIN admins a ON (a.aid=p.aid)
       $EXT_TABLES
-      $WHERE;"
+      $WHERE;",
+      undef,
+      { INFO => 1 }
     );
-
-    ($self->{USERS}, $self->{TOTAL}, $self->{SUM}) = @{ $self->{list}->[0] };
   }
   else {
     $self->{USERS} = 0;

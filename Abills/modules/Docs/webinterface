@@ -2641,7 +2641,7 @@ sub docs_print {
     }
   }
 
-  if (defined(@MONTHES_LIT) && $attr->{DATE}) {
+  if (@MONTHES_LIT && $attr->{DATE}) {
     my ($y, $m, $d) = split(/-/, $attr->{DATE}, 3);
 
     $attr->{FROM_DATE_LIT}      = "$d " . $MONTHES_LIT[ int($m) - 1 ] . " $y $_YEAR_SHORT";

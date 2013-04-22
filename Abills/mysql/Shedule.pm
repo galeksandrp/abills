@@ -18,19 +18,26 @@ $VERSION = 2.00;
 use main;
 @ISA = ("main");
 
-my $db;
 my $uid;
 my $admin;
 my $CONF;
 my %DATA = ();
 
+
+#**********************************************************
+#
+#**********************************************************
 sub new {
   my $class = shift;
-  ($db, $admin, $CONF) = @_;
+  my $db    = shift;
+  ($admin, $CONF) = @_;
   my $self = {};
 
   $admin->{MODULE} = '';
   bless($self, $class);
+  
+  $self->{db}=$db;
+  
   return $self;
 }
 
@@ -98,20 +105,24 @@ sub info {
 
   $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES) : '';
 
-  $self->query(
-    $db, "SELECT s.h, s.d, s.m, s.y, s.counts, s.action, s.date, s.comments, s.uid, s.id, a.id, s.admin_action 
+  $self->query2("SELECT s.h, 
+     s.d, 
+     s.m, 
+     s.y, 
+     s.counts, 
+     s.action, 
+     s.date, 
+     s.comments, 
+     s.uid, 
+     s.id AS shedule_id, 
+     a.id As admin_name, 
+     s.admin_action 
     FROM shedule s
     LEFT JOIN admins a ON (a.aid=s.aid) 
-    $WHERE;"
+    $WHERE;",
+    undef,
+    { INFO => 1 }
   );
-
-  if ($self->{TOTAL} < 1) {
-    $self->{errno}  = 2;
-    $self->{errstr} = 'ERROR_NOT_EXIST';
-    return $self;
-  }
-
-  ($self->{H}, $self->{D}, $self->{M}, $self->{Y}, $self->{COUNTS}, $self->{ACTION}, $self->{DATE}, $self->{COMMENTS}, $self->{UID}, $self->{SHEDULE_ID}, $self->{ADMIN_NAME}, $self->{ADMIN_ACTION}) = @{ $self->{list}->[0] };
 
   return $self;
 }
@@ -180,8 +191,7 @@ sub list {
 
   $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES) : '';
 
-  $self->query(
-    $db, "SELECT s.h, s.d, s.m, s.y, s.counts, u.id AS login, s.type, s.action, s.module, a.id AS admin_name, s.date, s.comments, a.aid, s.uid, s.id  
+  $self->query2("SELECT s.h, s.d, s.m, s.y, s.counts, u.id AS login, s.type, s.action, s.module, a.id AS admin_name, s.date, s.comments, a.aid, s.uid, s.id  
     FROM shedule s
     LEFT JOIN users u ON (u.uid=s.uid)
     LEFT JOIN admins a ON (a.aid=s.aid) 
@@ -195,14 +205,13 @@ sub list {
   my $list = $self->{list};
 
   if ($self->{TOTAL} > 0) {
-    $self->query(
-      $db, "SELECT count(*)   FROM shedule s
+    $self->query2("SELECT count(*) AS total   FROM shedule s
       LEFT JOIN users u ON (u.uid=s.uid)
       LEFT JOIN admins a ON (a.aid=s.aid) 
-     $WHERE"
+     $WHERE",
+     undef,
+     { INFO => 1 }
     );
-
-    ($self->{TOTAL}) = @{ $self->{list}->[0] };
   }
 
   return $list;
@@ -228,8 +237,7 @@ sub add {
   my $COMMENTS     = (defined($attr->{COMMENTS}))     ? $attr->{COMMENTS}     : '';
   my $ADMIN_ACTION = (defined($attr->{ADMIN_ACTION})) ? $attr->{ADMIN_ACTION} : '';
 
-  $self->query(
-    $db, "INSERT INTO shedule (h, d, m, y, uid, type, action, aid, date, module, comments, admin_action, counts) 
+  $self->query2("INSERT INTO shedule (h, d, m, y, uid, type, action, aid, date, module, comments, admin_action, counts) 
         VALUES ('$H', '$D', '$M', '$Y', '$UID', '$TYPE', '$ACTION', '$admin->{AID}', now(), '$MODULE', '$COMMENTS', '$ADMIN_ACTION', '$COUNT');", 'do'
   );
 
@@ -255,7 +263,7 @@ sub del {
   my $result = $attr->{RESULT} || 0;
 
   if ($attr->{IDS}) {
-    $self->query($db, "DELETE FROM shedule WHERE id IN ( $attr->{IDS} );", 'do');
+    $self->query2("DELETE FROM shedule WHERE id IN ( $attr->{IDS} );", 'do');
     $admin->system_action_add("SHEDULE:$attr->{IDS} UID:$self->{UID}", { TYPE => 10 });
     return $self;
   }
@@ -263,7 +271,7 @@ sub del {
   $self->info({ ID => $attr->{ID} });
 
   if ($self->{TOTAL} > 0) {
-    $self->query($db, "DELETE FROM shedule WHERE id='$attr->{ID}';", 'do');
+    $self->query2("DELETE FROM shedule WHERE id='$attr->{ID}';", 'do');
     if ($self->{UID}) {
       $admin->action_add($self->{UID}, "SHEDULE:$attr->{ID} RESULT:$result" . $attr->{EXT_INFO}, { TYPE => ($attr->{EXECUTE}) ? 29 : 28 });
     }

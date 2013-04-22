@@ -18,7 +18,6 @@ $VERSION     = 2.00;
 use main;
 use Tariffs;
 @ISA = ("main");
-my $db;
 my $CONF;
 
 my $tariffs;
@@ -35,6 +34,7 @@ sub new {
   my $self = {};
   bless($self, $class);
   $CONF->{MB_SIZE} = $CONF->{KBYTE_SIZE} * $CONF->{KBYTE_SIZE};
+  $self->{db}=$db;
 
   return $self;
 }
@@ -101,8 +101,7 @@ sub traffic_calculations {
       }
 
       #Get using traffic
-      $self->query(
-        $db, "select sum(sent / $CONF->{MB_SIZE} + 4096 * acct_output_gigawords), 
+      $self->query2("select sum(sent / $CONF->{MB_SIZE} + 4096 * acct_output_gigawords), 
      sum(recv  / $CONF->{MB_SIZE} + 4096 * acct_input_gigawords),
      sum(sent2) / $CONF->{MB_SIZE},  
      sum(recv2) / $CONF->{MB_SIZE},
@@ -310,7 +309,7 @@ sub get_traffic {
            WHERE l.acct_session_id=li.acct_session_id AND l.uid $WHERE 
            AND li.interval_id='$self->{TI_ID}' AND l.uid=li.uid
            AND ($period)";
-    $self->query($db, $sql);
+    $self->query2($sql);
   
     if ($self->{TOTAL} > 0) {
       foreach my $line (@{ $self->{list} }) {
@@ -324,8 +323,7 @@ sub get_traffic {
     return \%result;
   }
 
-  $self->query(
-    $db, "SELECT sum(sent)  / $CONF->{MB_SIZE} + sum(acct_output_gigawords) * 4096,  
+  $self->query2("SELECT sum(sent)  / $CONF->{MB_SIZE} + sum(acct_output_gigawords) * 4096,  
                             sum(recv)  / $CONF->{MB_SIZE} + sum(acct_input_gigawords) * 4096, 
                             sum(sent2) / $CONF->{MB_SIZE}, 
                             sum(recv2) / $CONF->{MB_SIZE},
@@ -347,8 +345,7 @@ sub get_traffic {
     return \%result;
   }
 
-  $self->query(
-    $db, "SELECT sum(acct_output_octets)  / $CONF->{MB_SIZE} + sum(acct_output_gigawords) * 4096,  
+  $self->query2("SELECT sum(acct_output_octets)  / $CONF->{MB_SIZE} + sum(acct_output_gigawords) * 4096,  
                             sum(acct_input_octets)  / $CONF->{MB_SIZE} + sum(acct_input_gigawords) * 4096, 
                             sum(acct_output_octets) / $CONF->{MB_SIZE}, 
                             sum(ex_input_octets) / $CONF->{MB_SIZE},
@@ -410,8 +407,7 @@ sub get_traffic_ipn {
     $WHERE = "IN ($attr->{UIDS})";
   }
 
-  $self->query(
-    $db, "SELECT traffic_class,
+  $self->query2("SELECT traffic_class,
                             sum(traffic_out) / $CONF->{MB_SIZE},  
                             sum(traffic_in) / $CONF->{MB_SIZE}
        FROM ipn_log 
@@ -470,8 +466,7 @@ sub session_sum {
   $self->{HANGUP} = undef;
 
   if ($attr->{UID}) {
-    $self->query(
-      $db, "SELECT 
+    $self->query2("SELECT 
     UNIX_TIMESTAMP(DATE_FORMAT(FROM_UNIXTIME($SESSION_START), '%Y-%m-%d')) AS day_begin,
     DAYOFWEEK(FROM_UNIXTIME($SESSION_START)) AS day_of_week,
     DAYOFYEAR(FROM_UNIXTIME($SESSION_START)) AS day_of_year,
@@ -499,8 +494,7 @@ sub session_sum {
 
     $self->{UID} = $attr->{UID};
 
-    $self->query(
-      $db, "SELECT 
+    $self->query2("SELECT 
     tp.min_session_cost,
     tp.payment_type,
     tp.octets_direction,
@@ -533,8 +527,7 @@ sub session_sum {
   }
   #If defined TP_NUM
   elsif ($attr->{TP_NUM}) {
-    $self->query(
-      $db, "SELECT 
+    $self->query2("SELECT 
     u.uid,
     UNIX_TIMESTAMP(DATE_FORMAT(FROM_UNIXTIME($SESSION_START), '%Y-%m-%d')) AS day_begin,
     DAYOFWEEK(FROM_UNIXTIME($SESSION_START)) AS day_of_week,
@@ -560,8 +553,7 @@ sub session_sum {
       }
     }
 
-    $self->query(
-      $db, "SELECT 
+    $self->query2("SELECT 
     tp.min_session_cost,
     tp.payment_type,
     tp.octets_direction,
@@ -592,8 +584,7 @@ sub session_sum {
     $self->{TP_NUM} = $attr->{TP_NUM};
   }
   else {
-    $self->query(
-      $db, "SELECT 
+    $self->query2("SELECT 
     u.uid,
     tp.id AS tp_num, 
     UNIX_TIMESTAMP(DATE_FORMAT(FROM_UNIXTIME($SESSION_START), '%Y-%m-%d')) AS day_begin,
@@ -638,8 +629,7 @@ sub session_sum {
 
   if ($self->{JOIN_SERVICE}) {
     if ($self->{JOIN_SERVICE} > 1) {
-      $self->query(
-        $db, "SELECT 
+      $self->query2("SELECT 
         tp.id as tp_num, 
         tp.min_session_cost,
         tp.payment_type,
@@ -672,7 +662,7 @@ sub session_sum {
       $self->{JOIN_SERVICE} = $self->{UID};
     }
 
-    $self->query($db, "SELECT uid FROM dv_main WHERE join_service='$self->{JOIN_SERVICE}';");
+    $self->query2("SELECT uid FROM dv_main WHERE join_service='$self->{JOIN_SERVICE}';");
     foreach my $line (@{ $self->{list} }) {
       $self->{UIDS} .= ", $line->[0]";
     }
@@ -686,7 +676,7 @@ sub session_sum {
   }
 
   if ($self->{NEG_DEPOSIT_FILTER}) {
-    $self->query($db, "SELECT deposit FROM bills WHERE id='$self->{BILL_ID}';");
+    $self->query2("SELECT deposit FROM bills WHERE id='$self->{BILL_ID}';");
     if ($self->{TOTAL} > 0) {
       $self->{CREDIT} = ($self->{CREDIT}>0) ? $self->{CREDIT} : $self->{TP_CREDIT};
       ($self->{DEPOSIT}) = @{ $self->{list}->[0] };
@@ -761,7 +751,7 @@ sub session_sum {
   }
 
   if ($self->{COMPANY_ID} && $self->{COMPANY_ID} > 0) {
-    $self->query($db, "SELECT bill_id, vat FROM companies
+    $self->query2("SELECT bill_id, vat FROM companies
     WHERE id='$self->{COMPANY_ID}';"
     );
 
@@ -774,8 +764,7 @@ sub session_sum {
   }
 
   if ($CONF->{BONUS_EXT_FUNCTIONS} && $self->{EXT_BILL_ID} && $sum > 0 && $self->{BILLS_PRIORITY}) {
-    $self->query($db, "SELECT deposit FROM bills WHERE id='$self->{EXT_BILL_ID}';");
-    ($self->{EXT_DEPOSIT}) = @{ $self->{list}->[0] };
+    $self->query2("SELECT deposit AS ext_deposit FROM bills WHERE id='$self->{EXT_BILL_ID}';", undef, {INFO => 1 });
     if ($self->{EXT_DEPOSIT} > $sum || $self->{BILLS_PRIORITY} == 2) {
       $self->{BILL_ID} = $self->{EXT_BILL_ID};
     }
@@ -794,8 +783,7 @@ sub time_intervals {
   my $self = shift;
   my ($TP_ID, $attr) = @_;
 
-  $self->query(
-    $db, "SELECT i.day, TIME_TO_SEC(i.begin),
+  $self->query2("SELECT i.day, TIME_TO_SEC(i.begin),
    TIME_TO_SEC(i.end),
    i.tarif,
    if(sum(tt.in_price+tt.out_price) IS NULL || sum(tt.in_price+tt.out_price)=0, 0, sum(tt.in_price+tt.out_price)),
@@ -1037,19 +1025,14 @@ sub time_calculation() {
 sub get_timeinfo {
   my $self = shift;
 
-  $self->query(
-    $db, "select
-    UNIX_TIMESTAMP(),
-    UNIX_TIMESTAMP(DATE_FORMAT(FROM_UNIXTIME(UNIX_TIMESTAMP()), '%Y-%m-%d')),
-    DAYOFWEEK(FROM_UNIXTIME(UNIX_TIMESTAMP())),
-    DAYOFYEAR(FROM_UNIXTIME(UNIX_TIMESTAMP()));"
+  $self->query2("select
+    UNIX_TIMESTAMP() AS session_start,
+    UNIX_TIMESTAMP(DATE_FORMAT(FROM_UNIXTIME(UNIX_TIMESTAMP()), '%Y-%m-%d')) AS day_begin,
+    DAYOFWEEK(FROM_UNIXTIME(UNIX_TIMESTAMP())) AS day_of_week,
+    DAYOFYEAR(FROM_UNIXTIME(UNIX_TIMESTAMP())) AS day_of_year;",
+    undef,
+    { INFO => 1 }
   );
-
-  if ($self->{errno}) {
-    return $self;
-  }
-
-  ($self->{SESSION_START}, $self->{DAY_BEGIN}, $self->{DAY_OF_WEEK}, $self->{DAY_OF_YEAR}) = @{ $self->{list}->[0] };
 
   return $self;
 }

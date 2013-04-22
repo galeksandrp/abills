@@ -16,3 +16,13 @@ $_CANCEL_PAYMENTS='Відмінити оплату';
 $_BALANCE_RECHARCHE_SUM='Сума поповнення рахунку';
 $_ERR_SMALL_SUM='Сума поповнення не менше ';
 $_CONFIRM_PAYMENT='Підтвердити оплату';
+
+$_UNKNOWN='Невідома';
+$_COMPLETE='Закінчена';
+$_CANCELED='Відмінена';
+$_EXPIRED='Час закінчився';
+$_INCORRECT_CHECKSUM='Неправильна контрольна сума';
+$_PAYMENT_ERROR='Помилка оплаты'; 
+$_DUBLICATE='Оплата уже проведена'; 
+$_USER_ERROR='Помилка ідентифікації абонента'; 
+$_SMALL_PAYMENT_SUM='Надто мала сума платежу';

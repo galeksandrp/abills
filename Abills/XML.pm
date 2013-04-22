@@ -442,8 +442,6 @@ sub make_charts () {
 sub header {
   my $self       = shift;
   my ($attr)     = @_;
-  my $admin_name = $ENV{REMOTE_USER};
-  my $admin_ip   = $ENV{REMOTE_ADDR};
   
   if ($FORM{DEBUG}) {
     print "Content-Type: text/plain\n\n";
@@ -720,18 +718,13 @@ sub link_former {
 sub button {
   my $self = shift;
   my ($name, $params, $attr) = @_;
-  my $ex_params = (defined($attr->{ex_params})) ? $attr->{ex_params} : '';
   my $ex_attr = '';
 
   $params = ($attr->{GLOBAL_URL}) ? $attr->{GLOBAL_URL} : "$params";
-
-  $params = $attr->{JAVASCRIPT} if (defined($attr->{JAVASCRIPT}));
   $params = $self->link_former($params);
 
   $ex_attr = " TITLE='$attr->{TITLE}'" if (defined($attr->{TITLE}));
-  my $message = (defined($attr->{MESSAGE})) ? "onclick=\"return confirmLink(this, '$attr->{MESSAGE}')\"" : '';
-
-  my $button = "<BUTTON VALUE=\"$params\" $ex_attr>$name</BUTTON>";
+  my $button = "<BUTTON VALUE=\"$params\"$ex_attr>$name</BUTTON>";
 
   return $button;
 }
@@ -793,11 +786,31 @@ sub date_fld2 {
 
   my ($sec, $min, $hour, $mday, $mon, $curyear, $wday, $yday, $isdst) = localtime(time);
 
-  my $day   = $FORM{ $base_name . 'D' } || 1;
-  my $month = $FORM{ $base_name . 'M' } || $mon;
+  my $day   = sprintf("%.2d", $FORM{ $base_name . 'D' } || 1);
+  my $month = sprintf("%.2d", $FORM{ $base_name . 'M' } || $mon);
   my $year  = $FORM{ $base_name . 'Y' } || $curyear + 1900;
-
   my $result = "<$base_name Y=\"$year\" M=\"$month\" D=\"$day\" />";
+
+  if ($FORM{$base_name}) {
+    my $date = $FORM{$base_name};
+    $self->{$base_name} = $date;
+  }
+  elsif (!$attr->{NO_DEFAULT_DATE}) {
+    my ($sec, $min, $hour, $mday, $mon, $curyear, $wday, $yday, $isdst) = localtime(time + (($attr->{NEXT_DAY}) ? 86400 : 0));
+
+    my $month = $mon + 1;
+    my $year  = $curyear + 1900;
+    my $day   = $mday;
+
+    if ($base_name =~ /to/i) {
+      $day = ($month != 2 ? (($month % 2) ^ ($month > 7)) + 30 : (!($year % 400) || !($year % 4) && ($year % 25) ? 29 : 28));
+    }
+    elsif ($base_name =~ /from/i && !$attr->{NEXT_DAY}) {
+      $day = 1;
+    }
+    my $date = sprintf("%d-%.2d-%.2d", $year, $month, $day);
+    $self->{$base_name} = $date;
+  }
 
   return $result;
 }

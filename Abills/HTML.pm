@@ -1004,8 +1004,6 @@ cc0=document.getElementsByTagName("UL");for(mi=0;mi<cc0.length; mi++){if(cc1=cc0
 sub header {
   my $self       = shift;
   my ($attr)     = @_;
-  my $admin_name = $ENV{REMOTE_USER};
-  my $admin_ip   = $ENV{REMOTE_ADDR};
 
   $self->{header} = "Content-Type: text/html\n\n";
 

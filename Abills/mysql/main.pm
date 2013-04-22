@@ -1,6 +1,4 @@
 package main;
-use strict;
-
 #Main SQL function
 
 use strict;
@@ -69,16 +67,21 @@ sub connect {
   bless($self, $class);
   #my %conn_attrs = (PrintError => 0, RaiseError => 1, AutoCommit => 1);
   
-  $self->{db} = DBI->connect_cached("DBI:mysql:database=$dbname;host=$dbhost;mysql_client_found_rows=0", "$dbuser", "$dbpasswd") or print "Content-Type: text/html\n\nError: Unable connect to DB server '$dbhost:$dbname'\n";
-
-  if (!$self->{db}) {
+  if ($self->{db} = DBI->connect_cached("DBI:mysql:database=$dbname;host=$dbhost;mysql_client_found_rows=0", "$dbuser", "$dbpasswd")) {
+    $self->{db}->{mysql_auto_reconnect} = 1;
+    #For mysql 5 or highter
+    $self->{db}->do("SET NAMES " . $attr->{CHARSET}) if ($attr->{CHARSET});
+    my $sql_mode = ($attr->{SQL_MODE}) ? $attr->{SQL_MODE} : 'NO_ENGINE_SUBSTITUTION';
+    $self->{db}->do("SET sql_mode='$sql_mode';");
+  } 
+  else {
+  	print "Content-Type: text/html\n\nError: Unable connect to DB server '$dbhost:$dbname'\n";
+    $self->{error} = $DBI::errstr;
     my $a = `echo "Connection Error: $DBI::errstr" >> /tmp/sql_errors `;
   }
 
-  #For mysql 5 or highter
-  $self->{db}->do("set names " . $attr->{CHARSET}) if ($attr->{CHARSET});
-
   $self->{query_count} = 0;
+
   return $self;
 }
 
@@ -110,7 +113,9 @@ sub db_version {
 #**********************************************************
 sub query2 {
   my $self = shift;
-  my ($db, $query, $type, $attr) = @_;
+  my ($query, $type, $attr) = @_;
+
+  my $db = $self->{db};
 
   $self->query($db, $query, $type, $attr);
 
@@ -129,6 +134,7 @@ sub query {
   $self->{errstr} = undef;
   $self->{errno}  = undef;
   $self->{TOTAL}  = 0;
+
   print "<pre><code>\n$query\n</code></pre>\n" if ($self->{debug});
 
   if (defined($attr->{test})) {
@@ -255,6 +261,49 @@ sub get_data {
   }
 
   return %DATA;
+}
+
+
+
+
+
+#**********************************************************
+# search_expr($self, $value, $type)
+#
+# type of fields
+#  IP -  IP Address
+#  INT - integer
+#  STR - string
+#  DATE - Date
+# data delimiters 
+# , - or
+# ; - and
+#**********************************************************
+sub search_former {
+  my $self = shift;
+  my ($data, $search_params, $attr)=@_;
+  my @WHERE_RULES = ();
+
+  foreach my $search_param (@$search_params) {
+  	my ($param, $field_type, $sql_field, $show, $ex_params)=@$search_param;
+  	if($data->{$param} || ($field_type eq 'INT' && defined($data->{$param}) && $data->{$param} ne '')) {
+  		if ($sql_field eq '') {
+        $self->{SEARCH_FIELDS} .= "$show, ";
+        $self->{SEARCH_FIELDS_COUNT}++;
+   		}
+  	  else {
+  		  push @WHERE_RULES, @{ $self->search_expr($data->{$param}, "$field_type", "$sql_field", { EXT_FIELD => $show }) };
+  		}
+  	}
+  }
+
+  if ($attr->{WHERE_RULES}) {
+  	push @WHERE_RULES, @{ $attr->{WHERE_RULES} };
+  }
+
+  my $WHERE = ($#WHERE_RULES > -1) ?  (($attr->{WHERE}) ? 'WHERE ' : '') . join(' and ', @WHERE_RULES) : '';
+
+  return $WHERE;
 }
 
 #**********************************************************
@@ -401,6 +450,9 @@ sub changes {
   my $CHANGE_PARAM = $attr->{CHANGE_PARAM};
   my $FIELDS       = $attr->{FIELDS};
   my %DATA         = $self->get_data($attr->{DATA});
+  my $db           = $self->{db};
+
+
 
   if (!$DATA{UNCHANGE_DISABLE}) {
     $DATA{DISABLE} = (defined($DATA{'DISABLE'}) && $DATA{DISABLE} ne '') ? $DATA{DISABLE} : undef;
@@ -416,6 +468,7 @@ sub changes {
 
   $OLD_DATA = $attr->{OLD_INFO};
   if ($OLD_DATA->{errno}) {
+  	print  "Old date errors: $OLD_DATA->{errno}\n";
     $self->{errno}  = $OLD_DATA->{errno};
     $self->{errstr} = $OLD_DATA->{errstr};
     return $self;
@@ -459,7 +512,7 @@ sub changes {
       }
     	elsif ($k eq 'IPV6_PREFIX') {
     		$CHANGES_LOG   .= "$k $OLD_DATA->{$k}->$DATA{$k};";
-    		$CHANGES_QUERY .= "$FIELDS->{$k}=INET6_ATON('$DATA{$k}')";
+    		$CHANGES_QUERY .= "$FIELDS->{$k}=INET6_ATON('$DATA{$k}'),";
     	}
       elsif ($k eq 'CHANGED') {
         $CHANGES_QUERY .= "$FIELDS->{$k}=now(),";
@@ -498,7 +551,6 @@ sub changes {
         else {
           $CHANGES_LOG .= "$k $OLD_DATA->{$k}->$DATA{$k};";
         }
-
         $CHANGES_QUERY .= "$FIELDS->{$k}='" . ((defined($DATA{$k})) ? $DATA{$k} : '') . "',";
       }
     }
@@ -515,7 +567,7 @@ sub changes {
 
   my $extended = ($attr->{EXTENDED}) ? $attr->{EXTENDED} : '';
 
-  $self->query($db, "UPDATE $TABLE SET $CHANGES_QUERY WHERE $FIELDS->{$CHANGE_PARAM}='$DATA{$CHANGE_PARAM}'$extended", 'do');
+  $self->query2("UPDATE $TABLE SET $CHANGES_QUERY WHERE $FIELDS->{$CHANGE_PARAM}='$DATA{$CHANGE_PARAM}'$extended", 'do');
   $self->{AFFECTED} = sprintf("%d", (defined ($self->{AFFECTED}) ? $self->{AFFECTED} : 0));
   
   if ($self->{AFFECTED} == 0) {
@@ -587,7 +639,7 @@ sub attachment_add () {
   my $self = shift;
   my ($attr) = @_;
 
-  $self->query($db, "INSERT INTO $attr->{TABLE}
+  $self->query2("INSERT INTO $attr->{TABLE}
         (filename, content_type, content_size, content, create_time) 
         VALUES ('$attr->{FILENAME}', '$attr->{CONTENT_TYPE}', '$attr->{FILESIZE}', ?, now())",
     'do', { Bind => [ $attr->{CONTENT} ] }
@@ -835,8 +887,10 @@ sub search_expr_users () {
 #**********************************************************
 sub query_add {
   my $self = shift;
-  my ($db, $table, $values, $attr)=@_;
+  my ($table, $values, $attr)=@_;
   
+  my $db=$self->{db};
+
   my $q = $db->column_info(undef, undef, $table, '%');
   $q->execute();
   my @inserts_arr = ();
@@ -851,14 +905,18 @@ sub query_add {
     		push @inserts_arr, "$row->{COLUMN_NAME}=INET6_ATON('$values->{$column}')";
     	}
     	else {
-        push @inserts_arr, "$row->{COLUMN_NAME}='$values->{$column}'";
+    		if ($values->{$column} =~ /[a-z]+\(\)$/) {
+    			push @inserts_arr, "$row->{COLUMN_NAME}=$values->{$column}";
+    	  }
+        else {
+          push @inserts_arr, "$row->{COLUMN_NAME}='$values->{$column}'";
+        }
       }
      }
   }
   
   my $sql = "INSERT INTO $table SET ". join(",\n ", @inserts_arr);
-
-  return $self->query($db, $sql, 'do');
+  return $self->query2($sql, 'do');
 }
 
 1

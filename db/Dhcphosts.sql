@@ -91,5 +91,7 @@ CREATE TABLE `dhcphosts_log` (
   `message_type` TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
   `message` VARCHAR(90) NOT NULL DEFAULT '',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `id` (`id`)
+  UNIQUE KEY `id` (`id`),
+  INDEX datetime (datetime),
+  INDEX hostname (hostname)
 ) COMMENT='Dhcphosts log';

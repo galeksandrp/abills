@@ -535,58 +535,68 @@ sub dv_auth {
 
     }
     elsif (!$NAS->{NAS_EXT_ACCT}) {
-      $self->query(
-        $db, "SELECT tt.id, tc.nets, in_speed, out_speed
+      if ($self->{USER_SPEED}) {
+        if (!$CONF->{ng_car}) {
+           my $shapper_type = ($self->{USER_SPEED} > 4048) ? 'rate-limit' : 'shape';
+           my $cir    = $self->{USER_SPEED} * 1024;
+           my $nburst = int($cir * 1.5 / 8);
+           my $eburst = 2 * $nburst;
+           push @{ $RAD_PAIRS->{'mpd-limit'} }, "out#1=all $shapper_type $cir $nburst $eburst";
+           push @{ $RAD_PAIRS->{'mpd-limit'} }, "in#1=all $shapper_type $cir $nburst $eburst";        
+        }
+      }
+      else {
+ 	      $self->query(
+          $db, "SELECT tt.id, tc.nets, in_speed, out_speed
              FROM trafic_tarifs tt
              LEFT JOIN traffic_classes tc ON (tt.net_id=tc.id)
              WHERE tt.interval_id='$self->{TT_INTERVAL}' ORDER BY 1 DESC;"
-      );
+          );
 
-      foreach my $line (@{ $self->{list} }) {
-        my $class_id    = $line->[0];
-        my $filter_name = 'flt';
+        foreach my $line (@{ $self->{list} }) {
+          my $class_id    = $line->[0];
+          my $filter_name = 'flt';
 
-        if ($self->{TOTAL} == 1 || ($class_id == 0 && $line->[1] && $line->[1] =~ /0.0.0.0/)) {
-          my $shapper_type = ($line->[2] > 4048) ? 'rate-limit' : 'shape';
+          if ($self->{TOTAL} == 1 || ($class_id == 0 && $line->[1] && $line->[1] =~ /0.0.0.0/)) {
+            my $shapper_type = ($line->[2] > 4048) ? 'rate-limit' : 'shape';
 
-          if ($line->[2] == 0 || $CONF->{ng_car}) {
-            push @{ $RAD_PAIRS->{'mpd-limit'} }, "out#$self->{TOTAL}#0=all pass";
+            if ($line->[2] == 0 || $CONF->{ng_car}) {
+              push @{ $RAD_PAIRS->{'mpd-limit'} }, "out#$self->{TOTAL}#0=all pass";
+            }
+            elsif (!$CONF->{ng_car}) {
+              my $cir    = $line->[2] * 1024;
+              my $nburst = int($cir * 1.5 / 8);
+              my $eburst = 2 * $nburst;
+              push @{ $RAD_PAIRS->{'mpd-limit'} }, "out#$self->{TOTAL}#0=all $shapper_type $cir $nburst $eburst";
+            }
+
+            if ($line->[3] == 0 || $CONF->{ng_car}) {
+              push @{ $RAD_PAIRS->{'mpd-limit'} }, "in#$self->{TOTAL}#0=all pass";
+            }
+            elsif (!$CONF->{ng_car}) {
+              my $cir    = $line->[3] * 1024;
+              my $nburst = int($cir * 1.5 / 8);
+              my $eburst = 2 * $nburst;
+              push @{ $RAD_PAIRS->{'mpd-limit'} }, "in#$self->{TOTAL}#0=all $shapper_type $cir $nburst $eburst";
+            }
+            next;
           }
-          elsif (!$CONF->{ng_car}) {
-            my $cir    = $line->[2] * 1024;
-            my $nburst = int($cir * 1.5 / 8);
-            my $eburst = 2 * $nburst;
-            push @{ $RAD_PAIRS->{'mpd-limit'} }, "out#$self->{TOTAL}#0=all $shapper_type $cir $nburst $eburst";
+          elsif ($line->[1]) {
+            $line->[1] =~ s/[\n\r]//g;
+            my @net_list = split(/;/, $line->[1]);
+
+            my $i = 1;
+            $class_id = $class_id * 2 + 1 - 2 if ($class_id != 0);
+
+            foreach my $net (@net_list) {
+              push @{ $RAD_PAIRS->{'mpd-filter'} }, ($class_id) . "#$i=match dst net $net";
+              push @{ $RAD_PAIRS->{'mpd-filter'} }, ($class_id + 1) . "#$i=match src net $net";
+              $i++;
+            }
+
+             push @{ $RAD_PAIRS->{'mpd-limit'} }, "in#" .  ($self->{TOTAL} - $line->[0]) . "#$line->[0]=flt" . ($class_id) . " pass";
+             push @{ $RAD_PAIRS->{'mpd-limit'} }, "out#" . ($self->{TOTAL} - $line->[0]) . "#$line->[0]=flt" . ($class_id + 1) . " pass";
           }
-
-          if ($line->[3] == 0 || $CONF->{ng_car}) {
-            push @{ $RAD_PAIRS->{'mpd-limit'} }, "in#$self->{TOTAL}#0=all pass";
-          }
-          elsif (!$CONF->{ng_car}) {
-            my $cir    = $line->[3] * 1024;
-            my $nburst = int($cir * 1.5 / 8);
-            my $eburst = 2 * $nburst;
-            push @{ $RAD_PAIRS->{'mpd-limit'} }, "in#$self->{TOTAL}#0=all $shapper_type $cir $nburst $eburst";
-
-            #push @{$RAD_PAIRS->{'mpd-limit'} }, "in#$self->{TOTAL}#0=all $shapper_type ". ($line->[3] * 1024) ." 4000";
-          }
-          next;
-        }
-        elsif ($line->[1]) {
-          $line->[1] =~ s/[\n\r]//g;
-          my @net_list = split(/;/, $line->[1]);
-
-          my $i = 1;
-          $class_id = $class_id * 2 + 1 - 2 if ($class_id != 0);
-
-          foreach my $net (@net_list) {
-            push @{ $RAD_PAIRS->{'mpd-filter'} }, ($class_id) . "#$i=match dst net $net";
-            push @{ $RAD_PAIRS->{'mpd-filter'} }, ($class_id + 1) . "#$i=match src net $net";
-            $i++;
-          }
-
-          push @{ $RAD_PAIRS->{'mpd-limit'} }, "in#" .  ($self->{TOTAL} - $line->[0]) . "#$line->[0]=flt" . ($class_id) . " pass";
-          push @{ $RAD_PAIRS->{'mpd-limit'} }, "out#" . ($self->{TOTAL} - $line->[0]) . "#$line->[0]=flt" . ($class_id + 1) . " pass";
         }
       }
     }
@@ -1499,7 +1509,8 @@ sub get_ip {
     $db, "SELECT c.framed_ip_address
   FROM dv_calls c
   INNER JOIN nas_ippools np ON (c.nas_id=np.nas_id)
-  WHERE np.pool_id in ( $used_pools );"
+  WHERE np.pool_id in ( $used_pools )
+  GROUP BY c.framed_ip_address;"
   );
 
   $list = $self->{list};

@@ -837,7 +837,10 @@ sub dhcphosts_user {
       $Dhcphosts->host_check({%FORM});
 
       if (!$Dhcphosts->{errno} && $FORM{OPTION_82} && $FORM{PORTS} && $FORM{NAS_ID} && !$conf{DHCPHOSTS_O82_USE_MAC}) {
-        my $list = $Dhcphosts->hosts_list({ NAS_ID => $FORM{NAS_ID}, PORTS => $FORM{PORTS} });
+        my $list = $Dhcphosts->hosts_list({ NAS_ID => $FORM{NAS_ID}, 
+        	                                  PORTS  => $FORM{PORTS},
+        	                                  VID    => $FORM{VID}
+        	                                });
         if ($Dhcphosts->{TOTAL} > 0) {
           $Dhcphosts->{errno} = 8;
           $Dhcphosts->{LOGIN} = $list->[0][1];
@@ -897,13 +900,15 @@ sub dhcphosts_user {
         my $list = $Dhcphosts->hosts_list(
           {
             NAS_ID => $FORM{NAS_ID},
-            PORTS  => $FORM{PORTS}
+            PORTS  => $FORM{PORTS},
+            VID    => $FORM{VID},
+            COLS_NAME => 1
           }
         );
         if ($Dhcphosts->{TOTAL} > 0 && $FORM{ID} != $list->[0][0]) {
           $Dhcphosts->{errno} = 8;
-          $Dhcphosts->{LOGIN} = $list->[0][1];
-          $Dhcphosts->{UID}   = $list->[0][ 13 + $Dhcphosts->{SEARCH_FIELDS_COUNT} ];
+          $Dhcphosts->{LOGIN} = $list->[0]->{login};
+          $Dhcphosts->{UID}   = $list->[0]->{uid};
         }
       }
 
@@ -916,7 +921,7 @@ sub dhcphosts_user {
 
           # If install Snmputils make make assign
           if (in_array('Snmputils', \@MODULES) && $FORM{NAS_ID}) {
-            require "Abills/modules/Snmputils/webinterface";
+            load_module("Snmputils");
             my $return = snmputils_periodic({ NAS_IDS => $FORM{NAS_ID}, DEBUG => 1 });
             print $html->message('info', $_INFO, $html->pre($return, { OUTPUT2RETURN => 1 }));
           }

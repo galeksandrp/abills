@@ -1,5 +1,16 @@
 =====0.55=====
 
+03.04.2013\\
+  * Добавлена в основную ветку поддержка IPv6
+
+MySQL:\\
+
+  ALTER TABLE dv_calls ADD COLUMN framed_interface_id VARBINARY(16) not null default '';
+  ALTER TABLE dv_calls ADD COLUMN framed_ipv6_prefix VARBINARY(16) not null default '';
+  ALTER TABLE dv_log ADD COLUMN framed_ipv6_prefix VARBINARY(16) not null default '';  
+  ALTER TABLE ippools  ADD COLUMN ipv6_prefix VARBINARY(16) not null default '';
+  
+
 28.03.2013\\
 
   * Возврат потеряных сессий в биллинг.

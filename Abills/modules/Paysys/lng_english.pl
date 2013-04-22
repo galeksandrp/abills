@@ -16,3 +16,13 @@ $_CANCEL_PAYMENTS='Cancel Payments';
 $_BALANCE_RECHARCHE_SUM='Balance recharche sum';
 $_ERR_SMALL_SUM='Minimal recharge sum ';
 $_CONFIRM_PAYMENT='Confirm Payment';
+
+$_UNKNOWN='Unknown';
+$_COMPLETE='Complete';
+$_CANCELED='Canceled';
+$_EXPIRED='Expired';
+$_INCORRECT_CHECKSUM='Incorrect Checksum';
+$_PAYMENT_ERROR='Payment Error'; 
+$_DUBLICATE='Payment Exists'; 
+$_USER_ERROR='User Error'; 
+$_SMALL_PAYMENT_SUM='Small Payment sum';

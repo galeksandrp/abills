@@ -6,7 +6,6 @@ use strict;
 use vars qw(@ISA @EXPORT @EXPORT_OK %EXPORT_TAGS $VERSION
 );
 
-my $db;
 use main;
 @ISA = ("main");
 my $CONF;
@@ -20,6 +19,7 @@ sub new {
   my $self = {};
   bless($self, $class);
 
+  $self->{db}=$db;
   return $self;
 }
 
@@ -97,8 +97,7 @@ sub list {
 
   $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES) : '';
 
-  $self->query(
-    $db, "SELECT nas.id AS nas_id, 
+  $self->query2("SELECT nas.id AS nas_id, 
   nas.name as nas_name, 
   nas.nas_identifier, 
   nas.ip as nas_ip,   
@@ -152,8 +151,7 @@ sub info {
     $WHERE = "id='$attr->{NAS_ID}'";
   }
 
-  $self->query(
-    $db, "SELECT id as nas_id, 
+  $self->query2("SELECT id as nas_id, 
     name AS nas_name,
     nas_identifier, 
     descr AS nas_describe, 
@@ -186,8 +184,7 @@ sub info {
   );
 
   if ($self->{LOCATION_ID}) {
-    $self->query(
-      $db, "select d.id, d.city, d.name, s.name, b.number  
+    $self->query2("select d.id, d.city, d.name, s.name, b.number  
      FROM builds b
      LEFT JOIN streets s  ON (s.id=b.street_id)
      LEFT JOIN districts d  ON (d.id=s.district_id)
@@ -275,8 +272,7 @@ sub add {
 
   %DATA = $self->get_data($attr);
 
-  $self->query(
-    $db, "INSERT INTO nas (name, nas_identifier, descr, ip, nas_type, auth_type, mng_host_port, mng_user, 
+  $self->query2("INSERT INTO nas (name, nas_identifier, descr, ip, nas_type, auth_type, mng_host_port, mng_user, 
  mng_password, rad_pairs, alive, disable, ext_acct, 
  address_build, address_street, address_flat, zip, city, country, domain_id, gid, mac, location_id)
  values ('$DATA{NAS_NAME}', '$DATA{NAS_INDENTIFIER}', '$DATA{NAS_DESCRIBE}', '$DATA{NAS_IP}', '$DATA{NAS_TYPE}', '$DATA{NAS_AUTH_TYPE}',
@@ -298,8 +294,8 @@ sub del {
   my $self = shift;
   my ($id) = @_;
 
-  $self->query($db, "DELETE FROM nas WHERE id='$id'", 'do');
-  $self->query($db, "DELETE FROM nas_ippools WHERE nas_id='$id';", 'do');
+  $self->query2("DELETE FROM nas WHERE id='$id'", 'do');
+  $self->query2("DELETE FROM nas_ippools WHERE nas_id='$id';", 'do');
 
   $admin->system_action_add("NAS_ID:$id", { TYPE => 10 });
   return 0;
@@ -328,8 +324,7 @@ sub nas_ip_pools_list {
 
   my $WHERE_NAS = ($#WHERE_RULES > -1) ? "AND " . join(' and ', @WHERE_RULES) : '';
 
-  $self->query(
-    $db, "SELECT if (np.nas_id IS NULL, 0, np.nas_id) AS active_nas_id,
+  $self->query2("SELECT if (np.nas_id IS NULL, 0, np.nas_id) AS active_nas_id,
    n.name as nas_name, pool.name AS pool_name, 
     pool.ip, pool.ip + pool.counts AS last_ip_num, 
     pool.counts AS ip_count,  pool.priority, pool.speed,
@@ -360,11 +355,10 @@ sub nas_ip_pools_set {
   $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
   $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
 
-  $self->query($db, "DELETE FROM nas_ippools WHERE nas_id='$self->{NAS_ID}'", 'do');
+  $self->query2("DELETE FROM nas_ippools WHERE nas_id='$self->{NAS_ID}'", 'do');
 
   foreach my $id (split(/, /, $attr->{ids})) {
-    $self->query(
-      $db, "INSERT INTO nas_ippools (pool_id, nas_id) 
+    $self->query2("INSERT INTO nas_ippools (pool_id, nas_id) 
     VALUES ('$id', '$attr->{NAS_ID}');", 'do'
     );
   }
@@ -383,14 +377,14 @@ sub ip_pools_info {
 
   my $WHERE = '';
 
-  $self->query(
-    $db, "SELECT id, 
+  $self->query2("SELECT id, 
       INET_NTOA(ip) AS nas_ip_sip, 
       counts AS nas_ip_count, 
       name AS pool_name, 
       priority AS pool_priority, 
       static, 
-      speed AS pool_speed
+      speed AS pool_speed,
+      INET6_NTOA(ipv6_prefix) AS ipv6_prefix
    FROM ippools  WHERE id='$id';",
    undef,
    { INFO => 1 }
@@ -414,7 +408,8 @@ sub ip_pools_change {
     POOL_PRIORITY  => 'priority',
     NAS_IP_SIP_INT => 'ip',
     STATIC         => 'static',
-    POOL_SPEED     => 'speed'
+    POOL_SPEED     => 'speed',
+    IPV6_PREFIX    => 'ipv6_prefix'
   );
 
   $attr->{STATIC} = ($attr->{STATIC}) ? $attr->{STATIC} : 0;
@@ -451,8 +446,7 @@ sub ip_pools_list {
     push @WHERE_RULES, "pool.static='$attr->{STATIC}'";
 
     my $WHERE = ($#WHERE_RULES > -1) ? join(' and ', @WHERE_RULES) : '';
-    $self->query(
-      $db, "SELECT '', pool.name, 
+    $self->query2("SELECT '', pool.name, 
    pool.ip, pool.ip + pool.counts AS last_ip_num, pool.counts, pool.priority,
     INET_NTOA(pool.ip) AS first_ip, INET_NTOA(pool.ip + pool.counts) AS last_ip, 
     pool.id, pool.nas
@@ -468,8 +462,7 @@ sub ip_pools_list {
 
   my $WHERE = ($#WHERE_RULES > -1) ? "and " . join(' and ', @WHERE_RULES) : '';
 
-  $self->query(
-    $db, "SELECT nas.name, pool.name, 
+  $self->query2("SELECT nas.name, pool.name, 
    pool.ip, pool.ip + pool.counts AS last_ip_num, pool.counts, pool.priority,
     INET_NTOA(pool.ip) AS first_ip, INET_NTOA(pool.ip + pool.counts) AS last_ip, 
     pool.id, pool.nas
@@ -492,14 +485,13 @@ sub ip_pools_add {
   my ($attr) = @_;
   my %DATA   = $self->get_data($attr);
 
- $self->query_add($db, 'ippools', { %$attr, 
+ $self->query_add('ippools', { %$attr, 
  	                                 NAS      => $attr->{NAS_ID}, 
  	                                 IP       => "$DATA{NAS_IP_SIP}", 
  	                                 COUNTS   => $attr->{NAS_IP_COUNT}, 
  	                                 NAME     => $attr->{POOL_NAME}, 
  	                                 PRIORITY => $attr->{POOL_PRIORITY}, 
  	                                 SPEED    => $attr->{POOL_SPEED},
-# 	                                 IPV6_PREFIX => "INET6_ATON($attr->{IPV6_PREFIX})"
  	                                  });
 
   $admin->system_action_add("NAS_ID:$DATA{NAS_ID} POOLS:" . (join(',', split(/, /, $attr->{ids}))), { TYPE => 1 });
@@ -514,7 +506,7 @@ sub ip_pools_del {
   my $self = shift;
   my ($id) = @_;
 
-  $self->query($db, "DELETE FROM ippools WHERE id='$id'", 'do');
+  $self->query2("DELETE FROM ippools WHERE id='$id'", 'do');
 
   $admin->system_action_add("POOL:$id", { TYPE => 10 });
   return 0;
@@ -537,8 +529,7 @@ sub stats {
     $WHERE .= "and id='$attr->{NAS_ID}'";
   }
 
-  $self->query(
-    $db, "select n.name, l.port_id, count(*),
+  $self->query2("select n.name, l.port_id, count(*),
    if(date_format(max(l.start), '%Y-%m-%d')=curdate(), date_format(max(l.start), '%H-%i-%s'), max(l.start)),
    SEC_TO_TIME(avg(l.duration)), SEC_TO_TIME(min(l.duration)), SEC_TO_TIME(max(l.duration)),
    l.nas_id
@@ -570,8 +561,7 @@ sub nas_group_list {
 
   $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES) : '';
 
-  $self->query(
-    $db, "SELECT id, name, comments, disable
+  $self->query2("SELECT id, name, comments, disable
   FROM nas_groups
   $WHERE
   ORDER BY $SORT $DESC;",
@@ -594,8 +584,7 @@ sub nas_group_info {
     $WHERE = "id='$attr->{ID}'";
   }
 
-  $self->query(
-    $db, "SELECT * FROM nas_groups WHERE $WHERE;",
+  $self->query2("SELECT * FROM nas_groups WHERE $WHERE;",
   undef,
   { INFO => 1 }
   );
@@ -636,7 +625,7 @@ sub nas_group_add {
   my ($attr) = @_;
 
   %DATA = $self->get_data($attr);
-  $self->query_add($db, 'groups', $attr);
+  $self->query_add('groups', $attr);
 
   $admin->system_action_add("NAS_GROUP_ID:$self->{INSERT_ID}", { TYPE => 1 });
   return 0;
@@ -650,7 +639,7 @@ sub nas_group_del {
   my $self = shift;
   my ($id) = @_;
 
-  $self->query($db, "DELETE FROM nas_groups WHERE id='$id'", 'do');
+  $self->query2("DELETE FROM nas_groups WHERE id='$id'", 'do');
 
   $admin->system_action_add("NAS_GROUP_ID:$id", { TYPE => 10 });
   return 0;

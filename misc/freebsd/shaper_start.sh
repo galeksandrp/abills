@@ -16,7 +16,7 @@
 #
 #   abills_ip_sessions="" - ABIllS IP SEssions limit
 #
-#   abills_nat="EXTERNAL_IP:INTERNAL_IPS:NAT_IF" - Enable abills nat
+#   abills_nat="EXTERNAL_IP:INTERNAL_IPS:NAT_IF;..." - Enable abills nat
 #
 #   abills_dhcp_shaper=""  (bool) :  Set to "NO" by default.
 #                                    Enable ipoe_shaper
@@ -329,93 +329,77 @@ external_fw_rules() {
 
 #**********************************************************
 #NAT Section
-# options         IPFIREWALL_FORWARD
-# options         IPFIREWALL_NAT
-# options         LIBALIAS
+# options IPFIREWALL_FORWARD
+# options IPFIREWALL_NAT
+# options LIBALIAS
 #Nat Section
 #**********************************************************
 abills_nat() {
-  if [ x"${abills_nat}" = x ]; then
-    return 0;
-  fi;
+if [ x"${abills_nat}" = x ]; then
+return 0;
+fi;
+echo "ABillS NAT ${ACTION}"
+abills_ips_nat=`echo ${abills_nat} | sed 's/ //g'`;
+abills_ips_nat=`echo ${abills_nat} | sed 's/;/ /g'`;
 
-  echo "ABillS NAT ${ACTION}"
-  
-  # NAT External IP
-  NAT_IPS=`echo ${abills_nat} | awk -F: '{ print $1 }'`;
-  # Fake net 
-  FAKE_NET=`echo ${abills_nat} | awk -F: '{ print $2 }' | sed 's/,/ /g'`;
-  #NAT IF
-  NAT_IF=`echo ${abills_nat} | awk -F: '{ print $3 }'`;
 
-  if [ x${NAT_IPS} = x ]; then    
-    if [ x${NAT_IF} = x  ]; then
-      NAT_INTERFACE=`route get default | grep interfa | awk '{print $2 }'`;
-    else 
-      NAT_INTERFACE=${NAT_IF}
-    fi;
-    
-    NAT_IPS=`ifconfig ${NAT_INTERFACE} | grep inet | awk '{ print $2 }'`;
-    echo "Use ${NAT_IPS} for nating"
-  fi;
+NAT_TABLE=20
+NAT_FIRST_RULE=20
+NAT_USERS_RULE=21
+NAT_REAL_TO_FAKE_TABLE_NUM=33;
 
-  NAT_TABLE=20
-  NAT_FIRST_RULE=20
-  NAT_REAL_TO_FAKE_TABLE_NUM=33;
+for IPS_NAT in ${abills_ips_nat}; do
+# NAT External IP
+NAT_IPS=`echo ${IPS_NAT} | awk -F: '{ print $1 }'`;
+# Fake net
+FAKE_NET=`echo ${IPS_NAT} | awk -F: '{ print $2 }' | sed 's/,/ /g'`;
+#NAT IF
+NAT_IF=`echo ${IPS_NAT} | awk -F: '{ print $3 }'`;
 
-  # nat configuration
-  for IP in ${NAT_IPS}; do
-    if [ x${ACTION} = xstart ]; then
-      ${IPFW} nat `expr ${NAT_FIRST_RULE} + 1` config ip ${IP} log
-      ${IPFW} table ${NAT_REAL_TO_FAKE_TABLE_NUM} add ${IP} ` expr ${NAT_FIRST_RULE} + 1 `
+echo " NAT ${ACTION}"
 
-      for f_net in ${FAKE_NET}; do
-        ${IPFW} table ` expr ${NAT_REAL_TO_FAKE_TABLE_NUM} + 1` add ${f_net} ` expr ${NAT_FIRST_RULE} + 1 `
-      done;
-    elif [ x${ACTION} = xstop ] ; then
-#      ${IPFW} nat `expr ${NAT_FIRST_RULE} + 1` config ip ${IP} log
-      ${IPFW} table ${NAT_REAL_TO_FAKE_TABLE_NUM} delete ${IP}
+# nat configuration
+for IP in ${NAT_IPS}; do
+if [ w${ACTION} = wstart ]; then
 
-      for f_net in ${FAKE_NET}; do
-        ${IPFW} table ` expr ${NAT_REAL_TO_FAKE_TABLE_NUM} + 1` delete ${f_net}
-      done;
-    fi;
-  done;
+${IPFW} nat ${NAT_USERS_RULE} config ip ${IP} log
+${IPFW} table ${NAT_REAL_TO_FAKE_TABLE_NUM} add ${IP} ${NAT_USERS_RULE}
 
-  # ISP_GW2=1 For redirect to second way
-  if [ x${ISP_GW2} != x ]; then
-    #Second way
-    GW2_IF_IP="192.168.0.2"
-    GW2_IP="192.168.0.1"
-    GW2_REDIRECT_IPS="10.0.0.0/24"
-    NAT_ID=22
-    #Fake IPS
-    ${IPFW} table ${NAT_REAL_TO_FAKE_TABLE_NUM} add ${GW2_IF_IP} ${FWD_NAT_ID}
-    #NAT configure
-    ${IPFW} nat ${NAT_ID} config ip ${EXT_IP} log
-    #Redirect to second net IPS
-    for ip_mask in ${GW2_REDIRECT_IPS} ; do
-      ${IPFW} table ` expr ${NAT_REAL_TO_FAKE_TABLE_NUM} + 1` add ${ip_mask} ${NAT_ID}
-    done;
 
-    #Forward traffic 2 second way
-    ${IPFW}  add 60015 fwd ${GW2_IP} ip from ${GW2_IF_IP} to any
-    #${IPFW} add 30 add fwd ${ISP_GW2} ip from ${NAT_IPS} to any
-  fi;
+for f_net in ${FAKE_NET}; do
+${IPFW} table ` expr ${NAT_REAL_TO_FAKE_TABLE_NUM} + 1` add ${f_net} ${NAT_USERS_RULE}
+done;
+
+
+else if [ w${ACTION} = wstop ]; then
+${IPFW} nat delete ${NAT_USERS_RULE}
+fi;
+fi;
+done;
+
+NAT_USERS_RULE=` expr ${NAT_USERS_RULE} + 1`
+done;
+
+
 
 # UP NAT
-if [ x${ACTION} = xstart ]; then
-  if [ x${NAT_IF} != x ]; then
-    NAT_IF="via ${NAT_IF}"
-  fi;
+if [ w${ACTION} = wstart ]; then
+if [ w${NAT_IF} != w ]; then
+NAT_IF="via ${NAT_IF}"
+fi;
 
-  ${IPFW} add 60010 nat tablearg ip from table\(` expr ${NAT_REAL_TO_FAKE_TABLE_NUM} + 1 `\) to any $NAT_IF
-  ${IPFW} add 60020 nat tablearg ip from any to table\(${NAT_REAL_TO_FAKE_TABLE_NUM}\) $NAT_IF
-else if [ x${ACTION} = xstop ]; then
-  ${IPFW} delete 60010 60020 60015
+${IPFW} add 60010 nat tablearg ip from table\(` expr ${NAT_REAL_TO_FAKE_TABLE_NUM} + 1 `\) to any $NAT_IF
+${IPFW} add 20 nat tablearg ip from any to table\(${NAT_REAL_TO_FAKE_TABLE_NUM}\) $NAT_IF
+
+else if [ w${ACTION} = wstop ]; then
+${IPFW} table ${NAT_REAL_TO_FAKE_TABLE_NUM} flush
+${IPFW} table ` expr ${NAT_REAL_TO_FAKE_TABLE_NUM} + 1 ` flush
+${IPFW} delete 60010 20 60015
+
 fi;
 fi;
 }
+
 
 #**********************************************************
 #Neg deposit FWD Section

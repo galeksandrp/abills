@@ -112,10 +112,18 @@ my %CONF_OPTIONS = (
   PAYSYS_WEBMONEY_TERMINAL                  => 85
 );
 
-my @status = ('UNKNOWN', 'IN PROCCESS', 'COMPLETE', 
-'CANCELED', 'EXPIRED', 'INCORRECT_CHECKSUM', 
-'PAYMENT_ERROR', 'DUBLICATE', 'USER_ERROR', 
-'USER_NOT_EXIST', 'SMALL_PAYMENT_SUM', 'SQL_ERROR');
+my @status = ("$_UNKNOWN",
+"$_TRANSACTION_PROCESSING", 
+"$_COMPLETE", 
+"$_CANCELED", 
+"$_EXPIRED", 
+"$_INCORRECT_CHECKSUM", 
+"$_PAYMENT_ERROR", 
+"$_DUBLICATE", 
+"$_USER_ERROR", 
+"$_USER_NOT_EXIST", 
+"$_SMALL_PAYMENT_SUM", 
+'SQL_ERROR');
 
 #require "modules/Paysys/paysys_cons";
 
@@ -718,8 +726,8 @@ sub paysys_payment {
 #**********************************************************
 sub paysys_log {
 
-  if ($Paysys::VERSION < 4.05) {
-    $html->message('info', "UPDATE", "Please update module 'Paysys' to version 4.03 or higher. http://abills.net.ua/");
+  if ($Paysys::VERSION < 4.07) {
+    $html->message('info', "UPDATE", "Please update module 'Paysys' to version 4.07 or higher. http://abills.net.ua/");
     return 0;
   }
 
@@ -842,9 +850,12 @@ sub paysys_log {
     {
       width      => '100%',
       cols_align => [ 'right', 'right', 'right', 'right' ],
-      rows       => [ [ "$_TOTAL:", $html->b($Paysys->{TOTAL}), "$_SUM", $html->b($Paysys->{SUM}) ] ]
+      rows       => [ [ "$_TOTAL:", $html->b($Paysys->{TOTAL}), "$_SUM", $html->b($Paysys->{SUM}) ],
+                      [ "$_TOTAL $_COMPLETE:", $html->b($Paysys->{TOTAL_COMPLETE}), "$_SUM $_COMPLETE:", $html->b($Paysys->{SUM_COMPLETE}) ] 
+                    ]
     }
   );
+
   print $table->show();
 }
 
@@ -888,13 +899,13 @@ sub paysys_user_log {
     $LIST_PARAMS{DESC} = DESC;
   }
 
-  my $list  = $Paysys->list({%LIST_PARAMS});
+  my $list  = $Paysys->list({%LIST_PARAMS, COLS_NAME => 1 });
   my $table = $html->table(
     {
       width      => '100%',
       caption    => "Paysys",
       border     => 1,
-      title      => [ 'ID', "$_LOGIN", "$_DATE", "$_SUM", "$_PAY_SYSTEM", "$_TRANSACTION", "IP", '-' ],
+      title      => [ 'ID', "$_DATE", "$_SUM", "$_PAY_SYSTEM", "$_TRANSACTION", "$_STATUS", '-' ],
       cols_align => [ 'left', 'left', 'right', 'right', 'left', 'right', 'right', 'center:noprint' ],
       qs         => $pages_qs,
       pages      => $Paysys->{TOTAL},
@@ -903,14 +914,13 @@ sub paysys_user_log {
   );
 
   foreach my $line (@$list) {
-
-    $table->addrow($line->[0], 
-    $line->[1], 
-    "$line->[2]", 
-    "$line->[3]", 
-    "$PAY_SYSTEMS{$line->[4]}", 
-    $line->[5], "$line->[6]", 
-    $html->button($_INFO, "index=$index&info=$line->[0]"));
+    $table->addrow($line->{id}, 
+    $line->{datetime}, 
+    $line->{sum}, 
+    $PAY_SYSTEMS{$line->{system_id}}, 
+    $line->{transaction_id}, 
+    "$status[$line->{status}]", 
+    $html->button($_INFO, "index=$index&info=$line->{id}"));
   }
   print $table->show();
 
@@ -918,7 +928,7 @@ sub paysys_user_log {
     {
       width      => '100%',
       cols_align => [ 'right', 'right', 'right', 'right' ],
-      rows       => [ [ "$_TOTAL:", $html->b($Paysys->{TOTAL}), "$_SUM:", $html->b($Paysys->{SUM}) ] ]
+      rows       => [ [ "$_TOTAL:", $html->b($Paysys->{TOTAL_COMPLETE}), "$_SUM:", $html->b($Paysys->{SUM_COMPLETE}) ] ]
     }
   );
   print $table->show();

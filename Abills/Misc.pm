@@ -199,8 +199,9 @@ sub service_get_month_fee {
   my ($Service, $attr) = @_;
 
   use Finance;
-  my $fees = Finance->fees($db, $admin, \%conf);
-  my $payments = Finance->payments($db, $admin, \%conf);
+  my $fees     = Finance->fees($Service->{db}, $admin, \%conf);
+  my $payments = Finance->payments($Service->{db}, $admin, \%conf);
+  my $users    = Users->new($Service->{db}, $admin, \%conf);
 
   my %total_sum = (
     ACTIVATE  => 0,
@@ -221,7 +222,7 @@ sub service_get_month_fee {
       return 0;
     }
 
-    my $Bonus_rating = Bonus_rating->new($db, $admin, \%conf);
+    my $Bonus_rating = Bonus_rating->new($Service->{db}, $admin, \%conf);
     $Bonus_rating->info($Service->{TP_INFO}->{TP_ID});
 
 
@@ -262,7 +263,6 @@ sub service_get_month_fee {
 
   #Get active price
   if ($Service->{TP_INFO}->{ACTIV_PRICE} > 0) {
-    my $users = Users->new($db, $admin, \%conf);
     my $user  = $users->info($Service->{UID});
     my $date  = ($user->{ACTIVATE} ne '0000-00-00') ? $user->{ACTIVATE} : $DATE;
     my $time  = ($user->{ACTIVATE} ne '0000-00-00') ? '00:00:00' : $TIME;
@@ -324,7 +324,6 @@ sub service_get_month_fee {
   #Get month fee
   if ($Service->{TP_INFO}->{MONTH_FEE} > 0) {    
     my $sum   = $Service->{TP_INFO}->{MONTH_FEE};
-    my $users = Users->new($db, $admin, \%conf);
     my $user  = $users->info($Service->{UID});
 
     if ($Service->{TP_INFO}->{EXT_BILL_ACCOUNT}) {

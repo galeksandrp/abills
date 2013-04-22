@@ -25,12 +25,16 @@ my $MODULE = 'Dhcphosts';
 #**********************************************************
 sub new {
   my $class = shift;
-  ($db, $admin, $CONF) = @_;
+  my $db    = shift;
+  ($admin, $CONF) = @_;
 
   $admin->{MODULE} = $MODULE;
 
   my $self = {};
   bless($self, $class);
+
+  $self->{db}=$db;
+
   return $self;
 }
 
@@ -51,8 +55,7 @@ sub routes_list {
 
   $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES) : '';
 
-  $self->query(
-    $db, "SELECT 
+  $self->query2("SELECT 
     r.id, r.network, inet_ntoa(r.src),
     INET_NTOA(r.mask),
     inet_ntoa(r.router),
@@ -60,7 +63,9 @@ sub routes_list {
      FROM dhcphosts_routes r
      left join dhcphosts_networks n on r.network=n.id
      $WHERE
-     ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;"
+     ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;",
+    undef,
+    $attr  
   );
 
   return $self if ($self->{errno});
@@ -68,8 +73,7 @@ sub routes_list {
   my $list = $self->{list};
 
   if ($self->{TOTAL} > 0) {
-    $self->query($db, "SELECT count(*) FROM dhcphosts_routes r $WHERE");
-    ($self->{TOTAL}) = @{ $self->{list}->[0] };
+    $self->query2("SELECT count(*) AS total FROM dhcphosts_routes r $WHERE", undef, { INFO => 1 });
   }
 
   return $list;
@@ -117,8 +121,7 @@ sub network_add {
 
   my %DATA = $self->get_data($attr, { default => network_defaults() });
 
-  $self->query(
-    $db, "INSERT INTO dhcphosts_networks 
+  $self->query2("INSERT INTO dhcphosts_networks 
      (name,network,mask, routers, coordinator, phone, dns, dns2, ntp,
       suffix, disable,
       ip_range_first, ip_range_last, comments,  deny_unknown_clients,  authoritative, net_parent, guest_vlan, static) 
@@ -149,8 +152,8 @@ sub network_del {
   my $self = shift;
   my ($id) = @_;
 
-  $self->query($db, "DELETE FROM dhcphosts_networks where id='$id';",   'do');
-  $self->query($db, "DELETE FROM dhcphosts_hosts where network='$id';", 'do');
+  $self->query2("DELETE FROM dhcphosts_networks where id='$id';",   'do');
+  $self->query2("DELETE FROM dhcphosts_hosts where network='$id';", 'do');
 
   $admin->system_action_add("DHCPHOSTS_NET:$id", { TYPE => 10 });
   return $self;
@@ -215,8 +218,7 @@ sub network_info {
   my $self = shift;
   my ($id) = @_;
 
-  $self->query(
-    $db, "SELECT
+  $self->query2("SELECT
    id,
    name,
    INET_NTOA(network) AS network,
@@ -246,12 +248,6 @@ sub network_info {
   { INFO => 1 }
   );
 
-  if ($self->{TOTAL} < 1) {
-    $self->{errno}  = 2;
-    $self->{errstr} = 'ERROR_NOT_EXIST';
-    return $self;
-  }
-
   return $self;
 }
 
@@ -278,8 +274,7 @@ sub networks_list {
 
   $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES) : '';
 
-  $self->query(
-    $db, "SELECT 
+  $self->query2("SELECT 
     id, name, INET_NTOA(network),
      INET_NTOA(mask),
      coordinator,
@@ -290,7 +285,9 @@ sub networks_list {
      static     
      FROM dhcphosts_networks
      $WHERE
-     ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;"
+     ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;",
+     undef,
+     $attr
   );
 
   return $self if ($self->{errno});
@@ -298,8 +295,7 @@ sub networks_list {
   my $list = $self->{list};
 
   if ($self->{TOTAL} > 0 || $PG > 0) {
-    $self->query($db, "SELECT count(*) FROM dhcphosts_networks $WHERE");
-    ($self->{TOTAL}) = @{ $self->{list}->[0] };
+    $self->query2("SELECT count(*) FROM dhcphosts_networks $WHERE", undef, { INFO => 1 });
   }
 
   return $list;
@@ -344,8 +340,7 @@ sub host_add {
 
   my %DATA = $self->get_data($attr, { default => host_defaults() });
 
-  $self->query(
-    $db, "INSERT INTO dhcphosts_hosts (uid, hostname, network, ip, mac, blocktime, 
+  $self->query2("INSERT INTO dhcphosts_hosts (uid, hostname, network, ip, mac, blocktime, 
     forced, disable, expire, comments, option_82, vid, nas, ports, boot_file, next_server, ipn_activate,
     server_vid) 
     VALUES('$DATA{UID}', '$DATA{HOSTNAME}', '$DATA{NETWORK}',
@@ -386,8 +381,8 @@ sub host_del {
     $action = "DELETE HOST $host->{HOSTNAME} ($host->{IP}/$host->{MAC}) $host->{NAS_ID}:$host->{PORTS}";
   }
 
-  $self->query($db, "DELETE FROM dhcphosts_hosts where $WHERE", 'do');
-  $self->query($db, "DELETE FROM dhcphosts_leases where uid='$uid' or hardware='$host->{MAC}'", 'do');
+  $self->query2("DELETE FROM dhcphosts_hosts where $WHERE", 'do');
+  $self->query2("DELETE FROM dhcphosts_leases where uid='$uid' or hardware='$host->{MAC}'", 'do');
 
   $admin->action_add($uid, "$action", { TYPE => 10 });
 
@@ -430,8 +425,7 @@ sub host_info {
     $WHERE = "id='$id'";
   }
 
-  $self->query(
-    $db, "SELECT
+  $self->query2("SELECT
    uid, 
    hostname, 
    network, 
@@ -521,8 +515,7 @@ sub route_add {
   my ($attr) = @_;
 
   my %DATA = $self->get_data($attr);
-  $self->query(
-    $db, "INSERT INTO dhcphosts_routes 
+  $self->query2("INSERT INTO dhcphosts_routes 
        (network, src, mask, router) 
     values($DATA{NET_ID},INET_ATON('$DATA{SRC}'), INET_ATON('$DATA{MASK}'), INET_ATON('$DATA{ROUTER}'))", 'do'
   );
@@ -537,7 +530,7 @@ sub route_add {
 sub route_del {
   my $self = shift;
   my ($id) = @_;
-  $self->query($db, "DELETE FROM dhcphosts_routes where id='$id'", 'do');
+  $self->query2("DELETE FROM dhcphosts_routes where id='$id'", 'do');
 
   $admin->system_action_add("DHCPHOSTS_NET: ROUTE:$id", { TYPE => 10 });
   return $self;
@@ -580,24 +573,16 @@ sub route_info {
   my $self = shift;
   my ($id) = @_;
 
-  $self->query(
-    $db, "SELECT 
-   id,
+  $self->query2("SELECT 
+   id AS net_id,
    network,
-   INET_NTOA(src),
-   INET_NTOA(mask),
-   INET_NTOA(router)
- 
-   FROM dhcphosts_routes WHERE id='$id';"
+   INET_NTOA(src) AS src,
+   INET_NTOA(mask) AS mask ,
+   INET_NTOA(router) AS router
+    FROM dhcphosts_routes WHERE id='$id';",
+   undef,
+   { INFO => 1 }
   );
-
-  if ($self->{TOTAL} < 1) {
-    $self->{errno}  = 2;
-    $self->{errstr} = 'ERROR_NOT_EXIST';
-    return $self;
-  }
-
-  ($self->{NET_ID}, $self->{NETWORK}, $self->{SRC}, $self->{MASK}, $self->{ROUTER}) = @{ $self->{list}->[0] };
 
   return $self;
 }
@@ -769,8 +754,7 @@ sub hosts_list {
     $fields .=  "nas.mng_host_port, nas.mng_user, DECODE(nas.mng_password, '$CONF->{secretkey}') AS mng_password, ";
   }
 
-  $self->query(
-    $db, "SELECT $fields INET_NTOA(h.ip) AS ip, 
+  $self->query2("SELECT $fields INET_NTOA(h.ip) AS ip, 
       $self->{SEARCH_FIELDS} seen, 
       h.uid,
       if ((u.expire <> '0000-00-00' && curdate() > u.expire) || (h.expire <> '0000-00-00' && curdate() > h.expire), 1, 0) AS expire
@@ -791,14 +775,13 @@ sub hosts_list {
   my $list = $self->{list};
 
   if ($self->{TOTAL} > 0) {
-    $self->query(
-      $db, "SELECT count(*) FROM dhcphosts_hosts h
+    $self->query2("SELECT count(*) AS total FROM dhcphosts_hosts h
      left join users u on h.uid=u.uid
      left join users_pi pi on (pi.uid=u.uid)
      $EXT_TABLES
-     $WHERE"
+     $WHERE",
+     undef, { INFO => 1 }
     );
-    ($self->{TOTAL}) = @{ $self->{list}->[0] };
   }
 
   return $list;
@@ -837,8 +820,7 @@ sub leases_update {
 
   my %DATA = $self->get_data($attr, { default => leases_defaults() });
 
-  $self->query(
-    $db, "INSERT INTO dhcphosts_leases 
+  $self->query2("INSERT INTO dhcphosts_leases 
      (  start,  ends,
   state,
   next_state,
@@ -937,8 +919,7 @@ sub leases_list {
 
   # IP, START, MAC, HOSTNAME, ENDS, STATE, REMOTE_ID,
 
-  $self->query(
-    $db, "SELECT if (l.uid > 0, u.id, '') AS login, 
+  $self->query2("SELECT if (l.uid > 0, u.id, '') AS login, 
   INET_NTOA(l.ip) AS ip, 
   l.start, l.hardware, l.hostname, 
   l.ends,
@@ -961,11 +942,9 @@ sub leases_list {
 
   my $list = $self->{list};
 
-  $self->query($db, "SELECT count(*) FROM dhcphosts_leases l 
+  $self->query2("SELECT count(*) AS total FROM dhcphosts_leases l 
     LEFT JOIN users u ON (u.uid=l.uid)
-  $WHERE;");
-
-  ($self->{TOTAL}) = @{ $self->{list}->[0] };
+  $WHERE;", undef, {INFO => 1 });
 
   return $list;
 }
@@ -990,7 +969,7 @@ sub leases_clear {
   my $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES) : '';
   
 
-  $self->query($db, "DELETE FROM dhcphosts_leases $WHERE;", 'do');
+  $self->query2("DELETE FROM dhcphosts_leases $WHERE;", 'do');
   return $self;
 }
 
@@ -1003,8 +982,7 @@ sub log_add {
 
   my %DATA = $self->get_data($attr);
 
-  $self->query(
-    $db, "INSERT INTO dhcphosts_log (datetime, hostname, message_type, message) 
+  $self->query2("INSERT INTO dhcphosts_log (datetime, hostname, message_type, message) 
     VALUES('$DATA{DATETIME}', '$DATA{HOSTNAME}', '$DATA{MESSAGE_TYPE}', '$DATA{MESSAGE}');", 'do'
   );
 
@@ -1027,9 +1005,8 @@ sub log_del {
     $WHERE = "datetime='$attr->{DATETIME}'";
   }
 
-  $self->query($db, "DELETE FROM dhcphosts_log where $WHERE", 'do');
+  $self->query2("DELETE FROM dhcphosts_log where $WHERE", 'do');
 
-  #$admin->system_action_add("DHCPLOG", { TYPE => 10 });
   return $self;
 }
 
@@ -1107,7 +1084,7 @@ sub log_list {
     $EXT_TABLES .= "LEFT JOIN users u ON  (u.uid=l.uid)"; 
   }
   
-  $self->query($db, "SELECT l.datetime, l.hostname, l.message_type, l.message
+  $self->query2("SELECT l.datetime, l.hostname, l.message_type, l.message
      FROM (dhcphosts_log l)
      $WHERE
      ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");
@@ -1117,8 +1094,7 @@ sub log_list {
   my $list = $self->{list};
 
   if ($self->{TOTAL} > 0) {
-    $self->query($db, "SELECT count(*) FROM dhcphosts_log l $WHERE");
-    ($self->{TOTAL}) = @{ $self->{list}->[0] };
+    $self->query2("SELECT count(*) AS total FROM dhcphosts_log l $WHERE", undef, { INFO => 1 });
   }
 
   return $list;

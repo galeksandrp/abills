@@ -69,7 +69,6 @@ sub online {
 
   my $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
   my $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
-
   my $WHERE;
 
   if (defined($attr->{ZAPED})) {

@@ -421,19 +421,15 @@ sub make_charts () {
 sub header {
   my $self       = shift;
   my ($attr)     = @_;
-  my $admin_name = $ENV{REMOTE_USER};
-  my $admin_ip   = $ENV{REMOTE_ADDR};
+
   if ($FORM{DEBUG}) {
     print "Content-Type: text/plain\n\n";
   }
 
-  my $filename     =  ($self->{ID}) ? $self->{ID}.'.xls' : int(rand(10000000)).'.xls';    
+  my $filename     =  ($self->{ID}) ? $self->{ID}.'.xls' : ($FORM{EXPORT_CONTENT}) ?  $FORM{EXPORT_CONTENT}.'.xls' : int(rand(10000000)).'.xls';    
   $self->{header}  = "Content-Type: application/vnd.ms-excel; filename=$filename\n";    
   $self->{header} .= "Cache-Control: no-cache\n";
   $self->{header} .= "Content-disposition: attachment;filename=\"$filename\"\n\n";
-
-  my $CHARSET = (defined($attr->{CHARSET})) ? $attr->{CHARSET} : $self->{CHARSET} || 'windows-1251';
-  $CHARSET =~ s/ //g;
 
   return $self->{header};
 }
@@ -705,11 +701,32 @@ sub date_fld2 {
 
   my ($sec, $min, $hour, $mday, $mon, $curyear, $wday, $yday, $isdst) = localtime(time);
 
-  my $day   = $FORM{ $base_name . 'D' } || 1;
-  my $month = $FORM{ $base_name . 'M' } || $mon;
+  my $day   = sprintf("%.2d", $FORM{ $base_name . 'D' } || 1);
+  my $month = sprintf("%.2d", $FORM{ $base_name . 'M' } || $mon);
   my $year  = $FORM{ $base_name . 'Y' } || $curyear + 1900;
 
-  my $result = "$year-$month-$day";
+  my $result = sprintf("%d-%.2d-%.2d", $year, $month, $day);
+  
+  if ($FORM{$base_name}) {
+    my $date = $FORM{$base_name};
+    $self->{$base_name} = $date;
+  }
+  elsif (!$attr->{NO_DEFAULT_DATE}) {
+    my ($sec, $min, $hour, $mday, $mon, $curyear, $wday, $yday, $isdst) = localtime(time + (($attr->{NEXT_DAY}) ? 86400 : 0));
+
+    my $month = $mon + 1;
+    my $year  = $curyear + 1900;
+    my $day   = $mday;
+
+    if ($base_name =~ /to/i) {
+      $day = ($month != 2 ? (($month % 2) ^ ($month > 7)) + 30 : (!($year % 400) || !($year % 4) && ($year % 25) ? 29 : 28));
+    }
+    elsif ($base_name =~ /from/i && !$attr->{NEXT_DAY}) {
+      $day = 1;
+    }
+    my $date = sprintf("%d-%.2d-%.2d", $year, $month, $day);
+    $self->{$base_name} = $date;
+  }
 
   return $result;
 }

@@ -3332,6 +3332,8 @@ sub snmp_info_form {
       SEL_MULTI_ARRAY   => [ [ '', '' ], @{ $Nas->list({ SORT => 1, PAGE_ROWS => 10000 }) } ],
       MULTI_ARRAY_KEY   => 0,
       MULTI_ARRAY_VALUE => 1,
+      MAIN_MENU         => get_function_index('form_nas'),
+      MAIN_MENU_AGRV    => "NAS_ID=$FORM{NAS_ID}"
     }
   );
 
@@ -3415,11 +3417,12 @@ sub snmp_info_form {
         return 0;
       }
 
-      $page_qs        = "&NAS_ID=$FORM{NAS_ID}";
+      $pages_qs        = "&NAS_ID=$FORM{NAS_ID}";
       $SNMP_COMMUNITY = "$Nas->{NAS_MNG_PASSWORD}\@$Nas->{NAS_MNG_IP_PORT}";
     }
     else {
-      $page_qs = "\&SNMP_COMMUNITY=$FORM{SNMP_COMMUNITY}\&SNMP_HOST=$FORM{SNMP_HOST}";
+      $pages_qs = "\&SNMP_COMMUNITY=$FORM{SNMP_COMMUNITY}\&SNMP_HOST=$FORM{SNMP_HOST}";
+      $SNMP_COMMUNITY = "$FORM{SNMP_COMMUNITY}\@$FORM{SNMP_HOST}";
     }
 
     #External
@@ -4462,9 +4465,9 @@ sub snmputils_cable_tester {
 
   my $table = $html->table(
     {
-      caption => "Cable tester",
-      width   => '100%',
-      title   => [ "$_PORTS", "$_TYPE", "$_STATE", "Pairs STATUS", "$_LENGTH", "$_TEST $_STATUS" ],
+      caption    => "Cable tester",
+      width      => '100%',
+      title      => [ "$_PORTS", "$_TYPE", "$_STATE", "Pairs STATUS", "$_LENGTH", "$_TEST $_STATUS" ],
       cols_align => [ 'left', 'right', ],
       ID         => 'SNMPUTILS_CABLE_TESTER'
     }
@@ -4486,7 +4489,7 @@ sub snmputils_cable_tester {
         $link_status[ $links_states_hash{$port} ],
         "$pair_status[$pairs_status{1}{$port}]" . $html->br() . "$pair_status[$pairs_status{2}{$port}]" . $html->br() . "$pair_status[$pairs_status{3}{$port}]" . $html->br() . "$pair_status[$pairs_status{4}{$port}]",
         "$pairs_length{1}{$port}" . $html->br() . "$pairs_length{2}{$port}" . $html->br() . "$pairs_length{3}{$port}" . $html->br() . "$pairs_length{4}{$port}",
-        ($test_status{$port} != 3) ? $test_status[ $test_status{$port} ] : $html->button("$_TEST", "index=$index&NAS_ID=$FORM{NAS_ID}&TYPE=$FORM{TYPE}&SHOW=1&TEST=$port", { BUTTON => 1 })
+        ($test_status{$port} != 3) ? $test_status[ $test_status{$port} ] : $html->button("$_TEST", "index=$index&TYPE=$FORM{TYPE}&SHOW=1&TEST=$port$pages_qs", { BUTTON => 1 })
       );
     }
   }

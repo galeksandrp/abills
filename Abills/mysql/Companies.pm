@@ -32,7 +32,11 @@ sub new {
   ($db, $admin, $CONF) = @_;
   my $self = {};
   bless($self, $class);
+
+  $self->{db}=$db;
+
   $users = Users->new($db, $admin, $CONF);
+  
   return $self;
 }
 
@@ -135,8 +139,7 @@ sub add {
   }
 
   my %DATA = $self->get_data($attr, { default => defaults() });
-  $self->query(
-    $db, "INSERT INTO companies (id, name, tax_number, bank_account, bank_name, cor_bank_account, 
+  $self->query2("INSERT INTO companies (id, name, tax_number, bank_account, bank_name, cor_bank_account, 
      bank_bic, disable, credit, credit_date, address, phone, vat, contract_id, contract_date,
      bill_id, ext_bill_id, registration, domain_id, representative, contract_sufix
      $info_fields) 
@@ -305,7 +308,7 @@ sub change {
 sub del {
   my $self = shift;
   my ($company_id) = @_;
-  $self->query($db, "DELETE FROM companies WHERE id='$company_id';", 'do');
+  $self->query2("DELETE FROM companies WHERE id='$company_id';", 'do');
   return $self;
 }
 
@@ -335,8 +338,7 @@ sub info {
     $self->{INFO_FIELDS_HASH} = \%info_fields_hash;
   }
 
-  $self->query(
-    $db, "SELECT c.id, c.name, c.credit, c.credit_date,
+  $self->query2("SELECT c.id, c.name, c.credit, c.credit_date,
   c.tax_number, c.bank_account, c.bank_name, 
   c.cor_bank_account, c.bank_bic, c.disable, c.bill_id, b.deposit,
   c.address, c.phone,
@@ -394,18 +396,11 @@ sub info {
   }
 
   if ($CONF->{EXT_BILL_ACCOUNT} && $self->{EXT_BILL_ID} > 0) {
-    $self->query(
-      $db, "SELECT b.deposit, b.uid
-     FROM bills b WHERE id='$self->{EXT_BILL_ID}';"
+    $self->query2("SELECT b.deposit AS ext_bill_deposit, b.uid AS ext_bill_owner
+     FROM bills b WHERE id='$self->{EXT_BILL_ID}';",
+     undef,
+     { INFO => 1 }
     );
-
-    if ($self->{TOTAL} < 1) {
-      $self->{errno}  = 2;
-      $self->{errstr} = 'ERROR_NOT_EXIST';
-      return $self;
-    }
-
-    ($self->{EXT_BILL_DEPOSIT}, $self->{EXT_BILL_OWNER}) = @{ $self->{list}->[0] };
   }
 
   return $self;
@@ -507,8 +502,7 @@ sub list {
 
   my $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES) : '';
 
-  $self->query(
-    $db, "SELECT c.name, b.deposit, c.credit, c.registration, count(u.uid) AS users_count, c.disable, c.id, 
+  $self->query2("SELECT c.name, b.deposit, c.credit, c.registration, count(u.uid) AS users_count, c.disable, c.id, 
    c.disable, c.bill_id, c.credit_date
     FROM companies  c
     LEFT JOIN users u ON (u.company_id=c.id)
@@ -522,11 +516,12 @@ sub list {
   $list = $self->{list};
 
   if ($self->{TOTAL} > 0 || $PG > 0) {
-    $self->query($db, "SELECT count(c.id) FROM companies c
+    $self->query($db, "SELECT count(c.id) AS total FROM companies c
     LEFT JOIN users u ON (u.company_id=c.id)
     LEFT JOIN bills b ON (b.id=c.bill_id)
-     $WHERE;");
-    ($self->{TOTAL}) = @{ $self->{list}->[0] };
+     $WHERE;",
+    undef,
+    { INFO => 1 });
   }
 
   return $list;
@@ -560,13 +555,14 @@ sub admins_list {
 
   $WHERE = ' AND ' . join(' and ', @WHERE_RULES) if ($#WHERE_RULES > -1);
 
-  $self->query(
-    $db, "SELECT if(ca.uid is null, 0, 1), u.id, pi.fio, pi.email, u.uid
+  $self->query2("SELECT if(ca.uid is null, 0, 1), u.id, pi.fio, pi.email, u.uid
     FROM (companies  c, users u)
     LEFT JOIN companie_admins ca ON (ca.uid=u.uid)
     LEFT JOIN users_pi pi ON (pi.uid=u.uid)
     WHERE u.company_id=c.id $WHERE
-    ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;"
+    ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;",
+    undef,
+    $attr
   );
 
   my $list = $self->{list};
@@ -583,13 +579,12 @@ sub admins_change {
 
   my @ADMINS = split(/, /, $attr->{IDS});
 
-  $self->query($db, "DELETE FROM companie_admins WHERE company_id='$attr->{COMPANY_ID}';", 'do');
+  $self->query2("DELETE FROM companie_admins WHERE company_id='$attr->{COMPANY_ID}';", 'do');
 
   foreach my $uid (@ADMINS) {
-    $self->query(
-      $db, "INSERT INTO companie_admins (company_id, uid)
-    VALUES ('$attr->{COMPANY_ID}', '$uid');", 'do'
-    );
+    $self->query_add('companie_admins', { %$attr,
+    	                                    UID => $uid
+    	                                  });
   }
 
   return $self;

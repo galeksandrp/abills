@@ -265,7 +265,7 @@ if ($FORM{AWEB_OPTIONS}) {
 
 #===========================================================
 my @actions = (
-  [ $_INFO, $_ADD, $_LIST, $_PASSWD, $_CHANGE, $_DEL, $_ALL, $_MULTIUSER_OP, "$_SHOW $_DELETED", "$_CREDIT", "$_TARIF_PLANS", "$_REDUCTION", "$_DISABLE $_DEPOSIT" ],    # Users
+  [ $_INFO, $_ADD, $_LIST, $_PASSWD, $_CHANGE, $_DEL, $_ALL, $_MULTIUSER_OP, "$_SHOW $_DELETED", "$_CREDIT", "$_TARIF_PLANS", "$_REDUCTION", "$_DISABLE $_DEPOSIT", "$_CONFIRM $_ACTION" ],    # Users
   [ $_LIST, $_ADD, $_DEL, $_ALL, $_DATE ],   # Payments
   [ $_LIST, $_GET, $_DEL, $_ALL ],           # Fees
   [ $_LIST, $_DEL ],                         # reports view
@@ -300,7 +300,7 @@ if ($admin->{MAX_ROWS} > 0) {
 @bool_vals = ($_NO, $_YES);
 @PAYMENT_METHODS = ("$_CASH", "$_BANK", "$_EXTERNAL_PAYMENTS", 'Credit Card', "$_BONUS", "$_CORRECTION", "$_COMPENSATION", 
  "$_MONEY_TRANSFER", "$_RECALCULATE");
-@status = ("$_ENABLE", "$_DISABLE");
+@status = ("$_ENABLE", "$_DISABLE", "$_NOT_ACTIVE");
 my %menu_items = ();
 my %menu_names = ();
 my $maxnumber  = 0;
@@ -1468,10 +1468,15 @@ sub user_form {
 
     if ($user_info->{DISABLE} > 0) {
       $user_info->{DISABLE} = ' checked';
-      $user_info->{DISABLE_MARK} = $html->color_mark($html->b($_DISABLE), $_COLORS[6]);
+      if ($user_info->{DISABLE} == 5) {
+      	$user_info->{DISABLE_MARK} = $html->color_mark($html->b("$_NOT $_CONFIRM"), $_COLORS[7]);
+      }
+      else {
+        $user_info->{DISABLE_MARK} = $html->color_mark($html->b($_DISABLE), $_COLORS[6]);
+      }
     }
     else {
-      $user_info->{DISABLE} = '';
+      $user_info->{DISABLE} = "$_ENABLE";
     }
 
     my $main_account = $html->tpl_show(templates('form_user'), { %$user_info, %$attr }, { OUTPUT2RETURN => 1, ID => 'form_user' });
@@ -1513,21 +1518,32 @@ sub user_form {
     }
 
     if ($user_info->{DISABLE} > 0) {
-      $user_info->{DISABLE} = ' checked';
-      $user_info->{DISABLE_MARK} = $html->color_mark($html->b($_DISABLE), $_COLORS[6]);
+      if ($user_info->{DISABLE} == 1) {
+        $user_info->{DISABLE_MARK} = $html->color_mark($html->b($_DISABLE), $_COLORS[6]);
 
-      my $list = $admin->action_list(
-        {
-          UID       => $user_info->{UID},
-          TYPE      => 9,
-          PAGE_ROWS => 1,
-          SORT      => 1,
-          DESC      => 'DESC'
+        my $list = $admin->action_list(
+          {
+            UID       => $user_info->{UID},
+            TYPE      => 9,
+            PAGE_ROWS => 1,
+            SORT      => 1,
+            DESC      => 'DESC'
+          }
+        );
+        if ($admin->{TOTAL} > 0) {
+          $user_info->{DISABLE_COMMENTS} = $list->[0][3];
         }
-      );
-      if ($admin->{TOTAL} > 0) {
-        $user_info->{DISABLE_COMMENTS} = $list->[0][3];
       }
+      elsif ($user_info->{DISABLE} == 2) {
+        if (! $permissions{0}{13}) {
+          $user_info->{DISABLE_MARK} = $html->button($html->color_mark($html->b("$_REGISTRATION $_CONFIRM"), $_COLORS[8]), "index=$index&DISABLE=0&UID=$FORM{UID}&change=1", { BUTTON => 1 }) ;
+        }
+        else {
+ 	        $user_info->{DISABLE_MARK} = $html->color_mark($html->b("$_REGISTRATION $_CONFIRM"), $_COLORS[8]);
+        }
+      }
+
+      $user_info->{DISABLE} = ' checked';
     }
     else {
       $user_info->{DISABLE} = '';
@@ -2275,6 +2291,10 @@ sub form_users {
         $html->message('err', $_ERROR, "$_REDUCTION $ERR_ACCESS_DENY");
         $FORM{REDUCTION} = undef;
       }
+      elsif ($permissions{0}{13} && $user_info->{DISABLE} == 2) {
+        $FORM{DISABLE} = 2;
+      }
+
 
       $user_info->change($user_info->{UID}, {%FORM});
       if ($user_info->{errno}) {
@@ -2441,6 +2461,11 @@ sub form_users {
 
     $FORM{REDUCTION} = 100 if ($FORM{REDUCTION} && $FORM{REDUCTION} > 100);
 
+    # Add not confirm status
+    if ($permissions{0}{13}) {
+      $FORM{DISABLE}=2;
+    }
+    
     my $user_info = $users->add({%FORM});
     if ($users->{errno}) {
       if ($users->{errno} == 10) {
@@ -2455,7 +2480,6 @@ sub form_users {
 
       delete($FORM{add});
 
-      #user_form();
       return 1;
     }
     else {
@@ -2543,7 +2567,7 @@ sub form_users {
     $pages_qs .= "&letter=$FORM{letter}";
   }
 
-  my @statuses = ($_ALL, $_ACTIV, $_DEBETORS, $_DISABLE, $_EXPIRE, $_CREDIT);
+  my @statuses = ($_ALL, $_ACTIV, $_DEBETORS, $_DISABLE, $_EXPIRE, $_CREDIT, "$_NOT_ACTIVE");
   if ($admin->{permissions}->{0} && $admin->{permissions}->{0}->{8}) {
     push @statuses, $_DELETED,;
   }
@@ -2569,6 +2593,9 @@ sub form_users {
         $LIST_PARAMS{CREDIT} = ">0";
       }
       elsif ($i == 6) {
+        $LIST_PARAMS{DISABLE} = 2;
+      }
+      elsif ($i == 7) {
         $LIST_PARAMS{DELETED} = 1;
       }
 
@@ -2665,7 +2692,6 @@ function CheckAllINBOX() {
        $line->{fio} =~ s/(.*)$FORM{UNIVERSAL_SEARCH}(.*)/\1$search_color_mark\2/;
        $line->{id}  =~ s/(.*)$FORM{UNIVERSAL_SEARCH}(.*)/\1$search_color_mark\2/;
     }
-
 
     my @fields_array = ();
     for (my $i = $base_fields; $i < $base_fields+$users->{SEARCH_FIELDS_COUNT}; $i++) {
@@ -4355,6 +4381,15 @@ sub admin_profile {
   return 0;
 }
 
+
+#**********************************************************
+# nas models
+#**********************************************************
+sub form_nas_models {
+
+
+}
+
 #**********************************************************
 # form_nas
 #**********************************************************
@@ -4534,6 +4569,15 @@ sub form_nas {
     }
   );
 
+  $nas->{SEL_NAS_MODEL} = $html->form_select(
+    'NAS_MODEL',
+    {
+      SELECTED => $nas->{NAS_MODEL},
+      SEL_HASH => undef,
+      SORT_KEY => 1
+    }
+  );
+
   $nas->{SEL_AUTH_TYPE} = $html->form_select(
     'NAS_AUTH_TYPE',
     {
@@ -4599,7 +4643,7 @@ sub form_nas {
     {
       width      => '100%',
       caption    => "$_NAS",
-      title      => [ "ID", "$_NAME", "NAS-Identifier", "IP", "$_TYPE", "$_AUTH", "$_STATUS", "$_DESCRIBE", '-', '-', '-' ],
+      title      => [ "ID", "$_NAME", "NAS-Identifier", "IP", "$_TYPE", "$_AUTH", "$_STATUS", "$_DESCRIBE", '-', '-', '-', '-' ],
       cols_align => [ 'center', 'left', 'left', 'right', 'left', 'left', 'center', 'left', 'center:noprint', 'center:noprint', 'center:noprint' ],
       ID         => 'NAS_LIST',
 
@@ -4609,19 +4653,26 @@ sub form_nas {
     }
   );
 
-  my $list = $nas->list({ %FORM, %LIST_PARAMS, DOMAIN_ID => $admin->{DOMAIN_ID} });
-  foreach my $line (@$list) {
-    my $delete = $html->button($_DEL, "index=61&del=$line->[0]", { MESSAGE => "$_DEL NAS '$line->[1]'?", CLASS => 'del', TEXT => $_DEL });
 
-    $table->{rowcolor} = ($FORM{NAS_ID} && $FORM{NAS_ID} == $line->[0]) ? 'row_active' : undef;
+  my $list = $nas->list({ %FORM, %LIST_PARAMS, DOMAIN_ID => $admin->{DOMAIN_ID}, COLS_NAME => 1 });
+  foreach my $line (@$list) {
+    my $delete = $html->button($_DEL, "index=61&del=$line->{nas_id}", { MESSAGE => "$_DEL NAS '$line->{nas_name}'?", CLASS => 'del', TEXT => $_DEL });
+
+    $table->{rowcolor} = ($FORM{NAS_ID} && $FORM{NAS_ID} == $line->{nas_id}) ? 'row_active' : undef;
 
     $table->addrow(
-      $line->[0], $line->[1], $line->[2], $line->[3], $line->[4],
-      $auth_types[ $line->[5] ],
-      $status[ $line->[6] ],
-      $line->[7],
-      $html->button("IP POOLs", "index=62&NAS_ID=$line->[0]", { BUTTON => 1 }),
-      $html->button("$_CHANGE", "index=61&NAS_ID=$line->[0]", { CLASS => 'change', TEXT => $_CHANGE }), $delete
+      $line->{nas_id}, 
+      $line->{nas_name}, 
+      $line->{nas_identifier}, 
+      $line->{nas_ip}, 
+      $line->{nas_type}, 
+      $auth_types[ $line->{auth_type} ],
+      $status[ $line->{nas_disable} ],
+      $line->{descr},
+      (in_array('Dhcphosts', \@MODULES)) ? $html->button("$_USERS", "index=". get_function_index('dhcphosts_hosts') ."&NAS_ID=$line->{nas_id}&VIEW=1&search=1", { BUTTON => 1 }) : '',
+      $html->button("IP POOLs", "index=62&NAS_ID=$line->{nas_id}", { BUTTON => 1 }),
+      $html->button("$_CHANGE", "index=61&NAS_ID=$line->{nas_id}", { CLASS => 'change', TEXT => $_CHANGE }), 
+      $delete
     );
   }
   print $table->show();
@@ -4750,7 +4801,6 @@ sub form_ip_pools {
 
   if ($attr->{NAS}) {
     $nas = $attr->{NAS};
-
     if ($FORM{BIT_MASK} && !$FORM{NAS_IP_COUNT}) {
       my $mask = 0b0000000000000000000000000000001;
       $FORM{NAS_IP_COUNT} = sprintf("%d", $mask << ($FORM{BIT_MASK} - 1)) - 1;
@@ -6309,6 +6359,8 @@ sub form_payments () {
       ID         => 'PAYMENTS'
     }
   );
+
+  $table->{SKIP_FORMER}=1;
 
   my $pages_qs .= "&subf=2" if (!$FORM{subf});
   foreach my $payment (@$payments_list) {

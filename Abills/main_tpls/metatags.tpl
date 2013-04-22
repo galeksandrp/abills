@@ -1,22 +1,31 @@
-<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\">
+<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01 Transitional//EN'>
 
 <html>
 <head>
  %REFRESH%
- <META HTTP-EQUIV=\"Cache-Control\" content=\"no-cache,no-store,must-revalidate,private,max-age=0\" >
- <META HTTP-EQUIV=\"Expires\" CONTENT=\"-1\">
- <META HTTP-EQUIV=\"Pragma\" CONTENT=\"no-cache\">
- <META HTTP-EQUIV=\"Content-Type\" CONTENT=\"text/html; charset=%CHARSET%\">
- <META name=\"Author\" content=\"~AsmodeuS~\">
- <META HTTP-EQUIV=\"content-language\" content=\"%CONTENT_LANGUAGE%\">
- <script  src='/js/jquery.js' type='text/javascript'></script>
- <link rel=\"stylesheet\" media=\"print\" type=\"text/css\" href=\"%PRINTCSS%\" >
+ <META HTTP-EQUIV='Cache-Control' content='no-cache,no-store,must-revalidate,private,max-age=0' >
+ <META HTTP-EQUIV='Expires' CONTENT='-1'>
+ <META HTTP-EQUIV='Pragma' CONTENT='no-cache'>
+ <META HTTP-EQUIV='Content-Type' CONTENT='text/html; charset=%CHARSET%'>
+ <META name='Author' content='~AsmodeuS~'>
+ <META HTTP-EQUIV='content-language' content='%CONTENT_LANGUAGE%'>
+ <link rel='stylesheet' media='print' type='text/css' href='%PRINTCSS%' >
+ <script type='text/javascript' src='/js/jquery.js'></script>
+ <script type='text/javascript' src='/js/jquery.cookie.js' ></script>
  <script src='%JAVASCRIPT%' type='text/javascript' language='javascript'></script>
  <script src='/calendar.js' type='text/javascript' language='javascript'></script>
- 
- <script  src='/js/jquery.cookie.js' type='text/javascript'></script>
+ <link rel='stylesheet' type='text/css' href='/styles/default/chosen.css' />
+<script type='text/javascript' src='/styles/default/js/chosen.jquery.min.js' ></script>
+<script language='JavaScript' type='text/javascript'>
+    \$(document).ready(function(){
+      \$('select:not(#type)').chosen({no_results_text: '$_NOT_EXIST', allow_single_deselect: true, placeholder_text: '$_CHANGE'});
+  }); 
+</script>
 
-<style type=\"text/css\">
+ 
+ 
+
+<style type='text/css'>
 body {
 	background-color:%_COLOR_10%;
 	color:%_COLOR_9%;
@@ -399,7 +408,7 @@ a.link_button:hover {
 	border:1px solid #666;
 	cursor:pointer;
 }
-
+/*
 input,textarea {
 	font-family:Verdana, Arial, sans-serif;
 	font-size:12px;
@@ -409,6 +418,35 @@ input,textarea {
 	border-color:#9F9F9F;
 }
 
+*/
+textarea {
+	font-family:Verdana, Arial, sans-serif;
+	font-size:12px;
+}
+
+input,textarea, button, .link_button, #rules li a{
+  background-color: #ffffff;
+  -webkit-border-radius: 5px;
+  -moz-border-radius   : 5px;
+  border-radius        : 5px;
+  -moz-background-clip   : padding;
+  -webkit-background-clip: padding-box;
+  background-clip        : padding-box;
+  border: 1px solid #aaaaaa;
+  -webkit-box-shadow: 0 0 3px #ffffff inset, 0 1px 1px rgba(0,0,0,0.1);
+  -moz-box-shadow   : 0 0 3px #ffffff inset, 0 1px 1px rgba(0,0,0,0.1);
+  box-shadow        : 0 0 3px #ffffff inset, 0 1px 1px rgba(0,0,0,0.1);
+  margin:3px 0px 3px 0px;
+
+  line-height: 24px;
+  padding: 0 8 0 8px;
+  color: #444444;
+  text-decoration: none;
+  
+}
+input, button, .link_button {
+  height: 23px;
+}
 select {
 	font-family:Verdana, Arial, sans-serif;
 	font-size:12px;
@@ -502,9 +540,8 @@ TABLE.border {
 #rules .center a {
 	font-weight:100;
 	font-size:11px;
-	background:%_COLOR_2%;
-	border:1px solid %_COLOR_4%;
-	color:%_COLOR_9%;
+
+
 	text-decoration:none;
 	margin:1px;
 	padding:2px 5px;
@@ -622,7 +659,7 @@ TABLE.border {
  input box in default state */
 .tcalInput {
 	background:url(/img/cal.gif) 100% 50% no-repeat;
-	padding-right:20px;
+	padding-right:10px;
 	cursor:pointer;
 }
 
@@ -643,7 +680,7 @@ TABLE.border {
 	-moz-box-shadow:3px 3px 4px silver;
 	-webkit-box-shadow:3px 3px 4px silver;
 	box-shadow:3px 3px 4px silver;
-	-ms-filter:\"progid:DXImageTransform.Microsoft.Shadow(Strength=4, Direction=135, Color='silver')\";
+	-ms-filter:'progid:DXImageTransform.Microsoft.Shadow(Strength=4, Direction=135, Color='silver')';
 	filter:progid:DXImageTransform.Microsoft.Shadow(Strength=4, Direction=135, Color='silver');
 	padding:0 2px 2px;
 }
@@ -863,16 +900,6 @@ TABLE.border {
 	background:#f6f6f6;
 }
 
-.open_popup_block_middle {
-	position:fixed;
-	top:50%;
-	left:50%;
-	display:none;
-	z-index:10;
-	overflow:hidden;
-	background:#f6f6f6;
-}
-
 #popup_window_content {
 	font:11px Verdana, Geneva, sans-serif;
 	padding:30px 20px 20px;
@@ -1008,12 +1035,19 @@ table tr.marked th,table tr.marked,.odd:hover,.even:hover,.hover,table tr.odd:ho
   margin: 180px auto;
 
 }
-
+form #type_chzn {
+  position:relative;
+  top:8px;
+}
+form #TP_ID_chzn {
+  position:relative;
+  top:8px;
+}
 
 </style>
 
 <title>%title%</title>
 </head>
-<body style=\"margin: 0\" bgcolor=\"%_COLOR_10%\" text=\"%_COLOR_9%\" link=\"%_COLOR_8%\"  vlink=\"%_COLOR_7%\">
+<body style='margin: 0' bgcolor='%_COLOR_10%' text='%_COLOR_9%' link='%_COLOR_8%'  vlink='%_COLOR_7%'>
 
 <div id='popup_window'></div>
