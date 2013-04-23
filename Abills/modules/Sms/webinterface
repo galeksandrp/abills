@@ -61,8 +61,8 @@ elsif ($conf{TURBOSMS_PASSWD}) {
     Turbosms->import();
     $Sms_service = Turbosms->new($db, $admin, \%conf);
 
-    if ($Turbosms::VERSION < 2.02) {
-      $html->message('info', "UPDATE", "Please update module 'Turbosms' to version 2.02 or higher. http://abills.net.ua/");
+    if ($Turbosms::VERSION < 2.04) {
+      $html->message('info', "UPDATE", "Please update module 'Turbosms' to version 2.04 or higher. http://abills.net.ua/");
       return 0;
     }
     
@@ -95,10 +95,10 @@ sub sms_send {
   sms_service_connect();
   
   if (! $attr->{NUMBER} || $attr->{NUMBERS}) {
-  	$html->message('err', $_ERROR, "ERR_PHONE_NOT_DEFINED");
+  	$html->message('err', $_ERROR, "$_ERR_PHONE_NOT_DEFINED");
   }
   elsif (! $attr->{NUMBERS} && $attr->{NUMBER} !~ /(\d{12})/) {
-  	$html->message('err', $_ERROR, "ERR_WRONG_PHONE");
+  	$html->message('err', $_ERROR, "$_ERR_WRONG_PHONE");
   }
 
   if ($attr->{NUMBER} && $conf{SMS_NUMBER_EXPR}) {
@@ -168,6 +168,11 @@ sub sms_reports {
   	return 0;
   }
 
+  if (! $FORM{desc} && ! $FORM{sort}) {
+  	$LIST_PARAMS{DESC} = 'DESC';
+  	$LIST_PARAMS{SORT} = 1;
+  }
+
   my $list = $Sms_service->info({%LIST_PARAMS, COLS_NAME => 1 });
 
   if ($Sms_service->{errno}) {
@@ -192,7 +197,6 @@ sub sms_reports {
     my $status  = $sms_status{$line->{status}} || 0;
     my $message = $line->{message}  || '';
     if ($conf{dbcharset} ne 'utf8') { Encode::from_to($status,  'utf-8', 'windows-1251') }
-    if ($conf{dbcharset} ne 'utf8') { Encode::from_to($message, 'utf-8', 'windows-1251') }
 
     $table->addrow(
       $line->{id},

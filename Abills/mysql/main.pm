@@ -116,6 +116,10 @@ sub query2 {
   my ($query, $type, $attr) = @_;
 
   my $db = $self->{db};
+ 
+  if ( $attr->{DB_REF} ) {
+    $db = $attr->{DB_REF};
+  }
 
   $self->query($db, $query, $type, $attr);
 

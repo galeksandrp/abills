@@ -22,7 +22,6 @@ use Tariffs;
 use Users;
 use Fees;
 
-my $uid;
 my $MODULE = 'Iptv';
 
 #**********************************************************
@@ -35,6 +34,7 @@ sub new {
   my $self = {};
 
   bless($self, $class);
+  $self->{db}=$db;
 
   return $self;
 }
@@ -49,7 +49,7 @@ sub user_info {
 
   if (defined($attr->{LOGIN})) {
     use Users;
-    my $users = Users->new($db, $admin, $CONF);
+    my $users = Users->new($self->{db}, $admin, $CONF);
     $users->info(0, { LOGIN => "$attr->{LOGIN}" });
     if ($users->{errno}) {
       $self->{errno}  = 2;
@@ -65,8 +65,7 @@ sub user_info {
 
   $WHERE = "WHERE service.uid='$uid'";
 
-  $self->query(
-    $db, "SELECT service.uid, 
+  $self->query2("SELECT service.uid, 
    tp.name AS tp_name, 
    tp.tp_id, 
    service.filter_id, 
@@ -128,14 +127,14 @@ sub user_add {
   my %DATA = $self->get_data($attr, { default => defaults() });
 
   if ($DATA{TP_ID} > 0 && !$DATA{STATUS}) {
-    my $tariffs = Tariffs->new($db, $CONF, $admin);
+    my $tariffs = Tariffs->new($self->{db}, $CONF, $admin);
     $self->{TP_INFO} = $tariffs->info($DATA{TP_ID});
 
     $self->{TP_NUM}  = $tariffs->{ID};
 
     #Take activation price
     if ($tariffs->{ACTIV_PRICE} > 0) {
-      my $user = Users->new($db, $admin, $CONF);
+      my $user = Users->new($self->{db}, $admin, $CONF);
       $user->info($DATA{UID});
 
       if ($user->{DEPOSIT} + $user->{CREDIT} < $tariffs->{ACTIV_PRICE} && $tariffs->{PAYMENT_TYPE} == 0) {
@@ -143,14 +142,13 @@ sub user_add {
         return $self;
       }
 
-      my $fees = Fees->new($db, $admin, $CONF);
+      my $fees = Fees->new($self->{db}, $admin, $CONF);
       $fees->take($user, $tariffs->{ACTIV_PRICE}, { DESCRIBE => "ACTIV TP" });
       $tariffs->{ACTIV_PRICE} = 0;
     }
   }
 
-  $self->query(
-    $db, "INSERT INTO iptv_main (uid, registration, 
+  $self->query2("INSERT INTO iptv_main (uid, registration, 
              tp_id, 
              disable, 
              filter_id,
@@ -202,12 +200,12 @@ sub user_change {
 
 
   if ($attr->{TP_ID} && $old_info->{TP_ID} != $attr->{TP_ID}) {
-    my $tariffs = Tariffs->new($db, $CONF, $admin);
+    my $tariffs = Tariffs->new($self->{db}, $CONF, $admin);
 
     $tariffs->info($old_info->{TP_ID});
     %{ $self->{TP_INFO_OLD} } = %{ $tariffs };
     $self->{TP_INFO} = $tariffs->info($attr->{TP_ID});
-    my $user = Users->new($db, $admin, $CONF);
+    my $user = Users->new($self->{db}, $admin, $CONF);
 
     $user->info($attr->{UID});
     if ($old_info->{STATUS} == 2 && (defined($attr->{STATUS}) && $attr->{STATUS} == 0) && $tariffs->{ACTIV_PRICE} > 0) {
@@ -216,7 +214,7 @@ sub user_change {
         return $self;
       }
 
-      my $fees = Fees->new($db, $admin, $CONF);
+      my $fees = Fees->new($self->{db}, $admin, $CONF);
       $fees->take($user, $tariffs->{ACTIV_PRICE}, { DESCRIBE => "ACTIV TP" });
 
       $tariffs->{ACTIV_PRICE} = 0;
@@ -228,12 +226,12 @@ sub user_change {
         return $self;
       }
 
-      my $fees = Fees->new($db, $admin, $CONF);
+      my $fees = Fees->new($self->{db}, $admin, $CONF);
       $fees->take($user, $tariffs->{CHANGE_PRICE}, { DESCRIBE => "CHANGE TP" });
     }
 
     if ($tariffs->{AGE} > 0) {
-      my $user = Users->new($db, $admin, $CONF);
+      my $user = Users->new($self->{db}, $admin, $CONF);
       use POSIX qw(strftime);
       my $EXPITE_DATE = strftime("%Y-%m-%d", localtime(time + 86400 * $tariffs->{AGE}));
 
@@ -242,7 +240,7 @@ sub user_change {
     }
   }
   elsif ($old_info->{STATUS} == 2 && $attr->{STATUS} == 0) {
-    my $tariffs = Tariffs->new($db, $CONF, $admin);
+    my $tariffs = Tariffs->new($self->{db}, $CONF, $admin);
     $self->{TP_INFO} = $tariffs->info($old_info->{TP_ID});
   }
 
@@ -273,7 +271,7 @@ sub user_del {
   my $self = shift;
   my ($attr) = @_;
 
-  $self->query($db, "DELETE from iptv_main WHERE uid='$self->{UID}';", 'do');
+  $self->query2("DELETE from iptv_main WHERE uid='$self->{UID}';", 'do');
 
   $admin->action_add($self->{UID}, "$self->{UID}", { TYPE => 10 });
   return $self->{result};
@@ -373,8 +371,7 @@ sub user_list {
 
   my $list;
   if ($attr->{SHOW_CHANNELS}) {
-    $self->query(
-      $db, "SELECT  u.id AS login, 
+    $self->query2("SELECT  u.id AS login, 
         if(u.company_id > 0, cb.deposit, b.deposit) AS deposit, 
         u.credit, 
         tp.name AS tp_name, 
@@ -418,8 +415,7 @@ ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;",
     $list = $self->{list};
   }
   else {
-    $self->query(
-      $db, "SELECT u.id AS login, 
+    $self->query2("SELECT u.id AS login, 
       pi.fio, if(u.company_id > 0, cb.deposit, b.deposit) AS deposit, 
       u.credit, 
       tp.name AS tp_name, 
@@ -453,8 +449,7 @@ ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;",
     $list = $self->{list};
 
     if ($self->{TOTAL} >= 0) {
-      $self->query($db, "SELECT count(u.id) FROM (users u, iptv_main service) $WHERE");
-      ($self->{TOTAL}) = @{ $self->{list}->[0] };
+      $self->query2("SELECT count(u.id) AS total FROM (users u, iptv_main service) $WHERE", undef, { INFO => 1 });
     }
   }
   return $list;
@@ -485,8 +480,7 @@ sub user_tp_channels_list {
   return $self if ($self->{errno});
 
   if ($self->{TOTAL} >= 0) {
-    $self->query($db, "SELECT count(u.id) FROM (users u, iptv_main service) $WHERE");
-    ($self->{TOTAL}) = @{ $self->{list}->[0] };
+    $self->query2("SELECT count(u.id) AS total FROM (users u, iptv_main service) $WHERE", undef, { INFO => 1 });
   }
 
   return $self->{list};
@@ -502,8 +496,7 @@ sub channel_info {
 
   $WHERE = "WHERE id='$attr->{ID}'";
 
-  $self->query(
-    $db, "SELECT id,
+  $self->query2("SELECT id,
    name,
    num AS number,
    port,
@@ -515,11 +508,6 @@ sub channel_info {
    { INFO => 1 }
   );
 
-  if ($self->{TOTAL} < 1) {
-    $self->{errno}  = 2;
-    $self->{errstr} = 'ERROR_NOT_EXIST';
-    return $self;
-  }
 
   return $self;
 }
@@ -552,8 +540,7 @@ sub channel_add {
 
   my %DATA = $self->get_data($attr, { default => channel_defaults() });
 
-  $self->query(
-    $db, "INSERT INTO iptv_channels (name,
+  $self->query2("INSERT INTO iptv_channels (name,
    num,
    port,
    comments,
@@ -584,8 +571,7 @@ sub channel_add_stalker {
 
   my %DATA = $self->get_data($attr, { default => channel_defaults() });
 
-  $self->query(
-    $db, "INSERT INTO $CONF->{IPTV_STALKET_DB}.itv (name,
+  $self->query2("INSERT INTO $CONF->{IPTV_STALKET_DB}.itv (name,
    num,
    port,
    comments,
@@ -656,7 +642,7 @@ sub channel_del {
   my $self = shift;
   my ($id) = @_;
 
-  $self->query($db, "DELETE from iptv_channels WHERE id='$id';", 'do');
+  $self->query2("DELETE from iptv_channels WHERE id='$id';", 'do');
 
   return $self->{result};
 }
@@ -674,37 +660,19 @@ sub channel_list {
   $PG        = ($attr->{PG})        ? $attr->{PG}        : 0;
   $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
 
-  undef @WHERE_RULES;
+  my $WHERE =  $self->search_former($attr, [
+        [ 'DISABLE',      'INT',  'disable'  ],
+        [ 'PORT',         'INT',  'port'     ],
+        [ 'DESCRIBE',     'STR',  'comments' ],
+        [ 'NUMBER',       'INT',  'number'   ],
+        [ 'NAME',         'STR',  'name'     ],
+    ],
+    { 
+    	WHERE       => 1,
+    }    
+    );
 
-  # Start letter
-  if ($attr->{NAME}) {
-    $attr->{LOGIN_EXPR} =~ s/\*/\%/ig;
-    push @WHERE_RULES, "name='$attr->{NAME}'";
-  }
-
-  if ($attr->{DESCRIBE}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{DESCRIBE}, 'STR', 'comments') };
-  }
-
-  if ($attr->{NUMBER}) {
-    my $value = $self->search_expr($attr->{NUMBER}, 'INT');
-    push @WHERE_RULES, "number$value";
-  }
-
-  if ($attr->{PORT}) {
-    my $value = $self->search_expr($attr->{PORT}, 'INT');
-    push @WHERE_RULES, "port$value";
-  }
-
-  #DIsable
-  if (defined($attr->{DISABLE})) {
-    push @WHERE_RULES, "disable='$attr->{DISABLE}'";
-  }
-
-  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES) : '';
-
-  $self->query(
-    $db, "SELECT num, name,   comments, port,
+  $self->query2("SELECT num, name,   comments, port,
    disable, id
      FROM iptv_channels
      $WHERE 
@@ -718,7 +686,7 @@ sub channel_list {
   my $list = $self->{list};
 
   if ($self->{TOTAL} >= 0) {
-    $self->query($db, "SELECT count(*) AS total FROM iptv_channels $WHERE", undef, { INFO => 1 });
+    $self->query2("SELECT count(*) AS total FROM iptv_channels $WHERE", undef, { INFO => 1 });
   }
 
   return $list;
@@ -752,13 +720,12 @@ sub user_channels {
 
   my %DATA = $self->get_data($attr);
 
-  $self->query($db, "DELETE FROM iptv_users_channels WHERE uid='$DATA{UID}'", 'do'),
+  $self->query2("DELETE FROM iptv_users_channels WHERE uid='$DATA{UID}'", 'do'),
 
   my @ids = split(/, /, $attr->{IDS});
 
   foreach my $id (@ids) {
-    $self->query(
-      $db, "INSERT INTO iptv_users_channels 
+    $self->query2("INSERT INTO iptv_users_channels 
      ( uid, tp_id, channel_id, changed)
         VALUES ( '$DATA{UID}',  '$DATA{TP_ID}', '$id', now());", 'do'
     );
@@ -774,8 +741,7 @@ sub user_channels_list {
   my $self = shift;
   my ($attr) = @_;
 
-  $self->query(
-    $db, "SELECT uid, tp_id, channel_id, changed FROM iptv_users_channels 
+  $self->query2("SELECT uid, tp_id, channel_id, changed FROM iptv_users_channels 
      WHERE tp_id='$attr->{TP_ID}' and uid='$attr->{UID}';"
   );
 
@@ -792,13 +758,12 @@ sub channel_ti_change {
 
   my %DATA = $self->get_data($attr);
 
-  $self->query($db, "DELETE FROM iptv_ti_channels WHERE interval_id='$attr->{INTERVAL_ID}'", 'do'),
+  $self->query2("DELETE FROM iptv_ti_channels WHERE interval_id='$attr->{INTERVAL_ID}'", 'do'),
 
   my @ids = split(/, /, $attr->{IDS});
 
   foreach my $id (@ids) {
-    $self->query(
-      $db, "INSERT INTO iptv_ti_channels 
+    $self->query2("INSERT INTO iptv_ti_channels 
      ( interval_id, channel_id, month_price, day_price, mandatory)
         VALUES ( '$DATA{INTERVAL_ID}',  '$id', '" . $DATA{ 'MONTH_PRICE_' . $id } . "', 
         '" . $DATA{ 'DAY_PRICE_' . $id } . "', '" . $DATA{ 'MANDATORY_' . $id } . "');", 'do'
@@ -824,47 +789,23 @@ sub channel_ti_list {
   $PG        = ($attr->{PG})        ? $attr->{PG}        : 0;
   $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
 
-  undef @WHERE_RULES;
+  my $WHERE =  $self->search_former($attr, [
+        [ 'DISABLE',      'INT',  'disable'  ],
+        [ 'PORT',         'INT',  'port'     ],
+        [ 'DESCRIBE',     'STR',  'comments' ],
+        [ 'NUMBER',       'INT',  'number'   ],
+        [ 'NAME',         'STR',  'name'     ],
+        [ 'IDS',          'INT',  'c.id'     ],
+        [ 'ID',           'INT',  'c.id'     ],        
+        [ 'INTERVAL_ID',  'STR',  'ic.interval_id' ],
+        [ 'MANDATORY',    'STR',  'ic.mandatory'   ],                        
+    ],
+    { 
+    	WHERE       => 1,
+    }    
+    );
 
-  # Start letter
-  if ($attr->{NAME}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{NAME}, 'STR', 'name') };
-  }
-
-  if ($attr->{DESCRIBE}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{DESCRIBE}, 'STR', 'comments') };
-  }
-
-  if ($attr->{NUMBER}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{NUMBER}, 'INT', 'number') };
-  }
-
-  if ($attr->{PORT}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{PORT}, 'INT', 'port') };
-  }
-
-  if ($attr->{IDS}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{IDS}, 'INT', 'c.id') };
-  }
-
-  if ($attr->{INTERVAL_ID}) {
-    $attr->{TI} = $attr->{INTERVAL_ID};
-    push @WHERE_RULES, @{ $self->search_expr($attr->{TI}, 'INT', 'ic.interval_id') };
-  }
-
-  if ($attr->{MANDATORY}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{MANDATORY}, 'INT', 'ic.mandatory') };
-  }
-
-  #DIsable
-  if (defined($attr->{DISABLE})) {
-    push @WHERE_RULES, "disable='$attr->{DISABLE}'";
-  }
-
-  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES) : '';
-
-  $self->query(
-    $db, "SELECT if (ic.channel_id IS NULL, 0, 1) AS interval_channel_id,
+  $self->query2("SELECT if (ic.channel_id IS NULL, 0, 1) AS interval_channel_id,
    c.num AS channel_num, c.name,  c.comments, ic.month_price, ic.day_price, ic.mandatory, c.port,
    c.disable, c.id AS channel_id
      FROM iptv_channels c
@@ -880,8 +821,7 @@ sub channel_ti_list {
   my $list = $self->{list};
 
   if ($self->{TOTAL} >= 0) {
-    $self->query(
-      $db, "SELECT count(*) AS total, sum(if (ic.channel_id IS NULL, 0, 1)) AS active 
+    $self->query2("SELECT count(*) AS total, sum(if (ic.channel_id IS NULL, 0, 1)) AS active 
      FROM iptv_channels c
      LEFT JOIN iptv_ti_channels ic ON (c.id=ic.channel_id and ic.interval_id='$attr->{TI}')
      $WHERE
@@ -905,6 +845,7 @@ sub reports_channels_use {
   $DESC      = ($attr->{DESC})      ? $attr->{DESC}      : '';
   $PG        = ($attr->{PG})        ? $attr->{PG}        : 0;
   $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
+
   my $sql = "SELECT c.num,  c.name, count(uc.uid), sum(if(if(company.id IS NULL, b.deposit, cb.deposit)>0, 0, 1))
 FROM iptv_channels c
 LEFT JOIN iptv_users_channels uc ON (c.id=uc.channel_id)
@@ -924,21 +865,11 @@ ORDER BY $SORT $DESC ";
   #group BY c.id
   #     ORDER BY $SORT $DESC ;";
 
-  $self->query($db, $sql);
+  $self->query2($sql);
 
   return $self if ($self->{errno});
 
   my $list = $self->{list};
-
-  # if ($self->{TOTAL} >= 0) {
-  #    $self->query($db, "SELECT count(*), sum(if (ic.channel_id IS NULL, 0, 1))
-  #     FROM iptv_channels c
-  #     LEFT JOIN iptv_ti_channels ic ON (c.id=ic.channel_id and ic.interval_id='$attr->{TI}')
-  #     $WHERE
-  #    ");
-  #
-  #    ($self->{TOTAL}, $self->{ACTIVE}) = @{ $self->{list}->[0] };
-  #   }
 
   return $list;
 }
@@ -965,7 +896,7 @@ sub stalker_channel_add {
       $DATA{STATUS} = 1;  
     }
 
-$self->query($db, "INSERT INTO $CONF->{IPTV_STALKET_DB}.itv(
+$self->query2("INSERT INTO $CONF->{IPTV_STALKET_DB}.itv(
   name,
   number,
   use_http_tmp_link,
@@ -1029,8 +960,8 @@ sub stalker_channel_del {
   
   %DATA = $self->get_data($attr);
 
-  $self->query($db, "DELETE from $CONF->{IPTV_STALKET_DB}.itv WHERE name LIKE '$DATA{STALKER_NAME}';", 'do');
-  $self->query($db, "DELETE from iptv_channels WHERE id='$DATA{ABILLS_ID}';", 'do');
+  $self->query2("DELETE from $CONF->{IPTV_STALKET_DB}.itv WHERE name LIKE '$DATA{STALKER_NAME}';", 'do');
+  $self->query2("DELETE from iptv_channels WHERE id='$DATA{ABILLS_ID}';", 'do');
   return $self->{result};  
 
 }
@@ -1059,8 +990,7 @@ sub stalker_channel_list {
  
   $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
  
-  $self->query($db, 
-    "SELECT
+  $self->query2("SELECT
       name,
       number,
       use_http_tmp_link,
@@ -1099,8 +1029,7 @@ sub stalker_channel_info {
  
    %DATA = $self->get_data($attr); 
 
-  $self->query($db,
-    "SELECT
+  $self->query2("SELECT
       name,
       number,
       use_http_tmp_link,
@@ -1182,7 +1111,7 @@ sub stalker_change_channels {
     $DATA{STATUS} = 1;  
   }
 
-$self->query($db, 
+$self->query2( 
   "UPDATE $CONF->{IPTV_STALKET_DB}.itv SET
     name                        = '$DATA{NAME}',
     number                      = '$DATA{NUMBER}',
@@ -1213,28 +1142,6 @@ $self->query($db,
 }
 
 
-##**********************************************************
-## stalker_channel_export
-##**********************************************************
-#sub stalker_channel_export {
-#  my $self = shift;
-#  my ($attr) = @_;
-#  
-#  $self->query(
-#    $db, "REPLACE INTO $CONF->{dbname}.iptv_channels (name,
-#     num,
-#     port,
-#     comments,
-#     disable) SELECT name, 
-#     number, 
-#     id, 
-#     descr, 
-#     if(status=1, 0, 1) 
-#   FROM $CONF->{IPTV_STALKET_DB}.itv", 'do');
-#  return 0;
-#}
-
-
 #**********************************************************
 # online()
 #**********************************************************
@@ -1254,7 +1161,7 @@ sub online {
       $WHERE = 'WHERE ((c.status=1 or c.status>=3) AND c.status<11)';
     }
 
-    $self->query($db, "SELECT  count(*) FROM iptv_calls c $WHERE;");
+    $self->query2("SELECT  count(*) FROM iptv_calls c $WHERE;");
     $self->{TOTAL} = $self->{list}->[0][0];
     return $self;
   }
@@ -1400,7 +1307,6 @@ sub online {
     push @WHERE_RULES, @{ $self->search_expr($attr->{IP}, 'IP', 'c.framed_ip_address') };
   }
 
-
   if ($attr->{NAS_ID}) {
     push @WHERE_RULES, "nas_id IN ($attr->{NAS_ID})";
   }
@@ -1435,8 +1341,7 @@ sub online {
 
   $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES) : '';
 
-  $self->query(
-    $db, "SELECT $fields 
+  $self->query2("SELECT $fields 
   $ext_fields
  FROM iptv_calls c
  LEFT JOIN users u     ON (u.uid=c.uid)
@@ -1498,10 +1403,8 @@ sub online {
 sub online_add {
   my $self = shift;
 	my ($attr) = @_;
-	
-	
-  $self->query(
-     $db, "INSERT INTO iptv_calls (started, uid, framed_ip_address, nas_id, nas_ip_address, status, acct_session_id, tp_id, CID)
+
+  $self->query2("INSERT INTO iptv_calls (started, uid, framed_ip_address, nas_id, nas_ip_address, status, acct_session_id, tp_id, CID)
       VALUES (now(), 
       '$attr->{UID}', 
       INET_ATON('". (($attr->{IP}) ? $attr->{IP} : '0.0.0.0' ) ."'), 
@@ -1531,8 +1434,7 @@ sub online_count {
     $WHERE = " AND u.domain_id='$attr->{DOMAIN_ID}'";
   }
 
-  $self->query(
-    $db, "SELECT n.id, n.name, n.ip, n.nas_type,  
+  $self->query2("SELECT n.id, n.name, n.ip, n.nas_type,  
    sum(if (c.status=1 or c.status>=3, 1, 0)),
    count(distinct c.uid),
    sum(if (status=2, 1, 0)), 
@@ -1548,8 +1450,7 @@ sub online_count {
   my $list = $self->{list};
   $self->{ONLINE}=0;
   if ($self->{TOTAL} > 0) {
-    $self->query(
-      $db, "SELECT 1, count(c.uid) AS total_users,  
+    $self->query2("SELECT 1, count(c.uid) AS total_users,  
       sum(if (c.status=1 or c.status>=3, 1, 0)) AS online,
       sum(if (c.status=2, 1, 0)) AS zaped
    FROM iptv_calls c 
@@ -1573,8 +1474,7 @@ sub online_update {
   my $self = shift;
   my ($DATA) = @_;
 
-  $self->query(
-    $db, "UPDATE iptv_calls SET
+  $self->query2("UPDATE iptv_calls SET
       lupdated=UNIX_TIMESTAMP()
     WHERE
       acct_session_id='$DATA->{ACCT_SESSION_ID}' and 
@@ -1598,7 +1498,7 @@ sub online_del {
     $WHERE = "acct_session_id in ( '$session_list' )";
 
     if ($attr->{QUICK}) {
-      $self->query($db, "DELETE FROM iptv_calls WHERE $WHERE;", 'do');
+      $self->query2("DELETE FROM iptv_calls WHERE $WHERE;", 'do');
       return $self;
     }
   }
@@ -1611,7 +1511,7 @@ sub online_del {
 
   if ($#WHERE_RULES > -1) {
     my $WHERE = join(' and ', @WHERE_RULES);
-    $self->query($db, "DELETE FROM iptv_calls WHERE $WHERE;", 'do');
+    $self->query2("DELETE FROM iptv_calls WHERE $WHERE;", 'do');
   }
 
   return $self;

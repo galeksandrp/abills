@@ -3389,11 +3389,11 @@ sub iptv_stalker {
  # Get abills users 
  my %register_stb = ();
  $list = $Iptv->user_list({ PAGE_ROWS => 1000000, 
-                               CID       => '*',
-                               COLS_NAME => 1 });
+                            CID       => '*',
+                            COLS_NAME => 1 });
  
  foreach my $line (@$list) {
-    $register_stb{$line->{cid}} = $line->{uid};
+   $register_stb{$line->{cid}} = $line->{uid};
  }
 
 
@@ -3433,8 +3433,8 @@ sub iptv_stalker {
       }
     }
     
-    if ($register_stb{$account_hash->{stb_mac}}) {
-      push @row, $html->button($_SHOW, "index=15&UID=$register_stb{$account_hash->{stb_mac}}", { CLASS => 'show' });
+    if ($account_hash->{stb_mac} && $register_stb{$account_hash->{stb_mac}}) {
+      push @row, $html->button($_SHOW, "index=15&UID=$register_stb{$account_hash->{stb_mac}}", { CLASS => 'show', TITLE => $account_hash->{stb_mac} });
     }
     else {
       push @row, $html->button($_ADD, "index=$index&register=1&LOGIN=".
