@@ -49,7 +49,7 @@ sub _include {
     }
   }
 
-  if (defined($module)) {
+  if ($module) {
     $tpl = "modules/$module/templates/$tpl";
   }
 

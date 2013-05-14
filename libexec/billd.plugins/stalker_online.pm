@@ -4,10 +4,7 @@
 #
 #**********************************************************
 
-
-
 stalker_online();
-
 
 #**********************************************************
 #
@@ -69,7 +66,7 @@ sub stalker_online {
   	                         ACTIVATE       => '_SHOW',
   	                         EXPIRE         => '_SHOW',
   	                         LOGIN_STATUS   => '_SHOW',
-  	                         NEXT_TARIF_PLAN=>'_SHOW'
+  	                         NEXT_TARIF_PLAN=> '_SHOW'
   	                       });
 
   foreach my $line (@$list) {
@@ -83,12 +80,11 @@ sub stalker_online {
   my %USERS_ONLINE_LIST = ();
   $Iptv->{debug}=1 if ($debug > 6);
   $list = $Iptv->online({ 
-                          COLS_NAME => 1,
-                          FIELDS_NAMES => [  
-                            CID,
-                            UID,
-                            ACCT_SESSION_ID,
-                            FIO
+                          COLS_NAME       => 1,
+                          CID             => '_SHOW',
+                          UID             => '_SHOW', 
+                          ACCT_SESSION_ID => '_SHOW',
+                          FIO             => '_SHOW'
                           ]
                         });
 
@@ -184,7 +180,11 @@ sub stalker_online {
     	    || $user->{iptv_status}
     	    || $expire_unixdate
     	) {
-
+        
+        if ($account_hash->{status} == 0) {
+        	next;
+        }
+        
         $admin->action_add("$user->{uid}", "$account_hash->{mac}", { TYPE => 15 });
         print "Disable STB LOGIN: $user->{login} MAC: $account_hash->{mac} Expire: $expire_unixdate DEPOSIT: $user->{deposit}+$credit STATUS: $user->{disable}/$user->{iptv_status}\n";
         $Stalker_api->user_action({ UID    => $user->{uid}, 
@@ -192,7 +192,6 @@ sub stalker_online {
         	                          LOGIN  => $user->{login}, 
         	                          STATUS => 1, 
                                     change => 1 });
-        exit;
       }
       else {
     	  my ($uid, $acct_session_id)=split(/:/, $USERS_ONLINE_LIST{$account_hash->{mac}});
@@ -202,7 +201,7 @@ sub stalker_online {
            UID             => $uid,
            CID             => $account_hash->{mac}
         });
-      
+
         delete $USERS_ONLINE_LIST{$account_hash->{mac}};
       }
     }
@@ -223,7 +222,7 @@ sub stalker_online {
               CID    => $account_hash->{mac},
               ACCT_SESSION_ID=> mk_unique_value(12),
       		});
-  	    print "ADD online: Login: $user->{login} MAC: $account_hash->{mac}\n" if ($debug > 1);
+  	    print "ADD online: Login: $user->{login} MAC: $account_hash->{mac} Online: $account_hash->{online}\n" if ($debug > 1);
   	    
   	    if ($TP_INFO{$user->{tp_id}}->{AGE} && $user->{expire} eq '0000-00-00') {
   	    	my $expire_date = strftime "%Y-%m-%d", localtime(time + $TP_INFO{$user->{tp_id}}->{AGE} * 86400);
@@ -256,8 +255,8 @@ sub stalker_online {
     print join('; ', @row) . "\n" if ($debug > 5);
   }
   
-  #Zap old sessions
-  if ($#{ keys %USERS_ONLINE_LIST }) {
+  #Del old sessions
+  if (scalar %USERS_ONLINE_LIST ) {
     $Iptv->online_del({ CID => join(',', keys %USERS_ONLINE_LIST) });
   }
 

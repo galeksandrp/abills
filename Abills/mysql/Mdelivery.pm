@@ -349,7 +349,7 @@ sub list {
     );
 
   $self->query2("SELECT 
-    md.id,  md.date, c, md.sender, a.id, md.added, length(md.text), md.status
+    md.id,  md.date, md.subject, md.sender, a.id, md.added, length(md.text), md.status
      FROM mdelivery_list md
      LEFT JOIN admins a ON (md.aid=a.aid)
      $WHERE

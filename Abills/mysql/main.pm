@@ -168,7 +168,7 @@ sub query {
       foreach my $line (@{ $attr->{MULTI_QUERY} }) {
         $q->execute(@$line);
         if ($db->err) {
-          $self->{errno} = 3;
+          $self->{errno}      = 3;
           $self->{sql_errno}  = $db->err;
           $self->{sql_errstr} = $db->errstr;
           $self->{errstr}     = $db->errstr;
@@ -206,8 +206,9 @@ sub query {
 
   if ($self->{TOTAL} > 0) {
     my @rows = ();
+
     if ($attr->{COLS_NAME}) {
-       push @{ $self->{COL_NAMES_ARR} }, @{ $q->{NAME} };          
+      push @{ $self->{COL_NAMES_ARR} }, @{ $q->{NAME} };
       while (my $row = $q->fetchrow_hashref()) {
         if ($attr->{COLS_UPPER}) {
           my $row2;
@@ -220,7 +221,7 @@ sub query {
       }      
     }
     elsif ($attr->{INFO}) {
-       push @{ $self->{COL_NAMES_ARR} }, @{ $q->{NAME} };          
+      push @{ $self->{COL_NAMES_ARR} }, @{ $q->{NAME} };          
       while (my $row = $q->fetchrow_hashref()) {
         while(my ($k, $v) = each %$row ) {
           $self->{ uc($k) }=$v;
@@ -286,7 +287,41 @@ sub get_data {
 sub search_former {
   my $self = shift;
   my ($data, $search_params, $attr)=@_;
-  my @WHERE_RULES = ();
+
+  my @WHERE_RULES              = ();
+  $self->{SEARCH_FIELDS}       = '';
+  $self->{SEARCH_FIELDS_COUNT} = 0;
+
+  if ($attr->{USERS_FIELDS}) {
+  	@WHERE_RULES = @{ $self->search_expr_users({ %$data, 
+                             EXT_FIELDS => [
+                                            'PHONE',
+                                            'EMAIL',
+                                            'ADDRESS_FLAT',
+                                            'PASPORT_DATE',
+                                            'PASPORT_NUM', 
+                                            'PASPORT_GRANT',
+                                            'CITY', 
+                                            'ZIP',
+                                            'GID',
+                                            'CONTRACT_ID',
+                                            'CONTRACT_SUFIX',
+                                            'CONTRACT_DATE',
+                                            'EXPIRE',
+
+                                            'CREDIT',
+                                            'CREDIT_DATE', 
+                                            'REDUCTION',
+                                            'REGISTRATION',
+                                            'REDUCTION_DATE',
+                                            'COMMENTS',
+                                            'BILL_ID:skip',
+                                            
+                                            'ACTIVATE',
+                                            'EXPIRE',
+                                             ] }) };
+  }
+
 
   foreach my $search_param (@$search_params) {
   	my ($param, $field_type, $sql_field, $show, $ex_params)=@$search_param;
@@ -295,6 +330,11 @@ sub search_former {
         $self->{SEARCH_FIELDS} .= "$show, ";
         $self->{SEARCH_FIELDS_COUNT}++;
    		}
+  	  elsif ($param =~ /^(.*)\|(.*)$/) {
+        my $from = $1;
+        my $to   = $1;
+        push @WHERE_RULES, "($sql_field>='$from' and $sql_field<='$to')";
+  	  }
   	  else {
   		  push @WHERE_RULES, @{ $self->search_expr($data->{$param}, "$field_type", "$sql_field", { EXT_FIELD => $show }) };
   		}
@@ -331,7 +371,11 @@ sub search_expr {
     $self->{SEARCH_FIELDS_COUNT}++;
   }
   my @result_arr = ();
-  return \@result_arr if ($value eq '_SHOW');
+  if (! defined($value)) {
+  	$value = '';
+  }
+
+  return \@result_arr if ( $value eq '_SHOW');
 
   if ($field) {
     $field =~ s/ (as) ([a-z0-9_]+)//gi;
@@ -674,10 +718,10 @@ sub search_expr_users () {
     COMPANY_CREDIT=> 'INT:company.credit AS company_credit',
     REGISTRATION  => 'DATE:u.registration',
 
-    COMMENTS     => 'STR:pi.comments',
-    FIO          => 'STR:pi.fio',
-    PHONE        => 'STR:pi.phone',
-    EMAIL        => 'STR:pi.email',
+    COMMENTS      => 'STR:pi.comments',
+    FIO           => 'STR:pi.fio',
+    PHONE         => 'STR:pi.phone',
+    EMAIL         => 'STR:pi.email',
 
 
     PASPORT_DATE  => 'DATE:pi.pasport_date',
@@ -772,7 +816,7 @@ sub search_expr_users () {
   }
 
   if ($attr->{SKIP_GID}) {
-  	
+  	push @fields,  @{ $self->search_expr($attr->{GID}, 'INT', 'u.gid', { EXT_FIELD => $ext_fields{GID} }) };
   }
   elsif ($attr->{GIDS}) {
     if ($admin->{GIDS}) {
@@ -799,6 +843,10 @@ sub search_expr_users () {
   }
   elsif ($admin->{GIDS}) {
     push @fields, "u.gid IN ($admin->{GIDS})";
+  }
+
+  if (! $attr->{DOMAIN_ID} && $admin->{DOMAIN_ID}) {
+    push @fields, @{ $self->search_expr("$admin->{DOMAIN_ID}", 'INT', 'u.domain_id') };
   }
 
   if ($attr->{NOT_FILLED}) {
@@ -882,6 +930,7 @@ sub search_expr_users () {
     $self->{EXT_TABLES} .= "LEFT JOIN admin_actions aa ON (u.uid=aa.uid)" if ($self->{EXT_TABLES} !~ /admin_actions/);
   }
 
+  delete ($self->{COL_NAMES_ARR});
 
   return \@fields;
 }
@@ -916,10 +965,10 @@ sub query_add {
           push @inserts_arr, "$row->{COLUMN_NAME}='$values->{$column}'";
         }
       }
-     }
+    }
   }
   
-  my $sql = "INSERT INTO $table SET ". join(",\n ", @inserts_arr);
+  my $sql = (($attr->{REPLACE}) ? 'REPLACE' : 'INSERT') . " INTO $table SET ". join(",\n ", @inserts_arr);
   return $self->query2($sql, 'do');
 }
 

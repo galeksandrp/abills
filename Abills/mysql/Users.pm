@@ -400,7 +400,7 @@ sub pi {
     $i++;
   }
 
-  if ($self->{LOCATION_ID}) {
+  if (! $self->{errno} && $self->{LOCATION_ID}) {
     $self->query2("select d.id AS district_id, 
       d.city, 
       d.name AS address_district, 
@@ -605,7 +605,7 @@ sub groups_list {
 
   my $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES) : '';
 
-  $self->query2("SELECT g.gid, g.name, g.descr, count(u.uid), g.domain_id FROM groups g
+  $self->query2("SELECT g.gid, g.name, g.descr, count(u.uid) AS users_count, allow_credit, g.domain_id FROM groups g
         LEFT JOIN users u ON  (u.gid=g.gid $USERS_WHERE) 
         $WHERE
         GROUP BY g.gid
@@ -630,7 +630,9 @@ sub group_info {
   my $self = shift;
   my ($gid) = @_;
 
-  $self->query2("select g.name, g.descr, g.separate_docs, g.domain_id FROM groups g WHERE g.gid='$gid';",
+  $self->query2("SELECT g.gid, g.name, g.descr, g.separate_docs, g.domain_id, allow_credit
+    FROM groups g 
+    WHERE g.gid='$gid';",
    undef, { INFO => 1 });
 
   $self->{GID} = $gid;
@@ -645,6 +647,7 @@ sub group_change {
   my ($gid, $attr) = @_;
 
   $attr->{SEPARATE_DOCS} = ($attr->{SEPARATE_DOCS}) ? 1 : 0;
+  $attr->{ALLOW_CREDIT}  = ($attr->{ALLOW_CREDIT}) ? 1 : 0;
 
   $self->changes(
     $admin,
@@ -665,8 +668,6 @@ sub group_change {
 sub group_add {
   my $self = shift;
   my ($attr) = @_;
-
-  %DATA = $self->get_data($attr);
 
   $self->query_add('groups', { %$attr, DOMAIN_ID => $admin->{DOMAIN_ID} });
 
@@ -694,13 +695,15 @@ sub group_del {
 sub list {
   my $self   = shift;
   my ($attr) = @_;
-  
+
   my @list   = ();
 
   $SORT      = ($attr->{SORT})      ? $attr->{SORT}      : 1;
   $DESC      = ($attr->{DESC})      ? $attr->{DESC}      : '';
   $PG        = ($attr->{PG})        ? $attr->{PG}        : 0;
   $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
+
+  @WHERE_RULES = ();
 
   if ($attr->{UNIVERSAL_SEARCH}) {
     my @us_fields = ('u.uid:INT', 'u.id:STR', 'pi.fio:STR', 'pi.contract_id:STR', 'pi.email:STR', 'pi.phone:STR', 'pi.comments:STR');
@@ -718,7 +721,6 @@ sub list {
     }
     
     $self->{SEARCH_FIELDS} .= 'pi.phone, pi.contract_id,pi.email,pi.comments,';
-    
 
     my @us_query  = ();
     foreach my $f (@us_fields) {
@@ -729,7 +731,7 @@ sub list {
     @WHERE_RULES = ("(". join(' or ', @us_query) .")");
   }
   else {
-      @WHERE_RULES = @{ $self->search_expr_users({ %$attr, 
+    push @WHERE_RULES, @{ $self->search_expr_users({ %$attr, 
                       EXT_FIELDS => [ 'UID',
         'PHONE',
         'EMAIL',
@@ -745,7 +747,7 @@ sub list {
         'CONTRACT_DATE',
         'EXPIRE',
 
-        'CREDIT',
+        'CREDIT:skip',
         'CREDIT_DATE', 
         'REDUCTION',
         'REGISTRATION',
@@ -754,23 +756,12 @@ sub list {
         'BILL_ID',
         'ACTIVATE',
         'EXPIRE',
+        'DOMAIN_ID'
          ] }) };
   }
 
-#  if ($attr->{DOMAIN_ID}) {
-#    push @WHERE_RULES, @{ $self->search_expr("$attr->{DOMAIN_ID}", 'INT', 'u.domain_id', { EXT_FIELD => 1 }) };
-#  }
-  if (! $attr->{DOMAIN_ID} && $admin->{DOMAIN_ID}) {
-    push @WHERE_RULES, @{ $self->search_expr("$admin->{DOMAIN_ID}", 'INT', 'u.domain_id', { EXT_FIELD => 0 }) };
-  }
-
-  if ($CONF->{EXT_BILL_ACCOUNT}) {
-    $self->{SEARCH_FIELDS} .= 'if(company.id IS NULL,ext_b.deposit,ext_cb.deposit) AS ext_deposit, ';
-    $self->{SEARCH_FIELDS_COUNT}++;
-    if ($attr->{EXT_BILL_ID}) {
-      my $value = $self->search_expr($attr->{EXT_BILL_ID}, 'INT');
-      push @WHERE_RULES, "if(company.id IS NULL,ext_b.id,ext_cb.id)$value";
-    }
+  if ($attr->{EXT_DEPOSIT}) {
+  	push @WHERE_RULES, @{ $self->search_expr($attr->{EXT_BILL_ID}, 'INT', 'if(company.id IS NULL,ext_b.id,ext_cb.id)', { EXT_FIELD => 'if(company.id IS NULL,ext_b.deposit,ext_cb.deposit) AS ext_deposit' }) };
     $self->{EXT_TABLES} .= "
             LEFT JOIN bills ext_b ON (u.ext_bill_id = ext_b.id)
             LEFT JOIN bills ext_cb ON  (company.ext_bill_id=ext_cb.id) ";
@@ -782,7 +773,7 @@ sub list {
   }
 
   if (defined($attr->{DISABLE}) && $attr->{DISABLE} ne '') {
-    push @WHERE_RULES, "u.disable='$attr->{DISABLE}'";
+    push @WHERE_RULES, @{ $self->search_expr($attr->{DISABLE}, 'INT', 'u.disable') };
   }
 
   if ($attr->{ACTIVE}) {
@@ -842,7 +833,7 @@ sub list {
      LEFT JOIN users_pi pi ON (u.uid = pi.uid)
      LEFT JOIN bills b ON (u.bill_id = b.id)
      LEFT JOIN companies company ON  (u.company_id=company.id) 
-     LEFT JOIN bills cb ON  (company.bill_id=cb.id)
+     LEFT JOIN bills cb ON (company.bill_id=cb.id)
      $EXT_TABLES
      GROUP BY u.uid
      $HAVING
@@ -963,14 +954,13 @@ sub list {
   }
 
   $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES) : '';
-  $self->query2("SELECT u.id, 
+  $self->query2("SELECT u.id AS login, 
       pi.fio, if(company.id IS NULL,b.deposit,cb.deposit) AS deposit, 
              if(u.company_id=0, u.credit,
       if (u.credit=0, company.credit, u.credit)) AS credit,
       u.disable, 
       $self->{SEARCH_FIELDS}
-      u.uid, 
-      u.company_id, pi.email, u.activate, u.expire
+      u.uid
      FROM users u
      LEFT JOIN users_pi pi ON (u.uid = pi.uid)
      LEFT JOIN bills b ON (u.bill_id = b.id)
@@ -987,7 +977,7 @@ sub list {
 
   if ($self->{TOTAL} == $PAGE_ROWS || $PG > 0 || $attr->{FULL_LIST}) {
     $self->query2("SELECT count(u.id) AS total, 
-     sum(if(u.expire<curdate() AND u.expire<>'0000-00-00', 1, 0)) AS total_expired, 
+     sum(if(u.expire<curdate() AND u.expire>'0000-00-00', 1, 0)) AS total_expired, 
      sum(u.disable) AS total_disabled,
      sum(u.deleted) AS total_deleted
      FROM users u 
@@ -1715,22 +1705,23 @@ sub district_list {
   my $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
 
   my $WHERE = $self->search_former($attr, [
-      ['ID',          'INT',  'd.id'  ],
-      ['NAME',        'STR',  'd.name'],
+      ['ID',          'INT',  'd.id'       ],
+      ['NAME',        'STR',  'd.name'     ],
       ['COMMENTS',    'STR',  'd.comments' ],
     ],
     { WHERE => 1,
-    	WHERE_RULES => \@WHERE_RULES
     }
     );
 
-  $self->query2("SELECT d.id, d.name, d.country, d.city, zip, count(s.id), d.coordx, d.coordy, d.zoom FROM districts d
+  $self->query2("SELECT d.id, d.name, d.country, d.city, zip, count(s.id) AS street_count, 
+       d.coordx, d.coordy, d.zoom 
+     FROM districts d
      LEFT JOIN streets s ON (d.id=s.district_id)
    $WHERE 
    GROUP BY d.id
    ORDER BY $SORT $DESC",
    undef,
-   { INFO => 1 }
+   $attr
   );
 
   my $list = $self->{list};
@@ -1844,12 +1835,14 @@ sub street_list {
   my $EXT_FIELDS_TOTAL = '';
   if ($attr->{USERS_INFO} && !$admin->{MAX_ROWS}) {
     $EXT_TABLE        = 'LEFT JOIN users_pi pi ON (b.id=pi.location_id)';
-    $EXT_FIELDS       = ', count(pi.uid)';
+    $EXT_FIELDS       = ', count(pi.uid) AS users_count';
     $EXT_TABLE_TOTAL  = 'LEFT JOIN builds b ON (b.street_id=s.id) LEFT JOIN users_pi pi ON (b.id=pi.location_id)';
     $EXT_FIELDS_TOTAL = ', count(DISTINCT b.id), count(pi.uid), sum(b.flats) / count(pi.uid)';
   }
 
-  my $sql = "SELECT s.id, s.name, d.name, count(DISTINCT b.id) $EXT_FIELDS FROM streets s
+  my $sql = "SELECT s.id, s.name AS street_name, 
+    d.name AS disctrict_name, 
+    count(DISTINCT b.id) AS build_count $EXT_FIELDS FROM streets s
   LEFT JOIN districts d ON (s.district_id=d.id)
   LEFT JOIN builds b ON (b.street_id=s.id)
   $EXT_TABLE 
@@ -1865,7 +1858,6 @@ sub street_list {
   if ($self->{TOTAL} > 0) {
     my $sql = "SELECT count(DISTINCT s.id) $EXT_FIELDS_TOTAL FROM streets s 
      $EXT_TABLE_TOTAL  $WHERE";
-
     #my $sql = "SELECT count(DISTINCT s.id) , count(DISTINCT builds.id), count(users_pi.uid), sum(builds.flats) / count(users_pi.uid) FROM users_pi
     #LEFT JOIN builds ON (builds.id=users_pi.location_id) LEFT JOIN streets  s ON (builds.street_id=s.id) $WHERE";
     $self->query2($sql);
@@ -1944,6 +1936,8 @@ sub build_list {
   $PG        = ($attr->{PG})        ? $attr->{PG}        : 0;
   $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
 
+  @WHERE_RULES = ();
+  
   if ($SORT == 1 && $DESC eq '') {
     $SORT = "length(b.number), b.number";
   }
@@ -1954,11 +1948,11 @@ sub build_list {
   }
 
   my $WHERE = $self->search_former($attr, [
-      ['NUMBER',      'STR', 'b.number' ],
+      ['NUMBER',      'STR', 'b.number'      ],
       ['DISTRICT_ID', 'INT', 's.district_id' ],
-      ['STREET_ID',   'INT', 'b.street_id'  ],
-      ['FLORS',       'INT', 'b.flors' ],
-      ['ENTRANCES',   'INT', 'b.entrances' ],
+      ['STREET_ID',   'INT', 'b.street_id'   ],
+      ['FLORS',       'INT', 'b.flors'       ],
+      ['ENTRANCES',   'INT', 'b.entrances'   ],
       ['SHOW_MAPS',   '', '', 'b.map_x, b.map_y, b.map_x2, b.map_y2, b.map_x3, b.map_y3, b.map_x4, b.map_y4' ],
     ],
     { WHERE => 1,
@@ -1969,7 +1963,7 @@ sub build_list {
 
   my $sql = '';
   if ($attr->{CONNECTIONS}) {
-    $sql = "SELECT b.number, b.flors, b.entrances, b.flats, s.name, 
+    $sql = "SELECT b.number, b.flors, b.entrances, b.flats, s.name AS street_name, 
      count(pi.uid) AS users_count, ROUND((count(pi.uid) / b.flats * 100), 0) AS users_connections,
      b.added, $self->{SEARCH_FIELDS} b.id
 

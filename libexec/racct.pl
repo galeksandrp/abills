@@ -6,8 +6,6 @@ use vars qw(%RAD %conf %ACCT
 $DATE $TIME
 %RAD_REQUEST %RAD_REPLY %RAD_CHECK
 $begin_time
-$access_deny
-$Log
 );
 use strict;
 
@@ -20,8 +18,6 @@ Abills::Base->import(qw(check_time get_radius_params));
 my %acct_mod = ();
 
 require Abills::SQL;
-my $sql = Abills::SQL->connect($conf{dbtype}, "$conf{dbhost}", $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
-my $db = $sql->{db};
 
 require Acct;
 Acct->import();
@@ -86,13 +82,11 @@ my %ACCT_TERMINATE_CAUSES = (
 #####################################################################
 
 my $access_deny = sub {
-  my ($user, $message, $nas_num) = @_;
-  if (!$Log) {
-    $Log = Log->new($db, \%conf);
-    $Log->{ACTION} = 'ACCT';
-  }
+  my ($user, $message, $nas, $db) = @_;
+  my $Log = Log->new($db, \%conf);
+  $Log->{ACTION} = 'ACCT';
 
-  $Log->log_print('LOG_WARNING', $user, "$message", { ACTION => 'ACCT', NAS => { NAS_ID => $nas_num } });
+  $Log->log_print('LOG_WARNING', $user, "$message", { ACTION => 'ACCT', NAS => $nas });
   return 1;
 };
 
@@ -102,9 +96,12 @@ my $nas = undef;
 if (scalar(%RAD_REQUEST) < 1) {
   $RAD = get_radius_params();
 
+  my $sql = Abills::SQL->connect($conf{dbtype}, "$conf{dbhost}", $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
+  my $db  = $sql->{db};
+
   if (!defined($RAD->{NAS_IP_ADDRESS})) {
     $RAD->{USER_NAME} = '-' if (!defined($RAD->{USER_NAME}));
-    $access_deny->("$RAD->{USER_NAME}", "Not specified NAS server", 0);
+    $access_deny->("$RAD->{USER_NAME}", "Not specified NAS server", 0, $db);
     exit 1;
   }
   else {
@@ -134,6 +131,7 @@ if (scalar(%RAD_REQUEST) < 1) {
     }
 
     if ($acct->{errno}) {
+      my $Log = Log->new($db, \%conf);
       $Log->log_print('LOG_ERR', $RAD->{USER_NAME}, "$acct->{errstr}" . ((defined($acct->{sql_errstr})) ? " ($acct->{sql_errstr})" : ''));
     }
   }
@@ -146,7 +144,7 @@ sub acct {
   my ($db, $RAD, $nas) = @_;
   my $r = 0;
 
-  $Log = Log->new($db, \%conf);
+  my $Log = Log->new($db, \%conf);
   $Log->{ACTION} = 'ACCT';
 
   my $begin_time = check_time();

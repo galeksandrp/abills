@@ -303,8 +303,8 @@ sub ashield_user {
   use Encode;
   Encode::_utf8_off($name);
 
-  if ($Ashield::VERSION < 6.08) {
-    $html->message('info', "UPDATE", "Please update module 'Ashield' to version 6.08 or higher. http://abills.net.ua/ (Current Version: $Ashield::VERSION)");
+  if ($Ashield::VERSION < 6.09) {
+    $html->message('info', "UPDATE", "Please update module 'Ashield' to version 6.09 or higher. http://abills.net.ua/ (Current Version: $Ashield::VERSION)");
     return 0;
   }
 

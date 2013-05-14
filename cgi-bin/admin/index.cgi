@@ -916,7 +916,12 @@ sub form_companies {
   my $customer = Customers->new($db, $admin, \%conf);
   my $company = $customer->company();
 
-  if ($FORM{add}) {
+  if ($FORM{add_form}) {
+  	add_company();
+
+  	return 0;
+  }
+  elsif ($FORM{add}) {
     if (!$permissions{0}{1}) {
       $html->message('err', $_ERROR, "$ERR_ACCESS_DENY");
       return 0;
@@ -1151,9 +1156,8 @@ sub form_companies {
         qs         => $pages_qs,
         ID         => 'COMPANY_ID',
         EXPORT     => "$_EXPORT XML:&xml=1",
-        MENU       => "$_ADD:index="
-        . get_function_index('add_company') . ':add' . ";$_SEARCH:index="
-        . get_function_index('form_search') . "&type=13:search"
+        MENU       => "$_ADD:index=$index&add_form=1". ':add' . 
+         ";$_SEARCH:index=". get_function_index('form_search') . "&type=13:search"
       }
     );
 
@@ -1313,7 +1317,7 @@ sub func_menu {
   print "$menu</td></tr>
 </TABLE>\n";
 
-  if ($FORM{subf}) {
+  if ($FORM{subf} && $FORM{subf} != $index) {
     if ($functions{ $FORM{subf} }) {
       if (defined($module{ $FORM{subf} })) {
         load_module($module{ $FORM{subf} }, $html);
@@ -1589,7 +1593,14 @@ sub user_form {
 #**********************************************************
 sub form_groups {
 
-  if ($FORM{add}) {
+  if ($FORM{add_form}) {
+    return 0 if ($LIST_PARAMS{GID} || $LIST_PARAMS{GIDS});
+    $users->{ACTION}     = 'add';
+    $users->{LNG_ACTION} = $_ADD;
+    $html->tpl_show(templates('form_groups'), $users);
+    return 0;
+  }
+  elsif ($FORM{add}) {
     if (!$permissions{0}{1}) {
       $html->message('err', $_ERROR, "$ERR_ACCESS_DENY");
       return 0;
@@ -1625,7 +1636,7 @@ sub form_groups {
     func_menu(
       {
         'ID'   => $users->{GID},
-        $_NAME => $users->{G_NAME}
+        $_NAME => $users->{NAME}
       },
       {
         $_CHANGE   => ":GID=$users->{GID}:change rightAlignText",
@@ -1642,6 +1653,8 @@ sub form_groups {
     $users->{ACTION}        = 'change';
     $users->{LNG_ACTION}    = $_CHANGE;
     $users->{SEPARATE_DOCS} = ($users->{SEPARATE_DOCS}) ? 'checked' : '';
+    $users->{ALLOW_CREDIT}  = ($users->{ALLOW_CREDIT}) ? 'checked' : '';
+
     $html->tpl_show(templates('form_groups'), $users);
 
     return 0;
@@ -1664,24 +1677,31 @@ sub form_groups {
     $html->message('err', $_ERROR, "[$users->{errno}] $err_strs{$users->{errno}}");
   }
 
-  my $list  = $users->groups_list({%LIST_PARAMS});
+  my $list  = $users->groups_list({%LIST_PARAMS, COLS_NAME => 1 });
   my $table = $html->table(
     {
       width      => '100%',
       caption    => "$_GROUPS",
       border     => 1,
-      title      => [ $_ID, $_NAME, $_DESCRIBE, $_USERS, '-', '-' ],
+      title      => [ $_ID, $_NAME, $_DESCRIBE, $_USERS, "$_ALLOW $_CREDIT", '-', '-' ],
       cols_align => [ 'right', 'left', 'left', 'right', 'center', 'center' ],
       qs         => $pages_qs,
       pages      => $users->{TOTAL},
-      ID         => 'GROUPS'
+      ID         => 'GROUPS',
+      EXPORT      => ' XML:&xml=1',
+      MENU       => "$_ADD:index=$index&add_form=1:add"
     }
   );
 
   foreach my $line (@$list) {
-    my $delete = (defined($permissions{0}{5})) ? $html->button($_DEL, "index=27$pages_qs&del=$line->[0]", { MESSAGE => "$_DEL [$line->[0]]?", CLASS => 'del' }) : '';
+    my $delete = (defined($permissions{0}{5})) ? $html->button($_DEL, "index=". get_function_index('form_groups') ."$pages_qs&del=$line->{gid}", { MESSAGE => "$_DEL [$line->{gid}] $line->{name}?", CLASS => 'del' }) : '';
 
-    $table->addrow($html->b($line->[0]), "$line->[1]", "$line->[2]", $html->button($line->[3], "index=27&GID=$line->[0]&subf=15"), $html->button($_INFO, "index=27&GID=$line->[0]", { CLASS => 'change' }), $delete);
+    $table->addrow($html->b($line->{gid}), 
+    $line->{name}, 
+    $line->{descr}, 
+    $html->button($line->{users_count}, "index=". get_function_index('form_groups') ."&GID=$line->{gid}&subf=15"),
+    $bool_vals[$line->{allow_credit}], 
+    $html->button($_INFO, "index=". get_function_index('form_groups') ."&GID=$line->{gid}", { CLASS => 'change' }), $delete);
   }
   print $table->show();
 
@@ -1696,23 +1716,14 @@ sub form_groups {
 }
 
 #**********************************************************
-# add_groups()
-#**********************************************************
-sub add_groups {
-
-  return 0 if ($LIST_PARAMS{GID} || $LIST_PARAMS{GIDS});
-
-  my $users;
-  $users->{ACTION}     = 'add';
-  $users->{LNG_ACTION} = $_ADD;
-  $html->tpl_show(templates('form_groups'), $users);
-}
-
-#**********************************************************
 #
 #**********************************************************
 sub user_ext_menu {
   my ($UID, $LOGIN, $attr) = @_;
+
+  if ($FORM{xml} || $FORM{csv} || $FORM{xls}) {
+  	return $LOGIN;
+  }
 
   my $payments_menu = (defined($permissions{1})) ? '<li>' . $html->button($_PAYMENTS, "UID=$UID&index=2") . '</li>' : '';
   my $fees_menu     = (defined($permissions{2})) ? '<li>' . $html->button($_FEES,     "UID=$UID&index=3") . '</li>' : '';
@@ -2255,8 +2266,7 @@ sub form_users {
     if ($users->{errno}) {
       $html->message('err', $_ERROR, "[$users->{errno}] $err_strs{$users->{errno}}");
       return 0;
-    }
-    
+    }    
 
     $html->tpl_show(templates('form_user_header'), $user_info, { ID => 'user_header' });
     #Make service menu
@@ -2574,6 +2584,7 @@ sub form_users {
 
   my $i            = 0;
   my $users_status = 0;
+  $FORM{USERS_STATUS}=0 if (! defined($FORM{USERS_STATUS}));
   foreach my $name (@statuses) {
     if (defined($FORM{USERS_STATUS}) && $FORM{USERS_STATUS} == $i && $FORM{USERS_STATUS} ne '') {
       $LIST_PARAMS{USER_STATUS} = 1;
@@ -2587,7 +2598,7 @@ sub form_users {
         $LIST_PARAMS{DISABLE} = 1;
       }
       elsif ($i == 4) {
-        $LIST_PARAMS{EXPIRE} = "<$DATE,>0000-00-00";
+        $LIST_PARAMS{EXPIRE} = "<$DATE;>0000-00-00";
       }
       elsif ($i == 5) {
         $LIST_PARAMS{CREDIT} = ">0";
@@ -2611,10 +2622,25 @@ sub form_users {
     $i++;
   }
 
-  my $list = $users->list({ %LIST_PARAMS, 
-                            FULL_LIST => 1,
-                            COLS_NAME => 1,
-                          });
+  print $html->letters_list({ pages_qs => $pages_qs });
+
+  my ($table, $list) = result_former({
+     INPUT_DATA      => $users,
+     FUNCTION        => 'list',
+     BASE_FIELDS     => 5,
+     FUNCTION_FIELDS => 'form_payments, form_fees',
+     TABLE => { 
+       width      => '100%',
+       caption    => "$_USERS - " . $statuses[$users_status],
+       cols_align => [ 'left', 'left', 'right', 'right', 'center', 'right', 'center:noprint', 'center:noprint' ],
+       qs         => $pages_qs,
+       ID         => 'USERS_LIST',
+       SELECT_ALL => ($permissions{0}{7}) ? "users_list:IDS:$_SELECT_ALL" : undef,
+       header     => ($permissions{0}{7}) ? $status_bar : undef,
+       EXPORT     => 1,
+       MENU       => "$_ADD:index=" . get_function_index('form_wizard') . ':add' . ";$_SEARCH:index=" . get_function_index('form_search') . ":search",
+      }
+    });
 
   if ($users->{errno}) {
     $html->message('err', $_ERROR, "[$users->{errno}] $err_strs{$users->{errno}}");
@@ -2639,45 +2665,7 @@ sub form_users {
     return 0;
   }
 
-  print $html->letters_list({ pages_qs => $pages_qs });
 
-  my $TITLE = title_former({
-     INPUT_DATA      => $users,
-     BASE_FIELDS     => 5,
-     FUNCTION_FIELDS => 'payments, fees',
-    });
-
-  #User list
-  my $table = $html->table(
-    {
-      width      => '100%',
-      caption    => "$_USERS - " . $statuses[$users_status],
-      title      => $TITLE,
-      cols_align => [ 'left', 'left', 'right', 'right', 'center', 'right', 'center:noprint', 'center:noprint' ],
-      qs         => $pages_qs,
-      pages      => $users->{TOTAL},
-      ID         => 'USERS_LIST',
-      header     => ($permissions{0}{7})
-      ? "<script language='JavaScript' type='text/javascript'>
-<!-- 
-function CheckAllINBOX() {
-  for (var i = 0; i < document.users_list.elements.length; i++) {
-    if(document.users_list.elements[i].type == 'checkbox' && document.users_list.elements[i].name == 'IDS'){
-      document.users_list.elements[i].checked =         !(document.users_list.elements[i].checked);
-    }
-  }
-}
-//-->
-</script>\n
-<a href=\"javascript:void(0)\" onClick=\"CheckAllINBOX();\" class=export_button>$_SELECT_ALL</a>\n$status_bar"
-      : undef,
-      EXPORT    => ' XML:&xml=1',
-      MENU      => "$_ADD:index=" . get_function_index('form_wizard') . ':add' . ";$_SEARCH:index=" . get_function_index('form_search') . ":search",
-      SHOW_COLS => \%SEARCH_TITLES,
-      ACTIVE_COLS => \%ACTIVE_TITLES
-    }
-  );
-  
   if ($FORM{UNIVERSAL_SEARCH}) {
      $search_color_mark=$html->color_mark($FORM{UNIVERSAL_SEARCH}, $_COLORS[6]);
   }
@@ -2690,7 +2678,7 @@ function CheckAllINBOX() {
 
     if ($FORM{UNIVERSAL_SEARCH}) {
        $line->{fio} =~ s/(.*)$FORM{UNIVERSAL_SEARCH}(.*)/\1$search_color_mark\2/;
-       $line->{id}  =~ s/(.*)$FORM{UNIVERSAL_SEARCH}(.*)/\1$search_color_mark\2/;
+       $line->{login}  =~ s/(.*)$FORM{UNIVERSAL_SEARCH}(.*)/\1$search_color_mark\2/;
     }
 
     my @fields_array = ();
@@ -2711,7 +2699,7 @@ function CheckAllINBOX() {
 
     my $multiuser = ($permissions{0}{7}) ? $html->form_input('IDS', "$uid", { TYPE => 'checkbox', }) : '';
     $table->addtd(
-      $table->td(($FORM{xml} || $FORM{csv} || $FORM{xls}) ? $line->{id} : $multiuser . user_ext_menu($uid, $line->{id})),
+      $table->td($multiuser . user_ext_menu($uid, $line->{login})),
       $table->td($line->{fio}),
       $table->td( ($permissions{0}{12}) ? '--' : ($line->{deposit} + $line->{credit} < 0) ? $html->color_mark($line->{deposit}, $_COLORS[6]) : $line->{deposit}),
       $table->td($line->{credit}),
@@ -4385,127 +4373,9 @@ sub admin_profile {
 #**********************************************************
 # nas models
 #**********************************************************
-sub form_nas_models {
-
-
-}
-
-#**********************************************************
-# form_nas
-#**********************************************************
-sub form_nas {
-  my $nas = Nas->new($db, \%conf);
-  $nas->{ACTION}     = 'add';
-  $nas->{LNG_ACTION} = $_ADD;
-
-  if ($FORM{NAS_ID}) {
-    $nas->info({ NAS_ID => $FORM{NAS_ID} });
-    $pages_qs .= "&NAS_ID=$FORM{NAS_ID}&subf=$FORM{subf}";
-    $LIST_PARAMS{NAS_ID} = $FORM{NAS_ID};
-    %F_ARGS = (NAS => $nas);
-    
-    if ($FORM{console}) {
-    	if ($FORM{ACTION}) {
-    	  $nas->{NAS_MNG_IP_PORT}= $FORM{NAS_MNG_IP_PORT} if ($FORM{NAS_MNG_IP_PORT});
-    	  $nas->{NAS_MNG_USER}   = $FORM{NAS_MNG_USER} if ($FORM{NAS_MNG_USER});
-        my $result = ssh_cmd($FORM{CMD}, { %$nas, DEBUG => 1 });
-
-  	    $table = $html->table(
-         {
-          width      => '500',
-          caption    => "$_RESULT",
-          ID         => 'CONSOLE RESULT',
-          
-         }
-        );
-
-        foreach my $line (@{ $result }) {
-        	$table->addrow($line);
-        }
-  	    print $table->show();
-    	}
-
-    	$html->tpl_show(templates('form_nas_console'), $nas, { ID => 'form_nas_console' });
-    	return 0;
-    }
-    elsif ($nas->{NAS_TYPE} eq 'chillispot' && -f "../wrt_configure.cgi") {
-      $ENV{HTTP_HOST} =~ s/\:(\d+)//g;
-      $nas->{EXTRA_PARAMS} = $html->tpl_show(
-        templates('form_nas_configure'),
-        {
-          %$nas,
-          CONFIGURE_DATE => "wget -O /tmp/setup.sh http://$ENV{HTTP_HOST}/hotspot/wrt_configure.cgi?" . (($nas->{DOMAIN_ID}) ? "DOMAIN_ID=$nas->{DOMAIN_ID}\\\&" : '') . "NAS_ID=$nas->{NAS_ID}; chmod 755 /tmp/setup.sh; /tmp/setup.sh",
-          PARAM1         => "wget -O /tmp/setup.sh http://$ENV{HTTP_HOST}/hotspot/wrt_configure.cgi?DOMAIN_ID=$admin->{DOMAIN_ID}\\\&NAS_ID=$nas->{NAS_ID}",
-          PARAM2         => "; chmod 755 /tmp/setup.sh; /tmp/setup.sh",
-        },
-        { OUTPUT2RETURN => 1 }
-      );
-    }
-
-    $nas->{CHANGED}  = "($_CHANGED: $nas->{CHANGED})";
-    $nas->{NAME_SEL} = $html->form_main(
-      {
-        CONTENT => $html->form_select(
-          'NAS_ID',
-          {
-            SELECTED          => $FORM{NAS_ID},
-            SEL_MULTI_ARRAY   => $nas->list({ %LIST_PARAMS, NAS_ID => undef }),
-            MULTI_ARRAY_KEY   => 0,
-            MULTI_ARRAY_VALUE => 1,
-          }
-        ),
-        HIDDEN => {
-          index => '61',
-          AID   => "$FORM{AID}",
-          subf  => "$FORM{subf}"
-        },
-        SUBMIT => { show => "$_SHOW" }
-      }
-    );
-
-    func_menu(
-      {
-        'ID'   => $nas->{NAS_ID},
-        $_NAME => $nas->{NAME_SEL}
-      },
-      {
-        $_INFO     => ":NAS_ID=$nas->{NAS_ID}",
-        'IP Pools' => "62:NAS_ID=$nas->{NAS_ID}",
-        $_STATS    => "63:NAS_ID=$nas->{NAS_ID}"
-      },
-      { f_args => {%F_ARGS} }
-    );
-
-    if ($FORM{subf}) {
-      return 0;
-    }
-    elsif ($FORM{change}) {
-      $nas->change({ %FORM, DOMAIN_ID => $admin->{DOMAIN_ID} });
-      if (!$nas->{errno}) {
-        $html->message('info', $_CHANGED, "$_CHANGED $nas->{NAS_ID}");
-      }
-    }
-
-    $nas->{LNG_ACTION} = $_CHANGE;
-    $nas->{ACTION}     = 'change';
-  }
-  elsif ($FORM{add}) {
-    $nas->add({ %FORM, DOMAIN_ID => $admin->{DOMAIN_ID} });
-
-    if (!$nas->{errno}) {
-      $html->message('info', $_INFO, "$_ADDED '$FORM{NAS_IP}'");
-    }
-  }
-  elsif ($FORM{del} && $FORM{is_js_confirmed}) {
-    $nas->del($FORM{del});
-    if (!$nas->{errno}) {
-      $html->message('info', $_INFO, "$_DELETED [$FORM{del}]");
-    }
-  }
-
-  if ($nas->{errno}) {
-    $html->message('err', $_ERROR, "$err_strs{$nas->{errno}}");
-  }
+sub form_nas_add {
+  my ($attr) = @_;
+  my $nas = $attr->{NAS};
 
   my %nas_descr = (
     '3com_ss'    => "3COM SuperStack Switch",
@@ -4623,6 +4493,128 @@ sub form_nas {
 
   $nas->{NAS_GROUPS_SEL} = sel_nas_groups({ GID => $nas->{GID} });
   $html->tpl_show(templates('form_nas'), $nas, { ID => 'form_nas' });
+}
+
+#**********************************************************
+# form_nas
+#**********************************************************
+sub form_nas {
+  my $nas = Nas->new($db, \%conf);
+
+  if ($FORM{NAS_ID}) {
+    $nas->info({ NAS_ID => $FORM{NAS_ID} });
+    $pages_qs .= "&NAS_ID=$FORM{NAS_ID}&subf=$FORM{subf}";
+    $LIST_PARAMS{NAS_ID} = $FORM{NAS_ID};
+    %F_ARGS = (NAS => $nas);
+    
+    if ($FORM{console}) {
+    	if ($FORM{ACTION}) {
+    	  $nas->{NAS_MNG_IP_PORT}= $FORM{NAS_MNG_IP_PORT} if ($FORM{NAS_MNG_IP_PORT});
+    	  $nas->{NAS_MNG_USER}   = $FORM{NAS_MNG_USER} if ($FORM{NAS_MNG_USER});
+        my $result = ssh_cmd($FORM{CMD}, { %$nas, DEBUG => 1 });
+
+  	    $table = $html->table(
+         {
+          width      => '500',
+          caption    => "$_RESULT",
+          ID         => 'CONSOLE RESULT',
+          
+         }
+        );
+
+        foreach my $line (@{ $result }) {
+        	$table->addrow($line);
+        }
+  	    print $table->show();
+    	}
+
+    	$html->tpl_show(templates('form_nas_console'), $nas, { ID => 'form_nas_console' });
+    	return 0;
+    }
+    elsif ($nas->{NAS_TYPE} eq 'chillispot' && -f "../wrt_configure.cgi") {
+      $ENV{HTTP_HOST} =~ s/\:(\d+)//g;
+      $nas->{EXTRA_PARAMS} = $html->tpl_show(
+        templates('form_nas_configure'),
+        {
+          %$nas,
+          CONFIGURE_DATE => "wget -O /tmp/setup.sh http://$ENV{HTTP_HOST}/hotspot/wrt_configure.cgi?" . (($nas->{DOMAIN_ID}) ? "DOMAIN_ID=$nas->{DOMAIN_ID}\\\&" : '') . "NAS_ID=$nas->{NAS_ID}; chmod 755 /tmp/setup.sh; /tmp/setup.sh",
+          PARAM1         => "wget -O /tmp/setup.sh http://$ENV{HTTP_HOST}/hotspot/wrt_configure.cgi?DOMAIN_ID=$admin->{DOMAIN_ID}\\\&NAS_ID=$nas->{NAS_ID}",
+          PARAM2         => "; chmod 755 /tmp/setup.sh; /tmp/setup.sh",
+        },
+        { OUTPUT2RETURN => 1 }
+      );
+    }
+
+    $nas->{CHANGED}  = "($_CHANGED: $nas->{CHANGED})";
+    $nas->{NAME_SEL} = $html->form_main(
+      {
+        CONTENT => $html->form_select(
+          'NAS_ID',
+          {
+            SELECTED          => $FORM{NAS_ID},
+            SEL_MULTI_ARRAY   => $nas->list({ %LIST_PARAMS, NAS_ID => undef }),
+            MULTI_ARRAY_KEY   => 0,
+            MULTI_ARRAY_VALUE => 1,
+          }
+        ),
+        HIDDEN => {
+          index => '61',
+          AID   => "$FORM{AID}",
+          subf  => "$FORM{subf}"
+        },
+        SUBMIT => { show => "$_SHOW" }
+      }
+    );
+
+    func_menu(
+      {
+        'ID'   => $nas->{NAS_ID},
+        $_NAME => $nas->{NAME_SEL}
+      },
+      {
+        $_INFO     => ":NAS_ID=$nas->{NAS_ID}",
+        'IP Pools' => "62:NAS_ID=$nas->{NAS_ID}",
+        $_STATS    => "63:NAS_ID=$nas->{NAS_ID}"
+      },
+      { f_args => {%F_ARGS} }
+    );
+
+    if ($FORM{subf}) {
+      return 0;
+    }
+    elsif ($FORM{change}) {
+      $nas->change({ %FORM, DOMAIN_ID => $admin->{DOMAIN_ID} });
+      if (!$nas->{errno}) {
+        $html->message('info', $_CHANGED, "$_CHANGED $nas->{NAS_ID}");
+      }
+    }
+
+    $nas->{LNG_ACTION} = $_CHANGE;
+    $nas->{ACTION}     = 'change';
+    form_nas_add({ NAS => $nas });
+  }
+  elsif ($FORM{add_form}) {
+    $nas->{ACTION}     = 'add';
+    $nas->{LNG_ACTION} = $_ADD;
+    form_nas_add({ NAS => $nas });
+  }
+  elsif ($FORM{add}) {
+    $nas->add({ %FORM, DOMAIN_ID => $admin->{DOMAIN_ID} });
+
+    if (!$nas->{errno}) {
+      $html->message('info', $_INFO, "$_ADDED '$FORM{NAS_IP}'");
+    }
+  }
+  elsif ($FORM{del} && $FORM{is_js_confirmed}) {
+    $nas->del($FORM{del});
+    if (!$nas->{errno}) {
+      $html->message('info', $_INFO, "$_DELETED [$FORM{del}]");
+    }
+  }
+
+  if ($nas->{errno}) {
+    $html->message('err', $_ERROR, "$err_strs{$nas->{errno}}");
+  }
 
   my $table = $html->table(
     {
@@ -4646,10 +4638,8 @@ sub form_nas {
       title      => [ "ID", "$_NAME", "NAS-Identifier", "IP", "$_TYPE", "$_AUTH", "$_STATUS", "$_DESCRIBE", '-', '-', '-', '-' ],
       cols_align => [ 'center', 'left', 'left', 'right', 'left', 'left', 'center', 'left', 'center:noprint', 'center:noprint', 'center:noprint' ],
       ID         => 'NAS_LIST',
-
-      #MENU       => "$_ADD:index=". get_function_index('form_nas') .':add'
       EXPORT     => "$_EXPORT XML:&xml=1",
-      MENU       => "$_ADD:index=" . get_function_index('form_nas') . ':add' . ";$_SEARCH:index=" . get_function_index('form_nas') . "&type=13:search"
+      MENU       => "$_ADD:add_form=1&index=" . get_function_index('form_nas') . ':add' . ";$_SEARCH:index=" . get_function_index('form_nas') . "&type=13:search"
     }
   );
 
@@ -4670,8 +4660,8 @@ sub form_nas {
       $status[ $line->{nas_disable} ],
       $line->{descr},
       (in_array('Dhcphosts', \@MODULES)) ? $html->button("$_USERS", "index=". get_function_index('dhcphosts_hosts') ."&NAS_ID=$line->{nas_id}&VIEW=1&search=1", { BUTTON => 1 }) : '',
-      $html->button("IP POOLs", "index=62&NAS_ID=$line->{nas_id}", { BUTTON => 1 }),
-      $html->button("$_CHANGE", "index=61&NAS_ID=$line->{nas_id}", { CLASS => 'change', TEXT => $_CHANGE }), 
+      $html->button("IP POOLs", "index=". get_function_index('form_ip_pools') ."&NAS_ID=$line->{nas_id}", { BUTTON => 1 }),
+      $html->button("$_CHANGE", "index=". get_function_index('form_nas') ."&NAS_ID=$line->{nas_id}", { CLASS => 'change', TEXT => $_CHANGE }), 
       $delete
     );
   }
@@ -4704,7 +4694,9 @@ sub sel_nas_groups {
       SEL_MULTI_ARRAY   => $nas->nas_group_list({ DOMAIN_ID => $admin->{DOMAIN_ID} }),
       MULTI_ARRAY_KEY   => 0,
       MULTI_ARRAY_VALUE => 1,
-      SEL_OPTIONS       => { 0 => "" }
+      SEL_OPTIONS       => { 0 => "" },
+      MAIN_MENU         => get_function_index('form_nas_groups'),
+      MAIN_MENU_AGRV    => "chg=$GID"
     }
   );
 
@@ -4719,7 +4711,7 @@ sub form_nas_groups {
   my $nas = Nas->new($db, \%conf);
   $nas->{ACTION}     = 'add';
   $nas->{LNG_ACTION} = $_ADD;
-
+  
   if ($FORM{add}) {
     $nas->nas_group_add({ %FORM, DOMAIN_ID => $admin->{DOMAIN_ID} });
     if (!$nas->{errno}) {
@@ -4737,6 +4729,7 @@ sub form_nas_groups {
 
     $nas->{ACTION}     = 'change';
     $nas->{LNG_ACTION} = $_CHANGE;
+    $FORM{add_form}    = 1;
   }
   elsif (defined($FORM{del}) && $FORM{is_js_confirmed}) {
     $nas->nas_group_del($FORM{del});
@@ -4746,35 +4739,50 @@ sub form_nas_groups {
   }
 
   if ($nas->{errno}) {
-    $html->message('err', $_ERROR, "[$nas->{errno}] $err_strs{$nas->{errno}}");
+  	my $message = '';
+  	if ($nas->{errno} == 7) {
+  		$message = "$_EXIST";
+  	}
+  	else {
+  		$message = "[$nas->{errno}] $err_strs{$nas->{errno}}";
+  	}
+    $html->message('err', $_ERROR, "$message");
   }
 
   $nas->{DISABLE} = ($nas->{DISABLE}) ? ' checked' : '';
 
-  $html->tpl_show(templates('form_nas_group'), $nas);
+  if ($FORM{add_form}) {
+    $html->tpl_show(templates('form_nas_group'), $nas);  	
+  }
 
-  my $list = $nas->nas_group_list({ %LIST_PARAMS, DOMAIN_ID => $admin->{DOMAIN_ID} });
+
+
+  my $list = $nas->nas_group_list({ %LIST_PARAMS, DOMAIN_ID => $admin->{DOMAIN_ID}, COLS_NAME => 1 });
   my $table = $html->table(
     {
-      width   => '100%',
-      caption => "$_NAS $_GROUPS",
-      border  => 1,
-      title   => [ '#', $_NAME, $_COMMENTS, $_STATUS, '-', '-', '-' ],
+      width      => '100%',
+      caption    => "$_NAS $_GROUPS",
+      border     => 1,
+      title      => [ '#', $_NAME, $_COMMENTS, $_STATUS, '-', '-', '-' ],
       cols_align => [ 'right', 'left', 'left', 'center', 'center:noprint', 'center:noprint' ],
       qs         => $pages_qs,
-      pages      => $nas->{TOTAL}
+      pages      => $nas->{TOTAL},
+      ID         => 'NAS_GROUPS',
+      EXPORT     => "$_EXPORT XML:&xml=1",
+      MENU       => "$_ADD:add_form=1&index=$index:add"
     }
   );
 
   foreach my $line (@$list) {
-    my $delete = $html->button($_DEL, "index=$index$pages_qs&del=$line->[0]", { MESSAGE => "$_DEL [$line->[0]]?", CLASS => 'del' });
+    my $delete = $html->button($_DEL, "index=$index$pages_qs&del=$line->{id}", { MESSAGE => "$_DEL [$line->{id}] $line->{name}?", CLASS => 'del' });
 
     $table->addrow(
-      $html->b($line->[0]),
-      "$line->[1]", "$line->[2]",
-      $html->color_mark($status[ $line->[3] ], $state_colors[ $line->[3] ]),
-      $html->button($_NAS, "index=" . ($index - 3) . "&GID=$line->[0]", { BUTTON => 1 }),
-      $html->button($_CHANGE, "index=$index&chg=$line->[0]", { CLASS => 'change' }), $delete
+      $html->b($line->{id}),
+      $line->{name}, 
+      $line->{comments},
+      $html->color_mark($status[ $line->{disable} ], $state_colors[ $line->{disable} ]),
+      $html->button($_NAS, "index=" . get_function_index('form_nas') . "&GID=$line->{id}", { BUTTON => 1 }),
+      $html->button($_CHANGE, "index=$index&chg=$line->{id}", { CLASS => 'change' }), $delete
     );
   }
   print $table->show();
@@ -4796,18 +4804,17 @@ sub form_ip_pools {
   my ($attr) = @_;
   my $nas;
 
-  $nas->{ACTION}     = 'add';
-  $nas->{LNG_ACTION} = "$_ADD";
-
   if ($attr->{NAS}) {
     $nas = $attr->{NAS};
+    $nas->{ACTION}     = 'add';
+    $nas->{LNG_ACTION} = "$_ADD";
+
     if ($FORM{BIT_MASK} && !$FORM{NAS_IP_COUNT}) {
       my $mask = 0b0000000000000000000000000000001;
       $FORM{NAS_IP_COUNT} = sprintf("%d", $mask << ($FORM{BIT_MASK} - 1)) - 1;
     }
 
     if ($FORM{add}) {
-
       if ($FORM{POOL_SPEED} && !$FORM{BIT_MASK}) {
         $html->message('err', "$_ERROR", "Select Mask");
       }
@@ -4859,19 +4866,22 @@ sub form_ip_pools {
         $html->message('info', $_INFO, "$_DELETED");
       }
     }
-
+   
     $pages_qs = "&NAS_ID=$nas->{NAS_ID}";
-    $nas->{STATIC} = ' checked' if ($nas->{STATIC});
-    $nas->{BIT_MASK} = $html->form_select(
-      'BIT_MASK',
-      {
-        SELECTED     => $FORM{BIT_MASK},
-        SEL_ARRAY    => [ '', 32, 31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21, 20, 19, 18, 17, 16 ],
-        ARRAY_NUM_ID => 1
-      }
-    );
+    if ($FORM{add_form}) {
+    	 print "// $nas->{ACTION} //";
+      $nas->{STATIC} = ' checked' if ($nas->{STATIC});
+      $nas->{BIT_MASK} = $html->form_select(
+        'BIT_MASK',
+        {
+          SELECTED     => $FORM{BIT_MASK},
+          SEL_ARRAY    => [ '', 32, 31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21, 20, 19, 18, 17, 16 ],
+          ARRAY_NUM_ID => 1
+        }
+      );
 
-    $html->tpl_show(templates('form_ip_pools'), { %FORM, %$nas, INDEX => 62 });
+      $html->tpl_show(templates('form_ip_pools'), { %FORM, %$nas, INDEX => 62 });
+    }
   }
   elsif ($FORM{NAS_ID}) {
     $FORM{subf} = $index;
@@ -4896,7 +4906,9 @@ sub form_ip_pools {
       cols_align => [ 'right', 'left', 'right', 'right', 'right', 'right', 'center', 'center' ],
       qs         => $pages_qs,
       pages      => $nas->{TOTAL},
-      ID         => 'NAS_IP_POOLS'
+      ID         => 'NAS_IP_POOLS',
+      EXPORT     => 1,
+      MENU       => "$_ADD:index=$index&add_form=1&$pages_qs:add",
     }
   );
 
@@ -4980,13 +4992,13 @@ sub form_back_money {
 
   if ($type eq 'log') {
     if (defined($attr->{LOGIN})) {
-      my $list = $users->list({ LOGIN => $attr->{LOGIN} });
+      my $list = $users->list({ LOGIN => $attr->{LOGIN}, COLS_NAME => 1 });
 
       if ($users->{TOTAL} < 1) {
         $html->message('err', $_USER, "[$users->{errno}] $err_strs{$users->{errno}}");
         return 0;
       }
-      $UID = $list->[0]->[6];
+      $UID = $list->[0]->{uid};
     }
     else {
       $UID = $attr->{UID};
@@ -5345,34 +5357,9 @@ sub report_fees {
 
   if ($FORM{DATE}) {
     $graph_type = '';
-    $list       = $fees->list({%LIST_PARAMS});
-    $table_fees = $html->table(
-      {
-        width      => '100%',
-        caption    => "$_FEES",
-        border     => 1,
-        title      => [ 'ID', $_LOGIN, $_DATE, $_DESCRIBE, $_SUM, $_DEPOSIT, $_TYPE, "$_BILLS", $_ADMINS, 'IP', '-' ],
-        cols_align => [ 'right', 'left', 'right', 'right', 'left', 'left', 'right', 'right', 'left', 'center:noprint' ],
-        qs         => $pages_qs,
-        pages      => $fees->{TOTAL},
-        ID         => 'REPORTS_FEES',
-        EXPORT     => $_EXPORT . ' XML:&xml=1',
-      }
-    );
-
-    $pages_qs .= "&subf=2" if (!$FORM{subf});
-    foreach my $line (@$list) {
-      $table_fees->addrow(
-        $html->b($line->[0]), $html->button($line->[1], "index=15&UID=" . $line->[10]), $line->[2], $line->[3] . (($line->[11]) ? $html->br() . $html->b($line->[11]) : ''),
-        $line->[4], 
-        "$line->[5]", 
-        $FEES_METHODS{ $line->[6] }, 
-        ($BILL_ACCOUNTS{ $line->[7] }) ? $BILL_ACCOUNTS{ $line->[7] } : "$line->[7]",
-        "$line->[8]", 
-        "$line->[9]",
-      );
-    }
-
+  	$LIST_PARAMS{DATE} = $FORM{DATE};
+    form_fees();
+    return 0; 
   }
   else {
     $type = ($FORM{TYPE}) ? $FORM{TYPE} : 'DATE';
@@ -5579,50 +5566,9 @@ sub report_payments {
   $LIST_PARAMS{METHOD} = $FORM{FIELDS};
 
   if ($FORM{DATE}) {
-    $graph_type = '';
-    my @caption = ('ID', $_LOGIN, $_DATE, $_DESCRIBE, "$_SUM", $_DEPOSIT, $_PAYMENT_METHOD, 'EXT ID', "$_BILL", $_ADMINS, "$_REGISTRATION", "IP");
-
-    if ($conf{SYSTEM_CURRENCY}) {
-      push @caption, "$_ALT $_SUM", "$_CURRENCY";
-    }
-
-    $list  = $payments->list({%LIST_PARAMS, COLS_NAME => 1 });
-    $table = $html->table(
-      {
-        width      => '100%',
-        caption    => "$_PAYMENTS",
-        title      => \@caption,
-        cols_align => [ 'right', 'left', 'right', 'right', 'left', 'left', 'right', 'right', 'left', 'left', 'center:noprint' ],
-        qs         => $pages_qs,
-        pages      => $payments->{TOTAL},
-        ID         => 'REPORTS_PAYMENTS',
-        EXPORT     => ' XML:&xml=1',
-      }
-    );
-
-    my $pages_qs .= "&subf=2" if (!$FORM{subf});
-    foreach my $line (@$list) {
-      my @rows = (
-        $html->b($line->{id}),
-        $html->button($line->{login}, "index=15&UID=$line->{uid}"),
-        $line->{date}, 
-        $line->{dsc} . (($line->{inner_describe}) ? ' (' . $html->b($line->{inner_describe}) . ') ' : ''),
-        $line->{sum},
-        "$line->{last_deposit}", 
-        $PAYMENTS_METHODS{ $line->{method} },
-        "$line->{ext_id}", 
-        ($conf{EXT_BILL_ACCOUNT} && $attr->{USER_INFO}) ? $BILL_ACCOUNTS{ $line->{bill_id} } : "$line->{bill_id}",
-        "$line->{admin_name}", 
-        "$line->{reg_date}",
-        "$line->{ip}"
-      );
-
-      if ($conf{SYSTEM_CURRENCY}) {
-        push @rows, $line->{amount}, $line->{currency};
-      }
-
-      $table->addrow(@rows);
-    }
+  	$LIST_PARAMS{DATE} = $FORM{DATE};
+    form_payments();
+    return 0; 
   }
   else {
     if ($FORM{TYPE}) {
@@ -5871,8 +5817,8 @@ sub fl {
 
   if ($permissions{0} && $permissions{0}{1}) {
     push @m, "24:11:$_ADD:form_wizard:::";
-    push @m, "14:13:$_ADD:add_company:::";
-    push @m, "28:27:$_ADD:add_groups:::";
+    #push @m, "14:13:$_ADD:add_company:::";
+    #push @m, "28:27:$_ADD:add_groups:::";
   }
 
   if ($conf{AUTH_METHOD}) {
@@ -5902,7 +5848,7 @@ sub mk_navigator {
     exit;
   }
 
-  return $menu_text, "/" . $menu_navigator;
+  return $menu_text, " " . $menu_navigator;
 }
 
 #**********************************************************
@@ -6018,14 +5964,26 @@ sub form_payments () {
   use Finance;
   my $payments = Finance->payments($db, $admin, \%conf);
 
+  %PAYMENTS_METHODS = ();
+  my %BILL_ACCOUNTS = ();
+
+  push @PAYMENT_METHODS, @EX_PAYMENT_METHODS if (@EX_PAYMENT_METHODS);
+
+  for (my $i = 0 ; $i <= $#PAYMENT_METHODS ; $i++) {
+     $PAYMENTS_METHODS{"$i"} = "$PAYMENT_METHODS[$i]";
+  }
+
+  my %PAYSYS_PAYMENT_METHODS = %{ cfg2hash($conf{PAYSYS_PAYMENTS_METHODS}) };
+
+  while (my ($k, $v) = each %PAYSYS_PAYMENT_METHODS) {
+    $PAYMENTS_METHODS{$k} = $v;
+  }
+
   return 0 if (!$permissions{1});
 
   if (in_array('Docs', \@MODULES)) {
     load_module('Docs', $html);
   }
-
-  %PAYMENTS_METHODS = ();
-  my %BILL_ACCOUNTS = ();
 
   if ($FORM{print}) {
     if ($FORM{INVOICE_ID}) {
@@ -6099,8 +6057,6 @@ sub form_payments () {
 
         #Make pre payments functions in all modules
         cross_modules_call('_pre_payment', { %$attr });
-
-
         if (!$conf{PAYMENTS_NOT_CHECK_INVOICE_SUM} && ($FORM{INVOICE_SUM} && $FORM{INVOICE_SUM} != $FORM{PAYMENT_SUM})) {
           $html->message('err', "$_PAYMENTS: $ERR_WRONG_SUM", " $_INVOICE $_SUM: $Docs->{TOTAL_SUM}\n $_PAYMENTS $_SUM: $FORM{SUM}");
         }
@@ -6165,7 +6121,6 @@ sub form_payments () {
     return 0 if ($attr->{REGISTRATION} && $FORM{add});
 
     #exchange rate sel
-
     my $er_list   = $payments->exchange_list({%FORM});
     my %ER_ISO2ID = ();
     foreach my $line (@$er_list) {
@@ -6188,18 +6143,6 @@ sub form_payments () {
         MAIN_MENU_AGRV    => "chg=$FORM{ER}"
       }
     );
-
-    push @PAYMENT_METHODS, @EX_PAYMENT_METHODS if (@EX_PAYMENT_METHODS);
-
-    for (my $i = 0 ; $i <= $#PAYMENT_METHODS ; $i++) {
-      $PAYMENTS_METHODS{"$i"} = "$PAYMENT_METHODS[$i]";
-    }
-
-    my %PAYSYS_PAYMENT_METHODS = %{ cfg2hash($conf{PAYSYS_PAYMENTS_METHODS}) };
-
-    while (my ($k, $v) = each %PAYSYS_PAYMENT_METHODS) {
-      $PAYMENTS_METHODS{$k} = $v;
-    }
 
     $payments->{SEL_METHOD} = $html->form_select(
       'METHOD',
@@ -6248,18 +6191,18 @@ sub form_payments () {
         $payments->{INVOICE_SEL} = $html->form_select(
           "INVOICE_ID",
           {
-            SELECTED                 => $FORM{INVOICE_ID},
-            SEL_MULTI_ARRAY          => $Docs->invoices_list({ UID => $user->{UID}, UNPAIMENT => 1, PAGE_ROWS => 200, SORT => 2, DESC => 'DESC' }),
-            MULTI_ARRAY_KEY          => 13,
-            MULTI_ARRAY_VALUE        => '0,1,3,4',
-            MULTI_ARRAY_VALUE_PREFIX => "$_NUM: ,$_DATE: ,$_SUM: ,$_PAYMENTS: ",
-            SEL_OPTIONS              => { 0 => '', (!$conf{PAYMENTS_NOT_CREATE_INVOICE}) ? (create => $_CREATE) : undef },
-            NO_ID                    => 1,
-            MAIN_MENU                => get_function_index('docs_invoices_list'),
-            MAIN_MENU_AGRV           => "UID=$FORM{UID}&INVOICE_ID=$FORM{INVOICE_ID}"
+            SELECTED          => $FORM{INVOICE_ID},
+            SEL_LIST          => $Docs->invoices_list({ UID => $user->{UID}, UNPAIMENT => 1, PAGE_ROWS => 200, SORT => 2, DESC => 'DESC', COLS_NAME => 1 }),
+            SEL_KEY           => 'id',
+            SEL_VALUE         => 'invoice_num,date,total_sum,payment_sum',
+            SEL_VALUE_PREFIX  => "$_NUM: ,$_DATE: ,$_SUM: ,$_PAYMENTS: ",
+            SEL_OPTIONS       => { 0 => '', (!$conf{PAYMENTS_NOT_CREATE_INVOICE}) ? (create => $_CREATE) : undef },
+            NO_ID             => 1,
+            MAIN_MENU         => get_function_index('docs_invoices_list'),
+            MAIN_MENU_AGRV    => "UID=$FORM{UID}&INVOICE_ID=$FORM{INVOICE_ID}"
           }
         );
-
+        delete($FORM{pdf});
         $payments->{DOCS_INVOICE_RECEIPT_ELEMENT} = $html->tpl_show(_include('docs_create_invoice_receipt', 'Docs'), {%$payments}, { OUTPUT2RETURN => 1 });
       }
 
@@ -6286,7 +6229,7 @@ sub form_payments () {
     form_users();
     return 0;
   }
-  elsif ($index != 7) {
+  elsif ($index != 7 && $FORM{search_form}) {
     $FORM{type} = $FORM{subf} if ($FORM{subf});
     form_search(
       {
@@ -6299,7 +6242,7 @@ sub form_payments () {
     );
   }
 
-  return 0 if (!$permissions{1}{0});
+  return 0 if (! $permissions{1}{0});
 
   if (!defined($FORM{sort})) {
     $LIST_PARAMS{SORT} = 1;
@@ -6308,28 +6251,55 @@ sub form_payments () {
 
   $LIST_PARAMS{ID} = $FORM{ID} if ($FORM{ID});
 
-  my @caption = ('ID', $_LOGIN, $_DATE, $_DESCRIBE, $_SUM, $_DEPOSIT, 
-     $_PAYMENT_METHOD, 'EXT ID', "$_BILL", $_ADMINS, "$_REGISTRATION", 'IP');
+
 
   if ($conf{SYSTEM_CURRENCY}) {
-    push @caption, "$_ALT $_SUM", "$_CURRENCY";
-  }
-  if ($FORM{INVOICE_NUM}) {
-    $LIST_PARAMS{INVOICE_NUM} = $FORM{INVOICE_NUM};
-    push @caption, "$_INVOICE ID";
-  }
-  
-  if ($FORM{COMPANY_ID}) {
-    $LIST_PARAMS{COMPANY_ID} = $FORM{COMPANY_ID};
-    push @caption, "$_COMPANY";
+    $LIST_PARAMS{AMOUNT}='_SHOW' if (! $FORM{AMOUNT});
+    $LIST_PARAMS{CURRENCY}='_SHOW' if (! $FORM{CURRENCY});    	
   }
 
-  my $payments_list  = $payments->list({%LIST_PARAMS, 
-                                        COLS_NAME => 1});
+  if ($FORM{INVOICE_NUM}) {
+    $LIST_PARAMS{INVOICE_NUM} = $FORM{INVOICE_NUM};
+  }
+
+  my ($table, $payments_list) = result_former({
+     INPUT_DATA      => $payments,
+     FUNCTION        => 'list',
+     BASE_FIELDS     => 9,
+     FUNCTION_FIELDS => 'del',
+     EXT_TITLES      => {
+      'id'        => $_NUM,
+      'date'      => $_DATE, 
+      'dsc'       => $_DESCRIBE, 
+      'sum'       => $_SUM, 
+      'last_deposit' => $_DEPOSIT, 
+      'method'    => $_PAYMENT_METHOD, 
+      'ext_id'    => 'EXT ID', 
+      'reg_date'  => "$_PAYMENTS $_REGISTRATION",
+      'ip'        =>  'IP',
+      'admin_name'=> $_ADMIN,
+      'invoice_num'=> $_INVOICE,
+      amount      => "$_ALT $_SUM",
+      currency    => $_CURRENCY
+     },
+     TABLE => { 
+       width      => '100%',
+       caption    => "$_PAYMENTS",
+       border     => 1,
+       #title      => \@caption,
+       cols_align => [ 'right', 'left', 'right', 'right', 'left', 'left', 'right', 'right', 'left', 'left', 'center:noprint' ],
+       qs         => $pages_qs,
+       pages      => $payments->{TOTAL},
+       EXPORT     => 1,
+       ID         => 'PAYMENTS',
+       MENU       => "$_SEARCH:search_form=1&index=2:search",       
+      }
+    });
+
+  $table->{SKIP_FORMER}=1;
 
   my %i2p_hash = ();
   if (in_array('Docs', \@MODULES)) {
-    push @caption, "$_INVOICE";
     my @payment_id_arr = ();
     foreach my $p (@$payments_list) {
       push @payment_id_arr, $p->{id};
@@ -6342,78 +6312,59 @@ sub form_payments () {
       push @{ $i2p_hash{$i2p->{payment_id}} }, "$i2p->{invoice_id}:$i2p->{invoiced_sum}:$i2p->{invoice_num}";
     }
   }
-  
-  push @caption, '-';
-
-
-  my $table = $html->table(
-    {
-      width      => '100%',
-      caption    => "$_PAYMENTS",
-      border     => 1,
-      title      => \@caption,
-      cols_align => [ 'right', 'left', 'right', 'right', 'left', 'left', 'right', 'right', 'left', 'left', 'center:noprint' ],
-      qs         => $pages_qs,
-      pages      => $payments->{TOTAL},
-      EXPORT     => ' XML:&xml=1',
-      ID         => 'PAYMENTS'
-    }
-  );
-
-  $table->{SKIP_FORMER}=1;
 
   my $pages_qs .= "&subf=2" if (!$FORM{subf});
-  foreach my $payment (@$payments_list) {
-    my $delete = ($permissions{1}{2}) ? $html->button($_DEL, "index=2&del=$payment->{id}&UID=$payment->{uid}$pages_qs", { MESSAGE => "$_DEL [$payment->{id}] ?", CLASS => 'del' }) : '';
+  foreach my $line (@$payments_list) {
+    my $delete = ($permissions{1}{2}) ? $html->button($_DEL, "index=2&del=$line->{id}&UID=$line->{uid}$pages_qs", { MESSAGE => "$_DEL [$line->{id}] ?", CLASS => 'del' }) : '';
 
-    my @rows = (
-      $html->b($payment->{id}),
-      $html->button($payment->{login}, "index=15&UID=$payment->{uid}"),
-      $payment->{date}, 
-      $payment->{dsc} . (($payment->{inner_describe}) ? $html->br() . $html->b($payment->{inner_describe}) : ''),
-      $payment->{sum}, 
-      "$payment->{last_deposit}", 
-      ($FORM{METHOD_NUM}) ? $payment->{method} : $PAYMENTS_METHODS{ $payment->{method} },
-      "$payment->{ext_id}", 
-      ($conf{EXT_BILL_ACCOUNT} && $attr->{USER_INFO}) ? $BILL_ACCOUNTS{ $payment->{bill_id} } : "$payment->{bill_id}",
-      "$payment->{admin_name}", 
-      $payment->{reg_date},
-      "$payment->{ip}"
-    );
+    my @fields_array = ();
+    for (my $i = 0; $i < 9+$payments->{SEARCH_FIELDS_COUNT}; $i++) {
+      if ($conf{EXT_BILL_ACCOUNT} && $payments->{COL_NAMES_ARR}->[$i] eq 'ext_bill_deposit') {
+        $line->{ext_bill_deposit} = ($line->{ext_bill_deposit} < 0) ? $html->color_mark($line->{ext_bill_deposit}, $_COLORS[6]) : $line->{ext_bill_deposit};
+      }
+      elsif ($payments->{COL_NAMES_ARR}->[$i] eq 'deleted') {
+        $line->{deleted} = $html->color_mark($bool_vals[ $line->{deleted} ], ($line->{deleted} == 1) ? $state_colors[ $line->{deleted} ] : '');
+      }
+      elsif ($payments->{COL_NAMES_ARR}->[$i] eq 'login' && $line->{uid}) {
+        $line->{login} = $html->button($line->{login}, "index=15&UID=$line->{uid}");
+      }
+      elsif ($payments->{COL_NAMES_ARR}->[$i] eq 'dsc') {
+        $line->{dsc} = $line->{dsc}.$html->br().$html->b($line->{inner_describe}) if ($line->{inner_describe});
+      }
+      elsif($payments->{COL_NAMES_ARR}->[$i] =~ /deposit/) {
+        $line->{last_deposit} = ($line->{last_deposit} < 0) ? $html->color_mark($line->{last_deposit}, $_COLORS[6]) : $line->{last_deposit};
+      }
+      elsif ($payments->{COL_NAMES_ARR}->[$i] eq 'method') {
+        $line->{method} = ($FORM{METHOD_NUM}) ? $line->{method} : $PAYMENTS_METHODS{ $line->{method} };
+      }
+      elsif ($payments->{COL_NAMES_ARR}->[$i] eq 'bill_id') {
+        $line->{bill_id} = ($conf{EXT_BILL_ACCOUNT} && $attr->{USER_INFO}) ? $BILL_ACCOUNTS{ $line->{bill_id} } : $line->{bill_id};
+      }
+      elsif($payments->{COL_NAMES_ARR}->[$i] eq 'invoice_num') {
+      	if (in_array('Docs', \@MODULES) && ! $FORM{xml}) {
+          my $payment_sum = $line->{sum};
+          my $i2p         = '';
 
-    if ($conf{SYSTEM_CURRENCY}) {
-      push @rows, $payment->{amount}, $payment->{currency};
-    }
+          if ($i2p_hash{$line->{id}}) {
+            foreach my $val ( @{ $i2p_hash{$line->{id}} }  ) {
+              my ($invoice_id, $invoiced_sum, $invoice_num)=split(/:/, $val);
+              $i2p .= $invoiced_sum ." $_PAID $_INVOICE #". $html->button($invoice_num, "index=". get_function_index('docs_invoices_list'). "&ID=$invoice_id&search=1"  ) . $html->br();
+              $payment_sum -= $invoiced_sum;
+            }
+          }
+          if ($payment_sum > 0) {
+            $i2p .= sprintf("%.2f", $payment_sum). ' '. $html->color_mark("$_UNAPPLIED", $_COLORS[6]) .' ('. $html->button($_APPLY, "index=". get_function_index('docs_invoices_list') ."&UNINVOICED=1&PAYMENT_ID=$line->{id}&UID=$line->{uid}") .')';
+          }
 
-    if ($FORM{INVOICE_NUM}) {
-      push @rows, $payment->{invoice_num};
-    }
-
-    if ($FORM{COMPANY_ID}) {
-      push @rows, $payment->{company_id};
-    }
-
-    if (in_array('Docs', \@MODULES) && ! $FORM{xml}) {
-      my $payment_sum = $payment->{sum};
-      my $i2p         = '';
-
-      if ($i2p_hash{$payment->{id}}) {
-        foreach my $val ( @{ $i2p_hash{$payment->{id}} }  ) {
-          my ($invoice_id, $invoiced_sum, $invoice_num)=split(/:/, $val);
-          $i2p .= $invoiced_sum ." $_PAID $_INVOICE #". $html->button($invoice_num, "index=". get_function_index('docs_invoices_list'). "&ID=$invoice_id&search=1"  ) . $html->br();
-          $payment_sum -= $invoiced_sum;
+          $line->{invoice_num} = $i2p;
         }
       }
 
-      if ($payment_sum > 0) {
-        $i2p .= sprintf("%.2f", $payment_sum). ' '. $html->color_mark("$_UNAPPLIED", $_COLORS[6]) .' ('. $html->button($_APPLY, "index=". get_function_index('docs_invoices_list') ."&UNINVOICED=1&PAYMENT_ID=$payment->{id}&UID=$payment->{uid}") .')';
-      }
-      
-      push @rows, $i2p;
+
+      push @fields_array, $line->{$payments->{COL_NAMES_ARR}->[$i]};
     }
 
-    push @rows, $delete;
-    $table->addrow(@rows);
+    $table->addrow(@fields_array, $delete);
   }
 
   print $table->show();
@@ -6439,10 +6390,13 @@ sub form_exchange_rate {
   use Finance;
   my $finance = Finance->new($db, $admin);
 
-  $finance->{ACTION}     = 'add';
-  $finance->{LNG_ACTION} = "$_ADD";
 
-  if ($FORM{add}) {
+  if ($FORM{add_form}) {
+    $finance->{ACTION}     = 'add';
+    $finance->{LNG_ACTION} = "$_ADD";
+    $html->tpl_show(templates('form_er'), $finance);
+  }
+  elsif ($FORM{add}) {
     $finance->exchange_add({%FORM});
     if ($finance->{errno}) {
       $html->message('err', $_ERROR, "[$finance->{errno}] $err_strs{$finance->{errno}}");
@@ -6470,6 +6424,7 @@ sub form_exchange_rate {
       $finance->{ACTION}     = 'change';
       $finance->{LNG_ACTION} = "$_CHANGE";
       $html->message('info', $_EXCHANGE_RATE, "$_CHANGING");
+      $html->tpl_show(templates('form_er'), $finance);
     }
   }
   elsif ($FORM{del} && $FORM{is_js_confirmed}) {
@@ -6491,20 +6446,28 @@ sub form_exchange_rate {
     }
   }
 
-  $html->tpl_show(templates('form_er'), $finance);
+
   my $table = $html->table(
     {
-      caption => $_EXCHANGE_RATE,
-      width   => '640',
-      title   => [ "$_MONEY", "$_SHORT_NAME", "$_EXCHANGE_RATE (1 unit =)", 'ISO', "$_CHANGED", '-', '-' ],
+      caption    => $_EXCHANGE_RATE,
+      width      => '640',
+      title      => [ "$_MONEY", "$_SHORT_NAME", "$_EXCHANGE_RATE (1 unit =)", 'ISO', "$_CHANGED", '-', '-' ],
       cols_align => [ 'left', 'left', 'right', 'center', 'center' ],
-      ID         => 'EXCHANGE_RATE'
+      ID         => 'EXCHANGE_RATE',
+      EXPORT     => 1,
+      MENU       => "$_ADD:index=$index&add_form=1&$pages_qs:add",
     }
   );
 
   my $list = $finance->exchange_list({%LIST_PARAMS});
   foreach my $line (@$list) {
-    $table->addrow($line->[0], $line->[1], $line->[2], $line->[3], $line->[4], $html->button($_CHANGE, "index=$index&chg=$line->[5]", { CLASS => 'change' }), $html->button($_DEL, "index=$index&del=$line->[5]", { MESSAGE => "$_DEL [$line->[0]]?", CLASS => 'del' }));
+    $table->addrow($line->[0], 
+      $line->[1], 
+      $line->[2], 
+      $line->[3], 
+      $line->[4], 
+      $html->button($_CHANGE, "index=$index&chg=$line->[5]", { CLASS => 'change' }), 
+      $html->button($_DEL, "index=$index&del=$line->[5]", { MESSAGE => "$_DEL [$line->[0]]?", CLASS => 'del' }));
   }
 
   print $table->show();
@@ -6584,10 +6547,10 @@ sub form_fees_types {
   my $list  = $fees->fees_type_list({%LIST_PARAMS});
   my $table = $html->table(
     {
-      width   => '100%',
-      caption => "$_FEES $_TYPES",
-      border  => 1,
-      title   => [ '#', $_NAME, $_COMMENTS, $_SUM, '-', '-' ],
+      width      => '100%',
+      caption    => "$_FEES $_TYPES",
+      border     => 1,
+      title      => [ '#', $_NAME, $_COMMENTS, $_SUM, '-', '-' ],
       cols_align => [ 'right', 'left', 'left', 'center', 'center:noprint' ],
       qs         => $pages_qs,
       pages      => $fees->{TOTAL}
@@ -6931,14 +6894,16 @@ sub form_fees {
   }
   elsif ($index != 7) {
     $FORM{type} = $FORM{subf} if ($FORM{subf});
-    form_search(
-      {
-        HIDDEN_FIELDS => {
-          subf       => ($FORM{subf}) ? $FORM{subf} : undef,
-          COMPANY_ID => $FORM{COMPANY_ID}
+    if ($FORM{search_form}) {
+      form_search(
+        {
+          HIDDEN_FIELDS => {
+            subf       => ($FORM{subf}) ? $FORM{subf} : undef,
+            COMPANY_ID => $FORM{COMPANY_ID}
+          }
         }
-      }
-    );
+      );
+    }
   }
 
   return 0 if (!$permissions{2}{0});
@@ -6948,38 +6913,89 @@ sub form_fees {
     $LIST_PARAMS{DESC} = DESC;
   }
 
-  my $fees_list  = $fees->list({%LIST_PARAMS, COLS_NAME => 1 });
-  my $table = $html->table(
-    {
-      width   => '100%',
-      caption => "$_FEES",
-      border  => 1,
-      title   => [ 'ID', $_LOGIN, $_DATE, $_DESCRIBE, $_SUM, $_DEPOSIT, $_TYPE, "$_BILLS", $_ADMINS, 'IP', '-' ],
-      cols_align => [ 'right', 'left', 'right', 'right', 'left', 'left', 'right', 'right', 'left', 'center:noprint' ],
-      qs         => $pages_qs,
-      pages      => $fees->{TOTAL},
-      ID         => 'FEES',
-      EXPORT     => $_EXPORT . ' XML:&xml=1',
-    }
-  );
+  my ($table, $fees_list) = result_former({
+     INPUT_DATA      => $fees,
+     FUNCTION        => 'list',
+     BASE_FIELDS     => 1,
+     DEFAULT_FILEDS  => 'ID,LOGIN,DATE,DSC,SUM,LAST_DEPOSIT,METHOD,ADMIN_NAME',
+     FUNCTION_FIELDS => 'del',
+     EXT_TITLES      => {
+      'id'        => $_NUM,
+      'date'      => $_DATE, 
+      'dsc'       => $_DESCRIBE, 
+      'sum'       => $_SUM, 
+      'last_deposit' => $_DEPOSIT, 
+      'method'    => $_PAYMENT_METHOD, 
+      'ip'        =>  'IP',
+      'admin_name'=> $_ADMIN,
+     },
+     TABLE => { 
+       width      => '100%',
+       caption    => "$_FEES",
+       border     => 1,
+       qs         => $pages_qs,
+       pages      => $fees->{TOTAL},
+       ID         => 'FEES',
+       EXPORT     => 1,
+       MENU       => "$_SEARCH:search_form=1&index=3:search",       
+      }
+    });
 
-  $pages_qs .= "&subf=2" if (!$FORM{subf});
-  foreach my $f (@$fees_list) {
+  $table->{SKIP_FORMER}=1;
+
+  my $pages_qs .= "&subf=2" if (!$FORM{subf});
+  foreach my $line (@$fees_list) {
     my $delete = ($permissions{2}{2}) ? $html->button($_DEL, "index=3&del=$f->{id}&UID=$f->{uid}", { MESSAGE => "$_DEL ID: $f->{id}?", CLASS => 'del' }) : '';
 
-    $table->addrow(
-      $html->b($f->{id}),
-      $html->button($f->{login}, "index=15&UID=$f->{uid}"),
-      $f->{date}, 
-      $f->{dsc} . (($f->{inner_describe}) ? $html->br() . $html->b($f->{inner_describe}) : ''),
-      $f->{sum}, 
-      $f->{last_deposit},
-      $FEES_METHODS{ $f->{method} },
-      ($BILL_ACCOUNTS{ $f->{bill_id} }) ? $BILL_ACCOUNTS{ $f->{bill_id} } : "$f->{bill_id}",
-      "$f->{admin_name}", 
-      "$f->{ip}", 
-      $delete
-    );
+    my @fields_array = ();
+    for (my $i = 0; $i < 1+$fees->{SEARCH_FIELDS_COUNT}; $i++) {
+      if ($conf{EXT_BILL_ACCOUNT} && $fees->{COL_NAMES_ARR}->[$i] eq 'ext_bill_deposit') {
+        $line->{ext_bill_deposit} = ($line->{ext_bill_deposit} < 0) ? $html->color_mark($line->{ext_bill_deposit}, $_COLORS[6]) : $line->{ext_bill_deposit};
+      }
+      elsif ($fees->{COL_NAMES_ARR}->[$i] eq 'deleted') {
+        $line->{deleted} = $html->color_mark($bool_vals[ $line->{deleted} ], ($line->{deleted} == 1) ? $state_colors[ $line->{deleted} ] : '');
+      }
+      elsif ($fees->{COL_NAMES_ARR}->[$i] eq 'login' && $line->{uid}) {
+        $line->{login} = $html->button($line->{login}, "index=15&UID=$line->{uid}");
+      }
+      elsif ($fees->{COL_NAMES_ARR}->[$i] eq 'dsc') {
+        $line->{dsc} = $line->{dsc}.$html->br().$html->b($line->{inner_describe}) if ($line->{inner_describe});
+      }
+      elsif($fees->{COL_NAMES_ARR}->[$i] =~ /deposit/) {
+        $line->{last_deposit} = ($line->{last_deposit} < 0) ? $html->color_mark($line->{last_deposit}, $_COLORS[6]) : $line->{last_deposit};
+      }
+      elsif ($fees->{COL_NAMES_ARR}->[$i] eq 'method') {
+        $line->{method} = ($FORM{METHOD_NUM}) ? $line->{method} : $FEES_METHODS{ $line->{method} };
+      }
+      elsif ($fees->{COL_NAMES_ARR}->[$i] eq 'bill_id') {
+        $line->{bill_id} = ($conf{EXT_BILL_ACCOUNT} && $attr->{USER_INFO}) ? $BILL_ACCOUNTS{ $line->{bill_id} } : $line->{bill_id};
+      }
+      elsif($fees->{COL_NAMES_ARR}->[$i] eq 'invoice_num') {
+      	if (in_array('Docs', \@MODULES) && ! $FORM{xml}) {
+          my $payment_sum = $line->{sum};
+          my $i2p         = '';
+
+          if ($i2p_hash{$line->{id}}) {
+            foreach my $val ( @{ $i2p_hash{$line->{id}} }  ) {
+              my ($invoice_id, $invoiced_sum, $invoice_num)=split(/:/, $val);
+              $i2p .= $invoiced_sum ." $_PAID $_INVOICE #". $html->button($invoice_num, "index=". get_function_index('docs_invoices_list'). "&ID=$invoice_id&search=1"  ) . $html->br();
+              $payment_sum -= $invoiced_sum;
+            }
+          }
+
+          if ($payment_sum > 0) {
+            $i2p .= sprintf("%.2f", $payment_sum). ' '. $html->color_mark("$_UNAPPLIED", $_COLORS[6]) .' ('. $html->button($_APPLY, "index=". get_function_index('docs_invoices_list') ."&UNINVOICED=1&PAYMENT_ID=$payment->{id}&UID=$line->{uid}") .')';
+          }
+
+          $line->{invoice_num} .= $i2p;
+        }
+      }
+
+
+      push @fields_array, $line->{$fees->{COL_NAMES_ARR}->[$i]};
+    }
+
+    $table->addrow(@fields_array, $delete);
   }
 
   print $table->show();
@@ -7438,35 +7454,8 @@ sub form_shedule {
   use Shedule;
   my $Shedule = Shedule->new($db, $admin);
 
-  if ($FORM{add}) {
-    $Shedule->add(
-      {
-        D        => $FORM{D},
-        M        => $FORM{M},
-        Y        => $FORM{Y},
-        TYPE     => $FORM{TYPE},
-        ACTION   => $FORM{ACTION},
-        COMMENTS => $FORM{COMMENTS},
-        COUNT    => $FORM{COUNT}
-      }
-    );
-
-    if (!$Shedule->{errno}) {
-      $html->message('info', $_ADDED, "$_ADDED [$Shedules->{INSERT_ID}]");
-    }
-  }
-  elsif ($FORM{del} && $FORM{is_js_confirmed}) {
-    $Shedule->del({ ID => $FORM{del} });
-    if (!$Shedule->{errno}) {
-      $html->message('info', $_DELETED, "$_DELETED [$FORM{del}]");
-    }
-  }
-
-  if ($Shedule->{errno}) {
-    $html->message('err', $_ERROR, "[$Shedule->{errno}] $err_strs{$Shedule->{errno}}");
-  }
-
-  $Shedule->{SEL_D} = $html->form_select(
+  if ($FORM{add_form}) {
+  	$Shedule->{SEL_D} = $html->form_select(
     'D',
     {
       SELECTED => $FORM{D},
@@ -7555,6 +7544,34 @@ sub form_shedule {
   );
 
   $html->tpl_show(templates("form_shedule"), {%$Shedule},);
+  }
+  elsif ($FORM{add}) {
+    $Shedule->add(
+      {
+        D        => $FORM{D},
+        M        => $FORM{M},
+        Y        => $FORM{Y},
+        TYPE     => $FORM{TYPE},
+        ACTION   => $FORM{ACTION},
+        COMMENTS => $FORM{COMMENTS},
+        COUNT    => $FORM{COUNT}
+      }
+    );
+
+    if (!$Shedule->{errno}) {
+      $html->message('info', $_ADDED, "$_ADDED [$Shedules->{INSERT_ID}]");
+    }
+  }
+  elsif ($FORM{del} && $FORM{is_js_confirmed}) {
+    $Shedule->del({ ID => $FORM{del} });
+    if (!$Shedule->{errno}) {
+      $html->message('info', $_DELETED, "$_DELETED [$FORM{del}]");
+    }
+  }
+
+  if ($Shedule->{errno}) {
+    $html->message('err', $_ERROR, "[$Shedule->{errno}] $err_strs{$Shedule->{errno}}");
+  }
 
   my %TYPES = (
     'tp'     => "$_CHANGE $_TARIF_PLAN",
@@ -7573,7 +7590,9 @@ sub form_shedule {
       cols_align => [ 'right', 'right', 'right', 'right', 'right', 'left', 'right', 'right', 'right', 'left', 'right', 'center' ],
       qs         => $pages_qs,
       pages      => $Shedule->{TOTAL},
-      ID         => 'SHEDULE'
+      ID         => 'SHEDULE',
+      EXPORT      => ' XML:&xml=1',
+      MENU        => "$_ADD:index=$index&add_form=1:add",
     }
   );
   my ($y, $m, $d) = split(/-/, $DATE, 3);
@@ -8892,6 +8911,7 @@ sub form_districts {
     if (!$users->{errno}) {
       $users->{ACTION}     = 'change';
       $users->{LNG_ACTION} = "$_CHANGE";
+      $FORM{add_form}      = 1;
       $html->message('info', $_DISTRICTS, "$_CHANGING");
     }
   }
@@ -8912,24 +8932,26 @@ sub form_districts {
     }
   }
 
-  my $countries = $html->tpl_show(templates('countries'), undef, { OUTPUT2RETURN => 1 });
-  my @countries_arr = split(/\n/, $countries);
-  my %countries_hash = ();
-  foreach my $c (@countries_arr) {
-    my ($id, $name) = split(/:/, $c);
-    $countries_hash{ int($id) } = $name;
-  }
-
-  $users->{COUNTRY_SEL} = $html->form_select(
-    'COUNTRY',
-    {
-      SELECTED => $users->{COUNTRY} || $FORM{COUNTRY},
-      SEL_HASH => { '' => '', %countries_hash },
-      NO_ID    => 1
+  if ($FORM{add_form}) {
+    my $countries      = $html->tpl_show(templates('countries'), undef, { OUTPUT2RETURN => 1 });
+    my @countries_arr  = split(/\n/, $countries);
+    my %countries_hash = ();
+    foreach my $c (@countries_arr) {
+      my ($id, $name) = split(/:/, $c);
+      $countries_hash{ int($id) } = $name;
     }
-  );
 
-  $html->tpl_show(templates('form_district'), $users);
+    $users->{COUNTRY_SEL} = $html->form_select(
+      'COUNTRY',
+     {
+        SELECTED => $users->{COUNTRY} || $FORM{COUNTRY},
+        SEL_HASH => { '' => '', %countries_hash },
+        NO_ID    => 1
+      }
+    );
+
+    $html->tpl_show(templates('form_district'), $users);
+  }
 
   my $table = $html->table(
     {
@@ -8937,17 +8959,20 @@ sub form_districts {
       caption    => $_DISTRICTS,
       title      => [ "#", "$_NAME", "$_COUNTRY", "$_CITY", "$_ZIP", "$_STREETS", "$_MAP", '-', '-' ],
       cols_align => [ 'right', 'left', 'left', 'left', 'left', 'right', 'right', 'center', 'center' ],
-      ID         => 'DISTRICTS_LIST'
+      ID         => 'DISTRICTS_LIST',
+      EXPORT     => 1,
+      MENU       => "$_ADD:index=$index&add_form=1:add",      
     }
   );
 
-  my $list = $users->district_list({%LIST_PARAMS});
+  my $list = $users->district_list({%LIST_PARAMS, COLS_NAME => 1 });
+
   foreach my $line (@$list) {
     my $map = '';
 
-    if (-f $conf{TPL_DIR} . '/maps/' . $line->[0] . '.gif' || -f $conf{TPL_DIR} . '/maps/' . $line->[0] . '.jpg' || -f $conf{TPL_DIR} . '/maps/' . $line->[0] . '.png') {
+    if (-f $conf{TPL_DIR} . '/maps/' . $line->{id} . '.gif' || -f $conf{TPL_DIR} . '/maps/' . $line->{id} . '.jpg' || -f $conf{TPL_DIR} . '/maps/' . $line->{id} . '.png') {
       if (in_array('Maps', \@MODULES)) {
-        $map = $html->button($bool_vals[1], "DISTRICT_ID=$line->[0]&index=" . get_function_index('maps_main'), { BUTTON => 1 });
+        $map = $html->button($bool_vals[1], "DISTRICT_ID=$line->{id}&index=" . get_function_index('maps_main'), { BUTTON => 1 });
       }
       else {
         $map = $html->button($bool_vals[1], '#', { NEW_WINDOW => "index.cgi?MODULE=Maps&qindex=-1", NEW_WINDOW_SIZE => "670:340", BUTTON => 1 });
@@ -8958,11 +8983,15 @@ sub form_districts {
     }
 
     $table->addrow(
-      $line->[0], $line->[1], $country_hash{ $line->[2] },
-      $line->[3], $line->[4], $html->button($line->[5], "index=" . ($index + 1) . "&DISTRICT_ID=$line->[0]"),
+      $line->{id}, 
+      $line->{name}, 
+      $country_hash{ $line->{country} },
+      $line->{city}, 
+      $line->{zip}, 
+      $html->button($line->{street_count}, "index=" . get_function_index('form_streets') . "&DISTRICT_ID=$line->{id}"),
       $map,
-      $html->button($_CHANGE, "index=$index&chg=$line->[0]", { CLASS => 'change' }),
-      $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL [$line->[0]]?", CLASS => 'del' })
+      $html->button($_CHANGE, "index=$index&chg=$line->{id}", { CLASS => 'change' }),
+      $html->button($_DEL, "index=$index&del=$line->{id}", { MESSAGE => "$_DEL [$line->{id}] $line->{name}?", CLASS => 'del' })
     );
   }
 
@@ -9044,7 +9073,11 @@ sub form_streets {
     $LIST_PARAMS{SORT} = 2;
   }
 
-  my $list = $users->street_list({ %LIST_PARAMS, USERS_INFO => 1 });
+  if ($FORM{add_form}) {
+  	$html->tpl_show(templates('form_street'), $users);
+  }
+
+  my $list = $users->street_list({ %LIST_PARAMS, USERS_INFO => 1, COLS_NAME => 1 });
   my $table = $html->table(
     {
       width      => '640',
@@ -9053,17 +9086,21 @@ sub form_streets {
       cols_align => [ 'right', 'left', 'left', 'right', 'center', 'center', 'center' ],
       pages      => $users->{TOTAL},
       qs         => $pages_qs,
-      ID         => 'STREET_LIST'
+      ID         => 'STREET_LIST',
+      EXPORT     => 1,
+      MENU       => "$_ADD:index=$index&add_form=1:add",
     }
   );
 
   foreach my $line (@$list) {
     $table->addrow(
-      $line->[0], $line->[1], $line->[2],
-      $html->button($line->[3], "index=$index&BUILDS=$line->[0]"),
-      $html->button($line->[4], "&search=1&index=" . get_function_index('form_search') . "&STREET_ID=$line->[0]"),
-      $html->button($_CHANGE, "index=$index&chg=$line->[0]", { CLASS => 'change' }),
-      $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL [$line->[0]]?", CLASS => 'del' })
+      $line->{id}, 
+      $line->{street_name}, 
+      $line->{district_name},
+      $html->button($line->{build_count}, "index=$index&BUILDS=$line->{id}"),
+      $html->button($line->{users_count}, "&search=1&index=" . get_function_index('form_search') . "&STREET_ID=$line->{id}"),
+      $html->button($_CHANGE, "index=$index&chg=$line->{id}", { CLASS => 'change' }),
+      $html->button($_DEL, "index=$index&del=$line->{id}", { MESSAGE => "$_DEL [$line->{id}]?", CLASS => 'del' })
     );
   }
   print $table->show();
@@ -9076,8 +9113,6 @@ sub form_streets {
     }
   );
   print $table->show();
-
-  $html->tpl_show(templates('form_street'), $users);
 }
 
 #**********************************************************
@@ -9144,28 +9179,35 @@ sub form_builds {
   $LIST_PARAMS{DISTRICT_ID} = $FORM{DISTRICT_ID} if ($FORM{DISTRICT_ID});
   $pages_qs .= "&BUILDS=$FORM{BUILDS}" if ($FORM{BUILDS});
 
-  my $list = $users->build_list({ %LIST_PARAMS, STREET_ID => $FORM{BUILDS}, CONNECTIONS => 1 });
+  my $list = $users->build_list({ %LIST_PARAMS, 
+  	                              STREET_ID   => $FORM{BUILDS}, 
+  	                              CONNECTIONS => 1 });
 
   my $table = $html->table(
     {
-      width   => '100%',
-      caption => $_BUILDS,
-      title   => [ "$_NUM", "$_FLORS", "$_ENTRANCES", "$_FLATS", "$_STREETS", "$_CENNECTED $_USERS", "$_DENSITY_OF_CONNECTIONS", "$_ADDED", '-', '-' ],
+      width      => '100%',
+      caption    => $_BUILDS,
+      title      => [ "$_NUM", "$_FLORS", "$_ENTRANCES", "$_FLATS", "$_STREETS", "$_CENNECTED $_USERS", "$_DENSITY_OF_CONNECTIONS", "$_ADDED", '-', '-' ],
       cols_align => [ 'right', 'left', 'left', 'right', 'center', 'center' ],
       pages      => $users->{TOTAL},
       qs         => $pages_qs,
-      ID         => 'STREET_LIST'
+      ID         => 'STREET_LIST',
+      EXPORT     => 1
     }
   );
 
   foreach my $line (@$list) {
     $table->addrow(
-      $line->[0], $line->[1], $line->[2], $line->[3], $line->[4],
-      $html->button($line->[5], "&search=1&index=" . get_function_index('form_search') . "&LOCATION_ID=$line->[8]"),
-      $line->[6] . ' %',
-      $line->[7],
-      $html->button($_CHANGE, "index=$index&chg=$line->[8]&BUILDS=$FORM{BUILDS}", { CLASS => 'change' }),
-      $html->button($_DEL, "index=$index&del=$line->[8]&BUILDS=$FORM{BUILDS}", { MESSAGE => "$_DEL [$line->[0]]?", CLASS => 'del' })
+      $line->{number}, 
+      $line->{flors}, 
+      $line->{entrances}, 
+      $line->{flats}, 
+      $line->{street_name},
+      $html->button($line->{users_count}, "&search=1&index=" . get_function_index('form_search') . "&LOCATION_ID=$line->{id}"),
+      $line->{users_connections} . ' %',
+      $line->{added},
+      $html->button($_CHANGE, "index=$index&chg=$line->{id}&BUILDS=$FORM{BUILDS}", { CLASS => 'change' }),
+      $html->button($_DEL, "index=$index&del=$line->{id}&BUILDS=$FORM{BUILDS}", { MESSAGE => "$_DEL [$line->{id}]?", CLASS => 'del' })
     );
   }
   print $table->show();
@@ -9352,19 +9394,66 @@ sub get_popup_info {
 }
 
 #**********************************************************
-# title_former
+# result_former
 #**********************************************************
-sub title_former {
+sub result_former {
   my ($attr)=@_;
   my @title = ();
 
+  my @cols = ();
+  if ($FORM{show_columns}) {
+	  print $FORM{del_cols};
+  	@cols = split(/, /, $FORM{show_columns});
+    $admin->settings_add({
+    	  SETTING => $FORM{show_columns},
+    	  OBJECT  => $attr->{TABLE}->{ID}
+    	});
+  }
+  elsif($FORM{del_cols}) {
+  	$admin->settings_del($attr->{TABLE}->{ID});
+    if ($attr->{DEFAULT_FILEDS}){
+    	$attr->{DEFAULT_FILEDS}=~s/[\n ]+//g;
+      @cols = split(/,/, $attr->{DEFAULT_FILEDS});
+    }
+  }
+  else {
+  	$admin->settings_info($attr->{TABLE}->{ID});
+    if ($admin->{TOTAL} == 0 && $attr->{DEFAULT_FILEDS}){
+    	$attr->{DEFAULT_FILEDS}=~s/[\n ]+//g;
+      @cols = split(/,/, $attr->{DEFAULT_FILEDS});
+    }
+    else {
+      @cols = split(/, /, $admin->{SETTING});
+    }
+  }
+
+  foreach my $line (@cols) {
+  	if (! $LIST_PARAMS{$line}) {
+  		$LIST_PARAMS{$line}='_SHOW';
+  	}
+  } 	
+
   my $data = $attr->{INPUT_DATA};
+  if ($attr->{FUNCTION}) {
+  	my $fn   = $attr->{FUNCTION};
+  	my $list = $data->$fn({ COLS_NAME => 1, %LIST_PARAMS, SHOW_COLUMNS => $FORM{show_columns} });
+	  $data->{list} = $list;
+  }
+
+  if ($data->{error}) {
+  	return undef, undef;
+  }
+
+  my @service_status_colors = ("$_COLORS[9]", "$_COLORS[6]", '#808080', '#0000FF', '#FF8000', '#009999');
+  my @service_status        = ("$_ENABLE", "$_DISABLE", "$_NOT_ACTIVE", "$_HOLD_UP", 
+  "$_DISABLE: $_NON_PAYMENT", "$ERR_SMALL_DEPOSIT",
+  "$_VIRUS_ALERT" );
 
   %SEARCH_TITLES = (
     'disable'       => "$_STATUS",
     'deposit'       => "$_DEPOSIT",
     'credit'        => "$_CREDIT",
-    'id'            => "$_LOGIN",
+    'login'         => "$_LOGIN",
     'fio'           => "$_FIO",
     'ext_deposit'   => "$_EXTRA $_DEPOSIT",
     'last_payment'  => "$_PAYMENTS $_DATE",
@@ -9372,8 +9461,6 @@ sub title_former {
     'pasport_date'  => "$_PASPORT $_DATE",
     'pasport_num'   => "$_PASPORT $_NUM",
     'pasport_grant' => "$_PASPORT $_GRANT",
-    'city'          => "$_CITY",
-    'zip'           => "$_ZIP",
     'contract_id'   => "$_CONTRACT_ID",
     'registration'  => "$_REGISTRATION",
     'phone'         => "$_PHONE",
@@ -9386,17 +9473,19 @@ sub title_former {
     'reduction'     => "$_REDUCTION",
     'domain_id'     => 'DOMAIN ID',
 
+    'district_name' => "$_DISTRICTS",
     'address_full'  => "$_FULL $_ADDRESS",
     'address_street'=> "$_ADDRESS_STREET",
     'address_build' => "$_ADDRESS_BUILD",
     'address_flat'  => "$_ADDRESS_FLAT",
 
-    'district_name' => "$_DISTRICTS",
+    'city'          => "$_CITY",
+    'zip'           => "$_ZIP",
+
     'deleted'       => "$_DELETED",
     'gid'           => "$_GROUP",
-    'build_id'      => 'Location ID',
+#    'build_id'      => 'Location ID',
     'uid'           => 'UID',
-    'bill_id'       => "$_BILL"
   );
   
   %ACTIVE_TITLES = ();
@@ -9426,10 +9515,111 @@ sub title_former {
     $title[$i]     = $SEARCH_TITLES{ $EX_TITLE_ARR[$i] } || "$_SEARCH";
     $ACTIVE_TITLES{$EX_TITLE_ARR[$i]} = $FORM{uc($EX_TITLE_ARR[$i])} || '_SHOW';
   }
-  foreach my $function_fld_name ( split(/,/, $attr->{FUNCTION_FIELDS} ) ) {
+
+  my @function_fields = split(/,/, $attr->{FUNCTION_FIELDS} || '' );
+  
+  foreach my $function_fld_name ( @function_fields ) {
     $title[$#title+1]='-';
   }
-  return \@title;
+  
+  if ($attr->{TABLE} ) {
+    my $table = $html->table(
+      {
+        width      => $attr->{TABLE}{width},
+        caption    => $attr->{TABLE}{caption},
+        border     => $attr->{TABLE}{border},
+        title      => \@title,
+        cols_align => [ 'left', 'left', 'right', 'right', 'left', 'center', 'center:noprint', 'center:noprint' ],
+        qs         => $attr->{TABLE}{qs},
+        pages      => $data->{TOTAL},
+        ID         => $attr->{TABLE}{ID},
+        header     => $attr->{TABLE}{header},
+        SHOW_COLS  => \%SEARCH_TITLES,
+        ACTIVE_COLS=> \%ACTIVE_TITLES,
+        EXPORT     => $attr->{TABLE}{EXPORT},
+        MENU       => $attr->{TABLE}{MENU},
+        SELECT_ALL => $attr->{TABLE}{SELECT_ALL},
+      }
+     );
+    
+    if ($attr->{MAKE_ROWS}) {
+      foreach my $line (@{ $data->{list} }) {
+        my @fields_array = ();
+        for (my $i = 0 ; $i < $data->{SEARCH_FIELDS_COUNT}+$base_fields ; $i++) {
+          my $val = '';
+      
+          if ($data->{COL_NAMES_ARR}->[$i] eq 'login' && $line->{uid}) {
+      	    $val = user_ext_menu($line->{uid}, $line->{login}, { EXT_PARAMS => ($attr->{MODULE} ? "MODULE=$attr->{MODULE}": undef) }); 
+          }
+          elsif($data->{COL_NAMES_ARR}->[$i] =~ /status/) {
+      	    $val = ($line->{$data->{COL_NAMES_ARR}->[$i]} > 0) ? $html->color_mark($service_status[ $line->{$data->{COL_NAMES_ARR}->[$i]} ], $service_status_colors[ $line->{$data->{COL_NAMES_ARR}->[$i]} ]) : "$service_status[$line->{$data->{COL_NAMES_ARR}->[$i]}]";
+          }
+          elsif($data->{COL_NAMES_ARR}->[$i] =~ /deposit/) {
+            $val = ($permissions{0}{12}) ? '--' : ($line->{deposit} + $line->{credit} < 0) ? $html->color_mark($line->{deposit}, $_COLORS[6]) : $line->{deposit},
+          }
+          else {
+      	    $val = $line->{ $data->{COL_NAMES_ARR}->[$i]  };
+          }
+
+          if ($i==0 && $attr->{MULTISELECT}) {
+          	my($id, $value) = split(/:/, $attr->{MULTISELECT});
+          	$val = $html->form_input($id, $line->{$value}, { TYPE => 'checkbox' }) . ' '. $val;
+          }
+
+          push @fields_array, $val;
+        }
+
+        if($#function_fields > -1) {
+        	for($i=0; $i<=$#function_fields; $i++) {
+        		if($function_fields[$i] eq 'form_payments') {
+        			push @fields_array, ($permissions{1}) ? $html->button($function_fields[$i], "UID=$line->{uid}&index=2", { CLASS=>'payments' }) : '-';
+        		}
+        		elsif($function_fields[$i] =~ /stats/) {
+        			push @fields_array, $html->button($function_fields[$i], "UID=$line->{uid}&index=".get_function_index($#function_fields), { CLASS=>'stats' });
+        		}
+        		elsif($function_fields[$i] eq 'change') {
+        			push @fields_array, $html->button($_CHANGE, "index=$index&chg=$line->{id}". ($line->{uid} ? "&UID=$line->{uid}": undef). ($attr->{MODULE} ? "&MODULE=$attr->{MODULE}": undef), { CLASS=>'change' });
+        		}
+        		elsif($function_fields[$i] eq 'del') {
+        			push @fields_array, $html->button($_DEL, "&index=$index&del=$line->{id}". ($line->{uid} ? "UID=$line->{uid}": undef) . ($attr->{MODULE} ? "&MODULE=$attr->{MODULE}": undef), { CLASS=>'del', MESSAGE => "$_DEL $line->{id}?" });
+        		}
+        		else {
+        		  push @fields_array, $html->button($function_fields[$i], "UID=$line->{uid}&index=".get_function_index($#function_fields), { BUTTON => 1 });
+        		}
+        	}
+        }
+
+        $table->addrow(@fields_array);
+      }
+    }
+    
+    if ($attr->{TOTAL}) {
+  	  my $result = $table->show();
+      if (! $admin->{MAX_ROWS}) {
+        $table = $html->table(
+          {
+            width      => '100%',
+            cols_align => [ 'right', 'right' ],
+            rows       => [ [ "$_TOTAL:", $html->b($data->{TOTAL}) ] ]
+          }
+        );
+        $result .= $table->show();
+      }
+
+      if ($attr->{OUTPUT2RETURN}) {
+      	return $result, $data->{list};
+      }
+      else {
+      	print $result;
+      }
+    }
+    else {
+      return ($table, $data->{list});
+    }
+  }
+  else {
+    return \@title;	
+  }
 }
 
 

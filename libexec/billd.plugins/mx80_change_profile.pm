@@ -21,9 +21,9 @@ sub mx80_change_profile {
   }
 
   if ($debug > 7) {
-    $nas->{debug}= 1 ;
+    $Nas->{debug}= 1 ;
     $Dv->{debug} = 1 ;
-    $sessions->{debug}=1;
+    $Sessions->{debug}=1;
   }
   
   #Tps  speeds
@@ -36,24 +36,19 @@ sub mx80_change_profile {
     }
   } 
 
-  $sessions->online(
-    {
-      %LIST_PARAMS,
-      NAS_ID       => $LIST_PARAMS{NAS_IDS},
-      FIELDS_NAMES => [ 'USER_NAME', 
-                        'NAS_PORT_ID', 
-                        'CONNECT_INFO',
-                        'TP_ID', 
-                        'SPEED', 
-                        'UID', 
-                        'JOIN_SERVICE', 
-                        'CLIENT_IP', 
-                        'DURATION_SEC', 
-                        'STARTED' ,
-                        'CID'
-                      ],
-     COLS_NAME    => 1
-    }
+  $sessions->online({ USER_NAME    => '_SHOW', 
+     NAS_PORT_ID  => '_SHOW', 
+     CONNECT_INFO => '_SHOW',
+     TP_ID        => '_SHOW', 
+     SPEED        => '_SHOW', 
+     UID          => '_SHOW', 
+     JOIN_SERVICE => '_SHOW', 
+     CLIENT_IP    => '_SHOW',
+     DURATION_SEC => '_SHOW',
+     STARTED      => '_SHOW',
+     CID          => '_SHOW',
+     NAS_ID       => $LIST_PARAMS{NAS_IDS},
+     %LIST_PARAMS
   );
 
   my $online      = $sessions->{nas_sorted};
@@ -107,7 +102,7 @@ sub mx80_change_profile {
         }
 
         hangup_radius($nas_info, $online->{'nas_port_id'}, $online->{'user_name'}, 
-          	  { FRAMED_IP_ADDRESS => $online->{ip},
+          	  { FRAMED_IP_ADDRESS => $online->{client_ip},
           	  	COA               => 1,
           	  	RAD_PAIRS         => \%RAD_REPLY_DEACTIVATE, 
           	    DEBUG             => (($debug > 2) ? 1 : 0)

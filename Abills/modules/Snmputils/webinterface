@@ -22,7 +22,6 @@ if (!$@) {
   $threads = 1;
 }
 else {
-
   #print "Can't load 'threads'\n";
   #print $@ if ($conf{debugmods} =~ /LOG_DEBUG/);
   #exit; #return 0;
@@ -411,9 +410,9 @@ sub snmputils_periodic {
   if ($conf{SNMPUTILS_CHANGE_VLAN}) {
     use Dhcphosts;
     my $Dhcphosts = Dhcphosts->new($db, $admin, \%conf);
-    my $list = $Dhcphosts->networks_list({ PAGE_ROWS => 10000, SORT => 2 });
+    my $list = $Dhcphosts->networks_list({ PAGE_ROWS => 10000, SORT => 2, COLS_NAME => 1 });
     foreach my $line (@$list) {
-      $GUEST_VLAN{ $line->[0] } = $line->[8];
+      $GUEST_VLAN{ $line->{id} } = $line->{guest_vlan};
     }
   }
 
@@ -443,6 +442,10 @@ sub snmputils_periodic {
       $debug_output .= "Guest VLAN\n" if ($debug > 0);
       $debug_output .= snmputils_chg_vlan({%CONF_HASH});
     }
+    elsif ($conf{SNMPUTILS_CHANGE_PORT_STATE}) {
+      $debug_output .= "Port State\n" if ($debug > 0);
+      $debug_output .= snmputils_chg_port_state({%CONF_HASH});
+    }
     elsif ($type eq 'dlink_pb') {
       $debug_output .= "D-Link Port binding\n" if ($debug > 0);
       $debug_output .= snmputils_dlink_pb({%CONF_HASH});
@@ -453,7 +456,7 @@ sub snmputils_periodic {
     }
     elsif ($type eq 'hp') {
       $debug_output .= "HP\n" if ($debug > 0);
-      $debug_output .= snmputils_hp({%CONF_HASH});
+      $debug_output .= snmputils_chg_port_state({%CONF_HASH});
     }
     elsif ($type eq 'celan') {
       $debug_output .= "CeLAN MACs Binding\n" if ($debug > 0);
@@ -474,10 +477,10 @@ sub snmputils_chg_vlan {
   my ($attr) = @_;
 
   my $debug          = $attr->{DEBUG} || 0;
-  my $NAS_ID         = $attr->{NAS_ID};          # line->[0];
-  my $MNG_PASSWORD   = $attr->{MNG_PASSWORD};    # line->[11];
-  my $MNG_HOST       = $attr->{MNG_HOST};        # $line->[9];
-  my $RAD_PAIRS      = $attr->{RAD_PAIRS};       #$line->[12];
+  my $NAS_ID         = $attr->{NAS_ID};
+  my $MNG_PASSWORD   = $attr->{MNG_PASSWORD};
+  my $MNG_HOST       = $attr->{MNG_HOST};
+  my $RAD_PAIRS      = $attr->{RAD_PAIRS};
   my $version        = '';
   my $debug_output   = '';
   my $SNMP_COMMUNITY = '';
@@ -761,6 +764,7 @@ sub snmputils_chg_vlan {
   $DEBUG = $debug_output;
   return $debug_output;
 }
+
 
 #**********************************************************
 # HOST,
@@ -3220,31 +3224,31 @@ sub snmputils_load_mibs {
 #
 #**********************************************************
 sub snmputils_ports_state {
-	  my %result  = &snmpwalkhash("$SNMP_COMMUNITY", \&my_simple_hash, $FORM{TYPE});
-    my @RES_ARR = sort { $a <=> $b } keys %{ $result{"$CAPTION[0]"} };
+  my %result  = &snmpwalkhash("$SNMP_COMMUNITY", \&my_simple_hash, $FORM{TYPE});
+  my @RES_ARR = sort { $a <=> $b } keys %{ $result{"$CAPTION[0]"} };
 
-    if ($SNMP_Session::errmsg) {
-      print $html->message('err', $_ERROR, "$FORM{TYPE}" . $html->br() . "$SNMP_Session::suppress_warnings / $SNMP_Session::errmsg");
-    }
+  if ($SNMP_Session::errmsg) {
+    print $html->message('err', $_ERROR, "$FORM{TYPE}" . $html->br() . "$SNMP_Session::suppress_warnings / $SNMP_Session::errmsg");
+  }
 
-    if ($#RES_ARR > 0 && $FORM{TYPE} ne 'system') {
-      $table = $html->table(
-        {
-          width      => '600',
-          border     => 1,
-          ID         => 'SNMP_PORT_INFO'
-        }
-      );
-
-      foreach my $k (@RES_ARR) {
-        my @arr = ($k);
-        foreach my $ft (@CAPTION) {
-          push @arr, ($OIDS_EXINFO{$ft}{ACCESS} eq 'read-write') ? $html->button("$result{$ft}{$k}", "index=$index&change=1&SNMP_INDEX=$k&SNMP_OID=$OIDS_HASH{$ft}$page_qs") : $result{$ft}{$k};
-        }
-        $table->addrow(@arr);
-        $rows_count++;
+  if ($#RES_ARR > 0 && $FORM{TYPE} ne 'system') {
+    $table = $html->table(
+      {
+        width      => '600',
+        border     => 1,
+        ID         => 'SNMP_PORT_INFO'
       }
-	  }
+    );
+
+    foreach my $k (@RES_ARR) {
+      my @arr = ($k);
+      foreach my $ft (@CAPTION) {
+        push @arr, ($OIDS_EXINFO{$ft}{ACCESS} eq 'read-write') ? $html->button("$result{$ft}{$k}", "index=$index&change=1&SNMP_INDEX=$k&SNMP_OID=$OIDS_HASH{$ft}$page_qs") : $result{$ft}{$k};
+      }
+      $table->addrow(@arr);
+      $rows_count++;
+    }
+	}
 
 	print $table->show();
 }
@@ -3338,8 +3342,6 @@ sub snmp_info_form {
   );
 
   if ($FORM{change}) {
-  	print "hello";
-  	
     my $SNMP_COMMUNITY = "$FORM{SNMP_COMMUNITY}\@$FORM{SNMP_HOST}";
 
     if ($FORM{NAS_ID}) {
@@ -4516,9 +4518,8 @@ sub snmputils_cable_tester {
 
 #**********************************************************
 # HP
-#
 #**********************************************************
-sub snmputils_hp {
+sub snmputils_chg_port_state {
   my ($attr) = @_;
 
   my $debug          = $attr->{DEBUG} || 0;
@@ -4529,7 +4530,7 @@ sub snmputils_hp {
   my $SNMP_COMMUNITY = "$MNG_PASSWORD\@$MNG_HOST";
 
   my $debug_output = '';
-  my ($PORTS_STATUS) = snmputils_hp_list(
+  my ($PORTS_STATUS) = snmputils_ports_list(
     {
       SNMP_COMMUNITY => $SNMP_COMMUNITY,
       SWITCH_INFO    => $SWITCH_INFO,
@@ -4578,7 +4579,7 @@ sub snmputils_hp {
     }
 
     if ($debug < 3) {
-      my $message = snmputils_hp_port_change(
+      my $message = snmputils_port_change_state(
         {
           SNMP_COMMUNITY => $SNMP_COMMUNITY,
           PORT_ID        => $port,
@@ -4597,9 +4598,9 @@ sub snmputils_hp {
 }
 
 #*******************************************************************
-# HP Change port status
+# Change port status
 #*******************************************************************
-sub snmputils_hp_port_change {
+sub snmputils_port_change_state {
   my ($attr) = @_;
 
   my $message = '';
@@ -4619,14 +4620,13 @@ sub snmputils_hp_port_change {
 }
 
 #*******************************************************************
-# HP ports status list
+# ports status list
 #*******************************************************************
-sub snmputils_hp_list {
+sub snmputils_ports_list {
   my ($attr) = @_;
 
   my $debug          = $attr->{DEBUG}          || 0;
   my $SNMP_COMMUNITY = $attr->{SNMP_COMMUNITY} || '';
-  #'ifAdminStatus' =>  	1.3.6.1.2.1.2.2.1.7;
   #'ifOperStatus' '1.3.6.1.2.1.2.2.1.8' 
 
   my %active  = ();

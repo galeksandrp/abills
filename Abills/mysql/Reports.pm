@@ -24,9 +24,14 @@ use main;
 #**********************************************************
 sub new {
   my $class = shift;
-  ($db, $admin, $CONF) = @_;
+  my $db    = shift; 
+  ($admin, $CONF) = @_;
+
   my $self = {};
   bless($self, $class);
+  
+  $self->{db}=$db;
+  
   return $self;
 }
 
@@ -52,8 +57,7 @@ sub add {
 
   my %DATA = $self->get_data($attr);
 
-  $self->query(
-      $db, "INSERT INTO reports_wizard (name, comments, query, query_total, fields, date, aid) 
+  $self->query2("INSERT INTO reports_wizard (name, comments, query, query_total, fields, date, aid) 
            values ('$DATA{NAME}', '$DATA{COMMENTS}', '$DATA{QUERY}', '$DATA{QUERY_TOTAL}',
            '$DATA{FIELDS}', curdate(), '$admin->{AID}');", 'do'
   );
@@ -68,7 +72,7 @@ sub del {
   my $self = shift;
   my ($id, $attr) = @_;
 
-  $self->query($db, "DELETE FROM reports_wizard WHERE id='$id';", 'do');
+  $self->query2("DELETE FROM reports_wizard WHERE id='$id';", 'do');
 
   return $self;
 }
@@ -87,8 +91,7 @@ sub list {
   my $WHERE;
   my $list;
 
-  $self->query(
-      $db, "SELECT name, comments, id
+  $self->query2("SELECT name, comments, id
     FROM reports_wizard
     $WHERE 
     ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;", 
@@ -98,13 +101,11 @@ sub list {
 
   $list = $self->{list};  
 
-  $self->query($db, "SELECT count(id) FROM reports_wizard $WHERE");
-
-  ($self->{TOTAL}) = @{ $self->{list}->[0] };
+  $self->query2("SELECT count(id) AS total FROM reports_wizard $WHERE",
+  undef, { INFO => 1 });
 
   return $list;
 }
-
 
 #**********************************************************
 # mk()
@@ -120,25 +121,19 @@ sub mk {
 
   my $WHERE;
   my $list;
+  delete ($self->{COL_NAMES_ARR});
 
   $attr->{QUERY}=~s/%PG%/$PG/;
   $attr->{QUERY}=~s/%PAGE_ROWS%/$PAGE_ROWS/;
   $attr->{QUERY}=~s/%SORT%/$SORT/;
   $attr->{QUERY}=~s/%DESC%/$DESC/;
   $attr->{QUERY}=~s/%PAGES%/LIMIT $PG, $PAGE_ROWS/;
-  
 
-  $self->query(
-      $db, "$attr->{QUERY};", 
-  undef, 
-  $attr
-  );
-
+  $self->query2("$attr->{QUERY};", undef, $attr);
   $list = $self->{list};  
   
   if ($attr->{QUERY_TOTAL}) {
-    $self->query(
-        $db, "$attr->{QUERY_TOTAL};", 
+    $self->query2("$attr->{QUERY_TOTAL};", 
     undef, 
     { INFO => 1 }
     );
@@ -155,8 +150,7 @@ sub info {
   my $self = shift;
   my ($attr) = @_;
 
-  $self->query(
-    $db, "SELECT 
+  $self->query2("SELECT 
       id,
       name, 
       comments, 

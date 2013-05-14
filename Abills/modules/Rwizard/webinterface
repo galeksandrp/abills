@@ -182,12 +182,12 @@ sub rwizard {
       $pages_qs .= "&DATE_FROM=$html->{DATE_FROM}&DATE_TO=$html->{DATE_TO}";
     }
 
-    if ($Reports->{QUERY} =~ /%GID%/) {
+    if ($Reports->{QUERY} =~ /%GID%/g) {
     	push @rows, "$_GROUP: " . sel_groups();
     	$pages_qs .= "&GID=$FORM{GID}";
       if ($FORM{GID} eq '') {
-        $Reports->{QUERY}       =~ s/and [a-z\.\_]+\=\'%GID%\'/$FORM{GID}/ig;
-        $Reports->{QUERY_TOTAL} =~ s/and [a-z\.\_]+\=\'%GID%\'/$FORM{GID}/ig;
+        $Reports->{QUERY}       =~ s/and [a-z0-9\.\_]+\=\'%GID%\'//ig;
+        $Reports->{QUERY_TOTAL} =~ s/and [a-z0-9\.\_]+\=\'%GID%\'//ig;
       }
       else {
         $Reports->{QUERY}       =~ s/%GID%/$FORM{GID}/g;
@@ -221,6 +221,9 @@ sub rwizard {
     }
 
     $Reports->{QUERY_TOTAL} =~ s/^[\n\r]+$//g;
+    if ($FORM{DEBUG}) {
+    	$Reports->{debug}=1;
+    }
     my $list = $Reports->mk(
       {
         QUERY       => $Reports->{QUERY},
@@ -229,6 +232,11 @@ sub rwizard {
         COLS_NAME   => 1
       }
     );
+
+    if ($#titles == -1) {
+      @titles    = @{ $Reports->{COL_NAMES_ARR} };	
+      @col_names = @titles;
+    }
 
     if ($Reports->{errno}) {
       $html->message('err', $_ERROR, "[$Reports->{errno}] $Reports->{errstr}" . $html->br() . $html->pre($Reports->{QUERY}, { OUTPUT2RETURN => 1 })) ;

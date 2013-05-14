@@ -117,7 +117,7 @@ sub msgs_admins {
     $html->message('err', $_ERROR, "[$Msgs->{errno}] $err_strs{$Msgs->{errno}}");
   }
 
-  my $list  = $Msgs->admins_list({%LIST_PARAMS});
+  my $list  = $Msgs->admins_list({%LIST_PARAMS, COLS_NAME => 1 });
   my $table = $html->table(
     {
       width      => '100%',
@@ -131,7 +131,7 @@ sub msgs_admins {
 
   my %A_PRIVILEGES = ();
   foreach my $line (@$list) {
-    push @{ $A_PRIVILEGES{ $line->[0] } }, "$line->[1]|$line->[2]|$line->[3]|$line->[4]|$line->[5]}|$line->[6]|$line->[7]";
+    push @{ $A_PRIVILEGES{ $line->{admin_login} } }, "$line->{chapter_name}|$line->{priority}|$line->{deligation_level}|$line->{aid}|$line->{chapter_id}|$line->{email_notify}|$line->{email}";
   }
 
   foreach my $admin_id (sort keys %A_PRIVILEGES) {
@@ -206,6 +206,7 @@ sub msgs_admin_add {
           PAGE_ROWS => 1000000,
           DISABLE   => 0,
           PHONE     => '_SHOW',
+          EMAIL     => '_SHOW',
           COLS_NAME => 1
         }
       );
@@ -372,14 +373,14 @@ sub msgs_admin_add {
     return 0 if ($attr->{SEND_ONLY} || $attr->{REGISTRATION});
   }
 
-  my $a_list = $Msgs->admins_list({ AID => $admin->{AID} });
+  my $a_list = $Msgs->admins_list({ AID => $admin->{AID}, COLS_NAME => 1 });
 
   my @A_CHAPTER = ();
 
   if ($Msgs->{TOTAL} > 0) {
     foreach my $line (@$a_list) {
-      if ($line->[5] > 0) {
-        push @A_CHAPTER, "$line->[5]" if ($line->[2] > 0);
+      if ($line->{chapter_id} > 0) {
+        push @A_CHAPTER, "$line->{chapter_id}" if ($line->{priority} > 0);
       }
     }
   }
@@ -487,6 +488,80 @@ sub msgs_admin_add {
   }
 
   print $message_form;
+}
+
+#**********************************************************
+#
+#**********************************************************
+sub msgs_search {
+	my ($attr) = @_;
+
+	    $Msgs->{STATE_SEL} = $html->form_select(
+      'STATE',
+      {
+        SELECTED    => $FORM{STATE},
+        SEL_OPTIONS => { '' => $_ALL },
+        STYLE       => \@style,
+        SEL_HASH    => {
+          $msg_status[0]  => {
+            0             => $msg_status[0],
+            3             => $msg_status[3],
+            4             => $msg_status[4],
+            5             => $msg_status[5],
+            6             => $msg_status[6],
+            7             => $msg_status[7],
+            '0;3;4;5;6;7' => $_ACTIVE,
+          },
+          $msg_status[1] => { 1 => $msg_status[1] },
+          $msg_status[2] => { 2 => $msg_status[2] },
+        },
+        ARRAY_NUM_ID => 0
+      }
+    );
+
+    $Msgs->{PRIORITY_SEL} = $html->form_select(
+      'PRIORITY',
+      {
+        SELECTED => $FORM{PRIORITY} || 5,
+        SEL_OPTIONS  => { '' => $_ALL },
+        SEL_ARRAY    => [@priority],
+        STYLE        => \@priority_colors,
+        ARRAY_NUM_ID => 1
+      }
+    );
+
+    $Msgs->{CHAPTER_SEL} = $html->form_select(
+      'CHAPTER',
+      {
+        SELECTED => $FORM{CHAPTER} || 0,
+        SEL_MULTI_ARRAY => [ [ '', "$_ALL" ], @{ $Msgs->chapters_list({ CHAPTERS => join(',', keys %A_PRIVILEGES) }) } ],
+        MULTI_ARRAY_KEY => 0,
+        MULTI_ARRAY_VALUE => 1,
+        MAIN_MENU         => get_function_index('msgs_chapters'),
+        MAIN_MENU_AGRV    => "chg=$Msgs->{CHAPTER}"
+      }
+    );
+
+    $Msgs->{PLAN_DATE} = "0000-00-00";
+    $Msgs->{PLAN_TIME} = "00:00:00";
+    $Msgs->{MSG_ID}    = undef;
+    $Msgs->{RESPOSIBLE_SEL} = $html->form_select(
+      'RESPOSIBLE',
+     {
+      SELECTED          => $FORM{RESPOSIBLE} || '',
+      SEL_MULTI_ARRAY   => [ [ '', $_ALL ], @{ $admin->list({ GIDS => $admins->{GIDS} }) } ],
+      MULTI_ARRAY_KEY   => 0,
+      MULTI_ARRAY_VALUE => 1,
+      NO_ID             => 1
+     }
+    );
+    
+    form_search({ SEARCH_FORM => $html->tpl_show(_include('msgs_search', 'Msgs'), 
+    	             { %$Msgs, %FORM }, 
+    	             { OUTPUT2RETURN => 1 }),
+     	             NO_DEFAULT_DATE => 1,
+     	             ADDRESS_FORM    => 1  });
+
 }
 
 #*******************************************************************
@@ -737,7 +812,7 @@ sub msgs_admin {
     #	 }
     # }
 
-    my $list = $Msgs->messages_reply_list({ MSG_ID => $Msgs->{ID} });
+    my $list = $Msgs->messages_reply_list({ MSG_ID => $Msgs->{ID}, COLS_NAME => 1 });
 
     my $reply = '';
     if ($Msgs->{TOTAL} == 0) {
@@ -745,46 +820,49 @@ sub msgs_admin {
     }
 
     if ($Msgs->{SURVEY_ID}) {
-      $Msgs->{REPLY} .= msgs_survey_show({ SURVEY_ID => $Msgs->{SURVEY_ID}, MSG_ID => $Msgs->{ID}, MAIN_MSG => 1 });
+      $Msgs->{REPLY} .= msgs_survey_show({ SURVEY_ID => $Msgs->{SURVEY_ID}, 
+      	                                   MSG_ID    => $Msgs->{ID}, 
+      	                                   MAIN_MSG  => 1,
+      	                                 });
     }
 
     foreach my $line (@$list) {
-      if ($line->[14]) {
-        $FORM{REPLY_ID} = $line->[0];
-        $Msgs->{REPLY} .= msgs_survey_show({ SURVEY_ID => $line->[14], REPLY_ID => $line->[0] });
+      if ($line->{survey_id}) {
+        $FORM{REPLY_ID} = $line->{id};
+        $Msgs->{REPLY} .= msgs_survey_show({ SURVEY_ID => $line->{inner_msg}, REPLY_ID => $line->{id} });
         $Msgs->{SURVEY_ID} = undef;
         next if ($Msgs->{TOTAL});
       }
 
-      if ($FORM{QUOTING} && $FORM{QUOTING} == $line->[0]) {
-        $reply = $line->[2];
+      if ($FORM{QUOTING} && $FORM{QUOTING} == $line->{id}) {
+        $reply = $line->{text};
       }
 
-      $line->[2] = convert($line->[2], { text2html => 1 });
-      $line->[2] =~ s/> (.+)/<font color='$_COLORS[8]'> > $1 <\/font>/g;
-      $line->[2] =~ s/&gt; (.+)/<font color='$_COLORS[8]'> > $1 <\/font>/g;
+      $line->{text} = convert($line->{text}, { text2html => 1 });
+      $line->{text} =~ s/> (.+)/<font color='$_COLORS[8]'> > $1 <\/font>/g;
+      $line->{text} =~ s/&gt; (.+)/<font color='$_COLORS[8]'> > $1 <\/font>/g;
       my $msg_color = 'odd';
 
-      if ($line->[13]) {
+      if ($line->{inner_msg}) {
         $msg_color = 'title_color';
       }
-      elsif ($line->[12] > 0) {
+      elsif ($line->{aid} > 0) {
         $msg_color = 'even';
       }
 
       $Msgs->{REPLY} .= $html->tpl_show(
         _include('msgs_reply_show', 'Msgs'),
         {
-          REPLY_ID => $line->[0],
-          DATE     => $line->[1],
-          CAPTION  => convert($line->[5], { text2html => 1 }),
-          PERSON   => "$line->[3]" . (($line->[12]) ? " ($_ADMIN)" . (($line->[13]) ? " $_INNER" : '') : ""),
-          MESSAGE  => $line->[2],
-          QUOTING  => $html->button($_QUOTING, "&index=$index&chg=$FORM{chg}&UID=$FORM{UID}&QUOTING=$line->[0]" . (($line->[13]) ? "&INNER_MSG=1" : ''), { BUTTON => 1 }),
-          DELETE => $html->button($_DEL, "&index=$index&chg=$FORM{chg}&reply_del=$line->[0]&UID=$Msgs->{UID}", { MESSAGE => "$_DEL $line->[0]?", BUTTON => 1 }),
-          ATTACHMENT => ($line->[7]) ? "$_ATTACHMENT: " . $html->button("$line->[7]", "qindex=$index&ATTACHMENT=$line->[9]", { TARGET => '_new' }) . " ($_SIZE: " . int2byte($line->[8]) . ')' : '',
+          REPLY_ID => $line->{id},
+          DATE     => $line->{datetime},
+          CAPTION  => convert($line->{caption}, { text2html => 1 }),
+          PERSON   => "$line->{creator_id}" . (($line->{aid}) ? " ($_ADMIN)" . (($line->{inner_msg}) ? " $_INNER" : '') : ""),
+          MESSAGE  => $line->{text},
+          QUOTING  => $html->button($_QUOTING, "&index=$index&chg=$FORM{chg}&UID=$FORM{UID}&QUOTING=$line->{id}" . (($line->{inner_msg}) ? "&INNER_MSG=1" : ''), { BUTTON => 1 }),
+          DELETE => $html->button($_DEL, "&index=$index&chg=$FORM{chg}&reply_del=$line->{id}&UID=$Msgs->{UID}", { MESSAGE => "$_DEL $line->{id}?", BUTTON => 1 }),
+        ATTACHMENT => ($line->{filename}) ? "$_ATTACHMENT: " . $html->button("$line->{filename}", "qindex=$index&ATTACHMENT=$line->{attachment_id}", { TARGET => '_new' }) . " ($_SIZE: " . int2byte($line->{content_size}) . ')' : '',
           COLOR => $msg_color,
-          RUN_TIME => ($line->[11] ne '00:00:00') ? "$_RUN_TIME: $line->[11]" : '',
+          RUN_TIME => ($line->{run_time} ne '00:00:00') ? "$_RUN_TIME: $line->{run_time}" : '',
         },
         { OUTPUT2RETURN => 1 },
       );
@@ -860,121 +938,25 @@ sub msgs_admin {
     $LIST_PARAMS{UID}                 = undef if (!$FORM{UID});
   }
 
-  if (!$FORM{UID}) {
-    $Msgs->{STATE_SEL} = $html->form_select(
-      'STATE',
-      {
-        SELECTED    => $FORM{STATE},
-        SEL_OPTIONS => { '' => $_ALL },
-        STYLE       => \@style,
-        SEL_HASH    => {
-          $msg_status[0] => {
-            0             => $msg_status[0],
-            3             => $msg_status[3],
-            4             => $msg_status[4],
-            5             => $msg_status[5],
-            6             => $msg_status[6],
-            7             => $msg_status[7],
-            '0;3;4;5;6;7' => $_ACTIVE,
-          },
-          $msg_status[1] => { 1 => $msg_status[1] },
-          $msg_status[2] => { 2 => $msg_status[2] },
-        },
-        ARRAY_NUM_ID => 0
-      }
-    );
-
-    $Msgs->{PRIORITY_SEL} = $html->form_select(
-      'PRIORITY',
-      {
-        SELECTED => $FORM{PRIORITY} || 5,
-        SEL_OPTIONS  => { '' => $_ALL },
-        SEL_ARRAY    => [@priority],
-        STYLE        => \@priority_colors,
-        ARRAY_NUM_ID => 1
-      }
-    );
-
-    $Msgs->{CHAPTER_SEL} = $html->form_select(
-      'CHAPTER',
-      {
-        SELECTED => $FORM{CHAPTER} || 0,    #$Msgs->{CHAPTER} || $FORM{CHAPTER} || undef,
-        SEL_MULTI_ARRAY => [ [ 0, "$_ALL" ], @{ $Msgs->chapters_list({ CHAPTERS => join(',', keys %A_PRIVILEGES) }) } ],
-        MULTI_ARRAY_KEY => 0,
-        MULTI_ARRAY_VALUE => 1,
-        MAIN_MENU         => get_function_index('msgs_chapters'),
-        MAIN_MENU_AGRV    => "chg=$Msgs->{CHAPTER}"
-      }
-    );
-
-    $Msgs->{PLAN_DATE} = "0000-00-00";
-    $Msgs->{PLAN_TIME} = "00:00:00";
-    $Msgs->{MSG_ID}    = undef;
-    $Msgs->{RESPOSIBLE_SEL} = $html->form_select(
-      'RESPOSIBLE',
-     {
-      SELECTED          => $FORM{RESPOSIBLE} || '',
-      SEL_MULTI_ARRAY   => [ [ '', $_ALL ], @{ $admin->list({ GIDS => $admins->{GIDS} }) } ],
-      MULTI_ARRAY_KEY   => 0,
-      MULTI_ARRAY_VALUE => 1,
-      NO_ID             => 1
-     }
-    );
-    
-    form_search({ SEARCH_FORM => $html->tpl_show(_include('msgs_search', 'Msgs'), 
-    	             { %$Msgs, %FORM }, 
-    	             { OUTPUT2RETURN => 1 }),
-     	             NO_DEFAULT_DATE => 1 });
+  if ($FORM{search_form}) {
+    msgs_search();
   }
-  else {
+  elsif($FORM{add_form}) {
     msgs_admin_add();
   }
 
+  
   $LIST_PARAMS{STATE}    = undef if ($FORM{STATE} == 3);
   $LIST_PARAMS{PRIORITY} = undef if ($FORM{PRIORITY} == 5);
-  my $status_bar = msgs_status_bar();
-  my $list = $Msgs->messages_list({ %LIST_PARAMS, 
-  	                                DESC      => (!$FORM{sort}) ? 'DESC' : $FORM{desc}, 
-  	                                COLS_NAME => 1
-                                 });
+  $LIST_PARAMS{DESC}     = 'DESC'if (!$FORM{sort});
 
-=comments
-SELECT m.id,
-if(m.uid>0, u.id, g.name) AS client_id,
-m.subject,
-mc.name AS chapter_name,
-m.date,
-m.state,
-
-m.closed_date,
-ra.id AS resposible_admin_login,
-a.id AS admin_login,
-m.priority,
-CONCAT(m.plan_date, ' ', m.plan_time) AS plan_date_time,
-SEC_TO_TIME(sum(r.run_time)) AS run_time,
-m.uid,
-a.aid,
-m.state,
-m.gid,
-m.user_read,
-m.admin_read,
-if(r.id IS NULL, 0, count(r.id)) AS replies_counts,
-m.chapter AS chapter_id,
-DATE_FORMAT(plan_date, '%w') AS plan_date,
-m.deligation,
-m.inner_msg,
-a.name AS admin_name
-FROM (msgs_messages m)
-
-
-=cut
-
-  my $TITLE = title_former({
+  my ($table, $list) = result_former({
      INPUT_DATA      => $Msgs,
-     BASE_FIELDS     => 11,
-     FUNCTION_FIELDS => '-, -',
+     FUNCTION        => 'messages_list',
+     BASE_FIELDS     => 9,
+     FUNCTION_FIELDS => 'null, null',
      EXT_TITLES      => {
-       'id'           => '#',
+       'id'           => "$_NUM",
        'client_id'    => $_USER,
        'subject'      => $_SUBJECT,
        'chapter_name' => $_CHAPTERS,
@@ -984,75 +966,93 @@ FROM (msgs_messages m)
        'resposible_admin_login' => $_RESPOSIBLE,
        'admin_login'  => $_ADMIN,
        'priority'     => $_PRIORITY,
-       'plan_date_time' => "$_EXECUTION",
-     }
+       'plan_date_time'=> "$_EXECUTION",
+       'run_time'     => "$_RUN_TIME",
+       'user_read'    => "_USER_REED",
+       'admin_read'   => "_ADMIN_READ",
+       'replies_counts' => "replies_counts",
+       'chapter_id'   => $_CHAPTERS,
+       'deligation'   => $_DELIGATE,
+       'dispatch_id'  => $_DISPATCH
+     },
+     TABLE            => {    
+     	 width       => '100%',
+       caption     => "$_MESSAGES",
+       qs          => $pages_qs,
+       ID          => 'MSGS_LIST',
+       header      => msgs_status_bar(),
+       SELECT_ALL  => (scalar keys %CHAPTERS_DELIGATION == 0) ? "users_list:del:$_SELECT_ALL" : '',
+       EXPORT      => ' ',
+       MENU        => "$_ADD:add_form=1&index=" . get_function_index('msgs_admin') . ':add' . 
+         ";$_SEARCH:search_form=1&index=" . get_function_index('msgs_admin') . ":search",
+      }
     });
+ 
+ 
+    foreach my $line (@{ $list }) {
+        my @fields_array = ();
+        for (my $i = 0 ; $i < $Msgs->{SEARCH_FIELDS_COUNT}+9 ; $i++) {
+          my $val = '';
+      
+          if ($Msgs->{COL_NAMES_ARR}->[$i] eq 'login' && $line->{uid}) {
+      	    $val = user_ext_menu($line->{uid}, $line->{login}, { EXT_PARAMS => ($attr->{MODULE} ? "MODULE=$attr->{MODULE}": undef) }); 
+          }
+          elsif ($Msgs->{COL_NAMES_ARR}->[$i] eq 'client_id') {
+      	    $val = ($line->{uid} > 0) ? $html->button($line->{client_id}, "index=11&UID=$line->{uid}") : $line->{client_id};
+      	    if ($line->{fio}) {
+      	      $val .= $html->br(). $line->{fio};	
+      	    }
+          }
+          elsif ($Msgs->{COL_NAMES_ARR}->[$i] eq 'subject') {
+      	    $val = $html->button((($line->{subject}) ? "$line->{subject}" : $_NO_SUBJECT), "index=$index&UID=$line->{uid}&chg=$line->{id}");
+          }
+          elsif ($Msgs->{COL_NAMES_ARR}->[$i] eq 'priority') {
+            $val = $html->color_mark($priority[ $line->{priority} ], $priority_colors[ $line->{priority} ])
+          }
+#          elsif ($Msgs->{COL_NAMES_ARR}->[$i] =~ /fio/) {
+#          }
+          elsif ($Msgs->{COL_NAMES_ARR}->[$i] eq 'state') {
+            my $state = ($line->{state} == 0) ? $html->b($msg_status[ $line->{state} ]) : $msg_status[ $line->{state} ];
+            
+            $state .= ' <img src="../img/red_dot.gif" border="0" alt="No reply"/>' if ($line->{admin_read} eq '0000-00-00 00:00:00');
 
-  
-  my $table = $html->table(
-    {
-      width      => '100%',
-      caption    => "$_MESSAGES",
-      title      => $TITLE, #[ '#', "$_USER", "$_SUBJECT", "$_CHAPTERS", "$_DATE", "$_STATUS", "$_CLOSED", "$_RESPOSIBLE", "$_ADMIN", "$_PRIORITY", "$_EXECUTION", "-", "-" ],
-      cols_align => [ 'right', 'left', 'left', 'right', 'right', 'left', 'center', 'right', 'left', 'center:noprint', 'center:noprint' ],
-      qs         => $pages_qs,
-      pages      => $Msgs->{TOTAL},
-      ID         => 'MSGS_LIST',
-      header     => 
-      (
-        (scalar keys %CHAPTERS_DELIGATION == 0)
-        ? "<script language=\"JavaScript\" type=\"text/javascript\">
-<!-- 
-function CheckAllINBOX() {
-  for (var i = 0; i < document.users_list.elements.length; i++) {
-    if(document.users_list.elements[i].type == 'checkbox' && document.users_list.elements[i].name == 'del'){
-      document.users_list.elements[i].checked =         !(document.users_list.elements[i].checked);
-    }
-  }
-}
-//-->
-</script>\n<a href=\"javascript:void(0)\" onClick=\"CheckAllINBOX();\">$_SELECT_ALL</a>\n"
-        : ''
-      )
-      . 
-     $status_bar,
-     SHOW_COLS  => \%SEARCH_TITLES,
-     ACTIVE_COLS => \%ACTIVE_TITLES
-    }
-  );
+            if ($line->{deligation} > 0) {
+              if ($CHAPTERS_DELIGATION{ $line->{chapter_id} } == $line->{deligation}) {
+                $state .= ' <img src="../img/delivered2.png" border="0" alt="' . $_DELIVERED . '"/>';
+              }
+              else {
+                $state .= ' <img src="../img/delivered1.png" border="0" alt="' . $_DELIVERED . '"/>';
+              }
+            }
 
-  foreach my $line (@$list) {
-    my $state = ($line->{state} == 0) ? $html->b($msg_status[ $line->{state} ]) : $msg_status[ $line->{state} ];
+            $val = $state;
+          }
+          elsif($Msgs->{COL_NAMES_ARR}->[$i] =~ /status|disable/) {
+            my @service_status = ("$_ENABLE", "$_DISABLE", "$_NOT_ACTIVE");
+            my @service_status_colors = ("$_COLORS[9]", "$_COLORS[6]", '#808080', '#0000FF', '#FF8000', '#009999');
 
-    $state .= ' <img src="../img/red_dot.gif" border="0" alt="No reply"/>' if ($line->{admin_read} eq '0000-00-00 00:00:00');
+      	    $val = ($line->{$Msgs->{COL_NAMES_ARR}->[$i]} > 0) ? $html->color_mark($service_status[ $line->{$Msgs->{COL_NAMES_ARR}->[$i]} ], $service_status_colors[ $line->{$Msgs->{COL_NAMES_ARR}->[$i]} ]) : "$service_status[$line->{$Msgs->{COL_NAMES_ARR}->[$i]}]";
+          }
+          elsif($Msgs->{COL_NAMES_ARR}->[$i] =~ /deposit/) {
+            $val = ($permissions{0}{12}) ? '--' : ($line->{deposit} + $line->{credit} < 0) ? $html->color_mark($line->{deposit}, $_COLORS[6]) : $line->{deposit},
+          }
+          else {
+      	    $val = $line->{ $Msgs->{COL_NAMES_ARR}->[$i]  };
+          }
 
-    if ($line->{deligation} > 0) {
-      if ($CHAPTERS_DELIGATION{ $line->{chapter_id} } == $line->{deligation}) {
-        $state .= ' <img src="../img/delivered2.png" border="0" alt="' . $_DELIVERED . '"/>';
-      }
-      else {
-        $state .= ' <img src="../img/delivered1.png" border="0" alt="' . $_DELIVERED . '"/>';
-      }
-    }
+          if ($i == 0) {
+          	$val .= (($line->{inner_msg}) ? $html->b("($_INNER_MSGS_CHAR)") : '');
+          	$val = (($A_PRIVILEGES{ $line->{chapter_id} } > 2 || scalar keys %CHAPTERS_DELIGATION == 0) ? $html->form_input('del', "$line->{id}", { TYPE => 'checkbox' }) : '') . $val          	
+          }
 
-    my $priority = $html->color_mark($priority[ $line->{priority} ], $priority_colors[ $line->{priority} ]);
+          push @fields_array, $val;
+        }
 
-    $table->addrow(
-      $line->{id} . (($A_PRIVILEGES{ $line->{chapter_id} } > 2 || scalar keys %CHAPTERS_DELIGATION == 0) ? $html->form_input('del', "$line->{id}", { TYPE => 'checkbox' }) : '') . (($line->{inner_msg}) ? $html->b("($_INNER_MSGS_CHAR)") : ""),
-      ($line->{uid} > 0) ? $html->button($line->{client_id}, "index=11&UID=$line->{uid}") : $line->{client_id},
-      $html->button((($line->{subject}) ? "$line->{subject}" : $_NO_SUBJECT), "index=$index&UID=$line->{uid}&chg=$line->{id}"),
-      $line->{chapter_name},
-      $line->{date},
-      $state,
-      $line->{closed_date},
-      $line->{resposible_admin_login},
-      "<abbr title='$line->{admin_name}'>$line->{admin_login}</abbr>",
-      $priority,
-      $line->{plan_date_time},
-      $html->button("$_SHOW", "index=$index&chg=$line->{id}&UID=$line->{uid}", { CLASS => 'show' }),
-      (($A_PRIVILEGES{ $line->{chapter_id} } > 2 || $#A_CHAPTER == -1) ? $html->button($_DEL, "index=$index&del=$line->{id}$pages_qs", { MESSAGE => "$_DEL [$line->{id}] $line->{subject} ?", CLASS => 'del' }) : '')
-    );
-  }
+        push @fields_array,  $html->button("$_SHOW", "index=$index&chg=$line->{id}&UID=$line->{uid}", { CLASS => 'show' });
+        push @fields_array, (($A_PRIVILEGES{ $line->{chapter_id} } > 2 || $#A_CHAPTER == -1) ? $html->button($_DEL, "index=$index&del=$line->{id}$pages_qs", { MESSAGE => "$_DEL [$line->{id}] $line->{subject} ?", CLASS => 'del' }) : '');
+
+        $table->addrow(@fields_array);
+      } 
 
   my $total_msgs = $Msgs->{TOTAL};
 
@@ -1179,24 +1179,25 @@ sub msgs_notify_admins {
   my $list = $Msgs->admins_list(
     {
       EMAIL_NOTIFY => 1,
-      CHAPTER_ID   => $FORM{CHAPTER}
+      CHAPTER_ID   => $FORM{CHAPTER},
+      COLS_NAME    => 1
     }
   );
 
   foreach my $line (@$list) {
-    next if (!$line->[7]);
+    next if (!$line->{email_notify});
     $ENV{HTTP_REFERER} =~ m/(https:\/\/[a-zA-Z0-9:\.\-]+)\//g;
     my $site = $1 || '';
 
-    $RESPOSIBLE = ($FORM{RESPOSIBLE} && $FORM{RESPOSIBLE} eq $line->[4]) ? $_YES : $_NO;
+    $RESPOSIBLE = ($FORM{RESPOSIBLE} && $FORM{RESPOSIBLE} eq $line->{aid}) ? $_YES : $_NO;
 
     my $message = $html->tpl_show(
       _include('msgs_email_notify', 'Msgs'),
       {
-        SITE  => $site,
-        LOGIN => $Msgs->{LOGIN} || $FORM{LOGIN} || $ui->{LOGIN} || $user->{LOGIN},
-        ADMIN => ($FORM{INNER_MSG}) ? "$_ADMIN:  $admin->{A_LOGIN} ($admin->{A_FIO})" : '',
-        UID => $Msgs->{UID} || $FORM{UID} || $LIST_PARAMS{UID},
+        SITE       => $site,
+        LOGIN      => $Msgs->{LOGIN} || $FORM{LOGIN} || $ui->{LOGIN} || $user->{LOGIN},
+        ADMIN      => ($FORM{INNER_MSG}) ? "$_ADMIN:  $admin->{A_LOGIN} ($admin->{A_FIO})" : '',
+        UID        => $Msgs->{UID} || $FORM{UID} || $LIST_PARAMS{UID},
         DATE       => $DATE,
         TIME       => $TIME,
         ID         => "$Msgs->{INSERT_ID}/$Msgs->{REPLY_ID}",
@@ -1209,7 +1210,7 @@ sub msgs_notify_admins {
       { OUTPUT2RETURN => 1 }
     );
 
-    sendmail("$conf{ADMIN_MAIL}", "$line->[7]", "$conf{WEB_TITLE} - $_NEW_MESSAGE", "$message", "$conf{MAIL_CHARSET}", undef, { MAIL_HEADER => [ "X-ABillS-Msg-ID: $Msgs->{INSERT_ID}", "X-ABillS-Reply-ID: $Msgs->{REPLY_ID}" ] });
+    sendmail("$conf{ADMIN_MAIL}", "$line->{email}", "$conf{WEB_TITLE} - $_NEW_MESSAGE", "$message", "$conf{MAIL_CHARSET}", undef, { MAIL_HEADER => [ "X-ABillS-Msg-ID: $Msgs->{INSERT_ID}", "X-ABillS-Reply-ID: $Msgs->{REPLY_ID}" ] });
   }
 }
 
@@ -1335,7 +1336,7 @@ sub msgs_user {
     $Msgs->{PRIORITY_TEXT} = $html->color_mark($priority[ $Msgs->{PRIORITY} ], $priority_colors[ $Msgs->{PRIORITY} ]);
 
     if ($Msgs->{ID} && $Msgs->{ID} > 0) {
-      my $list = $Msgs->messages_reply_list({ MSG_ID => $Msgs->{ID}, INNER_MSG => 0 });
+      my $list = $Msgs->messages_reply_list({ MSG_ID => $Msgs->{ID}, INNER_MSG => 0, COLS_NAME => 1 });
       my $reply = '';
 
       if ($Msgs->{SURVEY_ID}) {
@@ -1343,29 +1344,29 @@ sub msgs_user {
       }
 
       foreach my $line (@$list) {
-        $FORM{REPLY_ID} = $line->[0];
-        if ($line->[14]) {
-          $Msgs->{REPLY} .= msgs_survey_show({ SURVEY_ID => $line->[14], REPLY_ID => $line->[0] });
+        $FORM{REPLY_ID} = $line->{id};
+        if ($line->{survey_id}) {
+          $Msgs->{REPLY} .= msgs_survey_show({ SURVEY_ID => $line->{survey_id}, REPLY_ID => $line->{id} });
         }
         else {
           if ($FORM{QUOTING} && $FORM{QUOTING} == $line->[0]) {
-            $reply = $line->[2];
+            $reply = $line->{text};
           }
-          $line->[2] = convert($line->[2], { text2html => 1 });
-          $line->[2] =~ s/> (.+)/<font color='$_COLORS[8]'> > $1 <\/font>/g;
-          $line->[2] =~ s/&gt; (.+)/<font color='$_COLORS[8]'> > $1 <\/font>/g;
+          $line->{text} = convert($line->{text}, { text2html => 1 });
+          $line->{text} =~ s/> (.+)/<font color='$_COLORS[8]'> > $1 <\/font>/g;
+          $line->{text} =~ s/&gt; (.+)/<font color='$_COLORS[8]'> > $1 <\/font>/g;
 
           $Msgs->{REPLY} .= $html->tpl_show(
             _include('msgs_reply_show', 'Msgs'),
             {
-              REPLY_ID   => $line->[0],
-              DATE       => $line->[1],
-              CAPTION    => convert($line->[5], { text2html => 1 }),
-              PERSON     => $line->[3],
-              MESSAGE    => $line->[2],
-              COLOR      => ($line->[12] == 0) ? 'even' : 'odd',
-              QUOTING    => $html->button($_QUOTING, "index=$index&QUOTING=$line->[0]&ID=$FORM{ID}&sid=$sid", { BUTTON => 1 }),
-              ATTACHMENT => ($line->[7]) ? "$_ATTACHMENT: " . $html->button("$line->[7]", "qindex=$index&ATTACHMENT=$line->[9]", { TARGET => '_new' }) . " ($_SIZE:   " . int2byte($line->[8]) . ')' : '',
+              REPLY_ID   => $line->{id},
+              DATE       => $line->{datetime},
+              CAPTION    => convert($line->{caption}, { text2html => 1 }),
+              PERSON     => $line->{creator_id},
+              MESSAGE    => $line->{text},
+              COLOR      => ($line->{aid} == 0) ? 'even' : 'odd',
+              QUOTING    => $html->button($_QUOTING, "index=$index&QUOTING=$line->{id}&ID=$FORM{ID}&sid=$sid", { BUTTON => 1 }),
+              ATTACHMENT => ($line->{attachment_id}) ? "$_ATTACHMENT: " . $html->button("$line->{filename}", "qindex=$index&ATTACHMENT=$line->{attachment_id}", { TARGET => '_new' }) . " ($_SIZE:   " . int2byte($line->{content_size}) . ')' : '',
             },
             { OUTPUT2RETURN => 1 }
           );
@@ -1507,7 +1508,9 @@ sub msgs_user {
   }
 
   #===================================
-  my $list  = $Msgs->messages_list({%LIST_PARAMS});
+  my $list  = $Msgs->messages_list({%LIST_PARAMS, 
+  	                                USER_READ => '_SHOW',
+  	                                COLS_NAME => 1});
   my $table = $html->table(
     {
       width       => '100%',
@@ -1522,13 +1525,14 @@ sub msgs_user {
   );
 
   foreach my $line (@$list) {
-    $table->{rowcolor} = ($line->[0] == $FORM{ID}) ? 'row_active' : undef;
+    $table->{rowcolor} = ($line->{id} == $FORM{ID}) ? 'row_active' : undef;
 
     $table->addrow(
-      ($line->[15] ne '0000-00-00 00:00:00') ? $html->button((($line->[2]) ? "$line->[2]" : $_NO_SUBJECT), "index=$index&ID=$line->[0]&sid=$sid") : $html->button($html->b((($line->[2]) ? "$line->[2]" : $_NO_SUBJECT)), "index=$index&ID=$line->[0]&sid=$sid"),
-      $line->[3], $line->[4],
-      ($line->[5] == 6) ? "<blink>$msg_status_all[$line->[5]]</blink>" : $html->color_mark($msg_status_all[ $line->[5] ], $msgs_status_colors[ $line->[5] ]),
-      $html->button($_SHOW, "index=$index&ID=$line->[0]&sid=$sid", { CLASS => 'show' })
+      ($line->{user_read} ne '0000-00-00 00:00:00') ? $html->button((($line->{subject}) ? "$line->{subject}" : $_NO_SUBJECT), "index=$index&ID=$line->{id}&sid=$sid") : $html->button($html->b((($line->{subject}) ? "$line->{subject}" : $_NO_SUBJECT)), "index=$index&ID=$line->{id}&sid=$sid"),
+      $line->{chapter_name}, 
+      $line->{date},
+      ($line->{state} == 6) ? "<blink>$msg_status_all[$line->{state}]</blink>" : $html->color_mark($msg_status_all[ $line->{state} ], $msgs_status_colors[ $line->{state} ]),
+      $html->button($_SHOW, "index=$index&ID=$line->{id}&sid=$sid", { CLASS => 'show' })
     );
   }
 
@@ -1579,6 +1583,7 @@ sub msgs_chapters {
     $Msgs->chapter_info($FORM{chg});
     $Msgs->{ACTION}     = 'change';
     $Msgs->{LNG_ACTION} = $_CHANGE;
+    $FORM{add_form}     = 1;
 
     $html->message('info', $_INFO, "$_CHANGING") if (!$Msgs->{errno});
   }
@@ -1592,24 +1597,32 @@ sub msgs_chapters {
     $html->message('err', $_ERROR, "[$Msgs->{errno}] $err_strs{$Msgs->{errno}}");
   }
 
-  $Msgs->{INNER_CHAPTER} = ($Msgs->{INNER_CHAPTER}) ? ' checked' : '';
+  if ($FORM{add_form}) {
+    $Msgs->{INNER_CHAPTER} = ($Msgs->{INNER_CHAPTER}) ? ' checked' : '';
+    $html->tpl_show(_include('msgs_chapter', 'Msgs'), $Msgs);
+  }
 
-  $html->tpl_show(_include('msgs_chapter', 'Msgs'), $Msgs);
-
-  my $list = $Msgs->chapters_list({%LIST_PARAMS});
+  my $list = $Msgs->chapters_list({%LIST_PARAMS, COLS_NAME => 1});
 
   my $table = $html->table(
     {
-      width   => '100%',
-      caption => "$_CHAPTERS",
-      title   => [ '#', "$_NAME", "$_INNER", "$_MESSAGES", "-", "-" ],
+      width      => '100%',
+      caption    => "$_CHAPTERS",
+      title      => [ '#', "$_NAME", "$_INNER", "$_MESSAGES", "-", "-" ],
       cols_align => [ 'left', 'left', 'right', 'center:noprint', 'center:noprint' ],
       qs         => $pages_qs,
+      MENU       => "$_ADD:add_form=1&index=$index:add"
     }
   );
 
   foreach my $line (@$list) {
-    $table->addrow($line->[0], $line->[1], $bool_vals[ $line->[2] ], $html->button($line->[3], ""), $html->button("$_CHANGE", "index=$index&chg=$line->[0]", { CLASS => 'change' }), $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?", CLASS => 'del' }));
+    $table->addrow($line->{id}, 
+    $line->{name}, 
+    $bool_vals[ $line->{innet_chapter} ], 
+    $html->button($line->{messages}, ""), 
+    $html->button("$_CHANGE", "index=$index&chg=$line->{id}", { CLASS => 'change' }), 
+    $html->button($_DEL, "index=$index&del=$line->{id}", { MESSAGE => "$_DEL $line->{id}?", CLASS => 'del' })
+    );
   }
 
   print $table->show();
@@ -1647,14 +1660,14 @@ sub msgs_dispatch_admins {
     $table->addrow(
       $html->form_input(
         'AIDS',
-        "$line->[0]",
+        "$line->{aid}",
         {
           TYPE  => 'checkbox',
-          STATE => ($active_admins{ $line->[0] }) ? 1 : undef
+          STATE => ($active_admins{ $line->{aid} }) ? 1 : undef
         }
       ),
-      $line->[0],
-      $line->[1]
+      $line->{aid},
+      $line->{admin_login}
     );
   }
 
@@ -1718,7 +1731,7 @@ sub msgs_dispatch {
 
     $html->tpl_show(_include('msgs_dispatch_blank', 'Msgs'), { %$Msgs, %ORDERS });
 
-    exit;
+    return 0;
   }
   elsif ($FORM{change}) {
     if ($FORM{STATE} > 0) {
@@ -1731,6 +1744,7 @@ sub msgs_dispatch {
   }
   elsif ($FORM{chg}) {
     $Msgs->dispatch_info($FORM{chg});
+
     $Msgs->{ACTION}     = 'change';
     $Msgs->{LNG_ACTION} = $_CHANGE;
     $html->message('info', $_INFO, "$_CHANGING") if (!$Msgs->{errno});
@@ -1753,89 +1767,140 @@ sub msgs_dispatch {
   if ($Msgs->{errno}) {
     $html->message('err', $_ERROR, "[$Msgs->{errno}] $err_strs{$Msgs->{errno}}");
   }
+
   $LIST_PARAMS{STATE} = $FORM{STATE} if (defined($FORM{STATE}) && $FORM{STATE} ne '');
   push @msg_status, $_IN_WORK;
-  $Msgs->{STATE_SEL} = $html->form_select(
-    'STATE',
-    {
-      SELECTED     => $Msgs->{STATE} || 0,
-      SEL_ARRAY    => [ @msg_status, "$_ALL" ],
-      ARRAY_NUM_ID => 0,
-      EX_PARAMS    => "onchange='samechanged(this)'"
-    }
-  );
-
-  $Msgs->{RESPOSIBLE_SEL} = $html->form_select(
-    'RESPOSIBLE',
-    {
-      SELECTED => $Msgs->{RESPOSIBLE_ID} || 0,
-      SEL_MULTI_ARRAY => [ [ 0, '' ], @{ $admin->list({ GIDS => $admins->{GIDS} }) } ],
-      MULTI_ARRAY_KEY => 0,
-      MULTI_ARRAY_VALUE => 1,
-      EX_PARAMS         => " STYLE='background-color: $_COLORS[3]' DISABLED"
-    }
-  );
-
-  $Msgs->{PLAN_DATE} = $DATE;
-  $html->tpl_show(_include('msgs_dispatch', 'Msgs'), $Msgs);
-
-  if ($FORM{chg}) {
-    $LIST_PARAMS{DISPATCH_ID} = $FORM{chg};
-
-    #$FORM{chg}=undef;
-    my $list = $Msgs->messages_list({ %LIST_PARAMS, DESC => (!$FORM{sort}) ? 'DESC' : $FORM{desc} });
-
-    $pages_qs .= "&chg=$FORM{chg}";
-    my $table = $html->table(
+  
+  if ($FORM{add_form}) {
+    $Msgs->{STATE_SEL} = $html->form_select(
+      'STATE',
       {
-        width   => '100%',
-        caption => "$_MESSAGES",
-        title   => [ '#', "$_USER", "$_SUBJECT", "$_CHAPTERS", "$_DATE", "$_STATUS", "IP", "$_RESPOSIBLE", "$_ADMIN", "$_PRIORITY", "$_EXECUTION", "-", "-" ],
-        cols_align => [ 'right', 'left', 'left', 'right', 'right', 'left', 'center', 'right', 'left', 'center:noprint', 'center:noprint' ],
-        qs         => $pages_qs,
-        pages      => $Msgs->{TOTAL},
-        ID         => 'MSGS_LIST',
-        header     => (
-          ($#A_CHAPTER == -1)
-          ? "<script language=\"JavaScript\" type=\"text/javascript\">
-<!-- 
-function CheckAllINBOX() {
-  for (var i = 0; i < document.users_list.elements.length; i++) {
-    if(document.users_list.elements[i].type == 'checkbox' && document.users_list.elements[i].name == 'del'){
-      document.users_list.elements[i].checked =         !(document.users_list.elements[i].checked);
-    }
-  }
-}
-//-->
-</script>\n <a href=\"javascript:void(0)\" onClick=\"CheckAllINBOX();\">$_SELECT_ALL</a> \n"
-          : ''
-        )
-        . $status_bar
+        SELECTED     => $Msgs->{STATE} || 0,
+        SEL_ARRAY    => [ @msg_status, "$_ALL" ],
+        ARRAY_NUM_ID => 0,
+        EX_PARAMS    => "onchange='samechanged(this)'"
       }
     );
 
-    foreach my $line (@$list) {
-      my $state = ($line->[6] == 0) ? $html->b($msg_status[ $line->[6] ]) : $msg_status[ $line->[6] ];
+    $Msgs->{RESPOSIBLE_SEL} = $html->form_select(
+      'RESPOSIBLE',
+      {
+        SELECTED          => $Msgs->{RESPOSIBLE_ID} || 0,
+        SEL_MULTI_ARRAY   => [ [ 0, '' ], @{ $admin->list({ GIDS => $admins->{GIDS} }) } ],
+        MULTI_ARRAY_KEY   => 0,
+        MULTI_ARRAY_VALUE => 1,
+        EX_PARAMS         => " STYLE='background-color: $_COLORS[3]' DISABLED"
+      }
+    );
 
-      $state .= '<img src="../img/red_dot.gif" border="0" alt="No reply"/>' if ($line->[17] eq '0000-00-00 00:00:00');
-      my $priority = $html->color_mark($priority[ $line->[9] ], $priority_colors[ $line->[9] ]);
+    $Msgs->{PLAN_DATE} = $DATE;
+    $html->tpl_show(_include('msgs_dispatch', 'Msgs'), $Msgs);
+  }
 
-      $table->addrow(
-        $line->[0] . (($A_PRIVILEGES{ $line->[19] } > 2 || scalar keys %CHAPTERS_DELIGATION == 0) ? $html->form_input('del', "$line->[0]", { TYPE => 'checkbox' }) : '') . (($line->[22]) ? $html->b("($_INNER_MSGS_CHAR)") : ""),
-        ($line->[12] > 0) ? $html->button($line->[1], "index=11&UID=$line->[12]") : $line->[1],
-        $html->button((($line->[2]) ? "$line->[2]" : $_NO_SUBJECT), "index=" . get_function_index('msgs_admin') . "&UID=$line->[12]&chg=$line->[0]"),
-        $line->[3],
-        $line->[4],
-        $line->[5],
-        $state,
-        $line->[7],
-        $line->[8],
-        $priority,
-        $line->[10],
-        $html->button("$_SHOW", "index=" . get_function_index('msgs_admin') . "&chg=$line->[0]&UID=$line->[12]", { CLASS => 'show' }),
-        (($A_PRIVILEGES{ $line->[19] } > 2 || $#A_CHAPTER == -1) ? $html->button($_DEL, "index=" . get_function_index('msgs_admin') . "&del=$line->[0]", { MESSAGE => "$_DEL '$line->[0]' ?", CLASS => 'del' }) : '')
-      );
-    }
+  if ($FORM{chg}) {
+    $LIST_PARAMS{DISPATCH_ID} = $FORM{chg};
+    delete($FORM{chg});
+
+    my ($table, $msg_list) = result_former({
+     INPUT_DATA      => $Msgs,
+     FUNCTION        => 'messages_list',
+     BASE_FIELDS     => 9,
+     FUNCTION_FIELDS => 'null',
+     EXT_TITLES      => {
+       'id'            => "$_NUM",
+       'client_id'     => $_USER,
+       'subject'       => $_SUBJECT,
+       'chapter_name'  => $_CHAPTERS,
+       'date'          => "$_DATE",
+       'state'         => "$_STATE",
+       'closed_date'   => "$_CLOSED",
+       'resposible_admin_login' => $_RESPOSIBLE,
+       'admin_login'   => $_ADMIN,
+       'priority'      => $_PRIORITY,
+       'plan_date_time'=> "$_EXECUTION",
+       'run_time'      => "$_RUN_TIME",
+       'user_read'     => "_USER_REED",
+       'admin_read'    => "_ADMIN_READ",
+       'replies_counts'=> "replies_counts",
+       'chapter_id'    => $_CHAPTERS,
+       'deligation'    => $_DELIGATE,
+       'dispatch_id'   => $_DISPATCH
+     },
+     TABLE            => {    
+     	 width       => '100%',
+       caption     => "$_MESSAGES",
+       qs          => $pages_qs,
+       ID          => 'MSGS_LIST',
+       header      => msgs_status_bar(),
+       SELECT_ALL  => "users_list:del:$_SELECT_ALL",
+       EXPORT      => 1,
+       MENU        => "$_ADD:add_form=1&index=" . get_function_index('msgs_admin') . ':add' . 
+     ";$_SEARCH:search_form=1&index=" . get_function_index('msgs_admin') . ":search",
+      }
+    });
+ 
+    foreach my $line (@{ $msg_list }) {
+        my @fields_array = ();
+        for (my $i = 0 ; $i < $Msgs->{SEARCH_FIELDS_COUNT}+9 ; $i++) {
+          my $val = '';
+          if ($Msgs->{COL_NAMES_ARR}->[$i] eq 'login' && $line->{uid}) {
+      	    $val = user_ext_menu($line->{uid}, $line->{login}, { EXT_PARAMS => ($attr->{MODULE} ? "MODULE=$attr->{MODULE}": undef) }); 
+          }
+          elsif ($Msgs->{COL_NAMES_ARR}->[$i] eq 'client_id') {
+      	    $val = ($line->{uid} > 0) ? $html->button($line->{client_id}, "index=11&UID=$line->{uid}") : $line->{client_id};
+      	    if ($line->{fio}) {
+      	      $val .= $html->br(). $line->{fio};	
+      	    }
+          }
+          elsif ($Msgs->{COL_NAMES_ARR}->[$i] eq 'subject') {
+      	    $val = $html->button((($line->{subject}) ? "$line->{subject}" : $_NO_SUBJECT), "index=$index&UID=$line->{uid}&chg=$line->{id}");
+          }
+          elsif ($Msgs->{COL_NAMES_ARR}->[$i] eq 'priority') {
+            $val = $html->color_mark($priority[ $line->{priority} ], $priority_colors[ $line->{priority} ])
+          }
+#          elsif ($Msgs->{COL_NAMES_ARR}->[$i] =~ /fio/) {
+#          }
+          elsif ($Msgs->{COL_NAMES_ARR}->[$i] eq 'state') {
+            my $state = ($line->{state} == 0) ? $html->b($msg_status[ $line->{state} ]) : $msg_status[ $line->{state} ];
+            $state .= ' <img src="../img/red_dot.gif" border="0" alt="No reply"/>' if ($line->{admin_read} eq '0000-00-00 00:00:00');
+
+            if ($line->{deligation} > 0) {
+              if ($CHAPTERS_DELIGATION{ $line->{chapter_id} } == $line->{deligation}) {
+                $state .= ' <img src="../img/delivered2.png" border="0" alt="' . $_DELIVERED . '"/>';
+              }
+              else {
+                $state .= ' <img src="../img/delivered1.png" border="0" alt="' . $_DELIVERED . '"/>';
+              }
+            }
+
+            $val = $state;
+          }
+          elsif($Msgs->{COL_NAMES_ARR}->[$i] =~ /status|disable/) {
+            my @service_status = ("$_ENABLE", "$_DISABLE", "$_NOT_ACTIVE");
+            my @service_status_colors = ("$_COLORS[9]", "$_COLORS[6]", '#808080', '#0000FF', '#FF8000', '#009999');
+
+      	    $val = ($line->{$Msgs->{COL_NAMES_ARR}->[$i]} > 0) ? $html->color_mark($service_status[ $line->{$Msgs->{COL_NAMES_ARR}->[$i]} ], $service_status_colors[ $line->{$Msgs->{COL_NAMES_ARR}->[$i]} ]) : "$service_status[$line->{$Msgs->{COL_NAMES_ARR}->[$i]}]";
+          }
+          elsif($Msgs->{COL_NAMES_ARR}->[$i] =~ /deposit/) {
+            $val = ($permissions{0}{12}) ? '--' : ($line->{deposit} + $line->{credit} < 0) ? $html->color_mark($line->{deposit}, $_COLORS[6]) : $line->{deposit},
+          }
+          else {
+      	    $val = $line->{ $Msgs->{COL_NAMES_ARR}->[$i]  };
+          }
+
+          if ($i == 0) {
+          	$val .= (($line->{inner_msg}) ? $html->b("($_INNER_MSGS_CHAR)") : '');
+          	$val = (($A_PRIVILEGES{ $line->{chapter_id} } > 2 || scalar keys %CHAPTERS_DELIGATION == 0) ? $html->form_input('del', "$line->{id}", { TYPE => 'checkbox' }) : '') . $val          	
+          }
+
+          push @fields_array, $val;
+        }
+
+        push @fields_array,  $html->button("$_SHOW", "index=". get_function_index('msgs_admin') ."&chg=$line->{id}&UID=$line->{uid}", { CLASS => 'show' });
+        #push @fields_array, (($A_PRIVILEGES{ $line->{chapter_id} } > 2 || $#A_CHAPTER == -1) ? $html->button($_DEL, "index=". get_function_index('msgs_admin') ."&del=$line->{id}$pages_qs", { MESSAGE => "$_DEL [$line->{id}] $line->{subject} ?", CLASS => 'del' }) : '');
+
+        $table->addrow(@fields_array);
+    } 
 
     my $dispatch = msgs_dispatch_sel();
     print $html->form_main(
@@ -1862,7 +1927,7 @@ function CheckAllINBOX() {
     $LIST_PARAMS{DESC} = 'desc';
   }
 
-  my $list = $Msgs->dispatch_list({%LIST_PARAMS});
+  my $list = $Msgs->dispatch_list({%LIST_PARAMS, COLS_NAME => 1 });
 
   my $i = 0;
   $pages_qs = '';
@@ -1888,27 +1953,28 @@ function CheckAllINBOX() {
       cols_align => [ 'left', 'left', 'right', 'center:noprint', 'center:noprint' ],
       qs         => $pages_qs,
       ID         => 'MSGS_DISPATCH',
-      header     => $status_bar
+      header     => $status_bar,
+      MENU       => "$_ADD:add_form=1&index=$index:add"
     }
   );
 
   foreach my $line (@$list) {
     $table->addrow(
-      $line->[0],
-      $line->[1],
-      $line->[2],
-      $line->[3],
-      $line->[4],
+      $line->{id},
+      $line->{comments},
+      $line->{plan_date},
+      $line->{created},
+      $line->{message_count},
       $html->button(
         $_PRINT, "#",
         {
-          NEW_WINDOW      => "$SELF_URL?qindex=$index&print=$line->[0]",
+          NEW_WINDOW      => "$SELF_URL?qindex=$index&print=$line->{id}",
           NEW_WINDOW_SIZE => "640:750",
           CLASS           => 'print'
         }
       ),
-      $html->button("$_CHANGE", "index=$index&chg=$line->[0]", { CLASS => 'change' }),
-      $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?", CLASS => 'del' })
+      $html->button("$_CHANGE", "index=$index&chg=$line->{id}", { CLASS => 'change' }),
+      $html->button($_DEL, "index=$index&del=$line->{id}", { MESSAGE => "$_DEL $line->{id}?", CLASS => 'del' })
     );
   }
 
@@ -2228,9 +2294,9 @@ sub msgs_shedule {
       else {
         $table2 = $html->table(
           {
-            width   => '300',
-            caption => $caption . " / $date",
-            title   => [ '#', "$_ADMIN", "$_TIME", "$_SUBJECT" ],
+            width      => '300',
+            caption    => $caption . " / $date",
+            title      => [ '#', "$_ADMIN", "$_TIME", "$_SUBJECT" ],
             cols_align => [ 'right', 'left', 'left' ],
             ID         => 'SHEDULE_LIST',
           }
@@ -2587,11 +2653,11 @@ sub msgs_unreg_requests_list {
     $LIST_PARAMS{UID} = undef if (!$FORM{UID});
   }
 
-  if (!$attr->{LIST_ONLY}) {
+  if (!$attr->{LIST_ONLY} && $FORM{search_form}) {
     $Msgs->{STATE_SEL} = $html->form_select(
       'STATE',
       {
-        SELECTED => $FORM{STATE} || 3,
+        SELECTED     => $FORM{STATE} || 3,
         SEL_ARRAY    => [ @msg_status, "$_ALL" ],
         STYLE        => \@style,
         ARRAY_NUM_ID => 0
@@ -2625,7 +2691,10 @@ sub msgs_unreg_requests_list {
 
     $Msgs->{ADDRESS_TPL} = $html->tpl_show(templates('form_address'), $Msgs, { OUTPUT2RETURN => 1 });
 
-    form_search({ SEARCH_FORM => $html->tpl_show(_include('msgs_request_search', 'Msgs'), { %$Msgs, %FORM }, { OUTPUT2RETURN => 1 }) });
+    form_search({ SEARCH_FORM => $html->tpl_show(_include('msgs_request_search', 'Msgs'), 
+    	 { %$Msgs, %FORM }, 
+    	 { OUTPUT2RETURN => 1 }),
+    	 ADDRESS_FORM    => 1 });
   }
 
   $LIST_PARAMS{STATE}    = undef if ($FORM{STATE} == 3);
@@ -2668,34 +2737,15 @@ sub msgs_unreg_requests_list {
       qs         => $pages_qs,
       pages      => $Msgs->{TOTAL},
       ID         => 'MSGS_LIST',
-      header     => (
-        ($#A_CHAPTER == -1)
-        ? "<script language=\"JavaScript\" type=\"text/javascript\">
-<!-- 
-function CheckAllINBOX() {
-  for (var i = 0; i < document.users_list.elements.length; i++) {
-    if(document.users_list.elements[i].type == 'checkbox' && document.users_list.elements[i].name == 'del'){
-      document.users_list.elements[i].checked =         !(document.users_list.elements[i].checked);
-    }
-  }
-}
-//-->
-</script>
-<a href=\"javascript:void(0)\" onClick=\"CheckAllINBOX();\">$_SELECT_ALL</a> \n"
-        : ''
-      )
-      . $status_bar
+      header     => $status_bar,
+      SELECT_ALL => "users_list:del:$_SELECT_ALL",
+      MENU        => "$_SEARCH:index=". get_function_index('msgs_unreg_requests') .":add;$_SEARCH:search_form=1&index=$index:search",
     }
   );
 
   foreach my $line (@$list) {
     my $state = ($line->[6] == 0) ? $html->b($msg_status[ $line->[6] ]) : $msg_status[ $line->[6] ];
-
     $state .= '<img src="../img/red_dot.gif" border="0" alt="No reply"/>' if ($line->[16] eq '0000-00-00 00:00:00');
-
-    #my $priority = $html->color_mark($priority[$line->[8]], $priority_colors[$line->[8]]);
-
-    # Sort 	Дата Sort 	Тема Sort 	ФИО Sort 	Разделы Sort 	Администратор Sort 	Статус Sort 	Закрытые Sort
 
     $table->addrow(
       $line->[0] . (($A_PRIVILEGES{ $line->[18] } > 2 || $#A_CHAPTER == -1) ? $html->form_input('del', "$line->[0]", { TYPE => 'checkbox' }) : ''),
@@ -2985,6 +3035,7 @@ sub msgs_survey {
 
     $Msgs->{ACTION}     = 'change';
     $Msgs->{LNG_ACTION} = $_CHANGE;
+    $FORM{add_form}     = 1;
 
     $html->message('info', $_INFO, "$_CHANGING") if (!$Msgs->{errno});
   }
@@ -2998,7 +3049,10 @@ sub msgs_survey {
     $html->message('err', $_ERROR, "[$Msgs->{errno}] $err_strs{$Msgs->{errno}}");
   }
 
-  $html->tpl_show(_include('msgs_survey_subject', 'Msgs'), $Msgs);
+  if ($FORM{add_form}) {
+    $html->tpl_show(_include('msgs_survey_subject', 'Msgs'), $Msgs);
+  }
+
   my $list  = $Msgs->survey_subjects_list({%LIST_PARAMS});
   my $table = $html->table(
     {
@@ -3007,16 +3061,21 @@ sub msgs_survey {
       title      => [ '#', "$_NAME", "$_COMMENTS", "$_ADMINS", "$_CREATED", "-", "-", "-" ],
       cols_align => [ 'left', 'left', 'right', 'center:noprint', 'center:noprint' ],
       qs         => $pages_qs,
-      ID         => 'SURVEY_LIST'
+      ID         => 'SURVEY_LIST',
+      MENU        => "$_ADD:add_form=1&index=$index:add"
     }
   );
 
   foreach my $line (@$list) {
     $table->addrow(
-      $line->[0], $line->[1], $line->[2], $line->[3], $line->[4],
-      $html->button("$_QUESTIONS", "index=$index&SURVEY=$line->[0]", { CLASS => 'help' }),
-      $html->button("$_CHANGE",    "index=$index&chg=$line->[0]",    { CLASS => 'change' }),
-      $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?", CLASS => 'del' })
+      $line->{id}, 
+      $line->{name}, 
+      $line->{comments}, 
+      $line->{aid}, 
+      $line->{created},
+      $html->button("$_QUESTIONS", "index=$index&SURVEY=$line->{id}", { CLASS => 'help' }),
+      $html->button("$_CHANGE",    "index=$index&chg=$line->{id}",    { CLASS => 'change' }),
+      $html->button($_DEL, "index=$index&del=$line->{id}", { MESSAGE => "$_DEL $line->{id}?", CLASS => 'del' })
     );
   }
 
@@ -3124,15 +3183,16 @@ sub msgs_survey_show {
       SURVEY_ID => $attr->{SURVEY_ID},
       UID       => $user->{UID} || $LIST_PARAMS{UID},
       MSG_ID    => $attr->{MSG_ID},
-      REPLY_ID  => $attr->{REPLY_ID} || 0
+      REPLY_ID  => $attr->{REPLY_ID} || 0,
+      COLS_NAME => 1
     }
   );
   my $answer_date = '';
   if ($Msgs->{TOTAL} > 0) {
     foreach my $line (@$list) {
-      $answers{ $line->[0] }{ANSWER}   = $line->[2];
-      $answers{ $line->[0] }{COMMENTS} = $line->[3];
-      $answer_date                     = $line->[4];
+      $answers{ $line->{question_id} }{ANSWER}   = $line->{answer};
+      $answers{ $line->{question_id} }{COMMENTS} = $line->{comments};
+      $answer_date                     = $line->{date_time};
     }
   }
   else {
@@ -3211,32 +3271,6 @@ sub msgs_survey_show {
 sub msgs_chapters_menu {
   my ($attr) = @_;
 
-  #Get admin privileges
-  #  my $a_list = $Msgs->admins_list({ AID => $admin->{AID} });
-  #  my %A_PRIVILEGES        = ();
-  #  my %CHAPTERS_DELIGATION = ();
-  #  foreach my $line (@$a_list) {
-  #  	if ($line->[5] > 0) {
-  #  	  push @A_CHAPTER, "$line->[5]:$line->[3]";
-  #  	  $CHAPTERS_DELIGATION{$line->[5]}=$line->[3];
-  #  	  $A_PRIVILEGES{$line->[5]}=$line->[2];
-  #  	 }
-  #   }
-  #
-  #  if (scalar keys %CHAPTERS_DELIGATION > 0) {
-  #    $LIST_PARAMS{CHAPTERS_DELIGATION} = \%CHAPTERS_DELIGATION;
-  #    $LIST_PARAMS{PRIVILEGES}          = \%A_PRIVILEGES;
-  #    $LIST_PARAMS{UID}      = undef if (! $FORM{UID});
-  #   }
-  #
-  #  $Msgs->{debug}=1;
-  #  my $list = $Msgs->messages_list({ %LIST_PARAMS,
-  #  	                                DESC       => (! $FORM{sort}) ? 'DESC' : $FORM{desc}
-  #  	                               });
-  #
-  # foreach my $line (@$list) {
-  # 	 print "$line->[0] <br>";
-  #  }
 
 }
 

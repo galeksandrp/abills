@@ -418,9 +418,7 @@ sub action_list {
   $PG        = ($attr->{PG})        ? $attr->{PG}        : 0;
   $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
 
-  my @list = ();
   @WHERE_RULES = ();
-  $WHERE       = '';
 
   push @WHERE_RULES, @{ $self->search_expr_users({ %$attr, 
                              EXT_FIELDS => [
@@ -453,44 +451,6 @@ sub action_list {
 
                                              ] }) };
 
-
-  # UID
-  if ($attr->{UID}) {
-    push @WHERE_RULES, "aa.uid='$attr->{UID}'";
-  }
-  if ($attr->{AID}) {
-    push @WHERE_RULES, "aa.aid='$attr->{AID}'";
-  }
-  elsif ($attr->{ADMIN}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{ADMIN}, 'STR', 'a.id') };
-  }
-
-  # Start letter
-  elsif ($attr->{LOGIN}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{LOGIN}, 'STR', 'u.id') };
-  }
-
-  if ($attr->{ACTION}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{ACTION}, 'STR', 'aa.actions') };
-  }
-
-  if (defined($attr->{TYPE}) && $attr->{TYPE} ne '') {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{TYPE}, 'INT', 'aa.action_type') };
-  }
-
-  if ($attr->{IP}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{IP}, 'IP', 'aa.ip') };
-  }
-
-  # Date intervals
-  if ($attr->{FROM_DATE}) {
-    push @WHERE_RULES, "(date_format(aa.datetime, '%Y-%m-%d')>='$attr->{FROM_DATE}' and date_format(aa.datetime, '%Y-%m-%d')<='$attr->{TO_DATE}')";
-  }
-
-  if ($attr->{MODULE}) {
-    push @WHERE_RULES, "aa.module='$attr->{MODULE}'";
-  }
-
   if ($attr->{GID} || $attr->{GIDS}) {
     $attr->{GIDS} = $attr->{GID} if (!$attr->{GIDS});
     my @system_admins = ();
@@ -507,13 +467,30 @@ sub action_list {
 
   my $EXT_TABLE = $self->{EXT_TABLES}; 
 
-  $WHERE = "WHERE " . join(' and ', @WHERE_RULES) if ($#WHERE_RULES > -1);
+  my $WHERE = $self->search_former($attr, [
+      ['UID',          'INT',  'aa.uid',          ],
+      ['LOGIN',        'STR',  'u.id',            ],
+      ['RESPOSIBLE',   'INT',  'm.resposible',    ],
+      ['ACTION',       'INT',  'aa.actions',      ],
+      ['TYPE',         'INT',  'aa.action_type',  ], 
+      ['MODULE',       'STR',  'aa.module',       ],
+      ['IP',           'IP',   'aa.ip'            ],
+      ['DATE',         'DATE', "date_format(aa.datetime, '%Y-%m-%d')"     ],
+      ['FROM_DATE|TO_DATE', 'DATE', "date_format(aa.datetime, '%Y-%m-%d')" ],
+      ['AID',          'INT',  'aa.aid'           ],
+      ['ADMIN',        'INT',  'a.id', 'a.id'     ],
+      
+    ],
+    { WHERE => 1,
+    	WHERE_RULES => \@WHERE_RULES
+    }
+    );
 
   if ($self->{SEARCH_FIELDS} =~ /pi\./) {
     $EXT_TABLE = " LEFT JOIN users_pi pi ON (u.uid=pi.uid) ".$EXT_TABLE ;
   }
 
-  $self->query2("select aa.id, u.id AS login, aa.datetime, aa.actions, a.id as admin_login, INET_NTOA(aa.ip) AS ip,   aa.module, 
+  $self->query2("select aa.id, u.id AS login, aa.datetime, aa.actions, a.id as admin_login, INET_NTOA(aa.ip) AS ip, aa.module, 
       aa.action_type,
       aa.uid, 
       $self->{SEARCH_FIELDS}
@@ -579,48 +556,27 @@ sub system_action_list {
   $PG        = ($attr->{PG})        ? $attr->{PG}        : 0;
   $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
 
-  my @list = ();
   @WHERE_RULES = ();
-  $WHERE       = '';
 
-  if ($attr->{AID}) {
-    push @WHERE_RULES, "aa.aid='$attr->{AID}'";
-  }
-  elsif ($attr->{ADMIN}) {
-    $attr->{ADMIN} =~ s/\*/\%/ig;
-    push @WHERE_RULES, "a.id LIKE '$attr->{ADMIN}'";
-  }
+  my $WHERE = $self->search_former($attr, [
+      ['UID',          'INT',  'aa.uid',          ],
+      ['LOGIN',        'STR',  'u.id',            ],
+      ['RESPOSIBLE',   'INT',  'm.resposible',    ],
+      ['ACTION',       'INT',  'aa.actions',      ],
+      ['TYPE',         'INT',  'aa.action_type',  ], 
+      ['MODULE',       'STR',  'aa.module',       ],
+      ['IP',           'IP',   'aa.ip'            ],
+      ['DATE',         'DATE', "date_format(aa.datetime, '%Y-%m-%d')"     ],
+      ['FROM_DATE|TO_DATE', 'DATE', "date_format(aa.datetime, '%Y-%m-%d')" ],
+      ['AID',          'INT',  'aa.aid'           ],
+      ['ADMIN',        'STR',  'a.id', 'a.id'     ],
+      
+    ],
+    { WHERE => 1,
+    	WHERE_RULES => \@WHERE_RULES
+    }
+    );
 
-  if ($attr->{ACTION}) {
-    $attr->{ACTION} =~ s/\*/\%/ig;
-    push @WHERE_RULES, "aa.actions LIKE '$attr->{ACTION}'";
-  }
-
-  # Date intervals
-  if ($attr->{FROM_DATE}) {
-    push @WHERE_RULES, "(date_format(aa.datetime, '%Y-%m-%d')>='$attr->{FROM_DATE}' and date_format(aa.datetime, '%Y-%m-%d')<='$attr->{TO_DATE}')";
-  }
-
-  if ($attr->{MODULE}) {
-    push @WHERE_RULES, "aa.module='$attr->{MODULE}'";
-  }
-
-  if (defined($attr->{TYPE}) && $attr->{TYPE} ne '') {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{TYPE}, 'INT', 'aa.action_type') };
-  }
-
-  if ($attr->{IP}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{IP}, 'IP', 'aa.ip') };
-  }
-
-  if ($attr->{GIDS}) {
-    push @WHERE_RULES, "a.gid IN ($attr->{GIDS})";
-  }
-  elsif ($attr->{GID}) {
-    push @WHERE_RULES, "a.gid='$attr->{GID}'";
-  }
-
-  $WHERE = "WHERE " . join(' and ', @WHERE_RULES) if ($#WHERE_RULES > -1);
 
   $self->query2( 
      "select aa.id, aa.datetime, aa.actions, a.id, INET_NTOA(aa.ip), aa.module, 
@@ -722,6 +678,46 @@ sub online_del {
 }
 
 
+#**********************************************************
+# settings_info()
+#**********************************************************
+sub settings_info {
+  my $self = shift;
+  my ($id) = @_;
+
+  $self->query2("SELECT  aid,
+      object,
+      setting
+    FROM admin_settings
+    WHERE object='$id' AND aid='$self->{AID}';",
+   undef, { INFO => 1 });
+
+  return $self;
+}
+
+#**********************************************************
+# settings_add()
+#**********************************************************
+sub settings_add {
+  my $self = shift;
+  my ($attr) = @_;
+
+  $self->query_add('admin_settings', { %$attr, AID => $self->{AID} }, { REPLACE => 1 });
+
+  return $self;
+}
+
+#**********************************************************
+# group_add()
+#**********************************************************
+sub settings_del {
+  my $self = shift;
+  my ($id) = @_;
+
+  $self->query2("DELETE FROM admin_settings WHERE aid='$admin->{AID}' AND object='$id';", 'do');
+
+  return $self;
+}
 
 
 =comments

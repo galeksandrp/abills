@@ -52,12 +52,13 @@ sub convert_radpairs {
 sub sql_connect {
   my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
   my $db = $sql->{db};
+
   convert_radpairs();
 
   $REQUEST{NAS_IDENTIFIER} = '' if (!$REQUEST{NAS_IDENTIFIER});
   if (!$NAS_INFO{ $REQUEST{NAS_IP_ADDRESS} . '_' . $REQUEST{NAS_IDENTIFIER} }) {
-    $nas = Nas->new($db, \%conf);
-    if (get_nas_info($db, \%REQUEST) == 0) {
+    $nas = get_nas_info($db, \%REQUEST);
+    if (!  $nas->{errno}) {
       $NAS_INFO{ $REQUEST{NAS_IP_ADDRESS} . '_' . $REQUEST{NAS_IDENTIFIER} } = $nas;
     }
     else {
@@ -129,7 +130,10 @@ sub accounting {
 sub post_auth {
   $begin_time = check_time();
 
-  my $db;
+  my $db     = sql_connect();
+  
+  print "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz $db zzzzzzz\n";
+  
   my $return = inc_postauth($db, \%REQUEST, $nas);
   if ($return == 0) {
     return RLM_MODULE_OK;

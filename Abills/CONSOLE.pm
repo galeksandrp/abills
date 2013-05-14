@@ -541,7 +541,7 @@ sub addrow {
       next;
     }
 
-    $self->{rows} .= "$COLS_SEPARATOR" . $self->link_former($val, { SKIP_SPACE => 1 });
+    $self->{rows} .= $self->link_former($val, { SKIP_SPACE => 1 }) . "$COLS_SEPARATOR";
     $col_num++;
   }
 

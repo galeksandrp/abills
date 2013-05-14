@@ -72,81 +72,23 @@ sub docs_receipt_list {
 
   @WHERE_RULES = ("d.id=o.receipt_id");
 
-  push @WHERE_RULES, @{ $self->search_expr_users({ %$attr, 
-                             EXT_FIELDS => [
-                                            'PHONE',
-                                            'EMAIL',
-                                            'ADDRESS_FLAT',
-                                            'PASPORT_DATE',
-                                            'PASPORT_NUM', 
-                                            'PASPORT_GRANT',
-                                            'CITY', 
-                                            'ZIP',
-                                            'GID',
-                                            'CONTRACT_ID',
-                                            'CONTRACT_SUFIX',
-                                            'CONTRACT_DATE',
-                                            'EXPIRE',
-
-                                            'CREDIT',
-                                            'CREDIT_DATE', 
-                                            'REDUCTION',
-                                            'REGISTRATION',
-                                            'REDUCTION_DATE',
-                                            'COMMENTS',
-                                            'BILL_ID',
-                                            
-                                            'ACTIVATE',
-                                            'EXPIRE',
-
-                                             ] }) };
-
-  
-  if ($attr->{CUSTOMER}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{CUSTOMER}, 'STR', 'd.customer') };
-  }
-
-  if ($attr->{AID}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{AID}, 'STR', 'a.id') };
-  }
-
-  if ($attr->{FROM_DATE}) {
-    push @WHERE_RULES, "(date_format(d.date, '%Y-%m-%d')>='$attr->{FROM_DATE}' and date_format(d.date, '%Y-%m-%d')<='$attr->{TO_DATE}')";
-  }
-
-  if ($attr->{DOC_ID}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{DOC_ID}, 'INT', 'd.receipt_num') };
-  }
-
-  if ($attr->{SUM}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{SUM}, 'INT', 'o.price * o.counts') };
-  }
-
-  if (defined($attr->{PAYMENT_METHOD}) && $attr->{PAYMENT_METHOD} ne '') {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{PAYMENT_METHOD}, 'INT', 'p.method') };
-  }
-
-  if (defined($attr->{PAYMENT_ID})) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{PAYMENT_ID}, 'INT', 'd.payment_id') };
-  }
-
-  #DIsable
-  if ($attr->{UID}) {
-    push @WHERE_RULES, "d.uid='$attr->{UID}'";
-  }
-
-  if ($attr->{FULL_INFO}) {
-    $self->{SEARCH_FIELDS} = ",
-    pi.address_street,
-   pi.address_build,
-   pi.address_flat,
-   if (d.phone<>0, d.phone, pi.phone),
-   pi.contract_id,
-   pi.contract_date,
-   u.company_id";
-  }
-
-  $WHERE = ($#WHERE_RULES > -1) ? 'WHERE ' . join(' and ', @WHERE_RULES) : '';
+  my $WHERE =  $self->search_former($attr, [
+      ['UID',            'INT', 'd.uid'                               ],
+      ['LOGIN',          'STR', 'u.id'                                ],    
+      ['SUM',            'INT', 'o.price * o.counts'                  ],
+      ['PAYMENT_METHOD', 'INT', 'p.method',                           ],
+      ['PAYMENT_ID',     'INT', 'd.payment_id',                       ],
+      ['DOC_ID',         'INT', 'd.receipt_num',                      ],
+      ['AID',            'INT', 'a.id',                               ],
+      ['CUSTOMER',       'STR', 'd.customer',                         ],
+      ['FROM_DATE|TO_DATE','INT', "date_format(d.date, '%Y-%m-%d')"   ],
+      ['PHONE',          'INT', 'if (d.phone<>0, d.phone, pi.phone)', 'if (d.phone<>0, d.phone, pi.phone) AS phone'   ],
+    ],
+    { WHERE => 1,
+    	WHERE_RULES => \@WHERE_RULES,
+    	USERS_FIELDS=> 1
+    }    
+    );
 
   if ($attr->{ORDERS_LIST}) {
     $self->query2("SELECT  o.receipt_id,  o.orders,  o.unit,  o.counts,  o.price,  o.fees_id
@@ -166,11 +108,11 @@ sub docs_receipt_list {
      u.id AS login, 
      a.name AS admin_name, 
      d.created, 
-     p.method, 
-     d.uid, 
-     d.id, 
-     p.id 
+     p.method AS payment_method, 
      $self->{SEARCH_FIELDS}
+     p.id AS payment_id,
+     d.uid, 
+     d.id
     FROM (docs_receipts d, docs_receipt_orders o)
     LEFT JOIN users u ON (d.uid=u.uid)
     LEFT JOIN admins a ON (d.aid=a.aid)
@@ -208,77 +150,26 @@ sub docs_receipt_new {
   $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
   $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
 
-  undef @WHERE_RULES;
-
-  if ($attr->{UID}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{UID}, 'INT', 'f.uid') };
-  }
-  if ($attr->{LOGIN}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{LOGIN}, 'STR', 'u.id') };
-  }
-
-  if ($attr->{BILL_ID}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{BILL_ID}, 'INT', 'f.bill_id') };
-  }
-  elsif ($attr->{COMPANY_ID}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{COMPANY_ID}, 'INT', 'u.company_id') };
-  }
-
-  if ($attr->{AID}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{AID}, 'INT', 'f.aid') };
-  }
-
-  if ($attr->{ID}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{ID}, 'INT', 'f.id') };
-  }
-
-  if ($attr->{A_LOGIN}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{A_LOGIN}, 'STR', 'a.id') };
-  }
-
-  if ($attr->{DOMAIN_ID}) {
-    push @WHERE_RULES, "u.domain_id='$attr->{DOMAIN_ID}' ";
-  }
-
-  # Show debeters
-  if ($attr->{DESCRIBE}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{DESCRIBE}, 'STR', 'f.dsc') };
-  }
-
-  if ($attr->{INNER_DESCRIBE}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{INNER_DESCRIBE}, 'STR', 'f.inner_describe') };
-  }
-
-  if (defined($attr->{METHOD}) && $attr->{METHOD} >= 0) {
-    push @WHERE_RULES, "f.method IN ($attr->{METHOD}) ";
-  }
-
-  if ($attr->{SUM}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{SUM}, 'INT', 'f.sum') };
-  }
-
-  # Show groups
-  if ($attr->{GIDS}) {
-    push @WHERE_RULES, "u.gid IN ($attr->{GIDS})";
-  }
-  elsif ($attr->{GID}) {
-    push @WHERE_RULES, "u.gid='$attr->{GID}'";
-  }
-
-  # Date
-  if ($attr->{FROM_DATE}) {
-    push @WHERE_RULES, @{ $self->search_expr(">=$attr->{FROM_DATE}", 'DATE', 'date_format(f.date, \'%Y-%m-%d\')') }, @{ $self->search_expr("<=$attr->{TO_DATE}", 'DATE', 'date_format(f.date, \'%Y-%m-%d\')') };
-  }
-  elsif ($attr->{DATE}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{DATE}, 'DATE', 'date_format(f.date, \'%Y-%m-%d\')') };
-  }
-
-  # Month
-  elsif ($attr->{MONTH}) {
-    push @WHERE_RULES, "date_format(f.date, '%Y-%m')='$attr->{MONTH}'";
-  }
-
-  $WHERE = ($#WHERE_RULES > -1) ? 'WHERE ' . join(' and ', @WHERE_RULES) : '';
+  my $WHERE =  $self->search_former($attr, [
+      ['UID',            'INT', 'f.uid'                              ],
+      ['LOGIN',          'STR', 'u.id'                               ],      
+      ['BILL_ID',        'INT', 'f.bill_id'                          ],
+      ['COMPANY_ID',     'INT', 'u.company_id',                      ],
+      ['AID',            'INT', 'f.aid',                             ],
+      ['ID',             'INT', 'f.id',                              ],
+      ['A_LOGIN',        'STR', 'a.id',                              ],
+      ['SUM',            'INT', 'f.sum',                             ],
+      ['DOMAIN_ID',      'INT', 'u.domain_id',                       ],
+      ['METHOD',         'INT', 'f.method',                          ],
+      ['DESCRIBE',       'STR', 'f.dsc',                             ],
+      ['INNER_DESCRIBE', 'STR', 'f.inner_describe',                  ],
+      ['DATE',           'DATE', 'date_format(f.date, \'%Y-%m-%d\')',  ],
+      ['FROM_DATE|TO_DATE','DATE', 'date_format(f.date, \'%Y-%m-%d\')'   ],
+      ['MONTH',          'DATE', "date_format(f.date, '%Y-%m')"   ],
+    ],
+    { WHERE => 1,
+    }    
+    );
 
   $self->query2("SELECT f.id, u.id, f.date, f.dsc, f.sum, io.fees_id,
 f.last_deposit, 
@@ -442,7 +333,7 @@ sub docs_receipt_del {
 
 
 #**********************************************************
-# invoices_list
+# invoices2payments
 #**********************************************************
 sub invoices2payments {
   my $self =shift;
@@ -456,7 +347,7 @@ sub invoices2payments {
 
 
 #**********************************************************
-# invoices_list
+# invoices2payments_list
 #**********************************************************
 sub invoices2payments_list {
   my $self =shift;
@@ -469,28 +360,22 @@ sub invoices2payments_list {
 
   @WHERE_RULES = ();
 
-  if ($attr->{PAYMENT_ID}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{PAYMENT_ID}, 'INT', 'i2p.payment_id') };
-  }
-
-  if ($attr->{INVOICE_ID}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{INVOICE_ID}, 'INT', 'i2p.invoice_id') };
-  }
-
   if ($attr->{UNINVOICED}) {
     push @WHERE_RULES, '(i2p.invoice_id IS NULL OR p.sum>(SELECT sum(sum) FROM docs_invoice2payments WHERE payment_id=p.id))';
   }
 
-  if ($attr->{UID}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{UID}, 'INT', 'p.uid') };
-  }
+  my $WHERE =  $self->search_former($attr, [
+      ['UID',            'INT',  'p.uid'                              ],
+      ['INVOICE_ID',     'INT',  'i2p.invoice_id'                     ],
+      ['PAYMENT_ID',     'INT',  'i2p.payment_id',                    ],
+      ['DATE',           'DATE', 'date_format(d.date, \'%Y-%m-%d\')'  ],
+      ['FROM_DATE|TO_DATE','DATE', 'date_format(d.date, \'%Y-%m-%d\')'],
+    ],
+    { WHERE => 1,
+    	WHERE_RULES => \@WHERE_RULES
+    }
+    );
 
-  if ($attr->{FROM_DATE}) {
-    push @WHERE_RULES, "(date_format(d.date, '%Y-%m-%d')>='$attr->{FROM_DATE}' and date_format(d.date, '%Y-%m-%d')<='$attr->{TO_DATE}')";
-  }
-
-
-  $WHERE = ($#WHERE_RULES > -1) ? 'WHERE ' . join(' and ', @WHERE_RULES) : '';
   $self->query2("SELECT p.id AS payment_id, p.date, p.dsc, 
       p.sum AS payment_sum, 
       i2p.sum AS invoiced_sum, 
@@ -525,36 +410,8 @@ sub invoices_list {
   $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
 
   delete $self->{ORDERS};
-  @WHERE_RULES = ();
 
-  push @WHERE_RULES, @{ $self->search_expr_users({ %$attr, 
-                             EXT_FIELDS => [
-                                            'PHONE',
-                                            'EMAIL',
-                                            'ADDRESS_FLAT',
-                                            'PASPORT_DATE',
-                                            'PASPORT_NUM', 
-                                            'PASPORT_GRANT',
-                                            'CITY', 
-                                            'ZIP',
-                                            'GID',
-                                            'CONTRACT_ID',
-                                            'CONTRACT_SUFIX',
-                                            'CONTRACT_DATE',
-                                            'EXPIRE',
-
-                                            'CREDIT',
-                                            'CREDIT_DATE', 
-                                            'REDUCTION',
-                                            'REGISTRATION',
-                                            'REDUCTION_DATE',
-                                            'COMMENTS',
-                                            'BILL_ID:skip',
-                                            
-                                            'ACTIVATE',
-                                            'EXPIRE',
-
-                                             ] }) };
+  my @WHERE_RULES = ();
 
   if ($SORT == 1 && ! $attr->{DESC}) {
     $SORT = "2 DESC, 1";
@@ -575,11 +432,11 @@ sub invoices_list {
       i2p.invoice_id, 
       p.uid
       
-from payments p
-LEFT JOIN docs_invoice2payments i2p ON (p.id=i2p.payment_id)
-WHERE p.uid='$attr->{UID}' 
-AND (i2p.invoice_id IS NULL OR p.sum>(SELECT sum(sum) FROM docs_invoice2payments WHERE payment_id=p.id))
-$WHERE
+     FROM payments p
+     LEFT JOIN docs_invoice2payments i2p ON (p.id=i2p.payment_id)
+     WHERE p.uid='$attr->{UID}' 
+       AND (i2p.invoice_id IS NULL OR p.sum>(SELECT sum(sum) FROM docs_invoice2payments WHERE payment_id=p.id))
+       $WHERE
     GROUP BY p.id
     ORDER BY $SORT $DESC
     LIMIT $PG, $PAGE_ROWS;",
@@ -588,43 +445,6 @@ $WHERE
 
     my $list = $self->{list};
     return $list;
-  }
-
-
-  if ($attr->{CUSTOMER}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{CUSTOMER}, 'STR', 'd.customer') };
-  }
-
-  if ($attr->{FROM_DATE}) {
-    push @WHERE_RULES, "(date_format(d.date, '%Y-%m-%d')>='$attr->{FROM_DATE}' and date_format(d.date, '%Y-%m-%d')<='$attr->{TO_DATE}')";
-  }
-
-  if (defined($attr->{PAYMENT_ID})) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{PAYMENT_ID}, 'INT', 'd.payment_id') };
-  }
-
-  if (defined($attr->{PAYMENT_METHOD}) && $attr->{PAYMENT_METHOD} ne '') {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{PAYMENT_METHOD}, 'INT', 'p.method', { EXT_FIELD => 1 }) };
-  }
-
-  if ($attr->{DOC_ID}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{DOC_ID}, 'INT', 'd.invoice_num') };
-  }
-
-  if ($attr->{SUM}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{SUM}, 'INT', 'o.price * o.counts') };
-  }
-
-  if ($attr->{REPRESENTATIVE}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{REPRESENTATIVE}, 'STR', 'c.representative', { EXT_FIELD => 1 }) };
-  }
-
-  if ($attr->{COMPANY_ID}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{COMPANY_ID}, 'INT', 'u.company_id') };
-  }
-
-  if ($attr->{AID}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{AID}, 'STR', 'a.id') };
   }
 
   if ($attr->{PAID_STATUS}) {
@@ -646,64 +466,61 @@ $WHERE
         (SELECT sum(orders.counts*orders.price) FROM docs_invoice_orders orders WHERE orders.invoice_id=d.id)))" . (( $attr->{ID} ) ? "d.id='$attr->{ID}'" : '');
     }
   }
-  elsif ($attr->{ID}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{ID}, 'INT', 'd.id') };
-  }
 
-  
+  #if ($attr->{CONTRACT_ID}) {
+  #  push @WHERE_RULES, '(' . join('', @{ $self->search_expr($attr->{CONTRACT_ID}, 'STR', 'concat(pi.contract_sufix,pi.contract_id)') }) . ' OR ' . join('', @{ $self->search_expr($attr->{CONTRACT_ID}, 'STR', 'concat(c.contract_sufix,c.contract_id)') }) . ')';
+  #}
+
+  my $WHERE = $self->search_former($attr, [
+      ['LOGIN',          'STR', 'u.id AS login',                   1 ],
+      ['ID',             'INT', 'd.id'                               ],
+      ['CUSTOMER',       'STR', 'd.customer'                         ],
+      ['DOC_ID',         'INT', 'd.invoice_num'                      ],
+      ['SUM',            'INT', 'o.price * o.counts'                 ],
+      ['REPRESENTATIVE', 'STR', 'company.representative',          1 ],
+      #['UID',            'INT', 'p.uid'                             ],
+      ['PAYMENT_METHOD', 'INT', 'p.method AS payment_method',      1 ],
+      ['PAYMENT_ID',     'INT', 'd.payment_id',                      ],
+      ['EXT_ID',         'INT', 'p.ext_id',                        1 ],
+      ['AID',            'INT', 'a.id',       'a.name AS admin_name' ],
+      ['CREATED',        'DATE','d.created',                         ],
+      ['ALT_SUM',        'INT', 'if (d.exchange_rate>0, sum(o.price * o.counts) * d.exchange_rate, 0.00) AS alt_sum', 1 ],
+      ['EXCHANGE_RATE',  'INT', 'd.exchange_rate',                 1 ],
+      ['CURRENCY',       'INT', 'd.currency',                      1 ],
+      ['COMPANY_ID',     'INT', 'u.company_id',                    1 ],
+      ['BILL_ID',        'INT', 'if(u.company_id > 0, company.bill_id, u.bill_id) AS bill_id', 1 ],
+      ['docs_deposit',   'INT', 'd.deposit',  'd.deposit AS docs_deposit' ],
+      ['CONTRACT_ID',    'INT', 'if(u.company_id=0, concat(pi.contract_sufix,pi.contract_id), concat(company.contract_sufix,company.contract_id)) AS contract_id', 1], 
+      ['GID',             'INT', 'g.gid',                     'g.name AS group_name'],
+      ['DATE',           'DATE', "date_format(d.date, '%Y-%m-%d')"   ],
+      ['FROM_DATE|TO_DATE','DATE', "date_format(d.date, '%Y-%m-%d')" ],
+      ['FULL_INFO',      '',    '', "pi.address_street, pi.address_build, pi.address_flat, if (d.phone<>0, d.phone, pi.phone) AS phone,
+   pi.contract_id, pi.contract_date,  if(u.company_id > 0, company.bill_id, u.bill_id) AS bill_id,  pi.email,  pi.fio" ]
+    ],
+    { WHERE       => 1,
+    	WHERE_RULES => \@WHERE_RULES,
+    	USERS_FIELDS=> 1
+    }
+    );
 
   my $EXT_TABLES  = $self->{EXT_TABLES};
-  if ($attr->{FULL_INFO}) {
-    $self->{SEARCH_FIELDS} .= "
-    pi.address_street,
-   pi.address_build,
-   pi.address_flat,
-   if (d.phone<>0, d.phone, pi.phone) AS phone,
-   pi.contract_id,
-   pi.contract_date,
-   if(u.company_id > 0, c.bill_id, u.bill_id) AS bill_id,
-   pi.email,
-   pi.fio,";
-   $self->{SEARCH_FIELDS_COUNT}+=8;
-  }
 
-  if ($attr->{CONTRACT_ID}) {
-    push @WHERE_RULES, '(' . join('', @{ $self->search_expr($attr->{CONTRACT_ID}, 'STR', 'concat(pi.contract_sufix,pi.contract_id)') }) . ' OR ' . join('', @{ $self->search_expr($attr->{CONTRACT_ID}, 'STR', 'concat(c.contract_sufix,c.contract_id)') }) . ')';
-  }
-
-
-  $WHERE = ($#WHERE_RULES > -1) ? 'WHERE ' . join(' and ', @WHERE_RULES) : '';
   $self->query2("SELECT d.invoice_num, 
      d.date, 
      if(d.customer='-' or d.customer='', pi.fio, d.customer) AS customer,
      if (i2p.sum IS NULL, sum(o.price * o.counts),  sum(o.price * o.counts) /count( DISTINCT i2p.payment_id)) AS total_sum, 
      if (i2p.payment_id IS NOT NULL, sum(i2p.sum), 0) / count(DISTINCT o.orders) AS payment_sum,
-     u.id AS login, 
-     a.name AS admin_name, 
-     d.created, 
-     p.method, 
-     p.ext_id, 
-     g.name AS group_name, 
-     if (d.exchange_rate>0, sum(o.price * o.counts) * d.exchange_rate, 0.00) AS alt_sum,
-     d.uid, 
-     d.id, 
-     u.company_id, 
-     c.name AS company_name, 
-     c.phone AS company_phone,
-     if(u.company_id=0, concat(pi.contract_sufix,pi.contract_id), concat(c.contract_sufix,c.contract_id)) AS contract_id, 
-     d.exchange_rate,
-     d.currency,
      $self->{SEARCH_FIELDS}
-     d.deposit AS docs_deposit,
-     d.payment_id
-     
+     d.payment_id,
+     d.uid, 
+     d.id     
     FROM docs_invoices d
     INNER JOIN  docs_invoice_orders o ON (d.id=o.invoice_id)
     LEFT JOIN users u ON (d.uid=u.uid)
     LEFT JOIN admins a ON (d.aid=a.aid)
     LEFT JOIN users_pi pi ON (pi.uid=u.uid)
     LEFT JOIN groups g ON (g.gid=u.gid)
-    LEFT JOIN companies c ON (u.company_id=c.id)
+    LEFT JOIN companies company ON (u.company_id=company.id)
     LEFT JOIN docs_invoice2payments i2p ON (d.id=i2p.invoice_id)
     LEFT JOIN payments p ON (i2p.payment_id=p.id)
     $EXT_TABLES
@@ -723,7 +540,7 @@ $WHERE
     INNER JOIN docs_invoice_orders o ON (o.invoice_id=d.id)
     LEFT JOIN users u ON (d.uid=u.uid)
     LEFT JOIN admins a ON (d.aid=a.aid)
-    LEFT JOIN companies c ON (u.company_id=c.id)
+    LEFT JOIN companies company ON (u.company_id=company.id)
     LEFT JOIN docs_invoice2payments i2p ON (d.id=i2p.invoice_id)
     LEFT JOIN payments p ON (i2p.payment_id=p.id)
     $WHERE"
@@ -740,7 +557,7 @@ $WHERE
     LEFT JOIN admins a ON (d.aid=a.aid)
     LEFT JOIN docs_invoice2payments i2p ON (d.id=i2p.invoice_id)
     LEFT JOIN payments p ON (i2p.payment_id=p.id)
-    LEFT JOIN companies c ON (u.company_id=c.id)
+    LEFT JOIN companies company ON (u.company_id=company.id)
     $WHERE);",
      undef,
      $attr
@@ -804,77 +621,26 @@ sub invoice_new {
   $PG        = ($attr->{PG})        ? $attr->{PG}        : 0;
   $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
 
-  undef @WHERE_RULES;
-
-  if ($attr->{UID}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{UID}, 'INT', 'f.uid') };
-  }
-  if ($attr->{LOGIN}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{LOGIN}, 'STR', 'u.id') };
-  }
-
-  if ($attr->{BILL_ID}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{BILL_ID}, 'INT', 'f.bill_id') };
-  }
-  elsif ($attr->{COMPANY_ID}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{COMPANY_ID}, 'INT', 'u.company_id') };
-  }
-
-  if ($attr->{AID}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{AID}, 'INT', 'f.aid') };
-  }
-
-  if ($attr->{ID}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{ID}, 'INT', 'f.id') };
-  }
-
-  if ($attr->{A_LOGIN}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{A_LOGIN}, 'STR', 'a.id') };
-  }
-
-  if ($attr->{DOMAIN_ID}) {
-    push @WHERE_RULES, "u.domain_id='$attr->{DOMAIN_ID}' ";
-  }
-
-  # Show debeters
-  if ($attr->{DESCRIBE}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{DESCRIBE}, 'STR', 'f.dsc') };
-  }
-
-  if ($attr->{INNER_DESCRIBE}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{INNER_DESCRIBE}, 'STR', 'f.inner_describe') };
-  }
-
-  if (defined($attr->{METHOD}) && $attr->{METHOD} >= 0) {
-    push @WHERE_RULES, "f.method IN ($attr->{METHOD}) ";
-  }
-
-  if ($attr->{SUM}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{SUM}, 'INT', 'f.sum') };
-  }
-
-  # Show groups
-  if ($attr->{GIDS}) {
-    push @WHERE_RULES, "u.gid IN ($attr->{GIDS})";
-  }
-  elsif ($attr->{GID}) {
-    push @WHERE_RULES, "u.gid='$attr->{GID}'";
-  }
-
-  # Date
-  if ($attr->{FROM_DATE}) {
-    push @WHERE_RULES, @{ $self->search_expr(">=$attr->{FROM_DATE}", 'DATE', 'date_format(f.date, \'%Y-%m-%d\')') }, @{ $self->search_expr("<=$attr->{TO_DATE}", 'DATE', 'date_format(f.date, \'%Y-%m-%d\')') };
-  }
-  elsif ($attr->{DATE}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{DATE}, 'DATE', 'date_format(f.date, \'%Y-%m-%d\')') };
-  }
-
-  # Month
-  elsif ($attr->{MONTH}) {
-    push @WHERE_RULES, "date_format(f.date, '%Y-%m')='$attr->{MONTH}'";
-  }
-
-  $WHERE = ($#WHERE_RULES > -1) ? 'WHERE ' . join(' and ', @WHERE_RULES) : '';
+  my $WHERE =  $self->search_former($attr, [
+      ['UID',            'INT', 'f.uid'                              ],
+      ['LOGIN',          'STR', 'u.id'                               ],
+      ['BILL_ID',        'INT', 'f.bill_id'                          ],
+      ['COMPANY_ID',     'INT', 'u.company_id',                      ],
+      ['AID',            'INT', 'f.aid',                             ],
+      ['ID',             'INT', 'f.id',                              ],
+      ['A_LOGIN',        'STR', 'a.id',                              ],
+      ['SUM',            'INT', 'f.sum',                             ],
+      ['DOMAIN_ID',      'INT', 'u.domain_id',                       ],
+      ['METHOD',         'INT', 'f.method',                          ],
+      ['DESCRIBE',       'STR', 'f.dsc',                             ],
+      ['INNER_DESCRIBE', 'STR', 'f.inner_describe',                  ],
+      ['MONTH',          'DATE', "date_format(f.date, '%Y-%m')"      ],
+      ['DATE',           'DATE', 'date_format(f.date, \'%Y-%m-%d\')' ],
+      ['FROM_DATE|TO_DATE','DATE', 'date_format(f.date, \'%Y-%m-%d\')' ],
+    ],
+    { WHERE => 1,
+    }
+    );
 
   $self->query2("SELECT f.id, 
       u.id AS login, 
@@ -1133,7 +899,7 @@ sub del {
 }
 
 #**********************************************************
-# invoices_list
+# tax_invoice_list
 #**********************************************************
 sub tax_invoice_list {
   my $self = shift;
@@ -1142,38 +908,17 @@ sub tax_invoice_list {
   $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
   $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
 
-  @WHERE_RULES = ();
-
-  if ($attr->{UID}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{UID}, 'INT', 'd.uid') };
-  }
-
-  if ($attr->{FROM_DATE}) {
-    push @WHERE_RULES, "(date_format(d.date, '%Y-%m-%d')>='$attr->{FROM_DATE}' and date_format(d.date, '%Y-%m-%d')<='$attr->{TO_DATE}')";
-  }
-
-  if ($attr->{DOC_ID}) {
-    push @WHERE_RULES, $self->search_expr($attr->{DOC_ID}, 'INT', 'd.tax_invoice_id');
-  }
-
-  if ($attr->{SUM}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{SUM}, 'INT', 'o.price * o.counts') };
-  }
-
-  # Show groups
-  if ($attr->{GIDS}) {
-    push @WHERE_RULES, "u.gid IN ($attr->{GIDS})";
-  }
-  elsif ($attr->{GID}) {
-    push @WHERE_RULES, "u.gid='$attr->{GID}'";
-  }
-
-  if ($attr->{COMPANY_ID}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{COMPANY_ID}, 'INT', 'd.company_id') };
-  }
-  if ($attr->{UID}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{UID}, 'INT', 'd.uid') };
-  }
+  my $WHERE =  $self->search_former($attr, [
+      ['UID',            'INT', 'd.uid'                              ],
+      ['DOC_ID',         'INT', 'd.tax_invoice_id'                   ],
+      ['SUM',            'INT', 'o.price * o.counts',                             ],
+      ['MONTH',          'DATE', "date_format(d.date, '%Y-%m')"      ],
+      ['DATE',           'DATE', 'date_format(d.date, \'%Y-%m-%d\')' ],
+      ['FROM_DATE|TO_DATE','DATE', 'date_format(d.date, \'%Y-%m-%d\')' ],
+    ],
+    { WHERE => 1,
+    }
+    );
 
   my $EXT_TABLES = '';
   if ($attr->{FULL_INFO}) {
@@ -1245,39 +990,26 @@ sub tax_invoice_reports {
   $PG        = ($attr->{PG})        ? $attr->{PG}        : 0;
   $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
 
-  @WHERE_RULES = ();
+  @WHERE_RULES = ('u.uid=d.uid');
 
-  if ($attr->{FROM_DATE}) {
-    push @WHERE_RULES, "(date_format(d.date, '%Y-%m-%d')>='$attr->{FROM_DATE}' and date_format(d.date, '%Y-%m-%d')<='$attr->{TO_DATE}')";
-  }
-  elsif ($attr->{MONTH}) {
-    push @WHERE_RULES, "(date_format(d.date, '%Y-%m')='$attr->{MONTH}')";
-  }
-
-  if ($attr->{DOC_ID}) {
-    push @WHERE_RULES, $self->search_expr($attr->{DOC_ID}, 'INT', 'd.tax_invoice_id');
-  }
-
-  if ($attr->{SUM}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{SUM}, 'INT', 'o.price * o.counts') };
-  }
-
-  # Show groups
-  if ($attr->{GIDS}) {
-    push @WHERE_RULES, "u.gid IN ($attr->{GIDS})";
-  }
-  elsif ($attr->{GID}) {
-    push @WHERE_RULES, "u.gid='$attr->{GID}'";
-  }
-
-  if ($attr->{COMPANY_ID}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{COMPANY_ID}, 'INT', 'd.company_id') };
-  }
-  if ($attr->{UID}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{UID}, 'INT', 'd.uid') };
-  }
-
-  $WHERE = ($#WHERE_RULES > -1) ? 'AND ' . join(' and ', @WHERE_RULES) : '';
+  my $WHERE =  $self->search_former($attr, [
+      ['UID',            'INT', 'd.uid'                               ],
+      ['LOGIN',          'STR', 'u.id'                                ],    
+      ['SUM',            'INT', 'o.price * o.counts'                  ],
+      ['PAYMENT_METHOD', 'INT', 'p.method',                           ],
+      ['PAYMENT_ID',     'INT', 'd.payment_id',                       ],
+      ['DOC_ID',         'INT', 'd.tax_invoice_id',                   ],
+      ['AID',            'INT', 'a.id',                               ],
+      ['CUSTOMER',       'STR', 'd.customer',                         ],
+      ['MONTH','INT',    "date_format(d.date, '%Y-%m')"               ],
+      ['FROM_DATE|TO_DATE','DATE', "date_format(d.date, '%Y-%m-%d')"   ],
+      ['PHONE',          'INT', 'if (d.phone<>0, d.phone, pi.phone)', 'if (d.phone<>0, d.phone, pi.phone) AS phone'   ],
+    ],
+    { WHERE       => 1,
+    	WHERE_RULES => \@WHERE_RULES,
+    	USERS_FIELDS=> 1
+    }    
+    );
 
   $self->query2("SELECT 0, DATE_FORMAT(d.date, '%d%m%Y'), d.receipt_num, pi.fio,
     pi._inn, 
@@ -1289,7 +1021,7 @@ sub tax_invoice_reports {
 FROM (users u, docs_receipts d)
 LEFT JOIN users_pi pi ON (d.uid=pi.uid)
 LEFT JOIN docs_receipt_orders inv_orders ON (inv_orders.receipt_id=d.id)
-WHERE u.uid=d.uid $WHERE
+$WHERE
 GROUP BY d.id
     ORDER BY $SORT $DESC
     LIMIT $PG, $PAGE_ROWS;"
@@ -1298,15 +1030,6 @@ GROUP BY d.id
   $self->{SUM} = 0.00;
   return $self->{list} if ($self->{TOTAL} < 1);
   my $list = $self->{list};
-
-  #
-  # $self->query2("SELECT count(DISTINCT d.tax_invoice_id), sum(o.price*o.counts)
-  #    FROM (docs_tax_invoices d)
-  #    LEFT JOIN docs_tax_invoice_orders o ON (d.id=o.tax_invoice_id)
-  #    LEFT JOIN companies c ON (d.company_id=c.id)
-  #    $WHERE");
-  #
-  # ($self->{TOTAL}, $self->{SUM}) = @{ $self->{list}->[0] };
 
   return $list;
 }
@@ -1457,36 +1180,23 @@ sub acts_list {
   $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
   $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
 
-  @WHERE_RULES = ();
 
-  if ($attr->{FROM_DATE}) {
-    push @WHERE_RULES, "(date_format(d.date, '%Y-%m-%d')>='$attr->{FROM_DATE}' and date_format(d.date, '%Y-%m-%d')<='$attr->{TO_DATE}')";
-  }
-
-  if ($attr->{DOC_ID}) {
-    push @WHERE_RULES, $self->search_expr($attr->{DOC_ID}, 'INT', 'd.act_id');
-  }
-
-  if ($attr->{SUM}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{SUM}, 'INT', 'd.sum') };
-  }
-
-  # Show groups
-  if ($attr->{GIDS}) {
-    push @WHERE_RULES, "u.gid IN ($attr->{GIDS})";
-  }
-  elsif ($attr->{GID}) {
-    push @WHERE_RULES, "u.gid='$attr->{GID}'";
-  }
-
-  if ($attr->{COMPANY_ID}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{COMPANY_ID}, 'INT', 'd.company_id') };
-  }
-  if ($attr->{UID}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{UID}, 'INT', 'd.uid') };
-  }
-
-  $WHERE = ($#WHERE_RULES > -1) ? 'WHERE ' . join(' and ', @WHERE_RULES) : '';
+  my $WHERE =  $self->search_former($attr, [
+      ['UID',            'INT', 'd.uid'                               ],
+      ['SUM',            'INT', 'd.sum'                               ],
+      ['PAYMENT_METHOD', 'INT', 'p.method',                           ],
+      ['PAYMENT_ID',     'INT', 'd.payment_id',                       ],
+      ['DOC_ID',         'INT', 'd.act_id',                           ],
+      ['AID',            'INT', 'a.id',                               ],
+      ['CUSTOMER',       'STR', 'd.customer',                         ],
+      ['MONTH','INT',    "date_format(d.date, '%Y-%m')"               ],
+      ['FROM_DATE|TO_DATE','DATE', "date_format(d.date, '%Y-%m-%d')"   ],
+    ],
+    { WHERE       => 1,
+    	WHERE_RULES => \@WHERE_RULES,
+    	USERS_FIELDS=> 1
+    }    
+    );
 
   $self->query2("SELECT d.act_id, d.date, c.name, d.sum, a.name, d.created, d.uid, d.company_id, d.id
     FROM (docs_acts d)
@@ -1495,7 +1205,9 @@ sub acts_list {
     $WHERE
     GROUP BY d.act_id 
     ORDER BY $SORT $DESC
-    LIMIT $PG, $PAGE_ROWS;"
+    LIMIT $PG, $PAGE_ROWS;",
+    undef,
+    $attr
   );
 
   $self->{SUM} = 0.00;
@@ -1560,14 +1272,14 @@ sub act_info {
 
   $self->query2("SELECT d.act_id, 
    d.date, 
-   date_format(d.date, '%Y-%m'),
-   d.sum, 
-   if(d.vat>0, FORMAT(d.sum / ((100+d.vat)/ d.vat), 2), FORMAT(0, 2)),
-   u.id, 
-   a.name, 
+   date_format(d.date, '%Y-%m') AS month,
+   d.sum AS total_sum, 
+   if(d.vat>0, FORMAT(d.sum / ((100+d.vat)/ d.vat), 2), FORMAT(0, 2)) AS vat,
+   u.id AS login, 
+   a.name AS admin, 
    d.created, 
    d.uid, 
-   d.id,
+   d.id AS doc_id,
    pi.fio,
    pi.address_street,
    pi.address_build,
@@ -1576,49 +1288,18 @@ sub act_info {
    c.contract_id,
    c.contract_date,
    d.company_id,
-   c.name,
-   d.date + interval $CONF->{DOCS_ACCOUNT_EXPIRE_PERIOD} day
-   
-   
+   c.name AS company_name,
+   d.date + interval $CONF->{DOCS_ACCOUNT_EXPIRE_PERIOD} day AS expire_date
+
     FROM (docs_acts d)
     LEFT JOIN users u ON (d.uid=u.uid)
     LEFT JOIN users_pi pi ON (pi.uid=u.uid)
     LEFT JOIN companies c ON (c.id=d.company_id)
     LEFT JOIN admins a ON (d.aid=a.aid)
     WHERE d.id='$id' $WHERE
-    GROUP BY d.id;"
+    GROUP BY d.id;",
+    undef, { INFO => 1 }
   );
-
-  if ($self->{TOTAL} < 1) {
-    $self->{errno}  = 2;
-    $self->{errstr} = 'ERROR_NOT_EXIST';
-    return $self;
-  }
-
-  (
-    $self->{ACT_ID},
-    $self->{DATE},
-    $self->{MONTH},
-    $self->{TOTAL_SUM},
-    $self->{VAT},
-    $self->{LOGIN},
-    $self->{ADMIN},
-    $self->{CREATED},
-    $self->{UID},
-    $self->{DOC_ID},
-    $self->{FIO},
-
-    $self->{ADDRESS_STREET},
-    $self->{ADDRESS_BUILD},
-    $self->{ADDRESS_FLAT},
-    $self->{PHONE},
-    $self->{CONTRACT_ID},
-    $self->{CONTRACT_DATE},
-    $self->{COMPANY_ID},
-    $self->{COMPANY_NAME},
-    $self->{EXPIRE_DATE}
-
-  ) = @{ $self->{list}->[0] };
 
   return $self;
 }
@@ -1744,64 +1425,7 @@ sub user_list {
 
   $CONF->{DOCS_PRE_INVOICE_PERIOD}=10 if (! defined($CONF->{DOCS_PRE_INVOICE_PERIOD}));
   
-  my @WHERE_RULES = ( "u.uid = service.uid" );
-
-  push @WHERE_RULES, @{ $self->search_expr_users({ %$attr, 
-                             EXT_FIELDS => [
-                                            'PHONE',
-                                            'EMAIL:skip',
-                                            'ADDRESS_FLAT',
-                                            'PASPORT_DATE',
-                                            'PASPORT_NUM', 
-                                            'PASPORT_GRANT',
-                                            'CITY', 
-                                            'ZIP',
-                                            'GID',
-                                            'CONTRACT_ID',
-                                            'CONTRACT_SUFIX',
-                                            'CONTRACT_DATE',
-                                            'EXPIRE',
-                                            'LOGIN_STATUS',
-                                            'CREDIT',
-                                            'CREDIT_DATE', 
-                                            'REDUCTION',
-                                            'REGISTRATION',
-                                            'REDUCTION_DATE',
-                                            'COMMENTS',
-                                            'BILL_ID',
-                                            
-                                            'ACTIVATE',
-                                            'EXPIRE',
-
-                                             ] }) };
-
-  if ($attr->{COMMENTS}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{COMMENTS}, 'INT', 'service.comments AS service_comments', { EXT_FIELD => 1 }) };
-  }
-
-  if ($attr->{INVOICE_DATE}) {
-    push @WHERE_RULES, @{ $self->search_expr("$attr->{INVOICE_DATE}", 'DATE', 'service.invoice_date') };
-  }
-
-  if ($attr->{EMAIL}) {
-    push @WHERE_RULES, @{ $self->search_expr("$attr->{EMAIL}", 'STR', 'service.email') };
-  }
-
-  if ($attr->{PERIODIC_CREATE_DOCS}) {
-    push @WHERE_RULES, @{ $self->search_expr("$attr->{PERIODIC_CREATE_DOCS}", 'INT', 'service.periodic_create_docs') };
-  }
-
-  if ($attr->{SEND_DOCS}) {
-    push @WHERE_RULES, @{ $self->search_expr("$attr->{SEND_DOCS}", 'INT', 'service.send_docs') };
-  }
-
-  if ($attr->{PERSONAL_DELIVERY}) {
-    push @WHERE_RULES, @{ $self->search_expr("$attr->{PERSONAL_DELIVERY}", 'INT', 'service.personal_delivery') };
-  }
-
-  if ($attr->{INVOICING_PERIOD}) {
-    push @WHERE_RULES, @{ $self->search_expr("$attr->{INVOICING_PERIOD}", 'INT', 'service.invoicing_period') };
-  }
+  my @WHERE_RULES = ( "u.uid=service.uid" );
 
   if ($attr->{PRE_INVOICE_DATE}) {
     if ($attr->{PRE_INVOICE_DATE} =~ /(\d{4}-\d{2}-\d{2})\/(\d{4}-\d{2}-\d{2})/) {
@@ -1824,12 +1448,24 @@ sub user_list {
     }
   }
 
-  if ($attr->{PERIODIC_CREATE_DOCS}) {
-    push @WHERE_RULES, @{ $self->search_expr("$attr->{PERIODIC_CREATE_DOCS}", 'INT', 'service.periodic_create_docs') };
-  }
 
   my $EXT_TABLES  = $self->{EXT_TABLES};
-  $WHERE = ($#WHERE_RULES > -1) ? join(' and ', @WHERE_RULES) : '';
+
+  my $WHERE =  $self->search_former($attr, [
+      ['COMMENTS',            'STR',  'service.comments',   'service.comments AS service_comments' ],
+      ['INVOICE_DATE',        'DATE', 'service.invoice_date'              ],
+      ['EMAIL',               'STR',  'service.email',                    ],
+      ['PERIODIC_CREATE_DOCS','INT',  'service.periodic_create_docs',     ],
+      ['SEND_DOCS',           'INT',  'service.send_docs',                ],
+      ['PERSONAL_DELIVERY',   'INT',  'service.personal_delivery',        ],
+      ['INVOICING_PERIOD',    'INT',  'service.invoicing_period',         ],
+      ['PERIODIC_CREATE_DOCS','INT',  'service.periodic_create_docs',     ],
+    ],
+    { WHERE       => 1,
+    	WHERE_RULES => \@WHERE_RULES,
+    	USERS_FIELDS=> 1
+    }    
+    );
 
   my $list;
 
@@ -1856,9 +1492,6 @@ sub user_list {
    LEFT JOIN bills b ON (u.bill_id = b.id)
    LEFT JOIN companies company ON  (u.company_id=company.id) 
    LEFT JOIN bills cb ON  (company.bill_id=cb.id)
-  
-   WHERE u.uid=service.uid AND
-
    $WHERE 
    ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;",
    undef,
@@ -1871,7 +1504,7 @@ sub user_list {
 
   if ($self->{TOTAL} >= 0) {
     $self->query2("SELECT count(u.id) AS total  FROM users u, docs_main service
-   WHERE u.uid=service.uid AND $WHERE", undef, { INFO => 1 }
+      $WHERE", undef, { INFO => 1 }
     );
   }
 

@@ -135,15 +135,6 @@ sub new {
     PAGE_ROWS => $PAGE_ROWS,
   );
 
-  if ($FORM{show_cols}) {
-  	foreach my $col (keys %FORM) {
-  		if ($FORM{$col} && $col =~ /[A-Z\_0-1]+/) {
-  			$LIST_PARAMS{$col}=$FORM{$col};
-  			#print "// $col => $FORM{$col}<br>"; 
-  		}
-  	}
-  }
-
   %functions = ();
   $pages_qs  = '';
   $index     = int($FORM{index} || 0);
@@ -157,8 +148,6 @@ sub new {
   else {
     $self->{language} = $CONF->{default_language} || 'english';
   }
-
-  $self->{config_tpl_show}='hello'; #\&tpl_show;
 
   #Make  PDF output
   if ($FORM{pdf} || $attr->{pdf}) {
@@ -572,6 +561,39 @@ sub form_select {
       $self->{SELECT} .= "\n";
     }
   }
+  elsif ($attr->{SEL_LIST}) {
+    my $key                      = $attr->{SEL_KEY};
+    my $value                    = $attr->{SEL_VALUE};
+    my $H                        = $attr->{SEL_LIST};
+    my @SEL_VALUE_PREFIX = ();
+
+    if ($attr->{SEL_VALUE_PREFIX}) {
+      @SEL_VALUE_PREFIX = split(/,/, $attr->{SEL_VALUE_PREFIX});
+    }
+
+    foreach my $v (@$H) {
+      $self->{SELECT} .= "<option value='$v->{$key}'";
+      $self->{SELECT} .= ' selected' if (defined($attr->{SELECTED}) && $v->{$key} eq $attr->{SELECTED});
+      $self->{SELECT} .= '>';
+
+      #Value
+      $self->{SELECT} .= "$v->{$key} " if (!$attr->{NO_ID});
+
+      if ($value =~ /,/) {
+        my @values      = split(/,/, $value);
+        my @valuesr_arr = ();
+        for( my $key_num; $key_num<=$#values; $key_num++) {
+          my $val_keys = $values[$key_num];
+          push @valuesr_arr, (($attr->{SEL_VALUE_PREFIX} && $SEL_VALUE_PREFIX[$key_num]) ? $SEL_VALUE_PREFIX[$key_num] . $v->{$val_keys} : $v->{$val_keys});
+        }
+        $self->{SELECT} .= join(' : ', @valuesr_arr);
+      }
+      else {
+        $self->{SELECT} .= "$v->[$value]";
+      }
+      $self->{SELECT} .= "\n";
+    }
+  }
   elsif (defined($attr->{SEL_HASH})) {
     my @H = ();
     my @group_colors = ('#000000','#008000','#0000A0','#D76B00','#790000','#808000','#3D7A7A');
@@ -773,7 +795,8 @@ sub menu () {
         }
       }
 
-      $menu_navigator = " " . $self->button($name, "index=$root_index$ex_params") . '/' . $menu_navigator;
+      #$menu_navigator = " " . $self->button($name, "index=$root_index$ex_params") . '/' . $menu_navigator;
+      $menu_navigator = " " . $self->button($name, "index=$root_index$ex_params", { BUTTON => 1 }) . ' ' . $menu_navigator;
       $tree{$root_index} = 1;
       if ($par_key > 0) {
         $root_index = $par_key;
@@ -1101,21 +1124,22 @@ sub table {
       }
 
       $self->{table} .= "<div id='popup_window_content'><br/>";
-      
-      #while(my($k, $v)=each %{ $attr->{SHOW_COLS} }){
+
       foreach my $k (sort keys %{ $attr->{SHOW_COLS} }){
       	my $v = $attr->{SHOW_COLS}->{$k};
       	my $uc_name = ($k !~ /^_/) ? uc($k) : $k;
-      	$self->{table} .= "<input type=checkbox name=$uc_name value=";
-      	$self->{table} .= ( $attr->{ACTIVE_COLS}->{$k} && $attr->{ACTIVE_COLS}->{$k} ne '1') ? "$attr->{ACTIVE_COLS}->{$k}" : '_SHOW';
+      	$self->{table} .= "<input type=checkbox name=show_columns value=$uc_name";
+      	#$self->{table} .= ( $attr->{ACTIVE_COLS}->{$k} && $attr->{ACTIVE_COLS}->{$k} ne '1') ? "$attr->{ACTIVE_COLS}->{$k}" : '_SHOW';
       	$self->{table} .= ( $attr->{ACTIVE_COLS}->{$k} ) ? ' checked' : '';
       	$self->{table} .= "> $v ";
-      	$self->{table} .= ( $attr->{ACTIVE_COLS}->{$k} ) ? " ($attr->{ACTIVE_COLS}->{$k})" : '';
+      	#$self->{table} .= ( $attr->{ACTIVE_COLS}->{$k} ) ? " ($attr->{ACTIVE_COLS}->{$k})" : '';
       	$self->{table} .= "<br>\n";
       }
+
       
       $self->{table} .= "
       <input type=submit name=show_cols value=show>
+      <input type=submit name=del_cols value=default>
       </form>
       </div></div></td></tr>\n";  	
       
@@ -1129,6 +1153,32 @@ sub table {
 
   my @header_obj = ();
 
+  if ($attr->{header}) {
+    if (ref $attr->{header} eq 'ARRAY') {
+      $attr->{header}=$self->table_header($attr->{header});
+    }
+
+    push @header_obj, $attr->{header};
+  }
+
+
+  if($attr->{SELECT_ALL}) {
+	  my ($form_name, $element_name, $caption) = split(/:/, $attr->{SELECT_ALL});
+    $self->{SELECT_ALL} = qq{<script language="JavaScript" type="text/javascript">
+<!-- 
+function CheckAllINBOX() {
+  for (var i = 0; i < document.$form_name.elements.length; i++) {
+    if(document.$form_name.elements[i].type == 'checkbox' && document.$form_name.elements[i].name == '$element_name'){
+      document.$form_name.elements[i].checked =         !(document.$form_name.elements[i].checked);
+    }
+  }
+}
+//-->
+</script>
+<a href="javascript:void(0)" onClick="CheckAllINBOX();" class='link_button'>$caption</a>};
+   }
+
+
   if ($attr->{MENU}) {
     my @menu_arr = split(/;/, $attr->{MENU});
     foreach my $line (@menu_arr) {
@@ -1139,7 +1189,6 @@ sub table {
 
   #Export object
   if ($attr->{EXPORT} && !$FORM{EXPORT_CONTENT}) {
-    my ($export_name, $params) = split(/:/, $attr->{EXPORT}, 2);
     my @export_formats = ('xml', 'csv');
       
     eval { require Spreadsheet::WriteExcel; };
@@ -1148,35 +1197,21 @@ sub table {
     }      
 
     foreach my $export_name ( @export_formats ) {
-      $params = "&$export_name=1";
-      #if ($export_name eq 'xls') {
-        $params .= "&PAGE_ROWS=1000000";
-      #}
+      my $params = "&$export_name=1";
+      $params .= "&PAGE_ROWS=1000000";
       $self->{EXPORT_OBJ} .= ' ' . $self->button("$export_name", "qindex=$index$attr->{qs}&pg=$PG&sort=$SORT&desc=$DESC&EXPORT_CONTENT=$attr->{ID}&header=1$params", { ex_params => 'target=\'export\'', IMG_BUTTON => '/img/button_'. $export_name .'.png' });
     }
-
-    push @header_obj, $self->{EXPORT_OBJ};
   }
+
+  push @header_obj, $self->{EXPORT_OBJ} if ($self->{EXPORT_OBJ});
 
   if (defined($attr->{VIEW})) {
     $self->{table} .= "<TR><TD class='tcaption'>$attr->{VIEW}</td></TR>\n";
   }
 
-  if ($attr->{header}) {
-    if (ref $attr->{header} eq 'ARRAY') {
-      $attr->{header}=$self->table_header($attr->{header});
-    }
-
-    push @header_obj, $attr->{header};
-  }
-
   if ($#header_obj > -1) {
     $self->{table} .= "<tr><td width=20% valign=bottom>$self->{EXPORT_OBJ}</td><td width=60%><div id='rules'><ul><li class='center'>&nbsp;";
-
-    #foreach my $obj (@header_obj) {
-    #   $self->{table} .= $obj. '&nbsp;&nbsp;&nbsp;';
-    # }
-    $self->{table} .= "$attr->{header}</li></ul></div></td><td width=20%>&nbsp;</td></tr>\n";
+    $self->{table} .= "$self->{SELECT_ALL}$attr->{header}</li></ul></div></td><td width=20%>&nbsp;</td></tr>\n";
   }
 
   $self->{table} .= "<TR><TD class=cel_border colspan='3'>

@@ -369,11 +369,7 @@ sub list {
   $PG        = ($attr->{PG})        ? $attr->{PG}        : 0;
   $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
 
-  my $GROUP_BY = 'u.uid';
-
-  if ($attr->{GROUP_BY}) {
-    $GROUP_BY = $attr->{GROUP_BY};
-  }
+  my $GROUP_BY = ($attr->{GROUP_BY}) ? $attr->{GROUP_BY} : 'u.uid';
 
   @WHERE_RULES = ("u.uid = dv.uid");
   push @WHERE_RULES, @{ $self->search_expr_users({ %$attr, 
@@ -501,8 +497,29 @@ sub list {
 
   if ($attr->{CID}) {
     $attr->{CID}=~s/[\:\-\.]/\*/g;
-    push @WHERE_RULES, @{ $self->search_expr($attr->{CID}, 'STR', 'dv.cid', { EXT_FIELD => 1 }) };
   }
+  
+  my $WHERE =  $self->search_former($attr, [
+      ['IP',             'IP',  'dv.ip',                            'INET_NTOA(dv.ip) AS ip' ],
+      ['NETMASK',        'IP',  'dv.netmask',                       'INET_NTOA(dv.netmask) AS netmask' ],
+      ['CID',            'STR', 'dv.cid',                           1 ],
+      ['JOIN_SERVICE',   'INT', 'dv.join_service',                  1 ],
+      ['SIMULTANEONSLY', 'INT', 'dv.logins',                        1 ],
+      ['DEPOSIT',        'INT', 'if(u.company_id > 0, cb.deposit, b.deposit)' ],
+      ['SPEED',          'INT', 'dv.speed',                         1 ],
+      ['PORT',           'INT', 'dv.port',                          1 ],
+      ['ALL_FILTER_ID',  'STR', 'if(dv.filter_id<>\'\', dv.filter_id, tp.filter_id) AS filter_id', 1 ],
+      ['FILTER_ID',      'STR', 'dv.filter_id',                     1 ],
+      ['TP_ID',          'INT', 'dv.tp_id',                           ],
+      ['TP_CREDIT',      'INT', 'tp.credit',                       'tp.credit AS tp_credit' ],
+      ['PAYMENT_TYPE',   'INT', 'tp.payment_type',                  1 ],
+      ['SHOW_PASSWORD',  '',    '',  "DECODE(u.password, '$CONF->{secretkey}') AS password," ],
+      ['STATUS',         'INT', 'dv.disable', ]
+    ],
+    { WHERE => 1,
+    	WHERE_RULES => \@WHERE_RULES
+    }    
+    );
 
   my $EXT_TABLE = $self->{EXT_TABLES};
 
@@ -515,28 +532,7 @@ sub list {
   }
 
 
-  my $WHERE =  $self->search_former($attr, [
-      ['IP',             'IP',  'dv.ip',                            'INET_NTOA(dv.ip) AS ip' ],
-      ['NETMASK',        'IP',  'dv.netmask',                       'INET_NTOA(dv.netmask) AS netmask' ],
-      ['JOIN_SERVICE',   'INT', 'dv.join_service',                  1 ],
-      ['SIMULTANEONSLY', 'INT', 'dv.logins',                        1 ],
-      ['DEPOSIT',        'INT', 'if(u.company_id > 0, cb.deposit, b.deposit)', 1],
-      ['SPEED',          'INT', 'dv.speed',                         1 ],
-      ['PORT',           'INT', 'dv.port',                          1 ],
-      ['ALL_FILTER_ID',  'STR', 'if(dv.filter_id<>\'\', dv.filter_id, tp.filter_id) AS filter_id', 1 ],
-      ['FILTER_ID',      'STR', 'dv.filter_id',                     1 ],
-      ['TP_ID',          'INT', 'dv.tp_id',                           ],
-      ['TP_CREDIT',      'INT', 'tp.credit:',                       'tp_credit' ],
-      ['PAYMENT_TYPE',   'INT', 'tp.payment_type',                  1 ],
-      ['SHOW_PASSWORD',  '',    '',  "DECODE(u.password, '$CONF->{secretkey}') AS password," ],
-      ['STATUS',         'INT', 'dv.disable', ]
-    ],
-    { WHERE => 1,
-    	WHERE_RULES => \@WHERE_RULES
-    }    
-    );
-
-  $self->query2("SELECT u.id, 
+  $self->query2("SELECT u.id AS login, 
       pi.fio, 
       if(u.company_id > 0, cb.deposit, b.deposit) AS deposit, 
       if(u.company_id=0, u.credit, 

@@ -76,7 +76,8 @@ my %FIELDS = (
 #**********************************************************
 sub new {
   my $class = shift;
-  ($db, $CONF, $admin) = @_;
+  my $db    = shift;
+  ($CONF, $admin) = @_;
   my $self = {};
   bless($self, $class);
   
@@ -652,16 +653,16 @@ sub list {
   }
 
   my $WHERE =  $self->search_former($attr, [
-        [ 'TP_GID',          'INT', 'tp.gid' ],
-        [ 'TP_ID',           'INT', 'tp.id' ],
-        [ 'COMMENTS',        'STR', 'tp.comments' ],
-        [ 'MODULE',          'STR', 'tp.module'  ],
-        [ 'MIN_USE',         'INT', 'tp.min_use' ],
-        [ 'DOMAIN_ID',       'INT', 'tp.domain_id' ],
-        [ 'PAYMENT_TYPE',    'INT', 'tp.payment_type' ],
+        [ 'TP_GID',          'INT', 'tp.gid'            ],
+        [ 'TP_ID',           'INT', 'tp.id'             ],
+        [ 'COMMENTS',        'STR', 'tp.comments'       ],
+        [ 'MODULE',          'STR', 'tp.module'         ],
+        [ 'MIN_USE',         'INT', 'tp.min_use'        ],
+        [ 'DOMAIN_ID',       'INT', 'tp.domain_id'      ],
+        [ 'PAYMENT_TYPE',    'INT', 'tp.payment_type'   ],
         [ 'ACTIVE_DAY_FEE',  'INT', 'tp.active_day_fee' ],
         [ 'FIXED_FEES_DAY',  'INT', 'tp.fixed_fees_day' ],
-        [ 'NEXT_TARIF_PLAN', 'INT', 'tp.next_tp_id' ]
+        [ 'NEXT_TARIF_PLAN', 'INT', 'tp.next_tp_id'     ]
     ],
     { WHERE => 1,
     	WHERE_RULES => \@WHERE_RULES

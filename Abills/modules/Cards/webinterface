@@ -55,8 +55,8 @@ sub cards_card_info {
 #
 #**********************************************************
 sub cards_main {
-  if ($Cards::VERSION < 5.52) {
-    $html->message('info', "UPDATE", "Please update module 'Cards' to version 5.52 or higher. http://abills.net.ua/");
+  if ($Cards::VERSION < 5.53) {
+    $html->message('info', "UPDATE", "Please update module 'Cards' to version 5.53 or higher. http://abills.net.ua/");
     return 0;
   }
 
@@ -878,13 +878,6 @@ sub cards_user_payment () {
         $payments->list({ EXT_ID => "$Cards->{SERIAL}$Cards->{NUMBER}" });
         if ($payments->{TOTAL} <= 1) {
           $db->commit();
-
-#          $Cards->cards_change(
-#            {
-#              ID       => "$Cards->{ID}",
-#              DATETIME => "$DATE $TIME",
-#            }
-#          );          
         }
 
         if ($conf{CARDS_DEBUG}) {
@@ -1592,12 +1585,12 @@ sub cards_diller_add {
             {
               PAGE_ROWS => 1,
               SORT      => 8,
-              DESC      => 'DESC'
-
+              DESC      => 'DESC',
+              COLS_NAME => 1
             }
           );
-          $FORM{BEGIN}       = $list->[0][7];
-          $FORM{LOGIN_BEGIN} = $list->[0][7];
+          $FORM{BEGIN}       = $list->[0]{uid};
+          $FORM{LOGIN_BEGIN} = $list->[0]{uid};
         }
 
         my $return = cards_users_add(

@@ -37,7 +37,8 @@ my %ACCT_TYPES = (
 #**********************************************************
 sub new {
   my $class = shift;
-  ($db, $conf) = @_;
+  my $db    = shift;
+  ($conf)   = @_;
   my $self = {};
   bless($self, $class);
   

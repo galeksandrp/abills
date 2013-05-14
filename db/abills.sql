@@ -12,9 +12,16 @@ CREATE TABLE `admin_actions` (
   KEY `uid` (`uid`)
 ) COMMENT="Users changes log" ;
 
+CREATE TABLE `admin_settings` (
+  `aid` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '0',
+  `object` varchar(20) NOT NULL default '',
+  `setting` text not null default '',
+  PRIMARY KEY  (`aid`, `object`)
+) COMMENT="Admins settings";
+
 
 CREATE TABLE `admin_system_actions` (
- `id` INTEGER(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `id` INTEGER(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `actions` varchar(200) NOT NULL default '',
   `datetime` DATETIME NOT NULL,
   `ip` INTEGER(11) UNSIGNED NOT NULL DEFAULT '0',
@@ -368,10 +375,11 @@ CREATE TABLE `filters` (
 
 CREATE TABLE `groups` (
   `gid` smallint(4) unsigned NOT NULL default '0',
-  `name` varchar(30) NOT NULL default '',
+  `name` varchar(60) NOT NULL default '',
   `descr` varchar(200) NOT NULL default '',
   `domain_id` smallint(6) unsigned not null default 0,
   `separate_docs` tinyint(1) unsigned not null default 0,
+  `allow_credit` tinyint(1) unsigned not null default 0,
   PRIMARY KEY  (`gid`),
   UNIQUE KEY `name` (`domain_id`, `name`)
 ) ;
@@ -1037,7 +1045,7 @@ CREATE TABLE `users_nas` (
 
 CREATE TABLE `users_pi` (
   `uid` int(11) unsigned NOT NULL auto_increment,
-  `fio` varchar(60) NOT NULL default '',
+  `fio` varchar(120) NOT NULL default '',
   `phone` varchar(16) NOT NULL default '',
   `email` varchar(250) NOT NULL default '',
   `country_id` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '0',

@@ -282,59 +282,6 @@ sub list {
 
                                              ] }) };
 
-  if ($attr->{UID}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{UID}, 'INT', 'f.uid') };
-  }
-
-  if ($attr->{BILL_ID}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{BILL_ID}, 'INT', 'f.bill_id') };
-  }
-
-  if ($attr->{AID}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{AID}, 'INT', 'f.aid') };
-  }
-
-  if ($attr->{ID}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{ID}, 'INT', 'f.id') };
-  }
-
-  if ($attr->{A_LOGIN}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{A_LOGIN}, 'STR', 'a.id') };
-  }
-
-  if ($attr->{DOMAIN_ID}) {
-    push @WHERE_RULES, "u.domain_id='$attr->{DOMAIN_ID}' ";
-  }
-
-  # Show debeters
-  if ($attr->{DESCRIBE}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{DESCRIBE}, 'STR', 'f.dsc') };
-  }
-
-  if ($attr->{INNER_DESCRIBE}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{INNER_DESCRIBE}, 'STR', 'f.inner_describe') };
-  }
-
-  if (defined($attr->{METHOD}) && $attr->{METHOD} >= 0) {
-    push @WHERE_RULES, "f.method IN ($attr->{METHOD}) ";
-  }
-
-  if ($attr->{SUM}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{SUM}, 'INT', 'f.sum') };
-  }
-
-  # Date
-  if ($attr->{FROM_DATE}) {
-    push @WHERE_RULES, @{ $self->search_expr(">=$attr->{FROM_DATE}", 'DATE', 'date_format(f.date, \'%Y-%m-%d\')') }, @{ $self->search_expr("<=$attr->{TO_DATE}", 'DATE', 'date_format(f.date, \'%Y-%m-%d\')') };
-  }
-  elsif ($attr->{DATE}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{DATE}, 'DATE', 'date_format(f.date, \'%Y-%m-%d\')') };
-  }
-  # Month
-  elsif ($attr->{MONTH}) {
-    push @WHERE_RULES, "date_format(f.date, '%Y-%m')='$attr->{MONTH}'";
-  }
-
   my $EXT_TABLES  = $self->{EXT_TABLES};
   if ($attr->{FIO}) {
     $EXT_TABLES  .= 'LEFT JOIN users_pi pi ON (u.uid=pi.uid)';
@@ -343,12 +290,34 @@ sub list {
     $EXT_TABLES = 'LEFT JOIN users_pi pi ON (u.uid=pi.uid) '. $EXT_TABLES;
   }
 
-  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES) : '';
+  my $WHERE =  $self->search_former($attr, [
+      ['ID',             'INT', 'f.id',                              ],
+      ['DATE',           'DATE','f.date',                          1 ],
+      ['LOGIN',          'STR', 'u.id AS login',                   1 ],
+      ['DESCRIBE',       'STR', 'f.dsc',                           1 ],
+      ['SUM',            'INT', 'f.sum',                           1 ],
+      ['LAST_DEPOSIT',   'INT', 'f.last_deposit',                  1 ],
+      ['METHOD',         'INT', 'f.method',                        1 ],
+      ['COMPANY_ID',     'INT', 'u.company_id',                      ],
+      ['A_LOGIN',        'STR', 'a.id',                            1 ],
+      ['ADMIN_NAME',     'STR', "if(a.name is NULL, 'Unknown', a.name) AS admin_name", 1 ],
+      ['BILL_ID',        'INT', 'f.bill_id',                       1 ],
+      ['IP',             'f.ip',             'INET_NTOA(f.ip) AS ip' ],
+      ['AID',            'INT', 'f.aid',                             ],
+      ['DOMAIN_ID',      'INT', 'u.domain_id',                       ],
+      ['UID',            'INT', 'f.uid',                           1 ],
+      ['INNER_DESCRIBE', 'STR', 'f.inner_describe',                1 ],
+      ['DATE',           'DATE', 'date_format(f.date, \'%Y-%m-%d\')' ],
+      ['FROM_DATE|TO_DATE','DATE', 'date_format(f.date, \'%Y-%m-%d\')'  ],
+      ['MONTH',          'DATE', "date_format(f.date, '%Y-%m')"   ],
+    ],
+    { WHERE => 1,
+    	WHERE_RULES => \@WHERE_RULES
+    }
+    );
 
-  $self->query2("SELECT f.id, u.id AS login, $self->{SEARCH_FIELDS} f.date, f.dsc, f.sum, f.last_deposit, f.method,
-    f.bill_id, 
-   if(a.name is NULL, 'Unknown', a.name) AS admin_name, 
-   INET_NTOA(f.ip) AS ip,
+  $self->query2("SELECT f.id,
+     $self->{SEARCH_FIELDS}
    f.uid, f.inner_describe
     FROM fees f
     LEFT JOIN users u ON (u.uid=f.uid)
@@ -507,17 +476,13 @@ sub fees_type_list {
   $PG        = ($attr->{PG})        ? $attr->{PG}        : 0;
   $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
 
-  @WHERE_RULES = ();
-
-  if ($attr->{NAME}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{NAME}, 'STR', 'name') };
-  }
-
-  if ($attr->{ID}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{ID}, 'INT', 'id') };
-  }
-
-  my $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES) : '';
+  my $WHERE =  $self->search_former($attr, [
+      ['ID',           'INT', 'd'                              ],
+      ['NAME',         'STR', 'name'                               ],      
+    ],
+    { WHERE => 1,
+    }    
+    );
 
   $self->query2("SELECT id, name, default_describe, sum FROM fees_types
   $WHERE 

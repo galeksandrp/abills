@@ -23,7 +23,7 @@ sub extfin_export_customers {
   $pages_qs .= "&TYPE=$FORM{TYPE}";
 
   if ($FORM{TYPE} && $FORM{TYPE} eq 'CUSTOMERS') {
-    $LIST_PARAMS{PAGE_ROWS} = 1000000;
+    $LIST_PARAMS{PAGE_ROWS} = ($FORM{PAGE_ROWS} ) ? $FORM{PAGE_ROWS} : 1000000;
     $LIST_PARAMS{PG}        = $FORM{PG} || 0;
     $LIST_PARAMS{USER_TYPE} = $FORM{USER_TYPE};
     $pages_qs .= "&USER_TYPE=$FORM{USER_TYPE}";
@@ -46,7 +46,7 @@ sub extfin_export_customers {
       return 0;
     }
 
-    my @TITLE = ('ID', $_NAME, $_FIO, "$_GROUP ID", "$_GROUP", $_TYPE, $_ADDRESS, $_PHONE, "$_CONTRACT $_TYPE", $_CONTRACT_ID, "$_CONTRACT $_DATE", 'BILL ID', "BANK ACCOUNT", 'BANK NAME', 'COR ACCT');
+    my @TITLE = ('ID', $_NAME, $_FIO, "$_GROUP ID", "$_GROUP", $_TYPE, $_ADDRESS, $_PHONE, "$_CONTRACT $_TYPE", $_CONTRACT_ID, "$_CONTRACT $_DATE", 'BILL ID', "BANK ACCOUNT", 'BANK NAME', 'COR ACCT', 'UID');
 
     if ($FORM{INFO_FIELDS} || $FORM{INFO_FIELDS_COMPANIES}) {
       push @TITLE, split(/, /, $FORM{INFO_FIELDS} . $FORM{INFO_FIELDS_COMPANIES});
@@ -91,7 +91,8 @@ sub extfin_export_customers {
         $line->[11], 
         $line->[12], 
         $line->[13], 
-        $line->[14], 
+        $line->[14],
+        $line->[15],
         @arr);
     }
 
@@ -462,7 +463,8 @@ sub extfin_paids {
           width   => '80%',
           caption => "$_PERIOD",
           border  => 1,
-          title   => [ '#', "$_TYPE", "$_SUM", "$_DESCRIBE", "$_ACCOUNT", "$_ADMIN", "$_DATE" ]
+          title   => [ '#', "$_TYPE", "$_SUM", "$_DESCRIBE", "$_ACCOUNT", "$_ADMIN", "$_DATE" ],
+          ID      => 'EXTFIN_PERIOD'
         }
       );
 
@@ -518,13 +520,14 @@ sub extfin_paids {
   $list  = $Extfin->paids_list({%LIST_PARAMS});
   $table = $html->table(
     {
-      width   => '100%',
-      caption => "$_FEES",
-      border  => 1,
-      title   => [ '#', $_DATE, $_USER, $_SUM, $_TYPE, $_DESCRIBE, $_ACCOUNT, $_ADMIN, $_STATUS, "$_CLOSED $_DATE", 'EXT ID', '-', '-' ],
+      width      => '100%',
+      caption    => "$_FEES",
+      border     => 1,
+      title      => [ '#', $_DATE, $_USER, $_SUM, $_TYPE, $_DESCRIBE, $_ACCOUNT, $_ADMIN, $_STATUS, "$_CLOSED $_DATE", 'EXT ID', '-', '-' ],
       cols_align => [ 'right', 'left', 'left', 'right', 'left', 'left', 'left', 'center', 'right', 'left', 'center:noprint', 'center:noprint' ],
       pages      => $Extfin->{TOTAL},
       qs         => $pages_qs,
+      ID         => 'EXTFIN_FEES'
     }
   );
 
@@ -840,11 +843,12 @@ sub extfin_report_paids {
     my $list = $Extfin->paids_list({%LIST_PARAMS});
     $table_sessions = $html->table(
       {
-        width   => '100%',
-        caption => "$_FEES",
-        border  => 1,
-        title   => [ '#', $_DATE, $_USER, $_SUM, $_TYPE, $_DESCRIBE, "$_PAYMENT_METHOD", $_ADMIN, $_STATUS, "$_CLOSED $_DATE", 'EXT ID', '-', '-' ],
+        width      => '100%',
+        caption    => "$_FEES",
+        border     => 1,
+        title      => [ '#', $_DATE, $_USER, $_SUM, $_TYPE, $_DESCRIBE, "$_PAYMENT_METHOD", $_ADMIN, $_STATUS, "$_CLOSED $_DATE", 'EXT ID', '-', '-' ],
         cols_align => [ 'right', 'left', 'right', 'left', 'right', 'left', 'center', 'right', 'center:noprint', 'center:noprint' ],
+        ID         => 'EXTFIN_FEES'
       }
     );
 

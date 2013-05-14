@@ -187,7 +187,7 @@ sub mbox_info {
    LEFT JOIN mail_domains md ON  (md.id=mb.domain_id) 
    WHERE mb.id='$attr->{MBOX_ID}' $WHERE;",
    undef,
-   { INFO => 1 } }
+   { INFO => 1 }
   );
 
   return $self;

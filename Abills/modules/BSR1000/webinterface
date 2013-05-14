@@ -582,35 +582,6 @@ sub Bsr1000_Docsis_modems {
   );
 
   my $OIDS_EXINFO = snmputils_load_mibs(['DOCS-IF-MIB']);
-
-  #if ($FORM{Client}) {
-  #	my %info = ();
-  #
-  #  use Users;
-  #  my $users = Users->new($db, $admin, \%conf);
-  #
-  #  my $list = $users->list({ COMMENTS => '%cisco_air:'. $FORM{MAC} .'%'  });
-  #  #cisco_air:00:11:95:e9:3b:2e
-  #  $info{MAC} = $FORM{MAC};
-  #  if ($users->{TOTAL} > 0) {
-  #	  $info{LOGIN} = $html->button("$list->[0]->[0]", "index=11&UID=$list->[0]->[5]");
-  #	 }
-  #  else {
-  #	  $info{LOGIN} = "Check comment for cisco_air:MAC";
-  #	 }
-  #
-  #  $Nas->info({ NAS_ID => $FORM{NAS_ID} });
-  #
-  #  foreach my $key (keys %fields) {
-  #	 	$info{$key} = snmpget("$Nas->{NAS_MNG_PASSWORD}\@$Nas->{NAS_IP}", $fields{$key}. '.1.7.119.108.97.110.119.101.112.'. $FORM{Client});
-  #	 	print "$key: $fields{$key}.1.7.119.108.97.110.119.101.112.$FORM{Client} = $info{$key}<br>" if ($debug == 1);
-  #	 	$info{$key} = data_convert($key, $info{$key});
-  #	 }
-  #
-  #	$html->tpl_show(_include('snmputils_cisco_air_client_info', 'Snmputils'), \%info);
-  #	return 0;
-  #}
-
   my @default_fields = ('docsIfCmtsCmStatusMacAddress', 'docsIfCmtsCmStatusIpAddress', 'docsIfCmtsCmStatusDownChannelIfIndex', 'docsIfCmtsCmStatusUpChannelIfIndex', 'docsIfCmtsCmStatusValue', 'docsIfCmtsCmStatusSignalNoise', 'docsIfCmtsCmStatusRxPower', 'docsIfCmtsCmStatusTimingOffset');
 
   if ($FORM{fields}) {

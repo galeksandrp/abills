@@ -30,72 +30,43 @@ sub list {
   my $self = shift;
   my ($attr) = @_;
 
-  my @WHERE_RULES = ();
-
   my $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
   my $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
 
-  my $ext_fields = '';
   my $EXT_TABLES = '';
   if ($attr->{SHOW_MAPS_GOOGLE}) {
-    $ext_fields = ",b.coordx, b.coordy";
     $EXT_TABLES = "INNER JOIN builds b ON (b.id=nas.location_id)";
     if ($attr->{DISTRICT_ID}) {
-      push @WHERE_RULES, @{ $self->search_expr($attr->{DISTRICT_ID}, 'INT', 'streets.district_id', { EXT_FIELD => 'districts.name' }) };
       $EXT_TABLES .= "LEFT JOIN streets ON (streets.id=b.street_id)
       LEFT JOIN districts ON (districts.id=streets.district_id) ";
     }
   }
   elsif ($attr->{SHOW_MAPS}) {
-    $ext_fields = ",b.map_x, b.map_y, b.map_x2, b.map_y2, b.map_x3, b.map_y3, b.map_x4, b.map_y4";
     $EXT_TABLES = "INNER JOIN builds b ON (b.id=nas.location_id)";
     if ($attr->{DISTRICT_ID}) {
-      push @WHERE_RULES, @{ $self->search_expr($attr->{DISTRICT_ID}, 'INT', 'streets.district_id', { EXT_FIELD => 'districts.name' }) };
       $EXT_TABLES .= "LEFT JOIN streets ON (streets.id=b.street_id)
       LEFT JOIN districts ON (districts.id=streets.district_id) ";
     }
   }
 
-  if (defined($attr->{TYPE})) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{TYPE}, 'STR', 'nas.nas_type') };
-  }
-
-  if (defined($attr->{DISABLE})) {
-    push @WHERE_RULES, "nas.disable='$attr->{DISABLE}'";
-  }
-
-  if ($attr->{NAS_IDS}) {
-    push @WHERE_RULES, "nas.id IN ($attr->{NAS_IDS})";
-  }
-  elsif ($attr->{NAS_ID}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{NAS_ID}, 'STR', 'nas.id') };
-  }
-
-  if ($attr->{NAS_NAME}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{NAS_NAME}, 'STR', 'nas.name') };
-  }
-
-  if ($attr->{NAS_TYPE}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{NAS_TYPE}, 'INT', 'nas.nas_type') };
-  }
-
-  if ($attr->{DOMAIN_ID}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{DOMAIN_ID}, 'INT', 'nas.domain_id') };
-  }
-
-  if ($attr->{MAC}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{MAC}, 'INT', 'nas.mac') };
-  }
-
-  if ($attr->{NAS_IP}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{NAS_IP}, 'STR', 'nas.ip') };
-  }
-
-  if ($attr->{GID}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{GID}, 'INT', 'nas.gid') };
-  }
-
-  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES) : '';
+  my $WHERE =  $self->search_former($attr, [
+      ['TYPE',             'STR', 'nas.nas_type'       ],
+      ['DISABLE',          'INT', 'nas.disable'        ],
+      ['NAS_ID',           'INT', 'nas.id'             ],
+      ['NAS_IDS',          'INT', 'nas.id'             ],
+      ['NAS_NAME',         'STR', 'nas.name'           ],
+      ['NAS_TYPE',         'STR', 'nas.nas_type'       ],
+      ['DOMAIN_ID',        'INT', 'nas.domain_id'      ],
+      ['MAC',              'INT', 'nas.mac',         1 ],
+      ['NAS_IP',           'STR', 'nas.ip'             ],
+      ['GID',              'INT', 'nas.gid',         1 ],
+      ['DISTRICT_ID',      'INT', 'streets.district_id', 'districts.name' ],
+      ['SHOW_MAPS',        '',    'b.map_x, b.map_y, b.map_x2, b.map_y2, b.map_x3, b.map_y3, b.map_x4, b.map_y4' ], 
+      ['SHOW_MAPS_GOOGLE', 'SHOW_MAPS_GOOGLE', 'b.coordx, b.coordy' ]
+    ],
+    { WHERE => 1,
+    }    
+    );
 
   $self->query2("SELECT nas.id AS nas_id, 
   nas.name as nas_name, 
@@ -111,8 +82,8 @@ sub list {
   DECODE(nas.mng_password, '$SECRETKEY') as nas_mng_password, 
   nas.rad_pairs as nas_rad_pairs, 
   nas.ext_acct,
-  nas.auth_type
-  $ext_fields,
+  nas.auth_type,
+  $self->{SEARCH_FIELDS}
   nas.mac
   FROM nas
   LEFT JOIN nas_groups ng ON (ng.id=nas.gid)
@@ -183,21 +154,21 @@ sub info {
  { INFO => 1 }
   );
 
-  if ($self->{LOCATION_ID}) {
-    $self->query2("select d.id, d.city, d.name, s.name, b.number  
+  if (! $self->{errno} && $self->{LOCATION_ID}) {
+    $self->query2("select d.id AS district_id, d.city, 
+      d.name AS address_district, 
+      s.name AS address_street, 
+      b.number AS address_build 
      FROM builds b
      LEFT JOIN streets s  ON (s.id=b.street_id)
      LEFT JOIN districts d  ON (d.id=s.district_id)
-     WHERE b.id='$self->{LOCATION_ID}'"
+     WHERE b.id='$self->{LOCATION_ID}'",
+     undef,
+     { INFO => 1 }
     );
 
-    if ($self->{TOTAL} > 0) {
-      ($self->{DISTRICT_ID}, 
-       $self->{CITY}, 
-       $self->{ADDRESS_DISTRICT}, 
-       $self->{ADDRESS_STREET}, 
-       $self->{ADDRESS_BUILD}
-      ) = @{ $self->{list}->[0] };
+    if ($self->{errno} && $self->{errno} == 2) {
+    	delete $self->{errno};
     }
   }
 
@@ -566,7 +537,7 @@ sub nas_group_list {
   $WHERE
   ORDER BY $SORT $DESC;",
   undef, 
-  { INFO => 1 }
+  $attr
   );
 
   return $self->{list};
@@ -625,7 +596,7 @@ sub nas_group_add {
   my ($attr) = @_;
 
   %DATA = $self->get_data($attr);
-  $self->query_add('groups', $attr);
+  $self->query_add('nas_groups', $attr);
 
   $admin->system_action_add("NAS_GROUP_ID:$self->{INSERT_ID}", { TYPE => 1 });
   return 0;

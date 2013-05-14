@@ -229,6 +229,7 @@ sub list {
                                   'CONTRACT_ID',
                                   'CONTRACT_SUFIX',
                                   'CONTRACT_DATE',
+                                  'COMPANY_ID',
                                   'EXPIRE',
 
                                   'CREDIT',
@@ -244,98 +245,45 @@ sub list {
                                   'UID:skip'
                                  ] }) };
 
-  if ($attr->{UID}) {
-    push @WHERE_RULES, "p.uid='$attr->{UID}' ";
-  }
-
-  if ($attr->{AID}) {
-    push @WHERE_RULES, "p.aid='$attr->{AID}' ";
-  }
-
-  if ($attr->{A_LOGIN}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{A_LOGIN}, 'STR', 'a.id') };
-  }
-
-  if ($attr->{DESCRIBE}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{DESCRIBE}, 'STR', 'p.dsc') };
-  }
-
-  if ($attr->{INNER_DESCRIBE}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{INNER_DESCRIBE}, 'STR', 'p.inner_describe') };
-  }
-
-  if ($attr->{SUM}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{SUM}, 'INT', 'p.sum') };
-  }
-
-  if ($attr->{AMOUNT}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{AMOUNT}, 'INT', 'p.amount') };
-  }
-
-  if ($attr->{CURRENCY}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{CURRENCY}, 'INT', 'p.currency') };
-  }
-
-  if (defined($attr->{METHOD})) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{METHOD}, 'INT', 'p.method') };
-  }
-
-  if ($attr->{DOMAIN_ID}) {
-    push @WHERE_RULES, "u.domain_id='$attr->{DOMAIN_ID}' ";
-  }
-
-  if ($attr->{DATE}) {
-    push @WHERE_RULES, @{ $self->search_expr("$attr->{DATE}", 'INT', 'date_format(p.date, \'%Y-%m-%d\')') };
-  }
-  elsif ($attr->{MONTH}) {
-    my $value = $self->search_expr("$attr->{MONTH}", 'INT');
-    push @WHERE_RULES, " date_format(p.date, '%Y-%m')$value ";
-  }
-
-  # Date intervals
-  elsif ($attr->{FROM_DATE}) {
-    push @WHERE_RULES, @{ $self->search_expr(">=$attr->{FROM_DATE};<=$attr->{TO_DATE}", 'DATE', 'date_format(p.date, \'%Y-%m-%d\')') };
-  }
-  elsif ($attr->{FROM_DATE_TIME}) {
-    push @WHERE_RULES, @{ $self->search_expr(">=$attr->{FROM_DATE_TIME};<=$attr->{TO_DATE_TIME}", 'DATE', 'p.date') };
-  }
-  elsif ($attr->{PAYMENT_DAYS}) {
-    my $expr = '=';
-    if ($attr->{PAYMENT_DAYS} =~ s/^(<|>)//) {
-      $expr = $1;
-    }
-    push @WHERE_RULES, "p.date $expr curdate() - INTERVAL $attr->{PAYMENT_DAYS} DAY";
-  }
-
-  if ($attr->{BILL_ID}) {
-    push @WHERE_RULES, @{ $self->search_expr("$attr->{BILL_ID}", 'INT', 'p.bill_id') };
-  }
-
-  if ($attr->{EXT_ID}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{EXT_ID}, 'STR', 'p.ext_id') };
-  }
-  elsif ($attr->{EXT_IDS}) {
-    push @WHERE_RULES, "p.ext_id in ($attr->{EXT_IDS})";
-  }
-
-  if ($attr->{ID}) {
-    push @WHERE_RULES, @{ $self->search_expr("$attr->{ID}", 'INT', 'p.id') };
-  }
-
   my $EXT_TABLES  = $self->{EXT_TABLES};
   if ($attr->{INVOICE_NUM}) {
-    push @WHERE_RULES, @{ $self->search_expr("$attr->{INVOICE_NUM}", 'INT', 'd.invoice_num', { EXT_FIELD => 1 }) };
     $EXT_TABLES  .= 'LEFT JOIN docs_invoice2payments i2p ON (p.id=i2p.payment_id)
     LEFT JOIN docs_invoices d ON (d.id=i2p.invoice_id)';
   }
 
-  if ($attr->{COMPANY_ID}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{COMPANY_ID}, 'INT', 'u.company_id', { EXT_FIELD => 1 }) };
-  }
-
   my $login_field = '';
-  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES) : '';
+  if (! $attr->{PAYMENT_DAYS}) {
+  	$attr->{PAYMENT_DAYS}=0;
+  }
   
+  my $WHERE =  $self->search_former($attr, [
+      ['SUM',            'INT', 'p.sum'                         ],
+      ['PAYMENT_METHOD', 'INT', 'p.method',                     ],
+      ['A_LOGIN',        'STR', 'a.id'                          ],
+      ['DESCRIBE',       'STR', 'p.dsc'                         ],
+      ['INNER_DESCRIBE', 'STR', 'p.inner_describe'              ],
+      ['AMOUNT',         'INT', 'p.amount',                    1],
+      ['CURRENCY',       'INT', 'p.currency',                  1],
+      ['METHOD',         'INT', 'p.method'                      ],
+      ['BILL_ID',        'INT', 'p.bill_id',                   1],
+      ['AID',            'INT', 'p.id',                         ],
+      ['IP',             'INT', 'INET_NTOA(p.ip)',    'INET_NTOA(p.ip) AS ip'],
+      ['EXT_ID',         'STR', 'p.ext_id',                     ],
+      ['INVOICE_NUM',    'INT', 'd.invoice_num',               1],
+      ['DATE',           'DATE','date_format(p.date, \'%Y-%m-%d\') AS date' ], 
+      ['REG_DATE',       'DATE','p.reg_date',                 1],      
+      ['MONTH',          'DATE','date_format(p.date, \'%Y-%m\') AS month'   ],
+      ['ID',             'INT', 'p.id'                                      ],
+      ['PAYMENT_DAYS',   'DATE', "curdate() - INTERVAL $attr->{PAYMENT_DAYS} DAY"],
+      ['FROM_DATE_TIME|TO_DATE_TIME','DATE', "p.date"                            ],
+      ['FROM_DATE|TO_DATE',          'DATE', 'date_format(p.date, \'%Y-%m-%d\')' ],
+      ['UID',            'INT', 'p.uid',                       1],
+    ],
+    { WHERE => 1,
+    	WHERE_RULES => \@WHERE_RULES
+    }    
+    );
+
   if ($WHERE =~ /pi\./) {
     $EXT_TABLES  = 'LEFT JOIN users_pi pi ON (u.uid=pi.uid)'.$EXT_TABLES ;
   }
@@ -347,16 +295,16 @@ sub list {
   if (!$attr->{TOTAL_ONLY}) {
     $self->query2("SELECT p.id, 
       u.id AS login, 
-      $self->{SEARCH_FIELDS} p.date, p.dsc, p.sum, p.last_deposit, p.method, 
-      p.ext_id, p.bill_id, 
+      p.date, 
+      p.dsc, 
+      p.sum, 
+      p.last_deposit, 
+      p.method, 
+      p.ext_id, 
       if(a.name is null, 'Unknown', a.name) AS admin_name,  
-      p.reg_date,
-      INET_NTOA(p.ip) AS ip, 
-      p.amount,
-      p.currency,
       $self->{SEARCH_FIELDS}
-      p.uid, 
-      p.inner_describe
+      p.inner_describe,
+      p.uid 
     FROM payments p
     LEFT JOIN users u ON (u.uid=p.uid)
     LEFT JOIN admins a ON (a.aid=p.aid)

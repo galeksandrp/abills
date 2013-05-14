@@ -25,7 +25,6 @@ use main;
 use Billing;
 my $Billing;
 
-my $db;
 my $CONF;
 my $debug = 0;
 my $RAD_PAIRS;
@@ -35,14 +34,18 @@ my $RAD_PAIRS;
 #**********************************************************
 sub new {
   my $class = shift;
-  ($db, $CONF) = @_;
+  my $db    = shift; 
+  ($CONF)   = @_;
+
   my $self = {};
   bless($self, $class);
 
   if (!defined($CONF->{KBYTE_SIZE})) {
     $CONF->{KBYTE_SIZE} = 1024;
   }
-
+  
+  $self->{db} = $db;
+  
   $CONF->{MB_SIZE} = $CONF->{KBYTE_SIZE} * $CONF->{KBYTE_SIZE};
   $Billing = Billing->new($db, $CONF);
 
@@ -65,8 +68,7 @@ sub dv_auth {
   my $MAX_SESSION_TRAFFIC = $CONF->{MAX_SESSION_TRAFFIC} || 0;
   my $DOMAIN_ID = ($NAS->{DOMAIN_ID}) ? "AND tp.domain_id='$NAS->{DOMAIN_ID}'" : "AND tp.domain_id='0'";
 
-  $self->query(
-    $db, "select  if (dv.logins=0, if(tp.logins is null, 0, tp.logins), dv.logins) AS logins,
+  $self->query2("select  if (dv.logins=0, if(tp.logins is null, 0, tp.logins), dv.logins) AS logins,
   if(dv.filter_id != '', dv.filter_id, if(tp.filter_id is null, '', tp.filter_id)) AS filter,
   if(dv.ip>0, INET_NTOA(dv.ip), 0) AS ip,
   INET_NTOA(dv.netmask) AS netmask,
@@ -128,7 +130,6 @@ sub dv_auth {
     }
     else {
       $RAD_PAIRS->{'Reply-Message'} = 'SQL error';
-      undef $db;
     }
     return 1, $RAD_PAIRS;
   }
@@ -137,7 +138,7 @@ sub dv_auth {
   #DIsable
   if ($self->{DISABLE}) {
     if ($self->{DISABLE} == 2) {
-      $self->query($db, "UPDATE dv_main SET disable=0 WHERE uid='$self->{UID}'", 'do');
+      $self->query2("UPDATE dv_main SET disable=0 WHERE uid='$self->{UID}'", 'do');
     }
     else {
       if ($CONF->{DV_STATUS_NEG_DEPOSIT} && $self->{NEG_DEPOSIT_FILTER_ID}) {
@@ -163,8 +164,7 @@ sub dv_auth {
   # Make join service operations
   if ($self->{JOIN_SERVICE}) {
     if ($self->{JOIN_SERVICE} > 1) {
-      $self->query(
-        $db, "select  
+      $self->query2("select  
   if ($self->{LOGINS}>0, $self->{LOGINS}, tp.logins) AS logins,
   if('$self->{FILTER}' != '', '$self->{FILTER}', tp.filter_id) AS filter,
   dv.tp_id AS tp_num,
@@ -211,7 +211,6 @@ sub dv_auth {
         }
         else {
           $RAD_PAIRS->{'Reply-Message'} = 'SQL error';
-          undef $db;
         }
         return 1, $RAD_PAIRS;
       }
@@ -222,7 +221,7 @@ sub dv_auth {
       $self->{UIDS} = "$self->{UID}";
     }
 
-    $self->query($db, "SELECT uid FROM dv_main WHERE join_service='$self->{JOIN_SERVICE}';");
+    $self->query2("SELECT uid FROM dv_main WHERE join_service='$self->{JOIN_SERVICE}';");
     foreach my $line (@{ $self->{list} }) {
       $self->{UIDS} .= ", $line->[0]";
     }
@@ -240,7 +239,7 @@ sub dv_auth {
       $sql = "SELECT nas_id FROM tp_nas WHERE tp_id='$self->{TP_ID}' and nas_id='$NAS->{NAS_ID}'";
     }
 
-    $self->query($db, "$sql");
+    $self->query2("$sql");
 
     if ($self->{TOTAL} < 1) {
       $RAD_PAIRS->{'Reply-Message'} = "You are not authorized to log in $NAS->{NAS_ID} ($RAD->{NAS_IP_ADDRESS})";
@@ -256,7 +255,7 @@ sub dv_auth {
   		$ignore_cid  = 1;
   	}
     elsif (! $self->{PORT}) {
-      $self->query($db, "UPDATE dv_main SET port='$RAD->{$CONF->{DV_PPPOE_PLUSE_PARAM}}';", 'do');
+      $self->query2("UPDATE dv_main SET port='$RAD->{$CONF->{DV_PPPOE_PLUSE_PARAM}}' WHERE uid='$self->{UID}';", 'do');
       $self->{PORT}=$RAD->{$CONF->{DV_PPPOE_PLUSE_PARAM}};
     }
   }
@@ -282,7 +281,7 @@ sub dv_auth {
 
   #Check  simultaneously logins if needs
   if ($self->{LOGINS} > 0) {
-    $self->query($db, "SELECT CID, INET_NTOA(framed_ip_address), nas_id, status FROM dv_calls WHERE user_name='$RAD->{USER_NAME}' and (status <> 2);");
+    $self->query2("SELECT CID, INET_NTOA(framed_ip_address), nas_id, status FROM dv_calls WHERE user_name='$RAD->{USER_NAME}' and (status <> 2);");
     my ($active_logins) = $self->{TOTAL};
     my %active_nas      = ();
     foreach my $line (@{ $self->{list} }) {
@@ -299,7 +298,7 @@ sub dv_auth {
         && $active_nas{ $line->[2] }
         && $active_nas{ $line->[2] } eq $line->[0])
       {
-        $self->query($db, "UPDATE dv_calls SET status=2 WHERE user_name='$RAD->{USER_NAME}' and CID='$RAD->{CALLING_STATION_ID}' and status <> 2;", 'do');
+        $self->query2("UPDATE dv_calls SET status=2 WHERE user_name='$RAD->{USER_NAME}' and CID='$RAD->{CALLING_STATION_ID}' and status <> 2;", 'do');
         $self->{IP} = $line->[1];
         $active_logins--;
       }
@@ -422,9 +421,7 @@ sub dv_auth {
       my $session_time_limit = $time_limit;
       my $session_traf_limit = $traf_limit;
 
-      $self->query(
-        $db,
-        "SELECT if("
+      $self->query2("SELECT if("
         . $self->{ $line . '_TIME_LIMIT' }
         . " > 0, "
         . $self->{ $line . '_TIME_LIMIT' }
@@ -490,8 +487,7 @@ sub dv_auth {
 
     # SET ACCOUNT expire date
     if ($self->{ACCOUNT_AGE} > 0 && $self->{ACCOUNT_ACTIVATE} eq '0000-00-00') {
-      $self->query(
-        $db, "UPDATE users SET  activate=curdate(), expire=curdate() + INTERVAL $self->{ACCOUNT_AGE} day 
+      $self->query2("UPDATE users SET  activate=curdate(), expire=curdate() + INTERVAL $self->{ACCOUNT_AGE} day 
       WHERE uid='$self->{UID}';", 'do'
       );
     }
@@ -502,8 +498,7 @@ sub dv_auth {
   if ($self->{IP} ne '0') {
     $RAD_PAIRS->{'Framed-IP-Address'} = "$self->{IP}";
     if (! $self->{REASSIGN}) {
-      $self->query(
-        $db, "INSERT INTO dv_calls (started, user_name, uid, framed_ip_address, nas_id, nas_ip_address, status, acct_session_id, tp_id, join_service)
+      $self->query2("INSERT INTO dv_calls (started, user_name, uid, framed_ip_address, nas_id, nas_ip_address, status, acct_session_id, tp_id, join_service)
         VALUES (now(), '$self->{USER_NAME}', '$self->{UID}', INET_ATON('$self->{IP}'), '$NAS->{NAS_ID}', INET_ATON('$RAD->{NAS_IP_ADDRESS}'), '11', 'IP', '$self->{TP_NUM}', '$self->{JOIN_SERVICE}');", 'do'
        );
     }
@@ -546,8 +541,7 @@ sub dv_auth {
         }
       }
       else {
- 	      $self->query(
-          $db, "SELECT tt.id, tc.nets, in_speed, out_speed
+ 	      $self->query2("SELECT tt.id, tc.nets, in_speed, out_speed
              FROM trafic_tarifs tt
              LEFT JOIN traffic_classes tc ON (tt.net_id=tc.id)
              WHERE tt.interval_id='$self->{TT_INTERVAL}' ORDER BY 1 DESC;"
@@ -788,16 +782,14 @@ sub dv_auth {
     && $RAD->{CALLING_STATION_ID} !~ /\//
     && ! $self->{NAS_PORT})
   {
-    $self->query(
-      $db, "UPDATE dv_main SET cid='$RAD->{CALLING_STATION_ID}'
+    $self->query2("UPDATE dv_main SET cid='$RAD->{CALLING_STATION_ID}'
      WHERE uid='$self->{UID}';", 'do'
     );
   }
 
   # SET ACCOUNT expire date
   if ($self->{ACCOUNT_AGE} > 0 && $self->{ACCOUNT_ACTIVATE} eq '0000-00-00') {
-    $self->query(
-      $db, "UPDATE users SET  activate=curdate(), expire=curdate() + INTERVAL $self->{ACCOUNT_AGE} day 
+    $self->query2("UPDATE users SET  activate=curdate(), expire=curdate() + INTERVAL $self->{ACCOUNT_AGE} day 
      WHERE uid='$self->{UID}';", 'do'
     );
   }
@@ -853,8 +845,7 @@ sub Auth_CID {
 
   #If auth from DHCP
   if ($CONF->{DHCP_CID_IP} || $CONF->{DHCP_CID_MAC} || $CONF->{DHCP_CID_MPD}) {
-    $self->query(
-      $db, "SELECT INET_NTOA(dh.ip), dh.mac
+    $self->query2("SELECT INET_NTOA(dh.ip), dh.mac
          FROM dhcphosts_hosts dh
          LEFT JOIN users u ON u.uid=dh.uid
          WHERE  u.id='$RAD->{USER_NAME}'
@@ -863,7 +854,6 @@ sub Auth_CID {
     );
     if ($self->{errno}) {
       $RAD_PAIRS->{'Reply-Message'} = 'SQL error';
-      undef $db;
       return 1, $RAD_PAIRS;
     }
     elsif ($self->{TOTAL} > 0) {
@@ -955,8 +945,7 @@ sub authentication {
   my %RAD_PAIRS = ();
 
   if ($NAS->{NAS_TYPE} eq 'cid_auth' && $RAD->{CALLING_STATION_ID}) {
-    $self->query(
-      $db, "select
+    $self->query2("select
   u.uid,
   DECODE(u.password, '$SECRETKEY'),
   UNIX_TIMESTAMP(),
@@ -1037,8 +1026,7 @@ sub authentication {
       $WHERE = "AND u.domain_id='0'";
     }
 
-    $self->query(
-      $db, "select
+    $self->query2("select
   u.uid,
   DECODE(password, '$SECRETKEY') AS passwd,
   UNIX_TIMESTAMP() AS session_start,
@@ -1070,7 +1058,6 @@ sub authentication {
     }
     else {
       $RAD_PAIRS{'Reply-Message'} = 'SQL error';
-      undef $db;
     }
     return 1, \%RAD_PAIRS;
   }
@@ -1148,8 +1135,7 @@ sub check_bill_account() {
   my $self = shift;
 
   if ($CONF->{EXT_BILL_ACCOUNT} && $self->{EXT_BILL_ID}) {
-    $self->query(
-      $db, "SELECT id, ROUND(deposit, 2) FROM bills 
+    $self->query2("SELECT id, ROUND(deposit, 2) FROM bills 
      WHERE id='$self->{BILL_ID}' or id='$self->{EXT_BILL_ID}';"
     );
     if ($self->{errno}) {
@@ -1173,7 +1159,7 @@ sub check_bill_account() {
   else {
 
     #get sum from bill account
-    $self->query($db, "SELECT ROUND(deposit, 2) FROM bills WHERE id='$self->{BILL_ID}';");
+    $self->query2("SELECT ROUND(deposit, 2) FROM bills WHERE id='$self->{BILL_ID}';");
     if ($self->{errno}) {
       return $self;
     }
@@ -1195,8 +1181,7 @@ sub check_bill_account() {
 sub check_company_account () {
   my $self = shift;
 
-  $self->query(
-    $db, "SELECT bill_id, disable, credit 
+  $self->query2("SELECT bill_id, disable, credit 
        FROM companies WHERE id='$self->{COMPANY_ID}';"
   );
 
@@ -1237,8 +1222,7 @@ sub ex_traffic_params {
 
   my $nets = 0;
 
-  $self->query(
-    $db, "SELECT id, in_price, out_price, prepaid, in_speed, out_speed, net_id, expression
+  $self->query2("SELECT id, in_price, out_price, prepaid, in_speed, out_speed, net_id, expression
              FROM trafic_tarifs
              WHERE interval_id='$self->{TT_INTERVAL}';"
   );
@@ -1464,15 +1448,13 @@ sub get_ip {
   my ($nas_num, $nas_ip, $attr) = @_;
 
   if ($attr->{TP_IPPOOL}) {
-    $self->query(
-      $db, "SELECT ippools.ip, ippools.counts, ippools.id FROM ippools
+    $self->query2("SELECT ippools.ip, ippools.counts, ippools.id FROM ippools
      WHERE ippools.id='$attr->{TP_IPPOOL}'
      ORDER BY ippools.priority;"
     );
   }
   else {
-    $self->query(
-      $db, "SELECT ippools.ip, ippools.counts, ippools.id FROM ippools, nas_ippools
+    $self->query2("SELECT ippools.ip, ippools.counts, ippools.id FROM ippools, nas_ippools
      WHERE ippools.id=nas_ippools.pool_id AND nas_ippools.nas_id='$nas_num'
      ORDER BY ippools.priority;"
     );
@@ -1502,11 +1484,10 @@ sub get_ip {
   my $used_pools = join(', ', @used_pools_arr);
 
   #Lock table for read
-  $db->do('lock tables dv_calls as c read, nas_ippools as np read, dv_calls write');
+  $self->{db}->do('lock tables dv_calls as c read, nas_ippools as np read, dv_calls write');
   #get active address and delete from pool
   # Select from active users and reserv ips
-  $self->query(
-    $db, "SELECT c.framed_ip_address
+  $self->query2("SELECT c.framed_ip_address
   FROM dv_calls c
   INNER JOIN nas_ippools np ON (c.nas_id=np.nas_id)
   WHERE np.pool_id in ( $used_pools )
@@ -1535,13 +1516,31 @@ sub get_ip {
   if ($assign_ip) {
     # Make reserv ip
     if (! $attr->{SKIP_RESERV}) {
-      $self->query(
-        $db, "INSERT INTO dv_calls (started, user_name, uid, framed_ip_address, nas_id, nas_ip_address, status, acct_session_id, tp_id, join_service, guest)
-        VALUES (now(), '$self->{USER_NAME}', '$self->{UID}', '$assign_ip', '$nas_num', INET_ATON('$nas_ip'), '11', 'IP', '$self->{TP_NUM}', '$self->{JOIN_SERVICE}', " . (($attr->{GUEST}) ? 1 : 0) . ");", 'do'
-      );
+    	my %insert_hash = (
+    	 user_name       => $self->{USER_NAME}, 
+    	 uid             => $self->{UID}, 
+    	 nas_id          => $nas_num, 
+    	 tp_id           => $self->{TP_NUM}, 
+    	 join_service    => $self->{JOIN_SERVICE}, 
+    	 guest           => $attr->{GUEST},
+    	 CID             => $attr->{CID}, 
+    	 CONNECTION_INFO => $attr->{CONNECTION_INFO}
+    	);
+
+      my $sql = "INSERT INTO dv_calls SET started=now(),
+    	 status          = '11',
+    	 acct_session_id = 'IP',
+    	 nas_ip_address  = INET_ATON('$nas_ip'),
+     	 framed_ip_address='$assign_ip'";
+
+    	while(my ($k, $v) = each %insert_hash) {
+    		$sql .= ", $k='$v'" if ($v);
+    	}
+
+      $self->query2($sql, 'do');
     }
    
-    $db->do('unlock tables');
+    $self->{db}->do('unlock tables');
     if( $self->{errno} ) {
       return -1;
     }
@@ -1551,9 +1550,9 @@ sub get_ip {
     }
   }
   else {    # no addresses available in pools
-    $db->do('unlock tables');
+    $self->{db}->do('unlock tables');
     if ($attr->{TP_POOLS}) {
-      $self->get_ip($nas_num, $nas_ip);
+      $self->get_ip($nas_num, $nas_ip, $attr);
     }
     else {
       return -1;
@@ -1667,7 +1666,7 @@ sub pre_auth {
       $login = $1;
     }
 
-    $self->query($db, "SELECT DECODE(password, '$CONF->{secretkey}') FROM users WHERE id='$login';");
+    $self->query2("SELECT DECODE(password, '$CONF->{secretkey}') FROM users WHERE id='$login';");
     if ($self->{TOTAL} > 0) {
       my $list     = $self->{list}->[0];
       my $password = $list->[0];
@@ -1712,8 +1711,7 @@ sub neg_deposit_filter_former () {
     # Return radius attr
     if ($self->{IP} ne '0' && !$self->{NEG_DEPOSIT_IP_POOL}) {
       $RAD_PAIRS->{'Framed-IP-Address'} = "$self->{IP}";
-      $self->query(
-        $db, "INSERT INTO dv_calls (started, user_name, uid, framed_ip_address, nas_id, nas_ip_address, status, acct_session_id, tp_id, join_service, guest)
+      $self->query2("INSERT INTO dv_calls (started, user_name, uid, framed_ip_address, nas_id, nas_ip_address, status, acct_session_id, tp_id, join_service, guest)
       VALUES (now(), '$self->{USER_NAME}', '$self->{UID}', INET_ATON('$self->{IP}'), '$NAS->{NAS_ID}', INET_ATON('$RAD->{NAS_IP_ADDRESS}'), '11', 'IP', '$self->{TP_NUM}', '$self->{JOIN_SERVICE}', 1);", 'do'
       );
     }
@@ -1726,8 +1724,7 @@ sub neg_deposit_filter_former () {
       elsif ($ip eq '0') {
         #$RAD_PAIRS->{'Reply-Message'}="$self->{errstr} ($NAS->{NAS_ID})";
         #return 1, $RAD_PAIRS;
-        $self->query(
-        $db, "INSERT INTO dv_calls (started, user_name, uid, framed_ip_address, nas_id, nas_ip_address, status, acct_session_id, tp_id, join_service, guest)
+        $self->query2("INSERT INTO dv_calls (started, user_name, uid, framed_ip_address, nas_id, nas_ip_address, status, acct_session_id, tp_id, join_service, guest)
       VALUES (now(), '$self->{USER_NAME}', '$self->{UID}', 0, '$NAS->{NAS_ID}', INET_ATON('$RAD->{NAS_IP_ADDRESS}'), '11', 'IP', '$self->{TP_NUM}', '$self->{JOIN_SERVICE}', 1);", 'do'
       );
       }

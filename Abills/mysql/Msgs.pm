@@ -124,58 +124,10 @@ sub messages_list {
   $SORT      = ($attr->{SORT})          ? $attr->{SORT}      : 1;
   $DESC      = (defined($attr->{DESC})) ? $attr->{DESC}      : 'DESC';
   $PG        = (defined($attr->{PG}))   ? $attr->{PG}        : 0;
+  
+  $self->{COL_NAMES_ARR}=undef;
 
-  @WHERE_RULES = ();
   $attr->{SKIP_GID} = 1;
-
-  push @WHERE_RULES, @{ $self->search_expr_users({ %$attr, 
-                             EXT_FIELDS => [
-                                            'FIO',
-                                            'PHONE:skip',
-                                            'EMAIL',
-                                            'ADDRESS_FLAT',
-                                            'PASPORT_DATE',
-                                            'PASPORT_NUM', 
-                                            'PASPORT_GRANT',
-                                            'CITY', 
-                                            'ZIP',
-                                            'GID:skip',
-                                            'CONTRACT_ID',
-                                            'CONTRACT_SUFIX',
-                                            'CONTRACT_DATE',
-                                            'EXPIRE',
-
-                                            'CREDIT',
-                                            'CREDIT_DATE', 
-                                            'REDUCTION',
-                                            'REGISTRATION',
-                                            'REDUCTION_DATE',
-                                            'COMMENTS',
-                                            'BILL_ID',
-                                            
-                                            'ACTIVATE',
-                                            'EXPIRE',
-                                            'DEPOSIT:skip',
-                                            'DOMAIN_ID',
-                                            'PASSWORD'
-                                             ] }) };
-
-  # Show groups
-  if ($attr->{GIDS} || $admin->{GIDS}) {
-  	$attr->{GIDS} = $admin->{GIDS} if (! $attr->{GIDS});
-    push @WHERE_RULES, "(u.gid IN ($attr->{GIDS}) OR m.gid IN ($attr->{GIDS}) OR m.aid='$admin->{AID}')";
-  }
-  elsif ($attr->{GID}) {
-    push @WHERE_RULES, "(u.gid='$attr->{GID}' OR m.gid='$attr->{GID}' OR m.aid='$admin->{AID}')";
-  }
-
-  if ($attr->{DATE}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{DATE}, 'DATE', "date_format(m.date, '%Y-%m-%d')") };
-  }
-  elsif ($attr->{FROM_DATE}) {
-    push @WHERE_RULES, "(date_format(m.date, '%Y-%m-%d')>='$attr->{FROM_DATE}' and date_format(m.date, '%Y-%m-%d')<='$attr->{TO_DATE}')";
-  }
-
   if ($attr->{PLAN_FROM_DATE}) {
     push @WHERE_RULES, "(date_format(m.plan_date, '%Y-%m-%d')>='$attr->{PLAN_FROM_DATE}' and date_format(m.plan_date, '%Y-%m-%d')<='$attr->{PLAN_TO_DATE}')";
   }
@@ -220,64 +172,69 @@ sub messages_list {
     }
   }
 
-  my $EXT_TABLE = $self->{EXT_TABLES};
-
   my $WHERE = $self->search_former($attr, [
-      ['MSG_ID',       'INT',  'm.id'  ],
-      ['INNER_MSG',    'INT',  'm.inner_msg' ], 
-      ['SUBJECT',      'STR',  'm.subject'],
-      ['MESSAGE',      'STR',  'm.message', 1 ],
-      ['REPLY',        'STR',  'm.user_read' ],
-      ['PHONE',        'STR',  'm.phone' ],
-      ['USER_READ',    'INT',  'm.user_read' ],
-      ['ADMIN_READ',   'INT',  'm.admin_read' ],
-      ['CLOSED_DATE',  'DATE', 'm.closed_date' ],
-      ['DONE_DATE',    'DATE', 'm.done_date' ],
-      ['CHAPTER',      'INT',  'm.chapter' ],
-      ['UID',          'INT',  'm.uid' ],
-      ['DELIGATION',   'INT',  'm.delegation' ],
-      ['RESPOSIBLE',   'INT',  'm.resposible' ],
-      ['PRIORITY',     'INT',  'm.state' ],
-      ['PLAN_DATE',    'INT',  'm.plan_date' ],
-      ['PLAN_TIME',    'INT',  'm.plan_time' ],
-      ['DISPATCH_ID',  'INT',  'm.dispatch_id' ],
-      ['IP',           'IP',   'm.ip',  'INET_NTOA(m.ip)' ]
+      ['MSG_ID',       'INT',  'm.id'             ],
+      ['DISABLE',      'INT',  'u.disable',     1 ],
+      ['INNER_MSG',    'INT',  'm.inner_msg',   1 ], 
+      ['SUBJECT',      'STR',  'm.subject'        ],
+      ['MESSAGE',      'STR',  'm.message',     1 ],
+      ['REPLY',        'STR',  'm.user_read',   1 ],
+      ['PHONE',        'STR',  'm.phone',       1 ],
+      ['USER_READ',    'INT',  'm.user_read',   1 ],
+      ['ADMIN_READ',   'INT',  'm.admin_read',  1 ],
+      ['CLOSED_DATE',  'DATE', 'm.closed_date', 1 ],
+      ['RUN_TIME',     'DATE', 'SEC_TO_TIME(sum(r.run_time))',  'SEC_TO_TIME(sum(r.run_time)) AS run_time' ],
+      ['DONE_DATE',    'DATE', 'm.done_date',   1 ],
+      ['CHAPTER',      'INT',  'm.chapter',       ],
+      ['UID',          'INT',  'm.uid',           ],
+      ['DELIGATION',   'INT',  'm.delegation',  1 ],
+      ['RESPOSIBLE',   'INT',  'm.resposible',    ],
+      ['PRIORITY',     'INT',  'm.state',         ],
+      ['PLAN_DATE',    'INT',  'm.plan_date',   1 ], 
+      #['PLAN_DATE',    'INT',  "DATE_FORMAT(plan_date, '%w')", "DATE_FORMAT(plan_date, '%w') AS plan_date", 1 ], 
+      ['PLAN_TIME',    'INT',  'm.plan_time',   1 ],
+      ['DISPATCH_ID',  'INT',  'm.dispatch_id', 1 ],
+      ['IP',           'IP',   'm.ip',  'INET_NTOA(m.ip)', 1 ],
+      ['DATE',         'DATE',  "date_format(m.date, '%Y-%m-%d')" ],
+      ['FROM_DATE|TO_DATE', 'DATE', "date_format(m.date, '%Y-%m-%d')" ],
+      ['A_LOGIN',      'INT',  'a.aid',  'a.id AS admin_login',  1 ],
+      ['A_NAME',       'INT',  'a.name', 'a.name AS admin_name', 1 ],
+      ['REPLIES_COUNTS','',    '',       'if(r.id IS NULL, 0, count(r.id)) AS replies_counts' ],
     ],
-    { WHERE => 1,
-    	WHERE_RULES => \@WHERE_RULES
+    { WHERE       => 1,
+    	WHERE_RULES => \@WHERE_RULES,
+    	USERS_FIELDS=> 1
     }
     );
+
+  if ($attr->{DEPOSIT}) {
+  	$self->{EXT_TABLES} .= "LEFT JOIN bills b ON (u.bill_id = b.id)
+      LEFT JOIN companies company ON  (u.company_id=company.id) 
+      LEFT JOIN bills cb ON (company.bill_id=cb.id)";
+  }
+
+  my $EXT_TABLE = $self->{EXT_TABLES};
 
   if ($self->{SEARCH_FIELDS} =~ /pi\./) {
     $EXT_TABLE = "LEFT JOIN users_pi pi ON (u.uid = pi.uid) $EXT_TABLE";
   }
 
-
   $self->query2("SELECT m.id,
-if(m.uid>0, u.id, g.name) AS client_id,
-m.subject,
-mc.name AS chapter_name,
-m.date,
-m.state,
-$self->{SEARCH_FIELDS}
-m.closed_date,
-ra.id AS resposible_admin_login,
-a.id AS admin_login,
-m.priority,
-CONCAT(m.plan_date, ' ', m.plan_time) AS plan_date_time,
-SEC_TO_TIME(sum(r.run_time)) AS run_time,
-m.uid,
-a.aid,
-m.state,
-m.gid,
-m.user_read,
-m.admin_read,
-if(r.id IS NULL, 0, count(r.id)) AS replies_counts,
-m.chapter AS chapter_id,
-DATE_FORMAT(plan_date, '%w') AS plan_date,
-m.deligation,
-m.inner_msg,
-a.name AS admin_name
+   if(m.uid>0, u.id, g.name) AS client_id,
+   m.subject,
+   mc.name AS chapter_name,
+   m.date,
+   m.state,
+   m.priority,
+   ra.id AS resposible_admin_login,
+   CONCAT(m.plan_date, ' ', m.plan_time) AS plan_date_time,
+   $self->{SEARCH_FIELDS}
+   m.uid,
+   a.aid,
+   m.chapter AS chapter_id,
+   m.deligation,
+   m.admin_read,
+   m.inner_msg
 FROM (msgs_messages m)
 LEFT JOIN users u ON (m.uid=u.uid)
 $EXT_TABLE
@@ -596,30 +553,24 @@ sub admins_list {
   $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
   $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
 
-  @WHERE_RULES = ();
+  my $WHERE = $self->search_former($attr, [
+      ['AID',          'INT',  'ma.aid'             ],
+      ['EMAIL_NOTIFY', 'INT',  'ma.email_notify'    ],
+      ['EMAIL',        'STR',  'a.email',           ], 
+      ['CHAPTER_ID',   'INT',  'ma.chapter_id'      ],
+    ],
+    { WHERE => 1,
+    }
+    );
 
-  if ($attr->{AID}) {
-    push @WHERE_RULES, "ma.aid='$attr->{AID}'";
-  }
-
-  if ($attr->{EMAIL_NOTIFY}) {
-    push @WHERE_RULES, "ma.email_notify='$attr->{EMAIL_NOTIFY}'";
-  }
-
-  if ($attr->{EMAIL}) {
-    $attr->{EMAIL} =~ s/\*/\%/ig;
-    push @WHERE_RULES, "a.email LIKE '$attr->{EMAIL}'";
-  }
-
-  if ($attr->{CHAPTER_ID}) {
-    my $value = $self->search_expr($attr->{CHAPTER_ID}, 'INT');
-    push @WHERE_RULES, "ma.chapter_id$value";
-  }
-
-  $WHERE = ($#WHERE_RULES > -1) ? 'WHERE ' . join(' and ', @WHERE_RULES) : '';
-
-  $self->query2("SELECT a.id, mc.name, ma.priority, ma.deligation_level, a.aid, 
-     if(ma.chapter_id IS NULL, 0, ma.chapter_id), ma.email_notify, a.email
+  $self->query2("SELECT a.id AS admin_login, 
+     mc.name AS chapter_name, 
+     ma.priority, 
+     ma.deligation_level, 
+     a.aid, 
+     if(ma.chapter_id IS NULL, 0, ma.chapter_id) AS chapter_id, 
+     ma.email_notify, 
+     a.email
     FROM admins a 
     LEFT join msgs_admins ma ON (a.aid=ma.aid)
     LEFT join msgs_chapters mc ON (ma.chapter_id=mc.id)
@@ -674,7 +625,7 @@ sub admin_info {
   my $self = shift;
   my ($id, $attr) = @_;
 
-  $self->query2("SELECT id,  name
+  $self->query2("SELECT id, name
     FROM msgs_chapters 
   WHERE id='$id'",
   undef,
@@ -726,60 +677,34 @@ sub messages_reply_list {
   $SORT      = ($attr->{SORT})          ? $attr->{SORT}      : 1;
   $DESC      = (defined($attr->{DESC})) ? $attr->{DESC}      : 'DESC';
 
-  @WHERE_RULES = ();
+  @WHERE_RULES = ("main_msg='$attr->{MSG_ID}'");
 
-  if ($attr->{LOGIN}) {
-    push @WHERE_RULES, "u.id='$attr->{LOGIN}'";
-  }
-
-  if ($attr->{FROM_DATE}) {
-    push @WHERE_RULES, "(date_format(m.date, '%Y-%m-%d')>='$attr->{FROM_DATE}' and date_format(m.date, '%Y-%m-%d')<='$attr->{TO_DATE}')";
-  }
-
-  if (defined($attr->{INNER_MSG})) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{INNER_MSG}, 'INT', 'mr.inner_msg') };
-  }
-
-  if (defined($attr->{REPLY})) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{REPLY}, '', 'm.reply') };
-  }
-
-  # Show groups
-  if ($attr->{GIDS}) {
-    push @WHERE_RULES, "u.gid IN ($attr->{GIDS})";
-  }
-  elsif ($attr->{GID}) {
-    push @WHERE_RULES, "u.gid='$attr->{GID}'";
-  }
-
-  #DIsable
-  if ($attr->{UID}) {
-    push @WHERE_RULES, "m.uid='$attr->{UID}'";
-  }
-
-  #DIsable
-  if ($attr->{STATE}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{STATE}, 'INT', 'm.state') };
-  }
-
-  if ($attr->{ID}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{ID}, 'INT', 'mr.id') };
-  }
-
-  $WHERE = ($#WHERE_RULES > -1) ? 'and ' . join(' and ', @WHERE_RULES) : '';
+  my $WHERE = $self->search_former($attr, [
+      ['LOGIN',        'INT',  'u.id'            ],
+      ['UID',          'INT',  'm.uid'           ],
+      ['INNER_MSG',    'INT',  'mr.inner_msg'    ],
+      ['REPLY',        'STR',  'm.reply',        ], 
+      ['STATE',        'INT',  'm.state'         ],
+      ['ID',           'INT',  'mr.id',          ], 
+      ['FROM_DATE|TO_DATE',   'DATE',  "date_format(m.date, '%Y-%m-%d')"      ],
+    ],
+    { WHERE       => 1,
+    	WHERE_RULES => \@WHERE_RULES
+    }
+    );  
 
   $self->query2("SELECT mr.id,
     mr.datetime,
     mr.text,
-    if(mr.aid>0, a.id, u.id),
+    if(mr.aid>0, a.id, u.id) AS creator_id,
     mr.status,
     mr.caption,
-    INET_NTOA(mr.ip),
+    INET_NTOA(mr.ip) AS ip,
     ma.filename,
     ma.content_size,
-    ma.id,
+    ma.id AS attachment_id,
     mr.uid,
-    SEC_TO_TIME(mr.run_time),
+    SEC_TO_TIME(mr.run_time) AS run_time,
     mr.aid,
     mr.inner_msg,
     mr.survey_id
@@ -787,7 +712,7 @@ sub messages_reply_list {
     LEFT JOIN users u ON (mr.uid=u.uid)
     LEFT JOIN admins a ON (mr.aid=a.aid)
     LEFT JOIN msgs_attachments ma ON (mr.id=ma.message_id and ma.message_type=1 )
-    WHERE main_msg='$attr->{MSG_ID}' $WHERE
+    $WHERE
     GROUP BY mr.id 
     ORDER BY datetime ASC;",
   undef,
@@ -1017,14 +942,6 @@ sub dispatch_list {
 
   @WHERE_RULES = ();
 
-  if ($attr->{NAME}) {
-    push @WHERE_RULES, "d.name='$attr->{NAME}'";
-  }
-
-  if ($attr->{CHAPTERS}) {
-    push @WHERE_RULES, "d.id IN ($attr->{CHAPTERS})";
-  }
-
   if (defined($attr->{STATE}) && $attr->{STATE} ne '') {
     if ($attr->{STATE} == 4) {
       push @WHERE_RULES, @{ $self->search_expr('0000-00-00 00:00:00', 'INT', 'd.admin_read') };
@@ -1034,9 +951,16 @@ sub dispatch_list {
     }
   }
 
-  $WHERE = ($#WHERE_RULES > -1) ? 'WHERE ' . join(' and ', @WHERE_RULES) : '';
+  my $WHERE = $self->search_former($attr, [
+      ['NAME',         'STR',  'd.name'          ],
+      ['CHAPTERS',     'INT',  'd.id'           ],
+    ],
+    { WHERE => 1,
+      WHERE_RULES => \@WHERE_RULES    	
+    }
+  );
 
-  $self->query2("SELECT d.id, d.comments, d.plan_date, created, count(m.id)
+  $self->query2("SELECT d.id, d.comments, d.plan_date, created, count(m.id) AS message_count
     FROM msgs_dispatch d
     LEFT JOIN msgs_messages m ON (d.id=m.dispatch_id)
     $WHERE
@@ -1151,8 +1075,8 @@ sub dispatch_admins_change {
 
   my @admins = split(/, /, $attr->{AIDS});
   foreach my $aid (@admins) {
-    $self->query2("insert into msgs_dispatch_admins (dispatch_id, aid)
-      values ('$DATA{DISPATCH_ID}', '$aid');", 'do'
+    $self->query2("INSERT INTO msgs_dispatch_admins (dispatch_id, aid)
+      VALUES ('$DATA{DISPATCH_ID}', '$aid');", 'do'
     );
   }
 
@@ -1184,51 +1108,6 @@ sub unreg_requests_list {
 
   @WHERE_RULES = ();
 
-  if ($attr->{DATE}) {
-    push @WHERE_RULES, "date_format(m.date, '%Y-%m-%d')='$attr->{DATE}'";
-  }
-  elsif ($attr->{FROM_DATE}) {
-    push @WHERE_RULES, "(date_format(m.date, '%Y-%m-%d')>='$attr->{FROM_DATE}' and date_format(m.date, '%Y-%m-%d')<='$attr->{TO_DATE}')";
-  }
-
-  if ($attr->{MSG_ID}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{MSG_ID}, 'INT', 'm.id') };
-  }
-
-  if (defined($attr->{SUBJECT})) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{SUBJECT}, 'STR', 'm.subject') };
-  }
-  if ($attr->{MESSAGE}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{MESSAGE}, 'STR', 'm.message') };
-  }
-  elsif (defined($attr->{REPLY})) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{USER_READ}, 'STR', 'm.user_read') };
-  }
-
-  if (defined($attr->{PHONE})) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{PHONE}, 'STR', 'm.phone') };
-  }
-
-  if ($attr->{ADMIN_READ}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{ADMIN_READ}, 'INT', 'm.admin_read') };
-  }
-
-  if ($attr->{CLOSED_DATE}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{CLOSED_DATE}, 'INT', 'm.closed_date') };
-  }
-
-  if ($attr->{DONE_DATE}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{DONE_DATE}, 'INT', 'm.done_date') };
-  }
-
-  if ($attr->{CHAPTERS}) {
-    push @WHERE_RULES, "m.chapter IN ($attr->{CHAPTERS})";
-  }
-
-  if ($attr->{UID}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{UID}, 'INT', 'm.uid') };
-  }
-
   if (defined($attr->{STATE})) {
     if ($attr->{STATE} == 4) {
       push @WHERE_RULES, @{ $self->search_expr('0000-00-00 00:00:00', 'INT', 'm.admin_read') };
@@ -1241,18 +1120,41 @@ sub unreg_requests_list {
     }
   }
 
-  if ($attr->{PRIORITY}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{PRIORITY}, 'INT', 'm.state') };
-  }
-
   my $EXT_JOIN = '';
 
-  if ($attr->{SHOW_TEXT}) {
-    $self->{SEARCH_FIELDS} .= 'm.message, ';
-    $self->{SEARCH_FIELDS_COUNT}++;
-  }
+  my $WHERE = $self->search_former($attr, [
+      ['MSG_ID',       'INT',  'm.id'             ],
+      ['DISABLE',      'INT',  'u.disable',     1 ],
+      ['INNER_MSG',    'INT',  'm.inner_msg',   1 ], 
+      ['SUBJECT',      'STR',  'm.subject'        ],
+      ['MESSAGE',      'STR',  'm.message',     1 ],
+      ['REPLY',        'STR',  'm.user_read',   1 ],
+      ['PHONE',        'STR',  'm.phone',       1 ],
+      ['USER_READ',    'INT',  'm.user_read',   1 ],
+      ['ADMIN_READ',   'INT',  'm.admin_read',  1 ],
+      ['CLOSED_DATE',  'DATE', 'm.closed_date', 1 ],
+      ['RUN_TIME',     'DATE', 'SEC_TO_TIME(sum(r.run_time))',  'SEC_TO_TIME(sum(r.run_time)) AS run_time' ],
+      ['DONE_DATE',    'DATE', 'm.done_date',   1 ],
+      ['CHAPTER',      'INT',  'm.chapter',       ],
+      ['UID',          'INT',  'm.uid',           ],
+      ['DELIGATION',   'INT',  'm.delegation',  1 ],
+      ['RESPOSIBLE',   'INT',  'm.resposible',    ],
+      ['PRIORITY',     'INT',  'm.state',         ],
+      ['PLAN_DATE',    'INT',  'm.plan_date',   1 ], 
+      ['PLAN_TIME',    'INT',  'm.plan_time',   1 ],
+      ['DISPATCH_ID',  'INT',  'm.dispatch_id',  1 ],
+      ['IP',           'IP',   'm.ip',  'INET_NTOA(m.ip)', 1 ],
+      ['DATE',         'DATE',  "date_format(m.date, '%Y-%m-%d')" ],
+      ['FROM_DATE|TO_DATE', 'DATE', "date_format(m.date, '%Y-%m-%d')" ],
+      ['A_LOGIN',      'INT',  'a.aid',  'a.id AS admin_login',  1 ],
 
-  $WHERE = ($#WHERE_RULES > -1) ? 'WHERE ' . join(' and ', @WHERE_RULES) : '';
+      ['PRIORITY',     'INT',  'm.state'         ],
+      ['SHOW_TEXT',    '',    '',       'm.message' ],
+    ],
+    { WHERE => 1,
+    	WHERE_RULES => \@WHERE_RULES
+    }
+    );
 
   $self->query2("SELECT  m.id,
   m.datetime,
@@ -1484,21 +1386,15 @@ sub survey_subjects_list {
   $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
   $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
 
-  @WHERE_RULES = ();
+  my $WHERE = $self->search_former($attr, [
+      ['NAME',         'STR',  'mc.name'          ],
+      ['CHAPTERS',     'INT',  'mc.id',           ],
+      ['INNER_CHAPTER','INT',  'mc.inner_chapter' ], 
+    ],
+    { WHERE => 1,
+    }
+    );
 
-  if ($attr->{NAME}) {
-    push @WHERE_RULES, "mc.name='$attr->{NAME}'";
-  }
-
-  if ($attr->{CHAPTERS}) {
-    push @WHERE_RULES, "mc.id IN ($attr->{CHAPTERS})";
-  }
-
-  if (defined($attr->{INNER_CHAPTER})) {
-    push @WHERE_RULES, "mc.inner_chapter IN ($attr->{INNER_CHAPTER})";
-  }
-
-  $WHERE = ($#WHERE_RULES > -1) ? 'WHERE ' . join(' and ', @WHERE_RULES) : '';
   $self->query2("SELECT  ms.id, ms.name, ms.comments, ms.aid, ms.created
     FROM msgs_survey_subjects ms
     $WHERE
@@ -1614,13 +1510,12 @@ sub survey_questions_list {
   $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
   $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
 
-  @WHERE_RULES = ();
-
-  if ($attr->{SURVEY}) {
-    push @WHERE_RULES, "mq.survey_id='$attr->{SURVEY}'";
-  }
-
-  $WHERE = ($#WHERE_RULES > -1) ? 'WHERE ' . join(' and ', @WHERE_RULES) : '';
+  my $WHERE = $self->search_former($attr, [
+      ['SURVEY',         'STR',  'mq.survey_id'     ],
+    ],
+    { WHERE => 1,
+    }
+    );
 
   $self->query2("SELECT  mq.num, mq.question, mq.comments, mq.params, mq.user_comments, mq.fill_default, mq.id
     FROM msgs_survey_questions mq

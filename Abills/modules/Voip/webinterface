@@ -2521,7 +2521,7 @@ sub voip_daily_fees {
 
       foreach my $u (@$ulist) {
         my %user = (
-          LOGIN     => $u->{id},
+          LOGIN     => $u->{login},
           UID       => $u->{uid},
           BILL_ID   => $u->{bill_id},
           ACTIVATE  => $u->{activate},
@@ -2598,7 +2598,7 @@ sub voip_monthly_fees {
 
       foreach my $u (@$ulist) {
         my %user = (
-          LOGIN     => $u->{id},
+          LOGIN     => $u->{login},
           UID       => $u->{uid},
           BILL_ID   => $u->{bill_id},
           ACTIVATE  => $u->{activate},
@@ -2921,7 +2921,7 @@ sub voip_mk_users_conf {
 
   foreach my $line (@$list) {
     my %info = (
-      LOGIN     => $line->{id},
+      LOGIN     => $line->{login},
       FIO       => $line->{fio},
       NUMBER    => $line->{number},
       CALLER_ID => $line->{cid},

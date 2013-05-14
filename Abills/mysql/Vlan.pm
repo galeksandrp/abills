@@ -26,12 +26,15 @@ my $MODULE = 'Vlan';
 #**********************************************************
 sub new {
   my $class = shift;
-  ($db, $admin, $CONF) = @_;
+  my $db    = shift;
+  ($admin, $CONF) = @_;
 
   $admin->{MODULE} = $MODULE;
   my $self = {};
 
   bless($self, $class);
+
+  $self->{db}=$db;
 
   return $self;
 }
@@ -50,8 +53,7 @@ sub info {
     $WHERE = "WHERE ip=INET_ATON('$attr->{IP}')";
   }
 
-  $self->query(
-    $db, "SELECT vlan_id,
+  $self->query2("SELECT vlan_id,
    INET_NTOA(ip) AS ip, 
    INET_NTOA(netmask) AS netmask, 
    disable, 
@@ -64,12 +66,6 @@ sub info {
     undef,
     { INFO => 1 }
   );
-
-  if ($self->{TOTAL} < 1) {
-    $self->{errno}  = 2;
-    $self->{errstr} = 'ERROR_NOT_EXIST';
-    return $self;
-  }
 
   return $self;
 }
@@ -104,8 +100,7 @@ sub add {
 
   my %DATA = $self->get_data($attr, { default => defaults() });
 
-  $self->query(
-    $db, "INSERT INTO vlan_main (uid, vlan_id, 
+  $self->query2("INSERT INTO vlan_main (uid, vlan_id, 
              ip, 
              netmask, 
              disable, 
@@ -134,23 +129,9 @@ sub change {
   my $self = shift;
   my ($attr) = @_;
 
-  my %FIELDS = (
-    DISABLE       => 'disable',
-    IP            => 'ip',
-    NETMASK       => 'netmask',
-    VLAN_ID       => 'vlan_id',
-    DHCP          => 'dhcp',
-    PPPOE         => 'pppoe',
-    UID           => 'uid',
-    NAS_ID        => 'nas_id',
-    UNNUMBERED_IP => 'unnumbered_ip'
-  );
-
   $attr->{DHCP}    = ($attr->{DHCP})    ? $attr->{DHCP}    : 0;
   $attr->{PPPOE}   = ($attr->{PPPOE})   ? $attr->{PPPOE}   : 0;
   $attr->{DISABLE} = ($attr->{DISABLE}) ? $attr->{DISABLE} : 0;
-
-  my $old_info = $self->info($attr->{UID});
 
   $admin->{MODULE} = $MODULE;
   $self->changes(
@@ -158,8 +139,6 @@ sub change {
     {
       CHANGE_PARAM => 'UID',
       TABLE        => 'vlan_main',
-      FIELDS       => \%FIELDS,
-      OLD_INFO     => $old_info,
       DATA         => $attr
     }
   );
@@ -176,7 +155,7 @@ sub del {
   my $self = shift;
   my ($attr) = @_;
 
-  $self->query($db, "DELETE from vlan_main WHERE uid='$self->{UID}';", 'do');
+  $self->query2("DELETE from vlan_main WHERE uid='$self->{UID}';", 'do');
 
   $admin->action_add($self->{UID}, "$self->{UID}", { TYPE => 10 });
   return $self->{result};
@@ -195,70 +174,37 @@ sub list {
   $PG        = ($attr->{PG})        ? $attr->{PG}        : 0;
   $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
 
-  $self->{SEARCH_FIELDS}       = '';
-  $self->{SEARCH_FIELDS_COUNT} = 0;
+  my @WHERE_RULES = ("u.uid = vlan.uid");
 
-  undef @WHERE_RULES;
-  push @WHERE_RULES, "u.uid = vlan.uid";
+  push @WHERE_RULES, @{ $self->search_expr_users({ %$attr, 
+                             EXT_FIELDS => [
+                                            'PHONE',
+                                            'EMAIL',
+                                            'ADDRESS_FLAT',
+                                            'PASPORT_DATE',
+                                            'PASPORT_NUM', 
+                                            'PASPORT_GRANT',
+                                            'CITY', 
+                                            'ZIP',
+                                            'GID',
+                                            'CONTRACT_ID',
+                                            'CONTRACT_SUFIX',
+                                            'CONTRACT_DATE',
+                                            'EXPIRE',
 
-  if ($attr->{LOGIN}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{LOGIN}, 'STR', 'u.id') };
-  }
-  elsif ($attr->{UID}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{UID}, 'INT', 'vlan.uid') };
-  }
-
-  if ($attr->{IP}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{IP}, 'IP', 'vlan.ip') };
-    $self->{SEARCH_FIELDS} = 'INET_NTOA(vlan.ip) AS ip, ';
-    $self->{SEARCH_FIELDS_COUNT}++;
-  }
-
-  if ($attr->{UNNUMBERED_IP}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{UNNUMBERED_IP}, 'IP', 'vlan.unnumbered_ip') };
-    $self->{SEARCH_FIELDS} = 'INET_NTOA(vlan.unnumbered_ip) AS unnumbered_ip, ';
-    $self->{SEARCH_FIELDS_COUNT}++;
-  }
-
-  if ($attr->{PPPOE}) {
-    push @WHERE_RULES, "vlan.pppoe='$attr->{PPPOE}'";
-  }
-
-  if ($attr->{DHCP}) {
-    push @WHERE_RULES, "vlan.dhcp='$attr->{DHCP}'";
-  }
-
-  if ($attr->{COMMENTS}) {
-    $attr->{COMMENTS} =~ s/\*/\%/ig;
-    push @WHERE_RULES, "u.comments LIKE '$attr->{COMMENTS}'";
-  }
-
-  if ($attr->{FIO}) {
-    $attr->{FIO} =~ s/\*/\%/ig;
-    push @WHERE_RULES, "u.fio LIKE '$attr->{FIO}'";
-  }
-
-  # Show groups
-  if ($attr->{GIDS}) {
-    push @WHERE_RULES, "u.gid IN ($attr->{GIDS})";
-  }
-  elsif ($attr->{GID}) {
-    push @WHERE_RULES, "u.gid='$attr->{GID}'";
-  }
-
-  if ($attr->{NAS_ID}) {
-    push @WHERE_RULES, "vlan.nas_id='$attr->{NAS_ID}'";
-  }
-
-  # Show groups
-  if ($attr->{VLAN_ID}) {
-    push @WHERE_RULES, "vlan.vlan_id='$attr->{VLAN_ID}'";
-  }
-
-  #DIsable
-  if (defined($attr->{DISABLE})) {
-    push @WHERE_RULES, "vlan.disable='$attr->{DISABLE}'";
-  }
+                                            'CREDIT',
+                                            'CREDIT_DATE', 
+                                            'REDUCTION',
+                                            'REGISTRATION',
+                                            'REDUCTION_DATE',
+                                            'COMMENTS',
+                                            'BILL_ID',
+                                            
+                                            'ACTIVATE',
+                                            'EXPIRE',
+                                            'DEPOSIT:skip',
+                                            'DOMAIN_ID'
+                                             ] }) };
 
   my $GROUP_BY = "GROUP BY u.uid";
 
@@ -268,17 +214,29 @@ sub list {
     $self->{SEARCH_FIELDS_COUNT} += 2;
   }
 
-  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES) : '';
+  my $WHERE =  $self->search_former($attr, [
+      ['IP',             'IP',  'vlan.ip',             'INET_NTOA(vlan.ip) AS ip' ],
+      ['NETMASK',        'IP',  'vlan.netmask',        'INET_NTOA(vlan.netmask) AS netmask' ],
+      ['UNNUMBERED_IP',  'IP',  'vlan.unnumbered_ip',  'INET_NTOA(vlan.unnumbered_ip) AS unnumbered_ip'],
+      ['PPPOE',          'INT', 'vlan.pppoe',                     ],
+      ['DHCP',           'INT', 'vlan.dhcp',                      ],
+      ['NAS_ID',         'INT', 'vlan.nas_id',                    ],
+      ['VLAN_ID',        'INT', 'vlan.vlan_id',                   ],
+      ['DISABLE',        'INT', 'vlan.disable',                   ]
+    ],
+    { WHERE => 1,
+    	WHERE_RULES => \@WHERE_RULES
+    }    
+    );
   
-  $self->query(
-    $db, "SELECT u.id AS login, 
+  $self->query2("SELECT u.id AS login, 
       pi.fio, 
       if(u.company_id > 0, cb.deposit, b.deposit) AS deposit, 
       u.credit, 
       vlan.vlan_id,
       INET_NTOA(vlan.ip) AS ip,
       if (vlan.unnumbered_ip>0, CONCAT(INET_NTOA(vlan.unnumbered_ip),'/', INET_NTOA(vlan.netmask)), 
-        CONCAT(INET_NTOA(vlan.ip+1), ' - ', INET_NTOA(vlan.ip + 4294967294 - vlan.netmask - 1))) AS ip_range,
+        CONCAT(INET_NTOA(vlan.ip+1), ' - ', INET_NTOA((4294967294 - vlan.netmask - 1)+vlan.ip))) AS ip_range,
       vlan.disable, 
       vlan.dhcp,
       vlan.pppoe,
@@ -304,8 +262,8 @@ sub list {
   my $list = $self->{list};
 
   if ($self->{TOTAL} >= 0) {
-    $self->query($db, "SELECT count(u.id) FROM (users u, vlan_main vlan) $WHERE");
-    ($self->{TOTAL}) = @{ $self->{list}->[0] };
+    $self->query2("SELECT count(u.id) AS total FROM (users u, vlan_main vlan) $WHERE",
+     undef, { INFO => 1 } );
   }
 
   return $list;

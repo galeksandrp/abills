@@ -16,40 +16,33 @@ sub neg_deposit_warning {
   print "neg_deposit_warning\n" if ($debug > 1);
 
   if ($debug > 7) {
-    $nas->{debug}= 1 ;
+    $Nas->{debug}= 1 ;
     $Dv->{debug} = 1 ;
-    $sessions->{debug}=1;
+    $Sessions->{debug}=1;
   }
   
-  $sessions->online(
-    {
+  $Sessions->online({	USER_NAME      => '_SHOW', 
+      NAS_PORT_ID    => '_SHOW', 
+      CONNECT_INFO   => '_SHOW',
+      TP_ID          => '_SHOW', 
+      SPEED          => '_SHOW', 
+      JOIN_SERVICE   => '_SHOW', 
+      CLIENT_IP      => '_SHOW', 
+      DURATION_SEC   => '_SHOW', 
+      STARTED        => '_SHOW',
+      CID            => '_SHOW',
+      DEPOSIT        => '_SHOW',
+      CREDIT         => '_SHOW',
+      PAYMENT_METHOD => '_SHOW',
+      NAS_ID         => $LIST_PARAMS{NAS_IDS},
       %LIST_PARAMS,
-      NAS_ID       => $LIST_PARAMS{NAS_IDS},
-      FIELDS_NAMES => [ 'USER_NAME', 
-                        'NAS_PORT_ID', 
-                        'CONNECT_INFO',
-                        'TP_ID', 
-                        'SPEED', 
-                        'UID', 
-                        'JOIN_SERVICE', 
-                        'CLIENT_IP', 
-                        'DURATION_SEC', 
-                        'STARTED' ,
-                        'CID',
-                        'DEPOSIT',
-                        'CREDIT',
-                        'PAYMENT_METHOD'
-                      ],
-      FILTER       => "<0",                
-      FILTER_FIELD => '20',
-      COLS_NAME    => 1
     }
   );
 
   #my $online      = $sessions->{nas_sorted};
 
   foreach my $info (@{ $sessions->{list} }) {
-  print "Login: $info->{user_name} IP: $info->{ip} DEPOSIT: $info->{deposit} CREDIT: $info->{credit}\n" if ($debug);
+  print "Login: $info->{user_name} IP: $info->{client_ip} DEPOSIT: $info->{deposit} CREDIT: $info->{credit}\n" if ($debug);
     if ($info->{deposit} + $info->{credit} <= 0 && $info->{payment_type} == 0) {
     	mk_redirect({ IP => $info->{ip} });
     }
