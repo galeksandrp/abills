@@ -1951,93 +1951,88 @@ sub dv_sessions {
       }
     );
 
-    $sessions->{SHOW_TERMINATE_CAUSE} = 'checked' if ($FORM{SHOW_TERMINATE_CAUSE});
-
     form_search({ SEARCH_FORM => $html->tpl_show(_include('dv_sessions_search', 'Dv'), { %FORM, %$sessions }, { OUTPUT2RETURN => 1 }) });
     if ($FORM{search}) {
       $sessions = Dv_Sessions->new($db, $admin, \%conf);
-      $list = $sessions->list({%LIST_PARAMS, COLS_NAME => 1 });
     }
     else {
       return 0;
     }
   }
 
+  if($user->{UID}) {
+  	delete $LIST_PARAMS{LOGIN};
+  }
+  
+
+
+  my ($table, $list) = result_former({
+     INPUT_DATA      => $sessions,
+     FUNCTION        => 'list',
+     BASE_FIELDS     => 0,
+     DEFAULT_FIELDS  => (($user->{UID}) ? 'DATE,DURATION,SENT,RECV,TP_ID,IP,CID,SUM' : (((! $FORM{UID}) ?  'LOGIN,' : '' ) . 'DATE,DURATION,SENT,RECV,TP_ID,IP,CID,SUM,NAS_ID')),
+     FUNCTION_FIELDS => 'form_payments, dv_stats',
+     EXT_TITLES      => {
+       'ip'          => 'IP',
+       'netmask'     => 'NETMASK',
+       'speed'       => $_SPEED,
+       'port_id'     => $_PORT,
+       'cid'         => 'CID',
+       'filter_id'   => 'Filter ID',
+       'tp_id'       => "$_TARIF_PLAN",
+       'dv_status'   => "$_STATUS",
+       'terminate_cause' => 'TC',
+       'start'       => "$_START", 
+       'duration'    => "$_DURATION", 
+       'sent'        => (($TRAFFIC_NAMES{0}) ? $TRAFFIC_NAMES{0} : '') . " $_SENT", 
+       'recv'        => (($TRAFFIC_NAMES{0}) ? $TRAFFIC_NAMES{0} : '') . " $_RECV", 
+       'sum'         => "$_SUM",
+       'nas_id'      => $_NAS,
+         },
+     TABLE           => {
+       width        => '100%',
+       caption      => "$_SESSIONS",
+       border       => 1,
+       qs           => $pages_qs,
+       recs_on_page => $LIST_PARAMS{PAGE_ROWS},
+       ID           => 'DV_SESSIONS',
+       EXPORT       => 1,
+     },
+    });
+
   if ($sessions->{TOTAL} < 1) {
     $html->message('info', $_INFO, "$_NO_RECORD");
     return 0;
   }
 
-  my @caption = ("$_USER", "$_START", "$_DURATION", "$_TARIF_PLAN", (($TRAFFIC_NAMES{0}) ? $TRAFFIC_NAMES{0} : '') . " $_SENT", (($TRAFFIC_NAMES{0}) ? $TRAFFIC_NAMES{0} : '') . " $_RECV", "CID", "NAS", "IP", "$_SUM");
-
-  if ($FORM{SHOW_TERMINATE_CAUSE}) {
-    push @caption, 'TC';
-  }
-
-  if ($FORM{BILL_ID}) {
-    push @caption, 'BILL_ID';
-  }
- 
-  if (! $user->{UID}) {
-    push @caption, '-';
-  }
-
-  my $table = $html->table(
-    {
-      width        => '100%',
-      caption      => "$_SESSIONS",
-      border       => 1,
-      title        => [ @caption, '-' ],
-      cols_align   => [ 'left', 'right', 'right', 'RIGHT', 'right', 'right', 'right', 'right', 'right', 'right', 'center:noprint', 'center:noprint' ],
-      qs           => $pages_qs,
-      pages        => $sessions->{TOTAL},
-      recs_on_page => $LIST_PARAMS{PAGE_ROWS},
-      ID           => 'DV_SESSIONS',
-      EXPORT       => "$_EXPORT XML:&xml=1",
-    }
-  );
-
-  my $delete = '';
-  use Billing;
-  my $Billing = Billing->new($db, \%conf);
-
   foreach my $line (@$list) {
-    if ($permissions{3}{1}) {# && $LIST_PARAMS{UID}) {
-      $delete = $html->button(
+    my $delete = ($permissions{3}{1}) ? $delete = $html->button(
         $_DEL,
         "index=". get_function_index('dv_stats') ."$pages_qs&del=$line->{uid}+$line->{acct_session_id}+$line->{nas_id}+$line->{start}+$line->{sum}+$line->{login}",
         { MESSAGE => "$_DEL $_SESSION $_SESSION_ID " . ($line->{acct_session_id}) . "?", 
           CLASS => 'del', 
           NO_LINK_FORMER => 1 
         }
-      );
+      ) : '';
+
+    my @fields_array = ();
+    for (my $i = 0; $i < $base_fields+$sessions->{SEARCH_FIELDS_COUNT}; $i++) {
+      if ($sessions->{COL_NAMES_ARR}->[$i] =~ /sent|recv/) {
+      	$line->{$sessions->{COL_NAMES_ARR}->[$i]} = int2byte($line->{$sessions->{COL_NAMES_ARR}->[$i]}, { DIMENSION => $FORM{DIMENSION} });
+      }
+      elsif ($sessions->{COL_NAMES_ARR}->[$i] eq 'login' && $line->{uid}) {
+      	$line->{login} = $html->button($line->{login}, "index=11&UID=$line->{uid}");
+      }
+      elsif ($sessions->{COL_NAMES_ARR}->[$i] eq 'terminate_cause') {
+        $line->{terminate_cause} = $ACCT_TERMINATE_CAUSES{ $line->{terminate_cause} };
+      }
+      push @fields_array, $line->{$sessions->{COL_NAMES_ARR}->[$i]};
     }
 
-    my @rows = ();
-    #for (my $i = 1 ; $i <= $sessions->{SEARCH_FIELDS_COUNT} ; $i++) {
-      #if ($line->{terminate_cause}) {
-        push @rows, $ACCT_TERMINATE_CAUSES{ $line->{terminate_cause} } if ($FORM{SHOW_TERMINATE_CAUSE});
-      #          print "print";
-      #}
-      #elsif ($line->{bill_id}) {
-        push @rows, $line->{bill_id} if ($FORM{BILL_ID});
-      #}
-    #}
-
     $table->addrow(
-      $html->button($line->{login}, "index=11&UID=$line->{uid}"),
-      $line->{start}, 
-      $line->{duration}, 
-      $line->{tp_id}, 
-      int2byte($line->{sent}, { DIMENSION => $FORM{DIMENSION} }),
-      int2byte($line->{recv}, { DIMENSION => $FORM{DIMENSION} }),
-      $line->{CID}, 
-      $line->{nas_id}, 
-      $line->{ip},
-      $line->{sum}, 
-      @rows, 
+      @fields_array,
       $html->button("D", "index=" . get_function_index(($user->{UID}) ? 'dv_user_stats' : 'dv_stats') . "&UID=$line->{uid}" . "&SESSION_ID=$line->{acct_session_id}", { TITLE => "$_DETAIL", CLASS => 'stats' }),
-      $delete
+      $delete          
     );
   }
 
@@ -3112,13 +3107,12 @@ sub dv_user_stats {
   #online sessions
   my $list = $sessions->online(
     {
-      { USER_NAME => $LIST_PARAMS{LOGIN},
-        CLIENT_IP => '_SHOW',
-        CID       => '_SHOW',
-        DURATION  => '_SHOW',
-        ACCT_INPUT_OCTETS => 1,
-        ACCT_OUTPUT_OCTETS=> 1
-     }
+      CLIENT_IP => '_SHOW',
+      CID       => '_SHOW',
+      DURATION  => '_SHOW',
+      ACCT_INPUT_OCTETS => '_SHOW',
+      ACCT_OUTPUT_OCTETS=> '_SHOW',
+      UID       => $user->{UID}
     }
   );
 
@@ -3127,7 +3121,7 @@ sub dv_user_stats {
       {
         caption     => "Online",
         width       => '100%',
-        title_plain => [ "$_LOGIN", "IP", "CID", "$_DURATION", "$_RECV", "$_SEND" ],
+        title_plain => [ "IP", "CID", "$_DURATION", "$_RECV", "$_SEND" ],
         cols_align  => [ 'left', 'right', 'right', 'right', 'right', 'right' ],
         rowcolor    => 'odd',
         ID          => 'ONLINE'
@@ -3135,7 +3129,7 @@ sub dv_user_stats {
     );
 
     foreach my $line (@$list) {
-      $table->addrow($line->{user_name}, $line->{client_ip}, $line->{CID}, $line->{duration}, int2byte($line->{acct_input_octets}), int2byte($line->{acct_output_octets}));
+      $table->addrow($line->{client_ip}, $line->{CID}, $line->{duration}, int2byte($line->{acct_input_octets}), int2byte($line->{acct_output_octets}));
     }
     $sessions->{ONLINE} = $table->show();
   }

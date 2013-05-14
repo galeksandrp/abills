@@ -842,74 +842,61 @@ sub list {
   $DESC      = ($attr->{DESC})      ? $attr->{DESC}      : '';
 
   @WHERE_RULES = ();
-  # Show groups
-  if ($attr->{GIDS}) {
-    push @WHERE_RULES, "u.gid IN ($attr->{GIDS})";
-  }
-  elsif ($attr->{GID}) {
-    push @WHERE_RULES, "u.gid='$attr->{GID}'";
-  }
 
   #Interval from date to date
   if ($attr->{INTERVAL}) {
-    my ($from, $to) = split(/\//, $attr->{INTERVAL}, 2);
-    push @WHERE_RULES, "date_format(start, '%Y-%m-%d')>='$from' and date_format(start, '%Y-%m-%d')<='$to'";
+    ($attr->{DATE_FROM}, $attr->{DATE_TO}) = split(/\//, $attr->{INTERVAL}, 2);
   }
   #Period
   elsif (defined($attr->{PERIOD})) {
     my $period = int($attr->{PERIOD});
-    if ($period == 4) { $WHERE .= ''; }
+    if ($period == 4) { }
     else {
-      $WHERE .= ($WHERE ne '') ? ' and ' : 'WHERE ';
       if    ($period == 0) { push @WHERE_RULES, "date_format(start, '%Y-%m-%d')=curdate()"; }
       elsif ($period == 1) { push @WHERE_RULES, "TO_DAYS(curdate()) - TO_DAYS(start) = 1 "; }
       elsif ($period == 2) { push @WHERE_RULES, "YEAR(curdate()) = YEAR(start) and (WEEK(curdate()) = WEEK(start)) "; }
       elsif ($period == 3) { push @WHERE_RULES, "date_format(start, '%Y-%m')=date_format(curdate(), '%Y-%m') "; }
       elsif ($period == 5) { push @WHERE_RULES, "date_format(start, '%Y-%m-%d')='$attr->{DATE}' "; }
-
       #Prev month
       elsif ($period == 6) { push @WHERE_RULES, "date_format(start, '%Y-%m')=date_format(curdate() - interval 1 month, '%Y-%m') "; }
-      else                 { $WHERE .= "date_format(start, '%Y-%m-%d')=curdate() "; }
+      else                 { push @WHERE_RULES, "date_format(start, '%Y-%m-%d')=curdate() "; }
     }
   }
 
   my $WHERE = $self->search_former($attr, [
-      [ 'UID',             'INT', 'l.uid'    ],
-      [ 'LOGIN',           'STR', 'u.id'     ],
-      [ 'IP',              'IP',  'l.ip'     ],
-      [ 'NAS_ID',          'INT', 'l.nas_id' ],
-      [ 'SUM',             'INT', 'l.sum'    ],
-      [ 'CID',             'STR', 'l.cid'    ],
-      [ 'NAS_PORT',        'INT', 'l.port_id'],
-      [ 'TARIF_PLAN',      'INT', 'l.tp_id'  ],
-      [ 'ACCT_SESSION_ID', 'STR', 'l.acct_session_id'       ],
-      [ 'TERMINATE_CAUSE', 'INT', 'l.terminate_cause', 1    ],
-      [ 'SHOW_TERMINATE_CAUSE', '', '', 'l.terminate_cause' ],
-      [ 'BILL_ID',         'STR', 'l.bill_id', 1  ],
-      [ 'FROM_DATE|TODATE','DATE', "date_format(l.start, '%Y-%m-%d')" ],
-      [ 'DATE',            'DATE', 'l.start' ],
-      [ 'MONTH',           'DATE', "date_format(l.start, '%Y-%m')" ],
-    ],
-    { WHERE => 1,
-    	WHERE_RULES => \@WHERE_RULES
+      [ 'LOGIN',           'STR', 'u.id AS login',                1],
+      [ 'DATE',            'DATE','l.start',                      1],
+      [ 'DURATION',        'DATE','SEC_TO_TIME(l.duration) AS duration',   1 ],
+      [ 'SENT',            'INT', 'l.sent + 4294967296 * acct_output_gigawords AS sent', 1 ], 
+      [ 'RECV',            'INT', 'l.recv + 4294967296 * acct_input_gigawords AS recv',  1 ], 
+      [ 'SENT2',           'INT', 'l.sent2',                      1],
+      [ 'RECV2',           'INT', 'l.recv2',                      1], 
+      [ 'IP',              'IP',  'l.ip',   'INET_NTOA(l.ip) AS ip'],
+      [ 'CID',             'STR', 'l.cid',                        1],
+      [ 'TP_ID',           'INT', 'l.tp_id',                      1],
+      [ 'SUM',             'INT', 'l.sum',                        1],
+      [ 'NAS_ID',          'INT', 'l.nas_id',                     1],
+      [ 'NAS_PORT',        'INT', 'l.port_id',                    1],
+      [ 'ACCT_SESSION_ID', 'STR', 'l.acct_session_id',            ],
+      [ 'TERMINATE_CAUSE', 'INT', 'l.terminate_cause',            1],
+      [ 'BILL_ID',         'STR', 'l.bill_id',                    1],
+      [ 'DURATION_SEC',    'INT', 'l.duration AS duration_sec',   1],
+      [ 'START_UNIXTIME',  'INT', 'UNIX_TIMESTAMP(l.start) AS asstart_unixtime', 1],
+      [ 'DATE_FROM|DATE_TO','DATE',"date_format(l.start, '%Y-%m-%d')"],
+      [ 'MONTH',           'DATE',"date_format(l.start, '%Y-%m')"    ],
+      [ 'UID',             'INT', 'l.uid'                            ],
+    ], 
+    { WHERE       => 1,
+    	WHERE_RULES => \@WHERE_RULES,
+    	USERS_FIELDS=> 1
     }    
     );
 
-  $self->query2("SELECT u.id AS login, l.start, SEC_TO_TIME(l.duration) AS duration, l.tp_id,
-  l.sent + 4294967296 * acct_output_gigawords AS sent, l.recv + 4294967296 * acct_input_gigawords AS recv, 
-  l.CID, l.nas_id, l.ip AS ip_num, l.sum, 
-  $self->{SEARCH_FIELDS}
-  INET_NTOA(l.ip) AS ip, 
-  l.acct_session_id, 
-  l.uid, 
-  UNIX_TIMESTAMP(l.start),
-  l.duration AS duration_sec,
-  l.recv2, 
-  l.sent2
-  FROM dv_log l
-  INNER JOIN users u ON (u.uid=l.uid)
-  $WHERE
-  ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;",
+  $self->query2("SELECT $self->{SEARCH_FIELDS} l.acct_session_id, l.uid
+    FROM dv_log l
+    INNER JOIN users u ON (u.uid=l.uid)
+    $WHERE
+    ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;",
   undef,
   $attr
   );
