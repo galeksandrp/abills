@@ -412,7 +412,7 @@ CREATE TABLE `ippools` (
   `priority` tinyint(4) NOT NULL DEFAULT '0',
   `static` tinyint(1) unsigned NOT NULL DEFAULT '0',
   `speed` int(10) unsigned NOT NULL default '0',
-  `ipv6_prefix` VARBINARY(16) not null default '',
+#  `ipv6_prefix` VARBINARY(16) not null default '',
   PRIMARY KEY  (`id`),
   UNIQUE KEY `nas` (`nas`,`ip`)
 )  ;
@@ -946,16 +946,12 @@ CREATE TABLE `tp_groups` (
   UNIQUE KEY `name` (`name`)
 ) COMMENT='Tarif Plans Groups';
 
-# --------------------------------------------------------
-#
-# Структура таблиці `tp_nas`
-#
 
 CREATE TABLE `tp_nas` (
   `tp_id` smallint(5) unsigned NOT NULL default '0',
   `nas_id` smallint(5) unsigned NOT NULL default '0',
   KEY `vid` (`tp_id`)
-) ;
+) COMMENT='TP nas servers';
 
 CREATE TABLE `trafic_tarifs` (
   `id` tinyint(4) NOT NULL default '0',

@@ -7721,7 +7721,36 @@ print $table->show();
 }
 
 
-
+#**********************************************************
+#
+#**********************************************************
+sub get_oui_info {
+	my ($mac) = @_;
+	my $result = '';
+	$mac =~ s/[-:.]+//g;
+  $mac = uc($mac);
+	$mac = /^[0-9A-F]{6}/;
+	my $mac_prefix = $1;
+	
+	my $content = '';
+	open(FILE, "$base_dir/misc/oui.txt") or die "Can't open file 'oui.txt' $!";
+	  while(<FILE>) {
+	  	$content .= $_;
+	  }
+	close(FILE);
+	
+	my @content_arr = split(/\n\n/, $content);
+	my %vendors_hash = ();
+	foreach my $section (@content_arr) {
+		my @rows = split(/\n/, $section);
+		$rows[1] =~ /([A-F0-9]{6})\s+\(base 16\)\s+(.+)/;
+		$vendors_hash{$1}=$2;
+	}
+	
+	$result = $vendors_hash{$mac_prefix} || '';
+	
+	return $result;
+}
 
 
 
