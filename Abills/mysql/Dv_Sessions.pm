@@ -265,7 +265,7 @@ sub online {
       print "iptv_calls/online: Wrong field name\n";
     }
     elsif ($field =~ /TP_BILLS_PRIORITY|TP_NAME|FILTER_ID|TP_CREDIT|PAYMENT_METHOD/ && $EXT_TABLE !~ /tarif_plans/) {
-      $EXT_TABLE .= " LEFT JOIN tarif_plans tp ON (tp.tp_id=service.tp_id)";
+      $EXT_TABLE .= " LEFT JOIN tarif_plans tp ON (tp.id=service.tp_id AND MODULE='Dv')";
     }
     elsif ($field =~ /NAS_NAME/ && $EXT_TABLE !~ / nas /) {
       $EXT_TABLE .= "LEFT JOIN nas ON (nas.id=c.nas_id)";

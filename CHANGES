@@ -1,5 +1,30 @@
 =====0.55=====
 
+15.05.20013\\
+ 
+
+  * Freeradius DHCP выражения распознавания опции 82  стали более гибкими
+  * Более гибкая настройка списков отображения
+  * Разрешение кредита из личного кабинета для определённых групп
+  * Запрет пополнения через терминалы и личный кабинет для определённых групп 
+  * ''Snmputils''  добавлена блокировка портов для коммутаторов 
+  * ''Rwizard''  добавлены поля по умолчанию для формирования отчётов
+
+
+MySQL:\\
+
+  ALTER TABLE groups ADD COLUMN `allow_credit` tinyint(1) unsigned not null default 0;
+  ALTER TABLE groups ADD COLUMN `disable_paysys` tinyint(1) unsigned not null default 0;
+  
+  CREATE TABLE `admin_settings` (
+    `aid` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '0',
+    `object` varchar(20) NOT NULL default '',
+    `setting` text not null default '',
+    PRIMARY KEY  (`aid`, `object`)
+  ) COMMENT="Admins settings";
+
+
+
 03.04.2013\\
   * Добавлена в основную ветку поддержка IPv6
 
