@@ -11,8 +11,8 @@ $UID $user $admin $sid
 );
 
 #use strict;
-my $version = 0.20;
-my $debug   = 0;
+my $version = 0.21;
+my $debug   = 1;
 
 use FindBin '$Bin';
 require $Bin . '/../libexec/config.pl';
@@ -519,14 +519,17 @@ sub check_permissions {
 sub help {
   print << "[END]";
 abm_console console ABillS managment. Version: $version
-  PAYMENTS=[login] - Payments: info (default), ADD, DEL 
+  PAYMENTS=[login] - Payments: info (default), ADD=[sum], DEL 
    Extended:
     DATE           - DATE
     METHOD         - Method ID 
     UID            - UID
+    ID             - Payments id
     ....
-  FEES=[login]     - Fees. info (default), GET, DEL   
-   Extended:
+  FEES=[login]     - Fees. info (default), GET=[sum], DEL   
+    UID            - UID
+    ID             - Fees id
+    Extended:
     ....
 
   PI=              - Personal info
@@ -756,7 +759,10 @@ sub form_fees {
   }
 
   if ($ARGV->{GET}) {
-    $ARGV->{LOGIN} = $ARGV->{FEES} if (!$ARGV->{LOGIN});
+    if (! $ARGV->{UID}) {
+      $ARGV->{LOGIN} = $ARGV->{FEES} if (!$ARGV->{LOGIN});
+    }
+    
     delete $ARGV->{FEES};
     my $list = $users->list({ BILL_ID => '_SHOW', %$ARGV, PAGE_ROWS => 1000000, COLS_NAME => 1 });
     $FORM->{SUM}      = $ARGV->{GET}      || $ARGV->{SUM};
@@ -768,7 +774,8 @@ sub form_fees {
           UID     => $line->{uid},
           BILL_ID => $line->{bill_id},
         };
-        print "LOGIN: $line->{id} UID: $user->{UID} BILL_ID: $user->{BILL_ID} \n" if ($debug > 0);
+
+        print "LOGIN: $line->{login} UID: $user->{UID} BILL_ID: $user->{BILL_ID} \n" if ($debug > 0);
         $fees->take($user, $FORM->{SUM}, { %$FORM, %$ARGV });
         
         if($fees->{errno}) {
@@ -834,7 +841,9 @@ sub form_payments {
   }
 
   if ($ARGV->{ADD}) {
-    $ARGV->{LOGIN} = $ARGV->{PAYMENTS} if (!$ARGV->{LOGIN});
+  	if (! $ARGV->{UID}) {
+      $ARGV->{LOGIN} = $ARGV->{PAYMENTS} if (!$ARGV->{LOGIN});
+    }
     delete $ARGV->{PAYMENTS};
     my $list = $users->list({ BILL_ID => '_SHOW', %$ARGV, PAGE_ROWS => 1000000, COLS_NAME => 1 });
     $FORM->{SUM}      = $ARGV->{ADD}      || $ARGV->{SUM};
@@ -847,7 +856,7 @@ sub form_payments {
           UID     => $line->{uid},
           BILL_ID => $line->{bill_id},
         };
-        print "LOGIN: $line->{id} UID: $user->{UID} BILL_ID: $user->{BILL_ID} \n" if ($debug > 0);
+        print "LOGIN: $line->{login} UID: $user->{UID} BILL_ID: $user->{BILL_ID} \n" if ($debug > 0);
         $payments->add(
           $user,
           {

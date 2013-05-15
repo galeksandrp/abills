@@ -256,7 +256,7 @@ sub online {
     ],
     { WHERE        => 1,
     	WHERE_RULES  => \@WHERE_RULES,
-    	USERS_FILEDS => 1
+    	USERS_FIELDS => 1
     }    
     );
 
