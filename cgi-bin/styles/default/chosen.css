@@ -5,6 +5,10 @@
   display: inline-block;
   zoom: 1;
   *display: inline;
+  margin: 4px 0;
+  padding: 0 8px;
+  
+  vertical-align: middle;
 }
 .chzn-container .chzn-drop {
   background: #fff;

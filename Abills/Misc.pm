@@ -519,21 +519,22 @@ sub result_former {
   my ($attr)=@_;
 
   my @cols = ();
-  if ($FORM{show_columns}) {
-	  print $FORM{del_cols};
-  	@cols = split(/, /, $FORM{show_columns});
-    $admin->settings_add({
-    	  SETTING => $FORM{show_columns},
-    	  OBJECT  => $attr->{TABLE}->{ID}
-    	});
-  }
-  elsif($FORM{del_cols}) {
+
+  if($FORM{del_cols}) {
   	$admin->settings_del($attr->{TABLE}->{ID});
     if ($attr->{DEFAULT_FIELDS}){
     	$attr->{DEFAULT_FIELDS}=~s/[\n ]+//g;
       @cols = split(/,/, $attr->{DEFAULT_FIELDS});
     }
   }
+  elsif ($FORM{show_columns}) {
+	  print $FORM{del_cols};
+  	@cols = split(/, /, $FORM{show_columns});
+    $admin->settings_add({
+    	  SETTING => $FORM{show_columns},
+    	  OBJECT  => $attr->{TABLE}->{ID}
+    	});
+  }  
   else {
   	$admin->settings_info($attr->{TABLE}->{ID});
     if ($admin->{TOTAL} == 0 && $attr->{DEFAULT_FIELDS}){

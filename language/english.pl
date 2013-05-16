@@ -208,6 +208,7 @@ $_INVOICE='Invoice';
 $_INVOICE_CREATE='Create Invoice';
 $_INVOICES='Invoices';
 $_TAX_INVOICE='Tax invoice';
+$_DONT_CREATE_INVOICE='Don\'t Create invoice';
 $_ACTS='Acts';
 $_ACT='Act';
 $_CREATE='Create';

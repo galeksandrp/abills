@@ -255,7 +255,7 @@ sub list {
   if (! $attr->{PAYMENT_DAYS}) {
   	$attr->{PAYMENT_DAYS}=0;
   }
-  
+
   my $WHERE =  $self->search_former($attr, [
       ['SUM',            'INT', 'p.sum'                         ],
       ['PAYMENT_METHOD', 'INT', 'p.method',                     ],
@@ -267,17 +267,17 @@ sub list {
       ['METHOD',         'INT', 'p.method'                      ],
       ['BILL_ID',        'INT', 'p.bill_id',                   1],
       ['AID',            'INT', 'p.id',                         ],
-      ['IP',             'INT', 'INET_NTOA(p.ip)',    'INET_NTOA(p.ip) AS ip'],
-      ['EXT_ID',         'STR', 'p.ext_id',                     ],
-      ['INVOICE_NUM',    'INT', 'd.invoice_num',               1],
-      ['DATE',           'DATE','date_format(p.date, \'%Y-%m-%d\') AS date' ], 
-      ['REG_DATE',       'DATE','p.reg_date',                 1],      
-      ['MONTH',          'DATE','date_format(p.date, \'%Y-%m\') AS month'   ],
-      ['ID',             'INT', 'p.id'                                      ],
+      ['IP',             'INT', 'INET_NTOA(p.ip)',  'INET_NTOA(p.ip) AS ip'],
+      ['EXT_ID',         'STR', 'p.ext_id',                                ],
+      ['INVOICE_NUM',    'INT', 'd.invoice_num',                          1],
+      ['DATE',           'DATE','date_format(p.date, \'%Y-%m-%d\') AS date'], 
+      ['REG_DATE',       'DATE','p.reg_date',                             1],      
+      ['MONTH',          'DATE','date_format(p.date, \'%Y-%m\') AS month'  ],
+      ['ID',             'INT', 'p.id'                                     ],
       ['PAYMENT_DAYS',   'DATE', "curdate() - INTERVAL $attr->{PAYMENT_DAYS} DAY"],
-      ['FROM_DATE_TIME|TO_DATE_TIME','DATE', "p.date"                            ],
-      ['FROM_DATE|TO_DATE',          'DATE', 'date_format(p.date, \'%Y-%m-%d\')' ],
-      ['UID',            'INT', 'p.uid',                       1],
+      ['FROM_DATE_TIME|TO_DATE_TIME','DATE', "p.date"                      ],
+      ['FROM_DATE|TO_DATE', 'DATE',    'date_format(p.date, \'%Y-%m-%d\')' ],
+      ['UID',            'INT', 'p.uid',                                  1],
     ],
     { WHERE => 1,
     	WHERE_RULES => \@WHERE_RULES

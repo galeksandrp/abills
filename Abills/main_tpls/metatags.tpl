@@ -381,13 +381,14 @@ a.add.rightAlignText {
 	margin:0 5px 0 0;
 }
 a.rightAlignText {
-	background-position:right;
+	background-position:left,center;
 
 	display:inline-block;
 	overflow:hidden;
 	text-indent:-90000px;
 	font-size:0;
-	padding-left:5px;
+	padding-left:10px;
+	vertical-align: middle;
 	
 }
 

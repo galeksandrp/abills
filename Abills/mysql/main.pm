@@ -322,18 +322,22 @@ sub search_former {
                                              ] }) };
   }
 
-
   foreach my $search_param (@$search_params) {
   	my ($param, $field_type, $sql_field, $show, $ex_params)=@$search_param;
+    my $param2 = '';
+
+  	if ($param =~ /^(.*)\|(.*)$/) {
+  		$param  = $1;
+  		$param2 = $2;
+  	}	
+  		
   	if($data->{$param} || ($field_type eq 'INT' && defined($data->{$param}) && $data->{$param} ne '')) {
   		if ($sql_field eq '') {
         $self->{SEARCH_FIELDS} .= "$show, ";
         $self->{SEARCH_FIELDS_COUNT}++;
    		}
-  	  elsif ($param =~ /^(.*)\|(.*)$/) {
-        my $from = $1;
-        my $to   = $1;
-        push @WHERE_RULES, "($sql_field>='$from' and $sql_field<='$to')";
+  	  elsif ($param2) {
+        push @WHERE_RULES, "($sql_field>='$data->{$param}' and $sql_field<='$data->{$param2}')";
   	  }
   	  else {
   		  push @WHERE_RULES, @{ $self->search_expr($data->{$param}, "$field_type", "$sql_field", { EXT_FIELD => $show }) };

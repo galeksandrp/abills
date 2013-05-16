@@ -6190,12 +6190,12 @@ sub form_payments () {
         $payments->{INVOICE_SEL} = $html->form_select(
           "INVOICE_ID",
           {
-            SELECTED          => $FORM{INVOICE_ID},
+            SELECTED          => $FORM{INVOICE_ID} || 0,
             SEL_LIST          => $Docs->invoices_list({ UID => $user->{UID}, UNPAIMENT => 1, PAGE_ROWS => 200, SORT => 2, DESC => 'DESC', COLS_NAME => 1 }),
             SEL_KEY           => 'id',
             SEL_VALUE         => 'invoice_num,date,total_sum,payment_sum',
             SEL_VALUE_PREFIX  => "$_NUM: ,$_DATE: ,$_SUM: ,$_PAYMENTS: ",
-            SEL_OPTIONS       => { 0 => '', (!$conf{PAYMENTS_NOT_CREATE_INVOICE}) ? (create => $_CREATE) : undef },
+            SEL_OPTIONS       => { 0 => "$_DONT_CREATE_INVOICE", (!$conf{PAYMENTS_NOT_CREATE_INVOICE}) ? (create => $_CREATE) : undef },
             NO_ID             => 1,
             MAIN_MENU         => get_function_index('docs_invoices_list'),
             MAIN_MENU_AGRV    => "UID=$FORM{UID}&INVOICE_ID=$FORM{INVOICE_ID}"
