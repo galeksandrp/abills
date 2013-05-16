@@ -5,6 +5,7 @@ use vars qw(%RAD_REQUEST %RAD_REPLY %RAD_CHECK  %REQUEST
 %conf
 $begin_time
 $nas
+$rlm_perl
 );
 
 #
@@ -23,6 +24,7 @@ use constant RLM_MODULE_NUMCODES => 9;    #  /* How many return codes there are 
 
 use FindBin '$Bin';
 my $debug = 1;
+$rlm_perl = 1;
 
 require $Bin . "/config.pl";
 unshift(@INC, $Bin . '/../', $Bin . "/../Abills/$conf{dbtype}");

@@ -249,5 +249,36 @@ sub number_expr {
 }
 
 
+#**********************************************************
+#
+#**********************************************************
+sub sms_payments_maked {
+  my ($attr) = @_;
+
+  my $user=$attr->{USER_INFO} if ($attr->{USER_INFO});
+      
+  return '' if ($FORM{DISABLE});
+  $user->pi({ UID => $user->{UID} });
+
+  my %info = (DATE => "$DATE $TIME",
+              SUM  => $attr->{SUM} );
+
+
+  if ($user->{PHONE} =~ /(\d{12})/) {
+    my $message = $html->tpl_show(_include('sms_payment_info', 'Sms'), { %$user, %info }, {  OUTPUT2RETURN => 1 });
+    print "$message";
+    sms_send(
+        {
+          NUMBER    => $user->{PHONE},
+          MESSAGE   => $message,
+          DEBUG     => $debug,
+          UID       => $user->{UID},
+        }
+      );
+  }
+  
+  return 0;
+}
+
 1
 

@@ -962,7 +962,7 @@ sub dhcphosts_user {
         $Dhcphosts->{IPN_ACTIVATE_BUTTON} = $html->color_mark('Online', '#00FF00');
       }
       else {
-        $Dhcphosts->{IPN_ACTIVATE_BUTTON} = $html->button($_ACTIVATE, "UID=$FORM{UID}&ACTIVE=1&REMOTE_ADDR=$Dhcphosts->{IP}&index=" . get_function_index('ipn_user_activate'), { BUTTON => 1 });
+        $Dhcphosts->{IPN_ACTIVATE_BUTTON} = $html->button($_ACTIVATE, "UID=$FORM{UID}&ACTIVE=1&REMOTE_ADDR=$Dhcphosts->{IP}&NAS_ID=$Dhcphosts->{NAS_ID}&index=" . get_function_index('ipn_user_activate'), { BUTTON => 1 });
       }
     }
   }

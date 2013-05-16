@@ -96,7 +96,6 @@ sub docs_receipt_add {
     else {
       $Docs->{FROM} = $attr->{FROM} if ($attr->{FROM});
       $Docs->docs_receipt_add({ %$attr, DEPOSIT => $users->{DEPOSIT} });
-
       my $date = $FORM{DATE} || $DATE;
 
       if (!$Docs->{errno}) {
@@ -115,7 +114,6 @@ sub docs_receipt_add {
 
           $FORM{print} = $Docs->{DOC_ID};
           $FORM{pdf}   = 1;
-
           return docs_receipt(
             {
               GET_EMAIL_INFO => $FORM{SEND_EMAIL},
@@ -123,7 +121,6 @@ sub docs_receipt_add {
               %$attr
             }
           );
-
         }
         else {
           $html->message(
@@ -135,7 +132,6 @@ sub docs_receipt_add {
           );
           #$Docs->docs_receipt_info($Docs->{DOC_ID});
         }
-
       }
       elsif ($Docs->{errno}) {
         if ($Docs->{errno} == 1) {
@@ -570,7 +566,6 @@ sub docs_receipt_list {
         $Docs->invoice_info($list->[0]->{id});
       }
       $Docs->{INVOICE_ID} = $Docs->{INVOICE_ID};
-
       push @PAYMENT_METHODS, @EX_PAYMENT_METHODS if (@EX_PAYMENT_METHODS);
 
       for (my $i = 0 ; $i <= $#PAYMENT_METHODS ; $i++) {
@@ -582,8 +577,9 @@ sub docs_receipt_list {
       while (my ($k, $v) = each %PAYSYS_PAYMENT_METHODS) {
         $PAYMENTS_METHODS{$k} = $v;
       }
+      
+      $list = $Payments->list({ ID => $Docs->{PAYMENT_ID}, COLS_NAME => 1 });
 
-      $list = $Payments->list({ ID => $Docs->{PAYMENT_ID} });
       if ($Payments->{TOTAL} > 0) {
         $Docs->{PAYMENT_METHOD_ID} = $list->[0]->{method};
 
@@ -1575,7 +1571,7 @@ sub docs_tax_invoice {
           $html->{NO_PRINT} = undef;
 
           docs_print('tax_invoice', { %$Docs, %$Company });
-          exit;
+          return 0;
         }
         else {
           docs_print('tax_invoice', { %$Docs, %$Company });
@@ -1637,8 +1633,6 @@ sub docs_tax_invoice {
         $i++;
       }
 
-      #     $Company->{_ipn_u}='123456790';
-      #     exit;
       docs_print('tax_invoice', { %$Docs, %$Company });
     }
     else {
@@ -1963,7 +1957,7 @@ sub docs_invoice {
             docs_print('invoice', { %$Docs, %$attr });
           }
 
-          exit;
+          return 0;
         }
         else {
           if ($Docs->{COMPANY_ID}) {
@@ -3284,7 +3278,7 @@ if ($FORM{APPLY_TO_INVOICE} || ($FORM{INVOICE_ID} && $FORM{INVOICE_ID} ne 'creat
   		                              SORT      => '1',
   		                              DESC      => 'ASC'
   		                             });
-  
+
   my $total_payment_sum = $FORM{SUM};
   my $payment_sum       = $FORM{SUM}; 	
 	if ($Docs->{TOTAL} > 0) {
@@ -3350,7 +3344,7 @@ if ($FORM{APPLY_TO_INVOICE} || ($FORM{INVOICE_ID} && $FORM{INVOICE_ID} ne 'creat
       }
     );
   }
-
+  
 }
 
 #**********************************************************

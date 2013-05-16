@@ -3,6 +3,7 @@
 use vars qw(%RAD %conf %AUTH
  %RAD_REQUEST %RAD_REPLY %RAD_CHECK
  $begin_time
+ $rlm_perl
 );
 
 use strict;
@@ -29,27 +30,25 @@ Log->import('log_print');
 my $GT = '';
 my $rr = '';
 
-
-
-if (scalar(%RAD_REQUEST) < 1) {
+if (! $rlm_perl) {
   my $RAD = get_radius_params();
   my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
   my $db  = $sql->{db};
   my $Log = Log->new($db, \%conf);
-  my $nas = get_nas_info($db, $RAD);
+  my $Nas = get_nas_info($db, $RAD);
   my $ret = 0;
 
-  if (! $nas->{error}) {
+  if (! $Nas->{error}) {
     if ($ARGV[0] && $ARGV[0] eq 'pre_auth') {
-      auth($db, $RAD, $nas, { pre_auth => 1 });
+      auth($db, $RAD, $Nas, { pre_auth => 1 });
       exit 0;
     }
     elsif ($ARGV[0] && $ARGV[0] eq 'post_auth') {
-      inc_postauth($db, $RAD, $nas);
+      inc_postauth($db, $RAD, $Nas);
       exit 0;
     }
     else {
-      $ret = auth($db, $RAD, $nas);
+      $ret = auth($db, $RAD, $Nas);
     }
   }
 

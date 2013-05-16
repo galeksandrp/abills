@@ -315,7 +315,6 @@ sub list {
     undef, 
     $attr
     );
-
     $self->{SUM} = '0.00';
 
     return $self->{list} if ($self->{TOTAL} < 1);

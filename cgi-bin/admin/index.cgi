@@ -6086,10 +6086,9 @@ sub form_payments () {
             }
 
             #Make cross modules Functions
-            $attr->{USER_INFO}->{DEPOSIT} += $FORM{SUM};
             $FORM{PAYMENTS_ID} = $payments->{PAYMENT_ID};
-            
-            cross_modules_call('_payments_maked', { %$attr, 
+            cross_modules_call('_payments_maked', { %$attr,
+            	  SUM          => $FORM{SUM}, 
                 PAYMENT_ID   => $payments->{PAYMENT_ID},
                 SKIP_MODULES => 'Sqlcmd',
                  });

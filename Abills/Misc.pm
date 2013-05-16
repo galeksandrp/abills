@@ -46,7 +46,6 @@ sub cross_modules_call {
   $attr->{USER_INFO}->{DEPOSIT} += $attr->{SUM} if ($attr->{SUM});
   my %full_return  = ();
   my @skip_modules = ();
-
   eval {
     if ($silent) {
       #disable stdout output
@@ -518,7 +517,6 @@ sub service_get_month_fee {
 #**********************************************************
 sub result_former {
   my ($attr)=@_;
-  my @title = ();
 
   my @cols = ();
   if ($FORM{show_columns}) {

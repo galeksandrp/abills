@@ -1965,8 +1965,8 @@ sub dv_sessions {
   }
   
 
-
-  my ($table, $list) = result_former({
+  my $table;
+  ($table, $list) = result_former({
      INPUT_DATA      => $sessions,
      FUNCTION        => 'list',
      BASE_FIELDS     => 0,

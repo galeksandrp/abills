@@ -3,9 +3,9 @@
 #
 
 use vars qw(%RAD %conf %ACCT
-$DATE $TIME
 %RAD_REQUEST %RAD_REPLY %RAD_CHECK
 $begin_time
+$rlm_perl
 );
 use strict;
 
@@ -92,8 +92,7 @@ my $access_deny = sub {
 
 # Files account section
 my $RAD;
-my $nas = undef;
-if (scalar(%RAD_REQUEST) < 1) {
+if (! $rlm_perl) {
   $RAD = get_radius_params();
 
   my $sql = Abills::SQL->connect($conf{dbtype}, "$conf{dbhost}", $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
@@ -106,7 +105,7 @@ if (scalar(%RAD_REQUEST) < 1) {
   }
   else {
     require Nas;
-    $nas = Nas->new($db, \%conf);
+    my $Nas = Nas->new($db, \%conf);
     my %NAS_PARAMS = ();
 
     if ($RAD->{NAS_IP_ADDRESS} eq '0.0.0.0') {
@@ -120,14 +119,14 @@ if (scalar(%RAD_REQUEST) < 1) {
       $NAS_PARAMS{NAS_IDENTIFIER} = $RAD->{NAS_IDENTIFIER};
     }
 
-    $nas->info({%NAS_PARAMS});
+    $Nas->info({%NAS_PARAMS});
 
     my $acct;
-    if ($nas->{errno} || $nas->{TOTAL} < 1) {
+    if ($Nas->{errno}) {
       $access_deny->("$RAD->{USER_NAME}", "Unknow server '$RAD->{NAS_IP_ADDRESS}'", 0);
     }
     else {
-      $acct = acct($db, $RAD, $nas);
+      $acct = acct($db, $RAD, $Nas);
     }
 
     if ($acct->{errno}) {
