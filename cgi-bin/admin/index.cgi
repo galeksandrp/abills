@@ -6911,7 +6911,7 @@ sub form_fees {
     $LIST_PARAMS{SORT} = 1;
     $LIST_PARAMS{DESC} = DESC;
   }
-
+ 
   my ($table, $fees_list) = result_former({
      INPUT_DATA      => $fees,
      FUNCTION        => 'list',

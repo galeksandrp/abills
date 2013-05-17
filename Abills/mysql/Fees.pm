@@ -295,6 +295,7 @@ sub list {
       ['DATE',           'DATE','f.date',                          1 ],
       ['LOGIN',          'STR', 'u.id AS login',                   1 ],
       ['DESCRIBE',       'STR', 'f.dsc',                           1 ],
+      ['DSC',            'STR', 'f.dsc',                           1 ],
       ['SUM',            'INT', 'f.sum',                           1 ],
       ['LAST_DEPOSIT',   'INT', 'f.last_deposit',                  1 ],
       ['METHOD',         'INT', 'f.method',                        1 ],
