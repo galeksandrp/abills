@@ -15,7 +15,7 @@ CREATE TABLE `admin_actions` (
 CREATE TABLE `admin_settings` (
   `aid` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '0',
   `object` varchar(20) NOT NULL default '',
-  `setting` text not null default '',
+  `setting` text not null,
   PRIMARY KEY  (`aid`, `object`)
 ) COMMENT="Admins settings";
 

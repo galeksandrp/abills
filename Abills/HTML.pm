@@ -589,7 +589,7 @@ sub form_select {
         $self->{SELECT} .= join(' : ', @valuesr_arr);
       }
       else {
-        $self->{SELECT} .= "$v->[$value]";
+        $self->{SELECT} .= "$v->{$value}";
       }
       $self->{SELECT} .= "\n";
     }
@@ -663,7 +663,7 @@ sub form_select {
   $self->{SELECT} .= "</select>\n";
 
   if ($attr->{MAIN_MENU}) {
-    $self->{SELECT} .= ' ' . $self->button('info', "index=$attr->{MAIN_MENU}" . (($attr->{MAIN_MENU_AGRV}) ? "&$attr->{MAIN_MENU_AGRV}" : ''), { CLASS => 'show rightAlignText' });
+    $self->{SELECT} .= ' ' . $self->button('info', "index=$attr->{MAIN_MENU}" . (($attr->{MAIN_MENU_AGRV}) ? "&$attr->{MAIN_MENU_AGRV}" : ''), { CLASS => 'change rightAlignText' });
   }
 
   return $self->{SELECT};

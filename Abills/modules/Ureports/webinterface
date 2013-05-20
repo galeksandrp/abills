@@ -38,7 +38,8 @@ my %REPORTS        = (
   8  => "$_LOGIN $_DISABLE ",
   9  => "$_DAYS_TO_EXPIRE",
   10 => "$_SMALL_DEPOSIT_FOR_NEXT_MONTH",
-  11 => ""
+  11 => "$_PAYMENTS_INFO",
+  
   #11 => "$_SMALL_DEPOSIT_FOR_NEXT_MONTH "
 );
 
@@ -172,7 +173,7 @@ sub ureports_users_list {
 sub ureports_user {
   my ($attr) = @_;
 
-  if ($Ureports::VERSION < 2.25) {
+  if ($Ureports::VERSION < 2.27) {
     $html->message('info', "UPDATE", "Please update module 'Ureports' to version 2.24 or higher. http://abills.net.ua/");
     return 0;
   }
@@ -271,15 +272,17 @@ sub ureports_user {
       }
     );
 
-    my $list = $Ureports->tp_user_reports_list({ %LIST_PARAMS, TP_ID => $Ureports->{TP_ID} });
+    my $list = $Ureports->tp_user_reports_list({ %LIST_PARAMS, 
+    	                                           TP_ID     => $Ureports->{TP_ID},
+    	                                           COLS_NAME => 1 });
 
     foreach my $line (@$list) {
       $table->addrow(
-        $html->form_input("IDS", "$line->[0]", { TYPE => 'checkbox', STATE => ($line->[3]) ? 1 : undef, OUTPUT2RETURN => 1 }),
-        $REPORTS{ $line->[0] },
-        $html->form_input("VALUE_$line->[0]", (($line->[1]) ? $line->[1] : 0), { OUTPUT2RETURN => 1, SIZE => 6 }),
-        (($line->[2]) ? $line->[2] : '0.00'),
-        $line->[3] . (($line->[3] && $line->[3] ne '0000-00-00') ? $html->button($_RESET, "index=$index&UID=$Ureports->{UID}&REPORT_ID=$line->[0]&reset_date=1", { MESSAGE => "$_RESET", CLASS => 'del' }) : '')
+        $html->form_input("IDS", "$line->{report_id}", { TYPE => 'checkbox', STATE => ($line->{date}) ? 1 : undef, OUTPUT2RETURN => 1 }),
+        $REPORTS{ $line->{report_id} },
+        $html->form_input("VALUE_$line->{report_id}", (($line->{value}) ? $line->{value} : 0), { OUTPUT2RETURN => 1, SIZE => 6 }),
+        (($line->{msg_price}) ? $line->{msg_price} : '0.00'),
+        $line->{date} . (($line->{date} && $line->{date} ne '0000-00-00') ? $html->button($_RESET, "index=$index&UID=$line->{uid}&REPORT_ID=$line-{report_id}&reset_date=1", { MESSAGE => "$_RESET", CLASS => 'del' }) : '')
       );
     }
 
@@ -331,6 +334,7 @@ sub ureports_tp {
   $tarif_info               = $tariffs->defaults();
   $tarif_info->{LNG_ACTION} = $_ADD;
   $tarif_info->{ACTION}     = 'ADD_TP';
+  my @Payment_Types = ($_PREPAID, $_POSTPAID);
 
   if ($FORM{ADD_TP}) {
     $Ureports->tp_add({ %FORM, MODULE => 'Ureports' });
@@ -349,18 +353,20 @@ sub ureports_tp {
     $pages_qs .= "&TP_ID=$FORM{TP_ID}&subf=$FORM{subf}";
     $LIST_PARAMS{TP}     = $FORM{TP_ID};
     $LIST_PARAMS{MODULE} = 'Ureports';
-    %F_ARGS = (TP => $tariffs);
+    %F_ARGS              = (TP => $Ureports);
+
+    $FORM{add_form}=1;
 
     $tariffs->{NAME_SEL} = $html->form_main(
       {
         CONTENT => $html->form_select(
           'TP_ID',
           {
-            SELECTED          => $FORM{TP_ID},
-            SEL_MULTI_ARRAY   => $tariffs->list({%LIST_PARAMS}),
-            MULTI_ARRAY_KEY   => 18,
-            MULTI_ARRAY_VALUE => 1,
-            NO_ID             => 1
+            SELECTED  => $FORM{TP_ID},
+            SEL_LIST  => $tariffs->list({%LIST_PARAMS, COLS_NAME => 1 }),
+            SEL_KEY   => 'tp_id',
+            SEL_VALUE => 'name',
+            NO_ID     => 1
           }
         ),
         HIDDEN => { index => "$index" },
@@ -373,12 +379,15 @@ sub ureports_tp {
         'ID'     => $tariffs->{TP_ID},
         "$_NAME" => $tariffs->{NAME_SEL}
       },
-      {},
-      { f_args => {%F_ARGS} }
+      { 
+        $_INFO     => get_function_index('ureports_tp').":TP_ID=$FORM{TP_ID}",
+        $_REPORTS  => get_function_index('ureports_tp_reports').":TP_ID=$FORM{TP_ID}",
+        $_USERS    => get_function_index('ureports_users_list').":TP_ID=$FORM{TP_ID}"	
+      },
+      { f_args => \%F_ARGS }
     );
 
-    if ($FORM{subf}) {
-
+    if ($FORM{subf} && $FORM{subf} != $index) {
       return 0;
     }
     elsif ($FORM{change}) {
@@ -388,6 +397,7 @@ sub ureports_tp {
         $html->message('info', $_CHANGED, "$_CHANGED $tariffs->{TP_ID}");
       }
     }
+
     $tarif_info->{LNG_ACTION} = $_CHANGE;
     $tarif_info->{ACTION}     = 'change';
   }
@@ -441,46 +451,96 @@ sub ureports_tp {
     $tarif_info->{EXT_BILL_ACCOUNT} = '';
   }
 
-  $html->tpl_show(_include('ureports_tp', 'Ureports'), $tarif_info);
+  if ($FORM{add_form}) {
+    $html->tpl_show(_include('ureports_tp', 'Ureports'), $tarif_info);
+  }
 
   $LIST_PARAMS{MODULE} = 'Ureports';
-  my $list = $tariffs->list({%LIST_PARAMS});
+  my $base_fields = 8;
 
-  # Time tariff Name Begin END Day fee Month fee Simultaneously - - -
-  my $table = $html->table(
-    {
-      width   => '100%',
-      caption => "$_REPORTS - $_TARIF_PLANS",
-      border  => 1,
-      title   => [ '#', $_NAME, $_HOUR_TARIF, $_TRAFIC_TARIFS, $_PAYMENT_TYPE, $_DAY_FEE, $_MONTH_FEE, $_SIMULTANEOUSLY, $_AGE, $_GROUP, '-', '-', '-' ],
-      cols_align => [ 'right', 'left', 'center', 'center', 'center', 'right', 'right', 'right', 'right', 'center:noprint', 'center:noprint', 'center:noprint' ],
-      ID         => 'UREPORTS_TARIF_PLANS'
-    }
-  );
+  my ($table, $list) = result_former({
+     INPUT_DATA      => $tariffs,
+     FUNCTION        => 'list',
+     BASE_FIELDS     => $base_fields,
+     FUNCTION_FIELDS => '-, -, -',
+     EXT_TITLES      => {
+       id            => $_NUM,
+       speed         => $_SPEED,
+       port          => $_PORT,
+       filter_id     => 'Filter ID',
+       tp_name       => "$_TARIF_PLAN",
+       num           => $_NUMBER,
+       name          => $_NAME, 
+       time_tarifs   => $_HOUR_TARIF, 
+       traf_tarifs   => $_TRAFIC_TARIFS, 
+       payment_type  => $_PAYMENT_TYPE, 
+       day_fee       => $_DAY_FEE, 
+       month_fee     => $_MONTH_FEE, 
+       logins        => $_SIMULTANEOUSLY, 
+       age           => $_AGE, 
+       tp_group_name => $_GROUP,
+       rad_pairs     => 'RADIUS Pairs',
+       reduction_fee => $_REDUCTION,
+       postpaid_daily_fee   => "$_DAY_FEE $_POSTPAID",
+       postpaid_monthly_fee => "$_MONTH_FEE $_POSTPAID",
+       ext_bill_account     => "$_EXT_BILL_ACCOUNT",
+       credit               => $_CREDIT,
+       min_use              => $_MIN_USE,
+       abon_distribution    => $_ABON_DISTRIBUTION,
+       tp_id                => 'TP ID',
+       small_deposit_action => $_SMALL_DEPOSIT_ACTION,
+       active_day_fee       => $_ACTIVE_DAY_FEE,
+       fine                 => "$_FINE",
+       next_tp_id           => "$_TARIF_PLAN $_NEXT_PERIOD",
+       fees_method          => "$_FEES $_TYPE",
+         },
+     TABLE           => {
+       width      => '100%',
+       caption    => "$_REPORTS - $_TARIF_PLANS",
+       border     => 1,
+       title      => [ '#', $_NAME, $_HOUR_TARIF, $_TRAFIC_TARIFS, $_PAYMENT_TYPE, $_DAY_FEE, $_MONTH_FEE, $_SIMULTANEOUSLY, $_AGE, $_GROUP, '-', '-', '-' ],
+       cols_align => [ 'right', 'left', 'center', 'center', 'center', 'right', 'right', 'right', 'right', 'center:noprint', 'center:noprint', 'center:noprint' ],
+       ID         => 'UREPORTS_TARIF_PLANS',
+       MENU       => "$_ADD:index=$index&add_form=1:add",
+     },
+    });
 
-  my ($delete, $change);
   foreach my $line (@$list) {
-    if ($permissions{4}{1}) {
-      $delete = $html->button($_DEL, "index=$index&del=$line->[18]", { MESSAGE => "$_DEL $line->[0]?", CLASS => 'del' });
-      $change = $html->button($_CHANGE, "index=$index&TP_ID=$line->[18]", { CLASS => 'change' });
+    my @fields_array = ();
+    for (my $i = 0; $i < $base_fields+$tariffs->{SEARCH_FIELDS_COUNT}; $i++) {
+      if ($tariffs->{COL_NAMES_ARR}->[$i] eq 'id') {
+        $line->{id} = $html->b($line->{id});
+      }
+      elsif ($tariffs->{COL_NAMES_ARR}->[$i] eq 'name') {
+        $line->{name} = $html->button($line->{name}, "index=$index&TP_ID=$line->{tp_id}"),
+      }
+      elsif ($tariffs->{COL_NAMES_ARR}->[$i] eq 'payment_type') {
+        $line->{payment_type} = $Payment_Types[ $line->{payment_type} ];
+      }
+      elsif ($tariffs->{COL_NAMES_ARR}->[$i] =~ /time_tarifs|traf_tarifs/) {
+        $line->{$tariffs->{COL_NAMES_ARR}->[$i]} = $bool_vals[ $line->{$tariffs->{COL_NAMES_ARR}->[$i]} ];
+      }      
+
+      push @fields_array, $line->{$tariffs->{COL_NAMES_ARR}->[$i]};
     }
 
-    if ($FORM{TP_ID} eq $line->[18]) {
+    if ($permissions{4}{1}) {
+      $delete = $html->button($_DEL, "index=$index&del=$line->{tp_id}", { MESSAGE => "$_DEL $line->{name}?", CLASS => 'del' });
+      $change = $html->button($_CHANGE, "index=$index&TP_ID=$line->{tp_id}", { CLASS => 'change' });
+    }
+
+    if ($FORM{TP_ID} eq $line->{tp_id}) {
       $table->{rowcolor} = $_COLORS[0];
     }
     else {
-      undef($table->{rowcolor});
+      $table->{rowcolor} = undef;
     }
 
-    $table->addrow(
-      $html->b($line->[0]),
-      $html->button($line->[1], "index=$index&TP_ID=$line->[18]"),
-      $bool_vals[ $line->[2] ],
-      $bool_vals[ $line->[3] ],
-      $Payment_Types[ $line->[4] ],
-      $line->[5], $line->[6], $line->[7], $line->[8], $line->[9], $html->button($_REPORTS, "index=" . get_function_index('ureports_tp_reports') . "&subf=" . get_function_index('ureports_tp') . "&TP_ID=$line->[18]", { BUTTON => 1 }),
-      $change, $delete
-    );
+    $table->addrow(@fields_array,
+      $html->button($_REPORTS, "index=" . get_function_index('ureports_tp') . "&subf=" . get_function_index('ureports_tp_reports') . "&TP_ID=$line->{tp_id}", { BUTTON => 1 }),
+      $change,
+      $delete
+     );
   }
 
   print $table->show();
@@ -1050,8 +1110,6 @@ sub ureports_user_info {
     $Ureports->{ACTION}     = 'set';
     $Ureports->{LNG_ACTION} = $_CHANGE;
 
-    #$Ureports->{CHANGE_TP_BUTTON}='['. $html->button($_CHANGE, 'UID='.$Ureports->{UID}.'&index='. ($index + 1)) .']';
-
     my $table = $html->table(
       {
         width      => '100%',
@@ -1064,15 +1122,18 @@ sub ureports_user_info {
       }
     );
 
-    my $list = $Ureports->tp_user_reports_list({ %LIST_PARAMS, TP_ID => $Ureports->{TP_ID} });
+    my $list = $Ureports->tp_user_reports_list({ %LIST_PARAMS, 
+    	                                           TP_ID     => $Ureports->{TP_ID},
+    	                                           COLS_NAME => 1 
+    	                                        });
 
     foreach my $line (@$list) {
       $table->addrow(
-        $html->form_input("IDS", "$line->[0]", { TYPE => 'checkbox', STATE => ($line->[3]) ? 1 : undef, OUTPUT2RETURN => 1 }),
-        $REPORTS{ $line->[0] },
-        $html->form_input("VALUE_$line->[0]", (($line->[1]) ? $line->[1] : 0), { OUTPUT2RETURN => 1, SIZE => 6 }),
-        (($line->[2]) ? $line->[2] : '0.00'),
-        $line->[3]
+        $html->form_input("IDS", "$line->{report_id}", { TYPE => 'checkbox', STATE => ($line->{date}) ? 1 : undef, OUTPUT2RETURN => 1 }),
+        $REPORTS{ $line->{report_id} },
+        $html->form_input("VALUE_$line->{report_id}", (($line->{value}) ? $line->{value} : 0), { OUTPUT2RETURN => 1, SIZE => 6 }),
+        (($line->{msg_price}) ? $line->{msg_price} : '0.00'),
+        $line->{date}
       );
     }
 
@@ -1143,6 +1204,11 @@ sub ureports_send_reports {
   elsif ($type == 2) {
 
   }
+
+ 	if ($attr->{DEBUG} && $attr->{DEBUG} == 1) {
+ 		print "Sended report: $type to $destination\n";
+ 	}
+
 
   return 1;
 }
@@ -1215,7 +1281,8 @@ sub ureports_periodic_reports {
         TP_ID     => $TP_ID,
         SORT      => 1,
         PAGE_ROWS => 1000000,
-        REPORT_ID => '',
+        REPORT_ID => '_SHOW',
+        COLS_NAME => 1,
         %SERVICE_LIST_PARAMS
       }
     );
@@ -1223,18 +1290,7 @@ sub ureports_periodic_reports {
     foreach my $u (@$ulist) {
 
       #Check bill id and deposit
-      my %user = (
-        REPORT_ID        => $u->[0],
-        DESTINATION_TYPE => $u->[1],
-        DESTINATION_ID   => $u->[2],
-        VALUE            => $u->[3],
-        MSG_PRICE        => $u->[4],
-        DEPOSIT          => $u->[5],
-        CREDIT           => $u->[6],
-        FIO              => $u->[7],
-        UID              => $u->[8],
-        BILL_ID          => $u->[9]
-      );
+      my %user = %$u;
 
       if ($user{BILL_ID} > 0 && defined($user{DEPOSIT})) {
         if ($user{REPORT_ID} == 0) {
@@ -1433,6 +1489,7 @@ sub ureports_tp_reports {
         CONTENT => $table->show(),
         HIDDEN  => {
           index => "$index",
+          subf  => $FORM{subf},
           TP_ID => $FORM{TP_ID}
         },
         SUBMIT => { change => "$_CHANGE" }
@@ -1451,5 +1508,46 @@ sub ureports_tp_reports {
   }
 }
 
+
+#**********************************************************
+#
+#**********************************************************
+sub ureports_payments_maked {
+  my ($attr) = @_;
+  
+  my $user;
+  if ($attr->{USER_INFO}) {
+    $user=$attr->{USER_INFO};
+  }
+  else {
+  	return 0;
+  }
+      
+  return '' if ($FORM{DISABLE});
+  $Ureports->tp_user_reports_list({ UID              => $user->{UID},
+  	                                REPORT_ID        => 11,
+  	                                DESTINATION_TYPE => '_SHOW',
+                                    DESTINATION_ID   => '_SHOW',
+  	                                COLS_NAME        => 1
+  	                              });
+  
+  if($Ureports->{TOTAL} > 0) {
+    $user->pi({ UID => $user->{UID} });
+    my %info = (DATE => "$DATE $TIME",
+                SUM  => $attr->{SUM} );
+
+    ureports_send_reports(
+              $Ureports->{list}->[0]->{destination_type},
+              $Ureports->{list}->[0]->{destination_id},
+              $html->tpl_show(_include('ureports_report_11', 'Ureports'), { %$user, %info }, {  OUTPUT2RETURN => 1 }),
+              {
+                SUBJECT => "$_PAYMENTS_INFO",
+                UID     => $user->{UID},
+              }              
+            );
+  }
+
+  return 0;
+}
 1
 

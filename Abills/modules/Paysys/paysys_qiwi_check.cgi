@@ -48,9 +48,9 @@ require "Abills/Misc.pm";
 
 my $admin = Admins->new($db, \%conf);
 $admin->info($conf{SYSTEM_ADMIN_ID}, { IP => '127.0.0.1' });
-my $payments = Finance->payments($db, $admin, \%conf);
-my $fees = Finance->fees($db, $admin, \%conf);
-my $Paysys = Paysys->new($db, $admin, \%conf);
+my $payments  = Finance->payments($db, $admin, \%conf);
+my $fees      = Finance->fees($db, $admin, \%conf);
+my $Paysys    = Paysys->new($db, $admin, \%conf);
 my $Users     = Users->new($db, $admin, \%conf);
 my $debug     = 0;
 my $error_str = '';

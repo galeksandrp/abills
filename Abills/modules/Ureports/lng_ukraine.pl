@@ -10,6 +10,6 @@ $_DEPOSIT_CREDIT_BELOW='Депозит та кредит менше';
 $_TRAFFIC_MORE='Трафіку більше ніж';
 $_DAYS_TO_EXPIRE='Днів до завершення тарифу';
 $_SMALL_DEPOSIT_FOR_NEXT_MONTH='Замалий депозит для роботи в наступному місяці';
-
+$_PAYMENTS_INFO='Інформувати про платежі';
 
 

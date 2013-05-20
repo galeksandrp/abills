@@ -939,7 +939,6 @@ sub dv_tp {
   }
   elsif (defined($FORM{TP_ID})) {
     $tarif_info = $tariffs->info($FORM{TP_ID}, { ID => $FORM{TP_NUM} });
-    $FORM{TP_SHOW} = 1;
 
     if ($tariffs->{errno}) {
       if ($tariffs->{errno} == 2) {
