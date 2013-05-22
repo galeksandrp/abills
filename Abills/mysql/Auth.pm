@@ -14,6 +14,7 @@ $VERSION = 2.02;
 &check_company_account
 &check_bill_account
 &get_ip
+&online_add
 );
 
 @EXPORT_OK   = ();
