@@ -418,7 +418,7 @@ sub check_lines {
               $new_speed_out,
               {
                 ACCT_SESSION_ID   => $online->{acct_session_id},
-                FRAMED_IP_ADDRESS => $online->{ip},
+                FRAMED_IP_ADDRESS => $online->{client_ip},
                 UID               => $uid,
                 debug             => $debug
               }
@@ -530,7 +530,7 @@ sub  session_hangup {
           {
             %$nas_info,
             ACCT_SESSION_ID   => $online->{acct_session_id},
-            FRAMED_IP_ADDRESS => $online->{ip},
+            FRAMED_IP_ADDRESS => $online->{client_ip},
             NETMASK           => $online->{netmask},
             UID               => $online->{uid},
             debug             => $debug,
@@ -543,7 +543,7 @@ sub  session_hangup {
     if ($ret !~ /^Err/i) {
        $hangup_status = 1;
     }
-    $message .= " Status: $hangup_status";
+    $message .= " Status: $hangup_status DURATION: $online->{duration}";
     $Log->log_print('LOG_WARNING', $online->{user_name}, $message,  { ACTION => 'HANGUP', NAS => $nas_info });
   }
 

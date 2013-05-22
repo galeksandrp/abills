@@ -498,9 +498,11 @@ sub dv_auth {
   if ($self->{IP} ne '0') {
     $RAD_PAIRS->{'Framed-IP-Address'} = "$self->{IP}";
     if (! $self->{REASSIGN}) {
-      $self->query2("INSERT INTO dv_calls (started, user_name, uid, framed_ip_address, nas_id, nas_ip_address, status, acct_session_id, tp_id, join_service)
-        VALUES (now(), '$self->{USER_NAME}', '$self->{UID}', INET_ATON('$self->{IP}'), '$NAS->{NAS_ID}', INET_ATON('$RAD->{NAS_IP_ADDRESS}'), '11', 'IP', '$self->{TP_NUM}', '$self->{JOIN_SERVICE}');", 'do'
-       );
+     	$self->online_add({ %$attr, 
+    		                  NAS_ID            => $NAS->{NAS_ID},
+    		                  FRAMED_IP_ADDRESS => "INET_ATON('$self->{IP}')",
+    		                  NAS_IP_ADDRESS    => $RAD->{NAS_IP_ADDRESS},
+    		                });    	
     }
     delete $self->{REASSIGN};
   }
@@ -1516,28 +1518,11 @@ sub get_ip {
   if ($assign_ip) {
     # Make reserv ip
     if (! $attr->{SKIP_RESERV}) {
-    	my %insert_hash = (
-    	 user_name       => $self->{USER_NAME}, 
-    	 uid             => $self->{UID}, 
-    	 nas_id          => $nas_num, 
-    	 tp_id           => $self->{TP_NUM}, 
-    	 join_service    => $self->{JOIN_SERVICE}, 
-    	 guest           => $attr->{GUEST},
-    	 CID             => $attr->{CID}, 
-    	 CONNECTION_INFO => $attr->{CONNECTION_INFO}
-    	);
-
-      my $sql = "INSERT INTO dv_calls SET started=now(),
-    	 status          = '11',
-    	 acct_session_id = 'IP',
-    	 nas_ip_address  = INET_ATON('$nas_ip'),
-     	 framed_ip_address='$assign_ip'";
-
-    	while(my ($k, $v) = each %insert_hash) {
-    		$sql .= ", $k='$v'" if ($v);
-    	}
-
-      $self->query2($sql, 'do');
+    	$self->online_add({ %$attr, 
+    		                  NAS_ID            => $nas_num,
+    		                  FRAMED_IP_ADDRESS => $assign_ip,
+    		                  NAS_IP_ADDRESS    => $nas_ip
+    		                });
     }
    
     $self->{db}->do('unlock tables');
@@ -1560,6 +1545,46 @@ sub get_ip {
   }
   return 0;
 }
+
+#*******************************************************************
+#
+#*******************************************************************
+sub online_add {
+	my $self=shift;
+	my ($attr)=@_;
+	
+	my %insert_hash = (
+    	 user_name       => $self->{USER_NAME}, 
+    	 uid             => $self->{UID}, 
+    	 nas_id          => $attr->{NAS_ID}, 
+    	 tp_id           => $self->{TP_NUM}, 
+    	 join_service    => $self->{JOIN_SERVICE}, 
+    	 guest           => $attr->{GUEST},
+    	 CID             => $attr->{CID}, 
+    	 CONNECT_INFO    => $attr->{CONNECT_INFO},
+    	 nas_ip_address  => $attr->{NAS_IP_ADDRESS},
+    	 framed_ip_address => $attr->{FRAMED_IP_ADDRESS}
+  );
+
+  my $sql = "INSERT INTO dv_calls SET started=now(),
+    	 status          = '11',
+    	 acct_session_id = 'IP',
+    	 nas_ip_address  = INET_ATON('$attr->{NAS_IP_ADDRESS}')";
+
+  while(my ($k, $v) = each %insert_hash) {
+  	if($k eq 'framed_ip_address' && $v) {
+  		$sql .= ", $k=$v";
+  	}
+  	elsif ($v) {
+  	  $sql .= ", $k='$v'";
+  	}
+  }
+
+  $self->query2($sql, 'do');
+  
+  return $self;
+}
+
 
 #*******************************************************************
 # Convert integer value to ip
@@ -1711,9 +1736,13 @@ sub neg_deposit_filter_former () {
     # Return radius attr
     if ($self->{IP} ne '0' && !$self->{NEG_DEPOSIT_IP_POOL}) {
       $RAD_PAIRS->{'Framed-IP-Address'} = "$self->{IP}";
-      $self->query2("INSERT INTO dv_calls (started, user_name, uid, framed_ip_address, nas_id, nas_ip_address, status, acct_session_id, tp_id, join_service, guest)
-      VALUES (now(), '$self->{USER_NAME}', '$self->{UID}', INET_ATON('$self->{IP}'), '$NAS->{NAS_ID}', INET_ATON('$RAD->{NAS_IP_ADDRESS}'), '11', 'IP', '$self->{TP_NUM}', '$self->{JOIN_SERVICE}', 1);", 'do'
-      );
+
+     	$self->online_add({ %$attr, 
+    		                  NAS_ID            => $NAS->{NAS_ID},
+    		                  FRAMED_IP_ADDRESS => "INET_ATON('$self->{IP}')",
+    		                  NAS_IP_ADDRESS    => $RAD->{NAS_IP_ADDRESS},
+    		                  GUEST             => 1
+    		                });
     }
     else {
       my $ip = $self->get_ip($NAS->{NAS_ID}, "$RAD->{NAS_IP_ADDRESS}", { TP_IPPOOL => $self->{NEG_DEPOSIT_IP_POOL} || $self->{TP_IPPOOL}, GUEST => 1 });
@@ -1724,9 +1753,12 @@ sub neg_deposit_filter_former () {
       elsif ($ip eq '0') {
         #$RAD_PAIRS->{'Reply-Message'}="$self->{errstr} ($NAS->{NAS_ID})";
         #return 1, $RAD_PAIRS;
-        $self->query2("INSERT INTO dv_calls (started, user_name, uid, framed_ip_address, nas_id, nas_ip_address, status, acct_session_id, tp_id, join_service, guest)
-      VALUES (now(), '$self->{USER_NAME}', '$self->{UID}', 0, '$NAS->{NAS_ID}', INET_ATON('$RAD->{NAS_IP_ADDRESS}'), '11', 'IP', '$self->{TP_NUM}', '$self->{JOIN_SERVICE}', 1);", 'do'
-      );
+     	  $self->online_add({ %$attr, 
+    		                  NAS_ID            => $NAS->{NAS_ID},
+    		                  FRAMED_IP_ADDRESS => "INET_ATON('$self->{IP}')",
+    		                  NAS_IP_ADDRESS    => $RAD->{NAS_IP_ADDRESS},
+    		                  GUEST             => 1
+    		                 });
       }
       else {
         $RAD_PAIRS->{'Framed-IP-Address'} = "$ip";

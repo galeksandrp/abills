@@ -33,7 +33,7 @@ sub new {
   my $self = {};
   bless($self, $class);
 
-  $self->{db}=1;
+  $self->{db}=$db;
 
   if ($CONF->{DELETE_USER}) {
     $self->del($CONF->{DELETE_USER}, '', '', '', { DELETE_USER => $CONF->{DELETE_USER} });

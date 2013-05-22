@@ -245,7 +245,7 @@ sub online {
       ['SIMULTANEONSLY',    'INT', 'service.logins',                              1 ],
       ['PORT',              'INT', 'service.port',                                1 ],
       ['FILTER_ID',         'STR', 'service.filter_id',                           1 ],
-      ['STATUS',            'INT', 'service.disable',                             1 ],
+      ['STATUS',            'INT', 'service.disable AS service_status',           1 ],
       ['SESSION_IDS',       'STR', 'c.acct_session_id',                           1 ],
       ['FRAMED_IP_ADDRESS', 'IP',  'c.framed_ip_address',                         1 ],
       ['NAS_ID',            'INT', 'c.nas_id',                                    1 ],

@@ -109,7 +109,7 @@ sub hangup {
     #  hangup_radius($NAS, $PORT, "$USER", $attr);
     #}
     
-    hangup_radius($NAS, $PORT, "$USER", { SESSION_ID => $attr->{ACCT_SESSION_ID} });    
+    hangup_radius($NAS, $PORT, "$USER", { %$attr, SESSION_ID => $attr->{ACCT_SESSION_ID} });    
   }
   elsif ($nas_type eq 'lisg_cst') {
     hangup_radius($NAS, $PORT, "$attr->{FRAMED_IP_ADDRESS}", $attr);

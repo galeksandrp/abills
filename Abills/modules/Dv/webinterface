@@ -1639,7 +1639,7 @@ sub dv_online {
   $table2->addtd($table2->td("Online $_TOTAL: $sessions->{ONLINE}", { bgcolor => $_COLORS[0] }), $table2->td($form_link));
   print $table2->show();
 
-  if ($sessions->{TOTAL} > 500) {
+  if ($sessions->{TOTAL} > 500 && ! $FORM{show_columns}) {
     my $table = $html->table(
       {
         width      => '100%',
@@ -1694,7 +1694,7 @@ sub dv_online {
        'acct_session_id' => "SESSION_ID", 
        'CONNECT_INFO'=> "CONNECT_INFO", 
        'guest'       => $_GUEST, 
-       'turbo'       => $_TURBO,
+       'turbo'       => 'TURBO',
        'ip'          => "$_STATIC IP",
        'netmask'     => 'NETMASK',
        'speed'       => $_SPEED,
@@ -1702,7 +1702,8 @@ sub dv_online {
        'CID'         => 'CID',
        'filter_id'   => 'Filter ID',
        'tp_name'     => "$_TARIF_PLAN",
-       'dv_status'   => "$_STATUS"
+       'dv_status'   => "$_STATUS",
+       'last_alive'  => "$_UPDATE",
          },
      TABLE           => {
        width      => '100%',
@@ -1713,6 +1714,7 @@ sub dv_online {
        ID         => 'DV_ONLINE',
        EXPORT     => 1,
      },
+     SKIP_PAGES   => 1
     });  
 
   my $dub_ports  = $sessions->{dub_ports} if ($sessions->{dub_ports});

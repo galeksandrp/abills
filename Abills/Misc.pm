@@ -650,7 +650,7 @@ sub result_former {
         title      => \@title,
         cols_align => [ 'left', 'left', 'right', 'right', 'left', 'center', 'center:noprint', 'center:noprint' ],
         qs         => $attr->{TABLE}{qs},
-        pages      => $data->{TOTAL},
+        pages      => (! $attr->{SKIP_PAGES}) ? $data->{TOTAL} : undef,
         ID         => $attr->{TABLE}{ID},
         header     => $attr->{TABLE}{header},
         SHOW_COLS  => \%SEARCH_TITLES,
