@@ -1772,9 +1772,15 @@ sub dv_online {
         	if ($line->{uid}) {
             $val = $html->button($line->{user_name}, "index=15&UID=$line->{uid}");
           }
+          else {
+          	$val = $line->{user_name};
+          }
         }
         elsif ($sessions->{COL_NAMES_ARR}->[$i] =~ /acct_input_octets|acct_output_octets|ex_input_octets|ex_output_octets/) {
           $val = int2byte($line->{$sessions->{COL_NAMES_ARR}->[$i]});
+        }
+        elsif ($sessions->{COL_NAMES_ARR}->[$i] eq 'guest') {
+          $val = ($line->{$sessions->{COL_NAMES_ARR}->[$i]}) ? $html->color_mark($_YES, "$_COLORS[6]") : $_NO;
         }
         else {
         	$val =  $line->{$sessions->{COL_NAMES_ARR}->[$i]};
