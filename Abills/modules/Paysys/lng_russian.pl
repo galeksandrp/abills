@@ -7,6 +7,7 @@ $_FAILED='Транзакация не выполнена';
 $ERR_INVALID_SIGNATURE='Неправильная подпись. Обратитесь к администратору';
 $ERR_TRANSACTION_DECLINED='Транзакция отвергнута';
 $ERR_TERMINAL='Ошибка на терминале';
+$ERR_WRONG_PHONE='Неправильный номер телефона';
 $_GET_INVOICE='Получить счёт';
 $_INVOICE_SENDED='Счёт отправлен';
 $_TEST_PAYMENT='Тестовый платёж';

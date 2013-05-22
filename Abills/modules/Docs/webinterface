@@ -1274,7 +1274,6 @@ sub docs_invoices_list {
       
       if ($FORM{xml}) {
     	  my $orders = '';
-    	  #o.invoice_id, o.orders, o.unit, o.counts, o.price, o.fees_id
         my $i=1;
         foreach my $order ( @{ $Docs->{ORDERS}{$invoice->{id}} } ) {
       	  $orders .= "<orders>
@@ -1301,7 +1300,7 @@ sub docs_invoices_list {
       width      => '100%',
       cols_align => [ 'right', 'right' ],
       rows       => [ [ (($user->{UID}) ? '' : $html->button("$_PRINT $_LIST", "qindex=". $index ."&print_list=1$pages_qs&pg=$FORM{pg}". 
-      (($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : ''), { BUTTON => 1, ex_params => 'target=new' })), "$_TOTAL:", $html->b($total_invoices) ] ]
+      (($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : ''), { BUTTON => 1, ex_params => 'target=new' })), "$_TOTAL:", $html->b($Docs->{TOTAL_INVOICES}) ] ]
     }
   );
 
@@ -1985,12 +1984,12 @@ sub docs_invoice {
 
   }
   elsif ($FORM{print}) {
-  	$Docs->invoice_info($FORM{print}, { UID => $FORM{UID} });
+    $Docs->invoice_info($FORM{print}, { UID => $FORM{UID} });
   	
-  	if ($Docs->{errno}) {
-  		$html->message('err', "$_DOCS : $_ERROR", "[$Docs->{errno}] $err_strs{$Docs->{errno}}") if (!$FORM{QUICK});
-  	}
-  	
+    if ($Docs->{errno}) {
+      $html->message('err', "$_DOCS : $_ERROR", "[$Docs->{errno}] $err_strs{$Docs->{errno}}") if (!$FORM{QUICK});
+    }
+
     my %Doc = %{ $Docs };
     if ($conf{DOCS_VAT_INCLUDE}) {
       $Doc{ORDER_TOTAL_SUM_VAT}   = sprintf("%.2f", $Doc{TOTAL_SUM} / ((100 + $conf{DOCS_VAT_INCLUDE}) / $conf{DOCS_VAT_INCLUDE}));
@@ -2043,7 +2042,7 @@ sub docs_invoice {
         $Doc{ 'ORDER_SUM_WITHOUT_VAT_' . $i }   = sprintf("%.2f", ($conf{DOCS_VAT_INCLUDE}) ? $sum - ($sum) / ((100 + $conf{DOCS_VAT_INCLUDE}) / $conf{DOCS_VAT_INCLUDE}) : $sum);
 
         # not charged service
-        if ($line->[5] == 0) {
+        if ($Doc{DEPOSIT} == 0 || $line->[5] == 0) {
           $Doc{AMOUNT_FOR_PAY} += $Doc{ 'ORDER_COUNT_' . $i } * $Doc{ 'ORDER_PRICE_' . $i } 
         }
 
@@ -2112,10 +2111,9 @@ sub docs_invoice {
         $attr->{EMAIL_MSG_SUBJECT}     = "ABillS - $_INVOICE: $Doc{INVOICE_NUM}" if (!$attr->{EMAIL_MSG_SUBJECT});
       }
 
-      if ($conf{DOCS_EXTRA_DEPOSIT}) {
-        $Doc{DEPOSIT} =  sprintf("%.2f", $Doc{DEPOSIT} + $Doc{CHARGED_SUM});
+      if ($conf{DOCS_EXTRA_DEPOSIT} && $Doc{DEPOSIT} != 0) {
         if ($Doc{EXCHANGE_RATE}) {
-          $Doc{DEPOSIT_ALT}    = sprintf("%.2f", $Doc{DEPOSIT} * $Doc{EXCHANGE_RATE});
+          $Doc{DEPOSIT_ALT}    = sprintf("%.2f", ($Doc{DEPOSIT} + $Doc{CHARGED_SUM}) * $Doc{EXCHANGE_RATE});
         }
       }
 

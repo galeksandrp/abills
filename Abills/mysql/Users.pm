@@ -605,7 +605,7 @@ sub groups_list {
 
   my $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES) : '';
 
-  $self->query2("SELECT g.gid, g.name, g.descr, count(u.uid) AS users_count, allow_credit, g.domain_id FROM groups g
+  $self->query2("SELECT g.gid, g.name, g.descr, count(u.uid) AS users_count, g.allow_credit, g.domain_id FROM groups g
         LEFT JOIN users u ON  (u.gid=g.gid $USERS_WHERE) 
         $WHERE
         GROUP BY g.gid
@@ -630,7 +630,7 @@ sub group_info {
   my $self = shift;
   my ($gid) = @_;
 
-  $self->query2("SELECT g.gid, g.name, g.descr, g.separate_docs, g.domain_id, allow_credit
+  $self->query2("SELECT g.gid, g.name, g.descr, g.separate_docs, g.domain_id, g.allow_credit
     FROM groups g 
     WHERE g.gid='$gid';",
    undef, { INFO => 1 });

@@ -535,7 +535,7 @@ sub invoices_list {
   return $self->{list} if ($self->{TOTAL} < 1);
   my $list = $self->{list};
 
-  $self->query2("SELECT count(distinct d.id)
+  $self->query2("SELECT count(distinct d.id) AS total_invoices
     FROM docs_invoices d
     INNER JOIN docs_invoice_orders o ON (o.invoice_id=d.id)
     LEFT JOIN users u ON (d.uid=u.uid)
@@ -543,10 +543,10 @@ sub invoices_list {
     LEFT JOIN companies company ON (u.company_id=company.id)
     LEFT JOIN docs_invoice2payments i2p ON (d.id=i2p.invoice_id)
     LEFT JOIN payments p ON (i2p.payment_id=p.id)
-    $WHERE"
+    $WHERE",
+    undef,
+    { INFO => 1 }
   );
-
-  my ($total) = @{ $self->{list}->[0] };
 
   if ($attr->{ORDERS_LIST}) {
     $self->query2("SELECT  o.invoice_id,  o.orders,  o.unit,  o.counts,  o.price,  o.fees_id
@@ -570,7 +570,7 @@ sub invoices_list {
     }
   }
 
-  $self->{TOTAL}=$total;
+  $self->{TOTAL}=$self->{TOTAL_INVOICES};
   
   return $list;
 }

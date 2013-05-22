@@ -11,3 +11,5 @@ $_TRAFFIC_MORE='Traffic more then';
 $_DAYS_TO_EXPIRE='Days To Expire';
 $_SMALL_DEPOSIT_FOR_NEXT_MONTH='Too small deposit for next month';
 $_PAYMENTS_INFO='Payments information';
+$_ALL_SERVICE_EXPIRE='All Service expired throught XX days';
+$_DEAR='Dear';

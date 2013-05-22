@@ -2134,46 +2134,47 @@ sub paysys_qiwi {
 
   if ($FORM{send_invoice}) {
     $FORM{COMMENT} = $user->{LOGIN};
-    my $result = qiwi_invoice_request(\%FORM);
 
-    if ($result->{'result-code'}->[0]->{fatal} eq '-true') {
-      my $error = "$result->{'result-code'}->[0]->{content}";
-      if ($result->{'result-code'}->[0]->{content} == 150) {
-        $error .= "$ERR_TERMINAL";
-      }
-      $html->message('err', "$_ERROR", "$_ERROR: $error");
+    if($FORM{PHONE} !~ /^(\d{10})$/) {
+    	$html->message('err', "$_ERROR", "$ERR_WRONG_PHONE");
     }
     else {
-      $html->message('info', "$_INFO", "$_INVOICE_SENDED ID: '$FORM{OPERATION_ID}'\n$_PHONE: $FORM{PHONE}");
-      $Paysys->add(
-        {
-          SYSTEM_ID      => $payment_system_id,
-          DATETIME       => "$DATE $TIME",
-          SUM            => $FORM{SUM},
-          UID            => $user->{UID},
-          IP             => "$ENV{'REMOTE_ADDR'}",
-          TRANSACTION_ID => "$FORM{OPERATION_ID}",
-          INFO           => '-',
-          PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}",
-          STATUS         => 1,
-        }
-      );
-    }
+      my $result = qiwi_invoice_request(\%FORM);
 
-    return 0;
+      if ($result->{'result-code'}->[0]->{fatal} eq 'true') {
+        my $error = "$result->{'result-code'}->[0]->{content}";
+        if ($result->{'result-code'}->[0]->{content} == 150) {
+          $error .= " $ERR_TERMINAL";
+        }
+        $html->message('err', "$_ERROR", "$_ERROR: $error");
+      }
+      else {
+        $html->message('info', "$_INFO", "$_INVOICE_SENDED ID: '$FORM{OPERATION_ID}'\n$_PHONE: $FORM{PHONE}");
+        $Paysys->add(
+          {
+            SYSTEM_ID      => $payment_system_id,
+            DATETIME       => "$DATE $TIME",
+            SUM            => $FORM{SUM},
+            UID            => $user->{UID},
+            IP             => "$ENV{'REMOTE_ADDR'}",
+            TRANSACTION_ID => "$FORM{OPERATION_ID}",
+            INFO           => '-',
+            PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}",
+            STATUS         => 1,
+          }
+        );
+      }
+      return 0;
+    }
   }
+
+  $user->pi({ UID => $user->{UID} });
+  $info{PHONE}=$user->{PHONE};
 
   if (in_array('Dv', \@MODULES)) {
     use Dv;
-
-    #    use Tariffs;
     my $Dv = Dv->new($db, $admin, \%conf);
-
-    #    my $Tariffs  = Tariffs->new($db, \%conf, $admin);
     $Dv = $Dv->info($user->{UID});
-
-    #    print "Content-Type: text/html\n\n";
-    #    print "$info{SUM}=($Dv->{MONTH_ABON} > $info{SUM}) ? $Dv->{MONTH_ABON} : $info{SUM};";
     if ($Dv->{MONTH_ABON} > $FORM{SUM}) {
       $FORM{SUM}      = $Dv->{MONTH_ABON};
       $info{DESCRIBE} = "$_TARIF_PLAN_SUM";

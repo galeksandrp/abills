@@ -252,36 +252,6 @@ sub list {
   $PG        = ($attr->{PG})        ? $attr->{PG}        : 0;
   $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
 
-  my @list = ();
-  @WHERE_RULES = @{ $self->search_expr_users({ %$attr, 
-                             EXT_FIELDS => [
-                                            'PHONE',
-                                            'EMAIL',
-                                            'ADDRESS_FLAT',
-                                            'PASPORT_DATE',
-                                            'PASPORT_NUM', 
-                                            'PASPORT_GRANT',
-                                            'CITY', 
-                                            'ZIP',
-                                            'GID',
-                                            'CONTRACT_ID',
-                                            'CONTRACT_SUFIX',
-                                            'CONTRACT_DATE',
-                                            'EXPIRE',
-
-                                            'CREDIT',
-                                            'CREDIT_DATE', 
-                                            'REDUCTION',
-                                            'REGISTRATION',
-                                            'REDUCTION_DATE',
-                                            'COMMENTS',
-                                            'BILL_ID:skip',
-                                            
-                                            'ACTIVATE',
-                                            'EXPIRE',
-
-                                             ] }) };
-
   my $EXT_TABLES  = $self->{EXT_TABLES};
   if ($attr->{FIO}) {
     $EXT_TABLES  .= 'LEFT JOIN users_pi pi ON (u.uid=pi.uid)';
@@ -312,8 +282,8 @@ sub list {
       ['FROM_DATE|TO_DATE','DATE', 'date_format(f.date, \'%Y-%m-%d\')'  ],
       ['MONTH',          'DATE', "date_format(f.date, '%Y-%m')"   ],
     ],
-    { WHERE => 1,
-    	WHERE_RULES => \@WHERE_RULES
+    { WHERE       => 1,
+      USERS_FIELDS=> 1
     }
     );
 
@@ -472,10 +442,10 @@ sub fees_type_list {
   my $self = shift;
   my ($attr) = @_;
 
-  $SORT      = ($attr->{SORT})      ? $attr->{SORT}      : 1;
-  $DESC      = ($attr->{DESC})      ? $attr->{DESC}      : '';
-  $PG        = ($attr->{PG})        ? $attr->{PG}        : 0;
-  $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
+  my $SORT      = ($attr->{SORT})      ? $attr->{SORT}      : 1;
+  my $DESC      = ($attr->{DESC})      ? $attr->{DESC}      : '';
+  my $PG        = ($attr->{PG})        ? $attr->{PG}        : 0;
+  my $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
 
   my $WHERE =  $self->search_former($attr, [
       ['ID',           'INT', 'd'                              ],

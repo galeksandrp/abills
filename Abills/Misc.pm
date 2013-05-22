@@ -547,7 +547,7 @@ sub result_former {
   }
 
   foreach my $line (@cols) {
-  	if (! $LIST_PARAMS{$line}) {
+  	if (! defined($LIST_PARAMS{$line})) {
   		$LIST_PARAMS{$line}='_SHOW';
   	}
   } 	

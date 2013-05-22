@@ -12,7 +12,7 @@ $html
 
 #use strict;
 
-my $version = 0.53;
+my $version = 0.54;
 my $debug   = 0;
 
 use FindBin '$Bin';
@@ -110,6 +110,8 @@ print $debug_output;
 #**********************************************************
 sub ureports_send_reports {
   my ($type, $destination, $message, $attr) = @_;
+
+  $message = $html->tpl_show(_include('ureports_report_'.$attr->{REPORT_ID}, 'Ureports'), $attr, {  OUTPUT2RETURN => 1 });
 
   if ($debug > 6) {
   	print "$type $destination $message\n";
@@ -217,8 +219,6 @@ sub ureports_periodic_reports {
           if ($user->{VALUE} > $user->{DEPOSIT}) {
             %PARAMS = (
               DESCRIBE => "$_REPORTS ($user->{REPORT_ID}) ",
-              DATE     => "$ADMIN_REPORT{DATE} $TIME",
-              METHOD   => 1,
               MESSAGE  => "$_DEPOSIT: $user->{DEPOSIT}",
               SUBJECT  => "$_DEPOSIT_BELOW"
             );
@@ -233,8 +233,6 @@ sub ureports_periodic_reports {
           if ($user->{VALUE} > $user->{DEPOSIT} + $user->{CREDIT}) {
             %PARAMS = (
               DESCRIBE => "$_REPORTS ($user->{REPORT_ID}) ",
-              DATE     => "$ADMIN_REPORT{DATE} $TIME",
-              METHOD   => 1,
               MESSAGE  => "$_DEPOSIT: $user->{DEPOSIT} $_CREDIT: $user->{CREDIT}",
               SUBJECT  => "$_DEPOSIT_CREDIT_BELOW"
             );
@@ -247,6 +245,10 @@ sub ureports_periodic_reports {
         #Report 3 Prepaid traffic rest
         elsif ($user->{REPORT_ID} == 3) {
           if ($Sessions->prepaid_rest({ UID => $user->{UID}, })) {
+            %PARAMS = (
+              DESCRIBE => "$_REPORTS ($user->{REPORT_ID}) ",
+              SUBJECT  => "$_PREPAID_TRAFFIC_BELOW"
+            );
 
             my $list         = $Sessions->{INFO_LIST};
             my $rest_traffic = '';
@@ -255,17 +257,9 @@ sub ureports_periodic_reports {
 
               $rest = ($line->{prepaid} > 0 && $Sessions->{REST}->{ $line->{traffic_class} } > 0) ? $Sessions->{REST}->{ $line->{traffic_class} } : 0;
               if ($rest < $user->{VALUE}) {
-                $rest_traffic .= "================\n $_TRAFFIC $_TYPE: $line->{traffic_class}\n$_BEGIN: $line->{interval_begin}\n" . "$_END: $line->{interval_end}\n" . "$_TOTAL: $line->{prepaid}\n" . "\n $_REST: " . $rest . "\n================";
+                $PARAMS{MESSAGE} .= "================\n $_TRAFFIC $_TYPE: $line->{traffic_class}\n$_BEGIN: $line->{interval_begin}\n" . "$_END: $line->{interval_end}\n" . "$_TOTAL: $line->{prepaid}\n" . "\n $_REST: " . $rest . "\n================";
               }
             }
-
-            %PARAMS = (
-              DESCRIBE => "$_REPORTS ($user->{REPORT_ID}) ",
-              DATE     => "$ADMIN_REPORT{DATE} $TIME",
-              METHOD   => 1,
-              MESSAGE  => "$rest_traffic",
-              SUBJECT  => "$_PREPAID_TRAFFIC_BELOW"
-            );
           }
         }
 
@@ -284,10 +278,8 @@ sub ureports_periodic_reports {
 
           %PARAMS = (
             DESCRIBE => "$_REPORTS ($user->{REPORT_ID}) ",
-            DATE     => "$ADMIN_REPORT{DATE} $TIME",
-            METHOD   => 1,
             MESSAGE  => "$_MONTH:\n $_DEPOSIT: $user->{DEPOSIT}\n $_CREDIT: $user->{CREDIT}\n $_TRAFFIC: $_RECV: " . int2byte($traffic_in) . " $_SEND: " . int2byte($traffic_out) . " \n  $_SUM: " . int2byte($traffic_sum) . " \n",
-            SUBJECT  => "$_MONTH: $_DEPOSIT / $_CREDIT / $_TRAFFIC"
+            SUBJECT  => "$_MONTH: $_DEPOSIT / $_CREDIT / $_TRAFFIC",
           );
         }
 
@@ -296,8 +288,6 @@ sub ureports_periodic_reports {
           if ($user->{CREDIT_EXPIRE} < $user->{VALUE}) {
             %PARAMS = (
               DESCRIBE => "$_REPORTS ($user->{REPORT_ID}) ",
-              DATE     => "$ADMIN_REPORT{DATE} $TIME",
-              METHOD   => 1,
               MESSAGE  => "$_CREDIT $_EXPIRE",
               SUBJECT  => "$_CREDIT $_EXPIRE"
             );
@@ -312,8 +302,6 @@ sub ureports_periodic_reports {
           if ($user->{DISABLE}) {
             %PARAMS = (
               DESCRIBE => "$_REPORTS ($user->{REPORT_ID}) ",
-              DATE     => "$ADMIN_REPORT{DATE} $TIME",
-              METHOD   => 1,
               MESSAGE  => "$_LOGIN $_DISABLE",
               SUBJECT  => "$_LOGIN $_DISABLE"
             );
@@ -328,8 +316,6 @@ sub ureports_periodic_reports {
           if ($user->{TP_EXPIRE} == $user->{VALUE}) {
             %PARAMS = (
               DESCRIBE => "$_REPORTS ($user->{REPORT_ID}) ",
-              DATE     => "$ADMIN_REPORT{DATE} $TIME",
-              METHOD   => 1,
               MESSAGE  => "$_DAYS_TO_EXPIRE: $user->{TP_EXPIRE}",
               SUBJECT  => "$_TARIF_PLAN $_EXPIRE"
             );
@@ -344,8 +330,6 @@ sub ureports_periodic_reports {
           if ($user->{TP_MONTH_FEE} > $user->{DEPOSIT} + $user->{CREDIT}) {
             %PARAMS = (
               DESCRIBE => "$_REPORTS ($user->{REPORT_ID}) ",
-              DATE     => "$ADMIN_REPORT{DATE} $TIME",
-              METHOD   => 1,
               MESSAGE  => "$_SMALL_DEPOSIT_FOR_NEXT_MONTH. $_DEPOSIT: $user->{DEPOSIT} $_TARIF_PLAN $user->{TP_MONTH_FEE}",
               SUBJECT  => "$ERR_SMALL_DEPOSIT"
             );
@@ -362,8 +346,20 @@ sub ureports_periodic_reports {
             my $recharge = $user->{TP_MONTH_FEE}+$user->{DEPOSIT}; 
             %PARAMS = (
               DESCRIBE => "$_REPORTS ($user->{REPORT_ID}) ",
-              DATE     => "$ADMIN_REPORT{DATE} $TIME",
-              METHOD   => 1,
+              MESSAGE  => "$_SMALL_DEPOSIT_FOR_NEXT_MONTH $_BALANCE_RECHARCHE $recharge",
+              SUBJECT  => "$_DEPOSIT_BELOW"
+              );
+          }
+          else {
+            next;
+          }
+        }
+        #All service expired throught
+        elsif ($user->{REPORT_ID} == 13) {
+          if (0 > $user->{DEPOSIT}) {
+            my $recharge = $user->{TP_MONTH_FEE}+$user->{DEPOSIT}; 
+            %PARAMS = (
+              DESCRIBE => "$_REPORTS ($user->{REPORT_ID}) ",
               MESSAGE  => "$_SMALL_DEPOSIT_FOR_NEXT_MONTH $_BALANCE_RECHARCHE $recharge",
               SUBJECT  => "$_DEPOSIT_BELOW"
               );
@@ -389,7 +385,10 @@ sub ureports_periodic_reports {
             SUBJECT   => $PARAMS{SUBJECT},
             REPORT_ID => $user->{REPORT_ID},
             UID       => $user->{UID},
-            MESSAGE   => $PARAMS{MESSAGE}
+            MESSAGE   => $PARAMS{MESSAGE},
+            DATE      => "$ADMIN_REPORT{DATE} $TIME",
+            METHOD    => 1,
+            $PARAMS{MESSAGE}
           }
         );
 

@@ -292,8 +292,31 @@ sub search_former {
   $self->{SEARCH_FIELDS}       = '';
   $self->{SEARCH_FIELDS_COUNT} = 0;
 
+  foreach my $search_param (@$search_params) {
+  	my ($param, $field_type, $sql_field, $show, $ex_params)=@$search_param;
+    my $param2 = '';
+  	if ($param =~ /^(.*)\|(.*)$/) {
+  		$param  = $1;
+  		$param2 = $2;
+  	}
+
+
+  	if($data->{$param} || ($field_type eq 'INT' && defined($data->{$param}) && $data->{$param} ne '')) {
+  		if ($sql_field eq '') {
+        $self->{SEARCH_FIELDS} .= "$show, ";
+        $self->{SEARCH_FIELDS_COUNT}++;
+   		}
+  	  elsif ($param2) {
+        push @WHERE_RULES, "($sql_field>='$data->{$param}' and $sql_field<='$data->{$param2}')";
+  	  }
+  	  else {
+  		  push @WHERE_RULES, @{ $self->search_expr($data->{$param}, "$field_type", "$sql_field", { EXT_FIELD => $show }) };
+  		}
+  	}
+  }
+
   if ($attr->{USERS_FIELDS}) {
-  	@WHERE_RULES = @{ $self->search_expr_users({ %$data, 
+  	push @WHERE_RULES, @{ $self->search_expr_users({ %$data, 
                              EXT_FIELDS => [
                                             'PHONE',
                                             'EMAIL',
@@ -312,37 +335,16 @@ sub search_former {
                                             'CREDIT',
                                             'CREDIT_DATE', 
                                             'REDUCTION',
-                                            'REGISTRATION',
                                             'REDUCTION_DATE',
                                             'COMMENTS',
                                             'BILL_ID:skip',
                                             
                                             'ACTIVATE',
                                             'EXPIRE',
-                                             ] }) };
-  }
-
-  foreach my $search_param (@$search_params) {
-  	my ($param, $field_type, $sql_field, $show, $ex_params)=@$search_param;
-    my $param2 = '';
-
-  	if ($param =~ /^(.*)\|(.*)$/) {
-  		$param  = $1;
-  		$param2 = $2;
-  	}	
-  		
-  	if($data->{$param} || ($field_type eq 'INT' && defined($data->{$param}) && $data->{$param} ne '')) {
-  		if ($sql_field eq '') {
-        $self->{SEARCH_FIELDS} .= "$show, ";
-        $self->{SEARCH_FIELDS_COUNT}++;
-   		}
-  	  elsif ($param2) {
-        push @WHERE_RULES, "($sql_field>='$data->{$param}' and $sql_field<='$data->{$param2}')";
-  	  }
-  	  else {
-  		  push @WHERE_RULES, @{ $self->search_expr($data->{$param}, "$field_type", "$sql_field", { EXT_FIELD => $show }) };
-  		}
-  	}
+                                            'REGISTRATION',
+                                             ],
+                             SUPPLEMENT=> 1 
+                         }) };
   }
 
   if ($attr->{WHERE_RULES}) {
@@ -708,9 +710,11 @@ sub search_expr_users () {
   my ($attr) = @_;
   my @fields = ();
 
-  $self->{SEARCH_FIELDS}       = '';
-  $self->{SEARCH_FIELDS_COUNT} = 0;
-  $self->{EXT_TABLES}          = '';
+  if (! $attr->{SUPPLEMENT}) {
+    $self->{SEARCH_FIELDS}       = '';
+    $self->{SEARCH_FIELDS_COUNT} = 0;
+    $self->{EXT_TABLES}          = '';
+  }
 
   #ID:type:Field name
   my %users_fields_hash = (

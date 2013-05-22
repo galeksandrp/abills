@@ -7,6 +7,7 @@ $_FAILED='Transaction Failed';
 $ERR_INVALID_SIGNATURE='Invalid signature';
 $ERR_TRANSACTION_DECLINED='Transaction is declined';
 $ERR_TERMINAL='Terminal Error';
+$ERR_WRONG_PHONE='Wrong phone number';
 $_GET_INVOICE='Get invoice';
 $_INVOICE_SENDED='Invoice sended';
 $_TEST_PAYMENT='Test payment';

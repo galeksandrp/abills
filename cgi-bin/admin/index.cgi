@@ -6577,7 +6577,7 @@ sub get_fees_types {
   my $fees         = Finance->fees($db, $admin, \%conf);
   my $list         = $fees->fees_type_list({ PAGE_ROWS => 10000 });
   foreach my $line (@$list) {
-    if ($FORM{METHOD} && $FORM{METHOD} == $line->[0]) {
+    if ($FORM{METHOD} && $FORM{METHOD} == $line->[0] && ! $FORM{search}) {
       $FORM{SUM}      = $line->[3] if ($line->[3] > 0);
       $FORM{DESCRIBE} = $line->[2] if ($line->[2]);
     }
@@ -6842,7 +6842,6 @@ sub form_fees {
 
     $fees->{PERIOD_FORM} = form_period($period, { TD_EXDATA => "colspan='2'" });
     if ($permissions{2} && $permissions{2}{1}) {
-
       #exchange rate sel
       $fees->{SEL_ER} = $html->form_select(
         'ER',
@@ -6870,12 +6869,11 @@ sub form_fees {
       $fees->{SEL_METHOD} = $html->form_select(
         'METHOD',
         {
-          SELECTED => (defined($FORM{METHOD}) && $FORM{METHOD} ne '') ? $FORM{METHOD} : 0,
-          SEL_HASH => \%FEES_METHODS,
-          NO_ID    => 1,
-
-          #SORT_KEY     => 1,
-          MAIN_MENU => get_function_index('form_fees_types'),
+          SELECTED      => (defined($FORM{METHOD}) && $FORM{METHOD} ne '') ? $FORM{METHOD} : 0,
+          SEL_HASH      => \%FEES_METHODS,
+          NO_ID         => 1,
+          SORT_KEY_NUM  => 1,
+          MAIN_MENU     => get_function_index('form_fees_types'),
         }
       );
 
@@ -7184,10 +7182,11 @@ sub form_search {
         $info{SEL_METHOD} = $html->form_select(
           'METHOD',
           {
-            SELECTED => (defined($FORM{METHOD}) && $FORM{METHOD} ne '') ? $FORM{METHOD} : '',
-            SEL_HASH => \%PAYMENTS_METHODS,
-            SORT_KEY => 1,
-            SEL_OPTIONS => { '' => $_ALL }
+            SELECTED     => (defined($FORM{METHOD}) && $FORM{METHOD} ne '') ? $FORM{METHOD} : '',
+            SEL_HASH     => \%PAYMENTS_METHODS,
+            SORT_KEY_NUM => 1,
+            NO_ID        => 1,
+            SEL_OPTIONS  => { '' => $_ALL }
           }
         );
         $attr->{ADDRESS_FORM}=1;
@@ -7198,7 +7197,9 @@ sub form_search {
           {
             SELECTED     => (defined($FORM{METHOD}) && $FORM{METHOD} ne '') ? $FORM{METHOD} : '',
             SEL_HASH     => get_fees_types(),
-            ARRAY_NUM_ID => 1,
+            #ARRAY_NUM_ID => 1,
+            SORT_KEY_NUM => 1,
+            NO_ID        => 1,
             SEL_OPTIONS  => { '' => $_ALL }
           }
         );
