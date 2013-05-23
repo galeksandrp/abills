@@ -500,8 +500,8 @@ sub list {
   }
   
   my $WHERE =  $self->search_former($attr, [
-      ['IP',             'IP',  'dv.ip',                            'INET_NTOA(dv.ip) AS ip' ],
-      ['NETMASK',        'IP',  'dv.netmask',                       'INET_NTOA(dv.netmask) AS netmask' ],
+      ['IP',             'IP',  'dv.ip',     'INET_NTOA(dv.ip) AS ip' ],
+      ['NETMASK',        'IP',  'dv.netmask', 'INET_NTOA(dv.netmask) AS netmask' ],
       ['CID',            'STR', 'dv.cid',                           1 ],
       ['JOIN_SERVICE',   'INT', 'dv.join_service',                  1 ],
       ['SIMULTANEONSLY', 'INT', 'dv.logins',                        1 ],
@@ -511,10 +511,11 @@ sub list {
       ['ALL_FILTER_ID',  'STR', 'if(dv.filter_id<>\'\', dv.filter_id, tp.filter_id) AS filter_id', 1 ],
       ['FILTER_ID',      'STR', 'dv.filter_id',                     1 ],
       ['TP_ID',          'INT', 'dv.tp_id',                           ],
-      ['TP_CREDIT',      'INT', 'tp.credit',                       'tp.credit AS tp_credit' ],
+      ['TP_CREDIT',      'INT', 'tp.credit', 'tp.credit AS tp_credit' ],
+      ['ONLINE',         'INT', 'c.uid',            'c.uid AS online' ],
       ['PAYMENT_TYPE',   'INT', 'tp.payment_type',                  1 ],
       ['SHOW_PASSWORD',  '',    '',  "DECODE(u.password, '$CONF->{secretkey}') AS password," ],
-      ['STATUS',         'INT', 'dv.disable', ]
+      ['STATUS',         'INT', 'dv.disable',                         ],
     ],
     { WHERE => 1,
     	WHERE_RULES => \@WHERE_RULES
@@ -522,6 +523,8 @@ sub list {
     );
 
   my $EXT_TABLE = $self->{EXT_TABLES};
+
+  $self->{debug}=1;
 
   if ($attr->{EXT_BILL}) {
     $self->{SEARCH_FIELDS} .= 'if(u.company_id > 0, ext_cb.deposit, ext_b.deposit), ';
@@ -531,6 +534,10 @@ sub list {
      LEFT JOIN bills ext_cb ON  (company.ext_bill_id=ext_cb.id) ";
   }
 
+  if($attr->{ONLINE}) {
+    $EXT_TABLE .= "
+     LEFT JOIN dv_calls c ON (c.uid=dv.uid) ";  	
+  }
 
   $self->query2("SELECT u.id AS login, 
       pi.fio, 

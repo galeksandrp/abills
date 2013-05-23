@@ -9142,6 +9142,7 @@ sub form_builds {
     if (!$users->{errno}) {
       $users->{ACTION}     = 'change';
       $users->{LNG_ACTION} = "$_CHANGE";
+      $FORM{add_form}      = 1;
       $html->message('info', $_ADDRESS_BUILD, "$_CHANGING");
     }
   }
@@ -9162,26 +9163,29 @@ sub form_builds {
     }
   }
 
-  $users->{STREET_SEL} = $html->form_select(
-    "STREET_ID",
-    {
-      SELECTED => $users->{STREET_ID} || $FORM{BUILDS},
-      SEL_MULTI_ARRAY   => $users->street_list({ PAGE_ROWS => 10000 }),
-      MULTI_ARRAY_KEY   => 0,
-      MULTI_ARRAY_VALUE => 1,
-      SEL_OPTIONS       => { 0                             => '-N/S-' },
-      NO_ID             => 1
-    }
-  );
+  if ($FORM{add_form}) {
+    $users->{STREET_SEL} = $html->form_select(
+      "STREET_ID",
+      {
+        SELECTED => $users->{STREET_ID} || $FORM{BUILDS},
+        SEL_MULTI_ARRAY   => $users->street_list({ PAGE_ROWS => 10000 }),
+        MULTI_ARRAY_KEY   => 0,
+        MULTI_ARRAY_VALUE => 1,
+        SEL_OPTIONS       => { 0                             => '-N/S-' },
+        NO_ID             => 1
+      }
+    );
 
-  $html->tpl_show(templates('form_build'), $users);
+    $html->tpl_show(templates('form_build'), $users);
+  }
 
   $LIST_PARAMS{DISTRICT_ID} = $FORM{DISTRICT_ID} if ($FORM{DISTRICT_ID});
   $pages_qs .= "&BUILDS=$FORM{BUILDS}" if ($FORM{BUILDS});
 
   my $list = $users->build_list({ %LIST_PARAMS, 
   	                              STREET_ID   => $FORM{BUILDS}, 
-  	                              CONNECTIONS => 1 });
+  	                              CONNECTIONS => 1,
+  	                              COLS_NAME   => 1 });
 
   my $table = $html->table(
     {
@@ -9192,7 +9196,8 @@ sub form_builds {
       pages      => $users->{TOTAL},
       qs         => $pages_qs,
       ID         => 'STREET_LIST',
-      EXPORT     => 1
+      EXPORT     => 1,
+      MENU       => "$_ADD:index=$index&add_form=1&BUILDS=$FORM{BUILDS}:add",
     }
   );
 

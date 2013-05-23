@@ -1563,7 +1563,7 @@ sub online_add {
     	 guest           => $attr->{GUEST},
     	 CID             => $attr->{CID}, 
     	 CONNECT_INFO    => $attr->{CONNECT_INFO},
-    	 nas_ip_address  => $attr->{NAS_IP_ADDRESS},
+    	 #nas_ip_address  => $attr->{NAS_IP_ADDRESS},
     	 framed_ip_address => $attr->{FRAMED_IP_ADDRESS}
   );
 

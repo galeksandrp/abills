@@ -170,44 +170,22 @@ sub online_info {
   my $ACCT_SESSION_ID = (defined($attr->{ACCT_SESSION_ID})) ? $attr->{ACCT_SESSION_ID} : '';
 
   $self->query2("SELECT user_name, 
-    UNIX_TIMESTAMP(started), 
-    UNIX_TIMESTAMP() - UNIX_TIMESTAMP(started), 
-    INET_NTOA(client_ip_address),
-    lupdated,
+    UNIX_TIMESTAMP(started) AS session_start, 
+    UNIX_TIMESTAMP() - UNIX_TIMESTAMP(started) AS acct_session_time, 
+    INET_NTOA(client_ip_address) AS client_ip_address,
+    lupdated AS last_update,
     nas_id,
     calling_station_id,
     called_station_id,
     acct_session_id,
-    conf_id,
-    INET_NTOA(client_ip_address),
-    call_origin
+    conf_id AS h323_conf_id,
+    call_origin AS h323_call_origin
     FROM voip_calls 
     WHERE nas_id='$NAS_ID'
-     and acct_session_id='$ACCT_SESSION_ID'"
+     and acct_session_id='$ACCT_SESSION_ID'",
+    undef,
+    { INFO => 1 }
   );
-
-  if ($self->{TOTAL} < 1) {
-    $self->{errno}  = 2;
-    $self->{errstr} = 'ERROR_NOT_EXIST';
-    return $self;
-  }
-
-  (
-    $self->{USER_NAME},
-    $self->{SESSION_START},
-    $self->{ACCT_SESSION_TIME},
-    $self->{CLIENT_IP_ADDRESS},
-    $self->{LAST_UPDATE},
-    $self->{NAS_ID},
-    $self->{CALLING_STATION_ID},
-    $self->{CALLED_STATION_ID},
-    $self->{ACCT_SESSION_ID},
-    $self->{H323_CONF_ID},
-    $self->{CLIENT_IP_ADDRESS},
-    $self->{H323_CALL_ORIGIN},
-    $self->{CONNECT_TERM_REASON},
-
-  ) = @{ $self->{list}->[0] };
 
   return $self;
 }
@@ -236,18 +214,18 @@ sub session_detail {
 
   $self->query2("SELECT 
   l.start,
-  l.start + INTERVAL l.duration SECOND,
+  l.start + INTERVAL l.duration SECOND AS stop,
   l.duration,
   l.tp_id,
-  tp.name,
-  INET_NTOA(client_ip_address),
+  tp.name AS tp_name,
+  INET_NTOA(client_ip_address) AS ip,
   l.calling_station_id,
   l.called_station_id,
   l.nas_id,
   n.name,
-  n.ip,
+  n.ip AS nas_ip,
   l.bill_id,
-  u.id,
+  u.id AS login,
   l.uid,
   l.acct_session_id,
   l.route_id,
@@ -258,36 +236,10 @@ sub session_detail {
  LEFT JOIN nas n ON (l.nas_id=n.id) 
  WHERE l.uid=u.uid 
  $WHERE
- and acct_session_id='$attr->{SESSION_ID}';"
+ and acct_session_id='$attr->{SESSION_ID}';",
+ undef,
+ { INFO => 1 }
   );
-
-  if ($self->{TOTAL} < 1) {
-    $self->{errno}  = 2;
-    $self->{errstr} = 'ERROR_NOT_EXIST';
-    return $self;
-  }
-
-  (
-    $self->{START},
-    $self->{STOP},
-    $self->{DURATION},
-    $self->{TP_ID},
-    $self->{TP_NAME},
-    $self->{IP},
-    $self->{CALLING_STATION_ID},
-    $self->{CALLED_STATION_ID},
-    $self->{NAS_ID},
-    $self->{NAS_NAME},
-    $self->{NAS_IP},
-    $self->{BILL_ID},
-    $self->{LOGIN},
-    $self->{UID},
-    $self->{SESSION_ID},
-
-    $self->{ROUTE_ID},
-    $self->{ACCT_TERMINATE_CAUSE},
-    $self->{SUM}
-  ) = @{ $self->{list}->[0] };
 
   return $self;
 }
@@ -306,20 +258,20 @@ sub periods_totals {
   }
 
   $self->query2("SELECT  
-   SEC_TO_TIME(sum(if(date_format(start, '%Y-%m-%d')=curdate(), duration, 0))), 
-   sum(if(date_format(start, '%Y-%m-%d')=curdate(), sum, 0)), 
+   SEC_TO_TIME(sum(if(date_format(start, '%Y-%m-%d')=curdate(), duration, 0))) AS duration_0, 
+   sum(if(date_format(start, '%Y-%m-%d')=curdate(), sum, 0)) AS sum_0, 
    
-   SEC_TO_TIME(sum(if(TO_DAYS(curdate()) - TO_DAYS(start) = 1, duration, 0))),
-   sum(if(TO_DAYS(curdate()) - TO_DAYS(start) = 1, sum, 0)),
+   SEC_TO_TIME(sum(if(TO_DAYS(curdate()) - TO_DAYS(start) = 1, duration, 0))) AS duration_1,
+   sum(if(TO_DAYS(curdate()) - TO_DAYS(start) = 1, sum, 0)) AS sum_1,
    
-   SEC_TO_TIME(sum(if((YEAR(curdate())=YEAR(start)) and WEEK(curdate()) = WEEK(start), duration, 0))),
-   sum(if((YEAR(curdate())=YEAR(start)) and WEEK(curdate()) = WEEK(start), sum, 0)),
+   SEC_TO_TIME(sum(if((YEAR(curdate())=YEAR(start)) and WEEK(curdate()) = WEEK(start), duration, 0))) AS duration_2,
+   sum(if((YEAR(curdate())=YEAR(start)) and WEEK(curdate()) = WEEK(start), sum, 0)) AS sum_2,
    
-   SEC_TO_TIME(sum(if(date_format(start, '%Y-%m')=date_format(curdate(), '%Y-%m'), duration, 0))),
-   sum(if(date_format(start, '%Y-%m')=date_format(curdate(), '%Y-%m'), sum, 0)),
+   SEC_TO_TIME(sum(if(date_format(start, '%Y-%m')=date_format(curdate(), '%Y-%m'), duration, 0))) AS duration_3,
+   sum(if(date_format(start, '%Y-%m')=date_format(curdate(), '%Y-%m'), sum, 0)) AS sum_3,
    
-   SEC_TO_TIME(sum(duration)),
-   sum(sum)
+   SEC_TO_TIME(sum(duration)) AS duration_4,
+   sum(sum) AS sum_4
    
    FROM voip_log $WHERE;"
   );
@@ -341,74 +293,11 @@ sub list {
   $SORT      = ($attr->{SORT})      ? $attr->{SORT}      : 2;
   $DESC      = ($attr->{DESC})      ? $attr->{DESC}      : '';
 
-  undef @WHERE_RULES;
-
-  #UID
-  if ($attr->{UID}) {
-    push @WHERE_RULES, "l.uid='$attr->{UID}'";
-  }
-  elsif ($attr->{LOGIN}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{LOGIN}, 'STR', 'u.id') };
-  }
-
-  #IP
-  if ($attr->{IP}) {
-    push @WHERE_RULES, "l.ip=INET_ATON('$attr->{IP}')";
-  }
-
-  #NAS ID
-  if ($attr->{NAS_ID}) {
-    push @WHERE_RULES, "l.nas_id='$attr->{NAS_ID}'";
-  }
-
-  #CALLING_STATION_ID
-  if ($attr->{CALLING_STATION_ID}) {
-    if ($attr->{CALLING_STATION_ID}) {
-      $attr->{CALLING_STATION_ID} =~ s/\*/\%/ig;
-      push @WHERE_RULES, "l.calling_station_id LIKE '$attr->{CALLING_STATION_ID}'";
-    }
-    else {
-      push @WHERE_RULES, "l.calling_station_id='$attr->{CALLING_STATION_ID}'";
-    }
-  }
-
-  #CALLED_STATION_ID
-  if ($attr->{CALLED_STATION_ID}) {
-    if ($attr->{CALLED_STATION_ID}) {
-      $attr->{CALLED_STATION_ID} =~ s/\*/\%/ig;
-      push @WHERE_RULES, "l.called_station_id LIKE '$attr->{CALLED_STATION_ID}'";
-    }
-    else {
-      push @WHERE_RULES, "l.called_station_id='$attr->{CALLED_STATION_ID}'";
-    }
-  }
-
-  #TARIF_PLAN
-  if ($attr->{TARIF_PLAN}) {
-    push @WHERE_RULES, "l.tp_id='$attr->{TARIF_PLAN}'";
-  }
-
-  #Session ID
-  if ($attr->{ACCT_SESSION_ID}) {
-    push @WHERE_RULES, "l.acct_session_id='$attr->{ACCT_SESSION_ID}'";
-  }
-
-  # Show groups
-  if ($attr->{GIDS}) {
-    push @WHERE_RULES, "u.gid IN ($attr->{GIDS})";
-  }
-  elsif ($attr->{GID}) {
-    push @WHERE_RULES, "u.gid='$attr->{GID}'";
-  }
-
-  if ($attr->{FROM_DATE}) {
-    push @WHERE_RULES, "(date_format(l.start, '%Y-%m-%d')>='$attr->{FROM_DATE}' and date_format(l.start, '%Y-%m-%d')<='$attr->{TO_DATE}')";
-  }
+  @WHERE_RULES = ("u.uid=l.uid");
 
   #Interval from date to date
   if ($attr->{INTERVAL}) {
-    my ($from, $to) = split(/\//, $attr->{INTERVAL}, 2);
-    push @WHERE_RULES, "date_format(start, '%Y-%m-%d')>='$from' and date_format(start, '%Y-%m-%d')<='$to'";
+    ($attr->{FROM_DATE}, $attr->{TO_DATE}) = split(/\//, $attr->{INTERVAL}, 2);
   }
 
   #Period
@@ -425,33 +314,36 @@ sub list {
       else                 { $WHERE .= "date_format(start, '%Y-%m-%d')=curdate() "; }
     }
   }
-  elsif ($attr->{DATE}) {
-    push @WHERE_RULES, "date_format(start, '%Y-%m-%d')='$attr->{DATE}'";
-  }
 
-  #else {
-  #   push @WHERE_RULES, "date_format(start, '%Y-%m-%d')=curdate()";
-  #}
-  #From To
+  my $WHERE = $self->search_former($attr, [
+      [ 'LOGIN',           'STR', 'u.id AS login',                1],
+      [ 'DATE',            'DATE','l.start',                      1],
+      [ 'DURATION',        'DATE','SEC_TO_TIME(l.duration) AS duration',   1 ],
+      [ 'IP',              'IP',  'l.ip',   'INET_NTOA(l.client_ip_address) AS ip'],
+      [ 'CALLING_STATION_ID','STR', 'l.calling_station_id',         1],
+      [ 'CALLED_STATION_ID','STR',  'l.called_station_id',         1],
+      [ 'TP_ID',           'INT', 'l.tp_id',                      1],
+      [ 'SUM',             'INT', 'l.sum',                        1],
+      [ 'NAS_ID',          'INT', 'l.nas_id',                     1],
+      [ 'NAS_PORT',        'INT', 'l.port_id',                    1],
+      [ 'ACCT_SESSION_ID', 'STR', 'l.acct_session_id',            ],
+      [ 'TERMINATE_CAUSE', 'INT', 'l.terminate_cause',            1],
+      [ 'BILL_ID',         'STR', 'l.bill_id',                    1],
+      [ 'DURATION_SEC',    'INT', 'l.duration AS duration_sec',   1],
+      #[ 'DATE',            'DATE', "date_format(start, '%Y-%m-%d')" ], 
+      [ 'START_UNIXTIME',  'INT', 'UNIX_TIMESTAMP(l.start) AS asstart_unixtime', 1],
+      [ 'FROM_DATE|TO_DATE','DATE',"date_format(l.start, '%Y-%m-%d')"],
+      [ 'MONTH',           'DATE',"date_format(l.start, '%Y-%m')"    ],
+      [ 'UID',             'INT', 'l.uid'                            ],
+    ], 
+    { WHERE       => 1,
+    	WHERE_RULES => \@WHERE_RULES,
+    	USERS_FIELDS=> 1
+    }    
+    );
 
-  push @WHERE_RULES, "u.uid=l.uid";
-  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES) : '';
 
-  $self->query2("SELECT 
- u.id, 
- l.start, 
- SEC_TO_TIME(l.duration), 
- l.tp_id,
- l.calling_station_id, 
- l.called_station_id,
- l.nas_id, 
- INET_NTOA(l.client_ip_address), 
- l.sum,
- l.acct_session_id, 
- l.bill_id, 
- l.uid,
- UNIX_TIMESTAMP(l.start),
- l.duration
+  $self->query2("SELECT $self->{SEARCH_FIELDS} l.acct_session_id, l.uid
   FROM (voip_log l, users u)
   $WHERE
   ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;",

@@ -547,7 +547,7 @@ sub result_former {
   }
 
   foreach my $line (@cols) {
-  	if (! defined($LIST_PARAMS{$line})) {
+  	if (! defined($LIST_PARAMS{$line}) || $LIST_PARAMS{$line} eq '') {
   		$LIST_PARAMS{$line}='_SHOW';
   	}
   } 	
@@ -675,6 +675,9 @@ sub result_former {
           }
           elsif($data->{COL_NAMES_ARR}->[$i] =~ /deposit/) {
             $val = ($permissions{0}{12}) ? '--' : ($line->{deposit} + $line->{credit} < 0) ? $html->color_mark($line->{deposit}, $_COLORS[6]) : $line->{deposit},
+          }
+          elsif($data->{COL_NAMES_ARR}->[$i] eq 'online') {
+            $val = ($line->{online}) ? $html->color_mark('Online', '#00FF00') : '';
           }
           else {
       	    $val = $line->{ $data->{COL_NAMES_ARR}->[$i]  };

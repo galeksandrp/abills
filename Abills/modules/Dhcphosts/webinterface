@@ -839,7 +839,7 @@ sub dhcphosts_user {
             COLS_NAME => 1
           }
         );
-        if ($Dhcphosts->{TOTAL} > 0 && $FORM{ID} != $list->[0][0]) {
+        if ($Dhcphosts->{TOTAL} > 0 && $FORM{ID} != $list->[0]->{id}) {
           $Dhcphosts->{errno} = 8;
           $Dhcphosts->{LOGIN} = $list->[0]->{login};
           $Dhcphosts->{UID}   = $list->[0]->{uid};

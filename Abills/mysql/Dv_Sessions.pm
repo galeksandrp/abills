@@ -845,7 +845,7 @@ sub list {
 
   #Interval from date to date
   if ($attr->{INTERVAL}) {
-    ($attr->{DATE_FROM}, $attr->{DATE_TO}) = split(/\//, $attr->{INTERVAL}, 2);
+    ($attr->{FROM_DATE}, $attr->{TO_DATE}) = split(/\//, $attr->{INTERVAL}, 2);
   }
   #Period
   elsif (defined($attr->{PERIOD})) {
@@ -882,7 +882,7 @@ sub list {
       [ 'BILL_ID',         'STR', 'l.bill_id',                    1],
       [ 'DURATION_SEC',    'INT', 'l.duration AS duration_sec',   1],
       [ 'START_UNIXTIME',  'INT', 'UNIX_TIMESTAMP(l.start) AS asstart_unixtime', 1],
-      [ 'DATE_FROM|DATE_TO','DATE',"date_format(l.start, '%Y-%m-%d')"],
+      [ 'FROM_DATE|TO_DATE','DATE',"date_format(l.start, '%Y-%m-%d')"],
       [ 'MONTH',           'DATE',"date_format(l.start, '%Y-%m')"    ],
       [ 'UID',             'INT', 'l.uid'                            ],
     ], 

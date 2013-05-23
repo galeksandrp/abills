@@ -384,7 +384,8 @@ sub dv_users_list {
        'cid'         => 'CID',
        'filter_id'   => 'Filter ID',
        'tp_name'     => "$_TARIF_PLAN",
-       'dv_status'   => "$_STATUS"
+       'dv_status'   => "$_STATUS",
+       'online'      => 'Online'
          },
      TABLE           => {
        width      => '100%',
@@ -705,7 +706,7 @@ sub dv_user {
         NAS_PORT_ID  => '_SHOW', 
         ACCT_SESSION_ID=> '_SHOW', 
         USER_NAME    => '_SHOW',
-        GUEST_MODE   => '_SHOW'
+        GUEST        => '_SHOW'        
       }
     );
 
@@ -726,7 +727,7 @@ sub dv_user {
           $line->{duration},
           int2byte($line->{acct_input_octets}),
           int2byte($line->{acct_output_octets}),
-          ($line->{guest}==1) ? $_GUEST : '', 
+          ($line->{guest}==1) ? $html->color_mark($_GUEST, "$_COLORS[6]") : '', 
           $html->button($line->{nas_name}, "index=$online_index&NAS_ID=$line->{nas_id}"),
           $html->button('Z', "index=$online_index&zap=$Dv->{UID}+$line->{nas_id}+$line->{nas_port_id}+$line->{acct_session_id}$pages_qs", { TITLE => 'Zap',    CLASS => 'del', NO_LINK_FORMER => 1 }),
           $html->button('H', "index=$online_index&FRAMED_IP_ADDRESS=$line->{client_ip}&hangup=$line->{nas_id}+$line->{nas_port_id}+$line->{acct_session_id}+$line->{user_name}&$pages_qs", { TITLE => 'Hangup', CLASS => 'off', NO_LINK_FORMER => 1 })
@@ -1463,48 +1464,44 @@ sub dv_online {
     if ($FORM{dellist}) {
       $sessions->online(
         {
-          SESSION_IDS  => $FORM{dellist},
-          ZAPED        => 1,
-          FIELDS_NAMES => [
-            INPUT_OCTETS,
-            OUTPUT_OCTETS,
-            INPUT_OCTETS2,
-            OUTPUT_OCTETS2,
-
-            ACCT_SESSION_TIME,
-            ACCT_SESSION_ID,
-
-            NAS_PORT_ID,
-            NAS_IP,
-            CLIENT_IP,
-            CONNECT_INFO,
-            CID,
-            USER_NAME,
-            SESSION_START,
-          ]
+          SESSION_IDS       => $FORM{dellist},
+          ZAPED             => 1,
+          ACCT_INPUT_OCTETS => '_SHOW',
+          ACCT_OUTPUT_OCTETS=> '_SHOW',
+          EX_INPUT_OCTETS   => '_SHOW',
+          EX_OUTPUT_OCTETS  => '_SHOW',
+          ACCT_SESSION_TIME => '_SHOW',
+          ACCT_SESSION_ID   => '_SHOW',
+          NAS_PORT_ID       => '_SHOW',
+          NAS_IP            => '_SHOW',
+          CLIENT_IP         => '_SHOW',
+          CONNECT_INFO      => '_SHOW',
+          CID               => '_SHOW',
+          USER_NAME         => '_SHOW',
+          SESSION_START     => '_SHOW',
         }
       );
 
       my $online_list = $sessions->{nas_sorted};
-      my $nas_list    = $Nas->list();
+      my $nas_list    = $Nas->list({ COLS_NAME => 1 });
       my @results     = ();
       foreach my $nas_row (@$nas_list) {
-        next if (!defined($online_list->{ $nas_row->[0] }));
+        next if (!defined($online_list->{ $nas_row->{nas_id} }));
 
-        foreach my $line (@{ $online_list->{ $nas_row->[0] } }) {
-          $ACCT_INFO->{INBYTE}               = $line->[0];
-          $ACCT_INFO->{OUTBYTE}              = $line->[1];
-          $ACCT_INFO->{INBYTE2}              = $line->[2];
-          $ACCT_INFO->{OUTBYTE2}             = $line->[3];
-          $ACCT_INFO->{ACCT_SESSION_TIME}    = $line->[4];
-          $ACCT_INFO->{ACCT_SESSION_ID}      = $line->[5];
-          $ACCT_INFO->{NAS_PORT}             = $line->[6];
-          $ACCT_INFO->{NAS_IP_ADDRESS}       = $nas_row->[3];
-          $ACCT_INFO->{FRAMED_IP_ADDRESS}    = $line->[8];
-          $ACCT_INFO->{CONNECT_INFO}         = $line->[9];
-          $ACCT_INFO->{CALLING_STATION_ID}   = $line->[10];
-          $ACCT_INFO->{USER_NAME}            = $line->[11];
-          $ACCT_INFO->{SESSION_START}        = $line->[12];
+        foreach my $line (@{ $online_list->{ $nas_row->{nas_id} } }) {
+          $ACCT_INFO->{INBYTE}               = $line->{acct_input_octets};
+          $ACCT_INFO->{OUTBYTE}              = $line->{acct_output_octets};
+          $ACCT_INFO->{INBYTE2}              = $line->{ex_input_octets};
+          $ACCT_INFO->{OUTBYTE2}             = $line->{ex_output_octets};
+          $ACCT_INFO->{ACCT_SESSION_TIME}    = $line->{acct_session_time};
+          $ACCT_INFO->{ACCT_SESSION_ID}      = $line->{acct_session_id};
+          $ACCT_INFO->{NAS_PORT}             = $line->{nas_port_id};
+          $ACCT_INFO->{NAS_IP_ADDRESS}       = $nas_row->{nas_ip};
+          $ACCT_INFO->{FRAMED_IP_ADDRESS}    = $line->{client_ip};
+          $ACCT_INFO->{CONNECT_INFO}         = $line->{connect_info};
+          $ACCT_INFO->{CALLING_STATION_ID}   = $line->{calling_station_id};
+          $ACCT_INFO->{USER_NAME}            = $line->{user_name};
+          $ACCT_INFO->{SESSION_START}        = $line->{session_start};
           $ACCT_INFO->{ACCT_TERMINATE_CAUSE} = 3;
           $ACCT_INFO->{ACCT_STATUS_TYPE}     = 'Stop';
 
@@ -1619,6 +1616,7 @@ sub dv_online {
   my $cure = '';
   if ($FORM{ZAPED}) {
     $LIST_PARAMS{ZAPED} = 1;
+    $LIST_PARAMS{ACCT_SESSION_ID} = '_SHOW' if (! $LIST_PARAMS{ACCT_SESSION_ID});
     $form_link = $html->button("Online", "index=$index", { BUTTON => 1, IMG => ':button_activate.png' });
     $cure = 'Zap';
     $pages_qs .= "&ZAPED=1";
@@ -1933,11 +1931,6 @@ sub dv_sessions {
   );
 
   if (!$list) {
-    if (!defined($FORM{sort})) {
-      $LIST_PARAMS{SORT} = 2;
-      $LIST_PARAMS{DESC} = 'DESC';
-    }
-
     $sessions->{SEL_NAS} = $html->form_select(
       'NAS_ID',
       {
@@ -1967,11 +1960,22 @@ sub dv_sessions {
     }
   }
 
+  if (! $FORM{sort}) {
+  	if ($FORM{UID}) {
+  		print "1111";
+      $LIST_PARAMS{SORT} = '1';
+      $LIST_PARAMS{DESC} = 'desc';
+  	}
+  	else {
+      $LIST_PARAMS{SORT} = '2';
+      $LIST_PARAMS{DESC} = 'desc';
+    }
+  }
+
   if($user->{UID}) {
   	delete $LIST_PARAMS{LOGIN};
   }
   
-
   my $table;
   ($table, $list) = result_former({
      INPUT_DATA      => $sessions,
@@ -2872,7 +2876,6 @@ sub dv_stats {
 
   if (defined($FORM{show})) {
     $pages_qs .= "&show=1&FROM_DATE=$FORM{FROM_DATE}&TO_DATE=$FORM{TO_DATE}";
-    $LIST_PARAMS{INTERVAL} = "$FORM{FROM_DATE}/$FORM{TO_DATE}";
   }
   elsif (defined($FORM{PERIOD})) {
     $LIST_PARAMS{PERIOD} = $FORM{PERIOD};
@@ -3217,7 +3220,6 @@ sub dv_user_stats {
 
   if (defined($FORM{show})) {
     $pages_qs .= "&show=1&FROM_DATE=$FORM{FROM_DATE}&TO_DATE=$FORM{TO_DATE}";
-    $LIST_PARAMS{INTERVAL} = "$FORM{FROM_DATE}/$FORM{TO_DATE}";
   }
   elsif (defined($FORM{PERIOD})) {
     $LIST_PARAMS{PERIOD} = int($FORM{PERIOD});
