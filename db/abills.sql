@@ -563,8 +563,8 @@ CREATE TABLE `msgs_messages` (
   `par` int(11) unsigned NOT NULL default '0',
   `uid` int(11) unsigned NOT NULL default '0',
   `chapter` smallint(6) unsigned NOT NULL default '0',
-  `message` text not null default '',
-  `reply` text not null default '',
+  `message` text not null,
+  `reply` text not null,
   `ip` int(11) unsigned NOT NULL default '0',
   `date` datetime NOT NULL default '0000-00-00 00:00:00',
   `state` tinyint(2) unsigned default '0',
@@ -595,7 +595,7 @@ CREATE TABLE `msgs_messages` (
 CREATE TABLE `msgs_reply` (
   `id` int(11) unsigned NOT NULL auto_increment,
   `main_msg` int(11) unsigned NOT NULL default '0',
-  `text` text NOT NULL default '',
+  `text` text NOT NULL,
   `datetime` datetime NOT NULL default '0000-00-00 00:00:00',
   `aid` smallint(6) unsigned NOT NULL default '0',
   `status` tinyint(4) unsigned NOT NULL default '0',
@@ -912,7 +912,7 @@ CREATE TABLE `tarif_plans` (
   `total_time_limit` INTEGER(11) UNSIGNED NOT NULL DEFAULT '0',
   `total_traf_limit` INTEGER(11) UNSIGNED NOT NULL DEFAULT '0',
   `priority` smallint(5) unsigned NOT NULL DEFAULT '0',
-  `comments` text not null default '',
+  `comments` text not null,
   `bills_priority` tinyint(5) unsigned NOT NULL DEFAULT '0',
   `fine` double(14,2) unsigned NOT NULL default '0.00',
   `neg_deposit_ippool` smallint(6) unsigned NOT NULL DEFAULT '0',
@@ -932,7 +932,7 @@ CREATE TABLE `tp_bonus_rating` (
   `change_bonus` double(14,2) unsigned NOT NULL default '0.00',
   `activate_bonus` double(14,2) unsigned NOT NULL default '0.00',
   `ext_bill_account` tinyint(1) unsigned NOT NULL DEFAULT '0',
-  `comments` text NOT NULL default '',
+  `comments` text NOT NULL,
   PRIMARY KEY  (`tp_id`)
 ) COMMENT='Tarif plans bonus rating';
 
@@ -1252,7 +1252,7 @@ CREATE TABLE `districts` (
   UNIQUE KEY `name_2` (`name`)
 ) COMMENT='Locations districts';
 
-INSERT INTO districts (name) VALUES ('Main District');
+INSERT INTO districts (name, comments) VALUES ('Main District', '');
 
 CREATE TABLE `builds` (
   `id` INTEGER(11) UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -1292,7 +1292,7 @@ CREATE TABLE `web_online` (
 
 CREATE TABLE `reg_wizard` (
   `param` varchar(40) NOT NULL default '',
-  `value` text NOT NULL default '',
+  `value` text NOT NULL,
   `aid` smallint(6) unsigned NOT NULL default '0',
   `module` varchar(40) NOT NULL default '',
   `step` tinyint(2) NOT NULL default '0',
@@ -1301,8 +1301,6 @@ CREATE TABLE `reg_wizard` (
 ) COMMENT "Registration wizard temp table";
 
     
-
-
 INSERT INTO admins (id, name, regdate, password, gid, aid, disable, phone, web_options) VALUES ('abills','abills',curdate(), ENCODE('abills', 'test12345678901234567890'), 0, 1,0,'', '');
 INSERT INTO admins (id, name, regdate, password, gid, aid, disable, phone, web_options) VALUES ('system','System user',curdate(), ENCODE(md5(RAND()), 'test12345678901234567890'), 0, 2, 0,'', '');
 INSERT INTO admins (id, name, regdate, password, gid, aid, disable, phone, web_options) VALUES ('users_web','Users web portal', curdate(), ENCODE(md5(RAND()), 'test12345678901234567890'), 0, 3, 0,'', '');
