@@ -605,7 +605,7 @@ sub groups_list {
 
   my $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES) : '';
 
-  $self->query2("SELECT g.gid, g.name, g.descr, count(u.uid) AS users_count, g.allow_credit, g.domain_id FROM groups g
+  $self->query2("SELECT g.gid, g.name, g.descr, count(u.uid) AS users_count, g.allow_credit, g.disable_paysys, g.domain_id FROM groups g
         LEFT JOIN users u ON  (u.gid=g.gid $USERS_WHERE) 
         $WHERE
         GROUP BY g.gid
@@ -630,12 +630,11 @@ sub group_info {
   my $self = shift;
   my ($gid) = @_;
 
-  $self->query2("SELECT g.gid, g.name, g.descr, g.separate_docs, g.domain_id, g.allow_credit
+  $self->query2("SELECT *
     FROM groups g 
     WHERE g.gid='$gid';",
    undef, { INFO => 1 });
 
-  $self->{GID} = $gid;
   return $self;
 }
 
@@ -648,6 +647,7 @@ sub group_change {
 
   $attr->{SEPARATE_DOCS} = ($attr->{SEPARATE_DOCS}) ? 1 : 0;
   $attr->{ALLOW_CREDIT}  = ($attr->{ALLOW_CREDIT}) ? 1 : 0;
+  $attr->{DISABLE_PAYSYS}= ($attr->{DISABLE_PAYSYS}) ? 1 : 0;
 
   $self->changes(
     $admin,

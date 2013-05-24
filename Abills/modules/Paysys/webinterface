@@ -624,6 +624,14 @@ sub paysys_payment {
     goto PRE_LABEL;
   }
 
+  if($user->{GID}) {
+  	$user->group_info($user->{GID});
+  	if ($user->{DISABLE_PAYSYS}) {
+  		$html->message('err', $_ERROR, "$_DISABLE");
+  		return 0;
+  	}
+  }
+
   if ($conf{PAYSYS_MIN_SUM} && $FORM{SUM}>0 && $conf{PAYSYS_MIN_SUM} > $FORM{SUM}  ) {
     $html->message('err', $_ERROR, "$_TARIF_PLAN_SUM $conf{PAYSYS_MIN_SUM}");
     goto PRE_LABEL;

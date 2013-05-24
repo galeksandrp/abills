@@ -1654,6 +1654,7 @@ sub form_groups {
     $users->{LNG_ACTION}    = $_CHANGE;
     $users->{SEPARATE_DOCS} = ($users->{SEPARATE_DOCS}) ? 'checked' : '';
     $users->{ALLOW_CREDIT}  = ($users->{ALLOW_CREDIT}) ? 'checked' : '';
+    $users->{DISABLE_PAYSYS}= ($users->{DISABLE_PAYSYS}) ? 'checked' : '';
 
     $html->tpl_show(templates('form_groups'), $users);
 
@@ -1683,12 +1684,12 @@ sub form_groups {
       width      => '100%',
       caption    => "$_GROUPS",
       border     => 1,
-      title      => [ $_ID, $_NAME, $_DESCRIBE, $_USERS, "$_ALLOW $_CREDIT", '-', '-' ],
+      title      => [ $_ID, $_NAME, $_DESCRIBE, $_USERS, "$_ALLOW $_CREDIT", "$_DISABLE Paysys", '-', '-' ],
       cols_align => [ 'right', 'left', 'left', 'right', 'center', 'center' ],
       qs         => $pages_qs,
       pages      => $users->{TOTAL},
       ID         => 'GROUPS',
-      EXPORT      => ' XML:&xml=1',
+      EXPORT     => ' XML:&xml=1',
       MENU       => "$_ADD:index=$index&add_form=1:add"
     }
   );
@@ -1701,6 +1702,7 @@ sub form_groups {
     $line->{descr}, 
     $html->button($line->{users_count}, "index=". get_function_index('form_groups') ."&GID=$line->{gid}&subf=15"),
     $bool_vals[$line->{allow_credit}], 
+    $bool_vals[$line->{disable_paysys}], 
     $html->button($_INFO, "index=". get_function_index('form_groups') ."&GID=$line->{gid}", { CLASS => 'change' }), $delete);
   }
   print $table->show();
@@ -2204,8 +2206,6 @@ sub user_pi {
   );
 
   if ($conf{ADDRESS_REGISTER}) {
-    #my $add_address_index = get_function_index('form_districts');
-    #$user_pi->{ADD_ADDRESS_LINK} = $html->button("$_ADD $_ADDRESS", "index=$add_address_index", { CLASS => 'add rightAlignText' });
     $user_pi->{ADDRESS_TPL} = $html->tpl_show(templates('form_address_sel'), $user_pi, { OUTPUT2RETURN => 1, ID => 'form_address_sel' });
   }
   else {
@@ -6190,7 +6190,7 @@ sub form_payments () {
         $payments->{INVOICE_SEL} = $html->form_select(
           "INVOICE_ID",
           {
-            SELECTED          => $FORM{INVOICE_ID} || 0,
+            SELECTED          => $FORM{INVOICE_ID} || 'create' || 0,
             SEL_LIST          => $Docs->invoices_list({ UID => $user->{UID}, UNPAIMENT => 1, PAGE_ROWS => 200, SORT => 2, DESC => 'DESC', COLS_NAME => 1 }),
             SEL_KEY           => 'id',
             SEL_VALUE         => 'invoice_num,date,total_sum,payment_sum',
