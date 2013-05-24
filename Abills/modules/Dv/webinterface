@@ -954,7 +954,7 @@ sub dv_tp {
     $pages_qs .= "&TP_ID=$FORM{TP_ID}&subf=$FORM{subf}";
     $LIST_PARAMS{TP} = $FORM{TP_ID};
     $FORM{TP_NUM}    = $tarif_info->{ID};
-    %F_ARGS = (TP => $tariffs);
+    my %F_ARGS       = (TP => $tarif_info);
 
     $tariffs->{NAME_SEL} = $html->form_main(
       {
@@ -972,6 +972,8 @@ sub dv_tp {
         SUBMIT => { show  => "$_SHOW" }
       }
     );
+ 
+    $index = get_function_index('dv_tp');
 
     func_menu(
       {
@@ -979,15 +981,15 @@ sub dv_tp {
         $_NAME => $tariffs->{NAME_SEL}
       },
       {
-        $_INFO     => (get_function_index('dv_tp')-1).":TP_ID=$FORM{TP_ID}",
+        $_INFO     => ":TP_ID=$FORM{TP_ID}",
         $_INTERVALS=> get_function_index('form_intervals').":TP_ID=$FORM{TP_ID}",
         $_NAS      => get_function_index('form_nas_allow').":TP_ID=$FORM{TP_ID}",        
         $_USERS    => get_function_index('dv_users_list').":TP_ID=$FORM{TP_ID}"
        },
-      { f_args => {%F_ARGS} }
+      { f_args => \%F_ARGS }
     );
 
-    if ($FORM{subf} && $FORM{subf} != $index) {
+    if ($FORM{subf}) {
       return 0;
     }
     elsif ($FORM{change}) {
@@ -1176,7 +1178,8 @@ sub dv_tp {
       $bool_vals[ $line->[2] ],
       $bool_vals[ $line->[3] ],
       $Payment_Types[ $line->[4] ],
-      $line->[5], $line->[6], $line->[7], $line->[8], $line->[9], $html->button($_INTERVALS, "index=" . get_function_index('form_intervals') . "&subf=73&TP_ID=$line->[18]", { CLASS => 'interval' }),
+      $line->[5], $line->[6], $line->[7], $line->[8], $line->[9], 
+      $html->button($_INTERVALS, "index=". get_function_index('form_intervals') ."&TP_ID=$line->[18]", { CLASS => 'interval' }),
       $change, $delete
     );
   }

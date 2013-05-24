@@ -612,6 +612,7 @@ sub tp_list() {
       ['TIME_DIVISION', 'STR', 'voip.time_division',1 ],
     ],
     { WHERE => 1,
+    	WHERE_RULES => \@WHERE_RULES
     }    
     );
 

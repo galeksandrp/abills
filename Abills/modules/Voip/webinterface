@@ -935,12 +935,11 @@ sub voip_tp {
       },
       {
         $_INFO => ":TP_ID=$Voip_tp->{TP_ID}",
-
         #     $_USERS         => "11:TP_ID=$Voip_tp->{TP_ID}",
         #     $_INTERVALS     => "73:TP_ID=$Voip_tp->{TP_ID}",
         #     $_NAS           => "18:TP_ID=$Voip_tp->{TP_ID}"
       },
-      { f_args => {%F_ARGS} }
+      { f_args => \%F_ARGS }
     );
 
     if ($FORM{subf}) {
@@ -983,7 +982,8 @@ sub voip_tp {
 
   $html->tpl_show(_include('voip_tp', 'Voip'), $Voip_tp);
 
-  my $list = $Voip->tp_list({ %LIST_PARAMS, COLS_NAME => 1 });
+  $Voip->{debug}=1;
+  my $list = $Voip->tp_list({ %LIST_PARAMS, COLS_NAME => 1, MODULE => 'Voip' });
 
   # Time tariff Name Begin END Day fee Month fee Simultaneously - - -
   my $table = $html->table(

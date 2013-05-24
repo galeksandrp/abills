@@ -1311,13 +1311,13 @@ sub func_menu {
   foreach my $name (sort { $items->{$a} cmp $items->{$b} } keys %$items) {
     my $v = $items->{$name};
     my ($subf, $ext_url, $class) = split(/:/, $v, 3);
-    $menu .= ($FORM{subf} && $FORM{subf} eq $subf) ? ' ' . $html->b($name) : ' ' . $html->button($name, "index=". (($f_args->{MAIN_INDEX}) ? $f_args->{MAIN_INDEX} : $index) ."&$ext_url&subf=$subf", { ($class) ? (CLASS => $class) : (BUTTON => 1) });
+    $menu .= ($FORM{subf} && $FORM{subf} eq $subf || ($subf eq '' && ! $FORM{subf})) ? ' ' . $html->b($name) : ' ' . $html->button($name, "index=". (($f_args->{MAIN_INDEX}) ? $f_args->{MAIN_INDEX} : $index) ."&$ext_url&subf=$subf", { ($class) ? (CLASS => $class) : (BUTTON => 1) });
   }
 
   print "$menu</td></tr>
 </TABLE>\n";
 
-  if ($FORM{subf} && $FORM{subf} != $index) {
+  if ($FORM{subf}) { # && $FORM{subf} != $index) {
     if ($functions{ $FORM{subf} }) {
       if (defined($module{ $FORM{subf} })) {
         load_module($module{ $FORM{subf} }, $html);
@@ -3331,7 +3331,7 @@ sub form_intervals {
   my $tarif_plan;
   my $max_traffic_class_id = 0;    #Max taffic class id
 
-  if (defined($attr->{TP})) {
+  if ($attr->{TP}) {
     $tarif_plan               = $attr->{TP};
     $tarif_plan->{ACTION}     = 'add';
     $tarif_plan->{LNG_ACTION} = $_ADD;
@@ -3514,6 +3514,7 @@ sub form_intervals {
 
   print $table->show();
 
+  $index = get_function_index('form_intervals');
   if (defined($FORM{tt})) {
     my %TT_IDS = (
       0 => "Global",
@@ -3563,9 +3564,7 @@ sub form_intervals {
     $html->tpl_show(_include('dv_tt', 'Dv'), $tarif_plan);
   }
   else {
-
     my $day_id = $FORM{day} || $tarif_plan->{TI_DAY};
-
     $tarif_plan->{SEL_DAYS} = $html->form_select(
       'TI_DAY',
       {
@@ -4576,7 +4575,7 @@ sub form_nas {
         'IP Pools' => "62:NAS_ID=$nas->{NAS_ID}",
         $_STATS    => "63:NAS_ID=$nas->{NAS_ID}"
       },
-      { f_args => {%F_ARGS} }
+      { f_args => \%F_ARGS }
     );
 
     if ($FORM{subf}) {
