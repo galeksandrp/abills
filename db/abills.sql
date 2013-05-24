@@ -981,7 +981,7 @@ CREATE TABLE `traffic_classes` (
   UNIQUE KEY `name` (`name`)
 ) COMMENT='Traffic Classes';
 
-INSERT INTO traffic_classes (id, name, nets) VALUES (1, 'Global', '0.0.0.0/0');
+INSERT INTO traffic_classes (id, name, nets, comments) VALUES (1, 'Global', '0.0.0.0/0', '');
 
 
 
