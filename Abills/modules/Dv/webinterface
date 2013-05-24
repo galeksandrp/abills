@@ -833,15 +833,15 @@ sub dv_user {
     $Dv->{JOIN_SERVICE} = '';
   }
 
-  $list = $Nas->ip_pools_list({ STATIC => 1 });
   $Dv->{STATIC_IP_POOL} = $html->form_select(
     'STATIC_IP_POOL',
     {
-      SELECTED          => $FORM{STATIC_POOL},
-      SEL_MULTI_ARRAY   => [ [ '', '' ], @$list ],
-      MULTI_ARRAY_KEY   => 8,
-      MULTI_ARRAY_VALUE => '1',
-      NO_ID             => 1
+      SELECTED   => $FORM{STATIC_POOL},
+      SEL_LIST   => $Nas->ip_pools_list({ STATIC => 1, COLS_NAME => 1 }),
+      SEL_KEY    => 'id',
+      SEL_VALUE  => 'name',
+      SEL_OPTIONS=> { '' => '' },
+      NO_ID      => 1
     }
   );
 

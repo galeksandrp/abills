@@ -524,8 +524,6 @@ sub list {
 
   my $EXT_TABLE = $self->{EXT_TABLES};
 
-  $self->{debug}=1;
-
   if ($attr->{EXT_BILL}) {
     $self->{SEARCH_FIELDS} .= 'if(u.company_id > 0, ext_cb.deposit, ext_b.deposit), ';
     $self->{SEARCH_FIELDS_COUNT}++;

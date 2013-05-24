@@ -4850,6 +4850,7 @@ sub form_ip_pools {
         $html->message('info', $_INFO, "$_CHANGING");
         $nas->{ACTION}     = 'change';
         $nas->{LNG_ACTION} = "$_CHANGE";
+        $FORM{add_form}=1;
       }
     }
     elsif ($FORM{set}) {
@@ -4866,10 +4867,9 @@ sub form_ip_pools {
         $html->message('info', $_INFO, "$_DELETED");
       }
     }
-   
+
     $pages_qs = "&NAS_ID=$nas->{NAS_ID}";
     if ($FORM{add_form}) {
-    	 print "// $nas->{ACTION} //";
       $nas->{STATIC} = ' checked' if ($nas->{STATIC});
       $nas->{BIT_MASK} = $html->form_select(
         'BIT_MASK',
@@ -4885,6 +4885,7 @@ sub form_ip_pools {
   }
   elsif ($FORM{NAS_ID}) {
     $FORM{subf} = $index;
+  	$index      = get_function_index('form_nas');
     form_nas();
     return 0;
   }

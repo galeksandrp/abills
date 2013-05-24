@@ -413,7 +413,7 @@ sub ip_pools_list {
 
   @WHERE_RULES = ();
 
-  if (defined($attr->{STATIC})) {
+  if ($attr->{STATIC}) {
     push @WHERE_RULES, "pool.static='$attr->{STATIC}'";
 
     my $WHERE = ($#WHERE_RULES > -1) ? join(' and ', @WHERE_RULES) : '';
@@ -422,7 +422,9 @@ sub ip_pools_list {
     INET_NTOA(pool.ip) AS first_ip, INET_NTOA(pool.ip + pool.counts) AS last_ip, 
     pool.id, pool.nas
     FROM ippools pool 
-    WHERE $WHERE  ORDER BY $SORT $DESC"
+    WHERE $WHERE  ORDER BY $SORT $DESC",
+    undef,
+    $attr
     );
     return $self->{list};
   }
