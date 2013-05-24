@@ -691,7 +691,7 @@ CREATE TABLE `nas` (
   `rad_pairs` text NOT NULL,
   `alive` smallint(6) unsigned NOT NULL default '0',
   `disable` tinyint(6) unsigned NOT NULL default '0',
-  `ext_acct` tinyint(1) unsigned NOT NULL, 
+  `ext_acct` tinyint(1) unsigned NOT NULL default '0', 
   `domain_id` smallint(6) unsigned not null default 0,
   `address_street` varchar(100) NOT NULL default '',
   `address_build` varchar(10) NOT NULL default '',
@@ -1050,7 +1050,7 @@ CREATE TABLE `users_pi` (
   `address_flat` varchar(10) NOT NULL default '',
   `comments` text NOT NULL,
   `contract_id` varchar(10) NOT NULL default '',
-  `contract_date` date NOT NULL,
+  `contract_date` date NOT NULL DEFAULT '0000-00-00',
   `contract_sufix` VARCHAR(5) NOT NULL DEFAULT '',
   `pasport_num` varchar(16) NOT NULL default '',
   `pasport_date` date NOT NULL default '0000-00-00',
@@ -1239,7 +1239,7 @@ CREATE TABLE `streets` (
 CREATE TABLE `districts` (
   `id` SMALLINT(6) UNSIGNED NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(100) NOT NULL DEFAULT '',
-  `country` TINYINT(4) UNSIGNED NOT NULL,
+  `country` TINYINT(4) UNSIGNED NOT NULL default 0,
   `zip` VARCHAR(7) NOT NULL DEFAULT '',
   `city` VARCHAR(30) NOT NULL DEFAULT '',  
   `comments` TEXT NOT NULL,
@@ -1301,9 +1301,9 @@ CREATE TABLE `reg_wizard` (
 ) COMMENT "Registration wizard temp table";
 
     
-INSERT INTO admins (id, name, regdate, password, gid, aid, disable, phone, web_options) VALUES ('abills','abills',curdate(), ENCODE('abills', 'test12345678901234567890'), 0, 1,0,'', '');
-INSERT INTO admins (id, name, regdate, password, gid, aid, disable, phone, web_options) VALUES ('system','System user',curdate(), ENCODE(md5(RAND()), 'test12345678901234567890'), 0, 2, 0,'', '');
-INSERT INTO admins (id, name, regdate, password, gid, aid, disable, phone, web_options) VALUES ('users_web','Users web portal', curdate(), ENCODE(md5(RAND()), 'test12345678901234567890'), 0, 3, 0,'', '');
+INSERT INTO admins (id, name, regdate, password, gid, aid, disable, phone, web_options,comments) VALUES ('abills','abills',curdate(), ENCODE('abills', 'test12345678901234567890'), 0, 1,0,'', '', '');
+INSERT INTO admins (id, name, regdate, password, gid, aid, disable, phone, web_options, comments) VALUES ('system','System user',curdate(), ENCODE(md5(RAND()), 'test12345678901234567890'), 0, 2, 0,'', '', '');
+INSERT INTO admins (id, name, regdate, password, gid, aid, disable, phone, web_options,comments) VALUES ('users_web','Users web portal', curdate(), ENCODE(md5(RAND()), 'test12345678901234567890'), 0, 3, 0,'', '', '');
 INSERT INTO `admin_permits` (`aid`, `section`, `actions`, `module`) VALUES 
   (1,0,0,''),
   (1,0,1,''),
@@ -1340,17 +1340,17 @@ INSERT INTO `admin_permits` (`aid`, `section`, `actions`, `module`) VALUES
 
 INSERT INTO `users` (`id`, `activate`, `expire`, `credit`, `reduction`, `registration`, `password`, `uid`, `gid`, `disable`, `company_id`, `bill_id`, `ext_bill_id`, `credit_date`, `domain_id`) VALUES ('test','0000-00-00','0000-00-00',0.00,0.00,'2009-08-03', ENCODE('123456','test12345678901234567890'),1,0,0,0,1,0,'0000-00-00',0);
 
-INSERT INTO `users_pi` (uid, fio) VALUES (1,'Test user');
+INSERT INTO `users_pi` (uid, fio,comments) VALUES (1,'Test user','');
 
 INSERT INTO `bills` VALUES (1,0.000000,1,0,'2009-08-03');
 
-INSERT INTO `tarif_plans` (id, name, payment_type, module) VALUES (100,'Admin',1, 'Dv');
+INSERT INTO `tarif_plans` (id, name, payment_type, module, rad_pairs, comments) VALUES (100,'Admin',1, 'Dv', '', '');
 
 INSERT INTO `dv_main` VALUES (1,100,0,'2009-08-03',0,'',0,4294967295,'','',0,0,0,0,0,0);
 
 INSERT INTO `admin_actions` VALUES ('LOGIN:test','2009-08-03 11:42:53',1534854767,1,1,1,'',7),('BILL_ID ->1;','2009-08-03 11:42:53',1534854767,1,1,2,'',2),('PASSWORD *->*;','2009-08-03 11:42:53',1534854767,1,1,3,'',2),('ADD PI','2009-08-03 11:42:53',1534854767,1,1,4,'',0),('ACTIVE','2009-08-03 11:42:53',1534854767,1,1,5,'Dv',1);
 
-INSERT INTO `nas` (id, name, nas_identifier, descr, ip, nas_type, auth_type, mng_host_port, mng_user, mng_password, alive) VALUES (1,'NAS Server','','NAS Server','127.0.0.1','mpd5', 0,'127.0.0.1:5005','admin', ENCODE('secretpass','test12345678901234567890'),300);
+INSERT INTO `nas` (id, name, nas_identifier, descr, ip, nas_type, auth_type, mng_host_port, mng_user, mng_password, alive, rad_pairs) VALUES (1,'NAS Server','','NAS Server','127.0.0.1','mpd5', 0,'127.0.0.1:5005','admin', ENCODE('secretpass','test12345678901234567890'),300,'');
 INSERT INTO `ippools` ( id, nas, ip, counts, name, priority) VALUES (1,1,167772161,256,'Main',0);
 
 INSERT INTO `nas_ippools` (pool_id, nas_id) VALUES (1,1);
