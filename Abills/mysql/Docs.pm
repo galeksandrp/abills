@@ -483,7 +483,7 @@ sub invoices_list {
       ['PAYMENT_ID',     'INT', 'd.payment_id',                      ],
       ['EXT_ID',         'INT', 'p.ext_id',                        1 ],
       ['AID',            'INT', 'a.id',       'a.name AS admin_name' ],
-      ['CREATED',        'DATE','d.created',                         ],
+      ['CREATED',        'DATE','d.created',                       1 ],
       ['ALT_SUM',        'INT', 'if (d.exchange_rate>0, sum(o.price * o.counts) * d.exchange_rate, 0.00) AS alt_sum', 1 ],
       ['EXCHANGE_RATE',  'INT', 'd.exchange_rate',                 1 ],
       ['CURRENCY',       'INT', 'd.currency',                      1 ],
@@ -534,8 +534,12 @@ sub invoices_list {
 
   return $self->{list} if ($self->{TOTAL} < 1);
   my $list = $self->{list};
-
-  $self->query2("SELECT count(distinct d.id) AS total_invoices
+  
+  $self->query2("SELECT count(distinct d.id) AS total_invoices,
+     count(distinct d.uid) AS total_users,
+     \@total_sum := if (i2p.sum IS NULL, sum(o.price * o.counts),  sum(o.price * o.counts) /count( DISTINCT i2p.payment_id)) AS total_sum, 
+     \@payment_sum := sum(i2p.sum) / count(DISTINCT o.orders) AS payment_sum,
+     1
     FROM docs_invoices d
     INNER JOIN docs_invoice_orders o ON (o.invoice_id=d.id)
     LEFT JOIN users u ON (d.uid=u.uid)
@@ -543,7 +547,8 @@ sub invoices_list {
     LEFT JOIN companies company ON (u.company_id=company.id)
     LEFT JOIN docs_invoice2payments i2p ON (d.id=i2p.invoice_id)
     LEFT JOIN payments p ON (i2p.payment_id=p.id)
-    $WHERE",
+    $WHERE
+    GROUP BY 5",
     undef,
     { INFO => 1 }
   );

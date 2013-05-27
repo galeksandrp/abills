@@ -949,8 +949,7 @@ sub abon_docs {
   my @services = ();
   my $UID      = $FORM{UID} || $attr->{UID};
   my $list     = $Abon->user_tariff_list($UID, { COLS_NAME => 1 });
-  
-  return \@services if ($Abon->{TOTAL} == 0);
+ 	my %info     = ();
   
   foreach my $line (@$list) {
     if ($line->{date}) {
@@ -964,7 +963,18 @@ sub abon_docs {
 
       # NAME| ID | SUM
       push @services, "$_ABON: ($line->{id}) " . "$line->{name}" . "|$line->{comments}|$line->{price}";
+      
+      if ($line->{period} == 1) {
+       	$info{month} += $line->{price};
+      }
+      elsif($line->{period} == 0) {
+        $info{day}   += $line->{price};	
+      }
     }
+  }
+
+  if ($attr->{FEES_INFO}) {
+  	return \%info;
   }
 
   return \@services;

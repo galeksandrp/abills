@@ -321,7 +321,7 @@ sub search_former {
   }
 
   if ($attr->{USERS_FIELDS}) {
-  	push @WHERE_RULES, @{ $self->search_expr_users({ %$data, 
+    push @WHERE_RULES, @{ $self->search_expr_users({ %$data, 
                              EXT_FIELDS => [
                                             'PHONE',
                                             'EMAIL',
@@ -348,6 +348,7 @@ sub search_former {
                                             'EXPIRE',
                                             'REGISTRATION',
                                              ],
+                             SKIP_USERS_FIELDS => $attr->{SKIP_USERS_FIELDS},
                              SUPPLEMENT=> 1 
                          }) };
   }
@@ -775,7 +776,13 @@ sub search_expr_users () {
   my $info_field = 0;
   foreach my $key (keys %{ $attr }) {
     if ($users_fields_hash{$key}) {
-      next if ($ext_fields{$key.':skip'});
+      if ($ext_fields{$key.':skip'}) {
+        next;
+      }
+      elsif ($attr->{SKIP_USERS_FIELDS} && in_array($key, $attr->{SKIP_USERS_FIELDS})) {
+        next;
+      }
+
       my ($type, $field) = split(/:/, $users_fields_hash{$key});
       next if ($type eq 'STR' && ! $attr->{$key});
       push @fields, @{ $self->search_expr($attr->{$key}, $type, "$field", { EXT_FIELD => $ext_fields{$key} }) };

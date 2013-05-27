@@ -1964,12 +1964,11 @@ sub dv_sessions {
   }
 
   if (! $FORM{sort}) {
-  	if ($FORM{UID}) {
-  		print "1111";
+    if ($FORM{UID} || $user->{UID}) {
       $LIST_PARAMS{SORT} = '1';
       $LIST_PARAMS{DESC} = 'desc';
-  	}
-  	else {
+    }
+    else {
       $LIST_PARAMS{SORT} = '2';
       $LIST_PARAMS{DESC} = 'desc';
     }
@@ -1978,7 +1977,7 @@ sub dv_sessions {
   if($user->{UID}) {
   	delete $LIST_PARAMS{LOGIN};
   }
-  
+
   my $table;
   ($table, $list) = result_former({
      INPUT_DATA      => $sessions,
@@ -2794,6 +2793,8 @@ sub dv_stats {
 
   if ($FORM{rows}) {
     $LIST_PARAMS{PAGE_ROWS} = $FORM{rows};
+    $LIST_PARAMS{FROM_DATE} = $FORM{FROM_DATE};
+    $LIST_PARAMS{TO_DATE}   = $FORM{TO_DATE};
     $conf{list_max_recs}    = $FORM{rows};
     $pages_qs .= "&rows=$conf{list_max_recs}";
   }
@@ -2953,7 +2954,7 @@ sub dv_stats {
   if ($sessions->{TOTAL} < 1) {
     $html->message('info', $_INFO, "$_NO_RECORD");
   }
-
+  
   $table = $html->table(
     {
       caption     => "$_SUM",
@@ -3113,6 +3114,8 @@ sub dv_user_stats {
   if ($FORM{rows}) {
     $LIST_PARAMS{PAGE_ROWS} = $FORM{rows};
     $LIST_PARAMS{PG}        = $FORM{pg};
+    $LIST_PARAMS{FROM_DATE} = $FORM{FROM_DATE};
+    $LIST_PARAMS{TO_DATE}   = $FORM{TO_DATE};
     $conf{list_max_recs}    = $FORM{rows};
     $pages_qs .= "&rows=$conf{list_max_recs}";
   }
@@ -7595,8 +7598,16 @@ sub dv_docs {
 
   my $uid = $attr->{UID} || $FORM{UID};
   my @services = ();
+  my %info     = ();
+
   $Dv->info($uid);
   
+  if ($attr->{FEES_INFO}) {
+  	$info{day}   = $Dv->{DAY_ABON};
+  	$info{month} = $Dv->{MONTH_ABON};
+  	return \%info;
+  }
+ 
   if ($Dv->{TOTAL}==0 || ! $Dv->{DAY_ABON} || $Dv->{STATUS}) {
     return \@services;
   }
@@ -7628,6 +7639,7 @@ sub dv_docs {
 
     push @services, "Internet: $_MONTH_FEE_SHORT: $Dv->{TP_NAME} ($Dv->{TP_ID})|$days_in_month $_DAY|" . sprintf("%.2f", ($Dv->{DAY_ABON} * $days_in_month));
   }
+
 
   return \@services;
 }

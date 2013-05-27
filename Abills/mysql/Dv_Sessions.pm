@@ -886,15 +886,26 @@ sub list {
       [ 'MONTH',           'DATE',"date_format(l.start, '%Y-%m')"    ],
       [ 'UID',             'INT', 'l.uid'                            ],
     ], 
-    { WHERE       => 1,
-    	WHERE_RULES => \@WHERE_RULES,
-    	USERS_FIELDS=> 1
+    { WHERE             => 1,
+    	WHERE_RULES       => \@WHERE_RULES,
+    	USERS_FIELDS      => 1,
+    	SKIP_USERS_FIELDS => [ 'UID' ]
     }    
     );
 
+  my $EXT_TABLE = '';
+
+  if ($self->{SEARCH_FIELDS} =~ /pi\./) {
+    $EXT_TABLE .= "LEFT JOIN users_pi pi ON (pi.uid=l.uid)";
+  }
+  if ($self->{SEARCH_FIELDS} =~ /u\./) {
+    $EXT_TABLE .= "INNER JOIN users u ON (u.uid=l.uid)";
+  }
+
+
   $self->query2("SELECT $self->{SEARCH_FIELDS} l.acct_session_id, l.uid
     FROM dv_log l
-    INNER JOIN users u ON (u.uid=l.uid)
+    $EXT_TABLE
     $WHERE
     ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;",
   undef,
@@ -904,7 +915,6 @@ sub list {
   my $list = $self->{list};
 
   if ($self->{TOTAL} > 0) {
-    my $users_table = ($WHERE =~ /u\./) ? "INNER JOIN users u ON (u.uid=l.uid)" : '';
     $self->query2("SELECT count(l.uid) AS total, 
       SEC_TO_TIME(sum(l.duration)) AS duration, 
       sum(l.sent + 4294967296 * acct_output_gigawords) AS traffic_in, 
@@ -913,7 +923,7 @@ sub list {
       sum(l.recv2) AS traffic2_out, 
       sum(sum) AS sum
       FROM dv_log l
-      $users_table
+      $EXT_TABLE
      $WHERE;",
      undef,
      { INFO => 1 }

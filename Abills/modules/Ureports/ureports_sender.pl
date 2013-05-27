@@ -356,12 +356,21 @@ sub ureports_periodic_reports {
         }
         #All service expired throught
         elsif ($user->{REPORT_ID} == 13) {
-          if (0 > $user->{DEPOSIT}) {
-            my $recharge = $user->{TP_MONTH_FEE}+$user->{DEPOSIT}; 
+        	my $total_daily_fee = 0;
+          my $cross_modules_return = cross_modules_call('_docs', { FEES_INFO => 1, UID => $user->{UID}  });
+          foreach my $module (sort keys %$cross_modules_return) {
+            if (ref $cross_modules_return->{$module} eq 'HASH') {
+              $total_daily_fee += $cross_modules_return->{$module}{day} if ($cross_modules_return->{$module}{day});
+            }
+          }
+
+          my $expire_days = int($user->{DEPOSIT} / $total_daily_fee);
+          if ($expire_days < $user->{VALUE}) {
+            $_ALL_SERVICE_EXPIRE =~ s/XX/ $expire_days /;
             %PARAMS = (
               DESCRIBE => "$_REPORTS ($user->{REPORT_ID}) ",
-              MESSAGE  => "$_SMALL_DEPOSIT_FOR_NEXT_MONTH $_BALANCE_RECHARCHE $recharge",
-              SUBJECT  => "$_DEPOSIT_BELOW"
+              MESSAGE  => "$_ALL_SERVICE_EXPIRE",
+              SUBJECT  => "$_ALL_SERVICE_EXPIRE"
               );
           }
           else {

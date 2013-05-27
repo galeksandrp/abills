@@ -459,13 +459,13 @@ sub ip_pools_add {
   my %DATA   = $self->get_data($attr);
 
  $self->query_add('ippools', { %$attr, 
- 	                                 NAS      => $attr->{NAS_ID}, 
- 	                                 IP       => "$DATA{NAS_IP_SIP}", 
- 	                                 COUNTS   => $attr->{NAS_IP_COUNT}, 
- 	                                 NAME     => $attr->{POOL_NAME}, 
- 	                                 PRIORITY => $attr->{POOL_PRIORITY}, 
- 	                                 SPEED    => $attr->{POOL_SPEED},
- 	                                  });
+ 	                             NAS      => undef, 
+ 	                             IP       => "$DATA{NAS_IP_SIP}", 
+ 	                             COUNTS   => $attr->{NAS_IP_COUNT}, 
+ 	                             NAME     => $attr->{POOL_NAME}, 
+ 	                             PRIORITY => $attr->{POOL_PRIORITY}, 
+ 	                             SPEED    => $attr->{POOL_SPEED},
+ 	                           });
 
   $admin->system_action_add("NAS_ID:$DATA{NAS_ID} POOLS:" . (join(',', split(/, /, $attr->{ids}))), { TYPE => 1 });
   return 0;

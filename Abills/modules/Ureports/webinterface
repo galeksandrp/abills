@@ -282,7 +282,7 @@ sub ureports_user {
         $REPORTS{ $line->{report_id} },
         $html->form_input("VALUE_$line->{report_id}", (($line->{value}) ? $line->{value} : 0), { OUTPUT2RETURN => 1, SIZE => 6 }),
         (($line->{msg_price}) ? $line->{msg_price} : '0.00'),
-        $line->{date} . (($line->{date} && $line->{date} ne '0000-00-00') ? $html->button($_RESET, "index=$index&UID=$line->{uid}&REPORT_ID=$line-{report_id}&reset_date=1", { MESSAGE => "$_RESET", CLASS => 'del' }) : '')
+        $line->{date} . (($line->{date} && $line->{date} ne '0000-00-00') ? $html->button($_RESET, "index=$index&UID=$line->{uid}&REPORT_ID=$line->{report_id}&reset_date=1", { MESSAGE => "$_RESET", CLASS => 'del' }) : '')
       );
     }
 

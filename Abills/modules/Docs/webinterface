@@ -1300,7 +1300,12 @@ sub docs_invoices_list {
       width      => '100%',
       cols_align => [ 'right', 'right' ],
       rows       => [ [ (($user->{UID}) ? '' : $html->button("$_PRINT $_LIST", "qindex=". $index ."&print_list=1$pages_qs&pg=$FORM{pg}". 
-      (($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : ''), { BUTTON => 1, ex_params => 'target=new' })), "$_TOTAL:", $html->b($Docs->{TOTAL_INVOICES}) ] ]
+      (($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : ''), { BUTTON => 1, ex_params => 'target=new' })), ''], 
+      ["$_TOTAL:", $html->b($Docs->{TOTAL_INVOICES}) ],
+      ["$_USERS:", $html->b($Docs->{TOTAL_USERS}) ],
+      ["$_SUM:",   $html->b(sprintf("%.2f",$Docs->{TOTAL_SUM})) ],
+      ["$_UNPAID:",$html->b(sprintf("%.2f", ($Docs->{TOTAL_SUM} - $Docs->{PAYMENT_SUM}))) ],
+      ]
     }
   );
 
