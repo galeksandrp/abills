@@ -1042,24 +1042,26 @@ sub dv_tp {
     $tarif_info->{GROUPS_SEL} = $html->form_select(
       'TP_GID',
       {
-        SELECTED          => $tarif_info->{TP_GID},
-        SEL_MULTI_ARRAY   => [ [ '', '' ], @{ $tariffs->tp_group_list() } ],
-        MULTI_ARRAY_KEY   => 0,
-        MULTI_ARRAY_VALUE => 1,
-        MAIN_MENU         => get_function_index('form_tp_groups'),
-        MAIN_MENU_AGRV    => "chg=$tarif_info->{TP_GID}"
+        SELECTED       => $tarif_info->{TP_GID},
+        SEL_LIST       => $tariffs->tp_group_list({ COLS_NAME => 1 }),
+        SEL_KEY        => 'id',
+        SEL_VALUE      => 'name',
+        MAIN_MENU      => get_function_index('form_tp_groups'),
+        MAIN_MENU_AGRV => "chg=$tarif_info->{TP_GID}",
+        SEL_OPTIONS    => { '' => '' },
       }
     );
 
-    my $nas_ip_pools_list = $Nas->ip_pools_list({ STATIC => 0 });
+    my $nas_ip_pools_list = $Nas->ip_pools_list({ STATIC => 0, COLS_NAME => 1 });
 
     $tarif_info->{IP_POOLS_SEL} = $html->form_select(
       'IPPOOL',
       {
-        SELECTED          => $tarif_info->{IPPOOL},
-        SEL_MULTI_ARRAY   => [ [ '', '' ], @{$nas_ip_pools_list} ],
-        MULTI_ARRAY_KEY   => 8,
-        MULTI_ARRAY_VALUE => 1,
+        SELECTED   => $tarif_info->{IPPOOL},
+        SEL_LIST   => $nas_ip_pools_list,
+        SEL_KEY    => 'id',
+        SEL_VALUE  => 'name',
+        SEL_OPTIONS=> { '' => '' },
       }
     );
 
@@ -1067,9 +1069,10 @@ sub dv_tp {
       'NEG_DEPOSIT_IPPOOL',
       {
         SELECTED          => $tarif_info->{NEG_DEPOSIT_IPPOOL},
-        SEL_MULTI_ARRAY   => [ [ '', '' ], @{$nas_ip_pools_list} ],
-        MULTI_ARRAY_KEY   => 8,
-        MULTI_ARRAY_VALUE => 1,
+        SEL_LIST   => $nas_ip_pools_list,
+        SEL_KEY    => 'id',
+        SEL_VALUE  => 'name',
+        SEL_OPTIONS=> { '' => '' },
       }
     );
 

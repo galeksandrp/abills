@@ -283,17 +283,16 @@ sub nas_ip_pools_list {
   $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
   $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
 
-  @WHERE_RULES = ();
+  @WHERE_RULES = ('np.pool_id=pool.id');
 
-  if ($attr->{NAS_ID}) {
-    push @WHERE_RULES, @{ $self->search_expr("$attr->{NAS_ID}", 'INT', 'np.nas_id') };
-  }
-
-  if (defined($attr->{STATIC})) {
-    push @WHERE_RULES, @{ $self->search_expr("$attr->{STATIC}", 'INT', 'pool.static') };
-  }
-
-  my $WHERE_NAS = ($#WHERE_RULES > -1) ? "AND " . join(' and ', @WHERE_RULES) : '';
+  my $WHERE_NAS =  $self->search_former($attr, [
+      ['NAS_ID',          'INT', 'np.nas_id'      ],
+      ['STATIC',          'INT', 'pool.static'    ],
+    ],
+    { WHERE       => 1,
+    	WHERE_RULES => \@WHERE_RULES
+    }    
+    );
 
   $self->query2("SELECT if (np.nas_id IS NULL, 0, np.nas_id) AS active_nas_id,
    n.name as nas_name, pool.name AS pool_name, 
@@ -305,7 +304,7 @@ sub nas_ip_pools_list {
     np.nas_id, 
     pool.static
     FROM ippools pool
-    LEFT JOIN nas_ippools np ON (np.pool_id=pool.id $WHERE_NAS)
+    LEFT JOIN nas_ippools np ON ($WHERE_NAS)
     LEFT JOIN nas n ON (n.id=np.nas_id)
       ORDER BY $SORT $DESC",
    undef,

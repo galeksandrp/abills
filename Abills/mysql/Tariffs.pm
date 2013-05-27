@@ -273,7 +273,7 @@ sub tp_group_list {
 
   my $SORT = ($attr->{SORT}) ? $attr->{SORT} : "2, 3";
 
-  $self->query2("SELECT tg.id, tg.name, tg.user_chg_tp, count(tp.id)
+  $self->query2("SELECT tg.id, tg.name, tg.user_chg_tp, count(tp.id) AS tarif_plans_count
    FROM tp_groups tg
    LEFT JOIN tarif_plans tp ON (tg.id=tp.gid)
    GROUP BY tg.id
