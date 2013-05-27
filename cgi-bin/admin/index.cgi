@@ -4908,7 +4908,7 @@ sub form_ip_pools {
       pages      => $nas->{TOTAL},
       ID         => 'NAS_IP_POOLS',
       EXPORT     => 1,
-      MENU       => "$_ADD:index=62&add_form=1&$pages_qs:add",
+      MENU       => ($FORM{NAS_ID}) ? "$_ADD:index=62&add_form=1&$pages_qs:add" : '',
     }
   );
 

@@ -289,7 +289,7 @@ sub nas_ip_pools_list {
       ['NAS_ID',          'INT', 'np.nas_id'      ],
       ['STATIC',          'INT', 'pool.static'    ],
     ],
-    { WHERE       => 1,
+    { 
     	WHERE_RULES => \@WHERE_RULES
     }    
     );
@@ -412,7 +412,7 @@ sub ip_pools_list {
 
   @WHERE_RULES = ();
 
-  if ($attr->{STATIC}) {
+  if (defined($attr->{STATIC})) {
     push @WHERE_RULES, "pool.static='$attr->{STATIC}'";
 
     my $WHERE = ($#WHERE_RULES > -1) ? join(' and ', @WHERE_RULES) : '';

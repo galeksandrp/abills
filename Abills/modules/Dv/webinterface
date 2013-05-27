@@ -1062,17 +1062,21 @@ sub dv_tp {
         SEL_KEY    => 'id',
         SEL_VALUE  => 'name',
         SEL_OPTIONS=> { '' => '' },
+        MAIN_MENU      => get_function_index('form_ip_pools'),
+        MAIN_MENU_AGRV => "chg=$tarif_info->{IPPOOL}",
       }
     );
 
     $tarif_info->{NEG_DEPOSIT_IPPOOL_SEL} = $html->form_select(
       'NEG_DEPOSIT_IPPOOL',
       {
-        SELECTED          => $tarif_info->{NEG_DEPOSIT_IPPOOL},
+        SELECTED   => $tarif_info->{NEG_DEPOSIT_IPPOOL},
         SEL_LIST   => $nas_ip_pools_list,
         SEL_KEY    => 'id',
         SEL_VALUE  => 'name',
         SEL_OPTIONS=> { '' => '' },
+        MAIN_MENU      => get_function_index('form_ip_pools'),
+        MAIN_MENU_AGRV => "chg=$tarif_info->{NEG_DEPOSIT_IPPOOL}",
       }
     );
 

@@ -983,7 +983,7 @@ sub msgs_admin {
        header      => msgs_status_bar(),
        SELECT_ALL  => (scalar keys %CHAPTERS_DELIGATION == 0) ? "users_list:del:$_SELECT_ALL" : '',
        EXPORT      => ' ',
-       MENU        => "$_ADD:add_form=1&index=" . get_function_index('msgs_admin') . ':add' . 
+       MENU        => "$_ADD:add_form=1&UID=$FORM{UID}&index=$index:add" . 
          ";$_SEARCH:search_form=1&index=" . get_function_index('msgs_admin') . ":search",
       }
     });

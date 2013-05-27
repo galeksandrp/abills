@@ -262,23 +262,23 @@ sub online {
 
   foreach my $field ( keys %$attr ) {
     if (! $field) {
-      print "iptv_calls/online: Wrong field name\n";
+      print "dv_calls/online: Wrong field name\n";
     }
     elsif ($field =~ /TP_BILLS_PRIORITY|TP_NAME|FILTER_ID|TP_CREDIT|PAYMENT_METHOD/ && $EXT_TABLE !~ /tarif_plans/) {
       $EXT_TABLE .= " LEFT JOIN tarif_plans tp ON (tp.id=service.tp_id AND MODULE='Dv')";
     }
     elsif ($field =~ /NAS_NAME/ && $EXT_TABLE !~ / nas /) {
-      $EXT_TABLE .= "LEFT JOIN nas ON (nas.id=c.nas_id)";
+      $EXT_TABLE .= " LEFT JOIN nas ON (nas.id=c.nas_id)";
     }
-    elsif ($field =~ /FIO|PHONE/ && $EXT_TABLE !~ / users_pi /) {
-      $EXT_TABLE .= "LEFT JOIN users_pi pi ON (pi.uid=u.uid)";
-    }
-    elsif ($field =~ /address/ && $EXT_TABLE !~ / users_pi /) {
-      $EXT_TABLE .= "INNER JOIN builds b ON (builds.id=pi.location_id)
-         INNER JOIN streets s ON (streets.id=builds.street_id)";
+    elsif ($field =~ /FIO|PHONE|ADDRESS_STREET/ && $EXT_TABLE !~ / users_pi /) {
+      $EXT_TABLE .= " LEFT JOIN users_pi pi ON (pi.uid=u.uid)";
+
     }
   }
 
+
+  $EXT_TABLE .= $self->{EXT_TABLES};
+  
   delete $self->{COL_NAMES_ARR};
 
   $self->query2("SELECT $self->{SEARCH_FIELDS} c.uid,c.nas_id,c.acct_session_id
