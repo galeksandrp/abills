@@ -380,6 +380,7 @@ CREATE TABLE `groups` (
   `domain_id` smallint(6) unsigned not null default 0,
   `separate_docs` tinyint(1) unsigned not null default 0,
   `allow_credit` tinyint(1) unsigned not null default 0,
+  `disable_paysys` tinyint(1) unsigned not null default 0,
   PRIMARY KEY  (`gid`),
   UNIQUE KEY `name` (`domain_id`, `name`)
 ) ;

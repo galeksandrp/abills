@@ -142,6 +142,9 @@ sub query {
   print "<pre><code>\n$query\n</code></pre>\n" if ($self->{debug});
   
   if(! $db){
+    require Log;
+    Log->import('log_print');
+
   	log_print(undef, 'LOG_ERR', '', "\n$query\n --$self->{sql_errno}\n --$self->{sql_errstr}\nundefined \$db", { NAS => 0, LOG_FILE => "/tmp/sql_errors" });
   	return $self;
   }
