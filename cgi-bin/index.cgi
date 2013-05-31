@@ -1090,28 +1090,54 @@ sub form_fees {
     $LIST_PARAMS{DESC} = 'DESC';
   }
 
+<<<<<<< HEAD
   my @FEES_METHODS = ($_ONE_TIME, $_ABON, $_FINE, $_ACTIVATE, $_MONEY_TRANSFER);
   push @FEES_METHODS, @EX_FEES_METHODS if (@EX_FEES_METHODS);
 
   my $fees  = Finance->fees($db, $admin, \%conf);
   my $list  = $fees->list({%LIST_PARAMS});
+=======
+  %FEES_METHODS = %{ get_fees_types() };
+
+  my $Fees  = Finance->fees($db, $admin, \%conf);
+  my $list  = $Fees->list({%LIST_PARAMS, 
+  	                       DSC       => '_SHOW',
+  	                       DATE      => '_SHOW',
+  	                       SUM       => '_SHOW',
+  	                       DEPOSIT   => '_SHOW',
+  	                       METHOD    => '_SHOW',
+  	                       LAST_DEPOSIT => '_SHOW',
+  	                       COLS_NAME => 1 });
+>>>>>>> e3d825c6722076a995ef7adfc8d9bbe8ac01bd12
   my $table = $html->table(
     {
       width       => '100%',
       caption     => "$_FEES",
       border      => 1,
+<<<<<<< HEAD
       title_plain => [ '', $_LOGIN, $_DATE, $_DESCRIBE, $_SUM, $_DEPOSIT, $_TYPE, $_BILL ],
       cols_align  => [ 'right', 'left', 'right', 'right', 'left', 'left', 'left', 'right', 'right' ],
       qs          => $pages_qs,
       pages       => $fees->{TOTAL},
+=======
+      title_plain => [ $_DATE, $_DESCRIBE, $_SUM, $_DEPOSIT, $_TYPE ],
+      cols_align  => [ 'right', 'left', 'right', 'right', 'left', 'left', 'left', 'right', 'right' ],
+      qs          => $pages_qs,
+      pages       => $Fees->{TOTAL},
+>>>>>>> e3d825c6722076a995ef7adfc8d9bbe8ac01bd12
       ID          => 'FEES'
     }
   );
 
+<<<<<<< HEAD
   $pages_qs .= "&subf=2" if (!$FORM{subf});
   foreach my $line (@$list) {
 
     $table->addrow('', $line->[1], $line->[2], $line->[3], $line->[4], $line->[5], $FEES_METHODS[ $line->[6] ], "$line->[7]",);
+=======
+  foreach my $line (@$list) {
+    $table->addrow($line->{date}, $line->{dsc}, $line->{sum}, $line->{last_deposit}, $FEES_METHODS{ $line->{method} });
+>>>>>>> e3d825c6722076a995ef7adfc8d9bbe8ac01bd12
   }
 
   print $table->show();
@@ -1140,13 +1166,21 @@ sub form_payments {
     $LIST_PARAMS{sort} = 1;
     $LIST_PARAMS{DESC} = 'DESC';
   }
+<<<<<<< HEAD
   my $list  = $Payments->list({%LIST_PARAMS});
+=======
+  my $list  = $Payments->list({%LIST_PARAMS, COLS_NAME => 1});
+>>>>>>> e3d825c6722076a995ef7adfc8d9bbe8ac01bd12
   my $table = $html->table(
     {
       width       => '100%',
       caption     => "$_PAYMENTS",
       border      => 1,
+<<<<<<< HEAD
       title_plain => [ '', $_LOGIN, $_DATE, $_DESCRIBE, $_SUM, $_DEPOSIT ],                                     # $_PAYMENT_METHOD, 'EXT ID', "$_BILL"],
+=======
+      title_plain => [ $_DATE, $_DESCRIBE, $_SUM, $_DEPOSIT ],                                     # $_PAYMENT_METHOD, 'EXT ID', "$_BILL"],
+>>>>>>> e3d825c6722076a995ef7adfc8d9bbe8ac01bd12
       cols_align  => [ 'right', 'left', 'left', 'right', 'right', 'left', 'right', 'right', 'left', 'left' ],
       qs          => $pages_qs,
       pages       => $Payments->{TOTAL},
@@ -1156,6 +1190,7 @@ sub form_payments {
 
   foreach my $line (@$list) {
     $table->addrow(
+<<<<<<< HEAD
       '',
       $html->button($line->[1], "index=15&UID=$line->[11]"),
       $line->[2],
@@ -1165,6 +1200,12 @@ sub form_payments {
       #  $PAYMENT_METHODS[$line->[6]],
       #  "$line->[7]",
       #  "$line->[8]",
+=======
+      $line->{date},
+      $line->{dsc},
+      $line->{sum},
+      $line->{last_deposit},
+>>>>>>> e3d825c6722076a995ef7adfc8d9bbe8ac01bd12
     );
   }
 
@@ -1415,8 +1456,14 @@ sub get_fees_types {
 
   use Finance;
   my %FEES_METHODS = ();
+<<<<<<< HEAD
   my $fees         = Finance->fees($db, $admin, \%conf);
   my $list         = $fees->fees_type_list({ PAGE_ROWS => 10000 });
+=======
+
+  my $Fees         = Finance->fees($db, $admin, \%conf);
+  my $list         = $Fees->fees_type_list({ PAGE_ROWS => 10000 });
+>>>>>>> e3d825c6722076a995ef7adfc8d9bbe8ac01bd12
   foreach my $line (@$list) {
     if ($FORM{METHOD} && $FORM{METHOD} == $line->[0]) {
       $FORM{SUM}      = $line->[3] if ($line->[3] > 0);

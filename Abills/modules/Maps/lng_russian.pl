@@ -34,4 +34,9 @@ $_METERS_SHORT = 'м.';
 $_FIELDS_FOR_RADIUS_ARE_REQUIRED = 'Поле \'Добавить зону покрытия\' обязательное для заполнения';
 $_ADD_WELL = 'Добавить колодец';
 $_ONLY_ONLINE = 'Только онлайн';
+<<<<<<< HEAD
 $_ONLY_OFFLINE = 'Только оффлайн';
+=======
+$_ONLY_OFFLINE = 'Только оффлайн';
+$_BUILD_NOT_FOUND = 'Дом не добавлен на карту. ';
+>>>>>>> e3d825c6722076a995ef7adfc8d9bbe8ac01bd12

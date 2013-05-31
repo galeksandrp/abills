@@ -123,15 +123,25 @@ if (! $rlm_perl) {
 
     my $acct;
     if ($Nas->{errno}) {
+<<<<<<< HEAD
       $access_deny->("$RAD->{USER_NAME}", "Unknow server '$RAD->{NAS_IP_ADDRESS}'", 0);
+=======
+      $access_deny->("$RAD->{USER_NAME}", "Unknow server '$RAD->{NAS_IP_ADDRESS}'", 0, $db);
+>>>>>>> e3d825c6722076a995ef7adfc8d9bbe8ac01bd12
     }
     else {
       $acct = acct($db, $RAD, $Nas);
     }
 
     if ($acct->{errno}) {
+<<<<<<< HEAD
       my $Log = Log->new($db, \%conf);
       $Log->log_print('LOG_ERR', $RAD->{USER_NAME}, "$acct->{errstr}" . ((defined($acct->{sql_errstr})) ? " ($acct->{sql_errstr})" : ''));
+=======
+    	$access_deny->("$RAD->{USER_NAME}", "$acct->{errstr}". ((defined($acct->{sql_errstr})) ? " ($acct->{sql_errstr})" : ''), $Nas, $db);
+#      my $Log = Log->new($db, \%conf);
+#      $Log->log_print('LOG_ERR', $RAD->{USER_NAME}, "$acct->{errstr}" . ((defined($acct->{sql_errstr})) ? " ($acct->{sql_errstr})" : ''));
+>>>>>>> e3d825c6722076a995ef7adfc8d9bbe8ac01bd12
     }
   }
 }
@@ -152,7 +162,11 @@ sub acct {
     && $USER_TYPES{ $RAD->{SERVICE_TYPE} }
     && ($USER_TYPES{ $RAD->{SERVICE_TYPE} } == 6 || $USER_TYPES{ $RAD->{SERVICE_TYPE} } == 7))
   {
+<<<<<<< HEAD
     $Log->log_print('LOG_DEBUG', "$RAD->{USER_NAME}", "$RAD->{SERVICE_TYPE}");
+=======
+    $Log->log_print('LOG_DEBUG', "$RAD->{USER_NAME}", "$RAD->{SERVICE_TYPE}", { ACTION => 'ACCT', NAS => $nas });
+>>>>>>> e3d825c6722076a995ef7adfc8d9bbe8ac01bd12
     return 0;
   }
 
@@ -339,7 +353,11 @@ sub acct {
 
           # ACCT_STATUS IP_ADDRESS NAS_PORT
           $res = `$conf{extern_acct_dir}/$file $acct_status_type $RAD->{NAS_IP_ADDRESS} $RAD->{NAS_PORT} $nas->{NAS_TYPE} $RAD->{USER_NAME} $RAD->{FRAMED_IP_ADDRESS}`;
+<<<<<<< HEAD
           $Log->log_print('LOG_DEBUG', $RAD->{USER_NAME}, "External accounting program '$conf{extern_acct_dir}' / '$file' pairs '$res'");
+=======
+          $Log->log_print('LOG_DEBUG', $RAD->{USER_NAME}, "External accounting program '$conf{extern_acct_dir}' / '$file' pairs '$res'", { ACTION => 'ACCT', NAS => $nas });
+>>>>>>> e3d825c6722076a995ef7adfc8d9bbe8ac01bd12
         }
       }
 
@@ -369,10 +387,15 @@ sub acct {
     $r = $acct_mod{"default"}->accounting($RAD, $nas);
   }
 
+<<<<<<< HEAD
   #my $aaaaaaa = `echo "// $r->{errno} //" >> /tmp/12211`;
 
   if ($r->{errno}) {
     $access_deny->("$RAD->{USER_NAME}", "[$r->{errno}] $r->{errstr}", $nas->{NAS_ID});
+=======
+  if ($r->{errno}) {
+    $access_deny->("$RAD->{USER_NAME}", "[$r->{errno}] $r->{errstr}", $nas->{NAS_ID}, $db);
+>>>>>>> e3d825c6722076a995ef7adfc8d9bbe8ac01bd12
   }
 
   if ($conf{ACCT_DEBUG} && $begin_time > 0) {

@@ -1857,7 +1857,11 @@ sub tpl_show {
   }
 
   if (!$attr->{SOURCE}) {
+<<<<<<< HEAD
     while ($tpl =~ /\%(\w+)(\=?)([A-Za-z0-9\_\.\/\\\]\[:\-]{0,50})\%/g) {
+=======
+    while ($tpl =~ /\%(\w{1,60})(\=?)([A-Za-z0-9\_\.\/\\\]\[:\-]{0,50})\%/g) {
+>>>>>>> e3d825c6722076a995ef7adfc8d9bbe8ac01bd12
       my $var       = $1;
       my $delimiter = $2;
       my $default   = $3;

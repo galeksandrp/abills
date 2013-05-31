@@ -29,6 +29,12 @@ var markerId;
 var PolyInfoWindow = null;
 var infowindow = null;
 var MapSetCenter = '%MAPSETCENTER%' || '';
+<<<<<<< HEAD
+=======
+var markers = {};
+var infowindows = {};
+var show_build = '%SHOW_BUILD%';  
+>>>>>>> e3d825c6722076a995ef7adfc8d9bbe8ac01bd12
 
 function select(buttonId) {
   document.getElementById(\"hand_b\").className=\"unselected\";
@@ -53,17 +59,35 @@ function getIcon(color) {
 }
 
 
+<<<<<<< HEAD
 function createMarker(latlng, message, color, title) {
+=======
+function createMarker(latlng, message, color, title,id) {
+>>>>>>> e3d825c6722076a995ef7adfc8d9bbe8ac01bd12
 
       var Marker = new google.maps.Marker({
       	position: latlng,
       	draggable: false,
       	icon: getIcon(color),
       	map: map,
+<<<<<<< HEAD
       	title:title
       });
       
       var contentString = \"\" + message + \"<br/>\";
+=======
+      	title:title,
+      	id:id
+      });
+      //alert(id);
+      
+      
+      var contentString = \"\" + message + \"<br/>\";
+  	  infowindows[id] = new google.maps.InfoWindow({
+  	     	content: contentString
+  	  });	
+
+>>>>>>> e3d825c6722076a995ef7adfc8d9bbe8ac01bd12
        
       google.maps.event.addListener(Marker, 'click', function(e) {
 	  if (infowindow) {
@@ -72,7 +96,12 @@ function createMarker(latlng, message, color, title) {
 	     
 	  infowindow = new google.maps.InfoWindow({
 	     	content: contentString
+<<<<<<< HEAD
 	  });	  	
+=======
+	  });	
+	   	    	
+>>>>>>> e3d825c6722076a995ef7adfc8d9bbe8ac01bd12
 	  if (PolyInfoWindow) {
 			PolyInfoWindow.close();
 	  }
@@ -94,6 +123,11 @@ function createMarker(latlng, message, color, title) {
 		  	infowindow.open(map,Marker);
 		  });	
      }
+<<<<<<< HEAD
+=======
+     markers[id] = Marker;  
+     
+>>>>>>> e3d825c6722076a995ef7adfc8d9bbe8ac01bd12
      return Marker;
 }
 
@@ -116,12 +150,26 @@ function initialize() {
 	    }			
 	}
 	map = new google.maps.Map(document.getElementById('map'), myOptions);
+<<<<<<< HEAD
 
  	%NAS%
  	%OBJECTS%  
 	%ROUTES%
 	%WIFI%
 	%WELL%
+=======
+  %NAS%
+  %OBJECTS%  
+  %ROUTES%
+  %WIFI%
+  %WELL%
+
+if(infowindows[show_build] !== undefined && markers[show_build] !== undefined) {  
+  infowindows[show_build].open(map, markers[show_build]);
+}  
+  
+  
+>>>>>>> e3d825c6722076a995ef7adfc8d9bbe8ac01bd12
 }
 function chgposition (x, y , zoom) {
 	map.setCenter(new google.maps.LatLng(y, x));
@@ -181,6 +229,7 @@ function fullScreenDistrict() {
 }
 google.maps.event.addDomListener(window, 'load', initialize);
 
+<<<<<<< HEAD
 
  //alert($(\"#UFILTER :selected\").val(););
 
@@ -204,10 +253,18 @@ if(uCookie) {
 }
 
 
+=======
+jQuery(document).ready(function(){
+
+  jQuery('#UFILTER,#GID').change(function() {
+    jQuery(\"#mapUserShow\").submit() 
+  });
+>>>>>>> e3d825c6722076a995ef7adfc8d9bbe8ac01bd12
 });
 
 </script>
 <br />
+<<<<<<< HEAD
 <a  class='link_button' id=\"districtButton\" onclick=javascript:hideShowDistrict()>$_HIDE_DISTRICTS</a>
 <a  class='link_button' id=\"districtButton\" onclick=javascript:fullScreenDistrict()>$_IN_NEW_WINDOW</a>
 
@@ -240,6 +297,44 @@ if(uCookie) {
   </td>
   <td>
     <!-- The frame used to measure the screen size -->
+=======
+<form action=$SELF_URL ID='mapUserShow' name='mapUserShow'>
+<input type=hidden name=index value=$index>
+
+<table>
+<tr>
+  <td>
+    <a class='link_button' id=\"districtButton\" onclick=javascript:hideShowDistrict()>$_HIDE_DISTRICTS</a>
+    <a class='link_button' id=\"districtButton2\" onclick=javascript:fullScreenDistrict()>$_IN_NEW_WINDOW</a>
+  </td>  
+  <td>
+    %UFILTER%
+  </td>
+  <td>
+    %GROUP_SEL%
+  </td>
+</form>    
+</tr> 
+</table>
+<br>
+<table>
+  <tr style=\"vertical-align:top\">
+    <td style='width:15em;' id='districts' >
+      <input type='hidden' id=\"featuredetails\" rows=2 >
+      <table id =\"featuretable\">
+        <tbody id=\"featuretbody\"></tbody>
+      </table>
+      <br />
+      <div align=center >%DISTRICTS%  %DELDISTRICT%</div>
+      <br />
+      <div align=center>
+
+
+    </div> 
+  </td>
+  <td>
+
+>>>>>>> e3d825c6722076a995ef7adfc8d9bbe8ac01bd12
     <div id=\"frame\"></div>
 
     <div id=\"map\" style=\"width:800px; height:500px\" ></div>

@@ -907,20 +907,36 @@ sub voip_tp {
       return 0;
     }
 
+<<<<<<< HEAD
     $pages_qs .= "&TP_ID=$FORM{TP_ID}&subf=$FORM{subf}";
     $LIST_PARAMS{TP} = $FORM{TP_ID};
     %F_ARGS = (TP => $Voip_tp);
+=======
+    $pages_qs       .= "&TP_ID=$FORM{TP_ID}&subf=$FORM{subf}";
+    $LIST_PARAMS{TP} = $FORM{TP_ID};
+    %F_ARGS          = (TP => $Voip_tp);
+
+    $FORM{add_form}      = 1;
+>>>>>>> e3d825c6722076a995ef7adfc8d9bbe8ac01bd12
 
     $Voip_tp->{NAME_SEL} = $html->form_main(
       {
         CONTENT => $html->form_select(
           'TP_ID',
           {
+<<<<<<< HEAD
             SELECTED          => $FORM{TP_ID},
             SEL_MULTI_ARRAY   => $Voip->tp_list({%LIST_PARAMS}),
             MULTI_ARRAY_KEY   => 8,
             MULTI_ARRAY_VALUE => '0,1',
             NO_ID             => 1
+=======
+            SELECTED   => $FORM{TP_ID},
+            SEL_LIST   => $Voip->tp_list({%LIST_PARAMS, COLS_NAME => 1 }),
+            LIST_KEY   => 'tp_id',
+            LIST_VALUE => 'id,name',
+            NO_ID      => 1
+>>>>>>> e3d825c6722076a995ef7adfc8d9bbe8ac01bd12
           }
         ),
         HIDDEN => { index => "$index" },
@@ -935,9 +951,15 @@ sub voip_tp {
       },
       {
         $_INFO => ":TP_ID=$Voip_tp->{TP_ID}",
+<<<<<<< HEAD
         #     $_USERS         => "11:TP_ID=$Voip_tp->{TP_ID}",
         #     $_INTERVALS     => "73:TP_ID=$Voip_tp->{TP_ID}",
         #     $_NAS           => "18:TP_ID=$Voip_tp->{TP_ID}"
+=======
+        $_USERS         => get_function_index('voip_users_list').":TP_ID=$Voip_tp->{TP_ID}",
+        $_INTERVALS     => get_function_index('voip_intervals').":TP_ID=$Voip_tp->{TP_ID}",
+        #$_NAS           => "18:TP_ID=$Voip_tp->{TP_ID}"
+>>>>>>> e3d825c6722076a995ef7adfc8d9bbe8ac01bd12
       },
       { f_args => \%F_ARGS }
     );
@@ -968,6 +990,7 @@ sub voip_tp {
     $html->message('err', $_ERROR, "[$Voip->{errno}] $err_strs{$Voip->{errno}}");
   }
 
+<<<<<<< HEAD
   $Voip_tp->{PAYMENT_TYPE_SEL} = $html->form_select(
     'PAYMENT_TYPE',
     {
@@ -986,13 +1009,38 @@ sub voip_tp {
   my $list = $Voip->tp_list({ %LIST_PARAMS, COLS_NAME => 1, MODULE => 'Voip' });
 
   # Time tariff Name Begin END Day fee Month fee Simultaneously - - -
+=======
+  if ($FORM{add_form}) {
+    $Voip_tp->{PAYMENT_TYPE_SEL} = $html->form_select(
+      'PAYMENT_TYPE',
+      {
+        SELECTED     => $Voip_tp->{PAYMENT_TYPE},
+        SEL_ARRAY    => \@Payment_Types,
+        ARRAY_NUM_ID => 1
+      }
+    );
+
+    $Voip_tp->{POSTPAID_DAY_FEE}   = ($Voip_tp->{POSTPAID_DAY_FEE})   ? 'checked' : '';
+    $Voip_tp->{POSTPAID_MONTH_FEE} = ($Voip_tp->{POSTPAID_MONTH_FEE}) ? 'checked' : '';
+
+    $html->tpl_show(_include('voip_tp', 'Voip'), $Voip_tp);
+  }
+
+  my $list = $Voip->tp_list({ %LIST_PARAMS, COLS_NAME => 1, MODULE => 'Voip' });
+
+>>>>>>> e3d825c6722076a995ef7adfc8d9bbe8ac01bd12
   my $table = $html->table(
     {
       width      => '100%',
       caption    => "$_TARIF_PLANS",
       title      => [ '#', $_NAME, $_HOUR_TARIF, $_PAYMENT_TYPE, $_DAY_FEE, $_MONTH_FEE, $_SIMULTANEOUSLY, $_AGE, '-', '-', '-' ],
       cols_align => [ 'right', 'left', 'center', 'center', 'right', 'right', 'right', 'right', 'right', 'right', 'center', 'center', 'center' ],
+<<<<<<< HEAD
       ID         => 'VOIP_TP'
+=======
+      ID         => 'VOIP_TP',
+      MENU       => "$_ADD:index=$index&add_form=1:add",
+>>>>>>> e3d825c6722076a995ef7adfc8d9bbe8ac01bd12
     }
   );
 
