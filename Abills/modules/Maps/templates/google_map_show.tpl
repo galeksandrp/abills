@@ -29,12 +29,9 @@ var markerId;
 var PolyInfoWindow = null;
 var infowindow = null;
 var MapSetCenter = '%MAPSETCENTER%' || '';
-<<<<<<< HEAD
-=======
 var markers = {};
 var infowindows = {};
 var show_build = '%SHOW_BUILD%';  
->>>>>>> e3d825c6722076a995ef7adfc8d9bbe8ac01bd12
 
 function select(buttonId) {
   document.getElementById(\"hand_b\").className=\"unselected\";
@@ -59,23 +56,13 @@ function getIcon(color) {
 }
 
 
-<<<<<<< HEAD
-function createMarker(latlng, message, color, title) {
-=======
 function createMarker(latlng, message, color, title,id) {
->>>>>>> e3d825c6722076a995ef7adfc8d9bbe8ac01bd12
 
       var Marker = new google.maps.Marker({
       	position: latlng,
       	draggable: false,
       	icon: getIcon(color),
       	map: map,
-<<<<<<< HEAD
-      	title:title
-      });
-      
-      var contentString = \"\" + message + \"<br/>\";
-=======
       	title:title,
       	id:id
       });
@@ -87,7 +74,6 @@ function createMarker(latlng, message, color, title,id) {
   	     	content: contentString
   	  });	
 
->>>>>>> e3d825c6722076a995ef7adfc8d9bbe8ac01bd12
        
       google.maps.event.addListener(Marker, 'click', function(e) {
 	  if (infowindow) {
@@ -96,12 +82,8 @@ function createMarker(latlng, message, color, title,id) {
 	     
 	  infowindow = new google.maps.InfoWindow({
 	     	content: contentString
-<<<<<<< HEAD
-	  });	  	
-=======
 	  });	
 	   	    	
->>>>>>> e3d825c6722076a995ef7adfc8d9bbe8ac01bd12
 	  if (PolyInfoWindow) {
 			PolyInfoWindow.close();
 	  }
@@ -123,11 +105,8 @@ function createMarker(latlng, message, color, title,id) {
 		  	infowindow.open(map,Marker);
 		  });	
      }
-<<<<<<< HEAD
-=======
      markers[id] = Marker;  
      
->>>>>>> e3d825c6722076a995ef7adfc8d9bbe8ac01bd12
      return Marker;
 }
 
@@ -150,14 +129,6 @@ function initialize() {
 	    }			
 	}
 	map = new google.maps.Map(document.getElementById('map'), myOptions);
-<<<<<<< HEAD
-
- 	%NAS%
- 	%OBJECTS%  
-	%ROUTES%
-	%WIFI%
-	%WELL%
-=======
   %NAS%
   %OBJECTS%  
   %ROUTES%
@@ -169,7 +140,6 @@ if(infowindows[show_build] !== undefined && markers[show_build] !== undefined) {
 }  
   
   
->>>>>>> e3d825c6722076a995ef7adfc8d9bbe8ac01bd12
 }
 function chgposition (x, y , zoom) {
 	map.setCenter(new google.maps.LatLng(y, x));
@@ -229,75 +199,15 @@ function fullScreenDistrict() {
 }
 google.maps.event.addDomListener(window, 'load', initialize);
 
-<<<<<<< HEAD
-
- //alert($(\"#UFILTER :selected\").val(););
-
-\$(document).ready(function(){
-//alert();
-var uCookie = \$.cookie('UFILTER');
-//alert (uCookie) ;
-
-
-
-\$('#UFILTER').change(function() {
-  if(\$.cookie('UFILTER')) {
-    \$.cookie('UFILTER', null);
-  }
-  \$.cookie('UFILTER', \$(\"#UFILTER option:selected\").val());
-  \$(\"#mapUserShow\").submit() 
-});
-
-if(uCookie) {
-  \$('#UFILTER option[value=' + uCookie + ']').attr('selected', 'selected');
-}
-
-
-=======
 jQuery(document).ready(function(){
 
   jQuery('#UFILTER,#GID').change(function() {
     jQuery(\"#mapUserShow\").submit() 
   });
->>>>>>> e3d825c6722076a995ef7adfc8d9bbe8ac01bd12
 });
 
 </script>
 <br />
-<<<<<<< HEAD
-<a  class='link_button' id=\"districtButton\" onclick=javascript:hideShowDistrict()>$_HIDE_DISTRICTS</a>
-<a  class='link_button' id=\"districtButton\" onclick=javascript:fullScreenDistrict()>$_IN_NEW_WINDOW</a>
-
-<table><tr style=\"vertical-align:top\">
-  <td style=\"width:15em;\" id=\"districts\" >
-
-
-
-    <input type=\"hidden\" id=\"featuredetails\" rows=2>
-
-    </input>
-
-     <table id =\"featuretable\">
-     <tbody id=\"featuretbody\"></tbody>
-    </table>
-
-    <br />
-    <div align=center >%DISTRICTS%  %DELDISTRICT%</div>
-    <br />
-    <div align=center>
-      <form action=$SELF_URL ID='mapUserShow' name='mapUserShow'>
-        <input type=hidden name=index value=$index>
-        <select onchange=\"submit_user_filter()\" name='UFILTER' id='UFILTER'>
-          <option value='all'>$_ALL</option>
-          <option value='online'>$_ONLY_ONLINE</option>
-          <option value='offline'>$_ONLY_OFFLINE</option>
-        </select>
-      </form>
-    </div> 
-  </td>
-  <td>
-    <!-- The frame used to measure the screen size -->
-=======
 <form action=$SELF_URL ID='mapUserShow' name='mapUserShow'>
 <input type=hidden name=index value=$index>
 
@@ -334,7 +244,6 @@ jQuery(document).ready(function(){
   </td>
   <td>
 
->>>>>>> e3d825c6722076a995ef7adfc8d9bbe8ac01bd12
     <div id=\"frame\"></div>
 
     <div id=\"map\" style=\"width:800px; height:500px\" ></div>

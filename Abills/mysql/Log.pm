@@ -131,12 +131,8 @@ sub log_list {
 # log_print($self)
 #**********************************************************
 sub log_print {
-<<<<<<< HEAD
-  my ($self, $LOG_TYPE, $USER_NAME, $MESSAGE, $attr) = @_;
-=======
   my $self = shift;
   my ($LOG_TYPE, $USER_NAME, $MESSAGE, $attr) = @_;
->>>>>>> e3d825c6722076a995ef7adfc8d9bbe8ac01bd12
   my $Nas = $attr->{NAS} || undef;
 
   my $action = $attr->{'ACTION'} || $self->{ACTION} || '';

@@ -703,16 +703,8 @@ sub msgs_admin {
       sendmail("$conf{ADMIN_MAIL}", "$users->{EMAIL}", "$conf{WEB_TITLE} - $_NEW_MESSAGE", "$message", "$conf{MAIL_CHARSET}", undef, { MAIL_HEADER => [ "X-ABillS-Msg-ID: $Msgs->{INSERT_ID}", "X-ABillS-REPLY-ID: $Msgs->{REPLY_ID}" ] });
     }
 
-<<<<<<< HEAD
-    #elsif($FORM{INNER_MSG} || $FORM{REPLY_INNER_MSG}) {
     msgs_notify_admins();
 
-    # }
-
-=======
-    msgs_notify_admins();
-
->>>>>>> e3d825c6722076a995ef7adfc8d9bbe8ac01bd12
     goto MSG_LABEL;
   }
   elsif ($FORM{chg}) {
@@ -878,12 +870,9 @@ sub msgs_admin {
       $reply =~ s/\n/> /g;
     }
 
-<<<<<<< HEAD
-=======
     $Msgs->{MESSAGE} = convert($Msgs->{MESSAGE}, { text2html => 1, SHOW_URL => 1 });
     $Msgs->{SUBJECT} = convert($Msgs->{SUBJECT}, { text2html => 1 });
 
->>>>>>> e3d825c6722076a995ef7adfc8d9bbe8ac01bd12
     if (!$Msgs->{ACTIVE_SURWEY} && ($A_PRIVILEGES{ $Msgs->{CHAPTER} } || scalar keys %A_PRIVILEGES == 0)) {
       my $survey_sel = msgs_survey_sel();
       $Msgs->{REPLY} .= $html->tpl_show(
@@ -901,12 +890,6 @@ sub msgs_admin {
       );
     }
 
-<<<<<<< HEAD
-    $Msgs->{MESSAGE} = convert($Msgs->{MESSAGE}, { text2html => 1, SHOW_URL => 1 });
-    $Msgs->{SUBJECT} = convert($Msgs->{SUBJECT}, { text2html => 1 });
-
-=======
->>>>>>> e3d825c6722076a995ef7adfc8d9bbe8ac01bd12
     if ($Msgs->{FILENAME}) {
       $Msgs->{ATTACHMENT} = "$_ATTACHMENT: " . $html->button("$Msgs->{FILENAME}", "qindex=$index&ATTACHMENT=$Msgs->{ATTACHMENT_ID}", { TARGET => '_new' }) . " ($_SIZE: " . int2byte($Msgs->{FILESIZE}) . ')';
     }

@@ -154,26 +154,6 @@ sub maps_main {
     return 0;
   }
 
-<<<<<<< HEAD
-  $newcheckbox = $html->form_select("DISTRICT_IDS", 
-							{	SELECTED          => $FORM{DISTRICT_IDS},
-								SEL_MULTI_ARRAY   => [ @{ $Maps->districts_list({ PAGE_ROWS => 1000 }) } ], 
-								MULTI_ARRAY_KEY   => 0,
-								MULTI_ARRAY_VALUE => 1,
-								NO_ID             => 1
-							});	
-
-  
-  $user_filter = $html->form_select(
-      "USER_FILTER",
-      {
-        SELECTED     => $FORM{USER_FILTER} || 0,
-        SEL_ARRAY    => [$_ALL, $_ONLY_ONLINE, $_ONLY_OFFLINE],
-        ARRAY_NUM_ID => 0,
-        NO_ID        => 1
-      }
-    );
-=======
   $newcheckbox = $html->form_select("DISTRICT_IDS", {
     SELECTED          => $FORM{DISTRICT_IDS},
     SEL_MULTI_ARRAY   => [ @{ $Maps->districts_list({ PAGE_ROWS => 1000 }) } ], 
@@ -188,7 +168,6 @@ sub maps_main {
     ARRAY_NUM_ID => 0,
     NO_ID        => 1
   });
->>>>>>> e3d825c6722076a995ef7adfc8d9bbe8ac01bd12
   
 
   $html->tpl_show(
@@ -267,15 +246,7 @@ sub maps_map_show {
   }
 
   #Get all NAS  **********************************************
-<<<<<<< HEAD
-  #$Nas->{debug}=1;
-  #my $list2 = $Nas->list({ SHOW_MAPS => 1,
-  #						 DISTRICT_ID => $attr->{DISTRICT_ID},
-  #						 PAGE_ROWS => '1000'
-  #											 });
-=======
 
->>>>>>> e3d825c6722076a995ef7adfc8d9bbe8ac01bd12
   my $list2 = $Maps->nas_list({ SHOW_MAPS => 1, PAGE_ROWS => '5000', DISTRICT_ID => $attr->{DISTRICT_ID} });
 
   my %NAS_INFO = ();
@@ -304,19 +275,12 @@ sub maps_map_show {
     {
       LOCATION_ID => '>0',
       PAGE_ROWS   => '8000'
-<<<<<<< HEAD
-=======
  
->>>>>>> e3d825c6722076a995ef7adfc8d9bbe8ac01bd12
     }
   );
 
   my %USERS_INFO = ();
-<<<<<<< HEAD
-
-=======
   #d($list);
->>>>>>> e3d825c6722076a995ef7adfc8d9bbe8ac01bd12
   foreach my $line (@$list) {
     push @{ $USERS_INFO{ $line->[5] } },
     {
@@ -361,11 +325,7 @@ sub maps_map_show {
   $users->{debug} = 1;
 
   $list = $Maps->build_list({ SHOW_MAPS => 1, DISTRICT_ID => $attr->{DISTRICT_ID}, PAGE_ROWS => '8000' });
-<<<<<<< HEAD
-
-=======
   
->>>>>>> e3d825c6722076a995ef7adfc8d9bbe8ac01bd12
   my $cnt = 0;
   foreach my $line (@$list) {
 
@@ -374,11 +334,7 @@ sub maps_map_show {
     my $user_online = '';
 
     #print "$line->[7] ///";
-<<<<<<< HEAD
-
-=======
     #print $line->[6] . "\n\r";
->>>>>>> e3d825c6722076a995ef7adfc8d9bbe8ac01bd12
     if ($USERS_INFO{ $line->[6] }) {
       foreach my $u (@{ $USERS_INFO{ $line->[6] } }) {
         $user_info .= "<strong><a href=$SELF_URL?index=11&UID=$u->{UID}>$u->{LOGIN}</a></strong> $_FLAT $u->{ADDRESS_FLAT} $_DEPOSIT $u->{DEPOSIT}<br>";
@@ -957,10 +913,7 @@ sub google_maps_add {
     else {
       $mapsetcenter = '';
     }
-<<<<<<< HEAD
-=======
     
->>>>>>> e3d825c6722076a995ef7adfc8d9bbe8ac01bd12
 
     #$Maps->{debug}=1;
 
@@ -1133,13 +1086,10 @@ sub google_maps_add {
 # menu: Google maps show
 #***********************************************************
 sub google_maps_show {
-<<<<<<< HEAD
-=======
   
   #$Maps->{debug}=1;
   
 
->>>>>>> e3d825c6722076a995ef7adfc8d9bbe8ac01bd12
   if ($FORM{message}) {
     $html->message('info', $_INFO, "$FORM{message}");
   }
@@ -1157,11 +1107,7 @@ sub google_maps_show {
 
   if ($FORM{del}) {
 
-<<<<<<< HEAD
-    #$Storage->{debug}=1;
-=======
     #$Maps->{debug}=1;
->>>>>>> e3d825c6722076a995ef7adfc8d9bbe8ac01bd12
     $Maps->del_districts({ ID => $FORM{del} });
     if (!$Maps->{errno}) {
       $html->tpl_show(
@@ -1202,10 +1148,6 @@ sub google_maps_show {
   }
 
   #Get all NAS  **********************************************
-<<<<<<< HEAD
-  #$Nas->{debug}=1;
-=======
->>>>>>> e3d825c6722076a995ef7adfc8d9bbe8ac01bd12
   my $list2 = $Maps->nas_list(
     {
       SHOW_MAPS_GOOGLE => 1,
@@ -1234,13 +1176,6 @@ sub google_maps_show {
   }
 
   #Get all users  ********************************************
-<<<<<<< HEAD
-
-  $list = $Maps->all_users_list(
-    {
-      LOCATION_ID => '>0',
-      PAGE_ROWS   => '4000'
-=======
   #$Maps->{debug}=1;
   
   if($FORM{GID}) {
@@ -1255,47 +1190,11 @@ sub google_maps_show {
       COLS_NAME   => 1,
       COLS_UPPER  => 1,
       
->>>>>>> e3d825c6722076a995ef7adfc8d9bbe8ac01bd12
     }
   );
 
   my %USERS_INFO = ();
 
-<<<<<<< HEAD
-  foreach my $line (@$list) {
-    push @{ $USERS_INFO{ $line->[5] } },
-    {
-      LOGIN        => $line->[0],
-      UID          => $line->[7],
-      DEPOSIT      => $line->[2],
-      ADDRESS_FLAT => $line->[6]
-    };
-
-  }
-
-  #Get all installations  ********************************************
-  #$Storage->{debug}=1;
-  #my $list5 = $Storage->storage_installation_list({
-  #											DISTRICTS => $attr->{DISTRICT_ID}
-  #												});
-  #
-  #my %INSTALLATIONS_INFO = ();
-  #
-  #foreach my $line5 ( @$list5 ) {
-  #  push @{ $INSTALLATIONS_INFO{$line5->[2]} }, {
-  # 		LOCATION_ID	=> $line5->[2],
-  #  		NAME     	=> $line5->[9],
-  #    	COUNT 		=> $line5->[6],
-  #    	SUM 		=> $line5-> [22] } ;
-  # }
-
-  #Get builds (javascript)  **********************************
-
-  #$users->{debug}=1;
-
-  $list = $Maps->build_list({ SHOW_MAPS_GOOGLE => 1, PAGE_ROWS => '10000' });
-
-=======
   foreach my $line (@$list) {     
     #print $line;
     push @{ $USERS_INFO{ $line->{build_id} } }, $line;
@@ -1308,29 +1207,16 @@ sub google_maps_show {
     
     
     #d($list);
->>>>>>> e3d825c6722076a995ef7adfc8d9bbe8ac01bd12
   my $count_online = 0;
   my $total_count  = 0;
 
   foreach my $line (@$list) {
-<<<<<<< HEAD
-
-    #print "//////////$line->[6]<br />";
-    my $user_info   = '';
-    my $user_online = '';
-
-    #print "$line->[7] ///";
-
-    if ($USERS_INFO{ $line->[6] }) {
-      LINE: foreach my $u (@{ $USERS_INFO{ $line->[6] } }) {
-=======
     my $user_info   = '';
     my $user_online = '';
     
     if ($USERS_INFO{ $line->{id} }) {
       
       LINE: foreach my $u (@{ $USERS_INFO{ $line->{id} } }) {
->>>>>>> e3d825c6722076a995ef7adfc8d9bbe8ac01bd12
 
         if ($u->{ADDRESS_FLAT} ne '') {
           $flat = "$u->{ADDRESS_FLAT}";
@@ -1338,27 +1224,6 @@ sub google_maps_show {
         else {
           $flat = '';
         }
-<<<<<<< HEAD
-    	if($u->{DEPOSIT} < 0) {
-    			$u->{DEPOSIT} = "<span class=red_text>" . $u->{DEPOSIT} . "</span>";
-    	}
-    	elsif($u->{DEPOSIT} == 0) {
-    		$u->{DEPOSIT} = "<span class=black_text>" . $u->{DEPOSIT} . "</span>";
-    	}
-    	else {
-    		$u->{DEPOSIT} = "<span class=green_text>" . $u->{DEPOSIT} . "</span>";
-    	}
-    	
-
-
-        if (!$admin->{MAX_ROWS} || $admin->{MAX_ROWS} > $total_count) {
-
-        	
-        	
-          $user_info .= "<tr align=center><td><a class=user_list href=$SELF_URL?index=11&UID=$u->{UID}>$u->{LOGIN}</a></td><td>$u->{DEPOSIT}</td><td>$flat</td></tr>";
-          $total_count++;
-        }
-=======
       
         if($u->{DEPOSIT} < 0) {
           $u->{DEPOSIT} = "<span class=red_text>" . $u->{DEPOSIT} . "</span>";
@@ -1376,7 +1241,6 @@ sub google_maps_show {
           $user_info .= "<tr align=center><td><a class=user_list href=$SELF_URL?index=11&UID=$u->{UID}>$u->{LOGIN}</a></td><td>$u->{DEPOSIT}</td><td>$flat</td></tr>";
           $total_count++;
         #}
->>>>>>> e3d825c6722076a995ef7adfc8d9bbe8ac01bd12
 
         #$user_info .= "<strong><a href=$SELF_URL?index=11&UID=$u->{UID}>$u->{LOGIN}</a></strong> $_FLAT: $u->{ADDRESS_FLAT} $_DEPOSIT: $u->{DEPOSIT}<br>";
         if ($USERS_ONLINE{ $u->{UID} }) {
@@ -1386,19 +1250,11 @@ sub google_maps_show {
           }
 
         }
-<<<<<<< HEAD
-        if ($INSTALLATIONS_INFO{ $line->[6] }) {
-          foreach my $install (@{ $INSTALLATIONS_INFO{ $line->[6] } }) {
-            $install_info .= "$install->{NAME} $install->{COUNT}";
-          }
-        }
-=======
 #        if ($INSTALLATIONS_INFO{ $line->[6] }) {
 #          foreach my $install (@{ $INSTALLATIONS_INFO{ $line->[6] } }) {
 #            $install_info .= "$install->{NAME} $install->{COUNT}";
 #          }
 #        }
->>>>>>> e3d825c6722076a995ef7adfc8d9bbe8ac01bd12
 
       }
     }
@@ -1408,38 +1264,22 @@ sub google_maps_show {
       $install_info = "";
     }
 
-<<<<<<< HEAD
-    $count_offline = $#{ $USERS_INFO{ $line->[6] } } + 1;
-=======
     $count_offline = $#{ $USERS_INFO{ $line->{id} } } + 1;
->>>>>>> e3d825c6722076a995ef7adfc8d9bbe8ac01bd12
 
     #***********************************************************
     # template 	(maps_location_info)   +++DISTRICT_ID => $attr->{DISTRICT_ID},
     #***********************************************************
-<<<<<<< HEAD
-  %ufilter = $html->getCookies();
-=======
   #%ufilter = $html->getCookies();
->>>>>>> e3d825c6722076a995ef7adfc8d9bbe8ac01bd12
  
   if($count_online > 0) {
     $sub_online = 1;
   }
   
-<<<<<<< HEAD
-  if($ufilter{UFILTER} eq 'online') {
-    $user_info = '';
-    $count_offline = ''
-  }
-  elsif($ufilter{UFILTER} eq 'offline') {
-=======
   if($FORM{UFILTER} == 1) {
     $user_info = '';
     $count_offline = ''
   }
   elsif($FORM{UFILTER} == 2) {
->>>>>>> e3d825c6722076a995ef7adfc8d9bbe8ac01bd12
     $count_online = '';
     $user_online = '';
   } 
@@ -1448,35 +1288,16 @@ sub google_maps_show {
     $tpl_obj .= $html->tpl_show(
       _include('google_location_info', 'Maps'),
       {
-<<<<<<< HEAD
-        STREET_ID          => $line->[4],
-        NUMBER             => $line->[0],
-        MAP_X              => $line->[7],
-        MAP_Y              => $line->[8],
-        MAP_X2             => $line->[9],
-        MAP_Y2             => $line->[10],
-        MAP_X3             => $line->[11],
-        MAP_Y3             => $line->[12],
-        MAP_X4             => $line->[13],
-        MAP_Y4             => $line->[14],
-=======
         STREET_ID          => $line->{street_name},
         NUMBER             => $line->{number},
         MAP_X              => $line->{coordx},
         MAP_Y              => $line->{coordy},
->>>>>>> e3d825c6722076a995ef7adfc8d9bbe8ac01bd12
         USER_OFFLINE       => $user_info,
         USERS_ONLINE       => $user_online,
         USER_COUNT_OFFLINE => $count_offline,
         USER_COUNT_ONLINE  => $count_online,
-<<<<<<< HEAD
-        SUB_ONLINE         => $sub_online, 
-
-        #INSTALL_INFO  => $install_info
-=======
         SUB_ONLINE         => $sub_online,
         BUILD_ID           => $line->{id}
->>>>>>> e3d825c6722076a995ef7adfc8d9bbe8ac01bd12
 
       },
       { OUTPUT2RETURN => 1 }
@@ -1486,13 +1307,8 @@ sub google_maps_show {
 
     # Template switch info and param  ***************************
 
-<<<<<<< HEAD
-    if ($NAS_INFO{ $line->[7] }) {
-      foreach my $nas (@{ $NAS_INFO{ $line->[7] } }) {
-=======
     if ($NAS_INFO{ $line->{coordx} }) {
       foreach my $nas (@{ $NAS_INFO{ $line->{coordx} } }) {
->>>>>>> e3d825c6722076a995ef7adfc8d9bbe8ac01bd12
         $nas_info .=
 "<strong style=font-size:9px; color:green;>$_NAS:</strong><br /><br /><strong>IP:</strong> $nas->{IP}<br /><strong>$_NAME:</strong> $nas->{NAS_NAME}<br /><strong>$_TYPE:</strong> $nas->{NAS_TYPE}<br />";
       }
@@ -1500,21 +1316,12 @@ sub google_maps_show {
       $tpl_obj_nas .= $html->tpl_show(
         _include('google_nas_info', 'Maps'),
         {
-<<<<<<< HEAD
-          MAP_NAS_X  => $line->[7] + 0.0001,
-          MAP_NAS_Y  => $line->[8] + 0.0001,
-          MAP_NAS_X2 => $line->[7] - 9,
-          MAP_NAS_Y2 => $line->[8] - 12,
-          MAP_NAS_X3 => $line->[7] + 9,
-          MAP_NAS_Y3 => $line->[8] - 12,
-=======
           MAP_NAS_X  => $line->{coordx} + 0.0001,
           MAP_NAS_Y  => $line->{coordy} + 0.0001,
           MAP_NAS_X2 => $line->{coordx} - 9,
           MAP_NAS_Y2 => $line->{coordy} - 12,
           MAP_NAS_X3 => $line->{coordx} + 9,
           MAP_NAS_Y3 => $line->{coordy} - 12,
->>>>>>> e3d825c6722076a995ef7adfc8d9bbe8ac01bd12
           NAS_INFO   => $nas_info
         },
         { OUTPUT2RETURN => 1 }
@@ -1527,24 +1334,6 @@ sub google_maps_show {
   #***********************************************************
   # template 	(maps_show_map)
   #***********************************************************
-<<<<<<< HEAD
-  #$users->{debug}=1;
-  $list = $Maps->districts_list({});
-
-  #print $list->[0]->[6];
-  my $district = '<table>';
-  foreach my $line (@$list) {
-    if ($line->[7] == 0) {
-      next;
-    }
-    $deldistrict = (defined($permissions{0}{5})) ? $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[1]?", CLASS => "del" }) : '';
-    $district .=
-      "<tr><td><a style=\"text-decoration:none; font-weight:bold; color:black; \" href=javascript:chgposition("
-    . $line->[5] . ','
-    . $line->[6] . ','
-    . $line->[7]
-    . ")>$line->[1]</a></td><td>"
-=======
 
   $list = $Maps->districts_list({ COLS_NAME   => 1, });
   my $district = '<table>';
@@ -1559,19 +1348,11 @@ sub google_maps_show {
     . $line->{coordy} . ','
     . $line->{zoom}
     . ")>$line->{name}</a></td><td>"
->>>>>>> e3d825c6722076a995ef7adfc8d9bbe8ac01bd12
     . $deldistrict
     . '</td></tr>';
 
   }
   $district .= '</table>';
-<<<<<<< HEAD
-
-  if (defined($list->[0]->[6]) and defined($list->[0]->[7])) {
-
-    $mapsetcenter = $list->[0]->[5] . ', ' . $list->[0]->[6] . ', ' . $list->[0]->[7];
-
-=======
   
   if($FORM{show_build}) {
     
@@ -1597,7 +1378,6 @@ sub google_maps_show {
   
   elsif (defined($list->[0]->{coordy}) and defined($list->[0]->{zoom})) {
     $mapsetcenter = $list->[0]->{coordx} . ', ' . $list->[0]->{coordy} . ', ' . $list->[0]->{zoom};
->>>>>>> e3d825c6722076a995ef7adfc8d9bbe8ac01bd12
   }
   else {
     $mapsetcenter = '';
@@ -1658,13 +1438,7 @@ sub google_maps_show {
 			     	radius: $wifi->[1]
 			     });
      			circle.bindTo('center', createMarker(latlng, '<strong>$_WIFI_RADIUS</strong>: $wifi->[1]$_METERS_SHORT', 'wifi' , 'WiFi'), 'position');
-<<<<<<< HEAD
-	        
-	        
-	        
-=======
 
->>>>>>> e3d825c6722076a995ef7adfc8d9bbe8ac01bd12
 	        ";
     }
   }
@@ -1686,8 +1460,6 @@ sub google_maps_show {
     } else {
     	$map_api_key = '';
     }  
-<<<<<<< HEAD
-=======
 
     $user_filter = $html->form_select("UFILTER", {
       SELECTED     => $FORM{UFILTER} || 0,
@@ -1695,7 +1467,6 @@ sub google_maps_show {
       ARRAY_NUM_ID => 0,
       NO_ID        => 1
     });
->>>>>>> e3d825c6722076a995ef7adfc8d9bbe8ac01bd12
   
 
   $html->tpl_show(
@@ -1712,14 +1483,10 @@ sub google_maps_show {
       ROUTES       => $routes_show,
       WIFI         => $wifi_info,
       WELL         => $well_info,
-<<<<<<< HEAD
-      MAP_API_KEY  => $map_api_key
-=======
       MAP_API_KEY  => $map_api_key,
       SHOW_BUILD   => $show_build,
       GROUP_SEL    => sel_groups(),
       UFILTER      => $user_filter,
->>>>>>> e3d825c6722076a995ef7adfc8d9bbe8ac01bd12
     }
   );
 
@@ -1810,8 +1577,6 @@ sub google_maps_show_client {
   return $return;
 }
 
-<<<<<<< HEAD
-=======
 sub d {
   my ($attr) = @_;
   
@@ -1823,5 +1588,4 @@ sub d {
 }
 
 
->>>>>>> e3d825c6722076a995ef7adfc8d9bbe8ac01bd12
 1

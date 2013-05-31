@@ -527,11 +527,7 @@ sub dv_user {
         return 0;
       }
     }
-<<<<<<< HEAD
-    
-=======
 
->>>>>>> e3d825c6722076a995ef7adfc8d9bbe8ac01bd12
     $Dv->change({%FORM});
 
     if ($FORM{STATUS} == 0) {
@@ -891,14 +887,11 @@ sub dv_get_static_ip {
   my $ip = '0.0.0.0';
 
   $Nas->ip_pools_info($pool_id);
-<<<<<<< HEAD
-=======
   
   if($Nas->{errno}) {
   	$html->message('err', $_ERROR, "[$Nas->{errno}] $err_strs{$Nas->{errno}} $Nas->{errstr}");
   	return '0.0.0.0';
   }
->>>>>>> e3d825c6722076a995ef7adfc8d9bbe8ac01bd12
 
   my $start_ip = ip2int($Nas->{NAS_IP_SIP});
   my $end_ip   = $start_ip + $Nas->{NAS_IP_COUNT};
@@ -909,21 +902,13 @@ sub dv_get_static_ip {
     {
       PAGE_ROWS => 100000,
       IP        => ">=$Nas->{NAS_IP_SIP}",
-<<<<<<< HEAD
-      SKIP_GID  => 1
-=======
       SKIP_GID  => 1,
       COLS_NAME => 1
->>>>>>> e3d825c6722076a995ef7adfc8d9bbe8ac01bd12
     }
   );
 
   foreach my $line (@$list) {
-<<<<<<< HEAD
-    $users_ips{ $line->[6] } = 1;
-=======
     $users_ips{ $line->{ip} } = 1;
->>>>>>> e3d825c6722076a995ef7adfc8d9bbe8ac01bd12
   }
 
   for (my $ip_cur = $start_ip ; $ip_cur <= $end_ip ; $ip_cur++) {
@@ -3959,11 +3944,7 @@ sub dv_user_chg_tp {
         CHANGE_PRICE => '<=' . ($user->{DEPOSIT} + $user->{CREDIT}),
         MODULE       => 'Dv',
         PRIORITY     => $Dv->{TP_PRIORITY},
-<<<<<<< HEAD
-        COMMENTS     => '*',
-=======
         COMMENTS     => '_SHOW',
->>>>>>> e3d825c6722076a995ef7adfc8d9bbe8ac01bd12
         COLS_NAME    => 1,
         DOMAIN_ID    => $user->{DOMAIN_ID}
       }

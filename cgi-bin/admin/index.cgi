@@ -1663,7 +1663,7 @@ sub form_groups {
   elsif (defined($FORM{del}) && $FORM{is_js_confirmed} && $permissions{0}{5}) {
     $users->list({ GID => $FORM{del} });
 
-    if ($users->{TOTAL} > 0) {
+    if ($users->{TOTAL} > 0 && $FORM{del} > 0) {
       $html->message('info', $_DELETED, "$_USER_EXIST.");
     }
     else {
@@ -8961,11 +8961,7 @@ sub form_districts {
       cols_align => [ 'right', 'left', 'left', 'left', 'left', 'right', 'right', 'center', 'center' ],
       ID         => 'DISTRICTS_LIST',
       EXPORT     => 1,
-<<<<<<< HEAD
-      MENU       => "$_ADD:index=$index&add_form=1:add",      
-=======
       MENU       => "$_ADD:index=$index&add_form=1:add",
->>>>>>> e3d825c6722076a995ef7adfc8d9bbe8ac01bd12
     }
   );
 

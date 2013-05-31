@@ -655,11 +655,7 @@ sub list {
   my $WHERE =  $self->search_former($attr, [
         [ 'TP_GID',          'INT', 'tp.gid'            ],
         [ 'TP_ID',           'INT', 'tp.id'             ],
-<<<<<<< HEAD
-        [ 'COMMENTS',        'STR', 'tp.comments'       ],
-=======
         [ 'COMMENTS',        'STR', 'tp.comments',     1],
->>>>>>> e3d825c6722076a995ef7adfc8d9bbe8ac01bd12
         [ 'MODULE',          'STR', 'tp.module'         ],
         [ 'MIN_USE',         'INT', 'tp.min_use'        ],
         [ 'DOMAIN_ID',       'INT', 'tp.domain_id'      ],

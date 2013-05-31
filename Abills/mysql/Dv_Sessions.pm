@@ -277,11 +277,7 @@ sub online {
   }
 
 
-<<<<<<< HEAD
-  $EXT_TABLE .= $self->{EXT_TABLES};
-=======
   $EXT_TABLE .= $self->{EXT_TABLES} if ($self->{EXT_TABLES});
->>>>>>> e3d825c6722076a995ef7adfc8d9bbe8ac01bd12
   
   delete $self->{COL_NAMES_ARR};
 

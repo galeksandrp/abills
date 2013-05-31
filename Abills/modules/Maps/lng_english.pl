@@ -33,9 +33,5 @@ $_METERS_SHORT = 'm.';
 $_FIELDS_FOR_RADIUS_ARE_REQUIRED = 'Fields for radius are required';
 $_ADD_WELL = 'Add well';
 $_ONLY_ONLINE = 'Only online';
-<<<<<<< HEAD
-$_ONLY_OFFLINE = 'Only offline'; 
-=======
 $_ONLY_OFFLINE = 'Only offline'; 
 $_BUILD_NOT_FOUND = 'Build is not added to the map';
->>>>>>> e3d825c6722076a995ef7adfc8d9bbe8ac01bd12
