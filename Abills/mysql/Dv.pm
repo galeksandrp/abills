@@ -546,7 +546,6 @@ sub list {
      LEFT JOIN dv_calls c ON (c.uid=dv.uid) ";  	
   }
 
-
   $self->query2("SELECT u.id AS login, 
       $self->{SEARCH_FIELDS}
       u.uid, 

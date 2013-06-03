@@ -955,7 +955,7 @@ sub search_expr_users () {
     $self->{EXT_TABLES} .= "LEFT JOIN admin_actions aa ON (u.uid=aa.uid)" if ($self->{EXT_TABLES} !~ /admin_actions/);
   }
 
-  if ($attr->{DEPOSIT}) {
+  if ($attr->{DEPOSIT} || $attr->{BILL_ID}) {
     $self->{EXT_TABLES} .= " LEFT JOIN bills b ON (u.bill_id = b.id)
       LEFT JOIN companies company ON  (u.company_id=company.id) 
       LEFT JOIN bills cb ON (company.bill_id=cb.id) ";

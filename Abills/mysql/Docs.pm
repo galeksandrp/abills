@@ -478,7 +478,6 @@ sub invoices_list {
       ['DOC_ID',         'INT', 'd.invoice_num'                      ],
       ['SUM',            'INT', 'o.price * o.counts'                 ],
       ['REPRESENTATIVE', 'STR', 'company.representative',          1 ],
-      #['UID',            'INT', 'p.uid'                             ],
       ['PAYMENT_METHOD', 'INT', 'p.method AS payment_method',      1 ],
       ['PAYMENT_ID',     'INT', 'd.payment_id',                      ],
       ['EXT_ID',         'INT', 'p.ext_id',                        1 ],
@@ -488,14 +487,14 @@ sub invoices_list {
       ['EXCHANGE_RATE',  'INT', 'd.exchange_rate',                 1 ],
       ['CURRENCY',       'INT', 'd.currency',                      1 ],
       ['COMPANY_ID',     'INT', 'u.company_id',                    1 ],
-      ['BILL_ID',        'INT', 'if(u.company_id > 0, company.bill_id, u.bill_id) AS bill_id', 1 ],
       ['DOCS_DEPOSIT',   'INT', 'd.deposit',  'd.deposit AS docs_deposit' ],
       ['CONTRACT_ID',    'INT', 'if(u.company_id=0, concat(pi.contract_sufix,pi.contract_id), concat(company.contract_sufix,company.contract_id)) AS contract_id', 1], 
       ['GID',             'INT', 'g.gid',                     'g.name AS group_name'],
       ['DATE',           'DATE', "date_format(d.date, '%Y-%m-%d')"   ],
       ['FROM_DATE|TO_DATE','DATE', "date_format(d.date, '%Y-%m-%d')" ],
       ['FULL_INFO',      '',    '', "pi.address_street, pi.address_build, pi.address_flat, if (d.phone<>0, d.phone, pi.phone) AS phone,
-   pi.contract_id, pi.contract_date,  if(u.company_id > 0, company.bill_id, u.bill_id) AS bill_id,  pi.email,  pi.fio" ]
+   pi.contract_id, pi.contract_date,  if(u.company_id > 0, company.bill_id, u.bill_id) AS bill_id,  pi.email,  pi.fio" ],
+      ['UID',            'INT', 'd.uid',                           1 ],
     ],
     { WHERE       => 1,
     	WHERE_RULES => \@WHERE_RULES,
@@ -504,6 +503,10 @@ sub invoices_list {
     );
 
   my $EXT_TABLES  = $self->{EXT_TABLES};
+
+  if ($attr->{BILL_ID} && $EXT_TABLES !~ /bills/) {
+    $EXT_TABLES .= "  ";
+  }
 
   $self->query2("SELECT d.invoice_num, 
      d.date, 
@@ -520,7 +523,6 @@ sub invoices_list {
     LEFT JOIN admins a ON (d.aid=a.aid)
     LEFT JOIN users_pi pi ON (pi.uid=u.uid)
     LEFT JOIN groups g ON (g.gid=u.gid)
-    LEFT JOIN companies company ON (u.company_id=company.id)
     LEFT JOIN docs_invoice2payments i2p ON (d.id=i2p.invoice_id)
     LEFT JOIN payments p ON (i2p.payment_id=p.id)
     $EXT_TABLES

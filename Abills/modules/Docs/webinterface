@@ -1189,7 +1189,9 @@ sub docs_invoices_list {
         currency       => "$_ATL $_CURRENCY",
         alt_sum        => "$_ALT $_SUM",
         exchange_rate  => "$_EXCHANGE_RATE",
-        payment_sum    => "$_PAYMENTS"
+        payment_sum    => "$_PAYMENTS",
+        docs_deposit   => "$_OPERATION_DEPOSIT",
+        deposit        => "$_CURRENT_DEPOSIT"
      },
      TABLE           => {
        width      => '100%',
@@ -1231,6 +1233,9 @@ sub docs_invoices_list {
 
       if ($field_name eq 'date') {
       	$val = $html->button("$invoice->{date}", "qindex=$index&print=$invoice->{id}&UID=$invoice->{uid}$pages_qs" . (($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : ''). (($users->{DOMAIN_ID}) ? "&DOMAIN_ID=$users->{DOMAIN_ID}" : ''), { ex_params => 'target=_new' }),
+      }
+      elsif($field_name eq 'login_status') {
+        $val = ($line->{$field_name} > 0) ? $html->color_mark($service_status[ $invoice->{$field_name} ], $service_status_colors[ $invoice->{$field_name} ]) : $service_status[$invoice->{$field_name}];
       }
       elsif($field_name eq 'payment_sum') {
         my $invoice_sum = $invoice->{total_sum};
