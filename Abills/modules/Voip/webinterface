@@ -918,11 +918,11 @@ sub voip_tp {
         CONTENT => $html->form_select(
           'TP_ID',
           {
-            SELECTED   => $FORM{TP_ID},
-            SEL_LIST   => $Voip->tp_list({%LIST_PARAMS, COLS_NAME => 1 }),
-            LIST_KEY   => 'tp_id',
-            LIST_VALUE => 'id,name',
-            NO_ID      => 1
+            SELECTED  => $FORM{TP_ID},
+            SEL_LIST  => $Voip->tp_list({%LIST_PARAMS, COLS_NAME => 1 }),
+            SEL_KEY   => 'tp_id',
+            SEL_VALUE => 'id,name',
+            NO_ID     => 1
           }
         ),
         HIDDEN => { index => "$index" },
@@ -936,7 +936,7 @@ sub voip_tp {
         $_NAME => $Voip_tp->{NAME_SEL}
       },
       {
-        $_INFO => ":TP_ID=$Voip_tp->{TP_ID}",
+        $_INFO          => ":TP_ID=$Voip_tp->{TP_ID}",
         $_USERS         => get_function_index('voip_users_list').":TP_ID=$Voip_tp->{TP_ID}",
         $_INTERVALS     => get_function_index('voip_intervals').":TP_ID=$Voip_tp->{TP_ID}",
         #$_NAS           => "18:TP_ID=$Voip_tp->{TP_ID}"

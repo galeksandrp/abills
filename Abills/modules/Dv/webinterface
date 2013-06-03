@@ -969,11 +969,11 @@ sub dv_tp {
         CONTENT => $html->form_select(
           'TP_ID',
           {
-            SELECTED          => $FORM{TP_ID},
-            SEL_MULTI_ARRAY   => $tariffs->list({%LIST_PARAMS}),
-            MULTI_ARRAY_KEY   => 18,
-            MULTI_ARRAY_VALUE => '0,1',
-            NO_ID             => 1
+            SELECTED  => $FORM{TP_ID},
+            SEL_LIST  => $tariffs->list({%LIST_PARAMS, COLS_NAME => 1 }),
+            SEL_KEY   => 'name',
+            SEL_VALUE => 'id,name',
+            NO_ID     => 1
           }
         ),
         HIDDEN => { index => "$index" },

@@ -127,7 +127,7 @@ sub dv_auth {
 
   if ($self->{errno}) {
     if($self->{errno} == 2) {
-    	$RAD_PAIRS->{'Reply-Message'} = "Service not allow";
+      $RAD_PAIRS->{'Reply-Message'} = "Service not allow";
     }
     else {
       $RAD_PAIRS->{'Reply-Message'} = 'SQL error';
@@ -208,7 +208,7 @@ sub dv_auth {
 
       if ($self->{errno}) {
         if($self->{errno} == 2) {
-        	$RAD_PAIRS->{'Reply-Message'} = "Service not allow";
+          $RAD_PAIRS->{'Reply-Message'} = "Service not allow";
         }
         else {
           $RAD_PAIRS->{'Reply-Message'} = 'SQL error';
@@ -251,10 +251,10 @@ sub dv_auth {
   my $pppoe_pluse = ''; 
   my $ignore_cid  = 0;
   if ($CONF->{DV_PPPOE_PLUSE_PARAM} && $RAD->{$CONF->{DV_PPPOE_PLUSE_PARAM}}) {
-  	$pppoe_pluse = $RAD->{$CONF->{DV_PPPOE_PLUSE_PARAM}} ;
-  	if ($self->{PORT} && $self->{PORT} !~ /any/i) {
-  		$ignore_cid  = 1;
-  	}
+    $pppoe_pluse = $RAD->{$CONF->{DV_PPPOE_PLUSE_PARAM}} ;
+    if ($self->{PORT} && $self->{PORT} !~ /any/i) {
+      $ignore_cid  = 1;
+    }
     elsif (! $self->{PORT}) {
       $self->query2("UPDATE dv_main SET port='$RAD->{$CONF->{DV_PPPOE_PLUSE_PARAM}}' WHERE uid='$self->{UID}';", 'do');
       $self->{PORT}=$RAD->{$CONF->{DV_PPPOE_PLUSE_PARAM}};
@@ -499,11 +499,11 @@ sub dv_auth {
   if ($self->{IP} ne '0') {
     $RAD_PAIRS->{'Framed-IP-Address'} = "$self->{IP}";
     if (! $self->{REASSIGN}) {
-     	$self->online_add({ %$attr, 
-    		                  NAS_ID            => $NAS->{NAS_ID},
-    		                  FRAMED_IP_ADDRESS => "INET_ATON('$self->{IP}')",
-    		                  NAS_IP_ADDRESS    => $RAD->{NAS_IP_ADDRESS},
-    		                });    	
+      $self->online_add({ %$attr, 
+                          NAS_ID            => $NAS->{NAS_ID},
+                          FRAMED_IP_ADDRESS => "INET_ATON('$self->{IP}')",
+                          NAS_IP_ADDRESS    => $RAD->{NAS_IP_ADDRESS},
+                        });
     }
     delete $self->{REASSIGN};
   }
@@ -544,7 +544,7 @@ sub dv_auth {
         }
       }
       else {
- 	      $self->query2("SELECT tt.id, tc.nets, in_speed, out_speed
+         $self->query2("SELECT tt.id, tc.nets, in_speed, out_speed
              FROM trafic_tarifs tt
              LEFT JOIN traffic_classes tc ON (tt.net_id=tc.id)
              WHERE tt.interval_id='$self->{TT_INTERVAL}' ORDER BY 1 DESC;"
@@ -1057,7 +1057,7 @@ sub authentication {
   }
   if ($self->{errno}) {
     if($self->{errno} == 2) {
-    	$RAD_PAIRS{'Reply-Message'} = "Login Not Exist or Expire";
+      $RAD_PAIRS{'Reply-Message'} = "Login Not Exist or Expire";
     }
     else {
       $RAD_PAIRS{'Reply-Message'} = 'SQL error';
@@ -1519,11 +1519,11 @@ sub get_ip {
   if ($assign_ip) {
     # Make reserv ip
     if (! $attr->{SKIP_RESERV}) {
-    	$self->online_add({ %$attr, 
-    		                  NAS_ID            => $nas_num,
-    		                  FRAMED_IP_ADDRESS => $assign_ip,
-    		                  NAS_IP_ADDRESS    => $nas_ip
-    		                });
+      $self->online_add({ %$attr, 
+                          NAS_ID            => $nas_num,
+                          FRAMED_IP_ADDRESS => $assign_ip,
+                          NAS_IP_ADDRESS    => $nas_ip
+                        });
     }
    
     $self->{db}->do('unlock tables');
@@ -1551,34 +1551,34 @@ sub get_ip {
 #
 #*******************************************************************
 sub online_add {
-	my $self=shift;
-	my ($attr)=@_;
-	
-	my %insert_hash = (
-    	 user_name       => $self->{USER_NAME}, 
-    	 uid             => $self->{UID}, 
-    	 nas_id          => $attr->{NAS_ID}, 
-    	 tp_id           => $self->{TP_NUM}, 
-    	 join_service    => $self->{JOIN_SERVICE}, 
-    	 guest           => $attr->{GUEST},
-    	 CID             => $attr->{CID}, 
-    	 CONNECT_INFO    => $attr->{CONNECT_INFO},
-    	 #nas_ip_address  => $attr->{NAS_IP_ADDRESS},
-    	 framed_ip_address => $attr->{FRAMED_IP_ADDRESS}
+  my $self=shift;
+  my ($attr)=@_;
+
+  my %insert_hash = (
+       user_name       => $self->{USER_NAME}, 
+       uid             => $self->{UID}, 
+       nas_id          => $attr->{NAS_ID}, 
+       tp_id           => $self->{TP_NUM}, 
+       join_service    => $self->{JOIN_SERVICE}, 
+       guest           => $attr->{GUEST},
+       CID             => $attr->{CID}, 
+       CONNECT_INFO    => $attr->{CONNECT_INFO},
+       #nas_ip_address  => $attr->{NAS_IP_ADDRESS},
+       framed_ip_address => $attr->{FRAMED_IP_ADDRESS}
   );
 
   my $sql = "INSERT INTO dv_calls SET started=now(),
-    	 status          = '11',
-    	 acct_session_id = 'IP',
-    	 nas_ip_address  = INET_ATON('$attr->{NAS_IP_ADDRESS}')";
+       status          = '11',
+       acct_session_id = 'IP',
+       nas_ip_address  = INET_ATON('$attr->{NAS_IP_ADDRESS}')";
 
   while(my ($k, $v) = each %insert_hash) {
-  	if($k eq 'framed_ip_address' && $v) {
-  		$sql .= ", $k=$v";
-  	}
-  	elsif ($v) {
-  	  $sql .= ", $k='$v'";
-  	}
+    if($k eq 'framed_ip_address' && $v) {
+      $sql .= ", $k=$v";
+    }
+    elsif ($v) {
+      $sql .= ", $k='$v'";
+    }
   }
 
   $self->query2($sql, 'do');
@@ -1738,12 +1738,12 @@ sub neg_deposit_filter_former () {
     if ($self->{IP} ne '0' && !$self->{NEG_DEPOSIT_IP_POOL}) {
       $RAD_PAIRS->{'Framed-IP-Address'} = "$self->{IP}";
 
-     	$self->online_add({ %$attr, 
-    		                  NAS_ID            => $NAS->{NAS_ID},
-    		                  FRAMED_IP_ADDRESS => "INET_ATON('$self->{IP}')",
-    		                  NAS_IP_ADDRESS    => $RAD->{NAS_IP_ADDRESS},
-    		                  GUEST             => 1
-    		                });
+      $self->online_add({ %$attr, 
+                          NAS_ID            => $NAS->{NAS_ID},
+                          FRAMED_IP_ADDRESS => "INET_ATON('$self->{IP}')",
+                          NAS_IP_ADDRESS    => $RAD->{NAS_IP_ADDRESS},
+                          GUEST             => 1
+                        });
     }
     else {
       my $ip = $self->get_ip($NAS->{NAS_ID}, "$RAD->{NAS_IP_ADDRESS}", { TP_IPPOOL => $self->{NEG_DEPOSIT_IP_POOL} || $self->{TP_IPPOOL}, GUEST => 1 });
@@ -1754,12 +1754,12 @@ sub neg_deposit_filter_former () {
       elsif ($ip eq '0') {
         #$RAD_PAIRS->{'Reply-Message'}="$self->{errstr} ($NAS->{NAS_ID})";
         #return 1, $RAD_PAIRS;
-     	  $self->online_add({ %$attr, 
-    		                  NAS_ID            => $NAS->{NAS_ID},
-    		                  FRAMED_IP_ADDRESS => "INET_ATON('$self->{IP}')",
-    		                  NAS_IP_ADDRESS    => $RAD->{NAS_IP_ADDRESS},
-    		                  GUEST             => 1
-    		                 });
+        $self->online_add({ %$attr, 
+                          NAS_ID            => $NAS->{NAS_ID},
+                          FRAMED_IP_ADDRESS => "INET_ATON('$self->{IP}')",
+                          NAS_IP_ADDRESS    => $RAD->{NAS_IP_ADDRESS},
+                          GUEST             => 1
+                         });
       }
       else {
         $RAD_PAIRS->{'Framed-IP-Address'} = "$ip";

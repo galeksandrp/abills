@@ -504,7 +504,7 @@ sub check_lines {
           print "Skip with neg deposit filter '$Billing->{NEG_DEPOSIT_FILTER}'\n" if ($debug > 1);
         }
         else {
-         session_hangup($nas, $online, "DEPOSIT: $online->{deposit} CREDIT: $online->{credit} SESSION_SUM: $Billing->{SUM} SESSION_ID: $online->{acct_session_id}");
+         session_hangup($nas, $online, "DEPOSIT: $online->{deposit} CREDIT: $online->{credit} SESSION_SUM: $Billing->{SUM} SESSION_ID: $online->{acct_session_id} GUEST: $online->{guest}");
         }
       }
       elsif($online->{guest} && $online->{deposit} + $online->{credit} > 0 && $state == 0) {
