@@ -771,14 +771,15 @@ sub postpaid_invoices {
     {
       INTERVAL => "$Y-$m-01/$DATE",
       METHODS  => 1,
-      TYPE     => 'USERS'
+      TYPE     => 'USERS',
+      COLS_NAME=> 1
     }
   );
 
   # UID / SUM
   my %FEES_LIST_HASH = ();
   foreach my $line (@$fees_list) {
-    $FEES_LIST_HASH{ $line->[4] } = $line->[3];
+    $FEES_LIST_HASH{ $line->{uid} } = $line->{sum};
   }
 
   #Users info
@@ -797,17 +798,20 @@ sub postpaid_invoices {
   $Users->{debug} = 1 if ($debug > 6);
   my $list = $Users->list(
     {
+      FIO            => '_SHOW',
+      LOGIN_STATUS   => '_SHOW',
       DEPOSIT        => '<0',
       DISABLE        => 0,
-      CONTRACT_ID    => '*',
-      CONTRACT_DATE  => '>=0000-00-00',
-      ADDRESS_STREET => '*',
-      ADDRESS_BUILD  => '*',
-      ADDRESS_FLAT   => '*',
+      CONTRACT_ID    => '_SHOW',
+      CONTRACT_DATE  => '_SHOW',
+      ADDRESS_STREET => '_SHOW',
+      ADDRESS_BUILD  => '_SHOW',
+      ADDRESS_FLAT   => '_SHOW',
 
-      PAGE_ROWS => 1000000,
+      PAGE_ROWS      => 1000000,
       %INFO_FIELDS_SEARCH,
-      SORT => $sort
+      SORT           => $sort,
+      COLS_NAME      => 1
     }
   );
 
@@ -829,38 +833,38 @@ sub postpaid_invoices {
 
     my $full_address = '';
 
-    if ($ARGV->{ADDRESS2} && $line->[ $Users->{SEARCH_FIELDS_COUNT} + 4 - 2 ]) {
-      $full_address = $line->[ $Users->{SEARCH_FIELDS_COUNT} + 4 - 2 ] || '';
-      $full_address .= ' ' . $line->[ $Users->{SEARCH_FIELDS_COUNT} + 4 - 1 ] || '';
-      $full_address .= '/' . $line->[ $Users->{SEARCH_FIELDS_COUNT} + 4 ] || '';
+    if ($ARGV->{ADDRESS2}) {
+      $full_address = $line->{address_stret2} || '';
+      $full_address .= ' ' . $line->{address_build2} || '';
+      $full_address .= '/' . $line->{asddress_flat2} || '';
     }
     else {
-      $full_address = $line->[ 5 + $ext_bill ] || '';    #/ B: $line->[6] / f: $line->[7]";
-      $full_address .= ' ' . $line->[ 6 + $ext_bill ] || '';
-      $full_address .= '/' . $line->[ 7 + $ext_bill ] || '';
+      $full_address = $line->{address_stret} || '';
+      $full_address .= ' ' . $line->{address_build} || '';
+      $full_address .= '/' . $line->{asddress_flat} || '';
     }
 
-    my $month_fee = ($FEES_LIST_HASH{ $line->[ $Users->{SEARCH_FIELDS_COUNT} + 5 ] }) ? $FEES_LIST_HASH{ $line->[ $Users->{SEARCH_FIELDS_COUNT} + 5 ] } : '0.00';
+    my $month_fee = ($FEES_LIST_HASH{ $line->{uid} }) ? $FEES_LIST_HASH{ $line->{uid} } : '0.00';
 
     push @MULTI_ARR, {
-      LOGIN               => $line->[0],
-      FIO                 => $line->[1],
-      DEPOSIT             => sprintf("%.2f", $line->[2] + $month_fee),
-      CREDIT              => $line->[3],
-      SUM                 => sprintf("%.2f", abs($line->[2])),
+      LOGIN               => $line->{login},
+      FIO                 => $line->{fio},
+      DEPOSIT             => sprintf("%.2f", $line->{deposit} + $month_fee),
+      CREDIT              => $line->{credit},
+      SUM                 => sprintf("%.2f", abs($line->{deposit})),
       DISABLE             => 0,
-      ORDER_TOTAL_SUM_VAT => ($conf{DOCS_VAT_INCLUDE}) ? sprintf("%.2f", abs($line->[2] / ((100 + $conf{DOCS_VAT_INCLUDE}) / $conf{DOCS_VAT_INCLUDE}))) : 0.00,
-      NUMBER              => $line->[ 8 + $ext_bill ] . "-$m",
+      ORDER_TOTAL_SUM_VAT => ($conf{DOCS_VAT_INCLUDE}) ? sprintf("%.2f", abs($line->{deposit} / ((100 + $conf{DOCS_VAT_INCLUDE}) / $conf{DOCS_VAT_INCLUDE}))) : 0.00,
+      NUMBER              => $line->{bill_id} . "-$m",
       ACTIVATE            => '>=$DATE',
       EXPIRE              => '0000-00-00',
       MONTH_FEE           => $month_fee,
-      TOTAL_SUM     => sprintf("%.2f", abs($line->[2])),
-      CONTRACT_ID   => $line->[ 8 + $ext_bill ],
-      CONTRACT_DATE => $line->[ 9 + $ext_bill ],
-      DATE          => $DATE,
-      FULL_ADDRESS  => $full_address,
-      SUM_LIT       => int2ml(
-        sprintf("%.2f", abs($line->[2])),
+      TOTAL_SUM           => sprintf("%.2f", abs($line->{deposit})),
+      CONTRACT_ID         => $line->{contract_id},
+      CONTRACT_DATE       => $line->{contract_date},
+      DATE                => $DATE,
+      FULL_ADDRESS        => $full_address,
+      SUM_LIT             => int2ml(
+        sprintf("%.2f", abs($line->{deposit})),
         {
           ONES             => \@ones,
           TWOS             => \@twos,
@@ -877,7 +881,7 @@ sub postpaid_invoices {
       DOC_NUMBER => sprintf("%.6d", $doc_num),
     };
 
-    print "UID: LOGIN: $line->[0] FIO: $line->[1] SUM: $line->[2]\n" if ($debug > 2);
+    print "UID: LOGIN: $line->{login} FIO: $line->{fio} SUM: $line->{deposit}\n" if ($debug > 2);
 
     $doc_num++;
   }
@@ -895,8 +899,6 @@ sub postpaid_invoices {
 #**********************************************************
 sub multi_tpls {
   my ($tpl, $MULTI_ARR, $attr) = @_;
-
-  #  my $tpl_name = $1 if ($tpl =~ /\/([a-zA-Z\.0-9\_]+)$/);
 
   my $single_tpl = $html->tpl_show(
     $tpl, undef,

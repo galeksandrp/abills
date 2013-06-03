@@ -1200,6 +1200,7 @@ sub bonus_periodic_accomulation {
 	  	                             %LIST_PARAMS, 
 	  	                             PAGE_ROWS => 1000000,
 	  	                           });	
+
 	  foreach my $user (@$list) {
 	  	$user->{cost} = 0 if (! $user->{cost});
 	  	$debug_output .= "$user->{login}:$user->{uid} Score: $user->{cost}  \n" if ($debug> 1);

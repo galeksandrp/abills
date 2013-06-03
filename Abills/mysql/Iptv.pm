@@ -290,40 +290,32 @@ sub user_list {
   $PG        = ($attr->{PG})        ? $attr->{PG}        : 0;
   $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
 
-  @WHERE_RULES = @{ $self->search_expr_users({ %$attr, 
-                             EXT_FIELDS => [
-                                            'PHONE',
-                                            'EMAIL',
-                                            'ADDRESS_FLAT',
-                                            'PASPORT_DATE',
-                                            'PASPORT_NUM', 
-                                            'PASPORT_GRANT',
-                                            'CITY', 
-                                            'ZIP',
-                                            'GID',
-                                            'CONTRACT_ID',
-                                            'CONTRACT_SUFIX',
-                                            'CONTRACT_DATE',
-                                            'EXPIRE',
+  my @WHERE_RULES     = ("u.uid = service.uid");
+  my $EXT_TABLE       = '';
+  $self->{EXT_TABLES} = '';
 
-                                            'CREDIT',
-                                            'CREDIT_DATE', 
-                                            'REDUCTION',
-                                            'REGISTRATION',
-                                            'REDUCTION_DATE',
-                                            'COMMENTS:skip',
-                                            'BILL_ID',
-                                            
-                                            'ACTIVATE',
-                                            'EXPIRE',
-                                            'LOGIN_STATUS'
+  my $WHERE =  $self->search_former($attr, [
+      ['FIO',            'STR', 'pi.fio',                           1 ],
+      ['TP_NAME',        'STR', 'tp.name AS tp_name',               1 ],
+      ['SERVICE_STATUS', 'INT', 'service.disable AS iptv_status',   1 ],
+      ['CID',            'STR', 'service.cid',                      1 ],
+      ['COMMENTS',       'STR', 'service.comments',                 1 ],
+      ['ALL_FILTER_ID',  'STR', 'if(service.filter_id<>\'\', service.filter_id, tp.filter_id) AS filter_id', 1 ],
+      ['FILTER_ID',      'STR', 'service.filter_id',                1 ],
+      ['DVCRYPT_ID',     'INT', 'service.dvcrypt_id',               1 ],
+      ['TP_ID',          'INT', 'service.tp_id',                      ],
+      ['TP_CREDIT',      'INT', 'tp.credit:',             'tp_credit' ],
+      ['PAYMENT_TYPE',   'INT', 'tp.payment_type',                  1 ],
+      ['MONTH_PRICE',    'INT', 'ti_c.month_price',                 1 ]
+    ],
+    { WHERE             => 1,
+    	WHERE_RULES       => \@WHERE_RULES,
+    	USERS_FIELDS      => 1,
+    	SKIP_USERS_FIELDS => [ 'FIO' ]
+    }
+    );
 
-                                             ] }) };
-
-
-  push @WHERE_RULES, "u.uid = service.uid";
-  
-  my $EXT_TABLE = $self->{EXT_TABLES};
+  $EXT_TABLE = $self->{EXT_TABLES} if ($self->{EXT_TABLES});
   if ($attr->{SHOW_CONNECTIONS}) {
     $EXT_TABLE = "LEFT JOIN dhcphosts_hosts dhcp ON (dhcp.uid=u.uid)
                   LEFT JOIN nas  ON (nas.id=dhcp.nas)";
@@ -332,45 +324,16 @@ sub user_list {
     $self->{SEARCH_FIELDS_COUNT} += 5;
   }
 
-  my $WHERE =  $self->search_former($attr, [
-      ['COMMENTS',       'STR', 'service.comments',                 1 ],
-      ['CID',            'STR', 'service.cid',                      1 ],
-      ['DEPOSIT',        'INT', 'if(u.company_id > 0, cb.deposit, b.deposit)' ],
-      ['ALL_FILTER_ID',  'STR', 'if(service.filter_id<>\'\', service.filter_id, tp.filter_id) AS filter_id', 1 ],
-      ['FILTER_ID',      'STR', 'service.filter_id',                1 ],
-      ['DVCRYPT_ID',     'INT', 'service.dvcrypt_id',               1 ],
-      ['TP_ID',          'INT', 'service.tp_id',                      ],
-      ['TP_CREDIT',      'INT', 'tp.credit:',             'tp_credit' ],
-      ['PAYMENT_TYPE',   'INT', 'tp.payment_type',                  1 ],
-      ['STATUS',         'INT', 'service.disable',                    ],
-      ['MONTH_PRICE',    'INT', 'ti_c.month_price',                 1 ]
-    ],
-    { WHERE => 1,
-    	WHERE_RULES => \@WHERE_RULES
-    }    
-    );
-
   my $list;
   if ($attr->{SHOW_CHANNELS}) {
     $self->query2("SELECT  u.id AS login, 
-        if(u.company_id > 0, cb.deposit, b.deposit) AS deposit, 
-        u.credit, 
-        tp.name AS tp_name, 
         $self->{SEARCH_FIELDS}
         u.uid, 
-        u.company_id, 
         service.tp_id, 
-        u.activate, 
-        u.expire, 
-        if(u.company_id > 0, company.bill_id, u.bill_id) as bill_id,
-        u.reduction,
-        if(u.company_id > 0, company.ext_bill_id, u.ext_bill_id) AS ext_bill_id,
         ti_c.channel_id, 
         c.num AS channel_num,
         c.name AS channel_name,
-        ti_c.month_price,
-        u.disable AS login_status, 
-        service.disable AS iptv_status
+        ti_c.month_price
    from intervals i
 
      INNER JOIN iptv_ti_channels ti_c ON (i.id=ti_c.interval_id)
@@ -381,10 +344,6 @@ sub user_list {
      INNER JOIN iptv_main service ON (u.uid = service.uid )
 
      INNER JOIN tarif_plans tp ON (tp.tp_id=i.tp_id)
-     LEFT JOIN bills b ON (u.bill_id = b.id)
-     LEFT JOIN companies company ON  (u.company_id=company.id)
-     LEFT JOIN bills cb ON  (company.bill_id=cb.id)
-
      $EXT_TABLE
   $WHERE 
 GROUP BY uc.uid, channel_id
@@ -397,26 +356,11 @@ ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;",
   }
   else {
     $self->query2("SELECT u.id AS login, 
-      pi.fio, if(u.company_id > 0, cb.deposit, b.deposit) AS deposit, 
-      u.credit, 
-      tp.name AS tp_name, 
-      service.disable AS iptv_status, 
       $self->{SEARCH_FIELDS}
-      u.uid, 
-      u.company_id, 
-      pi.email, 
-      service.tp_id, 
-      u.activate, 
-      u.expire, 
-      if(u.company_id > 0, company.bill_id, u.bill_id) AS bill_id,
-      u.reduction,
-      if(u.company_id > 0, company.ext_bill_id, u.ext_bill_id) as ext_bill_id
+      u.uid
      FROM (users u, iptv_main service)
      LEFT JOIN users_pi pi ON (u.uid = pi.uid)
-     LEFT JOIN bills b ON (u.bill_id = b.id)
      LEFT JOIN tarif_plans tp ON (tp.tp_id=service.tp_id) 
-     LEFT JOIN companies company ON  (u.company_id=company.id) 
-     LEFT JOIN bills cb ON  (company.bill_id=cb.id)
      $EXT_TABLE
      $WHERE 
      GROUP BY u.uid

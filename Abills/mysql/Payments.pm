@@ -215,42 +215,6 @@ sub list {
   $PG        = ($attr->{PG})        ? $attr->{PG}        : 0;
   $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
 
-  @WHERE_RULES = @{ $self->search_expr_users({ %$attr, 
-                             EXT_FIELDS => [
-                                  'PHONE',
-                                  'EMAIL',
-                                  'ADDRESS_FLAT',
-                                  'PASPORT_DATE',
-                                  'PASPORT_NUM', 
-                                  'PASPORT_GRANT',
-                                  'CITY', 
-                                  'ZIP',
-                                  'GID',
-                                  'CONTRACT_ID',
-                                  'CONTRACT_SUFIX',
-                                  'CONTRACT_DATE',
-                                  'COMPANY_ID',
-                                  'EXPIRE',
-
-                                  'CREDIT',
-                                  'CREDIT_DATE', 
-                                  'REDUCTION',
-                                  'REGISTRATION',
-                                  'REDUCTION_DATE',
-                                  'COMMENTS',
-                                  'BILL_ID:skip',
-  
-                                  'ACTIVATE',
-                                  'EXPIRE',
-                                  'UID:skip'
-                                 ] }) };
-
-  my $EXT_TABLES  = $self->{EXT_TABLES};
-  if ($attr->{INVOICE_NUM}) {
-    $EXT_TABLES  .= 'LEFT JOIN docs_invoice2payments i2p ON (p.id=i2p.payment_id)
-    LEFT JOIN docs_invoices d ON (d.id=i2p.invoice_id)';
-  }
-
   my $login_field = '';
   if (! $attr->{PAYMENT_DAYS}) {
   	$attr->{PAYMENT_DAYS}=0;
@@ -279,10 +243,18 @@ sub list {
       ['FROM_DATE|TO_DATE', 'DATE',    'date_format(p.date, \'%Y-%m-%d\')' ],
       ['UID',            'INT', 'p.uid',                                  1],
     ],
-    { WHERE => 1,
-    	WHERE_RULES => \@WHERE_RULES
+    { WHERE       => 1,
+    	USERS_FIELDS=> 1
     }    
     );
+
+  my $EXT_TABLES  = '';
+  $EXT_TABLES  = $self->{EXT_TABLES} if($self->{EXT_TABLES});
+  
+  if ($attr->{INVOICE_NUM}) {
+    $EXT_TABLES  .= 'LEFT JOIN docs_invoice2payments i2p ON (p.id=i2p.payment_id)
+    LEFT JOIN docs_invoices d ON (d.id=i2p.invoice_id)';
+  }
 
   if ($WHERE =~ /pi\./) {
     $EXT_TABLES  = 'LEFT JOIN users_pi pi ON (u.uid=pi.uid)'.$EXT_TABLES ;

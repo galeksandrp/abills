@@ -62,6 +62,9 @@ my %PAY_SYSTEMS = (
   83 => 'Payonline - Yandex money',
   84 => 'Payonline - Bank card',
   85 => "Термінали України",
+  86 => 'Perfectmoney',
+  87 => 'OKPay',
+  88 => 'Bitcoin',
 );
 
 my %CONF_OPTIONS = (
@@ -109,7 +112,10 @@ my %CONF_OPTIONS = (
   PAYSYS_WEBMONEY_PAYONLINE_ACCOUNT_KEY     => 82,
   PAYSYS_YANDEX_MONEY_PAYONLINE_ACCOUNT_KEY => 83,
   PAYSYS_BANK_CARD_PAYONLINE_ACCOUNT_KEY    => 84,
-  PAYSYS_WEBMONEY_TERMINAL                  => 85
+  PAYSYS_WEBMONEY_TERMINAL                  => 85,
+  PAYSYS_PERFECTMONEY_ACCOUNTID             => 86,
+  PAYSYS_OKPAY_KEY                          => 87,
+  PAYSYS_BITCOIN_KEY                        => 88,  
 );
 
 my @status = ("$_UNKNOWN",
@@ -280,6 +286,7 @@ sub paysys_import_form {
     my $users = Users->new($db, $admin, \%conf);
     my $list = $users->list(
       {
+      	FIO            => '_SHOW',
         $BINDING_FIELD => "$ids",
         PAGE_ROWS      => 1000000,
         COLS_NAME      => 1
@@ -1723,6 +1730,7 @@ sub paysys_p24_get_payments {
       my $users = Users->new($db, $admin, \%conf);
       my $list = $users->list(
         {
+        	FIO            => '_SHOW',
           $BINDING_FIELD => $ids,
           PAGE_ROWS      => 1000000,
           $BINDING_FIELD => '_SHOW',
@@ -1800,6 +1808,7 @@ sub paysys_p24_get_payments {
       my $users = Users->new($db, $admin, \%conf);
       my $list = $users->list(
         {
+        	FIO            => '_SHOW',
           $BINDING_FIELD => $ids,
           PAGE_ROWS      => 1000000,
           $BINDING_FIELD => '_SHOW',
@@ -2671,9 +2680,7 @@ sub paysys_yandex () {
       return 0;
     }
   }
-  
-  
-  
+
   if ($FORM{CONFIRM_PAYMENT}) {
     my $result_hash = $Ym->ym_process_payment($ym_token, $FORM{REQUEST_ID});
     
@@ -2791,7 +2798,54 @@ sub paysys_yandex () {
   }
 }
   
+#**********************************************************
+#
+#**********************************************************
+sub paysys_perfectmoney {
+	
+  if (defined($FORM{abillserrormsg})) {
+    my @AbillsErrorMsg = ('Transaction successfuly added', 'User not found', 'Billing system error', 'Dublicate payment', 'Transaction error');
 
+    $html->message('err', $_ERROR, "$_FAILED - $AbillsErrorMsg[$FORM{abillserrormsg}]");
+
+    #print 'lol';
+  }
+  else {
+    my @fio;
+    my $users = Users->new($db, $admin, \%conf);
+    $user = $users->info($LIST_PARAMS{UID});
+    $users->pi({ UID => $LIST_PARAMS{UID} });
+    (@fio) = split(' ', $users->{FIO});
+
+    my %info = ();
+    my $sum;
+    $info{PAYMENT_NO} = $FORM{OPERATION_ID};
+
+    if ($FORM{SUM} =~ /^(\d+)\.?(\d+)?$/) {
+      $sum = "$1$2";
+    }
+    $info{amount_with_point} = $FORM{SUM};
+    $info{desc}              = $FORM{DESCRIBE};
+
+    if ($conf{PAYSYS_CP_VISA_TEST_MODE} == 1) {
+      $info{lastname}   = 'Ivanov';
+      $info{firstname}  = 'Ivan';
+      $info{middlename} = 'Ivanovich';
+      $info{email}      = 'support@cyberplat.com';
+      $info{phone}      = 7445 - 4060;
+    }
+    else {
+      $info{lastname}   = $fio[0]         || '';
+      $info{firstname}  = $fio[1]         || '';
+      $info{middlename} = $fio[2]         || '';
+      $info{email}      = $users->{EMAIL} || '';
+      $info{phone}      = $users->{PHONE} || '';
+
+    }
+  }
+
+  print $html->tpl_show(_include('paysys_perfectmoney', 'Paysys'), \%info, { OUTPUT2RETURN => $attr->{OUTPUT2RETURN} });	
+}
 
 1
 

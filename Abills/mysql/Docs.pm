@@ -489,7 +489,7 @@ sub invoices_list {
       ['CURRENCY',       'INT', 'd.currency',                      1 ],
       ['COMPANY_ID',     'INT', 'u.company_id',                    1 ],
       ['BILL_ID',        'INT', 'if(u.company_id > 0, company.bill_id, u.bill_id) AS bill_id', 1 ],
-      ['docs_deposit',   'INT', 'd.deposit',  'd.deposit AS docs_deposit' ],
+      ['DOCS_DEPOSIT',   'INT', 'd.deposit',  'd.deposit AS docs_deposit' ],
       ['CONTRACT_ID',    'INT', 'if(u.company_id=0, concat(pi.contract_sufix,pi.contract_id), concat(company.contract_sufix,company.contract_id)) AS contract_id', 1], 
       ['GID',             'INT', 'g.gid',                     'g.name AS group_name'],
       ['DATE',           'DATE', "date_format(d.date, '%Y-%m-%d')"   ],

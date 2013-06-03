@@ -2627,7 +2627,8 @@ sub form_users {
   my ($table, $list) = result_former({
      INPUT_DATA      => $users,
      FUNCTION        => 'list',
-     BASE_FIELDS     => 5,
+     BASE_FIELDS     => 1,
+     DEFAULT_FIELDS  => 'LOGIN,FIO,DEPOSIT,CREDIT,LOGIN_STATUS',
      FUNCTION_FIELDS => 'form_payments, form_fees',
      TABLE => { 
        width      => '100%',
@@ -2670,7 +2671,7 @@ sub form_users {
      $search_color_mark=$html->color_mark($FORM{UNIVERSAL_SEARCH}, $_COLORS[6]);
   }
   
-  my $base_fields = 5;
+  my $base_fields = 1;
   foreach my $line (@$list) {
     my $uid      = $line->{uid};
     my $payments = ($permissions{1}) ? $html->button($_PAYMENTS, "index=2&UID=$uid", { CLASS => 'payments' }) : '';
@@ -2689,21 +2690,25 @@ sub form_users {
       elsif ($users->{COL_NAMES_ARR}->[$i] eq 'deleted') {
         $line->{deleted} = $html->color_mark($bool_vals[ $line->{deleted} ], ($line->{deleted} == 1) ? $state_colors[ $line->{deleted} ] : '');
       }
-      
+      elsif($users->{COL_NAMES_ARR}->[$i] eq 'deposit') {
+         $line->{$users->{COL_NAMES_ARR}->[$i]} =  ($permissions{0}{12}) ? '--' : ($line->{deposit} + $line->{credit} < 0) ? $html->color_mark($line->{deposit}, $_COLORS[6]) : $line->{deposit},
+      }
+
       if ($FORM{UNIVERSAL_SEARCH}) {
         $line->{$users->{COL_NAMES_ARR}->[$i]} =~ s/(.*)$FORM{UNIVERSAL_SEARCH}(.*)/\1$search_color_mark\2/;
       }
-      
-      push @fields_array, $table->td($line->{$users->{COL_NAMES_ARR}->[$i]});
+
+      if ($users->{COL_NAMES_ARR}->[$i] eq 'login_status') {
+      	push @fields_array, $table->td($status[ $line->{login_status} ], { bgcolor => $state_colors[ $line->{login_status} ], align => 'center' });
+      }
+      else {	
+        push @fields_array, $table->td($line->{$users->{COL_NAMES_ARR}->[$i]});
+      }
     }
 
     my $multiuser = ($permissions{0}{7}) ? $html->form_input('IDS', "$uid", { TYPE => 'checkbox', }) : '';
     $table->addtd(
       $table->td($multiuser . user_ext_menu($uid, $line->{login})),
-      $table->td($line->{fio}),
-      $table->td( ($permissions{0}{12}) ? '--' : ($line->{deposit} + $line->{credit} < 0) ? $html->color_mark($line->{deposit}, $_COLORS[6]) : $line->{deposit}),
-      $table->td($line->{credit}),
-      $table->td($status[ $line->{disable} ], { bgcolor => $state_colors[ $line->{disable} ], align => 'center' }),
       @fields_array,
       $table->td($payments),
       $table->td($fees),
@@ -6267,19 +6272,20 @@ sub form_payments () {
      BASE_FIELDS     => 9,
      FUNCTION_FIELDS => 'del',
      EXT_TITLES      => {
-      'id'        => $_NUM,
-      'date'      => $_DATE, 
-      'dsc'       => $_DESCRIBE, 
-      'sum'       => $_SUM, 
-      'last_deposit' => $_DEPOSIT, 
-      'method'    => $_PAYMENT_METHOD, 
-      'ext_id'    => 'EXT ID', 
-      'reg_date'  => "$_PAYMENTS $_REGISTRATION",
-      'ip'        =>  'IP',
-      'admin_name'=> $_ADMIN,
-      'invoice_num'=> $_INVOICE,
-      amount      => "$_ALT $_SUM",
-      currency    => $_CURRENCY
+      'id'           => $_NUM,
+      'date'         => $_DATE, 
+      'dsc'          => $_DESCRIBE, 
+      'sum'          => $_SUM, 
+      'last_deposit' => $_OPERATION_DEPOSIT, 
+      'deposit'      => $_CURRENT_DEPOSIT,
+      'method'       => $_PAYMENT_METHOD, 
+      'ext_id'       => 'EXT ID', 
+      'reg_date'     => "$_PAYMENTS $_REGISTRATION",
+      'ip'           =>  'IP',
+      'admin_name'   => $_ADMIN,
+      'invoice_num'  => $_INVOICE,
+      amount         => "$_ALT $_SUM",
+      currency       => $_CURRENCY
      },
      TABLE => { 
        width      => '100%',
@@ -6331,7 +6337,7 @@ sub form_payments () {
         $line->{dsc} = $line->{dsc}.$html->br().$html->b($line->{inner_describe}) if ($line->{inner_describe});
       }
       elsif($payments->{COL_NAMES_ARR}->[$i] =~ /deposit/) {
-        $line->{last_deposit} = ($line->{last_deposit} < 0) ? $html->color_mark($line->{last_deposit}, $_COLORS[6]) : $line->{last_deposit};
+        $line->{$payments->{COL_NAMES_ARR}->[$i]} = ($line->{$payments->{COL_NAMES_ARR}->[$i]} < 0) ? $html->color_mark($line->{$payments->{COL_NAMES_ARR}->[$i]}, $_COLORS[6]) : $line->{$payments->{COL_NAMES_ARR}->[$i]};
       }
       elsif ($payments->{COL_NAMES_ARR}->[$i] eq 'method') {
         $line->{method} = ($FORM{METHOD_NUM}) ? $line->{method} : $PAYMENTS_METHODS{ $line->{method} };
@@ -6917,14 +6923,15 @@ sub form_fees {
      DEFAULT_FIELDS  => 'ID,LOGIN,DATE,DSC,SUM,LAST_DEPOSIT,METHOD,ADMIN_NAME',
      FUNCTION_FIELDS => 'del',
      EXT_TITLES      => {
-      'id'        => $_NUM,
-      'date'      => $_DATE, 
-      'dsc'       => $_DESCRIBE, 
-      'sum'       => $_SUM, 
-      'last_deposit' => $_DEPOSIT, 
-      'method'    => $_PAYMENT_METHOD, 
-      'ip'        =>  'IP',
-      'admin_name'=> $_ADMIN,
+      'id'           => $_NUM,
+      'date'         => $_DATE, 
+      'dsc'          => $_DESCRIBE, 
+      'sum'          => $_SUM, 
+      'last_deposit' => $_OPERATION_DEPOSIT,
+      'deposit'      => $_CURRENT_DEPOSIT,
+      'method'       => $_PAYMENT_METHOD, 
+      'ip'           => 'IP',
+      'admin_name'   => $_ADMIN,
      },
      TABLE => { 
        width      => '100%',
@@ -6959,7 +6966,7 @@ sub form_fees {
         $line->{dsc} = $line->{dsc}.$html->br().$html->b($line->{inner_describe}) if ($line->{inner_describe});
       }
       elsif($fees->{COL_NAMES_ARR}->[$i] =~ /deposit/) {
-        $line->{last_deposit} = ($line->{last_deposit} < 0) ? $html->color_mark($line->{last_deposit}, $_COLORS[6]) : $line->{last_deposit};
+        $line->{$fees->{COL_NAMES_ARR}->[$i]} = ($line->{$fees->{COL_NAMES_ARR}->[$i]} < 0) ? $html->color_mark($line->{$fees->{COL_NAMES_ARR}->[$i]}, $_COLORS[6]) : $line->{$fees->{COL_NAMES_ARR}->[$i]};
       }
       elsif ($fees->{COL_NAMES_ARR}->[$i] eq 'method') {
         $line->{method} = ($FORM{METHOD_NUM}) ? $line->{method} : $FEES_METHODS{ $line->{method} };

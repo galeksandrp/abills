@@ -315,22 +315,23 @@ sub iptv_users_list {
 
   for(my $i=0; $i<=2; $i++) {
   	my $name = $service_status[$i];
-    if (defined($FORM{STATUS}) && $FORM{STATUS} == $i && $FORM{STATUS} ne '') {
-      $LIST_PARAMS{STATUS} = $FORM{STATUS};
-      $pages_qs   .= "&STATUS=$i";
+    if (defined($FORM{SERVICE_STATUS}) && $FORM{SERVICE_STATUS} == $i && $FORM{SERVICE_STATUS} ne '') {
+      $LIST_PARAMS{SERVICE_STATUS} = $FORM{SERVICE_STATUS};
+      $pages_qs   .= "&SERVICE_STATUS=$i";
       $status_bar .= ' ' . $html->b($name);
     }
     else {
       my $qs = $pages_qs;
-      $qs =~ s/\&STATUS=\d//;
-      $status_bar .= ' ' . $html->button($html->color_mark($name, $service_status_colors[$i]), "index=$index&STATUS=$i$qs");
+      $qs =~ s/\&SERVICE_STATUS=\d//;
+      $status_bar .= ' ' . $html->button($html->color_mark($name, $service_status_colors[$i]), "index=$index&SERVICE_STATUS=$i$qs");
     }
   }
 
   my ($table, $list) = result_former({
      INPUT_DATA      => $Iptv,
      FUNCTION        => 'user_list',
-     BASE_FIELDS     => 6,
+     BASE_FIELDS     => 1,
+     DEFAULT_FIELDS  => 'LOGIN,FIO,DEPOSIT,CREDIT,TP_NAME,SERVICE_STATUS',
      FUNCTION_FIELDS => 'form_payments',
      EXT_TITLES      => {
        'port'        => $_PORT,
@@ -1588,9 +1589,6 @@ sub iptv_online {
     #$form_link = $html->button($_ZAPED, "index=$index&ZAPED=1", { BUTTON => 1 }) . " ($sessions->{TOTAL})";
     $cure = 'Online';
   }
-
-
-#  $sessions->{debug}=1;
   %LIST_PARAMS =  ( %LIST_PARAMS,
   	                   LOGIN         => '_SHOW',
   	                   FIO           => '_SHOW',
@@ -2482,7 +2480,10 @@ sub iptv_daily_fees {
   require Tariffs;
   Tariffs->import();
   my $Tariffs = Tariffs->new($db, $conf, $admin);
-  my $list = $Tariffs->list({ %LIST_PARAMS, MODULE => 'Iptv' });
+  my $list = $Tariffs->list({ %LIST_PARAMS, 
+  	                          TP_NAME => '_SHOW',
+  	                          MODULE  => 'Iptv' 
+  	                        });
 
   foreach my $tp (@$list) {
     if ($tp->{daily_fee} > 0) {
@@ -2492,6 +2493,9 @@ sub iptv_daily_fees {
           ACTIVATE     => "<=$ADMIN_REPORT{DATE}",
           EXPIRE       => "0000-00-00,>$ADMIN_REPORT{DATE}",
           DISABLE      => '0',
+          DEPOSIT      => '_SHOW',
+          DEPOSIT      => '_CREDIT',
+          BILL_ID      => '_SHOW',
           TP           => $tp->{tp_id},
           COLS_NAME    => 1
         }
@@ -2593,6 +2597,11 @@ sub iptv_monthly_fees {
           EXPIRE       => "0000-00-00,>$ADMIN_REPORT{DATE}",
           STATUS       => 0,
           LOGIN_STATUS => 0,
+          SERVICE_STATUS=> '_SHOW',
+          DEPOSIT      => '_SHOW',
+          CREDIT       => '_SHOW',
+          BILL_ID      => '_SHOW',
+          REDUCTION    => '_SHOW',
           TP_ID        => $TP_ID,
           SORT         => 1,
           PAGE_ROWS    => 1000000,
@@ -2696,12 +2705,17 @@ sub iptv_monthly_fees {
       {
         ACTIVATE      => "<=$ADMIN_REPORT{DATE}",
         EXPIRE        => "0000-00-00,>$ADMIN_REPORT{DATE}",
-        STATUS        => 0,
+        SERVICE_STATUS=> 0,
         LOGIN_STATUS  => 0,
         TP_ID         => $TP_ID,
         SORT          => 1,
         PAGE_ROWS     => 1000000,
         SHOW_CHANNELS => 1,
+        DEPOSIT       => '_SHOW',
+        CREDIT        => '_SHOW',
+        BILL_ID       => '_SHOW',
+        REDUCTION     => '_SHOW',
+        EXT_BILL_ID   => '_SHOW',
         MONTH_PRICE   => '>0',
         COLS_NAME     => 1,
         %USERS_LIST_PARAMS
@@ -3067,8 +3081,10 @@ sub iptv_crypt {
         ACTIVATE     => "<=$DATE",
         EXPIRE       => "0000-00-00,>$DATE",
         DVCRYPT_ID   => '>0',
-        STATUS       => '_SHOW',
+        SERVICE_STATUS=> '_SHOW',
         LOGIN_STATUS => '_SHOW',
+        DEPOSIT      => '_SHOW',
+        CREDIT       => '_SHOW',
         TP_ID        => $TP_ID,
         SORT         => 1,
         PAGE_ROWS    => 1000000,
@@ -3093,8 +3109,10 @@ sub iptv_crypt {
         DVCRYPT_ID    => '>0',
         ACTIVATE      => "<=$DATE",
         EXPIRE        => "0000-00-00,>$DATE",
-        STATUS        => '_SHOW',
+        SERVICE_STATUS=> '_SHOW',
         LOGIN_STATUS  => '_SHOW',
+        DEPOSIT       => '_SHOW',
+        CREDIT        => '_SHOW',
         TP_ID         => $TP_ID,
         SORT          => 1,
         SHOW_CHANNELS => 1,
@@ -3207,8 +3225,10 @@ sub iptv_user_channels_list {
       {
         ACTIVATE     => "<=$DATE",
         EXPIRE       => "0000-00-00,>$DATE",
-        STATUS       => ">=0",
-        LOGIN_STATUS => ">=0",
+        SERVICE_STATUS=> '_SHOW',
+        LOGIN_STATUS => '_SHOW',
+        DEPOSIT      => '_SHOW',
+        CREDIT       => '_SHOW',
         TP_ID        => $TP_ID,
         SORT         => 1,
         PAGE_ROWS    => 1000000,
@@ -3231,8 +3251,10 @@ sub iptv_user_channels_list {
         DVCRYPT_ID    => '>0',
         ACTIVATE      => "<=$DATE",
         EXPIRE        => "0000-00-00,>$DATE",
-        STATUS        => ">=0",
-        LOGIN_STATUS  => ">=0",
+        SERVICE_STATUS=> '_SHOW',
+        LOGIN_STATUS => '_SHOW',
+        DEPOSIT      => '_SHOW',
+        CREDIT       => '_SHOW',
         TP_ID         => $TP_ID,
         SORT          => 1,
         SHOW_CHANNELS => 1,
@@ -3426,7 +3448,7 @@ sub iptv_stalker {
  # Get abills users 
  my %register_stb = ();
  $list = $Iptv->user_list({ PAGE_ROWS => 1000000, 
-                            CID       => '*',
+                            CID       => '_SHOW',
                             COLS_NAME => 1 });
  
  foreach my $line (@$list) {

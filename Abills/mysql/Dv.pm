@@ -398,7 +398,7 @@ sub list {
                                             
                                             'ACTIVATE',
                                             'EXPIRE',
-                                            'DEPOSIT:skip',
+                                            'DEPOSIT',
                                             'DOMAIN_ID'
                                              ] }) };
 
@@ -499,26 +499,35 @@ sub list {
     $attr->{CID}=~s/[\:\-\.]/\*/g;
   }
   
+  $self->{EXT_TABLES}     = '';
+  $self->{SEARCH_FIELDS}  = '';
+  $self->{SEARCH_FIELDS_COUNT}=0;
+
+
+
   my $WHERE =  $self->search_former($attr, [
+      ['FIO',            'STR', 'pi.fio',                           1 ],
       ['IP',             'IP',  'dv.ip',     'INET_NTOA(dv.ip) AS ip' ],
       ['NETMASK',        'IP',  'dv.netmask', 'INET_NTOA(dv.netmask) AS netmask' ],
       ['CID',            'STR', 'dv.cid',                           1 ],
       ['JOIN_SERVICE',   'INT', 'dv.join_service',                  1 ],
       ['SIMULTANEONSLY', 'INT', 'dv.logins',                        1 ],
-      ['DEPOSIT',        'INT', 'if(u.company_id > 0, cb.deposit, b.deposit)' ],
       ['SPEED',          'INT', 'dv.speed',                         1 ],
       ['PORT',           'INT', 'dv.port',                          1 ],
       ['ALL_FILTER_ID',  'STR', 'if(dv.filter_id<>\'\', dv.filter_id, tp.filter_id) AS filter_id', 1 ],
       ['FILTER_ID',      'STR', 'dv.filter_id',                     1 ],
-      ['TP_ID',          'INT', 'dv.tp_id',                           ],
+      ['TP_ID',          'INT', 'dv.tp_id',                         1 ],
+      ['TP_NAME',        'STR', 'tp.name AS tp_name',               1 ],
       ['TP_CREDIT',      'INT', 'tp.credit', 'tp.credit AS tp_credit' ],
       ['ONLINE',         'INT', 'c.uid',            'c.uid AS online' ],
       ['PAYMENT_TYPE',   'INT', 'tp.payment_type',                  1 ],
       ['SHOW_PASSWORD',  '',    '',  "DECODE(u.password, '$CONF->{secretkey}') AS password," ],
-      ['STATUS',         'INT', 'dv.disable',                         ],
+      ['STATUS',         'INT', 'dv.disable as dv_status',          1 ],
     ],
-    { WHERE => 1,
-    	WHERE_RULES => \@WHERE_RULES
+    { WHERE       => 1,
+    	WHERE_RULES => \@WHERE_RULES,
+    	USERS_FIELDS=> 1,
+    	SKIP_USERS_FIELDS=> [ 'FIO' ]
     }    
     );
 
@@ -537,29 +546,14 @@ sub list {
      LEFT JOIN dv_calls c ON (c.uid=dv.uid) ";  	
   }
 
+
   $self->query2("SELECT u.id AS login, 
-      pi.fio, 
-      if(u.company_id > 0, cb.deposit, b.deposit) AS deposit, 
-      if(u.company_id=0, u.credit, 
-          if (u.credit=0, company.credit, u.credit)) AS credit,
-      tp.name AS tp_name, 
-      dv.disable AS dv_status, 
       $self->{SEARCH_FIELDS}
       u.uid, 
-      u.company_id, 
-      pi.email, 
-      dv.tp_id, 
-      u.activate, 
-      u.expire, 
-      if(u.company_id > 0, company.bill_id, u.bill_id) AS bill_id,
-      u.reduction,
-      if(u.company_id > 0, company.ext_bill_id, u.ext_bill_id) AS ext_bill_id
+      dv.tp_id
      FROM (users u, dv_main dv)
      LEFT JOIN users_pi pi ON (u.uid = pi.uid)
-     LEFT JOIN bills b ON (u.bill_id = b.id)
      LEFT JOIN tarif_plans tp ON (tp.id=dv.tp_id) 
-     LEFT JOIN companies company ON  (u.company_id=company.id) 
-     LEFT JOIN bills cb ON  (company.bill_id=cb.id)
      $EXT_TABLE
      $WHERE 
      GROUP BY $GROUP_BY
@@ -576,9 +570,6 @@ sub list {
     $self->query2("SELECT count( DISTINCT u.id) AS total FROM (users u, dv_main dv) 
     LEFT JOIN users_pi pi ON (u.uid = pi.uid)
     LEFT JOIN tarif_plans tp ON (tp.id=dv.tp_id)
-    LEFT JOIN companies company ON  (u.company_id=company.id) 
-    LEFT JOIN bills b ON (u.bill_id = b.id)
-    LEFT JOIN bills cb ON  (company.bill_id=cb.id)
     $EXT_TABLE
     $WHERE",
     undef,

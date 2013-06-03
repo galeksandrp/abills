@@ -252,18 +252,11 @@ sub list {
   $PG        = ($attr->{PG})        ? $attr->{PG}        : 0;
   $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
 
-  my $EXT_TABLES  = $self->{EXT_TABLES};
-  if ($attr->{FIO}) {
-    $EXT_TABLES  .= 'LEFT JOIN users_pi pi ON (u.uid=pi.uid)';
-  }
-  elsif ($EXT_TABLES =~ /builds/ && $EXT_TABLES !~ /users_pi/) {
-    $EXT_TABLES = 'LEFT JOIN users_pi pi ON (u.uid=pi.uid) '. $EXT_TABLES;
-  }
-
   my $WHERE =  $self->search_former($attr, [
       ['ID',             'INT', 'f.id',                              ],
       ['DATE',           'DATE','f.date',                          1 ],
       ['LOGIN',          'STR', 'u.id AS login',                   1 ],
+      ['FIO',            'STR', 'pi.fio',                          1 ],
       ['DESCRIBE',       'STR', 'f.dsc',                           1 ],
       ['DSC',            'STR', 'f.dsc',                           1 ],
       ['SUM',            'INT', 'f.sum',                           1 ],
@@ -273,7 +266,7 @@ sub list {
       ['A_LOGIN',        'STR', 'a.id',                            1 ],
       ['ADMIN_NAME',     'STR', "if(a.name is NULL, 'Unknown', a.name) AS admin_name", 1 ],
       ['BILL_ID',        'INT', 'f.bill_id',                       1 ],
-      ['IP',             'f.ip',             'INET_NTOA(f.ip) AS ip' ],
+      ['IP',             'INT', 'f.ip',      'INET_NTOA(f.ip) AS ip' ],
       ['AID',            'INT', 'f.aid',                             ],
       ['DOMAIN_ID',      'INT', 'u.domain_id',                       ],
       ['UID',            'INT', 'f.uid',                           1 ],
@@ -286,6 +279,14 @@ sub list {
       USERS_FIELDS=> 1
     }
     );
+
+  my $EXT_TABLES  = $self->{EXT_TABLES};
+  if ($attr->{FIO}) {
+    $EXT_TABLES  .= 'LEFT JOIN users_pi pi ON (u.uid=pi.uid)';
+  }
+  elsif ($EXT_TABLES =~ /builds/ && $EXT_TABLES !~ /users_pi/) {
+    $EXT_TABLES .= 'LEFT JOIN users_pi pi ON (u.uid=pi.uid) '. $EXT_TABLES;
+  }
 
   $self->query2("SELECT f.id,
      $self->{SEARCH_FIELDS}

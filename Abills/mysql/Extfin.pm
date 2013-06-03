@@ -423,7 +423,7 @@ sub extfin_report_balances {
   LEFT JOIN users u ON (b.id = u.bill_id)
   LEFT JOIN users_pi pi ON (u.uid = pi.uid)
   LEFT JOIN companies company ON (b.id=company.bill_id)
-  WHERE $WHERE;",
+  $WHERE;",
   undef, { INFO => 1 }
   );
 
@@ -489,7 +489,7 @@ sub extfin_report_deeds {
   LEFT JOIN users u ON (b.id = u.bill_id)
   LEFT JOIN users_pi pi ON (u.uid = pi.uid)
   LEFT JOIN companies company ON (b.id=company.bill_id)
-  WHERE $WHERE
+  $WHERE
    GROUP BY $GROUP
   ORDER BY $SORT $DESC 
    ;",

@@ -406,7 +406,7 @@ sub admin_report_daily {
 
   foreach my $line (@$list) {
     $ADMIN_REPORT{PAYMENTS} .= sprintf("%-14s|%-28s| %20s| %8.4f| %12s| %15s| %19s|\n", 
-     $line->{id}  || '', 
+     $line->{login}  || '', 
      $line->{fio} || '', 
      $line->{dsc} || '', 
      $line->{sum} || '', 
@@ -431,7 +431,7 @@ sub admin_report_daily {
   	                    COLS_NAME => 1 });
   foreach my $line (@$list) {
     $ADMIN_REPORT{FEES} .= sprintf("%-14s|%-28s| %20s| %8.4f| %12s | %12s| %15s| %8.4f\n", 
-      ($line->{id}) ? $line->{id} : "!Unknown", 
+      ($line->{login}) ? $line->{login} : "!Unknown", 
       ($line->{fio}) ? $line->{fio} : "", 
       $line->{dsc}       || '', 
       $line->{sum}       || 0, 
@@ -628,6 +628,8 @@ sub credit_operation {
     {
       CREDIT_DATE => "!0000-00-00;<=$ADMIN_REPORT{DATE}",
       CREDIT      => ">$conf{MAX_STABLE_CREDIT}",
+      DEPOSIT     => '_SHOW',
+      LOGIN_STATUS=> '_SHOW',
       %LIST_PARAMS,
       PAGE_ROWS   => 1000000,
       COLS_NAME   => 1
@@ -635,7 +637,7 @@ sub credit_operation {
   );
   
   foreach my $line (@{ $list }) {
-    $DEBUG .= "$line->{id} ($line->{uid}) DEPOSIT: $line->{deposit} CREDIT: $line->{credit} CREDIT_DATE: $line->{credit_date}\n" if ($debug > 0);
+    $DEBUG .= "$line->{login} ($line->{uid}) DEPOSIT: $line->{deposit} CREDIT: $line->{credit} CREDIT_DATE: $line->{credit_date}\n" if ($debug > 0);
 
     if ($debug < 5) {
       $users->change(
@@ -643,7 +645,7 @@ sub credit_operation {
         {
           CREDIT      => $conf{MAX_STABLE_CREDIT},
           CREDIT_DATE => '0000-00-00',
-          DISABLE     => $line->{disable} || 0,
+          DISABLE     => $line->{login_status} || 0,
           UID         => $line->{uid}
         }
       );
@@ -693,7 +695,8 @@ sub credit_full_set {
     $users->{debug}=1 if ($debug > 6);
     my $list = $users->list(
      {
-      CREDIT         => ">=0",
+      CREDIT         => '_SHOW',
+      DEPOSIT        => '_SHOW',
       DISABLE        => 0,
       COMPANY_ID     => 0,
       %LIST_PARAMS,
@@ -706,7 +709,7 @@ sub credit_full_set {
       my $credit = $line->{credit};
       my $uid    = $line->{uid};
 
-      $DEBUG .= "$line->{id} UID: $uid\n" if ($debug > 0);
+      $DEBUG .= "$line->{login} UID: $uid\n" if ($debug > 0);
       my $cross_modules_return = cross_modules_call('_docs', { UID          => $uid,
     	                                                       SKIP_MODULES => 'Docs,Sqlcmd,Multidoms,Bsr1000',
     	                                                       DEBUG        => ($debug > 3) ? 1 : undef,  });
@@ -755,6 +758,8 @@ sub credit_full_set {
       {
         COMPANY_ID     => $company_id,
         DISABLE        => 0,
+        CREDIT         => '_SHOW',
+        DEPOSIT        => '_SHOW',
         COLS_NAME      => 1,
         %LIST_PARAMS,
         PAGE_ROWS      => 100000,
@@ -766,7 +771,7 @@ sub credit_full_set {
       my $credit = $u->{credit};
       my $uid    = $u->{uid};
 
-      $DEBUG .= "  $u->{id} UID: $uid" if ($debug > 0);
+      $DEBUG .= "  $u->{login} UID: $uid" if ($debug > 0);
       my $cross_modules_return = cross_modules_call('_docs', { UID        => $uid,
     	                                                       SKIP_MODULES => 'Docs,Sqlcmd,Multidoms,Bsr1000',
     	                                                       DEBUG        => ($debug > 3) ? 1 : undef,  });
@@ -808,20 +813,21 @@ sub reduction_operation {
     {
       REDUCTION_DATE => ">0000-00-00;<=$ADMIN_REPORT{DATE}",
       REDUCTION      => ">0",
+      LOGIN_STATUS   => '_SHOW',
       PAGE_ROWS      => 1000000,
       COLS_NAME      => 1
     }
   );
 
   foreach my $line (@$list) {
-    $DEBUG .= "$line->{id} ($line->{uid}) DEPOSIT: $line->{deposit} CREDIT: $line->{credit} REDUCTION_DATE: $line->{reduction_date}\n" if ($debug > 0);
+    $DEBUG .= "$line->{login} ($line->{uid}) REDUCTION: $line->{reduction} REDUCTION_DATE: $line->{reduction_date}\n" if ($debug > 0);
     if ($debug < 5) {
       $users->change(
         $line->{uid},
         {
           REDUCTION      => '0.00',
           REDUCTION_DATE => '0000-00-00',
-          DISABLE        => $line->{disable} || 0,
+          DISABLE        => $line->{login_status} || 0,
           UID            => $line->{uid}
         }
       );
@@ -884,7 +890,10 @@ sub debetors_group_create {
       {
         GID       => ($USER_GID == -1 && $#DEBETORS_GROUP == 0) ? "!$GID" : "$USER_GID",
         DEPOSIT   => "<=$DEPOSIT",
-        COMMENTS  => '*',
+        COMMENTS  => '_SHOW',
+        CREDIT    => '_SHOW',
+        GID       => '_SHOW',
+        LOGIN_STATUS=>'_SHOW',
         PAGE_ROWS => 100000,
         %LIST_PARAMS,
         COLS_NAME => 1
@@ -904,7 +913,7 @@ sub debetors_group_create {
       
       next if($gid == $GID);
       
-      $DEBUG .= "$line->{id} ($uid) DEPOSIT: $line->{deposit} CREDIT: $line->{credit} LAST_PAYMENT: $last_payments GID: $gid -> $GID\n" if ($debug > 0);
+      $DEBUG .= "$line->{login} ($uid) DEPOSIT: $line->{deposit} CREDIT: $line->{credit} LAST_PAYMENT: $last_payments GID: $gid -> $GID\n" if ($debug > 0);
 
       my $comments = $line->{comments} || '';
       if ($debug < 5) {
@@ -914,7 +923,7 @@ sub debetors_group_create {
           {
             GID     => $GID,
             UID     => $uid,
-            DISABLE => $line->{disable}
+            DISABLE => $line->{login_status}
           }
         );
 
@@ -928,7 +937,6 @@ sub debetors_group_create {
       }
     }
   }
-
   #Flush from debetors group
   $DEBUG .= "Delete from debetors Group\n" if ($debug > 1);
   foreach my $DEBETOR_GID (sort { $b <=> $a } keys %DEBETORS_GIDS) {
@@ -939,6 +947,8 @@ sub debetors_group_create {
       {
         GID       => $DEBETOR_GID,
         DEPOSIT   => ">$DEPOSIT",
+        CREDIT    => '_SHOW',
+        GID       => '_SHOW',
         #COMMENTS     => "*$_DEBETORS:*",
         #PAYMENT_DAYS => ">$LAST_PAYMENTS_DAYS",
         PAGE_ROWS => 100000,
@@ -951,7 +961,7 @@ sub debetors_group_create {
       my $gid           = $line->{gid};
       my $last_payments = $line->{last_payments} || '';
 
-      $DEBUG .= "$line->{id} ($uid) DEPOSIT: $line->{deposit} CREDIT: $line->{credit} LAST_PAYMENT: $last_payments GID: $gid -> $DEBETORS_GIDS{$DEBETOR_GID}\n" if ($debug > 0);
+      $DEBUG .= "$line->{login} ($uid) DEPOSIT: $line->{deposit} CREDIT: $line->{credit} LAST_PAYMENT: $last_payments GID: $gid -> $DEBETORS_GIDS{$DEBETOR_GID}\n" if ($debug > 0);
 
       #Get last gid
       my $history_list = $admin->action_list({ TYPE      => '26', 
@@ -974,13 +984,13 @@ sub debetors_group_create {
           }
         );
 
-        $users->pi_change(
-          {
-            UID => $uid,
-            #COMMENTS => "$comments",
-            SKIP_INFO_FIELDS => 1
-          }
-        );
+#        $users->pi_change(
+#          {
+#            UID => $uid,
+#            #COMMENTS => "$comments",
+#            SKIP_INFO_FIELDS => 1
+#          }
+#        );
       }
     }
   }

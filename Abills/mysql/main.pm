@@ -308,7 +308,6 @@ sub search_former {
   		$param2 = $2;
   	}
 
-
   	if($data->{$param} || ($field_type eq 'INT' && defined($data->{$param}) && $data->{$param} ne '')) {
   		if ($sql_field eq '') {
         $self->{SEARCH_FIELDS} .= "$show, ";
@@ -326,6 +325,10 @@ sub search_former {
   if ($attr->{USERS_FIELDS}) {
     push @WHERE_RULES, @{ $self->search_expr_users({ %$data, 
                              EXT_FIELDS => [
+                                            'FIO',
+                                            'DEPOSIT',
+                                            'CREDIT',
+                                            'CREDIT_DATE', 
                                             'PHONE',
                                             'EMAIL',
                                             'ADDRESS_FLAT',
@@ -336,16 +339,15 @@ sub search_former {
                                             'ZIP',
                                             'GID',
                                             'CONTRACT_ID',
+                                            'COMPANY_ID',
                                             'CONTRACT_SUFIX',
                                             'CONTRACT_DATE',
                                             'EXPIRE',
-
-                                            'CREDIT',
-                                            'CREDIT_DATE', 
                                             'REDUCTION',
                                             'REDUCTION_DATE',
                                             'COMMENTS',
-                                            'BILL_ID:skip',
+                                            'BILL_ID',
+                                            'LOGIN_STATUS',
                                             
                                             'ACTIVATE',
                                             'EXPIRE',
@@ -531,7 +533,8 @@ sub changes {
 
   $OLD_DATA = $attr->{OLD_INFO};
   if ($OLD_DATA->{errno}) {
-  	print  "Old date errors: $OLD_DATA->{errno}\n";
+  	print  "Old date errors: $OLD_DATA->{errno} '$TABLE' $attr->{CHANGE_PARAM}=$DATA{$CHANGE_PARAM}\n";
+  	print %DATA;
     $self->{errno}  = $OLD_DATA->{errno};
     $self->{errstr} = $OLD_DATA->{errstr};
     return $self;
@@ -729,17 +732,17 @@ sub search_expr_users () {
   my %users_fields_hash = (
     LOGIN         => 'STR:u.id',
     UID           => 'INT:u.uid',
-    DEPOSIT       => 'INT:b.deposit',
+    DEPOSIT       => 'INT:if(company.id IS NULL, b.deposit, cb.deposit) AS deposit',
     DOMAIN_ID     => 'INT:u.domain_id',
     COMPANY_ID    => 'INT:u.company_id',
     COMPANY_CREDIT=> 'INT:company.credit AS company_credit',
+    LOGIN_STATUS  => 'INT:u.disable AS login_status',
     REGISTRATION  => 'DATE:u.registration',
 
     COMMENTS      => 'STR:pi.comments',
     FIO           => 'STR:pi.fio',
     PHONE         => 'STR:pi.phone',
     EMAIL         => 'STR:pi.email',
-
 
     PASPORT_DATE  => 'DATE:pi.pasport_date',
     PASPORT_NUM   => 'STR:pi.pasport_num', 
@@ -749,7 +752,6 @@ sub search_expr_users () {
     CONTRACT_ID   => 'STR:pi.contract_id',
     CONTRACT_SUFIX=> 'STR:pi.contract_sufix',
     CONTRACT_DATE => 'DATE:pi.contract_date',
-    LOGIN_STATUS  => 'INT:u.disable',
 
     ACTIVATE      => 'DATE:u.activate',
     EXPIRE        => 'DATE:u.expire',
@@ -765,21 +767,20 @@ sub search_expr_users () {
     #ADDRESS_FLAT  => 'STR:pi.address_flat', 
   );
 
-
+  if ($attr->{DEPOSIT} && $attr->{DEPOSIT} ne '_SHOW') {
+  	$users_fields_hash{DEPOSIT}='INT:b.deposit'
+  }
 
   if ($attr->{CONTRACT_SUFIX}) {
     $attr->{CONTRACT_SUFIX} =~ s/\|//g;
   }
 
-  my %ext_fields = ();
-  foreach my $id (@{ $attr->{EXT_FIELDS} }) {
-    $ext_fields{$id}=1;
-  }
-
   my $info_field = 0;
-  foreach my $key (keys %{ $attr }) {
-    if ($users_fields_hash{$key}) {
-      if ($ext_fields{$key.':skip'}) {
+  my %filled     = (); 
+
+  foreach my $key ( @{ $attr->{EXT_FIELDS} }, keys %{ $attr } ) {
+    if (defined($users_fields_hash{$key}) && defined($attr->{$key})) {
+      if (in_array($key.':skip', $attr->{EXT_FIELDS}) || $filled{$key}) {
         next;
       }
       elsif ($attr->{SKIP_USERS_FIELDS} && in_array($key, $attr->{SKIP_USERS_FIELDS})) {
@@ -788,7 +789,8 @@ sub search_expr_users () {
 
       my ($type, $field) = split(/:/, $users_fields_hash{$key});
       next if ($type eq 'STR' && ! $attr->{$key});
-      push @fields, @{ $self->search_expr($attr->{$key}, $type, "$field", { EXT_FIELD => $ext_fields{$key} }) };
+      push @fields, @{ $self->search_expr($attr->{$key}, $type, "$field", { EXT_FIELD => in_array($key, $attr->{EXT_FIELDS}) }) };
+      $filled{$key}=1;
     }
     elsif (! $info_field && $key =~ /^_/) {
       $info_field=1;
@@ -839,7 +841,7 @@ sub search_expr_users () {
   }
 
   if ($attr->{SKIP_GID}) {
-  	push @fields,  @{ $self->search_expr($attr->{GID}, 'INT', 'u.gid', { EXT_FIELD => $ext_fields{GID} }) };
+  	push @fields,  @{ $self->search_expr($attr->{GID}, 'INT', 'u.gid', { EXT_FIELD => in_array('GID', $attr->{EXT_FIELDS}) }) };
   }
   elsif ($attr->{GIDS}) {
     if ($admin->{GIDS}) {
@@ -862,7 +864,7 @@ sub search_expr_users () {
     push @fields, "u.gid IN ($attr->{GIDS})";
   }
   elsif (defined($attr->{GID}) && $attr->{GID} ne '') {
-    push @fields,  @{ $self->search_expr($attr->{GID}, 'INT', 'u.gid', { EXT_FIELD => $ext_fields{GID} }) };
+    push @fields,  @{ $self->search_expr($attr->{GID}, 'INT', 'u.gid', { EXT_FIELD => in_array('GID', $attr->{EXT_FIELDS}) }) };
   }
   elsif ($admin->{GIDS}) {
     push @fields, "u.gid IN ($admin->{GIDS})";
@@ -951,6 +953,12 @@ sub search_expr_users () {
 
     push @fields, @{ $self->search_expr($attr->{ACTION_DATE}, 'DATE', "$field_name AS action_datetime", { EXT_FIELD => 1 }) };
     $self->{EXT_TABLES} .= "LEFT JOIN admin_actions aa ON (u.uid=aa.uid)" if ($self->{EXT_TABLES} !~ /admin_actions/);
+  }
+
+  if ($attr->{DEPOSIT}) {
+    $self->{EXT_TABLES} .= " LEFT JOIN bills b ON (u.bill_id = b.id)
+      LEFT JOIN companies company ON  (u.company_id=company.id) 
+      LEFT JOIN bills cb ON (company.bill_id=cb.id) ";
   }
 
   delete ($self->{COL_NAMES_ARR});

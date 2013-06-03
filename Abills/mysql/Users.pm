@@ -704,7 +704,7 @@ sub list {
   $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
 
   @WHERE_RULES = ();
-
+ 
   if ($attr->{UNIVERSAL_SEARCH}) {
     my @us_fields = ('u.uid:INT', 'u.id:STR', 'pi.fio:STR', 'pi.contract_id:STR', 'pi.email:STR', 'pi.phone:STR', 'pi.comments:STR');
     $self->{SEARCH_FIELDS_COUNT}+=5;
@@ -732,7 +732,12 @@ sub list {
   }
   else {
     push @WHERE_RULES, @{ $self->search_expr_users({ %$attr, 
-                      EXT_FIELDS => [ 'UID',
+                      EXT_FIELDS => [ 
+        'FIO',
+        'DEPOSIT',
+        'CREDIT',
+        'CREDIT_DATE',
+        'LOGIN_STATUS',
         'PHONE',
         'EMAIL',
         'ADDRESS_FLAT',
@@ -747,8 +752,8 @@ sub list {
         'CONTRACT_DATE',
         'EXPIRE',
 
-        'CREDIT:skip',
-        'CREDIT_DATE', 
+#        'CREDIT:skip',
+
         'REDUCTION',
         'REGISTRATION',
         'REDUCTION_DATE',
@@ -756,7 +761,8 @@ sub list {
         'BILL_ID',
         'ACTIVATE',
         'EXPIRE',
-        'DOMAIN_ID'
+        'DOMAIN_ID',
+        'UID',
          ] }) };
   }
 
@@ -831,9 +837,6 @@ sub list {
      FROM users u
      LEFT JOIN payments p ON (u.uid = p.uid)
      LEFT JOIN users_pi pi ON (u.uid = pi.uid)
-     LEFT JOIN bills b ON (u.bill_id = b.id)
-     LEFT JOIN companies company ON  (u.company_id=company.id) 
-     LEFT JOIN bills cb ON (company.bill_id=cb.id)
      $EXT_TABLES
      GROUP BY u.uid
      $HAVING
@@ -896,7 +899,7 @@ sub list {
 
     my $HAVING = ($#WHERE_RULES > -1) ? "HAVING " . join(' and ', @HAVING_RULES) : '';
 
-    $self->query2("SELECT u.id, 
+    $self->query2("SELECT u.id AS login, 
        pi.fio, 
        if(company.id IS NULL, b.deposit, cb.deposit) AS deposit, 
        if(u.company_id=0, u.credit, 
@@ -913,9 +916,6 @@ sub list {
      FROM users u
      LEFT JOIN fees f ON (u.uid = f.uid)
      LEFT JOIN users_pi pi ON (u.uid = pi.uid)
-     LEFT JOIN bills b ON (u.bill_id = b.id)
-     LEFT JOIN companies company ON  (u.company_id=company.id) 
-     LEFT JOIN bills cb ON  (company.bill_id=cb.id)
      $EXT_TABLES
      GROUP BY u.uid
      $HAVING
@@ -954,18 +954,12 @@ sub list {
   }
 
   $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES) : '';
+
   $self->query2("SELECT u.id AS login, 
-      pi.fio, if(company.id IS NULL,b.deposit,cb.deposit) AS deposit, 
-             if(u.company_id=0, u.credit,
-      if (u.credit=0, company.credit, u.credit)) AS credit,
-      u.disable, 
       $self->{SEARCH_FIELDS}
       u.uid
      FROM users u
      LEFT JOIN users_pi pi ON (u.uid = pi.uid)
-     LEFT JOIN bills b ON (u.bill_id = b.id)
-     LEFT JOIN companies company ON  (u.company_id=company.id) 
-     LEFT JOIN bills cb ON  (company.bill_id=cb.id)
      $EXT_TABLES
      $WHERE ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;",
      undef,
@@ -982,9 +976,6 @@ sub list {
      sum(u.deleted) AS total_deleted
      FROM users u 
      LEFT JOIN users_pi pi ON (u.uid = pi.uid)
-     LEFT JOIN bills b ON u.bill_id = b.id
-     LEFT JOIN companies company ON  (u.company_id=company.id) 
-     LEFT JOIN bills cb ON  (company.bill_id=cb.id)
      $EXT_TABLES
     $WHERE",
     undef,

@@ -596,9 +596,6 @@ sub user_list {
      FROM (bonus_main bu, users u)
      LEFT JOIN users_pi pi ON (u.uid=pi.uid)
      LEFT JOIN bonus_tps b_tp ON (b_tp.id=bu.tp_id)
-     LEFT JOIN bills b ON (u.bill_id = b.id)
-     LEFT JOIN companies company ON  (u.company_id=company.id) 
-     LEFT JOIN bills cb ON  (company.bill_id=cb.id)
      $self->{EXT_TABLES}
      $WHERE
      ORDER BY $SORT $DESC

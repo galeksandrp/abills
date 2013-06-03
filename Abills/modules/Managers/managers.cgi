@@ -1266,8 +1266,11 @@ sub form_users {
 
   my $list = $users->list(
     {
+      FIO          => '_SHOW',
+      DEPOSIT      => '_SHOW',
+      CREDIT       => '_SHOW',
+      LOGIN_STATUS => '_SHOW',
       %LIST_PARAMS,
-      FULL_LIST => 1,
       COLS_NAME => 1,
     }
   );
@@ -1315,22 +1318,9 @@ sub form_users {
       qs         => $pages_qs,
       pages      => $users->{TOTAL},
       ID         => 'USERS_LIST',
-      header     => ($permissions{0}{7})
-      ? "<script language=\"JavaScript\" type=\"text/javascript\">
-<!-- 
-function CheckAllINBOX() {
-  for (var i = 0; i < document.users_list.elements.length; i++) {
-    if(document.users_list.elements[i].type == 'checkbox' && document.users_list.elements[i].name == 'IDS'){
-      document.users_list.elements[i].checked =         !(document.users_list.elements[i].checked);
-    }
-  }
-}
-//-->
-</script>\n
-<a href=\"javascript:void(0)\" onClick=\"CheckAllINBOX();\" class=export_button>$_SELECT_ALL</a>\n$status_bar"
-      : undef,
-      EXPORT => ' XML:&xml=1&PAGE_ROWS=1000000;',
-      MENU   => "$_ADD:index=" . get_function_index('form_wizard') . ':add' . ";$_SEARCH:index=" . get_function_index('form_search') . ":search"
+      SELECT_ALL => ($permissions{0}{7}) ? "users_list:IDS:$_SELECT_ALL" : undef,
+      EXPORT     => 1,
+      MENU       => "$_ADD:index=" . get_function_index('form_wizard') . ':add' . ";$_SEARCH:index=" . get_function_index('form_search') . ":search"
     }
   );
   my $base_fields = 5;
@@ -1356,7 +1346,7 @@ function CheckAllINBOX() {
       $table->td($line->{fio}),
       $table->td(($line->{deposit} + $line->{credit} < 0) ? $html->color_mark($line->{deposit}, $_COLORS[6]) : $line->{deposit}),
       $table->td($line->{credit}),
-      $table->td($status[ $line->{disable} ], { bgcolor => $state_colors[ $line->{disable} ], align => 'center' }),
+      $table->td($status[ $line->{login_status} ], { bgcolor => $state_colors[ $line->{login_status} ], align => 'center' }),
       @fields_array, $table->td($payments), $table->td($fees),
     );
   }

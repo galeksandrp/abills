@@ -206,33 +206,8 @@ sub user_list {
 
 
   @WHERE_RULES = ( "u.uid = service.uid" );
-  push @WHERE_RULES, @{ $self->search_expr_users({ %$attr, EXT_FIELDS => [
-                                            'PHONE',
-                                            'EMAIL',
-                                            'ADDRESS_FLAT',
-                                            'PASPORT_DATE',
-                                            'PASPORT_NUM', 
-                                            'PASPORT_GRANT',
-                                            'CITY', 
-                                            'ZIP',
-                                            'GID',
-                                            'CONTRACT_ID',
-                                            'CONTRACT_SUFIX',
-                                            'CONTRACT_DATE',
-                                            'EXPIRE',
-
-                                            'CREDIT',
-                                            'CREDIT_DATE', 
-                                            'REDUCTION',
-                                            'REGISTRATION',
-                                            'REDUCTION_DATE',
-                                            'COMMENTS',
-                                            'BILL_ID',
-                                            
-                                            'ACTIVATE',
-                                            'EXPIRE',
-                                            'DEPOSIT:skip'] }) };
-  my $EXT_TABLE = $self->{EXT_TABLES};
+  my $EXT_TABLES = '';
+  $self->{EXT_TABLES}='';
 
   if ($attr->{USERS_WARNINGS}) {
     $self->query(
@@ -277,53 +252,42 @@ sub user_list {
 
   if ($attr->{TP_FREE_TIME}) {
     push @WHERE_RULES, @{ $self->search_expr($attr->{CID}, 'INT', 'tp.free_time AS tp_free_time', { EXT_FIELD => 1 }) };
-    $EXT_TABLE .= "LEFT JOIN voip_tps voip_tp ON (voip_tp.id=tp.tp_id) ";
+    $EXT_TABLES .= "LEFT JOIN voip_tps voip_tp ON (voip_tp.id=tp.tp_id) ";
   }
 
   my $WHERE =  $self->search_former($attr, [
+      ['FIO',            'STR', 'pi.fio',                           1 ],
+      ['NUMBER',         'INT', 'service.number',                   1 ],
+      ['TP_NAME',        'STR', 'tp.name AS tp_name',               1 ],      
       ['IP',             'IP',  'service.ip',                            'INET_NTOA(service.ip) AS ip' ],
       ['CID',            'STR', 'service.cid',                      1 ],
-      ['JOIN_SERVICE',   'INT', 'dv.join_service',                  1 ],
-      ['SIMULTANEONSLY', 'INT', 'dv.logins',                        1 ],
-      ['DEPOSIT',        'INT', 'if(u.company_id > 0, cb.deposit, b.deposit)' ],
-      ['SPEED',          'INT', 'dv.speed',                         1 ],
-      ['NUMBER',         'INT', 'service.number',                     ],
+      ['SERVICE_STATUS',  'INT', 'service.disable AS voip_status',  1 ],
+      ['SIMULTANEONSLY', 'INT', 'service.logins',                   1 ],
       ['FILTER_ID',      'STR', 'service.filter_id',                1 ],
-      ['TP_ID',          'INT', 'service.tp_id',                      ],
+      ['TP_ID',          'INT', 'service.tp_id',                    1 ],
       ['TP_CREDIT',      'INT', 'tp.credit',                        'tp.credit AS tp_credit' ],
       ['PROVISION_PORT', 'INT', 'service.provision_port',           1 ],
       ['PROVISION_NAS_ID','INT','service.provision_nas_id',         1 ],
       ['SHOW_PASSWORD',  '',    '',  "DECODE(u.password, '$CONF->{secretkey}') AS password," ],
-      ['STATUS',         'INT', 'service.disable', ]
+
     ],
-    { WHERE => 1,
-    	WHERE_RULES => \@WHERE_RULES
+    { WHERE       => 1,
+    	WHERE_RULES => \@WHERE_RULES,
+    	USERS_FIELDS=> 1,
+    	SKIP_USERS_FIELDS=> [ 'FIO' ]
     }    
     );
 
+  $EXT_TABLES = $self->{EXT_TABLES} if ($self->{EXT_TABLES});
+
   $self->query2("SELECT u.id AS login, 
-      pi.fio, 
-      if(u.company_id > 0, cb.deposit, b.deposit) AS deposit,
-      u.credit, 
-      tp.name AS tp_name, 
-      u.disable, 
-      service.number,
       $self->{SEARCH_FIELDS}
       u.uid, 
-      u.company_id, 
-      pi.email, 
-      service.tp_id, 
-      u.activate, 
-      u.expire, 
-      if(u.company_id > 0, company.bill_id, u.bill_id) AS bill_id,
-      service.disable AS voip_status
+      service.tp_id
      FROM (users u, voip_main service)
      LEFT JOIN users_pi pi ON (u.uid = pi.uid)
-     LEFT JOIN bills b ON u.bill_id = b.id
      LEFT JOIN tarif_plans tp ON (tp.tp_id=service.tp_id) 
-     LEFT JOIN companies company ON  (u.company_id=company.id) 
-     LEFT JOIN bills cb ON  (company.bill_id=cb.id)
-     $EXT_TABLE
+     $EXT_TABLES
      $WHERE 
      GROUP BY u.uid
      ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;",

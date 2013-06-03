@@ -996,7 +996,7 @@ sub docs_invoices_list {
   	print "Content-Type: text/html\n\n"  if ($debug > 2);
     #Get payments
 	  my $i2p_list = $Docs->invoices2payments_list({ %LIST_PARAMS,
-	  	                                             COLS_NAME => 1 
+	  	                                             COLS_NAME    => 1,
 	  	                                           });
 
     my %payments_list = ();
@@ -1016,6 +1016,7 @@ sub docs_invoices_list {
     	                                ORDERS_LIST    => 1,
     	                                COLS_NAME      => 1,
     	                                REPRESENTATIVE => '_SHOW',
+    	                                DOCS_DEPOSIT   => '_SHOW',
     	                                ADDRESS_FULL   => '_SHOW',
     	                                PHONE          => '_SHOW',
     	                                CONTRACT_ID    => '_SHOW',
@@ -1023,6 +1024,10 @@ sub docs_invoices_list {
     	                                BILL_ID        => '_SHOW',
     	                                EMAIL          => '_SHOW',
     	                                FIO            => '_SHOW',
+                                      CREATED        => '_SHOW',
+                                      ALT_SUM        => '_SHOW',
+                                      EXCHANGE_RATE  => '_SHOW',
+                                      CURRENCY       => '_SHOW',    	                                
     	                                COLS_UPPER     => 1
     	                             });
     my @MULTI_ARR = ();
@@ -2800,6 +2805,8 @@ sub docs_print {
 sub docs_summary {
   my $list = $users->list(
     {
+      FIO       => '_SHOW',
+      CREDIT    => '_SHOW',
       DEPOSIT   => '<0',
       DISABLE   => 0,
       PAGE_ROWS => 1000000,
