@@ -2967,6 +2967,7 @@ sub voip_mk_users_conf {
     {
       PAGE_ROWS => 100000,
       CID       => '_SHOW',
+      NUMBER    => '_SHOW',
       PASSWORD  => '_SHOW',
       IP        => '_SHOW',
       FIO       => '_SHOW',
@@ -2975,7 +2976,8 @@ sub voip_mk_users_conf {
       ACTIVATE  => '_SHOW',
       DEPOSIT   => '_SHOW',
       CREDIT    => '_SHOW',
-      STATUS    => '_SHOW',      
+      STATUS    => '_SHOW',
+      CID       => '_SHOW',
       COLS_NAME => 1
     }
   );
@@ -3212,17 +3214,17 @@ sub voip_payments_maked {
 sub voip_provision {
   my ($attr) = @_;
 
-  my $list = $Nas->list({ TYPE => 'ls_pap2t;ls_spa8000' });
+  my $list = $Nas->list({ TYPE => 'ls_pap2t;ls_spa8000', COLS_NAME => 1 });
 
   my $hosts = '';
   foreach my $line (@$list) {
     $hosts .= $html->tpl_show(
       _include('voip_provision_dhcp_host', 'Voip'),
       {
-        NAS_ID   => $line->[0],
-        HOSTNAME => $line->[1],
-        MAC      => $line->[15],
-        IP       => $line->[3],
+        NAS_ID   => $line->{nas_id},
+        HOSTNAME => $line->{nas_name},
+        MAC      => $line->{mac},
+        IP       => $line->{nas_ip},
         ROUTERS  => '',
       },
       { OUTPUT2RETURN => 1 }

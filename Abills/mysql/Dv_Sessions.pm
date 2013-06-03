@@ -286,9 +286,6 @@ sub online {
        LEFT JOIN users u     ON (u.uid=c.uid)
        LEFT JOIN dv_main service ON (service.uid=u.uid)
 
-       LEFT JOIN bills b ON (u.bill_id=b.id)
-       LEFT JOIN companies company ON (u.company_id=company.id)
-       LEFT JOIN bills cb ON (company.bill_id=cb.id)
        $EXT_TABLE
 
        $WHERE
