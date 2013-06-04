@@ -489,7 +489,6 @@ sub invoices_list {
       ['COMPANY_ID',     'INT', 'u.company_id',                    1 ],
       ['DOCS_DEPOSIT',   'INT', 'd.deposit',  'd.deposit AS docs_deposit' ],
       ['CONTRACT_ID',    'INT', 'if(u.company_id=0, concat(pi.contract_sufix,pi.contract_id), concat(company.contract_sufix,company.contract_id)) AS contract_id', 1], 
-      ['GID',             'INT', 'g.gid',                     'g.name AS group_name'],
       ['DATE',           'DATE', "date_format(d.date, '%Y-%m-%d')"   ],
       ['FROM_DATE|TO_DATE','DATE', "date_format(d.date, '%Y-%m-%d')" ],
       ['FULL_INFO',      '',    '', "pi.address_street, pi.address_build, pi.address_flat, if (d.phone<>0, d.phone, pi.phone) AS phone,
@@ -518,7 +517,6 @@ sub invoices_list {
     LEFT JOIN users u ON (d.uid=u.uid)
     LEFT JOIN admins a ON (d.aid=a.aid)
     LEFT JOIN users_pi pi ON (pi.uid=u.uid)
-    LEFT JOIN groups g ON (g.gid=u.gid)
     LEFT JOIN docs_invoice2payments i2p ON (d.id=i2p.invoice_id)
     LEFT JOIN payments p ON (i2p.payment_id=p.id)
     $EXT_TABLES

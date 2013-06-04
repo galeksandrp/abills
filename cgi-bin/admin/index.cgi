@@ -1059,12 +1059,10 @@ sub form_companies {
           $input = $html->form_select(
             "$field_id",
             {
-              SELECTED          => $company->{INFO_FIELDS_VAL}->[$i],
-              SEL_MULTI_ARRAY   => $users->info_lists_list({ LIST_TABLE => $field_id . '_list' }),
-              MULTI_ARRAY_KEY   => 0,
-              MULTI_ARRAY_VALUE => 1,
-              SEL_OPTIONS       => { 0 => '-N/S-' },
-              NO_ID             => 1
+              SELECTED    => $company->{INFO_FIELDS_VAL}->[$i],
+              SEL_LIST    => $users->info_lists_list({ LIST_TABLE => $field_id . '_list', COLS_NAME => 1 }),
+              SEL_OPTIONS => { '' => '--' },
+              NO_ID       => 1
             }
           );
 
@@ -1357,12 +1355,10 @@ sub add_company {
       $input = $html->form_select(
         "$field_id",
         {
-          SELECTED          => undef,
-          SEL_MULTI_ARRAY   => $users->info_lists_list({ LIST_TABLE => $field_id . '_list' }),
-          MULTI_ARRAY_KEY   => 0,
-          MULTI_ARRAY_VALUE => 1,
-          SEL_OPTIONS       => { 0 => '-N/S-' },
-          NO_ID             => 1
+          SELECTED    => undef,
+          SEL_LIST    => $users->info_lists_list({ LIST_TABLE => $field_id . '_list',COLS_NAME => 1 }),
+          SEL_OPTIONS => { '' => '--' },
+          NO_ID       => 1
         }
       );
 
@@ -2076,12 +2072,10 @@ sub user_pi {
       $input = $html->form_select(
         "$field_id",
         {
-          SELECTED          => $user_pi->{INFO_FIELDS_VAL}->[$i],
-          SEL_MULTI_ARRAY   => $user->info_lists_list({ LIST_TABLE => $field_id . '_list' }),
-          MULTI_ARRAY_KEY   => 0,
-          MULTI_ARRAY_VALUE => 1,
-          SEL_OPTIONS       => { 0 => '-N/S-' },
-          NO_ID             => 1
+          SELECTED    => $user_pi->{INFO_FIELDS_VAL}->[$i],
+          SEL_LIST    => $user->info_lists_list({ LIST_TABLE => $field_id . '_list', COLS_NAME => 1 }),
+          SEL_OPTIONS => { '' => '--' },
+          NO_ID       => 1
         }
       );
 
@@ -3557,12 +3551,11 @@ sub form_intervals {
     $tarif_plan->{NETS_SEL} =  $html->form_select(
       'TT_NET_ID',
       {
-        SELECTED          => ($tarif_plan->{ACTION} eq 'add' && ! $tarif_plan->{TT_NET_ID} && ! $tarif_plan->{TT_ID}) ? 1 : $tarif_plan->{TT_NET_ID},
-        SEL_MULTI_ARRAY   => [ [ 0, '' ], @{ $tarif_plan->traffic_class_list({%LIST_PARAMS}) } ],
-        MULTI_ARRAY_KEY   => 0,
-        MULTI_ARRAY_VALUE => 1,
-        MAIN_MENU         => get_function_index('dv_traffic_classes'),
-        MAIN_MENU_AGRV    => "chg=$tarif_plan->{TT_NET_ID}"
+        SELECTED       => ($tarif_plan->{ACTION} eq 'add' && ! $tarif_plan->{TT_NET_ID} && ! $tarif_plan->{TT_ID}) ? 1 : $tarif_plan->{TT_NET_ID},
+        SEL_LIST       => $tarif_plan->traffic_class_list({%LIST_PARAMS, COLS_NAME => 1 }),
+        MAIN_MENU      => get_function_index('dv_traffic_classes'),
+        SEL_OPTIONS    => { '' => '--' },        
+        MAIN_MENU_AGRV => "chg=$tarif_plan->{TT_NET_ID}"
       }
     );
 
@@ -3735,10 +3728,10 @@ sub form_admins {
         CONTENT => $html->form_select(
           'AID',
           {
-            SELECTED          => $FORM{AID},
-            SEL_MULTI_ARRAY   => $admin->list({%LIST_PARAMS}),
-            MULTI_ARRAY_KEY   => 0,
-            MULTI_ARRAY_VALUE => 1,
+            SELECTED  => $FORM{AID},
+            SEL_LIST  => $admin->list({%LIST_PARAMS, COLS_NAME => 1}),
+            SEL_KEY   => 'aid',
+            SEL_VALUE => 'id',
           }
         ),
         HIDDEN => {
@@ -4555,10 +4548,10 @@ sub form_nas {
         CONTENT => $html->form_select(
           'NAS_ID',
           {
-            SELECTED          => $FORM{NAS_ID},
-            SEL_MULTI_ARRAY   => $nas->list({ %LIST_PARAMS, NAS_ID => undef }),
-            MULTI_ARRAY_KEY   => 0,
-            MULTI_ARRAY_VALUE => 1,
+            SELECTED  => $FORM{NAS_ID},
+            SEL_LIST  => $nas->list({ %LIST_PARAMS, NAS_ID => undef, COLS_NAME => 1 }),
+            SEL_KEY   => 'nas_id',
+            SEL_VALUE => 'nas_name',
           }
         ),
         HIDDEN => {
@@ -4694,13 +4687,11 @@ sub sel_nas_groups {
   $GROUPS_SEL = $html->form_select(
     'GID',
     {
-      SELECTED          => $GID,
-      SEL_MULTI_ARRAY   => $nas->nas_group_list({ DOMAIN_ID => $admin->{DOMAIN_ID} }),
-      MULTI_ARRAY_KEY   => 0,
-      MULTI_ARRAY_VALUE => 1,
-      SEL_OPTIONS       => { 0 => "" },
-      MAIN_MENU         => get_function_index('form_nas_groups'),
-      MAIN_MENU_AGRV    => "chg=$GID"
+      SELECTED       => $GID,
+      SEL_LIST       => $nas->nas_group_list({ DOMAIN_ID => $admin->{DOMAIN_ID}, COLS_NAME => 1 }),
+      SEL_OPTIONS    => { '' => '--' },
+      MAIN_MENU      => get_function_index('form_nas_groups'),
+      MAIN_MENU_AGRV => "chg=$GID"
     }
   );
 
@@ -6125,10 +6116,10 @@ sub form_payments () {
     return 0 if ($attr->{REGISTRATION} && $FORM{add});
 
     #exchange rate sel
-    my $er_list   = $payments->exchange_list({%FORM});
+    my $er_list   = $payments->exchange_list({%FORM, COLS_NAME => 1 });
     my %ER_ISO2ID = ();
     foreach my $line (@$er_list) {
-      $ER_ISO2ID{ $line->[3] } = $line->[5];
+      $ER_ISO2ID{ $line->{iso} } = $line->{id};
     }
 
     if (!$FORM{ER} && $FORM{ISO}) {
@@ -6138,13 +6129,14 @@ sub form_payments () {
     $payments->{SEL_ER} = $html->form_select(
       'ER',
       {
-        SELECTED          => $FORM{ER} ,
-        SEL_MULTI_ARRAY   => [ [ '', '', '', '', '', '' ], @{$er_list} ],
-        MULTI_ARRAY_KEY   => 5,
-        MULTI_ARRAY_VALUE => '1,2',
-        NO_ID             => 1,
-        MAIN_MENU         => get_function_index('form_exchange_rate'),
-        MAIN_MENU_AGRV    => "chg=$FORM{ER}"
+        SELECTED      => $FORM{ER} ,
+        SEL_LIST      => $er_list,
+        SEL_KEY       => 'id',
+        SEL_VALUE     => 'money,short_name,',
+        NO_ID         => 1,
+        MAIN_MENU     => get_function_index('form_exchange_rate'),
+        MAIN_MENU_AGRV=> "chg=$FORM{ER}",
+        SEL_OPTIONS   => { '' => '' }
       }
     );
 
@@ -6855,10 +6847,12 @@ sub form_fees {
         'ER',
         {
           SELECTED   => undef,
-          SEL_LIST   => $fees->exchange_list(),
+          SEL_LIST   => $fees->exchange_list({ COLS_NAME => 1 }),
           SEL_KEY    => 'id',
           SEL_VALUE  => 'money,short_name',
           NO_ID      => 1,
+          MAIN_MENU     => get_function_index('form_exchange_rate'),
+          MAIN_MENU_AGRV=> "chg=$FORM{ER}",
           SEL_OPTIONS=> { '' => ''}
         }
       );
@@ -7244,12 +7238,10 @@ sub form_search {
             $input = $html->form_select(
               "$field_id",
               {
-                SELECTED          => $FORM{$field_id},
-                SEL_MULTI_ARRAY   => $users->info_lists_list({ LIST_TABLE => $field_id . '_list' }),
-                MULTI_ARRAY_KEY   => 0,
-                MULTI_ARRAY_VALUE => 1,
-                SEL_OPTIONS       => { 0 => '-N/S-' },
-                NO_ID             => 1
+                SELECTED    => $FORM{$field_id},
+                SEL_LIST    => $users->info_lists_list({ LIST_TABLE => $field_id . '_list', COLS_ANME => 1 }),
+                SEL_OPTIONS => { '' => '--' },
+                NO_ID       => 1
               }
             );
 
@@ -7351,12 +7343,10 @@ sub form_search {
             $input = $html->form_select(
               "$field_id",
               {
-                SELECTED          => $FORM{$field_id},
-                SEL_MULTI_ARRAY   => $users->info_lists_list({ LIST_TABLE => $field_id . '_list' }),
-                MULTI_ARRAY_KEY   => 0,
-                MULTI_ARRAY_VALUE => 1,
-                SEL_OPTIONS       => { 0 => '-N/S-' },
-                NO_ID             => 1
+                SELECTED    => $FORM{$field_id},
+                SEL_LIST    => $users->info_lists_list({ LIST_TABLE => $field_id . '_list', COLS_NAME => 1 }),
+                SEL_OPTIONS => { '' => '--' },
+                NO_ID       => 1
               }
             );
 
@@ -8389,12 +8379,12 @@ sub sel_groups {
     $GROUPS_SEL = $html->form_select(
       'GID',
       {
-        SELECTED          => $attr->{GID} || $FORM{GID},
-        SEL_MULTI_ARRAY   => $users->groups_list({ GIDS => ($admin->{GIDS}) ? $admin->{GIDS} : undef }),
-        MULTI_ARRAY_KEY   => 0,
-        MULTI_ARRAY_VALUE => 1,
-        SEL_OPTIONS       => ($admin->{GIDS}) ? undef : { '' => "$_ALL" },
-        MAIN_MENU         => get_function_index('form_groups'),
+        SELECTED    => $attr->{GID} || $FORM{GID},
+        SEL_LIST    => $users->groups_list({ GIDS => ($admin->{GIDS}) ? $admin->{GIDS} : undef, COLS_NAME => 1 }),
+        SEL_KEY     => 'gid',
+        SEL_VALUE   => 'name',
+        SEL_OPTIONS => ($admin->{GIDS}) ? undef : { '' => "$_ALL" },
+        MAIN_MENU   => get_function_index('form_groups'),
       }
     );
   }
@@ -8855,13 +8845,13 @@ sub form_info_lists {
       }
     );
 
-    $list = $users->info_lists_list({%FORM});
+    $list = $users->info_lists_list({%FORM, COLS_NAME => 1});
 
     foreach my $line (@$list) {
       $table->addrow(
-        $line->[0], $line->[1],
-        $html->button($_CHANGE, "index=$index&LIST_TABLE=$FORM{LIST_TABLE}&chg=$line->[0]", { CLASS => 'change' }),
-        (defined($permissions{0}{5})) ? $html->button($_DEL, "index=$index&LIST_TABLE=$FORM{LIST_TABLE}&del=$line->[0]", { MESSAGE => "$_DEL $line->[0] / $line->[1]?", CLASS => 'del' }) : ''
+        $line->{id}, $line->{name},
+        $html->button($_CHANGE, "index=$index&LIST_TABLE=$FORM{LIST_TABLE}&chg=$line->{id}", { CLASS => 'change' }),
+        (defined($permissions{0}{5})) ? $html->button($_DEL, "index=$index&LIST_TABLE=$FORM{LIST_TABLE}&del=$line->{id}", { MESSAGE => "$_DEL $line->{id} / $line->{name}?", CLASS => 'del' }) : ''
       );
     }
 
@@ -9066,12 +9056,10 @@ sub form_streets {
   $users->{DISTRICTS_SEL} = $html->form_select(
     "DISTRICT_ID",
     {
-      SELECTED => $users->{DISTRICT_ID} || $FORM{DISTRICT_ID},
-      SEL_MULTI_ARRAY   => $users->district_list({ PAGE_ROWS => 1000 }),
-      MULTI_ARRAY_KEY   => 0,
-      MULTI_ARRAY_VALUE => 1,
-      SEL_OPTIONS       => { 0                               => '-N/S-' },
-      NO_ID             => 1
+      SELECTED    => $users->{DISTRICT_ID} || $FORM{DISTRICT_ID},
+      SEL_LIST    => $users->district_list({ PAGE_ROWS => 1000, COLS_NAME => 1 }),
+      SEL_OPTIONS => { ''  => '--' },
+      NO_ID       => 1
     }
   );
 
@@ -9180,12 +9168,10 @@ sub form_builds {
     $users->{STREET_SEL} = $html->form_select(
       "STREET_ID",
       {
-        SELECTED => $users->{STREET_ID} || $FORM{BUILDS},
-        SEL_MULTI_ARRAY   => $users->street_list({ PAGE_ROWS => 10000 }),
-        MULTI_ARRAY_KEY   => 0,
-        MULTI_ARRAY_VALUE => 1,
-        SEL_OPTIONS       => { 0                             => '-N/S-' },
-        NO_ID             => 1
+        SELECTED    => $users->{STREET_ID} || $FORM{BUILDS},
+        SEL_LIST    => $users->street_list({ PAGE_ROWS => 10000, COLS_NAME => 1 }),
+        SEL_OPTIONS => { '' => '--' },
+        NO_ID       => 1
       }
     );
 

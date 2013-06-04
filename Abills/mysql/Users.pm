@@ -1548,7 +1548,9 @@ sub info_lists_list {
   my $self = shift;
   my ($attr) = @_;
 
-  $self->query2("SELECT id, name FROM $attr->{LIST_TABLE} ORDER BY name;");
+  $self->query2("SELECT id, name FROM $attr->{LIST_TABLE} ORDER BY name;",
+  undef,
+  $attr);
 
   return $self->{list};
 }
@@ -1594,7 +1596,7 @@ sub info_list_change {
 }
 
 #**********************************************************
-# groups_list()
+# config_list()
 #**********************************************************
 sub config_list {
   my $self = shift;
@@ -1616,7 +1618,7 @@ sub config_list {
 
   my $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES) : '';
 
-  $self->query2("SELECT param, value FROM config $WHERE ORDER BY $SORT $DESC");
+  $self->query2("SELECT param, value FROM config $WHERE ORDER BY $SORT $DESC", undef, $attr);
   my $list = $self->{list};
 
   if ($self->{TOTAL} > 0) {

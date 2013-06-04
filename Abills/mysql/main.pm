@@ -816,7 +816,7 @@ sub search_expr_users () {
           }
           elsif ($attr->{$field_name}) {
             if ($type == 1) {
-              my $value = $self->search_expr("$attr->{$field_name}", 'INT');
+              my $value = @{ $self->search_expr("$attr->{$field_name}", 'INT') }[0];
               push @fields, "(pi." . $field_name . "$value)";
             }
             elsif ($type == 2) {

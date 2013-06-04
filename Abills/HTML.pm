@@ -562,8 +562,8 @@ sub form_select {
     }
   }
   elsif ($attr->{SEL_LIST}) {
-    my $key                      = $attr->{SEL_KEY};
-    my $value                    = $attr->{SEL_VALUE};
+    my $key                      = $attr->{SEL_KEY} || 'id';
+    my $value                    = $attr->{SEL_VALUE} || 'name';
     my $H                        = $attr->{SEL_LIST};
     my @SEL_VALUE_PREFIX = ();
 

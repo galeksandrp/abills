@@ -74,7 +74,9 @@ sub exchange_list {
 
  $self->query($db, "SELECT money, short_name, rate, iso, changed, id 
     FROM exchange_rate
-    ORDER BY $SORT $DESC;");
+    ORDER BY $SORT $DESC;",
+ undef,
+ $attr);
 
  return $self->{list};
 }
