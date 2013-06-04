@@ -269,7 +269,7 @@ sub check_lines {
       my $uid           = $online->{uid};
       $online->{tp_num} = $online->{tp_id};
 
-      my $state         = int($online->{service_status}+$online->{login_status});
+      my $state         = int(($online->{service_status} || 0)+($online->{login_status} || 0));
       $online->{credit} = (defined($online->{credit}) && $online->{credit} == 0) ? ((!$conf{user_credit_change}) ? $online->{tp_credit} : 0) : ($online->{credit} || 0);
       if ($debug > 1) {
         printf("%-14s|%16s|%8s|%10s|%10s|%12s|\n", $online->{user_name}, $online->{client_ip}, $online->{acct_session_time}, $online->{acct_input_octets}, $online->{acct_output_octets}, ($online->{deposit} || 'unknown'));
@@ -543,7 +543,7 @@ sub  session_hangup {
     if ($ret !~ /^Err/i) {
        $hangup_status = 1;
     }
-    $message .= " Status: $hangup_status DURATION: $online->{duration}";
+    $message .= " Hangup: $hangup_status DURATION: $online->{duration}";
     $Log->log_print('LOG_WARNING', $online->{user_name}, $message,  { ACTION => 'HANGUP', NAS => $nas_info });
   }
 

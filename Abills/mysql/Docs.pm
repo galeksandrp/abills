@@ -504,10 +504,6 @@ sub invoices_list {
 
   my $EXT_TABLES  = $self->{EXT_TABLES};
 
-  if ($attr->{BILL_ID} && $EXT_TABLES !~ /bills/) {
-    $EXT_TABLES .= "  ";
-  }
-
   $self->query2("SELECT d.invoice_num, 
      d.date, 
      if(d.customer='-' or d.customer='', pi.fio, d.customer) AS customer,

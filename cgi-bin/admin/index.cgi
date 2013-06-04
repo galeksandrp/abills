@@ -309,6 +309,8 @@ my %menu_args  = ();
 
 fl();
 my %USER_SERVICES = ();
+my @service_status = ("$_ENABLE", "$_DISABLE", "$_NOT_ACTIVE", "$_HOLD_UP", "$_DISABLE: $_NON_PAYMENT", "$ERR_SMALL_DEPOSIT");
+my @service_status_colors = ("$_COLORS[9]", "$_COLORS[6]", '#808080', '#0000FF', '#FF8000', '#009999');
 
 #Add modules
 foreach my $m (@MODULES) {
@@ -3198,8 +3200,6 @@ sub form_system_changes {
 sub form_changes {
   my ($attr) = @_;
   my %search_params = ();
-
-  my @service_status = ("$_ENABLE", "$_DISABLE", "$_NOT_ACTIVE", "$_HOLD_UP", "$_DISABLE: $_NON_PAYMENT", "$ERR_SMALL_DEPOSIT");
 
   my %action_types = (
     0  => 'Unknown',
@@ -6255,8 +6255,6 @@ sub form_payments () {
 
   $LIST_PARAMS{ID} = $FORM{ID} if ($FORM{ID});
 
-
-
   if ($conf{SYSTEM_CURRENCY}) {
     $LIST_PARAMS{AMOUNT}='_SHOW' if (! $FORM{AMOUNT});
     $LIST_PARAMS{CURRENCY}='_SHOW' if (! $FORM{CURRENCY});    	
@@ -6281,7 +6279,7 @@ sub form_payments () {
       'method'       => $_PAYMENT_METHOD, 
       'ext_id'       => 'EXT ID', 
       'reg_date'     => "$_PAYMENTS $_REGISTRATION",
-      'ip'           =>  'IP',
+      'ip'           => 'IP',
       'admin_name'   => $_ADMIN,
       'invoice_num'  => $_INVOICE,
       amount         => "$_ALT $_SUM",
@@ -6324,28 +6322,33 @@ sub form_payments () {
 
     my @fields_array = ();
     for (my $i = 0; $i < 9+$payments->{SEARCH_FIELDS_COUNT}; $i++) {
-      if ($conf{EXT_BILL_ACCOUNT} && $payments->{COL_NAMES_ARR}->[$i] eq 'ext_bill_deposit') {
+    	my $field_name = $payments->{COL_NAMES_ARR}->[$i];
+    	
+      if ($conf{EXT_BILL_ACCOUNT} && $field_name eq 'ext_bill_deposit') {
         $line->{ext_bill_deposit} = ($line->{ext_bill_deposit} < 0) ? $html->color_mark($line->{ext_bill_deposit}, $_COLORS[6]) : $line->{ext_bill_deposit};
       }
-      elsif ($payments->{COL_NAMES_ARR}->[$i] eq 'deleted') {
+      elsif($field_name eq 'deleted') {
         $line->{deleted} = $html->color_mark($bool_vals[ $line->{deleted} ], ($line->{deleted} == 1) ? $state_colors[ $line->{deleted} ] : '');
       }
-      elsif ($payments->{COL_NAMES_ARR}->[$i] eq 'login' && $line->{uid}) {
+      elsif($field_name eq 'login' && $line->{uid}) {
         $line->{login} = $html->button($line->{login}, "index=15&UID=$line->{uid}");
       }
-      elsif ($payments->{COL_NAMES_ARR}->[$i] eq 'dsc') {
+      elsif($field_name eq 'dsc') {
         $line->{dsc} = $line->{dsc}.$html->br().$html->b($line->{inner_describe}) if ($line->{inner_describe});
       }
-      elsif($payments->{COL_NAMES_ARR}->[$i] =~ /deposit/) {
-        $line->{$payments->{COL_NAMES_ARR}->[$i]} = ($line->{$payments->{COL_NAMES_ARR}->[$i]} < 0) ? $html->color_mark($line->{$payments->{COL_NAMES_ARR}->[$i]}, $_COLORS[6]) : $line->{$payments->{COL_NAMES_ARR}->[$i]};
+      elsif($field_name =~ /deposit/) {
+        $line->{$payments->{COL_NAMES_ARR}->[$i]} = ($line->{$field_name} < 0) ? $html->color_mark($line->{$field_name}, $_COLORS[6]) : $line->{$field_name};
       }
-      elsif ($payments->{COL_NAMES_ARR}->[$i] eq 'method') {
+      elsif($field_name eq 'method') {
         $line->{method} = ($FORM{METHOD_NUM}) ? $line->{method} : $PAYMENTS_METHODS{ $line->{method} };
       }
-      elsif ($payments->{COL_NAMES_ARR}->[$i] eq 'bill_id') {
+      elsif($field_name eq 'login_status') {
+        $line->{login_status} = ($line->{login_status} > 0) ? $html->color_mark($service_status[ $line->{login_status} ], $service_status_colors[ $line->{login_status} ]) : $service_status[$line->{login_status}];
+      }
+      elsif ($field_name eq 'bill_id') {
         $line->{bill_id} = ($conf{EXT_BILL_ACCOUNT} && $attr->{USER_INFO}) ? $BILL_ACCOUNTS{ $line->{bill_id} } : $line->{bill_id};
       }
-      elsif($payments->{COL_NAMES_ARR}->[$i] eq 'invoice_num') {
+      elsif($field_name eq 'invoice_num') {
       	if (in_array('Docs', \@MODULES) && ! $FORM{xml}) {
           my $payment_sum = $line->{sum};
           my $i2p         = '';
@@ -6365,8 +6368,7 @@ sub form_payments () {
         }
       }
 
-
-      push @fields_array, $line->{$payments->{COL_NAMES_ARR}->[$i]};
+      push @fields_array, $line->{$field_name};
     }
 
     $table->addrow(@fields_array, $delete);
@@ -6852,11 +6854,12 @@ sub form_fees {
       $fees->{SEL_ER} = $html->form_select(
         'ER',
         {
-          SELECTED          => undef,
-          SEL_MULTI_ARRAY   => [ [ '', '', '', '', '' ], @{ $fees->exchange_list() } ],
-          MULTI_ARRAY_KEY   => 4,
-          MULTI_ARRAY_VALUE => '1,2',
-          NO_ID             => 1
+          SELECTED   => undef,
+          SEL_LIST   => $fees->exchange_list(),
+          SEL_KEY    => 'id',
+          SEL_VALUE  => 'money,short_name',
+          NO_ID      => 1,
+          SEL_OPTIONS=> { '' => ''}
         }
       );
 
@@ -6953,28 +6956,33 @@ sub form_fees {
 
     my @fields_array = ();
     for (my $i = 0; $i < 1+$fees->{SEARCH_FIELDS_COUNT}; $i++) {
-      if ($conf{EXT_BILL_ACCOUNT} && $fees->{COL_NAMES_ARR}->[$i] eq 'ext_bill_deposit') {
+ 	    my $field_name = $fees->{COL_NAMES_ARR}->[$i];
+    	
+      if ($conf{EXT_BILL_ACCOUNT} && $field_name eq 'ext_bill_deposit') {
         $line->{ext_bill_deposit} = ($line->{ext_bill_deposit} < 0) ? $html->color_mark($line->{ext_bill_deposit}, $_COLORS[6]) : $line->{ext_bill_deposit};
       }
-      elsif ($fees->{COL_NAMES_ARR}->[$i] eq 'deleted') {
+      elsif($field_name eq 'deleted') {
         $line->{deleted} = $html->color_mark($bool_vals[ $line->{deleted} ], ($line->{deleted} == 1) ? $state_colors[ $line->{deleted} ] : '');
       }
-      elsif ($fees->{COL_NAMES_ARR}->[$i] eq 'login' && $line->{uid}) {
+      elsif($field_name eq 'login' && $line->{uid}) {
         $line->{login} = $html->button($line->{login}, "index=15&UID=$line->{uid}");
       }
-      elsif ($fees->{COL_NAMES_ARR}->[$i] eq 'dsc') {
+      elsif($field_name eq 'dsc') {
         $line->{dsc} = $line->{dsc}.$html->br().$html->b($line->{inner_describe}) if ($line->{inner_describe});
       }
-      elsif($fees->{COL_NAMES_ARR}->[$i] =~ /deposit/) {
-        $line->{$fees->{COL_NAMES_ARR}->[$i]} = ($line->{$fees->{COL_NAMES_ARR}->[$i]} < 0) ? $html->color_mark($line->{$fees->{COL_NAMES_ARR}->[$i]}, $_COLORS[6]) : $line->{$fees->{COL_NAMES_ARR}->[$i]};
+      elsif($field_name =~ /deposit/) {
+        $line->{$field_name} = ($line->{$field_name} < 0) ? $html->color_mark($line->{$field_name}, $_COLORS[6]) : $line->{$field_name};
       }
-      elsif ($fees->{COL_NAMES_ARR}->[$i] eq 'method') {
+      elsif($field_name eq 'method') {
         $line->{method} = ($FORM{METHOD_NUM}) ? $line->{method} : $FEES_METHODS{ $line->{method} };
       }
-      elsif ($fees->{COL_NAMES_ARR}->[$i] eq 'bill_id') {
+      elsif($field_name eq 'login_status') {
+        $line->{login_status} = ($line->{login_status} > 0) ? $html->color_mark($service_status[ $line->{login_status} ], $service_status_colors[ $line->{login_status} ]) : $service_status[$line->{login_status}];
+      }
+      elsif($field_name eq 'bill_id') {
         $line->{bill_id} = ($conf{EXT_BILL_ACCOUNT} && $attr->{USER_INFO}) ? $BILL_ACCOUNTS{ $line->{bill_id} } : $line->{bill_id};
       }
-      elsif($fees->{COL_NAMES_ARR}->[$i] eq 'invoice_num') {
+      elsif($field_name eq 'invoice_num') {
       	if (in_array('Docs', \@MODULES) && ! $FORM{xml}) {
           my $payment_sum = $line->{sum};
           my $i2p         = '';
@@ -6996,7 +7004,7 @@ sub form_fees {
       }
 
 
-      push @fields_array, $line->{$fees->{COL_NAMES_ARR}->[$i]};
+      push @fields_array, $line->{$field_name};
     }
 
     $table->addrow(@fields_array, $delete);
@@ -7620,8 +7628,6 @@ sub form_shedule {
     }
 
     if ($line->[6] eq 'status') {
-      my @service_status_colors = ("$_COLORS[9]", "$_COLORS[6]", '#808080', '#0000FF', '#FF8000', '#009999');
-      my @service_status = ("$_ENABLE", "$_DISABLE", "$_NOT_ACTIVE", "$_HOLD_UP", "$_DISABLE: $_NON_PAYMENT", "$ERR_SMALL_DEPOSIT");
       $value = $html->color_mark($service_status[ $line->[7] ], ($table->{rowcolor} && $table->{rowcolor} eq $service_status_colors[ $line->[7] ]) ? '#FFFFFF' : $service_status_colors[ $line->[7] ]);
     }
 

@@ -1011,8 +1011,8 @@ sub docs_invoices_list {
 	  }
 
     $LIST_PARAMS{COMPANY_ID}=$FORM{COMPANY_ID} if ($FORM{COMPANY_ID});
-    my $invoices_list = $Docs->invoices_list({ %FORM, 
-    	                                %LIST_PARAMS, 
+    my $invoices_list = $Docs->invoices_list({ 
+    	                                LOGIN          => '_SHOW',
     	                                ORDERS_LIST    => 1,
     	                                COLS_NAME      => 1,
     	                                REPRESENTATIVE => '_SHOW',
@@ -1028,6 +1028,8 @@ sub docs_invoices_list {
                                       ALT_SUM        => '_SHOW',
                                       EXCHANGE_RATE  => '_SHOW',
                                       CURRENCY       => '_SHOW',    	                                
+    	                                %LIST_PARAMS,
+    	                                %FORM,
     	                                COLS_UPPER     => 1
     	                             });
     my @MULTI_ARR = ();
@@ -1229,13 +1231,13 @@ sub docs_invoices_list {
 
     for (my $i = 0; $i < 5+$invoice_list_fields; $i++) {
  	    my $val        = '';
-      my $field_name = $Docs->{COL_NAMES_ARR}->[$i];      
+      my $field_name = $Docs->{COL_NAMES_ARR}->[$i];
 
       if ($field_name eq 'date') {
       	$val = $html->button("$invoice->{date}", "qindex=$index&print=$invoice->{id}&UID=$invoice->{uid}$pages_qs" . (($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : ''). (($users->{DOMAIN_ID}) ? "&DOMAIN_ID=$users->{DOMAIN_ID}" : ''), { ex_params => 'target=_new' }),
       }
       elsif($field_name eq 'login_status') {
-        $val = ($line->{$field_name} > 0) ? $html->color_mark($service_status[ $invoice->{$field_name} ], $service_status_colors[ $invoice->{$field_name} ]) : $service_status[$invoice->{$field_name}];
+        $val = ($invoice->{$field_name} > 0) ? $html->color_mark($service_status[ $invoice->{$field_name} ], $service_status_colors[ $invoice->{$field_name} ]) : $service_status[$invoice->{$field_name}];
       }
       elsif($field_name eq 'payment_sum') {
         my $invoice_sum = $invoice->{total_sum};

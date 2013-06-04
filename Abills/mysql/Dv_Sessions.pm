@@ -200,7 +200,6 @@ sub online {
 
   my $WHERE =  $self->search_former($attr, [
       ['USER_NAME',        'STR', 'c.user_name',                                  1 ],
-      ['FIO',              'STR', 'pi.fio',                                       1 ],
       ['NAS_PORT_ID',      'INT', 'c.nas_port_id',                                1 ],
       ['DURATION',         'INT', 'SEC_TO_TIME(UNIX_TIMESTAMP() - UNIX_TIMESTAMP(c.started))', 'SEC_TO_TIME(UNIX_TIMESTAMP() - UNIX_TIMESTAMP(c.started)) AS duration', 1 ],
       ['CLIENT_IP',        'IP',  'c.framed_ip_address',   'INET_NTOA(c.framed_ip_address) AS client_ip',  1 ],
@@ -223,15 +222,11 @@ sub online {
       ['GUEST',            'INT', 'c.guest',                                     1 ],
       ['TURBO_MODE',       'INT', 'c.turbo_mode',                                 1 ],
       ['JOIN_SERVICE',     'INT', 'c.join_service',                               1 ],
-      ['PHONE',            'STR', 'pi.phone',                                     1 ],
       ['NAS_IP',           'IP',  'nas_ip',                 'INET_NTOA(c.nas_ip_address) AS nas_ip'],
-      ['DEPOSIT',          'INT', 'if(company.name IS NULL, b.deposit, cb.deposit) AS deposit',     1],
-      ['CREDIT',           'INT', 'if(u.company_id=0, u.credit, if (u.credit=0, company.credit, u.credit)) AS credit', 1 ],
       ['ACCT_SESSION_TIME','INT', 'UNIX_TIMESTAMP() - UNIX_TIMESTAMP(c.started) AS acct_session_time',1 ],
       ['DURATION_SEC',     'INT', 'if(c.lupdated>0, c.lupdated - UNIX_TIMESTAMP(c.started), 0) AS duration_sec', 1 ],
       ['FILTER_ID',        'STR', 'if(service.filter_id<>\'\', service.filter_id, tp.filter_id) AS filter_id',  1 ],
       ['SESSION_START',    'INT', 'UNIX_TIMESTAMP(started) AS started_unixtime',  1 ],
-      ['LOGIN_STATUS',     'INT', 'u.disable AS login_status',                    1 ],
       ['SERVICE_STATUS',   'INT', 'service.disable AS service_status',            1 ],
       ['TP_BILLS_PRIORITY','INT', 'tp.bills_priority',                            1 ],
       ['TP_CREDIT',        'INT', 'tp.credit AS tp_credit',                       1 ],
@@ -272,10 +267,8 @@ sub online {
     }
     elsif ($field =~ /FIO|PHONE|ADDRESS_STREET/ && $EXT_TABLE !~ / users_pi /) {
       $EXT_TABLE .= " LEFT JOIN users_pi pi ON (pi.uid=u.uid)";
-
     }
   }
-
 
   $EXT_TABLE .= $self->{EXT_TABLES} if ($self->{EXT_TABLES});
   

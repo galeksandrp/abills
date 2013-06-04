@@ -209,31 +209,17 @@ sub cards_main {
 
     $table = $html->table(
       {
-        width   => '100%',
-        caption => "$_SERIAL: $FORM{SERIA}",
-        title   => [ "$_SERIAL", "$_NUM", "$_LOGIN", "$_SUM", "$_STATUS", "$_EXPIRE", "$_CREATED", "$_USED $_DATE", "$_DILLERS", "$_DILLERS $_DATE", "$_SOLD", "$_ADMINS", @pin, '-' ],
+        width      => '100%',
+        caption    => "$_SERIAL: $FORM{SERIA}",
+        title      => [ "$_SERIAL", "$_NUM", "$_LOGIN", "$_SUM", "$_STATUS", "$_EXPIRE", "$_CREATED", "$_USED $_DATE", "$_DILLERS", "$_DILLERS $_DATE", "$_SOLD", "$_ADMINS", @pin, '-' ],
         cols_align => [ 'right', 'right', 'right', 'right', 'center', 'right', 'right', 'left', 'right', 'right', 'left', 'right', 'center:noprint' ],
         qs => $pages_qs . ((!$FORM{search}) ? "&SERIA=$FORM{SERIA}" : ''),
-        pages  => $Cards->{TOTAL},
-        ID     => 'CARDS_LIST',
-        header => "<script language=\"JavaScript\" type=\"text/javascript\">
-<!-- 
-function CheckAllINBOX() {
-  for (var i = 0; i < document.cards_list.elements.length; i++) {
-    if(document.cards_list.elements[i].type == 'checkbox' && document.cards_list.elements[i].name == 'IDS'){
-      document.cards_list.elements[i].checked =         !(document.cards_list.elements[i].checked);
-    }
-  }
-}
-//-->
-</script>\n <a href=\"javascript:void(0)\" onClick=\"CheckAllINBOX();\">$_SELECT_ALL</a> \n"
-        . $html->button("$_PRINT PDF", "qindex=$index&pdf=1&print_cards=1&$pages_qs" . (($FORM{SERIA} && $pages_qs !~ /SERIA/) ? "&SERIA=$FORM{SERIA}" : ''), { ex_params => 'target=_new' }) . ' '
+        pages      => $Cards->{TOTAL},
+        ID         => 'CARDS_LIST',
+        SELECT_ALL => ($permissions{0}{7}) ? "cards_list:IDS:$_SELECT_ALL" : undef,
+        header     => $html->button("$_PRINT PDF", "qindex=$index&pdf=1&print_cards=1&$pages_qs" . (($FORM{SERIA} && $pages_qs !~ /SERIA/) ? "&SERIA=$FORM{SERIA}" : ''), { ex_params => 'target=_new' }) . ' '
         . $html->button('CSV',         "qindex=$index&csv=1&print_cards=1&$pages_qs" . (($FORM{SERIA} && $pages_qs !~ /SERIA/) ? "&SERIA=$FORM{SERIA}" : ''), { ex_params => 'target=_new' }),
-
-        #                          EXPORT     => $_EXPORT .' XML:&xml=1',
-        #                          MENU    => "$_PRINT PDF:". "qindex=$index&pdf=1&print_cards=1&$pages_qs" . (($FORM{SERIA} && $pages_qs !~ /SERIA/)? "&SERIA=$FORM{SERIA}" : '' )  .":print".
-        #                            ";CSV:". "qindex=$index&csv=1&print_cards=1&$pages_qs". (($FORM{SERIA} && $pages_qs !~ /SERIA/) ? "&SERIA=$FORM{SERIA}" : '' ) .":"
-
+        EXPORT     => 1
       }
     );
 

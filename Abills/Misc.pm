@@ -384,7 +384,6 @@ sub service_get_month_fee {
       $sum = $sum * (100 - $users->{REDUCTION}) / 100;
     }
 
-
     if ($Service->{TP_INFO}->{ABON_DISTRIBUTION}) {
       $sum = $sum / (($m != 2 ? (($m % 2) ^ ($m > 7)) + 30 : (!($y % 400) || !($y % 4) && ($y % 25) ? 29 : 28)));
       $FEES_DSC{EXTRA} = " - $_ABON_DISTRIBUTION";
@@ -604,6 +603,7 @@ sub result_former {
 
     'deleted'       => "$_DELETED",
     'gid'           => "$_GROUP",
+    'group_name'   => "$_GROUP $_NAME",
 #    'build_id'      => 'Location ID',
     'uid'           => 'UID',
   );

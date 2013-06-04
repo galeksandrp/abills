@@ -870,6 +870,11 @@ sub search_expr_users () {
     push @fields, "u.gid IN ($admin->{GIDS})";
   }
 
+  if ($attr->{GROUP_NAME}) {
+  	push @fields, @{ $self->search_expr("$attr->{GROUP_NAME}", 'STR', 'g.name', { EXT_FIELD => 'g.name AS group_name' }) };
+  	$self->{EXT_TABLES} .= " LEFT JOIN groups g ON (g.gid=u.gid)";
+  }
+
   if (! $attr->{DOMAIN_ID} && $admin->{DOMAIN_ID}) {
     push @fields, @{ $self->search_expr("$admin->{DOMAIN_ID}", 'INT', 'u.domain_id') };
   }
