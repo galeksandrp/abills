@@ -1432,8 +1432,6 @@ sub docs_tax_invoice_list {
         }
       }
 
-      #-----------------------
-
       push @MULTI_ARR, { %D, DOC_NUMBER => sprintf("%.6d", $doc_num), };
       $doc_num++;
       print "UID: LOGIN: $line->[0] FIO: $line->[1] SUM: $line->[2]\n" if ($debug > 2);

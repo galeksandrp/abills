@@ -155,10 +155,10 @@ sub cards_main {
   $Cards->{ADMINS_SEL} = $html->form_select(
     'AID',
     {
-      SELECTED          => $FORM{AID},
-      SEL_MULTI_ARRAY   => [ [ '', '' ], @{ $admin->list({%LIST_PARAMS}) } ],
-      MULTI_ARRAY_KEY   => 0,
-      MULTI_ARRAY_VALUE => 1,
+      SELECTED  => $FORM{AID},
+      SEL_LIST  => $admin->list({%LIST_PARAMS, COLS_NAME => 1 }),
+      SEL_KEY   => 'aid',
+      SEL_VALUE => 'id',
     }
   );
 
@@ -918,11 +918,12 @@ sub cards_dillers_sel {
   $dillers_sel = $html->form_select(
     'DILLER_ID',
     {
-      SELECTED          => $FORM{DILLER_ID},
-      SEL_MULTI_ARRAY   => [ [ '', '' ], @{ $Cards->cards_dillers_list({ DISABLE => 0, SORT => 2, PAGE_ROWS => 10000 }) } ],
-      MULTI_ARRAY_KEY   => 0,
-      MULTI_ARRAY_VALUE => '2,1',
-      MENU              => get_function_index('cards_dillers_list')
+      SELECTED   => $FORM{DILLER_ID},
+      SEL_LIST   => $Cards->cards_dillers_list({ DISABLE => 0, SORT => 2, PAGE_ROWS => 10000, COLS_NAME => 1 }),
+      SEL_KEY    => 'id',
+      SEL_VALUE  => 'login,fio',
+      SEL_OPTIONS=> { '' => '--'},
+      MENU       => get_function_index('cards_dillers_list')
     }
   );
 
@@ -981,10 +982,8 @@ sub cards_dillers {
   $Cards->{TARIF_PLAN_SEL} = $html->form_select(
     'TP_ID',
     {
-      SELECTED          => $Cards->{TP_ID},
-      SEL_MULTI_ARRAY   => $Cards->dillers_tp_list(),
-      MULTI_ARRAY_KEY   => 4,
-      MULTI_ARRAY_VALUE => 0,
+      SELECTED => $Cards->{TP_ID},
+      SEL_LIST => $Cards->dillers_tp_list({ COLS_NAME => 1 }),
     }
   );
 
@@ -1400,13 +1399,11 @@ sub cards_diller {
   $Cards->{TARIF_PLAN_SEL} = $html->form_select(
     'TP_ID',
     {
-      SELECTED          => $Cards->{TP_ID},
-      SEL_MULTI_ARRAY   => $Cards->dillers_tp_list(),
-      MULTI_ARRAY_KEY   => 4,
-      MULTI_ARRAY_VALUE => 0,
-      NO_ID             => 1,
-      MAIN_MENU         => get_function_index('cards_dillers_tp'),
-      MAIN_MENU_AGRV    => "$Cards->{TP_ID}"
+      SELECTED       => $Cards->{TP_ID},
+      SEL_LIST       => $Cards->dillers_tp_list({ COLS_NAME => 1 }),
+      NO_ID          => 1,
+      MAIN_MENU      => get_function_index('cards_dillers_tp'),
+      MAIN_MENU_AGRV => "$Cards->{TP_ID}"
 
     }
   );
@@ -1778,22 +1775,15 @@ sub cards_diller_add {
     $Cards->{TP_SEL} = $html->form_select(
       'TP_ID',
       {
-        SELECTED        => $FORM{TP_ID},
-        SEL_MULTI_ARRAY => [
-          [ '', '' ],
-          @{
-            $tariffs->list(
+        SELECTED   => $FORM{TP_ID},
+        SEL_LIST   => $tariffs->list(
               {
                 PAGE_ROWS => 1,
                 SORT      => 1,
                 DESC      => 'desc',
-                DOMAIN_ID => $user->{DOMAIN_ID}
-              }
-            )
-          }
-        ],
-        MULTI_ARRAY_KEY   => 0,
-        MULTI_ARRAY_VALUE => 1,
+                DOMAIN_ID => $user->{DOMAIN_ID},
+                COLS_NAME => 1
+              }),
         EX_PARAMS         => '',    #'STYLE=\'background-color: #dddddd\' name=\'TP_ID\'',
         NO_ID             => 1
       }
