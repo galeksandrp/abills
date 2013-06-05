@@ -1181,7 +1181,7 @@ sub docs_invoices_list {
         date           => $_DATE,
         customer       => $_CUSTOMER,    
         total_sum      => "$_SUM",    
-        payment_id     => "$_PAYMENTS",
+        payment_id     => "$_PAYMENTS ID",
         login          => "$_USER", 
         admin_name     => "$_ADMIN", 
         created        => "$_CREATED",
@@ -1191,7 +1191,7 @@ sub docs_invoices_list {
         currency       => "$_ATL $_CURRENCY",
         alt_sum        => "$_ALT $_SUM",
         exchange_rate  => "$_EXCHANGE_RATE",
-        payment_sum    => "$_PAYMENTS",
+        payment_sum    => "$_PAYMENTS $_SUM",
         docs_deposit   => "$_OPERATION_DEPOSIT",
         deposit        => "$_CURRENT_DEPOSIT"
      },
@@ -1257,6 +1257,9 @@ sub docs_invoices_list {
       }
       elsif($field_name eq 'login') {
         $val = $html->button($invoice->{login}, "index=11&UID=$invoice->{uid}"). (($invoice->{company_id}) ? $html->br() . $html->button(substr($invoice->{company_name}, 0, 30), "index=13&COMPANY_ID=$invoice->{company_id}", { CLASS => 'small' }) : '');
+      }
+      elsif($field_name =~ /deposit/) {
+        $val = ($invoice->{$field_name} < 0) ? $html->color_mark($invoice->{$field_name}, $_COLORS[6]) : $invoice->{$field_name};
       }
       elsif($field_name eq 'payment_method') {
         $val = ($PAYMENTS_METHODS{ $invoice->{payment_method} }) ? $PAYMENTS_METHODS{ $invoice->{payment_method} } : $invoice->{payment_method};

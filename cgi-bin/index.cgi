@@ -1124,7 +1124,7 @@ sub form_fees {
     {
       width      => '100%',
       cols_align => [ 'right', 'right', 'right', 'right' ],
-      rows       => [ [ "$_TOTAL:", $html->b($fees->{TOTAL}), "$_SUM:", $html->b($fees->{SUM}) ] ],
+      rows       => [ [ "$_TOTAL:", $html->b($Fees->{TOTAL}), "$_SUM:", $html->b($Fees->{SUM}) ] ],
       rowcolor   => $_COLORS[2]
     }
   );

@@ -7239,7 +7239,7 @@ sub form_search {
               "$field_id",
               {
                 SELECTED    => $FORM{$field_id},
-                SEL_LIST    => $users->info_lists_list({ LIST_TABLE => $field_id . '_list', COLS_ANME => 1 }),
+                SEL_LIST    => $users->info_lists_list({ LIST_TABLE => $field_id . '_list', COLS_NAME => 1 }),
                 SEL_OPTIONS => { '' => '--' },
                 NO_ID       => 1
               }
