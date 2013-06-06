@@ -2318,7 +2318,9 @@ sub voip_stats_calculation {
       rowcolor    => $_COLORS[1],
       title_plain => [ "-", "$_MIN", "$_MAX", "$_AVG" ],
       cols_align  => [ 'left', 'right', 'right', 'right' ],
-      rows        => [ [ $_DURATION, $sessions->{min_dur}, $sessions->{max_dur}, $sessions->{avg_dur} ], [ $_SUM, $sessions->{min_sum}, $sessions->{max_sum}, $sessions->{avg_sum} ] ]
+      rows        => [ [ $_DURATION, $sessions->{MIN_DUR}, $sessions->{MAX_DUR}, $sessions->{AVG_DUR} ], 
+                       [ $_SUM, $sessions->{MIN_SUM}, $sessions->{MAX_SUM}, $sessions->{AVG_SUM}      ] 
+                      ]
     }
   );
   print $table->show();
@@ -2645,7 +2647,7 @@ sub voip_monthly_fees {
           ACTIVATE     => '_SHOW',
           DEPOSIT      => '_SHOW',
           CREDIT       => '_SHOW',
-          STATUS       => '_SHOW',          
+          SERVICE_STATUS => '_SHOW',          
           %VOIP_LIST_PARAMS
         }
       );

@@ -1012,12 +1012,14 @@ sub docs_invoices_list {
 
     $LIST_PARAMS{COMPANY_ID}=$FORM{COMPANY_ID} if ($FORM{COMPANY_ID});
     my $invoices_list = $Docs->invoices_list({ 
-    	                                LOGIN          => '_SHOW',
     	                                ORDERS_LIST    => 1,
     	                                COLS_NAME      => 1,
     	                                REPRESENTATIVE => '_SHOW',
     	                                DOCS_DEPOSIT   => '_SHOW',
     	                                ADDRESS_FULL   => '_SHOW',
+    	                                ADDRESS_STREET => '_SHOW',
+    	                                ADDRESS_BUILD  => '_SHOW',
+    	                                ADDRESS_FLAT   => '_SHOW',
     	                                PHONE          => '_SHOW',
     	                                CONTRACT_ID    => '_SHOW',
     	                                CONTRACT_DATE  => '_SHOW',
@@ -1029,6 +1031,7 @@ sub docs_invoices_list {
                                       EXCHANGE_RATE  => '_SHOW',
                                       CURRENCY       => '_SHOW',    	                                
     	                                %LIST_PARAMS,
+    	                                LOGIN          => (! $LIST_PARAMS{LOGIN}) ? '_SHOW' :$LIST_PARAMS{LOGIN},
     	                                %FORM,
     	                                COLS_UPPER     => 1
     	                             });
@@ -1077,7 +1080,7 @@ sub docs_invoices_list {
         $d->{ 'ORDER_PRICE_WITHOUT_VAT_' . $i } = sprintf("%.2f", ($conf{DOCS_VAT_INCLUDE}) ? $order->{price} - $order->{price} / ((100 + $conf{DOCS_VAT_INCLUDE}) / $conf{DOCS_VAT_INCLUDE}) : $line->{price});
         $d->{ 'ORDER_SUM_WITHOUT_VAT_' . $i } = sprintf("%.2f", ($conf{DOCS_VAT_INCLUDE}) ? $sum - ($sum) / ((100 + $conf{DOCS_VAT_INCLUDE}) / $conf{DOCS_VAT_INCLUDE}) : $sum);
         
-        if ($line->{fees_id} == 0) {
+        if ($order->{fees_id} == 0) {
           $d->{AMOUNT_FOR_PAY} += $d->{ 'ORDER_COUNT_' . $i } * $d->{ 'ORDER_PRICE_' . $i } 
         }
         

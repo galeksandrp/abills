@@ -281,7 +281,7 @@ sub list {
     );
 
   my $EXT_TABLES  = $self->{EXT_TABLES};
-  if ($attr->{FIO}) {
+  if ($WHERE =~ /pi\./ || $self->{SEARCH_FIELDS} =~ /pi\./) {
     $EXT_TABLES  .= 'LEFT JOIN users_pi pi ON (u.uid=pi.uid)';
   }
   elsif ($EXT_TABLES =~ /builds/ && $EXT_TABLES !~ /users_pi/) {

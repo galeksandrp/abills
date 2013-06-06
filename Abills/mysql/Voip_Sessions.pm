@@ -342,9 +342,16 @@ sub list {
     }    
     );
 
+  my $EXT_TABLES = '';
+  $EXT_TABLES  = $self->{EXT_TABLES} if($self->{EXT_TABLES});
+
+  if ($WHERE =~ /pi\./ || $self->{SEARCH_FIELDS} =~ /pi\./) {
+    $EXT_TABLES  .= 'LEFT JOIN users_pi pi ON (u.uid=pi.uid)';
+  }
 
   $self->query2("SELECT $self->{SEARCH_FIELDS} l.acct_session_id, l.uid
   FROM (voip_log l, users u)
+  $EXT_TABLES
   $WHERE
   ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;",
   undef,
@@ -388,7 +395,7 @@ sub calculation {
      avg(l.sum) AS avg_sum
   FROM voip_log l $WHERE",
   undef,
-  $attr
+  { INFO => 1 }
   );
 
   return $self;
