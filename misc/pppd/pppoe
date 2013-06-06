@@ -1,12 +1,19 @@
 #!/bin/bash
-# Copyright Rene Mayrhofer, Gibraltar, 1999
-# This script is distibuted under the GPL
+### BEGIN INIT INFO
+# Provides:          pppoe
+# Required-Start:    $remote_fs $syslog
+# Required-Stop:     $remote_fs $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Start daemon at boot time
+# Description:       Enable service provided by daemon.
+### END INIT INFO
 
 PATH=/bin:/usr/bin:/sbin:/usr/sbin:/usr/local/sbin:/usr/local/bin
 FLAGS="defaults 50"
 
-LOCAL_IP=%LOCAL_IP%
-IFACE=%INTERFACE%
+LOCAL_IP=192.100.0.1
+IFACE=eth0
 
 case "$1" in
   start)

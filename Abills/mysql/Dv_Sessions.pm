@@ -62,6 +62,16 @@ sub del {
     }
 
     $self->query2(
+         "UPDATE dv_log_intervals li, dv_log l SET 
+         li.recv=li.recv-(l.recv + 4294967296 * l.acct_input_gigawords),
+         li.sent=li.sent-(l.sent + 4294967296 * l.acct_output_gigawords),
+         li.sum=li.sum-l.sum
+         WHERE li.uid=l.uid AND li.acct_session_id=l.acct_session_id
+           AND l.uid='$uid' 
+           AND l.acct_session_id='$session_id';", 'do'
+      );
+
+    $self->query2(
       "DELETE FROM dv_log 
        WHERE uid='$uid' and start='$session_start' and nas_id='$nas_id' and acct_session_id='$session_id';", 'do'
     );
