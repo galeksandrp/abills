@@ -421,19 +421,20 @@ sub snmputils_periodic {
     {
       PAGE_ROWS => 100000,
       DISABLE   => 0,
-      NAS_IDS   => ($attr->{NAS_IDS}) ? $attr->{NAS_IDS} : undef
+      NAS_IDS   => ($attr->{NAS_IDS}) ? $attr->{NAS_IDS} : undef,
+      COLS_NAME => 1
     }
   );
 
   foreach my $line (@$list) {
-    my $type = $line->[4];
-    $debug_output .= "NAS ID: $line->[0] TYPE: $type MNG INFO: $line->[9]\@$line->[11] $line->[12]\n" if ($debug > 1);
+    my $type = $line->{nas_type};
+    $debug_output .= "NAS ID: $line->{nas_id} TYPE: $line->{nas_type} MNG INFO: $line->{nas_mng_ip_port} $line->{nas_rad_pairs}\n" if ($debug > 1);
     my %CONF_HASH = (
-      NAS_ID       => $line->[0],
-      MNG_PASSWORD => $line->[11],
-      MNG_HOST     => $line->[9],
-      RAD_PAIRS    => $line->[12],
-      NAS_TYPE     => $line->[4],
+      NAS_ID       => $line->{nas_id},
+      MNG_PASSWORD => $line->{nas_mng_password},
+      MNG_HOST     => $line->{nas_mng_ip_port},
+      RAD_PAIRS    => $line->{nas_rad_pairs},
+      NAS_TYPE     => $line->{nas_type},
       DEBUG        => $debug
     );
 
@@ -4544,7 +4545,7 @@ sub snmputils_chg_port_state {
       NAS_ID    => $NAS_ID,
       PG        => 0,
       PAGE_ROWS => 100000,
-      DISABLE   => 0,
+      #DISABLE   => 0,
       COLS_NAME => 1
     }
   );

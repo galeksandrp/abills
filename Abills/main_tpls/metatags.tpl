@@ -584,23 +584,25 @@ TABLE.border {
 	background:#f6f6f6;
 }
 
-#close_popup_window img {
-	position:absolute;
-	top:12px;
-	right:7px;
-}
 
 #close_popup_window {
-	float:right;
-	font:10px Verdana, Geneva, sans-serif;
-	color:#999;
-	display:block;
-	margin:-15px 10px 0 0;
+    background: none repeat scroll 0 0 #AAAAAA;
+    border-radius: 12px 12px 12px 12px;
+    color: #FFFFFF;
+    font-weight: bold;
+    line-height: 25px;
+    position: absolute;
+    right: 12px;
+    text-align: center;
+    text-decoration: none;
+    top: 10px;
+    width: 24px;
+    cursor:pointer;
 }
 
 #close_popup_window:hover {
-	cursor:pointer;
-	color:red;
+  cursor:pointer;
+  background: none repeat scroll 0 0 #CCCCCC;
 }
 
 #popup_content {
@@ -868,10 +870,10 @@ TABLE.border {
 	margin:0 0 0 5px;
 	padding:0;
 	padding-right: 1px;
-	//visibility:hidden;
-	//width:0px;
-	//height:0px;
-	//display:none;
+	/*visibility:hidden; */
+	/*width:0px; */
+	/*height:0px; */
+	/*display:none; */
 }
 
 #quick_menu {
@@ -896,8 +898,15 @@ TABLE.border {
 	display:none;
 	z-index:10;
 	overflow:hidden;
-	background:#f6f6f6;
+	/*background:#f6f6f6; */
+  padding: 5px 10px 50px;
+  border: 4px solid #666666;
+
+  border-radius: 10px 10px 10px 10px;
+  background: none repeat scroll 0 0 #FFFFFF;
 }
+
+
 
 #popup_window_content {
 	font:11px Verdana, Geneva, sans-serif;

@@ -11,6 +11,7 @@
  <META HTTP-EQUIV=\"content-language\" content=\"%CONTENT_LANGUAGE%\"/>
  
  <link rel=\"stylesheet\" media=\"print\" type=\"text/css\" href=\"%PRINTCSS%\" />
+ <script type='text/javascript' src='/js/jquery.js'></script>
  <script src=\"%JAVASCRIPT%\" type=\"text/javascript\" language=\"javascript\"></script>
  <script src='/calendar.js' type=\"text/javascript\" language='JavaScript'></script>
 
@@ -756,6 +757,53 @@ table tr.marked th,table tr.marked,.odd:hover,.even:hover,.hover,table tr.odd:ho
 	left:5px;
 	top:27px;	
 }
+
+/*  popup window*/
+
+#close_popup_window {
+    background: none repeat scroll 0 0 #AAAAAA;
+    border-radius: 12px 12px 12px 12px;
+    color: #FFFFFF;
+    font-weight: bold;
+    line-height: 25px;
+    position: absolute;
+    right: 12px;
+    text-align: center;
+    text-decoration: none;
+    top: 10px;
+    width: 24px;
+    cursor:pointer;
+}
+
+#close_popup_window:hover {
+  cursor:pointer;
+  background: none repeat scroll 0 0 #CCCCCC;
+}
+
+
+
+#open_popup_block_middle {
+	position:fixed;
+	top:50%;
+	left:50%;
+	display:none;
+	z-index:10;
+	overflow:hidden;
+	/*background:#f6f6f6; */
+  padding: 5px 10px 50px;
+  border: 4px solid #666666;
+
+  border-radius: 10px 10px 10px 10px;
+  background: none repeat scroll 0 0 #FFFFFF;
+}
+
+
+
+#popup_window_content {
+	font:11px Verdana, Geneva, sans-serif;
+	padding:30px 20px 20px;
+}
+
 
 </style>
 

@@ -334,7 +334,6 @@ sub list {
       [ 'START_UNIXTIME',  'INT', 'UNIX_TIMESTAMP(l.start) AS asstart_unixtime', 1],
       [ 'FROM_DATE|TO_DATE','DATE',"date_format(l.start, '%Y-%m-%d')"],
       [ 'MONTH',           'DATE',"date_format(l.start, '%Y-%m')"    ],
-      [ 'UID',             'INT', 'l.uid'                            ],
     ], 
     { WHERE       => 1,
     	WHERE_RULES => \@WHERE_RULES,
