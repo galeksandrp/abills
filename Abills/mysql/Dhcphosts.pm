@@ -566,7 +566,7 @@ sub hosts_list {
   $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
 
   @WHERE_RULES = ();
-  my $EXT_TABLES = $self->{EXT_TABLES};
+  my $EXT_TABLES = '';
 
   # Deposit chech
   my $extra_fields = '';
@@ -622,6 +622,8 @@ sub hosts_list {
     	USERS_FIELDS=> 1
     }    
     );
+
+  $EXT_TABLES .= $self->{EXT_TABLES} if ($self->{EXT_TABLES});
 
   $self->query2("SELECT 
        h.id, 

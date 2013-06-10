@@ -5966,7 +5966,7 @@ sub form_payments () {
   push @PAYMENT_METHODS, @EX_PAYMENT_METHODS if (@EX_PAYMENT_METHODS);
 
   for (my $i = 0 ; $i <= $#PAYMENT_METHODS ; $i++) {
-     $PAYMENTS_METHODS{"$i"} = "$PAYMENT_METHODS[$i]";
+    $PAYMENTS_METHODS{"$i"} = "$PAYMENT_METHODS[$i]";
   }
 
   my %PAYSYS_PAYMENT_METHODS = %{ cfg2hash($conf{PAYSYS_PAYMENTS_METHODS}) };
@@ -6225,7 +6225,7 @@ sub form_payments () {
     form_users();
     return 0;
   }
-  elsif ($index != 7 && $FORM{search_form}) {
+  elsif ($index != 7 && ($FORM{search_form} || $FORM{search})) {
     $FORM{type} = $FORM{subf} if ($FORM{subf});
     form_search(
       {
@@ -6894,7 +6894,7 @@ sub form_fees {
   }
   elsif ($index != 7) {
     $FORM{type} = $FORM{subf} if ($FORM{subf});
-    if ($FORM{search_form}) {
+    if ($FORM{search_form} || $FORM{search}) {
       form_search(
         {
           HIDDEN_FIELDS => {

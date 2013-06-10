@@ -1113,8 +1113,7 @@ sub table {
   	if ($attr->{SHOW_COLS}) {
       $self->{table} .= "<tr><td>
       <div id='open_popup_block_middle' style='width:300px; height:400px'>
-      <a id='close_popup_window'>
-      <img id='close_popup_window_img' src='/img/popup_window/close.png' title='CLOSE' /></a>
+      <a id='close_popup_window'><img id='close_popup_window_img' src='/img/popup_window/close.png' title='CLOSE' /></a>
       <form action=$SELF_URL METHOD=post>";
       
       foreach my $param_name ('index', 'sort', 'desc', 'pg', 'PAGE_ROWS', 'search', 'USERS_STATUS', 'STATUS', 'STATE') {

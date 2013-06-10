@@ -56,7 +56,7 @@ set -e
 PROG="shaper_start"
 DESCR="shaper_start"
 
-VERSION=1.01 
+VERSION=1.02 
 . /etc/rc.conf
 
 name="abills_shaper" 
@@ -279,6 +279,10 @@ fi;
 
 if [ x${ACTION} = xstart ]; then
   echo "Enable users IPN"
+
+  #echo 1 > /proc/sys/net/ipv4/ip_forward
+  sysctl -w net.ipv4.ip_forward=1
+
   ${BILLING_DIR}/libexec/periodic monthly MODULES=Ipn SRESTART=1 NO_ADM_REPORT=1 NAS_IDS="${abills_ipn_nas_id}"
   
   if [ x"${abills_ipn_allow_ip}" != x ]; then

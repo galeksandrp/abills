@@ -685,6 +685,12 @@ sub paysys_payment {
   elsif ($FORM{PAYMENT_SYSTEM} == 77 or defined($FORM{abillserrormsg})) {
     paysys_cp_visa();
   }
+  elsif ($FORM{PAYMENT_SYSTEM} == 86) {
+    paysys_perfectmoney();
+  }
+  elsif ($FORM{PAYMENT_SYSTEM} == 87) {
+    paysys_okpay();
+  }
   elsif ($FORM{PAYMENT_SYSTEM} == 81 ||  
          $FORM{PAYMENT_SYSTEM} == 82 ||
          $FORM{PAYMENT_SYSTEM} == 83 ||  
@@ -718,7 +724,9 @@ sub paysys_payment {
       82 => 'PAYSYS_WEBMONEY_PAYONLINE',
       83 => 'PAYSYS_YANDEX_MONEY_PAYONLINE',
       84 => 'PAYSYS_BANK_CARD_PAYONLINE',
-      85 => 'PAYSYS_WEBMONEY_TERMINAL'
+      85 => 'PAYSYS_WEBMONEY_TERMINAL',
+      86 => 'PAYSYS_PERFECTMONEY_ACCOUNTID',
+      87 => 'PAYSY_OKPAY_RECEIVER'
     );
 
     while (my ($k, $v) = each %PAY_SYSTEMS) {
@@ -2844,8 +2852,67 @@ sub paysys_perfectmoney {
     }
   }
 
-  print $html->tpl_show(_include('paysys_perfectmoney', 'Paysys'), \%info, { OUTPUT2RETURN => $attr->{OUTPUT2RETURN} });	
+  $html->tpl_show(_include('paysys_perfectmoney_add', 'Paysys'), \%info);
 }
+
+
+#**********************************************************
+#
+#**********************************************************
+sub paysys_okpay {
+	
+  my %info = ();
+  require "modules/Paysys/Okpay.pm";
+
+  my $payment_system    = 'Okpay';
+  my $payment_system_id = 87;
+
+  #if ($FORM{send_invoice}) {
+    $FORM{COMMENT} = $user->{LOGIN};
+
+#    my $result = qiwi_invoice_request(\%FORM);
+#    if ($result->{'result-code'}->[0]->{fatal} eq 'true') {
+#      my $error = "$result->{'result-code'}->[0]->{content}";
+#      if ($result->{'result-code'}->[0]->{content} == 150) {
+#        $error .= " $ERR_TERMINAL";
+#      }
+#      $html->message('err', "$_ERROR", "$_ERROR: $error");
+#    }
+#    else {
+#      $html->message('info', "$_INFO", "$_INVOICE_SENDED ID: '$FORM{OPERATION_ID}'\n$_PHONE: $FORM{PHONE}");
+      $Paysys->add(
+         {
+          SYSTEM_ID      => $payment_system_id,
+          DATETIME       => "$DATE $TIME",
+          SUM            => $FORM{SUM},
+          UID            => $user->{UID},
+          IP             => "$ENV{'REMOTE_ADDR'}",
+          TRANSACTION_ID => "$FORM{OPERATION_ID}",
+          INFO           => '-',
+          PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}",
+          STATUS         => 1,
+        }
+      );
+
+  #    return 0;
+  #  }
+  #}
+
+  $user->pi({ UID => $user->{UID} });
+
+  if (in_array('Dv', \@MODULES)) {
+    use Dv;
+    my $Dv = Dv->new($db, $admin, \%conf);
+    $Dv = $Dv->info($user->{UID});
+    if ($Dv->{MONTH_ABON} > $FORM{SUM}) {
+      $FORM{SUM}      = $Dv->{MONTH_ABON};
+      $info{DESCRIBE} = "$_TARIF_PLAN_SUM";
+    }
+  }
+
+  $html->tpl_show(_include('paysys_okpay_add', 'Paysys'), \%info);
+}
+
 
 1
 

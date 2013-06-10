@@ -13,3 +13,5 @@ $_SMALL_DEPOSIT_FOR_NEXT_MONTH='Too small deposit for next month';
 $_PAYMENTS_INFO='Payments information';
 $_ALL_SERVICE_EXPIRE='All Service expired throught XX days';
 $_DEAR='Dear';
+
+$_DEPOSIT_NOTIFY_BEFORE_ABON='Send deposit before abon payment';

@@ -40,7 +40,8 @@ my %REPORTS        = (
   10 => "$_SMALL_DEPOSIT_FOR_NEXT_MONTH",
   11 => "$_SMALL_DEPOSIT_FOR_NEXT_MONTH v2",
   12 => "$_PAYMENTS_INFO",
-  13 => "$_ALL_SERVICE_EXPIRE"
+  13 => "$_ALL_SERVICE_EXPIRE",
+  14 => "$_DEPOSIT_NOTIFY_BEFORE_ABON"
 );
 
 #дані для формування звітів.
@@ -173,7 +174,7 @@ sub ureports_users_list {
 sub ureports_user {
   my ($attr) = @_;
 
-  if ($Ureports::VERSION < 2.27) {
+  if ($Ureports::VERSION < 2.28) {
     $html->message('info', "UPDATE", "Please update module 'Ureports' to version 2.24 or higher. http://abills.net.ua/");
     return 0;
   }

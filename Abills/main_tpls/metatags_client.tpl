@@ -625,6 +625,21 @@ img.tcalIcon
 	display:none;
 }
 
+#open_popup_block_middle {
+	position:fixed;
+	top:50%;
+	left:50%;
+	display:none;
+	z-index:10;
+	overflow:hidden;
+	background:#f6f6f6;
+}
+
+#popup_window_content {
+	font:11px Verdana, Geneva, sans-serif;
+	padding:30px 20px 20px;
+}
+
 #loading{
 	background-image:url('/img/loader.gif');
 	background-repeat:no-repeat;

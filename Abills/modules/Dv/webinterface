@@ -807,7 +807,6 @@ sub dv_user {
         SEL_KEY    => 'uid',
         SEL_VALUE  => 'login',
         NO_ID      => undef
-
       }
     );
 
@@ -4742,7 +4741,15 @@ sub dv_user_info {
 #**********************************************************
 sub dv_holdup_service {
   my ($attr) = @_;
-  my ($hold_up_min_period, $hold_up_max_period, $hold_up_period, $holdup_fees, $hold_fees_deposit, $active_fees) = split(/:/, $conf{DV_USER_SERVICE_HOLDUP});
+  my ($hold_up_min_period, $hold_up_max_period, $hold_up_period, $holdup_fees, $hold_fees_deposit, $active_fees, $holdup_skip_gids) = split(/:/, $conf{DV_USER_SERVICE_HOLDUP});
+
+  if ($holdup_skip_gids) {
+  	my @holdup_skip_gids_arr = split(/,\s?/, $holdup_skip_gids);
+  	if (in_array($user->{GID}, \@holdup_skip_gids_arr)) {
+  		
+  		return 0;
+  	}
+  }
 
   my $Shedule = Shedule->new($db, $admin, \%conf);
 

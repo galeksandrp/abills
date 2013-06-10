@@ -874,8 +874,6 @@ TABLE.border {
 	//display:none;
 }
 
-
-
 #quick_menu {
 	float:left;
 }

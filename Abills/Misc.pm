@@ -632,7 +632,7 @@ sub result_former {
   my @title        = ();
 
   for (my $i = 0 ; $i < $base_fields+$data->{SEARCH_FIELDS_COUNT} ; $i++) {
-    $title[$i]     = $SEARCH_TITLES{ $EX_TITLE_ARR[$i] } || "$_SEARCH";
+    $title[$i]     = $SEARCH_TITLES{ $EX_TITLE_ARR[$i] } || $EX_TITLE_ARR[$i] || "$_SEARCH";
     $ACTIVE_TITLES{$EX_TITLE_ARR[$i]} = $FORM{uc($EX_TITLE_ARR[$i])} || '_SHOW';
   }
 

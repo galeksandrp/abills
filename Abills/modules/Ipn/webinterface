@@ -1629,18 +1629,6 @@ sub ipn_change_status {
     $cmd = $conf{IPN_FW_STOP_RULE};
 
     if (!$attr->{QUICK}) {
-
-      #       my $table = $html->table( {
-      #                                 caption    => "$_HANGUP / $_INFO",
-      #                                 border     => 1,
-      #                                 rows       => [["IP:" ,      int2ip($Ipn->{FRAMED_IP_ADDRESS}) ],
-      #                                           ["$_RECV:" ,      int2byte($Ipn->{TRAFFIC_IN})      ],
-      #                                           ["$_SENT:",      int2byte($Ipn->{TRAFFIC_OUT})     ],
-      #                                           ["$_TOTAL:",  int2byte($Ipn->{TRAFFIC_IN}+$Ipn->{TRAFFIC_OUT})   ],
-      #                                           ["$_DURATION:", sec2time($Ipn->{ACCT_SESSION_TIME}, { str => 1 })   ],
-      #                                           ["$_SUM:",      "$Ipn->{SUM}" ]]
-      #                            });
-
       $message =
         "\nIP:  "
       . int2ip($Ipn->{FRAMED_IP_ADDRESS})
@@ -2649,17 +2637,15 @@ sub ipn_start_active {
     {
       NAS_IDS   => $attr->{LOCAL_NAS} || $attr->{NAS_IDS},
       PAGE_ROWS => 10000,
+      COLS_NAME => 1,
+      COLS_UPPER=> 1
     }
   );
 
   my %nas_info = ();
   foreach my $line (@$nas_list) {
-    if (in_array($line->[4], \@nas_types) || $attr->{NAS_IDS}) {
-      $nas_info{ $line->[0] }{NAS_ID}          = $line->[0];
-      $nas_info{ $line->[0] }{NAS_TYPE}        = $line->[4];
-      $nas_info{ $line->[0] }{NAS_IP_ADDRESS}  = $line->[3];
-      $nas_info{ $line->[0] }{NAS_MNG_USER}    = $line->[10];
-      $nas_info{ $line->[0] }{NAS_MNG_IP_PORT} = $line->[9];
+    if (in_array($line->{NAS_TYPE}, \@nas_types) || $attr->{NAS_IDS}) {
+      $nas_info{ $line->{NAS_ID} } = $line;
     }
   }
 
@@ -2683,9 +2669,12 @@ sub ipn_start_active {
 
   #Get TPs
   my %TPS = ();
-  my $tp_list = $tariffs->list({ MODULES => 'Dv' });
+  my $tp_list = $tariffs->list({ MODULES      => 'Dv', 
+  	                             COLS_NAME    => 1,
+  	                             PAYMENT_TYPE => '_SHOW'
+  	                             });
   foreach my $line (@$tp_list) {
-    $TPS{ $line->[0] } = $line->[4] if ($line->[4]);
+    $TPS{ $line->{id} } = $line->{payment_type} if ($line->{payment_type});
   }
 
   if ($attr->{LOGIN}) {
@@ -2700,8 +2689,9 @@ sub ipn_start_active {
 
   my $online_list = $Sessions->online(
     {
-      NAS_ID       => join(', ', @nas_ids_arr),
-      CLIENT_IP    => '_SHOW'
+      NAS_ID       => join(';', @nas_ids_arr),
+      CLIENT_IP    => '_SHOW',
+      COLS_NAME    => 1
     }
   );
 
@@ -2717,6 +2707,7 @@ sub ipn_start_active {
 
   my %DHCP_IPS = ();
   if ($conf{IPN_DHCP_ACTIVE}) {
+  	$Dhcphosts->{debug}=1 if ($debug > 5);;
     my $dhcp_list = $Dhcphosts->hosts_list(
       {
         STATUS       => 0,
@@ -2724,29 +2715,31 @@ sub ipn_start_active {
         IPN_ACTIVATE => 1,
         DISABLE      => 0,
         USER_DISABLE => 0,
-        COLS_NAME    => 1        
+        COLS_NAME    => 1,
+        IP           => '_SHOW',
       }
     );
-
     foreach my $line (@$dhcp_list) {
-      my $uid = $line->{uid};
-      push @{ $DHCP_IPS{$uid} }, $line->{ip};
+      push @{ $DHCP_IPS{$line->{uid}} }, $line->{ip};
     }
   }
 
   $Dv->{debug} = 1 if ($debug > 5);
   my $dv_list = $Dv->list(
     {
-      %LIST_PARAMS,
       ACTIVATE      => "<=$DATE",
       EXPIRE        => "0000-00-00,>$DATE",
       IP            => '>' . (($conf{IPN_DHCP_ACTIVE}) ? '=' : '') . '0.0.0.0',
       NETMASK       => '_SHOW',
-      STATUS        => 0,
+      SERVICE_STATUS=> 0,
       LOGIN_STATUS  => 0,
-      ALL_FILTER_ID => '*',
+      ALL_FILTER_ID => '_SHOW',
       PORT          => '_SHOW',
       TP_CREDIT     => '_SHOW',
+      CREDIT        => '_SHOW',
+      DEPOSIT       => '_SHOW',
+      LOGIN         => '_SHOW',
+      %LIST_PARAMS,      
       COLS_NAME     => 1,
       PAGE_ROWS     => 1000000,
     }
@@ -2754,7 +2747,7 @@ sub ipn_start_active {
 
   foreach my $dv_user (@$dv_list) {
     my $filter_id    = $dv_user->{filter_id} || '';
-    my $login        = $dv_user->{id};
+    my $login        = $dv_user->{login};
     my $ip           = $dv_user->{ip};
     my $netmask      = $dv_user->{netmask};
     my $connect_info = '';
@@ -2785,7 +2778,7 @@ sub ipn_start_active {
       next;
     }
     elsif ($deposit + $credit <= 0 && !$TPS{$tp_id}) {
-      print "$login Small deposit or TP not defined\n" if ($debug > 3);
+      print "$login Small deposit or TP '$tp_id' not defined\n" if ($debug > 3);
       next;
     }
 

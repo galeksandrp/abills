@@ -168,21 +168,25 @@ sub ureports_periodic_reports {
     $SERVICE_LIST_PARAMS{REPORT_ID} = $ARGV->{REPORT_IDS} if ($ARGV->{REPORT_IDS});
   }
 
-  $SERVICE_LIST_PARAMS{LOGIN}     =  $ARGV->{LOGINS} if ($ARGV->{LOGINS});
+  $SERVICE_LIST_PARAMS{LOGIN}     =  $ARGV->{LOGIN} if ($ARGV->{LOGIN});
 
   $tariffs->{debug}=1 if ($debug > 6);
-  my $list         = $tariffs->list({%LIST_PARAMS});
+  my $list         = $tariffs->list({
+  	                                 REDUCTION_FEE   => '_SHOW',
+  	                                 DAY_FEE         => '_SHOW',
+  	                                 MONTH_FEE       => '_SHOW',
+  	                                 PAYMENT_TYPE    => '_SHOW',
+  	                                 EXT_BILL_ACCOUNT=> '_SHOW',
+  	                                 %LIST_PARAMS,
+  	                                 COLS_NAME   => 1 });
+
   $ADMIN_REPORT{DATE} = $DATE if (!$ADMIN_REPORT{DATE});
+  $SERVICE_LIST_PARAMS{CUR_DATE}=$ADMIN_REPORT{DATE};
   my ($y, $m, $d)  = split(/-/, $ADMIN_REPORT{DATE}, 3);
   my $reports_type = 0;
 
-  foreach my $line (@$list) {
-    my $TP_ID   = $line->[18];
-    my %TP_INFO = ();
-    $TP_INFO{POSTPAID}  = $line->[12];
-    $TP_INFO{REDUCTION} = $line->[11];
-
-    $debug_output .= "TP ID: $TP_ID DF: $line->[5] MF: $line->[6] POSTPAID: $TP_INFO{POSTPAID_DAILY} REDUCTION: $TP_INFO{REDUCTION} EXT_BILL: $line->[13] CREDIT: $line->[14]\n" if ($debug > 1);
+  foreach my $tp (@$list) {
+    $debug_output .= "TP ID: $tp->{tp_id} DF: $tp->{day_fee} MF: $tp->{month_fee} POSTPAID: $tp->{payment_type} REDUCTION: $tp->{reduction_fee} EXT_BILL: $tp->{ext_bill_account} CREDIT: $tp->{tp_credit}\n" if ($debug > 1);
 
     #Get users
     $Ureports->{debug} = 1 if ($debug > 5);
@@ -190,7 +194,7 @@ sub ureports_periodic_reports {
     my $ulist = $Ureports->tp_user_reports_list(
       {
         DATE           => '0000-00-00',
-        TP_ID          => $TP_ID,
+        TP_ID          => $tp->{tp_id},
         SORT           => 1,
         PAGE_ROWS      => 1000000,
         DV_TP          => 1,
@@ -207,9 +211,11 @@ sub ureports_periodic_reports {
       my %PARAMS = ();
       $user->{TP_ID} = $TP_ID;
 
+      $debug_output .= "LOGIN: $user->{LOGIN} ($user->{UID}) DEPOSIT: $user->{deposit} CREDIT: $user->{credit}\n" if ($debug > 3);
+
       if ($user->{BILL_ID} > 0 && defined($user->{DEPOSIT})) {
         #Skip action for pay opearation
-        if ($user->{MSG_PRICE} > 0 && $user->{DEPOSIT} + $user->{CREDIT} < 0 && $TP_INFO{POSTPAID} == 0) {
+        if ($user->{MSG_PRICE} > 0 && $user->{DEPOSIT} + $user->{CREDIT} < 0 && $tp->{payment_type} == 0) {
           $debug_output .= "UID: $user->{UID} REPORT_ID: $user->{REPORT_ID} DEPOSIT: $user->{DEPOSIT}/$user->{CREDIT} Skip action Small Deposit for sending\n" if ($debug > 0);
           next;
         }
@@ -364,17 +370,34 @@ sub ureports_periodic_reports {
             }
           }
 
-          my $expire_days = int($user->{DEPOSIT} / $total_daily_fee);
-          if ($expire_days < $user->{VALUE}) {
-            $_ALL_SERVICE_EXPIRE =~ s/XX/ $expire_days /;
-            %PARAMS = (
-              DESCRIBE => "$_REPORTS ($user->{REPORT_ID}) ",
-              MESSAGE  => "$_ALL_SERVICE_EXPIRE",
-              SUBJECT  => "$_ALL_SERVICE_EXPIRE"
-              );
+          if ($total_daily_fee > 0) {
+            my $expire_days = int($user->{DEPOSIT} / $total_daily_fee);
+            if ($expire_days < $user->{VALUE}) {
+              $_ALL_SERVICE_EXPIRE =~ s/XX/ $expire_days /;
+              %PARAMS = (
+                DESCRIBE => "$_REPORTS ($user->{REPORT_ID}) ",
+                MESSAGE  => "$_ALL_SERVICE_EXPIRE",
+                SUBJECT  => "$_ALL_SERVICE_EXPIRE"
+                );
+            }
+            else {
+              next;
+            }
           }
-          else {
-            next;
+        }
+        #NOtify before abon
+        elsif ($user->{REPORT_ID} == 14) {
+          if ($user->{VALUE} == $user->{TP_EXPIRE}) {
+            if ($expire_days < $user->{VALUE}) {
+              %PARAMS = (
+                DESCRIBE => "$_REPORTS",
+                MESSAGE  => "",
+                SUBJECT  => "$_DEPOSIT"
+                );
+            }
+            else {
+              next;
+            }
           }
         }
       }

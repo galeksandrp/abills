@@ -196,6 +196,11 @@ if (check_ip($ENV{REMOTE_ADDR}, '213.160.149.0/24')) {
   require "Ibox.pm";
   exit;
 }
+# Privat bank terminal interface
+elsif (check_ip($ENV{REMOTE_ADDR}, '')) {
+  require "Perfectmoney.pm";
+  exit;
+}
 elsif ($FORM{__BUFFER} =~ /^{.+}$/ && 
   check_ip($ENV{REMOTE_ADDR}, '75.101.163.115,107.22.173.15,107.22.173.86,213.154.214.76,217.117.64.232-217.117.64.238')) {
   require "Private_bank_json.pm";
@@ -325,7 +330,7 @@ elsif (check_ip($ENV{REMOTE_ADDR}, '79.142.16.0/21')) {
 }
 
 #USMP
-elsif (check_ip($ENV{REMOTE_ADDR}, '77.222.138.142,78.30.232.14,77.120.96.58')) {
+elsif (check_ip($ENV{REMOTE_ADDR}, '77.222.138.142,78.30.232.14,77.120.96.58,91.105.201.31')) {
   require "Usmp.pm";
   exit;
 }
