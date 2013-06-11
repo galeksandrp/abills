@@ -431,11 +431,15 @@ sub form_info {
         $user->{CREDIT_DATE} = $credit_date;
       }
       else {
-        $user->{CREDIT_CHG_BUTTON} = $html->button(
-          "$_SET $_CREDIT: " . sprintf("%.2f", $sum) . (($price && $price > 0) ? sprintf(" (%s: %.2f)", "$_CREDIT $_CHANGE $_PRICE", $price) : undef),
-          "index=". get_function_index('form_info') ."&sid=$sid&change_credit=$sum",
-          { BUTTON => 1 }
-        );
+      	#$user->{CREDIT_CHG_PRICE} = (($price && $price > 0) ? sprintf(" (%s: %.2f)", "$_CREDIT $_CHANGE $_PRICE", $price) : undef);
+      	$user->{CREDIT_CHG_PRICE} = sprintf("%.2f", $price);
+      	$user->{CREDIT_SUM} = sprintf("%.2f", $sum);
+        $user->{CREDIT_CHG_BUTTON} = $html->form_input('hold_up_window', "$_SET $_CREDIT", { OUTPUT2RETURN => 1 });
+        #$html->button(
+        #  "$_SET $_CREDIT: " . $user->{CREDIT_SUM} . $user->{CREDIT_CHG_PRICE} ,
+        #  "index=". get_function_index('form_info') ."&sid=$sid&change_credit=$sum",
+        #  { BUTTON => 1, ex_params => "name=hold_up_window"  }
+        #);
       }
     }
   }

@@ -3618,7 +3618,6 @@ sub dv_user_chg_tp {
       || $Dv->{PAYMENT_TYPE} == 1)
   )
   {
-
     if ($user->{ACTIVATE} ne '0000-00-00') {
       my ($Y, $M, $D) = split(/-/, $user->{ACTIVATE}, 3);
       $M--;
@@ -3644,7 +3643,7 @@ sub dv_user_chg_tp {
     }
   }
 
-  if ($FORM{set}) {
+  if ($FORM{set} && $FORM{ACCEPT_RULES}) {
     if (!$FORM{TP_ID} || $FORM{TP_ID} < 1) {
       $html->message('err', "$_ERROR", "$ERR_WRONG_DATA: $_TARIF_PLAN", { ID => 141 });
     }
@@ -3983,7 +3982,8 @@ sub dv_user_chg_tp {
     }
 
     $tariffs->{PARAMS} .= form_period($period, { ABON_DATE => $Dv->{ABON_DATE}, TP => $tariffs }) if ($conf{DV_USER_CHG_TP_SHEDULE} && !$conf{DV_USER_CHG_TP_NPERIOD});
-    $tariffs->{ACTION} = $html->form_input('set', $_CHANGE, { TYPE => 'submit', OUTPUT2RETURN => 1 });
+    $tariffs->{ACTION} = $html->form_input('hold_up_window', $_CHANGE, { TYPE          => 'submit', 
+    	                                                        OUTPUT2RETURN => 1 });
   }
 
   $tariffs->{UID}     = $attr->{USER_INFO}->{UID};
@@ -4751,6 +4751,10 @@ sub dv_holdup_service {
   	}
   }
 
+  if ($holdup_fees && $holdup_fees > 0) {
+    $Dv->{DAY_FEES}="$_DAY_FEE: ". sprintf("%.2f", $holdup_fees);
+  }
+
   my $Shedule = Shedule->new($db, $admin, \%conf);
 
   if ($FORM{del}) {
@@ -4768,15 +4772,16 @@ sub dv_holdup_service {
     {
       UID    => $user->{UID},
       MODULE => 'Dv',
-      TYPE   => 'status'
+      TYPE   => 'status',
+      COLS_NAME=>1
     }
   );
 
   my %Shedule_val = ();
   my $del_ids     = '';
   foreach $line (@$list) {
-    $Shedule_val{ $line->[7] } = "$line->[3]-$line->[2]-$line->[1]";
-    $del_ids .= "$line->[14],";
+    $Shedule_val{ $line->{action} } = "$line->{y}-$line->{m}-$line->{d}";
+    $del_ids .= "$line->{id},";
   }
 
   chop($del_ids);
@@ -4787,7 +4792,7 @@ sub dv_holdup_service {
     return 0;
   }
 
-  if ($FORM{add}) {
+  if ($FORM{add} && $FORM{ACCEPT_RULES}) {
     my ($from_year, $from_month, $from_day) = split(/-/, $FORM{FROM_DATE}, 3);
     my ($to_year,   $to_month,   $to_day)   = split(/-/, $FORM{TO_DATE},   3);
 

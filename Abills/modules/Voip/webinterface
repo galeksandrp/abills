@@ -1694,13 +1694,18 @@ sub voip_online {
 sub voip_sessions {
   my ($list) = @_;
 
+  if (!defined($FORM{sort})) {
+    if (! $FORM{UID}) {
+      $LIST_PARAMS{SORT} = 2;
+    }
+    else {
+    	$LIST_PARAMS{SORT} = 1;
+    }
+    $LIST_PARAMS{DESC} = 'DESC';
+  }
+
   #Session List
   if (!$list) {
-    if (!defined($FORM{sort})) {
-      $LIST_PARAMS{SORT} = 2;
-      $LIST_PARAMS{DESC} = 'DESC';
-    }
-
     $sessions->{SEL_NAS} = $html->form_select(
       'NAS_ID',
       {
