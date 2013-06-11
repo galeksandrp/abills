@@ -305,10 +305,14 @@ sub get_traffic {
   }
 
   if ($CONF->{DV_INTERVAL_PREPAID}) {
-    my $sql =  "SELECT li.traffic_type, sum(li.sent) / $CONF->{MB_SIZE}, sum(li.recv) / $CONF->{MB_SIZE} FROM dv_log l, dv_log_intervals li
-           WHERE l.acct_session_id=li.acct_session_id AND l.uid $WHERE 
-           AND li.interval_id='$self->{TI_ID}' AND l.uid=li.uid
-           AND ($period)";
+    my $period2 =$period;
+    $period2 =~ s/start/li\.added/g;
+    my $sql = "SELECT li.traffic_type, sum(li.sent) / $CONF->{MB_SIZE}, sum(li.recv) / $CONF->{MB_SIZE} FROM dv_log_intervals li
+           LEFT JOIN  dv_log l ON (l.acct_session_id=li.acct_session_id AND l.uid=li.uid)
+           WHERE li.uid $WHERE
+           AND li.interval_id='$self->{TI_ID}'
+           AND (($period) or ($period2))";
+    
     $self->query2($sql);
   
     if ($self->{TOTAL} > 0) {

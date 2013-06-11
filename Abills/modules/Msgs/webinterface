@@ -268,7 +268,7 @@ sub msgs_admin_add {
       #Sms Send
       if ($FORM{SEND_SMS}) {
         if (!$FORM{INNER_MSG}) {
-          require "Abills/modules/Sms/webinterface";
+          load_module('Sms', $html);
           sms_send(
             {
               NUMBERS => \%NUMBERS,
