@@ -4,6 +4,7 @@ use Iptv;
 use Tariffs;
 use Fees;
 use Shedule;
+use Encode;
 
 my $Tariffs = Tariffs->new($db, \%conf, $admin);
 my $Iptv    = Iptv->new($db, $admin, \%conf);
@@ -3427,10 +3428,11 @@ sub iptv_stalker {
      $html->message('info', $_ADDED, "$_ADDED $Tariffs->{TP_ID}");
    }
    else {
-     $html->message('err', $_ERROR, "$users->{error}/$users->{errstr} ");
+     $html->message('err', $_ERROR, "$Tariffs->{error}/$Tariffs->{errstr} ");
    }
  }
- elsif ($FORM{list}) {
+ 
+ if ($FORM{list}) {
    iptv_stalker_show_list($FORM{list});
    return 0;   
  }
@@ -3488,6 +3490,10 @@ sub iptv_stalker {
         push @row, "$val";
       }
       else {
+        if ($key =~ /full_name|comment/ ) {
+          Encode::_utf8_off($val);
+        }     	
+
         push @row, "$val";
       }
     }
@@ -3511,8 +3517,6 @@ sub iptv_stalker {
 #**********************************************************
 sub iptv_stalker_show_list {
   my ($list_name) = @_;
-
-  use Encode;
 
   my %channel_list = ();
   if ($list_name eq 'ITV') {
@@ -3580,6 +3584,8 @@ sub iptv_stalker_show_list {
         foreach my $v (@$val) {
           if (ref $v eq 'HASH') {
             while(my($k, $v) = each %$v) {
+              Encode::_utf8_off($k);
+              Encode::_utf8_off($v);
               $col_values .= " $k - $v". $html->br();
             }
           }

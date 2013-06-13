@@ -72,7 +72,7 @@ sub stalker_online {
   foreach my $line (@$list) {
   	$line->{cid} =~ s/[\n\r ]//g;
   	foreach my $cid (split(/;/, $line->{cid})) {
-  	  $USERS_LIST{$cid}=$line
+  	  $USERS_LIST{$cid}=$line;
   	  #"$line->{uid};$line->{tp_id};$line->{activate}";
   	}
   }
@@ -85,8 +85,7 @@ sub stalker_online {
                           UID             => '_SHOW', 
                           ACCT_SESSION_ID => '_SHOW',
                           FIO             => '_SHOW'
-                          ]
-                        });
+                          });
 
   foreach my $line (@$list) {
   	$USERS_ONLINE_LIST{$line->{CID}}="$line->{uid}:$line->{acct_session_id}";

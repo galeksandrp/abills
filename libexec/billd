@@ -1790,14 +1790,14 @@ sub check_speed {
       {
         SPEED     => '>0',
         PAGE_ROWS => 100000,
-        SORT      => 7,
-        GROUP_BY  => 'dv.speed'
+        GROUP_BY  => 'dv.speed',
+        COLS_NAME => 1
       }
     );
 
     #my $static_speed_fw_num = $START_FW[0]+5000;
     foreach my $line (@$list) {
-      $static_speeds{ $line->[7] } = 1;
+      $static_speeds{ $line->{speed} } = 1;
     }
 
     if ($conf{DV_TURBO_MODE}) {
@@ -2002,9 +2002,9 @@ sub check_cisco_if {
 
   if ($ARGV->{NAS_IDS}) {
     my $list = $Nas->list({ NAS_IDS  => $ARGV->{NAS_IDS}, 
-    	                     COLS_NAME => 1, 
-    	                     NAS_TYPE  => 'cisco',
-    	                     COLS_UPPER=> 1 });
+    	                      COLS_NAME => 1, 
+    	                      NAS_TYPE  => 'cisco',
+    	                      COLS_UPPER=> 1 });
     foreach my $nas_info (@$list) {
       $debug_output .= "NAS ID: $nas_info->{NAS_ID} MNG_INFO: $nas_info->{NAS_MNG_USER}\@$nas_info->{NAS_MNG_IP_PORT} $nas_info->{NAS_RAD_PAIRS}\n" if ($debug > 2);
 

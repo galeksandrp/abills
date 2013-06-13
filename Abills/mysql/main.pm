@@ -495,7 +495,7 @@ sub search_expr {
     return \@result_arr;
   }
 
-  return $value;
+  return [ $value ];
 }
 
 #**********************************************************
