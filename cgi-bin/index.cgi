@@ -647,11 +647,14 @@ sub auth {
     require Dv_Sessions;
     Dv_Sessions->import();
     my $sessions = Dv_Sessions->new($db, $admin, \%conf);
-    my $list = $sessions->online({ FRAMED_IP_ADDRESS => "$REMOTE_ADDR" });
+
+    my $list = $sessions->online({ USER_NAME         => '_SHOW',
+    	                             FRAMED_IP_ADDRESS => "$REMOTE_ADDR",
+    	                            });
 
     if ($sessions->{TOTAL} == 1) {
-      $login = $list->[0]->[0];
-      $ret   = $list->[0]->[11];
+      $login = $list->[0]->{user_name};
+      $ret   = $list->[0]->{uid};
 
       #$time    = time;
       $sid = mk_unique_value(14);

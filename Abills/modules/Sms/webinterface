@@ -75,7 +75,7 @@ elsif ($conf{TURBOSMS_PASSWD}) {
   }
 }  
 else {
-	$html->message('err', $_ERROR, "Sms service not connected");
+  $html->message('err', $_ERROR, "Sms service not connected");
 }
 
 }
@@ -94,11 +94,11 @@ sub sms_send {
 
   sms_service_connect();
   
-  if (! $attr->{NUMBER} || $attr->{NUMBERS}) {
-  	$html->message('err', $_ERROR, "$_ERR_PHONE_NOT_DEFINED");
+  if (! $attr->{NUMBER} && ! $attr->{NUMBERS}) {
+    $html->message('err', $_ERROR, "$_ERR_PHONE_NOT_DEFINED");
   }
   elsif (! $attr->{NUMBERS} && $attr->{NUMBER} !~ /(\d{12})/) {
-  	$html->message('err', $_ERROR, "$_ERR_WRONG_PHONE");
+    $html->message('err', $_ERROR, "$_ERR_WRONG_PHONE");
   }
 
   if ($attr->{NUMBER} && $conf{SMS_NUMBER_EXPR}) {
@@ -165,12 +165,12 @@ sub sms_reports {
   $Sms_service = sms_service_connect();
   
   if (! $Sms_service ) {
-  	return 0;
+    return 0;
   }
 
   if (! $FORM{desc} && ! $FORM{sort}) {
-  	$LIST_PARAMS{DESC} = 'DESC';
-  	$LIST_PARAMS{SORT} = 1;
+    $LIST_PARAMS{DESC} = 'DESC';
+    $LIST_PARAMS{SORT} = 1;
   }
 
   my $list = $Sms_service->info({%LIST_PARAMS, COLS_NAME => 1 });
