@@ -303,7 +303,7 @@ sub user_list {
       ['ALL_FILTER_ID',  'STR', 'if(service.filter_id<>\'\', service.filter_id, tp.filter_id) AS filter_id', 1 ],
       ['FILTER_ID',      'STR', 'service.filter_id',                1 ],
       ['DVCRYPT_ID',     'INT', 'service.dvcrypt_id',               1 ],
-      ['TP_ID',          'INT', 'service.tp_id',                      ],
+      ['TP_ID',          'INT', 'service.tp_id',                    1 ],
       ['TP_CREDIT',      'INT', 'tp.credit:',             'tp_credit' ],
       ['PAYMENT_TYPE',   'INT', 'tp.payment_type',                  1 ],
       ['MONTH_PRICE',    'INT', 'ti_c.month_price',                 1 ]

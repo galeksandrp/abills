@@ -160,11 +160,12 @@ sub traffic_calculations {
       if ($CONF->{DV_INTERVAL_PREPAID}) {
         #($sent, $recv) = (0,0);
       }
-
-      $used_traffic->{TRAFFIC_IN}    += int($recv / $CONF->{MB_SIZE});
-      $used_traffic->{TRAFFIC_OUT}   += int($sent / $CONF->{MB_SIZE});
-      $used_traffic->{TRAFFIC_IN_2}  += ($RAD->{INBYTE2}) ? int($RAD->{INBYTE2} / $CONF->{MB_SIZE}) : 0;
-      $used_traffic->{TRAFFIC_OUT_2} += ($RAD->{OUTBYTE2}) ? int($RAD->{OUTBYTE2} / $CONF->{MB_SIZE}) : 0;
+      else {
+        $used_traffic->{TRAFFIC_IN}    += int($recv / $CONF->{MB_SIZE});
+        $used_traffic->{TRAFFIC_OUT}   += int($sent / $CONF->{MB_SIZE});
+        $used_traffic->{TRAFFIC_IN_2}  += ($RAD->{INBYTE2}) ? int($RAD->{INBYTE2} / $CONF->{MB_SIZE}) : 0;
+        $used_traffic->{TRAFFIC_OUT_2} += ($RAD->{OUTBYTE2}) ? int($RAD->{OUTBYTE2} / $CONF->{MB_SIZE}) : 0;
+      }
     }
     elsif ($RAD->{ACCT_INPUT_GIGAWORDS}) {
       $recv = $recv + $RAD->{ACCT_INPUT_GIGAWORDS} * 4294967296;

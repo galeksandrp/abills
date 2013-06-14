@@ -55,7 +55,8 @@ sub del {
       $self->query2(
          "UPDATE traffic_prepaid_sum pl, dv_log l SET 
          traffic_in=traffic_in-(l.recv + 4294967296 * acct_input_gigawords),
-         traffic_out=traffic_out-(l.sent + 4294967296 * acct_output_gigawords)
+         traffic_out=traffic_out-(l.sent + 4294967296 * acct_output_gigawords),
+         li.sum=li.sum-l.sum
          WHERE pl.uid=l.uid AND l.uid='$uid' and l.start='$session_start' and l.nas_id='$nas_id' 
           and l.acct_session_id='$session_id';", 'do'
       );
@@ -753,10 +754,11 @@ WHERE
   }
 
   if ($CONF->{DV_INTERVAL_PREPAID}) {
-    $self->query2("SELECT li.traffic_type, SUM($octets_direction_interval) / $CONF->{MB_SIZE}, li.interval_id  
-       FROM dv_log l, dv_log_intervals li
-       WHERE $uid AND ($WHERE) 
-         AND l.acct_session_id=li.acct_session_id AND li.uid=l.uid
+    $WHERE =~ s/start/li\.added/g;
+    $uid =~ s/l.uid/li.uid/g;
+    $self->query2("SELECT li.traffic_type, SUM($octets_direction_interval) / $CONF->{MB_SIZE}, li.interval_id
+       FROM dv_log_intervals li
+       WHERE $uid AND ($WHERE)
     GROUP BY interval_id, li.traffic_type");
   }
   else {
