@@ -1059,6 +1059,7 @@ sub header {
   $info{REFRESH} = ($FORM{REFRESH})     ? "<META HTTP-EQUIV=\"Refresh\" CONTENT=\"$FORM{REFRESH}; URL=$ENV{REQUEST_URI}\"/>\n" : '';
   $info{CHARSET} = $self->{CHARSET};
   $info{CONTENT_LANGUAGE} = $attr->{CONTENT_LANGUAGE} if ($attr->{CONTENT_LANGUAGE});
+  $info{CALLCENTER_MENU}  = $self->{CALLCENTER_MENU};
 
   $self->{header} .= $self->tpl_show($self->{METATAGS}, \%info, { OUTPUT2RETURN => 1, ID => $FORM{EXPORT_CONTENT} });
   return $self->{header};

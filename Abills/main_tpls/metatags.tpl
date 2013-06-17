@@ -16,6 +16,9 @@
  <script src='/calendar.js' type='text/javascript' language='javascript'></script>
  <link rel='stylesheet' type='text/css' href='/styles/default/chosen.css' />
 <script type='text/javascript' src='/styles/default/js/chosen.jquery.min.js' ></script>
+
+<script type='text/javascript' src='/styles/default/js/jquery.tabSlideOut.v1.2.js' ></script>
+<script type='text/javascript' src='/styles/default/js/script.js' ></script>
 <script language='JavaScript' type='text/javascript'>
     \$(document).ready(function(){
       \$('select:not(#type)').chosen({no_results_text: '$_NOT_EXIST', allow_single_deselect: true, placeholder_text: '$_CHANGE'});
@@ -1052,10 +1055,45 @@ form #TP_ID_chzn {
   top:8px;
 }
 
+.slide-out-div {
+  padding: 10px 10px 80px;
+  width: 200px;
+  background: #f2f2f2;
+  border: #29216d 2px solid;
+}
+
 </style>
 
 <title>%title%</title>
+
+<script>
+         \$(function(){
+              
+             \$('.slide-out-div').tabSlideOut({
+                 tabHandle: '.handle',                              //класс элемента
+                 pathToTabImage: '/img/contact_tab.gif',          //путь к изображению *required*
+                 imageHeight: '122px',                               //высота  *required*
+                 imageWidth: '40px',                               //width of tab image *required*    
+                 tabLocation: 'left',                               //side of screen where tab lives, top, right, bottom, or left
+                 speed: 300,                                        //speed of animation
+                 action: 'click',                                   //options: 'click' or 'hover', action to trigger animation
+                 topPos: '400px',                                   //position from the top
+                 fixedPosition: true                               //options: true makes it stick(fixed position) on scroll
+             });
+         });
+         
+
+jQuery(document).ready(function(){
+  if(jQuery('.slide-out-div').length>0) {
+    start(1002)
+  }         
+});
+</script>
+
 </head>
 <body style='margin: 0' bgcolor='%_COLOR_10%' text='%_COLOR_9%' link='%_COLOR_8%'  vlink='%_COLOR_7%'>
+%CALLCENTER_MENU%
 
 <div id='popup_window'></div>
+
+

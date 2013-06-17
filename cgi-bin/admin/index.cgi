@@ -421,6 +421,10 @@ if ($conf{LANGS}) {
   }
 }
 
+if ($FORM{CALLCENTER_MENU}) {
+  $html->{CALLCENTER_MENU} = $html->tpl_show(templates('form_callcenter_menu'), { CALLCENTER_MENU => '' }, { OUTPUT2RETURN => 1 });
+}
+
 $html->{METATAGS} = templates('metatags');
 if (($FORM{UID} && $FORM{UID} =~ /^(\d+)$/ && $FORM{UID} > 0) || ($FORM{LOGIN} && $FORM{LOGIN} !~ /\*/ && !$FORM{add} && !$FORM{next} )) {
   if ($FORM{type} ne 10) {
