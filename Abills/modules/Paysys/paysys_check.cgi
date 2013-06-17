@@ -477,15 +477,17 @@ sub portmone_payments {
   my $list   = $Paysys->list(
     {
       TRANSACTION_ID => "$FORM{'SHOPORDERNUMBER'}",
-      INFO           => '-'
+      INFO           => '-',
+      SUM            => '_SHOW',
+      COLS_NAME      => 1,
     }
   );
 
   if ($Paysys->{TOTAL} > 0) {
 
     #$html->message('info', $_INFO, "$_ADDED $_SUM: $list->[0][3] ID: $FORM{SHOPORDERNUMBER }");
-    my $uid  = $list->[0][8];
-    my $sum  = $list->[0][3];
+    my $uid  = $list->[0]{uid};
+    my $sum  = $list->[0]{sum};
     my $user = $users->info($uid);
     $payments->add(
       $user,
@@ -499,16 +501,18 @@ sub portmone_payments {
     );
 
     #Exists
-    if ($payments->{errno} && $payments->{errno} == 7) {
-      $status = 8;
-    }
-    elsif ($payments->{errno}) {
-      $status = 4;
+    if ($payments->{errno}) {
+    	if ($payments->{errno} == 7) {
+        $status = 8;
+      }
+      else {
+        $status = 4;
+      }
     }
     else {
       $Paysys->change(
         {
-          ID     => $list->[0][0],
+          ID     => $list->[0]{id},
           INFO   => "APPROVALCODE: $FORM{APPROVALCODE}",
           STATUS => 2
         }

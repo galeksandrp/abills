@@ -1297,11 +1297,13 @@ sub paysys_portmone () {
         {
           TRANSACTION_ID => "$FORM{'SHOPORDERNUMBER'}",
           UID            => $LIST_PARAMS{UID},
+          SUM            => '_SHOW',
+          COLS_NAME      => 1
         }
       );
 
       if ($Paysys->{TOTAL} > 0) {
-        $html->message('info', $_INFO, "$_ADDED $_SUM: $list->[0][3] ID: $FORM{SHOPORDERNUMBER }");
+        $html->message('info', $_INFO, "$_ADDED $_SUM: $list->[0]->{sum} ID: $FORM{SHOPORDERNUMBER }");
 
         if ($conf{PAYSYS_EMAIL_NOTICE}) {
           my $message = "\n" . "System: Portmone\n" . "$_DATE: $DATE $TIME\n" . "$_LOGIN: $user->{LOGIN} [$LIST_PARAMS{UID}]\n" . "\n" . "\n" . "ID: $FORM{SHOPORDERNUMBER }\n" . "$_SUM: $list->[0][3]\n";
