@@ -196,8 +196,12 @@ if (check_ip($ENV{REMOTE_ADDR}, '213.160.149.0/24')) {
   require "Ibox.pm";
   exit;
 }
-# Privat bank terminal interface
-elsif (check_ip($ENV{REMOTE_ADDR}, '')) {
+elsif (check_ip($ENV{REMOTE_ADDR}, '78.140.166.69')) {
+  require "Okpay.pm";
+  exit;
+}
+# Perfectmoney
+elsif ($FORM{PAYEE_ACCOUNT} && check_ip($ENV{REMOTE_ADDR}, '77.109.141.170')) {
   require "Perfectmoney.pm";
   exit;
 }

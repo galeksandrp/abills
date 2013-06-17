@@ -1553,12 +1553,14 @@ sub paysys_privatbank {
     my $list = $Paysys->list(
       {
         TRANSACTION_ID => "$FORM{orderid}",
-        UID            => $LIST_PARAMS{UID}
+        UID            => $LIST_PARAMS{UID},
+        SUM            => '_SHOW',
+        COLS_NAME      => 1
       }
     );
 
     if ($Paysys->{TOTAL} > 0) {
-      $html->message('info', $_INFO, "$_ADDED $_SUM: $list->[0][3] ID: $FORM{OPERATION_ID}");
+      $html->message('info', $_INFO, "$_ADDED $_SUM: $list->[0]->{sum} ID: $FORM{OPERATION_ID}");
     }
     else {
       $html->message('err', $_ERROR, "$_FAILED ID: $FORM{OPERATION_ID} $_ERR_NO_TRANSACTION");
@@ -1962,18 +1964,20 @@ sub paysys_privatbank_p24 {
     my $list = $Paysys->list(
       {
         TRANSACTION_ID => "$FORM{OrderID}",
-        UID            => $LIST_PARAMS{UID}
+        UID            => $LIST_PARAMS{UID},
+        SUM            => '_SHOW',
+        COLS_NAME      => 1
       }
     );
 
     if ($Paysys->{TOTAL} > 0) {
-      $Paysys->info({ ID => $list->[0][0] });
+      $Paysys->info({ ID => $list->[0]->{id} });
 
       if ($Paysys->{INFO} =~ /STATE: ok/) {
-        $html->message('info', $_INFO, "$_ADDED $_SUM: $list->[0][3] ID: $FORM{OrderID}");
+        $html->message('info', $_INFO, "$_ADDED $_SUM: $list->[0]->{sum} ID: $FORM{OrderID}");
       }
       elsif ($Paysys->{INFO} =~ /STATE: test/) {
-        $html->message('info', $_INFO, "$_ADDED $_SUM: $list->[0][3] ID: $FORM{OrderID} ($_TEST_PAYMENT)");
+        $html->message('info', $_INFO, "$_ADDED $_SUM: $list->[0]->{sum} ID: $FORM{OrderID} ($_TEST_PAYMENT)");
       }
       else {
         $html->message('err', $_ERROR, "$_FAILED ID: $FORM{OrderID}");
@@ -2034,12 +2038,14 @@ sub paysys_liqpay {
     my $list = $Paysys->list(
       {
         TRANSACTION_ID => "$order_id",
-        UID            => $LIST_PARAMS{UID}
+        UID            => $LIST_PARAMS{UID},
+        SUM            => '_SHOW',
+        COLS_NAME      => 1
       }
     );
 
     if ($Paysys->{TOTAL} > 0) {
-      $html->message('info', $_INFO, "$_ADDED $_SUM: $list->[0][3] ID: $order_id");
+      $html->message('info', $_INFO, "$_ADDED $_SUM: $list->[0]->{sum} ID: $order_id");
     }
     else {
       $html->message('err', $_ERROR, "$_FAILED ID: $order_id $_ERR_NO_TRANSACTION");
@@ -2131,9 +2137,13 @@ sub paysys_lr {
     return 0;
   }
   elsif ($FORM{TRUE}) {
-    my $list = $Paysys->list({ TRANSACTION_ID => "LR:$FORM{OPERATION_ID}", UID => $LIST_PARAMS{UID} });
+    my $list = $Paysys->list({ TRANSACTION_ID => "LR:$FORM{OPERATION_ID}", 
+    	                         UID            => $LIST_PARAMS{UID}, 
+    	                         SUM            => '_SHOW',
+    	                         COLS_NAME      => 1 
+    	                       });
     if ($Paysys->{TOTAL} > 0) {
-      $html->message('info', $_INFO, "$_ADDED $_SUM: $list->[0]->[3] $_TRANSACTION ID: LR:$FORM{OPERATION_ID}");
+      $html->message('info', $_INFO, "$_ADDED $_SUM: $list->[0]->{sum} $_TRANSACTION ID: LR:$FORM{OPERATION_ID}");
     }
     else {
       $html->message('err', $_ERROR, "$_FAILED ID: $FORM{OPERATION_ID} $_ERR_NO_TRANSACTION");
@@ -2811,45 +2821,32 @@ sub paysys_yandex () {
 #**********************************************************
 sub paysys_perfectmoney {
 	
-  if (defined($FORM{abillserrormsg})) {
-    my @AbillsErrorMsg = ('Transaction successfuly added', 'User not found', 'Billing system error', 'Dublicate payment', 'Transaction error');
-
-    $html->message('err', $_ERROR, "$_FAILED - $AbillsErrorMsg[$FORM{abillserrormsg}]");
-
-    #print 'lol';
+	
+  if ($FORM{FALSE}) {
+    $html->message('err', $_ERROR, "$_FAILED $_TRANSACTION - $FORM{OPERATION_ID}");
+    return 0;
   }
-  else {
-    my @fio;
-    my $users = Users->new($db, $admin, \%conf);
-    $user = $users->info($LIST_PARAMS{UID});
-    $users->pi({ UID => $LIST_PARAMS{UID} });
-    (@fio) = split(' ', $users->{FIO});
+  elsif($FORM{TRUE}) {
+    my $list = $Paysys->list({ TRANSACTION_ID => "PM:$FORM{OPERATION_ID}", 
+    	                         UID            => $LIST_PARAMS{UID}, 
+    	                         SUM            => '_SHOW',
+    	                         STATUS         => '_SHOW',
+    	                         COLS_NAME      => 1 
+    	                       });
 
-    my %info = ();
-    my $sum;
-    $info{PAYMENT_NO} = $FORM{OPERATION_ID};
-
-    if ($FORM{SUM} =~ /^(\d+)\.?(\d+)?$/) {
-      $sum = "$1$2";
-    }
-    $info{amount_with_point} = $FORM{SUM};
-    $info{desc}              = $FORM{DESCRIBE};
-
-    if ($conf{PAYSYS_CP_VISA_TEST_MODE} == 1) {
-      $info{lastname}   = 'Ivanov';
-      $info{firstname}  = 'Ivan';
-      $info{middlename} = 'Ivanovich';
-      $info{email}      = 'support@cyberplat.com';
-      $info{phone}      = 7445 - 4060;
+    if ($Paysys->{TOTAL} > 0) {
+      if ($list->[0]->{status}  == 2) {
+        $html->message('info', $_INFO, "$_ADDED $_SUM: $list->[0]->{sum} $_TRANSACTION ID: PM:$FORM{OPERATION_ID}");
+      }
+      else {
+      	$html->message('err', $_ERROR, "$_FAILED ID: $FORM{OPERATION_ID} $status[$list->[0]->{status}]");
+      }
     }
     else {
-      $info{lastname}   = $fio[0]         || '';
-      $info{firstname}  = $fio[1]         || '';
-      $info{middlename} = $fio[2]         || '';
-      $info{email}      = $users->{EMAIL} || '';
-      $info{phone}      = $users->{PHONE} || '';
-
+      $html->message('err', $_ERROR, "$_FAILED ID: $FORM{OPERATION_ID} $_ERR_NO_TRANSACTION");
     }
+
+    return 0;	
   }
 
   $html->tpl_show(_include('paysys_perfectmoney_add', 'Paysys'), \%info);
@@ -2862,7 +2859,7 @@ sub paysys_perfectmoney {
 sub paysys_okpay {
 	
   my %info = ();
-  require "modules/Paysys/Okpay.pm";
+  #require "modules/Paysys/Okpay.pm";
 
   my $payment_system    = 'Okpay';
   my $payment_system_id = 87;
@@ -2900,15 +2897,15 @@ sub paysys_okpay {
 
   $user->pi({ UID => $user->{UID} });
 
-  if (in_array('Dv', \@MODULES)) {
-    use Dv;
-    my $Dv = Dv->new($db, $admin, \%conf);
-    $Dv = $Dv->info($user->{UID});
-    if ($Dv->{MONTH_ABON} > $FORM{SUM}) {
-      $FORM{SUM}      = $Dv->{MONTH_ABON};
-      $info{DESCRIBE} = "$_TARIF_PLAN_SUM";
-    }
-  }
+#  if (in_array('Dv', \@MODULES)) {
+#    use Dv;
+#    my $Dv = Dv->new($db, $admin, \%conf);
+#    $Dv = $Dv->info($user->{UID});
+#    if ($Dv->{MONTH_ABON} > $FORM{SUM}) {
+#      $FORM{SUM}      = $Dv->{MONTH_ABON};
+#      $info{DESCRIBE} = "$_TARIF_PLAN_SUM";
+#    }
+#  }
 
   $html->tpl_show(_include('paysys_okpay_add', 'Paysys'), \%info);
 }
