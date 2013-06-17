@@ -421,7 +421,7 @@ if ($conf{LANGS}) {
   }
 }
 
-if ($FORM{CALLCENTER_MENU}) {
+if ($conf{CALLCENTER_MENU}) {
   $html->{CALLCENTER_MENU} = $html->tpl_show(templates('form_callcenter_menu'), { CALLCENTER_MENU => '' }, { OUTPUT2RETURN => 1 });
 }
 
