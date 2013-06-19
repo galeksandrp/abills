@@ -12,7 +12,7 @@
 </tr>
 
 <tr><th colspan=4>&nbsp;</th></tr>
-<tr><th colspan=4><input type=submit value='$_HOLD_UP' name='hold_up_window'></th></tr>
+<tr><th colspan=4><input type=submit value='$_HOLD_UP' name='hold_up_window' id='hold_up_window'></th></tr>
 </table>
 
 

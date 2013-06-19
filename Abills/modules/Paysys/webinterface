@@ -11,6 +11,7 @@ else {
   exit;
 }
 
+
 use Finance;
 my $payments = Finance->payments($db, $admin, \%conf);
 my $fees     = Finance->fees($db, $admin, \%conf);
@@ -1099,6 +1100,9 @@ sub paysys_periodic () {
   $debug_output .= "Paysys: Daily periodic payments\n" if ($debug > 1);
 
   if ($conf{PAYSYS_PORTMONE_PAYEE_ID}) {
+	  my $payment_system    = 'PM';
+    my $payment_system_id = 45;
+  	
     $ADMIN_REPORT{DATE} = $DATE if (!$ADMIN_REPORT{DATE});
     my ($y, $m, $mday) = split(/-/, $ADMIN_REPORT{DATE});
 
@@ -1106,7 +1110,6 @@ sub paysys_periodic () {
     $mon  = $m - 1;
     $year = $y - 1900;
     my $timestamp = mktime(0, 0, 0, $mday, $mon, $year, 0, 0, -1);
-
     my $DATE = strftime "%Y-%m-%d", localtime($timestamp - 86400);
     my $res_arr = paysys_portmone_result(0, { DEBUG => $debug, DATE => $DATE });
 
@@ -1115,25 +1118,31 @@ sub paysys_periodic () {
       $res_hash{ $res_arr->[$i]{ordernumber} } = $i;
     }
 
-    my $list = $Paysys->list({ DATE => $DATE, PAYMENT_SYSTEM => 45, INFO => '-' });
+    my $list = $Paysys->list({ DATE           => $DATE, 
+    	                         PAYMENT_SYSTEM => $payment_system_id, 
+    	                         INFO           => '-',
+    	                         ID             => '_SHOW',
+    	                         SUM            => '_SHOW',
+    	                         TRANSACTION_ID => '_SHOW',
+    	                         COLS_NAME      => 1
+    	                       });
     my $users = Users->new($db, $admin, \%conf);
     foreach my $line (@$list) {
-
       #Add payments to abills
-      $debug_output .= "Unfinished payment ID: $line->[0]/$line->[5]\n" if ($debug > 2);
-      if (defined($res_hash{ $line->[5] })) {
-        my $uid       = $line->[8];
-        my $sum       = $line->[3];
-        my $order_num = $line->[5];
+      $debug_output .= "Unfinished payment ID: $line->{id}/$line->{transaction_id}\n" if ($debug > 2);
+      if (defined($res_hash{ $line->{transaction_id} })) {
+        my $uid       = $line->{uid};
+        my $sum       = $line->{sum};
+        my $order_num = $line->{transaction_id};
         my $user      = $users->info($uid);
         $payments->add(
           $user,
           {
             SUM          => $sum,
             DESCRIBE     => 'PORTMONE',
-            METHOD       => ($conf{PAYSYS_PAYMENTS_METHODS} && $PAYSYS_PAYMENTS_METHODS{54}) ? 54 : '2',
-            EXT_ID       => "PM:$order_num",
-            CHECK_EXT_ID => "PM:$order_num"
+            METHOD       => ($conf{PAYSYS_PAYMENTS_METHODS} && $PAYSYS_PAYMENTS_METHODS{$payment_system_id}) ? $payment_system_id : '2',
+            EXT_ID       => "$order_num",
+            CHECK_EXT_ID => "$order_num"
           }
         );
 
@@ -1147,20 +1156,21 @@ sub paysys_periodic () {
         else {
           $Paysys->change(
             {
-              ID   => $line->[0],
-              INFO => "APPROVALCODE: $res_arr->[$res_hash{$line->[5]}]{approvalcode}"
+              ID     => $line->{id},
+              INFO   => "APPROVALCODE: $res_arr->[$res_hash{$line->{transaction_id}}]{approvalcode}",
+              STATUS => 2
             }
           );
           $status = 1;
         }
 
         if ($conf{PAYSYS_EMAIL_NOTICE}) {
-          my $message = "\n" . "System: Portmone\n" . "DATE: $DATE $TIME\n" . "LOGIN: $user->{LOGIN} [$uid]\n" . "\n" . "\n" . "ID: $line->[0]\n" . "SUM: $sum\n";
+          my $message = "\n" . "System: Portmone\n" . "DATE: $DATE $TIME\n" . "LOGIN: $user->{LOGIN} [$uid]\n" . "\n" . "\n" . "ID: $line->{id}\n" . "SUM: $sum\n";
 
           sendmail("$conf{ADMIN_MAIL}", "$conf{ADMIN_MAIL}", "Paysys Portmone Add", "$message", "$conf{MAIL_CHARSET}", "2 (High)");
 
         }
-        $debug_output .= "Add payments TRANSACTION_ID: $line->[5]\n" if ($debug > 0);
+        $debug_output .= "Add payments TRANSACTION_ID: $line->{transaction_id}\n" if ($debug > 0);
       }
     }
   }
@@ -1219,7 +1229,9 @@ sub paysys_portmone_result () {
     my ($y, $m, $d) = split(/-/, $attr->{DATE});
     $ex_params = "&STARTDAY=$d&STARTMONTH=$m&STARTYEAR=$y&ENDDAY=$d&ENDMONTH=$m&ENDYEAR=$y";
   }
+  my $CURL= $conf{FILE_CURL}                || '/usr/local/bin/curl';
   my $cmd = "/usr/local/bin/curl -s --insecure --url '$request$ex_params' -A \"Mozilla/4.0 (compatible; MSIE 5.01; Windows NT 5.0)\"\n";
+
   if ($debug > 4) {
     print $cmd;
   }
@@ -1291,11 +1303,10 @@ sub paysys_portmone () {
     $html->message('err', $_ERROR, "$_FAILED $_TRANSACTION ID: $FORM{SHOPORDERNUMBER}");
   }
   elsif ($FORM{SHOPORDERNUMBER}) {
-
     if ($FORM{TRUE}) {
       my $list = $Paysys->list(
         {
-          TRANSACTION_ID => "$FORM{'SHOPORDERNUMBER'}",
+          TRANSACTION_ID => "PM:$FORM{'SHOPORDERNUMBER'}",
           UID            => $LIST_PARAMS{UID},
           SUM            => '_SHOW',
           COLS_NAME      => 1
@@ -1306,10 +1317,9 @@ sub paysys_portmone () {
         $html->message('info', $_INFO, "$_ADDED $_SUM: $list->[0]->{sum} ID: $FORM{SHOPORDERNUMBER }");
 
         if ($conf{PAYSYS_EMAIL_NOTICE}) {
-          my $message = "\n" . "System: Portmone\n" . "$_DATE: $DATE $TIME\n" . "$_LOGIN: $user->{LOGIN} [$LIST_PARAMS{UID}]\n" . "\n" . "\n" . "ID: $FORM{SHOPORDERNUMBER }\n" . "$_SUM: $list->[0][3]\n";
+          my $message = "\n" . "System: Portmone\n" . "$_DATE: $DATE $TIME\n" . "$_LOGIN: $user->{LOGIN} [$LIST_PARAMS{UID}]\n" . "\n" . "\n" . "ID: $FORM{SHOPORDERNUMBER }\n" . "$_SUM: $list->[0]{sum}\n";
 
           sendmail("$conf{ADMIN_MAIL}", "$conf{ADMIN_MAIL}", "Paysys Portmone Add", "$message", "$conf{MAIL_CHARSET}", "2 (High)");
-
         }
       }
       else {
@@ -1322,9 +1332,7 @@ sub paysys_portmone () {
     return 0;
   }
   else {
-
     #Info section
-
     $Paysys->add(
       {
         SYSTEM_ID      => 45,
@@ -1332,9 +1340,10 @@ sub paysys_portmone () {
         SUM            => $FORM{SUM},
         UID            => $user->{UID},
         IP             => $FORM{IP},
-        TRANSACTION_ID => "$FORM{OPERATION_ID}",
+        TRANSACTION_ID => "PM:$FORM{OPERATION_ID}",
         INFO           => '-',
-        PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}"
+        PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}",
+        STATUS         => 1
       }
     );
 
@@ -2823,13 +2832,16 @@ sub paysys_yandex () {
 #**********************************************************
 sub paysys_perfectmoney {
 	
+  my $payment_system    = 'PM';
+  my $payment_system_id = 86;
+
 	
   if ($FORM{FALSE}) {
     $html->message('err', $_ERROR, "$_FAILED $_TRANSACTION - $FORM{OPERATION_ID}");
     return 0;
   }
   elsif($FORM{TRUE}) {
-    my $list = $Paysys->list({ TRANSACTION_ID => "PM:$FORM{OPERATION_ID}", 
+    my $list = $Paysys->list({ TRANSACTION_ID => "$payment_system:$FORM{OPERATION_ID}", 
     	                         UID            => $LIST_PARAMS{UID}, 
     	                         SUM            => '_SHOW',
     	                         STATUS         => '_SHOW',
@@ -2838,14 +2850,14 @@ sub paysys_perfectmoney {
 
     if ($Paysys->{TOTAL} > 0) {
       if ($list->[0]->{status}  == 2) {
-        $html->message('info', $_INFO, "$_ADDED $_SUM: $list->[0]->{sum} $_TRANSACTION ID: PM:$FORM{OPERATION_ID}");
+        $html->message('info', $_INFO, "$_ADDED $_SUM: $list->[0]->{sum} $_TRANSACTION ID: $payment_system:$FORM{OPERATION_ID}");
       }
       else {
-      	$html->message('err', $_ERROR, "$_FAILED ID: $FORM{OPERATION_ID} $status[$list->[0]->{status}]");
+      	$html->message('err', $_ERROR, "$_FAILED ID: $payment_system:$FORM{OPERATION_ID} $status[$list->[0]->{status}]");
       }
     }
     else {
-      $html->message('err', $_ERROR, "$_FAILED ID: $FORM{OPERATION_ID} $_ERR_NO_TRANSACTION");
+      $html->message('err', $_ERROR, "$_FAILED ID: $payment_system:$FORM{OPERATION_ID} $_ERR_NO_TRANSACTION");
     }
 
     return 0;	
@@ -2861,53 +2873,36 @@ sub paysys_perfectmoney {
 sub paysys_okpay {
 	
   my %info = ();
-  #require "modules/Paysys/Okpay.pm";
 
   my $payment_system    = 'Okpay';
   my $payment_system_id = 87;
 
-  #if ($FORM{send_invoice}) {
-    $FORM{COMMENT} = $user->{LOGIN};
+  if ($FORM{FALSE}) {
+    $html->message('err', $_ERROR, "$_FAILED $_TRANSACTION - $FORM{OPERATION_ID}");
+    return 0;
+  }
+  elsif($FORM{TRUE}) {
+    my $list = $Paysys->list({ TRANSACTION_ID => "$payment_system:$FORM{OPERATION_ID}", 
+    	                         UID            => $LIST_PARAMS{UID}, 
+    	                         SUM            => '_SHOW',
+    	                         STATUS         => '_SHOW',
+    	                         COLS_NAME      => 1 
+    	                       });
 
-#    my $result = qiwi_invoice_request(\%FORM);
-#    if ($result->{'result-code'}->[0]->{fatal} eq 'true') {
-#      my $error = "$result->{'result-code'}->[0]->{content}";
-#      if ($result->{'result-code'}->[0]->{content} == 150) {
-#        $error .= " $ERR_TERMINAL";
-#      }
-#      $html->message('err', "$_ERROR", "$_ERROR: $error");
-#    }
-#    else {
-#      $html->message('info', "$_INFO", "$_INVOICE_SENDED ID: '$FORM{OPERATION_ID}'\n$_PHONE: $FORM{PHONE}");
-      $Paysys->add(
-         {
-          SYSTEM_ID      => $payment_system_id,
-          DATETIME       => "$DATE $TIME",
-          SUM            => $FORM{SUM},
-          UID            => $user->{UID},
-          IP             => "$ENV{'REMOTE_ADDR'}",
-          TRANSACTION_ID => "$FORM{OPERATION_ID}",
-          INFO           => '-',
-          PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}",
-          STATUS         => 1,
-        }
-      );
+    if ($Paysys->{TOTAL} > 0) {
+      if ($list->[0]->{status}  == 2) {
+        $html->message('info', $_INFO, "$_ADDED $_SUM: $list->[0]->{sum} $_TRANSACTION ID: $payment_system:$FORM{OPERATION_ID}");
+      }
+      else {
+      	$html->message('err', $_ERROR, "$_FAILED ID: $payment_system:$FORM{OPERATION_ID} $status[$list->[0]->{status}]");
+      }
+    }
+    else {
+      $html->message('err', $_ERROR, "$_FAILED ID: $payment_system:$FORM{OPERATION_ID} $_ERR_NO_TRANSACTION");
+    }
 
-  #    return 0;
-  #  }
-  #}
-
-  $user->pi({ UID => $user->{UID} });
-
-#  if (in_array('Dv', \@MODULES)) {
-#    use Dv;
-#    my $Dv = Dv->new($db, $admin, \%conf);
-#    $Dv = $Dv->info($user->{UID});
-#    if ($Dv->{MONTH_ABON} > $FORM{SUM}) {
-#      $FORM{SUM}      = $Dv->{MONTH_ABON};
-#      $info{DESCRIBE} = "$_TARIF_PLAN_SUM";
-#    }
-#  }
+    return 0;	
+  }
 
   $html->tpl_show(_include('paysys_okpay_add', 'Paysys'), \%info);
 }

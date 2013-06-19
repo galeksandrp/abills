@@ -46,6 +46,10 @@ use Abills::HTML;
 use Users;
 use Finance;
 
+if(! defined($conf{HTML5})) {
+	$conf{HTML5}=1;
+}
+
 $html = Abills::HTML->new(
   {
     IMG_PATH => 'img/',
@@ -434,7 +438,8 @@ sub form_info {
       	#$user->{CREDIT_CHG_PRICE} = (($price && $price > 0) ? sprintf(" (%s: %.2f)", "$_CREDIT $_CHANGE $_PRICE", $price) : undef);
       	$user->{CREDIT_CHG_PRICE} = sprintf("%.2f", $price);
       	$user->{CREDIT_SUM} = sprintf("%.2f", $sum);
-        $user->{CREDIT_CHG_BUTTON} = $html->form_input('hold_up_window', "$_SET $_CREDIT", { OUTPUT2RETURN => 1 });
+        $user->{CREDIT_CHG_BUTTON} = $html->button("$_SET $_CREDIT", '#', { ex_params => "ID=hold_up_window", BUTTON => 1 });
+        #$html->form_input('hold_up_window', "$_SET $_CREDIT", { OUTPUT2RETURN => 1 });
         #$html->button(
         #  "$_SET $_CREDIT: " . $user->{CREDIT_SUM} . $user->{CREDIT_CHG_PRICE} ,
         #  "index=". get_function_index('form_info') ."&sid=$sid&change_credit=$sum",

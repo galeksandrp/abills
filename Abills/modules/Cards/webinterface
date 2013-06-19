@@ -2374,7 +2374,7 @@ sub cards_print {
     }
 
     $page_print_hash{ 'SERIAL_' . $i } = "$line->{serial}$line->{number}";
-    while(my ($k, $v) =each $line) {
+    while(my ($k, $v) = each %$line) {
       if ($k eq 'time_limit') {
       	$page_print_hash{ uc($k).'_' . $i }=printf("%2.f", $v / 3600);
       }
