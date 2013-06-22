@@ -873,6 +873,9 @@ sub search_expr_users () {
   if ($attr->{GROUP_NAME}) {
   	push @fields, @{ $self->search_expr("$attr->{GROUP_NAME}", 'STR', 'g.name', { EXT_FIELD => 'g.name AS group_name' }) };
   	$self->{EXT_TABLES} .= " LEFT JOIN groups g ON (g.gid=u.gid)";
+  	if (defined($attr->{DISABLE_PAYSYS})) {
+	  	push @fields, @{ $self->search_expr("$attr->{DISABLE_PAYSYS}", 'INT', 'g.disable_paysys', { EXT_FIELD => 1 }) };
+  	}
   }
 
   if (! $attr->{DOMAIN_ID} && $admin->{DOMAIN_ID}) {

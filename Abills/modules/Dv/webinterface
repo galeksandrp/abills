@@ -795,7 +795,8 @@ sub dv_user {
     my $list = $Dv->list(
       {
         JOIN_SERVICE => 1,
-        COMPANY_ID   => $attr->{USER_INFO}->{COMPANY_ID}
+        COMPANY_ID   => $attr->{USER_INFO}->{COMPANY_ID},
+        COLS_NAME    => 1
       }
     );
 
@@ -970,7 +971,7 @@ sub dv_tp {
           {
             SELECTED  => $FORM{TP_ID},
             SEL_LIST  => $tariffs->list({%LIST_PARAMS, COLS_NAME => 1 }),
-            SEL_KEY   => 'id',
+            SEL_KEY   => 'tp_id',
             SEL_VALUE => 'id,name',
             NO_ID     => 1
           }

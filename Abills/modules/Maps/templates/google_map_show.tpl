@@ -31,7 +31,21 @@ var infowindow = null;
 var MapSetCenter = '%MAPSETCENTER%' || '';
 var markers = {};
 var infowindows = {};
-var show_build = '%SHOW_BUILD%';  
+var show_build = '%SHOW_BUILD%'; 
+var MapView = google.maps.MapTypeId.ROADMAP; 
+
+
+if('$conf{MAP_VIEW}' == 'SATELLITE'){
+  MapView = google.maps.MapTypeId.SATELLITE; 
+}
+else if('$conf{MAP_VIEW}' == 'HYBRID') {
+  MapView = google.maps.MapTypeId.HYBRID; 
+}
+
+else if('$conf{MAP_VIEW}' == 'TERRAIN') {
+  MapView = google.maps.MapTypeId.TERRAIN; 
+}
+
 
 function select(buttonId) {
   document.getElementById(\"hand_b\").className=\"unselected\";
@@ -117,7 +131,7 @@ function initialize() {
        myOptions = {
          zoom: parseInt(MapSetCenter[2]),
          center: myLatlng,
-         mapTypeId: google.maps.MapTypeId.ROADMAP,
+         mapTypeId: MapView,
        }	
 	}
 	else {
@@ -125,7 +139,7 @@ function initialize() {
 	    myOptions = {
 	      zoom: 5,
 	      center: myLatlng,
-	      mapTypeId: google.maps.MapTypeId.ROADMAP
+	      mapTypeId: google.maps.MapTypeId.MapView
 	    }			
 	}
 	map = new google.maps.Map(document.getElementById('map'), myOptions);

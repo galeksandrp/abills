@@ -32,6 +32,21 @@ var listener = null;
 var infowindow;
 var MapSetCenter = '%MAPSETCENTER%' || '';
 
+var MapView = google.maps.MapTypeId.ROADMAP; 
+
+
+if('$conf{MAP_VIEW}' == 'SATELLITE'){
+  MapView = google.maps.MapTypeId.SATELLITE; 
+}
+else if('$conf{MAP_VIEW}' == 'HYBRID') {
+  MapView = google.maps.MapTypeId.HYBRID; 
+}
+
+else if('$conf{MAP_VIEW}' == 'TERRAIN') {
+  MapView = google.maps.MapTypeId.TERRAIN; 
+}
+
+
 function select(buttonId) {
   document.getElementById(\"hand_b\").className=\"unselected\";
   document.getElementById(\"placemark_b\").className=\"unselected\";
@@ -114,7 +129,7 @@ function initialize() {
        myOptions = {
          zoom: parseInt(MapSetCenter[2]),
          center: myLatlng,
-         mapTypeId: google.maps.MapTypeId.ROADMAP,
+         mapTypeId: MapView,
        }	
 	}
 	else {
@@ -122,7 +137,7 @@ function initialize() {
         myOptions = {
           zoom: 5,
           center: myLatlng,
-          mapTypeId: google.maps.MapTypeId.ROADMAP
+          mapTypeId: MapView
         }			
     }
 	map = new google.maps.Map(document.getElementById('map'), myOptions);

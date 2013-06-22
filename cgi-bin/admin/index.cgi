@@ -618,6 +618,8 @@ sub check_permissions {
       return 0;
     }
     else {
+    	print "Content-Type: text/html\n\n";
+    	$admin->{debug}=1;
       $admin->online_del({ SID => $session_sid });
     }
   }

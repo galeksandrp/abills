@@ -704,7 +704,7 @@ sub result_former {
         			push @fields_array, $html->button($_CHANGE, "index=$index&chg=$line->{id}". ($line->{uid} ? "&UID=$line->{uid}": undef). ($attr->{MODULE} ? "&MODULE=$attr->{MODULE}": undef), { CLASS=>'change' });
         		}
         		elsif($function_fields[$i] eq 'del') {
-        			push @fields_array, $html->button($_DEL, "&index=$index&del=$line->{id}". ($line->{uid} ? "UID=$line->{uid}": undef) . ($attr->{MODULE} ? "&MODULE=$attr->{MODULE}": undef), { CLASS=>'del', MESSAGE => "$_DEL $line->{id}?" });
+        			push @fields_array, $html->button($_DEL, "&index=$index&del=$line->{id}". ($line->{uid} ? "&UID=$line->{uid}": undef) . ($attr->{MODULE} ? "&MODULE=$attr->{MODULE}": undef), { CLASS=>'del', MESSAGE => "$_DEL $line->{id}?" });
         		}
         		else {
         		  push @fields_array, $html->button($function_fields[$i], "UID=$line->{uid}&index=".get_function_index($#function_fields), { BUTTON => 1 });

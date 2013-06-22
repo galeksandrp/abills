@@ -573,7 +573,12 @@ sub dhcphosts_networks {
 #*******************************************************************
 sub dhcphosts_hosts {
 
-  my $nas_list = $Nas->list();
+  if ($FORM{del}) {
+  	dhcphosts_user();
+  	return 0;
+  }
+
+  my $nas_list = $Nas->list({ COLS_NAME => 1 });
   if (!$FORM{UID} && $FORM{search_form}) {
     $Dhcphosts->{STATUS_SEL} = $html->form_select(
       'STATUS',
@@ -592,10 +597,11 @@ sub dhcphosts_hosts {
     $Dhcphosts->{SWITCH_SEL} = $html->form_select(
       'NAS_ID',
       {
-        SELECTED          => $Dhcphosts->{NAS_ID} || $FORM{NAS_ID},
-        SEL_MULTI_ARRAY   => [ [ '', $_ALL ], @$nas_list ],
-        MULTI_ARRAY_KEY   => 0,
-        MULTI_ARRAY_VALUE => 1,
+        SELECTED   => $Dhcphosts->{NAS_ID} || $FORM{NAS_ID} || '',
+        SEL_LIST   => $nas_list,
+        SEL_KEY    => 'id',
+        SEL_VALUE  => 'name',
+        SEL_OPTIONS=> { '' => $_ALL },
       }
     );
 
@@ -903,6 +909,8 @@ sub dhcphosts_user {
         }
       }
     }
+    
+    delete($FORM{del});
   }
 
   if ($Dhcphosts->{errno}) {
@@ -1071,7 +1079,9 @@ sub dhcphosts_get_static_ip {
 sub dhcphosts_network_sel {
   my ($attr) = @_;
 
-  my $list = $Dhcphosts->networks_list({ PAGE_ROWS => 10000, SORT => 2 });
+  my $list = $Dhcphosts->networks_list({ PAGE_ROWS => 10000, 
+  	                                     SORT      => 2,
+  	                                     COLS_NAME => 1 });
   if ($Dhcphosts->{errno}) {
     print $html->message('err', $_ERROR, "[$Hosts->{errno}] $err_strs{$Hosts->{errno}}");
     return 0;
@@ -1083,14 +1093,14 @@ sub dhcphosts_network_sel {
   $networks{0} = "$_AUTO" if ($attr->{AUTOSIGN});
 
   foreach my $line (@$list) {
-    my $autoselect = ($line->[9]) ? " $_AUTO IP" : '';
-    $networks{ $line->[0] } = $line->[1] . "(" . $line->[2] . "/" . $line->[3] . ") $autoselect";
+    my $autoselect = ($line->{static}) ? " $_AUTO IP" : '';
+    $networks{ $line->{id} } = $line->{name} . "(" . $line->{network} . "/" . $line->{mask} . ") $autoselect";
   }
 
   return $html->form_select(
     'NETWORK',
     {
-      SELECTED => $FORM{NETWORK} || 0,
+      SELECTED => $FORM{NETWORK} || '',
       SEL_HASH => \%networks
     }
   );
@@ -1118,14 +1128,14 @@ sub dhcphosts_config {
   }
 
   # Nas CSI
-  my $nas_list = $Nas->list();
+  my $nas_list = $Nas->list({ COLS_NAME => 1 });
 
   foreach my $line (@$nas_list) {
-    if ($line->[15]) {
-      $NAS_MACS{ $line->[0] } = "$line->[1],$line->[15]";
+    if ($line->{mac}) {
+      $NAS_MACS{ $line->{id} } = "$line->{name},$line->{mac}";
     }
-    elsif ($line->[12] =~ /Called-Station-Id=[\"\'](.+)[\'\"]/i) {
-      $NAS_MACS{ $line->[0] } = "$line->[1],$1";
+    elsif ($line->{nas_rad_pairs} =~ /Called-Station-Id=[\"\'](.+)[\'\"]/i) {
+      $NAS_MACS{ $line->{id} } = "$line->{name},$1";
     }
   }
 

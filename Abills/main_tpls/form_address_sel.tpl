@@ -41,20 +41,41 @@
       </select>
     </div></TD>
 </TR>
-<TR class=even>
+<TR class='even changeBuildMenu'>
   <TD>$_ADDRESS_BUILD:</TD>
   <TD><div>
       <select name='ADDRESS_BUILD' id='p3' style='width:250px;'>
         <option value='%ADDRESS_BUILD%'>%ADDRESS_BUILD%</option>
-      </select>
+      </select><a id='addBuildInput' class='change rightAlignText' style='margin-left:10px'>$_ADD $_BUILD</a>
     </div></TD>
 </TR>
+<TR class='even addBuildMenu' style='display:none;'>
+  <TD>$_ADDRESS_BUILD:</TD>
+  <TD><div>
+      <input type='text' name='ADD_ADDRESS_BUILD'/><a id='changeBuildInput' class='change rightAlignText' style='margin-left:10px'>$_ADD $_BUILD</a>
+    </div>
+  </TD>
+</TR>
+
 <TR class=even>
   <TD>$_ADDRESS_FLAT:</TD>
   <TD><input type=text name=ADDRESS_FLAT value='%ADDRESS_FLAT%' size=8></TD>
 </TR>
 <TR class=even>
-  <TD colspan=2 align=right><a href='$SELF_URL?get_index=google_maps_show&UID=$FORM{UID}&header=1' target=_map class='link_button'>$_MAP</a> 
+  <TD colspan=2 align=right><a href='$SELF_URL?get_index=google_maps_show&show_build=%LOCATION_ID%&UID=$FORM{UID}&header=1' target=_map class='link_button'>$_MAP</a> 
   <a href='$SELF_URL?get_index=form_districts&header=1' class='link_button'>$_ADD $_ADDRESS</a> 
   %ADD_ADDRESS_LINK%</TD>
 </TR>
+
+<script>
+ jQuery('#addBuildInput').click(function(e){
+      e.preventDefault();
+      jQuery('.addBuildMenu').show(); 
+      jQuery('.changeBuildMenu').hide(); 
+  });
+ jQuery('#changeBuildInput').click(function(e){
+      e.preventDefault();
+      jQuery('.addBuildMenu').hide(); 
+      jQuery('.changeBuildMenu').show(); 
+  });
+</script>

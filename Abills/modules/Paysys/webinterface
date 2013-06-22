@@ -1115,7 +1115,7 @@ sub paysys_periodic () {
 
     my %res_hash = ();
     for (my $i = 0 ; $i < $#{$res_arr} ; $i++) {
-      $res_hash{ $res_arr->[$i]{ordernumber} } = $i;
+      $res_hash{ 'PM:'.$res_arr->[$i]{ordernumber} } = $i;
     }
 
     my $list = $Paysys->list({ DATE           => $DATE, 

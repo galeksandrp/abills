@@ -414,7 +414,8 @@ sub periodic_invoice {
           {
             UID          => $user{UID},
             INVOICE_DATE => $user{NEXT_INVOICE_DATE},
-            CHANGE_DATE  => 1
+            CHANGE_DATE  => 1,
+            DEPOSIT      => ($ARGV->{INCLUDE_DEPOSIT}) ?  $user{DEPOSIT} : 0
           }
         );
 
@@ -941,6 +942,7 @@ sub help {
   print << "[END]";
 Multi documents creator	
   PERIODIC_INVOICE - Create periodic invoice for clients
+     INCLUDE_DEPOSIT - Include deposit to invoice
   POSTPAID_INVOICES- Created for previe month debetors
   PREPAID_INVOICES - Create credit invoice and next month payments invoice
                      INVOICE2ALL=1 - Create and send invoice to all users

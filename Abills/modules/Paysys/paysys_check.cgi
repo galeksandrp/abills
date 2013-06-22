@@ -677,7 +677,6 @@ sub osmp_payments {
       }
     }
   }
-
   print "Content-Type: text/xml\n\n";
 
   my $payment_system    = $attr->{SYSTEM_SHORT_NAME} || 'OSMP';
@@ -731,11 +730,13 @@ sub osmp_payments {
   my $results = '';
 
   mk_log("$payment_system: $ENV{QUERY_STRING}") if ($debug > 0);
-
   #Check user account
-  #https://service.someprovider.ru:8443/payment_app.cgi?command=check&txn_id=1234567&account=0957835959&sum=10.45
+  #https://service.someprovider.ru:8443/paysys_check.cgi?command=check&txn_id=1234567&account=0957835959&sum=10.45
   if ($command eq 'check') {
-    my $list = $users->list({ $CHECK_FIELD => $FORM{account}, COLS_NAME => 1 });
+    my $list = $users->list({ $CHECK_FIELD  => $FORM{account}, 
+    	                        DISABLE_PAYSYS=> '_SHOW',
+    	                        GROUP_NAME    => '_SHOW',
+    	                        COLS_NAME     => 1 });
 
     if (!$conf{PAYSYS_PEGAS} && !$FORM{sum}) {
       $status = 300;
@@ -761,6 +762,10 @@ sub osmp_payments {
 
     $RESULT_HASH{result} = $status;
 
+    if ($list->[0]->{disable_paysys}) {
+    	$RESULT_HASH{disable_paysys}=1;
+    }
+
     #For OSMP
     if ($payment_system_id == 44) {
       $RESULT_HASH{$txn_id} = $FORM{txn_id};
@@ -774,10 +779,12 @@ sub osmp_payments {
     my $prv_txn = $FORM{prv_txn};
     $RESULT_HASH{prv_txn} = $prv_txn;
 
-    my $list = $payments->list({ ID     => "$prv_txn", 
-                                 EXT_ID => "PEGAS:*" });
+    my $list = $payments->list({ ID        => "$prv_txn", 
+                                 EXT_ID    => "PEGAS:*",
+                                 BILL_ID   => '_SHOW',
+                                 COLS_NAME => 1 });
 
-    if ($payments->{errno}) {
+    if ($payments->{errno} && $payments->{errno} != 7) {
       $RESULT_HASH{result} = 1;
     }
     elsif ($payments->{TOTAL} < 1) {
@@ -790,8 +797,8 @@ sub osmp_payments {
     }
     else {
       my %user = (
-        BILL_ID => $list->[10],
-        UID     => $list->[11]
+        BILL_ID => $list->{bill_id},
+        UID     => $list->{uid}
       );
 
       $payments->del(\%user, $prv_txn);
