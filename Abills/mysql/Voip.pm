@@ -92,6 +92,7 @@ sub user_info {
    voip.logins AS simultaneously,
    voip.registration,
    voip.filter_id,
+   voip.expire AS voip_expire,
    tarif_plans.id as tp_num,
    voip.provision_nas_id,
    voip.provision_port,
@@ -162,7 +163,8 @@ sub user_change {
     $self->{TP_INFO} = $tariffs->info($attr->{TP_ID});
   }
 
-  $attr->{LOGINS}=$attr->{SIMULTANEOUSLY};
+  $attr->{EXPIRE}= $attr->{VOIP_EXPIRE};
+  $attr->{LOGINS}= $attr->{SIMULTANEOUSLY};
 
   $self->changes(
     $admin,
@@ -266,6 +268,7 @@ sub user_list {
       ['FILTER_ID',      'STR', 'service.filter_id',                1 ],
       ['TP_ID',          'INT', 'service.tp_id',                    1 ],
       ['TP_CREDIT',      'INT', 'tp.credit',                       'tp.credit AS tp_credit' ],
+      ['VOIP_EXPIRE',    'DATE','service.expire AS voip_expire',    1 ],
       ['PROVISION_PORT', 'INT', 'service.provision_port',           1 ],
       ['PROVISION_NAS_ID','INT','service.provision_nas_id',         1 ],
       ['PASSWORD',       '',    '',  "DECODE(u.password, '$CONF->{secretkey}') AS password" ],

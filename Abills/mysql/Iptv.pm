@@ -80,7 +80,8 @@ sub user_info {
    tp.payment_type,
    tp.period_alignment,
    tp.id AS tp_num,
-   service.dvcrypt_id
+   service.dvcrypt_id,
+   service.expire AS iptv_expire
      FROM iptv_main service
      LEFT JOIN tarif_plans tp ON (service.tp_id=tp.tp_id)
    $WHERE;",
@@ -148,25 +149,10 @@ sub user_add {
     }
   }
 
-  $self->query2("INSERT INTO iptv_main (uid, registration, 
-             tp_id, 
-             disable, 
-             filter_id,
-             pin,
-             vod,
-             dvcrypt_id,
-             cid
-             )
-        VALUES ('$DATA{UID}', now(),
-        '$DATA{TP_ID}', 
-        '$DATA{STATUS}',
-        '$DATA{FILTER_ID}',
-        '$DATA{PIN}',
-        '$DATA{VOD}',
-        '$DATA{DVCRYPT_ID}',
-        '$DATA{CID}'
-         );", 'do'
-  );
+  $self->query_add('iptv_main', { %$attr,
+  	                              REGISTRATION => 'now()',
+  	                              EXPIRE       => $attr->{IPTV_EXPIRE} 
+  	                             });
 
   return $self if ($self->{errno});
   $admin->action_add("$DATA{UID}", "", { TYPE => 1 });
@@ -180,20 +166,7 @@ sub user_change {
   my $self = shift;
   my ($attr) = @_;
 
-  my %FIELDS = (
-    SIMULTANEONSLY => 'logins',
-    STATUS         => 'disable',
-    IP             => 'ip',
-    NETMASK        => 'netmask',
-    TP_ID          => 'tp_id',
-    UID            => 'uid',
-    FILTER_ID      => 'filter_id',
-    PIN            => 'pin',
-    VOD            => 'vod',
-    DVCRYPT_ID     => 'dvcrypt_id',
-    CID            => 'cid'
-  );
-
+  $attr->{EXPIRE}     = $attr->{IPTV_EXPIRE};
   $attr->{VOD}        = (!defined($attr->{VOD})) ? 0 : 1;
   my $old_info        = $self->user_info($attr->{UID});
   $self->{OLD_STATUS} = $old_info->{STATUS};
@@ -252,8 +225,8 @@ sub user_change {
     {
       CHANGE_PARAM => 'UID',
       TABLE        => 'iptv_main',
-      FIELDS       => \%FIELDS,
-      OLD_INFO     => $old_info,
+#      FIELDS       => \%FIELDS,
+#      OLD_INFO     => $old_info,
       DATA         => $attr
     }
   );
@@ -306,7 +279,8 @@ sub user_list {
       ['TP_ID',          'INT', 'service.tp_id',                    1 ],
       ['TP_CREDIT',      'INT', 'tp.credit:',             'tp_credit' ],
       ['PAYMENT_TYPE',   'INT', 'tp.payment_type',                  1 ],
-      ['MONTH_PRICE',    'INT', 'ti_c.month_price',                 1 ]
+      ['MONTH_PRICE',    'INT', 'ti_c.month_price',                 1 ],
+      ['IPTV_EXPIRE',    'DATE','service.expire as iptv_expire',    1 ],
     ],
     { WHERE             => 1,
     	WHERE_RULES       => \@WHERE_RULES,
@@ -1169,6 +1143,7 @@ sub online {
       ['PORT',              'INT', 'service.port',                                1 ],
       ['FILTER_ID',         'STR', 'service.filter_id',                           1 ],
       ['STATUS',            'INT', 'service.disable',                             1 ],
+      ['IPTV_EXPIRE',       'INT', 'service.expire AS iptv_expire',               1 ],      
       ['USER_NAME',         'STR', 'c.user_name',                                 1 ],
       ['SESSION_IDS',       'STR', 'c.acct_session_id',                           1 ],
       ['FRAMED_IP_ADDRESS', 'IP',  'c.framed_ip_address',                         1 ],

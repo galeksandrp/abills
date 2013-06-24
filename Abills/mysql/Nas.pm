@@ -347,14 +347,15 @@ sub ip_pools_info {
 
   my $WHERE = '';
 
+  my $fields_v6 = ($CONF->{IPV6}) ? ", INET6_NTOA(ipv6_prefix) AS ipv6_prefix" : '';
+
   $self->query2("SELECT id, 
       INET_NTOA(ip) AS nas_ip_sip, 
       counts AS nas_ip_count, 
       name AS pool_name, 
       priority AS pool_priority, 
       static, 
-      speed AS pool_speed,
-      INET6_NTOA(ipv6_prefix) AS ipv6_prefix
+      speed AS pool_speed $fields_v6
    FROM ippools  WHERE id='$id';",
    undef,
    { INFO => 1 }
@@ -379,7 +380,7 @@ sub ip_pools_change {
     NAS_IP_SIP_INT => 'ip',
     STATIC         => 'static',
     POOL_SPEED     => 'speed',
-    IPV6_PREFIX    => 'ipv6_prefix'
+    IPV6_PREFIX    => ($CONF->{IPV6}) ? 'ipv6_prefix' : undef
   );
 
   $attr->{STATIC} = ($attr->{STATIC}) ? $attr->{STATIC} : 0;
@@ -457,7 +458,9 @@ sub ip_pools_add {
   my ($attr) = @_;
   my %DATA   = $self->get_data($attr);
 
- $self->query_add('ippools', { %$attr, 
+  $attr->{IPV6_PREFIX}  = undef if (! $CONF->{IPV6});
+
+  $self->query_add('ippools', { %$attr, 
  	                             NAS      => undef, 
  	                             IP       => "$DATA{NAS_IP_SIP}", 
  	                             COUNTS   => $attr->{NAS_IP_COUNT}, 

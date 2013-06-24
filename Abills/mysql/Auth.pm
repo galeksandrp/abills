@@ -113,13 +113,15 @@ sub dv_auth {
   dv.join_service,
   tp.tp_id,
   tp.active_day_fee,
-  tp.neg_deposit_ippool AS neg_deposit_ip_pool
+  tp.neg_deposit_ippool AS neg_deposit_ip_pool,
+  dv.expire AS dv_expire
      FROM (dv_main dv)
      LEFT JOIN tarif_plans tp ON (dv.tp_id=tp.id $DOMAIN_ID)
      LEFT JOIN users_nas un ON (un.uid = dv.uid)
      LEFT JOIN tp_nas ON (tp_nas.tp_id = tp.tp_id)
      LEFT JOIN intervals i ON (tp.tp_id = i.tp_id)
      WHERE dv.uid='$self->{UID}'
+     AND (dv.expire='0000-00-00' or dv.expire > CURDATE())
      GROUP BY dv.uid;",
   undef,
   { INFO => 1 }
@@ -127,7 +129,7 @@ sub dv_auth {
 
   if ($self->{errno}) {
     if($self->{errno} == 2) {
-      $RAD_PAIRS->{'Reply-Message'} = "Service not allow";
+      $RAD_PAIRS->{'Reply-Message'} = "Service not allow or expire";
     }
     else {
       $RAD_PAIRS->{'Reply-Message'} = 'SQL error';
@@ -487,8 +489,8 @@ sub dv_auth {
   if ($NAS->{NAS_TYPE} && $NAS->{NAS_TYPE} eq 'ipcad') {
 
     # SET ACCOUNT expire date
-    if ($self->{ACCOUNT_AGE} > 0 && $self->{ACCOUNT_ACTIVATE} eq '0000-00-00') {
-      $self->query2("UPDATE users SET  activate=curdate(), expire=curdate() + INTERVAL $self->{ACCOUNT_AGE} day 
+    if ($self->{ACCOUNT_AGE} > 0 && $self->{DV_EXPIRE} eq '0000-00-00') {
+      $self->query2("UPDATE dv_main SET expire=curdate() + INTERVAL $self->{ACCOUNT_AGE} day 
       WHERE uid='$self->{UID}';", 'do'
       );
     }
@@ -791,8 +793,8 @@ sub dv_auth {
   }
 
   # SET ACCOUNT expire date
-  if ($self->{ACCOUNT_AGE} > 0 && $self->{ACCOUNT_ACTIVATE} eq '0000-00-00') {
-    $self->query2("UPDATE users SET  activate=curdate(), expire=curdate() + INTERVAL $self->{ACCOUNT_AGE} day 
+  if ($self->{ACCOUNT_AGE} > 0 && $self->{DV_ExPIRE} eq '0000-00-00') {
+    $self->query2("UPDATE users SET expire=curdate() + INTERVAL $self->{ACCOUNT_AGE} day 
      WHERE uid='$self->{UID}';", 'do'
     );
   }

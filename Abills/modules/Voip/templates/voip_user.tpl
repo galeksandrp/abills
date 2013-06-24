@@ -14,6 +14,7 @@
 <tr><td>$_STATUS:</td><td bgcolor=%STATUS_COLOR%>%STATUS_SEL%</td></tr>
 <tr><td>FILTER ID:</td><td><input type=text name=FILTER_ID value='%FILTER_ID%'></td></tr>
 %PROVISION%
+<TR><TD>$_EXPIRE:</TD><TD><input type=text name=VOIP_EXPIRE value='%VOIP_EXPIRE%' ID='VOIP_EXPIRE' size=12 rel='tcal'>	
 <tr><th class=even>
 %DEL_BUTTON%</th>
 <th><input type=submit name='%ACTION%' value='%LNG_ACTION%'></th></tr>

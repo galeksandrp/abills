@@ -164,6 +164,7 @@ sub dv_chg_tp {
         #Take fees
         #Message
         if (!$Dv->{STATUS} && $FORM{GET_ABON}) {
+
         	service_get_month_fee($Dv);
         }
 
@@ -387,7 +388,8 @@ sub dv_users_list {
        'filter_id'   => 'Filter ID',
        'tp_name'     => "$_TARIF_PLAN",
        'dv_status'   => "$_STATUS",
-       'online'      => 'Online'
+       'online'      => 'Online',
+       'dv_expire'   => "Internet $_EXPIRE"
          },
      TABLE           => {
        width      => '100%',
@@ -605,6 +607,8 @@ sub dv_user {
       $Dv->{LNG_ACTION} = $_ACTIVATE;
       $html->message('info', $_INFO, $_NOT_ACTIVE);
     }
+    
+    $Dv->{IP} = '0.0.0.0';
   }
   else {
     if ($FORM{pay_to}) {
@@ -875,7 +879,7 @@ sub dv_user {
     
     $Dv->{PAYMENT_MESSAGE} = "$_ACTIVATION_PAYMENT $sum " . $html->button("$_PAYMENTS", "UID=$FORM{UID}&index=2&SUM=$sum", {CLASS => 'payments rightAlignText'});
   }
-
+  
   $html->tpl_show(_include('dv_user', 'Dv'), { %$admin, %$attr, %$Dv }, { ID => 'dv_user' });
   return 0;
 }
@@ -1720,6 +1724,7 @@ sub dv_online {
        'tp_name'     => "$_TARIF_PLAN",
        'dv_status'   => "$_STATUS",
        'last_alive'  => "$_UPDATE",
+       'dv_expire'   => "Internet $_EXPIRE"
          },
      TABLE           => {
        width      => '100%',
@@ -4972,6 +4977,7 @@ sub dv_daily_fees {
         {
           ACTIVATE     => "<=$ADMIN_REPORT{DATE}",
           EXPIRE       => "0000-00-00,>$ADMIN_REPORT{DATE}",
+          DV_EXPIRE    => "0000-00-00,>$ADMIN_REPORT{DATE}",
           JOIN_SERVICE => "<2",
           STATUS       => "0;5",
           LOGIN_STATUS => 0,
@@ -5121,6 +5127,7 @@ sub dv_daily_fees {
           {
             ACTIVATE     => "<=$ADMIN_REPORT{DATE}",
             EXPIRE       => "0000-00-00,>$ADMIN_REPORT{DATE}",
+            DV_EXPIRE    => "0000-00-00,>$ADMIN_REPORT{DATE}",
             STATUS       => 0,
             LOGIN_STATUS => 0,
             TP_ID        => $tp_line->[0],
@@ -5232,6 +5239,7 @@ sub dv_holdup_fees {
     {
       ACTIVATE     => "<=$ADMIN_REPORT{DATE}",
       EXPIRE       => "0000-00-00,>$ADMIN_REPORT{DATE}",
+      DV_EXPIRE    => "0000-00-00,>$ADMIN_REPORT{DATE}",
       STATUS       => "3",
       LOGIN_STATUS => 0,
       SORT         => 1,
@@ -5319,6 +5327,7 @@ sub dv_monthly_next_tp {
       {
         ACTIVATE     => "<=$ADMIN_REPORT{DATE}",
         EXPIRE       => "0000-00-00,>$ADMIN_REPORT{DATE}",
+        DV_EXPIRE    => "0000-00-00,>$ADMIN_REPORT{DATE}",
         DV_STATUS    => "0",
         LOGIN_STATUS => 0,
         TP_ID        => $TP_INFO{TP_ID},
@@ -5474,6 +5483,7 @@ sub dv_monthly_fees {
         {
           ACTIVATE     => "$activate_date",
           EXPIRE       => "0000-00-00,>$ADMIN_REPORT{DATE}",
+          DV_EXPIRE    => "0000-00-00,>$ADMIN_REPORT{DATE}",
           STATUS       => "0;5",
           JOIN_SERVICE => "<2",
           LOGIN_STATUS => 0,
@@ -5932,6 +5942,7 @@ sub dv_monthly_fees {
           {
             ACTIVATE     => "<=$ADMIN_REPORT{DATE}",
             EXPIRE       => "0000-00-00,>$ADMIN_REPORT{DATE}",
+            DV_EXPIRE    => "0000-00-00,>$ADMIN_REPORT{DATE}",
             STATUS       => 0,
             LOGIN_STATUS => 0,
             TP_ID        => $tp_line->[0],

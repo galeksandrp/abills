@@ -121,17 +121,22 @@ sub user_info {
   DAYOFYEAR(FROM_UNIXTIME(UNIX_TIMESTAMP())) AS day_of_year,
    if(voip.filter_id<>'', voip.filter_id, tp.filter_id) AS filter_id,
    tp.payment_type,
-   tp.uplimit
+   tp.uplimit,
+   tp.age AS account_age,
+   voip.expire AS voip_expire
    FROM voip_main voip 
    INNER JOIN users u ON (u.uid=voip.uid)
    LEFT JOIN tarif_plans tp ON (tp.tp_id=voip.tp_id)
    WHERE  
-   $WHERE;",
+   $WHERE
+   AND (voip.expire='0000-00-00' or voip.expire > CURDATE());",
   undef,
   { INFO => 1 }
   );
 
-  if ($self->{TOTAL} < 1) {
+  if($self->{errno}) {
+    if($self->{errno} == 2) {
+    }
     return $self;
   }
 
@@ -419,6 +424,11 @@ sub auth {
     );
 
     #   }
+  }
+
+  if ($self->{ACCOUNT_AGE} > 0 && $self->{VOIP_EXPIRE} eq '0000-00-00') {
+    $self->query2("UPDATE voip_main SET expire=curdate() + INTERVAL $self->{ACCOUNT_AGE} day 
+     WHERE uid='$self->{UID}';", 'do');
   }
 
   return 0, \%RAD_PAIRS;

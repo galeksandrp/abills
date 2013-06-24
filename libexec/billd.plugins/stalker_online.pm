@@ -67,6 +67,7 @@ sub stalker_online {
                              EXPIRE         => '_SHOW',
                              LOGIN_STATUS   => '_SHOW',
                              NEXT_TARIF_PLAN=> '_SHOW',
+                             IPTV_EXPIRE    => '_SHOW',
                              TP_ID          => '_SHOW',
                            });
 
@@ -172,6 +173,12 @@ sub stalker_online {
         $expire_unixdate = mktime(0, 0, 0, $expire_d, ($expire_m-1), ($expire_y - 1900));
         $expire_unixdate = ($expire_unixdate < time) ? 1 : 0;
       }
+      elsif ($user->{iptv_expire} ne '0000-00-00') {
+        my ($expire_y, $expire_m, $expire_d)=split(/\-/, $user->{iptv_expire}, 3);
+        $expire_unixdate = mktime(0, 0, 0, $expire_d, ($expire_m-1), ($expire_y - 1900));
+        $expire_unixdate = ($expire_unixdate < time) ? 1 : 0;
+      }
+
 
       my $credit = ($user->{credit} > 0) ? $user->{credit} : $TP_INFO{$user->{tp_id}}->{CREDIT};
 

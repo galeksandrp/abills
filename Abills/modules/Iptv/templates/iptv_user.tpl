@@ -13,6 +13,7 @@
 <tr><td>DvCrypt ID:</td><td><input type=input name=DVCRYPT_ID value='%DVCRYPT_ID%'></td></tr>
 <tr><td>$_STATUS:</td><td>%STATUS_SEL%</td></tr>
 %IPTV_MODEMS%
+<TR><TD>$_EXPIRE:</TD><TD><input type=text name=IPTV_EXPIRE value='%IPTV_EXPIRE%' ID='IPTV_EXPIRE' size=12 rel='tcal'>	
 <tr><th colspan=2 class=even>
 %BACK_BUTTON%
 <input type=submit name='%ACTION%' value='%LNG_ACTION%'></th></tr>

@@ -340,7 +340,8 @@ sub iptv_users_list {
        'filter_id'   => 'Filter ID',
        'tp_name'     => "$_TARIF_PLAN",
        'iptv_status' => "$_STATUS",
-       'dvcrypt_id'  => 'Dv Crypt',
+       'dvcrypt_id'  => 'DvCrypt',
+       'iptv_expire' => "$_TV $_EXPIRE"
      },
      TABLE           => {
        width      => '100%',
@@ -1618,9 +1619,10 @@ sub iptv_online {
        'tp_name'     => "$_TARIF_PLAN",
        'dv_status'   => "$_STATUS",
        'started',    => $_START,
-       'duration'       => $_DURATION, 
+       'duration'    => $_DURATION, 
+       'last_alive'  => "Last alive",
+       'iptv_expire' => "$_TV $_EXPIRE",
        'acct_session_id'=> "ACCT_SESSION_ID",
-       'last_alive'     => "Last alive",
          },
      TABLE           => {
        width      => '100%',

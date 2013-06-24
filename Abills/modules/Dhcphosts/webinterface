@@ -1132,10 +1132,10 @@ sub dhcphosts_config {
 
   foreach my $line (@$nas_list) {
     if ($line->{mac}) {
-      $NAS_MACS{ $line->{id} } = "$line->{name},$line->{mac}";
+      $NAS_MACS{ $line->{nas_id} } = "$line->{nas_name},$line->{mac}";
     }
     elsif ($line->{nas_rad_pairs} =~ /Called-Station-Id=[\"\'](.+)[\'\"]/i) {
-      $NAS_MACS{ $line->{id} } = "$line->{name},$1";
+      $NAS_MACS{ $line->{nas_id} } = "$line->{nas_name},$1";
     }
   }
 

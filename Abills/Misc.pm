@@ -259,10 +259,11 @@ sub service_get_month_fee {
   }
 
   my %FEES_METHODS = %{ get_fees_types() };
-
+  if (! $users->{BILL_ID}) {
+    $user  = $users->info($Service->{UID});
+  }
   #Get active price
   if ($Service->{TP_INFO}->{ACTIV_PRICE} > 0) {
-    my $user  = $users->info($Service->{UID});
     my $date  = ($user->{ACTIVATE} ne '0000-00-00') ? $user->{ACTIVATE} : $DATE;
     my $time  = ($user->{ACTIVATE} ne '0000-00-00') ? '00:00:00' : $TIME;
 
@@ -319,11 +320,9 @@ sub service_get_month_fee {
               METHOD => ($Service->{TP_INFO}->{FEES_METHOD}) ? $Service->{TP_INFO}->{FEES_METHOD} : 1
             );
 
-
   #Get month fee
   if ($Service->{TP_INFO}->{MONTH_FEE} > 0) {    
     my $sum   = $Service->{TP_INFO}->{MONTH_FEE};
-    my $user  = $users->info($Service->{UID});
 
     if ($Service->{TP_INFO}->{EXT_BILL_ACCOUNT}) {
       if ($user->{EXT_BILL_ID}) {

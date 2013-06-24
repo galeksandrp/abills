@@ -16,10 +16,10 @@
 <link rel="alternate" type="application/rss+xml" title="Current Namespace" href="/wiki/feed.php?mode=list&amp;ns=abills:docs_03:install"/>
 <link rel="alternate" type="text/html" title="Plain HTML" href="/wiki/doku.php/abills:docs_03:install:ru?do=export_xhtml"/>
 <link rel="alternate" type="text/plain" title="Wiki Markup" href="/wiki/doku.php/abills:docs_03:install:ru?do=export_raw"/>
-<link rel="stylesheet" type="text/css" href="/wiki/lib/exe/css.php?t=dokuwiki&amp;tseed=1361810364"/>
+<link rel="stylesheet" type="text/css" href="/wiki/lib/exe/css.php?t=dokuwiki&amp;tseed=1369768647"/>
 <script type="text/javascript">/*<![CDATA[*/var NS='abills:docs_03:install';var JSINFO = {"id":"abills:docs_03:install:ru","namespace":"abills:docs_03:install"};
 /*!]]>*/</script>
-<script type="text/javascript" charset="utf-8" src="/wiki/lib/exe/js.php?tseed=1361810364"></script>
+<script type="text/javascript" charset="utf-8" src="/wiki/lib/exe/js.php?tseed=1369768647"></script>
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <link rel="shortcut icon" href="/wiki/lib/tpl/dokuwiki/images/favicon.ico" />
 <link rel="apple-touch-icon" href="/wiki/lib/tpl/dokuwiki/images/apple-touch-icon.png" />
@@ -31,10 +31,6 @@
         class="dokuwiki site mode_show showSidebar hasSidebar">
 
         
-<a href="/wiki/doku.php/abills:docs_03:install:ru?do=export_pdf&amp;rev=0">
-    <img src="/wiki/lib/images/fileicons/pdf.png" alt="PDF Export" />
-  </a>
-
 <!-- ********** HEADER ********** -->
 <div id="dokuwiki__header"><div class="pad group">
 
@@ -44,7 +40,7 @@
             <li><a href="#dokuwiki__content">Перейти к содержанию</a></li>
         </ul>
 
-        <h1><a href="/wiki/doku.php/abills"  accesskey="h" title="[H]"><img src="/wiki/lib/tpl/dokuwiki//images/abills_logo.gif" width="130" height="54" alt="ABillS"/>&nbsp; <span align=bottom> &nbsp;Advanced Billing Solution</span></a></h1>
+        <h1><a href="/wiki/doku.php/abills"  accesskey="h" title="[H]"><img src="/wiki/lib/tpl/dokuwiki/images/abills_logo.gif" width="130" height="54" alt="" /> <span>Advanced Billing Solution</span></a></h1>
             </div>
 
     <div class="tools group">
@@ -52,28 +48,25 @@
                     <div id="dokuwiki__usertools">
                 <h3 class="a11y">Инструменты пользователя</h3>
                 <ul>
-                    <li><a href="/wiki/doku.php/abills:docs_03:install:ru?do=login&amp;sectok=749d196a886a4a53afced8cbbc04530f"  class="action login" rel="nofollow" title="Войти">Войти</a></li>                </ul>
+                    <li><a href="/wiki/doku.php/abills:docs_03:install:ru?do=login&amp;sectok=8ea8d7b1b5214a8bfc0b8592ed60faff"  class="action login" rel="nofollow" title="Войти">Войти</a></li>                </ul>
             </div>
         
         <!-- SITE TOOLS -->
         <div id="dokuwiki__sitetools">
             <h3 class="a11y">Инструменты сайта</h3>
             <form action="/wiki/doku.php/abills" accept-charset="utf-8" class="search" id="dw__search" method="get"><div class="no"><input type="hidden" name="do" value="search" /><input type="text" id="qsearch__in" accesskey="f" name="id" class="edit" title="[F]" /><input type="submit" value="Поиск" class="button" title="Поиск" /><div id="qsearch__out" class="ajax_qsearch JSpopup"></div></div></form>            <div class="mobileTools">
-                <form action="doku.php" method="post" accept-charset="utf-8"><div class="no"><input type="hidden" name="id" value="abills:docs_03:install:ru" /><input type="hidden" name="sectok" value="749d196a886a4a53afced8cbbc04530f" /><select name="do" class="edit quickselect" title="Инструменты"><option value="">Инструменты</option><optgroup label="Инструменты страницы"><option value="edit">Показать исходный текст</option><option value="revisions">История страницы</option><option value="backlink">Ссылки сюда</option></optgroup><optgroup label="Инструменты сайта"><option value="recent">Недавние изменения</option><option value="media">Media Manager</option><option value="index">Все страницы</option></optgroup><optgroup label="Инструменты пользователя"><option value="login">Войти</option></optgroup></select><input type="submit" value="&gt;" /></div></form>            </div>
+                <form action="/wiki/doku.php" method="get" accept-charset="utf-8"><div class="no"><input type="hidden" name="id" value="abills:docs_03:install:ru" /><select name="do" class="edit quickselect" title="Инструменты"><option value="">Инструменты</option><optgroup label="Инструменты страницы"><option value="edit">Показать исходный текст</option><option value="revisions">История страницы</option><option value="backlink">Ссылки сюда</option></optgroup><optgroup label="Инструменты сайта"><option value="recent">Недавние изменения</option><option value="media">Media Manager</option><option value="index">Все страницы</option></optgroup><optgroup label="Инструменты пользователя"><option value="login">Войти</option></optgroup></select><input type="submit" value="&gt;" /></div></form>            </div>
             <ul>
-                <li><a href="/wiki/doku.php/abills:docs_03:install:ru?do=recent"  class="action recent" accesskey="r" rel="nofollow" title="Недавние изменения [R]">Недавние изменения</a></li><li><a href="/wiki/doku.php/abills:docs_03:install:ru?do=media"  class="action media" rel="nofollow" title="Media Manager">Media Manager</a></li><li><a href="/wiki/doku.php/abills:docs_03:install:ru?do=index"  class="action index" accesskey="x" rel="nofollow" title="Все страницы [X]">Все страницы</a></li>            </ul>
+                <li><a href="/wiki/doku.php/abills:docs_03:install:ru?do=recent"  class="action recent" accesskey="r" rel="nofollow" title="Недавние изменения [R]">Недавние изменения</a></li><li><a href="/wiki/doku.php/abills:docs_03:install:ru?do=media&amp;ns=abills%3Adocs_03%3Ainstall"  class="action media" rel="nofollow" title="Media Manager">Media Manager</a></li><li><a href="/wiki/doku.php/abills:docs_03:install:ru?do=index"  class="action index" accesskey="x" rel="nofollow" title="Все страницы [X]">Все страницы</a></li>            </ul>
         </div>
 
     </div>
 
     <!-- BREADCRUMBS -->
-
-
             <div class="breadcrumbs">
                                         <div class="trace"><span class="bchead">Вы посетили:</span></div>
                     </div>
     
-
     
     <hr class="a11y" />
 </div></div><!-- /header -->
@@ -82,7 +75,7 @@
 
                             <!-- ********** ASIDE ********** -->
                 <div id="dokuwiki__aside"><div class="pad include group">
-                    <h3 class="toggle">Sidebar</h3>
+                    <h3 class="toggle">Боковая колонна</h3>
                     <div class="content">
                                                                         
 <h1 class="sectionedit1" id="documentation_index">Documentation index</h1>
@@ -124,7 +117,7 @@
 </li>
 <li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:bsr1000:ru" class="wikilink1" title="abills:docs:bsr1000:ru">BSR1000</a></div>
 </li>
-<li class="level4"><div class="li"> <span class="curid"><a href="/wiki/doku.php/abills:docs:modules:cards:ru" class="wikilink1" title="abills:docs:modules:cards:ru">Cards</a></span></div>
+<li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:modules:cards:ru" class="wikilink1" title="abills:docs:modules:cards:ru">Cards</a></div>
 </li>
 <li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:modules:dv:ru" class="wikilink1" title="abills:docs:modules:dv:ru">Dv</a></div>
 </li>
@@ -337,14 +330,8 @@
         </div><!-- /wrapper -->
 
         
-
-
-
 <!-- ********** FOOTER ********** -->
 <div id="dokuwiki__footer"><div class="pad">
-
-
-
     <div class="license">За исключением случаев, когда указано иное, содержимое этой вики предоставляется на условиях следующей лицензии: <a href="http://creativecommons.org/licenses/by-nc-sa/3.0/" rel="license" class="urlextern">CC Attribution-Noncommercial-Share Alike 3.0 Unported</a></div>
     <div class="buttons">
         <a href="http://creativecommons.org/licenses/by-nc-sa/3.0/" rel="license"><img src="/wiki/lib/images/license/button/cc-by-nc-sa.png" alt="CC Attribution-Noncommercial-Share Alike 3.0 Unported" /></a>        <a href="http://www.dokuwiki.org/donate" title="Donate" ><img
@@ -362,7 +349,7 @@
 
     </div></div><!-- /site -->
 
-    <div class="no"><img src="/wiki/lib/exe/indexer.php?id=abills%3Adocs_03%3Ainstall%3Aru&amp;1368607997" width="2" height="1" alt="" /></div>
+    <div class="no"><img src="/wiki/lib/exe/indexer.php?id=abills%3Adocs_03%3Ainstall%3Aru&amp;1372085932" width="2" height="1" alt="" /></div>
     <div id="screen__mode" class="no"></div>    <!--[if ( lte IE 7 | IE 8 ) ]></div><![endif]-->
 </body>
 </html>

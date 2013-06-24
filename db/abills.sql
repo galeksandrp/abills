@@ -319,6 +319,7 @@ CREATE TABLE `dv_main` (
   `join_service` int(11) unsigned NOT NULL DEFAULT '0',
   `turbo_mode` tinyint(1) unsigned NOT NULL default '0',
   `free_turbo_mode` smallint(6) unsigned NOT NULL default '0',
+  `expire` date NOT NULL default '0000-00-00',
   PRIMARY KEY  (`uid`),
   KEY `tp_id` (`tp_id`),
   KEY CID (CID)
@@ -1120,9 +1121,10 @@ CREATE TABLE `voip_main` (
   `provision_nas_id` smallint(6) unsigned NOT NULL default '0',
   `provision_port` smallint(6) unsigned NOT NULL default '0',
   `nat` tinyint(1) unsigned NOT NULL default '1',
+  `expire` date NOT NULL default '0000-00-00',
   PRIMARY KEY (`number`),
   KEY `uid` (`uid`)
-) ;
+) COMMENT "Voip users accounts";
 
 CREATE TABLE `voip_route_extra_tarification` (
   `id` smallint(5) unsigned NOT NULL AUTO_INCREMENT,

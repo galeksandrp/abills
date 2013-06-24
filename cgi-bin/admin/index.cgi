@@ -88,13 +88,12 @@ if ($conf{AUTH_METHOD}) {
   }
 
   my $res = check_permissions("$FORM{user}", "$FORM{passwd}", "$COOKIES{sid}");
- 
   if (! $res) {
     $html->{language} = $FORM{language} if ($FORM{language} && $FORM{language} =~ /[a-z_]/);
     require "../../language/$html->{language}.pl";
     require "Abills/templates.pl";
 
-    $html->setCookie('sid', "$sid", "", "/", $domain, $secure);
+    $html->setCookie('sid', "$sid", '', '/', $domain, $secure);
     $COOKIES{sid} = $sid;
   }
   else {
@@ -105,6 +104,7 @@ if ($conf{AUTH_METHOD}) {
     $html->{METATAGS} = templates('metatags');
     print $html->header();
     form_login();
+    print "<!-- Coo: $COOKIES{sid} System: $sid -->";
     exit;
   }
 }
@@ -618,8 +618,6 @@ sub check_permissions {
       return 0;
     }
     else {
-    	print "Content-Type: text/html\n\n";
-    	$admin->{debug}=1;
       $admin->online_del({ SID => $session_sid });
     }
   }

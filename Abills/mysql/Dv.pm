@@ -100,6 +100,7 @@ sub info {
    dv.join_service,
    dv.turbo_mode,
    dv.free_turbo_mode,
+   dv.expire AS dv_expire,
    tp.abon_distribution,
    tp.credit AS tp_credit,
    tp.tp_id AS tp_num,
@@ -191,12 +192,14 @@ sub add {
              port,
              join_service,
              turbo_mode,
-             free_turbo_mode)
+             free_turbo_mode,
+             expire)
         VALUES ('$DATA{UID}', now(),
         '$DATA{TP_ID}', '$DATA{SIMULTANEONSLY}', '$DATA{STATUS}', INET_ATON('$DATA{IP}'), 
         INET_ATON('$DATA{NETMASK}'), '$DATA{SPEED}', '$DATA{FILTER_ID}', LOWER('$DATA{CID}'),
         '$DATA{CALLBACK}',
-        '$DATA{PORT}', '$DATA{JOIN_SERVICE}', '$DATA{TURBO_MODE}', '$DATA{FREE_TURBO_MODE}');", 'do'
+        '$DATA{PORT}', '$DATA{JOIN_SERVICE}', '$DATA{TURBO_MODE}', '$DATA{FREE_TURBO_MODE}',
+        '$DATA{DV_EXPIRE}');", 'do'
   );
 
   return $self if ($self->{errno});
@@ -228,6 +231,7 @@ sub change {
     JOIN_SERVICE   => 'join_service',
     TURBO_MODE     => 'turbo_mode',
     FREE_TURBO_MODE=> 'free_turbo_mode',
+    DV_EXPIRE      => 'expire'
   );
 
   if (!$attr->{CALLBACK}) {
@@ -523,6 +527,7 @@ sub list {
       ['PAYMENT_TYPE',   'INT', 'tp.payment_type',                  1 ],
       ['SHOW_PASSWORD',  '',    '',  "DECODE(u.password, '$CONF->{secretkey}') AS password," ],
       ['STATUS',         'INT', 'dv.disable as dv_status',          1 ],
+      ['DV_EXPIRE',      'DATE','dv.expire as dv_expire',           1 ],
     ],
     { WHERE       => 1,
     	WHERE_RULES => \@WHERE_RULES,
