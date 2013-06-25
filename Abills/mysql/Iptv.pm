@@ -168,6 +168,7 @@ sub user_change {
 
   $attr->{EXPIRE}     = $attr->{IPTV_EXPIRE};
   $attr->{VOD}        = (!defined($attr->{VOD})) ? 0 : 1;
+  $attr->{DISABLE}    = $attr->{STATUS};
   my $old_info        = $self->user_info($attr->{UID});
   $self->{OLD_STATUS} = $old_info->{STATUS};
 
