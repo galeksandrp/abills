@@ -254,7 +254,6 @@ sub stalker_online {
           else {
             $Iptv->user_change({ UID    => $user->{uid}, 
             	                   EXPIRE => $expire_date,
-                                 UID    => $user->{uid} 
                                 });
           }
         }

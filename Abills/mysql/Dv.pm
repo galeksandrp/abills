@@ -298,12 +298,10 @@ sub change {
       my $user = Users->new($self->{db}, $admin, $CONF);
 
       use POSIX qw(strftime);
-      my $EXPITE_DATE = strftime("%Y-%m-%d", localtime(time + 86400 * $tariffs->{AGE}));
-      $user->change($attr->{UID}, { EXPIRE => $EXPITE_DATE, UID => $attr->{UID} });
+      $attr->{EXPITE_DATE} = strftime("%Y-%m-%d", localtime(time + 86400 * $tariffs->{AGE}));
     }
     else {
-      my $user = Users->new($self->{db}, $admin, $CONF);
-      $user->change($attr->{UID}, { EXPIRE => "0000-00-00", UID => $attr->{UID} });
+      $attr->{EXPITE_DATE} = "0000-00-00";
     }
   }
   elsif (($old_info->{STATUS} == 1 
@@ -626,7 +624,6 @@ sub report_debetors {
                                             'CONTRACT_ID',
                                             'CONTRACT_SUFIX',
                                             'CONTRACT_DATE',
-                                            'EXPIRE',
 
                                             'CREDIT',
                                             'CREDIT_DATE', 

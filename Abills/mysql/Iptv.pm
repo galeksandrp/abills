@@ -207,9 +207,7 @@ sub user_change {
       my $user = Users->new($self->{db}, $admin, $CONF);
       use POSIX qw(strftime);
       my $EXPITE_DATE = strftime("%Y-%m-%d", localtime(time + 86400 * $tariffs->{AGE}));
-
-      #"curdate() + $tariffs->{AGE} days";
-      $user->change($attr->{UID}, { EXPIRE => $EXPITE_DATE, UID => $attr->{UID} });
+      $attr->{EXPIRE} = $EXPITE_DATE;
     }
   }
   elsif ($old_info->{STATUS} == 2 && $attr->{STATUS} == 0) {
