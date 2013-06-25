@@ -252,8 +252,10 @@ sub stalker_online {
             );            
           }
           else {
-            $users->change($user->{uid}, { EXPIRE => $expire_date,
-                                           UID    => $user->{uid} })
+            $Iptv->user_change({ UID    => $user->{uid}, 
+            	                   EXPIRE => $expire_date,
+                                 UID    => $user->{uid} 
+                                });
           }
         }
       }

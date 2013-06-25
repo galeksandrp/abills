@@ -1570,6 +1570,7 @@ sub online_add {
   );
 
   my $sql = "INSERT INTO dv_calls SET started=now(),
+       lupdated        = UNIX_TIMESTAMP(),
        status          = '11',
        acct_session_id = 'IP',
        nas_ip_address  = INET_ATON('$attr->{NAS_IP_ADDRESS}')";
