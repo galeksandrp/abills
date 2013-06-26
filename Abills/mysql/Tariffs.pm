@@ -660,6 +660,7 @@ sub list {
         [ 'PAYMENT_TYPE',      'INT', 'tp.payment_type',  ],
         [ 'TP_ID',             'INT', 'tp.id'             ],
         [ 'COMMENTS',          'STR', 'tp.comments',     1],
+        [ 'CREDIT',            'STR', 'tp.credit',        ],
         [ 'MODULE',            'STR', 'tp.module'         ],
         [ 'MIN_USE',           'INT', 'tp.min_use'        ],
         [ 'DOMAIN_ID',         'INT', 'tp.domain_id'      ],

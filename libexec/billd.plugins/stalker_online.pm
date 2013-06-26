@@ -57,6 +57,8 @@ sub stalker_online {
     $TP_INFO{$line->{TP_ID}}=$line;
   }
 
+  $LIST_PARAMS{LOGIN}     = $ARGV->{LOGINS} if ($ARGV->{LOGINS});
+
   # Get accounts
   my %USERS_LIST = ();
   $Iptv->{debug}=1 if ($debug > 6);
@@ -70,6 +72,9 @@ sub stalker_online {
                              NEXT_TARIF_PLAN=> '_SHOW',
                              IPTV_EXPIRE    => '_SHOW',
                              TP_ID          => '_SHOW',
+                             CREDIT         => '_SHOW',
+                             DEPOSIT        => '_SHOW',
+                             %LIST_PARAMS
                            });
 
   foreach my $line (@$list) {
@@ -180,7 +185,6 @@ sub stalker_online {
         $expire_unixdate = ($expire_unixdate < time) ? 1 : 0;
       }
 
-
       my $credit = ($user->{credit} > 0) ? $user->{credit} : $TP_INFO{$user->{tp_id}}->{CREDIT};
 
       if (($TP_INFO{$user->{tp_id}}->{PAYMENT_TYPE}==0 && $user->{deposit}+$credit < 0)
@@ -209,6 +213,15 @@ sub stalker_online {
            UID             => $uid,
            CID             => $account_hash->{mac}
         });
+
+
+        if ($account_hash->{status} == 0) {
+          $Stalker_api->user_action({ UID    => $user->{uid},
+                                    FIO    => $user->{fio},
+                                    LOGIN  => $user->{login},
+                                    STATUS => 0,
+                                    change => 1 });
+        }
 
         delete $USERS_ONLINE_LIST{$account_hash->{mac}};
       }

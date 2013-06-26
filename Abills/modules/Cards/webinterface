@@ -720,7 +720,7 @@ sub cards_user_payment () {
     $html->message('err', $_INFO, "$ERR_COMPANY_DISABLE");
     return 0;
   }
-  
+
   my $rand = rand();
   
   if (($FORM{PIN} && $FORM{SERIAL}) || ($FORM{PIN} && $conf{CARDS_PIN_ONLY})) {
@@ -781,7 +781,11 @@ sub cards_user_payment () {
         }
       }
       
-      #$user->info($LIST_PARAMS{UID});
+      if (! $user->{BILL_ID}) {
+      	$user=$users;
+        $user->info($LIST_PARAMS{UID});
+      }
+
       if ($conf{CARDS_DEBUG}) {
         my $gt = '';
         if ($begin_time > 0) {
@@ -923,7 +927,7 @@ sub cards_user_payment () {
           }
         }
         else {
-          $html->message('err', $_ERROR, "$_ERROR", { ID => 609 });
+          $html->message('err', $_ERROR, "$_ERROR ". (($user->{UID}) ? '' : "$payments->{errno} $payments->{errstr}"), { ID => 609 });
         }
       }
     }

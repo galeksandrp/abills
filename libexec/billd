@@ -828,10 +828,6 @@ sub check_speed_linux {
   #Get online users
   $Sessions->{debug} = 1 if ($debug > 4);
 
-  if ($ARGV->{LOGINS}) {
-    $LIST_PARAMS{USER_NAME} = $ARGV->{LOGINS};
-  }
-
   $Sessions->online(
     {
       NAS_ID       => $ARGV->{NAS_IDS},
