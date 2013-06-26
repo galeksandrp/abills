@@ -66,6 +66,7 @@ sub stalker_online {
                              ACTIVATE       => '_SHOW',
                              EXPIRE         => '_SHOW',
                              LOGIN_STATUS   => '_SHOW',
+                             SERVICE_STATUS => '_SHOW',
                              NEXT_TARIF_PLAN=> '_SHOW',
                              IPTV_EXPIRE    => '_SHOW',
                              TP_ID          => '_SHOW',
@@ -183,7 +184,7 @@ sub stalker_online {
       my $credit = ($user->{credit} > 0) ? $user->{credit} : $TP_INFO{$user->{tp_id}}->{CREDIT};
 
       if (($TP_INFO{$user->{tp_id}}->{PAYMENT_TYPE}==0 && $user->{deposit}+$credit < 0)
-          || $user->{disable}
+          || $user->{login_status}
           || $user->{iptv_status}
           || $expire_unixdate
       ) {
