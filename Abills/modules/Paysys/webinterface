@@ -66,6 +66,7 @@ my %PAY_SYSTEMS = (
   86 => 'Perfectmoney',
   87 => 'OKPay',
   88 => 'Bitcoin',
+  89 => 'Smsonline',
 );
 
 my %CONF_OPTIONS = (
@@ -116,7 +117,8 @@ my %CONF_OPTIONS = (
   PAYSYS_WEBMONEY_TERMINAL                  => 85,
   PAYSYS_PERFECTMONEY_ACCOUNTID             => 86,
   PAYSYS_OKPAY_KEY                          => 87,
-  PAYSYS_BITCOIN_KEY                        => 88,  
+  PAYSYS_BITCOIN_KEY                        => 88,
+  PAYSYS_SMSONLINE_KEY                      => 89,
 );
 
 my @status = ("$_UNKNOWN",
@@ -701,7 +703,9 @@ sub paysys_payment {
          $FORM{ErrorCode}) {
      paysys_payonline();
   }  
-  
+  elsif ($FORM{PAYMENT_SYSTEM} == 89) {
+    paysys_smsonline();
+  }  
   else {
     PRE_LABEL:
     my %info = ();
@@ -727,7 +731,8 @@ sub paysys_payment {
       84 => 'PAYSYS_BANK_CARD_PAYONLINE',
       85 => 'PAYSYS_WEBMONEY_TERMINAL',
       86 => 'PAYSYS_PERFECTMONEY_ACCOUNTID',
-      87 => 'PAYSY_OKPAY_RECEIVER'
+      87 => 'PAYSY_OKPAY_RECEIVER',
+      89 => 'PAYSYS_SMSONLINE'
     );
 
     while (my ($k, $v) = each %PAY_SYSTEMS) {
@@ -1135,30 +1140,50 @@ sub paysys_periodic () {
         my $sum       = $line->{sum};
         my $order_num = $line->{transaction_id};
         my $user      = $users->info($uid);
-        $payments->add(
-          $user,
-          {
-            SUM          => $sum,
-            DESCRIBE     => 'PORTMONE',
-            METHOD       => ($conf{PAYSYS_PAYMENTS_METHODS} && $PAYSYS_PAYMENTS_METHODS{$payment_system_id}) ? $payment_system_id : '2',
-            EXT_ID       => "$order_num",
-            CHECK_EXT_ID => "$order_num"
-          }
-        );
+        
+        if ($res_arr->[$res_hash{$line->{transaction_id}}]{approvalcode} > 0) {
+          $payments->add(
+            $user,
+            {
+              SUM          => $sum,
+              DESCRIBE     => 'PORTMONE',
+              METHOD       => ($conf{PAYSYS_PAYMENTS_METHODS} && $PAYSYS_PAYMENTS_METHODS{$payment_system_id}) ? $payment_system_id : '2',
+              EXT_ID       => "$order_num",
+              CHECK_EXT_ID => "$order_num"
+            }
+          );
+        }
 
         #Exists
-        if ($payments->{errno} && $payments->{errno} == 7) {
-          $status = 8;
-        }
-        elsif ($payments->{errno}) {
-          $status = 4;
+        if ($payments->{errno}) { 
+        	if ($payments->{errno} == 7) {
+            $status = 8;
+          }
+          else {
+            $status = 4;
+          }
         }
         else {
+        	my $status = 0;
+        	my $info   = '';
+        	while(my($k, $v) = each %{ $res_arr->[$res_hash{$line->{transaction_id}}] } ) {
+        		$info .= "$k, $v\n";
+        	}
+        	
+        	if ($res_arr->[$res_hash{$line->{transaction_id}}]{approvalcode} > 0) {
+        	  $status=2;
+ 	          $debug_output .= "Add payments TRANSACTION_ID: $line->{transaction_id}\n" if ($debug > 0);
+          }
+          else {
+          	$status=6;
+          	$debug_output .= "Add payments Error: TRANSACTION_ID: $line->{transaction_id} / [$res_hash{$line->{transaction_id}}]{error_code} ([$res_hash{$line->{transaction_id}}]{error_message}) \n" if ($debug > 0);
+          }
+          
           $Paysys->change(
             {
               ID     => $line->{id},
-              INFO   => "APPROVALCODE: $res_arr->[$res_hash{$line->{transaction_id}}]{approvalcode}",
-              STATUS => 2
+              INFO   => $info,
+              STATUS => $status
             }
           );
           $status = 1;
@@ -1170,7 +1195,8 @@ sub paysys_periodic () {
           sendmail("$conf{ADMIN_MAIL}", "$conf{ADMIN_MAIL}", "Paysys Portmone Add", "$message", "$conf{MAIL_CHARSET}", "2 (High)");
 
         }
-        $debug_output .= "Add payments TRANSACTION_ID: $line->{transaction_id}\n" if ($debug > 0);
+
+
       }
     }
   }
@@ -1250,8 +1276,6 @@ sub paysys_portmone_result () {
       $objects = $1;
     }
     elsif ($line =~ /<\/request>/) {
-
-      #print "End request\n";
       $request_end = 1;
     }
     elsif ($line =~ /<\/order>/) {
@@ -1265,7 +1289,7 @@ sub paysys_portmone_result () {
     }
   }
 
-  if ($debug > 0) {
+  if ($debug > 1) {
     print "Objects: $objects\n";
     while (my ($k, $v) = each %request_hash) {
       print "$k, $v\n";
@@ -2907,6 +2931,51 @@ sub paysys_okpay {
   $html->tpl_show(_include('paysys_okpay_add', 'Paysys'), \%info);
 }
 
+#**********************************************************
+# Smsm Online
+#**********************************************************
+sub paysys_smsonline {
+  my ($attr)=@_;
+  
+  my $operation_id = $FORM{OPERATION_ID};
+  my $text = '';
+  my $payment_system    = 'SMSO';
+  my $payment_system_id = 89;
+    
 
+  my $table = $html->table({
+    width      => '100%',
+    caption    => 'Оплата через смс',
+    border     => 1,
+    title      => ['Sms на номер', 'Текст смс', 'Баланс будет пополнен на', 'Cтоимость смс'],
+    cols_align => ['left', 'right', 'right', 'right', 'center', 'center'],
+    ID         => 'SMSONLINE_ID'
+  });
+
+  while (($key, $value) = each(%{$conf{SMSONLINE}})){
+
+     $table->addrow(
+        $key,
+        "$value->{pref} $FORM{OPERATION_ID}",
+        "$value->{price_with_vat} грн.",
+        "$value->{price} грн."
+     );
+    
+  
+  }	
+  print $table->show();
+
+  $Paysys->add({
+      SYSTEM_ID      => $payment_system_id,
+      DATETIME       => "'$DATE $TIME'",
+      SUM            => 0,
+      UID            => "$LIST_PARAMS{UID}",
+      IP             => '0.0.0.0',
+      TRANSACTION_ID => "$payment_system:$FORM{OPERATION_ID}",
+      INFO           => "$payment_system:$FORM{OPERATION_ID}",
+      PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}",
+      STATUS         => 1
+      });
+}
 1
 

@@ -205,6 +205,10 @@ elsif ($FORM{PAYEE_ACCOUNT} && check_ip($ENV{REMOTE_ADDR}, '77.109.141.170')) {
   require "Perfectmoney.pm";
   exit;
 }
+elsif (check_ip($ENV{REMOTE_ADDR}, '85.192.45.0/24,194.67.81.0/24,91.142.251.0/24,89.111.54.0/24,95.163.74.0/24')) {
+  require "Smsonline.pm";
+  exit;
+}
 elsif ($FORM{__BUFFER} =~ /^{.+}$/ && 
   check_ip($ENV{REMOTE_ADDR}, '75.101.163.115,107.22.173.15,107.22.173.86,213.154.214.76,217.117.64.232-217.117.64.238')) {
   require "Private_bank_json.pm";
