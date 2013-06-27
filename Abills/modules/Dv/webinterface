@@ -811,6 +811,7 @@ sub dv_user {
         SEL_LIST   => $list,
         SEL_KEY    => 'uid',
         SEL_VALUE  => 'login',
+        SEL_OPTIONS=> { 1 => $_MAIN },
         NO_ID      => undef
       }
     );
@@ -819,6 +820,7 @@ sub dv_user {
       my $list = $Dv->list(
         {
           JOIN_SERVICE => $Dv->{UID},
+          LOGIN        => '_SHOW',
           COMPANY_ID   => $attr->{USER_INFO}->{COMPANY_ID},
           PAGE_ROWS    => 1000,
           COLS_NAME    => 1
@@ -826,7 +828,7 @@ sub dv_user {
       );
 
       foreach my $line (@$list) {
-        $Dv->{JOIN_SERVICES_USERS} .= $html->button("$line->{id}", "&index=15&UID=$line->{uid}"). ' :: ';
+        $Dv->{JOIN_SERVICES_USERS} .= $html->button("$line->{login}", "&index=15&UID=$line->{uid}", { BUTTON => 1 }). ' ';
       }
     }
     elsif ($Dv->{JOIN_SERVICE} > 1) {
@@ -2782,6 +2784,7 @@ sub dv_stats {
           {
             JOIN_SERVICE => ($Dv->{JOIN_SERVICE}==1) ? $Dv->{UID} : $Dv->{JOIN_SERVICE},
             COMPANY_ID   => $attr->{USER_INFO}->{COMPANY_ID},
+            LOGIN        => '_SHOW',
             PAGE_ROWS    => 10000,
             COLS_NAME    => 1
           }
@@ -2789,7 +2792,7 @@ sub dv_stats {
 
       foreach my $line (@$list) {
         if ($Dv->{JOIN_SERVICE} == 1) {
-          $Dv->{JOIN_SERVICES_USERS} .= $html->button("$line->{id}", "&index=$index&UID=$line->{uid}", { BUTTON => 1 }) . ' ';
+          $Dv->{JOIN_SERVICES_USERS} .= $html->button("$line->{login}", "&index=$index&UID=$line->{uid}", { BUTTON => 1 }) . ' ';
         }
 
         push @uids, $line->{uid};
@@ -3095,6 +3098,7 @@ sub dv_user_stats {
         {
           JOIN_SERVICE => ($Dv->{JOIN_SERVICE}==1) ? $UID : $Dv->{JOIN_SERVICE}, 
           COMPANY_ID   => $attr->{USER_INFO}->{COMPANY_ID},
+          LOGIN        => '_SHOW',
           PAGE_ROWS    => 1000,
           COLS_NAME    => 1
         }
@@ -3110,11 +3114,11 @@ sub dv_user_stats {
 
       foreach my $line (@$list) {
         if ($FORM{JOIN_STATS} && $FORM{JOIN_STATS} == $line->{uid}) {
-          $Dv->{JOIN_SERVICES_USERS} .= $html->b($line->{id}) . ' ';
+          $Dv->{JOIN_SERVICES_USERS} .= $html->b($line->{login}) . ' ';
           $UID = $FORM{JOIN_STATS};
         }
         elsif($Dv->{JOIN_SERVICE} == 1) {
-          $Dv->{JOIN_SERVICES_USERS} .= $html->button("$line->{id}", "&sid=$sid&index=$index&JOIN_STATS=" . $line->{uid}, { BUTTON => 1 }) . ' ';
+          $Dv->{JOIN_SERVICES_USERS} .= $html->button($line->{login}, "&sid=$sid&index=$index&JOIN_STATS=" . $line->{uid}, { BUTTON => 1 }) . ' ';
         }
 
         push @uids, $line->{uid};
@@ -5205,7 +5209,7 @@ sub dv_daily_fees {
             );
           }
 
-          $debug_output .= " Login: $u->{id} ($u->{uid})  TP_ID: $u->{tp_id} Payments: $sum REDUCTION: $u->{reduction} $u->{deposit} $u->{credit} - $user{ACTIVATE}\n" if ($debug > 0);
+          $debug_output .= " Login: $u->{login} ($u->{uid})  TP_ID: $u->{tp_id} Payments: $sum REDUCTION: $u->{reduction} $u->{deposit} $u->{credit} - $user{ACTIVATE}\n" if ($debug > 0);
         }
       }
     }
@@ -5973,7 +5977,7 @@ sub dv_monthly_fees {
             COMPANY_ID => $u->{company_id}
           );
 
-          $debug_output .= " Login: $u->{id} ($u->{uid}) TP_ID: $u->{tp_id} Fees: - REDUCTION: $u->{reduction} $u->{deposit} $u->{credit} - $user{ACTIVATE}\n" if ($debug > 3);
+          $debug_output .= " Login: $u->{login} ($u->{uid}) TP_ID: $u->{tp_id} Fees: - REDUCTION: $u->{reduction} $u->{deposit} $u->{credit} - $user{ACTIVATE}\n" if ($debug > 3);
 
           #Summary for company users
           #         my @UIDS  = ();

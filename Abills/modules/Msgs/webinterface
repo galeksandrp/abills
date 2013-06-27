@@ -1622,7 +1622,7 @@ sub msgs_chapters {
   foreach my $line (@$list) {
     $table->addrow($line->{id}, 
     $line->{name}, 
-    $bool_vals[ $line->{innet_chapter} ], 
+    $bool_vals[ $line->{inner_chapter} ], 
     $html->button($line->{messages}, ""), 
     $html->button("$_CHANGE", "index=$index&chg=$line->{id}", { CLASS => 'change' }), 
     $html->button($_DEL, "index=$index&del=$line->{id}", { MESSAGE => "$_DEL $line->{id}?", CLASS => 'del' })

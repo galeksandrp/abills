@@ -1019,7 +1019,7 @@ sub dhcphosts_user {
     _include('dhcphosts_host', 'Dhcphosts'),
     {
       %{ $Dhcphosts->host_defaults() },
-      HOSTNAME => $users->{LOGIN} . (($Dhcphosts->{TOTAL}) ? '_' . ($Dhcphosts->{TOTAL} + 1) : ''),
+      HOSTNAME => $users->{LOGIN} . (($Dhcphosts->{TOTAL}) ? '_' . ($Dhcphosts->{TOTAL} + 2) : ''),
       %FORM,
       %$attr,
       %$Dhcphosts,
@@ -1094,7 +1094,7 @@ sub dhcphosts_network_sel {
 
   foreach my $line (@$list) {
     my $autoselect = ($line->{static}) ? " $_AUTO IP" : '';
-    $networks{ $line->{id} } = $line->{name} . "(" . $line->{network} . "/" . $line->{mask} . ") $autoselect";
+    $networks{ $line->{id} } = $line->{name} . "(" . $line->{network} . "/" . $line->{netmask} . ") $autoselect";
   }
 
   return $html->form_select(
