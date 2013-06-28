@@ -2523,6 +2523,7 @@ sub ipn_periodic_session_restart {
   foreach my $online (@$list) {
     $FORM{SESSION_ID} = $online->{acct_session_id};
     $debug_output .= "LOGIN: $online->{user_name} IP: $online->{client_ip} NAS_ID: $online->{nas_id} NAS_IP: $online->{nas_ip} CONNECT_INFO: $online->{CONNECT_INFO} UID: $online->{uid} FILTER_ID: $online->{filter_id}\n" if ($debug > 3);
+    $nas_id = $online->{nas_id};
 
     #Hangup and activate
     ipn_change_status(
@@ -2539,7 +2540,7 @@ sub ipn_periodic_session_restart {
         DEBUG                => $debug,
         NAS_PORT             => $online->{nas_port_id} || 0,
         NAS_ID               => $online->{nas_id} || 0,
-        NAS_IP_ADDRESS       => $nas_info{$nas_id}{NAS_IP_ADDRESS},
+        NAS_IP_ADDRESS       => $nas_info{$nas_id}{NAS_IP},
         NAS_MNG_USER         => $nas_info{$nas_id}{NAS_MNG_USER},
         NAS_MNG_IP_PORT      => $nas_info{$nas_id}{NAS_MNG_IP_PORT},
         CONNECT_INFO         => $online->{CONNECT_INFO} || ''
@@ -2565,7 +2566,7 @@ sub ipn_periodic_session_restart {
         FRAMED_IP_ADDRESS  => $online->{client_ip},
         NETMASK            => $online->{netmask},
         NAS_ID             => $online->{nas_id},
-        NAS_IP_ADDRESS     => $nas_info{$nas_id}{NAS_IP_ADDRESS},
+        NAS_IP_ADDRESS     => $nas_info{$nas_id}{NAS_IP},
         NAS_MNG_USER       => $nas_info{$nas_id}{NAS_MNG_USER},
         NAS_MNG_IP_PORT    => $nas_info{$nas_id}{NAS_MNG_IP_PORT},
         TP_ID              => $Dv->{TP_ID},
@@ -2588,9 +2589,9 @@ sub ipn_periodic_session_restart {
       else {
         $Ipn->user_status({%DATA});
         ipn_change_status({ STATUS => 'ONLINE_ENABLE', %DATA });
-        $debug_output .= "$_ACTIVATE IP: $online->{ip}\n" if ($debug > 1);
+        $debug_output .= "$_ACTIVATE IP: $online->{client_ip}\n" if ($debug > 1);
       }
-      $activated_ips{$online->{ip}} = 1;
+      $activated_ips{$online->{client_ip}} = 1;
     }
 
     $count++;
