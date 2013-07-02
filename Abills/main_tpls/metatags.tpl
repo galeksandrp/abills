@@ -26,7 +26,6 @@
 </script>
 
  
- 
 
 <style type='text/css'>
 body {
@@ -385,14 +384,12 @@ a.add.rightAlignText {
 }
 a.rightAlignText {
 	background-position:left,center;
-
 	display:inline-block;
 	overflow:hidden;
 	text-indent:-90000px;
 	font-size:0;
 	padding-left:10px;
-	vertical-align: middle;
-	
+	vertical-align: middle;	
 }
 
 .link_button {
@@ -809,12 +806,6 @@ TABLE.border {
 	padding:0;
 }
 
-
-
-
-
-
-
 #topNav ul {
 	height:30px;
 }
@@ -909,8 +900,6 @@ TABLE.border {
   background: none repeat scroll 0 0 #FFFFFF;
 }
 
-
-
 #popup_window_content {
 	font:11px Verdana, Geneva, sans-serif;
 	padding:30px 20px 20px;
@@ -964,10 +953,7 @@ table tr.marked th,table tr.marked,.odd:hover,.even:hover,.hover,table tr.odd:ho
 	color:%_COLOR_9%;
 }
 
-
-
 /* ---------- */
-
 .dropdown-box {
 	position:relative;
 }
@@ -1007,8 +993,6 @@ table tr.marked th,table tr.marked,.odd:hover,.even:hover,.hover,table tr.odd:ho
 	right:15px;
 }
 
-
-
 #info_message {
 	text-align:center;
 	position:relative;
@@ -1044,12 +1028,13 @@ table tr.marked th,table tr.marked,.odd:hover,.even:hover,.hover,table tr.odd:ho
 .login_form_border {
   width:400px;
   margin: 180px auto;
-
 }
+
 form #type_chzn {
   position:relative;
   top:8px;
 }
+
 form #TP_ID_chzn {
   position:relative;
   top:8px;
@@ -1068,7 +1053,6 @@ form #TP_ID_chzn {
 
 <script>
          \$(function(){
-              
              \$('.slide-out-div').tabSlideOut({
                  tabHandle: '.handle',                              //класс элемента
                  pathToTabImage: '/img/contact_tab.gif',          //путь к изображению *required*

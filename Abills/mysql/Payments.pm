@@ -221,6 +221,7 @@ sub list {
   }
 
   my $WHERE =  $self->search_former($attr, [
+      ['DATETIME',       'DATE','p.date AS datetime',          1], 
       ['SUM',            'INT', 'p.sum'                         ],
       ['PAYMENT_METHOD', 'INT', 'p.method',                     ],
       ['A_LOGIN',        'STR', 'a.id'                          ],
@@ -244,7 +245,8 @@ sub list {
       ['UID',            'INT', 'p.uid',                                  1],
     ],
     { WHERE       => 1,
-    	USERS_FIELDS=> 1
+    	USERS_FIELDS=> 1,
+    	SKIP_USERS_FIELDS=> [ 'BILL_ID' ]
     }    
     );
 

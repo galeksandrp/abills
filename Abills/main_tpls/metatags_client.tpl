@@ -10,7 +10,7 @@
 <meta name='Author' content='~AsmodeuS~' />
 <link rel='stylesheet' type='text/css' href='styles/default/styleLib.css' />
 <link rel='stylesheet' type='text/css' href='styles/default/client.css' />
-<link rel='stylesheet' type='text/css' href=\\"%PRINTCSS%\\" media='print' />
+<link rel='stylesheet' type='text/css' href='%PRINTCSS%' media='print' />
 <link rel='stylesheet' type='text/css' href='styles/default/js/selectbox/jquery.selectbox.css' />
 <!--[if lt IE 9]>
 <link rel='stylesheet' type='text/css' href='css/default/styleIE.css' />
@@ -20,8 +20,8 @@
 <script type='text/javascript' src='styles/default/js/checkform.js'></script>
 <script type='text/javascript' src='styles/default/js/selectbox/jquery.selectbox-0.6.1.js'></script>
 <script type='text/javascript' src='styles/default/js/functions.js'></script>
-<script type='text/javascript' src='styles/default/js/calendar.js' ></script>
-<script type='text/javascript' src=\\"%JAVASCRIPT%\\" ></script>
+<script type='text/javascript' src='styles/default/js/calendar.js'></script>
+<script type='text/javascript' src='%JAVASCRIPT%'></script>
 <!--[if lt IE 9]>
 <script type='text/javascript' src='js/html5.js'></script>
 <![endif]-->	

@@ -3383,11 +3383,16 @@ sub iptv_stalker {
    $Stalker_api->user_action({ %$users, %$Iptv, %FORM });
    
    if ($Stalker_api->{errstr} eq 'Account not found') {
-     $Stalker_api->user_action({ %$users, 
+     $FORM{UID}=$Iptv->{CID};
+     $Stalker_api->user_action({ %$users, %$Iptv, %FORM });
+
+     if ($Stalker_api->{errstr} eq 'Account not found') {
+       $Stalker_api->user_action({ %$users, 
                                  %$Iptv, 
                                  %FORM,
                                  add   => 1,
                                  change=> undef });
+     }
    }   
    
    return $Stalker_api->{error};

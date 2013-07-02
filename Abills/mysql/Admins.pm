@@ -622,7 +622,7 @@ sub password {
 sub online {
   my $self         = shift;
   my ($attr)       = @_;
-  my $time_out     = 300;
+  my $time_out     = $attr->{TIMEOUT} || 3000;
   my $online_users = '';
   my %curuser      = ();
 

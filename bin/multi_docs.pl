@@ -409,7 +409,11 @@ sub periodic_invoice {
     #if ($num > 0) {
       next if ($num == 0);
       if ($debug < 5) {
-        $Docs->invoice_add({ %user, %ORDERS_HASH });
+        $Docs->invoice_add({ %user, 
+        	                   %ORDERS_HASH,
+        	                   DATE => $ARGV->{INVOICE_DATE} || undef
+        	                    });
+
         $Docs->user_change(
           {
             UID          => $user{UID},
@@ -943,6 +947,7 @@ sub help {
 Multi documents creator	
   PERIODIC_INVOICE - Create periodic invoice for clients
      INCLUDE_DEPOSIT - Include deposit to invoice
+     INVOICE_DATE    - Invoice create date XXXX-XX-XX (Default: curdate)
   POSTPAID_INVOICES- Created for previe month debetors
   PREPAID_INVOICES - Create credit invoice and next month payments invoice
                      INVOICE2ALL=1 - Create and send invoice to all users
