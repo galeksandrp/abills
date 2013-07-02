@@ -2706,7 +2706,7 @@ sub form_users {
       }
     }
 
-    my $multiuser = ($permissions{0}{7}) ? $html->form_input('IDS', "$uid", { TYPE => 'checkbox', }) : '';
+    my $multiuser = ($permissions{0}{7} && ! $FORM{EXPORT_CONTENT}) ? $html->form_input('IDS', "$uid", { TYPE => 'checkbox', }) : '';
     $table->addtd(
       $table->td($multiuser . user_ext_menu($uid, $line->{login})),
       @fields_array,
@@ -4874,7 +4874,7 @@ sub form_ip_pools {
         'BIT_MASK',
         {
           SELECTED     => $FORM{BIT_MASK},
-          SEL_ARRAY    => [ '', 32, 31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21, 20, 19, 18, 17, 16 ],
+          SEL_ARRAY    => [ '-----', 32, 31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21, 20, 19, 18, 17, 16 ],
           ARRAY_NUM_ID => 1
         }
       );

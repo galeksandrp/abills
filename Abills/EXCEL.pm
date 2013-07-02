@@ -60,7 +60,7 @@ my $bg;
 my $debug;
 my %log_levels;
 my $IMG_PATH;
-my $row_number = 0;
+my $row_number = 1;
 my $col_num    = 0;
 my $CONF;
 
@@ -476,7 +476,7 @@ sub table {
   	return $self;
   }
   
-  $row_number=0; 
+  $row_number=1; 
   # Create a new Excel workbook
   $workbook = Spreadsheet::WriteExcel->new(\*STDOUT);
 

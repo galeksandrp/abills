@@ -3,7 +3,7 @@
 <input type='hidden' name='NAS_ID' value='%NAS_ID%'/>
 <input type='hidden' name='IP_POOLS' value='1'/>
 <input type='hidden' name='chg' value='$FORM{chg}'/>
-<TABLE class=form>
+<TABLE class=form width=400>
 <TR><TH COLSPAN='2' class=form_title>IP POOLS</TH></TR>
 <TR><TD>$_NAME:</TD><TD><input type='text' name='POOL_NAME' value='%POOL_NAME%'/></TD></TR>
 <TR><TD>FIRST IP:</TD><TD><input type='text' name='NAS_IP_SIP' value='%NAS_IP_SIP%'/></TD></TR>

@@ -246,7 +246,7 @@ sub list {
     ],
     { WHERE       => 1,
     	USERS_FIELDS=> 1,
-    	SKIP_USERS_FIELDS=> [ 'BILL_ID' ]
+    	SKIP_USERS_FIELDS=> [ 'BILL_ID', 'UID' ]
     }    
     );
 

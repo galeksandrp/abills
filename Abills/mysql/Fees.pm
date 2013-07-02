@@ -276,7 +276,8 @@ sub list {
       ['MONTH',          'DATE', "date_format(f.date, '%Y-%m')"   ],
     ],
     { WHERE       => 1,
-      USERS_FIELDS=> 1
+      USERS_FIELDS=> 1,
+      SKIP_USERS_FIELDS=> [ 'BILL_ID', 'UID' ]
     }
     );
 
