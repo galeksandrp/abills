@@ -373,7 +373,7 @@ sub list {
 
   my $GROUP_BY = ($attr->{GROUP_BY}) ? $attr->{GROUP_BY} : 'u.uid';
 
-  @WHERE_RULES = ("u.uid = dv.uid");
+  @WHERE_RULES = ();
   push @WHERE_RULES, @{ $self->search_expr_users({ %$attr, 
                              EXT_FIELDS => [
                                             'PHONE',
@@ -422,9 +422,9 @@ sub list {
       tp.month_fee,
       u.uid
          FROM (users u,
-               dv_main dv,
                bills b,
                tarif_plans tp)
+         INNER JOIN dv_main dv ON (u.uid=dv.uid)
          LEFT JOIN users_pi pi ON u.uid = pi.uid
          WHERE $WHERE  
            and u.disable  = 0
@@ -474,6 +474,8 @@ sub list {
     return $list;
   }
 
+  @WHERE_RULES = ();
+
   if ($attr->{ADDRESS_FULL}) {
     $attr->{BUILD_DELIMITER}=',' if (! $attr->{BUILD_DELIMITER});
     if ($attr->{MANAGERS}) {
@@ -504,8 +506,6 @@ sub list {
   $self->{EXT_TABLES}     = '';
   $self->{SEARCH_FIELDS}  = '';
   $self->{SEARCH_FIELDS_COUNT}=0;
-
-
 
   my $WHERE =  $self->search_former($attr, [
       ['FIO',            'STR', 'pi.fio',                           1 ],
@@ -553,7 +553,8 @@ sub list {
       $self->{SEARCH_FIELDS}
       u.uid, 
       dv.tp_id
-     FROM (users u, dv_main dv)
+     FROM users u
+     INNER JOIN dv_main dv ON (u.uid=dv.uid)
      LEFT JOIN users_pi pi ON (u.uid = pi.uid)
      LEFT JOIN tarif_plans tp ON (tp.id=dv.tp_id) 
      $EXT_TABLE
@@ -569,7 +570,8 @@ sub list {
   my $list = $self->{list};
 
   if ($self->{TOTAL} >= 0 && !$attr->{SKIP_TOTAL}) {
-    $self->query2("SELECT count( DISTINCT u.id) AS total FROM (users u, dv_main dv) 
+    $self->query2("SELECT count( DISTINCT u.id) AS total FROM users u
+    INNER JOIN dv_main dv ON (u.uid=dv.uid)
     LEFT JOIN users_pi pi ON (u.uid = pi.uid)
     LEFT JOIN tarif_plans tp ON (tp.id=dv.tp_id)
     $EXT_TABLE

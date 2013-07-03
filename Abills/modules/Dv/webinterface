@@ -5423,7 +5423,7 @@ sub dv_monthly_fees {
   $tariffs->{debug} = 1 if ($debug > 6);
   my $list = $tariffs->list({%LIST_PARAMS,
                              MODULE         => 'Dv',
-                             DOMAIN_ID      => '_SHOW', 
+                             DOMAIN_ID      => '_SHOW',
                              FIXED_FEES_DAY => '_SHOW',
                              COLS_NAME      => 1,
                              COLS_UPPER     => 1
@@ -5781,7 +5781,6 @@ sub dv_monthly_fees {
                   $debug_output .= " SMALL_DEPOSIT_BLOCK." if ($debug > 3);
                   next;
                 }
-                
                 #Static day
                 if( ($TP_INFO->{FIXED_FEES_DAY} && ($d == $activate_d || ($d == $START_PERIOD_DAY && $activate_d > 28))) ||
                  ($date_unixtime - $active_unixtime > 30 * 86400) ) {

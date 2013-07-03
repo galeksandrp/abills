@@ -669,7 +669,7 @@ sub list {
         [ 'FIXED_FEES_DAY',    'INT', 'tp.fixed_fees_day' ],
         [ 'NEXT_TARIF_PLAN',   'INT', 'tp.next_tp_id'     ],
         [ 'ACTIVE_DAY_FEE',    'INT', 'tp.active_day_fee' ],
-        [ 'FIXED_FEES_DAY',    'INT', 'tp.fixed_fees_day',     ],
+        [ 'FIXED_FEES_DAY',    'INT', 'tp.fixed_fees_day',    1],
         [ 'REDUCTION_FEE',     'INT', 'tp.reduction_fee',      ],
         [ 'POSTPAID_DAY_FEE',  'INT', 'tp.postpaid_daily_fee', ],
         [ 'POSTPAID_MONTH_FEE','INT', 'tp.postpaid_monthly_fee'],

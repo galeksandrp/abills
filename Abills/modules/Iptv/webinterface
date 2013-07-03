@@ -3369,6 +3369,8 @@ sub iptv_stalker {
   }
 
  if ($FORM{send_message}) {
+   $Iptv->user_info($FORM{UID});
+   $FORM{UID}=$Iptv->{CID};
  	 $Stalker_api->send_message({ %FORM });
 
  	 return $Stalker_api->{error};
@@ -3733,7 +3735,7 @@ sub iptv_account_action {
         $Iptv->{errno}  = $Stalker_api->{errno}; 
         $Iptv->{errstr} = $Stalker_api->{errstr};
         $result = 1;
-      }      
+      }
     }
     elsif ($Iptv_stalker) {
       $Iptv_stalker->send_msg({ %FORM });
