@@ -3453,7 +3453,7 @@ sub dv_session_detail {
   );
 
   my %ACCT_TERMINATE_CAUSES_VALUE = reverse %ACCT_TERMINATE_CAUSES;
-
+  $sessions->{debug}=1;
   $sessions->session_detail({%FORM});
 
   $sessions->{ACCT_TERMINATE_CAUSE} = "$sessions->{ACCT_TERMINATE_CAUSE} : " . $ACCT_TERMINATE_CAUSES_VALUE{ $sessions->{ACCT_TERMINATE_CAUSE} };
@@ -3465,7 +3465,7 @@ sub dv_session_detail {
   $sessions->{RECALC} = $html->button($_RECALCULATE, "index=$index&RECALC=1&SESSION_ID=$FORM{SESSION_ID}&UID=$FORM{UID}", { BUTTON => 1 });
 
   $Dv->info($FORM{UID});
-  $tariffs->ti_list({ TP_ID => $Dv->{TP_NUM} });
+  $tariffs->ti_list({ TP_ID => $sessions->{TP_NUM} });
   if ($tariffs->{TOTAL} > 0) {
     $tariffs->tt_list({ TI_ID => $tariffs->{list}->[0]->[0] });
     foreach my $line (@{ $tariffs->{list} }) {

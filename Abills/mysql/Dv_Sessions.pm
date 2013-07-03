@@ -482,9 +482,10 @@ sub session_detail {
   l.uid,
   l.acct_session_id AS session_id,
   l.terminate_cause AS acct_terminate_cause,
-  UNIX_TIMESTAMP(l.start) AS start_unixtime
+  UNIX_TIMESTAMP(l.start) AS start_unixtime,
+  tp.tp_id AS tp_num
  FROM (dv_log l, users u)
- LEFT JOIN tarif_plans tp ON (l.tp_id=tp.id) 
+ LEFT JOIN tarif_plans tp ON (l.tp_id=tp.id AND module='Dv') 
  LEFT JOIN nas n ON (l.nas_id=n.id) 
  WHERE l.uid=u.uid 
  $WHERE
