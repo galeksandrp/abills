@@ -3453,7 +3453,6 @@ sub dv_session_detail {
   );
 
   my %ACCT_TERMINATE_CAUSES_VALUE = reverse %ACCT_TERMINATE_CAUSES;
-  $sessions->{debug}=1;
   $sessions->session_detail({%FORM});
 
   $sessions->{ACCT_TERMINATE_CAUSE} = "$sessions->{ACCT_TERMINATE_CAUSE} : " . $ACCT_TERMINATE_CAUSES_VALUE{ $sessions->{ACCT_TERMINATE_CAUSE} };
