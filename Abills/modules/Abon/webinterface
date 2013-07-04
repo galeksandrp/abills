@@ -252,7 +252,6 @@ sub abon_user {
     return 0 if ($attr->{QUITE} || $attr->{REGISTRATION});
   }
 
-  $Abon->{debug}=1;
   my $list  = $Abon->user_tariff_list($FORM{UID}, { COLS_NAME => 1 });
   my $table = $html->table(
     {
