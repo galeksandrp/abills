@@ -5751,7 +5751,10 @@ sub dv_monthly_fees {
               elsif ($user{ACTIVATE} ne '0000-00-00') {
 
                 #Block small deposit
-                if ($TP_INFO->{SMALL_DEPOSIT_ACTION} && $sum > $user{DEPOSIT} + $user{CREDIT} && $date_unixtime - $active_unixtime > 30 * 86400) {
+                if ($TP_INFO->{SMALL_DEPOSIT_ACTION} && $sum > $user{DEPOSIT} + $user{CREDIT} 
+                   && (($TP_INFO->{FIXED_FEES_DAY} && ($d == $activate_d || ($d == $START_PERIOD_DAY && $activate_d > 28)))
+                   || ($date_unixtime - $active_unixtime > 30 * 86400))
+                   ) {
                   SMALL_DEPOSIT_LABEL:
 
                   if ($TP_INFO->{SMALL_DEPOSIT_ACTION} == -1) {

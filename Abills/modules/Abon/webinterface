@@ -69,6 +69,7 @@ sub abon_user {
         	  my ($input_value, $db_value)=split(/:/, $l);
           	if ($FORM{$input_value.$line->{id}} ne $line->{$db_value}) {
           		next if (! $FORM{$input_value.$line->{id}} && ! $line->{$db_value});
+          		$Abon->{debug}=1;
           		$Abon->user_tariff_change({ UID => $FORM{UID},
         			          TP_ID       => $line->{id},
         		 	          COMMENTS    => $FORM{'COMMENTS_'.$line->{id}}, 
@@ -251,6 +252,7 @@ sub abon_user {
     return 0 if ($attr->{QUITE} || $attr->{REGISTRATION});
   }
 
+  $Abon->{debug}=1;
   my $list  = $Abon->user_tariff_list($FORM{UID}, { COLS_NAME => 1 });
   my $table = $html->table(
     {
@@ -285,7 +287,7 @@ sub abon_user {
       $line->{id}
       . $html->form_input(
         'IDS',
-        "$line->{id}",
+        $line->{id},
         {
           TYPE  => 'CHECKBOX',
           STATE => ($state > 0) ? 1 : undef

@@ -366,8 +366,12 @@ sub user_tariff_list {
   # @WHERE_RULES = ("ul.uid='$uid'");
   # $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
 
-  $self->query2("SELECT at.id, at.name, ul.comments, at.price, at.period, 
-      ul.service_count,
+  $self->query2("SELECT at.id, 
+      at.name, 
+      if(ul.comments <> '', ul.comments, '') AS comments, 
+      at.price, 
+      at.period, 
+      sum(ul.service_count) AS service_count,
       max(ul.date) AS date, 
       if (at.nonfix_period = 1, 
       if (at.period = 0, ul.date+ INTERVAL 1 DAY, 

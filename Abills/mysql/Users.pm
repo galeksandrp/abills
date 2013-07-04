@@ -1483,8 +1483,9 @@ sub info_field_add {
 
     $self->config_add(
       {
-        PARAM => $field_prefix . "_$attr->{FIELD_ID}",
-        VALUE => "$attr->{POSITION}:$attr->{FIELD_TYPE}:$attr->{NAME}:$attr->{USERS_PORTAL}"
+        PARAM     => $field_prefix . "_$attr->{FIELD_ID}",
+        VALUE     => "$attr->{POSITION}:$attr->{FIELD_TYPE}:$attr->{NAME}:$attr->{USERS_PORTAL}",
+        DOMAIN_ID => $admin->{DOMAIN_ID} || 0
       }
     );
 
@@ -1652,7 +1653,7 @@ sub config_change {
   my %FIELDS = (
     PARAM     => 'param',
     NAME      => 'value',
-    DOMAIN_ID => 'DOMAIN_ID'
+    DOMAIN_ID => 'domain_id'
   );
 
   $self->changes(
