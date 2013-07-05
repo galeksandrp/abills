@@ -365,7 +365,6 @@ sub user_tariff_list {
 
   # @WHERE_RULES = ("ul.uid='$uid'");
   # $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
-
   $self->query2("SELECT at.id, 
       at.name, 
       if(ul.comments <> '', ul.comments, '') AS comments, 
@@ -398,7 +397,7 @@ sub user_tariff_list {
        )
       ) AS next_abon,
    ul.manual_fee,   
-   ul.discount,
+   max(ul.discount) AS discount,
    count(ul.uid) AS active_service,
    ul.notification1,
    ul.notification1_account_id,

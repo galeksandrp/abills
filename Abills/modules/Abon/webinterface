@@ -69,7 +69,6 @@ sub abon_user {
         	  my ($input_value, $db_value)=split(/:/, $l);
           	if ($FORM{$input_value.$line->{id}} ne $line->{$db_value}) {
           		next if (! $FORM{$input_value.$line->{id}} && ! $line->{$db_value});
-          		$Abon->{debug}=1;
           		$Abon->user_tariff_change({ UID => $FORM{UID},
         			          TP_ID       => $line->{id},
         		 	          COMMENTS    => $FORM{'COMMENTS_'.$line->{id}}, 
@@ -109,7 +108,7 @@ sub abon_user {
         $Abon->{TP_INFO}->{PRICE}    = $line->{price};
         #$FORM{ 'DISCOUNT_' . $Abon->{TP_INFO}->{TP_ID} } = $ai_list->[0]->{DISCOUNT};
        
-        if ($FORM{ 'DISCOUNT_' . $Abon->{TP_INFO}->{TP_ID} }) {
+        if ($FORM{ 'DISCOUNT_' . $Abon->{TP_INFO}->{TP_ID} } > 0) {
           $Abon->{TP_INFO}->{PRICE} = $Abon->{TP_INFO}->{PRICE} * ((100 - $FORM{ 'DISCOUNT_' . $Abon->{TP_INFO}->{TP_ID} }) / 100);
         }
         elsif ($Abon->{TP_INFO}->{DISCOUNT} && $users->{REDUCTION} > 0) {
@@ -967,7 +966,7 @@ sub abon_docs {
       }
 
       # NAME| ID | SUM
-      push @services, "$_ABON: ($line->{id}) " . "$line->{name}" . "|$line->{comments}|$line->{price}";
+      push @services, "$_ABON: ($line->{id}) " . "$line->{name}" . "|$line->{comments} |$line->{price}";
       
       if ($line->{period} == 1) {
        	$info{month} += $line->{price};
