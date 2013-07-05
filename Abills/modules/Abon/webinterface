@@ -153,7 +153,7 @@ sub abon_user {
           }
 
           my %PARAMS = (
-            DESCRIBE => "$_ABON: ($line->{tp_id}) $line->{name}" . (($FORM{ 'COMMENTS_' . $line->{tp_id} }) ? ' '.$FORM{ 'COMMENTS_' . $line->{tp_id} } : ""),
+            DESCRIBE => "$_ABON: ($line->{tp_id}) $line->{name}" . (($FORM{ 'COMMENTS_' . $line->{tp_id} }) ? ' '.$FORM{ 'COMMENTS_' . $line->{tp_id} } : ''),
             METHOD => $Abon->{TP_INFO}->{FEES_TYPE}
           );
 
@@ -172,13 +172,15 @@ sub abon_user {
       	                          ACCOUNT_ACTIVATE => $users->{ACTIVATE}
       	                        });
           	}
-
-            $fees->take($users, $Abon->{TP_INFO}->{PRICE}, { %PARAMS });
-            if ($fees->{errno}) {
-              $html->message('err', "$_FEES : $_ERROR", "[$fees->{errno}] $fees->{errstr}");
-            }
-            else {
-              $message .= "$PARAMS{DESCRIBE}";
+            
+            if($Abon->{TP_INFO}->{PRICE}>0) {
+              $fees->take($users, $Abon->{TP_INFO}->{PRICE}, { %PARAMS });
+              if ($fees->{errno}) {
+                $html->message('err', "$_FEES : $_ERROR", "[$fees->{errno}] $fees->{errstr}");
+              }
+              else {
+                $message .= "$PARAMS{DESCRIBE}";
+              }
             }
           }
 
@@ -660,10 +662,11 @@ sub abon_periodic {
 
       $info->{CREDIT}   = 0 if (!$info->{CREDIT});
       $abon_date = $ADMIN_REPORT{DATE} if (!$abon_date && $info->{PERIOD} == 1 && $d == 1);
+      $info->{PRICE} = $info->{PRICE} * (100 - $info->{DISCOUNT}) / 100 if ($info->{DISCOUNT} > 0);
+
       if ($info->{SERVICE_COUNT} > 1) {
         $info->{PRICE} = $info->{SERVICE_COUNT} * $info->{PRICE}; 
       }
-      $info->{PRICE} = $info->{PRICE} * (100 - $info->{DISCOUNT}) / 100 if ($info->{DISCOUNT} > 0);
 
       #Get daily abon
       if (! $info->{MANUAL_FEE} && ($ADMIN_REPORT{DATE} eq $info->{ABON_DATE} || $info->{PERIOD} == 0)) {
@@ -857,6 +860,7 @@ sub abon_get_month_fee {
     #Current Month
     my ($y,        $m,        $d)        = split(/-/, $DATE,             3);
     my ($active_y, $active_m, $active_d) = split(/-/, $Abon->{ACTIVATE}, 3);
+
     if (int("$y$m$d") < int("$active_y$active_m$active_d")) {
       return;
     }

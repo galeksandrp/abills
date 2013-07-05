@@ -8625,6 +8625,8 @@ sub _external {
 sub form_info_fields {
 
   $FORM{FIELD_ID}=lc($FORM{FIELD_ID});
+	$FORM{FIELD_ID}=~s/[ \-]+//g;
+
   if ($FORM{USERS_ADD}) {
     if (length($FORM{FIELD_ID}) > 15) {
       $html->message('err', $_ERROR, "$ERR_WRONG_DATA");

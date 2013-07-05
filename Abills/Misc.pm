@@ -137,7 +137,7 @@ sub get_period_dates {
   my ($start_date, $end_date);
 
   if ($attr->{ACCOUNT_ACTIVATE} && $attr->{ACCOUNT_ACTIVATE} ne '0000-00-00') {
-    $START_PERIOD = $attr->{ACTIVATE};
+    $START_PERIOD = $attr->{ACCOUNT_ACTIVATE};
   }
 
   my ($start_y, $start_m, $start_d)=split(/-/, $START_PERIOD);

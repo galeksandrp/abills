@@ -412,7 +412,7 @@ sub list {
       datediff(u.activate + interval 30 day, curdate())) IN ($attr->{ALERT_PERIOD}))";
     }
 
-    $WHERE = ($#WHERE_RULES > -1) ? join(' and ', @WHERE_RULES) : '';
+    $WHERE = ($#WHERE_RULES > -1) ? join(' and ', @WHERE_RULES).' AND ' : '';
 
     $self->query2("SELECT u.id AS login, pi.email, dv.tp_id AS tp_num, u.credit, b.deposit, tp.name AS tp_name, tp.uplimit, pi.phone,
       pi.fio,
@@ -421,18 +421,16 @@ sub list {
         datediff(u.activate + interval 30 day, curdate())) AS to_next_period,
       tp.month_fee,
       u.uid
-         FROM (users u,
-               bills b,
-               tarif_plans tp)
+         FROM users u
+         INNER JOIN bills b ON (u.bill_id  = b.id)
          INNER JOIN dv_main dv ON (u.uid=dv.uid)
-         LEFT JOIN users_pi pi ON u.uid = pi.uid
+         INNER JOIN tarif_plans tp ON (dv.tp_id = tp.id)
+         LEFT JOIN users_pi pi ON (u.uid = pi.uid)
          WHERE $WHERE  
-           and u.disable  = 0
-           and u.bill_id  = b.id
-           and dv.tp_id   = tp.id
-           and dv.disable = 0
+           u.disable  = 0           
+           AND dv.disable = 0
            AND b.deposit+u.credit>0
-           and (((tp.month_fee=0 OR tp.abon_distribution=1) AND tp.uplimit > 0 AND b.deposit<tp.uplimit)
+           AND (((tp.month_fee=0 OR tp.abon_distribution=1) AND tp.uplimit > 0 AND b.deposit<tp.uplimit)
              $allert_period
                )
 
