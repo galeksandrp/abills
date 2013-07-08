@@ -854,6 +854,15 @@ sub osmp_payments {
             }
        );
 
+      my $er = 1;
+      if ($conf{PAYSYS_OSMP_CURRENCY}) {
+        $payments->exchange_info(0, { ISO => $conf{PAYSYS_OSMP_CURRENCY} });
+        if ($payments->{TOTAL} > 0) {
+          $er = $payments->{ER_RATE};
+        }
+      }
+
+
       #Add payments
       $payments->add(
         $user,

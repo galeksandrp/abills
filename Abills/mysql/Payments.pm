@@ -123,6 +123,7 @@ sub add {
     $Bill->info({ BILL_ID => $user->{BILL_ID} });
     $Bill->action('add', $user->{BILL_ID}, $DATA{SUM});
     if ($Bill->{errno}) {
+      $self->{db}->rollback();
       return $self;
     }
 

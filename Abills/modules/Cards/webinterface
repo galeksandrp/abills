@@ -729,7 +729,6 @@ sub cards_user_payment () {
     my $BRUTE_LIMIT = ($conf{CARDS_BRUTE_LIMIT}) ? $conf{CARDS_BRUTE_LIMIT} : 5;
     my $brute = $Cards->bruteforce_list({ UID => $LIST_PARAMS{UID} });
 
-
     $Cards->cards_info({ %FORM, UID => $LIST_PARAMS{UID}, PAYMENTS => 1 });
 
     if ($Cards->{error}) {

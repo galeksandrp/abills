@@ -454,7 +454,7 @@ sub paysys_import_form {
           $PAYMENT_METHOD_SEL = $html->form_select(
             'PAYMENT_METHOD_' . $ID,
             {
-              SELECTED => $DATA_ARR->[$i]->{PAYMENT_METHOD} || '',
+              SELECTED => $DATA_ARR->[$i]->{PAYMENT_METHOD} || $FORM{METHOD} ||'',
               SEL_HASH => \%PAYMENTS_METHODS,
               NO_ID    => 1,
               SORT_KEY => 1
@@ -556,6 +556,28 @@ sub paysys_import_form {
     }
   );
 
+  %PAYMENTS_METHODS = ();
+  push @PAYMENT_METHODS, @EX_PAYMENT_METHODS if (@EX_PAYMENT_METHODS);
+
+  for (my $i = 0 ; $i <= $#PAYMENT_METHODS ; $i++) {
+    $PAYMENTS_METHODS{"$i"} = "$PAYMENT_METHODS[$i]";
+  }
+
+  my %PAYSYS_PAYMENT_METHODS = %{ cfg2hash($conf{PAYSYS_PAYMENTS_METHODS}) };
+
+  while (my ($k, $v) = each %PAYSYS_PAYMENT_METHODS) {
+    $PAYMENTS_METHODS{$k} = $v;
+  }
+
+  $info{METHOD} = $html->form_select(
+      'METHOD',
+      {
+        SELECTED => (defined($FORM{METHOD}) && $FORM{METHOD} ne '') ? $FORM{METHOD} : 0,
+        SEL_HASH => \%PAYMENTS_METHODS,
+        NO_ID    => 1,
+      }
+    );
+
   $html->tpl_show(_include('paysys_file_import', 'Paysys'), \%info);
 }
 
@@ -604,8 +626,13 @@ sub paysys_import_parse {
         elsif ($EXPR_IDS[$i] eq 'SUM') {
           $DATA_HASH{ $EXPR_IDS[$i] } =~ s/,/\./g;
         }
-        elsif ($EXPR_IDS[$i] eq 'DATE' && $DATA_HASH{ $EXPR_IDS[$i] } =~ /^(\d{2})[.-](\d{2})[.-](\d{4})$/) {
-          $DATA_HASH{ $EXPR_IDS[$i] } = "$3-$2-$1";
+        elsif ($EXPR_IDS[$i] eq 'DATE') {
+          if ($DATA_HASH{ $EXPR_IDS[$i] } =~ /^(\d{2})[.-](\d{2})[.-](\d{4})$/) {
+            $DATA_HASH{ $EXPR_IDS[$i] } = "$3-$2-$1";
+          }
+          elsif ($DATA_HASH{ $EXPR_IDS[$i] } =~ /^(\d{4})[.-](\d{2})[.-](\d{2})$/) {
+          	$DATA_HASH{ $EXPR_IDS[$i] } = "$1-$2-$3";
+          }
         }
       }
 
