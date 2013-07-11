@@ -147,10 +147,10 @@ if ($ARGV->{NAS_IDS}) {
   $LIST_PARAMS{NAS_IDS} =~ s/ //g;
 }
 
-$LIST_PARAMS{TYPE}      = $ARGV->{NAS_TYPES} || undef;
-$LIST_PARAMS{USER_NAME} = $ARGV->{LOGINS};
-$LIST_PARAMS{TP_ID}     = $ARGV->{TP_IDS};
-$LIST_PARAMS{GID}       = $ARGV->{GIDS};
+$LIST_PARAMS{TYPE}      = $ARGV->{NAS_TYPES} if ($ARGV->{NAS_TYPES});
+$LIST_PARAMS{USER_NAME} = $ARGV->{LOGINS}    if ($ARGV->{LOGINS});
+$LIST_PARAMS{TP_ID}     = $ARGV->{TP_IDS}    if ($ARGV->{TP_IDS});
+$LIST_PARAMS{GID}       = $ARGV->{GIDS}      if ($ARGV->{GIDS});
 $LIST_PARAMS{PAGE_ROWS} = 100000;
 $LIST_PARAMS{DISABLE}   = 0;
 
@@ -2396,9 +2396,6 @@ sub speed_expr {
         $speed_out = $tt->[5];
 
         $expression =~ s/MONTH_TRAFFIC/TRAFFIC/g;
-
-        #$debug_output .= "TP: $tp_line->[0] TI: $ti->[0] TT: $tt->[0]\n";
-        #$debug_output .= "  Expr: $expression\n" if ($debug > 3);
         print "TP: $tp_line->[0] TI: $ti->[0] TT: $tt->[0]\n" if ($debug > 0);
         print "  Expr: $expression\n"                         if ($debug > 3);
 

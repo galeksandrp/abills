@@ -5324,7 +5324,6 @@ sub report_fees {
     $METHODS_HASH{"$k:$k"} = "$v";
   }
 
-
   reports(
     {
       DATE        => $FORM{DATE},
@@ -5650,6 +5649,9 @@ sub report_payments {
       elsif($line->{date}) {
         $main_column = $html->button($line->{date}, "index=$index&DATE=$line->{date}$pages_qs");
        }
+      elsif($line->{login} && $line->{uid}) {
+      	$main_column = $html->button($line->{login}, "index=2&UID=$line->{uid}");
+      }
       else {
         $main_column = $html->button($line->{login}, "index=$index&$type=$line->{login}$pages_qs");
       }

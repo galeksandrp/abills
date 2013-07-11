@@ -707,14 +707,6 @@ sub form_window {
   return $self->{WINDOW};
 }
 
-sub dirname {
-  my ($x) = @_;
-  if ($x !~ s@[/\\][^/\\]+$@@) {
-    $x = '.';
-  }
-  $x;
-}
-
 #*******************************************************************
 #Set cookies
 # setCookie($name, $value, $expiration, $path, $domain, $secure);

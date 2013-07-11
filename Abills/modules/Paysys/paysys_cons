@@ -330,14 +330,43 @@ sub paysys_import_fees {
 # Import fees from_file
 #**********************************************************
 sub paysys_import_payments {
-  paysys_import_form(
+  my @files = ();
+  my $filename = $ARGV->{FILE} || '';
+
+  if ($filename =~ s/\*/\.\+/g) {
+    my $dir = dirname($filename);
+    $filename =~ s/$dir\///;
+    opendir DIR, $dir or die "Can't open dir '$dir' $!\n";
+      @files = grep /^$filename$/, readdir DIR;
+    closedir DIR;
+  }
+  else {
+    push @files, $filename;
+  }
+
+  foreach my $filename (@files) {
+    my $content = '';
+    open(FILE, "$filename") || die "Can't open file '$filename' $!\n";
+      while (<FILE>) {
+        $content .= $_;
+      }
+    close(FILE);
+
+    paysys_import_form(
     {
       TYPE         => $ARGV->{TYPE},
       IMPORT_RULE  => $ARGV->{IMPORT_RULE},
-      IMPORT_RULES => $conf{PAYSYS_IMPORT_RULES}
+      IMPORT_RULES => $conf{PAYSYS_IMPORT_RULES},
+      CONTENT      => $content
     }
-  );
-
+    );
+    if ($debug < 5) {
+      if ($ARGV->{BACKUP_FILES} && -d $ARGV->{BACKUP_FILES}) {
+        my $a = `cp $filename $ARGV->{BACKUP_FILES}`;
+      }
+      #unlink $filename;
+    }
+  }
 }
 
 #**********************************************************
