@@ -898,7 +898,7 @@ sub msgs_admin {
     }
 
     if ($Msgs->{FILENAME}) {
-      $Msgs->{ATTACHMENT} = "$_ATTACHMENT: " . $html->button("$Msgs->{FILENAME}", "qindex=$index&ATTACHMENT=$Msgs->{ATTACHMENT_ID}", { TARGET => '_new' }) . " ($_SIZE: " . int2byte($Msgs->{FILESIZE}) . ')';
+      $Msgs->{ATTACHMENT} = "$_ATTACHMENT: " . $html->button("$Msgs->{FILENAME}", "qindex=$index&ATTACHMENT=$Msgs->{ATTACHMENT_ID}", { TARGET => '_new' }) . " ($_SIZE: " . int2byte($Msgs->{CONTENT_SIZE}) . ')';
     }
 
     $html->tpl_show(_include('msgs_show', 'Msgs'), $Msgs);
