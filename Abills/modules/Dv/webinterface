@@ -165,7 +165,7 @@ sub dv_chg_tp {
         #Message
         if (!$Dv->{STATUS} && $FORM{GET_ABON}) {
 
-        	service_get_month_fee($Dv);
+          service_get_month_fee($Dv);
         }
 
         $html->message('info', $_CHANGED, "$_TARIF_PLAN $message");
@@ -348,11 +348,11 @@ sub dv_users_list {
   }
 
   if ($FORM{search_form}) {
-  	dv_users_search($Dv);
+    dv_users_search($Dv);
   }
 
   for(my $i=0; $i<=$#service_status; $i++) {
-  	my $name = $service_status[$i];
+    my $name = $service_status[$i];
     if (defined($FORM{STATUS}) && $FORM{STATUS} == $i && $FORM{STATUS} ne '') {
       $LIST_PARAMS{STATUS} = $FORM{STATUS};
       $pages_qs   .= "&STATUS=$i";
@@ -411,7 +411,7 @@ sub dv_users_list {
     return 0;
   }
   elsif ($Dv->{TOTAL} == 1) {
-  	print "// $Dv->{TOTAL} //";
+    print "// $Dv->{TOTAL} //";
     delete $FORM{LOGIN};
     $ui = user_info($list->[0]->{uid});
     print $ui->{TABLE_SHOW};
@@ -654,12 +654,12 @@ sub dv_user {
           if ($users->{ACTIVATE} ne '0000-00-00') {
             my ($Y, $M, $D) = split(/-/, $users->{ACTIVATE}, 3);
             if($Dv->{FIXED_FEES_DAY}) {
-          	  if ($M == 12) {
-          		  $M = 0;
-          		  $Y++;
-          	  }
+              if ($M == 12) {
+                $M = 0;
+                $Y++;
+              }
 
-            	$Dv->{ABON_DATE} = strftime("%Y-%m-%d", localtime(mktime(0, 0, 0, $D, $M, ($Y - 1900), 0, 0, 0)));
+              $Dv->{ABON_DATE} = strftime("%Y-%m-%d", localtime(mktime(0, 0, 0, $D, $M, ($Y - 1900), 0, 0, 0)));
             }
             else {
               $M--;
@@ -691,8 +691,8 @@ sub dv_user {
         }
       }
       elsif ($Dv->{DAY_ABON} > 0) {
-      	my $work_days = int(($users->{DEPOSIT} + $users->{CREDIT}) / $Dv->{DAY_ABON});
-      	$Dv->{NEXT_FEES_WARNING} = "$_SERVICE_ENDED: $work_days";
+        my $work_days = int(($users->{DEPOSIT} + $users->{CREDIT}) / $Dv->{DAY_ABON});
+        $Dv->{NEXT_FEES_WARNING} = "$_SERVICE_ENDED: $work_days";
       }
       
     }
@@ -862,7 +862,7 @@ sub dv_user {
   if ($Dv->{STATUS} && $total_fee > $users->{DEPOSIT}) {
     my $sum=0; 
 #    if ($Dv->{TP_PERIOD_ALIGNMENT}) {
-#    	my($y, $m, $d)=split(/-/, $DATE);
+#      my($y, $m, $d)=split(/-/, $DATE);
 #      my $days_in_month = ($m != 2 ? (($m % 2) ^ ($m > 7)) + 30 : (!($y % 400) || !($y % 4) && ($y % 25) ? 29 : 28));
 #      my $month_fee = ($total_fee / $days_in_month) * ($days_in_month - $d);
 #      if ($month_fee > $users->{DEPOSIT}) {
@@ -874,10 +874,10 @@ sub dv_user {
 #      }
 #    }
 #    else {
-    	$sum =  sprintf("%.2f", abs($total_fee - $users->{DEPOSIT}));
-    	if ($sum < abs($total_fee - $users->{DEPOSIT})) {
-    		$sum = sprintf("%.2f", $sum + 1);
-    	}
+      $sum =  sprintf("%.2f", abs($total_fee - $users->{DEPOSIT}));
+      if ($sum < abs($total_fee - $users->{DEPOSIT})) {
+        $sum = sprintf("%.2f", $sum + 1);
+      }
 #    }
     
     $Dv->{PAYMENT_MESSAGE} = "$_ACTIVATION_PAYMENT $sum " . $html->button("$_PAYMENTS", "UID=$FORM{UID}&index=2&SUM=$sum", {CLASS => 'payments rightAlignText'});
@@ -898,8 +898,8 @@ sub dv_get_static_ip {
   $Nas->ip_pools_info($pool_id);
   
   if($Nas->{errno}) {
-  	$html->message('err', $_ERROR, "[$Nas->{errno}] $err_strs{$Nas->{errno}} $Nas->{errstr}");
-  	return '0.0.0.0';
+    $html->message('err', $_ERROR, "[$Nas->{errno}] $err_strs{$Nas->{errno}} $Nas->{errstr}");
+    return '0.0.0.0';
   }
 
   my $start_ip = ip2int($Nas->{NAS_IP_SIP});
@@ -1692,8 +1692,8 @@ sub dv_online {
   }
 
   if ($FORM{FILTER}) {
-  	$LIST_PARAMS{FILTER_FIELD}=$FORM{FILTER_FIELD};
-  	$LIST_PARAMS{FILTER}=$FORM{FILTER};
+    $LIST_PARAMS{FILTER_FIELD}=$FORM{FILTER_FIELD};
+    $LIST_PARAMS{FILTER}=$FORM{FILTER};
   }
 
   $sessions->{debug}=1 if ($FORM{DEBUG} && $FORM{DEBUG} == 5);
@@ -1795,11 +1795,11 @@ sub dv_online {
 #          }
 
 
-        	if ($line->{uid}) {
+          if ($line->{uid}) {
             $val = $html->button($line->{user_name}, "index=15&UID=$line->{uid}");
           }
           else {
-          	$val = $line->{user_name};
+            $val = $line->{user_name};
           }
         }
         elsif ($sessions->{COL_NAMES_ARR}->[$i] =~ /acct_input_octets|acct_output_octets|ex_input_octets|ex_output_octets/) {
@@ -1809,7 +1809,7 @@ sub dv_online {
           $val = ($line->{$sessions->{COL_NAMES_ARR}->[$i]}) ? $html->color_mark($_YES, "$_COLORS[6]") : $_NO;
         }
         else {
-        	$val =  $line->{$sessions->{COL_NAMES_ARR}->[$i]};
+          $val =  $line->{$sessions->{COL_NAMES_ARR}->[$i]};
         }
 
         if ($FORM{UNIVERSAL_SEARCH}) {
@@ -1998,7 +1998,7 @@ sub dv_sessions {
   }
 
   if($user->{UID}) {
-  	delete $LIST_PARAMS{LOGIN};
+    delete $LIST_PARAMS{LOGIN};
   }
 
   my $table;
@@ -2054,10 +2054,10 @@ sub dv_sessions {
     my @fields_array = ();
     for (my $i = 0; $i < $base_fields+$sessions->{SEARCH_FIELDS_COUNT}; $i++) {
       if ($sessions->{COL_NAMES_ARR}->[$i] =~ /sent|recv/) {
-      	$line->{$sessions->{COL_NAMES_ARR}->[$i]} = int2byte($line->{$sessions->{COL_NAMES_ARR}->[$i]}, { DIMENSION => $FORM{DIMENSION} });
+        $line->{$sessions->{COL_NAMES_ARR}->[$i]} = int2byte($line->{$sessions->{COL_NAMES_ARR}->[$i]}, { DIMENSION => $FORM{DIMENSION} });
       }
       elsif ($sessions->{COL_NAMES_ARR}->[$i] eq 'login' && $line->{uid}) {
-      	$line->{login} = $html->button($line->{login}, "index=11&UID=$line->{uid}");
+        $line->{login} = $html->button($line->{login}, "index=11&UID=$line->{uid}");
       }
       elsif ($sessions->{COL_NAMES_ARR}->[$i] eq 'terminate_cause') {
         $line->{terminate_cause} = $ACCT_TERMINATE_CAUSES{ $line->{terminate_cause} };
@@ -2826,7 +2826,7 @@ sub dv_stats {
   if (!$LIST_PARAMS{UID} && $FORM{LOGIN}) {
     my $users = Users->new($db, $admin, \%conf);
     my $list = $users->list({ LOGIN     => $FORM{LOGIN}, 
-    	                        ACTIVATE  => '_SHOW',
+                              ACTIVATE  => '_SHOW',
                               COLS_NAME => 1 });
     if ($users->{TOTAL} == 1) {
       $LIST_PARAMS{UID}      = $list->[0]->{uid};
@@ -3993,7 +3993,7 @@ sub dv_user_chg_tp {
 
     $tariffs->{PARAMS} .= form_period($period, { ABON_DATE => $Dv->{ABON_DATE}, TP => $tariffs }) if ($conf{DV_USER_CHG_TP_SHEDULE} && !$conf{DV_USER_CHG_TP_NPERIOD});
     $tariffs->{ACTION} = $html->form_input('hold_up_window', $_CHANGE, { TYPE          => 'submit', 
-    	                                                        OUTPUT2RETURN => 1 });
+                                                              OUTPUT2RETURN => 1 });
   }
 
   $tariffs->{UID}     = $attr->{USER_INFO}->{UID};
@@ -4754,11 +4754,11 @@ sub dv_holdup_service {
   my ($hold_up_min_period, $hold_up_max_period, $hold_up_period, $holdup_fees, $hold_fees_deposit, $active_fees, $holdup_skip_gids) = split(/:/, $conf{DV_USER_SERVICE_HOLDUP});
 
   if ($holdup_skip_gids) {
-  	my @holdup_skip_gids_arr = split(/,\s?/, $holdup_skip_gids);
-  	if (in_array($user->{GID}, \@holdup_skip_gids_arr)) {
-  		
-  		return 0;
-  	}
+    my @holdup_skip_gids_arr = split(/,\s?/, $holdup_skip_gids);
+    if (in_array($user->{GID}, \@holdup_skip_gids_arr)) {
+      
+      return 0;
+    }
   }
 
   if ($holdup_fees && $holdup_fees > 0) {
@@ -4949,7 +4949,7 @@ sub dv_daily_fees {
   #$USERS_LIST_PARAMS{ACTIVE_DAY_FEE} = 1;
   $tariffs->{debug} = 1 if ($debug > 6);
   my $list = $tariffs->list({%LIST_PARAMS,
-  	                         MODULE     => 'Dv', 
+                             MODULE     => 'Dv', 
                              COLS_NAME  => 1, 
                              COLS_UPPER => 1 });
 
@@ -6070,12 +6070,12 @@ sub dv_users_warning_messages {
   $LIST_PARAMS{LOGIN} = $attr->{LOGIN} if ($attr->{LOGIN});
   $Dv->{debug}=1 if($debug > 5);
   my $dv_list         = $Dv->list({ %LIST_PARAMS, 
-  	                                LOGIN      => '_SHOW',
-  	                                TP_ID      => '_SHOW',
-  	                                TP_NAME    => '_SHOW',
-  	                                DEPOSIT    => '_SHOW',
-  	                                CREDIT     => '_SHOW',
-  	                                EMAIL      => '_SHOW',
+                                    LOGIN      => '_SHOW',
+                                    TP_ID      => '_SHOW',
+                                    TP_NAME    => '_SHOW',
+                                    DEPOSIT    => '_SHOW',
+                                    CREDIT     => '_SHOW',
+                                    EMAIL      => '_SHOW',
                                     COLS_NAME  => 1,
                                     COLS_UPPER => 1 });
 
@@ -7693,9 +7693,10 @@ sub dv_docs {
   $Dv->info($uid);
   
   if ($attr->{FEES_INFO}) {
-  	$info{day}   = $Dv->{DAY_ABON};
-  	$info{month} = $Dv->{MONTH_ABON};
-  	return \%info;
+    $info{day}   = $Dv->{DAY_ABON};
+    $info{month} = $Dv->{MONTH_ABON};
+    $info{abon_distribution} = $Dv->{ABON_DISTRIBUTION};
+    return \%info;
   }
  
   if ($Dv->{TOTAL}==0 || ! $Dv->{DAY_ABON} || $Dv->{STATUS}) {
@@ -7833,31 +7834,31 @@ print $table->show();
 #
 #**********************************************************
 sub get_oui_info {
-	my ($mac) = @_;
-	my $result = '';
-	$mac =~ s/[-:.]+//g;
+  my ($mac) = @_;
+  my $result = '';
+  $mac =~ s/[-:.]+//g;
   $mac = uc($mac);
-	$mac = /^[0-9A-F]{6}/;
-	my $mac_prefix = $1;
-	
-	my $content = '';
-	open(FILE, "$base_dir/misc/oui.txt") or die "Can't open file 'oui.txt' $!";
-	  while(<FILE>) {
-	  	$content .= $_;
-	  }
-	close(FILE);
-	
-	my @content_arr = split(/\n\n/, $content);
-	my %vendors_hash = ();
-	foreach my $section (@content_arr) {
-		my @rows = split(/\n/, $section);
-		$rows[1] =~ /([A-F0-9]{6})\s+\(base 16\)\s+(.+)/;
-		$vendors_hash{$1}=$2;
-	}
-	
-	$result = $vendors_hash{$mac_prefix} || '';
-	
-	return $result;
+  $mac = /^[0-9A-F]{6}/;
+  my $mac_prefix = $1;
+  
+  my $content = '';
+  open(FILE, "$base_dir/misc/oui.txt") or die "Can't open file 'oui.txt' $!";
+    while(<FILE>) {
+      $content .= $_;
+    }
+  close(FILE);
+  
+  my @content_arr = split(/\n\n/, $content);
+  my %vendors_hash = ();
+  foreach my $section (@content_arr) {
+    my @rows = split(/\n/, $section);
+    $rows[1] =~ /([A-F0-9]{6})\s+\(base 16\)\s+(.+)/;
+    $vendors_hash{$1}=$2;
+  }
+  
+  $result = $vendors_hash{$mac_prefix} || '';
+  
+  return $result;
 }
 
 

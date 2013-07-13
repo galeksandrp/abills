@@ -12,7 +12,7 @@ $html
 
 #use strict;
 
-my $version = 0.54;
+my $version = 0.55;
 my $debug   = 0;
 
 use FindBin '$Bin';
@@ -105,50 +105,50 @@ my $debug_output = ureports_periodic_reports({ %$ARGV });
 
 print $debug_output;
 
-#**********************************************************
-# ureports_send_reports
-#**********************************************************
-sub ureports_send_reports {
-  my ($type, $destination, $message, $attr) = @_;
-
-  $message = $html->tpl_show(_include('ureports_report_'.$attr->{REPORT_ID}, 'Ureports'), $attr, {  OUTPUT2RETURN => 1 });
-
-  if ($debug > 6) {
-  	print "$type $destination $message\n";
-  }
-  elsif ($type == 0) {
-  	$message = $html->tpl_show(_include('ureports_email_message', 'Ureports'), $attr, { OUTPUT2RETURN => 1 });
-
-    my $subject = $attr->{SUBJECT} || '';
-    if (!sendmail($conf{ADMIN_MAIL}, $destination, $subject, $message . "\n[$attr->{REPORT_ID}]", $conf{MAIL_CHARSET})) {
-      return 0;
-    }
-  }
-  elsif ($type == 1) {
-    if (in_array('Sms', \@MODULES)) {
-    	$message = $html->tpl_show(_include('ureports_sms_message', 'Ureports'), $attr, { OUTPUT2RETURN => 1 });
-
-      load_module('Sms');
-      sms_send(
-        {
-          NUMBER    => $destination,
-          MESSAGE   => $message,
-          DEBUG     => $debug,
-          UID       => $attr->{UID},
-          PERRIODIC => 1
-        }
-      );
-    }
-    elsif ($conf{UREPORTS_SMS_CMD}) {
-      my $cmd = `$conf{UREPORTS_SMS_CMD} $destination $message`;
-    }
-  }
-  elsif ($type == 2) {
-
-  }
-
-  return 1;
-}
+##**********************************************************
+## ureports_send_reports
+##**********************************************************
+#sub ureports_send_reports {
+#  my ($type, $destination, $message, $attr) = @_;
+#
+#  $message = $html->tpl_show(_include('ureports_report_'.$attr->{REPORT_ID}, 'Ureports'), $attr, {  OUTPUT2RETURN => 1 });
+#
+#  if ($debug > 6) {
+#    print "$type $destination $message\n";
+#  }
+#  elsif ($type == 0) {
+#    $message = $html->tpl_show(_include('ureports_email_message', 'Ureports'), $attr, { OUTPUT2RETURN => 1 });
+#
+#    my $subject = $attr->{SUBJECT} || '';
+#    if (!sendmail($conf{ADMIN_MAIL}, $destination, $subject, $message . "\n[$attr->{REPORT_ID}]", $conf{MAIL_CHARSET})) {
+#      return 0;
+#    }
+#  }
+#  elsif ($type == 1) {
+#    if (in_array('Sms', \@MODULES)) {
+#      $message = $html->tpl_show(_include('ureports_sms_message', 'Ureports'), $attr, { OUTPUT2RETURN => 1 });
+#
+#      load_module('Sms');
+#      sms_send(
+#        {
+#          NUMBER    => $destination,
+#          MESSAGE   => $message,
+#          DEBUG     => $debug,
+#          UID       => $attr->{UID},
+#          PERRIODIC => 1
+#        }
+#      );
+#    }
+#    elsif ($conf{UREPORTS_SMS_CMD}) {
+#      my $cmd = `$conf{UREPORTS_SMS_CMD} $destination $message`;
+#    }
+#  }
+#  elsif ($type == 2) {
+#
+#  }
+#
+#  return 1;
+#}
 
 #**********************************************************
 # ureports_periodic_reports
@@ -172,13 +172,13 @@ sub ureports_periodic_reports {
 
   $tariffs->{debug}=1 if ($debug > 6);
   my $list         = $tariffs->list({
-  	                                 REDUCTION_FEE   => '_SHOW',
-  	                                 DAY_FEE         => '_SHOW',
-  	                                 MONTH_FEE       => '_SHOW',
-  	                                 PAYMENT_TYPE    => '_SHOW',
-  	                                 EXT_BILL_ACCOUNT=> '_SHOW',
-  	                                 %LIST_PARAMS,
-  	                                 COLS_NAME   => 1 });
+                                     REDUCTION_FEE   => '_SHOW',
+                                     DAY_FEE         => '_SHOW',
+                                     MONTH_FEE       => '_SHOW',
+                                     PAYMENT_TYPE    => '_SHOW',
+                                     EXT_BILL_ACCOUNT=> '_SHOW',
+                                     %LIST_PARAMS,
+                                     COLS_NAME   => 1 });
 
   $ADMIN_REPORT{DATE} = $DATE if (!$ADMIN_REPORT{DATE});
   $SERVICE_LIST_PARAMS{CUR_DATE}=$ADMIN_REPORT{DATE};
@@ -362,17 +362,20 @@ sub ureports_periodic_reports {
         }
         #All service expired throught
         elsif ($user->{REPORT_ID} == 13) {
-        	my $total_daily_fee = 0;
+          my $total_daily_fee = 0;
           my $cross_modules_return = cross_modules_call('_docs', { FEES_INFO => 1, UID => $user->{UID}  });
           foreach my $module (sort keys %$cross_modules_return) {
             if (ref $cross_modules_return->{$module} eq 'HASH') {
               $total_daily_fee += $cross_modules_return->{$module}{day} if ($cross_modules_return->{$module}{day});
+              $total_daily_fee += ($cross_modules_return->{$module}{month} / 30)  if ($cross_modules_return->{$module}{abon_distribution});
             }
           }
 
           if ($total_daily_fee > 0) {
             my $expire_days = int($user->{DEPOSIT} / $total_daily_fee);
-            if ($expire_days < $user->{VALUE}) {
+            $debug_output .= "(Day fee: $total_daily_fee / $expire_days -> $user->{VALUE} \n" if ($debug > 4);
+
+            if ($expire_days <= $user->{VALUE}) {
               $_ALL_SERVICE_EXPIRE =~ s/XX/ $expire_days /;
               %PARAMS = (
                 DESCRIBE => "$_REPORTS ($user->{REPORT_ID}) ",
@@ -847,17 +850,17 @@ sub ureports_periodic_monthly {
           #Summary for company users
           #         my @UIDS  = ();
           #         if ($$processed_users{$user{COMPANY_ID}}) {
-          #         	 next;
+          #            next;
           #          }
           #
           #         if ($user{COMPANY_ID}) {
           #           my $company_users = $ulist = $Ureports->list({ TP_ID      => $tp_line->[0],
           #                                                    COMPANY_ID => $user{COMPANY_ID}
-          #         	                                        });
+          #                                                   });
           #           $$processed_users{$user{COMPANY_ID}}=1;
           #
           #           foreach my $c_user ( @$company_users ) {
-          #         	    push @UIDS, $c_user->[7];
+          #               push @UIDS, $c_user->[7];
           #            }
           #
           #           print "$user{LOGIN} hello $user{COMPANY_ID} // ";

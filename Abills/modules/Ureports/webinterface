@@ -36,7 +36,7 @@ my %REPORTS        = (
 
   7  => "$_CREDIT $_EXPIRE",
   8  => "$_LOGIN $_DISABLE ",
-  9  => "$_DAYS_TO_EXPIRE",
+  9  => "Internet: $_DAYS_TO_EXPIRE",
   10 => "$_SMALL_DEPOSIT_FOR_NEXT_MONTH",
   11 => "$_SMALL_DEPOSIT_FOR_NEXT_MONTH v2",
   12 => "$_PAYMENTS_INFO",
@@ -129,7 +129,7 @@ sub ureports_users_list {
     my @fields_array = ();
 
     for (my $i = 0; $i < 5+$Ureports->{SEARCH_FIELDS_COUNT}; $i++) {
- 	    my $val        = '';
+       my $val        = '';
       my $field_name = $Ureports->{COL_NAMES_ARR}->[$i];      
 
       if($field_name eq 'login') {
@@ -142,7 +142,7 @@ sub ureports_users_list {
         $val = ($line->{type}) ? 'Sms' : 'E-mail';
       }
       else {
-      	$val = $line->{$field_name};
+        $val = $line->{$field_name};
       }
 
       push @fields_array, $val;
@@ -274,8 +274,8 @@ sub ureports_user {
     );
 
     my $list = $Ureports->tp_user_reports_list({ %LIST_PARAMS, 
-    	                                           TP_ID     => $Ureports->{TP_ID},
-    	                                           COLS_NAME => 1 });
+                                                 TP_ID     => $Ureports->{TP_ID},
+                                                 COLS_NAME => 1 });
 
     foreach my $line (@$list) {
       $table->addrow(
@@ -383,7 +383,7 @@ sub ureports_tp {
       { 
         $_INFO     => get_function_index('ureports_tp').":TP_ID=$FORM{TP_ID}",
         $_REPORTS  => get_function_index('ureports_tp_reports').":TP_ID=$FORM{TP_ID}",
-        $_USERS    => get_function_index('ureports_users_list').":TP_ID=$FORM{TP_ID}"	
+        $_USERS    => get_function_index('ureports_users_list').":TP_ID=$FORM{TP_ID}"  
       },
       { f_args => \%F_ARGS }
     );
@@ -1124,9 +1124,9 @@ sub ureports_user_info {
     );
 
     my $list = $Ureports->tp_user_reports_list({ %LIST_PARAMS, 
-    	                                           TP_ID     => $Ureports->{TP_ID},
-    	                                           COLS_NAME => 1 
-    	                                        });
+                                                 TP_ID     => $Ureports->{TP_ID},
+                                                 COLS_NAME => 1 
+                                              });
 
     foreach my $line (@$list) {
       $table->addrow(
@@ -1178,6 +1178,10 @@ sub ureports_user_info {
 #**********************************************************
 sub ureports_send_reports {
   my ($type, $destination, $message, $attr) = @_;
+  
+  if ($attr->{REPORT_ID}) {
+    $message = $html->tpl_show(_include('ureports_report_'.$attr->{REPORT_ID}, 'Ureports'), $attr, {  OUTPUT2RETURN => 1 });
+  }
 
   if ($type == 0) {
     $subject = $attr->{SUBJECT} || '';
@@ -1206,9 +1210,9 @@ sub ureports_send_reports {
 
   }
 
- 	if ($attr->{DEBUG} && $attr->{DEBUG} == 1) {
- 		print "Sended report: $type to $destination\n";
- 	}
+   if ($attr->{DEBUG} && $attr->{DEBUG} == 1) {
+     print "Sended report: $type to $destination\n";
+   }
 
 
   return 1;
@@ -1521,16 +1525,16 @@ sub ureports_payments_maked {
     $user=$attr->{USER_INFO};
   }
   else {
-  	return 0;
+    return 0;
   }
       
   return '' if ($FORM{DISABLE});
   $Ureports->tp_user_reports_list({ UID              => $user->{UID},
-  	                                REPORT_ID        => 11,
-  	                                DESTINATION_TYPE => '_SHOW',
+                                    REPORT_ID        => 12,
+                                    DESTINATION_TYPE => '_SHOW',
                                     DESTINATION_ID   => '_SHOW',
-  	                                COLS_NAME        => 1
-  	                              });
+                                    COLS_NAME        => 1
+                                  });
   
   if($Ureports->{TOTAL} > 0) {
     $user->pi({ UID => $user->{UID} });

@@ -2061,10 +2061,11 @@ sub check_ifaces {
     	                      COLS_NAME => 1, 
     	                      COLS_UPPER=> 1 });
 
-    foreach $nas_info (@$list) {
-      $debug_output .= "NAS ID: $nas_info->{NAS_ID} MNG_INFO: $nas_info->{NAS_MNG_USER}\@$nas_info->{NAS_MNG_IP_PORT} $nas_info->{NAS_RAD_PAIRS}\n" if ($debug > 2);
-      if ($nas_info->{NAS_MNG_USER} eq '') {
-        $debug_output .= "Skiped Not defined control user NAS_ID: $nas_info->{NAS_ID}\n" if ($debug > 1);
+    foreach my $_info (@$list) {
+      $debug_output .= "NAS ID: $_info->{NAS_ID} MNG_INFO: $_info->{NAS_MNG_USER}\@$_info->{NAS_MNG_IP_PORT} $_info->{NAS_RAD_PAIRS}\n" if ($debug > 2);
+      $nas_info = $_info;
+      if ($_info->{NAS_MNG_USER} eq '') {
+        $debug_output .= "Skiped Not defined control user NAS_ID: $_info->{NAS_ID}\n" if ($debug > 1);
         next;
       }
     }
