@@ -9178,7 +9178,9 @@ sub form_builds {
       {
         SELECTED    => $users->{STREET_ID} || $FORM{BUILDS},
         SEL_LIST    => $users->street_list({ PAGE_ROWS => 10000, COLS_NAME => 1 }),
-        SEL_OPTIONS => { '' => '--' },
+        SEL_KEY     => 'id',
+        SEL_VALUE   => 'street_name',
+        #SEL_OPTIONS => { '' => '--' },
         NO_ID       => 1
       }
     );

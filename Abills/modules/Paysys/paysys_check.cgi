@@ -324,7 +324,7 @@ if (check_ip($ENV{REMOTE_ADDR}, '92.125.0.0/24')) {
   osmp_payments_v4();
   exit;
 }
-elsif (check_ip($ENV{REMOTE_ADDR}, '93.183.196.26,195.230.131.50,93.183.196.28')) {
+elsif (check_ip($ENV{REMOTE_ADDR}, '93.183.196.26,195.230.131.50,93.183.196.28,192.168.1.103')) {
   require "Easysoft.pm";
   exit;
 }
