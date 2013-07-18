@@ -1275,6 +1275,10 @@ CREATE TABLE `builds` (
   `coordx` DOUBLE(20,14) NOT NULL DEFAULT '0',
   `coordy` DOUBLE(20,14) NOT NULL DEFAULT '0',
   `flats` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '0',
+  `contract_id` varchar(12) not null default '',
+  `contract_date` date not null default '0000-00-00',
+  `contract_price` double(15,6) NOT NULL default '0.000000',
+  `comments` text,
   PRIMARY KEY (`id`),
   UNIQUE KEY `id` (`id`),
   UNIQUE KEY `street_id` (`street_id`, `number`)

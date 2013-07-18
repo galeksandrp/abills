@@ -22,12 +22,14 @@ use main;
 @ISA = ("main");
 my $uid;
 
+
 #**********************************************************
 # Init
 #**********************************************************
 sub new {
   my $class = shift;
-  ($db, $admin, $CONF) = @_;
+  my $db    = shift;
+  ($admin, $CONF) = @_;
 
   my $self = {};
   bless($self, $class);
@@ -1094,7 +1096,7 @@ sub change {
 
   if ($attr->{CREATE_BILL}) {
     use Bills;
-    my $Bill = Bills->new($db, $admin, $CONF);
+    my $Bill = Bills->new($self->{db}, $admin, $CONF);
     $Bill->create({ UID => $self->{UID} });
     if ($Bill->{errno}) {
       $self->{errno}  = $Bill->{errno};
@@ -1117,7 +1119,7 @@ sub change {
   elsif ($attr->{CREATE_EXT_BILL}) {
 
     use Bills;
-    my $Bill = Bills->new($db, $admin, $CONF);
+    my $Bill = Bills->new($self->{db}, $admin, $CONF);
     $Bill->create({ UID => $self->{UID} });
     $attr->{DISABLE} = $old_info->{DISABLE};
 
@@ -1227,7 +1229,7 @@ sub nas_del {
   my $self = shift;
 
   $self->query2("DELETE FROM users_nas WHERE uid='$self->{UID}';", 'do');
-  return $self if ($db->err > 0);
+  return $self if ($self->{db}->err > 0);
 
   $admin->action_add($self->{UID}, "DELETE NAS");
   return $self;
@@ -1858,8 +1860,6 @@ sub street_list {
   if ($self->{TOTAL} > 0) {
     my $sql = "SELECT count(DISTINCT s.id) $EXT_FIELDS_TOTAL FROM streets s 
      $EXT_TABLE_TOTAL  $WHERE";
-    #my $sql = "SELECT count(DISTINCT s.id) , count(DISTINCT builds.id), count(users_pi.uid), sum(builds.flats) / count(users_pi.uid) FROM users_pi
-    #LEFT JOIN builds ON (builds.id=users_pi.location_id) LEFT JOIN streets  s ON (builds.street_id=s.id) $WHERE";
     $self->query2($sql);
     ($self->{TOTAL}, $self->{TOTAL_BUILDS}, $self->{TOTAL_USERS}, $self->{DENSITY_OF_CONNECTIONS}) = @{ $self->{list}->[0] };
   }
@@ -2004,24 +2004,7 @@ sub build_info {
   my $self = shift;
   my ($attr) = @_;
 
-  $self->query2("select id, 
-   number, 
-   street_id,
-   flors,
-   entrances,
-   flats,
-   added,
-   map_x,
-   map_y,
-   map_x2,
-   map_y2,
-   map_x3,
-   map_y3,
-   map_x4,
-   map_y4,
-   coordx,
-   coordy
- FROM builds WHERE id='$attr->{ID}';",
+  $self->query2("select * FROM builds WHERE id='$attr->{ID}';",
  undef,
  { INFO => 1 }
   );
@@ -2036,32 +2019,11 @@ sub build_change {
   my $self = shift;
   my ($id, $attr) = @_;
 
-  my %FIELDS = (
-    ID        => 'id',
-    NUMBER    => 'number',
-    STREET_ID => 'street_id',
-    FLORS     => 'flors',
-    FLATS     => 'flats',
-    ENTRANCES => 'entrances',
-    MAP_X     => 'map_x',
-    MAP_Y     => 'map_y',
-    MAP_X2    => 'map_x2',
-    MAP_Y2    => 'map_y2',
-    MAP_X3    => 'map_x3',
-    MAP_Y3    => 'map_y3',
-    MAP_X4    => 'map_x4',
-    MAP_Y4    => 'map_y4',
-    COORDX    => 'coordx',
-    COORDY    => 'coordy',
-  );
-
   $self->changes(
     $admin,
     {
       CHANGE_PARAM => 'ID',
       TABLE        => 'builds',
-      FIELDS       => \%FIELDS,
-      OLD_INFO     => $self->build_info({ ID => $id }),
       DATA         => $attr
     }
   );
