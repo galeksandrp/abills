@@ -1,5 +1,20 @@
 =====0.55=====
 
+18.07.20013\\
+  * Добавлен импорт адресов и дополнительные поля для домов
+  * ''Paysys'' добавлена возможность импортировать файлы по маске
+  * ''Paysys'' протокол OSMP добавлен курс обмена при оплате
+  * ''Pasysy'' добавлена система [[abills:docs:modules:paysys:ru#sms_online:SMSOnline]]
+  * multi_docs.pl добавлена дата создания документа и поточный депозит
+
+MySQL:\\
+
+  ALTER TABLE builds ADD COLUMN contract_id varchar(12) not null default '';
+  ALTER TABLE builds ADD COLUMN contract_date date not null default '0000-00-00';
+  ALTER TABLE builds ADD COLUMN contract_price double(15,6) NOT NULL default '0.000000';
+  ALTER TABLE builds ADD COLUMN comments text;
+  
+
 24.06.20013\\
 
   * Добавлено отдельное поле завершение для каждой услуги

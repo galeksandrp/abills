@@ -324,7 +324,7 @@ if (check_ip($ENV{REMOTE_ADDR}, '92.125.0.0/24')) {
   osmp_payments_v4();
   exit;
 }
-elsif (check_ip($ENV{REMOTE_ADDR}, '93.183.196.26,195.230.131.50,93.183.196.28,192.168.1.103')) {
+elsif (check_ip($ENV{REMOTE_ADDR}, '93.183.196.26,195.230.131.50,93.183.196.28')) {
   require "Easysoft.pm";
   exit;
 }
@@ -681,6 +681,11 @@ sub osmp_payments {
       }
     }
   }
+  
+  if ($debug > 1) {
+  	print "Content-Type: text/plain\n\n";
+  }
+  
   print "Content-Type: text/xml\n\n";
 
   my $payment_system    = $attr->{SYSTEM_SHORT_NAME} || 'OSMP';
@@ -828,9 +833,7 @@ sub osmp_payments {
     }
     else {
       my $list = $users->list({ $CHECK_FIELD => $FORM{account}, COLS_NAME => 1 });
-
       if (!$users->{errno} && $users->{TOTAL} > 0) {
-
         my $uid = $list->[0]->{uid};
         $user = $users->info($uid);
       }
@@ -862,7 +865,6 @@ sub osmp_payments {
         }
       }
 
-
       #Add payments
       $payments->add(
         $user,
@@ -871,7 +873,8 @@ sub osmp_payments {
           DESCRIBE     => "$payment_system",
           METHOD       => ($conf{PAYSYS_PAYMENTS_METHODS} && $PAYSYS_PAYMENTS_METHODS{$payment_system_id}) ? $payment_system_id : '2',
           EXT_ID       => "$payment_system:$FORM{txn_id}",
-          CHECK_EXT_ID => "$payment_system:$FORM{txn_id}"
+          CHECK_EXT_ID => "$payment_system:$FORM{txn_id}",
+          ER           => $er
         }
       );
 

@@ -8940,8 +8940,6 @@ sub form_districts {
         $html->message('err', $_ERROR, "[$users->{errno}] $err_strs{$users->{errno}}");
       }
       
-      last if ($counts > 20);
-      
       $counts++;      
     }
     $html->message('info', $_IMPORT, "$_ADDED: $counts");
