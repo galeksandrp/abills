@@ -5,6 +5,7 @@
 use vars qw($begin_time %LANG $CHARSET @MODULES $USER_FUNCTION_LIST
 $UID $user $admin
 $sid
+$db
 
 @ones
 @twos
@@ -60,7 +61,7 @@ $html = Abills::HTML->new(
 );
 
 my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd}, { CHARSET => ($conf{dbcharset}) ? $conf{dbcharset} : undef });
-my $db = $sql->{db};
+$db = $sql->{db};
 $html->{language} = $FORM{language} if (defined($FORM{language}) && $FORM{language} =~ /[a-z_]/);
 
 require "../language/$html->{language}.pl";

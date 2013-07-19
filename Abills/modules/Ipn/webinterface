@@ -50,9 +50,9 @@ sub ipn_detail {
   my $list = $Ipn->user_detail({ UID => $user->{UID}, %LIST_PARAMS });
   my $table = $html->table(
     {
-      caption => "$_DETAIL",
-      width   => '100%',
-      title   => [ "$_BEGIN", "$_END", "SRC_ADDR", "SRC_PORT", "DST_ADDR", "DST_PORT", "PROTOCOL", "$_SIZE", 'NAS' ],
+      caption    => "$_DETAIL",
+      width      => '100%',
+      title      => [ "$_BEGIN", "$_END", "SRC_ADDR", "SRC_PORT", "DST_ADDR", "DST_PORT", "PROTOCOL", "$_SIZE", 'NAS' ],
       cols_align => [ 'left', 'right', 'right', 'right', 'right', 'right', 'right' ],
       pages      => $Ipn->{TOTAL},
       qs         => $pages_qs,
@@ -1214,7 +1214,10 @@ sub ipn_user_activate {
   my $ip       = '0.0.0.0';
   my $IP_INPUT = '';
   my $Dv       = Dv->new($db, $admin, \%conf);
-  $Dv->info($LIST_PARAMS{UID});
+  
+
+  $Dv = $Dv->info($LIST_PARAMS{UID});
+  my $static_ip = $Dv->{IP};
 
   if ($Dv->{STATUS} > 0) {
     my @service_status = ("$_ENABLE", "$_DISABLE", "$_NOT_ACTIVE", "$_HOLD_UP", 
@@ -1233,20 +1236,19 @@ sub ipn_user_activate {
   }
 
   if (!$user->{UID} && !$attr->{IP}) {
-    $ENV{REMOTE_ADDR} = $Dv->{IP} if ($Dv->{IP} ne '0.0.0.0');
+    $ENV{REMOTE_ADDR} = $static_ip if ($static_ip ne '0.0.0.0');
     $IP_INPUT = $html->form_input('REMOTE_ADDR', "$ENV{REMOTE_ADDR}", { OUTPUT2RETURN => 1 });
     $ip = ($FORM{REMOTE_ADDR}) ? $FORM{REMOTE_ADDR} : $ENV{REMOTE_ADDR};
   }
   else {
-  	if ($Dv->{IP} ne '0.0.0.0' && $ENV{REMOTE_ADDR} ne $Dv->{IP}) {
-  		$html->message('err', $_ERROR, "$ERR_UNALLOW_IP '$ENV{REMOTE_ADDR}'");
+  	if ($static_ip ne '0.0.0.0' && $ENV{REMOTE_ADDR} ne $static_ip) {
+  		$html->message('err', $_ERROR, "$ERR_UNALLOW_IP '$ENV{REMOTE_ADDR}' // $static_ip");
   		return 0;
   	}
     $ip = $attr->{IP} || $ENV{REMOTE_ADDR};
   }
 
   $ip =~ s/\s+//g;
-
   my $nas_id = 0;
   if (!$user->{UID} && $FORM{NAS_ID}) {
     $nas_id = int($FORM{NAS_ID});

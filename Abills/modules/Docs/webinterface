@@ -1177,7 +1177,7 @@ sub docs_invoices_list {
   my ($table, $invoice_list) = result_former({
      INPUT_DATA      => $Docs,
      FUNCTION        => 'invoices_list',
-     BASE_FIELDS     => 5,
+     BASE_FIELDS     => (! $user->{UID}) ? 5 : 3,
      FUNCTION_FIELDS => (! $user->{UID}) ? 'print,payment,show,send,del' : 'print',
      EXT_TITLES      => {
         invoice_num    => '#',
@@ -1228,11 +1228,11 @@ sub docs_invoices_list {
 	}
 
   my %orders_hash = %{ $self->{ORDERS} };
-  
+ 
   foreach my $invoice (@$invoice_list) {
     my @fields_array = ();
 
-    for (my $i = 0; $i < 5+$invoice_list_fields; $i++) {
+    for (my $i = 0; $i < ((! $user->{UID}) ? 5 : 3)+$invoice_list_fields; $i++) {
  	    my $val        = '';
       my $field_name = $Docs->{COL_NAMES_ARR}->[$i];
 
