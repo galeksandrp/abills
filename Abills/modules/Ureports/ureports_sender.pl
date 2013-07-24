@@ -105,50 +105,52 @@ my $debug_output = ureports_periodic_reports({ %$ARGV });
 
 print $debug_output;
 
-##**********************************************************
-## ureports_send_reports
-##**********************************************************
-#sub ureports_send_reports {
-#  my ($type, $destination, $message, $attr) = @_;
-#
-#  $message = $html->tpl_show(_include('ureports_report_'.$attr->{REPORT_ID}, 'Ureports'), $attr, {  OUTPUT2RETURN => 1 });
-#
-#  if ($debug > 6) {
-#    print "$type $destination $message\n";
-#  }
-#  elsif ($type == 0) {
-#    $message = $html->tpl_show(_include('ureports_email_message', 'Ureports'), $attr, { OUTPUT2RETURN => 1 });
-#
-#    my $subject = $attr->{SUBJECT} || '';
-#    if (!sendmail($conf{ADMIN_MAIL}, $destination, $subject, $message . "\n[$attr->{REPORT_ID}]", $conf{MAIL_CHARSET})) {
-#      return 0;
-#    }
-#  }
-#  elsif ($type == 1) {
-#    if (in_array('Sms', \@MODULES)) {
-#      $message = $html->tpl_show(_include('ureports_sms_message', 'Ureports'), $attr, { OUTPUT2RETURN => 1 });
-#
-#      load_module('Sms');
-#      sms_send(
-#        {
-#          NUMBER    => $destination,
-#          MESSAGE   => $message,
-#          DEBUG     => $debug,
-#          UID       => $attr->{UID},
-#          PERRIODIC => 1
-#        }
-#      );
-#    }
-#    elsif ($conf{UREPORTS_SMS_CMD}) {
-#      my $cmd = `$conf{UREPORTS_SMS_CMD} $destination $message`;
-#    }
-#  }
-#  elsif ($type == 2) {
-#
-#  }
-#
-#  return 1;
-#}
+#**********************************************************
+# ureports_send_reports
+#**********************************************************
+sub ureports_send_reports {
+  my ($type, $destination, $message, $attr) = @_;
+
+  $message = $html->tpl_show(_include('ureports_report_'.$attr->{REPORT_ID}, 'Ureports'), $attr, {  OUTPUT2RETURN => 1 });
+
+  if ($debug > 6) {
+    print "$type $destination $message\n";
+  }
+  elsif ($type == 0) {
+    $attr->{MESSAGE} = $message;  
+    $message = $html->tpl_show(_include('ureports_email_message', 'Ureports'), $attr, { OUTPUT2RETURN => 1 });
+
+    my $subject = $attr->{SUBJECT} || '';
+    if (!sendmail($conf{ADMIN_MAIL}, $destination, $subject, $message . "\n[$attr->{REPORT_ID}]", $conf{MAIL_CHARSET})) {
+      return 0;
+    }
+  }
+  elsif ($type == 1) {
+    if (in_array('Sms', \@MODULES)) {
+    	$attr->{MESSAGE} = $message;
+      $message = $html->tpl_show(_include('ureports_sms_message', 'Ureports'), $attr, { OUTPUT2RETURN => 1 });
+
+      load_module('Sms');
+      sms_send(
+        {
+          NUMBER    => $destination,
+          MESSAGE   => $message,
+          DEBUG     => $debug,
+          UID       => $attr->{UID},
+          PERRIODIC => 1
+        }
+      );
+    }
+    elsif ($conf{UREPORTS_SMS_CMD}) {
+      my $cmd = `$conf{UREPORTS_SMS_CMD} $destination $message`;
+    }
+  }
+  elsif ($type == 2) {
+
+  }
+
+  return 1;
+}
 
 #**********************************************************
 # ureports_periodic_reports
@@ -211,7 +213,7 @@ sub ureports_periodic_reports {
       my %PARAMS = ();
       $user->{TP_ID} = $TP_ID;
 
-      $debug_output .= "LOGIN: $user->{LOGIN} ($user->{UID}) DEPOSIT: $user->{deposit} CREDIT: $user->{credit}\n" if ($debug > 3);
+      $debug_output .= "LOGIN: $user->{LOGIN} ($user->{UID}) DEPOSIT: $user->{deposit} CREDIT: $user->{credit} Report id: $user->{REPORT_ID}\n" if ($debug > 3);
 
       if ($user->{BILL_ID} > 0 && defined($user->{DEPOSIT})) {
         #Skip action for pay opearation
@@ -363,11 +365,22 @@ sub ureports_periodic_reports {
         #All service expired throught
         elsif ($user->{REPORT_ID} == 13) {
           my $total_daily_fee = 0;
-          my $cross_modules_return = cross_modules_call('_docs', { FEES_INFO => 1, UID => $user->{UID}  });
+          my $cross_modules_return = cross_modules_call('_docs', { FEES_INFO    => 1, 
+          	                                                       UID          => $user->{UID},
+          	                                                       SKIP_MODULES => 'Ureports'  });
+
+          my $recommended_payment = 0; 
           foreach my $module (sort keys %$cross_modules_return) {
             if (ref $cross_modules_return->{$module} eq 'HASH') {
-              $total_daily_fee += $cross_modules_return->{$module}{day} if ($cross_modules_return->{$module}{day});
-              $total_daily_fee += ($cross_modules_return->{$module}{month} / 30)  if ($cross_modules_return->{$module}{abon_distribution});
+              if ($cross_modules_return->{$module}{day}) {
+                $total_daily_fee += $cross_modules_return->{$module}{day} ;
+              	$recommended_payment += $cross_modules_return->{$module}{day} * 30;
+              }
+
+              if ($cross_modules_return->{$module}{abon_distribution}) {
+                $total_daily_fee += ($cross_modules_return->{$module}{month} / 30);
+                $recommended_payment += $cross_modules_return->{$module}{month};
+              }
             }
           }
 
@@ -377,9 +390,21 @@ sub ureports_periodic_reports {
 
             if ($expire_days <= $user->{VALUE}) {
               $_ALL_SERVICE_EXPIRE =~ s/XX/ $expire_days /;
+              
+              my $message = $_ALL_SERVICE_EXPIRE;
+              
+              if ($user->{DEPOSIT} + $user->{CREDIT} > 0) {
+              	$recommended_payment = $recommended_payment - ($user->{DEPOSIT} + $user->{CREDIT});
+              }
+              else {
+              	$recommended_payment += abs($user->{DEPOSIT} + $user->{CREDIT});
+              }
+              
+              $message .= "\n $_RECOMMENDED_PAYMENT:  $recommended_payment\n";
+
               %PARAMS = (
                 DESCRIBE => "$_REPORTS ($user->{REPORT_ID}) ",
-                MESSAGE  => "$_ALL_SERVICE_EXPIRE",
+                MESSAGE  => "$message",
                 SUBJECT  => "$_ALL_SERVICE_EXPIRE"
                 );
             }

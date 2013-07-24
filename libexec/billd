@@ -100,7 +100,13 @@ require Admins;
 Admins->import();
 
 my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
+if (! $sql->{db}) {
+	print "SQL connect error\n";
+	exit;
+}
+
 $db = $sql->{db};
+
 $Admin = Admins->new($db, \%conf);
 $Admin->info($conf{SYSTEM_ADMIN_ID}, { IP => '127.0.0.1' });
 if ($Admin->{errno}) {
@@ -1109,7 +1115,6 @@ sub check_speed {
     exit;
   }
 
-
   @START_FW = (5000, 3000, 1000) if ($#START_FW < 0);
   my %LOGINS_SPEEDS = ();
   my %rule_speed    = ();
@@ -1261,6 +1266,10 @@ sub check_speed {
       NAS_ID       => $ARGV->{NAS_IDS},
     }
   );
+  
+  if ($Sessions->{errno}) {
+  	print "$Sessions->{error} $Sessions->{err_str}";
+  }
 
   # Check turbo mode
   my %TURBO_SPEEDS = ();

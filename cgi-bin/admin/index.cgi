@@ -8922,7 +8922,7 @@ sub form_districts {
                                DISTRICT_ID => $FORM{ID} });
 
           if ($users->{errno}) {
-            $html->message('err', $_ERROR, "[$users->{errno}] $err_strs{$users->{errno}}");
+            $html->message('err', $_ERROR, "$info{STREET_NAME}\n[$users->{errno}] $err_strs{$users->{errno}}");
             last;
           }
 
@@ -8937,7 +8937,7 @@ sub form_districts {
       
       $users->build_add(\%info);
       if ($users->{errno}) {
-        $html->message('err', $_ERROR, "[$users->{errno}] $err_strs{$users->{errno}}");
+        $html->message('err', $_ERROR, "$info{STREET_NAME} $info{NUMBER}\n[$users->{errno}] $err_strs{$users->{errno}}");
       }
       
       $counts++;      

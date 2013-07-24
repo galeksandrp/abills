@@ -96,15 +96,22 @@ sub ipn_sessions2 {
     $LIST_PARAMS{UID} = $user->{UID};
   }
 
-  $pages_qs .= "&UID=$LIST_PARAMS{UID}";
+  if($FORM{HOURS}) {
+  	$LIST_PARAMS{HOURS}=1;
+  }
 
+
+  $pages_qs .= "&UID=$LIST_PARAMS{UID}";
   reports(
     {
       DATE        => $FORM{DATE},
       REPORT      => '',
       PERIOD_FORM => 1,
       NO_GROUP    => 1,
-      HIDDEN      => { UID => $LIST_PARAMS{UID} }
+      HIDDEN      => { UID => $LIST_PARAMS{UID} },
+      EX_INPUTS   => [
+        "$_HOURS: ". $html->form_input('HOURS', 1, { TYPE => 'checkbox', STATE => ($FORM{HOURS}) ? 'checked' : undef })
+      ]
     }
   );
 
@@ -434,7 +441,14 @@ $INTERVAL_TYPE_SEL
       $delete = $html->button($_DEL, "index=" . $index . "&$pages_qs&del=$line->[12]+$line->[11]+$line->[7]+$line->[1]+$line->[9]+$line->[0]", { MESSAGE => "$_DEL Session SESSION_ID $line->[11]?", CLASS => 'del' });
     }
 
-    $table->addrow($line->[0], int2byte($line->[1]), $line->[2], $line->[3], $line->[4], $line->[5], $line->[6], $html->button("$_HOSTS", "index=$index$pages_qs", { CLASS => 'host' }));
+    $table->addrow($line->[0], 
+      int2byte($line->[1]), 
+      $line->[2], 
+      $line->[3], 
+      $line->[4], 
+      $line->[5], 
+      $line->[6], 
+      $html->button("$_HOSTS", "index=$index$pages_qs", { CLASS => 'host' }));
   }
 
   print $table->show();

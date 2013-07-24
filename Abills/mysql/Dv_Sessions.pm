@@ -291,9 +291,7 @@ sub online {
        FROM dv_calls c
        LEFT JOIN users u     ON (u.uid=c.uid)
        LEFT JOIN dv_main service ON (service.uid=u.uid)
-
        $EXT_TABLE
-
        $WHERE
        ORDER BY $SORT $DESC;", 
    undef,

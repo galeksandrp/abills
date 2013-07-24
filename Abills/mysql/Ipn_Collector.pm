@@ -71,7 +71,7 @@ sub new {
   $CONF->{MB_SIZE}              = $CONF->{KBYTE_SIZE} * $CONF->{KBYTE_SIZE};
   $self->{TRAFFIC_ROWS}         = 0;
   $self->{UNKNOWN_TRAFFIC_ROWS} = 0;
-  $Billing = Billing->new($db, $CONF);
+  $Billing = Billing->new($self->{db}, $CONF);
 
   return $self;
 }

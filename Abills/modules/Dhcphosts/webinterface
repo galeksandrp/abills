@@ -511,10 +511,11 @@ sub dhcphosts_networks {
   $Dhcphosts->{PARENT_SEL} = $html->form_select(
     'NET_PARENT',
     {
-      SELECTED          => $Dhcphosts->{NET_PARENT},
-      SEL_MULTI_ARRAY   => [ [ '', '' ], @{ $Dhcphosts->networks_list({ PARENT => 0 }) } ],
-      MULTI_ARRAY_KEY   => 0,
-      MULTI_ARRAY_VALUE => 1,
+      SELECTED   => $Dhcphosts->{NET_PARENT},
+      SEL_LIST   => $Dhcphosts->networks_list({ PARENT => 0, COLS_NAME => 1 }),
+      SEL_KEY    => 'id',
+      SEL_VALUE  => 'name',
+      SEL_OPTIONS=> { '' => '' },
     }
   );
 
@@ -573,7 +574,7 @@ sub dhcphosts_networks {
 #*******************************************************************
 sub dhcphosts_hosts {
 
-  if ($FORM{del}) {
+  if ($FORM{UID}) {
   	dhcphosts_user();
   	return 0;
   }
@@ -599,8 +600,8 @@ sub dhcphosts_hosts {
       {
         SELECTED   => $Dhcphosts->{NAS_ID} || $FORM{NAS_ID} || '',
         SEL_LIST   => $nas_list,
-        SEL_KEY    => 'id',
-        SEL_VALUE  => 'name',
+        SEL_KEY    => 'nas_id',
+        SEL_VALUE  => 'nas_name',
         SEL_OPTIONS=> { '' => $_ALL },
       }
     );
@@ -619,7 +620,7 @@ sub dhcphosts_hosts {
   my ($table, $list) = result_former({
      INPUT_DATA      => $Dhcphosts,
      FUNCTION        => 'hosts_list',
-     BASE_FIELDS     => 6,
+     BASE_FIELDS     => 7,
      FUNCTION_FIELDS => 'change,del',
      EXT_TITLES      => {
           'id'          => '#',
@@ -627,7 +628,7 @@ sub dhcphosts_hosts {
           'mac'         => 'MAC',
           'ipn_activate'=> "IPN Activate",
           'network_name'=> $_NETWORK,
-          'status'      => $_STATUS,
+          'status'      => "DHCP $_STATUS",
           'option_82'   => 'Option 82',
           'ports'       => $_PORTS,
           'vid'         => "$_USER VLAN",
@@ -645,7 +646,7 @@ sub dhcphosts_hosts {
        qs         => $pages_qs,
        ID         => 'DHCP_HOSTS',
        EXPORT     => 1,
-       MENU       => (($FORM{UID}) ? "$_ADD:UID=$FORM{UID}&index=$index&add_form=1:add;" : undef )."$_SEARCH:index=$index&search_form=1:search",
+       MENU       => (($LIST_PARAMS{UID}) ? "$_ADD:UID=$LIST_PARAMS{UID}&index=$index&add_form=1:add;" : undef )."$_SEARCH:index=$index&search_form=1:search",
      },
      MAKE_ROWS    => 1,
      MODULE       => 'Dhcphosts',
@@ -876,8 +877,9 @@ sub dhcphosts_user {
     $Dhcphosts->{ACTION}     = 'change';
     $Dhcphosts->{ACTION_LNG} = $_CHANGE;
 
+    $FORM{add_form}=1;
+
     if (!$Dhcphosts->{errstr}) {
-#    	$FORM{add_form}=1;
       $html->message('info', $_CHANGE, "$_CHANGE [$FORM{chg}] ");
     }
   }
@@ -986,10 +988,11 @@ sub dhcphosts_user {
   $Dhcphosts->{SWITCH_SEL} = $html->form_select(
     'NAS_ID',
     {
-      SELECTED => $Dhcphosts->{NAS_ID} || $FORM{NAS_ID},
-      SEL_MULTI_ARRAY => [ [ '', $_ALL ], @{ $Nas->list() } ],
-      MULTI_ARRAY_KEY => 0,
-      MULTI_ARRAY_VALUE => 1,
+      SELECTED   => $Dhcphosts->{NAS_ID} || $FORM{NAS_ID},
+      SEL_ARRAY  => $Nas->list({ COLS_NAME => 1 }),
+      SEL_KEY    => 'nas_id',
+      SEL_VALUE  => 'nas_name',
+      SEL_OPTIONS=> { '' => $_ALL },
     }
   );
 
@@ -997,7 +1000,6 @@ sub dhcphosts_user {
     'NAS_ID',
     {
       POPUP_WINDOW => 'form_nas_search',
-
       #SELECTED          => $Dhcphosts->{NAS_ID} || $FORM{NAS_ID},
       #SEL_MULTI_ARRAY   => [['', $_ALL], @{ $Nas->list() } ],
       #MULTI_ARRAY_KEY   => 0,
@@ -1026,7 +1028,8 @@ sub dhcphosts_user {
     }
   );
 
-  dhcphosts_hosts();
+  delete $FORM{UID};
+  dhcphosts_hosts();  
 }
 
 #**********************************************************
@@ -1100,7 +1103,7 @@ sub dhcphosts_network_sel {
   return $html->form_select(
     'NETWORK',
     {
-      SELECTED => $FORM{NETWORK} || '',
+      SELECTED => $FORM{NETWORK} || 0,
       SEL_HASH => \%networks
     }
   );
