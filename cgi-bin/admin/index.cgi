@@ -4660,7 +4660,7 @@ sub form_nas {
       $auth_types[ $line->{auth_type} ],
       $status[ $line->{nas_disable} ],
       $line->{descr},
-      (in_array('Dhcphosts', \@MODULES)) ? $html->button("$_USERS", "index=". get_function_index('dhcphosts_hosts') ."&NAS_ID=$line->{nas_id}&VIEW=1&search=1", { BUTTON => 1 }) : '',
+      (in_array('Dhcphosts', \@MODULES)) ? $html->button("$_USERS", "index=". get_function_index('dhcphosts_hosts') ."&NAS_ID=$line->{nas_id}&VIEW=1&search=1&search_form=1", { BUTTON => 1 }) : '',
       $html->button("IP POOLs", "index=". get_function_index('form_ip_pools') ."&NAS_ID=$line->{nas_id}", { BUTTON => 1 }),
       $html->button("$_CHANGE", "index=". get_function_index('form_nas') ."&NAS_ID=$line->{nas_id}", { CLASS => 'change', TEXT => $_CHANGE }), 
       $delete
