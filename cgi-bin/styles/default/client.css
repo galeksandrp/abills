@@ -14,6 +14,7 @@ body {
 h1, h2 {
 
 }
+
 h3 {
   text-align:center;
 }
@@ -878,6 +879,11 @@ img.tcalIcon
 .footer_col a {
 	color: #717171;
 	font: 12px Tahoma, Arial, sans-serif;
+}
+
+.line {
+        background: #717171; 
+	height:1px;
 }
 
 /*  popup window*/

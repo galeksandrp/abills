@@ -222,6 +222,37 @@ sub ureports_periodic_reports {
           next;
         }
 
+        # Recomended payments
+        my $total_daily_fee = 0;
+        my $cross_modules_return = cross_modules_call('_docs', { FEES_INFO    => 1, 
+        	                                                       UID          => $user->{UID},
+        	                                                       SKIP_MODULES => 'Ureports'  });
+
+        $user->{RECOMMENDED_PAYMENT} = 0;
+        foreach my $module (sort keys %$cross_modules_return) {
+          if (ref $cross_modules_return->{$module} eq 'HASH') {
+            if ($cross_modules_return->{$module}{day}) {
+              $total_daily_fee += $cross_modules_return->{$module}{day} ;
+            	$user->{RECOMMENDED_PAYMENT} += $cross_modules_return->{$module}{day} * 30;
+            }
+
+            if ($cross_modules_return->{$module}{abon_distribution}) {
+              $total_daily_fee += ($cross_modules_return->{$module}{month} / 30);
+              $user->{RECOMMENDED_PAYMENT} += $cross_modules_return->{$module}{month};
+            }
+          }
+        }
+
+        if ($user->{DEPOSIT} + $user->{CREDIT} > 0) {
+         	$user->{RECOMMENDED_PAYMENT} = $user->{RECOMMENDED_PAYMENT} - ($user->{DEPOSIT} + $user->{CREDIT});
+        }
+        else {
+         	$user->{RECOMMENDED_PAYMENT} += abs($user->{DEPOSIT} + $user->{CREDIT});
+        }
+
+
+        $user->{EXPIRE_DAYS} = int($user->{DEPOSIT} / $total_daily_fee) if ($total_daily_fee > 0);
+
         #Report 1
         if ($user->{REPORT_ID} == 1) {
           if ($user->{VALUE} > $user->{DEPOSIT}) {
@@ -364,43 +395,15 @@ sub ureports_periodic_reports {
         }
         #All service expired throught
         elsif ($user->{REPORT_ID} == 13) {
-          my $total_daily_fee = 0;
-          my $cross_modules_return = cross_modules_call('_docs', { FEES_INFO    => 1, 
-          	                                                       UID          => $user->{UID},
-          	                                                       SKIP_MODULES => 'Ureports'  });
-
-          my $recommended_payment = 0; 
-          foreach my $module (sort keys %$cross_modules_return) {
-            if (ref $cross_modules_return->{$module} eq 'HASH') {
-              if ($cross_modules_return->{$module}{day}) {
-                $total_daily_fee += $cross_modules_return->{$module}{day} ;
-              	$recommended_payment += $cross_modules_return->{$module}{day} * 30;
-              }
-
-              if ($cross_modules_return->{$module}{abon_distribution}) {
-                $total_daily_fee += ($cross_modules_return->{$module}{month} / 30);
-                $recommended_payment += $cross_modules_return->{$module}{month};
-              }
-            }
-          }
-
           if ($total_daily_fee > 0) {
-            my $expire_days = int($user->{DEPOSIT} / $total_daily_fee);
-            $debug_output .= "(Day fee: $total_daily_fee / $expire_days -> $user->{VALUE} \n" if ($debug > 4);
+            $debug_output .= "(Day fee: $total_daily_fee / $user->{EXPIRE_DAYS} -> $user->{VALUE} \n" if ($debug > 4);
 
-            if ($expire_days <= $user->{VALUE}) {
-              $_ALL_SERVICE_EXPIRE =~ s/XX/ $expire_days /;
+            if ($user->{EXPIRE_DAYS} <= $user->{VALUE}) {
+              $_ALL_SERVICE_EXPIRE =~ s/XX/ $user->{EXPIRE_DAYS} /;
               
               my $message = $_ALL_SERVICE_EXPIRE;
               
-              if ($user->{DEPOSIT} + $user->{CREDIT} > 0) {
-              	$recommended_payment = $recommended_payment - ($user->{DEPOSIT} + $user->{CREDIT});
-              }
-              else {
-              	$recommended_payment += abs($user->{DEPOSIT} + $user->{CREDIT});
-              }
-              
-              $message .= "\n $_RECOMMENDED_PAYMENT:  $recommended_payment\n";
+              $message .= "\n $_RECOMMENDED_PAYMENT:  $user->{RECOMMENDED_PAYMENT}\n";
 
               %PARAMS = (
                 DESCRIBE => "$_REPORTS ($user->{REPORT_ID}) ",
