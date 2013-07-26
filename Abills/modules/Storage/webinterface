@@ -388,8 +388,8 @@ sub suppliers_main {
 #***********************************************************
 sub storage_main {
 
-  if ($Cards::VERSION < 2.01) {
-    $html->message('info', "UPDATE", "Please update module 'Storage' to version 2.01 or higher. http://abills.net.ua/");
+  if ($Storage::VERSION < 2.01) {
+    $html->message('info', "UPDATE", "Current version: $Storage::VERSION Please update module 'Storage' to version 2.01 or higher. http://abills.net.ua/");
     return 0;
   }
 

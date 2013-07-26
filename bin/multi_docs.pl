@@ -411,15 +411,15 @@ sub periodic_invoice {
       if ($debug < 5) {
         $Docs->invoice_add({ %user, 
         	                   %ORDERS_HASH,
-        	                   DATE => $ARGV->{INVOICE_DATE} || undef
-        	                    });
+        	                   DATE    => $ARGV->{INVOICE_DATE} || undef
+        	                   DEPOSIT => ($ARGV->{INCLUDE_DEPOSIT}) ?  $user{DEPOSIT} : 0
+        	                 });
 
         $Docs->user_change(
           {
             UID          => $user{UID},
             INVOICE_DATE => $user{NEXT_INVOICE_DATE},
             CHANGE_DATE  => 1,
-            DEPOSIT      => ($ARGV->{INCLUDE_DEPOSIT}) ?  $user{DEPOSIT} : 0
           }
         );
 
