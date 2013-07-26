@@ -1017,16 +1017,18 @@ sub dhcphosts_user {
     $Dhcphosts->{NETWORK_BUTTON} = $html->button($_INFO, "&index=$network_index&chg=$Dhcphosts->{NETWORK}", { CLASS => 'show rightAlignText' });
   }
 
-  $html->tpl_show(
-    _include('dhcphosts_host', 'Dhcphosts'),
-    {
-      %{ $Dhcphosts->host_defaults() },
-      HOSTNAME => $users->{LOGIN} . (($Dhcphosts->{TOTAL}) ? '_' . ($Dhcphosts->{TOTAL} + 2) : ''),
-      %FORM,
-      %$attr,
-      %$Dhcphosts,
-    }
-  );
+  if ($FORM{UID}) {
+    $html->tpl_show(
+      _include('dhcphosts_host', 'Dhcphosts'),
+      {
+        %{ $Dhcphosts->host_defaults() },
+        HOSTNAME => $users->{LOGIN} . (($Dhcphosts->{TOTAL}) ? '_' . ($Dhcphosts->{TOTAL} + 2) : ''),
+        %FORM,
+        %$attr,
+        %$Dhcphosts,
+      }
+    );
+  }
 
   delete $FORM{UID};
   dhcphosts_hosts();  
@@ -1103,7 +1105,7 @@ sub dhcphosts_network_sel {
   return $html->form_select(
     'NETWORK',
     {
-      SELECTED => $FORM{NETWORK} || 0,
+      SELECTED => $FORM{NETWORK} || '',
       SEL_HASH => \%networks
     }
   );

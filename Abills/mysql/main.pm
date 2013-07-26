@@ -53,8 +53,8 @@ $PG        = 0;
 $PAGE_ROWS = 25;
 
 my $query_count = 0;
-
 use DBI;
+use Abills::Base qw(ip2int int2ip);
 
 #**********************************************************
 # Connect to DB
@@ -453,8 +453,8 @@ sub search_expr {
         my ($i, $first_ip, $last_ip);
         my @p = split(/\./, $value);
         for ($i = 0 ; $i < 4 ; $i++) {
-          if ($p[$i] eq '*') {
-            $first_ip .= '0';
+          if ($p[$i] =~ /(\d{0,2})\*/) {
+            $first_ip .= $1 . '0';
             $last_ip  .= '255';
           }
           else {
@@ -467,7 +467,6 @@ sub search_expr {
           }
         }
         push @result_arr, "($field>=INET_ATON('$first_ip') and $field<=INET_ATON('$last_ip'))";
-
         return \@result_arr;
       }
       else {      
@@ -551,8 +550,13 @@ sub changes {
   
       while (defined(my $row = $q->fetchrow_hashref())) {
         while(my ($k, $v) = each %$row ) {
-          $OLD_DATA->{ uc($k) }=$v;
-          $FIELDS->{ uc($k) }=$k;
+          my $field_name = uc($k);
+          if ($field_name eq 'IP') {
+            $v = int2ip($v);
+          }
+
+          $OLD_DATA->{ $field_name }=$v;
+          $FIELDS->{ $field_name }=$k;
         }
       }
   }
