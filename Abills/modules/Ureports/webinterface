@@ -1528,7 +1528,9 @@ sub ureports_payments_maked {
     return 0;
   }
       
-  return '' if ($FORM{DISABLE} || $FORM{CREDIT});
+  return '' if ($FORM{DISABLE} || $FORM{CREDIT} );
+  return '' if (int($attr->{SUM}) == 0);
+  
 
   $Ureports->tp_user_reports_list({ UID              => $user->{UID},
                                     REPORT_ID        => 12,

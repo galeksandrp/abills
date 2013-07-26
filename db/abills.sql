@@ -414,7 +414,7 @@ CREATE TABLE `ippools` (
   `priority` tinyint(4) NOT NULL DEFAULT '0',
   `static` tinyint(1) unsigned NOT NULL DEFAULT '0',
   `speed` int(10) unsigned NOT NULL default '0',
-#  `ipv6_prefix` VARBINARY(16) not null default '',
+  `ipv6_prefix` VARBINARY(16) not null default '',
   PRIMARY KEY  (`id`),
   UNIQUE KEY `nas` (`nas`,`ip`)
 )  ;
