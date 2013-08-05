@@ -278,6 +278,13 @@ sub dhcphosts_monitor {
     );
 
     foreach my $line (@$list) {
+      if ($line->{port} == 0 ) {
+        if($line->{circuit_id} =~ /0:4:0:([0-9a-f]+):0:([0-9a-f]+)/i) {
+                $line->{port}=hex($1);
+                $line->{vlan}=hex($2);
+        }
+      }
+      
       $table->addrow(
         ($line->{login}) ? $html->button($line->{login}, "index=15&UID=$line->{uid}") : '',
         $line->{ip}, 
