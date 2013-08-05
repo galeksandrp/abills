@@ -573,11 +573,10 @@ sub form_select {
 
     foreach my $v (@$H) {
       $self->{SELECT} .= "<option value='$v->{$key}'";
-      $self->{SELECT} .= ' selected' if (defined($attr->{SELECTED}) && $v->{$key} eq $attr->{SELECTED});
+      $self->{SELECT} .= ' selected ' if (defined($attr->{SELECTED}) && $v->{$key} eq $attr->{SELECTED});
       $self->{SELECT} .= '>';
-
       #Value
-      $self->{SELECT} .= "$v->{$key} " if (!$attr->{NO_ID});
+      $self->{SELECT} .= " $v->{$key} " if (!$attr->{NO_ID});
 
       if ($value =~ /,/) {
         my @values      = split(/,/, $value);
@@ -591,7 +590,7 @@ sub form_select {
       else {
         $self->{SELECT} .= "$v->{$value}";
       }
-      $self->{SELECT} .= "\n";
+      $self->{SELECT} .= "</option>\n";
     }
   }
   elsif ($attr->{SEL_HASH}) {

@@ -215,7 +215,6 @@ sub check_lines {
                           QUICK         => 1 });
   $Sessions->online(
     {
-      %LIST_PARAMS,
       'USER_NAME'           => '_SHOW',
       'NAS_PORT_ID'         => '_SHOW', 
       'CLIENT_IP'           => '_SHOW', 
@@ -247,7 +246,8 @@ sub check_lines {
       'DV_EXPIRED'          => '_SHOW',
       'DV_EXPIRE'           => '_SHOW',
       'NETMASK'             => '_SHOW',
-      'TP_CREDIT_TRESSHOLD' => '_SHOW'
+      'TP_CREDIT_TRESSHOLD' => '_SHOW',
+      %LIST_PARAMS,
     }
   );
 
@@ -291,7 +291,7 @@ sub check_lines {
           && $online->{status} != 2
       ){
         session_hangup($nas, $online, "Change TP $online->{calls_tp_id} -> $online->{tp_num} DEPOSIT: $online->{deposit} CREDIT: $online->{credit} SESSION_SUM: $online->{session_sum} STATUS: $state SESSION_ID: $online->{acct_session_id} GUEST: $online->{guest}");
-        next;
+        next if ($nas->{NAS_ALIVE} > 0 && ($online->{last_alive} < $nas->{NAS_ALIVE} * $error_alive_count));
       }
       elsif ($online->{status} == 9) {
         session_hangup($nas, $online, "Lost session DEPOSIT: $online->{deposit} CREDIT: $online->{credit} SESSION_SUM: $online->{session_sum} STATUS: $state SESSION_ID: $online->{acct_session_id} GUEST: $online->{guest}");

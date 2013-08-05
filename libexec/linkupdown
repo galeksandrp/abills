@@ -615,12 +615,18 @@ sub mikrotik {
     push @commands, qq{/ip firewall address-list add list=CLIENTS_$tp_id  address=$CLIENT_IP };
   }
 
+  my ($nas_host_ip, $nas_port_coa, $nas_port) = split(/:/, $nas_host, 3);
+
+  if (!$nas_port) {
+    $nas_port = 22;
+  }
+
   #Make ssh command
   my $result = '';
   $result .= `echo "===> Initialising remote commands executing:" >> /var/log/shaper`;
   foreach my $cmd (@commands) {
     print "$cmd\n" if ($debug > 0);
-    $result .= `$SSH $nas_admin\@$nas_host "$cmd"; echo "$cmd" >> /var/log/shaper`;
+    $result .= `$SSH -p $nas_port $nas_admin\@$nas_host_ip "$cmd"; echo "$cmd" >> /var/log/shaper`;
   }
 
   print $result;

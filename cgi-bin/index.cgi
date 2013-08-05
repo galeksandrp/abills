@@ -452,6 +452,7 @@ sub form_info {
 
   if ($attr->{NEG_DEPOSIT}) {
     form_neg_deposit($user);
+    #return 0;
   }
   else {
     if (!$conf{DOCS_SKIP_NEXT_PERIOD_ACCOUNT}) {

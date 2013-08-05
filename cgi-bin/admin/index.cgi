@@ -4492,6 +4492,8 @@ sub form_nas_add {
     $nas->{ADDRESS_TPL} = $html->tpl_show(templates('form_address'), $nas, { OUTPUT2RETURN => 1, ID => 'form_address' });
   }
 
+
+      print "// $nas->{GID} //";
   $nas->{NAS_GROUPS_SEL} = sel_nas_groups({ GID => $nas->{GID} });
   $html->tpl_show(templates('form_nas'), $nas, { ID => 'form_nas' });
 }
@@ -4684,16 +4686,13 @@ sub form_nas {
 sub sel_nas_groups {
   my ($attr) = @_;
 
-  my $GROUPS_SEL = '';
-  my $GID = $attr->{GID} || $FORM{GID};
-
   my $nas = Nas->new($db, \%conf);
-  $GROUPS_SEL = $html->form_select(
+  my $GROUPS_SEL = $html->form_select(
     'GID',
     {
-      SELECTED       => $GID,
+      SELECTED       => $attr->{GID} || $FORM{GID},
       SEL_LIST       => $nas->nas_group_list({ DOMAIN_ID => $admin->{DOMAIN_ID}, COLS_NAME => 1 }),
-      SEL_OPTIONS    => { '' => '--' },
+      SEL_OPTIONS    => { '' => '' },
       MAIN_MENU      => get_function_index('form_nas_groups'),
       MAIN_MENU_AGRV => "chg=$GID"
     }

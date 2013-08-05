@@ -247,9 +247,10 @@ sub ureports_periodic_reports {
          	$user->{RECOMMENDED_PAYMENT} = $user->{RECOMMENDED_PAYMENT} - ($user->{DEPOSIT} + $user->{CREDIT});
         }
         else {
-         	$user->{RECOMMENDED_PAYMENT} += abs($user->{DEPOSIT} + $user->{CREDIT});
+         	$user->{RECOMMENDED_PAYMENT} += sprintf("%.2f", abs($user->{DEPOSIT} + $user->{CREDIT}));
         }
 
+        $user->{DEPOSIT} = sprintf("%.2f", $user->{DEPOSIT});
 
         $user->{EXPIRE_DAYS} = int($user->{DEPOSIT} / $total_daily_fee) if ($total_daily_fee > 0);
 

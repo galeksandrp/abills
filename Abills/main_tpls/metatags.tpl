@@ -125,9 +125,9 @@ th,li {
 }
 
 table {
-	-webkit-border-radius:10px 5px 5px 10px;
-	border:$_COLORS[3] solid 1px;
-	-moz-border-radius:10px 5px 5px 10px;
+	-webkit-border-radius: 5px 5px 5px 5px;
+	border: $_COLORS[3] solid 1px;
+	-moz-border-radius: 5px 5px 5px 5px;
 }
 
 table.list {

@@ -630,7 +630,7 @@ sub dhcphosts_hosts {
           'network_name'=> $_NETWORK,
           'status'      => "DHCP $_STATUS",
           'option_82'   => 'Option 82',
-          'ports'       => $_PORTS,
+          'ports'       => $_PORT,
           'vid'         => "$_USER VLAN",
           'server_vid'  => "Server VLAN",
           'nas_id'      => $_NAS,
