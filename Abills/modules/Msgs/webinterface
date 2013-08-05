@@ -400,8 +400,6 @@ sub msgs_admin_add {
     {
       SELECTED       => $Msgs->{CHAPTER},
       SEL_LIST       => $Msgs->chapters_list({ CHAPTERS => $LIST_PARAMS{CHAPTERS}, COLS_NAME => 1 }),
-      SEL_KEY        => 'id',
-      SEL_VALUE      => 'name',
       MAIN_MENU      => get_function_index('msgs_chapters'),
       MAIN_MENU_AGRV => "chg=$Msgs->{CHAPTER}"
     }
@@ -542,8 +540,6 @@ sub msgs_search {
       {
         SELECTED       => $FORM{CHAPTER} || 0,
         SEL_LIST       => $Msgs->chapters_list({ CHAPTERS => join(',', keys %A_PRIVILEGES), COLS_NAME => 1 }),
-        SEL_KEY        => 'id',
-        SEL_VALUE      => 'name',
         MAIN_MENU      => get_function_index('msgs_chapters'),
         MAIN_MENU_AGRV => "chg=$Msgs->{CHAPTER}",
         SEL_OPTIONS    => { '' => $_ALL },
@@ -766,8 +762,6 @@ sub msgs_admin {
       {
         SELECTED       => '',
         SEL_LIST       => $Msgs->chapters_list({ CHAPTERS => join(',', keys %A_PRIVILEGES), COLS_NAME => 1  }),
-        SEL_KEY        => 0,
-        SEL_VALUE      => 1,
         MAIN_MENU      => get_function_index('msgs_chapters'),
         MAIN_MENU_AGRV => "chg=$Msgs->{CHAPTER}",
         SEL_OPTIONS    => { '' => '' },
@@ -1454,8 +1448,6 @@ sub msgs_user {
       {
         SELECTED       => $Msgs->{CHAPTER},
         SEL_LIST       => $Msgs->chapters_list({ INNER_CHAPTER => 0, COLS_NAME => 1 }),
-        SEL_KEY        => 'id',
-        SEL_VALUE      => 'name',
         MAIN_MENU      => get_function_index('msgs_chapters'),
         MAIN_MENU_AGRV => "chg=$Msgs->{CHAPTER}"
       }
@@ -2690,8 +2682,6 @@ sub msgs_unreg_requests_list {
       {
         SELECTED       => $Msgs->{CHAPTER} || $FORM{CHAPTER} || 0,
         SEL_LIST       => $Msgs->chapters_list({ COLS_NAME => 1 }),
-        SEL_KEY        => 'id',
-        SEL_VALUE      => 'name',
         MAIN_MENU      => get_function_index('msgs_chapters'),
         MAIN_MENU_AGRV => "chg=$Msgs->{CHAPTER}",
         SEL_OPTIONS    => { 0 => $_ALL },
@@ -2872,8 +2862,6 @@ sub msgs_unreg_requests {
     {
       SELECTED       => $Msgs->{CHAPTER},
       SEL_LIST       => $Msgs->chapters_list({ CHAPTERS => $LIST_PARAMS{CHAPTERS}, COLS_NAME => 1 }),
-      SEL_KEY        => 'id',
-      SEL_VALUE      => 'name',
       MAIN_MENU      => get_function_index('msgs_chapters'),
       MAIN_MENU_AGRV => "chg=$Msgs->{CHAPTER}"
     }
@@ -3012,8 +3000,6 @@ sub msgs_survey_sel {
       {
         SELECTED   => '',
         SEL_LIST   => $list,
-        SEL_KEY    => 'id',
-        SEL_VALUE  => 'name',
         SEL_OPTIONS=> { undef => '' },
       }
     );

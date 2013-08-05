@@ -551,6 +551,38 @@ sub form_select {
       $self->{SELECT} .= "\n";
     }
   }
+  elsif ($attr->{SEL_LIST}) {
+    my $key                      = $attr->{SEL_KEY} || 'id';
+    my $value                    = $attr->{SEL_VALUE} || 'name';
+    my $H                        = $attr->{SEL_LIST};
+    my @SEL_VALUE_PREFIX = ();
+
+    if ($attr->{SEL_VALUE_PREFIX}) {
+      @SEL_VALUE_PREFIX = split(/,/, $attr->{SEL_VALUE_PREFIX});
+    }
+
+    foreach my $v (@$H) {
+      $self->{SELECT} .= "<option value='$v->{$key}'";
+      $self->{SELECT} .= ' selected ' if (defined($attr->{SELECTED}) && $v->{$key} eq $attr->{SELECTED});
+      $self->{SELECT} .= '>';
+      #Value
+      $self->{SELECT} .= " $v->{$key} " if (!$attr->{NO_ID});
+
+      if ($value =~ /,/) {
+        my @values      = split(/,/, $value);
+        my @valuesr_arr = ();
+        for( my $key_num; $key_num<=$#values; $key_num++) {
+          my $val_keys = $values[$key_num];
+          push @valuesr_arr, (($attr->{SEL_VALUE_PREFIX} && $SEL_VALUE_PREFIX[$key_num]) ? $SEL_VALUE_PREFIX[$key_num] . $v->{$val_keys} : $v->{$val_keys});
+        }
+        $self->{SELECT} .= join(' : ', @valuesr_arr);
+      }
+      else {
+        $self->{SELECT} .= "$v->{$value}";
+      }
+      $self->{SELECT} .= "</option>\n";
+    }
+  }
   elsif (defined($attr->{SEL_HASH})) {
     my @H            = ();
     my @group_colors = ('#000000', '#008000', '#0000A0', '#D76B00', '#790000', '#808000', '#3D7A7A');
