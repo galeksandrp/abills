@@ -407,7 +407,8 @@ sub pi {
       d.city, 
       d.name AS address_district, 
       s.name AS address_street, 
-      b.number AS address_build
+      b.number AS address_build,
+      s.id AS street_id
      FROM builds b
      LEFT JOIN streets s  ON (s.id=b.street_id)
      LEFT JOIN districts d  ON (d.id=s.district_id)

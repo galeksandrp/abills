@@ -461,7 +461,6 @@ sub host_change {
   $attr->{IPN_ACTIVATE} = ($attr->{IPN_ACTIVATE}) ? 1 : 0;
   $attr->{DISABLE}      = ($attr->{DISABLE})      ? 1 : 0;
 
-  $self->{debug}=1;
   $self->changes(
     $admin,
     {

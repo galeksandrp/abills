@@ -270,14 +270,6 @@ if ($args->{DEBUG}) {
 # sheduler()
 #**********************************************************
 sub sheduler {
-
-  #my %shedule_type = ('tp'      => $_TARIF_PLAN,
-  #                    'fees'    => $_FEES,
-  #                    'message' => $_MESSAGES,
-  #                    'status'  => $_STATUS,
-  #                    'sql'     => 'SQL'
-  # );
-
   $DEBUG .= "Shedule\n" if ($debug > 1);
 
   #Change tp
@@ -289,13 +281,16 @@ sub sheduler {
   Fees->import();
   my $fees = Fees->new($db, $admin, \%conf);
 
+  $shedule->{debug}=1 if ($debug>6);
+
   my $list = $shedule->list(
     {
       Y         => "$Y,\\*",
       M         => "$M,\\*",
       D         => "$D,\\*",
       PAGE_ROWS => 1000000,
-      COLS_NAME => 1
+      COLS_NAME => 1,
+      %LIST_PARAMS
     }
   );
 
