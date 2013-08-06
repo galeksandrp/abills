@@ -27,7 +27,7 @@
     <p>
 
     <form action=$SELF_URL>
-    <input type=hidden name='index' value='$index'>
+    <input type=hidden name='index' value='10'>
     <input type=hidden name='sid' value='$sid'>
     
     <b>$_CHANGE $_CREDIT</b><BR>

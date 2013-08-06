@@ -2530,11 +2530,6 @@ sub check_speed_mikrotik {
   my $parent_in='global-in';
   my $parent_out='global-out';
 
-  if ($ARGV->{MIKROTIK6}) {
-    $parent_in='global';
-    $parent_out='global';
-  }
-
   foreach my $line (@$list) {
     print "TP ID: $line->[0] $line->[1] $line->[2] $line->[3] $line->[4]\n" if ($debug > 1);
     $TARIF_SPEEDS{ $line->[0] }{ $line->[2] }{IN}  = $line->[3];
@@ -2549,7 +2544,7 @@ sub check_speed_mikrotik {
     if ($debug > 0) {
       print "NAS: ($nas_info->{NAS_ID}) $nas_info->{NAS_IP} NAS_TYPE: $nas_info->{NAS_TYPE} STATUS: $nas_info->{NAS_DISABLE} Alive: $nas_info->{NAS_ALIVE}\n";
     }
-    
+
     my ($nas_host, $nas_port_coa, $nas_port) = split(/:/, $nas_info->{NAS_MNG_IP_PORT}, 3);
 
     if (!$nas_port) {
@@ -2564,12 +2559,29 @@ sub check_speed_mikrotik {
     my $SSH       = $ARGV->{SSH_CMD}      || "/usr/bin/ssh -p $nas_port -o StrictHostKeyChecking=no -i $base_dir/Certs/id_dsa." . $nas_admin;
     $nas_info->{SSH_CMD} = $SSH;
 
+    if ($ARGV->{MIKROTIK6}) {
+      $parent_in='global';
+      $parent_out='global';
+    }
+    #Get mikrotik version
+    else {
+  	  if ($debug > 0) {
+  	  	my $soft_line  = get_mikrotik_value(qq{ /system package print where name~"system" }, $nas_info);
+
+  	  	my @mikrotik_os_version = split(/\s+/, $soft_line->[2]);
+  	  	if ($mikrotik_os_version[3] =~ /^6/) {
+		      $parent_in='global';
+          $parent_out='global';
+  	  	}
+  	  	print "Mikrotik Version: $mikrotik_os_version[3]\n";
+  	  }
+    }
+
     if ($ARGV->{RECONFIGURE}) {
       push @commands, qq{/ip firewall mangle remove [find new-packet-mark~"^ALLOW_TRAFFIC_CLASS"]}, 
                       qq{/queue tree remove [find name~"^TP"]}, 
                       qq{/queue type remove [find name~"^TP"]};
     }
-
 
     # Get mikrotik speed
     #show ips
