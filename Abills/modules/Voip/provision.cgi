@@ -76,31 +76,28 @@ $Nas->info({ IP             => $FORM{IP} || $ENV{REMOTE_ADDR},
              NAS_IDENTIFIER => "$FORM{SN}", 
           });
 
-if (! $Nas->{NAS_INDENTIFIER} || ! $FORM{SN} ) {
+if (! $Nas->{NAS_IDENTIFIER} || ! $FORM{SN} ) {
 	print "Content-Type: text/plain\n\n";
-	print "Wrong nas\n";
+	print "Wrong nas ($Nas->{NAS_IDENTIFIER} / $FORM{SN})\n";
 	exit;
 }
 
 print "Content-Type: text/xml\n\n";
 my $list = $Voip->user_list({ PROVISION_NAS_ID => $Nas->{NAS_ID},
                               PROVISION_PORT   => '>0',
-                              SHOW_PASSWORD    => '*',
-                              CID              => '*'
+                              PASSWORD         => '_SHOW',
+                              CID              => '_SHOW',
+                              SERVICE_STATUS   => '_SHOW',
+                              COLS_NAME        => 1
                             });
 
 my %info = ();
 
 foreach my $line (@$list) {
-#  print "\n
-#  <Auth_ID_". $line->[8] ."_>$line->[6]</Auth_ID_". $line->[8] ."_>
-#  <Password_". $line->[8] ."_>$line->[9]</Password_". $line->[8] ."_>
-#  
-#  --->$line->[6] / $line->[7] / $line->[8]\n";
-  $info{'Password_'. $line->[9] .'_'}  = $line->[10];
-  $info{'Auth_ID_'. $line->[9] .'_'}   = $line->[6];
-  $info{'Caller_ID_'. $line->[9] .'_'} = $line->[7];
-  $info{'Line_'. $line->[9] .'_Status'}= ($line->[5]) ? 'no' : 'yes'; 
+  $info{'Password_'. $line->{provision_port} .'_'}  = $line->{password};
+  $info{'Auth_ID_'. $line->{provision_port} .'_'}   = $line->{number};
+  $info{'Caller_ID_'. $line->{provision_port} .'_'} = $line->{CID};
+  $info{'Line_'. $line->{provision_port} .'_Status'}= ($line->{voip_status}) ? 'no' : 'yes'; 
 }
 
 

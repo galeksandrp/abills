@@ -4397,7 +4397,7 @@ sub form_nas_add {
       ARRAY_NUM_ID => 1
     }
   );
-
+  
   $nas->{NAS_DISABLE} = ($nas->{NAS_DISABLE} > 0) ? ' checked' : '';
 
   if ($conf{ADDRESS_REGISTER}) {
@@ -4423,8 +4423,6 @@ sub form_nas_add {
     $nas->{ADDRESS_TPL} = $html->tpl_show(templates('form_address'), $nas, { OUTPUT2RETURN => 1, ID => 'form_address' });
   }
 
-
-      print "// $nas->{GID} //";
   $nas->{NAS_GROUPS_SEL} = sel_nas_groups({ GID => $nas->{GID} });
   $html->tpl_show(templates('form_nas'), $nas, { ID => 'form_nas' });
 }
@@ -4512,7 +4510,7 @@ sub form_nas {
       },
       { f_args => \%F_ARGS }
     );
-
+    	
     if ($FORM{subf}) {
       return 0;
     }
