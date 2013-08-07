@@ -1660,7 +1660,10 @@ sub dhcphosts_payments_maked {
   my %NETWORKS = ();
   my %NAS_IDS  = ();
 
-  my $list = $Dhcphosts->hosts_list({ UID => $attr->{USER_INFO}->{UID}, STATUS => 0, NAS_ID => '>0', COLS_NAME => 1 });
+  my $list = $Dhcphosts->hosts_list({ UID       => $attr->{USER_INFO}->{UID}, 
+  	                                  STATUS    => 0, 
+  	                                  NAS_ID    => '>0', 
+  	                                  COLS_NAME => 1 });
   foreach my $line (@$list) {
     $NETWORKS{ $line->{network_id} } = 1;
     $NAS_IDS{ $line->{nas_id} } = 1;

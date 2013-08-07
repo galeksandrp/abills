@@ -3950,11 +3950,6 @@ sub dv_user_chg_tp {
       }
     );
 
-    print "Content-Type: text/html\n\n";
-    
-    print "// ($user->{DEPOSIT} + $user->{CREDIT}) / $user->{LOGIN} ! $user->{UID}/";
-    
-    $tariffs->{debug}=1;
     my $tp_list = $tariffs->list(
       {
         TP_GID       => $Dv->{TP_GID},

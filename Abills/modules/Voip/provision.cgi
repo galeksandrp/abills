@@ -48,7 +48,7 @@ my $sql = Abills::SQL->connect($conf{dbtype},
                                { CHARSET => ($conf{dbcharset}) ? $conf{dbcharset} : undef });
 $db = $sql->{db};
 
-my $version  = '0.3';
+my $version  = '0.4';
 my $debug    = 0;
 my $log_file = $var_dir."log/wrt_configure.log";
 $domain_path = '';
@@ -58,13 +58,12 @@ $html->{language}='english';
 if ($FORM{test}) {
 	print "Content-Type: text/plain\n\n";
 	print "Test OK $DATE $TIME";
-	exit;
+#	exit;
 }
 
 require "Abills/templates.pl";
 my $Nas  = Nas->new($db, \%conf);
 my $Voip = Voip->new($db, undef, \%conf);
-
 # номер модели
 #PN =>  $FORM{PN},
 # Mac
@@ -88,6 +87,7 @@ my $list = $Voip->user_list({ PROVISION_NAS_ID => $Nas->{NAS_ID},
                               PASSWORD         => '_SHOW',
                               CID              => '_SHOW',
                               SERVICE_STATUS   => '_SHOW',
+                              NUMBER           => '_SHOW',
                               COLS_NAME        => 1
                             });
 

@@ -137,7 +137,7 @@ sub user_add {
   my $self = shift;
   my ($attr) = @_;
 
-  $attr->{CID} = lc('$attr->{CID}');
+  $attr->{CID} = lc("$attr->{CID}");
   $self->query_add('voip_main', $attr);
 
   $self->{TP_INFO} = $tariffs->info($attr->{TP_ID});
