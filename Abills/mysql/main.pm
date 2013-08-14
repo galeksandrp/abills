@@ -75,7 +75,7 @@ sub connect {
     $self->{db}->do("SET sql_mode='$sql_mode';");
   } 
   else {
-  	print "Content-Type: text/html\n\nError: Unable connect to DB server '$dbhost:$dbname'\n";
+    print "Content-Type: text/html\n\nError: Unable connect to DB server '$dbhost:$dbname'\n";
     $self->{error} = $DBI::errstr;
     my $a = `echo "Connection Error: $DBI::errstr" >> /tmp/sql_errors `;
   }
@@ -145,8 +145,8 @@ sub query {
     require Log;
     Log->import('log_print');
 
-  	log_print(undef, 'LOG_ERR', '', "\n$query\n --$self->{sql_errno}\n --$self->{sql_errstr}\nundefined \$db", { NAS => 0, LOG_FILE => "/tmp/sql_errors" });
-  	return $self;
+    log_print(undef, 'LOG_ERR', '', "\n$query\n --$self->{sql_errno}\n --$self->{sql_errstr}\nundefined \$db", { NAS => 0, LOG_FILE => "/tmp/sql_errors" });
+    return $self;
   }
 
   if (defined($attr->{test})) {
@@ -301,25 +301,25 @@ sub search_former {
   $self->{SEARCH_FIELDS_COUNT} = 0;
 
   foreach my $search_param (@$search_params) {
-  	my ($param, $field_type, $sql_field, $show, $ex_params)=@$search_param;
+    my ($param, $field_type, $sql_field, $show, $ex_params)=@$search_param;
     my $param2 = '';
-  	if ($param =~ /^(.*)\|(.*)$/) {
-  		$param  = $1;
-  		$param2 = $2;
-  	}
+    if ($param =~ /^(.*)\|(.*)$/) {
+      $param  = $1;
+      $param2 = $2;
+    }
 
-  	if($data->{$param} || ($field_type eq 'INT' && defined($data->{$param}) && $data->{$param} ne '')) {
-  		if ($sql_field eq '') {
+    if($data->{$param} || ($field_type eq 'INT' && defined($data->{$param}) && $data->{$param} ne '')) {
+      if ($sql_field eq '') {
         $self->{SEARCH_FIELDS} .= "$show, ";
         $self->{SEARCH_FIELDS_COUNT}++;
-   		}
-  	  elsif ($param2) {
+       }
+      elsif ($param2) {
         push @WHERE_RULES, "($sql_field>='$data->{$param}' and $sql_field<='$data->{$param2}')";
-  	  }
-  	  else {
-  		  push @WHERE_RULES, @{ $self->search_expr($data->{$param}, "$field_type", "$sql_field", { EXT_FIELD => $show }) };
-  		}
-  	}
+      }
+      else {
+        push @WHERE_RULES, @{ $self->search_expr($data->{$param}, "$field_type", "$sql_field", { EXT_FIELD => $show }) };
+      }
+    }
   }
 
   if ($attr->{USERS_FIELDS}) {
@@ -359,7 +359,7 @@ sub search_former {
   }
 
   if ($attr->{WHERE_RULES}) {
-  	push @WHERE_RULES, @{ $attr->{WHERE_RULES} };
+    push @WHERE_RULES, @{ $attr->{WHERE_RULES} };
   }
 
   my $WHERE = ($#WHERE_RULES > -1) ?  (($attr->{WHERE}) ? 'WHERE ' : '') . join(' and ', @WHERE_RULES) : '';
@@ -389,7 +389,7 @@ sub search_expr {
   }
   my @result_arr = ();
   if (! defined($value)) {
-  	$value = '';
+    $value = '';
   }
 
   return \@result_arr if ( $value eq '_SHOW');
@@ -532,8 +532,8 @@ sub changes {
 
   $OLD_DATA = $attr->{OLD_INFO};
   if ($OLD_DATA->{errno}) {
-  	print  "Old date errors: $OLD_DATA->{errno} '$TABLE' $attr->{CHANGE_PARAM}=$DATA{$CHANGE_PARAM}\n";
-  	print %DATA;
+    print  "Old date errors: $OLD_DATA->{errno} '$TABLE' $attr->{CHANGE_PARAM}=$DATA{$CHANGE_PARAM}\n";
+    print %DATA;
     $self->{errno}  = $OLD_DATA->{errno};
     $self->{errstr} = $OLD_DATA->{errstr};
     return $self;
@@ -580,10 +580,10 @@ sub changes {
         $CHANGES_LOG   .= "$k $OLD_DATA->{$k}->$DATA{$k};";
         $CHANGES_QUERY .= "$FIELDS->{$k}=INET_ATON('$DATA{$k}'),";
       }
-    	elsif ($k eq 'IPV6_PREFIX') {
-    		$CHANGES_LOG   .= "$k $OLD_DATA->{$k}->$DATA{$k};";
-    		$CHANGES_QUERY .= "$FIELDS->{$k}=INET6_ATON('$DATA{$k}'),";
-    	}
+      elsif ($k eq 'IPV6_PREFIX') {
+        $CHANGES_LOG   .= "$k $OLD_DATA->{$k}->$DATA{$k};";
+        $CHANGES_QUERY .= "$FIELDS->{$k}=INET6_ATON('$DATA{$k}'),";
+      }
       elsif ($k eq 'CHANGED') {
         $CHANGES_QUERY .= "$FIELDS->{$k}=now(),";
       }
@@ -641,7 +641,7 @@ sub changes {
   $self->{AFFECTED} = sprintf("%d", (defined ($self->{AFFECTED}) ? $self->{AFFECTED} : 0));
   
   if ($self->{AFFECTED} == 0) {
-  	return $self; 
+    return $self; 
   }
   elsif ($self->{errno}) {
     return $self;
@@ -772,7 +772,7 @@ sub search_expr_users () {
   );
 
   if ($attr->{DEPOSIT} && $attr->{DEPOSIT} ne '_SHOW') {
-  	$users_fields_hash{DEPOSIT}='INT:b.deposit'
+    $users_fields_hash{DEPOSIT}='INT:b.deposit'
   }
 
   if ($attr->{CONTRACT_SUFIX}) {
@@ -845,7 +845,7 @@ sub search_expr_users () {
   }
 
   if ($attr->{SKIP_GID}) {
-  	push @fields,  @{ $self->search_expr($attr->{GID}, 'INT', 'u.gid', { EXT_FIELD => in_array('GID', $attr->{EXT_FIELDS}) }) };
+    push @fields,  @{ $self->search_expr($attr->{GID}, 'INT', 'u.gid', { EXT_FIELD => in_array('GID', $attr->{EXT_FIELDS}) }) };
   }
   elsif ($attr->{GIDS}) {
     if ($admin->{GIDS}) {
@@ -875,11 +875,11 @@ sub search_expr_users () {
   }
 
   if ($attr->{GROUP_NAME}) {
-  	push @fields, @{ $self->search_expr("$attr->{GROUP_NAME}", 'STR', 'g.name', { EXT_FIELD => 'g.name AS group_name' }) };
-  	$self->{EXT_TABLES} .= " LEFT JOIN groups g ON (g.gid=u.gid)";
-  	if (defined($attr->{DISABLE_PAYSYS})) {
-	  	push @fields, @{ $self->search_expr("$attr->{DISABLE_PAYSYS}", 'INT', 'g.disable_paysys', { EXT_FIELD => 1 }) };
-  	}
+    push @fields, @{ $self->search_expr("$attr->{GROUP_NAME}", 'STR', 'g.name', { EXT_FIELD => 'g.name AS group_name' }) };
+    $self->{EXT_TABLES} .= " LEFT JOIN groups g ON (g.gid=u.gid)";
+    if (defined($attr->{DISABLE_PAYSYS})) {
+      push @fields, @{ $self->search_expr("$attr->{DISABLE_PAYSYS}", 'INT', 'g.disable_paysys', { EXT_FIELD => 1 }) };
+    }
   }
 
   if (! $attr->{DOMAIN_ID} && $admin->{DOMAIN_ID}) {
@@ -911,7 +911,7 @@ sub search_expr_users () {
     }
     elsif ($CONF->{ADDRESS_REGISTER}) {
       if ($attr->{ADDRESS_FULL}) {
-      	$attr->{BUILD_DELIMITER}=',' if (! $attr->{BUILD_DELIMITER});
+        $attr->{BUILD_DELIMITER}=',' if (! $attr->{BUILD_DELIMITER});
          push @WHERE_RULES, @{ $self->search_expr("$attr->{ADDRESS_FULL}", "STR", "CONCAT(streets.name, ' ', builds.number, '$attr->{BUILD_DELIMITER}', pi.address_flat) AS address_full", { EXT_FIELD => 1 }) };
 
          $self->{EXT_TABLES} .= "LEFT JOIN builds ON (builds.id=pi.location_id)
@@ -994,16 +994,16 @@ sub query_add {
   while (defined(my $row = $q->fetchrow_hashref())) {
     my $column = uc($row->{COLUMN_NAME});
     if ($values->{$column}) {
-    	if ($column eq 'IP' || $column eq 'NETMASK') {
-    		push @inserts_arr, "$row->{COLUMN_NAME}=INET_ATON('$values->{$column}')";
-    	}
-    	elsif ($column eq 'IPV6_PREFIX') {
-    		push @inserts_arr, "$row->{COLUMN_NAME}=INET6_ATON('$values->{$column}')";
-    	}
-    	else {
-    		if ($values->{$column} =~ /[a-z]+\(\)$/) {
-    			push @inserts_arr, "$row->{COLUMN_NAME}=$values->{$column}";
-    	  }
+      if ($column eq 'IP' || $column eq 'NETMASK') {
+        push @inserts_arr, "$row->{COLUMN_NAME}=INET_ATON('$values->{$column}')";
+      }
+      elsif ($column eq 'IPV6_PREFIX') {
+        push @inserts_arr, "$row->{COLUMN_NAME}=INET6_ATON('$values->{$column}')";
+      }
+      else {
+        if ($values->{$column} =~ /[a-z]+\(\)$/) {
+          push @inserts_arr, "$row->{COLUMN_NAME}=$values->{$column}";
+        }
         else {
           push @inserts_arr, "$row->{COLUMN_NAME}='$values->{$column}'";
         }

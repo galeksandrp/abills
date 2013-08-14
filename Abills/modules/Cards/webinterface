@@ -179,9 +179,9 @@ sub cards_main {
   my $table;
   if (!$FORM{pdf} && $FORM{search_form}) {
   	delete $Cards->{ID};
-  	$Cards->{SERIAL} = '*' if(! $FORM{SERIAL});
-    $Cards->{SUM}    = undef if (!$FORM{SUM});
-    $Cards->{EXPIRE} = undef if (!$FORM{EXPIRE});
+  	$Cards->{SERIAL}       = '*' if(! $FORM{SERIAL});
+    $Cards->{SUM}          = undef if (!$FORM{SUM});
+    $Cards->{EXPIRE}       = undef if (!$FORM{EXPIRE});
     $Cards->{DATE}         = $html->date_fld2('DATE',         { MONTHES => \@MONTHES, FORM_NAME => 'form_search', WEEK_DAYS => \@WEEKDAYS, NO_DEFAULT_DATE => 1 });
     $Cards->{CREATED_DATE} = $html->date_fld2('CREATED_DATE', { MONTHES => \@MONTHES, FORM_NAME => 'form_search', WEEK_DAYS => \@WEEKDAYS, NO_DEFAULT_DATE => 1 });
     $Cards->{EXPIRE_DATE}  = $html->date_fld2('EXPIRE_DATE',  { MONTHES => \@MONTHES, FORM_NAME => 'form_search', WEEK_DAYS => \@WEEKDAYS, NO_DEFAULT_DATE => 1 });
@@ -2376,7 +2376,6 @@ sub cards_print {
       next;
     }
 
-    $page_print_hash{ 'SERIAL_' . $i } = "$line->{serial}$line->{number}";
     while(my ($k, $v) = each %$line) {
       if ($k eq 'time_limit') {
       	$page_print_hash{ uc($k).'_' . $i }=printf("%2.f", $v / 3600);
@@ -2385,6 +2384,8 @@ sub cards_print {
     	  $page_print_hash{ uc($k).'_' . $i }=$v;
     	}
     }
+    
+    $page_print_hash{ 'SERIAL_' . $i } = "$line->{serial}$line->{number}";
 
     if ($i && !($i % 9)) {
       push @MULTI_ARR, {%page_print_hash};
@@ -2407,9 +2408,7 @@ sub cards_print {
     _include('cards_print', 'Cards'),
     undef,
     {
-      MULTI_DOCS => \@MULTI_ARR,
-
-      #SAVE_AS     => $save_filename,
+      MULTI_DOCS   => \@MULTI_ARR,
       NAME         => 'Cards_',
       DOCS_IN_FILE => $docs_in_file || 10000,
       debug        => $debug

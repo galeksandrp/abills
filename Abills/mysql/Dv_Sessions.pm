@@ -206,7 +206,7 @@ sub online {
   }
 
   if ($attr->{FILTER}) {
-  	$attr->{$attr->{FILTER_FIELD}} = $attr->{FILTER};
+    $attr->{$attr->{FILTER_FIELD}} = $attr->{FILTER};
   }
 
   my $WHERE =  $self->search_former($attr, [
@@ -260,12 +260,13 @@ sub online {
       ['ACCT_SESSION_ID',   'STR', 'c.acct_session_id',                           1 ],
       ['UID',               'INT', 'c.uid'                                          ],
       ['LAST_ALIVE',        'INT', 'UNIX_TIMESTAMP() - c.lupdated AS last_alive', 1 ],
-      ['ONLINE_BASE',  	    '',    '', 'c.CID, c.acct_session_id, UNIX_TIMESTAMP() - c.lupdated AS last_alive, c.uid' ]
+      ['ONLINE_BASE',        '',    '', 'c.CID, c.acct_session_id, UNIX_TIMESTAMP() - c.lupdated AS last_alive, c.uid' ]
     ],
-    { WHERE        => 1,
-    	WHERE_RULES  => \@WHERE_RULES,
-    	USERS_FIELDS => 1
-    }    
+    { WHERE             => 1,
+      WHERE_RULES       => \@WHERE_RULES,
+      USERS_FIELDS      => 1,
+      SKIP_USERS_FIELDS => [ 'UID' ]
+    }
     );
 
   foreach my $field ( keys %$attr ) {
@@ -890,9 +891,9 @@ sub list {
       [ 'UID',             'INT', 'l.uid'                            ],
     ], 
     { WHERE             => 1,
-    	WHERE_RULES       => \@WHERE_RULES,
-    	USERS_FIELDS      => 1,
-    	SKIP_USERS_FIELDS => [ 'UID' ]
+      WHERE_RULES       => \@WHERE_RULES,
+      USERS_FIELDS      => 1,
+      SKIP_USERS_FIELDS => [ 'UID' ]
     }    
     );
 

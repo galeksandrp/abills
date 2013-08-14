@@ -44,7 +44,7 @@
 
 
 CLASSES_NUMS='2 3'
-VERSION=5.99
+VERSION=6.00
 
 
 name="abills_shaper"
@@ -335,13 +335,14 @@ external_fw_rules() {
 #Nat Section
 #**********************************************************
 abills_nat() {
+
 if [ x"${abills_nat}" = x ]; then
-return 0;
+  return 0;
 fi;
+
 echo "ABillS NAT ${ACTION}"
 abills_ips_nat=`echo ${abills_nat} | sed 's/ //g'`;
 abills_ips_nat=`echo ${abills_nat} | sed 's/;/ /g'`;
-
 
 NAT_TABLE=20
 NAT_FIRST_RULE=20
@@ -349,55 +350,45 @@ NAT_USERS_RULE=21
 NAT_REAL_TO_FAKE_TABLE_NUM=33;
 
 for IPS_NAT in ${abills_ips_nat}; do
-# NAT External IP
-NAT_IPS=`echo ${IPS_NAT} | awk -F: '{ print $1 }'`;
-# Fake net
-FAKE_NET=`echo ${IPS_NAT} | awk -F: '{ print $2 }' | sed 's/,/ /g'`;
-#NAT IF
-NAT_IF=`echo ${IPS_NAT} | awk -F: '{ print $3 }'`;
+  # NAT External IP
+  NAT_IPS=`echo ${IPS_NAT} | awk -F: '{ print $1 }'`;
+  # Fake net
+  FAKE_NET=`echo ${IPS_NAT} | awk -F: '{ print $2 }' | sed 's/,/ /g'`;
+  #NAT IF
+  NAT_IF=`echo ${IPS_NAT} | awk -F: '{ print $3 }'`;
 
-echo " NAT ${ACTION}"
+  echo " NAT ${ACTION}"
 
-# nat configuration
-for IP in ${NAT_IPS}; do
-if [ w${ACTION} = wstart ]; then
+  # nat configuration
+  for IP in ${NAT_IPS}; do
+    if [ w${ACTION} = wstart ]; then
+      ${IPFW} nat ${NAT_USERS_RULE} config ip ${IP} log
+      ${IPFW} table ${NAT_REAL_TO_FAKE_TABLE_NUM} add ${IP} ${NAT_USERS_RULE}
 
-${IPFW} nat ${NAT_USERS_RULE} config ip ${IP} log
-${IPFW} table ${NAT_REAL_TO_FAKE_TABLE_NUM} add ${IP} ${NAT_USERS_RULE}
-
-
-for f_net in ${FAKE_NET}; do
-${IPFW} table ` expr ${NAT_REAL_TO_FAKE_TABLE_NUM} + 1` add ${f_net} ${NAT_USERS_RULE}
+      for f_net in ${FAKE_NET}; do
+        ${IPFW} table ` expr ${NAT_REAL_TO_FAKE_TABLE_NUM} + 1` add ${f_net} ${NAT_USERS_RULE}
+      done;
+    elif [ w${ACTION} = wstop ]; then
+      ${IPFW} nat delete ${NAT_USERS_RULE}
+    fi;
+  done;
+  NAT_USERS_RULE=` expr ${NAT_USERS_RULE} + 1`
 done;
-
-
-else if [ w${ACTION} = wstop ]; then
-${IPFW} nat delete ${NAT_USERS_RULE}
-fi;
-fi;
-done;
-
-NAT_USERS_RULE=` expr ${NAT_USERS_RULE} + 1`
-done;
-
-
 
 # UP NAT
 if [ w${ACTION} = wstart ]; then
-if [ w${NAT_IF} != w ]; then
-NAT_IF="via ${NAT_IF}"
+  if [ w${NAT_IF} != w ]; then
+    NAT_IF="via ${NAT_IF}"
+  fi;
+
+  ${IPFW} add 60010 nat tablearg ip from table\(` expr ${NAT_REAL_TO_FAKE_TABLE_NUM} + 1 `\) to any $NAT_IF
+  ${IPFW} add 20 nat tablearg ip from any to table\(${NAT_REAL_TO_FAKE_TABLE_NUM}\) $NAT_IF
+elif [ w${ACTION} = wstop ]; then
+  ${IPFW} table ${NAT_REAL_TO_FAKE_TABLE_NUM} flush
+  ${IPFW} table ` expr ${NAT_REAL_TO_FAKE_TABLE_NUM} + 1 ` flush
+  ${IPFW} delete 60010 20 60015
 fi;
 
-${IPFW} add 60010 nat tablearg ip from table\(` expr ${NAT_REAL_TO_FAKE_TABLE_NUM} + 1 `\) to any $NAT_IF
-${IPFW} add 20 nat tablearg ip from any to table\(${NAT_REAL_TO_FAKE_TABLE_NUM}\) $NAT_IF
-
-else if [ w${ACTION} = wstop ]; then
-${IPFW} table ${NAT_REAL_TO_FAKE_TABLE_NUM} flush
-${IPFW} table ` expr ${NAT_REAL_TO_FAKE_TABLE_NUM} + 1 ` flush
-${IPFW} delete 60010 20 60015
-
-fi;
-fi;
 }
 
 
