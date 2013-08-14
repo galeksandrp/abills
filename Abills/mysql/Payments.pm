@@ -220,6 +220,13 @@ sub list {
   if (! $attr->{PAYMENT_DAYS}) {
   	$attr->{PAYMENT_DAYS}=0;
   }
+  elsif ($attr->{PAYMENT_DAYS}) {
+    my $expr = '=';
+    if ($attr->{PAYMENT_DAYS} =~ s/^(<|>)//) {
+      $expr = $1;
+    }
+    push @WHERE_RULES, "p.date $expr curdate() - INTERVAL $attr->{PAYMENT_DAYS} DAY";
+  }
 
   my $WHERE =  $self->search_former($attr, [
       ['DATETIME',       'DATE','p.date AS datetime',          1], 
@@ -240,12 +247,12 @@ sub list {
       ['REG_DATE',       'DATE','p.reg_date',                             1],      
       ['MONTH',          'DATE','date_format(p.date, \'%Y-%m\') AS month'  ],
       ['ID',             'INT', 'p.id'                                     ],
-      ['PAYMENT_DAYS',   'DATE', "curdate() - INTERVAL $attr->{PAYMENT_DAYS} DAY"],
       ['FROM_DATE_TIME|TO_DATE_TIME','DATE', "p.date"                      ],
       ['FROM_DATE|TO_DATE', 'DATE',    'date_format(p.date, \'%Y-%m-%d\')' ],
       ['UID',            'INT', 'p.uid',                                  1],
     ],
     { WHERE       => 1,
+    	WHERE_RULES => \@WHERE_RULES,
     	USERS_FIELDS=> 1,
     	SKIP_USERS_FIELDS=> [ 'BILL_ID', 'UID' ]
     }    

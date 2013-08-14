@@ -2588,8 +2588,11 @@ sub check_speed_mikrotik {
     if ($ARGV->{SHOW_SPEED}) {
       my $ip_list = get_mikrotik_value(qq{ /ip firewall address-list print }, $nas_info);
       foreach my $line (@$ip_list) {
-        my($id, $list_name, $ip)=split(/\s+/, $line);
-        print "$id, $list_name, $ip\n";
+      	$line =~ s/[\r\n]+//g;
+      	if ($line) {
+          my($id, $list_name, $ip)=split(/\s+/, $line);
+          print "$id, $list_name, $ip\n";
+        }
       }
       next;
     }

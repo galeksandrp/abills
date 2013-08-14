@@ -342,7 +342,8 @@ sub form_info {
     my ($sum, $days, $price, $month_changes, $payments_expr) = split(/:/, $conf{user_credit_change});
     $month_changes = 0 if (!$month_changes);
     my $credit_date = strftime "%Y-%m-%d", localtime(time + int($days) * 86400);
-    if (in_array('Dv', \@MODULES)) {
+
+    if (in_array('Dv', \@MODULES) && $sum == 0) {
       load_module('Dv', $html);
       my $Dv = Dv->new($db, $admin, \%conf);
       $Dv->info($user->{UID});
