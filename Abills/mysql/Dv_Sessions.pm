@@ -899,10 +899,10 @@ sub list {
 
   my $EXT_TABLE = '';
 
-  if ($self->{SEARCH_FIELDS} =~ /pi\./) {
+  if ($self->{SEARCH_FIELDS} =~ / pi\./) {
     $EXT_TABLE .= "LEFT JOIN users_pi pi ON (pi.uid=l.uid)";
   }
-  if ($self->{SEARCH_FIELDS} =~ /u\./) {
+  if ($self->{SEARCH_FIELDS} =~ / u\./ || $WHERE =~ / u\./) {
     $EXT_TABLE .= "INNER JOIN users u ON (u.uid=l.uid)";
   }
 

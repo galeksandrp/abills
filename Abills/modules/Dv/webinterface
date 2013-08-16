@@ -2748,7 +2748,6 @@ sub dv_stats {
     $LIST_PARAMS{UID} = $FORM{UID};
   }
 
-
   if ($FORM{del} && $FORM{is_js_confirmed}) {
     if (!defined($permissions{3}{1})) {
       $html->message('err', $_ERROR, 'ACCESS DENY');
@@ -2842,6 +2841,7 @@ sub dv_stats {
     $pages_qs .= "&UID=$LIST_PARAMS{UID}";
   }
 
+
   my $list  = $sessions->periods_totals({%LIST_PARAMS});
   my $table = $html->table(
     {
@@ -2923,7 +2923,7 @@ sub dv_stats {
       $TRAFFIC_NAMES{ $line->[0] } = $line->[6];
     }
   }
-
+  
   #Show rest of prepaid traffic
   if (
     $sessions->prepaid_rest(
@@ -2974,6 +2974,7 @@ sub dv_stats {
   }
 
   $sessions->{TOTALS_AVG} = dv_stats_calculation($sessions);
+
   #Session List
   $list = $sessions->list({%LIST_PARAMS, COLS_NAME => 1 });
 

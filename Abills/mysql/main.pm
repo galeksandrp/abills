@@ -912,7 +912,7 @@ sub search_expr_users () {
     elsif ($CONF->{ADDRESS_REGISTER}) {
       if ($attr->{ADDRESS_FULL}) {
         $attr->{BUILD_DELIMITER}=',' if (! $attr->{BUILD_DELIMITER});
-         push @WHERE_RULES, @{ $self->search_expr("$attr->{ADDRESS_FULL}", "STR", "CONCAT(streets.name, ' ', builds.number, '$attr->{BUILD_DELIMITER}', pi.address_flat) AS address_full", { EXT_FIELD => 1 }) };
+         push @fields, @{ $self->search_expr("$attr->{ADDRESS_FULL}", "STR", "CONCAT(streets.name, ' ', builds.number, '$attr->{BUILD_DELIMITER}', pi.address_flat) AS address_full", { EXT_FIELD => 1 }) };
 
          $self->{EXT_TABLES} .= "LEFT JOIN builds ON (builds.id=pi.location_id)
           LEFT JOIN streets ON (streets.id=builds.street_id)";
@@ -973,8 +973,8 @@ sub search_expr_users () {
       LEFT JOIN bills cb ON (company.bill_id=cb.id) ";
   }
 
-  delete ($self->{COL_NAMES_ARR});
 
+  delete ($self->{COL_NAMES_ARR});
   return \@fields;
 }
 

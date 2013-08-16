@@ -387,7 +387,7 @@ sub form_info {
         {
           UID          => $user->{UID},
           PAYMENT_DAYS => ">$params{PERIOD}",
-          SUM          => ">$params{MIN_PAYMENT_SUM}"
+          SUM          => ">=$params{MIN_PAYMENT_SUM}"
         }
       );
 
