@@ -247,7 +247,7 @@ elsif ($conf{PAYSYS_EXPPAY_ACCOUNT_KEY}
   require "Express.pm";
   exit;
 }
-elsif ($FORM{action} && $conf{PAYSYS_TELCELL_ACCOUNT_KEY}) {
+elsif (defined($FORM{action}) && $conf{PAYSYS_TELCELL_ACCOUNT_KEY}) {
   require "Telcell.pm";
   exit;
 }
@@ -488,8 +488,6 @@ sub portmone_payments {
   );
 
   if ($Paysys->{TOTAL} > 0) {
-
-    #$html->message('info', $_INFO, "$_ADDED $_SUM: $list->[0][3] ID: $FORM{SHOPORDERNUMBER }");
     my $uid  = $list->[0]{uid};
     my $sum  = $list->[0]{sum};
     my $user = $users->info($uid);
@@ -541,9 +539,6 @@ sub portmone_payments {
     print "Location: $home_url?index=$FORM{index}&sid=$FORM{sid}&SHOPORDERNUMBER=$FORM{SHOPORDERNUMBER}&TRUE=1" . "\n\n";
   }
   else {
-
-    #print "Content-Type: text/html\n\n";
-    #print "FAILED PAYSYS: Portmone SUM: $FORM{BILL_AMOUNT} ID: $FORM{SHOPORDERNUMBER} STATUS: $status";
     print "Location: $home_url?index=$FORM{index}&sid=$FORM{sid}&SHOPORDERNUMBER=$FORM{SHOPORDERNUMBER}" . "\n\n";
   }
 

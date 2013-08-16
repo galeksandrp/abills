@@ -253,6 +253,7 @@ sub ureports_periodic_reports {
         $user->{DEPOSIT} = sprintf("%.2f", $user->{DEPOSIT});
 
         $user->{EXPIRE_DAYS} = int($user->{DEPOSIT} / $total_daily_fee) if ($total_daily_fee > 0);
+        $user->{EXPIRE_DATE} = strftime("%Y-%m-%d", localtime(time + $user->{EXPIRE_DAYS} * 86400));
 
         #Report 1
         if ($user->{REPORT_ID} == 1) {

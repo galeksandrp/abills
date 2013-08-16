@@ -905,7 +905,7 @@ sub search_expr_users () {
     }
     elsif ($attr->{DISTRICT_ID}) {
       push @fields, @{ $self->search_expr($attr->{DISTRICT_ID}, 'INT', 'streets.district_id', { EXT_FIELD => 'districts.name AS district_name' }) };
-      $self->{EXT_TABLES} .= "LEFT JOIN builds ON (builds.id=pi.location_id)
+      $self->{EXT_TABLES} .= " LEFT JOIN builds ON (builds.id=pi.location_id)
       LEFT JOIN streets ON (streets.id=builds.street_id)
       LEFT JOIN districts ON (districts.id=streets.district_id) ";
     }

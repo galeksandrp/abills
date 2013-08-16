@@ -267,10 +267,10 @@ sub list {
   }
 
   if ($WHERE =~ /pi\./ || $self->{SEARCH_FIELDS} =~ /pi\./) {
-    $EXT_TABLES  .= 'LEFT JOIN users_pi pi ON (u.uid=pi.uid)'.$EXT_TABLES ;
+    $EXT_TABLES  = 'LEFT JOIN users_pi pi ON (u.uid=pi.uid)'.$EXT_TABLES ;
   }
   elsif ($EXT_TABLES =~ /builds/ && $EXT_TABLES !~ /users_pi/) {
-    $EXT_TABLES .= 'LEFT JOIN users_pi pi ON (u.uid=pi.uid) '. $EXT_TABLES;
+    $EXT_TABLES = 'LEFT JOIN users_pi pi ON (u.uid=pi.uid) '. $EXT_TABLES;
   }
   
   my $list;
