@@ -101,8 +101,8 @@ Admins->import();
 
 my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
 if (! $sql->{db}) {
-	print "SQL connect error\n";
-	exit;
+  print "SQL connect error\n";
+  exit;
 }
 
 $db = $sql->{db};
@@ -201,8 +201,8 @@ sub deamon {
 # cross_moduless_actions
 #***********************************************************
 sub cross_moduless_actions {
-	my ($attr) = @_;
-	
+  my ($attr) = @_;
+  
 }
 
 #***********************************************************
@@ -1268,7 +1268,7 @@ sub check_speed {
   );
   
   if ($Sessions->{errno}) {
-  	print "$Sessions->{error} $Sessions->{err_str}";
+    print "$Sessions->{error} $Sessions->{err_str}";
   }
 
   # Check turbo mode
@@ -2009,9 +2009,9 @@ sub check_cisco_if {
 
   if ($ARGV->{NAS_IDS}) {
     my $list = $Nas->list({ NAS_IDS  => $ARGV->{NAS_IDS}, 
-    	                      COLS_NAME => 1, 
-    	                      NAS_TYPE  => 'cisco',
-    	                      COLS_UPPER=> 1 });
+                            COLS_NAME => 1, 
+                            NAS_TYPE  => 'cisco',
+                            COLS_UPPER=> 1 });
     foreach my $nas_info (@$list) {
       $debug_output .= "NAS ID: $nas_info->{NAS_ID} MNG_INFO: $nas_info->{NAS_MNG_USER}\@$nas_info->{NAS_MNG_IP_PORT} $nas_info->{NAS_RAD_PAIRS}\n" if ($debug > 2);
 
@@ -2024,8 +2024,8 @@ sub check_cisco_if {
   }
   $Sessions->{debug} = 1 if ($debug > 4);
   my $list = $Sessions->online({ NAS_PORT_ID => '_SHOW', 
-  	                             CLIENT_IP   => '_SHOW',
-  	                             NAS_ID      => $ARGV->{NAS_IDS} });
+                                 CLIENT_IP   => '_SHOW',
+                                 NAS_ID      => $ARGV->{NAS_IDS} });
   foreach my $line (@$list) {
     my $sess_id = $line->{nas_port_id};
     my $ip      = $line->{client_ip};
@@ -2067,8 +2067,8 @@ sub check_ifaces {
   my $nas_info;
   if ($ARGV->{NAS_IDS}) {
     my $list = $Nas->list({ NAS_IDS   => $ARGV->{NAS_IDS}, 
-    	                      COLS_NAME => 1, 
-    	                      COLS_UPPER=> 1 });
+                            COLS_NAME => 1, 
+                            COLS_UPPER=> 1 });
 
     foreach my $_info (@$list) {
       $debug_output .= "NAS ID: $_info->{NAS_ID} MNG_INFO: $_info->{NAS_MNG_USER}\@$_info->{NAS_MNG_IP_PORT} $_info->{NAS_RAD_PAIRS}\n" if ($debug > 2);
@@ -2103,7 +2103,7 @@ sub check_ifaces {
         );
       }
       else {
-      	
+        
       }
     }
     elsif ($pid > 0) {
@@ -2524,7 +2524,8 @@ sub check_speed_mikrotik {
   my %class2nets   = ();
   $Dv->{debug}=1 if ($debug>6);
   my $list         = $Dv->get_speed({ CHECK_NETS => 1 ,
-                                      TP_ID      => $ARGV->{TP_ID} || undef                                      
+                                      TP_ID      => $ARGV->{TP_ID} || undef,
+                                      COLS_NAME  => 1
                                       });
 
   my $parent_in='global-in';
@@ -2552,7 +2553,7 @@ sub check_speed_mikrotik {
     }
 
     if ($ARGV->{SSH_PORT}) {
-    	$nas_port     = int($ARGV->{SSH_PORT});
+      $nas_port     = int($ARGV->{SSH_PORT});
     }
 
     my $nas_admin = $nas_info->{NAS_MNG_USER}    || 'admin';
@@ -2565,16 +2566,17 @@ sub check_speed_mikrotik {
     }
     #Get mikrotik version
     else {
-  	  if ($debug > 0) {
-  	  	my $soft_line  = get_mikrotik_value(qq{ /system package print where name~"system" }, $nas_info);
+      my $soft_line  = get_mikrotik_value(qq{ /system package print where name~"system" }, $nas_info);
 
-  	  	my @mikrotik_os_version = split(/\s+/, $soft_line->[2]);
-  	  	if ($mikrotik_os_version[3] =~ /^6/) {
-		      $parent_in='global';
-          $parent_out='global';
-  	  	}
-  	  	print "Mikrotik Version: $mikrotik_os_version[3]\n";
-  	  }
+      my @mikrotik_os_version = split(/\s+/, $soft_line->[2]);
+      if ($mikrotik_os_version[3] =~ /^6/) {
+        $parent_in='global';
+        $parent_out='global';
+      }
+     
+      if ($debug > 0) {
+        print "Mikrotik Version: $mikrotik_os_version[3]\n";
+      }
     }
 
     if ($ARGV->{RECONFIGURE}) {
@@ -2588,8 +2590,8 @@ sub check_speed_mikrotik {
     if ($ARGV->{SHOW_SPEED}) {
       my $ip_list = get_mikrotik_value(qq{ /ip firewall address-list print }, $nas_info);
       foreach my $line (@$ip_list) {
-      	$line =~ s/[\r\n]+//g;
-      	if ($line) {
+        $line =~ s/[\r\n]+//g;
+        if ($line) {
           my($id, $list_name, $ip)=split(/\s+/, $line);
           print "id: $id Listname: $list_name IP: $ip\n";
         }
@@ -2620,7 +2622,7 @@ Flags: X - disabled, I - invalid
     foreach my $tp_id (sort keys %TARIF_SPEEDS) {
       my $speeds = $TARIF_SPEEDS{$tp_id};
       foreach my $traf_type (sort keys %$speeds) {
-      	
+        
         my $speed     = $speeds->{$traf_type};
         my $speed_in  = (defined($speed->{IN})) ? $speed->{IN} * 1024 : 0;
         my $speed_out = (defined($speed->{OUT})) ? $speed->{OUT} * 1024 : 0;
@@ -2916,10 +2918,10 @@ sub check_cisco_cid {
   $LIST_PARAMS{NAS_IDS} = $ARGV->{NAS_IDS} if ($ARGV->{NAS_IDS});
   my $online   = $Sessions->{nas_sorted};
   my $nas_list = $Nas->list({ %LIST_PARAMS, 
-  	                          TYPE      => 'cisco', 
-  	                          COLS_NAME => 1,
-  	                          COLS_UPPER=> 1 
-  	                        });
+                              TYPE      => 'cisco', 
+                              COLS_NAME => 1,
+                              COLS_UPPER=> 1 
+                            });
   foreach my $nas_info (@$nas_list) {
     my $l = $online->{ $nas_info->{NAS_ID} };
     next if ($#{$l} < 0);
@@ -2934,7 +2936,7 @@ sub check_cisco_cid {
 
       if ($online->{service_cid} ne $online->{CID}) {
         session_hangup($nas_info, $online, "Wrong CID: Hangup $online->{user_name} CID: $online->{service_cid} Online CID: $online->{CID}");
-    	}
+      }
 
       if ($debug > 1) {
         printf("%-14s|%16s|%-14s\n", $online->{user_name}, $online->{client_ip}, $online->{cid});
