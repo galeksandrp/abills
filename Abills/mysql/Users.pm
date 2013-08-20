@@ -89,8 +89,6 @@ sub info {
     $password = "DECODE(u.password, '$CONF->{secretkey}') AS password";
   }
 
-
-
   $self->query2("SELECT u.uid,
    u.gid, 
    g.name AS g_name,

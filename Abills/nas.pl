@@ -521,9 +521,9 @@ sub hangup_ipcad {
     $netmask = 32 - length(sprintf("%b", $ips)) + 1;
   }
 
-  require Ipn;
-  Ipn->import();
-  my $Ipn = Ipn->new($db, \%conf);
+  require Ipn_Collector;
+  Ipn_Collector->import();
+  my $Ipn = Ipn_Collector->new($db, \%conf);
 
   $Ipn->acct_stop({ %$attr, SESSION_ID => $attr->{ACCT_SESSION_ID} });
   if ($NAS->{NAS_TYPE} eq 'dhcp' || $nas_type eq 'dlink_pb' || $nas_type eq 'dlink' || $nas_type eq 'edge_core' ) {

@@ -100,7 +100,6 @@ sub ipn_sessions2 {
     $LIST_PARAMS{HOURS}=1;
   }
 
-
   $pages_qs .= "&UID=$LIST_PARAMS{UID}";
   reports(
     {
@@ -110,7 +109,7 @@ sub ipn_sessions2 {
       NO_GROUP    => 1,
       HIDDEN      => { UID => $LIST_PARAMS{UID} },
       EX_INPUTS   => [
-        "$_HOURS: ". $html->form_input('HOURS', 1, { TYPE => 'checkbox', STATE => ($FORM{HOURS}) ? 'checked' : undef })
+        "$_HOURS: ". $html->form_input('HOURS', 1, { TYPE => 'checkbox', STATE => ($FORM{HOURS}) ? 'checked' : undef, OUTPUT2RETURN => 1 })
       ]
     }
   );
@@ -1353,7 +1352,7 @@ sub ipn_user_activate {
         $Nas->info({ NAS_ID => $nas_id });
 
         if ($Dv->{SIMULTANEONSLY} == 1) {
-          $Ipn->acct_stop(
+          $Ipn_Collector->acct_stop(
             {
               USER_NAME            => $user->{LOGIN},
               NAS_ID               => $nas_id,
@@ -1394,8 +1393,6 @@ sub ipn_user_activate {
             $DATA{FILTER_ID} .= "$k=$v, ";
           }
         }
-
-
 
         if ($r == 1) {
           $html->message('err', $_ERROR, "$RAD_PAIRS->{'Reply-Message'}");
@@ -1492,12 +1489,13 @@ sub ipn_user_activate {
 
   my $list           = $Sessions->online({
     USER_NAME         => '_SHOW',
-    CLIENT_IP         => '_SHOW',
+    CLIENT_IP         => $ENV{REMOTE_ADDR},
     DURATION          => '_SHOW',
     ACCT_INPUT_OCTETS => '_SHOW',
     ACCT_OUTPUT_OCTETS=> '_SHOW',
     ACCT_SESSION_ID   => '_SHOW',
-    UID               => $LIST_PARAMS{UID}
+    ALL               => 1,
+    #UID               => $LIST_PARAMS{UID}
     });
 
   if ($Sessions->{TOTAL} > 0) {
@@ -1642,7 +1640,7 @@ sub ipn_change_status {
     );
   }
   elsif ($STATUS eq 'HANGUP') {
-    $Ipn->acct_stop({ %FORM, ACCT_TERMINATE_CAUSE => $attr->{ACCT_TERMINATE_CAUSE} || 6 });
+    $Ipn_Collector->acct_stop({ %FORM, ACCT_TERMINATE_CAUSE => $attr->{ACCT_TERMINATE_CAUSE} || 6 });
 
     $cmd = $conf{IPN_FW_STOP_RULE};
 

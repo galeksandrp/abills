@@ -975,10 +975,7 @@ sub reports {
 
   if ($attr->{PERIOD_FORM}) {
     my @rows =
-    (   "$_FROM: "
-      . $html->date_fld2('FROM_DATE', { MONTHES => \@MONTHES, FORM_NAME => 'form_reports', WEEK_DAYS => \@WEEKDAYS })
-      . " $_TO: "
-      . $html->date_fld2('TO_DATE', { MONTHES => \@MONTHES, FORM_NAME => 'form_reports', WEEK_DAYS => \@WEEKDAYS }));
+    ("$_DATE: " . $html->date_fld2('FROM_DATE', { DATE => $FORM{FROM_DATE}, MONTHES => \@MONTHES, FORM_NAME => 'form_reports', WEEK_DAYS => \@WEEKDAYS }) . " - " . $html->date_fld2('TO_DATE', { MONTHES => \@MONTHES, FORM_NAME => 'form_reports', WEEK_DAYS => \@WEEKDAYS }));
 
     if (!$attr->{NO_GROUP}) {
       push @rows, "$_TYPE:",

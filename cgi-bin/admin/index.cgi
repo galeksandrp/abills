@@ -2552,8 +2552,6 @@ sub form_users {
     $i++;
   }
 
-  print $html->letters_list({ pages_qs => $pages_qs });
-
   my ($table, $list) = result_former({
      INPUT_DATA      => $users,
      FUNCTION        => 'list',
@@ -2590,13 +2588,14 @@ sub form_users {
 
     form_users({ USER_INFO => $ui });
 
-    return 0;
+    return 1;
   }
   elsif ($users->{TOTAL} == 0) {
     $html->message('err', $_ERROR, "$_USER $_NOT_EXIST");
     return 0;
   }
 
+  print $html->letters_list({ pages_qs => $pages_qs });
 
   if ($FORM{UNIVERSAL_SEARCH}) {
      $search_color_mark=$html->color_mark($FORM{UNIVERSAL_SEARCH}, $_COLORS[6]);
@@ -2703,6 +2702,8 @@ sub form_users {
     print $table->show();
     print $table2->show() if (!$admin->{MAX_ROWS});
   }
+  
+  return 0;
 }
 
 #**********************************************************
@@ -7039,7 +7040,10 @@ sub form_search {
     }
     
     if ($FORM{type} ne $index && ! $FORM{subf}) {
-      $functions{ $FORM{type} }->();
+      my $return = $functions{ $FORM{type} }->();
+      if ($return) {
+      	return 0;
+      }
     }
   }
 
@@ -7080,7 +7084,6 @@ sub form_search {
   }
   elsif ($attr->{TPL}) {
     print $attr->{TPL};
-    #defined();
   }
   elsif (!$FORM{pdf}) {
     my $group_sel   = sel_groups();
