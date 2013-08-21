@@ -172,7 +172,7 @@ sub ureports_periodic_reports {
 
   $SERVICE_LIST_PARAMS{LOGIN}     =  $ARGV->{LOGIN} if ($ARGV->{LOGIN});
 
-  $tariffs->{debug}=1 if ($debug > 6);
+  $tariffs->{debug}= 1 if ($debug > 6);
   my $list         = $tariffs->list({
                                      REDUCTION_FEE   => '_SHOW',
                                      DAY_FEE         => '_SHOW',
@@ -201,10 +201,11 @@ sub ureports_periodic_reports {
         PAGE_ROWS      => 1000000,
         DV_TP          => 1,
         ACCOUNT_STATUS => 0,
+        DV_STATUS      => '_SHOW',
         STATUS         => 0,
         %SERVICE_LIST_PARAMS,
         COLS_NAME      => 1,
-        COLS_UPPER     => 1
+        COLS_UPPER     => 1,
       }
     );
     
@@ -269,7 +270,7 @@ sub ureports_periodic_reports {
           }
         }
 
-        #Report 2
+        #Report 2 DEposit + credit below
         elsif ($user->{REPORT_ID} == 2) {
           if ($user->{VALUE} > $user->{DEPOSIT} + $user->{CREDIT}) {
             %PARAMS = (
@@ -431,6 +432,19 @@ sub ureports_periodic_reports {
             else {
               next;
             }
+          }
+        }
+        #15 Dv change status
+        elsif ($user->{REPORT_ID} == 15) {
+          if ($user->{DV_STATUS}) {
+            my @service_status = ("$_ENABLE", "$_DISABLE", "$_NOT_ACTIVE", "$_HOLD_UP", 
+              "$_DISABLE: $_NON_PAYMENT", "$ERR_SMALL_DEPOSIT",
+              "$_VIRUS_ALERT" );
+            %PARAMS = (
+                DESCRIBE => "$_REPORTS",
+                MESSAGE  => "Internet: $service_status[$user->{DV_STATUS}]",
+                SUBJECT  => "Internet: $service_status[$user->{DV_STATUS}"
+            );
           }
         }
       }

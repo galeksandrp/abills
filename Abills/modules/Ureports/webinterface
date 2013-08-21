@@ -41,7 +41,8 @@ my %REPORTS        = (
   11 => "$_SMALL_DEPOSIT_FOR_NEXT_MONTH v2",
   12 => "$_PAYMENTS_INFO",
   13 => "$_ALL_SERVICE_EXPIRE",
-  14 => "$_DEPOSIT_NOTIFY_BEFORE_ABON"
+  14 => "$_DEPOSIT_NOTIFY_BEFORE_ABON",
+  15 => "Internet $_DISABLE"
 );
 
 #дані для формування звітів.
@@ -1563,6 +1564,8 @@ sub ureports_payments_maked {
 
 
     $info{EXPIRE_DAYS} = int($user->{DEPOSIT} / $total_daily_fee);
+    $info{EXPIRE_DATE} = strftime("%Y-%m-%d", localtime(time + $info{EXPIRE_DAYS} * 86400));    
+
     $_ALL_SERVICE_EXPIRE =~ s/XX/ $info{EXPIRE_DAYS} /;
     my $message = $_ALL_SERVICE_EXPIRE;
               
@@ -1584,7 +1587,7 @@ sub ureports_payments_maked {
               $Ureports->{list}->[0]->{destination_id},
               $html->tpl_show(_include('ureports_report_12', 'Ureports'), { %$user, %info }, {  OUTPUT2RETURN => 1 }),
               {
-                SUBJECT => "$_PAYMENTS_INFO",
+                SUBJECT => "$_BALANCE_RECHARCHE",
                 UID     => $user->{UID},
               }              
             );

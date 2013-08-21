@@ -583,7 +583,7 @@ sub hangup_ipcad {
     $result = system($cmd);
   }
 
-  print $result;
+  return  $result;
 }
 
 #*******************************************************************

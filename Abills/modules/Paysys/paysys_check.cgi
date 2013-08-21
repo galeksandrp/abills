@@ -247,7 +247,7 @@ elsif ($conf{PAYSYS_EXPPAY_ACCOUNT_KEY}
   require "Express.pm";
   exit;
 }
-elsif (defined($FORM{action}) && $conf{PAYSYS_TELCELL_ACCOUNT_KEY}) {
+elsif ( check_ip($ENV{REMOTE_ADDR}, '62.89.31.36,95.140.194.139,192.168.1.103')) {
   require "Telcell.pm";
   exit;
 }
