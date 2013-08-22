@@ -3250,8 +3250,6 @@ sub dv_user_stats {
     }
   }
 
-  #dv_stats_calculation($sessions);
-
   if (defined($FORM{show})) {
     $pages_qs .= "&show=1&FROM_DATE=$FORM{FROM_DATE}&TO_DATE=$FORM{TO_DATE}";
   }
@@ -3309,7 +3307,7 @@ sub dv_user_stats {
     $LIST_PARAMS{DESC} = 'DESC';
   }
 
-  $list  = $sessions->list({%LIST_PARAMS, COLS_NAME => 1 });
+  $list  = $sessions->list({ UID => $LIST_PARAMS{UID}, COLS_NAME => 1 });
   $table = $html->table(
     {
       caption     => "$_SUM",
@@ -3349,7 +3347,6 @@ sub dv_user_stats {
   if (-f '../graphics.cgi' || -f 'graphics.cgi') {
     $sessions->{DAILY_GRAPH}  = $html->img('/graphics.cgi?LOGIN=' . $LIST_PARAMS{LOGIN} . '&DAILY=1&SHOW_GRAPH=1', "$_DAILY $_STATS" );
     $sessions->{WEEKLY_GRAPH} = $html->img('/graphics.cgi?LOGIN=' . $LIST_PARAMS{LOGIN} . '&WEEKLY=1&SHOW_GRAPH=1', "$_WEEKLY $_STATS");
-
     #$sessions->{MONTHLY_GRAPH} = $html->button('Wheekly Graph', '#', { IMG => '/graphics.cgi?UID=9&WEEKLY=1&SHOW_GRAPH=1' });
   }
 

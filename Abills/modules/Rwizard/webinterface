@@ -211,6 +211,7 @@ sub rwizard {
 
         $Reports->{QUERY}       =~ s/=\'?%DEPOSIT%\'?/$prefix'$FORM{DEPOSIT}'/g;
         $Reports->{QUERY_TOTAL} =~ s/=\'?%DEPOSIT%\'?/$prefix'$FORM{DEPOSIT}'/g;
+        delete $FORM{DEPOSIT};
       }
     }
 
