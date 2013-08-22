@@ -443,7 +443,7 @@ sub ureports_periodic_reports {
             %PARAMS = (
                 DESCRIBE => "$_REPORTS",
                 MESSAGE  => "Internet: $service_status[$user->{DV_STATUS}]",
-                SUBJECT  => "Internet: $service_status[$user->{DV_STATUS}"
+                SUBJECT  => "Internet: $service_status[$user->{DV_STATUS}]"
             );
           }
         }
