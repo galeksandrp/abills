@@ -778,6 +778,9 @@ sub list {
     $self->{EXT_TABLES} .= "
             LEFT JOIN bills ext_b ON (u.ext_bill_id = ext_b.id)
             LEFT JOIN bills ext_cb ON  (company.ext_bill_id=ext_cb.id) ";
+    if ($self->{EXT_TABLES} !~ /company /) {
+    	$self->{EXT_TABLES} = "LEFT JOIN companies company ON  (u.company_id=company.id) ". $self->{EXT_TABLES};
+    }
   }
 
   # Show debeters
