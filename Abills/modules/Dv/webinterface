@@ -411,7 +411,6 @@ sub dv_users_list {
     return 0;
   }
   elsif ($Dv->{TOTAL} == 1) {
-    print "// $Dv->{TOTAL} //";
     delete $FORM{LOGIN};
     $ui = user_info($list->[0]->{uid});
     print $ui->{TABLE_SHOW};
