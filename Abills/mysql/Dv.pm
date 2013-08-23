@@ -373,6 +373,8 @@ sub list {
 
   my $GROUP_BY = ($attr->{GROUP_BY}) ? $attr->{GROUP_BY} : 'u.uid';
 
+  $self->{debug}=1;
+
   @WHERE_RULES = ();
   push @WHERE_RULES, @{ $self->search_expr_users({ %$attr, 
                              EXT_FIELDS => [

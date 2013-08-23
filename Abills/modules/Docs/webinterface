@@ -2114,7 +2114,7 @@ sub docs_invoice {
   	  	$unpayment_total_sum                  += $Doc{'UNPAYMENT_INVOICE_SUM_'.$i};
       }
 
-      $Doc{UNPAYMENT_TOTAL_SUM}=$unpayment_total_sum;
+      $Doc{UNPAYMENT_TOTAL_SUM}=sprintf("%.2f", $unpayment_total_sum);
 
       if ($Doc{EXCHANGE_RATE} > 0) {
         $Doc{TOTAL_ALT_SUM}      = sprintf("%.2f", $Doc{TOTAL_SUM} * $Doc{EXCHANGE_RATE});

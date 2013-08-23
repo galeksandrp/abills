@@ -902,7 +902,8 @@ sub list {
   if ($self->{SEARCH_FIELDS} =~ / pi\./) {
     $EXT_TABLE .= "LEFT JOIN users_pi pi ON (pi.uid=l.uid)";
   }
-  if ($self->{SEARCH_FIELDS} =~ / u\./ || $WHERE =~ / u\./) {
+
+  if ($self->{SEARCH_FIELDS} =~ /\s?u\./ || $WHERE =~ / u\./) {
     $EXT_TABLE .= "INNER JOIN users u ON (u.uid=l.uid)";
   }
 
