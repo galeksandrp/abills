@@ -2112,6 +2112,7 @@ sub docs_invoice {
   	  	$Doc{'UNPAYMENT_INVOICE_NUM_'.$i}      = $unpayment->{invoice_num};
   	  	$Doc{'UNPAYMENT_INVOICE_ALT_SUM_'.$i}  = sprintf("%.2f", $Doc{EXCHANGE_RATE} * $i2p->{payment_sum});
   	  	$unpayment_total_sum                  += $Doc{'UNPAYMENT_INVOICE_SUM_'.$i};
+  	  	$i++;
       }
 
       $Doc{UNPAYMENT_TOTAL_SUM}=sprintf("%.2f", $unpayment_total_sum);
@@ -2121,7 +2122,7 @@ sub docs_invoice {
         $Doc{AMOUNT_FOR_PAY_ALT} = sprintf("%.2f", $Doc{AMOUNT_FOR_PAY} * $Doc{EXCHANGE_RATE});
         $Doc{DEPOSIT_ALT}        = sprintf("%.2f", $Doc{DEPOSIT} * $Doc{EXCHANGE_RATE});
         $Doc{CHARGED_ALT_SUM}    = sprintf("%.2f", $Doc{CHARGED_SUM} * $Doc{EXCHANGE_RATE});
-        $Doc{UNPAYMENT_TOTAL_SUM_ALT}= sprintf("%.2f", $Doc{CHARGED_SUM} * $Doc{UNPAYMENT_TOTAL_SUM});
+        $Doc{UNPAYMENT_TOTAL_ALT_SUM}= sprintf("%.2f", $Doc{UNPAYMENT_TOTAL_SUM} * $Doc{EXCHANGE_RATE});
       }
 
       $attr->{SEND_EMAIL} = 0 if (!defined($attr->{SEND_EMAIL}));

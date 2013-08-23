@@ -411,7 +411,7 @@ sub periodic_invoice {
       if ($debug < 5) {
         $Docs->invoice_add({ %user, 
         	                   %ORDERS_HASH,
-        	                   DATE    => $ARGV->{INVOICE_DATE} || undef
+        	                   DATE    => $ARGV->{INVOICE_DATE} || undef,
         	                   DEPOSIT => ($ARGV->{INCLUDE_DEPOSIT}) ?  $user{DEPOSIT} : 0
         	                 });
 
