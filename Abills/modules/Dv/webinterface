@@ -1742,7 +1742,7 @@ sub dv_online {
 
   my $dub_ports  = $sessions->{dub_ports} if ($sessions->{dub_ports});
   my $dub_logins = $sessions->{dub_logins} if ($sessions->{dub_logins});
-  my $online = $sessions->{nas_sorted};
+  my $online     = $sessions->{nas_sorted};
 
   foreach my $nas_row (@$nas_list) {
     next if (!defined($online->{ $nas_row->{nas_id} }));

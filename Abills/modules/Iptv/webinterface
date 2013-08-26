@@ -2303,7 +2303,7 @@ sub iptv_user_channels {
 
           if ($Iptv->{TP_INFO}->{MONTH_FEE} > 0) {
             $Iptv->{ACCOUNT_ACTIVATE} = $users->{ACTIVATE};
-            service_get_month_fee($Iptv, { EXT_DESCRIBE => " $_CHANNEL: $line->[1]",
+            service_get_month_fee($Iptv, { EXT_DESCRIBE => " $_CHANNEL: $line->{interval_channel_id}",
             	                             SERVICE_NAME => "$_TV" });
           }
           else {

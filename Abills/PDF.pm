@@ -1265,7 +1265,7 @@ sub tpl_show {
       if ($pattern =~ /font_name=(\S+)/) {
         $font_name = $1;
         if ($font_name =~ /\.ttf$/) {
-          $font = $pdf->ttffont($font_name, -encode => "$encode");
+          $font = $pdf->ttfont($font_name, -encode => "$encode");
         }
         else {
           $font = $pdf->corefont($font_name, -encode => "$encode");

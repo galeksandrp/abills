@@ -924,27 +924,40 @@ sub search_expr_users () {
       }
       elsif($attr->{SHOW_ADDRESS}) {
         $self->{SEARCH_FIELDS_COUNT} += 4;
-        $self->{SEARCH_FIELDS}       .= 'streets.name AS address_street, builds.number AS address_build, pi.address_flat, streets.id AS street_id, pi.address_flat, ';
+        $self->{SEARCH_FIELDS}       .= 'streets.name AS address_street, builds.number AS address_build, pi.address_flat, streets.id AS street_id, ';
         $self->{EXT_TABLES} .= "LEFT JOIN builds ON (builds.id=pi.location_id)
         LEFT JOIN streets ON (streets.id=builds.street_id)";
       }
-    }
-    elsif ($attr->{ADDRESS_STREET}) {
-      push @fields, @{ $self->search_expr($attr->{ADDRESS_STREET}, 'STR', 'pi.address_street', { EXT_FIELD => 1 }) };
-    }
 
-    if ($CONF->{ADDRESS_REGISTER}) {
       if ($attr->{ADDRESS_BUILD}) {
         push @fields, @{ $self->search_expr($attr->{ADDRESS_BUILD}, 'STR', 'builds.number', { EXT_FIELD => 'builds.number AS address_build' }) };
         $self->{EXT_TABLES} .= "LEFT JOIN builds ON (builds.id=pi.location_id)" if ($self->{EXT_TABLES} !~ /builds/);
       }
-    }
-    elsif ($attr->{ADDRESS_BUILD}) {
-      push @fields, @{ $self->search_expr($attr->{ADDRESS_BUILD}, 'STR', 'pi.address_build', { EXT_FIELD => 1 }) };
-    }
 
-    if ($attr->{COUNTRY_ID}) {
-      push @fields, @{ $self->search_expr($attr->{COUNTRY_ID}, 'STR', 'pi.country_id', { EXT_FIELD => 1 }) };
+    }
+    else {
+      if($attr->{SHOW_ADDRESS}) {
+        $self->{SEARCH_FIELDS_COUNT} += 3;
+        $self->{SEARCH_FIELDS}       .= 'pi.address_street, pi.address_build, pi.address_flat, ';
+      }
+      elsif ($attr->{ADDRESS_FULL}) {
+         $attr->{BUILD_DELIMITER}=',' if (! $attr->{BUILD_DELIMITER});
+         push @fields, @{ $self->search_expr("$attr->{ADDRESS_FULL}", "STR", "CONCAT(pi.address_street, ' ', pi.address_build, '$attr->{BUILD_DELIMITER}', pi.address_flat) AS address_full", { EXT_FIELD => 1 }) };
+
+         $self->{EXT_TABLES} .= "LEFT JOIN builds ON (builds.id=pi.location_id)
+          LEFT JOIN streets ON (streets.id=builds.street_id)";
+      }
+      elsif ($attr->{ADDRESS_STREET}) {
+        push @fields, @{ $self->search_expr($attr->{ADDRESS_STREET}, 'STR', 'pi.address_street', { EXT_FIELD => 1 }) };
+      }
+
+      if ($attr->{ADDRESS_BUILD}) {
+        push @fields, @{ $self->search_expr($attr->{ADDRESS_BUILD}, 'STR', 'pi.address_build', { EXT_FIELD => 1 }) };
+      }
+
+      if ($attr->{COUNTRY_ID}) {
+        push @fields, @{ $self->search_expr($attr->{COUNTRY_ID}, 'STR', 'pi.country_id', { EXT_FIELD => 1 }) };
+      }
     }
   }
 

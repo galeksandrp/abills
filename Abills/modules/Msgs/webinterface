@@ -1702,6 +1702,7 @@ sub msgs_dispatch {
   elsif ($FORM{print}) {
     print $html->header();
     $Msgs->dispatch_info($FORM{print});
+
     my $list = $Msgs->messages_list(
       {
         DISPATCH_ID  => $FORM{print},
@@ -1749,6 +1750,7 @@ sub msgs_dispatch {
 
     $Msgs->{ACTION}     = 'change';
     $Msgs->{LNG_ACTION} = $_CHANGE;
+    $FORM{add_form}     = 1;
     $html->message('info', $_INFO, "$_CHANGING") if (!$Msgs->{errno});
   }
   elsif ($FORM{del} && $FORM{is_js_confirmed}) {

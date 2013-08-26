@@ -938,7 +938,7 @@ sub bonus_turbo_add {
   my ($attr) = @_;
   my %DATA   = $self->get_data($attr);
 
-  $self->query3("INSERT INTO bonus_turbo (service_period, registration_days, turbo_count, comments)
+  $self->query2("INSERT INTO bonus_turbo (service_period, registration_days, turbo_count, comments)
         VALUES ('$DATA{SERVICE_PERIOD}', '$DATA{REGISTRATION_DAYS}', '$DATA{TURBO_COUNT}', '$DATA{DESCRIBE}');", 'do'
   );
 
