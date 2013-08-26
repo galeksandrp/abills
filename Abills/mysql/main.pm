@@ -296,10 +296,12 @@ sub search_former {
   my $self = shift;
   my ($data, $search_params, $attr)=@_;
 
-  my @WHERE_RULES              = ();
-  $self->{SEARCH_FIELDS}       = '';
-  $self->{SEARCH_FIELDS_COUNT} = 0;
-
+  my @WHERE_RULES                = ();
+  $self->{SEARCH_FIELDS}         = '';
+  $self->{SEARCH_FIELDS_COUNT}   = 0;
+  @{ $self->{SEARCH_FIELDS_ARR} }= ();
+  
+  
   foreach my $search_param (@$search_params) {
     my ($param, $field_type, $sql_field, $show, $ex_params)=@$search_param;
     my $param2 = '';
@@ -312,6 +314,7 @@ sub search_former {
       if ($sql_field eq '') {
         $self->{SEARCH_FIELDS} .= "$show, ";
         $self->{SEARCH_FIELDS_COUNT}++;
+        push @{ $self->{SEARCH_FIELDS_ARR} }, $show;
        }
       elsif ($param2) {
         push @WHERE_RULES, "($sql_field>='$data->{$param}' and $sql_field<='$data->{$param2}')";
@@ -386,6 +389,8 @@ sub search_expr {
   if ($attr->{EXT_FIELD}) {
     $self->{SEARCH_FIELDS} .= ($attr->{EXT_FIELD} ne '1') ? "$attr->{EXT_FIELD}, " : "$field, ";
     $self->{SEARCH_FIELDS_COUNT}++;
+    
+    push @{ $self->{SEARCH_FIELDS_ARR} }, ($attr->{EXT_FIELD} ne '1') ? split(', ', $attr->{EXT_FIELD}) : "$field";
   }
   my @result_arr = ();
   if (! defined($value)) {
@@ -727,9 +732,10 @@ sub search_expr_users () {
   my @fields = ();
 
   if (! $attr->{SUPPLEMENT}) {
-    $self->{SEARCH_FIELDS}       = '';
-    $self->{SEARCH_FIELDS_COUNT} = 0;
-    $self->{EXT_TABLES}          = '';
+    $self->{SEARCH_FIELDS}         = '';
+    $self->{SEARCH_FIELDS_COUNT}   = 0;
+    $self->{EXT_TABLES}            = '';
+    @{ $self->{SERACH_FIELD_ARR} } = ();
   }
 
   #ID:type:Field name
@@ -767,7 +773,6 @@ sub search_expr_users () {
     COMMENTS      => 'STR:pi.comments',
     BILL_ID       => 'INT:if(company.id IS NULL,b.id,cb.id) AS bill_id',
     PASSWORD      => "STR:DECODE(u.password, '$CONF->{secretkey}') AS password"
-
     #ADDRESS_FLAT  => 'STR:pi.address_flat', 
   );
 
@@ -825,8 +830,7 @@ sub search_expr_users () {
             }
             elsif ($type == 2) {
               push @fields, "(pi.$field_name='$attr->{$field_name}')";
-              $self->{SEARCH_FIELDS} .= "$field_name" . '_list.name AS '. $field_name. '_list_name, ';
-              $self->{SEARCH_FIELDS_COUNT}++;
+              push @{ $self->{SERACH_FIELD_ARR} }, "$field_name" . '_list.name AS '. $field_name. '_list_name, ';
 
               $self->{EXT_TABLES} .= "LEFT JOIN $field_name" . "_list ON (pi.$field_name = $field_name" . "_list.id)";
               next;
@@ -835,8 +839,8 @@ sub search_expr_users () {
               $attr->{$field_name} =~ s/\*/\%/ig;
               push @fields, "pi.$field_name LIKE '$attr->{$field_name}'";
             }
-            $self->{SEARCH_FIELDS} .= "pi.$field_name, ";
-            $self->{SEARCH_FIELDS_COUNT}++;
+
+            @{ $self->{SERACH_FIELD_ARR} }, "pi.$field_name, ";
           }
         }
       }
@@ -923,8 +927,8 @@ sub search_expr_users () {
         LEFT JOIN streets ON (streets.id=builds.street_id)";
       }
       elsif($attr->{SHOW_ADDRESS}) {
-        $self->{SEARCH_FIELDS_COUNT} += 4;
-        $self->{SEARCH_FIELDS}       .= 'streets.name AS address_street, builds.number AS address_build, pi.address_flat, streets.id AS street_id, ';
+        push @{ $self->{SERACH_FIELD_ARR} }, 'streets.name AS address_street', 'builds.number AS address_build', 'pi.address_flat', 'streets.id AS street_id';
+
         $self->{EXT_TABLES} .= "LEFT JOIN builds ON (builds.id=pi.location_id)
         LEFT JOIN streets ON (streets.id=builds.street_id)";
       }
@@ -937,8 +941,7 @@ sub search_expr_users () {
     }
     else {
       if($attr->{SHOW_ADDRESS}) {
-        $self->{SEARCH_FIELDS_COUNT} += 3;
-        $self->{SEARCH_FIELDS}       .= 'pi.address_street, pi.address_build, pi.address_flat, ';
+        push @{ $self->{SERACH_FIELD_ARR} }, 'pi.address_street', 'pi.address_build', 'pi.address_flat';
       }
       elsif ($attr->{ADDRESS_FULL}) {
          $attr->{BUILD_DELIMITER}=',' if (! $attr->{BUILD_DELIMITER});
@@ -986,6 +989,19 @@ sub search_expr_users () {
       LEFT JOIN bills cb ON (company.bill_id=cb.id) ";
   }
 
+  if ($attr->{SORT}) {
+    if ($self->{SEARCH_FIELDS_ARR}->[($attr->{SORT}-2)]){
+      if ( $self->{SEARCH_FIELDS_ARR}->[($attr->{SORT}-2)] =~ m/build|flat/i) {
+        if ($self->{SEARCH_FIELDS_ARR}->[($attr->{SORT}-2)] =~ m/([a-z\._0-9\(\)]+)\s+/i) {
+      	  $self->{SEARCH_FIELDS_ARR}->[($attr->{SORT}-2)]=$1;
+        }
+    	  $SORT = $self->{SEARCH_FIELDS_ARR}->[($attr->{SORT}-2)] ."*1";
+      }
+      elsif ($self->{SEARCH_FIELDS_ARR}->[($attr->{SORT}-2)] =~ m/ip/i) {
+      	$SORT = 'ip';
+      }
+    }
+  }
 
   delete ($self->{COL_NAMES_ARR});
   return \@fields;

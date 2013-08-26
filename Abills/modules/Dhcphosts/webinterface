@@ -79,6 +79,10 @@ sub dhcphosts_mac_block_show {
   my @pair_status = ('ACCEPT', 'DENY');
   my $list = $Dhcphosts->hosts_list(
     {
+      IP                         => '_SHOW',
+      MAC                        => '_SHOW',
+      LOGIN                      => '_SHOW',
+      EXPIRE                     => '_SHOW',
       STATUS                     => $LIST_PARAMS{STATUS},
       PAGE_ROWS                  => 1000000,
       DHCPHOSTS_DEPOSITCHECK     => $conf{DHCPHOSTS_DEPOSITCHECK},
@@ -98,7 +102,7 @@ sub dhcphosts_mac_block_show {
       next;
     }
     elsif (!defined($line->{ip})) {
-      print 'Warning: IP: ' . ($ip || 'No ip') . ' MAC: ' . ($mac || 'No MAC') . " Record don't have users (ID: $line->[0])\n";
+      print 'Warning: IP: ' . ($ip || 'No ip') . ' MAC: ' . ($mac || 'No MAC') . " Record don't have users (ID: $line->{id})\n";
       next;
     }
 
@@ -323,7 +327,14 @@ sub dhcphosts_monitor {
   $LIST_PARAMS{PAGE_ROWS} = 100000;
   $LIST_PARAMS{IPS} = join(", ", keys %$dhcp_hash);
 
-  my $hosts_list = $Dhcphosts->hosts_list({%LIST_PARAMS, COLS_NAME => 1});
+  my $hosts_list = $Dhcphosts->hosts_list({
+      IP                         => '_SHOW',
+      MAC                        => '_SHOW',
+      LOGIN                      => '_SHOW',
+      EXPIRE                     => '_SHOW',
+      HOSTNAME                   => '_SHOW',  	
+  	  %LIST_PARAMS, 
+  	  COLS_NAME => 1});
 
   my $table = $html->table(
     {
@@ -587,7 +598,8 @@ sub dhcphosts_hosts {
   }
 
   my $nas_list = $Nas->list({ COLS_NAME => 1 });
-  if (!$FORM{UID} && $FORM{search_form}) {
+  $FORM{search_form}=1;
+  if (!$LIST_PARAMS{UID} && $FORM{search_form}) {
     $Dhcphosts->{STATUS_SEL} = $html->form_select(
       'STATUS',
       {
@@ -627,7 +639,8 @@ sub dhcphosts_hosts {
   my ($table, $list) = result_former({
      INPUT_DATA      => $Dhcphosts,
      FUNCTION        => 'hosts_list',
-     BASE_FIELDS     => 7,
+     DEFAULT_FIELDS  => 'ID,LOGIN,IP,HOSTNAME,NETWORK_NAME,MAC,STATUS',
+     BASE_FIELDS     => 1,
      FUNCTION_FIELDS => 'change,del',
      EXT_TITLES      => {
           'id'          => '#',
@@ -758,6 +771,8 @@ sub dhcphosts_user {
     $Dhcphosts->{ACTION_LNG} = $_ADD;
   }
 
+  $FORM{add_form}=1;
+
   if ($FORM{add}) {
     if ($FORM{AUTO_IP} && !$FORM{NETWORK}) {
       $html->message('err', $_ERROR, "$ERR_WRONG_DATA: Select network");
@@ -787,7 +802,8 @@ sub dhcphosts_user {
       $Dhcphosts->host_check({%FORM});
 
       if (!$Dhcphosts->{errno} && $FORM{OPTION_82} && $FORM{PORTS} && $FORM{NAS_ID} && !$conf{DHCPHOSTS_O82_USE_MAC}) {
-        my $list = $Dhcphosts->hosts_list({ NAS_ID    => $FORM{NAS_ID}, 
+        my $list = $Dhcphosts->hosts_list({ NAS_ID    => $FORM{NAS_ID},
+                                            LOGIN     => '_SHOW',
         	                                  PORTS     => $FORM{PORTS},
         	                                  VID       => $FORM{VID},
         	                                  COLS_NAME => 1
@@ -846,7 +862,8 @@ sub dhcphosts_user {
       $Dhcphosts->host_check({%FORM});
       if (!$Dhcphosts->{errno} && $FORM{OPTION_82} && $FORM{PORTS} && $FORM{NAS_ID} && !$conf{DHCPHOSTS_O82_USE_MAC}) {
         my $list = $Dhcphosts->hosts_list(
-          {
+          { 
+          	LOGIN     => '_SHOW',
             NAS_ID    => $FORM{NAS_ID},
             PORTS     => $FORM{PORTS},
             VID       => $FORM{VID},
@@ -936,11 +953,13 @@ sub dhcphosts_user {
         $SEARCH_PARAMS{IP} = $FORM{IP};
       }
 
-      my $list = $Dhcphosts->hosts_list({ %SEARCH_PARAMS, COLS_NAME => 1 });
+      my $list = $Dhcphosts->hosts_list({ %SEARCH_PARAMS, 
+      	                                  LOGIN     => '_SHOW',
+      	                                  COLS_NAME => 1 });
 
       my $login = '';
       if ($Dhcphosts->{TOTAL} > 0) {
-        $login = $html->button("$list->[0][1]", "index=15&UID=" . $list->[0]{uid} . "&MODULE=Dhcphosts"),;
+        $login = $html->button("$list->[0]->{login}", "index=15&UID=" . $list->[0]->{uid} . "&MODULE=Dhcphosts"),;
       }
 
       $html->message('err', $_ERROR, "[7] $_EXIST $FORM{IP}/$FORM{MAC} $login");
@@ -1064,6 +1083,7 @@ sub dhcphosts_get_static_ip {
 
     my $list = $Dhcphosts->hosts_list(
       {
+        IP        => '_SHOW',
         PAGE_ROWS => 100000,
         SKIP_GID  => 1,
         COLS_NAME => 1
@@ -1240,6 +1260,9 @@ sub dhcphosts_config {
         DHCPHOSTS_DEPOSITCHECK     => $conf{DHCPHOSTS_DEPOSITCHECK},
         DHCPHOSTS_EXT_DEPOSITCHECK => $conf{DHCPHOSTS_EXT_DEPOSITCHECK},
         USER_DISABLE               => 0,
+        LOGIN                      => '_SHOW',
+        MAC                        => '_SHOW',
+        IP                         => '_SHOW',
         PORTS                      => '_SHOW',
         NAS_ID                     => '_SHOW',
         OPTION_82                  => '_SHOW',
@@ -1571,15 +1594,6 @@ sub dhcphosts_log {
     $LIST_PARAMS{SORT} = 1;
     $LIST_PARAMS{DESC} = 'desc';
   }
-
-  #   if ($FORM{UID})  {
-  #   	  my @macs_arr = '';
-  #   	  my $list = $Dhcphosts->hosts_list({ UID => $FORM{UID} });
-  #   	  foreach my $line  (@$list) {
-  #   	  	push @macs_arr, $line->[6];
-  #   	   }
-  #      $LIST_PARAMS{MESSAGE}=join(';', @macs_arr);
-  #    }
 
   $Dhcphosts->{MESSAGE_TYPE_SEL} = $html->form_select(
     'MESSAGE_TYPE',
