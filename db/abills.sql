@@ -112,7 +112,7 @@ CREATE TABLE `dv_calls` (
   `started` datetime NOT NULL default '0000-00-00 00:00:00',
   `nas_ip_address` int(11) unsigned NOT NULL default '0',
   `nas_port_id` int(6) unsigned NOT NULL default '0',
-  `acct_session_id` varchar(25) NOT NULL default '',
+  `acct_session_id` varchar(32) NOT NULL default '',
   `acct_session_time` int(11) unsigned NOT NULL default '0',
   `acct_input_octets` bigint(14) unsigned NOT NULL default '0',
   `acct_output_octets` bigint(14) unsigned NOT NULL default '0',

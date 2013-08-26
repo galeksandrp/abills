@@ -239,7 +239,7 @@ sub list {
       ['CURRENCY',       'INT', 'p.currency',                  1],
       ['METHOD',         'INT', 'p.method'                      ],
       ['BILL_ID',        'INT', 'p.bill_id',                   1],
-      ['AID',            'INT', 'p.id',                         ],
+      ['AID',            'INT', 'p.aid',                        ],
       ['IP',             'INT', 'INET_NTOA(p.ip)',  'INET_NTOA(p.ip) AS ip'],
       ['EXT_ID',         'STR', 'p.ext_id',                                ],
       ['INVOICE_NUM',    'INT', 'd.invoice_num',                          1],

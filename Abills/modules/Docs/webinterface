@@ -2087,7 +2087,8 @@ sub docs_invoice {
       my $payments_total_sum = 0;
       $i = 1;
   	  foreach my $i2p (@{ $i2p_list }) {
-  	  	$Doc{'PAYMENT_DATE_'.$i}     = $i2p->{date};
+  	  	my ($payment_day, $payment_time)=split(/ /, $i2p->{date});
+  	  	$Doc{'PAYMENT_DATE_'.$i}     = $payment_day;
   	  	$Doc{'PAYMENT_COMMENTS_'.$i} = $i2p->{dsc};
   	  	$Doc{'PAYMENT_SUM_'.$i}      = $i2p->{invoiced_sum};
   	  	$Doc{'PAYMENT_ID_'.$i}       = $i2p->{payment_id};
@@ -2108,9 +2109,9 @@ sub docs_invoice {
       foreach my $unpayment ( @$unpayment_list ) {
   	  	$Doc{'UNPAYMENT_INVOICE_DATE_'.$i}     = $unpayment->{date};
   	  	$Doc{'UNPAYMENT_INVOICE_COMMENTS_'.$i} = $unpayment->{dsc};
-  	  	$Doc{'UNPAYMENT_INVOICE_SUM_'.$i}      = $unpayment->{total_sum} - $unpayment->{payment_sum};
+  	  	$Doc{'UNPAYMENT_INVOICE_SUM_'.$i}      = sprintf("%.2f", $unpayment->{total_sum} - $unpayment->{payment_sum});
   	  	$Doc{'UNPAYMENT_INVOICE_NUM_'.$i}      = $unpayment->{invoice_num};
-  	  	$Doc{'UNPAYMENT_INVOICE_ALT_SUM_'.$i}  = sprintf("%.2f", $Doc{EXCHANGE_RATE} * $i2p->{payment_sum});
+  	  	$Doc{'UNPAYMENT_INVOICE_ALT_SUM_'.$i}  = sprintf("%.2f", $Doc{EXCHANGE_RATE} * $Doc{'UNPAYMENT_INVOICE_SUM_'.$i});
   	  	$unpayment_total_sum                  += $Doc{'UNPAYMENT_INVOICE_SUM_'.$i};
   	  	$i++;
       }

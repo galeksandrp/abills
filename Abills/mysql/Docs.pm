@@ -497,7 +497,8 @@ sub invoices_list {
     ],
     { WHERE       => 1,
     	WHERE_RULES => \@WHERE_RULES,
-    	USERS_FIELDS=> 1
+    	USERS_FIELDS=> 1,
+    	SKIP_USERS_FIELDS=> [ 'UID' ]
     }
     );
 

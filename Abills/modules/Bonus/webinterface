@@ -543,21 +543,28 @@ sub bonus_user {
 sub bonus_users_list {
   my ($attr) = @_;
 
-  my $list = $Bonus->user_list();
+  my $list = $Bonus->user_list({ COLS_NAME => 1, DEPOSIT => '_SHOW' });
 
   my $table = $html->table(
     {
       width      => '100%',
       caption    => "$_BONUS",
       border     => 1,
-      title      => [ "$_LOGIN", $_FIO, "$_TARIF_PLAN", "$_STATE", '-' ],
+      title      => [ "$_LOGIN", $_FIO, "$_TARIF_PLAN", "$_STATE", "$_DEPOSIT", "$_CREDIT", '-' ],
       cols_align => [ 'right', 'left', 'center', 'center:noprint', 'center:noprint', 'center:noprint' ],
     }
   );
 
   my ($add);
   foreach my $line (@$list) {
-    $table->addrow($line->[0], $line->[1], $line->[2], ($line->[3]) ? $html->color_mark($status[ $line->[3] ], $_COLORS[6]) : $status[ $line->[3] ], $html->button($_INFO, "index=15&MODULE=Bonus&UID=$line->[4]", { CLASS => 'show' }));
+    $table->addrow(
+       $line->{login}, 
+       $line->{fio}, 
+       $line->{tp_name}, 
+       $line->{deposit}, 
+       $line->{credit}, 
+       ($line->{state}) ? $html->color_mark($status[ $line->{state} ], $_COLORS[6]) : $status[ $line->{state} ], 
+       $html->button($_INFO, "index=15&MODULE=Bonus&UID=$line->{uid}", { CLASS => 'show' }));
   }
 
   print $table->show();
@@ -566,7 +573,7 @@ sub bonus_users_list {
     {
       width      => '100%',
       cols_align => [ 'right', 'right' ],
-      rows       => [ [ "$_TOTAL:", $html->b($Tariffs->{TOTAL}) ] ]
+      rows       => [ [ "$_TOTAL:", $html->b($Bonus->{TOTAL}) ] ]
     }
   );
 
