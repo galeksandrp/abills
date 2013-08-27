@@ -54,7 +54,7 @@ $PAGE_ROWS = 25;
 
 my $query_count = 0;
 use DBI;
-use Abills::Base qw(ip2int int2ip);
+use Abills::Base qw(ip2int int2ip in_array);
 
 #**********************************************************
 # Connect to DB
@@ -735,7 +735,7 @@ sub search_expr_users () {
     $self->{SEARCH_FIELDS}         = '';
     $self->{SEARCH_FIELDS_COUNT}   = 0;
     $self->{EXT_TABLES}            = '';
-    @{ $self->{SERACH_FIELD_ARR} } = ();
+    @{ $self->{SEARCH_FIELDS_ARR} } = ();
   }
 
   #ID:type:Field name
@@ -830,8 +830,6 @@ sub search_expr_users () {
             }
             elsif ($type == 2) {
               push @fields, "(pi.$field_name='$attr->{$field_name}')";
-              push @{ $self->{SERACH_FIELD_ARR} }, "$field_name" . '_list.name AS '. $field_name. '_list_name, ';
-
               $self->{EXT_TABLES} .= "LEFT JOIN $field_name" . "_list ON (pi.$field_name = $field_name" . "_list.id)";
               next;
             }
@@ -840,7 +838,7 @@ sub search_expr_users () {
               push @fields, "pi.$field_name LIKE '$attr->{$field_name}'";
             }
 
-            @{ $self->{SERACH_FIELD_ARR} }, "pi.$field_name, ";
+            @{ $self->{SEARCH_FIELDS_ARR} }, "pi.$field_name, ";
           }
         }
       }
@@ -927,7 +925,7 @@ sub search_expr_users () {
         LEFT JOIN streets ON (streets.id=builds.street_id)";
       }
       elsif($attr->{SHOW_ADDRESS}) {
-        push @{ $self->{SERACH_FIELD_ARR} }, 'streets.name AS address_street', 'builds.number AS address_build', 'pi.address_flat', 'streets.id AS street_id';
+        push @{ $self->{SEARCH_FIELDS_ARR} }, 'streets.name AS address_street', 'builds.number AS address_build', 'pi.address_flat', 'streets.id AS street_id';
 
         $self->{EXT_TABLES} .= "LEFT JOIN builds ON (builds.id=pi.location_id)
         LEFT JOIN streets ON (streets.id=builds.street_id)";
@@ -941,7 +939,7 @@ sub search_expr_users () {
     }
     else {
       if($attr->{SHOW_ADDRESS}) {
-        push @{ $self->{SERACH_FIELD_ARR} }, 'pi.address_street', 'pi.address_build', 'pi.address_flat';
+        push @{ $self->{SEARCH_FIELDS_ARR} }, 'pi.address_street', 'pi.address_build', 'pi.address_flat';
       }
       elsif ($attr->{ADDRESS_FULL}) {
          $attr->{BUILD_DELIMITER}=',' if (! $attr->{BUILD_DELIMITER});
@@ -991,7 +989,7 @@ sub search_expr_users () {
 
   if ($attr->{SORT}) {
     if ($self->{SEARCH_FIELDS_ARR}->[($attr->{SORT}-2)]){
-      if ( $self->{SEARCH_FIELDS_ARR}->[($attr->{SORT}-2)] =~ m/build|flat/i) {
+      if ( $self->{SEARCH_FIELDS_ARR}->[($attr->{SORT}-2)] =~ m/build$|flat$/i) {
         if ($self->{SEARCH_FIELDS_ARR}->[($attr->{SORT}-2)] =~ m/([a-z\._0-9\(\)]+)\s+/i) {
       	  $self->{SEARCH_FIELDS_ARR}->[($attr->{SORT}-2)]=$1;
         }
@@ -1002,6 +1000,10 @@ sub search_expr_users () {
       }
     }
   }
+
+
+  $self->{SEARCH_FIELDS}         = join(', ', @{ $self->{SEARCH_FIELDS_ARR} }).',' if (@{ $self->{SEARCH_FIELDS_ARR} });
+  $self->{SEARCH_FIELDS_COUNT}   = $#{ $self->{SEARCH_FIELDS_ARR} } + 1;
 
   delete ($self->{COL_NAMES_ARR});
   return \@fields;

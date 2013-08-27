@@ -127,7 +127,7 @@ sub messages_list {
   
   $self->{COL_NAMES_ARR}=undef;
 
-  $attr->{SKIP_GID} = 1;
+  #$attr->{SKIP_GID} = 1;
   if ($attr->{PLAN_FROM_DATE}) {
     push @WHERE_RULES, "(date_format(m.plan_date, '%Y-%m-%d')>='$attr->{PLAN_FROM_DATE}' and date_format(m.plan_date, '%Y-%m-%d')<='$attr->{PLAN_TO_DATE}')";
   }
