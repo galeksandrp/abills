@@ -524,12 +524,12 @@ sub list {
       ['SHOW_PASSWORD',  '',    '',  "DECODE(u.password, '$CONF->{secretkey}') AS password," ],
       ['STATUS',         'INT', 'dv.disable as dv_status',          1 ],
       ['DV_EXPIRE',      'DATE','dv.expire as dv_expire',           1 ],
-      ['UID',,           'INT', 'dv.uid',                           1 ],
+      ['UID',            'INT', 'dv.uid',                           1 ],
     ],
     { WHERE       => 1,
     	WHERE_RULES => \@WHERE_RULES,
     	USERS_FIELDS=> 1,
-    	SKIP_USERS_FIELDS=> [ 'FIO' ]
+    	SKIP_USERS_FIELDS=> [ 'FIO', 'UID' ]
     }    
     );
 

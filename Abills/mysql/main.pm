@@ -837,8 +837,6 @@ sub search_expr_users () {
               $attr->{$field_name} =~ s/\*/\%/ig;
               push @fields, "pi.$field_name LIKE '$attr->{$field_name}'";
             }
-
-            @{ $self->{SEARCH_FIELDS_ARR} }, "pi.$field_name, ";
           }
         }
       }

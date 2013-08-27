@@ -588,7 +588,7 @@ sub hosts_list {
 
   if ($CONF->{DHCPHOSTS_USE_DV_STATUS}) {
     if (defined($attr->{STATUS})) {
-      push @WHERE_RULES, "dv.disable='$attr->{STATUS}'";
+      push @WHERE_RULES, @{ $self->search_expr($attr->{STATUS}, 'INT', 'dv.disable', { EXT_FIELD => 'dv.disable dv_status' }) };
     }
     
     $EXT_TABLES .= " LEFT JOIN dv_main dv ON  (dv.uid=u.uid) ";
@@ -619,9 +619,10 @@ sub hosts_list {
      ['UID',             'INT', 'h.uid'          ],
      ['SHOW_NAS_MNG_INFO','',   '', "nas.mng_host_port, nas.mng_user, DECODE(nas.mng_password, '$CONF->{secretkey}') AS mng_password, " ]
     ],
-    { WHERE => 1,
-    	WHERE_RULES => \@WHERE_RULES,
-    	USERS_FIELDS=> 1
+    { WHERE            => 1,
+    	WHERE_RULES      => \@WHERE_RULES,
+    	USERS_FIELDS     => 1,
+    	SKIP_USERS_FIELDS=> [ 'UID' ]
     }    
     );
 

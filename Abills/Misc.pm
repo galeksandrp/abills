@@ -568,6 +568,7 @@ sub result_former {
 
   %SEARCH_TITLES = (
     'disable'       => "$_STATUS",
+    'dv_status'     => "Internet $_STATUS",
     'login_status'  => "$_LOGIN $_STATUS",
     'deposit'       => "$_DEPOSIT",
     'credit'        => "$_CREDIT",
