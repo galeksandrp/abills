@@ -1261,6 +1261,7 @@ sub dhcphosts_config {
         DHCPHOSTS_EXT_DEPOSITCHECK => $conf{DHCPHOSTS_EXT_DEPOSITCHECK},
         USER_DISABLE               => 0,
         LOGIN                      => '_SHOW',
+        HOSTNAME                   => '_SHOW',
         MAC                        => '_SHOW',
         IP                         => '_SHOW',
         PORTS                      => '_SHOW',

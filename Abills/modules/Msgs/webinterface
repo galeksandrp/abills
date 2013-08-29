@@ -1711,6 +1711,7 @@ sub msgs_dispatch {
         MESSAGE      => '_SHOW',
         PASSWORD     => '_SHOW',
         FIO          => '_SHOW',
+        PHONE        => '_SHOW',
         COLS_NAME    => 1
       }
     );

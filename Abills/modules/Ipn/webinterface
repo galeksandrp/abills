@@ -1646,16 +1646,16 @@ sub ipn_change_status {
 
     if (!$attr->{QUICK}) {
       $message =
-        "\nIP:  "
-      . int2ip($Ipn->{FRAMED_IP_ADDRESS})
+        "\n IP:  "
+      . int2ip($Ipn_Collector->{FRAMED_IP_ADDRESS})
       . "\n$_RECV:  "
-      . int2byte($Ipn->{TRAFFIC_IN})
+      . int2byte($Ipn_Collector->{TRAFFIC_IN})
       . "\n$_SENT:  "
-      . int2byte($Ipn->{TRAFFIC_OUT})
+      . int2byte($Ipn_Collector->{TRAFFIC_OUT})
       . "\n$_TOTAL:  "
-      . int2byte($Ipn->{TRAFFIC_IN} + $Ipn->{TRAFFIC_OUT})
+      . int2byte($Ipn_Collector->{TRAFFIC_IN} + $Ipn->{TRAFFIC_OUT})
       . "\n$_DURATION:  "
-      . sec2time($Ipn->{ACCT_SESSION_TIME}, { str => 1 })
+      . sec2time($Ipn_Collector->{ACCT_SESSION_TIME}, { str => 1 })
       . "\n$_SUM:  "
       . "$Ipn->{SUM}";
 

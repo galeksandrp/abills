@@ -586,14 +586,6 @@ sub hosts_list {
     $EXT_TABLES .= "LEFT JOIN nas  ON  (h.nas=nas.id) ";
   }
 
-  if ($CONF->{DHCPHOSTS_USE_DV_STATUS}) {
-    if (defined($attr->{STATUS})) {
-      push @WHERE_RULES, @{ $self->search_expr($attr->{STATUS}, 'INT', 'dv.disable', { EXT_FIELD => 'dv.disable dv_status' }) };
-    }
-    
-    $EXT_TABLES .= " LEFT JOIN dv_main dv ON  (dv.uid=u.uid) ";
-  }
-
   my $WHERE =  $self->search_former($attr, [
      ['ID',              'INT', 'h.id'             ],
      ['LOGIN',           'INT', 'u.id',   'u.id AS login' ],
@@ -625,6 +617,14 @@ sub hosts_list {
     	SKIP_USERS_FIELDS=> [ 'UID' ]
     }    
     );
+
+  if ($CONF->{DHCPHOSTS_USE_DV_STATUS}) {
+    if (defined($attr->{STATUS})) {
+      push @WHERE_RULES, @{ $self->search_expr($attr->{STATUS}, 'INT', 'dv.disable', { EXT_FIELD => 'dv.disable dv_status' }) };
+    }
+    
+    $EXT_TABLES .= " LEFT JOIN dv_main dv ON  (dv.uid=u.uid) ";
+  }
 
   $EXT_TABLES .= $self->{EXT_TABLES} if ($self->{EXT_TABLES});
 
