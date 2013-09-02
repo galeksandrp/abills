@@ -1351,7 +1351,7 @@ sub form_neg_deposit {
   
   $user->{TOTAL_DEBET} = 0;
   
-  my $cross_modules_return = cross_modules_call('_docs');
+  my $cross_modules_return = cross_modules_call('_docs', { UID => $LIST_PARAMS{UID} });
   foreach my $module (sort keys %$cross_modules_return) {
     if (ref $cross_modules_return->{$module} eq 'ARRAY') {
       next if ($#{ $cross_modules_return->{$module} } == -1);

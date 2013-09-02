@@ -216,6 +216,8 @@ sub list {
   $PG        = ($attr->{PG})        ? $attr->{PG}        : 0;
   $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
 
+  @WHERE_RULES = ();
+
   my $login_field = '';
   if (! $attr->{PAYMENT_DAYS}) {
   	$attr->{PAYMENT_DAYS}=0;

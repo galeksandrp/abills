@@ -217,6 +217,10 @@ sub dhcphosts_mac_block {
 #*******************************************************************
 sub dhcphosts_monitor {
 
+  if ($AUTH{dhcp} && ! $conf{DHCPHOSTS_LEASES}) {
+  	$conf{DHCPHOSTS_LEASES}='db';  	
+  }
+
   if (!$conf{DHCPHOSTS_LEASES} && !$AUTH{dhcp}) {
     print $html->message('err', $_ERROR, "$_NOT_EXIST " . '$conf{DHCPHOSTS_LEASES}');
     return 0;

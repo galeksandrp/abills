@@ -3306,7 +3306,8 @@ sub dv_user_stats {
     $LIST_PARAMS{DESC} = 'DESC';
   }
 
-  $list  = $sessions->list({ UID => $LIST_PARAMS{UID}, COLS_NAME => 1 });
+  $list  = $sessions->list({ %LIST_PARAMS, 
+  	                         COLS_NAME => 1 });
   $table = $html->table(
     {
       caption     => "$_SUM",
@@ -7146,6 +7147,7 @@ sub dv_dhcp_get_mac_add {
       my $list = $Dhcphosts->hosts_list(
         {
           NETWORK   => $id,
+          IP        => '_SHOW',
           SORT      => 3,
           DESC      => 'DESC',
           PAGE_ROWS => 1,
@@ -7169,7 +7171,7 @@ sub dv_dhcp_get_mac_add {
         $PARAMS_HASH{IP} = $Dhcphosts->{IP_RANGE_FIRST} if ($PARAMS_HASH{IP});
       }
       else {
-        $PARAMS_HASH{IP} = int2ip($list->[0]->{ip_num} + 1) if (defined($PARAMS_HASH{IP}));
+        $PARAMS_HASH{IP} = int2ip(ip2int($list->[0]->{ip}) + 1) if (defined($PARAMS_HASH{IP}));
       }
 
       $Dhcphosts->host_add(
@@ -7692,15 +7694,15 @@ sub dv_docs {
   my %info     = ();
 
   $Dv->info($uid);
-  
+
   if ($attr->{FEES_INFO}) {
     $info{day}   = $Dv->{DAY_ABON};
     $info{month} = $Dv->{MONTH_ABON};
     $info{abon_distribution} = $Dv->{ABON_DISTRIBUTION};
     return \%info;
   }
- 
-  if ($Dv->{TOTAL}==0 || ! $Dv->{DAY_ABON} || $Dv->{STATUS}) {
+
+  if ($Dv->{TOTAL}==0 || ! $Dv->{DAY_ABON} || ($Dv->{STATUS} && $Dv->{STATUS} != 5)) {
     return \@services;
   }
 

@@ -4394,7 +4394,7 @@ sub form_nas_add {
     'NAS_EXT_ACCT',
     {
       SELECTED     => $nas->{NAS_EXT_ACCT},
-      SEL_ARRAY    => [ '', 'IPN' ],
+      SEL_ARRAY    => [ '---', 'IPN' ],
       ARRAY_NUM_ID => 1
     }
   );

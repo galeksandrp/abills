@@ -359,7 +359,10 @@ sub check_install {
 
     #Reg expression
     print $file if ($debug > 4);
-
+    $file =~ s/[\r\n]+//g;
+    
+    next if ( ! $file);
+    
     # :DEFAULT:DEFAULT_VALUE_NAME=DEFAULT_VALUE_VALUE:DESCRIBE
     # Get default values
     if ($file =~ /^:DEFAULT:(.+)/) {
@@ -505,7 +508,7 @@ sub check_install {
       $config_body = get_file($conf{WORK_DIR} . "/$program/$config");
     }
     else {
-    	print "Unknown options:\n $file\n";
+    	print "Unknown options:\n '$file'\n";
       next;
     }
 

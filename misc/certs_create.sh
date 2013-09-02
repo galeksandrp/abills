@@ -128,7 +128,7 @@ x509_cert () {
     echo "Enter path to ${SYSTEM_NAME} public key: ";
     read EASYSOFT_PUBLIC_KEY
   else
-    PUBLIC_KEY=$1;
+    PUBLIC_KEY=$3;
   fi;
 
   if [ x${PUBLIC_KEY} = x ]; then
