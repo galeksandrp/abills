@@ -3056,7 +3056,7 @@ sub msgs_survey {
     $html->tpl_show(_include('msgs_survey_subject', 'Msgs'), $Msgs);
   }
 
-  my $list  = $Msgs->survey_subjects_list({%LIST_PARAMS});
+  my $list  = $Msgs->survey_subjects_list({%LIST_PARAMS, COLS_NAME => 1 });
   my $table = $html->table(
     {
       width      => '100%',

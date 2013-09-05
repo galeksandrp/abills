@@ -9284,7 +9284,9 @@ sub upload_file {
   my $dir = ($attr->{PREFIX}) ? "$conf{TPL_DIR}/" . $attr->{PREFIX} : $conf{TPL_DIR};
 
   if (!-d $dir) {
-    mkdir($dir);
+    if(! mkdir($dir)) {
+    	$html->message('err', $_ERROR, "$_ERROR '$dir'  '$!'");
+    }
   }
 
   if (!$attr->{REWRITE} && -f "$dir/$file_name") {
@@ -9297,7 +9299,7 @@ sub upload_file {
     $html->message('info', $_INFO, "$_ADDED: '$file_name' $_SIZE: $file->{Size}");
   }
   else {
-    $html->message('err', $_ERROR, "$_ERROR  '$!'");
+    $html->message('err', $_ERROR, "$_ERROR '$dir/$file_name'  '$!'");
   }
 }
 

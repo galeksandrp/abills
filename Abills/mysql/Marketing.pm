@@ -661,12 +661,9 @@ sub dhcp_full_list {
      ['NAS_ID',   'INT', 'dhcp.nas' ]
     ],
     { WHERE       => 1,
-    	USERS_FILES => 1
+    	USERS_FIELDS=> 1
     }    
     );
-
-  
-
 
   $self->query2("SELECT u.id AS login, 
     g.name AS group_name, 

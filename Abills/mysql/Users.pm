@@ -831,10 +831,6 @@ sub list {
     my $HAVING = ($#HAVING_RULES > -1) ? "HAVING " . join(' and ', @HAVING_RULES) : '';
 
     $self->query2("SELECT u.id, 
-       pi.fio, 
-       if(company.id IS NULL, b.deposit, cb.deposit) AS deposit, 
-       if(u.company_id=0, u.credit, 
-          if (u.credit=0, company.credit, u.credit)) AS credit, u.disable, 
        $self->{SEARCH_FIELDS}
        u.uid, 
        u.company_id, 
@@ -910,10 +906,6 @@ sub list {
     my $HAVING = ($#WHERE_RULES > -1) ? "HAVING " . join(' and ', @HAVING_RULES) : '';
 
     $self->query2("SELECT u.id AS login, 
-       pi.fio, 
-       if(company.id IS NULL, b.deposit, cb.deposit) AS deposit, 
-       if(u.company_id=0, u.credit, 
-          if (u.credit=0, company.credit, u.credit)) AS credit, u.disable, 
        $self->{SEARCH_FIELDS}
        u.uid, 
        u.company_id, 
