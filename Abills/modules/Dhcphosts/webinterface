@@ -805,11 +805,17 @@ sub dhcphosts_user {
 
       $Dhcphosts->host_check({%FORM});
 
-      if (!$Dhcphosts->{errno} && $FORM{OPTION_82} && $FORM{PORTS} && $FORM{NAS_ID} && !$conf{DHCPHOSTS_O82_USE_MAC}) {
+      if (!$Dhcphosts->{errno} && $FORM{OPTION_82} && $FORM{PORTS} && $FORM{NAS_ID}) {
+      	my %params = ();
+      	if ($conf{DHCPHOSTS_O82_USE_MAC}) {
+      	  $params{MAC}='00:00:00:00:00:00';
+      	}
+      	
         my $list = $Dhcphosts->hosts_list({ NAS_ID    => $FORM{NAS_ID},
                                             LOGIN     => '_SHOW',
         	                                  PORTS     => $FORM{PORTS},
         	                                  VID       => $FORM{VID},
+        	                                  %params,
         	                                  COLS_NAME => 1
         	                                });
         if ($Dhcphosts->{TOTAL} > 0) {
@@ -865,12 +871,18 @@ sub dhcphosts_user {
 
       $Dhcphosts->host_check({%FORM});
       if (!$Dhcphosts->{errno} && $FORM{OPTION_82} && $FORM{PORTS} && $FORM{NAS_ID} && !$conf{DHCPHOSTS_O82_USE_MAC}) {
+       	my %params = ();
+      	if ($conf{DHCPHOSTS_O82_USE_MAC}) {
+      	  $params{MAC}='00:00:00:00:00:00';
+      	}
+
         my $list = $Dhcphosts->hosts_list(
           { 
           	LOGIN     => '_SHOW',
             NAS_ID    => $FORM{NAS_ID},
             PORTS     => $FORM{PORTS},
             VID       => $FORM{VID},
+            %params,
             COLS_NAME => 1
           }
         );

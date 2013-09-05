@@ -589,7 +589,7 @@ sub hosts_list {
   my $WHERE =  $self->search_former($attr, [
      ['ID',              'INT', 'h.id'             ],
      ['LOGIN',           'INT', 'u.id',   'u.id AS login' ],
-     ['IP',              'IP',  'INET_NTOA(h.ip)', 'INET_NTOA(h.ip) AS ip'],
+     ['IP',              'IP',  'h.ip', 'INET_NTOA(h.ip) AS ip'],
      ['HOSTNAME',        'STR', 'h.hostname',     1],
      ['NETWORK_NAME',    'STR', 'n.name AS netwirk_name', 1 ],
      ['NETWORK',         'INT', 'h.network',      1],
