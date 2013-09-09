@@ -168,7 +168,6 @@ $md5 = new Digest::MD5;
 if ($conf{PAYSYS_SUCCESSIONS}) {
   $conf{PAYSYS_SUCCESSIONS} =~ s/[\n\r]+//g;
   my @systems_arr = split(/;/, $conf{PAYSYS_SUCCESSIONS});
-
   # IPS:ID:NAME:SHORT_NAME:MODULE_function;
   foreach my $line (@systems_arr) {
     my ($ips, $id, $name, $short_name, $function) = split(/:/, $line);
@@ -247,7 +246,7 @@ elsif ($conf{PAYSYS_EXPPAY_ACCOUNT_KEY}
   require "Express.pm";
   exit;
 }
-elsif ( check_ip($ENV{REMOTE_ADDR}, '62.89.31.36,95.140.194.139,192.168.1.103')) {
+elsif ( check_ip($ENV{REMOTE_ADDR}, '62.89.31.36,95.140.194.139')) {
   require "Telcell.pm";
   exit;
 }
@@ -276,7 +275,7 @@ elsif ($FORM{ACT}) {
 elsif ($conf{PAYSYS_GIGS_IPS} && $conf{PAYSYS_GIGS_IPS} =~ /$ENV{REMOTE_ADDR}/) {
   require "Gigs.pm";
 }
-elsif (check_ip($ENV{REMOTE_ADDR}, '217.77.49.157,192.168.1.102')) {
+elsif (check_ip($ENV{REMOTE_ADDR}, '217.77.49.157')) {
   require "Rucard.pm";
   exit;
 }
@@ -686,7 +685,6 @@ sub osmp_payments {
   my $payment_system    = $attr->{SYSTEM_SHORT_NAME} || 'OSMP';
   my $payment_system_id = $attr->{SYSTEM_ID}         || 44;
   my $CHECK_FIELD       = $conf{PAYSYS_OSMP_ACCOUNT_KEY} || $attr->{CHECK_FIELDS} || 'UID';
-
   my $txn_id = 'osmp_txn_id';
 
   my %status_hash = (
@@ -740,9 +738,10 @@ sub osmp_payments {
     my $list = $users->list({ $CHECK_FIELD  => $FORM{account}, 
     	                        DISABLE_PAYSYS=> '_SHOW',
     	                        GROUP_NAME    => '_SHOW',
-    	                        COLS_NAME     => 1 });
+    	                        COLS_NAME     => 1 
+    	                      });
 
-    if (!$conf{PAYSYS_PEGAS} && !$FORM{sum}) {
+    if ($payment_system_id == 44 && !$FORM{sum}) {
       $status = 300;
     }
     elsif ($users->{errno}) {
@@ -925,7 +924,7 @@ $results
 
   print $response;
   if ($debug > 0) {
-    mk_log($response);
+    mk_log("$response", { PAYSYS_ID => "$attr->{SYSTEM_ID}/$attr->{SYSTEM_SHORT_NAME}" });
   }
 
   exit;

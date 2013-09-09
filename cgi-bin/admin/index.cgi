@@ -2732,7 +2732,7 @@ sub user_del {
         $html->message('err', $_DELETED, "External cmd: $conf{external_userdel}");
       }
     }
-    $html->message('info', $_DELETED, "UID: [$user_info->{UID}] $_DELETED $users->{info}");
+    $html->message('info', $_DELETED, "UID: $user_info->{UID}\n $_DELETED $users->{info}");
   }
 
   if ($FORM{FULL_DELETE}) {
@@ -2740,6 +2740,7 @@ sub user_del {
     foreach my $mod (@MODULES) {
       $mods .= "$mod,";
       load_module($mod, $html);
+
       my $function = lc($mod) . '_user_del';
       if (defined(&$function)) {
         $function->($user_info->{UID}, $user_info);
@@ -2756,7 +2757,7 @@ sub user_del {
         }
       }
 
-      $html->message('info', $_DELETED, "UID: [$user_info->{UID}] $_DELETED $users->{info} $_MODULES: $mods");
+      $html->message('info', $_DELETED, "UID: $user_info->{UID}\n $_MODULES: $mods");
     }
   }
 
@@ -7372,7 +7373,7 @@ sub form_search {
       while (my ($k, $v) = each %SEARCH_TYPES) {
         if ($k == 11 || $k == 13 || $permissions{ ($k - 1) }) {
           $SEARCH_DATA{SEL_TYPE} .= "<th";
-          $SEARCH_DATA{SEL_TYPE} .= " class=title_color" if ($FORM{type} eq $k);
+          $SEARCH_DATA{SEL_TYPE} .= " class='title_color'" if ($FORM{type} eq $k);
           $SEARCH_DATA{SEL_TYPE} .= '>';
           $SEARCH_DATA{SEL_TYPE} .= $html->button($v, "index=$index&type=$k");
           $SEARCH_DATA{SEL_TYPE} .= "</th>\n";

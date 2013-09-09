@@ -34,11 +34,6 @@ sub new {
 
   $admin->{MODULE} = $MODULE;
 
-  if ($CONF->{DELETE_USER}) {
-    $self->{UID} = $CONF->{DELETE_USER};
-    $self->del({ UID => $CONF->{DELETE_USER} });
-  }
-
   $self->{db}=$db;
 
   return $self;

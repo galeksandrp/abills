@@ -76,7 +76,6 @@ sub user_del {
 
   $self->query2("DELETE FROM ipn_log WHERE uid='$attr->{UID}';", 'do');
 
-  #$admin->action_add($attr->{UID}, "$attr->{UID}", { TYPE => 10 });
   return $self;
 }
 

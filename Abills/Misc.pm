@@ -667,8 +667,8 @@ sub result_former {
         my @fields_array = ();
         for (my $i = 0 ; $i < $data->{SEARCH_FIELDS_COUNT}+$base_fields ; $i++) {
           my $val = '';
-      
-          if ($data->{COL_NAMES_ARR}->[$i] eq 'login' && $line->{uid}) {
+
+          if ($data->{COL_NAMES_ARR}->[$i] eq 'login' && $line->{uid} && defined(&user_ext_menu)) {
       	    $val = user_ext_menu($line->{uid}, $line->{login}, { EXT_PARAMS => ($attr->{MODULE} ? "MODULE=$attr->{MODULE}": undef) }); 
           }
           elsif($data->{COL_NAMES_ARR}->[$i] =~ /status/) {

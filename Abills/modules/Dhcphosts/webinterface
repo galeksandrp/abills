@@ -507,6 +507,7 @@ sub dhcphosts_networks {
 
     $Dhcphosts->{ACTION}     = 'change';
     $Dhcphosts->{ACTION_LNG} = $_CHANGE;
+    $FORM{add_form}          = 1;
 
     if (!$Dhcphosts->{errstr}) {
       $html->message('info', $_CHANGE, "$_CHANGE [$FORM{chg}] ");
@@ -540,34 +541,41 @@ sub dhcphosts_networks {
       SEL_OPTIONS=> { '' => '' },
     }
   );
+  
+  if ($FORM{add_form}) {
+    $html->tpl_show(_include('dhcphosts_network', 'Dhcphosts'), { %$net_defaults, %$Dhcphosts });
+  }
 
-  $html->tpl_show(_include('dhcphosts_network', 'Dhcphosts'), { %$net_defaults, %$Dhcphosts });
-  my $list = $Dhcphosts->networks_list({%LIST_PARAMS});
+  my $list = $Dhcphosts->networks_list({%LIST_PARAMS,
+  	                                    COLS_NAME => 1});
 
   my $table = $html->table(
     {
-      width   => '100%',
-      caption => "$_HOSTS_NETWORKS",
-      title   => [ '#', "$_HOSTS_NETWORKS_NAME", "$_HOSTS_NETWORKS_NET", "$_HOSTS_NETWORKS_COORDINATOR", "$_HOSTS_NETWORKS_COORDINATOR_PHONE", "$_STATUS", "$_TYPE", "-", "-", '-' ],
+      width      => '100%',
+      caption    => "$_HOSTS_NETWORKS",
+      title      => [ '#', "$_HOSTS_NETWORKS_NAME", "$_HOSTS_NETWORKS_NET", "$_HOSTS_NETWORKS_COORDINATOR", "$_HOSTS_NETWORKS_COORDINATOR_PHONE", "$_STATUS", "$_TYPE", "-", "-", '-' ],
       cols_align => [ 'left', 'left', 'left', 'left', 'left', 'center:noprint', 'center:noprint', 'center:noprint', 'center:noprint' ],
       qs         => $pages_qs,
       pages      => $Dhcphosts->{TOTAL},
       ID         => 'DHCP_NETWORKS',
-      SELECT_ALL => "dhcp_list:IDS:$_SELECT_ALL"
+      SELECT_ALL => "dhcp_list:IDS:$_SELECT_ALL",
+      MENU       => "$_ADD:index=$index&add_form=1". ':add'
     }
   );
 
   foreach my $line (@$list) {
-    $table->{rowcolor} = ($line->[0] eq $FORM{chg}) ? $_COLORS[0] : undef;
+    $table->{rowcolor} = ($line->{id} eq $FORM{chg}) ? $_COLORS{id} : undef;
     $table->addrow(
-      $line->[0] . $html->form_input('IDS', "$line->[0]", { TYPE => 'checkbox', }),
-      $line->[1], $line->[2] . "/" . $line->[3],
-      $line->[4], $line->[5],
-      $status[ $line->[6] ],
-      ($line->[7]) ? "$_SUBNET: $line->[7]" : "$_NETWORK",
-      $html->button("$_ROUTES", "index=" . get_function_index('dhcphosts_routes') . "&NET_ID=$line->[0]", { CLASS => 'routes' }),
-      $html->button($_CHANGE,   "index=$index&chg=$line->[0]",                                            { CLASS => 'change' }),
-      $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?", CLASS => 'del' }),
+      $line->{id} . $html->form_input('IDS', "$line->{id}", { TYPE => 'checkbox', }),
+      $line->{name}, 
+      $line->{network} . "/" . $line->{netmask},
+      $line->{coordinator}, 
+      $line->{phone},
+      $status[ $line->{disable} ],
+      ($line->{net_parent}) ? "$_SUBNET: $line->{net_parent}" : "$_NETWORK",
+      $html->button("$_ROUTES", "index=" . get_function_index('dhcphosts_routes') . "&NET_ID=$line->{id}", { CLASS => 'routes' }),
+      $html->button($_CHANGE,   "index=$index&chg=$line->{id}",                                            { CLASS => 'change' }),
+      $html->button($_DEL, "index=$index&del=$line->{id}", { MESSAGE => "$_DEL $line->{id} $line->{name}?", CLASS => 'del' }),
     );
   }
 
