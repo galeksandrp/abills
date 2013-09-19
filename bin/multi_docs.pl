@@ -90,11 +90,10 @@ my $Tariffs = Tariffs->new($db, $admin, \%conf);
 my $Docs    = Docs->new($db, $admin, \%conf);
 my $Dv      = Dv->new($db, $admin, \%conf);
 
-
-load_module('Docs');
 require "language/$conf{default_language}.pl";
 $html->{language} = $conf{default_language};
 
+load_module('Docs');
 
 my $ARGV = parse_arguments(\@ARGV);
 if (defined($ARGV->{help})) {
@@ -114,19 +113,8 @@ else {
 
 my $sort = ($ARGV->{SORT}) ? $ARGV->{SORT} : 1;
 
-if (!-d $pdf_result_path) {
-  mkdir($pdf_result_path);
-  print "Directory no exists '$pdf_result_path'. Created." if ($debug > 0);
-}
-
-load_module('Docs');
-
 $docs_in_file = $ARGV->{DOCS_IN_FILE} || $docs_in_file;
 my $save_filename = $pdf_result_path . '/multidoc_.pdf';
-
-if (!-d $pdf_result_path) {
-  mkdir($pdf_result_path);
-}
 
 my %LIST_PARAMS = ();
 
@@ -456,7 +444,7 @@ sub send_invoices {
     $FORM{pdf}   = 1;
     $FORM{print} = $id;
 
-    docs_invoices(
+    docs_invoice(
       {
         GET_EMAIL_INFO => 1,
         SEND_EMAIL     => 1,
@@ -482,25 +470,28 @@ sub prepaid_invoices {
 
   require $MODULES[0] . '.pm';
   $MODULES[0]->import();
-  my $Module_name     = $MODULES[0]->new($db, $admin, \%conf);
-  $LIST_PARAMS{TP_ID} = $ARGV->{TP_ID} if ($ARGV->{TP_ID});
-  $LIST_PARAMS{LOGIN} = $ARGV->{LOGIN} if ($ARGV->{LOGIN});
-  $LIST_PARAMS{GID}   = $ARGV->{GID}   if ($ARGV->{GID});
-  $LIST_PARAMS{DEPOSIT}    = $ARGV->{DEPOSIT}    if ($ARGV->{DEPOSIT});
-  my $TP_LIST         = get_tps();
+  my $Module_name      = $MODULES[0]->new($db, $admin, \%conf);
+  $LIST_PARAMS{TP_ID}  = $ARGV->{TP_ID} if ($ARGV->{TP_ID});
+  $LIST_PARAMS{GID}    = $ARGV->{GID}   if ($ARGV->{GID});
+  $LIST_PARAMS{DEPOSIT}= $ARGV->{DEPOSIT}    if ($ARGV->{DEPOSIT});
+  my $TP_LIST          = get_tps();
+  %INFO_FIELDS_SEARCH  = ();
+  $Module_name->{debug}=1 if ($debug > 6);
 
   my $list = $Module_name->list(
     {
-      #DEPOSIT       => '<0',
       DISABLE        => 0,
       COMPANY_ID     => 0,
-      CONTRACT_ID    => '*',
-      CONTRACT_DATE  => '>=0000-00-00',
-      ADDRESS_STREET => '*',
-      ADDRESS_BUILD  => '*',
-      ADDRESS_FLAT   => '*',
+      CONTRACT_ID    => '_SHOW',
+      FIO            => '_SHOW',
+      ADDRESS_STREET => '_SHOW',
+      ADDRESS_BUILD  => '_SHOW',
+      ADDRESS_FLAT   => '_SHOW',
+      TP_NAME        => '_SHOW',
+      DEPOSIT        => '_SHOW',
+      CONTRACT_DATE  => '>=0000-00-00',      
       PAGE_ROWS      => 1000000,
-      #		                        %INFO_FIELDS_SEARCH,
+      %INFO_FIELDS_SEARCH,
       SORT           => $sort,
       SKIP_TOTAL     => 1,
       %LIST_PARAMS,
@@ -521,7 +512,7 @@ sub prepaid_invoices {
     $Docs->user_info($uid);
 
     if ($ARGV->{INVOICE2ALL} || ! $Docs->{PERIODIC_CREATE_DOCS}) {
-      print "Skip create docs\n" if ($debug > 2);
+      print "Skip create docs INVOICE2ALL: $ARGV->{INVOICE2ALL} PERIODIC_CREATE_DOCS: $Docs->{PERIODIC_CREATE_DOCS}\n" if ($debug > 2);
       next;
     }
 
@@ -534,23 +525,50 @@ sub prepaid_invoices {
       EMAIL      => $Docs->{EMAIL}
     );
 
+    my @orders = ();
+
     #Add debetor invoice
     if ($line->{deposit} && $line->{deposit} < 0) {
-      print "  DEPOSIT: $line->{deposit}\n" if ($debug > 2);
-      $FORM{SUM}   = abs($line->[2]);
-      $FORM{ORDER} = "$_DEBT";
-      docs_invoices({ QUITE => 1 });
+      print "  DEPOSIT: $line->{deposit} SEND: $FORM{SEND_EMAIL}\n" if ($debug > 2);
+      push @orders, { ORDER => "$_DEBT",
+                      SUM   => abs($line->{deposit}) };
     }
 
     #add  tp invoice
     if ($TP_LIST->{$tp_id}) {
       my ($tp_name, $fees_sum) = split(/;/, $TP_LIST->{$tp_id});
       print "  TP_ID: $tp_id FEES: $fees_sum\n" if ($debug > 2);
-      $FORM{SUM}   = $fees_sum;
-      $FORM{ORDER} = "$_TARIF_PLAN";
-      docs_invoice({ QUITE => 1 });
+      push @orders, { ORDER => "$_TARIF_PLAN",
+                      SUM   => $fees_sum };
+
+    }
+    
+    if ($#orders > -1 ) {
+    	my @ids = ();
+    	for(my $i=0; $i<=$#orders; $i++) {
+        if ($ARGV->{SINGLE_ORDER}) {
+          $FORM{ORDER} = "$_DEBT";
+          $FORM{SUM}   += $orders[$i]->{SUM};
+        }
+        else {
+          $FORM{'ORDER_' . ($i+1)} = $orders[$i]->{ORDER};  
+          $FORM{'SUM_' . ($i+1)}   = $orders[$i]->{SUM};
+          push @ids, ($i+1);
+        }
+      }
+
+      $FORM{'IDS'}=join(', ', @ids) if ($#ids);
+
+      docs_invoice({ QUITE => 1,
+                     SEND_EMAIL     => $FORM{SEND_EMAIL} || 0,
+                     UID            => $FORM{UID},
+      	             GET_EMAIL_INFO => 1 
+                	 });
+      
+      $doc_num+=$#orders+1;
     }
   }
+
   print "TOTAL USERS: $Module_name->{TOTAL} DOCS: $doc_num\n";
 }
 
@@ -590,7 +608,6 @@ sub prepaid_invoices_company {
   require $MODULES[0] . '.pm';
   $MODULES[0]->import();
   $LIST_PARAMS{TP_ID}      = $ARGV->{TP_ID}      if ($ARGV->{TP_ID});
-  $LIST_PARAMS{LOGIN}      = $ARGV->{LOGIN}      if ($ARGV->{LOGIN});
   $LIST_PARAMS{COMPANY_ID} = $ARGV->{COMPANY_ID} if ($ARGV->{COMPANY_ID});
   $LIST_PARAMS{DEPOSIT}    = $ARGV->{DEPOSIT}    if ($ARGV->{DEPOSIT});
 
@@ -771,6 +788,17 @@ sub postpaid_invoices {
   $save_filename = $pdf_result_path . '/multidoc_postpaid_invoices.pdf';
   $Fees->{debug} = 1 if ($debug > 6);
 
+  if (!-d $pdf_result_path) {
+    print "Directory no exists '$pdf_result_path'\n" if ($debug > 0);
+    if(! mkdir($pdf_result_path)) {
+  	  print "Error: $!\n";
+    }
+    else {
+      " Created.\n" if ($debug > 0);
+    }
+  }
+
+
   #Fees get month fees - abon. payments
   my $fees_list = $Fees->reports(
     {
@@ -812,7 +840,6 @@ sub postpaid_invoices {
       ADDRESS_STREET => '_SHOW',
       ADDRESS_BUILD  => '_SHOW',
       ADDRESS_FLAT   => '_SHOW',
-
       PAGE_ROWS      => 1000000,
       %INFO_FIELDS_SEARCH,
       SORT           => $sort,
@@ -949,6 +976,7 @@ Multi documents creator
      INCLUDE_DEPOSIT - Include deposit to invoice
      INVOICE_DATE    - Invoice create date XXXX-XX-XX (Default: curdate)
   POSTPAID_INVOICES- Created for previe month debetors
+     SINGLE_ORDER    - All order by 1 position
   PREPAID_INVOICES - Create credit invoice and next month payments invoice
                      INVOICE2ALL=1 - Create and send invoice to all users
   

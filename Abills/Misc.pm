@@ -26,7 +26,9 @@ sub load_module {
     require $lang_file;
   }
 
-   require "Abills/modules/$module/webinterface";
+  if (! require "Abills/modules/$module/webinterface") {
+  	print "Error: load module '$module' $!";
+  }
 
   return 0;
 }
