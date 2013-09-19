@@ -122,7 +122,7 @@ if ($ARGV->{LOGIN}) {
   $LIST_PARAMS{LOGIN} = $ARGV->{LOGIN};
 }
 
-if ($ARGV->{POSTPAID_INVOICE}) {
+if ($ARGV->{POSTPAID_INVOICES}) {
   postpaid_invoices();
 }
 elsif ($ARGV->{PERIODIC_INVOICE}) {
@@ -798,6 +798,7 @@ sub postpaid_invoices {
     }
   }
 
+  $LIST_PARAMS{DEPOSIT}= $ARGV->{DEPOSIT}    if ($ARGV->{DEPOSIT});
 
   #Fees get month fees - abon. payments
   my $fees_list = $Fees->reports(
@@ -825,7 +826,7 @@ sub postpaid_invoices {
   my %INFO_FIELDS_SEARCH = ();
 
   foreach my $key (keys %INFO_FIELDS) {
-    $INFO_FIELDS_SEARCH{$key} = '*';
+    $INFO_FIELDS_SEARCH{$key} = '_SHOW';
   }
 
   $Users->{debug} = 1 if ($debug > 6);
@@ -833,7 +834,7 @@ sub postpaid_invoices {
     {
       FIO            => '_SHOW',
       LOGIN_STATUS   => '_SHOW',
-      DEPOSIT        => '<0',
+      DEPOSIT        => '_SHOW',
       DISABLE        => 0,
       CONTRACT_ID    => '_SHOW',
       CONTRACT_DATE  => '_SHOW',
@@ -842,6 +843,7 @@ sub postpaid_invoices {
       ADDRESS_FLAT   => '_SHOW',
       PAGE_ROWS      => 1000000,
       %INFO_FIELDS_SEARCH,
+      %LIST_PARAMS,
       SORT           => $sort,
       COLS_NAME      => 1
     }
@@ -921,6 +923,7 @@ sub postpaid_invoices {
   print "TOTAL: " . $Users->{TOTAL};
 
   if ($debug < 5) {
+  	$FORM{pdf}=1;
     multi_tpls(_include('docs_multi_invoice', 'Docs'), \@MULTI_ARR);
   }
 
@@ -932,10 +935,23 @@ sub postpaid_invoices {
 sub multi_tpls {
   my ($tpl, $MULTI_ARR, $attr) = @_;
 
+  PDF::API2->import();
+  require Abills::PDF;
+  my $pdf = Abills::PDF->new(
+      {
+        IMG_PATH => $IMG_PATH,
+        NO_PRINT => defined($attr->{'NO_PRINT'}) ? $attr->{'NO_PRINT'} : 1,
+        CONF     => \%conf,
+        CHARSET  => $conf{default_charset}
+      }
+    );
+  $html = $pdf;
+  
   my $single_tpl = $html->tpl_show(
     $tpl, undef,
     {
       MULTI_DOCS   => $MULTI_ARR,
+      MULTI_DOCS_PAGE_RECS => $ARGV->{PAGE_DOCS} || undef,
       SAVE_AS      => $save_filename,
       DOCS_IN_FILE => $docs_in_file,
       debug        => $debug
@@ -976,10 +992,10 @@ Multi documents creator
      INCLUDE_DEPOSIT - Include deposit to invoice
      INVOICE_DATE    - Invoice create date XXXX-XX-XX (Default: curdate)
   POSTPAID_INVOICES- Created for previe month debetors
-     SINGLE_ORDER    - All order by 1 position
   PREPAID_INVOICES - Create credit invoice and next month payments invoice
                      INVOICE2ALL=1 - Create and send invoice to all users
-  
+     SINGLE_ORDER  - All order by 1 position  
+
 Extra filter parameters
   LOGIN            - User login
   TP_ID            - Tariff Plan
