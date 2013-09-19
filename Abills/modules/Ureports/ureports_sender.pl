@@ -436,7 +436,7 @@ sub ureports_periodic_reports {
         }
         #15 Dv change status
         elsif ($user->{REPORT_ID} == 15) {
-          if ($user->{DV_STATUS}) {
+          if ($user->{DV_STATUS} && $user->{DV_STATUS} != 3) {
             my @service_status = ("$_ENABLE", "$_DISABLE", "$_NOT_ACTIVE", "$_HOLD_UP", 
               "$_DISABLE: $_NON_PAYMENT", "$ERR_SMALL_DEPOSIT",
               "$_VIRUS_ALERT" );

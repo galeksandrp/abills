@@ -1736,6 +1736,8 @@ sub neg_deposit_filter_former () {
     undef $RAD_PAIRS;
   }
 
+  $RAD_PAIRS->{'Acct-Interim-Interval'} = $NAS->{NAS_ALIVE} if ($NAS->{NAS_ALIVE});
+
   if (!$attr->{USER_FILTER}) {
     # Return radius attr
     if ($self->{IP} ne '0' && !$self->{NEG_DEPOSIT_IP_POOL}) {

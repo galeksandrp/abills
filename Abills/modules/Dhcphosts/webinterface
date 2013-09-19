@@ -77,13 +77,14 @@ sub dhcphosts_mac_block_show {
   my $ethers_content = "# $DATE $TIME\n# ABillS IPGuard CONFIG: \n";
 
   my @pair_status = ('ACCEPT', 'DENY');
+
   my $list = $Dhcphosts->hosts_list(
     {
       IP                         => '_SHOW',
       MAC                        => '_SHOW',
       LOGIN                      => '_SHOW',
       EXPIRE                     => '_SHOW',
-      STATUS                     => $LIST_PARAMS{STATUS},
+      STATUS                     => '_SHOW',
       PAGE_ROWS                  => 1000000,
       DHCPHOSTS_DEPOSITCHECK     => $conf{DHCPHOSTS_DEPOSITCHECK},
       DHCPHOSTS_EXT_DEPOSITCHECK => $conf{DHCPHOSTS_EXT_DEPOSITCHECK},
@@ -180,8 +181,8 @@ sub dhcphosts_mac_block_make {
     return 1;
   }
 
-  open(FILE, ">$var_dir/ipguard") || return "Can't open '$var_dir/ipguard' $!";
-  print FILE "$attr->{ETHER_CONTENT}";
+  open(FILE, ">$var_dir/ipguard") || print "Can't open '$var_dir/ipguard' $!";
+    print FILE "$attr->{ETHER_CONTENT}";
   close(FILE);
 
   $DEBUG .= $debug_output;
@@ -878,7 +879,7 @@ sub dhcphosts_user {
       }
 
       $Dhcphosts->host_check({%FORM});
-      if (!$Dhcphosts->{errno} && $FORM{OPTION_82} && $FORM{PORTS} && $FORM{NAS_ID} && !$conf{DHCPHOSTS_O82_USE_MAC}) {
+      if (!$Dhcphosts->{errno} && $FORM{OPTION_82} && $FORM{PORTS} && $FORM{NAS_ID}) {
        	my %params = ();
       	if ($conf{DHCPHOSTS_O82_USE_MAC}) {
       	  $params{MAC}='00:00:00:00:00:00';

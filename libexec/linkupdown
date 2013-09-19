@@ -458,13 +458,18 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
       if ($conf{ng_car}) {
         # First out traffic table, second in
         #Add user to unlime rules
-        my $prefix = 10000;
+        my $prefix = $conf{ng_car_prefix} || 10000;
+        my $ng_id  = $user->{UID};
+
+        if ($INTERFACE =~ /ng(\d+)/) {
+        	$ng_id = $1;
+        }
 
         # Delete from unlim table
         push @FW_ACTIONS, "$IPFW table $users_table_number delete $CLIENT_IP";
         push @FW_ACTIONS, "$IPFW table " . ($users_table_number + 1) . " delete $CLIENT_IP";
-        my $tablearg_in  = $user->{UID} + $prefix + $prefix * ($traf_type * 2);
-        my $tablearg_out = $user->{UID} + $prefix + $prefix * ($traf_type * 2 + 1);
+        my $tablearg_in  = $ng_id + $prefix * ($traf_type * 2);
+        my $tablearg_out = $ng_id + $prefix * ($traf_type * 2 + 1);
         push @FW_ACTIONS, "$IPFW table $users_table_number add $CLIENT_IP/$BIT_MASK " . $tablearg_in;
         push @FW_ACTIONS, "$IPFW table " . ($users_table_number + 1) . " add $CLIENT_IP/$BIT_MASK " . $tablearg_out;
         ng_car_shape("$USER", $tablearg_in, $tablearg_out, "class$traf_type", $speed_in * 1024, $speed_out * 1024);

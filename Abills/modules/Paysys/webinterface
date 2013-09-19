@@ -1392,7 +1392,7 @@ sub paysys_portmone () {
     #Info section
     $Paysys->add(
       {
-        SYSTEM_ID      => ($conf{PAYSYS_PAYMENTS_METHODS} && $PAYSYS_PAYMENTS_METHODS{45}) ? 45 : '2',
+        SYSTEM_ID      => 45,
         DATETIME       => "$DATE $TIME",
         SUM            => $FORM{SUM},
         UID            => $user->{UID},
@@ -2249,6 +2249,10 @@ sub paysys_qiwi {
         if ($result->{'result-code'}->[0]->{content} == 150) {
           $error .= " $ERR_TERMINAL";
         }
+        elsif ($result->{'result-code'}->[0]->{content} == 298) {
+        	$error .= " $_REGISTER_IN QIWI-wallet";
+        } 
+
         $html->message('err', "$_ERROR", "$_ERROR: $error");
       }
       else {

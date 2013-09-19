@@ -7205,14 +7205,6 @@ sub form_search {
           $i++;
         }
 
-        $info{CREDIT_DATE}   = $html->date_fld2('CREDIT_DATE',   { NO_DEFAULT_DATE => 1, MONTHES => \@MONTHES, FORM_NAME => 'form_search', WEEK_DAYS => \@WEEKDAYS, TABINDEX => 12 });
-        $info{CONTRACT_DATE} = $html->date_fld2('CONTRACT_DATE', { NO_DEFAULT_DATE => 1, MONTHES => \@MONTHES, FORM_NAME => 'form_search', WEEK_DAYS => \@WEEKDAYS, TABINDEX => 12 });
-        $info{PAYMENTS}      = $html->date_fld2('PAYMENTS',      { NO_DEFAULT_DATE => 1, MONTHES => \@MONTHES, FORM_NAME => 'form_search', WEEK_DAYS => \@WEEKDAYS, TABINDEX => 14 });
-        $info{REGISTRATION}  = $html->date_fld2('REGISTRATION',  { NO_DEFAULT_DATE => 1, MONTHES => \@MONTHES, FORM_NAME => 'form_search', WEEK_DAYS => \@WEEKDAYS, TABINDEX => 16 });
-        $info{ACTIVATE}      = $html->date_fld2('ACTIVATE',      { NO_DEFAULT_DATE => 1, MONTHES => \@MONTHES, FORM_NAME => 'form_search', WEEK_DAYS => \@WEEKDAYS, TABINDEX => 17 });
-        $info{EXPIRE}        = $html->date_fld2('EXPIRE',        { NO_DEFAULT_DATE => 1, MONTHES => \@MONTHES, FORM_NAME => 'form_search', WEEK_DAYS => \@WEEKDAYS, TABINDEX => 18 });
-        $info{PASPORT_DATE}  = $html->date_fld2('PASPORT_DATE',  { NO_DEFAULT_DATE => 1, MONTHES => \@MONTHES, FORM_NAME => 'form_search', WEEK_DAYS => \@WEEKDAYS, TABINDEX => 27 });
-
         if (in_array('Docs', \@MODULES)) {
           if ($conf{DOCS_CONTRACT_TYPES}) {
             $conf{DOCS_CONTRACT_TYPES} =~ s/\n//g;
