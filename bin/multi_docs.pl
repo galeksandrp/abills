@@ -792,6 +792,7 @@ sub postpaid_invoices {
     print "Directory no exists '$pdf_result_path'\n" if ($debug > 0);
     if(! mkdir($pdf_result_path)) {
   	  print "Error: $!\n";
+  	  exit;
     }
     else {
       " Created.\n" if ($debug > 0);
@@ -897,6 +898,9 @@ sub postpaid_invoices {
       CONTRACT_DATE       => $line->{contract_date},
       DATE                => $DATE,
       FULL_ADDRESS        => $full_address,
+      ADDRESS_STREET      => $line->{address_street},
+      ADDRESS_BUILD       => $line->{address_build},
+      ADDRESS_FLAT        => $line->{address_flat},
       SUM_LIT             => int2ml(
         sprintf("%.2f", abs($line->{deposit})),
         {
