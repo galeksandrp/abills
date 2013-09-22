@@ -289,11 +289,9 @@ sub service_get_month_fee {
   my $days_in_month = ($m != 2 ? (($m % 2) ^ ($m > 7)) + 30 : (!($y % 400) || !($y % 4) && ($y % 25) ? 29 : 28));
 
   if ( $FORM{RECALCULATE} ) {
-
     my $rest_days     = $days_in_month - $d + 1;
-    #my $rest_day_sum1 = (! $Service->{TP_INFO}->{ABON_DISTRIBUTION}) ? $Service->{TP_INFO}->{MONTH_FEE} /  $days_in_month * $rest_days : 0;
     my $rest_day_sum2 = (! $Service->{TP_INFO_OLD}->{ABON_DISTRIBUTION}) ? $Service->{TP_INFO_OLD}->{MONTH_FEE} /  $days_in_month * $rest_days : 0;
-    $sum              = $rest_day_sum2; # sprintf("%.5f", $rest_day_sum1 - $rest_day_sum2);
+    $sum              = $rest_day_sum2;
 
     #PERIOD_ALIGNMENT
     $Service->{TP_INFO}->{PERIOD_ALIGNMENT}=1;
@@ -308,10 +306,10 @@ sub service_get_month_fee {
       );
               
       if ($payments->{errno}) {
-        $html->message('err', $_ERROR, "[$payments->{errno}] $err_strs{$payments->{errno}}");
+        $html->message('err', $_ERROR, "[$payments->{errno}] $err_strs{$payments->{errno}}") if (!$attr->{QUITE});
       }
       else {
-    	  $message .= "$_RECALCULATE\n$_RETURNED: ". sprintf("%.2f", abs($sum))."\n";
+    	  $message .= "$_RECALCULATE\n$_RETURNED: ". sprintf("%.2f", abs($sum))."\n" if (!$attr->{QUITE});
       }
     }
   }
@@ -371,7 +369,6 @@ sub service_get_month_fee {
       if (int($active_d) > int($d)) {
         $periods--;
       }
-      #$active_m++;
     }
     elsif (int($active_m) > 0 && (int($active_m) >= int($m) && int($active_y) < int($y))) {
       $periods = 12 - $active_m + $m;
@@ -505,6 +502,20 @@ sub service_get_month_fee {
       }
 
       $m++;
+    }
+  }
+
+  my $external_cmd = '_EXTERNAL_CMD';
+  if ($service_name eq 'Internet') {
+  	$external_cmd = 'DV'.$external_cmd;
+  }
+  else {
+  	$external_cmd = uc($service_name).$external_cmd;
+  }
+  
+  if ($conf{$external_cmd}) {
+    if (!_external($conf{$external_cmd}, { %FORM, %$users, %$Service, %$attr })) {
+      print "Error: external cmd '$conf{$external_cmd}'\n";
     }
   }
 
@@ -757,5 +768,43 @@ sub dirname {
   }
   $x;
 }
+
+#**********************************************************
+# Make external operations
+#**********************************************************
+sub _external {
+  my ($file, $attr) = @_;
+
+  my $arguments = '';
+  $attr->{LOGIN}      = $users->{LOGIN};
+  $attr->{DEPOSIT}    = $users->{DEPOSIT};
+  $attr->{CREDIT}     = $users->{CREDIT};
+  $attr->{GID}        = $users->{GID};
+  $attr->{COMPANY_ID} = $users->{COMPANY_ID};
+
+  while (my ($k, $v) = each %$attr) {
+    if ($k ne '__BUFFER' && $k =~ /[A-Z0-9_]/) {
+      if ($v && $v ne '') {
+        $arguments .= " $k=\"$v\"";	
+      }
+      else {
+      	$arguments .= " $k=\"\"";
+      }
+    }
+  }
+
+  my $result = `$file $arguments`;
+  my $error = $!;
+  my ($num, $message) = split(/:/, $result, 2);
+  if ($num == 1) {
+    $html->message('info', "_EXTERNAL $_ADDED", "$message") if (!$attr->{QUITE});;
+    return 1;
+  }
+  else {
+    $html->message('err', "_EXTERNAL $_ERROR", "[$num] $message $error"); # if (!$attr->{QUITE});;
+    return 0;
+  }
+}
+
 
 1

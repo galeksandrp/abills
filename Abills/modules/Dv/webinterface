@@ -6238,6 +6238,7 @@ sub dv_sheduler {
     }
     else {
       $Dv->{TP_INFO}->{MONTH_FEE} = 0;
+      $FORM{RECALCULATE} = 1;
       service_get_month_fee($Dv, { QUITE => 1 });
     }
   }

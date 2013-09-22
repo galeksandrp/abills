@@ -277,30 +277,7 @@ sub password_recovery {
   $html->tpl_show(templates('form_forgot_passwd'), \%info);
 }
 
-#**********************************************************
-# Make external operations
-#**********************************************************
-sub _external {
-  my ($file, $attr) = @_;
 
-  my $arguments = '';
-  while (my ($k, $v) = each %$attr) {
-    if ($k ne '__BUFFER' && $k =~ /[A-Z0-9_]/) {
-      $arguments .= " $k=\"$v\"";
-    }
-  }
-
-  my $result = `$file $arguments`;
-  my ($num, $message) = split(/:/, $result, 2);
-  if ($num == 1) {
-    $html->message('info', "_EXTERNAL $_ADDED", "$message");
-    return 1;
-  }
-  else {
-    $html->message('err', "_EXTERNAL $_ERROR", "[$num] $message");
-    return 0;
-  }
-}
 
 #**********************************************************
 # Ajax address form
