@@ -1562,8 +1562,10 @@ sub ureports_payments_maked {
       }
     }
 
-    $info{EXPIRE_DAYS} = int($user->{DEPOSIT} / $total_daily_fee);
-    $info{EXPIRE_DATE} = strftime("%Y-%m-%d", localtime(time + $info{EXPIRE_DAYS} * 86400));    
+    if ($total_daily_fee) {
+      $info{EXPIRE_DAYS} = int($user->{DEPOSIT} / $total_daily_fee);
+      $info{EXPIRE_DATE} = strftime("%Y-%m-%d", localtime(time + $info{EXPIRE_DAYS} * 86400));
+    }
 
     $_ALL_SERVICE_EXPIRE =~ s/XX/ $info{EXPIRE_DAYS} /;
     my $message = $_ALL_SERVICE_EXPIRE;

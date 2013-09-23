@@ -872,10 +872,6 @@ sub osmp_payments {
         }
       );
 
-      cross_modules_call('_payments_maked', { USER_INFO => $user, 
-                                              SUM       => $FORM{sum},
-                                              QUITE     => 1 });
-
       #Exists
       if ($payments->{errno} && $payments->{errno} == 7) {
         $status      = 0;
@@ -900,6 +896,10 @@ sub osmp_payments {
             STATUS         => 2
           }
         );
+        
+        cross_modules_call('_payments_maked', { USER_INFO => $user, 
+                                                SUM       => $FORM{sum},
+                                                QUITE     => 1 });
       }
     }
 
