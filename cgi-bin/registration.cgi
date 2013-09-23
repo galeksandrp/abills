@@ -12,6 +12,7 @@ $users
 $Bin
 $ERR_WRONG_DATA
 $ERR_CANT_CREATE_FILE
+$_BUILD
 $DATE
 $TIME
 $sid
@@ -74,6 +75,7 @@ my $admin = Admins->new($db, \%conf);
 $admin->info($conf{SYSTEM_ADMIN_ID}, { IP => '127.0.0.1' });
 my $payments = Finance->payments($db, $admin, \%conf);
 $users = Users->new($db, $admin, \%conf);
+
 
 #my $Paysys = Paysys->new($db, undef, \%conf);
 
@@ -291,56 +293,38 @@ sub form_address_sel {
   ($id, undef) = split(/-/, $id);
 
   if ($FORM{STREET}) {
-    my $list = $users->build_list({ STREET_ID => $FORM{STREET}, PAGE_ROWS => 10000 });
+    my $list = $users->build_list({ STREET_ID => $FORM{STREET}, PAGE_ROWS => 10000, COLS_NAME => 1 });
     if ($users->{TOTAL} > 0) {
       foreach my $line (@$list) {
-        $js_list .= "<option class='spisok' value='p3|$line->[0]|l3|$line->[6]'>$line->[0]</option>";
+        $line->{number} =~ s/\'/&rsquo;/g;
+        $js_list .= "<option value='$line->{id}'>$line->{number}</option>";
       }
     }
-    else {
-      $js_list .= "<option class='spisok' value='p3||l3|0'>$_NOT_EXIST</option>";
-    }
-
     my $size = ($users->{TOTAL} > 10) ? 10 : $users->{TOTAL};
     $size = 2 if ($size < 2);
-    $js_list = "<select style='width: inherit;' size='$size' onchange='insert(this)' id='build'>" . $js_list . "</select>";
-
-    print qq{JsHttpRequest.dataReady({ "id": "$id", 
-   	     "js": { "list": "$js_list" }, 
-         "text": "" }) };
+    print "<option value=''></option>" . $js_list;
   }
   elsif ($FORM{DISTRICT_ID}) {
-    my $list = $users->street_list({ DISTRICT_ID => $FORM{DISTRICT_ID}, PAGE_ROWS => 1000 });
+    my $list = $users->street_list({ DISTRICT_ID => $FORM{DISTRICT_ID}, PAGE_ROWS => 10000, SORT => 2, COLS_NAME => 1 });
     if ($users->{TOTAL} > 0) {
       foreach my $line (@$list) {
-        $js_list .= "<option class='spisok' value='p2|$line->[1]|l2|$line->[0]'>$line->[1]</option>";
+        $line->{name} =~ s/\'/&rsquo;/g;
+        $js_list .= "<option value='$line->{id}'>$line->{street_name}</option>";
       }
     }
-    else {
-      $js_list .= "<option class='spisok' value='p2||l2|0'>$_NOT_EXIST</option>";
-    }
-
     my $size = ($users->{TOTAL} > 10) ? 10 : $users->{TOTAL};
     $size = 2 if ($size < 2);
-    $js_list = "<select style='width: inherit;' size='$size' onchange='insert(this)' id='street'>" . $js_list . "</select>";
-
-    print qq{JsHttpRequest.dataReady({ "id": "$id", 
-   	    "js": { "list": "$js_list" }, 
-        "text": "" }) };
+    print "<option value=''></option>" . $js_list;
   }
   else {
-    my $list = $users->district_list({ %LIST_PARAMS, PAGE_ROWS => 1000 });
+    my $list = $users->district_list({ %LIST_PARAMS, PAGE_ROWS => 1000, COLS_NAME => 1 });
     foreach my $line (@$list) {
-      $js_list .= "<option class='spisok' value='p1|$line->[1]|l1|$line->[0]'>$line->[1]</option>";
+      $js_list .= "<option  value='$line->{id}'>$line->{name}</option>";
     }
 
     my $size = ($users->{TOTAL} > 10) ? 10 : $users->{TOTAL};
     $size = 2 if ($size < 2);
-    $js_list = "<select style='width: inherit;' size='$size' onchange='insert(this)' id='block'>" . $js_list . "</select>";
-
-    print qq{JsHttpRequest.dataReady({ "id": "$id", 
-   	    "js": { "list": "$js_list" }, 
-        "text": "" }) };
+      print "<option value=''></option>" . $js_list;
   }
   exit;
 }

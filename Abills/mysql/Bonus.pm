@@ -981,7 +981,7 @@ sub bonus_turbo_del {
 }
 
 #**********************************************************
-# service_discount_list()
+# bonus_turbo_list()
 #**********************************************************
 sub bonus_turbo_list {
   my $self = shift;

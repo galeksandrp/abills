@@ -1302,16 +1302,14 @@ sub dv_rating_periodic {
   $Bonus_rating->change_users_rating({%LIST_PARAMS});
 
   #Change Tps
-  my $list = $Bonus_rating->change_users_tps_list({%LIST_PARAMS});
+  my $list = $Bonus_rating->change_users_tps_list({%LIST_PARAMS, COLS_NAME => 1 });
 
   foreach my $line (@$list) {
-    my $uid   = $line->[0];
-    my $tp_id = $line->[1];
-    $debug_output .= "UID: $uid TP: $line->[6] -> $tp_id\n" if ($debug > 0);
+    $debug_output .= "UID: $uid TP: $line->{old_tp_id} -> $line->{tp_id}\n" if ($debug > 0);
     $Dv->change(
       {
-        UID            => $uid,
-        TP_ID          => $tp_id,
+        UID            => $line->{uid},
+        TP_ID          => $line->{tp_id},
         NO_CHANGE_FEES => 1,
       }
     );
@@ -6512,9 +6510,7 @@ sub dv_wizard_user {
 
         # if Bonus $conf{BONUS_EXT_FUNCTIONS}
         if (in_array('Bonus', \@MODULES) && $conf{BONUS_EXT_FUNCTIONS}) {
-          require "Abills/modules/Bonus/webinterface";
-          my $Bonus = Bonus->new($db, $admin, \%conf);
-
+          load_module('Bonus');
           my $sum = $FORM{'5.EXT_BILL_DEPOSIT'};
           %FORM      = %{ $add_values{8} };
           $FORM{UID} = $UID;
@@ -6524,6 +6520,7 @@ sub dv_wizard_user {
             $FORM{ACTION_TYPE} = 1;
             $FORM{SUM}         = abs($FORM{SUM});
           }
+
           $FORM{SHORT_REPORT} = 1;
           bonus_user_log({ USER_INFO => $user });
         }
