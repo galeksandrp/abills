@@ -245,7 +245,7 @@ sub ureports_periodic_reports {
         }
 
         if ($user->{DEPOSIT} + $user->{CREDIT} > 0) {
-         	$user->{RECOMMENDED_PAYMENT} = $user->{RECOMMENDED_PAYMENT} - ($user->{DEPOSIT} + $user->{CREDIT});
+         	$user->{RECOMMENDED_PAYMENT} = sprintf("%.2f", $user->{RECOMMENDED_PAYMENT} - ($user->{DEPOSIT} + $user->{CREDIT}));
         }
         else {
          	$user->{RECOMMENDED_PAYMENT} += sprintf("%.2f", abs($user->{DEPOSIT} + $user->{CREDIT}));

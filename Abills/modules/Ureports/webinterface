@@ -1577,9 +1577,11 @@ sub ureports_payments_maked {
      	$info{RECOMMENDED_PAYMENT} += sprintf("%.2f", abs($user->{DEPOSIT} + $user->{CREDIT}));
     }
 
+    $users->{DEPOSIT} = printf("%.2f", $users->{DEPOSIT});
+
     $user->pi({ UID => $user->{UID} });
     $info{DATE} = "$DATE $TIME";
-    $info{SUM}  = $attr->{SUM};
+    $info{SUM}  = sprintf("%.2f", $attr->{SUM});
 
     $info{MESSAGE} .= "\n $_RECOMMENDED_PAYMENT:  $recommended_payment\n";
 
