@@ -115,7 +115,7 @@ my $sort = 1;
 
 if($ARGV->{SORT}) {
   if ($ARGV->{SORT} eq 'ADDRESS') {
-  	$sort = "concat(streets.name, builds.number, pi.address_flat) + 1";
+  	$sort = "streets.name, builds.number+1, pi.address_flat+1";
   }
   else {
     $sort = $ARGV->{SORT};
@@ -856,6 +856,7 @@ sub postpaid_invoices {
       ADDRESS_STREET => '_SHOW',
       ADDRESS_BUILD  => '_SHOW',
       ADDRESS_FLAT   => '_SHOW',
+      #ADDRESS_FULL   => '_SHOW',
       PAGE_ROWS      => 1000000,
       %INFO_FIELDS_SEARCH,
       %LIST_PARAMS,

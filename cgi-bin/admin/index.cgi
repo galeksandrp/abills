@@ -7233,7 +7233,7 @@ sub form_search {
 
         if ($conf{ADDRESS_REGISTER}) {
           $info{ADDRESS_FORM} = $html->tpl_show(templates('form_address_sel'), $user_pi, { OUTPUT2RETURN => 1, ID => 'form_address_sel' });
-          $info{ADDRESS_FORM} .= "<tr><td>$_NO_RECORD</td><td><input type=checkbox name='NOT_FILLED' value='1'></td></tr>";
+          $info{ADDRESS_FORM} .= "<tr><td>$_NO_RECORD</td><td><input type='checkbox' name='NOT_FILLED' value='1'></td></tr>";
         }
         else {
           my $countries = $html->tpl_show(templates('countries'), undef, { OUTPUT2RETURN => 1 });
@@ -7310,7 +7310,7 @@ sub form_search {
 
         if ($conf{ADDRESS_REGISTER}) {
           $info{ADDRESS_FORM} = $html->tpl_show(templates('form_address_sel'), $user_pi, { OUTPUT2RETURN => 1, ID => 'form_address_sel' });
-          $info{ADDRESS_FORM} .= "<tr><td>$_NO_RECORD</td><td><input type=checkbox name='NOT_FILLED' value='1'></td></tr>";
+          $info{ADDRESS_FORM} .= "<tr><td>$_NO_RECORD</td><td><input type='checkbox' name='NOT_FILLED' value='1'></td></tr>";
         }
         else {
           my $countries = $html->tpl_show(templates('countries'), undef, { OUTPUT2RETURN => 1 });

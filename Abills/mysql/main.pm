@@ -931,6 +931,7 @@ sub search_expr_users () {
 
       if ($attr->{ADDRESS_BUILD}) {
         push @fields, @{ $self->search_expr($attr->{ADDRESS_BUILD}, 'STR', 'builds.number', { EXT_FIELD => 'builds.number AS address_build' }) };
+
         $self->{EXT_TABLES} .= "LEFT JOIN builds ON (builds.id=pi.location_id)" if ($self->{EXT_TABLES} !~ /builds/);
       }
 
@@ -985,6 +986,9 @@ sub search_expr_users () {
       LEFT JOIN bills cb ON (company.bill_id=cb.id) ";
   }
 
+  $self->{SEARCH_FIELDS}         = join(', ', @{ $self->{SEARCH_FIELDS_ARR} }).',' if (@{ $self->{SEARCH_FIELDS_ARR} });
+  $self->{SEARCH_FIELDS_COUNT}   = $#{ $self->{SEARCH_FIELDS_ARR} } + 1;
+
   if ($attr->{SORT}) {
     if ($self->{SEARCH_FIELDS_ARR}->[($attr->{SORT}-2)]){
       if ( $self->{SEARCH_FIELDS_ARR}->[($attr->{SORT}-2)] =~ m/build$|flat$/i) {
@@ -998,10 +1002,6 @@ sub search_expr_users () {
       }
     }
   }
-
-
-  $self->{SEARCH_FIELDS}         = join(', ', @{ $self->{SEARCH_FIELDS_ARR} }).',' if (@{ $self->{SEARCH_FIELDS_ARR} });
-  $self->{SEARCH_FIELDS_COUNT}   = $#{ $self->{SEARCH_FIELDS_ARR} } + 1;
 
   delete ($self->{COL_NAMES_ARR});
   return \@fields;
