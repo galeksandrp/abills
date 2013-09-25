@@ -90,6 +90,9 @@ if [ x${abills_ipn_if} != x ]; then
   IPN_INTERFACES=`echo ${abills_ipn_if} | sed 's/,/ /g'`
 fi;
 
+#echo 1 > /proc/sys/net/ipv4/ip_forward
+sysctl -w net.ipv4.ip_forward=1
+
 abills_iptables
 abills_shaper 
 abills_shaper2
@@ -279,9 +282,6 @@ fi;
 
 if [ x${ACTION} = xstart ]; then
   echo "Enable users IPN"
-
-  #echo 1 > /proc/sys/net/ipv4/ip_forward
-  sysctl -w net.ipv4.ip_forward=1
 
   ${BILLING_DIR}/libexec/periodic monthly MODULES=Ipn SRESTART=1 NO_ADM_REPORT=1 NAS_IDS="${abills_ipn_nas_id}"
   

@@ -111,7 +111,18 @@ else {
   $pdf_result_path = $pdf_result_path . "/$Y-$m/";
 }
 
-my $sort = ($ARGV->{SORT}) ? $ARGV->{SORT} : 1;
+my $sort = 1;
+
+if($ARGV->{SORT}) {
+  if ($ARGV->{SORT} eq 'ADDRESS') {
+  	$sort = "concat(streets.name, builds.number, pi.address_flat) + 1";
+  }
+  else {
+    $sort = $ARGV->{SORT};
+  }
+   
+}
+
 
 $docs_in_file = $ARGV->{DOCS_IN_FILE} || $docs_in_file;
 my $save_filename = $pdf_result_path . '/multidoc_.pdf';
@@ -120,6 +131,9 @@ my %LIST_PARAMS = ();
 
 if ($ARGV->{LOGIN}) {
   $LIST_PARAMS{LOGIN} = $ARGV->{LOGIN};
+}
+elsif ($ARGV->{UID}) {
+  $LIST_PARAMS{UID}    = $ARGV->{UID};
 }
 
 if ($ARGV->{POSTPAID_INVOICES}) {
@@ -280,8 +294,8 @@ sub periodic_invoice {
       $FORM{FROM_DATE} = $user{ACTIVATE};
       ($Y, $M, $D) = split(/-/, $FORM{FROM_DATE}, 3);
       $start_period_unixtime = (mktime(0, 0, 0, $D, ($M - 1), ($Y - 1900), 0, 0, 0) + 30 * 86400);
-      $user{INVOICE_PERIOD_START} = strftime '%Y-%m-%d', localtime((mktime(0, 0, 0, $D, ($M - 1), ($Y - 1900), 0, 0, 0) + 31 * 86400));
-      $user{INVOICE_PERIOD_STOP}  = strftime '%Y-%m-%d', localtime((mktime(0, 0, 0, $D, ($M - 1), ($Y - 1900), 0, 0, 0) + 31 * 86400));
+      $user{INVOICE_PERIOD_START} = strftime '%Y-%m-%d', localtime(mktime(0, 0, 0, $D, ($M - 1), ($Y - 1900), 0, 0, 0) + 31 * 86400);
+      $user{INVOICE_PERIOD_STOP}  = strftime '%Y-%m-%d', localtime(mktime(0, 0, 0, $D, ($M - 1), ($Y - 1900), 0, 0, 0) + 31 * 86400);
       ($Y, $M, $D) = split(/-/, $user{INVOICE_PERIOD_START}, 3);
     }
     else {
@@ -891,7 +905,7 @@ sub postpaid_invoices {
       ORDER_TOTAL_SUM_VAT => ($conf{DOCS_VAT_INCLUDE}) ? sprintf("%.2f", abs($line->{deposit} / ((100 + $conf{DOCS_VAT_INCLUDE}) / $conf{DOCS_VAT_INCLUDE}))) : 0.00,
       NUMBER              => $line->{bill_id} . "-$m",
       ACTIVATE            => '>=$DATE',
-      EXPIRE              => '0000-00-00',
+      EXPIRE_DATE         => ($conf{DOCS_ACCOUNT_EXPIRE_PERIOD})  ? strftime '%Y-%m-%d', localtime(mktime(0, 0, 0, $d, ($m - 1), ($Y - 1900), 0, 0, 0) + $conf{DOCS_ACCOUNT_EXPIRE_PERIOD} * 86400) : '0000-00-00',
       MONTH_FEE           => $month_fee,
       TOTAL_SUM           => sprintf("%.2f", abs($line->{deposit})),
       CONTRACT_ID         => $line->{contract_id},
@@ -919,7 +933,7 @@ sub postpaid_invoices {
       DOC_NUMBER => sprintf("%.6d", $doc_num),
     };
 
-    print "UID: LOGIN: $line->{login} FIO: $line->{fio} SUM: $line->{deposit}\n" if ($debug > 2);
+    print "UID: $line->{uid} LOGIN: $line->{login} FIO: $line->{fio} SUM: $line->{deposit}\n" if ($debug > 2);
 
     $doc_num++;
   }
@@ -997,12 +1011,13 @@ Multi documents creator
      INVOICE_DATE    - Invoice create date XXXX-XX-XX (Default: curdate)
   POSTPAID_INVOICES- Created for previe month debetors
   PREPAID_INVOICES - Create credit invoice and next month payments invoice
-                     INVOICE2ALL=1 - Create and send invoice to all users
+     INVOICE2ALL=1 - Create and send invoice to all users
      SINGLE_ORDER  - All order by 1 position  
-
+     
 Extra filter parameters
   LOGIN            - User login
   TP_ID            - Tariff Plan
+  UID              - UID
   GID              - User Gid
   DEPOSIT          - filter user deposit
   COMPANY_ID       - Company id. if defined company id generated only companies invoicess. U can use wilde card *
@@ -1011,7 +1026,7 @@ Extra filter parameters
   DOCS_IN_FILE=    - docs in single file (default: $docs_in_file)
   ADDRESS2         - User second address (fields: _c_address, _c_build, _c_flat)
   DATE=YYYY-MM-DD  - Document create date of period "YYYY-MM-DD/YYYY-MM-DD"
-  SORT=            - Sort by 
+  SORT=            - Sort by column number. Special symbol ADDRESS sort by address
   DEBUG=[1..5]     - Debug mode
 [END]
 }

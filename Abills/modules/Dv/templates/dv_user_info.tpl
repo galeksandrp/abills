@@ -3,7 +3,7 @@
 <h3>%NEXT_FEES_WARNING%</h3>
 <TABLE width='600' class='form'>
 <tr><th class=form_title colspan=2>$_SERVICE: Internet</th></tr>
-<tr><td>$_TARIF_PLAN:</td><td>[%TP_ID%] <b>%TP_NAME%</b> %TP_CHANGE%</td></tr>
+<tr><td>$_TARIF_PLAN:</td><td>[%TP_ID%] <b>%TP_NAME%</b> %TP_CHANGE% <br>%COMMENTS%</td></tr>
 <tr><td>$_SIMULTANEOUSLY:</td><td>%SIMULTANEONSLY%</td></tr>
 <tr><td>IP:</td><td>%IP%</td></tr>
 <tr><td>Netmask:</td><td>%NETMASK%</td></tr>

@@ -2805,74 +2805,28 @@ sub check_speed_linux_new {
         push @commands, "$tc class add dev $interface parent 1:1 classid 1:". ($tp_id * 10)  ." htb rate ". $speed_in ."kbit ceil " .$speed_in ."kbit prio ". ($traf_type + 5);
         push @commands, "$tc qdisc add dev $interface parent 1:". ($tp_id * 10)  ." handle ". (4200 + $tp_id * 10)  .": sfq perturb 10 quantum 1500";
         push @commands, "$tc filter add dev $interface protocol ip parent 1:0 handle ". ($tp_id * 10)  ." fw flowid 1:". ($tp_id * 10);
-        #
-        #push @commands, "$tc filter add dev $interface parent ". (4200 + $tp_id * 10)  .": protocol ip handle ". ($tp_id * 10)  ." flow hash keys nfct-dst divisor 1024";
-
-
-
-#/sbin/tc class add dev eth0 parent 1: classid 1:10 htb rate 2028kbit burst 64k prio 1
-#/sbin/tc qdisc add dev eth0 parent 1:10 handle 10: sfq perturb 10 quantum 1500
-#
-#/sbin/tc filter add dev eth0 protocol ip parent 1:0 prio 1 handle 1 fw classid 1:10
-#
-#/sbin/tc filter add dev eth0 protocol ip parent ffff: prio 7459 u32 match ip src 11.11.11.2 police rate 2028Kbit burst 64k drop flowid 1:
-#
-#
-#
-#/sbin/tc class add dev eth0 parent 1: classid 1:60e1 htb rate 256Kbit burst 4k
-#
-#/sbin/tc filter add dev eth0 protocol ip parent 1:    prio 9801 u32 match ip src 0.0.0.0/0  match ip dst 11.11.11.2 flowid 1:60e1
-#/sbin/tc filter add dev eth0 protocol ip parent ffff: prio 9801 u32 match ip src 11.11.11.2 match ip dst 0.0.0.0/0 police rate 256Kbit burst 16k drop flowid 1:
-
-        
         #OUT
-         
       }
-
-        #Peering shapper
-        else {
-          #Check TP,
-        }
+      #Peering shapper
+      else {
+        #Check TP,
       }
-      last;
-     #Add nat rules
-     #if ($ARGV->{NAT}) {
-     #  my $skip_nat_ips = ($ARGV->{SKIP_NAT_IPS}) ? " dst-address=!$ARGV->{SKIP_NAT_IPS}" : '';
-     #  push @commands, qq{/ip firewall nat add chain=srcnat action=masquerade $skip_nat_ips src-address-list=CLIENTS_$tp_id };
-     #}
     }
+    last;
+  }
 
-    #Add/Check Nets
-#    $list = $Tariffs->traffic_class_list();
-#    foreach my $line (@$list) {
-#      my $id   = $line->[0];
-#      my $nets = $line->[2];
-#      $count   = get_mikrotik_value(qq{/ip firewall address-list print count-only where list=TRAFFIC_CLASS_$id }, \%NAS);
-#      if (!$count->[0] || $count->[0] == 0) {
-#
-#        #Add traffic_class nets
-#        my @nets_arr = ();
-#        $nets =~ s/[\r\n]+//g;
-#        $nets =~ s/;/,/g;
-#        $nets =~ s/ //g;
-#        @nets_arr = split(/,/, $nets);
-#        foreach my $address (@nets_arr) {
-#          push @commands, qq{ /ip firewall address-list add list=TRAFFIC_CLASS_$id address=$address };
-#        }
-#      }
-#    }
 
-    #Make ssh command
-    $result .= `echo "===> Initialising remote commands executing:" >> /var/log/shaper` if ($debug > 0);
-    foreach my $cmd (@commands) {
-      $cmd =~ s/\"/\\\"/g;
-      print "$cmd\n" if ($debug > 0);
-      if ($debug < 5) {
-        $result = `$cmd`;
-      }
-      print "$result\n" if ($debug > 2);
+  #Make ssh command
+  $result .= `echo "===> Initialising remote commands executing:" >> /var/log/shaper` if ($debug > 0);
+  foreach my $cmd (@commands) {
+    $cmd =~ s/\"/\\\"/g;
+    print "$cmd\n" if ($debug > 0);
+    if ($debug < 5) {
+      $result = `$cmd`;
     }
-  
+    print "$result\n" if ($debug > 2);
+  }
+
   print $result;
 }
 
