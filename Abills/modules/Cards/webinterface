@@ -139,34 +139,6 @@ sub cards_main {
 
   $Cards->defaults();
 
-  if ($FORM{info}) {
-    $Cards->{DILLERS_SEL} = '';
-  }
-  else {
-    $Cards->{DILLERS_SEL} = cards_dillers_sel();
-  }
-
-  $Cards->{ADMINS_SEL} = $html->form_select(
-    'AID',
-    {
-      SELECTED  => $FORM{AID},
-      SEL_LIST  => $admin->list({%LIST_PARAMS, COLS_NAME => 1 }),
-      SEL_KEY   => 'aid',
-      SEL_VALUE => 'id',
-      SEL_OPTIONS=> { '' => '' },
-    }
-  );
-
-  $Cards->{STATUS_SEL} = $html->form_select(
-    'STATUS',
-    {
-      SELECTED     => ($FORM{STATUS}) ? $FORM{STATUS} : '',
-      SEL_ARRAY    => \@status,
-      SEL_OPTIONS  => { '' => $_ALL },
-      ARRAY_NUM_ID => 1
-    }
-  );
-
   #Domains sel
   if (in_array('Multidoms', \@MODULES) && $permissions{10}) {
     load_module('Multidoms', $html);
@@ -200,6 +172,34 @@ sub cards_main {
     $LIST_PARAMS{SERIAL}=$FORM{SERIAL};
     $pages_qs        .= "&SERIAL=$FORM{SERIAL}" if (! $FORM{search});
     $form_name       .= '_SERIAL';
+  }
+
+  $Cards->{ADMINS_SEL} = $html->form_select(
+    'AID',
+    {
+      SELECTED   => $FORM{AID},
+      SEL_LIST   => $admin->list({%LIST_PARAMS, COLS_NAME => 1 }),
+      SEL_KEY    => 'aid',
+      SEL_VALUE  => 'id',
+      SEL_OPTIONS=> { '' => '' },
+    }
+  );
+
+  $Cards->{STATUS_SEL} = $html->form_select(
+    'STATUS',
+    {
+      SELECTED     => ($FORM{STATUS}) ? $FORM{STATUS} : '',
+      SEL_ARRAY    => \@status,
+      SEL_OPTIONS  => { '' => $_ALL },
+      ARRAY_NUM_ID => 1
+    }
+  );
+
+  if ($FORM{info}) {
+    $Cards->{DILLERS_SEL} = '';
+  }
+  else {
+    $Cards->{DILLERS_SEL} = cards_dillers_sel();
   }
 
   ($table, $cards_list) = result_former({
@@ -241,6 +241,7 @@ sub cards_main {
         MENU       => "$_ADD:index=". get_function_index('cards_add') ."&$pages_qs:add;$_SEARCH:index=$index&search_form=1:search",
       }
     });
+
 
   foreach my $line (@$cards_list) {
     my $delete = ($permissions{2}{2}) ? $html->button($_DEL, "index=$index&del=1&". ((defined($FORM{SERIAL})) ? "ID=$line->{id}&" : "" ) ."SERIAL=$line->{serial}", { MESSAGE => "$_DEL ID: $line->{id}?", CLASS => 'del' }) : '';
@@ -302,7 +303,6 @@ sub cards_main {
     print $html->form_main(
         {
           CONTENT => $table->show() . "$_SOLD: " . $html->form_input('SOLD', 1, { TYPE => 'checkbox' }) . "$_CREATE $_INVOICE " . $html->form_input('INVOICE', 1, { TYPE => 'checkbox' }) . "$_DILLERS: " . $Cards->{DILLERS_SEL} . "$_STATUS: " . $Cards->{STATUS_SEL},
-  
           HIDDEN => {
           index  => "$index",
           SERIA  => $FORM{SERIA},

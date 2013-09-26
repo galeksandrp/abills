@@ -784,7 +784,7 @@ sub search_expr_users () {
     $attr->{CONTRACT_SUFIX} =~ s/\|//g;
   }
 
-  my $info_field = 0;
+  my $info_field = $attr->{LOGIN} || 0;
   my %filled     = (); 
 
   foreach my $key ( @{ $attr->{EXT_FIELDS} }, keys %{ $attr } ) {
@@ -825,17 +825,16 @@ sub search_expr_users () {
           }
           elsif ($attr->{$field_name}) {
             if ($type == 1) {
-              my $value = @{ $self->search_expr("$attr->{$field_name}", 'INT') }[0];
-              push @fields, "(pi." . $field_name . "$value)";
+              push @fields, @{ $self->search_expr("$attr->{$field_name}", 'INT', "pi.$field_name", { EXT_FIELD => 1 }) };
             }
             elsif ($type == 2) {
               push @fields, "(pi.$field_name='$attr->{$field_name}')";
+              push @{ $self->{SEARCH_FIELDS_ARR} }, 'pi.'.$field_name;
               $self->{EXT_TABLES} .= "LEFT JOIN $field_name" . "_list ON (pi.$field_name = $field_name" . "_list.id)";
               next;
             }
             else {
-              $attr->{$field_name} =~ s/\*/\%/ig;
-              push @fields, "pi.$field_name LIKE '$attr->{$field_name}'";
+              push @fields, @{ $self->search_expr("$attr->{$field_name}", 'STR', "pi.$field_name", { EXT_FIELD => 1 }) };
             }
           }
         }
@@ -910,19 +909,19 @@ sub search_expr_users () {
       LEFT JOIN districts ON (districts.id=streets.district_id) ";
     }
     elsif ($CONF->{ADDRESS_REGISTER}) {
-      if ($attr->{ADDRESS_FULL}) {
-        $attr->{BUILD_DELIMITER}=',' if (! $attr->{BUILD_DELIMITER});
-         push @fields, @{ $self->search_expr("$attr->{ADDRESS_FULL}", "STR", "CONCAT(streets.name, ' ', builds.number, '$attr->{BUILD_DELIMITER}', pi.address_flat) AS address_full", { EXT_FIELD => 1 }) };
-
-         $self->{EXT_TABLES} .= "LEFT JOIN builds ON (builds.id=pi.location_id)
-          LEFT JOIN streets ON (streets.id=builds.street_id)";
-      }
-      elsif ($attr->{ADDRESS_STREET}) {
+      if ($attr->{ADDRESS_STREET}) {
         push @fields, @{ $self->search_expr($attr->{ADDRESS_STREET}, 'STR', 'streets.name AS address_street', { EXT_FIELD => 1 }) };
         $self->{EXT_TABLES} .= "LEFT JOIN builds ON (builds.id=pi.location_id)
         LEFT JOIN streets ON (streets.id=builds.street_id)";
       }
-      elsif($attr->{SHOW_ADDRESS}) {
+      elsif ($attr->{ADDRESS_FULL}) {
+        $attr->{BUILD_DELIMITER}=',' if (! $attr->{BUILD_DELIMITER});
+         push @fields, @{ $self->search_expr("$attr->{ADDRESS_FULL}", "STR", "CONCAT(streets.name, ' ', builds.number, '$attr->{BUILD_DELIMITER}', pi.address_flat) AS address_full", { EXT_FIELD => 1 }) };
+
+        $self->{EXT_TABLES} .= "LEFT JOIN builds ON (builds.id=pi.location_id)
+          LEFT JOIN streets ON (streets.id=builds.street_id)";
+      }
+      elsif ($attr->{SHOW_ADDRESS}) {
         push @{ $self->{SEARCH_FIELDS_ARR} }, 'streets.name AS address_street', 'builds.number AS address_build', 'pi.address_flat', 'streets.id AS street_id';
 
         $self->{EXT_TABLES} .= "LEFT JOIN builds ON (builds.id=pi.location_id)
@@ -943,11 +942,9 @@ sub search_expr_users () {
       elsif ($attr->{ADDRESS_FULL}) {
          $attr->{BUILD_DELIMITER}=',' if (! $attr->{BUILD_DELIMITER});
          push @fields, @{ $self->search_expr("$attr->{ADDRESS_FULL}", "STR", "CONCAT(pi.address_street, ' ', pi.address_build, '$attr->{BUILD_DELIMITER}', pi.address_flat) AS address_full", { EXT_FIELD => 1 }) };
-
-         $self->{EXT_TABLES} .= "LEFT JOIN builds ON (builds.id=pi.location_id)
-          LEFT JOIN streets ON (streets.id=builds.street_id)";
       }
-      elsif ($attr->{ADDRESS_STREET}) {
+
+      if ($attr->{ADDRESS_STREET}) {
         push @fields, @{ $self->search_expr($attr->{ADDRESS_STREET}, 'STR', 'pi.address_street', { EXT_FIELD => 1 }) };
       }
 

@@ -818,7 +818,7 @@ sub list {
       $self->{SEARCH_FIELDS_COUNT}++;
     }
     elsif ($attr->{PAYMENT_DAYS}) {
-      my $value = "curdate() - INTERVAL $attr->{PAYMENT_DAYS} DAY";
+      my $value = "now() - INTERVAL $attr->{PAYMENT_DAYS} DAY";
       $value =~ s/([<>=]{1,2})//g;
       $value = $1 . $value;
 
@@ -830,7 +830,7 @@ sub list {
 
     my $HAVING = ($#HAVING_RULES > -1) ? "HAVING " . join(' and ', @HAVING_RULES) : '';
 
-    $self->query2("SELECT u.id, 
+    $self->query2("SELECT u.id AS login, 
        $self->{SEARCH_FIELDS}
        u.uid, 
        u.company_id, 
@@ -850,7 +850,6 @@ sub list {
      undef,
      $attr
     );
-
     return $self if ($self->{errno});
 
     my $list = $self->{list};
@@ -893,7 +892,7 @@ sub list {
       $self->{SEARCH_FIELDS_COUNT}++;
     }
     elsif ($attr->{FEES_DAYS}) {
-      my $value = "curdate() - INTERVAL $attr->{FEES_DAYS} DAY";
+      my $value = "now() - INTERVAL $attr->{FEES_DAYS} DAY";
       $value =~ s/([<>=]{1,2})//g;
       $value = $1 . $value;
 
@@ -928,7 +927,7 @@ sub list {
     return $self if ($self->{errno});
 
     my $list = $self->{list};
-
+    
     if ($self->{TOTAL} > 0) {
       if ($attr->{FEES}) {
         $WHERE_RULES[$#WHERE_RULES] = @{ $self->search_expr($attr->{PAYMENTS}, 'INT', 'f.date') };
