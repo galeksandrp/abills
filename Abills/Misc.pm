@@ -629,7 +629,7 @@ sub result_former {
         my $field_id = $1;
         my ($position, $type, $name, $user_portal) = split(/:/, $line->[1]);
         if ($type == 2) {
-          $SEARCH_TITLES{ $field_id . '_list_name' } = eval "\"$name\"";
+          $SEARCH_TITLES{ $field_id } = eval "\"$name\"";
         }
         else {
           $SEARCH_TITLES{ $field_id } = eval "\"$name\"";

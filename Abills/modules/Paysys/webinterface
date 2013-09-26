@@ -440,7 +440,8 @@ sub paysys_import_form {
           cols_align => [ 'left', 'left', 'right', 'right', 'left', 'right', 'right', 'center:noprint', 'center:noprint' ],
           qs         => $pages_qs,
           ID         => 'PAYSYS_IMPORT_LIST',
-          SELECT_ALL => "FORM_IMPORT:IDS:$_SELECT_ALL"
+          SELECT_ALL => "FORM_IMPORT:IDS:$_SELECT_ALL",
+          EXPORT     => 1,
         }
       );
 

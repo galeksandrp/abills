@@ -818,7 +818,6 @@ sub search_expr_users () {
           if (defined($attr->{$field_name}) && $type == 4) {
             push @fields, 'pi.' . $field_name . "='$attr->{$field_name}'";
           }
-
           #Skip for bloab
           elsif ($type == 5) {
             next;
@@ -828,10 +827,8 @@ sub search_expr_users () {
               push @fields, @{ $self->search_expr("$attr->{$field_name}", 'INT', "pi.$field_name", { EXT_FIELD => 1 }) };
             }
             elsif ($type == 2) {
-              push @fields, "(pi.$field_name='$attr->{$field_name}')";
-              push @{ $self->{SEARCH_FIELDS_ARR} }, 'pi.'.$field_name;
+              push @fields, @{ $self->search_expr("$attr->{$field_name}", 'INT', "pi.$field_name", { EXT_FIELD => $field_name . '_list.name AS '. $field_name }) };
               $self->{EXT_TABLES} .= "LEFT JOIN $field_name" . "_list ON (pi.$field_name = $field_name" . "_list.id)";
-              next;
             }
             else {
               push @fields, @{ $self->search_expr("$attr->{$field_name}", 'STR', "pi.$field_name", { EXT_FIELD => 1 }) };
@@ -994,8 +991,8 @@ sub search_expr_users () {
         }
     	  $SORT = $self->{SEARCH_FIELDS_ARR}->[($attr->{SORT}-2)] ."*1";
       }
-      elsif ($self->{SEARCH_FIELDS_ARR}->[($attr->{SORT}-2)] =~ m/ip/i) {
-      	$SORT = 'ip';
+      elsif ($self->{SEARCH_FIELDS_ARR}->[($attr->{SORT}-2)] =~ m/ [a-z0-9\.]{0,12}ip/i) {
+      	$SORT = 'ip+0';
       }
     }
   }

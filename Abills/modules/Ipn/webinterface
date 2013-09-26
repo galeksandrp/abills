@@ -2557,6 +2557,7 @@ sub ipn_periodic_session_restart {
         NAS_PORT             => $online->{nas_port_id} || 0,
         NAS_ID               => $online->{nas_id} || 0,
         NAS_IP_ADDRESS       => $nas_info{$nas_id}{NAS_IP},
+        NAS_TYPE             => $nas_info{$nas_id}{NAS_TYPE},
         NAS_MNG_USER         => $nas_info{$nas_id}{NAS_MNG_USER},
         NAS_MNG_IP_PORT      => $nas_info{$nas_id}{NAS_MNG_IP_PORT},
         CONNECT_INFO         => $online->{CONNECT_INFO} || ''
@@ -2582,6 +2583,7 @@ sub ipn_periodic_session_restart {
         FRAMED_IP_ADDRESS  => $online->{client_ip},
         NETMASK            => $online->{netmask},
         NAS_ID             => $online->{nas_id},
+        NAS_TYPE           => $nas_info{$nas_id}{NAS_TYPE},
         NAS_IP_ADDRESS     => $nas_info{$nas_id}{NAS_IP},
         NAS_MNG_USER       => $nas_info{$nas_id}{NAS_MNG_USER},
         NAS_MNG_IP_PORT    => $nas_info{$nas_id}{NAS_MNG_IP_PORT},
