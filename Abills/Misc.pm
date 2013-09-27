@@ -289,6 +289,7 @@ sub service_get_month_fee {
   my $days_in_month = ($m != 2 ? (($m % 2) ^ ($m > 7)) + 30 : (!($y % 400) || !($y % 4) && ($y % 25) ? 29 : 28));
 
   if ( $FORM{RECALCULATE} ) {
+
     my $rest_days     = $days_in_month - $d + 1;
     my $rest_day_sum2 = (! $Service->{TP_INFO_OLD}->{ABON_DISTRIBUTION}) ? $Service->{TP_INFO_OLD}->{MONTH_FEE} /  $days_in_month * $rest_days : 0;
     $sum              = $rest_day_sum2;
@@ -321,7 +322,7 @@ sub service_get_month_fee {
             );
 
   #Get month fee
-  if ($Service->{TP_INFO}->{MONTH_FEE} > 0) {    
+  if ($Service->{TP_INFO}->{MONTH_FEE} > 0) {
     my $sum   = $Service->{TP_INFO}->{MONTH_FEE};
 
     if ($Service->{TP_INFO}->{EXT_BILL_ACCOUNT}) {

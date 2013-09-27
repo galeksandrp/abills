@@ -6231,11 +6231,17 @@ sub dv_sheduler {
       }
     );
 
+    my ($y, $m, $d)   = split(/-/, $ADMIN_REPORT{DATE}, 3);
+    $START_PERIOD_DAY = $conf{START_PERIOD_DAY} || 1;
+
     if ($Dv->{errno}) {
       return $Dv->{errno};
     }
     else {
-      $Dv->{TP_INFO}->{MONTH_FEE} = 0;
+    	if ($Dv->{TP_INFO}->{ABON_DISTRIBUTION} || $d == $START_PERIOD_DAY) {
+        $Dv->{TP_INFO}->{MONTH_FEE} = 0;
+    	}
+
       $FORM{RECALCULATE} = 1;
       service_get_month_fee($Dv, { QUITE => 1 });
     }
@@ -6265,6 +6271,9 @@ sub dv_sheduler {
           print "Error: Holdup fees: $fees->{errno} $fees->{errstr}\n";
         }
       }
+    }
+    elsif ($action == 3) {
+      service_get_month_fee($Dv, { QUITE => 1 });
     }
 
     if ($Dv->{errno} && $Dv->{errno} == 15) {
