@@ -2830,6 +2830,7 @@ sub ipn_start_active {
         FRAMED_IP_ADDRESS  => $ip,
         NETMASK            => $netmask,
         NAS_ID             => $nas_id,
+        NAS_TYPE           => $nas_info{$nas_id}{NAS_IP},
         NAS_IP_ADDRESS     => $nas_info{$nas_id}{NAS_IP},
         NAS_MNG_USER       => $nas_info{$nas_id}{NAS_MNG_USER},
         NAS_MNG_IP_PORT    => $nas_info{$nas_id}{NAS_MNG_IP_PORT},

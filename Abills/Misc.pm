@@ -388,7 +388,7 @@ sub service_get_month_fee {
       $FEES_DSC{EXTRA} = " - $_ABON_DISTRIBUTION";
     }
 
-    if ($Service->{ACCOUNT_ACTIVATE} ne '0000-00-00' && ($Service->{OLD_STATUS} == 5)) {
+    if ($Service->{ACCOUNT_ACTIVATE} && $Service->{ACCOUNT_ACTIVATE} ne '0000-00-00' && ($Service->{OLD_STATUS} == 5)) {
       if ($conf{DV_CURDATE_ACTIVATE}) {
         $periods = 0;        
       }
