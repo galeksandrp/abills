@@ -461,7 +461,7 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
         my $prefix = $conf{ng_car_prefix} || 10000;
         my $ng_id  = $user->{UID};
 
-        if ($INTERFACE =~ /ng(\d+)/) {
+        if ($conf{ng_interface_shaper} && $INTERFACE =~ /ng(\d+)/) {
         	$ng_id = $1;
         }
 

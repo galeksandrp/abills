@@ -798,14 +798,6 @@ sub list {
 
   my $EXT_TABLES = $self->{EXT_TABLES};
 
-  if ( (!$admin->{permissions}->{0}->{8})
-    || ($attr->{USER_STATUS} && !$attr->{DELETED})) {
-    push @WHERE_RULES, @{ $self->search_expr(0, 'INT', 'u.deleted', { EXT_FIELD => 1 }) };
-  }
-  elsif ($attr->{DELETED}) {
-    push @WHERE_RULES, @{ $self->search_expr("$attr->{DELETED}", 'INT', 'u.deleted', { EXT_FIELD => 1 }) };
-  }
-
   #Show last paymenst
   if ($attr->{PAYMENTS} || $attr->{PAYMENT_DAYS}) {
     my @HAVING_RULES = @WHERE_RULES;

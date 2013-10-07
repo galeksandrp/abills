@@ -2796,7 +2796,7 @@ sub ipn_start_active {
       print "Error: Can't finde bills  UID: '$uid'\n";
       next;
     }
-    elsif ($deposit + $credit <= 0 && !$TPS{$tp_id}) {
+    elsif (sprintf("%.2f", $deposit + $credit) <= 0 && !$TPS{$tp_id}) {
       print "$login Small deposit or TP '$tp_id' not defined\n" if ($debug > 3);
       next;
     }
@@ -2830,7 +2830,7 @@ sub ipn_start_active {
         FRAMED_IP_ADDRESS  => $ip,
         NETMASK            => $netmask,
         NAS_ID             => $nas_id,
-        NAS_TYPE           => $nas_info{$nas_id}{NAS_IP},
+        NAS_TYPE           => $nas_info{$nas_id}{NAS_TYPE},
         NAS_IP_ADDRESS     => $nas_info{$nas_id}{NAS_IP},
         NAS_MNG_USER       => $nas_info{$nas_id}{NAS_MNG_USER},
         NAS_MNG_IP_PORT    => $nas_info{$nas_id}{NAS_MNG_IP_PORT},

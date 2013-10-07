@@ -151,6 +151,8 @@ $Log->{PRINT} = 1;
 if ($ARGV->{NAS_IDS}) {
   $LIST_PARAMS{NAS_IDS} = $ARGV->{NAS_IDS};
   $LIST_PARAMS{NAS_IDS} =~ s/ //g;
+  $LIST_PARAMS{NAS_IDS} =~ s/,/;/g;
+  $LIST_PARAMS{NAS_ID} = $LIST_PARAMS{NAS_IDS};
 }
 
 $LIST_PARAMS{TYPE}      = $ARGV->{NAS_TYPES} if ($ARGV->{NAS_TYPES});
@@ -591,7 +593,7 @@ sub check_speed_linux_ipn {
 
   $Sessions->online(
     {
-      NAS_ID       => $ARGV->{NAS_IDS},
+      NAS_ID       => $LIST_PARAMS{NAS_IDS},
       USER_NAME    => '_SHOW', 
       NAS_PORT_ID  => '_SHOW', 
       TP_ID        => '_SHOW', 
@@ -836,7 +838,7 @@ sub check_speed_linux {
 
   $Sessions->online(
     {
-      NAS_ID       => $ARGV->{NAS_IDS},
+      NAS_ID       => $LIST_PARAMS{NAS_IDS},
       USER_NAME    => '_SHOW', 
       NAS_PORT_ID  => '_SHOW', 
       TP_ID        => '_SHOW', 
@@ -1103,7 +1105,7 @@ sub check_speed {
     check_speed_linux_new();
     exit;
   }
-  elsif (!$ARGV->{NAS_IDS}) {
+  elsif (! $LIST_PARAMS{NAS_IDS}) {
     print "NAS not specify. Example:\n";
     print "# billd checkspeed NAS_IDS=8,1,5...\n";
     exit;
@@ -1263,7 +1265,7 @@ sub check_speed {
       CONNECT_INFO => '_SHOW',
       %LIST_PARAMS,
       STATUS       => '<11',
-      NAS_ID       => $ARGV->{NAS_IDS},
+      NAS_ID       => $LIST_PARAMS{NAS_IDS},
     }
   );
   
@@ -2007,8 +2009,8 @@ sub check_cisco_if {
   my ($attr)       = @_;
   my %session_hash = ();
 
-  if ($ARGV->{NAS_IDS}) {
-    my $list = $Nas->list({ NAS_IDS  => $ARGV->{NAS_IDS}, 
+  if ($LIST_PARAMS{NAS_IDS}) {
+    my $list = $Nas->list({ NAS_IDS   => $LIST_PARAMS{NAS_IDS}, 
                             COLS_NAME => 1, 
                             NAS_TYPE  => 'cisco',
                             COLS_UPPER=> 1 });
@@ -2025,7 +2027,7 @@ sub check_cisco_if {
   $Sessions->{debug} = 1 if ($debug > 4);
   my $list = $Sessions->online({ NAS_PORT_ID => '_SHOW', 
                                  CLIENT_IP   => '_SHOW',
-                                 NAS_ID      => $ARGV->{NAS_IDS} });
+                                 NAS_ID      => $LIST_PARAMS{NAS_IDS} });
   foreach my $line (@$list) {
     my $sess_id = $line->{nas_port_id};
     my $ip      = $line->{client_ip};
@@ -2065,8 +2067,8 @@ sub check_ifaces {
   get_db_info($ip_pid_hash);
 
   my $nas_info;
-  if ($ARGV->{NAS_IDS}) {
-    my $list = $Nas->list({ NAS_IDS   => $ARGV->{NAS_IDS}, 
+  if ($LIST_PARAMS{NAS_IDS}) {
+    my $list = $Nas->list({ NAS_IDS   => $LIST_PARAMS{NAS_IDS}, 
                             COLS_NAME => 1, 
                             COLS_UPPER=> 1 });
 
@@ -2128,7 +2130,7 @@ sub get_db_info {
   my ($ip_pid_hash) = @_;
 
   $Sessions->{debug} = 1 if ($debug > 4);
-  my $list = $Sessions->online({ CLIENT_IP => '_SHOW', NAS_ID => $ARGV->{NAS_IDS} });
+  my $list = $Sessions->online({ CLIENT_IP => '_SHOW', NAS_ID => $LIST_PARAMS{NAS_IDS} });
 
   foreach my $line (@$list) {
     my $ip = $line->{client_ip};
@@ -2373,16 +2375,16 @@ sub verify {
 #**********************************************************
 sub speed_expr {
 
-  if (!$ARGV->{NAS_IDS}) {
+  if (!$LIST_PARAMS{NAS_IDS}) {
     print "NAS not specify. Example:\n";
     print "# billd checkspeed NAS_IDS=8,1,5...\n";
     exit;
   }
 
   #Get Cure speed
-  my $nas_speeds = check_speed_mikro({ NAS_IDS => $ARGV->{NAS_IDS} });
+  my $nas_speeds = check_speed_mikro({ NAS_IDS => $LIST_PARAMS{NAS_IDS} });
 
-  %LIST_PARAMS = (NAS_IDS => $ARGV->{NAS_IDS});
+  %LIST_PARAMS = (NAS_IDS => $LIST_PARAMS{NAS_IDS});
 
   #Get TP and speed
   my $list = $Tariffs->list({%LIST_PARAMS});
@@ -2416,7 +2418,7 @@ sub speed_expr {
 
       $Sessions->online(
         {
-          NAS_ID       => $ARGV->{NAS_IDS},
+          NAS_ID       => $LIST_PARAMS{NAS_IDS},
           TP_ID        => $tp_line->[0],
           USER_NAME    => '_SHOW', 
           NAS_PORT_ID  => '_SHOW', 
@@ -2869,7 +2871,6 @@ sub check_cisco_cid {
 
   print "==> check_lines\n" if ($debug > 1);
 
-  $LIST_PARAMS{NAS_IDS} = $ARGV->{NAS_IDS} if ($ARGV->{NAS_IDS});
   my $online   = $Sessions->{nas_sorted};
   my $nas_list = $Nas->list({ %LIST_PARAMS, 
                               TYPE      => 'cisco', 

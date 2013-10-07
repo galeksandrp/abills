@@ -452,7 +452,7 @@ sub dv_user {
 
     if (! $FORM{pdf}) {
       if (in_array('Mail', \@MODULES)) {
-        load_module('Mail');
+        load_module('Mail', $html);
         my $Mail = Mail->new($db, $admin, \%conf);
 
         my $list = $Mail->mbox_list({ UID => $Dv->{UID} });
@@ -638,15 +638,14 @@ sub dv_user {
         || $Dv->{PAYMENT_TYPE} == 1)
     )
     {
+   	  my $days_to_fees = 0 ;
+   	  my ($from_year, $from_month, $from_day) = split(/-/, $DATE,            3);
       if ($Dv->{MONTH_ABON} > 0) {
         if ($Dv->{ABON_DISTRIBUTION} && $Dv->{MONTH_ABON} > 0) {
-          my $days_to_fees = int(($users->{DEPOSIT} + $users->{CREDIT}) / ($Dv->{MONTH_ABON} / 30));
+          $days_to_fees = int(($users->{DEPOSIT} + $users->{CREDIT}) / ($Dv->{MONTH_ABON} / 30));
 
           $Dv->{NEXT_FEES_WARNING} = "$_SERVICE_ENDED";
           $Dv->{NEXT_FEES_WARNING} =~ s/\%DAYS\%/$days_to_fees/g;
-          if ($days_to_fees < 5) {
-            $Dv->{NEXT_FEES_WARNING} = $html->color_mark($Dv->{NEXT_FEES_WARNING}, "red");
-          }
         }
         else {
           $Dv->{NEXT_FEES_WARNING} = "$_NEXT_FEES: ";
@@ -690,10 +689,19 @@ sub dv_user {
         }
       }
       elsif ($Dv->{DAY_ABON} > 0) {
-        my $work_days = int(($users->{DEPOSIT} + $users->{CREDIT}) / $Dv->{DAY_ABON});
-        $Dv->{NEXT_FEES_WARNING} = "$_SERVICE_ENDED: $work_days";
+        $days_to_fees = int(($users->{DEPOSIT} + $users->{CREDIT}) / $Dv->{DAY_ABON});
+        $Dv->{NEXT_FEES_WARNING} = "$_SERVICE_ENDED: $days_to_fees";
       }
-      
+
+
+      if ($days_to_fees && $days_to_fees < 5) {
+        $Dv->{NEXT_FEES_WARNING} = $html->color_mark($Dv->{NEXT_FEES_WARNING}, "red");
+      }
+
+      if ($days_to_fees > 0) {
+    	  my $expire_date = strftime "%Y-%m-%d", localtime(POSIX::mktime(0, 0, 0, $from_day, ($from_month - 1), ($from_year - 1900)) + 86400 * $days_to_fees);
+        $Dv->{NEXT_FEES_WARNING} .= " ($expire_date)";
+      }
     }
     
 
@@ -4494,8 +4502,7 @@ sub dv_user_info {
 
   # Get next payment period
   if (
-       $Dv->{MONTH_ABON} > 0
-    && !$Dv->{STATUS}
+       !$Dv->{STATUS}
     && !$user->{DISABLE}
     && ( $user->{DEPOSIT} + $user->{CREDIT} > 0
       || $Dv->{POSTPAID_ABON}
@@ -4526,27 +4533,36 @@ sub dv_user_info {
 
     my ($from_year, $from_month, $from_day) = split(/-/, $DATE,            3);
     my ($to_year,   $to_month,   $to_day)   = split(/-/, $Dv->{ABON_DATE}, 3);
+    my $days_to_fees = 0;
 
-    if ($Dv->{ABON_DISTRIBUTION} && $Dv->{MONTH_ABON} > 0 && $user->{REDUCTION} < 100) {
-      my $days_to_fees = int(($user->{DEPOSIT} + $user->{CREDIT}) / (($Dv->{MONTH_ABON} * (100 - $user->{REDUCTION}) / 100 ) / 30));
+    if ($Dv->{MONTH_ABON} > 0) {
+      if ($Dv->{ABON_DISTRIBUTION} && $user->{REDUCTION} < 100) {
+        $days_to_fees = int(($user->{DEPOSIT} + $user->{CREDIT}) / (($Dv->{MONTH_ABON} * (100 - $user->{REDUCTION}) / 100 ) / 30));
 
-      $Dv->{NEXT_FEES_WARNING} = "$_SERVICE_ENDED";
-      $Dv->{NEXT_FEES_WARNING} =~ s/\%DAYS\%/$days_to_fees/g;
-      if ($days_to_fees < 5) {
-        $Dv->{NEXT_FEES_WARNING} = $html->color_mark($Dv->{NEXT_FEES_WARNING}, "red");
+        $Dv->{NEXT_FEES_WARNING} = "$_SERVICE_ENDED";
+        $Dv->{NEXT_FEES_WARNING} =~ s/\%DAYS\%/$days_to_fees/g;
+      }
+      else {
+        my $from_seltime = POSIX::mktime(0, 0, 0, $from_day, ($from_month - 1), ($from_year - 1900));
+        my $to_seltime   = POSIX::mktime(0, 0, 0, $to_day,   ($to_month - 1),   ($to_year - 1900));
+        $days_to_fees = int(($to_seltime - $from_seltime) / 86400);
+
+        $Dv->{NEXT_FEES_WARNING} = "$_NEXT_FEES_THROUGHT";
+        $Dv->{NEXT_FEES_WARNING} =~ s/\%DAYS\%/$days_to_fees/g;
       }
     }
-    else {
-      my $from_seltime = POSIX::mktime(0, 0, 0, $from_day, ($from_month - 1), ($from_year - 1900));
-      my $to_seltime   = POSIX::mktime(0, 0, 0, $to_day,   ($to_month - 1),   ($to_year - 1900));
+    elsif ($Dv->{DAY_ABON} > 0) {
+      $days_to_fees = int(($user->{DEPOSIT} + $user->{CREDIT}) / $Dv->{DAY_ABON});
+      $Dv->{NEXT_FEES_WARNING} = "$_SERVICE_ENDED: $days_to_fees";
+    }
+    
+    if ($days_to_fees < 5) {
+      $Dv->{NEXT_FEES_WARNING} = $html->color_mark($Dv->{NEXT_FEES_WARNING}, "red");
+    }
 
-      my $days_to_fees = int(($to_seltime - $from_seltime) / 86400);
-
-      $Dv->{NEXT_FEES_WARNING} = "$_NEXT_FEES_THROUGHT";
-      $Dv->{NEXT_FEES_WARNING} =~ s/\%DAYS\%/$days_to_fees/g;
-      if ($days_to_fees < 5) {
-        $Dv->{NEXT_FEES_WARNING} = $html->color_mark($Dv->{NEXT_FEES_WARNING}, "red");
-      }
+    if ($days_to_fees > 0) {
+    	my $expire_date = strftime "%Y-%m-%d", localtime(POSIX::mktime(0, 0, 0, $from_day, ($from_month - 1), ($from_year - 1900)) + 86400 * $days_to_fees);
+      $Dv->{NEXT_FEES_WARNING} .= " ($expire_date)";
     }
   }
 
@@ -5467,11 +5483,11 @@ sub dv_monthly_fees {
           {
             INTERVAL => $interval,
             TP_ID    => $TP_INFO->{ID},
+            COLS_NAME=> 1
           }
         );
-
         foreach my $l (@$report_list) {
-          $used_traffic{ $l->[7] } = $l->[6];
+          $used_traffic{ $l->{uid} } = $l->{sum};
         }
       }
       if ($TP_INFO->{ABON_DISTRIBUTION}) {

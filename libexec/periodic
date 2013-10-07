@@ -395,7 +395,13 @@ sub admin_report_daily {
   $LIST_PARAMS{PAGE_ROWS} = 1000000;
 
   $list = $Payments->list({ %LIST_PARAMS, 
-  	                        FIO       => '*',
+  	                        LOGIN     => '_SWOW',
+  	                        FIO       => '_SHOW',
+  	                        DESCRIBE  => '_SHOW',
+  	                        SUM       => '_SHOW',
+  	                        ADMIN_NAME=> '_SHOW',
+  	                        IP        => '_SWOW',
+  	                        DATE      => '_SHOW',
   	                        COLS_NAME => 1 
   	                      });
 
@@ -422,8 +428,17 @@ sub admin_report_daily {
   $ADMIN_REPORT{FEES} .= "---------------------------------------------------------\n";
 
   $list = $Fees->list({ %LIST_PARAMS, 
-  	                    FIO       => '*',
+                        LOGIN     => '_SWOW',
+                        FIO       => '_SHOW',
+                        DESCRIBE  => '_SHOW',
+                        SUM       => '_SHOW',
+                        ADMIN_NAME=> '_SHOW',
+                        IP        => '_SWOW',
+                        DATE      => '_SHOW',
+                        METHOD    => '_SHOW',
+                        DEPOSIT   => '_SWOW',
   	                    COLS_NAME => 1 });
+
   foreach my $line (@$list) {
     $ADMIN_REPORT{FEES} .= sprintf("%-14s|%-28s| %20s| %8.4f| %12s | %12s| %15s| %8.4f\n", 
       ($line->{login}) ? $line->{login} : "!Unknown", 

@@ -85,6 +85,7 @@ sub dhcphosts_mac_block_show {
       LOGIN                      => '_SHOW',
       EXPIRE                     => '_SHOW',
       STATUS                     => '_SHOW',
+      DELETED                    => 0,
       PAGE_ROWS                  => 1000000,
       DHCPHOSTS_DEPOSITCHECK     => $conf{DHCPHOSTS_DEPOSITCHECK},
       DHCPHOSTS_EXT_DEPOSITCHECK => $conf{DHCPHOSTS_EXT_DEPOSITCHECK},
@@ -1277,6 +1278,7 @@ sub dhcphosts_config {
 
     #Make hosts
     $INFO->{NETWORK} = '';
+
     $list = $Dhcphosts->hosts_list(
       {
         NETWORK                    => $NET_ID,

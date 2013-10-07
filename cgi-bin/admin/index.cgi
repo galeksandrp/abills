@@ -2691,7 +2691,7 @@ sub form_users {
         CONTENT => $table->show({ OUTPUT2RETURN => 1 }) . ((!$admin->{MAX_ROWS}) ? $table2->show({ OUTPUT2RETURN => 1 }) : '') . $table3->show({ OUTPUT2RETURN => 1 }),
         HIDDEN  => {
           index       => 11,
-          FULL_DELETE => ($admin->{permissions}->{0} && $admin->{permissions}->{0}->{8}) ? 1 : undef,
+          #FULL_DELETE => ($admin->{permissions}->{0} && $admin->{permissions}->{0}->{8}) ? 1 : undef,
         },
         NAME    => 'users_list',
         ID      => 'USERS_LIST',

@@ -199,7 +199,7 @@ sub online {
 
   }
   elsif ($attr->{STATUS}) {
-    push @WHERE_RULES, @{ $self->search_expr("$attr->{STATUS}", 'INT', 'c.status') };
+    push @WHERE_RULES, @{ $self->search_expr("$attr->{STATUS}", 'INT', 'c.status', { EXT_FIELD => 1 }) };
   }
   else {
     push @WHERE_RULES, "((c.status=1 or c.status>=3) AND c.status<11)";
@@ -227,7 +227,7 @@ sub online {
       ['SPEED',            'INT', 'service.speed',                                1 ],
       ['SUM',              'INT', 'c.sum AS session_sum',                         1 ],
       ['CALLS_TP_ID',      'INT', 'c.tp_id AS calls_tp_id',                       1 ],
-      ['STATUS',           'INT', 'c.status',                                     1 ],
+      #['STATUS',           'INT', 'c.status',                                     1 ],
       ['TP_ID',            'INT', 'service.tp_id',                                1 ],
       ['SERVICE_CID',      'STR', 'service.cid',                                  1 ],
       ['GUEST',            'INT', 'c.guest',                                     1 ],
@@ -260,7 +260,7 @@ sub online {
       ['ACCT_SESSION_ID',   'STR', 'c.acct_session_id',                           1 ],
       ['UID',               'INT', 'c.uid'                                          ],
       ['LAST_ALIVE',        'INT', 'UNIX_TIMESTAMP() - c.lupdated AS last_alive', 1 ],
-      ['ONLINE_BASE',        '',    '', 'c.CID, c.acct_session_id, UNIX_TIMESTAMP() - c.lupdated AS last_alive, c.uid' ]
+      ['ONLINE_BASE',        '',   '', 'c.CID, c.acct_session_id, UNIX_TIMESTAMP() - c.lupdated AS last_alive, c.uid' ]
     ],
     { WHERE             => 1,
       WHERE_RULES       => \@WHERE_RULES,
@@ -1104,12 +1104,12 @@ sub reports {
   my $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES) : '';
 
   $self->{REPORT_FIELDS}{DATE} = $date;
-  my $fields = "$date, count(DISTINCT l.uid), 
-      count(l.uid),
-      sum(l.sent + 4294967296 * acct_output_gigawords + l.recv + 4294967296 * acct_input_gigawords), 
-      sum(l.sent2 + l.recv2),
+  my $fields = "$date, count(DISTINCT l.uid) AS users_count, 
+      count(l.uid) AS sessions_count,
+      sum(l.sent + 4294967296 * acct_output_gigawords + l.recv + 4294967296 * acct_input_gigawords) AS sent, 
+      sum(l.sent2 + l.recv2) AS sent2,
       sec_to_time(sum(l.duration)), 
-      sum(l.sum)";
+      sum(l.sum) AS sum";
 
   if ($attr->{FIELDS}) {
     my @fields_array    = split(/, /, $attr->{FIELDS});
@@ -1156,7 +1156,9 @@ sub reports {
       $EXT_TABLES
       $WHERE 
       GROUP BY 1 
-      ORDER BY $SORT $DESC"
+      ORDER BY $SORT $DESC",
+      undef,
+      $attr
       );
     }
     else {
@@ -1167,7 +1169,9 @@ sub reports {
       $EXT_TABLES
       $WHERE 
       GROUP BY l.uid 
-      ORDER BY $SORT $DESC"
+      ORDER BY $SORT $DESC",
+      undef,
+      $attr
       );
     }
   }
@@ -1182,7 +1186,9 @@ sub reports {
        $EXT_TABLES
        $WHERE    
        GROUP BY 1 
-       ORDER BY $SORT $DESC;"
+       ORDER BY $SORT $DESC;",
+      undef,
+      $attr
     );
   }
 

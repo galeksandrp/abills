@@ -389,7 +389,7 @@ sub search_expr {
   if ($attr->{EXT_FIELD}) {
     $self->{SEARCH_FIELDS} .= ($attr->{EXT_FIELD} ne '1') ? "$attr->{EXT_FIELD}, " : "$field, ";
     $self->{SEARCH_FIELDS_COUNT}++;
-    
+
     push @{ $self->{SEARCH_FIELDS_ARR} }, ($attr->{EXT_FIELD} ne '1') ? split(', ', $attr->{EXT_FIELD}) : "$field";
   }
   my @result_arr = ();
@@ -772,7 +772,7 @@ sub search_expr_users () {
     REDUCTION_DATE=> 'INT:u.reduction_date',
     COMMENTS      => 'STR:pi.comments',
     BILL_ID       => 'INT:if(company.id IS NULL,b.id,cb.id) AS bill_id',
-    PASSWORD      => "STR:DECODE(u.password, '$CONF->{secretkey}') AS password"
+    PASSWORD      => "STR:DECODE(u.password, '$CONF->{secretkey}') AS password",
     #ADDRESS_FLAT  => 'STR:pi.address_flat', 
   );
 
@@ -978,6 +978,14 @@ sub search_expr_users () {
     $self->{EXT_TABLES} .= " LEFT JOIN bills b ON (u.bill_id = b.id)
       LEFT JOIN companies company ON  (u.company_id=company.id) 
       LEFT JOIN bills cb ON (company.bill_id=cb.id) ";
+  }
+
+  if ( (!$admin->{permissions}->{0}->{8})
+    || ($attr->{USER_STATUS} && !$attr->{DELETED})) {
+    push @WHERE_RULES, @{ $self->search_expr(0, 'INT', 'u.deleted', { EXT_FIELD => 1 }) };
+  }
+  elsif (defined($attr->{DELETED})) {
+    push @WHERE_RULES, @{ $self->search_expr("$attr->{DELETED}", 'INT', 'u.deleted', { EXT_FIELD => 1 }) };
   }
 
   $self->{SEARCH_FIELDS}         = join(', ', @{ $self->{SEARCH_FIELDS_ARR} }).',' if (@{ $self->{SEARCH_FIELDS_ARR} });
