@@ -274,7 +274,7 @@ sub cards_main {
         $val = $html->button($line->{login}, "&index=11&UID=$line->{uid}");
       }
       elsif($field_name eq 'number') {
-        $val = ($line->{status}==2) ? $html->button($line->{number}, "index=$index&search=1&EXT_ID=$line->{serial}$line->{number}") : $line->{number};
+        $val = ($line->{status}==2) ? $html->button($line->{number}, "index=2&search=1&EXT_ID=$line->{serial}$line->{number}") : $line->{number};
       }
       else {
       	$val = $line->{$field_name};

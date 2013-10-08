@@ -101,8 +101,9 @@ if ($conf{PAYSYS_IPS}) {
   #Send info mail to admin
   if (!$allow) {
     print "Content-Type: text/html\n\n";
-    print "Error: IP '$ENV{REMOTE_ADDR}' DENY by System";
+    my $error = "Error: IP '$ENV{REMOTE_ADDR}' DENY by System";
     sendmail("$conf{ADMIN_MAIL}", "$conf{ADMIN_MAIL}", "ABillS - Paysys", "IP '$ENV{REMOTE_ADDR}' DENY by System", "$conf{MAIL_CHARSET}", "2 (High)");
+    mk_log($error);
     exit;
   }
 }
@@ -214,11 +215,11 @@ elsif ($FORM{__BUFFER} =~ /^{.+}$/ &&
   exit;
 }
 # Privat bank terminal interface
-elsif (check_ip($ENV{REMOTE_ADDR}, '107.22.173.15,107.22.173.86,217.117.64.232/28,75.101.163.115,213.154.214.76,192.168.1.103')) {
+elsif (check_ip($ENV{REMOTE_ADDR}, '107.22.173.15,107.22.173.86,217.117.64.232/28,75.101.163.115,213.154.214.76,192.168.1.103,217.117.64.232/29')) {
   eval { require "Privat_terminal.pm" };
-
-  print $@;
-
+  if ( $@ ) {
+  	print $@;
+  }
   exit;
 }
 elsif ($FORM{signature} && $FORM{operation_xml}) {

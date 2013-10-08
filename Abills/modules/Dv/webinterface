@@ -463,6 +463,25 @@ sub dv_user {
       }
     }
 
+     #Show rest of prepaid traffic
+    if ( $sessions->prepaid_rest(
+      {
+        UID  => ($Dv->{JOIN_SERVICE} > 1) ? $Dv->{JOIN_SERVICE} : $LIST_PARAMS{UID},
+        UIDS => $Dv->{UID}
+      }
+     )
+    ) {
+      my $list  = $sessions->{INFO_LIST};
+
+      my $i = 0;
+      foreach my $line (@$list) {
+        my $traffic_rest = ($conf{DV_INTERVAL_PREPAID}) ? $sessions->{REST}->{ $line->{interval_id} }->{ $line->{traffic_class} }  :  $sessions->{REST}->{ $line->{traffic_class} };
+        $Dv->{'PREPAID_TRAFFIC_'. $i .'_NAME'} = (($TRAFFIC_NAMES{ $line->{traffic_class} }) ? $TRAFFIC_NAMES{ $line->{traffic_class} } : ''); 
+        $Dv->{'PREPAID_TRAFFIC_'. $i} =  $line->{prepaid};
+        $i++;
+      }
+    }
+
     print $html->header();
     return $html->tpl_show(
         _include('dv_user_memo', 'Dv', { pdf => $FORM{pdf} }),
