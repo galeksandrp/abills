@@ -4555,7 +4555,7 @@ sub dv_user_info {
 
     if ($Dv->{MONTH_ABON} > 0) {
       if ($Dv->{ABON_DISTRIBUTION} && $user->{REDUCTION} < 100) {
-        $days_to_fees = int(($user->{DEPOSIT} + $user->{CREDIT}) * (100 / 100 - $user->{REDUCTION}) / (($Dv->{MONTH_ABON} / 30));
+        $days_to_fees = int(($user->{DEPOSIT} + $user->{CREDIT}) * (100 / 100 - $user->{REDUCTION}) / ($Dv->{MONTH_ABON} / 30));
 
         $Dv->{NEXT_FEES_WARNING} = "$_SERVICE_ENDED";
         $Dv->{NEXT_FEES_WARNING} =~ s/\%DAYS\%/$days_to_fees/g;
