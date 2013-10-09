@@ -1178,7 +1178,7 @@ sub docs_invoices_list {
      INPUT_DATA      => $Docs,
      FUNCTION        => 'invoices_list',
      BASE_FIELDS     => (! $user->{UID}) ? 5 : 3,
-     FUNCTION_FIELDS => (! $user->{UID}) ? 'print,payment,show,send,del' : 'print',
+     FUNCTION_FIELDS => (! $user->{UID}) ? (($conf{DOCS_INVOICE_ALT_TPL}) ? 'print,' : '') . 'print,payment,show,send,del' : 'print',
      EXT_TITLES      => {
         invoice_num    => '#',
         date           => $_DATE,
@@ -1279,6 +1279,10 @@ sub docs_invoices_list {
 
 
     if (! $user->{UID}) {
+      if ($conf{DOCS_INVOICE_ALT_TPL}) {
+        push @fields_array,  $html->button($_PRINT, "qindex=$index&print=$invoice->{id}&UID=$invoice->{uid}&alt_tpl=1" . (($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : ''). (($users->{DOMAIN_ID}) ? "&DOMAIN_ID=$users->{DOMAIN_ID}" : ''), { ex_params => 'target=_new', CLASS => 'print' });
+      }
+
       my $payments_info = ($invoice->{currency} > 0 && !$conf{DOCS_PAYMENT_SYSTEM_CURRENCY}) ? "&SUM=$invoice->{alt_sum}&ISO=$invoice->{currency}" : "&SUM=$invoice->{total_sum}";
 
       push @fields_array, $html->button($_PAYMENTS, "index=2&INVOICE_ID=$invoice->{id}&UID=$invoice->{uid}$payments_info", { CLASS => 'payments' }),
@@ -2149,7 +2153,8 @@ sub docs_invoice {
         return docs_print('invoice_company', { %Doc, %$Company, %$attr, SUFIX => ($Doc{VAT} > 0) ? 'vat' : '' });
       }
       else {
-        return docs_print('invoice', { %Doc, %$attr });
+      	my $invoice_blank = ($FORM{alt_tpl}) ? 'invoice_alt' : 'invoice';
+        return docs_print($invoice_blank, { %Doc, %$attr });
       }
     }
     else {
