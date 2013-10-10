@@ -784,10 +784,15 @@ sub dv_auth {
     && $self->{CID} eq ''
     && $RAD->{CALLING_STATION_ID}
     && $RAD->{CALLING_STATION_ID} =~ /:|\-/
-    && $RAD->{CALLING_STATION_ID} !~ /\//
     && ! $self->{NAS_PORT})
   {
-    $self->query2("UPDATE dv_main SET cid='$RAD->{CALLING_STATION_ID}'
+    my $cid = $RAD->{CALLING_STATION_ID};  	
+
+  	if ($RAD->{CALLING_STATION_ID} =~ /\/\s+([a-z0-9:]+)\s+\//) {
+  		$cid = $1;
+  	}
+
+    $self->query2("UPDATE dv_main SET cid='$cid'
      WHERE uid='$self->{UID}';", 'do'
     );
   }

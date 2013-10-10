@@ -2150,7 +2150,8 @@ sub docs_invoice {
       if ($Doc{COMPANY_ID}) {
         $Company->info($Doc{COMPANY_ID});
         delete $Company->{DEPOSIT};
-        return docs_print('invoice_company', { %Doc, %$Company, %$attr, SUFIX => ($Doc{VAT} > 0) ? 'vat' : '' });
+        my $invoice_blank = ($FORM{alt_tpl}) ? 'invoice_company_alt' : 'invoice_company';
+        return docs_print($invoice_blank, { %Doc, %$Company, %$attr, SUFIX => ($Doc{VAT} > 0) ? 'vat' : '' });
       }
       else {
       	my $invoice_blank = ($FORM{alt_tpl}) ? 'invoice_alt' : 'invoice';
