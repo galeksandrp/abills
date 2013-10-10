@@ -195,11 +195,7 @@ sub online {
   if ($attr->{ZAPED}) {
     push @WHERE_RULES, "c.status=2";
   }
-  elsif ($attr->{ALL}) {
-
-  }
-  elsif ($attr->{STATUS}) {
-    push @WHERE_RULES, @{ $self->search_expr("$attr->{STATUS}", 'INT', 'c.status', { EXT_FIELD => 1 }) };
+  elsif ($attr->{ALL} || $attr->{STATUS}) {
   }
   else {
     push @WHERE_RULES, "((c.status=1 or c.status>=3) AND c.status<11)";
@@ -227,7 +223,7 @@ sub online {
       ['SPEED',            'INT', 'service.speed',                                1 ],
       ['SUM',              'INT', 'c.sum AS session_sum',                         1 ],
       ['CALLS_TP_ID',      'INT', 'c.tp_id AS calls_tp_id',                       1 ],
-      #['STATUS',           'INT', 'c.status',                                     1 ],
+      ['STATUS',           'INT', 'c.status',                                     1 ],
       ['TP_ID',            'INT', 'service.tp_id',                                1 ],
       ['SERVICE_CID',      'STR', 'service.cid',                                  1 ],
       ['GUEST',            'INT', 'c.guest',                                     1 ],
@@ -285,7 +281,7 @@ sub online {
   }
 
   $EXT_TABLE .= $self->{EXT_TABLES} if ($self->{EXT_TABLES});
-  
+
   delete $self->{COL_NAMES_ARR};
 
   $self->query2("SELECT $self->{SEARCH_FIELDS} c.uid,c.nas_id,c.acct_session_id
