@@ -664,7 +664,9 @@ sub prepaid_rest {
     tp.day_traf_limit,
     tp.week_traf_limit,
     tp.month_traf_limit,
-    tt.interval_id
+    tt.interval_id,
+    tt.in_price,
+    tt.out_price
   from (users u,
         dv_main dv,
         tarif_plans tp,

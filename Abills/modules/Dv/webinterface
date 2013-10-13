@@ -477,7 +477,11 @@ sub dv_user {
       foreach my $line (@$list) {
         my $traffic_rest = ($conf{DV_INTERVAL_PREPAID}) ? $sessions->{REST}->{ $line->{interval_id} }->{ $line->{traffic_class} }  :  $sessions->{REST}->{ $line->{traffic_class} };
         $Dv->{'PREPAID_TRAFFIC_'. $i .'_NAME'} = (($TRAFFIC_NAMES{ $line->{traffic_class} }) ? $TRAFFIC_NAMES{ $line->{traffic_class} } : ''); 
-        $Dv->{'PREPAID_TRAFFIC_'. $i} =  $line->{prepaid};
+        $Dv->{'PREPAID_TRAFFIC_'. $i}          = $line->{prepaid};
+        $Dv->{'TRAFFIC_PRICE_IN_'. $i}         = $line->{in_price};
+        $Dv->{'TRAFFIC_PRICE_OUT_'. $i}        = $line->{out_price};
+        $Dv->{'TRAFFIC_SPEED_IN_'. $i}         = $line->{in_speed};
+        $Dv->{'TRAFFIC_SPEED_OUT_'. $i}        = $line->{out_speed};
         $i++;
       }
     }
