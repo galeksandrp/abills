@@ -6267,6 +6267,7 @@ sub dv_sheduler {
 
     my ($y, $m, $d)   = split(/-/, $ADMIN_REPORT{DATE}, 3);
     $START_PERIOD_DAY = $conf{START_PERIOD_DAY} || 1;
+    $FORM{RECALCULATE}=0;
 
     if ($Dv->{errno}) {
       return $Dv->{errno};

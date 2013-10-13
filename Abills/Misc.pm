@@ -288,33 +288,6 @@ sub service_get_month_fee {
   my ($y, $m, $d)   = split(/-/, $DATE, 3);
   my $days_in_month = ($m != 2 ? (($m % 2) ^ ($m > 7)) + 30 : (!($y % 400) || !($y % 4) && ($y % 25) ? 29 : 28));
 
-  if ( $FORM{RECALCULATE} ) {
-
-    my $rest_days     = $days_in_month - $d + 1;
-    my $rest_day_sum2 = (! $Service->{TP_INFO_OLD}->{ABON_DISTRIBUTION}) ? $Service->{TP_INFO_OLD}->{MONTH_FEE} /  $days_in_month * $rest_days : 0;
-    $sum              = $rest_day_sum2;
-
-    #PERIOD_ALIGNMENT
-    $Service->{TP_INFO}->{PERIOD_ALIGNMENT}=1;
-    #Compensation
-    if ($sum > 0) {
-      $payments->add($users,
-          {
-           SUM      => abs($sum),
-           METHOD   => 8,
-           DESCRIBE => "$_TARIF_PLAN: $Service->{TP_INFO_OLD}->{NAME} ($Service->{TP_INFO_OLD}->{ID})",
-          }
-      );
-              
-      if ($payments->{errno}) {
-        $html->message('err', $_ERROR, "[$payments->{errno}] $err_strs{$payments->{errno}}") if (!$attr->{QUITE});
-      }
-      else {
-    	  $message .= "$_RECALCULATE\n$_RETURNED: ". sprintf("%.2f", abs($sum))."\n" if (!$attr->{QUITE});
-      }
-    }
-  }
-
   my $TIME = "00:00:00";
   my %FEES_PARAMS = (
               DATE   => "$DATE $TIME",
@@ -323,6 +296,32 @@ sub service_get_month_fee {
 
   #Get month fee
   if ($Service->{TP_INFO}->{MONTH_FEE} > 0) {
+    if ( $FORM{RECALCULATE} ) {
+
+      my $rest_days     = $days_in_month - $d + 1;
+      my $rest_day_sum2 = (! $Service->{TP_INFO_OLD}->{ABON_DISTRIBUTION}) ? $Service->{TP_INFO_OLD}->{MONTH_FEE} /  $days_in_month * $rest_days : 0;
+      $sum              = $rest_day_sum2;
+      #PERIOD_ALIGNMENT
+      $Service->{TP_INFO}->{PERIOD_ALIGNMENT}=1;
+      #Compensation
+      if ($sum > 0) {
+        $payments->add($users,
+            {
+             SUM      => abs($sum),
+             METHOD   => 8,
+             DESCRIBE => "$_TARIF_PLAN: $Service->{TP_INFO_OLD}->{NAME} ($Service->{TP_INFO_OLD}->{ID}) ($_DAYS: $rest_days)",
+            }
+        );
+
+        if ($payments->{errno}) {
+          $html->message('err', $_ERROR, "[$payments->{errno}] $err_strs{$payments->{errno}}") if (!$attr->{QUITE});
+        }
+        else {
+    	    $message .= "$_RECALCULATE\n$_RETURNED: ". sprintf("%.2f", abs($sum))."\n" if (!$attr->{QUITE});
+        }
+      }
+    }
+
     my $sum   = $Service->{TP_INFO}->{MONTH_FEE};
 
     if ($Service->{TP_INFO}->{EXT_BILL_ACCOUNT}) {
@@ -379,7 +378,7 @@ sub service_get_month_fee {
     }
 
     #Make reduction
-    if ($user->{REDUCTION} > 0 && $Service->{TP_INFO}->{REDUCTION_FEE}) {
+    if ($users->{REDUCTION} && $users->{REDUCTION} > 0 && $Service->{TP_INFO}->{REDUCTION_FEE}) {
       $sum = $sum * (100 - $users->{REDUCTION}) / 100;
     }
 
@@ -415,7 +414,7 @@ sub service_get_month_fee {
       if ($i > 0) {
         $FEES_DSC{EXTRA} = '';
       	$message         = '';
-        if ($user->{REDUCTION} > 0 && $Service->{TP_INFO}->{REDUCTION_FEE}) {
+        if ($users->{REDUCTION} > 0 && $Service->{TP_INFO}->{REDUCTION_FEE}) {
           $sum = $Service->{TP_INFO}->{MONTH_FEE} * (100 - $users->{REDUCTION}) / 100;
         }
         else {
@@ -519,6 +518,8 @@ sub service_get_month_fee {
       print "Error: external cmd '$conf{$external_cmd}'\n";
     }
   }
+
+  undef $user;
 
   return \%total_sum;
 }

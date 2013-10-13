@@ -992,14 +992,15 @@ sub search_expr_users () {
   $self->{SEARCH_FIELDS_COUNT}   = $#{ $self->{SEARCH_FIELDS_ARR} } + 1;
 
   if ($attr->{SORT}) {
-    if ($self->{SEARCH_FIELDS_ARR}->[($attr->{SORT}-2)]){
-      if ( $self->{SEARCH_FIELDS_ARR}->[($attr->{SORT}-2)] =~ m/build$|flat$/i) {
-        if ($self->{SEARCH_FIELDS_ARR}->[($attr->{SORT}-2)] =~ m/([a-z\._0-9\(\)]+)\s+/i) {
-      	  $self->{SEARCH_FIELDS_ARR}->[($attr->{SORT}-2)]=$1;
+  	my $sort_position = ($attr->{SORT}-2 < 1) ? 1 : $attr->{SORT}-2;
+    if ($self->{SEARCH_FIELDS_ARR}->[$sort_position]){
+      if ( $self->{SEARCH_FIELDS_ARR}->[$sort_position] =~ m/build$|flat$/i) {
+        if ($self->{SEARCH_FIELDS_ARR}->[$sort_position] =~ m/([a-z\._0-9\(\)]+)\s+/i) {
+      	  $self->{SEARCH_FIELDS_ARR}->[$sort_position]=$1;
         }
-    	  $SORT = $self->{SEARCH_FIELDS_ARR}->[($attr->{SORT}-2)] ."*1";
+    	  $SORT = $self->{SEARCH_FIELDS_ARR}->[$sort_position] ."*1";
       }
-      elsif ($self->{SEARCH_FIELDS_ARR}->[($attr->{SORT}-2)] =~ m/ [a-z0-9\.]{0,12}ip/i) {
+      elsif ($self->{SEARCH_FIELDS_ARR}->[$sort_position] =~ m/ [a-z0-9\.]{0,12}ip/i) {
       	$SORT = 'ip+0';
       }
     }

@@ -5194,7 +5194,7 @@ sub reports {
 
     my $days = '';
     for ($i = 1 ; $i <= 31 ; $i++) {
-      $days .= ($d == $i) ? ' ' . $html->b($i) : ' ' . $html->button($i, sprintf("index=$index&DATE=%d-%02.f-%02.f&EX_PARAMS=$FORM{EX_PARAMS}%s%s", $y, $m, $i, (defined($FORM{GID})) ? "&GID=$FORM{GID}" : '', (defined($FORM{UID})) ? "&UID=$FORM{UID}" : ''), { BUTTON => 1 });
+      $days .= ($d == $i) ? ' ' . $html->b($i) : ' ' . $html->button($i, sprintf("index=$index&DATE=%d-%02.f-%02.f&EX_PARAMS=$FORM{EX_PARAMS}%s%s%s", $y, $m, $i, (defined($FORM{GID})) ? "&GID=$FORM{GID}" : '', (defined($FORM{UID})) ? "&UID=$FORM{UID}" : '', ($FORM{FIELDS}) ? "&FIELDS=$FORM{FIELDS}" : ''), { BUTTON => 1 });
     }
 
     @rows = ([ " $_YEAR:", $y ], [ " $_MONTH:", $MONTHES[ $m - 1 ] ], [ " $_DAY:", $days ]);
@@ -5492,10 +5492,16 @@ sub report_payments {
   my @CHART_TYPE = ('area', 'line', 'column');
   my $num        = 0;
 
-  $LIST_PARAMS{METHOD} = $FORM{FIELDS};
+  if ($FORM{FIELDS}) {
+  	$LIST_PARAMS{METHOD}= $FORM{FIELDS};
+  	$LIST_PARAMS{METHOD}=~s/ //g;
+   	$LIST_PARAMS{METHOD}=~s/,/;/g;
+  }
 
   if ($FORM{DATE}) {
     $LIST_PARAMS{DATE} = $FORM{DATE};
+    undef($LIST_PARAMS{MONTH});
+    
     form_payments();
     return 0; 
   }
