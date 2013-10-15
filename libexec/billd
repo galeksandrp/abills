@@ -101,7 +101,7 @@ Admins->import();
 
 my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
 if (! $sql->{db}) {
-  print "SQL connect error\n";
+  print "Error: SQL connect error\n";
   exit;
 }
 

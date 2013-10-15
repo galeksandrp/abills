@@ -905,7 +905,7 @@ sub dv_user {
 #    else {
       $sum =  sprintf("%.2f", abs($total_fee - $users->{DEPOSIT}));
       if ($sum < abs($total_fee - $users->{DEPOSIT})) {
-        $sum = sprintf("%.2f", $sum + 1);
+        $sum = sprintf("%.2f", int($sum + 1));
       }
 #    }
     

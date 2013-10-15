@@ -6229,7 +6229,7 @@ sub form_payments () {
        pages      => $payments->{TOTAL},
        EXPORT     => 1,
        ID         => 'PAYMENTS',
-       MENU       => "$_SEARCH:search_form=1&index=2:search",       
+       MENU       => "$_SEARCH:search_form=1&index=2:search"
       }
     });
 

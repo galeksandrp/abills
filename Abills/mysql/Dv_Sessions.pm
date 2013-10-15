@@ -404,7 +404,7 @@ sub online_info {
    lupdated as last_update,
    nas_port_id as nas_port,
    INET_NTOA(nas_ip_address) AS nas_ip_address , 
-   CID AS calling_session_id,
+   CID AS calling_station_id,
    CONNECT_INFO,
    acct_session_id,
    nas_id,
@@ -417,7 +417,7 @@ sub online_info {
    { INFO => 1 }
   );
 
-  $self->{CID} = $self->{CALLING_SESSION_ID};
+  $self->{CID} = $self->{CALLING_STATION_ID};
 
   return $self;
 }
