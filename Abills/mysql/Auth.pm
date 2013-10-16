@@ -263,7 +263,7 @@ sub dv_auth {
     }
   }
   else {
-    $pppoe_pluse = $RAD->{NAS_PORT};
+    $pppoe_pluse = $RAD->{NAS_PORT} || '';
   }
 
   #Check port
@@ -482,12 +482,7 @@ sub dv_auth {
     return 1, $RAD_PAIRS;
   }
 
-  if (length($self->{FILTER}) > 0) {
-    $self->neg_deposit_filter_former($RAD, $NAS, $self->{FILTER}, { USER_FILTER => 1, RAD_PAIRS => $RAD_PAIRS });
-  }
-
   if ($NAS->{NAS_TYPE} && $NAS->{NAS_TYPE} eq 'ipcad') {
-
     # SET ACCOUNT expire date
     if ($self->{ACCOUNT_AGE} > 0 && $self->{DV_EXPIRE} eq '0000-00-00') {
       $self->query2("UPDATE dv_main SET expire=curdate() + INTERVAL $self->{ACCOUNT_AGE} day 
@@ -808,27 +803,11 @@ sub dv_auth {
 
   #check TP Radius Pairs
   if ($self->{TP_RAD_PAIRS}) {
-    $self->{TP_RAD_PAIRS} =~ s/\r|\n//g;
-    my @p = split(/,/, $self->{TP_RAD_PAIRS});
-    foreach my $line (@p) {
-      if ($line =~ /([a-zA-Z0-9\-]{6,25})\+\=(.{1,200})/) {
-        my $left  = $1;
-        my $right = $2;
+  	rad_pairs_former($self->{TP_RAD_PAIRS}, { RAD_PAIRS => $RAD_PAIRS });
+  }
 
-        #$right =~ s/\"//g;
-        push(@{ $RAD_PAIRS->{"$left"} }, $right);
-      }
-      else {
-        my ($left, $right) = split(/=/, $line, 2);
-        $left =~ s/^ //g;
-        if ($left =~ s/^!//) {
-          delete $RAD_PAIRS->{"$left"};
-        }
-        else {
-          $RAD_PAIRS->{"$left"} = "$right";
-        }
-      }
-    }
+  if (length($self->{FILTER}) > 0) {
+    $self->neg_deposit_filter_former($RAD, $NAS, $self->{FILTER}, { USER_FILTER => 1, RAD_PAIRS => $RAD_PAIRS });
   }
 
   #OK
@@ -1782,28 +1761,7 @@ sub neg_deposit_filter_former () {
   $self->{INFO} = "Neg filter";
   if ($NEG_DEPOSIT_FILTER_ID =~ /RAD:(.+)/) {
     my $rad_pairs = $1;
-    my @p = split(/,/, $rad_pairs);
-    foreach my $line (@p) {
-      if ($line =~ /([a-zA-Z0-9\-]{6,25})\s?\+\=(.{1,200})/) {
-        my $left  = $1;
-        my $right = $2;
-
-        #$right =~ s/\"//g;
-        push(@{ $RAD_PAIRS->{"$left"} }, $right);
-      }
-      else {
-        my ($left, $right) = split(/=/, $line, 2);
-        if ($left =~ s/^!//) {
-          delete $RAD_PAIRS->{"$left"};
-        }
-        else {
-
-          #next if (! $self->{"$left"});
-          $right = '' if (!$right);
-          $RAD_PAIRS->{"$left"} = "$right";
-        }
-      }
-    }
+    rad_pairs_former($rad_pairs, $attr);
   }
   else {
     $RAD_PAIRS->{'Filter-Id'} = "$NEG_DEPOSIT_FILTER_ID";
@@ -1811,6 +1769,43 @@ sub neg_deposit_filter_former () {
 
   if ($attr->{USER_FILTER}) {
     return 0;
+  }
+
+  return 0, $RAD_PAIRS;
+}
+
+#**********************************************************
+#
+#**********************************************************
+sub rad_pairs_former () {
+  my ($content, $attr) = @_;
+
+  $content =~ s/\r|\n//g;
+  my @p = split(/,/, $content);
+
+  if ($attr->{RAD_PAIRS}) {
+    $RAD_PAIRS = $attr->{RAD_PAIRS};
+  }
+  
+  foreach my $line (@p) {
+    if ($line =~ /([a-zA-Z0-9\-]{6,25})\s?\+\=\s?(.{1,200})/) {
+      my $left  = $1;
+      my $right = $2;
+
+      #$right =~ s/\"//g;
+      push(@{ $RAD_PAIRS->{"$left"} }, $right);
+    }
+    else {
+      my ($left, $right) = split(/=/, $line, 2);
+      if ($left =~ s/^!//) {
+        delete $RAD_PAIRS->{"$left"};
+      }
+      else {
+        #next if (! $self->{"$left"});
+        $right = '' if (!$right);
+        $RAD_PAIRS->{"$left"} = "$right";
+      }
+    }
   }
 
   return 0, $RAD_PAIRS;

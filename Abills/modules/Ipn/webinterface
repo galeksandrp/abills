@@ -1489,13 +1489,13 @@ sub ipn_user_activate {
 
   my $list           = $Sessions->online({
     USER_NAME         => '_SHOW',
-    CLIENT_IP         => $ENV{REMOTE_ADDR},
+    CLIENT_IP         => '_SHOW',
     DURATION          => '_SHOW',
     ACCT_INPUT_OCTETS => '_SHOW',
     ACCT_OUTPUT_OCTETS=> '_SHOW',
     ACCT_SESSION_ID   => '_SHOW',
     ALL               => 1,
-    #UID               => $LIST_PARAMS{UID}
+    UID               => $LIST_PARAMS{UID}
     });
 
   if ($Sessions->{TOTAL} > 0) {

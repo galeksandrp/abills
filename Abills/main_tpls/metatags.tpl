@@ -275,6 +275,9 @@ a.shedule {
 a.print {
 	background:url(/img/button_print.png) no-repeat center;
 }
+a.print_ext {
+        background:url(/img/button_print_ext.png) no-repeat center;
+}
 a.stats {
 	background:url(/img/button_stats.png) no-repeat center;
 }
@@ -335,6 +338,7 @@ a.history,
 a.password,
 a.shedule,
 a.print,
+a.print_ext,
 a.stats,
 a.activate,
 a.off,

@@ -1152,6 +1152,7 @@ sub docs_invoices_list {
 
     print $html->header() if ($FORM{qindex});
     my $tpl = ($FORM{COMPANY_ID}) ? 'docs_invoice_company' : 'docs_invoice';
+    $tpl .= '_alt' if ($FORM{alt_tpl});
 
     my $single_tpl = $html->tpl_show(
       _include($tpl, 'Docs', { pdf => $FORM{pdf} }),
@@ -1275,12 +1276,10 @@ sub docs_invoices_list {
     }
 
     push @fields_array,  $html->button($_PRINT, "qindex=$index&print=$invoice->{id}&UID=$invoice->{uid}" . (($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : ''). (($users->{DOMAIN_ID}) ? "&DOMAIN_ID=$users->{DOMAIN_ID}" : ''), { ex_params => 'target=_new', CLASS => 'print' });
-      
-
 
     if (! $user->{UID}) {
       if ($conf{DOCS_INVOICE_ALT_TPL}) {
-        push @fields_array,  $html->button($_PRINT, "qindex=$index&print=$invoice->{id}&UID=$invoice->{uid}&alt_tpl=1" . (($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : ''). (($users->{DOMAIN_ID}) ? "&DOMAIN_ID=$users->{DOMAIN_ID}" : ''), { ex_params => 'target=_new', CLASS => 'print' });
+        push @fields_array,  $html->button("$_PRINT_EXT", "qindex=$index&print=$invoice->{id}&UID=$invoice->{uid}&alt_tpl=1" . (($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : ''). (($users->{DOMAIN_ID}) ? "&DOMAIN_ID=$users->{DOMAIN_ID}" : ''), { ex_params => 'target=_new', CLASS => 'print_ext' });
       }
 
       my $payments_info = ($invoice->{currency} > 0 && !$conf{DOCS_PAYMENT_SYSTEM_CURRENCY}) ? "&SUM=$invoice->{alt_sum}&ISO=$invoice->{currency}" : "&SUM=$invoice->{total_sum}";
@@ -1321,8 +1320,12 @@ sub docs_invoices_list {
     {
       width      => '100%',
       cols_align => [ 'right', 'right' ],
-      rows       => [ [ (($user->{UID}) ? '' : $html->button("$_PRINT $_LIST", "qindex=". $index ."&print_list=1$pages_qs&pg=$FORM{pg}". 
-      (($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : ''), { BUTTON => 1, ex_params => 'target=new' })), ''], 
+      rows       => [ [ 
+      (($user->{UID}) ? '' : $html->button("$_PRINT $_LIST", "qindex=". $index ."&print_list=1$pages_qs&pg=$FORM{pg}". 
+        (($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : ''), { BUTTON => 1, ex_params => 'target=new' })).
+      (($conf{DOCS_INVOICE_ALT_TPL} && ! $user->{UID}) ? $html->button("$_PRINT_EXT $_LIST", "qindex=". $index ."&print_list=1$pages_qs&pg=$FORM{pg}&alt_tpl=1". 
+        (($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : ''), { BUTTON => 1, ex_params => 'target=new' }) : ''), 
+      ''], 
       ["$_TOTAL:", $html->b($Docs->{TOTAL_INVOICES}) ],
       ["$_USERS:", $html->b($Docs->{TOTAL_USERS}) ],
       ["$_SUM:",   $html->b(sprintf("%.2f",$Docs->{TOTAL_SUM})) ],
