@@ -361,10 +361,10 @@ sub dhcphosts_monitor {
   #Get info derect from file
   foreach my $line (@$hosts_list) {
     $table->addrow(
-      $html->button("$line->[1]", "index=15&UID=$line->{uid}"),
+      $html->button($line->{login}, "index=15&UID=$line->{uid}"),
       $line->{ip},
       $dhcp_hash->{ $line->{mac} }{starts},
-      $dhcp_hash->{ $line->{mac} }{hardware} || $line->[6],
+      $dhcp_hash->{ $line->{mac} }{hardware} || $line->{mac},
       $dhcp_hash->{ $line->{mac} }{'client-hostname'},
       $dhcp_hash->{ $line->{mac} }{abandoned},
       $dhcp_hash->{ $line->{mac} }{state},
@@ -849,7 +849,7 @@ sub dhcphosts_user {
 
           # If install Snmputils make make assign
           if (in_array('Snmputils', \@MODULES) && $FORM{NAS_ID}) {
-            require "Abills/modules/Snmputils/webinterface";
+            load_module('Snmputils', $html);
             my $return = snmputils_periodic({ NAS_IDS => $FORM{NAS_ID}, DEBUG => 1 });
             print $html->message('info', $_INFO, $html->pre($return, { OUTPUT2RETURN => 1 }));
           }
@@ -1061,12 +1061,12 @@ sub dhcphosts_user {
 
   my $nas_index = get_function_index('form_nas');
   if ($nas_index) {
-    $Dhcphosts->{NAS_BUTTON} = $html->button($_INFO, "&index=$nas_index&NAS_ID=$Dhcphosts->{NAS_ID}", { CLASS => 'show rightAlignText' });
+    $Dhcphosts->{NAS_BUTTON} = $html->button($_INFO, "index=$nas_index&NAS_ID=$Dhcphosts->{NAS_ID}", { CLASS => 'show rightAlignText' });
   }
 
   my $network_index = get_function_index('dhcphosts_networks');
   if ($network_index) {
-    $Dhcphosts->{NETWORK_BUTTON} = $html->button($_INFO, "&index=$network_index&chg=$Dhcphosts->{NETWORK}", { CLASS => 'show rightAlignText' });
+    $Dhcphosts->{NETWORK_BUTTON} = $html->button($_INFO, "index=$network_index&chg=$Dhcphosts->{NETWORK}", { CLASS => 'show rightAlignText' });
   }
 
   if ($FORM{UID}) {

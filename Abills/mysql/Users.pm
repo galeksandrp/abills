@@ -236,17 +236,17 @@ sub pi_add {
     ($prefix, $sufix) = split(/\|/, $attr->{CONTRACT_TYPE});
   }
 
-  if ($DATA{STREET_ID} && $DATA{ADDRESS_BUILD} && ! $DATA{LOCATION_ID}) {
+  if ($DATA{STREET_ID} && $DATA{ADD_ADDRESS_BUILD} && ! $DATA{LOCATION_ID}) {
     my $list = $self->build_list({ STREET_ID => $DATA{STREET_ID}, 
-                        NUMBER    => $attr->{ADDRESS_BUILD}, 
-                        COLS_NAME => 1 
-                      });
+                                   NUMBER    => $attr->{ADD_ADDRESS_BUILD}, 
+                                   COLS_NAME => 1 
+                                 });
 
     if ($self->{TOTAL} > 0) {
       $DATA{LOCATION_ID}=$list->[0]->{id};
     }
     else {
-      $self->build_add({ NUMBER    => $DATA{ADDRESS_BUILD}, 
+      $self->build_add({ NUMBER    => $DATA{ADD_ADDRESS_BUILD}, 
                          STREET_ID => $DATA{STREET_ID},  
                       });
       $DATA{LOCATION_ID}=$self->{INSERT_ID};
@@ -455,19 +455,21 @@ sub pi_change {
     LOCATION_ID    => 'location_id'
   );
 
-  if ($attr->{STREET_ID} && $attr->{ADDRESS_BUILD} && ! $attr->{LOCATION_ID}) {
+  if ($attr->{STREET_ID} && $attr->{ADD_ADDRESS_BUILD}) {
+    
     my $list = $self->build_list({ STREET_ID => $attr->{STREET_ID}, 
-                        NUMBER    => $attr->{ADDRESS_BUILD}, 
-                        COLS_NAME => 1 
-                      });
+                                   NUMBER    => $attr->{ADD_ADDRESS_BUILD}, 
+                                   COLS_NAME => 1 
+                                 });
 
     if ($self->{TOTAL} > 0) {
       $attr->{LOCATION_ID}=$list->[0]->{id};
     }
     else {
-      $self->build_add({ NUMBER    => $attr->{ADDRESS_BUILD}, 
+      $self->build_add({ NUMBER    => $attr->{ADD_ADDRESS_BUILD}, 
                          STREET_ID => $attr->{STREET_ID},  
                       });
+
       $attr->{LOCATION_ID}=$self->{INSERT_ID};
     }
   }
