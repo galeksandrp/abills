@@ -2898,7 +2898,7 @@ sub msgs_unreg_requests {
 
   if ($FORM{REGISTRATION_REQUEST}) {
     if (in_array('Maps', \@MODULES)) {
-      load_module('Maps');
+      load_module('Maps', $html);
       $Msgs->{MAPS} = google_maps_show_client({ OUTPUT2RETURN => 1 });
     }
 
@@ -2917,7 +2917,6 @@ sub msgs_unreg_requests {
 #**********************************************************
 sub msgs_registration {
   my ($attr) = @_;
-
 
   $FORM{REGISTRATION_REQUEST} = 1 if ($conf{MSGS_REG_REQUEST});
 

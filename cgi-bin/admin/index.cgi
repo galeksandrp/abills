@@ -2173,18 +2173,19 @@ sub form_users {
   }
   elsif ($FORM{SEND_SMS_PASSWORD}) {
     load_module('Sms', $html);
-    $users->info($FORM{UID}, { SHOW_PASSWORD => 1 });
-    $users->pi({ UID => $FORM{UID} });
+    my $user_info = $users->info($FORM{UID}, { SHOW_PASSWORD => 1 });
+    my $pi        = $users->pi({ UID => $FORM{UID} });
+    my $message   = $html->tpl_show(_include('sms_password_recovery', 'Sms'), { %user_info, $pi }, { OUTPUT2RETURN => 1 });
+
     if (
       sms_send(
         {
           NUMBER => $users->{PHONE},
-          MESSAGE => "LOGIN: $users->{LOGIN} PASSWORD: $users->{PASSWORD}",
-          UID     => $users->{UID}
+          MESSAGE=> $message,
+          UID    => $users->{UID},
         }
       )
-    )
-    {
+    ) {
       $html->message('info', "$_INFO", "$_PASSWD SMS $_SENDED");
     }
     return 0;
@@ -5492,7 +5493,7 @@ sub report_payments {
   my @CHART_TYPE = ('area', 'line', 'column');
   my $num        = 0;
 
-  if ($FORM{FIELDS}) {
+  if (defined($FORM{FIELDS}) && $FORM{FIELDS} ne '') {
   	$LIST_PARAMS{METHOD}= $FORM{FIELDS};
   	$LIST_PARAMS{METHOD}=~s/ //g;
    	$LIST_PARAMS{METHOD}=~s/,/;/g;

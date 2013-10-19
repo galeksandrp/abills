@@ -156,6 +156,7 @@ elsif ($#REGISTRATION > -1) {
        <tr><td align=right><img src='/captcha/" . $md5sum . ".png'></td><td><input type='text' name='CCODE'></td></tr>";
     }
   }
+
   $INFO_HASH{RULES} = $html->tpl_show(templates('form_accept_rules'), {}, { OUTPUT2RETURN => 1 });
   $INFO_HASH{language} = $html->{language};
 
@@ -164,7 +165,7 @@ elsif ($#REGISTRATION > -1) {
     $INFO_HASH{DOMAIN_ID} = 0;
   }
 
-  load_module($m);
+  load_module($m, $html);
 
   $m = lc($m);
   my $function = $m . '_registration';
@@ -225,6 +226,7 @@ sub password_recovery {
       my $email   = $FORM{EMAIL} || '';
       my $phone   = $list->[0]{phone};
       my $uid     = $list->[0]{uid};
+      my ($user, $pi);
 
       if ($FORM{LOGIN} && !$FORM{EMAIL}) {
         $email = $u[0]{email};
@@ -234,11 +236,14 @@ sub password_recovery {
         if ($FORM{EMAIL}) {
           $uid = $line->{uid};
         }
-        $users->info($uid, { SHOW_PASSWORD => 1 });
+
+        $pi    = $users->pi({ UID => $uid });
+        $user  = $users->info($uid, { SHOW_PASSWORD => 1 });
+
         $message .= "$_LOGIN:  $users->{LOGIN}\n" . "$_PASSWD: $users->{PASSWORD}\n" . "================================================\n";
       }
 
-      $message = $html->tpl_show(templates('msg_passwd_recovery'), { MESSAGE => $message }, { OUTPUT2RETURN => 1 });
+      $message = $html->tpl_show(templates('msg_passwd_recovery'), { MESSAGE => $message, %$user, %$pi }, { OUTPUT2RETURN => 1 });
 
       if ($email ne '') {
         sendmail("$conf{ADMIN_MAIL}", "$email", "$PROGRAM Password Repair", "$message", "$conf{MAIL_CHARSET}", "");
@@ -250,7 +255,7 @@ sub password_recovery {
       }
 
       if ($FORM{SEND_SMS} && in_array('Sms', \@MODULES)) {
-      	load_module('Sms');
+      	load_module('Sms', $html);
         if (
           sms_send(
             {

@@ -805,7 +805,7 @@ sub list {
     my @HAVING_RULES = @WHERE_RULES;
 
     if ($attr->{PAYMENTS}) {
-      my $value = $self->search_expr($attr->{PAYMENTS}, 'INT');
+      my $value = @{ $self->search_expr($attr->{PAYMENTS}, 'INT') }[0];
       push @WHERE_RULES,  "p.date$value";
       push @HAVING_RULES, "max(p.date)$value";
       $self->{SEARCH_FIELDS} .= 'max(p.date) AS last_payments, ';
@@ -823,7 +823,6 @@ sub list {
     }
 
     my $HAVING = ($#HAVING_RULES > -1) ? "HAVING " . join(' and ', @HAVING_RULES) : '';
-
     $self->query2("SELECT u.id AS login, 
        $self->{SEARCH_FIELDS}
        u.uid, 
