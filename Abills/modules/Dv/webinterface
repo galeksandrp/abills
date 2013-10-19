@@ -4585,6 +4585,8 @@ sub dv_user_info {
     if ($days_to_fees > 0) {
     	my $expire_date = strftime "%Y-%m-%d", localtime(POSIX::mktime(0, 0, 0, $from_day, ($from_month - 1), ($from_year - 1900)) + 86400 * $days_to_fees);
       $Dv->{NEXT_FEES_WARNING} .= " ($expire_date)";
+      
+      $Dv->{SERVICE_EXPIRE_DATE}=$expire_date if ($FORM{xml});
     }
   }
 

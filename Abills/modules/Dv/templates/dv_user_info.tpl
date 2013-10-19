@@ -1,6 +1,7 @@
 <div id=dv_user_info>
 
 <h3>%NEXT_FEES_WARNING%</h3>
+%SERVICE_EXPIRE_DATE%
 <TABLE width='600' class='form'>
 <tr><th class=form_title colspan=2>$_SERVICE: Internet</th></tr>
 <tr><td>$_TARIF_PLAN:</td><td>[%TP_ID%] <b>%TP_NAME%</b> %TP_CHANGE% <br>%COMMENTS%</td></tr>
