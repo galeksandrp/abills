@@ -131,8 +131,8 @@ sub online_count {
    n.name AS nas_name, n.ip AS nas_ip, n.nas_type,  
    sum(if (c.status=1 or c.status>=3, 1, 0)) AS nas_total_sessions,
    count(distinct c.uid) AS nas_total_users,
-   sum(if (status=2, 1, 0)) AS nas_zaped, 
-   sum(if (status>3, 1, 0)) AS nas_error_sessions
+   sum(if (c.status=2, 1, 0)) AS nas_zaped, 
+   sum(if (c.status>3, 1, 0)) AS nas_error_sessions
  FROM dv_calls c  
  INNER JOIN nas n ON (c.nas_id=n.id)
  $EXT_TABLE

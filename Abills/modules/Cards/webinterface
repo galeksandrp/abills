@@ -92,7 +92,7 @@ sub cards_main {
         my @ids = ();
         while (my ($k, $v) = each(%CARDS_GROUPS)) {
           my ($seria, $price) = split(/:/, $k, 2);
-          $price = $price / $v;
+          $price = ($v > 0) ? $price / $v : $price;
           $FORM{'SUM_'. $i}    = $price;
           $FORM{'COUNTS_'. $i} = $v;
           $FORM{'UNIT_'. $i}   = 1;
@@ -1344,10 +1344,10 @@ sub cards_reseller_face {
 sub cards_diller_face {
   $Cards->cards_diller_info({ UID => $user->{UID} });
 
-  if ($Cards->{TOTAL} < 1) {
+  if (! $Cards->{ID}) {
     $html->setCookie('sid', "", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure);
     $html->header() if ($FORM{qindex});
-    $html->message('info', $_INFO, "$_ACCOUNT $_NOT_EXIST");
+    $html->message('info', $_INFO, "- $_ACCOUNT $_NOT_EXIST");
     return 0;
   }
 

@@ -2175,7 +2175,7 @@ sub form_users {
     load_module('Sms', $html);
     my $user_info = $users->info($FORM{UID}, { SHOW_PASSWORD => 1 });
     my $pi        = $users->pi({ UID => $FORM{UID} });
-    my $message   = $html->tpl_show(_include('sms_password_recovery', 'Sms'), { %user_info, $pi }, { OUTPUT2RETURN => 1 });
+    my $message   = $html->tpl_show(_include('sms_password_recovery', 'Sms'), { %$user_info, %$pi }, { OUTPUT2RETURN => 1 });
 
     if (
       sms_send(

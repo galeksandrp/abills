@@ -628,6 +628,8 @@ sub hosts_list {
 
   $EXT_TABLES .= $self->{EXT_TABLES} if ($self->{EXT_TABLES});
 
+  $SORT =~ s/ip/h.ip/;
+
   $self->query2("SELECT 
        h.id, 
        $self->{SEARCH_FIELDS} 
