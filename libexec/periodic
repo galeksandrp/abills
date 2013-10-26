@@ -394,14 +394,15 @@ sub admin_report_daily {
   $LIST_PARAMS{DESC}      = 'DESC';
   $LIST_PARAMS{PAGE_ROWS} = 1000000;
 
-  $list = $Payments->list({ %LIST_PARAMS, 
-  	                        LOGIN     => '_SWOW',
+  $Payments->{debug}=1;
+  $list = $Payments->list({ LOGIN     => '_SHOW',
   	                        FIO       => '_SHOW',
   	                        DESCRIBE  => '_SHOW',
   	                        SUM       => '_SHOW',
   	                        ADMIN_NAME=> '_SHOW',
-  	                        IP        => '_SWOW',
+  	                        IP        => '_SHOW',
   	                        DATE      => '_SHOW',
+  	                        %LIST_PARAMS, 
   	                        COLS_NAME => 1 
   	                      });
 
@@ -427,16 +428,17 @@ sub admin_report_daily {
   $ADMIN_REPORT{FEES} .= sprintf("%-14s|%-28s| %8s| %20s| %12s| %15s| %8s\n", $_LOGIN, $_FIO, $_DESCRIBE, $_SUM, $_TYPE, $_ADMINS, 'IP', $_DEPOSIT);
   $ADMIN_REPORT{FEES} .= "---------------------------------------------------------\n";
 
-  $list = $Fees->list({ %LIST_PARAMS, 
-                        LOGIN     => '_SWOW',
+  $list = $Fees->list({ 
+                        LOGIN     => '_SHOW',
                         FIO       => '_SHOW',
                         DESCRIBE  => '_SHOW',
                         SUM       => '_SHOW',
                         ADMIN_NAME=> '_SHOW',
-                        IP        => '_SWOW',
+                        IP        => '_SHOW',
                         DATE      => '_SHOW',
                         METHOD    => '_SHOW',
-                        DEPOSIT   => '_SWOW',
+                        DEPOSIT   => '_SHOW',
+                        %LIST_PARAMS, 
   	                    COLS_NAME => 1 });
 
   foreach my $line (@$list) {

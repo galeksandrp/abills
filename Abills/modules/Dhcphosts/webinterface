@@ -87,8 +87,8 @@ sub dhcphosts_mac_block_show {
       STATUS                     => '_SHOW',
       DELETED                    => 0,
       PAGE_ROWS                  => 1000000,
-      DHCPHOSTS_DEPOSITCHECK     => $conf{DHCPHOSTS_DEPOSITCHECK},
-      DHCPHOSTS_EXT_DEPOSITCHECK => $conf{DHCPHOSTS_EXT_DEPOSITCHECK},
+      DEPOSIT                    => (defined($conf{DHCPHOSTS_DEPOSITCHECK})) ? '_SHOW': '',
+      DHCPHOSTS_EXT_DEPOSITCHECK => (defined($conf{DHCPHOSTS_EXT_DEPOSITCHECK})) ? '_SHOW': '',
       COLS_NAME                  => 1
     }
   );
@@ -116,7 +116,7 @@ sub dhcphosts_mac_block_show {
       $deposit = $line->{ext_deposit};
     }
     elsif (defined($conf{DHCPHOSTS_DEPOSITCHECK})) {
-      $deposit = $line->{deposit_credit};
+      $deposit = $line->{deposit};
     }
 
     $deposit = 0 if (!$deposit);
@@ -1284,8 +1284,8 @@ sub dhcphosts_config {
         NETWORK                    => $NET_ID,
         STATUS                     => 0,
         PAGE_ROWS                  => 100000,
-        DHCPHOSTS_DEPOSITCHECK     => $conf{DHCPHOSTS_DEPOSITCHECK},
-        DHCPHOSTS_EXT_DEPOSITCHECK => $conf{DHCPHOSTS_EXT_DEPOSITCHECK},
+        DEPOSIT                    => (defined($conf{DHCPHOSTS_DEPOSITCHECK})) ? '_SHOW' : '',
+        DHCPHOSTS_EXT_DEPOSITCHECK => (defined($conf{DHCPHOSTS_EXT_DEPOSITCHECK})) ? '_SHOW': '',
         USER_DISABLE               => 0,
         LOGIN                      => '_SHOW',
         HOSTNAME                   => '_SHOW',
@@ -1308,11 +1308,8 @@ sub dhcphosts_config {
       if (defined($conf{DHCPHOSTS_DEPOSITCHECK}) && $deposit < $conf{DHCPHOSTS_DEPOSITCHECK}) {
         next;
       }
-      elsif (defined($conf{DHCPHOSTS_EXT_DEPOSITCHECK}) && $deposit < $conf{DHCPHOSTS_EXT_DEPOSITCHECK}) {
+      elsif (defined($conf{DHCPHOSTS_EXT_DEPOSITCHECK}) && $host->{ext_deposit} < $conf{DHCPHOSTS_EXT_DEPOSITCHECK}) {
         next;
-      }
-      else {
-
       }
 
       $INFO{LOGIN}      = $host->{login};

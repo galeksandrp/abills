@@ -445,7 +445,7 @@ sub dv_auth {
         push(@time_limits, $session_time_limit) if ($self->{ $line . '_TIME_LIMIT' } > 0);
       }
 
-      if ($self->{ $line . '_TRAF_LIMIT' } > 0 && ($traf_limit > $session_traf_limit || !$traf_limit)) {
+      if ($self->{ $line . '_TRAF_LIMIT' } && $self->{ $line . '_TRAF_LIMIT' } > 0 && ($traf_limit > $session_traf_limit || !$traf_limit)) {
         $traf_limit = $session_traf_limit;
       }
 
@@ -793,9 +793,9 @@ sub dv_auth {
   }
 
   # SET ACCOUNT expire date
-  if ($self->{ACCOUNT_AGE} > 0 && $self->{DV_ExPIRE} eq '0000-00-00') {
-    $self->query2("UPDATE users SET expire=curdate() + INTERVAL $self->{ACCOUNT_AGE} day 
-     WHERE uid='$self->{UID}';", 'do'
+  if ($self->{ACCOUNT_AGE} > 0 && $self->{DV_EXPIRE} eq '0000-00-00') {
+    $self->query2("UPDATE dv_main SET expire=curdate() + INTERVAL $self->{ACCOUNT_AGE} day 
+      WHERE uid='$self->{UID}';", 'do'
     );
   }
 

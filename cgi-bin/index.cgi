@@ -1362,7 +1362,12 @@ sub form_neg_deposit {
     }
   }
 
-  $user->{TOTAL_DEBET} += abs($user->{DEPOSIT}) if ($user->{DEPOSIT} < 0);
+  $user->{TOTAL_DEBET} = ($user->{DEPOSIT} < 0) ? $user->{TOTAL_DEBET} + abs($user->{DEPOSIT}) :  $user->{TOTAL_DEBET} - $user->{DEPOSIT};
+
+  if ($user->{TOTAL_DEBET} > int($user->{TOTAL_DEBET})) {
+    $user->{TOTAL_DEBET} = sprintf("%.2f", int($user->{TOTAL_DEBET})+1);
+  }
+
   $user->{TOTAL_DEBET} = sprintf("%.2f", $user->{TOTAL_DEBET});
   $pages_qs = "&SUM=$user->{TOTAL_DEBET}&sid=$sid";
 

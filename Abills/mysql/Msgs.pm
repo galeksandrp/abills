@@ -259,9 +259,11 @@ GROUP BY m.id
    sum(if(m.state = 0, 1, 0)) AS open,
    sum(if(m.state = 1, 1, 0)) AS unmaked,
    sum(if(m.state = 2, 1, 0)) AS closed
-    FROM (msgs_messages m)
+    FROM msgs_messages m
     LEFT JOIN users u ON (m.uid=u.uid)
+    LEFT JOIN msgs_reply r ON (m.id=r.main_msg)
     LEFT JOIN msgs_chapters mc ON (m.chapter=mc.id)
+    $EXT_TABLE
     $WHERE",
     undef,
     { INFO => 1 }

@@ -466,7 +466,7 @@ sub dv_user {
      #Show rest of prepaid traffic
     if ( $sessions->prepaid_rest(
       {
-        UID  => ($Dv->{JOIN_SERVICE} > 1) ? $Dv->{JOIN_SERVICE} : $LIST_PARAMS{UID},
+        UID  => ($Dv->{JOIN_SERVICE} > 1) ? $Dv->{JOIN_SERVICE} : $Dv->{UID},
         UIDS => $Dv->{UID}
       }
      )
@@ -665,9 +665,11 @@ sub dv_user {
    	  my ($from_year, $from_month, $from_day) = split(/-/, $DATE,            3);
       if ($Dv->{MONTH_ABON} > 0) {
         if ($Dv->{ABON_DISTRIBUTION} && $Dv->{MONTH_ABON} > 0) {
-          $days_to_fees = int(($users->{DEPOSIT} + $users->{CREDIT}) * (100 / (100 - $users->{REDUCTION})) / ($Dv->{MONTH_ABON} / 30));
-          $Dv->{NEXT_FEES_WARNING} = "$_SERVICE_ENDED";
-          $Dv->{NEXT_FEES_WARNING} =~ s/\%DAYS\%/$days_to_fees/g;
+        	if ($users->{REDUCTION} < 100) {
+            $days_to_fees = int(($users->{DEPOSIT} + $users->{CREDIT}) * (100 / (100 - $users->{REDUCTION})) / ($Dv->{MONTH_ABON} / 30));
+            $Dv->{NEXT_FEES_WARNING} = "$_SERVICE_ENDED";
+            $Dv->{NEXT_FEES_WARNING} =~ s/\%DAYS\%/$days_to_fees/g;
+          }
         }
         else {
           $Dv->{NEXT_FEES_WARNING} = "$_NEXT_FEES: ";

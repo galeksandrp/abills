@@ -452,9 +452,6 @@ sub bonus_rules {
 sub bonus_user {
   my ($attr) = @_;
 
-
-  print "ZZZZZZZZZZZZZZZZZZZ";
-
   if (! $FORM{UID}) {
   	$FORM{UID} = $LIST_PARAMS{UID};
   }

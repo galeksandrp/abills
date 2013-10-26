@@ -567,19 +567,14 @@ sub hosts_list {
 
   @WHERE_RULES = ();
   my $EXT_TABLES = '';
-
-  # Deposit chech
-  my $extra_fields = '';
+  $self->{EXT_TABLES} = '';
+  # Deposit check
   if (defined($attr->{DHCPHOSTS_EXT_DEPOSITCHECK})) {
     $EXT_TABLES = "
-            LEFT JOIN companies company ON  (u.company_id=company.id) 
+            LEFT JOIN companies ext_company ON  (u.company_id=ext_company.id) 
             LEFT JOIN bills ext_b ON (u.ext_bill_id = ext_b.id)
-            LEFT JOIN bills ext_cb ON  (company.ext_bill_id=ext_cb.id) ";
-  }
-  elsif (defined($attr->{DHCPHOSTS_DEPOSITCHECK})) {
-    $EXT_TABLES = 'LEFT JOIN bills b ON (u.bill_id = b.id)
-     LEFT JOIN companies company ON  (u.company_id=company.id) 
-     LEFT JOIN bills cb ON  (company.bill_id=cb.id)';
+            LEFT JOIN bills ext_cb ON  (ext_company.ext_bill_id=ext_cb.id) ";
+    delete($attr->{DHCPHOSTS_DEPOSITCHECK});
   }
 
   if ($attr->{NAS_IP}) {
@@ -605,7 +600,6 @@ sub hosts_list {
      ['NAS_ID',          'INT', 'h.nas AS nas_id',1],
      ['NAS_IP',          'STR', 'nas.ip',  'nas.ip AS nas_ip'],
      ['DHCPHOSTS_EXT_DEPOSITCHECK', '', '', 'if(company.id IS NULL,ext_b.deposit,ext_cb.deposit) AS ext_deposit' ],
-     ['DHCPHOSTS_DEPOSITCHECK',     '', '', 'if(company.id IS NULL, b.deposit, cb.deposit) + u.credit AS deposit_credit' ],
      ['BOOT_FILE',       'STR', 'h.boot_file',   1],
      ['NEXT_SERVER',     'STR', 'h.next_server', 1],
      ['UID',             'INT', 'h.uid'          ],
