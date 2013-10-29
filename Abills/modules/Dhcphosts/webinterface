@@ -85,6 +85,7 @@ sub dhcphosts_mac_block_show {
       LOGIN                      => '_SHOW',
       EXPIRE                     => '_SHOW',
       STATUS                     => '_SHOW',
+      CREDIT                     => '_SHOW',    
       DELETED                    => 0,
       PAGE_ROWS                  => 1000000,
       DEPOSIT                    => (defined($conf{DHCPHOSTS_DEPOSITCHECK})) ? '_SHOW': '',
@@ -116,7 +117,7 @@ sub dhcphosts_mac_block_show {
       $deposit = $line->{ext_deposit};
     }
     elsif (defined($conf{DHCPHOSTS_DEPOSITCHECK})) {
-      $deposit = $line->{deposit};
+      $deposit = $line->{deposit}+$line->{credit};
     }
 
     $deposit = 0 if (!$deposit);
@@ -1283,7 +1284,7 @@ sub dhcphosts_config {
       {
         NETWORK                    => $NET_ID,
         STATUS                     => 0,
-        PAGE_ROWS                  => 100000,
+        CREDIT                     => '_SHOW',
         DEPOSIT                    => (defined($conf{DHCPHOSTS_DEPOSITCHECK})) ? '_SHOW' : '',
         DHCPHOSTS_EXT_DEPOSITCHECK => (defined($conf{DHCPHOSTS_EXT_DEPOSITCHECK})) ? '_SHOW': '',
         USER_DISABLE               => 0,
@@ -1298,14 +1299,15 @@ sub dhcphosts_config {
         BOOT_FILE                  => '_SHOW',
         DELETED                    => 0,
         NEXT_SERVER                => '_SHOW',
-        COLS_NAME                  => 1
+        COLS_NAME                  => 1,
+        PAGE_ROWS                  => 100000,
       }
     );
 
     foreach my $host (@$list) {
       my $deposit = $host->{deposit} || 0;
 
-      if (defined($conf{DHCPHOSTS_DEPOSITCHECK}) && $deposit < $conf{DHCPHOSTS_DEPOSITCHECK}) {
+      if (defined($conf{DHCPHOSTS_DEPOSITCHECK}) && $deposit+$host->{credit} < $conf{DHCPHOSTS_DEPOSITCHECK}) {
         next;
       }
       elsif (defined($conf{DHCPHOSTS_EXT_DEPOSITCHECK}) && $host->{ext_deposit} < $conf{DHCPHOSTS_EXT_DEPOSITCHECK}) {

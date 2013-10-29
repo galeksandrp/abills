@@ -394,7 +394,6 @@ sub admin_report_daily {
   $LIST_PARAMS{DESC}      = 'DESC';
   $LIST_PARAMS{PAGE_ROWS} = 1000000;
 
-  $Payments->{debug}=1;
   $list = $Payments->list({ LOGIN     => '_SHOW',
   	                        FIO       => '_SHOW',
   	                        DESCRIBE  => '_SHOW',

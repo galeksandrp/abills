@@ -1271,6 +1271,7 @@ sub check_speed {
   
   if ($Sessions->{errno}) {
     print "$Sessions->{error} $Sessions->{err_str}";
+    exit;
   }
 
   # Check turbo mode
