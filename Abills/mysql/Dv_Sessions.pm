@@ -392,26 +392,29 @@ sub online_info {
     }    
     );
 
-  $self->query2("SELECT user_name, 
-    UNIX_TIMESTAMP(started) AS session_start, 
-    acct_session_time, 
-   acct_input_octets,
-   acct_output_octets,
-   ex_input_octets,
-   ex_output_octets,
-   connect_term_reason,
-   INET_NTOA(framed_ip_address) AS framed_ip_address,
-   lupdated as last_update,
-   nas_port_id as nas_port,
-   INET_NTOA(nas_ip_address) AS nas_ip_address , 
-   CID AS calling_station_id,
-   CONNECT_INFO,
-   acct_session_id,
-   nas_id,
-   started AS acct_session_started,
-   acct_input_gigawords 
-   acct_output_gigawords 
-   FROM dv_calls 
+  $self->query2("SELECT c.user_name, 
+    UNIX_TIMESTAMP(c.started) AS session_start, 
+    c.acct_session_time, 
+   c.acct_input_octets,
+   c.acct_output_octets,
+   c.ex_input_octets,
+   c.ex_output_octets,
+   c.connect_term_reason,
+   INET_NTOA(c.framed_ip_address) AS framed_ip_address,
+   c.lupdated as last_update,
+   c.nas_port_id as nas_port,
+   INET_NTOA(c.nas_ip_address) AS nas_ip_address , 
+   c.CID AS calling_station_id,
+   c.CONNECT_INFO,
+   c.acct_session_id,
+   c.nas_id,
+   c.started AS acct_session_started,
+   c.acct_input_gigawords, 
+   c.acct_output_gigawords,
+   if(dv.filter_id != '', dv.filter_id, if(tp.filter_id is null, '', tp.filter_id)) AS filter_id 
+   FROM dv_calls c 
+   LEFT JOIN dv_main dv ON (c.uid=dv.uid)
+   LEFT JOIN tarif_plans tp ON (dv.tp_id=tp.id and module='Dv')
    $WHERE",
    undef,
    { INFO => 1 }
