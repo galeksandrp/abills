@@ -568,25 +568,17 @@ sub hosts_list {
   @WHERE_RULES = ();
   my $EXT_TABLES = '';
   $self->{EXT_TABLES} = '';
-  # Deposit check
-  if (defined($attr->{DHCPHOSTS_EXT_DEPOSITCHECK})) {
-    $EXT_TABLES = "
-            LEFT JOIN companies ext_company ON  (u.company_id=ext_company.id) 
-            LEFT JOIN bills ext_b ON (u.ext_bill_id = ext_b.id)
-            LEFT JOIN bills ext_cb ON  (ext_company.ext_bill_id=ext_cb.id) ";
-    delete($attr->{DHCPHOSTS_DEPOSITCHECK});
-  }
 
   if ($attr->{NAS_IP}) {
     $EXT_TABLES .= "LEFT JOIN nas  ON  (h.nas=nas.id) ";
   }
 
   my $WHERE =  $self->search_former($attr, [
-     ['ID',              'INT', 'h.id'             ],
-     ['LOGIN',           'INT', 'u.id',   'u.id AS login' ],
+     ['ID',              'INT', 'h.id'                         ],
+     ['LOGIN',           'INT', 'u.id',   'u.id AS login'      ],
      ['IP',              'IP',  'h.ip', 'INET_NTOA(h.ip) AS ip'],
-     ['HOSTNAME',        'STR', 'h.hostname',     1],
-     ['NETWORK_NAME',    'STR', 'n.name AS netwirk_name', 1 ],
+     ['HOSTNAME',        'STR', 'h.hostname',     1            ],
+     ['NETWORK_NAME',    'STR', 'n.name AS netwirk_name', 1    ],
      ['NETWORK',         'INT', 'h.network',      1],
      ['MAC',             'STR', 'h.mac',          1],  
      ['STATUS',          'INT', 'h.disable',      'h.disable AS status'],
@@ -618,6 +610,13 @@ sub hosts_list {
     }
     
     $EXT_TABLES .= " LEFT JOIN dv_main dv ON  (dv.uid=u.uid) ";
+  }
+
+  if (defined($attr->{DHCPHOSTS_EXT_DEPOSITCHECK}) && $attr->{DHCPHOSTS_EXT_DEPOSITCHECK} ne '') {
+    $EXT_TABLES .= "
+            LEFT JOIN companies ext_company ON  (u.company_id=ext_company.id) 
+            LEFT JOIN bills ext_b ON (u.ext_bill_id = ext_b.id)
+            LEFT JOIN bills ext_cb ON  (ext_company.ext_bill_id=ext_cb.id) ";
   }
 
   $EXT_TABLES .= $self->{EXT_TABLES} if ($self->{EXT_TABLES});
