@@ -797,7 +797,13 @@ sub search_expr_users () {
       }
 
       my ($type, $field) = split(/:/, $users_fields_hash{$key});
-      next if ($type eq 'STR' && ! $attr->{$key});
+      if ($type eq 'STR' && ! $attr->{$key}) {
+      	next; 
+      }
+#      elsif ($type eq 'STR' && $attr->{$key} eq '') {
+#      	next;
+#      }
+
       push @fields, @{ $self->search_expr($attr->{$key}, $type, "$field", { EXT_FIELD => in_array($key, $attr->{EXT_FIELDS}) }) };
       $filled{$key}=1;
     }

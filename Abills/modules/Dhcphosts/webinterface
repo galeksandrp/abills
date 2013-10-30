@@ -78,6 +78,16 @@ sub dhcphosts_mac_block_show {
 
   my @pair_status = ('ACCEPT', 'DENY');
 
+  my %PARAMS = ();
+    
+  if (defined($conf{DHCPHOSTS_DEPOSITCHECK})) {
+  	#$PARAMS{DEPOSIT} = '_SHOW';
+  }
+
+  if (defined($conf{DHCPHOSTS_EXT_DEPOSITCHECK})) { 
+   	$PARAMS{DHCPHOSTS_EXT_DEPOSITCHECK} = '_SHOW';
+  }
+
   my $list = $Dhcphosts->hosts_list(
     {
       IP                         => '_SHOW',
@@ -88,8 +98,7 @@ sub dhcphosts_mac_block_show {
       CREDIT                     => '_SHOW',    
       DELETED                    => 0,
       PAGE_ROWS                  => 1000000,
-      DEPOSIT                    => (defined($conf{DHCPHOSTS_DEPOSITCHECK})) ? '_SHOW': '',
-      DHCPHOSTS_EXT_DEPOSITCHECK => (defined($conf{DHCPHOSTS_EXT_DEPOSITCHECK})) ? '_SHOW': '',
+      %PARAMS,
       COLS_NAME                  => 1
     }
   );
@@ -183,9 +192,13 @@ sub dhcphosts_mac_block_make {
     return 1;
   }
 
-  open(FILE, ">$var_dir/ipguard") || print "Can't open '$var_dir/ipguard' $!";
+  if (open(FILE, ">$var_dir/ipguard")) { 
     print FILE "$attr->{ETHER_CONTENT}";
-  close(FILE);
+    close(FILE);
+  }
+  else {
+  	print "Can't open '$var_dir/ipguard' $!\n";
+  }
 
   $DEBUG .= $debug_output;
   return 1;
@@ -1280,13 +1293,21 @@ sub dhcphosts_config {
     #Make hosts
     $INFO->{NETWORK} = '';
 
+    my %PARAMS = ();
+    
+    if (defined($conf{DHCPHOSTS_DEPOSITCHECK})) {
+    	$PARAMS{DEPOSIT} = '_SHOW';
+    }
+
+    if (defined($conf{DHCPHOSTS_EXT_DEPOSITCHECK})) { 
+    	$PARAMS{DHCPHOSTS_EXT_DEPOSITCHECK} = '_SHOW';
+    }
+
     $list = $Dhcphosts->hosts_list(
       {
         NETWORK                    => $NET_ID,
         STATUS                     => 0,
         CREDIT                     => '_SHOW',
-        DEPOSIT                    => (defined($conf{DHCPHOSTS_DEPOSITCHECK})) ? '_SHOW' : undef,
-        DHCPHOSTS_EXT_DEPOSITCHECK => (defined($conf{DHCPHOSTS_EXT_DEPOSITCHECK})) ? '_SHOW': undef,
         USER_DISABLE               => 0,
         LOGIN                      => '_SHOW',
         HOSTNAME                   => '_SHOW',
@@ -1300,6 +1321,7 @@ sub dhcphosts_config {
         DELETED                    => 0,
         NEXT_SERVER                => '_SHOW',
         COLS_NAME                  => 1,
+        %PARAMS,
         PAGE_ROWS                  => 100000,
       }
     );
