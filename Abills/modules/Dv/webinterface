@@ -1755,7 +1755,7 @@ sub dv_online {
        'filter_id'   => 'Filter ID',
        'tp_name'     => "$_TARIF_PLAN",
        'dv_status'   => "$_STATUS",
-       'last_alive'  => "$_UPDATE",
+       'last_alive'  => "$_LAST_UPDATE",
        'dv_expire'   => "Internet $_EXPIRE"
          },
      TABLE           => {
@@ -6286,7 +6286,7 @@ sub dv_sheduler {
     	}
 
       $FORM{RECALCULATE} = 1;
-      service_get_month_fee($Dv, { QUITE => 1 });
+      service_get_month_fee($Dv, { QUITE => 1, SHEDULER => 1 });
     }
   }
   elsif ($type eq 'status') {

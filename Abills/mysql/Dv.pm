@@ -50,7 +50,7 @@ sub info {
   my $self = shift;
   my ($uid, $attr) = @_;
 
-  if (defined($attr->{LOGIN})) {
+  if (defined($attr->{LOGIN}) && $attr->{LOGIN} ne '') {
     my $users = Users->new($self->{db}, $admin, $CONF);
     $users->info(0, { LOGIN => "$attr->{LOGIN}" });
     if ($users->{errno}) {

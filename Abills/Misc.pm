@@ -297,12 +297,18 @@ sub service_get_month_fee {
   #Get month fee
   if ($Service->{TP_INFO}->{MONTH_FEE} > 0) {
     if ( $FORM{RECALCULATE} ) {
+    	my $rest_days     = 0;
+      my $rest_day_sum2 = 0;
+      $sum              = 0;
+    	
+      if ($Service->{ACCOUNT_ACTIVATE} eq '0000-00-00') {
+        $rest_days     = $days_in_month - $d + 1;
+        $rest_day_sum2 = (! $Service->{TP_INFO_OLD}->{ABON_DISTRIBUTION}) ? $Service->{TP_INFO_OLD}->{MONTH_FEE} /  $days_in_month * $rest_days : 0;
+        $sum           = $rest_day_sum2;
+        #PERIOD_ALIGNMENT
+        $Service->{TP_INFO}->{PERIOD_ALIGNMENT}=1;
+      }
 
-      my $rest_days     = $days_in_month - $d + 1;
-      my $rest_day_sum2 = (! $Service->{TP_INFO_OLD}->{ABON_DISTRIBUTION}) ? $Service->{TP_INFO_OLD}->{MONTH_FEE} /  $days_in_month * $rest_days : 0;
-      $sum              = $rest_day_sum2;
-      #PERIOD_ALIGNMENT
-      $Service->{TP_INFO}->{PERIOD_ALIGNMENT}=1;
       #Compensation
       if ($sum > 0) {
         $payments->add($users,
