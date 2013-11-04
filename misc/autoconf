@@ -122,7 +122,6 @@ if (!-f $config_file) {
         if ($conf{OS} eq 'FREEBSD') {
 
         }
-
         #Other OS
         else {
           $mysql = '/usr/bin/mysql';
@@ -440,8 +439,8 @@ sub check_install {
         $exec_file = $1;
       }
 
-      if ($exec_file =~ /\// && !-x $exec_file) {
-        print "File '$exec_file' not exist or not executeble\n";
+      if ($exec_file =~ /\// && ! -x $exec_file) {
+        print "Error: File '$exec_file' not exist or not executeble\n";
         return 0;
       }
       my $res = `$exec_cmd`;
