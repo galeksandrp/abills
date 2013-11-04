@@ -271,7 +271,7 @@ sub service_get_month_fee {
 
     if (!$Service->{OLD_STATUS} || $Service->{OLD_STATUS} == 2) {
       $fees->take(
-        $user,
+        $users,
         $Service->{TP_INFO}->{ACTIV_PRICE},
         {
           DESCRIBE => "$_ACTIVATE $_TARIF_PLAN",
@@ -301,13 +301,18 @@ sub service_get_month_fee {
       my $rest_day_sum2 = 0;
       $sum              = 0;
     	
-      if ($Service->{ACCOUNT_ACTIVATE} eq '0000-00-00') {
+      if ($users->{ACTIVATE} eq '0000-00-00') {
         $rest_days     = $days_in_month - $d + 1;
         $rest_day_sum2 = (! $Service->{TP_INFO_OLD}->{ABON_DISTRIBUTION}) ? $Service->{TP_INFO_OLD}->{MONTH_FEE} /  $days_in_month * $rest_days : 0;
         $sum           = $rest_day_sum2;
         #PERIOD_ALIGNMENT
         $Service->{TP_INFO}->{PERIOD_ALIGNMENT}=1;
       }
+      else {
+      	if ( $attr->{SHEDULER} && date_diff($users->{ACTIVATE}, $DATE) >= 31 ) {
+      	  return \%total_sum;
+      	}
+      }     
 
       #Compensation
       if ($sum > 0) {

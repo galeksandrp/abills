@@ -6285,9 +6285,6 @@ sub dv_sheduler {
         $Dv->{TP_INFO}->{MONTH_FEE} = 0;
     	}
 
-print %$Dv;
-print "!\n";
-
       $FORM{RECALCULATE} = 1;
       service_get_month_fee($Dv, { QUITE => 1, SHEDULER => 1 });
     }
