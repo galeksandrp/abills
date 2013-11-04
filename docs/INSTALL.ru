@@ -48,7 +48,7 @@
                     <div id="dokuwiki__usertools">
                 <h3 class="a11y">Инструменты пользователя</h3>
                 <ul>
-                    <li><a href="/wiki/doku.php/abills:docs_03:install:ru?do=login&amp;sectok=9520840c773f7ebc89614edcd7085aa2"  class="action login" rel="nofollow" title="Войти">Войти</a></li>                </ul>
+                    <li><a href="/wiki/doku.php/abills:docs_03:install:ru?do=login&amp;sectok=642c85bc39f5deb24ed04c19052005a9"  class="action login" rel="nofollow" title="Войти">Войти</a></li>                </ul>
             </div>
         
         <!-- SITE TOOLS -->
@@ -127,7 +127,7 @@
 </li>
 <li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:dunes:ru" class="wikilink1" title="abills:docs:dunes:ru">Dunes</a></div>
 </li>
-<li class="level4"><div class="li"> <span class="curid"><a href="/wiki/doku.php/abills:docs:modules:extfin:ru" class="wikilink1" title="abills:docs:modules:extfin:ru">Extfin</a></span></div>
+<li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:modules:extfin:ru" class="wikilink1" title="abills:docs:modules:extfin:ru">Extfin</a></div>
 </li>
 <li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:modules:ipn:ru" class="wikilink1" title="abills:docs:modules:ipn:ru">Ipn</a></div>
 </li>
@@ -349,7 +349,7 @@
 
     </div></div><!-- /site -->
 
-    <div class="no"><img src="/wiki/lib/exe/indexer.php?id=abills%3Adocs_03%3Ainstall%3Aru&amp;1374143198" width="2" height="1" alt="" /></div>
+    <div class="no"><img src="/wiki/lib/exe/indexer.php?id=abills%3Adocs_03%3Ainstall%3Aru&amp;1383553647" width="2" height="1" alt="" /></div>
     <div id="screen__mode" class="no"></div>    <!--[if ( lte IE 7 | IE 8 ) ]></div><![endif]-->
 </body>
 </html>

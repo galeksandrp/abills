@@ -487,9 +487,9 @@ sub portmone_payments {
   my $status = 0;
   my $list   = $Paysys->list(
     {
-      TRANSACTION_ID => "$FORM{'SHOPORDERNUMBER'}",
-      INFO           => '-',
+      TRANSACTION_ID => "PM:$FORM{'SHOPORDERNUMBER'}",
       SUM            => '_SHOW',
+      STATUS         => 1,
       COLS_NAME      => 1,
     }
   );

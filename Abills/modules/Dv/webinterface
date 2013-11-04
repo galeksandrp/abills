@@ -717,7 +717,6 @@ sub dv_user {
         $Dv->{NEXT_FEES_WARNING} = "$_SERVICE_ENDED: $days_to_fees";
       }
 
-
       if ($days_to_fees && $days_to_fees < 5) {
         $Dv->{NEXT_FEES_WARNING} = $html->color_mark($Dv->{NEXT_FEES_WARNING}, "red");
       }
@@ -725,6 +724,9 @@ sub dv_user {
       if ($days_to_fees > 0) {
     	  my $expire_date = strftime "%Y-%m-%d", localtime(POSIX::mktime(0, 0, 0, $from_day, ($from_month - 1), ($from_year - 1900)) + 86400 * $days_to_fees);
         $Dv->{NEXT_FEES_WARNING} .= " ($expire_date)";
+      }
+      elsif ($Dv->{DV_EXPIRE} ne '0000-00-00') {
+    	  $Dv->{SERVICE_EXPIRE_DATE}=$Dv->{DV_EXPIRE} if ($FORM{xml});
       }
     }
     
@@ -780,12 +782,7 @@ sub dv_user {
       $list->[0]->[2] =~ /(\d{4}-\d{2}-\d{2})/;
       my $status_date = $1;
 
-      my ($from_year, $from_month, $from_day) = split(/-/, $status_date, 3);
-      my ($to_year,   $to_month,   $to_day)   = split(/-/, $DATE,        3);
-      my $from_seltime = POSIX::mktime(0, 0, 0, $from_day, ($from_month - 1), ($from_year - 1900));
-      my $to_seltime   = POSIX::mktime(0, 0, 0, $to_day,   ($to_month - 1),   ($to_year - 1900));
-
-      my $days = int(($to_seltime - $from_seltime) / 86400);
+      my $days = date_diff($status_date, $DATE);
 
       $Dv->{STATUS_INFO} = "$_FROM: $status_date ($_DAYS: $days)";
       if ($conf{DV_REACTIVE_PERIOD}) {
@@ -4589,6 +4586,9 @@ sub dv_user_info {
       $Dv->{NEXT_FEES_WARNING} .= " ($expire_date)";
       
       $Dv->{SERVICE_EXPIRE_DATE}=$expire_date if ($FORM{xml});
+    }
+    elsif ($Dv->{DV_EXPIRE} ne '0000-00-00') {
+    	$Dv->{SERVICE_EXPIRE_DATE}=$Dv->{DV_EXPIRE} if ($FORM{xml});
     }
   }
 
