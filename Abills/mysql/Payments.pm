@@ -235,7 +235,7 @@ sub list {
 
   my $WHERE =  $self->search_former($attr, [
       ['DATETIME',       'DATE','p.date AS datetime',          1], 
-      ['SUM',            'INT', 'p.sum'                         ],
+      ['SUM',            'INT', 'p.sum',                        ],
       ['PAYMENT_METHOD', 'INT', 'p.method',                     ],
       ['A_LOGIN',        'STR', 'a.id'                          ],
       ['DESCRIBE',       'STR', 'p.dsc'                         ],
@@ -308,7 +308,7 @@ sub list {
     $list = $self->{list};
   }
 
-  $self->query2("SELECT count(p.id) AS total, sum(p.sum) AS sum, count(DISTINCT p.uid) AS total_users
+  $self->query2("SELECT count(DISTINCT p.id) AS total, sum(DISTINCT p.sum) AS sum, count(DISTINCT p.uid) AS total_users
     FROM payments p
   LEFT JOIN users u ON (u.uid=p.uid)
   LEFT JOIN admins a ON (a.aid=p.aid) 
