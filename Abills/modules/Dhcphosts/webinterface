@@ -1112,11 +1112,17 @@ sub dhcphosts_get_static_ip {
 
   $Dhcphosts->network_info($network_id);
 
+  if ($Dhcphosts->{TOTAL} < 1){
+    $html->message('err', $_ACTIVATE, "$_ERROR Can't find your network '$id' ", { ID => 117 });
+    return -1;
+  }
+
   my $start_ip = ip2int($Dhcphosts->{IP_RANGE_FIRST});
   my $end_ip   = ip2int($Dhcphosts->{IP_RANGE_LAST});
 
   if ($start_ip == 0 || $end_ip == 0) {
     $html->message('err', $_ERROR, "$ERR_WRONG_RANGE. $_START IP: $Dhcphosts->{IP_RANGE_FIRST} $_END IP: $Dhcphosts->{IP_RANGE_LAST}");
+    return 0;
   }
   else {
     my %users_ips = ();

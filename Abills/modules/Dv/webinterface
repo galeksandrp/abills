@@ -6382,7 +6382,7 @@ sub dv_report {
 # Make cards
 #*******************************************************************
 sub dv_cards {
-  require "Abills/modules/Cards/webinterface";
+	load_module('Cards', $html);
 
   if ($admin->{MODULES} && !$admin->{MODULES}{Cards}) {
     $html->message('err', $_ERROR, "$ERR_ACCESS_DENY");
@@ -6648,7 +6648,8 @@ sub dv_wizard_user {
       # Add E-Mail account
       my $Mail;
       if (in_array('Mail', \@MODULES) && $FORM{'6.USERNAME'}) {
-        require "Abills/modules/Mail/webinterface";
+      	load_module('Mail', $html);
+
         $Mail = Mail->new($db, $admin, \%conf);
 
         $FORM{'6.newpassword'} = $FORM{'6.PASSWORD'} if ($FORM{'6.PASSWORD'});
@@ -6677,7 +6678,8 @@ sub dv_wizard_user {
 
       # Msgs
       if (in_array('Msgs', \@MODULES) && $add_values{7} && $FORM{'7.SUBJECT'}) {
-        require "Abills/modules/Msgs/webinterface";
+        load_modules('Msgs', $html);
+
         $FORM{INNER_MSG} = 1;
         my $Msgs = Msgs->new($db, $admin, \%conf);
 
@@ -6689,7 +6691,7 @@ sub dv_wizard_user {
 
       # Abon
       if (in_array('Abon', \@MODULES) && $add_values{9}) {
-        require "Abills/modules/Abon/webinterface";
+        load_module('Abon', $html);
         %FORM         = %{ $add_values{9} };
         $FORM{UID}    = $UID;
         $FORM{change} = $UID;
@@ -6726,8 +6728,7 @@ sub dv_wizard_user {
           $LIST_PARAMS{UID} = $UID;
 
           if ($user_fees->{MONTH_FEE} + $user_fees->{ACTIVATE} > 0) {
-            require "Abills/modules/Docs/lng_$html->{language}.pl";
-            require "Abills/modules/Docs/webinterface";
+            load_module('Docs', $html);
 
             $FORM{DATE}     = $DATE;
             $FORM{CUSTOMER} = $pi->{FIO} || '-';
@@ -6967,7 +6968,7 @@ sub dv_wizard_user {
 
   #If mail module added
   if (in_array('Mail', \@MODULES)) {
-    require "Abills/modules/Mail/webinterface";
+    load_module('Mail', $html);
     my $Mail = Mail->new($db, $admin, \%conf);
 
     $Mail->{PASSWORD} = qq{  
@@ -6997,7 +6998,7 @@ sub dv_wizard_user {
 
   #If msgs module added
   if (in_array('Msgs', \@MODULES) && !defined($FROM{CARDS_FORM})) {
-    require "Abills/modules/Msgs/webinterface";
+    load_module('Msgs', $html);
     my $Msgs = Msgs->new($db, $admin, \%conf);
     $FORM{UID} = -1;
     $tpls{"07:$_MESSAGE::"} = msgs_admin_add({ OUTPUT2RETURN => 1 });
@@ -7175,11 +7176,12 @@ sub dv_dhcp_get_mac_add {
   $conf{DV_IP_DISCOVERY}=~s/[\r\n ]//g;
   my @dhcp_nets         = split(/;/, $conf{DV_IP_DISCOVERY});
   my $default_params    = "IP,MAC";
+  load_module('Dhcphosts');
 
   foreach my $nets (@dhcp_nets) {
     my %PARAMS_HASH = ();
 
-    my ($id, $net, $params) = split(/:/, $nets);
+    my ($net_id, $net_ips, $params) = split(/:/, $nets);
     $params                 = $default_params if (!$params);
     my @params_arr          = split(/,/, $params);
 
@@ -7189,39 +7191,15 @@ sub dv_dhcp_get_mac_add {
 
     my $start_ip           = '0.0.0.0';
     my $bit_mask           = 0;
-    ($start_ip, $bit_mask) = split(/\//, $net) if ($net);
+    ($start_ip, $bit_mask) = split(/\//, $net) if ($net_ips);
     my $mask               = 0b0000000000000000000000000000001;
     my $address_count      = sprintf("%d", $mask << (32 - $bit_mask));
 
     if (ip2int($ip) >= ip2int($start_ip) && ip2int($ip) <= ip2int($start_ip) + $address_count) {
-      my $list = $Dhcphosts->hosts_list(
-        {
-          NETWORK   => $id,
-          IP        => '_SHOW',
-          SORT      => 3,
-          DESC      => 'DESC',
-          PAGE_ROWS => 1,
-          COLS_NAME => 1
-          #%PARAMS_HASH
-        }
-      );
-
-      #make Discovery
-      if ($Dhcphosts->{errno}) {
-        $html->message('err', $_ACTIVATE, "$_ERROR DHCP get ip error", { ID => 116 });
-        return 0;
-      }
-      elsif ($Dhcphosts->{TOTAL} < 1) {
-        $Dhcphosts->network_info($id);
-        if ($Dhcphosts->{TOTAL} < 0) {
-          $html->message('err', $_ACTIVATE, "$_ERROR Can't find your network '$id' ", { ID => 117 });
-          return 0;
-        }
-
-        $PARAMS_HASH{IP} = $Dhcphosts->{IP_RANGE_FIRST} if ($PARAMS_HASH{IP});
-      }
-      else {
-        $PARAMS_HASH{IP} = int2ip(ip2int($list->[0]->{ip}) + 1) if (defined($PARAMS_HASH{IP}));
+      $PARAMS_HASH{IP} = dhcphosts_get_static_ip($FORM{NETWORK});
+      
+      if($PARAMS_HASH{IP} == -1) {
+      	return 0;
       }
 
       $Dhcphosts->host_add(
@@ -7242,7 +7220,6 @@ sub dv_dhcp_get_mac_add {
         }
       }
       else {
-        load_module('Dhcphosts');
         dhcphosts_config(
           {
             NETWORKS => $id,
