@@ -1634,18 +1634,21 @@ sub msgs_chapters {
 # dispatch admins
 #*******************************************************************
 sub msgs_dispatch_admins {
+	my ($attr) = @_;
+	
   if ($FORM{change_admins}) {
     $Msgs->dispatch_admins_change({%FORM});
     $html->message('info', $_INFO, "$_CHANGED") if (!$Msgs->{errno});
   }
 
-  my $list = $Msgs->dispatch_admins_list({ DISPATCH_ID => $FORM{chg} });
+  my $list = $Msgs->dispatch_admins_list({ DISPATCH_ID => $attr->{DISPATCH_ID} || $FORM{chg},
+  	                                       COLS_NAME   => 1 });
   my %active_admins = ();
   foreach my $line (@$list) {
-    $active_admins{ $line->[1] } = 1;
+    $active_admins{ $line->{aid} } = 1;
   }
 
-  $list = $admin->list({%LIST_PARAMS});
+  $list = $admin->list({%LIST_PARAMS, COLS_NAME => 1 });
 
   my $table = $html->table(
     {
@@ -1667,9 +1670,9 @@ sub msgs_dispatch_admins {
           TYPE  => 'checkbox',
           STATE => ($active_admins{ $line->{aid} }) ? 1 : undef
         }
-      ),
-      $line->{aid},
-      $line->{admin_login}
+      ) . $line->{aid},
+      $line->{login},
+      $line->{name}
     );
   }
 
@@ -1696,7 +1699,6 @@ sub msgs_dispatch {
 
   if ($FORM{add}) {
     $Msgs->dispatch_add({%FORM});
-
     $html->message('info', $_INFO, "$_ADDED") if (!$Msgs->{errno});
   }
   elsif ($FORM{print}) {
@@ -1920,7 +1922,7 @@ sub msgs_dispatch {
       }
     );
 
-    msgs_dispatch_admins();
+    msgs_dispatch_admins({ DISPATCH_ID => $LIST_PARAMS{DISPATCH_ID} });
   }
 
   if (!defined($FORM{STATE}) && !$FORM{ALL_MSGS}) {
