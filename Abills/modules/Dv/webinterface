@@ -522,7 +522,7 @@ sub dv_user {
 
     $Dv->add({%FORM});
     if (!$Dv->{errno}) {
-      #Make month feee
+      #Make month fee
       $Dv->{ACCOUNT_ACTIVATE} = $attr->{USER_INFO}->{ACTIVATE};
       $Dv->info($Dv->{UID});
       service_get_month_fee($Dv) if (!$FORM{STATUS});
@@ -7191,12 +7191,12 @@ sub dv_dhcp_get_mac_add {
 
     my $start_ip           = '0.0.0.0';
     my $bit_mask           = 0;
-    ($start_ip, $bit_mask) = split(/\//, $net) if ($net_ips);
+    ($start_ip, $bit_mask) = split(/\//, $net_ips) if ($net_ips);
     my $mask               = 0b0000000000000000000000000000001;
     my $address_count      = sprintf("%d", $mask << (32 - $bit_mask));
 
     if (ip2int($ip) >= ip2int($start_ip) && ip2int($ip) <= ip2int($start_ip) + $address_count) {
-      $PARAMS_HASH{IP} = dhcphosts_get_static_ip($FORM{NETWORK});
+      $PARAMS_HASH{IP} = dhcphosts_get_static_ip($net_id);
       
       if($PARAMS_HASH{IP} == -1) {
       	return 0;
@@ -7204,8 +7204,8 @@ sub dv_dhcp_get_mac_add {
 
       $Dhcphosts->host_add(
         {
-          NETWORK  => $id,
-          HOSTNAME => "$user->{LOGIN}_$id",
+          NETWORK  => $net_id,
+          HOSTNAME => "$user->{LOGIN}_$net_id",
           UID      => $user->{UID},
           %PARAMS_HASH
         }
@@ -7213,7 +7213,7 @@ sub dv_dhcp_get_mac_add {
 
       if ($Dhcphosts->{errno}) {
         if ($Dhcphosts->{errno} == 7) {
-          $html->message('err', $_ERROR . ' ' . $_ACTIVATE, $html->b("$ERR_HOST_REGISTRED") . "\n $_RENEW_IP \n \n MAC: '$DHCP_INFO->{MAC}' \n IP: '$DHCP_INFO->{IP}' \n HOST: '$user->{LOGIN}_$id'", { ID => 118 });
+          $html->message('err', $_ERROR . ' ' . $_ACTIVATE, $html->b("$ERR_HOST_REGISTRED") . "\n $_RENEW_IP \n \n MAC: '$DHCP_INFO->{MAC}' \n IP: '$DHCP_INFO->{IP}' \n HOST: '$user->{LOGIN}_$net_id'", { ID => 118 });
         }
         else {
           $html->message('err', $_ACTIVATE, "$_ERROR: DHCP add hosts error", { ID => 119 });
@@ -7222,7 +7222,7 @@ sub dv_dhcp_get_mac_add {
       else {
         dhcphosts_config(
           {
-            NETWORKS => $id,
+            NETWORKS => $net_id,
             reconfig => 1,
             QUITE    => 1,
             %PARAMS_HASH
