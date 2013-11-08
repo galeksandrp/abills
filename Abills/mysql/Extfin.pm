@@ -973,7 +973,7 @@ sub extfin_debetors {
      LEFT JOIN companies company ON  (u.company_id=company.id)
      LEFT JOIN bills cb ON  (company.bill_id=cb.id)
      LEFT JOIN dv_main dv ON  (u.uid=dv.uid)
-WHERE u.uid=f.uid $WHERE
+$WHERE
 GROUP BY f.uid
 HAVING debet < 0
 ORDER BY f.date DESC;",
