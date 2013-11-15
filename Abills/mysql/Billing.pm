@@ -695,7 +695,8 @@ sub session_sum {
 
   if ($self->{CHECK_SESSION}) {
     if ($self->{TOTAL_TRAF_LIMIT}) {
-      if ($sent + $recv >= $self->{TOTAL_TRAF_LIMIT} * $CONF->{MB_SIZE}) {
+    	my $counters = $self->get_traffic({ UID => $self->{UID} });
+      if ($counters->{TRAFFIC_IN} + $counters->{TRAFFIC_OUT} >= $self->{TOTAL_TRAF_LIMIT}) {
         $self->{HANGUP} = 1;
         return $self->{UID}, 0, $self->{BILL_ID}, $self->{TP_NUM}, 0, 0;
       }

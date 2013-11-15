@@ -5496,7 +5496,7 @@ sub report_payments {
   if (defined($FORM{FIELDS}) && $FORM{FIELDS} ne '') {
   	$LIST_PARAMS{METHOD}= $FORM{FIELDS};
   	$LIST_PARAMS{METHOD}=~s/ //g;
-   	#$LIST_PARAMS{METHOD}=~s/,/;/g;
+   	$LIST_PARAMS{METHOD}=~s/,/;/g;
   }
 
   if ($FORM{DATE}) {

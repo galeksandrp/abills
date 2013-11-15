@@ -1661,6 +1661,7 @@ sub dv_online {
 
   # online count
   my $list     = $sessions->online_count({ %LIST_PARAMS, COLS_NAME => 1 });
+  
   my $nas_list = $Nas->list({ COLS_NAME => 1 });
 
   $form_link = '';

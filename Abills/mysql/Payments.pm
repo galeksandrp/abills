@@ -344,7 +344,7 @@ sub reports {
   }
 
   if (defined($attr->{METHOD}) and $attr->{METHOD} ne '') {
-    push @WHERE_RULES, "p.method IN ($attr->{METHOD}) ";
+    push @WHERE_RULES, @{ $self->search_expr("$attr->{METHOD}", 'INT', 'p.method') };
   }
 
   if (defined($attr->{DATE})) {

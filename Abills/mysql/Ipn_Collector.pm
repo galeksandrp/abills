@@ -929,15 +929,21 @@ sub acct_stop {
     return $self;
   }
 
-  if ($self->{OUTPUT_OCTETS} > 4294967296) {
+  if ($self->{OUTPUT_OCTETS} && $self->{OUTPUT_OCTETS} > 4294967296) {
     $self->{ACCT_OUTPUT_GIGAWORDS} = int($self->{OUTPUT_OCTETS} / 4294967296);
     $self->{OUTPUT_OCTETS} = $self->{OUTPUT_OCTETS} - ($self->{ACCT_OUTPUT_GIGAWORDS} * 4294967296);
   }
+  else {
+  	$self->{INPUT_OCTETS}=0;
+  }
   
-  if ($self->{INPUT_OCTETS} > 4294967296) {
+  if ($self->{INPUT_OCTETS} && $self->{INPUT_OCTETS} > 4294967296) {
     $self->{ACCT_INPUT_GIGAWORDS} = int($self->{INPUT_OCTETS} / 4294967296);
     $self->{INPUT_OCTETS} = $self->{INPUT_OCTETS} - ($self->{ACCT_INPUT_GIGAWORDS} * 4294967296);
   } 
+  else {
+  	$self->{INPUT_OCTETS}=0;
+  }
 
   $self->query2("INSERT INTO dv_log (uid, 
     start, 
