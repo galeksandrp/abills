@@ -2236,6 +2236,13 @@ sub form_users {
         $FORM{DISABLE} = 2;
       }
 
+      if ($conf{FIXED_FEES_DAY} &&  $FORM{ACTIVATE} && $FORM{ACTIVATE} ne '0000-00-00') {
+        my ($y, $m, $d)=split(/-/, $FORM{ACTIVATE});
+        if (in_array($d, ['1', '01', '29', '30', '31' ])) {
+          $html->message('info', $_CHANGE, "$_ACTIVATE $FORM{ACTIVATE}->0000-00-00");
+          $FORM{ACTIVATE}='0000-00-00';
+        }
+      }
 
       $user_info->change($user_info->{UID}, {%FORM});
       if ($user_info->{errno}) {
@@ -2405,6 +2412,15 @@ sub form_users {
     # Add not confirm status
     if ($permissions{0}{13}) {
       $FORM{DISABLE}=2;
+    }
+    
+    if ($conf{FIXED_FEES_DAY} &&  $FORM{ACTIVATE} && $FORM{ACTIVATE} ne '0000-00-00') {
+      my ($y, $m, $d)=split(/-/, $FORM{ACTIVATE});
+      
+      if (in_array($d, [1, 29, 30, 31 ])) {
+        $html->message('info', $_CHANGE, "$_ACTIVATE $FORM{ACTIVATE}->0000-00-00");
+        $FORM{ACTIVATE}='0000-00-00';
+      }
     }
     
     my $user_info = $users->add({%FORM});
@@ -4513,7 +4529,7 @@ sub form_nas {
       },
       { f_args => \%F_ARGS }
     );
-    	
+      
     if ($FORM{subf}) {
       return 0;
     }
@@ -5494,9 +5510,9 @@ sub report_payments {
   my $num        = 0;
 
   if (defined($FORM{FIELDS}) && $FORM{FIELDS} ne '') {
-  	$LIST_PARAMS{METHOD}= $FORM{FIELDS};
-  	$LIST_PARAMS{METHOD}=~s/ //g;
-   	$LIST_PARAMS{METHOD}=~s/,/;/g;
+    $LIST_PARAMS{METHOD}= $FORM{FIELDS};
+    $LIST_PARAMS{METHOD}=~s/ //g;
+     $LIST_PARAMS{METHOD}=~s/,/;/g;
   }
 
   if ($FORM{DATE}) {
@@ -7050,7 +7066,7 @@ sub form_search {
     if ($FORM{type} ne $index && ! $FORM{subf}) {
       my $return = $functions{ $FORM{type} }->();
       if ($return) {
-      	return 0;
+        return 0;
       }
     }
   }
@@ -8805,14 +8821,14 @@ sub form_districts {
       )=split(/\t/, $line);
       
       while(my($k, $v)=each %info) {
-      	$info{$k}=~s/^\"|\"$//g;
+        $info{$k}=~s/^\"|\"$//g;
       }
 
       #Get street id
       if (! $steets_ids{$info{STREET_NAME}}) {
         my $list = $users->street_list({ NAME      => $info{STREET_NAME}, 
-        	                    COLS_NAME => 1 
-        	                  });
+                              COLS_NAME => 1 
+                            });
 
         if ($users->{TOTAL} > 0) {
           $info{STREET_ID}=$list->[0]->{id};
@@ -8832,7 +8848,7 @@ sub form_districts {
         $steets_ids{$info{STREET_NAME}}=$info{STREET_ID};
       }
       else {
-      	$info{STREET_ID}=$steets_ids{$info{STREET_NAME}};
+        $info{STREET_ID}=$steets_ids{$info{STREET_NAME}};
       }
       
       $users->build_add(\%info);
@@ -9254,7 +9270,7 @@ sub upload_file {
 
   if (!-d $dir) {
     if(! mkdir($dir)) {
-    	$html->message('err', $_ERROR, "$_ERROR '$dir'  '$!'");
+      $html->message('err', $_ERROR, "$_ERROR '$dir'  '$!'");
     }
   }
 

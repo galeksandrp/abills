@@ -1431,22 +1431,22 @@ sub check_speed {
               }
 
               if ($speed_in > 0) {
-                if (!$pipe_rules{$pipe_rule_in} || $pipe_rules{$pipe_rule_in} != $speed_out) {
-                   my $queue_out = (! $conf{DV_SKIP_QUEUE}) ? "queue ". (( $speed_out / 10 > 1000) ? 1000 : int( $speed_out / 10 ) ) ."Kbytes " : '';
+                if (!$pipe_rules{$pipe_rule_in} || $pipe_rules{$pipe_rule_in} != $speed_in) {
+                   my $queue_in = (! $conf{DV_SKIP_QUEUE}) ? "queue ". (( $speed_in / 10 > 1000) ? 1000 : int( $speed_out / 10 ) ) ."Kbytes " : '';
 
-                  push @FW_ACTIONS, "$IPFW -q pipe $pipe_rule_in config bw " . $speed_out . "Kbit/s ". $queue_out ."mask dst-ip 0xfffffffff";
-                  print "Change TP: $tp Class: $traf_type Pipe: $pipe_rule_in IN: " . (($pipe_rules{$pipe_rule_in}) ? $pipe_rules{$pipe_rule_in} : 'Not set') . " -> $speed_out\n";
+                  push @FW_ACTIONS, "$IPFW -q pipe $pipe_rule_in config bw " . $speed_in . "Kbit/s ". $queue_in ."mask dst-ip 0xfffffffff";
+                  print "Change TP: $tp Class: $traf_type Pipe: $pipe_rule_in IN: " . (($pipe_rules{$pipe_rule_in}) ? $pipe_rules{$pipe_rule_in} : 'Not set') . " -> $speed_in\n";
                   delete $pipe_rules{$pipe_rule_in};
                 }
               }
 
               if ($speed_out > 0) {
-                if (!$pipe_rules{$pipe_rule_out} || $pipe_rules{$pipe_rule_out} != $speed_in) {
-                   my $queue_in  = (! $conf{DV_SKIP_QUEUE}) ? "queue ". (( $speed_in / 10 > 1000 ) ? 1000 : int( $speed_in / 10 )) ."Kbytes " : '';
+                if (!$pipe_rules{$pipe_rule_out} || $pipe_rules{$pipe_rule_out} != $speed_out) {
+                   my $queue_out  = (! $conf{DV_SKIP_QUEUE}) ? "queue ". (( $speed_in / 10 > 1000 ) ? 1000 : int( $speed_in / 10 )) ."Kbytes " : '';
 
-                  push @FW_ACTIONS, "$IPFW -q pipe $pipe_rule_out config bw " . $speed_in . "Kbit/s ". $queue_in ." mask src-ip 0xffffffff";
+                  push @FW_ACTIONS, "$IPFW -q pipe $pipe_rule_out config bw " . $speed_out . "Kbit/s ". $queue_out ." mask src-ip 0xffffffff";
 
-                  print "Change TP: $tp Class: $traf_type Pipe: $pipe_rule_out OUT: " . (($pipe_rules{$pipe_rule_out}) ? $pipe_rules{$pipe_rule_out} : 'Not set') . " -> $speed_in\n";
+                  print "Change TP: $tp Class: $traf_type Pipe: $pipe_rule_out OUT: " . (($pipe_rules{$pipe_rule_out}) ? $pipe_rules{$pipe_rule_out} : 'Not set') . " -> $speed_out\n";
                   delete $pipe_rules{$pipe_rule_out};
                 }
               }

@@ -123,8 +123,17 @@ sub online_count {
   my $EXT_TABLE = '';
   my $WHERE = '';
   if($attr->{DOMAIN_ID}) {
-    $EXT_TABLE = ' INNER JOIN users u ON (c.uid=u.uid)';
     $WHERE = " AND u.domain_id='$attr->{DOMAIN_ID}'";
+  }
+
+  $WHERE .= ' AND '. $self->search_former($attr, [ ],
+    {
+      USERS_FIELDS      => 1,
+    }
+  );
+
+  if ($WHERE =~ / u\./) {
+    $EXT_TABLE = ' INNER JOIN users u ON (c.uid=u.uid)';  
   }
 
   $self->query2("SELECT n.id AS nas_id, 
