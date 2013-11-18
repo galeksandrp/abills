@@ -121,14 +121,15 @@ sub online_count {
   my ($attr) = @_;
 
   my $EXT_TABLE = '';
-  my $WHERE = '';
+  my @WHERE_RULES = ();
   if($attr->{DOMAIN_ID}) {
-    $WHERE = " AND u.domain_id='$attr->{DOMAIN_ID}'";
+    @WHERE_RULES = ("u.domain_id='$attr->{DOMAIN_ID}'");
   }
 
-  $WHERE .= ' AND '. $self->search_former($attr, [ ],
+  my $WHERE = $self->search_former($attr, [ ],
     {
-      USERS_FIELDS      => 1,
+      USERS_FIELDS  => 1,
+      WHERE_RULES   => \@WHERE_RULES,
     }
   );
 
@@ -145,7 +146,7 @@ sub online_count {
  FROM dv_calls c  
  INNER JOIN nas n ON (c.nas_id=n.id)
  $EXT_TABLE
- WHERE c.status<11 $WHERE
+ $WHERE
  GROUP BY c.nas_id
  ORDER BY $SORT $DESC;",
  undef,
