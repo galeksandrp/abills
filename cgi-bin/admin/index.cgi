@@ -371,7 +371,7 @@ if ($FORM{qindex} || $FORM{get_index}) {
     print $html->header();
     if ($FORM{UID}) {
       $ui = user_info($FORM{UID}, { LOGIN => ($FORM{LOGIN}) ? $FORM{LOGIN} : undef });
-      print "<user_info>";
+      print "<user_info>" if ($FORM{xml});
     }
   }
 
@@ -396,7 +396,7 @@ if ($FORM{qindex} || $FORM{get_index}) {
   }
   
   if ($FORM{header} && $FORM{UID}) {
-    print "</user_info>";
+    print "</user_info>" if ($FORM{xml});
   }
   exit;
 }

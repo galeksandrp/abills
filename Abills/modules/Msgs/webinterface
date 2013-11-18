@@ -1923,6 +1923,7 @@ sub msgs_dispatch {
     );
 
     msgs_dispatch_admins({ DISPATCH_ID => $LIST_PARAMS{DISPATCH_ID} });
+    return 0;
   }
 
   if (!defined($FORM{STATE}) && !$FORM{ALL_MSGS}) {
