@@ -534,7 +534,7 @@ sub invoices_list {
   
   $self->query2("SELECT count(distinct d.id) AS total_invoices,
      count(distinct d.uid) AS total_users,
-     \@total_sum := if (i2p.sum IS NULL, sum(o.price * o.counts), sum(DISTINCT o.price * o.counts)) AS total_sum, 
+     \@total_sum := if (i2p.sum IS NULL, sum(o.price * o.counts), sum(o.price * o.counts)) AS total_sum, 
      \@payment_sum := sum(DISTINCT i2p.sum) AS payment_sum,
      1
     FROM docs_invoices d

@@ -46,7 +46,7 @@
 
 
 CLASSES_NUMS='2 3'
-VERSION=6.01
+VERSION=6.02
 
 
 name="abills_shaper"
@@ -230,8 +230,12 @@ abills_shaper() {
     ${IPFW} delete 9000 9005 10000 10010 10015 08000 08010  09010 10020 10025
   else   
     echo "DUMMYNET shaper"
-    if [ w${abills_nas_id} = w ]; then
-      abills_nas_id=1;
+    if [ x${abills_nas_id} = x ]; then
+      if [ "${abills_ipn_nas_id}" != "" ]; then
+        abills_nas_id=${abills_ipn_nas_id};
+      else 
+        abills_nas_id=1;
+      fi;
     fi;
 
     ${BILLING_DIR}/libexec/billd checkspeed NAS_IDS=${abills_nas_id} RECONFIGURE=1 FW_DIRECTION_OUT="${OUT_DIRECTION}" FW_DIRECTION_IN="${IN_DIRECTION}";

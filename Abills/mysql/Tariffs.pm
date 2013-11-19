@@ -637,8 +637,6 @@ sub list {
   my @WHERE_RULES = ();
   $self->{SEARCH_FIELDS} = '';
 
-
-
   if ($attr->{CHANGE_PRICE}) {
     my $sql = '';
 

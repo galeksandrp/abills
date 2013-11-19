@@ -1323,7 +1323,7 @@ sub docs_invoices_list {
       rows       => [ [ 
       (($user->{UID}) ? '' : $html->button("$_PRINT $_LIST", "qindex=". $index ."&print_list=1$pages_qs&pg=$FORM{pg}". 
         (($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : ''), { BUTTON => 1, ex_params => 'target=new' })).
-      (($conf{DOCS_INVOICE_ALT_TPL} && ! $user->{UID}) ? $html->button("$_PRINT_EXT $_LIST", "qindex=". $index ."&print_list=1$pages_qs&pg=$FORM{pg}&alt_tpl=1". 
+      (($conf{DOCS_INVOICE_ALT_TPL} && ! $user->{UID}) ? $html->button("$_PRINT_EXT_LIST", "qindex=". $index ."&print_list=1$pages_qs&pg=$FORM{pg}&alt_tpl=1". 
         (($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : ''), { BUTTON => 1, ex_params => 'target=new' }) : ''), 
       ''], 
       ["$_TOTAL:", $html->b($Docs->{TOTAL_INVOICES}) ],
