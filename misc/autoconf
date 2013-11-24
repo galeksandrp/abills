@@ -10,11 +10,16 @@ $begin_time
 use strict;
 use FindBin '$Bin';
 
-my $VERSION     = 3.13;
+my $VERSION     = 3.14;
 my $config_file = '/usr/abills/libexec/config.pl';
 
 $conf{OS}       = uc(`uname`);
 chop($conf{OS});
+
+if ($conf{OS} =~ /Linux/) {
+	$conf{OS}='LINUX';
+}
+
 $conf{WORK_DIR} = $Bin;
 my $debug       = 0;
 require $Bin . '/../Abills/Base.pm';
