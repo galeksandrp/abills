@@ -58,6 +58,7 @@ sub info {
   my $WHERE;
 
   if (defined($attr->{LOGIN}) && defined($attr->{PASSWORD})) {
+
     $WHERE = "WHERE u.id='$attr->{LOGIN}' and DECODE(u.password, '$CONF->{secretkey}')='$attr->{PASSWORD}'";
     if (defined($attr->{ACTIVATE})) {
       my $value = $self->search_expr("$attr->{ACTIVATE}", 'INT');
@@ -81,7 +82,7 @@ sub info {
   }
 
   if ($attr->{DOMAIN_ID}) {
-    $WHERE = "AND u.domain_id='$attr->{DOMAIN_ID}'";
+    $WHERE .= "AND u.domain_id='$attr->{DOMAIN_ID}'";
   }
 
   my $password = "''";
