@@ -761,9 +761,6 @@ sub list {
         'CONTRACT_SUFIX',
         'CONTRACT_DATE',
         'EXPIRE',
-
-#        'CREDIT:skip',
-
         'REDUCTION',
         'REGISTRATION',
         'REDUCTION_DATE',

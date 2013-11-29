@@ -1264,7 +1264,6 @@ sub check_speed {
       STARTED      => '_SHOW', 
       CONNECT_INFO => '_SHOW',
       %LIST_PARAMS,
-      STATUS       => '<11',
       NAS_ID       => $LIST_PARAMS{NAS_IDS},
     }
   );

@@ -6560,10 +6560,9 @@ sub dv_wizard_user {
       # Ext bill add
       if ($FORM{'5.EXT_BILL_DEPOSIT'}) {
         $add_values{5}{SUM} = $FORM{'5.EXT_BILL_DEPOSIT'};
-
         # if Bonus $conf{BONUS_EXT_FUNCTIONS}
         if (in_array('Bonus', \@MODULES) && $conf{BONUS_EXT_FUNCTIONS}) {
-          load_module('Bonus');
+          load_module('Bonus', $html);
           my $sum = $FORM{'5.EXT_BILL_DEPOSIT'};
           %FORM      = %{ $add_values{8} };
           $FORM{UID} = $UID;

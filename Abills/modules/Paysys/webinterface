@@ -1297,7 +1297,7 @@ sub paysys_portmone_result () {
     $ex_params = "&STARTDAY=$d&STARTMONTH=$m&STARTYEAR=$y&ENDDAY=$d&ENDMONTH=$m&ENDYEAR=$y";
   }
   my $CURL= $conf{FILE_CURL}                || '/usr/local/bin/curl';
-  my $cmd = "/usr/local/bin/curl -s --insecure --url '$request$ex_params' -A \"Mozilla/4.0 (compatible; MSIE 5.01; Windows NT 5.0)\"\n";
+  my $cmd = "$CURL -s --insecure --url '$request$ex_params' -A \"Mozilla/4.0 (compatible; MSIE 5.01; Windows NT 5.0)\"\n";
 
   if ($debug > 4) {
     print $cmd;

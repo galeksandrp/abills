@@ -130,10 +130,11 @@ sub online_count {
     {
       USERS_FIELDS  => 1,
       WHERE_RULES   => \@WHERE_RULES,
+      WHERE         => 1
     }
   );
 
-  if ($WHERE =~ / u\./) {
+  if ($WHERE =~ /u\./) {
     $EXT_TABLE = ' INNER JOIN users u ON (c.uid=u.uid)';  
   }
 
@@ -156,13 +157,15 @@ sub online_count {
   my $list = $self->{list};
   $self->{ONLINE}=0;
   if ($self->{TOTAL} > 0) {
+    my $WHERE = ($WHERE) ? "$WHERE AND c.status<11" : " WHERE c.status<11";
+    
     $self->query2(
       "SELECT 1, count(c.uid) AS total_users,  
       sum(if (c.status=1 or c.status>=3, 1, 0)) AS online,
       sum(if (c.status=2, 1, 0)) AS zaped
    FROM dv_calls c 
    $EXT_TABLE
-   WHERE c.status<11 $WHERE
+   $WHERE
    GROUP BY 1;",
    undef,
    { INFO => 1 }

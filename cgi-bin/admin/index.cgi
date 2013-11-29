@@ -3787,25 +3787,28 @@ sub form_admins {
 
   my $table = $html->table(
     {
-      width   => '100%',
-      caption => $_ADMINS,
-      border  => 1,
-      title   => [ 'ID', "$_LOGIN", $_FIO, $_CREATE, $_STATUS, $_GROUPS, 'Domain', '-', '-', '-', '-', '-', '-' ],
+      width      => '100%',
+      caption    => $_ADMINS,
+      border     => 1,
+      title      => [ 'ID', "$_LOGIN", $_FIO, $_CREATE, $_STATUS, $_GROUPS, 'Domain', '-', '-', '-', '-', '-', '-' ],
       cols_align => [ 'right', 'left', 'left', 'right', 'left', 'left', 'center', 'center', 'center', 'center', 'center', 'center' ],
       ID         => 'ADMINS_LIST'
     }
   );
 
-  my $list = $admin_form->admins_groups_list({ ALL => 1 });
+  my $list = $admin_form->admins_groups_list({ ALL => 1, COLS_NAME => 1 });
   my %admin_groups = ();
   foreach my $line (@$list) {
-    $admin_groups{ $line->[1] } .= ", $line->[0]:$line->[2]";
+    $admin_groups{ $line->{aid} } .= ", $line->{gid}:$line->{name}";
   }
 
   $list = $admin->list({ %LIST_PARAMS, DOMAIN_ID => $admin->{DOMAIN_ID} });
   foreach my $line (@$list) {
     $table->addrow(
-      $line->[0], $line->[1], $line->[2], $line->[3],
+      $line->[0], 
+      $line->[1], 
+      $line->[2], 
+      $line->[3],
       $status[ $line->[4] ],
       $line->[5] . $admin_groups{ $line->[0] },
       $line->[6],
