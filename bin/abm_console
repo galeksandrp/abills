@@ -786,9 +786,9 @@ sub form_fees {
     }
   }
 
-  my $list = $fees->list({LOGIN     => '_SWOW',
-  	                      DATE      => '_SWOW',
-  	                      SUM       => '_SWOW',
+  my $list = $fees->list({LOGIN     => '_SHOW',
+  	                      DATE      => '_SHOW',
+  	                      SUM       => '_SHOW',
   	                      DSC       => '_SHOW',
   	                      %LIST_PARAMS, 
   	                      COLS_NAME => 1 

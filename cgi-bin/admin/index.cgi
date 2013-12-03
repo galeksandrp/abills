@@ -4537,6 +4537,10 @@ sub form_nas {
       return 0;
     }
     elsif ($FORM{change}) {
+ 	    if ($FORM{MAC} && $FORM{MAC} !~ /^[a-f0-9\-\.:]+$/i) {
+        $html->message('err', $_ERROR, "$ERR_WRONG_DATA MAC: '$FORM{MAC}'");
+      }
+
       $nas->change({ %FORM, DOMAIN_ID => $admin->{DOMAIN_ID} });
       if (!$nas->{errno}) {
         $html->message('info', $_CHANGED, "$_CHANGED $nas->{NAS_ID}");
@@ -4553,6 +4557,10 @@ sub form_nas {
     form_nas_add({ NAS => $nas });
   }
   elsif ($FORM{add}) {
+    if ($FORM{MAC} && $FORM{MAC} !~ /^[a-f0-9\-\.:]+$/i) {
+      $html->message('err', $_ERROR, "$ERR_WRONG_DATA MAC: '$FORM{MAC}'");
+    }
+
     $nas->add({ %FORM, DOMAIN_ID => $admin->{DOMAIN_ID} });
 
     if (!$nas->{errno}) {
@@ -6879,7 +6887,7 @@ sub form_fees {
      INPUT_DATA      => $fees,
      FUNCTION        => 'list',
      BASE_FIELDS     => 1,
-     DEFAULT_FIELDS  => 'ID,LOGIN,DATE,DSC,SUM,LAST_DEPOSIT,METHOD,ADMIN_NAME',
+     DEFAULT_FIELDS  => 'ID,LOGIN,DATE_TIME,DSC,SUM,LAST_DEPOSIT,METHOD,ADMIN_NAME',
      FUNCTION_FIELDS => 'del',
      EXT_TITLES      => {
       'id'           => $_NUM,

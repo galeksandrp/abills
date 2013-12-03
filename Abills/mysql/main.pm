@@ -626,7 +626,14 @@ sub changes {
         else {
           $CHANGES_LOG .= "$k $OLD_DATA->{$k}->$DATA{$k};";
         }
-        $CHANGES_QUERY .= "$FIELDS->{$k}='" . ((defined($DATA{$k})) ? $DATA{$k} : '') . "',";
+        
+         if ($DATA{$k} eq 'NULL') {
+           $CHANGES_QUERY .= "$FIELDS->{$k}=NULL,"
+         } elsif ($DATA{$k} eq 'NOW()' || $DATA{$k} eq 'now()') {
+           $CHANGES_QUERY .= "$FIELDS->{$k}=$DATA{$k},";
+         } else {
+           $CHANGES_QUERY .= "$FIELDS->{$k}='" . ((defined($DATA{$k})) ? $DATA{$k} : '') . "',";
+         }        
       }
     }
   }

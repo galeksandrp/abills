@@ -421,7 +421,7 @@ sub msgs_admin_add {
       MONTHES         => \@MONTHES,
       FORM_NAME       => (!$FORM{DV_WIZARD}) ? 'add_message' : 'user_form',
       WEEK_DAYS       => \@WEEKDAYS,
-      \DATE => ($Msgs->{PLAN_DATE} ne '0000-00-00') ? $Msgs->{PLAN_DATE} : ''
+      DATE            => ($Msgs->{PLAN_DATE} ne '0000-00-00') ? $Msgs->{PLAN_DATE} : ''
     }
   );
 
@@ -479,7 +479,7 @@ sub msgs_admin_add {
       SELECTED   => $Msgs->{RESPOSIBLE} || 0,
       SEL_LIST   => $admin->list({ GIDS => $admins->{GIDS}, COLS_NAME => 1 }),
       SEL_KEY    => 'aid',
-      SEL_VALUE  => 'id',
+      SEL_VALUE  => 'login',
       SEL_OPTIONS=> { 0 => $_ALL },
     }
   );
@@ -555,7 +555,7 @@ sub msgs_search {
       SELECTED    => $FORM{RESPOSIBLE} || '',
       SEL_LIST    => $admin->list({ GIDS => $admins->{GIDS}, COLS_NAME => 1 }),
       SEL_KEY     => 'aid',
-      SEL_VALUE   => 'id',
+      SEL_VALUE   => 'login',
       NO_ID       => 1,
       SEL_OPTIONS => { '' => $_ALL },
      }
@@ -784,7 +784,7 @@ sub msgs_admin {
         SELECTED    => $Msgs->{RESPOSIBLE} || 0,
         SEL_LIST    => $admin->list({ GIDS => $admins->{GIDS}, COLS_NAME => 1 }),
         SEL_KEY     => 'aid',
-        SEL_VALUE   => 'id',
+        SEL_VALUE   => 'login',
         SEL_OPTIONS => { 0 => $_ALL },
       }
     );
@@ -1796,7 +1796,7 @@ sub msgs_dispatch {
         SELECTED    => $Msgs->{RESPOSIBLE_ID} || 0,
         SEL_LIST    => $admin->list({ GIDS => $admins->{GIDS}, DISABLE => 0, COLS_NAME => 1 }),
         SEL_KEY     => 'aid',
-        SEL_VALUE   => 'id',
+        SEL_VALUE   => 'login',
         SEL_OPTIONS => { 0 => '' },
       }
     );
@@ -2857,7 +2857,7 @@ sub msgs_unreg_requests {
       SELECTED    => $Msgs->{RESPOSIBLE} || 0,
       SEL_LIST    => $admin->list({ GIDS => $admins->{GIDS}, COLS_NAME => 1 }),
       SEL_KEY     => 'aid',
-      SEL_VALUE   => 'id',
+      SEL_VALUE   => 'login',
       SEL_OPTIONS => { 0 => $_ALL },
     }
   );
