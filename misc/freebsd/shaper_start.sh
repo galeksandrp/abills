@@ -46,7 +46,7 @@
 
 
 CLASSES_NUMS='2 3'
-VERSION=6.02
+VERSION=6.03
 
 
 name="abills_shaper"
@@ -416,7 +416,7 @@ if [ w${ACTION} = wstart ]; then
   fi;
 
   ${IPFW} add 60010 nat tablearg ip from table\(` expr ${NAT_REAL_TO_FAKE_TABLE_NUM} + 1 `\) to any $NAT_IF
-  ${IPFW} add 20 nat tablearg ip from any to table\(${NAT_REAL_TO_FAKE_TABLE_NUM}\) $NAT_IF
+  ${IPFW} add 1020 nat tablearg ip from any to table\(${NAT_REAL_TO_FAKE_TABLE_NUM}\) $NAT_IF in
 elif [ w${ACTION} = wstop ]; then
   ${IPFW} table ${NAT_REAL_TO_FAKE_TABLE_NUM} flush
   ${IPFW} table ` expr ${NAT_REAL_TO_FAKE_TABLE_NUM} + 1 ` flush
@@ -435,7 +435,7 @@ neg_deposit() {
     return 0;
   fi;
 
-  echo "Negative Deposit Forward Section ${ACTION}"
+  echo "Negative Deposit Forward Section (for mpd) ${ACTION}"
   if [ w${WEB_SERVER_IP} = w ]; then
     FWD_WEB_SERVER_IP=127.0.0.1;
   fi;
@@ -444,7 +444,7 @@ neg_deposit() {
     DNS_IP=`cat /etc/resolv.conf | grep nameserver | awk '{ print $2 }' | head -1`
   fi;
 
-  FWD_RULE=10014;
+  FWD_RULE=1014;
 
   #Forwarding start
   if [ x${ACTION} = xstart ]; then
