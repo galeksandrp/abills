@@ -267,8 +267,9 @@ sub list {
   $EXT_TABLES  = $self->{EXT_TABLES} if($self->{EXT_TABLES});
   
   if ($attr->{INVOICE_NUM}) {
-    $EXT_TABLES  .= 'LEFT JOIN docs_invoice2payments i2p ON (p.id=i2p.payment_id)
-    LEFT JOIN docs_invoices d ON (d.id=i2p.invoice_id)';
+    $EXT_TABLES  .= '  LEFT JOIN (SELECT payment_id, invoice_id FROM docs_invoice2payments GROUP BY payment_id) i2p ON (p.id=i2p.payment_id)
+  LEFT JOIN (SELECT id, invoice_num FROM docs_invoices GROUP BY id) d ON (d.id=i2p.invoice_id) 
+';
   }
 
   if ($WHERE =~ /pi\./ || $self->{SEARCH_FIELDS} =~ /pi\./) {
@@ -308,7 +309,7 @@ sub list {
     $list = $self->{list};
   }
 
-  $self->query2("SELECT count(DISTINCT p.id) AS total, sum(DISTINCT p.sum) AS sum, count(DISTINCT p.uid) AS total_users
+  $self->query2("SELECT count(DISTINCT p.id) AS total, sum(p.sum) AS sum, count(p.uid) AS total_users
     FROM payments p
   LEFT JOIN users u ON (u.uid=p.uid)
   LEFT JOIN admins a ON (a.aid=p.aid) 

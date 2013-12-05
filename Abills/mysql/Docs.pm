@@ -534,18 +534,17 @@ sub invoices_list {
   
   $self->query2("SELECT count(distinct d.id) AS total_invoices,
      count(distinct d.uid) AS total_users,
-     \@total_sum := if (i2p.sum IS NULL, sum(o.price * o.counts), sum(o.price * o.counts)) AS total_sum, 
-     \@payment_sum := sum(DISTINCT i2p.sum) AS payment_sum,
-     1
+     sum(o.price * o.counts) AS total_sum, 
+     sum(i2p.sum) AS payment_sum
     FROM docs_invoices d
     INNER JOIN docs_invoice_orders o ON (o.invoice_id=d.id)
     LEFT JOIN users u ON (d.uid=u.uid)
     LEFT JOIN admins a ON (d.aid=a.aid)
     LEFT JOIN companies company ON (u.company_id=company.id)
-    LEFT JOIN docs_invoice2payments i2p ON (d.id=i2p.invoice_id)
-    LEFT JOIN payments p ON (i2p.payment_id=p.id)
+    LEFT JOIN (SELECT invoice_id, sum, payment_id FROM docs_invoice2payments GROUP BY invoice_id) i2p ON (d.id=i2p.invoice_id)
+    LEFT JOIN (SELECT id FROM payments GROUP BY id) p ON (i2p.payment_id=p.id)
     $WHERE
-    GROUP BY 5",
+    ",
     undef,
     { INFO => 1 }
   );
