@@ -40,13 +40,15 @@
 #   abills_squid_redirect="" Redirect traffic to squid
 #
 #   abills_neg_deposit="" Enable neg deposit redirect
+#   
+#   abills_neg_deposit_allow="" Neg deposit allow sites
 #
 #   abills_neg_deposit_speed="512" Set default speed for negative deposit
 #
 
 
 CLASSES_NUMS='2 3'
-VERSION=6.03
+VERSION=6.04
 
 
 name="abills_shaper"

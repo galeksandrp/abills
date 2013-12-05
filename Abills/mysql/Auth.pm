@@ -746,6 +746,8 @@ sub dv_auth {
       $RAD_PAIRS->{'PPPD-Downstream-Speed-Limit'} = int($EX_PARAMS->{speed}->{0}->{OUT});
       $RAD_PAIRS->{'PPPD-Upstream-Speed-Limit'}   = int($EX_PARAMS->{speed}->{0}->{IN});
     }
+
+    $RAD_PAIRS->{'Acct-Interim-Interval'} = $NAS->{NAS_ALIVE} if ($NAS->{NAS_ALIVE});
   }
 
   #Chillispot
@@ -1371,13 +1373,13 @@ sub ex_traffic_params {
     #End expresion
   }
   else {
-    if ($in_prices{0} > 0 && $out_prices{0} > 0) {
+    if ($in_prices{0} && $in_prices{0} > 0 && $out_prices{0} > 0) {
       $trafic_limits{0} = ($deposit / (($in_prices{0} + $out_prices{0}) / 2));
     }
-    elsif ($in_prices{0} > 0 && $out_prices{0} == 0) {
+    elsif ($in_prices{0} && $in_prices{0} > 0 && $out_prices{0} == 0) {
       $trafic_limits{0} = ($deposit / $in_prices{0});
     }
-    elsif ($in_prices{0} == 0 && $out_prices{0} > 0) {
+    elsif ($in_prices{0} && $in_prices{0} == 0 && $out_prices{0} > 0) {
       $trafic_limits{0} = ($deposit / $out_prices{0});
     }
 
