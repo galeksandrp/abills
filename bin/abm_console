@@ -91,7 +91,7 @@ my $Dv = Dv->new($db, $admin, \%conf);
 my %LIST_PARAMS = ();
 
 if ($ARGV->{DEBUG}) {
-	$debug = $ARGV->{DEBUG};
+  $debug = $ARGV->{DEBUG};
   if ($ARGV->{DEBUG} > 6) {
     $users->{debug}=1; 
     $fees->{debug}=1;
@@ -102,7 +102,7 @@ if ($ARGV->{DEBUG}) {
 $LIST_PARAMS{PAGE_ROWS} = ($ARGV->{PAGE_ROWS}) ? $ARGV->{PAGE_ROWS} : 1000000;
 
 foreach my $key ( %$ARGV ) {
-	$LIST_PARAMS{$key}=$ARGV->{$key};
+  $LIST_PARAMS{$key}=$ARGV->{$key};
 }
 
 #Intercat mode
@@ -642,11 +642,11 @@ sub form_users {
     push @user_functions, "$_DV:dv_user_main" if (in_array('Dv', \@MODULES));
 
     my $list = $users->list({ FIO           => '_SHOW',
-    	                        DEPOSIT       => '_SHOW',
-    	                        CREDIT        => '_SHOW',
-    	                        LOGIN_STATUS  => '_SHOW',
-    	                        %LIST_PARAMS, 
-    	                        COLS_NAME => 1});
+                              DEPOSIT       => '_SHOW',
+                              CREDIT        => '_SHOW',
+                              LOGIN_STATUS  => '_SHOW',
+                              %LIST_PARAMS, 
+                              COLS_NAME => 1});
     if ($users->{TOTAL} == 1) {
       my $uid = $list->[0]->{uid};
       user_info($uid);
@@ -772,7 +772,7 @@ sub form_fees {
         $fees->take($user, $FORM->{SUM}, { %$FORM, %$ARGV });
         
         if($fees->{errno}) {
-        	print "Error: $fees->{errno}";        	
+          print "Error: $fees->{errno}";          
         }
       }
     }
@@ -787,12 +787,12 @@ sub form_fees {
   }
 
   my $list = $fees->list({LOGIN     => '_SHOW',
-  	                      DATE      => '_SHOW',
-  	                      SUM       => '_SHOW',
-  	                      DSC       => '_SHOW',
-  	                      %LIST_PARAMS, 
-  	                      COLS_NAME => 1 
-  	                      });
+                          DATE_TIME => '_SHOW',
+                          SUM       => '_SHOW',
+                          DSC       => '_SHOW',
+                          %LIST_PARAMS, 
+                          COLS_NAME => 1 
+                          });
 
   foreach my $line (@$list) {
     printf("%-5d| %-16s|%19s|%11f|%-20s|\n", $line->{id}, $line->{login}, $line->{date}, $line->{sum}, $line->{dsc});
@@ -841,7 +841,7 @@ sub form_payments {
   }
 
   if ($ARGV->{ADD}) {
-  	if (! $ARGV->{UID}) {
+    if (! $ARGV->{UID}) {
       $ARGV->{LOGIN} = $ARGV->{PAYMENTS} if (!$ARGV->{LOGIN});
     }
     delete $ARGV->{PAYMENTS};

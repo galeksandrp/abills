@@ -889,24 +889,24 @@ sub dv_user {
 
   if ($Dv->{STATUS} && $total_fee > $users->{DEPOSIT}) {
     my $sum=0; 
-#    if ($Dv->{TP_PERIOD_ALIGNMENT}) {
-#      my($y, $m, $d)=split(/-/, $DATE);
-#      my $days_in_month = ($m != 2 ? (($m % 2) ^ ($m > 7)) + 30 : (!($y % 400) || !($y % 4) && ($y % 25) ? 29 : 28));
-#      my $month_fee = ($total_fee / $days_in_month) * ($days_in_month - $d);
-#      if ($month_fee > $users->{DEPOSIT}) {
-#        my $full_sum  = abs($month_fee - $users->{DEPOSIT});
-#        $sum = sprintf("%.2f", $full_sum);
-#        if($sum - $full_sum < 0) {
-#          $sum = sprintf("%.2f", $sum + 1);
-#        }
-#      }
-#    }
-#    else {
+    if ($Dv->{TP_PERIOD_ALIGNMENT} && ! $conf{DV_FULL_MONTH}) {
+      my($y, $m, $d)=split(/-/, $DATE);
+      my $days_in_month = ($m != 2 ? (($m % 2) ^ ($m > 7)) + 30 : (!($y % 400) || !($y % 4) && ($y % 25) ? 29 : 28));
+      my $month_fee = ($total_fee / $days_in_month) * ($days_in_month - $d);
+      if ($month_fee > $users->{DEPOSIT}) {
+        my $full_sum  = abs($month_fee - $users->{DEPOSIT});
+        $sum = sprintf("%.2f", $full_sum);
+        if($sum - $full_sum < 0) {
+          $sum = sprintf("%.2f", $sum + 1);
+        }
+      }
+    }
+    else {
       $sum =  sprintf("%.2f", abs($total_fee - $users->{DEPOSIT}));
       if ($sum < abs($total_fee - $users->{DEPOSIT})) {
         $sum = sprintf("%.2f", int($sum + 1));
       }
-#    }
+    }
     
     $Dv->{PAYMENT_MESSAGE} = "$_ACTIVATION_PAYMENT $sum " . $html->button("$_PAYMENTS", "UID=$FORM{UID}&index=2&SUM=$sum", {CLASS => 'payments rightAlignText'});
   }

@@ -796,7 +796,10 @@ sub _external {
   $attr->{COMPANY_ID} = $users->{COMPANY_ID};
 
   while (my ($k, $v) = each %$attr) {
-    if ($k ne '__BUFFER' && $k =~ /[A-Z0-9_]/) {
+    if ($k eq 'TABLE_SHOW') {
+    	
+    }
+    elsif ($k ne '__BUFFER' && $k =~ /[A-Z0-9_]/) {
       if ($v && $v ne '') {
         $arguments .= " $k=\"$v\"";	
       }

@@ -6046,7 +6046,7 @@ sub form_payments () {
             $html->message('info', $_PAYMENTS, "$_ADDED $_SUM: $FORM{SUM} $er->{ER_SHORT_NAME}");
 
             if ($conf{external_payments}) {
-              if (!_external($conf{external_payments}, {%FORM})) {
+              if (!_external($conf{external_payments}, { %FORM  })) {
                 return 0;
               }
             }
