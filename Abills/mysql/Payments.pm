@@ -173,7 +173,7 @@ sub add {
 #**********************************************************
 sub del {
   my $self = shift;
-  my ($user, $id) = @_;
+  my ($user, $id, $attr) = @_;
 
   $self->query2("SELECT sum, bill_id from payments WHERE id='$id';");
 
@@ -192,10 +192,12 @@ sub del {
   $Bill->action('take', $bill_id, $sum);
   if (! $Bill->{errno}) {
     $self->query2("DELETE FROM docs_invoice2payments WHERE payment_id='$id';", 'do');
+    $self->query2("DELETE FROM docs_receipt_orders WHERE receipt_id=(SELECT id FROM docs_receipts WHERE payment_id='$id');", 'do');
     $self->query2("DELETE FROM docs_receipts WHERE payment_id='$id';", 'do');    
     $self->query2("DELETE FROM payments WHERE id='$id';", 'do');
     if (! $self->{errno}) {
-      $admin->action_add($user->{UID}, "$id $sum", { TYPE => 16 });
+    	my $comments = ($attr->{COMMENTS}) ? $attr->{COMMENTS} : '';
+      $admin->action_add($user->{UID}, "$id $sum $comments", { TYPE => 16 });
       $self->{db}->commit();
     }
     else {

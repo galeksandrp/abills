@@ -295,7 +295,10 @@ sub service_get_month_fee {
             );
 
   #Get month fee
-  if ($Service->{TP_INFO}->{MONTH_FEE} && $Service->{TP_INFO}->{MONTH_FEE} > 0) {
+  if (($Service->{TP_INFO}->{MONTH_FEE} && $Service->{TP_INFO}->{MONTH_FEE} > 0) ||
+      ($Service->{TP_INFO_OLD}->{MONTH_FEE} && $Service->{TP_INFO_OLD}->{MONTH_FEE} > 0)
+      ) {
+
     if ( $FORM{RECALCULATE} ) {
     	my $rest_days     = 0;
       my $rest_day_sum2 = 0;

@@ -1355,7 +1355,6 @@ sub ureports_periodic_reports {
                 STATUS      => 0
               }
             );
-
           }
         }
       }

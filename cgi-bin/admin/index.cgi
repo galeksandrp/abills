@@ -3161,7 +3161,7 @@ sub form_changes {
     8  => "$_ENABLE",
     9  => "$_DISABLE",
     10 => "$_DELETED",
-    11 => '',
+    11 => '-',
     12 => "$_DELETED $_USER",
     13 => "Online $_DELETED",
     14 => "$_HOLD_UP",
@@ -6062,13 +6062,13 @@ sub form_payments () {
         }
       }
     }
-    elsif ($FORM{del} && $FORM{is_js_confirmed}) {
+    elsif ($FORM{del} && $FORM{COMMENTS}) { #$FORM{is_js_confirmed}) {
       if (!defined($permissions{1}{2})) {
         $html->message('err', $_ERROR, "[13] $err_strs{13}");
         return 0;
       }
 
-      $payments->del($user, $FORM{del});
+      $payments->del($user, $FORM{del}, { COMMENTS => $FORM{COMMENTS} });
       if ($payments->{errno}) {
         if ($payments->{errno} == 3) {
           $html->message('err', $_ERROR, "$ERR_DELETE_RECEIPT ". 
@@ -6280,7 +6280,7 @@ sub form_payments () {
 
   my $pages_qs .= "&subf=2" if (!$FORM{subf});
   foreach my $line (@$payments_list) {
-    my $delete = ($permissions{1}{2}) ? $html->button($_DEL, "index=2&del=$line->{id}&UID=$line->{uid}$pages_qs", { MESSAGE => "$_DEL [$line->{id}] ?", CLASS => 'del' }) : '';
+    my $delete = ($permissions{1}{2}) ? $html->button($_DEL, "index=2&del=$line->{id}&UID=$line->{uid}$pages_qs", { COMMENTS_ADD => "$_DEL [$line->{id}] ? $_COMMENTS:", CLASS => 'del' }) : '';
 
     my @fields_array = ();
     for (my $i = 0; $i < 9+$payments->{SEARCH_FIELDS_COUNT}; $i++) {

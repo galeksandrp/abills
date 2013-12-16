@@ -11,18 +11,18 @@ if (document.user_form.DISABLE.checked) {
   	alert('Enter comments');
   	document.user_form.DISABLE.checked=false;
   	document.user_form.ACTION_COMMENTS.style.visibility='hidden';
-   }
+  }
   else {
   	document.user_form.DISABLE.checked=true;
     document.user_form.ACTION_COMMENTS.value=Q;
     document.user_form.ACTION_COMMENTS.style.visibility='visible';
-   }
- }
+  }
+}
 else {
 	document.user_form.DISABLE.checked=false;
 	document.user_form.ACTION_COMMENTS.style.visibility='hidden';
 	document.user_form.ACTION_COMMENTS.value='';
- } 
+} 
 
 }
 

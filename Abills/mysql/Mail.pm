@@ -59,7 +59,7 @@ sub mbox_add {
     (username,  domain_id, descr, maildir, create_date, change_date, mails_limit, box_size, status, 
      uid, 
      antivirus, antispam, expire, password) values
-    ('$DATA{USERNAME}', '$DATA{DOMAIN_ID}', '$DATA{COMMENTS}', '$DATA{MAILDIR}', now(), now(), 
+    ('$DATA{USERNAME}', '$DATA{MAIL_DOMAIN_ID}', '$DATA{COMMENTS}', '$DATA{MAILDIR}', now(), now(), 
      '$DATA{MAILS_LIMIT}', '$DATA{BOX_SIZE}', '$DATA{DISABLE}', 
     '$DATA{UID}', 
     '$DATA{ANTIVIRUS}', '$DATA{ANTISPAM}', '$DATA{EXPIRE}', 

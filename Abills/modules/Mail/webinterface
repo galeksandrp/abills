@@ -555,7 +555,6 @@ sub mail_user_boxes {
       if ($FORM{SEND_MAIL}) {
         my $message = $html->tpl_show(_include('mail_test_msg', 'Mail'), $Mail, { notprint => 1 });
         sendmail("$conf{ADMIN_MAIL}", "$Mail->{USER_EMAIL}", "Test mail", "$message", "$conf{MAIL_CHARSET}", "");
-
       }
 
       $html->message('info', $_INFO, "$_ADDED");
@@ -617,14 +616,13 @@ sub mail_user_boxes {
   $Mail->{DISABLE}   = ' checked' if ($Mail->{DISABLE} == 1);
 
   $Mail->{DOMAINS_SEL} = $html->form_select(
-    'DOMAIN_ID',
+    'MAIL_DOMAIN_ID',
     {
-      SELECTED          => $Mail->{DOMAIN_ID},
-      SEL_MULTI_ARRAY   => $Mail->domain_list({ BACKUP_MX => 0 }),
-      MULTI_ARRAY_KEY   => 8,
-      MULTI_ARRAY_VALUE => 0,
-      SEL_OPTIONS       => { 0 => '-N/S-' },
-      NO_ID             => 1
+      SELECTED   => $Mail->{DOMAIN_ID},
+      SEL_LIST   => $Mail->domain_list({ BACKUP_MX => 0, COLS_NAME => 1 }),
+      SEL_KEY    => 'id',
+      SEL_VALUE  => 'domain',
+      NO_ID      => 1
     }
   );
 
@@ -713,7 +711,13 @@ sub mail_domains {
 
   foreach my $line (@$list) {
     $delete = $html->button($_DEL, "index=$index&del=$line->[8]", { MESSAGE => "$_DEL '$line->[0]'?", CLASS => 'del' });
-    $table->addrow($html->b($line->[0]), "$line->[1]", "$status[$line->[2]]", "$bool_vals[$line->[3]]", "$line->[4]", "$line->[5]", "$line->[6]", $html->button($_CHANGE, "index=$index&MAIL_DOMAIN_ID=$line->[8]", { CLASS => 'change' }), $delete);
+    $table->addrow($html->b($line->[0]), 
+      "$line->[1]", 
+      "$status[$line->[2]]", 
+      "$bool_vals[$line->[3]]", 
+      "$line->[4]", 
+      "$line->[5]", 
+      "$line->[6]", $html->button($_CHANGE, "index=$index&MAIL_DOMAIN_ID=$line->[8]", { CLASS => 'change' }), $delete);
   }
   print $table->show();
 

@@ -664,7 +664,11 @@ sub dv_user {
    	  my $days_to_fees = 0 ;
    	  my ($from_year, $from_month, $from_day) = split(/-/, $DATE,            3);
       if ($Dv->{MONTH_ABON} > 0) {
-        if ($Dv->{ABON_DISTRIBUTION} && $Dv->{MONTH_ABON} > 0) {
+      	
+      	if ($Dv->{REDUCTION_FEE} && $users->{REDUCTION} == 100) {
+      		$Dv->{NEXT_FEES_WARNING} = "$_NEXT_FEES: -- $_REDUCTION: 100%";
+      	}
+        elsif ($Dv->{ABON_DISTRIBUTION} && $Dv->{MONTH_ABON} > 0) {
         	if ($users->{REDUCTION} < 100) {
             $days_to_fees = int(($users->{DEPOSIT} + $users->{CREDIT}) * (100 / (100 - $users->{REDUCTION})) / ($Dv->{MONTH_ABON} / 30));
             $Dv->{NEXT_FEES_WARNING} = "$_SERVICE_ENDED";
@@ -713,7 +717,7 @@ sub dv_user {
         }
       }
       elsif ($Dv->{DAY_ABON} > 0) {
-        $days_to_fees = int(($users->{DEPOSIT} + $users->{CREDIT}) * (100 / (100 - $users->{REDUCTION}) / $Dv->{DAY_ABON}) );
+        $days_to_fees = int(($users->{DEPOSIT} + $users->{CREDIT}) * (($users->{REDUCTION} < 100 && $Dv->{REDUCTION_FEE}) ? (100 / (100 - $users->{REDUCTION}) / $Dv->{DAY_ABON}) : 0) );
         $Dv->{NEXT_FEES_WARNING} = "$_SERVICE_ENDED: $days_to_fees";
       }
 
@@ -889,7 +893,7 @@ sub dv_user {
 
   if ($Dv->{STATUS} && $total_fee > $users->{DEPOSIT}) {
     my $sum=0; 
-    if ($Dv->{TP_PERIOD_ALIGNMENT} && ! $conf{DV_FULL_MONTH}) {
+    if ($Dv->{ABON_DISTRIBUTION} && ! $conf{DV_FULL_MONTH}) {
       my($y, $m, $d)=split(/-/, $DATE);
       my $days_in_month = ($m != 2 ? (($m % 2) ^ ($m > 7)) + 30 : (!($y % 400) || !($y % 4) && ($y % 25) ? 29 : 28));
       my $month_fee = ($total_fee / $days_in_month) * ($days_in_month - $d);
@@ -897,7 +901,7 @@ sub dv_user {
         my $full_sum  = abs($month_fee - $users->{DEPOSIT});
         $sum = sprintf("%.2f", $full_sum);
         if($sum - $full_sum < 0) {
-          $sum = sprintf("%.2f", $sum + 1);
+          $sum = sprintf("%.2f", int($sum + 1));
         }
       }
     }

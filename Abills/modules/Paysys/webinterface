@@ -2045,7 +2045,7 @@ sub paysys_privatbank_p24 {
   if ($FORM{OrderID}) {
     my $list = $Paysys->list(
       {
-        TRANSACTION_ID => "$FORM{OrderID}",
+        TRANSACTION_ID => "P24:$FORM{OrderID}",
         UID            => $LIST_PARAMS{UID},
         SUM            => '_SHOW',
         COLS_NAME      => 1
@@ -2087,7 +2087,7 @@ sub paysys_privatbank_p24 {
         SUM            => $FORM{SUM},
         UID            => $user->{UID},
         IP             => "$ENV{'REMOTE_ADDR'}",
-        TRANSACTION_ID => "$FORM{OPERATION_ID}",
+        TRANSACTION_ID => "P24:$FORM{OPERATION_ID}",
         INFO           => '-',
         PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}",
         STATUS         => 1

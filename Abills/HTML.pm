@@ -1558,6 +1558,9 @@ sub button {
     $attr->{MESSAGE} =~ s/\r//g;
     $message = " onclick=\"return confirmLink(this, '$attr->{MESSAGE}')\"";
   }
+  elsif($attr->{COMMENTS_ADD}) {
+  	$message = " onclick=\"return comments_add(this, '$attr->{COMMENTS_ADD}')\"";
+  }
 
   my $class = '';
   if ($attr->{BUTTON}) {

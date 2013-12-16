@@ -288,9 +288,9 @@ sub sheduler {
       Y         => "$Y,\\*",
       M         => "$M,\\*",
       D         => "$D,\\*",
-      PAGE_ROWS => 1000000,
       COLS_NAME => 1,
-      %LIST_PARAMS
+      %LIST_PARAMS,
+      PAGE_ROWS => 1000000,
     }
   );
 
