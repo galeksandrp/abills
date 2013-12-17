@@ -3342,7 +3342,7 @@ if ($FORM{APPLY_TO_INVOICE} || ($FORM{INVOICE_ID} && $FORM{INVOICE_ID} ne 'creat
 
       if ($FORM{SUM} > $doc->{total_sum} - $doc->{payment_sum}) {
       	$payment_sum = $doc->{total_sum} - $doc->{payment_sum};
-      	$FORM{SUM} -= $doc->{total_sum} - $doc->{payment_sum};
+      	#$FORM{SUM} -= $doc->{total_sum} - $doc->{payment_sum};
       }
 
   	  $Docs->invoices2payments({ PAYMENT_ID => $attr->{PAYMENT_ID}, 
