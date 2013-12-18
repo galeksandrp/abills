@@ -1,6 +1,6 @@
 
 <form action='https://secure.payu.ua/order/lu.php' method='POST' accept-charset='utf-8'>
-<input type='hidden' name='MERCHANT' value='$conf{PAYSYS_UPAY_MERCHANT}'>
+<input type='hidden' name='MERCHANT' value='$conf{PAYSYS_PAYU_MERCHANT}'>
 <input type='hidden' name='ORDER_REF' value='$FORM{OPERATION_ID}'>
 <input type='hidden' name='ORDER_DATE' value='$DATE $TIME'>
 <input type='hidden' name='ORDER_PNAME' value='$_PAYMENTS $FORM{OPERATION_ID'>
@@ -13,8 +13,10 @@
 <input type='hidden' name='PRICES_CURRENCY' value='UAH'>
 <input type='hidden' name='LANGUAGE' value='RU'>
 <input type='hidden' name='TESTORDER' value='%TESTORDER%'>
-<input type='hidden' name='DEBUG' value='$conf{PAYSYS_UPAY_DEBUG}'>
+<input type='hidden' name='DEBUG' value='$conf{PAYSYS_PAYU_DEBUG}'>
 <input type='hidden' name='ORDER_HASH' value='%ORDER_HASH%'>
+<input type='hidden' name='BACK_REF' value='https://$ENV{SERVER_NAME}:$ENV{SERVER_PORT}/index.cgi?UID=$LIST_PARAMS{UID}&index=$index&
+sid=$FORM{sid}'>
 <table width=400 class=form>
 <tr><th class='form_title' colspan=2>PayU</th></tr>
 <tr><td>Operation ID:</td><td>$FORM{OPERATION_ID}</td></tr>

@@ -3333,12 +3333,13 @@ sub snmp_info_form {
   $info{NAS_SEL} = $html->form_select(
     'NAS_ID',
     {
-      SELECTED          => $FORM{NAS_ID},
-      SEL_MULTI_ARRAY   => [ [ '', '' ], @{ $Nas->list({ SORT => 1, PAGE_ROWS => 10000 }) } ],
-      MULTI_ARRAY_KEY   => 0,
-      MULTI_ARRAY_VALUE => 1,
-      MAIN_MENU         => get_function_index('form_nas'),
-      MAIN_MENU_AGRV    => "NAS_ID=$FORM{NAS_ID}"
+      SELECTED       => $FORM{NAS_ID},
+      SEL_LIST       => $Nas->list({ SORT => 1, PAGE_ROWS => 10000, COLS_NAME => 1 }),
+      SEL_KEY        => 'nas_id',
+      SEL_VALUE      => 'nas_name',
+      SEL_OPTIONS    => { '' => '--' },
+      MAIN_MENU      => get_function_index('form_nas'),
+      MAIN_MENU_AGRV => "NAS_ID=$FORM{NAS_ID}"
     }
   );
 
@@ -3420,7 +3421,15 @@ sub snmp_info_form {
         return 0;
       }
 
-      $pages_qs        = "&NAS_ID=$FORM{NAS_ID}";
+      $pages_qs       = "&NAS_ID=$FORM{NAS_ID}";
+
+      if (! $Nas->{NAS_MNG_IP_PORT}) {
+      	$Nas->{NAS_MNG_IP_PORT}=$Nas->{nas_ip};
+      }
+      elsif ($Nas->{NAS_MNG_IP_PORT}=~/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/) {
+      	$Nas->{NAS_MNG_IP_PORT}=$1;
+      }
+
       $SNMP_COMMUNITY = "$Nas->{NAS_MNG_PASSWORD}\@$Nas->{NAS_MNG_IP_PORT}";
     }
     else {

@@ -196,6 +196,10 @@ if (check_ip($ENV{REMOTE_ADDR}, '213.160.149.0/24')) {
   require "Ibox.pm";
   exit;
 }
+elsif (check_ip($ENV{REMOTE_ADDR}, '91.194.189.103')) {
+  require "Payu.pm";
+  exit;
+}
 elsif ($FORM{ok_txn_id} || check_ip($ENV{REMOTE_ADDR}, '78.140.166.69')) {
   require "Okpay.pm";
   exit;

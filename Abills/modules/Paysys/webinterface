@@ -742,7 +742,7 @@ sub paysys_payment {
     paysys_cashcom();
   }  
   elsif ($FORM{PAYMENT_SYSTEM} == 91) {
-    paysys_upay();
+    paysys_payu();
   }  
 
   else {
@@ -3047,7 +3047,7 @@ sub paysys_cashcom {
 sub paysys_payu {
   my %info = ();
 
-  my $payment_system    = 'UPAY';
+  my $payment_system    = 'PAYU';
   my $payment_system_id = 91;
   my $order_id          = $FORM{orderid};
 
@@ -3066,7 +3066,7 @@ sub paysys_payu {
   elsif ($FORM{TRUE}) {
     my $list = $Paysys->list(
       {
-        TRANSACTION_ID => "$FORM{orderid}",
+        TRANSACTION_ID => "$payment_system:$FORM{orderid}",
         UID            => $LIST_PARAMS{UID},
         SUM            => '_SHOW',
         COLS_NAME      => 1
@@ -3097,7 +3097,7 @@ sub paysys_payu {
         SUM            => $FORM{SUM},
         UID            => $user->{UID},
         IP             => "$ENV{'REMOTE_ADDR'}",
-        TRANSACTION_ID => "$FORM{OPERATION_ID}",
+        TRANSACTION_ID => "$payment_system:$FORM{OPERATION_ID}",
         INFO           => '-',
         PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}",
         STATUS         => 1
@@ -3134,7 +3134,7 @@ sub paysys_payu {
   $info{ORDER_HASH}            = $ctx->b64digest();
 
 
-  $html->tpl_show(_include('paysys_upay_add', 'Paysys'), \%info);
+  $html->tpl_show(_include('paysys_payu_add', 'Paysys'), \%info);
 }
 
 
