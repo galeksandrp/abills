@@ -880,12 +880,13 @@ sub log_list {
   $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
 
   my $WHERE = $self->search_former($attr, [
-     ['MESSAGE',     'STR', 'l.message' ],
-     ['MAC',         'STR', 'l.mac'     ],
-     ['HOSTNAME',    'STR', 'l.hostname'],
-     ['ID',          'INT', 'l.id'      ],
-     ['NAS_ID',      'INT', 'nas_id'    ],
-     ['FROM_DATE|TO_DATE', 'DATE', "(date_format(l.datetime, '%Y-%m-%d')" ],
+     ['MESSAGE',     'STR', 'l.message'   ],
+     ['MAC',         'STR', 'l.mac'       ],
+     ['HOSTNAME',    'STR', 'l.hostname'  ],
+     ['ID',          'INT', 'l.id'        ],
+     ['NAS_ID',      'INT', 'nas_id'      ],
+     ['MESSAGE_TYPE','INT', 'message_type'],
+     ['FROM_DATE|TO_DATE', 'DATE', "date_format(l.datetime, '%Y-%m-%d')" ],
     ],
     { WHERE => 1,
     	WHERE_RULES => \@WHERE_RULES
@@ -905,9 +906,11 @@ sub log_list {
   undef,
   $attr);
 
-  return $self if ($self->{errno});
-
   my $list = $self->{list};
+
+  return $list if ($self->{errno});
+
+
 
   if ($self->{TOTAL} > 0) {
     $self->query2("SELECT count(*) AS total FROM dhcphosts_log l $WHERE", undef, { INFO => 1 });

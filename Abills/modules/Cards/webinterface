@@ -55,7 +55,7 @@ sub cards_card_info {
 #
 #**********************************************************
 sub cards_main {
-  if ($Cards::VERSION < 6.01) {
+  if ($Cards::VERSION < 6.02) {
     $html->message('info', "UPDATE", "Please update module 'Cards' to version 6.01 or higher. http://abills.net.ua/");
     return 0;
   }
@@ -148,32 +148,6 @@ sub cards_main {
     $Cards->{DOMAIN_SEL} = '';
   }
 
-  my $table;
-  if (!$FORM{pdf} && $FORM{search_form}) {
-  	delete $Cards->{ID};
-  	$Cards->{SERIAL}       = '*' if(! $FORM{SERIAL});
-    $Cards->{SUM}          = undef if (!$FORM{SUM});
-    $Cards->{EXPIRE}       = undef if (!$FORM{EXPIRE});
-    $Cards->{DATE}         = $html->date_fld2('DATE',         { MONTHES => \@MONTHES, FORM_NAME => 'form_search', WEEK_DAYS => \@WEEKDAYS, NO_DEFAULT_DATE => 1 });
-    $Cards->{CREATED_DATE} = $html->date_fld2('CREATED_DATE', { MONTHES => \@MONTHES, FORM_NAME => 'form_search', WEEK_DAYS => \@WEEKDAYS, NO_DEFAULT_DATE => 1 });
-    $Cards->{EXPIRE_DATE}  = $html->date_fld2('EXPIRE_DATE',  { MONTHES => \@MONTHES, FORM_NAME => 'form_search', WEEK_DAYS => \@WEEKDAYS, NO_DEFAULT_DATE => 1 });
-
-    form_search({ SEARCH_FORM => $html->tpl_show(_include('cards_search', 'Cards'), { %$Cards, %FORM }, { OUTPUT2RETURN => 1 }),
-    NO_DEFAULT_DATE => 1 });
-  }
-  
-  my $form_name = 'CARDS_LIST';
-  my $total_cards = 0;
-  my $total_sum   = 0;
-  my @total_arr   = 0;
-
-  if (defined($FORM{SERIAL})) {
-    $LIST_PARAMS{PIN}='_SHOW' if ($conf{CARDS_SHOW_PINS});
-    $LIST_PARAMS{SERIAL}=$FORM{SERIAL};
-    $pages_qs        .= "&SERIAL=$FORM{SERIAL}" if (! $FORM{search});
-    $form_name       .= '_SERIAL';
-  }
-
   $Cards->{ADMINS_SEL} = $html->form_select(
     'AID',
     {
@@ -200,6 +174,32 @@ sub cards_main {
   }
   else {
     $Cards->{DILLERS_SEL} = cards_dillers_sel();
+  }
+
+  my $table;
+  if (!$FORM{pdf} && $FORM{search_form}) {
+  	delete $Cards->{ID};
+  	$Cards->{SERIAL}       = '*' if(! $FORM{SERIAL});
+    $Cards->{SUM}          = undef if (!$FORM{SUM});
+    $Cards->{EXPIRE}       = undef if (!$FORM{EXPIRE});
+    $Cards->{DATE}         = $html->date_fld2('DATE',         { MONTHES => \@MONTHES, FORM_NAME => 'form_search', WEEK_DAYS => \@WEEKDAYS, NO_DEFAULT_DATE => 1 });
+    $Cards->{CREATED_DATE} = $html->date_fld2('CREATED_DATE', { MONTHES => \@MONTHES, FORM_NAME => 'form_search', WEEK_DAYS => \@WEEKDAYS, NO_DEFAULT_DATE => 1 });
+    $Cards->{EXPIRE_DATE}  = $html->date_fld2('EXPIRE_DATE',  { MONTHES => \@MONTHES, FORM_NAME => 'form_search', WEEK_DAYS => \@WEEKDAYS, NO_DEFAULT_DATE => 1 });
+
+    form_search({ SEARCH_FORM => $html->tpl_show(_include('cards_search', 'Cards'), { %$Cards, %FORM }, { OUTPUT2RETURN => 1 }),
+    NO_DEFAULT_DATE => 1 });
+  }
+  
+  my $form_name = 'CARDS_LIST';
+  my $total_cards = 0;
+  my $total_sum   = 0;
+  my @total_arr   = 0;
+
+  if (defined($FORM{SERIAL})) {
+    $LIST_PARAMS{PIN}='_SHOW' if ($conf{CARDS_SHOW_PINS});
+    $LIST_PARAMS{SERIAL}=$FORM{SERIAL};
+    $pages_qs        .= "&SERIAL=$FORM{SERIAL}" if (! $FORM{search});
+    $form_name       .= '_SERIAL';
   }
 
   ($table, $cards_list) = result_former({

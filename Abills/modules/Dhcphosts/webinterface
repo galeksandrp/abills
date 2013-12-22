@@ -1653,7 +1653,7 @@ sub dhcphosts_log {
   $Dhcphosts->{MESSAGE_TYPE_SEL} = $html->form_select(
     'MESSAGE_TYPE',
     {
-      SELECTED => $FORM{MESSAGE_TYPE},
+      SELECTED => $FORM{MESSAGE_TYPE} || '',
       SEL_HASH => {
         '' => $_ALL,
         %DHCP_MESSAGE_TYPES_REV
@@ -1677,7 +1677,8 @@ sub dhcphosts_log {
     $LIST_PARAMS{MESSAGE_TYPE} = $FORM{MESSAGE_TYPE};
   }
 
-  my $list  = $Dhcphosts->log_list({%LIST_PARAMS});
+  my $list  = $Dhcphosts->log_list({%LIST_PARAMS, COLS_NAME => 1 });
+
   my $table = $html->table(
     {
       width      => '100%',
@@ -1691,7 +1692,11 @@ sub dhcphosts_log {
   );
 
   foreach my $line (@$list) {
-    $table->addrow($line->[0], $line->[1], $DHCP_MESSAGE_TYPES_REV{ $line->[2] }, color_marks($line->[3], $Dhcphosts->{IDS}),);
+    $table->addrow($line->{datetime}, 
+      $line->{hostname}, 
+      $DHCP_MESSAGE_TYPES_REV{ $line->{message_type} }, 
+      color_marks($line->{message}, $Dhcphosts->{IDS})
+    );
   }
   print $table->show();
 

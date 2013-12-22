@@ -1771,11 +1771,14 @@ sub user_ext_menu {
     $second_menu .= "<li>" . $html->button($a, "$url") . '</li>';
   }
 
+  my $show_login = ($attr->{SHOW_LOGIN}) ? "<li>" . $html->b($html->button($LOGIN, "index=15&UID=$UID")) . '</li>' : '';
+
   my $ext_menu = qq{
 <div id=quick_menu class=noprint>
 <ul id=topNav>
   <li><a href="#"><img src='/img/user.png' border='0'/></a>
   <ul>
+    $show_login
     $payments_menu
     $fees_menu
     $sendmail_manu
@@ -3685,7 +3688,7 @@ sub form_admins {
             SELECTED  => $FORM{AID},
             SEL_LIST  => $admin->list({%LIST_PARAMS, COLS_NAME => 1}),
             SEL_KEY   => 'aid',
-            SEL_VALUE => 'id',
+            SEL_VALUE => 'login',
           }
         ),
         HIDDEN => {
@@ -4455,6 +4458,7 @@ sub form_nas_add {
 sub form_nas {
   my $nas = Nas->new($db, \%conf);
 
+
   if ($FORM{NAS_ID}) {
     $nas->info({ NAS_ID => $FORM{NAS_ID} });
     $pages_qs .= "&NAS_ID=$FORM{NAS_ID}&subf=$FORM{subf}";
@@ -4472,7 +4476,6 @@ sub form_nas {
           width      => '500',
           caption    => "$_RESULT",
           ID         => 'CONSOLE RESULT',
-          
          }
         );
 
@@ -4484,6 +4487,11 @@ sub form_nas {
 
       $html->tpl_show(templates('form_nas_console'), $nas, { ID => 'form_nas_console' });
       return 0;
+    }
+    elsif ($FORM{ext_info}) {
+    	load_module('Equipment', $html);
+    	
+    	return 0;
     }
     elsif ($nas->{NAS_TYPE} eq 'chillispot' && -f "../wrt_configure.cgi") {
       $ENV{HTTP_HOST} =~ s/\:(\d+)//g;
@@ -4549,6 +4557,11 @@ sub form_nas {
 
     $nas->{LNG_ACTION} = $_CHANGE;
     $nas->{ACTION}     = 'change';
+    
+    if (in_array('Equipment', \@MODULES)) {
+      $nas->{EQUIPMENT}  = $html->button($_INFO, "index=". (get_function_index('equipment_info')). "&NAS_ID=$nas->{NAS_ID}&ext_info=1", { BUTTON => 1 });
+    }
+    
     form_nas_add({ NAS => $nas });
   }
   elsif ($FORM{add_form}) {
@@ -6169,6 +6182,7 @@ sub form_payments () {
           }
         );
         delete($FORM{pdf});
+        
         $payments->{DOCS_INVOICE_RECEIPT_ELEMENT} = $html->tpl_show(_include('docs_create_invoice_receipt', 'Docs'), {%$payments}, { OUTPUT2RETURN => 1 });
       }
 
