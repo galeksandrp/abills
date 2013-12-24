@@ -348,9 +348,7 @@ sub equipment_info {
   );
 
   $html->tpl_show(_include('equipment_info', 'Equipment'), { %$Nas, %$Equipment, %FORM });
-  
-  
-  $Equipment->{PORTS}=21;  
+
   if ($Equipment->{PORTS} > 0) {
     my $ports      = $Equipment->{PORTS};
     
@@ -397,8 +395,6 @@ sub equipment_info {
       	  $ui .= user_ext_menu($uid, $login, { SHOW_LOGIN => 1 });
       	}
       }
-
-     
 
       push(@cols, $table->td($html->button($i, "index=$index&NAS_ID=$FORM{NAS_ID}&PORT_ID=$i", { BUTTON => 1 }) .$html->br(). $ui, 
         { align => 'center', bgcolor => $tdcolor  }));

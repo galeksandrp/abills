@@ -303,7 +303,11 @@ sub service_get_month_fee {
     	my $rest_days     = 0;
       my $rest_day_sum2 = 0;
       $sum              = 0;
-    	
+
+    	if ($attr->{SHEDULER} && $Service->{TP_INFO_OLD}->{MONTH_FEE} == $Service->{TP_INFO}->{MONTH_FEE}) {
+    		return \%total_sum;
+    	}
+
       if ($users->{ACTIVATE} eq '0000-00-00') {
         $rest_days     = $days_in_month - $d + 1;
         $rest_day_sum2 = (! $Service->{TP_INFO_OLD}->{ABON_DISTRIBUTION}) ? $Service->{TP_INFO_OLD}->{MONTH_FEE} /  $days_in_month * $rest_days : 0;
@@ -312,6 +316,7 @@ sub service_get_month_fee {
         $Service->{TP_INFO}->{PERIOD_ALIGNMENT}=1;
       }
       else {
+      	#If 
       	if ( $attr->{SHEDULER} && date_diff($users->{ACTIVATE}, $DATE) >= 31 ) {
       	  return \%total_sum;
       	}
