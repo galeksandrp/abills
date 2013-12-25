@@ -252,17 +252,22 @@ sub dv_auth {
 
   my $pppoe_pluse = ''; 
   my $ignore_cid  = 0;
+  my $pppo
   
-  $CONF->{DV_PPPOE_PLUSE_PARAM} =~  tr/[a-z]\-/[A-Z]\_/;
   
-  if ($CONF->{DV_PPPOE_PLUSE_PARAM} && $RAD->{$CONF->{DV_PPPOE_PLUSE_PARAM}}) {
-    $pppoe_pluse = $RAD->{$CONF->{DV_PPPOE_PLUSE_PARAM}} ;
-    if ($self->{PORT} && $self->{PORT} !~ /any/i) {
-      $ignore_cid  = 1;
-    }
-    elsif (! $self->{PORT}) {
-      $self->query2("UPDATE dv_main SET port='$RAD->{$CONF->{DV_PPPOE_PLUSE_PARAM}}' WHERE uid='$self->{UID}';", 'do');
-      $self->{PORT}=$RAD->{$CONF->{DV_PPPOE_PLUSE_PARAM}};
+  
+  if ($CONF->{DV_PPPOE_PLUSE_PARAM}) {
+    my $pppo_pluse_param = $CONF->{DV_PPPOE_PLUSE_PARAM};
+    $pppo_pluse_param =~  tr/[a-z]\-/[A-Z]\_/;
+  	if($RAD->{$pppo_pluse_param}) {
+      $pppoe_pluse = $RAD->{$pppo_pluse_param} ;
+      if ($self->{PORT} && $self->{PORT} !~ /any/i) {
+        $ignore_cid  = 1;
+      }
+      elsif (! $self->{PORT}) {
+        $self->query2("UPDATE dv_main SET port='$RAD->{$pppo_pluse_param}' WHERE uid='$self->{UID}';", 'do');
+        $self->{PORT}=$RAD->{$pppo_pluse_param};
+      }
     }
   }
   else {
