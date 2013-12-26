@@ -252,15 +252,14 @@ sub dv_auth {
 
   my $pppoe_pluse = ''; 
   my $ignore_cid  = 0;
-  my $pppo
-  
-  
   
   if ($CONF->{DV_PPPOE_PLUSE_PARAM}) {
     my $pppo_pluse_param = $CONF->{DV_PPPOE_PLUSE_PARAM};
     $pppo_pluse_param =~  tr/[a-z]\-/[A-Z]\_/;
+
   	if($RAD->{$pppo_pluse_param}) {
-      $pppoe_pluse = $RAD->{$pppo_pluse_param} ;
+      $pppoe_pluse = $RAD->{$pppo_pluse_param};
+
       if ($self->{PORT} && $self->{PORT} !~ /any/i) {
         $ignore_cid  = 1;
       }
