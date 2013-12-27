@@ -2079,12 +2079,26 @@ sub paysys_privatbank_p24 {
       return 0;
     }
 
+    if ($conf{PAYSYS_24_COMMISSION}) {
+      $conf{PAYSYS_LIQPAY_COMMISSION} =~ /([0-9\.]+)([\%]?)/;
+      $info{COMMISSION} = $1;
+      my $type = $2;
+
+      if ($type) {
+        $info{COMMISSION_SUM} = sprintf("%.2f", $FORM{SUM} / 100 * $info{COMMISSION});
+      }
+      else {
+        $info{COMMISSION_SUM} = sprintf("%.2f", $info{COMMISSION});
+      }
+    }
+
     #Info section
     $Paysys->add(
       {
         SYSTEM_ID      => 54,
         DATETIME       => "$DATE $TIME",
         SUM            => $FORM{SUM},
+        COMMISSION     => $info{COMMISSION_SUM},
         UID            => $user->{UID},
         IP             => "$ENV{'REMOTE_ADDR'}",
         TRANSACTION_ID => "P24:$FORM{OPERATION_ID}",
@@ -2101,6 +2115,7 @@ sub paysys_privatbank_p24 {
 
   }
 
+  $FORM{TOTAL_SUM} = sprintf("%.2f", $FORM{SUM} + $info{COMMISSION_SUM});
   $conf{PAYSYS_P24_MERCHANT_CURRENCY}='USD' if(! $conf{PAYSYS_P24_MERCHANT_CURRENCY}); 
 
   $html->setCookie('lastindex', "$index", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure);

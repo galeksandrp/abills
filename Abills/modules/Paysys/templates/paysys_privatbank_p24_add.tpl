@@ -4,7 +4,10 @@
 
 <tr><th colspan=2 class='form_title'>Privat Bank - Privat 24</th></tr>
 <tr><td>Operation ID:</td><td>$FORM{OPERATION_ID}</td></tr>
-<tr><td>$_SUM:</td><td>$FORM{SUM}</td></tr>
+
+<tr><td>$_BALANCE_RECHARCHE_SUM:</td><td>$FORM{SUM}</td></tr>
+<tr><td>$_COMMISSION:</td><td>%COMMISSION_SUM%</td></tr>
+<tr><td>$_TOTAL $_SUM:</td><td>$FORM{TOTAL_SUM}</td></tr>
 
 <input type='hidden' name='amt' value='$FORM{SUM}' />
 <input type='hidden' name='UID' value='$LIST_PARAMS{UID}'>

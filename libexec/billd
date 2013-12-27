@@ -2710,15 +2710,16 @@ Flags: X - disabled, I - invalid
       my $id   = $line->[0];
       my $nets = $line->[2];
       $count   = get_mikrotik_value(qq{/ip firewall address-list print count-only where list=TRAFFIC_CLASS_$id }, $nas_info);
-      if (!$count->[0] || $count->[0] == 0) {
 
-        #Add traffic_class nets
-        my @nets_arr = ();
-        $nets =~ s/[\r\n]+//g;
-        $nets =~ s/;/,/g;
-        $nets =~ s/ //g;
-        @nets_arr = split(/,/, $nets);
-        foreach my $address (@nets_arr) {
+      #Add traffic_class nets
+      my @nets_arr = ();
+      $nets =~ s/[\r\n]+//g;
+      $nets =~ s/;/,/g;
+      $nets =~ s/ //g;
+      @nets_arr = split(/,/, $nets);
+
+      if (!$count->[0] || $count->[0] < $#nets_arr+1 ) {
+ 	      foreach my $address (@nets_arr) {
           push @commands, qq{ /ip firewall address-list add list=TRAFFIC_CLASS_$id address=$address };
         }
       }
