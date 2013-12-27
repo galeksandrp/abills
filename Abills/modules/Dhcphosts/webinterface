@@ -1338,7 +1338,7 @@ sub dhcphosts_config {
       if (defined($conf{DHCPHOSTS_DEPOSITCHECK}) && $deposit+$host->{credit} < $conf{DHCPHOSTS_DEPOSITCHECK}) {
         next;
       }
-      elsif (defined($conf{DHCPHOSTS_EXT_DEPOSITCHECK}) && $host->{ext_deposit} < $conf{DHCPHOSTS_EXT_DEPOSITCHECK}) {
+      elsif (defined($conf{DHCPHOSTS_EXT_DEPOSITCHECK}) && defined($host->{ext_deposit}) && $host->{ext_deposit} < $conf{DHCPHOSTS_EXT_DEPOSITCHECK}) {
         next;
       }
 

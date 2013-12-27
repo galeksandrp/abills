@@ -975,7 +975,7 @@ CREATE TABLE `trafic_tarifs` (
 CREATE TABLE `traffic_classes` (
   `id` SMALLINT(6) UNSIGNED NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(25) NOT NULL DEFAULT '',
-  `nets` TEXT,
+  `nets` MEDIUMTEXT,
   `comments` TEXT NOT NULL,
   `changed` DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00',
   PRIMARY KEY (`id`),

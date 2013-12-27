@@ -2636,10 +2636,10 @@ Flags: X - disabled, I - invalid
 
           if (! $count->[0] || $count->[0] == 0) {
             push @commands,
-              "/ip firewall mangle add chain=forward action=mark-packet new-packet-mark=ALLOW_TRAFFIC_CLASS_" . $tp_id . '_in' . " passthrough=yes src-address-list=CLIENTS_$tp_id dst-address=0.0.0.0/0";
+              "/ip firewall mangle add chain=forward action=mark-packet new-packet-mark=ALLOW_TRAFFIC_CLASS_" . $tp_id . '_out' . " passthrough=yes src-address-list=CLIENTS_$tp_id dst-address=0.0.0.0/0";
             push @commands,
               "/ip firewall mangle add chain=forward action=mark-packet new-packet-mark=ALLOW_TRAFFIC_CLASS_" 
-              . $tp_id . '_out'
+              . $tp_id . '_in'
               . " passthrough=yes src-address=0.0.0.0/0 dst-address-list=CLIENTS_$tp_id";
             push @commands, "/queue type add name=\"" . 'TP_' . $tp_id . "_in_global_speed\" kind=pcq pcq-rate=$speed_out pcq-classifier=src-address ";
             push @commands, "/queue type add name=\"" . 'TP_' . $tp_id . "_out_global_speed\" kind=pcq pcq-rate=$speed_in pcq-classifier=dst-address ";

@@ -591,7 +591,7 @@ sub hosts_list {
      ['SERVER_VID',      'INT', 'h.server_vid',   1],
      ['NAS_ID',          'INT', 'h.nas AS nas_id',1],
      ['NAS_IP',          'STR', 'nas.ip',  'nas.ip AS nas_ip'],
-     ['DHCPHOSTS_EXT_DEPOSITCHECK', '', '', 'if(company.id IS NULL,ext_b.deposit,ext_cb.deposit) AS ext_deposit' ],
+     ['DHCPHOSTS_EXT_DEPOSITCHECK', '', '', 'if(ext_company.id IS NULL,ext_b.deposit,ext_cb.deposit) AS ext_deposit' ],
      ['BOOT_FILE',       'STR', 'h.boot_file',   1],
      ['NEXT_SERVER',     'STR', 'h.next_server', 1],
      ['UID',             'INT', 'h.uid'          ],

@@ -222,6 +222,7 @@ sub dv_auth {
     }
     else {
       $self->{UIDS} = "$self->{UID}";
+      $self->{JOIN_SERVICE}=$self->{UID};
     }
 
     $self->query2("SELECT uid FROM dv_main WHERE join_service='$self->{JOIN_SERVICE}';");
@@ -445,14 +446,14 @@ sub dv_auth {
 
       if ($self->{TOTAL} == 0) {
         push(@time_limits, $self->{ $line . '_TIME_LIMIT' }) if ($self->{ $line . '_TIME_LIMIT' } > 0);
-        $session_traf_limit = $self->{ $line . '_TRAF_LIMIT' } if ($self->{ $line . '_TRAF_LIMIT' } > 0);
+        $session_traf_limit = $self->{ $line . '_TRAF_LIMIT' } if ($self->{ $line . '_TRAF_LIMIT' } && $self->{ $line . '_TRAF_LIMIT' } > 0);
       }
       else {
         ($session_time_limit, $session_traf_limit) = @{ $self->{list}->[0] };
-        push(@time_limits, $session_time_limit) if ($self->{ $line . '_TIME_LIMIT' } > 0);
+        push(@time_limits, $session_time_limit) if ($self->{ $line . '_TIME_LIMIT' } && $self->{ $line . '_TIME_LIMIT' } > 0);
       }
 
-      if ($self->{ $line . '_TRAF_LIMIT' } && $self->{ $line . '_TRAF_LIMIT' } > 0 && ($traf_limit > $session_traf_limit || !$traf_limit)) {
+      if ($self->{ $line . '_TRAF_LIMIT' } && $self->{ $line . '_TRAF_LIMIT' } > 0 && (! $traf_limit || $traf_limit > $session_traf_limit )) {
         $traf_limit = $session_traf_limit;
       }
 
