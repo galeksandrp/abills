@@ -292,7 +292,7 @@ sub dv_auth {
 
   #Check  simultaneously logins if needs
   if ($self->{LOGINS} > 0) {
-    $self->query2("SELECT CID, INET_NTOA(framed_ip_address), nas_id, status FROM dv_calls WHERE user_name='$RAD->{USER_NAME}' and (status <> 2);");
+    $self->query2("SELECT CID, INET_NTOA(framed_ip_address) AS ip, nas_id, status FROM dv_calls WHERE user_name='$RAD->{USER_NAME}' and (status <> 2);");
     my ($active_logins) = $self->{TOTAL};
     my %active_nas      = ();
     foreach my $line (@{ $self->{list} }) {
@@ -1445,6 +1445,13 @@ sub ex_traffic_params {
 sub get_ip {
   my $self = shift;
   my ($nas_num, $nas_ip, $attr) = @_;
+
+  if (! $self->{LOGINS}) {
+    $self->query2("SELECT INET_NTOA(framed_ip_address) AS ip FROM dv_calls WHERE user_name='$self->{USER_NAME}' AND status=11 AND nas_id='$nas_num';");
+    if ($self->{TOTAL} > 0) {
+      return $self->{list}->[0]->[0];
+    }
+  }
 
   if ($attr->{TP_IPPOOL}) {
     $self->query2("SELECT ippools.ip, ippools.counts, ippools.id FROM ippools

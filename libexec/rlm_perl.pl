@@ -136,8 +136,9 @@ sub post_auth {
 
   my $db     = sql_connect();
 
-  if (! $db) {  
+  if (! $db) {
     print "!!!!!!!!!!!!!!!!!! Can't connect db: $db !!!!!!!!!!!!!!\n";
+    my $a = `echo "RADIUS: Can't connect db: $db\n" >> /tmp/mysql_error `;
   }
   
   my $return = inc_postauth($db, \%REQUEST, $nas);
