@@ -459,8 +459,9 @@ sub check_ip {
 
   $ips =~ s/ //g;
   my $mask           = 0b0000000000000000000000000000001;
-  my @ip_arr         = split(/,/, $ips);
+  my @ip_arr         = split(/,|./, $ips);
   my $require_ip_num = ip2int($require_ip);
+
   foreach my $ip (@ip_arr) {
     if ($ip =~ /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/) {
       if ($require_ip eq "$ip") {

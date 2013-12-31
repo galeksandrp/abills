@@ -475,7 +475,7 @@ sub dv_auth {
     }
   }
 
-  if ($self->{ACCOUNT_EXPIRE} != 0) {
+  if ($self->{ACCOUNT_EXPIRE} && $self->{ACCOUNT_EXPIRE} != 0) {
     my $to_expire = $self->{ACCOUNT_EXPIRE} - $self->{SESSION_START};
     if ($to_expire < $time_limit) {
       $time_limit = $to_expire;
@@ -1051,6 +1051,7 @@ sub authentication {
   { INFO => 1 }
     );
   }
+
   if ($self->{errno}) {
     if($self->{errno} == 2) {
       $RAD_PAIRS{'Reply-Message'} = "Login Not Exist or Expire";
