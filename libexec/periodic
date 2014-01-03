@@ -583,7 +583,7 @@ sub backup {
   $DEBUG .= "DB backup\n" if ($debug > 1);
   $conf{dbcharset} = 'latin1' if (!$conf{dbcharset});
   my $cmd =
-qq{ ( $MYSQLDUMP --default-character-set=$conf{dbcharset} -d --host=$conf{dbhost} --user="$conf{dbuser}" --password="$conf{dbpasswd}" $conf{dbname} ;$MYSQLDUMP --skip-triggers --no-create-info --default-character-set=$conf{dbcharset} -v $ignore_tables --host=$conf{dbhost} --user="$conf{dbuser}" --password="$conf{dbpasswd}" $conf{dbname}) | $GZIP > $conf{BACKUP_DIR}/stats-$DATE.sql.gz };
+qq{ ( $MYSQLDUMP --default-character-set=$conf{dbcharset} -d --host=$conf{dbhost} --user="$conf{dbuser}" --password="$conf{dbpasswd}" $conf{dbname} ;$MYSQLDUMP --skip-triggers --single-transaction --no-create-info --default-character-set=$conf{dbcharset} -v $ignore_tables --host=$conf{dbhost} --user="$conf{dbuser}" --password="$conf{dbpasswd}" $conf{dbname}) | $GZIP > $conf{BACKUP_DIR}/stats-$DATE.sql.gz };
 
   $DEBUG .= $cmd . "\n" if ($debug > 1);
   if ($debug < 5) {

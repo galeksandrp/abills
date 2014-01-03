@@ -1519,14 +1519,14 @@ sub dv_online {
     if ($FORM{dellist}) {
       $sessions->online(
         {
-          SESSION_IDS       => $FORM{dellist},
+          ACCT_SESSION_ID   => '_SHOW',
+          ACCT_SESSION_ID   => $FORM{dellist},
           ZAPED             => 1,
           ACCT_INPUT_OCTETS => '_SHOW',
           ACCT_OUTPUT_OCTETS=> '_SHOW',
           EX_INPUT_OCTETS   => '_SHOW',
           EX_OUTPUT_OCTETS  => '_SHOW',
           ACCT_SESSION_TIME => '_SHOW',
-          ACCT_SESSION_ID   => '_SHOW',
           NAS_PORT_ID       => '_SHOW',
           NAS_IP            => '_SHOW',
           CLIENT_IP         => '_SHOW',
@@ -1843,8 +1843,11 @@ sub dv_online {
           $val =  $line->{$sessions->{COL_NAMES_ARR}->[$i]};
         }
 
-        if ($FORM{UNIVERSAL_SEARCH}) {
-          $line->{$sessions->{COL_NAMES_ARR}->[$i]} =~ s/(.*)$FORM{UNIVERSAL_SEARCH}(.*)/$1$search_color_mark$2/;
+        if ($FORM{FILTER} && $FORM{FILTER_FIELD} eq uc($sessions->{COL_NAMES_ARR}->[$i])) {
+        	my $filter = $FORM{FILTER};
+        	$filter=~s/\*//g;
+        	my $search_color_mark=$html->color_mark($filter, $_COLORS[6]);
+          $val =~ s/(.*)$filter(.*)/$1$search_color_mark$2/i;
         }
       
         push @fields_array, $val;
@@ -1918,6 +1921,7 @@ sub dv_online_search {
       TURBO_MODE     => $_TURBO_MODE,
       JOIN_SERVICE   => $_JOIN_SERVICE,
       ADDRESS_FULL   => $_ADDRESS,
+      ACCT_SESSION_ID=> 'SESSION_ID',
       UID            => 'UID',
       LAST_ALIVE     => "$_ALIVE"
   );
@@ -1930,7 +1934,6 @@ sub dv_online_search {
         NO_ID    => 1
       }
     );
-
 
   my $table = $html->table(
     {

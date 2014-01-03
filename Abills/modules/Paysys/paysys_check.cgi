@@ -219,7 +219,7 @@ elsif ($FORM{__BUFFER} =~ /^{.+}$/ &&
   exit;
 }
 # Privat bank terminal interface
-elsif (check_ip($ENV{REMOTE_ADDR}, '107.22.173.15,107.22.173.86,217.117.64.232/28,75.101.163.115,213.154.214.76,192.168.1.107,217.117.64.232/29,192.168.1.103')) {
+elsif (check_ip($ENV{REMOTE_ADDR}, '107.22.173.15,107.22.173.86,217.117.64.232/28,75.101.163.115,213.154.214.76,192.168.1.107,217.117.64.232/29')) {
   eval { require "Privat_terminal.pm" };
   if ( $@ ) {
   	print $@;
@@ -459,7 +459,7 @@ sub check_ip {
 
   $ips =~ s/ //g;
   my $mask           = 0b0000000000000000000000000000001;
-  my @ip_arr         = split(/,|./, $ips);
+  my @ip_arr         = split(/,/, $ips);
   my $require_ip_num = ip2int($require_ip);
 
   foreach my $ip (@ip_arr) {
@@ -928,6 +928,8 @@ sub osmp_payments {
   while (my ($k, $v) = each %RESULT_HASH) {
     $results .= "<$k>$v</$k>\n";
   }
+
+  chomp($results);
 
   my $response = qq{<?xml version="1.0" encoding="UTF-8"?>
 <response>

@@ -1945,6 +1945,7 @@ sub paysys_p24_get_payments {
           . $html->form_input('DESCRIBE_' . $ID, $line->{'description'}, { TYPE => 'hidden' });
         }
       }
+
       $table->addrow(
         $ID,
         $client,
