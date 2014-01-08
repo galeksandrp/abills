@@ -5754,7 +5754,7 @@ sub dv_monthly_fees {
                 if ($credit_period > 0) {
                   $users->change($user{UID}, {
                                             UID         => $user{UID},
-                                            CREDIT_DATE => "$y-". ($m+1) ."-$credit_period",
+                                            CREDIT_DATE => "$y-". (($m < 12) ? $m+1 : 1) ."-$credit_period",
                                             CREDIT      => $sum
                                           });
                   $user{CREDIT}  = $sum;

@@ -184,11 +184,13 @@ if ($conf{PAYSYS_SUCCESSIONS}) {
         require "$function";
       }
       else {
-        $function->({%system_params});
+        $function->(\%system_params);
       }
 
       exit;
     }
+    
+    %system_params = ();
   }
 }
 

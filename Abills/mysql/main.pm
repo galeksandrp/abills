@@ -351,6 +351,7 @@ sub search_former {
                                             'COMMENTS',
                                             'BILL_ID',
                                             'LOGIN_STATUS',
+                                            'DOMAIN_ID',
                                             
                                             'ACTIVATE',
                                             'EXPIRE',

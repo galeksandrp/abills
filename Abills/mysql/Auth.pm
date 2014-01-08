@@ -1809,12 +1809,12 @@ sub rad_pairs_former () {
     if ($line =~ /([a-zA-Z0-9\-]{6,25})\s?\+\=\s?(.{1,200})/) {
       my $left  = $1;
       my $right = $2;
-
       #$right =~ s/\"//g;
       push(@{ $RAD_PAIRS->{"$left"} }, $right);
     }
     else {
       my ($left, $right) = split(/=/, $line, 2);
+      $left=~s/^ //g;
       if ($left =~ s/^!//) {
         delete $RAD_PAIRS->{"$left"};
       }

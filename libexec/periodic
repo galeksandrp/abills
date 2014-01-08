@@ -804,6 +804,7 @@ sub credit_full_set {
     		                 CREDIT      => ($full_sum+1),
     		                 CREDIT_DATE => ($CREDIT_EXPIRE_DATE) ? $CREDIT_EXPIRE_DATE : undef
     		              });
+
     	$DEBUG .= "SUM: $full_sum\n" if ($debug > 0);
     }
   }
