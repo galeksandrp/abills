@@ -9,7 +9,7 @@
 <tr><td>$_COMMISSION:</td><td>%COMMISSION_SUM%</td></tr>
 <tr><td>$_TOTAL $_SUM:</td><td>$FORM{TOTAL_SUM}</td></tr>
 
-<input type='hidden' name='amt' value='$FORM{SUM}' />
+<input type='hidden' name='amt' value='$FORM{TOTAL_SUM}' />
 <input type='hidden' name='UID' value='$LIST_PARAMS{UID}'>
 <input type='hidden' name='ccy' value='$conf{PAYSYS_P24_MERCHANT_CURRENCY}' />
 <input type='hidden' name='merchant' value='$conf{PAYSYS_P24_MERCHANT_ID}' />

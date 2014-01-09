@@ -1172,11 +1172,12 @@ sub unreg_requests_list {
   m.datetime,
   m.subject,
   m.fio,
-  mc.name,
-  ra.id,
+  mc.name AS chapter_name,
+  ra.id AS admin_login,
   m.state,
   m.priority,
   m.closed_date,
+  $self->{SEARCH_FIELDS}
   m.responsible_admin
 FROM (msgs_unreg_requests m)
 LEFT JOIN admins ra ON (m.received_admin=ra.aid)

@@ -27,7 +27,7 @@
 <tr><th align=left class='odd'>$_FIO:</th><th align=left  class='odd'> %FIO% </th></tr>
 <tr><th align=left class='odd'>$_COMPANY:</th><td class='odd'> %COMPANY%</td></tr>
 <tr><th align=left class='odd'>$_PHONE:</th><td class='odd'> %PHONE% </td></tr>
-<tr><th align=left class='odd'>$_ADDRESS:</th><td class='odd'> %ADDRESS_STREET%  %ADDRESS_BUILD% %ADDRESS_FLAT%</td></tr>
+<tr><th align=left class='odd'>$_ADDRESS:</th><td class='odd'>%ADDRESS_DISTRICT% %ADDRESS_STREET%, %ADDRESS_BUILD%  %ADDRESS_FLAT%</td></tr>
 <tr><th align=left class='odd'>E-mail:</th><td class='odd'> %EMAIL%</td></tr>
 </table>
 </td></tr>
