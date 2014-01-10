@@ -725,7 +725,7 @@ sub report_tp {
 
   $self->query2("SELECT tp.id, tp.name, count(DISTINCT dv.uid) AS counts,
       sum(if(dv.disable=0, 1, 0)) AS active,
-      sum(if(dv.disable=1, 1, 0)) AS disabled,
+      sum(if(dv.disable=1 or u.disable=1, 1, 0)) AS disabled,
       sum(if(if(u.company_id > 0, cb.deposit, b.deposit) <= 0, 1, 0)) AS debetors,
       tp.tp_id
       FROM users u

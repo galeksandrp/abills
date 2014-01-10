@@ -372,6 +372,9 @@ sub reports {
       $date       = "pi.fio";
       $GROUP      = 5;
     }
+    elsif ($attr->{TYPE} eq 'PER_MONTH') {
+      $date = "date_format(p.date, '%Y-%m') AS date";
+    }
     elsif ($attr->{TYPE} eq 'ADMINS') {
       $date = "a.id AS admin_name";
     }
@@ -379,7 +382,7 @@ sub reports {
       $date = "u.id AS login";
     }
   }
-  elsif (defined($attr->{MONTH})) {
+  elsif ($attr->{MONTH}) {
     push @WHERE_RULES, "date_format(p.date, '%Y-%m')='$attr->{MONTH}'";
     $date = "date_format(p.date, '%Y-%m-%d') AS date";
   }
@@ -398,6 +401,7 @@ sub reports {
     push @WHERE_RULES, @{ $self->search_expr($attr->{ADMINS}, 'STR', 'a.id') };
     $date = 'u.id AS login';
   }
+
 
   if ($admin->{DOMAIN_ID}) {
     push @WHERE_RULES, @{ $self->search_expr("$admin->{DOMAIN_ID}", 'INT', 'u.domain_id', { EXT_FIELD => 0 }) };

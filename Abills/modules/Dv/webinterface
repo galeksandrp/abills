@@ -2578,7 +2578,7 @@ sub dv_error {
   my $login     = '';
 
   my %log_levels_rev = reverse %log_levels;
-  my @ACTIONS = ('', 'AUTH', 'ACCT', 'HANGUP', 'CALCULATION', 'CMD', 'LOST_ALIVE');
+  my @ACTIONS = ('', 'AUTH', 'ACCT', 'HANGUP', 'CALCULATION', 'CMD', 'LOST_ALIVE', 'GUEST_MODE');
 
   if ($attr->{USER_INFO}) {
     my $user = $attr->{USER_INFO};
@@ -7356,10 +7356,11 @@ sub dv_compensation () {
     );
 
     if ($users->{ACTIVATE} ne '0000-00-00') {
-      my $from_seltime = POSIX::mktime(0, 0, 0, $FROM_D, ($FROM_M - 1), ($FROM_Y - 1900));
-      my $to_seltime   = POSIX::mktime(0, 0, 0, $TO_D,   ($TO_M - 1),   ($TO_Y - 1900));
-      $days = int(($to_seltime - $from_seltime) / 86400);
+      $days = date_diff($FORM{FROM_DATE}, $FORM{TO_DATE});
       $sum = $days * ($Dv->{MONTH_ABON} / 30);
+      if ($Dv->{DAY_ABON} > 0) {
+      	$sum += $days * $Dv->{DAY_ABON}; 
+      }      
     }
     else {
       if ("$FROM_Y-$FROM_M" eq "$TO_Y-$TO_M") {

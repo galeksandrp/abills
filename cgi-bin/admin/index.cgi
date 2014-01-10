@@ -5305,7 +5305,8 @@ sub report_fees {
         METHOD    => $_TYPE,
         ADMINS    => $_ADMINS,
         FIO       => $_FIO,
-        COMPANIES => "$_COMPANIES"
+        COMPANIES => "$_COMPANIES",
+        PER_MONTH => $_PER_MONTH
       }
     }
   );
@@ -5512,7 +5513,8 @@ sub report_payments {
       EXT_TYPE    => {
         PAYMENT_METHOD => $_PAYMENT_METHOD,
         ADMINS         => $_ADMINS,
-        FIO            => $_FIO
+        FIO            => $_FIO,
+        PER_MONTH      => $_PER_MONTH
       }
     }
   );
@@ -6265,7 +6267,6 @@ sub form_payments () {
        width      => '100%',
        caption    => "$_PAYMENTS",
        border     => 1,
-       #title      => \@caption,
        cols_align => [ 'right', 'left', 'right', 'right', 'left', 'left', 'right', 'right', 'left', 'left', 'center:noprint' ],
        qs         => $pages_qs,
        pages      => $payments->{TOTAL},
@@ -6779,18 +6780,19 @@ sub form_fees {
         }
       }
     }
-    elsif ($FORM{del} && $FORM{is_js_confirmed}) {
+    elsif ($FORM{del} && $FORM{COMMENTS}) { #$FORM{is_js_confirmed}) {
       if (!defined($permissions{2}{2})) {
         $html->message('err', $_ERROR, "[13] $err_strs{13}");
         return 0;
       }
 
-      $fees->del($user, $FORM{del});
+      $fees->del($user, $FORM{del}, { COMMENTS => $FORM{COMMENTS} });
+      
       if ($fees->{errno}) {
         $html->message('err', $_ERROR, "[$fees->{errno}] $err_strs{$fees->{errno}}");
       }
       else {
-        $html->message('info', $_DELETED, "$_DELETED [$FORM{del}]");
+        $html->message('info', $_FEES, "$_DELETED ID: $FORM{del}");
       }
     }
 
@@ -6930,7 +6932,9 @@ sub form_fees {
 
   my $pages_qs .= "&subf=2" if (!$FORM{subf});
   foreach my $line (@$fees_list) {
-    my $delete = ($permissions{2}{2}) ? $html->button($_DEL, "index=3&del=$line->{id}&UID=$line->{uid}", { MESSAGE => "$_DEL ID: $line->{id}?", CLASS => 'del' }) : '';
+#    my $delete = ($permissions{2}{2}) ? $html->button($_DEL, "index=3&del=$line->{id}&UID=$line->{uid}", { MESSAGE => "$_DEL ID: $line->{id}?", CLASS => 'del' }) : '';
+
+    my $delete = ($permissions{1}{2}) ? $html->button($_DEL, "index=3&del=$line->{id}&UID=$line->{uid}$pages_qs", { COMMENTS_ADD => "$_DEL [$line->{id}] ? $_COMMENTS:", CLASS => 'del' }) : '';
 
     my @fields_array = ();
     for (my $i = 0; $i < 1+$fees->{SEARCH_FIELDS_COUNT}; $i++) {

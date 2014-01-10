@@ -1117,6 +1117,11 @@ sub table {
       $self->{table} .= "<div id='popup_window_content'><br/>";
 
       foreach my $k (sort keys %{ $attr->{SHOW_COLS} }){
+      	if ($k eq 'uid' && ($FORM{UID} && $FORM{UID} ne '_SHOW')) {
+      		$self->{table} .= "<input type=hidden name=UID value=$FORM{UID}>";
+      		next;
+      	}
+
       	my $v = $attr->{SHOW_COLS}->{$k};
       	my $uc_name = ($k !~ /^_/) ? uc($k) : $k;
       	$self->{table} .= "<input type=checkbox name=show_columns value=$uc_name";
