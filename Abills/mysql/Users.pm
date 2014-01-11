@@ -318,12 +318,13 @@ sub pi {
   my ($attr) = @_;
 
   my $UID = ($attr->{UID}) ? $attr->{UID} : $self->{UID};
-
   #Make info fields use
   my $info_fields     = '';
   my @info_fields_arr = ();
 
-  my $list = $self->config_list({ PARAM => 'ifu*', SORT => 2 });
+  my $list = $self->config_list({ PARAM     => 'ifu*', 
+  	                              SORT      => 2,
+  	                              DOMAIN_ID => $self->{DOMAIN_ID} });
   if ($self->{TOTAL} > 0) {
     my %info_fields_hash = ();
 

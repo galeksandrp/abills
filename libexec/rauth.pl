@@ -175,6 +175,9 @@ sub auth {
   else {
     $auth_mod{'default'} = Auth->new($db, \%conf);
     ($r, $RAD_PAIRS) = $auth_mod{"default"}->dv_auth($RAD, $nas, { MAX_SESSION_TRAFFIC => $conf{MAX_SESSION_TRAFFIC} });
+    if($auth_mod{'default'}->{GUEST_MODE}) {
+    	$Log->{ACTION} = 'GUEST_MODE';
+    }
   }
 
   %RAD_REPLY = %$RAD_PAIRS;
@@ -197,7 +200,6 @@ sub auth {
     return $r;
   }
   else {
-
     #GEt Nas rad pairs
     if ($nas->{NAS_RAD_PAIRS}) {
       $nas->{NAS_RAD_PAIRS} =~ tr/\n\r//d;

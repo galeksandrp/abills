@@ -4,7 +4,6 @@ package Abills::Base;
 
 use strict;
 use vars qw(@ISA @EXPORT @EXPORT_OK %EXPORT_TAGS $VERSION
-%conf
 );
 
 use Exporter;
@@ -842,13 +841,8 @@ sub encode_base64 ($;$) {
 # check_time()
 #**********************************************************
 sub check_time {
-
-  # return 0 if ($conf{time_check} == 0);
-
   my $begin_time = 0;
 
-  # BEGIN {
-  #my $begin_time = 0;
   #Check the Time::HiRes module (available from CPAN)
   eval { require Time::HiRes; };
   if (!$@) {
@@ -856,7 +850,6 @@ sub check_time {
     $begin_time = gettimeofday();
   }
 
-  #  }
   return $begin_time;
 }
 

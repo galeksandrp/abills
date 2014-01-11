@@ -126,7 +126,7 @@ if ($uid > 0) {
   #Quick Amon Alive Update
   # $ENV{HTTP_USER_AGENT} =~ /^AMon /
   if ($FORM{ALIVE}) {
-    require "Abills/modules/Ipn/webinterface";
+    load_module('Ipn', $html);
     print $html->header();
     $LIST_PARAMS{LOGIN} = $user->{LOGIN};
     ipn_user_activate();
@@ -426,6 +426,7 @@ sub form_info {
           	  USER_INFO => $user, 
           	  #SUM       => $sum,
           	  QUITE     => 1 });
+
           if ($conf{external_userchange}) {
             if (!_external($conf{external_userchange}, $user)) {
               return 0;
@@ -437,16 +438,9 @@ sub form_info {
         $user->{CREDIT_DATE} = $credit_date;
       }
       else {
-      	#$user->{CREDIT_CHG_PRICE} = (($price && $price > 0) ? sprintf(" (%s: %.2f)", "$_CREDIT $_CHANGE $_PRICE", $price) : undef);
       	$user->{CREDIT_CHG_PRICE} = sprintf("%.2f", $price);
       	$user->{CREDIT_SUM} = sprintf("%.2f", $sum);
         $user->{CREDIT_CHG_BUTTON} = $html->button("$_SET $_CREDIT", '#', { ex_params => "ID=hold_up_window name=hold_up_window", BUTTON => 1 });
-        #$html->form_input('hold_up_window', "$_SET $_CREDIT", { OUTPUT2RETURN => 1 });
-        #$html->button(
-        #  "$_SET $_CREDIT: " . $user->{CREDIT_SUM} . $user->{CREDIT_CHG_PRICE} ,
-        #  "index=". get_function_index('form_info') ."&sid=$sid&change_credit=$sum",
-        #  { BUTTON => 1, ex_params => "name=hold_up_window"  }
-        #);
       }
     }
   }
@@ -486,10 +480,10 @@ sub form_info {
   $LIST_PARAMS{PAGE_ROWS} = 1;
   $LIST_PARAMS{DESC}      = 'desc';
   $LIST_PARAMS{SORT}      = 1;
-  my $list = $Payments->list({%LIST_PARAMS});
+  my $list = $Payments->list({%LIST_PARAMS, COLS_NAME => 1 });
 
-  $user->{PAYMENT_DATE} = $list->[0]->[2];
-  $user->{PAYMENT_SUM}  = $list->[0]->[4];
+  $user->{PAYMENT_DATE} = $list->[0]->{date};
+  $user->{PAYMENT_SUM}  = $list->[0]->{sum};
   if ($conf{EXT_BILL_ACCOUNT} && $user->{EXT_BILL_ID} > 0) {
     $user->{EXT_DATA} = $html->tpl_show(templates('form_ext_bill'), $user, { OUTPUT2RETURN => 1 });
   }
@@ -499,6 +493,7 @@ sub form_info {
   $user->{DEPOSIT} = ($deposit < $user->{DEPOSIT}) ? $deposit + 0.01 : $deposit;
   my $sum = ($user->{DEPOSIT} < 0) ? abs($user->{DEPOSIT} * 2) : 0;
   $pages_qs = "&SUM=$sum&sid=$sid";
+
   if (in_array('Docs', \@MODULES)) {
     my $fn_index = get_function_index('docs_invoices_list');
     $user->{DOCS_ACCOUNT} = $html->button("$_INVOICE_CREATE", "index=$fn_index$pages_qs", { BUTTON => 1 });
@@ -520,7 +515,7 @@ sub form_info {
     if ($field_id eq '_rating') {
       $extra = $html->button($_RATING, "index=" . get_function_index('dv_rating_user'), { BUTTON => 1 });
     }
-    $user->{INFO_FIELDS} .= "<tr><td>" . (eval "\"$name\"") . ":</td><td valign='center'>$user->{INFO_FIELDS_VAL}->[$i] $extra</td></tr>\n";
+    $user->{INFO_FIELDS} .= "<tr><td><strong>" . (eval "\"$name\"") . ":</strong></td><td valign='center'>$user->{INFO_FIELDS_VAL}->[$i] $extra</td></tr>\n";
   }
 
   $html->tpl_show(templates('form_client_info'), $user);
@@ -538,7 +533,7 @@ sub form_info {
   }
 
   if (in_array('Dv', \@MODULES)) {
-    require "Abills/modules/Dv/webinterface";
+    load_module('Dv', $html);
     dv_user_info();
   }
 }
@@ -1107,12 +1102,13 @@ sub form_fees {
   my $Fees  = Finance->fees($db, $admin, \%conf);
   my $list  = $Fees->list({%LIST_PARAMS, 
   	                       DSC       => '_SHOW',
-  	                       DATE      => '_SHOW',
+  	                       DATE_TIME => '_SHOW',
   	                       SUM       => '_SHOW',
   	                       DEPOSIT   => '_SHOW',
   	                       METHOD    => '_SHOW',
   	                       LAST_DEPOSIT => '_SHOW',
   	                       COLS_NAME => 1 });
+
   my $table = $html->table(
     {
       width       => '100%',

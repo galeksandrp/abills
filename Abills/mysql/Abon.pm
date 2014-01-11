@@ -125,7 +125,9 @@ sub tariff_add {
 
   %DATA = $self->get_data($attr);
    
-  $self->query_add('abon_tariffs', \%DATA);
+  $self->query_add('abon_tariffs', { %DATA,
+  	                                 DOMAIN_ID => $admin->{DOMAIN_ID} || 0 
+  	                               });
 
   return $self if ($self->{errno});
   $admin->system_action_add("ABON_ID:$DATA{ID}", { TYPE => 1 });
@@ -188,18 +190,19 @@ sub tariff_del {
 sub tariff_list {
   my $self = shift;
   my ($attr) = @_;
-  @WHERE_RULES = ();
 
   $SORT      = ($attr->{SORT})      ? $attr->{SORT}           : 1;
   $DESC      = ($attr->{DESC})      ? $attr->{DESC}           : '';
   $PG        = ($attr->{PG})        ? $attr->{PG}             : 0;
   $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? int($attr->{PAGE_ROWS}) : 25;
-
-  if ($attr->{IDS}) {
-    push @WHERE_RULES, "abon_tariffs.id IN ($attr->{IDS})";
-  }
-
-  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES) : '';
+ 
+  my $WHERE =  $self->search_former($attr, [
+        [ 'IDS',         'INT', 'abon_tariffs.id'       ],
+        [ 'DOMAIN_ID',   'INT', 'abon_tariffs.domain_id'],
+    ],
+    { WHERE => 1,
+    }    
+  );
 
   $self->query2("SELECT name, price, period, payment_type, 
      priority,
@@ -342,8 +345,9 @@ sub user_tariff_list {
   my $self = shift;
   my ($uid, $attr) = @_;
 
-  # @WHERE_RULES = ("ul.uid='$uid'");
-  # $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
+  @WHERE_RULES = ("at.domain_id='$admin->{DOMAIN_ID}'");
+  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
+
   $self->query2("SELECT at.id, 
       at.name, 
       if(ul.comments <> '', ul.comments, '') AS comments, 
@@ -387,6 +391,7 @@ sub user_tariff_list {
    if (\@next_abon < curdate(), 1, 0) AS missing
      FROM abon_tariffs at
      LEFT JOIN abon_user_list ul ON (at.id=ul.tp_id and ul.uid='$uid')
+     $WHERE
      GROUP BY at.id
      ORDER BY $SORT $DESC;",
    undef,

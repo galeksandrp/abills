@@ -2641,11 +2641,7 @@ sub dv_error {
       $LIST_PARAMS{DESC} = DESC;
     }
 
-    if ($FORM{search}) {
-      $LIST_PARAMS{INTERVAL} = "$FORM{FROM_DATE}/$FORM{TO_DATE}";
-    }
-
-    $list = $Log->log_list({%LIST_PARAMS});
+    $list = $Log->log_list({%LIST_PARAMS, COLS_NAME => 1 });
     my $table = $html->table(
       {
         caption    => $_TOTAL,
@@ -2656,8 +2652,8 @@ sub dv_error {
 
     my $total = 0;
     foreach my $line (@{ $Log->{list} }) {
-      $table->addrow($log_levels_rev{ $line->[0] }, $line->[1]);
-      $total += $line->[1];
+      $table->addrow($log_levels_rev{ $line->{log_type} }, $line->{count});
+      $total += $line->{count};
     }
 
     $table->addrow($_TOTAL, $total);
@@ -2678,7 +2674,22 @@ sub dv_error {
     );
 
     foreach my $line (@$list) {
-      $table->addrow($line->[0], $log_levels_rev{ $line->[1] }, $line->[2], $html->button($line->[3], "index=11&LOGIN=$line->[3]"), ($line->[1] < 5) ? $html->color_mark($line->[4], "$_COLORS[6]") : $line->[4], $nas_ids{ $line->[5] });
+      my $message = $line->{message};
+    
+      if($line->{log_type} < 5) {
+      	$message = $html->color_mark($line->{message}, "$_COLORS[6]");
+      }
+      elsif($line->{action} eq 'GUEST_MODE') {
+    	  $message = $html->color_mark($line->{message}, "$_COLORS[8]");
+    	  $line->{action} = $html->color_mark($line->{action}, "$_COLORS[8]");
+      }
+
+      $table->addrow($line->{date}, 
+      $log_levels_rev{ $line->{log_type} }, 
+      $line->{action}, 
+      $html->button($line->{user}, "index=11&LOGIN=$line->{user}"), 
+      $message, 
+      $nas_ids{ $line->{nas_id} });
     }
 
     print $table->show();

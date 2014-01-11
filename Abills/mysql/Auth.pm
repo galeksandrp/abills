@@ -15,6 +15,7 @@ $VERSION = 2.02;
 &check_bill_account
 &get_ip
 &online_add
+%connect_errors_ids
 );
 
 @EXPORT_OK   = ();
@@ -29,6 +30,17 @@ my $Billing;
 my $CONF;
 my $debug = 0;
 my $RAD_PAIRS;
+
+my %connect_errors_ids = (
+  1 => 'WRONG_PASS',
+  2 => 'USER_NOT_EXIST',
+  3 => 'AUTH_ERROR',
+  4 => 'NEG_DEPOSIT',
+  5 => 'NOT_ALLOW_SERVICE',
+  6 => 'DISABLE',
+  7 => 'WRONG_PORT',
+  8 => 'WRONG_CID' );
+
 
 #**********************************************************
 # Init
@@ -1784,6 +1796,8 @@ sub neg_deposit_filter_former () {
   else {
     $RAD_PAIRS->{'Filter-Id'} = "$NEG_DEPOSIT_FILTER_ID";
   }
+
+  $self->{GUEST_MODE}=1;
 
   if ($attr->{USER_FILTER}) {
     return 0;
