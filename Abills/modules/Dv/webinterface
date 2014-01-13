@@ -2583,12 +2583,10 @@ sub dv_error {
 
   if ($attr->{USER_INFO}) {
     my $user = $attr->{USER_INFO};
-    $login = $user->{LOGIN};
-    $LIST_PARAMS{LOGIN_EXPR} = $user->{LOGIN};
+    $LIST_PARAMS{LOGIN} = $user->{LOGIN};
   }
   elsif ($FORM{LOGIN}) {
-    $login = $FORM{LOGIN};
-    $LIST_PARAMS{LOGIN_EXPR} = $FORM{LOGIN};
+    $LIST_PARAMS{LOGIN} = $FORM{LOGIN};
     $pages_qs .= "&LOGIN=$FORM{LOGIN}";
   }
   elsif ($FORM{UID}) {
@@ -2707,7 +2705,7 @@ sub dv_error {
   }
 
   my ($list, $types, $totals) = show_log(
-    "$login",
+    "$LIST_PARAMS{LOGIN}",
     "$conf{LOGFILE}",
     {
       DATE      => $FORM{DATE},
@@ -2748,10 +2746,9 @@ sub dv_error {
     $table->addrow($html->button($k, "index=$index&LOG_TYPE=$k$pages_qs"), $v);
   }
 
-  $table->addrow($_SIZE, int2byte((-s $conf{LOGFILE}))) if ($login eq '');
+  $table->addrow($_SIZE, int2byte((-s $conf{LOGFILE}))) if ($LIST_PARAMS{LOGIN} eq '');
 
   print $table->show();
-
 }
 
 #**********************************************************
