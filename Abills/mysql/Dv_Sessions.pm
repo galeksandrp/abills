@@ -884,6 +884,7 @@ sub list {
       [ 'LOGIN',           'STR', 'u.id AS login',                1],
       [ 'DATE',            'DATE','l.start',                      1],
       [ 'START',           'DATE','l.start',                      1],
+      [ 'END',             'DATE','l.start+interval l.duration second', 'l.start+interval l.duration second AS end '],
       [ 'DURATION',        'DATE','SEC_TO_TIME(l.duration) AS duration',   1 ],
       [ 'SENT',            'INT', 'l.sent + 4294967296 * acct_output_gigawords AS sent', 1 ], 
       [ 'RECV',            'INT', 'l.recv + 4294967296 * acct_input_gigawords AS recv',  1 ], 

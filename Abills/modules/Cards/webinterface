@@ -230,14 +230,14 @@ sub cards_main {
      },
      TABLE => { 
         width      => '100%',
-        caption    => "$_SERIAL: $FORM{SERIA}",
+        caption    => "$_SERIAL: '$FORM{SERIAL}'",
         qs         => $pages_qs,
         pages      => $Cards->{TOTAL},
         ID         => $form_name,
         SELECT_ALL => (! defined($FORM{SERIAL})) ? '' : ($permissions{0}{7}) ? "cards_list:IDS:$_SELECT_ALL" : undef,
-        header     => (! defined($FORM{SERIAL})) ? '' : $html->button("$_PRINT PDF", "qindex=$index&PAGE_ROWS=100000&pdf=1&print_cards=1&$pages_qs" . (($FORM{SERIAL} && $pages_qs !~ /SERIAL/) ? "&SERIA=$FORM{SERIA}" : ''), { ex_params => 'target=_new' }) . ' '
+        header     => (! defined($FORM{SERIAL})) ? '' : $html->button("$_PRINT PDF", "qindex=$index&PAGE_ROWS=100000&pdf=1&print_cards=1&$pages_qs" . (($FORM{SERIAL} && $pages_qs !~ /SERIAL/) ? "&SERIA=$FORM{SERIAL}" : ''), { ex_params => 'target=_new' }) . ' '
         . $html->button('CSV', "qindex=$index&csv=1&PAGE_ROWS=100000&print_cards=1&$pages_qs", { ex_params => 'target=_new' }),
-        EXPORT     => 1,
+        EXPORT     => (! defined($FORM{SERIAL})) ? '' : 1,
         MENU       => "$_ADD:index=". get_function_index('cards_add') ."&$pages_qs:add;$_SEARCH:index=$index&search_form=1:search",
       }
     });
@@ -250,7 +250,7 @@ sub cards_main {
     for (my $i = 0; $i < 1+$Cards->{SEARCH_FIELDS_COUNT}; $i++) {
  	    my $field_name = $Cards->{COL_NAMES_ARR}->[$i];
     	if (defined($FORM{SERIAL}) && $field_name eq 'serial') {
-    		$val = $html->form_input("IDS", "$line->{id}", { TYPE => 'checkbox' }) . $html->b($line->{serial}),
+    		$val = ((! $FORM{EXPORT_CONTENT}) ? $html->form_input("IDS", "$line->{id}", { TYPE => 'checkbox' }) : '') . $html->b($line->{serial}),
     	}
       elsif($field_name eq 'deleted') {
         $val = $html->color_mark($bool_vals[ $line->{deleted} ], ($line->{deleted} == 1) ? $state_colors[ $line->{deleted} ] : '');
@@ -299,7 +299,7 @@ sub cards_main {
 
   $op_sid = mk_unique_value(8);
 
-  if (defined($FORM{SERIAL})) {
+  if (defined($FORM{SERIAL}) && ! $FORM{EXPORT_CONTENT}) {
     print $html->form_main(
         {
           CONTENT => $table->show() . "$_SOLD: " . $html->form_input('SOLD', 1, { TYPE => 'checkbox' }) . "$_CREATE $_INVOICE " . $html->form_input('INVOICE', 1, { TYPE => 'checkbox' }) . "$_DILLERS: " . $Cards->{DILLERS_SEL} . "$_STATUS: " . $Cards->{STATUS_SEL},
@@ -332,8 +332,6 @@ sub cards_main {
         [ $html->color_mark("$_USED:", $status_colors[2]), $Cards->{USED}, $Cards->{USED_SUM} ],
         [ "$_ENABLE:", $Cards->{ENABLED}, $Cards->{ENABLED_SUM} ],
         [ $html->color_mark("$_DISABLE:", $_COLORS[6]), $Cards->{DISABLED}, $Cards->{DISABLED_SUM} ],
-
-        #                                           [ "$_DELETED:",  $Cards->{DELETED}        , $Cards->{DELETED_SUM}     ],
         [ $html->color_mark("$_RETURNED", '#FF8000'), $Cards->{RETURNED}, $Cards->{RETURNED_SUM} ],
         [ "$_SOLD:", $Cards->{DILLER_SOLD}, $Cards->{DILLER_SOLD_SUM} ]
       ]
@@ -1588,7 +1586,7 @@ sub cards_diller_add {
         $html->message('err', "$_INFO", "$ERR_SELECT_TARIF_PLAN");
       }
       elsif ($FORM{TYPE}) {
-        require "Abills/modules/Dv/webinterface";
+        load_module('Dv', $html); 
         $FORM{add}    = 1;
         $FORM{create} = 1;
         if (!$FORM{BEGIN}) {

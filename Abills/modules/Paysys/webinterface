@@ -3146,6 +3146,8 @@ sub paysys_payu {
     exit;
   }
 
+ #$conf{PAYSYS_PAYU_SECRET}
+
   my $ctx = Digest::SHA1->new;
   $ctx->add($conf{PAYSYS_PB_PW} . $conf{PAYSYS_PB_MERID} . '414963' . $info{OPERATION_ID} . $info{AMOUNT} . '980' . $info{AMOUNT2} . '840' . $info{AdditionalData});
   $info{ORDER_HASH}            = $ctx->b64digest();

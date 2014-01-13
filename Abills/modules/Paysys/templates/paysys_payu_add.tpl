@@ -15,8 +15,7 @@
 <input type='hidden' name='TESTORDER' value='%TESTORDER%'>
 <input type='hidden' name='DEBUG' value='$conf{PAYSYS_PAYU_DEBUG}'>
 <input type='hidden' name='ORDER_HASH' value='%ORDER_HASH%'>
-<input type='hidden' name='BACK_REF' value='https://$ENV{SERVER_NAME}:$ENV{SERVER_PORT}/index.cgi?UID=$LIST_PARAMS{UID}&index=$index&
-sid=$FORM{sid}'>
+<input type='hidden' name='BACK_REF' value='$SELF_URL?UID=$LIST_PARAMS{UID}&index=$index&sid=$FORM{sid}'>
 <table width=400 class=form>
 <tr><th class='form_title' colspan=2>PayU</th></tr>
 <tr><td>Operation ID:</td><td>$FORM{OPERATION_ID}</td></tr>
