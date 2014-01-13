@@ -2053,7 +2053,7 @@ sub dv_sessions {
        'dv_status'   => "$_STATUS",
        'terminate_cause' => 'TC',
        'start'       => "$_START $_SESSIONS", 
-       'end'         => "$_END $_SESSIONS"
+       'end'         => "$_END $_SESSIONS",
        'duration'    => "$_DURATION", 
        'sent'        => (($TRAFFIC_NAMES{0}) ? $TRAFFIC_NAMES{0} : '') . " $_SENT", 
        'recv'        => (($TRAFFIC_NAMES{0}) ? $TRAFFIC_NAMES{0} : '') . " $_RECV", 
