@@ -337,8 +337,13 @@ sub form_info {
   $admin->{SESSION_IP} = $ENV{REMOTE_ADDR};
   my $Payments = Finance->payments($db, $admin, \%conf);
 
+  if ($FORM{PRINT_CONTRACT}) {
+    load_module('Docs', $html);
+    docs_contract();
+    return 0;
+  }
   #Credit functions
-  if ($conf{user_credit_change}) {
+  elsif ($conf{user_credit_change}) {
     my ($sum, $days, $price, $month_changes, $payments_expr) = split(/:/, $conf{user_credit_change});
     $month_changes = 0 if (!$month_changes);
     my $credit_date = strftime "%Y-%m-%d", localtime(time + int($days) * 86400);

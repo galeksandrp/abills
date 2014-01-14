@@ -38,19 +38,23 @@ sub docs_contract {
   my ($attr) = @_;
 
   if ($FORM{UID}) {
+    if (! $users && $user) {
+      $users=$user;
+    }
+  
     my $user_main_info = $users->info($FORM{UID}, { SHOW_PASSWORD => 1 });
-    $Docs = $users->pi({ UID => $FORM{UID} });
+    $users->pi({ UID => $FORM{UID} });
 
     my ($y, $m, $d) = split(/-/, (($users->{CONTRACT_DATE}) ? $users->{CONTRACT_DATE} : $DATE), 3);
-    $Docs->{CONTRACT_DATE_LIT} = "$d " . $MONTHES_LIT[ int($m) - 1 ] . " $y $_YEAR_SHORT";
+    $users->{CONTRACT_DATE_LIT} = "$d " . $MONTHES_LIT[ int($m) - 1 ] . " $y $_YEAR_SHORT";
     if ($y=~/(\d{2})$/) {
-      $Docs->{CONTRACT_YY}=$1;
+      $users->{CONTRACT_YY}=$1;
     }
 
     %{$attr} = %{$user_main_info};
     my $contract_tpl = 'contract';
 
-    if ($Docs->{CONTRACT_SUFIX}) {
+    if ($users->{CONTRACT_SUFIX}) {
       if ($conf{DOCS_CONTRACT_TYPES}) {
         #PREFIX:SUFIX:NAME;
         $conf{DOCS_CONTRACT_TYPES} =~ s/\n//g;
@@ -58,16 +62,16 @@ sub docs_contract {
         foreach my $line (@contract_types_list) {
           my ($prefix, $sufix, $name, $tpl_name) = split(/:/, $line);
 
-          if ($sufix eq $Docs->{CONTRACT_SUFIX}) {
+          if ($sufix eq $users->{CONTRACT_SUFIX}) {
             $contract_tpl = $tpl_name;
 
-            $Docs->{CONTRACT_ID} .= $Docs->{CONTRACT_SUFIX};
+            $users->{CONTRACT_ID} .= $users->{CONTRACT_SUFIX};
             last;
           }
         }
       }
     }
-    return docs_print($contract_tpl, { %$admin, %$Docs, %$attr });
+    return docs_print($contract_tpl, { %$admin, %$users, %$attr });
   }
   else {
     my ($y, $m, $d) = split(/-/, (($attr->{CONTRACT_DATE}) ? $attr->{CONTRACT_DATE} : $DATE), 3);
