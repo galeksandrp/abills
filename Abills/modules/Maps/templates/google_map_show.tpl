@@ -241,6 +241,8 @@ jQuery(document).ready(function(){
 </tr> 
 </table>
 <br>
+
+
 <table>
   <tr style=\"vertical-align:top\">
     <td style='width:15em;' id='districts' >
@@ -257,9 +259,8 @@ jQuery(document).ready(function(){
     </div> 
   </td>
   <td>
-
     <div id=\"frame\"></div>
-
     <div id=\"map\" style=\"width:800px; height:500px\" ></div>
   </td>
-</tr></table>
+</tr>
+</table>

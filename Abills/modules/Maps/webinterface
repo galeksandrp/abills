@@ -57,44 +57,47 @@ sub maps_add {
     return 0;
   }
   elsif ($FORM{MAP_SHOW}) {
-    print generateImage({ DISTRICT_ID => $FORM{DISTRICT_ID}, SHOW_NAS => 1, SHOW_USERS => 1 });
-   return 0;
+    print generateImage({ DISTRICT_ID => $FORM{DISTRICT_ID}, 
+    	                    SHOW_NAS    => 1, 
+    	                    SHOW_USERS  => 1 
+    	                  });
+    return 0;
   }
-
-  my $list = $Maps->districts_list({ PAGE_ROWS => 1500 });
-
-  if (!$FORM{district_id}) {
-    my $district_id = 0;
-
-    foreach my $line (@$list) {
-      $tpl_option .= "<option value=$line->[0]>$line->[1]</option>";
-    }
-
-    $html->tpl_show(_include('maps_district_select', 'Maps'), { OPTION => $tpl_option, });
+  my %info = ();
+  my $list = $users->district_list({ PAGE_ROWS => 10000, COLS_NAME => 1 });
+  my %district_list = ();
+  foreach my $line (@$list)  {
+    if (-f $conf{TPL_DIR} . '/maps/' . $line->{id} . '.gif' || 
+        -f $conf{TPL_DIR} . '/maps/' . $line->{id} . '.jpg' || 
+        -f $conf{TPL_DIR} . '/maps/' . $line->{id} . '.png') {
+        $district_list{$line->{id}}=$line->{name};
+     }
   }
-  else {
-    $district_id = $FORM{district_id};
-    foreach my $line (@$list) {
-      if ($district_id == $line->[0]) {
-        $tpl_option .= "<option value=$line->[0] selected=\"selected\">$line->[1]</option>";
-      }
-      else {
-        $tpl_option .= "<option value=$line->[0]>$line->[1]</option>";
-      }
-    }
-    $html->tpl_show(_include('maps_district_select', 'Maps'), { OPTION => $tpl_option, });
+  
 
+  $info{DISTRICT_SEL} = $html->form_select("DISTRICT_ID", {
+    SELECTED       => $FORM{DISTRICT_ID},
+    SEL_HASH       => \%district_list, 
+    NO_ID          => 1,
+    MAIN_MENU      => get_function_index('form_districts'),
+    MAIN_MENU_AGRV => "chg=$FORM{DISTRICT_ID}"
+  });
+
+  $html->tpl_show(_include('maps_district_select', 'Maps'), { %info });
+
+  if ($FORM{DISTRICT_ID}) {
     $users->{ADDRESS_TPL} = $html->tpl_show(templates('form_address_sel'), $users, { OUTPUT2RETURN => 1 });
-
     $html->tpl_show(_include('maps_add', 'Maps'), $users);
 
     # Javascript show tip' s  **********************************
-    my $list = $Maps->districts_list({ ID => $FORM{district_id}, PAGE_ROWS => 100 });
+    my $list = $users->district_list({ ID        => $FORM{DISTRICT_ID}, 
+    	                                 PAGE_ROWS => 100,
+    	                                 COLS_NAME => 1  });
 
     foreach my $line (@$list) {
       maps_map_show(
         {
-          DISTRICT_ID => $line->[0],
+          DISTRICT_ID => $line->{id},
           SHOW_NAS    => $show_nas,
           SHOW_USERS  => $show_users
         }
@@ -103,8 +106,8 @@ sub maps_add {
   }
 
   if ($FORM{change}) {
-    #$users->build_change("$FORM{LOCATION_ID}", { %FORM, ID => $FORM{LOCATION_ID} });
-    $Maps->build_change("$FORM{LOCATION_ID}", { %FORM, ID => $FORM{LOCATION_ID} });
+    $users->build_change("$FORM{LOCATION_ID}", { %FORM, ID => $FORM{LOCATION_ID} });
+    #$Maps->build_change("$FORM{LOCATION_ID}", { %FORM, ID => $FORM{LOCATION_ID} });
 
     if (!$users->{errno}) {
       $html->message('info', $_ADDRESS_BUILD, "$_CHANGED");
@@ -133,13 +136,14 @@ sub maps_main {
     return 0;
   }
 
-  $newcheckbox = $html->form_select("DISTRICT_IDS", {
-    SELECTED          => $FORM{DISTRICT_IDS},
-    SEL_MULTI_ARRAY   => [ @{ $Maps->districts_list({ PAGE_ROWS => 1000 }) } ], 
-    MULTI_ARRAY_KEY   => 0,
-    MULTI_ARRAY_VALUE => 1,
-    NO_ID             => 1
+  $newcheckbox = $html->form_select("DISTRICT_ID", {
+    SELECTED       => $FORM{DISTRICT_ID},
+    SEL_LIST       => $users->district_list({ PAGE_ROWS => 10000, COLS_NAME => 1 }), 
+    NO_ID          => 1,
+    MAIN_MENU      => get_function_index('form_districts'),
+    MAIN_MENU_AGRV => "chg=$FORM{DISTRICT_ID}"
   });
+
 
   $user_filter = $html->form_select("USER_FILTER", {
     SELECTED     => $FORM{USER_FILTER} || 0,
@@ -160,8 +164,7 @@ sub maps_main {
   );
 
   if ($FORM{SHOW}) {
-    if ($FORM{DISTRICT_IDS}) {
-
+    if ($FORM{DISTRICT_ID}) {
       if ($FORM{SHOW_NAS} and !$FORM{SHOW_USERS}) {
         $show_nas   = 1;
         $show_users = 0;
@@ -178,15 +181,14 @@ sub maps_main {
       my @DISTRICTS_ARR = split(/, /, $FORM{DISRICT_IDS});
     }
 
-    return 0 if (!$FORM{DISTRICT_IDS});
+    return 0 if (!$FORM{DISTRICT_ID});
 
-    my $list = $Maps->districts_list({ ID => $FORM{DISTRICT_IDS} });
+    my $list = $users->district_list({ ID => $FORM{DISTRICT_ID}, COLS_NAME => 1 });
 
     foreach my $line (@$list) {
-
       maps_map_show(
         {
-          DISTRICT_ID => $line->[0],
+          DISTRICT_ID => $line->{id},
           SHOW_NAS    => $show_nas,
           SHOW_USERS  => $show_users
         }
@@ -202,37 +204,35 @@ sub maps_main {
 sub maps_map_show {
   my ($attr) = @_;
 
-  #Select District
-
-  #Get users online  *****************************************
-  my $list = $Maps->users_online_list({ PAGE_ROWS => 8000 });
+  my $list = $Maps->users_online_list({ PAGE_ROWS => 10000,
+  	                                    COLS_NAME => 1 });
 
   foreach my $line (@$list) {
-    push @{ $USERS_ONLINE{ $line->[2] } }, {
-      LOGIN => $line->[0],
-      UID   => $line->[2],
-      IP    => $line->[1]
+    push @{ $USERS_ONLINE{ $line->{uid} } }, {
+      LOGIN => $line->{login},
+      UID   => $line->{uid},
+      IP    => $line->{ip}
       #DURATION => $line->[9]
     };
-
   }
 
   #Get all NAS  **********************************************
   my $list2 = $Maps->nas_list({ SHOW_MAPS   => 1, 
-  	                            PAGE_ROWS   => '5000', 
-  	                            DISTRICT_ID => $attr->{DISTRICT_ID} 
+  	                            PAGE_ROWS   => 10000, 
+  	                            DISTRICT_ID => $attr->{DISTRICT_ID},
+  	                            COLS_NAME   => 1
   	                          });
 
   my %NAS_INFO = ();
   foreach my $line2 (@$list2) {
-    push @{ $NAS_INFO{ $line2->[15] } },
+    push @{ $NAS_INFO{ $line2->{nas_x} } },
     {
-      NAS_X    => $line2->[15],
-      NAS_Y    => $line2->[16],
-      IP       => $line2->[3],
-      NAS_ID   => $line2->[0],
-      NAS_NAME => $line2->[1],
-      NAS_TYPE => $line2->[4],
+      NAS_X    => $line2->{map_x},
+      NAS_Y    => $line2->{map_y},
+      IP       => $line2->{map_x},
+      NAS_ID   => $line2->{nas_id},
+      NAS_NAME => $line2->{nas_name},
+      NAS_TYPE => $line2->{nas_type},
     };
   }
 
@@ -240,18 +240,19 @@ sub maps_map_show {
   $list = $Maps->all_users_list(
     {
       LOCATION_ID => '>0',
-      PAGE_ROWS   => '8000'
+      PAGE_ROWS   => 10000,
+      COLS_NAME   => 1
      }
   );
 
   my %USERS_INFO = ();
   foreach my $line (@$list) {
-    push @{ $USERS_INFO{ $line->[5] } },
+    push @{ $USERS_INFO{ $line->{build_id} } },
     {
-      LOGIN        => $line->[0],
-      UID          => $line->[7],
-      DEPOSIT      => $line->[2],
-      ADDRESS_FLAT => $line->[6]
+      LOGIN        => $line->{login},
+      UID          => $line->{uid},
+      DEPOSIT      => $line->{deposit},
+      ADDRESS_FLAT => $line->{address_flat}
     };
   }
 
@@ -277,7 +278,7 @@ sub maps_map_show {
   #}
 
   #Get builds (javascript)  **********************************
-  $list = $Maps->build_list({ SHOW_MAPS   => 1, 
+  $list = $users->build_list({ SHOW_MAPS   => '_SHOW', 
   	                          DISTRICT_ID => $attr->{DISTRICT_ID}, 
   	                          PAGE_ROWS   => 10000,
   	                          COLS_NAME   => 1
@@ -385,8 +386,6 @@ sub maps_map_show {
   #***********************************************************
   # template 	(maps_show_map)
   #***********************************************************
-  #print "$attr->{SHOW_USERS}";
-  #print "$attr->{SHOW_NAS}";
 
   $html->tpl_show(
     _include('maps_map_show', 'Maps'),
@@ -407,13 +406,13 @@ sub maps_map_show {
 sub generateImage {
   my ($attr) = @_;
 
-  #print "Content-Type: text/html\n\n";
-
   my $show_nas    = $attr->{SHOW_NAS}    || 0;
   my $show_users  = $attr->{SHOW_USERS}  || 0;
   my $district_id = $attr->{DISTRICT_ID} || 0;
+  
+  print "Content-Type: text/html\n\n" if ($FORM{DEBUG});
+  
   if (!$district_id) {
-
     #my $image = '../img/image_not_found.png';
     #$im = GD::Image->newFromPng($image,[1]);
     ##
@@ -425,8 +424,8 @@ sub generateImage {
     print "Content-Type: image/png\n\n";
     binmode STDOUT;
     return $im->png;
-
   }
+
   if ( -f '../../Abills/templates/maps/' . $district_id . '.png'
     or -f '../../Abills/templates/maps/' . $district_id . '.jpg'
     or -f '../../Abills/templates/maps/' . $district_id . '.gif')
@@ -447,41 +446,45 @@ sub generateImage {
 
     # All users show builds  ***********************************
     if ($show_users == 1) {
-      my $list = $Maps->build_list(
+    	if ($FORM{DEBUG} && $FORM{DEBUG} > 6) {
+    	  $users->{debug}=1;
+    	  $Maps->{debug}=1;
+    	}
+
+      my $list = $users->build_list(
         {
-          SHOW_MAPS   => 1,
+          SHOW_MAPS   => '_SHOW',
           DISTRICT_ID => $district_id,
-          PAGE_ROWS   => 10000
+          PAGE_ROWS   => 10000,
+          COLS_NAME   => 1
         }
       );
 
       foreach my $line (@$list) {
+        next if($line->{map_x} == 0);
 
         $poly_border = new GD::Polygon;
-        $poly_border->addPt($line->[7],  $line->[8]);
-        $poly_border->addPt($line->[9],  $line->[10]);
-        $poly_border->addPt($line->[11], $line->[12]);
-        $poly_border->addPt($line->[13], $line->[14]);
+        $poly_border->addPt($line->{map_x},  $line->{map_y});
+        $poly_border->addPt($line->{map_x2}, $line->{map_y2});
+        $poly_border->addPt($line->{map_x3}, $line->{map_y3});
+        $poly_border->addPt($line->{map_x4}, $line->{map_y4});
 
         $im->filledPolygon($poly_border, gdTiled);
 
         $poly = new GD::Polygon;
-        $poly->addPt($line->[7] + 2,  $line->[8] + 2);
-        $poly->addPt($line->[9] - 2,  $line->[10] + 2);
-        $poly->addPt($line->[11] - 2, $line->[12] - 2);
-        $poly->addPt($line->[13] + 2, $line->[14] - 2);
+        $poly->addPt($line->{map_x}  + 2, $line->{map_y}  + 2);
+        $poly->addPt($line->{map_x2} - 2, $line->{map_y2} + 2);
+        $poly->addPt($line->{map_x3} - 2, $line->{map_y3} - 2);
+        $poly->addPt($line->{map_x4} + 2, $line->{map_y4} - 2);
 
         $im->filledPolygon($poly, $im->colorAllocate(@{ $map_colors{offline} }));
 
         #				$im->line($line->[7],$line->[8],$line->[9],$line->[10],gdTiled);
-
         #				$poly3 = new GD::Polygon;
         #        $poly3->addPt($line->[7]-20,$line->[8]-40);
         #        $poly3->addPt($line->[9],$line->[10]);
         #        $im->filledPolygon($poly3,$im->colorAllocate(@{ $map_colors{inwork} }));
-
         #			$im->rectangle($line->[7],$line->[8],$line->[11],$line->[12], gdTiled);
-
       }
 
       # Online users show builds**********************************
@@ -509,7 +512,7 @@ sub generateImage {
 
       my $list2 = $Nas->list(
         {
-          SHOW_MAPS   => 1,
+          SHOW_MAPS   => '_SHOW',
           DISTRICT_ID => $district_id,
           PAGE_ROWS   => '1000'
         }
@@ -581,7 +584,7 @@ sub google_maps_add {
 
   }
   elsif ($FORM{add}) {
-    $Maps->district_change("$FORM{DISTRICT_ID}", { %FORM, ID => $FORM{DISTRICT_ID} });
+    $users->district_change("$FORM{DISTRICT_ID}", { %FORM, ID => $FORM{DISTRICT_ID} });
 
     if (!$users->{errno}) {
 
@@ -728,10 +731,10 @@ sub google_maps_add {
 
     my $table = $html->table(
       {
-        width   => '100%',
-        caption => $_ROUTES,
-        border  => 1,
-        title   => [ $_NAME, $_TYPE, $_DESCRIBE, 'NAS1', 'NAS2', 'NAS1 port', 'NAS2 port', $_LENGTH, '-', '-' ],
+        width      => '100%',
+        caption    => $_ROUTES,
+        border     => 1,
+        title      => [ $_NAME, $_TYPE, $_DESCRIBE, 'NAS1', 'NAS2', 'NAS1 port', 'NAS2 port', $_LENGTH, '-', '-' ],
         cols_align => [ 'left', 'right', 'right', 'right', 'center', 'center' ],
         pages      => $Maps->{TOTAL}
       }
@@ -740,8 +743,14 @@ sub google_maps_add {
     $list = $Maps->list_routes({});
     foreach my $line (@$list) {
       $table->addrow(
-        $line->[1], $TYPES[ $line->[2] ],
-        $line->[3], $line->[4], $line->[5], $line->[6], $line->[7], $line->[8],
+        $line->[1], 
+        $TYPES[ $line->[2] ],
+        $line->[3], 
+        $line->[4], 
+        $line->[5], 
+        $line->[6], 
+        $line->[7], 
+        $line->[8],
         $html->button($_SHOW, "index=$index&chg_route=$line->[0]", { CLASS => 'change' }),
         (defined($permissions{0}{5})) ? $html->button($_DEL, "index=$index&del_route=$line->[0]", { MESSAGE => "$_DEL $line->[1]?", CLASS => 'del' }) : ''
       );
@@ -797,25 +806,24 @@ sub google_maps_add {
   #-----------google map show --- #
   if (!$FORM{coordx} and !$FORM{add_well} and  !$FORM{DCOORDX} and !$FORM{coordwellx} and !$FORM{route} and !$FORM{add_route} and !$FORM{chg_route} and !$FORM{coordlx} and !$FORM{coordwx} and !$FORM{ !$FORM{coordly} }) {
 
-    $list = $Maps->districts_list({});
+    $list = $users->district_list({ COLS_NAME => 1 });
     foreach my $line (@$list) {
-      if ($line->[7] == 0) {
+      if ($line->{zoom} == 0) {
         next;
       }
       $district .=
         "<a style=\"text-decoration:none; font-weight:bold; color:black; \" href=javascript:chgposition("
-      . $line->[5] . ','
-      . $line->[6] . ','
-      . $line->[7]
-      . ")>$line->[1]</a>"
+      . $line->{coordx} . ','
+      . $line->{coordy} . ','
+      . $line->{zoom}
+      . ")>$line->{name}</a>"
       . $html->br()
       . $html->br();
 
     }
-    if (defined($list->[0]->[6]) and defined($list->[0]->[7])) {
 
-      $mapsetcenter = $list->[0]->[5] . ', ' . $list->[0]->[6] . ', ' . $list->[0]->[7];
-
+    if (defined($list->[0]->{coordy}) and defined($list->[0]->{zoom})) {
+      $mapsetcenter = $list->[0]->{coordx} . ', ' . $list->[0]->{coordy} . ', ' . $list->[0]->{zoom};
     }
     else {
       $mapsetcenter = '';
@@ -920,11 +928,11 @@ sub google_maps_add {
     my $DISTRICT_ID = $users->{DISTRICT_ID} = $html->form_select(
       "DISTRICT_ID",
       {
-        SELECTED          => $FORM{DISTRICT_ID},
-        SEL_MULTI_ARRAY   => [ @{ $Maps->districts_list({}) } ],
-        MULTI_ARRAY_KEY   => 0,
-        MULTI_ARRAY_VALUE => 1,
-        NO_ID             => 1
+        SELECTED       => $FORM{DISTRICT_ID},
+        SEL_LIST       => $users->district_list({ PAGE_ROWS => 10000, COLS_NAME => 1 }), 
+        NO_ID          => 1,
+        MAIN_MENU      => get_function_index('form_districts'),
+        MAIN_MENU_AGRV => "chg=$FORM{DISTRICT_ID}"
       }
     );
 
@@ -1085,7 +1093,7 @@ sub google_maps_show {
     push @{ $USERS_INFO{ $line->{build_id} } }, $line;
   }
     
-  $list = $Maps->build_list({ 
+  $list = $users->build_list({ 
     SHOW_MAPS_GOOGLE => 1,
     COLS_NAME        => 1, 
     PAGE_ROWS        => 10000 });
@@ -1213,7 +1221,7 @@ sub google_maps_show {
   #***********************************************************
   # template 	(maps_show_map)
   #***********************************************************
-  $list = $Maps->districts_list({ COLS_NAME   => 1, });
+  $list = $users->district_list({ COLS_NAME   => 1, });
   my $district = '<table>';
   foreach my $line (@$list) {
     if ($line->{zoom} == 0) {
@@ -1235,7 +1243,7 @@ sub google_maps_show {
   if($FORM{show_build}) {
     
     my %buids_arr = ();
-    $list = $Maps->build_list({
+    $list = $users->build_list({
       COLS_NAME         => 1,
       SHOW_MAPS_GOOGLE  => 1,
       PAGE_ROWS         => 10000
@@ -1388,9 +1396,9 @@ sub google_maps_show_client {
   }
   
   #Get builds (javascript)  **********************************
-  $list = $Maps->build_list({ SHOW_MAPS_GOOGLE => 1, 
-  	                          PAGE_ROWS        => '100000',
-  	                          COLS_NAME        => 1 });
+  $list = $users->build_list({ SHOW_MAPS_GOOGLE => 1, 
+  	                           PAGE_ROWS        => '100000',
+  	                           COLS_NAME        => 1 });
 
   if ($Maps->{errno}) {
     $html->message('err', $_ERROR, "[$Maps->{errno}] $err_strs{$Maps->{errno}}");
@@ -1411,7 +1419,7 @@ sub google_maps_show_client {
 
   #***********************************************************
   # template 	(maps_show_map)
-  $list = $Maps->districts_list({ COLS_NAME => 1 });
+  $list = $users->district_list({ COLS_NAME => 1 });
 
   if ($Maps->{errno}) {
     $html->message('err', $_ERROR, "[$Maps->{errno}] $err_strs{$Maps->{errno}}");

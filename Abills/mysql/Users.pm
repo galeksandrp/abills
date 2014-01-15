@@ -1700,8 +1700,15 @@ sub district_list {
     }
     );
 
-  $self->query2("SELECT d.id, d.name, d.country, d.city, zip, count(s.id) AS street_count, 
-       d.coordx, d.coordy, d.zoom 
+  $self->query2("SELECT d.id, 
+       d.name, 
+       d.country, 
+       d.city, 
+       zip, 
+       count(s.id) AS street_count, 
+       d.coordx, 
+       d.coordy, 
+       d.zoom 
      FROM districts d
      LEFT JOIN streets s ON (d.id=s.district_id)
    $WHERE 
@@ -1744,25 +1751,11 @@ sub district_change {
   my $self = shift;
   my ($id, $attr) = @_;
 
-  my %FIELDS = (
-    ID       => 'id',
-    NAME     => 'name',
-    COUNTRY  => 'country',
-    CITY     => 'city',
-    ZIP      => 'zip',
-    COMMENTS => 'comments',
-    COORDX   => 'coordx',
-    COORDY   => 'coordy',
-    ZOOM     => 'zoom',
-  );
-
   $self->changes(
     $admin,
     {
       CHANGE_PARAM => 'ID',
       TABLE        => 'districts',
-      FIELDS       => \%FIELDS,
-      OLD_INFO     => $self->district_info({ ID => $id }),
       DATA         => $attr
     }
   );
