@@ -3,7 +3,7 @@
 
 AUTH_LOG=/usr/abills/var/log/abills.log
 ACCT_LOG=/usr/abills/var/log/acct.log
-VERSION=0.14
+VERSION=0.15
 
 
 USER_NAME=test
@@ -283,11 +283,25 @@ if [ x${RADIUS_ACTION} = x1 ]; then
     radclient -x -f ${RAD_FILE}  ${RADIUS_IP}:${PORT} ${ACTION} ${RADIUS_SECRET}
     echo "radclient -x -f ${RAD_FILE}  ${RADIUS_IP}:${PORT} ${ACTION} ${RADIUS_SECRET}";
   else
-     if [ x${PORT} = x ]; then      
-        PORT=1812;
-     fi;
+    if [ x${PORT} = x ]; then      
+       PORT=1812;
+    fi;
 
-    ${RADTEST} ${USER_NAME} ${USER_PASSWORD} ${RADIUS_IP}:${PORT} 0 ${RADIUS_SECRET} 0 ${NAS_IP_ADDRESS}
+    NAS_ADDR_ATTR="NAS-IP-Address"
+    PASSWORD="User-Password"
+
+    (
+        echo "User-Name = \"${USER_NAME}\""
+        echo "${PASSWORD} = \"${USER_PASSWORD}\""
+        echo "${NAS_ADDR_ATTR} = ${NAS_IP_ADDRESS}"
+        echo "NAS-Port = 1"
+        echo "Message-Authenticator = 0x00"
+
+        if [ "${CALLING_STATION_ID}" ]; then
+          echo "Calling-Station-Id = \"${CALLING_STATION_ID}\""
+        fi
+    ) | radclient $OPTIONS -x  ${RADIUS_IP}:${PORT} auth "${RADIUS_SECRET}"
+
   fi;
 
   echo "Send params to radius: ${RADIUS_IP}:${PORT}"

@@ -884,12 +884,10 @@ sub Auth_CID {
           && $RAD->{CALLING_STATION_ID} =~ /\./
           && $CONF->{DHCP_CID_IP})
         {
-
           #IP
           push(@CID_POOL, $ip);
         }
         elsif ($RAD->{CALLING_STATION_ID} =~ /\// && $CONF->{DHCP_CID_MPD}) {
-
           #MPD IP+MAC
           push(@CID_POOL, "$ip/$mac");
         }
@@ -919,7 +917,11 @@ sub Auth_CID {
             $counter++;
           }
         }
-        return 0 if ($counter eq '6');
+        
+        if ($counter eq '6') {
+          $RAD->{CALLING_STATION_ID}=join(/:/, @MAC_DIGITS_NEED);
+          return 0 
+        }
       }
 
       # If like MPD CID

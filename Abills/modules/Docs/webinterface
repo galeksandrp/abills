@@ -2483,7 +2483,6 @@ sub docs_invoice {
                   
                   if ($conf{FIXED_FEES_DAY}) {
                   	$period_from = "$Y-$M-$D";
-                  	$M++;
                   }
                   else {
                     $period_from = "$Y-$M-01";
@@ -2510,6 +2509,7 @@ sub docs_invoice {
                   }
 
                   $period_to = "$Y-$M-$TO_D";
+       	        	$M++;
                 }
 
                 my $order = "$name $describe($period_from-$period_to)";

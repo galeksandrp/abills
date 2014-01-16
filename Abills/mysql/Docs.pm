@@ -585,21 +585,23 @@ sub docs_nextid {
 
   my $sql = '';
 
+  my $date = ($attr->{DATE} =~ /\d{4}-\d{2}-\d{2}/) ? $attr->{DATE} : 'curdate()';
+
   if ($attr->{TYPE} eq 'INVOICE') {
     $sql = "SELECT max(d.invoice_num), count(*) FROM docs_invoices d
-     WHERE YEAR(date)=YEAR(curdate());";
+     WHERE YEAR(date)=YEAR($date);";
   }
   elsif ($attr->{TYPE} eq 'RECEIPT') {
     $sql = "SELECT max(d.receipt_num), count(*) FROM docs_receipts d
-     WHERE YEAR(date)=YEAR(curdate());";
+     WHERE YEAR(date)=YEAR($date);";
   }
   elsif ($attr->{TYPE} eq 'TAX_INVOICE') {
     $sql = "SELECT max(d.tax_invoice_id), count(*) FROM docs_tax_invoices d
-     WHERE YEAR(date)=YEAR(curdate());";
+     WHERE YEAR(date)=YEAR($date);";
   }
   elsif ($attr->{TYPE} eq 'ACT') {
     $sql = "SELECT max(d.act_id), count(*) FROM docs_acts d
-     WHERE YEAR(date)=YEAR(curdate());";
+     WHERE YEAR(date)=YEAR($date);";
   }
 
   $self->query2("$sql");
@@ -706,7 +708,7 @@ sub invoice_add {
   my @invoice_num_arr = ();
 
   while( $order_number <= $orders ) {
-    $DATA{INVOICE_NUM} = ($attr->{INVOICE_NUM}) ? $attr->{INVOICE_NUM} : $self->docs_nextid({ TYPE => 'INVOICE' });
+    $DATA{INVOICE_NUM} = ($attr->{INVOICE_NUM}) ? $attr->{INVOICE_NUM} : $self->docs_nextid({ TYPE => 'INVOICE', %$attr });
     return $self if ($self->{errno});
 
     $self->query2("INSERT INTO docs_invoices (invoice_num, date, created, customer, phone, aid, uid, payment_id, vat, deposit, 

@@ -2504,7 +2504,9 @@ sub ipn_periodic_session_restart {
   );
   my %nas_info = ();
   foreach my $line (@$nas_list) {
-    if ($line->{NAS_TYPE} eq 'ipcad' || $line->{NAS_TYPE} eq 'dhcp') {
+    if ($line->{NAS_TYPE} eq 'ipcad' || 
+        $line->{NAS_TYPE} eq 'dhcp'  ||
+        $line->{NAS_TYPE} eq 'mikrotik_dhcp') {
       $nas_info{ $line->{NAS_ID} }  = $line;
     }
   }
@@ -2530,7 +2532,7 @@ sub ipn_periodic_session_restart {
       FILTER_ID   => '_SHOW', 
       NAS_PORT_ID => '_SHOW',
       NETMASK     => '_SHOW',
-      NAS_ID      => join(', ', @nas_ids_arr),
+      NAS_ID      => join('; ', @nas_ids_arr),
       %LIST_PARAMS
     }
   );
