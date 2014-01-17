@@ -585,7 +585,7 @@ sub docs_nextid {
 
   my $sql = '';
 
-  my $date = ($attr->{DATE} =~ /\d{4}-\d{2}-\d{2}/) ? $attr->{DATE} : 'curdate()';
+  my $date = ($attr->{DATE} =~ /\d{4}-\d{2}-\d{2}/) ? "'$attr->{DATE}'" : 'curdate()';
 
   if ($attr->{TYPE} eq 'INVOICE') {
     $sql = "SELECT max(d.invoice_num), count(*) FROM docs_invoices d
