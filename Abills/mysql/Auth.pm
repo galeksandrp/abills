@@ -307,7 +307,14 @@ sub dv_auth {
     $self->query2("SELECT CID, INET_NTOA(framed_ip_address) AS ip, nas_id, status FROM dv_calls WHERE user_name='$RAD->{USER_NAME}' and (status <> 2);");
     my ($active_logins) = $self->{TOTAL};
     my %active_nas      = ();
+    my $cid             = $RAD->{CALLING_STATION_ID};
+    if (length($RAD->{CALLING_STATION_ID}) > 20) {
+      $cid = substr($RAD->{CALLING_STATION_ID}, 0, 20);
+    }
+    
     foreach my $line (@{ $self->{list} }) {
+      $active_nas{ $line->[2] } = $line->[0] if (! $active_nas{ $line->[2] });
+      
       # If exist reserv add get it      
       if ($line->[3] == 11) {
         $self->{IP}       = $line->[1];
@@ -316,16 +323,15 @@ sub dv_auth {
       }
       # Zap session with same CID
       elsif ( $line->[0] ne ''
-        && $line->[0] eq $RAD->{CALLING_STATION_ID}
+        && $line->[0] eq $cid
         && $NAS->{NAS_TYPE} ne 'ipcad'
         && $active_nas{ $line->[2] }
         && $active_nas{ $line->[2] } eq $line->[0])
       {
-        $self->query2("UPDATE dv_calls SET status=2 WHERE user_name='$RAD->{USER_NAME}' and CID='$RAD->{CALLING_STATION_ID}' and status <> 2;", 'do');
+        $self->query2("UPDATE dv_calls SET status=2 WHERE user_name='$RAD->{USER_NAME}' and CID='$cid ' and status <> 2;", 'do');
         $self->{IP} = $line->[1];
         $active_logins--;
       }
-      $active_nas{ $line->[2] } = $line->[0];
     }
 
     if ($active_logins >= $self->{LOGINS}) {
@@ -875,7 +881,6 @@ sub Auth_CID {
           && $RAD->{CALLING_STATION_ID} !~ /\./
           && $CONF->{DHCP_CID_MAC})
         {
-
           #MAC
           push(@CID_POOL, $mac);
         }
@@ -895,21 +900,22 @@ sub Auth_CID {
     }
   }
 
+  my $cid = $RAD->{CALLING_STATION_ID};
+
   foreach my $TEMP_CID (@CID_POOL) {
     if ($TEMP_CID ne '') {
       if (($TEMP_CID =~ /:/ || $TEMP_CID =~ /\-/)
         && $TEMP_CID !~ /\./)
       {
         @MAC_DIGITS_GET = split(/:|-/, $TEMP_CID);
-
         #NAS MPD 3.18 with patch
-        if ($RAD->{CALLING_STATION_ID} =~ /\//) {
-          $RAD->{CALLING_STATION_ID} =~ s/ //g;
+        if ($cid =~ /\//) {
+          $cid =~ s/ //g;
           my ($cid_ip, $trash);
-          ($cid_ip, $RAD->{CALLING_STATION_ID}, $trash) = split(/\//, $RAD->{CALLING_STATION_ID}, 3);
+          ($cid_ip, $cid, $trash) = split(/\//, $cid, 3);
         }
 
-        my @MAC_DIGITS_NEED = split(/:|\-|\./, $RAD->{CALLING_STATION_ID});
+        my @MAC_DIGITS_NEED = split(/:|\-|\./, $cid);
         my $counter = 0;
 
         for (my $i = 0 ; $i <= 5 ; $i++) {
@@ -919,7 +925,7 @@ sub Auth_CID {
         }
         
         if ($counter eq '6') {
-          $RAD->{CALLING_STATION_ID}=join(/:/, @MAC_DIGITS_NEED);
+          #$RAD->{CALLING_STATION_ID}=join(/:/, @MAC_DIGITS_NEED);
           return 0 
         }
       }
@@ -927,13 +933,13 @@ sub Auth_CID {
       # If like MPD CID
       # 192.168.101.2 / 00:0e:0c:4a:63:56
       elsif ($TEMP_CID =~ /\//) {
-        $RAD->{CALLING_STATION_ID} =~ s/ //g;
-        my ($cid_ip, $cid_mac, $trash) = split(/\//, $RAD->{CALLING_STATION_ID}, 3);
+        $cid =~ s/ //g;
+        my ($cid_ip, $cid_mac, $trash) = split(/\//, $cid, 3);
         if ("$cid_ip/$cid_mac" eq $TEMP_CID) {
           return 0;
         }
       }
-      elsif ($TEMP_CID eq $RAD->{CALLING_STATION_ID}) {
+      elsif ($TEMP_CID eq $cid) {
         return 0;
       }
     }
