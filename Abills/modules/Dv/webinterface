@@ -7660,7 +7660,6 @@ sub dv_payments_maked {
         STATUS => 0
       }
     );
-    
     $Dv->{ACCOUNT_ACTIVATE} = $attr->{USER_INFO}->{ACTIVATE} || '0000-00-00';
     service_get_month_fee($Dv, $attr);
   }

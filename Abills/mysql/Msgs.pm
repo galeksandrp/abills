@@ -1119,6 +1119,7 @@ sub unreg_requests_list {
   $DESC      = (defined($attr->{DESC})) ? $attr->{DESC}      : 'DESC';
 
   @WHERE_RULES = ();
+  $self->{COL_NAMES_ARR}=undef;
 
   if (defined($attr->{STATE})) {
     if ($attr->{STATE} == 4) {
@@ -1136,18 +1137,19 @@ sub unreg_requests_list {
 
   my $WHERE = $self->search_former($attr, [
       ['MSG_ID',       'INT',  'm.id'             ],
-      ['DISABLE',      'INT',  'u.disable',     1 ],
-      ['INNER_MSG',    'INT',  'm.inner_msg',   1 ], 
-      ['SUBJECT',      'STR',  'm.subject'        ],
-      ['MESSAGE',      'STR',  'm.message',     1 ],
-      ['REPLY',        'STR',  'm.user_read',   1 ],
+      ['DATETIME',     'DATE', 'm.datetime',    1 ],
+      ['SUBJECT',      'STR',  'm.subject',     1 ],
+      ['FIO',          'STR',  'm.fio',         1 ],
       ['PHONE',        'STR',  'm.phone',       1 ],
-      ['USER_READ',    'INT',  'm.user_read',   1 ],
-      ['ADMIN_READ',   'INT',  'm.admin_read',  1 ],
+      ['STATUS',       'INT',  'm.state',       1 ],
+      ['CHAPTER',      'INT',  'm.chapter', 'mc.name AS chapter_name'],
       ['CLOSED_DATE',  'DATE', 'm.closed_date', 1 ],
+      ['ADMIN_LOGIN',  'INT',  'a.id',  'a.id AS admin_login' ],
+      ['INNER_MSG',    'INT',  'm.inner_msg',   1 ], 
+      ['MESSAGE',      'STR',  'm.message',     1 ],
+      ['ADMIN_READ',   'INT',  'm.admin_read',  1 ],
       ['RUN_TIME',     'DATE', 'SEC_TO_TIME(sum(r.run_time))',  'SEC_TO_TIME(sum(r.run_time)) AS run_time' ],
       ['DONE_DATE',    'DATE', 'm.done_date',   1 ],
-      ['CHAPTER',      'INT',  'm.chapter',       ],
       ['UID',          'INT',  'm.uid',           ],
       ['DELIGATION',   'INT',  'm.delegation',  1 ],
       ['RESPOSIBLE',   'INT',  'm.resposible',    ],
@@ -1158,9 +1160,6 @@ sub unreg_requests_list {
       ['IP',           'IP',   'm.ip',  'INET_NTOA(m.ip) AS ip' ],
       ['DATE',         'DATE',  "date_format(m.datetime, '%Y-%m-%d')" ],
       ['FROM_DATE|TO_DATE', 'DATE', "date_format(m.datetime, '%Y-%m-%d')" ],
-      ['A_LOGIN',      'INT',  'a.aid',  'a.id AS admin_login', ],
-
-      ['PRIORITY',     'INT',  'm.state'         ],
       ['SHOW_TEXT',    '',    '',       'm.message' ],
     ],
     { WHERE => 1,
@@ -1169,18 +1168,10 @@ sub unreg_requests_list {
     );
 
   $self->query2("SELECT  m.id,
-  m.datetime,
-  m.subject,
-  m.fio,
-  mc.name AS chapter_name,
-  ra.id AS admin_login,
-  m.state,
-  m.priority,
-  m.closed_date,
   $self->{SEARCH_FIELDS}
   m.responsible_admin
 FROM (msgs_unreg_requests m)
-LEFT JOIN admins ra ON (m.received_admin=ra.aid)
+LEFT JOIN admins a ON (m.received_admin=a.aid)
 LEFT JOIN msgs_chapters mc ON (m.chapter=mc.id)
  $WHERE
 GROUP BY m.id 

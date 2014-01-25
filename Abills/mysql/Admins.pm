@@ -490,7 +490,8 @@ sub action_list {
     $EXT_TABLE = " LEFT JOIN users_pi pi ON (u.uid=pi.uid) ".$EXT_TABLE ;
   }
 
-  $self->query2("select aa.id, u.id AS login, aa.datetime, aa.actions, a.id as admin_login, INET_NTOA(aa.ip) AS ip, aa.module, 
+  $self->query2("select aa.id, u.id AS login, aa.datetime, aa.actions, a.id as admin_login, 
+      INET_NTOA(aa.ip) AS ip, aa.module, 
       aa.action_type,
       aa.uid, 
       $self->{SEARCH_FIELDS}

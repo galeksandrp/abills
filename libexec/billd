@@ -1299,6 +1299,11 @@ sub check_speed {
     my $l = $online->{ $nas_info->{nas_id} };
     foreach my $line (@$l) {
       my $user_speed   = ($TURBO_SPEEDS{ $line->{user_name} }) ? $TURBO_SPEEDS{ $line->{user_name} } : $line->{speed};
+
+      if (! defined($user_speed)){
+        next;
+      }
+
       print "$line->{user_name} IF:$line->{nas_port_id} TP:$line->{calls_tp_id} SPEED:$user_speed JOIN: $line->{join_service} IP:$line->{client_ip} UID:$line->{uid} DURATION:$line->{duration_sec} STARTED: $line->{started} \n" if ($debug > 1);
       $USER_IFACES{ $line->{user_name} } = "$line->{nas_port_id}:$line->{calls_tp_id}:$user_speed:$line->{join_service}:$line->{client_ip}:$line->{uid}:$line->{duration_sec}:$line->{CONNECT_INFO}:$line->{started}";
     }
@@ -2535,8 +2540,8 @@ sub check_speed_mikrotik {
 
   foreach my $line (@$list) {
     print "TP ID: $line->{tp_id} $line->{tp_num} TT: $line->{tt_id} IN: $line->{in_speed} OUT: $line->{out_speed}\n" if ($debug > 1);
-    $TARIF_SPEEDS{ $line->{tp_id} }{ $line->{tt_id} }{IN}  = $line->{in_speed};
-    $TARIF_SPEEDS{ $line->{tp_id} }{ $line->{tt_id} }{OUT} = $line->{out_speed};
+    $TARIF_SPEEDS{ $line->{tp_id} }{ $line->{tt_id} }{IN}  = ($conf{octets_direction} && $conf{octets_direction} eq 'server') ? $line->{in_speed} : $line->{out_speed};
+    $TARIF_SPEEDS{ $line->{tp_id} }{ $line->{tt_id} }{OUT} = ($conf{octets_direction} && $conf{octets_direction} eq 'server') ? $line->{out_speed} : $line->{in_speed};
     $class2nets{ $line->{tp_id} }{ $line->{tt_id} }        = $line->{net_id};
   }
 
@@ -2665,8 +2670,8 @@ Flags: X - disabled, I - invalid
             . $tp_id . '_'
             . $traf_type . '_in'
             . " passthrough=yes src-address-list=TRAFFIC_CLASS_$net_id dst-address-list=CLIENTS_$tp_id ";
-            push @commands, "/queue type add name=\"" . 'TP_' . $tp_id . "_in_traffic_class_" . $traf_type . "\" kind=pcq pcq-rate=$speed_out pcq-classifier=dst-address ";
-            push @commands, "/queue type add name=\"" . 'TP_' . $tp_id . "_out_traffic_class_" . $traf_type . "\" kind=pcq pcq-rate=$speed_in pcq-classifier=src-address ";
+            push @commands, "/queue type add name=\"" . 'TP_' . $tp_id . "_in_traffic_class_" . $traf_type . "\" kind=pcq pcq-rate=$speed_out pcq-classifier=src-address ";
+            push @commands, "/queue type add name=\"" . 'TP_' . $tp_id . "_out_traffic_class_" . $traf_type . "\" kind=pcq pcq-rate=$speed_in pcq-classifier=dst-address ";
             push @commands,
               "/queue tree add name=\"" . 'TP_' 
             . $tp_id
@@ -2719,7 +2724,7 @@ Flags: X - disabled, I - invalid
       @nets_arr = split(/,/, $nets);
 
       if (!$count->[0] || $count->[0] < $#nets_arr+1 ) {
- 	      foreach my $address (@nets_arr) {
+         foreach my $address (@nets_arr) {
           push @commands, qq{ /ip firewall address-list add list=TRAFFIC_CLASS_$id address=$address };
         }
       }

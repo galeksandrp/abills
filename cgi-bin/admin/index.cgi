@@ -2080,7 +2080,7 @@ sub user_pi {
     $user_pi->{INFO_FIELDS} .= $html->element('tr', 
         $html->element('td', (eval "\"$name\"")).
         $html->element('td', $input, { valign=>'center' }),
-      { ID => "$field_id"  }
+      #{ ID => "$field_id"  }
     );
 
     $i++;
