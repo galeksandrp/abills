@@ -2500,6 +2500,7 @@ sub docs_invoice {
                     $TO_D = ($M != 2 ? (($M % 2) ^ ($M > 7)) + 30 : (!($Y % 400) || !($Y % 4) && ($Y % 25) ? 29 : 28));
                   }
                   else {
+     	        	    $M++;
           	        if ($conf{FIXED_FEES_DAY}) {
           		        $TO_D = sprintf("%02d", ($D > 1) ? ($D-1) : ($M != 2 ? (($M % 2) ^ ($M > 7)) + 30 : (!($Y % 400) || !($Y % 4) && ($Y % 25) ? 29 : 28)));
           	        }
@@ -2509,7 +2510,6 @@ sub docs_invoice {
                   }
 
                   $period_to = "$Y-$M-$TO_D";
-       	        	$M++;
                 }
 
                 my $order = "$name $describe($period_from-$period_to)";
