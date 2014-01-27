@@ -1805,7 +1805,7 @@ sub neg_deposit_filter_former () {
     $RAD_PAIRS->{'Filter-Id'} = "$NEG_DEPOSIT_FILTER_ID";
   }
 
-  $self->{GUEST_MODE}=1 if (! $attr->{USER_FILTER};
+  $self->{GUEST_MODE}=1 if (! $attr->{USER_FILTER});
 
   if ($attr->{USER_FILTER}) {
     return 0;
