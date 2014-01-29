@@ -1591,6 +1591,10 @@ sub online_add {
        framed_ip_address => $attr->{FRAMED_IP_ADDRESS}
   );
 
+  if (! $attr->{NAS_ID}) {
+    my $x = `echo "$self->{USER_NAME} nas_id: $attr->{NAS_ID} guest:  $attr->{GUEST} " >> /tmp/nas_id`;
+  }
+
   my $sql = "INSERT INTO dv_calls SET started=now(),
        lupdated        = UNIX_TIMESTAMP(),
        status          = '11',

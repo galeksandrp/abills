@@ -3155,10 +3155,10 @@ sub paysys_payu {
   $forSend{'TESTORDER'} = ( $debug > 2 ) ? "TRUE" : "FALSE";
 
   $forSend{'DEBUG'}    = ($debug>1) ? 1 : 0;
-  $forSend{ORDER_HASH} = mk_signature(\%forSend);
+  $forSend{ORDER_HASH} = mk_signature(mk_array(\%forSend));
   #if ( count($opt) === 0 ) return $this;
   foreach my $k ( keys %forSend )  {
-    $info{FIELDS}.="<input type=text name=$k value='$forSend{$k}'>\n";  
+    $info{FIELDS}.="<input type=hidden name=$k value='$forSend{$k}'>\n";  
   }
   
 
