@@ -4781,7 +4781,7 @@ sub form_ip_pools {
 
     if ($FORM{BIT_MASK} && !$FORM{NAS_IP_COUNT}) {
       my $mask = 0b0000000000000000000000000000001;
-      $FORM{NAS_IP_COUNT} = sprintf("%d", $mask << ($FORM{BIT_MASK} - 1)) - 1;
+      $FORM{NAS_IP_COUNT} = sprintf("%d", $mask << ($FORM{BIT_MASK} - 1)) - 3;
       my $netmask = int2ip(4294967296 - sprintf("%d", $mask << ($FORM{BIT_MASK}-1)));
 
       my @addrb=split(/\./,$FORM{NAS_IP_SIP});
@@ -4795,6 +4795,7 @@ sub form_ip_pools {
 
       # convert network address to IP address
       my @netwb=unpack( "C4", pack( "N",$netwval ) );
+      $netwb[3]++;
       $FORM{NAS_IP_SIP}=join(".",@netwb);
     }
 
