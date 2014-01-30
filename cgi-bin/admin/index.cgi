@@ -2671,7 +2671,7 @@ sub form_users {
   if ($admin->{permissions}->{0} && $admin->{permissions}->{0}->{8}) {
     $users->{TOTAL} -= $users->{TOTAL_DELETED};
     $totals_rows[0] = [ $html->button("$_TOTAL:", "index=$index&USERS_STATUS=0"), $html->b($users->{TOTAL}) ];
-    push @totals_rows, [ $html->button("$_DELETED:", "index=$index&USERS_STATUS=4"), $html->b($users->{TOTAL_DELETED}) ],;
+    push @totals_rows, [ $html->button("$_DELETED:", "index=$index&USERS_STATUS=7"), $html->b($users->{TOTAL_DELETED}) ],;
   }
 
   my $table2 = $html->table(
@@ -5538,7 +5538,7 @@ sub report_payments {
   if (defined($FORM{FIELDS}) && $FORM{FIELDS} ne '') {
     $LIST_PARAMS{METHOD}= $FORM{FIELDS};
     $LIST_PARAMS{METHOD}=~s/ //g;
-     $LIST_PARAMS{METHOD}=~s/,/;/g;
+    $LIST_PARAMS{METHOD}=~s/,/;/g;
   }
 
   if ($FORM{DATE}) {
@@ -5566,7 +5566,7 @@ sub report_payments {
     elsif ($type eq 'USER') {
       $CAPTION[0]           = $_USERS;
       $type                 = "search=1&LOGIN";
-      $LIST_PARAMS{METHOD}  = $FORM{METHODS};
+      #$LIST_PARAMS{METHOD}  = $FORM{METHODS};
       $graph_type           = '';
     }
     elsif ($type eq 'FIO') {
