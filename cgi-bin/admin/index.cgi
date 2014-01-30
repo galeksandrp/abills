@@ -4782,6 +4782,20 @@ sub form_ip_pools {
     if ($FORM{BIT_MASK} && !$FORM{NAS_IP_COUNT}) {
       my $mask = 0b0000000000000000000000000000001;
       $FORM{NAS_IP_COUNT} = sprintf("%d", $mask << ($FORM{BIT_MASK} - 1)) - 1;
+      my $netmask = int2ip(4294967296 - sprintf("%d", $mask << ($FORM{BIT_MASK}-1)));
+
+      my @addrb=split(/\./,$FORM{NAS_IP_SIP});
+      my ( $addrval ) = unpack( "N", pack( "C4",@addrb ) );
+      
+      my @maskb=split(/\./,$netmask);
+      my ( $maskval ) = unpack( "N", pack( "C4",@maskb ) );
+
+      # calculate network address
+      my $netwval = ( $addrval & $maskval );
+
+      # convert network address to IP address
+      my @netwb=unpack( "C4", pack( "N",$netwval ) );
+      $FORM{NAS_IP_SIP}=join(".",@netwb);
     }
 
     if ($FORM{add}) {
