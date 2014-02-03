@@ -1051,27 +1051,44 @@ sub dhcphosts_user {
     $Dhcphosts->{OPTION_82} = ' checked';
   }
 
-  $Dhcphosts->{SWITCH_SEL} = $html->form_select(
-    'NAS_ID',
-    {
-      SELECTED   => $Dhcphosts->{NAS_ID} || $FORM{NAS_ID},
-      SEL_ARRAY  => $Nas->list({ COLS_NAME => 1 }),
-      SEL_KEY    => 'nas_id',
-      SEL_VALUE  => 'nas_name',
-      SEL_OPTIONS=> { '' => $_ALL },
-    }
-  );
+#  $Dhcphosts->{SWITCH_SEL} = $html->form_select(
+#    'NAS_ID',
+#    {
+#      SELECTED   => $Dhcphosts->{NAS_ID} || $FORM{NAS_ID},
+#      SEL_ARRAY  => $Nas->list({ COLS_NAME => 1 }),
+#      SEL_KEY    => 'nas_id',
+#      SEL_VALUE  => 'nas_name',
+#      SEL_OPTIONS=> { '' => $_ALL },
+#    }
+#  );
 
   $Dhcphosts->{NAS_SEL} = $html->form_select(
     'NAS_ID',
     {
-      POPUP_WINDOW => 'form_nas_search',
+      POPUP_WINDOW       => 'form_nas_search',
       #SELECTED          => $Dhcphosts->{NAS_ID} || $FORM{NAS_ID},
       #SEL_MULTI_ARRAY   => [['', $_ALL], @{ $Nas->list() } ],
       #MULTI_ARRAY_KEY   => 0,
       #MULTI_ARRAY_VALUE => 1,
     }
   );
+
+  if (in_array('Equipment_', \@MODULES)) {
+    $Dhcphosts->{PORTS} = $html->form_select(
+      'PORTS',
+      {
+        POPUP_WINDOW       => 'form_nas_port',
+        FORM_ID            => 'form_nas_port'
+        #SELECTED          => $Dhcphosts->{NAS_ID} || $FORM{NAS_ID},
+        #SEL_MULTI_ARRAY   => [['', $_ALL], @{ $Nas->list() } ],
+        #MULTI_ARRAY_KEY   => 0,
+        #MULTI_ARRAY_VALUE => 1,
+      }
+    );
+  }
+  else {
+  	$Dhcphosts->{PORTS} = $html->form_input('PORTS', "$Dhcphosts->{PORTS}", { SIZE => 10 });
+  }
 
   my $nas_index = get_function_index('form_nas');
   if ($nas_index) {

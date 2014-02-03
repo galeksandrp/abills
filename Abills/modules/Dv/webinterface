@@ -387,7 +387,8 @@ sub dv_users_list {
        'cid'         => 'CID',
        'filter_id'   => 'Filter ID',
        'tp_name'     => "$_TARIF_PLAN",
-       'dv_status'   => "$_STATUS",
+       'dv_status'   => "Internet $_STATUS",
+       'dv_status_date' => "$_STATUS $_DATE",
        'online'      => 'Online',
        'dv_expire'   => "Internet $_EXPIRE"
          },

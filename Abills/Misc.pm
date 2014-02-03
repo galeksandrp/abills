@@ -705,7 +705,7 @@ sub result_former {
           if ($data->{COL_NAMES_ARR}->[$i] eq 'login' && $line->{uid} && defined(&user_ext_menu)) {
             $val = user_ext_menu($line->{uid}, $line->{login}, { EXT_PARAMS => ($attr->{MODULE} ? "MODULE=$attr->{MODULE}": undef) }); 
           }
-          elsif($data->{COL_NAMES_ARR}->[$i] =~ /status/) {
+          elsif($data->{COL_NAMES_ARR}->[$i] =~ /status$/) {
             $val = ($line->{$data->{COL_NAMES_ARR}->[$i]} > 0) ? $html->color_mark($service_status[ $line->{$data->{COL_NAMES_ARR}->[$i]} ], $service_status_colors[ $line->{$data->{COL_NAMES_ARR}->[$i]} ]) : "$service_status[$line->{$data->{COL_NAMES_ARR}->[$i]}]";
           }
           elsif($data->{COL_NAMES_ARR}->[$i] =~ /deposit/) {

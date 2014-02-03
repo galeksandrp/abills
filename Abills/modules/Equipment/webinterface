@@ -454,11 +454,140 @@ sub equipment_list {
   );
 
   print $table->show();
-
-  
-  
 }
 
 
+
+#**********************************************************
+#
+#**********************************************************
+sub equipment_test {
+	my ($attr)=@_;
+	
+	my %info = ();
+  my %snmp_info_ = (	
+	 SYSTEM_ID => '',
+   PORTS     => '',
+   FIRMWARE1 => '',
+   FIRMWARE2 => '',
+   UPTIME    => '',
+   SERIAL    => '',
+  );
+	
+	
+	if ($FORM{ping}) {
+	  #exec("ping -qo -c3 -t2 ".$ip,$out);
+	}
+	elsif($FORM{get_info}) {
+		
+	}
+	
+	
+	return \%info;
+}
+
+
+#**********************************************************
+#
+#**********************************************************
+sub equipment_ports {
+
+  if ($FORM{add}) {
+    $Equipment->port_add({%FORM});
+
+    if (!$Equipment->{errno}) {
+      $html->message('info', $_INFO, "$_ADDED");
+    }
+  }
+  elsif ($FORM{change}) {
+    $Equipment->port_change({%FORM});
+    if (!$Equipment->{errno}) {
+      $html->message('info', $_INFO, "$_CHANGED");
+    }
+  }
+  elsif (defined($FORM{chg})) {
+    $Equipment->port_info($FORM{chg});
+    if (!$Equipment->{errno}) {
+      $html->message('info', $_INFO, "$_CHANGING");
+    }
+    $Equipment->{ACTION}     = 'change';
+    $Equipment->{ACTION_LNG} = $_CHANGE;
+  }
+  elsif (defined($FORM{del}) && defined($FORM{is_js_confirmed})) {
+    $Equipment->port_del($FORM{del});
+    if (!$Equipment->{errno}) {
+      $html->message('info', $_INFO, "$_DELETED");
+    }
+  }
+
+  if ($Equipment->{errno}) {
+    $html->message('err', $_ERROR, "[$Equipment->{errno}] $err_strs{$Equipment->{errno}}");
+  }
+
+  $Equipment->{TYPE_SEL} = $html->form_select(
+      'TYPE_ID',
+      {
+        SELECTED       => $Equipment->{TYPE_ID},
+        SEL_LIST       => $Equipment->type_list({ COLS_NAME => 1 }),
+        NO_ID          => 1,
+        MAIN_MENU      => get_function_index('equipment_type'),
+        MAIN_MENU_AGRV => "chg=$Equipment->{MODEL_ID}"
+      }
+  );
+
+  $Equipment->{VENDOR_SEL} = $html->form_select(
+      'VENDOR_ID',
+      {
+        SELECTED       => $Equipment->{VENDOR_ID},
+        SEL_LIST       => $Equipment->vendor_list({ COLS_NAME => 1 }),
+        NO_ID          => 1,
+        MAIN_MENU      => get_function_index('equipment_vendor'),
+        MAIN_MENU_AGRV => "chg=$Equipment->{VENDOR_ID}"
+      }
+    );
+
+
+  $html->tpl_show(_include('equipment_port', 'Equipment'), { %$Equipment, %FORM });
+
+  my $list  = $Equipment->port_list({%LIST_PARAMS, COLS_NAME => 1 });
+  my $table = $html->table(
+    {
+      width      => '100%',
+      caption    => "$_EQUIPMENT",
+      border     => 1,
+      title      => [ $_NAS, $_PORT, "$_STATUS", "UPLINK", '-', '-' ],
+      cols_align => [ 'left', 'left', 'left', 'left', 'center:noprint', 'center:noprint' ],
+      qs         => $pages_qs,
+      pages      => $Equipment->{TOTAL},
+      ID         => 'EQUIPMENT_MODELS'
+    }
+  );
+
+  foreach my $line (@$list) {
+    my $delete = $html->button($_DEL, "index=$index&del=$line->{id}", { MESSAGE => "$_DEL $line->{port_name}?", CLASS => 'del' });
+    my $change = $html->button($_INFO, "index=$index&chg=$line->{id}", { CLASS => 'show' });
+
+    $table->addrow($line->{port_name}, 
+      $line->{vendor_name}, 
+      $line->{type_name}, 
+      $line->{ports}, 
+      $change, $delete);
+  }
+
+  print $table->show();
+
+  $table = $html->table(
+    {
+      width      => '100%',
+      cols_align => [ 'left', 'right' ],
+      rows       => [ [ "$_TOTAL:", $Equipment->{TOTAL} ] ]
+    }
+  );
+
+  print $table->show();
+
+  return 0;
+
+}
 1
 

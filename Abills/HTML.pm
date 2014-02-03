@@ -695,13 +695,15 @@ sub form_window {
          <span id='popup_info_form_id'>$form_id</span>
          <span id='popup_info_template'>$template</span>
         </div>
-        <div id=\"popclick\" style='display:inline; cursor:pointer;'>
-         <img src=\"/img/button_search.png\" border=0 />
+        <div id='popclick' style='display:inline; cursor:pointer;'>
+         <img src='/img/button_search.png' border=0 />
         </div>
-        <div id=\"clear_results\" style='display:inline; cursor:pointer;'>
-         <img src=\"/img/button_del.png\" border=0/>
+        <div id='clear_results' style='display:inline; cursor:pointer;'>
+         <img src='/img/button_del.png' border=0/>
         </div>
-        <script type=\"text/javascript\" src=\"/js/" . $js_script . ".js\"></script> \n";
+        <script type='text/javascript' src='/js/" . $js_script . ".js'></script>\n";
+
+  #$self->{WINDOW}='';
 
   return $self->{WINDOW};
 }

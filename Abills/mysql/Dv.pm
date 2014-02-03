@@ -524,9 +524,13 @@ sub list {
       ['ONLINE',         'INT', 'c.uid',            'c.uid AS online' ],
       ['PAYMENT_TYPE',   'INT', 'tp.payment_type',                  1 ],
       ['SHOW_PASSWORD',  '',    '',  "DECODE(u.password, '$CONF->{secretkey}') AS password," ],
-      ['STATUS',         'INT', 'dv.disable as dv_status',          1 ],
+      ['DV_STATUS',      'INT', 'dv.disable as dv_status',          1 ],
       ['DV_EXPIRE',      'DATE','dv.expire as dv_expire',           1 ],
-      ['UID',            'INT', 'dv.uid',                           1 ],
+      ['DV_STATUS_DATE', '',    '', '(SELECT aa.datetime FROM admin_actions aa WHERE aa.uid=dv.uid AND aa.module=\'Dv\' AND aa.action_type=4
+       ORDER BY aa.datetime DESC LIMIT 1) AS dv_status_date',
+      ['UID',            'INT', 'dv.uid',                           1 ], 
+        ]
+
     ],
     { WHERE       => 1,
     	WHERE_RULES => \@WHERE_RULES,
