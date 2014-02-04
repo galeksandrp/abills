@@ -81,6 +81,11 @@ sub dv_auth {
   my $MAX_SESSION_TRAFFIC = $CONF->{MAX_SESSION_TRAFFIC} || 0;
   my $DOMAIN_ID = ($NAS->{DOMAIN_ID}) ? "AND tp.domain_id='$NAS->{DOMAIN_ID}'" : "AND tp.domain_id='0'";
 
+  
+  if(! $NAS->{NAS_ID}) {
+  	my $zz = `echo "$NAS->{NAS_ID} / $RAD->{NAS_IP_ADDRESS} / $RAD->{USER_NAME}" >> /tmp/nas_error`;
+  }
+
   $self->query2("select  if (dv.logins=0, if(tp.logins is null, 0, tp.logins), dv.logins) AS logins,
   if(dv.filter_id != '', dv.filter_id, if(tp.filter_id is null, '', tp.filter_id)) AS filter,
   if(dv.ip>0, INET_NTOA(dv.ip), 0) AS ip,
