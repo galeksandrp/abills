@@ -160,7 +160,7 @@ get_mikrotik_info () {
 
 get_value MIKROTIK_ADMIN_USER "Mikrotik admin user" admin
 get_value NAS_ID "Nas ID"
-get_value CONNECTION_TYPE "Connection type [pppoe,pptp,ipn]"
+get_value CONNECTION_TYPE "Connection type [pppoe,pptp,ipn,freeradius_dhcp]"
 get_value MIKROTIK_CONTROL_USER "Mikrotik control user" abills_admin
 get_value RADIUS_AUTH_SERVER "Radius IP" 
 get_value RADIUS_SECRET "Radius Secret" radsecret

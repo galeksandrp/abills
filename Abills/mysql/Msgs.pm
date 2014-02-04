@@ -180,6 +180,8 @@ sub messages_list {
     push @WHERE_RULES, "(u.gid IN ($admin->{GIDS}) or m.gid IN ($admin->{GIDS}))";
   }
   
+  $admin->{permissions}->{0}->{8}=1;
+  
   my $WHERE = $self->search_former($attr, [
       ['MSG_ID',       'INT',  'm.id'             ],
       ['DISABLE',      'INT',  'u.disable',     1 ],

@@ -713,11 +713,11 @@ sub abon_periodic {
             sendmail("$conf{ADMIN_MAIL}", "$info->{EMAIL}", "$conf{WEB_TITLE} - $info->{TP_NAME} $info->{COMMENTS}", "$message", "$conf{MAIL_CHARSET}", '', {});
           }
 
-          $debug_output .= "$user{UID} TP_ID: $info->{TP_ID} SUM: $info->{PRICE} ACCOUNT: $info->{CREATE_ACCOUNT} " . (($info->{CREATE_ACCOUNT}) ? "ACCOUNT SEND_EMAIL: $info->{EMAIL}" : '') . (($info->{ACTIVATE_NOTIFICATION}) ? " NOTIFICATION: $info->{EMAIL}" : '') . "\n" if ($debug > 0);
+          $debug_output .= "$user{UID} TP_ID: $info->{TP_ID} SUM: $info->{PRICE} ACCOUNT: $info->{CREATE_ACCOUNT} " . (($info->{CREATE_ACCOUNT}) ? "ACCOUNT SEND_EMAIL: $info->{EMAIL}" : '') . (($info->{ACTIVATE_NOTIFICATION}) ? " NOTIFICATION: $info->{EMAIL}" : '') . "\n" if ($debug > 1);
         }
         #Send Alert
         elsif ($ADMIN_REPORT{DATE} eq $info->{ABON_DATE} && $info->{SEND_DOCS}) {
-          $debug_output .= "$user{UID} SUM: $info->{PRICE} TP_ID: $info->{TP_ID} $info->{PRICE} ACCOUNT: $info->{CREATE_ACCOUNT} Alert EMAIL: $info->{EMAIL}\n" if ($debug > 0);
+          $debug_output .= "$user{UID} SUM: $info->{PRICE} TP_ID: $info->{TP_ID} $info->{PRICE} ACCOUNT: $info->{CREATE_ACCOUNT} Alert EMAIL: $info->{EMAIL}\n" if ($debug > 1);
 
           my $message = $html->tpl_show(_include('abon_alert', 'Abon'), { %$Abon, %$info }, { OUTPUT2RETURN => 1 });
           my $attach;

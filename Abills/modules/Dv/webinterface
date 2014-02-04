@@ -5039,7 +5039,7 @@ sub dv_daily_fees {
           EXPIRE       => "0000-00-00,>$ADMIN_REPORT{DATE}",
           DV_EXPIRE    => "0000-00-00,>$ADMIN_REPORT{DATE}",
           JOIN_SERVICE => "<2",
-          STATUS       => "0;5",
+          #DV_STATUS    => "0;5",
           LOGIN_STATUS => 0,
           TP_ID        => $TP_INFO->{ID},
           SORT         => 1,
@@ -5188,7 +5188,7 @@ sub dv_daily_fees {
             ACTIVATE     => "<=$ADMIN_REPORT{DATE}",
             EXPIRE       => "0000-00-00,>$ADMIN_REPORT{DATE}",
             DV_EXPIRE    => "0000-00-00,>$ADMIN_REPORT{DATE}",
-            STATUS       => 0,
+            DV_STATUS    => 0,
             LOGIN_STATUS => 0,
             TP_ID        => $tp_line->[0],
             SORT         => 1,
@@ -5300,7 +5300,7 @@ sub dv_holdup_fees {
       ACTIVATE     => "<=$ADMIN_REPORT{DATE}",
       EXPIRE       => "0000-00-00,>$ADMIN_REPORT{DATE}",
       DV_EXPIRE    => "0000-00-00,>$ADMIN_REPORT{DATE}",
-      STATUS       => "3",
+      #DV_STATUS    => "3",
       LOGIN_STATUS => 0,
       SORT         => 1,
       PAGE_ROWS    => 1000000,
@@ -5544,7 +5544,7 @@ sub dv_monthly_fees {
           ACTIVATE     => "$activate_date",
           EXPIRE       => "0000-00-00,>$ADMIN_REPORT{DATE}",
           DV_EXPIRE    => "0000-00-00,>$ADMIN_REPORT{DATE}",
-          STATUS       => "0;5",
+          DV_STATUS    => "0;5",
           JOIN_SERVICE => "<2",
           LOGIN_STATUS => 0,
           TP_ID        => $TP_INFO->{ID},
@@ -6009,7 +6009,7 @@ sub dv_monthly_fees {
             ACTIVATE     => "<=$ADMIN_REPORT{DATE}",
             EXPIRE       => "0000-00-00,>$ADMIN_REPORT{DATE}",
             DV_EXPIRE    => "0000-00-00,>$ADMIN_REPORT{DATE}",
-            STATUS       => 0,
+            DV_STATUS    => 0,
             LOGIN_STATUS => 0,
             TP_ID        => $tp_line->[0],
             SORT         => 1,
@@ -6293,7 +6293,7 @@ sub dv_sheduler {
 
     my ($y, $m, $d)   = split(/-/, $ADMIN_REPORT{DATE}, 3);
     $START_PERIOD_DAY = $conf{START_PERIOD_DAY} || 1;
-    $FORM{RECALCULATE}=0;
+    $FORM{RECALCULATE}= 0;
 
     if ($Dv->{errno}) {
       return $Dv->{errno};
@@ -6812,7 +6812,7 @@ sub dv_wizard_user {
   $dv_defaults->{STATUS_SEL} = $html->form_select(
     'STATUS',
     {
-      SELECTED => $FORM{STATUS} || undef,
+      SELECTED     => $FORM{STATUS} || undef,
       SEL_ARRAY    => \@service_status,
       STYLE        => \@service_status_colors,
       ARRAY_NUM_ID => 1

@@ -249,6 +249,10 @@ elsif ($FORM{params}) {
   require "Sberbank.pm";
   exit;
 }
+elsif ($FORM{request_type} && $FORM{random} || $FORM{copayco_result}) {
+  require "Copayco.pm";
+  exit;
+}
 elsif ($FORM{from} eq 'Payonline') {
   require "Payonline.pm";
   exit;

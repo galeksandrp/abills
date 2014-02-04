@@ -6264,7 +6264,7 @@ sub form_payments () {
      FUNCTION_FIELDS => 'del',
      EXT_TITLES      => {
       'id'           => $_NUM,
-      'date'         => $_DATE, 
+      'datetime'     => $_DATE, 
       'dsc'          => $_DESCRIBE, 
       'sum'          => $_SUM, 
       'last_deposit' => $_OPERATION_DEPOSIT, 
@@ -6918,11 +6918,11 @@ sub form_fees {
      INPUT_DATA      => $fees,
      FUNCTION        => 'list',
      BASE_FIELDS     => 1,
-     DEFAULT_FIELDS  => 'ID,LOGIN,DATE_TIME,DSC,SUM,LAST_DEPOSIT,METHOD,ADMIN_NAME',
+     DEFAULT_FIELDS  => 'ID,LOGIN,DATETIME,DSC,SUM,LAST_DEPOSIT,METHOD,ADMIN_NAME',
      FUNCTION_FIELDS => 'del',
      EXT_TITLES      => {
       'id'           => $_NUM,
-      'date'         => $_DATE, 
+      'datetime'     => $_DATE, 
       'dsc'          => $_DESCRIBE, 
       'sum'          => $_SUM, 
       'last_deposit' => $_OPERATION_DEPOSIT,

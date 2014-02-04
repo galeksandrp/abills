@@ -69,6 +69,7 @@ my %PAY_SYSTEMS = (
   89 => 'Smsonline',
   90 => 'Cashcom',
   91 => 'PayU',
+  92 => 'CoPayCo'
 );
 
 my %CONF_OPTIONS = (
@@ -122,7 +123,8 @@ my %CONF_OPTIONS = (
   PAYSYS_BITCOIN_KEY                        => 88,
   PAYSYS_SMSONLINE_KEY                      => 89,
   PAYSYS_CASHCOM_PROVIDER_ID                => 90,
-  PAYSYS_PAYU_MERCHANT                      => 91
+  PAYSYS_PAYU_MERCHANT                      => 91,
+  PAYSYS_COPAYCO_SHOP_ID                    => 92,
 );
 
 my @status = ("$_UNKNOWN",
@@ -745,6 +747,10 @@ sub paysys_payment {
   elsif ($FORM{PAYMENT_SYSTEM} == 91) {
     paysys_payu();
   }  
+  elsif ($FORM{PAYMENT_SYSTEM} == 92) {
+    paysys_copayco();
+  }  
+
 
   else {
     PRE_LABEL:
@@ -774,7 +780,8 @@ sub paysys_payment {
       87 => 'PAYSY_OKPAY_RECEIVER',
       89 => 'PAYSYS_SMSONLINE',
       90 => 'PAYSYS_CASHCOM_PROVIDER_ID',
-      91 => 'PAYSYS_PAYU_MERCHANT'
+      91 => 'PAYSYS_PAYU_MERCHANT',
+      92 => 'PAYSYS_COPAYCO_SHOP_ID'
     );
 
     while (my ($k, $v) = each %PAY_SYSTEMS) {
@@ -3056,7 +3063,6 @@ sub paysys_cashcom {
 
 #**********************************************************
 # 
-# 
 #**********************************************************
 sub paysys_payu {
   my %info = ();
@@ -3066,6 +3072,117 @@ sub paysys_payu {
   my $order_id          = $FORM{orderid};
 
   require "modules/Paysys/Payu.pm";
+
+  if ($FORM{FALSE}) {
+    if ($FORM{reasoncode} == 11) {
+      $FORM{reasoncodedesc} = "$ERR_INVALID_SIGNATURE";
+    }
+    elsif ($FORM{reasoncode} == 2) {
+      $FORM{reasoncodedesc} = "$ERR_TRANSACTION_DECLINED";
+    }
+    $html->message('err', $_ERROR, "$_FAILED ID: $FORM{orderid} [$FORM{reasoncode}/$FORM{responsecode}] $FORM{reasoncodedesc} ");
+    $html->setCookie('lastindex', "", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure);
+
+    return 0;
+  }
+  elsif ($FORM{TRUE}) {
+    my $list = $Paysys->list(
+      {
+        TRANSACTION_ID => "$payment_system:$FORM{orderid}",
+        UID            => $LIST_PARAMS{UID},
+        SUM            => '_SHOW',
+        COLS_NAME      => 1
+      }
+    );
+
+    if ($Paysys->{TOTAL} > 0) {
+      $html->message('info', $_INFO, "$_ADDED $_SUM: $list->[0]->{sum} ID: $FORM{OPERATION_ID}");
+    }
+    else {
+      $html->message('err', $_ERROR, "$_FAILED ID: $FORM{OPERATION_ID} $_ERR_NO_TRANSACTION");
+    }
+    $html->setCookie('lastindex', "", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure);
+
+    return 0;
+  }
+  else {
+    if ($FORM{SUM} <= 0) {
+      $html->message('info', $_ERROR, "$ERR_WRONG_SUM $FORM{SUM}");
+      return 0;
+    }
+
+    #Info section
+    $Paysys->add(
+      {
+        SYSTEM_ID      => $payment_system_id,
+        DATETIME       => "$DATE $TIME",
+        SUM            => $FORM{SUM},
+        UID            => $user->{UID},
+        IP             => "$ENV{'REMOTE_ADDR'}",
+        TRANSACTION_ID => "$payment_system:$FORM{OPERATION_ID}",
+        INFO           => '-',
+        PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}",
+        STATUS         => 1
+      }
+    );
+
+    if ($Paysys->{errno}) {
+      $html->message('err', "$_ERROR", "$_ERROR Paysys ID: '$FORM{OPERATION_ID}'");
+      return 0;
+    }
+
+  }
+
+  my %forSend = (
+           'ORDER_REF'        => $FORM{OPERATION_ID}, # Uniqe order 
+           'ORDER_PNAME[]'    => "$FORM{DESCRIBE}", #, "Тест товар №1", "Test_goods3" ), # Array with data of goods
+           'ORDER_PCODE[]'    => "Payment", # "testgoods2", "testgoods3" ), # Array with codes of goods
+           'ORDER_PINFO[]'    => "", #, "", "" ), # Array with additional data of goods
+           'ORDER_PRICE[]'    => "$FORM{SUM}", # "0.11", "0.12" ), # Array with prices of goods
+           'ORDER_QTY[]'      => 1, # 2, 1 ), # Array with data of counts of each goods 
+           'ORDER_VAT[]'      => 0, # 0, 0 ), # Array with VAT of each goods
+           'ORDER_SHIPPING'   => 0, # Shipping cost
+           'PRICES_CURRENCY'  => "UAH",  # Currency
+           'LANGUAGE'         => "RU",
+           'BILL_FNAME'       => "$PROGRAM", # ...  etc.
+           #'ORDER_DATE'      => '2014-01-18 15:44:00' 
+          );
+
+  if ( ! $conf{PAYSYS_PAYU_MERCHANT} || ! $conf{PAYSYS_PAYU_SECRET} ) {
+    $html->message('err', $_ERROR, 'Not set  $conf{PAYSYS_PAYU_MERCHANT} $conf{PAYSYS_PAYU_SECRET}');
+    return 0;
+  }
+
+  $forSend{'MERCHANT'}  = $conf{PAYSYS_PAYU_MERCHANT};
+  if( !$forSend{'ORDER_DATE'} ) { 
+    $forSend{'ORDER_DATE'} = "$DATE $TIME";
+  }
+
+  $forSend{'TESTORDER'} = ( $debug > 2 ) ? "TRUE" : "FALSE";
+
+  $forSend{'DEBUG'}    = ($debug>1) ? 1 : 0;
+  $forSend{ORDER_HASH} = mk_signature(mk_array(\%forSend));
+  #if ( count($opt) === 0 ) return $this;
+  foreach my $k ( keys %forSend )  {
+    $info{FIELDS}.="<input type=hidden name=$k value='$forSend{$k}'>\n";  
+  }
+  
+
+  $html->tpl_show(_include('paysys_payu_add', 'Paysys'), \%info);
+}
+
+
+#**********************************************************
+# 
+#**********************************************************
+sub paysys_copayco {
+  my %info = ();
+
+  my $payment_system    = 'CoPayCo';
+  my $payment_system_id = 92;
+  my $order_id          = $FORM{orderid};
+
+  require "modules/Paysys/Copayco.pm";
 
   if ($FORM{FALSE}) {
     if ($FORM{reasoncode} == 11) {

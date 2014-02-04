@@ -236,7 +236,7 @@ sub list {
   }
 
   my $WHERE =  $self->search_former($attr, [
-      ['DATETIME',       'DATE','p.date AS datetime',          1], 
+      ['DATETIME',       'DATE','p.date',   'p.date AS datetime'], 
       ['SUM',            'INT', 'p.sum',                        ],
       ['PAYMENT_METHOD', 'INT', 'p.method',                     ],
       ['A_LOGIN',        'STR', 'a.id'                          ],
@@ -250,7 +250,7 @@ sub list {
       ['IP',             'INT', 'INET_NTOA(p.ip)',  'INET_NTOA(p.ip) AS ip'],
       ['EXT_ID',         'STR', 'p.ext_id',                                ],
       ['INVOICE_NUM',    'INT', 'd.invoice_num',                          1],
-      ['DATE',           'DATE','date_format(p.date, \'%Y-%m-%d\') AS date'], 
+      ['DATE',           'DATE','date_format(p.date, \'%Y-%m-%d\')'        ], 
       ['REG_DATE',       'DATE','p.reg_date',                             1],      
       ['MONTH',          'DATE','date_format(p.date, \'%Y-%m\') AS month'  ],
       ['ID',             'INT', 'p.id'                                     ],
@@ -285,7 +285,7 @@ sub list {
   if (!$attr->{TOTAL_ONLY}) {
     $self->query2("SELECT p.id, 
       u.id AS login, 
-      p.date, 
+      p.date AS datetime, 
       p.dsc, 
       p.sum, 
       p.last_deposit, 

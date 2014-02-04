@@ -257,7 +257,7 @@ sub list {
 
   my $WHERE =  $self->search_former($attr, [
       ['ID',             'INT', 'f.id',                              ],
-      ['DATE_TIME',      'DATE','f.date',                          1 ],
+      ['DATETIME',      'DATE','f.date',        'f.date AS datetime' ],
       ['LOGIN',          'STR', 'u.id AS login',                   1 ],
       ['FIO',            'STR', 'pi.fio',                          1 ],
       ['DESCRIBE',       'STR', 'f.dsc',                           1 ],
@@ -274,7 +274,7 @@ sub list {
       ['DOMAIN_ID',      'INT', 'u.domain_id',                       ],
       ['UID',            'INT', 'f.uid',                           1 ],
       ['INNER_DESCRIBE', 'STR', 'f.inner_describe',                1 ],
-#      ['DATE',           'DATE', 'date_format(f.date, \'%Y-%m-%d\')' ],
+      ['DATE',           'DATE', 'date_format(f.date, \'%Y-%m-%d\')' ],
       ['FROM_DATE|TO_DATE','DATE', 'date_format(f.date, \'%Y-%m-%d\')'  ],
       ['MONTH',          'DATE', "date_format(f.date, '%Y-%m')"   ],
     ],

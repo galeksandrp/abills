@@ -281,7 +281,7 @@ sub get_data {
 
 
 #**********************************************************
-# search_expr($self, $value, $type)
+# search_former($self, $value, $type)
 #
 # type of fields
 #  IP -  IP Address
