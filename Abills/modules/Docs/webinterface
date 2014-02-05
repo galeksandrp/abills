@@ -829,7 +829,9 @@ sub docs_invoices_list {
 
   if ($FORM{UNINVOICED}) {
     if ($FORM{apply}) {
-    	my $payment_list = $Payments->list({ ID => $FORM{PAYMENT_ID}, COLS_NAME => 1 });
+    	my $payment_list = $Payments->list({ ID        => $FORM{PAYMENT_ID}, 
+    		                                   SUM       => '_SHOW',
+    		                                   COLS_NAME => 1 });
     	
     	if ($Payments->{TOTAL} > 0) {
     		if ($FORM{SUM} > $payment_list->[0]->{sum}) {
@@ -839,7 +841,7 @@ sub docs_invoices_list {
 
         docs_payments_maked(\%FORM);
         if (!$Docs->{errno}) {
-       	  $html->message('info', $_INFO, "$_ADDED");
+       	  $html->message('info', $_ADDED, "$_PAYMENTS: $payment_list->[0]->{id} -> $_INVOICE: $FORM{INVOICE_ID}\n$_SUM:  $FORM{SUM}");
      	  }
      	  else {
           $html->message('err', $_ERROR, "[$Docs->{errno}] $err_strs{$Docs->{errno}}");
@@ -887,7 +889,12 @@ sub docs_invoices_list {
           "INVOICE_ID",
           {
             SELECTED          => $FORM{INVOICE_ID} || $FORM{UNINVOICED},
-            SEL_LIST          => $Docs->invoices_list({ UID => $FORM{UID}, UNPAIMENT => 1, PAGE_ROWS => 200, SORT => 2, DESC => 'DESC', COLS_NAME => 1 }),
+            SEL_LIST          => $Docs->invoices_list({ UID       => $FORM{UID}, 
+            	                                          UNPAIMENT => 1, 
+            	                                          PAGE_ROWS => 200, 
+            	                                          SORT      => 2, 
+            	                                          DESC      => 'DESC', 
+            	                                          COLS_NAME => 1 }),
             SEL_KEY           => 'id',
             SEL_VALUE         => 'invoice_num,date,total_sum,payment_sum',
             SEL_VALUE_PREFIX  => "$_NUM: ,$_DATE: ,$_SUM: ,$_PAYMENTS: ",
@@ -2472,7 +2479,7 @@ sub docs_invoice {
                   $period_to = "$Y-$M-$D";
                 }
                 else {
-                  $M += 1 if ($i > 0 && ! $conf{FIXED_FEES_DAY});
+                  $M += 1 if ($i > 0 && $users->{ACTIVATE} eq '0000-00-00');
                   if ($M < 13) {
                     $M = sprintf("%02d", $M);
                   }
@@ -3323,24 +3330,30 @@ sub docs_payments_maked {
   	return 0;
   }
 
+
 if ($FORM{APPLY_TO_INVOICE} || ($FORM{INVOICE_ID} && $FORM{INVOICE_ID} ne 'create')) {
   delete($FORM{INVOICE_ID}) if ($FORM{INVOICE_ID} == 0);
 	
 	my $list = $Docs->invoices_list({ UNPAIMENT => ($FORM{INVOICE_ID}) ? undef : 1,
   		                              ID        => $FORM{INVOICE_ID},
   		                              UID       => $FORM{UID},
+  		                              PAGE_ROWS => 50,
   		                              COLS_NAME => 1,
   		                              SORT      => '1',
   		                              DESC      => 'ASC'
   		                             });
 
+
   my $total_payment_sum = $FORM{SUM};
-  my $payment_sum       = $FORM{SUM}; 	
-	if ($Docs->{TOTAL} > 0) {
+  my $payment_sum       = $FORM{SUM};
+
+  if ($Docs->{TOTAL} > 0) {
+
   	foreach my $doc (@$list) {
   		#print "<!-- --> $doc->{id}  -> Total SUM: $doc->{total_sum} -> PAYMENTS_SUM $doc->{payment_sum} PAY: $FORM{SUM}<br>\n";
 
   		if ($doc->{total_sum} < $doc->{payment_sum}) {
+  	    print " //     my $payment_sum       = $FORM{SUM}; // $doc->{total_sum} < $doc->{payment_sum} ";  	
   			next;
   		}
 

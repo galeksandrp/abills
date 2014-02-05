@@ -451,6 +451,7 @@ sub invoices_list {
     $attr->{UNPAIMENT}=$attr->{PAID_STATUS};
   }
 
+  my $HAVING = '';
   if ($attr->{UNPAIMENT}) {
     my $st = '<>';
     if ($attr->{UNPAIMENT} == 2) {
@@ -460,10 +461,11 @@ sub invoices_list {
         (SELECT sum(orders.counts*orders.price) FROM docs_invoice_orders orders WHERE orders.invoice_id=d.id)))" . (( $attr->{ID} ) ? "d.id='$attr->{ID}'" : '');
     }
     else {
-      push @WHERE_RULES, "(i2p.sum IS NULL OR 
-       ( (SELECT sum(sum) FROM  docs_invoice2payments WHERE invoice_id=d.id)
-       <>
-        (SELECT sum(orders.counts*orders.price) FROM docs_invoice_orders orders WHERE orders.invoice_id=d.id)))" . (( $attr->{ID} ) ? "d.id='$attr->{ID}'" : '');
+#      push @WHERE_RULES, "(i2p.sum IS NULL OR 
+#       ( (SELECT sum(sum) FROM  docs_invoice2payments WHERE invoice_id=d.id)
+#       <>
+#        (SELECT sum(orders.counts*orders.price) FROM docs_invoice_orders orders WHERE orders.invoice_id=d.id)))" . (( $attr->{ID} ) ? "d.id='$attr->{ID}'" : '');
+       $HAVING = "HAVING total_sum - payment_sum > 0";
     }
   }
 
@@ -507,8 +509,11 @@ sub invoices_list {
   $self->query2("SELECT d.invoice_num, 
      d.date, 
      if(d.customer='-' or d.customer='', pi.fio, d.customer) AS customer,
-     if (i2p.sum IS NULL, sum(o.price * o.counts),  sum(o.price * o.counts) /count( DISTINCT i2p.payment_id)) AS total_sum, 
-     if (i2p.payment_id IS NOT NULL, sum(i2p.sum), 0) / count(DISTINCT o.orders) AS payment_sum,
+     sum(o.price * o.counts) AS total_sum, 
+     (SELECT sum(i2p.sum) FROM docs_invoice2payments i2p
+              LEFT JOIN payments p ON (i2p.payment_id=p.id)
+              WHERE d.id=i2p.invoice_id
+      ) AS payment_sum,
      $self->{SEARCH_FIELDS}
      d.payment_id,
      d.uid, 
@@ -518,11 +523,10 @@ sub invoices_list {
     LEFT JOIN users u ON (d.uid=u.uid)
     LEFT JOIN admins a ON (d.aid=a.aid)
     LEFT JOIN users_pi pi ON (pi.uid=u.uid)
-    LEFT JOIN docs_invoice2payments i2p ON (d.id=i2p.invoice_id)
-    LEFT JOIN payments p ON (i2p.payment_id=p.id)
     $EXT_TABLES
     $WHERE
-    GROUP BY d.id, i2p.invoice_id 
+    GROUP BY d.id
+    $HAVING
     ORDER BY $SORT $DESC
     LIMIT $PG, $PAGE_ROWS;",
     undef,
