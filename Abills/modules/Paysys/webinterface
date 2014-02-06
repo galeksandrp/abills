@@ -3244,42 +3244,7 @@ sub paysys_copayco {
 
   }
 
-  my %forSend = (
-           'ORDER_REF'        => $FORM{OPERATION_ID}, # Uniqe order 
-           'ORDER_PNAME[]'    => "$FORM{DESCRIBE}", #, "Тест товар №1", "Test_goods3" ), # Array with data of goods
-           'ORDER_PCODE[]'    => "Payment", # "testgoods2", "testgoods3" ), # Array with codes of goods
-           'ORDER_PINFO[]'    => "", #, "", "" ), # Array with additional data of goods
-           'ORDER_PRICE[]'    => "$FORM{SUM}", # "0.11", "0.12" ), # Array with prices of goods
-           'ORDER_QTY[]'      => 1, # 2, 1 ), # Array with data of counts of each goods 
-           'ORDER_VAT[]'      => 0, # 0, 0 ), # Array with VAT of each goods
-           'ORDER_SHIPPING'   => 0, # Shipping cost
-           'PRICES_CURRENCY'  => "UAH",  # Currency
-           'LANGUAGE'         => "RU",
-           'BILL_FNAME'       => "$PROGRAM", # ...  etc.
-           #'ORDER_DATE'      => '2014-01-18 15:44:00' 
-          );
-
-  if ( ! $conf{PAYSYS_PAYU_MERCHANT} || ! $conf{PAYSYS_PAYU_SECRET} ) {
-    $html->message('err', $_ERROR, 'Not set  $conf{PAYSYS_PAYU_MERCHANT} $conf{PAYSYS_PAYU_SECRET}');
-    return 0;
-  }
-
-  $forSend{'MERCHANT'}  = $conf{PAYSYS_PAYU_MERCHANT};
-  if( !$forSend{'ORDER_DATE'} ) { 
-    $forSend{'ORDER_DATE'} = "$DATE $TIME";
-  }
-
-  $forSend{'TESTORDER'} = ( $debug > 2 ) ? "TRUE" : "FALSE";
-
-  $forSend{'DEBUG'}    = ($debug>1) ? 1 : 0;
-  $forSend{ORDER_HASH} = mk_signature(mk_array(\%forSend));
-  #if ( count($opt) === 0 ) return $this;
-  foreach my $k ( keys %forSend )  {
-    $info{FIELDS}.="<input type=hidden name=$k value='$forSend{$k}'>\n";  
-  }
-  
-
-  $html->tpl_show(_include('paysys_payu_add', 'Paysys'), \%info);
+  $html->tpl_show(_include('paysys_copayco_add', 'Paysys'), \%info);
 }
 
 

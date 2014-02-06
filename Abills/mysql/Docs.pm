@@ -506,6 +506,13 @@ sub invoices_list {
 
   my $EXT_TABLES  = $self->{EXT_TABLES};
 
+  if ($self->{SEARCH_FIELDS} =~ /p\./) {
+  	$EXT_TABLES .= " 	
+  	LEFT JOIN docs_invoice2payments i2p ON (d.id=i2p.invoice_id)
+    LEFT JOIN payments p ON (i2p.payment_id=p.id)  	
+  	";
+  }
+
   $self->query2("SELECT d.invoice_num, 
      d.date, 
      if(d.customer='-' or d.customer='', pi.fio, d.customer) AS customer,

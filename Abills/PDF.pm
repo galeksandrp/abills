@@ -1197,9 +1197,8 @@ sub tpl_show {
   my $multi_recs      = 0;
 
   if ($encode =~ /utf-8/) {
-    $font_name = '/usr/abills/Abills/templates/fonts/FreeSerif.ttf';
+    $font_name = $CONF->{TPL_DIR}.'/fonts/FreeSerif.ttf';
     $font = $pdf->ttfont($font_name, -encode => "$encode");
-    #$font = $pdf->corefont($font_name, -encode => "$encode");
   }
   else {
     $font = $pdf->corefont($font_name, -encode => "$encode");
