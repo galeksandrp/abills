@@ -465,7 +465,7 @@ sub invoices_list {
 #       ( (SELECT sum(sum) FROM  docs_invoice2payments WHERE invoice_id=d.id)
 #       <>
 #        (SELECT sum(orders.counts*orders.price) FROM docs_invoice_orders orders WHERE orders.invoice_id=d.id)))" . (( $attr->{ID} ) ? "d.id='$attr->{ID}'" : '');
-       $HAVING = "HAVING total_sum - payment_sum > 0";
+       $HAVING = "HAVING total_sum - if(payment_sum<>'', payment_sum, 0)  > 0";
     }
   }
 

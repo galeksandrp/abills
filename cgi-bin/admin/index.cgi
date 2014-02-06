@@ -6188,7 +6188,12 @@ sub form_payments () {
           "INVOICE_ID",
           {
             SELECTED          => $FORM{INVOICE_ID} || 'create' || 0,
-            SEL_LIST          => $Docs->invoices_list({ UID => $user->{UID}, UNPAIMENT => 1, PAGE_ROWS => 200, SORT => 2, DESC => 'DESC', COLS_NAME => 1 }),
+            SEL_LIST          => $Docs->invoices_list({ UID       => $user->{UID}, 
+            	                                          UNPAIMENT => 1, 
+            	                                          PAGE_ROWS => 200, 
+            	                                          SORT      => 2, 
+            	                                          DESC      => 'DESC', 
+            	                                          COLS_NAME => 1 }),
             SEL_KEY           => 'id',
             SEL_VALUE         => 'invoice_num,date,total_sum,payment_sum',
             SEL_VALUE_PREFIX  => "$_NUM: ,$_DATE: ,$_SUM: ,$_PAYMENTS: ",
