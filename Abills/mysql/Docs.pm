@@ -518,7 +518,6 @@ sub invoices_list {
      if(d.customer='-' or d.customer='', pi.fio, d.customer) AS customer,
      sum(o.price * o.counts) AS total_sum, 
      (SELECT sum(i2p.sum) FROM docs_invoice2payments i2p
-              LEFT JOIN payments p ON (i2p.payment_id=p.id)
               WHERE d.id=i2p.invoice_id
       ) AS payment_sum,
      $self->{SEARCH_FIELDS}
@@ -545,15 +544,14 @@ sub invoices_list {
   
   $self->query2("SELECT count(distinct d.id) AS total_invoices,
      count(distinct d.uid) AS total_users,
-     sum(o.price * o.counts) AS total_sum, 
-     sum(i2p.sum) AS payment_sum
+     SUM((SELECT SUM(o.price * o.counts) FROM docs_invoice_orders o WHERE o.invoice_id=d.id)) AS total_sum, 
+     SUM((SELECT SUM(i2p.sum)  FROM docs_invoice2payments i2p
+         WHERE d.id=i2p.invoice_id
+      )) AS payment_sum
     FROM docs_invoices d
-    INNER JOIN docs_invoice_orders o ON (o.invoice_id=d.id)
     LEFT JOIN users u ON (d.uid=u.uid)
     LEFT JOIN admins a ON (d.aid=a.aid)
     LEFT JOIN companies company ON (u.company_id=company.id)
-    LEFT JOIN (SELECT invoice_id, sum, payment_id FROM docs_invoice2payments GROUP BY invoice_id) i2p ON (d.id=i2p.invoice_id)
-    LEFT JOIN (SELECT id FROM payments GROUP BY id) p ON (i2p.payment_id=p.id)
     $WHERE
     ",
     undef,
