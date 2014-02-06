@@ -2100,7 +2100,7 @@ sub docs_invoice {
 
       #Get payments
   	  my $i2p_list = $Docs->invoices2payments_list({ INVOICE_ID => $FORM{print}, 
-  	  	                                             COLS_NAME => 1 
+  	  	                                             COLS_NAME  => 1 
   	  	                                           });
       my $payments_total_sum = 0;
       $i = 1;
@@ -2116,6 +2116,7 @@ sub docs_invoice {
   	  }
       
       $Doc{PAYMENTS_TOTAL_SUM}=$payments_total_sum;
+      $Doc{TOTAL_REST_SUM}=sprintf("%.2f",$Doc{TOTAL_SUM}-$Doc{PAYMENTS_TOTAL_SUM});
       
       #Get unpayments
       my $unpayment_list = $Docs->invoices_list({ UID       => $FORM{UID},
@@ -2142,6 +2143,7 @@ sub docs_invoice {
         $Doc{DEPOSIT_ALT}        = sprintf("%.2f", $Doc{DEPOSIT} * $Doc{EXCHANGE_RATE});
         $Doc{CHARGED_ALT_SUM}    = sprintf("%.2f", $Doc{CHARGED_SUM} * $Doc{EXCHANGE_RATE});
         $Doc{UNPAYMENT_TOTAL_ALT_SUM}= sprintf("%.2f", $Doc{UNPAYMENT_TOTAL_SUM} * $Doc{EXCHANGE_RATE});
+        $Doc{TOTAL_REST_ALT_SUM} =sprintf("%.2f",$Doc{TOTAL_REST_SUM}* $Doc{EXCHANGE_RATE});
       }
 
       $attr->{SEND_EMAIL} = 0 if (!defined($attr->{SEND_EMAIL}));
