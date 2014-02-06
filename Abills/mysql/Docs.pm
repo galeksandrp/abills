@@ -1337,7 +1337,7 @@ sub act_change {
 
 #**********************************************************
 # User information
-# info()
+# user_info()
 #**********************************************************
 sub user_info {
   my $self = shift;
@@ -1437,7 +1437,7 @@ sub user_list {
 
   $CONF->{DOCS_PRE_INVOICE_PERIOD}=10 if (! defined($CONF->{DOCS_PRE_INVOICE_PERIOD}));
   
-  my @WHERE_RULES = ( "u.uid=service.uid" );
+  my @WHERE_RULES = (  );
 
   if ($attr->{PRE_INVOICE_DATE}) {
     if ($attr->{PRE_INVOICE_DATE} =~ /(\d{4}-\d{2}-\d{2})\/(\d{4}-\d{2}-\d{2})/) {
@@ -1454,7 +1454,7 @@ sub user_list {
            AND service.invoice_date + INTERVAL 30*service.invoicing_period+service.invoicing_period-1 DAY - INTERVAL $CONF->{DOCS_PRE_INVOICE_PERIOD} day<='$to_date' 
       ))";      
     }
-    else {
+    elsif($attr->{PRE_INVOICE_DATE} ne '_SHOW') {
        push @WHERE_RULES,  '('. @{ $self->search_expr("$attr->{PRE_INVOICE_DATE}", "DATE","u.activate='0000-00-00' AND service.invoice_date + INTERVAL service.invoicing_period MONTH - INTERVAL $CONF->{DOCS_PRE_INVOICE_PERIOD} day") }[0] . ' OR '. 
        @{ $self->search_expr("$attr->{PRE_INVOICE_DATE}", "DATE", "u.activate<>'0000-00-00' AND service.invoice_date + INTERVAL 30*service.invoicing_period+service.invoicing_period DAY - INTERVAL $CONF->{DOCS_PRE_INVOICE_PERIOD} day") }[0] .')';
     }
@@ -1489,16 +1489,16 @@ sub user_list {
      service.invoice_date, 
      if(u.activate='0000-00-00', 
        service.invoice_date + INTERVAL service.invoicing_period MONTH,
-       service.invoice_date + INTERVAL 30*service.invoicing_period+service.invoicing_period-1 DAY) - INTERVAL 10 day AS pre_invoice_date,
+       service.invoice_date + INTERVAL 30*service.invoicing_period+service.invoicing_period-1 DAY) - INTERVAL $CONF->{DOCS_PRE_INVOICE_PERIOD} day AS pre_invoice_date,
      service.invoicing_period,  
      (service.invoice_date + INTERVAL service.invoicing_period MONTH) AS next_invoice_date,     
+     $self->{SEARCH_FIELDS}
      service.email, 
      service.send_docs,
-     service.uid,
-     $self->{SEARCH_FIELDS}
-     u.activate
-   FROM (users u, docs_main service)
-   
+     u.activate,
+     service.uid
+   FROM users u
+   INNER JOIN docs_main service ON (u.uid=service.uid)
    LEFT JOIN users_pi pi ON (u.uid = pi.uid)
    LEFT JOIN bills b ON (u.bill_id = b.id)
    LEFT JOIN companies company ON  (u.company_id=company.id) 

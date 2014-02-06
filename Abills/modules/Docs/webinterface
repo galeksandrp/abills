@@ -3488,7 +3488,7 @@ sub docs_users_list {
   my ($table, $list) = result_former({
      INPUT_DATA      => $Docs,
      FUNCTION        => 'user_list',
-     BASE_FIELDS     => 9,
+     BASE_FIELDS     => 10,
      #FUNCTION_FIELDS => 'form_payments, dv_stats',
      EXT_TITLES      => {
      	login_status         => $_STATUS, 
