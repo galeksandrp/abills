@@ -1355,7 +1355,7 @@ sub user_info {
    service.personal_delivery,
    service.invoicing_period,
    service.invoice_date,
-   if (u.activate='0000-00-00',  service.invoice_date + INTERVAL service.invoicing_period MONTH - INTERVAL $CONF->{DOCS_PRE_INVOICE_PERIOD} day, service.invoice_date + INTERVAL 30*service.invoicing_period+service.invoicing_period DAY - INTERVAL $CONF->{DOCS_PRE_INVOICE_PERIOD} day) AS next_invoice_date
+   if (u.activate='0000-00-00'  or '$CONF->{FIXED_FEES_DAY}' <> '',  service.invoice_date + INTERVAL service.invoicing_period MONTH - INTERVAL $CONF->{DOCS_PRE_INVOICE_PERIOD} day, service.invoice_date + INTERVAL 30*service.invoicing_period+service.invoicing_period DAY - INTERVAL $CONF->{DOCS_PRE_INVOICE_PERIOD} day) AS next_invoice_date
      FROM docs_main service
    INNER JOIN users u ON (u.uid=service.uid) 
    $WHERE;", undef, { INFO => 1 }
