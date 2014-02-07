@@ -301,7 +301,7 @@ sub dv_users_search {
 
   $Dv->{GROUP_SEL}  = sel_groups();
   $Dv->{STATUS_SEL} = $html->form_select(
-    'STATUS',
+    'DV_STATUS',
     {
       SELECTED => $FORM{STATUS} || 0,
       SEL_HASH => {

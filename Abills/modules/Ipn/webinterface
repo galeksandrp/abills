@@ -2752,7 +2752,7 @@ sub ipn_start_active {
       EXPIRE        => "0000-00-00,>$DATE",
       IP            => '>' . (($conf{IPN_DHCP_ACTIVE}) ? '=' : '') . '0.0.0.0',
       NETMASK       => '_SHOW',
-      STATUS        => 0,
+      DV_STATUS     => 0,
       LOGIN_STATUS  => 0,
       ALL_FILTER_ID => '_SHOW',
       PORT          => '_SHOW',
