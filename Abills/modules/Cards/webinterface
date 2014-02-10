@@ -154,7 +154,7 @@ sub cards_main {
       SELECTED   => $FORM{AID},
       SEL_LIST   => $admin->list({%LIST_PARAMS, COLS_NAME => 1 }),
       SEL_KEY    => 'aid',
-      SEL_VALUE  => 'id',
+      SEL_VALUE  => 'login',
       SEL_OPTIONS=> { '' => '' },
     }
   );

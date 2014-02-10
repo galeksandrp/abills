@@ -303,7 +303,7 @@ sub dv_users_search {
   $Dv->{STATUS_SEL} = $html->form_select(
     'DV_STATUS',
     {
-      SELECTED => $FORM{STATUS} || 0,
+      SELECTED => $FORM{DV_STATUS} || 0,
       SEL_HASH => {
         '' => "$_ALL",
         0  => $service_status[0],
@@ -353,15 +353,15 @@ sub dv_users_list {
 
   for(my $i=0; $i<=$#service_status; $i++) {
     my $name = $service_status[$i];
-    if (defined($FORM{STATUS}) && $FORM{STATUS} == $i && $FORM{STATUS} ne '') {
-      $LIST_PARAMS{STATUS} = $FORM{STATUS};
-      $pages_qs   .= "&STATUS=$i";
+    if (defined($FORM{DV_STATUS}) && $FORM{DV_STATUS} == $i && $FORM{DV_STATUS} ne '') {
+      $LIST_PARAMS{DV_STATUS} = $FORM{DV_STATUS};
+      $pages_qs   .= "&DV_STATUS=$i";
       $status_bar .= ' ' . $html->b($name);
     }
     else {
       my $qs = $pages_qs;
-      $qs =~ s/\&STATUS=\d//;
-      $status_bar .= ' ' . $html->button($html->color_mark($name, $service_status_colors[$i]), "index=$index&STATUS=$i$qs");
+      $qs =~ s/\&DV_STATUS=\d//;
+      $status_bar .= ' ' . $html->button($html->color_mark($name, $service_status_colors[$i]), "index=$index&DV_STATUS=$i$qs");
     }
   }
 
