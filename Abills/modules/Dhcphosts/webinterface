@@ -969,7 +969,7 @@ sub dhcphosts_user {
 
       if (in_array('Snmputils', \@MODULES)) {
         if ($Dhcphosts->{NAS_ID}) {
-          require "Abills/modules/Snmputils/webinterface";
+          load_module("Snmputils", $html);
           my $return = snmputils_periodic({ NAS_IDS => $Dhcphosts->{NAS_ID}, DEBUG => 1 });
           print $html->message('info', "SNMP", $html->pre($return, { OUTPUT2RETURN => 1 }));
         }
@@ -1051,17 +1051,6 @@ sub dhcphosts_user {
     $Dhcphosts->{OPTION_82} = ' checked';
   }
 
-#  $Dhcphosts->{SWITCH_SEL} = $html->form_select(
-#    'NAS_ID',
-#    {
-#      SELECTED   => $Dhcphosts->{NAS_ID} || $FORM{NAS_ID},
-#      SEL_ARRAY  => $Nas->list({ COLS_NAME => 1 }),
-#      SEL_KEY    => 'nas_id',
-#      SEL_VALUE  => 'nas_name',
-#      SEL_OPTIONS=> { '' => $_ALL },
-#    }
-#  );
-
   $Dhcphosts->{NAS_SEL} = $html->form_select(
     'NAS_ID',
     {
@@ -1072,6 +1061,10 @@ sub dhcphosts_user {
       #MULTI_ARRAY_VALUE => 1,
     }
   );
+
+  if (in_array('Equipment', \@MODULES) && $Dhcphosts->{NAS_ID}) {
+  	$Dhcphosts->{SWITCH_STATUS} = $html->button($_STATUS, "NAS_ID=$Dhcphosts->{NAS_ID}&PORT_SHOW=1&index=". get_function_index('equipment_info'), { CLASS => 'info rightAlignText' } );
+  }
 
   if (in_array('Equipment_', \@MODULES)) {
     $Dhcphosts->{PORTS} = $html->form_select(

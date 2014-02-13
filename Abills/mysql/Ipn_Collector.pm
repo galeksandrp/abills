@@ -913,16 +913,16 @@ sub acct_stop {
 
   $self->query2($sql, undef, { INFO => 1 });
 
-  $self->query2("SELECT sum(l.traffic_in) AS traffic_in, 
-   sum(l.traffic_out) AS traffic_out,
-   sum(l.sum) AS sum,
-   l.nas_id
-   from ipn_log l
-   WHERE session_id='$session_id'
-   GROUP BY session_id  ;",
-   undef,
-   { INFO => 1 }
-  );
+#  $self->query2("SELECT sum(l.traffic_in) AS traffic_in, 
+#   sum(l.traffic_out) AS traffic_out,
+#   sum(l.sum) AS sum,
+#   l.nas_id
+#   from ipn_log l
+#   WHERE session_id='$session_id'
+#   GROUP BY session_id  ;",
+#   undef,
+#   { INFO => 1 }
+#  );
 
   if ($self->{TOTAL} < 1) {
     $self->query2("DELETE from dv_calls WHERE acct_session_id='$self->{ACCT_SESSION_ID}';", 'do');
@@ -933,16 +933,16 @@ sub acct_stop {
     $self->{ACCT_OUTPUT_GIGAWORDS} = int($self->{OUTPUT_OCTETS} / 4294967296);
     $self->{OUTPUT_OCTETS} = $self->{OUTPUT_OCTETS} - ($self->{ACCT_OUTPUT_GIGAWORDS} * 4294967296);
   }
-  else {
-  	$self->{INPUT_OCTETS}=0;
+  elsif(! $self->{OUTPUT_OCTETS}) {
+    $self->{OUTPUT_OCTETS}=0;
   }
   
   if ($self->{INPUT_OCTETS} && $self->{INPUT_OCTETS} > 4294967296) {
     $self->{ACCT_INPUT_GIGAWORDS} = int($self->{INPUT_OCTETS} / 4294967296);
     $self->{INPUT_OCTETS} = $self->{INPUT_OCTETS} - ($self->{ACCT_INPUT_GIGAWORDS} * 4294967296);
   } 
-  else {
-  	$self->{INPUT_OCTETS}=0;
+  elsif(! $self->{INPUT_OCTETS}) {
+    $self->{INPUT_OCTETS}=0;
   }
 
   $self->query2("INSERT INTO dv_log (uid, 

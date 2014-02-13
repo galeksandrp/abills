@@ -664,17 +664,17 @@ sub prepaid_rest {
 
   $CONF->{MB_SIZE} = $CONF->{KBYTE_SIZE} * $CONF->{KBYTE_SIZE};
   #Get User TP and intervals
-  $self->query2("select tt.id AS traffic_class, 
+  $self->query2("SELECT tt.id AS traffic_class, 
     i.begin AS interval_begin, 
     i.end AS interval_end, 
-    if(u.activate<>'0000-00-00', u.activate, DATE_FORMAT(curdate(), '%Y-%m-01')) AS activate, 
+    IF(u.activate<>'0000-00-00', u.activate, DATE_FORMAT(curdate(), '%Y-%m-01')) AS activate, 
     tt.prepaid, 
     u.id AS login, 
     tp.octets_direction, 
     u.uid, 
     dv.tp_id, 
     tp.name AS tp_name,
-    if (PERIOD_DIFF(DATE_FORMAT(curdate(),'%Y%m'),DATE_FORMAT(u.registration, '%Y%m')) < tp.traffic_transfer_period, 
+    IF (PERIOD_DIFF(DATE_FORMAT(curdate(),'%Y%m'),DATE_FORMAT(u.registration, '%Y%m')) < tp.traffic_transfer_period, 
       PERIOD_DIFF(DATE_FORMAT(curdate(),'%Y%m'),DATE_FORMAT(u.registration, '%Y%m'))+1, tp.traffic_transfer_period) AS traffic_transfert, 
     tp.day_traf_limit,
     tp.week_traf_limit,
@@ -682,17 +682,17 @@ sub prepaid_rest {
     tt.interval_id,
     tt.in_price,
     tt.out_price
-  from (users u,
+  FROM (users u,
         dv_main dv,
         tarif_plans tp,
         intervals i,
         trafic_tarifs tt)
 WHERE
      u.uid=dv.uid
- and dv.tp_id=tp.id
- and tp.tp_id=i.tp_id
- and i.id=tt.interval_id
- and u.uid='$attr->{UID}'
+ AND dv.tp_id=tp.id
+ AND tp.tp_id=i.tp_id
+ AND i.id=tt.interval_id
+ AND u.uid='$attr->{UID}'
  ORDER BY 1
  ",
  undef,
@@ -765,7 +765,7 @@ WHERE
     $WHERE = "date_format(l.start, '%Y-%m-%d')>='$attr->{FROM_DATE}' and date_format(l.start, '%Y-%m-%d')<='$attr->{TO_DATE}'";
   }
   else {
-    $WHERE = "DATE_FORMAT(start, '%Y-%m-%d')>='$self->{INFO_LIST}->[0]->{activate}' - INTERVAL $traffic_transfert MONTH ";
+    $WHERE = "DATE_FORMAT(start, '%Y-%m-%d')>=DATE_FORMAT('$self->{INFO_LIST}->[0]->{activate}' - INTERVAL $traffic_transfert MONTH, '%Y-%m-%d') ";
   }
 
   if ($CONF->{DV_INTERVAL_PREPAID}) {
@@ -784,7 +784,7 @@ WHERE
      DATE_FORMAT(l.start, '%Y-%m'), 
      1
      FROM dv_log l
-     WHERE $uid  and l.tp_id='$self->{INFO_LIST}->[0]->{tp_id}' and
+     WHERE $uid AND l.tp_id='$self->{INFO_LIST}->[0]->{tp_id}' and
       (  $WHERE
         ) 
      GROUP BY $GROUP

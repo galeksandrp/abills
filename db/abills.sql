@@ -417,7 +417,7 @@ CREATE TABLE `ippools` (
   `ipv6_prefix` VARBINARY(16) not null default '',
   PRIMARY KEY  (`id`),
   UNIQUE KEY `nas` (`nas`,`ip`)
-)  ;
+) COMMENT="IP Pools" ;
 
 CREATE TABLE `dv_log` (
   `start` datetime NOT NULL default '0000-00-00 00:00:00',
@@ -442,7 +442,7 @@ CREATE TABLE `dv_log` (
   `ex_input_octets_gigawords` smallint(4) unsigned NOT NULL default '0',
   `ex_output_octets_gigawords` smallint(4) unsigned NOT NULL default '0',
   KEY `uid` (`uid`,`start`)
-) ;
+) COMMENT="Internet sessions logs" ;
 
 
 CREATE TABLE `mail_access` (
@@ -454,7 +454,7 @@ CREATE TABLE `mail_access` (
   `status` tinyint(1) unsigned NOT NULL default '0',
   PRIMARY KEY  (`pattern`),
   UNIQUE KEY `id` (`id`)
-) ;
+) COMMENT="Mail access list" ;
 
 CREATE TABLE `mail_aliases` (
   `address` varchar(255) NOT NULL default '',

@@ -283,7 +283,6 @@ sub equipment_info {
   my $Nas = Nas->new($db, \%conf);
   $Nas->info({ NAS_ID => $FORM{NAS_ID} });
 
-
   if ($FORM{add}) {
     $Equipment->_add({%FORM});
 
@@ -314,11 +313,18 @@ sub equipment_info {
   else {
     $Equipment->_info($FORM{NAS_ID});
     if (!$Equipment->{errno}) {
-      $html->message('info', $_INFO, "$_CHANGING");
+      #$html->message('info', $_INFO, "$_CHANGING");
       $Equipment->{ACTION}     = 'change';
       $Equipment->{ACTION_LNG} = $_CHANGE;
     }
-  } 
+  }
+  
+  if ($FORM{PORT_SHOW}) {
+  	$FORM{SELECT}=1;
+  	equipment_ports();
+  	return 0;
+  }
+
   
   $Equipment->{MODEL_SEL} = $html->form_select(
       'MODEL_ID',
@@ -350,61 +356,9 @@ sub equipment_info {
   $html->tpl_show(_include('equipment_info', 'Equipment'), { %$Nas, %$Equipment, %FORM });
 
   if ($Equipment->{PORTS} > 0) {
-    my $ports      = $Equipment->{PORTS};
-    
-    #Get users from dhcp
-    my %used_ports = ();
-    if (in_array('Dhcphosts', \@MODULES)) {
-    	use Dhcphosts;
-      my $Dhcphosts = Dhcphosts->new($db, $admin, \%conf);
-      my $list = $Dhcphosts->hosts_list({ NAS_ID    => $FORM{NAS_ID},
-      	                                  PORTS     => '_SHOW',
-      	                                  LOGIN     => '_SHOW',
-      	                                  COLS_NAME => 1,
-      	                                  PAGE_ROWS => 10000
-      	                                });
-
-      foreach my $line (@$list) {
-      	push @{ $used_ports{$line->{ports}} }, "$line->{uid}:$line->{login}";
-      }
-    }    
-    
-    $table = $html->table(
-     { 
-       width       => '500',
-       caption     => "$_PORTS",
-       rowcolor    => 'odd',
-       class       => 'form'
-     }
-    );
-  
-    my @cols = ();
-    for($i=1; $i<=$ports; $i++) {
-    	if ($#cols>6) {
-    		$table->addtd(@cols);
-    		@cols=();
-    	}
-
-      my $tdcolor = 'white';
-      my $ui      = '';
-
-      if ($used_ports{$i}) {
-      	$tdcolor = '#00FF00';
-      	foreach my $uinfo (@{ $used_ports{$i} }) {
-      		my ($uid, $login)=split(/:/, $uinfo);
-      	  $ui .= user_ext_menu($uid, $login, { SHOW_LOGIN => 1 });
-      	}
-      }
-
-      push(@cols, $table->td($html->button($i, "index=$index&NAS_ID=$FORM{NAS_ID}&PORT_ID=$i", { BUTTON => 1 }) .$html->br(). $ui, 
-        { align => 'center', bgcolor => $tdcolor  }));
-    }
-
-    $table->addtd(@cols);
-
-    print $table->show();
+    equipment_ports();
   }
-  
+ 
 }
 
 
@@ -524,28 +478,94 @@ sub equipment_ports {
     $html->message('err', $_ERROR, "[$Equipment->{errno}] $err_strs{$Equipment->{errno}}");
   }
 
+  my %ports_visualisation = (0 => "$_SHORT",
+                             1 => "$_USERS",
+                             2 => "$_FULL",
+                             4 => "$_CHANGE" );
+
+  foreach my $key (sort keys %ports_visualisation) {
+  	my $value = $ports_visualisation{$key};
+  	if ($FORM{visual} eq $key) {
+      print $html->b($value);
+    }
+  	else {
+  	  print $html->button("$value", "index=$index&visual=$key&NAS_IDS=$FORM{NAS_ID}", { BUTTON => 1 });
+  	}
+  }
+
+  my $ports      = $Equipment->{PORTS};
+
+  #Get users from dhcp
+  my %used_ports = ();
+  if (in_array('Dhcphosts', \@MODULES)) {
+    	use Dhcphosts;
+      my $Dhcphosts = Dhcphosts->new($db, $admin, \%conf);
+      my $list = $Dhcphosts->hosts_list({ NAS_ID    => $FORM{NAS_ID},
+      	                                  PORTS     => '_SHOW',
+      	                                  LOGIN     => '_SHOW',
+      	                                  COLS_NAME => 1,
+      	                                  PAGE_ROWS => 10000
+      	                                });
+
+      foreach my $line (@$list) {
+      	push @{ $used_ports{$line->{ports}} }, "$line->{uid}:$line->{login}";
+      }
+    }    
+    
+    $table = $html->table(
+     { 
+       width       => '500',
+       caption     => "$_PORTS",
+       rowcolor    => 'odd',
+       class       => 'form'
+     }
+    );
+  
+    my @cols = ();
+    for($i=1; $i<=$ports; $i++) {
+    	if ($#cols>6) {
+    		$table->addtd(@cols);
+    		@cols=();
+    	}
+
+      my $tdcolor = 'white';
+      my $ui      = '';
+
+      if ($used_ports{$i}) {
+      	$tdcolor = '#00FF00';
+      	foreach my $uinfo (@{ $used_ports{$i} }) {
+      		my ($uid, $login)=split(/:/, $uinfo);
+      	  $ui .= user_ext_menu($uid, $login, { SHOW_LOGIN => 1 });
+      	}
+      }
+
+      if ($FORM{SELECT}) {
+        push(@cols, $table->td( $html->b($i) . ((!$used_ports{$i}) ? $html->form_input('PORT_ID', "$i", { TYPE=>'radio' }) : '')  , 
+        { align => 'center', bgcolor => $tdcolor  }));
+      }
+      else {
+        push(@cols, $table->td($html->button($i, "index=$index&NAS_ID=$FORM{NAS_ID}&PORT_ID=$i", { BUTTON => 1 }) .$html->br(). $ui, 
+        { align => 'center', bgcolor => $tdcolor  }));
+      }
+    }
+
+    $table->addtd(@cols);
+
+    print $table->show();
+
+
+return 0;
+
   $Equipment->{TYPE_SEL} = $html->form_select(
       'TYPE_ID',
       {
         SELECTED       => $Equipment->{TYPE_ID},
-        SEL_LIST       => $Equipment->type_list({ COLS_NAME => 1 }),
+        SEL_LIST       => [{id => 0, name => $_USER}, 
+                           {id => 1, name => 'UPLINK' }
+                          ],
         NO_ID          => 1,
-        MAIN_MENU      => get_function_index('equipment_type'),
-        MAIN_MENU_AGRV => "chg=$Equipment->{MODEL_ID}"
       }
   );
-
-  $Equipment->{VENDOR_SEL} = $html->form_select(
-      'VENDOR_ID',
-      {
-        SELECTED       => $Equipment->{VENDOR_ID},
-        SEL_LIST       => $Equipment->vendor_list({ COLS_NAME => 1 }),
-        NO_ID          => 1,
-        MAIN_MENU      => get_function_index('equipment_vendor'),
-        MAIN_MENU_AGRV => "chg=$Equipment->{VENDOR_ID}"
-      }
-    );
-
 
   $html->tpl_show(_include('equipment_port', 'Equipment'), { %$Equipment, %FORM });
 

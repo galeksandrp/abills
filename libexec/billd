@@ -2631,8 +2631,8 @@ Flags: X - disabled, I - invalid
       foreach my $traf_type (sort keys %$speeds) {
         
         my $speed     = $speeds->{$traf_type};
-        my $speed_in  = (defined($speed->{IN})) ? $speed->{IN} * 1024 : 0;
-        my $speed_out = (defined($speed->{OUT})) ? $speed->{OUT} * 1024 : 0;
+        my $speed_in  = (defined($speed->{IN})) ? $speed->{IN} * 1000 : 0;
+        my $speed_out = (defined($speed->{OUT})) ? $speed->{OUT} * 1000 : 0;
         my $priority  = 5 - $traf_type;
         print "Add shaper: TP_ID: $tp_id Class: $traf_type\n" if ($debug > 0);
         #Global Shapper

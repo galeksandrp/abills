@@ -246,7 +246,7 @@ sub accounting {
         #return $self;
         $self->query2("INSERT INTO dv_log (uid, start, tp_id, duration, sent, recv, sum, nas_id, port_id,
         ip, CID, sent2, recv2, acct_session_id, 
-        bill_id vxc,
+        bill_id,
         terminate_cause,
         acct_input_gigawords,
         acct_output_gigawords) 

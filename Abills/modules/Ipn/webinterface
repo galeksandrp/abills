@@ -1663,6 +1663,8 @@ sub ipn_change_status {
     }
   }
 
+  my $bitmask = $netmask;
+
   if (!$cmd) {
     print "Error: Not defined external command for status: $STATUS\n";
     return 0;
@@ -1693,6 +1695,7 @@ sub ipn_change_status {
     $cmd = "$conf{IPN_FILTER}";
     $cmd =~ s/\%STATUS/$STATUS/g;
     $cmd =~ s/\%IP/$ip/g;
+    $cmd =~ s/\%MASK/$netmask/g;
     $cmd =~ s/\%LOGIN/$USER_NAME/g;
     $cmd =~ s/\%FILTER_ID/$FILTER_ID/g;
     $cmd =~ s/\%UID/$UID/g;
