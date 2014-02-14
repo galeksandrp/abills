@@ -1353,7 +1353,7 @@ sub msgs_user {
           $Msgs->{REPLY} .= msgs_survey_show({ SURVEY_ID => $line->{survey_id}, REPLY_ID => $line->{id} });
         }
         else {
-          if ($FORM{QUOTING} && $FORM{QUOTING} == $line->[0]) {
+          if ($FORM{QUOTING} && $FORM{QUOTING} == $line->{id}) {
             $reply = $line->{text};
           }
           $line->{text} = convert($line->{text}, { text2html => 1 });

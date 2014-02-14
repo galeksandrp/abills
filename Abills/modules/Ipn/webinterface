@@ -1574,7 +1574,7 @@ sub ipn_change_status {
   }
 
   my $ip              = $attr->{FRAMED_IP_ADDRESS};
-  my $netmask         = $attr->{NETMASK} || 32;
+  my $netmask         = $attr->{NETMASK} || '32';
   my $STATUS          = $attr->{STATUS} || '';
   my $USER_NAME       = $attr->{USER_NAME} || '';
   my $ACCT_SESSION_ID = $attr->{ACCT_SESSION_ID} || '';
@@ -1586,6 +1586,7 @@ sub ipn_change_status {
   my $speed_in  = 0;
   my $speed_out = 0;
 
+  #netmask to bitmask
   if ($netmask ne '32') {
     my $ips = 4294967296 - ip2int($netmask);
     $netmask = 32 - length(sprintf("%b", $ips)) + 1;
