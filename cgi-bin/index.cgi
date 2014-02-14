@@ -1107,7 +1107,7 @@ sub form_fees {
   my $Fees  = Finance->fees($db, $admin, \%conf);
   my $list  = $Fees->list({%LIST_PARAMS, 
   	                       DSC       => '_SHOW',
-  	                       DATE_TIME => '_SHOW',
+  	                       DATETIME  => '_SHOW',
   	                       SUM       => '_SHOW',
   	                       DEPOSIT   => '_SHOW',
   	                       METHOD    => '_SHOW',
@@ -1128,7 +1128,7 @@ sub form_fees {
   );
 
   foreach my $line (@$list) {
-    $table->addrow($line->{date}, $line->{dsc}, $line->{sum}, $line->{last_deposit}, $FEES_METHODS{ $line->{method} });
+    $table->addrow($line->{datetime}, $line->{dsc}, $line->{sum}, $line->{last_deposit}, $FEES_METHODS{ $line->{method} });
   }
 
   print $table->show();
@@ -1157,7 +1157,9 @@ sub form_payments {
     $LIST_PARAMS{sort} = 1;
     $LIST_PARAMS{DESC} = 'DESC';
   }
-  my $list  = $Payments->list({%LIST_PARAMS, COLS_NAME => 1});
+  my $list  = $Payments->list({%LIST_PARAMS, 
+  	                           DATETIME  => '_SHOW',
+  	                           COLS_NAME => 1});
   my $table = $html->table(
     {
       width       => '100%',
@@ -1173,7 +1175,7 @@ sub form_payments {
 
   foreach my $line (@$list) {
     $table->addrow(
-      $line->{date},
+      $line->{datetime},
       $line->{dsc},
       $line->{sum},
       $line->{last_deposit},
