@@ -96,6 +96,8 @@ sub dhcphosts_mac_block_show {
       EXPIRE                     => '_SHOW',
       STATUS                     => '_SHOW',
       CREDIT                     => '_SHOW',    
+      DEPOSIT                    => '_SHOW',    
+      EXT_DEPOSIT                => '_SHOW',    
       DELETED                    => 0,
       PAGE_ROWS                  => 1000000,
       %PARAMS,

@@ -1920,9 +1920,10 @@ sub build_list {
     $SORT = "length(b.number), b.number";
   }
 
+  my $maps_google_fields = '';
   if ($attr->{SHOW_MAPS_GOOGLE}) {
-    $self->{SEARCH_FIELDS} = ",b.coordx, b.coordy";
     push @WHERE_RULES, "(b.coordx<>0 and b.coordy)";
+    $maps_google_fields = "b.coordx, b.coordy, ";
   }
 
   my $WHERE = $self->search_former($attr, [
@@ -1938,21 +1939,20 @@ sub build_list {
     }
     );
 
+  $self->{SEARCH_FIELDS} .= $maps_google_fields;
 
   my $sql = '';
   if ($attr->{CONNECTIONS}) {
     $sql = "SELECT b.number, b.flors, b.entrances, b.flats, s.name AS street_name, 
      count(pi.uid) AS users_count, ROUND((count(pi.uid) / b.flats * 100), 0) AS users_connections,
      b.added, $self->{SEARCH_FIELDS} b.id
-
       FROM builds b
      LEFT JOIN streets s ON (s.id=b.street_id)
      LEFT JOIN users_pi pi ON (b.id=pi.location_id)
      $WHERE 
      GROUP BY b.id
      ORDER BY $SORT $DESC
-     LIMIT $PG, $PAGE_ROWS
-     ;";
+     LIMIT $PG, $PAGE_ROWS;";
   }
   else {
     $sql = "SELECT b.number, b.flors, b.entrances, b.flats, s.name, b.added, $self->{SEARCH_FIELDS} b.id FROM builds b

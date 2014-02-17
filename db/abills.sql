@@ -166,8 +166,7 @@ CREATE TABLE `errors_log` (
   `user` varchar(20) NOT NULL,
   `message` varchar(120) NOT NULL,
   `nas_id` smallint(5) unsigned NOT NULL DEFAULT '0',
-  KEY `user` (`user`),
-  KEY `date` (`date`),
+  KEY `i_user_date` (`user`, `date`),
   KEY `log_type` (`log_type`)
 ) COMMENT='Error log';
 

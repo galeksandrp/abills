@@ -200,7 +200,7 @@ sub type_info {
 }
 
 #**********************************************************
-# list
+# model_list
 #**********************************************************
 sub model_list() {
   my $self = shift;
@@ -310,14 +310,7 @@ sub model_info {
   my $self = shift;
   my ($id, $attr) = @_;
 
-  $self->query2("SELECT id,
-    type_id,
-    vendor_id,
-    model_name,
-    site,
-    ports,
-    comments
-    FROM equipment_models
+  $self->query2("SELECT * FROM equipment_models
     WHERE id='$id';",
     undef,
     { INFO => 1 }
@@ -457,4 +450,141 @@ sub _info {
   return $self;
 }
 
+
+
+#**********************************************************
+# port_list
+#**********************************************************
+sub port_list() {
+  my $self = shift;
+  my ($attr) = @_;
+
+  $SORT      = ($attr->{SORT})      ? $attr->{SORT}      : 1;
+  $DESC      = ($attr->{DESC})      ? $attr->{DESC}      : '';
+  $PG        = ($attr->{PG})        ? $attr->{PG}        : 0;
+  $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
+
+  @WHERE_RULES = ();
+
+  if ($attr->{GID}) {
+    my $value = $self->search_expr($attr->{GID}, 'INT');
+    push @WHERE_RULES, "ni.gid$value";
+  }
+
+  my $WHERE =  $self->search_former($attr, [
+      ['LOGIN',          'STR', 'u.id',               'u.id AS login' ],
+      ['FIO',            'STR', 'pi.fio',                           1 ],
+      ['MAC',            'STR', 'dhcp.mac',                         1 ],
+      ['IP',             'IP',  'dhcp.ip',    'INET_NTOA(dhcp.ip) AS ip' ],
+      ['NETMASK',        'IP',  'dhcp.netmask', 'INET_NTOA(dhcp.netmask) AS netmask' ],
+      ['UID',            'INT', 'u.uid',                            1 ],
+      ['GID',            'INT', 'u.gid',                            1 ],
+      ['NAS_ID',         'INT', 'dhcp.nas',                         1 ],
+    ],
+    { WHERE       => 1,
+    	WHERE_RULES => \@WHERE_RULES,
+    	USERS_FIELDS=> 1,
+    }    
+    );
+
+  my $EXT_TABLE = $self->{EXT_TABLES};
+
+  if ($self->{SEARCH_FIELDS} =~ /pi\.|u\./) {
+   	$EXT_TABLE = "LEFT JOIN users u ON (u.uid=dhcp.uid)
+   	LEFT JOIN users_pi pi ON (pi.uid=u.uid)". $EXT_TABLE;
+  }
+
+
+  if ($self->{SEARCH_FIELDS} =~ /dhcp/) {
+    $EXT_TABLE = "LEFT JOIN dhcphosts_hosts dhcp ON (dhcp.nas=p.nas_id AND dhcp.ports=p.port)".$EXT_TABLE
+  }
+
+  $self->query2("SELECT p.port, p.status, 
+             p.uplink, 
+             $self->{SEARCH_FIELDS}
+             p.nas_id
+    FROM equipment_ports p
+    $EXT_TABLE
+    $WHERE
+    GROUP BY p.port
+    ORDER BY $SORT $DESC
+    LIMIT $PG, $PAGE_ROWS;",
+    undef,
+    $attr
+  );
+
+  my $list = $self->{list};
+
+  if ($self->{TOTAL} > 0) {
+    $self->query2("SELECT count(*) AS total
+    FROM equipment_ports p
+    $WHERE;", undef, { INFO => 1 }
+    );
+  }
+
+  return $list;
+}
+
+
+#**********************************************************
+# port_add
+#**********************************************************
+sub port_add {
+  my $self = shift;
+  my ($attr) = @_;
+
+  $self->query_add('equipment_ports', $attr);
+
+  return $self;
+}
+
+#**********************************************************
+# port_change
+#**********************************************************
+sub port_change {
+  my $self = shift;
+  my ($attr) = @_;
+
+  $self->changes(
+    $admin,
+    {
+      CHANGE_PARAM => 'ID',
+      TABLE        => 'equipment_ports',
+      DATA         => $attr
+    }
+  );
+
+  return $self;
+}
+
+#**********************************************************
+# port_del
+#**********************************************************
+sub port_del {
+  my $self = shift;
+  my ($id) = @_;
+
+  $self->query2("DELETE FROM equipment_ports WHERE id='$id';", 'do');
+
+  return $self;
+}
+
+
+
+#**********************************************************
+# port_info
+#**********************************************************
+sub port_info {
+  my $self = shift;
+  my ($id, $attr) = @_;
+
+  $self->query2("SELECT *
+    FROM equipment_models
+    WHERE id='$id';",
+    undef,
+    { INFO => 1 }
+  );
+
+  return $self;
+}
 1
