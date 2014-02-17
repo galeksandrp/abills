@@ -34,6 +34,8 @@ CREATE TABLE `equipment_models` (
   model_name varchar(50) NOT NULL default '',
   site varchar(150) NOT NULL default '',
   ports tinyint(6) unsigned NOT NULL default 0,
+  manage_web varchar(50) NOT NULL default '',
+  manage_ssh varchar(50) NOT NULL default '',
   comments text not null,
   PRIMARY KEY (id)
 ) COMMENT = 'Equipment models';
@@ -54,13 +56,14 @@ CREATE TABLE `equipment_infos` (
 ) COMMENT = 'Equipment info' ;
 
 CREATE TABLE `equipment_ports` (
-  id smallint(6) unsigned NOT NULL auto_increment,
+  id int unsigned NOT NULL auto_increment,
   nas_id smallint(6) unsigned NOT NULL default 0,
   port smallint(6) unsigned NOT NULL default 0,
   status tinyint(1) unsigned NOT NULL default 0,
   uplink smallint(6) unsigned NOT NULL default 0,
+  comments varchar(250) not null default '',
   PRIMARY KEY (id),
-  KEY `nas_port` (nas_id, port) 
+  KEY `nas_port` (`nas_id`, `port`) 
 ) COMMENT = 'Equipment ports';
 
 

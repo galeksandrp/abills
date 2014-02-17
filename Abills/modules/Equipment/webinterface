@@ -288,7 +288,11 @@ sub equipment_info {
   $Nas = Nas->new($db, \%conf);
   $Nas->info({ NAS_ID => $FORM{NAS_ID} });
 
-  if ($FORM{add}) {
+  if ($FORM{PORT}) {
+  	equipment_ports();
+  	return 0;
+  }
+  elsif ($FORM{add}) {
     $Equipment->_add({%FORM});
 
     if (!$Equipment->{errno}) {
@@ -321,7 +325,15 @@ sub equipment_info {
   else {
     $Equipment->_info($FORM{NAS_ID});
     if (!$Equipment->{errno}) {
-      #$html->message('info', $_INFO, "$_CHANGING");
+    	$Equipment->model_info( $Equipment->{MODEL_ID} );
+    	
+    	if ($Equipment->{MANAGE_WEB}) {
+    		$Equipment->{MANAGE_WEB} =~ s/%IP/$Nas->{NAS_IP}/g;
+    		$Equipment->{MANAGE_WEB} = $html->button('WEB', "$Equipment->{MANAGE_WEB}", { 
+    			GLOBAL_URL => $Equipment->{MANAGE_WEB},
+    			BUTTON     => 1 }); 
+    	}
+    	
       $Equipment->{ACTION}     = 'change';
       $Equipment->{ACTION_LNG} = $_CHANGE;
     }
@@ -503,13 +515,13 @@ sub equipment_ports {
       $html->message('info', $_INFO, "$_CHANGED");
     }
   }
-  elsif ($FORM{port_chg}) {
+  elsif ($FORM{PORT}) {
     $Equipment->port_info($FORM{chg});
     if (!$Equipment->{errno}) {
       $html->message('info', $_INFO, "$_CHANGING");
+      $Equipment->{ACTION}     = 'change';
+      $Equipment->{ACTION_LNG} = $_CHANGE;
     }
-    $Equipment->{ACTION}     = 'change';
-    $Equipment->{ACTION_LNG} = $_CHANGE;
   }
   elsif (defined($FORM{del}) && defined($FORM{is_js_confirmed})) {
     $Equipment->port_del($FORM{del});
@@ -519,7 +531,12 @@ sub equipment_ports {
   }
 
   if ($Equipment->{errno}) {
-    $html->message('err', $_ERROR, "[$Equipment->{errno}] $err_strs{$Equipment->{errno}}");
+  	if ($Equipment->{errno}) {
+  		$html->message('info', $_INFO, "$_ADD $_PORT: $FORM{PORT}");
+    }
+    else {
+      $html->message('err', $_ERROR, "[$Equipment->{errno}] $err_strs{$Equipment->{errno}}");
+    }
   }
 
   $FORM{visual} = 0 if (! $FORM{visual});
@@ -560,7 +577,7 @@ sub equipment_ports {
       }
   }    
   
-  if ($FORM{visual} == 0) {
+  if ($FORM{visual} == 0 && ! $FORM{PORT}) {
     $table = $html->table(
      { 
        width       => '500',
@@ -619,19 +636,6 @@ sub equipment_ports {
     	                                  COLS_NAME    => 1 
     	                                });
 
-    my $table = $html->table(
-      {
-        width      => '100%',
-        caption    => "$_EQUIPMENT",
-        border     => 1,
-        title      => [ $_PORT, "$_STATUS", 'UP', "UPLINK", "$_USER", "MAC", "IP", "$_ADDRESS", '-', '-' ],
-        cols_align => [ 'left', 'left', 'left', 'left', 'center:noprint', 'center:noprint' ],
-        qs         => $pages_qs,
-        pages      => $Equipment->{TOTAL},
-        ID         => 'EQUIPMENT_MODELS'
-      }
-    );
-
     my %ports_dhcp_info = ();
     foreach my $line (@$list) {
     	$ports_dhcp_info{$line->{ports}}=$line
@@ -640,18 +644,45 @@ sub equipment_ports {
     my @ports_state = ('', 'up', 'down');
     my @ports_state_color = ('', '#008000', '#FF0000');
 
+    my $list  = $Equipment->port_list({
+    	                                 NAS_ID       => $FORM{NAS_ID},
+     	                                 %LIST_PARAMS, 
+     	                                 PAGE_ROWS    => 100,
+    	                                 COLS_NAME    => 1 
+    	                                });
+
+    my %ports_db_info = ();
+    foreach my $line (@$list) {
+    	$ports_db_info{$line->{port}}=$line
+    }
+
+
+    my $table = $html->table(
+      {
+        width      => '100%',
+        caption    => "$_EQUIPMENT",
+        border     => 1,
+        title      => [ $_PORT, "$_STATUS", 'UP', "UPLINK", "$_USER", "MAC", "IP", "$_ADDRESS", "$_DESCRIBE", '-', '-' ],
+        cols_align => [ 'left', 'left', 'left', 'left', 'center:noprint', 'center:noprint' ],
+        qs         => $pages_qs,
+        pages      => $Equipment->{TOTAL},
+        ID         => 'EQUIPMENT_MODELS'
+      }
+    );
+
     for(my $port=1; $port <= $Equipment->{PORTS}; $port++){ 
-      my $delete = $html->button($_DEL, "index=$index&del=$line->{id}", { MESSAGE => "$_DEL $line->{port_name}?", CLASS => 'del' });
-      my $change = $html->button($_INFO, "index=$index&chg=$line->{id}", { CLASS => 'show' });
+      my $delete = $html->button($_DEL, "index=$index&PORT=$port&del=$ports_db_info{$port}->{id}&NAS_ID=$FORM{NAS_ID}", { MESSAGE => "$_DEL $_PORT: $port?", CLASS => 'del' });
+      my $change = $html->button($_INFO, "index=$index&PORT=$port&chg=$ports_db_info{$port}->{id}&NAS_ID=$FORM{NAS_ID}", { CLASS => 'show' });
 
       $table->addrow($port, 
-      $ports_dhcp_info{$port}->{status}, 
+      $ports_db_info{$port}->{status}, 
       ($ports_link_status->{$port}) ? $html->color_mark($ports_state[$ports_link_status->{$port}], $ports_state_color[$ports_link_status->{$port}]) : '', 
-      $ports_dhcp_info{$port}->{uplink}, 
+      $ports_db_info{$port}->{uplink}, 
       $html->button($ports_dhcp_info{$port}->{login}, "index=11&UID=$ports_dhcp_info{$port}->{uid}"),
       $ports_dhcp_info{$port}->{mac}, 
       $ports_dhcp_info{$port}->{ip}, 
-      $ports_dhcp_info{$port}->{address_full}, 
+      $ports_dhcp_info{$port}->{address_full},
+      $ports_db_info{$port}->{comments},
       $change, 
       $delete
       );
@@ -659,11 +690,8 @@ sub equipment_ports {
 
     print $table->show();
   }
-
-
-return 0;
-
-  $Equipment->{TYPE_SEL} = $html->form_select(
+  else {
+    $Equipment->{TYPE_SEL} = $html->form_select(
       'TYPE_ID',
       {
         SELECTED       => $Equipment->{TYPE_ID},
@@ -672,46 +700,24 @@ return 0;
                           ],
         NO_ID          => 1,
       }
-  );
+    );
 
-  $html->tpl_show(_include('equipment_port', 'Equipment'), { %$Equipment, %FORM });
+    $Equipment->{STATUS_SEL} = $html->form_select('STATUS',
+      {
+        SELECTED => $FORM{STATUS} || 0,
+        SEL_HASH => {
+          0  => $_ENABLE,
+          1  => $_DISABLE,
+          2  => $_NOT_ACTIVE,
+          3  => $_ERROR,
+        },
+        NO_ID => 1,
+        STYLE => \@service_status_colors,
+      }
+    );
 
-  my $list  = $Equipment->port_list({%LIST_PARAMS, COLS_NAME => 1 });
-  my $table = $html->table(
-    {
-      width      => '100%',
-      caption    => "$_EQUIPMENT",
-      border     => 1,
-      title      => [ $_NAS, $_PORT, "$_STATUS", "UPLINK", '-', '-' ],
-      cols_align => [ 'left', 'left', 'left', 'left', 'center:noprint', 'center:noprint' ],
-      qs         => $pages_qs,
-      pages      => $Equipment->{TOTAL},
-      ID         => 'EQUIPMENT_MODELS'
-    }
-  );
-
-  foreach my $line (@$list) {
-    my $delete = $html->button($_DEL, "index=$index&del=$line->{id}", { MESSAGE => "$_DEL $line->{port_name}?", CLASS => 'del' });
-    my $change = $html->button($_INFO, "index=$index&chg=$line->{id}", { CLASS => 'show' });
-
-    $table->addrow($line->{port_name}, 
-      $line->{vendor_name}, 
-      $line->{type_name}, 
-      $line->{ports}, 
-      $change, $delete);
+    $html->tpl_show(_include('equipment_port', 'Equipment'), { %$Equipment, %FORM });
   }
-
-  print $table->show();
-
-  $table = $html->table(
-    {
-      width      => '100%',
-      cols_align => [ 'left', 'right' ],
-      rows       => [ [ "$_TOTAL:", $Equipment->{TOTAL} ] ]
-    }
-  );
-
-  print $table->show();
 
   return 0;
 

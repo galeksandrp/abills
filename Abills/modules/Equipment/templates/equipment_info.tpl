@@ -8,7 +8,7 @@
 <a title='info' class='change rightAlignText' href='$SELF_URL?get_index=form_nas&amp;NAS_ID=%NAS_ID%&full=1'>info</a>
 </td>
 
-<tr><td>$_MODEL</td><td>%MODEL_SEL% (%VENDOR% / %TYPE%)</td></tr>
+<tr><td>$_MODEL</td><td>%MODEL_SEL% (%VENDOR% / %TYPE%) %MANAGE_WEB%</td></tr>
 <tr><td>System info</td><td><input type=text name=SYSTEM_ID value='%SYSTEM_ID%'></td></tr>
 <tr><td>Ports:</td><td><input type=text name=PORTS value='%PORTS%'></td></tr>
 <tr><td>Firmware:</td><td><input type=text name=FIRMWARE value='%FIRMWARE%'></td></tr>

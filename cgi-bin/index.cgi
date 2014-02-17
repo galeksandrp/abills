@@ -485,9 +485,12 @@ sub form_info {
   $LIST_PARAMS{PAGE_ROWS} = 1;
   $LIST_PARAMS{DESC}      = 'desc';
   $LIST_PARAMS{SORT}      = 1;
-  my $list = $Payments->list({%LIST_PARAMS, COLS_NAME => 1 });
+  my $list = $Payments->list({%LIST_PARAMS, 
+  	                          DATETIME  => '_SHOW',
+  	                          SUM       => '_SHOW',
+  	                          COLS_NAME => 1 });
 
-  $user->{PAYMENT_DATE} = $list->[0]->{date};
+  $user->{PAYMENT_DATE} = $list->[0]->{datetime};
   $user->{PAYMENT_SUM}  = $list->[0]->{sum};
   if ($conf{EXT_BILL_ACCOUNT} && $user->{EXT_BILL_ID} > 0) {
     $user->{EXT_DATA} = $html->tpl_show(templates('form_ext_bill'), $user, { OUTPUT2RETURN => 1 });

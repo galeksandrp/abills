@@ -466,11 +466,6 @@ sub port_list() {
 
   @WHERE_RULES = ();
 
-  if ($attr->{GID}) {
-    my $value = $self->search_expr($attr->{GID}, 'INT');
-    push @WHERE_RULES, "ni.gid$value";
-  }
-
   my $WHERE =  $self->search_former($attr, [
       ['LOGIN',          'STR', 'u.id',               'u.id AS login' ],
       ['FIO',            'STR', 'pi.fio',                           1 ],
@@ -479,7 +474,7 @@ sub port_list() {
       ['NETMASK',        'IP',  'dhcp.netmask', 'INET_NTOA(dhcp.netmask) AS netmask' ],
       ['UID',            'INT', 'u.uid',                            1 ],
       ['GID',            'INT', 'u.gid',                            1 ],
-      ['NAS_ID',         'INT', 'dhcp.nas',                         1 ],
+      ['NAS_ID',         'INT', 'p.nas_id',                         1 ],
     ],
     { WHERE       => 1,
     	WHERE_RULES => \@WHERE_RULES,
@@ -499,10 +494,7 @@ sub port_list() {
     $EXT_TABLE = "LEFT JOIN dhcphosts_hosts dhcp ON (dhcp.nas=p.nas_id AND dhcp.ports=p.port)".$EXT_TABLE
   }
 
-  $self->query2("SELECT p.port, p.status, 
-             p.uplink, 
-             $self->{SEARCH_FIELDS}
-             p.nas_id
+  $self->query2("SELECT p.port, p.status, p.uplink, p.comments, p.nas_id, p.id
     FROM equipment_ports p
     $EXT_TABLE
     $WHERE
@@ -579,7 +571,7 @@ sub port_info {
   my ($id, $attr) = @_;
 
   $self->query2("SELECT *
-    FROM equipment_models
+    FROM equipment_ports
     WHERE id='$id';",
     undef,
     { INFO => 1 }
