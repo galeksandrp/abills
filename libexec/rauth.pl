@@ -171,6 +171,10 @@ sub auth {
     $auth_mod{"$nas->{NAS_TYPE}"}->{INFO} = undef;
     $auth_mod{"$nas->{NAS_TYPE}"} = $AUTH{ $nas->{NAS_TYPE} }->new($db, \%conf);
     ($r, $RAD_PAIRS) = $auth_mod{"$nas->{NAS_TYPE}"}->auth($RAD, $nas, { RAD_REQUEST => \%RAD_REQUEST });
+
+    if($auth_mod{"$nas->{NAS_TYPE}"}->{GUEST_MODE}) {
+    	$Log->{ACTION} = 'GUEST_MODE';
+    }
   }
   else {
     $auth_mod{'default'} = Auth->new($db, \%conf);
