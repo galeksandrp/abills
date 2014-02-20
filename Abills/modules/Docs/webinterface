@@ -2036,9 +2036,12 @@ sub docs_invoice {
       $Doc{VAT}                   = sprintf("%.2f", $conf{DOCS_VAT_INCLUDE});
     }
 
+    
     $Doc{CUSTOMER} = $self->{COMPANY_NAME} || $Doc{FIO} || '-' if (!$Doc{CUSTOMER});
     $Doc{DEPOSIT}  = sprintf("%.2f", $Doc{DEPOSIT});
-
+    $Doc{DEBT}     = ($Doc{DEPOSIT} < 0)? $Doc{DEPOSIT}  : 0.00;
+    $Doc{AVANCE}   = ($Doc{DEPOSIT} > 0)? $Doc{DEPOSIT}  : 0.00;
+    
     if ($FORM{CHECK_PEYMENT_ID} && $Doc{PAYMENT_ID}) {
       return 0;
     }
@@ -2133,6 +2136,17 @@ sub docs_invoice {
   	  	$Doc{'UNPAYMENT_INVOICE_ALT_SUM_'.$i}  = sprintf("%.2f", $Doc{EXCHANGE_RATE} * $Doc{'UNPAYMENT_INVOICE_SUM_'.$i});
   	  	$unpayment_total_sum                  += $Doc{'UNPAYMENT_INVOICE_SUM_'.$i};
   	  	$i++;
+      }
+
+      
+      $Doc{LAST_PAYMENT_SUM}='0.00';
+      my $list = $Payments->list({ UID       => $FORM{UID},
+      	                DESC      => 'DESC',
+      	                PAGE_ROWS => 1,
+      	                COLS_NAME => 1 });
+
+      if ($Payments->{TOTAL} > 0) {
+      	$Doc{LAST_PAYMENT_SUM}=$list->[0]->{sum};
       }
 
       $Doc{UNPAYMENT_TOTAL_SUM}=sprintf("%.2f", $unpayment_total_sum);

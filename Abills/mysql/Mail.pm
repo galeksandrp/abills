@@ -300,6 +300,7 @@ sub domain_change {
   );
 
   $attr->{BACKUP_MX} = (!defined($attr->{BACKUP_MX})) ? 0 : 1;
+
   $self->changes(
     $admin,
     {
@@ -469,7 +470,7 @@ sub alias_list {
   my $list = $self->{list};
 
   if ($self->{TOTAL} >= $attr->{PAGE_ROWS} || $PG > 0) {
-    $self->query2("SELECT count(*) AS totalFROM mail_aliases $WHERE", undef, { INFO => 1 });
+    $self->query2("SELECT count(*) AS total FROM mail_aliases $WHERE", undef, { INFO => 1 });
   }
 
   return $list;
