@@ -381,6 +381,7 @@ CREATE TABLE `groups` (
   `separate_docs` tinyint(1) unsigned not null default 0,
   `allow_credit` tinyint(1) unsigned not null default 0,
   `disable_paysys` tinyint(1) unsigned not null default 0,
+  `disable_chg_tp` tinyint(1) unsigned not null default 0,
   PRIMARY KEY  (`gid`),
   UNIQUE KEY `name` (`domain_id`, `name`)
 ) ;

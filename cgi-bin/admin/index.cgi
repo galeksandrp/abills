@@ -1657,6 +1657,7 @@ sub form_groups {
     $users->{SEPARATE_DOCS} = ($users->{SEPARATE_DOCS}) ? 'checked' : '';
     $users->{ALLOW_CREDIT}  = ($users->{ALLOW_CREDIT}) ? 'checked' : '';
     $users->{DISABLE_PAYSYS}= ($users->{DISABLE_PAYSYS}) ? 'checked' : '';
+    $users->{DISABLE_CHG_TP}= ($users->{DISABLE_CHG_TP}) ? 'checked' : '';
 
     $html->tpl_show(templates('form_groups'), $users);
 
@@ -1686,7 +1687,8 @@ sub form_groups {
       width      => '100%',
       caption    => "$_GROUPS",
       border     => 1,
-      title      => [ $_ID, $_NAME, $_DESCRIBE, $_USERS, "$_ALLOW $_CREDIT", "$_DISABLE Paysys", '-', '-' ],
+      title      => [ $_ID, $_NAME, $_DESCRIBE, $_USERS, "$_ALLOW $_CREDIT", 
+        "$_DISABLE Paysys", "$_DISABLE $_USER_CHG_TP", '-', '-' ],
       cols_align => [ 'right', 'left', 'left', 'right', 'center', 'center' ],
       qs         => $pages_qs,
       pages      => $users->{TOTAL},
@@ -1705,6 +1707,7 @@ sub form_groups {
     $html->button($line->{users_count}, "index=". get_function_index('form_groups') ."&GID=$line->{gid}&subf=15"),
     $bool_vals[$line->{allow_credit}], 
     $bool_vals[$line->{disable_paysys}], 
+    $bool_vals[$line->{disable_chg_tp}],
     $html->button($_INFO, "index=". get_function_index('form_groups') ."&GID=$line->{gid}", { CLASS => 'change' }), $delete);
   }
   print $table->show();
