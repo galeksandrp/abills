@@ -3657,7 +3657,7 @@ sub dv_user_chg_tp {
   if ($user->{GID}) {
     #Get user groups
     $user->group_info($user->{GID});
-    if (!$tariffs->{DISABLE_CHG_TP}) {
+    if ($tariffs->{DISABLE_CHG_TP}) {
       $html->message('err', "$_CHANGE $_TARIF_PLAN", "$_NOT_ALLOW", { ID => 143 });
       return 0;
     }

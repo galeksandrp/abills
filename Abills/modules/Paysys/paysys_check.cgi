@@ -198,7 +198,7 @@ if (check_ip($ENV{REMOTE_ADDR}, '213.160.149.0/24')) {
   require "Ibox.pm";
   exit;
 }
-elsif (check_ip($ENV{REMOTE_ADDR}, '91.194.189.69,192.168.1.103')) {
+elsif (check_ip($ENV{REMOTE_ADDR}, '91.194.189.69')) {
   require "Payu.pm";
   exit;
 }
@@ -221,7 +221,7 @@ elsif ($FORM{__BUFFER} =~ /^{.+}$/ &&
   exit;
 }
 # Privat bank terminal interface
-elsif (check_ip($ENV{REMOTE_ADDR}, '107.22.173.15,107.22.173.86,217.117.64.232/28,75.101.163.115,213.154.214.76,192.168.1.107,217.117.64.232/29')) {
+elsif (check_ip($ENV{REMOTE_ADDR}, '107.22.173.15,107.22.173.86,217.117.64.232/28,75.101.163.115,213.154.214.76,192.168.1.103,217.117.64.232/29')) {
   eval { require "Privat_terminal.pm" };
   if ( $@ ) {
   	print $@;
@@ -594,15 +594,14 @@ sub privatbank_payments {
     {
       TRANSACTION_ID => "$order_id",
       INFO           => '-',
+      COLS_NAME      => 1
     }
   );
 
   if ($Paysys->{TOTAL} > 0) {
     if ($FORM{reasoncode} == 1) {
-
-      #$html->message('info', $_INFO, "$_ADDED $_SUM: $list->[0][3] ID: $FORM{SHOPORDERNUMBER }");
-      my $uid  = $list->[0][8];
-      my $sum  = $list->[0][3];
+      my $uid  = $list->[0]{uid};
+      my $sum  = $list->[0]{sum};
       my $user = $users->info($uid);
       $payments->add(
         $user,
@@ -625,9 +624,10 @@ sub privatbank_payments {
       else {
         $Paysys->change(
           {
-            ID        => $list->[0][0],
+            ID        => $list->[0]{id},
             PAYSYS_IP => $ENV{'REMOTE_ADDR'},
-            INFO      => "ReasonCode: $FORM{reasoncode}\n Authcode: $FORM{authcode}\n PaddedCardNo:$FORM{paddedcardno}\n ResponseCode: $FORM{responsecode}\n ReasonCodeDesc: $FORM{reasoncodedesc}\n IP: $FORM{IP}\n Signature:$FORM{signature}"
+            INFO      => "ReasonCode: $FORM{reasoncode}\n Authcode: $FORM{authcode}\n PaddedCardNo:$FORM{paddedcardno}\n ResponseCode: $FORM{responsecode}\n ReasonCodeDesc: $FORM{reasoncodedesc}\n IP: $FORM{IP}\n Signature:$FORM{signature}",
+            STATUS    => 2
           }
         );
       }
@@ -636,20 +636,17 @@ sub privatbank_payments {
         my $message = "\n" . "System: Privat Bank\n" . "DATE: $DATE $TIME\n" . "LOGIN: $user->{LOGIN} [$uid]\n" . "\n" . "\n" . "ID: $list->[0][0]\n" . "SUM: $sum\n";
 
         sendmail("$conf{ADMIN_MAIL}", "$conf{ADMIN_MAIL}", "Privat Bank Add", "$message", "$conf{MAIL_CHARSET}", "2 (High)");
-
       }
-
     }
     else {
       $Paysys->change(
         {
-          ID        => $list->[0][0],
+          ID        => $list->[0]{id},
           PAYSYS_IP => $ENV{'REMOTE_ADDR'},
-          INFO      => "ReasonCode: $FORM{reasoncode}. $FORM{reasoncodedesc} responsecode: $FORM{responsecode}"
+          INFO      => "ReasonCode: $FORM{reasoncode}. $FORM{reasoncodedesc} responsecode: $FORM{responsecode}",
         }
       );
     }
-
   }
 
   my $home_url = '/index.cgi';
@@ -660,7 +657,6 @@ sub privatbank_payments {
     print "Location: $home_url?PAYMENT_SYSTEM=48&orderid=$FORM{orderid}&TRUE=1" . "\n\n";
   }
   else {
-
     #print "Content-Type: text/html\n\n";
     #print "FAILED PAYSYS: Portmone SUM: $FORM{BILL_AMOUNT} ID: $FORM{SHOPORDERNUMBER} STATUS: $status";
     print "Location:$home_url?PAYMENT_SYSTEM=48&orderid=$FORM{orderid}&FALSE=1&reasoncodedesc=$FORM{reasoncodedesc}&reasoncode=$FORM{reasoncode}&responsecode=$FORM{responsecode}" . "\n\n";
