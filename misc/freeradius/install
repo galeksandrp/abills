@@ -9,7 +9,7 @@
 :FREERADIUS=1,RLM_PERL=1:FILE=rlm_perl.conf       > [/usr/local/etc/raddb]/radiusd.conf 
 :FREERADIUS=1,RLM_PERL=1:FILE=users_perl          > [/usr/local/etc/raddb]/users
 eap.conf         > [/usr/local/etc/raddb]/eap.conf 
-:OS=FREEBSD:clients.conf     > [/usr/local/etc/raddb]/clients.conf
+:OS=FREEBSD:FILE=clients.conf     > [/usr/local/etc/raddb]/clients.conf
 :OS=FREEBSD:radiusd_enable="YES"  >> [/etc/]/rc.conf
 :OS=FREEBSD:12  9    *   *  *    root   find /var/log/radacct/ -type f -mtime +30d -delete  >> [/etc/]/crontab
 
