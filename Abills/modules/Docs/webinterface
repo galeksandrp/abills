@@ -2140,7 +2140,7 @@ sub docs_invoice {
 
       
       $Doc{LAST_PAYMENT_SUM}='0.00';
-      my $list = $Payments->list({ UID       => $FORM{UID},
+      $list = $Payments->list({ UID       => $FORM{UID},
       	                DESC      => 'DESC',
       	                PAGE_ROWS => 1,
       	                COLS_NAME => 1 });

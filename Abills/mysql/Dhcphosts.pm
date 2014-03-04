@@ -591,6 +591,7 @@ sub hosts_list {
      ['SERVER_VID',      'INT', 'h.server_vid',   1],
      ['NAS_ID',          'INT', 'h.nas AS nas_id',1],
      ['NAS_IP',          'STR', 'nas.ip',  'nas.ip AS nas_ip'],
+     ['NAS_NAME',        'STR', 'nas.name', 'nas.name AS nas_name'],
      ['DHCPHOSTS_EXT_DEPOSITCHECK', '', '', 'if(ext_company.id IS NULL,ext_b.deposit,ext_cb.deposit) AS ext_deposit' ],
      ['BOOT_FILE',       'STR', 'h.boot_file',   1],
      ['NEXT_SERVER',     'STR', 'h.next_server', 1],
@@ -619,6 +620,11 @@ sub hosts_list {
             LEFT JOIN bills ext_cb ON  (ext_company.ext_bill_id=ext_cb.id) ";
   }
 
+  if ($self->{SEARCH_FIELDS} =~ /nas\./) {
+    $EXT_TABLES .= "
+            LEFT JOIN nas ON  (nas.id=h.nas) ";
+  }
+
   $EXT_TABLES .= $self->{EXT_TABLES} if ($self->{EXT_TABLES});
 
   $SORT =~ s/ip/h.ip/;
@@ -629,10 +635,10 @@ sub hosts_list {
        h.uid,
        h.network AS network_id, 
        if ((u.expire <> '0000-00-00' && curdate() > u.expire) || (h.expire <> '0000-00-00' && curdate() > h.expire), 1, 0) AS expire
-     FROM (dhcphosts_hosts h)
-     left join dhcphosts_networks n on h.network=n.id
-     left join users u on (h.uid=u.uid)
-     left join users_pi pi on (pi.uid=u.uid)
+     FROM dhcphosts_hosts h
+     LEFT JOIN dhcphosts_networks n on h.network=n.id
+     LEFT JOIN users u on (h.uid=u.uid)
+     LEFT JOIN users_pi pi on (pi.uid=u.uid)
      $EXT_TABLES
      $WHERE
      ORDER BY $SORT $DESC 

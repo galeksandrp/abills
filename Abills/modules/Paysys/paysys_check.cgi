@@ -593,15 +593,15 @@ sub privatbank_payments {
   my $list = $Paysys->list(
     {
       TRANSACTION_ID => "$order_id",
-      INFO           => '-',
+      STATUS         => 1,
       COLS_NAME      => 1
     }
   );
 
   if ($Paysys->{TOTAL} > 0) {
     if ($FORM{reasoncode} == 1) {
-      my $uid  = $list->[0]{uid};
-      my $sum  = $list->[0]{sum};
+      my $uid  = $list->[0]->{uid};
+      my $sum  = $list->[0]->{sum};
       my $user = $users->info($uid);
       $payments->add(
         $user,
@@ -639,11 +639,18 @@ sub privatbank_payments {
       }
     }
     else {
+    	my $status = 6;
+
+    	if ($FORM{reasoncode}==36) {
+    		$status=3;
+    	}
+
       $Paysys->change(
         {
           ID        => $list->[0]{id},
           PAYSYS_IP => $ENV{'REMOTE_ADDR'},
           INFO      => "ReasonCode: $FORM{reasoncode}. $FORM{reasoncodedesc} responsecode: $FORM{responsecode}",
+          STATUS    => $status
         }
       );
     }

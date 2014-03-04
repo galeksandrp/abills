@@ -3791,7 +3791,7 @@ sub dv_user_chg_tp {
         $FORM{UID} = $LIST_PARAMS{UID};
         $FORM{STATUS} = 0 if ($Dv->{STATUS} == 5);
         $Dv->change({%FORM});
-
+print "// !! $user !! //";
         $user->change(
           $LIST_PARAMS{UID},
           {

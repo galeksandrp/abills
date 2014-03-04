@@ -537,8 +537,9 @@ sub service_get_month_fee {
       print "Error: external cmd '$conf{$external_cmd}'\n";
     }
   }
-
-  undef $user;
+  
+  #Undef ?
+  #undef $user;
 
   return \%total_sum;
 }
