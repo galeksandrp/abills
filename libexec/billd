@@ -2088,41 +2088,43 @@ sub check_ifaces {
   }
 
   my $unallow_ips = 0;
-  while (my ($ip_address, $info) = each %$ip_pid_hash) {
-    my ($pid, $iface) = split(/:/, $info, 2);
-    if ($conf{DV_PPP_UNCHECKED}) {
-      next if ($ip_address =~ /$conf{DV_PPP_UNCHECKED}/);
-    }
+  while (my ($ip_address, $info_arr) = each %$ip_pid_hash) {
+    foreach my $info ( @$info_arr ) {
+      my ($pid, $iface, $extra) = split(/:/, $info, 3);
+      if ($conf{DV_PPP_UNCHECKED}) {
+        next if ($ip_address =~ /$conf{DV_PPP_UNCHECKED}/);
+      }
 
-    my $res = '';
-    if ($attr->{MPD}) {
-      if ($debug < 5) {
-        my $ret = hangup(
-          $nas_info,
-          "0", 
-          "",
-          {
-            ACCT_SESSION_ID   => "",
-            FRAMED_IP_ADDRESS => $ip_address,
-            IFACE             => "ng$iface",
-            LOCAL_HANGUP      => 1
-          }
-        );
+      my $res = '';
+      if ($attr->{MPD}) {
+        if ($debug < 5) {
+          my $ret = hangup(
+            $nas_info,
+            "0", 
+            "",
+            {
+              ACCT_SESSION_ID   => "",
+              FRAMED_IP_ADDRESS => $ip_address,
+              IFACE             => "ng$iface",
+              LOCAL_HANGUP      => 1
+            }
+          );
+        }
+        else {
+
+        }
+      }
+      elsif ($pid > 0) {
+        $res = `/bin/kill -9 $pid; /sbin/ifconfig tun$iface delete down`;
       }
       else {
-        
+        $res = `/sbin/ifconfig tun$iface delete down`;
       }
-    }
-    elsif ($pid > 0) {
-      $res = `/bin/kill -9 $pid; /sbin/ifconfig tun$iface delete down`;
-    }
-    else {
-      $res = `/sbin/ifconfig tun$iface delete down`;
-    }
-    print "Killed IP: $ip_address IF: $iface PID: '$pid' -- $res ($DATE $TIME)\n";
+      print "Killed IP: $ip_address IF: $iface PID: '$pid' -- $res ($DATE $TIME)\n";
 
-    get_pid_info($pid) if (-f "/var/log/ppp.log" && $pid > 0);
-    $unallow_ips++;
+      get_pid_info($pid) if (-f "/var/log/ppp.log" && $pid > 0);
+      $unallow_ips++;
+    }
   }
 
   print "Unallow ips: $unallow_ips\n" if ($debug > 1);
@@ -2135,11 +2137,18 @@ sub get_db_info {
   my ($ip_pid_hash) = @_;
 
   $Sessions->{debug} = 1 if ($debug > 4);
-  my $list = $Sessions->online({ CLIENT_IP => '_SHOW', NAS_ID => $LIST_PARAMS{NAS_IDS} });
+  my $list = $Sessions->online({ CLIENT_IP => '_SHOW', 
+  	                             PORT      => '_SHOW',
+  	                             NAS_ID    => $LIST_PARAMS{NAS_IDS} });
 
   foreach my $line (@$list) {
     my $ip = $line->{client_ip};
     print "exist: $ip\n" if ($debug > 3);
+
+    if($#{ $ip_pid_hash->{$ip} } > 0) {
+    	next;
+    }
+
     delete $ip_pid_hash->{$ip};
   }
 }
@@ -2185,7 +2194,7 @@ sub get_if_info {
         chomp($pid);
 
         print "$tunnum $addr $pid\n" if ($debug > 0);
-        $ip_pid_hash{"$addr"} = "$pid:$tunnum";
+        push @{ $ip_pid_hash{"$addr"} }, "$pid:$tunnum";
       }
     }
     close(IFC);
@@ -2193,7 +2202,7 @@ sub get_if_info {
 
   #mpd5
   elsif ($attr->{MPD}) {
-    open(IFC, "$IFCONFIG |") || die "Can't open file '$IFCONFIG' $!";
+    open(IFC, "$IFCONFIG |") || die "Can't open file '$IFCONFIG' $!\n";
     while (my $l = <IFC>) {
       $ifconfig .= $l;
     }
@@ -2203,7 +2212,7 @@ sub get_if_info {
       my $if   = $1;
       my $addr = $2;
       my $pid  = 0;
-      $ip_pid_hash{"$addr"} = "$pid:$if";
+      push @{ $ip_pid_hash{"$addr"} }, "$pid:$if";
     }
   }
 
@@ -2239,7 +2248,7 @@ sub get_if_info {
         next;
       }
       else {
-        $ip_pid_hash{"$addr"} = "$pid:$tunnum";
+        push @{ $ip_pid_hash{"$addr"} }, "$pid:$tunnum";
       }
       print "$tunnum $addr $pid\n" if ($debug > 0);
     }
