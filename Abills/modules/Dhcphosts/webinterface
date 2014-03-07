@@ -1066,7 +1066,7 @@ sub dhcphosts_user {
   );
 
   if (in_array('Equipment', \@MODULES) && $Dhcphosts->{NAS_ID}) {
-  	$Dhcphosts->{SWITCH_STATUS} = $html->button($_STATUS, "NAS_ID=$Dhcphosts->{NAS_ID}&PORT_SHOW=1&index=". get_function_index('equipment_info'), { CLASS => 'info rightAlignText' } );
+  	$Dhcphosts->{SWITCH_STATUS} = $html->button($_STATUS, "NAS_ID=$Dhcphosts->{NAS_ID}&index=". get_function_index('equipment_info'), { CLASS => 'info rightAlignText' } );
   }
 
   if (in_array('Equipment_', \@MODULES)) {

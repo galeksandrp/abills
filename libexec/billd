@@ -2529,7 +2529,7 @@ sub check_speed_mikrotik {
   my ($attr) = @_;
 
   if (!$LIST_PARAMS{NAS_IDS}) {
-    $LIST_PARAMS{TYPE} = 'mikrotik';
+    $LIST_PARAMS{TYPE} = 'mikrotik,mikrotik_dhcp';
   }
   
   my $mikrotik_cmd_log = "$log_dir/mikrotik_cmd.log";
@@ -2715,6 +2715,8 @@ Flags: X - disabled, I - invalid
      if ($ARGV->{NAT}) {
        my $skip_nat_ips = ($ARGV->{SKIP_NAT_IPS}) ? " dst-address=!$ARGV->{SKIP_NAT_IPS}" : '';
        push @commands, qq{/ip firewall nat add chain=srcnat action=masquerade $skip_nat_ips src-address-list=CLIENTS_$tp_id };
+       
+       print qq{/ip firewall nat add chain=srcnat action=masquerade $skip_nat_ips src-address-list=CLIENTS_$tp_id };
      }
     }
 
