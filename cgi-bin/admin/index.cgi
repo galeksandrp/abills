@@ -2631,8 +2631,8 @@ sub form_users {
     my $fees     = ($permissions{2}) ? $html->button($_FEES, "index=3&UID=$uid", { CLASS => 'fees' }) : '';
 
     if ($FORM{UNIVERSAL_SEARCH}) {
-       $line->{fio} =~ s/(.*)$FORM{UNIVERSAL_SEARCH}(.*)/\1$search_color_mark\2/;
-       $line->{login}  =~ s/(.*)$FORM{UNIVERSAL_SEARCH}(.*)/\1$search_color_mark\2/;
+      $line->{fio} =~ s/(.*)$FORM{UNIVERSAL_SEARCH}(.*)/\1$search_color_mark\2/;
+      $line->{login}  =~ s/(.*)$FORM{UNIVERSAL_SEARCH}(.*)/\1$search_color_mark\2/;
     }
 
     my @fields_array = ();
@@ -7101,6 +7101,8 @@ sub form_search {
     $pages_qs .= "&type=$FORM{type}" if ($pages_qs !~ /&type=/);
 
     if ($FORM{type} == 10) {
+    	$FORM{LOGIN}=~s/\s+$//;
+    	$FORM{LOGIN}=~s/^\s+//;
       $FORM{UNIVERSAL_SEARCH}=$FORM{LOGIN} || $FORM{UNIVERSAL_SEARCH};
       delete $FORM{LOGIN};
       $FORM{type} = 11 ;
