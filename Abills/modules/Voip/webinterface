@@ -1930,9 +1930,12 @@ sub voip_error {
       0  => 'UNKNOWN',
     );
 
-    my $list = $Nas->list({ TYPE => 'asterisk,gnugk,cisco_voip' });
+    my $list = $Nas->list({ TYPE      => 'asterisk,gnugk,cisco_voip,eltex_smg',
+    	                      COLS_NAME => 1 
+    	                     });
+
     foreach my $line (@$list) {
-      $nas_ids{ $line->[0] } = $line->[1];
+      $nas_ids{ $line->{nas_id} } = $line->{nas_name};
     }
 
     $Voip->{LOG_TYPE_SEL} = $html->form_select(
@@ -1974,7 +1977,7 @@ sub voip_error {
 
     $LIST_PARAMS{NAS_ID} = join(';', keys %nas_ids);
 
-    $list = $Log->log_list({%LIST_PARAMS});
+    $list = $Log->log_list({%LIST_PARAMS, COLS_NAME => 1});
     my $table = $html->table(
       {
         caption    => $_TOTAL,
@@ -1985,8 +1988,8 @@ sub voip_error {
 
     my $total = 0;
     foreach my $line (@{ $Log->{list} }) {
-      $table->addrow($log_levels_rev{ $line->[0] }, $line->[1]);
-      $total += $line->[1];
+      $table->addrow($log_levels_rev{ $line->{log_type} }, $line->{count});
+      $total += $line->{count};
     }
 
     $table->addrow($_TOTAL, $total);
@@ -1995,17 +1998,34 @@ sub voip_error {
 
     $table = $html->table(
       {
-        caption => "$_ERROR",
+        caption => "Internet $_ERROR",
         width   => '100%',
         title   => [ $_DATE, "$_TYPE", "$_ACTION", "$_USER", "$_TEXT", "NAS" ],
         pages   => $total,
         qs      => $pages_qs,
-        ID      => 'DV_ERRORS'
+        ID      => 'VOIP_ERRORS',
+        EXPORT  => ' XML:&xml=1',
+        MENU    => "$_SEARCH:index=$index&search_form=1:search",
       }
     );
 
     foreach my $line (@$list) {
-      $table->addrow($line->[0], $log_levels_rev{ $line->[1] }, $line->[2], $html->button($line->[3], "index=11&LOGIN=$line->[3]"), ($line->[1] < 5) ? $html->color_mark($line->[4], "#FF0000") : $line->[4], $nas_ids{ $line->[5] });
+      my $message = $line->{message};
+    
+      if($line->{log_type} < 5) {
+      	$message = $html->color_mark($line->{message}, "$_COLORS[6]");
+      }
+      elsif($line->{action} eq 'GUEST_MODE') {
+    	  $message = $html->color_mark($line->{message}, "$_COLORS[8]");
+    	  $line->{action} = $html->color_mark($line->{action}, "$_COLORS[8]");
+      }
+
+      $table->addrow($line->{date}, 
+      $log_levels_rev{ $line->{log_type} }, 
+      $line->{action}, 
+      $html->button($line->{user}, "index=11&LOGIN=$line->{user}"), 
+      $message, 
+      $nas_ids{ $line->{nas_id} });
     }
 
     print $table->show();

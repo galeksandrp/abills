@@ -1007,6 +1007,7 @@ sub search_expr_users () {
 
   if ($attr->{SORT}) {
   	my $sort_position = ($attr->{SORT}-2 < 1) ? 1 : $attr->{SORT}-2;
+  	
     if ($self->{SEARCH_FIELDS_ARR}->[$sort_position]){
       if ( $self->{SEARCH_FIELDS_ARR}->[$sort_position] =~ m/build$|flat$/i) {
         if ($self->{SEARCH_FIELDS_ARR}->[$sort_position] =~ m/([a-z\._0-9\(\)]+)\s+/i) {
@@ -1014,7 +1015,7 @@ sub search_expr_users () {
         }
     	  $SORT = $self->{SEARCH_FIELDS_ARR}->[$sort_position] ."*1";
       }
-      elsif ($self->{SEARCH_FIELDS_ARR}->[$sort_position] =~ m/ [a-z0-9\.]{0,12}ip/i) {
+      elsif ($self->{SEARCH_FIELDS_ARR}->[$sort_position] =~ m/ [a-z0-9_\.]{0,12}ip/i) {
       	$SORT = 'ip+0';
       }
     }

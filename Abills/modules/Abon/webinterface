@@ -975,7 +975,7 @@ sub abon_docs {
       }
 
       # NAME| ID | SUM
-      push @services, "$_ABON: ($line->{id}) " . "$line->{name}" . "|$line->{comments} |$line->{price}";
+      push @services, "$_ABON: ($line->{id}) " . "$line->{name}" . "|$line->{comments} |$line->{price}|$line->{id}";
       
       if ($line->{period} == 1) {
        	$info{month} += $line->{price};

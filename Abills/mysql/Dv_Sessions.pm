@@ -296,7 +296,14 @@ sub online {
 
   delete $self->{COL_NAMES_ARR};
 
-  $self->query2("SELECT $self->{SEARCH_FIELDS} c.uid,c.nas_id,c.acct_session_id
+	my $sort_position = ($SORT-1 < 1) ? 1 : $SORT-1;
+  	
+  if($self->{SEARCH_FIELDS_ARR}->[$sort_position] =~ /ip/) {
+  	$SORT = " c.framed_ip_address+0";
+  }
+
+  $self->query2("SELECT $self->{SEARCH_FIELDS} 
+    c.uid,c.nas_id,c.acct_session_id
        FROM dv_calls c
        LEFT JOIN users u     ON (u.uid=c.uid)
        LEFT JOIN dv_main service ON (service.uid=u.uid)
