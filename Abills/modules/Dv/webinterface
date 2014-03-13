@@ -718,7 +718,7 @@ sub dv_user {
         }
       }
       elsif ($Dv->{DAY_ABON} > 0) {
-        $days_to_fees = int(($users->{DEPOSIT} + $users->{CREDIT}) * (($users->{REDUCTION} < 100 && $Dv->{REDUCTION_FEE}) ? (100 / (100 - $users->{REDUCTION}) / $Dv->{DAY_ABON}) : 0) );
+        $days_to_fees = int(($users->{DEPOSIT} + $users->{CREDIT} > 0) ?  ($users->{DEPOSIT} + $users->{CREDIT}) * (100 / (100 - $users->{REDUCTION}) / $Dv->{DAY_ABON}) : 0);
         $Dv->{NEXT_FEES_WARNING} = "$_SERVICE_ENDED: $days_to_fees";
       }
 

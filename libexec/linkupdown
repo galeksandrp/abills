@@ -328,6 +328,7 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
   #Create shaper dev for linux
   #Traf type shapper
   foreach my $traf_type (sort keys %speeds) {
+    $users_table_number = $conf{FW_TABLE_USERS} || 10;  	
     my $speed;
     if ($Billing->{RESULT}{$traf_type}->{SPEED_IN}) {
       $speed->{IN}  = $Billing->{RESULT}{$traf_type}->{SPEED_IN};
