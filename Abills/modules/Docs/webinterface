@@ -945,7 +945,12 @@ sub docs_invoices_list {
 
   if ($LIST_PARAMS{UID} || $FORM{UID}) {
     docs_invoice();
-    return 0 if ($FORM{'print'} || $FORM{SHOW_ORDERS});
+    if ($FORM{'print'} || $FORM{SHOW_ORDERS}) {
+    	if ($FORM{create}) {
+    		exit;
+    	}
+    	return 0;
+    }
   }
   elsif (defined($FORM{del}) && $FORM{is_js_confirmed}) {
     $Docs->invoice_del($FORM{del});
@@ -1993,8 +1998,6 @@ sub docs_invoice {
           else {
             docs_print('invoice', { %$Docs, %$attr });
           }
-
-          return 0;
         }
         else {
           if ($Docs->{COMPANY_ID}) {

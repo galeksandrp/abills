@@ -4816,7 +4816,6 @@ sub dv_holdup_service {
   if ($holdup_skip_gids) {
     my @holdup_skip_gids_arr = split(/,\s?/, $holdup_skip_gids);
     if (in_array($user->{GID}, \@holdup_skip_gids_arr)) {
-      
       return 0;
     }
   }
