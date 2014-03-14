@@ -1,5 +1,5 @@
 
-<form action='https://liqpay.com/?do=clickNbuy' method='POST' accept-charset='utf-8'>
+<form action='https://www.liqpay.com/api/pay' method='POST' accept-charset='utf-8'>
 <input type='hidden' name='operation_xml' value='%XML_ENCODED%' />
 <input type='hidden' name='signature' value='%SIGN%' />
 
