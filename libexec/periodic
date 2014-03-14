@@ -312,6 +312,7 @@ sub sheduler {
       D         => "$D,\\*",
       COLS_NAME => 1,
       %LIST_PARAMS,
+      DOMAIN_ID => undef,
       PAGE_ROWS => 1000000,
     }
   );
