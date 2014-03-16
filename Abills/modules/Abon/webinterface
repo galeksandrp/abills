@@ -646,7 +646,7 @@ sub abon_periodic {
 
   foreach my $info (@$list) {
     $info->{DATETIME}  = "$ADMIN_REPORT{DATE} $TIME";
-    $info->{BILL_ID}   = $line->{EXT_BILL_ID} if ($info->{EXT_BILL_ACCOUNT});
+    $info->{BILL_ID}   = $info->{EXT_BILL_ID} if ($info->{EXT_BILL_ACCOUNT});
 
     if ($debug > 2) {
       $debug_output .= "UID: $info->{UID} TP_ID: $info->{TP_ID} SUM: $info->{PRICE} DEPOSIT: " . (($info->{DEPOSIT}) ? $info->{DEPOSIT} : 'Undefined') . " NOT1: $info->{NOTIFICATION1} NOT2: $info->{NOTIFICATION2} ABON: $info->{ABON_DATE}\n";

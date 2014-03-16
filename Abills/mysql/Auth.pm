@@ -316,7 +316,7 @@ sub dv_auth {
     if (length($RAD->{CALLING_STATION_ID}) > 20) {
       $cid = substr($RAD->{CALLING_STATION_ID}, 0, 20);
     }
-    
+
     foreach my $line (@{ $self->{list} }) {
       $active_nas{ $line->[2] } = $line->[0] if (! $active_nas{ $line->[2] });
       
@@ -334,7 +334,7 @@ sub dv_auth {
         && $active_nas{ $line->[2] } eq $line->[0])
       {
         $self->query2("UPDATE dv_calls SET status=2 WHERE user_name='$RAD->{USER_NAME}' and CID='$cid ' and status <> 2;", 'do');
-        $self->{IP} = $line->[1];
+        $self->{IP} = $line->[1] if ($line->[2] eq $NAS->{NAS_ID});
         $active_logins--;
       }
     }

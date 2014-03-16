@@ -1229,25 +1229,32 @@ sub ureports_daily_resets {
   my $debug_output = 'Daily reports reset';
 
   $debug_output = "Daily reports reset\n" if ($debug > 1);
+
+  $LIST_PARAMS{GID}  = $attr->{GID} if ($attr->{GID});
+  $LIST_PARAMS{LOGIN}= $attr->{LOGIN} if ($attr->{LOGIN});
   
-  $self->{debug} = 1 if ($debug > 6);
+  $Ureports->{debug} = 1 if ($debug > 6);
+
   my $list = $Ureports->tp_user_reports_list(
     {
       RESET     => 1,
-      REPORT_ID => 1,
+      #REPORT_ID => 1,
       DATE      => '>0000-00-00',
+      %LIST_PARAMS,
       COLS_NAME => 1
     }
   );
 
   foreach my $line (@$list) {
     $debug_output .= "UID: $line->{uid} REPORT_ID: $line->{report_id} VALUE: $line->{value} DEPOSIT: $line->{deposit}\n" if ($debug > 1);
-    $Ureports->tp_user_reports_reset_date(
-      {
-        REPORT_ID => $line->{report_id},
-        UID       => $line->{uid}
-      }
-    );
+    if ($debug < 5) {
+      $Ureports->tp_user_reports_reset_date(
+        {
+          REPORT_ID => $line->{report_id},
+          UID       => $line->{uid}
+        }
+      );
+    }
   }
 
   $DEBUG .= $debug_output;
@@ -1530,7 +1537,6 @@ sub ureports_payments_maked {
       
   return '' if ($FORM{DISABLE} || $FORM{CREDIT} );
   return '' if (int($attr->{SUM}) == 0);
-  
 
   $Ureports->tp_user_reports_list({ UID              => $user->{UID},
                                     REPORT_ID        => 12,
