@@ -1230,7 +1230,7 @@ sub bonus_accomulation_transfer {
   $conf{BONUS_ACCOMULATION_TRANSFER_MIN}=1 if (! $conf{BONUS_ACCOMULATION_TRANSFER_MIN} );
   $conf{BONUS_ACCOMULATION_TRANSFER_PERCENT}=0 if (! $conf{BONUS_ACCOMULATION_TRANSFER_PERCENT});
 
-	
+
 if ($FORM{transfer}) {
 	my $rechange_sum = $FORM{COST};
   if ($Bonus->{COST} < $FORM{COST}) {
@@ -1260,6 +1260,7 @@ if ($FORM{transfer}) {
     }
   }
 }	
+
 
 $html->tpl_show(_include('bonus_accomulation_transfer', 'Bonus'), $Bonus);
 	

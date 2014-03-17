@@ -1,7 +1,13 @@
 
 <form action='https://www.liqpay.com/api/pay' method='POST' accept-charset='utf-8'>
+<!-- 
 <input type='hidden' name='operation_xml' value='%XML_ENCODED%' />
 <input type='hidden' name='signature' value='%SIGN%' />
+-->
+  %BODY%
+  <input type="hidden" name="signature" value="%SIGN%" />
+  <input type="hidden" name="language" value="ru" />
+  <input type="image" src="//static.liqpay.com/buttons/p1ru.radius.png" name="btn_text" />
 
 
 <table width=400 class=form>

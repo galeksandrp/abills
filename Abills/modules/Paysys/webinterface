@@ -2221,8 +2221,9 @@ sub paysys_liqpay {
 
   $html->setCookie('lastindex', "$index", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure);
   
-  ($info{SIGN}, $info{XML_ENCODED}) =  liqpay_make_request({ DOMAIN_ID => $user->{DOMAIN_ID} });
-    
+  #($info{SIGN}, $info{XML_ENCODED}) =  liqpay_make_request({ DOMAIN_ID => $user->{DOMAIN_ID}, %FORM });
+  ($info{SIGN}, $info{BODY}) =  liqpay_make_request2({ DOMAIN_ID => $user->{DOMAIN_ID}, %FORM });
+  
   $html->tpl_show(_include('paysys_liqpay_add', 'Paysys'), { %info, %$user });
 }
 
