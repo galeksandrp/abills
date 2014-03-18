@@ -999,12 +999,15 @@ sub add {
     $self->{errstr} = 'ERROR_ENTER_NAME';
     return $self;
   }
+  #Add user with same UID and LOGIN
+  elsif ($DATA{LOGIN} eq '*') {
+
+  }
   elsif (length($DATA{LOGIN}) > $CONF->{MAX_USERNAME_LENGTH}) {
     $self->{errno}  = 9;
     $self->{errstr} = 'ERROR_LONG_USERNAME';
     return $self;
   }
-
   #ERROR_SHORT_PASSWORD
   elsif ($DATA{LOGIN} !~ /$usernameregexp/) {
     $self->{errno}  = 10;

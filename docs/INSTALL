@@ -6,7 +6,7 @@
     <script>(function(H){H.className=H.className.replace(/\bno-js\b/,'js')})(document.documentElement)</script>
     <meta name="generator" content="DokuWiki"/>
 <meta name="robots" content="noindex,follow"/>
-<meta name="date" content="1970-01-01T03:00:00+0300"/>
+<meta name="date" content="1970-01-01T02:00:00+0200"/>
 <meta name="keywords" content="abills,docs_03,install,en"/>
 <link rel="search" type="application/opensearchdescription+xml" href="/wiki/lib/exe/opensearch.php" title="Advanced Billing Solution"/>
 <link rel="start" href="/wiki/"/>
@@ -46,7 +46,7 @@
                     <div id="dokuwiki__usertools">
                 <h3 class="a11y">Инструменты пользователя</h3>
                 <ul>
-                    <li><a href="/wiki/doku.php/abills:docs_03:install:en?do=login&amp;sectok=80afe63de76ef688d8160ff9044f8a35"  class="action login" rel="nofollow" title="Войти">Войти</a></li>                </ul>
+                    <li><a href="/wiki/doku.php/abills:docs_03:install:en?do=login&amp;sectok=790bfc301556423aa844e3a18823978f"  class="action login" rel="nofollow" title="Войти">Войти</a></li>                </ul>
             </div>
         
         <!-- SITE TOOLS -->
@@ -229,7 +229,7 @@
 </li>
 <li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:linux:lepppd:ru" class="wikilink1" title="abills:docs:linux:lepppd:ru">Linux PPPD IPv4 zone counters</a></div>
 </li>
-<li class="level4"><div class="li"> <span class="curid"><a href="/wiki/doku.php/abills:docs:linux:pppd_radattr:ru" class="wikilink1" title="abills:docs:linux:pppd_radattr:ru">Linux PPPD + radattr.so</a></span></div>
+<li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:linux:pppd_radattr:ru" class="wikilink1" title="abills:docs:linux:pppd_radattr:ru">Linux PPPD + radattr.so</a></div>
 </li>
 <li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:linux:accel_pptp:ru" class="wikilink1" title="abills:docs:linux:accel_pptp:ru">Linux accel-pptp</a></div>
 </li>
@@ -250,6 +250,8 @@
 <li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:nas:juniper:ru:juniper" class="wikilink1" title="abills:docs:nas:juniper:ru:juniper">Juniper</a></div>
 </li>
 <li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:nas:ericsson_smartedge:ru:ericsson_smartedge" class="wikilink1" title="abills:docs:nas:ericsson_smartedge:ru:ericsson_smartedge">Ericsson SmartEdge</a></div>
+</li>
+<li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:nas:eltex:ru:eltex_smg" class="wikilink1" title="abills:docs:nas:eltex:ru:eltex_smg">Eltex SMG</a></div>
 </li>
 </ul>
 </li>
@@ -347,7 +349,7 @@
 
     </div></div><!-- /site -->
 
-    <div class="no"><img src="/wiki/lib/exe/indexer.php?id=abills%3Adocs_03%3Ainstall%3Aen&amp;1385368313" width="2" height="1" alt="" /></div>
+    <div class="no"><img src="/wiki/lib/exe/indexer.php?id=abills%3Adocs_03%3Ainstall%3Aen&amp;1395135483" width="2" height="1" alt="" /></div>
     <div id="screen__mode" class="no"></div>    <!--[if ( lte IE 7 | IE 8 ) ]></div><![endif]-->
 </body>
 </html>
