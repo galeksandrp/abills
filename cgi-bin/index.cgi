@@ -48,7 +48,7 @@ use Users;
 use Finance;
 
 if(! defined($conf{HTML5})) {
-	$conf{HTML5}=1;
+  $conf{HTML5}=1;
 }
 
 $html = Abills::HTML->new(
@@ -151,8 +151,8 @@ if ($uid > 0) {
   $html->{SID} = $sid;
 
   if ($FORM{get_index}) {
-  	$index = get_function_index($FORM{get_index});
-  	$FORM{index}=$index;
+    $index = get_function_index($FORM{get_index});
+    $FORM{index}=$index;
   }
 
 
@@ -428,9 +428,9 @@ sub form_info {
           }
 
           cross_modules_call('_payments_maked', { 
-          	  USER_INFO => $user, 
-          	  #SUM       => $sum,
-          	  QUITE     => 1 });
+              USER_INFO => $user, 
+              #SUM       => $sum,
+              QUITE     => 1 });
 
           if ($conf{external_userchange}) {
             if (!_external($conf{external_userchange}, $user)) {
@@ -443,8 +443,8 @@ sub form_info {
         $user->{CREDIT_DATE} = $credit_date;
       }
       else {
-      	$user->{CREDIT_CHG_PRICE} = sprintf("%.2f", $price);
-      	$user->{CREDIT_SUM} = sprintf("%.2f", $sum);
+        $user->{CREDIT_CHG_PRICE} = sprintf("%.2f", $price);
+        $user->{CREDIT_SUM} = sprintf("%.2f", $sum);
         $user->{CREDIT_CHG_BUTTON} = $html->button("$_SET $_CREDIT", '#', { ex_params => "ID=hold_up_window name=hold_up_window", BUTTON => 1 });
       }
     }
@@ -486,9 +486,9 @@ sub form_info {
   $LIST_PARAMS{DESC}      = 'desc';
   $LIST_PARAMS{SORT}      = 1;
   my $list = $Payments->list({%LIST_PARAMS, 
-  	                          DATETIME  => '_SHOW',
-  	                          SUM       => '_SHOW',
-  	                          COLS_NAME => 1 });
+                              DATETIME  => '_SHOW',
+                              SUM       => '_SHOW',
+                              COLS_NAME => 1 });
 
   $user->{PAYMENT_DATE} = $list->[0]->{datetime};
   $user->{PAYMENT_SUM}  = $list->[0]->{sum};
@@ -660,8 +660,8 @@ sub auth {
     my $sessions = Dv_Sessions->new($db, $admin, \%conf);
 
     my $list = $sessions->online({ USER_NAME         => '_SHOW',
-    	                             FRAMED_IP_ADDRESS => "$REMOTE_ADDR",
-    	                            });
+                                   FRAMED_IP_ADDRESS => "$REMOTE_ADDR",
+                                  });
 
     if ($sessions->{TOTAL} == 1) {
       $login = $list->[0]->{user_name};
@@ -755,8 +755,8 @@ sub auth {
   #Get user ip
   if (defined($res) && $res > 0) {
     $user->info($user->{UID} || 0, {  LOGIN     => ($user->{UID}) ? undef : "$login", 
-    	                                DOMAIN_ID => $FORM{DOMAIN_ID} 
-    	                              });
+                                      DOMAIN_ID => $FORM{DOMAIN_ID} 
+                                    });
 
     if ($user->{TOTAL} > 0) {
       $sid                 = mk_unique_value(16);
@@ -801,14 +801,28 @@ sub auth_sql {
   my ($login, $password) = @_;
   my $ret = 0;
 
-  $user->info(
-    0,
-    {
-      LOGIN    => "$login",
-      PASSWORD => "$password",
-      DOMAIN_ID=> $FORM{DOMAIN_ID}
+  $conf{WEB_AUTH_KEY}='LOGIN' if(! $conf{WEB_AUTH_KEY});
+
+  if ($conf{WEB_AUTH_KEY}) {
+    $user->info(
+      0,
+      {
+        LOGIN    => "$login",
+        PASSWORD => "$password",
+        DOMAIN_ID=> $FORM{DOMAIN_ID}
+      }
+    );
+  }
+  else {
+    $user->list({ $conf{WEB_AUTH_KEY}    => "$login",
+                  PASSWORD => "$password",
+                  DOMAIN_ID=> $FORM{DOMAIN_ID}  
+                 });
+
+    if ($user->{TOTAL}) {
+      $user->infO($user->{list}->[0]->{uid});
     }
-  );
+  }
 
   if ($user->{TOTAL} < 1) {
     #$html->message('err', $_ERROR, "$_NOT_FOUND");
@@ -817,7 +831,7 @@ sub auth_sql {
     $html->message('err', $_ERROR, "$user->{errno} $user->{errstr}");
   }
   else {
-    $ret = $user->{UID};
+    $ret = $user->{UID} || $user->{list}->[0]->{uid};
   }
 
   return $ret;
@@ -1109,13 +1123,13 @@ sub form_fees {
 
   my $Fees  = Finance->fees($db, $admin, \%conf);
   my $list  = $Fees->list({%LIST_PARAMS, 
-  	                       DSC       => '_SHOW',
-  	                       DATETIME  => '_SHOW',
-  	                       SUM       => '_SHOW',
-  	                       DEPOSIT   => '_SHOW',
-  	                       METHOD    => '_SHOW',
-  	                       LAST_DEPOSIT => '_SHOW',
-  	                       COLS_NAME => 1 });
+                           DSC       => '_SHOW',
+                           DATETIME  => '_SHOW',
+                           SUM       => '_SHOW',
+                           DEPOSIT   => '_SHOW',
+                           METHOD    => '_SHOW',
+                           LAST_DEPOSIT => '_SHOW',
+                           COLS_NAME => 1 });
 
   my $table = $html->table(
     {
@@ -1161,8 +1175,8 @@ sub form_payments {
     $LIST_PARAMS{DESC} = 'DESC';
   }
   my $list  = $Payments->list({%LIST_PARAMS, 
-  	                           DATETIME  => '_SHOW',
-  	                           COLS_NAME => 1});
+                               DATETIME  => '_SHOW',
+                               COLS_NAME => 1});
   my $table = $html->table(
     {
       width       => '100%',

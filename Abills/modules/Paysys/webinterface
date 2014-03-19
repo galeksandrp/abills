@@ -2190,7 +2190,7 @@ sub paysys_liqpay {
         COMMISSION     => $info{COMMISSION_SUM},
         UID            => $user->{UID},
         IP             => "$ENV{'REMOTE_ADDR'}",
-        TRANSACTION_ID => "$FORM{OPERATION_ID}",
+        TRANSACTION_ID => "Liqpay:$FORM{OPERATION_ID}",
         INFO           => '-',
         PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}",
         STATUS         => 1,

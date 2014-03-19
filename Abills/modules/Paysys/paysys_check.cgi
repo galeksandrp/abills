@@ -228,7 +228,7 @@ elsif (check_ip($ENV{REMOTE_ADDR}, '107.22.173.15,107.22.173.86,217.117.64.232/2
   }
   exit;
 }
-elsif (($FORM{signature} && $FORM{operation_xml}) || check_ip($ENV{REMOTE_ADDR}, '54.229.105.178')) {
+elsif (($FORM{signature} && $FORM{operation_xml}) || check_ip($ENV{REMOTE_ADDR}, '54.229.105.178,192.168.1.104')) {
   require "Liqpay.pm";
   #liqpay_payments();
   exit;
