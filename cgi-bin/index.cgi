@@ -803,7 +803,7 @@ sub auth_sql {
 
   $conf{WEB_AUTH_KEY}='LOGIN' if(! $conf{WEB_AUTH_KEY});
 
-  if ($conf{WEB_AUTH_KEY}) {
+  if ($conf{WEB_AUTH_KEY} eq 'LOGIN') {
     $user->info(
       0,
       {
@@ -814,13 +814,14 @@ sub auth_sql {
     );
   }
   else {
-    $user->list({ $conf{WEB_AUTH_KEY}    => "$login",
-                  PASSWORD => "$password",
-                  DOMAIN_ID=> $FORM{DOMAIN_ID}  
+    $user->list({ $conf{WEB_AUTH_KEY} => "$login",
+                  PASSWORD  => "$password",
+                  DOMAIN_ID => $FORM{DOMAIN_ID},
+                  COLS_NAME => 1
                  });
 
     if ($user->{TOTAL}) {
-      $user->infO($user->{list}->[0]->{uid});
+      $user->info($user->{list}->[0]->{uid});
     }
   }
 
