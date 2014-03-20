@@ -569,10 +569,6 @@ sub hosts_list {
   my $EXT_TABLES = '';
   $self->{EXT_TABLES} = '';
 
-  if ($attr->{NAS_IP}) {
-    $EXT_TABLES .= "LEFT JOIN nas  ON  (h.nas=nas.id) ";
-  }
-
   my $WHERE =  $self->search_former($attr, [
      ['ID',              'INT', 'h.id'                         ],
      ['LOGIN',           'INT', 'u.id',   'u.id AS login'      ],

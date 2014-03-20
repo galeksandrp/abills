@@ -2525,6 +2525,7 @@ sub ipn_periodic_session_restart {
   use Auth;
   my $Auth = Auth->new($db, \%conf);
   $Sessions->{debug}=1 if ($debug > 6);
+
   my $list = $Sessions->online(
     {      
       USER_NAME   => '_SHOW',
