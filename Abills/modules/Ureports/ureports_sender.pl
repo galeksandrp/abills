@@ -180,7 +180,7 @@ sub ureports_periodic_reports {
                                      PAYMENT_TYPE    => '_SHOW',
                                      EXT_BILL_ACCOUNT=> '_SHOW',
                                      %LIST_PARAMS,
-                                     COLS_NAME   => 1 });
+                                     COLS_NAME       => 1 });
 
   $ADMIN_REPORT{DATE} = $DATE if (!$ADMIN_REPORT{DATE});
   $SERVICE_LIST_PARAMS{CUR_DATE}=$ADMIN_REPORT{DATE};
@@ -256,9 +256,9 @@ sub ureports_periodic_reports {
         $user->{EXPIRE_DAYS} = int($user->{DEPOSIT} / $total_daily_fee) if ($total_daily_fee > 0);
         $user->{EXPIRE_DATE} = strftime("%Y-%m-%d", localtime(time + $user->{EXPIRE_DAYS} * 86400));
 
-        #Report 1
+        #Report 1 Deposit belove and dv status active
         if ($user->{REPORT_ID} == 1) {
-          if ($user->{VALUE} > $user->{DEPOSIT}) {
+          if ($user->{VALUE} > $user->{DEPOSIT} && ! $user->{DV_STATUS}) {
             %PARAMS = (
               DESCRIBE => "$_REPORTS ($user->{REPORT_ID}) ",
               MESSAGE  => "$_DEPOSIT: $user->{DEPOSIT}",

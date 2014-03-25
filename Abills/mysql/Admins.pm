@@ -470,6 +470,7 @@ sub action_list {
   my $WHERE = $self->search_former($attr, [
       ['UID',          'INT',  'aa.uid',          ],
       ['LOGIN',        'STR',  'u.id',            ],
+      ['DATETIME',     'DATE', 'aa.datetime'      ],
       ['RESPOSIBLE',   'INT',  'm.resposible',    ],
       ['ACTION',       'INT',  'aa.actions',      ],
       ['TYPE',         'INT',  'aa.action_type',  ], 

@@ -184,9 +184,9 @@ sub dv_auth {
   # Make join service operations
   if ($self->{JOIN_SERVICE}) {
     if ($self->{JOIN_SERVICE} > 1) {
-      $self->query2("select  
-  if ($self->{LOGINS}>0, $self->{LOGINS}, tp.logins) AS logins,
-  if('$self->{FILTER}' != '', '$self->{FILTER}', tp.filter_id) AS filter,
+      $self->query2("SELECT  
+  IF($self->{LOGINS}>0, $self->{LOGINS}, tp.logins) AS logins,
+  IF('$self->{FILTER}' != '', '$self->{FILTER}', tp.filter_id) AS filter,
   dv.tp_id AS tp_num,
   tp.total_time_limit,
   tp.day_time_limit,
@@ -200,13 +200,13 @@ sub dv_auth {
   tp.month_traf_limit,
   tp.octets_direction,
 
-  if (count(un.uid) + count(tp_nas.tp_id) = 0, 0,
-    if (count(un.uid)>0, 1, 2)) AS nas,
+  IF (count(un.uid) + count(tp_nas.tp_id) = 0, 0,
+    IF (count(un.uid)>0, 1, 2)) AS nas,
   tp.max_session_duration,
   tp.payment_type,
   tp.credit_tresshold,
   tp.rad_pairs,
-  count(i.id) AS intervals,
+  COUNT(i.id) AS intervals,
   tp.age AS account_age,
   tp.traffic_transfer_period,
   tp.neg_deposit_filter_id,

@@ -782,9 +782,14 @@ sub dv_user {
       $Dv->{ONLINE_TABLE} = $table->show();
     }
 
-    $list = $admin->action_list({ TYPE => '4;14', UID => $FORM{UID}, PAGE_ROWS => 1, DESC => 'desc' });
+    $list = $admin->action_list({ TYPE => '4;14', 
+    	                            UID  => $FORM{UID}, 
+    	                            DATETIME  => '_SHOW',
+    	                            PAGE_ROWS => 1, 
+    	                            COLS_NAME => 1,
+    	                            DESC      => 'desc' });
     if ($admin->{TOTAL} > 0) {
-      $list->[0]->[2] =~ /(\d{4}-\d{2}-\d{2})/;
+      $list->[0]->{datetime} =~ /(\d{4}-\d{2}-\d{2})/;
       my $status_date = $1;
 
       my $days = date_diff($status_date, $DATE);
@@ -822,7 +827,7 @@ sub dv_user {
   $Dv->{TURBO_MODE_SEL} = $html->form_select(
     'TURBO_MODE',
     {
-      SELECTED => $Dv->{TURBO_MODE} || $FORM{TURBO_MODE},
+      SELECTED     => $Dv->{TURBO_MODE} || $FORM{TURBO_MODE},
       SEL_ARRAY    => [ $_ENABLE, $_DISABLE, $_NOT_ACTIVE, ],
       ARRAY_NUM_ID => 1
     }

@@ -19,10 +19,11 @@ RADIUS_SECRET=radsecret;
 
 RADCLIENT=radclient
 PATH=${PATH}:/usr/local/freeradius/bin/
-RAUTH="./rauth.pl";
-RACCT="./racct.pl";
+DIRNAME=`dirname $0`
+RAUTH=${DIRNAME}"/rauth.pl";
+RACCT=${DIRNAME}"/racct.pl";
 RADTEST=radtest
-echo `pwd -P`;
+#echo `pwd -P`;
 
 
 #Default Alive packes

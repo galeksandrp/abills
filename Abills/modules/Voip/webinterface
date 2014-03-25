@@ -234,12 +234,13 @@ sub voip_users_list {
   $Voip->{TP_SEL}    = $html->form_select(
     'TP_ID',
     {
-      SELECTED          => $FORM{TP_ID},
-      SEL_MULTI_ARRAY   => [ [ '', '' ], @{ $Voip->tp_list() } ],
-      MULTI_ARRAY_KEY   => 8,
-      MULTI_ARRAY_VALUE => '0,1',
-      NO_ID             => 1,
-      MAIN_MENU         => get_function_index('voip_tp'),
+      SELECTED   => $FORM{TP_ID},
+      SEL_LIST   => $Voip->tp_list({ COLS_NAME => 1 }),
+      SEL_KEY    => 'tp_id',
+      SEL_VALUE  => 'id,name',
+      NO_ID      => 1,
+      SEL_OPTIONS=> { '' => $_ALL },
+      MAIN_MENU  => get_function_index('voip_tp'),
     }
   );
   
@@ -295,12 +296,12 @@ sub voip_users_list {
        MENU       => "$_ADD:index=" . get_function_index('form_wizard') . ':add' . ";$_SEARCH:index=$index&search_form=1:search",
      },
      MAKE_ROWS    => 1,
-     MODULE       => 'Iptv',
+     MODULE       => 'Voip',
      TOTAL        => 1
     });
 
-  if ($Iptv->{errno}) {
-    $html->message('err', $_ERROR, "[$Iptv->{errno}] $err_strs{$Iptv->{errno}}");
+  if ($Voip->{errno}) {
+    $html->message('err', $_ERROR, "[$Voip->{errno}] $err_strs{$Voip->{errno}}");
     return 0;
   }
 
@@ -1239,6 +1240,7 @@ sub voip_routes {
 
     $Voip->{ACTION}     = 'change';
     $Voip->{LNG_ACTION} = $_CHANGE;
+    $FORM{add_form}     = 1;
   }
   elsif (defined($FORM{del}) && $FORM{is_js_confirmed}) {
     $Voip->route_del($FORM{del});
@@ -1258,7 +1260,11 @@ sub voip_routes {
   }
 
   $Voip->{DISABLE} = ' checked' if ($Voip->{DISABLE} == 1);
-  $html->tpl_show(_include('voip_route', 'Voip'), $Voip);
+  
+  
+  if ($FORM{add_form}) {
+    $html->tpl_show(_include('voip_route', 'Voip'), $Voip);
+  }
 
   my %SEARCH_FIELDS = (
     $_PREFIX   => "ROUTE_PREFIX",
@@ -1266,8 +1272,10 @@ sub voip_routes {
     $_DISABLE  => "DISABLE",
     $_DESCRIBE => "DESCRIBE"
   );
-
-  $output .= form_search({ SIMPLE => \%SEARCH_FIELDS, });
+  
+  if ($FORM{search_form}) {
+    $output .= form_search({ SIMPLE => \%SEARCH_FIELDS, });
+  }
 
 ##
   my %new_hash     = ();
@@ -1285,7 +1293,8 @@ sub voip_routes {
       qs         => $pages_qs,
       pages      => $Voip->{TOTAL},
       ID         => 'VOIP_ROUTES',
-      header     => $html->button($_EXPORT, "qindex=$index&export=1", { BUTTON => 1 })
+      header     => $html->button($_EXPORT, "qindex=$index&export=1", { BUTTON => 1 }),
+      MENU       => "$_ADD:index=$index&add_form=1:add;$_SEARCH:index=$index&search_form=1:search",      
     }
   );
 
@@ -2023,7 +2032,7 @@ sub voip_error {
       $table->addrow($line->{date}, 
       $log_levels_rev{ $line->{log_type} }, 
       $line->{action}, 
-      $html->button($line->{user}, "index=11&LOGIN=$line->{user}"), 
+      $html->button($line->{user}, "index=". ( get_function_index('voip_users_list') ) ."&NUMBER=$line->{user}&search=1&search_form=1"), 
       $message, 
       $nas_ids{ $line->{nas_id} });
     }

@@ -48,7 +48,7 @@
 
 
 CLASSES_NUMS='2 3'
-VERSION=6.04
+VERSION=6.05
 
 
 name="abills_shaper"
@@ -361,6 +361,11 @@ for IPS_NAT in ${abills_ips_nat}; do
   FAKE_NET=`echo ${IPS_NAT} | awk -F: '{ print $2 }' | sed 's/,/ /g'`;
   #NAT IF
   NAT_IF=`echo ${IPS_NAT} | awk -F: '{ print $3 }'`;
+
+  if [ x"${NAT_IPS}" = x ]; then
+    IP=`ifconfig \`route -n get default | grep interface | awk '{ print $2 }'\` | grep "inet " | awk '{ print $2 }'`
+    NAT_IPS=${IP}
+  fi;
 
   echo " NAT ${ACTION}"
 
