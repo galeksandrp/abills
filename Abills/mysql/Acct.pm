@@ -69,9 +69,7 @@ sub accounting {
   }
 
   if ($NAS->{NAS_TYPE} eq 'cid_auth') {
-    $self->query2("select
-  u.uid,
-  u.id
+    $self->query2("SELECT u.uid, u.id
      FROM users u, dv_main dv
      WHERE dv.uid=u.uid AND dv.CID='$RAD->{CALLING_STATION_ID}';"
     );
@@ -138,7 +136,9 @@ sub accounting {
           if ($self->{JOIN_SERVICE} == 1) {
             $self->{JOIN_SERVICE} = $self->{UID};
           }
-          $self->{TP_ID} = '';
+          else {
+            $self->{TP_ID} = '0';
+          }
         }
       }
       else {
