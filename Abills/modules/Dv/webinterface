@@ -902,7 +902,7 @@ sub dv_user {
     if ($Dv->{ABON_DISTRIBUTION} && ! $conf{DV_FULL_MONTH}) {
       my($y, $m, $d)=split(/-/, $DATE);
       my $days_in_month = ($m != 2 ? (($m % 2) ^ ($m > 7)) + 30 : (!($y % 400) || !($y % 4) && ($y % 25) ? 29 : 28));
-      my $month_fee = ($total_fee / $days_in_month) * ($days_in_month - $d);
+      my $month_fee = ($total_fee / $days_in_month); # * ($days_in_month - $d);
       if ($month_fee > $users->{DEPOSIT}) {
         my $full_sum  = abs($month_fee - $users->{DEPOSIT});
         $sum = sprintf("%.2f", $full_sum);

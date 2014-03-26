@@ -9363,18 +9363,19 @@ sub form_nas_search {
       }
     );
 
-    $list = $nas->list({ %FORM });
+    $list = $nas->list({ %FORM,
+    	                   COLS_NAME => 1 });
     foreach my $line (@$list) {
       $table->addrow(
-        $line->[0],
-        "<div class='clickSearchResult' name='$line->[1]'>$line->[1]</div>",
+        $line->{nas_id},
+        "<div class='clickSearchResult' name='$line->{nas_name}'>$line->{nas_name}</div>",
 
         #$html->button("$line->[1]", "#", { GLOBAL_URL => '#',
         #                                   ex_params => "class='nasClick' name='$line->[1]'"
         #                                  }),
-        $line->[3],
-        $line->[4],
-        $line->[5],
+        $line->{nas_identifier},
+        $line->{nas_ip},
+        $line->{mac},
       );
     }
 
