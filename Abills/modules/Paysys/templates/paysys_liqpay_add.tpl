@@ -23,7 +23,7 @@
 <tr><td>$_TOTAL $_SUM:</td><td>$FORM{TOTAL_SUM}</td></tr>
 <!-- <tr><td>$_PAY_WAY:</td><td>%PAY_WAY_SEL%</td></tr> -->
 
-<tr>  <input type='image' src='//static.liqpay.com/buttons/p1ru.radius.png' name='btn_text' />
+<tr>  
 
 <th colspan=2 class=even><input type=submit name=add value='$_PAY'>
 </table>
