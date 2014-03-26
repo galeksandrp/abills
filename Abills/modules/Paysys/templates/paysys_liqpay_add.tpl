@@ -1,8 +1,8 @@
 <form action='https://www.liqpay.com/api/pay' method='POST' accept-charset='utf-8'>
 
   %BODY%
-  <input type="hidden" name="signature" value="%SIGN%" />
-  <input type="hidden" name="language" value="ru" />
+  <input type='hidden' name='signature' value='%SIGN%' />
+  <input type='hidden' name='language' value='ru' />
 
 
 <table width=400 class=form>
@@ -23,7 +23,7 @@
 <tr><td>$_TOTAL $_SUM:</td><td>$FORM{TOTAL_SUM}</td></tr>
 <!-- <tr><td>$_PAY_WAY:</td><td>%PAY_WAY_SEL%</td></tr> -->
 
-<tr>  <input type="image" src="//static.liqpay.com/buttons/p1ru.radius.png" name="btn_text" />
+<tr>  <input type='image' src='//static.liqpay.com/buttons/p1ru.radius.png' name='btn_text' />
 
 <th colspan=2 class=even><input type=submit name=add value='$_PAY'>
 </table>
