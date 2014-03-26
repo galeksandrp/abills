@@ -814,14 +814,18 @@ sub auth_sql {
     );
   }
   else {
-    $user->list({ $conf{WEB_AUTH_KEY} => "$login",
+  	my @a_method = split(/,/, $conf{WEB_AUTH_KEY});
+  	foreach my $auth_param (@a_method) {
+      $user->list({ $auth_param => "$login",
                   PASSWORD  => "$password",
                   DOMAIN_ID => $FORM{DOMAIN_ID},
                   COLS_NAME => 1
                  });
 
-    if ($user->{TOTAL}) {
-      $user->info($user->{list}->[0]->{uid});
+      if ($user->{TOTAL}) {
+        $user->info($user->{list}->[0]->{uid});
+        last;
+      }
     }
   }
 
