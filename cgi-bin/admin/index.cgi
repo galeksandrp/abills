@@ -357,7 +357,6 @@ $users = Users->new($db, $admin, \%conf);
 #Quick index
 # Show only function results whithout main windows
 if ($FORM{qindex} || $FORM{get_index}) {
-  
   if ($FORM{get_index}) {
     $index = get_function_index($FORM{get_index});
     goto FULL_MODE if ($FORM{full});
@@ -385,7 +384,6 @@ if ($FORM{qindex} || $FORM{get_index}) {
   if (defined($module{$index})) {
     load_module($module{$index}, $html);
   }
-
 
   if ($functions{$index}) {
     $functions{$index}->({ USER_INFO => $ui });
@@ -7118,7 +7116,7 @@ sub form_search {
       }
     }
     
-    if ($FORM{type} ne $index && ! $FORM{subf}) {
+    if ($FORM{type} ne $index && ! $FORM{subf} && $functions{ $FORM{type} }) {
       my $return = $functions{ $FORM{type} }->();
       if ($return) {
         return 0;
