@@ -46,7 +46,7 @@ CREATE TABLE `equipment_infos` (
   model_id smallint(6) unsigned NOT NULL default 0,
   system_id varchar(30) NOT NULL default '',
   ports tinyint(6) unsigned NOT NULL default 0,
-  firmware1 varchar(20) NOT NULL default '',
+  firmware varchar(20) NOT NULL default '',
   firmware2 varchar(20) NOT NULL default '',
   status tinyint(1) unsigned not null default 0,
   start_up_date date,

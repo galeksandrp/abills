@@ -13,8 +13,7 @@
 <tr><td>Ports:</td><td><input type=text name=PORTS value='%PORTS%'></td></tr>
 <tr><td>Firmware:</td><td><input type=text name=FIRMWARE value='%FIRMWARE%'></td></tr>
 <tr><td>$_SERIAL:</td><td><input type=text name=SERIAL value='%SERIAL%'></td></tr>
-<tr><td>MAC:</td><td><input type=text name=MAC value='%MAC%'></td></tr>
-<tr><td>$_START_UP_DATE:</td><td><input type=text name=Start_Up_Date value='%START_UP_DATE%'></td></tr>
+<tr><td>$_START_UP_DATE:</td><td><input type=text name=START_UP_DATE value='%START_UP_DATE%' ID='START_UP_DATE' size=12 rel='tcal'></td></tr>
 <tr><td>$_STATUS:</td><td>%STATUS_SEL%</td></tr>
 <tr><th colspan=2 class=form_title>$_COMMENTS</th></tr>
 <tr><th colspan=2><textarea name=COMMENTS cols=60 rows=7>%COMMENTS%</textarea></th></tr>

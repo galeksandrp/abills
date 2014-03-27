@@ -409,7 +409,6 @@ sub _change {
       DATA         => $attr
     }
   );
-
   return $self;
 }
 
@@ -434,13 +433,7 @@ sub _info {
   my $self = shift;
   my ($id, $attr) = @_;
 
-  $self->query2("SELECT  nas_id,
-    model_id,
-    system_id,
-    ports,
-    firmware1,
-    firmware2,
-    status
+  $self->query2("SELECT *
     FROM equipment_infos
     WHERE nas_id='$id';",
     undef,
