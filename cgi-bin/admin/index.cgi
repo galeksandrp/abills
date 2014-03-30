@@ -4359,7 +4359,8 @@ sub form_nas_add {
     'lepppd'     => 'Linux PPPD IPv4 zone counters',
     'pppd'       => 'pppd + RADIUS plugin (Linux)',
     'pppd_coa'   => 'pppd + RADIUS plugin + radcoad (Linux)',
-    'accel_pptp' => 'Linux accel-pptp',
+    'accel_ppp' => 'Linux accel-ppp',
+    'accel_ipoe' => 'Linux accel-ipoe',
     'gnugk'      => 'GNU GateKeeper',
     'cid_auth'   => 'Auth clients by CID',
     'cisco'      => 'Cisco',
@@ -4382,7 +4383,7 @@ sub form_nas_add {
     'ls_spa8000' => 'Linksys spa8000',
     'redback'    => 'Ericson CE1000 Redback',
     'mx80'       => 'Juniper MX80',
-    'ipv6'       => 'ipv6'
+    'ipv6'       => 'ipv6',
   );
 
   if (defined($conf{nas_servers})) {

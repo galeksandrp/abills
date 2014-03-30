@@ -1124,11 +1124,13 @@ sub unreg_requests_list {
   $self->{COL_NAMES_ARR}=undef;
 
   if (defined($attr->{STATE})) {
-    if ($attr->{STATE} == 4) {
-      push @WHERE_RULES, @{ $self->search_expr('0000-00-00 00:00:00', 'INT', 'm.admin_read') };
-    }
     if ($attr->{STATE} == 7) {
-
+      push @WHERE_RULES, @{ $self->search_expr(">0", 'INT', 'm.deligation') };
+    }
+    elsif ($attr->{STATE} == 8) {
+      push @WHERE_RULES, @{ $self->search_expr("$admin->{AID}", 'INT', 'm.resposible') };
+      push @WHERE_RULES, @{ $self->search_expr("0;3;6",         'INT', 'm.state') };
+      undef $attr->{DELIGATION};
     }
     else {
       push @WHERE_RULES, @{ $self->search_expr($attr->{STATE}, 'INT', 'm.state') };
@@ -1171,7 +1173,8 @@ sub unreg_requests_list {
 
   $self->query2("SELECT  m.id,
   $self->{SEARCH_FIELDS}
-  m.responsible_admin
+  m.responsible_admin,
+  m.chapter AS chapter_id
 FROM (msgs_unreg_requests m)
 LEFT JOIN admins a ON (m.received_admin=a.aid)
 LEFT JOIN msgs_chapters mc ON (m.chapter=mc.id)

@@ -61,8 +61,8 @@ elsif ($conf{TURBOSMS_PASSWD}) {
     Turbosms->import();
     $Sms_service = Turbosms->new($db, $admin, \%conf);
 
-    if ($Turbosms::VERSION < 2.05) {
-      $html->message('info', "UPDATE", "Please update module 'Turbosms' to version 2.05 or higher. http://abills.net.ua/");
+    if ($Turbosms::VERSION < 2.06) {
+      $html->message('info', "UPDATE", "Please update module 'Turbosms' to version 2.06 or higher. http://abills.net.ua/");
       return 0;
     }
     

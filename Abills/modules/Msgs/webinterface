@@ -221,9 +221,9 @@ sub msgs_admin_add {
         $Msgs->message_add(
           {
             %FORM,
-            STATE => ((!$FORM{STATE} || $FORM{STATE} == 0) && !$FORM{INNER_MSG}) ? 6 : $FORM{STATE},
+            STATE      => ((!$FORM{STATE} || $FORM{STATE} == 0) && !$FORM{INNER_MSG}) ? 6 : $FORM{STATE},
             ADMIN_READ => (!$FORM{INNER_MSG}) ? "$DATE $TIME" : '0000-00-00 00:00:00',
-            IP => $admin->{SESSION_IP}
+            IP         => $admin->{SESSION_IP}
           }
         );
         if ($Msgs->{errno}) {
@@ -286,9 +286,9 @@ sub msgs_admin_add {
       $Msgs->message_add(
         {
           %FORM,
-          STATE => ((!$FORM{STATE} || $FORM{STATE} == 0) && !$FORM{INNER_MSG}) ? 6 : $FORM{STATE},
+          STATE      => ((!$FORM{STATE} || $FORM{STATE} == 0) && !$FORM{INNER_MSG}) ? 6 : $FORM{STATE},
           ADMIN_READ => (!$FORM{INNER_MSG} || ($FORM{STATE} == 1 || $FORM{STATE} == 2)) ? "$DATE $TIME" : '0000-00-00 00:00:00',
-          IP => $admin->{SESSION_IP}
+          IP         => $admin->{SESSION_IP}
         }
       );
 
@@ -1055,7 +1055,7 @@ sub msgs_admin {
         push @fields_array, (($A_PRIVILEGES{ $line->{chapter_id} } > 2 || $#A_CHAPTER == -1) ? $html->button($_DEL, "index=$index&del=$line->{id}$pages_qs", { MESSAGE => "$_DEL [$line->{id}] $line->{subject} ?", CLASS => 'del' }) : '');
 
         $table->addrow(@fields_array);
-      } 
+    } 
 
   my $total_msgs = $Msgs->{TOTAL};
 
@@ -2595,9 +2595,6 @@ sub msgs_unreg_requests_list {
   my ($attr) = @_;
 
   if ($FORM{change}) {
-    if ($FORM{qindex}) {
-      print $html->header();
-    }
     my %params = ();
     $params{CLOSED_DATE} = "$DATE $TIME" if ($FORM{STATE} > 0);
     $params{DONE_DATE}   = "$DATE $TIME" if ($FORM{STATE} > 1);
@@ -2609,6 +2606,13 @@ sub msgs_unreg_requests_list {
 
     $Msgs->{ACTION}     = 'change';
     $Msgs->{LNG_ACTION} = $_CHANGE;
+  }
+  elsif ($FORM{add_user}) {
+    $Msgs->unreg_requests_info($FORM{add_user});
+    $index = get_function_index('form_wizard');
+    print $html->tpl_show(_include('msgs_add_user', 'Msgs'), $Msgs);
+
+    return 0;  	
   }
   elsif ($FORM{chg}) {
     $Msgs->unreg_requests_info($FORM{chg});
@@ -2711,7 +2715,7 @@ sub msgs_unreg_requests_list {
   $LIST_PARAMS{DESC}     = 'DESC'if (!$FORM{sort});
 
   if (!defined($FORM{STATE}) && !$FORM{ALL_MSGS}) {
-    $FORM{STATE} = 4;
+    $LIST_PARAMS{STATE} = 0;
   }
 
   my $i = 0;
@@ -2737,14 +2741,12 @@ sub msgs_unreg_requests_list {
 
   $LIST_PARAMS{CHAPTERS} = $FORM{CHAPTER};
 
-#  $Msgs->{debug}=1;
-
   my ($table, $list) = result_former({
      INPUT_DATA      => $Msgs,
      FUNCTION        => 'unreg_requests_list',
-     BASE_FIELDS     => 0,
+     BASE_FIELDS     => 1,
      DEFAULT_FIELDS  => 'MSG_ID,DATETIME,SUBJECT,FIO,CHAPTER,STATUS,CLOSED_DATE,ADMIN_LOGIN',
-     FUNCTION_FIELDS => 'null, null',
+     FUNCTION_FIELDS => 'null, null,null',
      EXT_TITLES      => {
        'id'           => "$_NUM",
        'subject'      => $_SUBJECT,
@@ -2770,14 +2772,14 @@ sub msgs_unreg_requests_list {
        header      => $status_bar,
        SELECT_ALL  => (scalar keys %CHAPTERS_DELIGATION == 0) ? "users_list:del:$_SELECT_ALL" : '',
        EXPORT      => ' ',
-       MENU        => "$_ADD:add_form=1&UID=$FORM{UID}&index=$index:add" . 
+       MENU        => "$_ADD:add_form=1&UID=$FORM{UID}&index=". get_function_index('msgs_unreg_requests') .":add" . 
          ";$_SEARCH:search_form=1&index=" . get_function_index('msgs_unreg_requests_list') . ":search",
       }
     });
 
     foreach my $line (@{ $list }) {
         my @fields_array = ();
-        for (my $i = 0 ; $i < $Msgs->{SEARCH_FIELDS_COUNT} ; $i++) {
+        for (my $i = 0 ; $i < $Msgs->{SEARCH_FIELDS_COUNT}+1 ; $i++) {
           my $val = '';
       
           if ($Msgs->{COL_NAMES_ARR}->[$i] =~ /datetime|id/) {
@@ -2820,15 +2822,17 @@ sub msgs_unreg_requests_list {
         }
 
         push @fields_array, $html->button($_SHOW, "#", {
-                                   NEW_WINDOW => "$SELF_URL?qindex=" . (($attr->{LIST_ONLY}) ? $index - 1 : $index) . "&chg=$line->{id}&header=1",
+                                   NEW_WINDOW      => "$SELF_URL?qindex=" . (($attr->{LIST_ONLY}) ? $index - 1 : $index) . "&chg=$line->{id}&header=1",
                                    NEW_WINDOW_SIZE => "640:700",
                                    CLASS           => 'show'
                                   });
 
+        push @fields_array, $html->button($_ADD, "index=$index&add_user=$line->{id}", { CLASS => 'add', TITLE => "$_ADD_USER" });   
+
         push @fields_array, (($A_PRIVILEGES{ $line->{chapter_id} } > 2 || $#A_CHAPTER == -1) ? $html->button($_DEL, "index=$index&del=$line->{id}$pages_qs", { MESSAGE => "$_DEL [$line->{id}] $line->{subject} ?", CLASS => 'del' }) : '');
 
         $table->addrow(@fields_array);
-      } 
+    } 
 
   my $total_msgs = $Msgs->{TOTAL};
 
