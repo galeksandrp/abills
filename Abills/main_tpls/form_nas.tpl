@@ -9,7 +9,7 @@
 <TR><TD>$_NAME (a-ZA-Z0-9_):</TD><TD><input type=text name=NAS_NAME value='%NAS_NAME%'></TD></TR>
 <TR><TD>Radius NAS-Identifier:</TD><TD><input type=text name=NAS_IDENTIFIER value='%NAS_IDENTIFIER%'></TD></TR>
 <TR><TD>$_DESCRIBE:</TD><TD><input type=text name=NAS_DESCRIBE value='%NAS_DESCRIBE%'></TD></TR>
-<TR><TD>$_TYPE:</TD><TD>%SEL_TYPE%</TD></TR>
+<!-- <TR><TD>$_TYPE:</TD><TD>%SEL_TYPE%</TD></TR> -->
 <TR><TD>MAC:</TD><TD><input type=text name=MAC value='%MAC%'></TD></TR>
 <TR><TD>$_MODEL:</TD><TD>%SEL_NAS_MODEL%</TD></TR>
 <TR><TD>$_AUTH:</TD><TD>%SEL_AUTH_TYPE%</TD></TR>

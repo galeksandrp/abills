@@ -325,6 +325,7 @@ sub equipment_info {
   else {
     $Equipment->_info($FORM{NAS_ID});
     if (!$Equipment->{errno}) {
+    	$FORM{COMMENTS}=$Equipment->{COMMENTS};
     	$Equipment->model_info( $Equipment->{MODEL_ID} );
     	
     	if ($Equipment->{MANAGE_WEB}) {
