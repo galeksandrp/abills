@@ -218,12 +218,6 @@ sub messages_list {
     }
     );
 
-  if ($attr->{DEPOSIT}) {
-    $self->{EXT_TABLES} .= "LEFT JOIN bills b ON (u.bill_id = b.id)
-      LEFT JOIN companies company ON  (u.company_id=company.id) 
-      LEFT JOIN bills cb ON (company.bill_id=cb.id)";
-  }
-
   my $EXT_TABLE = $self->{EXT_TABLES};
 
   if ($self->{SEARCH_FIELDS} =~ /pi\./) {

@@ -7,6 +7,7 @@ my $Fees  = Fees->new($db, $admin, \%conf);
 my $Users = Users->new($db, $admin, \%conf);
 
 my $Sms_service;
+my $servise_name = '';
 my %sms_status = (
 0  => 'В очереди отправки',
 1  => 'Недостаточно денег для рассылки',
@@ -61,11 +62,13 @@ elsif ($conf{TURBOSMS_PASSWD}) {
     Turbosms->import();
     $Sms_service = Turbosms->new($db, $admin, \%conf);
 
-    if ($Turbosms::VERSION < 2.06) {
+    if ($Turbosms::VERSION < 2.07) {
       $html->message('info', "UPDATE", "Please update module 'Turbosms' to version 2.06 or higher. http://abills.net.ua/");
       return 0;
     }
-    
+
+    %sms_status = %{ $Sms_service->error_codes() };
+    $servise_name = 'turbosms';
     return $Sms_service;
   }
   else {
@@ -187,8 +190,6 @@ sub sms_reports {
     form_search({ SEARCH_FORM => $html->tpl_show(_include('sms_search', 'Sms'), { %FORM, %$Sms_service }, { OUTPUT2RETURN => 1 }) });
   }
 
-
-
   my $list = $Sms_service->info({%LIST_PARAMS, COLS_NAME => 1 });
 
   if ($Sms_service->{errno}) {
@@ -200,7 +201,7 @@ sub sms_reports {
       width      => '100%',
       caption    => "$Sms_service->{SERVICE_NAME} - $_REPORTS",
       border     => 1,
-      title      => [ 'id', 'msg_id', 'number', 'sign', 'message', 'wappush', 'cost', 'credits', 'send_time', 'sended', 'updated', 'status', 'dlr_status' ],
+      title      => [ 'id', 'msg_id', 'number', 'sign', 'message', 'wappush', 'cost', 'credits', 'send_time', 'sended', 'updated', 'status', 'error_code' ],
       cols_align => [ 'center', 'left', 'left', 'left', 'left', 'left', 'left', 'left', 'left', 'left', 'left', 'left', 'left' ],
       qs         => $pages_qs,
       ID         => 'REPORTS_SMS',
@@ -211,7 +212,7 @@ sub sms_reports {
 
   use Encode;
   foreach my $line (@$list) {
-    my $status  = $sms_status{$line->{status}} || 0;
+    my $status  = ($sms_status{$line->{status}}) ? $sms_status{$line->{status}} : $line->{status};
     my $message = $line->{message}  || '';
     if ($conf{dbcharset} ne 'utf8') { Encode::from_to($status,  'utf-8', 'windows-1251') }
 
@@ -223,14 +224,14 @@ sub sms_reports {
       $message,
       $line->{wappush},
       $line->{cost},
-      $line->{credits},
+      $line->{credits} || $line->{balance},
       $line->{send_time},
       ($line->{sended}) ? $_YES: $_NO,
       $line->{updated},
       $status,
       #convert( substr("$line->[11]", 0, 16), {  utf82win => 1 }).$html->br().
       #convert(convert("Отсутств", {  win2utf8 => 1 })),
-      $line->{dlr_status},
+      ($sms_status{$line->{error_code}}) ? $sms_status{$line->{error_code}} : $line->{error_code},
     );
   }
 
