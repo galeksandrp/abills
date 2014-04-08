@@ -789,8 +789,8 @@ sub menu () {
         }
       }
 
-      #$menu_navigator = " " . $self->button($name, "index=$root_index$ex_params") . '/' . $menu_navigator;
-      $menu_navigator = " " . $self->button($name, "index=$root_index$ex_params", { BUTTON => 1 }) . ' ' . $menu_navigator;
+      $menu_navigator = " " . $self->button($name, "index=$root_index$ex_params") . '/' . $menu_navigator;
+      #$menu_navigator = " " . $self->button($name, "index=$root_index$ex_params", { BUTTON => 1 }) . ' ' . $menu_navigator;
       $tree{$root_index} = 1;
       if ($par_key > 0) {
         $root_index = $par_key;

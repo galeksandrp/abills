@@ -1136,7 +1136,7 @@ sub paysys_ukrpays () {
   }
 
   my %info = (UID => $LIST_PARAMS{UID},
-              FIO => $user->{fio} );
+              FIO => $user->{FIO} );
   $info{AMOUNT} = sprintf("%.2f", $FORM{SUM});
   $conf{PAYSYS_UKRPAYS_URL} = 'https://ukrpays.com/frontend/frontend.php' if (!$conf{PAYSYS_UKRPAYS_URL});
 

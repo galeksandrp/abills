@@ -15,7 +15,9 @@ $VERSION = 2.02;
 &check_bill_account
 &get_ip
 &online_add
+&rad_pairs_former
 %connect_errors_ids
+
 );
 
 @EXPORT_OK   = ();

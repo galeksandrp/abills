@@ -525,7 +525,7 @@ print $admin->{QUICK_MENU} if ($admin->{QUICK_MENU});
 
 print "<tr  class='noprint'><td valign='top' rowspan='2' class='MENU_BACK'>
 $menu_text
-</td><td style='height: 20px;' class='noprint, title_color'>$navigat_menu</td></tr>
+</td><td style='height: 20px;' class='noprint, title_color'>/$navigat_menu</td></tr>
 <tr class='CONTENT'><td valign='top' align='center'>";
 
 if ($functions{$index}) {
@@ -4575,6 +4575,9 @@ sub form_nas {
   elsif ($FORM{add}) {
     if ($FORM{MAC} && $FORM{MAC} !~ /^[a-f0-9\-\.:]+$/i) {
       $html->message('err', $_ERROR, "$ERR_WRONG_DATA MAC: '$FORM{MAC}'");
+    }
+    elsif(! $FORM{NAS_NAME}) {
+      $FORM{NAS_NAME} = 'NAS_'.$FORM{NAS_IP};
     }
 
     $nas->add({ %FORM, DOMAIN_ID => $admin->{DOMAIN_ID} });

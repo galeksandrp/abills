@@ -80,7 +80,9 @@ ssh_cmds ${MIKROTIK_ADMIN_USER}
 
 echo "Test connect: "
 CMDS_1="/system identity print"
+CMDS_2="/system package print where name~\"system\""
 ssh_cmds ${MIKROTIK_CONTROL_USER}
+
 }
 
 
@@ -150,7 +152,6 @@ mk_shapper () {
   if [ "${USE_NAT}"  != n ]; then
     /usr/abills/libexec/billd checkspeed mikrotik RECONFIGURE=1 NAS_IDS=${NAS_ID} SSH_PORT=${MIKROTIK_SSH_PORT} NAT=${USE_NAT}
   fi;
-
 }
 
 #**********************************************************
@@ -169,7 +170,7 @@ if [ x${RADIUS_AUTH_SERVER} != x ]; then
   for file in /usr/local/etc/raddb/client.conf  /usr/local/freeradius/etc/raddb/client.conf; do
     if [ -f ${file} ]; then
       check_nas=`grep ${RADIUS_AUTH_SERVER} ${file}`;
-      if [ x${check_nas} = x ]; then  
+      if [ x"${check_nas}" = x ]; then  
         get_value ADD_RADIUS_CLIENT "Add to radius client file '${file}' "
         if [ x${ADD_RADIUS_CLIENT} != x ]; then   
           echo "client {

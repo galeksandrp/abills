@@ -235,7 +235,7 @@ sub auth {
         $rr .= "$rs += " . join(",\n$rs += ", @$ls);
         $rr .= ",\n";
       }
-      else {
+      elsif(defined($ls)) {
         $rr .= "$rs = $ls,\n";
       }
     }

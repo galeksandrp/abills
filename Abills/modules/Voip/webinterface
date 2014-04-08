@@ -350,6 +350,7 @@ sub voip_user {
       	                            PROVISION_NAS_ID=> $FORM{PROVISION_NAS_ID},
       	                            COLS_NAME       => 1 
       	                         });
+
       if ($Voip->{TOTAL} > 0 && $list->[0]{uid} != $FORM{UID}) {
         $html->message('err', $_ERROR, "$_PORT: $FORM{PROVISION_PORT}  $_EXIST. $_LOGIN: " . $html->button("$list->[0]{login}", "index=15&UID=" . $list->[0]{uid} ));
         return 0;
@@ -366,7 +367,6 @@ sub voip_user {
     if (!$FORM{STATUS} && ($FORM{GET_ABON} || !$FORM{TP_ID})) {
       voip_get_month_fee($Voip);
     }
-
 
     if ($conf{VOIP_ASTERISK_USERS}) {
       voip_mk_users_conf();
@@ -393,12 +393,12 @@ sub voip_user {
     $user->{TP_NAME}    = $html->form_select(
       'TP_ID',
       {
-        SELECTED          => $FORM{TP_ID},
-        SEL_MULTI_ARRAY   => $Voip->tp_list(),
-        MULTI_ARRAY_KEY   => 8,
-        MULTI_ARRAY_VALUE => '0,1',
-        NO_ID             => 1,
-        MENU              => get_function_index('voip_tp')
+        SELECTED  => $FORM{TP_ID},
+        SEL_LIST  => $Voip->tp_list({ COLS_NAME => 1 }),
+        SEL_KEY   => 'tp_id',
+        SEL_VALUE => 'id,name',
+        NO_ID     => 1,
+        MENU      => get_function_index('voip_tp')
       }
     );
 
@@ -434,12 +434,12 @@ sub voip_user {
   $user->{NAS_SEL} = $html->form_select(
     'PROVISION_NAS_ID',
     {
-      SELECTED => $user->{PROVISION_NAS_ID} || $FORM{PROVISION_NAS_ID},
-      SEL_MULTI_ARRAY   => $Nas->list({ TYPE => 'ls_pap2t;ls_spa8000' }),
-      MULTI_ARRAY_KEY   => 0,
-      MULTI_ARRAY_VALUE => 1,
-      MAIN_MENU         => get_function_index('form_nas'),
-      MAIN_MENU_AGRV    => "chg=$user->{NAS_ID}"
+      SELECTED       => $user->{PROVISION_NAS_ID} || $FORM{PROVISION_NAS_ID},
+      SEL_LIST       => $Nas->list({ TYPE => 'ls_pap2t;ls_spa8000', COLS_NAME => 1 }),
+      SEL_KEY        => 'nas_id',
+      SEL_VALUE      => 'nas_name',
+      MAIN_MENU      => get_function_index('form_nas'),
+      MAIN_MENU_AGRV => "chg=$user->{NAS_ID}"
     }
   );
 
@@ -3002,7 +3002,6 @@ sub voip_mk_users_conf {
       DATE      => $DATE,
       TIME      => $TIME
     );
-
     $content .= $html->tpl_show(_include('voip_users_conf', 'Voip'), \%info, { OUTPUT2RETURN => 1, CONFIG_TPL => 1 });
   }
 
