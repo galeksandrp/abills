@@ -1794,6 +1794,7 @@ sub dv_online {
       . $html->button($html->b($nas_row->{nas_name}), "index=" . get_function_index('form_nas') . "&NAS_ID=$nas_row->{nas_id}")
       . ":$nas_row->{nas_ip}:$_TOTAL: $total ("
       . $html->button("Zap $_SESSIONS", "index=$index&zapall=1&NAS_ID=$nas_row->{nas_id}", { MESSAGE => "Do you realy want zap all sessions on NAS '$nas_row->{nas_id}' ?" }) . ') '
+      . $html->button("$_ERROR", "index=".get_function_index('dv_error')."&NAS_ID=$nas_row->{nas_id}&search_form=1&search=1") . ' ' 
       . $html->button("", "#", { IMG => ':chart_16.png', IMG_ALT => "$_GRAPH $_NAS", NEW_WINDOW => ((-f '../graphics.cgi') ? "../graphics.cgi?NAS_ID=$nas_row->{nas_id}&DAILY=1&NAS_TYPE=$nas_row->{nas_type}" : "index.cgi?MODULE=grapher&qindex=-1"), NEW_WINDOW_SIZE => "670:340" }));
 
     foreach my $line (@$l) {

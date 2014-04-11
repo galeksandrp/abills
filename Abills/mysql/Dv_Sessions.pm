@@ -929,6 +929,7 @@ sub list {
     $EXT_TABLE .= "INNER JOIN users u ON (u.uid=l.uid)";
   }
 
+  $SORT = $self->{SEARCH_FIELDS_COUNT}+2 if ($SORT > $self->{SEARCH_FIELDS_COUNT}+2);
 
   $self->query2("SELECT $self->{SEARCH_FIELDS} l.acct_session_id, l.uid
     FROM dv_log l
