@@ -465,10 +465,10 @@ sub port_list() {
       ['MAC',            'STR', 'dhcp.mac',                         1 ],
       ['IP',             'IP',  'dhcp.ip',    'INET_NTOA(dhcp.ip) AS ip' ],
       ['NETMASK',        'IP',  'dhcp.netmask', 'INET_NTOA(dhcp.netmask) AS netmask' ],
+      ['TP_ID',          'INT', 'dv.tp_id',                         1 ],
       ['UID',            'INT', 'u.uid',                            1 ],
       ['GID',            'INT', 'u.gid',                            1 ],
-      ['NAS_ID',         'INT', 'p.nas_id',                         1 ],
-      ['TP_ID',          'INT', 'dv.tp_id',                         1 ]
+      ['NAS_ID',         'INT', 'p.nas_id',                         ]
     ],
     { WHERE       => 1,
     	WHERE_RULES => \@WHERE_RULES,
