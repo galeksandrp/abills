@@ -820,7 +820,6 @@ sub menu () {
   my @last_array = ();
 
   my $menu_text = "
- <div class='menu_top'></div>
  <div class='menu_main'>
  <table border='0' width='100%' cellspacing='2'>\n";
 
@@ -884,8 +883,7 @@ sub menu () {
     goto label;
   }
 
-  $menu_text .= "</table>\n</div>
- <div class='menu_bot'></div>\n";
+  $menu_text .= "</table>\n</div>";
 
   return ($menu_navigator, $menu_text);
 }

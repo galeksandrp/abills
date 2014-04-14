@@ -466,9 +466,10 @@ sub port_list() {
       ['IP',             'IP',  'dhcp.ip',    'INET_NTOA(dhcp.ip) AS ip' ],
       ['NETMASK',        'IP',  'dhcp.netmask', 'INET_NTOA(dhcp.netmask) AS netmask' ],
       ['TP_ID',          'INT', 'dv.tp_id',                         1 ],
+      ['TP_NAME',        'STR', 'tp.name',               'tp.tp_name' ],
       ['UID',            'INT', 'u.uid',                            1 ],
       ['GID',            'INT', 'u.gid',                            1 ],
-      ['NAS_ID',         'INT', 'p.nas_id',                         ]
+      ['NAS_ID',         'INT', 'p.nas_id',                           ]
     ],
     { WHERE       => 1,
     	WHERE_RULES => \@WHERE_RULES,
@@ -483,12 +484,13 @@ sub port_list() {
    	LEFT JOIN users_pi pi ON (pi.uid=u.uid)". $EXT_TABLE;
   }
 
-  if ($self->{SEARCH_FIELDS} =~ /dhcp|dv\./) {
+  if ($self->{SEARCH_FIELDS} =~ /dhcp|dv\.|tp\./) {
     $EXT_TABLE = "LEFT JOIN dhcphosts_hosts dhcp ON (dhcp.nas=p.nas_id AND dhcp.ports=p.port)".$EXT_TABLE;
   }
 
-  if ($self->{SEARCH_FIELDS} =~ /dv\./) {
-    $EXT_TABLE .= "LEFT JOIN dv_main dv ON (dv.uid=u.uid)";
+  if ($self->{SEARCH_FIELDS} =~ /dv\.|tp\./) {
+    $EXT_TABLE .= "LEFT JOIN dv_main dv ON (dv.uid=u.uid)
+    LEFT JOIN tariff_plans tp ON (dv.tp_id=tp.id AND tp.modules='Dv') ";
   }
 
 

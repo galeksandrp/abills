@@ -648,7 +648,7 @@ sub equipment_ports {
 
     my $list  = $Equipment->port_list({
     	                                 NAS_ID       => $FORM{NAS_ID},
-    	                                 TP_ID        => '_SHOW',
+    	                                 TP_NAME      => '_SHOW',
      	                                 %LIST_PARAMS, 
      	                                 PAGE_ROWS    => 100,
     	                                 COLS_NAME    => 1 
@@ -677,15 +677,15 @@ sub equipment_ports {
       my $change = $html->button($_INFO, "index=$index&PORT=$port&chg=$ports_db_info{$port}->{id}&NAS_ID=$FORM{NAS_ID}", { CLASS => 'show' });
 
       $table->addrow($port, 
-      $ports_db_info{$port}->{status}, 
+      ($ports_db_info{$port}->{status}) ? $html->color_mark($ports_state[$ports_db_info{$port}->{status}], $ports_state_color[$ports_db_info{$port}->{status}]) : '', 
       ($ports_link_status->{$port}) ? $html->color_mark($ports_state[$ports_link_status->{$port}], $ports_state_color[$ports_link_status->{$port}]) : '', 
-      $ports_db_info{$port}->{uplink}, 
+      ($ports_db_info{$port}->{uplink})? $ports_db_info{$port}->{uplink} : '', 
       $html->button($ports_dhcp_info{$port}->{login}, "index=11&UID=$ports_dhcp_info{$port}->{uid}"),
       $ports_dhcp_info{$port}->{mac}, 
       $ports_dhcp_info{$port}->{ip}, 
       $ports_dhcp_info{$port}->{address_full},
       $ports_dhcp_info{$port}->{deposit},
-      $ports_db_info{$port}->{tp_id},
+      $ports_db_info{$port}->{tp_name},
       $ports_db_info{$port}->{comments},
       $change, 
       $delete
