@@ -468,6 +468,7 @@ sub port_list() {
       ['UID',            'INT', 'u.uid',                            1 ],
       ['GID',            'INT', 'u.gid',                            1 ],
       ['NAS_ID',         'INT', 'p.nas_id',                         1 ],
+      ['TP_ID',          'INT', 'dv.tp_id',                         1 ]
     ],
     { WHERE       => 1,
     	WHERE_RULES => \@WHERE_RULES,
@@ -477,17 +478,24 @@ sub port_list() {
 
   my $EXT_TABLE = $self->{EXT_TABLES};
 
-  if ($self->{SEARCH_FIELDS} =~ /pi\.|u\./) {
+  if ($self->{SEARCH_FIELDS} =~ /pi\.|u\.|dv\./) {
    	$EXT_TABLE = "LEFT JOIN users u ON (u.uid=dhcp.uid)
    	LEFT JOIN users_pi pi ON (pi.uid=u.uid)". $EXT_TABLE;
   }
 
-
-  if ($self->{SEARCH_FIELDS} =~ /dhcp/) {
-    $EXT_TABLE = "LEFT JOIN dhcphosts_hosts dhcp ON (dhcp.nas=p.nas_id AND dhcp.ports=p.port)".$EXT_TABLE
+  if ($self->{SEARCH_FIELDS} =~ /dhcp|dv\./) {
+    $EXT_TABLE = "LEFT JOIN dhcphosts_hosts dhcp ON (dhcp.nas=p.nas_id AND dhcp.ports=p.port)".$EXT_TABLE;
   }
 
-  $self->query2("SELECT p.port, p.status, p.uplink, p.comments, p.nas_id, p.id
+  if ($self->{SEARCH_FIELDS} =~ /dv\./) {
+    $EXT_TABLE .= "LEFT JOIN dv_main dv ON (dv.uid=u.uid)";
+  }
+
+
+  $self->query2("SELECT p.port, p.status, p.uplink, 
+   p.comments, 
+   $self->{SEARCH_FIELDS}
+   p.nas_id, p.id
     FROM equipment_ports p
     $EXT_TABLE
     $WHERE

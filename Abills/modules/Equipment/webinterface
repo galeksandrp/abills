@@ -631,6 +631,7 @@ sub equipment_ports {
     	                                  IP           => '_SHOW',
     	                                  ADDRESS_FULL => '_SHOW',
     	                                  UID          => '_SHOW',
+    	                                  DEPOSIT      => '_SHOW',
     	                                  NAS_ID       => $FORM{NAS_ID},
      	                                  %LIST_PARAMS, 
      	                                  PAGE_ROWS    => 100,
@@ -647,6 +648,7 @@ sub equipment_ports {
 
     my $list  = $Equipment->port_list({
     	                                 NAS_ID       => $FORM{NAS_ID},
+    	                                 TP_ID        => '_SHOW',
      	                                 %LIST_PARAMS, 
      	                                 PAGE_ROWS    => 100,
     	                                 COLS_NAME    => 1 
@@ -657,13 +659,12 @@ sub equipment_ports {
     	$ports_db_info{$line->{port}}=$line
     }
 
-
     my $table = $html->table(
       {
         width      => '100%',
         caption    => "$_EQUIPMENT",
         border     => 1,
-        title      => [ $_PORT, "$_STATUS", 'UP', "UPLINK", "$_USER", "MAC", "IP", "$_ADDRESS", "$_DESCRIBE", '-', '-' ],
+        title      => [ $_PORT, "$_STATUS", 'UP', "UPLINK", "$_USER", "MAC", "IP", "$_ADDRESS", "$_DEPOSIT", "$_TARIF_PLAN", "$_DESCRIBE", '-', '-' ],
         cols_align => [ 'left', 'left', 'left', 'left', 'center:noprint', 'center:noprint' ],
         qs         => $pages_qs,
         pages      => $Equipment->{TOTAL},
@@ -683,6 +684,8 @@ sub equipment_ports {
       $ports_dhcp_info{$port}->{mac}, 
       $ports_dhcp_info{$port}->{ip}, 
       $ports_dhcp_info{$port}->{address_full},
+      $ports_dhcp_info{$port}->{deposit},
+      $ports_db_info{$port}->{tp_id},
       $ports_db_info{$port}->{comments},
       $change, 
       $delete

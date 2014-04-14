@@ -3182,7 +3182,10 @@ sub paysys_copayco {
   my $payment_system    = 'CoPayCo';
   my $payment_system_id = 92;
   my $order_id          = $FORM{orderid};
-
+  $FORM{DATETIME}       = "$DATE $TIME";
+  $FORM{CURRENCY}       = 'UAH';
+  $FORM{RANDOM}         = '428';
+  
   require "modules/Paysys/Copayco.pm";
 
   if ($FORM{FALSE}) {
@@ -3227,7 +3230,7 @@ sub paysys_copayco {
     $Paysys->add(
       {
         SYSTEM_ID      => $payment_system_id,
-        DATETIME       => "$DATE $TIME",
+        DATETIME       => "$FORM{DATETIME}",
         SUM            => $FORM{SUM},
         UID            => $user->{UID},
         IP             => "$ENV{'REMOTE_ADDR'}",
@@ -3242,10 +3245,11 @@ sub paysys_copayco {
       $html->message('err', "$_ERROR", "$_ERROR Paysys ID: '$FORM{OPERATION_ID}'");
       return 0;
     }
-
   }
 
-  $html->tpl_show(_include('paysys_copayco_add', 'Paysys'), \%info);
+  $FORM{SIGN} = copayco_sign(\%FORM);
+
+  $html->tpl_show(_include('paysys_copayco_add', 'Paysys'), { %FORM, %info });
 }
 
 

@@ -4105,16 +4105,21 @@ sub cisco_isg_cmd {
   $r->clear_attributes();
   $r->add_attributes({ Name => 'User-Name',          Value => "$attr->{USER_NAME}" });
   $r->add_attributes({ Name => 'Cisco-Account-Info', Value => "S$user_ip" });
+  $r->add_attributes({ Name => 'Cisco-AVPair',       Value => "subscriber:command=$command" });
+
+  # Deactivate cur service
+  if ($attr->{CURE_SERVICE}) {
+    $r->add_attributes({ Name => 'Cisco-AVPair', Value => "subscriber:service-name=$attr->{CURE_SERVICE}" });
+  }
+
+  $r->send_packet(43) and $type = $r->recv_packet;
+
+  if (!defined $type) {
+    $html->message('err', $_ERROR, "No responce from CoA server '$Nas->{NAS_MNG_IP_PORT}' $! / " . $r->get_error(), { ID => 106 });
+    return 0;
+  }
 
   if ($command eq 'account-status-query') {
-    $r->add_attributes({ Name => 'Cisco-AVPair', Value => "subscriber:command=account-status-query" });
-    $r->send_packet(43) and $type = $r->recv_packet;
-
-    if (!defined $type) {
-      $html->message('err', $_ERROR, "No responce from  CoA server '$Nas->{NAS_MNG_IP_PORT}' $! / " . $r->get_error(), { ID => 106 });
-      return 0;
-    }
-
     for my $a ($r->get_attributes) {
       if ($a->{'Value'} =~ /\$MA(\S+)/) {
         $Dv->{ISG_CID_CUR} = $1;
@@ -4176,27 +4181,8 @@ sub cisco_isg_cmd {
     }
   }
   elsif ($command eq 'deactivate-service') {
-
-    # Deactivate cur service
-    $r->add_attributes({ Name => 'Cisco-AVPair', Value => "subscriber:subscriber:command=deactivate-service" });
-    $r->add_attributes({ Name => 'Cisco-AVPair', Value => "subscriber:service-name=$attr->{CURE_SERVICE}" });
-    $r->send_packet(43) and $type = $r->recv_packet;
-
-    if (!defined $type) {
-      $html->message('err', $_ERROR, "No responce from  CoA server '$Nas->{NAS_MNG_IP_PORT}' $! / " . $r->get_error(), { ID => 106 });
-      return 0;
-    }
   }
   elsif ($command eq 'activate-service') {
-    $r->add_attributes({ Name => 'Cisco-AVPair', Value => "subscriber:command=activate-service" });
-    $r->add_attributes({ Name => 'Cisco-AVPair', Value => "subscriber:service-name=$attr->{SERVICE_NAME}" });
-    $r->send_packet(43) and $type = $r->recv_packet;
-
-    if (!defined $type) {
-      $html->message('err', $_ERROR, "No responce from  CoA server '$Nas->{NAS_MNG_IP_PORT}' $! / " . $r->get_error(), { ID => 106 });
-      return 0;
-    }
-
     for my $a ($r->get_attributes) {
 
       #MAC as ID
@@ -4238,16 +4224,7 @@ sub cisco_isg_cmd {
     }
   }
   elsif ($command eq 'account-logon') {
-    $r->add_attributes({ Name => 'Cisco-AVPair', Value => "subscriber:command=account-logon" });
-    $r->send_packet(43) and $type = $r->recv_packet;
-
-    if (!defined $type) {
-      $html->message('err', $_ERROR, "No responce from  CoA server '$Nas->{NAS_MNG_IP_PORT}' $! / " . $r->get_error(), { ID => 106 });
-      return 0;
-    }
-
     for my $a ($r->get_attributes) {
-
       #MAC as ID
       if ($val =~ /\$MA(\S+)/) {
         $Dv->{ISG_CID_CUR} = $1;
@@ -4288,14 +4265,6 @@ sub cisco_isg_cmd {
     }
   }
   elsif ($command eq 'account-logoff') {
-    $r->add_attributes({ Name => 'Cisco-AVPair', Value => "subscriber:command=account-logon" });
-    $r->send_packet(43) and $type = $r->recv_packet;
-
-    if (!defined $type) {
-      $html->message('err', $_ERROR, "No responce from  CoA server '$Nas->{NAS_MNG_IP_PORT}' $! / " . $r->get_error(), { ID => 106 });
-      return 0;
-    }
-
     for my $a ($r->get_attributes) {
 
       #MAC as ID
