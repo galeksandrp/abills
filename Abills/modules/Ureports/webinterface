@@ -1226,7 +1226,7 @@ sub ureports_daily_resets {
   my ($attr) = @_;
 
   my $debug = $attr->{DEBUG} || 0;
-  my $debug_output = 'Daily reports reset';
+  my $debug_output = '';
 
   $debug_output = "Daily reports reset\n" if ($debug > 1);
 
@@ -1238,7 +1238,7 @@ sub ureports_daily_resets {
   my $list = $Ureports->tp_user_reports_list(
     {
       RESET     => 1,
-      #REPORT_ID => 1,
+      REPORT_ID => "1;13",
       DATE      => '>0000-00-00',
       %LIST_PARAMS,
       COLS_NAME => 1
