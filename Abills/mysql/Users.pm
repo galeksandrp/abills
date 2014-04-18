@@ -421,7 +421,8 @@ sub pi {
     	delete $self->{errno};
     }
   }
-  
+
+  $self->{ADDRESS_FULL}="$self->{ADDRESS_STREET}, $self->{ADDRESS_BUILD}/$self->{ADDRESS_FLAT}";  
 
   $self->{TOTAL}=1;
   return $self;

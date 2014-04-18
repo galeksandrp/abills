@@ -784,10 +784,10 @@ sub eript_202 {
 
     my $tariffs_fields = '';     #"1~$tp_id~5~$tarif_1~$tarif_2~0~0~0";
 
-    $message .= "$num^$uid^$fio^$address^$payment_period^$credit^$tariffs_fields^$payment_date^$comments^$ext_info^^^\r\n";
+    $message .= "$num^$uid^$fio^$address^$payment_period^$credit^$tariffs_fields^$payment_date^$comments^$ext_info^^^^^\r\n";
   }
 
-  $message = "$msg_version^$msg_provider_id^$msg_num^$msg_date^$record_total_count^$msg_provider_num^$msg_provider_bank_id^$msg_provider_bank_account^$msg_provider_service_id^$msg_valuta\r\n" . $message;
+  $message = "$msg_version^$msg_provider_id^$msg_num^$msg_date^$record_total_count^$msg_provider_num^$msg_provider_bank_id^$msg_provider_bank_account^$msg_provider_service_id^$msg_valuta^^\r\n" . $message;
 
   if ($debug > 4) {
     print $message;

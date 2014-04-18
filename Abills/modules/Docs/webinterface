@@ -43,7 +43,7 @@ sub docs_contract {
     }
   
     my $user_main_info = $users->info($FORM{UID}, { SHOW_PASSWORD => 1 });
-    $Docs = $users->pi({ UID => $FORM{UID} });
+    $users->pi({ UID => $FORM{UID} });
 
     my ($y, $m, $d) = split(/-/, (($users->{CONTRACT_DATE}) ? $users->{CONTRACT_DATE} : $DATE), 3);
     $users->{CONTRACT_DATE_LIT} = "$d " . $MONTHES_LIT[ int($m) - 1 ] . " $y $_YEAR_SHORT";
@@ -71,12 +71,13 @@ sub docs_contract {
         }
       }
     }
+
     return docs_print($contract_tpl, { %$admin, %$users, %$attr });
   }
   else {
     my ($y, $m, $d) = split(/-/, (($attr->{CONTRACT_DATE}) ? $attr->{CONTRACT_DATE} : $DATE), 3);
     $Docs->{CONTRACT_DATE_LIT} = "$d " . $MONTHES_LIT[ int($m) - 1 ] . " $y $_YEAR_SHORT";
-    return docs_print('contract_company', { %$admin, %$Docs, %$attr });
+    return docs_print('contract_company', { %$admin, %$users, %$Docs, %$attr });
   }
 }
 

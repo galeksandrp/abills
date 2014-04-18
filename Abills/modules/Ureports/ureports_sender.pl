@@ -397,7 +397,7 @@ sub ureports_periodic_reports {
           }
         }
         #All service expired throught
-        elsif ($user->{REPORT_ID} == 13) {
+        elsif ($user->{REPORT_ID} == 13 && ! $user->{DV_STATUS}) {
           if ($total_daily_fee > 0) {
             $debug_output .= "(Day fee: $total_daily_fee / $user->{EXPIRE_DAYS} -> $user->{VALUE} \n" if ($debug > 4);
 

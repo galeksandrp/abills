@@ -337,7 +337,7 @@ sub form_info {
   $admin->{SESSION_IP} = $ENV{REMOTE_ADDR};
   my $Payments = Finance->payments($db, $admin, \%conf);
 
-  if ($FORM{PRINT_CONTRACT}) {
+  if (defined($FORM{PRINT_CONTRACT})) {
     load_module('Docs', $html);
     docs_contract();
     return 0;
