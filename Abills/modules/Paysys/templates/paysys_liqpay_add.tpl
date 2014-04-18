@@ -1,7 +1,7 @@
 <form action='https://www.liqpay.com/api/pay' method='POST' accept-charset='utf-8'>
 
   %BODY%
-<!--  <input type='hidden' name='signature' value='%SIGN%' /> -->
+  <input type='hidden' name='signature' value='%SIGN%' />
   <input type='hidden' name='language' value='ru' />
 
 
