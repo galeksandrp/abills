@@ -1,4 +1,4 @@
-p#ackage Abills::CONSOLE;
+package Abills::CONSOLE;
 
 #XML Functions
 

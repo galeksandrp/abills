@@ -1031,7 +1031,10 @@ sub dhcphosts_user {
   );
 
   $Dhcphosts->{DISABLE} = ' checked' if ($Dhcphosts->{DISABLE});
-  if ($Dhcphosts->{IPN_ACTIVATE}) {
+  if (! in_array('Ipn', \@MODULES)) {
+  	$Dhcphosts->{IPN_ACTIVATE_BUTTON} = "Ipn module not install";
+  }
+  elsif ($Dhcphosts->{IPN_ACTIVATE}) {
     $Dhcphosts->{IPN_ACTIVATE} = ' checked';
     if ($Dhcphosts->{IP} ne '0.0.0.0') {
       use Dv_Sessions;

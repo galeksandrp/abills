@@ -4359,7 +4359,7 @@ sub form_nas_add {
     'lepppd'     => 'Linux PPPD IPv4 zone counters',
     'pppd'       => 'pppd + RADIUS plugin (Linux)',
     'pppd_coa'   => 'pppd + RADIUS plugin + radcoad (Linux)',
-    'accel_ppp' => 'Linux accel-ppp',
+    'accel_ppp'  => 'Linux accel-ppp',
     'accel_ipoe' => 'Linux accel-ipoe',
     'gnugk'      => 'GNU GateKeeper',
     'cid_auth'   => 'Auth clients by CID',

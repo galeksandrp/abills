@@ -736,7 +736,7 @@ sub dv_auth {
 ###########################################################
   # pppd + RADIUS plugin (Linux) http://samba.org/ppp/
   # lepppd - PPPD IPv4 zone counters
-  elsif ($NAS->{NAS_TYPE} eq 'accel_pptp'
+  elsif ($NAS->{NAS_TYPE} eq 'accel_ppp'
     or ($NAS->{NAS_TYPE} eq 'lepppd')
     or ($NAS->{NAS_TYPE} eq 'pppd'))
   {
