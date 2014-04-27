@@ -39,7 +39,7 @@
 #
 #   abills_squid_redirect="" Redirect traffic to squid
 #
-#   abills_neg_deposit="" Enable neg deposit redirect
+#   abills_neg_deposit="" Enable neg deposit redirect for VPN connection
 #   
 #   abills_neg_deposit_allow="" Neg deposit allow sites
 #
@@ -276,13 +276,16 @@ abills_ipn() {
   if [ x${abills_ipn_nas_id} = x ]; then
     return 0;
   fi;
+
+  FWD_IP="127.0.0.1"
+
   if [ w${ACTION} = wstart ]; then
   	if [ x${abills_ipn_if} != x ]; then
-    		IFACE=" via ${abills_ipn_if}"
+   	  IFACE=" via ${abills_ipn_if}"
   	fi;
 
   	#Redirect unauth ips to portal
-  	${IPFW} add 64000 fwd 127.0.0.1,80 tcp from any to any dst-port 80 ${IFACE} in
+  	${IPFW} add 64000 fwd ${FWD_IP},80 tcp from any to any dst-port 80 ${IFACE} in
 
   	# Разрешить ping к серверу доступа
   	${IPFW} add 64100 allow icmp from any to me  ${IFACE}

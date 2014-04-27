@@ -421,8 +421,8 @@ sub ureports_periodic_reports {
         }
         #NOtify before abon
         elsif ($user->{REPORT_ID} == 14) {
-          if ($user->{VALUE} == $user->{TP_EXPIRE}) {
-            if ($expire_days < $user->{VALUE}) {
+          #if ($user->{VALUE} == $user->{TP_EXPIRE}) {
+            if ($user->{EXPIRE_DAYS} < $user->{VALUE}) {
               %PARAMS = (
                 DESCRIBE => "$_REPORTS",
                 MESSAGE  => "",
@@ -432,7 +432,7 @@ sub ureports_periodic_reports {
             else {
               next;
             }
-          }
+          #}
         }
         #15 Dv change status
         elsif ($user->{REPORT_ID} == 15) {

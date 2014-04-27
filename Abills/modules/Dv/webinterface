@@ -4342,7 +4342,7 @@ sub dv_turbo_mode {
 
   $LIST_PARAMS{ACTIVE} = 1 if (!$attr->{REPORT});
 
-  my $list = $Turbo->list({%LIST_PARAMS});
+  my $list = $Turbo->list({%LIST_PARAMS, COLS_NAME => 1 });
 
   if ($Turbo->{TOTAL} < 1) {
     $html->message('info', $_INFO, "$_NO_RECORD");
@@ -4375,10 +4375,17 @@ sub dv_turbo_mode {
 
   foreach my $line (@$list) {
     if ($permissions{3}{1}) {
-      $delete = $html->button($_DEL, "index=" . $index . "$pages_qs&del=$line->[8]", { MESSAGE => "$_DEL $_SESSION $line->[8] ", CLASS => 'del' });
+      $delete = $html->button($_DEL, "index=" . $index . "$pages_qs&del=$line->{id}", { MESSAGE => "$_DEL $_SESSION $line->{id} ", CLASS => 'del' });
     }
 
-    $table->addrow($html->button("$line->[0]", "index=11&UID=$line->[7]"), $line->[1], $line->[2], $line->[3], $line->[4], $line->[5], $delete);
+    $table->addrow($html->button("$line->{login}", "index=11&UID=$line->{uid}"), 
+       $line->{mode_id}, 
+       $line->{last_time}, 
+       $line->{start}, 
+       $line->{time}, 
+       $line->{speed}, 
+       $delete
+    );
   }
 
   print $table->show();
@@ -4742,6 +4749,11 @@ sub dv_user_info {
 
         if ($conf{DV_TURBO_CMD}) {
           $conf{DV_TURBO_CMD} = tpl_parse($conf{DV_TURBO_CMD}, { %$user, IP => $ENV{REMOTE_ADDR} });
+          if ($conf{DV_TURBO_CMD_DEBUG}) {
+            print "Content-Type:text/html\n\n";
+            print "$conf{DV_TURBO_CMD}";
+          }
+
           my $result = `$conf{DV_TURBO_CMD}`;
         }
 
