@@ -45,10 +45,12 @@
 #
 #   abills_neg_deposit_speed="512" Set default speed for negative deposit
 #
+#   abills_neg_deposit_fwd_ip="127.0.0.1" Neg deposit forward ip
+#
 
 
 CLASSES_NUMS='2 3'
-VERSION=6.05
+VERSION=6.06
 
 
 name="abills_shaper"
@@ -72,6 +74,7 @@ rcvar=`set_rcvar`
 : ${abills_dhcp_shaper_nas_ids=""}
 : ${abills_neg_deposit="NO"}
 : ${abills_neg_deposit_speed=""}
+: ${abills_neg_deposit_fwd_ip="127.0.0.1"}
 : ${abills_portal_ip="me"}
 : ${abills_mikrotik_shaper=""}
 : ${abills_squid_redirect="NO"}
@@ -79,7 +82,6 @@ rcvar=`set_rcvar`
 : ${abills_ipn_nas_id=""}
 : ${abills_ipn_if=""}
 : ${abills_ipn_allow_ip=""}
-
 
 
 load_rc_config $name
@@ -98,7 +100,7 @@ if [ x${abills_mikrotik_shaper} != x ]; then
 fi;
 
 #Negative deposit forward (default: )
-FWD_WEB_SERVER_IP=127.0.0.1;
+FWD_WEB_SERVER_IP=${abills_neg_deposit_fwd_ip}
 #Your user portal IP (Default: me)
 USER_PORTAL_IP=${abills_portal_ip}
 
@@ -277,15 +279,13 @@ abills_ipn() {
     return 0;
   fi;
 
-  FWD_IP="127.0.0.1"
-
   if [ w${ACTION} = wstart ]; then
   	if [ x${abills_ipn_if} != x ]; then
    	  IFACE=" via ${abills_ipn_if}"
   	fi;
 
   	#Redirect unauth ips to portal
-  	${IPFW} add 64000 fwd ${FWD_IP},80 tcp from any to any dst-port 80 ${IFACE} in
+  	${IPFW} add 64000 fwd ${FWD_WEB_SERVER_IP},80 tcp from any to any dst-port 80 ${IFACE} in
 
   	# Разрешить ping к серверу доступа
   	${IPFW} add 64100 allow icmp from any to me  ${IFACE}
@@ -446,9 +446,6 @@ neg_deposit() {
   fi;
 
   echo "Negative Deposit Forward Section (for mpd) ${ACTION}"
-  if [ w${WEB_SERVER_IP} = w ]; then
-    FWD_WEB_SERVER_IP=127.0.0.1;
-  fi;
   
   if [ w${DNS_IP} = w ]; then
     DNS_IP=`cat /etc/resolv.conf | grep nameserver | awk '{ print $2 }' | head -1`

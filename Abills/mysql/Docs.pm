@@ -30,6 +30,7 @@ sub new {
   bless($self, $class);
   $CONF->{DOCS_ACCOUNT_EXPIRE_PERIOD} = 30 if (!$CONF->{DOCS_ACCOUNT_EXPIRE_PERIOD});
   $CONF->{DOCS_INVOICE_ORDERS}=12 if (! $CONF->{DOCS_INVOICE_ORDERS});
+  $CONF->{DOCS_ACCOUNT_EXPIRE_DAY}=0 if (! $CONF->{DOCS_ACCOUNT_EXPIRE_DAY});
   
   $self->{db}=$db;
   
@@ -818,7 +819,8 @@ sub invoice_info {
    if (d.phone<>0, d.phone, pi.phone) AS phone,
    pi.contract_id,
    pi.contract_date,
-   d.date + interval $CONF->{DOCS_ACCOUNT_EXPIRE_PERIOD} day AS expire_date,
+   if($CONF->{DOCS_ACCOUNT_EXPIRE_DAY}>0, date_format(d.date + interval 1 month, '%Y-%m-$CONF->{DOCS_ACCOUNT_EXPIRE_DAY}')
+       ,d.date + interval $CONF->{DOCS_ACCOUNT_EXPIRE_PERIOD} day) AS expire_date,
    u.company_id,
    c.name company_name,
    d.payment_id,
