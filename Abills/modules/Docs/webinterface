@@ -2144,13 +2144,17 @@ sub docs_invoice {
 
       
       $Doc{LAST_PAYMENT_SUM}='0.00';
+      $Doc{LAST_PAYMENT_DATE}='';
       $list = $Payments->list({ UID       => $FORM{UID},
-      	                DESC      => 'DESC',
-      	                PAGE_ROWS => 1,
-      	                COLS_NAME => 1 });
+                                SUM       => '_SHOW',
+                                DATETIME  => '_SHOW',
+      	                        DESC      => 'DESC',
+      	                        PAGE_ROWS => 1,
+      	                        COLS_NAME => 1 });
 
       if ($Payments->{TOTAL} > 0) {
       	$Doc{LAST_PAYMENT_SUM}=$list->[0]->{sum};
+      	$Doc{LAST_PAYMENT_DATE}=$list->[0]->{datetime};
       }
 
       $Doc{UNPAYMENT_TOTAL_SUM}=sprintf("%.2f", $unpayment_total_sum);
