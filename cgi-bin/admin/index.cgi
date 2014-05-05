@@ -6059,6 +6059,7 @@ sub form_payments () {
 
         #Make pre payments functions in all modules
         cross_modules_call('_pre_payment', { %$attr });
+        
         if (!$conf{PAYMENTS_NOT_CHECK_INVOICE_SUM} && ($FORM{INVOICE_SUM} && $FORM{INVOICE_SUM} != $FORM{PAYMENT_SUM})) {
           $html->message('err', "$_PAYMENTS: $ERR_WRONG_SUM", " $_INVOICE $_SUM: $Docs->{TOTAL_SUM}\n $_PAYMENTS $_SUM: $FORM{SUM}");
         }
@@ -6213,6 +6214,7 @@ sub form_payments () {
         
         $payments->{DOCS_INVOICE_RECEIPT_ELEMENT} = $html->tpl_show(_include('docs_create_invoice_receipt', 'Docs'), {%$payments}, { OUTPUT2RETURN => 1 });
       }
+
 
       if ($attr->{ACTION}) {
         $payments->{ACTION}     = $attr->{ACTION};

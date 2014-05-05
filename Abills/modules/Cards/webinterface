@@ -1017,12 +1017,13 @@ sub cards_dillers {
   my $list = $Cards->cards_dillers_list({%LIST_PARAMS});
   $table = $html->table(
     {
-      width   => '100%',
-      caption => "$_DILLERS",
-      title   => [ 'ID', "$_NAME", "$_ADDRESS", "E-Mail", "$_REGISTRATION", "$_PERCENTAGE", "$_STATE", "$_COUNT", "$_ENABLE", '-', '-', '-' ],
+      width      => '100%',
+      caption    => "$_DILLERS",
+      title      => [ 'ID', "$_NAME", "$_ADDRESS", "E-Mail", "$_REGISTRATION", "$_PERCENTAGE", "$_STATE", "$_COUNT", "$_ENABLE", '-', '-', '-' ],
       cols_align => [ 'right', 'left', 'left', 'left', 'right', 'right', 'right', 'right', 'center:noprint', 'center:noprint', 'center:noprint' ],
       qs         => $pages_qs,
-      pages      => $Cards->{TOTAL}
+      pages      => $Cards->{TOTAL},
+      ID         => 'DILLER_LIST'
     }
   );
 
@@ -1395,7 +1396,7 @@ sub cards_diller {
     }
     elsif ($FORM{del} && $FORM{is_js_confirmed}) {
       $Cards->cards_diller_del({ UID        => $FORM{UID}, 
-                                 DILELR_ID => $FORM{DILLER_ID} 
+                                 DILELR_ID  => $FORM{DILLER_ID} 
                                });
       if (!$Cards->{errno}) {
         $html->message('info', $_INFO, "$_DELETED");
@@ -1534,7 +1535,7 @@ sub cards_diller_add {
 
     my $list = $Cards->cards_list(
       {
-        SERIA     => '',
+        SERIAL    => '',
         NUMBER    => '_SHOW',
         PAGE_ROWS => 1,
         SORT      => 2,
@@ -1598,8 +1599,8 @@ sub cards_diller_add {
               COLS_NAME => 1
             }
           );
-          $FORM{BEGIN}       = $list->[0]{uid};
-          $FORM{LOGIN_BEGIN} = $list->[0]{uid};
+          $FORM{BEGIN}       = $list->[0]->{uid};
+          $FORM{LOGIN_BEGIN} = $list->[0]->{uid};
         }
 
         my $return = cards_users_add(
@@ -1682,11 +1683,12 @@ sub cards_diller_add {
 
           my $pin = mk_unique_value($FORM{CARDS_PAYMENT_PIN_LENGTH}, { SYMBOLS => '1234567890' });
           my $EXPIRE_DATE = '0000-00-00';
-
+          my $card_number =  sprintf("%.11d", $i);
+          
           $Cards->cards_add(
             {
-              SERIAL    => "",
-              NUMBER    => sprintf("%.11d", $i),
+              SERIAL    => $conf{CARDS_DILLER_SERIAL} || '',
+              NUMBER    => $card_number,
               PIN       => "$pin",
               SUM       => "$FORM{SUM}",
               STATUS    => 0,
@@ -1700,7 +1702,12 @@ sub cards_diller_add {
               return { ERROR => 'CARDS_GENERATION_ERROR' };
             }
 
-            $html->message('err', $_ERROR, "[$Cards->{errno}] $err_strs{$Cards->{errno}}");
+            if ($Cards->{errno} == 7) {
+            	$html->message('err', $_ERROR, "$_EXIST\n$_CARDS: $card_number");
+            }
+            else {
+              $html->message('err', $_ERROR, "[$Cards->{errno}] $err_strs{$Cards->{errno}} $_CARDS: $card_number");
+            }
             return 0;
           }
           else {
@@ -1723,11 +1730,11 @@ sub cards_diller_add {
             {
               LOGIN       => '-',
               PIN         => $pin,
-              NUMBER      => $i,
+              NUMBER      => $card_number,
               EXPIRE_DATE => ($EXPIRE_DATE ne '0000-00-00') ? $EXPIRE_DATE : '',
               DATE        => "$DATE $TIME",
-              SUM       => sprintf("%.2f", $FORM{SUM}),
-              DILLER_ID => $diller->{ID}
+              SUM         => sprintf("%.2f", $FORM{SUM}),
+              DILLER_ID   => $diller->{ID}
             };
           }
 

@@ -925,9 +925,11 @@ sub list {
     $EXT_TABLE .= "LEFT JOIN users_pi pi ON (pi.uid=l.uid)";
   }
 
-  if ($self->{SEARCH_FIELDS} =~ /\s?u\./ || $WHERE =~ / u\./) {
+  if ($self->{SEARCH_FIELDS} =~ /\s?u\.|company\.id/ || $WHERE =~ / u\./) {
     $EXT_TABLE .= "INNER JOIN users u ON (u.uid=l.uid)";
   }
+
+  $EXT_TABLE .= $self->{EXT_TABLES};
 
   $SORT = $self->{SEARCH_FIELDS_COUNT}+2 if ($SORT > $self->{SEARCH_FIELDS_COUNT}+2);
 

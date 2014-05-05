@@ -114,7 +114,7 @@ sub docs_receipt_add {
           );
 
           delete($FORM{create});
-          delete $FORM{print};
+          #delete $FORM{print};
           #docs_receipt_list() if ($index != 2 && !$attr->{SKIP_LIST});
 
           $FORM{print} = $Docs->{DOC_ID};
@@ -149,6 +149,7 @@ sub docs_receipt_add {
       }
     }
   }
+
 
   $Docs->{TOTAL_SUM} = 0.00;
   if ($Docs->{ORDERS}) {
@@ -2803,7 +2804,9 @@ sub docs_print {
   	$attr->{SUFIX} = '_'.$attr->{SUFIX};
   }
 
+
   my $html_old;
+  
   if ($FORM{pdf} && ! $html->{pdf_output}) {
     $html_old = $html;
     PDF::API2->import();
@@ -2819,25 +2822,34 @@ sub docs_print {
     $html = $pdf;
   }
 
-  my $content = $html->tpl_show(
-    _include(
-      "docs_$template",
-      'Docs',
-      {
-        pdf           => $FORM{pdf},
-        OUTPUT2RETURN => $attr->{OUTPUT2RETURN},
-        SUFIX         => $attr->{SUFIX}
+  my $content = '';
+
+  eval { 
+    $content = $html->tpl_show(
+      _include(
+        "docs_$template",
+        'Docs',
+        {
+          pdf           => $FORM{pdf},
+          OUTPUT2RETURN => $attr->{OUTPUT2RETURN},
+          SUFIX         => $attr->{SUFIX}
+        }
+      ),
+      { %$users, 
+       	%$attr, 
+      },
+      { TITLE   => "$template",
+        SUBJECT => "$template"	
       }
-    ),
-    { %$users, 
-    	%$attr, 
-    },
-    { TITLE   => "$template",
-      SUBJECT => "$template"	
-    }
-  );
+    );
+  };
+
+  if ($@) {
+  	$html->message('err', "Template $_ERROR", "$@");
+  }
 
   $html = $html_old if ($html_old);
+
   delete $FORM{pdf};
 
   if ($conf{DOCS_LANGUAGE} && $html->{language} ne $conf{DOCS_LANGUAGE}) {
@@ -2859,7 +2871,7 @@ sub docs_print {
   if ($attr->{SEND_EMAIL} && !$attr->{OUTPUT2RETURN}) {
     # Email not specified
     if (!$attr->{EMAIL} && !$users->{EMAIL}) {
-      $FORM{ERR_MESSAGE} = "Email $_NOT_EXIST";
+      $FORM{ERR_MESSAGE} = "E-mail $_NOT_EXIST";
       return 0;
     }
 
@@ -2881,7 +2893,6 @@ sub docs_print {
         TEST => $FORM{DEBUG} || undef
       }
     );
-
   }
   else {
     return $content;
@@ -3371,7 +3382,7 @@ sub docs_payments_maked {
 
 if ($FORM{APPLY_TO_INVOICE} || ($FORM{INVOICE_ID} && $FORM{INVOICE_ID} ne 'create')) {
   delete($FORM{INVOICE_ID}) if ($FORM{INVOICE_ID} == 0);
-	
+
 	my $list = $Docs->invoices_list({ UNPAIMENT => ($FORM{INVOICE_ID}) ? undef : 1,
   		                              ID        => $FORM{INVOICE_ID},
   		                              UID       => $FORM{UID},
@@ -3386,7 +3397,6 @@ if ($FORM{APPLY_TO_INVOICE} || ($FORM{INVOICE_ID} && $FORM{INVOICE_ID} ne 'creat
   my $payment_sum       = $FORM{SUM};
 
   if ($Docs->{TOTAL} > 0) {
-
   	foreach my $doc (@$list) {
   		#print "<!-- --> $doc->{id}  -> Total SUM: $doc->{total_sum} -> PAYMENTS_SUM $doc->{payment_sum} PAY: $FORM{SUM}<br>\n";
 

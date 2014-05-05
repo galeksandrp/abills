@@ -309,8 +309,10 @@ sub check_lines {
       if ($nas->{NAS_ALIVE} > 0
         && ($online->{last_alive} > $nas->{NAS_ALIVE} * $error_alive_count))
       {
-
-        if ($online->{last_alive} > ($nas->{NAS_ALIVE} * $error_alive_count * 2)) {
+        if ($nas->{NAS_TYPE} eq 'ipcad' && $online->{last_alive} >= 86400) {
+          session_hangup($nas, $online, '');
+        }
+        elsif ($online->{last_alive} > ($nas->{NAS_ALIVE} * $error_alive_count * 2) ) {
           my $ACCT_INFO = $Sessions->online_info(
             {
               NAS_ID          => $online->{nas_id},

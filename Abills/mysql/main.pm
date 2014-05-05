@@ -393,6 +393,7 @@ sub search_expr {
 
     push @{ $self->{SEARCH_FIELDS_ARR} }, ($attr->{EXT_FIELD} ne '1') ? split(', ', $attr->{EXT_FIELD}) : "$field";
   }
+
   my @result_arr = ();
   if (! defined($value)) {
     $value = '';
@@ -403,7 +404,7 @@ sub search_expr {
   if ($field) {
     $field =~ s/ (as) ([a-z0-9_]+)//gi;
   }
-  $value = '' if (! defined($value)); 
+
   my $delimiter = ($value =~ s/;/,/g) ? 'and' : 'or';
   
   if ($value && $delimiter eq 'and' && $value !~ /[<>=]+/) {
@@ -412,7 +413,15 @@ sub search_expr {
     return ["$field IN ($value)"];
   }
   
-  my @val_arr = split(/,/, $value) if (defined($value));
+  my @val_arr=();
+  if (defined($value)) {
+    if ($value eq '') {
+    	@val_arr = ('');
+    }
+    else {
+      @val_arr = split(/,/, $value)
+    }
+  }
 
   foreach my $v (@val_arr) {
     my $expr = '=';

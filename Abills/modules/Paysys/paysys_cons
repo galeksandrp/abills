@@ -67,7 +67,7 @@ require "Abills/templates.pl";
 #Arguments
 my $ARGV = parse_arguments(\@ARGV);
 
-if ($#ARGV < 0) {
+if ($#ARGV < 0 || defined($ARGV->{help}) || defined($ARGV->{'-h'}) ) {
   help();
   exit;
 }
