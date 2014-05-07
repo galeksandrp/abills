@@ -50,7 +50,7 @@
 
 
 CLASSES_NUMS='2 3'
-VERSION=6.06
+VERSION=6.07
 
 
 name="abills_shaper"

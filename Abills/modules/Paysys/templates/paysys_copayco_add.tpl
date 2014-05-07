@@ -1,11 +1,8 @@
-<!-- <form action='https://www.copayco.com/pay.php' name='pay_form' method=POST> -->
+<!-- <form action='https://www.test.copayco.com/pay.php' name='pay_form' method=POST> -->
 
+<form action='https://www.copayco.com/pay.php' name='pay_form' method=POST>
 
-<form action='https://www.test.copayco.com/pay.php' name='pay_form' method=POST>
-
-
-
-<input name='shop_id' value='$conf{PAYSYS_CO_PAY_CO_SHOP_ID}' type='hidden'>
+<input name='shop_id' value='$conf{PAYSYS_COPAYCO_SHOP_ID}' type='hidden'>
 <input name='ta_id' value='%OPERATION_ID%' type='hidden'>
 <input name='amount' value='%SUM%' type='hidden'>
 <input name='currency' value='%CURRENCY%' id='currency1' type='hidden'>

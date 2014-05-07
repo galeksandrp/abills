@@ -224,8 +224,6 @@ sub user_change {
     {
       CHANGE_PARAM => 'UID',
       TABLE        => 'iptv_main',
-#      FIELDS       => \%FIELDS,
-#      OLD_INFO     => $old_info,
       DATA         => $attr
     }
   );

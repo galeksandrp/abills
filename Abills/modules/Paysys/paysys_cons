@@ -718,7 +718,7 @@ $import_rules
 sub eript_202 {
   my $message     = '';
   my $msgs_header = '';
-  my $msg_num     = time();
+  my $msg_num     = substr(time(), 2, 10);
   my $msg_file    = $msg_num . '.202';
 
   my $msg_version = 5;

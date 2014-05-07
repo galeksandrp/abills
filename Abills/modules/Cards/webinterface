@@ -1535,7 +1535,7 @@ sub cards_diller_add {
 
     my $list = $Cards->cards_list(
       {
-        SERIAL    => '',
+        SERIAL    => $conf{CARDS_DILLER_SERIAL} || '',
         NUMBER    => '_SHOW',
         PAGE_ROWS => 1,
         SORT      => 2,

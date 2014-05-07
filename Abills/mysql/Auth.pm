@@ -1475,6 +1475,7 @@ sub get_ip {
   my ($nas_num, $nas_ip, $attr) = @_;
 
   if (! $self->{LOGINS}) {
+  	$self->{USER_NAME} = '' if (! $self->{USER_NAME});
     $self->query2("SELECT INET_NTOA(framed_ip_address) AS ip FROM dv_calls 
        WHERE user_name='$self->{USER_NAME}' 
          AND status=11 
