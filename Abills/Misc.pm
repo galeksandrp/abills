@@ -539,7 +539,9 @@ sub service_get_month_fee {
   }
   
   #Undef ?
-  #undef $user;
+  if ($attr->{SHEDULER}) {
+    undef $user;
+  }
 
   return \%total_sum;
 }

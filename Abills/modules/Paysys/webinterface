@@ -3247,6 +3247,8 @@ sub paysys_copayco {
     }
   }
 
+
+  $FORM{SUM} = int($FORM{SUM}*100); 
   $FORM{SIGN} = copayco_sign(\%FORM);
 
   $html->tpl_show(_include('paysys_copayco_add', 'Paysys'), { %FORM, %info });
