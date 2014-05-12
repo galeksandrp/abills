@@ -305,7 +305,7 @@ elsif (check_ip($ENV{REMOTE_ADDR}, '77.73.26.162,77.73.26.163,77.73.26.164,217.7
   require "Deltapay.pm";
   exit;
 }
-elsif ($FORM{txn_id} || $FORM{prv_txn} || defined($FORM{prv_id}) || ($FORM{command} && $FORM{account})) {
+elsif ($FORM{txn_id} || $FORM{osmp_txn_id} || $FORM{prv_txn} || defined($FORM{prv_id}) || ($FORM{command} && $FORM{account})) {
   osmp_payments();
 }
 elsif (
@@ -707,7 +707,7 @@ sub osmp_payments {
   my $payment_system    = $attr->{SYSTEM_SHORT_NAME} || 'OSMP';
   my $payment_system_id = $attr->{SYSTEM_ID}         || 44;
   my $CHECK_FIELD       = $conf{PAYSYS_OSMP_ACCOUNT_KEY} || $attr->{CHECK_FIELDS} || 'UID';
-  my $txn_id = 'osmp_txn_id';
+  my $txn_id            = 'osmp_txn_id';
 
   my %status_hash = (
     0 => 'Success',

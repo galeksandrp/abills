@@ -767,9 +767,10 @@ sub eript_202 {
 
   foreach my $line (@{$list}) {
     $num++;
+
     my $uid      = $line->{account_key};
-    my $fio      = $line->{fio};
-    my $address  = $line->{full_address};
+    my $fio      = convert($line->{fio}, { utf82win => 1 });
+    my $address  = convert($line->{full_address}, { utf82win => 1 });
     my $credit   = 0;            #$line->[3];
     my $comments = '';
     my $ext_info = '';
@@ -857,8 +858,6 @@ sub eript_202 {
 По результатам обработки сообщения 202 в региональном узле должен формироваться ответ.
 Имя файла ответа имеет вид NNNNNNNN.204, где NNNNNNNN – номер сообщения.
 Структура ответа приведена в таблице 1.4.
-
-
 
 =cut  
 

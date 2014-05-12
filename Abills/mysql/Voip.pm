@@ -130,6 +130,76 @@ sub defaults {
   return $self;
 }
 
+
+#**********************************************************
+# log_add()
+#**********************************************************
+sub log_add {
+  my $self = shift;
+  my ($attr) = @_;
+
+  $self->query_add('voip_ivr_log', { %$attr, 
+  	                                 DATETIME => 'now()'
+  	                                });
+
+  return $self;
+}
+
+
+#**********************************************************
+# log_change()
+#**********************************************************
+sub log_change {
+  my $self = shift;
+  my ($attr) = @_;
+
+  $self->changes(
+    $admin,
+    {
+      CHANGE_PARAM => 'ID',
+      TABLE        => 'voip_ivr_log',
+      DATA         => $attr
+    }
+  );
+
+  return $self;
+}
+
+#**********************************************************
+# list
+#**********************************************************
+sub log_list() {
+  my $self = shift;
+  my ($attr) = @_;
+
+  @WHERE_RULES = ();
+
+  $SORT      = ($attr->{SORT})      ? $attr->{SORT}      : 1;
+  $DESC      = ($attr->{DESC})      ? $attr->{DESC}      : '';
+  $PG        = ($attr->{PG})        ? $attr->{PG}        : 0;
+  $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
+
+  my $WHERE =  $self->search_former($attr, [
+      ['FREE_TIME',     'INT', 'voip.free_time',    1 ],
+      ['TIME_DIVISION', 'STR', 'voip.time_division',1 ],
+    ],
+    { WHERE => 1,
+    	WHERE_RULES => \@WHERE_RULES
+    }    
+    );
+
+  $self->query2("SELECT l.id, l.datetime, l.phone, l.comment, l.uid    
+    FROM voip_ivr_log l
+    LEFT JOIN users u ON (u.uid=l.uid)
+    $WHERE
+    ORDER BY $SORT $DESC;",
+    undef,
+    $attr
+  );
+
+  return $self->{list};
+}
+
 #**********************************************************
 # add()
 #**********************************************************

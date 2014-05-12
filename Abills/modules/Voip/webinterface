@@ -180,13 +180,13 @@ sub voip_chg_tp {
     $tariffs->{TARIF_PLAN_SEL} = $html->form_select(
       'TP_ID',
       {
-        SELECTED          => $user->{TP_ID},
-        SEL_MULTI_ARRAY   => $Voip->tp_list(),
-        MULTI_ARRAY_KEY   => 8,
-        MULTI_ARRAY_VALUE => '0,1',
-        NO_ID             => 1,
-        MAIN_MENU         => get_function_index('voip_tp'),
-        MAIN_MENU_AGRV    => "TP_ID=$Voip->{TP_ID}"
+        SELECTED       => $user->{TP_ID},
+        SEL_LIST       => $Voip->tp_list({ COLS_NAME => 1 }),
+        LIST_KEY       => 'tp_id',
+        LIST_VALUE     => 'id,name',
+        NO_ID          => 1,
+        MAIN_MENU      => get_function_index('voip_tp'),
+        MAIN_MENU_AGRV => "TP_ID=$Voip->{TP_ID}"
       }
     );
 
@@ -2832,9 +2832,9 @@ sub voip_gk_console {
       if ($FORM{command} =~ /\!|CurrentCalls/) {
         my $table = $html->table(
           {
-            width  => '100%',
-            border => 1,
-            title  => [ 'NUMBER', 'ACF', 'Caller_IP:Port', 'Caller_EPID', 'CRV', 'DestinationInfo', 'SrcInfo', 'IsAnswered', '-' ],
+            width      => '100%',
+            border     => 1,
+            title      => [ 'NUMBER', 'ACF', 'Caller_IP:Port', 'Caller_EPID', 'CRV', 'DestinationInfo', 'SrcInfo', 'IsAnswered', '-' ],
             cols_align => [ 'right', 'center', 'right', 'left', 'left', 'center' ],
             qs         => $pages_qs,
             caption    => 'Associated'
@@ -3241,7 +3241,7 @@ sub voip_provision {
 
   my $conf = $html->tpl_show(_include('voip_provision_dhcp_conf', 'Voip'), { HOSTS => $hosts }, { OUTPUT2RETURN => 1 });
 
-  if (open(FILE, ">/usr/abills/Abills/templates/provision_dhcp.conf")) {
+  if (open(FILE, ">$base_dir/Abills/templates/provision_dhcp.conf")) {
     print FILE "$conf\n";
     close(FILE);
   }
@@ -3480,6 +3480,52 @@ sub voip_get_month_fee {
   return \%total_sum;	
 	
 }
+
+#**********************************************************
+#
+#**********************************************************
+sub voip_ivr_log {
+  my ($attr)=@_;
+
+
+  $Voip->{debug}=1;
+  
+  if (! $FORM{sort}) {
+  	$LIST_PARAMS{SORT}=1;
+  	$LIST_PARAMS{DESC}='DESC';
+  }
+  
+  my ($table, $list) = result_former({
+     INPUT_DATA      => $Voip,
+     FUNCTION        => 'log_list',
+     BASE_FIELDS     => 5,
+     DEFAULT_FIELDS  => 'ID,DATETIME,PHONE,COMMENTS,UID',
+     FUNCTION_FIELDS => 'change,del',
+     EXT_TITLES      => {
+     	 phone    => $_PHONE,
+     	 comment  => $_COMMNETS,
+     	 datetime => "$_DATE $_TIME"
+     },
+     TABLE           => {
+       width      => '100%',
+       caption    => "IVR",
+       border     => 1,
+       qs         => $pages_qs,
+       header     => $status_bar,
+       ID         => 'VOIP_USERS_LIST',
+       SHOW_COLS  => \%SEARCH_TITLES,
+       ACTIVE_COLS=> \%ACTIVE_TITLES,
+       EXPORT     => 1,
+     },
+     MAKE_ROWS    => 1,
+     MODULE       => 'Voip',
+     TOTAL        => 1
+    });
+
+
+}
+
+
 
 1
 
