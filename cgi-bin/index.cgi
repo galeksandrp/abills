@@ -337,6 +337,16 @@ sub form_info {
   $admin->{SESSION_IP} = $ENV{REMOTE_ADDR};
   my $Payments = Finance->payments($db, $admin, \%conf);
 
+  my $tp_credit = 0;
+
+  if (in_array('Dv', \@MODULES) && $sum == 0) {
+    load_module('Dv', $html);
+    my $Dv = Dv->new($db, $admin, \%conf);
+    $Dv->info($user->{UID});
+    $tp_credit = $Dv->{TP_CREDIT};
+  }
+
+
   if (defined($FORM{PRINT_CONTRACT})) {
     load_module('Docs', $html);
     docs_contract();
@@ -349,10 +359,7 @@ sub form_info {
     my $credit_date = strftime "%Y-%m-%d", localtime(time + int($days) * 86400);
 
     if (in_array('Dv', \@MODULES) && $sum == 0) {
-      load_module('Dv', $html);
-      my $Dv = Dv->new($db, $admin, \%conf);
-      $Dv->info($user->{UID});
-      $sum = $Dv->{TP_CREDIT} if ($sum == 0 && $Dv->{TP_CREDIT} > 0);
+      $sum = $tp_credit if ($tp_credit > 0);
     }
 
     if ($month_changes) {
@@ -451,7 +458,15 @@ sub form_info {
   }
 
   if ($attr->{NEG_DEPOSIT}) {
-    form_neg_deposit($user);
+    my $deposit = ($user->{CREDIT} == 0)? $user->{DEPOSIT} + $tp_credit : $user->{DEPOSIT} + $user->{CREDIT};
+
+    if ($deposit < 0) {
+    	form_neg_deposit($user);
+    }
+    else {
+      $functions{$index}->();
+      return 0;
+    }
     #return 0;
   }
   else {
