@@ -804,15 +804,15 @@ sub dhcphosts_user {
 
   $FORM{add_form}=1;
 
-  if ($FORM{add}) {
-    if ($FORM{AUTO_IP} && !$FORM{NETWORK}) {
-      $html->message('err', $_ERROR, "$ERR_WRONG_DATA: Select network");
-      return 1 if ($attr->{REGISTRATION});
-    }
-    elsif (($FORM{IP} eq '0.0.0.0' || $FORM{IP} eq '') && $FORM{AUTO_IP} && $FORM{NETWORK}) {
-      $FORM{IP} = dhcphosts_get_static_ip($FORM{NETWORK});
-    }
+  if ($FORM{AUTO_IP} && !$FORM{NETWORK}) {
+    $html->message('err', $_ERROR, "$ERR_WRONG_DATA: Select network");
+    return 1 if ($attr->{REGISTRATION});
+  }
+  elsif (($FORM{IP} eq '0.0.0.0' || $FORM{IP} eq '') && $FORM{AUTO_IP} && $FORM{NETWORK}) {
+    $FORM{IP} = dhcphosts_get_static_ip($FORM{NETWORK});
+  }
 
+  if ($FORM{add}) {
     if ($FORM{IP} eq '0.0.0.0' && !$FORM{OPTION_82}) {
       $html->message('err', $_ERROR, "$ERR_WRONG_DATA: IP '0.0.0.0' ");
       return 1 if ($attr->{REGISTRATION});
@@ -884,10 +884,6 @@ sub dhcphosts_user {
     }
   }
   elsif ($FORM{change}) {
-    if ($FORM{IP} eq '0.0.0.0' && $FORM{AUTO_IP} && $FORM{NETWORK}) {
-      $FORM{IP} = dhcphosts_get_static_ip($FORM{NETWORK});
-    }
-
     if ($FORM{MAC} !~ /[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}/i) {
       $html->message('err', $_ERROR, "WRONG MAC ");
     }
@@ -1147,7 +1143,7 @@ sub dhcphosts_get_static_ip {
       {
         IP        => '_SHOW',
         PAGE_ROWS => 100000,
-        SKIP_GID  => 1,
+        GID       => '>=0',
         COLS_NAME => 1
       }
     );
