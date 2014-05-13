@@ -1,5 +1,39 @@
 =====0.56=====
 
+12.05.2014\\
+
+  * Voip IVR  добавлена возможность выставление кредита
+  * Voip IVR  запись заявки на технические работы
+  * Voip IVR  Оповещение о рекламных акциях
+  * Voip IVR  информация о всех услугах абонента
+  * ''Paysys'' Обновлён Eript к версии 0.5
+  * ''Paysys'' Обновлён Liqpay
+  * ''Paysys'' Обновлён CoPayCo
+  * ''Paysys'' Webmoney   добавлен максимальный   минимальный лимит пополнения 
+  * ''Docs'' Добавлена переменная счета DOCS_ACCOUNT_EXPIRE_DAY
+  * ''Dv'' Обновлена ротация логов детализации
+  * ''Dv'' Обновлён модуль Mx80  и Redback
+  * ''Voip'' Добавлена поддержка [[abills:docs:nas:eltex:ru:eltex_smg|Eltex SMG]]
+  * ''Msgs'' Добавлена возможность регистрации абонентов через заявки подключения
+  * Добавлена атворизация в личном кабинете по нескольким параметрам
+  * Обновлено Snmputils
+  * Улучшен визард настройки Mikrotik [[http://www.youtube.com/watch?v=M6YU9g9W9VU|Видео демонстрация]]
+
+MySQL:\\
+  ALTER TABLE `dv_log_intervals` CHANGE  `sent` `sent` bigint(14) unsigned NOT NULL default '0';
+  ALTER TABLE `dv_log_intervals` CHANGE  `recv` `recv` bigint(14) unsigned NOT NULL default '0';
+  ALTER TABLE `msgs_unreg_requests` ADD COLUMN `tp_id` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '0';
+  ALTER TABLE `equipment_models` ADD COLUMN  manage_web varchar(50) NOT NULL default '';
+  ALTER TABLE `equipment_models` ADD COLUMN  manage_ssh varchar(50) NOT NULL default '';
+  CREATE TABLE voip_ivr_log (
+    id int unsigned not null auto_increment primary key,
+    datetime datetime NOT NULL default '0000-00-00 00:00:00',
+    phone varchar(16) NOT NULL default '',
+    comment  varchar(20) NOT NULL default '',
+    uid int unsigned NOT NULL default 0,
+    KEY uid(uid)
+  ) COMMENT 'Voip ivr log'
+
 24.02.2014\\
   * ''Docs'' Новые переменнЫе шаблонов счетов
   * ''Equipment'' добавлен опрос оборудования и отчёты по портам 
@@ -9,8 +43,7 @@
 
 MySQL:\\
 
-  ALTER TABLE groups ADD COLUMN `disable_chg_tp` tinyint(1) unsigned not null default 0;
-
+  ALTER TABLE `groups` ADD COLUMN `disable_chg_tp` tinyint(1) unsigned not null default 0;
 
 12.01.2014\\
   * Введен новый тип записи в логе подключений GUEST_MODE

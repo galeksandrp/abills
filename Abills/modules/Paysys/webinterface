@@ -681,6 +681,10 @@ sub paysys_payment {
     $html->message('err', $_ERROR, "$_TARIF_PLAN_SUM $conf{PAYSYS_MIN_SUM}");
     goto PRE_LABEL;
   }
+  elsif ($conf{PAYSYS_MAX_SUM} && $FORM{SUM}>0 && $conf{PAYSYS_MAX_SUM} < $FORM{SUM}  ) {
+    $html->message('err', $_ERROR, "ERR_BIG_SUM: $conf{PAYSYS_MAX_SUM}");
+    goto PRE_LABEL;
+  }
   elsif ($FORM{PAYMENT_SYSTEM} == 41 || $FORM{PAYMENT_SYSTEM} == 85 || $FORM{LMI_PAYMENT_NO}) {
     paysys_webmoney();
   }
@@ -1930,7 +1934,7 @@ sub paysys_p24_get_payments {
       my $ID = $line->{'appcode'};
       my ($LOGIN, $BIND, $UID, $CONTRACT_ID) = split(/:/, $binding_hash{ $BINDING_IDS{ $line->{'appcode'} } });
       my $date = $line->{'trandate'};
-      my ($sum, $currency) = split(/ /, $line->{'amount'});
+      my ($sum, $currency) = split(/ /, $line->{'cardamount'});
 
       my $client = '';
       if ($line->{'cardamount'} < 0) {

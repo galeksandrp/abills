@@ -1563,7 +1563,8 @@ sub wm_payments {
         IP             => $FORM{IP},
         TRANSACTION_ID => "$FORM{LMI_PAYMENT_NO}",
         INFO           => "STATUS, $status\n$info",
-        PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}"
+        PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}",
+        STATUS         => 2
       }
     );
 
