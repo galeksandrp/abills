@@ -1816,7 +1816,8 @@ sub user_ext_menu {
 sub user_info {
   my ($UID) = @_;
 
-  my $user_info = $users->info($UID, {%FORM});
+  my $user_info = $users->info($UID, { %FORM,
+  	                                   DOMAIN_ID => ($admin->{DOMAIN_ID}) ? $admin->{DOMAIN_ID} : undef });
 
   if ($users->{TOTAL} == 0 && !$FORM{UID}) {
     return 0;
@@ -2457,8 +2458,6 @@ sub form_users {
       $FORM{UID}        = $user_info->{UID};
       user_pi({ %$attr, REGISTRATION => 1 });
 
-      #$index=get_function_index('form_payments');
-      #form_payments({ USER => $user_info });
       if ($FORM{COMPANY_ID}) {
         form_companie_admins($attr);
       }
@@ -3781,7 +3780,7 @@ sub form_admins {
   }
   elsif (in_array('Multidoms', \@MODULES)) {
     load_module('Multidoms', $html);
-    $admin_form->{DOMAIN_SEL} = multidoms_domains_sel({ SHOW_ID => 1 });
+    $admin_form->{DOMAIN_SEL} = multidoms_domains_sel({ SHOW_ID => 1, SKIP_GID => 1 });
   }
   else {
     $admin_form->{DOMAIN_SEL} = '';
@@ -3806,21 +3805,25 @@ sub form_admins {
     $admin_groups{ $line->{aid} } .= ", $line->{gid}:$line->{name}";
   }
 
-  $list = $admin->list({ %LIST_PARAMS, DOMAIN_ID => $admin->{DOMAIN_ID} });
+  $list = $admin->list({ %LIST_PARAMS, 
+  	                     DOMAIN_ID => $admin->{DOMAIN_ID},
+  	                     COLS_NAME => 1 
+  	                    });
+
   foreach my $line (@$list) {
     $table->addrow(
-      $line->[0], 
-      $line->[1], 
-      $line->[2], 
-      $line->[3],
-      $status[ $line->[4] ],
-      $line->[5] . $admin_groups{ $line->[0] },
-      $line->[6],
-      $html->button($_PERMISSION, "index=$index&subf=52&AID=$line->[0]", { CLASS => 'permissions' }),
-      $html->button($_LOG,        "index=$index&subf=51&AID=$line->[0]", { CLASS => 'history' }),
-      $html->button($_PASSWD,     "index=$index&subf=54&AID=$line->[0]", { CLASS => 'password' }),
-      $html->button($_INFO,       "index=$index&AID=$line->[0]",         { CLASS => 'change' }),
-      $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL ?", CLASS => 'del' })
+      $line->{aid}, 
+      $line->{login}, 
+      $line->{name}, 
+      $line->{raddate},
+      $status[ $line->{disable} ],
+      $line->{g_name} . $admin_groups{ $line->{aid} },
+      $line->{domain_name},
+      $html->button($_PERMISSION, "index=$index&subf=52&AID=$line->{aid}", { CLASS => 'permissions' }),
+      $html->button($_LOG,        "index=$index&subf=51&AID=$line->{aid}", { CLASS => 'history' }),
+      $html->button($_PASSWD,     "index=$index&subf=54&AID=$line->{aid}", { CLASS => 'password' }),
+      $html->button($_INFO,       "index=$index&AID=$line->{aid}",         { CLASS => 'change' }),
+      $html->button($_DEL, "index=$index&del=$line->{aid}", { MESSAGE => "$_DEL $line->{aid} $line->{login} ?", CLASS => 'del' })
     );
   }
   print $table->show();

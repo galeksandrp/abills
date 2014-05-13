@@ -746,6 +746,9 @@ sub list {
     }
 
     @WHERE_RULES = ("(". join(' or ', @us_query) .")");
+    if ($admin->{DOMAIN_ID} || $attr->{DOMAIN_ID}) {
+      push @WHERE_RULES, 'u.domain_id=\'' . ($admin->{DOMAIN_ID} || $attr->{DOMAIN_ID} || 0) . '\'';
+    }
   }
   else {
     push @WHERE_RULES, @{ $self->search_expr_users({ %$attr, 
