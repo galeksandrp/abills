@@ -159,7 +159,10 @@ sub add {
   if ($DATA{TP_ID} > 0 && !$DATA{STATUS}) {
     my $tariffs = Tariffs->new($self->{db}, $CONF, $admin);
 
-    $self->{TP_INFO} = $tariffs->info(0, { ID => $DATA{TP_ID}, MODULE => 'Dv' });
+    $self->{TP_INFO} = $tariffs->info(0, { ID     => $DATA{TP_ID}, 
+    	                                     MODULE => 'Dv',
+    	                                     DOMAIN_ID => $admin->{DOMAIN_ID} || undef
+    	                                    });
       #Take activation price
       if ($tariffs->{ACTIV_PRICE} > 0) {
         my $user = Users->new($self->{db}, $admin, $CONF);
@@ -245,10 +248,14 @@ sub change {
 
   if ($attr->{TP_ID} && $old_info->{TP_ID} != $attr->{TP_ID}) {
     my $tariffs = Tariffs->new($self->{db}, $CONF, $admin);
-    $tariffs->info(0, { ID => $old_info->{TP_ID}, MODULE => 'Dv' });
+    $tariffs->info(0, { ID        => $old_info->{TP_ID}, 
+    	                  MODULE    => 'Dv',
+    	                  DOMAIN_ID => $admin->{DOMAIN_ID} || undef });
 
     %{ $self->{TP_INFO_OLD} } = %{ $tariffs };
-    $self->{TP_INFO}     = $tariffs->info(0, { ID => $attr->{TP_ID}, MODULE => 'Dv' });
+    $self->{TP_INFO}     = $tariffs->info(0, { ID        => $attr->{TP_ID}, 
+    	                                         MODULE    => 'Dv',
+    	                                         DOMAIN_ID => $admin->{DOMAIN_ID} || undef });
 
     my $user = Users->new($self->{db}, $admin, $CONF);
 
@@ -311,7 +318,9 @@ sub change {
          || $old_info->{STATUS} == 4 
          || $old_info->{STATUS} == 5) && $attr->{STATUS} == 0) {
     my $tariffs = Tariffs->new($self->{db}, $CONF, $admin);
-    $self->{TP_INFO} = $tariffs->info(0, { ID => $old_info->{TP_ID}, MODULE => 'Dv' });
+    $self->{TP_INFO} = $tariffs->info(0, { ID        => $old_info->{TP_ID}, 
+    	                                     MODULE    => 'Dv',
+    	                                     DOMAIN_ID => $admin->{DOMAIN_ID} || undef });
   }
   elsif ($old_info->{STATUS} == 3 
         && $attr->{STATUS} == 0 
