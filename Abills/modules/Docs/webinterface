@@ -2067,10 +2067,10 @@ sub docs_invoice {
           {
             NUMBER => $i,
             NAME   => $line->[1],
-            COUNT  => $line->[3],
+            COUNT  => $line->[2],
             UNIT   => $line->[2],
             PRICE  => $line->[4],
-            SUM    => sprintf("%.2f", $line->[3] * $line->[4])
+            SUM    => sprintf("%.2f", $line->[2] * $line->[4])
           },
           { OUTPUT2RETURN => 1 }
         ) if (!$FORM{pdf});
