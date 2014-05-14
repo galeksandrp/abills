@@ -1936,15 +1936,15 @@ sub docs_invoice {
 
         foreach my $line ( @{ $list }) {
           $i++;
-          my $sum = sprintf("%.2f", $line->[3] * $line->[4]);
+          my $sum = sprintf("%.2f", $line->[2] * $line->[4]);
           if (!$FORM{pdf}) {
             $Docs->{ORDER} .= $html->tpl_show(
               _include('docs_invoice_order_row', 'Docs'),
               {
                 NUMBER => $i,
                 NAME   => $line->[1],
-                COUNT  => $line->[3],
-                UNIT   => $line->[2],
+                COUNT  => $line->[2] || 1,
+                UNIT   => $units[$line->[3]],
                 PRICE  => $line->[4],
                 SUM    => $sum
               },
@@ -2041,7 +2041,6 @@ sub docs_invoice {
       $Doc{VAT}                   = sprintf("%.2f", $conf{DOCS_VAT_INCLUDE});
     }
 
-    
     $Doc{CUSTOMER} = $self->{COMPANY_NAME} || $Doc{FIO} || '-' if (!$Doc{CUSTOMER});
     $Doc{DEPOSIT}  = sprintf("%.2f", $Doc{DEPOSIT});
     $Doc{DEBT}     = ($Doc{DEPOSIT} < 0)? $Doc{DEPOSIT}  : 0.00;
@@ -2067,10 +2066,10 @@ sub docs_invoice {
           {
             NUMBER => $i,
             NAME   => $line->[1],
-            COUNT  => $line->[2],
-            UNIT   => $line->[2],
+            COUNT  => $line->[2] || 1,
+            UNIT   => $units[$line->[3]],
             PRICE  => $line->[4],
-            SUM    => sprintf("%.2f", $line->[2] * $line->[4])
+            SUM    => sprintf("%.2f", ($line->[2] || 1) * $line->[4])
           },
           { OUTPUT2RETURN => 1 }
         ) if (!$FORM{pdf});
