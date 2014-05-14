@@ -2804,7 +2804,6 @@ sub docs_print {
   	$attr->{SUFIX} = '_'.$attr->{SUFIX};
   }
 
-
   my $html_old;
   
   if ($FORM{pdf} && ! $html->{pdf_output}) {
@@ -2824,7 +2823,9 @@ sub docs_print {
 
   my $content = '';
 
-  eval { 
+  print "Content-Type: text/html\n\n";
+
+  eval {
     $content = $html->tpl_show(
       _include(
         "docs_$template",

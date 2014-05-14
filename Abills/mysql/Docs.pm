@@ -1194,7 +1194,6 @@ sub acts_list {
   $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
   $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
 
-
   my $WHERE =  $self->search_former($attr, [
       ['UID',            'INT', 'd.uid'                               ],
       ['SUM',            'INT', 'd.sum'                               ],
@@ -1207,15 +1206,20 @@ sub acts_list {
       ['FROM_DATE|TO_DATE','DATE', "date_format(d.date, '%Y-%m-%d')"   ],
     ],
     { WHERE       => 1,
-    	WHERE_RULES => \@WHERE_RULES,
     	USERS_FIELDS=> 1
     }    
     );
 
-  $self->query2("SELECT d.act_id, d.date, c.name, d.sum, a.name, d.created, d.uid, d.company_id, d.id
-    FROM (docs_acts d)
-    LEFT JOIN companies c ON (d.company_id=c.id)
+  $self->query2("SELECT d.act_id, d.date, company.name AS company_name, 
+      d.sum, 
+      a.name AS admin_name, 
+      d.created, d.uid, d.company_id, d.id
+    FROM docs_acts d
+    LEFT JOIN companies company  ON (d.company_id=company.id)
+    LEFT JOIN users u ON (u.company_id=company.id)
     LEFT JOIN admins a ON (d.aid=a.aid)
+      LEFT JOIN bills b ON (u.bill_id = b.id)
+      LEFT JOIN bills cb ON (company.bill_id=cb.id)
     $WHERE
     GROUP BY d.act_id 
     ORDER BY $SORT $DESC
@@ -1229,8 +1233,11 @@ sub acts_list {
   my $list = $self->{list};
 
   $self->query2("SELECT count(DISTINCT d.act_id) AS total, sum(d.sum) AS sum
-    FROM (docs_acts d)
-    LEFT JOIN companies c ON (d.company_id=c.id)
+    FROM docs_acts d
+      LEFT JOIN companies company ON (d.company_id=company.id)
+      LEFT JOIN users u ON (u.company_id=company.id)
+      LEFT JOIN bills b ON (u.bill_id = b.id)
+      LEFT JOIN bills cb ON (company.bill_id=cb.id)
     $WHERE",
     undef, { INFO => 1 }
   );
