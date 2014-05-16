@@ -88,7 +88,7 @@ sub dv_auth {
   	my $zz = `echo "$NAS->{NAS_ID} / $RAD->{NAS_IP_ADDRESS} / $RAD->{USER_NAME}" >> /tmp/nas_error`;
   }
 
-  $self->query2("select  if (dv.logins=0, if(tp.logins is null, 0, tp.logins), dv.logins) AS logins,
+  $self->query2("SELECT  if (dv.logins=0, if(tp.logins is null, 0, tp.logins), dv.logins) AS logins,
   if(dv.filter_id != '', dv.filter_id, if(tp.filter_id is null, '', tp.filter_id)) AS filter,
   if(dv.ip>0, INET_NTOA(dv.ip), 0) AS ip,
   INET_NTOA(dv.netmask) AS netmask,
