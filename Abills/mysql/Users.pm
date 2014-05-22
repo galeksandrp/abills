@@ -998,14 +998,14 @@ sub add {
 
   my %DATA = $self->get_data($attr, { default => defaults() });
 
-  if (!defined($DATA{LOGIN})) {
-    $self->{errno}  = 8;
-    $self->{errstr} = 'ERROR_ENTER_NAME';
-    return $self;
-  }
-  #Add user with same UID and LOGIN
-  elsif ($DATA{LOGIN} eq '*') {
-
+  if (! $DATA{LOGIN}) {
+    #check autofill trigger
+    $self->query2("SHOW TRIGGERS LIKE '%users%'");
+    if (! $self->{TOTAL}) {
+      $self->{errno}  = 8;
+      $self->{errstr} = 'ERROR_ENTER_NAME';
+      return $self;
+    }
   }
   elsif (length($DATA{LOGIN}) > $CONF->{MAX_USERNAME_LENGTH}) {
     $self->{errno}  = 9;

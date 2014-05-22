@@ -1,6 +1,6 @@
 <form method='POST' action='https://api.privatbank.ua:9083/p24api/ishop'>
 
-<table width=400 border=0>
+<table width=400 class=form>
 
 <tr><th colspan=2 class='form_title'>Privat Bank - Privat 24</th></tr>
 <tr><td>Operation ID:</td><td>$FORM{OPERATION_ID}</td></tr>
@@ -17,8 +17,8 @@
 <input type='hidden' name='details' value='%LOGIN% $FORM{DESCRIBE}' />
 <input type='hidden' name='ext_details' value='%FIO% %CONTRACT_ID% %CONTRACT_DATE%' />
 <input type='hidden' name='pay_way' value='privat24' />
-<input type='hidden' name='return_url' value='https://$ENV{SERVER_NAME}:$ENV{SERVER_PORT}/paysys_check.cgi' />
-<input type='hidden' name='server_url' value='https://$ENV{SERVER_NAME}:$ENV{SERVER_PORT}/paysys_check.cgi' />
+<input type='hidden' name='return_url' value='$ENV{PROT}://$ENV{SERVER_NAME}:$ENV{SERVER_PORT}/paysys_check.cgi' />
+<input type='hidden' name='server_url' value='$ENV{PROT}://$ENV{SERVER_NAME}:$ENV{SERVER_PORT}/paysys_check.cgi' />
 
 
 <tr><th colspan=2><input type=submit value='$_ADD'>

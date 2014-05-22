@@ -565,8 +565,8 @@ if ($begin_time > 0) {
 }
 
 print "</td></tr>";
-print $html->tpl_show(templates('footer'), $admin, { OUTPUT2RETURN => 1 });
 print "</table>\n";
+print $html->tpl_show(templates('footer'), $admin, { OUTPUT2RETURN => 1 });
 $html->test();
 
 #**********************************************************
