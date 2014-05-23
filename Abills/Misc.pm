@@ -662,7 +662,12 @@ sub result_former {
     }
   }
 
-  %SEARCH_TITLES = ( %SEARCH_TITLES, %{ $attr->{EXT_TITLES} } );
+  if ($attr->{SKIP_USER_TITLE}) {
+  	%SEARCH_TITLES = %{ $attr->{EXT_TITLES} };
+  }
+  else {
+    %SEARCH_TITLES = ( %SEARCH_TITLES, %{ $attr->{EXT_TITLES} } );
+  }
 
   my $base_fields  = $attr->{BASE_FIELDS};
   my @EX_TITLE_ARR = @{ $data->{COL_NAMES_ARR} };

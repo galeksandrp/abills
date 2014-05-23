@@ -922,9 +922,13 @@ sub msgs_admin {
   }
   elsif ($FORM{del} && $FORM{is_js_confirmed}) {
     if ($conf{MSGS_REDIRECT_FILTER_ADD}) {
-      require "Dv.pm";
-      $Dv = Dv->new($db, $admin, \%conf);
-      $Dv->change({ UID => $FORM{UID}, FILTER_ID => '' });
+      if ($FORM{UID}) {
+        require "Dv.pm";
+        $Dv = Dv->new($db, $admin, \%conf);
+        $Dv->{debug}=1;
+
+        $Dv->change({ UID => $FORM{UID}, FILTER_ID => '' });
+      }
     }
 
     $Msgs->message_del({ ID => $FORM{del}, UID => $UID });
@@ -1067,10 +1071,9 @@ sub msgs_admin {
       HIDDEN  => {
         index           => "$index",
         UID             => $FORM{UID},
-        is_js_confirmed => 1,
         STATE           => $FORM{STATE}
       },
-      SUBMIT => ($#A_CHAPTER == -1) ? { delete => $_DEL } : undef,
+      SUBMIT => ($#A_CHAPTER == -1) ? { is_js_confirmed => $_DEL } : undef,
       NAME => 'users_list'
     }
   );
@@ -2747,6 +2750,7 @@ sub msgs_unreg_requests_list {
      BASE_FIELDS     => 1,
      DEFAULT_FIELDS  => 'MSG_ID,DATETIME,SUBJECT,FIO,CHAPTER,STATUS,CLOSED_DATE,ADMIN_LOGIN',
      FUNCTION_FIELDS => 'null, null,null',
+     SKIP_USER_TITLE => 1,
      EXT_TITLES      => {
        'id'           => "$_NUM",
        'subject'      => $_SUBJECT,
@@ -2759,10 +2763,20 @@ sub msgs_unreg_requests_list {
        'priority'     => $_PRIORITY,
        'plan_date_time'=> "$_EXECUTION",
        'run_time'      => "$_RUN_TIME",
-       'admin_read'    => "_ADMIN_READ",
-       'chapter_id'    => $_CHAPTERS,
-       'deligation'    => $_DELIGATE,
-       'dispatch_id'   => $_DISPATCH
+#       'admin_read'    => "_ADMIN_READ",
+#       'chapter_id'    => $_CHAPTERS,
+#       'deligation'    => $_DELIGATE,
+       'dispatch_id'   => $_DISPATCH,
+
+       'district_name' => "$_DISTRICTS",
+       'address_full'  => "$_FULL $_ADDRESS",
+       'address_street'=> "$_ADDRESS_STREET",
+       'address_build' => "$_ADDRESS_BUILD",
+       'address_flat'  => "$_ADDRESS_FLAT",
+
+       'city'          => "$_CITY",
+       'zip'           => "$_ZIP",
+       
      },
      TABLE            => {    
      	 width       => '100%',
@@ -2842,10 +2856,9 @@ sub msgs_unreg_requests_list {
       HIDDEN  => {
         index           => "$index",
         UID             => $FORM{UID},
-        is_js_confirmed => 1,
         STATE           => $FORM{STATE}
       },
-      SUBMIT => ($#A_CHAPTER == -1) ? { delete => $_DEL } : undef,
+      SUBMIT => ($#A_CHAPTER == -1) ? { is_js_confirmed => $_DEL } : undef,
       NAME => 'users_list'
     }
   );

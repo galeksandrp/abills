@@ -1132,6 +1132,7 @@ sub unreg_requests_list {
   }
 
   my $EXT_JOIN = '';
+  my @WHERE_RULES   = ();
 
   my $WHERE = $self->search_former($attr, [
       ['MSG_ID',       'INT',  'm.id'             ],
@@ -1140,7 +1141,7 @@ sub unreg_requests_list {
       ['FIO',          'STR',  'm.fio',         1 ],
       ['PHONE',        'STR',  'm.phone',       1 ],
       ['STATUS',       'INT',  'm.state',       1 ],
-      ['CHAPTER',      'INT',  'm.chapter', 'mc.name AS chapter_name'],
+      ['CHAPTER_NAME', 'INT',  'm.chapter', 'mc.name AS chapter_name'],
       ['CLOSED_DATE',  'DATE', 'm.closed_date', 1 ],
       ['ADMIN_LOGIN',  'INT',  'a.id',  'a.id AS admin_login' ],
       ['INNER_MSG',    'INT',  'm.inner_msg',   1 ], 
@@ -1148,7 +1149,7 @@ sub unreg_requests_list {
       ['ADMIN_READ',   'INT',  'm.admin_read',  1 ],
       ['RUN_TIME',     'DATE', 'SEC_TO_TIME(sum(r.run_time))',  'SEC_TO_TIME(sum(r.run_time)) AS run_time' ],
       ['DONE_DATE',    'DATE', 'm.done_date',   1 ],
-      ['UID',          'INT',  'm.uid',           ],
+#      ['UID',          'INT',  'm.uid',           ],
       ['DELIGATION',   'INT',  'm.delegation',  1 ],
       ['RESPOSIBLE',   'INT',  'm.resposible',    ],
       ['PRIORITY',     'INT',  'm.state',         ],
@@ -1165,13 +1166,92 @@ sub unreg_requests_list {
     }
     );
 
+  if ($attr->{LOCATION_ID}) {
+    push @WHERE_RULES, @{ $self->search_expr($attr->{LOCATION_ID}, 'INT', 'm.location_id', { EXT_FIELD => 'streets.name AS address_street, builds.number AS address_build, m.address_flat, builds.id AS build_id' }) };
+    $self->{EXT_TABLES} .= "LEFT JOIN builds ON (builds.id=m.location_id)
+   LEFT JOIN streets ON (streets.id=builds.street_id)";
+    $self->{SEARCH_FIELDS_COUNT} += 3;
+  }
+  else {
+    if ($attr->{STREET_ID}) {
+      push @WHERE_RULES, @{ $self->search_expr($attr->{STREET_ID}, 'INT', 'builds.street_id', { EXT_FIELD => 'streets.name AS address_street, builds.number AS address_build' }) };
+      $self->{EXT_TABLES} .= "LEFT JOIN builds ON (builds.id=m.location_id)
+     LEFT JOIN streets ON (streets.id=builds.street_id)";
+      $self->{SEARCH_FIELDS_COUNT} += 1;
+    }
+    elsif ($attr->{DISTRICT_ID}) {
+      push @WHERE_RULES, @{ $self->search_expr($attr->{DISTRICT_ID}, 'INT', 'streets.district_id', { EXT_FIELD => 'districts.name AS district_name' }) };
+      $self->{EXT_TABLES} .= " LEFT JOIN builds ON (builds.id=m.location_id)
+      LEFT JOIN streets ON (streets.id=builds.street_id)
+      LEFT JOIN districts ON (districts.id=streets.district_id) ";
+    }
+    elsif ($CONF->{ADDRESS_REGISTER}) {
+      if ($attr->{ADDRESS_STREET}) {
+        push @WHERE_RULES, @{ $self->search_expr($attr->{ADDRESS_STREET}, 'STR', 'streets.name AS address_street', { EXT_FIELD => 1 }) };
+        $self->{EXT_TABLES} .= "LEFT JOIN builds ON (builds.id=m.location_id)
+        LEFT JOIN streets ON (streets.id=builds.street_id)";
+      }
+      elsif ($attr->{ADDRESS_FULL}) {
+        $attr->{BUILD_DELIMITER}=',' if (! $attr->{BUILD_DELIMITER});
+         push @WHERE_RULES, @{ $self->search_expr("$attr->{ADDRESS_FULL}", "STR", "CONCAT(streets.name, ' ', builds.number, '$attr->{BUILD_DELIMITER}', m.address_flat) AS address_full", { EXT_FIELD => 1 }) };
+
+        $self->{EXT_TABLES} .= "LEFT JOIN builds ON (builds.id=m.location_id)
+          LEFT JOIN streets ON (streets.id=builds.street_id)";
+      }
+      elsif ($attr->{SHOW_ADDRESS}) {
+        push @{ $self->{SEARCH_FIELDS_ARR} }, 'streets.name AS address_street', 'builds.number AS address_build', 'm.address_flat', 'streets.id AS street_id';
+
+        $self->{EXT_TABLES} .= "LEFT JOIN builds ON (builds.id=m.location_id)
+        LEFT JOIN streets ON (streets.id=builds.street_id)";
+      }
+
+      if ($attr->{ADDRESS_BUILD}) {
+        push @WHERE_RULES, @{ $self->search_expr($attr->{ADDRESS_BUILD}, 'STR', 'builds.number', { EXT_FIELD => 'builds.number AS address_build' }) };
+
+        $self->{EXT_TABLES} .= "LEFT JOIN builds ON (builds.id=m.location_id)" if ($self->{EXT_TABLES} !~ /builds/);
+      }
+
+    }
+    else {
+      if ($attr->{ADDRESS_FULL}) {
+         $attr->{BUILD_DELIMITER}=',' if (! $attr->{BUILD_DELIMITER});
+         push @WHERE_RULES, @{ $self->search_expr("$attr->{ADDRESS_FULL}", "STR", "CONCAT(m.address_street, ' ', m.address_build, '$attr->{BUILD_DELIMITER}', m.address_flat) AS address_full", { EXT_FIELD => 1 }) };
+      }
+
+      if ($attr->{ADDRESS_STREET}) {
+        push @WHERE_RULES, @{ $self->search_expr($attr->{ADDRESS_STREET}, 'STR', 'm.address_street', { EXT_FIELD => 1 }) };
+      }
+
+      if ($attr->{ADDRESS_BUILD}) {
+        push @WHERE_RULES, @{ $self->search_expr($attr->{ADDRESS_BUILD}, 'STR', 'm.address_build', { EXT_FIELD => 1 }) };
+      }
+
+      if ($attr->{COUNTRY_ID}) {
+        push @WHERE_RULES, @{ $self->search_expr($attr->{COUNTRY_ID}, 'STR', 'm.country_id', { EXT_FIELD => 1 }) };
+      }
+    }
+  }
+
+  if ($attr->{ADDRESS_FLAT}) {
+    push @WHERE_RULES, @{ $self->search_expr($attr->{ADDRESS_FLAT}, 'STR', 'm.address_flat', { EXT_FIELD => 1 }) };
+  }
+
+  my $EXT_TABLES = '';
+
+  if ($CONF->{ADDRESS_REGISTER}) {
+    $EXT_TABLES = "LEFT JOIN builds ON builds.id=m.location_id
+     LEFT JOIN streets ON (streets.id=builds.street_id)
+     LEFT JOIN districts d ON (d.id=streets.district_id)";
+  }
+
   $self->query2("SELECT  m.id,
   $self->{SEARCH_FIELDS}
   m.responsible_admin,
   m.chapter AS chapter_id
-FROM (msgs_unreg_requests m)
+FROM msgs_unreg_requests m
 LEFT JOIN admins a ON (m.received_admin=a.aid)
 LEFT JOIN msgs_chapters mc ON (m.chapter=mc.id)
+$EXT_TABLES
  $WHERE
 GROUP BY m.id 
     ORDER BY $SORT $DESC
