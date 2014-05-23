@@ -1109,10 +1109,12 @@ sub osmp_payments_v4 {
       $OVERDRAFT = $user->{CREDIT};
     }
     else {
-      my $list = $users->list({ $CHECK_FIELD => $account_number });
+      my $list = $users->list({ FIO          => '_SHOW',
+      	                        $CHECK_FIELD => $account_number,
+      	                        COLS_NAME    => 1 });
 
       if (!$users->{errno} && $users->{TOTAL} > 0) {
-        my $uid = $list->[0]->[ 5 + $users->{SEARCH_FIELDS_COUNT} ];
+        my $uid = $list->[0]->{uid};
         $user      = $users->info($uid);
         $BALANCE   = sprintf("%2.f", $user->{DEPOSIT});
         $OVERDRAFT = $user->{CREDIT};
@@ -1165,10 +1167,12 @@ sub osmp_payments_v4 {
       $OVERDRAFT = $user->{CREDIT};
     }
     else {
-      my $list = $users->list({ $CHECK_FIELD => $account_number });
+      my $list = $users->list({ 
+      	                        $CHECK_FIELD => $account_number,
+      	                        COLS_NAME    => 1 });
 
       if (!$users->{errno} && $users->{TOTAL} > 0) {
-        my $uid = $list->[0]->[ 5 + $users->{SEARCH_FIELDS_COUNT} ];
+        my $uid = $list->[0]->{uid};
         $user      = $users->info($uid);
         $BALANCE   = sprintf("%2.f", $user->{DEPOSIT});
         $OVERDRAFT = $user->{CREDIT};
@@ -1219,6 +1223,7 @@ sub osmp_payments_v4 {
             IP             => '0.0.0.0',
             TRANSACTION_ID => "$payment_system:$transaction_number",
             INFO           => " STATUS: $status_id RECEIPT Number: $receipt_number",
+            STATUS         => 2,
             PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}"
           }
         );
