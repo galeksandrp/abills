@@ -149,6 +149,7 @@ if ($debug > 0) {
   while (my ($k, $v) = each %FORM) {
     $output2 .= "$k -> $v\n" if ($k ne '__BUFFER');
   }
+
   mk_log($output2);
 }
 
@@ -228,9 +229,8 @@ elsif (check_ip($ENV{REMOTE_ADDR}, '107.22.173.15,107.22.173.86,217.117.64.232/2
   }
   exit;
 }
-elsif (($FORM{signature} && $FORM{operation_xml}) || check_ip($ENV{REMOTE_ADDR}, '54.229.105.178,192.168.1.104')) {
+elsif (($FORM{signature} && $FORM{operation_xml}) || check_ip($ENV{REMOTE_ADDR}, '54.229.105.178')) {
   require "Liqpay.pm";
-  #liqpay_payments();
   exit;
 }
 
@@ -305,7 +305,7 @@ elsif (check_ip($ENV{REMOTE_ADDR}, '77.73.26.162,77.73.26.163,77.73.26.164,217.7
   require "Deltapay.pm";
   exit;
 }
-elsif ($FORM{txn_id} || $FORM{osmp_txn_id} || $FORM{prv_txn} || defined($FORM{prv_id}) || ($FORM{command} && $FORM{account})) {
+elsif ($FORM{txn_id} || $FORM{prv_txn} || defined($FORM{prv_id}) || ($FORM{command} && $FORM{account})) {
   osmp_payments();
 }
 elsif (
@@ -445,14 +445,22 @@ sub payments {
     require "Libertyreserve.pm";
   }
   else {
-    print "Error: Unknown payment system";
-    if (scalar keys %FORM > 0) {
+    
+    if ($FORM{INTERACT}) {
+    	interact_mode();
+    }
+    elsif (scalar keys %FORM > 0) {
+      print "Error: Unknown payment system";
       if ($debug == 0) {
         while (my ($k, $v) = each %FORM) {
           $output2 .= "$k -> $v\n" if ($k ne '__BUFFER');
         }
       }
       mk_log($output2, { PAYSYS_ID => 'Unknown' });
+    }
+    else {
+    	$FORM{INTERACT}=1;
+    	interact_mode();
     }
   }
 }
@@ -707,7 +715,7 @@ sub osmp_payments {
   my $payment_system    = $attr->{SYSTEM_SHORT_NAME} || 'OSMP';
   my $payment_system_id = $attr->{SYSTEM_ID}         || 44;
   my $CHECK_FIELD       = $conf{PAYSYS_OSMP_ACCOUNT_KEY} || $attr->{CHECK_FIELDS} || 'UID';
-  my $txn_id            = 'osmp_txn_id';
+  my $txn_id = 'osmp_txn_id';
 
   my %status_hash = (
     0 => 'Success',
@@ -1109,12 +1117,10 @@ sub osmp_payments_v4 {
       $OVERDRAFT = $user->{CREDIT};
     }
     else {
-      my $list = $users->list({ FIO          => '_SHOW',
-      	                        $CHECK_FIELD => $account_number,
-      	                        COLS_NAME    => 1 });
+      my $list = $users->list({ $CHECK_FIELD => $account_number });
 
       if (!$users->{errno} && $users->{TOTAL} > 0) {
-        my $uid = $list->[0]->{uid};
+        my $uid = $list->[0]->[ 5 + $users->{SEARCH_FIELDS_COUNT} ];
         $user      = $users->info($uid);
         $BALANCE   = sprintf("%2.f", $user->{DEPOSIT});
         $OVERDRAFT = $user->{CREDIT};
@@ -1167,12 +1173,10 @@ sub osmp_payments_v4 {
       $OVERDRAFT = $user->{CREDIT};
     }
     else {
-      my $list = $users->list({ 
-      	                        $CHECK_FIELD => $account_number,
-      	                        COLS_NAME    => 1 });
+      my $list = $users->list({ $CHECK_FIELD => $account_number });
 
       if (!$users->{errno} && $users->{TOTAL} > 0) {
-        my $uid = $list->[0]->{uid};
+        my $uid = $list->[0]->[ 5 + $users->{SEARCH_FIELDS_COUNT} ];
         $user      = $users->info($uid);
         $BALANCE   = sprintf("%2.f", $user->{DEPOSIT});
         $OVERDRAFT = $user->{CREDIT};
@@ -1223,7 +1227,6 @@ sub osmp_payments_v4 {
             IP             => '0.0.0.0',
             TRANSACTION_ID => "$payment_system:$transaction_number",
             INFO           => " STATUS: $status_id RECEIPT Number: $receipt_number",
-            STATUS         => 2,
             PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}"
           }
         );
@@ -1568,8 +1571,7 @@ sub wm_payments {
         IP             => $FORM{IP},
         TRANSACTION_ID => "$FORM{LMI_PAYMENT_NO}",
         INFO           => "STATUS, $status\n$info",
-        PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}",
-        STATUS         => 2
+        PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}"
       }
     );
 
@@ -1731,12 +1733,14 @@ sub wm_validate {
 }
 
 #**********************************************************
-# mak_log
+# Make log file for paysys request
+# mk_log
 #**********************************************************
 sub mk_log {
   my ($message, $attr) = @_;
   my $paysys = $attr->{PAYSYS_ID} || '';
   my $paysys_log_file = 'paysys_check.log';
+
   if (open(FILE, ">>$paysys_log_file")) {
     print FILE "\n$DATE $TIME $ENV{REMOTE_ADDR} $paysys =========================\n";
 
@@ -1749,8 +1753,10 @@ sub mk_log {
   }
   else {
     print "Content-Type: text/plain\n\n";
-    print "Can't open file '$paysys_log_file' $!\n";
+    print "Can't open log file '$paysys_log_file' $!\n";
   }
+
+
 }
 
 
@@ -1789,5 +1795,18 @@ sub get_fees_types {
 
   return \%FEES_METHODS;
 }
+
+
+#**********************************************************
+#
+#**********************************************************
+sub interact_mode() {
+	load_module('Paysys', $html);
+
+  require "../language/$html->{language}.pl";
+  $html->{NO_PRINT} = 1; 
+  print paysys_payment();	
+}
+
 
 1
