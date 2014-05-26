@@ -7634,8 +7634,8 @@ sub dv_payments_maked {
   if ($Dv->{TOTAL} < 1) {
     return 0;
   }
-
-  my $deposit = $attr->{USER_INFO}->{DEPOSIT} + (($attr->{USER_INFO}->{CREDIT} > 0) ? $attr->{USER_INFO}->{CREDIT} : ( (!$conf{user_credit_change}) ? $Dv->{TP_CREDIT} : 0 ) ) + (( $attr->{SUM})? $attr->{SUM} : 0 );
+  
+  my $deposit = $attr->{USER_INFO}->{DEPOSIT} + (($attr->{USER_INFO}->{CREDIT} > 0) ? $attr->{USER_INFO}->{CREDIT} : ( (!$conf{user_credit_change}) ? $Dv->{TP_CREDIT} : 0 ) ); # + (( $attr->{SUM})? $attr->{SUM} : 0 );
 
   my $abon_fees = ($attr->{USER_INFO}->{REDUCTION}==0) ? $Dv->{MONTH_ABON} + $Dv->{DAY_ABON} : ($Dv->{MONTH_ABON} + $Dv->{DAY_ABON}) * (100 - $attr->{USER_INFO}->{REDUCTION}) / 100;
 
