@@ -565,14 +565,15 @@ sub dv_user {
           UID    => $FORM{UID},
           MODULE => 'Dv',
           TYPE   => 'status',
-          ACTION => '0'
+          ACTION => '0',
+          COLS_NAME => 1
         }
       );
       if ($Shedule->{TOTAL} == 1) {
         $Shedule->del(
           {
             UID => $FORM{UID},
-            IDS => $list->[0][14]
+            IDS => $list->[0]->{id}
           }
         );
       }
@@ -615,10 +616,10 @@ sub dv_user {
     $Dv->{TP_ID} = $html->form_select(
       'TP_ID',
       {
-        SELECTED          => $Dv->{TP_ID} || $FORM{TP_ID},
-        SEL_MULTI_ARRAY   => $tariffs->list({ MODULE => 'Dv', DOMAIN_ID => $users->{DOMAIN_ID} }),
-        MULTI_ARRAY_KEY   => 0,
-        MULTI_ARRAY_VALUE => 1,
+        SELECTED  => $Dv->{TP_ID} || $FORM{TP_ID},
+        SEL_LIST  => $tariffs->list({ MODULE => 'Dv', DOMAIN_ID => $users->{DOMAIN_ID}, COLS_NAME => 1 }),
+        SEL_KEY   => 'id',
+        SEL_VAL   => 'name',
       }
     );
 
@@ -742,16 +743,17 @@ sub dv_user {
 
     my $list = $sessions->online(
       {
-        UID          => $Dv->{UID},
-        CLIENT_IP    => '_SHOW', 
-        DURATION     => '_SHOW', 
+        UID               => $Dv->{UID},
+        CLIENT_IP         => '_SHOW', 
+        DURATION          => '_SHOW', 
         ACCT_INPUT_OCTETS => '_SHOW', 
         ACCT_OUTPUT_OCTETS=> '_SHOW', 
-        NAS_NAME     => '_SHOW', 
-        NAS_PORT_ID  => '_SHOW', 
-        ACCT_SESSION_ID=> '_SHOW', 
-        USER_NAME    => '_SHOW',
-        GUEST        => '_SHOW'        
+        NAS_NAME          => '_SHOW', 
+        NAS_PORT_ID       => '_SHOW', 
+        ACCT_SESSION_ID   => '_SHOW', 
+        USER_NAME         => '_SHOW',
+        GUEST             => '_SHOW',
+        CID               => '_SHOW',
       }
     );
 
@@ -774,6 +776,7 @@ sub dv_user {
           int2byte($line->{acct_output_octets}),
           ($line->{guest}==1) ? $html->color_mark($_GUEST, "$_COLORS[6]") : '', 
           $html->button($line->{nas_name}, "index=$online_index&NAS_ID=$line->{nas_id}"),
+          ($conf{DV_EXTERNAL_DIAGNOSTIC}) ? $html->button('D', "index=$online_index&ed=1&UID=$line->{UID}&NAS_ID=$line->{nas_id}&NAS_PORT=$line->{nas_port_id}&SESSION_ID=$line->{acct_session_id}&IP=$line->{client_ip}&CID=$line->{CID}", { TITLE => 'Disagnostic', BUTTON =>1 , NO_LINK_FORMER => 1 }) : '',
           $html->button('Z', "index=$online_index&zap=$Dv->{UID}+$line->{nas_id}+$line->{nas_port_id}+$line->{acct_session_id}$pages_qs", { TITLE => 'Zap',    CLASS => 'del', NO_LINK_FORMER => 1 }),
           $html->button('H', "index=$online_index&FRAMED_IP_ADDRESS=$line->{client_ip}&hangup=$line->{nas_id}+$line->{nas_port_id}+$line->{acct_session_id}+$line->{user_name}&$pages_qs", { TITLE => 'Hangup', CLASS => 'off', NO_LINK_FORMER => 1 })
         );
@@ -1429,7 +1432,13 @@ sub dv_rating_user {
 sub dv_online {
 
   my $message;
-  if ($FORM{ping}) {
+  
+  if ($FORM{ed}) {
+    $conf{DV_EXTERNAL_DIAGNOSTIC} = tpl_parse($conf{DV_EXTERNAL_DIAGNOSTIC}, { %FORM });    	
+    my $res = `$conf{DV_EXTERNAL_DIAGNOSTIC}`;
+    $html->message('info', $_INFO, "Ping  $conf{DV_EXTERNAL_DIAGNOSTIC} \n Result: \n" . $html->pre($res, { OUTPUT2RETURN => 1 }));
+  }
+  elsif ($FORM{ping}) {
     if ($FORM{ping} =~ /^(\d){1,3}\.(\d){1,3}\.(\d){1,3}\.(\d){1,3}$/) {
       my $res = `$PING -c 5 $FORM{ping}`;
       $html->message('info', $_INFO, "Ping  $FORM{ping} \n Result: \n" . $html->pre($res, { OUTPUT2RETURN => 1 }));
@@ -1739,7 +1748,7 @@ sub dv_online {
      FUNCTION        => 'online',
      DEFAULT_FIELDS  => 'USER_NAME,FIO,NAS_PORT_ID,DURATION,CLIENT_IP,ACCT_INPUT_OCTETS,ACCT_OUTPUT_OCTETS,EX_INPUT_OCTETS,EX_OUTPUT_OCTETS',
      BASE_FIELDS     => 0,
-     FUNCTION_FIELDS => 'ping, zap, hangup, graphics',
+     FUNCTION_FIELDS => ($conf{DV_EXTERNAL_DIAGNOSTIC}? 'diagnostic, ' : '').'ping, zap, hangup, graphics',
      EXT_TITLES      => {
        'fio'         => "$_FIO",
        'user_name'   => "$_LOGIN",
@@ -1789,7 +1798,7 @@ sub dv_online {
     my $l     = $online->{ $nas_row->{nas_id} };
     my $total = $#{$l} + 1;
     $table->{rowcolor} = 'row_active';
-    $table->{extra} = "colspan='" . ($sessions->{SEARCH_FIELDS_COUNT} ) . "' class='small'";
+    $table->{extra} = "colspan='" . ($sessions->{SEARCH_FIELDS_COUNT} + ($conf{DV_EXTERNAL_DIAGNOSTIC}? 1 : 0) ) . "' class='small'";
     $table->addrow("$nas_row->{nas_id}:"
       . $html->button($html->b($nas_row->{nas_name}), "index=" . get_function_index('form_nas') . "&NAS_ID=$nas_row->{nas_id}")
       . ":$nas_row->{nas_ip}:$_TOTAL: $total ("
@@ -1861,6 +1870,7 @@ sub dv_online {
       }
 
       $table->addrow(@fields_array,
+         ($conf{DV_EXTERNAL_DIAGNOSTIC}) ? $html->button('D', "index=$index&ed=1&UID=$line->{UID}&NAS_ID=$line->{nas_id}&NAS_PORT=$line->{nas_port_id}&SESSION_ID=$line->{acct_session_id}&IP=$line->{client_ip}&CID=$line->{CID}", { TITLE => 'Diagnostic', BUTTON =>1 , NO_LINK_FORMER => 1 }) : '',
          $html->button('P', "index=$index&NAS_ID=$FORM{NAS_ID}&ping=$line->{client_ip}$pages_qs", { TITLE => 'ping', BUTTON => 1 }),
          $html->button('Z', "index=$index&zap=$line->{uid}+$nas_row->{nas_id}+$line->{nas_port_id}+$line->{acct_session_id}$pages_qs", { TITLE => 'Zap', CLASS => 'del', NO_LINK_FORMER => 1 }),
          ($FORM{ZAPED}) ? $html->form_input('dellist', "$line->{acct_session_id}", { TYPE => 'checkbox' }) : $html->button('H', "index=$index&FRAMED_IP_ADDRESS=$line->{client_ip}&hangup=$nas_row->{nas_id}+$line->{nas_port_id}+$line->{acct_session_id}+$line->{user_name}&UID=$line->{uid}$pages_qs", { TITLE => 'Hangup', CLASS => 'off' }),

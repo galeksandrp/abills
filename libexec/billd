@@ -1316,6 +1316,7 @@ sub check_speed {
     push @FW_ACTIONS, "$IPFW -q flush";
     push @FW_ACTIONS, "$IPFW -q pipe flush";
     push @FW_ACTIONS, "$IPFW -q table $users_table_number flush";
+    push @FW_ACTIONS, "$IPFW -q table ". ($users_table_number+1). " flush";
 
     #Make pipe forward rules for traffic class
     for (my $i = 0 ; $i <= $#START_FW ; $i++) {
