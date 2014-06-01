@@ -6,6 +6,7 @@
 use vars qw($begin_time %FORM %LANG
 $DATE $TIME
 $CHARSET
+%LIST_PARAMS
 @MODULES
 $admin
 $users
@@ -1804,8 +1805,11 @@ sub interact_mode() {
 	load_module('Paysys', $html);
 
   require "../language/$html->{language}.pl";
-  $html->{NO_PRINT} = 1; 
+  $html->{NO_PRINT} = 1;
+  $LIST_PARAMS{UID} = $FORM{UID};
+  
   print paysys_payment();	
+
 }
 
 
