@@ -1193,14 +1193,15 @@ function CheckAllINBOX() {
 
     foreach my $export_name ( @export_formats ) {
       my $params = "&$export_name=1";
-      if ($attr->{qs} !~ /PAGE_ROWS\=/) {
+      my $qs = $attr->{qs};
+      if ($qs !~ /PAGE_ROWS\=/) {
         $params .= "&PAGE_ROWS=1000000";
       }  
       else {
-      	$attr->{qs} =~ s/PAGE_ROWS\=\d+/PAGE_ROWS\=100000/;
+      	$qs =~ s/PAGE_ROWS\=\d+/PAGE_ROWS\=100000/;
       } 
        
-      $self->{EXPORT_OBJ} .= ' ' . $self->button("$export_name", "qindex=$index$attr->{qs}&pg=$PG&sort=$SORT&desc=$DESC&EXPORT_CONTENT=$attr->{ID}&header=1$params", { ex_params => 'target=\'export\'', IMG_BUTTON => '/img/button_'. $export_name .'.png' });
+      $self->{EXPORT_OBJ} .= ' ' . $self->button("$export_name", "qindex=$index$qs&pg=$PG&sort=$SORT&desc=$DESC&EXPORT_CONTENT=$attr->{ID}&header=1$params", { ex_params => 'target=\'export\'', IMG_BUTTON => '/img/button_'. $export_name .'.png' });
     }
   }
 

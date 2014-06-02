@@ -2126,7 +2126,7 @@ sub paysys_privatbank_p24 {
         SUM            => $FORM{SUM},
         COMMISSION     => $info{COMMISSION_SUM},
         UID            => $LIST_PARAMS{UID},
-        IP             => "$ENV{'REMOTE_ADDR'}",
+        IP             => $ENV{'REMOTE_ADDR'},
         TRANSACTION_ID => "P24:$FORM{OPERATION_ID}",
         INFO           => '-',
         PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}",
