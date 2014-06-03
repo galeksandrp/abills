@@ -127,19 +127,20 @@ my %CONF_OPTIONS = (
   PAYSYS_COPAYCO_SHOP_ID                    => 92,
 );
 
-my @status = ("$_UNKNOWN",
-"$_TRANSACTION_PROCESSING", 
-"$_COMPLETE", 
-"$_CANCELED", 
-"$_EXPIRED", 
-"$_INCORRECT_CHECKSUM", 
-"$_PAYMENT_ERROR", 
-"$_DUBLICATE", 
-"$_USER_ERROR", 
-"$_USER_NOT_EXIST", 
-"$_SMALL_PAYMENT_SUM", 
-'SQL_ERROR',
-'TEST');
+my @status = ("$_UNKNOWN",  #0 
+"$_TRANSACTION_PROCESSING", #1
+"$_COMPLETE",               #2
+"$_CANCELED",               #3
+"$_EXPIRED",                #4
+"$_INCORRECT_CHECKSUM",     #5
+"$_PAYMENT_ERROR",          #6
+"$_DUBLICATE",              #7
+"$_USER_ERROR",             #8
+"$_USER_NOT_EXIST",         #9
+"$_SMALL_PAYMENT_SUM",      #10
+'SQL_ERROR',                #11
+'TEST'                      #12
+);
 
 #require "modules/Paysys/paysys_cons";
 
