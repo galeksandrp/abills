@@ -601,7 +601,7 @@ sub privatbank_payments {
 
   my $list = $Paysys->list(
     {
-      TRANSACTION_ID => "$order_id",
+      TRANSACTION_ID => "$payment_syste:$order_id",
       STATUS         => 1,
       COLS_NAME      => 1
     }
@@ -618,8 +618,8 @@ sub privatbank_payments {
           SUM          => $sum,
           DESCRIBE     => $payment_system,
           METHOD       => ($conf{PAYSYS_PAYMENTS_METHODS} && $PAYSYS_PAYMENTS_METHODS{$payment_system_id}) ? $payment_system_id : '2',
-          EXT_ID       => "PBANK:$order_id",
-          CHECK_EXT_ID => "PBANK:$order_id"
+          EXT_ID       => "$payment_syste:$order_id",
+          CHECK_EXT_ID => "$payment_syste:$order_id"
         }
       );
 
@@ -669,7 +669,7 @@ sub privatbank_payments {
   $home_url = $ENV{SCRIPT_NAME};
   $home_url =~ s/paysys_check.cgi/index.cgi/;
 
-  if ($FORM{ResponseCode} == 1) {
+  if ($FORM{ResponseCode} == 1 || $FORM{responsecode} == 1) {
     print "Location: $home_url?PAYMENT_SYSTEM=48&orderid=$FORM{orderid}&TRUE=1" . "\n\n";
   }
   else {

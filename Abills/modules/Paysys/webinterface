@@ -1658,7 +1658,7 @@ sub paysys_privatbank {
   elsif ($FORM{TRUE}) {
     my $list = $Paysys->list(
       {
-        TRANSACTION_ID => "$FORM{orderid}",
+        TRANSACTION_ID => "$payment_system:$FORM{orderid}",
         UID            => $LIST_PARAMS{UID},
         SUM            => '_SHOW',
         COLS_NAME      => 1
@@ -1689,7 +1689,7 @@ sub paysys_privatbank {
         SUM            => $FORM{SUM},
         UID            => $LIST_PARAMS{UID},
         IP             => "$ENV{'REMOTE_ADDR'}",
-        TRANSACTION_ID => "$FORM{OPERATION_ID}",
+        TRANSACTION_ID => "$payment_system:$FORM{OPERATION_ID}",
         INFO           => '-',
         PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}",
         STATUS         => 1
