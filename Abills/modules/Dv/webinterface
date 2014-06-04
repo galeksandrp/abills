@@ -718,8 +718,10 @@ sub dv_user {
         }
       }
       elsif ($Dv->{DAY_ABON} > 0) {
-        $days_to_fees = int(($users->{DEPOSIT} + $users->{CREDIT} > 0) ?  ($users->{DEPOSIT} + $users->{CREDIT}) * (100 / (100 - $users->{REDUCTION}) / $Dv->{DAY_ABON}) : 0);
-        $Dv->{NEXT_FEES_WARNING} = "$_SERVICE_ENDED: $days_to_fees";
+      	if ($users->{REDUCTION} < 100) {
+          $days_to_fees = int(($users->{DEPOSIT} + $users->{CREDIT} > 0) ?  ($users->{DEPOSIT} + $users->{CREDIT}) * (100 / (100 - $users->{REDUCTION}) / $Dv->{DAY_ABON}) : 0);
+          $Dv->{NEXT_FEES_WARNING} = "$_SERVICE_ENDED: $days_to_fees";
+        }
       }
 
       if ($days_to_fees && $days_to_fees < 5) {
