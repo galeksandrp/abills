@@ -590,6 +590,9 @@ sub bonus_periodic_daily {
 
   #del expired bonus
   #list expire
+  $LIST_PARAMS{LOGIN} = $attr->{LOGIN} if ($attr->{LOGIN});
+  
+  $Bonus->{debug} = 1 if ($debug > 6);
 
   my $list = $Bonus->bonus_operation_list(
     {
@@ -600,17 +603,20 @@ sub bonus_periodic_daily {
       EXT_BILL_ID=> '_SHOW',
       EXPIRE     => '_SHOW',
       PAGE_ROWS  => 1000000,
-      COLS_NAME  => 1
+      COLS_NAME  => 1,
+      %LIST_PARAMS
     }
   );
+
   my %last_deposits = ();
   foreach my $line (@$list) {
     if ($line->{login}) {
       my $sum  = $line->{sum};
       my %user = (
-        EXT_BILL_ID => $line->{ext_bill_id},
+        EXT_BILL_ID => $line->{ext_bill_id} || $line->{bill_id},
         UID         => $line->{uid},
-        DEPOSIT     => $line->{deposit}
+        DEPOSIT     => $line->{deposit},
+        BILL_ID     => $line->{bill_id}
       );
 
       my $deposit = ($last_deposits{ $user{UID} }) ? $last_deposits{ $user{UID} } : $user{DEPOSIT};
@@ -619,6 +625,8 @@ sub bonus_periodic_daily {
       if ($sum > $deposit) {
         $sum = $deposit;
       }
+
+      next if ($sum<=0);
 
       $Bonus->bonus_operation(
         \%user,
@@ -630,7 +638,7 @@ sub bonus_periodic_daily {
       );
 
       if ($Bonus->{errno}) {
-        print "[$Bonus->{errno}] $err_strs{$Bonus->{errno}}";
+        print "LOGIN: $line->{login} [$user{UID}] [$Bonus->{errno}] $err_strs{$Bonus->{errno}}\n";
       }
       else {
         $last_deposits{ $user{UID} } = ($last_deposits{ $user{UID} }) ? $last_deposits{ $user{UID} } -= $sum : $user{DEPOSIT} -= $sum;
@@ -1200,6 +1208,7 @@ sub bonus_periodic_accomulation {
 	$Bonus->{debug}=1 if ($debug > 6);
 	
 	my $tp_list = $Bonus->accomulation_rule_list({ COST => '>0', COLS_NAME => 1 });
+
 	foreach my $tp (@$tp_list) {
 		$debug_output .= "TP ID: $tp->{tp_id} DV TP: $tp->{dv_tp_id}  COST: $tp->{cost}\n" if ($debug> 1);
 	  my $list = $Bonus->user_list({ DV_TP_ID  => $tp->{dv_tp_id},

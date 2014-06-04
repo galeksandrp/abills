@@ -554,7 +554,8 @@ sub bonus_operation {
   #$self->{db}->{AutoCommit}=0;
   $user->{EXT_BILL_ID} = $attr->{BILL_ID} if ($attr->{BILL_ID});
 
-  if ($user->{EXT_BILL_ID} && $user->{EXT_BILL_ID} > 0) {
+
+  if ($user->{EXT_BILL_ID} > 0) {
     my $bill_action_type = '';
     if ($DATA{ACTION_TYPE}) {
       $bill_action_type = 'take';
@@ -640,10 +641,11 @@ sub bonus_operation_list {
   $self->{SEARCH_FIELDS_COUNT}=0;
 
   my $WHERE =  $self->search_former($attr, [
+      ['LOGIN',          'STR', 'u.id'                          ], 
       ['DATETIME',       'DATE','p.date',   'p.date AS datetime'], 
       ['SUM',            'INT', 'p.sum',                        ],
       ['PAYMENT_METHOD', 'INT', 'p.method',                     ],
-      ['A_LOGIN',        'STR', 'a.id'                          ],
+      ['A_LOGIN',        'STR', 'a.id AS admin_login',        1 ],
       ['DESCRIBE',       'STR', 'p.dsc'                         ],
       ['INNER_DESCRIBE', 'STR', 'p.inner_describe'              ],
       ['AMOUNT',         'INT', 'p.amount',                    1],
@@ -700,7 +702,7 @@ sub bonus_operation_list {
   undef,
   { INFO => 1 }
   );
-  
+  exit;
   return $list;
 }
 
