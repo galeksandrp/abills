@@ -134,7 +134,7 @@ sub bonus_user_log {
 
   $LIST_PARAMS{ID} = $FORM{ID} if ($FORM{ID});
 
-  my $list  = $Bonus->bonus_operation_list({%LIST_PARAMS});
+  my $list  = $Bonus->bonus_operation_list({%LIST_PARAMS, COLS_NAME => 1 });
   my $table = $html->table(
     {
       width      => '100%',
@@ -511,7 +511,6 @@ sub bonus_user {
       SEL_LIST       => $Bonus->tp_list({ COLS_NAME => 1 }),
       MAIN_MENU      => get_function_index('bonus_tp'),
       MAIN_MENU_AGRV => "TP_ID=$Bonus->{TP_ID}"
-      
     }
   );
 
@@ -548,6 +547,7 @@ sub bonus_users_list {
       border     => 1,
       title      => [ "$_LOGIN", $_FIO, "$_TARIF_PLAN", "$_STATE", "$_DEPOSIT", "$_CREDIT", '-' ],
       cols_align => [ 'right', 'left', 'center', 'center:noprint', 'center:noprint', 'center:noprint' ],
+      ID         => 'BONUS_USERS'
     }
   );
 
@@ -560,7 +560,8 @@ sub bonus_users_list {
        $line->{deposit}, 
        $line->{credit}, 
        ($line->{state}) ? $html->color_mark($status[ $line->{state} ], $_COLORS[6]) : $status[ $line->{state} ], 
-       $html->button($_INFO, "index=15&MODULE=Bonus&UID=$line->{uid}", { CLASS => 'show' }));
+       $html->button($_INFO, "index=15&MODULE=Bonus&UID=$line->{uid}", { CLASS => 'show' })
+    );
   }
 
   print $table->show();
@@ -592,23 +593,28 @@ sub bonus_periodic_daily {
 
   my $list = $Bonus->bonus_operation_list(
     {
-      EXPIRE    => $ADMIN_REPORT{DATE},
-      DEPOSIT   => '>0',
-      PAGE_ROWS => 1000000,
+      EXPIRE     => $ADMIN_REPORT{DATE},
+      DEPOSIT    => '>0',
+      SUM        => '_SHOW',
+      BILL_ID    => '_SHOW',
+      EXT_BILL_ID=> '_SHOW',
+      EXPIRE     => '_SHOW',
+      PAGE_ROWS  => 1000000,
+      COLS_NAME  => 1
     }
   );
   my %last_deposits = ();
   foreach my $line (@$list) {
-    if ($line->[1]) {
-      my $sum  = $line->[5];
+    if ($line->{login}) {
+      my $sum  = $line->{sum};
       my %user = (
-        EXT_BILL_ID => $line->[10],
-        UID         => $line->[14],
-        DEPOSIT     => $line->[2]
+        EXT_BILL_ID => $line->{ext_bill_id},
+        UID         => $line->{uid},
+        DEPOSIT     => $line->{deposit}
       );
 
       my $deposit = ($last_deposits{ $user{UID} }) ? $last_deposits{ $user{UID} } : $user{DEPOSIT};
-      $debug_output .= "LOGIN: $line->[1] [$user{UID}] DEPOSIT: $deposit SUM: $sum EXPIRE: $line->[7] BILL_ID: $line->[10] ADD DATE: $line->[3]\n" if ($debug > 1);
+      $debug_output .= "LOGIN: $line->{login} [$user{UID}] DEPOSIT: $deposit SUM: $sum EXPIRE: $line->{expire} BILL_ID: $line->{bill_id} ADD DATE: $line->{date}\n" if ($debug > 1);
 
       if ($sum > $deposit) {
         $sum = $deposit;
@@ -619,7 +625,7 @@ sub bonus_periodic_daily {
         {
           ACTION_TYPE => 1,
           SUM         => $sum,
-          DESCRIBE    => "$_EXPIRE ID: $line->[0]",
+          DESCRIBE    => "$_EXPIRE ID: $line->{id}",
         }
       );
 

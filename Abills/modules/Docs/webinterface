@@ -2045,11 +2045,10 @@ sub docs_invoice {
     $Doc{DEPOSIT}  = sprintf("%.2f", $Doc{DEPOSIT});
     $Doc{DEBT}     = ($Doc{DEPOSIT} < 0)? $Doc{DEPOSIT}  : 0.00;
     $Doc{AVANCE}   = ($Doc{DEPOSIT} > 0)? $Doc{DEPOSIT}  : 0.00;
-    my ($y, $m, $d)=split(/\-/, $Doc{date});
+    my ($y, $m, $d)= split(/\-/, $Doc{DATE});
     my $days_in_month = ($m != 2 ? (($m % 2) ^ ($m > 7)) + 30 : (!($y % 400) || !($y % 4) && ($y % 25) ? 29 : 28));
-    $Doc{INVOICE_PERIOD} = "$y-$m=01 $y-$m-$days_in_month";
-    
-    
+    $Doc{INVOICE_PERIOD} = "$y-$m-01 $y-$m-$days_in_month";
+
     if ($FORM{CHECK_PEYMENT_ID} && $Doc{PAYMENT_ID}) {
       return 0;
     }

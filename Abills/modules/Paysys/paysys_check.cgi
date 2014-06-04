@@ -1493,14 +1493,12 @@ sub wm_payments {
 
   my $payment_system    = $attr->{SYSTEM_SHORT_NAME} || 'WM';
   my $payment_system_id = $attr->{SYSTEM_ID}         || 41;
+  my $status_code = 0;
 
   #Pre request section
   if ($FORM{'LMI_PREREQUEST'} && $FORM{'LMI_PREREQUEST'} == 1) {
 
   }
-
-  $status_code = 0;
-
   #Payment notification
   elsif ($FORM{LMI_HASH}) {
     my $checksum = wm_validate();

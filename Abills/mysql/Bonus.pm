@@ -554,7 +554,7 @@ sub bonus_operation {
   #$self->{db}->{AutoCommit}=0;
   $user->{EXT_BILL_ID} = $attr->{BILL_ID} if ($attr->{BILL_ID});
 
-  if ($user->{EXT_BILL_ID} > 0) {
+  if ($user->{EXT_BILL_ID} && $user->{EXT_BILL_ID} > 0) {
     my $bill_action_type = '';
     if ($DATA{ACTION_TYPE}) {
       $bill_action_type = 'take';
