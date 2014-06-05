@@ -664,7 +664,7 @@ sub docs_receipt_list {
   }
 
   if ($FORM{print_list}) {
-  	print "Content-Type: text/html\n\n";
+  	print "Content-Type: text/html\n\n" if ($debug > 2);
     my $receipt_list = $Docs->docs_receipt_list({ %FORM, 
     	                                         %LIST_PARAMS, 
     	                                         CONTRACT_ID   => '_SHOW',
@@ -2824,8 +2824,6 @@ sub docs_print {
   }
 
   my $content = '';
-
-  print "Content-Type: text/html\n\n";
 
   eval {
     $content = $html->tpl_show(

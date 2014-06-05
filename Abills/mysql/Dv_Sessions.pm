@@ -317,6 +317,7 @@ sub online {
 
   my %dub_logins = ();
   my %dub_ports  = ();
+  my %dub_ips    = ();
   my %nas_sorted = ();
 
   if ($self->{TOTAL} < 1) {
@@ -328,13 +329,15 @@ sub online {
 
   my $list = $self->{list};
   foreach my $line (@$list) {
-     push @{ $nas_sorted{$line->{nas_id}} }, $line ;
-     $dub_logins{ $line->{user_name} }++ if ($line->{user_name});
-     $dub_ports{ $line->{nas_id} }{ $line->{nas_port_id} }++ if ($line->{nas_port_id});
+    push @{ $nas_sorted{$line->{nas_id}} }, $line ;
+    $dub_logins{ $line->{user_name} }++ if ($line->{user_name});
+    $dub_ports{ $line->{nas_id} }{ $line->{nas_port_id} }++ if ($line->{nas_port_id});
+    $dub_ips{ $line->{nas_id} }{ $line->{client_ip} }++ if ($line->{client_ip});
   }
 
   $self->{dub_ports}  = \%dub_ports;
   $self->{dub_logins} = \%dub_logins;
+  $self->{dub_ips}    = \%dub_ips;
   $self->{nas_sorted} = \%nas_sorted;
 
   return $self->{list};

@@ -961,7 +961,7 @@ sub dv_get_static_ip {
   }
 
   for (my $ip_cur = $start_ip ; $ip_cur <= $end_ip ; $ip_cur++) {
-    if (!$users_ips{ int2ip($ip_cur) }) {
+    if (! $users_ips{ int2ip($ip_cur) }) {
       return int2ip($ip_cur);
     }
   }
@@ -1782,6 +1782,7 @@ sub dv_online {
 
   my $dub_ports  = $sessions->{dub_ports} if ($sessions->{dub_ports});
   my $dub_logins = $sessions->{dub_logins} if ($sessions->{dub_logins});
+  my $dub_ips    = $sessions->{dub_ips} if ($sessions->{dub_ips});
   my $online     = $sessions->{nas_sorted};
 
   foreach my $nas_row (@$nas_list) {
@@ -1802,6 +1803,21 @@ sub dv_online {
     foreach my $line (@$l) {
       undef($table->{rowcolor});
       undef($table->{extra});
+
+      if (defined($dub_logins->{ $line->{user_name} }) && $dub_logins->{ $line->{user_name} } > 1) {
+      	$table->{rowcolor} = '#FFFF00';
+      }
+      elsif ($nas_row->{nas_type} ne 'ipcad' 
+             && $nas_row->{nas_type} ne 'dhcp' 
+             && defined($dub_ports->{ $nas_row->{nas_id} }{ $line->{nas_port_id} }) 
+             && $dub_ports->{ $nas_row->{nas_id} }{ $line->{nas_port_id} } > 1) {
+      	$table->{rowcolor} = '#00FF40';
+      }
+      elsif (defined($dub_ips->{ $nas_row->{nas_id} }{ $line->{client_ip} }) && $dub_ips->{ $nas_row->{nas_id} }{ $line->{client_ip} } > 1) {
+      	$table->{rowcolor} = '#0080C0';
+      }
+
+
 
       my @fields_array = ();
       for (my $i = 0; $i < 0+$sessions->{SEARCH_FIELDS_COUNT}; $i++) {

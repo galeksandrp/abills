@@ -864,7 +864,7 @@ sub search_expr_users () {
   }
 
   if ($attr->{SKIP_GID}) {
-    push @fields,  @{ $self->search_expr($attr->{GID}, 'INT', 'u.gid', { EXT_FIELD => in_array('GID', $attr->{EXT_FIELDS}) }) };
+    #push @fields,  @{ $self->search_expr($attr->{GID}, 'INT', 'u.gid', { EXT_FIELD => in_array('GID', $attr->{EXT_FIELDS}) }) };
   }
   elsif ($attr->{GIDS}) {
     if ($admin->{GIDS}) {

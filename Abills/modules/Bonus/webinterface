@@ -1245,7 +1245,6 @@ sub bonus_accomulation_transfer {
   $conf{BONUS_ACCOMULATION_TRANSFER_MIN}=1 if (! $conf{BONUS_ACCOMULATION_TRANSFER_MIN} );
   $conf{BONUS_ACCOMULATION_TRANSFER_PERCENT}=0 if (! $conf{BONUS_ACCOMULATION_TRANSFER_PERCENT});
 
-
 if ($FORM{transfer}) {
 	my $rechange_sum = $FORM{COST};
   if ($Bonus->{COST} < $FORM{COST}) {
@@ -1269,8 +1268,8 @@ if ($FORM{transfer}) {
       }
 
       $Payments->add($user, { SUM    => $rechange_sum, 
-    	                      METHOD => 4 
-    	                     });
+    	                        METHOD => 4 
+    	                       });
       $html->message('info', $_INFO, "$_ADDED $rechange_sum");	            
     }
   }
