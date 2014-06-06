@@ -1004,13 +1004,15 @@ sub accomulation_rule_list {
   $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
 
   @WHERE_RULES = ("tp.module='Dv'");
-  #if ($attr->{TP_ID}) {
-  #  push @WHERE_RULES, "";
-  #}
+  
+  
+  if ($attr->{TP_ID}) {
+    push @WHERE_RULES, "br.tp_id='$attr->{TP_ID}'";
+  }
 
   my $JOIN_WHERE = '';
   if ($attr->{DV_TP_ID}) {
-    push @WHERE_RULES, "dv_tp_id='$attr->{DV_TP_ID}'";
+    push @WHERE_RULES, "br.dv_tp_id='$attr->{DV_TP_ID}'";
     $JOIN_WHERE = "AND br.tp_id='$attr->{TP_ID}'";
   }
 

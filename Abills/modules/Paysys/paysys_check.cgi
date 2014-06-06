@@ -601,7 +601,7 @@ sub privatbank_payments {
 
   my $list = $Paysys->list(
     {
-      TRANSACTION_ID => "$payment_syste:$order_id",
+      TRANSACTION_ID => "$payment_system:$order_id",
       STATUS         => 1,
       COLS_NAME      => 1
     }
@@ -618,8 +618,8 @@ sub privatbank_payments {
           SUM          => $sum,
           DESCRIBE     => $payment_system,
           METHOD       => ($conf{PAYSYS_PAYMENTS_METHODS} && $PAYSYS_PAYMENTS_METHODS{$payment_system_id}) ? $payment_system_id : '2',
-          EXT_ID       => "$payment_syste:$order_id",
-          CHECK_EXT_ID => "$payment_syste:$order_id"
+          EXT_ID       => "$payment_system:$order_id",
+          CHECK_EXT_ID => "$payment_system:$order_id"
         }
       );
 
