@@ -1982,7 +1982,10 @@ sub cards_dillers_tp {
 #
 #**********************************************************
 sub cards_diller_stats {
+  
+  %LIST_PARAMS = ();
   $LIST_PARAMS{DILLER_ID} = $diller->{ID};
+  $LIST_PARAMS{SERIAL}    = '';
 
   $FORM{PAGE_ROWS} = $FORM{rows} if ($FORM{rows});
 
@@ -1990,11 +1993,13 @@ sub cards_diller_stats {
     $LIST_PARAMS{CREATED_DATE} = $FORM{print};
     print "Content-Type: text/html\n\n";
 
-    my $list        = $Cards->cards_list({ COUNT     =>  '_SHOW',
-    	                                     SUM       =>  '_SHOW',
-    	                                     %LIST_PARAMS, 
-    	                                     PAGE_ROWS => 1000000, 
-    	                                     COLS_NAME => 1 });
+    my $list = $Cards->cards_list({ COUNT     =>  '_SHOW',
+    	                              SUM       =>  '_SHOW',
+    	                              %LIST_PARAMS, 
+    	                              PAGE_ROWS => 1000000, 
+    	                              COLS_NAME => 1 
+    	                            });
+
     my $total_count = 0;
     my $total_sum   = 0;
 
@@ -2015,11 +2020,15 @@ sub cards_diller_stats {
     );
     return 0;
   }
+  elsif ($FORM{print_cards}) {
+    cards_print();
+    exit;
+  }
+
 
   my $table = $html->table(
     {
       width    => '100%',
-      rowcolor => $_COLORS[0],
       rows     => [
         [
           "$_FROM: ",
@@ -2124,26 +2133,39 @@ sub cards_diller_stats {
       exit;
     }
 
-    #if ($FORM{TP_ID}) {
     $table = $html->table(
       {
-        width       => '200',
-        qs          => $pages_qs,
-        title_plain => [ $html->button("$_PRINT PDF", "qindex=$index&pdf=1&print_cards=1&$pages_qs", { ex_params => 'target=_new', BUTTON => 1 }), $html->button('CSV', "qindex=$index&csv=1&print_cards=1&$pages_qs", { ex_params => 'target=_new', BUTTON => 1 }) ],
-        ID          => 'PRINT_CARDS_LIST',
+        width => '200',
+        qs    => $pages_qs,
+        ID    => 'PRINT_CARDS_LIST',
+        rows  => [ [ $html->button("$_PRINT PDF", "qindex=$index&pdf=1&print_cards=1&$pages_qs", { ex_params => 'target=_new', BUTTON => 1 }), $html->button('CSV', "qindex=$index&csv=1&print_cards=1&$pages_qs", { ex_params => 'target=_new', BUTTON => 1 }) ] ]
       }
     );
     print $table->show();
 
-    # }
-
-    my $list = $Cards->cards_list({ %LIST_PARAMS, SERIA => 'empty' });
-
     my @caption = ("$_DATE", "$_TARIF_PLAN", "$_COUNT", "$_SUM", "-");
+    %LIST_PARAMS = ( DATE => '_SHOW',
+                     TP_ID=> '_SHOW',
+                     COUNT=> '_SHOW',
+                     SUM  => '_SHOW',
+                     %LIST_PARAMS
+                   );
 
     if ($FORM{TP_ID}) {
       @caption = ("$_NUM", "$_LOGIN", "$_PASSWD", "$_TARIF_PLAN", "$_USED $_DATE");
+      %LIST_PARAMS = ( NUMBER => '_SHOW',
+                       LOGIN  => '_SHOW',
+                       PIN    => '_SHOW',
+                       TP_ID  => '_SHOW',
+                       USED   => '_SHOW',
+                       %LIST_PARAMS
+                    );
     }
+
+    my $list = $Cards->cards_list({ 
+    	                              %LIST_PARAMS, 
+    	                              COLS_NAME => 1 
+    	                            });
 
     $table = $html->table(
       {
@@ -2159,17 +2181,20 @@ sub cards_diller_stats {
 
     my @rows = ();
     foreach $line (@$list) {
-      @pin = ("$line->[14]") if ($conf{CARDS_SHOW_PINS});
       if ($FORM{TP_ID}) {
-        @rows = ($line->[0], $line->[1], $line->[2], $line->[3], $line->[4],);
+        @rows = ($line->{number}, 
+                 $line->{login}, 
+                 $line->{pin}, 
+                 $line->{tp_name}, 
+                 $line->{used}
+                );
       }
       else {
         @rows = (
-          $html->button($line->[0], "&index=$index&CREATED_DATE=$LIST_PARAMS{CREATED_DATE}&PAGE_ROWS=$LIST_PARAMS{PAGE_ROWS}" . (($line->[4] > 0) ? "&TYPE=TP&TP_ID=$line->[4]" : '&TYPE=CARDS&PAYMENTS=1')),
-          (!$line->[4]) ? $_PAYMENTS : $html->button($line->[1], "&index=$index$pages_qs&TP_ID=$line->[4]"),
-          $line->[2], 
-          $line->[3], 
-          $line->[4]
+          $html->button($line->{date}, "&index=$index&CREATED_DATE=$LIST_PARAMS{CREATED_DATE}&PAGE_ROWS=$LIST_PARAMS{PAGE_ROWS}" . (($line->{tp_id} > 0) ? "&TYPE=TP&TP_ID=$line->{tp_id}" : '&TYPE=CARDS&PAYMENTS=1')),
+          (!$line->{count}) ? $_PAYMENTS : $html->button($line->{tp_name}, "&index=$index$pages_qs&TP_ID=$line->{tp_id}"),
+          $line->{count}, 
+          $line->{sum}
         );
       }
 
@@ -2210,7 +2235,17 @@ sub cards_diller_stats {
       exit;
     }
 
-    my $list = $Cards->cards_list({ %LIST_PARAMS, SERIA => '', COLS_NAME  => 1 });
+    my $list = $Cards->cards_list({ %LIST_PARAMS, 
+    	                              SERIAL     => '', 
+    	                              NUMBER     => '_SHOW',
+    	                              LOGIN      => '_SHOW',
+    	                              SUM        => '_SHOW',
+    	                              STATUS     => '_SHOW',
+    	                              EXPIRE     => '_SHOW',
+    	                              CREATED    => '_SHOW',
+    	                              UID        => '_SHOW',
+    	                              COLS_NAME  => 1 
+    	                            });
     $table = $html->table(
       {
         width      => '100%',
@@ -2220,34 +2255,31 @@ sub cards_diller_stats {
         qs         => $pages_qs,
         pages      => $Cards->{TOTAL},
         ID         => 'CARDS_LIST',
-
       }
     );
 
     foreach $line (@$list) {
       @pin = ("$line->{pin}") if ($conf{CARDS_SHOW_PINS});
       $table->addrow(
-      $html->form_input("ID", "$line->{id}", { TYPE => 'checkbox', OUTPUT2RETURN => 1 }),
-      $line->{serial}, 
-      $line->{number}, 
-      ($user->{UID}) ? "$_PAYMENTS" : $html->button($line->{login}, "&index=11&UID=$line->{uid}"), 
-      $line->{sum}, 
-      $html->color_mark($status[ $line->{status} ], 
-      $status_colors[ $line->{status} ]), 
-      $line->{expire}, 
-      $line->{created}
+        $html->form_input("ID", "$line->{id}", { TYPE => 'checkbox', OUTPUT2RETURN => 1 }).$line->{serial}, 
+        $line->{number}, 
+        ($user->{UID}) ? "$_PAYMENTS" : $html->button($line->{login}, "&index=11&UID=$line->{uid}"), 
+        $line->{sum}, 
+        $html->color_mark($status[ $line->{status} ], 
+        $status_colors[ $line->{status} ]), 
+        $line->{expire}, 
+        $line->{created}
       );
     }
 
-
-
-      my %hidden_params = ();
-      my @p = split(/&/, $pages_qs);
-      foreach my $l (@p) {
-        my ($k, $v) = split(/=/, $l, 2);
-        $hidden_params{$k}=$v;
-      }
-      print $html->form_main(
+    my %hidden_params = ();
+    my @p = split(/&/, $pages_qs);
+    foreach my $l (@p) {
+      my ($k, $v) = split(/=/, $l, 2);
+      $hidden_params{$k}=$v;
+    }
+    
+    print $html->form_main(
         {
           CONTENT => 
           $html->form_input('pdf', 'pdf', { TYPE => 'submit', OUTPUT2RETURN => 1 }). ' '.
@@ -2275,25 +2307,29 @@ sub cards_diller_stats {
       {
         width       => '100%',
         caption     => "$_LOG",
-        title_plain => [ "$_DATE", "$_COUNT", "$_SUM", '-' ],
+        title       => [ "$_DATE", "$_COUNT", "$_SUM", '-' ],
         cols_align  => [ 'right', 'right', 'right', 'center:noprint' ],
         qs          => $pages_qs,
-        pages       => $Cards->{TOTAL}
+        pages       => $Cards->{TOTAL},
+        ID          => 'CARDS_REPORTS_DAYS'
       }
     );
 
-    my $list = $Cards->cards_report_days({ %LIST_PARAMS, SERIA => '' });
+    my $list = $Cards->cards_report_days({ %LIST_PARAMS, 
+    	                                     SERIA       => '',
+    	                                     COLS_NAME   => 1
+    	                                     });
 
     foreach $line (@$list) {
       $table->addrow(
-        $html->button($line->[0], "index=$index&TYPE=TP$pages_qs&sid=$FORM{sid}" . (($line->[0] =~ /(\d{4}-\d{2}-\d{2})/) ? "&CREATED_DATE=$1" : '')),
-        $line->[1],
-        $line->[2],
+        $html->button($line->{date}, "index=$index&TYPE=TP$pages_qs&sid=$FORM{sid}" . (($line->{date} =~ /(\d{4}-\d{2}-\d{2})/) ? "&CREATED_DATE=$1" : '')),
+        $line->{count},
+        $line->{sum},
         $html->button(
           "$_PRINT $_SUM",
           '#',
           {
-            NEW_WINDOW      => "$_SELF_URL?qindex=$index&print=$line->[0]&sid=$FORM{sid}",
+            NEW_WINDOW      => "$_SELF_URL?qindex=$index&print=$line->{date}&sid=$FORM{sid}",
             NEW_WINDOW_SIZE => "480:640",
             CLASS           => 'print'
           }
@@ -2310,7 +2346,6 @@ sub cards_diller_stats {
 #
 #**********************************************************
 sub cards_print {
-
   if ($FORM{csv}) {
     print "Content-Type: text/plain; filename=\"cards_$FORM{CREATE_DATE}.csv\"\n" . "Content-Disposition: attachment; filename=\"cards_$FORM{CREATE_DATE}.csv\"; size=" . "\n\n";
 
@@ -2322,6 +2357,7 @@ sub cards_print {
 
   $LIST_PARAMS{PAGE_ROWS} = $FORM{PAGE_ROWS} if ($FORM{PAGE_ROWS});
   
+  $Cards->{debug}=1;
   my $list = $Cards->cards_list({ NUMBER    => $FORM{NUMBER} || '_SHOW',
                                   SERIAL    => $FORM{SERIAL} || '_SHOW',
                                   LOGIN     => '_SHOW',

@@ -1430,31 +1430,6 @@ sub form_neg_deposit {
   $html->tpl_show(templates('form_neg_deposit'), $user);
 }
 
-#**********************************************************
-# get_fees_types
-#
-# return $Array_ref
-#**********************************************************
-sub get_fees_types {
-  my ($attr) = @_;
-
-  use Finance;
-  my %FEES_METHODS = ();
-
-  my $Fees         = Finance->fees($db, $admin, \%conf);
-  my $list         = $Fees->fees_type_list({ PAGE_ROWS => 10000 });
-  foreach my $line (@$list) {
-    if ($FORM{METHOD} && $FORM{METHOD} == $line->[0]) {
-      $FORM{SUM}      = $line->[3] if ($line->[3] > 0);
-      $FORM{DESCRIBE} = $line->[2] if ($line->[2]);
-    }
-
-    $FEES_METHODS{ $line->[0] } = (($line->[1] =~ /\$/) ? eval($line->[1]) : $line->[1]) . (($line->[3] > 0) ? (($attr->{SHORT}) ? ":$line->[3]" : " ($_SERVICE $_PRICE: $line->[3])") : '');
-  }
-
-  return \%FEES_METHODS;
-}
-
 
 
 1
