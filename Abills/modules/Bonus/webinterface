@@ -1207,7 +1207,9 @@ sub bonus_periodic_accomulation {
 	
 	$Bonus->{debug}=1 if ($debug > 6);
 	
-	my $tp_list = $Bonus->accomulation_rule_list({ COST => '>0', COLS_NAME => 1 });
+	my $tp_list = $Bonus->accomulation_rule_list({ COST => '>0', 
+		                                             COLS_NAME => 1 
+		                                            });
 
 	foreach my $tp (@$tp_list) {
 		$debug_output .= "TP ID: $tp->{tp_id} DV TP: $tp->{dv_tp_id}  COST: $tp->{cost}\n" if ($debug> 1);
