@@ -1052,7 +1052,7 @@ sub authentication {
       $WHERE = "AND u.domain_id='0'";
     }
 
-    $self->query2("select
+    $self->query2("SELECT
   u.uid,
   DECODE(password, '$SECRETKEY') AS passwd,
   UNIX_TIMESTAMP() AS session_start,
@@ -1087,6 +1087,13 @@ sub authentication {
       $RAD_PAIRS{'Reply-Message'} = 'SQL error';
     }
     return 1, \%RAD_PAIRS;
+  }
+
+  if ($CONF->{DV_PASSWORD}) {
+  	$self->query2("SELECT DECODE(password, '$CONF->{secretkey}') AS password FROM dv_main WHERE uid='$self->{UID}';");
+  	if($self->{list}->[0]->[0]) {
+  		$self->{PASSWD}=$self->{list}->[0]->[0];
+  	}
   }
 
   #Auth chap

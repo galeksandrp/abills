@@ -111,7 +111,8 @@ sub info {
    tp.period_alignment AS tp_period_alignment,
    tp.fixed_fees_day,
    tp.comments,
-   tp.reduction_fee
+   tp.reduction_fee,
+   DECODE(dv.password, '$CONF->{secretkey}') AS password
      FROM dv_main dv
      LEFT JOIN tarif_plans tp ON ((tp.module='Dv' or tp.module='') AND dv.tp_id=tp.id and tp.domain_id='$domain_id')
    $WHERE;",
@@ -236,7 +237,8 @@ sub change {
     JOIN_SERVICE   => 'join_service',
     TURBO_MODE     => 'turbo_mode',
     FREE_TURBO_MODE=> 'free_turbo_mode',
-    DV_EXPIRE      => 'expire'
+    DV_EXPIRE      => 'expire',
+    PASSWORD       => 'password'
   );
 
   if (!$attr->{CALLBACK}) {
@@ -532,7 +534,8 @@ sub list {
       ['TP_CREDIT',      'INT', 'tp.credit', 'tp.credit AS tp_credit' ],
       ['ONLINE',         'INT', 'c.uid',            'c.uid AS online' ],
       ['PAYMENT_TYPE',   'INT', 'tp.payment_type',                  1 ],
-      ['SHOW_PASSWORD',  '',    '',  "DECODE(u.password, '$CONF->{secretkey}') AS password," ],
+      ['SHOW_PASSWORD',  '',    '',  "DECODE(u.password, '$CONF->{secretkey}') AS password" ],
+      ['DV_PASSWORD',    '',    '',  "DECODE(dv.password, '$CONF->{secretkey}') AS dv_password" ],
       ['DV_STATUS',      'INT', 'dv.disable as dv_status',          1 ],
       ['DV_EXPIRE',      'DATE','dv.expire as dv_expire',           1 ],
       ['DV_STATUS_DATE', '',    '', '(SELECT aa.datetime FROM admin_actions aa WHERE aa.uid=dv.uid AND aa.module=\'Dv\' AND aa.action_type=4

@@ -501,6 +501,31 @@ sub dv_user {
       );
     return 0;
   }
+  elsif ($FORM{PASSWORD}) {
+    $password_form->{PW_CHARS}   = $conf{PASSWD_SYMBOLS} || "abcdefhjmnpqrstuvwxyz23456789ABCDEFGHJKLMNPQRSTUVWYXZ";
+    $password_form->{PW_LENGTH}  = $conf{PASSWD_LENGTH}  || 6;
+    $password_form->{ACTION}     = 'change';
+    $password_form->{LNG_ACTION} = "$_CHANGE";
+
+    $password_form->{ACTION}     = 'change';
+    $password_form->{LNG_ACTION} = "$_CHANGE";
+
+    $password_form->{HIDDDEN_INPUT} = $html->form_input(
+      'UID',
+      "$FORM{UID}",
+      {
+        TYPE          => 'hidden',
+        OUTPUT2RETURN => 1
+      }
+    );
+    
+    $Dv->info($FORM{UID});
+    
+    $password_form->{HIDDDEN_INPUT} .= "$_PASSWD: $Dv->{PASSWORD}";
+    $html->tpl_show(templates('form_password'), $password_form);
+
+    return 0;
+  }
   elsif ($FORM{Shedule}) {
 
   }
@@ -553,6 +578,18 @@ sub dv_user {
       if ($Dv->{TOTAL} > 0 && $list->[0]->{uid} != $FORM{UID}) {
         $html->message('err', $_ERROR, "IP: $FORM{IP} $_EXIST. $_LOGIN: " . $html->button("$list->[0]{login}", "index=15&UID=" . $list->[0]->{uid}));
         return 0;
+      }
+    }
+
+    if ($FORM{newpassword} ne '') {
+      if (! $FORM{RESET_PASSWD} && length($FORM{newpassword}) < $conf{PASSWD_LENGTH}) {
+        $html->message('err', $_ERROR, "$ERR_SHORT_PASSWD $conf{PASSWD_LENGTH}");
+      }
+      elsif ($FORM{newpassword} eq $FORM{confirm}) {
+        $FORM{PASSWORD} = $FORM{newpassword};
+      }
+      elsif ($FORM{newpassword} ne $FORM{confirm}) {
+        $html->message('err', $_ERROR, "$ERR_WRONG_CONFIRM");
       }
     }
 
@@ -806,6 +843,7 @@ sub dv_user {
 
     $Dv->{CALLBACK}          = ($Dv->{CALLBACK} == 1) ? ' checked' : '';
     $Dv->{REGISTRATION_INFO} = $html->button("$_MEMO", "qindex=$index&UID=$Dv->{UID}&REGISTRATION_INFO=1", { BUTTON => 1, ex_params => 'target=_new' });
+    $Dv->{PASSWORD_BTN}      = ($conf{DV_PASSWORD}) ?  $html->button($html->color_mark("$_PASSWD", ($Dv->{PASSWORD}) ? '' : 'red' ), "UID=$FORM{UID}&PASSWORD=1&index=$index", { BUTTON => 1 }) : '';
 
     if ($conf{DOCS_PDF_PRINT}) {
       $Dv->{REGISTRATION_INFO_PDF} = $html->button("$_MEMO (PDF)", "qindex=$index&UID=$Dv->{UID}&REGISTRATION_INFO=1&pdf=1", { ex_params => 'target=_new', BUTTON => 1 });
