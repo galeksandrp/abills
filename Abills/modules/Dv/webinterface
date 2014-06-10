@@ -5414,19 +5414,18 @@ sub dv_monthly_next_tp {
 
   my $debug         = $attr->{DEBUG} || 0;
   my $debug_output  = '';
-  my $list          = $tariffs->list({ NEXT_TARIF_PLAN => '>0', MODULE     => 'Dv' });
+  my $list          = $tariffs->list({ NEXT_TARIF_PLAN => '>0', 
+  	                                   MODULE          => 'Dv',
+  	                                   NEXT_TARIF_PLAN => '_SHOW',
+  	                                   COLS_NAME       => '_SHOW' });
+
   my ($y, $m, $d)   = split(/-/, $ADMIN_REPORT{DATE}, 3);
   my $days_in_month = ($m != 2 ? (($m % 2) ^ ($m > 7)) + 30 : (!($y % 400) || !($y % 4) && ($y % 25) ? 29 : 28));
   my $date_unixtime = mktime(0, 0, 0, $d, ($m - 1), $y - 1900, 0, 0, 0);
 
   my %CHANGED_TPS = ();
 
-  foreach my $line (@$list) {
-    my %TP_INFO = (
-      TP_ID      => $line->[0],
-      NEXT_TP_ID => $line->[22]
-    );
-
+  foreach my $tp_info (@$list) {
     $Dv->{debug} = 1 if ($debug > 6);
     my $ulist = $Dv->list(
       {
@@ -5435,7 +5434,7 @@ sub dv_monthly_next_tp {
         DV_EXPIRE    => "0000-00-00,>$ADMIN_REPORT{DATE}",
         DV_STATUS    => "0",
         LOGIN_STATUS => 0,
-        TP_ID        => $TP_INFO{TP_ID},
+        TP_ID        => $tp_info->{id},
         SORT         => 1,
         PAGE_ROWS    => 1000000,
         DELETED      => 0,
@@ -5468,18 +5467,18 @@ sub dv_monthly_next_tp {
           ($activate_y, $activate_m, $activate_d) = split(/-/, $user{ACTIVATE}, 3);
           $active_unixtime = mktime(0, 0, 0, $activate_d, $activate_m - 1, $activate_y - 1900, 0, 0, 0);
 
-          if ($date_unixtime - $active_unixtime < 30 * 86400) {
+          if ($date_unixtime - $active_unixtime < 31 * 86400) {
             next;
           }
         }
 
-        $debug_output .= " Login: $user{LOGIN} ($user{UID}) ACTIVATE $user{ACTIVATE} TP_ID: $TP_INFO{TP_ID} -> $TP_INFO{NEXT_TP_ID}\n";
+        $debug_output .= " Login: $user{LOGIN} ($user{UID}) ACTIVATE $user{ACTIVATE} TP_ID: $tp_info->{id} -> $tp_info->{next_tp_id}\n";
         $CHANGED_TPS{ $user{UID} } = 1;
         $Dv->change(
           {
             UID    => $user{UID},
             STATUS => 0,
-            TP_ID  => $TP_INFO{NEXT_TP_ID}
+            TP_ID  => $next_tp_id->{next_tp_id}
           }
         );
       }
