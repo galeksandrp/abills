@@ -104,7 +104,7 @@ sub accounting {
 
     if ($self->{TOTAL} > 0) {
       foreach my $line (@{ $self->{list} }) {
-        if ($line->[0] eq 'IP') {
+        if ($line->[0] eq 'IP' || $line->[0] eq	"$RAD->{ACCT_SESSION_ID}") {
           my $sql = "UPDATE dv_calls SET
          status='$acct_status_type',
          started=$SESSION_START, 
@@ -113,7 +113,9 @@ sub accounting {
          acct_session_id='$RAD->{ACCT_SESSION_ID}', 
          CID='$RAD->{CALLING_STATION_ID}', 
          CONNECT_INFO='$RAD->{CONNECT_INFO}'
-         WHERE user_name='$RAD->{USER_NAME}' AND nas_id='$NAS->{NAS_ID}' AND acct_session_id='IP' AND (framed_ip_address=INET_ATON('$RAD->{FRAMED_IP_ADDRESS}') OR framed_ip_address=0) 
+         WHERE user_name='$RAD->{USER_NAME}' AND nas_id='$NAS->{NAS_ID}' 
+           AND (acct_session_id='IP' OR acct_session_id='$RAD->{ACCT_SESSION_ID}')
+           AND (framed_ip_address=INET_ATON('$RAD->{FRAMED_IP_ADDRESS}') OR framed_ip_address=0) 
          ORDER BY started
          LIMIT 1;";
           $self->query2("$sql", 'do');

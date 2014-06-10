@@ -2850,11 +2850,7 @@ sub check_speed_accel {
     my $l = $online->{ $nas_info->{nas_id} };
     foreach my $line (@$l) {
       my $user_speed   = ($TURBO_SPEEDS{ $line->{user_name} }) ? $TURBO_SPEEDS{ $line->{user_name} } : $line->{speed};
-
-#      if (! defined($user_speed)){
-#        next;
-#      }
-      
+     
       my $speed_in  = ($user_speed > 0) ? $user_speed : ($TARIF_SPEEDS->{$line->{real_tp_id}}->{0}->{IN} || 0);
       my $speed_out = ($user_speed > 0) ? $user_speed : ($TARIF_SPEEDS->{$line->{real_tp_id}}->{0}->{OUT} || 0);
 
@@ -2880,9 +2876,6 @@ sub check_speed_accel {
       print "Change speed: $online->{user_name} SESSION_ID: $online->{acct_session_id}, SPEED: $speed_in/$speed_out"
             . (($ret > -1) ? ", ERROR: $ret" : "")
             . "\n" if ($debug > 0);
-
-
-      #$USER_IFACES{ $line->{user_name} } = "$line->{nas_port_id}:$line->{calls_tp_id}:$user_speed:$line->{join_service}:$line->{client_ip}:$line->{uid}:$line->{duration_sec}:$line->{CONNECT_INFO}:$line->{started}";
     }
   }
 
