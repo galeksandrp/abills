@@ -1077,7 +1077,7 @@ sub setspeed {
   $NAS      = $Nas;
   $nas_type = $NAS->{NAS_TYPE};
 
-  if ($nas_type eq 'pppd_coa') {
+  if ($nas_type eq 'pppd_coa' || $nas_type eq 'accel_ppp') {
     return setspeed_pppd_coa($NAS, $PORT, $UPSPEED, $DOWNSPEED, $attr);
   }
   else {
@@ -1129,7 +1129,11 @@ sub setspeed_pppd_coa {
 
   $r->load_dictionary($conf{'dictionary'});
 
-  $r->add_attributes({ Name => 'Framed-Protocol', Value => 'PPP' }, { Name => 'NAS-Port', Value => "$PORT" }, { Name => 'PPPD-Upstream-Speed-Limit', Value => "$UPSPEED" }, { Name => 'PPPD-Downstream-Speed-Limit', Value => "$DOWNSPEED" });
+  $r->add_attributes({ Name => 'Framed-Protocol', Value => 'PPP' }, 
+                     { Name => 'NAS-Port', Value => "$PORT" }, 
+                     { Name => 'PPPD-Upstream-Speed-Limit', Value => "$UPSPEED" }, 
+                     { Name => 'PPPD-Downstream-Speed-Limit', Value => "$DOWNSPEED" });
+
   $r->add_attributes({ Name => 'Framed-IP-Address', Value => "$attr->{FRAMED_IP_ADDRESS}" }) if $attr->{FRAMED_IP_ADDRESS};
   $r->send_packet(COA_REQUEST) and $type = $r->recv_packet;
 

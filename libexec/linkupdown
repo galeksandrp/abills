@@ -665,6 +665,7 @@ sub user_info {
   my ($attr) = @_;
 
   my $list = $Dv->get_speed($attr);
+
   if ($Dv->{errno}) {
     print "Error: User not exist '$USER' IP: $CLIENT_IP ([$Dv->{errno}] $Dv->{errstr})\n";
     my $a = `echo "$DATE $TIME / $USER - $Dv->{errno}" >> /tmp/linkupdown`;
@@ -689,6 +690,8 @@ sub user_info {
         $speeds{ $line->[2] }{OUT} = "$line->[4]";
         $nets_id{ $line->[2] } = $line->[5] if ($line->[5]);
         $expr{ $line->[2] } = "$line->[6]";
+        
+        print "Class: $line->[2] IN: $line->[3] OUT: $line->[4]\n" if ($debug> 3);
       }
 
       if ($Dv->{TOTAL} > 1) {

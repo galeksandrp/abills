@@ -244,7 +244,7 @@ sub online {
       ['JOIN_SERVICE',     'INT', 'c.join_service',                               1 ],
       ['NAS_IP',           'IP',  'nas_ip',                 'INET_NTOA(c.nas_ip_address) AS nas_ip'],
       ['ACCT_SESSION_TIME','INT', 'UNIX_TIMESTAMP() - UNIX_TIMESTAMP(c.started) AS acct_session_time',1 ],
-      ['DURATION_SEC',     'INT', 'if(c.lupdated>0, c.lupdated - UNIX_TIMESTAMP(c.started), 0) AS duration_sec', 1 ],
+      ['DURATION_SEC',     'INT', 'if(c.lupdated>UNIX_TIMESTAMP(c.started), c.lupdated - UNIX_TIMESTAMP(c.started), 0) AS duration_sec', 1 ],
       ['FILTER_ID',        'STR', 'if(service.filter_id<>\'\', service.filter_id, tp.filter_id) AS filter_id',  1 ],
       ['SESSION_START',    'INT', 'UNIX_TIMESTAMP(started) AS started_unixtime',  1 ],
       ['SERVICE_STATUS',   'INT', 'service.disable AS service_status',            1 ],
@@ -268,7 +268,8 @@ sub online {
       ['ACCT_SESSION_ID',   'STR', 'c.acct_session_id',                           1 ],
       ['UID',               'INT', 'c.uid'                                          ],
       ['LAST_ALIVE',        'INT', 'UNIX_TIMESTAMP() - c.lupdated AS last_alive', 1 ],
-      ['ONLINE_BASE',        '',   '', 'c.CID, c.acct_session_id, UNIX_TIMESTAMP() - c.lupdated AS last_alive, c.uid' ]
+      ['ONLINE_BASE',        '',   '', 'c.CID, c.acct_session_id, UNIX_TIMESTAMP() - c.lupdated AS last_alive, c.uid' ],
+      ['SHOW_TP_ID',        'INT', 'tp.tp_id', 'tp.tp_id AS real_tp_id' ]
     ],
     { WHERE             => 1,
       WHERE_RULES       => \@WHERE_RULES,
@@ -281,7 +282,7 @@ sub online {
     if (! $field) {
       print "dv_calls/online: Wrong field name\n";
     }
-    elsif ($field =~ /TP_BILLS_PRIORITY|TP_NAME|FILTER_ID|TP_CREDIT|PAYMENT_METHOD/ && $EXT_TABLE !~ /tarif_plans/) {
+    elsif ($field =~ /TP_BILLS_PRIORITY|TP_NAME|FILTER_ID|TP_CREDIT|PAYMENT_METHOD|SHOW_TP_ID/ && $EXT_TABLE !~ /tarif_plans/) {
       $EXT_TABLE .= " LEFT JOIN tarif_plans tp ON (tp.id=service.tp_id AND MODULE='Dv')";
     }
     elsif ($field =~ /NAS_NAME/ && $EXT_TABLE !~ / nas /) {
