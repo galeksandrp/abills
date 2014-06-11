@@ -164,25 +164,25 @@ sub add {
     	                                     MODULE => 'Dv',
     	                                     DOMAIN_ID => $admin->{DOMAIN_ID} || undef
     	                                    });
-      #Take activation price
-      if ($tariffs->{ACTIV_PRICE} > 0) {
-        my $user = Users->new($self->{db}, $admin, $CONF);
-        $user->info($DATA{UID});
+    #Take activation price
+    if ($tariffs->{ACTIV_PRICE} > 0) {
+      my $user = Users->new($self->{db}, $admin, $CONF);
+      $user->info($DATA{UID});
 
-        if ($CONF->{FEES_PRIORITY} =~ /bonus/ && $user->{EXT_BILL_DEPOSIT}) {
-          $user->{DEPOSIT} += $user->{EXT_BILL_DEPOSIT};
-        }
-
-        if ($user->{DEPOSIT} + $user->{CREDIT} < $tariffs->{ACTIV_PRICE} && $tariffs->{PAYMENT_TYPE} == 0) {
-          $self->{errno} = 15;
-          return $self;
-        }
-
-        my $fees = Fees->new($self->{db}, $admin, $CONF);
-        $fees->take($user, $tariffs->{ACTIV_PRICE}, { DESCRIBE => "ACTIV TP" });
-
-        $tariffs->{ACTIV_PRICE} = 0;
+      if ($CONF->{FEES_PRIORITY} =~ /bonus/ && $user->{EXT_BILL_DEPOSIT}) {
+        $user->{DEPOSIT} += $user->{EXT_BILL_DEPOSIT};
       }
+
+      if ($user->{DEPOSIT} + $user->{CREDIT} < $tariffs->{ACTIV_PRICE} && $tariffs->{PAYMENT_TYPE} == 0) {
+        $self->{errno} = 15;
+        return $self;
+      }
+
+      my $fees = Fees->new($self->{db}, $admin, $CONF);
+      $fees->take($user, $tariffs->{ACTIV_PRICE}, { DESCRIBE => "ACTIV TP" });
+
+      $tariffs->{ACTIV_PRICE} = 0;
+    }
   }
 
   $self->query2("INSERT INTO dv_main (uid, registration, 
@@ -199,13 +199,15 @@ sub add {
              join_service,
              turbo_mode,
              free_turbo_mode,
-             expire)
+             expire,
+             password)
         VALUES ('$DATA{UID}', now(),
         '$DATA{TP_ID}', '$DATA{SIMULTANEONSLY}', '$DATA{STATUS}', INET_ATON('$DATA{IP}'), 
         INET_ATON('$DATA{NETMASK}'), '$DATA{SPEED}', '$DATA{FILTER_ID}', LOWER('$DATA{CID}'),
         '$DATA{CALLBACK}',
         '$DATA{PORT}', '$DATA{JOIN_SERVICE}', '$DATA{TURBO_MODE}', '$DATA{FREE_TURBO_MODE}',
-        '$DATA{DV_EXPIRE}');", 'do'
+        '$DATA{DV_EXPIRE}',
+        '$DATA{PASSWORD}');", 'do'
   );
 
   return $self if ($self->{errno});
