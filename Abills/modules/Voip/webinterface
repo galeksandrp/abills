@@ -2973,7 +2973,6 @@ sub voip_mk_users_conf {
 
   my $content = '';
 
-  $Voip->{debug}=1;
   my $list = $Voip->user_list(
     {
       PAGE_ROWS => 100000,

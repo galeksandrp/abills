@@ -45,6 +45,8 @@ sub docs_contract {
     my $user_main_info = $users->info($FORM{UID}, { SHOW_PASSWORD => 1 });
     $users->pi({ UID => $FORM{UID} });
 
+    $FORM{DOMAIN_ID}=$users->{DOMAIN_ID} if ($users->{DOMAIN_ID}) ;
+
     my ($y, $m, $d) = split(/-/, (($users->{CONTRACT_DATE}) ? $users->{CONTRACT_DATE} : $DATE), 3);
     $users->{CONTRACT_DATE_LIT} = "$d " . $MONTHES_LIT[ int($m) - 1 ] . " $y $_YEAR_SHORT";
     if ($y=~/(\d{2})$/) {
