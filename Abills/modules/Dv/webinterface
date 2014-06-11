@@ -522,6 +522,7 @@ sub dv_user {
     $Dv->info($FORM{UID});
     
     $password_form->{HIDDDEN_INPUT} .= "$_PASSWD: $Dv->{PASSWORD}";
+    $password_form->{BACK_BUTTON}   =  $html->form_input("RESET", "$_RESET", { TYPE => 'SUBMIT' });
     $html->tpl_show(templates('form_password'), $password_form);
 
     return 0;
@@ -563,7 +564,7 @@ sub dv_user {
       }
     }
   }
-  elsif ($FORM{change}) {
+  elsif ($FORM{change} || $FORM{RESET}) {
     if (!$permissions{0}{4}) {
       $html->message('err', $_ERROR, "$ERR_ACCESS_DENY");
       return 0;
@@ -581,7 +582,11 @@ sub dv_user {
       }
     }
 
-    if ($FORM{newpassword} ne '') {
+    if ($FORM{RESET}) {
+    	$FORM{PASSWORD}='__RESET__';
+    	$html->message('info', $_INFO, "$_PASSWD $_RESETED");
+    }
+    elsif ($FORM{newpassword} ne '') {
       if (! $FORM{RESET_PASSWD} && length($FORM{newpassword}) < $conf{PASSWD_LENGTH}) {
         $html->message('err', $_ERROR, "$ERR_SHORT_PASSWD $conf{PASSWD_LENGTH}");
       }
@@ -599,17 +604,18 @@ sub dv_user {
       my $Shedule = Shedule->new($db, $admin, \%conf);
       my $list = $Shedule->list(
         {
-          UID    => $FORM{UID},
-          MODULE => 'Dv',
-          TYPE   => 'status',
-          ACTION => '0'
+          UID       => $FORM{UID},
+          MODULE    => 'Dv',
+          TYPE      => 'status',
+          ACTION    => '0',
+          COLS_NAME => 1
         }
       );
       if ($Shedule->{TOTAL} == 1) {
         $Shedule->del(
           {
             UID => $FORM{UID},
-            IDS => $list->[0][14]
+            IDS => $list->[0]->{shedule_id}
           }
         );
       }

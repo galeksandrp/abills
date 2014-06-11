@@ -583,8 +583,14 @@ sub changes {
     if ($FIELDS->{$k} && defined($DATA{$k}) && $OLD_DATA->{$k} ne $DATA{$k}) {
       if ($k eq 'PASSWORD' || $k eq 'NAS_MNG_PASSWORD') {
         if ($DATA{$k}) {
-          $CHANGES_LOG   .= "$k *->*;";
-          $CHANGES_QUERY .= "$FIELDS->{$k}=ENCODE('$DATA{$k}', '$CONF->{secretkey}'),";
+          if ($DATA{$k} eq '__RESET__') {
+            $CHANGES_LOG   .= "$k *->reset;";
+            $CHANGES_QUERY .= "$FIELDS->{$k}='',";
+          }
+          else {
+            $CHANGES_LOG   .= "$k *->*;";
+            $CHANGES_QUERY .= "$FIELDS->{$k}=ENCODE('$DATA{$k}', '$CONF->{secretkey}'),";
+          }
         }
       }
       elsif ($k eq 'IP' || $k eq 'NETMASK') {
