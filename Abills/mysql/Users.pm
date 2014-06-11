@@ -746,7 +746,7 @@ sub list {
     }
 
     @WHERE_RULES = ("(". join(' or ', @us_query) .")");
-    if ($admin->{DOMAIN_ID} || $attr->{DOMAIN_ID}) {
+    if ($admin->{DOMAIN_ID} || ($attr->{DOMAIN_ID} && $attr->{DOMAIN_ID} ne '_SHOW' )) {
       push @WHERE_RULES, 'u.domain_id=\'' . ($admin->{DOMAIN_ID} || $attr->{DOMAIN_ID} || 0) . '\'';
     }
   }

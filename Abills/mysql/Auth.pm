@@ -330,10 +330,9 @@ sub dv_auth {
       }
       # Zap session with same CID
       elsif ( $line->[0] ne ''
-        && $line->[0] eq $cid
+        && ($line->[0] eq $cid && $active_nas{$line->[2]} && $active_nas{$line->[2]} eq $line->[0])
         && $NAS->{NAS_TYPE} ne 'ipcad'
-        && $active_nas{ $line->[2] }
-        && $active_nas{ $line->[2] } eq $line->[0])
+        )
       {
         $self->query2("UPDATE dv_calls SET status=2 WHERE user_name='$RAD->{USER_NAME}' and CID='$cid ' and status <> 2;", 'do');
         $self->{IP} = $line->[1] if ($line->[2] eq $NAS->{NAS_ID});
