@@ -536,7 +536,6 @@ sub list {
       ['TP_CREDIT',      'INT', 'tp.credit', 'tp.credit AS tp_credit' ],
       ['ONLINE',         'INT', 'c.uid',            'c.uid AS online' ],
       ['PAYMENT_TYPE',   'INT', 'tp.payment_type',                  1 ],
-      ['SHOW_PASSWORD',  '',    '',  "DECODE(u.password, '$CONF->{secretkey}') AS password" ],
       ['DV_PASSWORD',    '',    '',  "DECODE(dv.password, '$CONF->{secretkey}') AS dv_password" ],
       ['DV_STATUS',      'INT', 'dv.disable as dv_status',          1 ],
       ['DV_EXPIRE',      'DATE','dv.expire as dv_expire',           1 ],

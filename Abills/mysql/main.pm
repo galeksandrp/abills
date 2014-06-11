@@ -352,6 +352,7 @@ sub search_former {
                                             'BILL_ID',
                                             'LOGIN_STATUS',
                                             'DOMAIN_ID',
+                                            'PASSWORD',
                                             
                                             'ACTIVATE',
                                             'EXPIRE',

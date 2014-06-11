@@ -483,7 +483,6 @@ sub voip_tp_routes {
     @DAY_NAMES = ("$_ALL", 'Sun', 'Mon', 'Tue', 'Wen', 'The', 'Fri', 'Sat', "$_HOLIDAYS");
     my $list = $Voip_tp->ti_list({%LIST_PARAMS});
     foreach my $line (@$list) {
-
       push @caption,      "$_SUM (Min): " . $DAY_NAMES[ $line->[1] ] . "/ $line->[2]-$line->[3]";
       push @aligns,       'center';
       push @interval_ids, $line->[0];
@@ -2769,7 +2768,9 @@ sub voip_gk_console {
       border     => 1,
       title      => [ "#", "$_NAME", 'NAS-Identifier', 'IP' ],
       cols_align => [ 'right', 'left', 'left', 'right' ],
-      qs         => $pages_qs
+      qs         => $pages_qs,
+      ID         => 'NAS_INFO'
+      
     }
   );
 
@@ -2972,6 +2973,7 @@ sub voip_mk_users_conf {
 
   my $content = '';
 
+  $Voip->{debug}=1;
   my $list = $Voip->user_list(
     {
       PAGE_ROWS => 100000,
@@ -3487,14 +3489,11 @@ sub voip_get_month_fee {
 sub voip_ivr_log {
   my ($attr)=@_;
 
-
-  $Voip->{debug}=1;
-  
   if (! $FORM{sort}) {
   	$LIST_PARAMS{SORT}=1;
   	$LIST_PARAMS{DESC}='DESC';
   }
-  
+
   my ($table, $list) = result_former({
      INPUT_DATA      => $Voip,
      FUNCTION        => 'log_list',
@@ -3521,8 +3520,6 @@ sub voip_ivr_log {
      MODULE       => 'Voip',
      TOTAL        => 1
     });
-
-
 }
 
 

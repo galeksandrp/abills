@@ -340,7 +340,6 @@ sub user_list {
       ['VOIP_EXPIRE',    'DATE','service.expire AS voip_expire',    1 ],
       ['PROVISION_PORT', 'INT', 'service.provision_port',           1 ],
       ['PROVISION_NAS_ID','INT','service.provision_nas_id',         1 ],
-      #['PASSWORD',       'STR', "DECODE(u.password, '$CONF->{secretkey}')",  "DECODE(u.password, '$CONF->{secretkey}') AS password" ],
     ],
     { WHERE       => 1,
     	WHERE_RULES => \@WHERE_RULES,
