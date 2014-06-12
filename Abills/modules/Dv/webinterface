@@ -5422,7 +5422,7 @@ sub dv_monthly_next_tp {
   my $debug_output  = '';
   my $list          = $tariffs->list({ NEXT_TARIF_PLAN => '>0', 
   	                                   MODULE          => 'Dv',
-  	                                   NEXT_TARIF_PLAN => '_SHOW',
+  	                                   NEXT_TARIF_PLAN => '>0',
   	                                   COLS_NAME       => '_SHOW' });
 
   my ($y, $m, $d)   = split(/-/, $ADMIN_REPORT{DATE}, 3);
