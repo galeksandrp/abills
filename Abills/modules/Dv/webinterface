@@ -348,7 +348,7 @@ sub dv_users_list {
   }
 
   if ($FORM{search_form}) {
-  	$index=get_function_index('dv_users_list');
+    $index=get_function_index('dv_users_list');
     dv_users_search($Dv);
   }
 
@@ -583,8 +583,8 @@ sub dv_user {
     }
 
     if ($FORM{RESET}) {
-    	$FORM{PASSWORD}='__RESET__';
-    	$html->message('info', $_INFO, "$_PASSWD $_RESETED");
+      $FORM{PASSWORD}='__RESET__';
+      $html->message('info', $_INFO, "$_PASSWD $_RESETED");
     }
     elsif ($FORM{newpassword} ne '') {
       if (! $FORM{RESET_PASSWD} && length($FORM{newpassword}) < $conf{PASSWD_LENGTH}) {
@@ -705,15 +705,15 @@ sub dv_user {
         || $Dv->{PAYMENT_TYPE} == 1)
     )
     {
-   	  my $days_to_fees = 0 ;
-   	  my ($from_year, $from_month, $from_day) = split(/-/, $DATE,            3);
+       my $days_to_fees = 0 ;
+       my ($from_year, $from_month, $from_day) = split(/-/, $DATE,            3);
       if ($Dv->{MONTH_ABON} > 0) {
-      	
-      	if ($Dv->{REDUCTION_FEE} && $users->{REDUCTION} == 100) {
-      		$Dv->{NEXT_FEES_WARNING} = "$_NEXT_FEES: -- $_REDUCTION: 100%";
-      	}
+        
+        if ($Dv->{REDUCTION_FEE} && $users->{REDUCTION} == 100) {
+          $Dv->{NEXT_FEES_WARNING} = "$_NEXT_FEES: -- $_REDUCTION: 100%";
+        }
         elsif ($Dv->{ABON_DISTRIBUTION} && $Dv->{MONTH_ABON} > 0) {
-        	if ($users->{REDUCTION} < 100) {
+          if ($users->{REDUCTION} < 100) {
             $days_to_fees = int(($users->{DEPOSIT} + $users->{CREDIT}) * (100 / (100 - $users->{REDUCTION})) / ($Dv->{MONTH_ABON} / 30));
             $Dv->{NEXT_FEES_WARNING} = "$_SERVICE_ENDED";
             $Dv->{NEXT_FEES_WARNING} =~ s/\%DAYS\%/$days_to_fees/g;
@@ -761,7 +761,7 @@ sub dv_user {
         }
       }
       elsif ($Dv->{DAY_ABON} > 0) {
-      	if ($users->{REDUCTION} < 100) {
+        if ($users->{REDUCTION} < 100) {
           $days_to_fees = int(($users->{DEPOSIT} + $users->{CREDIT} > 0) ?  ($users->{DEPOSIT} + $users->{CREDIT}) * (100 / (100 - $users->{REDUCTION}) / $Dv->{DAY_ABON}) : 0);
           $Dv->{NEXT_FEES_WARNING} = "$_SERVICE_ENDED: $days_to_fees";
         }
@@ -772,11 +772,11 @@ sub dv_user {
       }
 
       if ($days_to_fees > 0) {
-    	  my $expire_date = strftime "%Y-%m-%d", localtime(POSIX::mktime(0, 0, 0, $from_day, ($from_month - 1), ($from_year - 1900)) + 86400 * $days_to_fees);
+        my $expire_date = strftime "%Y-%m-%d", localtime(POSIX::mktime(0, 0, 0, $from_day, ($from_month - 1), ($from_year - 1900)) + 86400 * $days_to_fees);
         $Dv->{NEXT_FEES_WARNING} .= " ($expire_date)";
       }
       elsif ($Dv->{DV_EXPIRE} ne '0000-00-00') {
-    	  $Dv->{SERVICE_EXPIRE_DATE}=$Dv->{DV_EXPIRE} if ($FORM{xml});
+        $Dv->{SERVICE_EXPIRE_DATE}=$Dv->{DV_EXPIRE} if ($FORM{xml});
       }
     }
     
@@ -828,11 +828,11 @@ sub dv_user {
     }
 
     $list = $admin->action_list({ TYPE => '4;14', 
-    	                            UID  => $FORM{UID}, 
-    	                            DATETIME  => '_SHOW',
-    	                            PAGE_ROWS => 1, 
-    	                            COLS_NAME => 1,
-    	                            DESC      => 'desc' });
+                                  UID  => $FORM{UID}, 
+                                  DATETIME  => '_SHOW',
+                                  PAGE_ROWS => 1, 
+                                  COLS_NAME => 1,
+                                  DESC      => 'desc' });
     if ($admin->{TOTAL} > 0) {
       $list->[0]->{datetime} =~ /(\d{4}-\d{2}-\d{2})/;
       my $status_date = $1;
@@ -1849,16 +1849,16 @@ sub dv_online {
       undef($table->{extra});
 
       if (defined($dub_logins->{ $line->{user_name} }) && $dub_logins->{ $line->{user_name} } > 1) {
-      	$table->{rowcolor} = '#FFFF00';
+        $table->{rowcolor} = '#FFFF00';
       }
       elsif ($nas_row->{nas_type} ne 'ipcad' 
              && $nas_row->{nas_type} ne 'dhcp' 
              && defined($dub_ports->{ $nas_row->{nas_id} }{ $line->{nas_port_id} }) 
              && $dub_ports->{ $nas_row->{nas_id} }{ $line->{nas_port_id} } > 1) {
-      	$table->{rowcolor} = '#00FF40';
+        $table->{rowcolor} = '#00FF40';
       }
       elsif (defined($dub_ips->{ $nas_row->{nas_id} }{ $line->{client_ip} }) && $dub_ips->{ $nas_row->{nas_id} }{ $line->{client_ip} } > 1) {
-      	$table->{rowcolor} = '#0080C0';
+        $table->{rowcolor} = '#0080C0';
       }
 
 
@@ -1913,9 +1913,9 @@ sub dv_online {
         }
 
         if ($FORM{FILTER} && $FORM{FILTER_FIELD} eq uc($sessions->{COL_NAMES_ARR}->[$i])) {
-        	my $filter = $FORM{FILTER};
-        	$filter=~s/\*//g;
-        	my $search_color_mark=$html->color_mark($filter, $_COLORS[6]);
+          my $filter = $FORM{FILTER};
+          $filter=~s/\*//g;
+          my $search_color_mark=$html->color_mark($filter, $_COLORS[6]);
           $val =~ s/(.*)$filter(.*)/$1$search_color_mark$2/i;
         }
       
@@ -2745,11 +2745,11 @@ sub dv_error {
       my $message = $line->{message};
     
       if($line->{log_type} < 5) {
-      	$message = $html->color_mark($line->{message}, "$_COLORS[6]");
+        $message = $html->color_mark($line->{message}, "$_COLORS[6]");
       }
       elsif($line->{action} eq 'GUEST_MODE') {
-    	  $message = $html->color_mark($line->{message}, "$_COLORS[8]");
-    	  $line->{action} = $html->color_mark($line->{action}, "$_COLORS[8]");
+        $message = $html->color_mark($line->{message}, "$_COLORS[8]");
+        $line->{action} = $html->color_mark($line->{action}, "$_COLORS[8]");
       }
 
       $table->addrow($line->{date}, 
@@ -3420,7 +3420,7 @@ sub dv_user_stats {
   }
 
   $list  = $sessions->list({ %LIST_PARAMS, 
-  	                         COLS_NAME => 1 });
+                             COLS_NAME => 1 });
   $table = $html->table(
     {
       caption     => "$_SUM",
@@ -4649,12 +4649,12 @@ sub dv_user_info {
     }
 
     if ($days_to_fees > 0) {
-    	my $expire_date = strftime "%Y-%m-%d", localtime(POSIX::mktime(0, 0, 0, $from_day, ($from_month - 1), ($from_year - 1900)) + 86400 * $days_to_fees);
+      my $expire_date = strftime "%Y-%m-%d", localtime(POSIX::mktime(0, 0, 0, $from_day, ($from_month - 1), ($from_year - 1900)) + 86400 * $days_to_fees);
       $Dv->{NEXT_FEES_WARNING} .= " ($expire_date)";
       $Dv->{SERVICE_EXPIRE_DATE}=$expire_date if ($FORM{xml});
     }
     elsif ($Dv->{DV_EXPIRE} ne '0000-00-00') {
-    	$Dv->{SERVICE_EXPIRE_DATE}=$Dv->{DV_EXPIRE} if ($FORM{xml});
+      $Dv->{SERVICE_EXPIRE_DATE}=$Dv->{DV_EXPIRE} if ($FORM{xml});
     }
   }
 
@@ -5420,10 +5420,10 @@ sub dv_monthly_next_tp {
 
   my $debug         = $attr->{DEBUG} || 0;
   my $debug_output  = '';
+  $tariffs->{debug}=1 if ($debug > 6);
   my $list          = $tariffs->list({ NEXT_TARIF_PLAN => '>0', 
-  	                                   MODULE          => 'Dv',
-  	                                   NEXT_TARIF_PLAN => '>0',
-  	                                   COLS_NAME       => '_SHOW' });
+                                       MODULE          => 'Dv',
+                                       COLS_NAME       => 1 });
 
   my ($y, $m, $d)   = split(/-/, $ADMIN_REPORT{DATE}, 3);
   my $days_in_month = ($m != 2 ? (($m % 2) ^ ($m > 7)) + 30 : (!($y % 400) || !($y % 4) && ($y % 25) ? 29 : 28));
@@ -5465,10 +5465,11 @@ sub dv_monthly_next_tp {
         CREDIT     => ($u->{credit} > 0) ? $u->{credit} : ($CONF->{user_credit_change}) ? 0 : $line->[15],
         COMPANY_ID => $u->{company_id},
         DV_STATUS  => $u->{dv_status},
-        EXT_DEPOSIT => ($u->{ext_deposit}) ? $u->{ext_deposit} : 0,
+        EXT_DEPOSIT=> ($u->{ext_deposit}) ? $u->{ext_deposit} : 0,
       );
 
       if (!$CHANGED_TPS{ $user{UID} } && ($d == $START_PERIOD_DAY || $user{ACTIVATE} ne '0000-00-00')) {
+
         if ($user{ACTIVATE} ne '0000-00-00') {
           ($activate_y, $activate_m, $activate_d) = split(/-/, $user{ACTIVATE}, 3);
           $active_unixtime = mktime(0, 0, 0, $activate_d, $activate_m - 1, $activate_y - 1900, 0, 0, 0);
@@ -5484,7 +5485,7 @@ sub dv_monthly_next_tp {
           {
             UID    => $user{UID},
             STATUS => 0,
-            TP_ID  => $next_tp_id->{next_tp_id}
+            TP_ID  => $tp_info->{next_tp_id}
           }
         );
       }
@@ -6349,9 +6350,9 @@ sub dv_sheduler {
       return $Dv->{errno};
     }
     else {
-    	if ($Dv->{TP_INFO}->{ABON_DISTRIBUTION} || $d == $START_PERIOD_DAY) {
+      if ($Dv->{TP_INFO}->{ABON_DISTRIBUTION} || $d == $START_PERIOD_DAY) {
         $Dv->{TP_INFO}->{MONTH_FEE} = 0;
-    	}
+      }
 
       $FORM{RECALCULATE} = 1;
       service_get_month_fee($Dv, { QUITE => 1, SHEDULER => 1 });
@@ -6450,7 +6451,7 @@ sub dv_report {
 # Make cards
 #*******************************************************************
 sub dv_cards {
-	load_module('Cards', $html);
+  load_module('Cards', $html);
 
   if ($admin->{MODULES} && !$admin->{MODULES}{Cards}) {
     $html->message('err', $_ERROR, "$ERR_ACCESS_DENY");
@@ -6715,7 +6716,7 @@ sub dv_wizard_user {
       # Add E-Mail account
       my $Mail;
       if (in_array('Mail', \@MODULES) && $FORM{'6.USERNAME'}) {
-      	load_module('Mail', $html);
+        load_module('Mail', $html);
 
         $Mail = Mail->new($db, $admin, \%conf);
 
@@ -7266,7 +7267,7 @@ sub dv_dhcp_get_mac_add {
       $PARAMS_HASH{IP} = dhcphosts_get_static_ip($net_id);
       
       if($PARAMS_HASH{IP} == -1) {
-      	return 0;
+        return 0;
       }
 
       $Dhcphosts->host_add(
@@ -7419,7 +7420,7 @@ sub dv_compensation () {
       $days = date_diff($FORM{FROM_DATE}, $FORM{TO_DATE});
       $sum = $days * ($Dv->{MONTH_ABON} / 30);
       if ($Dv->{DAY_ABON} > 0) {
-      	$sum += $days * $Dv->{DAY_ABON}; 
+        $sum += $days * $Dv->{DAY_ABON}; 
       }      
     }
     else {
