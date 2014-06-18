@@ -1,5 +1,17 @@
 =====0.56=====
 
+16.06.2014\\
+  * ''Dv'' Отдельный пароль для сервиса
+  * ''Dv'' мониторинг дубликаты IP  адресов отмечаются синим
+  * ''Dv'' Дополнительная программа диагностики соединения $conf{DV_EXTERNAL_DIAGNOSTIC}
+  * accel_ppp динамическое изменении скорости через RADIUS CoA
+  * ''Paysys'' добавлен [[abills:docs:modules:paysys:ru#interaktivnyj_rezhim|интерактивные режим пополнения]]
+  * ''Paysys'' добавлена минимальная максимальная сума пополнения
+
+MySQL:\\
+  ALTER TABLE admins ADD COLUMN max_credit double(12,4) NOT NULL default '0.00';
+  ALTER TABLE admins ADD COLUMN credit_days SMALLINT not null default 0;
+ 
 12.05.2014\\
 
   * Voip IVR  добавлена возможность выставление кредита

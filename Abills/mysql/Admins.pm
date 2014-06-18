@@ -189,6 +189,8 @@ sub info {
      a.pasport_grant,
      a.inn,
      a.birthday,
+     a.max_credit, 
+     a.credit_days,
      $PASSWORD
      FROM 
       admins a
@@ -290,7 +292,9 @@ sub change {
     PASPORT_DATE     => 'pasport_date',
     PASPORT_GRANT    => 'pasport_grant',
     INN              => 'inn',
-    BIRTHDAY         => 'birthday'
+    BIRTHDAY         => 'birthday',
+    MAX_CREDIT       => 'max_credit', 
+    CREDIT_DAYS      => 'credit_days'
   );
 
   if (!$attr->{A_LOGIN}) {
@@ -327,11 +331,13 @@ sub add {
 
   $self->query2("INSERT INTO admins (id, name, regdate, phone, disable, gid, email, comments, password, domain_id,
   min_search_chars, max_rows,
-  address, cell_phone, pasport_num, pasport_date, pasport_grant, inn, birthday) 
+  address, cell_phone, pasport_num, pasport_date, pasport_grant, inn, birthday,
+  max_credit, credit_days) 
    VALUES ('$DATA{A_LOGIN}', '$DATA{A_FIO}', now(),  '$DATA{A_PHONE}', '$DATA{DISABLE}', '$DATA{GID}', 
    '$DATA{EMAIL}', '$DATA{A_COMMENTS}', '$DATA{PASSWORD}', '$DATA{DOMAIN_ID}',
    '$DATA{MIN_SEARCH_CHARS}', '$DATA{MAX_ROWS}',
-   '$DATA{ADDRESS}', '$DATA{CELL_PHONE}', '$DATA{PASPORT_NUM}', '$DATA{PASPORT_DATE}', '$DATA{PASPORT_GRANT}', '$DATA{INN}', '$DATA{BIRTHDAY}');", 'do'
+   '$DATA{ADDRESS}', '$DATA{CELL_PHONE}', '$DATA{PASPORT_NUM}', '$DATA{PASPORT_DATE}', '$DATA{PASPORT_GRANT}', '$DATA{INN}', '$DATA{BIRTHDAY}',
+   '$DATA{MAX_CREDIT}', '$DATA{CREDIT_DAYS}');", 'do'
   );
 
   $self->{AID} = $self->{INSERT_ID};

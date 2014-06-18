@@ -365,7 +365,7 @@ sub domain_list {
 
   return $self if ($self->{errno});
 
-  my $list = $self->{list};
+  $list = $self->{list};
 
   if ($self->{TOTAL} >= 0) {
     $self->query2("SELECT count(*) AS total FROM mail_domains md $WHERE", undef, { INFO => 1 });

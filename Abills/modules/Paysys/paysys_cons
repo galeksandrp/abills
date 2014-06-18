@@ -161,6 +161,7 @@ sub paysys_import_form {
   #Make users binding hash
   my $ids = join(';', @$BINDING_IDS);
   my $users = Users->new($db, $admin, \%conf);
+  $users->{debug}=1 if ($debug > 7);
   my $list = $users->list(
     {
       FIO            => '_SHOW',
@@ -171,9 +172,10 @@ sub paysys_import_form {
     }
   );
 
-  $binding_field_id = lc($BINDING_FIELD);
+  $binding_field_id = ($BINDING_FIELD eq 'LOGIN') ? 'id' : lc($BINDING_FIELD) ;
 
   foreach my $line (@$list) {
+  	$line->{login} = (! $line->{login}) ? $line->{id} : $line->{login};
     $binding_hash{ lc($line->{$binding_field_id}) } = "$line->{uid}:$line->{login}:" . (($line->{fio}) ? $line->{fio} : '');
   }
 
