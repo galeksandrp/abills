@@ -2517,6 +2517,21 @@ sub paysys_paypal {
 
         my $resArray = CallPay($actionType, $cancelUrl, $returnUrl, [ $conf{PAYSYS_PAYPAL_RECIEVER_EMAIL} ], [ $FORM{FULL_SUM} ], $receiverPrimaryArray, [ $FORM{OPERATION_ID} ], $feesPayer, $ipnNotificationUrl, $memo, $pin, $preapprovalKey, $reverseAllParallelPaymentsOnError, $senderEmail, $trackingId);
 
+        my $message = '';
+        if ($resArray->{'error(0).errorId'}) {
+          #Invalid header
+          if($resArray->{'error(0).errorId'} == 560022) {
+            $message = $resArray->{'error(0).message'};
+          }
+          else {
+            $message = $resArray->{'error(0).message'};
+          }
+
+          $message =~ s/\+/ /g;
+          $message =~ s/\%3A/:/g;
+          $message =~ s/\%2C/,/g;
+        }
+
         #Info section
         $Paysys->add(
          {
@@ -2525,11 +2540,11 @@ sub paysys_paypal {
             SUM            => $FORM{SUM},
             UID            => $LIST_PARAMS{UID},
             IP             => "$ENV{'REMOTE_ADDR'}",
-            TRANSACTION_ID => "$payment_system:" . $resArray->{"payKey"},
-            INFO           => "$FORM{OPERATION_ID} FULL_SUM: $FORM{FULL_SUM}",
+            TRANSACTION_ID => "$payment_system:" . ($resArray->{'payKey'} || $FORM{OPERATION_ID}),
+            INFO           => "OPERATION_ID: $FORM{OPERATION_ID} FULL_SUM: $FORM{FULL_SUM}". (! $resArray->{'responseEnvelope.ack'} || $resArray->{'responseEnvelope.ack'} ne 'Success') ? $message : '',
             CODE           => "$FORM{OPERATION_ID}",
             PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}",
-            STATUS         => 1
+            STATUS         => ($resArray->{'responseEnvelope.ack'} && $resArray->{'responseEnvelope.ack'} eq 'Success') ? 1 : 6
          }
         ); 
 
@@ -2549,21 +2564,7 @@ sub paysys_paypal {
           }
         }
         else {
-
-          my $message = '';
-          if ($resArray->{'error(0).errorId'}) {
-            #Invalid header
-             if($resArray->{'error(0).errorId'} == 560022) {
-              $message = $resArray->{'error(0).message'};
-            }
-            else {
-              $message = $resArray->{'error(0).message'};
-            }
-
-            $message =~ s/\+/ /g;
-           }
-        
-          $html->message('err', $_ERROR, "$_FAILED ID: $FORM{OrderID}\n$message");
+          $html->message('err', $_ERROR, "$_FAILED ID: $FORM{OPERATION_ID}\n\n$message");
         
           if ($conf{PAYSY_DEBUG} > 2) {
             print "Content-Type: text/html\n\n";
