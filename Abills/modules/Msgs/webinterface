@@ -1011,6 +1011,7 @@ sub msgs_admin {
       	    }
           }
           elsif ($Msgs->{COL_NAMES_ARR}->[$i] eq 'subject') {
+          	$line->{subject} = convert($line->{subject}, { text2html => 1 });
       	    $val = $html->button((($line->{subject}) ? "$line->{subject}" : $_NO_SUBJECT), "index=$index&UID=$line->{uid}&chg=$line->{id}");
           }
           elsif ($Msgs->{COL_NAMES_ARR}->[$i] eq 'priority') {
@@ -1531,7 +1532,7 @@ sub msgs_user {
 
   foreach my $line (@$list) {
     $table->{rowcolor} = ($line->{id} == $FORM{ID}) ? 'row_active' : undef;
-
+    $line->{subject} = convert($line->{subject}, { text2html => 1 });
     $table->addrow(
       ($line->{user_read} ne '0000-00-00 00:00:00') ? $html->button((($line->{subject}) ? "$line->{subject}" : $_NO_SUBJECT), "index=$index&ID=$line->{id}&sid=$sid") : $html->button($html->b((($line->{subject}) ? "$line->{subject}" : $_NO_SUBJECT)), "index=$index&ID=$line->{id}&sid=$sid"),
       $line->{chapter_name}, 
