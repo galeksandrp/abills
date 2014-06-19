@@ -432,7 +432,7 @@ sub dv_user {
 
   $Dv->{UID} = $FORM{UID} || $LIST_PARAMS{UID};
   undef $Dv->{errno};
-  
+
   #print "// -- $FORM{add}-- / $FORM{REGISTRATION_INFO} /";
   
   if ($FORM{REGISTRATION_INFO}) {
@@ -456,7 +456,6 @@ sub dv_user {
       if (in_array('Mail', \@MODULES)) {
         load_module('Mail', $html);
         my $Mail = Mail->new($db, $admin, \%conf);
-
         my $list = $Mail->mbox_list({ UID => $Dv->{UID} });
         foreach my $line (@$list) {
           $Mail->{EMAIL_ADDR} = $line->[0] . '@' . $line->[1];
@@ -487,8 +486,9 @@ sub dv_user {
         $i++;
       }
     }
-
     print $html->header();
+    $Dv->{PASSWORD} = $user->{PASSWORD} if (! $Dv->{PASSWORD}) ;
+
     return $html->tpl_show(
         _include('dv_user_memo', 'Dv', { pdf => $FORM{pdf} }),
         {

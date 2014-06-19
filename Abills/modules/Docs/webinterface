@@ -2877,7 +2877,6 @@ sub docs_print {
       $FORM{ERR_MESSAGE} = "E-mail $_NOT_EXIST";
       return 0;
     }
-
     sendmail(
       "$conf{ADMIN_MAIL}",
       $attr->{EMAIL} || $users->{EMAIL},

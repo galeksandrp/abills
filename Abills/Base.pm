@@ -338,7 +338,6 @@ sub sendmail {
     }
   }
 
-  #  $attr->{TEST}=1;
   my $ext_header = '';
   $message =~ s/#.+//g;
   if ($message =~ s/Subject: (.+)[\n\r]+//g) {
@@ -384,7 +383,11 @@ $data}
     }
     $message .= "--$boundary" . "--\n\n";
   }
-
+  
+if ($attr->{TEST})   {
+  print "!> $attr->{TEST} !!!!!!!!!!!!!!!!!!!!!!!!!!!!";
+  exit;
+}
   my @emails_arr = split(/;/, $to_addresses);
   foreach my $to (@emails_arr) {
     if ($attr->{TEST}) {

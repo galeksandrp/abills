@@ -251,7 +251,7 @@ elsif (defined($args->{daily})) {
                    FILENAME     => 'report_'.$YESTERDAY .'.txt',
                  }
               ],
-              TEST => $DEBUG || undef
+              TEST => ($debug>5) ? 1 : undef
              }
             );
   }

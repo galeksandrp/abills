@@ -30,7 +30,9 @@ use main;
 #**********************************************************
 sub new {
   my $class = shift;
-  ($db, $admin, $CONF) = @_;
+  my $db    = shift;
+  ($admin, $CONF) = @_;
+
   $admin->{MODULE} = 'Mail';
   my $self = {};
   bless($self, $class);
@@ -365,7 +367,7 @@ sub domain_list {
 
   return $self if ($self->{errno});
 
-  $list = $self->{list};
+  my $list = $self->{list};
 
   if ($self->{TOTAL} >= 0) {
     $self->query2("SELECT count(*) AS total FROM mail_domains md $WHERE", undef, { INFO => 1 });
