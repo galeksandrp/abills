@@ -737,8 +737,17 @@ sub report_tp {
   $DESC      = ($attr->{DESC})      ? $attr->{DESC}      : '';
   $PG        = ($attr->{PG})        ? $attr->{PG}        : 0;
   $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
-  
-  $WHERE = ($#WHERE_RULES > -1) ? "AND " . join(' and ', @WHERE_RULES) : '';
+
+  $self->{EXT_TABLES}     = '';
+  $self->{SEARCH_FIELDS}  = '';
+  $self->{SEARCH_FIELDS_COUNT}=0;
+
+  my $WHERE =  $self->search_former($attr, [
+      ['DOMAIN_ID',            'INT', 'tp.domain_id',  ],
+    ],
+    { WHERE       => 1,
+    }
+    );
 
   $self->query2("SELECT tp.id, tp.name, count(DISTINCT dv.uid) AS counts,
       sum(if(dv.disable=0, 1, 0)) AS active,
@@ -751,6 +760,7 @@ sub report_tp {
     LEFT JOIN tarif_plans tp ON (tp.id=dv.tp_id) 
     LEFT JOIN companies company ON  (u.company_id=company.id) 
     LEFT JOIN bills cb ON  (company.bill_id=cb.id)
+    $WHERE
      GROUP BY tp.id
      ORDER BY $SORT $DESC;",
      undef,

@@ -42,6 +42,8 @@ sub docs_contract {
       $users=$user;
     }
   
+    $Docs->{UID}=$FORM{UID};
+  
     my $user_main_info = $users->info($FORM{UID}, { SHOW_PASSWORD => 1 });
     $users->pi({ UID => $FORM{UID} });
 
@@ -2155,7 +2157,8 @@ sub docs_invoice {
                                 DATETIME  => '_SHOW',
       	                        DESC      => 'DESC',
       	                        PAGE_ROWS => 1,
-      	                        COLS_NAME => 1 });
+      	                        COLS_NAME => 1 
+      	                        });
 
       if ($Payments->{TOTAL} > 0) {
       	$Doc{LAST_PAYMENT_SUM}=$list->[0]->{sum};
@@ -2204,15 +2207,17 @@ sub docs_invoice {
         }
       }
 
+      my $sufix = ($Doc{PAYMENT_SUM} == $Doc{TOTAL_SUM}) ? '_paid' : '';
+
       if ($Doc{COMPANY_ID}) {
         $Company->info($Doc{COMPANY_ID});
         delete $Company->{DEPOSIT};
         my $invoice_blank = ($FORM{alt_tpl}) ? 'invoice_company_alt' : 'invoice_company';
-        return docs_print($invoice_blank, { %Doc, %$Company, %$attr, SUFIX => ($Doc{VAT} > 0) ? 'vat' : '' });
+        return docs_print("$invoice_blank$sufix", { %Doc, %$Company, %$attr, SUFIX => ($Doc{VAT} > 0) ? 'vat' : '' });
       }
       else {
       	my $invoice_blank = ($FORM{alt_tpl}) ? 'invoice_alt' : 'invoice';
-        return docs_print($invoice_blank, { %Doc, %$attr });
+        return docs_print("$invoice_blank$sufix", { %Doc, %$attr });
       }
     }
     else {
@@ -2826,7 +2831,6 @@ sub docs_print {
   }
 
   my $content = '';
-
   eval {
     $content = $html->tpl_show(
       _include(

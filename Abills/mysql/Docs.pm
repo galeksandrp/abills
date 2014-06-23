@@ -832,7 +832,10 @@ sub invoice_info {
    d.currency,
    \@CHARGED := sum(if (o.fees_id>0, o.price * o.counts, 0)) AS charged_sum,
    \@TOTAL_SUM - \@CHARGED AS pre_payment,
-   c.phone AS company_phone
+   c.phone AS company_phone,
+   (SELECT sum(i2p.sum) FROM docs_invoice2payments i2p
+              WHERE d.id=i2p.invoice_id
+      ) AS payment_sum
     FROM (docs_invoices d, docs_invoice_orders o)
     LEFT JOIN users u ON (d.uid=u.uid)
     LEFT JOIN companies c ON (u.company_id=c.id)

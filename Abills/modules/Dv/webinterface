@@ -4860,6 +4860,7 @@ sub dv_user_info {
 #**********************************************************
 sub dv_holdup_service {
   my ($attr) = @_;
+
   my ($hold_up_min_period, $hold_up_max_period, $hold_up_period, $holdup_fees, $hold_fees_deposit, $active_fees, $holdup_skip_gids) = split(/:/, $conf{DV_USER_SERVICE_HOLDUP});
 
   if ($holdup_skip_gids) {
@@ -7884,7 +7885,8 @@ print $table->show();
 sub dv_report_tp {
   my ($attr)=@_;
   
-  my $list = $Dv->report_tp({ %LIST_PARAMS, COLS_NAME => 1 });
+  my $list = $Dv->report_tp({ %LIST_PARAMS, 
+  	                          COLS_NAME => 1 });
   
 my $table = $html->table(
   {
