@@ -1820,8 +1820,8 @@ sub paysys_p24_get_payments {
   #Get payments
   my $payments_extid_list = 'P24:*'; # . join(',P24:', keys(%payments_ids));
   my $payments_list = $payments->list({ EXT_ID    => $payments_extid_list, 
-                                         PAGE_ROWS => 10000,
-                                         COLS_NAME => 1,
+                                        PAGE_ROWS => 10000,
+                                        COLS_NAME => 1,
                                        });
 
   foreach my $line (@$payments_list) {
@@ -2060,7 +2060,6 @@ sub paysys_p24 {
   }
 
   return 0 if ($conf{PAYSYS_P24_MERCHANT_YUR});
-
 }
 
 #**********************************************************
@@ -2104,6 +2103,12 @@ sub paysys_privatbank_p24 {
     if ($FORM{SUM} <= 0) {
       $html->message('info', $_ERROR, "$ERR_WRONG_SUM $FORM{SUM}");
       return 0;
+    }
+
+    if ($conf{PAYSYS_GROUP_SPLIT_ACCOUNTS}) {
+    	if ($conf{'PAYSYS_P24_COMMISSION_'. $user->{GID}}) {
+    		$conf{PAYSYS_P24_COMMISSION}=$conf{'PAYSYS_P24_COMMISSION_'. $user->{GID}};
+    	}
     }
 
     if ($conf{PAYSYS_P24_COMMISSION}) {

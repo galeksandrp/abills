@@ -925,8 +925,6 @@ sub msgs_admin {
       if ($FORM{UID}) {
         require "Dv.pm";
         $Dv = Dv->new($db, $admin, \%conf);
-        $Dv->{debug}=1;
-
         $Dv->change({ UID => $FORM{UID}, FILTER_ID => '' });
       }
     }
@@ -1071,7 +1069,7 @@ sub msgs_admin {
       CONTENT => $table->show() . $dispatch,
       HIDDEN  => {
         index           => "$index",
-        UID             => $FORM{UID},
+        #UID             => $FORM{UID},
         STATE           => $FORM{STATE}
       },
       SUBMIT => ($#A_CHAPTER == -1) ? { is_js_confirmed => $_DEL } : undef,

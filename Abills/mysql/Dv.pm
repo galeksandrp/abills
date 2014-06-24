@@ -352,7 +352,9 @@ sub change {
 
   $self->{TP_INFO}->{ACTIV_PRICE} = 0 if ($self->{OLD_STATUS} != 2);
 
-  $self->info($attr->{UID});
+  if($self->{AFFECTED}) {
+    $self->info($attr->{UID});
+  }
 
   return $self;
 }
