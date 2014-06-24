@@ -131,6 +131,7 @@ sub abon_user {
 
           if ($FORM{ACTIVATE}) {
           	my $ai_list = $Abon->periodic_list({ UID => $users->{UID},
+          		                      DELETED      => 0,
           		                      TP_ID        => $line->{tp_id},
   	                                COLS_NAME    => 1,
   	                                COLS_UPPER   => 1,
@@ -646,10 +647,13 @@ sub abon_periodic {
 
   foreach my $info (@$list) {
     $info->{DATETIME}  = "$ADMIN_REPORT{DATE} $TIME";
-    $info->{BILL_ID}   = $info->{EXT_BILL_ID} if ($info->{EXT_BILL_ACCOUNT});
+    if ($info->{EXT_BILL_ACCOUNT}) {
+      $info->{BILL_ID}   = $info->{EXT_BILL_ID};
+      $info->{DEPOSIT}   = $info->{EXT_DEPOSIT};
+    }
 
     if ($debug > 2) {
-      $debug_output .= "UID: $info->{UID} TP_ID: $info->{TP_ID} SUM: $info->{PRICE} DEPOSIT: " . (($info->{DEPOSIT}) ? $info->{DEPOSIT} : 'Undefined') . " NOT1: $info->{NOTIFICATION1} NOT2: $info->{NOTIFICATION2} ABON: $info->{ABON_DATE}\n";
+      $debug_output .= "UID: $info->{UID} TP_ID: $info->{TP_ID} SUM: $info->{PRICE} DEPOSIT: " . (($info->{DEPOSIT}) ? $info->{DEPOSIT} : 'Undefined') . " NOT1: $info->{NOTIFICATION1} NOT2: $info->{NOTIFICATION2} ABON: $info->{ABON_DATE} BILL_ID: $info->{BILL_ID}\n";
     }
 
     if (defined($info->{DEPOSIT})) {
@@ -680,6 +684,7 @@ sub abon_periodic {
       if (! $info->{MANUAL_FEE} && ($ADMIN_REPORT{DATE} eq $info->{ABON_DATE} || $info->{PERIOD} == 0)) {
         if ($info->{DEPOSIT} && ($info->{DEPOSIT} + $info->{CREDIT} > 0 || $info->{PAYMENT_TYPE} == 1) && $info->{DISABLE} == 0) {
         	$PARAMS{DESCRIBE}=~s/\'/\\\'/g;
+        	$fees->{debug}=1 if ($debug > 7);
           $fees->take(\%user, $info->{PRICE}, {%PARAMS}) if ($info->{DISCOUNT} < 100);
           $Abon->user_tariff_update(
             {
@@ -688,7 +693,7 @@ sub abon_periodic {
               TP_ID => "$info->{TP_ID}"
             }
           );
-
+          
           if ($fees->{errno}) {
           	print "$fees->{errno} $fees->{errstr}";
           }

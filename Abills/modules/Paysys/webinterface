@@ -1698,7 +1698,13 @@ sub paysys_privatbank {
     );
 
     if ($Paysys->{errno}) {
-      $html->message('err', "$_ERROR", "$_ERROR Paysys ID: '$FORM{OPERATION_ID}'");
+      my $message = '';
+      if ($Paysys->{errno} == 7) {
+        $message="\n$_EXIST";
+      }
+
+      $html->message('err', "$_ERROR", "$_ERROR Paysys ID: '$FORM{OPERATION_ID}'". $message);
+
       return 0;
     }
 
@@ -2141,7 +2147,12 @@ sub paysys_privatbank_p24 {
     );
 
     if ($Paysys->{errno}) {
-      $html->message('err', "$_ERROR", "$_ERROR Paysys ID: '$FORM{OPERATION_ID}'");
+      my $message = '';
+      if ($Paysys->{errno} == 7) {
+        $message="\n$_EXIST";
+      }
+
+      $html->message('err', "$_ERROR", "$_ERROR Paysys ID: '$FORM{OPERATION_ID}' ". $message);
       return 0;
     }
 
