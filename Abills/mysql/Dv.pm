@@ -78,7 +78,6 @@ sub info {
   elsif ($attr->{DOMAIN_ID}) {
     $domain_id = $attr->{DOMAIN_ID};
   }
-  
 
   $self->query2("SELECT dv.uid, 
    dv.tp_id, 
