@@ -96,8 +96,10 @@ sub abon_user {
     my @docs_ids = ();
     
     if ($#new_arr > -1) {
-      my $list = $Abon->tariff_list({ IDS => join(', ', @new_arr),
-      	                              COLS_NAME => 1 });
+      my $list = $Abon->tariff_list({ IDS               => join(', ', @new_arr),
+      	                              EXT_BILL_ACCOUNT  => 1,
+      	                              COLS_NAME         => 1 });
+
       foreach my $line (@$list) {
         my ($Y, $M, $D) = split(/-/, $FORM{ 'DATE_' . $line->{tp_id} }, 3);
         my $seltime = POSIX::mktime(0, 0, 0, $D, ($M - 1), ($Y - 1900));
@@ -106,6 +108,7 @@ sub abon_user {
         $Abon->{TP_INFO}->{DISCOUNT} = $ai_list->[0]->{DISCOUNT};
         $Abon->{TP_INFO}->{DISCOUNT} = $line->{discount};
         $Abon->{TP_INFO}->{PRICE}    = $line->{price};
+        $Abon->{TP_INFO}->{EXT_BILL_ACCOUNT} = $line->{ext_bill_account};
         #$FORM{ 'DISCOUNT_' . $Abon->{TP_INFO}->{TP_ID} } = $ai_list->[0]->{DISCOUNT};
        
         if ($FORM{ 'DISCOUNT_' . $Abon->{TP_INFO}->{TP_ID} } > 0) {
@@ -114,8 +117,15 @@ sub abon_user {
         elsif ($Abon->{TP_INFO}->{DISCOUNT} && $users->{REDUCTION} > 0) {
           $Abon->{TP_INFO}->{PRICE} = $Abon->{TP_INFO}->{PRICE} * ((100 - $users->{REDUCTION}) / 100);
         }
+   
+        my $deposit = $users->{CREDIT} + $users->{DEPOSIT};
 
-        if (($users->{CREDIT} + $users->{DEPOSIT}) > $Abon->{TP_INFO}->{PRICE}
+        if ($Abon->{TP_INFO}->{EXT_BILL_ACCOUNT}) {
+   	      $users->{BILL_ID} = $users->{EXT_BILL_ID};
+          $deposit          = $users->{EXT_DEPOSIT};
+        }
+
+        if ($deposit > $Abon->{TP_INFO}->{PRICE}
              || $line->{payment_type} || time() < $seltime) {
           $Abon->{TP_INFO}->{PERIOD_ALIGNMENT} = $line->{period_alignment} || 0;
           $Abon->{TP_INFO}->{TP_NAME}          = $line->{name};
@@ -462,10 +472,10 @@ sub abon_tariffs {
         CONTENT => $html->form_select(
           'ABON_ID',
           {
-            SELECTED => $Abon->{ID} || $FORM{ABON_ID},
-            SEL_MULTI_ARRAY   => $Abon->tariff_list(),
-            MULTI_ARRAY_KEY   => 7,
-            MULTI_ARRAY_VALUE => 0,
+            SELECTED  => $Abon->{ID} || $FORM{ABON_ID},
+            SEL_ARRAY => $Abon->tariff_list({ COLS_NAME => 1 }),
+            SEL_KEY   => 'tp_id',
+            SEL_VALUE => 'name',
           }
         ),
         HIDDEN => { index => "$index" },
@@ -869,6 +879,11 @@ sub abon_get_month_fee {
   if ($Abon->{TP_INFO}->{PRICE} > 0) {
     my $sum  = $Abon->{TP_INFO}->{PRICE};
     my $user = $users->info($Abon->{UID});
+
+    if ($Abon->{TP_INFO}->{EXT_BILL_ACCOUNT}) {
+      $user->{BILL_ID}   = $user->{EXT_BILL_ID};
+      $user->{DEPOSIT}   = $user->{EXT_DEPOSIT};
+    }
 
     #Current Month
     my ($y,        $m,        $d)        = split(/-/, $DATE,             3);

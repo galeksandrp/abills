@@ -197,8 +197,9 @@ sub tariff_list {
   $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? int($attr->{PAGE_ROWS}) : 25;
  
   my $WHERE =  $self->search_former($attr, [
-        [ 'IDS',         'INT', 'abon_tariffs.id'       ],
-        [ 'DOMAIN_ID',   'INT', 'abon_tariffs.domain_id'],
+        [ 'IDS',              'INT', 'abon_tariffs.id'         ],
+        [ 'EXT_BILL_ACCOUNT', 'INT', 'ext_bill_account',      1],
+        [ 'DOMAIN_ID',        'INT', 'abon_tariffs.domain_id', ],
     ],
     { WHERE => 1,
     }    
@@ -217,6 +218,7 @@ sub tariff_list {
      abon_tariffs.discount,
      manual_activate,
      user_portal,
+     $self->{SEARCH_FIELDS}
      \@nextfees_date := if (nonfix_period = 1, 
       if (period = 0, curdate() + INTERVAL 2 DAY, 
        if (period = 1, curdate() + INTERVAL 2 MONTH, 
