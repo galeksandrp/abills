@@ -344,7 +344,7 @@ sub service_get_month_fee {
       }
     }
 
-    my $sum   = $Service->{TP_INFO}->{MONTH_FEE};
+    my $sum   = $Service->{TP_INFO}->{MONTH_FEE} || 0;
 
     if ($Service->{TP_INFO}->{EXT_BILL_ACCOUNT}) {
       if ($user->{EXT_BILL_ID}) {
