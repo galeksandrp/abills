@@ -968,7 +968,7 @@ sub acct_stop {
           '$self->{ACCT_SESSION_TIME}', 
           '$self->{OUTPUT_OCTETS}', '$self->{INPUT_OCTETS}', 
           '$self->{ACCT_OUTPUT_GIGAWORDS}', '$self->{ACCT_INPUT_GIGAWORDS}',
-          '$self->{SUM}', '$self->{NAS_ID}',
+          '". (($self->{SUM}) ? $self->{SUM} : 0)."', '$self->{NAS_ID}',
           '$self->{NAS_PORT}', 
           '$self->{FRAMED_IP_ADDRESS}', 
           '',

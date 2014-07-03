@@ -710,7 +710,7 @@ sub abon_periodic {
 
           if ($info->{CREATE_ACCOUNT} && $info->{CREATE_DOCS}) {
           	push @{ $docs_info{$user{UID}} }, {
-             SUM        => $info->{PRICE} / $info->{SERVICE_COUNT},
+             SUM        => $info->{PRICE} / (($info->{SERVICE_COUNT}) ? $info->{SERVICE_COUNT} : 1 ),
              COUNT      => $info->{SERVICE_COUNT},
              ORDER      => "$info->{TP_NAME} $info->{COMMENTS}",
              SEND_EMAIL => $info->{SEND_DOCS} || 0

@@ -315,6 +315,7 @@ sub voip_user {
   $Voip->{UID} = $FORM{UID};
 
   voip_provision();
+
   if ($FORM{add}) {
     if ($FORM{NUMBER} < 1) {
       $html->message('err', $_ERROR, "$ERR_WRONG_DATA $_NUMBER");
