@@ -2664,7 +2664,6 @@ sub voip_monthly_fees {
           ACTIVATE     => '_SHOW',
           DEPOSIT      => '_SHOW',
           CREDIT       => '_SHOW',
-          SERVICE_STATUS => '_SHOW',          
           %VOIP_LIST_PARAMS,
           COLS_UPPER  => 1
         }

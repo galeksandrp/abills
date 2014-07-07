@@ -314,7 +314,7 @@ sub dv_auth {
     $self->query2("SELECT CID, INET_NTOA(framed_ip_address) AS ip, nas_id, status FROM dv_calls WHERE user_name='$RAD->{USER_NAME}' and (status <> 2);");
     my ($active_logins) = $self->{TOTAL};
     #my %active_nas      = ();
-    my $cid             = $RAD->{CALLING_STATION_ID};
+    my $cid              = $RAD->{CALLING_STATION_ID};
     if (length($RAD->{CALLING_STATION_ID}) > 20) {
       $cid = substr($RAD->{CALLING_STATION_ID}, 0, 20);
     }
@@ -324,18 +324,14 @@ sub dv_auth {
         # $active_nas{ $line->[2] } = $line->[0] if (! $active_nas{ $line->[2] });
       
         # If exist reserv add get it      
-        if ($line->[3] == 11) {
+        if ($line->[3] == 11 && $line->[2] eq $NAS->{NAS_ID}) {
           $self->{IP}       = $line->[1];
           $self->{REASSIGN} = 1;
           $active_logins--;
         }
         # Zap session with same CID
         elsif ( $line->[0] ne ''
-          && ($line->[0] eq $cid 
-            && $line->[2] eq $NAS->{NAS_ID}
-#          && $active_nas{$line->[2]} 
-#          && $active_nas{$line->[2]} eq $line->[0]
-          )
+          && ($line->[0] eq $cid && $line->[2] eq $NAS->{NAS_ID})
           && $NAS->{NAS_TYPE} ne 'ipcad'
           )
         {
