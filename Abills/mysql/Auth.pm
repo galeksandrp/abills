@@ -312,8 +312,7 @@ sub dv_auth {
   #Check  simultaneously logins if needs
   if ($self->{LOGINS} > 0) {
     $self->query2("SELECT CID, INET_NTOA(framed_ip_address) AS ip, nas_id, status FROM dv_calls WHERE user_name='$RAD->{USER_NAME}' and (status <> 2);");
-    my ($active_logins) = $self->{TOTAL};
-    #my %active_nas      = ();
+    my ($active_logins)  = $self->{TOTAL};
     my $cid              = $RAD->{CALLING_STATION_ID};
     if (length($RAD->{CALLING_STATION_ID}) > 20) {
       $cid = substr($RAD->{CALLING_STATION_ID}, 0, 20);
@@ -321,8 +320,6 @@ sub dv_auth {
 
     if (! $CONF->{hard_simultaneously_control}) {
       foreach my $line (@{ $self->{list} }) {
-        # $active_nas{ $line->[2] } = $line->[0] if (! $active_nas{ $line->[2] });
-      
         # If exist reserv add get it      
         if ($line->[3] == 11 && $line->[2] eq $NAS->{NAS_ID}) {
           $self->{IP}       = $line->[1];

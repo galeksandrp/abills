@@ -197,8 +197,7 @@ if ($uid > 0) {
   $OUTPUT{LOGIN} = $login;
   $OUTPUT{IP}    = $ENV{REMOTE_ADDR};
   $pages_qs      = "&UID=$user->{UID}&sid=$sid";
-  $OUTPUT{STATE} = ($user->{DISABLE}) ? $html->color_mark("$_DISABLE", $_COLORS[6]) : 
-  $_ENABLE;
+  $OUTPUT{STATE} = ($user->{DISABLE}) ? $html->color_mark("$_DISABLE", $_COLORS[6]) : $_ENABLE;
   $OUTPUT{STATE_CODE}=$user->{DISABLE};
 
   if ($COOKIES{lastindex}) {
@@ -250,7 +249,11 @@ if ($uid > 0) {
     }
   }
 
-  $OUTPUT{STATE} = ($user->{SERVICE_STATUS}) ? $user->{SERVICE_STATUS} : $OUTPUT{STATE};
+  my @service_status = ("$_ENABLE", "$_DISABLE", "$_NOT_ACTIVE", "$_HOLD_UP", 
+    "$_DISABLE: $_NON_PAYMENT", "$ERR_SMALL_DEPOSIT",
+    "$_VIRUS_ALERT" );
+
+  $OUTPUT{STATE} = (! $user->{DISABLE} && $user->{SERVICE_STATUS}) ? $service_status[$user->{SERVICE_STATUS}] : $OUTPUT{STATE};
   $OUTPUT{BODY} = $html->tpl_show(templates('form_client_main'), \%OUTPUT, { MAIN => 1 });
 }
 else {

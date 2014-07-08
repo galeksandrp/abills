@@ -96,8 +96,9 @@ sub abon_user {
     my @docs_ids = ();
     
     if ($#new_arr > -1) {
-      my $list = $Abon->tariff_list({ IDS               => join(', ', @new_arr),
-      	                              EXT_BILL_ACCOUNT  => 1,
+    	$Abon->{debug}=1;
+      my $list = $Abon->tariff_list({ IDS               => join('; ', @new_arr),
+      	                              EXT_BILL_ACCOUNT  => '_SHOW',
       	                              COLS_NAME         => 1 });
 
       foreach my $line (@$list) {
