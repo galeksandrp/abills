@@ -6191,7 +6191,6 @@ sub dv_users_warning_messages {
                                     COLS_NAME  => 1,
                                     COLS_UPPER => 1 });
 
-
   if ($Dv->{TOTAL} < 1) {
     $DEBUG .= $debug_output;
     return $debug_output;
@@ -6222,8 +6221,12 @@ sub dv_users_warning_messages {
     $debug_output .= $info if ($debug > 3);
 
     if ($debug < 5) {
-      my $message = $html->tpl_show(_include('dv_users_warning_messages', 'Dv'), $u, { OUTPUT2RETURN => 1 });
-      sendmail("$conf{ADMIN_MAIL}", "$email", "$_BILL_INFO", "$message", "$conf{MAIL_CHARSET}", "2 (High)");
+      my $message = $html->tpl_show(_include('dv_users_warning_messages', 'Dv'), 
+        { %$u, DATE => $DATE, TIME => $TIME }, 
+      	{ OUTPUT2RETURN => 1 });
+
+      sendmail("$conf{ADMIN_MAIL}", "$email", "$_BILL_INFO", "$message", 
+          "$conf{MAIL_CHARSET}", "2 (High)", { TEST => (($debug>6)?1:0) });
     }
   }
 

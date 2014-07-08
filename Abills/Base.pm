@@ -384,10 +384,10 @@ $data}
     $message .= "--$boundary" . "--\n\n";
   }
   
-if ($attr->{TEST})   {
-  print "!> $attr->{TEST} !!!!!!!!!!!!!!!!!!!!!!!!!!!!";
-  exit;
-}
+  if ($attr->{TEST})   {
+    print "Test mode enable: $attr->{TEST}";
+  }
+
   my @emails_arr = split(/;/, $to_addresses);
   foreach my $to (@emails_arr) {
     if ($attr->{TEST}) {
