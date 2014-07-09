@@ -49,6 +49,11 @@ sub cross_modules_call {
   my $timeout = $attr->{timeout} || 3;
 
   $attr->{USER_INFO}->{DEPOSIT} += $attr->{SUM} if ($attr->{SUM});
+  
+  if (defined($attr->{SILENT})) {
+  	$silent=$attr->{SILENT};
+  }
+  
   my %full_return  = ();
   my @skip_modules = ();
   eval {

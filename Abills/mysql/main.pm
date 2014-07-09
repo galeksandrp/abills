@@ -781,7 +781,6 @@ sub search_expr_users () {
     PASPORT_DATE  => 'DATE:pi.pasport_date',
     PASPORT_NUM   => 'STR:pi.pasport_num', 
     PASPORT_GRANT => 'STR:pi.pasport_grant',
-    CITY          => 'STR:pi.city', 
     ZIP           => 'STR:pi.zip',
     CONTRACT_ID   => 'STR:pi.contract_id',
     CONTRACT_SUFIX=> 'STR:pi.contract_sufix',
@@ -922,6 +921,12 @@ sub search_expr_users () {
    LEFT JOIN streets ON (streets.id=builds.street_id)";
     $self->{SEARCH_FIELDS_COUNT} += 3;
   }
+  elsif ($attr->{DISTRICT_ID}) {
+    push @fields, @{ $self->search_expr($attr->{DISTRICT_ID}, 'INT', 'streets.district_id', { EXT_FIELD => 'districts.name AS district_name' }) };
+    $self->{EXT_TABLES} .= " LEFT JOIN builds ON (builds.id=pi.location_id)
+        LEFT JOIN streets ON (streets.id=builds.street_id)
+        LEFT JOIN districts ON (districts.id=streets.district_id) " if ($self->{EXT_TABLES} !~ /districts/);
+  }
   else {
     if ($attr->{STREET_ID}) {
       push @fields, @{ $self->search_expr($attr->{STREET_ID}, 'INT', 'builds.street_id', { EXT_FIELD => 'streets.name AS address_street, builds.number AS address_build' }) };
@@ -929,17 +934,25 @@ sub search_expr_users () {
      LEFT JOIN streets ON (streets.id=builds.street_id)";
       $self->{SEARCH_FIELDS_COUNT} += 1;
     }
-    elsif ($attr->{DISTRICT_ID}) {
-      push @fields, @{ $self->search_expr($attr->{DISTRICT_ID}, 'INT', 'streets.district_id', { EXT_FIELD => 'districts.name AS district_name' }) };
-      $self->{EXT_TABLES} .= " LEFT JOIN builds ON (builds.id=pi.location_id)
-      LEFT JOIN streets ON (streets.id=builds.street_id)
-      LEFT JOIN districts ON (districts.id=streets.district_id) ";
-    }
     elsif ($CONF->{ADDRESS_REGISTER}) {
+      if ($attr->{CITY}) {
+        push @fields, @{ $self->search_expr($attr->{CITY}, 'STR', 'districts.city', { EXT_FIELD => 1 }) };
+        $self->{EXT_TABLES} .= "LEFT JOIN builds ON (builds.id=pi.location_id)
+          LEFT JOIN streets ON (streets.id=builds.street_id)
+          LEFT JOIN districts ON (districts.id=streets.district_id)" if ($self->{EXT_TABLES} !~ /districts/);
+      }
+
+      if ($attr->{DISTRICT_NAME}) {
+        push @fields, @{ $self->search_expr($attr->{DISTRICT_NAME}, 'INT', 'streets.district_id', { EXT_FIELD => 'districts.name AS district_name' }) };
+        $self->{EXT_TABLES} .= " LEFT JOIN builds ON (builds.id=pi.location_id)
+          LEFT JOIN streets ON (streets.id=builds.street_id)
+          LEFT JOIN districts ON (districts.id=streets.district_id) " if ($self->{EXT_TABLES} !~ /districts/);
+      }
+
       if ($attr->{ADDRESS_STREET}) {
         push @fields, @{ $self->search_expr($attr->{ADDRESS_STREET}, 'STR', 'streets.name AS address_street', { EXT_FIELD => 1 }) };
         $self->{EXT_TABLES} .= "LEFT JOIN builds ON (builds.id=pi.location_id)
-        LEFT JOIN streets ON (streets.id=builds.street_id)";
+        LEFT JOIN streets ON (streets.id=builds.street_id)" if ($self->{EXT_TABLES} !~ /streets/);
       }
       elsif ($attr->{ADDRESS_FULL}) {
         $attr->{BUILD_DELIMITER}=',' if (! $attr->{BUILD_DELIMITER});
@@ -957,10 +970,8 @@ sub search_expr_users () {
 
       if ($attr->{ADDRESS_BUILD}) {
         push @fields, @{ $self->search_expr($attr->{ADDRESS_BUILD}, 'STR', 'builds.number', { EXT_FIELD => 'builds.number AS address_build' }) };
-
         $self->{EXT_TABLES} .= "LEFT JOIN builds ON (builds.id=pi.location_id)" if ($self->{EXT_TABLES} !~ /builds/);
       }
-
     }
     else {
       if($attr->{SHOW_ADDRESS}) {
@@ -969,6 +980,10 @@ sub search_expr_users () {
       elsif ($attr->{ADDRESS_FULL}) {
          $attr->{BUILD_DELIMITER}=',' if (! $attr->{BUILD_DELIMITER});
          push @fields, @{ $self->search_expr("$attr->{ADDRESS_FULL}", "STR", "CONCAT(pi.address_street, ' ', pi.address_build, '$attr->{BUILD_DELIMITER}', pi.address_flat) AS address_full", { EXT_FIELD => 1 }) };
+      }
+
+      if ($attr->{CITY}) {
+        push @fields, @{ $self->search_expr($attr->{CITY}, 'STR', 'pi.city', { EXT_FIELD => 1 }) };
       }
 
       if ($attr->{ADDRESS_STREET}) {
@@ -1022,7 +1037,7 @@ sub search_expr_users () {
   $self->{SEARCH_FIELDS_COUNT}   = $#{ $self->{SEARCH_FIELDS_ARR} } + 1;
 
   if ($attr->{SORT}) {
-  	my $sort_position = ($attr->{SORT}-2 < 1) ? 1 : $attr->{SORT}-2;
+  	my $sort_position = ($attr->{SORT}-1 < 1) ? 1 : $attr->{SORT}-1;
   	
     if ($self->{SEARCH_FIELDS_ARR}->[$sort_position]){
       if ( $self->{SEARCH_FIELDS_ARR}->[$sort_position] =~ m/build$|flat$/i) {
@@ -1031,8 +1046,11 @@ sub search_expr_users () {
         }
     	  $SORT = $self->{SEARCH_FIELDS_ARR}->[$sort_position] ."*1";
       }
-      elsif ($self->{SEARCH_FIELDS_ARR}->[$sort_position] =~ m/ [a-z0-9_\.]{0,12}ip/i) {
-      	$SORT = 'ip+0';
+      elsif ($self->{SEARCH_FIELDS_ARR}->[$sort_position] =~ m/([a-z0-9_\.]{0,12}framed_ip_address)/i) {
+      	$SORT = "$1+0";
+      }
+      elsif ($self->{SEARCH_FIELDS_ARR}->[$sort_position] =~ m/ ([a-z0-9_\.]{0,12}ip)/i) {
+      	$SORT = "$1+0";
       }
     }
   }

@@ -220,7 +220,7 @@ sub messages_list {
 
   my $EXT_TABLE = $self->{EXT_TABLES};
 
-  if ($self->{SEARCH_FIELDS} =~ /pi\./) {
+  if ($self->{SEARCH_FIELDS} =~ /pi\./ || $EXT_TABLE =~ /pi\./) {
     $EXT_TABLE = "LEFT JOIN users_pi pi ON (u.uid = pi.uid) $EXT_TABLE";
   }
 
@@ -1186,10 +1186,18 @@ sub unreg_requests_list {
       LEFT JOIN districts ON (districts.id=streets.district_id) ";
     }
     elsif ($CONF->{ADDRESS_REGISTER}) {
+      if ($attr->{CITY}) {
+        push @WHERE_RULES, @{ $self->search_expr($attr->{CITY}, 'STR', 'd.city', { EXT_FIELD => 1 }) };
+      }
+
+      if ($attr->{DISTRICT_NAME}) {
+        push @WHERE_RULES, @{ $self->search_expr($attr->{DISTRICT_NAME}, 'INT', 'streets.district_id', { EXT_FIELD => 'd.name AS district_name' }) };
+      }
+
       if ($attr->{ADDRESS_STREET}) {
         push @WHERE_RULES, @{ $self->search_expr($attr->{ADDRESS_STREET}, 'STR', 'streets.name AS address_street', { EXT_FIELD => 1 }) };
         $self->{EXT_TABLES} .= "LEFT JOIN builds ON (builds.id=m.location_id)
-        LEFT JOIN streets ON (streets.id=builds.street_id)";
+        LEFT JOIN streets ON (streets.id=builds.street_id)" if ($self->{EXT_TABLES} !~ /streets/);
       }
       elsif ($attr->{ADDRESS_FULL}) {
         $attr->{BUILD_DELIMITER}=',' if (! $attr->{BUILD_DELIMITER});
