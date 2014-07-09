@@ -203,6 +203,7 @@ sub ureports_periodic_reports {
         ACCOUNT_STATUS => 0,
         DV_STATUS      => '_SHOW',
         STATUS         => 0,
+        ACTIVATE       => '_SHOW',
         %SERVICE_LIST_PARAMS,
         COLS_NAME      => 1,
         COLS_UPPER     => 1,
@@ -253,7 +254,13 @@ sub ureports_periodic_reports {
 
         $user->{DEPOSIT} = sprintf("%.2f", $user->{DEPOSIT});
 
-        $user->{EXPIRE_DAYS} = int($user->{DEPOSIT} / $total_daily_fee) if ($total_daily_fee > 0);
+        if ($total_daily_fee > 0) {
+          $user->{EXPIRE_DAYS} = int($user->{DEPOSIT} / $total_daily_fee);
+        }
+        else {
+        	$user->{EXPIRE_DAYS} = $user->{TP_EXPIRE};
+        }
+
         $user->{EXPIRE_DATE} = strftime("%Y-%m-%d", localtime(time + $user->{EXPIRE_DAYS} * 86400));
 
         #Report 1 Deposit belove and dv status active
@@ -421,18 +428,16 @@ sub ureports_periodic_reports {
         }
         #NOtify before abon
         elsif ($user->{REPORT_ID} == 14) {
-          #if ($user->{VALUE} == $user->{TP_EXPIRE}) {
-            if ($user->{EXPIRE_DAYS} < $user->{VALUE}) {
-              %PARAMS = (
-                DESCRIBE => "$_REPORTS",
-                MESSAGE  => "",
-                SUBJECT  => "$_DEPOSIT"
-                );
-            }
-            else {
-              next;
-            }
-          #}
+          if ($user->{EXPIRE_DAYS} <= $user->{VALUE}) {
+            %PARAMS = (
+              DESCRIBE => "$_REPORTS",
+              MESSAGE  => "",
+              SUBJECT  => "$_DEPOSIT"
+            );
+          }
+          else {
+            next;
+          }
         }
         #15 Dv change status
         elsif ($user->{REPORT_ID} == 15) {
