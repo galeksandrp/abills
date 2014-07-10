@@ -658,10 +658,8 @@ sub dv_user {
     $Dv->{TP_ID} = $html->form_select(
       'TP_ID',
       {
-        SELECTED          => $Dv->{TP_ID} || $FORM{TP_ID},
-        SEL_MULTI_ARRAY   => $tariffs->list({ MODULE => 'Dv', DOMAIN_ID => $users->{DOMAIN_ID} }),
-        MULTI_ARRAY_KEY   => 0,
-        MULTI_ARRAY_VALUE => 1,
+        SELECTED  => $Dv->{TP_ID} || $FORM{TP_ID},
+        SEL_LIST  => $tariffs->list({ MODULE => 'Dv', DOMAIN_ID => $users->{DOMAIN_ID}, COLS_NAME => 1 }),
       }
     );
 
@@ -4048,17 +4046,16 @@ print "// !! $user !! //";
     $tariffs->{TARIF_PLAN_SEL} = $html->form_select(
       'TP_ID',
       {
-        SELECTED        => $Dv->{TP_ID},
-        SEL_MULTI_ARRAY => $tariffs->list(
+        SELECTED   => $Dv->{TP_ID},
+        SEL_LIST   => $tariffs->list(
           {
             TP_GID       => $Dv->{TP_GID},
             CHANGE_PRICE => '<=' . ($user->{DEPOSIT} + $user->{CREDIT}),
             MODULE       => 'Dv',
-            PRIORITY     => $Dv->{TP_PRIORITY}
+            PRIORITY     => $Dv->{TP_PRIORITY},
+            COLS_NAME    => 1
           }
         ),
-        MULTI_ARRAY_KEY   => 0,
-        MULTI_ARRAY_VALUE => 1,
       }
     );
 
@@ -6861,7 +6858,6 @@ sub dv_wizard_user {
   $users_defaults->{GID} = sel_groups();
 
   #Info fields
-
   if (!$attr->{NO_EXTRADATA}) {
     $users_defaults->{EXDATA} = $user_info->{EXDATA} .= $html->tpl_show(templates('form_user_exdata_add'), { CREATE_BILL => ' checked' }, { OUTPUT2RETURN => 1 });
     $users_defaults->{EXDATA} .= $html->tpl_show(templates('form_ext_bill_add'), { CREATE_EXT_BILL => ' checked' }, { OUTPUT2RETURN => 1 }) if ($conf{EXT_BILL_ACCOUNT});
@@ -6881,10 +6877,8 @@ sub dv_wizard_user {
   $dv_defaults->{TP_ID} = $html->form_select(
     'TP_ID',
     {
-      SELECTED          => $FORM{TP_ID},
-      SEL_MULTI_ARRAY   => $tariffs->list({ MODULE => 'Dv' }),
-      MULTI_ARRAY_KEY   => 0,
-      MULTI_ARRAY_VALUE => 1,
+      SELECTED => $FORM{TP_ID},
+      SEL_LIST => $tariffs->list({ MODULE => 'Dv', COLS_NAME => 1 }),
     }
   );
   delete($FORM{TP_ID});
@@ -7227,10 +7221,8 @@ sub dv_registration {
   $Dv->{TP_SEL} = $html->form_select(
     'TP_ID',
     {
-      SELECTED          => $FORM{TP_ID},
-      SEL_MULTI_ARRAY   => $tariffs->list({ %LIST_PARAMS, MODULE => 'Dv' }),
-      MULTI_ARRAY_KEY   => 0,
-      MULTI_ARRAY_VALUE => 1,
+      SELECTED => $FORM{TP_ID},
+      SEL_LIST => $tariffs->list({ %LIST_PARAMS, MODULE => 'Dv', COLS_NAME => 1 }),
     }
   );
 

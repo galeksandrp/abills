@@ -403,19 +403,7 @@ sub pi {
   }
 
   if (! $self->{errno} && $self->{LOCATION_ID}) {
-    $self->query2("select d.id AS district_id, 
-      d.city, 
-      d.name AS address_district, 
-      s.name AS address_street, 
-      b.number AS address_build,
-      s.id AS street_id
-     FROM builds b
-     LEFT JOIN streets s  ON (s.id=b.street_id)
-     LEFT JOIN districts d  ON (d.id=s.district_id)
-     WHERE b.id='$self->{LOCATION_ID}'",
-     undef,
-     { INFO => 1 }
-    );
+  	$self->address_info($self->{LOCATION_ID});
 
     if ($self->{errno} && $self->{errno} == 2) {
     	delete $self->{errno};
@@ -427,6 +415,7 @@ sub pi {
   $self->{TOTAL}=1;
   return $self;
 }
+
 
 #**********************************************************
 # Personal Info change
@@ -1690,6 +1679,31 @@ sub config_del {
   my ($id) = @_;
 
   $self->query2("DELETE FROM config WHERE param='$id';", 'do');
+  return $self;
+}
+
+#**********************************************************
+# Address register full address info
+# address_info();
+#**********************************************************
+sub address_info {
+  my $self = shift;
+  my ($id) = @_;
+ 
+  $self->query2("SELECT d.id AS district_id, 
+      d.city, 
+      d.name AS address_district, 
+      s.name AS address_street, 
+      b.number AS address_build,
+      s.id AS street_id
+     FROM builds b
+     LEFT JOIN streets s  ON (s.id=b.street_id)
+     LEFT JOIN districts d  ON (d.id=s.district_id)
+     WHERE b.id='$id'",
+     undef,
+     { INFO => 1 }
+    );
+
   return $self;
 }
 

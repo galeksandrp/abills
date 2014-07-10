@@ -899,9 +899,9 @@ sub form_wizard {
       #USER        => \%FORM,
       USER_INFO    => ($FORM{UID})            ? $users   : undef,
       LNG_ACTION   => ($steps{ $FORM{step} }) ? "$_NEXT" : "$_REGISTRATION_COMPLETE",
-      BACK_BUTTON  => ($FORM{step} > 2) ? $html->form_input('finish', "$_FINISH", { TYPE => 'submit' }) . ' ' . $html->form_input('back', "$_BACK", { TYPE => 'submit' })
+      BACK_BUTTON  => (($FORM{TP_ID}) ? $html->form_input('TP_ID', "$FORM{TP_ID}", { TYPE => 'hidden' }) : '') .(   ($FORM{step} > 2) ? $html->form_input('finish', "$_FINISH", { TYPE => 'submit' }) . ' ' . $html->form_input('back', "$_BACK", { TYPE => 'submit' })
       : (!$FORM{back}) ? $html->form_input('add', "$_FINISH", { TYPE => 'submit' })
-      : $html->form_input('change', "$_FINISH", { TYPE => 'submit' }),
+      : $html->form_input('change', "$_FINISH", { TYPE => 'submit' })),
       UID          => $FORM{UID},
       SUBJECT      => $_REGISTRATION
     }
@@ -2141,7 +2141,12 @@ sub user_pi {
   );
 
   if ($conf{ADDRESS_REGISTER}) {
-    $user_pi->{ADDRESS_TPL} = $html->tpl_show(templates('form_address_sel'), $user_pi, { OUTPUT2RETURN => 1, ID => 'form_address_sel' });
+  	if ($FORM{LOCATION_ID}) {
+      $user_pi->address_info($FORM{LOCATION_ID});
+  	}
+
+    $user_pi->{ADDRESS_TPL} = $html->tpl_show(templates('form_address_sel'), { %FORM, %$user_pi }, 
+       { OUTPUT2RETURN => 1, ID => 'form_address_sel' });
   }
   else {
     my $countries = $html->tpl_show(templates('countries'), undef, { OUTPUT2RETURN => 1 });

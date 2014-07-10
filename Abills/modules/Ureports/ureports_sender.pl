@@ -240,13 +240,16 @@ sub ureports_periodic_reports {
 
             if ($cross_modules_return->{$module}{abon_distribution}) {
               $total_daily_fee += ($cross_modules_return->{$module}{month} / 30);
+            }
+            elsif($cross_modules_return->{$module}{month}) {
               $user->{RECOMMENDED_PAYMENT} += $cross_modules_return->{$module}{month};
             }
           }
         }
 
         if ($user->{DEPOSIT} + $user->{CREDIT} > 0) {
-         	$user->{RECOMMENDED_PAYMENT} = sprintf("%.2f", $user->{RECOMMENDED_PAYMENT} - ($user->{DEPOSIT} + $user->{CREDIT}));
+         	$user->{RECOMMENDED_PAYMENT} = sprintf("%.2f", 
+         	  ($user->{RECOMMENDED_PAYMENT} - $user->{DEPOSIT} > 0) ? ($user->{RECOMMENDED_PAYMENT} - $user->{DEPOSIT} + 0.01)  : 0 );
         }
         else {
          	$user->{RECOMMENDED_PAYMENT} += sprintf("%.2f", abs($user->{DEPOSIT} + $user->{CREDIT}));
