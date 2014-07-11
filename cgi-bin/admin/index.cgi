@@ -907,6 +907,7 @@ sub form_wizard {
     }
   );
 
+
   #   }
 }
 
@@ -2462,6 +2463,13 @@ sub form_users {
       $LIST_PARAMS{UID} = $user_info->{UID};
       $FORM{UID}        = $user_info->{UID};
       user_pi({ %$attr, REGISTRATION => 1 });
+
+      if ($FORM{NOTIFY_FN}) {
+      	my $fn = $FORM{NOTIFY_FN};
+      	if (defined(&$fn)) {
+      	 $fn->({ %FORM, NOTIFY_ID => $FORM{NOTIFY_ID} });
+      	}
+      }
 
       if ($FORM{COMPANY_ID}) {
         form_companie_admins($attr);

@@ -1255,6 +1255,7 @@ sub unreg_requests_list {
   $self->query2("SELECT  m.id,
   $self->{SEARCH_FIELDS}
   m.responsible_admin,
+  m.uid,
   m.chapter AS chapter_id
 FROM msgs_unreg_requests m
 LEFT JOIN admins a ON (m.received_admin=a.aid)
@@ -1416,6 +1417,7 @@ sub unreg_requests_info {
   return $self;
 }
 
+
 #**********************************************************
 # unreg_requests_change()
 #**********************************************************
@@ -1444,7 +1446,7 @@ sub unreg_requests_change {
     CLOSED_DATE       => 'closed_date',
     UID               => 'uid',
     COMPANY           => 'company',
-    COUNTRY           => 'country_id',
+    COUNTRY_ID        => 'country_id',
     CONNECTION_TIME   => 'connection_time',
     LOCATION_ID       => 'location_id'
   );

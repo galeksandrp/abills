@@ -2,6 +2,8 @@
 <input type=hidden  name=index value='$index'>
 <input type=hidden  name=LOCATION_ID value='%LOCATION_ID%'>
 <input type=hidden  name=ADDRESS_FLAT value='%ADDRESS_FLAT%'>
+<input type=hidden  name=NOTIFY_FN value='msgs_unreg_requests_list'>
+<input type=hidden  name=NOTIFY_ID value='%ID%'>
 
 
 <table width=600 class=form>

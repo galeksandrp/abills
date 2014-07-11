@@ -893,7 +893,7 @@ sub search_expr_users () {
     push @fields, "u.gid IN ($attr->{GIDS})";
   }
   elsif (defined($attr->{GID}) && $attr->{GID} ne '') {
-    push @fields,  @{ $self->search_expr($attr->{GID}, 'INT', 'u.gid', { EXT_FIELD => in_array('GID', $attr->{EXT_FIELDS}) }) };
+    push @fields,  @{ $self->search_expr($attr->{GID}, 'INT', 'u.gid', { EXT_FIELD => in_array('GID', $attr->{EXT_FIELDS}) || ($attr->{GID} eq '_SHOW') ? 1 : undef  }) };
   }
   elsif ($admin->{GIDS}) {
     push @fields, "u.gid IN ($admin->{GIDS})";

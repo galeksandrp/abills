@@ -209,7 +209,7 @@ sub ureports_periodic_reports {
         COLS_UPPER     => 1,
       }
     );
-    
+
     foreach my $user (@$ulist) {
       #Check bill id and deposit
       my %PARAMS = ();

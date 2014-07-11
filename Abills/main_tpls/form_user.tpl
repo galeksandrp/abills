@@ -48,6 +48,8 @@ A_TCALCONF = {
 <input type=hidden name='index' value='$index'>
 <input type=hidden name=COMPANY_ID value='%COMPANY_ID%'>
 <input type=hidden name=step value='$FORM{step}'>
+<input type=hidden  name=NOTIFY_FN value='%NOTIFY_FN%'>
+<input type=hidden  name=NOTIFY_ID value='%NOTIFY_ID%'>
 <TABLE width='450'  class=form>
 %EXDATA%
 <TR><TD colspan=2>&nbsp;</TD></TR>
