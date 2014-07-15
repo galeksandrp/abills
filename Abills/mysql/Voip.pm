@@ -435,7 +435,7 @@ sub route_info {
    name AS route_name,
    date,
    disable,
-   descr AS describe
+   descr AS `describe`
      FROM voip_routes
    WHERE id='$id';",
    undef,

@@ -373,7 +373,7 @@ sub sheduler {
       my $function = lc $s->{module} . "_sheduler";
       
       if (defined(&$function) ) {
-        $ret = $function->($s->{type}, "$action", $s->{uid});
+        $ret = $function->($s->{type}, "$action", $s->{uid}, { DATE => $ADMIN_REPORT{DATE} });
       }
       else {
       	print "ID: $shedule_id Function not defined '$function'\n";

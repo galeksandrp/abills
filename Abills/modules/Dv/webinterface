@@ -4591,8 +4591,6 @@ sub dv_user_info {
     return 0;
   }
 
-
-
   # Get next payment period
   if (
        !$Dv->{STATUS}
@@ -6360,7 +6358,9 @@ sub dv_sheduler {
       }
 
       $FORM{RECALCULATE} = 1;
-      service_get_month_fee($Dv, { QUITE => 1, SHEDULER => 1 });
+      service_get_month_fee($Dv, { QUITE    => 1, 
+      	                           SHEDULER => 1,
+      	                           DATE     => $attr->{DATE}  });
     }
   }
   elsif ($type eq 'status') {
@@ -6390,7 +6390,7 @@ sub dv_sheduler {
       }
     }
     elsif ($action == 3) {
-      service_get_month_fee($Dv, { QUITE => 1, SHEDULER => 1 });
+      service_get_month_fee($Dv, { QUITE => 1, SHEDULER => 1, DATE => $attr->{DATE} });
     }
 
     if ($Dv->{errno} && $Dv->{errno} == 15) {

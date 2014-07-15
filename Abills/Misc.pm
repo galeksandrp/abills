@@ -48,7 +48,10 @@ sub cross_modules_call {
   my ($function_sufix, $attr) = @_;
   my $timeout = $attr->{timeout} || 3;
 
-  $attr->{USER_INFO}->{DEPOSIT} += $attr->{SUM} if ($attr->{SUM});
+  if ($attr->{SUM} && ! $added) {
+    $attr->{USER_INFO}->{DEPOSIT} += $attr->{SUM} ;
+    $added=1;
+  }
   
   if (defined($attr->{SILENT})) {
   	$silent=$attr->{SILENT};
@@ -212,6 +215,8 @@ sub service_get_month_fee {
   my $payments = Finance->payments($Service->{db}, $admin, \%conf);
   my $users    = Users->new($Service->{db}, $admin, \%conf);
 
+  $conf{START_PERIOD_DAY} = 1 if (!$conf{START_PERIOD_DAY});
+
   my %total_sum = (
     ACTIVATE  => 0,
     MONTH_FEE => 0
@@ -293,6 +298,9 @@ sub service_get_month_fee {
 
   my $message = '';
   #Current Month
+
+  $DATE=$attr->{DATE} if ($attr->{DATE});
+
   my ($y, $m, $d)   = split(/-/, $DATE, 3);
   my $days_in_month = ($m != 2 ? (($m % 2) ^ ($m > 7)) + 30 : (!($y % 400) || !($y % 4) && ($y % 25) ? 29 : 28));
 
@@ -313,19 +321,27 @@ sub service_get_month_fee {
       $sum              = 0;
 
       if ($attr->{SHEDULER} && $Service->{TP_INFO_OLD}->{MONTH_FEE} == $Service->{TP_INFO}->{MONTH_FEE}) {
+        if ($attr->{SHEDULER}) {
+          undef $user;
+        }
         return \%total_sum;
       }
-
+      
       if ($users->{ACTIVATE} eq '0000-00-00') {
-        $rest_days     = $days_in_month - $d + 1;
-        $rest_day_sum2 = (! $Service->{TP_INFO_OLD}->{ABON_DISTRIBUTION}) ? $Service->{TP_INFO_OLD}->{MONTH_FEE} /  $days_in_month * $rest_days : 0;
-        $sum           = $rest_day_sum2;
-        #PERIOD_ALIGNMENT
-        $Service->{TP_INFO}->{PERIOD_ALIGNMENT}=1;
+        if ($d != $conf{START_PERIOD_DAY}) {
+          $rest_days     = $days_in_month - $d + 1;
+          $rest_day_sum2 = (! $Service->{TP_INFO_OLD}->{ABON_DISTRIBUTION}) ? $Service->{TP_INFO_OLD}->{MONTH_FEE} /  $days_in_month * $rest_days : 0;
+          $sum           = $rest_day_sum2;
+          #PERIOD_ALIGNMENT
+          $Service->{TP_INFO}->{PERIOD_ALIGNMENT}=1;
+        }
       }
       else {
         #If 
         if ( $attr->{SHEDULER} && date_diff($users->{ACTIVATE}, $DATE) >= 31 ) {
+          if ($attr->{SHEDULER}) {
+            undef $user;
+          }
           return \%total_sum;
         }
       }     
@@ -372,6 +388,9 @@ sub service_get_month_fee {
     my ($active_y, $active_m, $active_d) = split(/-/, $Service->{ACCOUNT_ACTIVATE} || $users->{ACTIVATE}, 3);
 
     if (int("$y$m$d") < int("$active_y$active_m$active_d")) {
+      if ($attr->{SHEDULER}) {
+        undef $user;
+      }
       return \%total_sum;
     }
 
@@ -382,13 +401,19 @@ sub service_get_month_fee {
         $days_in_month = ($active_m != 2 ? (($active_m % 2) ^ ($active_m > 7)) + 30 : (!($active_y % 400) || !($active_y % 4) && ($active_y % 25) ? 29 : 28));
         $d = $active_d;
       }
-      $conf{START_PERIOD_DAY} = 1 if (!$conf{START_PERIOD_DAY});
+
       my $calculation_days = ($d < $conf{START_PERIOD_DAY}) ? $conf{START_PERIOD_DAY} - $d : $days_in_month - $d + $conf{START_PERIOD_DAY};
 
       $sum = sprintf("%.2f", ($sum / $days_in_month) * $calculation_days);
     }
 
-    return \%total_sum if ($sum == 0);
+    if ($sum == 0) {
+      if ($attr->{SHEDULER}) {
+        undef $user;
+      }
+
+      return \%total_sum 
+    }
 
     my $periods = 0;
     if (int($active_m) > 0 && int($active_m) < $m) {

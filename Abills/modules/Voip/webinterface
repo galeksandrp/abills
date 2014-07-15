@@ -1201,7 +1201,7 @@ sub voip_routes {
       $html->message('info', $_INFO, "$_CHANGED");
     }
   }
-  elsif ($FORM{change}) {
+  elsif ($FORM{del}) {
     $Voip->route_del($FORM{del});
     if (!$Voip->{errno}) {
       $html->message('info', $_INFO, "$_DELETED");

@@ -254,6 +254,11 @@ elsif ($FORM{request_type} && $FORM{random} || $FORM{copayco_result}) {
   require "Copayco.pm";
   exit;
 }
+elsif ($FORM{xmlmsg}) {
+  require "Minbank.pm";
+  minbank_check_payment();
+  exit;
+}
 elsif ($FORM{from} eq 'Payonline') {
   require "Payonline.pm";
   exit;
