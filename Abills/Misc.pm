@@ -310,6 +310,11 @@ sub service_get_month_fee {
               METHOD => ($Service->{TP_INFO}->{FEES_METHOD}) ? $Service->{TP_INFO}->{FEES_METHOD} : 1
             );
 
+  if ($attr->{SHEDULER} && $users->{ACTIVATE} ne '0000-00-00') {
+    undef $user;
+    return \%total_sum;
+  }
+
   #Get month fee
   if (($Service->{TP_INFO}->{MONTH_FEE} && $Service->{TP_INFO}->{MONTH_FEE} > 0) ||
       ($Service->{TP_INFO_OLD}->{MONTH_FEE} && $Service->{TP_INFO_OLD}->{MONTH_FEE} > 0)
@@ -342,7 +347,14 @@ sub service_get_month_fee {
           if ($attr->{SHEDULER}) {
             undef $user;
           }
+          
           return \%total_sum;
+        }
+        elsif (! $attr->{SHEDULER} && date_diff($users->{ACTIVATE}, $DATE) < 31) {
+        	$rest_days     = 30 - date_diff($users->{ACTIVATE}, $DATE);
+          $rest_day_sum2 = (! $Service->{TP_INFO_OLD}->{ABON_DISTRIBUTION}) ? $Service->{TP_INFO_OLD}->{MONTH_FEE} /  30 * $rest_days : 0;
+          $sum           = $rest_day_sum2;
+        
         }
       }     
 
@@ -838,7 +850,7 @@ sub _external {
   my ($file, $attr) = @_;
 
   my $arguments = '';
-  $attr->{LOGIN}      = $users->{LOGIN};
+  $attr->{LOGIN}      = $users->{LOGIN} || $attr->{LOGIN};
   $attr->{DEPOSIT}    = $users->{DEPOSIT};
   $attr->{CREDIT}     = $users->{CREDIT};
   $attr->{GID}        = $users->{GID};
@@ -857,6 +869,11 @@ sub _external {
       }
     }
   }
+
+  #if (! -x $file) {
+  #	$html->message('info', "_EXTERNAL $file", "$file not executable") if (!$attr->{QUITE});;
+  #	return 0;
+  #}
 
   my $result = `$file $arguments`;
   my $error = $!;

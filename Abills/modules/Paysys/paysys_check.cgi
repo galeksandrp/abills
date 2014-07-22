@@ -223,7 +223,7 @@ elsif ($FORM{__BUFFER} =~ /^{.+}$/ &&
   exit;
 }
 # Privat bank terminal interface
-elsif (check_ip($ENV{REMOTE_ADDR}, '107.22.173.15,107.22.173.86,217.117.64.232/28,75.101.163.115,213.154.214.76,192.168.1.103,217.117.64.232/29')) {
+elsif (check_ip($ENV{REMOTE_ADDR}, '107.22.173.15,107.22.173.86,217.117.64.232/28,75.101.163.115,213.154.214.76,192.168.1.104,217.117.64.232/29')) {
   eval { require "Privat_terminal.pm" };
   if ( $@ ) {
   	print $@;

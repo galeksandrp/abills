@@ -137,7 +137,6 @@ elsif ($#REGISTRATION > -1) {
       }
     }
     else {
-
       # create a new object
       $INFO_HASH{CAPTCHA_OBJ} = Authen::Captcha->new(
         data_folder   => $base_dir . '/cgi-bin/captcha/',
@@ -145,7 +144,9 @@ elsif ($#REGISTRATION > -1) {
       );
 
       my $number_of_characters = 5;
+
       my $md5sum               = $INFO_HASH{CAPTCHA_OBJ}->generate_code($number_of_characters);
+
       if ($@) {
         print "Content-Type: text/html\n\n";
         print $@;

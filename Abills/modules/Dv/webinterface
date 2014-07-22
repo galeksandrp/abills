@@ -164,7 +164,7 @@ sub dv_chg_tp {
         #Take fees
         #Message
         if (!$Dv->{STATUS} && $FORM{GET_ABON}) {
-
+          $Dv->{ACCOUNT_ACTIVATE} = $users->{ACTIVATE};  	
           service_get_month_fee($Dv);
         }
 

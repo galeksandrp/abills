@@ -99,7 +99,7 @@ sub hangup {
     hangup_radius($NAS, $PORT, "", $attr);
   }
   elsif ($nas_type eq 'redback') {
-    hangup_radius($NAS, $PORT, "", $attr);
+    hangup_radius($NAS, $PORT, "$USER", { %$attr, SESSION_ID => $attr->{ACCT_SESSION_ID} });
   }
   elsif ($nas_type eq 'mx80') {
     #if ( $attr->{'CONNECT_INFO'}  !~ /demux/) {

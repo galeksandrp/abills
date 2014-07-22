@@ -1306,7 +1306,8 @@ sub unreg_requests_add {
    country_id,
    company,
    CONNECTION_TIME,
-   location_id )
+   location_id,
+   login )
     values (now(), '$admin->{AID}', INET_ATON('$admin->{SESSION_IP}'),  '$DATA{SUBJECT}', '$DATA{COMMENTS}', '$DATA{CHAPTER}', '$DATA{REQUEST}',  '$DATA{STATE}',
         '$DATA{PRIORITY}',
         '$DATA{FIO}',
@@ -1318,7 +1319,8 @@ sub unreg_requests_add {
         '$DATA{COUNTRY}',
         '$DATA{COMPANY_NAME}',
         '$DATA{CONNECTION_TIME}',
-        '$DATA{LOCATION_ID}'        
+        '$DATA{LOCATION_ID}',
+        '$DATA{LOGIN}'
         );", 'do'
   );
 
@@ -1383,7 +1385,8 @@ sub unreg_requests_info {
     m.company as company_name,
     m.country_id as country,
     m.connection_time,
-    m.location_id
+    m.location_id,
+    m.login
     FROM (msgs_unreg_requests m)
     LEFT JOIN msgs_chapters mc ON (m.chapter=mc.id)
     LEFT JOIN admins ra ON (m.received_admin=ra.aid)
@@ -1448,7 +1451,8 @@ sub unreg_requests_change {
     COMPANY           => 'company',
     COUNTRY_ID        => 'country_id',
     CONNECTION_TIME   => 'connection_time',
-    LOCATION_ID       => 'location_id'
+    LOCATION_ID       => 'location_id',
+    LOGIN             => 'login'
   );
   $attr->{STATUS} = ($attr->{STATUS}) ? $attr->{STATUS} : 0;
 

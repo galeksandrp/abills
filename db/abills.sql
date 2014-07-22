@@ -636,6 +636,7 @@ CREATE TABLE `msgs_unreg_requests` (
   `closed_date` DATETIME NOT NULL,
   `tp_id` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '0',
   `uid` INTEGER(11) UNSIGNED NOT NULL DEFAULT '0',
+  `login` varchar(24) not null default '', 
   `connection_time` DATETIME NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `id` (`id`),
