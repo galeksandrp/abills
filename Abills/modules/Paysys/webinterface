@@ -11,7 +11,6 @@ else {
   exit;
 }
 
-
 use Finance;
 my $payments = Finance->payments($db, $admin, \%conf);
 my $fees     = Finance->fees($db, $admin, \%conf);
@@ -69,7 +68,9 @@ my %PAY_SYSTEMS = (
   89 => 'Smsonline',
   90 => 'Cashcom',
   91 => 'PayU',
-  92 => 'CoPayCo'
+  92 => 'CoPayCo',
+  93 => 'Minbank',
+  94 => 'Redsys'
 );
 
 my %CONF_OPTIONS = (
@@ -125,6 +126,8 @@ my %CONF_OPTIONS = (
   PAYSYS_CASHCOM_PROVIDER_ID                => 90,
   PAYSYS_PAYU_MERCHANT                      => 91,
   PAYSYS_COPAYCO_SHOP_ID                    => 92,
+  PAYSYS_MINBANK_MERCHANT_ID                => 93,
+  PAYSYS_REDSYS_MERCHANT_ID                 => 94 
 );
 
 my @status = ("$_UNKNOWN",  #0 
@@ -755,8 +758,9 @@ sub paysys_payment {
   elsif ($FORM{PAYMENT_SYSTEM} == 92) {
     paysys_copayco();
   }  
-
-
+  elsif ($FORM{PAYMENT_SYSTEM} == 94) {
+    paysys_redsys();
+  }  
   else {
     PRE_LABEL:
     my %info = ();
@@ -786,7 +790,8 @@ sub paysys_payment {
       89 => 'PAYSYS_SMSONLINE',
       90 => 'PAYSYS_CASHCOM_PROVIDER_ID',
       91 => 'PAYSYS_PAYU_MERCHANT',
-      92 => 'PAYSYS_COPAYCO_SHOP_ID'
+      92 => 'PAYSYS_COPAYCO_SHOP_ID',
+      94 => 'PAYSYS_REDSYS_MERCHANT_ID'
     );
 
     while (my ($k, $v) = each %PAY_SYSTEMS) {
@@ -3279,7 +3284,13 @@ sub paysys_copayco {
     );
 
     if ($Paysys->{errno}) {
-      $html->message('err', "$_ERROR", "$_ERROR Paysys ID: '$FORM{OPERATION_ID}'");
+      my $message = '';
+      if ($Paysys->{errno} == 7) {
+        $message="\n$_EXIST";
+      }
+
+      $html->message('err', "$_ERROR", "$_ERROR Paysys ID: '$FORM{OPERATION_ID}'". $message);
+
       return 0;
     }
   }
@@ -3291,6 +3302,107 @@ sub paysys_copayco {
   $html->tpl_show(_include('paysys_copayco_add', 'Paysys'), { %FORM, %info });
 }
 
+
+#**********************************************************
+#
+#**********************************************************
+sub paysys_redsys {
+  my ($attr)=@_;
+
+  my $payment_system    = 'Redsys';
+  my $payment_system_id = 94;
+  $FORM{DATETIME}       = "$DATE $TIME";
+  $FORM{CURRENCY}       = 'UAH';
+  
+  eval { require "modules/Paysys/Redsys.pm" };
+
+  if ($@) {
+  	print "Content-Type: text/html\n\n";
+    print "Error: load module 'Redsys.pm' $!". $html->br();
+    print "Purchase module from http://abills.net.ua/". $html->br();
+    print $@ if ($conf{PAYSYS_DEBUG});
+    return 0;
+  }
+
+
+  if ($FORM{FALSE}) {
+    if ($FORM{reasoncode} == 11) {
+      $FORM{reasoncodedesc} = "$ERR_INVALID_SIGNATURE";
+    }
+    elsif ($FORM{reasoncode} == 2) {
+      $FORM{reasoncodedesc} = "$ERR_TRANSACTION_DECLINED";
+    }
+    $html->message('err', $_ERROR, "$_FAILED ID: $FORM{orderid} [$FORM{reasoncode}/$FORM{responsecode}] $FORM{reasoncodedesc} ");
+    $html->setCookie('lastindex', "", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure);
+
+    return 0;
+  }
+  elsif ($FORM{TRUE}) {
+    my $list = $Paysys->list(
+      {
+        TRANSACTION_ID => "$payment_system:$FORM{OPERATION_ID}",
+        UID            => $LIST_PARAMS{UID},
+        STATUS         => '_SHOW',
+        SUM            => '_SHOW',
+        COLS_NAME      => 1
+      }
+    );
+
+    if ($Paysys->{TOTAL} > 0) {
+    	if ($list->[0]->{status} == 2) {
+        $html->message('info', $_INFO, "$_ADDED $_SUM: $list->[0]->{sum}\nID: $FORM{OPERATION_ID}");
+      }
+      else {
+      	$html->message('info', $_INFO, "$_STATUS: $status[$list->[0]->{status}]\n\n $_SUM: $list->[0]->{sum}\nID: $FORM{OPERATION_ID}");
+      }
+    }
+    else {
+      $html->message('err', $_ERROR, "$_FAILED ID: $FORM{OPERATION_ID} $_ERR_NO_TRANSACTION");
+    }
+    $html->setCookie('lastindex', "", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure);
+
+    return 0;
+  }
+  else {
+    if ($FORM{SUM} <= 0) {
+      $html->message('info', $_ERROR, "$ERR_WRONG_SUM $FORM{SUM}");
+      return 0;
+    }
+
+    #Info section
+    $Paysys->add(
+      {
+        SYSTEM_ID      => $payment_system_id,
+        DATETIME       => "$FORM{DATETIME}",
+        SUM            => $FORM{SUM},
+        UID            => $LIST_PARAMS{UID},
+        IP             => "$ENV{'REMOTE_ADDR'}",
+        TRANSACTION_ID => "$payment_system:$FORM{OPERATION_ID}",
+        INFO           => '-',
+        PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}",
+        STATUS         => 1
+      }
+    );
+
+    if ($Paysys->{errno}) {
+      my $message = '';
+      if ($Paysys->{errno} == 7) {
+        $message="\n$_EXIST";
+      }
+
+      $html->message('err', "$_ERROR", "$_ERROR Paysys ID: '$FORM{OPERATION_ID}'". $message);
+
+      return 0;
+    }
+  }
+
+
+  $FORM{TOTAL_SUM}  = $FORM{SUM}*100; 
+  $FORM{SIGN}       = redsys_sign(\%FORM);
+
+  $html->tpl_show(_include('paysys_redsys_add', 'Paysys'), { %FORM, %info });	
+	
+}
 
 1
 

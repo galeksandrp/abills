@@ -123,8 +123,8 @@ sub accounting {
         }
       }
     }
-    # If not found auth records
-    else {
+    # If not found auth records and session > 2 sec
+    elsif($RAD->{ACCT_SESSION_TIME} && $RAD->{ACCT_SESSION_TIME} > 2) {
       #Get TP_ID
       $self->query2("SELECT u.uid, dv.tp_id, dv.join_service FROM (users u, dv_main dv)
        WHERE u.uid=dv.uid and u.id='$RAD->{USER_NAME}';"
@@ -167,6 +167,10 @@ sub accounting {
 
       $self->query2("DELETE FROM dv_calls WHERE nas_id='$NAS->{NAS_ID}' AND acct_session_id='IP' AND (framed_ip_address=INET_ATON('$RAD->{FRAMED_IP_ADDRESS}') or UNIX_TIMESTAMP()-UNIX_TIMESTAMP(started) > 120 );", 'do');
     }
+    # Ignoring quick alive rad packets
+    #else {
+    #	
+    #}
   }
 
   # Stop status

@@ -29,6 +29,7 @@ sub load_module {
   eval{ require "Abills/modules/$module/webinterface" };
 
   if ($@) {
+  	print "Content-Type: text/html\n\n";
     print "Error: load module '$module' $!";
     print $@;
   }

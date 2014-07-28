@@ -274,6 +274,10 @@ elsif ( check_ip($ENV{REMOTE_ADDR}, '62.89.31.36,95.140.194.139')) {
   require "Telcell.pm";
   exit;
 }
+elsif ( check_ip($ENV{REMOTE_ADDR}, '195.76.9.187,195.76.9.222,192.168.1.101')) {
+  require "Redsys.pm";
+  exit;
+}
 elsif ($FORM{action} && $conf{PAYSYS_CYBERPLAT_ACCOUNT_KEY}) {
   require "Cyberplat.pm";
   exit;

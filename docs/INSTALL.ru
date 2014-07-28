@@ -15,10 +15,10 @@
 <link rel="alternate" type="application/rss+xml" title="Текущее пространство имён" href="/wiki/feed.php?mode=list&amp;ns=abills:docs_03:install"/>
 <link rel="alternate" type="text/html" title="Простой HTML" href="/wiki/doku.php/abills:docs_03:install:ru?do=export_xhtml"/>
 <link rel="alternate" type="text/plain" title="вики-разметка" href="/wiki/doku.php/abills:docs_03:install:ru?do=export_raw"/>
-<link rel="stylesheet" type="text/css" href="/wiki/lib/exe/css.php?t=dokuwiki&amp;tseed=68289b38b4597f6e8d180f56af9abe7b"/>
-<script type="text/javascript">/*<![CDATA[*/var NS='abills:docs_03:install';var JSINFO = {"id":"abills:docs_03:install:ru","namespace":"abills:docs_03:install","hasbookcreatoraccess":1,"wikipagelink":"\/wiki\/doku.php\/abills:docs_03:install:ru","DOKU_COOKIEPATH":"\/wiki\/"};
+<link rel="stylesheet" type="text/css" href="/wiki/lib/exe/css.php?t=dokuwiki&amp;tseed=6488a8b2cd1292480b3aef30c60961fc"/>
+<script type="text/javascript">/*<![CDATA[*/var NS='abills:docs_03:install';var JSINFO = {"act":"export_raw","id":"abills:docs_03:install:ru","namespace":"abills:docs_03:install","DOKU_COOKIE_PARAM":{"path":"\/wiki\/","secure":false}};
 /*!]]>*/</script>
-<script type="text/javascript" charset="utf-8" src="/wiki/lib/exe/js.php?tseed=68289b38b4597f6e8d180f56af9abe7b"></script>
+<script type="text/javascript" charset="utf-8" src="/wiki/lib/exe/js.php?tseed=6488a8b2cd1292480b3aef30c60961fc"></script>
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <link rel="shortcut icon" href="/wiki/lib/tpl/dokuwiki/images/favicon.ico" />
 <link rel="apple-touch-icon" href="/wiki/lib/tpl/dokuwiki/images/apple-touch-icon.png" />
@@ -38,7 +38,7 @@
             <li><a href="#dokuwiki__content">Перейти к содержанию</a></li>
         </ul>
 
-        <h1><a href="/wiki/doku.php/abills"  accesskey="h" title="[H]"><img src="/wiki/lib/tpl/dokuwiki/images/abills_logo.gif" width="130" height="54" alt="" /> <span>Advanced Billing Solution</span></a></h1>
+        <h1><a href="/wiki/doku.php/abills"  accesskey="h" title="[H]"><img src="/img/abills_logo.gif"  alt="" /> <span>Advanced Billing Solution</span></a></h1>
             </div>
 
     <div class="tools group">
@@ -46,7 +46,7 @@
                     <div id="dokuwiki__usertools">
                 <h3 class="a11y">Инструменты пользователя</h3>
                 <ul>
-                    <li><a href="/wiki/doku.php/abills:docs_03:install:ru?do=login&amp;sectok=46cc4f0c7eecdf39d18f9e37c3ecb337"  class="action login" rel="nofollow" title="Войти">Войти</a></li>                </ul>
+                    <li><a href="/wiki/doku.php/abills:docs_03:install:ru?do=login&amp;sectok=acfbd6f85d6f200ff9ae54f858e9b384"  class="action login" rel="nofollow" title="Войти">Войти</a></li>                </ul>
             </div>
         
         <!-- SITE TOOLS -->
@@ -62,6 +62,7 @@
 
     <!-- BREADCRUMBS -->
             <div class="breadcrumbs">
+                            <div class="youarehere"><span class="bchead">Вы находитесь здесь: </span><span class="home"><bdi><a href="/wiki/doku.php/abills" class="wikilink1" title="abills">abills</a></bdi></span> » <bdi><a href="/wiki/doku.php/abills" class="wikilink1" title="abills">abills</a></bdi> » <bdi><a href="/wiki/doku.php/abills:docs_03:abills" class="wikilink2" title="abills:docs_03:abills" rel="nofollow">docs_03</a></bdi> » <bdi><a href="/wiki/doku.php/abills:docs_03:install:abills" class="wikilink2" title="abills:docs_03:install:abills" rel="nofollow">install</a></bdi> » <bdi><span class="curid"><a href="/wiki/doku.php/abills:docs_03:install:ru" class="wikilink2" title="abills:docs_03:install:ru" rel="nofollow">ru</a></span></bdi></div>
                                         <div class="trace"><span class="bchead">Вы посетили:</span></div>
                     </div>
     
@@ -117,7 +118,7 @@
 </li>
 <li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:modules:cards:ru" class="wikilink1" title="abills:docs:modules:cards:ru">Cards</a></div>
 </li>
-<li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:modules:dv:ru" class="wikilink1" title="abills:docs:modules:dv:ru">Dv</a></div>
+<li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:modules:dv:ru" class="wikilink1" title="abills:docs:modules:dv:ru">Dv</a> (Internet)</div>
 </li>
 <li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:modules:dhcphosts:ru" class="wikilink1" title="abills:docs:modules:dhcphosts:ru">Dhcphosts</a></div>
 </li>
@@ -127,7 +128,7 @@
 </li>
 <li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:modules:extfin:ru" class="wikilink1" title="abills:docs:modules:extfin:ru">Extfin</a></div>
 </li>
-<li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:modules:ipn:ru" class="wikilink1" title="abills:docs:modules:ipn:ru">Ipn</a></div>
+<li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:modules:ipn:ru" class="wikilink1" title="abills:docs:modules:ipn:ru">Ipn</a> (IPoE)</div>
 </li>
 <li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:modules:iptv:ru" class="wikilink1" title="abills:docs:modules:iptv:ru">Iptv</a></div>
 </li>
@@ -179,7 +180,7 @@
 </li>
 <li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:802.1x:ru" class="wikilink1" title="abills:docs:802.1x:ru">IEEE 802.1x</a></div>
 </li>
-<li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:rlm_perl:ru" class="wikilink1" title="abills:docs:rlm_perl:ru">rlm_perl</a></div>
+<li class="level4"><div class="li"> <span class="curid"><a href="/wiki/doku.php/abills:docs:rlm_perl:ru" class="wikilink1" title="abills:docs:rlm_perl:ru">rlm_perl</a></span></div>
 </li>
 <li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:ipsec:ru" class="wikilink1" title="abills:docs:ipsec:ru">IPSec</a></div>
 </li>
@@ -231,7 +232,7 @@
 </li>
 <li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:linux:pppd_radattr:ru" class="wikilink1" title="abills:docs:linux:pppd_radattr:ru">Linux PPPD + radattr.so</a></div>
 </li>
-<li class="level4"><div class="li"> <span class="curid"><a href="/wiki/doku.php/abills:docs:linux:accel_pptp:ru" class="wikilink1" title="abills:docs:linux:accel_pptp:ru">Linux accel-ppp</a></span></div>
+<li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:linux:accel_pptp:ru" class="wikilink1" title="abills:docs:linux:accel_pptp:ru">Linux accel-ppp</a></div>
 </li>
 <li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:linux:accel_ipoe:ru" class="wikilink1" title="abills:docs:linux:accel_ipoe:ru">Linux accel-ipoe</a></div>
 </li>
@@ -259,9 +260,11 @@
 </li>
 <li class="level1"><div class="li"> Development</div>
 <ul>
-<li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:development:nas_integration:ru" class="wikilink1" title="abills:docs:development:nas_integration:ru">NAS Integration</a></div>
+<li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:development:faq:ru" class="wikilink1" title="abills:docs:development:faq:ru">Общие вопросы</a></div>
 </li>
 <li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:development:modules:ru" class="wikilink1" title="abills:docs:development:modules:ru">Модули</a></div>
+</li>
+<li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:development:nas_integration:ru" class="wikilink1" title="abills:docs:development:nas_integration:ru">Создание NAS</a></div>
 </li>
 </ul>
 </li>
@@ -326,7 +329,7 @@
                 <h3 class="a11y">Инструменты страницы</h3>
                 <div class="tools">
                     <ul>
-                        <li><a href="/wiki/doku.php/abills:docs_03:install:ru?do=edit&amp;rev=0"  class="action source" accesskey="v" rel="nofollow" title="Показать исходный текст [V]"><span>Показать исходный текст</span></a></li><li><a href="/wiki/doku.php/abills:docs_03:install:ru?do=revisions"  class="action revs" accesskey="o" rel="nofollow" title="История страницы [O]"><span>История страницы</span></a></li><li><a href="/wiki/doku.php/abills:docs_03:install:ru?do=backlink"  class="action backlink" rel="nofollow" title="Ссылки сюда"><span>Ссылки сюда</span></a></li><li><a href="#dokuwiki__top"  class="action top" accesskey="t" rel="nofollow" title="Наверх [T]"><span>Наверх</span></a></li>                    </ul>
+                        <li><a href="/wiki/doku.php/abills:docs_03:install:ru?do=edit&amp;rev=0"  class="action source" accesskey="v" rel="nofollow" title="Показать исходный текст [V]"><span>Показать исходный текст</span></a></li><li><a href="/wiki/doku.php/abills:docs_03:install:ru?do=revisions"  class="action revs" accesskey="o" rel="nofollow" title="История страницы [O]"><span>История страницы</span></a></li><li><a href="/wiki/doku.php/abills:docs_03:install:ru?do=backlink"  class="action backlink" rel="nofollow" title="Ссылки сюда"><span>Ссылки сюда</span></a></li><li><a href="#dokuwiki__top"  class="action top" accesskey="t" rel="nofollow" title="Наверх [T]"><span>Наверх</span></a></li><li><a href=/wiki/doku.php/abills:docs_03:install:ru?do=export_pdf  class="action export_pdf" rel="nofollow" title="Export to PDF"><span>Export to PDF</span></a></li><li>    <a href=/wiki/doku.php/abills:docs_03:install:ru?do=addtobook  class="action addtobook" rel="nofollow" title="Добавить в книгу">        <span>Добавить в книгу</span>    </a></li>                    </ul>
                 </div>
             </div>
         </div><!-- /wrapper -->
@@ -351,7 +354,8 @@
 
     </div></div><!-- /site -->
 
-    <div class="no"><img src="/wiki/lib/exe/indexer.php?id=abills%3Adocs_03%3Ainstall%3Aru&amp;1402904920" width="2" height="1" alt="" /></div>
+    <div class="no"><img src="/wiki/lib/exe/indexer.php?id=abills%3Adocs_03%3Ainstall%3Aru&amp;1406061431" width="2" height="1" alt="" /></div>
     <div id="screen__mode" class="no"></div>    <!--[if ( lte IE 7 | IE 8 ) ]></div><![endif]-->
 </body>
 </html>
+
