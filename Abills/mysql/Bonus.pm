@@ -716,21 +716,11 @@ sub service_discount_info {
 
   my $WHERE = "WHERE id='$id'";
 
-  $self->query2("SELECT id,
-    service_period,
-    registration_days,
-    discount,
-    discount_days,
-    total_payments_sum,
-    bonus_sum,
-    bonus_percent,
-    ext_account
-     FROM bonus_service_discount
+  $self->query2("SELECT * FROM bonus_service_discount
    $WHERE;",
    undef,
    { INFO => 1 }
   );
-
 
   return $self;
 }
@@ -743,11 +733,7 @@ sub service_discount_add {
   my ($attr) = @_;
   my %DATA   = $self->get_data($attr);
 
-  $self->query2("INSERT INTO bonus_service_discount (service_period, registration_days, discount, discount_days,
-    total_payments_sum, bonus_sum, ext_account, bonus_percent)
-        VALUES ('$DATA{SERVICE_PERIOD}', '$DATA{REGISTRATION_DAYS}', '$DATA{DISCOUNT}', '$DATA{DISCOUNT_DAYS}',
-    '$DATA{TOTAL_PAYMENTS_SUM}', '$DATA{BONUS_SUM}', '$DATA{EXT_ACCOUNT}', '$DATA{BONUS_PERCENT}');", 'do'
-  );
+  $self->query_add('bonus_service_discount', \%DATA);
 
   return $self;
 }
@@ -799,28 +785,23 @@ sub service_discount_list {
   $PG        = ($attr->{PG})        ? $attr->{PG}        : 0;
   $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
 
-  undef @WHERE_RULES;
+  $self->{SEARCH_FIELDS}      = '';
+  $self->{SEARCH_FIELDS_COUNT}= 0;
 
-  if ($attr->{TP_ID}) {
-    push @WHERE_RULES, "tp_id='$attr->{TP_ID}'";
-  }
-
-  if ($attr->{REGISTRATION_DAYS}) {
-    push @WHERE_RULES, @{ $self->search_expr("$attr->{REGISTRATION_DAYS}", 'INT', 'registration_days') };
-  }
-
-  if ($attr->{PERIODS}) {
-    push @WHERE_RULES, @{ $self->search_expr("$attr->{PERIODS}", 'INT', 'service_period') };
-  }
-
-  if ($attr->{TOTAL_PAYMENTS_SUM}) {
-    push @WHERE_RULES, @{ $self->search_expr("$attr->{TOTAL_PAYMENTS_SUM}", 'INT', 'total_payments_sum') };
-  }
-
-  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES) : '';
+  my $WHERE =  $self->search_former($attr, [
+      ['TP_ID',             'INT', 'tp_id'                ], 
+      ['REGISTRATION_DAYS', 'INT', 'registration_days'    ], 
+      ['PERIODS',           'INT', 'service_period'       ],
+      ['TOTAL_PAYMENTS_SUM','INT', 'total_payments_sum'   ],
+      ['PAY_METHOD',        'INT', 'pay_method'           ],
+    ],
+    { WHERE       => 1,
+    	WHERE_RULES => \@WHERE_RULES,
+    }    
+    );
 
   $self->query2("SELECT service_period, registration_days, total_payments_sum,
-  discount, discount_days,  bonus_sum,  bonus_percent, ext_account, id
+  discount, discount_days,  bonus_sum,  bonus_percent, ext_account, pay_method, id
      FROM bonus_service_discount
      $WHERE 
      ORDER BY $SORT $DESC
@@ -1084,10 +1065,11 @@ sub accomulation_scores_add {
   my ($attr) = @_;
   my %DATA   = $self->get_data($attr);
 
-  $self->query2("REPLACE bonus_rules_accomulation_scores SET  
+  $self->query2("UPDATE bonus_rules_accomulation_scores SET  
         uid='$DATA{UID}', 
         dv_tp_id='$DATA{DV_TP_ID}', 
-        cost=cost + $DATA{SCORE};", 'do'
+        cost=cost + $DATA{SCORE}
+      WHERE uid='$attr->{UID}';", 'do'
   );
 
   return $self;

@@ -722,8 +722,9 @@ sub bonus_payments_maked {
         {
           REGISTRATION_DAYS => "<=$registration_days,>=0",
           #PERIODS           => "<=$periods",
+          PAY_METHOD        => "$FORM{METHOD};0",
           PAGE_ROWS         => 1,
-          SORT              => "1 DESC, 2 DESC",
+          SORT              => "1 DESC, 2 DESC, pay_method DESC",
           COLS_NAME         => 1
         }
       );
@@ -745,8 +746,8 @@ sub bonus_payments_maked {
   }
 
   $Bonus->accomulation_scores_add({ UID   => $user->{UID},
-  	                        SCORE => $score 
-  	                      });
+  	                                SCORE => $score 
+  	                              });
 }
 
 
@@ -1010,16 +1011,42 @@ sub bonus_service_discount {
 
   $Bonus->{EXT_ACCOUNT} = 'checked' if ($Bonus->{EXT_ACCOUNT});
 
+  my %PAYMENTS_METHODS = ();
+  my %BILL_ACCOUNTS = ();
+
+  push @PAYMENT_METHODS, @EX_PAYMENT_METHODS if (@EX_PAYMENT_METHODS);
+
+  for (my $i = 0 ; $i <= $#PAYMENT_METHODS ; $i++) {
+    $PAYMENTS_METHODS{"$i"} = "$PAYMENT_METHODS[$i]";
+  }
+
+  my %PAYSYS_PAYMENT_METHODS = %{ cfg2hash($conf{PAYSYS_PAYMENTS_METHODS}) };
+
+  while (my ($k, $v) = each %PAYSYS_PAYMENT_METHODS) {
+    $PAYMENTS_METHODS{$k} = $v;
+  }
+
+  $Bonus->{PAYMENT_TYPES_SEL} = $html->form_select(
+      'PAY_METHOD',
+      {
+        SELECTED => (defined($Bonus->{PAY_METHOD}) && $Bonus->{PAY_METHOD} ne '') ? $Bonus->{PAY_METHOD} : 0,
+        SEL_HASH => \%PAYMENTS_METHODS,
+        NO_ID    => 1,
+      }
+    );
+
   $html->tpl_show(_include('bonus_service_discount', 'Bonus'), $Bonus);
 
-  my $list = $Bonus->service_discount_list({%LIST_PARAMS});
+  my $list = $Bonus->service_discount_list({%LIST_PARAMS,
+  	                                        COLS_NAME => 1
+  	                                       });
 
   my $table = $html->table(
     {
       width      => '100%',
       caption    => "$_BONUS $_SERVICE",
       border     => 1,
-      title      => [ "$_SERVICE $_PERIOD ($_MONTH)", "$_REGISTRATION $_DAYS", "$_TOTAL $_PAYMENTS ($_SUM)", "$_REDUCTION %", "$_REDUCTION $_DAYS", "$_BONUS $_SUM", "$_BONUS_PERCENT", "$_EXTRA $_ACCOUNT", '-', '-' ],
+      title      => [ "$_SERVICE $_PERIOD ($_MONTH)", "$_REGISTRATION $_DAYS", "$_TOTAL $_PAYMENTS ($_SUM)", "$_REDUCTION %", "$_REDUCTION $_DAYS", "$_BONUS $_SUM", "$_BONUS_PERCENT", "$_EXTRA $_ACCOUNT", "$_PAYMENT $_TYPE", '-', '-' ],
       cols_align => [ 'right', 'right', 'right', 'right', 'right', 'center:noprint', 'center:noprint' ],
       qs         => $pages_qs,
       pages      => $Bonus->{TOTAL},
@@ -1028,16 +1055,17 @@ sub bonus_service_discount {
   );
 
   foreach my $line (@$list) {
-    my $delete = $html->button($_DEL, "index=$index&del=$line->[8]", { MESSAGE => "$_DEL [$line->[0]] ?", CLASS => 'del' });
-    $table->addrow($line->[0], 
-       $line->[1], 
-       $line->[2], 
-       $line->[3], 
-       $line->[4], 
-       $line->[5], 
-       $line->[6], 
-       ($line->[7]) ? $_YES : $_NO, 
-       $html->button($_DEL, "index=$index&chg=$line->[8]", { CLASS => 'change' }), $delete);
+    my $delete = $html->button($_DEL, "index=$index&del=$line->{id}", { MESSAGE => "$_DEL [$line->{id}] ?", CLASS => 'del' });
+    $table->addrow($line->{service_period}, 
+       $line->{registration_days}, 
+       $line->{total_payments_sum}, 
+       $line->{discount}, 
+       $line->{discount_days}, 
+       $line->{bonus_sum}, 
+       $line->{bonus_percent}, 
+       ($line->{ext_account}) ? $_YES : $_NO, 
+       ($line->{pay_method}==0) ? $_ALL : $PAYMENTS_METHODS{$line->{pay_method}},
+       $html->button($_DEL, "index=$index&chg=$line->{id}", { CLASS => 'change' }), $delete);
   }
 
   print $table->show();
