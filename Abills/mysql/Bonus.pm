@@ -1061,7 +1061,7 @@ sub accomulation_scores_info {
 }
 
 #**********************************************************
-# accomulation_scores_add()
+# accomulation_scores_change()
 #**********************************************************
 sub accomulation_scores_change {
   my $self   = shift;
@@ -1070,6 +1070,24 @@ sub accomulation_scores_change {
 
   $self->query2("REPLACE INTO bonus_rules_accomulation_scores (uid, dv_tp_id, cost)
         VALUES ('$DATA{UID}', '$DATA{DV_TP_ID}', '$DATA{SCORE}');", 'do'
+  );
+
+  return $self;
+}
+
+
+#**********************************************************
+# accomulation_scores_add()
+#**********************************************************
+sub accomulation_scores_add {
+  my $self   = shift;
+  my ($attr) = @_;
+  my %DATA   = $self->get_data($attr);
+
+  $self->query2("REPLACE bonus_rules_accomulation_scores SET  
+        uid='$DATA{UID}', 
+        dv_tp_id='$DATA{DV_TP_ID}', 
+        cost=cost + $DATA{SCORE};", 'do'
   );
 
   return $self;

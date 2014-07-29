@@ -588,6 +588,8 @@ sub bonus_periodic_daily {
   my $debug_output = '';
   $debug_output .= "Bonus - Daily periodic\n" if ($debug > 1);
 
+  return $debug_output if ($conf{BONUS_PAYMENTS});
+
   #del expired bonus
   #list expire
   $LIST_PARAMS{LOGIN} = $attr->{LOGIN} if ($attr->{LOGIN});
@@ -659,6 +661,9 @@ sub bonus_periodic_monthly {
   my $debug = $attr->{DEBUG} || 0;
   my $debug_output = '';
   $debug_output .= "Bonus - Monthly periodic\n" if ($debug > 1);
+
+  return $debug_output if ($conf{BONUS_PAYMENTS});
+
   if ($conf{BONUS_ACCOMULATION}) {
     $debug_output .= bonus_periodic_accomulation($attr)
   }
@@ -695,6 +700,55 @@ sub bonus_pre_payment {
 
   return $REPORT;
 }
+
+
+#**********************************************************
+#
+#**********************************************************
+sub bonus_payments_maked {
+  my ($attr) = @_;
+
+  my $user=$attr->{USER_INFO} if ($attr->{USER_INFO});
+  return '' if (! $conf{BONUS_PAYMENTS});
+
+  my $score = 0;
+  my %RESULT = ();
+ 
+  my ($year, $month, $day) = split(/-/, $attr->{USER_INFO}->{REGISTRATION}, 3);
+  my $seltime = POSIX::mktime(0, 0, 0, $day, ($month - 1), ($year - 1900));
+  my $registration_days = int((time() - $seltime) / 86400);
+
+  my $list = $Bonus->service_discount_list(
+        {
+          REGISTRATION_DAYS => "<=$registration_days,>=0",
+          #PERIODS           => "<=$periods",
+          PAGE_ROWS         => 1,
+          SORT              => "1 DESC, 2 DESC",
+          COLS_NAME         => 1
+        }
+      );
+
+  if ($Bonus->{TOTAL} > 0) {
+    $RESULT{DISCOUNT}          = $list->[0]->{discount};
+    $RESULT{DISCOUNT_PERIOD}   = $list->[0]->{discount_days};
+    $RESULT{BONUS_SUM}         = $list->[0]->{bonus_sum};
+    $RESULT{BONUS_PERCENT}     = $list->[0]->{bonus_percent};
+    $RESULT{BONUS_EXT_ACCOUNT} = $list->[0]->{ext_account};
+
+    if ($RESULT{DISCOUNT_PERIOD} > 0) {
+      $RESULT{DISCOUNT_PERIOD} = strftime "%Y-%m-%d", localtime(time + 86400 * $RESULT{DISCOUNT_PERIOD});
+    }
+    
+    if ($RESULT{BONUS_PERCENT}) {
+    	$score = $attr->{SUM}  / 100 * $RESULT{BONUS_PERCENT};
+    }
+  }
+
+  $Bonus->accomulation_scores_add({ UID   => $user->{UID},
+  	                        SCORE => $score 
+  	                      });
+}
+
 
 #**********************************************************
 #
@@ -778,12 +832,15 @@ sub bonus_service_discount_mk {
   }
 
   my %RULES = ();
-  my $list = $Bonus->service_discount_list({ PAGE_ROWS => 1000 });
+  my $list = $Bonus->service_discount_list({ PAGE_ROWS => 1000,
+  	                                         COLS_NAME => 1 });
+
+
   foreach my $line (@$list) {
-    if ($line->[1] > 0) {
+    if ($line->{registration_days} > 0) {
       $RULES{PERIOD} = 1;
     }
-    elsif ($line->[2] > 0) {
+    elsif ($line->{total_payments_sum} > 0) {
       $RULES{TOTAL_PAYMENT} = 1;
     }
   }
@@ -959,10 +1016,10 @@ sub bonus_service_discount {
 
   my $table = $html->table(
     {
-      width   => '100%',
-      caption => "$_BONUS",
-      border  => 1,
-      title   => [ "$_SERVICE $_PERIOD ($_MONTH)", "$_REGISTRATION $_DAYS", "$_TOTAL $_PAYMENTS ($_SUM)", "$_REDUCTION %", "$_REDUCTION $_DAYS", "$_BONUS $_SUM", "$_BONUS_PERCENT", "$_EXTRA $_ACCOUNT", '-', '-' ],
+      width      => '100%',
+      caption    => "$_BONUS $_SERVICE",
+      border     => 1,
+      title      => [ "$_SERVICE $_PERIOD ($_MONTH)", "$_REGISTRATION $_DAYS", "$_TOTAL $_PAYMENTS ($_SUM)", "$_REDUCTION %", "$_REDUCTION $_DAYS", "$_BONUS $_SUM", "$_BONUS_PERCENT", "$_EXTRA $_ACCOUNT", '-', '-' ],
       cols_align => [ 'right', 'right', 'right', 'right', 'right', 'center:noprint', 'center:noprint' ],
       qs         => $pages_qs,
       pages      => $Bonus->{TOTAL},
@@ -972,7 +1029,15 @@ sub bonus_service_discount {
 
   foreach my $line (@$list) {
     my $delete = $html->button($_DEL, "index=$index&del=$line->[8]", { MESSAGE => "$_DEL [$line->[0]] ?", CLASS => 'del' });
-    $table->addrow($line->[0], $line->[1], $line->[2], $line->[3], $line->[4], $line->[5], $line->[6], ($line->[7]) ? $_YES : $_NO, $html->button($_DEL, "index=$index&chg=$line->[8]", { CLASS => 'change' }), $delete);
+    $table->addrow($line->[0], 
+       $line->[1], 
+       $line->[2], 
+       $line->[3], 
+       $line->[4], 
+       $line->[5], 
+       $line->[6], 
+       ($line->[7]) ? $_YES : $_NO, 
+       $html->button($_DEL, "index=$index&chg=$line->[8]", { CLASS => 'change' }), $delete);
   }
 
   print $table->show();

@@ -1,4 +1,4 @@
-<FORM name=compra METHOD=POST action='https://sis-t.redsys.es:25443/sis/realizarPago'>
+<FORM name=compra METHOD=POST action='$conf{PAYSYS_REDSYS_URL}'>
 
 <input type=hidden name='Ds_Merchant_MerchantCode' value='$conf{PAYSYS_REDSYS_MERCHANT_ID}'>
 <input type=hidden name='Ds_Merchant_MerchantURL' value='$conf{PAYSYS_REDSYS_CALLBACK_URL}'>
