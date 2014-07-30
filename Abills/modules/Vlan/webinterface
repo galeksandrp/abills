@@ -396,10 +396,11 @@ sub vlan_create {
     }
     else {
       $debug_output .= "!!! No Interface name. Push 'IP-Interface-Name=\"fxp0\"' to NAS RADIUS pairs\n";
-      next;
+      #next;
     }
 
     my $NAS_ID          = '';
+    my $NAS_IP          = '';
     my $nas_mng_ip_port = '';
     my $nas_mng_user    = '';
     my $nas_mng_passwd  = '';
@@ -408,6 +409,7 @@ sub vlan_create {
 
     if (!$attr->{LOCAL_NAS_IDS}) {
       $NAS_ID          = $line->[0];
+      $NAS_IP          = $line->[3];
       $nas_mng_ip_port = $line->[9];
       $nas_mng_user    = $line->[10];
       $nas_mng_passwd  = $line->[11];
@@ -422,6 +424,16 @@ sub vlan_create {
       $ENV{NAS_IP_PORT}     = $nas_mng_port;
       $ENV{NAS_MNG_USER}    = $nas_mng_user;
       $ENV{NAS_MNG_PASSWD}  = $nas_mng_passwd;
+
+      $INFO{NAS_IP}          = $NAS_IP;
+      $INFO{NAS_IP_ADDRESS}  = $nas_mng_ip;
+      $INFO{NAS_MNG_USER}    = $nas_mng_user;
+      $INFO{NAS_MNG_IP_PORT} = (($nas_mng_ip) ? $nas_mng_ip : '') . ':' . (($nas_mng_port) ? $nas_mng_port : '');
+      $INFO{NAS_ID}          = $NAS_ID;
+      $INFO{NAS_TYPE}        = 'vlan';
+      $INFO{NAS_IP_PORT}     = $nas_mng_port;
+      $INFO{NAS_MNG_USER}    = $nas_mng_user;
+      $INFO{NAS_MNG_PASSWD}  = $nas_mng_passwd;
     }
 
     my $vlan_list = $Vlan->list(
@@ -472,6 +484,7 @@ sub vlan_create {
       $INFO{PARENT_INTERFACE} = $parent_interface;
       if ($INFO{DHCP} == 1 && $INFO{VLAN_IF_IP} ne '0.0.0.0') {
         my ($first_ip, $last_ip) = split(/ - /, $vlan->{ip_range});
+        
         $INFO{NETWORK}      = int2ip(ip2int($INFO{VLAN_IF_IP}) - 1);
         $INFO{NETWORK_MASK} = $INFO{VLAN_IF_NETMASK};
         $INFO{RANGE}        = "range $first_ip $last_ip;";
@@ -790,7 +803,8 @@ sub vlan_pppoe_relay {
       {
         ACTION     => 'START',
         INTERFACES => $interfaces,
-        NAS_IP     => $attr->{NAS_MNG_IP} || '127.0.0.1',
+        NAS_IP     => $attr->{NAS_IP},
+        NAS_MNG_IP => $attr->{NAS_MNG_IP} || '127.0.0.1',
         DESCRIBE   => ''
       }
     );

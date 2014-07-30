@@ -5984,11 +5984,11 @@ sub form_payments () {
 
   %PAYMENTS_METHODS = ();
   my %BILL_ACCOUNTS = ();
+  my @PAYMENT_METHODS_ = @PAYMENT_METHODS;
+  push @PAYMENT_METHODS_, @EX_PAYMENT_METHODS if (@EX_PAYMENT_METHODS);
 
-  push @PAYMENT_METHODS, @EX_PAYMENT_METHODS if (@EX_PAYMENT_METHODS);
-
-  for (my $i = 0 ; $i <= $#PAYMENT_METHODS ; $i++) {
-    $PAYMENTS_METHODS{"$i"} = "$PAYMENT_METHODS[$i]";
+  for (my $i = 0 ; $i <= $#PAYMENT_METHODS_ ; $i++) {
+    $PAYMENTS_METHODS{"$i"} = "$PAYMENT_METHODS_[$i]";
   }
 
   my %PAYSYS_PAYMENT_METHODS = %{ cfg2hash($conf{PAYSYS_PAYMENTS_METHODS}) };

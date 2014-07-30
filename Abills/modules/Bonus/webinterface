@@ -588,7 +588,12 @@ sub bonus_periodic_daily {
   my $debug_output = '';
   $debug_output .= "Bonus - Daily periodic\n" if ($debug > 1);
 
-  return $debug_output if ($conf{BONUS_PAYMENTS});
+  if ($conf{BONUS_PAYMENTS}) {
+    if ($conf{BONUS_RESET_PERIOD}) {
+
+    }
+    return $debug_output 
+  }
 
   #del expired bonus
   #list expire
@@ -1014,10 +1019,11 @@ sub bonus_service_discount {
   my %PAYMENTS_METHODS = ();
   my %BILL_ACCOUNTS = ();
 
-  push @PAYMENT_METHODS, @EX_PAYMENT_METHODS if (@EX_PAYMENT_METHODS);
+  my @PAYMENT_METHODS_ = @PAYMENT_METHODS;
+  push @PAYMENT_METHODS_, @EX_PAYMENT_METHODS if (@EX_PAYMENT_METHODS);
 
-  for (my $i = 0 ; $i <= $#PAYMENT_METHODS ; $i++) {
-    $PAYMENTS_METHODS{"$i"} = "$PAYMENT_METHODS[$i]";
+  for (my $i = 0 ; $i <= $#PAYMENT_METHODS_ ; $i++) {
+    $PAYMENTS_METHODS{"$i"} = "$PAYMENT_METHODS_[$i]";
   }
 
   my %PAYSYS_PAYMENT_METHODS = %{ cfg2hash($conf{PAYSYS_PAYMENTS_METHODS}) };
