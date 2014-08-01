@@ -475,8 +475,8 @@ sub user_list {
       ['BONUS_ACCOMULATION', '', '', 'ras.cost'],
     ],
     { WHERE             => 1,
-    	WHERE_RULES       => \@WHERE_RULES,
-    	USERS_FIELDS      => 1,
+      WHERE_RULES       => \@WHERE_RULES,
+      USERS_FIELDS      => 1,
     }
     );
 
@@ -666,9 +666,9 @@ sub bonus_operation_list {
       ['UID',            'INT', 'p.uid',                                  1],
     ],
     { WHERE       => 1,
-    	WHERE_RULES => \@WHERE_RULES,
-    	USERS_FIELDS=> 1,
-    	SKIP_USERS_FIELDS=> [ 'BILL_ID', 'UID' ]
+      WHERE_RULES => \@WHERE_RULES,
+      USERS_FIELDS=> 1,
+      SKIP_USERS_FIELDS=> [ 'BILL_ID', 'UID' ]
     }    
     );
 
@@ -796,7 +796,7 @@ sub service_discount_list {
       ['PAY_METHOD',        'INT', 'pay_method'           ],
     ],
     { WHERE       => 1,
-    	WHERE_RULES => \@WHERE_RULES,
+      WHERE_RULES => \@WHERE_RULES,
     }    
     );
 
@@ -1053,6 +1053,9 @@ sub accomulation_scores_change {
         VALUES ('$DATA{UID}', '$DATA{DV_TP_ID}', '$DATA{SCORE}');", 'do'
   );
 
+  $admin->{MODULE} = $MODULE;
+  $admin->action_add("$DATA{UID}", "SCORE:$DATA{SCORE}", { TYPE => 2 });
+
   return $self;
 }
 
@@ -1071,6 +1074,17 @@ sub accomulation_scores_add {
         cost=cost + $DATA{SCORE}
       WHERE uid='$attr->{UID}';", 'do'
   );
+
+  if ($self->{AFFECTED} == 0 && $CONF->{BONUS_PAYMENTS_AUTO}){
+    $self->accomulation_scores_change({ 
+           UID      => $attr->{UID}, 
+           SCORE    => $attr->{SCORE},
+           DV_TP_ID => 0  });
+
+  }
+
+  $admin->{MODULE} = $MODULE;
+  $admin->action_add("$DATA{UID}", "SCORE:$DATA{SCORE}", { TYPE => 1 });
 
   return $self;
 }
@@ -1124,7 +1138,7 @@ sub accomulation_first_rule {
   my $self   = shift;
   my ($attr) = @_;
   
-  $CONF->{BONUS_ACCOMULATION_FIRST_BONUS}=40 if (! $CONF->{BONUS_ACCOMULATION_FIRST_BONUS});
+  $CONF->{BONUS_ACCOMULATION_FIRST_BONUS}=0 if (! $CONF->{BONUS_ACCOMULATION_FIRST_BONUS});
   $CONF->{BONUS_ACCOMULATION_FIRST_INTERVAL}=3 if (! defined($CONF->{BONUS_ACCOMULATION_FIRST_INTERVAL}));
 
   $self->query2( "SELECT PERIOD_DIFF(DATE_FORMAT(max(date), '%Y%m'), 
