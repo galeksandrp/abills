@@ -216,11 +216,17 @@ sub password_recovery {
       $html->message('err', $_ERROR, "$ERR_WRONG_DATA");
       return 0;
     }
+    elsif (! $FORM{EMAIL} && ! $FORM{LOGIN}) {
+      $html->message('err', $_ERROR, "$ERR_WRONG_DATA");
+      return 0;
+    }
 
-    my $list = $users->list({ %FORM,
-    	                        PHONE => '_SHOW',
-    	                        EMAIL => '_SHOW',
+    my $list = $users->list({ 
+    	                        PHONE     => '_SHOW',
+    	                        EMAIL     => '_SHOW',
+    	                        %FORM,
     	                        COLS_NAME => 1 });
+
     if ($users->{TOTAL} > 0) {
       my @u       = @$list;
       my $message = '';
@@ -246,7 +252,7 @@ sub password_recovery {
 
       $message = $html->tpl_show(templates('msg_passwd_recovery'), { MESSAGE => $message, %$user, %$pi }, { OUTPUT2RETURN => 1 });
 
-      if ($email ne '') {
+      if ($email && $email ne '') {
         sendmail("$conf{ADMIN_MAIL}", "$email", "$PROGRAM Password Repair", "$message", "$conf{MAIL_CHARSET}", "");
 
         $html->message('info', $_INFO, "$_SENDED");

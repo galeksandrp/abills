@@ -2721,7 +2721,7 @@ sub msgs_unreg_requests_list {
     $Msgs->{PRIORITY_SEL} = $html->form_select(
       'PRIORITY',
       {
-        SELECTED     => $FORM{PRIORITY} || '',
+        SELECTED     => $FORM{PRIORITY} || 5,
         SEL_ARRAY    => [ @priority, "$_ALL" ],
         STYLE        => \@priority_colors,
         ARRAY_NUM_ID => 1
@@ -2742,12 +2742,10 @@ sub msgs_unreg_requests_list {
     $Msgs->{PLAN_DATE} = "0000-00-00";
     $Msgs->{PLAN_TIME} = "00:00:00";
 
-    $Msgs->{ADDRESS_TPL} = $html->tpl_show(templates('form_address'), $Msgs, { OUTPUT2RETURN => 1 });
-
     form_search({ SEARCH_FORM => $html->tpl_show(_include('msgs_request_search', 'Msgs'), 
     	 { %$Msgs, %FORM }, 
     	 { OUTPUT2RETURN => 1 }),
-    	 ADDRESS_FORM    => 1 });
+    	   ADDRESS_FORM  => 1 });
   }
 
   $LIST_PARAMS{STATE}    = undef if ($FORM{STATE} == 3);

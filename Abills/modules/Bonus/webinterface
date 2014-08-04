@@ -464,10 +464,13 @@ sub bonus_user {
   }
   elsif ($FORM{change}) {
     if ($user->{UID}) {
+    	my $accept_rules = $FORM{ACCEPT_RULES} ;
       %FORM       = ();
-      $FORM{STATE}= 0;
+      $FORM{STATE}= 1;
       $FORM{UID}  = $user->{UID};
+      $FORM{ACCEPT_RULES} = $accept_rules;
     }
+   
     $Bonus->user_change({%FORM});
 
     if (!$Bonus->{errno}) {
@@ -494,6 +497,8 @@ sub bonus_user {
   }
 
   $Bonus->user_info($FORM{UID});
+  my $allow_transfer = $Bonus->{ACCEPT_RULES};
+  my $active_status  = $Bonus->{STATE};
 
   if ($Bonus->{TOTAL} < 1) {
     $Bonus->{ACTION}      = $html->form_input('add', "$_REGISTRATION", { TYPE => 'submit', OUTPUT2RETURN => 1 });
@@ -507,13 +512,20 @@ sub bonus_user {
     $Bonus->{STATE}       = $html->form_input('STATE', '1', { STATE => ($Bonus->{STATE}==1) ? $Bonus->{STATE} : undef, TYPE => 'checkbox', OUTPUT2RETURN => 1 });
   }
   else {
-    $Bonus->{ACCEPT_RULES}= $_YES; #$bool_vals[1];
-    $Bonus->{STATE}       = $status[$Bonus->{STATE}] . '  '. (($Bonus->{STATE}==1) ?  $html->button("$_DISABLE", "index=$index&change=1&STATE=0", { MESSAGE => "$_DISABLE $_BONUS ?", BUTTON => 1 }) : '');
+    if ($Bonus->{ACCEPT_RULES}) {
+    	$Bonus->{ACCEPT_RULES} = $_YES
+    } 
+    else {
+      $Bonus->{ACCEPT_RULES} = $html->form_input('ACCEPT_RULES', '1', { STATE => $Bonus->{ACCEPT_RULES}, TYPE => 'checkbox', OUTPUT2RETURN => 1 });
+      $Bonus->{ACTION}       = $html->form_input('change', "$_ACTIVATE", { TYPE => 'submit', OUTPUT2RETURN => 1 });
+    }
+
+    $Bonus->{STATE}       = $status[$Bonus->{STATE}]; # . '  '. (($Bonus->{STATE}==1) ?  $html->button("$_DISABLE", "index=$index&change=1&STATE=0", { MESSAGE => "$_DISABLE $_BONUS ?", BUTTON => 1 }) : '');
   }
 
 
   if (! $conf{BONUS_PAYMENTS}) {
-    $Bonus->{TARIF_SEL} = $html->form_select(
+    $Bonus->{TARIF_SEL} = "--".$html->form_select(
       'TP_ID',
       {
         SELECTED       => $Bonus->{TP_ID},
@@ -538,7 +550,7 @@ sub bonus_user {
 
     $html->tpl_show(_include('bonus_user_accomulation', 'Bonus'), $Bonus);
     
-    if ($Bonus->{COST} > 0 && $Bonus->{UID}) {
+    if ($Bonus->{COST} > 0 && $Bonus->{UID} && $allow_transfer && $active_status) {
       bonus_accomulation_transfer()
     }
   }
@@ -730,7 +742,12 @@ sub bonus_payments_maked {
   my ($attr) = @_;
 
   my $user=$attr->{USER_INFO} if ($attr->{USER_INFO});
-  return '' if (! $conf{BONUS_PAYMENTS});
+  if (! $conf{BONUS_PAYMENTS}) {
+    return '';
+  }
+  elsif(! $attr->{SUM} ) {
+  	return '';
+  }
 
   my $score = 0;
   my %RESULT = ();
@@ -738,6 +755,12 @@ sub bonus_payments_maked {
   my ($year, $month, $day) = split(/-/, $attr->{USER_INFO}->{REGISTRATION}, 3);
   my $seltime = POSIX::mktime(0, 0, 0, $day, ($month - 1), ($year - 1900));
   my $registration_days = int((time() - $seltime) / 86400);
+
+  $Bonus->user_info($user->{UID});
+  
+  if (! $Bonus->{STATE} || ! $Bonus->{ACCEPT_RULES}) {
+  	return '';
+  }
 
   my $list = $Bonus->service_discount_list(
         {
@@ -767,7 +790,9 @@ sub bonus_payments_maked {
   }
 
   if (! $attr->{QUITE}) {
-  	$html->message('info', $_BONUS, "$_ADD $_BONUS ". sprintf('%.2f', $score));
+  	if ($attr->{SUM} > 0) {
+  	  $html->message('info', $_BONUS, "$_ADD $_BONUS ". sprintf('%.2f', $score));
+  	}
   }
 
   $Bonus->accomulation_scores_add({ UID   => $user->{UID},

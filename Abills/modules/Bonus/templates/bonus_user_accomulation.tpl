@@ -5,9 +5,9 @@
 <input type=hidden name=sid value='$sid'>
 <table width=450 class=form>
 <tr><th colspan=2 class=form_title>$_BONUS</th></tr>
-<tr><td>$_TARIF_PLAN:</td><td valign=middle>%TARIF_SEL%</td></tr>
-<tr><td>$_ACTIV:</td><td>%STATE%</td></tr>
-<tr><td>$_ACCEPT_RULES:</td><td>%ACCEPT_RULES%</td></tr>
+<tr><td>%TARIF_SEL_NAME%</td><td valign=middle>%TARIF_SEL%</td></tr>
+<tr><td>$_STATE</td><td>%STATE%</td></tr>
+<tr><td>$_ACCEPT_RULES</td><td>%ACCEPT_RULES%</td></tr>
 
 <tr><td>$_BONUS:</td><td>%COST%</td></tr>
 
