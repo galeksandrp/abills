@@ -1734,8 +1734,7 @@ sub paysys_privatbank {
   }
 
   my $ctx = Digest::SHA1->new;
-  
-  my $sign_text = $conf{PAYSYS_PB_PW} . $conf{PAYSYS_PB_MERID} . '414963' . $info{OPERATION_ID} . $info{AMOUNT} . '980' . $info{AMOUNT2} . '840' . $info{AdditionalData};
+  my $sign_text = $conf{PAYSYS_PB_PW} . $conf{PAYSYS_PB_MERID} . '414963' . $info{OPERATION_ID} . $info{AMOUNT} . '980' . $FORM{DESCRIBE};
   
   $ctx->add($sign_text);
   $info{HASH}            = $ctx->b64digest();
