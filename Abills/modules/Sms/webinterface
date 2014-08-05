@@ -215,11 +215,13 @@ sub sms_reports {
     my $status  = ($sms_status{$line->{status}}) ? $sms_status{$line->{status}} : $line->{status};
     my $message = $line->{message}  || '';
     if ($conf{dbcharset} ne 'utf8') { Encode::from_to($status,  'utf-8', 'windows-1251') }
-
+    my $destination = $line->{number};
+    $destination =~ s/[\+\ ]+//; 
+   
     $table->addrow(
       $line->{id},
       $line->{msg_id},
-      $line->{number},
+      $html->button($line->{number}, "index=".get_function_index('ureports_users_list'). "&DESTINATION=$destination&search=1&search_form=1"),
       $line->{sign},
       $message,
       $line->{wappush},

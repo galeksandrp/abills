@@ -5101,7 +5101,6 @@ sub dv_daily_fees {
           BILL_ID      => '_SHOW',
           DEPOSIT      => '_SHOW',
           CREDIT       => '_SHOW',
-          #DV_STATUS    => '_SHOW',
           DELETED      => 0,
           COLS_NAME    => 1,
           %USERS_LIST_PARAMS
@@ -5449,7 +5448,6 @@ sub dv_monthly_next_tp {
         DEPOSIT      => '_SHOW',
         CREDIT       => '_SHOW',
         COMPANY_ID   => '_SHOW',
-        DV_STATUS    => '_SHOW',
         COLS_NAME    => 1,
         %USERS_LIST_PARAMS
       }

@@ -103,7 +103,7 @@ sub ureports_users_list {
   my ($table, $user_list) = result_former({
      INPUT_DATA      => $Ureports,
      FUNCTION        => 'user_list',
-     BASE_FIELDS     => 5,
+     BASE_FIELDS     => 6,
      FUNCTION_FIELDS => 'stats',
      EXT_TITLES      => {
         speed      => $_SPEED,
@@ -129,7 +129,7 @@ sub ureports_users_list {
   foreach my $line (@$user_list) {
     my @fields_array = ();
 
-    for (my $i = 0; $i < 5+$Ureports->{SEARCH_FIELDS_COUNT}; $i++) {
+    for (my $i = 0; $i < 6+$Ureports->{SEARCH_FIELDS_COUNT}; $i++) {
        my $val        = '';
       my $field_name = $Ureports->{COL_NAMES_ARR}->[$i];      
 

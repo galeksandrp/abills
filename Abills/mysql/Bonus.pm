@@ -404,6 +404,8 @@ sub user_add {
   my ($attr) = @_;
   my %DATA   = $self->get_data($attr);
 
+  $DATA{STATE} = 1;
+
   $self->query2("INSERT INTO bonus_main (uid, tp_id, state, accept_rules)
         VALUES ('$DATA{UID}', '$DATA{TP_ID}', '$DATA{STATE}', '$DATA{ACCEPT_RULES}');", 'do'
   );
