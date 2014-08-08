@@ -1665,32 +1665,6 @@ sub wm_validate {
   return $digest;
 }
 
-#**********************************************************
-# Make log file for paysys request
-# mk_log
-#**********************************************************
-sub mk_log {
-  my ($message, $attr) = @_;
-  my $paysys = $attr->{PAYSYS_ID} || '';
-  my $paysys_log_file = 'paysys_check.log';
-
-  if (open(FILE, ">>$paysys_log_file")) {
-    print FILE "\n$DATE $TIME $ENV{REMOTE_ADDR} $paysys =========================\n";
-
-    if ($attr->{REQUEST}) {
-      print FILE "$attr->{REQUEST}\n=======\n";
-    }
-
-    print FILE $message;
-    close(FILE);
-  }
-  else {
-    print "Content-Type: text/plain\n\n";
-    print "Can't open log file '$paysys_log_file' $!\n";
-  }
-}
-
-
 
 #**********************************************************
 #

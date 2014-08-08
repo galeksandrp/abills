@@ -406,10 +406,12 @@ sub online_info {
   my ($attr) = @_;
 
   my $WHERE =  $self->search_former($attr, [
-      ['NAS_ID',         'INT', 'nas_id'         ],
-      ['NAS_IP_ADDRESS', 'IP',  'nas_ip_address' ],
-      ['NAS_PORT',       'INT', 'nas_port_id',   ],
-      ['ACCT_SESSION_ID','STR', 'acct_session_id'],
+      ['NAS_ID',           'INT', 'nas_id'            ],
+      ['NAS_IP_ADDRESS',   'IP',  'nas_ip_address'    ],
+      ['NAS_PORT',         'INT', 'nas_port_id',      ],
+      ['ACCT_SESSION_ID',  'STR', 'acct_session_id'   ],
+      ['UID',              'INT', 'c.uid'             ],
+      ['FRAMED_IP_ADDRESS','IP',  'framed_ip_address' ]
     ],
     { WHERE => 1,
     }    

@@ -37,7 +37,7 @@
 	<input id='PurchaseCurrencyExponent' type='hidden' name='purchasecurrencyexponent'  value='2' >
 	<input id='PurchaseCurrency'  type='hidden' name='purchasecurrency' value='980' >
 	<input id='Signature'         type='hidden' name='signature' value ='%HASH%' >
-	<input id='MerRespURL2'       type='hidden' name='orderdescription' value='$FORM{DESCRIBE}'>
+	<input id='orderdescription'  type='hidden' name='orderdescription' value='$FORM{DESCRIBE}'>
 	<input id='MerRespURL2'       type='hidden' value='$ENV{PROT}://$ENV{SERVER_NAME}:$ENV{SERVER_PORT}/paysys_check.cgi'  name='MerRespURL2'>
 
 <!--	

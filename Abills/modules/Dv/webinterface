@@ -164,7 +164,7 @@ sub dv_chg_tp {
         #Take fees
         #Message
         if (!$Dv->{STATUS} && $FORM{GET_ABON}) {
-          $Dv->{ACCOUNT_ACTIVATE} = $users->{ACTIVATE};  	
+          $Dv->{ACCOUNT_ACTIVATE} = $users->{ACTIVATE};    
           service_get_month_fee($Dv);
         }
 
@@ -785,16 +785,16 @@ sub dv_user {
 
     my $list = $sessions->online(
       {
-        UID          => $Dv->{UID},
-        CLIENT_IP    => '_SHOW', 
-        DURATION     => '_SHOW', 
+        UID            => $Dv->{UID},
+        CLIENT_IP      => '_SHOW', 
+        DURATION       => '_SHOW', 
         ACCT_INPUT_OCTETS => '_SHOW', 
         ACCT_OUTPUT_OCTETS=> '_SHOW', 
-        NAS_NAME     => '_SHOW', 
-        NAS_PORT_ID  => '_SHOW', 
+        NAS_NAME       => '_SHOW', 
+        NAS_PORT_ID    => '_SHOW', 
         ACCT_SESSION_ID=> '_SHOW', 
-        USER_NAME    => '_SHOW',
-        GUEST        => '_SHOW'        
+        USER_NAME      => '_SHOW',
+        GUEST          => '_SHOW'        
       }
     );
 
@@ -810,16 +810,31 @@ sub dv_user {
 
       foreach my $line (@$list) {
         my ($nas_id, $nas_port_id, $acct_session_id, $user_name) = split(/ /, $FORM{hangup}, 4);
-        $table->addrow(
+        my @row = (        
           $line->{client_ip},
           $line->{duration},
           int2byte($line->{acct_input_octets}),
           int2byte($line->{acct_output_octets}),
-          ($line->{guest}==1) ? $html->color_mark($_GUEST, "$_COLORS[6]") : '', 
-          $html->button($line->{nas_name}, "index=$online_index&NAS_ID=$line->{nas_id}"),
-          $html->button('Z', "index=$online_index&zap=$Dv->{UID}+$line->{nas_id}+$line->{nas_port_id}+$line->{acct_session_id}$pages_qs", { TITLE => 'Zap',    CLASS => 'del', NO_LINK_FORMER => 1 }),
-          $html->button('H', "index=$online_index&FRAMED_IP_ADDRESS=$line->{client_ip}&hangup=$line->{nas_id}+$line->{nas_port_id}+$line->{acct_session_id}+$line->{user_name}&$pages_qs", { TITLE => 'Hangup', CLASS => 'off', NO_LINK_FORMER => 1 })
+          ($line->{guest}==1) ? $html->color_mark($_GUEST, 'red') : '', 
+          $html->button($line->{nas_name}, "index=$online_index&NAS_ID=$line->{nas_id}")
         );
+
+        if ($conf{DV_EXTERNAL_DIAGNOSTIC}) {
+          my @diagnostic_rules = split(/;/, $conf{DV_EXTERNAL_DIAGNOSTIC});
+          for($diag_num=0; $diag_num<=$#diagnostic_rules; $diag_num++) {
+            my ($name, $cmd)=split(/:/, $diagnostic_rules[$diag_num]);
+            
+            if (! $name) {
+              $name = 'Diagnostic '. $diag_num;
+            }
+            push @row,$html->button($name, "index=$online_index&diagnostic=$diag_num:$line->{client_ip}+$Dv->{UID}+$line->{nas_id}+$line->{nas_port_id}+$line->{acct_session_id}$pages_qs", { TITLE => "$name", BUTTON => 1 , NO_LINK_FORMER => 1 });
+          }
+        }
+
+        push @row, $html->button('Z', "index=$online_index&zap=$Dv->{UID}+$line->{nas_id}+$line->{nas_port_id}+$line->{acct_session_id}$pages_qs", { TITLE => 'Zap',    CLASS => 'del', NO_LINK_FORMER => 1 }),
+        $html->button('H', "index=$online_index&FRAMED_IP_ADDRESS=$line->{client_ip}&hangup=$line->{nas_id}+$line->{nas_port_id}+$line->{acct_session_id}+$line->{user_name}&$pages_qs", { TITLE => 'Hangup', CLASS => 'off', NO_LINK_FORMER => 1 });
+
+        $table->addrow(@row);
       }
 
       $Dv->{ONLINE_TABLE} = $table->show();
@@ -1141,8 +1156,6 @@ sub dv_tp {
       {
         SELECTED       => $tarif_info->{TP_GID},
         SEL_LIST       => $tariffs->tp_group_list({ COLS_NAME => 1 }),
-        SEL_KEY        => 'id',
-        SEL_VALUE      => 'name',
         MAIN_MENU      => get_function_index('form_tp_groups'),
         MAIN_MENU_AGRV => "chg=$tarif_info->{TP_GID}",
         SEL_OPTIONS    => { '' => '' },
@@ -1518,6 +1531,33 @@ sub dv_online {
 
     $html->message('info', $_INFO, "$message");
   }
+  elsif ($FORM{diagnostic}) {
+    my ($diag_num,$diag_params) = split(/:/, $FORM{diagnostic}, 2);
+    my ($ip, $uid, $nas_id, $nas_port_id, $acct_session_id) = split(/ /, $diag_params);
+
+    my ($name, $cmd);
+    my @diagnostic_rules = split(/;/, $conf{DV_EXTERNAL_DIAGNOSTIC});
+    for($i=0; $i<=$#diagnostic_rules; $i++) {
+      ($name, $cmd)=split(/:/, $diagnostic_rules[$i]);
+      if ($i == $diag_num) {
+      	last;
+      }      
+    }
+
+    my $ACCT_INFO = $sessions->online_info(
+        {
+          NAS_ID            => $nas_id,
+          ACCT_SESSION_ID   => $acct_session_id,
+          UID               => $uid,
+          FRAMED_IP_ADDRESS => $ip
+        }
+    );
+
+    $cmd = tpl_parse($cmd, $ACCT_INFO);
+    my $res = `$cmd`;
+    print $html->message('info', "$_DIAGNOSTIC $name", "$res");
+  }
+
   if ($FORM{zapall}) {
     $sessions->zap(0, 0, 0, { ALL => 1, %FORM });
     $html->message('info', $_INFO, "Zapped all sessions");
@@ -4135,7 +4175,7 @@ sub cisco_isg_cmd {
   }
 
   if (! $conf{DV_ISG}) {
-  	return 1;
+    return 1;
   }
 
   #Get user NAS server from ip pools
@@ -6220,7 +6260,7 @@ sub dv_users_warning_messages {
     if ($debug < 5) {
       my $message = $html->tpl_show(_include('dv_users_warning_messages', 'Dv'), 
         { %$u, DATE => $DATE, TIME => $TIME }, 
-      	{ OUTPUT2RETURN => 1 });
+        { OUTPUT2RETURN => 1 });
 
       sendmail("$conf{ADMIN_MAIL}", "$email", "$_BILL_INFO", "$message", 
           "$conf{MAIL_CHARSET}", "2 (High)", { TEST => (($debug>6)?1:0) });
@@ -6357,8 +6397,8 @@ sub dv_sheduler {
 
       $FORM{RECALCULATE} = 1;
       service_get_month_fee($Dv, { QUITE    => 1, 
-      	                           SHEDULER => 1,
-      	                           DATE     => $attr->{DATE}  });
+                                   SHEDULER => 1,
+                                   DATE     => $attr->{DATE}  });
     }
   }
   elsif ($type eq 'status') {
@@ -7883,7 +7923,7 @@ sub dv_report_tp {
   my ($attr)=@_;
   
   my $list = $Dv->report_tp({ %LIST_PARAMS, 
-  	                          COLS_NAME => 1 });
+                              COLS_NAME => 1 });
   
 my $table = $html->table(
   {

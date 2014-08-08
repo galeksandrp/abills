@@ -757,7 +757,10 @@ sub paysys_payment {
   }  
   elsif ($FORM{PAYMENT_SYSTEM} == 92) {
     paysys_copayco();
-  }  
+  }
+  elsif ($FORM{PAYMENT_SYSTEM} == 93 ||  $FORM{minbank_msg} || $FORM{minbank_action}) {
+    paysys_minbank();
+  }
   elsif ($FORM{PAYMENT_SYSTEM} == 94) {
     paysys_redsys();
   }  
@@ -808,7 +811,7 @@ sub paysys_payment {
     );
     
     if ($FORM{INTERACT}) {
-    	return $html->tpl_show(_include('paysys_interact', 'Paysys'), \%info, { OUTPUT2RETURN => $attr->{OUTPUT2RETURN} });
+      return $html->tpl_show(_include('paysys_interact', 'Paysys'), \%info, { OUTPUT2RETURN => $attr->{OUTPUT2RETURN} });
     }
     else {
       return $html->tpl_show(_include('paysys_main', 'Paysys'), \%info, { OUTPUT2RETURN => $attr->{OUTPUT2RETURN} });
@@ -1140,8 +1143,8 @@ sub paysys_ukrpays () {
   }
   if ($FORM{TRUE}) {
     my $list = $Paysys->list({ INFO => "*$FORM{'OPERATION_ID'}*", 
-    	                         UID  => $LIST_PARAMS{UID},
-    	                         COLS_NAME => 1 });
+                               UID  => $LIST_PARAMS{UID},
+                               COLS_NAME => 1 });
     if ($Paysys->{TOTAL} > 0) {
       $html->message('info', $_INFO, "$_ADDED $_SUM: $list->[0]->{sum} $_TRANSACTION ID: '$FORM{OPERATION_ID}' ");
     }
@@ -1153,7 +1156,7 @@ sub paysys_ukrpays () {
   }
 
   if (! $user->{FIO}) {
-  	$user->pi({ UID => $LIST_PARAMS{UID} });
+    $user->pi({ UID => $LIST_PARAMS{UID} });
   }
 
   my %info = (UID => $LIST_PARAMS{UID},
@@ -2119,9 +2122,9 @@ sub paysys_privatbank_p24 {
     }
 
     if ($conf{PAYSYS_GROUP_SPLIT_ACCOUNTS}) {
-    	if ($conf{'PAYSYS_P24_COMMISSION_'. $user->{GID}}) {
-    		$conf{PAYSYS_P24_COMMISSION}=$conf{'PAYSYS_P24_COMMISSION_'. $user->{GID}};
-    	}
+      if ($conf{'PAYSYS_P24_COMMISSION_'. $user->{GID}}) {
+        $conf{PAYSYS_P24_COMMISSION}=$conf{'PAYSYS_P24_COMMISSION_'. $user->{GID}};
+      }
     }
 
     if ($conf{PAYSYS_P24_COMMISSION}) {
@@ -3316,7 +3319,7 @@ sub paysys_redsys {
   eval { require "modules/Paysys/Redsys.pm" };
 
   if ($@) {
-  	print "Content-Type: text/html\n\n";
+    print "Content-Type: text/html\n\n";
     print "Error: load module 'Redsys.pm' $!". $html->br();
     print "Purchase module from http://abills.net.ua/". $html->br();
     print $@ if ($conf{PAYSYS_DEBUG});
@@ -3348,11 +3351,11 @@ sub paysys_redsys {
     );
 
     if ($Paysys->{TOTAL} > 0) {
-    	if ($list->[0]->{status} == 2) {
+      if ($list->[0]->{status} == 2) {
         $html->message('info', $_INFO, "$_ADDED $_SUM: $list->[0]->{sum}\nID: $FORM{OPERATION_ID}");
       }
       else {
-      	$html->message('info', $_INFO, "$_STATUS: $status[$list->[0]->{status}]\n\n $_SUM: $list->[0]->{sum}\nID: $FORM{OPERATION_ID}");
+        $html->message('info', $_INFO, "$_STATUS: $status[$list->[0]->{status}]\n\n $_SUM: $list->[0]->{sum}\nID: $FORM{OPERATION_ID}");
       }
     }
     else {
@@ -3399,8 +3402,66 @@ sub paysys_redsys {
   $FORM{TOTAL_SUM}  = $FORM{SUM}*100; 
   $FORM{SIGN}       = redsys_sign(\%FORM);
 
-  $html->tpl_show(_include('paysys_redsys_add', 'Paysys'), { %FORM, %info });	
-	
+  $html->tpl_show(_include('paysys_redsys_add', 'Paysys'), { %FORM, %info });  
+  
+}
+
+#**********************************************************
+#
+#**********************************************************
+sub paysys_minbank {
+  
+  my %info = ();
+  require "modules/Paysys/Minbank.pm";
+  
+  my @msg;
+
+  $msg[1] = 'Платеж успешно добавлен';
+  $msg[2] = 'При проведении платежа возникла ошибка';
+  $msg[3] = 'Платеж отменен';
+  $msg[4] = 'Платеж отклоняется банком-эмитентом карты. Вам стоит связаться с банком, выяснить причину отказа и повторить попытку оплаты.';
+  $msg[5] = 'Возникла техническая ошибка, попробуйте повторить попытку оплаты спустя некоторое время';
+
+
+  if (defined($FORM{minbank_msg})) {
+    if($FORM{minbank_msg} == 1) {
+      $html->message('info', $_INFO, "$msg[1]");
+    } 
+    else {
+      $html->message('err', "$_ERROR", "$msg[$FORM{minbank_msg}]" );
+    }
+  }
+  else { 
+    if (defined($FORM{minbank_action})) {
+      minbank_payments();
+    } 
+    else {
+
+      $html->setCookie('lastindex', "", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure);
+
+      my $sum;
+      $info{OrderId} = $FORM{OPERATION_ID};
+
+      if ($FORM{SUM} =~ /^(\d{1,5})\.?(\d{1,2})?$/) {
+        $sum = $FORM{SUM};
+      }
+
+      $info{amount}     = $sum;
+      $info{sum}        = $sum * 100;
+      $info{desc}       = "Login:$LIST_PARAMS{LOGIN} Transaction:$FORM{OPERATION_ID} UID:$LIST_PARAMS{UID}";
+      $info{form_url}   = $conf{MINBANK_URL};
+      $info{merchantid} = $conf{MINBANK_MERCHANT_ID};
+      $info{payment_system_id} = $FORM{PAYMENT_SYSTEM};
+      $info{returnurl}  = "$ENV{PROT}://$ENV{SERVER_NAME}:$ENV{SERVER_PORT}/paysys_check.cgi";
+      $info{sid}        = $FORM{sid};
+
+
+      $html->setCookie('lastindexs', $index, "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure);
+
+      return $html->tpl_show(_include('paysys_minbank_add', 'Paysys'), \%info, { OUTPUT2RETURN => $attr->{OUTPUT2RETURN} });
+    }
+ }
+  
 }
 
 1

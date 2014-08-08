@@ -212,6 +212,16 @@ CREATE TABLE `config` (
   UNIQUE KEY `param` (`domain_id`, `param`)
 ) COMMENT='System config' ;
 
+
+CREATE TABLE `config_variables` (
+  `param` varchar(30) NOT NULL default '',
+  `type` tinyint(2) unsigned not null default 0,
+  `value` varchar(250) NOT NULL default '',
+  `comments` text,
+  UNIQUE KEY `param` (`param`)
+) COMMENT='System config variables list' ;
+
+
 CREATE TABLE `docs_invoices` (
   `id` int(11) unsigned NOT NULL auto_increment,
   `date` date NOT NULL default '0000-00-00',

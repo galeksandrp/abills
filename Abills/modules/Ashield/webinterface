@@ -127,11 +127,11 @@ sub ashield_tp {
         CONTENT => $html->form_select(
           'TP_ID',
           {
-            SELECTED          => $FORM{TP_ID},
-            SEL_MULTI_ARRAY   => $Tariffs->list({ %LIST_PARAMS, MODULE => 'Ashield' }),
-            MULTI_ARRAY_KEY   => 18,
-            MULTI_ARRAY_VALUE => '0,1',
-            NO_ID             => 1
+            SELECTED   => $FORM{TP_ID},
+            SEL_LIST   => $Tariffs->list({ %LIST_PARAMS, MODULE => 'Ashield', COLS_NAME => 1 }),
+            SEL_KEY    => tp_id,
+            SEL_VALUE  => 'id,name',
+            NO_ID      => 1
           }
         ),
         HIDDEN => { index => "$index" },
@@ -197,10 +197,11 @@ sub ashield_tp {
   $tarif_info->{GROUPS_SEL} = $html->form_select(
     'TP_GID',
     {
-      SELECTED          => $tarif_info->{TP_GID},
-      SEL_MULTI_ARRAY   => [ [ '', '' ], @{ $Tariffs->tp_group_list() } ],
-      MULTI_ARRAY_KEY   => 0,
-      MULTI_ARRAY_VALUE => 1,
+      SELECTED       => $tarif_info->{TP_GID},
+      SEL_LIST       => $Tariffs->tp_group_list({ COLS_NAME => 1 }),
+      MAIN_MENU      => get_function_index('form_tp_groups'),
+      MAIN_MENU_AGRV => "chg=$tarif_info->{TP_GID}",
+      SEL_OPTIONS    => { '' => '' },
     }
   );
 
@@ -325,7 +326,6 @@ sub ashield_user {
   
   my $list             = $Tariffs->list(
     {
-      #CHANGE_PRICE => '<='. ($user->{DEPOSIT} + $user->{CREDIT}),
       MODULE   => 'Ashield',
       COMMENTS => '*'
     }
@@ -859,11 +859,13 @@ sub ashield_chg_tp {
     $Tariffs->{TARIF_PLAN_SEL} = $html->form_select(
       'TP_ID',
       {
-        SELECTED          => $user->{TP_ID},
-        SEL_MULTI_ARRAY   => $Tariffs->list({ MODULE => 'Ashield' }),
-        MULTI_ARRAY_KEY   => 18,
-        MULTI_ARRAY_VALUE => '0,1',
-        NO_ID             => 1
+        SELECTED       => $user->{TP_ID},
+        SEL_LIST       => $Tariffs->list({ MODULE => 'Ashield', COLS_NAME => 1 }),
+        SEL_KEY        => tp_id,
+        SEL_VALUE      => 'id,name',
+        NO_ID          => 1,
+        MAIN_MENU      => ($permissions{0}{10}) ? get_function_index('ashield_tp') : undef,
+        MAIN_MENU_AGRV => "TP_ID=$Ashield->{TP_ID}"
       }
     );
 
@@ -1527,11 +1529,11 @@ sub ashield_drweb_user {
       $Ashield->{TP_SEL}=$html->form_select(
           'TP_ID',
           {
-            SELECTED          => $FORM{TP_ID},
-            SEL_MULTI_ARRAY   => $Tariffs->list({ %LIST_PARAMS, MODULE => 'Ashield' }),
-            MULTI_ARRAY_KEY   => 18,
-            MULTI_ARRAY_VALUE => '0,1',
-            NO_ID             => 1
+            SELECTED   => $FORM{TP_ID},
+            SEL_LIST   => $Tariffs->list({ %LIST_PARAMS, MODULE => 'Ashield', COLS_NAME => 1 }),
+            SEL_KEY    => 'tp_id',
+            SEL_VALUE  => 'id,name',
+            NO_ID      => 1
           }
         );
     }
