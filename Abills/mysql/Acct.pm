@@ -91,8 +91,7 @@ sub accounting {
   #Start
   if ($acct_status_type == 1) {
     $self->query2("SELECT acct_session_id FROM dv_calls 
-    WHERE user_name='$RAD->{USER_NAME}' AND nas_id='$NAS->{NAS_ID}' 
-    AND (framed_ip_address=INET_ATON('$RAD->{FRAMED_IP_ADDRESS}') OR framed_ip_address=0);"
+    WHERE user_name='$RAD->{USER_NAME}' AND nas_id='$NAS->{NAS_ID}' AND (framed_ip_address=INET_ATON('$RAD->{FRAMED_IP_ADDRESS}') OR framed_ip_address=0);"
     );
 
     #Get connection speed
@@ -124,8 +123,8 @@ sub accounting {
         }
       }
     }
-    # If not found auth records #and session > 2 sec
-    else #if($RAD->{ACCT_SESSION_TIME} && $RAD->{ACCT_SESSION_TIME} > 2) {
+    # If not found auth records and session > 2 sec
+    else { #if($RAD->{ACCT_SESSION_TIME} && $RAD->{ACCT_SESSION_TIME} > 2) {
       #Get TP_ID
       $self->query2("SELECT u.uid, dv.tp_id, dv.join_service FROM (users u, dv_main dv)
        WHERE u.uid=dv.uid and u.id='$RAD->{USER_NAME}';"
@@ -148,6 +147,7 @@ sub accounting {
         $RAD->{USER_NAME} = '! ' . $RAD->{USER_NAME};
       }
 
+      $self->{debug}=1;
       my $sql = "REPLACE INTO dv_calls
        (status, user_name, started, lupdated, nas_ip_address, nas_port_id, acct_session_id, framed_ip_address, CID, CONNECT_INFO,   nas_id, tp_id,
         uid, join_service)
@@ -390,7 +390,7 @@ sub accounting {
          FROM users u, dv_main dv 
          WHERE u.uid=dv.uid AND u.id='$RAD->{USER_NAME}';", 
          undef,
-         { INFO  => 1 });    	
+         { INFO  => 1 });
 
          my $sql = "REPLACE INTO dv_calls
          (status, user_name, started, lupdated, nas_ip_address, nas_port_id, acct_session_id, framed_ip_address, CID, CONNECT_INFO,   nas_id, tp_id,
