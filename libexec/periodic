@@ -157,9 +157,10 @@ foreach my $m (@MODULES) {
 }
 
 
-push @daily_functions,    'admin_report_daily';
+push @daily_functions,    'admin_report_daily' if (! $args->{MODULES});
 push @monthly_functions,  'admin_report_monthly' if (! $args->{NO_ADM_REPORT});
 push @monthly_functions,  'logrotate', 'backup' if (! $args->{MODULES});
+
 if ($args->{SHEDULE}) {
   @daily_functions = ('sheduler');
 }
@@ -173,6 +174,7 @@ if ($args->{DATE}) {
     print "Wrong date format. Format: YYYY-MM-DD\n";
     exit;
   }
+
   ($Y, $M, $D) = split(/-/, $args->{DATE});
   $YESTERDAY = (strftime '%Y-%m-%d', localtime(POSIX::mktime(0, 10, 1, $D, ($M - 1), ($Y - 1900)) - 86400));
 

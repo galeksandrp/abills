@@ -1218,6 +1218,9 @@ sub unreg_requests_list {
     push @WHERE_RULES, @{ $self->search_expr($attr->{ADDRESS_FLAT}, 'STR', 'm.address_flat', { EXT_FIELD => 1 }) };
   }
 
+  my $search_fields       = $self->{SEARCH_FIELDS};
+  my $search_fields_count = $self->{SEARCH_FIELDS_COUNT}; 
+
   my $WHERE = $self->search_former($attr, [
       ['MSG_ID',       'INT',  'm.id'             ],
       ['DATETIME',     'DATE', 'm.datetime',    1 ],
@@ -1250,6 +1253,8 @@ sub unreg_requests_list {
     }
     );
 
+
+  $self->{SEARCH_FIELDS_COUNT} += $search_fields_count;
   my $EXT_TABLES = '';
 
   if ($CONF->{ADDRESS_REGISTER}) {
@@ -1260,6 +1265,7 @@ sub unreg_requests_list {
 
   $self->query2("SELECT  m.id,
   $self->{SEARCH_FIELDS}
+  $search_fields
   m.responsible_admin,
   m.uid,
   m.chapter AS chapter_id

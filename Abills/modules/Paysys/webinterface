@@ -70,7 +70,8 @@ my %PAY_SYSTEMS = (
   91 => 'PayU',
   92 => 'CoPayCo',
   93 => 'Minbank',
-  94 => 'Redsys'
+  94 => 'Redsys',
+  95 => 'Gateway Technologies'
 );
 
 my %CONF_OPTIONS = (
@@ -127,7 +128,8 @@ my %CONF_OPTIONS = (
   PAYSYS_PAYU_MERCHANT                      => 91,
   PAYSYS_COPAYCO_SHOP_ID                    => 92,
   PAYSYS_MINBANK_MERCHANT_ID                => 93,
-  PAYSYS_REDSYS_MERCHANT_ID                 => 94 
+  PAYSYS_REDSYS_MERCHANT_ID                 => 94,
+  PAYSYS_GT_ID                              => 95 
 );
 
 my @status = ("$_UNKNOWN",  #0 
