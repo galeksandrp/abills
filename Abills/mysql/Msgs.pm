@@ -1159,11 +1159,11 @@ sub unreg_requests_list {
       }
 
       if ($attr->{DISTRICT_NAME}) {
-        push @WHERE_RULES, @{ $self->search_expr($attr->{DISTRICT_NAME}, 'INT', 'streets.district_id', { EXT_FIELD => 'name AS district_name' }) };
+        push @WHERE_RULES, @{ $self->search_expr($attr->{DISTRICT_NAME}, 'INT', 'streets.district_id', { EXT_FIELD => 'districts.name AS district_name' }) };
       }
 
       if ($attr->{ADDRESS_DISTRICT}) {
-        push @WHERE_RULES, @{ $self->search_expr($attr->{ADDRESS_DISTRICT}, 'INT', 'streets.district_id', { EXT_FIELD => 'name AS district_name' }) };
+        push @WHERE_RULES, @{ $self->search_expr($attr->{ADDRESS_DISTRICT}, 'INT', 'streets.district_id', { EXT_FIELD => 'districts.name AS district_name' }) };
       }
 
 
