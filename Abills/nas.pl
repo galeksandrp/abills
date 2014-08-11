@@ -473,6 +473,7 @@ sub hangup_radius {
   if (!defined $type) {
     # No responce from COA/POD server
     $Log->log_print('LOG_DEBUG', "$USER", "No responce from $request_type server '$NAS->{NAS_MNG_IP_PORT}'", { ACTION => 'CMD' });
+    $result = "No responce from $request_type server '$NAS->{NAS_MNG_IP_PORT}'";
   }
 
 

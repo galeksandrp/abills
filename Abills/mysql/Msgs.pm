@@ -1155,15 +1155,15 @@ sub unreg_requests_list {
     }
     elsif ($CONF->{ADDRESS_REGISTER}) {
       if ($attr->{CITY}) {
-        push @WHERE_RULES, @{ $self->search_expr($attr->{CITY}, 'STR', 'd.city', { EXT_FIELD => 1 }) };
+        push @WHERE_RULES, @{ $self->search_expr($attr->{CITY}, 'STR', 'city', { EXT_FIELD => 1 }) };
       }
 
       if ($attr->{DISTRICT_NAME}) {
-        push @WHERE_RULES, @{ $self->search_expr($attr->{DISTRICT_NAME}, 'INT', 'streets.district_id', { EXT_FIELD => 'd.name AS district_name' }) };
+        push @WHERE_RULES, @{ $self->search_expr($attr->{DISTRICT_NAME}, 'INT', 'streets.district_id', { EXT_FIELD => 'name AS district_name' }) };
       }
 
       if ($attr->{ADDRESS_DISTRICT}) {
-        push @WHERE_RULES, @{ $self->search_expr($attr->{ADDRESS_DISTRICT}, 'INT', 'streets.district_id', { EXT_FIELD => 'd.name AS district_name' }) };
+        push @WHERE_RULES, @{ $self->search_expr($attr->{ADDRESS_DISTRICT}, 'INT', 'streets.district_id', { EXT_FIELD => 'name AS district_name' }) };
       }
 
 

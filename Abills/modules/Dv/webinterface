@@ -1529,7 +1529,7 @@ sub dv_online {
       $message = 'NAS NOT supported yet';
     }
 
-    $html->message('info', $_INFO, "$message");
+    $html->message('info', $_INFO, "$message $ret");
   }
   elsif ($FORM{diagnostic}) {
     my ($diag_num,$diag_params) = split(/:/, $FORM{diagnostic}, 2);
