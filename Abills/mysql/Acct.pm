@@ -91,7 +91,8 @@ sub accounting {
   #Start
   if ($acct_status_type == 1) {
     $self->query2("SELECT acct_session_id FROM dv_calls 
-    WHERE user_name='$RAD->{USER_NAME}' AND nas_id='$NAS->{NAS_ID}' AND (framed_ip_address=INET_ATON('$RAD->{FRAMED_IP_ADDRESS}') OR framed_ip_address=0);"
+    WHERE user_name='$RAD->{USER_NAME}' AND nas_id='$NAS->{NAS_ID}' 
+    AND (framed_ip_address=INET_ATON('$RAD->{FRAMED_IP_ADDRESS}') OR framed_ip_address=0);"
     );
 
     #Get connection speed
@@ -123,8 +124,8 @@ sub accounting {
         }
       }
     }
-    # If not found auth records and session > 2 sec
-    elsif($RAD->{ACCT_SESSION_TIME} && $RAD->{ACCT_SESSION_TIME} > 2) {
+    # If not found auth records #and session > 2 sec
+    else #if($RAD->{ACCT_SESSION_TIME} && $RAD->{ACCT_SESSION_TIME} > 2) {
       #Get TP_ID
       $self->query2("SELECT u.uid, dv.tp_id, dv.join_service FROM (users u, dv_main dv)
        WHERE u.uid=dv.uid and u.id='$RAD->{USER_NAME}';"
@@ -384,7 +385,7 @@ sub accounting {
     elsif ($conf->{rt_billing}) {
       $self->rt_billing($RAD, $NAS);
       
-      if ($self->{errno}  && $self->{errno}  == 2) {
+      if ($self->{errno}  && $self->{errno}  == 2 && ($RAD->{ACCT_SESSION_TIME} && $RAD->{ACCT_SESSION_TIME} > 2)) {
         $self->query2("SELECT u.uid, dv.tp_id, dv.join_service 
          FROM users u, dv_main dv 
          WHERE u.uid=dv.uid AND u.id='$RAD->{USER_NAME}';", 
