@@ -1243,7 +1243,7 @@ sub unreg_requests_list {
       ['PRIORITY',     'INT',  'm.priority',    1 ],
       ['PLAN_DATE',    'INT',  'm.plan_date',   1 ], 
       ['PLAN_TIME',    'INT',  'm.plan_time',   1 ],
-      ['DISPATCH_ID',  'INT',  'm.dispatch_id', 1 ],
+#      ['DISPATCH_ID',  'INT',  'm.dispatch_id', 1 ],
       ['IP',           'IP',   'm.ip',  'INET_NTOA(m.ip) AS ip' ],
       ['DATE',         'DATE',  "date_format(m.datetime, '%Y-%m-%d')" ],
       ['FROM_DATE|TO_DATE', 'DATE', "date_format(m.datetime, '%Y-%m-%d')" ],
@@ -1308,6 +1308,30 @@ sub unreg_requests_add {
   my ($attr) = @_;
 
   %DATA = $self->get_data($attr, { default => \%DATA });
+
+  
+
+  if ($DATA{STREET_ID} && $DATA{ADD_ADDRESS_BUILD} && ! $DATA{LOCATION_ID}) {
+    use Users;
+    my $users = Users->new($self->{db}, $admin, $CONF);
+
+    my $list = $users->build_list({ STREET_ID => $DATA{STREET_ID}, 
+                                    NUMBER    => $attr->{ADD_ADDRESS_BUILD}, 
+                                    COLS_NAME => 1,
+                                    PAGE_ROWS => 1
+                                  });
+
+    if ($users->{TOTAL} > 0) {
+      $DATA{LOCATION_ID}=$list->[0]->{id};
+    }
+    else {
+      $users->build_add({ NUMBER    => $DATA{ADD_ADDRESS_BUILD}, 
+                          STREET_ID => $DATA{STREET_ID},  
+                        });
+      $DATA{LOCATION_ID}=$users->{INSERT_ID};
+    }
+  }
+
 
   $self->query2("INSERT INTO msgs_unreg_requests (datetime, received_admin, ip, subject, comments, chapter, request, state,
    priority,

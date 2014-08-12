@@ -241,7 +241,8 @@ sub pi_add {
   if ($DATA{STREET_ID} && $DATA{ADD_ADDRESS_BUILD} && ! $DATA{LOCATION_ID}) {
     my $list = $self->build_list({ STREET_ID => $DATA{STREET_ID}, 
                                    NUMBER    => $attr->{ADD_ADDRESS_BUILD}, 
-                                   COLS_NAME => 1 
+                                   COLS_NAME => 1,
+                                   PAGE_ROWS => 1
                                  });
 
     if ($self->{TOTAL} > 0) {

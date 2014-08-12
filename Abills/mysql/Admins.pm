@@ -234,6 +234,9 @@ sub list {
 
   @WHERE_RULES = ();
 
+  my $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+  my $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+
   if ($attr->{GIDS}) {
     push @WHERE_RULES, "a.gid IN ($attr->{GIDS})";
   }
