@@ -1227,6 +1227,7 @@ sub unreg_requests_list {
       ['SUBJECT',      'STR',  'm.subject',     1 ],
       ['FIO',          'STR',  'm.fio',         1 ],
       ['PHONE',        'STR',  'm.phone',       1 ],
+      ['EMAIL',        'STR',  'm.email',       1 ],
       ['STATUS',       'INT',  'm.state',       1 ],
       ['CHAPTER_NAME', 'INT',  'm.chapter', 'mc.name AS chapter_name'],
       ['CLOSED_DATE',  'DATE', 'm.closed_date', 1 ],
