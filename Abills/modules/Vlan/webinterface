@@ -58,7 +58,7 @@ sub vlan_users_list {
   print $html->letters_list({ pages_qs => $pages_qs });
 
   if ($FORM{letter}) {
-    $LIST_PARAMS{FIRST_LETTER} = $FORM{letter};
+    $LIST_PARAMS{LOGIN} = "$FORM{letter}*";
     $pages_qs .= "&letter=$FORM{letter}";
   }
 
@@ -290,14 +290,17 @@ sub vlan_user {
     'NAS_ID',
     {
       SELECTED => $Vlan->{NAS_ID} || 0,
-      SEL_MULTI_ARRAY => $Nas->list(
+      SEL_ARRAY => $Nas->list(
         {
           TYPE      => 'vlan',
+          COLS_NAME => 1,
           PAGE_ROWS => 1000
         }
       ),
-      MULTI_ARRAY_KEY   => 0,
-      MULTI_ARRAY_VALUE => 1,
+      SEL_KEY        => 'nas_id',
+      SEL_VALUE      => 'nas_name',
+      MAIN_MENU      => get_function_index('form_nass'),
+      MAIN_MENU_AGRV => "chg=$tarif_info->{NAS_ID}",
     }
   );
 
@@ -452,8 +455,7 @@ sub vlan_create {
     my @vlan_add_arr = ();
     foreach my $vlan (@$vlan_list) {
       #Port
-      #$debug_output .= 
-      print "$vlan->{login}: VLAN ID: $vlan->{vlan_id} IP: $vlan->{ip}/$vlan->{netmask} NETMASK: $vlan->{netmask}" . " USER IPs: $vlan->{ip_range} DHCP: $vlan->{dhcp} PPPoE: $vlan->{pppoe} UNNUMBERED_IP: \n" if ($debug > 2);
+      $debug_output .= "$vlan->{login}: VLAN ID: $vlan->{vlan_id} IP: $vlan->{ip}/$vlan->{netmask} NETMASK: $vlan->{netmask}" . " USER IPs: $vlan->{ip_range} DHCP: $vlan->{dhcp} PPPoE: $vlan->{pppoe} UNNUMBERED_IP: \n" if ($debug > 2);
 
       $INFO{VLAN_IF_NETMASK} = $vlan->{netmask};
       $INFO{LOGIN}           = $vlan->{login};
@@ -522,8 +524,7 @@ sub vlan_create {
 
         $if_created{$INFO{VLAN_ID}}++;
         $debug_output .= "Vlan ID: $INFO{VLAN_ID} IP: $INFO{VLAN_IF_IP}/$INFO{VLAN_IF_NETMASK} Created\n" if ($debug > 0);
-        
-        push @vlan_add_arr, \%INFO;
+        push @vlan_add_arr, { %INFO };
       }
       #If wrong ip delete ad create
       elsif ($vlans_info->{ $INFO{VLAN_ID} } && $vlans_info->{ $INFO{VLAN_ID} } ne $INFO{VLAN_IF_IP}) {
@@ -576,11 +577,9 @@ sub vlan_create {
     #Vlan add/del section
     if ($conf{VLAN_ADD}) {
       if($conf{VLAN_DEL}) {
-      	my @_del = ();
-        while (my ($vlan_id, $ip) = each %$vlans_info) {
-          push @_del, $vlan_id;
-        }
+      	my @_del = sort { $a <=> $b } keys %$vlans_info;
 
+        $attr->{DEBUG}=3;
         $INFO{VLANS}=join(',', @_del);
         my $cmd = tpl_parse($conf{VLAN_DEL}, \%INFO);
 
@@ -591,7 +590,6 @@ sub vlan_create {
             $ifconfig .= $l;
           }
         close(IFCONFIG);
-       
         print $ifconfig if ($debug > 1);
       }
 
@@ -673,25 +671,25 @@ sub vlan_info {
   my %VLANS        = ();
   my $ifconfig     = '';
   my $IFCONFIG_CMD = $IFCONFIG;
-
-
+  my $vlan_count   = 0;
 
   if ($conf{VLAN_INFO}) {
     my $cmd = tpl_parse($conf{VLAN_INFO}, $attr);
-    
     print $cmd. "\n" if ($attr->{DEBUG} && $attr->{DEBUG} > 2);
     my $ifconfig = '';
-    open(IFCONFIG, "$cmd | ") || die "Can't open '$cmd' $!";
-    while (my $l = <IFCONFIG>) {
-      $ifconfig .= $l;
+    open(IFCONFIG, "$cmd |") || die "Can't open '$cmd' $!";
+    while (<IFCONFIG>) {
+      $ifconfig .= $_;
     }
     close(IFCONFIG);
 
     my @ifconfig_arr = split(/[\n\r]/, $ifconfig);
 
     foreach my $if (@ifconfig_arr) {
-      my($if_num, $ip)=split(/:/, $if);
-      $VLANS{$if_num}=$ip;
+      my($if_num, $ip, $mask)=split(/:/, $if);
+      if (int($if_num) > 0) {
+        $VLANS{$if_num}=$ip || '0.0.0.0';
+      }
     }
     
     return \%VLANS;
@@ -735,7 +733,6 @@ sub vlan_info {
   }
 
   #FreeBSD 7.xx VLANS analize
-  my $vlan_count = 0;
   while ($ifconfig =~ m/vlan(\d+): .+\n\s+.+\n\s+.+\n((\s+inet\s+\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\s+netmask.+\n)?\s.*[\n\sa-zA-Z0-9:]+\n\s.*\n)/gi) {
     my $ip        = '0.0.0.0';
     my $if_num    = $1;
@@ -772,7 +769,7 @@ sub vlan_info {
 
     $VLANS{$if_num} = $ip;    # if (! $attr->{PARENT_IF} || $attr->{PARENT_IF} eq $parent_if);
 
-    print "Vlan: $if_num IP: $ip Parent: '$parent_if'\n$res\n" if ($attr->{DEBUG} && $attr->{DEBUG} > 4);
+    print "Vlan: $if_num IP: $ip Parent: '$parent_if'\n" if ($attr->{DEBUG} && $attr->{DEBUG} > 4);
   }
 
   return \%VLANS;

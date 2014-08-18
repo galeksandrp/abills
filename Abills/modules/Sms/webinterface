@@ -62,7 +62,7 @@ elsif ($conf{TURBOSMS_PASSWD}) {
     Turbosms->import();
     $Sms_service = Turbosms->new($db, $admin, \%conf);
 
-    if ($Turbosms::VERSION < 2.07) {
+    if ($Turbosms::VERSION < 2.08) {
       $html->message('info', "UPDATE", "Please update module 'Turbosms' to version 2.06 or higher. http://abills.net.ua/");
       return 0;
     }
@@ -201,7 +201,8 @@ sub sms_reports {
       width      => '100%',
       caption    => "$Sms_service->{SERVICE_NAME} - $_REPORTS",
       border     => 1,
-      title      => [ 'id', 'msg_id', 'number', 'sign', 'message', 'wappush', 'cost', 'credits', 'send_time', 'sended', 'updated', 'status', 'error_code' ],
+      title      => [ '#', $_MSG_ID, "$_NUMBERS", "$_SIGN", "$_MESSAGE", 'wappush', "$_PRICE", $_DEPOSIT, 
+           "$_SEND_TIME", "$_SENDED", "$_UPDATED", "$_STATUS", "$_ERROR" ],
       cols_align => [ 'center', 'left', 'left', 'left', 'left', 'left', 'left', 'left', 'left', 'left', 'left', 'left', 'left' ],
       qs         => $pages_qs,
       ID         => 'REPORTS_SMS',
@@ -228,7 +229,7 @@ sub sms_reports {
       $line->{cost},
       $line->{credits} || $line->{balance},
       $line->{send_time},
-      ($line->{sended}) ? $_YES: $_NO,
+      ($line->{sended}=~/\d{4}/) ? $line->{sended} : ($line->{sended}) ? $_YES: $_NO,
       $line->{updated},
       $status,
       #convert( substr("$line->[11]", 0, 16), {  utf82win => 1 }).$html->br().

@@ -121,6 +121,10 @@ my $IPTABLES = '/sbin/iptables';
 
 my @START_FW = (5000, 3000, 1000);
 
+if ($conf{FW_START_RULES}) {
+	@START_FW = split(/,\s?/, $conf{FW_START_RULES});
+}
+
 # Arguments
 my ($ACTION, $INTERFACE, $USER, $CLIENT_IP);
 my $inum = 0;
@@ -243,6 +247,10 @@ if ($conf{DV_TURBO_MODE}) {
 if (defined($argv->{LINUX_IPN2})) {
  	linux_ipn2($user);
  	exit;
+}
+elsif (defined($argv->{LINUX_IPN3})) {
+  linux_ipn3($user);
+  exit;
 }
 
 
@@ -760,9 +768,50 @@ goto FW_ACTION;
 }
 
 
-
 if ($conf{linkupdown_external}) {
   my $res = `$conf{linkupdown_external} "$ACTION" "$INTERFACE" "$USER" "$CLIENT_IP"`;
+}
+
+
+#************************************************
+# linux ipn shapper version 3 (ipset & IPMARK)
+#************************************************
+sub linux_ipn3 {
+  my ($attr)=@_;
+
+  if (! $WAN_IF) {
+    $WAN_IF = `/sbin/ip route get 1.1.1.1 | head -1 | sed s/.*dev// |awk '{ print \$1 }'`;
+    chop($WAN_IF);
+  }
+
+  my @a = split(/\./,$CLIENT_IP);
+  my $ip1 = sprintf("%02x", $a[2]);
+  my $ip2 = sprintf("%02x", $a[3]);
+  my $ID = "$ip1$ip2";
+
+if ($ACTION eq 'up') {
+  my $SCOUNT='Kbit';
+
+  if ($attr->{SPEED}) {
+    $speeds{ 0 }{IN} = "$attr->{SPEED}";
+    $speeds{ 0 }{OUT} = "$attr->{SPEED}";
+  }
+  if ($speeds{ 0 }{IN} <= 80000) {
+    #Download
+    push @FW_ACTIONS, "$TC class replace dev $WAN_IF parent 1: classid 1:$ID htb rate $speeds{ 0 }{IN}$SCOUNT burst 100k cburst 100k prio 1";
+    #Upload
+    push @FW_ACTIONS, "$TC class replace dev $INTERFACE parent 1: classid 1:$ID htb rate $speeds{ 0 }{OUT}$SCOUNT burst 100k cburst 100k prio 1";
+  }
+}
+#stop
+else {
+  #Download
+  push @FW_ACTIONS, "$TC class del dev $WAN_IF parent 1: classid 1:$ID";
+  #Upload
+  push @FW_ACTIONS, "$TC class del dev $INTERFACE parent 1: classid 1:$ID ";
+}
+
+goto FW_ACTION;
 }
 
 1

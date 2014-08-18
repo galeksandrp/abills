@@ -439,7 +439,7 @@ sub form_info {
 
           cross_modules_call('_payments_maked', { 
               USER_INFO => $user, 
-              #SUM       => $sum,
+              SUM       => $sum,
               QUITE     => 1 });
 
           if ($conf{external_userchange}) {

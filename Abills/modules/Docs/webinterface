@@ -2605,11 +2605,18 @@ sub docs_invoice {
       else {
       	$amount_for_pay = $total_sum;
       }
+
+      my $deposit_sum = '';
+      if ($user->{UID} && $users->{DEPOSIT} < 0) {
+      	$deposit_sum = $html->form_input('SUM_' . ($num+1), abs($users->{DEPOSIT}), { TYPE => 'hidden', OUTPUT2RETURN => 1 }).
+      	$html->form_input('ORDER_'. ($num+1), "$_DEBT", { TYPE => 'hidden', OUTPUT2RETURN => 1 }). $html->form_input('IDS', ($num+1), { TYPE => 'hidden', OUTPUT2RETURN => 1 });
+      }
+
       $total_sum += $total_not_invoice;
       $table->{SKIP_FORMER}=1;
       $table->{extra} = " colspan='4' class='total' ";
       $table->addrow("$_COUNT: $num $_TOTAL $_SUM: ", sprintf("%.2f", $total_sum));
-      $table->addrow($html->b("$_DEPOSIT:"),        $html->b(sprintf("%.2f", $users->{DEPOSIT})));
+      $table->addrow($html->b("$_DEPOSIT:"),        $html->b(sprintf("%.2f", $users->{DEPOSIT})). $deposit_sum);
       $table->addrow($html->b("$_AMOUNT_FOR_PAY:"), $html->b(sprintf("%.2f", $amount_for_pay)));
 
       $Docs->{FROM_DATE} = $html->date_fld2('FROM_DATE', { MONTHES => \@MONTHES, FORM_NAME => 'invoice_add', WEEK_DAYS => \@WEEKDAYS });
