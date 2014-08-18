@@ -297,8 +297,8 @@ sub check_lines {
         session_hangup($nas, $online, "Change TP $online->{calls_tp_id} -> $online->{tp_num} DEPOSIT: $online->{deposit} CREDIT: $online->{credit} SESSION_SUM: $online->{session_sum} STATUS: $state SESSION_ID: $online->{acct_session_id} GUEST: $online->{guest}");
         next if ($nas->{NAS_ALIVE} > 0 && ($online->{last_alive} < $nas->{NAS_ALIVE} * $error_alive_count));
       }
-      elsif ($online->{status} == 9) {
-        session_hangup($nas, $online, "Lost session DEPOSIT: $online->{deposit} CREDIT: $online->{credit} SESSION_SUM: $online->{session_sum} STATUS: $state SESSION_ID: $online->{acct_session_id} GUEST: $online->{guest}");
+      elsif ($online->{status} == 9 && $online->{last_alive} < $nas->{NAS_ALIVE} * $error_alive_count * 2) {
+        session_hangup($nas, $online, "Lost session ($online->{status}) DEPOSIT: $online->{deposit} CREDIT: $online->{credit} SESSION_SUM: $online->{session_sum} STATUS: $state SESSION_ID: $online->{acct_session_id} GUEST: $online->{guest}");
         next;
       }
       elsif ($online->{expired} || $online->{dv_expired}) {
