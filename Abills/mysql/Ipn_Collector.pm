@@ -891,7 +891,7 @@ sub acct_stop {
 
   my $ACCT_TERMINATE_CAUSE = (defined($attr->{ACCT_TERMINATE_CAUSE})) ? $attr->{ACCT_TERMINATE_CAUSE} : 0;
 
-  my $sql = "select u.uid, calls.framed_ip_address, 
+  my $sql = "SELECT u.uid, calls.framed_ip_address, 
       calls.user_name,
       calls.acct_session_id,
       calls.acct_input_octets AS input_octets,
@@ -926,7 +926,7 @@ sub acct_stop {
 #  );
 
   if ($self->{TOTAL} < 1) {
-    $self->query2("DELETE from dv_calls WHERE acct_session_id='$self->{ACCT_SESSION_ID}';", 'do');
+    $self->query2("DELETE from dv_calls WHERE acct_session_id='$session_id';", 'do');
     return $self;
   }
 

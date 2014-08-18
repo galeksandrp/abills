@@ -184,7 +184,7 @@ if ($INTERFACE eq 'getif') {
   }
 }
 
-if ($inum == 0) {
+if (! $inum) {
   $inum = $INTERFACE;
   $inum =~ s/[a-z\.]+//g;
 }
