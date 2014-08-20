@@ -2214,17 +2214,20 @@ sub docs_invoice {
         }
       }
 
-      my $sufix = ($Doc{PAYMENT_SUM} == $Doc{TOTAL_SUM}) ? '_paid' : '';
+      my $sufix = ($Doc{PAYMENT_SUM} == $Doc{TOTAL_SUM} && _include($invoice_blank.'_paid', 'Docs', {  CHECK_ONLY => 1  })) ? '_paid' : '';
 
       if ($Doc{COMPANY_ID}) {
         $Company->info($Doc{COMPANY_ID});
         delete $Company->{DEPOSIT};
         my $invoice_blank = ($FORM{alt_tpl}) ? 'invoice_company_alt' : 'invoice_company';
-        return docs_print("$invoice_blank$sufix", { %Doc, %$Company, %$attr, SUFIX => ($Doc{VAT} > 0) ? 'vat' : '' });
+        return docs_print("$invoice_blank$sufix", { %Doc, %$Company, %$attr, 
+        	                                          SUFIX   => ($Doc{VAT} > 0) ? 'vat' : '',
+        	                                          ALT_TPL => $invoice_blank
+        	                                          });
       }
       else {
       	my $invoice_blank = ($FORM{alt_tpl}) ? 'invoice_alt' : 'invoice';
-        return docs_print("$invoice_blank$sufix", { %Doc, %$attr });
+        return docs_print("$invoice_blank$sufix", { %Doc, %$attr, ALT_TPL => $invoice_blank });
       }
     }
     else {

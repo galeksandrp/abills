@@ -325,6 +325,7 @@ sub online {
     $self->{dub_ports}  = \%dub_ports;
     $self->{dub_logins} = \%dub_logins;
     $self->{nas_sorted} = \%nas_sorted;
+    $self->{dub_ips}    = \%dub_ips;
     return $self->{list};
   }
 
