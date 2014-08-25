@@ -1196,8 +1196,8 @@ sub unreg_requests_list {
     }
     else {
       if ($attr->{ADDRESS_FULL}) {
-         $attr->{BUILD_DELIMITER}=',' if (! $attr->{BUILD_DELIMITER});
-         push @WHERE_RULES, @{ $self->search_expr("$attr->{ADDRESS_FULL}", "STR", "CONCAT(m.address_street, ' ', m.address_build, '$attr->{BUILD_DELIMITER}', m.address_flat) AS address_full", { EXT_FIELD => 1 }) };
+        $attr->{BUILD_DELIMITER}=',' if (! $attr->{BUILD_DELIMITER});
+        push @WHERE_RULES, @{ $self->search_expr("$attr->{ADDRESS_FULL}", "STR", "CONCAT(m.address_street, ' ', m.address_build, '$attr->{BUILD_DELIMITER}', m.address_flat) AS address_full", { EXT_FIELD => 1 }) };
       }
 
       if ($attr->{ADDRESS_STREET}) {
@@ -1228,7 +1228,7 @@ sub unreg_requests_list {
       ['FIO',          'STR',  'm.fio',         1 ],
       ['PHONE',        'STR',  'm.phone',       1 ],
       ['EMAIL',        'STR',  'm.email',       1 ],
-      ['STATUS',       'INT',  'm.state',       1 ],
+      ['STATE',        'INT',  'm.state',       1 ],
       ['CHAPTER_NAME', 'INT',  'm.chapter', 'mc.name AS chapter_name'],
       ['CLOSED_DATE',  'DATE', 'm.closed_date', 1 ],
       ['ADMIN_LOGIN',  'INT',  'a.id',  'a.id AS admin_login' ],

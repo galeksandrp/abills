@@ -145,6 +145,7 @@ my @status = ("$_UNKNOWN",  #0
 "$_SMALL_PAYMENT_SUM",      #10
 'SQL_ERROR',                #11
 'TEST'                      #12
+'WAIT'                      #13
 );
 
 #require "modules/Paysys/paysys_cons";

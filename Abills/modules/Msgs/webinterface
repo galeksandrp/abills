@@ -2652,7 +2652,7 @@ sub msgs_unreg_requests_list {
 
     $html->tpl_show(_include('msgs_add_user', 'Msgs'), { %FORM, %$Msgs });
 
-    return 0;  	
+    return 0;
   }
   elsif ($FORM{chg}) {
     $Msgs->unreg_requests_info($FORM{chg});
@@ -2754,10 +2754,19 @@ sub msgs_unreg_requests_list {
 
   if (!defined($FORM{STATE}) && !$FORM{ALL_MSGS}) {
     $LIST_PARAMS{STATE} = 0;
+    $FORM{STATE} = 0;
   }
 
   my $i = 0;
-  my $status_bar = (defined($FORM{STATE})) ? $html->button("$_ALL", "index=$index&ALL_MSGS=1$pages_qs") : $html->b($_ALL);
+ 	$pages_qs =~ s/STATE=\d+//g;
+
+  my $status_bar = ''; 
+  if (defined($FORM{STATE})) {
+  	$status_bar = $html->button("$_ALL", "index=$index&ALL_MSGS=1$pages_qs");
+  }	
+  else {
+    $status_bar = $html->b($_ALL);
+  }
 
   foreach my $name (@msg_status) {
     if (defined($FORM{STATE}) && $FORM{STATE} == $i) {
@@ -2783,7 +2792,7 @@ sub msgs_unreg_requests_list {
      INPUT_DATA      => $Msgs,
      FUNCTION        => 'unreg_requests_list',
      BASE_FIELDS     => 1,
-     DEFAULT_FIELDS  => 'MSG_ID,DATETIME,SUBJECT,FIO,CHAPTER,STATUS,CLOSED_DATE,ADMIN_LOGIN',
+     DEFAULT_FIELDS  => 'MSG_ID,DATETIME,SUBJECT,FIO,CHAPTER,STATE,CLOSED_DATE,ADMIN_LOGIN',
      FUNCTION_FIELDS => 'null, null,null',
      SKIP_USER_TITLE => 1,
      EXT_TITLES      => {
