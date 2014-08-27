@@ -144,7 +144,7 @@ my @status = ("$_UNKNOWN",  #0
 "$_USER_NOT_EXIST",         #9
 "$_SMALL_PAYMENT_SUM",      #10
 'SQL_ERROR',                #11
-'TEST'                      #12
+'TEST',                     #12
 'WAIT'                      #13
 );
 

@@ -288,7 +288,14 @@ sub ashield_tp {
       $add = $html->button($_ADD, "index=$index&ADD_TP=1&IMPORT=$key", { CLASS => 'add' });
     }
 
-    $table->addrow($html->color_mark($id, 'code'), $key, ($conf{dbcharset} eq 'utf8') ? $ashield_tps_info->{$key}->{COMMENTS} : convert($ashield_tps_info->{$key}->{COMMENTS}, { utf82win => 1 }), $ashield_tps_info->{$key}->{GRACE_PERIOD}, $ashield_tps_info->{$key}->{PARENT_NAME}, $add, $delete);
+    $table->addrow($html->color_mark($id, 'code'), 
+      $key, 
+      ($conf{dbcharset} eq 'utf8') ? $ashield_tps_info->{$key}->{COMMENTS} : convert($ashield_tps_info->{$key}->{COMMENTS}, { utf82win => 1 }), 
+      $ashield_tps_info->{$key}->{GRACE_PERIOD}, 
+      $ashield_tps_info->{$key}->{PARENT_NAME}, 
+      $add, 
+      $delete
+    );
 
     delete($ashield_tps_info->{ $line->[1] });
   }
@@ -1155,10 +1162,10 @@ sub ashield_drweb_groups {
 
     my $total = $result_hash->{groups}->[0]->{total};
 
-    Encode::_utf8_off($val->{name}->[0]);
-    Encode::_utf8_off($val->{description}->[0]);
-
     foreach my $val (@{ $result_hash->{groups}->[0]->{group} }) {
+      Encode::_utf8_off($val->{name}->[0]);
+      Encode::_utf8_off($val->{description}->[0]);
+
       $table->addrow(
         $val->{id}->[0],
         $val->{name}->[0],
