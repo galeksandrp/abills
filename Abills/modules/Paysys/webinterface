@@ -1922,11 +1922,11 @@ sub paysys_p24_get_payments {
         $table_login_col = '';
       }
       else {
-        $table_id_col = ($v->{col}->{BPL_A_ACC}->{content} eq $conf{PAYSYS_P24_CARDNUM} && $description ne 'Account Rechards') ? $html->form_input('IDS', "$ID", { TYPE => 'checkbox' }) . $ID : '';
+        $table_id_col = ($v->{col}->{BPL_B_ACC}->{content} eq $conf{PAYSYS_P24_CARDNUM} && $description ne 'Account Rechards') ? $html->form_input('IDS', "$ID", { TYPE => 'checkbox' }) . $ID : '';
 
         $table_login_col =
         (   ($UID > 0) ? $html->button($LOGIN, "index=15&UID=$UID") . $html->br() . $FIO . $html->br() . $html->form_input('CONTRACT_ID_' . $ID, "$BINDING_IDS{$ID}",)
-          : ($v->{col}->{BPL_A_ACC}->{content} eq $conf{PAYSYS_P24_CARDNUM} && $description ne 'Account Rechards') ? $html->form_input($BINDING_FIELD . '_' . $ID, $FORM{ $BINDING_FIELD . '_' . $ID })
+          : ($v->{col}->{BPL_B_ACC}->{content} eq $conf{PAYSYS_P24_CARDNUM} && $description ne 'Account Rechards') ? $html->form_input($BINDING_FIELD . '_' . $ID, $FORM{ $BINDING_FIELD . '_' . $ID })
           :                                                                                                          '')
         . $html->form_input('UID_' . $ID,      "$UID",         { TYPE => 'hidden' })
         . $html->form_input('SUM_' . $ID,      "$sum",         { TYPE => 'hidden' })
@@ -1942,16 +1942,17 @@ sub paysys_p24_get_payments {
         $description, 
         $date, 
         $sum,
-        ($v->{col}->{BPL_A_ACC}->{content} eq $conf{PAYSYS_P24_CARDNUM}) ? $html->b($v->{col}->{BPL_A_ACC}->{content}) : $v->{col}->{BPL_A_ACC}->{content},
+        ($v->{col}->{BPL_B_ACC}->{content} eq $conf{PAYSYS_P24_CARDNUM}) ? $html->b($v->{col}->{BPL_A_ACC}->{content}) : "$v->{col}->{BPL_A_ACC}->{content} -> $v->{col}->{BPL_B_ACC}->{content}",
         '', 
         $v->{col}->{BPL_NUM_DOC}->{content}
       );
 
-      if ($v->{col}->{BPL_A_ACC}->{content} eq $conf{PAYSYS_P24_CARDNUM}) {
+
+      if ($v->{col}->{BPL_B_ACC}->{content} eq $conf{PAYSYS_P24_CARDNUM}) {
         $total_in++;
         $total_sum_in += $sum;
       }
-      elsif ($v->{col}->{BPL_A_ACC}->{content} eq $conf{PAYSYS_P24_CARDNUM}) {
+      elsif ($v->{col}->{BPL_B_ACC}->{content} eq $conf{PAYSYS_P24_CARDNUM}) {
         $total_out++;
         $total_sum_out += $sum;
       }
