@@ -1896,7 +1896,12 @@ sub paysys_p24_get_payments {
       my $description = $v->{col}->{BPL_OSND}->{content};
       my $sum         = $v->{col}->{BPL_SUM}->{content};
       my $date        = $v->{col}->{BPL_DAT_OD}->{content};
-      $date =~ s/([0-9\-\:\ ])/$1/;
+      if ($date =~ /(\d+)\.(\d+)\.(\d+)/) {
+        #$date =~ s/([0-9\-\:\ ])/$1/;
+        $date = "$3-$2-$1";
+      }
+      
+      
 
       if ($FORM{SUM}) {
       	if ($FORM{SUM}=~/</ && $sum < $sum_params) {
