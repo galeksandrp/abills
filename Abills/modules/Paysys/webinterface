@@ -1789,6 +1789,8 @@ sub paysys_p24_get_payments {
           "$_FROM: ", $html->date_fld2('DATE_FROM', { MONTHES => \@MONTHES, FORM_NAME => 'stats', WEEK_DAYS => \@WEEKDAYS }),
           "$_TO: ",
           $html->date_fld2('DATE_TO', { MONTHES => \@MONTHES, FORM_NAME => 'stats', WEEK_DAYS => \@WEEKDAYS }),
+          "$_COMMENTS: ". $html->form_input('COMMENTS', "$FORM{COMMENTS}", { size => 30 }), 
+          "$_SUM: ". $html->form_input('SUM', "$FORM{SUM}", { size => 5 }), 
           "Cards: $cards",
           $html->form_input('show', $_SHOW, { TYPE => 'submit', OUTPUT2RETURN => 1 })
         ]
@@ -1824,7 +1826,7 @@ sub paysys_p24_get_payments {
       width       => '100%',
       SELECT_ALL  => "FORM_IMPORT:IDS:$_SELECT_ALL",
       EXPORT      => 1,
-      MENU        => "$_INFO:index=$index&CARD_ID=$FORM{CARD_ID}&info_card=1:info;$_SEARCH:index=$index&search_form=1:search",
+      MENU        => "$_INFO:index=$index&CARD_ID=$FORM{CARD_ID}&info_card=1:info;",
     }
   );
 
@@ -1847,6 +1849,9 @@ sub paysys_p24_get_payments {
     $line->{ext_id} =~ s/P24://;
     $added_payments{ $line->{ext_id} } = "$line->{id}:$line->{login}:$line->{date}";
   }
+
+  my $sum_params = $FORM{SUM};
+  $sum_params =~ s/[<>]//;
 
   if ($conf{PAYSYS_P24_MERCHANT_YUR}) {
     my $payments_ids = ();
@@ -1893,6 +1898,21 @@ sub paysys_p24_get_payments {
       my $date        = $v->{col}->{BPL_DAT_OD}->{content};
       $date =~ s/([0-9\-\:\ ])/$1/;
 
+      if ($FORM{SUM}) {
+      	if ($FORM{SUM}=~/</ && $sum < $sum_params) {
+      	}
+      	elsif ($FORM{SUM}=~/>/ && $sum > $sum_params) {
+      	}
+        elsif ($sum == $FORM{SUM}) {
+      	}
+      	else {
+      		next;
+      	}
+      }
+      elsif ($FORM{COMMENTS} && $description !~ /$FORM{COMMENTS}/) {
+      	next;
+      }
+
       my $table_id_col    = '';
       my $table_login_col = '';
 
@@ -1916,9 +1936,15 @@ sub paysys_p24_get_payments {
       }
 
       $table->addrow(
-        $table_id_col, $table_login_col, '', $description, $date, $sum,
+        $table_id_col, 
+        $table_login_col, 
+        '', 
+        $description, 
+        $date, 
+        $sum,
         ($v->{col}->{BPL_A_ACC}->{content} eq $conf{PAYSYS_P24_CARDNUM}) ? $html->b($v->{col}->{BPL_A_ACC}->{content}) : $v->{col}->{BPL_A_ACC}->{content},
-        ($v->{col}->{BPL_A_ACC}->{content} eq $conf{PAYSYS_P24_CARDNUM}) ? $html->b($v->{col}->{BPL_A_ACC}->{content}) : $v->{col}->{BPL_A_ACC}->{content}, ''
+        '', 
+        $v->{col}->{BPL_NUM_DOC}->{content}
       );
 
       if ($v->{col}->{BPL_A_ACC}->{content} eq $conf{PAYSYS_P24_CARDNUM}) {
@@ -1967,6 +1993,22 @@ sub paysys_p24_get_payments {
       my ($LOGIN, $BIND, $UID, $CONTRACT_ID) = split(/:/, $binding_hash{ $BINDING_IDS{ $line->{'appcode'} } });
       my $date = $line->{'trandate'};
       my ($sum, $currency) = split(/ /, $line->{'cardamount'});
+
+      if ($FORM{SUM}) {
+      	if ($FORM{SUM}=~/</ && $sum < $sum_params) {
+      	}
+      	elsif ($FORM{SUM}=~/>/ && $sum > $sum_params) {
+      	}
+        elsif ($sum == $FORM{SUM}) {
+      	}
+      	else {
+      		next;
+      	}
+      }
+      elsif ($FORM{COMMENTS} && $description !~ /$FORM{COMMENTS}/) {
+      	next;
+      }
+
 
       my $client = '';
       if ($line->{'cardamount'} < 0) {

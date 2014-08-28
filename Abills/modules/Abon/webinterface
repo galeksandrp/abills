@@ -473,7 +473,7 @@ sub abon_tariffs {
           'ABON_ID',
           {
             SELECTED  => $Abon->{ID} || $FORM{ABON_ID},
-            SEL_ARRAY => $Abon->tariff_list({ COLS_NAME => 1 }),
+            SEL_LIST  => $Abon->tariff_list({ COLS_NAME => 1 }),
             SEL_KEY   => 'tp_id',
             SEL_VALUE => 'name',
           }
