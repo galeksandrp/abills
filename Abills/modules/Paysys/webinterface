@@ -1941,7 +1941,7 @@ sub paysys_p24_get_payments {
       }
 
       $table->addrow(
-        $table_id_col, 
+        $ID, 
         $table_login_col, 
         '', 
         $description, 
