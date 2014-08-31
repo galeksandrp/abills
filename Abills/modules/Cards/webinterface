@@ -328,7 +328,7 @@ sub cards_main {
       cols_align  => [ 'right', 'right', 'right' ],
       rows        => [
         ($#total_arr>-1) ? \@total_arr : undef,
-        [ $html->b("$_TOTAL:"), $html->b($Cards->{TOTAL}), $html->b($Cards->{TOTAL_SUM}) ],
+        [ $html->b("$_TOTAL:"), $html->b($Cards->{TOTAL_CARDS}), $html->b($Cards->{TOTAL_SUM}) ],
         [ $html->color_mark("$_USED:", $status_colors[2]), $Cards->{USED}, $Cards->{USED_SUM} ],
         [ "$_ENABLE:", $Cards->{ENABLED}, $Cards->{ENABLED_SUM} ],
         [ $html->color_mark("$_DISABLE:", $_COLORS[6]), $Cards->{DISABLED}, $Cards->{DISABLED_SUM} ],

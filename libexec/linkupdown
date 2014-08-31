@@ -719,18 +719,28 @@ sub user_info {
 #************************************************
 # linux ipn shapper
 #************************************************
+#************************************************
+# linux ipn shapper
+#************************************************
 sub linux_ipn2 {
-  my ($attr)=@_;
+my ($attr)=@_;
 
-  my $ruleid_out=$attr->{UID}+101;
-  my $ruleid_in=$attr->{UID}+5101;
+my $ruleid_out=$attr->{UID}+101;
+my $ruleid_in=$attr->{UID}+5101;
 
-  if (! $WAN_IF) {
-    $WAN_IF = `/sbin/ip route get 1.1.1.1 | head -1 | sed s/.*dev// |awk '{ print \$1 }'`;
-    chop($WAN_IF);
-  }
+my @wan = split(/,/, $WAN_IF);
+foreach my $line (@wan) {
+  print "$line \n" if ($debug);
+}
+
+if (! $WAN_IF) {
+  $WAN_IF = `/sbin/ip route get 1.1.1.1 | head -1 | sed s/.*dev// |awk '{ print \$1 }'`;
+  chop($WAN_IF);
+}
 
 if ($ACTION eq 'up') {
+  push @FW_ACTIONS, "$IPTABLES -t mangle -D FORWARD -s $CLIENT_IP -j MARK --set-mark $ruleid_in";
+  push @FW_ACTIONS, "$IPTABLES -t mangle -D FORWARD -d $CLIENT_IP -j MARK --set-mark $ruleid_out";
   push @FW_ACTIONS, "$IPTABLES -t mangle -A FORWARD -s $CLIENT_IP -j MARK --set-mark $ruleid_in";
   push @FW_ACTIONS, "$IPTABLES -t mangle -A FORWARD -d $CLIENT_IP -j MARK --set-mark $ruleid_out";
 
@@ -741,10 +751,14 @@ if ($ACTION eq 'up') {
     $speeds{ 0 }{OUT} = "$attr->{SPEED}";
   }
 
-  #Download
-  push @FW_ACTIONS, "$TC class add dev $WAN_IF parent 1:1 classid 1:$ruleid_in htb rate $speeds{ 0 }{IN}$SCOUNT";
-  push @FW_ACTIONS, "$TC filter add dev $WAN_IF parent 1: protocol ip prio 3 handle $ruleid_in fw classid 1:$ruleid_in";
-  push @FW_ACTIONS, "$TC qdisc add dev $WAN_IF parent 1:$ruleid_in handle $ruleid_in: sfq perturb 10";
+  my @wan = split(/,/, $WAN_IF);
+
+  foreach my $WANIFACE (@wan) {
+    #Download
+    push @FW_ACTIONS, "$TC class add dev $WANIFACE parent 1:1 classid 1:$ruleid_in htb rate $speeds{ 0 }{IN}$SCOUNT";
+    push @FW_ACTIONS, "$TC filter add dev $WANIFACE parent 1: protocol ip prio 3 handle $ruleid_in fw classid 1:$ruleid_in";
+    push @FW_ACTIONS, "$TC qdisc add dev $WANIFACE parent 1:$ruleid_in handle $ruleid_in: sfq perturb 10";
+  }
 
   #Upload
   push @FW_ACTIONS, "$TC class add dev $INTERFACE parent 1:1 classid 1:$ruleid_out htb rate $speeds{ 0 }{OUT}$SCOUNT";
@@ -753,9 +767,13 @@ if ($ACTION eq 'up') {
 }
 #stop
 else {
-  #Download
-  push @FW_ACTIONS, "$TC filter del dev $WAN_IF parent 1: protocol ip prio 3 handle $ruleid_in fw classid 1:$ruleid_in > /dev/null 2>&1";
-  push @FW_ACTIONS, "$TC class del dev $WAN_IF parent 1:1 classid 1:$ruleid_in > /dev/null 2>&1";
+  my @wan = split(/,/, $WAN_IF);
+  foreach my $WANIFACE (@wan) {
+    #Download
+    push @FW_ACTIONS, "$TC filter del dev $WANIFACE parent 1: protocol ip prio 3 handle $ruleid_in fw classid 1:$ruleid_in > /dev/null 2>&1";
+    push @FW_ACTIONS, "$TC class del dev $WANIFACE parent 1:1 classid 1:$ruleid_in > /dev/null 2>&1";
+  }
+
   #Upload
   push @FW_ACTIONS, "$TC filter del dev $INTERFACE parent 1: protocol ip prio 3 handle $ruleid_out fw classid 1:$ruleid_out > /dev/null 2>&1";
   push @FW_ACTIONS, "$TC class del dev $INTERFACE parent 1:1 classid 1:$ruleid_out > /dev/null 2>&1";
@@ -766,6 +784,7 @@ else {
 
 goto FW_ACTION;
 }
+
 
 
 if ($conf{linkupdown_external}) {

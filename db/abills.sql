@@ -65,6 +65,8 @@ CREATE TABLE `admins` (
   `pasport_grant` varchar(100) NOT NULL default '',
   `inn` varchar(20) NOT NULL default '',
   `birthday` DATE NOT NULL default '0000-00-00',
+  `max_credit` double(12,4) NOT NULL default '0.00',
+  `credit_days` SMALLINT not null default 0,
   PRIMARY KEY  (`aid`),
   UNIQUE KEY `aid` (`aid`),
   UNIQUE KEY `id` (`id`)
