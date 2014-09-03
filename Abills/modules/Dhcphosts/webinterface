@@ -539,7 +539,12 @@ sub dhcphosts_networks {
   }
 
   if ($Dhcphosts->{errno}) {
-    $html->message('err', $_ERROR, "[$Dhcphosts->{errno}] $err_strs{$Dhcphosts->{errno}}");
+    if ($Dhcphosts->{errno} == 7) {
+      $html->message('err', "IP/Dhcp:$_ERROR", "$_EXIST");
+    }
+    else {
+      $html->message('err', $_ERROR, "[$Dhcphosts->{errno}] $err_strs{$Dhcphosts->{errno}}");
+    }
   }
 
   $Dhcphosts->{STATIC}               = ' checked' if ($Dhcphosts->{STATIC});
@@ -591,6 +596,7 @@ sub dhcphosts_networks {
       $line->{phone},
       $status[ $line->{disable} ],
       ($line->{net_parent}) ? "$_SUBNET: $line->{net_parent}" : "$_NETWORK",
+      $html->button("$_USERS", "index=" . get_function_index('dhcphosts_hosts') . "&NETWORK=$line->{id}&search=1", { BUTTON => 1 }),
       $html->button("$_ROUTES", "index=" . get_function_index('dhcphosts_routes') . "&NET_ID=$line->{id}", { CLASS => 'routes' }),
       $html->button($_CHANGE,   "index=$index&chg=$line->{id}",                                            { CLASS => 'change' }),
       $html->button($_DEL, "index=$index&del=$line->{id}", { MESSAGE => "$_DEL $line->{id} $line->{name}?", CLASS => 'del' }),

@@ -321,6 +321,7 @@ sub service_get_month_fee {
       ($Service->{TP_INFO_OLD}->{MONTH_FEE} && $Service->{TP_INFO_OLD}->{MONTH_FEE} > 0)
       ) {
 
+
     if ( $FORM{RECALCULATE} ) {
       my $rest_days     = 0;
       my $rest_day_sum2 = 0;
@@ -332,7 +333,7 @@ sub service_get_month_fee {
         }
         return \%total_sum;
       }
-      
+
       if ($users->{ACTIVATE} eq '0000-00-00') {
         if ($d != $conf{START_PERIOD_DAY}) {
           $rest_days     = $days_in_month - $d + 1;
@@ -657,7 +658,6 @@ sub result_former {
     'credit'        => "$_CREDIT",
     'login'         => "$_LOGIN",
     'fio'           => "$_FIO",
-    'ext_deposit'   => "$_EXTRA $_DEPOSIT",
     'last_payment'  => "$_PAYMENTS $_DATE",
     'email'         => 'E-Mail',
     'pasport_date'  => "$_PASPORT $_DATE",
@@ -686,10 +686,14 @@ sub result_former {
 
     'deleted'       => "$_DELETED",
     'gid'           => "$_GROUP",
-    'group_name'   => "$_GROUP $_NAME",
+    'group_name'    => "$_GROUP $_NAME",
 #    'build_id'      => 'Location ID',
     'uid'           => 'UID',
   );
+  
+  if ($conf{EXT_BILL_ACCOUNT}) {
+    $SEARCH_TITLES{'ext_deposit'}="$_EXTRA $_DEPOSIT";
+  }
   
   %ACTIVE_TITLES = ();
   

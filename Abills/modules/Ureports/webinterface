@@ -1232,16 +1232,41 @@ sub ureports_daily_resets {
 
   $LIST_PARAMS{GID}  = $attr->{GID} if ($attr->{GID});
   $LIST_PARAMS{LOGIN}= $attr->{LOGIN} if ($attr->{LOGIN});
-  
   $Ureports->{debug} = 1 if ($debug > 6);
 
+  my ($y, $m, $d)      = split(/-/, $ADMIN_REPORT{DATE}, 3);
+  if ($d == 1) {
+    my $list = $Ureports->tp_user_reports_list(
+      {
+        REPORT_ID => 14,
+        DATE      => '>0000-00-00',
+        %LIST_PARAMS,
+        COLS_NAME => 1,
+        PAGE_ROWS => 1000000
+      }
+    );
+
+    foreach my $line (@$list) {
+      $debug_output .= "UID: $line->{uid} REPORT_ID: $line->{report_id} VALUE: $line->{value} DEPOSIT: $line->{deposit}\n" if ($debug > 1);
+      if ($debug < 5) {
+        $Ureports->tp_user_reports_reset_date(
+          {
+            REPORT_ID => $line->{report_id},
+            UID       => $line->{uid}
+          }
+        );
+      }
+    }
+  }
+  
   my $list = $Ureports->tp_user_reports_list(
     {
       RESET     => 1,
       REPORT_ID => "1",
       DATE      => '>0000-00-00',
       %LIST_PARAMS,
-      COLS_NAME => 1
+      COLS_NAME => 1,
+      PAGE_ROWS => 1000000
     }
   );
 
@@ -1493,7 +1518,8 @@ sub ureports_tp_reports {
     );
 
     foreach my $report_id (sort keys %REPORTS) {
-      $table->addrow($html->form_input("IDS", "$report_id", { TYPE => 'checkbox', STATE => ($TP_REPORTS{$report_id}) ? 1 : undef }), $REPORTS{$report_id}, $html->form_input("PRICE_$report_id", (($TP_REPORTS{$report_id}) ? $TP_REPORTS{$report_id} : '0.00')),);
+      $table->addrow($html->form_input("IDS", "$report_id", { TYPE => 'checkbox', STATE => ($TP_REPORTS{$report_id}) ? 1 : undef }).$report_id, $REPORTS{$report_id}, 
+      $html->form_input("PRICE_$report_id", (($TP_REPORTS{$report_id}) ? $TP_REPORTS{$report_id} : '0.00')),);
     }
 
     print $html->form_main(

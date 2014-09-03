@@ -746,6 +746,7 @@ sub list {
                       EXT_FIELDS => [ 
         'FIO',
         'DEPOSIT',
+        'EXT_DEPOSIT',
         'CREDIT',
         'CREDIT_DATE',
         'LOGIN_STATUS',
@@ -772,16 +773,6 @@ sub list {
         'DOMAIN_ID',
         'UID',
          ] }) };
-  }
-
-  if ($attr->{EXT_DEPOSIT}) {
-  	push @WHERE_RULES, @{ $self->search_expr($attr->{EXT_BILL_ID}, 'INT', 'if(company.id IS NULL,ext_b.id,ext_cb.id)', { EXT_FIELD => 'if(company.id IS NULL,ext_b.deposit,ext_cb.deposit) AS ext_deposit' }) };
-    $self->{EXT_TABLES} .= "
-            LEFT JOIN bills ext_b ON (u.ext_bill_id = ext_b.id)
-            LEFT JOIN bills ext_cb ON  (company.ext_bill_id=ext_cb.id) ";
-    if ($self->{EXT_TABLES} !~ /company /) {
-    	$self->{EXT_TABLES} = "LEFT JOIN companies company ON  (u.company_id=company.id) ". $self->{EXT_TABLES};
-    }
   }
 
   # Show debeters
@@ -1945,7 +1936,7 @@ sub build_list {
   @WHERE_RULES = ();
   
   if ($SORT == 1 && $DESC eq '') {
-    $SORT = "length(b.number), b.number";
+    $SORT = "b.number+1";
   }
 
   my $maps_google_fields = '';
