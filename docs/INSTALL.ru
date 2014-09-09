@@ -46,7 +46,7 @@
                     <div id="dokuwiki__usertools">
                 <h3 class="a11y">Инструменты пользователя</h3>
                 <ul>
-                    <li><a href="/wiki/doku.php/abills:docs_03:install:ru?do=login&amp;sectok=c88d8049a6bd36b606f2dd1ce99d1eb9"  class="action login" rel="nofollow" title="Войти">Войти</a></li>                </ul>
+                    <li><a href="/wiki/doku.php/abills:docs_03:install:ru?do=login&amp;sectok=6a7585bdcefbec0ba8c9dbc2fb1a2e98"  class="action login" rel="nofollow" title="Войти">Войти</a></li>                </ul>
             </div>
         
         <!-- SITE TOOLS -->
@@ -118,7 +118,7 @@
 </li>
 <li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:modules:cards:ru" class="wikilink1" title="abills:docs:modules:cards:ru">Cards</a></div>
 </li>
-<li class="level4"><div class="li"> <span class="curid"><a href="/wiki/doku.php/abills:docs:modules:dv:ru" class="wikilink1" title="abills:docs:modules:dv:ru">Dv</a></span> (Internet)</div>
+<li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:modules:dv:ru" class="wikilink1" title="abills:docs:modules:dv:ru">Dv</a> (Internet)</div>
 </li>
 <li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:modules:dhcphosts:ru" class="wikilink1" title="abills:docs:modules:dhcphosts:ru">Dhcphosts</a></div>
 </li>
@@ -354,7 +354,7 @@
 
     </div></div><!-- /site -->
 
-    <div class="no"><img src="/wiki/lib/exe/indexer.php?id=abills%3Adocs_03%3Ainstall%3Aru&amp;1409489313" width="2" height="1" alt="" /></div>
+    <div class="no"><img src="/wiki/lib/exe/indexer.php?id=abills%3Adocs_03%3Ainstall%3Aru&amp;1410251217" width="2" height="1" alt="" /></div>
     <div id="screen__mode" class="no"></div>    <!--[if ( lte IE 7 | IE 8 ) ]></div><![endif]-->
 </body>
 </html>

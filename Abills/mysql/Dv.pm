@@ -186,7 +186,9 @@ sub add {
   }
 
   $self->{debug}=1;
-  $self->query_add('dv_main', \%DATA);
+  $self->query_add('dv_main', { %DATA,
+  	                            DISABLE => $DATA{STATUS}
+  	                          });
 
   return $self if ($self->{errno});
 
@@ -205,6 +207,8 @@ sub change {
   if (!$attr->{CALLBACK}) {
     $attr->{CALLBACK} = 0;
   }
+
+  $attr->{DISABLE}=$attr->{STATUS};
 
   my $old_info = $self->info($attr->{UID});
   $self->{OLD_STATUS} = $old_info->{STATUS};
