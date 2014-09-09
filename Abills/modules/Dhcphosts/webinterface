@@ -85,7 +85,7 @@ sub dhcphosts_mac_block_show {
   }
 
   if (defined($conf{DHCPHOSTS_EXT_DEPOSITCHECK})) { 
-   	$PARAMS{DHCPHOSTS_EXT_DEPOSITCHECK} = '_SHOW';
+   	$PARAMS{EXT_DEPOSIT} = '_SHOW';
   }
 
   my $list = $Dhcphosts->hosts_list(
@@ -1324,7 +1324,7 @@ sub dhcphosts_config {
     }
 
     if (defined($conf{DHCPHOSTS_EXT_DEPOSITCHECK})) { 
-    	$PARAMS{DHCPHOSTS_EXT_DEPOSITCHECK} = '_SHOW';
+    	$PARAMS{EXT_DEPOSIT} = '_SHOW';
     }
 
     $list = $Dhcphosts->hosts_list(

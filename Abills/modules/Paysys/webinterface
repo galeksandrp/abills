@@ -1841,7 +1841,7 @@ sub paysys_p24_get_payments {
   #Get payments
   my $payments_extid_list = 'P24:*'; # . join(',P24:', keys(%payments_ids));
   my $payments_list = $payments->list({ EXT_ID    => $payments_extid_list, 
-                                        PAGE_ROWS => 10000,
+                                        PAGE_ROWS => 100000,
                                         COLS_NAME => 1,
                                        });
 
@@ -1900,8 +1900,6 @@ sub paysys_p24_get_payments {
         #$date =~ s/([0-9\-\:\ ])/$1/;
         $date = "$3-$2-$1";
       }
-      
-      
 
       if ($FORM{SUM}) {
       	if ($FORM{SUM}=~/</ && $sum < $sum_params) {
@@ -1923,7 +1921,12 @@ sub paysys_p24_get_payments {
 
       if ($added_payments{$ID}) {
         my ($id, $login, $date) = split(/:/, $added_payments{$ID}, 3);
-        $table_id_col = $html->button("$_ADDED", "index=2&ID=$added_payments{$ID}") . $html->br() . $html->b($login) . $html->br() . $date;
+        $table_id_col = $html->button("$_ADDED", "index=2&ID=$added_payments{$ID}") . $html->br() . 
+           $html->b($login) . 
+           $html->br() . 
+           $date . 
+           $html->br() .
+           $ID;
         $table_login_col = '';
       }
       else {
@@ -1941,7 +1944,7 @@ sub paysys_p24_get_payments {
       }
 
       $table->addrow(
-        $ID, 
+        $table_id_col, 
         $table_login_col, 
         '', 
         $description, 

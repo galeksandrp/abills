@@ -82,9 +82,10 @@ sub info {
   $self->query2("SELECT dv.uid, 
    dv.tp_id, 
    tp.name AS tp_name, 
-   dv.logins as SIMULTANEONSLY, 
+   dv.logins, 
+   dv.dv_login,
    INET_NTOA(dv.ip) AS ip, 
-   INET_NTOA(dv.netmask) AS netmask, 
+   INET_NTOA(dv.netmask) AS netmask,
    dv.speed, 
    dv.filter_id, 
    dv.cid,
@@ -184,30 +185,8 @@ sub add {
     }
   }
 
-  $self->query2("INSERT INTO dv_main (uid, registration, 
-             tp_id, 
-             logins, 
-             disable, 
-             ip, 
-             netmask, 
-             speed, 
-             filter_id, 
-             cid,
-             callback,
-             port,
-             join_service,
-             turbo_mode,
-             free_turbo_mode,
-             expire,
-             password)
-        VALUES ('$DATA{UID}', now(),
-        '$DATA{TP_ID}', '$DATA{SIMULTANEONSLY}', '$DATA{STATUS}', INET_ATON('$DATA{IP}'), 
-        INET_ATON('$DATA{NETMASK}'), '$DATA{SPEED}', '$DATA{FILTER_ID}', LOWER('$DATA{CID}'),
-        '$DATA{CALLBACK}',
-        '$DATA{PORT}', '$DATA{JOIN_SERVICE}', '$DATA{TURBO_MODE}', '$DATA{FREE_TURBO_MODE}',
-        '$DATA{DV_EXPIRE}',
-        '$DATA{PASSWORD}');", 'do'
-  );
+  $self->{debug}=1;
+  $self->query_add('dv_main', \%DATA);
 
   return $self if ($self->{errno});
 
@@ -222,25 +201,6 @@ sub add {
 sub change {
   my $self = shift;
   my ($attr) = @_;
-
-  my %FIELDS = (
-    SIMULTANEONSLY => 'logins',
-    STATUS         => 'disable',
-    IP             => 'ip',
-    NETMASK        => 'netmask',
-    TP_ID          => 'tp_id',
-    SPEED          => 'speed',
-    CID            => 'cid',
-    UID            => 'uid',
-    FILTER_ID      => 'filter_id',
-    CALLBACK       => 'callback',
-    PORT           => 'port',
-    JOIN_SERVICE   => 'join_service',
-    TURBO_MODE     => 'turbo_mode',
-    FREE_TURBO_MODE=> 'free_turbo_mode',
-    DV_EXPIRE      => 'expire',
-    PASSWORD       => 'password'
-  );
 
   if (!$attr->{CALLBACK}) {
     $attr->{CALLBACK} = 0;
@@ -343,8 +303,8 @@ sub change {
     {
       CHANGE_PARAM => 'UID',
       TABLE        => 'dv_main',
-      FIELDS       => \%FIELDS,
-      OLD_INFO     => $old_info,
+      #FIELDS       => \%FIELDS,
+      #OLD_INFO     => $old_info,
       DATA         => $attr
     }
   );

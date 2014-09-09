@@ -83,6 +83,10 @@ sub mx80_checklines {
 
     my %active_mx_ip = ();
     foreach my $line (@result_ports) {
+    	if ($debug > 5) {
+    		print "$line\n";
+    	}
+      next if (! $line);
       my ($id, $ip) = split(/:/, $line);
       
       if ($ip ne '0.0.0.0') {
@@ -120,7 +124,7 @@ sub mx80_checklines {
     }
 
     while(my($ip, $id)=each %active_mx_ip) {
-      print "===================\nMX80 Unknown ip: $ip .$id\n" if ($debug > 1);
+      print "===================\nMX80 Unknown ip: $ip .$id\n" if ($debug > 1 || $ARGV->{SHOW});
       my $user_name       =  eval{ return &snmpget("$SNMP_COMMUNITY".'@'."$nas_ip", "1.3.6.1.4.1.2636.3.64.1.1.1.3.1.3.".$id) };
       
       if (! $user_name) {
@@ -134,11 +138,7 @@ sub mx80_checklines {
       #my $mac 	          = &snmpget("$SNMP_COMMUNITY".'@'."$nas_ip", "1.3.6.1.4.1.2636.3.64.1.1.1.3.1.11.".$id);
       my $connect_type 	  =  eval{ return &snmpget("$SNMP_COMMUNITY".'@'."$nas_ip", "1.3.6.1.4.1.2636.3.64.1.1.1.3.1.10.".$id) };
 
-      #$client_type = join('', unpack("H2H2", $client_type));
-
-      #$client_type = hex2bin($client_type);
-
-      if ($debug > 1) {
+      if ($debug > 1 || defined($ARGV->{SHOW})) {
         print "User: $user_name\n".
         " Connect: $connectin_types{$connect_type} Type:  STATE: $state_staus[$state]\n".
         #" ACCT_SESSION_ID: $acct_session_id\n".

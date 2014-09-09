@@ -562,11 +562,10 @@ sub hosts_list {
     $EXT_TABLES .= " LEFT JOIN dv_main dv ON  (dv.uid=u.uid) ";
   }
 
-  if (defined($attr->{DHCPHOSTS_EXT_DEPOSITCHECK}) && $attr->{DHCPHOSTS_EXT_DEPOSITCHECK} ne '') {
+  if (defined($attr->{EXT_DEPOSIT}) && $attr->{EXT_DEPOSIT} ne '') {
     $EXT_TABLES .= "
-            LEFT JOIN companies ext_company ON  (u.company_id=ext_company.id) 
-            LEFT JOIN bills ext_b ON (u.ext_bill_id = ext_b.id)
-            LEFT JOIN bills ext_cb ON  (ext_company.ext_bill_id=ext_cb.id) ";
+     LEFT JOIN companies ext_company ON  (u.company_id=ext_company.id)
+      ";
   }
 
   if ($self->{SEARCH_FIELDS} =~ /nas\./) {

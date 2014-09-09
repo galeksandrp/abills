@@ -10,7 +10,7 @@ $conf{dbuser}='abills';
 $conf{dbpasswd}='sqlpassword';
 $conf{dbtype}='mysql';
 #For MySQL 5 and highter (cp1251, utf8)
-$conf{dbcharset}='';
+$conf{dbcharset}='utf8';
 
 #Mail configuration
 $conf{ADMIN_MAIL}='admin@yourhost.com';

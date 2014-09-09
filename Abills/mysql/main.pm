@@ -207,7 +207,7 @@ sub query {
       $self->{errstr}     = 'SQL_ERROR';    # . ( ($self->{db}->strerr) ? $self->{db}->strerr : '' );
       require Log;
       Log->import('log_print');
-      log_print(undef, 'LOG_ERR', '', "\n$query\n --$self->{sql_errno}\n --$self->{sql_errstr}\n --AutoCommit: $db->{AutoCommit}\n", { NAS => 0, LOG_FILE => "/tmp/sql_errors" });
+      log_print(undef, 'LOG_ERR', '', "index:$attr->{index}\n$query\n --$self->{sql_errno}\n --$self->{sql_errstr}\n --AutoCommit: $db->{AutoCommit}\n", { NAS => 0, LOG_FILE => "/tmp/sql_errors" });
     }
     return $self;
   }

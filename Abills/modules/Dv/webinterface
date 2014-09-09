@@ -840,8 +840,8 @@ sub dv_user {
       $Dv->{ONLINE_TABLE} = $table->show();
     }
 
-    $list = $admin->action_list({ TYPE => '4;14', 
-                                  UID  => $FORM{UID}, 
+    $list = $admin->action_list({ TYPE      => '4;14', 
+                                  UID       => $FORM{UID}, 
                                   DATETIME  => '_SHOW',
                                   PAGE_ROWS => 1, 
                                   COLS_NAME => 1,
@@ -946,8 +946,6 @@ sub dv_user {
     {
       SELECTED   => $FORM{STATIC_POOL},
       SEL_LIST   => $Nas->ip_pools_list({ STATIC => 1, COLS_NAME => 1 }),
-      SEL_KEY    => 'id',
-      SEL_VALUE  => 'name',
       SEL_OPTIONS=> { '' => '' },
       NO_ID      => 1
     }
@@ -981,7 +979,11 @@ sub dv_user {
     
     $Dv->{PAYMENT_MESSAGE} = "$_ACTIVATION_PAYMENT $sum " . $html->button("$_PAYMENTS", "UID=$FORM{UID}&index=2&SUM=$sum", {CLASS => 'payments rightAlignText'});
   }
-  
+
+  if ($conf{DV_LOGIN}) {
+  	$Dv->{LOGIN_FORM}="<tr><td>$_LOGIN:</td><td><input type=text name='DV_LOGIN' value='$Dv->{DV_LOGIN}'></td></tr>";
+  }
+
   $html->tpl_show(_include('dv_user', 'Dv'), { %$admin, %$attr, %$Dv }, { ID => 'dv_user' });
   return 0;
 }

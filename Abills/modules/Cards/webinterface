@@ -902,9 +902,12 @@ sub cards_user_payment () {
           my $test = `echo "$DATE $TIME $user->{LOGIN} R: $rand $Cards->{SERIAL}$Cards->{NUMBER} A:$ENV{HTTP_USER_AGENT} QS:$ENV{QUERY_STRING} RA:$ENV{REMOTE_ADDR} ADDED ($gt)"   >> /tmp/cards_debug`;
         }
 
-        cross_modules_call('_payments_maked', { USER_INFO => $user, 
+        cross_modules_call('_payments_maked', { USER_INFO    => $user,
+        	                                      SUM          => $Cards->{SUM}, 
                                                 SKIP_MODULES => 'Cards,Sqlcmd',
-                                                QUITE => 1 });
+                                                QUITE        => 1,
+                                                SILENT       => 1
+                                               });
         return 0;
       }
       elsif ($payments->{errno}) {

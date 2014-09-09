@@ -816,7 +816,7 @@ sub dv_auth {
   {
     my $cid = $RAD->{CALLING_STATION_ID};  	
 
-  	if ($RAD->{CALLING_STATION_ID} =~ /\/\s+([a-z0-9:]+)\s+\//) {
+  	if ($RAD->{CALLING_STATION_ID} =~ /\/\s+([A-Za-z0-9:]+)\s+\//) {
   		$cid = $1;
   	}
 
@@ -1050,6 +1050,18 @@ sub authentication {
       $WHERE = "AND u.domain_id='0'";
     }
 
+    if ($CONF->{DV_LOGIN}) {
+    	$self->query2("SELECT uid, dv_login AS login FROM dv_main WHERE dv_login='$RAD->{USER_NAME}';", undef, { INFO => 1 });
+    }
+
+    if ($self->{UID}) {
+      $WHERE = "u.uid='$self->{UID}' " . $WHERE;
+    }
+    else {
+    	$WHERE = "u.id='$RAD->{USER_NAME}' " . $WHERE;
+    }
+    
+    
     $self->query2("SELECT
   u.uid,
   DECODE(password, '$SECRETKEY') AS passwd,
@@ -1067,7 +1079,7 @@ sub authentication {
   UNIX_TIMESTAMP(u.expire) AS account_expire
      FROM users u
      WHERE 
-        u.id='$RAD->{USER_NAME}' $WHERE
+        $WHERE
         AND (u.expire='0000-00-00' or u.expire > CURDATE())
         AND (u.activate='0000-00-00' or u.activate <= CURDATE())
         AND u.deleted='0'

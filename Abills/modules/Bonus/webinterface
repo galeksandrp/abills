@@ -762,6 +762,10 @@ sub bonus_payments_maked {
   	return '';
   }
 
+  if (! defined($FORM{METHOD})) {
+  	$FORM{METHOD}=2;
+  }
+
   my $list = $Bonus->service_discount_list(
         {
           REGISTRATION_DAYS => "<=$registration_days,>=0",

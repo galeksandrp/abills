@@ -60,6 +60,7 @@ sub cross_modules_call {
   
   my %full_return  = ();
   my @skip_modules = ();
+  
   eval {
     if ($silent) {
       #disable stdout output

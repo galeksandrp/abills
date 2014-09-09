@@ -265,7 +265,7 @@ if ($FORM{AWEB_OPTIONS}) {
 
 #===========================================================
 my @actions = (
-  [ $_INFO, $_ADD, $_LIST, $_PASSWD, $_CHANGE, $_DEL, $_ALL, $_MULTIUSER_OP, "$_SHOW $_DELETED", "$_CREDIT", "$_TARIF_PLANS", "$_REDUCTION", "$_DISABLE $_DEPOSIT", "$_CONFIRM $_ACTION" ],    # Users
+  [ $_INFO, $_ADD, $_LIST, $_PASSWD, $_CHANGE, $_DEL, $_ALL, $_MULTIUSER_OP, "$_SHOW $_DELETED", "$_CREDIT", "$_TARIF_PLANS", "$_REDUCTION", "$_DISABLE $_DEPOSIT", "$_CONFIRM $_ACTION", "$_DELETED $_SERVICE" ],    # Users
   [ $_LIST, $_ADD, $_DEL, $_ALL, $_DATE ],   # Payments
   [ $_LIST, $_GET, $_DEL, $_ALL ],           # Fees
   [ $_LIST, $_DEL ],                         # reports view
