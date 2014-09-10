@@ -319,6 +319,10 @@ sub dv_users_search {
     }
   );
 
+  if ($conf{DV_LOGIN}) {
+  	$Dv->{DV_LOGIN_FORM}="<tr><td>Internet $_LOGIN:</td><td><input type=text name='DV_LOGIN' value='%DV_LOGIN%'></td></tr>";
+  }
+
   form_search({ SEARCH_FORM  => $html->tpl_show(_include('dv_users_search', 'Dv'), 
       { %$Dv, %FORM }, 
       { OUTPUT2RETURN => 1 }),
@@ -391,7 +395,9 @@ sub dv_users_list {
        'dv_status'   => "Internet $_STATUS",
        'dv_status_date' => "$_STATUS $_DATE",
        'online'      => 'Online',
-       'dv_expire'   => "Internet $_EXPIRE"
+       'dv_expire'   => "Internet $_EXPIRE",
+       'dv_login'    => "$_SERVICE $_LOGIN",
+       'dv_password' => "$_SERVICE $_PASSWD"       
          },
      TABLE           => {
        width      => '100%',
@@ -506,7 +512,6 @@ sub dv_user {
     $password_form->{PW_LENGTH}  = $conf{PASSWD_LENGTH}  || 6;
     $password_form->{ACTION}     = 'change';
     $password_form->{LNG_ACTION} = "$_CHANGE";
-
     $password_form->{ACTION}     = 'change';
     $password_form->{LNG_ACTION} = "$_CHANGE";
 

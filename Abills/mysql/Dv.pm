@@ -302,13 +302,12 @@ sub change {
   #$attr->{JOIN_SERVICE} = ($attr->{JOIN_SERVICE}) ? $attr->{JOIN_SERVICE} : 0;
 
   $admin->{MODULE} = $MODULE;
+
   $self->changes(
     $admin,
     {
       CHANGE_PARAM => 'UID',
       TABLE        => 'dv_main',
-      #FIELDS       => \%FIELDS,
-      #OLD_INFO     => $old_info,
       DATA         => $attr
     }
   );
@@ -501,6 +500,7 @@ sub list {
       ['TP_CREDIT',      'INT', 'tp.credit', 'tp.credit AS tp_credit' ],
       ['ONLINE',         'INT', 'c.uid',            'c.uid AS online' ],
       ['PAYMENT_TYPE',   'INT', 'tp.payment_type',                  1 ],
+      ['DV_LOGIN',       'STR', 'dv.dv_login',                      1 ],
       ['DV_PASSWORD',    '',    '',  "DECODE(dv.password, '$CONF->{secretkey}') AS dv_password" ],
       ['DV_STATUS',      'INT', 'dv.disable as dv_status',          1 ],
       ['DV_EXPIRE',      'DATE','dv.expire as dv_expire',           1 ],

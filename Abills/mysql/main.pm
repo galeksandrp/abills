@@ -570,9 +570,16 @@ sub changes {
           if ($field_name eq 'IP') {
             $v = int2ip($v);
           }
+          elsif ($field_name eq 'NETMASK') {
+            $v = int2ip($v);
+          }
+          elsif($field_name eq 'DISABLE') {
+          	$self->{DISABLE}=$v;
+          }
 
           $OLD_DATA->{ $field_name }=$v;
           $FIELDS->{ $field_name }=$k;
+          
         }
       }
   }
@@ -614,22 +621,26 @@ sub changes {
           next;
         }
 
-        if ($k eq 'DISABLE') {
+        if ($k eq 'STATUS') {
+          $self->{CHG_STATUS} = $OLD_DATA->{$k} . '->' . $DATA{$k};
+          $self->{'STATUS'} = $DATA{$k};
+        }
+        elsif ($k eq 'DISABLE') {
           if (defined($DATA{$k}) && $DATA{$k} == 0 || !defined($DATA{$k})) {
             if ($self->{DISABLE} != 0) {
               $self->{ENABLE}  = 1;
               $self->{DISABLE} = undef;
             }
           }
+          elsif ($DATA{$k} > 1) {
+	          $self->{CHG_STATUS} = $OLD_DATA->{$k} . '->' . $DATA{$k};
+            $self->{'STATUS'} = $DATA{$k};
+          }
           else {
             $self->{DISABLE_ACTION} = 1;
           }
         }
         elsif ($k eq 'DOMAIN_ID' && $OLD_DATA->{$k} == 0 && !$DATA{$k}) {
-        }
-        elsif ($k eq 'STATUS') {
-          $self->{CHG_STATUS} = $OLD_DATA->{$k} . '->' . $DATA{$k};
-          $self->{'STATUS'} = $DATA{$k};
         }
         elsif ($k eq 'TP_ID') {
           $self->{CHG_TP} = $OLD_DATA->{$k} . '->' . $DATA{$k};

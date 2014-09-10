@@ -651,6 +651,10 @@ sub result_former {
   "$_DISABLE: $_NON_PAYMENT", "$ERR_SMALL_DEPOSIT",
   "$_VIRUS_ALERT" );
 
+  if ($attr->{STATUS_VALS}) {
+  	@service_status = @{ $attr->{STATUS_VALS} };
+  }
+
   %SEARCH_TITLES = (
     'disable'       => "$_STATUS",
     'dv_status'     => "Internet $_STATUS",

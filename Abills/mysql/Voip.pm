@@ -180,15 +180,20 @@ sub log_list() {
   $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
 
   my $WHERE =  $self->search_former($attr, [
-      ['FREE_TIME',     'INT', 'voip.free_time',    1 ],
-      ['TIME_DIVISION', 'STR', 'voip.time_division',1 ],
+      ['ID',       'INT',  'id'         ], 
+      ['DATETIME', 'DATE', 'datetime'   ], 
+      ['PHONE',    'STR',  'phone',     ],
+      ['COMMENT',  'STR',  'comment',   ],
+      ['STATUS',   'INT',  'l.status',1 ],
+      ['IP',       'IP',   'l.ip',    1 ],
+      ['UID',      'INT',  'l.uid'      ]
     ],
-    { WHERE => 1,
+    { WHERE       => 1,
     	WHERE_RULES => \@WHERE_RULES
     }    
     );
 
-  $self->query2("SELECT l.id, l.datetime, l.phone, l.comment, l.uid    
+  $self->query2("SELECT l.id, l.datetime, l.phone, l.comment, $self->{SEARCH_FIELDS} l.uid    
     FROM voip_ivr_log l
     LEFT JOIN users u ON (u.uid=l.uid)
     $WHERE
@@ -353,7 +358,7 @@ sub user_list {
     $EXT_TABLES .= 'LEFT JOIN users_pi pi ON (u.uid = pi.uid)';
   }
 
-  $self->query2("SELECT u.id AS login, 
+  my $sql = "SELECT u.id AS login, 
       $self->{SEARCH_FIELDS}
       u.uid, 
       service.tp_id
@@ -362,7 +367,9 @@ sub user_list {
      $EXT_TABLES
      $WHERE 
      GROUP BY u.uid
-     ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;",
+     ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;";
+
+  $self->query2($sql,
      undef,
      $attr     
   );
