@@ -185,7 +185,7 @@ sub log_list() {
       ['PHONE',    'STR',  'phone',     ],
       ['COMMENT',  'STR',  'comment',   ],
       ['STATUS',   'INT',  'l.status',1 ],
-      ['IP',       'IP',   'l.ip',    1 ],
+      ['IP',       'IP',   'l.ip',    "INET_NTOA(ip) AS ip" ],
       ['UID',      'INT',  'l.uid'      ]
     ],
     { WHERE       => 1,
@@ -197,12 +197,22 @@ sub log_list() {
     FROM voip_ivr_log l
     LEFT JOIN users u ON (u.uid=l.uid)
     $WHERE
-    ORDER BY $SORT $DESC;",
+    GROUP BY l.id
+    ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;",
     undef,
     $attr
   );
 
-  return $self->{list};
+  my $list = $self->{list};
+
+  if ($self->{TOTAL} >= 0) {
+    $self->query2("SELECT count(l.id) AS total FROM voip_ivr_log l
+    LEFT JOIN users u ON (u.uid=l.uid)
+     $WHERE",
+    undef, { INFO => 1 });
+  }
+
+  return $list;
 }
 
 #**********************************************************
@@ -536,8 +546,7 @@ sub routes_list {
     $db, "SELECT r.prefix, r.name, r.disable, r.date, r.id, r.parent
      FROM voip_routes r
      $WHERE 
-     ORDER BY $SORT $DESC 
-     LIMIT $PG, $PAGE_ROWS;",
+     ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;",
     undef,
     $attr
   );

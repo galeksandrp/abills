@@ -419,7 +419,7 @@ CREATE TABLE `intervals` (
 )  ;
 
 CREATE TABLE `ippools` (
-  `id` int(10) unsigned NOT NULL auto_increment,
+  `id` smallint(6) unsigned NOT NULL auto_increment,
   `nas` smallint(5) unsigned NOT NULL default '0',
   `ip` int(10) unsigned NOT NULL default '0',
   `counts` int(10) unsigned NOT NULL default '0',
@@ -428,6 +428,7 @@ CREATE TABLE `ippools` (
   `static` tinyint(1) unsigned NOT NULL DEFAULT '0',
   `speed` int(10) unsigned NOT NULL default '0',
   `ipv6_prefix` VARBINARY(16) not null default '',
+  `next_pool_id` smallint(6) unsigned NOT NULL default 0,
   PRIMARY KEY  (`id`),
   UNIQUE KEY `nas` (`nas`,`ip`)
 ) COMMENT="IP Pools" ;
