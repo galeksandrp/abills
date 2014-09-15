@@ -710,7 +710,7 @@ sub list {
   if ($attr->{UNIVERSAL_SEARCH}) {
     my @us_fields = ('u.uid:INT', 'u.id:STR', 'pi.fio:STR', 'pi.contract_id:STR', 'pi.email:STR', 'pi.phone:STR', 'pi.comments:STR');
     $self->{SEARCH_FIELDS_COUNT}+=5;
-    $self->{SEARCH_FIELDS} = 'pi.fio,if(company.id IS NULL, b.deposit, cb.deposit) AS deposit,u.credit,';
+    $self->{SEARCH_FIELDS} = 'pi.fio,if(company.id IS NULL, b.deposit, cb.deposit) AS deposit,u.credit,u.disable AS login_status,';
 
 
     if ($CONF->{ADDRESS_REGISTER}) {
@@ -852,10 +852,12 @@ sub list {
       $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES) : '';
 
       $self->query2("SELECT count(DISTINCT u.uid) AS total FROM users u 
-       LEFT JOIN payments p ON (u.uid = p.uid)
        LEFT JOIN users_pi pi ON (u.uid = pi.uid)
        LEFT JOIN bills b ON (u.bill_id = b.id)
-      $WHERE;",
+       LEFT JOIN (
+          SELECT max(date) AS date, uid FROM payments GROUP BY uid
+        ) AS p  ON u.uid=p.uid
+       $WHERE;",
       undef,
       { INFO => 1 }
       );

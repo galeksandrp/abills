@@ -185,7 +185,6 @@ sub add {
     }
   }
 
-  $self->{debug}=1;
   $self->query_add('dv_main', { %DATA,
   	                            DISABLE => $DATA{STATUS}
   	                          });

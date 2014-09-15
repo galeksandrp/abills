@@ -1182,6 +1182,8 @@ sub paysys_periodic () {
   $debug_output .= "Paysys: Daily periodic payments\n" if ($debug > 1);
 
   if ($conf{PAYSYS_PORTMONE_PAYEE_ID}) {
+    paysys_load('Portmone');
+
     my $payment_system    = 'PM';
     my $payment_system_id = 45;
     
@@ -1282,123 +1284,14 @@ sub paysys_periodic () {
   return $debug_output;
 }
 
-#**********************************************************
-# portmone get result
-#=commencts
-#
-#<?xml version='1.0' encoding='windows-1251' standalone='yes'?>
-#<portmoneresult count='<???-?? ????????>'>
-#  <request>
-#    <shopordernumber>??????????? ???????? SHOPORDERNUMBER</shopordernumber>
-#    <shop_id>??????????? ???????? SHOP_ID</shop_id>
-#    <paymenttype>??????????? ???????? PAYMENTTYPE</paymenttype>
-#    <startdate>??????????? ???????? STARTMONTH/STARTDAY/STARTYEAR</startdate>
-#    <enddate>??????????? ???????? ENDMONTH/ENDDAY/ENDYEAR</enddate>
-#    <success>??????????? ???????? SUCCESS</success>
-#  </request>
-#  <orders>
-#    <order>
-#      <ordernumber>????? ??????</ordernumber>
-#      <description>???????????</ description >
-#      <orderdate>????</orderdate>
-#      <total>?????</total>
-#      <currency>??? ??????</currency>
-#      <approvalcode>??? ???????????</approvalcode>
-#      <billnumber>????? ???????</billnumber>
-#      <billdate>???? ???????</billdate>
-#      <error_code>??? ?????? ??????????????? ??????</error_code>
-#      <error_message>??????????? ?????? ??????????????? ??????</error_ message>
-#    </order>
-#    <order>
-#      ...
-#    </order>
-#    ...
-#  </orders>
-#</portmoneresult>
-#
-#
-#=end
-#**********************************************************
-sub paysys_portmone_result () {
-  my ($order_id, $attr) = @_;
-
-  my $debug = $attr->{DEBUG} || 0;
-  my $request = "https://www.portmone.com.ua/secure/bills/results.php?SHOPORDERNUMBER=$order_id&SHOP_ID=$conf{PAYSYS_PORTMONE_PAYEE_ID}&LOG=$conf{PAYSYS_PORTMONE_LOG}&PASS=$conf{PAYSYS_PORTMONE_PASS}";
-
-  #my $request = 'https://192.168.0.40:9443/test.xml';
-  my $ex_params = '&PAYMENTTYPE=1';
-
-  if ($attr->{DATE}) {
-    my ($y, $m, $d) = split(/-/, $attr->{DATE});
-    $ex_params = "&STARTDAY=$d&STARTMONTH=$m&STARTYEAR=$y&ENDDAY=$d&ENDMONTH=$m&ENDYEAR=$y";
-  }
-  my $CURL= $conf{FILE_CURL}                || '/usr/local/bin/curl';
-  my $cmd = "$CURL -s --insecure --url '$request$ex_params' -A \"Mozilla/4.0 (compatible; MSIE 5.01; Windows NT 5.0)\"\n";
-
-  if ($debug > 4) {
-    print $cmd;
-  }
-
-  my $request_result = `$cmd`;
-
-  my @res_array    = split(/\n[\r]?/, $request_result);
-  my %request_hash = ();
-  my $request_end  = 0;
-  my $cure_object  = 0;
-  my $objects      = 0;
-  my @orders       = ();
-
-  foreach my $line (@res_array) {
-    if ($line =~ /<portmoneresult count='(\d+)'>/) {
-      $objects = $1;
-    }
-    elsif ($line =~ /<\/request>/) {
-      $request_end = 1;
-    }
-    elsif ($line =~ /<\/order>/) {
-      $cure_object++;
-    }
-    elsif (!$request_end && $line =~ /<(\S+)>(.+)<\/\S+>/) {
-      $request_hash{$1} = $2;
-    }
-    elsif ($line =~ /<(\S+)>(.+)<\/\S+>/) {
-      $orders[$cure_object]{$1} = $2;
-    }
-  }
-
-  if ($debug > 1) {
-    print "Objects: $objects\n";
-    while (my ($k, $v) = each %request_hash) {
-      print "$k, $v\n";
-    }
-
-    my $i = 0;
-    foreach my $obj (@orders) {
-      print "Order: $i\n";
-      while (my ($k, $v) = each %$obj) {
-        print "  $k, $v\n";
-      }
-      $i++;
-    }
-  }
-
-  if ($attr->{CHECK}) {
-    if ($orders[0]{total}) {
-      return 1;
-    }
-    else {
-      return 0;
-    }
-  }
-
-  return \@orders;
-}
 
 #**********************************************************
 #?SHOPORDERNUMBER=23432432&BILL_AMOUNT=10&APPROVALCODE=12121&RESULT=0
 #  http://portmone.ua
 #**********************************************************
 sub paysys_portmone () {
+
+  paysys_load('Portmone');
 
   if ($FORM{RESULT}) {
     $html->message('err', $_ERROR, "$_FAILED $_TRANSACTION ID: $FORM{SHOPORDERNUMBER}");
@@ -1755,7 +1648,8 @@ sub paysys_privatbank {
 #
 #**********************************************************
 sub paysys_p24_get_payments {
-  require "modules/Paysys/P24.pm";
+
+  paysys_load('P24');
 
   if ($FORM{PAYMENTS}) {
     paysys_import_form();
@@ -1943,6 +1837,13 @@ sub paysys_p24_get_payments {
         . $html->form_input('EXT_ID_' . $ID,   "P24:$ID",      { TYPE => 'hidden' });
       }
 
+      if ($v->{col}->{BPL_NUM_DOC}->{content}=~m/\@/) {
+      	$table->{rowcolor}='#008ACC';
+      }
+      else {
+      	$table->{rowcolor}=undef;
+      }
+
       $table->addrow(
         $table_id_col, 
         $table_login_col, 
@@ -2097,7 +1998,7 @@ sub paysys_p24_get_payments {
 #
 #**********************************************************
 sub paysys_p24 {
-  require "modules/Paysys/P24.pm";
+  paysy_Load('P24');
 
   if ($FORM{info_card}) {
     my $info = p24({ CARD_INFO => $FORM{CARD_ID} || $conf{'PAYSYS_P24_CARDNUM'} });
@@ -2233,7 +2134,8 @@ sub paysys_privatbank_p24 {
 # User portal payments system with LiqPAY
 #**********************************************************
 sub paysys_liqpay {
-  require "modules/Paysys/Liqpay.pm";
+  paysys_load('Liqpay.pm');
+
   my %info = ();
 
   if ($FORM{TRUE} || $FORM{status}) {
@@ -2367,7 +2269,8 @@ sub paysys_lr {
 #**********************************************************
 sub paysys_qiwi {
   my %info = ();
-  require "modules/Paysys/Qiwi.pm";
+
+  paysys_load('Qiwi.pm');
 
   my $payment_system    = 'QIWI';
   my $payment_system_id = 59;
@@ -2433,7 +2336,7 @@ sub paysys_qiwi {
 #**********************************************************
 sub paysys_qiwi_list {
   my %info = ();
-  require "modules/Paysys/Qiwi.pm";
+  paysys_load('Qiwi');
 
   my $list = $Paysys->list({ %LIST_PARAMS, PAYMENT_SYSTEM => 59, INFO => '-', COLS_NAME => 1 });
   my $table = $html->table(
@@ -2514,7 +2417,8 @@ sub paysys_qiwi_list {
 #**********************************************************
 sub paysys_paypal {
   my %info = ();
-  require "modules/Paysys/Paypal.pm";
+
+  paysys_load('Paypal');
 
   if ($FORM{cancel}) {
     $html->message('err', $_ERROR, "$_FAILED ID: $FORM{OPERATION_ID} Cancel");
@@ -2857,7 +2761,9 @@ sub paysys_payonline() {
 #
 #**********************************************************
 sub paysys_yandex () {
-  require "modules/Paysys/Yandex.pm";  
+
+  paysys_load('Yandex');
+
   Yandex->import();
 
   my $Ym = Yandex->ym_new($db, $admin, \%conf);
@@ -3170,7 +3076,7 @@ sub paysys_payu {
   my $payment_system_id = 91;
   my $order_id          = $FORM{orderid};
 
-  require "modules/Paysys/Payu.pm";
+  paysys_load('Payu');
 
   if ($FORM{FALSE}) {
     if ($FORM{reasoncode} == 11) {
@@ -3284,7 +3190,7 @@ sub paysys_copayco {
   $FORM{CURRENCY}       = 'UAH';
   $FORM{RANDOM}         = '428';
   
-  require "modules/Paysys/Copayco.pm";
+  paysys_load('Copayco');
 
   if ($FORM{FALSE}) {
     if ($FORM{reasoncode} == 11) {
@@ -3370,16 +3276,7 @@ sub paysys_redsys {
   $FORM{DATETIME}       = "$DATE $TIME";
   $FORM{CURRENCY}       = 'UAH';
   
-  eval { require "modules/Paysys/Redsys.pm" };
-
-  if ($@) {
-    print "Content-Type: text/html\n\n";
-    print "Error: load module 'Redsys.pm' $!". $html->br();
-    print "Purchase module from http://abills.net.ua/". $html->br();
-    print $@ if ($conf{PAYSYS_DEBUG});
-    return 0;
-  }
-
+  paysys_load('Redsys.pm');
 
   if ($FORM{FALSE}) {
     if ($FORM{reasoncode} == 11) {
@@ -3466,7 +3363,8 @@ sub paysys_redsys {
 sub paysys_minbank {
   
   my %info = ();
-  require "modules/Paysys/Minbank.pm";
+
+  paysys_load('Minbank.pm');
   
   my @msg;
 
@@ -3515,8 +3413,30 @@ sub paysys_minbank {
       return $html->tpl_show(_include('paysys_minbank_add', 'Paysys'), \%info, { OUTPUT2RETURN => $attr->{OUTPUT2RETURN} });
     }
  }
-  
+
 }
+
+#**********************************************************
+#
+#**********************************************************
+sub paysys_load {
+  my ($module,	$attr)=@_;
+	
+  eval { require "modules/Paysys/". $module .".pm" };
+ 
+  if ($@) {
+    print "Content-Type: text/html\n\n";
+    print "Error: load module '". $module .".pm' $!". $html->br();
+    print "Purchase module from http://abills.net.ua/". $html->br();
+    print $@ if ($conf{PAYSYS_DEBUG});
+    exit;
+    return 0;
+  }
+
+  return 0;	
+}
+
+
 
 1
 

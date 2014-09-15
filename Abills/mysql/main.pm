@@ -639,6 +639,10 @@ sub changes {
           else {
             $self->{DISABLE_ACTION} = 1;
           }
+          
+          if (defined($self->{'STATUS'}) && $self->{'STATUS'} ne '') {
+          	$self->{CHG_STATUS} = $OLD_DATA->{$k} . '->' . $DATA{$k};
+          }
         }
         elsif ($k eq 'DOMAIN_ID' && $OLD_DATA->{$k} == 0 && !$DATA{$k}) {
         }

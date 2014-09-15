@@ -1504,13 +1504,15 @@ sub get_ip {
   }
 
   if ($attr->{TP_IPPOOL}) {
-    $self->query2("SELECT ippools.ip, ippools.counts, ippools.id FROM ippools
+    $self->query2("SELECT ippools.ip, ippools.counts, ippools.id, ippools.next_pool_id
+    FROM ippools
      WHERE ippools.id='$attr->{TP_IPPOOL}'
      ORDER BY ippools.priority;"
     );
   }
   else {
-    $self->query2("SELECT ippools.ip, ippools.counts, ippools.id FROM ippools, nas_ippools
+    $self->query2("SELECT ippools.ip, ippools.counts, ippools.id, ippools.next_pool_id 
+    FROM ippools, nas_ippools
      WHERE ippools.id=nas_ippools.pool_id AND nas_ippools.nas_id='$nas_num'
      ORDER BY ippools.priority;"
     );
@@ -1523,11 +1525,13 @@ sub get_ip {
   my @pools_arr      = ();
   my $list           = $self->{list};
   my @used_pools_arr = ();
+  my $next_pool_id   = 0;
 
   foreach my $line (@$list) {
     my $sip   = $line->[0];
     my $count = $line->[1];
     my $id    = $line->[2];
+    $next_pool_id = $line->[3];
     push @used_pools_arr, $id;
     my %pools = ();
 
@@ -1592,6 +1596,9 @@ sub get_ip {
     $self->{db}->do('unlock tables');
     if ($attr->{TP_POOLS}) {
       $self->get_ip($nas_num, $nas_ip, $attr);
+    }
+    elsif($next_pool_id) {
+    	$self->get_ip($nas_num, $nas_ip, { TP_POOLS => $next_pool_id });
     }
     else {
       return -1;

@@ -303,7 +303,7 @@ sub dv_users_search {
   $Dv->{STATUS_SEL} = $html->form_select(
     'DV_STATUS',
     {
-      SELECTED => $FORM{DV_STATUS} || 0,
+      SELECTED => $FORM{DV_STATUS} || '',
       SEL_HASH => {
         '' => "$_ALL",
         0  => $service_status[0],
@@ -854,9 +854,8 @@ sub dv_user {
     if ($admin->{TOTAL} > 0) {
       $list->[0]->{datetime} =~ /(\d{4}-\d{2}-\d{2})/;
       my $status_date = $1;
-
       my $days = date_diff($status_date, $DATE);
-
+      
       $Dv->{STATUS_INFO} = "$_FROM: $status_date ($_DAYS: $days)";
       if ($conf{DV_REACTIVE_PERIOD}) {
         my ($period, $sum) = split(/:/, $conf{DV_REACTIVE_PERIOD});
@@ -1008,15 +1007,15 @@ sub dv_get_static_ip {
     return '0.0.0.0';
   }
 
-  my $start_ip = ip2int($Nas->{NAS_IP_SIP});
-  my $end_ip   = $start_ip + $Nas->{NAS_IP_COUNT};
+  my $start_ip = ip2int($Nas->{IP});
+  my $end_ip   = $start_ip + $Nas->{COUNTS};
 
   my %users_ips = ();
 
   my $list = $Dv->list(
     {
       PAGE_ROWS => 100000,
-      IP        => ">=$Nas->{NAS_IP_SIP}",
+      IP        => ">=$Nas->{IP}",
       SKIP_GID  => 1,
       COLS_NAME => 1
     }

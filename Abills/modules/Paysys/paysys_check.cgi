@@ -196,49 +196,58 @@ if ($conf{PAYSYS_SUCCESSIONS}) {
   }
 }
 
-if (check_ip($ENV{REMOTE_ADDR}, '213.160.149.0/24')) {
-  require "Ibox.pm";
-  exit;
-}
-elsif (check_ip($ENV{REMOTE_ADDR}, '91.194.189.69')) {
-  require "Payu.pm";
-  exit;
-}
-elsif ($FORM{ok_txn_id} || check_ip($ENV{REMOTE_ADDR}, '78.140.166.69')) {
-  require "Okpay.pm";
-  exit;
-}
-# Perfectmoney
-elsif ($FORM{PAYEE_ACCOUNT} && check_ip($ENV{REMOTE_ADDR}, '77.109.141.170')) {
-  require "Perfectmoney.pm";
-  exit;
-}
-elsif (check_ip($ENV{REMOTE_ADDR}, '85.192.45.0/24,194.67.81.0/24,91.142.251.0/24,89.111.54.0/24,95.163.74.0/24')) {
-  require "Smsonline.pm";
-  exit;
-}
-elsif ($FORM{__BUFFER} =~ /^{.+}$/ && 
-  check_ip($ENV{REMOTE_ADDR}, '75.101.163.115,107.22.173.15,107.22.173.86,213.154.214.76,217.117.64.232-217.117.64.238')) {
-  require "Private_bank_json.pm";
-  exit;
-}
-# Privat bank terminal interface
-elsif (check_ip($ENV{REMOTE_ADDR}, '107.22.173.15,107.22.173.86,217.117.64.232/28,75.101.163.115,213.154.214.76,192.168.0.104,217.117.64.232/29')) {
-  eval { require "Privat_terminal.pm" };
-  if ( $@ ) {
-  	print $@;
-  }
-  exit;
-}
-elsif (($FORM{signature} && $FORM{operation_xml}) || check_ip($ENV{REMOTE_ADDR}, '54.229.105.178')) {
-  require "Liqpay.pm";
-  exit;
+#Paysys ips
+my %ip_binded_system = (
+  '213.160.149.0/24' 
+    => 'Ibox',
+  '91.194.189.69'    
+    => 'Payu',
+  '78.140.166.69'    
+    => 'Okpay', # $FORM{ok_txn_id}
+  '77.109.141.170'   
+    => 'Perfectmoney', # $FORM{PAYEE_ACCOUNT}
+  '85.192.45.0/24,194.67.81.0/24,91.142.251.0/24,89.111.54.0/24,95.163.74.0/24' 
+    => 'Smsonline',
+  '107.22.173.15,107.22.173.86,217.117.64.232/28,75.101.163.115,213.154.214.76,192.168.0.104,217.117.64.232/29' 
+    => 'Privat_terminal',
+  '62.89.31.36,95.140.194.139' 
+    => 'Telcell',
+  '195.76.9.187,195.76.9.222,192.168.1.101' 
+    => 'Redsys',
+  '217.77.49.157'    
+    => 'Rucard',
+  '77.73.26.162,77.73.26.163,77.73.26.164,217.73.198.66' 
+    => 'Deltapay',
+  '193.110.17.230'
+    => 'Zaplati_sumy',
+  '77.222.134.205'   
+    => 'Ipay',
+  '62.149.15.210,62.149.8.166,82.207.125.57' 
+    => 'Platezhka',
+  '213.230.106.112/28,213.230.65.85/28'  
+    => 'Paynet',
+  '93.183.196.26,195.230.131.50,93.183.196.28' 
+    => 'Easysoft'
+);
+
+foreach my $params ( keys %ip_binded_system) {
+	my $ip = $params;
+	if (check_ip($ENV{REMOTE_ADDR}, "$ips")) {
+		load_pay_module('Private_bank_json');
+	}
 }
 
+
+if ($FORM{__BUFFER} =~ /^{.+}$/ && 
+  check_ip($ENV{REMOTE_ADDR}, '75.101.163.115,107.22.173.15,107.22.173.86,213.154.214.76,217.117.64.232-217.117.64.238')) {
+  load_pay_module('Private_bank_json');
+}
+elsif (($FORM{signature} && $FORM{operation_xml}) || check_ip($ENV{REMOTE_ADDR}, '54.229.105.178')) {
+  load_pay_module('Liqpay');
+}
 # IP: 77.120.97.36
 elsif ($FORM{merchantid}) {
-  require "Regulpay.pm";
-  exit;
+  load_pay_module('Regulpay');
 }
 # IP: 77.120.97.36
 #elsif (check_ip($ENV{REMOTE_ADDR}, '192.168.1.103')) {
@@ -247,73 +256,46 @@ elsif ($FORM{merchantid}) {
 #}
 # IP: -
 elsif ($FORM{params}) {
-  require "Sberbank.pm";
-  exit;
+  load_pay_module('Sberbank');
 }
 elsif ($FORM{request_type} && $FORM{random} || $FORM{copayco_result}) {
-  require "Copayco.pm";
-  exit;
+  load_pay_module('Copayco');
 }
 elsif ($FORM{xmlmsg}) {
-  require "Minbank.pm";
-  minbank_check_payment();
-  exit;
+  load_pay_module('Minbank');
 }
 elsif ($FORM{from} eq 'Payonline') {
-  require "Payonline.pm";
-  exit;
+  load_pay_module('Payonline');
 }
 elsif ($conf{PAYSYS_EXPPAY_ACCOUNT_KEY}
   && ( $FORM{action} == 1
     || $FORM{action} == 2
     || $FORM{action} == 4 )) {
-  require "Express.pm";
-  exit;
-}
-elsif ( check_ip($ENV{REMOTE_ADDR}, '62.89.31.36,95.140.194.139')) {
-  require "Telcell.pm";
-  exit;
-}
-elsif ( check_ip($ENV{REMOTE_ADDR}, '195.76.9.187,195.76.9.222,192.168.1.101')) {
-  require "Redsys.pm";
-  exit;
+  load_pay_module('Express');
 }
 elsif ($FORM{action} && $conf{PAYSYS_CYBERPLAT_ACCOUNT_KEY}) {
-  require "Cyberplat.pm";
-  exit;
+  load_pay_module('Cyberplat');
 }
 elsif ($FORM{SHOPORDERNUMBER}) {
-  portmone_payments();
+  load_pay_module('Portmone');
 }
 elsif ($FORM{acqid}) {
   privatbank_payments();
 }
 elsif ($FORM{operation} || $ENV{'QUERY_STRING'} =~ /operation=/) {
-  require "Comepay.pm";
-  exit;
+  load_pay_module('Comepay');
 }
 elsif ($FORM{'<OPERATION id'} || $FORM{'%3COPERATION%20id'}) {
-  require "Express-oplata.pm";
-  exit;
+  load_pay_module('Express-oplata');
 }
 elsif ($FORM{ACT}) {
-  require "24_non_stop.pm";
-  exit;
+  load_pay_module('24_non_stop');
 }
 elsif ($conf{PAYSYS_GIGS_IPS} && $conf{PAYSYS_GIGS_IPS} =~ /$ENV{REMOTE_ADDR}/) {
-  require "Gigs.pm";
-}
-elsif (check_ip($ENV{REMOTE_ADDR}, '217.77.49.157')) {
-  require "Rucard.pm";
-  exit;
+  load_pay_module('Gigs');
 }
 elsif ($conf{PAYSYS_EPAY_ACCOUNT_KEY} && $FORM{command} && $FORM{txn_id}) {
-  require "Epay.pm";
-  exit;
-}
-elsif (check_ip($ENV{REMOTE_ADDR}, '77.73.26.162,77.73.26.163,77.73.26.164,217.73.198.66')) {
-  require "Deltapay.pm";
-  exit;
+  load_pay_module('Epay');
 }
 elsif ($FORM{txn_id} || $FORM{prv_txn} || defined($FORM{prv_id}) || ($FORM{command} && $FORM{account})) {
   osmp_payments();
@@ -324,59 +306,28 @@ elsif (
     || $FORM{trid}
     || $FORM{dtst})
 ) {
-  require "Gazprombank.pm";
-  exit;
-}
-elsif (check_ip($ENV{REMOTE_ADDR}, '193.110.17.230')) {
-  require "Zaplati_sumy.pm";
-  exit;
-}
-elsif (check_ip($ENV{REMOTE_ADDR}, '77.222.134.205')) {
-  require "Ipay.pm";
-  exit;
-}
-elsif (check_ip($ENV{REMOTE_ADDR}, '62.149.15.210,62.149.8.166,82.207.125.57')) {
-  require "Platezhka.pm";
-  exit;
-}
-elsif (check_ip($ENV{REMOTE_ADDR}, '213.230.106.112/28,213.230.65.85/28')) {
-  require "Paynet.pm";
-  exit;
+  load_pay_module('Gazprombank');
 }
 
-
-
-#Check payment system by IP
 if (check_ip($ENV{REMOTE_ADDR}, '92.125.0.0/24')) {
   osmp_payments_v4();
-  exit;
-}
-elsif (check_ip($ENV{REMOTE_ADDR}, '93.183.196.26,195.230.131.50,93.183.196.28')) {
-  require "Easysoft.pm";
-  exit;
 }
 elsif (check_ip($ENV{REMOTE_ADDR}, "$conf{PAYSYS_ERIPT_IPS}")) {
-  require "Erip.pm";
-  exit;
+  load_pay_module('Erip');
 }
 elsif (check_ip($ENV{REMOTE_ADDR}, '79.142.16.0/21')) {
   print "Content-Type: text/xml\n\n" . "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" . "<response>\n" . "<result>300</result>\n" . "<result1>$ENV{REMOTE_ADDR}</result1>\n" . " </response>\n";
   exit;
 }
-
 #USMP
 elsif (check_ip($ENV{REMOTE_ADDR}, '77.222.138.142,78.30.232.14,77.120.96.58,91.105.201.31')) {
-  require "Usmp.pm";
-  exit;
+  load_pay_module('Usmp');
 }
 elsif ($FORM{payment} && $FORM{payment} =~ /pay_way/) {
-  require "P24.pm";
-  p24_payments();
-  exit;
+  load_pay_module('P24');
 }
 elsif($conf{'PAYSYS_YANDEX_ACCCOUNT'} && $FORM{code}) {
-  yandex();
-  exit;
+  load_pay_module('Yandex');
 }
 
 print "Content-Type: text/html\n\n";
@@ -439,11 +390,11 @@ sub payments {
     wm_payments();
   }
   elsif ($FORM{userField_UID}) {
-    require "Rbkmoney.pm";
+    load_pay_module('Rbkmoney');
     #print 'lol';
   }
   elsif ($FORM{id_ups}) {
-    require "Ukrpays.pm";
+    load_pay_module('Ukrpays');
   }
   elsif ($FORM{smsid}) {
     smsproxy_payments();
@@ -452,7 +403,7 @@ sub payments {
     usmp_payments();
   }
   elsif ($FORM{lr_paidto}) {
-    require "Libertyreserve.pm";
+    load_pay_module('Libertyreserve');
   }
   else {
     
@@ -507,79 +458,6 @@ sub check_ip {
   return 0;
 }
 
-#**********************************************************
-#
-#**********************************************************
-sub portmone_payments {
-
-  #Get order
-  my $status = 0;
-  my $list   = $Paysys->list(
-    {
-      TRANSACTION_ID => "PM:$FORM{'SHOPORDERNUMBER'}",
-      SUM            => '_SHOW',
-      STATUS         => 1,
-      COLS_NAME      => 1,
-    }
-  );
-
-  if ($Paysys->{TOTAL} > 0) {
-    my $uid  = $list->[0]{uid};
-    my $sum  = $list->[0]{sum};
-    my $user = $users->info($uid);
-    $payments->add(
-      $user,
-      {
-        SUM          => $sum,
-        DESCRIBE     => 'PORTMONE',
-        METHOD       => ($conf{PAYSYS_PAYMENTS_METHODS} && $PAYSYS_PAYMENTS_METHODS{45}) ? 45 : '2',
-        EXT_ID       => "PM:$FORM{SHOPORDERNUMBER}",
-        CHECK_EXT_ID => "PM:$FORM{SHOPORDERNUMBER}"
-      }
-    );
-
-    #Exists
-    if ($payments->{errno}) {
-    	if ($payments->{errno} == 7) {
-        $status = 8;
-      }
-      else {
-        $status = 4;
-      }
-    }
-    else {
-      $Paysys->change(
-        {
-          ID     => $list->[0]{id},
-          INFO   => "APPROVALCODE: $FORM{APPROVALCODE}",
-          STATUS => 2
-        }
-      );
-      $status = 1;
-    }
-
-    if ($conf{PAYSYS_EMAIL_NOTICE}) {
-      my $message = "\n" . "System: Portmone\n" . "DATE: $DATE $TIME\n" . "LOGIN: $user->{LOGIN} [$uid]\n" . "\n" . "\n" . "ID: $FORM{SHOPORDERNUMBER}\n" . "SUM: $sum\n";
-
-      sendmail("$conf{ADMIN_MAIL}", "$conf{ADMIN_MAIL}", "Paysys Portmone Add", "$message", "$conf{MAIL_CHARSET}", "2 (High)");
-
-    }
-  }
-
-  #money added sucesfully
-  my $home_url = '/index.cgi';
-  $home_url = $ENV{SCRIPT_NAME};
-  $home_url =~ s/paysys_check.cgi/index.cgi/;
-
-  if ($status == 1) {
-    print "Location: $home_url?index=$FORM{index}&sid=$FORM{sid}&SHOPORDERNUMBER=$FORM{SHOPORDERNUMBER}&TRUE=1" . "\n\n";
-  }
-  else {
-    print "Location: $home_url?index=$FORM{index}&sid=$FORM{sid}&SHOPORDERNUMBER=$FORM{SHOPORDERNUMBER}" . "\n\n";
-  }
-
-  exit;
-}
 
 #**********************************************************
 #MerID=100000000918471
@@ -1665,18 +1543,6 @@ sub wm_validate {
   return $digest;
 }
 
-
-#**********************************************************
-#
-#**********************************************************
-sub yandex () {
-  my ($attr)=@_;
-  my $payment_system    = $attr->{SYSTEM_SHORT_NAME} || 'Yandex';
-  my $payment_system_id = $attr->{SYSTEM_ID}         || 73;
-  
-  print "Location: https://$ENV{SERVER_NAME}:$ENV{SERVER_PORT}/index.cgi?get_index=paysys_payment&PAYMENT_SYSTEM=$payment_system_id&code=$FORM{code}\n\n";
-}
-
 #**********************************************************
 # get_fees_types
 #
@@ -1715,6 +1581,33 @@ sub interact_mode() {
   print paysys_payment();	
 
 }
+
+#**********************************************************
+#
+#**********************************************************
+sub load_pay_module {
+	my ($name, $attr)=@_;
+	
+  eval { require $name.'.pm' };
+ 
+  if ($@) {
+    print "Content-Type: text/html\n\n";
+    print "Error: load module '". $name .".pm' $! <br>";
+    print "Purchase module from http://abills.net.ua/ <br>";
+    print $@ if ($conf{PAYSYS_DEBUG});
+    return 0;
+  }
+  
+  my $function = lc($name).'_check_payment';
+
+  if (defined(&$function)) {
+  	&$function->();
+  }
+
+  exit;
+  return 1;	
+}
+
 
 
 1
