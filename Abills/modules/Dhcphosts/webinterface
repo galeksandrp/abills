@@ -306,8 +306,8 @@ sub dhcphosts_monitor {
     foreach my $line (@$list) {
       if ($line->{port} == 0 ) {
         if($line->{circuit_id} =~ /0:4:0:([0-9a-f]+):0:([0-9a-f]+)/i) {
-                $line->{port}=hex($1);
-                $line->{vlan}=hex($2);
+                $line->{vlan}=hex($1);
+                $line->{port}=hex($2);
         }
       }
       
@@ -558,9 +558,7 @@ sub dhcphosts_networks {
     'NET_PARENT',
     {
       SELECTED   => $Dhcphosts->{NET_PARENT},
-      SEL_LIST   => $Dhcphosts->networks_list({ PARENT => 0, COLS_NAME => 1 }),
-      SEL_KEY    => 'id',
-      SEL_VALUE  => 'name',
+      SEL_LIST   => $Dhcphosts->networks_list({ PARENT => 0, COLS_NAME => 1, PAGE_ROWS => 100000 }),
       SEL_OPTIONS=> { '' => '' },
     }
   );
