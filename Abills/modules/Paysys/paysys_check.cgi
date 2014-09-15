@@ -231,10 +231,10 @@ my %ip_binded_system = (
 );
 
 foreach my $params ( keys %ip_binded_system) {
-  my $ip = $params;
-  if (check_ip($ENV{REMOTE_ADDR}, "$ips")) {
-    load_pay_module($ip_binded_system{"$params"});
-  }
+	my $ips = $params;
+	if (check_ip($ENV{REMOTE_ADDR}, "$ips")) {
+		load_pay_module($ip_binded_system{"$params"});
+	}
 }
 
 
@@ -408,7 +408,7 @@ sub payments {
   else {
     
     if ($FORM{INTERACT}) {
-      interact_mode();
+    	interact_mode();
     }
     elsif (scalar keys %FORM > 0) {
       print "Error: Unknown payment system";
@@ -420,8 +420,8 @@ sub payments {
       mk_log($output2, { PAYSYS_ID => 'Unknown' });
     }
     else {
-      $FORM{INTERACT}=1;
-      interact_mode();
+    	$FORM{INTERACT}=1;
+    	interact_mode();
     }
   }
 }
@@ -535,11 +535,11 @@ sub privatbank_payments {
       }
     }
     else {
-      my $status = 6;
+    	my $status = 6;
 
-      if ($FORM{reasoncode}==36) {
-        $status=3;
-      }
+    	if ($FORM{reasoncode}==36) {
+    		$status=3;
+    	}
 
       $Paysys->change(
         {
@@ -595,7 +595,7 @@ sub osmp_payments {
   }
   
   if ($debug > 1) {
-    print "Content-Type: text/plain\n\n";
+  	print "Content-Type: text/plain\n\n";
   }
   
   print "Content-Type: text/xml\n\n";
@@ -654,10 +654,10 @@ sub osmp_payments {
   #https://service.someprovider.ru:8443/paysys_check.cgi?command=check&txn_id=1234567&account=0957835959&sum=10.45
   if ($command eq 'check') {
     my $list = $users->list({ $CHECK_FIELD  => $FORM{account}, 
-                              DISABLE_PAYSYS=> '_SHOW',
-                              GROUP_NAME    => '_SHOW',
-                              COLS_NAME     => 1 
-                            });
+    	                        DISABLE_PAYSYS=> '_SHOW',
+    	                        GROUP_NAME    => '_SHOW',
+    	                        COLS_NAME     => 1 
+    	                      });
 
     if ($payment_system_id == 44 && !$FORM{sum}) {
       $status = 300;
@@ -684,7 +684,7 @@ sub osmp_payments {
     $RESULT_HASH{result} = $status;
 
     if ($list->[0]->{disable_paysys}) {
-      $RESULT_HASH{disable_paysys}=1;
+    	$RESULT_HASH{disable_paysys}=1;
     }
 
     #For OSMP
@@ -1572,13 +1572,13 @@ sub get_fees_types {
 #
 #**********************************************************
 sub interact_mode() {
-  load_module('Paysys', $html);
+	load_module('Paysys', $html);
 
   require "../language/$html->{language}.pl";
   $html->{NO_PRINT} = 1;
   $LIST_PARAMS{UID} = $FORM{UID};
   
-  print paysys_payment();  
+  print paysys_payment();	
 
 }
 
@@ -1586,8 +1586,8 @@ sub interact_mode() {
 #
 #**********************************************************
 sub load_pay_module {
-  my ($name, $attr)=@_;
-  
+	my ($name, $attr)=@_;
+	
   eval { require $name.'.pm' };
  
   if ($@) {
@@ -1601,11 +1601,11 @@ sub load_pay_module {
   my $function = lc($name).'_check_payment';
 
   if (defined(&$function)) {
-    &$function->();
+  	&$function->();
   }
 
   exit;
-  return 1;  
+  return 1;	
 }
 
 

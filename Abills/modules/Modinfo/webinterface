@@ -24,7 +24,7 @@ sub modinfo_show_info {
   }
 
 
-  my ($name, $url) = split(/:/, $modules_list[rand($#modules_list + 1)], 2);
+  my ($name, $type, $url) = split(/:/, $modules_list[rand($#modules_list + 1)], 3);
   modinfo_show($name, $url);
 }
 

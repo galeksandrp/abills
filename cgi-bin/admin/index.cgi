@@ -671,6 +671,12 @@ sub form_start {
 
   return 0 if ($FORM{'xml'} && $FORM{'xml'} == 1);
 
+  eval { require "Abills/modules/Modinfo/webinterface"; };
+  
+  if ( ! @$ ) {
+    modinfo_show_info();
+  }
+
   my %new_hash = ();
 
   while ((my ($findex, $hash) = each(%menu_items))) {
