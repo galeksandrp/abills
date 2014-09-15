@@ -2134,7 +2134,7 @@ sub paysys_privatbank_p24 {
 # User portal payments system with LiqPAY
 #**********************************************************
 sub paysys_liqpay {
-  paysys_load('Liqpay.pm');
+  paysys_load('Liqpay');
 
   my %info = ();
 
@@ -2270,7 +2270,7 @@ sub paysys_lr {
 sub paysys_qiwi {
   my %info = ();
 
-  paysys_load('Qiwi.pm');
+  paysys_load('Qiwi');
 
   my $payment_system    = 'QIWI';
   my $payment_system_id = 59;
@@ -3276,7 +3276,7 @@ sub paysys_redsys {
   $FORM{DATETIME}       = "$DATE $TIME";
   $FORM{CURRENCY}       = 'UAH';
   
-  paysys_load('Redsys.pm');
+  paysys_load('Redsys');
 
   if ($FORM{FALSE}) {
     if ($FORM{reasoncode} == 11) {
@@ -3364,7 +3364,7 @@ sub paysys_minbank {
   
   my %info = ();
 
-  paysys_load('Minbank.pm');
+  paysys_load('Minbank');
   
   my @msg;
 
