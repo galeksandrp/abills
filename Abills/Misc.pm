@@ -657,7 +657,6 @@ sub result_former {
 
   %SEARCH_TITLES = (
     'disable'       => "$_STATUS",
-    'dv_status'     => "Internet $_STATUS",
     'login_status'  => "$_LOGIN $_STATUS",
     'deposit'       => "$_DEPOSIT",
     'credit'        => "$_CREDIT",
@@ -695,7 +694,11 @@ sub result_former {
 #    'build_id'      => 'Location ID',
     'uid'           => 'UID',
   );
-  
+
+  if (in_array('Dv', \@MODULES)) {
+    $SEARCH_TITLES{'dv_status'}="Internet $_STATUS";
+  }
+
   if ($conf{EXT_BILL_ACCOUNT}) {
     $SEARCH_TITLES{'ext_deposit'}="$_EXTRA $_DEPOSIT";
   }

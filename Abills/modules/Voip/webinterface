@@ -2644,6 +2644,11 @@ sub voip_monthly_fees {
   $ADMIN_REPORT{DATE} = $DATE if (!$ADMIN_REPORT{DATE});
   my ($y, $m, $d) = split(/-/, $ADMIN_REPORT{DATE}, 3);
 
+  if ($debug>6) {
+  	$Voip->{debug}=1;
+  }
+
+
   my $list = $tariffs->list({ %LIST_PARAMS, 
   	                          MODULE    => 'Voip',
   	                          COLS_NAME => 1,
@@ -2691,7 +2696,7 @@ sub voip_monthly_fees {
           elsif ($conf{VOIP_ONEMONTH_INCOMMING_ALLOW}) {
             my $change_status = ($user->{VOIP_STATUS} == 0) ? 2 : 1;
             $Voip->user_change({ UID => $user->{UID}, DISABLE => $change_status });
-            $debug_output .= " CHANGE STATUS: $user->{STATUS} -> $change_status\n" if ($debug > 3);
+            $debug_output .= " CHANGE STATUS: $user->{VOIP_STATUS} -> $change_status\n" if ($debug > 3);
           }
         }
         elsif ($user->{ACTIVATE} ne '0000-00-00') {
@@ -2705,9 +2710,9 @@ sub voip_monthly_fees {
             }
           }
           elsif ($conf{VOIP_ONEMONTH_INCOMMING_ALLOW}) {
-            my $change_status = ($user->{STATUS} == 0) ? 2 : 1;
+            my $change_status = ($user->{VOIP_STATUS} == 0) ? 2 : 1;
             $Voip->user_change({ UID => $user->{UID}, DISABLE => $change_status });
-            $debug_output .= " CHANGE STATUS: $user->{STATUS} -> $change_status\n" if ($debug > 3);
+            $debug_output .= " CHANGE STATUS: $user->{VOIP_STATUS} -> $change_status\n" if ($debug > 3);
           }
         }
       }
