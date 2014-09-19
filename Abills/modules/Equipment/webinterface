@@ -333,6 +333,9 @@ sub equipment_info {
   }
   else {
     $Equipment->_info($FORM{NAS_ID});
+    
+    my $ports = $Equipment->{PORTS};
+    
     if (!$Equipment->{errno}) {
     	$FORM{COMMENTS}=$Equipment->{COMMENTS};
     	$Equipment->model_info( $Equipment->{MODEL_ID} );
@@ -343,7 +346,7 @@ sub equipment_info {
     			GLOBAL_URL => $Equipment->{MANAGE_WEB},
     			BUTTON     => 1 }); 
     	}
-    	
+    	$Equipment->{PORTS}=$ports if ($ports);
       $Equipment->{ACTION}     = 'change';
       $Equipment->{ACTION_LNG} = $_CHANGE;
     }
@@ -598,7 +601,7 @@ sub equipment_ports {
     }
   }
 
-  $FORM{visual} = 2 if (! $FORM{visual});
+  $FORM{visual} = 2 if (! $FORM{visual} && ! $FORM{PORT} );
 
   my %ports_visualisation = (0 => "$_SHORT",
                              #1 => "$_USERS",
@@ -611,7 +614,7 @@ sub equipment_ports {
 
   foreach my $key (sort keys %ports_visualisation) {
   	my $value = $ports_visualisation{$key};
-  	if ($FORM{visual} eq $key) {
+  	if (defined($FORM{visual}) && $FORM{visual} eq $key) {
       print $html->b($value);
     }
   	else {
@@ -733,7 +736,7 @@ sub equipment_ports {
       ($ports_snmp->{$port}{status}) ? $html->button($html->color_mark($ports_state[$ports_snmp->{$port}{status}], $ports_state_color[$ports_snmp->{$port}{status}]), "index=$index&change=1&ID=$ports_db_info{$port}->{id}&PORT=$port&STATUS=". (($ports_snmp->{$port}{status}) ? 1 : 0) ."&NAS_ID=$FORM{NAS_ID}", { TITLE => (($ports_snmp->{$port}{status}) ? "$_HANGUP" : "$_ACTIVE" )  } )  : '' .
       (($ports_snmp->{$port}{speed} && $ports_snmp->{$port}{speed} > 0) ? $html->br() . $ports_snmp->{$port}{speed}/1000 . 'Mb/s' : '').
       (($ports_snmp->{$port}{pair_length}) ? $html->br().$ports_snmp->{$port}{pair_length} : '' ), 
-      ($ports_db_info{$port}->{uplink})? $ports_db_info{$port}->{uplink} : '', 
+      ($ports_db_info{$port}->{uplink})? $html->button($ports_db_info{$port}->{uplink}, "index=$index&NAS_ID=$ports_db_info{$port}->{uplink}") : '', 
       $html->button($ports_dhcp_info{$port}->{login}, "index=11&UID=$ports_dhcp_info{$port}->{uid}"),
       $ports_dhcp_info{$port}->{mac}, 
       $ports_dhcp_info{$port}->{ip}, 
@@ -779,6 +782,18 @@ sub equipment_ports {
         STYLE => \@service_status_colors,
       }
     );
+
+    $Equipment->{UPLINK_SEL} = $html->form_select(
+          'UPLINK',
+          {
+            SELECTED   => $FORM{UPLINK} || '',
+            SEL_LIST   => $Nas->list({ %LIST_PARAMS, NAS_ID => undef, COLS_NAME => 1 }),
+            SEL_KEY    => 'nas_id',
+            SEL_VALUE  => 'nas_name',
+            SEL_OPTIONS=> { '' => '' },
+          }
+        );
+
 
     $html->tpl_show(_include('equipment_port', 'Equipment'), { %$Equipment, %FORM });
   }

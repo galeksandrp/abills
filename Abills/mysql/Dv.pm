@@ -186,7 +186,8 @@ sub add {
   }
 
   $self->query_add('dv_main', { %DATA,
-  	                            DISABLE => $DATA{STATUS}
+  	                            REGISTRATION => 'now()',
+  	                            DISABLE      => $DATA{STATUS}
   	                          });
 
   return $self if ($self->{errno});

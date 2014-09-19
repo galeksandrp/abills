@@ -23,7 +23,7 @@ sub new {
   bless($self, $class);
   
   $self->{db}=$db;
-  
+
   return $self;
 }
 

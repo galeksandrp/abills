@@ -1204,12 +1204,13 @@ sub paysys_periodic () {
 
     my $list = $Paysys->list({ DATE           => $DATE, 
                                PAYMENT_SYSTEM => $payment_system_id, 
-                               INFO           => '-',
                                ID             => '_SHOW',
                                SUM            => '_SHOW',
                                TRANSACTION_ID => '_SHOW',
-                               COLS_NAME      => 1
+                               STATUS         => 1,
+                               COLS_NAME      => 1,
                              });
+
     my $users = Users->new($db, $admin, \%conf);
     foreach my $line (@$list) {
       #Add payments to abills

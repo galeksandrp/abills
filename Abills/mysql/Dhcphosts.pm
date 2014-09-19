@@ -187,7 +187,7 @@ sub network_info {
   $self->query2("SELECT *,
    INET_NTOA(network) AS network,
    INET_NTOA(mask) AS mask,
-   INET_NTOA(routers) AS ROUTERS,
+   INET_NTOA(routers) AS routers,
    INET_NTOA(block_network) AS blocK_network,
    INET_NTOA(block_mask) AS block_mask,
    INET_NTOA(ip_range_first) AS ip_range_first,
