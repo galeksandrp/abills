@@ -53,6 +53,9 @@ sub modinfo_show {
   $futures  =~ s/\*/<br>\*/g;
   $futures  =~ s/\\\\/<br>/g;
   
+  $futures  =~ s/==(.+)==/<b>$1<\/b>/g;
+  $futures  =~ s/[[.+|(.+)]]/$1/g;
+  
   print "<table width=600>".
    "<tr><th class=form_title><h3>$_MODULE $module_name</h3></th></tr>".
    "<tr><td>$describe</td></tr>".
