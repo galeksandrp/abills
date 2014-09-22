@@ -73,7 +73,7 @@
           change_tab_color_result();
           $('#result').empty().append(data).slideDown();      
         }
-      }); 
+      }, 'text'); 
 
       return false;  
     });
