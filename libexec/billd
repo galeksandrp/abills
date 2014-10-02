@@ -308,7 +308,6 @@ sub check_lines {
       }
       elsif($dub_ips->{$nas->{NAS_ID}}{$online->{client_ip}} > 1 ) {
         session_hangup($nas, $online, "Dublicate ip: $online->{client_ip} DEPOSIT: $online->{deposit} CREDIT: $online->{credit} SESSION_SUM: $online->{session_sum} STATUS: $state SESSION_ID: $online->{acct_session_id} GUEST: $online->{guest}");
-      	next;
       }
 
       #Get stats from nas servers which don't support rad Alive
