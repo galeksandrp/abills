@@ -55,8 +55,7 @@ sub del {
       $self->query2(
          "UPDATE traffic_prepaid_sum pl, dv_log l SET 
            traffic_in=traffic_in-(l.recv + 4294967296 * acct_input_gigawords),
-           traffic_out=traffic_out-(l.sent + 4294967296 * acct_output_gigawords),
-           pl.sum=pl.sum-l.sum
+           traffic_out=traffic_out-(l.sent + 4294967296 * acct_output_gigawords)
          WHERE pl.uid=l.uid 
            AND l.uid='$uid' 
            AND l.start='$session_start' 

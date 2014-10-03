@@ -43,6 +43,10 @@ sub modinfo_show {
   #Get module info
   my $body = web_request($url. '&do=export_raw', BODY_ONLY => 1);
 
+  if (! $body) {
+    return '';
+  }
+
   my (undef, $describe, $futures) = split(/====.+====\n/, $body);
   $describe =~ s/\\\\/<br>/g;
   
