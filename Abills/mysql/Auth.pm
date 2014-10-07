@@ -1539,6 +1539,10 @@ sub get_ip {
       $pools{$i} = 1;
     }
     push @pools_arr, \%pools;
+
+    if($next_pool_id) {
+    	last;
+    }
   }
 
   my $used_pools = join(', ', @used_pools_arr);
