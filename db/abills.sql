@@ -1373,7 +1373,8 @@ INSERT INTO `dv_main` SET
   uid=1,
   tp_id=100,
   logins=0,
-  registration=now();
+  registration=now(),
+  password='';
 
 INSERT INTO `admin_actions` VALUES ('LOGIN:test','2009-08-03 11:42:53',1534854767,1,1,1,'',7),('BILL_ID ->1;','2009-08-03 11:42:53',1534854767,1,1,2,'',2),('PASSWORD *->*;','2009-08-03 11:42:53',1534854767,1,1,3,'',2),('ADD PI','2009-08-03 11:42:53',1534854767,1,1,4,'',0),('ACTIVE','2009-08-03 11:42:53',1534854767,1,1,5,'Dv',1);
 
