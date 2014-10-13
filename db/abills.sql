@@ -1369,7 +1369,11 @@ INSERT INTO `bills` VALUES (1,0.000000,1,0,'2009-08-03');
 
 INSERT INTO `tarif_plans` (id, name, payment_type, module, rad_pairs, comments) VALUES (100,'Admin',1, 'Dv', '', '');
 
-INSERT INTO `dv_main` VALUES (1,100,0,'2009-08-03',0,'',0,4294967295,'','',0,0,0,0,0,0,'0000-00-00');
+INSERT INTO `dv_main` SET
+  uid=1,
+  tp_id=100,
+  logins=0,
+  registration=now();
 
 INSERT INTO `admin_actions` VALUES ('LOGIN:test','2009-08-03 11:42:53',1534854767,1,1,1,'',7),('BILL_ID ->1;','2009-08-03 11:42:53',1534854767,1,1,2,'',2),('PASSWORD *->*;','2009-08-03 11:42:53',1534854767,1,1,3,'',2),('ADD PI','2009-08-03 11:42:53',1534854767,1,1,4,'',0),('ACTIVE','2009-08-03 11:42:53',1534854767,1,1,5,'Dv',1);
 
