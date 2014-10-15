@@ -568,7 +568,7 @@ sub google_maps_add {
   my $line_opacity = $conf{MAP_LINE_OPACITY} || 0.5;
 
   if ($FORM{change}) {
-    $Maps->build_change("$FORM{LOCATION_ID}", { %FORM, ID => $FORM{LOCATION_ID} });
+    $users->build_change("$FORM{LOCATION_ID}", { %FORM, ID => $FORM{LOCATION_ID} });
 
     if (!$users->{errno}) {
 
