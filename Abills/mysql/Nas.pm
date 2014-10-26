@@ -64,6 +64,7 @@ sub list {
       ['NAS_IP',           'STR', 'nas.ip'             ],
       ['GID',              'INT', 'nas.gid',         1 ],
       ['DISTRICT_ID',      'INT', 'streets.district_id', 'districts.name' ],
+      ['LOCATION_ID',      'INT', 'nas.location_id', 1 ],
       ['SHOW_MAPS',        '',    'b.map_x, b.map_y, b.map_x2, b.map_y2, b.map_x3, b.map_y3, b.map_x4, b.map_y4' ], 
       ['SHOW_MAPS_GOOGLE', 'SHOW_MAPS_GOOGLE', 'b.coordx, b.coordy' ]
     ],
