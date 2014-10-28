@@ -331,7 +331,7 @@ CREATE TABLE `dv_main` (
   `turbo_mode` tinyint(1) unsigned NOT NULL default '0',
   `free_turbo_mode` smallint(6) unsigned NOT NULL default '0',
   `expire` date NOT NULL default '0000-00-00',
-  `login` varchar(24) not null default '',
+  `dv_login` varchar(24) not null default '',
   PRIMARY KEY  (`uid`),
   KEY `tp_id` (`tp_id`),
   KEY CID (CID)
