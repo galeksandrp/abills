@@ -72,8 +72,8 @@ sub mbox_add {
 
   $self->{MBOX_ID} = $self->{INSERT_ID};
 
-  if ($DATA{DOMAIN_ID}) {
-    $self->domain_info({ MAIL_DOMAIN_ID => $DATA{DOMAIN_ID} });
+  if ($DATA{MAIL_DOMAIN_ID}) {
+    $self->domain_info({ MAIL_DOMAIN_ID => $DATA{MAIL_DOMAIN_ID} });
   }
   else {
     $self->{DOMAIN} = '';
