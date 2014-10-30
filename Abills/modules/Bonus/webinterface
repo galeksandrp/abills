@@ -785,7 +785,7 @@ sub bonus_payments_maked {
     $RESULT{BONUS_EXT_ACCOUNT} = $list->[0]->{ext_account};
 
     if ($RESULT{DISCOUNT_PERIOD} > 0) {
-      $RESULT{DISCOUNT_PERIOD} = strftime "%Y-%m-%d", localtime(time + 86400 * $RESULT{DISCOUNT_PERIOD});
+      $RESULT{DISCOUNT_PERIOD} = strftime("%Y-%m-%d", localtime(time + 86400 * $RESULT{DISCOUNT_PERIOD}));
     }
     
     if ($RESULT{BONUS_PERCENT}) {
@@ -933,7 +933,7 @@ sub bonus_service_discount_mk {
         $RESULT{BONUS_EXT_ACCOUNT} = $list->[0]->[7];
 
         if ($RESULT{DISCOUNT_PERIOD} > 0) {
-          $RESULT{DISCOUNT_PERIOD} = strftime "%Y-%m-%d", localtime(time + 86400 * $RESULT{DISCOUNT_PERIOD});
+          $RESULT{DISCOUNT_PERIOD} = strftime("%Y-%m-%d", localtime(time + 86400 * $RESULT{DISCOUNT_PERIOD}));
         }
       }
     }
@@ -964,7 +964,7 @@ sub bonus_service_discount_mk {
         $RESULT{BONUS_EXT_ACCOUNT} = $list->[0]->[7];
 
         if ($RESULT{DISCOUNT_PERIOD} > 0) {
-          $RESULT{DISCOUNT_PERIOD} = strftime "%Y-%m-%d", localtime(time + 86400 * $RESULT{DISCOUNT_PERIOD});
+          $RESULT{DISCOUNT_PERIOD} = strftime( "%Y-%m-%d", localtime(time + 86400 * $RESULT{DISCOUNT_PERIOD}));
         }
       }
     }

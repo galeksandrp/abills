@@ -2219,7 +2219,7 @@ sub msgs_shedule {
 
   if ($period == 1) {
     $LIST_PARAMS{PLAN_FROM_DATE} = $DATE;
-    $LIST_PARAMS{PLAN_TO_DATE} = strftime "%Y-%m-%d", localtime(time + 86400 * 5);
+    $LIST_PARAMS{PLAN_TO_DATE} = strftime("%Y-%m-%d", localtime(time + 86400 * 5));
   }
   elsif ($period == 2) {
     $LIST_PARAMS{PLAN_WEEK} = 1;

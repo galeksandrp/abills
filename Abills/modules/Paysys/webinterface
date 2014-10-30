@@ -1194,7 +1194,7 @@ sub paysys_periodic () {
     $mon  = $m - 1;
     $year = $y - 1900;
     my $timestamp = mktime(0, 0, 0, $mday, $mon, $year, 0, 0, -1);
-    my $DATE = strftime "%Y-%m-%d", localtime($timestamp - 86400);
+    my $DATE = strftime("%Y-%m-%d", localtime($timestamp - 86400));
     my $res_arr = paysys_portmone_result(0, { DEBUG => $debug, DATE => $DATE });
 
     my %res_hash = ();

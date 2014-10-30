@@ -169,7 +169,7 @@ sub get_period_dates {
       else {
         $start_date = "$start_y-$start_m-01";
         if ($attr->{ACCOUNT_ACTIVATE}) {
-          my $end_date = strftime "%Y-%m-%d", localtime((mktime(0, 0, 0, $start_d, ($start_m - 1), ($start_y - 1900), 0, 0, 0) + 30 * 86400));
+          my $end_date = strftime("%Y-%m-%d", localtime((mktime(0, 0, 0, $start_d, ($start_m - 1), ($start_y - 1900), 0, 0, 0) + 30 * 86400)));
         }        
       }
 
@@ -490,7 +490,7 @@ sub service_get_month_fee {
 
         if ($Service->{ACCOUNT_ACTIVATE}) {
           $DATE          = $Service->{ACCOUNT_ACTIVATE};
-          my $end_period = strftime "%Y-%m-%d", localtime((mktime(0, 0, 0, $active_d, ($m - 1), ($active_y - 1900), 0, 0, 0) + 30 * 86400));
+          my $end_period = strftime("%Y-%m-%d", localtime((mktime(0, 0, 0, $active_d, ($m - 1), ($active_y - 1900), 0, 0, 0) + 30 * 86400)));
           $FEES_DSC{PERIOD} = "($active_y-$m-$active_d-$end_period)";
           $users->change(
             $Service->{UID},
@@ -499,7 +499,7 @@ sub service_get_month_fee {
               UID      => $Service->{UID}
             }
           );
-          $Service->{ACCOUNT_ACTIVATE} = strftime "%Y-%m-%d", localtime((mktime(0, 0, 0, $active_d, ($m - 1), ($active_y - 1900), 0, 0, 0) + 31 * 86400));
+          $Service->{ACCOUNT_ACTIVATE} = strftime("%Y-%m-%d", localtime((mktime(0, 0, 0, $active_d, ($m - 1), ($active_y - 1900), 0, 0, 0) + 31 * 86400)));
         }
         else {
           $DATE             = "$active_y-$m-01";
@@ -507,7 +507,7 @@ sub service_get_month_fee {
         }
       }
       elsif ($Service->{ACCOUNT_ACTIVATE} && $Service->{ACCOUNT_ACTIVATE} ne '0000-00-00') {
-        my $end_period = strftime "%Y-%m-%d", localtime((mktime(0, 0, 0, $active_d, ($m - 1), ($active_y - 1900), 0, 0, 0) + 30 * 86400));
+        my $end_period = strftime("%Y-%m-%d", localtime((mktime(0, 0, 0, $active_d, ($m - 1), ($active_y - 1900), 0, 0, 0) + 30 * 86400)));
 
         if ($Service->{TP_INFO}->{PERIOD_ALIGNMENT}) {
           $users->change(
@@ -535,7 +535,7 @@ sub service_get_month_fee {
           $DATE = "$active_y-$m-$active_d";
         }
 
-        $Service->{ACCOUNT_ACTIVATE} = ($Service->{TP_INFO}->{PERIOD_ALIGNMENT}) ? undef : strftime "%Y-%m-%d", localtime((mktime(0, 0, 0, $active_d, ($m - 1), ($active_y - 1900), 0, 0, 0) + 31 * 86400));
+        $Service->{ACCOUNT_ACTIVATE} = ($Service->{TP_INFO}->{PERIOD_ALIGNMENT}) ? undef : strftime("%Y-%m-%d", localtime((mktime(0, 0, 0, $active_d, ($m - 1), ($active_y - 1900), 0, 0, 0) + 31 * 86400)));
         $FEES_DSC{PERIOD} = "($active_y-$m-$active_d-$end_period)";
       }
       else {

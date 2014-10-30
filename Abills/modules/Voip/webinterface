@@ -3399,7 +3399,7 @@ sub voip_get_month_fee {
 
         if ($Voip->{ACCOUNT_ACTIVATE}) {
           $DATE = $Voip->{ACCOUNT_ACTIVATE};
-          my $end_period = strftime "%Y-%m-%d", localtime((mktime(0, 0, 0, $active_d, ($m - 1), ($active_y - 1900), 0, 0, 0) + 30 * 86400));
+          my $end_period = strftime("%Y-%m-%d", localtime((mktime(0, 0, 0, $active_d, ($m - 1), ($active_y - 1900), 0, 0, 0) + 30 * 86400)));
           $message .= " ($DATE-$end_period)";
 
           $users->change(
@@ -3409,7 +3409,7 @@ sub voip_get_month_fee {
               UID      => $Voip->{UID}
             }
           );
-          $Voip->{ACCOUNT_ACTIVATE} = strftime "%Y-%m-%d", localtime((mktime(0, 0, 0, $active_d, ($m - 1), ($active_y - 1900), 0, 0, 0) + 31 * 86400));
+          $Voip->{ACCOUNT_ACTIVATE} = strftime("%Y-%m-%d", localtime((mktime(0, 0, 0, $active_d, ($m - 1), ($active_y - 1900), 0, 0, 0) + 31 * 86400)));
         }
         else {
           $DATE = "$active_y-$m-01";
@@ -3439,8 +3439,8 @@ sub voip_get_month_fee {
         else {
           $DATE = "$active_y-$m-$active_d";
         }
-        my $end_period = strftime "%Y-%m-%d", localtime((mktime(0, 0, 0, $active_d, ($m - 1), ($active_y - 1900), 0, 0, 0) + 30 * 86400));
-        $Voip->{ACCOUNT_ACTIVATE} = strftime "%Y-%m-%d", localtime((mktime(0, 0, 0, $active_d, ($m - 1), ($active_y - 1900), 0, 0, 0) + 31 * 86400));
+        my $end_period = strftime("%Y-%m-%d", localtime((mktime(0, 0, 0, $active_d, ($m - 1), ($active_y - 1900), 0, 0, 0) + 30 * 86400)));
+        $Voip->{ACCOUNT_ACTIVATE} = strftime("%Y-%m-%d", localtime((mktime(0, 0, 0, $active_d, ($m - 1), ($active_y - 1900), 0, 0, 0) + 31 * 86400)));
         $message .= " ($active_y-$m-$active_d-$end_period)";
       }
       else {
