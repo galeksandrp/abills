@@ -125,6 +125,9 @@ else {
     $ENV{HTTP_CGI_AUTHORIZATION} =~ s/basic\s+//i;
     my ($REMOTE_USER, $REMOTE_PASSWD) = split(/:/, decode_base64($ENV{HTTP_CGI_AUTHORIZATION}));
 
+#    $REMOTE_USER=~s/\\//g;
+#    $REMOTE_PASSWD=~s/\\//g;
+
     my $res = check_permissions("$REMOTE_USER", "$REMOTE_PASSWD");
     if ($res == 1) {
       print "WWW-Authenticate: Basic realm=\"$conf{WEB_TITLE} Billing System\"\n";

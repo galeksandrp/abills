@@ -71,7 +71,8 @@ sub accounting {
   if ($NAS->{NAS_TYPE} eq 'cid_auth') {
     $self->query2("SELECT u.uid, u.id
      FROM users u, dv_main dv
-     WHERE dv.uid=u.uid AND dv.CID='$RAD->{CALLING_STATION_ID}';"
+     WHERE dv.uid=u.uid AND dv.CID='$RAD->{CALLING_STATION_ID}'
+     FOR UPDATE;"
     );
 
     if ($self->{TOTAL} < 1) {
@@ -91,7 +92,7 @@ sub accounting {
   #Start
   if ($acct_status_type == 1) {
     $self->query2("SELECT acct_session_id FROM dv_calls 
-    WHERE user_name='$RAD->{USER_NAME}' AND nas_id='$NAS->{NAS_ID}' AND (framed_ip_address=INET_ATON('$RAD->{FRAMED_IP_ADDRESS}') OR framed_ip_address=0);"
+    WHERE user_name='$RAD->{USER_NAME}' AND nas_id='$NAS->{NAS_ID}' AND (framed_ip_address=INET_ATON('$RAD->{FRAMED_IP_ADDRESS}') OR framed_ip_address=0) FOR UPDATE;"
     );
 
     #Get connection speed
