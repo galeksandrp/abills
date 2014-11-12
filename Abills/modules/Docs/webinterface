@@ -3710,6 +3710,7 @@ sub docs_pre_payment {
 
   if ($FORM{INVOICE_ID} && $FORM{INVOICE_ID} eq 'create') {
     $FORM{INVOICE_ID} = undef;
+    $FORM{INCLUDE_DEPOSIT}=1;
     $LIST_PARAMS{UID} = $FORM{UID};
     $FORM{create}     = 1;
     $FORM{CUSTOMER}   = '-';

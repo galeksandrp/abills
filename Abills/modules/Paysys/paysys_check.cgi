@@ -55,8 +55,9 @@ use Admins;
 $silent  = 1;
 $debug   = $conf{PAYSYS_DEBUG} || 0;
 $html    = Abills::HTML->new();
-my $sql  = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd}, { CHARSET => ($conf{dbcharset}) ? $conf{dbcharset} : undef });
-my $db   = $sql->{db};
+my $db  = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd}, { CHARSET => ($conf{dbcharset}) ? $conf{dbcharset} : undef });
+
+
 require "Misc.pm";
 
 
@@ -202,17 +203,17 @@ my %ip_binded_system = (
     => 'Ibox',
   '91.194.189.69'    
     => 'Payu',
-  '78.140.166.69'    
+  '78.140.166.69,192.168.1.101'    
     => 'Okpay', # $FORM{ok_txn_id}
   '77.109.141.170'   
     => 'Perfectmoney', # $FORM{PAYEE_ACCOUNT}
   '85.192.45.0/24,194.67.81.0/24,91.142.251.0/24,89.111.54.0/24,95.163.74.0/24' 
     => 'Smsonline',
-  '107.22.173.15,107.22.173.86,217.117.64.232/28,75.101.163.115,213.154.214.76,192.168.0.104,217.117.64.232/29' 
+  '107.22.173.15,107.22.173.86,217.117.64.232/28,75.101.163.115,213.154.214.76,217.117.64.232/29' 
     => 'Privat_terminal',
   '62.89.31.36,95.140.194.139' 
     => 'Telcell',
-  '195.76.9.187,195.76.9.222,192.168.1.101' 
+  '195.76.9.187,195.76.9.222' 
     => 'Redsys',
   '217.77.49.157'    
     => 'Rucard',
@@ -227,7 +228,12 @@ my %ip_binded_system = (
   '213.230.106.112/28,213.230.65.85/28'  
     => 'Paynet',
   '93.183.196.26,195.230.131.50,93.183.196.28' 
-    => 'Easysoft'
+    => 'Easysoft',
+  '77.120.97.36'
+    => 'PayU',
+  '87.248.226.170,217.195.80.50'
+    => 'Sberbank',
+
 );
 
 foreach my $params ( keys %ip_binded_system) {
@@ -242,21 +248,16 @@ if ($FORM{__BUFFER} =~ /^{.+}$/ &&
   check_ip($ENV{REMOTE_ADDR}, '75.101.163.115,107.22.173.15,107.22.173.86,213.154.214.76,217.117.64.232-217.117.64.238')) {
   load_pay_module('Private_bank_json');
 }
+elsif(check_ip($ENV{REMOTE_ADDR},'176.9.53.221,91.230.25.123')) {
+	paymaster_check_payment();
+	exit;
+}
 elsif (($FORM{signature} && $FORM{operation_xml}) || check_ip($ENV{REMOTE_ADDR}, '54.229.105.178')) {
   load_pay_module('Liqpay');
 }
 # IP: 77.120.97.36
 elsif ($FORM{merchantid}) {
   load_pay_module('Regulpay');
-}
-# IP: 77.120.97.36
-#elsif (check_ip($ENV{REMOTE_ADDR}, '192.168.1.103')) {
-#  require "PayU.pm";
-#  exit;
-#}
-# IP: -
-elsif ($FORM{params}) {
-  load_pay_module('Sberbank');
 }
 elsif ($FORM{request_type} && $FORM{random} || $FORM{copayco_result}) {
   load_pay_module('Copayco');
@@ -329,8 +330,6 @@ elsif ($FORM{payment} && $FORM{payment} =~ /pay_way/) {
 elsif($conf{'PAYSYS_YANDEX_ACCCOUNT'} && $FORM{code}) {
   load_pay_module('Yandex');
 }
-
-print "Content-Type: text/html\n\n";
 
 #New module load method
 #
@@ -406,7 +405,7 @@ sub payments {
     load_pay_module('Libertyreserve');
   }
   else {
-    
+    print "Content-Type: text/html\n\n";
     if ($FORM{INTERACT}) {
     	interact_mode();
     }
@@ -1370,31 +1369,45 @@ sub smsproxy_payments {
 
 }
 
+#**********************************************************
+#
+#**********************************************************
+sub paymaster_check_payment {
+	my ($attr) = @) = @_;
+
+	wm_payments({ SYSTEM_SHORT_NAME => 'PMASTER',
+		            SYSTEM_ID         => 97
+		           });
+
+}
 
 #**********************************************************
 # https://merchant.webmoney.ru/conf/guide.asp
 #
 #**********************************************************
 sub wm_payments {
-  my ($attr) = @) = @_;
+  my ($attr) = @_;
 
-  my $payment_system    = $attr->{SYSTEM_SHORT_NAME} || 'WM';
-  my $payment_system_id = $attr->{SYSTEM_ID}         || 41;
-  my $status_code = 0;
+  my $payment_system    = $attr->{SYSTEM_SHORT_NAME} || (($conf{PAYSYS_WEBMONEY_UA}) ? 'WMU' : 'WM');
+  my $payment_system_id = $attr->{SYSTEM_ID}         || (($conf{PAYSYS_WEBMONEY_UA}) ? 96 : 41);
+  my $status_code       = 0;
+  my $output_content    = '';
+
+	print "Content-Type: text/html\n\n";
 
   #Pre request section
   if ($FORM{'LMI_PREREQUEST'} && $FORM{'LMI_PREREQUEST'} == 1) {
-
+    $output_content = "YES";
   }
   #Payment notification
   elsif ($FORM{LMI_HASH}) {
-    my $checksum = wm_validate();
+    my $checksum = ($conf{PAYSYS_WEBMONEY_UA}) ? wm_ua_validate() : wm_validate();
     my $info     = '';
     my $user     = $users->info($FORM{UID});
 
     my @ACCOUNTS = split(/;/, $conf{PAYSYS_WEBMONEY_ACCOUNTS});
 
-    if (!in_array($FORM{LMI_PAYEE_PURSE}, \@ACCOUNTS)) {
+    if ($payment_system_id < 97 && !in_array($FORM{LMI_PAYEE_PURSE}, \@ACCOUNTS)) {
       $status = 'Not valid money account';
     }
     elsif (defined($FORM{LMI_MODE}) && $FORM{LMI_MODE} == 1) {
@@ -1406,7 +1419,7 @@ sub wm_payments {
       $status_code = 5;
     }
     elsif ($FORM{LMI_HASH} ne $checksum) {
-      $status = "Incorect checksum \"$checksum/$FORM{LMI_HASH}\"";
+      $status = "Incorect checksum '$checksum/$FORM{LMI_HASH}'";
       $status_code = 5;
     }
     elsif ($user->{errno}) {
@@ -1418,7 +1431,6 @@ sub wm_payments {
       $status_code = 9;
     }
     else {
-
       #Add payments
       my $er = 1;
       if ($FORM{LMI_PAYEE_PURSE} =~ /^(\S)/) {
@@ -1465,7 +1477,8 @@ sub wm_payments {
         IP             => $FORM{IP},
         TRANSACTION_ID => "$FORM{LMI_PAYMENT_NO}",
         INFO           => "STATUS, $status\n$info",
-        PAYSYS_IP      => $status_code2
+        PAYSYS_IP      => "$ENV{REMOTE_ADDR}",
+        STATUS         => $status_code        
       }
     );
 
@@ -1475,6 +1488,9 @@ sub wm_payments {
     $output2 .= "CHECK_SUM: $checksum\n";
   }
 
+  print $output_content;
+
+  mk_log($output_content."\n".$output2, { PAYSYS_ID => "$payment_system/$payment_system_id" });
 }
 
 #**********************************************************
@@ -1538,10 +1554,32 @@ sub wm_validate {
   $md5->add($FORM{LMI_PAYER_PURSE});
   $md5->add($FORM{LMI_PAYER_WM});
 
+
   my $digest = uc($md5->hexdigest());
 
   return $digest;
 }
+
+#**********************************************************
+#  validate wm ua 
+#**********************************************************
+sub wm_ua_validate {
+  $md5->reset;
+	
+	$md5->add($FORM{LMI_MERCHANT_ID});
+  $md5->add($FORM{LMI_PAYMENT_NO}); 
+  $md5->add($FORM{LMI_SYS_PAYMENT_ID}); 
+  $md5->add($FORM{LMI_SYS_PAYMENT_DATE}); 
+  $md5->add($FORM{LMI_PAYMENT_AMOUNT}); 
+  $md5->add($FORM{LMI_PAID_AMOUNT});
+  $md5->add($FORM{LMI_PAYMENT_SYSTEM});
+  $md5->add($FORM{LMI_MODE});
+  $md5->add($conf{PAYSYS_LMI_SECRET_KEY});
+
+  my $digest = uc($md5->hexdigest());
+  return $digest;
+}
+
 
 #**********************************************************
 # get_fees_types
