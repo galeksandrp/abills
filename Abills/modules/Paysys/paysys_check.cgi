@@ -249,8 +249,8 @@ if ($FORM{__BUFFER} =~ /^{.+}$/ &&
   load_pay_module('Private_bank_json');
 }
 elsif(check_ip($ENV{REMOTE_ADDR},'176.9.53.221,91.230.25.123')) {
-	paymaster_check_payment();
-	exit;
+  paymaster_check_payment();
+  exit;
 }
 elsif (($FORM{signature} && $FORM{operation_xml}) || check_ip($ENV{REMOTE_ADDR}, '54.229.105.178')) {
   load_pay_module('Liqpay');

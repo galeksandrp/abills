@@ -1020,7 +1020,7 @@ sub iptv_tp {
       'TP_GID',
       {
         SELECTED   => $tarif_info->{TP_GID},
-        SEL_LIST   => $Tariffs->tp_group_list(),
+        SEL_LIST   => $Tariffs->tp_group_list({ COLS_NAME => 1 }),
       }
     );
 
@@ -1068,7 +1068,7 @@ sub iptv_tp {
       cols_align => [ 'right', 'left', 'center', 'center', 'center', 'right', 'right', 'right', 'right', 'center:noprint', 'center:noprint', 'center:noprint' ],
       ID         => 'IPTV_TARIF_PLANS',
       EXPORT     => 1,
-      MENU       => "$_ADD:index=$index&add_from=1:add"
+      MENU       => "$_ADD:index=$index&add_form=1:add"
     }
   );
 

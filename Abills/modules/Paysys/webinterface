@@ -71,7 +71,9 @@ my %PAY_SYSTEMS = (
   92 => 'CoPayCo',
   93 => 'Minbank',
   94 => 'Redsys',
-  95 => 'Gateway Technologies'
+  95 => 'Gateway Technologies',
+  96 => 'Webmoney UA',
+  97 => 'PayMaster'  
 );
 
 my %CONF_OPTIONS = (
@@ -767,6 +769,9 @@ sub paysys_payment {
   elsif ($FORM{PAYMENT_SYSTEM} == 94) {
     paysys_redsys();
   }  
+  elsif ($FORM{PAYMENT_SYSTEM} == 97) {
+    paysys_paymaster();
+  }  
   else {
     PRE_LABEL:
     my %info = ();
@@ -797,7 +802,8 @@ sub paysys_payment {
       90 => 'PAYSYS_CASHCOM_PROVIDER_ID',
       91 => 'PAYSYS_PAYU_MERCHANT',
       92 => 'PAYSYS_COPAYCO_SHOP_ID',
-      94 => 'PAYSYS_REDSYS_MERCHANT_ID'
+      94 => 'PAYSYS_REDSYS_MERCHANT_ID',
+      97 => 'PAYSYS_PAYMASTER_SECRET',
     );
 
     while (my ($k, $v) = each %PAY_SYSTEMS) {
@@ -3437,6 +3443,85 @@ sub paysys_load {
   return 0;	
 }
 
+
+#**********************************************************
+# webmoney and webmoney UA support
+#**********************************************************
+sub paysys_paymaster () {
+
+  if ($FORM{FALSE}) {
+    $html->message('err', $_ERROR, "$_FAILED $_TRANSACTION ID: $FORM{LMI_PAYMENT_NO}");
+  }
+  elsif ($FORM{LMI_PAYMENT_NO}) {
+    my $users = Users->new($db, $admin, \%conf);
+    my $user = $users->info($FORM{UID});
+
+    if ($user->{errno}) {
+      $html->message('err', $_ERROR, "$_ERROR $user->{errno}");
+    }
+    elsif ($user->{TOTAL} < 0) {
+      $html->message('err', $_ERROR, "$_NOT_EXIST");
+    }
+    else {
+      if ($conf{PAYSYS_LMI_RESULT_URL}) {
+        $html->message('info', $_INFO, "$_ADDED ID: $FORM{LMI_PAYMENT_NO}");
+      }
+      else {
+        my $list = $Paysys->list({ TRANSACTION_ID => "$FORM{'LMI_PAYMENT_NO'}", UID => $LIST_PARAMS{UID} });
+
+        if ($Paysys->{TOTAL} > 0) {
+          $html->message('info', $_INFO, "$_ADDED $_SUM: $list->[0][3] ID: $FORM{LMI_PAYMENT_NO}");
+
+          if ($conf{PAYSYS_EMAIL_NOTICE}) {
+            my $message = "\n" . "System: Webmoney\n" . "$_DATE: $DATE $TIME\n" . "$_LOGIN: $user->{LOGIN} [$LIST_PARAMS{UID}]\n" . "\n" . "\n" . "ID: $FORM{LMI_PAYMENT_NO}\n" . "$_SUM: $list->[0][3]\n";
+            sendmail("$conf{ADMIN_MAIL}", "$conf{ADMIN_MAIL}", "Paysys Webmoney Add", "$message", "$conf{MAIL_CHARSET}", "2 (High)");
+          }
+        }
+        else {
+          $html->message('err', $_ERROR, "$_FAILED ID: $FORM{LMI_PAYMENT_NO} $_ERR_NO_TRANSACTION");
+        }
+      }
+    }
+
+    return 0;
+  }
+
+  my %info = ();
+  $info{LMI_PAYMENT_NO} = $FORM{OPERATION_ID};
+
+  if ($conf{PAYSYS_PAYMASTER_TESTMODE}) {
+    my ($LMI_MODE, $LMI_SIM_MODE) = split(/:/, $conf{PAYSYS_PAYMASTER_TESTMODE}, 2);
+    $info{TEST_MODE} = "
+   <input type='hidden' name='LMI_SIM_MODE' value='$LMI_SIM_MODE'>
+   <font color='red'>$_TEST_MODE (LMI_MODE: $LMI_MODE, LMI_SIM_MODE: $LMI_SIM_MODE)</font>";
+  }
+
+
+  # Terminal auth type
+  if ($FORM{PAYMENT_SYSTEM} == 85) {
+    $info{AT}='?at=authtype_8';
+  }
+
+  my @ACCOUNTS = split(/;/, $conf{PAYSYS_WEBMONEY_ACCOUNTS});
+  $info{ACCOUNTS_SEL} = $html->form_select(
+    'LMI_PAYEE_PURSE',
+    {
+      SELECTED  => $FORM{sum_val},
+      SEL_ARRAY => \@ACCOUNTS,
+      NO_ID     => 1
+    }
+  );
+
+  $info{LMI_PAYMENT_AMOUNT}    = $FORM{SUM};
+  my $pay_describe             = "Login: $LIST_PARAMS{LOGIN}, UID: $LIST_PARAMS{UID}";
+  $info{DESCRIBE}              = $pay_describe;
+  $info{LMI_PAYMENT_DESC}      = ($conf{dbcharset} eq 'utf8') ? convert($pay_describe, { utf82win => 1 }) : $pay_describe;
+  $conf{PAYSYS_LMI_RESULT_URL} = "http://$ENV{SERVER_NAME}" . (($ENV{SERVER_PORT} != 80) ? ":$ENV{SERVER_PORT}" : '') . "/paysys_check.cgi" if (!$conf{PAYSYS_LMI_RESULT_URL});
+  $info{ACTION_URL}            = 'https://lmi.PayMaster.ua/'.$info{AT};
+
+
+  $html->tpl_show(_include('paysys_paymaster_add', 'Paysys'), \%info);
+}
 
 
 1
