@@ -728,7 +728,7 @@ sub cards_user_payment () {
 
     $Cards->cards_info({ %FORM, UID => $LIST_PARAMS{UID}, PAYMENTS => 1 });
 
-    if ($Cards->{error}) {
+    if ($Cards->{errno}) {
       $html->message('err', $_ERROR, "$ERR_SUPPORT / $ERR_SUPPORT", { ID => 600 });
       return 0;
     }
@@ -824,7 +824,7 @@ sub cards_user_payment () {
           }
         );
 
-        if ($Cards->{error}) {
+        if ($Cards->{errno}) {
           $db->rollback();
           $html->message('err', $_ERROR, "$status[$Cards->{STATUS}]", { ID => 607 });
           return 0;
