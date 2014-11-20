@@ -566,7 +566,9 @@ sub bonus_user {
 sub bonus_users_list {
   my ($attr) = @_;
 
-  my $list = $Bonus->user_list({ COLS_NAME => 1, DEPOSIT => '_SHOW' });
+  my $list = $Bonus->user_list({ %LIST_PARAMS,
+                                 COLS_NAME => 1, 
+                                 DEPOSIT   => '_SHOW' });
 
   my $table = $html->table(
     {
@@ -575,7 +577,9 @@ sub bonus_users_list {
       border     => 1,
       title      => [ "$_LOGIN", $_FIO, "$_TARIF_PLAN", "$_STATE", "$_DEPOSIT", "$_CREDIT", '-' ],
       cols_align => [ 'right', 'left', 'center', 'center:noprint', 'center:noprint', 'center:noprint' ],
-      ID         => 'BONUS_USERS'
+      ID         => 'BONUS_USERS',
+      qs         => $pages_qs,
+      pages      => $Bonus->{TOTAL},
     }
   );
 

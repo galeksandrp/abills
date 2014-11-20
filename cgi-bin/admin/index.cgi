@@ -4391,6 +4391,8 @@ sub form_nas_add {
     'gnugk'      => 'GNU GateKeeper',
     'cid_auth'   => 'Auth clients by CID',
     'cisco'      => 'Cisco',
+    'gpon'       => 'Huawei MA56**',
+    'epon'       => 'BDCOM p3100',    
     'cisco_voip' => 'Cisco Voip',
     'dell'       => 'Dell Switch',
     'cisco_isg'  => 'Cisco ISG',
