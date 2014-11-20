@@ -2005,7 +2005,7 @@ sub paysys_p24_get_payments {
 #
 #**********************************************************
 sub paysys_p24 {
-  paysy_Load('P24');
+  paysys_load('P24');
 
   if ($FORM{info_card}) {
     my $info = p24({ CARD_INFO => $FORM{CARD_ID} || $conf{'PAYSYS_P24_CARDNUM'} });
