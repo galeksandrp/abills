@@ -1794,6 +1794,7 @@ sub paysys_p24_get_payments {
       }
 
       Encode::_utf8_off($v->{col}->{BPL_OSND}->{content});
+      Encode::_utf8_off($v->{col}->{BPL_NUM_DOC}->{content});
       my $description = $v->{col}->{BPL_OSND}->{content};
       my $sum         = $v->{col}->{BPL_SUM}->{content};
       my $date        = $v->{col}->{BPL_DAT_OD}->{content};
