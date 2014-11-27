@@ -55,7 +55,10 @@ use Admins;
 $silent  = 1;
 $debug   = $conf{PAYSYS_DEBUG} || 0;
 $html    = Abills::HTML->new();
-my $db  = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd}, { CHARSET => ($conf{dbcharset}) ? $conf{dbcharset} : undef });
+my $sql  = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd}, { CHARSET => ($conf{dbcharset}) ? $conf{dbcharset} : undef });
+
+
+$db = $sql->{db};
 
 
 require "Misc.pm";
