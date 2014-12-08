@@ -712,6 +712,9 @@ sub paysys_payment {
   elsif ($FORM{PAYMENT_SYSTEM} == 48) {
     paysys_privatbank();
   }
+  elsif ($FORM{PAYMENT_SYSTEM} == 50) {
+  	paysys_comepay();
+  }
   elsif ($FORM{PAYMENT_SYSTEM} == 54) {
     paysys_privatbank_p24();
   }
@@ -3522,6 +3525,103 @@ sub paysys_paymaster () {
 
 
   $html->tpl_show(_include('paysys_paymaster_add', 'Paysys'), \%info);
+}
+
+
+#**********************************************************
+# User portal payments system with Comepay
+#
+# https://shop.comepay.ru/Data/ComePayAPIIS.pdf
+#**********************************************************
+sub paysys_comepay {
+  my ($attr) = @_;
+
+  paysys_load('Comepay');
+
+  my $payment_system_id = 50;
+  my $payment_system    = 'COMEPAY';
+
+
+  my %info = ();
+
+  if (defined($FORM{TRUE})) {
+    my $order_id = "$payment_system:$FORM{order}" || '-';
+    my $list = $Paysys->list(
+      {
+        TRANSACTION_ID => "$order_id",
+        UID            => $LIST_PARAMS{UID},
+        SUM            => '_SHOW',
+        COLS_NAME      => 1
+      }
+    );
+
+    if ($Paysys->{TOTAL} > 0) {
+      if ($list->[0]->{status} == 2) {
+        $html->message('info', $_INFO, "$_ADDED\n $_SUM: $list->[0]->{sum}\n ID: $order_id");
+      }
+      else {
+        $html->message('err', $_ERROR, "$_FAILED\n ID: $order_id\n $_STATUS: $status[$list->[0]->{status}]");
+      }
+    }
+    else {
+      $html->message('err', $_ERROR, "$_FAILED\n ID: $order_id\n $_ERR_NO_TRANSACTION\n $_STATUS: $status[$list->[0]->{status}]");
+    }
+
+    $html->setCookie('lastindex', "", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure) if (! $FORM{INTERACT});
+    return 0;
+  }
+  else {
+     if (! $FORM{PHONE}) {
+       $user->pi({ UID => $LIST_PARAMS{UID} });
+       $info{PHONE}=$user->{PHONE};
+       $FORM{PHONE}=$user->{PHONE};
+     }
+     else {
+     	 $info{PHONE}=$FORM{PHONE};
+     }
+  }
+
+  $info{PAYSYS_URL}='https://shop.comepay.ru/Order/external/main.action';
+  if ($info{PHONE} !~ /\d{10}/) {
+  	$info{PHONE_ERR} = $html->color_mark($ERR_WRONG_PHONE, 'red');
+    $info{PAYSYS_URL}=$SELF_URL;
+    $info{PARAMS} = "<input type=hidden name=index value=$index>
+     <input type=hidden name=PAYMENT_SYSTEM value=$FORM{PAYMENT_SYSTEM}>
+     <input type=hidden name=OPERATION_ID value=$FORM{OPERATION_ID}>
+     <input type=hidden name=SUM value=$FORM{SUM}>
+    ";
+  }
+  else {
+  	$info{TRANSACTION_ID} = comepay_mk_request({ %FORM });
+  	
+  	if ($info{TRANSACTION_ID} == 0) {
+  		$info{PAYSYS_URL}=$SELF_URL;
+  		
+      $info{PARAMS} = "Error: $info{TRANSACTION_ID}
+      $ERR_TRANSACTION_DECLINED
+     <input type=hidden name=index value=$index>
+     <input type=hidden name=PAYMENT_SYSTEM value=$FORM{PAYMENT_SYSTEM}>
+     <input type=hidden name=OPERATION_ID value=$FORM{OPERATION_ID}>
+     <input type=hidden name=SUM value=$FORM{SUM}>
+    ";
+  	}
+  	else {
+      $Paysys->add(
+        {
+          SYSTEM_ID      => $payment_system_id,
+          DATETIME       => "$DATE $TIME",
+          SUM            => $FORM{SUM},
+          UID            => $LIST_PARAMS{UID},
+          IP             => $FORM{IP},
+          TRANSACTION_ID => "$payment_system:$FORM{OPERATION_ID}",
+          PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}",
+          STATUS         => 1
+        }
+      );
+  	}
+  }
+  
+  $html->tpl_show(_include('paysys_comepay_add', 'Paysys'), { %info, %$user });
 }
 
 
