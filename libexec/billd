@@ -215,6 +215,8 @@ sub cross_moduless_actions {
 sub check_lines {
   $Sessions->{debug} = 1 if ($debug > 4);
 
+  $Sessions->query2("DELETE FROM dv_calls WHERE nas_id=0", 'do');
+
   $Sessions->online_del({ SESSIONS_LIST => ['IP'],
                           QUICK         => 1 });
   $Sessions->online(
@@ -327,10 +329,12 @@ sub check_lines {
             }
           );
 
-          $ACCT_INFO->{INBYTE}               = $online->{acct_input_octets};
-          $ACCT_INFO->{OUTBYTE}              = $online->{acct_output_octets};
-          $ACCT_INFO->{INBYTE2}              = $online->{ex_input_octets};
-          $ACCT_INFO->{OUTBYTE2}             = $online->{ex_output_octets};
+          $ACCT_INFO->{INBYTE}               = ( $conf{rt_billing} ) ? 0 : $online->{acct_input_octets};
+          $ACCT_INFO->{OUTBYTE}              = ( $conf{rt_billing} ) ? 0 : $online->{acct_output_octets};
+          $ACCT_INFO->{INBYTE2}              = ( $conf{rt_billing} ) ? 0 : $online->{ex_input_octets};
+          $ACCT_INFO->{OUTBYTE2}             = ( $conf{rt_billing} ) ? 0 : $online->{ex_output_octets};
+          $ACCT_INFO->{ACCT_INPUT_GIGAWORDS} = ( $conf{rt_billing} ) ? 0 : $ACCT_INFO->{ACCT_INPUT_GIGAWORDS};
+          $ACCT_INFO->{ACCT_OUTPUT_GIGAWORDS}= ( $conf{rt_billing} ) ? 0 : $ACCT_INFO->{ACCT_OUTPUT_GIGAWORDS};
           $ACCT_INFO->{ACCT_STATUS_TYPE}     = 'Stop';
           $ACCT_INFO->{ACCT_SESSION_TIME}    = $online->{acct_session_time};
           $ACCT_INFO->{ACCT_TERMINATE_CAUSE} = 23;

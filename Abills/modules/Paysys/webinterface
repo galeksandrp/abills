@@ -786,6 +786,7 @@ sub paysys_payment {
       45 => 'PAYSYS_PORTMONE_PAYEE_ID',
       46 => 'PAYSYS_UKRPAYS_SECRETKEY',
       48 => 'PAYSYS_PB_MERID',
+      50 => 'PAYSYS_COMEPAY',
       54 => 'PAYSYS_P24_MERCHANT_ID',
       58 => 'PAYSYS_LR_ACCOUNT_NUMBER',
       59 => 'PAYSYS_QIWI_TERMINAL_ID',
