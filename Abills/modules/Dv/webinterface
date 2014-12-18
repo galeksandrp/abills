@@ -4686,7 +4686,7 @@ sub dv_user_info {
         $Dv->{NEXT_FEES_WARNING} =~ s/\%DAYS\%/$days_to_fees/g;
       }
     }
-    elsif ($Dv->{DAY_ABON} > 0) {
+    elsif ($Dv->{DAY_ABON} > 0 && $user->{REDUCTION} < 100) {
       $days_to_fees = int(($user->{DEPOSIT} + $user->{CREDIT}) * (100 / (100 - $user->{REDUCTION})) / $Dv->{DAY_ABON});
       $Dv->{NEXT_FEES_WARNING} = "$_SERVICE_ENDED: $days_to_fees";
     }
