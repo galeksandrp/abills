@@ -148,7 +148,6 @@ sub accounting {
         $RAD->{USER_NAME} = '! ' . $RAD->{USER_NAME};
       }
 
-      $self->{debug}=1;
       my $sql = "REPLACE INTO dv_calls
        (status, user_name, started, lupdated, nas_ip_address, nas_port_id, acct_session_id, framed_ip_address, CID, CONNECT_INFO,   nas_id, tp_id,
         uid, join_service)
