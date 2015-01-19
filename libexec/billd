@@ -1317,7 +1317,7 @@ sub check_speed {
     my $l = $online->{ $nas_info->{nas_id} };
     foreach my $line (@$l) {
       if ($line->{guest}) {
-        $guest_ips{client_ip}=$line->{uid};
+        $guest_ips{$line->{client_ip}}=$line->{uid};
         next 
       }
 
@@ -1367,6 +1367,11 @@ sub check_speed {
     while(my($ip, $uid) = each %guest_ips) {
       if ($fw_guest_ips{$ip}) {
         delete $guest_ips{$ip};
+      }
+      
+      if($fw_ips{$ip}) {
+        push @FW_ACTIONS, "$IPFW table 10 delete $ip";
+        print "Delete ip '$ip' from work net\n";
       }
     }
 
