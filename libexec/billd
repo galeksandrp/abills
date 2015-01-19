@@ -1317,7 +1317,7 @@ sub check_speed {
     my $l = $online->{ $nas_info->{nas_id} };
     foreach my $line (@$l) {
       if ($line->{guest}) {
-        $guest_ips{$line->{client_ip}}=$line->{user_name};
+        $guest_ips{$line->{client_ip}}="$line->{user_name}:$line->{duration_sec}";
         next 
       }
 
