@@ -1279,6 +1279,7 @@ sub check_speed {
       DURATION_SEC => '_SHOW', 
       STARTED      => '_SHOW', 
       CONNECT_INFO => '_SHOW',
+      GUEST        => '_SHOW',
       %LIST_PARAMS,
       NAS_ID       => $LIST_PARAMS{NAS_IDS},
     }
@@ -1306,6 +1307,7 @@ sub check_speed {
   my $nas_list    = $Nas->list({%LIST_PARAMS, COLS_NAME => 1 });
   my %USER_IFACES = ();
   my %TP_HASH     = ();
+  my %guest_ips   = ();
 
   my $NAS_TYPE = '';
   foreach my $nas_info (@$nas_list) {
@@ -1314,6 +1316,11 @@ sub check_speed {
 
     my $l = $online->{ $nas_info->{nas_id} };
     foreach my $line (@$l) {
+      if ($line->{guest}) {
+        $guest_ips{client_ip}=$line->{uid};
+        next 
+      }
+
       my $user_speed   = ($TURBO_SPEEDS{ $line->{user_name} }) ? $TURBO_SPEEDS{ $line->{user_name} } : $line->{speed};
 
       if (! defined($user_speed)){
@@ -1343,6 +1350,30 @@ sub check_speed {
     push @FW_ACTIONS, "$IPFW -q add 10025 allow ip from any to table\\(9\\) $via_if_out";
     %pipe_rules = ();
     %fw_ips     = ();
+  }
+
+  if ($ARGV->{CHECK_GUEST}) {
+    my %fw_guest_ips   = ();
+    my $fw_guest_table = 32;
+    if (open(my $ph, "/sbin/ipfw table $fw_guest_table list |")) {
+      while (<$ph>) {
+        if (/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\/\d+\s?(\d+)/) {
+          $fw_guest_ips{$1} = $2;
+        }
+      }
+      close($ph);
+    }
+
+    while(my($ip, $uid) = each %guest_ips) {
+      if ($fw_guest_ips{$ip}) {
+        delete $guest_ips{$ip};
+      }
+    }
+
+    foreach my $ip ( sort keys %guest_ips) {
+      print "ip: $ip not in guest table\n";
+      push @FW_ACTIONS, "$IPFW table $fw_guest_table add $ip";
+    }
   }
 
   # Table shaper
