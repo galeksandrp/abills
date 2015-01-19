@@ -1317,7 +1317,7 @@ sub check_speed {
     my $l = $online->{ $nas_info->{nas_id} };
     foreach my $line (@$l) {
       if ($line->{guest}) {
-        $guest_ips{$line->{client_ip}}=$line->{uid};
+        $guest_ips{$line->{client_ip}}=$line->{user_name};
         next 
       }
 
@@ -1358,7 +1358,7 @@ sub check_speed {
     if (open(my $ph, "/sbin/ipfw table $fw_guest_table list |")) {
       while (<$ph>) {
         if (/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\/\d+\s?(\d+)/) {
-          $fw_guest_ips{$1} = $2;
+          $fw_guest_ips{$1} = $2 || '-';
         }
       }
       close($ph);
@@ -1376,7 +1376,7 @@ sub check_speed {
     }
 
     foreach my $ip ( sort keys %guest_ips) {
-      print "ip: $ip not in guest table\n";
+            print "ip: $ip ($guest_ips->{$ip}) not in guest table\n";
       push @FW_ACTIONS, "$IPFW table $fw_guest_table add $ip";
     }
   }
