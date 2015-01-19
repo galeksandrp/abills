@@ -1376,7 +1376,7 @@ sub check_speed {
     }
 
     foreach my $ip ( sort keys %guest_ips) {
-            print "ip: $ip ($guest_ips->{$ip}) not in guest table\n";
+            print "ip: $ip ($guest_ips{$ip}) not in guest table\n";
       push @FW_ACTIONS, "$IPFW table $fw_guest_table add $ip";
     }
   }
