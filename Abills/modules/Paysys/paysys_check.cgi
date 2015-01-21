@@ -1650,5 +1650,22 @@ sub load_pay_module {
 }
 
 
+#**********************************************************
+#
+#**********************************************************
+sub conf_gid_split {
+  my ($attr) = @_;
+
+  my $gid    = $attr->{GID};
+  if ($attr->{PARAMS}) {
+    my $params = $attr->{PARAMS};
+    foreach my $key ( @$params ) {
+      if ($conf{$key .'_'. $gid}) {        
+        $conf{$key} = $conf{$key .'_'. $gid};
+      }
+    }
+  }
+}
+
 
 1
