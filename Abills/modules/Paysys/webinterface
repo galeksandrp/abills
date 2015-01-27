@@ -2233,7 +2233,10 @@ sub paysys_liqpay {
   $html->setCookie('lastindex', "$index", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure) if (! $FORM{INTERACT});
   
   #($info{SIGN}, $info{XML_ENCODED}) =  liqpay_make_request({ DOMAIN_ID => $user->{DOMAIN_ID}, %FORM });
-  ($info{SIGN}, $info{BODY}) =  liqpay_make_request2({ DOMAIN_ID => $user->{DOMAIN_ID}, %FORM });
+  ($info{SIGN}, $info{BODY}) =  liqpay_make_request2({ DOMAIN_ID => $user->{DOMAIN_ID}, 
+                                                       GID       => $user->{GID},
+                                                       %FORM });
+
   
   $html->tpl_show(_include('paysys_liqpay_add', 'Paysys'), { %info, %$user });
 }
@@ -3624,6 +3627,26 @@ sub paysys_comepay {
   
   $html->tpl_show(_include('paysys_comepay_add', 'Paysys'), { %info, %$user });
 }
+
+
+#**********************************************************
+#
+#**********************************************************
+sub conf_gid_split {
+  my ($attr) = @_;
+
+  my $gid    = $attr->{GID};
+  if ($attr->{PARAMS}) {
+    my $params = $attr->{PARAMS};
+
+    foreach my $key ( @$params ) {
+      if ($conf{$key .'_'. $gid}) {
+        $conf{$key} = $conf{$key .'_'. $gid};
+      }
+    }
+  }
+}
+
 
 
 1
