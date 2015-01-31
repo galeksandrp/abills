@@ -1976,7 +1976,7 @@ sub build_list {
      LIMIT $PG, $PAGE_ROWS;";
   }
   else {
-    $sql = "SELECT b.number, b.flors, b.entrances, b.flats, s.name, b.added, $self->{SEARCH_FIELDS} b.id FROM builds b
+    $sql = "SELECT b.number, b.flors, b.entrances, b.flats, s.name AS street_name, b.added, $self->{SEARCH_FIELDS} b.id FROM builds b
      LEFT JOIN streets s ON (s.id=b.street_id)
      $WHERE ORDER BY $SORT $DESC
      LIMIT $PG, $PAGE_ROWS;";

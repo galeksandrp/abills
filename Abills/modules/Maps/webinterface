@@ -462,7 +462,6 @@ sub generateImage {
 
       foreach my $line (@$list) {
         next if($line->{map_x} == 0);
-
         $poly_border = new GD::Polygon;
         $poly_border->addPt($line->{map_x},  $line->{map_y});
         $poly_border->addPt($line->{map_x2}, $line->{map_y2});
@@ -646,10 +645,10 @@ sub google_maps_add {
     }
 
     $Maps->{TYPES} = $html->form_select(
-      "TYPES",
+      "TYPE",
       {
-        SELECTED     => $Maps->{TYPES},
-        SEL_ARRAY    => [@TYPES],
+        SELECTED     => $Maps->{TYPE},
+        SEL_ARRAY    => \@TYPES,
         ARRAY_NUM_ID => 0,
         NO_ID        => 1
       }
@@ -693,26 +692,27 @@ sub google_maps_add {
   if ($FORM{add_route}) {
 
     if ($FORM{NAME} ne '') {
+      $Maps->{debug}=1;
       $Maps->add_route({%FORM});
-      if (!$Maps->{errno}) {
-        $html->tpl_show(
-          _include('maps_redirect', 'Maps'),
-          {
-            SECTION => '&route=add',
-            MESSAGE => "$_ADDED",
-          }
-        );
-      }
+      #if (!$Maps->{errno}) {
+      #  $html->tpl_show(
+      #    _include('maps_redirect', 'Maps'),
+      #    {
+      #      SECTION => '&route=add',
+      #      MESSAGE => "$_ADDED",
+      #    }
+      #  );
+      #}
     }
     else {
       $Maps->{ACTION}     = 'add_route';
       $Maps->{ACTION_LNG} = $_ADD;
       $html->message('info', $_INFO, "$_FIELDS_FOR_NAME_ARE_REQUIRED");
       $FORM{TYPES} = $html->form_select(
-        "TYPES",
+        "TYPE",
         {
-          SELECTED     => $FORM{TYPES},
-          SEL_ARRAY    => [@TYPES],
+          SELECTED     => $FORM{TYPE},
+          SEL_ARRAY    => \@TYPES,
           ARRAY_NUM_ID => 0,
           NO_ID        => 1
         }
@@ -1031,7 +1031,7 @@ sub google_maps_show {
     }
   }
   elsif ($FORM{dcoordx} and $FORM{dcoordy}) {
-    $Maps->del_build({ DCOORDX => $FORM{dcoordx}, DCOORDY => $FORM{dcoordy} });
+    $Maps->del_build({ %FORM });
     if (!$Maps->{errno}) {
       $html->tpl_show(_include('maps_redirect', 'Maps'),
         {
