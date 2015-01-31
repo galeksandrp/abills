@@ -1947,6 +1947,7 @@ sub build_list {
     $maps_google_fields = "b.coordx, b.coordy, ";
   }
 
+
   my $WHERE = $self->search_former($attr, [
       ['NUMBER',      'STR', 'b.number'      ],
       ['DISTRICT_ID', 'INT', 's.district_id' ],
