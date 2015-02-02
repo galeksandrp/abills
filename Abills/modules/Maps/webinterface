@@ -206,15 +206,19 @@ sub maps_main {
 sub maps_map_show {
   my ($attr) = @_;
 
-  my $list = $Maps->users_online_list({ PAGE_ROWS => 10000,
-  	                                    COLS_NAME => 1 });
+  require Dv_Sessions;
+  Dv_Sessions->import();
+  my $Dv_sessions = Dv_Sessions->new($db, $admin, \%conf);
+  my $list = $Dv_sessions->online({ USER_NAME => '_SHOW',
+                                    CLIENT_IP => '_SHOW',
+                                    PAGE_ROWS => 100000, 
+                                    COLS_NAME => 1 });
 
   foreach my $line (@$list) {
     push @{ $USERS_ONLINE{ $line->{uid} } }, {
-      LOGIN => $line->{login},
+      LOGIN => $line->{user_name},
+      IP    => $line->{client_ip},
       UID   => $line->{uid},
-      IP    => $line->{ip}
-      #DURATION => $line->[9]
     };
   }
 
@@ -599,6 +603,7 @@ sub google_maps_add {
   }
   elsif ($FORM{add_route_info}) {
     $Maps->add_route_info({%FORM});
+    
     if (!$users->{errno}) {
 
       $html->tpl_show(
@@ -694,17 +699,16 @@ sub google_maps_add {
   if ($FORM{add_route}) {
 
     if ($FORM{NAME} ne '') {
-      $Maps->{debug}=1;
       $Maps->add_route({%FORM});
-      #if (!$Maps->{errno}) {
-      #  $html->tpl_show(
-      #    _include('maps_redirect', 'Maps'),
-      #    {
-      #      SECTION => '&route=add',
-      #      MESSAGE => "$_ADDED",
-      #    }
-      #  );
-      #}
+      if (!$Maps->{errno}) {
+        $html->tpl_show(
+          _include('maps_redirect', 'Maps'),
+          {
+            SECTION => '&route=add',
+            MESSAGE => "$_ADDED",
+          }
+        );
+      }
     }
     else {
       $Maps->{ACTION}     = 'add_route';
@@ -959,9 +963,9 @@ sub google_maps_add {
   elsif (defined($FORM{coordlx})) {
 
     my $ROUTE_ID = $users->{ROUTE_ID} = $html->form_select(
-      "ROUTE_ID",
+      "ROUTES_ID",
       {
-        SELECTED          => $FORM{ROUTE_ID},
+        SELECTED          => $FORM{ROUTES_ID},
         SEL_MULTI_ARRAY   => [ @{ $Maps->list_routes({}) } ],
         MULTI_ARRAY_KEY   => 0,
         MULTI_ARRAY_VALUE => 1,
@@ -1045,13 +1049,20 @@ sub google_maps_show {
   }
   # Set filter cookies
   #Get users online  *****************************************
-  my $list = $Maps->users_online_list({ PAGE_ROWS => 4000, COLS_NAME => 1 });
+
+  require Dv_Sessions;
+  Dv_Sessions->import();
+  my $Dv_sessions = Dv_Sessions->new($db, $admin, \%conf);
+  my $list = $Dv_sessions->online({ USER_NAME => '_SHOW',
+                                    CLIENT_IP => '_SHOW',
+                                    PAGE_ROWS => 100000, 
+                                    COLS_NAME => 1 });
 
   foreach my $line (@$list) {
-    push @{ $USERS_ONLINE{ $line->{UID} } }, {
-      LOGIN => $line->{LOGIN},
-      IP    => $line->{IP},
-      UID   => $line->{UID},
+    push @{ $USERS_ONLINE{ $line->{uid} } }, {
+      LOGIN => $line->{user_name},
+      IP    => $line->{client_ip},
+      UID   => $line->{uid},
     };
   }
 
@@ -1164,7 +1175,7 @@ sub google_maps_show {
     # template 	(maps_location_info)   +++DISTRICT_ID => $attr->{DISTRICT_ID},
     #***********************************************************
     #%ufilter = $html->getCookies();
- 
+
   if($count_online > 0) {
     $sub_online = 1;
   }
@@ -1281,8 +1292,9 @@ sub google_maps_show {
   #-----------show routes --- #
   my $routes_markers = '';
   my $route_info     = "";
-  $list_routes = $Maps->list_routes({});
+  $list_routes = $Maps->list_routes({  });
   foreach my $line2 (@$list_routes) {
+    
     $list_routes_info = $Maps->list_route_info({ ID => $line2->[0] });
 
     if (defined($list_routes_info->[0]->[0])) {

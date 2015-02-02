@@ -1,8 +1,8 @@
 
  
-	var latlng = new google.maps.LatLng(%MAP_Y%, %MAP_X% );
-	var online = '%USERS_ONLINE%';
-	var offline = '%USER_OFFLINE%';
+	var latlng     = new google.maps.LatLng(%MAP_Y%, %MAP_X% );
+	var online     = '%USERS_ONLINE%';
+	var offline    = '%USER_OFFLINE%';
 	var sub_online = '%SUB_ONLINE%';
 	var Mcolor;
 	var thOnline;
