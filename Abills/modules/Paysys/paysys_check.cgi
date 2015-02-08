@@ -324,7 +324,7 @@ elsif (check_ip($ENV{REMOTE_ADDR}, '79.142.16.0/21')) {
   exit;
 }
 #USMP
-elsif (check_ip($ENV{REMOTE_ADDR}, '77.222.138.142,78.30.232.14,77.120.96.58,91.105.201.31')) {
+elsif (check_ip($ENV{REMOTE_ADDR}, '77.222.138.142,78.30.232.14,77.120.96.58,91.105.201.0/24')) {
   load_pay_module('Usmp');
 }
 elsif ($FORM{payment} && $FORM{payment} =~ /pay_way/) {
