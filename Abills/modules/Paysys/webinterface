@@ -694,7 +694,10 @@ sub paysys_payment {
     $html->message('err', $_ERROR, "ERR_BIG_SUM: $conf{PAYSYS_MAX_SUM}");
     goto PRE_LABEL;
   }
-  elsif ($FORM{PAYMENT_SYSTEM} == 41 || $FORM{PAYMENT_SYSTEM} == 85 || $FORM{LMI_PAYMENT_NO}) {
+  elsif ($FORM{PAYMENT_SYSTEM} == 41 || $FORM{PAYMENT_SYSTEM} == 85
+   # || $FORM{LMI_PAYMENT_NO}
+   #
+   ) {
     paysys_webmoney();
   }
   elsif ($FORM{PAYMENT_SYSTEM} == 42) {
@@ -3459,6 +3462,9 @@ sub paysys_paymaster () {
 
   if ($FORM{FALSE}) {
     $html->message('err', $_ERROR, "$_FAILED $_TRANSACTION ID: $FORM{LMI_PAYMENT_NO}");
+  }
+  elsif($FORM{LMI_CLIENT_MESSAGE}) {
+    $html->message('err', $_ERROR, "$FORM{LMI_CLIENT_MESSAGE}");
   }
   elsif ($FORM{LMI_PAYMENT_NO}) {
     my $users = Users->new($db, $admin, \%conf);
