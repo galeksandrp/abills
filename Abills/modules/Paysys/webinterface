@@ -3486,7 +3486,7 @@ sub paysys_paymaster () {
           }
         }
         else {
-          $html->message('err', $_ERROR, "$_FAILED ID: $FORM{LMI_PAYMENT_NO} $_ERR_NO_TRANSACTION");
+          $html->message('err', $_INFO, "$_TRANSACTION_PROCESSING \n ID: $FORM{LMI_PAYMENT_NO}");
         }
       }
     }
