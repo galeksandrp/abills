@@ -1176,21 +1176,22 @@ sub google_maps_show {
     #***********************************************************
     #%ufilter = $html->getCookies();
 
+
+  my $sub_online = '';
   if($count_online > 0) {
     $sub_online = 1;
   }
   
   if($FORM{UFILTER} == 1) {
-    $user_info = '';
+    $user_info     = '';
     $count_offline = ''
   }
   elsif($FORM{UFILTER} == 2) {
     $count_online = '';
-    $user_online = '';
+    $user_online  = '';
   } 
 
-
-    $tpl_obj .= $html->tpl_show(
+  $tpl_obj .= $html->tpl_show(
       _include('google_location_info', 'Maps'),
       {
         STREET_ID          => $line->{street_name},
@@ -1203,7 +1204,6 @@ sub google_maps_show {
         USER_COUNT_ONLINE  => $count_online,
         SUB_ONLINE         => $sub_online,
         BUILD_ID           => $line->{id}
-
       },
       { OUTPUT2RETURN => 1 }
     );
