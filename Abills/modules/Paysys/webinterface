@@ -686,6 +686,21 @@ sub paysys_payment {
     }
   }
 
+  if($FORM{INTERACT}) {
+    if(! $FORM{UID}) {
+      $info{MESSAGE} = $html->message('err', $_ERROR, "$_ENTER UID", { OUTPUT2RETURN => 1 });
+      goto PRE_LABEL;
+    }
+    else {
+      my $list = $users->list({ UID => $FORM{UID} });
+      if ($users->{TOTAL} == 0) {
+        $info{MESSAGE} = $html->message('err', $_ERROR, "$_USER_NOT_EXIST", { OUTPUT2RETURN => 1 });
+        goto PRE_LABEL;
+      }
+    }
+  }
+
+
   if ($conf{PAYSYS_MIN_SUM} && $FORM{SUM}>0 && $conf{PAYSYS_MIN_SUM} > $FORM{SUM}  ) {
     $html->message('err', $_ERROR, "$_TARIF_PLAN_SUM $conf{PAYSYS_MIN_SUM}");
     goto PRE_LABEL;
