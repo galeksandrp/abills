@@ -569,7 +569,7 @@ if ($begin_time > 0) {
 
 print "</td></tr>";
 print "</table>\n";
-print $html->tpl_show(templates('footer'), $admin, { OUTPUT2RETURN => 1 });
+print $html->tpl_show(templates('footer'), $admin, { OUTPUT2RETURN => 1, ID => 'footer' }) if (! $FORM{xml});
 $html->test();
 
 #**********************************************************
