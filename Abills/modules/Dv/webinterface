@@ -6073,13 +6073,12 @@ sub dv_users_warning_messages {
     return 0;
   }
 
-
   my $debug = $attr->{DEBUG} || 0;
   my $debug_output = '';
   $debug_output .= "DV: Daily warning messages\n" if ($debug > 1);
 
   my %LIST_PARAMS     = (USERS_WARNINGS => 1);
-  $LIST_PARAMS{ALERT_PERIOD}=$conf{DV_ALERT_REDIRECT} if ($conf{DV_ALERT_REDIRECT});
+  $LIST_PARAMS{ALERT_PERIOD}=$conf{DV_ALERT_REDIRECT_DAYS} if ($conf{DV_ALERT_REDIRECT_DAYS});
   $LIST_PARAMS{LOGIN} = $attr->{LOGIN} if ($attr->{LOGIN});
   $Dv->{debug}=1 if($debug > 5);
   my $dv_list         = $Dv->list({ %LIST_PARAMS, 
@@ -6097,12 +6096,11 @@ sub dv_users_warning_messages {
     return $debug_output;
   }
 
-  my @allert_redirect_days = split(/,\s?/, $conf{DV_ALERT_REDIRECT} || '');
+  my @allert_redirect_days = split(/,\s?/, $conf{DV_ALERT_REDIRECT_DAYS} || '');
   
   foreach my $u (@$dv_list) {
     my $type='email';
     my $email = ((!defined($u->{EMAIL})) || $u->{EMAIL} eq '') ? (($conf{USERS_MAIL_DOMAIN}) ? "$u->{LOGIN}\@$conf{USERS_MAIL_DOMAIN}" : '') : "$u->{EMAIL}";
-    if ($email eq '') { next; }
 
     if($conf{DV_ALERT_REDIRECT_FILTER} && in_array($u->{to_next_period}, \@allert_redirect_days)) {
       $type='redirect';
@@ -6111,6 +6109,7 @@ sub dv_users_warning_messages {
                   });
     }
 
+    if ($email eq '') { next; }
     my $info = sprintf("%-14s| %4d|%-20s| %9.4f| %8.2f| %6s|\n", $u->{login}, 
        $u->{tp_num}, 
        $u->{tp_name}, 

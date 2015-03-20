@@ -6152,7 +6152,7 @@ sub form_payments () {
     return 0 if ($attr->{REGISTRATION} && $FORM{add});
 
     #exchange rate sel
-    my $er_list   = $payments->exchange_list({%FORM, COLS_NAME => 1 });
+    my $er_list   = $payments->exchange_list({%FORM, COLS_NAME => 1, PAGE_ROWS => 60 });
     my %ER_ISO2ID = ();
     foreach my $line (@$er_list) {
       $ER_ISO2ID{ $line->{iso} } = $line->{id};
