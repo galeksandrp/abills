@@ -16,6 +16,7 @@ $_BUILD
 $DATE
 $TIME
 $sid
+$db
 );
 
 BEGIN {
@@ -55,7 +56,7 @@ use Sharing;
 $html = Abills::HTML->new({ CONF => \%conf, NO_PRINT => 1, });
 
 my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd}, { CHARSET => ($conf{dbcharset}) ? $conf{dbcharset} : undef });
-my $db = $sql->{db};
+$db = $sql->{db};
 $sid = '';
 
 if ($conf{LANGS}) {
@@ -75,8 +76,6 @@ my $admin = Admins->new($db, \%conf);
 $admin->info($conf{SYSTEM_ADMIN_ID}, { IP => '127.0.0.1' });
 my $payments = Finance->payments($db, $admin, \%conf);
 $users = Users->new($db, $admin, \%conf);
-
-
 #my $Paysys = Paysys->new($db, undef, \%conf);
 
 if (! @REGISTRATION) {
