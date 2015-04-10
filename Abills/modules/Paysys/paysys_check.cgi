@@ -239,6 +239,16 @@ my %ip_binded_system = (
 
 );
 
+
+#Test system
+if ($conf{PAYSYS_TEST_SYSTEM}) {
+  my ($ips, $pay_system)=split(/:/, $conf{PAYSYS_TEST_SYSTEM});
+  if (check_ip($ENV{REMOTE_ADDR}, "$ips")) {
+    load_pay_module($pay_system);
+    exit;
+  }
+}
+
 foreach my $params ( keys %ip_binded_system) {
 	my $ips = $params;
 	if (check_ip($ENV{REMOTE_ADDR}, "$ips")) {

@@ -1,3 +1,12 @@
+=====0.58=====
+
+12.03.2015 \\
+
+  * Добавлен автоматический инсталятор install.sh
+  * улучшено отображение предупреждений об оплате за интернет
+  * улучшено отображение документов для печати
+  * переделана работа с PrivatBank Privat 24
+
 =====0.57=====
 
 12.11.2014 \\
@@ -123,7 +132,7 @@ MySQL:\\
     comment  varchar(20) NOT NULL default '',
     uid int unsigned NOT NULL default 0,
     KEY uid(uid)
-  ) COMMENT 'Voip ivr log'
+  ) COMMENT 'Voip ivr log';
 
 24.02.2014\\
   * ''Docs'' Новые переменнЫе шаблонов счетов
