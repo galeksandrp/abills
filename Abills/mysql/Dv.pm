@@ -209,6 +209,7 @@ sub change {
   }
 
   $attr->{DISABLE}=$attr->{STATUS};
+  $attr->{EXPIRE}=$attr->{DV_EXPIRE};
 
   my $old_info = $self->info($attr->{UID});
   $self->{OLD_STATUS} = $old_info->{STATUS};
