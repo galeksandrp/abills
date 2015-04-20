@@ -318,7 +318,9 @@ my @service_status_colors = ("$_COLORS[9]", "$_COLORS[6]", '#808080', '#0000FF',
 #Add modules
 foreach my $m (@MODULES) {
   next if ($admin->{MODULES} && !$admin->{MODULES}{$m});
-  require "Abills/modules/$m/config";
+  
+  load_module("$m", { %$html, CONFIG_ONLY => 1 });
+  
   my %module_fl = ();
 
   my @sordet_module_menu = sort keys %FUNCTIONS_LIST;
@@ -611,8 +613,13 @@ sub check_permissions {
           my ($k, $v) = split(/=/, $line);
           $admin->{WEB_OPTIONS}{$k} = $v;
           $html->{$k}=$v;
+          if($admin->{WEB_OPTIONS}{PAGE_ROWS} ) {
+            $PAGE_ROWS = $admin->{WEB_OPTIONS}{PAGE_ROWS};
+            $LIST_PARAMS{PAGE_ROWS}=$PAGE_ROWS;
+          }
         }
       }
+
 
       $sid          = $session_sid;
       $admin->{SID} = $session_sid;
@@ -2246,15 +2253,18 @@ sub form_users {
         print "</td></table>\n";
         return 0;
       }
-      elsif (!$permissions{0}{9} && $user_info->{CREDIT} != $FORM{CREDIT}) {
+
+      if (!$permissions{0}{9} && defined($user_info->{CREDIT}) && $user_info->{CREDIT} != $FORM{CREDIT}) {
         $html->message('err', $_ERROR, "$_CHANGE $_CREDIT $ERR_ACCESS_DENY");
-        $FORM{CREDIT} = undef;
+        delete($FORM{CREDIT});
       }
-      elsif (!$permissions{0}{11} && $user_info->{REDUCTION} != $FORM{REDUCTION}) {
+
+      if (!$permissions{0}{11} && defined($FORM{REDUCTION}) && $user_info->{REDUCTION} != $FORM{REDUCTION}) {
         $html->message('err', $_ERROR, "$_REDUCTION $ERR_ACCESS_DENY");
-        $FORM{REDUCTION} = undef;
+        delete($FORM{REDUCTION});
       }
-      elsif ($permissions{0}{13} && $user_info->{DISABLE} == 2) {
+
+      if ($permissions{0}{13} && $user_info->{DISABLE} == 2) {
         $FORM{DISABLE} = 2;
       }
 

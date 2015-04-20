@@ -26,6 +26,11 @@ sub load_module {
     require $lang_file;
   }
 
+  if ($attr->{CONFIG_ONLY}) {
+    require "Abills/modules/$module/config";
+    return 0;
+  }
+
   eval{ require "Abills/modules/$module/webinterface" };
 
   if ($@) {
