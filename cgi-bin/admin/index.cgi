@@ -59,6 +59,8 @@ use Abills::SQL;
 use Abills::HTML;
 use Nas;
 use Admins;
+use Data::Dumper;
+
 
 my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd}, { CHARSET => ($conf{dbcharset}) ? $conf{dbcharset} : undef });
 
@@ -280,7 +282,11 @@ my @actions = (
   [$_PROFILE],
   [ $_LIST, $_ADD, $_CHANGE, $_DEL ],
 );
+if (in_array('Callcenter', \@MODULES)) {
+  $actions[0]->[15] = "$_OPERATOR_CALL_CENTER";
+}
 
+#"OPERATOR CALL-CENTER"
 if ($admin->{GIDS}) {
   #$LIST_PARAMS{GIDS} = $admin->{GIDS};
 }
@@ -436,6 +442,15 @@ if (($FORM{UID} && $FORM{UID} =~ /^(\d+)$/ && $FORM{UID} > 0) || ($FORM{LOGIN} &
   }
 }
 
+if ($FORM{SIP_NUMBER}) {
+  $admin->{SIP_NUMBER} = $FORM{SIP_NUMBER};
+}
+if (in_array('Callcenter', \@MODULES)) {
+  $admin->{QINDEX} = get_function_index('callcenter_users_phone');
+}
+else {
+  $permissions{0}{15} = 0;
+}
 print $html->header();
 my ($menu_text, $navigat_menu) = mk_navigator();
 ($admin->{ONLINE_USERS}, $admin->{ONLINE_COUNT}) = $admin->online({ SID => $sid });
@@ -2184,6 +2199,29 @@ sub user_pi {
       }
     );
     $user_pi->{ADDRESS_TPL} = $html->tpl_show(templates('form_address'), $user_pi, { OUTPUT2RETURN => 1 });
+  }
+  if (in_array('Callcenter', \@MODULES)) {
+    load_module('Callcenter', $html);
+    my $Callcenter = Callcenter->new($db, $admin, \%conf);
+    $user_phones = $Callcenter->list({UID => $user_pi->{UID}, FUNC => USERS_PHONE,  COLS_NAME => 1, COLS_UPPER=> 1});
+    $user_pi->{QINDEX} = get_function_index('callcenter_users_phone');
+    $user_pi->{SIP_NUMBER} = $admin->{SIP_NUMBER};
+
+    my $i = 1;
+    foreach my $line (@{$user_phones}) {
+      $user_pi->{PHONES} .= "<tr><td colspan=2 >
+         <input type=hidden id=id\_$i name=id\_$i value=\"$line->{ID}\">
+         $_PHONE: \
+         <input id=phone\_$i class=phone size=10 type=text value=\"$line->{PHONE}\" name=PHONE\_$i>
+         <input id=name\_$i size=10 type=text value=\"$line->{NAME}\" name=NAME\_$i>
+         <a class=link_button href=# onclick=\"remphone($i); return false;\">$_DEL</a>
+         <a class=link_button href=# onclick=\"savephone($i); return false;\">$_SAVE</a></td></tr>
+        ";
+      $i++;
+    }
+    $user_pi->{PHONES} .= "<tr id=\"last_row\"></tr>";
+    $user_pi->{PHONES} .= "<tr add ><td colspan=2  align='right'><a class=link_button href=# onclick=\"addphone(); return false;\">$_ADD $_PHONE</a></td></tr>";
+
   }
 
   $html->tpl_show(templates('form_pi'), { %$attr, UID => $LIST_PARAMS{UID}, %$user_pi, }, { ID => 'form_pi' });
