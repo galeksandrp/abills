@@ -7848,6 +7848,11 @@ sub form_templates {
     $info{TEMPLATE} =~ s/"/\\"/g;
     $info{TEMPLATE} =~ s/\@/\\@/g;
 
+    unless ($FORM{tpl_name} =~ /^([-\@\w.]+)$/) {
+      $html->message('err', $_ERROR, "Security error.\n");
+      return 0;
+    }
+
     if (open(FILE, ">$conf{TPL_DIR}/$FORM{tpl_name}")) {
       print FILE "$info{TEMPLATE}";
       close(FILE);
@@ -7884,6 +7889,11 @@ sub form_templates {
     }
   }
   elsif ($FORM{tpl_name}) {
+    unless ($FORM{tpl_name} =~ /^([-\@\w.]+)$/) {
+      $html->message('err', $_ERROR, "Security error.\n");
+      return 0;
+    }
+
     show_tpl_info("$conf{TPL_DIR}/$FORM{tpl_name}");
 
     if (-f "$conf{TPL_DIR}/$FORM{tpl_name}") {

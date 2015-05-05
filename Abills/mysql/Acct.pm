@@ -128,7 +128,7 @@ sub accounting {
     else { #if($RAD->{ACCT_SESSION_TIME} && $RAD->{ACCT_SESSION_TIME} > 2) {
       #Get TP_ID
       $self->query2("SELECT u.uid, dv.tp_id, dv.join_service FROM (users u, dv_main dv)
-       WHERE u.uid=dv.uid and u.id='$RAD->{USER_NAME}';"
+       WHERE u.uid=dv.uid and u.id='$RAD->{USER_NAME}' FOR UPDATE;"
       );
       if ($self->{TOTAL} > 0) {
         ($self->{UID},
