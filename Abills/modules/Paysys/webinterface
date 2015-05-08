@@ -1193,6 +1193,14 @@ sub paysys_ukrpays () {
   my %info = (UID => $LIST_PARAMS{UID},
               FIO => $user->{FIO} );
 
+  conf_gid_split({ GID    => $user->{GID}, 
+                   PARAMS => [
+                         'PAYSYS_UKRPAYS_SERVICE_ID',
+                      ],
+                 });
+
+
+
   $info{AMOUNT} = sprintf("%.2f", $FORM{SUM});
   $conf{PAYSYS_UKRPAYS_URL} = 'https://ukrpays.com/frontend/frontend.php' if (!$conf{PAYSYS_UKRPAYS_URL});
 
