@@ -11,7 +11,7 @@
 <tr><td class=line colspan=2> </td></tr>
 
 
-<div style=\"display: none;\">
+<div style='display: none;'>
   <div class=\"box-modal\" id=\"Modal\">
     <div class=\"box-modal_close arcticmodal-close\">$_CLOSE</div>
     <strong>$_ENTER_YOUR SIP $_NUM.</strong>

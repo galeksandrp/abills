@@ -1869,6 +1869,8 @@ sub tpl_show {
       #     }
       #    els
 
+      $variables_ref->{$var} =~ s/%$var%//g;
+
       if ($attr->{SKIP_VARS} && $attr->{SKIP_VARS} =~ /$var/) {
       }
       elsif ($default && $default =~ /expr:(.*)/) {
