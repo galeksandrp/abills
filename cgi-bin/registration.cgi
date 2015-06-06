@@ -144,13 +144,15 @@ elsif ($#REGISTRATION > -1) {
 
       my $number_of_characters = 5;
 
-      my $md5sum               = $INFO_HASH{CAPTCHA_OBJ}->generate_code($number_of_characters);
+      my $md5sum  = eval{ return $INFO_HASH{CAPTCHA_OBJ}->generate_code($number_of_characters) };
 
-      if ($@) {
+      if (! $md5sum) {
         print "Content-Type: text/html\n\n";
+        print "Can't make captcha\n";
         print $@;
         exit;
       }
+
       $INFO_HASH{CAPTCHA} = "
        <input type=hidden name=C value=$md5sum>
        <tr><td align=right><img src='/captcha/" . $md5sum . ".png'></td><td><input type='text' name='CCODE'></td></tr>";
