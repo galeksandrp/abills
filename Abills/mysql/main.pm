@@ -116,7 +116,12 @@ sub query2 {
   my ($query, $type, $attr) = @_;
 
   my $db = $self->{db};
- 
+
+  if ($self->{db}->{db}) {
+    #$self->{dbo}=$self->{db};
+    $db = $self->{db}->{db};
+  }
+
   if ( $attr->{DB_REF} ) {
     $db = $attr->{DB_REF};
   }
@@ -532,7 +537,9 @@ sub changes {
   my %DATA         = $self->get_data($attr->{DATA});
   my $db           = $self->{db};
 
-
+  if ($self->{db}->{db}) {
+    $db = $self->{db}->{db};
+  }
 
   if (!$DATA{UNCHANGE_DISABLE}) {
     $DATA{DISABLE} = (defined($DATA{'DISABLE'}) && $DATA{DISABLE} ne '') ? $DATA{DISABLE} : undef;
@@ -1088,19 +1095,59 @@ sub search_expr_users () {
   return \@fields;
 }
 
+
+#**********************************************************
+#
+#**********************************************************
+sub query_del {
+  my $self = shift;
+  my ($table, $values, $extended_params)=@_;
+
+  my @WHERE_FIELDS = ();
+  my @WHERE_VALUES = ();
+
+  if ($values->{ID}) {
+        my @id_arr = split(/,/, $values->{ID});
+    push @WHERE_FIELDS, "id IN (". join(',', map { '?' } @id_arr) .')';
+    push @WHERE_VALUES, @id_arr;
+  }
+
+  while(my ($k, $v) = each %$extended_params) {
+        if (defined($v)) {
+      push @WHERE_FIELDS, "$k = ?";
+      push @WHERE_VALUES, $v;
+    }
+  }
+
+  if ($#WHERE_FIELDS == -1) {
+        return $self;
+  }
+
+  $self->query2("DELETE FROM `$table` WHERE ". join(' AND ', @WHERE_FIELDS),
+    'do', { Bind => \@WHERE_VALUES });
+
+  return $self;
+}
+
+
+
 #**********************************************************
 #
 #**********************************************************
 sub query_add {
   my $self = shift;
   my ($table, $values, $attr)=@_;
-  
+
   my $db=$self->{db};
+
+  if ($self->{db}->{db}) {
+    $db = $self->{db}->{db};
+  }
 
   my $q = $db->column_info(undef, undef, $table, '%');
   $q->execute();
   my @inserts_arr = ();
-  
+
   while (defined(my $row = $q->fetchrow_hashref())) {
     my $column = uc($row->{COLUMN_NAME});
     if ($values->{$column}) {

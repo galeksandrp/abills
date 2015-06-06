@@ -42,7 +42,46 @@ sub load_module {
   return 0;
 }
 
+#**********************************************************
+# load_pmodule($modulename, \%HASH_REF);
+#**********************************************************
+sub load_pmodule {
+  my ($name, $attr) = @_;
 
+  eval " require $name ";
+
+  my $result = '';
+
+if (!$@) {
+  if ($attr->{IMPORT}) {
+    $name->import( $attr->{IMPORT} );
+  }
+  else {
+    $name->import();
+  }
+}
+else {
+  $result = "Content-Type: text/html\n\n" if ($user->{UID} || $attr->{HEADER});
+  $result .= "Can't load '$name'\n".
+        " Install Perl Module <a href='http://abills.net.ua/wiki/doku.php/abills:docs:manual:soft:$name'>$name</a> \n".
+        " Main Page <a href='http://abills.net.ua/wiki/doku.php/abills:docs:other:ru?&#ustanovka_perl_modulej'>Perl modules installation</a>\n".
+        " or install from <a href='http://www.cpan.org'>CPAN</a>\n"; 
+
+  $result .= "$@" if ($attr->{DEBUG});
+
+  #print "Purchase this module http://abills.net.ua";
+  if ($attr->{SHOW_RETURN}) {
+    return $result;
+  }
+  elsif (! $attr->{RETURN} ) {
+    print $result;
+    exit;
+  }
+
+  print $result;
+}
+
+}
 
 
 #**********************************************************
@@ -299,7 +338,7 @@ sub service_get_month_fee {
         }
       );
       $total_sum{ACTIVATE} = $Service->{TP_INFO}->{ACTIV_PRICE};
-      $html->message('info', $_INFO, "$_ACTIVATE $_TARIF_PLAN") if ($html);
+      $html->message('info', $_INFO, "$_ACTIVATE $_TARIF_PLAN") if ($html && !  $attr->{QUITE} );
     }
   }
 
@@ -926,7 +965,7 @@ sub get_fees_types {
       $FORM{DESCRIBE} = $line->[2] if ($line->[2]);
     }
 
-    $FEES_METHODS{ $line->[0] } = (($line->[1] =~ /\$/) ? eval($line->[1]) : $line->[1]) . (($line->[3] > 0) ? (($attr->{SHORT}) ? ":$line->[3]" : " ($_SERVICE $_PRICE: $line->[3])") : '');
+    $FEES_METHODS{ $line->[0] } = (($line->[1] =~ /\$/) ? _translate($line->[1]) : $line->[1]) . (($line->[3] > 0) ? (($attr->{SHORT}) ? ":$line->[3]" : " ($_SERVICE $_PRICE: $line->[3])") : '');
   }
 
   return \%FEES_METHODS;
@@ -956,6 +995,255 @@ sub mk_log {
     print "Content-Type: text/plain\n\n";
     print "Can't open log file '$paysys_log_file' $!\n";
   }
+}
+
+
+#**********************************************************
+#
+# form_purchase_module($attr)
+#**********************************************************
+sub form_purchase_module {
+  my ($attr) = @_;
+
+  my $module = $attr->{MODULE};
+
+  eval { require $module.'.pm'; };
+
+  if (!$@) {
+    $module->import();
+    my $mod_version = $module."::VERSION";
+    my $module_version = ${ $mod_version } || 0;
+
+    if ($attr->{DEBUG}) {
+      if ($attr->{HEADER}) {
+         print "Content-Type: text/html\n\n";
+      }
+      print "Version: $module_version";
+    }
+
+    if ($attr->{REQUIRE_VERSION}) {
+      if ($module_version < $attr->{REQUIRE_VERSION}) {
+ 	      if ($attr->{HEADER}) {
+           print "Content-Type: text/html\n\n";
+        }
+
+        $html->message('info', "UPDATE", "Please update module '". $attr->{MODULE} . "' to version $attr->{REQUIRE_VERSION} or higher. http://abills.net.ua/");
+        return 1;
+      }
+    }
+  }
+  else {
+    if ($attr->{HEADER}) {
+      print "Content-Type: text/html\n\n";
+    }
+
+    print "<div><p>модуль '$attr->{MODULE}' не установлен в системе, по вопросам приобретения модуля обратитесь к разработчику
+    <a href='http://abills.net.ua' target=_newa>ABillS.net.ua</a>
+    </p>
+    <p>
+    Purchase this module '$attr->{MODULE}'. </p>
+    <p>
+    For more information visit <a href='http://abills.net.ua' target=_newa>ABillS.net.ua</a>
+    </p>
+    </div>";
+
+    if ($attr->{DEBUG}) {
+      print "<p>";
+      print $@;
+      print "</p>";
+    }
+
+    return 1;
+  }
+
+  return 0;
+}
+
+
+#**********************************************************
+# Check ip
+#**********************************************************
+sub check_ip {
+  my ($require_ip, $ips) = @_;
+
+  $ips =~ s/ //g;
+  my $mask           = 0b0000000000000000000000000000001;
+  my @ip_arr         = split(/,/, $ips);
+  my $require_ip_num = ip2int($require_ip);
+
+  foreach my $ip (@ip_arr) {
+    if ($ip =~ /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/) {
+      if ($require_ip eq "$ip") {
+        return 1;
+      }
+    }
+    elsif ($ip =~ /^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\/(\d+)/) {
+      $ip = $1;
+      my $bit_mask = $2;
+      my $first_ip = ip2int($ip);
+      my $last_ip  = ip2int($ip) + sprintf("%d", $mask << (32 - $bit_mask));
+
+      if ($require_ip_num >= $first_ip && $require_ip_num <= $last_ip) {
+        return 1;
+      }
+    }
+  }
+
+  return 0;
+}
+
+#**********************************************************
+#
+#**********************************************************
+sub _translate {
+	my ($text) = @_;
+
+  if ($text =~ /\"/) {
+  	return $text;
+  }
+
+	$text = eval "\"$text\"";
+
+	return $text;
+}
+
+#**********************************************************
+#
+#**********************************************************
+sub web_request {
+ my ($request, $attr)=@_;
+
+my $res;
+my $host='';
+my $port=80;
+my $debug = $attr->{DEBUG} || 0;
+
+if ($request =~ /^https/ || $attr->{CURL}) {
+  my $CURL = $conf{FILE_CURL} || `which curl` || '/usr/local/bin/curl';
+  my $result ='';
+  my $request_url    = $request;
+  my $request_params = '';
+  my $curl_options   = $attr->{CURL_OPTIONS} || '';
+  
+  my @request_params_arr = ();
+  if ($attr->{REQUEST_PARAMS}) {
+    foreach my $k ( keys %{ $attr->{REQUEST_PARAMS} } ) {
+    	$attr->{REQUEST_PARAMS}->{$k} =~ s/ /+/g;
+      $attr->{REQUEST_PARAMS}->{$k} =~ s/([^A-Za-z0-9\+-])/sprintf("%%%02X", ord($1))/seg;
+    	push @request_params_arr, "$k=$attr->{REQUEST_PARAMS}->{$k}";
+    }
+  }
+
+  if ($#request_params_arr > -1 ) {
+  	$request_params = join('&', @request_params_arr);
+    $request_params = "-d \"$request_params\" ";
+  }
+
+  $request_url    =~ s/ /%20/g;
+  $request_url    =~ s/"/\\"/g;
+
+  my $request_cmd =  qq{ $CURL $curl_options -s "$request_url" $request_params };
+
+  $result = `$request_cmd` if ($debug < 7);
+   
+  if ($debug) {
+   	print "=====REQUEST=====<br>\n";
+   	print "<textarea cols=90 rows=10>$request_cmd</textarea><br>\n";
+   	print "=====RESPONCE=====<br>\n";
+   	print "<textarea cols=90 rows=15>$result</textarea>\n";
+  }
+
+  if ($attr->{JSON_RETURN}) {
+  	my $json = $attr->{JSON_RETURN};
+    my $perl_scalar = $json->decode( $result );
+    if($perl_scalar->{status} && $perl_scalar->{status} eq 'error') {
+  	  $self->{errno}=1;
+  	  $self->{errstr}="$perl_scalar->{message}";
+    }
+  }
+
+  return $result;
+}
+
+require Socket;
+Socket->import();
+require IO::Socket;
+IO::Socket->import();
+require IO::Select;
+IO::Select->import();
+
+$request =~ /http:\/\/([a-zA-Z.-]+)\/(.+)/;
+$host    = $1; 
+$request = '/'.$2;
+
+if ($host =~ /:/) {
+  ($host, $port)=split(/:/, $host, 2);
+}
+
+$request =~ s/ /%20/g;
+$request = "GET $request HTTP/1.0\r\n";
+$request .= ($attr->{'User-Agent'}) ? $attr->{'User-Agent'} : "User-Agent: Mozilla/4.0 (compatible; MSIE 5.5; Windows 98;Win 9x 4.90)\r\n"; 
+$request .= "Accept: text/html, image/png, image/x-xbitmap, image/gif, image/jpeg, */*\r\n";
+$request .= "Accept-Language: ru\r\n";
+$request .= "Host: $host\r\n";
+$request .= "Content-type: application/x-www-form-urlencoded\r\n";
+$request .= "Referer: $attr->{'Referer'}\r\n" if ($attr->{'Referer'});
+# $request .= "Connection: Keep-Alive\r\n";
+$request .= "Cache-Control: no-cache\r\n";
+$request .= "Accept-Encoding: *;q=0\r\n";
+$request .= "\r\n";
+ 
+print $request if ($attr->{debug});
+
+my $timeout = defined($attr->{'TimeOut'}) ? $attr->{'TimeOut'} : 5;
+my  $socket = new IO::Socket::INET(
+        PeerAddr => $host,
+        PeerPort => $port,
+        Proto    => 'tcp',
+        TimeOut  => $timeout
+); # or log_print('LOG_DEBUG', "ERR: Can't connect to '$host:$port' $!");
+  
+if (! $socket) {
+  return '';
+}
+
+$socket->send("$request");
+  while(<$socket>) {
+    $res .= $_;
+  }
+  my ($header, $content) = split(/\n\n/, $res); 
+close($socket);
+
+#print $header;
+if ($header =~ /HTTP\/1.\d 302/ ) {
+  $header =~ /Location: (.+)\r\n/;
+
+  my $new_location = $1;
+  if ($new_location !~ /^http:\/\//) {
+    $new_location="http://$host".$new_location;
+  }
+
+  $res = web_request($new_location, { Referer => "$request" });
+}
+
+if ($res =~ /\<meta\s+http-equiv='Refresh'\s+content='\d;\sURL=(.+)'\>/ig) {
+  my $new_location = $1;
+  if ($new_location !~ /^http:\/\//) {
+    $new_location="http://$host".$new_location;
+  }
+
+  $res = web_request($new_location, { Referer => "$new_location" });
+}
+
+if ($debug > 2) {
+  print "<br>Plain request:<textarea cols=80 rows=8>$request\n\n$res</textarea><br>\n";  
+}
+
+if ($attr->{BODY_ONLY}) {
+  (undef, $res)= split(/\r?\n\r?\n/, $res, 2);
+}
+
+  return $res;
 }
 
 

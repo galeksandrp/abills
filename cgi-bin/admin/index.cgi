@@ -2114,7 +2114,7 @@ sub user_pi {
     }
 
     $user_pi->{INFO_FIELDS} .= $html->element('tr', 
-        $html->element('td', (eval "\"$name\"")).
+        $html->element('td', ( _translate($name)  )).
         $html->element('td', $input, { valign=>'center' }),
       #{ ID => "$field_id"  }
     );
@@ -6649,33 +6649,9 @@ sub form_fees_types {
   foreach my $line (@$list) {
     my $delete = $html->button($_DEL, "index=$index$pages_qs&del=$line->[0]", { MESSAGE => "$_DEL [$line->[0]]?", CLASS => 'del' });
 
-    $table->addrow($line->[0], ($line->[1] =~ /\$/) ? eval($line->[1]) : $line->[1], "$line->[2]", "$line->[3]", $html->button($_CHANGE, "index=$index&chg=$line->[0]", { CLASS => 'change' }), $delete);
+    $table->addrow($line->[0], ($line->[1] =~ /\$/) ? _translate($line->[1]) : $line->[1], "$line->[2]", "$line->[3]", $html->button($_CHANGE, "index=$index&chg=$line->[0]", { CLASS => 'change' }), $delete);
   }
   print $table->show();
-}
-
-#**********************************************************
-# get_fees_types
-#
-# return $Array_ref
-#**********************************************************
-sub get_fees_types {
-  my ($attr) = @_;
-
-  use Finance;
-  my %FEES_METHODS = ();
-  my $fees         = Finance->fees($db, $admin, \%conf);
-  my $list         = $fees->fees_type_list({ PAGE_ROWS => 10000 });
-  foreach my $line (@$list) {
-    if ($FORM{METHOD} && $FORM{METHOD} == $line->[0] && ! $FORM{search}) {
-      $FORM{SUM}      = $line->[3] if ($line->[3] > 0);
-      $FORM{DESCRIBE} = $line->[2] if ($line->[2]);
-    }
-
-    $FEES_METHODS{ $line->[0] } = (($line->[1] =~ /\$/) ? eval($line->[1]) : $line->[1]) . (($line->[3] > 0) ? (($attr->{SHORT}) ? ":$line->[3]" : " ($_SERVICE $_PRICE: $line->[3])") : '');
-  }
-
-  return \%FEES_METHODS;
 }
 
 #**********************************************************
@@ -7360,7 +7336,7 @@ sub form_search {
             $input = $html->form_input($field_id, "$FORM{$field_id}", { SIZE => 40 });
           }
 
-          $info{INFO_FIELDS} .= "<tr><td colspan='2'>" . (eval "\"$name\"") . ":</td><td>$input</td></tr>\n";
+          $info{INFO_FIELDS} .= "<tr><td colspan='2'>" . (_translate($name)) . ":</td><td>$input</td></tr>\n";
           $i++;
         }
 
@@ -7457,7 +7433,7 @@ sub form_search {
             $input = $html->form_input($field_id, "$FORM{$field_id}", { SIZE => 40 });
           }
 
-          $info{INFO_FIELDS} .= "<tr><td colspan='2'>" . (eval "\"$name\"") . ":</td><td>$input</td></tr>\n";
+          $info{INFO_FIELDS} .= "<tr><td colspan='2'>" . (_translate($name)) . ":</td><td>$input</td></tr>\n";
           $i++;
         }
 
