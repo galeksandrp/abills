@@ -2201,6 +2201,7 @@ sub paysys_privatbank_p24 {
 # User portal payments system with LiqPAY
 #**********************************************************
 sub paysys_liqpay {
+
   paysys_load('Liqpay');
 
   my %info = ();
@@ -2236,7 +2237,7 @@ sub paysys_liqpay {
         SUM            => $FORM{SUM},
         COMMISSION     => $info{COMMISSION_SUM},
         UID            => $LIST_PARAMS{UID},
-        IP             => "$ENV{'REMOTE_ADDR'}",
+        IP             => $ENV{'REMOTE_ADDR'},
         TRANSACTION_ID => "Liqpay:$FORM{OPERATION_ID}",
         INFO           => '-',
         PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}",
@@ -2268,9 +2269,16 @@ sub paysys_liqpay {
 
   $html->setCookie('lastindex', "$index", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure) if (! $FORM{INTERACT});
 
-  ($info{SIGN}, $info{BODY}) =  liqpay_make_request2({ DOMAIN_ID => $user->{DOMAIN_ID}, 
+  if ($conf{PAYSYS_LIQPAY_V2}) {
+    ($info{SIGN}, $info{BODY}) =  liqpay_make_request2({ DOMAIN_ID => $user->{DOMAIN_ID}, 
                                                        GID       => $user->{GID},
                                                        %FORM });
+  }
+  else {
+    ($info{SIGN}, $info{BODY}) =  liqpay_make_request3({ DOMAIN_ID => $user->{DOMAIN_ID}, 
+                                                       GID       => $user->{GID},
+                                                       %FORM });
+  }
 
   $html->tpl_show(_include('paysys_liqpay_add', 'Paysys'), { %info, %$user });
 }

@@ -285,7 +285,6 @@ sub service_get_month_fee {
     my $Bonus_rating = Bonus_rating->new($Service->{db}, $admin, \%conf);
     $Bonus_rating->info($Service->{TP_INFO}->{TP_ID});
 
-
     if ($Bonus_rating->{TOTAL} > 0) {
       my $bonus_sum = 0;
       if ($FORM{add} && $Bonus_rating->{ACTIVE_BONUS} > 0) {
@@ -323,8 +322,10 @@ sub service_get_month_fee {
   if (! $users->{BILL_ID}) {
     $user  = $users->info($Service->{UID});
   }
+
   #Get active price
   if ($Service->{TP_INFO}->{ACTIV_PRICE} > 0) {
+    
     my $date  = ($user->{ACTIVATE} ne '0000-00-00') ? $user->{ACTIVATE} : $DATE;
     my $time  = ($user->{ACTIVATE} ne '0000-00-00') ? '00:00:00' : $TIME;
 

@@ -228,6 +228,7 @@ my %ip_binded_system = (
     => 'Evostok'
 );
 
+
 #Test system
 if ($conf{PAYSYS_TEST_SYSTEM}) {
   my ($ips, $pay_system)=split(/:/, $conf{PAYSYS_TEST_SYSTEM});
@@ -236,7 +237,6 @@ if ($conf{PAYSYS_TEST_SYSTEM}) {
     exit;
   }
 }
-
 
 #Proccess system
 foreach my $params ( keys %ip_binded_system ) {
@@ -1819,7 +1819,7 @@ sub paysys_pay {
           {
             SYSTEM_ID      => $payment_system_id,
             DATETIME       => "$DATE $TIME",
-            SUM            => $amount,
+            SUM            => ($attr->{COMMISSION} && $attr->{SUM})  ? $attr->{SUM} : $amount,
             UID            => $uid,
             IP             => $attr->{IP},
             TRANSACTION_ID => "$payment_system:$ext_id",
@@ -1840,6 +1840,17 @@ sub paysys_pay {
                                        SUM         => $amount,
                                       });
 
+  my $er       = '';
+  my $currency = 0;
+
+  if ($attr->{CURRENCY}) {
+    $payments->exchange_info(0, { SHORT_NAME => $attr->{CURRENCY} });
+    if ($payments->{TOTAL} > 0) {
+      $er       = $payments->{ER_RATE};
+      $currency = $payments->{ISO};
+    }
+  }
+
   $payments->add(
         $user,
         {
@@ -1847,7 +1858,9 @@ sub paysys_pay {
           DESCRIBE     => "$payment_system",
           METHOD       => ($conf{PAYSYS_PAYMENTS_METHODS} && $PAYSYS_PAYMENTS_METHODS{$payment_system_id}) ? $payment_system_id : '2',
           EXT_ID       => "$payment_system:$ext_id",
-          CHECK_EXT_ID => "$payment_system:$ext_id"
+          CHECK_EXT_ID => "$payment_system:$ext_id",
+          ER           => $er,
+          CURRENCY     => $currency
         }
       );
 
@@ -1861,7 +1874,7 @@ sub paysys_pay {
             {
               SYSTEM_ID      => $payment_system_id,
               DATETIME       => "$DATE $TIME",
-              SUM            => $amount,
+              SUM            => ($attr->{COMMISSION} && $attr->{SUM}) ? $attr->{SUM} : $amount,
               UID            => $uid,
               TRANSACTION_ID => "$payment_system:$ext_id",
               INFO           => $ext_info,
@@ -1904,7 +1917,7 @@ sub paysys_pay {
           {
             SYSTEM_ID      => $payment_system_id,
             DATETIME       => "$DATE $TIME",
-            SUM            => $amount,
+            SUM            => ($attr->{COMMISSION} && $attr->{SUM})  ? $attr->{SUM} : $amount,
             UID            => $uid,
             TRANSACTION_ID => "$payment_system:$ext_id",
             INFO           => $ext_info,

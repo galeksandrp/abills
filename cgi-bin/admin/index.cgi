@@ -7015,7 +7015,7 @@ sub form_fees {
   foreach my $line (@$fees_list) {
 #    my $delete = ($permissions{2}{2}) ? $html->button($_DEL, "index=3&del=$line->{id}&UID=$line->{uid}", { MESSAGE => "$_DEL ID: $line->{id}?", CLASS => 'del' }) : '';
 
-    my $delete = ($permissions{1}{2}) ? $html->button($_DEL, "index=3&del=$line->{id}&UID=$line->{uid}$pages_qs", { COMMENTS_ADD => "$_DEL [$line->{id}] ? $_COMMENTS:", CLASS => 'del' }) : '';
+    my $delete = ($permissions{2}{2}) ? $html->button($_DEL, "index=3&del=$line->{id}&UID=$line->{uid}$pages_qs", { COMMENTS_ADD => "$_DEL [$line->{id}] ? $_COMMENTS:", CLASS => 'del' }) : '';
 
     my @fields_array = ();
     for (my $i = 0; $i < 1+$fees->{SEARCH_FIELDS_COUNT}; $i++) {
