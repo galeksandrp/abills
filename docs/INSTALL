@@ -20,10 +20,10 @@
 <link rel="alternate" type="application/rss+xml" title="Текущее пространство имён" href="/wiki/feed.php?mode=list&amp;ns=abills:docs_03:install"/>
 <link rel="alternate" type="text/html" title="Простой HTML" href="/wiki/doku.php/abills:docs_03:install:en?do=export_xhtml"/>
 <link rel="alternate" type="text/plain" title="вики-разметка" href="/wiki/doku.php/abills:docs_03:install:en?do=export_raw"/>
-<link rel="stylesheet" type="text/css" href="/wiki/lib/exe/css.php?t=bootstrap3&amp;tseed=039c940d4ce4501c1121bd7c5fc28d4e"/>
+<link rel="stylesheet" type="text/css" href="/wiki/lib/exe/css.php?t=bootstrap3&amp;tseed=1be1df2561c7fdabb0961c301dc34ea8"/>
 <script type="text/javascript">/*<![CDATA[*/var NS='abills:docs_03:install';var JSINFO = {"id":"abills:docs_03:install:en","namespace":"abills:docs_03:install","showbookcreatorpagetool":false,"DOKU_COOKIE_PARAM":{"path":"\/wiki\/","secure":false}};
 /*!]]>*/</script>
-<script type="text/javascript" charset="utf-8" src="/wiki/lib/exe/js.php?tseed=039c940d4ce4501c1121bd7c5fc28d4e"></script>
+<script type="text/javascript" charset="utf-8" src="/wiki/lib/exe/js.php?tseed=1be1df2561c7fdabb0961c301dc34ea8"></script>
     <script src="/wiki/lib/tpl/bootstrap3//assets/bootstrap/js/bootstrap.min.js"></script>
     <style type="text/css">
       body { padding-top: 20px; }
@@ -46,18 +46,17 @@
       <div id="dokuwiki__header">
         <nav class="navbar  navbar-default" role="navigation">
 
-  <div class="container-fluid">
+  <div class="container">
     <div class="navbar-header">
       <button class="navbar-toggle" type="button" data-toggle="collapse" data-target=".navbar-collapse">
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
       </button>
-      <a href="/wiki/doku.php/abills"  accesskey="h" title="[H]" class="navbar-brand"><img src="/wiki/lib/tpl/bootstrap3/images/logo.png" alt="Advanced Billing Solution" width="20" height="20" class="pull-left" style="margin-right:10px" /> <span>Advanced Billing Solution</span></a>    </div>
+      <a href="/wiki/doku.php/abills"  accesskey="h" title="[H]" class="navbar-brand"><img src="/wiki/lib/tpl/bootstrap3/images/logo.png" alt="Advanced Billing Solution" class="pull-left" id="dw__logo" width="20" height="20" /> <span id="dw__title" >Advanced Billing Solution</span></a>    </div>
 
     <div class="collapse navbar-collapse">
 
-      
       <ul class="nav navbar-nav">
       <li>
   <a href="/wiki/doku.php/abills" ><i class="glyphicon glyphicon-home"></i> Home</a></li>
@@ -73,7 +72,7 @@
 
               <!-- dokuwiki__usertools -->
               <li class="dropdown-header"><i class="glyphicon glyphicon-user"></i> Инструменты пользователя</li>
-              <li><a href="/wiki/doku.php/abills:docs_03:install:en?do=login&amp;sectok=96258cdc110e8e6fdb54cda7efa3ccec"  class="action login" rel="nofollow" title="Войти"><i class="glyphicon glyphicon-log-in"></i> Войти</a></li>
+              <li><a href="/wiki/doku.php/abills:docs_03:install:en?do=login&amp;sectok=561feed39c84f228859754572084d49f"  class="action login" rel="nofollow" title="Войти"><i class="glyphicon glyphicon-log-in"></i> Войти</a></li>
               <li class="divider"></li>
 
               <!-- dokuwiki__sitetools -->
@@ -93,7 +92,7 @@
           <li>
                       </li>
           <li>
-            <a href="/wiki/doku.php/abills:docs_03:install:en?do=login&amp;sectok=96258cdc110e8e6fdb54cda7efa3ccec"  class="action login" rel="nofollow" title="Войти"><i class="glyphicon glyphicon-log-in"></i> Войти</a>          </li>
+            <a href="/wiki/doku.php/abills:docs_03:install:en?do=login&amp;sectok=561feed39c84f228859754572084d49f"  class="action login" rel="nofollow" title="Войти"><i class="glyphicon glyphicon-log-in"></i> Войти</a>          </li>
         </ul>
 
       </div>
@@ -146,7 +145,7 @@
 </li>
 <li class="level3"><div class="li"> <a href="/wiki/doku.php/abills:docs:manual:install_debian:ru" class="wikilink1" title="abills:docs:manual:install_debian:ru">Debian</a></div>
 </li>
-<li class="level3"><div class="li"> <span class="curid"><a href="/wiki/doku.php/abills:docs:manual:install:ru" class="wikilink1" title="abills:docs:manual:install:ru">Установка Универсальная</a></span></div>
+<li class="level3"><div class="li"> <a href="/wiki/doku.php/abills:docs:manual:install:ru" class="wikilink1" title="abills:docs:manual:install:ru">Установка Универсальная</a></div>
 </li>
 <li class="level3"><div class="li"> <a href="/wiki/doku.php/abills:docs:ipv6:ru" class="wikilink1" title="abills:docs:ipv6:ru">IPv6</a></div>
 </li>
@@ -222,6 +221,8 @@
 </li>
 <li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:squid:ru" class="wikilink1" title="abills:docs:squid:ru">Squid</a></div>
 </li>
+<li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:modules:sysinfo:ru" class="wikilink1" title="abills:docs:modules:sysinfo:ru">Sysinfo</a></div>
+</li>
 <li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:ureports:ru" class="wikilink1" title="abills:docs:ureports:ru">Ureports</a></div>
 </li>
 </ul>
@@ -260,43 +261,43 @@
 <ul>
 <li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:asterisk" class="wikilink1" title="abills:docs:asterisk">Asterisk</a></div>
 </li>
-<li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:exppp:ru" class="wikilink1" title="abills:docs:exppp:ru">Exppp</a></div>
+<li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:nas:exppp:ru" class="wikilink1" title="abills:docs:nas:exppp:ru">Exppp</a></div>
 </li>
 <li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:mpd:ru" class="wikilink1" title="abills:docs:mpd:ru">MPD</a></div>
 </li>
-<li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:portmaste:ru" class="wikilink1" title="abills:docs:portmaste:ru">Livingston Portmaster 2/3</a></div>
+<li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:nas:portmaste:ru" class="wikilink1" title="abills:docs:nas:portmaste:ru">Livingston Portmaster 2/3</a></div>
 </li>
-<li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:radpppd:en" class="wikilink1" title="abills:docs:radpppd:en">radpppd</a></div>
+<li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:nas:radpppd:en" class="wikilink1" title="abills:docs:nas:radpppd:en">radpppd</a></div>
 </li>
-<li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:chillispot:ru" class="wikilink1" title="abills:docs:chillispot:ru">Сhillispot</a></div>
+<li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:nas:chillispot:ru" class="wikilink1" title="abills:docs:nas:chillispot:ru">Сhillispot</a></div>
 </li>
-<li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:cisco_2511:ru" class="wikilink1" title="abills:docs:cisco_2511:ru">Сisco</a></div>
+<li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:nas:cisco_2511:ru" class="wikilink1" title="abills:docs:nas:cisco_2511:ru">Сisco</a></div>
 </li>
-<li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:modules:cisco_isg:ru" class="wikilink1" title="abills:docs:modules:cisco_isg:ru">Cisco ISG</a></div>
+<li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:nas:cisco_isg:ru" class="wikilink1" title="abills:docs:nas:cisco_isg:ru">Cisco ISG</a></div>
 </li>
-<li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:gnugk:ru" class="wikilink1" title="abills:docs:gnugk:ru">GNUgk</a></div>
+<li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:nas:gnugk:ru" class="wikilink1" title="abills:docs:nas:gnugk:ru">GNUgk</a></div>
 </li>
-<li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:mikrotik:ru" class="wikilink1" title="abills:docs:mikrotik:ru">Mikrotik</a></div>
+<li class="level4"><div class="li"> <span class="curid"><a href="/wiki/doku.php/abills:docs:nas:mikrotik:ru" class="wikilink1" title="abills:docs:nas:mikrotik:ru">Mikrotik</a></span></div>
 </li>
-<li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:3com_5232:ru" class="wikilink1" title="abills:docs:3com_5232:ru">3Com 5232</a></div>
+<li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:nas:3com_5232:ru" class="wikilink1" title="abills:docs:nas:3com_5232:ru">3Com 5232</a></div>
 </li>
-<li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:linux:lepppd:ru" class="wikilink1" title="abills:docs:linux:lepppd:ru">Linux PPPD IPv4 zone counters</a></div>
+<li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:nas:linux:lepppd:ru" class="wikilink1" title="abills:docs:nas:linux:lepppd:ru">Linux PPPD IPv4 zone counters</a></div>
 </li>
-<li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:linux:pppd_radattr:ru" class="wikilink1" title="abills:docs:linux:pppd_radattr:ru">Linux PPPD + radattr.so</a></div>
+<li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:nas:linux:pppd_radattr:ru" class="wikilink1" title="abills:docs:nas:linux:pppd_radattr:ru">Linux PPPD + radattr.so</a></div>
 </li>
-<li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:linux:accel_pptp:ru" class="wikilink1" title="abills:docs:linux:accel_pptp:ru">Linux accel-ppp</a></div>
+<li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:nas:linux:accel_pptp:ru" class="wikilink1" title="abills:docs:nas:linux:accel_pptp:ru">Linux accel-ppp</a></div>
 </li>
-<li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:linux:accel_ipoe:ru" class="wikilink1" title="abills:docs:linux:accel_ipoe:ru">Linux accel-ipoe</a></div>
+<li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:nas:linux:accel_ipoe:ru" class="wikilink1" title="abills:docs:nas:linux:accel_ipoe:ru">Linux accel-ipoe</a></div>
 </li>
-<li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:linux:radcoad:ru" class="wikilink1" title="abills:docs:linux:radcoad:ru">Linux PPPD + radcoad</a></div>
+<li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:nas:linux:radcoad:ru" class="wikilink1" title="abills:docs:nas:linux:radcoad:ru">Linux PPPD + radcoad</a></div>
 </li>
-<li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:linux:linux_isg:ru" class="wikilink1" title="abills:docs:linux:linux_isg:ru">Linux ISG</a></div>
+<li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:nas:linux:linux_isg:ru" class="wikilink1" title="abills:docs:nas:linux:linux_isg:ru">Linux ISG</a></div>
 </li>
-<li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:vyatta:vyatta:ru" class="wikilink1" title="abills:docs:vyatta:vyatta:ru">Vyatta</a></div>
+<li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:nas:vyatta:vyatta:ru" class="wikilink1" title="abills:docs:nas:vyatta:vyatta:ru">Vyatta</a></div>
 </li>
-<li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:lucent_max_tnt:ru" class="wikilink1" title="abills:docs:lucent_max_tnt:ru">Lucent MAX TNT</a></div>
+<li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:nas:lucent_max_tnt:ru" class="wikilink1" title="abills:docs:nas:lucent_max_tnt:ru">Lucent MAX TNT</a></div>
 </li>
-<li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:usr_netserver:ru" class="wikilink1" title="abills:docs:usr_netserver:ru">USR Netserver 8/16</a></div>
+<li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:nas:usr_netserver:ru" class="wikilink1" title="abills:docs:nas:usr_netserver:ru">USR Netserver 8/16</a></div>
 </li>
 <li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:nas:patton:ru" class="wikilink1" title="abills:docs:nas:patton:ru">Patton</a></div>
 </li>
@@ -341,6 +342,8 @@
 <li class="level2"><div class="li"> <a href="/wiki/doku.php/abills:demo:demo" class="wikilink1" title="abills:demo:demo">demo</a></div>
 </li>
 <li class="level2"><div class="li"> <a href="http://abills.net.ua/forum/" class="urlextern" title="http://abills.net.ua/forum/"  rel="nofollow">Forum</a></div>
+</li>
+<li class="level2"><div class="li"> <a href="/wiki/doku.php/abills:members:komanda" class="wikilink2" title="abills:members:komanda" rel="nofollow">Команда</a></div>
 </li>
 <li class="level2"><div class="li"> <a href="/wiki/doku.php/abills:customers:customers" class="wikilink1" title="abills:customers:customers">Customers</a></div>
 </li>
@@ -392,7 +395,9 @@
                       </p>
         </div>
                 <div class="text-center">
-          <div class="license">За исключением случаев, когда указано иное, содержимое этой вики предоставляется на условиях следующей лицензии: <bdi><a href="http://creativecommons.org/licenses/by-nc-sa/3.0/" rel="license" class="urlextern">CC Attribution-Noncommercial-Share Alike 3.0 Unported</a></bdi></div>          <p>
+          <p id="dw__license">
+            <div class="license">За исключением случаев, когда указано иное, содержимое этой вики предоставляется на условиях следующей лицензии: <bdi><a href="http://creativecommons.org/licenses/by-nc-sa/3.0/" rel="license" class="urlextern">CC Attribution-Noncommercial-Share Alike 3.0 Unported</a></bdi></div>          </p>
+                    <p id="dw__badges">
             <a href="http://creativecommons.org/licenses/by-nc-sa/3.0/" rel="license"><img src="/wiki/lib/images/license/button/cc-by-nc-sa.png" alt="CC Attribution-Noncommercial-Share Alike 3.0 Unported" /></a>            <a href="http://getbootstrap.com" title="Built with Bootstrap 3" >
               <img src="/wiki/lib/tpl/bootstrap3/images/button-bootstrap3.png" width="80" height="15" alt="Built with Bootstrap 3" />
             </a>
@@ -409,13 +414,13 @@
               <img src="/wiki/lib/tpl/dokuwiki/images/button-dw.png" width="80" height="15" alt="Driven by DokuWiki" />
             </a>
           </p>
-        </div>
+                  </div>
       </footer>
 
       
     </div><!-- /site -->
 
-    <div class="no"><img src="/wiki/lib/exe/indexer.php?id=abills%3Adocs_03%3Ainstall%3Aen&amp;1428659712" width="2" height="1" alt="" /></div>
+    <div class="no"><img src="/wiki/lib/exe/indexer.php?id=abills%3Adocs_03%3Ainstall%3Aen&amp;1434350636" width="2" height="1" alt="" /></div>
     <div id="screen__mode" class="no">
       <span class="visible-xs"></span>
       <span class="visible-sm"></span>

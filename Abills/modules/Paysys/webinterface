@@ -78,6 +78,7 @@ my %PAY_SYSTEMS = (
   99 => 'TYME',
   100=> 'E-manat',
   101=> 'Evostok',
+  102=> 'Stripe',
 );
 
 my %CONF_OPTIONS = (

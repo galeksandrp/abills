@@ -1,7 +1,10 @@
-<form action='https://www.liqpay.com/api/pay' method='POST' accept-charset='utf-8'>
+
+
+
+<form id='liqpay_form' method='post' action='https://www.liqpay.com/api/checkout' accept-charset='utf-8'>
 
   %BODY%
-  <input type='hidden' name='signature' value='%SIGN%' />
+  <input type='text' name='signature' value='%SIGN%' />
   <input type='hidden' name='language' value='ru' />
 
 
@@ -23,9 +26,9 @@
 <tr><td>$_TOTAL $_SUM:</td><td>$FORM{TOTAL_SUM}</td></tr>
 <!-- <tr><td>$_PAY_WAY:</td><td>%PAY_WAY_SEL%</td></tr> -->
 
+
 <tr>  
 
 <th colspan=2 class=even><input type=submit name=add value='$_PAY'>
 </table>
 </form>
-
