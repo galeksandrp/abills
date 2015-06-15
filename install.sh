@@ -5,7 +5,7 @@
 #
 #**************************************************************
 
-VERSION=4.78
+VERSION=4.79
 
 TMPOPTIONSFILE="/tmp/abills.tmp"
 CMD_LOG="/tmp/ports_builder_cmd.log"
@@ -519,11 +519,7 @@ fi;
     
 if [ ${OS_NAME} = Mandriva -o ${OS_NAME} = Fedora ]; then
   echo "to install pptpd you need to download sources";
-#elif [ ${OS_NAME} = centos ]; then
-#  rpm -Uvh http://pptpclient.sourceforge.net/yum/stable/rhel5/pptp-release-current.noarch.rpm;
-#  cmd=${cmd}"${BUILD_OPTIONS} pptpd;"
 else 
-      
 #      cmd="${BUILD_OPTIONS} git cmake libssl-dev libpcre3-dev libnl2-dev pptp-linux build-essential gawk;";
 #      cmd="${cmd}mkdir /usr/abills/src/;"
 #      cmd="${cmd}cd /usr/abills/src/;"
@@ -536,7 +532,8 @@ else
 #      cmd="${cmd}make;"
 #      cmd="${cmd}make install;"
     # http://linuxsoid.ucoz.com/publ/rukovodstvo_po_ubuntu/faq_ubuntu_11_04_programmnoe_obespechenie_i_igry/accel_pptp_v_ubuntu_server_10_04/34-1-0-718
-     
+
+
   PKGS="bzip2 cmake libnl2-dev pptp-linux build-essential gawk"
 
   PPP_LIB_DIR="/usr/lib/pppd/2.4.5/";
@@ -552,15 +549,16 @@ else
     PPP_LIB_DIR="/usr/lib64/pppd/2.4.5";
   else
     PKGS="${PKGS} libssl-dev libpcre3-dev ppp-dev"
-  fi; 
+  fi;
 
   _install "${PKGS}"
 
-  #cmd="${cmd}wget \"http://netcologne.dl.sourceforge.net/project/accel-ppp/accel-ppp-1.7.0.tar.bz2\";"
-  cmd="cd /usr/src/; rm accel-ppp-1.7.3*;";
-  cmd="${cmd}wget \"http://garr.dl.sourceforge.net/project/accel-ppp/accel-ppp-1.7.3.tar.bz2\";"
-  cmd="${cmd}bzip2 -d accel-ppp-1.7.3.tar.bz2; tar xvf accel-ppp-1.7.3.tar;"
-  cmd="${cmd}mkdir accel-ppp-build; cd accel-ppp-build; cmake -I/usr/include/pcre/ -DCMAKE_INSTALL_PREFIX=/usr/local -DRADIUS=TRUE ../accel-ppp-1.7.3;"
+  ACCEL_PPPP_VERSION='1.9.0' #'1.7.3';
+
+  cmd="cd /usr/src/; rm accel-ppp-${ACCEL_PPPP_VERSION}*;";
+  cmd="${cmd}wget \"http://garr.dl.sourceforge.net/project/accel-ppp/accel-ppp-${ACCEL_PPPP_VERSION}.tar.bz2\";"
+  cmd="${cmd}bzip2 -d accel-ppp-${ACCEL_PPPP_VERSION}.tar.bz2; tar xvf accel-ppp-${ACCEL_PPPP_VERSION}.tar;"
+  cmd="${cmd}mkdir accel-ppp-build; cd accel-ppp-build; cmake -I/usr/include/pcre/ -DCMAKE_INSTALL_PREFIX=/usr/local -DRADIUS=TRUE ../accel-ppp-${ACCEL_PPPP_VERSION};"
   cmd="${cmd}make;"
   cmd="${cmd}cd ../accel-pptp-1.7.3/pppd_plugin/;"
   cmd="${cmd}sudo ./configure;"
@@ -571,12 +569,12 @@ else
   cmd="${cmd}echo \"pptp\" >> /etc/modules;"
   cmd="${cmd}echo \"pppoe\" >> /etc/modules;"
 
-  AUTOCONF_PROGRAMS="${AUTOCONF_PROGRAMS} pppd "
-  AUTOCONF_PROGRAMS_FLAGS="${AUTOCONF_PROGRAMS_FLAGS} ACCEL_PPTP=1"
+  AUTOCONF_PROGRAMS="${AUTOCONF_PROGRAMS} accel_ppp "
+  AUTOCONF_PROGRAMS_FLAGS="${AUTOCONF_PROGRAMS_FLAGS}"
 fi;
 
 #autostart
-if [ ${OS} = 'CentOS' ]; then
+if [ "${OS}" = 'CentOS' ]; then
 
 (cat <<EOF
 #!/bin/bash
@@ -2073,6 +2071,24 @@ done;
 
 }
 
+#**********************************************************
+# Fetch free distro
+#**********************************************************
+fetch_free_distro () {
+  echo "fetching distro";
+
+  URL="http://downloads.sourceforge.net/project/abills/abills/0.58/abills-0.58_rc1.tgz"
+
+  if [ "${OS}" = "Linux" ]; then
+    wget -q "${URL}";
+  else 
+    fetch -q "${URL}";
+  fi;
+  
+  tar zxvf abills-0.58_rc1.tgz -C /usr/
+
+}
+
 
 # Proccess command-line options
 #
@@ -2085,7 +2101,9 @@ for _switch ; do
         -V)     VERBOSE=1
                 shift; shift
                 ;;
-
+        -f)     FETCH_FREE_DISTR=1;
+                shift; shift
+                ;;
         -b)     BENCHMARTK=1;
                 shift;
                 ;;
@@ -2140,12 +2158,14 @@ while [ "${OS_NAME}" = "" ]; do
   fi;
 done;
 
-if [ ! -d ${BILLING_DIR} ]; then
+if [ "${FETCH_FREE_DISTR}"  != "" ] ; then
+  fetch_free_distro;  
+elif [ ! -d "${BILLING_DIR}" ]; then
   UPDATE_URL=http://abills.net.ua/misc/update.sh
   # make cvs 
   cd ${BASE_PWD} 
   if [ ! -f update.sh ]; then
-    if [ w${OS} = wLinux ]; then
+    if [ "${OS}" = "Linux" ]; then
       wget -q -O update.sh "${UPDATE_URL}";
     else 
       fetch -q -o update.sh "${UPDATE_URL}";
