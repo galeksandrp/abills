@@ -9,15 +9,14 @@
 :DEFAULT:POD_PORT=3799:PoD/CoA Port
 :DEFAULT:IPOE_GW_IP=10.0.0.1/24:IPoE gateway IP
 
-:FILE=accel-ppp.conf > [/etc]/accel-ppp.conf
-:FILE=accel-ppp.lua > [/etc]/accel-ppp.lua
-:FILE=dictionary.accel_ppp >> [/usr/local/share/accel-ppp/radius]/dictionary
+accel-ppp.conf > [/etc]/accel-ppp.conf
+accel-ppp.lua > [/etc]/accel-ppp.lua
+dictionary.accel_ppp >> [/usr/local/share/accel-ppp/radius]/dictionary
 #:exec: %RESTART_ACCEL_PPP% restart
 
 #Accel-ppp
-:FILE=accel-ppp > [/etc]/init.d/accel-ppp
+accel-ppp > [/etc]/init.d/accel-ppp
 :exec: chmod +x /etc/init.d/accel-ppp
-:FILE=accel-ppp.conf  > [/etc]/accel-ppp.conf
 :exec:update-rc.d accel-ppp defaults
 :exec:/etc/init.d/accel-ppp restart
 
