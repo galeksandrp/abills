@@ -220,7 +220,7 @@ my %ip_binded_system = (
     => 'Comepay',
   '77.222.138.142,78.30.232.14,77.120.96.58,91.105.201.0/24' 
     => 'Usmp',
-  '54.229.105.178'
+  '54.229.105.178,54.229.105.179'
     => 'Liqpay',
   '195.85.198.136,195.85.198.15'
     => 'Upc',
@@ -576,8 +576,6 @@ sub osmp_payments {
   }
 
   if ($user && $password) {
-    my ($user, $password) = split(/:/, $conf{PAYSYS_PEGAS_PASSWD});
-
     if (defined($ENV{HTTP_CGI_AUTHORIZATION})) {
       $ENV{HTTP_CGI_AUTHORIZATION} =~ s/basic\s+//i;
       my ($REMOTE_USER, $REMOTE_PASSWD) = split(/:/, decode_base64($ENV{HTTP_CGI_AUTHORIZATION}));
@@ -1449,14 +1447,6 @@ sub read_public_key {
   return $cert;
 }
 
-#**********************************************************
-# Error Trap
-#**********************************************************
-sub err_trap {
-  my ($err_code, $error) = @_;
-  print "code=$err_code";
-  die "Paysys database error: $error\n";
-}
 
 #**********************************************************
 # Get Date
