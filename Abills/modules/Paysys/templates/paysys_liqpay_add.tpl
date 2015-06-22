@@ -1,9 +1,15 @@
 <form id='liqpay_form' method='post' action='https://www.liqpay.com/api/checkout' accept-charset='utf-8'>
 
+
+<!-- <textarea cols=80 rows=20> -->
+
   %BODY%
   <input type='hidden' name='signature' value='%SIGN%' />
   <input type='hidden' name='language' value='ru' />
 
+<!--
+</textarea>
+-->
 
 <table width=400 class=form>
 <tr><th class='form_title' colspan=2>LiqPAY</th></tr>
