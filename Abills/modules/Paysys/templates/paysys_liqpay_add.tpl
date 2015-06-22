@@ -1,10 +1,7 @@
-
-
-
 <form id='liqpay_form' method='post' action='https://www.liqpay.com/api/checkout' accept-charset='utf-8'>
 
   %BODY%
-  <input type='text' name='signature' value='%SIGN%' />
+  <input type='hidden' name='signature' value='%SIGN%' />
   <input type='hidden' name='language' value='ru' />
 
 

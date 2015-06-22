@@ -141,6 +141,7 @@ my %CONF_OPTIONS = (
   PAYSYS_PAYMASTER_SECRET                   => 97,
   PAYSYS_UPC_MERCHANT_ID                    => 98,
   PAYSYS_EVOSTOK_KEY                        => 101,
+  PAYSYS_STRIPE_SECRET_KEY                  => 102,
 );
 
 my @status = ("$_UNKNOWN",  #0 
@@ -833,55 +834,14 @@ sub paysys_payment {
   elsif ($FORM{PAYMENT_SYSTEM} == 101) {
     paysys_evostok();
   }  
+  elsif ($FORM{PAYMENT_SYSTEM} == 102) {
+    paysys_stripe();
+  }  
   else {
     PRE_LABEL:
     $info{OPERATION_ID} = mk_unique_value(8, { SYMBOLS => '0123456789' });
 
-    my %PAY_SYSTEM_ACCOUNTS = (
-      41 => 'PAYSYS_WEBMONEY_ACCOUNTS',
-      42 => 'PAYSYS_RBKMONEY_ID',
-      43 => 'PAYSYS_SMSPROXY',
-      45 => 'PAYSYS_PORTMONE_PAYEE_ID',
-      46 => 'PAYSYS_UKRPAYS_SECRETKEY',
-      48 => 'PAYSYS_PB_MERID',
-      50 => 'PAYSYS_COMEPAY',
-      54 => 'PAYSYS_P24_MERCHANT_ID',
-      58 => 'PAYSYS_LR_ACCOUNT_NUMBER',
-      59 => 'PAYSYS_QIWI_TERMINAL_ID',
-      62 => 'PAYSYS_LIQPAY_MERCHANT_ID',
-      66 => 'PAYSYS_PAYPAL_RECIEVER_EMAIL',
-      72 => 'PAYSYS_IPAY_MERCHANT_ID',
-      73 => 'PAYSYS_YANDEX_ID',
-      77 => 'PAYSYS_CP_VISA',
-      81 => 'PAYSYS_QIWI_PAYONLINE',
-      82 => 'PAYSYS_WEBMONEY_PAYONLINE',
-      83 => 'PAYSYS_YANDEX_MONEY_PAYONLINE',
-      84 => 'PAYSYS_BANK_CARD_PAYONLINE',
-      85 => 'PAYSYS_WEBMONEY_TERMINAL',
-      86 => 'PAYSYS_PERFECTMONEY_ACCOUNTID',
-      87 => 'PAYSY_OKPAY_RECEIVER',
-      89 => 'PAYSYS_SMSONLINE',
-      90 => 'PAYSYS_CASHCOM_PROVIDER_ID',
-      91 => 'PAYSYS_PAYU_MERCHANT',
-      92 => 'PAYSYS_COPAYCO_SHOP_ID',
-      94 => 'PAYSYS_REDSYS_MERCHANT_ID',
-      97 => 'PAYSYS_PAYMASTER_SECRET',
-      98 => 'PAYSYS_UPC_MERCHANT_ID',
-      101=> 'PAYSYS_EVOSTOK_KEY'
-    );
-
-    while (my ($k, $v) = each %PAY_SYSTEMS) {
-      delete $PAY_SYSTEMS{$k} if (!$conf{ $PAY_SYSTEM_ACCOUNTS{$k} });
-    }
-
-    $info{PAY_SYSTEM_SEL} = $html->form_select(
-      'PAYMENT_SYSTEM',
-      {
-        SELECTED => $FORM{PAYMENT_SYSTEM},
-        SEL_HASH => \%PAY_SYSTEMS,
-        NO_ID    => 1
-      }
-    );
+    $info{PAY_SYSTEM_SEL} = paysys_system_sel();
     
     if ($FORM{INTERACT}) {
       return $html->tpl_show(_include('paysys_interact', 'Paysys'), \%info, { OUTPUT2RETURN => $attr->{OUTPUT2RETURN} });
@@ -891,6 +851,61 @@ sub paysys_payment {
     }
   }
 }
+
+#**********************************************************
+#
+#**********************************************************
+sub paysys_system_sel {
+ my ($attr) = @_;
+
+my %PAY_SYSTEM_ACCOUNTS = (
+   41 => 'PAYSYS_WEBMONEY_ACCOUNTS',
+   42 => 'PAYSYS_RBKMONEY_ID',
+   43 => 'PAYSYS_SMSPROXY',
+   45 => 'PAYSYS_PORTMONE_PAYEE_ID',
+   46 => 'PAYSYS_UKRPAYS_SECRETKEY',
+   48 => 'PAYSYS_PB_MERID',
+   50 => 'PAYSYS_COMEPAY',
+   54 => 'PAYSYS_P24_MERCHANT_ID',
+   58 => 'PAYSYS_LR_ACCOUNT_NUMBER',
+   59 => 'PAYSYS_QIWI_TERMINAL_ID',
+   62 => 'PAYSYS_LIQPAY_MERCHANT_ID',
+   66 => 'PAYSYS_PAYPAL_RECIEVER_EMAIL',
+   72 => 'PAYSYS_IPAY_MERCHANT_ID',
+   73 => 'PAYSYS_YANDEX_ID',
+   77 => 'PAYSYS_CP_VISA',
+   81 => 'PAYSYS_QIWI_PAYONLINE',
+   82 => 'PAYSYS_WEBMONEY_PAYONLINE',
+   83 => 'PAYSYS_YANDEX_MONEY_PAYONLINE',
+   84 => 'PAYSYS_BANK_CARD_PAYONLINE',
+   85 => 'PAYSYS_WEBMONEY_TERMINAL',
+   86 => 'PAYSYS_PERFECTMONEY_ACCOUNTID',
+   87 => 'PAYSY_OKPAY_RECEIVER',
+   89 => 'PAYSYS_SMSONLINE',
+   90 => 'PAYSYS_CASHCOM_PROVIDER_ID',
+   91 => 'PAYSYS_PAYU_MERCHANT',
+   92 => 'PAYSYS_COPAYCO_SHOP_ID',
+   94 => 'PAYSYS_REDSYS_MERCHANT_ID',
+   97 => 'PAYSYS_PAYMASTER_SECRET',
+   98 => 'PAYSYS_UPC_MERCHANT_ID',
+   101=> 'PAYSYS_EVOSTOK_KEY',
+   102=> 'PAYSYS_STRIPE_SECRET_KEY'
+);
+
+while (my ($k, $v) = each %PAY_SYSTEMS) {
+  delete $PAY_SYSTEMS{$k} if (!$conf{ $PAY_SYSTEM_ACCOUNTS{$k} });
+}
+
+return $html->form_select(
+      'PAYMENT_SYSTEM',
+      {
+        SELECTED => $FORM{PAYMENT_SYSTEM},
+        SEL_HASH => \%PAY_SYSTEMS,
+        NO_ID    => 1
+      }
+    );
+}
+
 
 #**********************************************************
 #
@@ -3313,8 +3328,7 @@ sub paysys_redsys {
   $FORM{TOTAL_SUM}  = $FORM{SUM}*100; 
   $FORM{SIGN}       = redsys_sign(\%FORM);
 
-  $html->tpl_show(_include('paysys_redsys_add', 'Paysys'), { %FORM, %info });  
-  
+  $html->tpl_show(_include('paysys_redsys_add', 'Paysys'), { %FORM, %info });
 }
 
 #**********************************************************
@@ -3630,6 +3644,19 @@ sub paysys_evostok  {
   return $message . $html->tpl_show(_include('paysys_evostok_add', 'Paysys'), \%info);
 }
 
+
+#**********************************************************
+#
+#**********************************************************
+sub paysys_stripe {
+  my ($attr) = @_; 
+
+  my %info = ();
+
+
+  
+  return $html->tpl_show(_include('paysys_stripe_add', 'Paysys'), \%info);
+}
 
 
 #**********************************************************
