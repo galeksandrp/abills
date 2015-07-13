@@ -811,7 +811,8 @@ sub search_expr_users () {
     ACTIVATE      => 'DATE:u.activate',
     EXPIRE        => 'DATE:u.expire',
     
-    CREDIT        => 'INT:u.credit',
+#    CREDIT        => 'INT:u.credit',
+    CREDIT        => 'INT:if(company.id IS NULL, u.credit, company.credit) AS credit',
     CREDIT_DATE   => 'DATE:u.credit_date', 
     REDUCTION     => 'INT:u.reduction',
     REDUCTION_DATE=> 'INT:u.reduction_date',
