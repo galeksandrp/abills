@@ -7030,6 +7030,9 @@ sub dv_registration {
     elsif ($attr->{SKIP_EMAIL_CHECK} && $FORM{EMAIL} !~ /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/) {
       $Dv->{MESSAGE} = $html->message('err', $_ERROR, "$_WRONG_EMAIL");
     }
+    if ($conf{REGISTRATION_CHECK_PHONE} && ! $FORM{PHONE}) {
+      $Dv->{MESSAGE} = $html->message('err', $_ERROR, $ERR_WRONG_PHONE);
+    }  
     elsif (! $FORM{ACCEPT_RULES}) {
       $html->message('err', $_ERROR, "$ERR_ACCEPT_RULES");
     }
@@ -7113,8 +7116,18 @@ sub dv_registration {
 
           %FORM = ( %$Dv, %FORM, %$user );
 
+          if ($FORM{PHONE} && in_array('Sms', \@MODULES)) {
+            load_module('Sms', $html);
+ 
+            my $message = $html->tpl_show(_include('dv_reg_complete_sms', 'Dv'), { %$Cards, %FORM }, { OUTPUT2RETURN => 1  });;
+                sms_send({
+                  NUMBER  => $FORM{PHONE},
+                  MESSAGE => $message,
+                  UID     => $line->{UID},
+                });
+          }
           #Send mail
-          if ($FORM{EMAIL}) {
+          elsif ($FORM{EMAIL}) {
             my $message = $html->tpl_show(_include('dv_reg_complete_mail', 'Dv'), { %$Dv, %FORM, PASSWORD => "$password" }, { OUTPUT2RETURN => 1 });
             sendmail("$conf{ADMIN_MAIL}", "$FORM{EMAIL}", "$_REGISTRATION", "$message", "$conf{MAIL_CHARSET}", '');
           }

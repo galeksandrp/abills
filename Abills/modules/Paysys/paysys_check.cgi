@@ -228,7 +228,6 @@ my %ip_binded_system = (
     => 'Evostok'
 );
 
-
 #Test system
 if ($conf{PAYSYS_TEST_SYSTEM}) {
   my ($ips, $pay_system)=split(/:/, $conf{PAYSYS_TEST_SYSTEM});
@@ -250,7 +249,8 @@ if ($FORM{__BUFFER} =~ /^{.+}$/ &&
   check_ip($ENV{REMOTE_ADDR}, '75.101.163.115,107.22.173.15,107.22.173.86,213.154.214.76,217.117.64.232-217.117.64.238')) {
   load_pay_module('Private_bank_json');
 }
-elsif(check_ip($ENV{REMOTE_ADDR},'176.9.53.221')) {
+# 
+elsif(check_ip($ENV{REMOTE_ADDR},'176.9.53.221,176.9.53.221,5.9.145.93,5.9.145.89')) {
   paymaster_check_payment();
   exit;
 }
@@ -407,10 +407,6 @@ sub payments {
     }
     elsif (scalar keys %FORM > 0) {
       print "Error: Unknown payment system";
-      if ($debug > 0) {
-        $output2 .= get_request_info()
-      }
-
       mk_log($output2, { PAYSYS_ID => 'Unknown' });
     }
     else {
@@ -604,7 +600,7 @@ sub osmp_payments {
     0 => 'Success',
     1 => 'Temporary DB error',
     4 => 'Wrong client indentifier',
-    5 => 'Failed witness a signature',
+    5 => 'User not exist', #'Failed witness a signature',
     6 => 'Unknown terminal',
     7 => 'Payments deny',
 
@@ -1431,22 +1427,6 @@ sub wm_payments {
   mk_log($output_content. "\nSTATUS CODE: $status_code/$status", { PAYSYS_ID => "$payment_system/$payment_system_id" });
 }
 
-#**********************************************************
-# Read Public Key
-#**********************************************************
-sub read_public_key {
-  my ($filename) = @_;
-  my $cert = "";
-
-  open(my $fh, "$filename") || die "Can't open '$filename' $!\n";
-  while (<$fh>) {
-    $cert .= $_;
-  }
-  close $fh;
-
-  return $cert;
-}
-
 
 #**********************************************************
 # Get Date
@@ -1494,7 +1474,7 @@ sub wm_validate {
 #**********************************************************
 sub wm_ua_validate {
   $md5->reset;
-  
+
   $md5->add($FORM{LMI_MERCHANT_ID});
   $md5->add($FORM{LMI_PAYMENT_NO}); 
   $md5->add($FORM{LMI_SYS_PAYMENT_ID}); 
@@ -1503,7 +1483,7 @@ sub wm_ua_validate {
   $md5->add($FORM{LMI_PAID_AMOUNT});
   $md5->add($FORM{LMI_PAYMENT_SYSTEM});
   $md5->add($FORM{LMI_MODE});
-  $md5->add($conf{PAYSYS_LMI_SECRET_KEY});
+  $md5->add($conf{PAYSYS_PAYMASTER_SECRET});
 
   my $digest = uc($md5->hexdigest());
   return $digest;
@@ -1614,13 +1594,16 @@ sub paysys_pay_check {
 # 0 - ok
 # 1 - not exist user
 # 2 - sql error
-# 3 - dublicate
+# 3 - dublicate payment
 # 5 - wrong sum
 # 6 - small sum
 # 7 - large sum 
 # 8 - Transaction not found
 # 9 - Payment exist
 #10 - Payment not exist
+#11 -
+#12 -
+#13 - Payment exist
 #**********************************************************
 sub paysys_pay_cancel {
   my ($attr) = @_;
@@ -1715,7 +1698,7 @@ sub paysys_pay {
   my $payments_id    = 0;
   my $uid            = 0;
   my $paysys_id      = 0;
-  my $ext_info       = 0;
+  my $ext_info       = '';
 
   if ($attr->{DATA}) {
     foreach my $k (sort keys %{ $attr->{DATA} }) {
@@ -1935,6 +1918,17 @@ sub paysys_pay {
         $status = 2;
       }
     }
+  }
+
+  #Send mail
+  if ($conf{PAYSYS_EMAIL_NOTICE}) {
+    my $message = "\n" . "================================" . 
+        "System: $payment_system\n" . 
+        "================================" . 
+        "DATE: $DATE $TIME\n" . 
+        "LOGIN: $user->{LOGIN} [$uid]\n\n" . $ext_info . "\n\n";
+
+        sendmail("$conf{ADMIN_MAIL}", "$conf{ADMIN_MAIL}", "$payment_system ADD", "$message", "$conf{MAIL_CHARSET}", "2 (High)");
   }
 
   return $status;

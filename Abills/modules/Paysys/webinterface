@@ -2,15 +2,13 @@
 # Paysys System
 # Support Webmoney, Rbkmoney, SMSProxy,  Ukrpays
 
-eval { require Paysys; };
-if (!$@) {
-  Paysys->import();
-}
-else {
-  print "Content-Type: text/html\n\n";
-  print "Can't load 'Paysys'. Purchase this module http://abills.net.ua";
+if (form_purchase_module({
+	HEADER => $user->{UID},
+	MODULE => 'Paysys',
+  })) {
   exit;
 }
+
 
 use Finance;
 my $payments = Finance->payments($db, $admin, \%conf);
@@ -76,7 +74,7 @@ my %PAY_SYSTEMS = (
   97 => 'PayMaster',
   98 => 'Ecommerce Connect (UPC)',
   99 => 'TYME',
-  100=> 'E-manat',
+  100=> 'E-manat', # Modenis
   101=> 'Evostok',
   102=> 'Stripe',
 );
@@ -387,7 +385,7 @@ sub paysys_import_form {
           }
         }
         else {
-          $html->message('err', $_ERROR, "$_NOT_EXIST $BINDING_FIELD - '$DATA_ARR->[$i]->{$BINDING_FIELD}' Ext ID: $ext_id ");
+          $html->message('err', $_ERROR, "$_NOT_EXIST $BINDING_FIELD - '$DATA_ARR->[$i]->{$BINDING_FIELD}' \n Ext ID: $ext_id ");
         }
       }
 
@@ -867,6 +865,7 @@ my %PAY_SYSTEM_ACCOUNTS = (
    48 => 'PAYSYS_PB_MERID',
    50 => 'PAYSYS_COMEPAY',
    54 => 'PAYSYS_P24_MERCHANT_ID',
+   57 => 'PAYSYS_EASYPAY_SERVICE_ID',
    58 => 'PAYSYS_LR_ACCOUNT_NUMBER',
    59 => 'PAYSYS_QIWI_TERMINAL_ID',
    62 => 'PAYSYS_LIQPAY_MERCHANT_ID',
@@ -899,7 +898,7 @@ while (my ($k, $v) = each %PAY_SYSTEMS) {
 return $html->form_select(
       'PAYMENT_SYSTEM',
       {
-        SELECTED => $FORM{PAYMENT_SYSTEM},
+        SELECTED => $FORM{PAYMENT_SYSTEM} || $attr->{PAYMENT_SYSTEM},
         SEL_HASH => \%PAY_SYSTEMS,
         NO_ID    => 1
       }
@@ -951,7 +950,7 @@ sub paysys_log {
 
     print $table->show();
   }
-  elsif (defined($FORM{del}) && $FORM{COMMENTS}) {
+  elsif (defined($FORM{del}) && ($FORM{COMMENTS} || $FORM{is_js_confirmed} )) {
     $Paysys->del($FORM{del});
 
     if (!$Paysys->{errno}) {
@@ -986,8 +985,8 @@ sub paysys_log {
     $info{STATUS_SEL} = $html->form_select(
       'STATUS',
       {
-        SELECTED => $FORM{STATUS} || '',
-        SEL_ARRAY    => [@status],
+        SELECTED     => $FORM{STATUS} || '',
+        SEL_ARRAY    => \@status,
         ARRAY_NUM_ID => 1,
         SEL_OPTIONS  => { '' => $_ALL }
       }
@@ -1345,6 +1344,12 @@ sub paysys_periodic () {
   my $debug_output = '';
   $debug_output .= "Paysys: Daily periodic payments\n" if ($debug > 1);
 
+  my %PAYSYS_PAYMENT_METHODS = ();
+   
+  if($conf{PAYSYS_PAYMENTS_METHODS}) {
+    %PAYSYS_PAYMENT_METHODS = %{ cfg2hash($conf{PAYSYS_PAYMENTS_METHODS}) };
+  }
+
   if ($conf{PAYSYS_PORTMONE_PAYEE_ID}) {
     paysys_load('Portmone');
 
@@ -1435,12 +1440,8 @@ sub paysys_periodic () {
 
         if ($conf{PAYSYS_EMAIL_NOTICE}) {
           my $message = "\n" . "System: Portmone\n" . "DATE: $DATE $TIME\n" . "LOGIN: $user->{LOGIN} [$uid]\n" . "\n" . "\n" . "ID: $line->{id}\n" . "SUM: $sum\n";
-
           sendmail("$conf{ADMIN_MAIL}", "$conf{ADMIN_MAIL}", "Paysys Portmone Add", "$message", "$conf{MAIL_CHARSET}", "2 (High)");
-
         }
-
-
       }
     }
   }
@@ -1605,7 +1606,7 @@ sub paysys_rupay {
   my %info = ();
 
   if ($FORM{FALSE}) {
-    paysys_show_result({ TRANSACTION_ID =>  "$FORM{OPERATION_ID}", FALSE => 1 });
+    paysys_show_result({ TRANSACTION_ID => "$FORM{OPERATION_ID}", FALSE => 1 });
   }
   elsif ($FORM{TRUE}) {
     paysys_show_result({ TRANSACTION_ID =>  "$FORM{OPERATION_ID}" });
@@ -2615,7 +2616,7 @@ sub paysys_paypal {
         else {
           $html->message('err', $_ERROR, "$_FAILED ID: $FORM{OPERATION_ID}\n\n$message");
         
-          if ($conf{PAYSY_DEBUG} > 2) {
+          if ($conf{PAYSYS_DEBUG} > 2) {
             print "Content-Type: text/html\n\n";
             while (my ($k, $v) = each %$resArray) {
               print "$k, $v <br>";
@@ -3562,6 +3563,7 @@ sub paysys_show_result {
         SUM            => '_SHOW',
         STATUS         => '_SHOW',
         COLS_NAME      => 1,
+        SKIP_DEL_CHECK => 1,
         SORT           => 'id'
       }
     );
@@ -3644,6 +3646,53 @@ sub paysys_evostok  {
   return $message . $html->tpl_show(_include('paysys_evostok_add', 'Paysys'), \%info);
 }
 
+#**********************************************************
+#
+#**********************************************************
+sub paysys_stripe_report {
+  my ($attr) = @_; 
+
+  paysys_load('Stripe');
+  Stripe->import();
+
+  my $Stripe = Stripe->new($conf{PAYSYS_STRIPE_SECRET_KEY}, $conf{PAYSYS_STRIPE_PUBLISH_KEY});
+
+  my @header_arr = (
+    "$_PAYMENTS:index=$index",
+    "$_USERS:index=$index&list=customers",
+    "$_DEPOSIT:index=$index&list=balance/history",
+    "$_EVENTS:index=$index&list=events",
+    "Bitcoin:index=$index&list=bitcoin/receivers",
+  );
+
+  print $html->table_header(\@header_arr, { TABS => 1 });
+
+  $Stripe->{debug}=1 if ($FORM{DEBUG});
+
+  $Stripe->stripe_report({ REPORT => $FORM{list}, PAGE_ROWS => $LIST_PARAMS{PAGE_ROWS} });
+
+  _error_show($Stripe);
+
+  my ($table, $list) = result_former({
+    TABLE => {
+        width      => '100%',
+        caption    => $FORM{list} || 'charges',
+        qs         => "&visual=$FORM{visual}&NAS_ID=$FORM{NAS_ID}&ONU=$FORM{ONU}",
+        SHOW_COLS  => \%info_oids,
+        SHOW_COLS_HIDDEN => {
+          visual => $FORM{visual},
+          NAS_ID => $FORM{NAS_ID},
+          ONU    => $FORM{ONU},
+        },
+        ID       => 'EQUIPMENT_ONU_PORTS',
+      },
+    DATAHASH    => $Stripe->{result}->{data},
+    # MAKE_ROWS    => 1,
+    TOTAL        => 1
+  });
+
+}
+
 
 #**********************************************************
 #
@@ -3651,9 +3700,72 @@ sub paysys_evostok  {
 sub paysys_stripe {
   my ($attr) = @_; 
 
-  my %info = ();
+  my $payment_system    = 'ST';
+  my $payment_system_id = 102;
 
+  paysys_load('Stripe');
+  Stripe->import();
 
+  my $Stripe = Stripe->new($conf{PAYSYS_STRIPE_SECRET_KEY}, $conf{PAYSYS_STRIPE_PUBLISH_KEY});
+
+  if ($FORM{stripeToken}) {
+    my $list  = $Paysys->list({ TRANSACTION_ID =>  "$payment_system:$FORM{OPERATION_ID}", 
+                               COLS_NAME       => 1,
+                               SUM             => '_SHOW',
+                               SKIP_DEL_CHECK  => 1
+                             });
+
+    if ($Paysys->{TOTAL}) {
+      my $amount = $list->[0]->{sum}*100 || 0;
+      my $result = $Stripe->stripe_create({
+          AMOUNT      => $amount,
+          CURRENCY    => $FORM{CURRENCY} || 'eur',
+          SOURCE      => $FORM{stripeToken},
+          DESCRIPTION => $FORM{DESCRIBE} || ''
+      });
+
+      if ($Stripe->{errno}) {
+        $html->message('err', $_ERROR, "[$Stripe->{errno}] $Stripe->{errstr} \nID: $payment_system:$FORM{OPERATION_ID}"); 
+      } 
+      else {
+        $Paysys->change({
+              ID     => $list->[0]->{id},
+              STATUS => 2,
+              INFO   => "Token, $FORM{stripeToken}\nTP_ID, $FORM{TP_ID}\nID, $Stripe->{result}->{id}\nSTATUS, $Stripe->{result}->{status}\nAMOUNT, $Stripe->{result}->{amount}\n"
+        });
+
+        if ($user->{UID}) {
+          paysys_show_result({ TRANSACTION_ID => "$payment_system:$FORM{OPERATION_ID}" });
+        }
+
+        $FORM{PAYSYS_ID}=$list->[0]->{id};
+        $FORM{TRUE}=1;
+        return 1;
+      }
+    }
+    else {
+      $html->message('err', $_ERROR, "$_ERR_NO_TRANSACTION\n ID: $payment_system:$FORM{OPERATION_ID}"); 
+    }
+
+    $FORM{FALSE}=1;
+    return 0;
+  }
+
+  #Info section
+  $Paysys->add(
+      {
+        SYSTEM_ID      => $payment_system_id,
+        SUM            => $FORM{SUM},
+        UID            => $LIST_PARAMS{UID},
+        IP             => $ENV{'REMOTE_ADDR'} || '0.0.0.0',
+        PAYSYS_IP      => $ENV{'REMOTE_ADDR'} || '0.0.0.0',
+        TRANSACTION_ID => "$payment_system:$FORM{OPERATION_ID}",
+        STATUS         => 1,
+        DOMAIN_ID      => $user->{DOMAIN_ID}
+      }
+  );
+  
+  my %info = (AMOUNT => $FORM{SUM} * 100);
   
   return $html->tpl_show(_include('paysys_stripe_add', 'Paysys'), \%info);
 }
