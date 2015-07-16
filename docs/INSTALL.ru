@@ -23,10 +23,10 @@
 <link rel="alternate" type="application/rss+xml" title="Текущее пространство имён" href="/wiki/feed.php?mode=list&amp;ns=abills:docs_03:install"/>
 <link rel="alternate" type="text/html" title="Простой HTML" href="/wiki/doku.php/abills:docs_03:install:ru?do=export_xhtml"/>
 <link rel="alternate" type="text/plain" title="вики-разметка" href="/wiki/doku.php/abills:docs_03:install:ru?do=export_raw"/>
-<link rel="stylesheet" type="text/css" href="/wiki/lib/exe/css.php?t=bootstrap3&amp;tseed=7f5c934265297fc1e3ac759faf553e5b"/>
+<link rel="stylesheet" type="text/css" href="/wiki/lib/exe/css.php?t=bootstrap3&amp;tseed=fc225c82c254d119ddee00968fdef4de"/>
 <script type="text/javascript">/*<![CDATA[*/var NS='abills:docs_03:install';var JSINFO = {"id":"abills:docs_03:install:ru","namespace":"abills:docs_03:install","showbookcreatorpagetool":false,"DOKU_COOKIE_PARAM":{"path":"\/wiki\/","secure":false}};
 /*!]]>*/</script>
-<script type="text/javascript" charset="utf-8" src="/wiki/lib/exe/js.php?tseed=7f5c934265297fc1e3ac759faf553e5b"></script>
+<script type="text/javascript" charset="utf-8" src="/wiki/lib/exe/js.php?tseed=fc225c82c254d119ddee00968fdef4de"></script>
   <script type="text/javascript" src="/wiki/lib/tpl/bootstrap3/assets/bootstrap/js/bootstrap.min.js"></script>
   <script src="/wiki/lib/tpl/bootstrap3//assets/bootstrap/js/cookies.js"></script>
     <script TYPE="text/javascript">
@@ -122,7 +122,7 @@
         <ul class="nav navbar-nav">
                               <li>
             <span class="dw__actions">
-              <a href="/wiki/doku.php/abills:docs_03:install:ru?do=login&amp;sectok=da0e69f1edd77e14ddb26cc0e81d4339"  class="action login" rel="nofollow" title="Войти"><i class="glyphicon glyphicon-log-in"></i> Войти</a>            </span>
+              <a href="/wiki/doku.php/abills:docs_03:install:ru?do=login&amp;sectok=966038b20a894e9ca5ecde9abe2ff5dc"  class="action login" rel="nofollow" title="Войти"><i class="glyphicon glyphicon-log-in"></i> Войти</a>            </span>
           </li>
                   </ul>
 
@@ -302,7 +302,7 @@
 </li>
 <li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:sqlcmd:ru" class="wikilink1" title="abills:docs:sqlcmd:ru">Sqlcmd</a></div>
 </li>
-<li class="level4"><div class="li"> <span class="curid"><a href="/wiki/doku.php/abills:docs:squid:ru" class="wikilink1" title="abills:docs:squid:ru">Squid</a></span></div>
+<li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:squid:ru" class="wikilink1" title="abills:docs:squid:ru">Squid</a></div>
 </li>
 <li class="level4"><div class="li"> <a href="/wiki/doku.php/abills:docs:modules:sysinfo:ru" class="wikilink1" title="abills:docs:modules:sysinfo:ru">Sysinfo</a></div>
 </li>
@@ -517,7 +517,7 @@
 <ul>
 <li class="level1"><div class="li"> <a href="/wiki/doku.php/abills:docs:download:download" class="wikilink1" title="abills:docs:download:download">Скачать</a></div>
 </li>
-<li class="level1"><div class="li"> <a href="/wiki/doku.php/abills:price:price" class="wikilink1" title="abills:price:price"> Цены</a></div>
+<li class="level1"><div class="li"> <span class="curid"><a href="/wiki/doku.php/abills:price:price" class="wikilink1" title="abills:price:price"> Цены</a></span></div>
 </li>
 </ul>
 <ul>
@@ -610,7 +610,7 @@
       
     </div><!-- /site -->
 
-    <div class="no"><img src="/wiki/lib/exe/indexer.php?id=abills%3Adocs_03%3Ainstall%3Aru&amp;1436439961" width="2" height="1" alt="" /></div>
+    <div class="no"><img src="/wiki/lib/exe/indexer.php?id=abills%3Adocs_03%3Ainstall%3Aru&amp;1436945531" width="2" height="1" alt="" /></div>
     <div id="screen__mode" class="no">
       <span class="visible-xs"></span>
       <span class="visible-sm"></span>

@@ -125,11 +125,13 @@ sub sms_send {
   my ($attr) = @_;
 
   sms_service_connect();
+
+  $conf{SMS_NUMBER}= "[0-9]{12}" if (! $conf{SMS_NUMBER});
   
   if (! $attr->{NUMBER} && ! $attr->{NUMBERS}) {
     $html->message('err', $_ERROR, "$_ERR_PHONE_NOT_DEFINED");
   }
-  elsif (! $attr->{NUMBERS} && $attr->{NUMBER} !~ /(\d{12})/) {
+  elsif (! $attr->{NUMBERS} && $attr->{NUMBER} !~ /$conf{SMS_NUMBER}/) {
     $html->message('err', $_ERROR, "$_ERR_WRONG_PHONE");
   }
 
