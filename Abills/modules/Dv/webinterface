@@ -7116,7 +7116,7 @@ sub dv_registration {
 
           %FORM = ( %$Dv, %FORM, %$user );
 
-          if ($FORM{PHONE} && in_array('Sms', \@MODULES)) {
+          if ($FORM{PHONE} && in_array('Sms', \@MODULES) && ! $FORM{REGISTRATION_SKIP_SEND_SMS}) {
             load_module('Sms', $html);
  
             my $message = $html->tpl_show(_include('dv_reg_complete_sms', 'Dv'), { %$Cards, %FORM }, { OUTPUT2RETURN => 1  });;
