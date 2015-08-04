@@ -697,7 +697,7 @@ sub service_get_month_fee {
       else {
         my $days_in_month = ($m != 2 ? (($m % 2) ^ ($m > 7)) + 30 : (!($y % 400) || !($y % 4) && ($y % 25) ? 29 : 28));
         my $start_date = ($Service->{TP_INFO}->{PERIOD_ALIGNMENT}) ? (($Service->{ACCOUNT_ACTIVATE} && $Service->{ACCOUNT_ACTIVATE} ne '0000-00-00') ? $Service->{ACCOUNT_ACTIVATE} : $DATE) : "$y-$m-01";
-        $FEES_DSC{PERIOD} = "($start_date-$y-$m-$days_in_month)";
+        $FEES_DSC{PERIOD} = ($Service->{TP_INFO}->{ABON_DISTRIBUTION}) ? '' : "($start_date-$y-$m-$days_in_month)";
       }
 
       $FEES_PARAMS{DESCRIBE} = fees_dsc_former(\%FEES_DSC);
