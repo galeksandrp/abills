@@ -812,7 +812,7 @@ sub search_expr_users () {
     EXPIRE        => 'DATE:u.expire',
     
 #    CREDIT        => 'INT:u.credit',
-    CREDIT        => 'INT:if(company.id IS NULL, u.credit, company.credit) AS credit',
+    CREDIT        => 'INT:if(u.credit > 0, u.credit, if(company.id IS NULL, 0, company.credit)) AS credit',
     CREDIT_DATE   => 'DATE:u.credit_date', 
     REDUCTION     => 'INT:u.reduction',
     REDUCTION_DATE=> 'INT:u.reduction_date',
@@ -1047,7 +1047,7 @@ sub search_expr_users () {
     $self->{EXT_TABLES} .= "LEFT JOIN admin_actions aa ON (u.uid=aa.uid)" if ($self->{EXT_TABLES} !~ /admin_actions/);
   }
 
-  if ($attr->{DEPOSIT} || ($attr->{BILL_ID} && ! in_array('BILL_ID', $attr->{SKIP_USERS_FIELDS}))) {
+  if ($attr->{DEPOSIT} || $attr->{CREDIT} || ($attr->{BILL_ID} && ! in_array('BILL_ID', $attr->{SKIP_USERS_FIELDS}))) {
     $self->{EXT_TABLES} .= " LEFT JOIN bills b ON (u.bill_id = b.id)
       LEFT JOIN companies company ON  (u.company_id=company.id) 
       LEFT JOIN bills cb ON (company.bill_id=cb.id) ";
