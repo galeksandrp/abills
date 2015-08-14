@@ -638,12 +638,15 @@ sub changes {
               $self->{ENABLE}  = 1;
               $self->{DISABLE} = undef;
             }
+
+            $self->{CHG_STATUS} = $OLD_DATA->{$k} . '->' . $DATA{$k};
           }
           elsif ($DATA{$k} > 1) {
-	          $self->{CHG_STATUS} = $OLD_DATA->{$k} . '->' . $DATA{$k};
+	          #$self->{CHG_STATUS} = $OLD_DATA->{$k} . '->' . $DATA{$k};
             $self->{'STATUS'} = $DATA{$k};
           }
           else {
+            $self->{'STATUS'} = $DATA{$k};
             $self->{DISABLE_ACTION} = 1;
           }
           
@@ -711,11 +714,13 @@ sub changes {
     }
 
     if ($self->{'DISABLE_ACTION'}) {
-      $admin->action_add($DATA{UID}, "", { TYPE => 9, ACTION_COMMENTS => $DATA{ACTION_COMMENTS} });
+      $admin->action_add($DATA{UID}, $self->{CHG_STATUS}, { TYPE => 9, ACTION_COMMENTS => $DATA{ACTION_COMMENTS} });
+      return $self->{result};
     }
 
     if ($self->{'ENABLE'}) {
-      $admin->action_add($DATA{UID}, "", { TYPE => 8 });
+      $admin->action_add($DATA{UID}, "$self->{CHG_STATUS}", { TYPE => 8 });
+      return $self->{result};
     }
 
     if ($CHANGES_LOG ne '' && ($CHANGES_LOG ne $attr->{EXT_CHANGE_INFO} . ' ')) {
@@ -731,7 +736,7 @@ sub changes {
     }
 
     if ($self->{CHG_STATUS}) {
-      $admin->action_add($DATA{UID}, "$self->{'STATUS'}" . (($attr->{EXT_CHANGE_INFO}) ? ' ' . $attr->{EXT_CHANGE_INFO} : ''), { TYPE => ($self->{'STATUS'} == 3) ? 14 : 4 });
+      $admin->action_add($DATA{UID}, (($self->{CHG_STATUS}) ? $self->{CHG_STATUS} : $self->{'STATUS'}) . (($attr->{EXT_CHANGE_INFO}) ? ' ' . $attr->{EXT_CHANGE_INFO} : ''), { TYPE => ($self->{'STATUS'} == 3) ? 14 : 4 });
     }
 
     if ($self->{CHG_CREDIT}) {
