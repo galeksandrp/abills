@@ -194,7 +194,7 @@ my %ip_binded_system = (
     => 'Smsonline',
   '107.22.173.15,107.22.173.86,217.117.64.232/28,75.101.163.115,213.154.214.76,217.117.64.232/29'
     => 'Privat_terminal',
-  '62.89.31.36,95.140.194.139,195.250.65.250'
+  '62.89.31.36,95.140.194.139,195.250.65.250,195.250.65.252'
     => 'Telcell',
   '195.76.9.187,195.76.9.222'
     => 'Redsys',
@@ -206,7 +206,7 @@ my %ip_binded_system = (
     => 'Zaplati_sumy',
   '77.222.134.205'
     => 'Ipay',
-  '62.149.15.210,62.149.8.166,82.207.125.57'
+  '62.149.8.166,82.207.125.57'
     => 'Platezhka',
   '213.230.106.112/28,213.230.65.85/28'
     => 'Paynet',
@@ -324,6 +324,9 @@ elsif ($FORM{payment} && $FORM{payment} =~ /pay_way/) {
 }
 elsif($conf{'PAYSYS_YANDEX_ACCCOUNT'} && $FORM{code}) {
   load_pay_module('Yandex');
+}
+elsif ($FORM{command}) {
+  osmp_payments();
 }
 
 
@@ -646,6 +649,7 @@ sub osmp_payments {
   if ($command eq 'check') {
     my $list = $users->list({ $CHECK_FIELD  => $FORM{account}, 
                               DEPOSIT       => '_SHOW',
+                              FIO           => '_SHOW',
                               DISABLE_PAYSYS=> '_SHOW',
                               GROUP_NAME    => '_SHOW',
                               COLS_NAME     => 1 
@@ -683,17 +687,22 @@ sub osmp_payments {
     if ($payment_system_id == 44) {
       $RESULT_HASH{$txn_id} = $FORM{txn_id};
       $RESULT_HASH{prv_txn} = $FORM{prv_txn};
-      $RESULT_HASH{comment} = "Balance: $list->[0]->{deposit}" if ($status == 0);
+      $RESULT_HASH{comment} = "Balance: $list->[0]->{deposit} $list->[0]->{fio} " if ($status == 0);
+    }
+    else {
+      $RESULT_HASH{$txn_id} = $FORM{txn_id};
+      $RESULT_HASH{prv_txn} = $FORM{prv_txn} if ($FORM{prv_txn});
+      $RESULT_HASH{balance} = "$list->[0]->{deposit}";
+      $RESULT_HASH{fio}     = "$list->[0]->{fio}";
     }
   }
-
   #Cancel payments
   elsif ($command eq 'cancel') {
     my $prv_txn = $FORM{prv_txn};
     $RESULT_HASH{prv_txn} = $prv_txn;
 
     my $list = $payments->list({ ID        => "$prv_txn", 
-                                 EXT_ID    => "PEGAS:*",
+                                 EXT_ID    => "$payment_system:*",
                                  BILL_ID   => '_SHOW',
                                  COLS_NAME => 1 });
 
@@ -723,10 +732,34 @@ sub osmp_payments {
       }
     }
   }
+  # ?command=verify&date=20050815
+  elsif($command eq 'verify') {
+    $FORM{DATE} =~ /(\d{4}\d{2}\d{2})/;
+
+    my $date = "$1-$2-$3";
+    my $list = $payments->list({ 
+                                 EXT_ID    => "$payment_system:*",
+                                 BILL_ID      => '_SHOW',
+                                 $CHECK_FIELD => '_SHOW',
+                                 SUM          => '_SHOW',
+                                 DATETIME     => '_SHOW',
+                                 COLS_NAME    => 1 });
+
+    my $content = '';
+    foreach my $line (@$list) {
+      my $txt_id  = $line->{ext_id};
+      $txt_id     =~ s/$payment_system://g;
+      my $date_   = date_format($line->{datetime}, "%d.%m.%Y %H:%M:%S");
+      my $user_id = $line->{lc($CHECK_FIELD)};
+      $RESULT_HASH{verify} .= qq{ <payment txn_id="$txt_id" prv_txn="$line->{id}" account="$user_id" amount="$line->{sum}" date="$date_"/> };
+    }
+
+    $RESULT_HASH{result}=0;
+  }
+  # command=balance
   elsif ($command eq 'balance') {
 
   }
-
   #https://service.someprovider.ru:8443/payment_app.cgi?command=pay&txn_id=1234567&txn_date=20050815120133&account=0957835959&sum=10.45
   elsif ($command eq 'pay') {
     my $user;
@@ -741,6 +774,12 @@ sub osmp_payments {
         my $uid = $list->[0]->{uid};
         $user = $users->info($uid);
       }
+    }
+
+    # 2005 08 15 12 01 33
+    if ($FORM{txn_date} =~ /(\d{4}\d{2}\d{2}\d{2}\d{2}\d{2})/) {
+      $DATE="$1-$2-$3";
+      $TIME="$3-$5-$6";
     }
 
     if ($users->{errno}) {
@@ -759,7 +798,7 @@ sub osmp_payments {
               SUM        => $FORM{sum},
               QUITE      => 1
             }
-       );
+      );
 
       my $er = 1;
       if ($conf{PAYSYS_OSMP_CURRENCY}) {
@@ -774,6 +813,7 @@ sub osmp_payments {
         $user,
         {
           SUM          => $FORM{sum},
+          DATE         => "$DATE $TIME",
           DESCRIBE     => "$payment_system",
           METHOD       => ($conf{PAYSYS_PAYMENTS_METHODS} && $PAYSYS_PAYMENTS_METHODS{$payment_system_id}) ? $payment_system_id : '2',
           EXT_ID       => "$payment_system:$FORM{txn_id}",
@@ -806,7 +846,7 @@ sub osmp_payments {
             STATUS         => 2
           }
         );
-        
+
         cross_modules_call('_payments_maked', { USER_INFO => $user, 
                                                 SUM       => $FORM{sum},
                                                 QUITE     => 1 });
@@ -1093,7 +1133,7 @@ sub osmp_payments_v4 {
         $Paysys->add(
           {
             SYSTEM_ID      => $payment_system_id,
-            DATETIME       => "'$DATE $TIME'",
+            DATETIME       => "$DATE $TIME",
             SUM            => "$sum",
             UID            => "$user->{UID}",
             IP             => '0.0.0.0',
@@ -1205,7 +1245,7 @@ sub osmp_payments_v4 {
           $Paysys->add(
             {
               SYSTEM_ID      => $payment_system_id,
-              DATETIME       => "'$DATE $TIME'",
+              DATETIME       => "$DATE $TIME",
               SUM            => "$sum",
               UID            => "$user->{UID}",
               IP             => '0.0.0.0',
@@ -1578,19 +1618,9 @@ sub get_request_info() {
   return $info;  
 }
 
-#**********************************************************
+
+#************************************************************
 # Unified interface errors 
-#
-#**********************************************************
-sub paysys_pay_check {
-  my ($attr) = @_;
-  my $result = 0;
-
-
-  return $result;
-}
-
-#**********************************************************
 # 0 - ok
 # 1 - not exist user
 # 2 - sql error
@@ -1601,18 +1631,44 @@ sub paysys_pay_check {
 # 8 - Transaction not found
 # 9 - Payment exist
 #10 - Payment not exist
-#11 -
-#12 -
-#13 - Payment exist
+#11 - Disable paysys
+#12 - Test mode
+#13 - Paysys exist transaction
+#14 - 
+#17 - Payment SQL error
+
+#**********************************************************
+# 0 not found
+# id - paysys id
+#**********************************************************
+sub paysys_pay_check {
+  my ($attr) = @_;
+  my $result = 0;
+
+  my $paysys_list = $Paysys->list({
+                         ID             => $attr->{PAYSYS_ID} || '_SHOW',
+                         TRANSACTION_ID => $attr->{TRANSACTION_ID} || '_SHOW',
+                         SUM            => '_SHOW',
+                         COLS_NAME      => 1
+                        });
+
+  if ( $Paysys->{TOTAL} ) {
+    return  $paysys_list->[0]->{id};
+  }
+
+  return $result;
+}
+
+#**********************************************************
+#
 #**********************************************************
 sub paysys_pay_cancel {
   my ($attr) = @_;
   my $result = 0;
 
-  my $paysys_id = $attr->{PAYSYS_ID};
   my $paysys_list = $Paysys->list({
-                         ID             => $paysys_id,
-                         TRANSACTION_ID => '_SHOW',
+                         ID             => $attr->{PAYSYS_ID},
+                         TRANSACTION_ID => $attr->{TRANSACTION_ID} || '_SHOW',
                          SUM            => '_SHOW',
                          COLS_NAME      => 1
                         });
@@ -1714,6 +1770,11 @@ sub paysys_pay {
     }
   }
 
+  #Small sum
+  if ($amount && $amount <= 0) {
+    return 6;
+  }
+
   if($debug > 6) {
     $users->{debug}=1;
     $Paysys->{debug}=1;
@@ -1762,10 +1823,16 @@ sub paysys_pay {
   }
   else {
     my $list = $users->list({ $CHECK_FIELD => $user_account || '---', 
-                              COLS_NAME    => 1  });
+                              DISABLE_PAYSYS => '_SHOW',
+                              COLS_NAME      => 1  });
     if ($users->{errno} || $users->{TOTAL} < 1) {
       $status = 1;
       return $status; 
+    }
+
+    #disable paysys
+    if ($list->[0]->{disable_paysys}) {
+      return 11;
     }
 
     $uid = $list->[0]->{uid};
@@ -1828,6 +1895,7 @@ sub paysys_pay {
         $user,
         {
           SUM          => $amount,
+          DATE         => $attr->{DATE},
           DESCRIBE     => "$payment_system",
           METHOD       => ($conf{PAYSYS_PAYMENTS_METHODS} && $PAYSYS_PAYMENTS_METHODS{$payment_system_id}) ? $payment_system_id : '2',
           EXT_ID       => "$payment_system:$ext_id",
@@ -1872,7 +1940,7 @@ sub paysys_pay {
   }
   #Payments error
   elsif ($payments->{errno}) {
-    $status = 2;
+    $status = 12;
   }
   else {
     if ( $paysys_id ) {
