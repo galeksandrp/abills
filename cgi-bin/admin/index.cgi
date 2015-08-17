@@ -3328,11 +3328,16 @@ sub form_changes {
     }
 
     my $message = $line->[3];
-    if ($line->[7] == 4) {
+    if ($message =~ m/(\d+)\-\>(\d+)/) {
+      my $from_status = $1;
+      my $to_status   = $2;
+      $message = "$service_status[$from_status]->$service_status[$to_status]";
+    }
+    elsif ($line->[7] == 4) {
       $message = $service_status[$message];
     }
 
-    $table->addrow($html->b($line->[0]), $html->button($line->[1], "index=15&UID=$line->[8]"), $html->color_mark($line->[2], $color), $html->color_mark($message, $color), $line->[4], $line->[5], $line->[6], $html->color_mark($action_types{ $line->[7] }, $color), $delete);
+    $table->addrow($html->b($line->[0]), $html->button($line->[1], "index=15&UID=$line->[8]"), $html->color_mark($line->[2], $color), $html->color_mark($message, $color), $line->[4], $line->[5], $line->[6], $html->color_mark($action_types{ $line->[7] }, $color). "($line->[7])", $delete);
   }
 
   print $table->show();
