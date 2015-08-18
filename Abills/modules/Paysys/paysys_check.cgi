@@ -1876,7 +1876,7 @@ sub paysys_pay {
   #Sucsess
   cross_modules_call('_pre_payment', { USER_INFO   => $user, 
                                        SKIP_MODULES=> 'Sqlcmd',
-                                       QUITE       => 1, 
+                                       SILENT      => 1, 
                                        SUM         => $amount,
                                       });
   my $er       = '';

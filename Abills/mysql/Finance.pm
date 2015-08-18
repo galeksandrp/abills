@@ -1,7 +1,6 @@
 package Finance;
 # Finance module
 #
-#
 # Main module for payments fees
 #**********************************************************
 
