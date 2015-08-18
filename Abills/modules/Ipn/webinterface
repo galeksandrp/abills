@@ -1,3 +1,4 @@
+#!perl
 # IPN web functions
 
 use Ipn;
@@ -2506,15 +2507,16 @@ sub ipn_periodic_session_restart {
       COLS_UPPER=> 1
     }
   );
+
   my %nas_info = ();
   foreach my $line (@$nas_list) {
-    if ($line->{NAS_TYPE} eq 'ipcad' || 
+    if ($line->{NAS_TYPE} && (
+        $line->{NAS_TYPE} eq 'ipcad' || 
         $line->{NAS_TYPE} eq 'dhcp'  ||
-        $line->{NAS_TYPE} eq 'mikrotik_dhcp') {
+        $line->{NAS_TYPE} eq 'mikrotik_dhcp') ) {
       $nas_info{ $line->{NAS_ID} }  = $line;
     }
   }
-
   my @nas_ids_arr = keys %nas_info;
 
   if ($#nas_ids_arr < 0) {

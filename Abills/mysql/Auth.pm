@@ -1838,8 +1838,10 @@ sub neg_deposit_filter_former () {
       }
     }
   }
-
-  $NEG_DEPOSIT_FILTER_ID =~ s/\%IP\%/$RAD_PAIRS->{'Framed-IP-Address'}/g;
+  
+  if ($RAD_PAIRS->{'Framed-IP-Address'}) {
+    $NEG_DEPOSIT_FILTER_ID =~ s/\%IP\%/$RAD_PAIRS->{'Framed-IP-Address'}/g;
+  }
   $NEG_DEPOSIT_FILTER_ID =~ s/\%LOGIN\%/$RAD->{'USER_NAME'}/g;
   $self->{INFO} = "Neg filter";
   if ($NEG_DEPOSIT_FILTER_ID =~ /RAD:(.+)/) {
