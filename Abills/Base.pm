@@ -42,6 +42,7 @@ $VERSION = 2.00;
 &date_diff
 &date_format
 &_bp
+&get_radius_params
 );
 
 @EXPORT_OK = qw(
@@ -70,6 +71,7 @@ ssh_cmd
 date_diff
 date_format
 _bp
+get_radius_params
 );
 
 %EXPORT_TAGS = ();
@@ -1091,6 +1093,50 @@ sub _bp {
   }
 
   return 1;
+}
+
+#**********************************************************
+# Get Argument params or Environment parameters
+#
+# FreeRadius enviropment parameters
+#  CLIENT_IP_ADDRESS - 127.0.0.1
+#  NAS_IP_ADDRESS - 127.0.0.1
+#  USER_PASSWORD - xxxxxxxxx
+#  SERVICE_TYPE - VPN
+#  NAS_PORT_TYPE - Virtual
+#  FRAMED_PROTOCOL - PPP
+#  USER_NAME - andy
+#  NAS_IDENTIFIER - media.intranet
+#**********************************************************
+sub get_radius_params {
+  my %RAD = ();
+
+  if ($#ARGV > 1) {
+    foreach my $pair (@ARGV) {
+      my ($side, $value) = split(/=/, $pair, 2);
+      if (defined($value)) {
+        $value = clearquotes("$value");
+        $RAD{"$side"} = "$value";
+      }
+      else {
+        $RAD{"$side"} = "";
+      }
+    }
+  }
+  else {
+    while (my ($k, $v) = each(%ENV)) {
+      if (defined($v) && defined($k)) {
+        if ($RAD{$k}) {
+          $RAD{$k} .= ";" . clearquotes("$v");
+        }
+        else {
+          $RAD{$k} = clearquotes("$v");
+        }
+      }
+    }
+  }
+
+  return \%RAD;
 }
 
 1;
