@@ -49,7 +49,7 @@ else {
   }
   elsif (! $attr->{RETURN} ) {
     print $result;
-    exit;
+    die;
   }
 
   print $result;
@@ -69,11 +69,18 @@ sub _error_show {
   my $message     = $attr->{MESSAGE}  || '';
 
   if ($module->{errno}) {
-    if ($module->{errno} == 15) {
+    if ($attr->{ERROR_IDS}->{$module->{errno}}) {
+      $html->message('err', "$module_name:$_ERROR", $message . $attr->{ERROR_IDS}->{$module->{errno}});
+    }
+    elsif ($module->{errno} == 15) {
       $html->message('err', "$module_name:$_ERROR", $message . " $ERR_SMALL_DEPOSIT");
     }
     elsif ($module->{errno} == 7) {
       $html->message('err', "$module_name:$_ERROR", $message . " $_EXIST");
+      return 1;
+    }
+    elsif ($module->{errno} == 2) {
+      $html->message('err', "$module_name:$_ERROR", $message . " $_NOT_EXIST");
       return 1;
     }
     else {
@@ -115,20 +122,25 @@ sub _function {
 
     print "Content-Type: text/html\n\n";
     print << "[END]";
-<form action='$SELF_URL' method='post'>
-<input type=hidden name='index_num' value='$index'>
-<input type=hidden name='function_name' value='$function_name'>
-<input type=hidden name='input' value='$inputs'>
-<input type=hidden name='sys_id' value='$inputs'>
+<form action='https://support.abills.net.ua/bugs.cgi' method='post'>
+<input type=hidden name='FN_INDEX' value='$index'>
+<input type=hidden name='FN_NAME' value='$function_name'>
+<input type=hidden name='INPUTS' value='$inputs'>
+<input type=hidden name='SYS_ID' value=''>
 
 Critical Error:<br>
-<textarea cols=100 rows=8>
+<textarea cols=100 rows=8 NAME=ERROR>
 $@
 $inputs
 </textarea>
-<br><input type=submit name='send' value='Send to bug tracker'>
+<br>$_COMMENTS:<input type=text name='COMMENTS' value='' size=80>
+<br><input type=submit name='add' value='Send to bug tracker'>
+
 </form>
 [END]
+
+    die "Error functionm execute: '$function_name' $!";
+#    my $rr = `echo "$function_name" >> /tmp/fe`;
   }
 
   return $returns;
@@ -173,7 +185,7 @@ sub load_module {
     print $@;
     
     print @INC;
-    exit;
+    die;
   }
 
   return 0;
@@ -332,9 +344,11 @@ sub fees_dsc_former {
   my ($attr)=@_;
   
   $conf{DV_FEES_DSC}='%SERVICE_NAME%: %FEES_PERIOD_MONTH%%FEES_PERIOD_DAY% %TP_NAME% (%TP_ID%)%EXTRA%%PERIOD%' if (! $conf{DV_FEES_DSC});
+
   if (! $attr->{SERVICE_NAME}) {
     $attr->{SERVICE_NAME}='Internet';
   }
+
   my $text = $conf{DV_FEES_DSC};
 
   while ($text =~ /\%(\w+)\%/g) {
@@ -355,6 +369,8 @@ sub fees_dsc_former {
 #**********************************************************
 sub service_get_month_fee {
   my ($Service, $attr) = @_;
+
+  my $debug = $attr->{DEBUG} || 0;
 
   require Finance;
   Finance->import();
@@ -385,7 +401,6 @@ sub service_get_month_fee {
 
     my $Bonus_rating = Bonus_rating->new($Service->{db}, $admin, \%conf);
     $Bonus_rating->info($Service->{TP_INFO}->{TP_ID});
-
 
     if ($Bonus_rating->{TOTAL} > 0) {
       my $bonus_sum = 0;
@@ -434,12 +449,12 @@ sub service_get_month_fee {
         $users,
         $Service->{TP_INFO}->{ACTIV_PRICE},
         {
-          DESCRIBE => "$_ACTIVATE $_TARIF_PLAN",
+          DESCRIBE => '$_ACTIVATE_TARIF_PLAN',
           DATE     => "$date $time"
         }
       );
       $total_sum{ACTIVATE} = $Service->{TP_INFO}->{ACTIV_PRICE};
-      $html->message('info', $_INFO, "$_ACTIVATE $_TARIF_PLAN") if ($html && ! $attr->{QUITE});
+      $html->message('info', $_INFO, "$_ACTIVATE_TARIF_PLAN") if ($html && ! $attr->{QUITE});
     }
   }
 
@@ -472,10 +487,10 @@ sub service_get_month_fee {
       $sum              = 0;
 
       if ($debug) {
-        print "$Service->{TP_INFO_OLD}->{MONTH_FEE} ($Service->{TP_INFO_OLD}->{ABON_DISTRIBUTION}) => $Service->{TP_INFO}->{MONTH_FEE}";
+        print "$Service->{TP_INFO_OLD}->{MONTH_FEE} ($Service->{TP_INFO_OLD}->{ABON_DISTRIBUTION}) => $Service->{TP_INFO}->{MONTH_FEE} SHEDULE: $attr->{SHEDULER}\n";
       }
 
-      if ($attr->{SHEDULER} && $Service->{TP_INFO_OLD}->{MONTH_FEE} == $Service->{TP_INFO}->{MONTH_FEE}) {
+      if (($attr->{SHEDULER} && $conf{START_PERIOD_DAY} == $d)|| $Service->{TP_INFO_OLD}->{MONTH_FEE} == $Service->{TP_INFO}->{MONTH_FEE}) {
         if ($attr->{SHEDULER}) {
           undef $user;
         }
@@ -490,7 +505,7 @@ sub service_get_month_fee {
           #PERIOD_ALIGNMENT
           $Service->{TP_INFO}->{PERIOD_ALIGNMENT}=1;
         }
-        # Get back full month abon
+        # Get back full month abon in 1 day of month 
         elsif (! $Service->{TP_INFO_OLD}->{ABON_DISTRIBUTION}) {
           $sum = $Service->{TP_INFO_OLD}->{MONTH_FEE}; 
         }
@@ -752,6 +767,28 @@ sub service_get_month_fee {
 
 
 #**********************************************************
+# form search link
+#**********************************************************
+sub search_link {
+  my ($val, $attr) = @_;
+
+  my $params = $attr->{PARAMS};
+  my $ext_link = '';
+  if ($attr->{VALUES}) {
+    foreach my $k ( keys %{ $attr->{VALUES} } ) {
+      $ext_link .= "&$k=$attr->{VALUES}->{$k}"; 
+    }
+  }
+  else {
+    $ext_link .=  '&'. "$params->[1]=". $val;
+  }
+  
+  my $result = $html->button("$val", "index=". get_function_index($params->[0]) . "&search_form=1&search=1".$ext_link );
+
+  return $result;
+}
+
+#**********************************************************
 # result_former
 #**********************************************************
 sub result_row_former {
@@ -846,10 +883,10 @@ sub result_former {
   my $data = $attr->{INPUT_DATA};
   if ($attr->{FUNCTION}) {
     my $fn   = $attr->{FUNCTION};
+
     my $list = $data->$fn({ COLS_NAME => 1, %LIST_PARAMS, SHOW_COLUMNS => $FORM{show_columns} });
-    
     _error_show($data);
-    
+
     $data->{list} = $list;
   }
 
@@ -943,7 +980,7 @@ sub result_former {
   my @title        = ();
 
   for (my $i = 0 ; $i < $base_fields+$data->{SEARCH_FIELDS_COUNT} ; $i++) {
-    $title[$i]     = $SEARCH_TITLES{ $EX_TITLE_ARR[$i] } || $EX_TITLE_ARR[$i] || $SEARCH_TITLES{lc($cols[$i])} || $cols[$i] || "$_SEARCH";
+    $title[$i]     = $SEARCH_TITLES{ $EX_TITLE_ARR[$i] } || $SEARCH_TITLES{$cols[$i]} || $EX_TITLE_ARR[$i] || $cols[$i] || "$_SEARCH";
     $ACTIVE_TITLES{$EX_TITLE_ARR[$i]} = $FORM{uc($EX_TITLE_ARR[$i])} || '_SHOW';
   }
 
@@ -986,6 +1023,7 @@ sub result_former {
         title      => \@title,
         pages      => (! $attr->{SKIP_PAGES}) ? $data->{TOTAL} : undef,
         SHOW_COLS  => $attr->{TABLE}{SHOW_COLS} ? $attr->{TABLE}{SHOW_COLS} : \%SEARCH_TITLES,
+        FIELDS_IDS => $data->{COL_NAMES_ARR},
         ACTIVE_COLS=> \%ACTIVE_TITLES,
       }
      );
@@ -1011,6 +1049,24 @@ sub result_former {
           }
           elsif ($attr->{SELECT_VALUE} && $attr->{SELECT_VALUE}->{$data->{COL_NAMES_ARR}->[$i]}) {
             $val = $attr->{SELECT_VALUE}->{$data->{COL_NAMES_ARR}->[$i]}->{$line->{$data->{COL_NAMES_ARR}->[$i]}};
+          }
+          #use filter to cols
+          elsif ($attr->{FILTER_COLS} && $attr->{FILTER_COLS}->{$data->{COL_NAMES_ARR}->[$i]}) {
+            my ($filter_fn, @arr)=split(/:/, $attr->{FILTER_COLS}->{$data->{COL_NAMES_ARR}->[$i]});
+
+            my %p_values = ();
+            if ($arr[1] =~ /,/) {
+              foreach my $k ( split(/,/, $arr[1]) ) {
+                if ($k =~ /(\S+)=(.*)/) {
+                  $p_values{$1}=$2;
+                }
+                elsif (defined($line->{lc($k)})) {
+                  $p_values{$k}=$line->{lc($k)};
+                }
+              }
+            }
+            
+            $val = $filter_fn->($line->{$data->{COL_NAMES_ARR}->[$i]}, { PARAMS => \@arr, VALUES => \%p_values });
           }
           else {
             $val = $line->{ $data->{COL_NAMES_ARR}->[$i]  };
@@ -1093,12 +1149,20 @@ sub result_former {
     elsif($attr->{DATAHASH}) {
       $data->{TOTAL}=0;
       $table->{sub_ref}=1;
+
       for(my $row_num=0; $row_num<= $#{ $attr->{DATAHASH} }; $row_num++) {
         my @row = ();
         my $line = $attr->{DATAHASH}->[$row_num];
 
         for(my $i=0; $i<=$#title; $i++) {
-          push @row, $line->{$title[$i]};
+          #use filter to cols
+          if ($attr->{FILTER_COLS} && $attr->{FILTER_COLS}->{$title[$i]}) {
+            my ($filter_fn, @arr)=split(/:/, $attr->{FILTER_COLS}->{$title[$i]});
+            push @row, $filter_fn->($line->{$title[$i]}, { PARAMS => \@arr });
+          }
+          else {          
+            push @row, $line->{$title[$i]};
+          }
         }
 
         $table->addrow( @row );
@@ -1109,11 +1173,24 @@ sub result_former {
     if ($attr->{TOTAL}) {
       my $result = $table->show();
       if (! $admin->{MAX_ROWS}) {
+        my @rows = ();
+        
+        if ($attr->{TOTAL} =~ /;/) {
+          my @total_vals = split(/;/, $attr->{TOTAL});
+          foreach my $line (@total_vals) {
+            my ($val_id, $name)=split(/:/, $line);
+            push @rows, [ $name, $html->b($data->{$val_id}) ];
+          }
+        }
+        else {
+          @rows = [ "$_TOTAL:", $html->b($data->{TOTAL}) ]
+        }
+        
         $table = $html->table(
           {
             width      => '100%',
             cols_align => [ 'right', 'right' ],
-            rows       => [ [ "$_TOTAL:", $html->b($data->{TOTAL}) ] ]
+            rows       => \@rows
           }
         );
         $result .= $table->show();
@@ -1123,12 +1200,12 @@ sub result_former {
         return $result, $data->{list};
       }
       else {
-        print $result;
+        print $result if (! $attr->{SEARCH_FORMER} || $data->{TOTAL} > 1);
       }
     }
-    else {
+    #else {
       return ($table, $data->{list});
-    }
+    #}
   }
   else {
     return \@title;  
@@ -1143,6 +1220,7 @@ sub dirname {
   if ($x !~ s@[/\\][^/\\]+$@@) {
     $x = '.';
   }
+
   $x;
 }
 
@@ -1408,9 +1486,14 @@ if ($request =~ /^https/ || $attr->{CURL}) {
   my $request_url    = $request;
   my $request_params = '';
   my $curl_options   = $attr->{CURL_OPTIONS} || '';
+  my $curl_file      = $CURL;
 
-  if (! -f $CURL) {
-    print "'curl' not found. \$conf{FILE_CURL}\n";
+  if ($CURL =~ /(\S+)/) {
+    $curl_file = $1;
+  }
+
+  if (! -f $curl_file) {
+    print "'curl' not found. use \$conf{FILE_CURL}\n";
     return 0;
   }
 

@@ -166,8 +166,8 @@ if ($conf{PAYSYS_SUCCESSIONS}) {
 
     my @ips_arr = split(/,/, $ips);
     if (in_array($ENV{REMOTE_ADDR}, \@ips_arr)) {
-      if ($function =~ /\.pm/) {
-        require "$function";
+      if ($function =~ /(\S+)\.pm/) {
+        load_pay_module("$1", { SYS_PARAMS => \%system_params });
       }
       else {
         $function->(\%system_params);
@@ -1569,7 +1569,7 @@ sub load_pay_module {
       print 'Module: ' . $name.'.pm' . " Function: $function\n";
     }
 
-    $function->();
+    $function->( $attr->{SYS_PARAMS} );
   }
 
   exit;
@@ -1636,6 +1636,7 @@ sub get_request_info() {
 #13 - Paysys exist transaction
 #14 - 
 #17 - Payment SQL error
+#28 - Wrong exchange rate
 
 #**********************************************************
 # 0 not found
@@ -1839,7 +1840,6 @@ sub paysys_pay {
   }
 
   my $user = $users->info($uid);
-
   #Error
   if($attr->{ERROR}) {
     my $error_code = $attr->{ERROR};
@@ -1879,13 +1879,15 @@ sub paysys_pay {
                                        QUITE       => 1, 
                                        SUM         => $amount,
                                       });
-
   my $er       = '';
   my $currency = 0;
 
   if ($attr->{CURRENCY}) {
     $payments->exchange_info(0, { SHORT_NAME => $attr->{CURRENCY} });
-    if ($payments->{TOTAL} > 0) {
+    if ($payments->{errno}) {
+      return 28;
+    }
+    elsif ($payments->{TOTAL} > 0) {
       $er       = $payments->{ER_RATE};
       $currency = $payments->{ISO};
     }
