@@ -771,7 +771,7 @@ sub osmp_payments {
       EXT_ID            => $FORM{txn_id},
       DATA              => \%FORM,
       DATE              => "$DATE $TIME",
-      CURRENCY          => $conf{PAYSYS_OSMP_CURRENCY},
+      CURRENCY_ISO      => $conf{PAYSYS_OSMP_CURRENCY},
       MK_LOG            => 1,
       PAYMENT_ID        => 1,
       DEBUG             => $debug
@@ -1810,7 +1810,8 @@ sub paysys_pay {
   my $currency = 0;
 
   if ($attr->{CURRENCY}) {
-    $payments->exchange_info(0, { SHORT_NAME => $attr->{CURRENCY} });
+    $payments->exchange_info(0, { SHORT_NAME => $attr->{CURRENCY},
+                                  ISO        => $attr->{CURRENCY_ISO} });
     if ($payments->{errno}) {
       return 28;
     }
