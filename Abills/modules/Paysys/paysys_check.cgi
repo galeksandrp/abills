@@ -1809,7 +1809,7 @@ sub paysys_pay {
   my $er       = '';
   my $currency = 0;
 
-  if ($attr->{CURRENCY}) {
+  if ($attr->{CURRENCY} || $attr->{CURRENCY_ISO}) {
     $payments->exchange_info(0, { SHORT_NAME => $attr->{CURRENCY},
                                   ISO        => $attr->{CURRENCY_ISO} });
     if ($payments->{errno}) {
