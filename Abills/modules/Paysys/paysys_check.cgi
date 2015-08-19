@@ -689,11 +689,17 @@ sub osmp_payments {
       $RESULT_HASH{prv_txn} = $FORM{prv_txn};
       $RESULT_HASH{comment} = "Balance: $list->[0]->{deposit} $list->[0]->{fio} " if ($status == 0);
     }
-    else {
+    elsif($conf{PAYSYS_PEGAS}) {
       $RESULT_HASH{$txn_id} = $FORM{txn_id};
       $RESULT_HASH{prv_txn} = $FORM{prv_txn} if ($FORM{prv_txn});
       $RESULT_HASH{balance} = "$list->[0]->{deposit}";
       $RESULT_HASH{fio}     = "$list->[0]->{fio}";
+    }
+    elsif ($conf{PAYSYS_OSMP_EXT_PARAMS}) {
+      my @arr = split(/,[\r\n\s]?/, $conf{PAYSYS_OSMP_EXT_PARAMS});
+      foreach my $param  (@arr) {
+        $RESULT_HASH{$param}  = $FORM{$param} || $list->[0]->{$param};
+      }
     }
   }
   #Cancel payments

@@ -3328,7 +3328,7 @@ sub form_changes {
     }
 
     my $message = $line->[3];
-    if ($message =~ m/(\d+)\-\>(\d+)/) {
+    if (in_array($line->[7], [ 4,8,9,14 ]) && $message =~ m/(\d+)\-\>(\d+)/) {
       my $from_status = $1;
       my $to_status   = $2;
       $message = "$service_status[$from_status]->$service_status[$to_status]";

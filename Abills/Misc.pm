@@ -211,13 +211,12 @@ sub cross_modules_call {
   if (defined($attr->{SILENT})) {
     $silent=$attr->{SILENT};
   }
-
+  
   my %full_return  = ();
   my @skip_modules = ();
   my $SAVEOUT;
-
+  
   eval {
- _bp({ SHOW => "// $silent //" });    
     if ($silent) {
       #disable stdout output
       open($SAVEOUT, ">&", STDOUT) or die "XXXX: $!";
@@ -226,13 +225,12 @@ sub cross_modules_call {
       open STDOUT, '/dev/null';
       open STDERR, '/dev/null';
     }
-_bp();
 
     if ($attr->{SKIP_MODULES}) {
       $attr->{SKIP_MODULES} =~ s/\s+//g;
       @skip_modules = split(/,/, $attr->{SKIP_MODULES});
     }
- _bp();
+
     if ($silent) {
       local $SIG{ALRM} = sub { die "alarm\n" };    # NB: \n required
       alarm $timeout;
@@ -1535,7 +1533,7 @@ if ($request =~ /^https/ || $attr->{CURL}) {
   $result = `$request_cmd` if ($debug < 7);
 
   if ($debug) {
-    print "<br>DEBUG: $debug COUNT:". $attr->{REQUEST_COUNT} ."=====REQUEST=====<br>\n";
+    print "<br>DEBUG: $debug COUNT:". (($attr->{REQUEST_COUNT}) ? $attr->{REQUEST_COUNT} : 0 )  ."=====REQUEST=====<br>\n";
     print "<textarea cols=90 rows=10>$request_cmd</textarea><br>\n";
     print "=====RESPONCE=====<br>\n";
     print "<textarea cols=90 rows=15>$result</textarea>\n";
