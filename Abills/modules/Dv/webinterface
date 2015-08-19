@@ -764,7 +764,7 @@ sub dv_user {
       $Dv->{ONLINE_TABLE} = $table->show();
     }
 
-    $list = $admin->action_list({ TYPE      => '4;14', 
+    $list = $admin->action_list({ TYPE      => '4;8;9;14', 
                                   UID       => $FORM{UID}, 
                                   DATETIME  => '_SHOW',
                                   PAGE_ROWS => 1, 
