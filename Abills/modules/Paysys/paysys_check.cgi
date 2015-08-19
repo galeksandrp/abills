@@ -620,6 +620,7 @@ sub osmp_payments {
      3  => 0,   # dublicate payment
      5  => 300, # wrong sum
      13 => '0', # Paysys exist transaction
+     30 => 4    # No input
   );
 
 
@@ -659,7 +660,7 @@ sub osmp_payments {
   if ($command eq 'check') {
     my ($result_code, $list) = paysys_check_user({
       CHECK_FIELD => $CHECK_FIELD,
-      USER_ID     => $account
+      USER_ID     => $FORM{account}
     });
 
     $status = ($abills2osmp{$result_code}) ? $result_code : 0;
@@ -1563,6 +1564,7 @@ sub get_request_info() {
 #14 - 
 #17 - Payment SQL error
 #28 - Wrong exchange rate
+#30 - User not specified
 
 #**********************************************************
 # 0 not found
@@ -1954,6 +1956,10 @@ sub paysys_check_user {
   my $CHECK_FIELD  = $attr->{CHECK_FIELD};
   my $user_account = $attr->{USER_ID};
 
+  if (! $user_account) {
+    return 30;
+  }
+
   if ($attr->{DEBUG} && $attr->{DEBUG} > 6) {
     $users->{debug}=1;
   }
@@ -1967,6 +1973,7 @@ sub paysys_check_user {
                             GID          => '_SHOW',
                             DOMAIN_ID    => '_SHOW',
                             DISABLE_PAYSYS=>'_SHOW',
+                            GROUP_NAME   => '_SHOW',
                             $CHECK_FIELD => $user_account, 
                             COLS_NAME    => 1,
                             PAGE_ROWS    => 2, 
