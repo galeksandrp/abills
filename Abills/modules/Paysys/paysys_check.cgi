@@ -758,7 +758,7 @@ sub osmp_payments {
   }
   #https://service.someprovider.ru:8443/payment_app.cgi?command=pay&txn_id=1234567&txn_date=20050815120133&account=0957835959&sum=10.45
   elsif ($command eq 'pay') {
-    if ($FORM{txn_date} =~ /(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/) {
+    if ($conf{PAYSYS_OSMP_TXN_DATE} && $FORM{txn_date} =~ /(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/) {
       $DATE="$1-$2-$3";
       $TIME="$3-$5-$6";
     }
