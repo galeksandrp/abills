@@ -352,7 +352,7 @@ sub dv_users_list {
   }
 
   if ($FORM{search_form}) {
-    $index=get_function_index('dv_users_list');
+    $index=get_function_index('dv_users_list') if ( $functions{$index} ne 'dv_users_list' );
     dv_users_search($Dv);
   }
 
