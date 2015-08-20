@@ -615,14 +615,13 @@ sub osmp_payments {
 
   my %abills2osmp = (
      0  => 0,   # Ok
-     1  => 4,   # Not exist user
+     1  => 5,   # Not exist user
      2  => 300, # sql error
      3  => 0,   # dublicate payment
      5  => 300, # wrong sum
      13 => '0', # Paysys exist transaction
      30 => 4    # No input
   );
-
 
   #For pegas
   if ($conf{PAYSYS_PEGAS} && $ENV{REMOTE_ADDR} ne '213.186.115.164') {
@@ -660,10 +659,11 @@ sub osmp_payments {
   if ($command eq 'check') {
     my ($result_code, $list) = paysys_check_user({
       CHECK_FIELD => $CHECK_FIELD,
-      USER_ID     => $FORM{account}
+      USER_ID     => $FORM{account},
+      DEBUG       => $debug
     });
 
-    $status = ($abills2osmp{$result_code}) ? $result_code : 0;
+    $status = ($abills2osmp{$result_code}) ? $abills2osmp{$result_code} : 0;
 
     $RESULT_HASH{result} = $status;
 
@@ -681,14 +681,14 @@ sub osmp_payments {
     elsif($conf{PAYSYS_PEGAS}) {
       $RESULT_HASH{$txn_id} = $FORM{txn_id};
       $RESULT_HASH{prv_txn} = $FORM{prv_txn} if ($FORM{prv_txn});
-      $RESULT_HASH{balance} = "$list->[0]->{deposit}";
-      $RESULT_HASH{fio}     = "$list->[0]->{fio}";
+      $RESULT_HASH{balance} = "$list->{deposit}";
+      $RESULT_HASH{fio}     = "$list->{fio}";
     }
     #Use Extra params
     elsif ($conf{PAYSYS_OSMP_EXT_PARAMS}) {
       my @arr = split(/,[\r\n\s]?/, $conf{PAYSYS_OSMP_EXT_PARAMS});
       foreach my $param  (@arr) {
-        $RESULT_HASH{$param}  = $FORM{$param} || $list->[0]->{$param};
+        $RESULT_HASH{$param}  = $FORM{$param} || $list->{$param};
       }
     }
   }
