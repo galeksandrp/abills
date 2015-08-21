@@ -1703,9 +1703,17 @@ sub paysys_pay {
     }
   }
 
-  #Small sum
+  #Wrong sum
   if ($amount && $amount <= 0) {
+    return 5;
+  }
+  #Small sum
+  elsif($attr->{MIN_SUM} && $amount < $attr->{MIN_SUM}) {
     return 6;
+  }
+  # large sum
+  elsif($attr->{MAX_SUM} && $amount > $attr->{MAX_SUM}) {
+    return 7;
   }
 
   if($debug > 6) {
@@ -1980,6 +1988,7 @@ sub paysys_check_user {
                             DOMAIN_ID    => '_SHOW',
                             DISABLE_PAYSYS=>'_SHOW',
                             GROUP_NAME   => '_SHOW',
+                            DISABLE      => '_SHOW',
                             $CHECK_FIELD => $user_account, 
                             COLS_NAME    => 1,
                             PAGE_ROWS    => 2, 
