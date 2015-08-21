@@ -48,6 +48,7 @@ BEGIN {
 
 require "config.pl";
 use Abills::Base;
+use Abills::Filters;
 use Abills::SQL;
 use Abills::HTML;
 use Users;
@@ -643,12 +644,12 @@ sub osmp_payments {
   my $comments = '';
   my $command  = $FORM{command};
 
-  if ($FORM{account} && $CHECK_FIELD eq 'UID') {
-    $FORM{account} =~ s/^0+//g; 
-  }
-  elsif ($FORM{account} && $CHECK_FIELD eq 'LOGIN' && $conf{PAYSYS_OSMP_ACCOUNT_RULE}) {
-    $FORM{account} = sprintf($conf{PAYSYS_OSMP_ACCOUNT_RULE},$FORM{account}) ;
-  }
+#  if ($FORM{account} && $CHECK_FIELD eq 'UID') {
+#    $FORM{account} =~ s/^0+//g; 
+#  }
+#  elsif ($FORM{account} && $CHECK_FIELD eq 'LOGIN' && $conf{PAYSYS_OSMP_ACCOUNT_RULE}) {
+#    $FORM{account} = sprintf($conf{PAYSYS_OSMP_ACCOUNT_RULE},$FORM{account}) ;
+#  }
   
   my %RESULT_HASH = (result => 300);
   my $results = '';
@@ -675,7 +676,7 @@ sub osmp_payments {
     if ($payment_system_id == 44) {
       $RESULT_HASH{$txn_id} = $FORM{txn_id};
       $RESULT_HASH{prv_txn} = $FORM{prv_txn};
-      $RESULT_HASH{comment} = "Balance: $list->[0]->{deposit} $list->[0]->{fio} " if ($status == 0);
+      $RESULT_HASH{comment} = "Balance: $list->{deposit} $list->{fio} " if ($status == 0);
     }
     #For pegas
     elsif($conf{PAYSYS_PEGAS}) {
@@ -1566,6 +1567,7 @@ sub get_request_info() {
 #28 - Wrong exchange rate
 #30 - User not specified
 
+
 #**********************************************************
 # 0 not found
 # id - paysys id
@@ -1684,6 +1686,8 @@ sub paysys_pay {
   my $uid            = 0;
   my $paysys_id      = 0;
   my $ext_info       = '';
+
+  $user_account = _expr($user_account, $conf{PAYSYS_ACCOUNT_EXPR});
 
   if ($attr->{DATA}) {
     foreach my $k (sort keys %{ $attr->{DATA} }) {
@@ -1955,6 +1959,8 @@ sub paysys_check_user {
 
   my $CHECK_FIELD  = $attr->{CHECK_FIELD};
   my $user_account = $attr->{USER_ID};
+
+  $user_account = _expr($user_account, $conf{PAYSYS_ACCOUNT_EXPR});
 
   if (! $user_account) {
     return 30;
