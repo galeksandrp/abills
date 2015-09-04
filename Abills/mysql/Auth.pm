@@ -1599,10 +1599,10 @@ sub get_ip {
   else {    # no addresses available in pools
     $self->{db}->do('unlock tables');
     if($next_pool_id) {
-      $self->get_ip($nas_num, $nas_ip, { TP_IPPOOL => $next_pool_id });
+      return $self->get_ip($nas_num, $nas_ip, { TP_IPPOOL => $next_pool_id });
     }
     elsif ($attr->{TP_IPPOOL}) {
-      $self->get_ip($nas_num, $nas_ip, $attr);
+      return $self->get_ip($nas_num, $nas_ip, $attr);
     }
     else {
       return -1;
