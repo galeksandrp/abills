@@ -3824,7 +3824,6 @@ sub dv_user_chg_tp {
         $FORM{UID} = $LIST_PARAMS{UID};
         $FORM{STATUS} = 0 if ($Dv->{STATUS} == 5);
         $Dv->change({%FORM});
-print "// !! $user !! //";
         $user->change(
           $LIST_PARAMS{UID},
           {
@@ -4033,7 +4032,8 @@ print "// !! $user !! //";
         cols_align => [ 'left', 'left' ],
       }
     );
-
+print "Content-Type: text/html\n\n";
+$tariffs->{debug}=1;
     my $tp_list = $tariffs->list(
       {
         TP_GID       => $Dv->{TP_GID},
