@@ -42,7 +42,8 @@ $VERSION = 2.00;
 &date_diff
 &date_format
 &_bp
-&get_radius_params
+&urlencode
+&urldecode
 );
 
 @EXPORT_OK = qw(
@@ -71,7 +72,8 @@ ssh_cmd
 date_diff
 date_format
 _bp
-get_radius_params
+urlencode
+urldecode
 );
 
 %EXPORT_TAGS = ();
@@ -113,13 +115,20 @@ sub cfg2hash {
 # in_array()
 # Check value in array
 #**********************************************************
-sub in_array {
+sub in_array($$) {
   my ($value, $array) = @_;
 
   return 0 if (!defined($value));
 
-  if ($value ~~ @$array) {
-    return 1;
+  if ( $] <= 5.010 ) {
+    if (grep { $_ eq $value } @$array) {
+      return 1;
+    }
+  }
+  else {
+    if ($value ~~ @$array) {
+      return 1;
+    }
   }
 
   return 0;
@@ -802,7 +811,7 @@ sub int2ml {
 #**********************************************************
 # decode_base64()
 #**********************************************************
-sub decode_base64 {
+sub decode_base64($) {
   local ($^W) = 0;    # unpack("u",...) gives bogus warning in 5.00[123]
   my $str = shift;
   my $res = "";
@@ -921,9 +930,13 @@ sub cmd {
   my $result  = '';
 
   my $saveerr;
+  my $error_output;
+  #Close error output
   if (! $attr->{SHOW_RESULT} && ! $debug) {
     open($saveerr, ">&STDERR");
     close(STDERR);
+    #Add o scallar error message
+    open STDERR, ">", \$error_output or die "Can't make error scalar variable $!?\n";
   }
 
   if ($debug > 1) {
@@ -967,8 +980,7 @@ sub cmd {
     print "timed out\n" if ($debug>2);
   }
   else {
-    # didn't
-    print "didn't\n" if ($debug>2);
+    print "NO errors\n" if ($debug>2);
   }
   
   if ($debug) {
@@ -976,6 +988,7 @@ sub cmd {
   }
 
   if ($saveerr) {
+    close(STDERR);
     open(STDERR, ">&", $saveerr);
   }
 
@@ -1075,12 +1088,34 @@ sub date_format {
 sub _bp {
   my ($attr) = @_;
 
+  if (! $ENV{DEBUG}) {
+    #return 1; 
+  }
+
   if ($attr->{HEADER}) {
     print "Content-Type: text/html\n\n";
   }
+  
+  my $break_line = " <br>\n";
 
   if ($attr->{SHOW}) {
-    print "$attr->{SHOW}";
+    print $break_line . "SHOW: ";
+    if (ref $attr->{SHOW} eq 'ARRAY') {
+      print "(Array_ref)";
+      foreach my $key (sort @{ $attr->{SHOW} }) {
+        print "$key ".$break_line;
+      }
+    }
+    if (ref $attr->{SHOW} eq 'HASH') {
+      print "(Hash_ref)";
+      foreach my $key (sort keys %{ $attr->{SHOW} }) {
+        print "$key -> $attr->{SHOW}->{$key}". $break_line;
+      }
+    }
+    else {
+      print '('. (ref $attr->{SHOW}) .') '. "'$attr->{SHOW}'".$break_line;
+    }
+    print "<br>\n";
   }
 
   my ($package, $filename, $line) = caller;
@@ -1096,47 +1131,29 @@ sub _bp {
 }
 
 #**********************************************************
-# Get Argument params or Environment parameters
 #
-# FreeRadius enviropment parameters
-#  CLIENT_IP_ADDRESS - 127.0.0.1
-#  NAS_IP_ADDRESS - 127.0.0.1
-#  USER_PASSWORD - xxxxxxxxx
-#  SERVICE_TYPE - VPN
-#  NAS_PORT_TYPE - Virtual
-#  FRAMED_PROTOCOL - PPP
-#  USER_NAME - andy
-#  NAS_IDENTIFIER - media.intranet
 #**********************************************************
-sub get_radius_params {
-  my %RAD = ();
+sub urlencode {
+  my ($s) = @_;
 
-  if ($#ARGV > 1) {
-    foreach my $pair (@ARGV) {
-      my ($side, $value) = split(/=/, $pair, 2);
-      if (defined($value)) {
-        $value = clearquotes("$value");
-        $RAD{"$side"} = "$value";
-      }
-      else {
-        $RAD{"$side"} = "";
-      }
-    }
-  }
-  else {
-    while (my ($k, $v) = each(%ENV)) {
-      if (defined($v) && defined($k)) {
-        if ($RAD{$k}) {
-          $RAD{$k} .= ";" . clearquotes("$v");
-        }
-        else {
-          $RAD{$k} = clearquotes("$v");
-        }
-      }
-    }
-  }
+  #$s =~ s/ /+/g;
+  #$s =~ s/([^A-Za-z0-9\+-])/sprintf("%%%02X", ord($1))/seg;
+  $s =~ s/([^A-Za-z0-9])/sprintf("%%%2.2X", ord($1))/ge;
 
-  return \%RAD;
+  return $s;
 }
+
+#**********************************************************
+#
+#**********************************************************
+sub urldecode {
+  my ($s) = @_;
+
+  $s =~ s/\+/ /g;
+  $s =~ s/\%([A-Fa-f0-9]{2})/pack('C', hex($1))/seg;
+
+  return $s;
+}
+
 
 1;

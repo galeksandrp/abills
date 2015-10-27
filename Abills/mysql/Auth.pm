@@ -1509,6 +1509,7 @@ sub get_ip {
      WHERE ippools.id='$attr->{TP_IPPOOL}'
      ORDER BY ippools.priority;"
     );
+    delete($attr->{TP_IPPOOL});
   }
   else {
     $self->query2("SELECT ippools.ip, ippools.counts, ippools.id, ippools.next_pool_id 
