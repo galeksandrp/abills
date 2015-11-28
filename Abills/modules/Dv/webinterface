@@ -7031,7 +7031,7 @@ sub dv_registration {
       $Dv->{MESSAGE} = $html->message('err', $_ERROR, "$_WRONG_EMAIL");
     }
     elsif ($conf{REGISTRATION_CHECK_PHONE} && ! $FORM{PHONE}) {
-      $Dv->{MESSAGE} = $html->message('err', $_ERROR, "-$ERR_WRONG_PHONE");
+      $Dv->{MESSAGE} = $html->message('err', $_ERROR, "$ERR_WRONG_PHONE");
     }  
     elsif (! $FORM{ACCEPT_RULES}) {
       $html->message('err', $_ERROR, "$ERR_ACCEPT_RULES");
