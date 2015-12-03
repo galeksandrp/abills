@@ -21,6 +21,7 @@ $VERSION = 2.00;
 &null
 &convert
 &parse_arguments
+&startup_files
 &int2ip
 &ip2int
 &int2byte
@@ -52,6 +53,7 @@ null
 convert
 get_radius_params
 parse_arguments
+startup_files
 int2ip
 ip2int
 int2byte
@@ -1200,6 +1202,76 @@ sub get_radius_params {
 
   return \%RAD;
 }
+
+
+#**********************************************************
+=head2 startup_files($attr) - Get deamon startup information and other params of system
+
+Analise file /usr/abills/Abills/programs and return hash_ref of params
+  
+  Atributes:
+    $attr
+
+  Returns:
+    hash_ref
+
+=cut
+#**********************************************************
+sub startup_files {
+	my ($attr) = @_;
+
+  my %startup_files = ();
+
+	my $startup_conf = '/usr/abills/Abills/programs';
+  my $content = '';
+  if(lc($^O) eq 'freebsd') {
+    %startup_files = (
+      WEB_SERVER_USER    => "www",
+      RADIUS_SERVER_USER => "freeradius",
+      APACHE_CONF_DIR    => '/usr/local/apache22/Include/',
+      RESTART_MYSQL      => '/usr/local/etc/rc.d/mysql-server',
+      RESTART_RADIUS     => '/usr/local/etc/rc.d/freeradius',
+      RESTART_APACHE     => '/usr/local/etc/rc.d/apache22',
+      RESTART_DHCP       => '/usr/local/etc/rc.d/isc-dhcp-server',
+    );
+  }
+  else {
+    %startup_files = (
+      WEB_SERVER_USER    => "www-data",
+      APACHE_CONF_DIR    => '/etc/apache2/sites-enabled/',
+      RADIUS_SERVER_USER => "freerad",
+      RESTART_MYSQL      => '/etc/init.d/mysqld',
+      RESTART_RADIUS     => '/etc/init.d/freeradius',
+      RESTART_APACHE     => '/etc/init.d/apache2',
+      RESTART_DHCP       => '/etc/init.d/isc-dhcp-server'
+    );
+  }
+
+  if ( -f $startup_conf ) {
+	  if (open(my $fh, "$startup_conf") ) {
+		  while( <$fh> ) {
+			  $content .= $_;
+		  }
+	    close($fh);
+	  }
+	
+  	my @rows = split(/[\r\n]+/, $content);
+	  foreach my $line (@rows) {
+	    my ($key, $val) = split(/=/, $line, 2);
+  	  next if (!$key);
+	    next if (!$val);
+	    $startup_files{$key}=$val;
+	  }
+  }
+
+  return \%startup_files;
+}
+
+=head1 AUTHOR
+
+~AsmodeuS~ (http://abills.net.ua/)
+
+=cut
 
 
 
