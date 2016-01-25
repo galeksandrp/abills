@@ -1008,7 +1008,7 @@ sub authentication {
   else {
 
     #Get callback number
-    if ($RAD->{USER_NAME} =~ /(\d+):(\S+)/) {
+    if ($NAS->{NAS_TYPE} ne 'accel_ipoe' &&  $RAD->{USER_NAME} =~ /(\d+):(\S+)/) {
       my $number = $1;
       my $login  = $2;
 
