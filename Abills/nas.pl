@@ -103,7 +103,7 @@ sub hangup {
   elsif ($nas_type eq 'pppd_coa') {
     hangup_pppd_coa($NAS, $PORT, $attr);
   }
-  elsif ($nas_type eq 'accel_ppp') {
+  elsif ($nas_type eq 'accel_ppp' or $nas_type eq 'accel_ipoe') {
     hangup_radius($NAS, $PORT, "", $attr);
   }
   elsif ($nas_type eq 'redback') {
@@ -1069,7 +1069,7 @@ sub hangup_pppd_coa {
     $Log->log_print('LOG_DEBUG', '', "No responce from POD server '$NAS->{NAS_MNG_IP_PORT}' ", { ACTION => '' });
   }
   
-  if ($nas_type eq 'pppd_coa' || $nas_type eq 'accel_ppp') {
+  if ($nas_type eq 'pppd_coa' || $nas_type eq 'accel_ppp' || $nas_type eq 'accel_ipoe') {
     return 1;
   }
 
