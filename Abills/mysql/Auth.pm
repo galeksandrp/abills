@@ -25,14 +25,16 @@ $VERSION = 2.02;
 
 use main;
 @ISA = ("main");
-
+use Abills::Base qw(in_array);
 use Billing;
 my $Billing;
 
 my $CONF;
 my $debug = 0;
 my $RAD_PAIRS;
-
+my %NAS_INFO = ();
+my @SWITCH_MAC_AUTH = ();
+my %GUEST_POOLS = ();
 my %connect_errors_ids = (
   1 => 'WRONG_PASS',
   2 => 'USER_NOT_EXIST',
@@ -64,6 +66,28 @@ sub new {
   $CONF->{MB_SIZE} = $CONF->{KBYTE_SIZE} * $CONF->{KBYTE_SIZE};
   $Billing = Billing->new($db, $CONF);
 
+  if ($CONF->{DHCPHOSTS_SWITCH_MAC_AUTH}) {
+    @SWITCH_MAC_AUTH = ();
+    my @arr_switch_ids = split(/,/, $CONF->{DHCPHOSTS_SWITCH_MAC_AUTH});
+    foreach my $ids (@arr_switch_ids) {
+      if ($ids =~ /^(\d+)-(\d+)$/) {
+         for (my $i=$1; $i <= $2 ; $i++) {
+           push @SWITCH_MAC_AUTH, $i;
+         }
+      }
+      else {
+        push @SWITCH_MAC_AUTH, $ids;
+      }
+    }
+  }
+  if ($CONF->{ACCEL_IPOE_GUEST_POOL}) {
+    $CONF->{ACCEL_IPOE_GUEST_POOL} =~ s/[\r\n]+//g;
+    my @guest_pool_arr = split(/;/, $CONF->{ACCEL_IPOE_GUEST_POOL});
+    foreach my $line (@guest_pool_arr) {
+      my ($nas_id, $pool_id) = split(/:/, $line);
+      $GUEST_POOLS{$nas_id} = $pool_id;
+    }
+  }
   return $self;
 }
 
@@ -74,7 +98,28 @@ sub dv_auth {
   my $self = shift;
   my ($RAD, $NAS, $attr) = @_;
 
-  my ($ret, $RAD_PAIRS) = $self->authentication($RAD, $NAS, $attr);
+  my ($ret, $RAD_PAIRS);
+
+  if ($NAS->{NAS_TYPE} eq 'accel_ipoe') {
+    ($ret, $RAD_PAIRS) = $self->mac_auth($RAD, $NAS, $attr);
+    if ($GUEST_POOLS{ $NAS->{NAS_ID} } && $ret == 2) {
+      $self->{GUEST_MODE}=1;
+      $self->{IP} = $self->get_guest_ip($GUEST_POOLS{ $NAS->{NAS_ID} });
+      if ($self->{IP} eq -1) {
+        $RAD_PAIRS->{'Reply-Message'}  = "Rejected! There is no free IPs in address pool $GUEST_POOLS{ $NAS->{NAS_ID} }.";
+      }
+      else {
+        $RAD_PAIRS->{'Filter-Id'} = "guest";
+        $RAD_PAIRS->{'Acct-Interim-Interval'} = $NAS->{NAS_ALIVE} if ($NAS->{NAS_ALIVE});
+        $RAD_PAIRS->{'Framed-IP-Address'} = $self->{IP};
+        $self->leases_update($NAS);
+        return 0, $RAD_PAIRS
+      }
+    }
+  }
+  else {
+    ($ret, $RAD_PAIRS) = $self->authentication($RAD, $NAS, $attr);
+  }
 
   if ($ret == 1) {
     return 1, $RAD_PAIRS;
@@ -164,7 +209,17 @@ sub dv_auth {
     }
     else {
       if ($CONF->{DV_STATUS_NEG_DEPOSIT} && $self->{NEG_DEPOSIT_FILTER_ID}) {
-        return $self->neg_deposit_filter_former($RAD, $NAS, $self->{NEG_DEPOSIT_FILTER_ID});
+        if ($NAS->{NAS_TYPE} eq 'accel_ipoe') {
+          my ($r, $rad) = $self->neg_deposit_filter_former($RAD, $NAS, $self->{NEG_DEPOSIT_FILTER_ID});
+          if ($r eq '0') {
+            $self->{IP} = $rad->{'Framed-IP-Address'};
+            $self->leases_update($NAS);
+          } 
+          return $r, $rad;
+        } 
+        else {
+          return $self->neg_deposit_filter_former($RAD, $NAS, $self->{NEG_DEPOSIT_FILTER_ID});
+        }
       }
       $RAD_PAIRS->{'Reply-Message'} = "Service Disabled $self->{DISABLE}";
       return 1, $RAD_PAIRS;
@@ -366,7 +421,17 @@ sub dv_auth {
 
       #Filtering with negative deposit
       if ($self->{NEG_DEPOSIT_FILTER_ID}) {
-        return $self->neg_deposit_filter_former($RAD, $NAS, $self->{NEG_DEPOSIT_FILTER_ID});
+        if ($NAS->{NAS_TYPE} eq 'accel_ipoe') {
+          my ($r, $rad) = $self->neg_deposit_filter_former($RAD, $NAS, $self->{NEG_DEPOSIT_FILTER_ID});
+          if ($r eq '0') {
+            $self->{IP} = $rad->{'Framed-IP-Address'};
+            $self->leases_update($NAS);
+          }
+          return $r, $rad;
+        }
+        else {
+          return $self->neg_deposit_filter_former($RAD, $NAS, $self->{NEG_DEPOSIT_FILTER_ID});
+        }
       }
       else {
         return 1, $RAD_PAIRS;
@@ -410,7 +475,17 @@ sub dv_auth {
   }
   elsif ($remaining_time == -2) {
     if ($self->{NEG_DEPOSIT_FILTER_ID}) {
-      return $self->neg_deposit_filter_former($RAD, $NAS, $self->{NEG_DEPOSIT_FILTER_ID});
+      if ($NAS->{NAS_TYPE} eq 'accel_ipoe') {
+        my ($r, $rad) = $self->neg_deposit_filter_former($RAD, $NAS, $self->{NEG_DEPOSIT_FILTER_ID});
+        if ($r eq '0') {
+          $self->{IP} = $rad->{'Framed-IP-Address'};
+          $self->leases_update($NAS);
+        }
+        return $r, $rad;
+      }
+      else {
+        return $self->neg_deposit_filter_former($RAD, $NAS, $self->{NEG_DEPOSIT_FILTER_ID});
+      }
     }
 
     $RAD_PAIRS->{'Reply-Message'} = "Not Allow time";
@@ -506,7 +581,7 @@ sub dv_auth {
   }
 
   if ($time_limit > 0) {
-    $RAD_PAIRS->{'Session-Timeout'} = ($self->{NEG_DEPOSIT_FILTER_ID} && $time_limit < 5) ? int($time_limit + 600) : "$time_limit";
+    $RAD_PAIRS->{'Session-Timeout'} = ($self->{NEG_DEPOSIT_FILTER_ID} && $time_limit < 5) ? int($time_limit + 600) : $time_limit+1;
   }
   elsif ($time_limit < 0) {
     $RAD_PAIRS->{'Reply-Message'} = "Rejected! Time limit utilized '$time_limit'";
@@ -522,6 +597,8 @@ sub dv_auth {
     }
     return 0, $RAD_PAIRS, '';
   }
+
+  $self->{IP} = $self->{IPOE_IP} if ($self->{IPOE_IP} && $self->{IPOE_IP} ne '0.0.0.0') ;
 
   # Return radius attr
   if ($self->{IP} ne '0') {
@@ -726,7 +803,32 @@ sub dv_auth {
       #$RAD_PAIRS->{'Ascend-Data-Rate'} = int($EX_PARAMS->{speed}->{0}->{OUT})* $CONF->{KBYTE_SIZE};
     }
   }
+  elsif ($NAS->{NAS_TYPE} eq 'accel_ipoe') {
+    $RAD_PAIRS->{'Framed-IP-Address'} = $self->{IPOE_IP} if ($self->{IPOE_IP} && $self->{IPOE_IP} ne '0.0.0.0');
+#    $RAD_PAIRS->{'DHCP-Mask'}    = $self->{IPOE_NETMASK} if ($self->{IPOE_NETMASK});
+#    $RAD_PAIRS->{'DHCP-Router-IP-Address'}    = $self->{IPOE_GATEWAY} if ($self->{IPOE_GATEWAY});
+#    $RAD_PAIRS->{'Session-Timeout'}   = 604800;
+    $self->{IP} = $RAD_PAIRS->{'Framed-IP-Address'};
+    $self->leases_update($NAS);
 
+    my $EX_PARAMS = $self->ex_traffic_params(
+      {
+        traf_limit          => $traf_limit,
+        deposit             => $self->{DEPOSIT},
+        MAX_SESSION_TRAFFIC => $MAX_SESSION_TRAFFIC
+      }
+    );
+     $RAD->{USER_NAME} = $self->{LOGIN};
+    #Speed limit attributes
+    if ($self->{USER_SPEED} > 0) {
+      $RAD_PAIRS->{'PPPD-Upstream-Speed-Limit'}   = int($self->{USER_SPEED});
+      $RAD_PAIRS->{'PPPD-Downstream-Speed-Limit'} = int($self->{USER_SPEED});
+    }
+    elsif (defined($EX_PARAMS->{speed}->{0})) {
+      $RAD_PAIRS->{'PPPD-Downstream-Speed-Limit'} = int($EX_PARAMS->{speed}->{0}->{OUT});
+      $RAD_PAIRS->{'PPPD-Upstream-Speed-Limit'}   = int($EX_PARAMS->{speed}->{0}->{IN});
+    }
+  }
   # MPD4
   elsif ($NAS->{NAS_TYPE} eq 'mpd4' && $RAD_PAIRS->{'Session-Timeout'} > 604800) {
     $RAD_PAIRS->{'Session-Timeout'} = 604800;
@@ -1008,7 +1110,7 @@ sub authentication {
   else {
 
     #Get callback number
-    if ($NAS->{NAS_TYPE} !~ /accel/ &&  $RAD->{USER_NAME} =~ /(\d+):(\S+)/) {
+    if ($RAD->{USER_NAME} =~ /(\d+):(\S+)/) {
       my $number = $1;
       my $login  = $2;
 
@@ -1170,8 +1272,184 @@ sub authentication {
 
   return 0, \%RAD_PAIRS, '';
 }
+#**********************************************************
+# User authentication
+# mac_auth($RAD_HASH_REF, $NAS_HASH_REF, $attr)
+#
+# return ($r, $RAD_PAIRS_REF);
+#**********************************************************
+sub mac_auth {
+  my $self = shift;
+  my ($RAD, $NAS, $attr) = @_;
+  my %RAD_PAIRS = ();
+ 
+  ($self->{NAS_MAC},
+   $self->{NAS_PORT},
+   $self->{VLAN},
+   $self->{AGENT_REMOTE_ID},
+   $self->{CIRCUIT_ID}
+   ) = parse_opt82($RAD, $NAS, $attr);
 
-#*******************************************************************
+    $self->get_nas_info($self, $NAS);
+    if ($self->{error}) {
+      $RAD_PAIRS{'Reply-Message'} = $self->{error_str};
+      return 1, \%RAD_PAIRS;
+    }
+
+  my @WHERE_RULES = ();
+
+  if ($NAS->{DOMAIN_ID}) {
+    push @WHERE_RULES, "u.domain_id='$NAS->{DOMAIN_ID}'";
+  }
+  else {
+    push @WHERE_RULES, "u.domain_id='0'";
+  }
+
+  if ($CONF->{DV_LOGIN}) {
+        $self->query2("SELECT uid, dv_login AS login FROM dv_main WHERE dv_login='". $RAD->{USER_NAME} ."' ;", undef, { INFO => 1 });
+  }
+  $self->{USER_MAC} = $RAD->{USER_NAME};
+  if ($CONF->{DHCPHOSTS_PORT_BASE} && ! in_array($NAS->{SUB_NAS_ID}, \@SWITCH_MAC_AUTH) && $NAS->{SUB_NAS_ID} != 0) {
+    push @WHERE_RULES, "(n.mac='$self->{NAS_MAC}' AND dh.ports='$self->{NAS_PORT}')";
+  }
+  elsif ($CONF->{DHCPHOSTS_AUTH_PARAMS} && ! in_array($NAS->{SUB_NAS_ID}, \@SWITCH_MAC_AUTH) && $NAS->{SUB_NAS_ID} != 0) {
+    push @WHERE_RULES, "((n.mac='$self->{NAS_MAC}' OR n.mac IS null)
+      AND (dh.mac='$RAD->{USER_NAME}' OR dh.mac='00:00:00:00:00:00')
+      AND (dh.vid='$self->{VLAN}' OR dh.vid='')
+      AND (dh.ports='$self->{NAS_PORT}' OR dh.ports=''))";
+  }
+  elsif ($RAD->{USER_NAME}) {
+    push @WHERE_RULES, "dh.mac='$RAD->{USER_NAME}'";
+  }
+
+  my $WHERE = ($#WHERE_RULES > -1) ? join(' and ', @WHERE_RULES) : '';
+  my $sql = "SELECT u.uid,
+        INET_NTOA(dh.ip) AS ipoe_ip,
+        UNIX_TIMESTAMP() AS session_start,
+        UNIX_TIMESTAMP(DATE_FORMAT(FROM_UNIXTIME(UNIX_TIMESTAMP()), '%Y-%m-%d')) AS day_bagin,
+        DAYOFWEEK(FROM_UNIXTIME(UNIX_TIMESTAMP())) AS day_of_week,
+        DAYOFYEAR(FROM_UNIXTIME(UNIX_TIMESTAMP())) AS day_of_year,
+        u.company_id,
+        u.bill_id,
+        u.credit,
+        u.activate AS account_activate,
+        u.reduction,
+        u.ext_bill_id,
+        UNIX_TIMESTAMP(u.expire) AS account_expire,
+        u.id AS user_name,
+        n.id AS nas_id,
+        INET_NTOA(dh_nets.mask) AS ipoe_netmask,
+        INET_NTOA(dh_nets.routers) AS ipoe_gateway,
+        dh_nets.suffix,
+        dh_nets.ntp,
+        dh.mac,
+        u.disable,
+        dh.id AS hid
+   FROM dhcphosts_hosts dh
+   INNER JOIN users u ON (u.uid=dh.uid)
+   INNER JOIN dhcphosts_networks dh_nets ON (dh.network=dh_nets.id)
+   LEFT JOIN nas n ON (dh.nas=n.id)
+   WHERE 
+        $WHERE
+        AND (u.expire='0000-00-00' or u.expire > CURDATE())
+        AND (u.activate='0000-00-00' or u.activate <= CURDATE())
+        AND u.deleted='0'";
+  $self->query2($sql,
+  undef,
+  { COLS_NAME => 1,
+    COLS_UPPER=> 1
+  }
+      );
+
+#  $self->query2("SELECT u.id AS user_name,
+#  u.uid,
+#  UNIX_TIMESTAMP() AS session_start,
+#  UNIX_TIMESTAMP(DATE_FORMAT(FROM_UNIXTIME(UNIX_TIMESTAMP()), '%Y-%m-%d')) AS day_bagin,
+#  DAYOFWEEK(FROM_UNIXTIME(UNIX_TIMESTAMP())) AS day_of_week,
+#  DAYOFYEAR(FROM_UNIXTIME(UNIX_TIMESTAMP())) AS day_of_year,
+#  u.company_id,
+#  u.disable,
+#  u.bill_id,
+#  u.credit,
+#  u.activate AS account_activate,
+#  u.reduction,
+#  u.ext_bill_id,
+#  UNIX_TIMESTAMP(u.expire) AS account_expire,
+#  INET_NTOA(dh.ip) AS ipoe_ip,
+#  INET_NTOA(dn.mask) AS ipoe_netmask,
+#  INET_NTOA(dn.routers) AS ipoe_gateway
+#     FROM dhcphosts_hosts dh
+#     INNER JOIN users u ON (dh.uid=u.uid)
+#     LEFT JOIN dhcphosts_networks dn on dh.network=dn.id
+#     WHERE
+#        $WHERE
+#        AND (u.expire='0000-00-00' or u.expire > CURDATE())
+#        AND (u.activate='0000-00-00' or u.activate <= CURDATE())
+#        AND u.deleted='0'
+#       GROUP BY u.id;",
+#  undef,
+#  { INFO => 1 }
+#  );
+
+  if ($self->{errno}) {
+    if($self->{errno} == 2) {
+      $RAD_PAIRS{'Reply-Message'} = "Login Not Exist or Expire $RAD->{CALLED_STATION_ID}";
+    }
+    else {
+      $RAD_PAIRS{'Reply-Message'} = 'SQL error';
+    }
+    return 1, \%RAD_PAIRS;
+  }
+  if ($self->{TOTAL} < 1) {
+    $RAD_PAIRS{'Reply-Message'} = 'Not Exist';
+    return 2, \%RAD_PAIRS;
+  }
+  elsif ($self->{TOTAL} > 1) {
+    my $i = 0;
+    foreach my $host (@{ $self->{list} }) {
+      if (uc($RAD->{USER_NAME}) eq uc($host->{MAC})) {
+        foreach my $p ( keys %{ $self->{list}->[$i] }) {
+          $self->{$p} = $self->{list}->[$i]->{$p};
+        }
+      }
+      $i++
+    }
+    if (!$self->{USER_NAME}) {
+      $RAD_PAIRS{'Reply-Message'} = "Not Exist multiport MAC $RAD->{USER_NAME}";
+      return 1, \%RAD_PAIRS;
+    }
+  }
+  elsif($self->{TOTAL}==1) {
+    foreach my $p ( keys %{ $self->{list}->[0] }) {
+      $self->{$p} = $self->{list}->[0]->{$p};
+    }
+  }
+
+  $self->{LOGIN}=$self->{USER_NAME};
+  $RAD->{USER_NAME}=$self->{USER_NAME};
+  #DIsable
+  if ($self->{DISABLE}) {
+    $RAD_PAIRS{'Reply-Message'} = "Account Disable";
+    return 1, \%RAD_PAIRS;
+  }
+
+  #Chack Company account if ACCOUNT_ID > 0
+  $self->check_company_account() if ($self->{COMPANY_ID} > 0);
+  if ($self->{errno}) {
+    $RAD_PAIRS{'Reply-Message'} = $self->{errstr};
+    return 1, \%RAD_PAIRS;
+  }
+
+  $self->check_bill_account();
+  if ($self->{errno}) {
+    $RAD_PAIRS{'Reply-Message'} = $self->{errstr};
+    return 1, \%RAD_PAIRS;
+  }
+
+  return 0, \%RAD_PAIRS, '';
+}
+
+#******************************************************************* 
 #Check Bill account
 # check_bill_account()
 #*******************************************************************
@@ -1509,6 +1787,7 @@ sub get_ip {
      WHERE ippools.id='$attr->{TP_IPPOOL}'
      ORDER BY ippools.priority;"
     );
+    delete($attr->{TP_IPPOOL});
   }
   else {
     $self->query2("SELECT ippools.ip, ippools.counts, ippools.id, ippools.next_pool_id 
@@ -1599,10 +1878,10 @@ sub get_ip {
   else {    # no addresses available in pools
     $self->{db}->do('unlock tables');
     if($next_pool_id) {
-      $self->get_ip($nas_num, $nas_ip, { TP_IPPOOL => $next_pool_id });
+      return $self->get_ip($nas_num, $nas_ip, { TP_IPPOOL => $next_pool_id });
     }
     elsif ($attr->{TP_IPPOOL}) {
-      $self->get_ip($nas_num, $nas_ip, $attr);
+      return $self->get_ip($nas_num, $nas_ip, $attr);
     }
     else {
       return -1;
@@ -1838,8 +2117,10 @@ sub neg_deposit_filter_former () {
       }
     }
   }
-
-  $NEG_DEPOSIT_FILTER_ID =~ s/\%IP\%/$RAD_PAIRS->{'Framed-IP-Address'}/g;
+  
+  if ($RAD_PAIRS->{'Framed-IP-Address'}) {
+    $NEG_DEPOSIT_FILTER_ID =~ s/\%IP\%/$RAD_PAIRS->{'Framed-IP-Address'}/g;
+  }
   $NEG_DEPOSIT_FILTER_ID =~ s/\%LOGIN\%/$RAD->{'USER_NAME'}/g;
   $self->{INFO} = "Neg filter";
   if ($NEG_DEPOSIT_FILTER_ID =~ /RAD:(.+)/) {
@@ -1855,7 +2136,10 @@ sub neg_deposit_filter_former () {
   if ($attr->{USER_FILTER}) {
     return 0;
   }
-
+  if ($CONF->{GUEST_SPEED}) {
+    $RAD_PAIRS->{'PPPD-Upstream-Speed-Limit'}   = $CONF->{GUEST_SPEED};
+    $RAD_PAIRS->{'PPPD-Downstream-Speed-Limit'} = $CONF->{GUEST_SPEED};
+  }
   return 0, $RAD_PAIRS;
 }
 
@@ -1895,6 +2179,295 @@ sub rad_pairs_former () {
 
   return 0, $RAD_PAIRS;
 }
+#**********************************************************
+# http://tools.ietf.org/html/rfc4243
+# http://tools.ietf.org/html/rfc3046#section-7
+#**********************************************************
+sub parse_opt82 {
+  my ($RAD, $NAS, $attr) = @_;
+  my ($switch_mac, $port, $vlan);
+  my %result      =  ();
+  my $hex2ansii   = '';
+  my @o82_expr_arr = ();
+  if ($CONF->{DHCPHOSTS_EXPR}) {
+    $CONF->{DHCPHOSTS_EXPR} =~ s/\n//g;
+    @o82_expr_arr    = split(/;/, $CONF->{DHCPHOSTS_EXPR});
+  }
+  if ($#o82_expr_arr > -1 && $RAD->{DHCP_OPTION82}) {
+    my $expr_debug  =  "";
+    foreach my $expr (@o82_expr_arr) {
+      my ($parse_param, $expr_, $values, $attribute)=split(/:/, $expr);
+      $parse_param = 'DHCP_OPTION82' if ($parse_param eq 'DHCP-Relay-Agent-Information');
+      my @EXPR_IDS = split(/,/, $values);
+      if ($RAD->{$parse_param}) {
+        my $input_value = $RAD->{$parse_param};
+        if ($attribute && $attribute eq 'hex2ansii') {
+          $hex2ansii   = 1;
+          $input_value =~ s/^0x//;
+          $input_value = pack 'H*', $input_value;
+        }
+
+        if ($CONF->{ACCEL_IPOE_DEBUG} && $CONF->{ACCEL_IPOE_DEBUG} > 3) {
+          $expr_debug  .=  "$RAD->{CALLING_STATION_ID}: $parse_param, $expr_, $RAD->{$parse_param}\n";
+        }
+
+        if (my @res = ($input_value =~ /$expr_/i)) {
+          for (my $i=0; $i <= $#res ; $i++) {
+            if ($CONF->{ACCEL_IPOE_DEBUG}  && $CONF->{ACCEL_IPOE_DEBUG} > 2) {
+              $expr_debug .= "$EXPR_IDS[$i] / $res[$i]\n";
+            }
+
+            $result{$EXPR_IDS[$i]}=$res[$i];
+          }
+
+          if ($attribute eq 'bdcom'){
+            if ($result{PORT} =~ /([0-9]{2})([0-9a-f]{2})([0-9a-f]{2})/) {
+              $result{PORT_DEC} = hex($1) . "/" . (hex($2)-6) . ":" . hex($3);
+              $expr_debug .= "PORT / $result{PORT_DEC}\n";
+            }
+          }
+
+          if ($hex2ansii) {
+            $result{VLAN_DEC}        = $result{VLAN};
+            $result{PORT_DEC}        = $result{PORT};
+          }
+          $hex2ansii = 0;
+        }
+      }
+
+      if ($parse_param eq 'DHCP_OPTION82') {
+        $result{AGENT_REMOTE_ID} = substr($RAD->{$parse_param},0,25);
+        $result{CIRCUIT_ID} = substr($RAD->{$parse_param},25,25);
+      }
+      else {
+        $result{AGENT_REMOTE_ID}='-';
+        $result{CIRCUIT_ID}='-';
+      }
+    }
+
+    if ($result{MAC} && $result{MAC} =~ /([a-f0-9]{2})([a-f0-9]{2})([a-f0-9]{2})([a-f0-9]{2})([a-f0-9]{2})([a-f0-9]{2})/i) {
+      $result{MAC} = "$1:$2:$3:$4:$5:$6";
+    }
+
+    if ($CONF->{ACCEL_IPOE_DEBUG} && $CONF->{ACCEL_IPOE_DEBUG} > 2) {
+       my $zz = `echo "$expr_debug" >> /tmp/dhcphosts_accel_expr`;
+    }
+  }
+  # FreeRadius DHCP default
+  elsif($RAD->{DHCP_OPTION82}) {
+    my @relayid = unpack('a10 a4 a2 a2 a4 a16 (a2)*', $RAD->{DHCP_OPTION82});
+    $result{VLAN}            = $relayid[1];
+    $result{PORT}            = $relayid[3];
+    $result{MAC}             = $relayid[5];
+    $result{AGENT_REMOTE_ID} = substr($RAD->{DHCP_OPTION82},0,25);
+    $result{CIRCUIT_ID}      = substr($RAD->{DHCP_OPTION82},25,25);
+  }
+  $result{VLAN} = $result{VLAN_DEC} || hex($result{VLAN} || 0);
+  $result{PORT} = $result{PORT_DEC} || hex($result{PORT} || 0);
+  $result{MAC} =  $result{MAC} || 0;
+  $result{AGENT_REMOTE_ID} = $result{AGENT_REMOTE_ID} || '-';
+  $result{CIRCUIT_ID} = $result{CIRCUIT_ID} || '-';
+  return $result{MAC}, $result{PORT}, $result{VLAN}, $result{AGENT_REMOTE_ID}, $result{CIRCUIT_ID};
+}
+#**********************************************************
+#
+#**********************************************************
+sub get_nas_info {
+  my $self = shift;
+  my ($attr, $NAS) = @_;
+  my $nas;
+  my @WHERE_RULES = ();
+  my $EXT_TABLE   = '';
+  $CONF->{DHCPHOSTS_SESSSION_TIMEOUT} = $CONF->{DHCPHOSTS_SESSSION_TIMEOUT} || $NAS->{NAS_ALIVE} || 300;
+  # Do nothing if port is magistral, i.e. 25.26.27.28
+  # Apply only for reserv ports
+  delete ($self->{error});
+  if ($attr->{NAS_MAC} && ! $NAS_INFO{ $attr->{NAS_MAC} } ) {
+    my $nas_pm = Nas->new($self->{db}, $CONF);
+    my $list = $nas_pm->list({ MAC => $attr->{NAS_MAC}, COLS_NAME => 1, COLS_UPPER => 1 });
+    if ($nas_pm->{TOTAL} >= 1) {
+      foreach my $line (@$list) {
+        $line->{NAS_TYPE} = $NAS->{NAS_TYPE};
+        $NAS_INFO{ $attr->{NAS_MAC} } = $line;
+        $NAS_INFO{ $attr->{NAS_MAC}  . '_' . $line->{NAS_IP} } = $line;
+      }
+    }
+  }
+
+  if ($attr->{NAS_MAC} && $NAS_INFO{$attr->{NAS_MAC}}) {
+    $NAS->{SUB_NAS_ID} = $NAS_INFO{$attr->{NAS_MAC}}->{NAS_ID};
+    $NAS->{SUB_NAS_RAD_PAIRS} = $NAS_INFO{$attr->{NAS_MAC}}->{NAS_RAD_PAIRS};
+    %{ $nas } = %{ $NAS_INFO{$attr->{NAS_MAC}} };
+    $NAS->{NAS_ALIVE} = $CONF->{DHCPHOSTS_SESSSION_TIMEOUT} if (! $NAS->{NAS_ALIVE});
+  }
+  elsif($attr->{NAS_MAC}) {
+#    $NAS->{NAS_ID}=0;
+    $self->{error}=3;
+    $self->{error_str}="NOT EXIST NAS_MAC: $attr->{NAS_MAC}";
+    return $self;
+  }
+  else {
+    $NAS->{SUB_NAS_ID} = '0';
+  }
+
+  if ($attr->{NAS_PORT} && $NAS->{SUB_NAS_RAD_PAIRS} && $NAS->{SUB_NAS_RAD_PAIRS} =~ /Assign-Ports=\"(.+)\"/) {
+    my @allow_ports = split(/,/, $1);
+    if (! in_array($attr->{NAS_PORT}, \@allow_ports)) {
+      $self->{error}=3;
+      $self->{error_str}="Unallow port '$attr->{NAS_PORT}'";
+      return $self;
+    }
+  }
+  return $self;
+}
+#**********************************************************
+#
+#**********************************************************
+sub leases_update {
+  my $self   = shift;
+  my ($NAS) = @_;
+  $self->{UID}=0 if (! $self->{UID});
+  $self->query2("DELETE FROM dhcphosts_leases WHERE ip=INET_ATON('$self->{IP}') AND ends < now()", 'do');
+  my $leases_time = $CONF->{DHCPHOSTS_SESSSION_TIMEOUT} || $NAS->{NAS_ALIVE} || 300;
+  $WHERE   = '';
+  if ($CONF->{DHCPHOSTS_PORT_BASE} && ! in_array($NAS->{SUB_NAS_ID}, \@SWITCH_MAC_AUTH) && $NAS->{SUB_NAS_ID} != 0) {
+    $WHERE = ($self->{NAS_PORT}) ? " AND port='$self->{NAS_PORT}'" : '';
+    $WHERE .= " AND switch_mac='$self->{NAS_MAC}'";
+  }
+
+  if (defined($self->{GUEST_MODE})) {
+    $WHERE .= " AND flag=". (($self->{GUEST_MODE}) ? 1 : 0);
+  }
+
+  # check work IP
+  $self->query2("SELECT uid FROM dhcphosts_leases
+      WHERE ip=INET_ATON('$self->{IP}')
+      AND hardware='$self->{USER_MAC}' AND uid='$self->{UID}' $WHERE
+      ORDER BY 1;",
+    undef, { COLS_NAME => 1 });
+
+  if ($self->{TOTAL} > 0) {
+    $self->query2("UPDATE dhcphosts_leases SET
+        ends=now() + interval " . ($leases_time + 30) . " second,
+        hardware='$self->{USER_MAC}',  nas_id='$NAS->{SUB_NAS_ID}',
+        switch_mac='$self->{NAS_MAC}',  port='$self->{NAS_PORT}',  vlan='$self->{VLAN}'
+        WHERE ends > now() AND ip=INET_ATON('$self->{IP}')
+        AND hardware='$self->{USER_MAC}' AND uid='$self->{UID}' $WHERE LIMIT 1;", 'do');
+  }
+  else {
+    #add to dhcp table
+    $self->query2("INSERT INTO dhcphosts_leases
+        (start, ends, state, next_state, hardware, uid,
+         circuit_id, remote_id,
+         nas_id, ip, port, vlan, switch_mac, flag)
+      VALUES (now(),
+        now() + interval " . ($leases_time + 30) . " second, 2, 1,
+        '$self->{USER_MAC}',
+        '$self->{UID}',
+        '$self->{CIRCUIT_ID}',
+        '$self->{AGENT_REMOTE_ID}',
+        '$NAS->{SUB_NAS_ID}',
+        INET_ATON('$self->{IP}'),
+        '$self->{NAS_PORT}',
+        '$self->{VLAN}',
+        '$self->{NAS_MAC}',
+        '" . (($self->{GUEST_MODE}) ? 1 : 0) . "')", 'do'
+    );
+  }
+  return $self;
+}
+#*******************************************************************
+# returns:
+#
+#   -2 - No Free Address in TP pool
+#   -1 - No free address in nas pool
+#    0 - No address pool using nas servers ip address
+#   192.168.101.1 - assign ip address
+#
+# get_guest_ip($self, $pool_id, $nas_ip)
+#*******************************************************************
+sub get_guest_ip {
+  my $self = shift;
+  my ($pool_id, $attr) = @_;
+
+  $self->{NEW_IP}=1;
+  $self->query2("SELECT ippools.ip, ippools.counts, ippools.id FROM ippools
+     WHERE ippools.id='$pool_id'"
+  );
+
+  if ($self->{TOTAL} < 1) {
+    $self->{errstr}="Can't find guest pool $pool_id";
+    return 0;
+  }
+
+  my @pools_arr      = ();
+  my $list           = $self->{list};
+  my @used_pools_arr = ();
+
+  foreach my $line (@$list) {
+    my $sip   = $line->[0];
+    my $count = $line->[1];
+    my $id    = $line->[2];
+    push @used_pools_arr, $id;
+    my %pools = ();
+
+    for (my $i = $sip ; $i <= $sip + $count ; $i++) {
+      $pools{$i} = 1;
+    }
+    push @pools_arr, \%pools;
+  }
+
+  my $used_pools = join(', ', @used_pools_arr);
+
+  #get active address and delete from pool
+  # Select from active users and reserve ips
+  $self->query2("SELECT ip FROM dhcphosts_leases  WHERE ends > now() GROUP BY ip ORDER BY ends;");
+  $list = $self->{list};
+  $self->{USED_IPS} = 0;
+
+  my %pool = %{ $pools_arr[0] };
+
+  for (my $i = 0 ; $i <= $#pools_arr ; $i++) {
+    %pool = %{ $pools_arr[$i] };
+    foreach my $ip (@$list) {
+      if (exists($pool{ $ip->[0] })) {
+        delete($pool{ $ip->[0] });
+        $self->{USED_IPS}++;
+      }
+    }
+    last if (scalar(keys %pool) > 0);
+  }
+
+  my @ips_arr = keys %pool;
+  my $assign_ip = ($#ips_arr > -1) ? $ips_arr[ rand($#ips_arr + 1) ] : undef;
+
+  if ($assign_ip) {
+    my (@d);
+    $d[0]      = int($assign_ip / 256 / 256 / 256);
+    $d[1]      = int(($assign_ip - $d[0] * 256 * 256 * 256) / 256 / 256);
+    $d[2]      = int(($assign_ip - $d[0] * 256 * 256 * 256 - $d[1] * 256 * 256) / 256);
+    $d[3]      = int($assign_ip - $d[0] * 256 * 256 * 256 - $d[1] * 256 * 256 - $d[2] * 256);
+    $assign_ip = "$d[0].$d[1].$d[2].$d[3]";
+
+    return $assign_ip;
+  }
+  else {    # no addresses available in pools
+    return -1;
+  }
+
+  return 0;
+}
+
+#          'CALLING_STATION_ID' => 'bc:f6:85:c4:84:15',
+#          'DHCP_OPTION82' => '0x01060004000100090208000600179a7a3f69',
+#          'NAS_PORT' => '767',
+#          'USER_NAME' => 'bc:f6:85:c4:84:15',
+#          'NAS_IDENTIFIER' => 'ipoe',
+#          'CALLED_STATION_ID' => 'eth1',
+#          'NAS_PORT_ID' => 'ipoe0',
+#          'NAS_PORT_TYPE' => 'Ethernet',
+#          'NAS_IP_ADDRESS' => '127.0.0.1',
+#          'USER_PASSWORD' => 'bc:f6:85:c4:84:15'
 
 1
 

@@ -103,7 +103,7 @@ sub hangup {
   elsif ($nas_type eq 'pppd_coa') {
     hangup_pppd_coa($NAS, $PORT, $attr);
   }
-  elsif ($nas_type eq 'accel_ppp' or $nas_type eq 'accel_ipoe') {
+  elsif ($nas_type eq 'accel_ppp' || $nas_type eq 'accel_ipoe') {
     hangup_radius($NAS, $PORT, "", $attr);
   }
   elsif ($nas_type eq 'redback') {
@@ -1086,7 +1086,7 @@ sub setspeed {
   $NAS      = $Nas;
   $nas_type = $NAS->{NAS_TYPE};
 
-  if ($nas_type eq 'pppd_coa' || $nas_type eq 'accel_ppp') {
+  if ($nas_type eq 'pppd_coa' || $nas_type eq 'accel_ppp' || $nas_type eq 'accel_ipoe') {
     return setspeed_pppd_coa($NAS, $PORT, $UPSPEED, $DOWNSPEED, $attr);
   }
   else {

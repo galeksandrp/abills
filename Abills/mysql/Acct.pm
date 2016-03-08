@@ -16,11 +16,14 @@ $VERSION     = 2.00;
 # User name expration
 use main;
 use Billing;
+use Abills::Base qw(in_array);
 
 @ISA = ("main");
 
 my ($conf);
 my $Billing;
+my %NAS_INFO = ();
+my @SWITCH_MAC_AUTH = ();
 
 
 my %ACCT_TYPES = (
@@ -44,6 +47,21 @@ sub new {
   
   $self->{db}=$db;
   $Billing = Billing->new($db, $conf);
+
+  if ($conf->{DHCPHOSTS_SWITCH_MAC_AUTH}) {
+    @SWITCH_MAC_AUTH = ();
+    my @arr_switch_ids = split(/,/, $conf->{DHCPHOSTS_SWITCH_MAC_AUTH});
+    foreach my $ids (@arr_switch_ids) {
+      if ($ids =~ /^(\d+)-(\d+)$/) {
+         for (my $i=$1; $i <= $2 ; $i++) {
+           push @SWITCH_MAC_AUTH, $i;
+         }
+      }
+      else {
+        push @SWITCH_MAC_AUTH, $ids;
+      }
+    }
+  }
 
   return $self;
 }
@@ -82,7 +100,83 @@ sub accounting {
       $RAD->{USER_NAME} = $self->{list}->[0]->[1];
     }
   }
+  elsif($NAS->{NAS_TYPE} eq 'accel_ipoe') {
+    ($self->{NAS_MAC},
+     $self->{NAS_PORT},
+     $self->{VLAN},
+     $self->{AGENT_REMOTE_ID},
+     $self->{CIRCUIT_ID}
+     ) = parse_opt82($RAD, $NAS);
 
+    $self->get_nas_info($self, $NAS);
+#    if ($self->{error}) {
+#      $RAD_PAIRS{'Reply-Message'} = $self->{error_str};
+#      return 1, \%RAD_PAIRS;
+#    }
+
+    my @WHERE_RULES = ();
+
+    if ($NAS->{DOMAIN_ID}) {
+      push @WHERE_RULES, "u.domain_id='$NAS->{DOMAIN_ID}'";
+    }
+    else {
+      push @WHERE_RULES, "u.domain_id='0'";
+    }
+
+    $self->{USER_MAC} = $RAD->{CALLING_STATION_ID};
+    if ($conf->{DHCPHOSTS_PORT_BASE} && ! in_array($NAS->{SUB_NAS_ID}, \@SWITCH_MAC_AUTH) && $NAS->{SUB_NAS_ID} != 0) {
+      push @WHERE_RULES, "(n.mac='$self->{NAS_MAC}' AND dh.ports='$self->{NAS_PORT}')";
+    }
+    elsif ($conf->{DHCPHOSTS_AUTH_PARAMS} && ! in_array($NAS->{SUB_NAS_ID}, \@SWITCH_MAC_AUTH) && $NAS->{SUB_NAS_ID} != 0) {
+      push @WHERE_RULES, "((n.mac='$self->{NAS_MAC}' OR n.mac IS null)
+        AND (dh.mac='$RAD->{CALLING_STATION_ID}' OR dh.mac='00:00:00:00:00:00')
+        AND (dh.vid='$self->{VLAN}' OR dh.vid='')
+        AND (dh.ports='$self->{NAS_PORT}' OR dh.ports=''))";
+    }
+    elsif ($RAD->{CALLING_STATION_ID}) {
+      push @WHERE_RULES, "dh.mac='$RAD->{CALLING_STATION_ID}'";
+    }
+
+    my $WHERE = ($#WHERE_RULES > -1) ? join(' and ', @WHERE_RULES) : '';
+
+    my $sql = "SELECT u.uid, u.id AS user_name
+     FROM dhcphosts_hosts dh
+     INNER JOIN users u ON (u.uid=dh.uid)
+     LEFT JOIN nas n ON (dh.nas=n.id)
+     WHERE $WHERE
+     FOR UPDATE;";
+
+    $self->query2("$sql",  
+     undef,
+     { COLS_NAME => 1,
+       COLS_UPPER=> 1
+     }
+    );
+    if ($self->{TOTAL} > 1) {
+      my $i = 0;
+      foreach my $host (@{ $self->{list} }) {
+        if (uc($RAD->{CALLING_STATION_ID}) eq uc($host->{MAC})) {
+          foreach my $p ( keys %{ $self->{list}->[$i] }) {
+            $self->{$p} = $self->{list}->[$i]->{$p};
+          }
+        }
+        $i++;
+      }
+    }
+    elsif($self->{TOTAL}==1) {
+      foreach my $p ( keys %{ $self->{list}->[0] }) {
+        $self->{$p} = $self->{list}->[0]->{$p};
+      }
+    }
+    $self->{IP} = $RAD->{FRAMED_IP_ADDRESS};
+    $self->leases_update($NAS);
+    if ($self->{USER_NAME}) {
+      $RAD->{USER_NAME} = $self->{USER_NAME};
+    }
+    else {
+      return $self;
+    }
+  }
   #Call back function
   elsif ($RAD->{USER_NAME} =~ /(\d+):(\S+)/) {
     $RAD->{USER_NAME}          = $2;
@@ -94,7 +188,6 @@ sub accounting {
     $self->query2("SELECT acct_session_id FROM dv_calls 
     WHERE user_name='$RAD->{USER_NAME}' AND nas_id='$NAS->{NAS_ID}' AND (framed_ip_address=INET_ATON('$RAD->{FRAMED_IP_ADDRESS}') OR framed_ip_address=0) FOR UPDATE;"
     );
-
     #Get connection speed
     if ($RAD->{X_ASCEND_DATA_RATE} && $RAD->{X_ASCEND_XMIT_RATE}) {
       $RAD->{CONNECT_INFO} = "$RAD->{X_ASCEND_DATA_RATE} / $RAD->{X_ASCEND_XMIT_RATE}";
@@ -102,10 +195,10 @@ sub accounting {
     elsif ($RAD->{CISCO_SERVICE_INFO}) {
       $RAD->{CONNECT_INFO} = "$RAD->{CISCO_SERVICE_INFO}";
     }
-
     if ($self->{TOTAL} > 0) {
       foreach my $line (@{ $self->{list} }) {
         if ($line->[0] eq 'IP' || $line->[0] eq	"$RAD->{ACCT_SESSION_ID}") {
+
           my $sql = "UPDATE dv_calls SET
          status='$acct_status_type',
          started=$SESSION_START, 
@@ -128,7 +221,7 @@ sub accounting {
     else { #if($RAD->{ACCT_SESSION_TIME} && $RAD->{ACCT_SESSION_TIME} > 2) {
       #Get TP_ID
       $self->query2("SELECT u.uid, dv.tp_id, dv.join_service FROM (users u, dv_main dv)
-       WHERE u.uid=dv.uid and u.id='$RAD->{USER_NAME}';"
+       WHERE u.uid=dv.uid and u.id='$RAD->{USER_NAME}' FOR UPDATE;"
       );
       if ($self->{TOTAL} > 0) {
         ($self->{UID},
@@ -393,8 +486,8 @@ sub accounting {
          { INFO  => 1 });
 
          my $sql = "REPLACE INTO dv_calls
-         (status, user_name, started, lupdated, nas_ip_address, nas_port_id, acct_session_id, framed_ip_address, CID, CONNECT_INFO,   nas_id, tp_id,
-         uid, join_service)
+         (status, user_name, started, lupdated, nas_ip_address, nas_port_id, acct_session_id, framed_ip_address, CID, CONNECT_INFO, nas_id, tp_id,
+         uid, join_service, guest)
            values ('$acct_status_type', 
            '$RAD->{USER_NAME}', 
            now(), 
@@ -407,7 +500,8 @@ sub accounting {
            '$RAD->{CONNECT_INFO}', 
            '$NAS->{NAS_ID}',
            '$self->{TP_ID}', '$self->{UID}',
-          '$self->{JOIN_SERVICE}');";
+          '$self->{JOIN_SERVICE}',
+          '$self->{GUEST}');";
         $self->query2("$sql", 'do');
         return $self;
       }
@@ -463,7 +557,6 @@ sub accounting {
     );
 
   }
-
   return $self;
 }
 
@@ -480,23 +573,48 @@ sub rt_billing {
     return $self;
   }
 
+#  $self->query2("SELECT lupdated, UNIX_TIMESTAMP()-lupdated,
+#   if($RAD->{INBYTE}   >= acct_input_octets AND $RAD->{ACCT_INPUT_GIGAWORDS}=acct_input_gigawords,
+#        $RAD->{INBYTE} - acct_input_octets,
+#        4294967296-acct_input_octets+4294967296*($RAD->{ACCT_INPUT_GIGAWORDS}-acct_input_gigawords-1)+$RAD->{INBYTE}),
+#   if($RAD->{OUTBYTE}  >= acct_output_octets AND $RAD->{ACCT_OUTPUT_GIGAWORDS}=acct_output_gigawords,
+#        $RAD->{OUTBYTE} - acct_output_octets,
+#        4294967296-acct_output_octets+4294967296*($RAD->{ACCT_OUTPUT_GIGAWORDS}-acct_output_gigawords-1)+$RAD->{OUTBYTE}),
+#   if($RAD->{INBYTE2}  >= ex_input_octets, $RAD->{INBYTE2}  - ex_input_octets, ex_input_octets),
+#   if($RAD->{OUTBYTE2} >= ex_output_octets, $RAD->{OUTBYTE2} - ex_output_octets, ex_output_octets),
+#   sum,
+#   tp_id,
+#   uid
+#   FROM dv_calls
+#  WHERE nas_id='$NAS->{NAS_ID}' and acct_session_id='$RAD->{ACCT_SESSION_ID}';"
+#  );
+
   $self->query2("SELECT lupdated, UNIX_TIMESTAMP()-lupdated,
-   if($RAD->{INBYTE}   >= acct_input_octets AND $RAD->{ACCT_INPUT_GIGAWORDS}=acct_input_gigawords,
+   if($RAD->{INBYTE}   >= acct_input_octets AND ". $RAD->{ACCT_INPUT_GIGAWORDS} ."=acct_input_gigawords,
         $RAD->{INBYTE} - acct_input_octets,
-        4294967296-acct_input_octets+4294967296*($RAD->{ACCT_INPUT_GIGAWORDS}-acct_input_gigawords-1)+$RAD->{INBYTE}),
-   if($RAD->{OUTBYTE}  >= acct_output_octets AND $RAD->{ACCT_OUTPUT_GIGAWORDS}=acct_output_gigawords,
+        if(". $RAD->{ACCT_INPUT_GIGAWORDS} ." - acct_input_gigawords > 0, 4294967296 * (". $RAD->{ACCT_INPUT_GIGAWORDS} ." - acct_input_gigawords) - acct_input_octets + $RAD->{INBYTE}, 0)),
+   if($RAD->{OUTBYTE}  >= acct_output_octets AND ".$RAD->{ACCT_OUTPUT_GIGAWORDS} ."=acct_output_gigawords,
         $RAD->{OUTBYTE} - acct_output_octets,
-        4294967296-acct_output_octets+4294967296*($RAD->{ACCT_OUTPUT_GIGAWORDS}-acct_output_gigawords-1)+$RAD->{OUTBYTE}),
+        if(". $RAD->{ACCT_OUTPUT_GIGAWORDS} ." - acct_output_gigawords > 0, 4294967296 * (". $RAD->{ACCT_OUTPUT_GIGAWORDS} ." - acct_output_gigawords) - acct_output_octets + $RAD->{OUTBYTE}, 0)),
    if($RAD->{INBYTE2}  >= ex_input_octets, $RAD->{INBYTE2}  - ex_input_octets, ex_input_octets),
    if($RAD->{OUTBYTE2} >= ex_output_octets, $RAD->{OUTBYTE2} - ex_output_octets, ex_output_octets),
    sum,
    tp_id,
    uid
    FROM dv_calls
-  WHERE nas_id='$NAS->{NAS_ID}' and acct_session_id='$RAD->{ACCT_SESSION_ID}';"
-  );
+  WHERE nas_id='$NAS->{NAS_ID}' and acct_session_id='". $RAD->{ACCT_SESSION_ID} ."';");
 
   if ($self->{errno}) {
+    if ($conf->{ACCT_DEBUG}) {
+      $self->query2("SELECT $RAD->{INBYTE}, acct_input_octets, ". $RAD->{ACCT_INPUT_GIGAWORDS} .", acct_input_gigawords,
+         $RAD->{OUTBYTE}, acct_output_octets, ".$RAD->{ACCT_OUTPUT_GIGAWORDS} .", acct_output_gigawords
+      FROM dv_calls 
+      WHERE nas_id='$NAS->{NAS_ID}' and acct_session_id='". $RAD->{ACCT_SESSION_ID} ."';");
+
+      my $line = $self->{list}->[0];
+      my $echo_ = `echo  "$RAD->{ACCT_SESSION_ID} - rad: $line->[0], $line->[1], rad: $line->[2], $line->[3] \n rad: $line->[4], $line->[5], rad: $line->[6], $line->[7]" >> /tmp/dv_calls_error`; 
+    }
+    
     return $self;
   }
   elsif ($self->{TOTAL} < 1) {
@@ -618,6 +736,201 @@ sub rt_billing {
       $self->query2("UPDATE bills SET deposit=deposit-$self->{SUM} WHERE id='$self->{BILL_ID}';", 'do');
     }
   }
+}
+#**********************************************************
+# http://tools.ietf.org/html/rfc4243
+# http://tools.ietf.org/html/rfc3046#section-7
+#**********************************************************
+sub parse_opt82 {
+  my ($RAD, $NAS, $attr) = @_;
+  my ($switch_mac, $port, $vlan);
+  my %result      =  ();
+  my $hex2ansii   = '';
+  my @o82_expr_arr = ();
+  if ($conf->{DHCPHOSTS_EXPR}) {
+    $conf->{DHCPHOSTS_EXPR} =~ s/\n//g;
+    @o82_expr_arr    = split(/;/, $conf->{DHCPHOSTS_EXPR});
+  }
+  if ($#o82_expr_arr > -1 && $RAD->{DHCP_OPTION82}) {
+    my $expr_debug  =  "";
+    foreach my $expr (@o82_expr_arr) {
+      my ($parse_param, $expr_, $values, $attribute)=split(/:/, $expr);
+      $parse_param = 'DHCP_OPTION82' if ($parse_param eq 'DHCP-Relay-Agent-Information');
+      my @EXPR_IDS = split(/,/, $values);
+      if ($RAD->{$parse_param}) {
+        my $input_value = $RAD->{$parse_param};
+        if ($attribute && $attribute eq 'hex2ansii') {
+          $hex2ansii   = 1;
+          $input_value =~ s/^0x//;
+          $input_value = pack 'H*', $input_value;
+        }
+
+        if ($conf->{ACCEL_IPOE_DEBUG} && $conf->{ACCEL_IPOE_DEBUG} > 3) {
+          $expr_debug  .=  "$RAD->{CALLING_STATION_ID}: $parse_param, $expr_, $RAD->{$parse_param}\n";
+        }
+
+        if (my @res = ($input_value =~ /$expr_/i)) {
+          for (my $i=0; $i <= $#res ; $i++) {
+            if ($conf->{ACCEL_IPOE_DEBUG}  && $conf->{ACCEL_IPOE_DEBUG} > 2) {
+              $expr_debug .= "$EXPR_IDS[$i] / $res[$i]\n";
+            }
+
+            $result{$EXPR_IDS[$i]}=$res[$i];
+          }
+          if ($attribute eq 'bdcom'){
+            if ($result{PORT} =~ /([0-9]{2})([0-9a-f]{2})([0-9a-f]{2})/) {
+              $result{PORT_DEC} = hex($1) . "/" . (hex($2)-6) . ":" . hex($3);
+              $expr_debug .= "PORT / $result{PORT_DEC}\n";
+            }
+          }
+          if ($hex2ansii) {
+            $result{VLAN_DEC}        = $result{VLAN};
+            $result{PORT_DEC}        = $result{PORT};
+          }
+          $hex2ansii = 0;
+        }
+      }
+
+      if ($parse_param eq 'DHCP_OPTION82') {
+        $result{AGENT_REMOTE_ID} = substr($RAD->{$parse_param},0,25);
+        $result{CIRCUIT_ID} = substr($RAD->{$parse_param},25,25);
+      }
+      else {
+        $result{AGENT_REMOTE_ID}='-';
+        $result{CIRCUIT_ID}='-';
+      }
+    }
+
+    if ($result{MAC} && $result{MAC} =~ /([a-f0-9]{2})([a-f0-9]{2})([a-f0-9]{2})([a-f0-9]{2})([a-f0-9]{2})([a-f0-9]{2})/i) {
+      $result{MAC} = "$1:$2:$3:$4:$5:$6";
+    }
+
+    if ($conf->{ACCEL_IPOE_DEBUG} && $conf->{ACCEL_IPOE_DEBUG} > 2) {
+       my $zz = `echo "$expr_debug" >> /tmp/dhcphosts_accel_expr`;
+    }
+  }
+  # FreeRadius DHCP default
+  elsif($RAD->{DHCP_OPTION82}) {
+    my @relayid = unpack('a10 a4 a2 a2 a4 a16 (a2)*', $RAD->{DHCP_OPTION82});
+    $result{VLAN}            = $relayid[1];
+    $result{PORT}            = $relayid[3];
+    $result{MAC}             = $relayid[5];
+    $result{AGENT_REMOTE_ID} = substr($RAD->{DHCP_OPTION82},0,25);
+    $result{CIRCUIT_ID}      = substr($RAD->{DHCP_OPTION82},25,25);
+  }
+  $result{VLAN} = $result{VLAN_DEC} || hex($result{VLAN} || 0);
+  $result{PORT} = $result{PORT_DEC} || hex($result{PORT} || 0);
+  $result{MAC} =  $result{MAC} || 0;
+  $result{AGENT_REMOTE_ID} = $result{AGENT_REMOTE_ID} || '-';
+  $result{CIRCUIT_ID} = $result{CIRCUIT_ID} || '-';
+  return $result{MAC}, $result{PORT}, $result{VLAN}, $result{AGENT_REMOTE_ID}, $result{CIRCUIT_ID};
+}
+#**********************************************************
+#
+#**********************************************************
+sub get_nas_info {
+  my $self = shift;
+  my ($attr, $NAS) = @_;
+  my $nas;
+  my @WHERE_RULES = ();
+  my $EXT_TABLE   = '';
+  $conf->{DHCPHOSTS_SESSSION_TIMEOUT} = $conf->{DHCPHOSTS_SESSSION_TIMEOUT} || $NAS->{NAS_ALIVE} || 300;
+  # Do nothing if port is magistral, i.e. 25.26.27.28
+  # Apply only for reserv ports
+  delete ($self->{error});
+  if ($attr->{NAS_MAC} && ! $NAS_INFO{ $attr->{NAS_MAC} } ) {
+    my $nas_pm = Nas->new($self->{db}, $conf);
+    my $list = $nas_pm->list({ MAC => $attr->{NAS_MAC}, COLS_NAME => 1, COLS_UPPER => 1 });
+    if ($nas_pm->{TOTAL} >= 1) {
+      foreach my $line (@$list) {
+        $line->{NAS_TYPE} = $NAS->{NAS_TYPE};
+        $NAS_INFO{ $attr->{NAS_MAC} } = $line;
+        $NAS_INFO{ $attr->{NAS_MAC}  . '_' . $line->{NAS_IP} } = $line;
+      }
+    }
+  }
+
+  if ($attr->{NAS_MAC} && $NAS_INFO{$attr->{NAS_MAC}}) {
+    $NAS->{SUB_NAS_ID} = $NAS_INFO{$attr->{NAS_MAC}}->{NAS_ID};
+    $NAS->{SUB_NAS_RAD_PAIRS} = $NAS_INFO{$attr->{NAS_MAC}}->{NAS_RAD_PAIRS};
+    %{ $nas } = %{ $NAS_INFO{$attr->{NAS_MAC}} };
+    $NAS->{NAS_ALIVE} = $conf->{DHCPHOSTS_SESSSION_TIMEOUT} if (! $NAS->{NAS_ALIVE});
+  }
+  elsif($attr->{NAS_MAC}) {
+#    $NAS->{NAS_ID}=0;
+    $self->{error}=3;
+    $self->{error_str}="NOT EXIST NAS_MAC: $attr->{NAS_MAC}";
+    return $self;
+  }
+  else {
+    $NAS->{SUB_NAS_ID} = '0';
+  }
+
+  if ($attr->{NAS_PORT} && $NAS->{SUB_NAS_RAD_PAIRS} && $NAS->{SUB_NAS_RAD_PAIRS} =~ /Assign-Ports=\"(.+)\"/) {
+    my @allow_ports = split(/,/, $1);
+    if (! in_array($attr->{NAS_PORT}, \@allow_ports)) {
+      $self->{error}=3;
+      $self->{error_str}="Unallow port '$attr->{NAS_PORT}'";
+      return $self;
+    }
+  }
+  return $self;
+}
+#**********************************************************
+#
+#**********************************************************
+sub leases_update {
+  my $self   = shift;
+  my ($NAS) = @_;
+  $self->{UID}=0 if (! $self->{UID});
+  $self->query2("DELETE FROM dhcphosts_leases WHERE ip=INET_ATON('$self->{IP}') AND ends < now()", 'do');
+  my $leases_time = $conf->{DHCPHOSTS_SESSSION_TIMEOUT} || $NAS->{NAS_ALIVE} || 300;
+  $WHERE   = '';
+  if ($conf->{DHCPHOSTS_PORT_BASE} && ! in_array($NAS->{SUB_NAS_ID}, \@SWITCH_MAC_AUTH) && $NAS->{SUB_NAS_ID} != 0) {
+    $WHERE = ($self->{NAS_PORT}) ? " AND port='$self->{NAS_PORT}'" : '';
+    $WHERE .= " AND switch_mac='$self->{NAS_MAC}'";
+  }
+
+#  if (defined($self->{GUEST_MODE})) {
+#    $WHERE .= " AND flag=". (($self->{GUEST_MODE}) ? 1 : 0);
+#  }
+
+  # check work IP
+
+  $self->query2("SELECT flag FROM dhcphosts_leases
+      WHERE ip=INET_ATON('$self->{IP}')
+      AND hardware='$self->{USER_MAC}' $WHERE
+      ORDER BY 1;",
+    undef, { COLS_NAME => 1 });
+  if ($self->{TOTAL} > 0) {
+    $self->{GUEST} = $self->{list}->[0]->{flag};
+    $self->query2("UPDATE dhcphosts_leases SET
+        ends=now() + interval " . ($leases_time + 30) . " second, uid='$self->{UID}',
+        hardware='$self->{USER_MAC}',  nas_id='$NAS->{SUB_NAS_ID}',
+        switch_mac='$self->{NAS_MAC}',  port='$self->{NAS_PORT}',  vlan='$self->{VLAN}'
+        WHERE ends > now() AND ip=INET_ATON('$self->{IP}')
+        AND hardware='$self->{USER_MAC}' AND (uid='$self->{UID}' OR uid='0') $WHERE LIMIT 1;", 'do');
+  }
+  else {
+    #add to dhcp table
+    $self->query2("INSERT INTO dhcphosts_leases
+        (start, ends, state, next_state, hardware, uid,
+         circuit_id, remote_id,
+         nas_id, ip, port, vlan, switch_mac)
+      VALUES (now(),
+        now() + interval " . ($leases_time + 30) . " second, 2, 1,
+        '$self->{USER_MAC}',
+        '$self->{UID}',
+        '$self->{CIRCUIT_ID}',
+        '$self->{AGENT_REMOTE_ID}',
+        '$NAS->{SUB_NAS_ID}',
+        INET_ATON('$self->{IP}'),
+        '$self->{NAS_PORT}',
+        '$self->{VLAN}',
+        '$self->{NAS_MAC}')", 'do'
+    );
+  }
+  return $self;
 }
 
 1
