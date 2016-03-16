@@ -61,6 +61,8 @@ $debug  = $conf{PAYSYS_DEBUG} || 0;
 $html   = Abills::HTML->new();
 $db     = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd}, { CHARSET => ($conf{dbcharset}) ? $conf{dbcharset} : undef });
 
+$db = $db->{db};
+
 require "Misc.pm";
 
 #Operation status
