@@ -1862,7 +1862,7 @@ sub paysys_pay {
         {
           SUM          => $amount,
           DATE         => $attr->{DATE},
-          DESCRIBE     => "$payment_system",
+          DESCRIBE     => $attr->{PAYMENT_DESCRIBE} || "$payment_system",
           METHOD       => ($conf{PAYSYS_PAYMENTS_METHODS} && $PAYSYS_PAYMENTS_METHODS{$payment_system_id}) ? $payment_system_id : '2',
           EXT_ID       => "$payment_system:$ext_id",
           CHECK_EXT_ID => "$payment_system:$ext_id",
