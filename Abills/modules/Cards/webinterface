@@ -729,7 +729,14 @@ sub cards_user_payment () {
     $Cards->cards_info({ %FORM, UID => $LIST_PARAMS{UID}, PAYMENTS => 1 });
 
     if ($Cards->{errno}) {
-      $html->message('err', $_ERROR, "$ERR_SUPPORT / $ERR_SUPPORT", { ID => 600 });
+      if ($Cards->{errno} == 2) {
+        $html->message('err', "$_CARD_SERVICE:$_ERROR", "$_NOT_EXIST", { ID => 603 });
+        $Cards->bruteforce_add({ UID => $LIST_PARAMS{UID}, PIN => $FORM{PIN} });
+        $db->commit();
+      }
+      else {
+        $html->message('err', $_ERROR, "$ERR_SUPPORT / $ERR_SUPPORT", { ID => 600 });
+      }
       return 0;
     }
     elsif (int($Cards->{BRUTE_COUNT}) >= $BRUTE_LIMIT) {
@@ -741,7 +748,7 @@ sub cards_user_payment () {
       return 0;
     }
     elsif ($Cards->{TOTAL} < 1) {
-      $html->message('err', "$_CARDS:$_ERROR", "$_NOT_EXIST", { ID => 603 });
+      $html->message('err', "$_CARDS:$_ERROR", "- $_NOT_EXIST", { ID => 603 });
       $Cards->bruteforce_add({ UID => $LIST_PARAMS{UID}, PIN => $FORM{PIN} });
       $db->commit();
     }
