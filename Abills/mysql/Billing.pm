@@ -455,6 +455,10 @@ sub session_sum {
   my $recv  = $RAD->{INBYTE}   || 0;    #to server
   my $sent2 = $RAD->{OUTBYTE2} || 0;
   my $recv2 = $RAD->{INBYTE2}  || 0;
+  if(! $SESSION_START) {
+    $SESSION_START = 'UNIX_TIMESTAMP()';
+  }
+
 
   # Don't calculate if session smaller then $CONF->{MINIMUM_SESSION_TIME} and  $CONF->{MINIMUM_SESSION_TRAF}
   if (
