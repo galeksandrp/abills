@@ -2191,8 +2191,9 @@ sub get_db_info {
 
   $Sessions->{debug} = 1 if ($debug > 4);
   my $list = $Sessions->online({ CLIENT_IP => '_SHOW', 
-  	                             PORT      => '_SHOW',
-  	                             NAS_ID    => $LIST_PARAMS{NAS_IDS} });
+                                 PORT      => '_SHOW',
+                                 STATUS    => '_SHOW',
+                                 NAS_ID    => $LIST_PARAMS{NAS_IDS} });
 
   foreach my $line (@$list) {
     my $ip = $line->{client_ip};
