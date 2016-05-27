@@ -341,7 +341,9 @@ sub online {
     $dub_logins{ $line->{user_name} }++ if ($line->{user_name});
     $dub_ports{ $line->{nas_id} }{ $line->{nas_port_id} }++ if ($line->{nas_port_id});
   #  $dub_ips{ $line->{nas_id} }{ $line->{client_ip} }++ if ($line->{client_ip});
-    $dub_ips{ $line->{nas_id} }{ $line->{client_ip} }++ if ($line->{client_ip} && ($line->{status}==1 || ($line->{status}>=3 && $line->{status}<11))) ;
+    if($line->{status}) {
+      $dub_ips{ $line->{nas_id} }{ $line->{client_ip} }++ if ($line->{client_ip} && ($line->{status}==1 || ($line->{status}>=3 && $line->{status}<11))) ;
+    }
   }
 
   $self->{dub_ports}  = \%dub_ports;
