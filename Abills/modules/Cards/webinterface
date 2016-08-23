@@ -2367,7 +2367,6 @@ sub cards_print {
 
   $LIST_PARAMS{PAGE_ROWS} = $FORM{PAGE_ROWS} if ($FORM{PAGE_ROWS});
   
-  $Cards->{debug}=1;
   my $list = $Cards->cards_list({ NUMBER    => $FORM{NUMBER} || '_SHOW',
                                   SERIAL    => $FORM{SERIAL} || '_SHOW',
                                   LOGIN     => '_SHOW',
